@@ -84,6 +84,7 @@ enum {
 	NUMNODES = 2	/* serve eventualmente per dimensionare arrays */
 };
 
+
 void ComputeInterpolation(const Vec3 *const node_pos,
 			const Mat3x3 *const node_or,
 			const Vec3 *const node_f,
@@ -168,28 +169,23 @@ void ComputeInterpolation(const Vec3 *const node_pos,
 // 	delta_F_ws_or[NODE2] += L*Theta12.GetVec().Inv()*or_delta_w_or[NODE2];
 
 
-	Mat3x3 L(RotManip::Elle(we2.GetVec(),e2.GetVec()*wder[NODE2]));
+	MatExp L(RoTrManip::Elle(we2,e2*wder[NODE2]));
 	Mat3x3 Theta12vI(RotManip::DRot_I(we2.GetVec()));
-	delta_om_ws_or[NODE1] += L*Theta12vI*or_delta_w_or[NODE1];
-	delta_om_ws_or[NODE2] += L*Theta12vI*or_delta_w_or[NODE2];
 	
-// 	delta_F_ws_or[NODE1] += L.GetMom()*Theta12vI*or_delta_w_or[NODE1];
-// 	delta_F_ws_or[NODE2] += L.GetMom()*Theta12vI*or_delta_w_or[NODE2];
-
-	Mat3x3 LT(L*Theta12.GetVec());
-
-	Mat3x3 tmp = pos.Cross(or_delta_w_or[NODE1]);
-	tmp += delta_pos_w_or[NODE1];
-	tmp += delta_pos_w_pos[NODE1];
-	tmp += or_delta_w_or[NODE1];
-	delta_F_ws_or[NODE1] += LT*tmp;
-
-	tmp = pos.Cross(or_delta_w_or[NODE2]);
-	tmp += delta_pos_w_or[NODE2];
-	tmp += delta_pos_w_pos[NODE2];
-	tmp += or_delta_w_or[NODE2];
-	delta_F_ws_or[NODE2] += LT*tmp;
+	delta_om_ws_or[NODE1] += L.GetVec()*Theta12vI*or_delta_w_or[NODE1];
+	delta_om_ws_or[NODE2] += L.GetVec()*Theta12vI*or_delta_w_or[NODE2];
 	
+	delta_F_ws_or[NODE1] += L.GetMom()*Theta12vI*or_delta_w_or[NODE1];
+	delta_F_ws_or[NODE2] += L.GetMom()*Theta12vI*or_delta_w_or[NODE2];
+	
+	delta_F_ws_or[NODE1] += L.GetVec()*Theta12.GetVec()*pos.Cross(or_delta_w_or[NODE1]);
+	delta_F_ws_or[NODE1] += L.GetVec()*Theta12.GetVec()*delta_pos_w_or[NODE1];
+	delta_F_ws_or[NODE1] += L.GetVec()*Theta12.GetVec()*delta_pos_w_pos[NODE1];
+	delta_F_ws_or[NODE1] += L.GetVec()*Theta12.GetMom()*or_delta_w_or[NODE1];
+	delta_F_ws_or[NODE2] += L.GetVec()*Theta12.GetVec()*pos.Cross(or_delta_w_or[NODE2]);
+	delta_F_ws_or[NODE2] += L.GetVec()*Theta12.GetVec()*delta_pos_w_or[NODE2];
+	delta_F_ws_or[NODE2] += L.GetVec()*Theta12.GetVec()*delta_pos_w_pos[NODE2];
+	delta_F_ws_or[NODE2] += L.GetVec()*Theta12.GetMom()*or_delta_w_or[NODE2];
 	
 	//tarocco per l'aggiunta dell'offset f
 	//le curvature e le posizioni invece sono giuste perche' 
@@ -203,5 +199,8 @@ void ComputeInterpolation(const Vec3 *const node_pos,
 	fodo = Mat3x3(node_f[NODE2])*or_delta_w_or[NODE2];
 	delta_pos_w_or[NODE2] -= delta_pos_w_pos[NODE2]*fodo;
 	delta_F_ws_or[NODE2] -=	delta_F_ws_pos[NODE2]*fodo;
+	
+	
+	
 };
 

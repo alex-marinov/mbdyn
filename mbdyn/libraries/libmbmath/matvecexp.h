@@ -55,7 +55,110 @@
 #include "matvec6.h"
 
 /* forward declaration */
+class ScalExp;
+class VecExp;
 class MatExp;
+
+class ScalExp {
+protected:
+	doublereal vec;
+	doublereal mom;
+
+public:
+	ScalExp(void) { 
+		NO_OP; 
+	};
+   
+	~ScalExp(void) { 
+		NO_OP;
+	};
+
+	ScalExp(const ScalExp& vin) {
+		vec = vin.vec;
+		mom = vin.mom;
+	};
+
+	ScalExp(
+			const doublereal& d1, 
+			const doublereal& d2 = 0.
+	) {
+		vec = d1;
+		mom = d2;
+	};
+   
+	inline const doublereal& GetVec(void) const {
+		return vec;
+	};
+
+	inline const doublereal& GetMom(void) const {
+		return mom;
+	};
+   
+	inline void PutVec(const doublereal& x) {
+		vec = x;
+	};
+
+	inline void PutMom(const doublereal& x) {
+		mom = x;
+	};
+	
+	inline const ScalExp& operator = (const ScalExp& v) {
+		vec = v.vec;
+		mom = v.mom;
+		return *this;
+	};
+
+	inline const ScalExp& operator += (const ScalExp& v) {
+		vec += v.vec;
+		mom += v.mom;
+		return *this;
+	};
+
+	inline const ScalExp& operator -= (const ScalExp& v) {
+		vec -= v.vec;
+		mom -= v.mom;
+		return *this;
+	};
+
+	inline ScalExp operator + (void) const {
+		return *this;
+	};
+
+	inline ScalExp operator - (void) const {
+		return ScalExp(-vec, -mom);
+	};
+	
+	inline ScalExp operator + (const ScalExp& v) const {
+		return ScalExp(vec+v.vec, mom+v.mom);
+	};
+
+	inline ScalExp operator - (const ScalExp& v) const {
+		return ScalExp(vec-v.vec, mom-v.mom);
+	};
+	
+	inline ScalExp operator * (const ScalExp& v) const {
+		return ScalExp(vec*v.vec,mom*v.vec+vec*v.mom);;
+	};
+
+	inline ScalExp operator / (const ScalExp& v) const {
+		return ScalExp(vec/v.vec,(mom*v.vec-vec*v.mom)/(v.vec*v.vec));
+	};
+	
+
+	ostream& Write(ostream& out, const char* sFill = " ") const;   
+};
+
+extern ScalExp pow(const ScalExp &d, const doublereal &e);
+extern ScalExp sqrt(const ScalExp &d);
+extern ScalExp sin(const ScalExp &d);
+extern ScalExp cos(const ScalExp &d);
+extern ScalExp exp(const ScalExp &d);
+//extern ScalExp operator + (const ScalExp& v);
+//extern ScalExp operator - (const ScalExp& v);
+extern ostream& operator << (ostream& out, const ScalExp& v);
+extern ostream& Write(ostream& out, const ScalExp& v, const char* sFill = " ");
+
+
 
 class VecExp {
 protected:
@@ -98,7 +201,6 @@ public:
 		mom = v2;
 	};
    
-	//M> accesso in solo lettura 
 	inline const Vec3& GetVec(void) const {
 		return vec;
 	};
@@ -107,11 +209,6 @@ public:
 		return mom;
 	};
    
-	//M> accesso in scrittura
-	//P> e' pericoloso: non sai mai quale viene usato. La cosa migliore
-	//P> e' fare const Vec3& get() const per sola lettura,
-	//P> e put(const Vec3&) per scrittura
-	//M> come vuoi
 	inline void PutVec(const Vec3& x) {
 		vec = x;
 	};
@@ -192,8 +289,28 @@ public:
 		return VecExp(vec/d, mom/d);
 	};
 
-	//M> questo mi serve.
+	inline VecExp operator * (const ScalExp& d) const {
+		return VecExp(vec*d.GetVec(), mom*d.GetVec()+vec*d.GetMom());
+	};   
+	
+	inline VecExp operator / (const ScalExp& d) const {
+		ASSERT(d != 0.);
+		return VecExp(vec/d.GetVec(),
+			(mom*d.GetVec()-vec*d.GetMom())/(d.GetVec()*d.GetVec()));
+	};
+
+	inline ScalExp operator * (const VecExp& v) const {
+		return ScalExp(vec*v.vec, mom*v.vec+vec*v.mom);
+	};   
+
+	inline VecExp Cross(const VecExp &v) const {
+		return VecExp(vec.Cross(v.vec),
+				vec.Cross(v.mom)+mom.Cross(v.vec));
+	};
+
 	inline MatExp Cross(void) const;
+	
+	inline MatExp Tens(const VecExp &v) const;
 
 	ostream& Write(ostream& out, const char* sFill = " ") const;   
 };
@@ -206,15 +323,6 @@ extern ostream& Write(ostream& out, const VecExp& v, const char* sFill = " ");
 
 class MatExp {
 protected:
-	//P> Che senso hanno questi nomi? perche' chiami "vec" una matrice
-	//P> e "mom" l'altra?
-	//M> residui storici a cui sono affezionato. 
-	//M> quando con ste robe a 6 (VecExp) indichi delle forze
-	//M> (anche se non e' questo il caso), vec e' la forza,
-	//M> mom il momento della forza messa in x piu' la coppia,
-	//M> mom=x.Cross(forza)+coppia
-	//M> sostanzialmente ne avevo bisogno per orientarmi, adesso
-	//M> se preferisci posso tranquillamente tornare a a e xa.
 	Mat3x3 vec;
 	Mat3x3 mom;
 
@@ -236,42 +344,28 @@ public:
 		vec = Mat3x3(d1);
 		mom = Mat3x3(d2);
 	};
-
-	//P> tutti questi costruttori potrebbero venire comodi
-	//P> in certe circostanze
-	//M> dopo aver visto come hai taroccato Rot.C penso di
-	//M> capire cosa intendi
-	//M> aspetta un attimo di vedere cosa serve e poi aggiungi
-	//M> quello che ti sembra meglio
-	//M> forse il piu' carino da fare e' MatExp(VecExp) che ti caccia
-	//M> fuori quello che adesso e' VecExp.Cross()
-
-#if 0
-	MatExp(const Vec3& vx) {
-		vec = Eye3;
-		xa = Mat3x3(vx);
+	
+	MatExp(const VecExp& vin) {
+		vec = Mat3x3(vin.GetVec());
+		mom = Mat3x3(vin.GetMom());
 	};
-#endif /* 0 */
+
+	MatExp(const VecExp& v1, const VecExp& v2) {
+		vec = Mat3x3(v1.GetVec(),v2.GetVec());
+		mom = Mat3x3(v1.GetMom(),v2.GetVec());
+		mom += Mat3x3(v1.GetVec(),v2.GetMom());
+	};
+
+	MatExp(const doublereal& d, const VecExp& v2) {
+		vec = Mat3x3(d,v2.GetVec());
+		mom = Mat3x3(v2.GetMom());
+	};
 
 	MatExp(const Mat3x3& ma, const Mat3x3& mxa) {
 		vec = ma;
 		mom = mxa;
 	};
    
-#if 0
-	MatExp(const Vec3& vx, const Mat3x3& ma) {
-		vec = ma;
-		mom = Mat3x3(vx)*vec;
-	};
-
-	MatExp(const Vec3& vx, const Vec3& vg) {
-		vec = Mat3x3(MatR, vg);
-		xa = Mat3x3(vx)*vec;
-	};
-
-
-#endif /* 0 */
-
 	inline const Mat3x3& GetVec(void) const {
 		return vec;
 	};
@@ -280,8 +374,6 @@ public:
 		return mom;
 	};
 
-	//P> Come sai, io non sono d'accordo con questo metodo ...
-	//M> come vuoi
 	inline void PutVec(const Mat3x3& x) {
 		vec = x;
 	};
@@ -289,34 +381,6 @@ public:
 	inline void PutMom(const Mat3x3& x) {
 		mom = x;
 	};
-
-//M> metodi assurdi, dato MatExp x; Mat3x3 y; si fa x.Vec() = y;
-//M> secondo me
-//M> non bisogna lavorare sulla struttura di un MatExp dove mom=x.Cross(a),
-//M> questo deve essere fatto da fuori
-//M> anche perche' un MatExp non e' sempre con questa struttura.
-#if 0
-	void PutA(const Mat3x3& ma) {
-		a = ma;
-	};
-
-	void PutXA(const Vec3& vx) {
-		xa = Mat3x3(vx)*a;
-	};
-
-	void PutXA(const Mat3x3& mxa) {
-		xa = mxa;
-	};
-
-	void PutXA(const Vec3& vx, const Mat3x3& ma) {
-		xa = Mat3x3(vx)*ma;
-	};
-	
-	void PutXA(const Vec3& vx, const Vec3& vg) {
-		a = Mat3x3(MatR, vg);
-		xa = Mat3x3(vx)*a;
-	};
-#endif /* 0 */
 
 	inline const MatExp& operator = (const MatExp& m) {
 		vec = m.vec;
@@ -357,7 +421,6 @@ public:
 		return MatExp(vec.Transpose(), mom.Transpose());
 	};
 
-	//M> questo mi serve
 	VecExp Ax(void) const {
 		return VecExp(vec.Ax(),mom.Ax());
 	};
@@ -383,6 +446,11 @@ extern ostream& Write(
 		const char* sFill = " ", 
 		const char* sFill2 = NULL
 );
+
+inline MatExp
+VecExp::Tens(const VecExp &v) const {
+	return MatExp(vec.Tens(v.GetVec()), mom.Tens(v.GetMom()));
+};
 
 
 //M> questi no ho capito a cosa servono

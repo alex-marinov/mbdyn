@@ -76,6 +76,8 @@ Mat3x3 RotManip::Elle(const Vec3 & phi, const Vec3 & a);
 
 namespace RoTrManip {
 
+MatExp Elle(const VecExp & phi, const VecExp & a);
+
 MatExp RoTr(const VecExp & eta);
 
 MatExp DRoTr(const VecExp & eta);

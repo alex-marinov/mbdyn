@@ -53,7 +53,6 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <myassert.h>
-#include <mymath.h>
 #include "RotCoeff.hh"
 
 namespace RotCoeff {
@@ -134,22 +133,24 @@ namespace RotCoeff {
 				1.8};		  // for f = coeff[5]
 
 
+template<class T1, class T2>
 void
-RotCoeff(const Int cid, const doublereal &phi2, doublereal *const cf)
+RotCo(const Int cid, const T1 &phi, const Vec3 &p, T2 *const cf)
 {
 	ASSERT(cid >= 1 && cid <= 6);
-	ASSERT(phi2 >= 0.);
 	
-	doublereal phi(sqrt(phi2)), phip[10];
+	T2 phip[10];
+	T2 phi2(phi*phi);
+	doublereal mp(sqrt(p.Dot()));
 	Int k, j;
 
-	if (phi < SerThrsh[cid-1]) {
+	if (mp < SerThrsh[cid-1]) {
 		phip[0] = 1.;
 		for (j = 1; j <= 9; j++) {
 			phip[j] = phip[j-1]*phi2;
 		}
 		for (k = 0; k < cid; k++) {
-			cf[k] = 0;
+			cf[k] = 0.;
 			for (j = 0; j < SerTrunc[k]; j++) {
 				cf[k] += phip[j]/SerCoeff[k][j];
 			}
@@ -158,64 +159,76 @@ RotCoeff(const Int cid, const doublereal &phi2, doublereal *const cf)
 		return;
 	} 
 	
-	cf[0]=sin(phi)/phi;                 // a = sin(phi)/phi
+	const T2 ID(1.);
+	T2 pd(sqrt(phi2));
+	cf[0]=sin(pd)/pd;                 // a = sin(phi)/phi
 	if (cid == 1) return;
-	cf[1]=(1.-cos(phi))/phi2;           // b = (1.-cos(phi))/phi2
+	cf[1]=(ID-cos(pd))/phi2;           // b = (1.-cos(phi))/phi2
 	if (cid == 2) return;
-	cf[2]=(1.-cf[0])/phi2;              // c = (1.-a)/phi2
+	cf[2]=(ID-cf[0])/phi2;              // c = (1.-a)/phi2
 	if (cid == 3) return;
-	cf[3]=(cf[0]-2.*cf[1])/phi2;        // d = (a-2*b)/phi2
+	cf[3]=(cf[0]-(cf[1]*2.))/phi2;        // d = (a-2*b)/phi2
 	if (cid == 4) return;
-	cf[4]=(cf[1]-3.*cf[2])/phi2;        // e = (b-3*c)/phi2
+	cf[4]=(cf[1]-(cf[2]*3.))/phi2;        // e = (b-3*c)/phi2
 	if (cid == 5) return;
-	cf[5]=(cf[2]-cf[1]-4.*cf[3])/phi2;  // f = (c-b-4*d)/phi2
+	cf[5]=(cf[2]-cf[1]-(cf[3]*4.))/phi2;  // f = (c-b-4*d)/phi2
 	//if (cid == 6) return; inutile
 	return;
 };
 
 // Coefficients:            up to a     (COEFF_A)
-void CoeffA(const doublereal &phi2, doublereal *const coeff) {
-    RotCoeff(COEFF_A,phi2,coeff);
+template<class T1, class T2>
+void CoeffA(const T1 &phi, const Vec3 &p, T2 *const coeff) {
+    RotCo(COEFF_A,phi,p,coeff);
 };
 
 // Coefficients:            up to b     (COEFF_B)
-void CoeffB(const doublereal &phi2, doublereal *const coeff) {
-    RotCoeff(COEFF_B,phi2,coeff);
+template<class T1, class T2>
+void CoeffB(const T1 &phi, const Vec3 &p, T2 *const coeff) {
+    RotCo(COEFF_B,phi,p,coeff);
 };
 
 // Coefficients:            up to c     (COEFF_C)
-void CoeffC(const doublereal &phi2, doublereal *const coeff) {
-    RotCoeff(COEFF_C,phi2,coeff);
+template<class T1, class T2>
+void CoeffC(const T1 &phi, const Vec3 &p, T2 *const coeff) {
+    RotCo(COEFF_C,phi,p,coeff);
 };
 
 // Coefficients:            up to d     (COEFF_D)
-void CoeffD(const doublereal &phi2, doublereal *const coeff) {
-    RotCoeff(COEFF_D,phi2,coeff);
+template<class T1, class T2>
+void CoeffD(const T1 &phi, const Vec3 &p, T2 *const coeff) {
+    RotCo(COEFF_D,phi,p,coeff);
 };
 
 // Coefficients:            up to e     (COEFF_E)
-void CoeffE(const doublereal &phi2, doublereal *const coeff) {
-    RotCoeff(COEFF_E,phi2,coeff);
+template<class T1, class T2>
+void CoeffE(const T1 &phi, const Vec3 &p, T2 *const coeff) {
+    RotCo(COEFF_E,phi,p,coeff);
 };
 
 // Coefficients:            up to f     (COEFF_F)
-void CoeffF(const doublereal &phi2, doublereal *const coeff) {
-    RotCoeff(COEFF_F,phi2,coeff);
+template<class T1, class T2>
+void CoeffF(const T1 &phi, const Vec3 &p, T2 *const coeff) {
+    RotCo(COEFF_F,phi,p,coeff);
 };
 
 // Starred coefficients:    up to c*    (COEFF_C_STAR)
 // Coefficients:            up to d     (COEFF_D)
-void CoeffCStar(const doublereal &phi2, doublereal *const coeff, doublereal *const coeffs) {
-    RotCoeff(COEFF_D,phi2,coeff);
-    coeffs[0]=-coeff[3]/(2.*coeff[1]);
+template<class T1, class T2>
+void CoeffCStar(const T1 &phi, const Vec3 &p,
+			T2 *const coeff, T2 *const coeffs) {
+    RotCo(COEFF_D,phi,p,coeff);
+    coeffs[0]=-coeff[3]/(coeff[1]*2.);
 };
 
 // Starred coefficients:    up to e*    (COEFF_E_STAR)
 // Coefficients:            up to f     (COEFF_F)
-void CoeffEStar(const doublereal &phi2, doublereal *const coeff, doublereal *const coeffs) {
-    RotCoeff(COEFF_F,phi2,coeff);
-    coeffs[0]=-coeff[3]/(2.*coeff[1]);
-    coeffs[1]=-(coeff[4]+coeff[5])/(4*coeff[1]);
+template<class T1, class T2>
+void CoeffEStar(const T1 &phi, const Vec3 &p,
+			T2 *const coeff, T2 *const coeffs) {
+    RotCo(COEFF_F,phi,p,coeff);
+    coeffs[0]=-coeff[3]/(coeff[1]*2.);
+    coeffs[1]=-(coeff[4]+coeff[5])/(coeff[1]*4.);
 };
 
 

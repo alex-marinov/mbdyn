@@ -54,6 +54,9 @@
 #include "myf2c.h"
 #include "mystddef.h"
 
+#include "matvec3.h"
+#include "matvecexp.h"
+
 namespace RotCoeff {
 
 const Int COEFF_A = 1;
@@ -67,18 +70,22 @@ const Int COEFF_C_STAR = 1;
 const Int COEFF_E_STAR = 2;
 
 
-void CoeffA(const doublereal &phi2, doublereal *const coeff);
-void CoeffB(const doublereal &phi2, doublereal *const coeff);
-void CoeffC(const doublereal &phi2, doublereal *const coeff);
-void CoeffD(const doublereal &phi2, doublereal *const coeff);
-void CoeffE(const doublereal &phi2, doublereal *const coeff);
-void CoeffF(const doublereal &phi2, doublereal *const coeff);
+template<class T1, class T2> void CoeffA(const T1 &phi, const Vec3 &p, T2 *const coeff);
+template<class T1, class T2> void CoeffB(const T1 &phi, const Vec3 &p, T2 *const coeff);
+template<class T1, class T2> void CoeffC(const T1 &phi, const Vec3 &p, T2 *const coeff);
+template<class T1, class T2> void CoeffD(const T1 &phi, const Vec3 &p, T2 *const coeff);
+template<class T1, class T2> void CoeffE(const T1 &phi, const Vec3 &p, T2 *const coeff);
+template<class T1, class T2> void CoeffF(const T1 &phi, const Vec3 &p, T2 *const coeff);
 
-void CoeffCStar(const doublereal &phi2,doublereal *const coeff, doublereal *const coeffs);
-void CoeffEStar(const doublereal &phi2,doublereal *const coeff, doublereal *const coeffs);
+template<class T1, class T2> void CoeffCStar(const T1 &phi, const Vec3 &p,
+				T2 *const coeff, T2 *const coeffs);
+template<class T1, class T2> void CoeffEStar(const T1 &phi, const Vec3 &p,
+				T2 *const coeff, T2 *const coeffs);
 
 
 }
+
+#include "RotCoeff.hc"
 
 #endif // RotCoeff_hh
 

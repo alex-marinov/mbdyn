@@ -58,6 +58,68 @@
 const VecExp ZeroExp(0.);
 const MatExp EyeExp(0.);
 
+
+
+ScalExp pow(const ScalExp &d, const doublereal &e) {
+    doublereal p = d.GetVec();
+    return ScalExp(pow(p,e),d.GetMom()*(e*pow(p,e-1.)));
+};
+
+ScalExp sqrt(const ScalExp &d) {
+    doublereal p = sqrt(d.GetVec());
+    return ScalExp(p,d.GetMom()/(p*2.));
+};
+
+ScalExp sin(const ScalExp &d) {
+    doublereal p = d.GetVec();
+    return ScalExp(sin(p),d.GetMom()*cos(p));
+};
+
+ScalExp cos(const ScalExp &d) {
+    doublereal p = d.GetVec();
+    return ScalExp(cos(p),d.GetMom()*(-sin(p)));
+};
+
+ScalExp exp(const ScalExp &d) {
+    doublereal p = exp(d.GetVec());
+    return ScalExp(p,d.GetMom()*p);
+};
+
+
+
+
+ostream&
+ScalExp::Write(ostream& out, const char* sFill) const
+{
+	return out 
+		<< GetVec() << sFill
+		<< GetMom();
+}
+
+//ScalExp
+//operator - (const ScalExp& v)
+//{
+//	return ScalExp(-v.GetVec(), -v.GetMom());
+//}
+//
+
+ostream&
+operator << (ostream& out, const ScalExp& v)
+{
+	return out 
+		<< v.GetVec() << " "
+		<< v.GetMom();    
+}
+
+ostream&
+Write(ostream& out, const ScalExp& v, const char* sFill)
+{
+	return v.Write(out, sFill);
+}
+
+
+
+
 ostream&
 VecExp::Write(ostream& out, const char* sFill) const
 {

@@ -61,7 +61,7 @@ using namespace RotCoeff;
 Mat3x3 RotManip::Rot(const Vec3 & phi) {
 	doublereal coeff[COEFF_B];
 
-	CoeffB(phi.Dot(),coeff);
+	CoeffB(phi,phi,coeff);
 
 	Mat3x3 Phi(1., phi*coeff[0]);		/* I + c[0] * phi x */
 	Phi += Mat3x3(phi, phi*coeff[1]);	/* += c[1] * phi x phi x */
@@ -73,7 +73,7 @@ Mat3x3 RotManip::Rot(const Vec3 & phi) {
 Mat3x3 RotManip::DRot(const Vec3 & phi) {
 	doublereal coeff[COEFF_C];
 
-	CoeffC(phi.Dot(),coeff);
+	CoeffC(phi,phi,coeff);
 
 	Mat3x3 Ga(1., phi*coeff[1]);		/* I + c[0] * phi x */
 	Ga += Mat3x3(phi, phi*coeff[2]);	/* += c[1] * phi x phi x */
@@ -85,7 +85,7 @@ Mat3x3 RotManip::DRot(const Vec3 & phi) {
 void RotManip::RotAndDRot(const Vec3 & phi, Mat3x3 & Phi, Mat3x3 & Ga) {
 	doublereal coeff[COEFF_C];
 
-	CoeffC(phi.Dot(),coeff);
+	CoeffC(phi,phi,coeff);
 
 	Phi = Mat3x3(1., phi*coeff[0]);
 	Phi += Mat3x3(phi, phi*coeff[1]);
@@ -100,7 +100,7 @@ void RotManip::RotAndDRot(const Vec3 & phi, Mat3x3 & Phi, Mat3x3 & Ga) {
 Mat3x3 RotManip::DRot_IT(const Vec3 & phi) {
 	doublereal coeff[COEFF_D], coeffs[COEFF_C_STAR];
 	
-	CoeffCStar(phi.Dot(),coeff,coeffs);
+	CoeffCStar(phi,phi,coeff,coeffs);
 
 	Mat3x3 GaIT(1., phi*.5);
 	GaIT += Mat3x3(phi, phi*coeffs[0]);
@@ -111,7 +111,7 @@ Mat3x3 RotManip::DRot_IT(const Vec3 & phi) {
 Mat3x3 RotManip::DRot_I(const Vec3 & phi) {
 	doublereal coeff[COEFF_D], coeffs[COEFF_C_STAR];
 	
-	CoeffCStar(phi.Dot(),coeff,coeffs);
+	CoeffCStar(phi,phi,coeff,coeffs);
 
 	Mat3x3 GaI(1., phi*(-.5));
 	GaI += Mat3x3(phi, phi*coeffs[0]);
@@ -123,7 +123,7 @@ Mat3x3 RotManip::DRot_I(const Vec3 & phi) {
 void RotManip::RotAndDRot_IT(const Vec3 & phi, Mat3x3 & PhiIT, Mat3x3 & GaIT) {
 	doublereal coeff[COEFF_D], coeffs[COEFF_C_STAR];
 
-	CoeffCStar(phi.Dot(),coeff,coeffs);
+	CoeffCStar(phi,phi,coeff,coeffs);
 
 	PhiIT = Mat3x3(1., phi*coeff[0]);
 	PhiIT += Mat3x3(phi, phi*coeff[1]);
@@ -143,7 +143,7 @@ Vec3 RotManip::VecRot(const Mat3x3 & Phi) {
 		unit = Phi.Ax();
 		sinphi = unit.Norm();
 		phi = atan2(sinphi, cosphi);
-		CoeffA(phi*phi, &a);
+		CoeffA(phi,phi, &a);
 		unit = unit/a;
 	} else {
 		Mat3x3 eet(Phi.Symm());
@@ -168,7 +168,7 @@ Mat3x3 RotManip::Elle
         (const Vec3 & phi,
         const Vec3 & a) {
     doublereal coeff[COEFF_E];
-    CoeffE(phi.Dot(),coeff);
+    CoeffE(phi,phi,coeff);
     
     Mat3x3 L(a*-coeff[1]);    
     L -= Mat3x3(phi,a*coeff[2]);
@@ -179,131 +179,92 @@ Mat3x3 RotManip::Elle
     return L;
 };
 
-MatExp RoTrManip::RoTr(const VecExp & eta) {
-	doublereal phi2, coeff[COEFF_D];
-	MatExp H(1., 0.);
+MatExp RoTrManip::Elle
+        (const VecExp & phi,
+        const VecExp & a) {
+    ScalExp coeff[COEFF_E];
+    CoeffE(phi,phi.GetVec(),coeff);
+    
+    MatExp L(a*(-coeff[1]));
+    L -= MatExp(phi,a*coeff[2]);
+    L -= MatExp(phi.Cross(a*coeff[2]));
+    L += (phi.Cross(a)).Tens(phi*coeff[3]);
+    L += (MatExp(phi,phi)*a).Tens(phi*coeff[4]);
 
-	MatExp etaCross(eta.Cross());
-	MatExp etaCross2(etaCross*etaCross);
-	MatExp etaCross3(etaCross2*etaCross);
-	MatExp etaCross4(etaCross3*etaCross);
-
-	phi2 = eta.GetVec().Dot();	//phi2=eta.GetVec().Dot(eta.GetVec())
-	CoeffD(phi2, coeff);
-
-	H += etaCross*(coeff[0]-.5*phi2*(coeff[2]-coeff[1]));
-	H += etaCross2*(coeff[1]-.5*phi2*coeff[3]);
-	H += etaCross3*(-.5*(coeff[2]-coeff[1]));
-	H += etaCross4*(-.5*coeff[3]);
-
-	return H;
+    return L;
 };
 
+MatExp RoTrManip::RoTr(const VecExp & phi) {
+	ScalExp coeff[COEFF_B];
 
-MatExp RoTrManip::DRoTr(const VecExp & eta) {
-	doublereal phi2, coeff[COEFF_E];
-	MatExp Th(1., 0.);
+	CoeffB(phi,phi.GetVec(),coeff);
 
-	MatExp etaCross(eta.Cross());
-	MatExp etaCross2(etaCross*etaCross);
-	MatExp etaCross3(etaCross2*etaCross);
-	MatExp etaCross4(etaCross3*etaCross);
+	MatExp Phi(1., phi*coeff[0]);	/* I + c[0] * phi x */
+	Phi += MatExp(phi, phi*coeff[1]);	/* += c[1] * phi x phi x */
 
-	phi2 = eta.GetVec().Dot();
-	CoeffE(phi2, coeff);
-
-	Th += etaCross*(coeff[1]-.5*phi2*coeff[3]);
-	Th += etaCross2*(coeff[2]-.5*phi2*coeff[4]);
-	Th += etaCross3*(-.5*coeff[3]);
-	Th += etaCross4*(-.5*coeff[4]);
-	return Th;
+	return Phi;
 };
 
+MatExp RoTrManip::DRoTr(const VecExp & phi) {
+	ScalExp coeff[COEFF_C];
 
-void RoTrManip::RoTrAndDRoTr(const VecExp & eta,
-				MatExp & H,
-				MatExp & Th) {
-	doublereal phi2, coeff[COEFF_E];
-	H = MatExp(1., 0.);
-	Th = MatExp(1., 0.);
+	CoeffC(phi,phi.GetVec(),coeff);
 
-	MatExp etaCross(eta.Cross());
-	MatExp etaCross2(etaCross*etaCross);
-	MatExp etaCross3(etaCross2*etaCross);
-	MatExp etaCross4(etaCross3*etaCross);
+	MatExp Ga(1., phi*coeff[1]);		/* I + c[0] * phi x */
+	Ga += MatExp(phi, phi*coeff[2]);	/* += c[1] * phi x phi x */
 
-	phi2 = eta.GetVec().Dot();
-	CoeffE(phi2, coeff);
+	return Ga;
+};
 
-	H += etaCross*(coeff[0]-.5*phi2*(coeff[2]-coeff[1]));
-	H += etaCross2*(coeff[1]-.5*phi2*coeff[3]);
-	H += etaCross3*(-.5*(coeff[2]-coeff[1]));
-	H += etaCross4*(-.5*coeff[3]);
-	Th += etaCross*(coeff[1]-.5*phi2*coeff[3]);
-	Th += etaCross2*(coeff[2]-.5*phi2*coeff[4]);
-	Th += etaCross3*(-.5*coeff[3]);
-	Th += etaCross4*(-.5*coeff[4]);
+void RoTrManip::RoTrAndDRoTr(const VecExp & phi, MatExp & Phi, MatExp & Ga) {
+	ScalExp coeff[COEFF_C];
+
+	CoeffC(phi,phi.GetVec(),coeff);
+
+	Phi = MatExp(1., phi*coeff[0]);
+	Phi += MatExp(phi, phi*coeff[1]);
+
+	Ga = MatExp(1., phi*coeff[1]);
+	Ga += MatExp(phi, phi*coeff[2]);
+
 	return;
 };
 
+MatExp RoTrManip::DRoTr_It(const VecExp & phi) {
+	ScalExp coeff[COEFF_D], coeffs[COEFF_C_STAR];
+	
+	CoeffCStar(phi,phi.GetVec(),coeff,coeffs);
 
-MatExp RoTrManip::DRoTr_It(const VecExp & eta) {
-	doublereal phi2, coeff[COEFF_F], coeffs[COEFF_E_STAR];
-	MatExp ThIt(1., 0.);
+	MatExp GaIT(1., phi*.5);
+	GaIT += MatExp(phi, phi*coeffs[0]);
 
-	MatExp etaCross(eta.Cross());
-	MatExp etaCross2(etaCross*etaCross);
-	MatExp etaCross4(etaCross2*etaCross2);
-
-	phi2 = eta.GetVec().Dot();
-	CoeffEStar(phi2, coeff, coeffs);
-
-	ThIt += etaCross*.5;
-	ThIt += etaCross2*(coeffs[0]-.5*phi2*coeffs[1]);
-	ThIt += etaCross4*(-.5*coeffs[1]);
-	return ThIt;
+	return GaIT;
 };
 
-MatExp RoTrManip::DRoTr_I(const VecExp & eta) {
-	doublereal phi2, coeff[COEFF_F], coeffs[COEFF_E_STAR];
-	MatExp ThI(1., 0.);
+MatExp RoTrManip::DRoTr_I(const VecExp & phi) {
+	ScalExp coeff[COEFF_D], coeffs[COEFF_C_STAR];
+	
+	CoeffCStar(phi,phi.GetVec(),coeff,coeffs);
 
-	MatExp etaCross(eta.Cross());
-	MatExp etaCross2(etaCross*etaCross);
-	MatExp etaCross4(etaCross2*etaCross2);
+	MatExp GaIT(1., phi*-.5);
+	GaIT += MatExp(phi, phi*coeffs[0]);
 
-	phi2 = eta.GetVec().Dot();
-	CoeffEStar(phi2, coeff, coeffs);
-
-	ThI += etaCross*(-.5);
-	ThI += etaCross2*(coeffs[0]-.5*phi2*coeffs[1]);
-	ThI += etaCross4*(-.5*coeffs[1]);
-	return ThI;
+	return GaIT;
 };
 
+void RoTrManip::RoTrAndDRoTr_It(const VecExp & phi, 
+				MatExp & PhiIT,
+				MatExp & GaIT) {
+	ScalExp coeff[COEFF_D], coeffs[COEFF_C_STAR];
 
-void RoTrManip::RoTrAndDRoTr_It(const VecExp & eta,
-					MatExp & HIt,
-					MatExp & ThIt) {
-	doublereal phi2, coeff[COEFF_F], coeffs[COEFF_E_STAR];
-	HIt = MatExp(1., 0.);
-	ThIt = MatExp(1., 0.);
+	CoeffCStar(phi,phi.GetVec(),coeff,coeffs);
 
-	MatExp etaCross(eta.Cross());
-	MatExp etaCross2(etaCross*etaCross);
-	MatExp etaCross3(etaCross2*etaCross);
-	MatExp etaCross4(etaCross3*etaCross);
+	PhiIT = MatExp(1., phi*coeff[0]);
+	PhiIT += MatExp(phi, phi*coeff[1]);
 
-	phi2 = eta.GetVec().Dot();
-	CoeffEStar(phi2, coeff, coeffs);
+	GaIT = MatExp(1., phi*.5);
+	GaIT += MatExp(phi, phi*coeffs[0]);
 
-	HIt += etaCross*(coeff[0]-.5*phi2*(coeff[2]-coeff[1]));
-	HIt += etaCross2*(coeff[1]-.5*phi2*coeff[3]);
-	HIt += etaCross3*(-.5*(coeff[2]-coeff[1]));
-	HIt += etaCross4*(-.5*coeff[3]);
-	ThIt += etaCross*.5;
-	ThIt += etaCross2*(coeffs[0]-.5*phi2*coeffs[1]);
-	ThIt += etaCross4*(-.5*coeffs[1]);
 	return;
 };
 
