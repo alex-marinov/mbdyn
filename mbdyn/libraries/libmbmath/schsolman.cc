@@ -140,7 +140,7 @@ fNewMatrix(0)
   
   InitializeComm();
 
-   /* utilizza iWorkSpaceSize come un coefficiente motiplicativo */
+   /* utilizza iWorkSpaceSize come un coefficiente moltiplicativo */
    integer IntiWorkSpaceSize = iWorkSpaceSize/(iPrbmSize*iPrbmSize)* (iSchurIntDim*iSchurIntDim);
    		
    if(!MyRank) {
