@@ -201,12 +201,16 @@ private:
 	logical first_switch;
 	doublereal previous_switch_v;
 	doublereal current_velocity;
+	doublereal sigma2;
+	doublereal vel_ratio;
 	
 	const DifferentiableScalarFunction & fss;
 	doublereal f;
 public:
 	DiscreteCoulombFriction(
-		const BasicScalarFunction *const ff);
+		const BasicScalarFunction *const ff,
+		const doublereal s2,
+		const doublereal vr);
 	void SetValue(VectorHandler&X, 
 		VectorHandler&XP, 
 		const unsigned int solution_startdof) const;

@@ -239,7 +239,9 @@ void ModLugreFriction::AssJac(
 
 //----------------------
 DiscreteCoulombFriction::DiscreteCoulombFriction(
-		const BasicScalarFunction *const ff) :
+		const BasicScalarFunction *const ff,
+		const doublereal s2,
+		const doublereal vr) :
 converged_sticked(true),
 status(sticked),
 transition_type(null),
@@ -248,6 +250,8 @@ first_iter(true),
 first_switch(true),
 previous_switch_v(0),
 current_velocity(0),
+sigma2(s2),
+vel_ratio(vr),
 fss(dynamic_cast<const DifferentiableScalarFunction&>(*ff)),
 f(0) {
 };
@@ -341,7 +345,7 @@ void DiscreteCoulombFriction::AssRes(
 			) {
 				first_switch = false;
 				transition_type = from_sliding_to_sticked;
-				previous_switch_v = 0.8*(v-current_velocity);
+				previous_switch_v = vel_ratio*(v-current_velocity);
 				//previous_switch_v = v;
 				status = sticked;
 // 				std::cerr << "switch to sticked: " << transition_type << std::endl;
@@ -350,7 +354,7 @@ void DiscreteCoulombFriction::AssRes(
 				first_switch = false;
 				status = sticking;
 				transition_type = from_sliding_to_sticking;
-				previous_switch_v = 0.8*(v-current_velocity);
+				previous_switch_v = vel_ratio*(v-current_velocity);
 				//previous_switch_v = v;
 // 				std::cerr << "switch to sticking: " << transition_type << std::endl;
 			}
@@ -367,12 +371,12 @@ void DiscreteCoulombFriction::AssRes(
 			//cur_sticking = false;
 			doublereal friction_force;
 			if (transition_type == from_sticked_to_sliding) {
-				friction_force = sign(f)*fss(v);
+				friction_force = sign(f)*fss(v)+sigma2*v;
 			} else if (std::fabs(f) > 0.) {
-				friction_force = sign(v)*fss(v);
+				friction_force = sign(v)*fss(v)+sigma2*v;
 			} else {
 				//limit the force value while taking the sticking force direction
-				friction_force = sign(f)*fss(v);
+				friction_force = sign(f)*fss(v)+sigma2*v;
 			}
 			//save friction force value in the (algebric) state
 			WorkVec.fIncCoef(startdof+1,f-friction_force);
@@ -417,18 +421,18 @@ void DiscreteCoulombFriction::AssJac(
 			//cur_sticking = false;
 			doublereal friction_force;
 			if (transition_type == from_sticked_to_sliding) {
-				friction_force = sign(f)*fss(v);
+				friction_force = sign(f)*fss(v)+sigma2*v;
 			} else if (std::fabs(f) > 0.) {
-				friction_force = sign(v)*fss(v);
+				friction_force = sign(v)*fss(v)+sigma2*v;
 			} else {
 				//limit the force value while taking the sticking force direction
-				friction_force = sign(f)*fss(v);
+				friction_force = sign(f)*fss(v)+sigma2*v;
 			}
 			//save friction force value in the (algebric) state
 			//WorkVec.fIncCoef(startdof+1,f-friction_force);
 			WorkMat.fIncCoef(startdof+1,startdof+1,-1);
 			dv.Add(WorkMat,startdof+1,
-				sign(friction_force)*fss.ComputeDiff(v));
+				sign(friction_force)*fss.ComputeDiff(v)+sigma2);
 			dfc.ReDim(1);
 			dfc.Set(1.,1,startdof+1);
 		}
@@ -542,7 +546,15 @@ BasicFriction *const ParseFriction(MBDynParser& HP,
 	case DISCRETECOULOMB: {
 		const BasicScalarFunction*const sf = 
 			ParseScalarFunction(HP,pDM);
-		return new DiscreteCoulombFriction(sf);
+		doublereal sigma2 = 0.;
+		doublereal vel_ratio = 0.8;
+		if (HP.IsKeyWord("sigma2")) {
+			sigma2 = HP.GetReal();
+		}
+		if (HP.IsKeyWord("velocity" "ratio")) {
+			vel_ratio = HP.GetReal();
+		}
+		return new DiscreteCoulombFriction(sf,sigma2, vel_ratio);
 		break;
 	}
 	default: {
