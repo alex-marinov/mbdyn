@@ -695,6 +695,8 @@ class OffsetDummyStructNode : public DummyStructNode {
 class RelFrameDummyStructNode : public DummyStructNode {
  protected:
    const StructNode* pNodeRef;
+   const Vec3 fhT;
+   const Mat3x3 RhT;
    
    void __Update(void);
    
@@ -703,7 +705,9 @@ class RelFrameDummyStructNode : public DummyStructNode {
    RelFrameDummyStructNode(unsigned int uL, 
 			   const DofOwner* pDO,
 			   const StructNode* pNode,
-			   const StructNode* pNodeRef);
+			   const StructNode* pNodeRef,
+			   const Vec3& fh,
+			   const Mat3x3& Rh);
    
    /* Distruttore (per ora e' banale) */
    virtual ~RelFrameDummyStructNode(void);

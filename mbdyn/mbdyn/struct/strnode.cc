@@ -925,10 +925,32 @@ OffsetDummyStructNode::Update(const VectorHandler& /* X */ ,
 RelFrameDummyStructNode::RelFrameDummyStructNode(unsigned int uL,
 						 const DofOwner* pDO,
 						 const StructNode* pN,
-						 const StructNode* pNR)
-: DummyStructNode(uL, pDO, pN), pNodeRef(pNR)
+						 const StructNode* pNR,
+						 const Vec3& fh,
+						 const Mat3x3& Rh)
+: DummyStructNode(uL, pDO, pN), pNodeRef(pNR), RhT(Rh.Transpose()), fhT(RhT*fh)
 {
    ASSERT(pNodeRef != NULL);
+
+   /*
+    * Note: Rh is transposed from the beginning because it is 
+    *       never used directly;
+    *       fh is premultiplied by Rh.Transpose() for the same reason
+    *
+    * Formulas:
+    *
+    * R = RhT * RrT * Rn
+    * X = RhT * RrT * (Xn - Xr)
+    * W = RhT * RrT * (Wn - Wr)
+    * V = RhT * RrT * (Vn - Vr - Wr x (Xn - Xr))
+    *
+    * by defining
+    *
+    * Rn = Rr * Rh * R
+    * Xn = Xr + Rr * (fh + Rh * X)
+    *
+    * and differentiating with respect to time
+    */
    
    /* forzo la ricostruzione del nodo strutturale sottostante */
    __Update();
@@ -945,11 +967,12 @@ RelFrameDummyStructNode::~RelFrameDummyStructNode(void)
 /* update - interno */
 void RelFrameDummyStructNode::__Update(void)
 {
-   Mat3x3 RT(pNodeRef->GetRCurr().Transpose());
+   Mat3x3 RrT(pNodeRef->GetRCurr().Transpose());
+   Mat3x3 RT(RhT*RrT);
    Vec3 XRel(pNode->GetXCurr()-pNodeRef->GetXCurr());
    
    RCurr = RT*pNode->GetRCurr();
-   XCurr = RT*XRel;
+   XCurr = RT*XRel - fhT;
    WCurr = RT*(pNode->GetWCurr()-pNodeRef->GetWCurr());
      
    VCurr = RT*(pNode->GetVCurr()
@@ -1088,10 +1111,23 @@ ReadStructNode(DataManager* pDM,
 	       << " not defined" << std::endl;    
 	     THROW(DataManager::ErrGeneric());
 	  }
-	  
+
+	  ReferenceFrame RF(pNodeRef);
+
+	  Vec3 fh(Zero3);
+	  if (HP.IsKeyWord("position")) {
+		  fh = HP.GetPosRel(RF);
+	  }
+
+	  Mat3x3 Rh(Eye3);
+	  if (HP.IsKeyWord("orientation")) {
+		  Rh = HP.GetRotRel(RF);
+	  }
+
 	  SAFENEWWITHCONSTRUCTOR(pNd, 
 				 RelFrameDummyStructNode,
-				 RelFrameDummyStructNode(uLabel, pDO, pNode, pNodeRef));
+				 RelFrameDummyStructNode(uLabel, pDO,
+					 pNode, pNodeRef, fh, Rh));
 	  break;	  
        }
 	 
