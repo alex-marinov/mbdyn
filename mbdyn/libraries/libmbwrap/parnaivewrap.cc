@@ -38,6 +38,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#ifdef USE_NAIVE_MULTITHREAD
+
 /* FIXME: incompatible with RTAI at present */
 #ifndef USE_RTAI
 
@@ -560,3 +562,5 @@ ParNaiveSparsePermSolutionManager::pMatHdl(void) const
 
 
 #endif /* ! USE_RTAI */
+
+#endif /* USE_NAIVE_MULTITHREAD */

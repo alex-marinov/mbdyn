@@ -105,7 +105,7 @@ public:
 /* NaiveSparseSolutionManager - end */
 
 
-/* UmfpackSparseCCSolutionManager - begin */
+/* NaiveSparsePermSolutionManager - begin */
 
 class NaiveSparsePermSolutionManager: public NaiveSparseSolutionManager {
 private:
@@ -135,7 +135,7 @@ public:
 	virtual MatrixHandler* pMatHdl(void) const;
 };
 
-/* UmfpackSparseCCSolutionManager - end */
+/* NaiveSparsePermSolutionManager - end */
 
 
 #endif /* NaiveSolutionManager_hh */

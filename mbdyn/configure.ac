@@ -150,7 +150,8 @@ OL_ARG_WITH(static_modules,[  --with-static-modules   build (known) modules as s
 OL_ARG_ENABLE(crypt,[  --enable-crypt          enable crypt (deprecated)], no)dnl
 OL_ARG_ENABLE(schur,[  --enable-schur          enable Schur parallel solver
                           (needs MPI and either Metis or Chaco)],auto,[auto yes no])dnl needs MPI and Metis or Chaco
-OL_ARG_ENABLE(multithread,[  --enable-multithread    enable multithread solution], no,[auto yes no force])dnl
+OL_ARG_ENABLE(multithread,[  --enable-multithread    enable multithread assembly], no,[auto yes no force])dnl
+OL_ARG_ENABLE(multithread_naive,[  --enable-multithread-naive    enable multithread naive solver], no,[auto yes no force])dnl
 OL_ARG_ENABLE(adams,[  --enable-adams          enable MSC.ADAMS output], no)dnl
 OL_ARG_ENABLE(motionview,[  --enable-motionview     enable Altair's Motion View output], no)dnl
 
@@ -841,7 +842,7 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
-dnl Check for multithreads (use previous checks)
+dnl Check for multithread assembly (use previous checks)
 dnl
 ol_link_multithread=no
 if test "$ol_enable_multithread" != no ; then
@@ -872,7 +873,48 @@ if test "$ol_enable_multithread" != no ; then
 		AC_MSG_RESULT([no])
 	else
 		ol_link_multithread=yes
-		AC_DEFINE(USE_MULTITHREAD,1,[define to enable multithreaded solution])
+		AC_DEFINE(USE_MULTITHREAD,1,[define to enable multithread assembly])
+		AC_MSG_RESULT([yes])
+
+		dnl MULTITHREAD/MPI compatibility
+		ol_with_mpi="no"
+	fi
+fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for multithread naive solver (use previous checks)
+dnl
+ol_link_multithread_naive=no
+if test "$ol_enable_multithread_naive" != no ; then
+	if test "$ol_enable_multithread_naive" = "yes" -a "$ol_with_thread" = "no" ; then
+		AC_MSG_ERROR([Can't enable multithread naive solver --without-threads])
+	fi
+	AC_MSG_CHECKING([whether to enable multithread naive solver])
+	if test "$ac_cv_header_pthread_h" != "yes" ; then
+		AC_MSG_ERROR([need pthreads.h])
+	fi
+
+	if test "$have_threads" = no ; then
+		case "$ol_enable_multithread_naive" in
+		yes)
+			AC_MSG_ERROR([No threads available])
+			;;
+			
+		force)
+			have_threads=yes
+			;;
+
+		*)
+			;; dnl do nothing ...
+		esac
+	fi
+
+	if test "$have_threads" = no ; then
+		AC_MSG_RESULT([no])
+	else
+		ol_link_multithread_naive=yes
+		AC_DEFINE(USE_NAIVE_MULTITHREAD,1,[define to enable multithread naive solver])
 		AC_MSG_RESULT([yes])
 
 		dnl MULTITHREAD/MPI compatibility

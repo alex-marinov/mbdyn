@@ -38,6 +38,8 @@
 #ifndef PARNAIVEWRAP_H
 #define PARNAIVEWRAP_H
 
+#ifdef USE_NAIVE_MULTITHREAD
+
 #include "ac/iostream"
 #include "ac/pthread.h"
 #include <vector>
@@ -214,6 +216,7 @@ public:
 
 /* ParNaiveSparsePermSolutionManager - end */
 
+#endif /* USE_NAIVE_MULTITHREAD */
 
 #endif /* PARNAIVEWRAP_H */
 

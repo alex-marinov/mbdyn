@@ -803,6 +803,13 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 #endif /* !USE_UMFPACK */
 
 	case LinSol::NAIVE_SOLVER:
+#ifndef USE_NAIVE_MULTITHREAD
+		silent_cerr("multithread naive solver support not compiled; "
+				"either arch is not ix86 or it was explicitly "
+				"disabled" << std::endl);
+		throw ErrGeneric();
+#endif /* ! USE_NAIVE_MULTITHREAD */
+
 		switch (type) {
 		case LinSol::SOLVER_FLAGS_ALLOWS_COLAMD:
 			if (nThreads == 1) {
@@ -810,9 +817,11 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 					NaiveSparsePermSolutionManager,
 					NaiveSparsePermSolutionManager(iNLD, dPivotFactor));
 			} else {
+#ifdef USE_NAIVE_MULTITHREAD
 				SAFENEWWITHCONSTRUCTOR(pCurrSM,
 					ParNaiveSparsePermSolutionManager,
 					ParNaiveSparsePermSolutionManager(nThreads, iNLD, dPivotFactor));
+#endif /* USE_NAIVE_MULTITHREAD */
 			}
 			break;
 		
@@ -822,9 +831,11 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 					NaiveSparseSolutionManager,
 					NaiveSparseSolutionManager(iNLD, dPivotFactor));
 			} else {
+#ifdef USE_NAIVE_MULTITHREAD
 				SAFENEWWITHCONSTRUCTOR(pCurrSM,
 					ParNaiveSparseSolutionManager,
 					ParNaiveSparseSolutionManager(nThreads, iNLD, dPivotFactor));
+#endif /* USE_NAIVE_MULTITHREAD */
 			}
 		}
 		break;
