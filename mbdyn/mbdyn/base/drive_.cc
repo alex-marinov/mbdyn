@@ -1234,7 +1234,16 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        doublereal dAmplitude = HP.GetReal();
        DEBUGCOUT("Amplitude: " << dAmplitude << endl);
        
-       integer iNumCycles = HP.GetInt();
+       integer iNumCycles;
+       if (HP.IsKeyWord("forever")) {
+	  iNumCycles = 0;
+       } else if (HP.IsKeyWord("one")) {
+	  iNumCycles = 1;
+       } else if (HP.IsKeyWord("half")) {
+	  iNumCycles = -1;
+       } else {
+          iNumCycles = HP.GetInt();
+       }
        DEBUGCOUT("Number of cycles: " << iNumCycles << endl);
        
        doublereal dInitialValue = HP.GetReal();	   
