@@ -13,7 +13,7 @@ MBDyn 1.2-Engineering
 		  factors for hover and forward flight
 		- added -W (--working-dir) switch
 		- added inertia properties computation of element blocks
-		- output can occur only at selected time steps
+		- output can occur at selected time steps only
 		- disable plaintext auth if crypt is not available
 		  (this code should be trimmed off, it's useless ;)
 		- RelativeFrame dummy struct nodes can have offset
@@ -31,7 +31,7 @@ MBDyn 1.2-Engineering
 		- allow extra amplitude scaling in file drives
 		- allow previous-step dof plugin
 		- improve private data handling
-		- added sample'n'hold parameter
+		- added sample'n'hold parameter node
 		- non-wrapping angles in plane hinge joints priv data
 		- modal element active mode listing
 		- added revolute/universal rotation joints, e.g.
@@ -45,19 +45,19 @@ MBDyn 1.2-Engineering
 		- changed module API (callback structure holds info fields)
 		- rotor elements do not use any more a colon ':' as separator
 		  between the keyword "induced velocity" and the induced
-		  velocity type (need to update all the models...)
+		  velocity type
 		- changed symbol table output format
-		- the sintax of nonlinear solver is changed; backward
-		  compatibility if NOT preserved
+		- the syntax of nonlinear solver is changed; backward
+		  compatibility is NOT preserved
 	Bug fixes:
-		- do not output RelativeFrame dummy struct nodes in ADAMS
-		  res format
+		- do not output RelativeFrame dummy struct nodes
+		  in external motion format (ADAMS/MotionView)
 		- fixed time handling
 		- fixed force and couple initial assembly
 		- fix rotor output when no induced velocity is used
 		- fix modal element when modal node is not in the origin
 		  of the FEM reference frame
-		- fix of beamslider joint jacobian
+		- fix beamslider joint jacobian
 
 
 MBDyn 1.1.4
