@@ -640,7 +640,7 @@ void DataManager::InitialJointAssembly(void)
       for (StructNode** ppTmpNode = ppFirstNode;
 	  ppTmpNode < ppFirstNode+iNumNodes; ppTmpNode++) {
 	 (*ppTmpNode)->InitialUpdate(X);
-      }		     
+      }
    }       
    
    
