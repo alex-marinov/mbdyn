@@ -258,7 +258,7 @@ SubVectorHandler& DistanceJoint::AssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
         
@@ -1006,7 +1006,7 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
       
@@ -1686,7 +1686,7 @@ SubVectorHandler& ClampJoint::AssRes(SubVectorHandler& WorkVec,
 
    integer iNumRows;
    integer iNumCols;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
 
@@ -1797,7 +1797,7 @@ ClampJoint::InitialAssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
       
