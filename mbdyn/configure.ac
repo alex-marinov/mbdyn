@@ -727,7 +727,45 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
-dnl Check for multithreads (use previous check)
+dnl Check for compare-and-swap capability
+dnl
+have_compare_and_swap=no
+dnl
+dnl i486 and above ...
+AC_TRY_COMPILE([
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif /* HAVE_SYS_TYPES_H */
+	],[
+	struct __xchg_dummy { unsigned long a[100]; };
+	#define __xg(x) ((struct __xchg_dummy *)(x))
+
+	/* from <asm/bitops.h> */
+	#define LOCK_PREFIX "lock ; "
+
+	int8_t	valptr = 0, oldval = 0, newval = 1, prev;
+
+	__asm__ __volatile__( LOCK_PREFIX "cmpxchgb %b1,%2"
+			: "=a"(prev)
+			: "q"(newval), "m"(*__xg(valptr)), "0"(oldval)
+			: "memory");
+],[have_cmpxchg=yes],[have_cmpxchg=no])
+if test "$have_cmpxchg" = "yes" ; then
+	AC_DEFINE(HAVE_CMPXCHG,1,[define if system ( >= i486) has cmpxchg])
+	have_compare_and_swap=yes
+fi
+dnl
+dnl add tests for other systems ...
+
+dnl
+dnl summarize ...
+if test "$have_compare_and_swap" = "yes" ; then
+	AC_DEFINE(HAVE_COMPARE_AND_SWAP,1,[define if system supports atomic compare-and-swap])
+fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for multithreads (use previous checks)
 dnl
 ol_link_multithread=no
 if test "$ol_enable_multithread" != no ; then

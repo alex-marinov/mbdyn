@@ -36,7 +36,7 @@
 
 #ifdef MBDYN_X_MULTITHREAD
 #include <signal.h>
-#include "ac/asm_system.h"
+#include "ac/spinlock.h"
 #endif /* MBDYN_X_MULTITHREAD */
 
 #include "myassert.h"
