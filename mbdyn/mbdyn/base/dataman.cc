@@ -463,9 +463,9 @@ DataManager::~DataManager(void)
    /* Se e' richiesto il file di restart, il distruttore del DataManager
     * crea il file e forza gli oggetti a scrivere il loro contributo nel modo
     * opportuno */
-//   if(RestartEvery == ATTHEEND) {
-//      MakeRestart();
-//   }
+   if(RestartEvery == ATEND) {
+      MakeRestart();
+   }
    
    if(sSimulationTitle != NULL) {
       SAFEDELETEARR(sSimulationTitle, DMmm);
@@ -479,7 +479,7 @@ DataManager::~DataManager(void)
 
 void DataManager::MakeRestart(void) 
 {
-  if(RestartEvery == ATTHEEND) {	
+  if(RestartEvery == ATEND) {	
    silent_cout("Making restart file ..." << endl);
    
    /* Inizializzazione del file di restart */

@@ -120,7 +120,7 @@ class DataManager {
    char* sSimulationTitle;
 
  protected:  
-   enum eRestart { NEVER, ATTHEEND, ITERATIONS, TIME };
+   enum eRestart { NEVER, ATEND, ITERATIONS, TIME };
    eRestart RestartEvery;
    integer iRestartIterations;
    doublereal dRestartTime;

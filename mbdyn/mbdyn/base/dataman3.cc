@@ -577,7 +577,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 		THROW(DataManager::ErrGeneric());
 	     }
 	  } else {
-	     RestartEvery = ATTHEEND;
+	     RestartEvery = ATEND;
 	  }
 	  break;
        }
