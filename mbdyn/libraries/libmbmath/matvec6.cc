@@ -51,6 +51,18 @@ ostream& Vec6::Write(ostream& out, const char* sFill) const
 }
 
 
+Vec6 operator + (const Vec6& v)
+{
+   return v;
+}
+
+
+Vec6 operator - (const Vec6& v)
+{
+   return Vec6(-v.GetVec1(), -v.GetVec2());
+}
+
+
 ostream& operator << (ostream& out, const Vec6& v)
 {
    const Vec3& v1 = v.GetVec1();

@@ -199,6 +199,8 @@ class Vec6 {
 };
 
 
+extern Vec6 operator + (const Vec6& v);
+extern Vec6 operator - (const Vec6& v);
 extern ostream& operator << (ostream& out, const Vec6& m);
 extern ostream& Write(ostream& out, const Vec6& v, const char* sFill = " ");
 
