@@ -325,7 +325,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
 
       		/* Contributo di velocita' del vento */
       		Vec3 VTmp(0.);
-      		if (fGetAirVelocity(VTmp, Xr)) {
+      		if (fGetAirVelocity(VTmp, Xr+Xn)) {
 	 		Vr -= VTmp;
       		}
       
