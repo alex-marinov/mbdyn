@@ -809,9 +809,6 @@ void DataManager::ReadControl(MBDynParser& HP,
 	     
 	     				const char *tmp = HP.GetStringWithDelims();
 	     				SAFESTRDUP(sAdamsModelName, tmp);
-
-	  			} else {
-	     				SAFESTRDUP(sAdamsModelName, "mbdyn");
 	  			}
 
 				/* default; conservative: output is very verbose */
@@ -842,6 +839,10 @@ void DataManager::ReadControl(MBDynParser& HP,
 						throw ErrGeneric();
 					}
 				}
+			}
+
+			if (sAdamsModelName == 0) {
+	     			SAFESTRDUP(sAdamsModelName, "mbdyn");
 			}
 #else /* !USE_ADAMS */
 			silent_cerr("Please rebuild with ADAMS output enabled\n"

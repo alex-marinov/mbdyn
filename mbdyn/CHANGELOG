@@ -21,6 +21,7 @@ MBDyn 1.X-Engineering
 		- fixed jacobian output during modified NR
 		- fixed Schur solver API bug in driven elements
 		- fixed "naive" support of parallel assembly
+		- fixed default model name for adams output
 
 MBDyn 1.2-Engineering
 	Enhancements:
