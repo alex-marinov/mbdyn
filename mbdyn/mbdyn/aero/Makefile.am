@@ -14,14 +14,14 @@ aerodyn.cc \
 aerodyn.h \
 aeroelem.cc \
 aeroelem.h \
+aeroext.h \
+aeroext.cc \
 aeromodal.cc \
 aeromodal.h \
 c81data.cc \
 c81data.h \
 rotor.cc \
-rotor.h	\
-aeroext.h \
-aeroext.cc
+rotor.h
 
 libaero_la_LIBADD = @LIBS@
 libaero_la_LDFLAGS = -static
