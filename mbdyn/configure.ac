@@ -1012,7 +1012,7 @@ dnl
 dnl Check for /dev/TASK2CPU
 dnl
 AC_MSG_CHECKING([for /dev/TASK2CPU])
-if test -f "/dev/TASK2CPU" ; then
+if test -e "/dev/TASK2CPU" ; then
 	AC_DEFINE(HAVE_TASK2CPU,1,[define if /dev/TASK2CPU is available])
 	AC_MSG_RESULT(yes)
 else
