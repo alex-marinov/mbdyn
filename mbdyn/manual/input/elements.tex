@@ -1342,7 +1342,8 @@ succeeded, a function called \texttt{read} is invoked, and passed the input
 stream.
 This function is in charge of reading \texttt{module\_data} following the
 general syntax of the input file.
-It is advisable that the function \texttt{read} print some help message
+
+It is advisable that the function \texttt{read} prints some help message
 when the first field of \texttt{module\_data} is the keyword \texttt{help}.
 All the helpers and the high-level structures are available, such as
 drivers, constitutive laws, reference frames.
@@ -1359,6 +1360,8 @@ At last, it is searched in the current directory, and the extension
 The string \texttt{calls} represents the name of the structure that contains
 the bindings to the functions.
 The default is \texttt{"calls"}.
+
+\noindent
 Refer to \texttt{\$(BASE)/mbdyn/base/loadable.h} for a description of the
 functions that are allowed.
 An example module is given in directory
@@ -1367,7 +1370,36 @@ An example module is given in directory
 \end{verbatim}
 which can be used as a starting point for building a custom module.
 An analogous C/FORTRAN style interface is being planned, at the cost of
-possibly losing some of the fancy C++ features made available by the code.
+possibly losing some of the fancy C++ features made available by the code. \\
+
+\noindent
+To compile loadable modules, one needs to configure
+the package as follows:
+\begin{verbatim}
+    ./configure --with-module=<module_name>
+\end{verbatim}
+where \texttt{module\_name} is the name of the directory the module
+is placed in with the \texttt{module-} part stripped; e.g.\ to compile
+the tire module that resides in \texttt{\$(BASE)/modules/module-wheel2} 
+one must type
+\begin{verbatim}
+    ./configure --with-module=wheel2
+\end{verbatim}
+Multiple modules can be compiled by typing the list of the names
+separated by blanks.
+The modules need to resolve some of the symbols that are in the
+executable; until a full working libtool support is implemented,
+this must be done by hand.
+For the \texttt{g++(1)} compiler one needs
+to add \texttt{-rdynamic} to the loader flags, e.g.
+\begin{verbatim}
+    LDFLAGS="-rdynamic" ./configure --with-module=<module_name>
+\end{verbatim}
+on \texttt{sh(1)} and compatible shells like \texttt{bash(1)}, or
+\begin{verbatim}
+    env LDFLAGS="-rdynamic" ./configure --with-module=<module_name>
+\end{verbatim}
+on \texttt{csh(1)} and compatible shells.
 
 
 
