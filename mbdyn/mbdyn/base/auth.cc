@@ -77,8 +77,13 @@ PasswordAuth::PasswordAuth(const char *u, const char *c)
    strncpy(User, u, 8);
    User[8] = '\0';
    
-   strncpy(Cred, crypt(c, make_salt()), 13);
-   Cred[13] = '\0';	
+   char *tmp = crypt(c, make_salt());
+   if (tmp == NULL) {
+      THROW(ErrGeneric());
+   }
+
+   strncpy(Cred, tmp, 13);
+   Cred[13] = '\0';
 }
 
 
@@ -88,9 +93,16 @@ PasswordAuth::Auth(const char *user, const char *cred) const
    if (user == NULL || cred == NULL) {
       return AuthMethod::AUTH_ERR;
    }
-   if (strcmp(User, user) == 0 && strcmp(Cred, crypt(cred, Cred)) == 0) {
+
+   char *tmp = crypt(cred, Cred);
+   if (tmp == NULL) {
+      THROW(ErrGeneric());
+   }
+
+   if (strcmp(User, user) == 0 && strcmp(Cred, tmp) == 0) {
       return AuthMethod::AUTH_OK;
    }
+
    return AuthMethod::AUTH_FAIL;
 }
 
