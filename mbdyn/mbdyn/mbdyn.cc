@@ -153,7 +153,7 @@ mbdyn_usage(std::ostream& out, const char *sShortOpts)
 }
 
 /* Dati di getopt */
-static char sShortOpts[] = "a:d:f:hHlm:n::o:rRstTw";
+static char sShortOpts[] = "a:d:f:hHlm:n::o:prRstTw";
 enum MyOptions {
 	MAIL = 0,
 	INPUT_FILE,
@@ -179,6 +179,7 @@ static struct option LongOpts[] = {
 	{ "mail",           required_argument, NULL,           int('m') },
 	{ "nice",           optional_argument, NULL,           int('n') },
 	{ "output-file",    required_argument, NULL,           int('o') },
+	{ "parallel",	    no_argument,       NULL,           int('p') },
 	{ "redefine",       no_argument,       NULL,           int('r') },
 	{ "no-redefine",    no_argument,       NULL,           int('R') },
 	{ "silent",         no_argument,       NULL,           int('s') },
@@ -235,6 +236,10 @@ main(int argc, char* argv[])
 			using_mpi = 1;
 			break;
 		}
+	}
+
+	if ( using_mpi == 1 ) {
+		std::cerr << "using MPI (required by '-p' switch)" << std::endl;
 	}
 #endif /* USE_MPI */
    
@@ -380,6 +385,14 @@ main(int argc, char* argv[])
 	    		case int('T'):
 	        		fTable = 0;
 	        		break;	  
+
+			case int('p'):
+#ifdef USE_MPI
+				ASSERT(using_mpi == 1);
+#else /* !USE_MPI */
+				std::cerr << "switch '-p' is meaningless without MPI" << std::endl;
+#endif /* !USE_MPI */
+				break;
 	    
 	    		case int('r'):
 	        		fRedefine = 1;
