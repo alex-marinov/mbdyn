@@ -1,0 +1,14 @@
+CPPFLAGS="-I/home/masarati/Math/Meschach \
+	-I/usr/share/mpi/include -I/usr/share/mpi/include/c++ \
+	-I/home/masarati/Math/metis-4.0/Lib"
+CFLAGS="-g -O7 -march=pentiumpro"
+CXXFLAGS=$CFLAGS
+CC=gcc
+CXX=g++
+F77=g77
+LDFLAGS="-L/home/masarati/Math/Meschach/meschach \
+	-L/usr/share/mpi/lib \
+	-L/home/masarati/Math/metis-4.0"
+
+export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS CC CXX F77 LDFLAGS
+

@@ -1,0 +1,107 @@
+/* include/mbconfig.h.in.  Generated automatically from configure.in by autoheader.  */
+/*
+ * MBDyn (C) is a multibody analysis code.
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2000
+ *
+ * Pierangelo Masarati  <masarati@aero.polimi.it>
+ * Paolo Mantegazza     <mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */ 
+
+/* Define if you have the ANSI C header files.  */
+#undef STDC_HEADERS
+
+/* Define if you have the chdir function.  */
+#undef HAVE_CHDIR
+
+/* Define if you have the getcwd function.  */
+#undef HAVE_GETCWD
+
+/* Define if you have the getopt function.  */
+#undef HAVE_GETOPT
+
+/* Define if you have the getopt_long function.  */
+#undef HAVE_GETOPT_LONG
+
+/* Define if you have the signal function.  */
+#undef HAVE_SIGNAL
+
+/* Define if you have the <f2c.h> header file.  */
+#undef HAVE_F2C_H
+
+/* Define if you have the <meschach/sparse2.h> header file.  */
+#undef HAVE_MESCHACH_SPARSE2_H
+
+/* Define if you have the <metis.h> header file.  */
+#undef HAVE_METIS_H
+
+/* Name of package */
+#undef PACKAGE
+
+/* Version number of package */
+#undef VERSION
+
+/* define this to use external symbol table (default) */
+#undef USE_TABLE
+
+/* append underscore to fortran calls */
+#undef USE_UNDERSCORE
+
+/* use structural nodes */
+#undef USE_STRUCT_NODES
+
+/* use aerodynamic elements (requires USE_STRUCT_NODES */
+#undef USE_AERODYNAMIC_ELEMS
+
+/* use electric nodes */
+#undef USE_ELECTRIC_NODES
+
+/* use hydraulic nodes */
+#undef USE_HYDRAULIC_NODES
+
+/* define this to add debugging code */
+#undef DEBUG
+
+/* define this to use UNIX-style filenames */
+#undef USE_UNIX_FILE
+
+/* define this to use DOS-style filenames */
+#undef USE_DOS_FILE
+
+/* define if you want to use MPI */
+#undef USE_MPI
+
+/* define if you want to use Schur parallel solver */
+#undef USE_SCHUR
+
+/* define if you want to use Metis */
+#undef USE_METIS
+
+/* define if you want to use Meschach */
+#undef USE_MESCHACH
+
+
+/* this file must be included by every .c/.cc file */
+#include <mbdyn.h>
+

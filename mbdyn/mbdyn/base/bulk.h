@@ -1,0 +1,175 @@
+/* 
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2000
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/* Bulk elements */
+
+#ifndef BULK_H
+#define BULK_H
+
+#include "elem.h"
+#include "node.h"
+#include "drive.h"
+
+
+/* Tipi di bulk */
+class BulkType {
+ public:
+   enum Type {
+      UNKNOWN = -1,
+	SPRINGSUPPORT = 0,
+	SPRING,
+	
+	LASTBULKTYPE
+   };
+};
+
+extern const char* psBulkNames[];
+
+
+/* Bulk - begin */
+
+class Bulk : virtual public Elem {
+ public:
+   Bulk(unsigned int uLabel, flag fOutput)
+     : Elem(uLabel, ElemType::BULK, fOutput) { 
+	NO_OP;
+     };
+   
+   virtual ~Bulk(void) { 
+      NO_OP;
+   };
+   
+   virtual ElemType::Type GetElemType(void) const {
+      return ElemType::BULK;
+   };
+};
+
+/* Bulk - end */
+
+
+/* BulkSpringSupport - begin */
+
+class BulkSpringSupport 
+: virtual public Elem, public Bulk, public DriveOwner {
+ protected: 
+   ScalarDof SD;
+   
+ public:
+   BulkSpringSupport(unsigned int uLabel, const DriveCaller* pDC,
+		     const ScalarDof& sd, flag fOutput)
+     : Elem(uLabel, ElemType::BULK, fOutput), Bulk(uLabel, fOutput),
+     DriveOwner(pDC), SD(sd) { 
+      NO_OP;
+   };
+   
+   virtual ~BulkSpringSupport(void) { 
+      NO_OP;
+   };
+   
+   virtual inline void* pGet(void) const { 
+      return (void*)this;
+   };
+   
+   
+   
+   /* Scrive il contributo dell'elemento al file di restart */
+   virtual ostream& Restart(ostream& out) const {
+      return out; 
+   };
+   
+   
+   /* Dimensioni del workspace */
+   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+      *piNumRows = 1;
+      *piNumCols = 1;
+   };
+   
+   void Output(OutputHandler& /* OH */ ) const {
+      NO_OP;
+   };
+   
+   /* assemblaggio jacobiano */
+   virtual VariableSubMatrixHandler& 
+     AssJac(VariableSubMatrixHandler& WorkMat,
+	    doublereal dCoef, 
+	    const VectorHandler& /* XCurr */ ,
+	    const VectorHandler& /* XPrimeCurr */ ) {
+	
+	FullSubMatrixHandler& WM = WorkMat.SetFull();
+	WM.ResizeInit(1, 1, 0.);
+	
+	integer iRowIndex = SD.pNode->iGetFirstRowIndex()+1;
+	integer iColIndex = SD.pNode->iGetFirstColIndex()+1;
+	WM.fPutRowIndex(1, iRowIndex);
+	WM.fPutColIndex(1, iColIndex);
+	
+	doublereal d = dGet();
+	if (SD.iOrder == 0) {
+	   d *= dCoef;
+	}
+	WM.fPutCoef(1, 1, d);
+	
+	return WorkMat;
+     };
+   
+   /* assemblaggio residuo */
+   virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+				    doublereal /* dCoef */ ,
+				    const VectorHandler& /* XCurr */ ,
+				    const VectorHandler& /* XPrimeCurr */ ) {
+      WorkVec.Resize(1);
+      WorkVec.Reset(0.);
+
+      integer iRowIndex = SD.pNode->iGetFirstRowIndex()+1;
+      doublereal dVal = SD.pNode->dGetDofValue(1, SD.iOrder);
+      WorkVec.fPutItem(1, iRowIndex, -dGet()*dVal);
+
+      return WorkVec;
+   };
+
+   /* *******PER IL SOLUTORE PARALLELO******** */        
+   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+      utile per l'assemblaggio della matrice di connessione fra i dofs */
+   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+     NumNodes = 1;
+     NdTyps[0] = SD.pNode->GetNodeType();
+     NdLabels[0] = SD.pNode->GetLabel();
+   };
+   /* ************************************************ */
+};
+
+/* BulkSpringSupport - end */
+
+class DataManager;
+class MBDynParser;
+
+extern Elem* ReadBulk(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
+
+#endif

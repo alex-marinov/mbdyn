@@ -1,0 +1,109 @@
+\documentclass[12pt,dvips,fleqn]{article}
+\input{/users/masarati/Docs/Latex-tools/stdmacro.tex}
+
+\begin{document}
+
+\section*{Vincolo ``rollercoaster''}
+Il vincolo impone ad un corpo di spostarsi lungo una linea e di assumere
+un'orientazione imposta.
+I due problemi possono essere visti separatamente.
+
+\subsection*{Vincolo in posizione}
+Il luogo delle configurazioni che il corpo pu\`{o} assumere \`{e}
+parametrizzato in funzione di un'ascissa curvilinea $ s $; si richiede che
+sia funzione continua fino alla derivata prima.
+La posizione \`{e} data dalle coordinate $ x\plbr{s}:B\in\Re\mapsto\Re^3 $,
+mentre la giacitura \`{e} definita da una matrice di rotazione
+$ R\plbr{s}:B\in\Re\mapsto{SO\plbr{\Re^3}} $.
+Le derivate della linea e della giacitura sono definite da
+$ x'\plbr{s}=\partial{x}/\partial{s} $ e da
+$ \rho\plbr{s}\times{}=\partial{R}/\partial{s}R^T $.
+Si consideri l'ipotesi aggiuntiva che l'asse 3 del sistema di riferimento
+che definisce l'orientazione del vincolo sia diretto come la tangente alla
+linea stessa.
+L'equazione di vincolo si scrive come
+\begin{displaymath}
+    R^T\plbr{x_b-x\plbr{s}} \ = \ 0
+\end{displaymath}
+la quale afferma che il punto $ x_b $ appartenente al corpo $ b $ deve
+giacere sulla linea $ x\plbr{s} $ ad una generica ascissa $ s $ al momento
+incognita.
+La reazione vincolare che il corpo ed il vincolo si scambiano, in assenza di
+attrito, \`{e} diretta nelle direzioni 1 e 2 del sistema locale.
+Sia quindi $ e_i $ l'$i$-esimo versore del sistema di riferimento che
+definisce la giacitura del vincolo.
+Le forze agenti sul corpo $ b $ sono
+\begin{displaymath}
+    F \ = \ e_1v_1+e_2v_2
+\end{displaymath}
+dove $ v_i $ \`{e} la $i$-esima componente della reazione vincolare nel
+sistema solidale con il vincolo.
+La linearizzazione delle relazioni di vincolo risulta in
+\begin{displaymath}
+    R^T\plbr{\rho\times^T\plbr{x_b-x}-x'}\Delta{s}+R^T\Delta{x_b} \ = \ 0
+\end{displaymath}
+per quanto riguarda l'equazione di vincolo, mentre per la forza si ottiene
+\begin{displaymath}
+    \Delta{F} \ = \ 
+        \rho\times\plbr{e_1v_1+e_2v_2}\Delta{s}+e_1\Delta{v_1}+e_2\Delta{v_2}
+\end{displaymath}
+L'equazione di vincolo va intesa nel modo seguente: le prime due equazioni
+affermano che la proiezione della distanza tra il corpo ed il vincolo nelle
+direzioni normali alla linea di riferimento devono essere nulle. 
+Ad una violazione di queste equazioni corrisponde la nascita di una reazione
+vincolare.
+La terza equazione afferma che anche la proiezione lungo la linea deve
+essere nulla; ad una sua violazione per\`{o} non corrisponde una reazione
+vincolare, ma essa viene usata per risolvere l'ascissa curvilinea a cui il
+corpo si trova.
+Il sistema e significativamente lo Jacobiano si semplificano se le equazioni
+di vincolo vengono scritte direttamente nel sistema globale, quindi non
+premoltiplicate per la trasposta della giacitura del vincolo; in tal caso si
+ottiene
+\begin{displaymath}
+    x_b-x\plbr{s} \ = \ 0
+\end{displaymath}
+e 
+\begin{displaymath}
+    \Delta{x_b}-x'\Delta{s} \ = \ 0
+\end{displaymath}
+
+\subsection*{Vincolo in rotazione}
+Il vincolo in rotazione si ottiene imponendo che gli assi dei sistemi di
+riferimento del corpo e del vincolo siano ortogonali a due a due.
+Tale vincolo \`{e} del tutto analogo a quello che si scrive di solito tra
+due corpi, solo che la matrice di rotazione del vincolo ora \`{e}
+parametrizzata nell'ascissa curvilinea.
+Si consideri ad esempio l'ortogonalit\`{a} tra due assi non-omonimi di corpo
+e vincolo, $ e_{b1} $ e $ e_2 $.
+L'equazione di vincolo \`{e}
+\begin{displaymath}
+    e_{b1}^Te_2 \ = \ 0
+\end{displaymath}
+Questa equazione d\`{a} origine ad una coppia che agisce attorno all'asse
+ortogonale ai due che definiscono il vincolo, quindi
+\begin{displaymath}
+    M \ = \ e_{b1}\times{e_2}m_3 
+\end{displaymath}
+La loro linearizzazione d\`{a}
+\begin{displaymath}
+    \plbr{e_{1b}\times{e_2}}^T\Delta{g_b}
+    +\plbr{e_2\times{e_{1b}}}^T\rho\Delta{s} \ = \ 0
+\end{displaymath}
+e
+\begin{displaymath}
+    \Delta{M} \ = \
+        m_3e_2\times{e_{b1}}\times\Delta{g_b}
+	-m_3e_{b_1}\times{e_2}\times\rho\Delta{s}
+	+e_{b1}\times{e_2}\Delta{m_3}
+\end{displaymath}
+Quindi l'ascissa curvilinea viene risolta dal vincolo in posizione, mentre
+il vincolo in rotazione si limita ad imporre, nello stesso punto, che anche
+i sistemi di riferimento coincidano.
+Il vincolo \`{e} relativamente semplice da implementare, come verificato
+scrivendo un modulo per MBDyn. 
+Il problema fondamentale \`{e} disporre di posizione, direzione tangente,
+orientazione e curvatura del vincolo in funzione continua e derivabile
+dell'ascissa curvilinea.
+
+\end{document}

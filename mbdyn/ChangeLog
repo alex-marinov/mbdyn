@@ -1,0 +1,249 @@
+MBDyn: Multi-Body Dynamics
+see http://www.mbdyn.org
+
+Copyright: 1996-2000 Pierangelo Masarati
+
+*** 2000-09-07 Giuseppe Quaranta (Pierangelo Masarati)
+ - CVS tests
+ - More CVS tests
+
+*** 2000-09-07 Pierangelo Masarati
+ - Cleanup of various stuff; 
+ - update of parallel stuff from Beppe;
+ - put everything under CVS
+
+*** 2000-07-10 Pierangelo Masarati
+ - Upgrade of hydraulic stuff (new dynamic pipe and cavitation hydraulic fluid)
+
+*** 2000-05-22 Pierangelo Masarati
+ - Initial Adams output capabilities
+
+*** 2000-05-19 Giuseppe Quaranta
+ - final merge of parallel stuff
+
+*** 2000-05-01 Pierangelo Masarati
+ - provisions for -ansi compiling, HP & Digital porting ...
+
+*** 2000-03-17 Pierangelo Masarati
+ - adding c81 aerodynamic stuff ...
+
+*** 2000-03-03 Pierangelo Masarati
+ - restoring the AssEig stuff ... (unable to make lapack work!)
+
+*** 2000-03-02 Pierangelo Masarati
+ - sign built-in function
+
+*** 2000-03-01 Giuseppe Quaranta
+ - release of parallel stuff; new release: 00.001.0010
+
+*** 2000-02-27 Pierangelo Masarati
+ - kinematic joint OK; need a general way to enforce the prescribed motion
+
+*** 2000-02-27 Pierangelo Masarati
+ - editing of manual (output, still incomplete)
+
+*** 2000-02-20 Pierangelo Masarati
+ - better handling of hydraulic fluids; hf can be defined to be reused later
+ - some manual updating
+
+*** 2000-02-19 Pierangelo Masarati
+ - Added the possibility to initialise the automatically generated
+   inertia elements. In such case, the initial trim is made easier, 
+   and, by recovering the old restart procedure, a restart of the
+   rotor may be proficiently attempted (TODO).
+
+*** 2000-02-17 Pierangelo Masarati
+ - eXperimental PlaneDispJoint
+
+*** 2000-02-16 Felice Felippone
+ - Final upload of Modal-related files
+
+*** 2000-02-04 Lamberto Puggelli & Pierangelo Masarati
+ - Hydraulic actuator (Devel)
+ - Copy of HydraulicFluid
+
+*** 1999-12-21 Pierangelo Masarati
+ - fixed bug in parser: no remark escape before reading strings 
+   w and w/o delims (thanks to Felice Felippone);
+ - added some rotation matrix input modes; documented;
+ - some documentation for modal elements
+ - refreshing of documentation in general
+
+*** 1999-12-21 Felice Felippone
+ - new version of modal elements; input partially revised
+
+*** 1999-12-20 Pierangelo Masarati
+ - fixed allocation bug in PAM_Auth (mbdyn_conv conversation function)
+
+*** 1999-12-19 Pierangelo Masarati
+ - added PAM authentication method; added etc/ directory to tree;
+   in etc/pam.d/ there is an example of pam configuration for mbdyn
+ - refresh of CHANGELOG file
+ - some cleaning of utils/autopilot.cc
+
+*** 1999-12-18 Pierangelo Masarati
+ - Fixed bug on the first output of dummy nodes
+ - Added escape to GetStringWithDelims in HighParser; escape char is '\'
+   (should be settable)
+   
+*** 1999-12-17 Pierangelo Masarati
+ - Fixed some bugs in wheel
+ - Added dummy relative frame node; altered dummy node
+ - Added some documentation for loadable elems, socket drivers, bind parameter
+   nodes and so on
+ - Added "from nodes" keyword facility to distance joints
+
+*** 1999-12-17 Lamberto Puggelli & Pierangelo Masarati
+ - Added hydraulic fluid handling facilities
+
+*** 1999-12-16 Pierangelo Masarati
+ - Wheel module (GRAALL wheel model)
+ - Fixed missing return bug in IncludeParser::GetFileName
+
+*** 1999-12-15 Pierangelo Masarati
+ - SocketDrive as a descendant of FileDrive
+ - Cleanup of Drive stuff
+ - Clients for SocketDrive (sockdrive & autopilot)
+ 
+*** 1999-12-07 Pierangelo Masarati
+ - Cleanup of hydraulic stuff
+ - Cleanup of Makefile
+ 
+*** 1999-12-03 Lamberto Puggelli
+ - Hydraulic stuff in advanced version
+
+*** 1999-11-29 Felice Felippone
+ - modal (experimental)
+
+*** 1999-11-25 Pierangelo Masarati
+ - signal handling: ends step in case of SIGINT, SIGTERM, SIGHUP
+ - extended command line args
+ - contact constitutive law: 1D/3D
+ - directory tests, for significant data in package
+ - tilde (~) resolution in including files 
+   (~/ = $HOME/, ~user/ = $passwd(user)->HOME/)
+   TODO: extension to "output file name" card.
+   FIXED: all file names are obtained thru IncludeParser::GetFileName,
+   which performs the shell-like escape of (~).
+
+*** 1999-??-?? Giuseppe Quaranta
+ - MPI (not committed yet)
+ 
+*** 1999-05-12 Pierangelo Masarati
+ - provisions for ADAMS input
+ - output for Genels
+
+*** 1999-05-11 Pierangelo Masarati
+ - documentation in package (tex, ps, html)
+ 
+*** 1999-05-10 Pierangelo Masarati
+ - Loadable Element with Makefile (experimental)
+
+*** 1999-02-16 Lamberto Puggelli
+ - Basic hydraulic elements (yet to be tested)
+
+*** 1999-02-10 Pierangelo Masarati
+ - Bug fix in DynamicInflowRotor
+
+*** 1999-02-09 Pierangelo Masarati
+ - Bug fix in ScalarFilter
+ - GRAALDamper added as ConstitutiveLaw1D
+
+*** 1999-02-07 Pierangelo Masarati
+ - ScalarFilter has been reviewed. Now every kind of ScalarDof can be used
+   as input.
+ - Elems, Nodes and so on have been cleaned up.
+ - Fixed some minor bugs and warnings all around.
+
+*** 1999-02-03 Pierangelo Masarati
+ - Elem2Param has been debugged. StrainGageParam has been derived from
+   Elem2Param. PrivData stuff has been added to Beam elements.
+   
+*** 1999-02-02 Pierangelo Masarati
+ - Introduced Private Data methods for Elems. The Joint2Param ParameterNode
+   has been replaced by the Elem2Param. Now every elem can be bound to a 
+   ParameterNode provided it has some private data to share.
+   
+*** 1999-02-02 Pierangelo Masarati
+ - Fixed a bug in the Makefile; now the program can be rebuilt if everything
+   is available in precompiled modules even if the *.o files are not present.
+ - Started the Doc++ based documentation of the code.
+ - Reviewed the SubMatrix and SubVector Handlers and the Vec3-Mat3x3 stuff
+   (still a lot to do!)
+
+*** 1999-02-01 Pierangelo Masarati
+ - Added accelerometers (translational and rotational)
+ - Reorganized the directory tree; established a patching procedure; renewed
+   the Makefile structure.
+
+*** 1999-01-30 Pierangelo Masarati
+ - Added NullDriveCaller and OneDriveCaller in header "drive.h" for default 
+   initialisation of drive callers. Now file "drive_.h" must not be directly 
+   included by DriveCaller users.
+   
+*** 1999-01-29 Pierangelo Masarati
+ - Added FileDrive, FileDriveCaller and FixedStepFileDrive: a "drive" element
+   is added, made of data arrays read from file, that can be referenced by
+   various DriveCallers. Yet to be tested (tested 01-30).
+
+*** 1999-01-27 Pierangelo Masarati
+ - Separate compilation of modules.
+ - Added translational and angular acceleration drives (for seismic analysis)
+ - Fixed allocation bug in DAC_Process_Debug (Desired output drive owner array)
+
+*** 1999-01-27 Pierangelo Masarati & Lamberto Puggelli:
+ - Hydraulic elements in enums; ReadHydraulicElem; HydraulicElem base class;
+   Pipe element
+
+*** 1999-01-26 Pierangelo Masarati: 
+ - GPC is implemented and partly tested. 
+ - Enums have been slightly modified.
+ - Fixed the bug in StringDriveCaller. The fix is not very efficient, but it
+   works (it requires two temporaries, a istrstream and an InputStream).
+   
+*** 1999-01-26 Pierangelo Masarati & Lamberto Puggelli:
+ - Hydraulic nodes added and tested (directly derived from ScaladAlgebraicNode,
+   they can be used with genels).
+   
+*** 1999-01-25 Pierangelo Masarati:
+ - Deadbeat is working with something unclear. Need more debugging
+ 
+*** 1999-01-24 Pierangelo Masarati:
+ - Fixed small bugs in new MathParser; a bug in StringDriveCaller appeared.
+ - DeadBeat control is ready (ARX, ARMAX, with desired output still to test)
+
+*** 1999-01-23 Pierangelo Masarati:
+ - Completely renewed the MathParser; true type handling, logical and
+   relational operators added, new handling of built-in functions
+ - Calculator added to the Utils, using the new parser
+ 
+*** 1999-01-20 Pierangelo Masarati:
+ - TimeDriveCaller added. 
+ - Working at the adaptive control ...
+ 
+*** 1999-01-19 Pierangelo Masarati:
+ - GenelStateSpaceSISO reviewed (moved to file genfilt.cc)
+ - GenelStateSpaceMIMO added and tested
+ 
+*** 1999-01-18 Pierangelo Masarati:
+  - RotorTrim element added. Problems.
+  - Utils directory added, with filter for simple data processing:
+    > rotrel, for relative rotation between nodes
+    > rot2eu and eu2rot, to convert between rotration matrix and Euler angles
+    > rot2phi, to convert from rotaton matrix to rotation vector (bugs)
+    > deriv, to numerically derive data in MBDyn general output format
+    
+*** 1999-01-17 Pierangelo Masarati:
+  - PiezoActuatorBeam added; Beam partially revised; 
+    now elastic beams can act as piezo actuators with N independent electrodes 
+
+*** 1999-01-16 Pierangelo Masarati:
+  - bug fix in meschach sp_set_val, sp_inc_val, sp_dec_val
+  - DynamicForgettingFactor revised and added to discrete identification
+  - PesistentExcitation revised and added to discrete identification
+  - Output of discrete identification on an independent file
+  - VecN and Mat3xN classes for piezo-beam
+
+*** 1999-01-15 Pierangelo Masarati:
+  - added a modified meschach sparse LU solver, wrapped by
+    Meschach<VH>, MeschachSparse<MH>, MeschachSparseLU<SM>

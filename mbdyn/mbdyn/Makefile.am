@@ -1,0 +1,15 @@
+## Process this file with automake to produce Makefile.in
+
+# Build static libraries in subdirs
+##SUBDIRS = @XSUBDIRS@
+SUBDIRS = base struct aero elec hydr
+
+# Build mbdyn executable
+bin_PROGRAMS = mbdyn
+mbdyn_SOURCES = mbdyn.cc mbdyn.h
+## mbdyn_LDADD = @XLIBOBJS@
+mbdyn_LDADD = base/libbase.la struct/libstruct.la aero/libaero.la elec/libelec.la hydr/libhydr.la ../libraries/libmbmath/libmbmath.la ../libraries/libmbutil/libmbutil.la @MESCHACH_LIBS@ @MPI_LIBS@ @F2C_LIBS@ @METIS_LIBS@ @LIBS@
+mbdyn_LDFLAGS = -static
+
+INCLUDES = -I../libraries/libmbutil -I../libraries/libmbmath -I../mbdyn/base -I../mbdyn/struct -I../mbdyn/aero -I../mbdyn/elec -I../mbdyn/hydr
+

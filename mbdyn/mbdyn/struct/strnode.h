@@ -1,0 +1,727 @@
+/* 
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2000
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+#ifndef STRNODE_H
+#define STRNODE_H
+
+#include "node.h"
+#include "matvec3.h"
+
+/* Tipi di StructNode */
+class StructNodeType {
+ public:
+   enum Type {
+      UNKNOWN = -1,
+	
+	DYNAMIC = 0,
+	STATIC,
+	MODAL,
+	DUMMY,
+	
+	LASTSTRUCTNODETYPE
+   };
+};    
+   
+extern const char* psStructNodeNames[];
+
+
+/* StructNode - begin */
+
+/* Nodo strutturale: possiede i gradi di liberta' di:
+ *  - spostamento assoluto,
+ *  - parametri di rotazione incrementali,
+ * inoltre, se dinamico, i gdl di:
+ *  - quantita' di moto,
+ *  - momento della quantita' di moto rispetto al polo mobile.
+ * Il nodo di per se' non ha caratteristiche inerziali, che gli vengono date
+ * dagli elementi ad esso collegati. In particolare, gli elementi Body, corpo
+ * rigido, sono responsabili dell'attribuzione di inerzia ai nodi. Altri 
+ * contributi possono giungere da travi con matrice di inerzia consistente
+ * (non ancora implementate). */
+
+const int iStructNodeInitialDofNumber = 12;
+
+
+
+class StructNode : public Node {
+   
+ public: 
+   class ErrGeneric {};
+   
+ private:
+   
+ protected:
+   Mat3x3 RPrev;   /* Matrice di rotazione da zero al passo precedente */
+   Mat3x3 RRef;    /* Matrice di rotazione predetta al passo corrente */
+   Mat3x3 RCurr;   /* Matrice di rotazione all'iterazione corrente */
+   
+   Vec3 gRef;
+   Vec3 gCurr;     /* parametri e derivate correnti */
+   Vec3 gPRef;
+   Vec3 gPCurr;
+   
+   /* Valgono le relazioni:  
+    *        RCurr = RDelta*RRef                (1)
+    *        RDelta = RCurr*RRef^T              (2)
+    * In base a questo, dal momento che la matrice RDelta e' richiesta
+    * solo in fase di aggiornamento ed e' usata dal nodo stesso, conviene
+    * non conservarla e calcolarla in base alla relazione (2).
+    */
+   
+   Vec3 XPrev;   /* Posizione al passo precedente */
+   Vec3 XCurr;   /* Posizione corrente */
+   
+   Vec3 VPrev;   /* Velocita' al passo precedente */
+   Vec3 VCurr;   /* Velocita' corrente */
+   
+   Vec3 WPrev;   /* Velocita' angolare al passo precedente */
+   Vec3 WRef;    /* Velocita' angolare predetta al passo corrente */
+   Vec3 WCurr;   /* Velocita' angolare corrente */
+
+   /* Rigidezze fittizie usate nell'assemblaggio dei vincoli */
+   doublereal dPositionStiffness; 
+   doublereal dVelocityStiffness;
+   flag fOmegaRot; /* Flag di velocita' angolare solidale col nodo */
+   
+ public:
+   /* Costruttore definitivo */
+   StructNode(unsigned int uL, 
+	      const DofOwner* pDO,
+	      const Vec3& X0, 
+	      const Mat3x3& R0,
+	      const Vec3& V0, 
+	      const Vec3& W0,
+	      doublereal dPosStiff,
+	      doublereal dVelStiff, 
+	      flag fOmRot, 
+	      flag fOut);
+   
+   /* Distruttore (per ora e' banale) */
+   virtual ~StructNode(void);
+         
+   /* Tipo di nodo */
+   virtual NodeType::Type GetNodeType(void) const;
+   
+   /* Contributo del nodo strutturale al file di restart */
+   virtual ostream& Restart(ostream& out) const;
+
+   /* Restituisce il valore del dof iDof;
+    * se differenziale, iOrder puo' essere = 1 per la derivata */
+   virtual const doublereal& dGetDofValue(int iDof, int iOrder = 0) const;
+   
+   /* Setta il valore del dof iDof a dValue;
+    * se differenziale, iOrder puo' essere = 1 per la derivata */
+   virtual void SetDofValue(const doublereal& dValue, 
+			    unsigned int iDof, unsigned int iOrder = 0);
+      
+   
+   /* Tipo di nodo strutturale */
+   virtual StructNodeType::Type GetStructNodeType(void) const = 0;
+   
+   /* Ritorna il numero di dofs usato nell'assemblaggio iniziale */
+   virtual inline unsigned int iGetInitialNumDof(void) const;
+   
+   /* Ritorna il primo indice (-1) di posizione */
+   virtual inline integer iGetFirstPositionIndex(void) const;
+   
+   /* Ritorna il primo indice (-1) di Quantita' di moto */
+   virtual inline integer iGetFirstMomentumIndex(void) const = 0;
+     
+   /* Restituiscono i dati correnti */
+   /* Attenzione: restituiscono un reference ai dati veri, per limitare 
+    * l'overhead. Tuttavia, una loro modifica e' permanente. Valutare
+    * quindi la possibilita' di far passare un const Mat3x3& ecc., in modo
+    * da obbligare il chiamante a farsi una copia dei dati */
+   virtual inline const Mat3x3& GetRPrev(void) const;
+   virtual inline const Mat3x3& GetRRef(void) const;
+   virtual inline const Mat3x3& GetRCurr(void) const;
+   
+   virtual inline const Vec3& GetgRef(void) const;
+   virtual inline const Vec3& GetgCurr(void) const;
+   
+   virtual inline const Vec3& GetgPRef(void) const;
+   virtual inline const Vec3& GetgPCurr(void) const;
+   
+   virtual inline const Vec3& GetXPrev(void) const;
+   virtual inline const Vec3& GetXCurr(void) const;
+   
+   virtual inline const Vec3& GetVPrev(void) const;
+   virtual inline const Vec3& GetVCurr(void) const;
+   
+   virtual inline const Vec3& GetWPrev(void) const;
+   virtual inline const Vec3& GetWRef(void) const;
+   virtual inline const Vec3& GetWCurr(void) const;
+
+   virtual inline const doublereal& dGetPositionStiffness(void) const;
+   virtual inline const doublereal& dGetVelocityStiffness(void) const;
+   virtual inline flag fOmegaRotates(void) const;
+
+   
+   /* Output del nodo strutturale (da mettere a punto) */
+   virtual void Output(OutputHandler& OH) const;
+   
+   /* Aggiorna dati in base alla soluzione */
+   virtual void Update(const VectorHandler& X,
+		       const VectorHandler& XP);
+      
+   /* Aggiorna dati durante l'iterazione fittizia iniziale */
+   virtual void DerivativesUpdate(const VectorHandler& X,
+				  const VectorHandler& XP);
+   
+   /* Aggiorna dati in base alla soluzione durante l'assemblaggio iniziale */
+   virtual void InitialUpdate(const VectorHandler& X);
+      
+   /* Funzioni di inizializzazione, ereditate da DofOwnerOwner */
+   virtual void SetInitialValue(VectorHandler& X) const;   
+   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const = 0;
+      
+   /* Elaborazione vettori e dati prima e dopo la predizione
+    * per MultiStepIntegrator */
+   virtual void BeforePredict(VectorHandler& X, VectorHandler& XP,
+			      VectorHandler& XPrev, 
+			      VectorHandler& XPPrev) const;
+   virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+};
+
+
+/* Ritorna il numero di dofs usato nell'assemblaggio iniziale */
+inline unsigned int StructNode::iGetInitialNumDof(void) const 
+{
+   return iStructNodeInitialDofNumber;
+}
+ 
+
+/* Ritorna il primo indice (-1) di posizione */
+inline integer StructNode::iGetFirstPositionIndex(void) const
+{
+   return DofOwnerOwner::iGetFirstIndex();
+}
+
+
+/* Restituiscono i dati correnti */
+/* Attenzione: restituiscono un reference ai dati veri, per limitare 
+ * l'overhead. Tuttavia, una loro modifica e' permanente. Valutare
+ * quindi la possibilita' di far passare un const Mat3x3& ecc., in modo
+ * da obbligare il chiamante a farsi una copia dei dati */
+inline const Mat3x3& StructNode::GetRPrev(void) const
+{
+   return RPrev; 
+}
+
+
+inline const Mat3x3& StructNode::GetRRef(void) const
+{
+   return RRef; 
+}
+
+
+inline const Mat3x3& StructNode::GetRCurr(void) const
+{
+   return RCurr; 
+}
+
+
+inline const Vec3& StructNode::GetgRef(void) const
+{
+   return gRef;
+}
+
+
+inline const Vec3& StructNode::GetgCurr(void) const
+{
+   return gCurr;
+}
+
+
+inline const Vec3& StructNode::GetgPRef(void) const
+{
+   return gPRef;
+}
+
+
+inline const Vec3& StructNode::GetgPCurr(void) const
+{
+   return gPCurr;
+}
+
+
+inline const Vec3& StructNode::GetXPrev(void) const
+{
+   return XPrev;
+}
+
+
+inline const Vec3& StructNode::GetXCurr(void) const
+{ 
+   return XCurr;
+}
+
+
+inline const Vec3& StructNode::GetVPrev(void) const
+{ 
+   return VPrev;
+}
+
+
+inline const Vec3& StructNode::GetVCurr(void) const
+{ 
+   return VCurr;
+}
+
+
+inline const Vec3& StructNode::GetWPrev(void) const
+{ 
+   return WPrev;
+}
+
+
+inline const Vec3& StructNode::GetWRef(void) const
+{
+   return WRef;
+}
+
+
+inline const Vec3& StructNode::GetWCurr(void) const
+{
+   return WCurr;
+}
+
+inline const doublereal& StructNode::dGetPositionStiffness(void) const
+{
+   return dPositionStiffness; 
+}
+
+
+inline const doublereal& StructNode::dGetVelocityStiffness(void) const
+{
+   return dVelocityStiffness; 
+}
+
+   
+inline flag StructNode::fOmegaRotates(void) const
+{
+   return fOmegaRot; 
+}
+
+/* StructNode - end */
+
+
+/* DynamicStructNode - begin */
+
+/* Nodo strutturale per problemi dinamici: possiede i gradi di liberta' di:
+ *  - spostamento assoluto,
+ *  - parametri di rotazione incrementali,
+ *  - quantita' di moto,
+ *  - momento della quantita' di moto rispetto al polo mobile.
+ * Il nodo di per se' non ha caratteristiche inerziali, che gli vengono date
+ * dagli elementi ad esso collegati. In particolare, gli elementi Body, corpo
+ * rigido, sono responsabili dell'attribuzione di inerzia ai nodi. Altri 
+ * contributi possono giungere da travi con matrice di inerzia consistente
+ * (non ancora implementate). Fa eccezione il caso di un nodo incastrato.
+ * In questo caso non e' necessario attribuirgli inerzia perche' il vincolo
+ * di incastro, ClampJoint, si occupa di rendere non singolare la matrice 
+ * jacobiana. */
+
+
+/* Numero di dof del tipo di nodo */
+const int iDynamicStructNodeDofNumber = 12;
+
+
+class DynamicStructNode : public StructNode {
+ protected:
+ public:
+   /* Costruttore definitivo (da mettere a punto) */
+   /* I dati sono passati a mezzo di reference, quindi i relativi oggetti 
+    * devono essere creati da chi costruisce il nodo, ovvero la funzione
+    * DataManager::ReadStructNode(). Non e' il modo piu' efficiente ma e' 
+    * comodo e sicuro */
+   DynamicStructNode(unsigned int uL, 
+		     const DofOwner* pDO,
+		     const Vec3& X0, 
+		     const Mat3x3& R0,
+		     const Vec3& V0, 
+		     const Vec3& W0,
+		     doublereal dPosStiff,
+		     doublereal dVelStiff, 
+		     flag fOmRot,
+		     flag fOut);
+   
+   /* Distruttore (per ora e' banale) */
+   virtual ~DynamicStructNode(void);
+
+   /* Tipo di nodo strutturale */
+   virtual StructNodeType::Type GetStructNodeType(void) const;
+   
+   /* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */
+   virtual inline unsigned int iGetNumDof(void) const;
+   
+   /* Ritorna il primo indice (-1) di quantita' di moto */
+   virtual inline integer iGetFirstMomentumIndex(void) const;
+
+   /* Usato dalle forze astratte, dai bulk ecc., per assemblare le forze
+    * al posto giusto */
+   virtual integer iGetFirstRowIndex(void) const;
+   
+   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+};
+
+
+/* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */
+inline unsigned int DynamicStructNode::iGetNumDof(void) const
+{
+   return iDynamicStructNodeDofNumber;
+}
+
+/* Ritorna il primo indice (-1) di quantita' di moto */
+inline integer DynamicStructNode::iGetFirstMomentumIndex(void) const
+{
+   return DofOwnerOwner::iGetFirstIndex()+6;
+}
+
+/* DynamicStructNode - end */
+
+
+/* StaticStructNode - begin */
+
+/* Nodo strutturale per problemi statici: possiede i gradi di liberta' di:
+ *  - spostamento assoluto,
+ *  - parametri di rotazione incrementali
+ * Il nodo puo' essere usato:
+ * - in problemi statici e quasi statici
+ * - quando e' vincolato da un incastro
+ * - per punti geometrici statici, di cui si intende trascurare la dinamica,
+ *   la cui non-singolarita' sia garantita da elementi elastici 
+ *   o da vincoli */
+
+/* Numero di dof del tipo di nodo - usato anche dal DofManager (?) */
+const int iStaticStructNodeDofNumber = 6;
+
+class StaticStructNode : public StructNode {
+ protected:
+ public:
+   /* Costruttore definitivo */
+   StaticStructNode(unsigned int uL, 
+		    const DofOwner* pDO,
+		    const Vec3& X0, 
+		    const Mat3x3& R0,
+		    const Vec3& V0, 
+		    const Vec3& W0,
+		    doublereal dPosStiff, 
+		    doublereal dVelStiff, 
+		    flag fOmRot,
+		    flag fOut);
+   
+   /* Distruttore (per ora e' banale) */
+   virtual ~StaticStructNode(void);
+         
+   /* Tipo di nodo strutturale */
+   virtual StructNodeType::Type GetStructNodeType(void) const;
+   
+   /* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */
+   virtual inline unsigned int iGetNumDof(void) const;
+   
+   /* Ritorna il primo indice (-1) di quantita' di moto */
+   virtual inline integer iGetFirstMomentumIndex(void) const;
+      
+   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+};
+
+
+/* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */
+inline unsigned int StaticStructNode::iGetNumDof(void) const
+{
+   return iStaticStructNodeDofNumber; 
+}
+
+
+/* Ritorna il primo indice (-1) di quantita' di moto */
+inline integer StaticStructNode::iGetFirstMomentumIndex(void) const
+{
+   return DofOwnerOwner::iGetFirstIndex();
+}
+
+/* StaticStructNode - end */
+
+
+/* classe ModalNode derivato da Dynamic */
+
+class ModalNode : public DynamicStructNode {
+ protected:
+   
+   /* aggiungo accelerazioni lineari e angolari (da usarsi solo col nodo modale) */
+   Vec3 XPPCurr;   /* Accelerazione lineare  corrente */
+   Vec3 WPCurr;    /* Accelerazione angolare corrente */
+
+ public:
+   /* Costruttore definitivo (da mettere a punto) */
+   /* I dati sono passati a mezzo di reference, quindi i relativi oggetti 
+    * devono essere creati da chi costruisce il nodo, ovvero la funzione
+    * DataManager::ReadStructNode(). Non e' il modo piu' efficiente ma e' 
+    * comodo e sicuro */
+   ModalNode(unsigned int uL, 
+	     const DofOwner* pDO,
+	     const Vec3& X0, 
+	     const Mat3x3& R0,
+	     const Vec3& V0, 
+	     const Vec3& W0,
+	     doublereal dPosStiff,
+	     doublereal dVelStiff, 
+	     flag fOmRot,
+	     flag fOut);
+   
+   /* Distruttore (per ora e' banale) */
+   virtual ~ModalNode(void);
+   
+   /* Tipo di nodo strutturale */
+   virtual StructNodeType::Type GetStructNodeType(void) const;
+   
+   /* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */
+   virtual inline unsigned int iGetNumDof(void) const;
+   
+   /* Ritorna il primo indice (-1) di quantita' di moto */
+   virtual inline integer iGetFirstMomentumIndex(void) const;
+   
+   /* Usato dalle forze astratte, dai bulk ecc., per assemblare le forze
+    * al posto giusto */
+   virtual integer iGetFirstRowIndex(void) const;
+   
+   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+   
+   /* Aggiorna dati in base alla soluzione */
+   virtual void Update(const VectorHandler& X,
+		       const VectorHandler& XP);
+
+   virtual inline const Vec3& GetXPPCurr(void) const;
+   virtual inline const Vec3& GetWPCurr(void) const;      
+};
+
+
+/* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */
+inline unsigned int ModalNode::iGetNumDof(void) const
+{
+   return iDynamicStructNodeDofNumber;
+}
+
+/* Ritorna il primo indice (-1) di quantita' di moto */
+inline integer ModalNode::iGetFirstMomentumIndex(void) const
+{
+   return DofOwnerOwner::iGetFirstIndex()+6;
+}
+
+inline const Vec3& ModalNode::GetXPPCurr(void) const
+{
+   return XPPCurr;
+}
+
+inline const Vec3& ModalNode::GetWPCurr(void) const
+{
+   return WPCurr;
+}
+
+/* ModalNode - end */
+
+
+/* DummyStructNode - begin */
+
+class DummyStructNode : public StructNode {
+ public:
+   enum Type {
+      UNKNOWN = -1,
+           
+      OFFSET = 0,
+      RELATIVEFRAME,
+      
+      LASTTYPE
+   };
+   
+ protected:
+   const StructNode* pNode;
+   
+   void Err(void) const;
+   
+virtual void __Update(void) = 0;
+
+ public:
+   /* Costruttore definitivo */
+   DummyStructNode(unsigned int uL, 
+		   const DofOwner* pDO,
+		   const StructNode* pNode);
+   
+   /* Distruttore (per ora e' banale) */
+   virtual ~DummyStructNode(void);
+   
+   /* tipo */
+   virtual DummyStructNode::Type GetDummyType(void) const = 0;
+   
+   /* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */
+   virtual inline unsigned int iGetNumDof(void) const;
+   
+   /* Restituisce il valore del dof iDof;
+    * se differenziale, iOrder puo' essere = 1 per la derivata */
+   virtual const doublereal& dGetDofValue(int iDof, int iOrder = 0) const;
+   
+   /* Setta il valore del dof iDof a dValue;
+    * se differenziale, iOrder puo' essere = 1 per la derivata */
+   virtual void SetDofValue(const doublereal& dValue, 
+			    unsigned int iDof, unsigned int iOrder = 0);
+
+   /* Tipo di nodo strutturale */
+   virtual StructNodeType::Type GetStructNodeType(void) const;
+   
+   /* Ritorna il numero di dofs usato nell'assemblaggio iniziale */
+   virtual inline unsigned int iGetInitialNumDof(void) const;
+   
+   /* Ritorna il primo indice (-1) di posizione */
+   virtual inline integer iGetFirstPositionIndex(void) const;
+   
+   /* Ritorna il primo indice (-1) di Quantita' di moto */
+   virtual inline integer iGetFirstMomentumIndex(void) const;
+
+   /* Aggiorna dati durante l'iterazione fittizia iniziale */
+   virtual void DerivativesUpdate(const VectorHandler& X,
+				  const VectorHandler& XP);
+   
+   /* Aggiorna dati in base alla soluzione durante l'assemblaggio iniziale */
+   virtual void InitialUpdate(const VectorHandler& X);
+      
+   /* Funzioni di inizializzazione, ereditate da DofOwnerOwner */
+   virtual void SetInitialValue(VectorHandler& X) const;   
+   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+      
+   /* Elaborazione vettori e dati prima e dopo la predizione
+    * per MultiStepIntegrator */
+   virtual void BeforePredict(VectorHandler& X, VectorHandler& XP,
+			      VectorHandler& XPrev, 
+			      VectorHandler& XPPrev) const;
+   virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+};
+
+
+/* Ritorna il numero di dofs usato nell'assemblaggio iniziale */
+inline unsigned int DummyStructNode::iGetInitialNumDof(void) const 
+{
+   return 0;
+}
+
+
+/* Ritorna il primo indice (-1) di posizione */
+inline integer DummyStructNode::iGetFirstPositionIndex(void) const
+{
+   Err();
+   return 0;
+}
+
+
+/* Ritorna il primo indice (-1) di Quantita' di moto */
+inline integer DummyStructNode::iGetFirstMomentumIndex(void) const
+{
+   Err();
+   return 0;
+}
+
+
+/* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */
+inline unsigned int DummyStructNode::iGetNumDof(void) const
+{
+   return 0;
+}
+
+/* DummyStructNode - end */
+
+
+/* OffsetDummyStructNode - begin */
+
+class OffsetDummyStructNode : public DummyStructNode {
+ protected:
+   Vec3 f;
+   Mat3x3 R;
+   
+   void __Update(void);
+   
+ public:
+   /* Costruttore definitivo */
+   OffsetDummyStructNode(unsigned int uL, 
+			 const DofOwner* pDO,
+			 const StructNode* pNode,
+			 const Vec3& f,
+			 const Mat3x3& R);
+   
+   /* Distruttore (per ora e' banale) */
+   virtual ~OffsetDummyStructNode(void);
+
+   /* tipo */
+   virtual DummyStructNode::Type GetDummyType(void) const;
+   
+   /* Aggiorna dati in base alla soluzione */
+   virtual void Update(const VectorHandler& X,
+		       const VectorHandler& XP);
+};
+
+/* OffsetDummyStrNode - end */
+
+
+/* RelFrameDummyStructNode - begin */
+
+class RelFrameDummyStructNode : public DummyStructNode {
+ protected:
+   const StructNode* pNodeRef;
+   
+   void __Update(void);
+   
+ public:
+   /* Costruttore definitivo */
+   RelFrameDummyStructNode(unsigned int uL, 
+			   const DofOwner* pDO,
+			   const StructNode* pNode,
+			   const StructNode* pNodeRef);
+   
+   /* Distruttore (per ora e' banale) */
+   virtual ~RelFrameDummyStructNode(void);
+
+   /* tipo */
+   virtual DummyStructNode::Type GetDummyType(void) const;
+   
+   /* Aggiorna dati in base alla soluzione */
+   virtual void Update(const VectorHandler& X,
+		       const VectorHandler& XP);
+};
+
+/* RelFrameDummyStrNode - end */
+
+
+class DataManager;
+class MBDynParser;
+
+extern Node* ReadStructNode(DataManager* pDM, 
+			    MBDynParser& HP,
+			    const DofOwner* pDO,
+			    unsigned int uLabel);
+
+#endif /* STRNODE_H */

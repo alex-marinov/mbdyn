@@ -1,0 +1,229 @@
+/* 
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2000
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+#ifndef INLINE_H
+# define INLINE_H
+
+#include <joint.h>
+
+/* InLineJoint - begin */
+
+class InLineJoint : virtual public Elem, public Joint {
+ private:
+   const StructNode* pNode1;
+   const StructNode* pNode2;
+   
+   const Mat3x3 Rv;
+   const Vec3 p;
+   
+   Vec3 F;
+   
+ public:
+   /* Costruttore */
+   InLineJoint(unsigned int uL, const DofOwner* pDO,
+	       const StructNode* pN1, const StructNode* pN2, 
+	       const Mat3x3& RvTmp, const Vec3& pTmp, flag fOut);
+   
+   ~InLineJoint(void);
+   virtual inline void* pGet(void) const { return (void *)this; };
+
+   /* Contributo al file di restart */
+   virtual ostream& Restart(ostream& out) const;
+
+   virtual unsigned int iGetNumDof(void) const { 
+      return 2;
+   };
+      
+#ifdef DEBUG
+   virtual DofOrder::Order SetDof(unsigned int i) const
+#else
+   virtual DofOrder::Order SetDof(unsigned int /* i */ ) const
+#endif
+   {
+      ASSERT(i >= 0 && i < 2);
+      return DofOrder::ALGEBRAIC;
+   };
+   
+   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+      *piNumRows = 12+2;
+      *piNumCols = 12+2; 
+   };
+   
+   VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat,
+				    doublereal dCoef,
+				    const VectorHandler& XCurr, 
+				    const VectorHandler& XPrimeCurr);
+   
+   SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+			    doublereal dCoef,
+			    const VectorHandler& XCurr, 
+			    const VectorHandler& XPrimeCurr);
+   
+   virtual void Output(OutputHandler& OH) const;
+
+   
+   /* funzioni usate nell'assemblaggio iniziale */
+   
+   virtual unsigned int iGetInitialNumDof(void) const { 
+      return 4; 
+   };
+   
+   virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+      *piNumRows = 24+4; 
+      *piNumCols = 24+4; 
+   };
+   
+   /* Contributo allo jacobiano durante l'assemblaggio iniziale */
+   VariableSubMatrixHandler& InitialAssJac(VariableSubMatrixHandler& WorkMat,
+					   const VectorHandler& XCurr);
+   
+   /* Contributo al residuo durante l'assemblaggio iniziale */   
+   SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
+				   const VectorHandler& XCurr);
+   
+   /* Setta il valore iniziale delle proprie variabili */
+   virtual void SetInitialValue(VectorHandler& X) const;
+   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+
+  /* *******PER IL SOLUTORE PARALLELO******** */        
+   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+      utile per l'assemblaggio della matrice di connessione fra i dofs */
+   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+     NumNodes = 2;
+     NdTyps[0] = pNode1->GetNodeType();
+     NdLabels[0] = pNode1->GetLabel();
+     NdTyps[1] = pNode2->GetNodeType();
+     NdLabels[1] = pNode2->GetLabel();
+   };
+   /* ************************************************ */
+
+};
+
+/* InLineJoint - end */
+
+
+/* InLineWithOffsetJoint - begin */
+
+class InLineWithOffsetJoint : virtual public Elem, public Joint {
+ private:
+   const StructNode* pNode1;
+   const StructNode* pNode2;
+   
+   const Mat3x3 Rv;
+   const Vec3 p;
+   const Vec3 q;
+   
+   Vec3 F;
+   
+ public:
+   /* Costruttore */
+   InLineWithOffsetJoint(unsigned int uL, const DofOwner* pDO,
+			 const StructNode* pN1, const StructNode* pN2, 
+			 const Mat3x3& RvTmp, 
+			 const Vec3& pTmp, const Vec3& qTmp, flag fOut);
+   
+   ~InLineWithOffsetJoint(void);
+   virtual inline void* pGet(void) const { return (void *)this; };
+
+   /* Contributo al file di restart */
+   virtual ostream& Restart(ostream& out) const;
+
+   virtual unsigned int iGetNumDof(void) const { 
+      return 2;
+   };
+      
+#ifdef DEBUG
+   virtual DofOrder::Order SetDof(unsigned int i) const
+#else
+   virtual DofOrder::Order SetDof(unsigned int /* i */ ) const
+#endif
+   {
+      ASSERT(i >= 0 && i < 2);
+      return DofOrder::ALGEBRAIC;
+   };
+   
+   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+      *piNumRows = 12+2;
+      *piNumCols = 12+2; 
+   };
+   
+   VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat,
+				    doublereal dCoef,
+				    const VectorHandler& XCurr, 
+				    const VectorHandler& XPrimeCurr);
+   
+   SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+			    doublereal dCoef,
+			    const VectorHandler& XCurr, 
+			    const VectorHandler& XPrimeCurr);
+   
+   virtual void Output(OutputHandler& OH) const;
+
+   
+   /* funzioni usate nell'assemblaggio iniziale */
+   
+   virtual unsigned int iGetInitialNumDof(void) const { 
+      return 4; 
+   };
+   
+   virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+      *piNumRows = 24+4; 
+      *piNumCols = 24+4; 
+   };
+   
+   /* Contributo allo jacobiano durante l'assemblaggio iniziale */
+   VariableSubMatrixHandler& InitialAssJac(VariableSubMatrixHandler& WorkMat,
+					   const VectorHandler& XCurr);
+   
+   /* Contributo al residuo durante l'assemblaggio iniziale */   
+   SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
+				   const VectorHandler& XCurr);
+   
+   /* Setta il valore iniziale delle proprie variabili */
+   virtual void SetInitialValue(VectorHandler& X) const;
+   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+
+   /* *******PER IL SOLUTORE PARALLELO******** */        
+   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+      utile per l'assemblaggio della matrice di connessione fra i dofs */
+   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+     NumNodes = 2;
+     NdTyps[0] = pNode1->GetNodeType();
+     NdLabels[0] = pNode1->GetLabel();
+     NdTyps[1] = pNode2->GetNodeType();
+     NdLabels[1] = pNode2->GetLabel();
+   };
+   /* ************************************************ */
+
+};
+
+/* InLineWithOffsetJoint - end */
+
+#endif

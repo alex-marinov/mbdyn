@@ -1,0 +1,16 @@
+#%PAM-1.0
+#
+# Used by MBDyn (Multi-Body Dynamics) to authenticate users before allowing
+# remote connections to running simulations.
+# At present it can be used by SocketFileDrives; see MBDyn input manual
+# for further details:
+# http://diampp1.aero.polimi.it/~masarati/mbdyn-input/index.html
+#
+### use either of the following:
+auth       required     /lib/security/pam_unix_auth.so
+#auth       required     /lib/security/pam_pwdb.so
+#
+### no account, session, password allowed
+account    required     /lib/security/pam_deny.so
+session    required     /lib/security/pam_deny.so
+password   required     /lib/security/pam_deny.so

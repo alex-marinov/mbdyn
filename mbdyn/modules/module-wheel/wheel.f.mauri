@@ -1,0 +1,1176 @@
+
+      SUBROUTINE GFOSUB(ID, TIME, PAR, NPAR, DFLAG,
+     1           IFLAG, RESULT)
+
+      INTEGER                          ID
+
+      DOUBLE PRECISION                 TIME
+
+      DOUBLE PRECISION                 PAR( * )
+
+      INTEGER                          NPAR
+
+      LOGICAL                          DFLAG
+
+      LOGICAL                          IFLAG
+
+      DOUBLE PRECISION                 RESULT(6)
+	   
+C   -------------------------Main------------------------ 
+
+      DOUBLE PRECISION  RES(6),CC(9),TABFAT(6),VW(6),OME,OMEP,
+     1 			BLENG,BETA,BETAP,ARRAY(11),DX,DY,
+     2			DZ,VX,VY,VZ,WX,WY,WZ,RM
+
+      INTEGER       	IPC,NPFT,NUMBER,ISTAT,IDARRAY,IDV(3),IDW(3),
+     1                  IDVAR(3), IDV2, IRCW
+
+      LOGICAL           ERRFLG
+      
+C   Inizializza variabili
+
+      IDVAR(1) = NINT(PAR(1))
+      IDVAR(2) = NINT(PAR(2))
+      IDVAR(3) = NINT(PAR(3))       
+      IDARRAY  = NINT(PAR(4)) 
+      IDV(1)   = NINT(PAR(6))
+      IDV(2)   = NINT(PAR(5))
+      IDV(3)   = NINT(PAR(5))
+      IDV2     = NINT(PAR(6))
+      IDW(1)   = NINT(PAR(7))
+      IDW(2)   = NINT(PAR(6))
+      IDW(3)   = NINT(PAR(6))
+
+C   Importa coseni direttori asse mozzo
+
+      CALL SYSFNC('VARVAL',IDVAR(1),1,CC(1),ERRFLG)
+      CALL ERRMES(ERRFLG,'Error getting cos(x) in GFOSUB.', ID, 'STOP')      
+      CALL SYSFNC('VARVAL',IDVAR(2),1,CC(2),ERRFLG)
+      CALL ERRMES(ERRFLG,'Error getting cos(y) in GFOSUB.', ID, 'STOP')      
+      CALL SYSFNC('VARVAL',IDVAR(3),1,CC(3),ERRFLG)
+      CALL ERRMES(ERRFLG,'Error getting cos(z) in GFOSUB.', ID, 'STOP')      
+
+C   Importa posizione mozzo relativamente al punto fisso 0,0,0 sul terreno     
+
+      CALL SYSFNC('DX', IDV, 3, DX, ERRFLG)
+      CALL ERRMES(ERRFLG, 'Error getting DX in GFOSUB.', ID, 'STOP')
+      CC(4) = DX
+      CALL SYSFNC('DY', IDV, 3, DY, ERRFLG)
+      CALL ERRMES(ERRFLG, 'Error getting DY in GFOSUB.', ID, 'STOP')
+      CC(5) = DY
+      CALL SYSFNC('DZ', IDV, 3, DZ, ERRFLG)
+      CALL ERRMES(ERRFLG, 'Error getting DZ in GFOSUB.', ID, 'STOP')
+      CC(6) = DZ
+
+C   Inizializza costanti     
+
+      CALL GTARAY(IDARRAY, ARRAY, NUMBER, ISTAT)
+      CC(7)     = ARRAY(1) 	
+      CC(8)     = ARRAY(2) 	
+      CC(9)     = ARRAY(3) 
+      TABFAT(1) = ARRAY(4)
+      TABFAT(2) = ARRAY(5)
+      TABFAT(3) = ARRAY(6)
+      TABFAT(4) = ARRAY(7)
+      TABFAT(5) = ARRAY(8)
+      TABFAT(6) = ARRAY(9)
+      IPC       = NINT(ARRAY(10))
+      NPFT      = NINT(ARRAY(11))
+
+C   Importa velocita lineari e angolari del mozzo      
+
+      CALL SYSFNC('VX', IDV2, 1, VX, ERRFLG)
+      CALL ERRMES(ERRFLG, 'Error getting VX in GFOSUB.', ID, 'STOP')
+      VW(1) = VX
+      CALL SYSFNC('VY', IDV2, 1, VY, ERRFLG)
+      CALL ERRMES(ERRFLG, 'Error getting VY in GFOSUB.', ID, 'STOP')
+      VW(2) = VY
+      CALL SYSFNC('VZ', IDV2, 1, VZ, ERRFLG)
+      CALL ERRMES(ERRFLG, 'Error getting VZ in GFOSUB.', ID, 'STOP')
+      VW(3) = VZ     
+      CALL SYSFNC('WX', IDV2, 1, WX, ERRFLG)
+      CALL ERRMES(ERRFLG, 'Error getting WX in GFOSUB.', ID, 'STOP')
+      VW(4) = WX
+      CALL SYSFNC('WY', IDV2, 1, WY, ERRFLG)
+      CALL ERRMES(ERRFLG, 'Error getting WY in GFOSUB.', ID, 'STOP')
+      VW(5) = WY
+      CALL SYSFNC('WZ', IDV2, 1, WZ, ERRFLG)
+      CALL ERRMES(ERRFLG, 'Error getting WZ in GFOSUB.', ID, 'STOP')
+      VW(6) = WZ
+      
+C   Importa velocita' angolare ruota in asse mozzo     
+      
+	
+      CALL SYSFNC('WZ', IDW, 3, OME, ERRFLG)
+      CALL ERRMES(ERRFLG, 'Error getting OME in GFOSUB.', ID, 'STOP')
+
+C   Importa accelerazione angolare ruota in asse mozzo     
+      
+      CALL SYSFNC('WDTZ', IDW, 3, OMEP, ERRFLG)
+      CALL ERRMES(ERRFLG, 'Error getting OMEP in GFOSUB.', ID, 'STOP')
+
+C   Chiama WVEFR     
+
+      CALL WVEFR(VW,OME,CC,RES,RM,IRCW,IPC,OMEP,TABFAT,
+     1                 NPFT,BETA,BETAP,BLENG)
+
+C   Restituisce vettore risultati RES: Fx,Fy,Fz,Tx,Ty,Tz
+
+      RESULT(1) = RES(1)
+      RESULT(2) = RES(2)
+      RESULT(3) = RES(3)
+      RESULT(4) = RES(4) 
+      RESULT(5) = RES(5)
+      RESULT(6) = RES(6)
+
+      RETURN
+
+      END
+
+
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C                   14- 1-82                      SUBROUTINE WVEFR
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+
+      SUBROUTINE WVEFR(VW,OME,CC,RES,RM,IRCW,IPC,OMEP,TABFAT,
+     1                 NPFT,BETA,BETAP,BLENG)
+
+      IMPLICIT REAL*8 (A-H,O-Z)
+
+      INTEGER I,IRCW,IPC,NPFT   
+
+      DIMENSION VW(6),CC(9),WP(12),GP(3),RES(6),cdp(3,4),
+     1          ZCG(6,3),VEL(3),TABFAT(6),pp(6)
+
+      common /forces/res1,res2,res3
+C   Inizializza variabili
+
+      RM     = 0.     
+      PRESS  = 465000.
+      RC     = CC(9)
+      RR     = CC(7)
+
+!      COEVOL = .3
+!      COEVOL = 1.
+      COEVOL = .8
+C  coevol:vol rif ruota?
+      WRV    = 40.
+      RMUST  = 0.1
+      XCH    = 0.
+      CRACMB = 1.
+      SMUMAX = .075
+      RMUM   = .7
+      RMUS   = .1
+      ESPR   = 1.25
+      TRV    = .005       
+      ARRIF  = 3.7*SQRT(RR**2.-(RR-RC)**2.)*RC
+      RK     = 1
+      PI     = ACOS(-1.0)
+      alfarif= pi/15.
+  
+      WP(1)  = PRESS
+      WP(2)  = 2.*PI*PI*RC*RC*(RR-RC)
+      WP(2)  = WP(2)*COEVOL
+      WP(3)  = WRV
+      WP(4)  = 0.
+      WP(5)  = ARRIF
+      WP(6)  = RMUST
+      WP(7)  = XCH
+      WP(8)  = CRACMB
+      WP(9)  = SMUMAX
+      WP(10) = RMUM
+      WP(11) = RMUS
+
+      GP(1)  = ESPR
+      GP(2)  = TRV  
+      GP(3)  = 0.  
+
+      PP(1)  = 100000000000.
+      PP(2)  = .3
+      PP(3)  = .5
+      PP(4)  = 1.
+      PP(5)  = .8
+      PP(6)  = 1.
+
+ 
+
+      DO 5 i=1,6
+        res(i)=0.
+   5  CONTINUE
+
+      CALL SETPL(cc(4),CDP)
+
+      CALL WHTOR(CC,CDP,IRCW,ZCG,VOL,PEN,ARRIF)
+      
+      IF(IRCW.eq.0) THEN
+        RETURN
+      END IF
+
+      CALL VERCP(CC(4),VW,ZCG(4,3),VEL)
+      CALL TYFRC(VEL,OME,ZCG,VOL,AP,CDP,PP,WP,GP,CC,RES,RM,IRCW,IPC,
+     1           OMEP,RK,TABFAT,NPFT,BETA,BETAP,BLENG,rmust,alfarif)
+      res1 = res(1)
+      res2 = res(2)
+      res3 = res(3)
+
+      RETURN
+      
+      END
+
+
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C                   14- 1-82                      SUBROUTINE WHTOR
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+
+      SUBROUTINE WHTOR (CC,CDP,IRCW,ZCG,VOL,DL,ARRIF)
+      
+      IMPLICIT REAL*8 (A-H,O-Z)
+
+      INTEGER IRCW,I,K
+
+      DIMENSION CC(9),CDP(3,4),ZCG(6,3),CR(3),TVET(9),X(3),A(3),R(2)
+
+      common /pneu/dr
+
+C ------------------------------
+  
+      DO 5 I=1,3
+        DO 5 K=1,6
+          ZCG(K,I) = 0.
+   5  CONTINUE
+      
+      DO 10 I=1,3
+        CR(I) = CC(I+3)+CC(I)*.5*(CC(8)+CC(9))
+  10  CONTINUE
+
+      CALL RMOVE(CDP(1,3),TVET(7),3)
+
+      CALL PRVN(TVET(7),CC,TVET(1),FF)
+
+      CALL PRVN(TVET(7),TVET(1),TVET(4),FF)
+
+      D1 = 0.
+      D2 = 0.
+      A1 = 0.
+      A2 = 0.
+
+
+      DO 15 I=1,3
+        D1 = D1-TVET(6+I)*CDP(I,4)
+        D2 = D2-CC(I)*CR(I)
+        A1 = A1+CC(I)*TVET(3+I)
+        A2 = A2+CC(I)*TVET(6+I)
+  15  CONTINUE
+
+      A3=0.
+
+      DO 20 I=1,3
+        X(I) = -D1*TVET(6+I)-(D2+A2*D1)*TVET(3+I)/A1
+        A3   = A3+TVET(I)*(CR(I)-X(I))
+  20  CONTINUE
+
+      DO 25 I=1,3
+        ZCG(3+I,1) = X(I)+A3*TVET(I)
+        DO 25 K=2,3
+          ZCG(3+I,K) = ZCG(3+I,1)
+  25  CONTINUE
+
+      DR=0.
+
+      DO 30 I=1,3
+        DR = DR+(ZCG(3+I,1)-CR(I))**2
+  30  CONTINUE
+
+      DR = SQRT(DR)
+
+      IF(DR.LT.CC(7)) GOTO 35
+
+      IRCW = 0
+      DL   = 0.
+
+      RETURN
+
+  35  IRCW = 1
+      DL   = CC(7)-DR
+      A(3) = ARRIF*DL*2./ABS(CC(9)-CC(8))
+      R(1) = .5*(ABS(CC(8)-CC(9)))
+      R(2) = CC(7)
+
+      DO 40 I=1,2
+        DRL  = R(I)-DL
+        DRC  = SQRT(R(I)*R(I)-DRL*DRL)
+        ALFA = ATAN2(DRC,DRL)*2.
+        A(I) = .5*R(I)*R(I)*(ALFA-SIN(ALFA))
+   40 CONTINUE
+
+      DO 45 K=1,3
+        DO 45 I=1,3
+          ZCG(I,K) = A(K)*TVET((K-1)*3+I)
+   45 CONTINUE
+
+      VOL = A(3)*DL*.5
+
+      RETURN
+
+      END
+
+
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C                   29- 9-83                      SUBROUTINE SETPL
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+
+      SUBROUTINE SETPL(XYZ,CDP)
+
+      IMPLICIT REAL*8 (A-H,O-Z)
+
+      INTEGER I
+
+      DIMENSION XYZ(3),CDP(3,4)
+
+
+C -------------------------------------
+
+      ALFA=0.
+
+      do 5 I=1,4
+        CALL RSET(CDP(1,I),3,0.)          
+   5  continue  
+     
+      CDP(1,1) = COS(ALFA)
+      CDP(3,1) = SIN(ALFA)
+      CDP(1,3) = SIN(ALFA)
+      CDP(3,3) = -COS(ALFA)
+
+      CALL PRVU(CDP(1,3),CDP(1,1),CDP(1,2))
+
+      CDP(1,4) = XYZ(1)
+      CDP(2,4) = XYZ(2)
+      CDP(3,4) = 0.
+
+      RETURN
+
+      END
+
+
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C                   14- 1-82                      SUBROUTINE TYFRC
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+
+      SUBROUTINE TYFRC(VEL,OME,ZCG,VOL,AP,CDP,PP,WP,GP,CC,RES,RM,IRCW,
+     1                 IPC,OMEP,RK,TABFAT,NPFAT,BETA,BETAP,
+     2                 BLENG,rmust,alfarif)
+
+      IMPLICIT REAL*8 (A-H,O-Z)
+
+      INTEGER IRCW,IPC,NPFAT,IPCAD,I
+
+      DIMENSION VEL(3),ZCG(6,3),CDP(3,4),PP(6),WP(12),GP(3),CC(9),
+     1          RES(6),VEP(3),B(3),RD(3),RS(3),RR(3),F(6),
+     2          TABFAT(1),vass(2)
+c                       ,VREL(2)
+      COMMON /velang/alfa,vass1,vass2,ccy,ssy,sr,pippo
+              
+      
+
+C -------------------------------------
+
+      OMEZER = 0.
+      IPCAD  = 0
+      BI     = 0.
+      SR     = 0.
+
+C ----------------------------------------------------
+C     ELASTIC,DAMPING,FRICTION AND PLOWING FORCES     
+C ----------------------------------------------------
+
+
+      IF(IPC.EQ.0) GOTO 5
+
+      IF(IPCAD.EQ.0) OMEZER=OME
+
+      IPCAD = 1
+
+   5  CALL FORCES(CC,VEL,ZCG,VOL,CDP,PP,WP,WP(8),GP,RES,CC(4),AP,FBET,
+     1           IRCW)
+
+      DO 10 I=1,6
+        F(I) = 0.
+  10  CONTINUE       
+
+      IF(WP(5).LE.0. .OR. WP(6).LE.0.) THEN
+      WRITE(*,*) ' FORZE TANGENTI RUOTA NON CALCOLATE !!',wp(5),wp(6)
+      RETURN                                                      
+      ENDIF
+
+C -----------------------------------------
+C     VELOCITY IN EQUIVALENT PLANE FRAME   
+C -----------------------------------------
+
+      CALL TRSFV(CDP,VEL,VEP,-1)
+
+
+      VA   = SQRT(VEP(1)**2+VEP(2)**2)
+      AREA = SQRT(ZCG(1,3)**2+ZCG(2,3)**2+ZCG(3,3)**2)
+
+      DO 15 I=1,3
+  15    B(I) = ZCG(I+3,3)-CC(I+3)
+      CONTINUE
+
+      CALL PRVN(B,CC,RR,A)
+
+c      DO 16 I=1,2 
+c        VREL(I) = OME*A*RR(I)+VEL(I)
+C        VREL(I) = OME*A*RR(I)+A*VEL(I)/.252 
+
+c  16  CONTINUE 
+
+
+C -----------------------
+C     FRICTION FORCES   
+C -----------------------
+
+      IF(A.EQ.0.) GOTO 20
+
+      TH = 1.
+
+      IF (IPC.EQ.1.AND.OMEZER.EQ.0.) THEN
+
+C ------------------------------------------------
+C     PROVA DI CADUTA SENZA PRE-SPIN DELLA RUOTA   
+C ------------------------------------------------
+
+        RAGGIO = 0.
+        DO 25 I=1,3
+          RAGGIO = RAGGIO+(ZCG(I+3,3)-CC(I+3))**2
+  25    CONTINUE
+        RAGGIO = SQRT(RAGGIO)
+        if(abs(beta*betap).gt.1.e-7) then
+        OMER   = BLENG/RAGGIO*BETAP*SIN(BETA)
+        AAA    = OME/OMER
+        else
+        aaa=1
+        endif
+        TH     = TANH(ABS((OME-OMER)/70.))
+        SR     = 1.-AAA
+        SIG    = -1.
+        IF (OME.GT.OMER) SIG=1.
+      ELSE IF (IPC.NE.1.OR.OMEZER.NE.0.) THEN
+
+C --------------------------
+C     TUTTI GLI ALTRI CASI   
+C --------------------------
+
+        OMEGA = 0.0
+        IF(SR.EQ.0..OR.OME.EQ.OMEZER) GOTO 30
+        BI = TANGE(SR,TABFAT,NPFAT)
+        IF (OME.NE.0.0) THEN
+          IF (OME-OMEZER.ne.0.0) THEN
+            OMEGA = OME-OMEP*AREA*AP*BI/(RK*(OME-OMEZER))
+          ELSE
+            OMEGA = 0.0
+          END IF 
+        ELSE
+          OMEGA = OME
+        ENDIF
+  30    OMER = 0.
+        DO 35 I=1,3
+          OMER = OMER+VEL(I)*RR(I)
+  35    CONTINUE
+C        OMER = OMER/A
+        SR   = (OMER+OME*A)/(OMER-OMEGA*0.252)        
+        SIG  = SIGN(1.,SR)
+        TH   = 1.
+      ENDIF
+
+      SRO = SR
+      SR  = ABS(SR)
+      
+      IF (SR.GT.1.) SR=1.
+         
+C      CALL RONT(SR,TABFAT,NPFAT,RANT)
+
+Calcolo cosangolo tra piano ruota e asse x del sistema di riferimento
+CC   terreno
+
+           ccy = cc(2)/sin(acos(cc(3)))
+c           print *,cc(1),cc(2),cc(3)
+Calcolo sinangolo tra piano ruota e asse x del sistema di riferimento
+CC   terreno
+
+           ssy = cc(1)/sin(acos(cc(3)))
+
+CC   Attenzione vale solo se asse non ä normale alla pista. in
+CC   cosbeta (denominatore) non
+CC   ce il segno perchä il suo valore ä positivo indipententemente
+CC   dalla sua posizione
+
+Calcolo angolo tra piano ruota e asse x del sistema di riferimento
+CC   terreno
+
+           ay = atan2(ssy,ccy)
+
+CC   Non ci sono problenmi se l'asse mozzo non ä orientato come x
+
+           vass(1) = -vel(1)*ccy+vel(2)*ssy
+           vass(2) = -vel(2)*ccy+vel(1)*ssy
+C           vassabs = sqrt(vass(1)**2+vass(2)**2)
+
+Calcolo angolo di deriva
+
+          va1 = abs(vass(1))
+          vass1 = vass(1)
+          va2 = abs(vass(2))
+          vass2 = vass(2)
+          rif = 0.000001
+          IF (va1.ge.rif) THEN
+            alfa = atan2(vass(2),vass(1))
+          ELSE IF (va1.lt.rif.and.va2.ge.rif) THEN
+            alfa = atan2(vass(1),vass(2))
+            alfa = sign(1.,vass(2))*(pi/2.-alfa)
+          ELSE IF (va1.lt.rif.and.va2.lt.rif) THEN
+            alfa = 0.
+          END IF
+
+      call mux(sr,alfa,tabfat,npfat,rant)
+
+      FRIC = TH*RANT
+      
+
+      Fx = -SIG*PP(4)*FRIC*AREA*AP
+      f(1) = fx*(-ccy)
+      f(2) = fx*(ssy)
+      f(3) = 0.
+      
+c      print *,'ccy,ssy',ccy,ssy
+      CALL TMMNT(ZCG(4,3),F,CC(4),RES)
+
+  20  CONTINUE
+
+C --------------------
+C     DRIVING FORCE    
+C --------------------
+
+      IF (VA.gt.GP(2)) then
+      IF(A.GT.0.) GOTO 45
+
+      DFCR = .7*WP(6)*PP(6)
+      CD   = DFCR*AP*AREA
+      
+      DO 50 I=1,3
+  50    F(I) = -CD*(VEP(1)*CDP(I,1)+VEP(2)*CDP(I,2))/VA
+
+      GOTO 55
+
+  45  CALL PRVN(CDP(1,3),RR,RD,A)
+
+      CALL PRVN(RD,CDP(1,3),RS,A)
+
+      CALL TRSFV(CDP,RD,RR,-1)
+
+
+c      SINA  = (VREL(1)*RR(1)+VREL(2)*RR(2))/SQRT(VREL(1)**2+VREL(2)**2)     
+      vep1=vep(1)
+      vep2=vep(2)
+
+      SINA = (VEP(1)*RR(1)+VEP(2)*RR(2))/VA
+      
+      COSA  = SQRT(1.-SINA**2)
+c      ANDER = ASIN(SINA)
+      ANDER = atan2(sina,cosa)
+      BB    = 1.32*AREA/WP(5)+2.E-3
+      BR    = .5*(BB+1.75-SQRT((BB-1.75)**2+1.E-2))
+      BR    = (2.-BR)*BR
+      FD    = BR/(BB+1.E-4)
+      anderval = ander
+        
+      ANDER = FD*ANDER
+
+      DFCR  = WP(6)*PP(6)
+
+      
+C ------------------------------------------------------        
+c      CD    = TANH(vep(2)/GP(2))*DFCR*AP*AREA*ABS(TANH(.7*ANDER/DFCR))
+C ------------------------------------------------------
+
+      CD=DFCR*AP*AREA*TANH(.7*ANDER/DFCR)
+      pippo = TANH(alfa/alfarif) 
+c      print *,'pvep1,vep2,va,sina,cosa', vep(1),vep(2),va,sina,cosa 
+      call muy(sr,alfa,alfarif,rmust,runt)
+
+      Fy = -runt*ap*area
+      f(1) = fy*(-ssy)
+      f(2) = fy*(-ccy)
+      f(3) = 0.
+c      print *,'Fy',fy,alfa,vass(2)
+
+
+      A = 2.*CC(7)*WP(7)*TANH(.7*ABS(ANDER))*COSA
+
+      DO 65 I=1,3
+        B(I)=(ZCG(I+3,3)-RS(I)*A*SIG)*FBET
+  65  CONTINUE
+
+  55  CALL TMMNT(B,F,CC(4),RES)
+      else
+        write(*,*) ' Calcoli non effettuati',va,gp(2)
+      endif
+
+C ----------------------------------
+C     CALCOLO MOMENTO SULLA RUOTA 
+C ----------------------------------
+
+      DO 70 I=1,3
+	RM=RM+RES(I+3)*CC(I)
+  70  CONTINUE
+
+      RETURN
+
+      END
+
+
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C                   14- 1-82                      SUBROUTINE FORCES
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+
+      SUBROUTINE FORCES(CC,VEL,ZCG,VOL,CDP,PP,OP,RED,GP,RES,RP,AP,FBET,
+     1                 IRCW)
+
+      IMPLICIT REAL*8 (A-H,O-Z)
+
+      INTEGER IRCW,I,IGO,J,K
+
+      DIMENSION CC(9),VEL(3),ZCG(6,3),CDP(3,4),PP(6),OP(4),GP(3),RES(6),
+     1          VEP(3),F(6)
+
+      DATA PGRQ/.785398/
+
+
+C --------------------------------------
+
+      sb = 0.
+
+      DO 5 I=1,3
+        sb = sb+CC(I)*CDP(I,3)
+  5   CONTINUE
+
+      sb   = ABS(sb)
+      cb   = SQRT(1.-sb**2)
+      BET  = ATAN2(sb,cb)
+      FBET = 0.
+
+      IF (BET.LT.PGRQ) FBET=COS(2.*BET)
+
+      OPR = OP(1)*(RED+(1.-RED)*FBET)
+
+C ------------------------
+C     ACTUAL PRESSURE        
+C ------------------------
+
+      GM1 = 1./GP(1)
+      RAP = (OPR/PP(1))**GM1
+      RAP = RAP*(OP(2)/PP(2))
+      X   = (VOL+RAP*PP(2)-OP(2))/(1.+RAP)
+
+      IF (X.GT.0..AND.X.LT.VOL) GOTO 30
+
+      IF (X.GT.0.) GOTO 20
+
+  10  IGO  = 2
+      IRCW = 1
+      X    = 0.
+      AP   = OPR*(OP(2)/(OP(2)-VOL))**GP(1)
+
+      GOTO 40
+
+  20  IGO  = 1
+      IRCW = 3
+      X    = VOL
+      AP   = PP(1)*(PP(2)/(PP(2)-VOL))**GP(1)
+
+      GOTO 40
+
+  30  IGO  = 1
+      IRCW = 2
+      AP   = OPR*(OP(2)/(OP(2)-VOL+X))**GP(1)
+
+  40  CONTINUE
+
+C ---------------------------------
+C     ZERO-ING RESULTANT FORCE        
+C ---------------------------------
+
+      CALL RSET(RES,6,0.)
+
+
+      CALL RSET(F,6,0.)
+C ----------------------
+C     ELASTIC FORCE          
+C ----------------------
+
+      DO 45 I=1,3
+        F(I) = ZCG(I,3)*AP
+  45  CONTINUE
+
+      CALL TMMNT(ZCG(4,3),F,RP,RES)
+
+C ----------------------------------------------------
+C     VELOCITY IN EQUIVALENT PLANE FRAME         
+C ----------------------------------------------------
+
+      CALL TRSFV(CDP,VEL,VEP,-1)
+
+      VA = SQRT(VEP(1)**2+VEP(2)**2)
+      VM = SQRT(VEP(1)**2+VEP(2)**2+VEP(3)**2)
+
+C ---------------------------------
+C             DAMPING FORCE           
+C ---------------------------------
+c
+      DC = TANH(VEP(3)/OP(3))
+
+      DO 50 I=1,3
+        F(I) = -DC*ZCG(I,3)*AP
+  50  CONTINUE
+
+      CALL TMMNT(ZCG(4,3),F,RP,RES)
+C -------------------------
+C     FRICTION FORCE          
+C -------------------------
+
+      IF(VA.LT.GP(2)) GOTO 55
+
+      AN = SQRT(ZCG(1,3)**2+ZCG(2,3)**2+ZCG(3,3)**2)
+      FC = OP(4)*PP(4)*AN*AP/VA
+
+      DO 60 I=1,3
+        F(I) = -FC*(VEP(1)*CDP(I,1)+VEP(2)*CDP(I,2))
+  60  CONTINUE
+
+      CALL TMMNT(ZCG(4,3),F,RP,RES)
+
+  55  CONTINUE
+
+C ---------------------
+C     PLOWING FORCE          
+C ---------------------
+
+      IF (IGO.EQ.2) GOTO 65
+
+      IF (VA.LT.GP(2)) GOTO 65
+
+      IF (VOL.LE.0.) GOTO 65
+
+      PC = X*2.*AP*PP(5)*TANH(VA/PP(3))/(VA*VOL)
+
+      DO 70 J=1,2
+        A1 = 0.
+        DO 75 K=1,3
+          A1 = A1+ZCG(K,J)*VEL(K)
+  75    CONTINUE
+        DO 80 I=1,3
+          F(I) = -PC*A1*CDP(I,J)
+  80    CONTINUE
+        CALL TMMNT(ZCG(4,J),F,RP,RES)
+  70  CONTINUE
+
+  65  CONTINUE
+
+      RETURN
+
+      END
+
+
+C -------------------------------------------------------------------
+C -------------------------------------------------------------------
+C                 30- 1-82                         FUNCTION TANGE
+C -------------------------------------------------------------------
+C -------------------------------------------------------------------
+
+      REAL FUNCTION TANGE(X,XV,NXV)
+
+      IMPLICIT REAL*8 (A-H,O-Z)
+
+      INTEGER NXV,I
+
+      DIMENSION XV(1)
+
+
+C -----------------------------------
+
+      IF (NXV.GT.1) THEN
+        DO 5 I=1,NXV
+          IF (X.LT.XV(I)) GOTO 10
+   5    CONTINUE
+        I = NXV
+  10    IF(I.EQ.1) I=I+1
+        TANGE = (XV(I+NXV)-XV(I+NXV-1))/(XV(I)-XV(I-1))
+      ELSE
+        TANGE = 0.
+      END IF
+
+      RETURN
+
+      END
+
+
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C                   14- 1-83                      SUBROUTINE VERCP
+C ----------------------------------------------------------------------
+C ---------------------------------------------------------------------
+
+      SUBROUTINE VERCP(O,V,P,VC)
+
+      IMPLICIT REAL*8 (A-H,O-Z)
+
+      INTEGER I
+
+      DIMENSION O(3),P(3),V(6),VC(3),PMO(3)
+
+
+C --------------------------------------------
+
+      DO 5 I=1,3
+        PMO(I) = P(I)-O(I)
+c        print *,i,Pmo(1),v(i),v(3+i)  
+   5  CONTINUE
+      
+      CALL PRVU(V(4),PMO,VC)
+
+      DO 10 I=1,3
+        VC(I) = VC(I)+V(I)
+  10  CONTINUE
+
+      RETURN
+
+      END
+
+
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C                   14- 1-83                      SUBROUTINE PRVN
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+
+      SUBROUTINE PRVN(X,Y,T,D)
+
+      IMPLICIT REAL*8 (A-H,O-Z)
+
+      INTEGER I
+
+      DIMENSION X(3),Y(3),T(3),Z(3)
+
+
+C --------------------------------------
+
+      CALL PRVU(X,Y,Z)
+
+      D = Z(1)*Z(1)+Z(2)*Z(2)+Z(3)*Z(3)
+
+      IF (D.GT.1.E-12) GOTO 5
+
+      D = 0.
+
+      RETURN
+
+   5  D = SQRT(D)
+
+      DO 10 I=1,3
+        T(I) = Z(I)/D
+  10  CONTINUE
+
+      RETURN
+
+      END
+
+
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C                   14- 1-83                      SUBROUTINE RMOVE
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+      SUBROUTINE RMOVE(RVI,RVO,N)
+
+      IMPLICIT REAL*8 (A-H,O-Z)
+
+      INTEGER I,N
+
+      DIMENSION RVI(1),RVO(1)
+
+
+C -----------------------------------------
+
+      DO 5 I=1,N
+        RVO(I) = RVI(I)
+   5  CONTINUE
+
+      RETURN
+
+      END
+
+
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C                   14- 1-83                      SUBROUTINE RONT
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+
+      SUBROUTINE RONT(X,XYT,NP,RANT)
+
+      IMPLICIT REAL*8 (A-H,O-Z)
+
+      INTEGER I,NP,IM1 
+
+      DIMENSION XYT(6)
+
+
+C --------------------------------------
+
+      IF (NP.GT.1) GOTO 10
+
+      RANT=XYT(2)
+
+      RETURN
+
+  10  CONTINUE
+
+      DO 20 I=2,NP
+        IF (X.LT.XYT(I)) GOTO 30
+  20  CONTINUE
+
+      I    = NP
+  30  IM1  = I-1
+      RANT = (XYT(NP+I)-XYT(NP+IM1))/(XYT(I)-XYT(IM1))*(X-XYT(IM1))
+      RANT = XYT(NP+IM1)+RANT
+
+      RETURN
+
+      END
+
+
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C                   14- 1-83                      SUBROUTINE RSET
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+
+      SUBROUTINE RSET(RV,N,RVAL)
+
+      IMPLICIT REAL*8 (A-H,O-Z)
+
+      INTEGER I,N 
+
+      DIMENSION RV(1)
+
+
+C ---------------------------------------
+
+      DO 10 I=1,N
+        RV(I) = RVAL
+   10 CONTINUE
+
+      RETURN
+
+      END
+
+
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C                   14- 1-83                      SUBROUTINE TMMNT
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+
+      SUBROUTINE TMMNT(PA,FA,PB,FB)
+
+      IMPLICIT REAL*8 (A-H,O-Z)
+
+      INTEGER I
+
+      DIMENSION PA(3),PB(3),FA(6),FB(6),T(3)
+
+
+C -------------------------------------
+
+      DO 10 I=1,3
+        FB(I) = FB(I)+FA(I)
+  10    T(I)  = PA(I)-PB(I)
+        CALL PRVU(T,FA,T)
+      DO 20 I=1,3
+  20    FB(I+3) = FB(I+3)+T(I)
+
+      RETURN
+
+      END
+
+
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C                   14- 1-83                      SUBROUTINE TRSFV
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+
+      SUBROUTINE TRSFV(TM,RV,RN,IVER)
+
+      IMPLICIT REAL*8 (A-H,O-Z)
+
+      INTEGER IVER,ITR
+
+      DIMENSION TM(3,1),RV(1),RN(1)
+
+
+C ------------------------------------------
+
+      ITR = IABS((IVER-1)/2)
+
+      CALL MV3(TM,RV,RN,ITR)
+
+      RETURN
+
+      END
+
+
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C                   14- 1-83                      SUBROUTINE PRVU
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+
+      SUBROUTINE PRVU(X,Y,T)
+
+      IMPLICIT REAL*8 (A-H,O-Z)
+
+      DIMENSION X(3),Y(3),T(3)
+
+
+C ------------------------------------------
+
+      Z1   = X(2)*Y(3)-X(3)*Y(2)
+      Z2   = X(3)*Y(1)-X(1)*Y(3)
+      Z3   = X(1)*Y(2)-X(2)*Y(1)
+      T(1) = Z1
+      T(2) = Z2
+      T(3) = Z3
+
+      RETURN
+
+      END
+
+
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C                   14- 1-83                      SUBROUTINE MV3
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+
+      SUBROUTINE MV3(RM,VIN,VOUT,IT)
+
+      IMPLICIT REAL*8 (A-H,O-Z)
+
+      INTEGER IT
+
+      DIMENSION RM(1),VIN(1),VOUT(1)
+
+
+C ----------------------------------------------
+
+      V1 = VIN(1)
+      V2 = VIN(2)
+      V3 = VIN(3)
+
+      IF (IT.GT.0) GOTO 10
+
+      VOUT(1) = RM(1)*V1+RM(4)*V2+RM(7)*V3
+      VOUT(2) = RM(2)*V1+RM(5)*V2+RM(8)*V3
+      VOUT(3) = RM(3)*V1+RM(6)*V2+RM(9)*V3
+
+      RETURN
+
+  10  VOUT(1) = RM(1)*V1+RM(2)*V2+RM(3)*V3
+      VOUT(2) = RM(4)*V1+RM(5)*V2+RM(6)*V3
+      VOUT(3) = RM(7)*V1+RM(8)*V2+RM(9)*V3
+
+      RETURN
+
+      END
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C                                              sub mux
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+
+
+      SUBROUTINE MUX(X,ALFA,XYT,NP,RANT)
+
+      IMPLICIT REAL*8 (A-H,O-Z)
+
+      INTEGER I,NP,IM1 
+
+      DIMENSION XYT(6)
+
+
+C --------------------------------------
+      crid = 1.-2./acos(-1.)*ALFA
+
+      IF (NP.GT.1) GOTO 10
+
+      RANT=XYT(2)
+
+      RETURN      
+
+  10  CONTINUE
+
+      DO 15 I=1,NP
+        XYT(I+np) = xyt(I+np)*crid
+c      print *,'xyt',I,xyt(I+np)
+  15  CONTINUE 
+      DO 20 I=2,NP
+        IF (X.LT.XYT(I)) GOTO 30
+  20  CONTINUE
+
+      I    = NP
+  30  IM1  = I-1
+      RANT = (XYT(NP+I)-XYT(NP+IM1))/(XYT(I)-XYT(IM1))*(X-XYT(IM1))
+      RANT = XYT(NP+IM1)+RANT
+c      print *,'rant',rant
+      RETURN
+
+      END
+
+
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+C                                              sub muy
+C ----------------------------------------------------------------------
+C ----------------------------------------------------------------------
+
+
+      SUBROUTINE MUY(X,ALFA,alfarif,rmust,RuNT)
+
+      IMPLICIT REAL*8 (A-H,O-Z)
+
+
+C --------------------------------------
+crod Dipende da SR
+
+      
+c      crod = 1.-x
+      crod1 = ALFA/(acos(-1.)/2.)*rmust
+      crod0 = rmust*tanh(alfa/alfarif)
+      runt = crod0+((crod1-crod0)/1.)*x
+c      runt = 0.
+c      print *,'runt',runt
+      RETURN
+
+      END
+
+

@@ -1,0 +1,164 @@
+/* 
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2000
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/* file driver */
+
+#ifndef FILEDRV_H
+#define FILEDRV_H
+
+
+/* include del programma */
+
+#include "drive.h"
+#include <fstream.h>
+
+
+/* FileDrive - begin */
+
+class FileDriveType {
+ public:
+   enum Type {
+      UNKNOWN = -1,
+		
+	FIXEDSTEP = 0,
+	SOCKET,
+	
+	LASTFILEDRIVE
+   };
+};
+
+class FileDrive : public Drive {
+ protected: 
+   char* sFileName;
+   integer iNumDrives;
+   
+ public:
+   FileDrive(unsigned int uL, const DriveHandler* pDH, 
+	     const char* const s, integer nd);
+   virtual ~FileDrive(void);
+   
+   virtual DriveType::Type GetDriveType(void) const;
+   
+   virtual FileDriveType::Type GetFileDriveType(void) const = 0;
+
+   /* Scrive il contributo del DriveCaller al file di restart */   
+   virtual ostream& Restart(ostream& out) const = 0;
+   
+   virtual inline integer iGetNumDrives(void) const;
+   
+   virtual const doublereal& dGet(const doublereal& t, int i = 1) const = 0;
+};
+
+
+inline integer FileDrive::iGetNumDrives(void) const
+{
+   return iNumDrives;
+}
+
+/* FileDrive - end */
+
+
+/* FileDriveCaller - begin */
+
+class FileDriveCaller : public DriveCaller {
+ protected:
+   FileDrive* pFileDrive;
+   integer iNumDrive;
+   
+ public:
+   FileDriveCaller(const DriveHandler* pDH, const FileDrive* p, integer i);
+   virtual ~FileDriveCaller(void);
+   
+   /* Copia */
+   virtual DriveCaller* pCopy(void) const;
+   
+   /* Scrive il contributo del DriveCaller al file di restart */   
+   virtual ostream& Restart(ostream& out) const;
+
+   /* Restituisce il valore del driver */
+   virtual inline const doublereal& dGet(const doublereal& dVal) const;
+   virtual inline const doublereal& dGet(void) const;
+};
+
+
+inline const doublereal& FileDriveCaller::dGet(const doublereal& dVal) const
+{
+   return pFileDrive->dGet(dVal, iNumDrive);
+}
+
+
+inline const doublereal& FileDriveCaller::dGet(void) const
+{
+   return dGet(pDrvHdl->dGetTime());
+}
+
+/* FileDriveCaller - end */
+
+
+/* FixedStepFileDrive - begin */
+
+class FixedStepFileDrive : public FileDrive {
+ protected:
+   doublereal dT0;
+   doublereal dDT;
+   integer iNumSteps;  
+   
+   doublereal* pd;
+   doublereal** pvd;
+   
+ public:
+   FixedStepFileDrive(unsigned int uL, const DriveHandler* pDH, 
+		      const char* const sFileName, integer is, integer id,
+		      doublereal t0, doublereal dt);
+   virtual ~FixedStepFileDrive(void);
+   
+   virtual FileDriveType::Type GetFileDriveType(void) const {
+      return FileDriveType::FIXEDSTEP;
+   };
+
+   /* Scrive il contributo del DriveCaller al file di restart */   
+   virtual ostream& Restart(ostream& out) const;
+   
+   virtual const doublereal& dGet(const doublereal& t, int i = 1) const;
+
+   virtual void ServePending(void);
+};
+
+/* FixedStepFileDrive - end */
+
+class DataManager;
+class MBDynParser;
+
+extern Drive* ReadFileDriver(DataManager* pDM,
+			     MBDynParser& HP,
+			     unsigned int uLabel);
+
+
+#endif

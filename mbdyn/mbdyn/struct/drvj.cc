@@ -1,0 +1,450 @@
+/* 
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2000
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/* Giunti di velocita' imposta */
+
+#include <mbconfig.h>
+
+#include <drvj.h>
+
+/* LinearVelocity - begin */
+
+/* Costruttore non banale */
+LinearVelocityJoint::LinearVelocityJoint(unsigned int uL, 
+					 const DofOwner* pDO,
+					 const StructNode* pN,
+					 const Vec3& TmpDir,
+					 const DriveCaller* pDC,
+					 flag fOut)
+: Elem(uL, ElemType::JOINT, fOut), 
+Joint(uL, JointType::LINEARVELOCITY, pDO, fOut), 
+DriveOwner(pDC),
+pNode(pN), Dir(TmpDir), dF(0.)
+{
+   NO_OP;
+}
+
+
+/* Distruttore */
+LinearVelocityJoint::~LinearVelocityJoint(void)
+{
+   NO_OP;
+}
+   
+
+/* Contributo al file di restart */
+ostream& LinearVelocityJoint::Restart(ostream& out) const
+{
+   Joint::Restart(out) << ", linear velocity, " << pNode->GetLabel() 
+     << ", reference, global, ",
+      Dir.Write(out, ", ") << ", ";
+   return pGetDriveCaller()->Restart(out) << ';' << endl;
+}
+   
+      
+VariableSubMatrixHandler& 
+LinearVelocityJoint::AssJac(VariableSubMatrixHandler& WorkMat,
+			    doublereal /* dCoef */ ,
+			    const VectorHandler& /* XCurr */ ,
+			    const VectorHandler& /* XPrimeCurr */ )
+{
+   DEBUGCOUT("Entering LinearVelocityJoint::AssJac()" << endl);
+
+   SparseSubMatrixHandler& WM = WorkMat.SetSparse();
+   WM.ResizeInit(6, 0, 0.);
+   
+   integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
+   integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
+   integer iFirstReactionIndex = iGetFirstIndex();
+   
+   for (int iCnt = 1; iCnt <= 3; iCnt++) {
+      doublereal d = Dir.dGet(iCnt);
+      WM.fPutItem(iCnt, iFirstMomentumIndex+iCnt,
+		  iFirstReactionIndex+1, d);
+      WM.fPutItem(3+iCnt, iFirstReactionIndex+1,
+		  iFirstPositionIndex+iCnt, d);
+   }
+   
+   return WorkMat;
+}
+
+
+SubVectorHandler& 
+LinearVelocityJoint::AssRes(SubVectorHandler& WorkVec,
+			    doublereal /* dCoef */ ,
+			    const VectorHandler& XCurr,
+			    const VectorHandler& /* XPrimeCurr */ )
+{
+   DEBUGCOUT("Entering LinearVelocityJoint::AssRes()" << endl);
+
+   /* Dimensiona e resetta la matrice di lavoro */
+   integer iNumRows = 0;
+   integer iNumCols = 0;
+   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.Resize(iNumRows);
+   WorkVec.Reset(0.);
+      
+   /* Indici */
+   // integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
+   integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
+   integer iFirstReactionIndex = iGetFirstIndex();
+   
+   /* Indici del nodo */
+   for (int iCnt = 1; iCnt <= 3; iCnt++) {	
+      WorkVec.fPutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
+   }
+   
+   WorkVec.fPutRowIndex(4, iFirstReactionIndex+1);
+
+   /* Aggiorna i dati propri */
+   dF = XCurr.dGetCoef(iFirstReactionIndex+1);
+   
+   /* Recupera i dati */
+   Vec3 vNode(pNode->GetVCurr());
+   
+   
+   /* Equazioni di equilibrio, nodo 1 */
+   WorkVec.Add(1, -Dir*dF);
+   
+   
+   /* Equazione di vincolo di velocita' */
+   doublereal dv0 = dGet();
+   WorkVec.fPutCoef(4, dv0-Dir.Dot(vNode));
+   
+   return WorkVec;   
+}
+
+   
+void LinearVelocityJoint::Output(OutputHandler& OH) const
+{
+   if (fToBeOutput()) {      
+#ifdef DEBUG   
+      OH.Output() << "Joint " << uLabel << ", type \""
+	<< psJointNames[JointType::LINEARVELOCITY]
+	<< "\", linked to node " << pNode->GetLabel() << endl
+	<< "Current force reaction: " << dF << endl
+	<< "Current imposed speed: " << dGet() << endl;
+#endif   
+      
+      /*
+      OH.Joints().write("LinearVelocity  ", 16)
+	<< setw(8) << GetLabel() << " " << Dir*dF << " " << Vec3(0.) << endl;
+       */
+      
+      Joint::Output(OH.Joints(), "LinearVelocity", GetLabel(),
+		    Vec3(dF, 0., 0.), Zero3, Dir*dF, Zero3)
+	<< " " << Dir << " " << dGet() << endl;
+   }   
+}
+ 
+   
+/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+VariableSubMatrixHandler& 
+LinearVelocityJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+				   const VectorHandler& /* XCurr */ )
+{   
+   DEBUGCOUT("Entering LinearVelocityJoint::InitialAssJac()" << endl);
+
+   SparseSubMatrixHandler& WM = WorkMat.SetSparse();
+   WM.ResizeInit(6, 0, 0.);
+   
+   integer iFirstVelocityIndex = pNode->iGetFirstPositionIndex()+6;
+   integer iFirstReactionIndex = iGetFirstIndex();
+   
+   for (int iCnt = 1; iCnt <= 3; iCnt++) {
+      doublereal d = Dir.dGet(iCnt);
+      WM.fPutItem(iCnt, iFirstVelocityIndex+iCnt,
+		  iFirstReactionIndex+1, d);
+      WM.fPutItem(3+iCnt, iFirstReactionIndex+1,
+		  iFirstVelocityIndex+iCnt, d);
+   }
+   
+   return WorkMat;
+}
+
+
+/* Contributo al residuo durante l'assemblaggio iniziale */   
+SubVectorHandler& 
+LinearVelocityJoint::InitialAssRes(SubVectorHandler& WorkVec,
+				   const VectorHandler& XCurr)
+{   
+   DEBUGCOUT("Entering LinearVelocityJoint::InitialAssRes()" << endl);
+
+   /* Dimensiona e resetta la matrice di lavoro */
+   integer iNumRows = 0;
+   integer iNumCols = 0;
+   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.Resize(iNumRows);
+   WorkVec.Reset(0.);
+      
+   /* Indici */
+   integer iFirstVelocityIndex = pNode->iGetFirstPositionIndex()+6;
+   integer iFirstReactionIndex = iGetFirstIndex();
+   
+   /* Indici del nodo */
+   for (int iCnt = 1; iCnt <= 3; iCnt++) {	
+      WorkVec.fPutRowIndex(iCnt, iFirstVelocityIndex+iCnt);
+   }
+   
+   WorkVec.fPutRowIndex(4, iFirstReactionIndex+1);
+
+   /* Aggiorna i dati propri */
+   dF = XCurr.dGetCoef(iFirstReactionIndex+1);
+   
+   /* Recupera i dati */
+   Vec3 vNode(pNode->GetVCurr());
+   
+   
+   /* Equazioni di equilibrio, nodo 1 */
+   WorkVec.Add(1, -Dir*dF);
+   
+   
+   /* Equazione di vincolo di velocita' */
+   doublereal dv0 = dGet();
+   WorkVec.fPutCoef(4, dv0-Dir.Dot(vNode));
+   
+   return WorkVec;
+}
+
+/* LinearVelocity - end */
+
+
+/* AngularVelocity - begin */
+
+/* Costruttore non banale */
+AngularVelocityJoint::AngularVelocityJoint(unsigned int uL,
+					   const DofOwner* pDO, 
+					   const StructNode* pN,
+					   const Vec3& TmpDir,
+					   const DriveCaller* pDC,
+					   flag fOut)
+: Elem(uL, ElemType::JOINT, fOut), 
+Joint(uL, JointType::ANGULARVELOCITY, pDO, fOut), 
+DriveOwner(pDC), 
+pNode(pN), Dir(TmpDir), dM(0.)
+{
+   NO_OP;
+}
+
+
+/* Distruttore */
+AngularVelocityJoint::~AngularVelocityJoint(void)
+{
+   NO_OP;
+}
+   
+
+/* Contributo al file di restart */
+ostream& AngularVelocityJoint::Restart(ostream& out) const
+{
+   Joint::Restart(out) << ", angular velocity, "
+     << pNode->GetLabel() << ", reference, node, ",
+     Dir.Write(out, ", ") << ", ";
+   return pGetDriveCaller()->Restart(out) << ';' << endl;
+}
+   
+      
+VariableSubMatrixHandler& 
+AngularVelocityJoint::AssJac(VariableSubMatrixHandler& WorkMat,
+			    doublereal dCoef,
+			    const VectorHandler& /* XCurr */ ,
+			    const VectorHandler& /* XPrimeCurr */ )
+{
+   DEBUGCOUT("Entering AngularVelocityJoint::AssJac()" << endl);
+
+   SparseSubMatrixHandler& WM = WorkMat.SetSparse();
+   WM.ResizeInit(12, 0, 0.);
+   
+   integer iFirstPositionIndex = pNode->iGetFirstPositionIndex()+3;
+   integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex()+3;
+   integer iFirstReactionIndex = iGetFirstIndex();
+   
+   Vec3 TmpDir(pNode->GetRRef()*Dir);
+   
+   for (int iCnt = 1; iCnt <= 3; iCnt++) {
+      doublereal d = TmpDir.dGet(iCnt);
+      WM.fPutItem(iCnt, iFirstMomentumIndex+iCnt,
+		  iFirstReactionIndex+1, d);
+      WM.fPutItem(3+iCnt, iFirstReactionIndex+1,
+		  iFirstPositionIndex+iCnt, d);
+   }
+   
+   WM.fPutCross(7, iFirstMomentumIndex, 
+		iFirstPositionIndex, TmpDir*(-dM*dCoef));
+   
+   return WorkMat;
+}
+
+
+SubVectorHandler& 
+AngularVelocityJoint::AssRes(SubVectorHandler& WorkVec,
+			    doublereal /* dCoef */ ,
+			    const VectorHandler& XCurr, 
+			    const VectorHandler& /* XPrimeCurr */ )
+{
+   DEBUGCOUT("Entering AngularVelocityJoint::AssRes()" << endl);
+
+   /* Dimensiona e resetta la matrice di lavoro */
+   integer iNumRows = 0;
+   integer iNumCols = 0;
+   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.Resize(iNumRows);
+   WorkVec.Reset(0.);
+      
+   /* Indici */
+   integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex()+3;
+   integer iFirstReactionIndex = iGetFirstIndex();
+   
+   /* Indici del nodo */
+   for (int iCnt = 1; iCnt <= 3; iCnt++) {	
+      WorkVec.fPutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
+   }
+   
+   WorkVec.fPutRowIndex(4, iFirstReactionIndex+1);
+
+   /* Aggiorna i dati propri */
+   dM = XCurr.dGetCoef(iFirstReactionIndex+1);
+   
+   /* Recupera i dati */
+   Vec3 Omega(pNode->GetWCurr());
+   Vec3 TmpDir(pNode->GetRCurr()*Dir);
+   
+   /* Equazioni di equilibrio, nodo 1 */
+   WorkVec.Add(1, TmpDir*(-dM));
+   
+   
+   /* Equazione di vincolo di velocita' */
+   doublereal dw0 = dGet();
+   WorkVec.fPutCoef(4, dw0-TmpDir.Dot(Omega));
+   
+   return WorkVec;   
+}
+
+   
+void AngularVelocityJoint::Output(OutputHandler& OH) const
+{
+   if(fToBeOutput()) {      
+#ifdef DEBUG   
+      OH.Output() << "Joint " << uLabel << ", type \""
+	<< psJointNames[JointType::ANGULARVELOCITY]
+	<< "\", linked to node " << pNode->GetLabel() << endl
+	<< "Current couple reaction: " << dM << endl
+	<< "Current imposed speed: " << dGet() << endl;
+#endif   
+      
+      /*
+      OH.Joints().write("AngularVelocity ", 16)
+	<< setw(8) << GetLabel() << " " << Vec3(0.) << " " << Dir*dM << endl;
+       */
+      
+      Vec3 Tmp(pNode->GetRCurr()*Dir);
+      
+      Joint::Output(OH.Joints(), "AngularVelocity", GetLabel(),
+		    Zero3, Vec3(dM, 0., 0.), Zero3, Tmp*dM)
+	<< " " << Tmp << " " << dGet() << endl;      
+   }   
+}
+ 
+   
+/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+VariableSubMatrixHandler& 
+AngularVelocityJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+				    const VectorHandler& /* XCurr */ )
+{   
+   DEBUGCOUT("Entering AngularVelocityJoint::InitialAssJac()" << endl);
+
+   SparseSubMatrixHandler& WM = WorkMat.SetSparse();
+   WM.ResizeInit(15, 0, 0.);
+   
+   integer iFirstPositionIndex = pNode->iGetFirstPositionIndex()+3;
+   integer iFirstVelocityIndex = iFirstPositionIndex+6;
+   integer iFirstReactionIndex = iGetFirstIndex();
+   
+   Vec3 Tmp(Dir.Cross(pNode->GetWRef()));
+   for(int iCnt = 1; iCnt <= 3; iCnt++)
+     {
+	doublereal d = Dir.dGet(iCnt);
+	WM.fPutItem(iCnt, iFirstVelocityIndex+iCnt,
+		    iFirstReactionIndex+1, d);
+	WM.fPutItem(3+iCnt, iFirstReactionIndex+1,
+		    iFirstVelocityIndex+iCnt, d);
+	WM.fPutItem(6+iCnt, iFirstReactionIndex+1,
+		    iFirstPositionIndex+iCnt, Tmp.dGet(iCnt));
+     }
+   
+   WM.fPutCross(10, iFirstVelocityIndex, iFirstPositionIndex, Dir*(-dM));
+   
+   return WorkMat;
+}
+
+   
+/* Contributo al residuo durante l'assemblaggio iniziale */   
+SubVectorHandler& 
+AngularVelocityJoint::InitialAssRes(SubVectorHandler& WorkVec,
+				    const VectorHandler& XCurr)
+{   
+   DEBUGCOUT("Entering AngularVelocityJoint::InitialAssRes()" << endl);
+
+   /* Dimensiona e resetta la matrice di lavoro */
+   integer iNumRows = 0;
+   integer iNumCols = 0;
+   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.Resize(iNumRows);
+   WorkVec.Reset(0.);
+      
+   /* Indici */
+   integer iFirstVelocityIndex = pNode->iGetFirstPositionIndex()+9;
+   integer iFirstReactionIndex = iGetFirstIndex();
+   
+   /* Indici del nodo */
+   for(int iCnt = 1; iCnt <= 3; iCnt++)
+     {	
+	WorkVec.fPutRowIndex(iCnt, iFirstVelocityIndex+iCnt);
+     }
+   
+   WorkVec.fPutRowIndex(4, iFirstReactionIndex+1);
+
+   /* Aggiorna i dati propri */
+   dM = XCurr.dGetCoef(iFirstReactionIndex+1);
+   
+   /* Recupera i dati */
+   Vec3 Omega(pNode->GetWCurr());   
+   
+   /* Equazioni di equilibrio, nodo 1 */
+   WorkVec.Add(1, -Dir*dM);
+   
+   /* Equazione di vincolo di velocita' */
+   doublereal dw0 = dGet();
+   WorkVec.fPutCoef(4, dw0-Dir.Dot(Omega));
+   
+   return WorkVec;
+}
+
+/* AngularVelocity - end */

@@ -1,0 +1,436 @@
+/* 
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2000
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+#include <mbconfig.h>
+
+#include <accj.h>
+
+/* LinearAccelerationJoint - begin */
+
+/* Costruttore non banale */
+LinearAccelerationJoint::LinearAccelerationJoint(unsigned int uL, 
+						 const DofOwner* pDO, 
+						 const StructNode* pN,
+						 const Vec3& TmpDir,
+						 const DriveCaller* pDC,
+						 flag fOut)
+: Elem(uL, ElemType::JOINT, fOut),
+Joint(uL, JointType::LINEARACCELERATION, pDO, fOut),
+DriveOwner(pDC),
+pNode(pN),
+Dir(TmpDir),
+dF(0.)
+{
+   ASSERT(pNode != NULL);
+   ASSERT(Dir.Dot() > DBL_EPSILON);
+   Dir /= Dir.Dot();
+}
+
+
+/* Distruttore */
+LinearAccelerationJoint::~LinearAccelerationJoint(void)
+{
+   NO_OP;
+}
+
+
+/* Tipo di Joint */
+JointType::Type LinearAccelerationJoint::GetJointType(void) const
+{
+   return JointType::LINEARACCELERATION;
+}
+
+
+/* Contributo al file di restart */
+ostream& LinearAccelerationJoint::Restart(ostream& out) const
+{
+   return out << "Not implemented yet!" << endl;
+}
+
+
+unsigned int LinearAccelerationJoint::iGetNumDof(void) const
+{
+   return 2;
+}
+
+
+DofOrder::Order LinearAccelerationJoint::SetDof(unsigned int i) const
+{
+   ASSERT(i == 0 || i == 1);
+   switch (i) {
+    case 0:
+      return DofOrder::DIFFERENTIAL;
+    case 1:
+      return DofOrder::ALGEBRAIC;
+    default:
+      cerr << "invalid dof number" << endl;
+      THROW(ErrGeneric());
+   }
+#ifndef USE_EXCEPTIONS
+   return DofOrder::UNKNOWN;
+#endif /* USE_EXCEPTIONS */
+}
+
+
+void LinearAccelerationJoint::WorkSpaceDim(integer* piNumRows, 
+					   integer* piNumCols) const
+{
+   *piNumRows = 5;
+   *piNumCols = 5;
+}
+
+      
+VariableSubMatrixHandler& 
+LinearAccelerationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
+				doublereal dCoef,
+				const VectorHandler& /* XCurr */ , 
+				const VectorHandler& /* XPrimeCurr */ )
+{
+   SparseSubMatrixHandler& WM = WorkMat.SetSparse();
+   WM.Resize(8, 0);
+   
+   integer iNodeRowIndex = pNode->iGetFirstRowIndex();
+   integer iNodeColIndex = pNode->iGetFirstColIndex();
+   integer iIndex = iGetFirstIndex();
+      
+   doublereal d = Dir.dGet(1);
+   WorkMat.fPutItem(1, iIndex+1, iNodeColIndex+1, d);
+   WorkMat.fPutItem(2, iNodeRowIndex+1, iIndex+2, d);
+   d = Dir.dGet(2);
+   WorkMat.fPutItem(3, iIndex+1, iNodeColIndex+2, d);
+   WorkMat.fPutItem(4, iNodeRowIndex+2, iIndex+2, d);
+   d = Dir.dGet(3);
+   WorkMat.fPutItem(5, iIndex+1, iNodeColIndex+3, d);
+   WorkMat.fPutItem(6, iNodeRowIndex+3, iIndex+2, d);
+   
+   WorkMat.fPutItem(7, iIndex+1, iIndex+1, -dCoef);
+   WorkMat.fPutItem(8, iIndex+2, iIndex+1, 1.);   
+   
+   return WorkMat;
+}
+
+
+SubVectorHandler& 
+LinearAccelerationJoint::AssRes(SubVectorHandler& WorkVec,
+				doublereal /* dCoef */ ,
+				const VectorHandler& XCurr, 
+				const VectorHandler& XPrimeCurr)
+{
+   WorkVec.Resize(5);
+   
+   integer iNodeRowIndex = pNode->iGetFirstRowIndex();
+   integer iIndex = iGetFirstIndex();
+   
+   doublereal dQ = XCurr.dGetCoef(iIndex+1);
+   doublereal dQP = XPrimeCurr.dGetCoef(iIndex+1);
+   dF = XCurr.dGetCoef(iIndex+2);
+   
+   Vec3 V = pNode->GetVCurr();
+   
+   WorkVec.fPutItem(1, iNodeRowIndex+1, -dF*Dir.dGet(1));
+   WorkVec.fPutItem(2, iNodeRowIndex+2, -dF*Dir.dGet(2));
+   WorkVec.fPutItem(3, iNodeRowIndex+3, -dF*Dir.dGet(3));
+   WorkVec.fPutItem(4, iIndex+1, dQ-Dir.Dot(V));
+   WorkVec.fPutItem(5, iIndex+2, dGet()-dQP);
+   
+   return WorkVec;
+}
+
+
+void LinearAccelerationJoint::Output(OutputHandler& OH) const
+{
+   Joint::Output(OH.Joints(), "LinearAcc", GetLabel(), 
+		 Vec3(dF, 0., 0.), Zero3, Dir*dF, Zero3) 
+     << " " << dGet() << endl;
+}
+ 
+
+/* funzioni usate nell'assemblaggio iniziale */
+
+unsigned int LinearAccelerationJoint::iGetInitialNumDof(void) const
+{
+   return 0;
+}
+
+
+void LinearAccelerationJoint::InitialWorkSpaceDim(integer* piNumRows,
+						  integer* piNumCols) const
+{
+   *piNumRows = 0;
+   *piNumCols = 0; 
+}
+ 
+
+/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+VariableSubMatrixHandler& 
+LinearAccelerationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+				       const VectorHandler& /* XCurr */ )
+{
+   WorkMat.SetNullMatrix();
+   return WorkMat;
+}
+
+
+/* Contributo al residuo durante l'assemblaggio iniziale */   
+SubVectorHandler& 
+LinearAccelerationJoint::InitialAssRes(SubVectorHandler& WorkVec,
+				       const VectorHandler& /* XCurr */ )
+{
+   WorkVec.Resize(0);
+   return WorkVec;
+}
+
+
+/* Dati privati */
+unsigned int LinearAccelerationJoint::iGetNumPrivData(void) const
+{
+   return 2;
+}
+
+
+doublereal LinearAccelerationJoint::dGetPrivData(unsigned int i) const
+{
+   switch (i) {
+    case 1:
+      return dF;
+    case 2:
+      return dGet();
+    default:
+      THROW(ErrGeneric());
+   }
+#ifndef USE_EXCEPTIONS
+   return 0.;
+#endif /* USE_EXCEPTIONS */
+}
+
+/* LinearAccelerationJoint - end */
+
+
+/* AngularAccelerationJoint - begin */
+
+/* Costruttore non banale */
+AngularAccelerationJoint::AngularAccelerationJoint(unsigned int uL, 
+						   const DofOwner* pDO,
+						   const StructNode* pN,
+						   const Vec3& TmpDir,
+						   const DriveCaller* pDC,
+						   flag fOut)
+: Elem(uL, ElemType::JOINT, fOut),
+Joint(uL, JointType::ANGULARACCELERATION, pDO, fOut),
+DriveOwner(pDC),
+pNode(pN),
+Dir(TmpDir),
+dM(0.)
+{
+   ASSERT(pNode != NULL);
+   ASSERT(Dir.Dot() > DBL_EPSILON);
+   Dir /= Dir.Dot();   
+}
+
+
+/* Distruttore */
+AngularAccelerationJoint::~AngularAccelerationJoint(void)
+{
+   NO_OP;
+}
+
+   
+/* Tipo di Joint */
+JointType::Type AngularAccelerationJoint::GetJointType(void) const
+{
+   return JointType::ANGULARACCELERATION;
+}
+
+
+/* Contributo al file di restart */
+ostream& AngularAccelerationJoint::Restart(ostream& out) const
+{
+   return out << "Not implemented yet!" << endl;
+}
+
+
+unsigned int AngularAccelerationJoint::iGetNumDof(void) const
+{
+   return 2;
+}
+
+
+DofOrder::Order AngularAccelerationJoint::SetDof(unsigned int i) const
+{
+   ASSERT(i == 0 || i == 1);
+   switch (i) {
+    case 0:
+      return DofOrder::DIFFERENTIAL;
+    case 1:
+      return DofOrder::ALGEBRAIC;
+    default:
+      cerr << "invalid dof number" << endl;
+      THROW(ErrGeneric());
+   }
+#ifndef USE_EXCEPTIONS
+   return DofOrder::UNKNOWN;
+#endif /* USE_EXCEPTIONS */
+}
+
+
+void AngularAccelerationJoint::WorkSpaceDim(integer* piNumRows, 
+					    integer* piNumCols) const
+{
+   *piNumRows = 5;
+   *piNumCols = 5;
+}
+   
+      
+VariableSubMatrixHandler& 
+AngularAccelerationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
+				 doublereal dCoef,
+				 const VectorHandler& /* XCurr */ , 
+				 const VectorHandler& /* XPrimeCurr */ )
+{   
+   SparseSubMatrixHandler& WM = WorkMat.SetSparse();
+   WM.Resize(8, 0);
+   
+   integer iNodeRowIndex = pNode->iGetFirstRowIndex();
+   integer iNodeColIndex = pNode->iGetFirstColIndex();
+   integer iIndex = iGetFirstIndex();
+
+   Vec3 TmpDir = pNode->GetRRef()*Dir;
+   
+   doublereal d = TmpDir.dGet(1);
+   WorkMat.fPutItem(1, iIndex+1, iNodeColIndex+4, d);
+   WorkMat.fPutItem(2, iNodeRowIndex+4, iIndex+2, d);
+   d = TmpDir.dGet(2);
+   WorkMat.fPutItem(3, iIndex+1, iNodeColIndex+5, d);
+   WorkMat.fPutItem(4, iNodeRowIndex+5, iIndex+2, d);
+   d = TmpDir.dGet(3);
+   WorkMat.fPutItem(5, iIndex+1, iNodeColIndex+6, d);
+   WorkMat.fPutItem(6, iNodeRowIndex+6, iIndex+2, d);     
+   
+   WorkMat.fPutItem(7, iIndex+1, iIndex+1, -dCoef);
+   WorkMat.fPutItem(8, iIndex+2, iIndex+1, 1.);      
+   
+   return WorkMat;
+}
+
+
+SubVectorHandler& 
+AngularAccelerationJoint::AssRes(SubVectorHandler& WorkVec,
+				 doublereal /* dCoef */ ,
+				 const VectorHandler& XCurr, 
+				 const VectorHandler& XPrimeCurr)
+{   
+   WorkVec.Resize(5);
+   
+   integer iNodeRowIndex = pNode->iGetFirstRowIndex();
+   integer iIndex = iGetFirstIndex();
+   
+   doublereal dQ = XCurr.dGetCoef(iIndex+1);
+   doublereal dQP = XPrimeCurr.dGetCoef(iIndex+1);
+   dM = XCurr.dGetCoef(iIndex+2);
+      
+   Vec3 W = pNode->GetWCurr();
+   Vec3 TmpDir = pNode->GetRCurr()*Dir;
+   
+   WorkVec.fPutItem(1, iNodeRowIndex+4, -dM*TmpDir.dGet(1));
+   WorkVec.fPutItem(2, iNodeRowIndex+5, -dM*TmpDir.dGet(2));
+   WorkVec.fPutItem(3, iNodeRowIndex+6, -dM*TmpDir.dGet(3));
+   WorkVec.fPutItem(4, iIndex+1, dQ-TmpDir.Dot(W));
+   WorkVec.fPutItem(5, iIndex+2, dGet()-dQP);
+   
+   return WorkVec;
+}
+
+   
+void AngularAccelerationJoint::Output(OutputHandler& OH) const
+{
+   Joint::Output(OH.Joints(), "AngularAcc", GetLabel(), 
+		 Vec3(dM, 0., 0.), Zero3, Dir*dM, Zero3) 
+     << " " << dGet() << endl;   
+}
+ 
+
+/* funzioni usate nell'assemblaggio iniziale */
+unsigned int AngularAccelerationJoint::iGetInitialNumDof(void) const
+{
+   return 0;
+}
+ 
+
+void AngularAccelerationJoint::InitialWorkSpaceDim(integer* piNumRows,
+						   integer* piNumCols) const
+{
+   *piNumRows = 0;
+   *piNumCols = 0; 
+}
+
+
+/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+VariableSubMatrixHandler& 
+AngularAccelerationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+					const VectorHandler& /* XCurr */ )
+{
+   WorkMat.SetNullMatrix();
+   return WorkMat;
+}
+ 
+
+/* Contributo al residuo durante l'assemblaggio iniziale */   
+SubVectorHandler& 
+AngularAccelerationJoint::InitialAssRes(SubVectorHandler& WorkVec,
+					const VectorHandler& /* XCurr */ )
+{
+   WorkVec.Resize(0);
+   return WorkVec;
+}
+
+
+/* Dati privati */
+unsigned int AngularAccelerationJoint::iGetNumPrivData(void) const
+{
+   return 2;
+}
+
+
+doublereal AngularAccelerationJoint::dGetPrivData(unsigned int i) const
+{
+   switch (i) {
+    case 1:
+      return dM;
+    case 2:
+      return dGet();
+    default:
+      THROW(ErrGeneric());
+   }
+#ifndef USE_EXCEPTIONS
+   return 0.;
+#endif /* USE_EXCEPTIONS */
+}
+
+/* AngularAccelerationJoint - end */

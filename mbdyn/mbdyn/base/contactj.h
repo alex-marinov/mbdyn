@@ -1,0 +1,246 @@
+/* 
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2000
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/* Vincolo di contatto con un piano */
+
+#ifndef CONTACTJ_H
+#define CONTACTJ_H
+
+#include "joint.h"
+
+/* ContactJoint - begin */
+
+class ContactJoint : virtual public Elem, public Joint {
+ private:
+   const StructNode* pNode1;
+   const StructNode* pNode2;
+   Vec3 n;
+   doublereal dD;
+   doublereal dF;
+   
+ public:
+   /* Costruttore non banale */
+   ContactJoint(unsigned int uL, const DofOwner* pDO,
+		const StructNode* pN1, const StructNode* pN2, 
+		const Vec3& n, flag fOut) 
+     : Elem(uL, ElemType::JOINT, fOut), 
+     Joint(uL, JointType::INPLANECONTACT, pDO, fOut),
+     pNode1(pN1), pNode2(pN2),
+     n(n), dD(0.), dF(0.) {
+	ASSERT(pNode1 != NULL);
+	ASSERT(pNode1->GetNodeType() == NodeType::STRUCTURAL);
+	ASSERT(pNode2 != NULL);
+	ASSERT(pNode2->GetNodeType() == NodeType::STRUCTURAL);
+	ASSERT(n.Dot() > DBL_EPSILON);       
+
+	Vec3 D(pNode2->GetXCurr()-pNode1->GetXCurr());
+	Vec3 N(pNode1->GetRCurr()*n);
+	dD = N.Dot(D);
+     };
+   
+   ~ContactJoint(void) {
+      NO_OP;
+   };
+   
+   virtual inline void* pGet(void) const { 
+      return (void*)this; 
+   };
+
+   /* Tipo di Joint 
+   virtual JointType::Type GetJointType(void) const 
+     { 
+	return JointType::INPLANECONTACT;
+     };
+    */
+   
+   /* Contributo al file di restart */
+   virtual ostream& Restart(ostream& out) const {
+      return out << "ContactJoint: not implemented yet" << endl;
+   };
+
+   virtual unsigned int iGetNumDof(void) const { 
+      return 1;
+   };
+      
+   virtual DofOrder::Order SetDof(unsigned int i) const {
+      ASSERT(i == 0);
+      return DofOrder::ALGEBRAIC;
+   };
+   
+   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+      *piNumRows = 7;
+      *piNumCols = 10;
+   };
+   
+   VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat,
+				    doublereal dCoef,
+				    const VectorHandler& XCurr, 
+				    const VectorHandler& XPrimeCurr) {
+      SparseSubMatrixHandler& WM = WorkMat.SetSparse();
+      
+      integer iIndex = iGetFirstIndex()+1;
+      
+      Vec3 D(pNode2->GetXCurr()-pNode1->GetXCurr());
+      Vec3 V(pNode2->GetVCurr()-pNode1->GetVCurr());
+      Vec3 N(pNode1->GetRCurr()*n);
+      dD = N.Dot(D);
+      doublereal dV = N.Dot(V);
+      
+      dF = XCurr.dGetCoef(iIndex);
+      
+      if (dD > 0. 
+	  || (dD == 0. && dF >= 0.) 
+	  || (dD == 0. && dF == 0. && dV > 0.)) {
+	 /* non attivo */
+	 WM.Resize(1, 0);
+	 WM.fPutItem(1, iIndex, iIndex, 1.);
+      } else {
+	 /* attivo */
+	 WM.Resize(27, 0);
+	 
+	 integer iNode1RowIndex = pNode1->iGetFirstMomentumIndex();
+	 integer iNode1ColIndex = pNode1->iGetFirstPositionIndex();
+	 integer iNode2RowIndex = pNode2->iGetFirstMomentumIndex();
+	 integer iNode2ColIndex = pNode2->iGetFirstPositionIndex();
+	       	 
+	 Vec3 Tmp(N.Cross(D));	 
+	 for (integer i = 1; i <= 3; i++) {
+	    WM.fPutItem(i, iIndex, iNode1ColIndex+3+i, Tmp.dGet(i));
+	    doublereal d = N.dGet(i);
+	    WM.fPutItem(9+i, iNode1RowIndex+i, iIndex, -d);
+	    WM.fPutItem(12+i, iNode2RowIndex+i, iIndex, d);	   
+	    WM.fPutItem(3+i, iIndex, iNode1ColIndex+i, -d);	    
+	    WM.fPutItem(6+i, iIndex, iNode2ColIndex+i, d);
+	 }
+	 
+	 Tmp = N*(dF*dCoef);
+	 WM.fPutCross(16, iNode1RowIndex+4, iNode1ColIndex+4, Tmp);
+	 WM.fPutCross(22, iNode2RowIndex+4, iNode1ColIndex+4, -Tmp);
+      }
+      return WorkMat;
+   };
+   
+   SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+			    doublereal dCoef,
+			    const VectorHandler& XCurr, 
+			    const VectorHandler& XPrimeCurr) {
+      integer iIndex = iGetFirstIndex()+1;
+      
+      Vec3 D(pNode2->GetXCurr()-pNode1->GetXCurr());
+      Vec3 V(pNode2->GetVCurr()-pNode1->GetVCurr());
+      Vec3 N(pNode1->GetRCurr()*n);
+      dD = N.Dot(D);
+      doublereal dV = N.Dot(V);
+      
+      dF = XCurr.dGetCoef(iIndex);
+      
+      if (dD > 0. 
+	  || (dD == 0. && dF >= 0.) 
+	  || (dD == 0. && dF == 0. && dV > 0.)) {
+	 /* non attivo */
+	 WorkVec.Resize(1);
+	 WorkVec.fPutItem(1, iIndex, -dF);
+      } else {
+	 /* attivo */
+	 WorkVec.Resize(7);
+	 
+	 integer iNode1RowIndex = pNode1->iGetFirstMomentumIndex();       
+	 integer iNode2RowIndex = pNode2->iGetFirstMomentumIndex();
+	 
+	 Vec3 Tmp(N*dF);
+	 for (integer i = 1; i <= 3; i++) {
+	    doublereal d = Tmp.dGet(i);
+	    WorkVec.fPutItem(i, iNode1RowIndex+i, d);
+	    WorkVec.fPutItem(3+i, iNode2RowIndex+i, -d);
+	 }
+	 WorkVec.fPutItem(7, iIndex, -dD/dCoef);
+      }
+      
+      return WorkVec;
+   };
+   
+   virtual void Output(OutputHandler& OH) const {
+      Vec3 F(pNode1->GetRCurr()*(n*dF));
+      Joint::Output(OH.Joints(), "Contact", GetLabel(),
+		    Vec3(dF, 0., 0.), Zero3, F, Zero3)
+	<< " " << dD << endl;
+   };
+
+   
+   /* funzioni usate nell'assemblaggio iniziale */
+   
+   virtual unsigned int iGetInitialNumDof(void) const { 
+      return 2;
+   };
+   virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+      *piNumRows = 14;
+      *piNumCols = 20; 
+   };
+   
+   /* Contributo allo jacobiano durante l'assemblaggio iniziale */
+   VariableSubMatrixHandler& InitialAssJac(VariableSubMatrixHandler& WorkMat,
+					   const VectorHandler& XCurr) {
+      WorkMat.SetNullMatrix();
+      return WorkMat;
+   };
+   
+   /* Contributo al residuo durante l'assemblaggio iniziale */   
+   SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
+				   const VectorHandler& XCurr) {
+      WorkVec.Resize(0);
+      return WorkVec;
+   };
+   
+   /* Setta il valore iniziale delle proprie variabili */
+   virtual void SetInitialValue(VectorHandler& X) const {
+      NO_OP;
+   };
+   
+   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const {
+      X.fPutCoef(iGetFirstIndex()+1, 0.);
+   };
+
+   /* *******PER IL SOLUTORE PARALLELO******** */        
+   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+      utile per l'assemblaggio della matrice di connessione fra i dofs */
+   virtual void GetConnectedNodes(int& NumNodes, NodeType::Type* NdTyps, unsigned int* NdLabels) {
+     NumNodes = 2;
+     NdTyps[0] = pNode1->GetNodeType();
+     NdLabels[0] = pNode1->GetLabel();
+     NdTyps[1] = pNode2->GetNodeType();
+     NdLabels[1] = pNode2->GetLabel();
+
+   };
+   /* ************************************************ */
+};
+
+/* ContactJoint - end */
+
+#endif // CONTACTJ_H

@@ -1,0 +1,74 @@
+MBDyn: Multi-Body Dynamics
+
+Copyright: 1996 Pierangelo Masarati
+
+... too many things!
+
+
+
+
+############################################################################
+Known Bugs
+
+ - (Fixed 10-26-99) The StringDriveCaller seems to have some problems
+ - The helicopter trim by Peters doesn't work very good
+ - (Partially done) There is urgent need to refresh stuff like Drives and so, 
+   to avoid tediuos recompilations
+
+
+
+
+#############################################################################
+For Yesterday
+
+ - ... everything!
+
+
+##############################################################################
+Very Short Term
+
+ - Mat3xN, VecN: operations on SubMat and SubVec 
+  (add Mat3xN transposed, add VecN)
+ - Mat6xN for piezo beams (2 Mat3xN, with operations)
+ - (01-24/26-99) Adaptive GPC and DBC
+ - Modify swashplate by eliminating stiffness terms for the inputs (to be
+   substituted by corresponding basic genels)
+ - add logical and relational DriveCaller (at present fixed with string drive
+   caller and new logical and relational math parser)
+ - feedforward for GPC and DPC
+
+
+
+##############################################################################
+Short Term
+
+ - Piezoelectric beams (sensors)
+ - (01-27-99) Hydraulic nodes and elements (Puggelli)
+ - (done, fix bugs!...) Analytical model for helicopter rotor trim (from Peters') (Boscaini?)
+ - Piezo matrices as Constitutive laws <Vec6, Mat6xN> for non-linear piezo
+ - BeamLumpedInertia: element that generates lumped inertia for the three nodes
+   of a beam element from a 6x6 section constitutive law (or from m, S, J)
+ - Automatic generation of nodes, beam elements and beam inertia given a
+   macro-beam. 
+ - Beam data (and general distributed data) from a data handler that knows 
+   how to interpolate from tables and so.
+ - Add v2.0 input for structured stuff
+
+
+
+##############################################################################
+Mid Term
+
+ - Integration with NUVOLA for uncompressible rotor wake (Boscaini?)
+ - (Cancelled) Integration with DADS Pre/Post Processing
+ - Integration with ADAMS Pre/Post Processing
+ - Modal deformations (with aerodynamics and inertia, for wing and blades)
+ - Parallel and iterative solution (Quaranta?)
+
+
+
+##############################################################################
+Long Term (No Schedule)
+
+ - Translation structural nodes (no rotations, for wires and so)
+ - Wire element

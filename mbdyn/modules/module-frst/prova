@@ -1,0 +1,37 @@
+begin: data;
+    integrator: multistep;
+end: data;
+
+begin: multistep;
+    # abort after: input;
+end: multistep;
+
+begin: control data;
+    structural nodes: 2;
+    rigid bodies: 1;
+    joints: 1;
+    loadable elements: 1;
+end: control data;
+
+set: integer dummy = 0;
+
+begin: nodes;
+    structural: 1, static,
+                null,
+		eye,
+		null,
+		null;
+    structural: 2, dynamic,
+                1.,0.,0.,
+		eye,
+		null,
+		0.,0.,10.;
+end: nodes;
+
+begin: elements;
+    body: 2, 2, 1.,
+          null,
+	  diag, 1.,2.,3.;
+    joint: 1, clamp, 1, node, node;
+    loadable: 1, "./module-frst.so", 1, 2, 1., .5, 1e-3;
+end: elements;
