@@ -73,8 +73,9 @@ pRotDataType(NULL),
 #endif /* USE_MPI */
 pCraft(pC), pRotor(pR), 
 dOmegaRef(0.), dRadius(0.), dArea(0.),
-dUMean(0.), dUMeanRef(0.), dUMeanPrev(0.), 
-dWeight(0.), dHoverCorrection(1.), dForwardFlightCorrection(1.),
+dUMean(0.), dUMeanRef(0.), dUMeanPrev(0.),
+Weight(), dWeight(0.),
+dHoverCorrection(1.), dForwardFlightCorrection(1.),
 ppRes(ppres),
 RRotTranspose(0.), RRot(rrot), RRot3(0.), 
 VCraft(0.),
@@ -128,6 +129,25 @@ Rotor::AfterConvergence(const VectorHandler& /* X */ ,
 
     /* updates the umean at the previous step */
     dUMeanPrev = dUMean; 
+
+    /*
+     * FIXME: should go in AfterPredict ...
+     * this way there's a one step delay in the weight value
+     */
+    if (Weight.pGetDriveCaller() != NULL) {
+	    dWeight = Weight.dGet();
+	    if (dWeight < 0.) {
+		    silent_cout("Rotor(" << GetLabel()
+				    << "): delay < 0.0; using 0.0"
+				    << std::endl);
+     		    dWeight = 0.;	    
+	    } else if (dWeight > 1.) {
+		    silent_cout("Rotor(" << GetLabel()
+				    << "): delay > 1.0; using 1.0"
+				    << std::endl);
+     		    dWeight = 1.;
+	    }
+    }
 }
 
 void Rotor::Output(OutputHandler& OH) const
@@ -545,7 +565,7 @@ UniformRotor::UniformRotor(unsigned int uLabel,
 			   SetResForces **ppres, 
 			   doublereal dOR,
 			   doublereal dR, 
-			   doublereal dW,
+			   DriveCaller *pdW,
 			   doublereal dCH,
 			   doublereal dCFF,
 			   flag fOut)
@@ -554,12 +574,12 @@ Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut)
 {
    ASSERT(dOR > 0.);
    ASSERT(dR > 0.);
-   ASSERT((dW <= 1.) && (dW >= 0.));
+   ASSERT(pdW != NULL);
    
    dOmegaRef = dOR;
    dRadius = dR;
    dArea = M_PI*dRadius*dRadius;
-   dWeight = dW;
+   Weight.Set(pdW);
    dHoverCorrection = dCH;
    dForwardFlightCorrection = dCFF;
 
@@ -643,8 +663,9 @@ SubVectorHandler& UniformRotor::AssRes(SubVectorHandler& WorkVec,
 
 std::ostream& UniformRotor::Restart(std::ostream& out) const
 {
-  return Rotor::Restart(out) << "uniform, " << dRadius << ", " 
-	  << dWeight << ", correction, " << dHoverCorrection
+  return Rotor::Restart(out) << "uniform, " << dRadius << ", ", 
+	  Weight.pGetDriveCaller()->Restart(out) 
+	  << ", correction, " << dHoverCorrection
 	  << ", " << dForwardFlightCorrection << ';' << std::endl;
 }
 
@@ -698,7 +719,7 @@ GlauertRotor::GlauertRotor(unsigned int uLabel,
 			   SetResForces **ppres, 
 			   doublereal dOR,
 			   doublereal dR, 
-			   doublereal dW,
+			   DriveCaller *pdW,
 			   doublereal dCH,
 			   doublereal dCFF,
 			   flag fOut)
@@ -707,12 +728,12 @@ Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut)
 {
    ASSERT(dOR > 0.);
    ASSERT(dR > 0.);
-   ASSERT((dW <= 1.) && (dW >= 0.));
+   ASSERT(pdW != NULL);
    
    dOmegaRef = dOR;
    dRadius = dR;
    dArea = M_PI*dRadius*dRadius;
-   dWeight = dW;
+   Weight.Set(pdW);
    dHoverCorrection = dCH;
    dForwardFlightCorrection = dCFF;
 
@@ -781,8 +802,8 @@ SubVectorHandler& GlauertRotor::AssRes(SubVectorHandler& WorkVec,
 
 std::ostream& GlauertRotor::Restart(std::ostream& out) const
 {
-   return Rotor::Restart(out) << "Glauert, " << dRadius << ", " 
-     << dWeight << ';' << std::endl;
+   return Rotor::Restart(out) << "Glauert, " << dRadius << ", ",
+     Weight.pGetDriveCaller()->Restart(out) << ';' << std::endl;
 }
 
 
@@ -853,7 +874,7 @@ ManglerRotor::ManglerRotor(unsigned int uLabel,
 			   SetResForces **ppres, 
 			   doublereal dOR,
 			   doublereal dR, 
-			   doublereal dW,
+			   DriveCaller *pdW,
 			   doublereal dCH,
 			   doublereal dCFF,
 			   flag fOut)
@@ -862,12 +883,12 @@ Rotor(uLabel, pDO, pCraft, rrot, pRotor, ppres, fOut)
 {
    ASSERT(dOR > 0.);
    ASSERT(dR > 0.);
-   ASSERT((dW <= 1.) && (dW >= 0.));
+   ASSERT(pdW != NULL);
    
    dOmegaRef = dOR;
    dRadius = dR;
    dArea = M_PI*dRadius*dRadius;
-   dWeight = dW;
+   Weight.Set(pdW);
    dHoverCorrection = dCH;
    dForwardFlightCorrection = dCFF;
 
@@ -959,8 +980,8 @@ SubVectorHandler& ManglerRotor::AssRes(SubVectorHandler& WorkVec,
 
 std::ostream& ManglerRotor::Restart(std::ostream& out) const
 {
-  return Rotor::Restart(out) << "Mangler, " << dRadius << ", " 
-			     << dWeight << ';' << std::endl;
+  return Rotor::Restart(out) << "Mangler, " << dRadius << ", ",
+          Weight.pGetDriveCaller()->Restart(out) << ';' << std::endl;
 }
 
 
@@ -1416,6 +1437,10 @@ Elem* ReadRotor(DataManager* pDM,
 {
    const char sFuncName[] = "ReadRotor()";
    DEBUGCOUT("Entering " << sFuncName << std::endl);
+
+   silent_cout("WARNING: the syntax changed; use a comma ',' "
+		   "instead of a colon ':' after the keyword "
+		   "\"induced velocity\"" << std::endl);
    
    const char* sKeyWords[] = {
       "inducedvelocity",
@@ -1480,7 +1505,8 @@ Elem* ReadRotor(DataManager* pDM,
 	<< " not defined" << std::endl;     
       THROW(DataManager::ErrGeneric());
    }		     
-   
+
+#if 0 
    /* Tipo di velocita' indotta */
    HP.ExpectDescription();
    if (KeyWords(HP.GetDescription()) != INDUCEDVELOCITY) {
@@ -1488,13 +1514,17 @@ Elem* ReadRotor(DataManager* pDM,
 	<< HP.GetLineData() << std::endl;      
       THROW(DataManager::ErrGeneric());
    }
+#endif /* 0 */
+
+   KeyWords InducedType = NO;
+   if (HP.fIsArg() && HP.IsKeyWord("induced" "velocity")) {
+	  InducedType = KeyWords(HP.GetWord());
+   }
 
    Elem* pEl = NULL;
    SetResForces **ppres = NULL;
    
-   KeyWords InducedType;
-   switch (InducedType = KeyWords(HP.GetWord())) {
-      
+   switch (InducedType) {
     case NO: {
        DEBUGCOUT("No induced velocity is considered" << std::endl);
        
@@ -1575,23 +1605,12 @@ Elem* ReadRotor(DataManager* pDM,
 	   * di convergenza. Se si desidera un ritardo "fisico",
 	   * conviene forse provare il "Dynamic Inflow".
 	   */
-	  doublereal dW = 0.;
+	  DriveCaller *pdW = NULL;
 	  if (HP.IsKeyWord("weight") || HP.IsKeyWord("delay")) {
-	     dW = HP.GetReal();
-	     DEBUGCOUT("Weight: " << dW << std::endl);
-	     if (dW < 0.) {
-		std::cerr 
-		  << "warning, illegal negative weight for uniform rotor "
-		  << uLabel << ", using 0." 
-		  << std::endl;
-		dW = 0.;
-	     } else if(dW > 1.) {
-		std::cerr 
-		  << "warning, illegal weight greater than 1. for uniform rotor "
-		  << uLabel << ", using 1." 
-		  << std::endl;
-		dW = 1.;
-	     }
+	     pdW = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+	  } else {
+	     SAFENEWWITHCONSTRUCTOR(pdW, NullDriveCaller,
+			     NullDriveCaller(NULL));
 	  }
 
 	  /* Legge la correzione della velocita' indotta */
@@ -1629,7 +1648,7 @@ Elem* ReadRotor(DataManager* pDM,
 				     UniformRotor,
 				     UniformRotor(uLabel, pDO, pCraft, rrot,
 					     pRotor,
-					     ppres, dOR, dR, dW, dCH, dCFF,
+					     ppres, dOR, dR, pdW, dCH, dCFF,
 					     fOut));
 	      break;
 	   }
@@ -1640,7 +1659,7 @@ Elem* ReadRotor(DataManager* pDM,
 				     GlauertRotor,
 				     GlauertRotor(uLabel, pDO, pCraft, rrot,
 					     pRotor,
-					     ppres, dOR, dR, dW, dCH, dCFF, 
+					     ppres, dOR, dR, pdW, dCH, dCFF, 
 					     fOut));
 	      break;
 	   }
@@ -1652,7 +1671,7 @@ Elem* ReadRotor(DataManager* pDM,
 				     ManglerRotor,
 				     ManglerRotor(uLabel, pDO, pCraft, rrot,
 					     pRotor, 
-					     ppres, dOR, dR, dW, dCH, dCFF, 
+					     ppres, dOR, dR, pdW, dCH, dCFF, 
 					     fOut));
 	      break;
 	   }

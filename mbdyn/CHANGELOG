@@ -27,11 +27,15 @@ MBDyn 1.2-Engineering
 		- added internal forces and couples (i.e. between two nodes)
 		- added electric motor (uses electric nodes)
 		- allow output of residual and jacobian for debugging purposes
+		- use a drive for the delay parameter of rotors
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility
 		  is preserved; if run with -PP warnings are issued
 		- changed module API (callback structure holds info fields)
+		- rotor elements do not use a colon ':' as a separator
+		  between the keyword "induced velocity" and the induced
+		  velocity type (need to update all the models...)
 	Bug fixes:
 		- do not output RelativeFrame dummy struct nodes in ADAMS
 		  res format

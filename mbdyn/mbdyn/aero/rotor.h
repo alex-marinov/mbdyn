@@ -91,6 +91,7 @@ class Rotor
    doublereal dUMean;        /* Velocita' indotta media */
    doublereal dUMeanRef;     /* Velocita' indotta media (nominale) */
    mutable doublereal dUMeanPrev;    /* Vel. indotta media al passo prec. */
+   DriveOwner Weight;
    doublereal dWeight;       /* Peso della velocita' indotta media 
 			      * (peso della V al passo precedente, def = 0.) */
    doublereal dHoverCorrection; /* Correzione H (scala la velocita' indotta) */
@@ -354,7 +355,7 @@ class UniformRotor : virtual public Elem, public Rotor {
 		SetResForces **ppres, 
 		doublereal dOR,
 		doublereal dR,
-		doublereal dW,
+		DriveCaller *pdW,
 		doublereal dCH,
 		doublereal dCFF,
 		flag fOut);
@@ -400,7 +401,7 @@ class GlauertRotor : virtual public Elem, public Rotor {
 		SetResForces **ppres, 
 		doublereal dOR,
 		doublereal dR,
-		doublereal dW,
+		DriveCaller *pdW,
 		doublereal dCH,
 		doublereal dCFF,
 		flag fOut);
@@ -446,7 +447,7 @@ class ManglerRotor : virtual public Elem, public Rotor {
 		SetResForces **ppres,
 		doublereal dOR,
 		doublereal dR,
-		doublereal dW,
+		DriveCaller *pdW,
 		doublereal dCH,
 		doublereal dCFF,
 		flag fOut);
