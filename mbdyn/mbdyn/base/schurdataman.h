@@ -49,7 +49,9 @@
 #include <dataman.h>
 #include <mbpar.h>
 
+#ifdef USE_MPI
 #include <mpi++.h>
+#endif /* USE_MPI */
 
 class SchurDataManager : public DataManager {
 
@@ -79,9 +81,11 @@ class SchurDataManager : public DataManager {
   int* pParAmgProcs; 
 	
  protected:
+#ifdef USE_MPI
   MPI::Intracomm DataComm; 
-  int MyRank, DataCommSize;
   MPI::Intracomm* pRotorComm;
+#endif /* USE_MPI */
+  int MyRank, DataCommSize;
 
   Node** ppExpCntNodes;
   Elem** ppExpCntElems;

@@ -218,7 +218,7 @@ iPrecondSteps(iDefaultPreconditionerSteps),
 iIterativeMaxSteps(iDefaultPreconditionerSteps),
 dIterertiveEtaMax(defaultIterativeEtaMax),
 dIterertiveTau(defaultIterativeTau),
-#ifdef USE_MPI
+/* FOR PARALLEL SOLVERS*/
 fParallel(fPar),
 pSDM(NULL),
 CurrIntSolver(LinSol::defaultSolver),
@@ -230,7 +230,7 @@ pDofs(NULL),
 iIWorkSpaceSize(0),
 dIPivotFactor(-1.),
 pLocalSM(NULL),
-#endif /* USE_MPI */
+/* end of FOR PARALLEL SOLVERS */
 pSM(NULL),
 pNLS(NULL)
 {
@@ -363,7 +363,6 @@ void Solver::Run(void)
    	/* Costruisce i vettori della soluzione ai vari passi */
    	DEBUGLCOUT(MYDEBUG_MEM, "creating solution vectors" << std::endl);
 
-#ifdef USE_MPI
 	if (fParallel) {
 		iNumDofs = pSDM->HowManyDofs(SchurDataManager::TOTAL);
 		pDofs = pSDM->pGetDofsList();
@@ -374,11 +373,8 @@ void Solver::Run(void)
 		pIntDofs = pSDM->GetDofsList(SchurDataManager::INTERNAL);
 
 	} else {
-#endif /* USE_MPI */
    		iNumDofs = pDM->iGetNumDofs();
-#ifdef USE_MPI
 	}
-#endif /* USE_MPI */
 	
    	ASSERT(iNumDofs > 0);        
 	
@@ -471,14 +467,12 @@ void Solver::Run(void)
 	
 	integer iLWS = iWorkSpaceSize;
 	integer iNLD = iNumDofs*iUnkStates;
-#ifdef USE_MPI
 	if (fParallel) {
 		/*FIXME BEPPE!*/
 		iLWS = iWorkSpaceSize*iNumLocDofs/(iNumDofs*iNumDofs);
 		/*FIXME: GIUSTO QUESTO?*/
 		iNLD = iNumLocDofs*iUnkStates;
 	}
-#endif /* USE_MPI */
 
 	SolutionManager *pCurrSM = AllocateSolman(iNLD, iLWS);
 
@@ -486,7 +480,6 @@ void Solver::Run(void)
 	 * This is the LOCAL solver if instantiating a parallel
 	 * integrator; otherwise it is the MAIN solver
 	 */
-#ifdef USE_MPI
 	if (fParallel) {
 		pLocalSM = pCurrSM;
 
@@ -494,11 +487,8 @@ void Solver::Run(void)
 		pSM = AllocateSchurSolman();
 
 	} else {
-#endif /* USE_MPI */
 		pSM = pCurrSM;
-#ifdef USE_MPI
 	}
-#endif /* USE_MPI */
 	
 	/*
 	 * FIXME: at present there MUST be a pSM
@@ -2395,7 +2385,6 @@ Solver::ReadData(MBDynParser& HP)
        }
 
        case INTERFACESOLVER: {
-#ifdef USE_MPI
 		switch(KeyWords(HP.GetWord())) {           
 		case MESCHACH:
 #ifdef USE_MESCHACH
@@ -2463,11 +2452,9 @@ Solver::ReadData(MBDynParser& HP)
 		DEBUGLCOUT(MYDEBUG_INPUT, "Workspace size: " << iIWorkSpaceSize 
 			<< ", pivor factor: " << dIPivotFactor << std::endl);
 		break;
-#else /* !USE_MPI */
 		std::cerr << "Interface solver only allowed when compiled "
 			"with MPI support" << std::endl;
 		THROW(ErrGeneric());
-#endif /* !USE_MPI */
        }
       
 #if 0 

@@ -42,7 +42,9 @@
 #include <mynewmem.h>
 #include <except.h>
 #include <solman.h>
+#ifdef USE_MPI
 #include <mpi++.h>
+#endif /* USE_MPI */
 #include <schurmh.h>
 
 inline void InitializeList(int* list, integer dim, integer  value){
@@ -66,7 +68,9 @@ class SchurSolutionManager : public SolutionManager {
  
 
   /* communicator per lo scambio di messaggi */
+#ifdef USE_MPI
   MPI::Intracomm SolvComm; 
+#endif /* USE_MPI */
   int MyRank, SolvCommSize;
   
   integer iPrbmSize;                /*dimensioni totali del problema */
@@ -84,9 +88,11 @@ class SchurSolutionManager : public SolutionManager {
   integer* pSchGlbToLoc;            /* vettore di trasformazione indici Globale->Schur; master */
   
   int* pBlockLenght;                 /* struttura di servizio x datatype; master */ 
+#ifdef USE_MPI
   MPI::Aint* pTypeDsp;               /* struttura di servizio x datatype; master */ 
-  doublereal* pBuffer;               /* buffer di ricezione */
   MPI::Datatype** ppNewTypes;        /* datatype per la trasmissione dei vettori soluzione delle interfacce; master */
+#endif /* USE_MPI */
+  doublereal* pBuffer;               /* buffer di ricezione */
 
   integer iWorkSpaceSize;
 
@@ -107,9 +113,11 @@ class SchurSolutionManager : public SolutionManager {
   VectorHandler* pgVH;  
   VectorHandler* pSolrVH;
 
+#ifdef USE_MPI
   MPI::Request* pGSReq;               /* Array di request Send */
   MPI::Request* pGRReq;               /* Array di request Receive */
-  
+#endif /* USE_MPI */
+
  SolutionManager* pLocalSM;           /* Solutore sparso locale */
  SolutionManager* pInterSM;          /* Solutore sparso locale */
 

@@ -55,10 +55,10 @@
 #include <mynewmem.h>
 #include <except.h>
 #include <dataman.h>
-#ifdef USE_MPI
+//#ifdef USE_MPI
 #include <schurdataman.h>
 #include <schsolman.h>
-#endif /* USE_MPI */
+//#endif /* USE_MPI */
 #include <deque>
 #include <integr.h>
 #include <stepsol.h>
@@ -209,7 +209,7 @@ private:
 	doublereal dIterertiveEtaMax;
 	doublereal dIterertiveTau;
 
-#ifdef USE_MPI
+/* FOR PARALLEL SOLVERS*/
 	flag fParallel;
 	SchurDataManager *pSDM;
 	LinSol::SolverType CurrIntSolver;
@@ -221,7 +221,7 @@ private:
 	integer iIWorkSpaceSize;
 	doublereal dIPivotFactor;
 	SolutionManager *pLocalSM;
-#endif /* USE_MPI */  
+/* end of FOR PARALLEL SOLVERS */
 
 	/* il solution manager v*/
 	SolutionManager *pSM;
