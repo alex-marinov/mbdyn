@@ -1528,6 +1528,7 @@ AC_CHECK_FUNCS([ \
 	inet_aton \
 	localtime \
 	memset \
+	memmove \
 	mlockall \
 	nice \
 	pstat_getdynamic \
