@@ -36,36 +36,41 @@
   * classi che implementano la risoluzione del sistema nonlineare 
   */
 
-#ifndef GMRES_H
-#define GMRES_H
+#ifndef MFREE_H
+#define MFREE_H
 
-#include <mfree.h>
+#include <nonlin.h>
+#include <precond.h>
 
-class UpHessMatrix 
-{
-	std::vector<doublereal> M;
-	integer Size;
-
-public:	
-	UpHessMatrix(integer n);
-	~UpHessMatrix(void);
-
-	void Reset(doublereal d = 0.);
-
-	doublereal& operator() (const integer i, const integer j);
-	doublereal operator() (const integer i, const integer j) const;
-};
-
-class Gmres : public MatrixFreeSolver
+class MatrixFreeSolver : public NonlinearSolver
 {
 public:
-	Gmres(const Preconditioner::PrecondType PType, 
+	enum SolverType {
+		BICGSTAB,
+		GMRES
+	};	
+
+protected:
+	SolutionManager* pSM;
+	Preconditioner* pPM;
+	VectorHandler* 	pRes;
+	doublereal IterTol;
+	integer MaxLinIt;
+	doublereal Tau;
+	doublereal gamma;
+	doublereal etaMax; 
+	integer PrecondIter; 
+	bool fBuildMat;
+	const NonlinearProblem* pPrevNLP;
+	
+public:
+	MatrixFreeSolver(const Preconditioner::PrecondType PType, 
 			const integer iPStep,
 			doublereal ITol,
 			integer MaxIt,
-			doublereal etaMx);
-	
-	~Gmres(void);
+			doublereal etaMx); 
+
+	~MatrixFreeSolver(void);
 	
 	virtual void Solve(const NonlinearProblem* NLP,
 			SolutionManager* pSolMan,
@@ -77,18 +82,11 @@ public:
 #ifdef MBDYN_X_CONVSOL
 			, doublereal& dSolErr
 #endif /* MBDYN_X_CONVSOL  */	
-			);
-			
-private:
-	void GeneratePlaneRotation(const doublereal &dx, const doublereal &dy, 
-			doublereal &cs, doublereal &sn) const;
-			
-	void ApplyPlaneRotation(doublereal &dx, doublereal &dy, 
-			const doublereal &cs, const doublereal &sn) const;
-			
-	void Backsolve(VectorHandler& x, integer sz,  UpHessMatrix& H, 
-			VectorHandler& s, MyVectorHandler* v);
+			) = 0;
+
+protected:
+	doublereal MakeTest(const VectorHandler& Vec);
 };
 
-#endif /* GMRES_H */
+#endif /* MFREE_H */
 

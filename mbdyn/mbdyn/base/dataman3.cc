@@ -616,10 +616,10 @@ void DataManager::ReadControl(MBDynParser& HP,
 	 /* Tolleranza nell'assemblaggio iniziale; viene calcolata come:
 	  * sqrt(sum(res^2)/(1.+sum(sol^2)) */
        case INITIALTOLERANCE: {
-	  dInitialAssemblyToll = 
-	    HP.GetReal(dDefaultInitialAssemblyToll);
+	  dInitialAssemblyTol = 
+	    HP.GetReal(dDefaultInitialAssemblyTol);
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Initial assembly tolerance: " 
-		     << dInitialAssemblyToll << std::endl);
+		     << dInitialAssemblyTol << std::endl);
 	  break;
        }	     
 	 

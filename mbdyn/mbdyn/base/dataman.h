@@ -100,7 +100,7 @@ class DataManager : public SolutionDataManager {
    doublereal dInitialPositionStiffness;
    doublereal dInitialVelocityStiffness;
    flag fOmegaRotates;
-   doublereal dInitialAssemblyToll;
+   doublereal dInitialAssemblyTol;
    integer iMaxInitialIterations;
 #endif /* USE_STRUCT_NODES */
 

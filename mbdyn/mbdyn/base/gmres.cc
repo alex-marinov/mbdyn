@@ -143,8 +143,8 @@ void
 Gmres::Solve(const NonlinearProblem* pNLP,
 		SolutionManager* pSolMan,
 		const integer iMaxIter,
-		const doublereal Toll,
-		const doublereal SolToll,
+		const doublereal Tol,
+		const doublereal SolTol,
 		integer& iIterCnt,
 		doublereal& dErr
 #ifdef MBDYN_X_CONVSOL
@@ -216,7 +216,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
       		std::cerr << "dErr " << dErr << std::endl;
 #endif /* DEBUG_ITERATIVE */
 
-		if (dErr < Toll) {
+		if (dErr < Tol) {
 	 		return;
       		}
       		if (!isfinite(dErr)) {
@@ -244,10 +244,10 @@ Gmres::Solve(const NonlinearProblem* pNLP,
         	/* N.B. *pRes = -F(0) */ 
 		
 		pr = pRes;
-        	doublereal LocToll = eta * dErr;
+        	doublereal LocTol = eta * dErr;
  
 #ifdef DEBUG_ITERATIVE		
-		std::cerr << "LocToll " << LocToll << std::endl;
+		std::cerr << "LocTol " << LocTol << std::endl;
 #endif /* DEBUG_ITERATIVE */
 	
 		resid = dErr;
@@ -387,7 +387,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
       			ApplyPlaneRotation(H(i,i), H(i+1,i), cs(i+1), sn(i+1));
       			ApplyPlaneRotation(s(i+1), s(i+2), cs(i+1), sn(i+1));
 				
-			if ((resid = fabs(s.dGetCoef(i+2))) < LocToll) {
+			if ((resid = fabs(s.dGetCoef(i+2))) < LocTol) {
 
 #ifdef DEBUG_ITERATIVE
 				std::cerr << "resid 1: " << resid  << std::endl;
@@ -434,7 +434,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 		}
 		eta = (etaNew < etaMax) ? etaNew : etaMax;
 		/* prevent oversolving */
-		etaBis = .5*Toll/dErr;
+		etaBis = .5*Tol/dErr;
 		eta = (eta > etaBis) ? eta : etaBis;
 
 #ifdef DEBUG_ITERATIVE
@@ -466,9 +466,9 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 
 		
 #ifdef MBDYN_X_CONVSOL
-		if (SolToll > 0.) {
+		if (SolTol > 0.) {
 			dSolErr = MakeTest(dx);
-        		if (dSolErr < dSolToll) {
+        		if (dSolErr < dSolTol) {
 				THROW(ConvergenceOnSolution());
 			}
       		}

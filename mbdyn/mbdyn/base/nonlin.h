@@ -102,8 +102,8 @@ public:
 	virtual void Solve(const NonlinearProblem* NLP,
 			SolutionManager* pSolMan,
 			const integer iMaxIter,
-			const doublereal Toll,
-			const doublereal SolToll,
+			const doublereal Tol,
+			const doublereal SolTol,
 			integer& iIterCnt,
 			doublereal& dErr
 #ifdef MBDYN_X_CONVSOL

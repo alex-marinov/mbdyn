@@ -39,34 +39,70 @@
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
-  
-#include <nr.h>  
+
+#include <precond_.h>
+#include <mfree.h>
 #ifdef USE_MPI
 #include <mbcomm.h>
-#include <schsolman.h>
+#include<schsolman.h>
 #endif /* USE_MPI */
 
 #include <dofown.h>
 #include <umfpackwrap.h>
 #include <unistd.h>
 #include <output.h>
-#include <ac/float.h>
+
+const doublereal defaultTau = 1.e-7;
+const doublereal defaultGamma = 0.9;
+
+MatrixFreeSolver::MatrixFreeSolver(
+		const Preconditioner::PrecondType PType, 
+		const integer iPStep,
+		doublereal ITol,
+		integer MaxIt,
+		doublereal etaMx) 
+: pSM(NULL),
+pPM(NULL),
+pRes(NULL),
+IterTol(ITol),
+MaxLinIt(MaxIt),
+Tau(defaultTau),
+gamma(defaultGamma),
+etaMax(etaMx),
+PrecondIter(iPStep),
+fBuildMat(true),
+pPrevNLP(NULL)
+{
+	
+	switch(PType) {
+	case Preconditioner::FULLJACOBIAN:
+		SAFENEW(pPM, FullJacobianPr);
+		break;
+	
+	default:
+		std::cerr << "Unknown Preconditioner type; aborting"
+			<< std::endl;
+		THROW(ErrGeneric()); 
+	}
+}
+
+MatrixFreeSolver::~MatrixFreeSolver(void)
+{
+	NO_OP;
+}
 
 doublereal
-NewtonRaphsonSolver::MakeTest(const VectorHandler& Vec)
+MatrixFreeSolver::MakeTest(const VectorHandler& Vec)
 {
-   	DEBUGCOUTFNAME("NewtonRaphsonSolver::MakeTest");
-
-#if 0
-   	Dof CurrDof;
-#endif 
-      
+   	DEBUGCOUTFNAME("MatrixFreeSolver::MakeTest");
+   
    	doublereal dRes = 0.;
 	ASSERT(pSM != NULL);
 	
 #ifdef USE_MPI
 #warning "NonlinSolver MakeTest parallel broken !! "	
 #if 0
+   	Dof CurrDof;
 	SchurSolutionManager *pSSM;
 	if ((pSSM = dynamic_cast<SchurSolutionManager*> (pSM)) != 0) {
 		
@@ -93,7 +129,7 @@ NewtonRaphsonSolver::MakeTest(const VectorHandler& Vec)
 		integer iMI = pSDM->HowManyDofs(SchurDataManager::MYINTERNAL);
 		integer *pMI = pSDM->GetDofsList(SchurDataManager::MYINTERNAL);
 
-#ifdef __HACK_RES_TEST__
+#ifdef __HACK_RES_TEST__				
 		for (int iCnt = 0; iCnt < iMI; iCnt++) {
 			DCount = pMI[iCnt];
 			CurrDof = pDofs[DCount-1];
@@ -109,13 +145,12 @@ NewtonRaphsonSolver::MakeTest(const VectorHandler& Vec)
 		pSSM->ComplExchInt(dRes, dXPr);
 		
 	} else {
-#endif
-
+#endif		
 #endif /* USE_MPI */
-		ASSERT(Vec.iGetSize() == Size);
+			ASSERT(Vec.iGetSize() == Size);
 #ifdef __HACK_SCALE_RES__
-		ASSERT(pScale != NULL);
-		ASSERT(pScale->iGetSize == Size);
+			ASSERT(pScale != NULL);
+			ASSERT(pScale->iGetSize == Size);
 #endif /* __HACK_SCALE_RES__ */
  	  	for (int iCntp1 = 1; iCntp1 <= Size; 
 				iCntp1++) {
@@ -137,14 +172,15 @@ NewtonRaphsonSolver::MakeTest(const VectorHandler& Vec)
 
 #ifdef __HACK_SCALE_RES__
 				d2 *= ds2;         
-
 #endif /* __HACK_SCALE_RES__ */
 
 				dXPr += d2;
 			}
 			/* else if ALGEBRAIC: non aggiunge nulla */ 
 #endif /* __HACK_RES_TEST__ */
+		
 		}
+		
 #ifdef USE_MPI
 #if 0 		
 	}
@@ -153,153 +189,9 @@ NewtonRaphsonSolver::MakeTest(const VectorHandler& Vec)
 
 #ifdef __HACK_RES_TEST__
 	dRes /= (1.+dXPr);
-	if (!isfinite(dRes)) {      
-		std::cerr << "The simulation diverged; aborting ..." 
-			<< std::endl;       
-		THROW(ErrSimulationDiverged());
-	}
 #endif /* __HACK_RES_TEST__ */
 
    	return sqrt(dRes);
 }
 
-NewtonRaphsonSolver::NewtonRaphsonSolver(const flag fTNR, 
-		const integer IterBfAss)
-: pSM(NULL),
-pRes(NULL),
-pSol(NULL),
-pJac(NULL),
-fTrueNewtonRaphson(fTNR),
-IterationBeforeAssembly(IterBfAss)
-{
-	NO_OP;
-}
-
-NewtonRaphsonSolver::~NewtonRaphsonSolver(void)
-{
-	NO_OP;
-}
-
-void
-NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
-		SolutionManager* pSolMan,
-		const integer iMaxIter,
-		const doublereal Tol,
-		const doublereal SolTol,
-		integer& iIterCnt,
-		doublereal& dErr
-#ifdef MBDYN_X_CONVSOL
-		, doublereal& dSolErr
-#endif /* MBDYN_X_CONVSOL  */	
-		)
-{
-	ASSERT(pNLP != NULL);
-	ASSERT(pSM != NULL);
-		
-	pSM  = pSolMan;
-	pJac = pSM->pMatHdl();
-        pRes = pSM->pResHdl();
-        pSol = pSM->pSolHdl();
-	Size = pRes->iGetSize();
-	
-	iIterCnt = 0;
-	integer iPerformedIterations = 0;
-#ifdef MBDYN_X_CONVSOL
-	dSolErr = 0.;
-#endif /* MBDYN_X_CONVSOL  */	
-
-	while (1) {
-
-#ifdef 	USE_EXTERNAL 	
-		SendExternal();
-#endif /* USE_EXTERNAL */
-		
-		pRes->Reset(0.);
-      		pNLP->Residual(pRes);
-		
-      		if (foutRes) {
-	 		std::cout << "Residual:" << std::endl;
-	 		std::cout << iIterCnt <<std::endl;
-	 		for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
-	    			std::cout << "Dof" << std::setw(4) << iTmpCnt << ": " 
-					<< pRes->dGetCoef(iTmpCnt) << std::endl;
-			}
-      		}
-
-		dErr = MakeTest(*pRes);
-
-      		if (dErr < Tol) {
-	 		return;
-      		}
-      		
-		if (!isfinite(dErr)) {
-			THROW(ErrSimulationDiverged());
-		}
-		
-		if (iIterCnt > iMaxIter) {
-			THROW(NoConvergence());
-		}
-          
-      		iIterCnt++;
-
-		if (fTrueNewtonRaphson || (iPerformedIterations%IterationBeforeAssembly == 0)) {
-      			pSM->MatrInit(0.);
-      			pNLP->Jacobian(pJac);
-			TotJac++;
-		}
-		
-		iPerformedIterations++;
-		
-		if (foutJac) {
-#ifdef USE_UMFPACK
-			if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
-#endif /* USE_UMFPACK */
-			std::cout << "Warning, Jacobian output "
-					"avaliable only "
-					"with umfpack solver"
-					<< std::endl;
-#ifdef USE_UMFPACK
-			} else {
-			 	std::cout << "Jacobian:" << std::endl
-					<< *(pSM->pMatHdl());
-		 	}
-#endif /* USE_UMFPACK */
-      		}		
-		
-		pSM->Solve();
-
-      		if (foutSol) {      
-	 		std::cout << "Solution:" << std::endl;
-	 		for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
-	    			std::cout << "Dof" << std::setw(4) << iTmpCnt << ": "
-					<< pSol->dGetCoef(iTmpCnt) << std::endl;
-			}
-		}		
-		
-		
-		if (foutIters) {
-#ifdef USE_MPI
-			if (dynamic_cast<SchurSolutionManager*> (pSM) && (MBDynComm.Get_rank() == 0)) {
-#endif /* USE_MPI */
-				std::cerr << "\tIteration " << iIterCnt
-					<< " " << dErr << " J"
-					<< std::endl;
-#ifdef USE_MPI
-			}
-#endif /* USE_MPI */
-		}
-		
-      		pNLP->Update(pSol);
-
-		
-#ifdef MBDYN_X_CONVSOL
-		if (SolTol > 0.) {
-			dSolErr = MakeTest(*pSol);
-        		if (dSolErr < dSolTol) {
-				THROW(ConvergenceOnSolution());
-			}
-      		}
-#endif /* MBDYN_X_CONVSOL */
-	}
-}
 

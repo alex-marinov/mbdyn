@@ -37,7 +37,7 @@ extern void SetDrvHdl(DriveHandler*);
 extern const flag fDefaultSkipInitialJointAssembly;
 extern const doublereal dDefaultInitialStiffness;
 extern const flag fDefaultOmegaRotates;
-extern const doublereal dDefaultInitialAssemblyToll;
+extern const doublereal dDefaultInitialAssemblyTol;
 extern const integer iDefaultMaxInitialIterations;
 extern const char sDefaultOutputFileName[];
 

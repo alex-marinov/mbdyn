@@ -72,8 +72,8 @@ void
 BiCGStab::Solve(const NonlinearProblem* pNLP,
 		SolutionManager* pSolMan,
 		const integer iMaxIter,
-		const doublereal Toll,
-		const doublereal SolToll,
+		const doublereal Tol,
+		const doublereal SolTol,
 		integer& iIterCnt,
 		doublereal& dErr
 #ifdef MBDYN_X_CONVSOL
@@ -145,7 +145,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 		std::cerr << "dErr " << dErr << std::endl;
 #endif /* DEBUG_ITERATIVE */
 
-		if (dErr < Toll) {
+		if (dErr < Tol) {
 	 		return;
       		}
       		if (!isfinite(dErr)) {
@@ -168,11 +168,11 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
         	/* N.B. *pRes = -F(0) */ 
 		
 		pr = pRes;
-        	doublereal LocToll = eta * dErr;
+        	doublereal LocTol = eta * dErr;
         	rHat = *pr;
 
 #ifdef DEBUG_ITERATIVE		
-		std::cerr << "LocToll " << LocToll << std::endl;
+		std::cerr << "LocTol " << LocTol << std::endl;
 #endif /* DEBUG_ITERATIVE */
 		
 		rho_1 = dErr*dErr;   /*rhat.InnerProd(r); */
@@ -200,7 +200,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 #endif /* DEBUG_ITERATIVE */
 
 		int It = 0;
-        	while ((resid > LocToll) && (It++ < MaxLinIt)) {
+        	while ((resid > LocTol) && (It++ < MaxLinIt)) {
 			if (It == 1) {
 				p = *pr;
 			} else {
@@ -250,7 +250,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 			std::cerr << "s.Norm() " << s.Norm() << std::endl;
 #endif /* DEBUG_ITERATIVE */
 
-			if ((resid = s.Norm()) < LocToll) {
+			if ((resid = s.Norm()) < LocTol) {
 				dx.ScalarAddMul(pHat, alpha);
 				TotalIter++;
 				break;
@@ -302,7 +302,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 		}
 		eta = (etaNew < etaMax) ? etaNew : etaMax;
 		/* prevent oversolving */
-		etaBis = .5*Toll/dErr;
+		etaBis = .5*Tol/dErr;
 		eta = (eta > etaBis) ? eta : etaBis;
 
 #ifdef DEBUG_ITERATIVE
@@ -334,9 +334,9 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 
 		
 #ifdef MBDYN_X_CONVSOL
-		if (SolToll > 0.) {
+		if (SolTol > 0.) {
 			dSolErr = MakeTest(dx);
-        		if (dSolErr < dSolToll) {
+        		if (dSolErr < dSolTol) {
 				THROW(ConvergenceOnSolution());
 			}
       		}

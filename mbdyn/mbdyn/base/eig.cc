@@ -148,8 +148,8 @@ void PODEig::ComputeEigenvalues(doublereal t)
 	integer ilb, iub = ilb = 1;
 	if (iNumEig) iub = iNumEig;
 	
-	doublereal dToll = 1e-6;
-	if (dPrecision != 0) dToll = dPrecision;
+	doublereal dTol = 1e-6;
+	if (dPrecision != 0) dTol = dPrecision;
 	
 	integer NEig;    /* numero di autovalori restituiti come output */	
 	doublereal* pEig = new doublereal [iSnapN];			/*vettore degli autovalori */
@@ -173,7 +173,7 @@ void PODEig::ComputeEigenvalues(doublereal t)
 			    &RMat[0], &iSnapN,
 			    &zero, &zero,
 			    &ilb, &iub,
-			    &dToll,
+			    &dTol,
 			    &NEig, pEig, pEigVec,
 			    &iSnapN, piSupp,
 			    pdW,
@@ -199,7 +199,7 @@ void PODEig::ComputeEigenvalues(doublereal t)
 			    &RMat[0], &iSnapN,
 			    &zero, &zero,
 			    &ilb, &iub,
-			    &dToll,
+			    &dTol,
 			    &NEig, pEig, pEigVec,
 			    &iSnapN, piSupp,
 			    pdW,

@@ -67,7 +67,7 @@ const flag fDefaultInitialJointAssemblyToBeMade = flag(0);
 const flag fDefaultSkipInitialJointAssembly = flag(0);
 const doublereal dDefaultInitialStiffness = 1.;
 const flag fDefaultOmegaRotates = flag(0);
-const doublereal dDefaultInitialAssemblyToll = 1.e-6;
+const doublereal dDefaultInitialAssemblyTol = 1.e-6;
 const integer iDefaultMaxInitialIterations = 1;
 
 const char sDefaultOutputFileName[] = "MBDyn";
@@ -98,7 +98,7 @@ fOutputFrames(0),
 dInitialPositionStiffness(dDefaultInitialStiffness), 
 dInitialVelocityStiffness(dDefaultInitialStiffness),
 fOmegaRotates(fDefaultOmegaRotates),
-dInitialAssemblyToll(dDefaultInitialAssemblyToll),
+dInitialAssemblyTol(dDefaultInitialAssemblyTol),
 iMaxInitialIterations(iDefaultMaxInitialIterations),
 #endif /* USE_STRUCT_NODES */
 #if defined(HAVE_LOADABLE) && defined(HAVE_LTDL_H)
@@ -616,7 +616,7 @@ void DataManager::MakeRestart(void)
      << std::endl
      << "  # initial stiffness: " << dInitialPositionStiffness << ", "
      << dInitialVelocityStiffness << ';' << std::endl
-     << "  # initial tolerance: " << dInitialAssemblyToll << ';' << std::endl
+     << "  # initial tolerance: " << dInitialAssemblyTol << ';' << std::endl
      << "  # max initial iterations: " << iMaxInitialIterations 
      << ';' << std::endl;
 #endif // USE_STRUCT_NODES     
