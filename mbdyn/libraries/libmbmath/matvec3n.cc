@@ -810,7 +810,7 @@ MatNxN::MatNxN(void)
 MatNxN::MatNxN(integer ns)
 : iMaxRows(ns), iNumRows(ns), pdVec(NULL), pdMat(NULL)
 {
-   Create_(ns*ns);
+   Create_(ns);
    IsValid();
 }
 
@@ -818,7 +818,7 @@ MatNxN::MatNxN(integer ns)
 MatNxN::MatNxN(integer ns, const doublereal& d)
 : iMaxRows(ns), iNumRows(ns), pdVec(NULL), pdMat(NULL)
 {
-   Create_(ns*ns);
+   Create_(ns);
    Reset(d);
 }
 
