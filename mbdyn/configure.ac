@@ -701,7 +701,7 @@ if test "$ol_enable_loadable" != "no" ; then
 	fi
 	if test $have_loadable=yes ; then
 		AC_DEFINE(HAVE_RUNTIME_LOADING,1,[define if you want to load runtime])
-	elif test "$ol_enable_loadable" == "yes" ; then
+	elif test "$ol_enable_loadable" = "yes" ; then
 		AC_MSG_ERROR([no dynamic linking library detected])
 	else
 		AC_MSG_WARN([no dynamic linking library detected; runtime loading will not be enabled])
@@ -730,7 +730,7 @@ case "$ol_with_static_modules" in
 	*)
 		;;
 esac
-if test "$build_static_modules" == "yes" ; then
+if test "$build_static_modules" = "yes" ; then
 	AC_DEFINE(STATIC_MODULES,1,[define to build module wheel2 as static])
 fi
 
@@ -1624,7 +1624,7 @@ dnl Need either Metis or Chaco with MPI and Taucs
 dnl
 dnl First we check for Metis
 ol_link_metis=no
-if test $ol_with_metis != no ; then
+if test "$ol_with_metis" != "no" ; then
 	dnl OL_ADD_DIRS(metis)
 	
 	AC_CHECK_LIB(metis, METIS_PartGraphVKway,
@@ -1632,15 +1632,15 @@ if test $ol_with_metis != no ; then
 	
 	AC_CHECK_HEADERS(metis.h)
 
-	if test $ac_cv_header_metis_h = yes ; then
-		if test $have_metis != no ; then
+	if test "$ac_cv_header_metis_h" = "yes" ; then
+		if test "$ol_link_metis" != "no" ; then
 			AC_DEFINE(USE_METIS,1,
 				[define if you want to use Metis])
 		fi
 	fi
 
-	if test $ol_link_metis = no ; then
-		if test $ol_with_metis != auto ; then
+	if test "$ol_link_metis" = "no" ; then
+		if test "$ol_with_metis" != "auto" ; then
 			AC_MSG_ERROR([Could not locate Metis])
 		else
 			AC_MSG_WARN([Could not locate Metis; not supported])
@@ -1657,7 +1657,7 @@ dnl
 dnl Now we check for Chaco.
 dnl
 ol_link_chaco=no
-if test $ol_with_chaco != no ; then
+if test "$ol_with_chaco" != no ; then
 	dnl OL_ADD_DIRS(chaco)
 	
 	AC_CHECK_LIB(chaco,interface,[have_chaco=yes],[have_chaco=no],[-lm])
@@ -1668,7 +1668,7 @@ if test $ol_with_chaco != no ; then
 		ol_link_chaco=yes
 	fi
 
-	if test $ol_link_chaco = no ; then
+	if test "$ol_link_chaco" = no ; then
                 if test $ol_with_chaco != auto ; then
                         AC_MSG_ERROR([Could not locate Chaco])
                 else
