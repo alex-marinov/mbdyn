@@ -12,6 +12,7 @@ MBDyn 1.2-Engineering
 		- added matrix-free nonlinear solver (BiCGStab/GMRES)
 		- added third order step solver
 		- added TAUCS linear solver (eXperimental)
+		- added discrete Coulomb friction model
 	Known Issues:
 		- parallel is not working yet
 
