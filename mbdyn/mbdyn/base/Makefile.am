@@ -70,12 +70,13 @@ shape.h \
 shockabsorber.h \
 sockdrv.cc \
 sockdrv.h \
+symcltp.h \
 tpldrive.cc \
 tpldrive.h \
 tpldrive_.h \
 vec3drv.h
 
-libbase_la_LIBADD = @LIBS@
+libbase_la_LIBADD = @LIBS@ $(GINACLIB_LIBS)
 libbase_la_LDFLAGS = -static
 
 INCLUDES = \
@@ -87,5 +88,6 @@ INCLUDES = \
 -I../../mbdyn/struct \
 -I../../mbdyn/aero \
 -I../../mbdyn/elec \
--I../../mbdyn/hydr
+-I../../mbdyn/hydr \
+$(GINACLIB_CPPFLAGS)
 

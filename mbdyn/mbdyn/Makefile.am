@@ -28,7 +28,8 @@ hydr/libhydr.la \
 ../libraries/libmbwrap/libmbwrap.la \
 ../libraries/libobjs/libobjs.la \
 @MESCHACH_LIBS@ @LAPACK_LIBS@ @MPI_LIBS@ @F2C_LIBS@ \
-@METIS_LIBS@ @SECURITY_LIBS@ @TCL_LIBS@ @LIBS@
+@METIS_LIBS@ @SECURITY_LIBS@ @TCL_LIBS@ @LIBS@ \
+$(GINACLIB_LIBS)
 #mbdyn_LDFLAGS = -static
 
 INCLUDES = \
@@ -39,5 +40,5 @@ INCLUDES = \
 -I../mbdyn/struct \
 -I../mbdyn/aero \
 -I../mbdyn/elec \
--I../mbdyn/hydr
-
+-I../mbdyn/hydr \
+$(GINACLIB_CPPFLAGS)

@@ -35,6 +35,7 @@
 #include <tpldrive.h>
 #include <tpldrive_.h>
 #include <constltp_.h>
+#include <symcltp.h>
 #ifdef USE_GRAALLDAMPER
 #include <damper.h>
 #endif /* USE_GRAALLDAMPER */
@@ -93,6 +94,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 	"double" "linear" "elastic",
 	"isotropic" "hardening" "elastic",
 	"contact" "elastic",
+	"symbolic" "elastic" "isotropic",
 	"linear" "viscous",
 	"linear" "viscous" "isotropic",
 	"linear" "viscous" "generic",
@@ -119,6 +121,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 	DOUBLELINEARELASTIC,
 	ISOTROPICHARDENINGELASTIC,
 	CONTACTELASTIC,
+	SYMBOLICELASTICISOTROPIC,
 	LINEARVISCOUS,
 	LINEARVISCOUSISOTROPIC,
 	LINEARVISCOUSGENERIC,
@@ -337,6 +340,56 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        
        typedef ContactConstitutiveLaw<T, Tder> L;
        SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, dK, dGamma));
+
+       break;
+    }
+
+    case SYMBOLICELASTICISOTROPIC: {
+#ifdef HAVE_GINAC
+       ConstLawType = DefHingeType::ELASTIC;
+
+       const char *epsilon = 0;
+       if (HP.IsKeyWord("epsilon")) {
+	       const char *tmp = HP.GetStringWithDelims();
+       	       if (tmp == 0) {
+		       std::cerr << "unable to get \"epsilon\" symbol at line " << HP.GetLineData() << std::endl;
+		       THROW(DataManager::ErrGeneric());
+	       }
+	       SAFESTRDUP(epsilon, tmp);
+       } else {
+	       epsilon = "epsilon";
+       }
+
+       if (!HP.IsKeyWord("expression")) {
+	       std::cerr << "keyword \"expression\" expected at line " << HP.GetLineData() << std::endl;
+	       THROW(DataManager::ErrGeneric());
+       }
+       const char *tmp = HP.GetStringWithDelims();
+       if (tmp == 0) {
+	       std::cerr << "unable to get \"expression\" at line " << HP.GetLineData() << std::endl;
+	       THROW(DataManager::ErrGeneric());
+       }
+       const char *expression = 0;
+       SAFESTRDUP(expression, tmp);
+
+       const char **symbols = 0;
+       if (HP.IsKeyWord("symbols")) {
+	       /* FIXME! */
+       }
+       
+       /* Prestress and prestrain */
+       T PreStress(0.);
+       GetPreStress(HP, PreStress);
+       T PreStrain(0.);
+       TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, pDH, PreStrain);
+       
+       typedef SymbolicElasticIsotropicConstitutiveLaw<T, Tder> L;
+       SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, epsilon, expression, symbols));
+
+#else /* !HAVE_GINAC */
+       std::cerr << "need GiNaC symbolic algebra package" << std::endl;
+       THROW(DataManager::ErrGeneric());
+#endif /* !HAVE_GINAC */
 
        break;
     }

@@ -159,6 +159,7 @@ OL_ARG_WITH(y12,[  --with-y12              with Y12 sparse math library],auto,[a
 OL_ARG_WITH(harwell,[  --with-hsl          with HSL (Harwell) sparse math library],auto,[auto yes no])
 OL_ARG_WITH(lapack,[  --with-lapack           with LAPACK math library],auto,[auto yes no])
 OL_ARG_WITH(pam,[  --with-pam              with PAM support],auto,[auto yes no])
+OL_ARG_WITH(ginac,[  --with-ginac            with GiNaC support],auto,[auto yes no])
 
 OL_ARG_WITH(aero_output,[  --with-aero-output={std,gauss,node}  aerodynamic output mode],auto,[auto std gauss node])
 
@@ -965,6 +966,25 @@ else
 	fi
 fi
 
+dnl ----------------------------------------------------------------
+dnl
+dnl Use GiNaC?
+dnl
+ol_link_ginac=no
+if test $ol_with_ginac != no ; then
+	AC_LANG_CPLUSPLUS
+	AM_PATH_GINAC(0.7.0,[ol_link_ginac=yes],[ol_link_ginac=no])
+	AC_LANG_C
+	if test $ol_link_ginac = no ; then
+		if test $ol_with_ginac != yes ; then
+			AC_MSG_WARN([GiNaC support not available])
+		else
+			AC_MSG_ERROR([need to have GiNaC installed])
+		fi
+	else
+		AC_DEFINE(HAVE_GINAC,1,[define if GiNaC is available])
+	fi
+fi
 
 dnl ----------------------------------------------------------------
 dnl
