@@ -26,6 +26,8 @@ MBDyn 1.2-Engineering
 	Bug fixes:
 		- spherical joint did not log the reaction forces
 		  in the element's frame (structural node 2).
+		- do not output RelativeFrame dummy struct nodes in ADAMS
+		  res format
 
 
 MBDyn 1.1.3
