@@ -229,7 +229,7 @@ static inline unsigned long long rd_CPU_ts(void)
 static void
 usage(int err)
 {
-	std::cerr << "usage: wraptest [-c] [-d] [-m <solver>] [-s] [-t <nthreads>] [-f <filename>] [-o] [-w <filename>] " << std::endl
+	std::cerr << "usage: wraptest [-c] [-d] [-m <solver>]  [-b <block_size>]  [-p <pivot>] [-s] [-t <nthreads>] [-f <filename>] [-o] [-w <filename>] " << std::endl
 		<< "\t<solver>={" << solvers[0];
 	for (int i = 1; solvers[i]; i++) {
 		std::cerr << "|" << solvers[i];
@@ -238,6 +238,8 @@ usage(int err)
 	std::cerr << "-c : if possible, use compressed column matrix format" << std::endl;
 	std::cerr << "\tfor the naive solver: use colamd" << std::endl;
 	std::cerr << "-d : if possible, use dir matrix format" << std::endl;
+	std::cerr << "-b <block_size> : if meaningful, use <block_size>" << std::endl;
+	std::cerr << "-p <pivot> : if meaningful, use <pivot> thresold" << std::endl;
 	std::cerr << "-s : (singular) with the 3x3 matrix, do not set the element (3,3)" << std::endl;
 	std::cerr << "-t : with multi-threaded solutors, use <nthreads> threads" << std::endl;
 	std::cerr << "-f <filename> : load the matrix from <filename>" << std::endl;
@@ -288,13 +290,15 @@ main(int argc, char *argv[])
 	bool cc(false);
 	bool dir(false);
 	unsigned nt = 1;
+	unsigned block_size = 0;
+	double dpivot = -1.;
 	bool singular(false);
 	bool output_solution(false);
 	int size = 3;
 	long long tf;
 	
 	while (1) {
-		int opt = getopt(argc, argv, "cdm:st:f:orw:");
+		int opt = getopt(argc, argv, "cdm:st:f:ob:p:rw:");
 
 		if (opt == EOF) {
 			break;
@@ -321,6 +325,17 @@ main(int argc, char *argv[])
 			nt = atoi(optarg);
 			if (nt < 1) {
 				nt = 1;
+			}
+			break;
+
+		case 'p':
+			dpivot = atof(optarg);
+			break;
+
+		case 'b':
+			block_size = atoi(optarg);
+			if (block_size < 1) {
+				block_size = 0;
 			}
 			break;
 
@@ -468,17 +483,17 @@ main(int argc, char *argv[])
 		if (dir) {
 			std::cerr << " with dir matrix";
 			typedef UmfpackSparseCCSolutionManager<DirCColMatrixHandler<0> > CCMH;
-			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, dpivot, block_size));
 
 		} else if (cc) {
 			std::cerr << " with cc matrix";
 			typedef UmfpackSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
-			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size));
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, dpivot, block_size));
 
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pSM,
 					UmfpackSparseSolutionManager,
-					UmfpackSparseSolutionManager(size));
+					UmfpackSparseSolutionManager(size, dpivot, block_size));
 		}
 		std::cerr << std::endl;
 #else /* !USE_UMFPACK */
@@ -493,17 +508,17 @@ main(int argc, char *argv[])
 		if (dir) {
 			std::cerr << " with dir matrix";
 			typedef WsmpSparseCCSolutionManager<DirCColMatrixHandler<0> > CCMH;
-			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, nt));
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, dpivot, block_size, nt));
 
 		} else if (cc) {
 			std::cerr << " with cc matrix";
 			typedef WsmpSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
-			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, nt));
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, dpivot, block_size, nt));
 
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pSM,
 					WsmpSparseSolutionManager,
-					WsmpSparseSolutionManager(size, nt));
+					WsmpSparseSolutionManager(size, dpivot, block_size, nt));
 		}
 		std::cerr << " using " << nt << " threads " << std::endl;
 		std::cerr << std::endl;
