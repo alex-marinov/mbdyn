@@ -114,7 +114,7 @@ DeformableJoint::iGetPrivDataIdx(const char *s) const
 	unsigned idx = 0;
 	
 	switch (s[0]) {
-	case 'x':
+	case 'd':
 		break;
 	case 'r':
 		idx += 3;
@@ -283,9 +283,6 @@ ElasticJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 	Vec3 f2Tmp(pNode2->GetRRef()*f2);
 	Vec3 d1(pNode2->GetXCurr()+f2Tmp-pNode1->GetXCurr());
 
-	Mat3x3 R1(pNode1->GetRRef()*R1h);
-	F = MultRV(GetF(), R1);
-
 	/* D11 */
 	Mat3x3 DTmp = FDE.GetMat11()*dCoef;
 
@@ -415,7 +412,7 @@ ElasticJoint::AssRes(SubVectorHandler& WorkVec,
 void
 ElasticJoint::AssVec(SubVectorHandler& WorkVec)
 {   
-	Mat3x3 R1(pNode1->GetRCurr());
+	Mat3x3 R1(pNode1->GetRCurr()*R1h);
 	Vec3 f1Tmp(pNode1->GetRCurr()*f1);
 	Vec3 f2Tmp(pNode2->GetRCurr()*f2);
 
@@ -424,11 +421,10 @@ ElasticJoint::AssVec(SubVectorHandler& WorkVec)
 
 	} else {
 		Mat3x3 R1T(R1.Transpose());
-		Mat3x3 R1HT((R1*R1h).Transpose());
-		Mat3x3 R2H(pNode2->GetRCurr()*R2h);
+		Mat3x3 R2(pNode2->GetRCurr()*R2h);
 		Vec3 d1(pNode2->GetXCurr() + f2Tmp - pNode1->GetXCurr());   
 
-		ThetaCurr = RotManip::VecRot(R1HT*R2H);
+		ThetaCurr = RotManip::VecRot(R1T*R2);
 
 		k = Vec6(R1T*(d1 - f1Tmp), ThetaCurr);
 		
@@ -451,21 +447,18 @@ ElasticJoint::AfterPredict(VectorHandler& /* X */ ,
 	 * e crea la FDE */
 
 	/* Recupera i dati */
-	Mat3x3 R1(pNode1->GetRRef());
-	Mat3x3 R1H(R1*R1h);
-	Mat3x3 R2(pNode2->GetRRef());
-	Mat3x3 R2H(R2*R2h);
+	Mat3x3 R1(pNode1->GetRRef()*R1h);
+	Mat3x3 R2(pNode2->GetRRef()*R2h);
 	Mat3x3 R1T(R1.Transpose());
-	Mat3x3 R1HT(R1H.Transpose());
 
 	/* Calcola la deformazione corrente nel sistema locale (nodo a) */
-	ThetaCurr = ThetaRef = RotManip::VecRot(R1HT*R2H);
+	ThetaCurr = ThetaRef = RotManip::VecRot(R1T*R2);
 
 	/* Calcola l'inversa di Gamma di ThetaRef */
 	Mat3x3 GammaRefm1 = RotManip::DRot_I(ThetaRef);
 
-	Vec3 f1Tmp(R1*f1);
-	Vec3 f2Tmp(R2*f2);
+	Vec3 f1Tmp(pNode1->GetRRef()*f1);
+	Vec3 f2Tmp(pNode2->GetRRef()*f2);
 	Vec3 d1(pNode2->GetXCurr() + f2Tmp - pNode1->GetXCurr());   
 
 	k = Vec6(R1T*(d1 - f1Tmp), ThetaRef);
@@ -476,7 +469,7 @@ ElasticJoint::AfterPredict(VectorHandler& /* X */ ,
 	/* Chiede la matrice tangente di riferimento e la porta
 	 * nel sistema globale */
 	/* FIXME: horrible */
-        FDE = Mat6x6(R1, Zero3x3, Zero3x3, R1H)*ConstitutiveLaw6DOwner::GetFDE()*Mat6x6(R1T, Zero3x3, Zero3x3, GammaRefm1*R1HT);
+        FDE = MultRMRt(ConstitutiveLaw6DOwner::GetFDE()*Mat6x6(Eye3, Zero3x3, Zero3x3, GammaRefm1), R1);
 
 	bFirstRes = true;
 }

@@ -2407,47 +2407,13 @@ The following data is available:
 not implemented yet, use a \kw{spherical hinge} and a \kw{prismatic} 
 instead.
 
-\subsection{Deformable joint}
-\begin{verbatim}
-    <joint_type> ::= deformable joint
-    <joint_arglist> ::= 
-        <node_1> , (Vec3) <relative_offset_1>
-        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_1> ] ,
-        <node_2> , (Vec3) <relative_offset_2>
-        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,
-        (ConstitutiveLaw6D) <const_law>
-\end{verbatim}
-\emph{Note: this joint is experimental; it only works with elastic 
-constitutive laws, the use with viscous and viscoelastic laws 
-is untested yet, and thus it is disabled.}
-
-\paragraph{Private Data}
-The following data is available:
-\begin{enumerate}
-\item \kw{"xx"} relative displacement in node 1 local direction 1
-\item \kw{"xy"} relative displacement in node 1 local direction 2
-\item \kw{"xz"} relative displacement in node 1 local direction 3
-\item \kw{"rx"} relative rotation vector component in node 1 local direction 1
-\item \kw{"ry"} relative rotation vector component in node 1 local direction 2
-\item \kw{"rz"} relative rotation vector component in node 1 local direction 3
-\item \kw{"Fx"} constraint reaction force in node 1 local direction 1
-\item \kw{"Fy"} constraint reaction force in node 1 local direction 2
-\item \kw{"Fz"} constraint reaction force in node 1 local direction 3
-\item \kw{"Mx"} constraint reaction moment in node 1 local direction 1
-\item \kw{"My"} constraint reaction moment in node 1 local direction 2
-\item \kw{"Mz"} constraint reaction moment in node 1 local direction 3
-\end{enumerate}
-In addition, the joint provides
-access to the private data provided by the constitutive law.
-It is accessed by prefixing the name of the data with the string
-\kw{"constitutiveLaw."}; see the specific constitutive law
-description of the available data in Section~\ref{sec:CONSTITUTIVE-LAWS}.
-
-
-
-
-
 \subsection{Deformable displacement hinge}
+Deprecated; use the 
+\hyperref{\kw{deformable displacement joint}}{\kw{deformable displacement joint} (see Section~}{)}{sec:EL:JOINT:DEFORMABLEDISP}
+instead.
+
+
+\subsection{Deformable displacement joint}\label{sec:EL:JOINT:DEFORMABLEDISP}
 \begin{verbatim}
     <joint_type> ::= deformable displacement hinge
     <joint_arglist> ::= 
@@ -2464,14 +2430,14 @@ is untested yet, and thus it is disabled.}
 \paragraph{Private Data}
 This joint does not provide any specific data; however, it provides
 access to the private data provided by the constitutive law.
-It is accessed by prefixing the name of the data with the string
+They are accessed by prefixing the name of the data with the string
 \kw{"constitutiveLaw."}; see the specific constitutive law
 description of the available data in Section~\ref{sec:CONSTITUTIVE-LAWS}.
 
 
 
 
-\subsection{Deformable hinge}
+\subsection{Deformable hinge}\label{sec:EL:JOINT:DEFORMABLEHINGE}
 \begin{verbatim}
     <joint_type> ::= deformable hinge
     <joint_arglist> ::= 
@@ -2488,9 +2454,59 @@ description of the available data in Section~\ref{sec:CONSTITUTIVE-LAWS}.
 \paragraph{Private Data}
 This joint does not provide any specific data; however, it provides
 access to the private data provided by the constitutive law.
-It is accessed by prefixing the name of the data with the string
+They are accessed by prefixing the name of the data with the string
 \kw{"constitutiveLaw."}; see the specific constitutive law
 description of the available data in Section~\ref{sec:CONSTITUTIVE-LAWS}.
+
+
+
+
+\subsection{Deformable joint}
+The \kw{deformable joint} connects two structural nodes by an arbitrary
+force and moment which depends on the relative displacement and orientation.
+It may be thought as a combination of a
+\hyperref{\kw{deformable displacement joint}}{\kw{deformable displacement joint} (see Section~}{)}{sec:EL:JOINT:DEFORMABLEDISP}
+and of a 
+\hyperref{\kw{deformable hinge}}{\kw{deformable hinge} (see Section~}{)}{sec:EL:JOINT:DEFORMABLEHINGE}.
+A significant difference is that the \kw{deformable joint} uses a 6D
+\hyperref{\kw{constitutive law}}{\kw{constitutive law} (see Section~}{)}{sec:CONSTITUTIVE-LAWS},
+so the force and the moment both depend on the displacement
+and on the orientation.
+\begin{verbatim}
+    <joint_type> ::= deformable joint
+    <joint_arglist> ::= 
+        <node_1> , (Vec3) <relative_offset_1>
+        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_1> ] ,
+        <node_2> , (Vec3) <relative_offset_2>
+        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,
+        (ConstitutiveLaw6D) <const_law>
+\end{verbatim}
+\emph{Note: this joint is experimental; it only works with elastic 
+constitutive laws, the use with viscous and viscoelastic laws 
+is untested yet, and thus it is disabled.}
+
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"dx"} relative displacement in node 1 local direction 1
+\item \kw{"dy"} relative displacement in node 1 local direction 2
+\item \kw{"dz"} relative displacement in node 1 local direction 3
+\item \kw{"rx"} relative rotation vector component in node 1 local direction 1
+\item \kw{"ry"} relative rotation vector component in node 1 local direction 2
+\item \kw{"rz"} relative rotation vector component in node 1 local direction 3
+\item \kw{"Fx"} constraint reaction force in node 1 local direction 1
+\item \kw{"Fy"} constraint reaction force in node 1 local direction 2
+\item \kw{"Fz"} constraint reaction force in node 1 local direction 3
+\item \kw{"Mx"} constraint reaction moment in node 1 local direction 1
+\item \kw{"My"} constraint reaction moment in node 1 local direction 2
+\item \kw{"Mz"} constraint reaction moment in node 1 local direction 3
+\end{enumerate}
+In addition, the joint provides
+access to the private data provided by the constitutive law.
+They are accessed by prefixing the name of the data with the string
+\kw{"constitutiveLaw."}; see the specific constitutive law
+description of the available data in Section~\ref{sec:CONSTITUTIVE-LAWS}.
+
 
 
 
