@@ -102,7 +102,7 @@ main(int argn, char *const argv[])
 		{ NULL,             no_argument,       NULL, int(0)   }  
    	};
 
-   	while (1) {
+   	while (true) {
 		int curropt;
 		
 		curropt = getopt_long(argn, argv, optstring, longopts, NULL);
@@ -507,7 +507,7 @@ int method_multistep(const char* module, integration_data* d,
 	    doublereal dx = Sol.dGetCoef(k);	
 	    pX->fIncCoef(k, dx);
 	 }	 
-      } while (1);
+      } while (true);
       
       // output
       std::cout << t << " " << test << " ";
@@ -695,7 +695,7 @@ int method_cubic(const char* module, integration_data* d,
 	    doublereal dx = Sol.dGetCoef(k);
 	    pX->fIncCoef(k, dx);
 	 }
-      } while (1);
+      } while (true);
       
       // output
       std::cout << t << " " << test << " ";

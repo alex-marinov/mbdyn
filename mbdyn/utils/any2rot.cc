@@ -32,7 +32,7 @@ main(int argn, const char* const argv[])
    	}   
 
    	static doublereal d[3];
-   	while (1) {
+   	while (true) {
       		cin >> d[0];
       		if (cin) {
 	 		cin >> d[1] >> d[2];

@@ -72,7 +72,7 @@ main(int argn, const char* const argv[])
    	}
    
    	static doublereal d[3];
-   	while (1) {
+   	while (true) {
       		std::cin >> d[0];
       		if (std::cin) {
 	 		std::cin >> d[1] >> d[2];

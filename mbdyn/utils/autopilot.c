@@ -183,7 +183,7 @@ main (int argc, char *argv[])
    
    int verbose = 0;
      
-   while (1) {
+   while (true) {
       int opt;
       
       opt = getopt (argc, argv, "h:p:D:w:Wx:v");
@@ -291,7 +291,7 @@ main (int argc, char *argv[])
       keys(stdout);
    }
    
-   while (1) {
+   while (true) {
       size_t i;
       
       i = read(STDIN_FILENO, &c, 1);

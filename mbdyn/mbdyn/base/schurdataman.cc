@@ -226,8 +226,8 @@ iTotalExpConnections(0)
 
     if (KeyWords(HP.GetDescription()) != BEGIN) {
     std::cerr << std::endl 
-	 << "Warning: no explicit connection declared"
-	 << " for this input file " << std::endl;
+	 << "Warning: no explicit connection declared "
+	 << "for this input file" << std::endl;
         return;
     } else {
         int iNumElems = 0;

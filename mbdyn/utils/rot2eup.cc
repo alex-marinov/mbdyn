@@ -52,7 +52,7 @@ int main(int argn, const char* const argv[])
    }   
 
    static doublereal d[9];
-   while (1) {
+   while (true) {
       std::cin >> d[0];
       if (std::cin) {
 	 Vec3 e;

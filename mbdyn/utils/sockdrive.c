@@ -104,7 +104,7 @@ main (int argc, char *argv[])
    FILE *fd;
    
    
-   while (1) {
+   while (true) {
       int opt;
       
       opt = getopt (argc, argv, "h:p:D:w:Wi:I:");

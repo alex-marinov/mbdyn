@@ -64,7 +64,7 @@ main(int argn, const char* const argv[])
 
 	unsigned short int i1, i2;
    	static doublereal v1[3], v2[3];
-   	while (1) {
+   	while (true) {
       		std::cin >> i1;
       		if (std::cin) {
 	 		std::cin >> v1[0] >> v1[1] >> v1[2] 

@@ -62,7 +62,7 @@ main(int argc, char* argv[])
    int opt;
    int echo = 0;
    
-   while (1) {
+   while (true) {
       opt = getopt(argc, argv, "e");
       
       if (opt == EOF) {
