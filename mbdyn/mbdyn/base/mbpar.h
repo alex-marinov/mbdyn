@@ -101,23 +101,23 @@
 #ifndef MBPAR_H
 #define MBPAR_H
 
-#include "parsinc.h"
+#include <parsinc.h>
 
-#include "llist.h"
+#include <llist.h>
 /* Per reference frame */
 #if defined(USE_STRUCT_NODES)
-#include "reffrm.h"
+#include <reffrm.h>
 /* Riferimento assoluto */
 extern const ReferenceFrame AbsRefFrame;
 #endif /* defined(USE_STRUCT_NODES) */
 
 /* Per nodi idraulici */
 #if defined(USE_HYDRAULIC_NODES)
-#include "hfluid.h"
+#include <hfluid.h>
 #endif /* defined(USE_HYDRAULIC_NODES) */
 
 #if defined(USE_AERODYNAMIC_ELEMS)
-#include "aerodata.h"
+#include <aerodata.h>
 #endif /* USE_AERODYNAMIC_ELEMS */
 
 
@@ -125,83 +125,86 @@ extern const ReferenceFrame AbsRefFrame;
 /* MBDynParser - begin */
 
 class MBDynParser : public IncludeParser {
-
- public:
-   class ErrGeneric {};
-   class ErrReferenceAlreadyDefined {};
-   class ErrReferenceUndefined {};
+public:
+	class ErrGeneric {};
+	class ErrReferenceAlreadyDefined {};
+	class ErrReferenceUndefined {};
    
- public:      
-   enum Frame {
-      UNKNOWNFRAME = 0,
-	GLOBAL,
-	NODE,
-	LOCAL,
-	REFERENCE,
-	LASTFRAME
-   };
+public:
+	enum Frame {
+		UNKNOWNFRAME = 0,
+		
+		GLOBAL,
+		NODE,
+		LOCAL,
+		REFERENCE,
+		
+		LASTFRAME
+	};
    
- protected:
-      
-   /* Struttura e dati per la linked list di reference frames */
+protected:      
+	/* Struttura e dati per la linked list di reference frames */
 #if defined(USE_STRUCT_NODES)   
-   HardDestructor<ReferenceFrame> RFHD;
-   MyLList<ReferenceFrame> RF;
-      
-   Frame GetRef(ReferenceFrame& rf);
-   
-   void Reference_(void);
+	HardDestructor<ReferenceFrame> RFHD;
+	MyLList<ReferenceFrame> RF;
+	
+	Frame GetRef(ReferenceFrame& rf);
+	
+	void Reference_(void);
 #endif /* USE_STRUCT_NODES */
  
-   /* Struttura e dati per la linked list di hydraulic fluids */
+	/* Struttura e dati per la linked list di hydraulic fluids */
 #if defined(USE_HYDRAULIC_NODES)   
-   HardDestructor<HydraulicFluid> HFHD;
-   MyLList<HydraulicFluid> HF;
-   
-   void HydraulicFluid_(void);
+	HardDestructor<HydraulicFluid> HFHD;
+	MyLList<HydraulicFluid> HF;
+	
+	void HydraulicFluid_(void);
 #endif /* USE_HYDRAULIC_NODES */
  
-   /* Struttura e dati per la linked list di c81 data */
+	/* Struttura e dati per la linked list di c81 data */
 #if defined(USE_AERODYNAMIC_ELEMS)   
-   HardDestructor<C81Data> ADHD;
-   MyLList<C81Data> AD;
-   
-   void C81Data_(void);
+	HardDestructor<C81Data> ADHD;
+	MyLList<C81Data> AD;
+	
+	void C81Data_(void);
 #endif /* USE_AERODYNAMIC_ELEMS */
- 
- public:
-   MBDynParser(MathParser& MP, KeyTable& KT, InputStream& streamIn);
-   ~MBDynParser(void);
-   
-   int GetDescription(void);          /* Legge una parola chiave */
-   
-   /* Lettura di posizioni, vettori e matrici di rotazione
-    * relative ed assolute rispetto ad un riferimento */
+
+public:
+	MBDynParser(MathParser& MP, KeyTable& KT, InputStream& streamIn);
+	~MBDynParser(void);
+	
+	int GetDescription(void);          /* Legge una parola chiave */
+	
+	/*
+	 * Lettura di posizioni, vettori e matrici di rotazione
+	 * relative ed assolute rispetto ad un riferimento
+	 */
 #if defined(USE_STRUCT_NODES)
-   Vec3 GetPosRel(const ReferenceFrame& rf);
-   Vec3 GetPosAbs(const ReferenceFrame& rf);
-   Vec3 GetVelRel(const ReferenceFrame& rf, const Vec3& x);
-   Vec3 GetVelAbs(const ReferenceFrame& rf, const Vec3& x);
-   Vec3 GetOmeRel(const ReferenceFrame& rf);
-   Vec3 GetOmeAbs(const ReferenceFrame& rf);
-   Vec3 GetVecRel(const ReferenceFrame& rf);
-   Vec3 GetVecAbs(const ReferenceFrame& rf);
-   Mat3x3 GetMatRel(const ReferenceFrame& rf);
-   Mat3x3 GetMatAbs(const ReferenceFrame& rf);
-   Mat3x3 GetRotRel(const ReferenceFrame& rf);
-   Mat3x3 GetRotAbs(const ReferenceFrame& rf);
+	Vec3 GetPosRel(const ReferenceFrame& rf);
+	Vec3 GetPosAbs(const ReferenceFrame& rf);
+	Vec3 GetVelRel(const ReferenceFrame& rf, const Vec3& x);
+	Vec3 GetVelAbs(const ReferenceFrame& rf, const Vec3& x);
+	Vec3 GetOmeRel(const ReferenceFrame& rf);
+	Vec3 GetOmeAbs(const ReferenceFrame& rf);
+	Vec3 GetVecRel(const ReferenceFrame& rf);
+	Vec3 GetVecAbs(const ReferenceFrame& rf);
+	Mat3x3 GetMatRel(const ReferenceFrame& rf);
+	Mat3x3 GetMatAbs(const ReferenceFrame& rf);
+	Mat3x3 GetRotRel(const ReferenceFrame& rf);
+	Mat3x3 GetRotAbs(const ReferenceFrame& rf);
 #endif /* USE_STRUCT_NODES */
    
 #if defined(USE_HYDRAULIC_NODES)
-   HydraulicFluid* GetHydraulicFluid(void);
+	HydraulicFluid* GetHydraulicFluid(void);
 #endif /* USE_HYDRAULIC_NODES */
 
 #if defined(USE_AERODYNAMIC_ELEMS)
-   const c81_data* GetC81Data(integer profile);
+	const c81_data* GetC81Data(integer profile);
 #endif /* USE_AERODYNAMIC_ELEMS */
 };
 
-/* Le funzioni:
+/*
+ * Le funzioni:
  *   ExpectDescription()
  *   ExpectArg()
  * informano il parser di cio' che e' atteso; di default il costruttore
@@ -232,4 +235,5 @@ class MBDynParser : public IncludeParser {
 
 /* MBDynParser - end */
    
-#endif // MBPAR_H
+#endif /* MBPAR_H */
+
