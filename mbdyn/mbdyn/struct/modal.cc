@@ -2212,11 +2212,16 @@ Modal::GetJ_int(void) const
 	}
 	RT = R.Transpose();
 
+	Vec3 s(R*(Inv2+Inv3jaj));
+
 	return R*(Inv7+Inv8jaj.Symm2()
 #ifdef MODAL_USE_INV9
 			-Inv9jkajak
 #endif /* MODAL_USE_INV9 */
-			)*RT - Mat3x3(x, x*dMass);
+			)*RT
+		- Mat3x3(x, x*dMass)
+		- Mat3x3(x, s)
+		- Mat3x3(s, x);
 }
 
 

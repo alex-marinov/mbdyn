@@ -28,6 +28,7 @@ MBDyn 1.X-Engineering
 		- fixed modal inertia computation when clamped
 		- fixed rigid body inertia reference point in restart
 		- fixed output file name handling (scalar and parallel)
+		- fixed modal inertia matrix computation
 
 MBDyn 1.2-Engineering
 	Enhancements:
