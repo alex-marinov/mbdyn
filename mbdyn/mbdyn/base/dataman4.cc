@@ -706,25 +706,29 @@ void DataManager::ReadElems(MBDynParser& HP)
 			}
 		}
 	
-		if (Std && HP.IsKeyWord("temperature" "deviation")) {
-			doublereal T = HP.GetReal();
+		if (Std) {
+			if (HP.IsKeyWord("temperature" "deviation")) {
+				doublereal T = HP.GetReal();
 
-			if (TRef + T <= 0.) {
-				std::cerr << "illegal reference "
-					"temperature " << TRef 
-					<< " at line " << HP.GetLineData()
-					<< std::endl;
-				THROW(ErrGeneric());
+				if (TRef + T <= 0.) {
+					std::cerr << "illegal "
+						"temperature deviation " << T
+						<< " at line " 
+						<< HP.GetLineData()
+						<< std::endl;
+					THROW(ErrGeneric());
+				}
+
+				/*
+				 * trasformazione isobara applicata
+				 * all'equazione
+				 * di stato: rho * R * T = cost
+				 *
+				 * rho = rho_0 T_0 / T
+				 */
+				rhoRef *= TRef / (TRef + T);
+				TRef += T;
 			}
-
-			/*
-			 * trasformazione isobara applicata all'equazione
-			 * di stato: rho * R * T = cost
-			 *
-			 * rho = rho_0 T_0 / T
-			 */
-			rhoRef *= TRef / (TRef + T);
-			TRef += T;
 			
 			SAFENEWWITHCONSTRUCTOR(RhoRef, ConstDriveCaller,
 					ConstDriveCaller(&DrvHdl, rhoRef));
