@@ -145,7 +145,7 @@ Vec3 RotManip::VecRot(const Mat3x3 & Phi) {
 		unit = Phi.Ax();
 		sinphi = unit.Norm();
 		phi = atan2(sinphi, cosphi);
-		CoeffA(phi,phi, &a);
+		CoeffA(phi, phi, &a);
 		unit = unit/a;
 	} else {
 		Mat3x3 eet(Phi.Symm());
@@ -153,7 +153,7 @@ Vec3 RotManip::VecRot(const Mat3x3 & Phi) {
 		eet /= (1.-cosphi);
 		Int maxcol = 1;
 		if ((eet.dGet(2, 2) > eet.dGet(1, 1))
-				||(eet.dGet(3, 3)>eet.dGet(1, 1))) {
+				||(eet.dGet(3, 3) > eet.dGet(1, 1))) {
 			maxcol = 2;
 			if (eet.dGet(3, 3) > eet.dGet(2, 2)) {
 				maxcol = 3;
