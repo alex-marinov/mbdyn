@@ -136,7 +136,8 @@ MBDynParser::Reference_(void)
 		MPmm);
 	if (RF.iAdd(pRF)) {
 		cerr << "Reference frame " << uLabel
-			<< "already defined at line" << GetLineData() << endl;
+			<< " already defined at line " << GetLineData()
+			<< endl;
 		THROW(MBDynParser::ErrReferenceAlreadyDefined());
 	}
 	
@@ -178,7 +179,8 @@ MBDynParser::HydraulicFluid_(void)
 	
 	if (HF.iAdd(pHF)) {
 		cerr << "hydraulic fluid " << uLabel
-			<< "already defined at line" << GetLineData() << endl;
+			<< " already defined at line " << GetLineData()
+			<< endl;
 		THROW(MBDynParser::ErrGeneric());
 	}
 	
@@ -236,8 +238,9 @@ MBDynParser::C81Data_(void)
 #endif
 
 	if (AD.iAdd(data)) {
-		cerr << "c81 data " << uLabel << "already defined at line"
-			<< GetLineData() << endl;
+		cerr << "c81 data " << uLabel
+			<< " already defined at line " << GetLineData()
+			<< endl;
 		THROW(MBDynParser::ErrGeneric());
 	}
 	
