@@ -131,14 +131,39 @@ public:
 };
 
 
-class DerivativeSolver: 
+class ImplicitStepIntegrator:
 	public StepIntegrator,
 	public NonlinearProblem
 {
-private:
-	doublereal dCoef;
+protected:
 	VectorHandler *pXCurr;
 	VectorHandler *pXPrimeCurr; 
+public:
+	ImplicitStepIntegrator(const integer MaxIt,
+			const doublereal dT,
+			const doublereal dSolutionTol,
+			const integer stp,
+			const integer sts) :
+	StepIntegrator(MaxIt,dT,dSolutionTol,stp,sts),
+	pXCurr(0),
+	pXPrimeCurr(0)
+	{
+		NO_OP;
+	};
+	virtual ~ImplicitStepIntegrator(){
+		NO_OP;
+	};
+	
+	virtual void
+	EvalProd(doublereal Tau, const VectorHandler& f0,
+			const VectorHandler& w, VectorHandler& z) const;
+
+};
+
+class DerivativeSolver: 
+	public ImplicitStepIntegrator{
+private:
+	doublereal dCoef;
 
 public:
 	DerivativeSolver(const doublereal Tl, 
@@ -179,24 +204,17 @@ public:
 	virtual doublereal TestScale(void) const;
 #endif /* ! __HACK_SCALE_RES__ */
 
-	virtual void
-	EvalProd(doublereal Tau, const VectorHandler& f0,
-			const VectorHandler& w, VectorHandler& z) const;
-
  
 };
 
 
 /* classe di base per gli integratori di ordine qualsiasi */ 
 class StepNIntegrator :   
-	public StepIntegrator,
-	public NonlinearProblem
+	public ImplicitStepIntegrator
 {
 protected:
 	doublereal db0Differential;
 	doublereal db0Algebraic;
-	VectorHandler *pXCurr;
-	VectorHandler *pXPrimeCurr; 
 
 public:
 	StepNIntegrator(const integer MaxIt,
@@ -218,10 +236,6 @@ public:
 #else /* ! __HACK_SCALE_RES__ */
 	virtual doublereal TestScale(void) const;
 #endif /* ! __HACK_SCALE_RES__ */
-
-	virtual void
-	EvalProd(doublereal Tau, const VectorHandler& f0,
-			const VectorHandler& w, VectorHandler& z) const;
 
 protected:
 	virtual void SetCoef(doublereal dT, 

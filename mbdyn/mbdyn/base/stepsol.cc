@@ -92,11 +92,58 @@ StepIntegrator::OutputTypes(const bool fpred)
 	outputPred  = fpred;
 }
 
+
+void
+ImplicitStepIntegrator::EvalProd(doublereal Tau, const VectorHandler& f0,
+	const VectorHandler& w, VectorHandler& z) const
+{
+	/* matrix-free product                                     
+         *                                                      
+         * J(XCurr) * w = -||w|| * (Res(XCurr + sigma * Tau * w/||w||) - f0) / (sigma * Tau)
+         * 
+         */
+		
+	/* if w = 0; J * w = 0 */ 
+	ASSERT(pDM != NULL);
+        
+	doublereal nw = w.Norm();
+        if (nw < DBL_EPSILON) {
+                z.Reset(0.);
+                return;
+        }
+        doublereal sigma = pXCurr->InnerProd(w);
+        sigma /=  nw;
+        if (fabs(sigma) > DBL_EPSILON) {
+                doublereal xx = (fabs( sigma) <= 1.) ? 1. : fabs(sigma);
+                Tau = copysign(Tau*xx, sigma);
+        }
+        Tau /= nw;
+#ifdef DEBUG_ITERATIVE
+	std::cout << "Tau " << Tau << std::endl;
+#endif /* DEBUG_ITERATIVE */
+		
+        MyVectorHandler XTau(w.iGetSize());
+
+	XTau.Reset(0.);
+	z.Reset(0.);
+        XTau.ScalarMul(w, Tau);
+	
+	this->Update(&XTau);
+	this->Residual(&z);
+	XTau.ScalarMul(XTau, -1.);
+	/* riporta tutto nelle condizioni inziali */
+	this->Update(&XTau);
+	z -= f0;
+	z.ScalarMul(z, -1./Tau);
+	return;
+}
+
+
 DerivativeSolver::DerivativeSolver(const doublereal Tl, 
 		const doublereal dSolTl, 
 		const doublereal dC,
 		const integer iMaxIt) 
-: StepIntegrator(iMaxIt, Tl, dSolTl, 1, 1),
+: ImplicitStepIntegrator(iMaxIt, Tl, dSolTl, 1, 1),
 dCoef(dC)
 {
 	NO_OP;
@@ -258,63 +305,14 @@ DerivativeSolver::TestScale(void) const
 	return 1.;
 }
 
-void
-DerivativeSolver::EvalProd(doublereal Tau, const VectorHandler& f0,
-		const VectorHandler& w, VectorHandler& z) const
-{
-	/* matrix-free product                                     
-         *                                                      
-         * J(XCurr) * w = ||w|| * (Res(XCurr + sigma * Tau * w/||w||) - f0) / (sigma * Tau)
-         * 
-         */
-	
-	/* if w = 0; J * w = 0 */ 
-	ASSERT(pDM != NULL);
-       	Tau = Tau*100; 
-	doublereal nw = w.Norm();
-        if (nw < DBL_EPSILON) {
-                z.Reset(0.);
-                return;
-        }
-        doublereal sigma = (*pXCurr).InnerProd(w);
-        sigma /=  nw;
-        if (sigma > DBL_EPSILON) {
-                doublereal xx = (fabs(sigma) <= 1.) ? 1. : fabs(sigma);
-                Tau = copysign(Tau*xx, sigma);
-        }
-        Tau /= nw;
-/*
-	nw = 1;
-	doublereal coef;
-	for(int i=1; i < w.iGetSize(); i++) {
-		coef = fabs(w.dGetCoef(i));		
-		nw = ((nw > coef) && (coef > 0.)) ? coef : nw;
-	}
-	Tau = Tau/nw;			
- */     
-	MyVectorHandler XTau(w.iGetSize());
-	XTau.Reset(0.);
-	z.Reset(0.);
-        XTau.ScalarMul(w, Tau);
-	this->Update(&XTau);
-	pDM->AssRes(z, dCoef);
-	XTau.ScalarMul(XTau, -1.);
-	/* riporta tutto nelle condizioni inziali */
-	this->Update(&XTau);
-	z -= f0;
-	z.ScalarMul(z, -1./Tau);
-	return;
-}
 
 StepNIntegrator::StepNIntegrator(const integer MaxIt,
 		const doublereal dT,
 		const doublereal dSolutionTol,
 		const integer stp)
-: StepIntegrator(MaxIt, dT, dSolutionTol, stp , 1),
+: ImplicitStepIntegrator(MaxIt, dT, dSolutionTol, stp , 1),
 db0Differential(0.),
-db0Algebraic(0.),
-pXCurr(NULL),
-pXPrimeCurr(NULL)
+db0Algebraic(0.)
 {
 	NO_OP;
 }
@@ -464,51 +462,6 @@ StepNIntegrator::TestScale(void) const
 #else /* ! __HACK_RES_TEST__ */
 	return 1.;
 #endif /* ! __HACK_RES_TEST__ */
-}
-
-void
-StepNIntegrator::EvalProd(doublereal Tau, const VectorHandler& f0,
-	const VectorHandler& w, VectorHandler& z) const
-{
-	/* matrix-free product                                     
-         *                                                      
-         * J(XCurr) * w = -||w|| * (Res(XCurr + sigma * Tau * w/||w||) - f0) / (sigma * Tau)
-         * 
-         */
-		
-	/* if w = 0; J * w = 0 */ 
-	ASSERT(pDM != NULL);
-        
-	doublereal nw = w.Norm();
-        if (nw < DBL_EPSILON) {
-                z.Reset(0.);
-                return;
-        }
-        doublereal sigma = (*pXCurr).InnerProd(w);
-        sigma /=  nw;
-        if (fabs(sigma) > DBL_EPSILON) {
-                doublereal xx = (fabs( sigma) <= 1.) ? 1. : fabs(sigma);
-                Tau = copysign(Tau*xx, sigma);
-        }
-        Tau /= nw;
-#ifdef DEBUG_ITERATIVE
-	std::cout << "Tau " << Tau << std::endl;
-#endif /* DEBUG_ITERATIVE */
-		
-        MyVectorHandler XTau(w.iGetSize());
-
-	XTau.Reset(0.);
-	z.Reset(0.);
-        XTau.ScalarMul(w, Tau);
-	
-	this->Update(&XTau);
-	pDM->AssRes(z, db0Differential);
-	XTau.ScalarMul(XTau, -1.);
-	/* riporta tutto nelle condizioni inziali */
-	this->Update(&XTau);
-	z -= f0;
-	z.ScalarMul(z, -1./Tau);
-	return;
 }
 
 /* StepNIntegrator - end */
