@@ -196,7 +196,7 @@ public:
 	Mat3x3 GetRotRel(const ReferenceFrame& rf);
 	Mat3x3 GetRotAbs(const ReferenceFrame& rf);
 
-	void OutputFrames(ostream& out) const;
+	void OutputFrames(std::ostream& out) const;
 #endif /* USE_STRUCT_NODES */
    
 #if defined(USE_HYDRAULIC_NODES)

@@ -96,7 +96,7 @@ public:
 		return *this;
 	};
 
-	ostream& Output(ostream& out) const {
+	std::ostream& Output(std::ostream& out) const {
 		return out 
 			<< std::setw(8) << GetLabel() << " "
 			<< x << " " << EulerAngles(R) << " "
