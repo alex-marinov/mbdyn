@@ -56,6 +56,9 @@
 #endif /* HAVE_SIGNAL */
 
 #ifdef USE_MPI
+
+extern MPI::Intracomm MBDynComm;
+
 #include <schsolman.h>
 #include <schurdataman.h>
 #ifdef MPI_PROFILING
@@ -230,7 +233,7 @@ MultiStepIntegrator::Run(void)
 		 * quale e' il master in modo da far calcolare la soluzione
 		 * solo su di esso
 		 */
-		MyRank = MPI::COMM_WORLD.Get_rank();
+		MyRank = MBDynComm.Get_rank();
 		/* chiama il gestore dei dati generali della simulazione */
 
 #ifdef MPI_PROFILING
