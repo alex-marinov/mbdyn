@@ -2549,8 +2549,8 @@ the drive of the gravity acceleration, in the global reference frame.
     Author: Lamberto Puggelli
 }
 \begin{verbatim}
-    <normal_arglist> ::= <hydraulic_element_type> , 
-                         <hydraulic_element_data>
+    <normal_arglist> ::= <hydr_elem_type> , 
+                         <hydr_elem_data>
 \end{verbatim}
 A detailed input description will be given as soon as it is available. \\
 {\tt hydraulic\_element\_data} usually contains information about fluid
@@ -2560,6 +2560,26 @@ Section~\ref{sec:HYDRAULIC-FLUID} preceeded by the keyword {\tt fluid}, or a
 previously defined fluid can be recalled by using the keyword 
 {\tt reference} followed by the label of the desired fluid.
 
+\subsection{Actuator}
+\begin{verbatim}
+    <hydr_elem_type> ::= actuator ,
+    <hydr_elem_data> ::= <node_1> , <node_2> , 
+                         <struct_node_1> , (Vec3) <offset_1> ,
+                         <struct_node_2> , (Vec3) <offset_2> ,
+                         <area_1> ,
+                         <area_2> ,
+                         <cylinder_length> ,
+                         <hydraulic_fluid_properties_1> ,
+                         { same | <hydraulic_fluid_properties_2> }
+\end{verbatim}
+
+\subsection{Minor Loss}
+\begin{verbatim}
+    <hydr_elem_type> ::= minor loss ,
+    <hydr_elem_data> ::= <node_1> , <node_2> ,
+                         <k12> , <k21> , <area> ,
+                         <hydraulic_fluid_properties>
+\end{verbatim}
 
 
 \section{Joint Element}
