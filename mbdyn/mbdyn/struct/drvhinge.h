@@ -42,134 +42,127 @@
 
 class DriveHingeJoint : 
 virtual public Elem, public Joint, public TplDriveOwner<Vec3> {
- private:      
+private:      
    
- protected:
-   const StructNode* pNode1;
-   const StructNode* pNode2;
-   const Mat3x3 R1h;
-   const Mat3x3 R2h;
-   
-   Vec3 M;
-   
-   Vec3 ThetaRef;
-   Vec3 ThetaCurr;
-   
-   Vec3 TaCurr;
-   Vec3 TbCurr;   
-   
-   flag fFirstRes;
+protected:
+	const StructNode* pNode1;
+	const StructNode* pNode2;
+	const Mat3x3 R1h;
+	const Mat3x3 R2h;
 
-   void UpdateRot(const Vec3& ga, const Vec3& gb);
-   void AssMat(FullSubMatrixHandler& WM, doublereal dCoef);
-   void AssVec(SubVectorHandler& WorkVec, doublereal dCoef);
+	Mat3x3 R1Ref;
+	Mat3x3 RRef;
+
+	Vec3 ThetaRef;
+	Vec3 ThetaCurr;
+
+	Vec3 M;
+
+	bool bFirstRes;
+
+	void AssMat(FullSubMatrixHandler& WM, doublereal dCoef);
+	void AssVec(SubVectorHandler& WorkVec, doublereal dCoef);
+
+public:
+	/* Costruttore non banale */
+	DriveHingeJoint(unsigned int uL,	       
+			const DofOwner* pDO,
+			const TplDriveCaller<Vec3>* pDC,
+			const StructNode* pN1, 
+			const StructNode* pN2,
+			const Mat3x3& R1,
+			const Mat3x3& R2, 
+			flag fOut);
+
+	/* Distruttore */
+	virtual ~DriveHingeJoint(void);
+
+	virtual inline void* pGet(void) const { 
+		return (void*)this;
+	};
+
+	/* Contributo al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	virtual void Output(OutputHandler& OH) const;
+
+	virtual unsigned int iGetNumDof(void) const { 
+		return 3;
+	};
+
+	virtual DofOrder::Order GetDofType(unsigned int i) const {
+		ASSERT(i >= 0 && i <= 3);
+		return DofOrder::ALGEBRAIC;
+	};
+
+	virtual void WorkSpaceDim(integer* piNumRows,
+			integer* piNumCols) const { 
+		*piNumRows = 9;
+		*piNumCols = 9; 
+	};
+
+	/* assemblaggio jacobiano */
+	virtual VariableSubMatrixHandler& 
+	AssJac(VariableSubMatrixHandler& WorkMat,
+			doublereal dCoef, 
+			const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr);
    
- public:
-   /* Costruttore non banale */
-   DriveHingeJoint(unsigned int uL,	       
-		   const DofOwner* pDO,
-		   const TplDriveCaller<Vec3>* pDC,
-		   const StructNode* pN1, 
-		   const StructNode* pN2,
-		   const Mat3x3& R1,
-		   const Mat3x3& R2, 
-		   flag fOut);
+	/* assemblaggio residuo */
+	virtual SubVectorHandler& 
+	AssRes(SubVectorHandler& WorkVec,
+			doublereal dCoef,
+			const VectorHandler& XCurr, 
+			const VectorHandler& XPrimeCurr);
 
-   /* Distruttore */
-   virtual ~DriveHingeJoint(void);
+	/* Aggiorna le deformazioni ecc. */
+	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);           
+	/* funzioni usate nell'assemblaggio iniziale */
+	virtual unsigned int iGetInitialNumDof(void) const { 
+		return 6;
+	};
 
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
+	virtual void InitialWorkSpaceDim(integer* piNumRows,
+			integer* piNumCols) const { 
+		*piNumRows = 18; 
+		*piNumCols = 18;
+	};
+
+	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+	virtual VariableSubMatrixHandler& 
+	InitialAssJac(VariableSubMatrixHandler& WorkMat, 
+			const VectorHandler& XCurr);
    
-   /* Contributo al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const;
-
-   virtual void Output(OutputHandler& OH) const;
+	/* Contributo al residuo durante l'assemblaggio iniziale */   
+	virtual SubVectorHandler& 
+	InitialAssRes(SubVectorHandler& WorkVec,
+			const VectorHandler& XCurr);
    
-   virtual unsigned int iGetNumDof(void) const { 
-      return 3;
-   };
+	/* Dati privati (aggiungere magari le reazioni vincolari) */
+	virtual unsigned int iGetNumPrivData(void) const {
+		return 3;
+	};
 
-#ifdef DEBUG
-   virtual DofOrder::Order GetDofType(unsigned int i) const
-#else
-   virtual DofOrder::Order GetDofType(unsigned int /* i */ ) const
-#endif
-   {
-      ASSERT(i >= 0 && i <= 3);
-      return DofOrder::ALGEBRAIC;
-   };
+	virtual doublereal dGetPrivData(unsigned int i = 0) const {
+		ASSERT(i >= 1 && i <= 3);
+		return Get().dGet(i);
+	};
 
-   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-      *piNumRows = 9;
-      *piNumCols = 9; 
-   };
-
-   /* assemblaggio jacobiano */
-   virtual VariableSubMatrixHandler& 
-     AssJac(VariableSubMatrixHandler& WorkMat,
-	    doublereal dCoef, 
-	    const VectorHandler& XCurr,
-	    const VectorHandler& XPrimeCurr);
-   
-   /* assemblaggio residuo */
-   virtual SubVectorHandler& 
-     AssRes(SubVectorHandler& WorkVec,
-	    doublereal dCoef,
-	    const VectorHandler& XCurr, 
-	    const VectorHandler& XPrimeCurr);
-
-   /* Aggiorna le deformazioni ecc. */
-   virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);           
-
-   /* funzioni usate nell'assemblaggio iniziale */
-   
-   virtual unsigned int iGetInitialNumDof(void) const { 
-      return 6;
-   };
-   
-   virtual void InitialWorkSpaceDim(integer* piNumRows,
-				    integer* piNumCols) const { 
-      *piNumRows = 18; 
-      *piNumCols = 18;
-   };
-
-   /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-   virtual VariableSubMatrixHandler& 
-     InitialAssJac(VariableSubMatrixHandler& WorkMat, 
-		   const VectorHandler& XCurr);
-   
-   /* Contributo al residuo durante l'assemblaggio iniziale */   
-   virtual SubVectorHandler& 
-     InitialAssRes(SubVectorHandler& WorkVec,
-		   const VectorHandler& XCurr);
-   
-   /* Dati privati (aggiungere magari le reazioni vincolari) */
-   virtual unsigned int iGetNumPrivData(void) const {
-      return 3;
-   };
-   
-   virtual doublereal dGetPrivData(unsigned int i = 0) const {
-      ASSERT(i >= 1 && i <= 3);
-      return Get().dGet(i);
-   };
-
-   /* *******PER IL SOLUTORE PARALLELO******** */        
-   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-      utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 2;
-     NdTyps[0] = pNode1->GetNodeType();
-     NdLabels[0] = pNode1->GetLabel();
-     NdTyps[1] = pNode2->GetNodeType();
-     NdLabels[1] = pNode2->GetLabel();
-
-
-   };
-   /* ************************************************ */
+	/* *******PER IL SOLUTORE PARALLELO******** */        
+	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	   utile per l'assemblaggio della matrice di connessione fra i dofs */
+	virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps,
+			unsigned int* NdLabels) {
+		NumNodes = 2;
+		NdTyps[0] = pNode1->GetNodeType();
+		NdLabels[0] = pNode1->GetLabel();
+		NdTyps[1] = pNode2->GetNodeType();
+		NdLabels[1] = pNode2->GetLabel();
+	};
+	/* ************************************************ */
 };
 
 /* DriveHingeJoint - end */
 
-#endif // DRVHINGE_H
+#endif /* DRVHINGE_H */
+
