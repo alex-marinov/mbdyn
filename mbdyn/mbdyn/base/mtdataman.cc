@@ -182,7 +182,8 @@ MultiThreadDataManager::thread(void *p)
 
 	while (bKeepGoing) {
 		/* stop here until told to start */
-		/* NOTE: here
+		/*
+		 * NOTE: here
 		 * - the requested operation must be set;
 		 * - the appropriate operation args must be set
 		 * - the thread_count must be set to nThreads - 1
@@ -378,22 +379,28 @@ MultiThreadDataManager::ResetInUse(bool b)
 void
 MultiThreadDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 {
+retry:;
 	switch (AssMode) {
 	case ASS_UNKNOWN:
-		if (dynamic_cast<CompactSparseMatrixHandler *>(&JacHdl)) {
-			AssMode = ASS_CC;
-			break;
-		}
-
-		if (dynamic_cast<NaiveMatrixHandler *>(&JacHdl)
-				|| dynamic_cast<NaivePermMatrixHandler *>(&JacHdl)) {
+		if (dynamic_cast<NaiveMatrixHandler *>(&JacHdl)) {
 			AssMode = ASS_NAIVE;
 
 			/* TODO: use JacHdl as matrix for the first thread,
 			 * and create copies for the other threads */
+			thread_data[0].pNaiveJacHdl = &JacHdl;
 
-			break;
+			for (unsigned i = 1; i < nThreads; i++) {
+				thread_data[i].pNaiveJacHdl = 0;
+				SAFENEWWITHCONSTRUCTOR(thread_data[i].pNaiveJacHdl,
+						NaiveMatrixHandler,
+						NaiveMatrixHandler(JacHdl.iGetNumRows()));
+			}
+
+			goto retry;
 		}
+
+		AssMode = ASS_CC;
+		goto retry;
 
 	default:
 		silent_cerr("unable to detect jacobian matrix type "
@@ -440,11 +447,7 @@ retry:;
 
 		return;
 
-	case CC_FIRST: {
-
-#if 0
-		ASSERT(pMH);
-#endif
+	case CC_FIRST:
 		if (pMH == 0) {
 			goto retry;
 		}
@@ -458,7 +461,6 @@ retry:;
 		CCReady = CC_YES;
 
 		break;
-	}
 
 	case CC_YES:
 		if (pMH == 0) {
