@@ -210,6 +210,7 @@ private:
 	Preconditioner::PrecondType PcType;
 	integer iPrecondSteps;
 	integer iIterativeMaxSteps;
+	doublereal dIterertiveEtaMax;
 
 #ifdef USE_MPI
 	flag fParallel;

@@ -52,7 +52,7 @@ public:
 	class ErrGeneric{};
 protected:
 	integer Size;
-	
+	integer TotJac;	
 	bool foutIters, foutRes, foutJac, foutSol;	
 #ifdef USE_EXTERNAL	
 	External::ExtMessage ExtStepType;
@@ -67,6 +67,7 @@ protected:
 public:
 	NonlinearSolver(void): 
 		Size(0),
+		TotJac(0),
 		foutIters(false),
 		foutRes(false),
 		foutJac(false),
@@ -117,6 +118,10 @@ public:
 	
 	};
 
+	virtual integer TotalAssembledJacobian(void) {
+		return TotJac;
+	};
+	
 protected:
 	void SendExternal(void)
 	{
@@ -187,7 +192,8 @@ public:
 	
 	virtual ~Preconditioner(void) { };
 	
-	virtual void Precond(VectorHandler& v, 
+	virtual void Precond(VectorHandler& b,
+			VectorHandler& x, 
 			SolutionManager* pSM) const = 0;
 };
 
@@ -200,12 +206,18 @@ public:
 	
 	~FullJacobianPr(void) {};
 	
-	void Precond(VectorHandler& v, 
+	void Precond(VectorHandler& b,
+			VectorHandler& x, 
 			SolutionManager* pSM) const {
-		pSM->ChangeResPoint(v.pdGetVec());
-		pSM->Solve();
-	   	if (pSM->pSolHdl() != &v) {
-			v = *(pSM->pSolHdl());
+		
+		if (pSM->pSolHdl() != pSM->pResHdl()) {	
+			pSM->ChangeResPoint(b.pdGetVec());
+			pSM->ChangeSolPoint(x.pdGetVec());
+			pSM->Solve();
+		} else {
+			x = b;
+			pSM->ChangeResPoint(x.pdGetVec());
+			pSM->Solve();
 		}
 	};
 	 
@@ -213,7 +225,6 @@ public:
 
 const doublereal defaultTau = 1.e-7;
 const doublereal defaultGamma = 0.9;
-const doublereal defaultEtaMax = 0.9;
 
 class BiCGMatrixFreeSolver : public NonlinearSolver
 {
@@ -227,13 +238,14 @@ class BiCGMatrixFreeSolver : public NonlinearSolver
 	doublereal etaMax; 
 	integer PrecondIter; 
 	bool fBuildMat;
-	NonlinearProblem* pPrevNLP;
+	const NonlinearProblem* pPrevNLP;
 	
 public:
 	BiCGMatrixFreeSolver(const Preconditioner::PrecondType PType, 
 			const integer iPStep,
 			doublereal ITol,
-			integer MaxIt); 
+			integer MaxIt,
+			doublereal etaMx); 
 
 	~BiCGMatrixFreeSolver(void) { };
 	

@@ -149,11 +149,11 @@ doublereal NewtonRaphsonSolver::MakeTest(const VectorHandler& Vec)
 #endif /* USE_MPI */
 
 //   	dRes /= (1.+dXPr);
-   	if (!isfinite(dRes)) {      
-      		std::cerr << "The simulation diverged; aborting ..." 
-			<< std::endl;       
-      		THROW(ErrSimulationDiverged());
-   	}
+//   	if (!isfinite(dRes)) {      
+//      		std::cerr << "The simulation diverged; aborting ..." 
+//			<< std::endl;       
+//      		THROW(ErrSimulationDiverged());
+//   	}
 
    	return sqrt(dRes);
 }
@@ -240,6 +240,7 @@ void NewtonRaphsonSolver::
 		if (fTrueNewtonRaphson || (iPerformedIterations%IterationBeforeAssembly == 0)) {
       			pSM->MatrInit(0.);
       			pNLP->Jacobian(pJac);
+			TotJac++;
 		}
 		
 		iPerformedIterations++;
@@ -305,7 +306,8 @@ void NewtonRaphsonSolver::
 BiCGMatrixFreeSolver::BiCGMatrixFreeSolver(const Preconditioner::PrecondType PType, 
 	const integer iPStep,
 	doublereal ITol,
-	integer MaxIt) 
+	integer MaxIt,
+	doublereal etaMx) 
 :pSM(NULL),
 pPM(NULL),
 pRes(NULL),
@@ -313,7 +315,7 @@ IterToll(ITol),
 MaxLinIt(MaxIt),
 Tau(defaultTau),
 gamma(defaultGamma),
-etaMax(defaultEtaMax),
+etaMax(etaMx),
 PrecondIter(iPStep),
 fBuildMat(true),
 pPrevNLP(NULL)
@@ -360,6 +362,8 @@ void BiCGMatrixFreeSolver::Solve(const NonlinearProblem* pNLP,
 		fBuildMat = true;
 	}
 	
+	pPrevNLP = pNLP;
+	
 	pSM  = pSolMan;
         pRes = pSM->pResHdl();
 	Size = pRes->iGetSize();
@@ -369,20 +373,15 @@ void BiCGMatrixFreeSolver::Solve(const NonlinearProblem* pNLP,
 	doublereal Fnorm = 1.;
         doublereal resid;
         doublereal rho_1; 
-	doublereal rho_2; 
+	doublereal rho_2 = 0.; 
 	doublereal alpha;
 	doublereal beta;
 	doublereal omega;
 	VectorHandler* pr;
-	MyVectorHandler rHat(Size), p(Size), s(Size), t(Size), v(Size);
+	MyVectorHandler rHat(Size), p(Size), pHat(Size), s(Size), sHat(Size), t(Size), v(Size);
 	MyVectorHandler dx(Size); 
-	
-	if (fBuildMat) {
-		pSM->MatrInit(0.);
-		pNLP->Jacobian(pSM->pMatHdl());
-		fBuildMat = false;
-	}
-		
+	integer TotalIter = 0;
+				
 	while (1) {
 
 #ifdef 	USE_EXTERNAL 	
@@ -402,7 +401,7 @@ void BiCGMatrixFreeSolver::Solve(const NonlinearProblem* pNLP,
       		}
 
 		dErr = MakeTest(*pRes);		
-      		
+      				
 		if (dErr < Toll) {
 	 		return;
       		}
@@ -421,9 +420,6 @@ void BiCGMatrixFreeSolver::Solve(const NonlinearProblem* pNLP,
 	
 		/* BiCGSTAB Iterative solver */
 		DEBUGCOUT("Using BiCGStab iterative solver" << std::endl);
-		rho_1 = 1.; 
-		alpha = 1.;
-		omega = 1.;
 
         	/* r0 = b- A*x0  but we choose  (x0 = 0)   => r0 = b */
         	/* N.B. *pRes = -F(0) */ 
@@ -431,71 +427,80 @@ void BiCGMatrixFreeSolver::Solve(const NonlinearProblem* pNLP,
 		pr = pRes;
         	doublereal LocToll = eta * dErr;
         	rHat = *pr;
+		
 
-		rho_2 = dErr*dErr;   /*rhat.InnerProd(r); */
+		rho_1 = dErr*dErr;   /*rhat.InnerProd(r); */
 		resid = dErr;
 		v.Reset(0.);
 		t.Reset(0.);
 		p.Reset(0.);
 		dx.Reset(0.);
 		
+		if (fBuildMat) {
+			pSM->MatrInit(0.);
+			pNLP->Jacobian(pSM->pMatHdl());
+			fBuildMat = false;
+			TotalIter = 0;
+			TotJac++;
+		}
+
 		int It = 0;
         	while ((resid > LocToll) && (It++ < MaxLinIt)) {
-                	if (fabs(omega) < DBL_EPSILON) {
-                	//if (omega == 0.) {
-                        	std::cout << "Bi-CGStab Iterative Solver breakdown" 
-					<<  " omega = 0 " << std::endl;
-				THROW(ErrGeneric());
-			}
 			if (It == 1) {
 				p = *pr;
 			} else {
-				beta = (rho_2/rho_1) * (alpha/omega);
+				rho_1 = rHat.InnerProd(*pr);
+	               		if (fabs(rho_1) < DBL_EPSILON) {
+                        		std::cout << "Bi-CGStab Iterative Solver breakdown" 
+						<<  " rho_1 = 0 " << std::endl;
+					break;
+				}
+				beta = (rho_1/rho_2) * (alpha/omega);
 				p.ScalarAddMul(*pr, p.ScalarAddMul(v, -omega), beta);
 			}
-
-			/* preconditioning */
-			pPM->Precond(p, pSM);
-
-			pNLP->EvalProd(Tau, rHat, p, v);
+			/* right preconditioning */
+			pPM->Precond(p, pHat, pSM);
+			pNLP->EvalProd(Tau, rHat, pHat, v);
+# if 0			
+			(pSM->pMatHdl())->MatVecMul(v,pHat);
+#endif			
 			alpha = rHat.InnerProd(v);
-			if (fabs(alpha) < DBL_EPSILON) {
-			//if ( alpha == 0)  {
-				std::cout << "Bi-CGSTAB Iterative Solver breakdown"
-					<< " r_0 * v = 0 " << std::endl;
-				THROW(ErrGeneric());
-			}
-			alpha = rho_2 / alpha;
+			alpha = rho_1 / alpha;
 			s.ScalarAddMul(*pr, v, -alpha);
-			pPM->Precond(s, pSM);
-			pNLP->EvalProd(Tau, rHat, s, t);
-			omega = sqrt(t.InnerProd(t));
-			if (fabs(omega) < DBL_EPSILON) {
-			//if ( omega == 0)  {
-				std::cout << "Bi-CGSTAB Iterative Solver breakdown"
-					<< "  t(Vec) = 0 " << std::endl;
-				THROW(ErrGeneric());
+			if ((resid = s.Norm()) < LocToll) {
+				dx.ScalarAddMul(pHat, alpha);
+				TotalIter++;
+				break;
 			}
+			pPM->Precond(s, sHat, pSM);
+#if 0
+			(pSM->pMatHdl())->MatVecMul(t,sHat);
+#endif
+			pNLP->EvalProd(Tau, rHat, sHat, t);
+			omega = t.Norm();
 			omega = t.InnerProd(s) / omega;
-			rho_1 = rho_2;
-			rho_2 = rHat.InnerProd(t);
-			rho_2 = - omega * rho_2;
-			dx.ScalarAddMul(p, alpha);
-			dx.ScalarAddMul(s, omega);
+			dx.ScalarAddMul(pHat, alpha);
+			dx.ScalarAddMul(sHat, omega);
 			pr->ScalarAddMul(s, t, -omega);
-			resid = pr->Norm();	
-			
+			rho_2 = rho_1;
+			resid = pr->Norm();
+			TotalIter++;
+                	if (fabs(omega) < DBL_EPSILON) {
+                        	std::cout << "Bi-CGStab Iterative Solver breakdown" 
+					<<  " omega = 0 " << std::endl;
+				break;
+			}
 			if ( It == MaxLinIt) {
                         	std::cerr << "Iterative inner solver didn't converge."
 					<< " Continuing..." << std::endl;
 			}
 		}
-		
 		/* se ha impiegato troppi passi riassembla lo jacobiano */
-		if (It > PrecondIter) {
+		
+		if (TotalIter >= PrecondIter) {
 			fBuildMat = true;
 		}
-		/* calcolo il nuovo eta */
+		/* calcola il nuovo eta */
 		
 		doublereal etaNew = gamma * rateo;
 		doublereal etaBis;
@@ -636,11 +641,11 @@ doublereal BiCGMatrixFreeSolver::MakeTest(const VectorHandler& Vec)
 #endif /* USE_MPI */
 
 //   	dRes /= (1.+dXPr);
-   	if (!isfinite(dRes)) {      
-      		std::cerr << "The simulation diverged; aborting ..." 
-			<< std::endl;       
-      		THROW(ErrSimulationDiverged());
-   	}
+//   	if (!isfinite(dRes)) {      
+//      		std::cerr << "The simulation diverged; aborting ..." 
+//			<< std::endl;       
+//      		THROW(ErrSimulationDiverged());
+//   	}
 
    	return sqrt(dRes);
 }

@@ -134,6 +134,8 @@ const integer iDefaultIterationsBeforeAssembly = 2;
 const integer iDefaultIterativeSolversMaxSteps = 100;
 const integer iDefaultPreconditionerSteps = 20;
 const doublereal dDefaultTol = 1.e-6;
+const doublereal defaultIterativeEtaMax = 0.9;
+
 
 /* Costruttore: esegue la simulazione */
 Solver::Solver(MBDynParser& HPar,
@@ -196,6 +198,7 @@ dIterTol(dDefaultTol),
 PcType(Preconditioner::FULLJACOBIAN),
 iPrecondSteps(iDefaultPreconditionerSteps),
 iIterativeMaxSteps(iDefaultPreconditionerSteps),
+dIterertiveEtaMax(defaultIterativeEtaMax),
 #ifdef USE_MPI
 fParallel(fPar),
 pSDM(NULL),
@@ -377,28 +380,32 @@ void Solver::Run(void)
 	}
 
 #ifdef __HACK_POD__
+	std::ofstream PodOut;
 	char *PODFileName;
-	if (sOutputFileName == NULL) {
-		SAFESTRDUP(PODFileName, "MBDyn.POD");
-	} else {
-		size_t l = strlen(sOutputFileName);
-		SAFENEWARR(PODFileName, char, l+sizeof(".POD"));
+	if (fPOD) {
+		
+		if (sOutputFileName == NULL) {
+			SAFESTRDUP(PODFileName, "MBDyn.POD");
+		} else {
+			size_t l = strlen(sOutputFileName);
+			SAFENEWARR(PODFileName, char, l+sizeof(".POD"));
 
-		memcpy(PODFileName, sOutputFileName, l);
-		memcpy(PODFileName+l, ".POD", sizeof(".POD"));
-	}
+			memcpy(PODFileName, sOutputFileName, l);
+			memcpy(PODFileName+l, ".POD", sizeof(".POD"));
+		}
 	
-	std::ofstream PodOut(PODFileName);
-	if (!PodOut) {
-		std::cerr << "unable to open file \"" << PODFileName
-			<< "\"" << std::endl;
-		THROW(ErrGeneric());
-	}
+		PodOut.open(PODFileName);
+		if (!PodOut) {
+			std::cerr << "unable to open file \"" << PODFileName
+				<< "\"" << std::endl;
+			THROW(ErrGeneric());
+		}
 #ifdef __HACK_POD_BINARY__
-	/* matrix size is coded at the beginning */
-	PodOut.write((char *)&(pod.iFrames), sizeof(unsigned long));
-	PodOut.write((char *)&iNumDofs, sizeof(unsigned long));
+		/* matrix size is coded at the beginning */
+		PodOut.write((char *)&(pod.iFrames), sizeof(unsigned long));
+		PodOut.write((char *)&iNumDofs, sizeof(unsigned long));
 #endif /* __HACK_POD_BINARY__ */
+	}
 #endif /* __HACK_POD__ */
 
 
@@ -586,7 +593,8 @@ void Solver::Run(void)
 				BiCGMatrixFreeSolver(PcType, 
 					iPrecondSteps,
 					dIterTol, 
-					iIterativeMaxSteps));  
+					iIterativeMaxSteps,
+					dIterertiveEtaMax));  
 	} else {
 		SAFENEWWITHCONSTRUCTOR(pNLS,
 				NewtonRaphsonSolver,
@@ -1082,7 +1090,7 @@ IfFirstStepIsToBeRepeated:
 				<< dTime << " after " 
 				<< iStep << " steps;" << std::endl
 				<< "total iterations: " << iTotIter << std::endl
-				//<< "total Jacobians: " << iTotJac << std::endl
+				<< "total Jacobians: " << pNLS->TotalAssembledJacobian() << std::endl
 				<< "total error: " << dTotErr << std::endl;
 			return;
 #ifdef HAVE_SIGNAL
@@ -1092,7 +1100,7 @@ IfFirstStepIsToBeRepeated:
 				<< dTime << " after " 
 				<< iStep << " steps;" << std::endl
 				<< "total iterations: " << iTotIter << std::endl
-				//<< "total Jacobians: " << iTotJac << std::endl
+				<< "total Jacobians: " << pNLS->TotalAssembledJacobian() << std::endl
 				<< "total error: " << dTotErr << std::endl;
 	 		return;
 #endif /* HAVE_SIGNAL */
@@ -2409,6 +2417,11 @@ Solver::ReadData(MBDynParser& HP)
 			iIterativeMaxSteps = HP.GetInt();
 			DEBUGLCOUT(MYDEBUG_INPUT, "Maximum Number of Inner Steps for Iterative Solver : " 
 				<< iIterativeMaxSteps << std::endl);
+		}
+		if (HP.IsKeyWord("eta")) {
+			dIterertiveEtaMax = HP.GetReal();
+			DEBUGLCOUT(MYDEBUG_INPUT, "Maximum Eta Coefficient for Iterative Solver : " 
+				<< dIterertiveEtaMax << std::endl);
 		}
 		break;
 	}

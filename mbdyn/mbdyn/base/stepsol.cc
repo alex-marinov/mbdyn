@@ -191,7 +191,7 @@ void DerivativeSolver::EvalProd(doublereal Tau, const VectorHandler& f0,
 {
 	/* matrix-free product                                     
          *                                                      
-         * J(XCurr) * w = -||w|| * (Res(XCurr + sigma * Tau * w/||w||) - f0) / (sigma * Tau)
+         * J(XCurr) * w = ||w|| * (Res(XCurr + sigma * Tau * w/||w||) - f0) / (sigma * Tau)
          * 
          */
 	
@@ -568,7 +568,7 @@ void Step2Integrator::EvalProd(doublereal Tau, const VectorHandler& f0,
          * J(XCurr) * w = -||w|| * (Res(XCurr + sigma * Tau * w/||w||) - f0) / (sigma * Tau)
          * 
          */
-	
+		
 	/* if w = 0; J * w = 0 */ 
 	ASSERT(pDM != NULL);
         
@@ -577,15 +577,17 @@ void Step2Integrator::EvalProd(doublereal Tau, const VectorHandler& f0,
                 z.Reset(0.);
                 return;
         }
+	
         doublereal sigma = (*pXCurr).InnerProd(w);
         sigma /=  nw;
-        if (sigma > DBL_EPSILON) {
-                doublereal xx = (fabs(sigma) <= 1.) ? 1. : fabs(sigma);
+        if (fabs(sigma) > DBL_EPSILON) {
+                doublereal xx = (fabs( sigma) <= 1.) ? 1. : fabs(sigma);
                 Tau = copysign(Tau*xx, sigma);
         }
         Tau /= nw;
 
         MyVectorHandler XTau(w.iGetSize());
+
 	XTau.Reset(0.);
 	z.Reset(0.);
         XTau.ScalarMul(w, Tau);
@@ -598,8 +600,6 @@ void Step2Integrator::EvalProd(doublereal Tau, const VectorHandler& f0,
 	z.ScalarMul(z, -1./Tau);
 	return;
 }
-
-
 
 
 /* CrankNicholson - begin */
