@@ -151,9 +151,6 @@ class ElasticHingeJoint : virtual public Elem, public DeformableHingeJoint {
    Vec3 ThetaRef;
    Vec3 ThetaCurr;
    
-   Vec3 TaCurr;
-   Vec3 TbCurr;
-   
    Mat3x3 FDE;
    
    void AssMat(FullSubMatrixHandler& WM, doublereal dCoef);

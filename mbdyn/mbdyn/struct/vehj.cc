@@ -111,7 +111,7 @@ ElasticHingeJoint::ElasticHingeJoint(unsigned int uL,
 : Elem(uL, Elem::JOINT, fOut), 
 DeformableHingeJoint(uL, DefHingeType::ELASTIC, 
 		     pDO, pCL, pN1, pN2, R1, R2, fOut),
-ThetaRef(0.), TaCurr(0.), TbCurr(0.), FDE(0.)
+ThetaRef(0.), FDE(0.)
 {
    /* 
     * Chiede la matrice tangente di riferimento e la porta nel sistema globale 
