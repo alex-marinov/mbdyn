@@ -22,6 +22,8 @@ rot2eup \
 rot2phi \
 rotrel \
 sockdrive \
+socket2stream \
+stream2socket \
 vec2rot
 
 MYLIBS = \
@@ -58,6 +60,8 @@ rot2eu_SOURCES = rot2eu.cc
 rot2phi_SOURCES = rot2phi.cc
 rotrel_SOURCES = rotrel.cc
 sockdrive_SOURCES = sockdrive.c
+socket2stream_SOURCES = socket2stream.cc
+stream2socket_SOURCES = stream2socket.cc
 vec2rot_SOURCES = vec2rot.cc
 
 autopilot_LDADD = $(MYLIBS) @SECURITY_LIBS@
@@ -82,6 +86,8 @@ rot2eu_LDADD = $(MYLIBS)
 rot2phi_LDADD = $(MYLIBS)
 rotrel_LDADD = $(MYLIBS)
 sockdrive_LDADD = $(MYLIBS) @SECURITY_LIBS@
+socket2stream_LDADD = $(MYLIBS)
+stream2socket_LDADD = $(MYLIBS)
 vec2rot_LDADD = $(MYLIBS)
 
 logproc_LDFLAGS = -static
