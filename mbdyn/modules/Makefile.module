@@ -33,24 +33,31 @@
 
 -include Makefile.inc
 
-.PHONY: all clean
+.PHONY: all clean clean-so
 
 all: $(MBDYN_MODULE).so
 
 $(MBDYN_MODULE).so: $(MODULE_DEPENDENCIES) $(MBDYN_MODULE).o 
+	rm -f $@
 	$(CXXLINK) -o $@ $^
 
-.cc.o:
+.cc.o: 
+	$(MAKE) clean-so
 	$(LTCXXCOMPILE) -c $<
 
-.c.o:
+.c.o: 
+	$(MAKE) clean-so
 	$(LTCOMPILE) -c $<
 
-.f.o:
+.f.o: 
+	$(MAKE) clean-so
 	$(LTF77COMPILE) -c $<
 
 clean:
 	-rm -f *.o core
+
+clean-so:
+	-rm -f *.so
 
 distclean: clean
 	-rm -rf *.lo *.so .libs
