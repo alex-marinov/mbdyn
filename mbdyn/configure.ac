@@ -258,6 +258,8 @@ AC_CHECK_HEADERS(pwd.h)
 AC_CHECK_HEADERS(signal.h)
 AC_CHECK_HEADERS(string.h)
 AC_CHECK_HEADERS(sys/mman.h)
+AC_CHECK_HEADERS(sys/param.h)
+AC_CHECK_HEADERS(sys/pstat.h)
 AC_CHECK_HEADERS(sys/socket.h)
 AC_CHECK_HEADERS(sys/sysinfo.h)
 AC_CHECK_HEADERS(sys/times.h)
@@ -1323,6 +1325,8 @@ AC_CHECK_FUNCS([ \
 	memset \
 	mlockall \
 	nice \
+	pstat_getdynamic \
+	pstat_getprocessor \
 	signal \
 	strftime \
 	strtod \

@@ -32,22 +32,73 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifndef HAVE_GET_NPROCS
-
 #include <unistd.h>
 #include <ac/sys_sysinfo.h>
+#ifdef HAVE_SYS_PSTAT_H
+#include <sys/pstat.h>
+#endif /* HAVE_SYS_PSTAT_H */
 
+#ifndef HAVE_GET_NPROCS
+
+/* GNU libc */
 int
 get_nprocs(void)
 {
 #warning "pippero!!!"
-#ifdef _SC_NPROCESSORS_ONLN
+#if defined(_SC_NPROCESSORS_ONLN)
+	/* POSIX.1. */
 	return sysconf(_SC_NPROCESSORS_ONLN);
-#else /* ! _SC_NPROCESSORS_ONLN */
+#elif defined(_SC_NPROC_ONLN)
+	/* IRIX? POSIX? */
+	return sysconf(_SC_NPROC_ONLN);
+#elif defined(_SC_CRAY_NCPU)
+	/* Cray? */
+	return sysconf(_SC_CRAY_NCPU);
+#elif defined(HAVE_PSTAT_GETDYNAMIC)
+	/* HP-UX */
+	struct pst_dynamic psd;
+
+	if (pstat_getdynamic(&psd, sizeof(psd), (size_t)1, 0) != -1) {
+		return psd.psd_proc_cnt;
+	}
+#else /* add more if known */
+
+#endif
 	/* we assume that there is at least one :) */
 	return 1;
-#endif /* ! _SC_NPROCESSORS_ONLN */
 }
 
 #endif /* HAVE_GET_NPROCS */
+
+#ifndef HAVE_GET_NPROCS_CONF
+
+/* GNU libc */
+int
+get_nprocs_conf(void)
+{
+#warning "pippero!!!"
+#if defined(_SC_NPROCESSORS_CONF)
+	/* POSIX.1. */
+	return sysconf(_SC_NPROCESSORS_CONF);
+#elif defined(_SC_NPROC_CONF)
+	/* IRIX? POSIX? */
+	return sysconf(_SC_NPROC_CONF);
+#elif defined(_SC_CRAY_NCPU)
+	/* Cray? */
+	return get_ncpus();
+#elif defined(HAVE_PSTAT_GETDYNAMIC)
+	/* HP-UX */
+	struct pst_dynamic psd;
+
+	if (pstat_getdynamic(&psd, sizeof(psd), (size_t)1, 0) != -1) {
+		return psd.psd_max_proc_cnt;
+	}
+#else /* add more if known */
+
+#endif
+	/* we assume that there is at least one :) */
+	return 1;
+}
+
+#endif /* HAVE_GET_NPROCS_CONF */
 
