@@ -74,6 +74,34 @@ Version
 This document describes details about the formulation MBDyn:
 Multi-Body Dynamics relies on.
 
+\chapter{Integration}
+\begin{itemize}
+\item[differential variable] the increment of the value of
+a differential variable is equal to $\Delta x=d_{Coef}\Delta \dot{x}$
+When you write the jacoibain, you have to take care of this.
+This means that if the equation is $f=0$ (the residual is equal to $-f$)
+the linearization is 
+$f_{/\dot{x}}+f_{/x}*d_{Coef})*\Delta \dot{x}=-f$, as $d_{Coef}*\Delta \dot{x}=\Delta x$.
+\item[algebraic variable] the increment of the value of
+an algebraic variable is the increment of the variable.
+\item[differential equation] A differential equation,
+say $f=0$ is differential, if $f_{/\dot{x}}$ is not null.
+\item[differential equation] An (possible) algebraic equation,
+say $f=0$ is algebraic, if $f_{/\dot{x}}$ is null and $x$ is not algebraic.
+The, if you declare the equation as differential, you wuold write
+$f=0$, with $-f$ the residual, and linearize in this way:
+$f_{/x}*d_{Coef}*\Delta \dot{x}=-f$.
+Or you can declare the equation as algebriac,
+and divide everything by $d_{Coef}$:
+$f/d_{Coef}=0$, with residual $-f/d_{Coef}$,
+and linearization $f_{/x}*\Delta \dot{x} = -f/d_{Coef}$.
+This helps scaling the equations.
+Clarly, this has no sense if $x$ is algebriac,
+or if $f_{/\dot{x}} \neq 0$.
+
+
+
+\end{itemize}
 \chapter{Data Structure}
 
 \chapter{Constraints}
