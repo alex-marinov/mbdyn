@@ -3,7 +3,7 @@
 lib_LTLIBRARIES = libobjs.la
 libobjs_la_SOURCES = \
 dgegv.c \
-dgegv.o  \
+dgegv.h  \
 getopt.c \
 getopt.h
 

@@ -32,7 +32,7 @@ LIBS = \
 
 autopilot_SOURCES = autopilot.cc
 cl_SOURCES = cl.cc
-dae_intg_SOURCES = dae-intg.cc
+dae_intg_SOURCES = dae-intg.cc dae-intg.h
 deriv_SOURCES = deriv.c
 env_SOURCES = env.c
 eu2rot_SOURCES = eu2rot.cc

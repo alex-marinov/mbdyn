@@ -99,7 +99,7 @@ LIBS =  ../libraries/libmbwrap/libmbwrap.la ../libraries/libmbmath/libmbmath.la 
 
 autopilot_SOURCES = autopilot.cc
 cl_SOURCES = cl.cc
-dae_intg_SOURCES = dae-intg.cc
+dae_intg_SOURCES = dae-intg.cc dae-intg.h
 deriv_SOURCES = deriv.c
 env_SOURCES = env.c
 eu2rot_SOURCES = eu2rot.cc
@@ -213,7 +213,7 @@ all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .cc .f .lo .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --gnu ./utils/Makefile
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu utils/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
 	cd $(top_builddir) \
@@ -372,14 +372,14 @@ maintainer-clean-tags:
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 
-subdir = ./utils
+subdir = utils
 
 distdir: $(DISTFILES)
 	here=`cd $(top_builddir) && pwd`; \
 	top_distdir=`cd $(top_distdir) && pwd`; \
 	distdir=`cd $(distdir) && pwd`; \
 	cd $(top_srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu ./utils/Makefile
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu utils/Makefile
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
