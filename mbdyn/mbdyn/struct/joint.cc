@@ -1679,16 +1679,6 @@ Elem* ReadJoint(DataManager* pDM,
 	       }
        }
        
-       doublereal preload = 0.;
-       BasicFriction * bf = 0;
-       BasicShapeCoefficient * bsh = 0;
-       if (HP.IsKeyWord("friction")) {
-	       if (HP.IsKeyWord("preload")) {
-		       preload = HP.GetReal();
-	       }
-               bf = ParseFriction(HP,pDM);
-               bsh = ParseShapeCoefficient(HP);
-       }	
       
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        SAFENEWWITHCONSTRUCTOR(pEl, BeamSliderJoint,
@@ -1697,8 +1687,7 @@ Elem* ReadJoint(DataManager* pDM,
 			       sliderType,
 			       nB, bc,
 			       uIB, uIN, dL,
-			       f, R, fOut,
-			       preload, bsh, bf));
+			       f, R, fOut));
        break;
     }
 
