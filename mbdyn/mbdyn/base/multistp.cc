@@ -2542,8 +2542,7 @@ MultiStepIntegrator::Eig(void)
 
 	 do_eig(b, re, im, h, sigma, omega, csi, freq);
 
-	 doublereal af = fabs(freq);
-	 if (af >= dLowerFreq && af <= dUpperFreq) {
+	 if (freq >= dLowerFreq && freq <= dUpperFreq) {
 	    doPlot = 1;
 	      
 	    f06 
