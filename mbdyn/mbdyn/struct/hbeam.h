@@ -43,6 +43,8 @@
 
 #include "constltp.h"
 
+#include "matvecexp.h"
+
 /* HBeam - begin */
 
 class HBeam 

@@ -218,27 +218,31 @@ StructNode::Update(const VectorHandler& X, const VectorHandler& XP)
    /* resetto i parametri di rotazione nei vettori soluzione */
    ((VectorHandler&)X).Put(iFirstIndex+4, Vec3(0.));
    ((VectorHandler&)XP).Put(iFirstIndex+4, Vec3(0.));
-   
+
+#if 1
    /* Matrice RDelta, incremento di rotazione da predetto a corrente;
     Questo e' piu' efficiente */
    Mat3x3 RDelta(MatR, gCurr);
-   
+#else
    /* Questo e' meno efficiente anche se sembra piu' elegante.
     * Il problema e' che per scrivere il manipolatore in forma
     * elegante bisogna aggiungere alla matrice le informazioni
     * di memorizzazione della funzione di manipolazione.
-    * Oppure occorre un operatore ternario
-    RDelta = MatR << g; */ 
-   
+    * Oppure occorre un operatore ternario */
+    RDelta = MatR << gCurr;
+#endif
+  
+#if 1
    /* La matrice di rotazione corrente e' data dalla matrice predetta 
     * (costante) moltiplicata per l'incremento totale occorso;
     * la velocita' angolare e' data dalla parte incrementale totale
     * piu' il contributo della velocita' di riferimento (costante) */
    RCurr = RDelta*RRef;   
    WCurr = Mat3x3(MatG, gCurr)*gPCurr+RDelta*WRef;
-   
-   /* Nuovo manipolatore (e' meno efficiente) */
-   // WCurr = (MatG << g)*gP+RDelta*WCurr;
+#else   
+   /* Nuovo manipolatore (forse e' meno efficiente) */
+   WCurr = (MatG << gCurr)*gPCurr+RDelta*WRef;
+#endif
 }
 
 
@@ -277,11 +281,14 @@ StructNode::InitialUpdate(const VectorHandler& X)
    /* resetto i parametri di rotazione */
    ((VectorHandler&)X).Put(iFirstIndex+4, Vec3(0.));
 
+#if 1
    /* Questo manipolatore e' piu' efficiente */
    Mat3x3 RDelta(MatR, gCurr);
-   
+#else
    /* Nuovo manipolatore (e' meno efficiente) */
-   // RDelta = MatR << g;
+   RDelta = MatR << gCurr;
+#endif
+   
    RCurr = RDelta*RRef;
    WCurr = Vec3(X, iFirstIndex+10);
 }
