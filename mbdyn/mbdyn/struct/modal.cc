@@ -1709,11 +1709,11 @@ ReadModal(DataManager* pDM,
    VecN DampRatios(NModes, 0.);
    integer iDampFlag = 0;
    
-   if (HP.IsKeyWord("nodamping")) {
+   if (HP.IsKeyWord("no" "damping")) {
       cdamp = 0.;
-   } else if (HP.IsKeyWord("proportionaldamping")) {
+   } else if (HP.IsKeyWord("proportional" "damping")) {
       cdamp = HP.GetReal();    
-   } else if (HP.IsKeyWord("diagdamping"))  {
+   } else if (HP.IsKeyWord("diag" "damping"))  {
       for (int iCnt = 1; iCnt <= NModes; iCnt ++) {
          iDampFlag = 1;
          integer iDampedMode =  HP.GetInt();
