@@ -351,7 +351,7 @@ Model {
       net		      on
       node		      "'127.0.0.1'"
       port		      "10011"
-      path		      "'/tmp/mbdyn.out.sock'"
+      path		      "'/tmp/mbdyn.pendulum.out.sock'"
       N_chan		      "2"
       Tc		      "1e-3"
     }
@@ -363,12 +363,10 @@ Model {
       SourceBlock	      "MBDynCom/start MBDyn"
       SourceType	      ""
       enable_path	      on
-      mbdyn_path	      "'/home/masarati/Lavoro/mbdyn/mbdyn-mfree/mbdyn/"
-"mbdyn'"
-      input_file	      "'/home/masarati/Lavoro/mbdyn/mbdyn-mfree/contri"
-"b/SimulinkInterface/examples/pendulum'"
+      mbdyn_path	      "'../../mbdyn/mbdyn'"
+      input_file	      "'examples/pendulum'"
       enable_out	      on
-      output_file	      "'examples/pendulum_controlled'"
+      output_file	      "'tmp/pendulum_controlled'"
       verbose		      off
       pedantic		      off
     }
@@ -388,7 +386,7 @@ Model {
       net		      on
       node		      "'127.0.0.1'"
       port		      "8005"
-      path		      "'/tmp/mbdyn.in.sock'"
+      path		      "'/tmp/mbdyn.pendulum.in.sock'"
       N_chan		      "1"
       Tc		      "1e-3"
     }
