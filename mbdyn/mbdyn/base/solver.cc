@@ -176,9 +176,12 @@ iPODStep(0),
 iPODFrames(0),
 #endif /*__HACK_POD__*/
 iNumPreviousVectors(2),
+iUnkStates(1),
 pdWorkSpace(NULL),
 qX(),
 qXPrime(),
+pX(NULL),
+pXPrime(NULL),
 pDM(NULL),
 iNumDofs(0),
 dTime(0.),
@@ -383,11 +386,16 @@ void Solver::Run(void)
 	integer iFSteps = pFictitiousSteps->GetIntegratorNumPreviousStates();
 	iNumPreviousVectors = (iNSteps < iFSteps) ? iFSteps : iNSteps;
 	
-	SAFENEWARR(pdWorkSpace,doublereal, 2*(iNumPreviousVectors+1)*iNumDofs);
+	iNSteps = pRegularSteps->GetIntegratorNumUnknownStates();
+	iFSteps = pFictitiousSteps->GetIntegratorNumUnknownStates();
+	iUnkStates = (iNSteps < iFSteps) ? iFSteps : iNSteps;
 	
-	MyVectorHandler* pX = NULL;
-	MyVectorHandler* pXPrime = NULL;
-	for (int ivec = 0; ivec < iNumPreviousVectors+1; ivec++) {  
+	SAFENEWARR(
+		pdWorkSpace,
+		doublereal, 
+		2*(iNumPreviousVectors)*iNumDofs);
+	
+	for (int ivec = 0; ivec < iNumPreviousVectors; ivec++) {  
    		SAFENEWWITHCONSTRUCTOR(pX,
 			       	MyVectorHandler,
 			       	MyVectorHandler(iNumDofs, pdWorkSpace+ivec*iNumDofs));
@@ -395,17 +403,26 @@ void Solver::Run(void)
    		SAFENEWWITHCONSTRUCTOR(pXPrime,
 			       	MyVectorHandler,
 			       	MyVectorHandler(iNumDofs,
-				pdWorkSpace+((iNumPreviousVectors+1)+ivec)*iNumDofs));
+				pdWorkSpace+((iNumPreviousVectors)+ivec)*iNumDofs));
 		qXPrime.push_back(pXPrime);
 		pX = NULL;
 		pXPrime = NULL;
 	}
+	SAFENEWWITHCONSTRUCTOR(pX,
+		       	MyVectorHandler,
+		       	MyVectorHandler(iUnkStates*iNumDofs));
+	SAFENEWWITHCONSTRUCTOR(pXPrime,
+		       	MyVectorHandler,
+		       	MyVectorHandler(iUnkStates*iNumDofs));
+	
 
 	/* Resetta i vettori */
-   	for (int ivec = 0; ivec < iNumPreviousVectors+1; ivec++) {
+   	for (int ivec = 0; ivec < iNumPreviousVectors; ivec++) {
 		qX[ivec]->Reset(0.);
 		qXPrime[ivec]->Reset(0.);
 	}
+	pX->Reset(0.);
+	pXPrime->Reset(0.);
 
 #ifdef __HACK_POD__
 	std::ofstream PodOut;
@@ -440,7 +457,7 @@ void Solver::Run(void)
 
 
    	/* Subito collega il DataManager alla soluzione corrente */
-   	pDM->LinkToSolution(*(qX[0]), *(qXPrime[0]));         
+   	pDM->LinkToSolution(*(pX), *(pXPrime));         
 
 
    	/* costruisce il SolutionManager */
@@ -449,11 +466,13 @@ void Solver::Run(void)
 
 	
 	integer iLWS = iWorkSpaceSize;
-	integer iNLD = iNumDofs;
+	integer iNLD = iNumDofs*iUnkStates;
 #ifdef USE_MPI
 	if (fParallel) {
+		/*FIXME BEPPE!*/
 		iLWS = iWorkSpaceSize*iNumLocDofs/(iNumDofs*iNumDofs);
-		iNLD = iNumLocDofs;
+		/*FIXME: GIUSTO QUESTO?*/
+		iNLD = iNumLocDofs*iUnkStates;
 	}
 #endif /* USE_MPI */
 
@@ -552,7 +571,7 @@ void Solver::Run(void)
 	 * e per farsi inizializzare i vettori di soluzione e derivata */
 	dTime = dInitialTime;
 	pDM->SetTime(dTime);
-	pDM->SetValue(*(qX[0]), *(qXPrime[0]));
+	pDM->SetValue(*(pX), *(pXPrime));
 	
 #ifdef __HACK_EIG__  
    	if (fEigenAnalysis && OneEig.dTime <= dTime && !OneEig.fDone) {
@@ -629,7 +648,8 @@ void Solver::Run(void)
 		
 		dTest = pDerivativeSteps->Advance(0., 1.,
 				StepIntegrator::NEWSTEP,
-			 	pSM, pNLS, qX, qXPrime, iStIter
+			 	pSM, pNLS, qX, qXPrime, pX, pXPrime,
+				iStIter
 #ifdef MBDYN_X_CONVSOL
 				, dSolTest
 #endif /* MBDYN_X_CONVSOL */
@@ -704,8 +724,8 @@ void Solver::Run(void)
 		 * con sottopassi di correzione delle accelerazioni
 		 * e delle reazioni vincolari
 		 */
-      		pDM->BeforePredict(*(qX[0]), *(qXPrime[0]),
-				   *(qX[1]), *(qXPrime[1]));
+      		pDM->BeforePredict(*(pX), *(pXPrime),
+				   *(qX[0]), *(qXPrime[0]));
       		Flip();
 
       		dRefTimeStep = dInitialTimeStep*dFictitiousStepsRatio;
@@ -720,7 +740,7 @@ void Solver::Run(void)
 		try {
 	 		dTest = pFirstFictitiousStep->Advance(dRefTimeStep, 1.,
 				StepIntegrator::NEWSTEP,
-				pSM, pNLS, qX, qXPrime, iStIter
+				pSM, pNLS, qX, qXPrime, pX, pXPrime, iStIter
 #ifdef MBDYN_X_CONVSOL
 				, dSolTest
 #endif /* MBDYN_X_CONVSOL */
@@ -783,8 +803,8 @@ void Solver::Run(void)
       		for (int iSubStep = 2;
 		     iSubStep <= iFictitiousStepsNumber;
 		     iSubStep++) {
-      			pDM->BeforePredict(*(qX[0]), *(qXPrime[0]),
-				   	*(qX[1]), *(qXPrime[1]));
+      			pDM->BeforePredict(*(pX), *(pXPrime),
+				   	*(qX[0]), *(qXPrime[0]));
 	 		Flip();
 	 
 	 		DEBUGLCOUT(MYDEBUG_FSTEPS, "Fictitious step "
@@ -798,7 +818,9 @@ void Solver::Run(void)
 	 			dTest = pFictitiousSteps->Advance(dRefTimeStep,
 						dCurrTimeStep/dRefTimeStep,
 					 	StepIntegrator::NEWSTEP, 
-				 		pSM, pNLS, qX, qXPrime, iStIter
+				 		pSM, pNLS, 
+						qX, qXPrime, pX, pXPrime,
+						iStIter
 #ifdef MBDYN_X_CONVSOL
 						, dSolTest
 #endif /* MBDYN_X_CONVSOL */
@@ -915,8 +937,8 @@ void Solver::Run(void)
    			
    	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
    
-      	pDM->BeforePredict(*(qX[0]), *(qXPrime[0]),
-				*(qX[1]), *(qXPrime[1]));
+      	pDM->BeforePredict(*(pX), *(pXPrime),
+				*(qX[0]), *(qXPrime[0]));
 	
 	Flip();
 	dRefTimeStep = dInitialTimeStep;   
@@ -931,7 +953,8 @@ IfFirstStepIsToBeRepeated:
 		pDM->SetTime(dTime+dCurrTimeStep);
 		dTest = pFirstRegularStep->Advance(dRefTimeStep,
 				dCurrTimeStep/dRefTimeStep,
-			 	CurrStep, pSM, pNLS, qX, qXPrime, iStIter
+			 	CurrStep, pSM, pNLS, 
+				qX, qXPrime, pX, pXPrime, iStIter
 #ifdef MBDYN_X_CONVSOL				
 				, dSolTest
 #endif /* MBDYN_X_CONVSOL */				
@@ -1119,8 +1142,8 @@ IfFirstStepIsToBeRepeated:
       		}
  	
       		iStep++;
-      		pDM->BeforePredict(*(qX[0]), *(qXPrime[0]),
-				*(qX[1]), *(qXPrime[1]));
+      		pDM->BeforePredict(*(pX), *(pXPrime),
+				*(qX[0]), *(qXPrime[0]));
 	
 		Flip();
 
@@ -1142,7 +1165,7 @@ IfStepIsToBeRepeated:
 			dTest = pRegularSteps->Advance(dRefTimeStep,
 					dCurrTimeStep/dRefTimeStep,
 				 	CurrStep, pSM, pNLS,
-					qX, qXPrime, iStIter
+					qX, qXPrime, pX, pXPrime, iStIter
 #ifdef MBDYN_X_CONVSOL				
 					, dSolTest
 #endif /* MBDYN_X_CONVSOL */				
@@ -1229,18 +1252,18 @@ IfStepIsToBeRepeated:
 			if (++iPODStep == pod.iSteps) {
 				/* output degli stati su di una riga */
 #ifdef __HACK_POD_BINARY__
-	       			PodOut.write((char *)&qX[0], iNumDofs*sizeof(doublereal));
-	       			PodOut.write((char *)&qXPrime[0], iNumDofs*sizeof(doublereal));
+	       			PodOut.write((char *)&pX, iNumDofs*sizeof(doublereal));
+	       			PodOut.write((char *)&pXPrime, iNumDofs*sizeof(doublereal));
 #else /* !__HACK_POD_BINARY__ */
-				PodOut << qX[0]->dGetCoef(1);
+				PodOut << pX->dGetCoef(1);
 				for (integer j = 1; j < iNumDofs; j++) {
-					PodOut << "  " << qX[0]->dGetCoef(j+1);
+					PodOut << "  " << pX->dGetCoef(j+1);
                        		}
                        		PodOut << std::endl;
 #if 0
-				PodOut << qXPrime[0]->dGetCoef(1);
+				PodOut << pXPrime->dGetCoef(1);
 				for (integer j = 1; j < iNumDofs; j++) {
-					PodOut << "  " << qXPrime[0]->dGetCoef(j+1);
+					PodOut << "  " << pXPrime->dGetCoef(j+1);
                        		}
                        		PodOut << std::endl;
 #endif 
@@ -1281,11 +1304,14 @@ Solver::~Solver(void)
       		SAFEDELETEARR(sOutputFileName);
    	}
    
-	for (int ivec = 0; ivec < iNumPreviousVectors+1; ivec++) {  
+	for (int ivec = 0; ivec < iNumPreviousVectors; ivec++) {  
    		if (qX[ivec] != NULL) { 
 			SAFEDELETE(qX[ivec]);
+			SAFEDELETE(qXPrime[ivec]);
 		}
 	}
+	SAFEDELETE(pX);
+	SAFEDELETE(pXPrime);
 
    	if (pdWorkSpace != NULL) {	
       		SAFEDELETEARR(pdWorkSpace);

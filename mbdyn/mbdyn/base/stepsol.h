@@ -121,6 +121,8 @@ public:
 			NonlinearSolver* pNLS, 
 			std::deque<MyVectorHandler*>& qX,
  			std::deque<MyVectorHandler*>& qXPrime,
+			MyVectorHandler*const pX,
+ 			MyVectorHandler*const pXPrime,
 			integer& EffIter
 #ifdef MBDYN_X_CONVSOL
 			, doublereal& SolErr
@@ -156,6 +158,8 @@ public:
 			NonlinearSolver* pNLS, 
 			std::deque<MyVectorHandler*>& qX,
  			std::deque<MyVectorHandler*>& qXPrime,
+			MyVectorHandler*const pX,
+ 			MyVectorHandler*const pXPrime,
 			integer& EffIter
 #ifdef MBDYN_X_CONVSOL
 			, doublereal& SolErr
@@ -248,6 +252,8 @@ public:
 			NonlinearSolver* pNLS, 
 			std::deque<MyVectorHandler*>& qX,
 	 		std::deque<MyVectorHandler*>& qXPrime,
+			MyVectorHandler*const pX,
+ 			MyVectorHandler*const pXPrime,
 			integer& EffIter
 #ifdef MBDYN_X_CONVSOL
 			, doublereal& SolErr
@@ -360,6 +366,8 @@ public:
 			NonlinearSolver* pNLS, 
 			std::deque<MyVectorHandler*>& qX,
 	 		std::deque<MyVectorHandler*>& qXPrime,
+			MyVectorHandler*const pX,
+ 			MyVectorHandler*const pXPrime,
 			integer& EffIter
 #ifdef MBDYN_X_CONVSOL
 			, doublereal& SolErr

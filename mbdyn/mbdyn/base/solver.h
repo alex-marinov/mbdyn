@@ -148,9 +148,12 @@ private:
 
    	/* Strutture di gestione dei dati */
 	integer iNumPreviousVectors;
+	integer iUnkStates;
 	doublereal* pdWorkSpace;
 	std::deque<MyVectorHandler*> qX;      /* queque di vettori degli stati */
   	std::deque<MyVectorHandler*> qXPrime; /* queque di vettori degli stati derivati */ 
+	MyVectorHandler* pX;                  /* queque di vettori degli stati incogniti*/
+  	MyVectorHandler* pXPrime;             /* queque di vettori degli stati derivati incogniti*/ 
 
 	DataManager* pDM;		/* gestore dei dati */
    	
@@ -267,7 +270,14 @@ Solver::Flip(void)
 	qX.push_front(qX.back()); 
 	qX.pop_back();
 	qXPrime.push_front(qXPrime.back());
-	qXPrime.pop_back();			
+	qXPrime.pop_back();
+	/* copy from pX, pXPrime to qx[0], qxPrime[0] */
+	MyVectorHandler* x = qX[0];
+	MyVectorHandler* xp = qXPrime[0];
+	for (integer i=1; i<=iNumDofs; i++) {
+		x->fPutCoef(i,pX->dGetCoef(i));
+		xp->fPutCoef(i,pXPrime->dGetCoef(i));
+	}			
 }
 
 /* Solver - end */

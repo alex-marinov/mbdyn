@@ -125,6 +125,8 @@ DerivativeSolver::Advance(const doublereal TStep,
 		NonlinearSolver* pNLS, 
 		std::deque<MyVectorHandler*>& qX,
 	 	std::deque<MyVectorHandler*>& qXPrime,
+		MyVectorHandler*const pX,
+ 		MyVectorHandler*const pXPrime,
 		integer& EffIter
 #ifdef MBDYN_X_CONVSOL
 		, doublereal& SolErr
@@ -133,9 +135,9 @@ DerivativeSolver::Advance(const doublereal TStep,
 {
 	/* no predizione */
 	ASSERT(pDM != NULL);
-	pXCurr = qX[0];
+	pXCurr = pX;
 
-	pXPrimeCurr = qXPrime[0];
+	pXPrimeCurr = pXPrime;
 
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
 	doublereal dErr = 0.;        
@@ -690,6 +692,8 @@ Step1Integrator::Advance(const doublereal TStep,
 		NonlinearSolver* pNLS, 
 		std::deque<MyVectorHandler*>& qX,
 	 	std::deque<MyVectorHandler*>& qXPrime,
+		MyVectorHandler*const pX,
+ 		MyVectorHandler*const pXPrime,
 		integer& EffIter
 #ifdef MBDYN_X_CONVSOL
 		, doublereal& SolErr
@@ -697,11 +701,11 @@ Step1Integrator::Advance(const doublereal TStep,
 		)
 {
 	ASSERT(pDM != NULL);
-	pXCurr  = qX[0];
-	pXPrev  = qX[1];
+	pXCurr  = pX;
+	pXPrev  = qX[0];
 
-	pXPrimeCurr  = qXPrime[0];
-	pXPrimePrev  = qXPrime[1];
+	pXPrimeCurr  = pXPrime;
+	pXPrimePrev  = qXPrime[0];
 
 	SetCoef(TStep, dAph, StType);	
 	/* predizione */
@@ -716,10 +720,12 @@ Step1Integrator::Advance(const doublereal TStep,
 				",   XPrime  ,   XPPrev" << std::endl;
 			for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
 	    			std::cout << std::setw(4) << iTmpCnt << ": ";
+				std::cout << std::setw(12) << pX->dGetCoef(iTmpCnt);
 				for (unsigned int ivec = 0; ivec < qX.size(); ivec++) {  
 					std::cout << std::setw(12)
 					<< (qX[ivec])->dGetCoef(iTmpCnt);
 				} 
+				std::cout << std::setw(12) << pXPrime->dGetCoef(iTmpCnt);
 				for (unsigned int ivec = 0; ivec < qXPrime.size(); ivec++) {  
 					std::cout << std::setw(12)
 					<< (qXPrime[ivec])->dGetCoef(iTmpCnt);
@@ -937,6 +943,8 @@ Step2Integrator::Advance(const doublereal TStep,
 		NonlinearSolver* pNLS, 
 		std::deque<MyVectorHandler*>& qX,
 	 	std::deque<MyVectorHandler*>& qXPrime,
+		MyVectorHandler*const pX,
+		MyVectorHandler*const pXPrime,
 		integer& EffIter
 #ifdef MBDYN_X_CONVSOL
 		, doublereal& SolErr
@@ -944,13 +952,13 @@ Step2Integrator::Advance(const doublereal TStep,
 		)
 {
 	ASSERT(pDM != NULL);
-	pXCurr  = qX[0];
-	pXPrev  = qX[1];
-	pXPrev2 = qX[2]; 
+	pXCurr  = pX;
+	pXPrev  = qX[0];
+	pXPrev2 = qX[1]; 
 
-	pXPrimeCurr  = qXPrime[0];
-	pXPrimePrev  = qXPrime[1];
-	pXPrimePrev2 = qXPrime[2]; 
+	pXPrimeCurr  = pXPrime;
+	pXPrimePrev  = qXPrime[0];
+	pXPrimePrev2 = qXPrime[1]; 
 
 	SetCoef(TStep, dAph, StType);	
 	/* predizione */
@@ -965,10 +973,12 @@ Step2Integrator::Advance(const doublereal TStep,
 				",   XPrime  ,   XPPrev  ,   XPPrev2" << std::endl;
 			for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
 	    			std::cout << std::setw(4) << iTmpCnt << ": ";
+				std::cout << std::setw(12) << pX->dGetCoef(iTmpCnt);
 				for (unsigned int ivec = 0; ivec < qX.size(); ivec++) {  
 					std::cout << std::setw(12)
 					<< (qX[ivec])->dGetCoef(iTmpCnt);
 				} 
+				std::cout << std::setw(12) << pXPrime->dGetCoef(iTmpCnt);
 				for (unsigned int ivec = 0; ivec < qXPrime.size(); ivec++) {  
 					std::cout << std::setw(12)
 					<< (qXPrime[ivec])->dGetCoef(iTmpCnt);
