@@ -327,7 +327,7 @@ get_coef(int nm, double* m, int na, double* a, double alpha, double mach,
 			if (ia0 == na) {
 				*c0 = a[na*(nm+1)-1];
 			} else {
-				double da = (alpha-a[ia0-1])/(a[ia0]-a[ia0-1]);
+				double da = -a[ia0-1]/(a[ia0]-a[ia0-1]);
 				*c0 = (1.-da)*a[na*nm+ia0-1]+da*a[na*nm+ia0];
 			}
 		}
@@ -349,7 +349,7 @@ get_coef(int nm, double* m, int na, double* a, double alpha, double mach,
 				double a1, a2, da;
 				a1 = (1.-d)*a[na*im+ia0-1]+d*a[na*(im+1)+ia0-1];
 				a2 = (1.-d)*a[na*im+ia0]+d*a[na*(im+1)+ia0];
-				da = (alpha-a[ia0-1])/(a[ia0]-a[ia0-1]);
+				da = -a[ia0-1]/(a[ia0]-a[ia0-1]);
 				*c0 = (1.-da)*a1+da*a2;
 			}
 		}
@@ -364,7 +364,7 @@ get_coef(int nm, double* m, int na, double* a, double alpha, double mach,
 			*c = (1.-da)*a1+da*a2;
 		}
 	}
-	
+
 	return 0;
 }
 
