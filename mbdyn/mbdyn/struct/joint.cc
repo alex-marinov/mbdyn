@@ -1313,7 +1313,6 @@ Elem* ReadJoint(DataManager* pDM,
        /* Corpo slittante */
        StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
-       /* FIXME: non usato al momento !!!! */
        ReferenceFrame RF(pNode);
        Vec3 f(HP.GetPosRel(RF));
        DEBUGCOUT("Linked to Node " << pNode->GetLabel()
@@ -1325,6 +1324,22 @@ Elem* ReadJoint(DataManager* pDM,
        }
        DEBUGLCOUT(MYDEBUG_INPUT,
 		       "Slider rotation matrix: " << endl << R << endl);
+
+       /* Slider type */
+       BeamSliderJoint::Type sliderType = BeamSliderJoint::SPHERICAL;
+       if (HP.IsKeyWord("type")) {
+	       if (HP.IsKeyWord("spherical")) {
+		       sliderType = BeamSliderJoint::SPHERICAL;
+	       } else if (HP.IsKeyWord("classic")) {
+		       sliderType = BeamSliderJoint::CLASSIC;
+	       } else if (HP.IsKeyWord("spline")) {
+		       sliderType = BeamSliderJoint::SPLINE;
+	       } else {
+		       cerr << "unknown slider type at line " 
+			       << HP.GetLineData() << endl;
+		       THROW(ErrGeneric());
+	       }
+       }
 
        unsigned int nB = HP.GetInt();
        if (nB < 1) {
@@ -1482,7 +1497,7 @@ Elem* ReadJoint(DataManager* pDM,
        SAFENEWWITHCONSTRUCTOR(pEl, BeamSliderJoint,
 		       BeamSliderJoint(uLabel, pDO, 
 			       pNode, 
-			       BeamSliderJoint::SPHERICAL,
+			       sliderType,
 			       nB, bc,
 			       uIB, uIN,
 			       f, R, fOut));

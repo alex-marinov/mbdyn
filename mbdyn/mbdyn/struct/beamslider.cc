@@ -293,6 +293,76 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			Mat3x3(xb-xNod[activeNode-1]));
 	WM.Sub(6*activeNode+3+1, 1, MTmp);
 	WM.Add(6*activeNode+3+1, 6*activeNode+1, MTmp);
+
+	/* Vincolo in rotazione */
+	if (iType != SPHERICAL) {
+		Vec3 eb2 = Rb.GetVec(2);
+		Vec3 eb3 = Rb.GetVec(3);
+
+		doublereal d;
+
+		for (unsigned int iN = 0; iN < Beam::NUMNODES; iN++) {
+			Vec3 Tmpf2(fTmp[iN].Cross(eb2));
+			Vec3 Tmpf3(fTmp[iN].Cross(eb3));
+
+			/* Vincolo in rotazione: Delta s */
+			d = (eb2*xTmp[iN])*dNpp[iN]/dCoef;
+			WM.fDecCoef(6*(1+Beam::NUMNODES)+1+3+1,
+					6*(1+Beam::NUMNODES)+1, d);
+
+			d = (eb3*xTmp[iN])*dNpp[iN]/dCoef;
+			WM.fDecCoef(6*(1+Beam::NUMNODES)+1+3+2,
+					6*(1+Beam::NUMNODES)+1, d);
+
+			for (unsigned int i = 1; i <= 3; i++) {
+				/* Vincolo in rotazione: Delta x */
+				d = eb2.dGet(i)*dNp[iN];
+				WM.fDecCoef(6*(1+Beam::NUMNODES)+1+3+1, 
+						6*(1+iN)+i, d);
+
+				d = eb3.dGet(i)*dNp[iN];
+				WM.fDecCoef(6*(1+Beam::NUMNODES)+1+3+2, 
+						6*(1+iN)+i, d);
+
+				/* Vincolo in rotazione: Delta g */
+				d = Tmpf2.dGet(i)*dNp[iN];
+				WM.fDecCoef(6*(1+Beam::NUMNODES)+1+3+1,
+						6*(1+iN)+3+i, d);
+
+				d = Tmpf3.dGet(i)*dNp[iN];
+				WM.fDecCoef(6*(1+Beam::NUMNODES)+1+3+2,
+						6*(1+iN)+3+i, d);
+			}
+		}
+
+		Vec3 Tmpl2(eb2.Cross(l));
+		Vec3 Tmpl3(eb3.Cross(l));
+
+		for (unsigned int i = 1; i <= 3; i++) {
+
+			/* Vincolo in rotazione: Delta gb */
+			d = Tmpl2.dGet(i);
+			WM.fDecCoef(6*(1+Beam::NUMNODES)+1+3+1, 3+i, d);
+
+			/* Reazione vincolare corpo: Delta M */
+			WM.fDecCoef(3+i, 6*(1+Beam::NUMNODES)+1+3+1, d);
+
+			/* Reazione vincolare trave: Delta M */
+			WM.fIncCoef(6*activeNode+3+i,
+					6*(1+Beam::NUMNODES)+1+3+1, d);
+
+			/* Vincolo in rotazione: Delta gb */
+			d = Tmpl3.dGet(i);
+			WM.fDecCoef(6*(1+Beam::NUMNODES)+1+3+2, 3+i, d);
+
+			/* Reazione vincolare corpo: Delta M */
+			WM.fDecCoef(3+i, 6*(1+Beam::NUMNODES)+1+3+2, d);
+
+			/* Reazione vincolare trave: Delta M */
+			WM.fIncCoef(6*activeNode+3+i,
+					6*(1+Beam::NUMNODES)+1+3+2, d);
+		}
+	}
 	
 	return WorkMat;
 }	
@@ -415,9 +485,13 @@ BeamSliderJoint::AssRes(SubVectorHandler& WorkVec,
 		l += xTmp[i]*dNp[i];
 	}
 	
+	Rb = pNode->GetRCurr()*R;
 	fb = pNode->GetRCurr()*f;
 	xb = pNode->GetXCurr()+fb;
-	
+
+	Vec3 eb2 = Rb.GetVec(2);
+	Vec3 eb3 = Rb.GetVec(3);
+
 	/*
 	 * vincoli di posizione 
 	 */
@@ -425,10 +499,27 @@ BeamSliderJoint::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.Add(6*(1+Beam::NUMNODES)+1+1, (xb-x)/dCoef);
 
 	/*
+	 * Vincoli di rotazione
+	 */
+	if (iType != SPHERICAL) {
+		WorkVec.fPutCoef(6*(1+Beam::NUMNODES)+1+3+1, (eb2*l)/dCoef);
+		WorkVec.fPutCoef(6*(1+Beam::NUMNODES)+1+3+2, (eb3*l)/dCoef);
+
+		M = eb2.Cross(l*M.dGet(2))+eb3.Cross(l*M.dGet(3));
+
+		// cerr << M << endl;
+
+		if (iType == SPLINE) {
+			/* FIXME: vincolo spline */
+			NO_OP;
+		}
+	}
+
+	/*
 	 * reazioni vincolari
 	 */
 	WorkVec.Add(1, F);
-	WorkVec.Add(4, M+fb.Cross(F));
+	WorkVec.Add(3+1, M+fb.Cross(F));
 
 	/* Cerco il tratto di trave a cui le forze si applicano ... */
 	/* Primo tratto */

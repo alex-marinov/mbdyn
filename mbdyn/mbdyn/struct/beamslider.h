@@ -104,7 +104,6 @@ private:
 	const StructNode* pNode;
 	const BeamConn *const *ppBeam;
 	Vec3 f;
-	Vec3 fb, xb;
 	Mat3x3 R;
 	Vec3 F;
 	Vec3 M;
@@ -120,6 +119,10 @@ private:
 	doublereal dNpp[Beam::NUMNODES];
 	Vec3 x;
 	Vec3 l;
+
+	Vec3 fb;
+	Vec3 xb;
+	Mat3x3 Rb;
    
 public:
 	/* Costruttore non banale */

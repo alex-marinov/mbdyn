@@ -269,14 +269,36 @@ con la derivata della linea media:
 Queste due equazioni definiscono il vincolo alla rotazione del manicotto 
 classico; le corrispondenti reazioni vincolari sono le coppie:
 \begin{displaymath}
-	M \ = \ m_3 e_{b2}\times{t} + m_2 e_{b3}\times{t}
+	M \ = \ m_2 e_{b2}\times{t} + m_3 e_{b3}\times{t}
 \end{displaymath}
 Anche qui, data l'indeterminazione delle reazioni vincolari, si pu\`o 
 usare la derivata della linea media al posto della tangente:
 \begin{displaymath}
-	M \ = \ m_3 e_{b2}\times{l} + m_2 e_{b3}\times{l}
+	M \ = \ m_2 e_{b2}\times{l} + m_3 e_{b3}\times{l}
 \end{displaymath}
 Ovviamente le reazioni sono date da $M_i=\nrbr{l}m_i$.
+
+\noindent
+La linearizzazione delle equazioni di vincolo d\`a:
+\begin{displaymath}
+	\plbr{e_{bj}\times{l}}^T \Delta{g_b}
+	+ e_{bj}^T\plbr{
+		N'_i \plbr{\Delta{x_i} - f_i\times\Delta{g_i}}
+		+ N''_i \plbr{x_i + f_i} \Delta{s}
+	} \ = \ 0
+\end{displaymath}
+con $j=2,3$, dove, in accordo con l'approssimazione aggiornata-aggiornata,
+si \`e confuso $\theta_{\Delta{b}}$ con $\Delta{g_b}$; 
+la linearizzazione delle reazioni vincolari d\`a:
+\begin{eqnarray*}
+	e_{b2}\times{l} \Delta{m_2} + e_{b3}\times{l} \Delta{m_3} & & \\
+	+ \plbr{m_2 e_{b2} + m_3 e_{b3}}\times \plbr{
+		N'_i \plbr{\Delta{x_i} - f_i\times\Delta{g_i}}
+		+ N''_i \plbr{x_i + f_i} \Delta{s}
+	} & & \\
+	+ l\times\plbr{m_2 e_{b2} + m_3 e_{b3}}\times \Delta{g_b}
+	& = & 0
+\end{eqnarray*}
 
 \paragraph*{Manicotto ``rigato''}
 L'equazione di vincolo alla rotazione attorno alla linea di riferimento 
@@ -401,7 +423,7 @@ considerati, con:
 	\item manicotto ``rigato'':
 	\begin{displaymath}
 		H \ = \ \sqbr{\matr{ccc}{
-			e_{b2}\times{l} & e_{b3}\times{l} & l
+			l & e_{b2}\times{l} & e_{b3}\times{l}
 		}}
 	\end{displaymath}
 \end{enumerate}
