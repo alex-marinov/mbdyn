@@ -60,6 +60,7 @@ MBDyn 1.2-Engineering
 		- fix modal element when modal node is not in the origin
 		  of the FEM reference frame
 		- fix beamslider joint jacobian
+		- fix utils/dae-intg (optional)
 
 
 MBDyn 1.1.4
