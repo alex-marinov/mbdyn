@@ -15,7 +15,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -40,139 +40,155 @@
 #include "dae-intg.h"
 
 struct private_data {
-   doublereal l;
-   doublereal g;
-   doublereal x[2];
-   doublereal xP[2];
+	doublereal l;
+	doublereal g;
+	doublereal x[2];
+	doublereal xP[2];
 };
 
-static int read(void** pp, const char* user_defined)
+static int
+read(void** pp, const char* user_defined)
 {
-   *pp = (void*)new private_data;
-   private_data* pd = (private_data*)*pp;
-   
-   if (user_defined != NULL) {
-      // cerr << "opening file \"" << user_defined << "\"" << endl;
-      std::ifstream in(user_defined);
-      if (!in) {
-	 std::cerr << "unable to open file \"" << user_defined << "\"" << std::endl;
-	 exit(EXIT_FAILURE);
-      }
-      in >> pd->l >> pd->g >> pd->x[0] >> pd->x[1];
-   } else {
-      pd->l = 1.;
-      pd->g = 9.81;     
-      pd->x[0] = 0.;
-      pd->x[1] = 1.;
-   }
+	*pp = (void*)new private_data;
+	private_data* pd = (private_data*)*pp;
 
-   pd->xP[0] = pd->x[1];
-   pd->xP[1] = -pd->g*sin(pd->x[0])/pd->l;
-   
-   std::cerr 
-     << "l=" << pd->l << ", g=" << pd->g << std::endl
-     << "x={" << pd->x[0] << "," << pd->x[1] << "}" << std::endl
-     << "xP={" << pd->xP[0] << "," << pd->xP[1] << "}" << std::endl;
-   
-   return 0;
+	if (user_defined != NULL) {
+		std::ifstream in(user_defined);
+		if (!in) {
+			std::cerr << "unable to open file "
+				"\"" << user_defined << "\"" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+
+		in >> pd->l >> pd->g >> pd->x[0] >> pd->x[1];
+
+	} else {
+		pd->l = 1.;
+		pd->g = 9.81;
+		pd->x[0] = 0.;
+		pd->x[1] = 1.;
+	}
+
+	pd->xP[0] = pd->x[1];
+	pd->xP[1] = -pd->g*sin(pd->x[0])/pd->l;
+
+	std::cerr
+		<< "l=" << pd->l << ", g=" << pd->g << std::endl
+		<< "x={" << pd->x[0] << "," << pd->x[1] << "}" << std::endl
+		<< "xP={" << pd->xP[0] << "," << pd->xP[1] << "}" << std::endl;
+
+	return 0;
 }
 
-static int size(void* p)
+static int
+size(void* p)
 {
-   /* private_data* pd = (private_data*)p; */
-   return 2;
+	return 2;
 }
 
-static int init(void* p, VectorHandler& X, VectorHandler& XP)
+static int
+init(void* p, VectorHandler& X, VectorHandler& XP)
 {
-   private_data* pd = (private_data*)p;
-   X.Reset();
-   XP.Reset();
-   for (int i = 1; i <= size(p); i++) {
-      XP.PutCoef(i, pd->xP[i-1]); /* posiz. iniziale */
-      X.PutCoef(i, pd->x[i-1]); /* posiz. iniziale */
-   }
-   return 0;
+	private_data* pd = (private_data*)p;
+
+	X.Reset();
+	XP.Reset();
+
+	for (int i = 1; i <= size(p); i++) {
+		/* velocita' iniziale */
+		XP(i) = pd->xP[i-1];
+		/* posizione iniziale */
+		X(i) = pd->x[i-1];
+	}
+
+	return 0;
 }
 
-static int grad(void* p, MatrixHandler& J, MatrixHandler& JP, 
+static int
+grad(void* p, MatrixHandler& J, MatrixHandler& JP,
 		const VectorHandler& X, const VectorHandler& XP,
 		const doublereal& t)
 {
-   private_data* pd = (private_data*)p;
-   
-   doublereal theta = X.dGetCoef(1);
-   
-   doublereal l = pd->l;
-   doublereal g = pd->g;
-   
-   J.PutCoef(1, 2, -1.);
-   J.PutCoef(2, 1, g*cos(theta)/l);
+	private_data* pd = (private_data*)p;
 
-   for (int i = 1; i <= 2; i++) {
-	   JP.PutCoef(i, i, 1.);
-   }
+	doublereal theta = X(1);
 
-   return 0;
+	doublereal l = pd->l;
+	doublereal g = pd->g;
+
+	J(1, 2) = -1.;
+	J(2, 1) = g*cos(theta)/l;
+
+	for (int i = 1; i <= 2; i++) {
+		JP(i, i) = 1.;
+	}
+
+	return 0;
 }
 
-static int func(void* p, VectorHandler& R, const VectorHandler& X, const VectorHandler& XP, const doublereal& t)
+static int
+func(void* p, VectorHandler& R,
+		const VectorHandler& X, const VectorHandler& XP,
+		const doublereal& t)
 {
-   private_data* pd = (private_data*)p;
-   
-   doublereal theta = X.dGetCoef(1);
-   doublereal phi = X.dGetCoef(2);
-   
-   doublereal l = pd->l;
-   doublereal g = pd->g;
+	private_data* pd = (private_data*)p;
 
-   R.PutCoef(1, phi - XP.dGetCoef(1));
-   R.PutCoef(2, - g*sin(theta)/l - XP.dGetCoef(2));
+	doublereal theta = X(1);
+	doublereal phi = X(2);
 
-   return 0;
+	doublereal l = pd->l;
+	doublereal g = pd->g;
+
+	R(1) = phi - XP(1);
+	R(2) = -g*sin(theta)/l - XP(2);
+
+	return 0;
 }
 
-static std::ostream& out(void* p, std::ostream& o, 
-	     const VectorHandler& X, const VectorHandler& XP)
+static std::ostream&
+out(void* p, std::ostream& o, const VectorHandler& X, const VectorHandler& XP)
 {
-   private_data* pd = (private_data*)p;
-  
-   doublereal theta = X.dGetCoef(1);
-   doublereal ctheta = cos(theta);
-   doublereal stheta = sin(theta);
-   doublereal phi = X.dGetCoef(2);
-   doublereal l = pd->l;
-   doublereal g = pd->g;
-   doublereal x = l*stheta;
-   doublereal y = -l*ctheta;
-   doublereal xP = l*ctheta*phi;
-   doublereal yP = l*stheta*phi;
-   
-   doublereal E = .5*(xP*xP+yP*yP)+g*y;
-  
-   
-   return o
-	   << theta			/*  3 */
-	   << " " << phi		/*  4 */
-	   << " " << XP.dGetCoef(1)	/*  5 */
-	   << " " << XP.dGetCoef(2)	/*  6 */
-	   << " " << x 			/*  7 */
-	   << " " << y 			/*  8 */
-	   << " " << xP			/*  9 */
-	   << " " << yP			/* 10 */
-	   << " " << E;			/* 11 */
+	private_data* pd = (private_data*)p;
+
+	doublereal theta = X(1);
+	doublereal ctheta = cos(theta);
+	doublereal stheta = sin(theta);
+	doublereal phi = X(2);
+	doublereal l = pd->l;
+	doublereal g = pd->g;
+	doublereal x = l*stheta;
+	doublereal y = -l*ctheta;
+	doublereal xP = l*ctheta*phi;
+	doublereal yP = l*stheta*phi;
+
+	doublereal E = .5*(xP*xP+yP*yP)+g*y;
+
+	return o
+		<< theta		/*  3 */
+		<< " " << phi		/*  4 */
+		<< " " << XP(1)		/*  5 */
+		<< " " << XP(2)		/*  6 */
+		<< " " << x 		/*  7 */
+		<< " " << y 		/*  8 */
+		<< " " << xP		/*  9 */
+		<< " " << yP		/* 10 */
+		<< " " << E;		/* 11 */
 }
 
-static int destroy(void** p)
+static int
+destroy(void** p)
 {
-   private_data* pd = (private_data*)(*p);
-   delete pd;
-   *p = NULL;
-   return 0;
+	private_data* pd = (private_data*)(*p);
+
+	delete pd;
+	*p = NULL;
+
+	return 0;
 }
 
 static struct funcs funcs_handler = {
 	read,
+	0,
 	init,
 	size,
 	grad,

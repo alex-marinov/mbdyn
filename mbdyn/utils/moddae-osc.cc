@@ -56,8 +56,6 @@ read(void** pp, const char* user_defined)
 	private_data* pd = (private_data*)*pp;
 	
 	if (user_defined != NULL) {
-		// std::cerr << "opening file \"" << user_defined 
-		// 	<< "\"" << std::endl;
 		std::ifstream in(user_defined);
 		if (!in) {
 			std::cerr << "unable to open file \"" << user_defined
@@ -76,17 +74,30 @@ read(void** pp, const char* user_defined)
 	pd->xP[0] = pd->x[1];
 	pd->xP[1] = - (pd->k*pd->x[0] + pd->c*pd->x[1])/pd->m;
 	
-	// std::cerr << "m=" << pd->m << ", c=" << pd->c 
-	// 	<< ", k=" << pd->k << std::endl
-	//      << "x={" << pd->x[0] << "," << pd->x[1] << "}" << std::endl;
-	
 	return 0;
+}
+
+static std::ostream&
+help(void *p, std::ostream& o)
+{
+	private_data* pd = (private_data*)p;
+
+	return o
+		<< "harmonic oscillator:" << std::endl
+		<< std::endl
+		<< "\tm \\ddot{x} + c \\dot{x} + k x = 0" << std::endl
+		<< std::endl
+		<< "\tm  = " << pd->m << std::endl
+		<< "\tc  = " << pd->c << std::endl
+		<< "\tk  = " << pd->k << std::endl
+		<< "\tx0 = " << pd->x[0] << std::endl
+		<< "\tv0 = " << pd->x[1] << std::endl
+		<< std::endl;
 }
 
 static int
 size(void* p)
 {
-	// private_data* pd = (private_data*)p;
 	return 2;
 }
 
@@ -94,9 +105,10 @@ static int
 init(void* p, VectorHandler& X, VectorHandler& XP)
 {
 	private_data* pd = (private_data*)p;
-	X.Reset(0.);
+	X.Reset();
 	for (int i = 1; i <= size(p); i++) {      
-		X.PutCoef(i, pd->x[i-1]); /* posiz. iniziale */
+		/* posiz. iniziale */
+		X(i) = pd->x[i-1];
 	}
 	return 0;
 }
@@ -106,12 +118,14 @@ grad(void* p, MatrixHandler& J, MatrixHandler& JP,
      const VectorHandler& X, const VectorHandler& XP, const doublereal& t)
 {
 	private_data* pd = (private_data*)p;
-	J.PutCoef(1, 2, -1.);
-	J.PutCoef(2, 1, pd->k/pd->m);
-	J.PutCoef(2, 2, pd->c/pd->m);
 
-	JP.PutCoef(1, 1, 1.);
-	JP.PutCoef(2, 2, 1.);
+	J(1, 2) = -1.;
+	J(2, 1) = pd->k/pd->m;
+	J(2, 2) = pd->c/pd->m;
+
+	JP(1, 1) = 1.;
+	JP(2, 2) = 1.;
+
 	return 0;
 }
 
@@ -120,35 +134,44 @@ func(void* p, VectorHandler& R, const VectorHandler& X,
 		const VectorHandler& XP, const doublereal& t)
 {
 	private_data* pd = (private_data*)p;
-	doublereal x = X.dGetCoef(1);
-	doublereal v = X.dGetCoef(2);
-	doublereal xP = XP.dGetCoef(1);
-	doublereal vP = XP.dGetCoef(2);
-	R.PutCoef(1, v - xP);
-	R.PutCoef(2, -vP - (pd->k*x + pd->c*v)/pd->m);
+
+	doublereal x = X(1);
+	doublereal v = X(2);
+	doublereal xP = XP(1);
+	doublereal vP = XP(2);
+
+	R(1) = v - xP;
+	R(2) = -vP - (pd->k*x + pd->c*v)/pd->m;
+	
 	return 0;
 }
 
 static std::ostream&
 out(void* p, std::ostream& o, const VectorHandler& X, const VectorHandler& XP)
 {
-   	// private_data* pd = (private_data*)p;
-   	return o << X.dGetCoef(1) << " " << X.dGetCoef(2)
-     		<< " " << XP.dGetCoef(1) << " " << XP.dGetCoef(2);
+#if 0
+   	private_data* pd = (private_data*)p;
+#endif
+
+   	return o << X(1) << " " << X(2)
+     		<< " " << XP(1) << " " << XP(2);
 }
 
 static int
 destroy(void** p)
 {
    	private_data* pd = (private_data*)(*p);
+
    	delete pd;
    	*p = NULL;
+
    	return 0;
 }
 
 /* simboli da esportare */
 static funcs _ff = {
 	read,
+	help,
 	init,
 	size,
 	grad,
