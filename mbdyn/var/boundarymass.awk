@@ -97,6 +97,14 @@ BEGIN {
 	}
 	printf "];\n";
 }
+/ RECORD GROUP 9, MODAL MASS MATRIX/ {
+	printf "M = [ ...\n";
+	for (row = 1; row <= nmodes; row++) {
+		getline;
+		printf "        %s; ...\n", $0;
+	}
+	printf "];\n";
+}
 / RECORD GROUP 10, MODAL STIFFNESS MATRIX/ {
 	printf "K = [ ...\n";
 	for (row = 1; row <= nmodes; row++) {
@@ -115,13 +123,13 @@ BEGIN {
 		getline;
 	}
 	printf "BM = diag([%s]);\n", $0;
-	printf "M = eye(%d) - X*BM*X';\n", nmodes;
+	printf "M = M - X*BM*X';\n";
 	printf "[v, l] = eig(M\\K);\n";
 	printf "[l, I] = sort(diag(l));\n";
 	printf "v = v(:, I);\n";
 	printf "v = v*diag(1./sqrt(diag(v'*M*v)));\n";
-	printf "m = v'*M*v;\n";
-	printf "k = v'*K*v;\n";
+	printf "m = diag(diag(v'*M*v));\n";
+	printf "k = diag(diag(v'*K*v));\n";
 	printf "x = v'*X;\n";
 	printf "XX = [ ...\n";
 	for (col = 1; col <= nmodes; col++) {
