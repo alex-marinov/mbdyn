@@ -16,7 +16,7 @@ contactj.h   dofpgin.h    filedrv.h    mysleep.c    mysleep.h    shape.h \
 damper.f     drive.cc     force.cc     node.cc      sockdrv.cc \
 damper.h     drive.h      force.h      node.h       sockdrv.h \
 dataman.cc   drive_.cc    integr.h     nodeman.cc   tpldrive.cc \
-dataman.h    drive_.h     intmeth.cc   output.cc    tpldrive.h \
+dataman.h    drive_.h     intmeth.cc   output.cc    tpldrive.h   tpldrive_.h\
 dataman2.cc  driven.h     intmeth.h    output.h     vec3drv.h \
 dataman3.cc  elem.cc      j2p.cc       posrel.h \
 dataman4.cc  elem.h       j2p.h        readclaw.h \

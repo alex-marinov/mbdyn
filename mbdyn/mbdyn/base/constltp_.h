@@ -51,10 +51,11 @@ class ElasticConstitutiveLaw
    
    virtual ostream& Restart_(ostream& out) const {
       out << ", prestress, ", 
-        Write(out, PreStress + GetF(), ", ");
+        Write(out, PreStress /* + GetF() */ , ", ");
       if (pGetDriveCaller()) {
-	 out << ", prestrain, ",
-	   pGetDriveCaller()->Restart(out);
+	 out << ", prestrain, single, ",
+	   Write(out, -Epsilon, ", ") << ", one /* ",
+	   pGetDriveCaller()->Restart(out) << " */ ";
       }
       return out;
    };

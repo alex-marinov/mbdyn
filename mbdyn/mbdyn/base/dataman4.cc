@@ -51,6 +51,7 @@
 
 #include <drive.h>
 #include <tpldrive.h>
+#include <tpldrive_.h>
 
 #ifdef HAVE_LOADABLE
 #include <loadable.h>

@@ -33,10 +33,9 @@
 #ifndef CONSTLTP_H
 #define CONSTLTP_H
 
-#include "tpldrive.h"
-
-#include "matvec3.h"
-#include "matvec6.h"
+#include <tpldrive.h>
+#include <matvec3.h>
+#include <matvec6.h>
 
 /* Tipi di cerniere deformabili */
 class DefHingeType {
@@ -78,10 +77,12 @@ class ConstitutiveLaw {
    Tder FDE;
    Tder FDEPrime;
 
-   /* To allow the duplication of the constitutive laws, 
+   /*
+    * To allow the duplication of the constitutive laws, 
     * a "virtual constructor-like" function must be implemented,
     * with type resolution for the constitutive laws and
-    * for the tpldrives too. */
+    * for the tpldrives too.
+    */
    
  public:
    ConstitutiveLaw(void)
