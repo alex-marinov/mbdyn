@@ -291,6 +291,8 @@ public:
 	NonlinearSolver *pGetNonlinearSolver(void) const {
 		return pNLS;
 	};
+
+	virtual clock_t GetCPUTime(void) const;
 };
 
 inline void

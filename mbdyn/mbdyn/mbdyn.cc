@@ -723,7 +723,10 @@ main(int argc, char* argv[])
 	        		THROW(ErrGeneric());
 	    		}
 	    
+			clock_t ct = 0;
+
 	    		if (pSolv != NULL) {
+				ct += pSolv->GetCPUTime();
 	        		SAFEDELETE(pSolv);
 	    		}
 	 
@@ -744,7 +747,16 @@ main(int argc, char* argv[])
 	    		/* Tempo di CPU impiegato */
 	    		struct tms tmsbuf;
 	    		times(&tmsbuf);
-	    		clock_t ct = tmsbuf.tms_utime + tmsbuf.tms_cutime
+
+#if 0
+			std::cerr
+				<< "utime:  " << tmsbuf.tms_utime << std::endl
+				<< "stime:  " << tmsbuf.tms_stime << std::endl
+				<< "cutime: " << tmsbuf.tms_cutime << std::endl
+				<< "cstime: " << tmsbuf.tms_cstime << std::endl;
+#endif
+			
+	    		ct += tmsbuf.tms_utime + tmsbuf.tms_cutime
 				+ tmsbuf.tms_stime + tmsbuf.tms_cstime;
 			long clk_tck = sysconf(_SC_CLK_TCK);
 	    		tSecs = ct/clk_tck;

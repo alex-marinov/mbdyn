@@ -36,6 +36,13 @@
 
 #ifdef USE_MULTITHREAD
 
+extern "C" {
+#include <time.h>
+#ifdef HAVE_SYS_TIMES_H
+#include <sys/times.h>
+#endif /* HAVE_SYS_TIMES_H */
+}
+
 #include "mtdataman.h"
 
 /* MultiThreadDataManager - begin */
@@ -61,14 +68,22 @@ ptd(NULL),
 op(MultiThreadDataManager::UNKNOWN_OP),
 dataman_thread_count(0)
 {
-	MultiThreadSpawn();
-} /* End of MultiThreadDataManager::MultiThreadDataManager() */
+	ThreadSpawn();
+}
 
 MultiThreadDataManager::~MultiThreadDataManager(void)
 {
+	NO_OP;
+}
+
+clock_t
+MultiThreadDataManager::ThreadDestroy(void)
+{
 	if (ptd == NULL) {
-		return;
+		return 0;
 	}
+
+	clock_t cputime = 0;
 
 	op = MultiThreadDataManager::OP_EXIT;
 	dataman_thread_count = nThreads - 1;
@@ -82,9 +97,15 @@ MultiThreadDataManager::~MultiThreadDataManager(void)
 					<< std::endl);
 			/* already shutting down ... */
 		}
+
+		cputime += ptd[i].cputime;
 	}
 
 	dataman_thread_cleanup(&ptd[0]);
+
+	SAFEDELETEARR(ptd);
+
+	return cputime;
 }
 
 void *
@@ -104,7 +125,8 @@ MultiThreadDataManager::dataman_thread(void *p)
 		 */
 		sem_wait(&arg->sem);
 
-		// std::cerr << "thread " << arg->threadNumber << ": op " << arg->pDM->op << std::endl;
+		// std::cerr << "thread " << arg->threadNumber << ": "
+		// 	"op " << arg->pDM->op << std::endl;
 
 		/* select requested operation */
 		switch (arg->pDM->op) {
@@ -158,6 +180,23 @@ MultiThreadDataManager::dataman_thread_cleanup(PerThreadData *arg)
 	SAFEDELETEARR(arg->piWorkIndex);
 	SAFEDELETEARR(arg->pdWorkMat);
 	sem_destroy(&arg->sem);
+
+#ifdef HAVE_SYS_TIMES_H	 
+	/* Tempo di CPU impiegato */
+	struct tms tmsbuf;
+	times(&tmsbuf);
+
+#if 0
+	std::cerr
+		<< "utime:  " << tmsbuf.tms_utime << std::endl
+		<< "stime:  " << tmsbuf.tms_stime << std::endl
+		<< "cutime: " << tmsbuf.tms_cutime << std::endl
+		<< "cstime: " << tmsbuf.tms_cstime << std::endl;
+#endif
+			
+	arg->cputime = tmsbuf.tms_utime + tmsbuf.tms_cutime
+		+ tmsbuf.tms_stime + tmsbuf.tms_cstime;
+#endif /* HAVE_SYS_TIMES_H */
 }
 
 void
@@ -179,7 +218,7 @@ MultiThreadDataManager::EndOfOp(void)
 
 /* starts the helper threads */
 void
-MultiThreadDataManager::MultiThreadSpawn(void)
+MultiThreadDataManager::ThreadSpawn(void)
 {
 	ASSERT(nThreads > 1);
 
@@ -326,6 +365,12 @@ MultiThreadDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 
 	pthread_cond_wait(&dataman_thread_cond, &dataman_thread_mutex);
 	pthread_mutex_unlock(&dataman_thread_mutex);
+}
+
+clock_t
+MultiThreadDataManager::GetCPUTime(void) const
+{
+	return ((MultiThreadDataManager *)this)->ThreadDestroy();
 }
 
 #endif /* USE_MULTITHREAD */

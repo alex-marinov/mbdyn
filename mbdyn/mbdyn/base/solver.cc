@@ -3794,3 +3794,10 @@ Solver::SetupSolmans(integer iStates)
 		THROW(ErrGeneric());
 	}
 }
+
+clock_t
+Solver::GetCPUTime(void) const
+{
+	return pDM->GetCPUTime();
+}
+

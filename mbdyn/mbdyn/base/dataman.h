@@ -205,6 +205,11 @@ public:
 		LASTDIM
 	};
 
+	/* additional CPU time, if any */
+	virtual clock_t GetCPUTime(void) const {
+		return 0;
+	};
+
 private:
 	/* chiamate a funzioni di inizializzazione */
 #if defined(USE_STRUCT_NODES)

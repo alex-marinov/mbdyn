@@ -53,6 +53,7 @@ protected:
 		unsigned int threadNumber;
 		pthread_t thread;
 		sem_t sem;
+		clock_t	cputime;
 
 		mutable MT_VecIter<Elem *> ElemIter;
 	
@@ -100,7 +101,8 @@ protected:
 	static void dataman_thread_cleanup(PerThreadData *arg);
 
 	/* starts the helper threads */
-	void MultiThreadSpawn(void);
+	void ThreadSpawn(void);
+	clock_t ThreadDestroy(void);
 
 	/* reset InUse flag(s) before multithread execution */
 	void ResetInUse(bool b = false);
@@ -126,6 +128,9 @@ public:
 
 	/* Assembla il residuo */
 	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef);
+
+	/* additional CPU time, if any */
+	virtual clock_t GetCPUTime(void) const;
 };
 
 /* MultiThreadDataManager - end */
