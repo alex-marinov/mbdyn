@@ -44,7 +44,7 @@
 #ifdef USE_MPI
 #include "solman.h"
 #include "parser.h"
-#include "linearsolver.h"
+#include "linsol.h"
 #include "schsolman.h"
 #include "mysleep.h"
 /*
@@ -411,7 +411,7 @@ void SchurSolutionManager::Solve(void)
 		 * sulla macchina master */
 
     		/* Assembla pSchVH */
-		pSchVH->Reset(0.);
+		pSchVH->Reset();
     		for (int i = 0; i < pDispl[SolvCommSize]; i++) {
 			int j = i%iBlkSize;
 			int blk = int(floor(i/iBlkSize));
@@ -798,7 +798,7 @@ SchurSolutionManager::ComplExchInt(doublereal& dRes)
 		}
 
 		/* Assembla pSVH */
-      		pSchVH->Reset(0.);
+      		pSchVH->Reset();
       		for (int i = 0; i < pDispl[SolvCommSize]; i++) {
 			int j = i%iBlkSize;
 			int blk = int(floor(i/iBlkSize));

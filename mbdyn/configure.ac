@@ -1571,7 +1571,7 @@ dnl Need Schur parallel solver with MPI
 dnl
 if test $ol_enable_schur != no ; then
 	if test $ol_link_mpi = yes ; then
-		if test $ol_link_metis = yes -o $ol_link_chaco=yes ; then
+		if test $ol_link_metis = yes -o $ol_link_chaco = yes ; then
 			AC_DEFINE(USE_SCHUR,1,[define if you want to use Schur parallel solver])
 		else
 			if test $ol_enable_schur = yes ; then
