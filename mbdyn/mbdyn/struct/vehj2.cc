@@ -230,6 +230,13 @@ ElasticDispJoint::~ElasticDispJoint(void)
 	NO_OP;
 }
 
+void
+ElasticDispJoint::AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP)
+{
+	ConstitutiveLaw3DOwner::AfterConvergence(tilde_d);
+}
+
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler&
 ElasticDispJoint::AssJac(VariableSubMatrixHandler& WorkMat,
@@ -521,6 +528,13 @@ DeformableDispJoint(uL, pDO, pCL, pN1, pN2, tilde_f1, tilde_f2, tilde_R1h, tilde
 ViscousDispJoint::~ViscousDispJoint(void)
 {
 	NO_OP;
+}
+
+void
+ViscousDispJoint::AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP)
+{
+	ConstitutiveLaw3DOwner::AfterConvergence(Zero3, tilde_dPrime);
 }
 
 /* assemblaggio jacobiano */
@@ -893,6 +907,13 @@ DeformableDispJoint(uL, pDO, pCL, pN1, pN2, tilde_f1, tilde_f2, tilde_R1h, tilde
 ViscoElasticDispJoint::~ViscoElasticDispJoint(void)
 {
 	NO_OP;
+}
+
+void
+ViscoElasticDispJoint::AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP)
+{
+	ConstitutiveLaw3DOwner::AfterConvergence(tilde_d, tilde_dPrime);
 }
 
 /* assemblaggio jacobiano */

@@ -157,6 +157,9 @@ public:
 		return ConstLawType::ELASTIC;
 	};
 
+	virtual void
+	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
+
 	/* Aggiorna le deformazioni ecc. */
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
@@ -234,6 +237,9 @@ public:
 		return ConstLawType::VISCOUS;
 	};
 
+	virtual void
+	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
+
 	/* Aggiorna le deformazioni ecc. */
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
@@ -310,6 +316,9 @@ public:
 	virtual ConstLawType::Type GetConstLawType(void) const {
 		return ConstLawType::VISCOELASTIC;
 	};
+
+	virtual void
+	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 
 	/* Aggiorna le deformazioni ecc. */
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);

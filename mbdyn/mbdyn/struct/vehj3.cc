@@ -56,12 +56,15 @@ DeformableJoint::DeformableJoint(unsigned int uL,
 : Elem(uL, Elem::JOINT, fOut),
 Joint(uL, Joint::DEFORMABLEJOINT, pDO, fOut),
 ConstitutiveLaw6DOwner(pCL),
-pNode1(pN1), pNode2(pN2), tilde_f1(tilde_f1), tilde_f2(tilde_f2), tilde_R1h(tilde_R1h), tilde_R2h(tilde_R2h)
+pNode1(pN1), pNode2(pN2),
+tilde_f1(tilde_f1), tilde_f2(tilde_f2),
+tilde_R1h(tilde_R1h), tilde_R2h(tilde_R2h),
+tilde_k(0.), tilde_kPrime(0.)
 {
-   ASSERT(pNode1 != NULL);
-   ASSERT(pNode2 != NULL);
-   ASSERT(pNode1->GetNodeType() == Node::STRUCTURAL);
-   ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
+	ASSERT(pNode1 != NULL);
+	ASSERT(pNode2 != NULL);
+	ASSERT(pNode1->GetNodeType() == Node::STRUCTURAL);
+	ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
 }
 
 
@@ -76,16 +79,16 @@ DeformableJoint::~DeformableJoint(void)
 std::ostream&
 DeformableJoint::Restart(std::ostream& out) const
 {
-   Joint::Restart(out) << ", deformable joint, "
-     << pNode1->GetLabel() << ", reference, node, ",
-     tilde_f1.Write(out, ", ") << ", hinge, reference, node, 1, ",
-     (tilde_R1h.GetVec(1)).Write(out, ", ")
-     << ", 2, ", (tilde_R1h.GetVec(2)).Write(out, ", ") << ", "
-     << pNode2->GetLabel() << ", reference, node, ",
-     tilde_f2.Write(out, ", ") << ", hinge, reference, node, 1, ",
-     (tilde_R2h.GetVec(1)).Write(out, ", ")
-       << ", 2, ", (tilde_R2h.GetVec(2)).Write(out, ", ") << ", ";
-   return pGetConstLaw()->Restart(out) << ';' << std::endl;
+	Joint::Restart(out) << ", deformable joint, "
+		<< pNode1->GetLabel() << ", reference, node, ",
+	tilde_f1.Write(out, ", ") << ", hinge, reference, node, 1, ",
+	(tilde_R1h.GetVec(1)).Write(out, ", ")
+		<< ", 2, ", (tilde_R1h.GetVec(2)).Write(out, ", ") << ", "
+		<< pNode2->GetLabel() << ", reference, node, ",
+	tilde_f2.Write(out, ", ") << ", hinge, reference, node, 1, ",
+	(tilde_R2h.GetVec(1)).Write(out, ", ")
+		<< ", 2, ", (tilde_R2h.GetVec(2)).Write(out, ", ") << ", ";
+	return pGetConstLaw()->Restart(out) << ';' << std::endl;
 }
 
 
@@ -98,7 +101,7 @@ DeformableJoint::Output(OutputHandler& OH) const
 		Vec3 M(GetF().GetVec2());
 		Joint::Output(OH.Joints(), "DeformableJoint", GetLabel(),
 				F, M, R1h*F, R1h*M) << std::endl;
-   }
+	}
 }
 
 unsigned int
@@ -254,7 +257,7 @@ ElasticJoint::ElasticJoint(unsigned int uL,
 		flag fOut)
 : Elem(uL, Elem::JOINT, fOut),
 DeformableJoint(uL, pDO, pCL, pN1, pN2, tilde_f1, tilde_f2, tilde_R1h, tilde_R2h, fOut),
-ThetaRef(0.), k(0.)
+ThetaRef(0.)
 {
 	/*
 	 * Chiede la matrice tangente di riferimento
@@ -263,7 +266,6 @@ ThetaRef(0.), k(0.)
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
 	FDE = MultRMRt(ConstitutiveLaw6DOwner::GetFDE(), R1h);
 }
-
 
 ElasticJoint::~ElasticJoint(void)
 {
@@ -274,9 +276,8 @@ void
 ElasticJoint::AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP)
 {
-	ConstitutiveLaw6DOwner::AfterConvergence(k);
+	ConstitutiveLaw6DOwner::AfterConvergence(tilde_k);
 }
-
 
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler&
@@ -312,6 +313,38 @@ ElasticJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	return WorkMat;
 }
 
+/* assemblaggio jacobiano */
+void
+ElasticJoint::AssMats(VariableSubMatrixHandler& WorkMatA,
+		VariableSubMatrixHandler& WorkMatB,
+		const VectorHandler& /* XCurr */ ,
+		const VectorHandler& /* XPrimeCurr */ )
+{
+	FullSubMatrixHandler& WMA = WorkMatA.SetFull();
+	WorkMatB.SetNullMatrix();
+
+	/* Dimensiona e resetta la matrice di lavoro */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WMA.ResizeReset(iNumRows, iNumCols);
+
+	/* Recupera gli indici */
+	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
+	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
+	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
+
+	/* Setta gli indici della matrice */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WMA.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+		WMA.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+		WMA.PutRowIndex(6 + iCnt, iNode2FirstMomIndex+iCnt);
+		WMA.PutColIndex(6 + iCnt, iNode2FirstPosIndex+iCnt);
+	}
+
+	AssMat(WMA, 1.);
+}
 
 void
 ElasticJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
@@ -460,9 +493,9 @@ ElasticJoint::AssVec(SubVectorHandler& WorkVec)
 		Mat3x3 R2h(pNode2->GetRCurr()*tilde_R2h);
 		Vec3 tilde_d(R1hT*(pNode2->GetXCurr() + f2 - pNode1->GetXCurr() - f1));
 
-		k = Vec6(tilde_d, RotManip::VecRot(R1hT*R2h));
+		tilde_k = Vec6(tilde_d, RotManip::VecRot(R1hT*R2h));
 
-		ConstitutiveLaw6DOwner::Update(k);
+		ConstitutiveLaw6DOwner::Update(tilde_k);
 	}
 
 	F = MultRV(GetF(), R1h);
@@ -495,10 +528,10 @@ ElasticJoint::AfterPredict(VectorHandler& /* X */ ,
 	Vec3 f2(pNode2->GetRRef()*tilde_f2);
 	Vec3 tilde_d(R1hT*(pNode2->GetXCurr() + f2 - pNode1->GetXCurr() - f1));
 
-	k = Vec6(tilde_d, ThetaRef);
+	tilde_k = Vec6(tilde_d, ThetaRef);
 
 	/* Aggiorna il legame costitutivo */
-	ConstitutiveLaw6DOwner::Update(k);
+	ConstitutiveLaw6DOwner::Update(tilde_k);
 
 	/* Chiede la matrice tangente di riferimento e la porta
 	 * nel sistema globale */
