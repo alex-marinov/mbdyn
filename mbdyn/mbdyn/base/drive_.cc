@@ -1485,19 +1485,19 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 	       iIndex = pElem->iGetPrivDataIdx(s);
 	       SAFESTRDUP(sIndexName, s);
 
+	       std::cerr << "### s=" << s << ", iIndex=" << iIndex << std::endl;
+
        } else if (HP.IsKeyWord("index")) {
 	       iIndex = HP.GetInt();
 
-       }
-       
-       if (iIndex == 0 && iMaxIndex != 1) {
+       } else if (iMaxIndex == 1) {
+	       iIndex = 1;
+       } else {
 	       silent_cerr("need a private data index for " 
 			       << psElemNames[pElem->GetElemType()] 
 			       << "(" << pElem->GetLabel() << ") "
 			       "at line " << HP.GetLineData() << std::endl);
 	       THROW(ErrGeneric());
-       } else {
-	       iIndex = 1;
        }
 
        if (iIndex < 1 || iIndex > iMaxIndex) {
