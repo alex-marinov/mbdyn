@@ -44,6 +44,16 @@ all__:
 		rm -f $$i/Makefile ; \
 	done
 
+install:
+	-@for i in $(MODULES_DIRS) ; do \
+		echo "Installing $$i ..."; \
+		export MBDYN_MODULE=$$i ; \
+		cd $$i && $(MAKE) install; \
+		cp Makefile.module $$i/Makefile ; \
+		cd .. ; \
+		rm -f $$i/Makefile ; \
+	done
+
 clean:
 	-@for i in $(MODULES_DIRS) ; do \
 		echo "Cleaning $$i ..."; \
