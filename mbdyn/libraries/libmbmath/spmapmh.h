@@ -108,10 +108,12 @@ public:
 		return NCols;
 	}
 
-private:
-	double & operator()(const int &i_row, const int &i_col) {
-		ASSERTMSGBREAK(i_row < NRows, "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range");
-		ASSERTMSGBREAK(i_col < NCols, "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range");
+public:
+	doublereal & operator()(integer i_row, integer i_col) {
+		ASSERTMSGBREAK(i_row > 0 && i_row <= NRows, "Error in SpMapMatrixHandler::operator(), row index out of range");
+		ASSERTMSGBREAK(i_col > 0 && i_col <= NCols, "Error in SpMapMatrixHandler::operator(), col index out of range");
+		i_row--;
+		i_col--;
 		row_cont_type::iterator i;
 		row_cont_type & row = col_indices[i_col];
 		i = row.find(i_row);
@@ -122,34 +124,33 @@ private:
 			return i->second;
 		}
 	};
-public:
 	flag fIncCoef(integer ix, integer iy, const double& inc) {
-		ASSERTMSGBREAK(ix-1 < NRows, "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range");
-		ASSERTMSGBREAK(iy-1 < NCols, "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range");
+		ASSERTMSGBREAK(ix > 0 && ix <= NRows, "Error in SpMapMatrixHandler::fIncCoef(), row index out of range");
+		ASSERTMSGBREAK(iy > 0 && iy <= NCols, "Error in SpMapMatrixHandler::fIncCoef(), col index out of range");
 		//try to keep sparsity
 		//FIXME: disable "try to keep sparsity" in view of RTAI
 		//if (inc != 0.) {
-			operator()(ix-1,iy-1) += inc;
+			operator()(ix,iy) += inc;
 		//}
 		return 1;
 	};
 	flag fDecCoef(integer ix, integer iy, const double& inc) {
-		ASSERTMSGBREAK(ix-1 < NRows, "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range");
-		ASSERTMSGBREAK(iy-1 < NCols, "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range");
+		ASSERTMSGBREAK(ix > 0 && ix <= NRows, "Error in SpMapMatrixHandler::fDecCoef(), row index out of range");
+		ASSERTMSGBREAK(iy > 0 && iy <= NCols, "Error in SpMapMatrixHandler::fDecCoef(), col index out of range");
 		//try to keep sparsity
 		//FIXME: disable "try to keep sparsity" in view of RTAI
 		//if (inc != 0.) {
-			operator()(ix-1,iy-1) -= inc;
+			operator()(ix,iy) -= inc;
 		//}
 		return 1;
 	};
 	flag fPutCoef(integer ix, integer iy, const double& val) {
-		ASSERTMSGBREAK(ix-1 < NRows, "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range");
-		ASSERTMSGBREAK(iy-1 < NCols, "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range");
+		ASSERTMSGBREAK(ix-1 < NRows, "Error in SpMapMatrixHandler::fPutCoef(), row index out of range");
+		ASSERTMSGBREAK(iy-1 < NCols, "Error in SpMapMatrixHandler::fPutCoef(), col index out of range");
 		//try to keep sparsity
 		//FIXME: disable "try to keep sparsity" in view of RTAI
 		//if (val != 0.) {
-			operator()(ix-1,iy-1) = val;
+			operator()(ix,iy) = val;
 		//} else {
 		//	row_cont_type::iterator i;
 		//	row_cont_type & row = col_indices[iy-1];
@@ -162,9 +163,21 @@ public:
 		//}
 		return 1;
 	};
-	const double& dGetCoef(integer ix, integer iy) const {
-		ASSERTMSGBREAK(ix-1 < NRows, "Error in SpMapMatrixHandler::operator()(const int&, const int&), row index out of range");
-		ASSERTMSGBREAK(iy-1 < NCols, "Error in SpMapMatrixHandler::operator()(const int&, const int&), col index out of range");
+	const doublereal& dGetCoef(integer ix, integer iy) const {
+		ASSERTMSGBREAK(ix > 0 && ix <= NRows, "Error in SpMapMatrixHandler::dGetCoef(), row index out of range");
+		ASSERTMSGBREAK(iy > 0 && iy <= NCols, "Error in SpMapMatrixHandler::dGetCoef(), col index out of range");
+		row_cont_type::iterator i;
+		row_cont_type & row = ((std::vector<row_cont_type>&)col_indices)[iy-1];
+		i = row.find(ix-1);
+		if (i == row.end()) {
+			return zero;
+		} else {
+			return i->second;
+		}
+	};
+	const doublereal& operator () (integer ix, integer iy) const {
+		ASSERTMSGBREAK(ix > 0 && ix <= NRows, "Error in SpMapMatrixHandler::operator(), row index out of range");
+		ASSERTMSGBREAK(iy > 0 && iy <= NCols, "Error in SpMapMatrixHandler::operator(), col index out of range");
 		row_cont_type::iterator i;
 		row_cont_type & row = ((std::vector<row_cont_type>&)col_indices)[iy-1];
 		i = row.find(ix-1);

@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2003
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -37,139 +37,153 @@
 /* FullMatrixHandler - begin */
 
 class FullMatrixHandler : public MatrixHandler {
-   friend std::ostream& 
-	   operator << (std::ostream& out, const FullMatrixHandler& m);
+	friend std::ostream&
+	operator << (std::ostream& out, const FullMatrixHandler& m);
 
- protected:
-   flag fOwnsMemory;
-   
- protected:
-   integer iNumRows;
-   integer iNumCols;
-   
-   integer iRawSize;
-   integer iMaxCols;
-   
-   doublereal* pdRaw;
-   doublereal* pdRawm1;
-   doublereal** ppdCols;
-   doublereal** ppdColsm1;
-   
-   void CreateColRow(integer iNR, integer iNC);
-   
- public:      
-   FullMatrixHandler(doublereal* pd, doublereal** ppd,
-		     integer iSize, integer iNR, integer iNC, 
-		     integer iMaxCols = 0);
-   
-   /* costruttore che si alloca la memoria */
-   FullMatrixHandler(integer iNR, integer iNC = 0);
-   
-   /* costruttore che si alloca la memoria */
-   FullMatrixHandler(integer iNR, integer iNC, const doublereal& dVal);
-   
-   /* costruttore che non fa nulla */
-   FullMatrixHandler(void);
-   
-   virtual ~FullMatrixHandler(void);
+protected:
+	bool bOwnsMemory;
 
-   
-   /* ridimensiona la matrice (se possiede la memoria) */
-   virtual void Resize(integer iNewRows, integer iNewCols);
-   
-   /* si stacca dalla memoria a cui e' associato */
-   void Detach(void);   
-   
-   /* Attacca un nuovo array, con n. righe, n. colonne e dim. massima;
-    * se assente, assunta = nrighe*ncolonne */
-   void Attach(integer iNewRows, integer iNewCols, 
-	       doublereal* pd, doublereal** ppd, 
-	       integer iMSize = 0, integer iMaxC = 0);
-   
-   /* Usata per il debug */
-   virtual void IsValid(void) const;
+protected:
+	integer iNumRows;
+	integer iNumCols;
 
-   /* Resetta la matrice ecc. */
-   virtual void Init(const doublereal& dResetVal = 0.);
-   
-   /* Used to access raw data by c functions */
-   doublereal* pdGetMat(void) const { 
-      ASSERT(pdRaw != NULL);
-      return pdRaw;
-   };
-   
-   /* Inserisce un coefficiente */
-   virtual inline flag fPutCoef(integer iRow, integer iCol, const doublereal& dCoef) {
+	integer iRawSize;
+	integer iMaxCols;
+
+	doublereal* pdRaw;
+	doublereal* pdRawm1;
+	doublereal** ppdCols;
+	doublereal** ppdColsm1;
+
+	void CreateColRow(integer iNR, integer iNC);
+
+public:
+	FullMatrixHandler(doublereal* pd, doublereal** ppd,
+			integer iSize, integer iNR, integer iNC,
+			integer iMaxCols = 0);
+
+	/* costruttore che si alloca la memoria */
+	FullMatrixHandler(integer iNR, integer iNC = 0);
+
+	/* costruttore che si alloca la memoria */
+	FullMatrixHandler(integer iNR, integer iNC, const doublereal& dVal);
+
+	/* costruttore che non fa nulla */
+	FullMatrixHandler(void);
+
+	virtual ~FullMatrixHandler(void);
+
+	/* ridimensiona la matrice (se possiede la memoria) */
+	virtual void Resize(integer iNewRows, integer iNewCols);
+
+	/* si stacca dalla memoria a cui e' associato */
+	void Detach(void);
+
+	/* Attacca un nuovo array, con n. righe, n. colonne e dim. massima;
+	 * se assente, assunta = nrighe*ncolonne */
+	void Attach(integer iNewRows, integer iNewCols,
+			doublereal* pd, doublereal** ppd,
+			integer iMSize = 0, integer iMaxC = 0);
+
+	/* Usata per il debug */
+	virtual void IsValid(void) const;
+
+	/* Resetta la matrice ecc. */
+	virtual void Init(const doublereal& dResetVal = 0.);
+
+	/* Used to access raw data by c functions */
+	doublereal* pdGetMat(void) const {
+		ASSERT(pdRaw != NULL);
+		return pdRaw;
+	};
+
+	/* Inserisce un coefficiente */
+	virtual inline flag
+	fPutCoef(integer iRow, integer iCol, const doublereal& dCoef) {
+		IsValid();
 #ifdef DEBUG
-      IsValid();
-      ASSERT(iRow > 0 && iRow <= iNumRows);
-      ASSERT(iCol > 0 && iCol <= iNumCols);
-#endif      
-      ppdColsm1[iCol][iRow] = dCoef;
-      return flag(1);
-   };
-   
-   /* Incrementa un coefficiente - se non esiste lo crea */
-   virtual inline flag fIncCoef(integer iRow, integer iCol, const doublereal& dCoef) {
-#ifdef DEBUG      
-      IsValid();
-      ASSERT(iRow > 0 && iRow <= iNumRows);
-      ASSERT(iCol > 0 && iCol <= iNumCols);
-#endif      
-      ppdColsm1[iCol][iRow] += dCoef;
-      return flag(1);
-   };
-   
-   /* Incrementa un coefficiente - se non esiste lo crea */
-   virtual inline flag fDecCoef(integer iRow, integer iCol, const doublereal& dCoef) {
-#ifdef DEBUG      
-      IsValid();
-      ASSERT(iRow > 0 && iRow <= iNumRows);
-      ASSERT(iCol > 0 && iCol <= iNumCols);
-#endif      
-      ppdColsm1[iCol][iRow] -= dCoef;
-      return flag(1);
-   };
-   
-   /* Restituisce un coefficiente - zero se non e' definito */
-   virtual inline const doublereal& dGetCoef(integer iRow, integer iCol) const {
-#ifdef DEBUG      
-      IsValid();
-      ASSERT(iRow > 0 && iRow <= iNumRows);
-      ASSERT(iCol > 0 && iCol <= iNumCols);
-#endif      
-      return ppdColsm1[iCol][iRow];
-   };
-   
-   /* dimensioni */
-   virtual integer iGetNumRows(void) const {
-      return iNumRows;
-   };
-   
-   virtual integer iGetNumCols(void) const {
-      return iNumCols;
-   };
+		ASSERT(iRow > 0 && iRow <= iNumRows);
+		ASSERT(iCol > 0 && iCol <= iNumCols);
+#endif /* DEBUG */
+		ppdColsm1[iCol][iRow] = dCoef;
+		return flag(1);
+	};
 
-   virtual inline doublereal& operator ()(integer iRow, integer iCol) const {
-#ifdef DEBUG      
-      IsValid();
-      ASSERT(iRow > 0 && iRow <= iNumRows);
-      ASSERT(iCol > 0 && iCol <= iNumCols);
-#endif
-      return ppdColsm1[iCol][iRow];
-   };
-   
-   /* Overload di += usato per l'assemblaggio delle matrici */   
-   virtual MatrixHandler& operator +=(const SubMatrixHandler& SubMH);
-   
-   /* Overload di -= usato per l'assemblaggio delle matrici */   
-   virtual MatrixHandler& operator -=(const SubMatrixHandler& SubMH);
-   
-   /* Esegue il prodotto tra due matrici e se lo memorizza */
-   void MatMul(const FullMatrixHandler& m1, const FullMatrixHandler& m2);
+	/* Incrementa un coefficiente - se non esiste lo crea */
+	virtual inline flag
+	fIncCoef(integer iRow, integer iCol, const doublereal& dCoef) {
+		IsValid();
+#ifdef DEBUG
+		ASSERT(iRow > 0 && iRow <= iNumRows);
+		ASSERT(iCol > 0 && iCol <= iNumCols);
+#endif /* DEBUG */
+		ppdColsm1[iCol][iRow] += dCoef;
+		return flag(1);
+	};
+
+	/* Incrementa un coefficiente - se non esiste lo crea */
+	virtual inline flag
+	fDecCoef(integer iRow, integer iCol, const doublereal& dCoef) {
+		IsValid();
+#ifdef DEBUG
+		ASSERT(iRow > 0 && iRow <= iNumRows);
+		ASSERT(iCol > 0 && iCol <= iNumCols);
+#endif /* DEBUG */
+		ppdColsm1[iCol][iRow] -= dCoef;
+		return flag(1);
+	};
+
+	/* Restituisce un coefficiente - zero se non e' definito */
+	virtual inline const doublereal&
+	dGetCoef(integer iRow, integer iCol) const {
+		IsValid();
+#ifdef DEBUG
+		ASSERT(iRow > 0 && iRow <= iNumRows);
+		ASSERT(iCol > 0 && iCol <= iNumCols);
+#endif /* DEBUG */
+		return ppdColsm1[iCol][iRow];
+	};
+
+	/* dimensioni */
+	virtual integer iGetNumRows(void) const {
+		return iNumRows;
+	};
+
+	virtual integer iGetNumCols(void) const {
+		return iNumCols;
+	};
+
+	virtual doublereal&
+	operator () (integer iRow, integer iCol) {
+		IsValid();
+#ifdef DEBUG
+		ASSERT(iRow > 0 && iRow <= iNumRows);
+		ASSERT(iCol > 0 && iCol <= iNumCols);
+#endif /* DEBUG */
+		return ppdColsm1[iCol][iRow];
+	};
+
+	virtual const doublereal&
+	operator () (integer iRow, integer iCol) const {
+		IsValid();
+#ifdef DEBUG
+		ASSERT(iRow > 0 && iRow <= iNumRows);
+		ASSERT(iCol > 0 && iCol <= iNumCols);
+#endif /* DEBUG */
+		return ppdColsm1[iCol][iRow];
+	};
+
+	/* Overload di += usato per l'assemblaggio delle matrici */
+	virtual MatrixHandler& operator +=(const SubMatrixHandler& SubMH);
+
+	/* Overload di -= usato per l'assemblaggio delle matrici */
+	virtual MatrixHandler& operator -=(const SubMatrixHandler& SubMH);
+
+	/* Esegue il prodotto tra due matrici e se lo memorizza */
+	void MatMul(const FullMatrixHandler& m1, const FullMatrixHandler& m2);
 };
 
-extern std::ostream& 
+extern std::ostream&
 operator << (std::ostream& out, const FullMatrixHandler& m);
 
 /* FullMatrixHandler - end */

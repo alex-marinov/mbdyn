@@ -987,7 +987,7 @@ void MySubVectorHandler::Resize(integer iSize)
    ASSERT((piRow == NULL && pdVec == NULL) 
 	  || (piRow != NULL && pdVec != NULL));
    
-   if (!fOwnsMemory && piRow != NULL) {
+   if (!bOwnsMemory && piRow != NULL) {
       if (iSize > iMaxSize) {
          std::cerr << "Can't resize to " << iSize 
 	   << ": larger than max size " << iMaxSize << std::endl;
@@ -1029,12 +1029,12 @@ void MySubVectorHandler::Resize(integer iSize)
 
 void MySubVectorHandler::Detach(void) 
 {
-   if (fOwnsMemory) {
+   if (bOwnsMemory) {
       if (pdVec != NULL) {
 	 SAFEDELETEARR(pdVec);
 	 SAFEDELETEARR(piRow);
       }
-      fOwnsMemory = 0;
+      bOwnsMemory = false;
    }
    iMaxSize = iCurSize = 0;
    pdVec = pdVecm1 = NULL;
@@ -1044,9 +1044,9 @@ void MySubVectorHandler::Detach(void)
 void MySubVectorHandler::Attach(integer iSize, doublereal* pd, 
 				integer* pi, integer iMSize) 
 {
-   if (fOwnsMemory && pdVec != NULL) {
+   if (bOwnsMemory && pdVec != NULL) {
       Detach();
-      fOwnsMemory = 0;
+      bOwnsMemory = false;
    }
    iMaxSize = iCurSize = iSize;
    if (iMSize >= iSize) {

@@ -364,6 +364,35 @@ class FullSubMatrixHandler : public SubMatrixHandler {
       return pdMat[(--iSubCol)*iNumRows+(--iSubRow)];
    };      
   
+   /* 
+    Ottiene un coefficiente in base ai sottoindici.
+    */
+   inline const doublereal&
+   operator () (integer iSubRow, integer iSubCol) const {
+#ifdef DEBUG	
+      IsValid();
+#endif	
+      
+      ASSERT((iSubRow > 0) && (iSubRow <= iNumRows));
+      ASSERT((iSubCol > 0) && (iSubCol <= iNumCols));	
+      
+      return pdMat[(--iSubCol)*iNumRows+(--iSubRow)];
+   };      
+  
+   /* 
+    Ottiene un coefficiente in base ai sottoindici.
+    */
+   inline doublereal& operator () (integer iSubRow, integer iSubCol) {
+#ifdef DEBUG	
+      IsValid();
+#endif	
+      
+      ASSERT((iSubRow > 0) && (iSubRow <= iNumRows));
+      ASSERT((iSubCol > 0) && (iSubCol <= iNumCols));	
+      
+      return pdMat[(--iSubCol)*iNumRows+(--iSubRow)];
+   };      
+  
    /*
     Scrive un indice di riga 
     */
@@ -726,6 +755,33 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
     Ottiene un coefficiente in base ai sottoindici.
     */
    inline const doublereal& dGetCoef(integer iSubIt, integer /* iDmy */ ) const {
+#ifdef DEBUG
+      IsValid();
+#endif	
+      
+      ASSERT((iSubIt > 0) && (iSubIt <= iNumItems));
+      
+      return pdMat[--iSubIt];
+   };
+   
+   /* 
+    Ottiene un coefficiente in base ai sottoindici.
+    */
+   inline const doublereal&
+   operator () (integer iSubIt, integer /* iDmy */ ) const {
+#ifdef DEBUG
+      IsValid();
+#endif	
+      
+      ASSERT((iSubIt > 0) && (iSubIt <= iNumItems));
+      
+      return pdMat[--iSubIt];
+   };
+   
+   /* 
+    Ottiene un coefficiente in base ai sottoindici.
+    */
+   inline doublereal& operator () (integer iSubIt, integer /* iDmy */ ) {
 #ifdef DEBUG
       IsValid();
 #endif	

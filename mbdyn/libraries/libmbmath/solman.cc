@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2003
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -48,6 +48,10 @@ const doublereal dZero = 0.;
 
 /* VectorHandler - begin */
 
+VectorHandler::~VectorHandler(void) {
+	NO_OP;
+}
+
 /* Somma un Vec3 nella posizione desiderata */
 void VectorHandler::Add(integer iRow, const Vec3& v) {
 #ifdef DEBUG
@@ -55,12 +59,12 @@ void VectorHandler::Add(integer iRow, const Vec3& v) {
    ASSERT(iRow > 0);
    ASSERT(iGetSize() >= iRow+2);
 #endif
-   
+
    fIncCoef(iRow, v.dGet(1));
    fIncCoef(++iRow, v.dGet(2));
    fIncCoef(++iRow, v.dGet(3));
 }
-   
+
 /* Sottrae un Vec3 nella posizione desiderata */
 void VectorHandler::Sub(integer iRow, const Vec3& v) {
 #ifdef DEBUG
@@ -68,7 +72,7 @@ void VectorHandler::Sub(integer iRow, const Vec3& v) {
    ASSERT(iRow > 0);
    ASSERT(iGetSize() >= iRow+2);
 #endif
-   
+
    fDecCoef(iRow, v.dGet(1));
    fDecCoef(++iRow, v.dGet(2));
    fDecCoef(++iRow, v.dGet(3));
@@ -81,30 +85,30 @@ void VectorHandler::Put(integer iRow, const Vec3& v) {
    ASSERT(iRow > 0);
    ASSERT(iGetSize() >= iRow+2);
 #endif
-   
+
    fPutCoef(iRow, v.dGet(1));
    fPutCoef(++iRow, v.dGet(2));
    fPutCoef(++iRow, v.dGet(3));
 }
 
 /* Somma e moltiplica per uno scalare */
-VectorHandler& VectorHandler::ScalarAddMul(const VectorHandler& VH, const doublereal& d) {      
+VectorHandler& VectorHandler::ScalarAddMul(const VectorHandler& VH, const doublereal& d) {
 #ifdef DEBUG
    IsValid();
    VH.IsValid();
    ASSERT(iGetSize() == VH.iGetSize());
 #endif
-   
+
    for (integer i = iGetSize(); i > 0; i--) {
       fIncCoef(i, d*VH.dGetCoef(i));
    }
-   
+
    return *this;
 }
 
 /* Somma e moltiplica per uno scalare this = VH + d * VH1 */
 VectorHandler& VectorHandler::ScalarAddMul(const VectorHandler& VH, const VectorHandler& VH1,
-				const doublereal& d) {      
+				const doublereal& d) {
 #ifdef DEBUG
    IsValid();
    VH.IsValid();
@@ -112,11 +116,11 @@ VectorHandler& VectorHandler::ScalarAddMul(const VectorHandler& VH, const Vector
    VH1.IsValid();
    ASSERT(iGetSize() == VH1.iGetSize());
 #endif
-   
+
    for (integer i = iGetSize(); i > 0; i--) {
       fPutCoef(i, VH.dGetCoef(i) + d*VH1.dGetCoef(i));
    }
-   
+
    return *this;
 }
 
@@ -127,11 +131,11 @@ VectorHandler& VectorHandler::ScalarMul(const VectorHandler& VH, const doublerea
    VH.IsValid();
    ASSERT(iGetSize() == VH.iGetSize());
 #endif
-   
+
    for (integer i = iGetSize(); i > 0; i--) {
       fPutCoef(i, d*VH.dGetCoef(i));
    }
-   
+
    return *this;
 }
 
@@ -142,14 +146,14 @@ VectorHandler& VectorHandler::operator += (const VectorHandler& VH) {
    VH.IsValid();
    ASSERT(iGetSize() == VH.iGetSize());
 #endif
-   
+
    for (integer i = iGetSize(); i > 0; i--) {
       fIncCoef(i, VH.dGetCoef(i));
    }
-   
+
    return *this;
 }
-   
+
 /* Overload di += usato per l'assemblaggio del residuo */
 VectorHandler& VectorHandler::operator += (const SubVectorHandler& SubVH)
 {
@@ -171,11 +175,11 @@ VectorHandler& VectorHandler::operator -= (const VectorHandler& VH) {
    VH.IsValid();
    ASSERT(iGetSize() == VH.iGetSize());
 #endif
-   
+
    for (integer i = iGetSize(); i > 0; i--) {
       fDecCoef(i, VH.dGetCoef(i));
    }
-   
+
    return *this;
 }
 
@@ -186,27 +190,27 @@ VectorHandler& VectorHandler::operator = (const VectorHandler& VH) {
    VH.IsValid();
    ASSERT(iGetSize() == VH.iGetSize());
 #endif
-   
+
    for (integer i = iGetSize(); i > 0; i--) {
       fPutCoef(i, VH.dGetCoef(i));
    }
-   
+
    return *this;
 }
-   
+
 /* Norma 2 del vettore */
 doublereal VectorHandler::Dot(void) const {
 #ifdef DEBUG
    IsValid();
 #endif
-   
+
    doublereal d2 = 0.;
-   
+
    for (integer i = iGetSize(); i > 0; i--) {
       doublereal d = dGetCoef(i);
       d2 += d*d;
    }
-   
+
    return d2;
 }
 
@@ -222,13 +226,13 @@ doublereal VectorHandler::InnerProd(const VectorHandler& VH) const {
    VH.IsValid();
    ASSERT(iGetSize() == VH.iGetSize());
 #endif
-   
+
    doublereal d2 = 0.;
-   
+
    for (integer i = iGetSize(); i > 0; i--) {
       d2 += dGetCoef(i)*VH.dGetCoef(i);
    }
-   
+
    return d2;
 }
 
@@ -238,18 +242,18 @@ doublereal VectorHandler::InnerProd(const VectorHandler& VH) const {
 
 /* MyVectorHandler - begin */
 
-MyVectorHandler::MyVectorHandler(integer iSize) 
-: fOwnsMemory(1), 
-iMaxSize(iSize), iCurSize(iSize), pdVec(NULL), pdVecm1(NULL) 
+MyVectorHandler::MyVectorHandler(integer iSize)
+: bOwnsMemory(true),
+iMaxSize(iSize), iCurSize(iSize), pdVec(NULL), pdVecm1(NULL)
 {
    if (iSize > 0) {
       Resize(iSize);
    }
 }
 
-MyVectorHandler::MyVectorHandler(integer iSize, doublereal* pdTmpVec) 
-: fOwnsMemory(0), 
-iMaxSize(iSize), iCurSize(iSize), pdVec(pdTmpVec), pdVecm1(pdVec-1) 
+MyVectorHandler::MyVectorHandler(integer iSize, doublereal* pdTmpVec)
+: bOwnsMemory(false),
+iMaxSize(iSize), iCurSize(iSize), pdVec(pdTmpVec), pdVecm1(pdVec-1)
 {
 #ifdef DEBUG
    IsValid();
@@ -257,16 +261,20 @@ iMaxSize(iSize), iCurSize(iSize), pdVec(pdTmpVec), pdVecm1(pdVec-1)
    NO_OP;
 #endif
 }
-   
-void MyVectorHandler::Resize(integer iSize) 
+
+MyVectorHandler::~MyVectorHandler(void) {
+	Detach();
+}
+
+void MyVectorHandler::Resize(integer iSize)
 {
    if (iSize < 0) {
       std::cerr << "Negative size!" << std::endl;
       THROW(ErrGeneric());
    }
 
-   
-   if (fOwnsMemory) {
+
+   if (bOwnsMemory) {
       if (pdVec != NULL) {
 	 if (iSize > iMaxSize) {
 	    doublereal* pd = NULL;
@@ -277,7 +285,7 @@ void MyVectorHandler::Resize(integer iSize)
 	    SAFEDELETEARR(pdVec);
 	    pdVec = pd;
 	    pdVecm1 = pdVec-1;
-	    iMaxSize = iCurSize = iSize;	    
+	    iMaxSize = iCurSize = iSize;
 	 } else {
 	    iCurSize = iSize;
 	 }
@@ -289,7 +297,7 @@ void MyVectorHandler::Resize(integer iSize)
    } else {
       if (pdVec != NULL) {
 	 if (iSize > iMaxSize) {
-	    std::cerr << "Can't resize to " << iSize 
+	    std::cerr << "Can't resize to " << iSize
 	      << ": larger than max size " << iMaxSize << std::endl;
 	    THROW(ErrGeneric());
 	 } else {
@@ -299,26 +307,26 @@ void MyVectorHandler::Resize(integer iSize)
          std::cerr << "internal error!" << std::endl;
 	 THROW(ErrGeneric());
       }
-   }   
+   }
 }
 
-void MyVectorHandler::Detach(void) 
+void MyVectorHandler::Detach(void)
 {
-   if (fOwnsMemory) {
+   if (bOwnsMemory) {
       if (pdVec != NULL) {
 	 SAFEDELETEARR(pdVec);
       }
-      fOwnsMemory = 0;
+      bOwnsMemory = false;
    }
    iMaxSize = iCurSize = 0;
    pdVec = pdVecm1 = NULL;
 }
 
-void MyVectorHandler::Attach(integer iSize, doublereal* pd, integer iMSize) 
+void MyVectorHandler::Attach(integer iSize, doublereal* pd, integer iMSize)
 {
-   if (fOwnsMemory || pdVec != NULL) {
+   if (bOwnsMemory || pdVec != NULL) {
       Detach();
-      fOwnsMemory = 0;
+      bOwnsMemory = false;
    }
    iMaxSize = iCurSize = iSize;
    if (iMSize > 0) {
@@ -339,9 +347,9 @@ void MyVectorHandler::IsValid(void) const
    ASSERT(pdVec != NULL);
    ASSERT(pdVecm1 < pdVec);
    ASSERT(pdVecm1+1 == pdVec);
-   
+
 #ifdef DEBUG_MEMMANAGER
-   if (fOwnsMemory) {      
+   if (bOwnsMemory) {
       ASSERT(defaultMemoryManager.fIsBlock(pdVec, iMaxSize*sizeof(doublereal)));
    } else {
       ASSERT(defaultMemoryManager.fIsValid(pdVec, iMaxSize*sizeof(doublereal)));
@@ -354,7 +362,7 @@ void MyVectorHandler::Reset(doublereal dResetVal)
 #ifdef DEBUG
    IsValid();
 #endif
-   
+
    ASSERT(iCurSize > 0);
    ASSERT(pdVec+iCurSize > pdVec);
 
@@ -372,7 +380,7 @@ void MyVectorHandler::Reset(doublereal dResetVal)
 }
 
 /* Somma e moltiplica per uno scalare */
-VectorHandler& 
+VectorHandler&
 MyVectorHandler::ScalarAddMul(const VectorHandler& VH, const doublereal& d)
 {
 #ifdef DEBUG
@@ -387,14 +395,14 @@ MyVectorHandler::ScalarAddMul(const VectorHandler& VH, const doublereal& d)
       for (integer i = iGetSize(); i > 0; i--) {
 	 pdVecm1[i] += d*VH.dGetCoef(i);
       }
-   }   
+   }
 
    return *this;
 }
 
 /* Somma e moltiplica per uno scalare this = VH + d * VH1 */
 VectorHandler& MyVectorHandler::ScalarAddMul(const VectorHandler& VH, const VectorHandler& VH1,
-				const doublereal& d) {      
+				const doublereal& d) {
 #ifdef DEBUG
    IsValid();
    VH.IsValid();
@@ -402,34 +410,34 @@ VectorHandler& MyVectorHandler::ScalarAddMul(const VectorHandler& VH, const Vect
    VH1.IsValid();
    ASSERT(iGetSize() == VH1.iGetSize());
 #endif
-   
+
    for (integer i = iGetSize(); i > 0; i--) {
 	 pdVecm1[i] = VH.dGetCoef(i) + d*VH1.dGetCoef(i);
    }
-   
+
    return *this;
 }
 
 /* Moltiplica per uno scalare */
-VectorHandler& 
+VectorHandler&
 MyVectorHandler::ScalarMul(const VectorHandler& VH, const doublereal& d)
 {
 #ifdef DEBUG
    IsValid();
    VH.IsValid();
    ASSERT(iCurSize > 0);
-   ASSERT(VH.iGetSize() > 0);    
+   ASSERT(VH.iGetSize() > 0);
    ASSERT(iCurSize == VH.iGetSize());
-#endif   
+#endif
 
    if (d == 0.) {
       Reset(0.);
    } else {
-      for (integer i = iGetSize(); i > 0; i--) { 
+      for (integer i = iGetSize(); i > 0; i--) {
 	 pdVecm1[i] = d*VH.dGetCoef(i);
       }
-   }   
-   
+   }
+
    return *this;
 }
 
@@ -440,7 +448,7 @@ VectorHandler& MyVectorHandler::operator += (const VectorHandler& VH)
    IsValid();
    VH.IsValid();
 #endif
-   
+
    ASSERT(VH.iGetSize() > 0);
    ASSERT(iCurSize == VH.iGetSize());
 
@@ -458,7 +466,7 @@ MyVectorHandler& MyVectorHandler::operator += (const MyVectorHandler& VH)
    IsValid();
    VH.IsValid();
 #endif
-   
+
    ASSERT(VH.iGetSize() > 0);
    ASSERT(iCurSize == VH.iGetSize());
 
@@ -477,7 +485,7 @@ VectorHandler& MyVectorHandler::operator -= (const VectorHandler& VH)
    IsValid();
    VH.IsValid();
 #endif
-   
+
    ASSERT(VH.iGetSize() > 0);
    ASSERT(iCurSize == VH.iGetSize());
 
@@ -495,7 +503,7 @@ MyVectorHandler& MyVectorHandler::operator -= (const MyVectorHandler& VH)
    IsValid();
    VH.IsValid();
 #endif
-   
+
    ASSERT(VH.iGetSize() > 0);
    ASSERT(iCurSize == VH.iGetSize());
 
@@ -514,7 +522,7 @@ VectorHandler& MyVectorHandler::operator = (const VectorHandler& VH)
    IsValid();
    VH.IsValid();
 #endif
-   
+
    ASSERT(VH.iGetSize() > 0);
    ASSERT(iCurSize == VH.iGetSize());
 
@@ -532,7 +540,7 @@ MyVectorHandler& MyVectorHandler::operator = (const MyVectorHandler& VH)
    IsValid();
    VH.IsValid();
 #endif
-   
+
    ASSERT(VH.iGetSize() > 0);
    ASSERT(iCurSize == VH.iGetSize());
 
@@ -549,7 +557,7 @@ void MyVectorHandler::Add(integer iRow, const Vec3& v)
 #ifdef DEBUG
    IsValid();
    ASSERT((iRow > 0) && (iRow <= iCurSize-2));
-#endif   
+#endif
 
    pdVecm1[iRow] += v.dGet(1);
    pdVecm1[++iRow] += v.dGet(2);
@@ -561,7 +569,7 @@ void MyVectorHandler::Sub(integer iRow, const Vec3& v)
 #ifdef DEBUG
    IsValid();
    ASSERT((iRow > 0) && (iRow <= iCurSize-2));
-#endif   
+#endif
 
    pdVecm1[iRow] -= v.dGet(1);
    pdVecm1[++iRow] -= v.dGet(2);
@@ -573,17 +581,60 @@ void MyVectorHandler::Put(integer iRow, const Vec3& v)
 #ifdef DEBUG
    IsValid();
    ASSERT((iRow > 0) && (iRow <= iCurSize-2));
-#endif   
+#endif
 
    pdVecm1[iRow] = v.dGet(1);
    pdVecm1[++iRow] = v.dGet(2);
    pdVecm1[++iRow] = v.dGet(3);
 }
 
+/* Norma 2 del vettore */
+doublereal
+MyVectorHandler::Dot(void) const
+{
+#ifdef DEBUG
+	IsValid();
+#endif
+
+	doublereal d2 = 0.;
+
+	for (integer i = iCurSize; --i > 0;) {
+		d2 += pdVec[i]*pdVec[i];
+	}
+
+	return d2;
+}
+
+/* Norma del vettore */
+doublereal
+MyVectorHandler::Norm(void) const
+{
+	return sqrt(Dot());
+}
+
 /* MyVectorHandler - end */
 
 
 /* MatrixHandler - begin */
+
+MatrixHandler::~MatrixHandler(void)
+{
+	NO_OP;
+}
+
+void
+MatrixHandler::Reset(const doublereal& dResetVal)
+{
+	Init(dResetVal);
+}
+
+/* Impacchetta la matrice; restituisce il numero di elementi 
+ * diversi da zero */
+integer
+MatrixHandler::PacMat(void)
+{
+	return 0L;
+}
 
 /* Overload di += usato per l'assemblaggio delle matrici */
 MatrixHandler& MatrixHandler::operator +=(const SubMatrixHandler& SubMH) {
@@ -616,15 +667,15 @@ MatrixHandler& MatrixHandler::ScalarMul(const doublereal& d)
 }
 
 VectorHandler& MatrixHandler::MatVecMul(
-		VectorHandler& out, 
+		VectorHandler& out,
 		const VectorHandler& in
 ) const
 {
-	if (out.iGetSize() != iGetNumRows() 
+	if (out.iGetSize() != iGetNumRows()
 			|| in.iGetSize() != iGetNumCols()) {
 		THROW(ErrGeneric());
 	}
-	
+
 	for (integer r = 1; r <= iGetNumRows(); r++) {
 		doublereal d = 0.;
 		for (integer c = 1; c <= in.iGetSize(); c++) {
@@ -636,15 +687,15 @@ VectorHandler& MatrixHandler::MatVecMul(
 }
 
 VectorHandler& MatrixHandler::MatTVecMul(
-		VectorHandler& out, 
+		VectorHandler& out,
 		const VectorHandler& in
 ) const
 {
-	if (out.iGetSize() != iGetNumCols() 
+	if (out.iGetSize() != iGetNumCols()
 			|| in.iGetSize() != iGetNumRows()) {
 		THROW(ErrGeneric());
 	}
-	
+
 	for (integer r = 1; r <= iGetNumCols(); r++) {
 		doublereal d = 0.;
 		for (integer c = 1; c <= in.iGetSize(); c++) {
@@ -656,15 +707,15 @@ VectorHandler& MatrixHandler::MatTVecMul(
 }
 
 VectorHandler& MatrixHandler::MatVecIncMul(
-		VectorHandler& out, 
+		VectorHandler& out,
 		const VectorHandler& in
 ) const
 {
-	if (out.iGetSize() != iGetNumRows() 
+	if (out.iGetSize() != iGetNumRows()
 			|| in.iGetSize() != iGetNumCols()) {
 		THROW(ErrGeneric());
 	}
-	
+
 	for (integer r = 1; r <= iGetNumRows(); r++) {
 		doublereal d = 0.;
 		for (integer c = 1; c <= in.iGetSize(); c++) {
@@ -676,15 +727,15 @@ VectorHandler& MatrixHandler::MatVecIncMul(
 }
 
 VectorHandler& MatrixHandler::MatTVecIncMul(
-		VectorHandler& out, 
+		VectorHandler& out,
 		const VectorHandler& in
 ) const
 {
-	if (out.iGetSize() != iGetNumCols() 
+	if (out.iGetSize() != iGetNumCols()
 			|| in.iGetSize() != iGetNumRows()) {
 		THROW(ErrGeneric());
 	}
-	
+
 	for (integer r = 1; r <= iGetNumCols(); r++) {
 		doublereal d = 0.;
 		for (integer c = 1; c <= in.iGetSize(); c++) {
@@ -695,7 +746,7 @@ VectorHandler& MatrixHandler::MatTVecIncMul(
 	return out;
 }
 
-std::ostream& 
+std::ostream&
 operator << (std::ostream& out, const MatrixHandler& MH)
 {
    for (integer i = 1; i <= MH.iGetNumRows(); i++) {
@@ -708,3 +759,30 @@ operator << (std::ostream& out, const MatrixHandler& MH)
 }
 
 /* MatrixHandler - end */
+
+
+/* SolutionDataManager - begin */
+
+SolutionDataManager::~SolutionDataManager(void)
+{
+	NO_OP;
+}
+
+/* SolutionDataManager - end */
+
+
+/* SolutionManager - begin */
+
+SolutionManager::~SolutionManager(void)
+{
+	NO_OP;
+}
+
+void
+SolutionManager::LinkToSolution(const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr) {
+	NO_OP;
+}
+
+/* SolutionManager - end */
+
