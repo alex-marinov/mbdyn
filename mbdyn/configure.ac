@@ -516,7 +516,7 @@ if test $ol_with_mpi != no ; then
 		LIBS="$LIBS $try_mpi_LIBS"
 		AC_TRY_LINK([#include <mpi++.h>],[
 			int argc = 0;
-			char **argv = NULL;
+			char **argv = (void *)0;
 			MPI::Init(argc, argv);
 		],[have_mpi=yes],[have_mpi=no])
 		LIBS=$save_LIBS
