@@ -124,6 +124,9 @@ public:
 	/* Overload di -= */
 	virtual VectorHandler& operator -= (const VectorHandler& VH);
 
+	/* Overload di *= */
+	virtual VectorHandler& operator *= (const doublereal &d);
+
 	/* Assegnazione che copia il contenuto della memoria di due handlers */
 	virtual VectorHandler& operator = (const VectorHandler& VH);
 
@@ -216,6 +219,9 @@ public:
 
 	/* Overload di -= */
 	virtual VectorHandler& operator -= (const VectorHandler& VH);
+
+	/* Overload di *= */
+	virtual VectorHandler& operator *= (const doublereal& d);
 
 	/* Overload di -= */
 	virtual MyVectorHandler& operator -= (const MyVectorHandler& VH);

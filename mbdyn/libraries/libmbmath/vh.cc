@@ -212,6 +212,23 @@ VectorHandler::operator -= (const VectorHandler& VH)
 	return *this;
 }
 
+/* Overload di *= */
+VectorHandler&
+VectorHandler::operator *= (const doublereal& d)
+{
+#ifdef DEBUG
+	IsValid();
+	VH.IsValid();
+	ASSERT(iGetSize() == VH.iGetSize());
+#endif /* DEBUG */
+
+	for (integer i = iGetSize(); i > 0; i--) {
+		operator()(i) *= d;
+	}
+
+	return *this;
+}
+
 /* Assegnazione che copia il contenuto della memoria di due handlers */
 VectorHandler&
 VectorHandler::operator = (const VectorHandler& VH)
@@ -553,6 +570,25 @@ MyVectorHandler::operator -= (const VectorHandler& VH)
 
 	for (integer i = iGetSize(); i > 0; i--) {
 		pdVecm1[i] -= VH(i);
+	}
+
+	return *this;
+}
+
+/* Overload di *= */
+VectorHandler&
+MyVectorHandler::operator *= (const doublereal& d)
+{
+#ifdef DEBUG
+	IsValid();
+	VH.IsValid();
+#endif /* DEBUG */
+
+	ASSERT(VH.iGetSize() > 0);
+	ASSERT(iCurSize == VH.iGetSize());
+
+	for (integer i = iGetSize(); i > 0; i--) {
+		pdVecm1[i] *= d;
 	}
 
 	return *this;
