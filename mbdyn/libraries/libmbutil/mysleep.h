@@ -42,6 +42,12 @@ extern "C" {
 
 extern int mysleep(int us);
 
+#ifdef USE_MYSLEEP
+#define MYSLEEP(t) mysleep((t))
+#else /* ! USE_MYSLEEP */
+#define MYSLEEP(t) do { NO_OP; } while (false)
+#endif /* ! USE_MYSLEEP */
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

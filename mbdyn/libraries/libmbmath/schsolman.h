@@ -124,7 +124,7 @@ private:
 	SolutionManager* pInterSM;          /* Solutore sparso locale */
 
   
-	flag fNewMatrix;
+	bool bNewMatrix;
 public:
   
 	template<class S> SchurSolutionManager(integer iSize,
@@ -165,7 +165,7 @@ public:
 
 	void StartExchInt(void);
 
-	void ComplExchInt(doublereal d[]);
+	void ComplExchInt(doublereal& d);
 
 private:
 	void AssSchur(void);

@@ -1173,7 +1173,7 @@ TypedValue
 MathParser::logical(void) 
 {
    TypedValue d = relational();
-   while (1) {      
+   while (true) {      
       switch (currtoken) {
        case AND:
 	 GetToken();
@@ -1199,7 +1199,7 @@ TypedValue
 MathParser::relational(void) 
 {
    TypedValue d = binary();
-   while (1) {      
+   while (true) {      
       switch (currtoken) {	 
        case GT:
 	 GetToken();
@@ -1234,7 +1234,7 @@ MathParser::relational(void)
 TypedValue 
 MathParser::binary(void) {
    TypedValue d = mult();
-   while (1) {      
+   while (true) {      
       switch (currtoken) {
        case PLUS:
 	 GetToken();
@@ -1254,7 +1254,7 @@ TypedValue
 MathParser::mult(void)
 {
    TypedValue d = power();
-   while (1) {      
+   while (true) {      
       switch(currtoken) {
        case MULT: 
 	 GetToken();

@@ -43,10 +43,7 @@
 
 #ifdef USE_MPI
 #include <schsolman.h>
-
-#ifdef USE_MYSLEEP
 #include <mysleep.h>
-#endif /* USE_MYSLEEP */
 /*
  * Le occorrenze della routine 'mysleep' vanno commentate quando
  * si opera su di una macchina dove le comunicazioni sono efficienti
@@ -117,7 +114,7 @@ pGSReq(NULL),
 pGRReq(NULL),
 pLocalSM(pLSM),
 pInterSM(pISM),
-fNewMatrix(0)
+bNewMatrix(false)
 {
 	DEBUGCOUT("Entering SchurSolutionManager::SchurSolutionManager()"
       			<< std::endl);
@@ -338,7 +335,7 @@ SchurSolutionManager::MatrInit(const doublereal& dResetVal)
 	if (!MyRank) {
 		pInterSM->MatrInit(dResetVal);
 	}
-	fNewMatrix = flag(1);
+	bNewMatrix = true;
 }
 
 /* Risolve i blocchi */
@@ -369,7 +366,7 @@ void SchurSolutionManager::Solve(void)
   	/* Inizializza Trasmissione di g */
    	pGSReq[0] = SolvComm.Isend(pgVH->pdGetVec(), iIntVecDim, MPI::DOUBLE, 0, G_TAG);
 
-   	if(!MyRank) {
+   	if (!MyRank) {
 #ifdef MPI_PROFILING
      		MPE_Log_event(19, 0, "start");
 #endif /* MPI_PROFILING */
@@ -379,7 +376,7 @@ void SchurSolutionManager::Solve(void)
    	}
 
      /* Calcolo di E'. Va fatto solo se  La matrice è stata rifattorizzata*/
-   	if (fNewMatrix) {
+   	if (bNewMatrix) {
      		for (int i=0; i < iIntVecDim; i++) {
    			pLocalSM->ChangeResPoint(pMH->GetECol(i));
 			pLocalSM->ChangeSolPoint(pMH->GetEColSol(i));
@@ -392,20 +389,18 @@ void SchurSolutionManager::Solve(void)
 	pLocalSM->ChangeSolPoint(pSolrVH->pdGetVec());
 
    	/* verifica completamento ricezioni e trasmissione vettore g*/
-   	while (1) {
+   	while (true) {
      		if (pGSReq->Test()) {
 #ifdef MPI_PROFILING
       			MPE_Log_event(14, 0, "end");
 #endif /* MPI_PROFILING */
 			break;
      		}
-#ifdef USE_MYSLEEP
-       		mysleep(150);
-#endif /* USE_MYSLEEP */
+       		MYSLEEP(150);
    	}
 
-   	if(!MyRank) {
-    		while (1) {
+   	if (!MyRank) {
+    		while (true) {
       			if (MPI::Request::Testall(SolvCommSize, pGRReq)) {
 #ifdef MPI_PROFILING
         			MPE_Log_event(20, 0, "end");
@@ -415,14 +410,12 @@ void SchurSolutionManager::Solve(void)
 #endif /* MPI_PROFILING */
   				break;
       			}
-#ifdef USE_MYSLEEP
-			mysleep(1500);
-#endif /* USE_MYSLEEP */
+			MYSLEEP(1500);
     		}
-  	}
 
-  	/* Assemblaggio del vettore delle incognite g sulla macchina master */
-  	if (!MyRank) {
+  		/* Assemblaggio del vettore delle incognite g 
+		 * sulla macchina master */
+
     		/* Assembla pSchVH */
 		pSchVH->Reset(0.);
     		for (int i = 0; i < pDispl[SolvCommSize]; i++) {
@@ -434,9 +427,9 @@ void SchurSolutionManager::Solve(void)
 
   	/* assembla le matrici di schur locali se è stata
 	 * appena assemblata una nuova matrice di partenza */
-  	if (fNewMatrix) {
+  	if (bNewMatrix) {
     		AssSchur();
-    		fNewMatrix = flag(0);
+    		bNewMatrix = false;
   	}
   	/* risoluzione schur pb sul master */
   	if ((!MyRank) && (SolvCommSize != 1)) {
@@ -472,20 +465,18 @@ void SchurSolutionManager::Solve(void)
 
   	/* Verifica completamento trasmissioni */
   	if (!MyRank) {
-    		while (1) {
+    		while (true) {
       			if (MPI::Request::Testall(SolvCommSize, pGRReq)) {
 #ifdef MPI_PROFILING
         			MPE_Log_event(14, 0, "end");
 #endif /* MPI_PROFILING */
 				break;
       			}
-#ifdef USE_MYSLEEP
-			mysleep(150);
-#endif /* USE_MYSLEEP */
+			MYSLEEP(150);
     		}
   	}
 
-  	while (1) {
+  	while (true) {
     		if (pGSReq->Test()) {
 #ifdef MPI_PROFILING
     			MPE_Log_event(20, 0, "end");
@@ -493,9 +484,7 @@ void SchurSolutionManager::Solve(void)
 #endif /* MPI_PROFILING */
       			break;
     		}
-#ifdef USE_MYSLEEP
-      		mysleep(1500);
-#endif /* USE_MYSLEEP */
+      		MYSLEEP(1500);
   	}
 
   	/* calcolo la soluzione corretta per x = Solr - E'*g */
@@ -527,7 +516,7 @@ SchurSolutionManager::AssSchur(void)
   	pGSReq[0] = SolvComm.Isend(pdCM, iIntVecDim*iIntVecDim,
 			MPI::DOUBLE, 0, S_TAG);
   	int iOffset = 0;
-  	if(!MyRank) {
+  	if (!MyRank) {
 #ifdef MPI_PROFILING
    		MPE_Log_event(19, 0, "start");
 #endif /* MPI_PROFILING */
@@ -540,21 +529,18 @@ SchurSolutionManager::AssSchur(void)
 	}
 
   	/* verifica completamento ricezioni e trasmissione */
-  	while (1) {
+  	while (true) {
     		if (pGSReq->Test()) {
 #ifdef MPI_PROFILING
       			MPE_Log_event(14, 0, "end");
 #endif /* MPI_PROFILING */
       			break;
     		}
-#ifdef USE_MYSLEEP
-      		mysleep(150);
-#endif /* USE_MYSLEEP */
+      		MYSLEEP(150);
   	}
 
-
   	if (!MyRank) {
-    		while (1) {
+    		while (true) {
       			if (MPI::Request::Testall(SolvCommSize, pGRReq)) {
 #ifdef MPI_PROFILING
         			MPE_Log_event(20, 0, "end");
@@ -564,11 +550,8 @@ SchurSolutionManager::AssSchur(void)
 #endif /* MPI_PROFILING */
 				break;
       			}
-#ifdef USE_MYSLEEP
-			mysleep(1500);
-#endif /* USE_MYSLEEP */
+			MYSLEEP(1500);
     		}
-
 
     		/* Assembla Schur matrix */
     		iOffset = 0;
@@ -766,7 +749,7 @@ SchurSolutionManager::StartExchInt(void)
 #endif /* MPI_PROFILING */
     		pGSReq[0] = SolvComm.Isend(pgVH->pdGetVec(), iIntVecDim, MPI::DOUBLE, 0, G_TAG);
 
-    		if(!MyRank) {
+    		if (!MyRank) {
 #ifdef MPI_PROFILING
       			MPE_Log_event(19, 0, "start");
 #endif /* MPI_PROFILING */
@@ -780,94 +763,93 @@ SchurSolutionManager::StartExchInt(void)
 }
 
 void
-SchurSolutionManager::ComplExchInt(doublereal d[])
+SchurSolutionManager::ComplExchInt(doublereal& dRes)
 {
   	DEBUGCOUT("Entering SchurSolutionManager::ComplExchInt()" << endl);
 
 	/* FIXME: we assume doublereal d[2] */
 
-   	if (SolvCommSize > 1) {
-		d[0] = 0.;
-		d[1] = 0.;
-    		SolvComm.Send(d, 2, MPI::DOUBLE, 0, G_TAG+100);
+   	if (SolvCommSize <= 1) {
+		return;
+	}
 
-    		/* verifica completamento ricezioni e trasmissione */
-    		while (1) {
-      			if (pGSReq->Test()) {
+	doublereal d[2];
+	d[0] = 0.;
+	d[1] = 0.;
+    	SolvComm.Send(d, 2, MPI::DOUBLE, 0, G_TAG+100);
+
+    	/* verifica completamento ricezioni e trasmissione */
+    	while (true) {
+      		if (pGSReq->Test()) {
 #ifdef MPI_PROFILING
-				MPE_Log_event(14, 0, "end");
+			MPE_Log_event(14, 0, "end");
 #endif /* MPI_PROFILING */
-				break;
-      			}
-#ifdef USE_MYSLEEP
-			mysleep(150);
-#endif /* USE_MYSLEEP */
-    		}
+			break;
+      		}
+		MYSLEEP(150);
+    	}
 
-    		if(!MyRank) {
-      			while (1) {
-      				if (MPI::Request::Testall(SolvCommSize, pGRReq)) {
+    	if (!MyRank) {
+      		while (true) {
+      			if (MPI::Request::Testall(SolvCommSize, pGRReq)) {
 #ifdef MPI_PROFILING
-	  				MPE_Log_event(20, 0, "end");
-	  				for (int i = 0; i < SolvCommSize; i++){
-	    					MPE_Log_receive(i, G_TAG,
-								pRecvDim[i]);
-	  				}
+  				MPE_Log_event(20, 0, "end");
+  				for (int i = 0; i < SolvCommSize; i++){
+    					MPE_Log_receive(i, G_TAG, pRecvDim[i]);
+	  			}
 #endif /* MPI_PROFILING */
-	  				break;
-				}
-#ifdef USE_MYSLEEP
-	  			mysleep(1500);
-#endif /* USE_MYSLEEP */
-      			}
+  				break;
+			}
+  			MYSLEEP(1500);
+		}
 
-      			/* Assembla pSVH */
-      			pSchVH->Reset(0.);
-      			for (int i = 0; i < pDispl[SolvCommSize]; i++) {
-				int j = i%iBlkSize;
-				int blk = int(floor(i/iBlkSize));
-				pSchVH->fIncCoef(pSchGlbToLoc[pDofsRecvdList[j]+blk*iBlkSize], pBuffer[i]);
-      			}
-      			for (int iCntp1 = 1; iCntp1 <= iSchurIntDim; iCntp1++) {
-				doublereal dTmp = pSchVH->dGetCoef(iCntp1);
-				d[0] += dTmp * dTmp;
-      			}
-    		}
+		/* Assembla pSVH */
+      		pSchVH->Reset(0.);
+      		for (int i = 0; i < pDispl[SolvCommSize]; i++) {
+			int j = i%iBlkSize;
+			int blk = int(floor(i/iBlkSize));
+			pSchVH->fIncCoef(pSchGlbToLoc[pDofsRecvdList[j]+blk*iBlkSize], pBuffer[i]);
+      		}
 
-    		if (!MyRank) {
-      			for (int i = 0; i < SolvCommSize; i++){
-				pGRReq[i] = SolvComm.Irecv(pBuffer + 2*i, 2,
-						MPI::DOUBLE, i, G_TAG+100);
-      			}
-      			while (1) {
-      				if (MPI::Request::Testall(SolvCommSize, pGRReq)) {
-					break;
-				}
-#ifdef USE_MYSLEEP
-	  			mysleep(1500);
-#endif /* USE_MYSLEEP */
-      			}
+		for (int iCntp1 = 1; iCntp1 <= iSchurIntDim; iCntp1++) {
 
-      			for (int i = 1; i < SolvCommSize; i++){
-				d[0] += pBuffer[2*i];
-				d[1] += pBuffer[2*i+1];
-      			}
+			/* FIXME: here we need to call TestOne() */
+			doublereal dTmp = pSchVH->dGetCoef(iCntp1);
+			d[0] += dTmp * dTmp;
+      		}
 
-      			for (int i = 0; i < SolvCommSize; i++){
-				SolvComm.Send(d, 2, MPI::DOUBLE, i, G_TAG);
-      			}
-    		}
-
-		pGRReq[0] = SolvComm.Irecv(d, 2, MPI::DOUBLE, 0, G_TAG);
-    		while (1) {
-      			if (pGRReq->Test()) {
+      		for (int i = 0; i < SolvCommSize; i++){
+			pGRReq[i] = SolvComm.Irecv(pBuffer + 2*i, 2,
+					MPI::DOUBLE, i, G_TAG+100);
+      		}
+			
+      		while (true) {
+      			if (MPI::Request::Testall(SolvCommSize, pGRReq)) {
 				break;
-      			}
-#ifdef USE_MYSLEEP
-			mysleep(150);
-#endif /* USE_MYSLEEP */
-   		}
-  	}
+			}
+  			MYSLEEP(1500);
+		}
+
+		for (int i = 1; i < SolvCommSize; i++) {
+			/* FIXME: here we need to call TestMerge() */
+			d[0] += pBuffer[2*i];
+			d[1] += pBuffer[2*i+1];
+      		}
+
+      		for (int i = 0; i < SolvCommSize; i++){
+			SolvComm.Send(d, 2, MPI::DOUBLE, i, G_TAG);
+      		}
+    	}
+
+	pGRReq[0] = SolvComm.Irecv(d, 2, MPI::DOUBLE, 0, G_TAG);
+    	while (true) {
+      		if (pGRReq->Test()) {
+			break;
+      		}
+		MYSLEEP(150);
+   	}
+
+	dRes += d[0];
 }
 /* SchurSolutionManager - End */
 

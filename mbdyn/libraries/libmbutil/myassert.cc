@@ -93,7 +93,7 @@ int get_debug_options(const char *const s, const debug_array da[])
    }
    
    char* p = (char*)s;
-   while (1) {
+   while (true) {
       char* sep = strchr(p, ':');
       unsigned int l;
       if (sep != NULL) {
