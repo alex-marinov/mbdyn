@@ -37,7 +37,7 @@
 #include <tclpgin.h>
 
 TclPlugIn::TclPlugIn(MathParser& mp)
-: MathParser::PlugIn::PlugIn(mp), type(TypedValue::VAR_UNKNOWN),
+: MathParser::PlugIn(mp), type(TypedValue::VAR_UNKNOWN),
 interp(NULL), cmd(NULL)
 {
 	interp = Tcl_CreateInterp();

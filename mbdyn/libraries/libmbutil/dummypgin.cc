@@ -35,7 +35,7 @@
 #include <dummypgin.h>
 
 DummyPlugIn::DummyPlugIn(MathParser& mp, void *arg)
-: MathParser::PlugIn::PlugIn(mp)
+: MathParser::PlugIn(mp)
 {
 	ASSERT(arg != NULL);
 	THROW(MathParser::ErrGeneric(&mp, "error: '", (const char *const)arg,
