@@ -123,10 +123,10 @@ At present the input of MBDyn already warns for many possible errors
 and makes as many cross-checks as possible on the consistency of the data. 
 Nearly every warning and error issue shows the line of the input file 
 where the error occurred. 
-Since at present multiple files can be scanned by means of the 
-\kw{include} directive, the file where the error occurred
-may not be clearly indicated if no reliable C++ exception handling 
-is supported by the compiler.
+%Since at present multiple files can be scanned by means of the 
+%\kw{include} directive, the file where the error occurred
+%may not be clearly indicated if no reliable C++ exception handling 
+%is supported by the compiler.
 This document will be subjected to changes, so be sure you always have 
 a release that is aligned with the version of the code you're running.
 
@@ -152,6 +152,20 @@ Web: & \htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}mbdyn/}}{http://www.
 This manual is also available online at \\
 \htmladdnormallink{\kw{http://mbdyn.aero.polimi.it/\~{}masarati/MBDyn-input/manual/index.html}}{http://mbdyn.aero.polimi.it/~masarati/MBDyn-input/manual/index.html}
 
+\noindent
+Make sure you use the manual that refers to the version of MBDyn 
+that you are using; from 1.2 on, the input manual is marked
+with the same version number of the package.
+
+\noindent
+The website \htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}mbdyn/}}{http://www.aero.polimi.it/~mbdyn/}
+may advertise different versions of the manual, including those related 
+to past releases and a HEAD or -devel version, which refers to current
+development; this can be useful to check whether the current
+development may address problems you are having and, since
+the updating of the manual is not as fast as code releases,
+it may describe features that are already in the most recent 
+release.
 
 \input{overview}
 \input{general}
