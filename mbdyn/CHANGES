@@ -7,6 +7,12 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+MBDyn 1.1 Engineering
+	Enhancements:
+	Bug fixes:
+	Known bugs:
+
+
 MBDyn 1.1.0
 	Enhancements:
 		- optimal storage detection for y12m
