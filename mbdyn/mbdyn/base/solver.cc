@@ -339,14 +339,41 @@ Solver::Run(void)
 		
 		if (stat(sOutputFileName, &s) != 0) {
 			int	save_errno = errno;
-			char	*errmsg = strerror(save_errno);
-		
-			silent_cerr("stat(" << sOutputFileName << ") failed "
-				"(" << save_errno << ": " << errmsg << ")" << std::endl);
-			throw ErrGeneric();
-		}
 
-		if (S_ISDIR(s.st_mode)) {
+			/* if does not exist, check path */
+			if (save_errno != ENOENT) {
+				char	*errmsg = strerror(save_errno);
+		
+				silent_cerr("stat(" << sOutputFileName << ") failed "
+					"(" << save_errno << ": " << errmsg << ")" << std::endl);
+				throw ErrGeneric();
+			}
+
+			char	*sOutputFilePath = 0;
+			SAFESTRDUP(sOutputFilePath, sOutputFileName );
+
+			char	*path = strrchr(sOutputFilePath, '/');
+			if (path != NULL) {
+				path[0] = '\0';
+
+				if (stat(sOutputFilePath, &s) != 0) {
+					save_errno = errno;
+					char	*errmsg = strerror(save_errno);
+						
+					silent_cerr("stat(" << sOutputFileName << ") failed because "
+							"stat(" << sOutputFilePath << ") failed "
+						"(" << save_errno << ": " << errmsg << ")" << std::endl);
+					throw ErrGeneric();
+
+				} else if (!S_ISDIR(s.st_mode)) {
+					silent_cerr("path to file \"" << sOutputFileName << "\" is invalid ("
+							"\"" << sOutputFilePath << "\" is not a dir)" << std::endl);
+					throw ErrGeneric();
+				}
+				SAFEDELETEARR(sOutputFilePath);
+			}
+
+		} else if (S_ISDIR(s.st_mode)) {
 			unsigned 	lOld, lNew;
 			char		*tmpOut = 0;
 			const char	*tmpIn;
