@@ -53,6 +53,7 @@ iMatSize(iSize),
 // piRow(NULL), piCol(NULL), 
 // pdMat(NULL), pdVec(NULL),
 /* pMH(NULL), */
+MH(iSize),
 pVH(NULL), pLU(NULL),
 fHasBeenReset(1)
 {
