@@ -1,12 +1,17 @@
+include Makefile.inc
+
 .PHONY: all clean
 
 all: $(MBDYN_MODULE).so
 
-$(MBDYN_MODULE).so: $(MBDYN_MODULE).o
-	$(CXXLINK) -o $@ $<
+$(MBDYN_MODULE).so: $(MODULE_DEPENDENCIES) $(MBDYN_MODULE).o 
+	$(CXXLINK) -o $@ $^
 
 .cc.o:
 	$(LTCXXCOMPILE) -c $<
+
+.f.o:
+	$(LTF77COMPILE) -c $<
 
 clean:
 	-rm -f *.o core

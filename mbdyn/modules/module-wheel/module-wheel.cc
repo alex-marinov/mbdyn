@@ -81,7 +81,7 @@ struct module_wheel {
 };
 
 // #ifdef DEBUG
-void
+static void
 out_array(ostream& out, const char *name, doublereal *pd, integer size)
 {
    out << name << "=[";
@@ -93,7 +93,8 @@ out_array(ostream& out, const char *name, doublereal *pd, integer size)
 // #endif
 
 /* funzioni di default */
-void* read(LoadableElem* pEl,
+static void*
+read(LoadableElem* pEl,
 	   DataManager* pDM,
 	   MBDynParser& HP,
 	   const DriveHandler* pDH)
@@ -304,7 +305,8 @@ unsigned int i_get_num_dof(const LoadableElem* pEl)
 }
 #endif
 
-void output(const LoadableElem* pEl, OutputHandler& OH)
+static void
+output(const LoadableElem* pEl, OutputHandler& OH)
 {
    DEBUGCOUTFNAME("output");
    
@@ -328,7 +330,8 @@ ostream& restart(const LoadableElem* pEl, ostream& out)
 }
 #endif
 
-void work_space_dim(const LoadableElem* pEl, 
+static void
+work_space_dim(const LoadableElem* pEl, 
 		    integer* piNumRows, 
 		    integer* piNumCols)
 {
@@ -337,7 +340,7 @@ void work_space_dim(const LoadableElem* pEl,
    *piNumCols = 1;
 }
 
-VariableSubMatrixHandler& 
+static VariableSubMatrixHandler& 
 ass_jac(LoadableElem* pEl, 
 	VariableSubMatrixHandler& WorkMat,
 	doublereal dCoef, 
@@ -350,7 +353,7 @@ ass_jac(LoadableElem* pEl,
    return WorkMat;
 }
 
-SubVectorHandler& 
+static SubVectorHandler& 
 ass_res(LoadableElem* pEl, 
 	SubVectorHandler& WorkVec,
 	doublereal dCoef,
@@ -582,7 +585,8 @@ doublereal d_get_priv_data(const LoadableElem* pEl, unsigned int i)
 }
 #endif
 
-void destroy(LoadableElem* pEl)
+static void
+destroy(LoadableElem* pEl)
 {
    DEBUGCOUTFNAME("destroy");
    module_wheel* p = (module_wheel *)pEl->pGetData();
@@ -593,3 +597,31 @@ void destroy(LoadableElem* pEl)
    
    SAFEDELETE(p, EMmm);
 }
+
+static struct
+LoadableCalls lc = {
+	read, /* */
+	NULL /* i_get_num_dof */ ,
+	NULL /* set_dof */ ,
+	output, /* */
+	NULL /* restart */ ,
+	work_space_dim, /* */
+	ass_jac, /* */
+	NULL /* ass_eig */ ,
+	ass_res, /* */
+	NULL /* before_predict */ ,
+	NULL /* after_predict */ ,
+	NULL /* update */ ,
+	NULL /* i_get_initial_num_dof */ ,
+	NULL /* initial_work_space_dim */ ,
+	NULL /* initial_ass_jac */ ,
+	NULL /* initial_ass_res */ ,
+	NULL /* set_value */ ,
+	NULL /* set_initial_value */ ,
+	NULL /* i_get_num_priv_data */ ,
+	NULL /* d_get_priv_data */ ,
+	destroy
+};
+
+extern "C" void *calls = &lc;
+

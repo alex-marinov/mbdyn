@@ -11,6 +11,9 @@ export LTCXXCOMPILE = @LIBTOOL@ --mode=compile @CXX@ @DEFS@ \
 CXXLD = @CXX@
 export CXXLINK = @LIBTOOL@ --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	@CXXFLAGS@ @LDFLAGS@ -shared
+export LTF77COMPILE = @LIBTOOL@ --mode=compile @F77@ $(AM_FFLAGS) @FFLAGS@ \
+	-fPIC
+
 
 .PHONY: all clean distclean
 
