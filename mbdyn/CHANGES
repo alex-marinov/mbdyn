@@ -9,6 +9,11 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 MBDyn 1.1-Engineering
 	Enhancements:
+	Bug fixes:
+
+
+MBDyn 1.1.3
+	Enhancements:
 		- more improved Mat3x3 and Mat3xN APIs
 		- vec2rot added to utils
 		- added velocity threshold to module-wheel2 when computing
@@ -23,6 +28,7 @@ MBDyn 1.1-Engineering
 		- fixed SIGSEGV when reading from stdin
 		- fixed SIGSEGV when including nonexisting file
 		- fix c81 data curve slope computation
+
 
 MBDyn 1.1.2
 	Enhancements:
