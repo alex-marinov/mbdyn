@@ -94,6 +94,13 @@ known to fail at initializing const arrays with non-const values
 a snapshot of gdb is required for debugging because the mangling of the
 names has changed.
 
+   The parallel implementation needs HSL (see 
+   
+	http://www.aero.polimi.it/projects/mbdyn/download
+
+for detailed instruction on how to gather it); work is underway to
+avoid this limitation.
+
    Other problems will be highlighted as soon as they show up.  Please
 drop a mail to mbdyn@aero.polimi.it in case you have problems compiling
 the package.
