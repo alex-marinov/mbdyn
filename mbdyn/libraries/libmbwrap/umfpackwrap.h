@@ -91,9 +91,12 @@ private:
 	void * Numeric;
 	
 	bool HasBeenReset;
+
+	bool PrepareSymbolic(void);
 	
 public:
-	Umfpack3SparseLUSolutionManager(integer Dim);
+	Umfpack3SparseLUSolutionManager(integer Dim, integer /* unused */ = 0, 
+			doublereal dPivot = -1.);
 	virtual ~Umfpack3SparseLUSolutionManager(void);
 	virtual void IsValid(void) const {
 		NO_OP;

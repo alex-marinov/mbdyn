@@ -65,7 +65,8 @@
 #ifdef USE_UMFPACK3
 #include <umfpackwrap.h>
 
-Umfpack3SparseLUSolutionManager::Umfpack3SparseLUSolutionManager(integer Dim)
+Umfpack3SparseLUSolutionManager::Umfpack3SparseLUSolutionManager(integer Dim,
+		integer dummy, doublereal dPivot)
 : A(Dim),
 xVH(0),
 bVH(0), 
@@ -81,18 +82,26 @@ HasBeenReset(true)
 			MyVectorHandler(Dim, &(b[0])));
 	
 	umfpack_defaults(Control);
+
+	if (dPivot != -1. && (dPivot >= 0. && dPivot <= 1.)) {
+		/*
+		 * 1.0: true partial pivoting
+		 * 0.0: treated as 1.0
+		 * 
+		 * default: 0.1
+		 */
+		Control[UMFPACK_PIVOT_TOLERANCE] = dPivot;
+	}
 }
 
 Umfpack3SparseLUSolutionManager::~Umfpack3SparseLUSolutionManager(void) 
 {
-	if (Symbolic != 0) {
-		umfpack_free_symbolic(&Symbolic);
-		ASSERT(Symbolic == 0);
-	}
-	if (Numeric != 0) {
-		umfpack_free_numeric(&Numeric);
-		ASSERT(Numeric == 0);
-	}
+	umfpack_free_symbolic(&Symbolic);
+	ASSERT(Symbolic == 0);
+
+	umfpack_free_numeric(&Numeric);
+	ASSERT(Numeric == 0);
+	
 	SAFEDELETE(xVH);
 	SAFEDELETE(bVH);
 }
@@ -108,6 +117,30 @@ Umfpack3SparseLUSolutionManager::MatrInit(const doublereal& d)
 	HasBeenReset = true;
 }
 
+bool 
+Umfpack3SparseLUSolutionManager::PrepareSymbolic(void)
+{
+	const int* const Aip = &(Ai[0]);
+	const int* const App = &(Ap[0]);
+	int status;
+
+	status = umfpack_symbolic(b.size(), App, Aip, 
+			&Symbolic, Control, Info);
+	if (status != UMFPACK_OK) {
+		umfpack_report_info(Control, Info) ;
+		umfpack_report_status(Control, status);
+		std::cerr << "umfpack_symbolic failed" << std::endl;
+
+		/* de-allocate memory */
+		umfpack_free_symbolic(&Symbolic);
+		ASSERT(Symbolic == 0);
+
+		return false;
+	}
+
+	return true;
+}
+
 /* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
 void
 Umfpack3SparseLUSolutionManager::Solve(void)
@@ -120,18 +153,7 @@ Umfpack3SparseLUSolutionManager::Solve(void)
 		const int* const App = &(Ap[0]);
 		int status;
 		
-		ASSERT(Symbolic == 0);
-		status = umfpack_symbolic(b.size(), App, Aip, 
-				&Symbolic, Control, Info);
-		if (status != UMFPACK_OK) {
-			umfpack_report_info(Control, Info) ;
-			umfpack_report_status(Control, status);
-			std::cerr << "umfpack_symbolic failed" << std::endl;
-
-			/* de-allocate memory */
-			umfpack_free_symbolic(&Symbolic);
-			ASSERT(Symbolic == 0);
-
+		if (Symbolic == 0 && !PrepareSymbolic()) {
 			return;
 		}
 #if 0
@@ -143,8 +165,14 @@ Umfpack3SparseLUSolutionManager::Solve(void)
 		double t1 = umfpack_timer() - t;
 		status = umfpack_numeric(App, Aip, Axp, Symbolic, 
 				&Numeric, Control, Info);
-		umfpack_free_symbolic(&Symbolic);
-		ASSERT(Symbolic == 0);
+		if (status == UMFPACK_ERROR_different_pattern) {
+			umfpack_free_symbolic(&Symbolic);
+			if (!PrepareSymbolic()) {
+				return;
+			}
+			status = umfpack_numeric(App, Aip, Axp, Symbolic, 
+					&Numeric, Control, Info);
+		}
 
 		if (status != UMFPACK_OK) {
 			umfpack_report_info(Control, Info);
@@ -152,6 +180,7 @@ Umfpack3SparseLUSolutionManager::Solve(void)
 			std::cerr << "umfpack_numeric failed" << std::endl;
 
 			/* de-allocate memory */
+			umfpack_free_symbolic(&Symbolic);
 			umfpack_free_numeric(&Numeric);
 			ASSERT(Numeric == 0);
 

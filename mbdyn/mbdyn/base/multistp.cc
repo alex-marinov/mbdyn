@@ -164,7 +164,7 @@ pFictitiousStepsMethod(NULL),
 db0Differential(0.),
 db0Algebraic(0.),
 iWorkSpaceSize(0),
-dPivotFactor(1.)
+dPivotFactor(-1.)
 {
 	DEBUGCOUTFNAME("MultiStepIntegrator::MultiStepIntegrator");
 
@@ -267,8 +267,8 @@ MultiStepIntegrator::Run(void)
       		SAFENEWWITHCONSTRUCTOR(pSM,
 			Y12SparseLUSolutionManager,
 			Y12SparseLUSolutionManager(iNumDofs,
-						   iWorkSpaceSize,
-						   dPivotFactor));
+				iWorkSpaceSize,
+				dPivotFactor == -1. ? 1. : dPivotFactor));
       		break;
 #else /* !USE_Y12 */
       		std::cerr << "Configure with --with-y12 "
@@ -281,8 +281,8 @@ MultiStepIntegrator::Run(void)
       		SAFENEWWITHCONSTRUCTOR(pSM,
 			MeschachSparseLUSolutionManager,
 			MeschachSparseLUSolutionManager(iNumDofs,
-						        iWorkSpaceSize,
-							dPivotFactor));
+				iWorkSpaceSize,
+				dPivotFactor == -1. ? 1. : dPivotFactor));
       		break;
 #else /* !USE_MESCHACH */
       		std::cerr << "Configure with --with-meschach "
@@ -296,8 +296,8 @@ MultiStepIntegrator::Run(void)
       		SAFENEWWITHCONSTRUCTOR(pSM,
 			HarwellSparseLUSolutionManager,
 			HarwellSparseLUSolutionManager(iNumDofs,
-						       iWorkSpaceSize,
-						       dPivotFactor));
+				iWorkSpaceSize,
+				dPivotFactor == -1. ? 1. : dPivotFactor));
       		break;
 #else /* !USE_HARWELL */
       		std::cerr << "Configure with --with-harwell "
@@ -309,7 +309,8 @@ MultiStepIntegrator::Run(void)
 #ifdef USE_UMFPACK3
       		SAFENEWWITHCONSTRUCTOR(pSM,
 			Umfpack3SparseLUSolutionManager,
-			Umfpack3SparseLUSolutionManager(iNumDofs));
+			Umfpack3SparseLUSolutionManager(iNumDofs, 
+				0, dPivotFactor));
       		break;
 #else /* !USE_UMFPACK3 */
       		std::cerr << "Configure with --with-umfpack3 "
