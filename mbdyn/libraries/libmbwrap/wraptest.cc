@@ -83,8 +83,16 @@ char *solvers[] = {
 		NULL
 };
 
+std::vector<doublereal> x_values;
+std::vector<integer> row_values;
+std::vector<integer> col_values;
+std::vector<integer> acol_values;
+SparseMatrixHandler *spM = 0;
+
 void SetupSystem(
+	const bool random,
 	const bool singular,
+	const char *const matrixfilename,
 	const char *const filename,
 	MatrixHandler *const pM, 
 	VectorHandler *const pV
@@ -92,45 +100,102 @@ void SetupSystem(
 	VariableSubMatrixHandler SBMH(10, 10);
 	FullSubMatrixHandler& WM = SBMH.SetFull();
 	
-	std::ifstream file;
-	int size(3);
+	std::ifstream ifile;
+	std::ofstream ofile;
+	int size = 3;
 	
 	if (filename == 0) {
+		if (random) {
+			int size = 0;
+			size = (*pM).iGetNumRows();
+			if (spM == 0) {
+				spM = new SpMapMatrixHandler(100);
 
-		WM.ResizeReset(3, 3);
-		WM.PutRowIndex(1,1);
-		WM.PutRowIndex(2,2);
-		WM.PutRowIndex(3,3);
-		WM.PutColIndex(1,1);
-		WM.PutColIndex(2,2);
-		WM.PutColIndex(3,3);
-		WM.PutCoef(1, 1, 1.);
-		WM.PutCoef(2, 2, 2.);
-		WM.PutCoef(2, 3, -1.);
-		WM.PutCoef(3, 2, 11.);
-		WM.PutCoef(3, 1, 10.);
-		if (singular) {
-			WM.PutCoef(3, 3, 0.);
-
+				int halfband = 0;
+				int activcol = 0;
+				double sprfct = 0.9;
+				std::cout << "Halfband?" << std::endl;
+				std::cin >> halfband;
+				std::cout << "Activcol?" << std::endl;
+				std::cin >> activcol;
+				std::cout << "Sprfct (hint: 0.9)?" << std::endl;
+				std::cin >> sprfct;
+			
+				for (int i = 0; i < size; i++) {
+					for (int k = (i - halfband) < 0 ? 0 : i - halfband; k < ((i + halfband) > size ? size : i + halfband); k++) {
+						if (((doublereal)rand())/RAND_MAX > sprfct) {
+							(*spM)(i+1, k+1) = 2.0*(((doublereal)rand())/RAND_MAX - 0.5);
+						}
+					}
+				}
+				for (int i = size - activcol; i < size; i++) {
+					for (int k = 0; k < size; k++) {
+						if (((doublereal)rand())/RAND_MAX > sprfct) {
+							(*spM)(k+1, i+1) = (*pM)(i+1, k+1) = 2.0*(((doublereal)rand())/RAND_MAX - 0.5);
+						}
+					}
+				}
+				for (int i = 0; i < size; i++) {
+					(*spM)(i+1, i+1) = 1;
+				}
+				std::cerr << "Passo di qui" << std::endl;
+				(*spM).MakeIndexForm(x_values, row_values, col_values, acol_values, 1);
+				if (matrixfilename != 0) {
+					std::cerr << "scrivo su " << matrixfilename << std::endl;
+					ofile.open(matrixfilename);
+					ofile << size << std::endl;
+					int n = x_values.size();
+					for (int i=0; i<n; i++) {
+						ofile << row_values[i] << " " <<  
+							col_values[i] << " " << 
+							x_values[i] << std::endl;;
+					}
+					ofile.close();
+				}
+			}
+			int n = x_values.size();
+			for (int i=0; i<n; i++) {
+				(*pM)(row_values[i], col_values[i]) = x_values[i];
+			}
+			for (int i = 1; i <= size; i++) {
+				pV->PutCoef(i, pM->dGetCoef(i,size));
+			}
 		} else {
-			WM.PutCoef(3, 3, 3.);
+
+			WM.ResizeReset(3, 3);
+			WM.PutRowIndex(1,1);
+			WM.PutRowIndex(2,2);
+			WM.PutRowIndex(3,3);
+			WM.PutColIndex(1,1);
+			WM.PutColIndex(2,2);
+			WM.PutColIndex(3,3);
+			WM.PutCoef(1, 1, 1.);
+			WM.PutCoef(2, 2, 2.);
+			WM.PutCoef(2, 3, -1.);
+			WM.PutCoef(3, 2, 11.);
+			WM.PutCoef(3, 1, 10.);
+			if (singular) {
+				WM.PutCoef(3, 3, 0.);
+			} else {
+				WM.PutCoef(3, 3, 3.);
+			}
+
+			*pM += SBMH;
+
+			pV->PutCoef(1, 1.);
+			pV->PutCoef(2, 1.);
+			pV->PutCoef(3, 1.);
+	
+			std::cout << *pM << "\n";
 		}
-	
-		*pM += SBMH;
-	
-		pV->PutCoef(1, 1.);
-		pV->PutCoef(2, 1.);
-		pV->PutCoef(3, 1.);
-	
-		std::cout << *pM << "\n";
 	} else {
-		file.open(filename);
-		file >> size;
+		ifile.open(filename);
+		ifile >> size;
 
 		integer count = 0;
 		integer row, col;
 		doublereal x;
-		while (file >> row >> col >> x) {
+		while (ifile >> row >> col >> x) {
 			if (row > size || col > size) {
 				std::cerr << "Fatal read error of file" << filename << std::endl;
 				std::cerr << "size: " << size << std::endl;
@@ -142,7 +207,7 @@ void SetupSystem(
 			count++;
 		}
 		
-		file.close();
+		ifile.close();
 		
 		for (integer i = 1; i <= size; i++) {
 			pV->PutCoef(i, pM->dGetCoef(i,size));
@@ -164,14 +229,24 @@ static inline unsigned long long rd_CPU_ts(void)
 static void
 usage(int err)
 {
-	std::cerr << "usage: wraptest [-c] [-d] [-m <solver>] [-s] [-t <nthreads>] [-f <filename>] [-o]" << std::endl
+	std::cerr << "usage: wraptest [-c] [-d] [-m <solver>] [-s] [-t <nthreads>] [-f <filename>] [-o] [-w <filename>] " << std::endl
 		<< "\t<solver>={" << solvers[0];
-	std::cerr << "If the matrix is loaded from file the solution should be [0 0 .... 1]" << std::endl;
-	std::cerr << "The file format is: size row col x row col x etc..." << std::endl;
 	for (int i = 1; solvers[i]; i++) {
 		std::cerr << "|" << solvers[i];
 	}
 	std::cerr << "}" << std::endl;
+	std::cerr << "-c : if possible, use compressed column matrix format" << std::endl;
+	std::cerr << "\tfor the naive solver: use colamd" << std::endl;
+	std::cerr << "-d : if possible, use dir matrix format" << std::endl;
+	std::cerr << "-s : (singular) with the 3x3 matrix, do not set the element (3,3)" << std::endl;
+	std::cerr << "-t : with multi-threaded solutors, use <nthreads> threads" << std::endl;
+	std::cerr << "-f <filename> : load the matrix from <filename>" << std::endl;
+	std::cerr << "\tIf the matrix is loaded from file the solution should be [0 0 .... 1]" << std::endl;
+	std::cerr << "\tThe file format is: size row col x row col x etc..." << std::endl;
+	std::cerr << "\tThe file format is: size row col x row col x etc..." << std::endl;
+	std::cerr << "-o : output of the solution" << std::endl;
+	std::cerr << "-r : generate a random matrix" << std::endl;
+	std::cerr << "-w : write the random matrix to <filename>" << std::endl;
 	exit(err);
 }
 
@@ -207,17 +282,19 @@ main(int argc, char *argv[])
 	double cpu_time_used;
 	
 	char *filename = 0;
+	char *matrixfilename = 0;
 	std::ifstream file;
+	bool random(false);
 	bool cc(false);
 	bool dir(false);
 	unsigned nt = 1;
 	bool singular(false);
 	bool output_solution(false);
-	int size(3);
+	int size = 3;
 	long long tf;
-
+	
 	while (1) {
-		int opt = getopt(argc, argv, "cdm:st:f:o");
+		int opt = getopt(argc, argv, "cdm:st:f:orw:");
 
 		if (opt == EOF) {
 			break;
@@ -255,6 +332,15 @@ main(int argc, char *argv[])
 			output_solution = true;
 			break;
 
+		case 'r':
+			random = true;
+			break;
+			
+		case 'w':
+			matrixfilename = optarg;
+			break;
+
+
 		default:
 			usage(EXIT_FAILURE);
 		}
@@ -264,6 +350,9 @@ main(int argc, char *argv[])
 		file.open(filename);
 		file >> size;
 		file.close();
+	} else if (random) {
+		std::cout << "Matrix size?" << std::endl;
+		std::cin >> size;
 	}
 	
 	std::cerr << std::endl;
@@ -478,7 +567,7 @@ main(int argc, char *argv[])
 
 	pM->Reset();
 
-	SetupSystem(singular, filename, pM, pV);
+	SetupSystem(random, singular, matrixfilename, filename, pM, pV);
 	
 	try {
 		start = clock();
@@ -509,7 +598,7 @@ main(int argc, char *argv[])
 
 	pM->Reset();
 
-	SetupSystem(singular, filename, pM, pV);
+	SetupSystem(random, singular, 0, filename, pM, pV);
 	
 	try {
 		start = clock();
