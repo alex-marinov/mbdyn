@@ -485,6 +485,10 @@ class FullSubMatrixHandler : public SubMatrixHandler {
     void Add(integer iRow, integer iCol, const MatNx3& m);
     void Sub(integer iRow, integer iCol, const MatNx3& m);
 
+    flag fPutDiag(integer iFirstRow, integer iFirstCol, const Vec3& v);
+    flag fPutDiag(integer iFirstRow, integer iFirstCol, const doublereal& v);
+    flag fPutCross(integer iFirstRow, integer iFirstCol, const Vec3& v);
+
    /*Interazione con le matrici */
    
    /* 
@@ -807,6 +811,26 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
       
       return flag(0);
    }
+
+   /*
+    Scrive una matrice diagonale nella posizione assegnata.
+    @param iSubIt     sottoindice iniziale (numero della prima entry)
+    @param iFirstRow  indice della prima riga della matrice completa
+    @param iFirstCol  indice della prima colonna della matrice completa
+    @param v          vettore diagonale della matrice
+    */
+   flag fPutDiag(integer iSubIt, integer iFirstRow,
+		   integer iFirstCol, const Vec3& v);
+   
+   /*
+    Scrive una matrice diagonale nella posizione assegnata.
+    @param iSubIt     sottoindice iniziale (numero della prima entry)
+    @param iFirstRow  indice della prima riga della matrice completa
+    @param iFirstCol  indice della prima colonna della matrice completa
+    @param d          coefficiente della diagonale della matrice
+    */
+   flag fPutDiag(integer iSubIt, integer iFirstRow,
+		   integer iFirstCol, const doublereal& d);
    
    /*
     Scrive una matrice prodotto vettore nella posizione assegnata.

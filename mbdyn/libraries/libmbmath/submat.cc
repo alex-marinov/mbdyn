@@ -344,6 +344,87 @@ void FullSubMatrixHandler::Put(integer iRow, integer iCol, const Mat3xN& m)
 }
 
 
+/* setta una matrice di tipo Mat3xN in una data posizione */
+flag
+FullSubMatrixHandler::fPutDiag(integer iFirstRow, integer iFirstCol, 
+		const Vec3& v)
+{
+   /* iFirstRow e iFirstCol sono gli indici effettivi di riga e colonna -1
+    * es. per il primo coefficiente:
+    *     iRow = 0, iCol = 0 */
+   
+#ifdef DEBUG
+   IsValid();
+   
+   ASSERT((iFirstRow >= 0) && (iFirstRow <= iNumRows-3));
+   ASSERT((iFirstCol >= 0) && (iFirstCol <= iNumCols-3));
+#endif	
+
+   const doublereal *pdv = v.pGetVec();
+
+   fPutCoef(iFirstRow+1, iFirstCol+1, pdv[V1]);
+   fPutCoef(iFirstRow+2, iFirstCol+2, pdv[V2]);
+   fPutCoef(iFirstRow+3, iFirstCol+3, pdv[V3]);
+
+   return flag(0);
+}
+
+
+/* setta una matrice di tipo Mat3xN in una data posizione */
+flag
+FullSubMatrixHandler::fPutDiag(integer iFirstRow, integer iFirstCol, 
+		const doublereal& d)
+{
+   /* iFirstRow e iFirstCol sono gli indici effettivi di riga e colonna -1
+    * es. per il primo coefficiente:
+    *     iRow = 0, iCol = 0 */
+   
+#ifdef DEBUG
+   IsValid();
+   
+   ASSERT((iFirstRow >= 0) && (iFirstRow <= iNumRows-3));
+   ASSERT((iFirstCol >= 0) && (iFirstCol <= iNumCols-3));
+#endif	
+
+   fPutCoef(iFirstRow+1, iFirstCol+1, d);
+   fPutCoef(iFirstRow+2, iFirstCol+2, d);
+   fPutCoef(iFirstRow+3, iFirstCol+3, d);
+
+   return flag(0);
+}
+
+
+/* setta una matrice di tipo Mat3xN in una data posizione */
+flag
+FullSubMatrixHandler::fPutCross(integer iFirstRow, integer iFirstCol, 
+		const Vec3& v)
+{
+   /* iFirstRow e iFirstCol sono gli indici effettivi di riga e colonna -1
+    * es. per il primo coefficiente:
+    *     iRow = 0, iCol = 0 */
+   
+#ifdef DEBUG
+   IsValid();
+   
+   ASSERT((iFirstRow >= 0) && (iFirstRow <= iNumRows-3));
+   ASSERT((iFirstCol >= 0) && (iFirstCol <= iNumCols-3));
+#endif	
+
+   const doublereal *pdv = v.pGetVec();
+
+   fPutCoef(iFirstRow+1, iFirstCol+2, -pdv[V3]);
+   fPutCoef(iFirstRow+1, iFirstCol+3, pdv[V2]);
+
+   fPutCoef(iFirstRow+2, iFirstCol+1, pdv[V3]);
+   fPutCoef(iFirstRow+2, iFirstCol+3, -pdv[V1]);
+
+   fPutCoef(iFirstRow+3, iFirstCol+1, -pdv[V2]);
+   fPutCoef(iFirstRow+3, iFirstCol+2, pdv[V1]);
+
+   return flag(0);
+}
+
+
 /* somma la matrice ad un matrix handler usando i metodi generici */
 MatrixHandler& FullSubMatrixHandler::AddTo(MatrixHandler& MH) const {
 #ifdef DEBUG
@@ -513,6 +594,115 @@ void SparseSubMatrixHandler::IsValid(void) const
 }
 
 
+flag SparseSubMatrixHandler::fPutDiag(integer iSubIt, integer iFirstRow, 
+				       integer iFirstCol, const Vec3& v)
+{
+#ifdef DEBUG
+   IsValid();
+   
+   ASSERT(iNumItems >= 3);
+   ASSERT(iSubIt > 0 && iSubIt <= iNumItems-2);
+   ASSERT(iFirstRow >= 0);
+   ASSERT(iFirstCol >= 0);
+#endif	
+   
+   /* Attenzione agli argomenti:
+    * iSubIt e' il primo indice della matrice da utilizzare,
+    * con 1 <= iSubit <= iCurSize;
+    * iFirstRow e' il primo indice di riga -1, ovvero il
+    * primo indice di riga della sottomatrice diag(v) piena e' iFirstRow+1
+    * iFirstCol e' il primo indice di colonna -1, ovvero il
+    * primo indice di colonna della sottomatrice diag(v) piena e' iFirstCol+1
+    * v e' il vettore che genera diag(v) */
+   
+   /* Matrice diag(v) :
+    * 
+    *         1   2   3
+    * 
+    * 1    |  v1  0   0  |
+    * 2    |  0   v2  0  |
+    * 3    |  0   0   v3 |
+    */
+
+   /* assume che il Vec3 sia un'array di 3 reali */
+   const doublereal* pdFrom = v.pGetVec();
+   
+   doublereal* pdm = pdMat+(--iSubIt);
+   integer* pir = piRow+iSubIt;
+   integer* pic = piCol+iSubIt;
+   
+   /* Coefficiente 1,1 */
+   pdm[0] = pdFrom[V1];
+   pir[0] = iFirstRow+1;
+   pic[0] = iFirstCol+1;
+   
+   /* Coefficiente 2,2 */
+   pdm[1] = pdFrom[V2];
+   pir[1] = iFirstRow+2;
+   pic[1] = iFirstCol+2;
+   
+   /* Coefficiente 3,3 */
+   pdm[2] = pdFrom[V3];
+   pir[2] = iFirstRow+3;
+   pic[2] = iFirstCol+3;
+   
+   return flag(0);
+}
+
+
+flag SparseSubMatrixHandler::fPutDiag(integer iSubIt, integer iFirstRow, 
+				       integer iFirstCol, const doublereal& d)
+{
+#ifdef DEBUG
+   IsValid();
+   
+   ASSERT(iNumItems >= 3);
+   ASSERT(iSubIt > 0 && iSubIt <= iNumItems-2);
+   ASSERT(iFirstRow >= 0);
+   ASSERT(iFirstCol >= 0);
+#endif	
+   
+   /* Attenzione agli argomenti:
+    * iSubIt e' il primo indice della matrice da utilizzare,
+    * con 1 <= iSubit <= iCurSize;
+    * iFirstRow e' il primo indice di riga -1, ovvero il
+    * primo indice di riga della sottomatrice I*d piena e' iFirstRow+1
+    * iFirstCol e' il primo indice di colonna -1, ovvero il
+    * primo indice di colonna della sottomatrice I*d piena e' iFirstCol+1
+    * v e' il vettore che genera I*d */
+   
+   /* Matrice I*d :
+    * 
+    *         1   2   3
+    * 
+    * 1    |  d   0   0 |
+    * 2    |  0   d   0 |
+    * 3    |  0   0   d |
+    */
+
+   doublereal* pdm = pdMat+(--iSubIt);
+   integer* pir = piRow+iSubIt;
+   integer* pic = piCol+iSubIt;
+   
+   /* Coefficiente 1,1 */
+   pdm[0] = d;
+   pir[0] = iFirstRow+1;
+   pic[0] = iFirstCol+1;
+   
+   /* Coefficiente 2,2 */
+   pdm[1] = d;
+   pir[1] = iFirstRow+2;
+   pic[1] = iFirstCol+2;
+   
+   /* Coefficiente 3,3 */
+   pdm[2] = d;
+   pir[2] = iFirstRow+3;
+   pic[2] = iFirstCol+3;
+   
+   return flag(0);
+}
+
+
 flag SparseSubMatrixHandler::fPutCross(integer iSubIt, integer iFirstRow, 
 				       integer iFirstCol, const Vec3& v)
 {
@@ -544,7 +734,7 @@ flag SparseSubMatrixHandler::fPutCross(integer iSubIt, integer iFirstRow,
     */
 
    /* assume che il Vec3 sia un'array di 3 reali */
-   doublereal* pdFrom = (doublereal*)v.pGetVec();
+   const doublereal* pdFrom = v.pGetVec();
    
    /* Coefficiente 1,2 */
    doublereal* pdm = pdMat+(--iSubIt);
