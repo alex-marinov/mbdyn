@@ -21,6 +21,8 @@ MBDyn 1.2-Engineering
 		- use ltdl library for loadable modules
 		- RelativeFrame dummy struct nodes can have offset
 		  and orientation with respect to the reference node
+		- added ".log" file for miscellaneous logs
+		- added ".air" file for air properties output
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility
@@ -30,6 +32,9 @@ MBDyn 1.2-Engineering
 		  in the element's frame (structural node 2).
 		- do not output RelativeFrame dummy struct nodes in ADAMS
 		  res format
+		- fixed c81 steady aerodynamic moment sign
+		- fixe dsome build problems related to old-style C #defines
+		  (mostly in <f2c.h> and <stdlib.h>)
 
 
 MBDyn 1.1.3
