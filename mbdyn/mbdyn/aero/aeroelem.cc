@@ -609,6 +609,7 @@ ReadAeroData(DataManager* pDM,
       		/* Driver di un'eventuale controllo */
       		*ppDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
       		HP.PutKeyTable(K);
+
    	} else {
       		SAFENEWWITHCONSTRUCTOR(*ppDC,
 			NullDriveCaller,
