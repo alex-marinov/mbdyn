@@ -638,7 +638,7 @@ where \texttt{psat} is the saturation pressure, according to equation
 
 
 
-\section{Node Degrees of Freedom}
+\section{Node Degrees of Freedom}\label{sec:node_dof}
 A node in MBDyn is nothing but an entity that owns degrees of freedom and
 can lend them to other entities. 
 Usually elements access nodal degrees of freedom through well-defined
@@ -674,17 +674,16 @@ In those cases, the contribution to the equation is added regardless
 of the order of the degree of freedom.
 
 \section{Drives and Drive Callers}\label{sec:DRIVES}
-Everytime some entity can be ``driven'', that is a value can be
+Everytime some entity can be ``driven'', i.e.\ a value can be
 expressed as depedent on some ``external'' input, an object of the class 
-\texttt{DriveCaller} is created. This requires the input of the properties of
-such an object. 
-The family of the \texttt{DriveCaller} object is very populated, 
-and should require a chapter.
+\texttt{DriveCaller} is used. 
+The family of the \texttt{DriveCaller} object is very large, 
+and should require a dedicated chapter.
 The type of the \texttt{DriveCaller} is declared as follows:
 \begin{verbatim}
     <drive_caller> ::= <drive_caller_type> , <arglist>
 \end{verbatim}    
-\texttt{arglist} is a list of arguments separated by commas.
+where \texttt{arglist} is a comma-separated list of arguments.
 As an exception, a constant \texttt{DriveCaller} (that behaves exactly as a
 numerical constant with little or no overhead depending on the optimizing
 capability of the compiler) is assumed when a numeric value is used instead
@@ -792,11 +791,20 @@ Linear interpolation between pairs is used.
                               <initial_value>
 \end{verbatim}
 the value of \texttt{number\_of\_cycles} determines the behavior of the
-drive. If it is positive, \texttt{number\_of\_cycles}$-1/2$ oscillations are
-performed. If it is equal to zero, the oscillations never end. If it is
-negative, the oscillations end after 
+drive. 
+If it is positive, \texttt{number\_of\_cycles}$-1/2$ oscillations are
+performed. 
+If it is equal to zero, the oscillations never end. 
+If it is negative, the oscillations end after 
 \texttt{number\_of\_cycles}$-3/4$ cycles at the top of the sine, with null
 tangent.
+Special keywords can be used for \texttt{number\_of\_cycles}:
+\begin{itemize}
+	\item \texttt{forever}, which means the oscillation never stops;
+	\item \texttt{one}, which means exactly one cycle is performed;
+	\item \texttt{half}, which means exactly half cycle is performed,
+	so the function stops at \texttt{amplitude} + \texttt{initial\_value}.
+\end{itemize}
 
 \subsubsection{Cosine drive}
 \begin{verbatim}
@@ -808,11 +816,19 @@ tangent.
 \end{verbatim}
 this drive actually computes a function of the type $ 1-\llk{cos}\plbr{x} $.
 The value of \texttt{number\_of\_cycles} determines the behavior of the
-drive. If it is positive, \texttt{number\_of\_cycles} oscillations are
-performed. If it is equal to zero, the oscillations never end. If it is
-negative, the oscillations end after
+drive. 
+If it is positive, \texttt{number\_of\_cycles} oscillations are
+performed. If it is equal to zero, the oscillations never end. 
+If it is negative, the oscillations end after
 \texttt{number\_of\_cycles}$-1/2$ cycles at the top of the cosine, with null
 tangent.   
+Special keywords can be used for \texttt{number\_of\_cycles}:
+\begin{itemize}
+	\item \texttt{forever}, which means the oscillation never stops;
+	\item \texttt{one}, which means exactly one cycle is performed;
+	\item \texttt{half}, which means exactly half cycle is performed,
+	so the function stops at \texttt{amplitude} + \texttt{initial\_value}.
+\end{itemize}
 
 \subsubsection{Frequency sweep drive}
 \begin{verbatim}
@@ -857,39 +873,46 @@ A family of file drivers is being planned.
 At present only a multiple-valued, constant time-step file drive is
 implemented.
 The \texttt{DriveCaller} is attached to a file drive object that must be declared
-and defined in the \hyperref{\texttt{drivers}}{\texttt{drive}}{}{sec:DRIVERS} section 
+and defined in the \htmlref{\texttt{drivers}}{sec:DRIVERS} section 
 of the input file (see Section~\ref{sec:DRIVERS}).
 \begin{verbatim}
     <drive_caller> ::= file , <drive_label> [ , <column_number> ]
 \end{verbatim}
-\texttt{drive\_label} is the label of the drive the caller is attached to, while
-\texttt{column\_number} is the number of the column the caller refers to (defaults to 1).
+\texttt{drive\_label} is the label of the \htmlref{\texttt{drive}}{sec:DRIVES} 
+the \texttt{DriveCaller} is attached to, while
+\texttt{column\_number} is the number of the column the \texttt{DriveCaller}
+refers to (defaults to 1).
 
 \subsubsection{String drive}
 \begin{verbatim}
     <drive_caller> ::= string , " <expression_string> "
 \end{verbatim}
 \texttt{expression\_string} is a string, delimited by double quotes.
-It is parsed by the math parser every time the driver is invoked.
+It is parsed by the math parser every time 
+the \htmlref{\texttt{drive}}{sec:DRIVES} is invoked.
 The valiable \texttt{Time} is kept up to date and can be used in the 
 string to compute the return value.
 Another variable, \texttt{Var}, is set to the value provided by the caller
-in case the drive is called with an explicit argument.
+in case the drive is called with an explicit argument as, for instance,
+in the \hyperref{dof drive}{dof drive (see Section~}{)}{sec:DOF-DRIVE-CALLER}.
 
-\subsubsection{Dof drive}
+\subsubsection{Dof drive}\label{sec:DOF-DRIVE-CALLER}
 \begin{verbatim}
     <drive_caller> ::= dof , (node_dof) <driving_dof> ,
-                             <func_drive>
+                             (drive_caller) <func_drive>
 \end{verbatim}
-a \texttt{node\_dof}, namely the reference to a degree of freedom of a node,
-is read. 
+a \hyperref{\texttt{node\_dof}}{\texttt{node\_dof} (see Section~}{)}{sec:node_dof}, 
+namely the reference to a degree of freedom of a node, is read. 
 Then a recursive call to a drive data is read. 
-The driver returns the value of the \texttt{func\_drive} using the value of the 
-\texttt{node\_dof} as input instead of the time. 
+The driver returns the value of the \texttt{func\_drive} 
+\htmlref{\texttt{drive}}{sec:DRIVES} using the value of the 
+\htmlref{\texttt{node\_dof}}{sec:node_dof} as input instead of the time. 
 This can be used as a sort of explicit feedback, to implement fancy
 springs (where a force is driven through a function by the displacement
 of the node it is applied to) or an active control system. 
-Refer to the description of a \texttt{node\_dof} entry for further details.
+Refer to the description of a 
+\hyperref{\texttt{node\_dof}}{\texttt{node\_dof} (see Section~}{)}{sec:node_dof} 
+entry for further details.
 
 \subsubsection{Array drive}
 \begin{verbatim}
