@@ -1853,7 +1853,6 @@ MathParser::GetForever(const InputStream& strm, ostream& out, const char* const 
 int 
 MathParser::RegisterPlugIn(const char *name, MathParser::PlugIn * (*constructor)(MathParser&, void *), void *arg)
 {
-   cerr << "registering plugin '" << name << "'" << endl;
    PlugInRegister *p = NULL;
    SAFENEW(p, PlugInRegister, MPmm);
    SAFESTRDUP(p->name, name, MPmm);
