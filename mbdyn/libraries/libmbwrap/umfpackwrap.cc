@@ -68,14 +68,22 @@
 #ifdef HAVE_UMFPACK4
 
 /*
- * Wrap of the required functions; uses the calling convention 
+ * Wrap of the required functions; (mostly) uses the calling convention 
  * of umfpack 3.0 so the matrix must be square
  */
+
 #define UMFPACKWRAP_defaults 		umfpack_di_defaults
 #define UMFPACKWRAP_free_symbolic 	umfpack_di_free_symbolic
 #define UMFPACKWRAP_free_numeric 	umfpack_di_free_numeric
-#define UMFPACKWRAP_symbolic(size, app, aip, sym, ctrl, info) \
+
+#ifdef HAVE_UMFPACK4_1
+#define UMFPACKWRAP_symbolic(size, app, aip, axp, sym, ctrl, info) \
+	umfpack_di_symbolic(size, size, app, aip, axp, sym, ctrl, info)
+#else /* !HAVE_UMFPACK4_1 */
+#define UMFPACKWRAP_symbolic(size, app, aip, axp, sym, ctrl, info) \
 	umfpack_di_symbolic(size, size, app, aip, sym, ctrl, info)
+#endif /* !HAVE_UMFPACK4_1 */
+
 #define UMFPACKWRAP_report_info 	umfpack_di_report_info
 #define UMFPACKWRAP_report_status 	umfpack_di_report_status
 #define UMFPACKWRAP_numeric 		umfpack_di_numeric
@@ -93,7 +101,8 @@
 #define UMFPACKWRAP_defaults 		umfpack_defaults
 #define UMFPACKWRAP_free_symbolic 	umfpack_free_symbolic
 #define UMFPACKWRAP_free_numeric 	umfpack_free_numeric
-#define UMFPACKWRAP_symbolic		umfpack_symbolic
+#define UMFPACKWRAP_symbolic(size, app, aip, axp, sym, ctrl, info) \
+	umfpack_symbolic(size, app, aip, sym, ctrl, info)
 #define UMFPACKWRAP_report_info 	umfpack_report_info
 #define UMFPACKWRAP_report_status 	umfpack_report_status
 #define UMFPACKWRAP_numeric 		umfpack_numeric
@@ -162,9 +171,10 @@ UmfpackSparseLUSolutionManager::PrepareSymbolic(void)
 {
 	const int* const Aip = &(Ai[0]);
 	const int* const App = &(Ap[0]);
+	const double* const Axp = &(Ax[0]);
 	int status;
 
-	status = UMFPACKWRAP_symbolic(b.size(), App, Aip, 
+	status = UMFPACKWRAP_symbolic(b.size(), App, Aip, Axp,
 			&Symbolic, Control, Info);
 	if (status != UMFPACK_OK) {
 		UMFPACKWRAP_report_info(Control, Info) ;

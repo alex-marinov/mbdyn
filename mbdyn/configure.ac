@@ -660,9 +660,10 @@ if test $ol_with_umfpack != no ; then
 	if test $ac_cv_header_umfpack_h = yes ; then
 
 		AC_MSG_CHECKING([for umfpack library])
-		try_umfpack_LIBS="-lumfpack -lcblas -latlas"
+		# try_umfpack_LIBS="-lumfpack -lcblas -latlas"
+		try_umfpack_LIBS="-lumfpack"
 		save_LIBS=$LIBS
-		LIBS="$LIBS $try_umfpack_LIBS"
+		LIBS="$try_umfpack_LIBS $LIBS"
 		AC_TRY_LINK([
 #include <umfpack.h>
 ],[
@@ -675,24 +676,43 @@ if test $ol_with_umfpack != no ; then
 			double Control[UMFPACK_CONTROL];
 			umfpack_dl_defaults(Control);
 		],[have_umfpack4=yes],[have_umfpack4=no])
+		AC_TRY_LINK([
+#include <umfpack.h>
+],[
+#define SIZE 2
+			int n_row = SIZE, n_col = SIZE;
+			const int Ap[SIZE], Ai[SIZE];
+			const double Ax[SIZE];
+			void *Symbolic;
+			const double Control[UMFPACK_CONTROL];
+			double Info[UMFPACK_INFO];
+
+			umfpack_di_symbolic(n_row, n_col, Ap, Ai, Ax, &Symbolic, Control, Info);
+		],[have_umfpack4_1=yes],[have_umfpack4_1=no])
 		LIBS=$save_LIBS
 
 		if test $have_umfpack != no ; then
 			UMFPACK_LIBS="$try_umfpack_LIBS"
-			AC_DEFINE(USE_UMFPACK,1,[define if you want to use Umfpack])
 			if test $have_umfpack4 != no ; then
 				AC_DEFINE(HAVE_UMFPACK4,1,[define if Umfpack4 is available])
+				if test $have_umfpack4_1 != no ; then
+					AC_DEFINE(HAVE_UMFPACK4_1,1,[define if Umfpack4.1 is available])
+				fi
 			fi
 			ol_link_umfpack=yes
 			if test $have_umfpack4 != no ; then
-				AC_MSG_RESULT([(>= 4.0) yes])
+				if test $have_umfpack4_1 != no ; then
+					AC_MSG_RESULT([(>= 4.1) yes])
+				else
+					AC_MSG_RESULT([(>= 4.0) yes])
+				fi
 			else
 				AC_MSG_RESULT([yes])
 			fi
 		else
 			try_umfpack_LIBS="-lumfpack"
 			save_LIBS=$LIBS
-			LIBS="$LIBS $try_umfpack_LIBS"
+			LIBS="$try_umfpack_LIBS $LIBS"
 			AC_TRY_LINK([
 #include <umfpack.h>
 ],[
@@ -709,7 +729,6 @@ if test $ol_with_umfpack != no ; then
 	
 			if test $have_umfpack != no ; then
 				UMFPACK_LIBS="$try_umfpack_LIBS"
-				AC_DEFINE(USE_UMFPACK,1,[define if you want to use Umfpack])
 				if test $have_umfpack4 != no ; then
 					AC_DEFINE(HAVE_UMFPACK4,1,[define if Umfpack4 is available])
 				fi
@@ -734,6 +753,8 @@ if test $ol_with_umfpack != no ; then
 			AC_MSG_WARN([Could not locate Umfpack])
 			AC_MSG_WARN([Umfpack not supported!])
 		fi
+	else
+		AC_DEFINE(USE_UMFPACK,1,[define if you want to use Umfpack])
 	fi
 else
 	AC_MSG_WARN([Umfpack not supported!])

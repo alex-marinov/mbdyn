@@ -36,6 +36,7 @@ MBDyn 1.2-Engineering
 		- modal element active mode listing
 		- added revolute/universal rotation joints, e.g.
 		  revolute/universal joints with no position constraint
+		- added Umfpack 4.1 support
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility
