@@ -118,7 +118,7 @@ void Rotor::Output(OutputHandler& OH) const
     if (fToBeOutput()) {
 #ifdef USE_MPI
         if (RotorComm.Get_size() > 1) { 
-	    if (!RotorComm.Get_rank()) {
+	    if (RotorComm.Get_rank() == 0) {
 		Vec3 TmpF(TmpVecR), TmpM(TmpVecR+3);
 		Mat3x3 RT((pCraft->GetRCurr()).Transpose());
 		OH.Rotors() << setw(8) << GetLabel() << " " 
@@ -217,10 +217,7 @@ void Rotor::InitParam(void)
 
    /* Velocita' angolare del rotore */
    Vec3 Omega(pRotor->GetWCurr()-pCraft->GetWCurr());
-   dOmega = Omega.Dot();
-   if (dOmega > DBL_EPSILON) {
-      dOmega = sqrt(dOmega);
-   }      
+   dOmega = Omega.Norm();
    
    /* Velocita' di traslazione del velivolo */
    VCraft = -(pRotor->GetVCurr());
@@ -350,7 +347,7 @@ void Rotor::InitializeRotorComm(MPI::Intracomm* Rot)
 void Rotor::ExchangeVelocity(void) 
 {
   if (RotorComm.Get_size() > 1){
-    if (!RotorComm.Get_rank()) {
+    if (RotorComm.Get_rank() == 0) {
       for (int i=1; i < RotorComm.Get_size(); i++) {
         RotorComm.Send(MPI::BOTTOM, 1, *pRotDataType, i, 100);
       }
@@ -412,7 +409,7 @@ SubVectorHandler& NoRotor::AssRes(SubVectorHandler& WorkVec,
   if (fToBeOutput()) {
     ExchangeTraction(fToBeOutput());
   }
-  if (!RotorComm.Get_rank()) {
+  if (RotorComm.Get_rank() == 0) {
 #endif /* USE_MPI */   
     
      /* Velocita' angolare del rotore */
@@ -545,7 +542,7 @@ SubVectorHandler& UniformRotor::AssRes(SubVectorHandler& WorkVec,
 
 #ifdef USE_MPI
    ExchangeTraction(fToBeOutput());
-   if (!RotorComm.Get_rank()) {
+   if (RotorComm.Get_rank() == 0) {
 #endif /* USE_MPI */  
 
 
@@ -580,9 +577,9 @@ SubVectorHandler& UniformRotor::AssRes(SubVectorHandler& WorkVec,
      /* Non tocca il residuo */
 #ifdef USE_MPI 
    }
-   ResetTraction();
    ExchangeVelocity();
 #endif /* USE_MPI */   
+   ResetTraction();
    WorkVec.Resize(0);
    return WorkVec;  
 }
@@ -703,7 +700,7 @@ SubVectorHandler& GlauertRotor::AssRes(SubVectorHandler& WorkVec,
 
 #ifdef USE_MPI
    ExchangeTraction(fToBeOutput());
-   if (!RotorComm.Get_rank()) {
+   if (RotorComm.Get_rank() == 0) {
 #endif /* USE_MPI */
 
      /* Calcola parametri vari */
@@ -712,11 +709,11 @@ SubVectorHandler& GlauertRotor::AssRes(SubVectorHandler& WorkVec,
 #ifdef USE_MPI 
    }
    
-   ResetTraction();
    ExchangeVelocity();
 #endif /* USE_MPI */
 
    /* Non tocca il residuo */
+   ResetTraction();
    WorkVec.Resize(0);
    return WorkVec;  
 }
@@ -849,7 +846,7 @@ SubVectorHandler& ManglerRotor::AssRes(SubVectorHandler& WorkVec,
 
 #ifdef USE_MPI
    ExchangeTraction(fToBeOutput());
-   if (!RotorComm.Get_rank()) {
+   if (RotorComm.Get_rank() == 0) {
 #endif /* USE_MPI */
 
      /* Calcola parametri vari */
@@ -883,11 +880,11 @@ SubVectorHandler& ManglerRotor::AssRes(SubVectorHandler& WorkVec,
 
 #ifdef USE_MPI 
    }
-   ResetTraction();
    ExchangeVelocity();
 #endif /* USE_MPI */
 
    /* Non tocca il residuo */
+   ResetTraction();
    WorkVec.Resize(0);
    return WorkVec;  
 }
@@ -1056,7 +1053,7 @@ void DynamicInflowRotor::Output(OutputHandler& OH) const
     * totale per l'output, cosi' evito il giro dei cast */
 #ifdef USE_MPI
  if (RotorComm.Get_size() > 1) {
-   if (!RotorComm.Get_rank()) {
+   if (RotorComm.Get_rank() == 0) {
      if (fToBeOutput()) {
        Vec3 TmpF(TmpVecR), TmpM(TmpVecR+3);
        Mat3x3 RT((pCraft->GetRCurr()).Transpose());
@@ -1091,7 +1088,7 @@ DynamicInflowRotor::AssJac(VariableSubMatrixHandler& WorkMat,
 {
    DEBUGCOUT("Entering DynamicInflowRotor::AssJac()" << endl);
 #ifdef USE_MPI 
-   if (!RotorComm.Get_rank()) {
+   if (RotorComm.Get_rank() == 0) {
 #endif /* USE_MPI */     
       SparseSubMatrixHandler& WM = WorkMat.SetSparse();
       WM.ResizeInit(5, 0, 0.);
@@ -1124,7 +1121,7 @@ SubVectorHandler& DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 #ifdef USE_MPI
    ExchangeTraction(flag(1));
    
-   if (!RotorComm.Get_rank()) {
+   if (RotorComm.Get_rank() == 0) {
 #endif /* USE_MPI */
 
      /* Calcola parametri vari */
@@ -1237,8 +1234,8 @@ SubVectorHandler& DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
    } else {
 
      /* Ora la trazione non serve piu' */
-     ResetTraction();
      ExchangeVelocity();
+     ResetTraction();
      WorkVec.Resize(0);
    }
 #endif /* USE_MPI */
