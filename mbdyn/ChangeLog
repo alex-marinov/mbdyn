@@ -9,6 +9,7 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 *** Tue May  7 15:39:42 CEST 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - added vec2rot to utils; need to rework and document stuff ...
+ - silenced warning due to uninitialized MPI stuff in dof drives input
 
 *** Wed Apr 24 15:21:53 CEST 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - 1.1.2 released
