@@ -205,3 +205,28 @@ void ModLugreFriction::AssJac(
 	dfc.Set(sigma2,2); dfc.Link(2,&dv);
 	dfc.Set(sigma0*dCoef+sigma1,3,startdof+1);
 };
+
+
+SimplePlaneHingeJointSh_c::SimplePlaneHingeJointSh_c(const doublereal rr): 
+	r(rr) {};
+	
+doublereal SimplePlaneHingeJointSh_c::Sh_c(
+	const doublereal f,
+	const doublereal F,
+	const doublereal v) const {
+	return r/std::sqrt(1.+f*f);
+};
+
+void SimplePlaneHingeJointSh_c::dSh_c(
+	ExpandableRowVector& dShc,
+	const doublereal f,
+	const doublereal F,
+	const doublereal v,
+	const ExpandableRowVector& dfc,
+	const ExpandableRowVector& dF,
+	const ExpandableRowVector& dv) const {
+		doublereal dsh = r*-0.5*std::pow(1.+f*f,-3./2.)*f;
+		dShc.ReDim(1);
+		dShc.Set(dsh,1);
+		dShc.Link(1,&dfc);
+};

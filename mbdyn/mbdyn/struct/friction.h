@@ -37,6 +37,8 @@
 #include "simentity.h"
 #include "JacSubMatrix.h"
 
+/** Base class for friction models
+ */
 class BasicFriction : public SimulationEntity{
 public:
 /*
@@ -71,6 +73,28 @@ public:
 		const VectorHandler& XP,
 		const ExpandableRowVector& dF,
 		const ExpandableRowVector& dv) = 0;
+};
+
+/** Base class for friction shape coefficient
+ */
+class BasicShapeCoefficient {
+public:
+/** Compute the shape coefficient
+ */
+	virtual doublereal Sh_c(
+		const doublereal f,
+		const doublereal F,
+		const doublereal v) const = 0;
+/** Compute derivatives of the shape coefficient
+ */
+	virtual void dSh_c(
+		ExpandableRowVector& dShc,
+		const doublereal f,
+		const doublereal F,
+		const doublereal v,
+		const ExpandableRowVector& dfc,
+		const ExpandableRowVector& dF,
+		const ExpandableRowVector& dv) const = 0;
 };
 
 /** A friction model based on 
@@ -122,6 +146,28 @@ public:
 		const ExpandableRowVector& dF,
 		const ExpandableRowVector& dv);
 };
+
+/** Simple, low load shape coefficient for revolute hinge (PlaneHingeJoint)
+ */
+class SimplePlaneHingeJointSh_c : public BasicShapeCoefficient {
+private:
+	doublereal r;
+public:
+	SimplePlaneHingeJointSh_c(const doublereal rr);
+	doublereal Sh_c(
+		const doublereal f,
+		const doublereal F,
+		const doublereal v) const;
+	void dSh_c(
+		ExpandableRowVector& dShc,
+		const doublereal f,
+		const doublereal F,
+		const doublereal v,
+		const ExpandableRowVector& dfc,
+		const ExpandableRowVector& dF,
+		const ExpandableRowVector& dv) const;
+};
+
 
 #endif /* FRICTION_H */
 
