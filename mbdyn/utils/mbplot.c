@@ -40,7 +40,7 @@
 
 #include <ac/getopt.h>
 
-/* haldler to piped gnuplot */
+/* handler to piped gnuplot */
 FILE *gnuplot = NULL;
 
 /* Use this variable to remember original terminal attributes. */
