@@ -138,6 +138,7 @@ MBDynParser::Reference_(void)
 	<< GetLineData() << endl;
       THROW(MBDynParser::ErrReferenceAlreadyDefined());
    }
+   
    if (sName != NULL) {
       pRF->PutName(sName);
       SAFEDELETEARR(sName, MPmm);
@@ -157,6 +158,13 @@ MBDynParser::HydraulicFluid_(void)
    
    unsigned int uLabel(GetInt());
    
+   /* Nome del fluido */
+   const char *sName = NULL;
+   if (IsKeyWord("name")) {
+      const char *sTmp = GetStringWithDelims();
+      SAFESTRDUP(sName, sTmp, MPmm);
+   }
+   
    KeyTable CurrTable = KeyT;
    
    HydraulicFluid* pHF = ReadHydraulicFluid(*this, uLabel);
@@ -170,6 +178,11 @@ MBDynParser::HydraulicFluid_(void)
       cerr << "hydraulic fluid " << uLabel << "already defined at line"
 	<< GetLineData() << endl;
       THROW(MBDynParser::ErrGeneric());
+   }
+
+   if (sName != NULL) {
+      pHF->PutName(sName);
+      SAFEDELETEARR(sName, MPmm);
    }
 }
 #endif /* USE_HYDRAULIC_NODES */
@@ -185,6 +198,13 @@ MBDynParser::C81Data_(void)
    }
    
    unsigned int uLabel(GetInt());
+
+   /* Nome del profilo c81 */
+   const char *sName = NULL;
+   if (IsKeyWord("name")) {
+      const char *sTmp = GetStringWithDelims();
+      SAFESTRDUP(sName, sTmp, MPmm);
+   }
 
    const char* filename = GetFileName();
    ifstream in(filename);
@@ -217,6 +237,11 @@ MBDynParser::C81Data_(void)
       cerr << "c81 data " << uLabel << "already defined at line"
 	<< GetLineData() << endl;
       THROW(MBDynParser::ErrGeneric());
+   }
+
+   if (sName != NULL) {
+      data->PutName(sName);
+      SAFEDELETEARR(sName, MPmm);
    }
 }
 #endif /* USE_AERODYNAMIC_ELEMS */
