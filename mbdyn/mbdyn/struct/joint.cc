@@ -1026,7 +1026,7 @@ Elem* ReadJoint(DataManager* pDM,
        StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        DEBUGCOUT("Linked to Node " << pNode1->GetLabel() << std::endl);
 
-       Vec3 f1;
+       Vec3 f1(0.);
        if (HP.IsKeyWord("position")) {
           f1 = HP.GetPosRel(ReferenceFrame(pNode1));
 	  fOffset = 1;
@@ -1036,7 +1036,7 @@ Elem* ReadJoint(DataManager* pDM,
        StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        DEBUGCOUT("Linked to Node " << pNode2->GetLabel() << std::endl);
        
-       Vec3 f2;
+       Vec3 f2(0.);
        if (HP.IsKeyWord("position")) {
           f2 = HP.GetPosRel(ReferenceFrame(pNode2));
 	  fOffset = 1;
@@ -1105,6 +1105,14 @@ Elem* ReadJoint(DataManager* pDM,
        }
 	
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
+
+       std::ostream& out = pDM->GetLogFile();
+       out << "rod: " << uLabel
+		<< " " << pNode1->GetLabel()
+		<< " ", f1.Write(out, " ")
+		<< " " << pNode2->GetLabel()
+		<< " ", f2.Write(out, " ")
+		<< std::endl;
        
        if (fOffset == 1) {	      
 	  SAFENEWWITHCONSTRUCTOR(pEl, 
@@ -1215,6 +1223,14 @@ Elem* ReadJoint(DataManager* pDM,
        }
 	
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
+
+       std::ostream& out = pDM->GetLogFile();
+       out << "rod: " << uLabel
+		<< " " << pNode1->GetLabel()
+		<< " ", f1.Write(out, " ")
+		<< " " << pNode2->GetLabel()
+		<< " ", f2.Write(out, " ")
+		<< std::endl;
 
        SAFENEWWITHCONSTRUCTOR(pEl,
                               RodWithOffset,
