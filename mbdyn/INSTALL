@@ -81,9 +81,9 @@ Known Problems
 development was mainly based on gcc 2.7.X, and later on gcc egcs-2.91.X
 (egcs-1.1.2 release).
 
-   It is known that later versions, significantly gcc 2.95.X, fail
-at compiling redefinition of enums in descendant classes.  It is also
-known to fail at initializing const arrays with non-const values
+   It is known that later versions, significantly gcc 2.92.X and 2.95.X, 
+fail at compiling redefinition of enums in descendant classes.  It is 
+also known to fail at initializing const arrays with non-const values
 (e.g. "const double d = sqrt(2.);" is correctly initialized, but 
 "const double d[2] = { sqrt(2.); sqrt(3.) };" is not.
 
@@ -94,12 +94,14 @@ known to fail at initializing const arrays with non-const values
 a snapshot of gdb is required for debugging because the mangling of the
 names has changed.
 
-   The parallel implementation needs HSL (see 
+   The parallel implementation used to need HSL (see 
    
 	http://www.aero.polimi.it/projects/mbdyn/download
 
-for detailed instruction on how to gather it); work is underway to
-avoid this limitation.
+for detailed instruction on how to gather it); now all the other solvers
+can be used for either the local or the interface solution; note that
+there are still some limitations on the combinations of solvers that 
+can be used together.
 
    Other problems will be highlighted as soon as they show up.  Please
 drop a mail to mbdyn@aero.polimi.it in case you have problems compiling
