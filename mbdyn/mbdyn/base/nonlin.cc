@@ -64,14 +64,17 @@ NonlinearSolverTest::dScaleCoef(const integer& iIndex) const
 }
 
 doublereal
-NonlinearSolverTestNone::MakeTest(integer Size, const VectorHandler& Vec)
+NonlinearSolverTestNone::MakeTest(SolutionManager *pSM,
+		integer Size, const VectorHandler& Vec)
 {
    	DEBUGCOUTFNAME("NonlinearSolverTestNone::MakeTest");
+
 	return 0.;
 }
 
 doublereal
-NonlinearSolverTestNorm::MakeTest(integer Size, const VectorHandler& Vec)
+NonlinearSolverTestNorm::MakeTest(SolutionManager *pSM,
+		integer Size, const VectorHandler& Vec)
 {
    	DEBUGCOUTFNAME("NonlinearSolverTestNorm::MakeTest");
 
@@ -79,10 +82,12 @@ NonlinearSolverTestNorm::MakeTest(integer Size, const VectorHandler& Vec)
 	
 #ifdef USE_MPI
 #warning "NonlinearSolverTestNorm::MakeTest parallel broken !! "	
+
 #if 0
 	ASSERT(pSM != NULL);
-	SchurSolutionManager *pSSM;
-	if ((pSSM = dynamic_cast<SchurSolutionManager*> (pSM)) != 0) {
+
+	SchurSolutionManager *pSSM = dynamic_cast<SchurSolutionManager *>(pSM);
+	if (pSSM != 0) {
 		
 		/*
 		 * Chiama la routine di comunicazione per la trasmissione 
@@ -103,7 +108,7 @@ NonlinearSolverTestNorm::MakeTest(integer Size, const VectorHandler& Vec)
 		integer *pMI = pSDM->GetDofsList(SchurDataManager::MYINTERNAL);
 
 		/* verifica completamento trasmissioni */
-		pSSM->ComplExchInt(dRes, dXPr);
+		pSSM->ComplExchInt(Vec);
 		
 	} else {
 #endif
@@ -132,7 +137,8 @@ NonlinearSolverTestNorm::MakeTest(integer Size, const VectorHandler& Vec)
 }
 
 doublereal
-NonlinearSolverTestMinMax::MakeTest(integer Size, const VectorHandler& Vec)
+NonlinearSolverTestMinMax::MakeTest(SolutionManager *pSM,
+		integer Size, const VectorHandler& Vec)
 {
    	DEBUGCOUTFNAME("NonlinearSolverTestMinMax::MakeTest");
 
@@ -213,7 +219,8 @@ NonlinearSolverTestScale::dScaleCoef(const integer& iIndex) const
 }
 
 doublereal
-NonlinearSolverTestScaleNorm::MakeTest(integer Size, const VectorHandler& Vec)
+NonlinearSolverTestScaleNorm::MakeTest(SolutionManager *pSM,
+		integer Size, const VectorHandler& Vec)
 {
 	DEBUGCOUTFNAME("NonlinearSolverTestScaleNorm::MakeTest");
 
@@ -281,7 +288,8 @@ NonlinearSolverTestScaleNorm::MakeTest(integer Size, const VectorHandler& Vec)
 }
 
 doublereal
-NonlinearSolverTestScaleMinMax::MakeTest(integer Size, const VectorHandler& Vec)
+NonlinearSolverTestScaleMinMax::MakeTest(SolutionManager *pSM,
+		integer Size, const VectorHandler& Vec)
 {
 	DEBUGCOUTFNAME("NonlinearSolverTestScaleMinMax::MakeTest");
 
@@ -374,43 +382,46 @@ NonlinearSolver::TotalAssembledJacobian(void)
 }
 
 doublereal
-NonlinearSolver::MakeResTest(const VectorHandler& Vec)
+NonlinearSolver::MakeResTest(SolutionManager *pSM, const VectorHandler& Vec)
 {
-	return pResTest->MakeTest(Size, Vec);
+	return pResTest->MakeTest(pSM, Size, Vec);
 }
 
 doublereal
-NonlinearSolver::MakeSolTest(const VectorHandler& Vec)
+NonlinearSolver::MakeSolTest(SolutionManager *pSM, const VectorHandler& Vec)
 {
-	return pSolTest->MakeTest(Size, Vec);
+	return pSolTest->MakeTest(pSM, Size, Vec);
 }
 
 #ifdef USE_EXTERNAL
-void NonlinearSolver::SetExternal(const External::ExtMessage Ty)
+
+void
+NonlinearSolver::SetExternal(const External::ExtMessage Ty)
 {
 	ExtStepType = Ty;
-	return;
 }
 
-void  NonlinearSolver::SendExternal(void)
+void
+NonlinearSolver::SendExternal(void)
 {
 	switch (ExtStepType) {
-		case (External::EMPTY):
-			External::SendNull();
-			break;
+	case (External::EMPTY):
+		External::SendNull();
+		break;
 
-		case (External::REGULAR):
-			External::SendRegular();
-			break;
+	case (External::REGULAR):
+		External::SendRegular();
+		break;
 
-		case (External::CLOSE):
-			External::SendClose();
-			break;
+	case (External::CLOSE):
+		External::SendClose();
+		break;
 
-		case (External::ERROR):
-		default:
-			External::SendError();
+	case (External::ERROR):
+	default:
+		External::SendError();
 	}
-	return;
 }
+
 #endif /* USE_EXTERNAL */
+

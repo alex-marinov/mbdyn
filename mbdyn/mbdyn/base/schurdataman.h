@@ -35,8 +35,8 @@
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  */
  
- /* E' una classe derivata da Data Manager che suddivide i dati in blocchi e li
-   assegna ai vari processi.
+ /* E' una classe derivata da Data Manager che suddivide
+  * i dati in blocchi e li assegna ai vari processi.
   */
  
 #ifndef SCHURDATAMAN_H
@@ -54,132 +54,94 @@
 #endif /* USE_MPI */
 
 class SchurDataManager : public DataManager {
+public:
+	class ErrGeneric {}; 
 
- public:
-  class ErrGeneric {}; 
-
- private:
-  int iTotVertices;               /* # totale dei vertici: nodi = elementi */ 
-  Elem** ppMyElems;                  /* Lista degli elementi assegnati a questo processo */
+private:
+	int iTotVertices;	/* # totale dei vertici: nodi = elementi */ 
+	Elem** ppMyElems;	/* Lista elementi assegnati a questo processo */
   
-  int iNumLocElems;               /* # di elementi assegnati a questo processo */
-  Elem** ppMyIntElems;
-  int iNumIntElems;
+	int iNumLocElems;	/* # di elementi assegnati a questo processo */
+	Elem** ppMyIntElems;
+	int iNumIntElems;
 
-  Node** ppMyNodes;                 /* Lista dei nodi assegnati a questo processo */
-  int iNumLocNodes;               /* # di nodi assegnati a questo processo */
-  integer* LocalDofs;
-  int iNumLocDofs;
-  integer* LocalIntDofs;
-  int iNumIntDofs;
-  Node** ppIntNodes;
-  int iNumIntNodes;
-  int iNumMyInt;
-  integer* pMyIntDofs;
-  unsigned int* pLabelsList;     /* struttura di servizio per CreatePartition*/
-  int wgtflag;  
-  int* pParAmgProcs; 
-	
- protected:
+	Node** ppMyNodes;	/* Lista dei nodi assegnati a questo processo */
+	int iNumLocNodes;	/* # di nodi assegnati a questo processo */
+	integer* LocalDofs;
+	int iNumLocDofs;
+	integer* LocalIntDofs;
+	int iNumIntDofs;
+	Node** ppIntNodes;
+	int iNumIntNodes;
+	int iNumMyInt;
+	integer* pMyIntDofs;
+	unsigned int* pLabelsList;	/* str. di serv. per CreatePartition */
+	int wgtflag;
+	int* pParAmgProcs; 
+
+protected:
 #ifdef USE_MPI
-  MPI::Intracomm DataComm; 
-  MPI::Intracomm* pRotorComm;
+	MPI::Intracomm DataComm; 
+	MPI::Intracomm* pRotorComm;
 #endif /* USE_MPI */
-  int MyRank, DataCommSize;
+	int MyRank, DataCommSize;
 
-  Node** ppExpCntNodes;
-  Elem** ppExpCntElems;
-  int iTotalExpConnections;
-  
- private: 
+	Node** ppExpCntNodes;
+	Elem** ppExpCntElems;
+	int iTotalExpConnections;
 
-  /* compatta il vettore delle adiacenze */
-  void Pack(int* pList, int dim);
+private:
 
-  /* Inizializza le varie liste che vengono utilizzate in CreatePartition */
-  void InitList(int* list, int dim, int value);
-  
-  Node** SearchNode(Node** ppFirst, int dim, unsigned int& label);
+	/* compatta il vettore delle adiacenze */
+	void Pack(int* pList, int dim);
 
-  void OutputPartition(void);
+	/* Inizializza le varie liste che vengono utilizzate 
+	 * in CreatePartition */
+	void InitList(int* list, int dim, int value);
 
- public:
-  /* Costruttore Inizializza i dati */
-  SchurDataManager(MBDynParser& HP, 
-		  unsigned OF,
-		  doublereal dInitialTime,
-		  const char* sInputFileName,
-		  const char* sOutputFileName,
-		  flag fAbortAfterInput);
+	Node** SearchNode(Node** ppFirst, int dim, unsigned int& label);
 
-  /* Distruttore libera la memoria */
-  ~SchurDataManager(void);
+	void OutputPartition(void);
 
+public:
+	/* Costruttore Inizializza i dati */
+	SchurDataManager(MBDynParser& HP,
+			unsigned OF,
+			doublereal dInitialTime,
+			const char* sInputFileName,
+			const char* sOutputFileName,
+			flag fAbortAfterInput);
 
-  /* Crea la partizione o la legge dal file fornito */
-  void CreatePartition(void);
+	/* Distruttore libera la memoria */
+	~SchurDataManager(void);
 
+	/* Crea la partizione o la legge dal file fornito */
+	void CreatePartition(void);
 
-  /* Assembla il residuo */
-  void AssRes(VectorHandler& ResHdl, doublereal dCoef);
+	/* Assembla il residuo */
+	void AssRes(VectorHandler& ResHdl, doublereal dCoef);
 
-  /* Assembla lo jacobiano */
-  void AssJac(MatrixHandler& JacHdl, doublereal dCoef);
+	/* Assembla lo jacobiano */
+	void AssJac(MatrixHandler& JacHdl, doublereal dCoef);
 
+	/* Funzioni di aggiornamento dati durante la simulazione */
+	void DerivativesUpdate(void) const;
+	void BeforePredict(VectorHandler& X, VectorHandler& XP, 
+			VectorHandler& XPrev, VectorHandler& XPPrev) const;
+	void AfterPredict(void) const;
+	void Update(void)const;
+	void AfterConvergence(void) const;
 
-  /* Funzioni di aggiornamento dati durante la simulazione */
-  void DerivativesUpdate(void) const;
-  void BeforePredict(VectorHandler& X, VectorHandler& XP, VectorHandler& XPrev, VectorHandler& XPPrev) const;
-  void AfterPredict(void) const;
-  void Update(void)const;
-  void AfterConvergence(void) const;
+	/* stampa i risultati */
+	void Output(void) const;
 
- /* stampa i risultati */
-  void Output(void) const;
+	enum DofType { TOTAL = 1, LOCAL = 2, INTERNAL = 3, MYINTERNAL = 4 };
 
-  enum DofType { TOTAL = 1, LOCAL = 2, INTERNAL = 3, MYINTERNAL = 4 };
-  integer HowManyDofs(DofType who) {
-    switch(who) {
-    case TOTAL:
-      return iTotDofs;
-      
-    case LOCAL:
-      return iNumLocDofs;
-      
-    case INTERNAL:
-      return iNumIntDofs;
-      
-    case MYINTERNAL:
-      return iNumMyInt;
-      
-    default:
-      std::cerr << "SchurDataManager::HowManyDofs: illegal request (" 
-	      << unsigned(who) << ")" << std::endl;
-      THROW(ErrGeneric());
-    } 
-  };
+	integer HowManyDofs(DofType who) const;
+  	integer* GetDofsList(DofType who) const;
 
-  integer* GetDofsList(DofType who) {
-    switch(who) {
-    case LOCAL:
-      return LocalDofs;
-      
-    case INTERNAL:
-      return LocalIntDofs;
-      
-    case MYINTERNAL: 
-      return pMyIntDofs;
-
-    default:
-      std::cerr << "SchurDataManager::GetDofsList: illegal request ("
-	      << unsigned(who) << ")" << std::endl;
-      THROW(ErrGeneric());
-    } 
-  };
-  
-  Dof* pGetDofsList(void) {
-    return pDofs;
-  };
+	Dof* pGetDofsList(void) const;
 };
+
 #endif /* SCHURDATAMAN_H */
 

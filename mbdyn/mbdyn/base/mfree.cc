@@ -42,14 +42,6 @@
 
 #include <precond_.h>
 #include <mfree.h>
-#ifdef USE_MPI
-#include <mbcomm.h>
-#include <schsolman.h>
-#endif /* USE_MPI */
-
-#include <dofown.h>
-#include <unistd.h>
-#include <ac/math.h>
 
 const doublereal defaultGamma = 0.9;
 

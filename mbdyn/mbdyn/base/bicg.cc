@@ -153,7 +153,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 			}
       		}
 
-		dErr = MakeResTest(*pRes) * pNLP->TestScale(pResTest);
+		dErr = MakeResTest(pSolMan, *pRes) * pNLP->TestScale(pResTest);
 
 #ifdef DEBUG_ITERATIVE
 		std::cerr << "dErr " << dErr << std::endl;
@@ -348,7 +348,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 		
       		pNLP->Update(&dx);
 
-		dSolErr = MakeSolTest(dx);
+		dSolErr = MakeSolTest(pSolMan, dx);
 		if (outputIters()) {
 #ifdef USE_MPI
 			if (MBDynComm.Get_rank() == 0) {

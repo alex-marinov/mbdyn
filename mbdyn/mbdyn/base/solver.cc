@@ -1379,7 +1379,7 @@ Solver::NewTimeStep(doublereal dCurrTimeStep,
 					
 			
 const integer iDefaultMaxIterations = 1;
-const doublereal dDefaultFictitiousStepsTolerance = 1.e-6;
+const doublereal dDefaultFictitiousStepsTolerance = dDefaultTol;
 
 
 /* Dati dell'integratore */
@@ -2106,773 +2106,757 @@ Solver::ReadData(MBDynParser& HP)
 		}	
 
 	 
-       case DERIVATIVESTOLERANCE: {
-	  dDerivativesTol = HP.GetReal();
-	  if (dDerivativesTol <= 0.) {
-	     dDerivativesTol = 1e-6;
-	     std::cerr
-	       << "warning, derivatives tolerance <= 0.0 "
-	       "is illegal; switching to default value " 
-	       << dDerivativesTol
-	       << std::endl;
-	  }		       		  
-	  DEBUGLCOUT(MYDEBUG_INPUT, 
-		     "Derivatives tolerance = " << dDerivativesTol
-		     << std::endl);
-	  break;
-       }
-	 
-       case MAXITERATIONS: {
-	  iMaxIterations = HP.GetInt();
-	  if (iMaxIterations < 1) {
-	     iMaxIterations = iDefaultMaxIterations;
-	     std::cerr 
-	       << "warning, max iterations < 1 is illegal; "
-	       "switching to default value "
-	       << iMaxIterations
-	       << std::endl;
-	  }		       		  
-	  DEBUGLCOUT(MYDEBUG_INPUT, 
-		     "Max iterations = " << iMaxIterations << std::endl);
-	  break;
-       }
-	 
-       case MODIFY_RES_TEST: {
-          bModResTest = true;
-	  DEBUGLCOUT(MYDEBUG_INPUT, 
-		     "Modify residual test" << std::endl);
-	  break;
-       }
-	 
-       case DERIVATIVESMAXITERATIONS: {
-	  iDerivativesMaxIterations = HP.GetInt();
-	  if (iDerivativesMaxIterations < 1) {
-	     iDerivativesMaxIterations = iDefaultMaxIterations;
-	     std::cerr 
-	       << "warning, derivatives max iterations < 1 is illegal; "
-	       "switching to default value "
-	       << iDerivativesMaxIterations
-	       << std::endl;
-	  }		       		  
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Derivatives max iterations = " 
-		    << iDerivativesMaxIterations << std::endl);
-	  break;
-       }	     	  	       
-	 
-       case FICTITIOUSSTEPSMAXITERATIONS:
-       case DUMMYSTEPSMAXITERATIONS: {
-	  iFictitiousStepsMaxIterations = HP.GetInt();
-	  if (iFictitiousStepsMaxIterations < 1) {
-	     iFictitiousStepsMaxIterations = iDefaultMaxIterations;
-	     std::cerr 
-	       << "warning, dummy steps max iterations < 1 is illegal;"
-	       " switching to default value "
-	       << iFictitiousStepsMaxIterations
-	       << std::endl;
-	  }
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Fictitious steps max iterations = " 
-		    << iFictitiousStepsMaxIterations << std::endl);
-	  break;
-       }	     	  	       
-	 
-       case DERIVATIVESCOEFFICIENT: {
-	  dDerivativesCoef = HP.GetReal();
-	  if (dDerivativesCoef <= 0.) {
-	     dDerivativesCoef = 1.;
-	     std::cerr 
-	       << "warning, derivatives coefficient <= 0. is illegal; "
-	       "switching to default value "
-	       << dDerivativesCoef
-	       << std::endl;
-	  }
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Derivatives coefficient = "
-		    << dDerivativesCoef << std::endl);
-	  break;
-       }	     	  	       
-	 
-       case NEWTONRAPHSON: {
-	  pedantic_cout("Newton Raphson is deprecated; use "
-			  "\"nonlinear solver: newton raphson "
-  			  "[ , modified, <steps> ]\" instead"
-  			  << std::endl);
-	  KeyWords NewRaph(KeyWords(HP.GetWord()));
-	  switch(NewRaph) {
-	   case MODIFIED: {
-	      bTrueNewtonRaphson = 0;
-	      if (HP.fIsArg()) {
-		 iIterationsBeforeAssembly = HP.GetInt();
-	      } else {
-		 iIterationsBeforeAssembly = iDefaultIterationsBeforeAssembly;
-	      }
-	      DEBUGLCOUT(MYDEBUG_INPUT, 
-			 "Modified Newton-Raphson will be used;" << std::endl
-			 << "matrix will be assembled at most after " 
-			 << iIterationsBeforeAssembly
-			 << " iterations" << std::endl);
-	      break;
-	   }
-	   default: {
-	      std::cerr 
-		<< "warning: unknown case; resorting to default" 
-		<< std::endl;
-	      /* Nota: non c'e' break; 
-	       * cosi' esegue anche il caso NR_TRUE */
-	   }
-	   case NR_TRUE: {
-	      bTrueNewtonRaphson = 1;
-	      iIterationsBeforeAssembly = 0;
-	      break;
-	   }
-	  }
-	  break;
-       }
-
-       case END: {	     
-	  if (KeyWords(HP.GetWord()) != MULTISTEP) {
-	     std::cerr << std::endl 
-	       << "Error: <end: multistep;> expected at line " 
-	       << HP.GetLineData() << "; aborting ..." << std::endl;
-	     THROW(ErrGeneric());
-	  }
-	  goto EndOfCycle;
-       }
-	 
-       case STRATEGY: {
-	  switch (KeyWords(HP.GetWord())) {
-	     
-	   case STRATEGYFACTOR: {
-	      CurrStrategy = FACTOR;
-
-	      /*
-	       *	strategy: factor ,
-	       *		<reduction factor> ,
-	       *		<steps before reduction> ,
-	       *		<raise factor> ,
-	       *		<steps before raise> ,
-	       *		<min iterations> ;
-	       */
-	      
-	      StrategyFactor.dReductionFactor = HP.GetReal();
-	      if (StrategyFactor.dReductionFactor >= 1.) {
-		 std::cerr << "warning, illegal reduction factor at line "
-		   << HP.GetLineData() 
-		   << "; default value 1. (no reduction) will be used"
-		   << std::endl;
-		 StrategyFactor.dReductionFactor = 1.;
-	      }
-	      
-	      StrategyFactor.iStepsBeforeReduction = HP.GetInt();
-	      if (StrategyFactor.iStepsBeforeReduction <= 0) {
-		 std::cerr << "Warning, illegal number of steps "
-		   "before reduction at line "
-		   << HP.GetLineData() << ';' << std::endl
-		   << "default value 1 will be used (it may be dangerous)" 
-		   << std::endl;
-		 StrategyFactor.iStepsBeforeReduction = 1;
-	      }
-	      
-	      StrategyFactor.dRaiseFactor = HP.GetReal();
-	      if (StrategyFactor.dRaiseFactor <= 1.) {
-		 std::cerr << "warning, illegal raise factor at line "
-		   << HP.GetLineData() 
-		   << "; default value 1. (no raise) will be used"
-		   << std::endl;
-		 StrategyFactor.dRaiseFactor = 1.;
-	      }
-	      
-	      StrategyFactor.iStepsBeforeRaise = HP.GetInt();
-	      if (StrategyFactor.iStepsBeforeRaise <= 0) {
-		 std::cerr << "Warning, illegal number of steps "
-		   "before raise at line "
-		   << HP.GetLineData() << ';' << std::endl
-		   << "default value 1 will be used (it may be dangerous)" 
-		   << std::endl;
-		 StrategyFactor.iStepsBeforeRaise = 1;
-	      }
-	      
-	      StrategyFactor.iMinIters = HP.GetInt();
-	      if (StrategyFactor.iMinIters <= 0) {
-		 std::cerr << "Warning, illegal minimum number "
-		   "of iterations at line "
-		   << HP.GetLineData() << ';' << std::endl
-		   << "default value 0 will be used (never raise)" 
-		   << std::endl;
-		 StrategyFactor.iMinIters = 1;
-	      }
-	      
-	      DEBUGLCOUT(MYDEBUG_INPUT,
-			 "Time step control strategy: Factor" << std::endl
-			 << "Reduction factor: " 
-			 << StrategyFactor.dReductionFactor
-			 << "Steps before reduction: "
-			 << StrategyFactor.iStepsBeforeReduction
-			 << "Raise factor: "
-			 << StrategyFactor.dRaiseFactor
-			 << "Steps before raise: "
-			 << StrategyFactor.iStepsBeforeRaise 
-			 << "Min iterations: "
-			 << StrategyFactor.iMinIters << std::endl);
-	      break;  
-	   }		 
-	     
-	   case STRATEGYNOCHANGE: {
-	      CurrStrategy = NOCHANGE;
-	      break;
-	   }
-	   
-	   case STRATEGYCHANGE: {
-	      CurrStrategy = CHANGE;
-	      pStrategyChangeDrive = ReadDriveData(NULL, HP, NULL);
-	      HP.PutKeyTable(K);	      
-	      break;
-	   }
-	     
-	   default: {
-	      std::cerr << "Unknown time step control strategy at line "
-		<< HP.GetLineData() << std::endl;
-	      THROW(ErrGeneric());
-	   }		 
-	  }
-	  
-	  break;
-       }
-	 
-       case POD:
-#ifdef __HACK_POD__
-              pod.dTime = HP.GetReal();
-
-	      pod.iSteps = 1;
-	      if (HP.fIsArg()) {
-              	 pod.iSteps = HP.GetInt();
-	      }
-
-	      pod.iFrames = (unsigned int)(-1);
-	      if (HP.fIsArg()) {
-              	 pod.iFrames = HP.GetInt();
-	      }
-
-              fPOD = flag(1);
-              DEBUGLCOUT(MYDEBUG_INPUT, "POD analysis will be performed "
-			      "since time " << pod.dTime
-			      << " for " << pod.iFrames << " frames "
-			      << " every " << pod.iSteps << " steps " 
-			      << std::endl);
-#else/* !__HACK_POD__ */
-              std::cerr << "line " << HP.GetLineData()
-                   << ": POD analysis not supported (ignored)" << std::endl;
-	      for (; HP.fIsArg();) {
-		      (void)HP.GetReal();
-	      }
-#endif /* !__HACK_POD__ */
-              break;
- 
-       case EIGENANALYSIS: {
-#ifdef __HACK_EIG__
-	  OneEig.dTime = HP.GetReal();
-	  if (HP.IsKeyWord("parameter")) {
-             dEigParam = HP.GetReal();
-	  }
-	  OneEig.bDone = false;
-	  eEigenAnalysis = EIG_YES;
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Eigenanalysis will be performed at time "
-	  	     << OneEig.dTime << " (parameter: " << dEigParam << ")" 
-		     << std::endl);
-	  if (HP.IsKeyWord("output" "matrices")) {
-	     eEigenAnalysis = EIG_OUTPUTMATRICES;
-	  }
-#else /* !__HACK_EIG__ */
-	  HP.GetReal();
-	  if (HP.IsKeyWord("parameter")) {
-	     HP.GetReal();
-	  }
-	  if (HP.IsKeyWord("output" "matrices")) {
-	     NO_OP;
-	  }
-	  std::cerr << HP.GetLineData()
-	    << ": eigenanalysis not supported (ignored)" << std::endl;
-#endif /* !__HACK_EIG__ */
-	  break;
-       }
-
-       case OUTPUTMODES:
-#ifndef __HACK_EIG__
-	  std::cerr << "line " << HP.GetLineData()
-	    << ": warning, no eigenvalue support available" << std::endl;
-#endif /* !__HACK_EIG__ */
-	  if (HP.IsKeyWord("yes") || HP.IsKeyWord("nastran")) {
-#ifdef __HACK_EIG__
-	     bOutputModes = true;
-	     if (HP.fIsArg()) {
-		dUpperFreq = HP.GetReal();
-		if (dUpperFreq < 0.) {
-			std::cerr << "line "<< HP.GetLineData()
-				<< ": illegal upper frequency limit " 
-				<< dUpperFreq << "; using " 
-				<< -dUpperFreq << std::endl;
-			dUpperFreq = -dUpperFreq;
-		}
-		if (HP.fIsArg()) {
-			dLowerFreq = HP.GetReal();
-			if (dLowerFreq > dUpperFreq) {
-				std::cerr << "line "<< HP.GetLineData()
-					<< ": illegal lower frequency limit "
-					<< dLowerFreq 
-					<< " higher than upper frequency limit; using " 
-					<< 0. << std::endl;
-				dLowerFreq = 0.;
+		case DERIVATIVESTOLERANCE: {
+			dDerivativesTol = HP.GetReal();
+			if (dDerivativesTol <= 0.) {
+				dDerivativesTol = dDefaultTol;
+				std::cerr << "warning, derivatives "
+					"tolerance <= 0.0 is illegal; "
+					"using default value " 
+					<< dDerivativesTol
+					<< std::endl;
 			}
+			DEBUGLCOUT(MYDEBUG_INPUT, 
+					"Derivatives tolerance = " 
+					<< dDerivativesTol
+					<< std::endl);
+			break;
 		}
-	     }
-#endif /* !__HACK_EIG__ */
-	  } else if (HP.IsKeyWord("no")) {
+	 
+		case MAXITERATIONS: {
+			iMaxIterations = HP.GetInt();
+			if (iMaxIterations < 1) {
+				iMaxIterations = iDefaultMaxIterations;
+				std::cerr << "warning, max iterations "
+					"< 1 is illegal; using default value "
+					<< iMaxIterations
+					<< std::endl;
+			}
+			DEBUGLCOUT(MYDEBUG_INPUT, 
+					"Max iterations = "
+					<< iMaxIterations << std::endl);
+			break;
+		}
+
+		case MODIFY_RES_TEST: {
+			bModResTest = true;
+			DEBUGLCOUT(MYDEBUG_INPUT, 
+					"Modify residual test" << std::endl);
+			break;
+		}
+
+		case DERIVATIVESMAXITERATIONS: {
+			iDerivativesMaxIterations = HP.GetInt();
+			if (iDerivativesMaxIterations < 1) {
+				iDerivativesMaxIterations = iDefaultMaxIterations;
+				std::cerr << "warning, derivatives "
+					"max iterations < 1 is illegal; "
+					"using default value "
+					<< iDerivativesMaxIterations
+					<< std::endl;
+			}
+			DEBUGLCOUT(MYDEBUG_INPUT, "Derivatives "
+					"max iterations = "
+					<< iDerivativesMaxIterations
+					<< std::endl);
+			break;
+		}
+
+		case FICTITIOUSSTEPSMAXITERATIONS:
+		case DUMMYSTEPSMAXITERATIONS: {
+			iFictitiousStepsMaxIterations = HP.GetInt();
+			if (iFictitiousStepsMaxIterations < 1) {
+				iFictitiousStepsMaxIterations = iDefaultMaxIterations;
+				std::cerr << "warning, dummy steps "
+					"max iterations < 1 is illegal; "
+					"using default value "
+					<< iFictitiousStepsMaxIterations
+					<< std::endl;
+			}
+			DEBUGLCOUT(MYDEBUG_INPUT, "Fictitious steps "
+					"max iterations = " 
+					<< iFictitiousStepsMaxIterations
+					<< std::endl);
+			break;
+		}
+
+		case DERIVATIVESCOEFFICIENT: {
+			dDerivativesCoef = HP.GetReal();
+			if (dDerivativesCoef <= 0.) {
+				dDerivativesCoef = 1.;
+				std::cerr << "warning, derivatives "
+					"coefficient <= 0. is illegal; "
+					"using default value "
+					<< dDerivativesCoef
+					<< std::endl;
+			}
+			DEBUGLCOUT(MYDEBUG_INPUT, "Derivatives coefficient = "
+					<< dDerivativesCoef << std::endl);
+			break;
+		}
+
+		case NEWTONRAPHSON: {
+			pedantic_cout("Newton Raphson is deprecated; use "
+					"\"nonlinear solver: newton raphson "
+					"[ , modified, <steps> ]\" instead"
+					<< std::endl);
+			KeyWords NewRaph(KeyWords(HP.GetWord()));
+			switch(NewRaph) {
+			case MODIFIED:
+				bTrueNewtonRaphson = 0;
+				if (HP.fIsArg()) {
+					iIterationsBeforeAssembly = HP.GetInt();
+		  		} else {
+		       			iIterationsBeforeAssembly = iDefaultIterationsBeforeAssembly;
+				}
+				DEBUGLCOUT(MYDEBUG_INPUT, "Modified "
+						"Newton-Raphson will be used; "
+						"matrix will be assembled "
+						"at most after "
+						<< iIterationsBeforeAssembly
+						<< " iterations" << std::endl);
+				break;
+
+			default:
+				std::cerr << "warning: unknown case; "
+					"using default" << std::endl;
+			
+			/* no break: fall-thru to next case */
+			case NR_TRUE:
+				bTrueNewtonRaphson = 1;
+				iIterationsBeforeAssembly = 0;
+				break;
+			}
+			break;
+		}
+
+		case END:
+			if (KeyWords(HP.GetWord()) != MULTISTEP) {
+				std::cerr << "<end: multistep;> expected "
+					"at line " << HP.GetLineData() 
+					<< "; aborting ..." << std::endl;
+				THROW(ErrGeneric());
+			}
+			goto EndOfCycle;
+
+		case STRATEGY: {
+			switch (KeyWords(HP.GetWord())) {
+			case STRATEGYFACTOR: {
+				CurrStrategy = FACTOR;
+
+				/*
+				 * strategy: factor ,
+				 *     <reduction factor> ,
+				 *     <steps before reduction> ,
+				 *     <raise factor> ,
+				 *     <steps before raise> ,
+				 *     <min iterations> ;
+				 */
+
+				StrategyFactor.dReductionFactor = HP.GetReal();
+				if (StrategyFactor.dReductionFactor >= 1.) {
+					std::cerr << "warning, "
+						"illegal reduction factor "
+						"at line " << HP.GetLineData() 
+						<< "; default value 1. "
+						"(no reduction) will be used"
+						<< std::endl;
+					StrategyFactor.dReductionFactor = 1.;
+				}
+
+				StrategyFactor.iStepsBeforeReduction = HP.GetInt();
+				if (StrategyFactor.iStepsBeforeReduction <= 0) {
+					std::cerr << "warning, "
+						"illegal number of steps "
+						"before reduction at line "
+						<< HP.GetLineData()
+						<< "; default value 1 will be "
+						"used (it may be dangerous)" 
+						<< std::endl;
+					StrategyFactor.iStepsBeforeReduction = 1;
+				}
+
+				StrategyFactor.dRaiseFactor = HP.GetReal();
+				if (StrategyFactor.dRaiseFactor <= 1.) {
+					std::cerr << "warning, "
+						"illegal raise factor at line "
+						<< HP.GetLineData() 
+						<< "; default value 1. "
+						"(no raise) will be used"
+						<< std::endl;
+					StrategyFactor.dRaiseFactor = 1.;
+				}
+
+				StrategyFactor.iStepsBeforeRaise = HP.GetInt();
+				if (StrategyFactor.iStepsBeforeRaise <= 0) {
+					std::cerr << "warning, "
+						"illegal number of steps "
+						"before raise at line "
+						<< HP.GetLineData()
+						<< "; default value 1 will be "
+						"used (it may be dangerous)" 
+						<< std::endl;
+					StrategyFactor.iStepsBeforeRaise = 1;
+				}
+
+				StrategyFactor.iMinIters = HP.GetInt();
+				if (StrategyFactor.iMinIters <= 0) {
+					std::cerr << "warning, "
+						"illegal minimum number "
+						"of iterations at line "
+						<< HP.GetLineData()
+						<< "; default value 0 will be "
+						"used (never raise)" 
+						<< std::endl;
+					StrategyFactor.iMinIters = 1;
+				}
+
+				DEBUGLCOUT(MYDEBUG_INPUT,
+						"Time step control strategy: "
+						"Factor" << std::endl
+						<< "Reduction factor: " 
+						<< StrategyFactor.dReductionFactor
+						<< "Steps before reduction: "
+						<< StrategyFactor.iStepsBeforeReduction
+						<< "Raise factor: "
+						<< StrategyFactor.dRaiseFactor
+						<< "Steps before raise: "
+						<< StrategyFactor.iStepsBeforeRaise 
+						<< "Min iterations: "
+						<< StrategyFactor.iMinIters
+						<< std::endl);
+				break;
+			}
+
+			case STRATEGYNOCHANGE: {
+				CurrStrategy = NOCHANGE;
+				break;
+			}
+
+			case STRATEGYCHANGE: {
+				CurrStrategy = CHANGE;
+				pStrategyChangeDrive = ReadDriveData(NULL, HP, NULL);
+				HP.PutKeyTable(K);
+				break;
+			}
+
+			default:
+				std::cerr << "unknown time step control "
+					"strategy at line "
+					<< HP.GetLineData() << std::endl;
+				THROW(ErrGeneric());
+			}
+			break;
+		}
+		
+		case POD:
+#ifdef __HACK_POD__
+			pod.dTime = HP.GetReal();
+
+			pod.iSteps = 1;
+			if (HP.fIsArg()) {
+				pod.iSteps = HP.GetInt();
+			}
+
+			pod.iFrames = (unsigned int)(-1);
+			if (HP.fIsArg()) {
+				pod.iFrames = HP.GetInt();
+			}
+
+			fPOD = flag(1);
+			DEBUGLCOUT(MYDEBUG_INPUT, "POD analysis will be "
+					"performed since time " << pod.dTime
+					<< " for " << pod.iFrames 
+					<< " frames  every " << pod.iSteps 
+					<< " steps" << std::endl);
+#else/* !__HACK_POD__ */
+			std::cerr << "line " << HP.GetLineData()
+				<< ": POD analysis not supported (ignored)" 
+				<< std::endl;
+			for (; HP.fIsArg();) {
+				(void)HP.GetReal();
+			}
+#endif /* !__HACK_POD__ */
+			break;
+		
+		case EIGENANALYSIS:
 #ifdef __HACK_EIG__
-	     bOutputModes = false;
+			OneEig.dTime = HP.GetReal();
+			if (HP.IsKeyWord("parameter")) {
+				dEigParam = HP.GetReal();
+			}
+			OneEig.bDone = false;
+			eEigenAnalysis = EIG_YES;
+			DEBUGLCOUT(MYDEBUG_INPUT, "Eigenanalysis will be "
+					"performed at time " << OneEig.dTime
+					<< " (parameter: " << dEigParam << ")" 
+					<< std::endl);
+			if (HP.IsKeyWord("output" "matrices")) {
+				eEigenAnalysis = EIG_OUTPUTMATRICES;
+			}
+#else /* !__HACK_EIG__ */
+			HP.GetReal();
+			if (HP.IsKeyWord("parameter")) {
+				HP.GetReal();
+			}
+			
+			if (HP.IsKeyWord("output" "matrices")) {
+				NO_OP;
+			}
+			
+			std::cerr << HP.GetLineData() 
+				<< ": eigenanalysis not supported (ignored)"
+				<< std::endl;
 #endif /* !__HACK_EIG__ */
-	  } else {
-	     std::cerr << HP.GetLineData()
-	       << ": unknown mode output flag (should be { yes | no })"
-	       << std::endl;
-	  }
-	  break;
+			break;
 
-       case SOLVER:
-	  CurrSolver.Read(HP);
-	  /* ripristina la tabella del parser */
-	  HP.PutKeyTable(K);
+		case OUTPUTMODES:
+#ifndef __HACK_EIG__
+			std::cerr << "line " << HP.GetLineData()
+				<< ": warning, no eigenvalue support available"
+				<< std::endl;
+#endif /* !__HACK_EIG__ */
+			if (HP.IsKeyWord("yes") || HP.IsKeyWord("nastran")) {
+#ifdef __HACK_EIG__
+				bOutputModes = true;
+				if (HP.fIsArg()) {
+					dUpperFreq = HP.GetReal();
+					if (dUpperFreq < 0.) {
+						std::cerr << "line "
+							<< HP.GetLineData()
+							<< ": illegal upper "
+							"frequency limit " 
+							<< dUpperFreq 
+							<< "; using " 
+							<< -dUpperFreq
+							<< std::endl;
+						dUpperFreq = -dUpperFreq;
+					}
+					
+					if (HP.fIsArg()) {
+						dLowerFreq = HP.GetReal();
+						if (dLowerFreq > dUpperFreq) {
+							std::cerr << "line "
+								<< HP.GetLineData()
+								<< ": illegal lower "
+								"frequency limit "
+								<< dLowerFreq 
+								<< " higher than upper "
+								"frequency limit; using " 
+								<< 0. << std::endl;
+							dLowerFreq = 0.;
+						}
+					}
+				}
+#endif /* !__HACK_EIG__ */
+			} else if (HP.IsKeyWord("no")) {
+#ifdef __HACK_EIG__
+				bOutputModes = false;
+#endif /* !__HACK_EIG__ */
+			} else {
+				std::cerr << "line " << HP.GetLineData()
+					<< ": unknown mode output flag "
+					"(should be { yes | no })"
+					<< std::endl;
+			}
+			break;
 
-	  break;
+		case SOLVER:
+			CurrSolver.Read(HP);
+			
+			/* ripristina la tabella del parser */
+			HP.PutKeyTable(K);
 
-       case INTERFACESOLVER:
-	  CurrIntSolver.Read(HP, true);
-	  /* ripristina la tabella del parser */
-	  HP.PutKeyTable(K);
+			break;
+
+		case INTERFACESOLVER:
+			CurrIntSolver.Read(HP, true);
+			
+			/* ripristina la tabella del parser */
+			HP.PutKeyTable(K);
 
 #ifndef USE_MPI
-	  std::cerr << "Interface solver only allowed when compiled "
-			"with MPI support" << std::endl;
+			std::cerr << "Interface solver only allowed "
+				"when compiled with MPI support" << std::endl;
 #endif /* ! USE_MPI */
-	  break;
-      
-#if 0 
-       case MATRIXFREE: {
-		fMatrixFree = 1;
+			break;
 
-		switch(KeyWords(HP.GetWord())) {           
-		
-			case BICGSTAB:
-				MFSolverType = MatrixFreeSolver::BICGSTAB;
+		case NONLINEARSOLVER:
+			switch (KeyWords(HP.GetWord())) {
+			case DEFAULT:
+				NonlinearSolverType = NonlinearSolver::DEFAULT;
 				break;
-			
-			case GMRES:
-				MFSolverType = MatrixFreeSolver::GMRES;
+
+			case NEWTONRAPHSON:
+				NonlinearSolverType = NonlinearSolver::NEWTONRAPHSON;
 				break;
-		
+
+			case MATRIXFREE:
+				NonlinearSolverType = NonlinearSolver::MATRIXFREE;
+				break;
+
 			default:
-				std::cerr << "Unknown iterative solver "
+				std::cerr << "unknown nonlinear solver "
 					"at line " << HP.GetLineData()
 					<< std::endl;
 				THROW(ErrGeneric());
-		}	
-	       
-		if (HP.IsKeyWord("tolerance")) {
-			dIterTol = HP.GetReal();
-			DEBUGLCOUT(MYDEBUG_INPUT, "Inner Iterative Solver Tolerance: " 
-				<< dIterTol << std::endl);
-		}
-		if (HP.IsKeyWord("steps")) {
-			iIterativeMaxSteps = HP.GetInt();
-			DEBUGLCOUT(MYDEBUG_INPUT, "Maximum Number of Inner Steps for Iterative Solver : " 
-				<< iIterativeMaxSteps << std::endl);
-		}
-		if (HP.IsKeyWord("tau")) {
-			dIterertiveTau = HP.GetReal();
-			DEBUGLCOUT(MYDEBUG_INPUT, "Tau Scaling Coefficient for Iterative Solver : " 
-					<< dIterertiveTau << std::endl);
-		}
-		if (HP.IsKeyWord("eta")) {
-			dIterertiveEtaMax = HP.GetReal();
-			DEBUGLCOUT(MYDEBUG_INPUT, "Maximum Eta Coefficient for Iterative Solver : " 
-				<< dIterertiveEtaMax << std::endl);
-		}
-		break;
-	}
-	
-	case PRECONDITIONER: {
-		KeyWords KPrecond = KeyWords(HP.GetWord());
-	  	switch (KPrecond) {	
-			
-		case FULLJACOBIAN: 
-			PcType = Preconditioner::FULLJACOBIAN;		
-			if (HP.IsKeyWord("steps")) {
-				iPrecondSteps = HP.GetInt();
-				DEBUGLCOUT(MYDEBUG_INPUT, "Number of Steps before recomputing the preconditioner : " 
-					<< iPrecondSteps << std::endl);
+				break;
+			}
+
+			switch (NonlinearSolverType) {
+			case NonlinearSolver::NEWTONRAPHSON:
+    				bTrueNewtonRaphson = true;
+				bKeepJac = false;
+    				iIterationsBeforeAssembly = 0;
+
+				if (HP.IsKeyWord("modified")) {
+					bTrueNewtonRaphson = false;
+					iIterationsBeforeAssembly = HP.GetInt();
+
+					if (HP.IsKeyWord("keep" "jacobian")) {
+						bKeepJac = true;
+					}
+
+					DEBUGLCOUT(MYDEBUG_INPUT, "modified "
+							"Newton-Raphson "
+							"will be used; "
+							"matrix will be "
+							"assembled at most "
+							"after "
+							<< iIterationsBeforeAssembly
+							<< " iterations"
+							<< std::endl);
+				}
+				break;
+
+			case NonlinearSolver::MATRIXFREE:
+				switch (KeyWords(HP.GetWord())) {
+				case DEFAULT:
+					MFSolverType = MatrixFreeSolver::DEFAULT;
+					break;
+
+ 
+				case BICGSTAB:
+					MFSolverType = MatrixFreeSolver::BICGSTAB;
+					break;
+
+				case GMRES:
+					MFSolverType = MatrixFreeSolver::GMRES;
+					break;
+
+				default:
+					std::cerr << "unknown iterative "
+						"solver at line " 
+						<< HP.GetLineData()
+						<< std::endl;
+					THROW(ErrGeneric());
+				}
+
+				if (HP.IsKeyWord("tolerance")) {
+					dIterTol = HP.GetReal();
+					DEBUGLCOUT(MYDEBUG_INPUT,"inner "
+							"iterative solver "
+							"tolerance: "
+							<< dIterTol
+							<< std::endl);
+				}
+				
+				if (HP.IsKeyWord("steps")) {
+					iIterativeMaxSteps = HP.GetInt();
+					DEBUGLCOUT(MYDEBUG_INPUT, "maximum "
+							"number of inner "
+							"steps for iterative "
+							"solver: " 
+							<< iIterativeMaxSteps
+							<< std::endl);
+				}
+				
+				if (HP.IsKeyWord("tau")) {
+					dIterertiveTau = HP.GetReal();
+					DEBUGLCOUT(MYDEBUG_INPUT,
+							"tau scaling "
+							"coefficient "
+							"for iterative "
+							"solver: "
+							<< dIterertiveTau
+							<< std::endl);
+				}
+
+				if (HP.IsKeyWord("eta")) {
+					dIterertiveEtaMax = HP.GetReal();
+					DEBUGLCOUT(MYDEBUG_INPUT, "maximum "
+							"eta coefficient "
+							"for iterative "
+							"solver: " 
+	  						<< dIterertiveEtaMax
+							<< std::endl);
+				}
+
+				if (HP.IsKeyWord("preconditioner")) {
+					KeyWords KPrecond = KeyWords(HP.GetWord());
+					switch (KPrecond) {
+					case FULLJACOBIAN:
+						PcType = Preconditioner::FULLJACOBIAN;		
+						if (HP.IsKeyWord("steps")) {
+							iPrecondSteps = HP.GetInt();
+							DEBUGLCOUT(MYDEBUG_INPUT,
+									"number of steps "
+									"before recomputing "
+									"the preconditioner: "
+									<< iPrecondSteps
+									<< std::endl);
+						}
+						break;
+
+						/* add other preconditioners
+						 * here */
+
+					default:
+						std::cerr << "unknown "
+							"preconditioner "
+							"at line "
+							<< HP.GetLineData()
+							<< std::endl;
+						THROW(ErrGeneric());
+					}
+					break;
+				}
+				break;
+
+			default:
+				ASSERT(0);
+				THROW(ErrGeneric());
 			}
 			break;
-			
-		default:
-			std::cerr << "Unkown preconditioner at line "
-				<< HP.GetLineData() << std::endl;
-			THROW(ErrGeneric());
-		}
-		
-		break;
-        }
-#endif
 
-       case NONLINEARSOLVER: {
-	  switch (KeyWords(HP.GetWord())) {
-          case DEFAULT:
-		  NonlinearSolverType = NonlinearSolver::DEFAULT;
-		  break;
-
-	  case NEWTONRAPHSON:
-		  NonlinearSolverType = NonlinearSolver::NEWTONRAPHSON;
-		  break;
-
-	  case MATRIXFREE:
-		  NonlinearSolverType = NonlinearSolver::MATRIXFREE;
-		  break;
-
-	  default:
-		  std::cerr << "unknown nonlinear solver at line "
-			  << HP.GetLineData() << std::endl;
-		  THROW(ErrGeneric());
-		  break;
-	  }
-
-	  switch (NonlinearSolverType) {
-	  case NonlinearSolver::NEWTONRAPHSON:
-    		  bTrueNewtonRaphson = true;
-		  bKeepJac = false;
-    		  iIterationsBeforeAssembly = 0;
-
-		  if (HP.IsKeyWord("modified")) {
-	    		  bTrueNewtonRaphson = false;
-		 	  iIterationsBeforeAssembly = HP.GetInt();
-			  
-			  if (HP.IsKeyWord("keep" "jacobian")) {
-			  	bKeepJac = true;
-			  }
-
-	    		  DEBUGLCOUT(MYDEBUG_INPUT, 
-		 			  "Modified Newton-Raphson "
-					  "will be used;" << std::endl
-		 			  << "matrix will be assembled "
-					  "at most after " 
-					  << iIterationsBeforeAssembly
-					  << " iterations" << std::endl);
-       		  }
-		  break;
-		  
-	  case NonlinearSolver::MATRIXFREE:
-  		  switch(KeyWords(HP.GetWord())) {           		  
-		  case DEFAULT:
-			  MFSolverType = MatrixFreeSolver::DEFAULT;
-			  break;
-
-  		  case BICGSTAB:
-  			  MFSolverType = MatrixFreeSolver::BICGSTAB;
-			  break;
-			
-		  case GMRES:
-			  MFSolverType = MatrixFreeSolver::GMRES;
-			  break;
-		
-		  default:
-			  std::cerr << "Unknown iterative solver "
-				  "at line " << HP.GetLineData()
-				  << std::endl;
-			  THROW(ErrGeneric());
-  		  }	
-	       
-  		  if (HP.IsKeyWord("tolerance")) {
-  			  dIterTol = HP.GetReal();
-  			  DEBUGLCOUT(MYDEBUG_INPUT, "Inner Iterative Solver "
-					  "Tolerance: " << dIterTol
-					  << std::endl);
-  		  }
-  		  if (HP.IsKeyWord("steps")) {
-  			  iIterativeMaxSteps = HP.GetInt();
-  			  DEBUGLCOUT(MYDEBUG_INPUT, "Maximum Number "
-					  "of Inner Steps "
-					  "for Iterative Solver : " 
-					  << iIterativeMaxSteps << std::endl);
-  		  }
-  		  if (HP.IsKeyWord("tau")) {
-  			  dIterertiveTau = HP.GetReal();
-  			  DEBUGLCOUT(MYDEBUG_INPUT, "Tau Scaling Coefficient "
-					  "for Iterative Solver : " 
-  					  << dIterertiveTau << std::endl);
-  		  }
-  		  if (HP.IsKeyWord("eta")) {
-  			  dIterertiveEtaMax = HP.GetReal();
-  			  DEBUGLCOUT(MYDEBUG_INPUT, "Maximum Eta Coefficient "
-					  "for Iterative Solver : " 
-	  				  << dIterertiveEtaMax << std::endl);
-  		  }
-
-		  if (HP.IsKeyWord("preconditioner")) {
-		          KeyWords KPrecond = KeyWords(HP.GetWord());
-			  switch (KPrecond) {
-			  case FULLJACOBIAN: 
-				  PcType = Preconditioner::FULLJACOBIAN;		
-	  			  if (HP.IsKeyWord("steps")) {
-	  				  iPrecondSteps = HP.GetInt();
-	  				  DEBUGLCOUT(MYDEBUG_INPUT, 
-							  "Number of Steps "
-							  "before recomputing "
-							  "the preconditioner: "
-							  << iPrecondSteps
-							  << std::endl);
-				  }
-				  break;
-
-			  /* add other preconditioners here */
-			
-	  		  default:
-	  			  std::cerr << "Unkown preconditioner at line "
-	  				  << HP.GetLineData() << std::endl;
-	  			  THROW(ErrGeneric());
-	  		  }
-	  		  break;
-		  }
-		  break;
-
-	  default:
-		  ASSERT(0);
-		  THROW(ErrGeneric());
-	  }
-	  break;
-        }
-
-       case REALTIME: {
+		case REALTIME:
 #ifdef USE_RTAI
-         bRT = true;
+			bRT = true;
 
-	 if (HP.IsKeyWord("allow" "nonroot")) {
-	    bRTAllowNonRoot = true;
-	 }
+			if (HP.IsKeyWord("allow" "nonroot")) {
+				bRTAllowNonRoot = true;
+			}
 
-	 /* FIXME: use a sae default? */
-	 if (HP.IsKeyWord("mode")) {
-	    if (HP.IsKeyWord("period")) {
-	       RTMode = MBRTAI_WAITPERIOD;
-	    } else if (HP.IsKeyWord("semaphore")) {
-	       /* FIXME: not implemented yet ... */
-	       RTMode = MBRTAI_SEMAPHORE;
-	    } else {
-		std::cerr << "unknown realtime mode at line "
-			<< HP.GetLineData() << std::endl;
-		THROW(ErrGeneric());
-	    }
-	 }
+			/* FIXME: use a safe default? */
+			if (HP.IsKeyWord("mode")) {
+				if (HP.IsKeyWord("period")) {
+					RTMode = MBRTAI_WAITPERIOD;
+					
+				} else if (HP.IsKeyWord("semaphore")) {
+					/* FIXME: not implemented yet ... */
+					RTMode = MBRTAI_SEMAPHORE;
+				} else {
+					std::cerr << "unknown realtime mode "
+						"at line " << HP.GetLineData()
+						<< std::endl;
+					THROW(ErrGeneric());
+				}
+			}
+			
+			if (HP.IsKeyWord("time" "step")) {
+				long long p = HP.GetInt();
 
-	 if (HP.IsKeyWord("time" "step")) {
-	    long long p = HP.GetInt();
+				if (p <= 0) {
+					std::cerr << "illegal time step " 
+						<< p << " at line " 
+						<< HP.GetLineData()
+						<< std::endl;
+					THROW(ErrGeneric());
+				}
 
-	    if (p <= 0) {
-               std::cerr << "illegal time step " << p << " at line "
-		 << HP.GetLineData() << std::endl;
-	       THROW(ErrGeneric());
-	    }
+				lRTPeriod = mbdyn_nano2count(p);
+				
+			} else {
+				std::cerr << "need a time step for real time "
+					"at line " << HP.GetLineData()
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
 
-	    lRTPeriod = mbdyn_nano2count(p);
-	 } else {
-	    std::cerr << "need a time step for real time at line "
-	      << HP.GetLineData() << std::endl;
-	    THROW(ErrGeneric());
-	 }
+			if (HP.IsKeyWord("reserve" "stack")) {
+				long size = HP.GetInt();
 
-	 if (HP.IsKeyWord("reserve" "stack")) {
-	    long size = HP.GetInt();
+				if (size <= 0) {
+					std::cerr << "illegal stack size "
+						<< size << " at line "
+						<< HP.GetLineData()
+						<< std::endl;
+					THROW(ErrGeneric());
+				}
 
-	    if (size <= 0) {
-	       std::cerr << "illegal stack size " << size << " at line "
-		       << HP.GetLineData() << std::endl;
-	       THROW(ErrGeneric());
-	    }
-
-	    RTStackSize = size;
-	 }
+				RTStackSize = size;
+			}
 
 #else /* !USE_RTAI */
-         std::cerr << "need to configure --with-rtai to use realtime" << std::endl;
-	 THROW(ErrGeneric());
+			std::cerr << "need to configure --with-rtai "
+				"to use realtime" << std::endl;
+			THROW(ErrGeneric());
 #endif /* !USE_RTAI */
-	 break;
-       }
+			break;
 
-       default: {
-	  std::cerr << std::endl << "Unknown description at line " 
-	    << HP.GetLineData() << "; aborting ..." << std::endl;
-	  THROW(ErrGeneric());
-       }	
-      }   
-   }
+		default:
+			std::cerr << "unknown description at line " 
+				<< HP.GetLineData() << "; aborting ..."
+				<< std::endl;
+			THROW(ErrGeneric());
+		}
+	}
    
 EndOfCycle: /* esce dal ciclo di lettura */
-      
-   if (dFinalTime < dInitialTime) {      
-      fAbortAfterAssembly = flag(1);
-   }   
-   
-   if (dFinalTime == dInitialTime) {      
-      fAbortAfterDerivatives = flag(1);
-   }   
-      
-   /* Metodo di integrazione di default */
-   if (!fMethod || pRhoRegular == NULL) {
-      ASSERT(RegularType == INT_UNKNOWN);
-      
- 
-      SAFENEWWITHCONSTRUCTOR(pRhoRegular,
-		             NullDriveCaller,
-			     NullDriveCaller(NULL));
-      
-      /* DriveCaller per Rho asintotico per variabili algebriche */     
-      SAFENEWWITHCONSTRUCTOR(pRhoAlgebraicRegular,
-			     NullDriveCaller,
-			     NullDriveCaller(NULL));
-      RegularType = INT_MS2; 	      
-   }
 
-   /* Metodo di integrazione di default */
-   if (!fFictitiousStepsMethod || pRhoFictitious == NULL) {
-      ASSERT(FictitiousType == INT_UNKNOWN);
-      
-      SAFENEWWITHCONSTRUCTOR(pRhoFictitious,
-			     NullDriveCaller,
-			     NullDriveCaller(NULL));
-                 
-      /* DriveCaller per Rho asintotico per variabili algebriche */     
-      SAFENEWWITHCONSTRUCTOR(pRhoAlgebraicFictitious,
-			     NullDriveCaller,
-			     NullDriveCaller(NULL));
-      
-      FictitiousType = INT_MS2;
-  }
-  
-  
-  /* costruzione dello step solver derivative */
-  SAFENEWWITHCONSTRUCTOR(pDerivativeSteps,
-			     DerivativeSolver,
-			     DerivativeSolver(dDerivativesTol,
-		  			      0.,
-		  			      dInitialTimeStep*dDerivativesCoef,
-		  			      iDerivativesMaxIterations,
-					      bModResTest));
+	if (dFinalTime < dInitialTime) {      
+		fAbortAfterAssembly = flag(1);
+	}
 
-     /* First step prediction must always be Crank-Nicholson for accuracy */
-  SAFENEWWITHCONSTRUCTOR(pFirstFictitiousStep,
-			     CrankNicholsonSolver,
-			     CrankNicholsonSolver(dFictitiousStepsTolerance,
-		  		0.,
-			        iFictitiousStepsMaxIterations,
+	if (dFinalTime == dInitialTime) {      
+		fAbortAfterDerivatives = flag(1);
+	}
+
+	/* Metodo di integrazione di default */
+	if (!fMethod || pRhoRegular == NULL) {
+		ASSERT(RegularType == INT_UNKNOWN);
+		
+		SAFENEWWITHCONSTRUCTOR(pRhoRegular,
+				NullDriveCaller,
+				NullDriveCaller(NULL));
+
+		/* DriveCaller per Rho asintotico per variabili algebriche */
+		SAFENEWWITHCONSTRUCTOR(pRhoAlgebraicRegular,
+				NullDriveCaller,
+				NullDriveCaller(NULL));
+		
+		RegularType = INT_MS2;      
+	}
+
+	/* Metodo di integrazione di default */
+	if (!fFictitiousStepsMethod || pRhoFictitious == NULL) {
+		ASSERT(FictitiousType == INT_UNKNOWN);
+
+		SAFENEWWITHCONSTRUCTOR(pRhoFictitious,
+				NullDriveCaller,
+				NullDriveCaller(NULL));
+
+		/* DriveCaller per Rho asintotico per variabili algebriche */
+		SAFENEWWITHCONSTRUCTOR(pRhoAlgebraicFictitious,
+				NullDriveCaller,
+				NullDriveCaller(NULL));
+
+		FictitiousType = INT_MS2;
+	}
+
+	/* costruzione dello step solver derivative */
+	SAFENEWWITHCONSTRUCTOR(pDerivativeSteps,
+			DerivativeSolver,
+			DerivativeSolver(dDerivativesTol,
+				0.,
+				dInitialTimeStep*dDerivativesCoef,
+				iDerivativesMaxIterations,
 				bModResTest));
-  
-  SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
-			 CrankNicholsonSolver,
-			 CrankNicholsonSolver(dTol,
-		  			dSolutionTol,
-					iMaxIterations,
-					bModResTest));
-	
-		  
-  /* costruzione dello step solver fictitious */
-  switch(FictitiousType) {
-	  
-	  case INT_CRANKNICHOLSON:
+
+	/* First step prediction must always be Crank-Nicholson for accuracy */
+	SAFENEWWITHCONSTRUCTOR(pFirstFictitiousStep,
+			CrankNicholsonSolver,
+			CrankNicholsonSolver(dFictitiousStepsTolerance,
+				0.,
+				iFictitiousStepsMaxIterations,
+				bModResTest));
+
+	SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
+			CrankNicholsonSolver,
+			CrankNicholsonSolver(dTol,
+				dSolutionTol,
+				iMaxIterations,
+				bModResTest));
+
+	/* costruzione dello step solver fictitious */
+	switch (FictitiousType) {
+	case INT_CRANKNICHOLSON:
   		pFictitiousSteps = pFirstFictitiousStep;
 		break;	
-		    
-	  case INT_MS2:
+
+	case INT_MS2:
   		SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
-			     		MultistepSolver,
-			     		MultistepSolver(dFictitiousStepsTolerance,
-						0.,
-						iFictitiousStepsMaxIterations,
-					        pRhoFictitious,
-						pRhoAlgebraicFictitious,
-						bModResTest));
+				MultistepSolver,
+				MultistepSolver(dFictitiousStepsTolerance,
+					0.,
+					iFictitiousStepsMaxIterations,
+					pRhoFictitious,
+					pRhoAlgebraicFictitious,
+					bModResTest));
 		break;
 		  
-	  case INT_HOPE:
-  		SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
-			     		HopeSolver,
-			     		HopeSolver(dFictitiousStepsTolerance,
-		  				dSolutionTol,
-						iFictitiousStepsMaxIterations,
-					        pRhoFictitious,
-						pRhoAlgebraicFictitious,
-						bModResTest));
+	case INT_HOPE:
+		SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
+				HopeSolver,
+				HopeSolver(dFictitiousStepsTolerance,
+					dSolutionTol,
+					iFictitiousStepsMaxIterations,
+					pRhoFictitious,
+					pRhoAlgebraicFictitious,
+					bModResTest));
 		break;
 		  
-	  case INT_THIRDORDER:
-  		SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
-			     		ThirdOrderIntegrator,
-			     		ThirdOrderIntegrator(dFictitiousStepsTolerance,
-		  				dSolutionTol,
-						iFictitiousStepsMaxIterations,
-					        pRhoFictitious,
-						bModResTest));
-		break;
-		  
-	 default:
- 	  	std::cerr << "Unknown dummy steps integration method" << std::endl;
-	      	THROW(ErrGeneric());
+	case INT_THIRDORDER:
+		SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
+				ThirdOrderIntegrator,
+				ThirdOrderIntegrator(dFictitiousStepsTolerance,
+					dSolutionTol,
+					iFictitiousStepsMaxIterations,
+					pRhoFictitious,
+					bModResTest));
 		break;
 		
-  }	
-  
-  
-  /* costruzione dello step solver per i passi normali */
-  switch(RegularType) {
-	  
-	  case INT_CRANKNICHOLSON:
+	default:
+		std::cerr << "unknown dummy steps integration method"
+			<< std::endl;
+		THROW(ErrGeneric());
+		break;
+	}
+
+	/* costruzione dello step solver per i passi normali */
+	switch (RegularType) {
+	case INT_CRANKNICHOLSON:
 		pRegularSteps = pFirstRegularStep;
 		break;	
-		    
-	  case INT_MS2:
-  		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
-			     		MultistepSolver,
-			     		MultistepSolver(dTol, 
-		  				dSolutionTol,
-						iMaxIterations,
-					        pRhoRegular,
-						pRhoAlgebraicRegular,
-						bModResTest));
-		break;
-		  
-	  case INT_HOPE:
-  		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
-			     		HopeSolver,
-			     		HopeSolver(dTol,
-		  				dSolutionTol,
-						iMaxIterations,
-					        pRhoRegular,
-						pRhoAlgebraicRegular,
-						bModResTest));
-		break;
-		  
-	  case INT_THIRDORDER:
-  		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
-			     		ThirdOrderIntegrator,
-			     		ThirdOrderIntegrator(dTol,
-		  				dSolutionTol,
-						iMaxIterations,
-					        pRhoRegular,
-						bModResTest));
-		break;
-		  
-	 default:
- 	  	std::cerr << "Unknown integration method" << std::endl;
-	      	THROW(ErrGeneric());
-		break;
-		
-  }	
-}
 
+	case INT_MS2:
+  		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+				MultistepSolver,
+				MultistepSolver(dTol, 
+					dSolutionTol,
+					iMaxIterations,
+					pRhoRegular,
+					pRhoAlgebraicRegular,
+					bModResTest));
+		break;
+		  
+	case INT_HOPE:
+		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+				HopeSolver,
+				HopeSolver(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					pRhoRegular,
+					pRhoAlgebraicRegular,
+					bModResTest));
+		break;
+		  
+	case INT_THIRDORDER:
+		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+				ThirdOrderIntegrator,
+				ThirdOrderIntegrator(dTol,
+					dSolutionTol,
+					iMaxIterations,
+					pRhoRegular,
+					bModResTest));
+		break;
+		  
+	default:
+		std::cerr << "Unknown integration method" << std::endl;
+		THROW(ErrGeneric());
+		break;
+	}	
+}
 
 /* Estrazione autovalori, vincolata alla disponibilita' delle LAPACK */
 #ifdef __HACK_EIG__
@@ -2880,7 +2864,10 @@ EndOfCycle: /* esce dal ciclo di lettura */
 #include <ac/lapack.h>
 
 static int
-do_eig(doublereal b, doublereal re, doublereal im, doublereal h, doublereal& sigma, doublereal& omega, doublereal& csi, doublereal& freq)
+do_eig(const doublereal& b, const doublereal& re,
+		const doublereal& im, const doublereal& h,
+		doublereal& sigma, doublereal& omega,
+		doublereal& csi, doublereal& freq)
 {
 	int isPi = 0;
 
@@ -3339,80 +3326,7 @@ Solver::Eig(void)
 SolutionManager *const
 Solver::AllocateSolman(integer iNLD, integer iLWS)
 {
-	SolutionManager *pCurrSM = NULL;
-#if 0
-	doublereal dPivotFactor = CurrSolver.dGetPivotFactor();
-
-   	switch (CurrSolver.GetSolver()) {
-     	case LinSol::Y12_SOLVER: 
-#ifdef USE_Y12
-      		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			Y12SparseLUSolutionManager,
-			Y12SparseLUSolutionManager(iNLD, iLWS,
-				dPivotFactor == -1. ? 1. : dPivotFactor));
-      		break;
-#else /* !USE_Y12 */
-      		std::cerr << "Configure with --with-y12 "
-			"to enable Y12 solver" << std::endl;
-      		THROW(ErrGeneric());
-#endif /* !USE_Y12 */
-
-	case LinSol::MESCHACH_SOLVER:
-#ifdef USE_MESCHACH
-		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			MeschachSparseLUSolutionManager,
-			MeschachSparseLUSolutionManager(iNLD, iLWS,
-				dPivotFactor == -1. ? 1. : dPivotFactor));
-		break;
-#else /* !USE_MESCHACH */
-		std::cerr << "Configure with --with-meschach "
-			"to enable Meschach solver" << std::endl;
-      		THROW(ErrGeneric());
-#endif /* !USE_MESCHACH */
-
- 	case LinSol::HARWELL_SOLVER:
-#ifdef USE_HARWELL
-		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			HarwellSparseLUSolutionManager,
-			HarwellSparseLUSolutionManager(iNLD, iLWS,
-				dPivotFactor == -1. ? 1. : dPivotFactor));
-      		break;
-#else /* !USE_HARWELL */
-      		std::cerr << "Configure with --with-harwell "
-			"to enable Harwell solver" << std::endl;
-		THROW(ErrGeneric());
-#endif /* !USE_HARWELL */
-
-	case LinSol::UMFPACK_SOLVER:
-#ifdef USE_UMFPACK
-		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			UmfpackSparseLUSolutionManager,
-			UmfpackSparseLUSolutionManager(iNLD, 
-				0, dPivotFactor));
-#if defined(USE_RTAI) && defined(HAVE_UMFPACK_TIC_DISABLE)
-		if (bRT) {
-			/* disable profiling, to avoid times() system call */
-			umfpack_tic_disable();
-		}
-#endif /* USE_RTAI && HAVE_UMFPACK_TIC_DISABLE */
-      		break;
-#else /* !USE_UMFPACK */
-      		std::cerr << "Configure with --with-umfpack "
-			"to enable Umfpack solver" << std::endl;
-      		THROW(ErrGeneric());
-#endif /* !USE_UMFPACK */
-
-	case LinSol::EMPTY_SOLVER:
-		break;
-		
-   	default:
-		ASSERT(0);
-		THROW(ErrGeneric());
-
-	}
-#endif /* 0 */
-
-	pCurrSM = CurrSolver.GetSolutionManager(iNLD, iLWS);
+	SolutionManager *pCurrSM = CurrSolver.GetSolutionManager(iNLD, iLWS);
 	
 	/* special extra parameters if required */
 	switch (CurrSolver.GetSolver()) {
@@ -3433,7 +3347,9 @@ Solver::AllocateSolman(integer iNLD, integer iLWS)
 };
 
 
-SolutionManager *const Solver::AllocateSchurSolman(integer iStates) {
+SolutionManager *const
+Solver::AllocateSchurSolman(integer iStates)
+{
 	SolutionManager *pSSM(NULL);
 
 #ifdef USE_MPI
@@ -3441,7 +3357,7 @@ SolutionManager *const Solver::AllocateSchurSolman(integer iStates) {
 	integer iIWorkSpaceSize = CurrIntSolver.iGetWorkSpaceSize();
 
 	switch (CurrIntSolver.GetSolver()) {
-		case LinSol::Y12_SOLVER:
+	case LinSol::Y12_SOLVER:
 #ifdef USE_Y12
 		SAFENEWWITHCONSTRUCTOR(pSSM, 
 			SchurSolutionManager,
@@ -3473,32 +3389,34 @@ SolutionManager *const Solver::AllocateSchurSolman(integer iStates) {
 	case LinSol::MESCHACH_SOLVER:
 #ifdef USE_MESCHACH
 		SAFENEWWITHCONSTRUCTOR(pSSM, 
-			SchurSolutionManager,
-			SchurSolutionManager(iNumDofs, iStates, pLocDofs,
-				iNumLocDofs,
-				pIntDofs, iNumIntDofs,
-				pLocalSM,
-				(MeschachSparseLUSolutionManager*)0,
-				iIWorkSpaceSize,
-				dIPivotFactor == -1. ? 1. : dIPivotFactor));
+				SchurSolutionManager,
+				SchurSolutionManager(iNumDofs, iStates,
+					pLocDofs,
+					iNumLocDofs,
+					pIntDofs, iNumIntDofs,
+					pLocalSM,
+					(MeschachSparseLUSolutionManager*)0,
+					iIWorkSpaceSize,
+					dIPivotFactor == -1. ? 1. : dIPivotFactor));
 		break;
 #else /* !USE_MESCHACH */
-	std::cerr << "Configure with --with-meschach "
+		std::cerr << "Configure with --with-meschach "
 		"to enable Meschach solver" << std::endl;
-	THROW(ErrGeneric());
+		THROW(ErrGeneric());
 #endif /* !USE_MESCHACH */
 
 	case LinSol::UMFPACK_SOLVER:
 #ifdef USE_UMFPACK
 		SAFENEWWITHCONSTRUCTOR(pSSM, 
-			SchurSolutionManager,
-			SchurSolutionManager(iNumDofs, iStates, pLocDofs,
-				iNumLocDofs,
-				pIntDofs, iNumIntDofs,
-				pLocalSM,
-				(UmfpackSparseLUSolutionManager*)0,
-				0, 
-				dIPivotFactor));
+				SchurSolutionManager,
+				SchurSolutionManager(iNumDofs, iStates,
+					pLocDofs,
+					iNumLocDofs,
+					pIntDofs, iNumIntDofs,
+					pLocalSM,
+					(UmfpackSparseLUSolutionManager*)0,
+					0, 
+					dIPivotFactor));
 		break;
 #else /* !USE_UMFPACK */
 		std::cerr << "Configure with --with-umfpack "
@@ -3522,8 +3440,11 @@ SolutionManager *const Solver::AllocateSchurSolman(integer iStates) {
 	return pSSM;
 };
 
-NonlinearSolver *const Solver::AllocateNonlinearSolver() {
-	NonlinearSolver * pNLS;
+NonlinearSolver *const
+Solver::AllocateNonlinearSolver()
+{
+	NonlinearSolver *pNLS;
+
 	switch (NonlinearSolverType) {
 	case NonlinearSolver::MATRIXFREE:
 		switch (MFSolverType) {
@@ -3571,7 +3492,9 @@ NonlinearSolver *const Solver::AllocateNonlinearSolver() {
 	return pNLS;
 }
 
-void Solver::SetupSolmans(integer iStates) {
+void
+Solver::SetupSolmans(integer iStates)
+{
    	DEBUGLCOUT(MYDEBUG_MEM, "creating SolutionManager\n\tsize = "
 		   << iNumDofs*iUnkStates << 
 		   "\n\tnumdofs = " << iNumDofs <<

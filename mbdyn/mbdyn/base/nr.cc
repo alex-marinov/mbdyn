@@ -125,7 +125,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
 		 * in the output (maybe we could conditionally disable 
 		 * it? */
 
-		dErr = MakeResTest(*pRes)*pNLP->TestScale(pResTest);
+		dErr = MakeResTest(pSolMan, *pRes)*pNLP->TestScale(pResTest);
 
       		if (dErr < Tol) {
 	 		return;
@@ -187,7 +187,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem* pNLP,
       		pNLP->Update(pSol);
 
 		
-		dSolErr = MakeSolTest(*pSol);
+		dSolErr = MakeSolTest(pSolMan, *pSol);
 		if (outputIters()) {
 #ifdef USE_MPI
 			if (MBDynComm.Get_rank() == 0) {

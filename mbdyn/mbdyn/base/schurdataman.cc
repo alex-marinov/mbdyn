@@ -93,16 +93,20 @@ SchurDataManager::~SchurDataManager() {
 	NO_OP;
 };
 
-void SchurDataManager::AssRes(VectorHandler&, double) {NO_OP;};
-void SchurDataManager::AssJac(MatrixHandler&, double) {NO_OP;};
-void SchurDataManager::DerivativesUpdate() const {NO_OP;};
-void SchurDataManager::BeforePredict(VectorHandler&, VectorHandler&, VectorHandler&, VectorHandler&) const {NO_OP;};
-void SchurDataManager::AfterPredict() const {NO_OP;};
-void SchurDataManager::Update() const {NO_OP;};
-void SchurDataManager::AfterConvergence() const {NO_OP;};
+void SchurDataManager::AssRes(VectorHandler&, double) { NO_OP; };
+void SchurDataManager::AssJac(MatrixHandler&, double) { NO_OP; };
+void SchurDataManager::DerivativesUpdate(void) const { NO_OP; };
+void SchurDataManager::BeforePredict(VectorHandler&, VectorHandler&,
+		VectorHandler&, VectorHandler&) const { NO_OP; };
+void SchurDataManager::AfterPredict(void) const { NO_OP; };
+void SchurDataManager::Update(void) const { NO_OP; };
+void SchurDataManager::AfterConvergence(void) const { NO_OP; };
+integer SchurDataManager::HowManyDofs(DofType) const { NO_OP; };
+integer* SchurDataManager::GetDofsList(DofType) const { NO_OP; };
+Dof* SchurDataManager::pGetDofsList(void) const { NO_OP; };
 #else /* USE_MPI */
 
- /* Costruttore - begin */
+/* Costruttore - begin */
 SchurDataManager::SchurDataManager(MBDynParser& HP, 
 		unsigned OF,
 		doublereal dInitialTime,
@@ -855,6 +859,57 @@ SchurDataManager::~SchurDataManager(void)
     if (ppExpCntElems != NULL) {
     	SAFEDELETEARR(ppExpCntElems);
     }
+}
+
+integer
+SchurDataManager::HowManyDofs(DofType who) const
+{
+	switch(who) {
+	case TOTAL:
+		return iTotDofs;
+
+	case LOCAL:
+		return iNumLocDofs;
+
+	case INTERNAL:
+		return iNumIntDofs;
+
+	case MYINTERNAL:
+		return iNumMyInt;
+
+	default:
+		std::cerr << "SchurDataManager::HowManyDofs: "
+			"illegal request (" << unsigned(who) << ")"
+			<< std::endl;
+		THROW(ErrGeneric());
+	}
+}
+
+integer*
+SchurDataManager::GetDofsList(DofType who) const
+{
+	switch(who) {
+	case LOCAL:
+		return LocalDofs;
+
+	case INTERNAL:
+		return LocalIntDofs;
+
+	case MYINTERNAL: 
+		return pMyIntDofs;
+
+	default:
+		std::cerr << "SchurDataManager::GetDofsList: "
+			"illegal request (" << unsigned(who) << ")"
+			<< std::endl;
+		THROW(ErrGeneric());
+	}
+}
+  
+Dof*
+SchurDataManager::pGetDofsList(void) const
+{
+	return pDofs;
 }
 
 /* Ripartisce i nodi fra i processi e all'interno di ogni singolo processo */

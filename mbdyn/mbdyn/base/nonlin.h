@@ -76,23 +76,27 @@ public:
 	};
 
 	virtual ~NonlinearSolverTest(void);
-	virtual doublereal MakeTest(integer Size, const VectorHandler& Vec) = 0;
+	virtual doublereal MakeTest(SolutionManager *pSM,
+			integer Size, const VectorHandler& Vec) = 0;
 	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
 };
 
 class NonlinearSolverTestNone : public NonlinearSolverTest {
 public:
-	virtual doublereal MakeTest(integer Size, const VectorHandler& Vec);
+	virtual doublereal MakeTest(SolutionManager *pSM,
+			integer Size, const VectorHandler& Vec);
 };
 
 class NonlinearSolverTestNorm : public NonlinearSolverTest {
 public:
-	virtual doublereal MakeTest(integer Size, const VectorHandler& Vec);
+	virtual doublereal MakeTest(SolutionManager *pSM,
+			integer Size, const VectorHandler& Vec);
 };
 
 class NonlinearSolverTestMinMax : public NonlinearSolverTest {
 public:
-	virtual doublereal MakeTest(integer Size, const VectorHandler& Vec);
+	virtual doublereal MakeTest(SolutionManager *pSM,
+			integer Size, const VectorHandler& Vec);
 };
 
 class NonlinearSolverTestScale : public NonlinearSolverTest {
@@ -107,12 +111,14 @@ public:
 
 class NonlinearSolverTestScaleNorm : public NonlinearSolverTestScale {
 public:
-	virtual doublereal MakeTest(integer Size, const VectorHandler& Vec);
+	virtual doublereal MakeTest(SolutionManager *pSM,
+			integer Size, const VectorHandler& Vec);
 };
 
 class NonlinearSolverTestScaleMinMax : public NonlinearSolverTestScale {
 public:
-	virtual doublereal MakeTest(integer Size, const VectorHandler& Vec);
+	virtual doublereal MakeTest(SolutionManager *pSM,
+			integer Size, const VectorHandler& Vec);
 };
 
 class NonlinearSolver : public SolverDiagnostics
@@ -143,8 +149,10 @@ protected:
 	External::ExtMessage ExtStepType;
 #endif /* USE_EXTERNAL */
 
-	virtual doublereal MakeResTest(const VectorHandler& Vec);
-	virtual doublereal MakeSolTest(const VectorHandler& Vec);
+	virtual doublereal MakeResTest(SolutionManager *pSM,
+			const VectorHandler& Vec);
+	virtual doublereal MakeSolTest(SolutionManager *pSM,
+			const VectorHandler& Vec);
 
 public:
 	NonlinearSolver(void);

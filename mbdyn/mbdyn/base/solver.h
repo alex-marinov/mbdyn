@@ -55,10 +55,8 @@
 #include <mynewmem.h>
 #include <except.h>
 #include <dataman.h>
-//#ifdef USE_MPI
 #include <schurdataman.h>
 #include <schsolman.h>
-//#endif /* USE_MPI */
 #include <deque>
 #include <integr.h>
 #include <stepsol.h>
@@ -149,21 +147,18 @@ private:
        unsigned int iPODFrames;
 #endif /*__HACK_POD__*/
 
-
    	/* Strutture di gestione dei dati */
 	integer iNumPreviousVectors;
 	integer iUnkStates;
 	doublereal* pdWorkSpace;
-	std::deque<MyVectorHandler*> qX;      /* queque di vettori degli stati */
-  	std::deque<MyVectorHandler*> qXPrime; /* queque di vettori degli stati derivati */ 
-	MyVectorHandler* pX;                  /* queque di vettori degli stati incogniti*/
-  	MyVectorHandler* pXPrime;             /* queque di vettori degli stati derivati incogniti*/ 
+	std::deque<MyVectorHandler*> qX;      /* queque vett. stati */
+  	std::deque<MyVectorHandler*> qXPrime; /* queque vett. stati der. */ 
+	MyVectorHandler* pX;                  /* queque vett. stati inc. */
+  	MyVectorHandler* pXPrime;             /* queque vett. stati d. inc. */ 
 
 	DataManager* pDM;		/* gestore dei dati */
    	
    	integer iNumDofs;     		/* Dimensioni del problema */
-
-
 
    	/* Dati della simulazione */
    	doublereal dTime;
