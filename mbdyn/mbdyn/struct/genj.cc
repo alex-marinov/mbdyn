@@ -1666,7 +1666,7 @@ SubVectorHandler& ClampJoint::AssRes(SubVectorHandler& WorkVec,
 void ClampJoint::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {
-      Mat3x3 RT(pNode->GetRCurr());
+      Mat3x3 RT(pNode->GetRCurr().Transpose());
 
       Joint::Output(OH.Joints(), "Clamp", GetLabel(),
 		    RT*F, RT*M, F, M) << std::endl;
