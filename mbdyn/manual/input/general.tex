@@ -1355,7 +1355,8 @@ allows to define constitutive laws stand-alone, and attach them
 to the elements by means of the following mechanism:
 \begin{verbatim}
     <constitutive_law_input> ::=
-        { <constitutive_law_definition> | <constitutive_law_reference> }
+        { <constitutive_law_definition>
+            | <constitutive_law_reference> }
 
     <constitutive_law_reference> ::= reference , <label>
 \end{verbatim}
@@ -1398,17 +1399,18 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
 The contitutive laws are entered as follows:
 \begin{verbatim}
     <const_law> ::= <specific_const_law>                        
-        [ , prestress, (entity) <prestress>
-        [ , prestrain, (entity_tpl_driver) <prestrain> ] ]
-    <specific_const_law> ::= <const_law_name> , <const_law_data>
+        [ , prestress, (entity) <prestress> ]
+        [ , prestrain, (entity_tpl_driver) <prestrain> ]
+    <specific_const_law> ::= <const_law_name> ,
+        <const_law_data>
 \end{verbatim}
 where \kw{const\_law\_name} is the name of the constitutive law and
-\kw{const\_law\_data} depend on the specific constitutive law. 
-The following fields, the type of which depends on the dimension of the
-constitutive law, usually are optional, under the assumption that the
-constitutive law is the last field in a card or that any ambiguity can be
-avoided.
-The data specific to the constitutive laws currently available must be
+\kw{const\_law\_data} depends on the specific constitutive law. 
+The latter fields, whose type depends on the dimension of the
+constitutive law, are optional, under the assumption that the
+constitutive law is the last portion of a card, or that any ambiguity 
+can be avoided.
+The data specific to the currently available constitutive laws must be
 entered as follows:
 
 
