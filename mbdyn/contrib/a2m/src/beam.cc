@@ -199,8 +199,49 @@ void s_beam::Translate(ostream& out)
    CHECK_AND_DEBUG (MJ,MarkerJ,J,MBReference);
    CHECK_AND_DEBUG (MI,MarkerI,I,MBReference);
    
-   OffsetL=Unref(MarkerI->Abs_Pos);
-   OffsetR=Unref(MarkerJ->Abs_Pos);
+   /*
+    * Offset del marker J rispetto alla parte, nell'orientazione della parte
+    * questo e' gia' l'offset che va scritto nell'elemento di trave
+    */
+   OffsetL=Unref(MarkerJ->Abs_Pos);
+   /*
+    * Offset del marker I rispetto alla parte, nell'orientazione della parte,
+    * con aggiunta la lunghezza della trave
+    * (a questo punto conviene scrivere: X_J+(X_I-X_J)/|X_I-X_J|*L)
+    */
+   
+   /*
+    * Per farlo devo calcolare X_J come offset del marker J rispetto
+    * alla parte, portato nel sistema assoluto e con aggiunta la posizione
+    * assoluta della parte:
+    * X_J = R_parte_J * OffsetJ + X_parte_J
+    * 
+    * Poi devo fare lo stesso per X_I:
+    * X_I = R_parte_I * OffsetI + X_parte_I
+    * 
+    * Poi calcolo il modulo della distanza tra i due:
+    * | X_J - X_I |
+    * 
+    * e verifico che non sia nullo (estremi coincidenti!)
+    * 
+    * Infine trovo l'offset come differenza tra la proiezione di X_I - X_J
+    * per la lunghezza L a partire da X_J e la posizione della parte I,
+    * X_parte_I, entrambe scritte nel sistema assoluto e poi ruotate
+    * nel sistema della parte I:
+    * 
+    * OffsetI = 
+    *     R_parte_I ^ T * (X_J + (X_I - X_J) / |X_I - X_J| * L - X_parte_I)
+    * 
+    * A questo punto, il nodo centrale e' dato dalla interpolazione
+    * delle posizioni delle due parti:
+    * X_nodo_C = 1/2 * (X_parte_J + X_parte_I)
+    * 
+    * mentre l'offset e' dato dalla interpolazione delle posizioni dei 
+    * due punto calcolati in precedenza; l'interpolazione deve essere
+    * fatta in un sistema di riferimento comune (es. globale):
+    * 
+    * OffsetC = 1/2 * (R_parte_I * OffsetI + R_parte_J * OffsetJ)
+    */
    OffsetC=Interp(OffsetL,OffsetR,0.5);
    /* ATTENZIONE : LA PARTE DI CODICE SOTTOSTANTE E' VALIDA SE :
     * 1. I BCS DELLE PARTI SONO RIFERITI, ATTRAVERSO IL SEMPLICE
