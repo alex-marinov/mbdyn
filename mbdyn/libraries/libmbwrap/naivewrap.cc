@@ -95,13 +95,14 @@ NaiveSolver::Solve(void) const
 void
 NaiveSolver::Factor(void)
 {
-	int	rc;
+	int		rc;
+	doublereal	minpiv = 1e-9;
 	
 	rc = naivfct(Axp, iSize, &nzr[0], Arowp, &nzc[0], Acolp,
-			iSize, &piv[0], 1.0e-3);
+			iSize, &piv[0], minpiv);
 
-#define ENULCOL  1
-#define ENOPIV   2
+#define ENULCOL  -1
+#define ENOPIV   -2
 
 	switch (rc) {
 	case ENULCOL:
