@@ -129,7 +129,6 @@ HBeam::~HBeam(void)
 void
 HBeam::DsDxi(void)
 {
-#warning "FIXME: rivedere calcolo dsdxi"
 	/* Calcola il ds/dxi e le deformazioni iniziali */
 	Mat3x3 RTmp[NUMNODES];
 	Vec3 yTmp[NUMNODES];
@@ -160,7 +159,7 @@ HBeam::DsDxi(void)
 		THROW(HBeam::ErrGeneric());
 	}
 	
-	dsdxi = dsdxi/d;
+	dsdxi = dsdxi*d;
 	dxids = 1./dsdxi;
 
 	/* Calcolo le caratteristiche iniziali ... */
