@@ -26,6 +26,7 @@
 *.rtf -k 'b'
 *.sdw -k 'b'
 *.doc -k 'b'
+*.pdf -k 'b'
 
 # Images
 *.gif -k 'b'
