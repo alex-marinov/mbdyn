@@ -14,8 +14,7 @@ CXX=g++
 F77="g77 -O"
 
 # -rdynamic required to allow dynamic resolution of symbols in modules
-# LDFLAGS="-rdynamic \
-LDFLAGS=" \
+LDFLAGS="-rdynamic \
 	-L/home/masarati/Math/Meschach/meschach \
 	-L/usr/share/mpi/lib \
 	-L/home/masarati/Math/metis-4.0 \
