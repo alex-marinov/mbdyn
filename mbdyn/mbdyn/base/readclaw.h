@@ -79,7 +79,7 @@ template <class T, class Tder>
 ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 				       MBDynParser& HP,
 				       DriveHandler* pDH,
-				       DefHingeType::Type& ConstLawType,
+				       ConstLawType::Type& CLType,
 				       ConstitutiveLaw<T, Tder>*)
 {
    DEBUGCOUT("Entering ReadConstLaw" << std::endl);
@@ -147,7 +147,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
    switch (CurrKW) {
     case LINEARELASTIC:
     case LINEARELASTICISOTROPIC: {
-       ConstLawType = DefHingeType::ELASTIC;
+       CLType = ConstLawType::ELASTIC;
        
        doublereal dS = HP.GetReal();
        DEBUGCOUT("Linear Elastic Isotropic Constitutive Law, stiffness = "
@@ -171,7 +171,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
     }
 
     case LINEARELASTICGENERIC: {
-       ConstLawType = DefHingeType::ELASTIC;
+       CLType = ConstLawType::ELASTIC;
              
        DEBUGCOUT("Linear Elastic Generic Constitutive Law" << std::endl);
        Tder S(0.);
@@ -190,7 +190,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
     }
 
     case LINEARELASTICGENERICAXIALTORSIONCOUPLING: {
-       ConstLawType = DefHingeType::ELASTIC;
+       CLType = ConstLawType::ELASTIC;
              
        DEBUGCOUT("Linear Elastic Generic Constitutive Law with Axial-Torsion Coupling" << std::endl);
        Tder S(0.);
@@ -213,7 +213,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
     }
 
    case LOGELASTIC: {
-       ConstLawType = DefHingeType::ELASTIC;
+       CLType = ConstLawType::ELASTIC;
              
        DEBUGCOUT("Logaritmic Elastic Constitutive Law" << std::endl);
        doublereal dS = HP.GetReal();
@@ -236,7 +236,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
     }      
       
     case DOUBLELINEARELASTIC: {
-       ConstLawType = DefHingeType::ELASTIC;
+       CLType = ConstLawType::ELASTIC;
        
        doublereal dS = HP.GetReal();
        DEBUGCOUT("stiffness = " << dS << std::endl);
@@ -279,7 +279,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
     }
       
     case ISOTROPICHARDENINGELASTIC: {
-       ConstLawType = DefHingeType::ELASTIC;
+       CLType = ConstLawType::ELASTIC;
        
        doublereal dS = HP.GetReal();
        DEBUGCOUT("Stiffness = " << dS << std::endl);
@@ -311,7 +311,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
     }
       
     case CONTACTELASTIC: {
-       ConstLawType = DefHingeType::ELASTIC;
+       CLType = ConstLawType::ELASTIC;
        
        doublereal dK = HP.GetReal();
        DEBUGCOUT("Stiffness = " << dK << std::endl);
@@ -343,7 +343,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
     }
 
     case SYMBOLICELASTICISOTROPIC: {
-       ConstLawType = DefHingeType::ELASTIC;
+       CLType = ConstLawType::ELASTIC;
 
        const char *epsilon = 0;
        if (HP.IsKeyWord("epsilon")) {
@@ -388,7 +388,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
       
     case LINEARVISCOUS:
     case LINEARVISCOUSISOTROPIC: {
-       ConstLawType = DefHingeType::VISCOUS;
+       CLType = ConstLawType::VISCOUS;
        
        doublereal dSP = HP.GetReal();
        DEBUGCOUT("stiffness prime = " << dSP << std::endl);
@@ -409,7 +409,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
     }
       
     case LINEARVISCOUSGENERIC: {
-       ConstLawType = DefHingeType::VISCOUS;
+       CLType = ConstLawType::VISCOUS;
        
        Tder SP(0.);
        SP = HP.Get(SP);
@@ -426,7 +426,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
       
     case LINEARVISCOELASTIC:
     case LINEARVISCOELASTICISOTROPIC: {
-       ConstLawType = DefHingeType::VISCOELASTIC;     
+       CLType = ConstLawType::VISCOELASTIC;     
        
        doublereal dS = HP.GetReal();
        DEBUGCOUT("Stiffness = " << dS << std::endl);
@@ -463,7 +463,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
     }
       
     case LINEARVISCOELASTICGENERIC: {
-       ConstLawType = DefHingeType::VISCOELASTIC;     
+       CLType = ConstLawType::VISCOELASTIC;     
        
        Tder S(0.);
        S = HP.Get(S);      
@@ -489,7 +489,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
     }
       
     case DOUBLELINEARVISCOELASTIC: {
-       ConstLawType = DefHingeType::VISCOELASTIC;
+       CLType = ConstLawType::VISCOELASTIC;
        
        doublereal dS = HP.GetReal();
        DEBUGCOUT("stiffness = " << dS << std::endl);
@@ -541,7 +541,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
     }
       
     case TURBULENTVISCOELASTIC:	{
-       ConstLawType = DefHingeType::VISCOELASTIC;
+       CLType = ConstLawType::VISCOELASTIC;
        
        doublereal dS = HP.GetReal();
        DEBUGCOUT("Visco-Elastic Turbulent Rod Joint, stiffness = " 
@@ -604,7 +604,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
     case LINEARELASTICBISTOP:
     case LINEARVISCOELASTICBISTOP: {
        typedef LinearViscoElasticBiStopConstitutiveLaw<T, Tder> L;
-       ConstLawType = DefHingeType::VISCOELASTIC;
+       CLType = ConstLawType::VISCOELASTIC;
              
        DEBUGCOUT("Linear Viscoelastic Bi Stop Constitutive Law" << std::endl);
        doublereal dS = HP.GetReal();
@@ -652,7 +652,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 	   
     case GRAALLDAMPER: {
 #ifdef USE_GRAALLDAMPER    
-       ConstLawType = DefHingeType::VISCOELASTIC;
+       CLType = ConstLawType::VISCOELASTIC;
 
        const char* filename = HP.GetFileName();
        DEBUGCOUT("Graall damper input file: \"" 
@@ -693,7 +693,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
      * A.A. 1997-98
      */
     case SHOCKABSORBER: {
-       ConstLawType = DefHingeType::VISCOELASTIC;
+       CLType = ConstLawType::VISCOELASTIC;
 
        T PreStrain(0.);
        TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, pDH, PreStrain);
@@ -723,7 +723,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 /* Legge un legame costitutivo tridimensionale
 
 ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP, 
-					       DefHingeType::Type& T)
+					       ConstLawType::Type& T)
 {
    const char sFuncName[] = "DataManager::ReadConstLaw3D()";
    DEBUGCOUT("Entering " << sFuncName << std::endl);
@@ -759,7 +759,7 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
       
     case LINEARELASTICISOTROPIC:	
 	{	   
-	   T = DefHingeType::ELASTIC;
+	   T = ConstLawType::ELASTIC;
 		   
 	   doublereal dS = HP.GetReal();
 	   DEBUGCOUT("stiffness = " << dS << std::endl);
@@ -790,7 +790,7 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 	      
     case LINEARELASTICORTHOTROPIC:
 	{	   
-	   T = DefHingeType::ELASTIC;
+	   T = ConstLawType::ELASTIC;
 		   
 	   Mat3x3 K(HP.GetMat3x3());
 	   
@@ -815,7 +815,7 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 	      
     case DOUBLELINEARELASTIC:	
 	{	   
-	   T = DefHingeType::ELASTIC;
+	   T = ConstLawType::ELASTIC;
 		   
 	   doublereal dS = HP.GetReal();
 	   DEBUGCOUT("stiffness = " << dS << std::endl);
@@ -867,7 +867,7 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 	      
     case LINEARVISCOUSISOTROPIC:
 	{	   
-	   T = DefHingeType::VISCOUS;
+	   T = ConstLawType::VISCOUS;
 		   
 	   doublereal dS = HP.GetReal();
 	   DEBUGCOUT("stiffness prime = " << dS << std::endl);
@@ -886,7 +886,7 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 	 
     case TURBULENTVISCOUSISOTROPIC:           
 	{
-	   T = DefHingeType::VISCOUS;	   
+	   T = ConstLawType::VISCOUS;	   
 	   
 	   doublereal dParabStiff = HP.GetReal();
 	   DEBUGCOUT("Visco-Elastic Turbulent Rod Joint, stiffness = " 
@@ -940,7 +940,7 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
       
     case VELOCITYDAMPER:
 	{
-	   T = DefHingeType::VISCOUS;
+	   T = ConstLawType::VISCOUS;
 	
 	   doublereal dR = HP.GetReal();	   	   
 	   DEBUGCOUT("Reference value: " << dR << std::endl);
@@ -965,7 +965,7 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
             
     case LINEARVISCOELASTICISOTROPIC:
 	{
-	   T = DefHingeType::VISCOELASTIC;	   
+	   T = ConstLawType::VISCOELASTIC;	   
 	   
 	   doublereal dS = HP.GetReal();
 	   DEBUGCOUT("Visco-Elastic Linear Rod Joint, stiffness = " 

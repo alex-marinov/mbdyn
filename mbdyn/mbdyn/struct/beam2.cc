@@ -1329,8 +1329,8 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	}
 	
 	/* Legame costitutivo */
-	DefHingeType::Type ConstLawType = DefHingeType::UNKNOWN;
-	ConstitutiveLaw6D* pD = pDM->ReadConstLaw6D(HP, ConstLawType);
+	ConstLawType::Type CLType = ConstLawType::UNKNOWN;
+	ConstitutiveLaw6D* pD = pDM->ReadConstLaw6D(HP, CLType);
 
 	if (pD->iGetNumDof() != 0) {
      		std::cerr << "line " << HP.GetLineData()
@@ -1415,7 +1415,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	
 	Elem* pEl = NULL;
 	
-	if (ConstLawType == DefHingeType::ELASTIC) {
+	if (CLType == ConstLawType::ELASTIC) {
 #if defined(USE_ELECTRIC_NODES)
 		if (fPiezo == 0) {	 
 #endif /* defined(USE_ELECTRIC_NODES) */

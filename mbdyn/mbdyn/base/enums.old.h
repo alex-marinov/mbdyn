@@ -124,7 +124,7 @@ extern const char* psRodNames[];
 
 
 /* Tipi di cerniere deformabili */
-class DefHingeType {
+class ConstLawType {
  public:
    enum Type {
       UNKNOWN = -1,

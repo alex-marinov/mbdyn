@@ -1758,8 +1758,8 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    }   
    
    /*     Legame costitutivo */
-   DefHingeType::Type ConstLawType_I = DefHingeType::UNKNOWN;
-   ConstitutiveLaw6D* pD_I = pDM->ReadConstLaw6D(HP, ConstLawType_I);
+   ConstLawType::Type CLType_I = ConstLawType::UNKNOWN;
+   ConstitutiveLaw6D* pD_I = pDM->ReadConstLaw6D(HP, CLType_I);
    
    if (pD_I->iGetNumDof() != 0) {
    	   std::cerr << "line " << HP.GetLineData()
@@ -1804,7 +1804,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    }   
 
    /*     Legame costitutivo */
-   DefHingeType::Type ConstLawTypeII = DefHingeType::UNKNOWN;
+   ConstLawType::Type CLTypeII = ConstLawType::UNKNOWN;
    ConstitutiveLaw6D* pDII = NULL;
    
    /* Not allowed any more, since there is no simple way implement
@@ -1818,7 +1818,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
        */
       pDII = pD_I->pCopy();
    } else {
-      pDII = pDM->ReadConstLaw6D(HP, ConstLawTypeII);
+      pDII = pDM->ReadConstLaw6D(HP, CLTypeII);
       
       if (pDII->iGetNumDof() != 0) {
    	      std::cerr << "line " << HP.GetLineData()
@@ -1915,8 +1915,8 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 
    Elem* pEl = NULL;
    
-   if ((ConstLawType_I == DefHingeType::ELASTIC) 
-       && (ConstLawType_I == DefHingeType::ELASTIC)) {
+   if ((CLType_I == ConstLawType::ELASTIC) 
+       && (CLType_I == ConstLawType::ELASTIC)) {
 
 #if defined(USE_ELECTRIC_NODES)      
       if (fPiezo == 0) {	 

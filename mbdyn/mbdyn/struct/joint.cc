@@ -1013,8 +1013,8 @@ Elem* ReadJoint(DataManager* pDM,
        }
        
        /* Legame costitutivo */
-       DefHingeType::Type ConstLawType = DefHingeType::UNKNOWN;
-       ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, ConstLawType);
+       ConstLawType::Type CLType = ConstLawType::UNKNOWN;
+       ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, CLType);
        
        if (pCL->iGetNumDof() != 0) {
 	  std::cerr << "line " << HP.GetLineData()
@@ -1033,8 +1033,8 @@ Elem* ReadJoint(DataManager* pDM,
 						    pNode1, pNode2, 
 						    f1, f2, dL, fOut));
        } else {	  
-	  if (ConstLawType == DefHingeType::VISCOUS
-			  || ConstLawType == DefHingeType::VISCOELASTIC) {
+	  if (CLType == ConstLawType::VISCOUS
+			  || CLType == ConstLawType::VISCOELASTIC) {
 	     SAFENEWWITHCONSTRUCTOR(pEl, 
 				    ViscoElasticRod,
 				    ViscoElasticRod(uLabel, pDO, pCL,
@@ -1119,8 +1119,8 @@ Elem* ReadJoint(DataManager* pDM,
        DEBUGCOUT("Initial length = " << dL << std::endl);
 
        /* Legame costitutivo */
-       DefHingeType::Type ConstLawType = DefHingeType::UNKNOWN;
-       ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, ConstLawType);
+       ConstLawType::Type CLType = ConstLawType::UNKNOWN;
+       ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, CLType);
 
        if (pCL->iGetNumDof() != 0) {
 	  std::cerr << "line " << HP.GetLineData()
@@ -1177,8 +1177,8 @@ Elem* ReadJoint(DataManager* pDM,
        
        
        /* Legame costitutivo */
-       DefHingeType::Type ConstLawType;
-       ConstitutiveLaw3D* pCL = pDM->ReadConstLaw3D(HP, ConstLawType);
+       ConstLawType::Type CLType;
+       ConstitutiveLaw3D* pCL = pDM->ReadConstLaw3D(HP, CLType);
        
        if (pCL->iGetNumDof() != 0) {
 	  std::cerr << "line " << HP.GetLineData()
@@ -1190,8 +1190,8 @@ Elem* ReadJoint(DataManager* pDM,
 	
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
-       switch (ConstLawType) {
-	case DefHingeType::ELASTIC: {
+       switch (CLType) {
+	case ConstLawType::ELASTIC: {
 	   if (CurrKeyWord == DEFORMABLEHINGE) {
 	      SAFENEWWITHCONSTRUCTOR(pEl,
 				     ElasticHingeJoint,
@@ -1210,7 +1210,7 @@ Elem* ReadJoint(DataManager* pDM,
 	   break;
 	}
 	  
-	case DefHingeType::VISCOUS: {
+	case ConstLawType::VISCOUS: {
 	   if (CurrKeyWord == DEFORMABLEHINGE) {
 	      SAFENEWWITHCONSTRUCTOR(pEl, 
 				     ViscousHingeJoint,
@@ -1229,7 +1229,7 @@ Elem* ReadJoint(DataManager* pDM,
 	   break;
 	}
 	  
-	case DefHingeType::VISCOELASTIC: {
+	case ConstLawType::VISCOELASTIC: {
 	   if (CurrKeyWord == DEFORMABLEHINGE) {
 	      SAFENEWWITHCONSTRUCTOR(pEl, 
 				     ViscoElasticHingeJoint,

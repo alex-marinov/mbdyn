@@ -365,8 +365,8 @@ Elem* ReadGenel(DataManager* pDM,
 	  THROW(DataManager::ErrGeneric());	      
        }	     	  
        
-       DefHingeType::Type ConstLawType = DefHingeType::UNKNOWN;
-       ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, ConstLawType);
+       ConstLawType::Type CLType = ConstLawType::UNKNOWN;
+       ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, CLType);
 
        if (pCL->iGetNumDof() != 0) {
 	  std::cerr << "Error at line " << HP.GetLineData()
@@ -375,7 +375,7 @@ Elem* ReadGenel(DataManager* pDM,
 	  THROW(DataManager::ErrGeneric());
        }
        
-       if (ConstLawType != DefHingeType::ELASTIC) {
+       if (CLType != ConstLawType::ELASTIC) {
 	  std::cerr << "Error at line " << HP.GetLineData() 
 	    << ": elastic constitutive laws only are allowed" << std::endl;
 	  THROW(DataManager::ErrGeneric());
@@ -403,8 +403,8 @@ Elem* ReadGenel(DataManager* pDM,
 	  THROW(DataManager::ErrGeneric());	      
        }	         
        
-       DefHingeType::Type ConstLawType = DefHingeType::UNKNOWN;
-       ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, ConstLawType);
+       ConstLawType::Type CLType = ConstLawType::UNKNOWN;
+       ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, CLType);
        
        if (pCL->iGetNumDof() != 0) {
 	  std::cerr << "Error at line " << HP.GetLineData()
@@ -416,16 +416,16 @@ Elem* ReadGenel(DataManager* pDM,
        
        flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
 
-       switch (ConstLawType) {
-	case DefHingeType::ELASTIC: {
+       switch (CLType) {
+	case ConstLawType::ELASTIC: {
 	   SAFENEWWITHCONSTRUCTOR(pEl,
 				  GenelSpringSupport,	
 				  GenelSpringSupport(uLabel, pDO, pCL, 
 						     SD, fOut));
 	   break;
 	}
-	case DefHingeType::VISCOUS:
-	case DefHingeType::VISCOELASTIC: {
+	case ConstLawType::VISCOUS:
+	case ConstLawType::VISCOELASTIC: {
 	   SAFENEWWITHCONSTRUCTOR(pEl,
 				  GenelSpringDamperSupport,
 				  GenelSpringDamperSupport(uLabel, pDO, pCL, 
@@ -455,8 +455,8 @@ Elem* ReadGenel(DataManager* pDM,
 	  THROW(DataManager::ErrGeneric());	      
        }	         
        
-       DefHingeType::Type ConstLawType = DefHingeType::UNKNOWN;
-       ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, ConstLawType);
+       ConstLawType::Type CLType = ConstLawType::UNKNOWN;
+       ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, CLType);
        
        if (pCL->iGetNumDof() != 0) {
 	  std::cerr << "Error at line " << HP.GetLineData()
@@ -468,16 +468,16 @@ Elem* ReadGenel(DataManager* pDM,
        
        flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
 
-       switch (ConstLawType) {
-	case DefHingeType::ELASTIC: {
+       switch (CLType) {
+	case ConstLawType::ELASTIC: {
 	   SAFENEWWITHCONSTRUCTOR(pEl,
 				  GenelCrossSpringSupport,	
 				  GenelCrossSpringSupport(uLabel, pDO, pCL, 
 							  SDRow, SDCol, fOut));
 	   break;
 	}
-	case DefHingeType::VISCOUS:
-	case DefHingeType::VISCOELASTIC: {
+	case ConstLawType::VISCOUS:
+	case ConstLawType::VISCOELASTIC: {
 	   SAFENEWWITHCONSTRUCTOR(pEl,
 				  GenelCrossSpringDamperSupport,
 				  GenelCrossSpringDamperSupport(uLabel, pDO, pCL, 

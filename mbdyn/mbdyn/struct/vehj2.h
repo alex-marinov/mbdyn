@@ -79,7 +79,7 @@ virtual public Elem, public Joint, public ConstitutiveLaw3DOwner {
    virtual void Output(OutputHandler& OH) const;
    
    /* Tipo di DeformableDispHinge */
-   virtual DefHingeType::Type GetDefHingeType(void) const = 0;
+   virtual ConstLawType::Type GetConstLawType(void) const = 0;
    
    virtual unsigned int iGetNumDof(void) const { 
       return 0;
@@ -142,8 +142,8 @@ class ElasticDispHingeJoint : virtual public Elem, public DeformableDispHingeJoi
    };
 
    /* Tipo di DeformableDispHinge */
-   virtual DefHingeType::Type GetDefHingeType(void) const {
-      return DefHingeType::ELASTIC; 
+   virtual ConstLawType::Type GetConstLawType(void) const {
+      return ConstLawType::ELASTIC; 
    };
    
    /* assemblaggio jacobiano */
@@ -201,8 +201,8 @@ class ViscousDispHingeJoint : virtual public Elem, public DeformableDispHingeJoi
    };
 
    /* Tipo di DeformableDispHinge */
-   virtual DefHingeType::Type GetDefHingeType(void) const {
-      return DefHingeType::VISCOUS; 
+   virtual ConstLawType::Type GetConstLawType(void) const {
+      return ConstLawType::VISCOUS; 
    };
    
    /* assemblaggio jacobiano */
@@ -259,8 +259,8 @@ class ViscoElasticDispHingeJoint
    virtual inline void* pGet(void) const { return (void*)this; };   
 
    /* Tipo di DeformableDispHinge */
-   virtual DefHingeType::Type GetDefHingeType(void) const {
-      return DefHingeType::VISCOELASTIC; 
+   virtual ConstLawType::Type GetConstLawType(void) const {
+      return ConstLawType::VISCOELASTIC; 
    };
    
    /* assemblaggio jacobiano */

@@ -39,7 +39,7 @@
 
 
 /* Tipi di cerniere deformabili (ora sta in constltp.h)
-class DefHingeType {
+class ConstLawType {
  public:
    enum Type {
       UNKNOWN = -1,
@@ -92,7 +92,7 @@ public:
 	virtual void Output(OutputHandler& OH) const;
 
 	/* Tipo di DeformableHinge */
-	virtual DefHingeType::Type GetDefHingeType(void) const = 0;
+	virtual ConstLawType::Type GetConstLawType(void) const = 0;
 
 	virtual unsigned int iGetNumDof(void) const { 
 		return 0;
@@ -163,8 +163,8 @@ public:
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 
 	/* Tipo di DeformableHinge */
-	virtual DefHingeType::Type GetDefHingeType(void) const {
-		return DefHingeType::ELASTIC; 
+	virtual ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::ELASTIC; 
 	};
 
 	/* assemblaggio jacobiano */
@@ -245,8 +245,8 @@ public:
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 
 	/* Tipo di DeformableHinge */
-	virtual DefHingeType::Type GetDefHingeType(void) const {
-		return DefHingeType::VISCOUS; 
+	virtual ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::VISCOUS; 
 	};
 
 	/* Aggiorna le deformazioni ecc. */
@@ -335,8 +335,8 @@ public:
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 
 	/* Tipo di DeformableHinge */
-	virtual DefHingeType::Type GetDefHingeType(void) const {
-		return DefHingeType::VISCOELASTIC; 
+	virtual ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::VISCOELASTIC; 
 	};
 
 	/* assemblaggio jacobiano */
