@@ -60,6 +60,7 @@ INCLUDES = \
 -I../../libraries/libcolamd \
 -I../../libraries/libmbutil \
 -I../../libraries/libmbmath \
+-I../../libraries/libnaive \
 -I../../libraries/libmbwrap \
 -I../../mbdyn \
 -I../../mbdyn/base

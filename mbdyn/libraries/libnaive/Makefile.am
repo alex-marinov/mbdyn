@@ -11,4 +11,7 @@ mthrdslv.h
 libnaive_la_LIBADD = @LIBS@
 libnaive_la_LDFLAGS =
 
+INCLUDES = \
+-I../../mbdyn
+
 include $(top_srcdir)/build/bot.mk
