@@ -173,7 +173,7 @@ void ModLugreFriction::AssRes(
 	const doublereal F,
 	const doublereal v,
 	const VectorHandler& X,
-	const VectorHandler& XP) {
+	const VectorHandler& XP) throw(Elem::ChangedEquationStructure) {
 	doublereal z = X.dGetCoef(solution_startdof+1);
 	doublereal zp = XP.dGetCoef(solution_startdof+1);
 	f = sigma0*z + sigma1*zp + sigma2*v;
@@ -282,15 +282,15 @@ void DiscreteCoulombFriction::AfterConvergence(
 	first_iter = true;
 	first_switch = true;
 	if (status == sticking) {
- 		std::cerr << "sticking" << std::endl;
+//* 		std::cerr << "sticking" << std::endl;
 		status = sticked;
 	} else if (status == sliding) {
- 		std::cerr << "sliding" << std::endl;
+//* 		std::cerr << "sliding" << std::endl;
 	} else {
- 		std::cerr << "sticked" << std::endl;
+//* 		std::cerr << "sticked" << std::endl;
 	}
 // 	std::cerr << status << " " << transition_type << std::endl;
- 	std::cerr << "CONVERGENZA; v = " << v << "; f = " << f << std::endl;
+//* 	std::cerr << "CONVERGENZA; v = " << v << "; f = " << f << std::endl;
 };
 
 
@@ -301,12 +301,12 @@ void DiscreteCoulombFriction::AssRes(
 	const doublereal F,
 	const doublereal v,
 	const VectorHandler& X,
-	const VectorHandler& XP) {
+	const VectorHandler& XP) throw(Elem::ChangedEquationStructure) {
 // 	std::cerr << "Chimata residuo. Status:" << status << std::endl;
 	f = X.dGetCoef(solution_startdof+1);
 //	if ((std::fabs(f)-fss(0) > 1.0E-6) && (first_iter == false)) {
- 	std::cerr << "Attrito: " << f << " " << (std::fabs(f)-fss(0))/fss(0) << " - " << std::endl;
-	std::cerr << "v: " << v << std::endl; 
+//* 	std::cerr << "Attrito: " << f << " " << (std::fabs(f)-fss(0))/fss(0) << " - " << std::endl;
+//*	std::cerr << "v: " << v << std::endl; 
 	transition_type = null;
 // 	std::cerr << "Attrito: " << f << " " << std::fabs(f)/fss(0) << " - " << std::endl;
 // 	if ((std::fabs(std::fabs(f)-fss(0))/fss(0) > 1.0E-6)) {
@@ -314,10 +314,10 @@ void DiscreteCoulombFriction::AssRes(
 		//unconditionally switch to sliding
 		if (status == sticked) {
 			transition_type = from_sticked_to_sliding;
- 			std::cerr << "switch to sliding from sticked: " << transition_type << std::endl;
+//* 			std::cerr << "switch to sliding from sticked: " << transition_type << std::endl;
 		} else if (status == sticking) {
 			transition_type = from_sticking_to_sliding;
- 			std::cerr << "switch to sliding from sticking: " << transition_type << std::endl;
+//* 			std::cerr << "switch to sliding from sticking: " << transition_type << std::endl;
 		} else if (status == sliding) {
 			//do nothing
 // 			std::cerr << "DiscreteCoulombFriction::AssRes message:\n"
@@ -336,14 +336,14 @@ void DiscreteCoulombFriction::AssRes(
 	if (status == sliding) {
 // 		std::cerr << "v*current_velocity: " << v*current_velocity << std::endl;
 		if (v*current_velocity < 0.) {
- 			std::cerr << "sono dentro; v: " << v << 
- 				" previous_switch_v: " << previous_switch_v << std::endl;
- 			std::cerr << "current velocity: " << current_velocity << std::endl;
+//* 			std::cerr << "sono dentro; v: " << v << 
+//*				" previous_switch_v: " << previous_switch_v << std::endl;
+//* 			std::cerr << "current velocity: " << current_velocity << std::endl;
 			if (((transition_type != from_sticked_to_sliding) ||
 				(transition_type != from_sticking_to_sliding)) &&
 				((std::fabs(v-current_velocity) < std::fabs(previous_switch_v)) ||
 					(first_switch == true))) {
- 				std::cerr << "Passo a sticking $$" << std::endl;;
+//* 				std::cerr << "Passo a sticking $$" << std::endl;;
 				first_switch = false;
 				status = sticking;
 				transition_type = from_sliding_to_sticking;
@@ -382,17 +382,17 @@ void DiscreteCoulombFriction::AssRes(
 //				std::cerr << "v: " << v << std::endl;
 				if (sign(v) == sign(current_velocity)) {
 					current_friction_force = sign(v)*fss(v)+sigma2*v;
-					std::cerr << "quixxxx" << std::endl;
+//*					std::cerr << "quixxxx" << std::endl;
 				} else {
 					current_friction_force = sign(f)*fss(v)+sigma2*v;
-					std::cerr << "quiyyyy" << std::endl;
+//*					std::cerr << "quiyyyy" << std::endl;
 				}
 			} else {
 				//limit the force value while taking the sticking force direction
 				current_friction_force = sign(f)*fss(v)+sigma2*v;
 			}
 		 	if (std::abs(v) < std::abs(current_velocity) && !first_iter) {
-				std::cerr << "Aggiorno current velocity" << std::endl;
+//*				std::cerr << "Aggiorno current velocity" << std::endl;
 				current_velocity = v;
 		 	}
 			break;
@@ -414,6 +414,9 @@ void DiscreteCoulombFriction::AssRes(
 	}
 	//update status
 	first_iter = false;
+	if (transition_type != null) {
+		throw Elem::ChangedEquationStructure();
+	}
 //	current_velocity = v;
 };
 
@@ -429,7 +432,7 @@ void DiscreteCoulombFriction::AssJac(
 	const VectorHandler& XP,
 	const ExpandableRowVector& dF,
 	const ExpandableRowVector& dv) const {
- 	std::cerr << "Chimata jacobiano. Status:" << status << std::endl;
+//* 	std::cerr << "Chimata jacobiano. Status:" << status << std::endl;
 	switch (status) {
 	case sticking: 
 	case sticked: {

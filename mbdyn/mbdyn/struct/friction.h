@@ -34,6 +34,7 @@
 
 #include "ScalarFunctions.h"
 #include "simentity.h"
+#include "elem.h"
 #include "JacSubMatrix.h"
 
 /** Base class for friction models
@@ -72,7 +73,8 @@ public:
 		const doublereal F,
 		const doublereal v,
 		const VectorHandler& X,
-		const VectorHandler& XP) = 0;
+		const VectorHandler& XP) 
+			throw(Elem::ChangedEquationStructure) = 0;
 /** Compute self jacobian and friction coefficient derivatives
  */
 	virtual void AssJac(
@@ -163,7 +165,7 @@ public:
 		const doublereal F,
 		const doublereal v,
 		const VectorHandler& X,
-		const VectorHandler& XP);
+		const VectorHandler& XP) throw(Elem::ChangedEquationStructure);
 	void AssJac(
 		FullSubMatrixHandler& WorkMat,
 		ExpandableRowVector& dfc,
@@ -201,8 +203,11 @@ private:
 	logical first_switch;
 	doublereal previous_switch_v;
 	doublereal current_velocity;
+	doublereal saved_sliding_velocity;
+	doublereal saved_sliding_friction;
 	doublereal sigma2;
 	doublereal vel_ratio;
+	doublereal current_friction_force;
 	
 	const DifferentiableScalarFunction & fss;
 	doublereal f;
@@ -231,7 +236,7 @@ public:
 		const doublereal F,
 		const doublereal v,
 		const VectorHandler& X,
-		const VectorHandler& XP);
+		const VectorHandler& XP) throw(Elem::ChangedEquationStructure);
 	void AssJac(
 		FullSubMatrixHandler& WorkMat,
 		ExpandableRowVector& dfc,
