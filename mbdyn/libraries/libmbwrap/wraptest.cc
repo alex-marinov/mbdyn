@@ -62,8 +62,8 @@ main(int argc, char *argv[])
 
 	if (strcasecmp(solver, "y12") == 0) {
 #ifdef USE_Y12
-		SAFENEWWITHCONSTRUCTOR(pSM, Y12SparseLUSolutionManager,
-				Y12SparseLUSolutionManager(size));
+		SAFENEWWITHCONSTRUCTOR(pSM, Y12SparseSolutionManager,
+				Y12SparseSolutionManager(size));
 #else /* !USE_Y12 */
 		std::cerr << "need --with-y12 to use y12m library" 
 			<< std::endl;
@@ -72,8 +72,8 @@ main(int argc, char *argv[])
 
 	} else if (strcasecmp(solver, "harwell") == 0) {
 #ifdef USE_HARWELL
-		SAFENEWWITHCONSTRUCTOR(pSM, HarwellSparseLUSolutionManager,
-				HarwellSparseLUSolutionManager(size));
+		SAFENEWWITHCONSTRUCTOR(pSM, HarwellSparseSolutionManager,
+				HarwellSparseSolutionManager(size));
 #else /* !USE_HARWELL */
 		std::cerr << "need --with-harwell to use HSL library" 
 			<< std::endl;
@@ -82,8 +82,8 @@ main(int argc, char *argv[])
 
 	} else if (strcasecmp(solver, "meschach") == 0) {
 #ifdef USE_MESCHACH
-		SAFENEWWITHCONSTRUCTOR(pSM, MeschachSparseLUSolutionManager,
-				MeschachSparseLUSolutionManager(size));
+		SAFENEWWITHCONSTRUCTOR(pSM, MeschachSparseSolutionManager,
+				MeschachSparseSolutionManager(size));
 #else /* !USE_MESCHACH */
 		std::cerr << "need --with-meschach to use Meschach library" 
 			<< std::endl;
@@ -101,7 +101,7 @@ main(int argc, char *argv[])
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pSM,
 					UmfpackSparseLUSolutionManag,
-					UmfpackSparseLUSolutionManager(size));
+					UmfpackSparseSolutionManager(size));
 		}
 #else /* !USE_UMFPACK */
 		std::cerr << "need --with-umfpack to use Umfpack library" 

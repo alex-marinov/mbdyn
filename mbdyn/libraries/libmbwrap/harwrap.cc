@@ -42,10 +42,10 @@
 
 #include <harwrap.h>
 
-/* HarwellSparseLUSolutionManager - begin: code */
+/* HarwellSparseSolutionManager - begin: code */
 
 /* Costruttore */
-HarwellSparseLUSolutionManager::HarwellSparseLUSolutionManager(integer iSize, 
+HarwellSparseSolutionManager::HarwellSparseSolutionManager(integer iSize, 
 					 		       integer iWorkSpaceSize,
 							       const doublereal& dPivotFactor) :
 iMatMaxSize(iSize),
@@ -93,7 +93,7 @@ fHasBeenReset(1)
 
 
 /* Distruttore; verificare la distruzione degli oggetti piu' complessi */
-HarwellSparseLUSolutionManager::~HarwellSparseLUSolutionManager(void)
+HarwellSparseSolutionManager::~HarwellSparseSolutionManager(void)
 {
 #ifdef DEBUG
    	IsValid();
@@ -111,7 +111,7 @@ HarwellSparseLUSolutionManager::~HarwellSparseLUSolutionManager(void)
 #ifdef DEBUG
 /* Test di validita' del manager */
 void 
-HarwellSparseLUSolutionManager::IsValid(void) const
+HarwellSparseSolutionManager::IsValid(void) const
 {   
    	ASSERT(iMatMaxSize > 0);
    	ASSERT(iMatSize > 0);
@@ -128,7 +128,7 @@ HarwellSparseLUSolutionManager::IsValid(void) const
 
 /* Prepara i vettori e la matrice per il solutore */
 void
-HarwellSparseLUSolutionManager::PacVec(void)
+HarwellSparseSolutionManager::PacVec(void)
 {
 #ifdef DEBUG
    	IsValid();
@@ -141,7 +141,7 @@ HarwellSparseLUSolutionManager::PacVec(void)
 
 /* Inizializza il gestore delle matrici */
 void
-HarwellSparseLUSolutionManager::MatrInit(const doublereal& dResetVal)
+HarwellSparseSolutionManager::MatrInit(const doublereal& dResetVal)
 {
 #ifdef DEBUG
    	IsValid();
@@ -153,7 +153,7 @@ HarwellSparseLUSolutionManager::MatrInit(const doublereal& dResetVal)
 
 /* Risolve il problema */
 void
-HarwellSparseLUSolutionManager::Solve(void)
+HarwellSparseSolutionManager::Solve(void)
 {
 #ifdef DEBUG
    	IsValid();
@@ -163,13 +163,13 @@ HarwellSparseLUSolutionManager::Solve(void)
       		PacVec();
       		fHasBeenReset = flag(0);
       		if (!pLU->bLUFactor()) {
-	 		THROW(HarwellSparseLUSolutionManager::ErrGeneric());
+	 		THROW(HarwellSparseSolutionManager::ErrGeneric());
       		}
    	}
    	pLU->Solve();
 }
 
-/* HarwellSparseLUSolutionManager - end */
+/* HarwellSparseSolutionManager - end */
 
 #endif /* USE_HARWELL */
 

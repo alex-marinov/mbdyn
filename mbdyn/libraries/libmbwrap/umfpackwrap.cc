@@ -118,9 +118,9 @@
 
 #endif /* HAVE_UMFPACK4 */
 
-/* UmfpackSparseLUSolutionManager - begin */
+/* UmfpackSparseSolutionManager - begin */
 
-UmfpackSparseLUSolutionManager::UmfpackSparseLUSolutionManager(integer Dim,
+UmfpackSparseSolutionManager::UmfpackSparseSolutionManager(integer Dim,
 		integer dummy, doublereal dPivot)
 : A(Dim),
 xVH(0),
@@ -150,7 +150,7 @@ HasBeenReset(true)
 	}
 }
 
-UmfpackSparseLUSolutionManager::~UmfpackSparseLUSolutionManager(void) 
+UmfpackSparseSolutionManager::~UmfpackSparseSolutionManager(void) 
 {
 	UMFPACKWRAP_free_symbolic(&Symbolic);
 	ASSERT(Symbolic == 0);
@@ -163,19 +163,19 @@ UmfpackSparseLUSolutionManager::~UmfpackSparseLUSolutionManager(void)
 }
 
 void
-UmfpackSparseLUSolutionManager::MatrReset(const doublereal& d)
+UmfpackSparseSolutionManager::MatrReset(const doublereal& d)
 {
 	A.Reset(d);
 }
 
 void
-UmfpackSparseLUSolutionManager::MakeCompressedColumnForm(void)
+UmfpackSparseSolutionManager::MakeCompressedColumnForm(void)
 {
 	A.MakeCompressedColumnForm(Ax, Ai, Ap);
 }
 
 void
-UmfpackSparseLUSolutionManager::MatrInit(const doublereal& d)
+UmfpackSparseSolutionManager::MatrInit(const doublereal& d)
 {
 	MatrReset(d);
 
@@ -187,7 +187,7 @@ UmfpackSparseLUSolutionManager::MatrInit(const doublereal& d)
 }
 
 bool 
-UmfpackSparseLUSolutionManager::PrepareSymbolic(void)
+UmfpackSparseSolutionManager::PrepareSymbolic(void)
 {
 	const int* const Aip = &(Ai[0]);
 	const int* const App = &(Ap[0]);
@@ -223,7 +223,7 @@ UmfpackSparseLUSolutionManager::PrepareSymbolic(void)
 
 /* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
 void
-UmfpackSparseLUSolutionManager::Solve(void)
+UmfpackSparseSolutionManager::Solve(void)
 {
 	doublereal t = 0.;
 
@@ -288,7 +288,7 @@ UmfpackSparseLUSolutionManager::Solve(void)
 
 /* Bacward Substitution */
 void
-UmfpackSparseLUSolutionManager::BackSub(doublereal t_iniz)
+UmfpackSparseSolutionManager::BackSub(doublereal t_iniz)
 {
 	const doublereal* const Axp = &(Ax[0]);
 	const int* const Aip = &(Ai[0]);
@@ -325,30 +325,30 @@ UmfpackSparseLUSolutionManager::BackSub(doublereal t_iniz)
 
 /* Rende disponibile l'handler per la matrice */
 MatrixHandler*
-UmfpackSparseLUSolutionManager::pMatHdl(void) const
+UmfpackSparseSolutionManager::pMatHdl(void) const
 {
 	return &A;
 }
 
 /* Rende disponibile l'handler per il termine noto */
 MyVectorHandler*
-UmfpackSparseLUSolutionManager::pResHdl(void) const {
+UmfpackSparseSolutionManager::pResHdl(void) const {
 	return bVH;
 }
 
 /* Rende disponibile l'handler per la soluzione */
 MyVectorHandler*
-UmfpackSparseLUSolutionManager::pSolHdl(void) const {
+UmfpackSparseSolutionManager::pSolHdl(void) const {
 	return xVH;
 }
 
-/* UmfpackSparseLUSolutionManager - end */
+/* UmfpackSparseSolutionManager - end */
 
 /* UmfpackSparseCCLUSolutionManager - begin */
 
 UmfpackSparseCCLUSolutionManager::UmfpackSparseCCLUSolutionManager(integer Dim,
 		integer dummy, doublereal dPivot)
-: UmfpackSparseLUSolutionManager(Dim, dummy, dPivot),
+: UmfpackSparseSolutionManager(Dim, dummy, dPivot),
 CCReady(false),
 Ac(0)
 {

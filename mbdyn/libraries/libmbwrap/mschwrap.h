@@ -302,9 +302,9 @@ operator << (std::ostream& out, const MeschachSparseMatrixHandler& MH);
 
 /* MeschachSparseMatrixHandler -end */
 
-/* MeschachSparseLUSolutionManager - begin */
+/* MeschachSparseSolutionManager - begin */
 
-class MeschachSparseLUSolutionManager : public SolutionManager {
+class MeschachSparseSolutionManager : public SolutionManager {
 protected:
    	MeschachVectorHandler* prhs;
    	PERM* pivot;
@@ -317,10 +317,10 @@ protected:
    	void Factor(void);
    
 public:
-   	MeschachSparseLUSolutionManager(int iSize,
+   	MeschachSparseSolutionManager(int iSize,
 					int iMaxSize = 0, 
 					const doublereal& a = 1.);
-   	~MeschachSparseLUSolutionManager(void);
+   	~MeschachSparseSolutionManager(void);
 
 #ifdef DEBUG
    	void IsValid(void) const;
@@ -354,7 +354,7 @@ public:
    	virtual VectorHandler* pSolHdl(void) const;
 };
 
-/* MeschachSparseLUSolutionManager - end */
+/* MeschachSparseSolutionManager - end */
 
 #endif /* USE_MESCHACH */
     

@@ -3648,7 +3648,7 @@ Solver::AllocateSchurSolman(integer iStates)
 				iNumLocDofs,
 				pIntDofs, iNumIntDofs,
 				pLocalSM,
-				(Y12SparseLUSolutionManager*)0,
+				(Y12SparseSolutionManager*)0,
 				iIWorkSpaceSize,
 				dIPivotFactor == -1. ? 1. : dIPivotFactor));
 		break;
@@ -3678,7 +3678,7 @@ Solver::AllocateSchurSolman(integer iStates)
 					iNumLocDofs,
 					pIntDofs, iNumIntDofs,
 					pLocalSM,
-					(MeschachSparseLUSolutionManager*)0,
+					(MeschachSparseSolutionManager*)0,
 					iIWorkSpaceSize,
 					dIPivotFactor == -1. ? 1. : dIPivotFactor));
 		break;
@@ -3697,7 +3697,7 @@ Solver::AllocateSchurSolman(integer iStates)
 					iNumLocDofs,
 					pIntDofs, iNumIntDofs,
 					pLocalSM,
-					(UmfpackSparseLUSolutionManager*)0,
+					(UmfpackSparseSolutionManager*)0,
 					0, 
 					dIPivotFactor));
 		break;

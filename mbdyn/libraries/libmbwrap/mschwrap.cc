@@ -172,10 +172,10 @@ MeschachSparseMatrixHandler::Init(const doublereal& d)
 
 /* MeschachSparseMatrixHandler - end */
 
-/* MeschachSparseLUSolutionManager - begin */
+/* MeschachSparseSolutionManager - begin */
 
 void
-MeschachSparseLUSolutionManager::Create(unsigned int iSize,
+MeschachSparseSolutionManager::Create(unsigned int iSize,
 					unsigned int iMaxSize) 
 {
    	if (prhs == NULL) {
@@ -211,7 +211,7 @@ MeschachSparseLUSolutionManager::Create(unsigned int iSize,
 }
 
 void
-MeschachSparseLUSolutionManager::Factor(void)
+MeschachSparseSolutionManager::Factor(void)
 {
 #ifdef DEBUG
    	IsValid();
@@ -221,7 +221,7 @@ MeschachSparseLUSolutionManager::Factor(void)
    	fStatus = FACTORED;
 }
 
-MeschachSparseLUSolutionManager::MeschachSparseLUSolutionManager(int iSize,
+MeschachSparseSolutionManager::MeschachSparseSolutionManager(int iSize,
 		int iMaxSize, 
 		const doublereal& a)
 : prhs(NULL), pivot(PNULL), pmh(NULL), fStatus(RESET), alpha (a)
@@ -230,7 +230,7 @@ MeschachSparseLUSolutionManager::MeschachSparseLUSolutionManager(int iSize,
    	MatrInit(0.);
 }
 
-MeschachSparseLUSolutionManager::~MeschachSparseLUSolutionManager(void) 
+MeschachSparseSolutionManager::~MeschachSparseSolutionManager(void) 
 {
 #ifdef DEBUG
    	IsValid();
@@ -251,7 +251,7 @@ MeschachSparseLUSolutionManager::~MeschachSparseLUSolutionManager(void)
 
 #ifdef DEBUG
 void
-MeschachSparseLUSolutionManager::IsValid(void) const 
+MeschachSparseSolutionManager::IsValid(void) const 
 {
    	ASSERT(prhs != NULL);
    	prhs->IsValid();
@@ -265,7 +265,7 @@ MeschachSparseLUSolutionManager::IsValid(void) const
 #endif /* DEBUG */
 
 void
-MeschachSparseLUSolutionManager::MatrInit(const doublereal& d) 
+MeschachSparseSolutionManager::MatrInit(const doublereal& d) 
 {
 #ifdef DEBUG
    	IsValid();
@@ -276,7 +276,7 @@ MeschachSparseLUSolutionManager::MatrInit(const doublereal& d)
 }
 
 void
-MeschachSparseLUSolutionManager::Solve(void) 
+MeschachSparseSolutionManager::Solve(void) 
 {
 #ifdef DEBUG
    	IsValid();
@@ -295,7 +295,7 @@ MeschachSparseLUSolutionManager::Solve(void)
 
 /* Rende disponibile l'handler per la matrice */
 MatrixHandler *
-MeschachSparseLUSolutionManager::pMatHdl(void) const
+MeschachSparseSolutionManager::pMatHdl(void) const
 {
 #ifdef DEBUG
    	IsValid();
@@ -306,7 +306,7 @@ MeschachSparseLUSolutionManager::pMatHdl(void) const
 
 /* Rende disponibile l'handler per il termine noto */
 VectorHandler *
-MeschachSparseLUSolutionManager::pResHdl(void) const
+MeschachSparseSolutionManager::pResHdl(void) const
 {
 #ifdef DEBUG
    	IsValid();
@@ -320,7 +320,7 @@ MeschachSparseLUSolutionManager::pResHdl(void) const
  * del termine noto, ma concettualmente sono separati)
  */
 VectorHandler *
-MeschachSparseLUSolutionManager::pSolHdl(void) const
+MeschachSparseSolutionManager::pSolHdl(void) const
 {
 #ifdef DEBUG
    	IsValid();

@@ -63,8 +63,8 @@
  * License and Availability note.
  */
 
-#ifndef UmfpackSparseLUSolutionManager_hh
-#define UmfpackSparseLUSolutionManager_hh
+#ifndef UmfpackSparseSolutionManager_hh
+#define UmfpackSparseSolutionManager_hh
 
 #ifdef USE_UMFPACK
 
@@ -83,11 +83,11 @@ extern "C" {
 
 
 #ifdef UMFPACK3_COMPAT
-#warning "Umfpack3SparseLUSolutionManager => UmfpackSparseLUSolutionManager"
-#define Umfpack3SparseLUSolutionManager UmfpackSparseLUSolutionManager
+#warning "Umfpack3SparseLUSolutionManager => UmfpackSparseSolutionManager"
+#define Umfpack3SparseLUSolutionManager UmfpackSparseSolutionManager
 #endif /* UMFPACK3_COMPAT */
 
-class UmfpackSparseLUSolutionManager: public SolutionManager {
+class UmfpackSparseSolutionManager: public SolutionManager {
 protected:
 	mutable SpMapMatrixHandler A;
 	MyVectorHandler *xVH, *bVH;
@@ -120,9 +120,9 @@ protected:
 	void BackSub(doublereal t_iniz = 0.);
    
 public:
-	UmfpackSparseLUSolutionManager(integer Dim, integer /* unused */ = 0, 
+	UmfpackSparseSolutionManager(integer Dim, integer /* unused */ = 0, 
 			doublereal dPivot = -1.);
-	virtual ~UmfpackSparseLUSolutionManager(void);
+	virtual ~UmfpackSparseSolutionManager(void);
 #ifdef DEBUG
 	virtual void IsValid(void) const {
 		NO_OP;
@@ -156,7 +156,7 @@ public:
 };
 
 
-class UmfpackSparseCCLUSolutionManager: public UmfpackSparseLUSolutionManager {
+class UmfpackSparseCCLUSolutionManager: public UmfpackSparseSolutionManager {
 protected:
 	bool CCReady;
 	CColMatrixHandler *Ac;
@@ -178,5 +178,5 @@ public:
 
 #endif /* USE_UMFPACK */
 
-#endif /* UmfpackSparseLUSolutionManager_hh */
+#endif /* UmfpackSparseSolutionManager_hh */
 

@@ -408,11 +408,11 @@ int method_multistep(const char* module, integration_data* d,
    MyVectorHandler R(size);
 
 #if defined(USE_Y12)
-   Y12SparseLUSolutionManager sm(size, size*(size+1)+1, 1.);
+   Y12SparseSolutionManager sm(size, size*(size+1)+1, 1.);
 #elif defined(USE_HARWELL)
-   HarwellSparseLUSolutionManager sm(size, size*(size+1)+1, 1.);
+   HarwellSparseSolutionManager sm(size, size*(size+1)+1, 1.);
 #elif defined(USE_MESCHACH)
-   MeschachSparseLUSolutionManager sm(size, size*(size+1)+1, 1.);
+   MeschachSparseSolutionManager sm(size, size*(size+1)+1, 1.);
 #endif
    
    MatrixHandler& Jac = *sm.pMatHdl();
@@ -573,11 +573,11 @@ int method_cubic(const char* module, integration_data* d,
    MyVectorHandler XPz(size);
    
 #if defined(USE_Y12)
-   Y12SparseLUSolutionManager sm(size, size*(size+1)+1, 1.);
+   Y12SparseSolutionManager sm(size, size*(size+1)+1, 1.);
 #elif defined(USE_HARWELL)
-   HarwellSparseLUSolutionManager sm(size, size*(size+1)+1, 1.);
+   HarwellSparseSolutionManager sm(size, size*(size+1)+1, 1.);
 #elif defined(USE_MESCHACH)
-   MeschachSparseLUSolutionManager sm(size, size*(size+1)+1, 1.);
+   MeschachSparseSolutionManager sm(size, size*(size+1)+1, 1.);
 #endif
    
    MatrixHandler& Jac = *sm.pMatHdl();

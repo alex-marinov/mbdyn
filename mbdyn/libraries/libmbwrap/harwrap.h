@@ -41,15 +41,15 @@
 
 /*
  * Uso:
- * l'HarwellSparseLUSolutionManager rende disponibile lo spazio per la matrice, 
+ * l'HarwellSparseSolutionManager rende disponibile lo spazio per la matrice, 
  * la soluzione ed il termine noto. Inoltre rende disponibili
  * metodi per l'handling della matrice e dei vettori 
  * (inserimento e lettura dei coefficienti). Infine consente la soluzione del 
  * problema lineare mediante fattorizzazione LU e successiva sostituzone.
  * 
  * Uso consigliato:
- * // creare un oggetto HarwellSparseLUSolutionManager:
- *         HarwellSparseLUSolutionManager SM(size, workspacesize, pivotfactor);
+ * // creare un oggetto HarwellSparseSolutionManager:
+ *         HarwellSparseSolutionManager SM(size, workspacesize, pivotfactor);
  * 
  * // ottenere l'handling alla matrice ed al termine noto
  *         SparseMatrixHandler* pMH = SM.pMatHdl();
@@ -71,7 +71,7 @@
  * // In tale caso viene eseguita la fattorizzazione e quindi la soluzione.
  * // Se la fattorizzazione e' gia' stata compiuta, la matrice non e' piu'
  * // stata modificata e si e' modificato il termine noto, la chiamata a 
- * // HarwellSparseLUSolutionManager::Solve()
+ * // HarwellSparseSolutionManager::Solve()
  * // semplicemente esegue una nuova sostituzione all'indietro.
  *         SM.Solve();
  * 
@@ -108,7 +108,7 @@
 
 /* classi dichiarate in questo file */
 class HarwellLUSolver;      	/* solutore */
-class HarwellSparseLUSolutionManager;  /* gestore della soluzione */
+class HarwellSparseSolutionManager;  /* gestore della soluzione */
 
 
 /* HarwellLUSolver - begin */
@@ -121,7 +121,7 @@ class HarwellSparseLUSolutionManager;  /* gestore della soluzione */
 static char sLUClassName[] = "HarwellLUSolver";
 
 class HarwellLUSolver {
-   	friend class HarwellSparseLUSolutionManager;
+   	friend class HarwellSparseSolutionManager;
 
 
 public:
@@ -309,14 +309,14 @@ protected:
 /* HarwellLUSolver - end */
 
 
-/* HarwellSparseLUSolutionManager - begin */
+/* HarwellSparseSolutionManager - begin */
 
 /*
  * Gestisce la soluzione del problema; alloca le matrici occorrenti
  * e gli oggetti dedicati alla gestione delle matrici ed alla soluzione
  */
 
-class HarwellSparseLUSolutionManager : public SolutionManager {
+class HarwellSparseSolutionManager : public SolutionManager {
 public: 
    	class ErrGeneric {};
    
@@ -350,12 +350,12 @@ protected:
    
 public:   
    	/* Costruttore: usa e mette a disposizione matrici che gli sono date */
-   	HarwellSparseLUSolutionManager(integer iSize,
+   	HarwellSparseSolutionManager(integer iSize,
 				       integer iWorkSpaceSize = 0,
 				       const doublereal& dPivotFactor = 1.0);
    
    	/* Distruttore: dealloca le matrici e distrugge gli oggetti propri */
-   	~HarwellSparseLUSolutionManager(void);
+   	~HarwellSparseSolutionManager(void);
    
    	/* Usata per il debug */
 #ifdef DEBUG
@@ -397,7 +397,7 @@ public:
    	};
 };
 
-/* HarwellSparseLUSolutionManager - end */
+/* HarwellSparseSolutionManager - end */
 
 #endif /* USE_HARWELL */
 

@@ -176,7 +176,7 @@ rebuild_matrix:;
 		
 		if (outputJac()) {
 #ifdef USE_UMFPACK
-			if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
+			if (dynamic_cast<UmfpackSparseSolutionManager*>(pSM) == 0) {
 #endif /* USE_UMFPACK */
 				silent_cerr("Warning, Jacobian output "
 						"avaliable only "

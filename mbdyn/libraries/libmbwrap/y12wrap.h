@@ -41,15 +41,15 @@
 
 /*
  * Uso:
- * il Y12SparseLUSolutionManager rende disponibile lo spazio per la matrice, 
+ * il Y12SparseSolutionManager rende disponibile lo spazio per la matrice, 
  * la soluzione ed il termine noto. Inoltre rende disponibili
  * metodi per l'handling della matrice e dei vettori 
  * (inserimento e lettura dei coefficienti). Infine consente la soluzione del 
  * problema lineare mediante fattorizzazione LU e successiva sostituzone.
  * 
  * Uso consigliato:
- * // creare un oggetto Y12SparseLUSolutionManager:
- *         Y12SparseLUSolutionManager SM(size, workspacesize, pivotfactor);
+ * // creare un oggetto Y12SparseSolutionManager:
+ *         Y12SparseSolutionManager SM(size, workspacesize, pivotfactor);
  * 
  * // ottenere l'handling alla matrice ed al termine noto
  *         MatrixHandler* pMH = SM.pMatHdl();
@@ -71,7 +71,7 @@
  * // In tale caso viene eseguita la fattorizzazione e quindi la soluzione.
  * // Se la fattorizzazione e' gia' stata compiuta, la matrice non e' piu'
  * // stata modificata e si e' modificato il termine noto, la chiamata a 
- * // Y12SparseLUSolutionManager::Solve()
+ * // Y12SparseSolutionManager::Solve()
  * // semplicemente esegue una nuova sostituzione all'indietro.
  *         SM.Solve();
  * 
@@ -109,7 +109,7 @@
 
 /* classi dichiarate in questo file */
 class Y12LUSolver;      	/* solutore */
-class Y12SparseLUSolutionManager;  /* gestore della soluzione */
+class Y12SparseSolutionManager;  /* gestore della soluzione */
 
 
 /* Y12LUSolver - begin */
@@ -120,7 +120,7 @@ class Y12SparseLUSolutionManager;  /* gestore della soluzione */
  */
 
 class Y12LUSolver {
-   	friend class Y12SparseLUSolutionManager;
+   	friend class Y12SparseSolutionManager;
 
 
 public:
@@ -202,14 +202,14 @@ protected:
 /* Y12LUSolver - end */
 
 
-/* Y12SparseLUSolutionManager - begin */
+/* Y12SparseSolutionManager - begin */
 
 /*
  * Gestisce la soluzione del problema; alloca le matrici occorrenti
  * e gli oggetti dedicati alla gestione delle matrici ed alla soluzione
  */
 
-class Y12SparseLUSolutionManager : public SolutionManager {
+class Y12SparseSolutionManager : public SolutionManager {
 public: 
    	class ErrGeneric {};
    
@@ -247,12 +247,12 @@ protected:
  
 public:
    	/* Costruttore: usa e mette a disposizione matrici che gli sono date */
-   	Y12SparseLUSolutionManager(integer iSize,
+   	Y12SparseSolutionManager(integer iSize,
 				   integer iWorkSpaceSize = 0,
 				   const doublereal& dPivotFactor = 1.0);
    
    	/* Distruttore: dealloca le matrici e distrugge gli oggetti propri */
-   	~Y12SparseLUSolutionManager(void);
+   	~Y12SparseSolutionManager(void);
 
    	/* Inizializza il gestore delle matrici */
    	void MatrInit(const doublereal& dResetVal = 0.);
@@ -289,7 +289,7 @@ public:
    	};
 };
 
-/* Y12SparseLUSolutionManager - end */
+/* Y12SparseSolutionManager - end */
 
 #endif /* USE_Y12 */
 

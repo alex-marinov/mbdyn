@@ -422,7 +422,7 @@ GenelFilterEq::SetValue(VectorHandler& X, VectorHandler& XP) const
 	 return;
       } 
             
-      Y12SparseLUSolutionManager sm(Na);
+      Y12SparseSolutionManager sm(Na);
       
       /* preparo matrice */
       DEBUGCOUT("Preparing matrix ..." << std::endl);

@@ -303,8 +303,8 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
      	case LinSol::Y12_SOLVER: 
 #ifdef USE_Y12
       		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			Y12SparseLUSolutionManager,
-			Y12SparseLUSolutionManager(iNLD, iLWS,
+			Y12SparseSolutionManager,
+			Y12SparseSolutionManager(iNLD, iLWS,
 				dPivotFactor == -1. ? 1. : dPivotFactor));
       		break;
 #else /* !USE_Y12 */
@@ -316,8 +316,8 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 	case LinSol::MESCHACH_SOLVER:
 #ifdef USE_MESCHACH
 		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			MeschachSparseLUSolutionManager,
-			MeschachSparseLUSolutionManager(iNLD, iLWS,
+			MeschachSparseSolutionManager,
+			MeschachSparseSolutionManager(iNLD, iLWS,
 				dPivotFactor == -1. ? 1. : dPivotFactor));
 		break;
 #else /* !USE_MESCHACH */
@@ -329,8 +329,8 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
  	case LinSol::HARWELL_SOLVER:
 #ifdef USE_HARWELL
 		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			HarwellSparseLUSolutionManager,
-			HarwellSparseLUSolutionManager(iNLD, iLWS,
+			HarwellSparseSolutionManager,
+			HarwellSparseSolutionManager(iNLD, iLWS,
 				dPivotFactor == -1. ? 1. : dPivotFactor));
       		break;
 #else /* !USE_HARWELL */
@@ -342,8 +342,8 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 	case LinSol::UMFPACK_SOLVER:
 #ifdef USE_UMFPACK
 		SAFENEWWITHCONSTRUCTOR(pCurrSM,
-			UmfpackSparseLUSolutionManager,
-			UmfpackSparseLUSolutionManager(iNLD, 
+			UmfpackSparseSolutionManager,
+			UmfpackSparseSolutionManager(iNLD, 
 				0, dPivotFactor));
       		break;
 #else /* !USE_UMFPACK */

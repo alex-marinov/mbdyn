@@ -863,7 +863,7 @@ template SchurSolutionManager::SchurSolutionManager(integer iSize,
 					    integer* pInterfDofs,
 					    int iDim2,
 					    SolutionManager* pLSM,
-					    Y12SparseLUSolutionManager* pISM,
+					    Y12SparseSolutionManager* pISM,
 					    integer iWorkSize,
 					    const doublereal& dPivotFactor);
 #endif //USE_Y12
@@ -875,7 +875,7 @@ template SchurSolutionManager::SchurSolutionManager(integer iSize,
 					    integer* pInterfDofs,
 					    int iDim2,
 					    SolutionManager* pLSM,
-					    MeschachSparseLUSolutionManager* pISM,
+					    MeschachSparseSolutionManager* pISM,
 					    integer iWorkSize,
 					    const doublereal& dPivotFactor);
 #endif /* USE_MESCHACH */
@@ -887,7 +887,7 @@ template SchurSolutionManager::SchurSolutionManager(integer iSize,
 					    integer* pInterfDofs,
 					    int iDim2,
 					    SolutionManager* pLSM,
-					    UmfpackSparseLUSolutionManager* pISM,
+					    UmfpackSparseSolutionManager* pISM,
 					    integer iWorkSize,
 					    const doublereal& dPivotFactor);
 #endif /* USE_UMFPACK */

@@ -461,13 +461,13 @@ method_multistep(const char* module, integration_data* d,
    	MyVectorHandler R(size);
 
 #if defined(USE_UMFPACK)
-	UmfpackSparseLUSolutionManager sm(size);
+	UmfpackSparseSolutionManager sm(size);
 #elif defined(USE_Y12)
-	Y12SparseLUSolutionManager sm(size, 10*size*(size+1)+1, 1.);
+	Y12SparseSolutionManager sm(size, 10*size*(size+1)+1, 1.);
 #elif defined(USE_HARWELL)
-   	HarwellSparseLUSolutionManager sm(size, size*(size+1)+1, 1.);
+   	HarwellSparseSolutionManager sm(size, size*(size+1)+1, 1.);
 #elif defined(USE_MESCHACH)
-	MeschachSparseLUSolutionManager sm(size, size*(size+1)+1, 1.);
+	MeschachSparseSolutionManager sm(size, size*(size+1)+1, 1.);
 #endif
    
    	MatrixHandler* Jac = sm.pMatHdl();
@@ -644,13 +644,13 @@ method_cubic(const char* module, integration_data* d,
    	MyVectorHandler XPz(size);
    
 #if defined(USE_UMFPACK)
-	UmfpackSparseLUSolutionManager sm(2*size);
+	UmfpackSparseSolutionManager sm(2*size);
 #elif defined(USE_Y12)
-	Y12SparseLUSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
+	Y12SparseSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
 #elif defined(USE_HARWELL)
-   	HarwellSparseLUSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
+   	HarwellSparseSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
 #elif defined(USE_MESCHACH)
-	MeschachSparseLUSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
+	MeschachSparseSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
 #endif
    
    	MatrixHandler* Jac = sm.pMatHdl();
@@ -917,13 +917,13 @@ method_radau_II(const char* module, integration_data* d,
    	MyVectorHandler XPz(size);
    
 #if defined(USE_UMFPACK)
-	UmfpackSparseLUSolutionManager sm(2*size);
+	UmfpackSparseSolutionManager sm(2*size);
 #elif defined(USE_Y12)
-	Y12SparseLUSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
+	Y12SparseSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
 #elif defined(USE_HARWELL)
-   	HarwellSparseLUSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
+   	HarwellSparseSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
 #elif defined(USE_MESCHACH)
-	MeschachSparseLUSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
+	MeschachSparseSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
 #endif
    
    	MatrixHandler* Jac = sm.pMatHdl();

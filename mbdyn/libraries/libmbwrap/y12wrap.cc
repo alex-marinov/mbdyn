@@ -155,7 +155,7 @@ Y12LUSolver::bLUFactor(void)
 #endif /* DEBUG */
 
 	/*
-	 * FIXME: This is set by Y12SparseLUSolutionManager in PacVec;
+	 * FIXME: This is set by Y12SparseSolutionManager in PacVec;
 	 * better move such info to the matrix handler!
 	 */
 	ASSERT(iNonZeroes > 0);
@@ -497,10 +497,10 @@ Y12LUSolver::PutError(std::ostream& out, int rc) const
 /* Y12LUSolver - end */
 
 
-/* Y12SparseLUSolutionManager - begin: code */
+/* Y12SparseSolutionManager - begin: code */
 
 /* Costruttore */
-Y12SparseLUSolutionManager::Y12SparseLUSolutionManager(integer iSize, 
+Y12SparseSolutionManager::Y12SparseSolutionManager(integer iSize, 
 						       integer iWorkSpaceSize,
 						       const doublereal& dPivotFactor) :
 iMatMaxSize(iSize),
@@ -555,7 +555,7 @@ bHasBeenReset(true)
 
 
 /* Distruttore; verificare la distruzione degli oggetti piu' complessi */
-Y12SparseLUSolutionManager::~Y12SparseLUSolutionManager(void)
+Y12SparseSolutionManager::~Y12SparseSolutionManager(void)
 {
 #ifdef DEBUG
    	IsValid();
@@ -576,7 +576,7 @@ Y12SparseLUSolutionManager::~Y12SparseLUSolutionManager(void)
 #ifdef DEBUG
 /* Test di validita' del manager */
 void 
-Y12SparseLUSolutionManager::IsValid(void) const
+Y12SparseSolutionManager::IsValid(void) const
 {   
    	ASSERT(iMatMaxSize > 0);
    	ASSERT(iMatSize > 0);
@@ -593,7 +593,7 @@ Y12SparseLUSolutionManager::IsValid(void) const
 
 /* Prepara i vettori e la matrice per il solutore */
 void
-Y12SparseLUSolutionManager::PacVec(void)
+Y12SparseSolutionManager::PacVec(void)
 {
 #ifdef DEBUG
    	IsValid();
@@ -607,7 +607,7 @@ Y12SparseLUSolutionManager::PacVec(void)
 
 /* Inizializza il gestore delle matrici */
 void
-Y12SparseLUSolutionManager::MatrInit(const doublereal& dResetVal)
+Y12SparseSolutionManager::MatrInit(const doublereal& dResetVal)
 {
 #ifdef DEBUG
    	IsValid();
@@ -619,7 +619,7 @@ Y12SparseLUSolutionManager::MatrInit(const doublereal& dResetVal)
 
 /* Risolve il problema */
 void
-Y12SparseLUSolutionManager::Solve(void)
+Y12SparseSolutionManager::Solve(void)
 {
 #ifdef DEBUG
    	IsValid();
@@ -628,7 +628,7 @@ Y12SparseLUSolutionManager::Solve(void)
    	if (bHasBeenReset) {
       		PacVec();
       		if (!pLU->bLUFactor()) {	 
-	 		THROW(Y12SparseLUSolutionManager::ErrGeneric());
+	 		THROW(Y12SparseSolutionManager::ErrGeneric());
       		}
 	
       		bHasBeenReset = false;
@@ -637,7 +637,7 @@ Y12SparseLUSolutionManager::Solve(void)
    	pLU->Solve();
 }
 
-/* Y12SparseLUSolutionManager - end */
+/* Y12SparseSolutionManager - end */
 
 #endif /* USE_Y12 */
 
