@@ -3319,12 +3319,12 @@ Solver::Eig(void)
 #endif /* 0 */
 
    FullMatrixHandler MatA(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);
-   MatA.Init();
+   MatA.Reset();
    pdTmp += iSize*iSize;
    ppdTmp += iSize;
   
    FullMatrixHandler MatB(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);
-   MatB.Init();
+   MatB.Reset();
    pdTmp += iSize*iSize;
    ppdTmp += iSize;
   
