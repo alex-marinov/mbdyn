@@ -330,7 +330,6 @@ usage(int err)
 	std::cerr << "  -f <filename> : load the matrix from <filename>" << std::endl;
 	std::cerr << "\tIf the matrix is loaded from file the solution should be [0 0 .... 1]" << std::endl;
 	std::cerr << "\tThe file format is: size row col x row col x etc..." << std::endl;
-	std::cerr << "\tThe file format is: size row col x row col x etc..." << std::endl;
 	std::cerr << "  -m <solver> : {" << solvers[0];
 	for (int i = 1; solvers[i]; i++) {
 		std::cerr << "|" << solvers[i];
@@ -339,12 +338,12 @@ usage(int err)
 	std::cerr << "  -o :  output of the solution" << std::endl;
 	std::cerr << "  -O <option[=<value>]>" << std::endl
 		<< "\tblocksize=<blocksize> (umfpack only)" << std::endl;
-	std::cerr << "  -p <pivot> : if meaningful, use <pivot> thresold" << std::endl;
+	std::cerr << "  -p <pivot> : if meaningful, use <pivot> threshold" << std::endl;
 	std::cerr << "  -r[<size>[:<halfband>[:<activcol>[:<sprfct>]]]] :" << std::endl;
 	std::cerr << "\tgenerate a random matrix with <size>, <halfband>, <activcol>" << std::endl;
 	std::cerr << "\tand <sprfct> (prompts for values not provided)" << std::endl;
 	std::cerr << "  -s :  (singular) with the 3x3 matrix, do not set the element (3,3)" << std::endl;
-	std::cerr << "  -t :  with multi-threaded solutors, use <nthreads> threads" << std::endl;
+	std::cerr << "  -t :  with multithreaded solvers, use <nthreads> threads" << std::endl;
 	std::cerr << "  -w :  write the random matrix to <filename>" << std::endl;
 	exit(err);
 }
@@ -595,7 +594,7 @@ main(int argc, char *argv[])
 		}
 		if (nt > 1) {
 #ifdef USE_SUPERLU_MT
-			std::cerr << "Multi-threaded SuperLU solver";
+			std::cerr << "Multithreaded SuperLU solver";
 			if (pre != SuperLUSolver::SUPERLU_COLAMD) {
 				std::cerr << std::end << 
 					"ERROR, mmdata preordering available only for scalar superlu" << 
