@@ -20,12 +20,12 @@ end
 
 [r,c] = size(A);
 for i=1:c
+    mn(i) = mean(A(:,i));
+    A(:,i) = A(:,i)-mn(i);
     scl(i) = max(abs(A(:,i)));
     if (scl(i) ~= 0)
         A(:,i) = A(:,i)/scl(i);
     end
-    mn(i) = mean(A(:,i));
-    A(:,i) = A(:,i)-mn(i);
 end
 
 [U,E] = eigs(A*A',ns);
