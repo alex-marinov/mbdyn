@@ -98,8 +98,14 @@ public:
 	virtual std::ostream& Restart(std::ostream& out) const = 0;
 
 	virtual void Update(const T& Eps, const T& EpsPrime = 0.) = 0;
+
+	/* DEPRECATED */
 	virtual void IncrementalUpdate(const T& DeltaEps,
 			const T& EpsPrime = 0.) = 0;
+
+	virtual void AfterConvergence(const T& Eps, const T& EpsPrime = 0.) {
+		NO_OP;
+	};
    
 	virtual const T& GetF(void) const {
 		return F;
@@ -166,6 +172,11 @@ public:
 		pConstLaw->IncrementalUpdate(DeltaEps, EpsPrime);
 	};
 
+	inline void AfterConvergence(const T& Eps, const T& EpsPrime = 0.) {
+		ASSERT(pConstLaw != NULL);
+		pConstLaw->AfterConvergence(DeltaEps, EpsPrime);
+	};
+   
 	inline const T& GetF(void) const {
 		ASSERT(pConstLaw != NULL);
 		return pConstLaw->GetF();
