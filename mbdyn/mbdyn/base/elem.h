@@ -98,6 +98,8 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput {
 	BULK,
 	LOADABLE,
 	DRIVEN,
+
+	RTAI_OUTPUT_MAILBOX,
 	
 	LASTELEMTYPE
    };      

@@ -30,6 +30,10 @@
 
 /* socket driver */
 
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
+
 #ifdef USE_RTAI
 
 /* include del programma */
@@ -38,18 +42,52 @@
 
 /* RTAIMailboxElem - begin */
 
-   	ScalarDof** pdNodes;
-   
 RTAIMailboxElem::RTAIMailboxElem(unsigned int uL, unsigned int nmb,
-		ScalarDof **& ppn)
-: Elem(uL, flag(0)), NumChannels(nmb), ppNodes(ppn)
+		ScalarDof *& pn)
+: Elem(uL, Elem::RTAI_OUTPUT_MAILBOX, flag(0)),
+NumChannels(nmb), pNodes(pn)
 {
 	NO_OP;
 }
 
 RTAIMailboxElem::~RTAIMailboxElem(void)
 {
-	SAFEDELETEARR(ppNodes);
+	SAFEDELETEARR(pNodes);
+}
+
+std::ostream&
+RTAIMailboxElem::Restart(std::ostream& out) const
+{
+	return out << "# not implemented yet" << std::endl;
+}
+
+Elem::Type
+RTAIMailboxElem::GetElemType(void) const
+{
+	return Elem::RTAI_OUTPUT_MAILBOX;
+}
+
+void
+RTAIMailboxElem::WorkSpaceDim(integer* piRows, integer* piCols) const
+{
+	*piRows = 0;
+	*piCols = 0;
+}
+
+SubVectorHandler&
+RTAIMailboxElem::AssRes(SubVectorHandler& WorkVec, double dCoef,
+		const VectorHandler& X, const VectorHandler& XP)
+{
+	WorkVec.Resize(0);
+	return WorkVec;
+}
+
+VariableSubMatrixHandler& 
+RTAIMailboxElem::AssJac(VariableSubMatrixHandler& WorkMat, double dCoef,
+		const VectorHandler& X, const VectorHandler& XP)
+{
+	WorkMat.SetNullMatrix();
+	return WorkMat;
 }
 
 void
@@ -57,7 +95,8 @@ RTAIMailboxElem::AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP)
 {
 	for (unsigned int i; i < NumChannels; i++) {
-		(void)ppNodes[i]->dGetX();
+		/* assign value somewhere into mailbox buffer */
+		(void)pNodes[i].pNode->dGetDofValue(1, pNodes[i].iOrder);
 	}
 }
 

@@ -45,13 +45,23 @@
 class RTAIMailboxElem : virtual public Elem {
 protected:
 	unsigned int NumChannels;
-   	ScalarDof** pdNodes;
+   	ScalarDof* pNodes;
    
 public:
-   	RTAIMailboxElem(unsigned int uL, unsigned int nmb, ScalarDof **& pdn);
+   	RTAIMailboxElem(unsigned int uL, unsigned int nmb, ScalarDof *& pn);
    	virtual ~RTAIMailboxElem(void);
 
 	virtual inline void* pGet(void) const;
+
+	virtual std::ostream& Restart(std::ostream& out) const;
+	virtual Elem::Type GetElemType(void) const;
+	virtual void WorkSpaceDim(integer* piRows, integer* piCols) const;
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WrokVec, double dCoef,
+			const VectorHandler& X, const VectorHandler& XP);
+	virtual VariableSubMatrixHandler& 
+	AssJac(VariableSubMatrixHandler& WorkMat, double dCoef,
+			const VectorHandler& X, const VectorHandler& XP);
 
 	virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP);

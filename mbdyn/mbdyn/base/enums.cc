@@ -61,6 +61,8 @@ const char* psElemNames[] = {
    "Bulk",
    "Loadable",
    "Driven",
+
+   "RTAI Output Mailbox",
    
    NULL
 };
@@ -93,6 +95,8 @@ const char* psReadControlElems[] = {
    "bulk" "elements",
    "loadable" "elements",
    "driven" "elements",
+
+   "rtai" "output" "mailboxes",
    
    NULL
 };
@@ -122,6 +126,8 @@ const char *psAdamsElemCode[] = {
    "BULK",
    "LOAD",
    "DRVN",
+
+   "RMBX",
    
    NULL
 };

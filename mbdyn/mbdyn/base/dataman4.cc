@@ -67,6 +67,10 @@
 #include <loadable.h>
 #endif /* HAVE_LOADABLE */
 
+#ifdef USE_RTAI
+#include <rtai_mbox_elem.h>
+#endif /* USE_RTAI */
+
 static int iNumTypes[Elem::LASTELEMTYPE];
 
 /* enum delle parole chiave */
@@ -106,12 +110,14 @@ enum KeyWords {
    LOADABLE,
    DRIVEN,
 
+   RTAI_OUTPUT_MAILBOX,
+   
    INERTIA,
    
    EXISTING,
    OUTPUT,
    BIND,
-   
+
    LASTKEYWORD
 };
 
@@ -156,11 +162,15 @@ void DataManager::ReadElems(MBDynParser& HP)
       "loadable",
       "driven",
 
+      "rtai" "output" "maibox",
+
       "inertia",
       
       "existing",
       "output",
-      "bind"
+      "bind",
+
+      NULL
    };
    
    /* tabella delle parole chiave */
@@ -533,6 +543,10 @@ void DataManager::ReadElems(MBDynParser& HP)
 	  case LOADABLE:
 	    t = Elem::LOADABLE;
 	    break;
+
+	  case RTAI_OUTPUT_MAILBOX:
+	    std::cerr << psElemNames[Elem::RTAI_OUTPUT_MAILBOX]
+		    << " does not support bind" << std::endl;
 	  default:
 	    THROW(ErrGeneric());
 	 }
@@ -736,6 +750,11 @@ void DataManager::ReadElems(MBDynParser& HP)
 		     DEBUGLCOUT(MYDEBUG_INPUT, "OK, this element can be driven" << std::endl);
 		     break;
 		  }
+
+		  case RTAI_OUTPUT_MAILBOX:
+		     std::cerr << psElemNames[Elem:RTAI_OUTPUT_MAILBOX]
+	 		     << " cannot be driven" << std::endl;
+	 	     THROW(ErrGeneric());
 		    
 		  default: {
 		     DEBUGCERR("warning, this element can't be driven" << std::endl);
@@ -907,6 +926,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 #ifdef HAVE_LOADABLE
 	      case LOADABLE:
 #endif /* HAVE_LOADABLE */
+	      case RTAI_OUTPUT_MAILBOX:
 		  {		 
 		 /* Nome dell'elemento */
              	 const char *sName = NULL;
@@ -1604,7 +1624,35 @@ Elem** ReadOneElem(DataManager* pDM,
        break;
     }		 		                     
 #endif /* defined(HAVE_LOADABLE) */
-      
+
+    case RTAI_OUTPUT_MAILBOX: {
+#ifdef USE_RTAI
+      int nch = HP.GetInt();
+
+      if (nch <= 0) {
+	      std::cerr << "illegal number of channels for "
+		      << psElemNames[Elem::RTAI_OUTPUT_MAILBOX]
+		      << "(" << uLabel << ") at line " << HP.GetLineData()
+		      << std::endl;
+	      THROW(ErrGeneric());
+      }
+
+      ScalarDof *pNodes = NULL;
+      SAFENEWARR(pNodes, ScalarDof, nch);
+      for (int i = 0; i < nch; i++) {
+	      pNodes[i] = ReadScalarDof(pDM, HP, 0);
+      }
+
+      SAFENEWWITHCONSTRUCTOR(*ppE, RTAIMailboxElem,
+		      RTAIMailboxElem(uLabel, nch, pNodes));
+
+#else /* ! USE_RTAI */
+       std::cerr << "need USE_RTAI to allow RTAI mailboxes" << std::endl;
+       THROW(ErrGeneric());
+#endif /* USE_RTAI */
+
+      break;
+    }
       
      
       /* In case the element type is not correct */
