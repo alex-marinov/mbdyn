@@ -314,7 +314,6 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
       }
           //variation of relative velocity
       dv.ReDim(6);
-      Vec3 domega = Omega1-Omega2;
       
 /* old (wrong?) relative velocity linearization */
 
@@ -326,34 +325,62 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 //       dv.Set(-(e3a.dGet(2)*1.-(-e3a.dGet(1)*Omega2r.dGet(3)+e3a.dGet(3)*Omega2r.dGet(1))*dCoef)*r,5,6+5);
 //       dv.Set(-(e3a.dGet(3)*1.-( e3a.dGet(1)*Omega2r.dGet(2)-e3a.dGet(2)*Omega2r.dGet(1))*dCoef)*r,6,6+6);
 
-/* new (exact?) relavtive velocity linearization */
-
+/* new (exact?) relative velocity linearization */
+// 
+//       ExpandableRowVector domega11, domega12, domega13;
+//       ExpandableRowVector domega21, domega22, domega23;
+//       domega11.ReDim(3); domega12.ReDim(3); domega13.ReDim(3);
+//       domega21.ReDim(3); domega22.ReDim(3); domega23.ReDim(3);
+//       
+//       domega11.Set(1., 1, 0+4);
+//           domega11.Set( Omega1r.dGet(3)*dCoef, 2, 0+5);
+//           domega11.Set(-Omega1r.dGet(2)*dCoef, 3, 0+6);
+//       domega21.Set(1., 1, 6+4);
+//           domega21.Set( Omega2r.dGet(3)*dCoef, 2, 6+5);
+//           domega21.Set(-Omega2r.dGet(2)*dCoef, 3, 6+6);
+//       domega12.Set(1., 1, 0+5);
+//           domega12.Set(-Omega1r.dGet(3)*dCoef, 2, 0+4);
+//           domega12.Set( Omega1r.dGet(1)*dCoef, 3, 0+6);
+//       domega22.Set(1., 1, 6+5);
+//           domega22.Set(-Omega2r.dGet(3)*dCoef, 2, 6+4);
+//           domega22.Set( Omega2r.dGet(1)*dCoef, 3, 6+6);
+//       domega13.Set(1., 1, 0+6);
+//           domega13.Set( Omega1r.dGet(2)*dCoef, 2, 0+4);
+//           domega13.Set(-Omega1r.dGet(1)*dCoef, 3, 0+5);
+//       domega23.Set(1., 1, 6+6);
+//           domega23.Set( Omega2r.dGet(2)*dCoef, 2, 6+4);
+//           domega23.Set(-Omega2r.dGet(1)*dCoef, 3, 6+5);
+// 
+//       Vec3 domega = Omega1-Omega2;
 //       dv.Set((e3a.dGet(1)*1.-( 
 //       		e3a.dGet(2)*(Omega1.dGet(3)-Omega2.dGet(3))-
-// 		e3a.dGet(3)*(Omega1.dGet(2)-Omega2.dGet(2)))*dCoef)*r,1,0+4);
+// 		e3a.dGet(3)*(domega.dGet(2)))*dCoef)*r,1);
+// 		dv.Link(1, &domega11);
 //       dv.Set((e3a.dGet(2)*1.-(
 //       		-e3a.dGet(1)*(Omega1.dGet(3)-Omega2.dGet(3))+
-// 		e3a.dGet(3)*(Omega1.dGet(1)-Omega2.dGet(1)))*dCoef)*r,2,0+5);
+// 		e3a.dGet(3)*(domega.dGet(1)))*dCoef)*r,2);
+// 		dv.Link(2, &domega12);
 //       dv.Set((e3a.dGet(3)*1.-( 
 //       		e3a.dGet(1)*(Omega1.dGet(2)-Omega2.dGet(2))-
-// 		e3a.dGet(2)*(Omega1.dGet(1)-Omega2.dGet(1)))*dCoef)*r,3,0+6);
+// 		e3a.dGet(2)*(domega.dGet(1)))*dCoef)*r,3);
+// 		dv.Link(3, &domega13);
 // 
-//       dv.Set(-(e3a.dGet(1)*1.)*r,4,6+4);
-//       dv.Set(-(e3a.dGet(2)*1.)*r,5,6+5);
-//       dv.Set(-(e3a.dGet(3)*1.)*r,6,6+6);
+//       dv.Set(-(e3a.dGet(1)*1.)*r,4,6+4); dv.Link(4, &domega21);
+//       dv.Set(-(e3a.dGet(2)*1.)*r,5,6+5); dv.Link(5, &domega22);
+//       dv.Set(-(e3a.dGet(3)*1.)*r,6,6+6); dv.Link(6, &domega23);
 
 
-/* new (approximate: assume costatnt trads orientations) 
+/* new (approximate: assume constant triads orientations) 
  * relative velocity linearization 
 */
 
-      dv.Set((e3a.dGet(1)*1.)*r,1,0+4);
-      dv.Set((e3a.dGet(2)*1.)*r,2,0+5);
-      dv.Set((e3a.dGet(3)*1.)*r,3,0+6);
+      dv.Set((e3a.dGet(1)*1.)*r,1, 0+4);
+      dv.Set((e3a.dGet(2)*1.)*r,2, 0+5);
+      dv.Set((e3a.dGet(3)*1.)*r,3, 0+6);
       
-      dv.Set(-(e3a.dGet(1)*1.)*r,4,6+4);
-      dv.Set(-(e3a.dGet(2)*1.)*r,5,6+5);
-      dv.Set(-(e3a.dGet(3)*1.)*r,6,6+6);
+      dv.Set(-(e3a.dGet(1)*1.)*r,4, 6+4);
+      dv.Set(-(e3a.dGet(2)*1.)*r,5, 6+5);
+      dv.Set(-(e3a.dGet(3)*1.)*r,6, 6+6);
 
 
       //assemble friction states
@@ -526,7 +553,7 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
 	<< " " << MatR2EulerAngles(RTmp)*dRaDegr
 	  << " " << R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr());
       if (fc) {
-          of << " " << M3;
+          of << " " << M3 << " " << fc->fc();
       }
       of << std::endl;
    }   
