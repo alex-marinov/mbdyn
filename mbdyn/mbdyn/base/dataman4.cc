@@ -329,9 +329,16 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 }
 
 #ifdef USE_STRUCT_NODES
-	 Vec3 x(0.);
+	 Vec3 x(Zero3);
 	 if (HP.IsKeyWord("position")) {
 		 x = HP.GetPosAbs(AbsRefFrame);
+	 }
+
+	 Mat3x3 R(Eye3);
+	 Mat3x3 RT(Eye3);
+	 if (HP.IsKeyWord("orientation")) {
+		 R = HP.GetRotAbs(AbsRefFrame);
+		 RT = R.Transpose();
 	 }
 	 
 	 doublereal dM(0.);
@@ -379,6 +386,11 @@ void DataManager::ReadElems(MBDynParser& HP)
 		    << ": mass is null" << std::endl;
 	 } else {
 	    Xcg = S/dM;
+	    
+	    /*
+	     * FIXME: should also rotate it in the principal 
+	     * reference frame, and log the angles
+	     */
 	    Jcg += Mat3x3(S, Xcg);
 	 }
 
@@ -390,10 +402,11 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 OutHdl.Log()
 		 << "inertia " << uIn
 		 << " (" << ( sName ? sName : "unnamed" ) << ")" << std::endl
-		 << "    mass " << dM << std::endl
-		 << "    Xcg " << Xcg << std::endl
-		 << "    J " << J << std::endl
-		 << "    Jcg " << Jcg << std::endl;
+		 << "    mass:  " << dM << std::endl
+		 << "    Xcg:   " << Xcg << std::endl
+		 << "    Xcg-X: " << (Xcg - x) << std::endl
+		 << "    J:     " << R*J*RT << std::endl
+		 << "    Jcg:   " << R*Jcg*RT << std::endl;
 	 if (sName) {
 	    SAFEDELETEARR(sName);
 	 }
