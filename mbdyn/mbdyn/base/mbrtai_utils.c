@@ -236,7 +236,7 @@ mbdyn_RT_mbx_send_if(unsigned long node, int port, void *__mbx,
 	assert(msg != NULL);
 	assert(msg_size > 0);
 	
-	return RT_mbx_send_if(node, 0, mbx, msg, msg_size);
+	return RT_mbx_send_if(node, port, mbx, msg, msg_size);
 	
 }
 
