@@ -695,8 +695,8 @@ class OffsetDummyStructNode : public DummyStructNode {
 class RelFrameDummyStructNode : public DummyStructNode {
  protected:
    const StructNode* pNodeRef;
-   const Vec3 fhT;
    const Mat3x3 RhT;
+   const Vec3 fhT;
    
    void __Update(void);
    
