@@ -12,6 +12,7 @@ iomanip \
 iostream \
 lapack.h \
 math.h \
-sstream
+sstream \
+sys_sysinfo.h
 
 include $(top_srcdir)/build/bot.mk

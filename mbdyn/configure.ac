@@ -259,6 +259,7 @@ AC_CHECK_HEADERS(signal.h)
 AC_CHECK_HEADERS(string.h)
 AC_CHECK_HEADERS(sys/mman.h)
 AC_CHECK_HEADERS(sys/socket.h)
+AC_CHECK_HEADERS(sys/sysinfo.h)
 AC_CHECK_HEADERS(sys/times.h)
 AC_CHECK_HEADERS(sys/types.h)
 AC_CHECK_HEADERS(unistd.h)
@@ -1311,6 +1312,8 @@ AC_CHECK_FUNCS([ \
 	atol \
 	chdir \
 	getcwd \
+	get_nprocs \
+	get_nprocs_conf \
 	gethostbyname \
 	gethostbyname2 \
 	getopt \
@@ -1328,6 +1331,28 @@ AC_CHECK_FUNCS([ \
 	time \
 ])
 
+dnl ----------------------------------------------------------------
+dnl
+dnl Checks if we can detect how many processors can be used on smp arch
+dnl
+if test "${ac_cv_func_get_nprocs:-set}" = "set" ; then
+	if test "${ac_cv_header_sys_sysinfo_h:+set}" = "set" ; then
+	        AC_TRY_LINK([
+#include <sys/sysinfo.h>
+       		],[
+        return get_nprocs();
+       		],[have_get_nprocs=yes],[have_get_nprocs=no])
+	else
+	        AC_TRY_LINK([
+       		],[
+        return get_nprocs();
+       		],[have_get_nprocs=yes],[have_get_nprocs=no])
+	fi
+	
+	if test "$have_get_nprocs" = "yes" ; then
+		AC_DEFINE(HAVE_GET_NPROCS,1,[define if get_nprocs is available])
+	fi
+fi
 
 dnl ----------------------------------------------------------------
 dnl

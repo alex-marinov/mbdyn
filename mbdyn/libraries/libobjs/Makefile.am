@@ -5,6 +5,7 @@ noinst_LTLIBRARIES = libobjs.la
 
 libobjs_la_SOURCES = \
 dgegv.c \
+get_nprocs.c \
 getopt.c
 
 libobjs_la_LIBADD = @LIBS@
