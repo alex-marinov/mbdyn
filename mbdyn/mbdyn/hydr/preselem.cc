@@ -165,60 +165,19 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        /* due nodi idraulici e due nodi strutturali */
        
        /* nodo idraulico 1 */
-       unsigned int uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNodeHyd1;
-       if ((pNodeHyd1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       PressureNode* pNodeHyd1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* nodo idraulico 2 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNodeHyd2;
-       if ((pNodeHyd2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       PressureNode* pNodeHyd2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* nodo strutturale 1 */
-       unsigned int uNode1 = (unsigned int)HP.GetInt();
-       
-       DEBUGCOUT("Linked to Node " << uNode1 << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNodeStr1;
-       if ((pNodeStr1 = pDM->pFindStructNode(uNode1)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode1
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pNodeStr1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
        Vec3 f1(HP.GetPosRel(ReferenceFrame(pNodeStr1)));
        DEBUGCOUT("Offset 1: " << f1 << std::endl);
        
        /* nodo strutturale 2 */
-       unsigned int uNode2 = (unsigned int)HP.GetInt();
-       DEBUGCOUT("Linked to Node " << uNode2 << std::endl);
-       
-       /* verifica di esistenza del nodo */
-       StructNode* pNodeStr2;
-       if ((pNodeStr2 = pDM->pFindStructNode(uNode2)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	    << ": structural node " << uNode2
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       StructNode* pNodeStr2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
        Vec3 f2(HP.GetPosRel(ReferenceFrame(pNodeStr2)));
        DEBUGCOUT("Offset 2: " << f2 << std::endl);  
@@ -296,30 +255,10 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case MINOR_LOSS: {
        
        /* nodo 1 */
-       unsigned int uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode1;
-       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       PressureNode* pNode1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* nodo 2 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode2;
-       if ((pNode2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       PressureNode* pNode2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* Kappa1 diretto */
        doublereal dKappa1 = HP.GetReal();
@@ -364,43 +303,13 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case THREEWAYMINORLOSS: {
        
        /* nodo 0 */
-       unsigned int uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode0;
-       if ((pNode0 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       PressureNode* pNode0 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* nodo 1 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode1;
-       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       PressureNode* pNode1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* nodo 2 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode2;
-       if ((pNode2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       PressureNode* pNode2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* Kappa1 diretto */
        doublereal dKappa1 = HP.GetReal();
@@ -456,56 +365,16 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case CONTROL_VALVE2: {
        
        /* nodo 1 */
-       unsigned int uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode1;
-       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       PressureNode* pNode1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* nodo 2 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode2;
-       if ((pNode2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       PressureNode* pNode2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* nodo 3 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode3;
-       if ((pNode3 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       PressureNode* pNode3 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* nodo 4 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode4;
-       if ((pNode4 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       PressureNode* pNode4 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* Area massima della valvola */
        doublereal area_max = HP.GetReal();
@@ -563,56 +432,16 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case DYNAMIC_CONTROL_VALVE: {
        
        /* nodo 1 */
-       unsigned int uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode1;
-       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       PressureNode* pNode1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* nodo 2 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode2;
-       if ((pNode2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       PressureNode* pNode2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* nodo 3 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode3;
-       if ((pNode3 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       PressureNode* pNode3 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* nodo 4 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode4;
-       if ((pNode4 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       PressureNode* pNode4 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* Forza */
        DriveCaller* pDC = ReadDriveData(pDM, HP,pDM->pGetDrvHdl());
@@ -704,85 +533,23 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case PRESSURE_FLOW_CONTROL_VALVE: {
        
        /* nodo 1 */
-       unsigned int uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode1;
-       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       PressureNode* pNode1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* nodo 2 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode2;
-       if ((pNode2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       PressureNode* pNode2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* nodo 3 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode3;
-       if ((pNode3 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       PressureNode* pNode3 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* nodo 4 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode4;
-       if ((pNode4 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       PressureNode* pNode4 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
          /* nodo 5 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode5;
-       if ((pNode5 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       PressureNode* pNode5 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
          /* nodo 6 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode6;
-       if ((pNode6 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
-       
-       
-       
+       PressureNode* pNode6 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+              
        /* Forza */
        DriveCaller* pDC =ReadDriveData(pDM, HP,pDM->pGetDrvHdl());
        
@@ -880,30 +647,10 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case PRESSURE_VALVE: {
        
        /* nodo 1 */
-       unsigned int uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode1;
-       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       PressureNode* pNode1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* nodo 2 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode2;
-       if ((pNode2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       PressureNode* pNode2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* Area diaframma */
        doublereal area_diaf = HP.GetReal();
@@ -999,43 +746,13 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case FLOW_VALVE: {
        
        /* nodo 1 */
-       unsigned int uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode1;
-       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       PressureNode* pNode1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* nodo 2 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode2;
-       if ((pNode2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       PressureNode* pNode2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* nodo 3 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode3;
-       if ((pNode3 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       PressureNode* pNode3 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* Area diaframma */
        doublereal area_diaf = HP.GetReal();
@@ -1141,30 +858,10 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case ORIFICE: {
        
        /* nodo 1 */
-       unsigned int uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode1;
-       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       PressureNode* pNode1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* nodo 2 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode2;
-       if ((pNode2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       PressureNode* pNode2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* Diametro */
        doublereal diameter = HP.GetReal();
@@ -1228,17 +925,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case ACCUMULATOR: {
        
        /* nodo */
-       unsigned int uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode;
-       if ((pNode = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       PressureNode* pNode = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* Corsa pistone */
        doublereal stroke = HP.GetReal();
@@ -1410,30 +1097,10 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case TANK: {
        
        /* nodo 1 */
-       unsigned int uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode1;
-       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       PressureNode* pNode1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* nodo 2 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode2;
-       if ((pNode2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       PressureNode* pNode2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* Pressione serbatoio */
        doublereal press = HP.GetReal();
@@ -1516,30 +1183,10 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case PIPE: {
        
        /* nodo 1 */
-       unsigned int uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode1;
-       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       PressureNode* pNode1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* nodo 2 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode2;
-       if ((pNode2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       PressureNode* pNode2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* Diametro */
        doublereal diameter = HP.GetReal();
@@ -1601,30 +1248,10 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case DYNAMIC_PIPE: {
        
        /* nodo 1 */
-       unsigned int uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode1;
-       if ((pNode1 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }		  
+       PressureNode* pNode1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        /* nodo 2 */
-       uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Hydraulic Node " << uNode << std::endl);
-       
-       /* verifica di esistenza del nodo idraulico */
-       PressureNode* pNode2;
-       if ((pNode2 = (PressureNode*)pDM->pFindNode(Node::HYDRAULIC, uNode)) == NULL) {
-	  std::cerr << "line " << HP.GetLineData() 
-	      << ": hydraulic node " << uNode
-	    << " not defined" << std::endl;	  
-	  THROW(DataManager::ErrGeneric());
-       }
+       PressureNode* pNode2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
        
        doublereal diameter = HP.GetReal();
        if (diameter <= 0.) {		  
