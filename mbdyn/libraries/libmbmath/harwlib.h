@@ -135,12 +135,6 @@ extern int __FC_DECL__(mc23ad)(integer *n, integer *icn, doublereal *a,
 extern int __FC_DECL__(mc24ad)(integer *n, integer *icn, doublereal *a,
 			       integer *licn, integer *lenr, integer *lenrl, 
 			       doublereal *w);
-extern int __FC_DECL__(kd01a)(integer *maxkey, integer *itable, integer *key);
-extern int __FC_DECL__(kd01b)(integer *itable, integer *key, integer *field, 
-			      integer *ifree);
-extern int __FC_DECL__(kd01c)(integer *itable, integer *key, integer *field, 
-			      integer *ifree);
-extern logical __FC_DECL__(kd01h)(integer *iprime);
 /* comlen ma28ed_ 16 */
 /* comlen ma28fd_ 52 */
 /* comlen ma28gd_ 8 */
@@ -152,7 +146,6 @@ extern logical __FC_DECL__(kd01h)(integer *iprime);
 /* comlen ma30gd_ 16 */
 /* comlen ma30hd_ 8 */
 /* comlen mc19bd_ 8 */
-/* comlen kd01cm_ 12 */
 
    
 /* Common Block Declarations */
@@ -179,12 +172,6 @@ struct ma28hd_1_ {
 };
 
 #define ma28hd_1 (*(struct ma28hd_1_ *) &ma28hd_)   
-   
-extern struct ext_kd01cm_ {
-    integer length, iprime, iempty;
-} kd01cm_;
-
-#define kd01cm_1 kd01cm_
    
 extern struct ext_ma28ed_ {
     integer e_1[2];
