@@ -117,7 +117,7 @@ main(int argc, char *argv[])
 		}
 	}
 
-	if (strcasecmp(solver, "superlu") == 0) {
+	if (strcasecmp(solver, "lapack") == 0) {
 #ifdef USE_LAPACK
 		SAFENEWWITHCONSTRUCTOR(pSM, LapackSolutionManager,
 				LapackSolutionManager(size));
