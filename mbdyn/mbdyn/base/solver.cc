@@ -304,7 +304,13 @@ Solver::Run(void)
 		/* Init RTAI; if init'ed, it will be shut down at exit */
 		if (mbdyn_rt_task_init("MBDTSK", 1, 0, 0, RTCpuMap,
 					&mbdyn_rtai_task)) {
-			std::cerr << "unable to init RTAI task" << std::endl;
+			silent_cerr("unable to init RTAI task" << std::endl);
+			THROW(ErrGeneric());
+		}
+
+		if (lRTPeriod < 0) {
+			silent_cerr("illegal real-time time step" 
+					<< std::endl);
 			THROW(ErrGeneric());
 		}
 	}
@@ -1180,7 +1186,7 @@ IfFirstStepIsToBeRepeated:
 				<< "; time: " << t 
 				<< "; period: " << mbdyn_count2nano(lRTPeriod) << std::endl);
 			r = mbdyn_rt_task_make_periodic(mbdyn_rtai_task,
-					t,lRTPeriod);
+					t, lRTPeriod);
 
 			if (r) {
 				std::cerr << "rt_task_make_periodic() failed ("
@@ -1216,30 +1222,27 @@ IfFirstStepIsToBeRepeated:
 			case 0: {
 				char LogCpuMap[] = "0xFF";
 				
-				if (RTCpuMap != 0xff){   //MBDyn can use any cpu
-					//The overruns monitor will use any free cpu 
+				if (RTCpuMap != 0xff){
+					/* MBDyn can use any cpu
+					 * The overruns monitor will use any free cpu */
 					snprintf(LogCpuMap, sizeof(LogCpuMap), "%4x", ~RTCpuMap);
 				}
-				if(!(strcmp(LogProcName,"logproc") == 0)){
+
+				bool startDefault = true;
+				if (!strcmp(LogProcName, "logproc") != 0) {
 					if (execl(LogProcName, LogProcName, "MBDTSK",
 							mbxlogname, LogCpuMap, NULL) == -1) {
 						/* error */
-						std::cout << "Cannot start log procedure" 
-							<< std::endl 
-							<< "Startig dafault log procedure"
-							<< std::endl;
-					
-						/* sets new path */
-						/* BINPATH is the ${bindir} variable 
-						 * at configure time, defined in
-						 * include/mbdefs.h.in */
-						setenv("PATH", ".:" BINPATH, 1);
-						
-						/* start logger */
-						execlp("logproc", "logproc", "MBDTSK",
-				                	mbxlogname, LogCpuMap, NULL);					
+						silent_cout("Cannot start log procedure \""
+								<< LogProcName
+								<< "\"; using default"
+								<< std::endl);
+					} else {
+						startDefault = false;
 					}
-				} else {
+				}
+
+				if (startDefault) {
 					/* sets new path */
 					/* BINPATH is the ${bindir} variable 
 					 * at configure time, defined in
@@ -1247,8 +1250,14 @@ IfFirstStepIsToBeRepeated:
 					setenv("PATH", ".:" BINPATH, 1);
 					
 					/* start logger */
-					execlp("logproc", "logproc", "MBDTSK",
-			                	mbxlogname, LogCpuMap, NULL);									
+					if (execlp("logproc", "logproc", "MBDTSK",
+				               	mbxlogname, LogCpuMap, NULL) == -1) {
+						silent_cout("Cannot start default "
+								"log procedure \"logproc\""
+								<< std::endl);
+						/* FIXME: better give up logging? */
+						bRTlog = false;
+					}
 				}
 				break;
 			}
@@ -2935,14 +2944,11 @@ Solver::ReadData(MBDynParser& HP)
 			if (HP.IsKeyWord("cpu" "map")) {
 				int cpumap = HP.GetInt();
 				int ncpu = get_nprocs();
-				int newcpumap = 1;
-				while(ncpu-1){
-					newcpumap = newcpumap*2 +1;
-					ncpu --;
-				}
-				/*i bit non legati ad alcuna cpu sono posti
-				 * a zero*/
-				newcpumap = cpumap & newcpumap;
+				int newcpumap = pow(2, ncpu) - 1;
+
+				/* i bit non legati ad alcuna cpu sono posti
+				 * a zero */
+				newcpumap &= cpumap;
 				if (newcpumap < 1 || newcpumap > 0xff) {
 					std::cerr << "illegal cpu map "
 						<< cpumap << " at line "
