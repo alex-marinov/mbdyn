@@ -50,27 +50,38 @@ public:
 
 		VAR_LAST
 	};
+
+	enum TypeModifier {
+		MOD_UNKNOWN = -1,
+
+		MOD_CONST,
+
+		MOD_LAST
+	};
    
 protected:
 	TypedValue::Type type;
+	bool bConst;
 	union {
 		Int i;
 		Real r;
 	} v;
 
 public:
-	TypedValue(const Int& i);
-	TypedValue(const Real& r);
-	TypedValue(const TypedValue::Type t);
+	TypedValue(const Int& i, bool isConst = false);
+	TypedValue(const Real& r, bool isConst = false);
+	TypedValue(const TypedValue::Type t, bool isConst = false);
 	TypedValue(const TypedValue& var);
 	
 	const TypedValue& operator = (const TypedValue& var);
 	
 	TypedValue::Type GetType(void) const;
+	bool Const(void) const;
 	Int GetInt(void) const;
 	Real GetReal(void) const;
 	
-	void SetType(TypedValue::Type t);
+	void SetType(TypedValue::Type t, bool isConst = false);
+	void SetConst(bool isConst = true);
 	const TypedValue& Set(const Int& i);
 	const TypedValue& Set(const Real& r);
 	
@@ -115,6 +126,7 @@ public:
 
 	const char *GetName(void) const;
 	virtual TypedValue::Type GetType(void) const = 0;
+	virtual bool Const(void) const = 0;
 	virtual TypedValue GetVal(void) const = 0;
 };
 
@@ -131,6 +143,7 @@ public:
 	int IsVar(void) const;
 	
 	TypedValue::Type GetType(void) const;
+	bool Const(void) const;
 	TypedValue GetVal(void) const;
 	
 	void SetVal(const Real& v);

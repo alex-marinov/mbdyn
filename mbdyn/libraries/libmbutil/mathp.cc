@@ -254,18 +254,31 @@ static typenames TypeNames[] = {
      { NULL,   TypedValue::VAR_UNKNOWN }
 };
 
+struct typemodifiernames {
+   const char* name;
+   TypedValue::TypeModifier type;
+};
 
-TypedValue::TypedValue(const Int& i) : type(TypedValue::VAR_INT)
+static typemodifiernames TypeModifierNames[] = {
+     { "const",	   TypedValue::MOD_CONST },
+     { NULL,       TypedValue::MOD_UNKNOWN }
+};
+
+
+TypedValue::TypedValue(const Int& i, bool isConst) 
+: type(TypedValue::VAR_INT), bConst(isConst)
 {
    v.i = i;
 }
 
-TypedValue::TypedValue(const Real& r) : type(TypedValue::VAR_REAL)
+TypedValue::TypedValue(const Real& r, bool isConst)
+: type(TypedValue::VAR_REAL), bConst(isConst)
 {
    v.r = r;
 }
 
-TypedValue::TypedValue(const TypedValue::Type t) : type(t)
+TypedValue::TypedValue(const TypedValue::Type t, bool isConst)
+: type(t), bConst(isConst)
 {
    switch (type) {
     case TypedValue::VAR_INT:
@@ -279,7 +292,8 @@ TypedValue::TypedValue(const TypedValue::Type t) : type(t)
    }
 }
 
-TypedValue::TypedValue(const TypedValue& var) : type(var.type)
+TypedValue::TypedValue(const TypedValue& var)
+: type(var.type), bConst(var.bConst)
 {
    switch (type) {
     case TypedValue::VAR_INT:
@@ -306,6 +320,7 @@ TypedValue::operator = (const TypedValue& var)
     default:
       THROW(ErrUnknownType());
    }
+   bConst = var.Const();
    return *this;
 }
 
@@ -313,6 +328,12 @@ TypedValue::Type
 TypedValue::GetType(void) const
 {
    return type;
+}
+
+bool
+TypedValue::Const(void) const
+{
+	return bConst;
 }
 
 Int 
@@ -344,10 +365,17 @@ TypedValue::GetReal(void) const
 }
 
 void 
-TypedValue::SetType(TypedValue::Type t)
+TypedValue::SetType(TypedValue::Type t, bool isConst)
 {
    type = t;
+   bConst = isConst;
 }  
+
+void
+TypedValue::SetConst(bool isConst)
+{
+	bConst = isConst;
+}
 
 const TypedValue& 
 TypedValue::Set(const Int& i) 
@@ -361,7 +389,7 @@ TypedValue::Set(const Int& i)
       break;
     default:
       THROW(ErrUnknownType());
-   }   
+   }
    return *this;
 }
 
@@ -377,7 +405,7 @@ TypedValue::Set(const Real& r)
       break;
     default:
       THROW(ErrUnknownType());
-   }   
+   }
    return *this;
 }
 
@@ -625,6 +653,12 @@ Var::GetType(void) const
    return value.GetType();
 }
 
+bool
+Var::Const(void) const
+{
+   return value.Const();
+}
+
 TypedValue 
 Var::GetVal(void) const 
 {
@@ -695,6 +729,12 @@ TypedValue::Type
 MathParser::PlugInVar::GetType(void) const
 {
 	return pgin->GetType();
+}
+
+bool
+MathParser::PlugInVar::Const(void) const
+{
+	return true;
 }
 
 TypedValue 
@@ -862,11 +902,33 @@ MathParser::GetType(const char* const s) const
    return TypedValue::VAR_UNKNOWN;
 }
 
+TypedValue::TypeModifier
+MathParser::GetTypeModifier(const char* const s) const
+{
+   for (Int i = 0; TypeModifierNames[i].name != NULL; i++) { 
+      if (strcmp(s, TypeModifierNames[i].name) == 0) {
+	 return TypeModifierNames[i].type;
+      }
+   }
+   return TypedValue::MOD_UNKNOWN;
+}
+
 Int 
 MathParser::IsType(const char* const s) const 
 {
    for (int i = 0; TypeNames[i].name != NULL; i++) {
       if (strcmp(s, TypeNames[i].name) == 0) {
+	 return 1;
+      }	 
+   }
+   return 0;
+}
+
+Int 
+MathParser::IsTypeModifier(const char* const s) const 
+{
+   for (int i = 0; TypeModifierNames[i].name != NULL; i++) {
+      if (strcmp(s, TypeModifierNames[i].name) == 0) {
 	 return 1;
       }	 
    }
@@ -887,6 +949,9 @@ MathParser::IsFunc(const char* const s) const
 Int 
 MathParser::IsKeyWord(const char* const s) const 
 {
+   if (IsTypeModifier(s)) {
+      return 1;
+   }
    if (IsType(s)) {
       return 1;
    }
@@ -1387,8 +1452,28 @@ TypedValue
 MathParser::stmt(void) 
 {
    if (currtoken == NAME) {
+      bool isTypeModifier = false;
+      bool isConst = false;
+
+      if (IsTypeModifier(namebuf)) {
+         isTypeModifier = true;
+         TypedValue::TypeModifier mod = GetTypeModifier(namebuf);
+	 ASSERT(mod != TypedValue::MOD_UNKNOWN);
+
+	 if (mod == TypedValue::MOD_CONST) {
+	    isConst = true;
+	 }
+
+	 if (GetToken() != NAME || !IsType(namebuf)) {
+	    std::cerr << "type expected after type modifier "
+		    "in declaration in stmt()" << std::endl;
+	    THROW(ErrGeneric(this, "type expected after type modifier "
+				    "in declaration"));
+	 }
+      }
+	 
       /* declaration? */
-      if (IsType(namebuf)) {
+      if (isTypeModifier || IsType(namebuf)) {
 	 TypedValue::Type type = GetType(namebuf);
 	 ASSERT(type != TypedValue::VAR_UNKNOWN);
 	 
@@ -1416,18 +1501,29 @@ MathParser::stmt(void)
 	    
 	    if (v == NULL) {
 	       /* Se non c'e' la inserisco */
-	       v = table.Put(varname, TypedValue(type));
+	       v = table.Put(varname, TypedValue(type, isConst));
 	       ((Var *)v)->SetVal(d);
 	    } else {
 	       /* altrimenti, se la posso ridefinire, mi limito 
 		* ad assegnarle il nuovo valore */
 	       if (redefine_vars) {
+		  if (v->Const()) {
+		     std::cerr << "cannot redefine a const named value"
+			     << std::endl;
+		     THROW(MathParser::ErrGeneric(this, "cannot redefine "
+					     "a const named value '",
+					     v->GetName(), "'"));
+		  }
+
 		  if (v->IsVar()) {
 		     ((Var *)v)->SetVal(d);
+
 		  } else {
 		     std::cerr << "cannot redefine a non-var named value" 
 			     << std::endl;
-		     THROW(MathParser::ErrGeneric(this, "cannot redefine non-var named value '", v->GetName(), "'"));
+		     THROW(MathParser::ErrGeneric(this, "cannot redefine "
+					     "non-var named value '",
+					     v->GetName(), "'"));
 		  }
 	       } else {
 		  /* altrimenti la reinserisco, cosi' da provocare l'errore
@@ -1457,6 +1553,14 @@ MathParser::stmt(void)
 	    if (GetToken() == ASSIGN) {
 	       GetToken();
 	       TypedValue d = logical();
+	       if (v->Const()) {
+		  std::cerr << "cannot assign const named value '"
+			  << v->GetName() << "'" << std::endl;
+		  THROW(MathParser::ErrGeneric(this,
+					  "cannot assign const named value '",
+					  v->GetName(), "'"));
+	       }
+
 	       if (v->IsVar()) {
 	          ((Var *)v)->SetVal(d);
 	       } else {
@@ -1467,6 +1571,7 @@ MathParser::stmt(void)
 					v->GetName(), "'"));
 	       }
 	       return v->GetVal();
+
 	    } else {
 	       TokenPush(currtoken);
 	       currtoken = NAME;		 

@@ -113,6 +113,7 @@ protected:
 		~PlugInVar(void);
 
 		TypedValue::Type GetType(void) const;
+		bool Const(void) const;
 		TypedValue GetVal(void) const;
 	};
 
@@ -232,8 +233,10 @@ protected:
 
 	mathfuncs* GetFunc(const char* const s) const;
 	TypedValue::Type GetType(const char* const s) const;
+	TypedValue::TypeModifier GetTypeModifier(const char*) const;
 
 	Int IsType(const char* const s) const;
+	Int IsTypeModifier(const char* const s) const;
 	Int IsFunc(const char* const s) const;
 	Int IsKeyWord(const char* const s) const;
    
