@@ -33,7 +33,6 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <netdb.h>
-#include "sock.h"
 
 #include "myassert.h"
 #include "mynewmem.h"
@@ -53,6 +52,7 @@
 #include <arpa/inet.h>
 
 #include "usesock.h"
+#include "sock.h"
 
 #define DEFAULT_PORT	5500 /* FIXME: da definire meglio */
 #define DEFAULT_HOST 	"127.0.0.1"
