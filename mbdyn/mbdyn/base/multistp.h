@@ -80,6 +80,8 @@ private:
 		Y12_SOLVER,
                 UMFPACK3_SOLVER   
 	} CurrSolver;
+
+	static SolverType defaultSolver;
    
 private:
    	const char *sInputFileName;

@@ -12,9 +12,9 @@ CPPFLAGS="\
 	-D__HACK_NASTRAN_MODES__=2"
 CFLAGS="-g -Wall -O6 -march=pentiumpro"
 CXXFLAGS=$CFLAGS
-CC=/usr/local/gcc-3.0.2/bin/gcc
-CXX=/usr/local/gcc-3.0.2/bin/g++
-F77="/usr/local/gcc-3.0.2/bin/g77 -O"
+CC=gcc
+CXX=g++
+F77="g77 -O"
 
 # -rdynamic required to allow dynamic resolution of symbols in modules
 LDFLAGS="-rdynamic \

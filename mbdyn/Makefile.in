@@ -89,7 +89,7 @@ Y12_LIBS = @Y12_LIBS@
 mbdyn_subdir = @mbdyn_subdir@
 top_builddir = @top_builddir@
 
-EXTRA_DIST = CHANGELOG ChangeLog TODO 
+EXTRA_DIST = CHANGELOG 
 SUBDIRS = build etc include libraries manual mbdyn modules utils var
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/build/mkinstalldirs

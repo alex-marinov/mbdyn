@@ -62,140 +62,166 @@
 
 #ifdef USE_UMFPACK3
 
+#include <ac/iostream>
 #include <vector>
+
 extern "C" {
-#include "umfpack.h"
+#include <umfpack.h>
 }
 
-#include "solman.h"
-#include "spmapmh.h"
+#include <myassert.h>
+#include <mynewmem.h>
+#include <solman.h>
+#include <spmapmh.h>
 
+class Umfpack3SparseLUSolutionManager: public SolutionManager {
+private:
+	mutable SpMapMatrixHandler A;
+	MyVectorHandler *xVH, *bVH;
+	std::vector<double> x;
+	std::vector<double> b;
+	std::vector<double> Ax;
+	std::vector<int> Ai;
+	std::vector<int> Ap;
 
-class Umfpack3SparseLUSolutionManager:public SolutionManager {
- 
- private:
-     mutable SpMapMatrixHandler A;
-     MyVectorHandler *xVH, *bVH;
-     std::vector<double> x;
-     std::vector<double> b;
-     std::vector<double> Ax;
-     std::vector<int> Ai;
-     std::vector<int> Ap;
-
-     double t,t1;
+	double t, t1;
 	
-     int status;
-
-     void * Symbolic;
-     double Control[UMFPACK_CONTROL];
-//	Control[UMFPACK_PRL] = 6 ;
-     double Info[UMFPACK_INFO];
-     void * Numeric;
-
-     
- protected:      
-
- public:
-    Umfpack3SparseLUSolutionManager(integer Dim):A(Dim), x(Dim), b(Dim), Symbolic(0), 
-    						 Numeric(0) {
-	xVH = new MyVectorHandler(Dim,&(x[0]));
-	bVH = new MyVectorHandler(Dim,&(b[0]));
-	 
-	umfpack_defaults(Control);
-    };    
-    
-     
-   /* Distruttore: dealloca le matrici e distrugge gli oggetti propri */
-   virtual ~Umfpack3SparseLUSolutionManager(void) {
-   	if (Symbolic != 0) umfpack_free_symbolic(&Symbolic);
-   	if (Numeric != 0) umfpack_free_numeric(&Numeric);
-	delete xVH;
-	delete bVH;
-   };
-
-   virtual void IsValid(void) const {NO_OP;};
-   
-   /* Inizializzatore generico */
-   virtual void MatrInit(const doublereal& d = 0.) {A.Reset(d);};
-   
-   /* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
-   virtual void Solve(void){
-   	A.MakeCompressedColumnForm(Ax,Ai,Ap);
-	const double*const Axp=&(Ax[0]);
-	const int*const Aip=&(Ai[0]);
-	const int*const App=&(Ap[0]);
-       t = umfpack_timer ( ) ;
-       int pippo; pippo = b.size();
-       status = umfpack_symbolic(pippo,App,Aip,&Symbolic,Control,Info);
-       if (status != UMFPACK_OK) {
-           umfpack_report_info(Control, Info) ;
-	   umfpack_report_status(Control, status) ;
-	   std::cerr << "umfpack_symbolic failed" << std::endl;
-	   return;
-       }
-       // umfpack_report_symbolic ("Symbolic factorization of A",
-       // 	Symbolic, Control) ;
-       umfpack_report_info(Control, Info);
-       t1 = umfpack_timer() - t ;
-       status = umfpack_numeric(App,Aip,Axp,Symbolic,&Numeric,Control,Info);
-       if (status != UMFPACK_OK) {
-           umfpack_report_info(Control, Info) ;
-	   umfpack_report_status(Control, status) ;
-	   std::cerr << "umfpack_numeric failed" << std::endl;
-	   //de-allocate memory
-	   umfpack_free_symbolic(&Symbolic);
-	   return;
-       }
+	void * Symbolic;
+	double Control[UMFPACK_CONTROL];
+	double Info[UMFPACK_INFO];
+	void * Numeric;
 	
-       // umfpack_report_numeric ("Numeric factorization of A",
-       // 	Numeric, Control) ;
-       umfpack_report_info(Control, Info);
-       t1 = umfpack_timer() - t ;
-       BackSub(t);
-   };
-   
-   /* Bacward Substitution */
-   void BackSub(doublereal t_iniz = 0){
-	const double*const Axp=&(Ax[0]);
-	const int*const Aip=&(Ai[0]);
-	const int*const App=&(Ap[0]);
-	const double*const bp=&(b[0]);
-	double*const xp=&(x[0]);
-        t = t_iniz;
-	status = umfpack_solve("Ax=b",App,Aip,Axp,xp,bp,Numeric,Control,Info);
-	if (status != UMFPACK_OK) {
-		umfpack_report_info(Control, Info) ;
-		umfpack_report_status(Control, status) ;
-		std::cerr << "umfpack_solve failed" << std::endl;
-		//de-allocate memory
-		umfpack_free_symbolic(&Symbolic);
-		umfpack_free_numeric(&Numeric);
-		return;
-	}
-	umfpack_report_info(Control, Info);
-	t1 = umfpack_timer() - t ;
-   };
-   
-   /* Rende disponibile l'handler per la matrice */
-   virtual SpMapMatrixHandler* pMatHdl(void) const{
-       return &A;   
-   
-   };
+	bool HasBeenReset;
+	
+public:
+	Umfpack3SparseLUSolutionManager(integer Dim)
+		: A(Dim), xVH(0), bVH(0), x(Dim), b(Dim), 
+	Symbolic(0), Numeric(0), HasBeenReset(true) {
+		SAFENEWWITHCONSTRUCTOR(xVH, MyVectorHandler, 
+				MyVectorHandler(Dim, &(x[0])));
+		SAFENEWWITHCONSTRUCTOR(bVH, MyVectorHandler, 
+			MyVectorHandler(Dim, &(b[0])));
+		
+		umfpack_defaults(Control);
+	};
+     
+	/* Distruttore: dealloca le matrici e distrugge gli oggetti propri */
+	virtual ~Umfpack3SparseLUSolutionManager(void) {
+		if (Symbolic != 0) {
+			umfpack_free_symbolic(&Symbolic);
+		}
+		if (Numeric != 0) {
+			umfpack_free_numeric(&Numeric);
+		}
+		SAFEDELETE(xVH);
+		SAFEDELETE(bVH);
+	};
 
-   /* Rende disponibile l'handler per il termine noto */
-   virtual MyVectorHandler* pResHdl(void) const{
-       return bVH;   
-   };
+	virtual void IsValid(void) const {NO_OP;};
 
-   /* Rende disponibile l'handler per la soluzione (e' lo stesso 
-    * del termine noto, ma concettualmente sono separati) */
-   virtual MyVectorHandler* pSolHdl(void) const{
-       return xVH;      
-   };
-      
+	/* Inizializzatore generico */
+	virtual void MatrInit(const doublereal& d = 0.) {
+		A.Reset(d);
+		HasBeenReset = true;
+	};
+	
+	/* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
+	virtual void Solve(void) {
+		t = umfpack_timer() ;
+		if (HasBeenReset) {
+			A.MakeCompressedColumnForm(Ax, Ai, Ap);
+			const double* const Axp = &(Ax[0]);
+			const int* const Aip = &(Ai[0]);
+			const int* const App = &(Ap[0]);
+			int status;
+
+			status = umfpack_symbolic(b.size(), App, Aip, 
+					&Symbolic, Control, Info);
+			if (status != UMFPACK_OK) {
+				umfpack_report_info(Control, Info) ;
+				umfpack_report_status(Control, status);
+				std::cerr << "umfpack_symbolic failed" 
+					<< std::endl;
+				return;
+			}
+#if 0
+			umfpack_report_symbolic ("Symbolic factorization of A",
+					Symbolic, Control) ;
+#endif
+			umfpack_report_info(Control, Info);
+			t1 = umfpack_timer() - t;
+			status = umfpack_numeric(App, Aip, Axp, Symbolic, 
+					&Numeric, Control, Info);
+			if (status != UMFPACK_OK) {
+				umfpack_report_info(Control, Info);
+				umfpack_report_status(Control, status);
+				std::cerr << "umfpack_numeric failed" 
+					<< std::endl;
+				/* de-allocate memory */
+				umfpack_free_symbolic(&Symbolic);
+				return;
+			}
+
+#if 0
+			umfpack_report_numeric ("Numeric factorization of A",
+					Numeric, Control);
+#endif
+			umfpack_report_info(Control, Info);
+			t1 = umfpack_timer() - t;
+
+			HasBeenReset = false;
+		}
+		
+		BackSub(t);
+	};
+
+	/* Bacward Substitution */
+	void BackSub(doublereal t_iniz = 0){
+		const double* const Axp = &(Ax[0]);
+		const int* const Aip = &(Ai[0]);
+		const int* const App = &(Ap[0]);
+		const double* const bp = &(b[0]);
+		double* const xp = &(x[0]);
+		int status;
+
+		t = t_iniz;
+		status = umfpack_solve("Ax=b", App, Aip, Axp, xp, bp, 
+				Numeric, Control, Info);
+		if (status != UMFPACK_OK) {
+			umfpack_report_info(Control, Info) ;
+			umfpack_report_status(Control, status) ;
+			std::cerr << "umfpack_solve failed" << std::endl;
+
+			/* de-allocate memory */
+			umfpack_free_symbolic(&Symbolic);
+			umfpack_free_numeric(&Numeric);
+			return;
+		}
+		
+		umfpack_report_info(Control, Info);
+		t1 = umfpack_timer() - t;
+	};
+   
+	/* Rende disponibile l'handler per la matrice */
+	virtual SpMapMatrixHandler* pMatHdl(void) const {
+		return &A;
+	};
+
+	/* Rende disponibile l'handler per il termine noto */
+	virtual MyVectorHandler* pResHdl(void) const {
+		return bVH;
+	};
+
+	/*
+	 * Rende disponibile l'handler per la soluzione (e' lo stesso 
+	 * del termine noto, ma concettualmente sono separati)
+	 */
+	virtual MyVectorHandler* pSolHdl(void) const {
+		return xVH;
+	};
 };
 
 #endif /* USE_UMFPACK3 */
 
-#endif //Umfpack3SparseLUSolutionManager_hh
+#endif /* Umfpack3SparseLUSolutionManager_hh */
 

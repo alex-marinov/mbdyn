@@ -42,6 +42,7 @@
 #include <harwrap.h>
 #include <mschwrap.h>
 #include <y12wrap.h>
+#include <umfpackwrap.h>
 
 /* DataManager - continue */
 
@@ -381,14 +382,14 @@ void DataManager::InitialJointAssembly(void)
    
    /* Crea la struttura di calcolo */
    SolutionManager* pSM = NULL;
-#if defined(USE_Y12)
+#if defined(USE_UMFPACK3)
+   SAFENEWWITHCONSTRUCTOR(pSM,
+		   Umfpack3SparseLUSolutionManager,
+		   Umfpack3SparseLUSolutionManager(iInitialNumDofs));
+#elif defined(USE_Y12)
    SAFENEWWITHCONSTRUCTOR(pSM,
 		   Y12SparseLUSolutionManager,
 		   Y12SparseLUSolutionManager(iInitialNumDofs, 0, 1.));
-#elif defined(USE_UMFPACK3)
-   SAFENEWWITHCONSTRUCTOR(pSM,
-		   Umfpack3SparseLUSolutionManager,
-		   Umfpack3SparseLUSolutionManager(iInitialNumDofs, 0, 1.));
 #elif defined(USE_HARWELL)
    SAFENEWWITHCONSTRUCTOR(pSM,
 		   HarwellSparseLUSolutionManager,
@@ -398,7 +399,7 @@ void DataManager::InitialJointAssembly(void)
 		   MeschachSparseLUSolutionManager,
 		   MeschachSparseLUSolutionManager(iInitialNumDofs, 0, 1.));
 #else
-#error "no appropriate solver available"
+#error "no solver available"
 #endif
     
    /* Crea il vettore con lo stato del sistema durante l'assemblaggio */

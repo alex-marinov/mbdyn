@@ -90,21 +90,29 @@ const doublereal dDefaultFictitiousStepsTolerance = 1.e-6;
 const doublereal dDefaultToll = 1e-6;
 const integer iDefaultIterationsBeforeAssembly = 2;
 
+/*
+ * Default solver
+ */
+MultiStepIntegrator::SolverType
+#if defined(USE_UMFPACK3)
+MultiStepIntegrator::defaultSolver = MultiStepIntegrator::UMFPACK3_SOLVER;
+#elif /* !USE_UMFPACK3 */ defined(USE_Y12)
+MultiStepIntegrator::defaultSolver = MultiStepIntegrator::Y12_SOLVER;
+#elif /* !USE_Y12 */ defined(USE_HARWELL)
+MultiStepIntegrator::defaultSolver = MultiStepIntegrator::HARWELL_SOLVER;
+#elif /* !USE_HARWELL */ defined(USE_MESCHACH)
+MultiStepIntegrator::defaultSolver = MultiStepIntegrator::MESCHACH_SOLVER;
+#else /* !USE_MESCHACH */
+#error "need a solver!"
+#endif /* !USE_MESCHACH */
+
 /* Costruttore: esegue la simulazione */
 MultiStepIntegrator::MultiStepIntegrator(MBDynParser& HPar,
 					 const char* sInFName,
 					 const char* sOutFName)
 :
 CurrStrategy(NOCHANGE),
-#if defined(USE_Y12)
-CurrSolver(Y12_SOLVER),
-#elif /* !USE_Y12 */ defined(USE_UMFPACK3)
-CurrSolver(UMFPACK3_SOLVER),
-#elif /* !USE_UMFPACK3 */ defined(USE_Y12)
-CurrSolver(HARWELL_SOLVER),
-#else /* !USE_HARWELL */
-CurrSolver(MESCHACH_SOLVER),
-#endif /* !USE_HARWELL */
+CurrSolver(defaultSolver),
 sInputFileName(NULL),
 sOutputFileName(NULL),
 HP(HPar),
@@ -2221,14 +2229,16 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	     break;
 #endif /* USE_UMFPACK3 */
 
-	   default:
-	     DEBUGLCOUT(MYDEBUG_INPUT, 
-			"Unknown solver; switching to default" << std::endl);
 	   case HARWELL: 
 	     CurrSolver = HARWELL_SOLVER;
 	     DEBUGLCOUT(MYDEBUG_INPUT, 
 			"Using harwell sparse LU solver" << std::endl);	 
 	     break;	   
+
+	   default:
+	     DEBUGLCOUT(MYDEBUG_INPUT, 
+			"Unknown solver; switching to default" << std::endl);
+	     break;
 	  }
 	  
 	  if (HP.IsKeyWord("workspacesize")) {
