@@ -73,10 +73,9 @@ extern c81_data *get_c81_data(int jpro);
 
 static int bisec(double* v, double val, int lb, int ub);
 static double 
-get_coef(int nm, double* m, int na, double* a, double alpha, double mach,
-	 int *pim);
+get_coef(int nm, double* m, int na, double* a, double alpha, double mach);
 static int
-get_stall(int nm, double* m, double* s, double mach, int im,
+get_stall(int nm, double* m, double* s, double mach,
           double *dcpa, double *dasp, double *dasm);
 
 int 
@@ -100,8 +99,6 @@ c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
 	
 	const double RAD2DEG = 180.*M_1_PI;
 	const double M_PI_3 = M_PI/3.;
-
-	int im;
 	
 	/* porta la velocita' al punto di calcolo delle boundary conditions */
 	v[0] = W[0];
@@ -115,10 +112,10 @@ c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
 	vtot = sqrt(vtot2);
 	
 	/*
-	 * non considera velocita' al di sotto di 1.e-3
+	 * non considera velocita' al di sotto di 1.e-6
 	 * FIXME: rendere parametrico?
 	 */
-	if (vp/cs < 1.e-3) {
+	if (vp/cs < 1.e-6) {
 		TNG[0] = 0.;
 		TNG[1] = 0.;
 		TNG[2] = 0.;
@@ -146,8 +143,8 @@ c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
 	 */
 	alpha = atan2(-v[1], v[0]);
 	OUTA[1] = alpha*RAD2DEG;  
-	/* gamma = atan2(-v[2], fabs(v[0])); */
-	gamma = atan2(-v[2], vp);
+	gamma = atan2(-v[2], fabs(v[0]));	/* come in COE0 (aerod2.f) */
+	/* gamma = atan2(-v[2], vp); */		/* secondo me (?!?) */
 	OUTA[2] = gamma*RAD2DEG;
 	
 	if (fabs(gamma) > M_PI_3) {
@@ -159,19 +156,15 @@ c81_aerod2(double* W, double* VAM, double* TNG, double* OUTA, c81_data* data)
 	OUTA[3] = mach;
 	
 	/*
-	 * Note: all angles in c81 files is in degrees
+	 * Note: all angles in c81 files are in degrees
 	 */
-	cl = get_coef(data->NML, data->ml, data->NAL, data->al, OUTA[1], mach,
-		      &im);
-	cd = get_coef(data->NMD, data->md, data->NAD, data->ad, OUTA[1], mach,
-		      NULL);
-	cd0 = get_coef(data->NMD, data->md, data->NAD, data->ad, 0., mach,
-		      NULL);
-	cm = get_coef(data->NMM, data->mm, data->NAM, data->am, OUTA[1], mach,
-		      NULL);
+	cl = get_coef(data->NML, data->ml, data->NAL, data->al, OUTA[1], mach);
+	cd = get_coef(data->NMD, data->md, data->NAD, data->ad, OUTA[1], mach);
+	cd0 = get_coef(data->NMD, data->md, data->NAD, data->ad, 0., mach);
+	cm = get_coef(data->NMM, data->mm, data->NAM, data->am, OUTA[1], mach);
 
-#if 0
-	get_stall(data->NML, data->ml, data->stall, mach, im, 
+#if 0 /* Questa parte e' palesemente errata ... */
+	get_stall(data->NML, data->ml, data->stall, mach, 
 		  &dcpa, &dasp, &dasm);
 	
 	dcl = dcpa*(1.-cosgam)/cosgam;
@@ -261,8 +254,7 @@ bisec(double* v, double val, int lb, int ub)
  * mach e alpha viene restituito.
  */
 static double
-get_coef(int nm, double* m, int na, double* a, double alpha, double mach,
-	 int *pim)
+get_coef(int nm, double* m, int na, double* a, double alpha, double mach)
 {
    	int im;
    	int ia;
@@ -285,10 +277,6 @@ get_coef(int nm, double* m, int na, double* a, double alpha, double mach,
 	im = bisec(m, mach, 0, nm-1);
 	if (im != nm) {
 		im++;
-	}
-
-	if (pim != NULL) {
-		*pim = im;
 	}
 	
 	/*
@@ -329,10 +317,21 @@ get_coef(int nm, double* m, int na, double* a, double alpha, double mach,
 }
 
 static int
-get_stall(int nm, double* m, double* s, double mach, int im,
+get_stall(int nm, double* m, double* s, double mach,
 	  double *dcpa, double *dasp, double *dasm)
 {
+	int im;
+
 	mach = fabs(mach);
+
+	/*
+	 * im e' l'indice di m in cui si trova l'approssimazione per eccesso
+	 * di mach
+	 */
+	im = bisec(m, mach, 0, nm-1);
+	if (im != nm) {
+		im++;
+	}
 	
 	if (im == nm) {
 		*dcpa = s[3*nm-1];
