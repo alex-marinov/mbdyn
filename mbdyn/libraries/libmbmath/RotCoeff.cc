@@ -53,6 +53,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <myassert.h>
+#include <mymath.h>
 #include "RotCoeff.hh"
 
 namespace RotCoeff {

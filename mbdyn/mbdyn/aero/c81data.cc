@@ -38,6 +38,8 @@
 #include <iomanip.h>
 #include <fstream.h>
 
+#include <mymath.h>
+
 extern "C" {
 #include <aerodc81.h>
 

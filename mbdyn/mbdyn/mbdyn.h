@@ -31,10 +31,6 @@
 #ifndef MBDYN_H
 #define MBDYN_H
 
-#if defined(USING_STD) && defined(__cplusplus)
-using namespace std;
-#endif /* USING_STD && __cplusplus */
-
 /* Global typedefs (unused yet) */
 typedef double mbReal;
 typedef int mbInt;

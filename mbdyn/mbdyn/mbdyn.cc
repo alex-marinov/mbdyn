@@ -49,11 +49,12 @@ extern "C" {
 
 /* Per il parsing della linea di comando */
 #include <unistd.h>
-#include <fstream.h>
 #ifdef HAVE_GETOPT
 #include <getopt.h>
 #endif /* HAVE_GETOPT */ 
 }
+
+#include <fstream.h>
 
 #ifdef USE_MPI 
 #include <mpi++.h>
