@@ -182,10 +182,10 @@ ass_jac(LoadableElem* pEl,
    integer iIndex = pEl->iGetFirstIndex();
    
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WM.fPutRowIndex(iCnt, iMomIndex+iCnt);
-      WM.fPutColIndex(iCnt, iPosIndex+iCnt);
-      WM.fPutRowIndex(6+iCnt, iIndex+iCnt);
-      WM.fPutColIndex(6+iCnt, iIndex+iCnt);
+      WM.PutRowIndex(iCnt, iMomIndex+iCnt);
+      WM.PutColIndex(iCnt, iPosIndex+iCnt);
+      WM.PutRowIndex(6+iCnt, iIndex+iCnt);
+      WM.PutColIndex(6+iCnt, iIndex+iCnt);
    }
 
    Vec3 X(get_x(p->s));
@@ -285,8 +285,8 @@ ass_res(LoadableElem* pEl,
    integer iIndex = pEl->iGetFirstIndex();
    
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iMomIndex+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iMomIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iIndex+iCnt);
    }
 
    p->F = Vec3(XCurr.dGetCoef(iIndex+1),

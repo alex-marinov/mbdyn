@@ -177,7 +177,7 @@ DrivenElem::AssJac(VariableSubMatrixHandler& WorkMat,
 		integer iFirstIndex = pElem->pGetElemWithDofs()->iGetFirstIndex();
   		
   		for (unsigned int iCnt = 1; iCnt <= iNumDofs; iCnt++) {
-			WM.fPutItem(iCnt, iFirstIndex+iCnt,
+			WM.PutItem(iCnt, iFirstIndex+iCnt,
 	   				iFirstIndex+iCnt, 1.);
  		}
 	}
@@ -209,7 +209,7 @@ DrivenElem::AssMats(VariableSubMatrixHandler& WorkMatA,
 		integer iFirstIndex = pElem->pGetElemWithDofs()->iGetFirstIndex();
   		
   		for (unsigned int iCnt = 1; iCnt <= iNumDofs; iCnt++) {
-			WM.fPutItem(iCnt, iFirstIndex+iCnt,
+			WM.PutItem(iCnt, iFirstIndex+iCnt,
 	   				iFirstIndex+iCnt, 1.);
  		}
 	}
@@ -237,7 +237,7 @@ DrivenElem::AssRes(SubVectorHandler& WorkVec,
 		integer iFirstIndex = pElem->pGetElemWithDofs()->iGetFirstIndex();
 
 		for (unsigned int iCnt = 1; iCnt <= iNumDofs; iCnt++) {
-			WorkVec.fPutRowIndex(iCnt, iFirstIndex+iCnt);
+			WorkVec.PutRowIndex(iCnt, iFirstIndex+iCnt);
 			WorkVec.PutCoef(iCnt, -XCurr.dGetCoef(iFirstIndex+iCnt));
 		}
 	}

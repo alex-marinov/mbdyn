@@ -133,20 +133,20 @@ Motor::AssJac(VariableSubMatrixHandler& WorkMat,
 	integer iFirstIndex = iGetFirstIndex() + 1;
 
 	for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-		WM.fPutRowIndex(iCnt, iStrNode1FirstMomIdx + iCnt);
-		WM.fPutRowIndex(3+iCnt, iStrNode2FirstMomIdx + iCnt);
+		WM.PutRowIndex(iCnt, iStrNode1FirstMomIdx + iCnt);
+		WM.PutRowIndex(3+iCnt, iStrNode2FirstMomIdx + iCnt);
 
-		WM.fPutColIndex(iCnt, iStrNode1FirstPosIdx + iCnt);
-		WM.fPutColIndex(3+iCnt, iStrNode2FirstPosIdx + iCnt);
+		WM.PutColIndex(iCnt, iStrNode1FirstPosIdx + iCnt);
+		WM.PutColIndex(3+iCnt, iStrNode2FirstPosIdx + iCnt);
 	}
 
-	WM.fPutRowIndex(7, iElecNode1FirstIndex);
-	WM.fPutRowIndex(8, iElecNode2FirstIndex);
-	WM.fPutRowIndex(9, iFirstIndex);
+	WM.PutRowIndex(7, iElecNode1FirstIndex);
+	WM.PutRowIndex(8, iElecNode2FirstIndex);
+	WM.PutRowIndex(9, iFirstIndex);
 
-	WM.fPutColIndex(7, iElecNode1FirstIndex);
-	WM.fPutColIndex(8, iElecNode2FirstIndex);
-	WM.fPutColIndex(9, iFirstIndex);
+	WM.PutColIndex(7, iElecNode1FirstIndex);
+	WM.PutColIndex(8, iElecNode2FirstIndex);
+	WM.PutColIndex(9, iFirstIndex);
 
 	Vec3 TmpDir(pStrNode1->GetRRef()*Dir);
 	Vec3 Cdi(TmpDir*(dGain*dCoef));
@@ -198,13 +198,13 @@ Motor::AssRes(SubVectorHandler& WorkVec,
 	integer iFirstIndex = iGetFirstIndex() + 1;
 
 	for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-		WorkVec.fPutRowIndex(iCnt, iStrNode1FirstIndex + iCnt);
-		WorkVec.fPutRowIndex(3+iCnt, iStrNode2FirstIndex + iCnt);
+		WorkVec.PutRowIndex(iCnt, iStrNode1FirstIndex + iCnt);
+		WorkVec.PutRowIndex(3+iCnt, iStrNode2FirstIndex + iCnt);
 	}
 
-	WorkVec.fPutRowIndex(7, iElecNode1FirstIndex);
-	WorkVec.fPutRowIndex(8, iElecNode2FirstIndex);
-	WorkVec.fPutRowIndex(9, iFirstIndex);
+	WorkVec.PutRowIndex(7, iElecNode1FirstIndex);
+	WorkVec.PutRowIndex(8, iElecNode2FirstIndex);
+	WorkVec.PutRowIndex(9, iFirstIndex);
 
 	doublereal i = XCurr.dGetCoef(iFirstIndex);
 	doublereal iP = XPrimeCurr.dGetCoef(iFirstIndex);

@@ -155,24 +155,24 @@ DistanceJoint::AssJac(VariableSubMatrixHandler& WorkMat,
       
       for (int iCnt = 1; iCnt <= 3; iCnt++) {	   
 	 /* termini di Delta_x1 */
-	 WM.fPutItem(iCnt, iFirstReactionIndex+iCnt,
+	 WM.PutItem(iCnt, iFirstReactionIndex+iCnt,
 		     iNode1FirstPosIndex+iCnt, -1.);
 	 
 	 /* termini di Delta_x2 */
-	 WM.fPutItem(3+iCnt, iFirstReactionIndex+iCnt,
+	 WM.PutItem(3+iCnt, iFirstReactionIndex+iCnt,
 		     iNode2FirstPosIndex+iCnt, 1.);	 
 	 
 	 /* termini di Delta_F sul nodo 1 */
-	 WM.fPutItem(6+iCnt, iNode1FirstMomIndex+iCnt,
+	 WM.PutItem(6+iCnt, iNode1FirstMomIndex+iCnt,
 		     iFirstReactionIndex+iCnt, -1.);
 	 
 	 /* termini di Delta_F sul nodo 2 */
-	 WM.fPutItem(9+iCnt, iNode2FirstMomIndex+iCnt,
+	 WM.PutItem(9+iCnt, iNode2FirstMomIndex+iCnt,
 		     iFirstReactionIndex+iCnt, 1.);
       }
       
       /* Termine diagonale per alpha */
-      WM.fPutItem(13, iFirstReactionIndex+4,
+      WM.PutItem(13, iFirstReactionIndex+4,
 		  iFirstReactionIndex+4, 1.);
       
    } else {
@@ -205,31 +205,31 @@ DistanceJoint::AssJac(VariableSubMatrixHandler& WorkMat,
       
       for (int iCnt = 1; iCnt <= 3; iCnt++) {	   
 	 /* termini di Delta_x1 */
-	 WM.fPutItem(iCnt, iFirstReactionIndex+iCnt,
+	 WM.PutItem(iCnt, iFirstReactionIndex+iCnt,
 		     iNode1FirstPosIndex+iCnt, -dCoef);
 	 
 	 /* termini di Delta_x2 */
-	 WM.fPutItem(3+iCnt, iFirstReactionIndex+iCnt,
+	 WM.PutItem(3+iCnt, iFirstReactionIndex+iCnt,
 		     iNode2FirstPosIndex+iCnt, dCoef);
 	 
 	 /* termini di Delta_F sul nodo 1 */
-	 WM.fPutItem(6+iCnt, iNode1FirstMomIndex+iCnt,
+	 WM.PutItem(6+iCnt, iNode1FirstMomIndex+iCnt,
 		     iFirstReactionIndex+iCnt, -dAlpha);
 	 
 	 /* termini di Delta_F sul nodo 2 */
-	 WM.fPutItem(9+iCnt, iNode2FirstMomIndex+iCnt,
+	 WM.PutItem(9+iCnt, iNode2FirstMomIndex+iCnt,
 		     iFirstReactionIndex+iCnt, dAlpha);
 	 
 	 /* termini diagonali di Delta_v */
-	 WM.fPutItem(12+iCnt, iFirstReactionIndex+iCnt,
+	 WM.PutItem(12+iCnt, iFirstReactionIndex+iCnt,
 		     iFirstReactionIndex+iCnt, -dDistance);
 	 
 	 /* termini di Delta_alpha sul nodo 1 */
-	 WM.fPutItem(15+iCnt, iNode1FirstMomIndex+iCnt,
+	 WM.PutItem(15+iCnt, iNode1FirstMomIndex+iCnt,
 		     iFirstReactionIndex+4, -v.dGet(iCnt));
 	 
 	 /* termini di Delta_alpha sul nodo 2 */
-	 WM.fPutItem(18+iCnt, iNode2FirstMomIndex+iCnt,
+	 WM.PutItem(18+iCnt, iNode2FirstMomIndex+iCnt,
 		     iFirstReactionIndex+4, v.dGet(iCnt));
       }	
       
@@ -239,7 +239,7 @@ DistanceJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	 d = sqrt(d);
 	 /* termini di Delta_v su alpha */
 	 for (int iCnt = 3; iCnt > 0; iCnt--) {	      
-	    WM.fPutItem(21+iCnt, iFirstReactionIndex+4,
+	    WM.PutItem(21+iCnt, iFirstReactionIndex+4,
 			iFirstReactionIndex+iCnt, v.dGet(iCnt)/d);
 	 }	   				
       }
@@ -270,15 +270,15 @@ SubVectorHandler& DistanceJoint::AssRes(SubVectorHandler& WorkVec,
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {      
       /* Indici del nodo 1 */
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
    
       /* Indici del nodo 2 */
-      WorkVec.fPutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
    }
    
    /* Indici del vincolo */
    for (int iCnt = 1; iCnt <= 4; iCnt++) {      
-      WorkVec.fPutRowIndex(6+iCnt, iFirstReactionIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iFirstReactionIndex+iCnt);
    }   
 
    Vec3 x1(pNode1->GetXCurr());
@@ -399,36 +399,36 @@ DistanceJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       
       for (int iCnt = 1; iCnt <= 3; iCnt++) {	   
 	 /* derivata dell'equazione di vincolo, nodo 1 */
-	 WM.fPutItem(6+iCnt, iReactionPrimeIndex+iCnt,
+	 WM.PutItem(6+iCnt, iReactionPrimeIndex+iCnt,
 		     iNode1FirstVelIndex+iCnt, -1.);
 	 
 	 /* derivata dell'equazione di vincolo, nodo 2 */
-	 WM.fPutItem(9+iCnt, iReactionPrimeIndex+iCnt,
+	 WM.PutItem(9+iCnt, iReactionPrimeIndex+iCnt,
 		     iNode2FirstVelIndex+iCnt, 1.);
 	 
 	 /* termini di forza sul nodo 1 */
-	 WM.fPutItem(12+iCnt, iNode1FirstPosIndex+iCnt,
+	 WM.PutItem(12+iCnt, iNode1FirstPosIndex+iCnt,
 		     iFirstReactionIndex+iCnt, -1.);
 	 
 	 /* termini di forza sul nodo 2 */
-	 WM.fPutItem(15+iCnt, iNode2FirstPosIndex+iCnt,
+	 WM.PutItem(15+iCnt, iNode2FirstPosIndex+iCnt,
 		     iFirstReactionIndex+iCnt, 1.);
 	
 	 /* termini di derivata della forza sul nodo 1 */
-	 WM.fPutItem(18+iCnt, iNode1FirstVelIndex+iCnt,
+	 WM.PutItem(18+iCnt, iNode1FirstVelIndex+iCnt,
 		     iReactionPrimeIndex+iCnt, -1.);
 	 
 	 /* termini di derivata della forza sul nodo 2 */
-	 WM.fPutItem(21+iCnt, iNode2FirstVelIndex+iCnt,
+	 WM.PutItem(21+iCnt, iNode2FirstVelIndex+iCnt,
 		     iReactionPrimeIndex+iCnt, 1.);
       }
       
       /* Termine diagonale per alpha */
-      WM.fPutItem(25, iFirstReactionIndex+4,
+      WM.PutItem(25, iFirstReactionIndex+4,
 		  iFirstReactionIndex+4, 1.);
       
       /* Termine diagonale per alpha derivato */
-      WM.fPutItem(26, iReactionPrimeIndex+4,
+      WM.PutItem(26, iReactionPrimeIndex+4,
 		  iReactionPrimeIndex+4, 1.);
       
    } else {
@@ -473,59 +473,59 @@ DistanceJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       
       for (int iCnt = 1; iCnt <= 3; iCnt++) {	   
 	 /* termini di Delta_v sul nodo 1 */
-	 WM.fPutItem(6+iCnt, iNode1FirstPosIndex+iCnt,
+	 WM.PutItem(6+iCnt, iNode1FirstPosIndex+iCnt,
 		     iFirstReactionIndex+iCnt, -dAlpha);
 	 
 	 /* termini di Delta_v sul nodo 2 */
-	 WM.fPutItem(9+iCnt, iNode2FirstPosIndex+iCnt,
+	 WM.PutItem(9+iCnt, iNode2FirstPosIndex+iCnt,
 		     iFirstReactionIndex+iCnt, dAlpha);
 	 
 	 /* termini di Delta_alpha sul nodo 1 */
-	 WM.fPutItem(12+iCnt, iNode1FirstPosIndex+iCnt,
+	 WM.PutItem(12+iCnt, iNode1FirstPosIndex+iCnt,
 		     iFirstReactionIndex+4, -v.dGet(iCnt));
 	 
 	 /* termini di Delta_alpha sul nodo 2 */
-	 WM.fPutItem(15+iCnt, iNode2FirstPosIndex+iCnt,
+	 WM.PutItem(15+iCnt, iNode2FirstPosIndex+iCnt,
 		     iFirstReactionIndex+4, v.dGet(iCnt));
 	 
 	 /* termini di Delta_w sul nodo 1 */
-	 WM.fPutItem(18+iCnt, iNode1FirstVelIndex+iCnt,
+	 WM.PutItem(18+iCnt, iNode1FirstVelIndex+iCnt,
 		     iReactionPrimeIndex+iCnt, -dBeta);
 	 
 	 /* termini di Delta_w sul nodo 2 */
-	 WM.fPutItem(21+iCnt, iNode2FirstVelIndex+iCnt,
+	 WM.PutItem(21+iCnt, iNode2FirstVelIndex+iCnt,
 		     iReactionPrimeIndex+iCnt, dBeta);
 	 
 	 /* termini di Delta_beta sul nodo 1 */
-	 WM.fPutItem(24+iCnt, iNode1FirstVelIndex+iCnt,
+	 WM.PutItem(24+iCnt, iNode1FirstVelIndex+iCnt,
 		     iReactionPrimeIndex+4, -w.dGet(iCnt));
 	 
 	 /* termini di Delta_beta sul nodo 2 */
-	 WM.fPutItem(27+iCnt, iNode2FirstVelIndex+iCnt,
+	 WM.PutItem(27+iCnt, iNode2FirstVelIndex+iCnt,
 		     iReactionPrimeIndex+4, w.dGet(iCnt));
 	 
 	 /* termini diagonali di Delta_v */
-	 WM.fPutItem(30+iCnt, iFirstReactionIndex+iCnt,
+	 WM.PutItem(30+iCnt, iFirstReactionIndex+iCnt,
 		     iFirstReactionIndex+iCnt, -dDistance);
 	 
 	 /* termini diagonali di Delta_w */
-	 WM.fPutItem(33+iCnt, iReactionPrimeIndex+iCnt,
+	 WM.PutItem(33+iCnt, iReactionPrimeIndex+iCnt,
 		     iReactionPrimeIndex+iCnt, 1.);
 	 
 	 /* termini incrociati di Delta_w Delta_v */
-	 WM.fPutItem(36+iCnt, iReactionPrimeIndex+iCnt,
+	 WM.PutItem(36+iCnt, iReactionPrimeIndex+iCnt,
 		     iFirstReactionIndex+iCnt, -1.);
 	 
 	 /* termini di beta per Delta_x1P: w^T */
-	 WM.fPutItem(39+iCnt, iReactionPrimeIndex+4,
+	 WM.PutItem(39+iCnt, iReactionPrimeIndex+4,
 		     iNode1FirstVelIndex+iCnt, -w.dGet(iCnt));
 	 
 	 /* termini di beta per Delta_x2P: w^T */
-	 WM.fPutItem(42+iCnt, iReactionPrimeIndex+4,
+	 WM.PutItem(42+iCnt, iReactionPrimeIndex+4,
 		     iNode2FirstVelIndex+iCnt, w.dGet(iCnt));
 	 
 	 /* termini di beta per Delta_w: (x2P-x1P)^T */
-	 WM.fPutItem(45+iCnt, iReactionPrimeIndex+4,
+	 WM.PutItem(45+iCnt, iReactionPrimeIndex+4,
 		     iReactionPrimeIndex+iCnt, deltaXP.dGet(iCnt));
       }
       
@@ -536,12 +536,12 @@ DistanceJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       if (d > DBL_EPSILON) {
 	 d = sqrt(d);	     
 	 for (int iCnt = 1; iCnt <= 3; iCnt++) {		
-	    WM.fPutItem(48+iCnt, iFirstReactionIndex+4,
+	    WM.PutItem(48+iCnt, iFirstReactionIndex+4,
 			iFirstReactionIndex+iCnt, v.dGet(iCnt)/d);
 	 }	     
       } else {	     
 	 for (int iCnt = 1; iCnt <= 3; iCnt++) {	      
-	    WM.fPutItem(48+iCnt, iFirstReactionIndex+4,
+	    WM.PutItem(48+iCnt, iFirstReactionIndex+4,
 			iFirstReactionIndex+iCnt, 0.);
 	 }	   
       }		  				
@@ -549,11 +549,11 @@ DistanceJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {      
       /* termini di Delta_x1 */
-      WM.fPutItem(iCnt, iFirstReactionIndex+iCnt,
+      WM.PutItem(iCnt, iFirstReactionIndex+iCnt,
 		  iNode1FirstPosIndex+iCnt, -1.);
       
       /* termini di Delta_x2 */
-      WM.fPutItem(iCnt+3, iFirstReactionIndex+iCnt,
+      WM.PutItem(iCnt+3, iFirstReactionIndex+iCnt,
 		  iNode2FirstPosIndex+iCnt, 1.);
    }   
    
@@ -581,21 +581,21 @@ DistanceJoint::InitialAssRes(SubVectorHandler& WorkVec,
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {      
       /* Indici del nodo 1, posizione */
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
       
       /* Indici del nodo 1, velocita' */
-      WorkVec.fPutRowIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
+      WorkVec.PutRowIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
       
       /* Indici del nodo 2, posizione */
-      WorkVec.fPutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
       
       /* Indici del nodo 2, velocita' */
-      WorkVec.fPutRowIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
+      WorkVec.PutRowIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
    }
    
    /* Indici del vincolo */
    for (int iCnt = 1; iCnt <= 8; iCnt++) {      
-      WorkVec.fPutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
+      WorkVec.PutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
    }   
    
    Vec3 x1(pNode1->GetXCurr());
@@ -863,20 +863,20 @@ DistanceJointWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
       for (int iCnt = 1; iCnt <= 3; iCnt++) {	 
 
 	 /* termini di Delta_x1 */
-	 WM.fPutItem(iCnt, iFirstReactionIndex+iCnt,
+	 WM.PutItem(iCnt, iFirstReactionIndex+iCnt,
 		     iNode1FirstPosIndex+iCnt, -1.);
       
 	 /* termini di Delta_x2 */
-	 WM.fPutItem(3+iCnt, iFirstReactionIndex+iCnt,
+	 WM.PutItem(3+iCnt, iFirstReactionIndex+iCnt,
 		     iNode2FirstPosIndex+iCnt, 1.);
       
       
 	 /* termini di Delta_F sul nodo 1 */
-	 WM.fPutItem(6+iCnt, iNode1FirstMomIndex+iCnt,
+	 WM.PutItem(6+iCnt, iNode1FirstMomIndex+iCnt,
 		     iFirstReactionIndex+iCnt, -1.);
       
 	 /* termini di Delta_F sul nodo 2 */
-	 WM.fPutItem(9+iCnt, iNode2FirstMomIndex+iCnt,
+	 WM.PutItem(9+iCnt, iNode2FirstMomIndex+iCnt,
 		     iFirstReactionIndex+iCnt, 1.);
       }
       
@@ -902,7 +902,7 @@ DistanceJointWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
       
 
       /* Termine diagonale per alpha */
-      WM.fPutItem(55, iFirstReactionIndex+4,
+      WM.PutItem(55, iFirstReactionIndex+4,
 		  iFirstReactionIndex+4, 1.);
       
    } else {
@@ -912,33 +912,33 @@ DistanceJointWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
       for (int iCnt = 1; iCnt <= 3; iCnt++) {
 	 
 	 /* termini di Delta_x1 */
-	 WM.fPutItem(iCnt, iFirstReactionIndex+iCnt,
+	 WM.PutItem(iCnt, iFirstReactionIndex+iCnt,
 		     iNode1FirstPosIndex+iCnt, -dCoef);
       
 	 /* termini di Delta_x2 */
-	 WM.fPutItem(3+iCnt, iFirstReactionIndex+iCnt,
+	 WM.PutItem(3+iCnt, iFirstReactionIndex+iCnt,
 		     iNode2FirstPosIndex+iCnt, dCoef);
       
 	 /* termini di Delta_F sul nodo 1 */
-	 WM.fPutItem(6+iCnt, iNode1FirstMomIndex+iCnt,
+	 WM.PutItem(6+iCnt, iNode1FirstMomIndex+iCnt,
 		     iFirstReactionIndex+iCnt, -dAlpha);
       
 	 /* termini di Delta_F sul nodo 2 */
-	 WM.fPutItem(9+iCnt, iNode2FirstMomIndex+iCnt,
+	 WM.PutItem(9+iCnt, iNode2FirstMomIndex+iCnt,
 		     iFirstReactionIndex+iCnt, dAlpha);
       
 	 /* termini diagonali di Delta_v */
-	 WM.fPutItem(12+iCnt, iFirstReactionIndex+iCnt,
+	 WM.PutItem(12+iCnt, iFirstReactionIndex+iCnt,
 		     iFirstReactionIndex+iCnt, -dDistance);
       
 	 doublereal d = v.dGet(iCnt);
 	 
 	 /* termini di Delta_alpha sul nodo 1 */
-	 WM.fPutItem(15+iCnt, iNode1FirstMomIndex+iCnt,
+	 WM.PutItem(15+iCnt, iNode1FirstMomIndex+iCnt,
 		     iFirstReactionIndex+4, -d);
       
 	 /* termini di Delta_alpha sul nodo 2 */
-	 WM.fPutItem(18+iCnt, iNode2FirstMomIndex+iCnt,
+	 WM.PutItem(18+iCnt, iNode2FirstMomIndex+iCnt,
 		     iFirstReactionIndex+4, d);
       }
 
@@ -966,13 +966,13 @@ DistanceJointWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
       
       Tmp = v.Cross(f1Tmp);
       for (int iCnt = 1; iCnt <= 3; iCnt++) {
-	 WM.fPutItem(63+iCnt, iNode1FirstMomIndex+3+iCnt,
+	 WM.PutItem(63+iCnt, iNode1FirstMomIndex+3+iCnt,
 		     iFirstReactionIndex+4, Tmp.dGet(iCnt));
       }
       
       Tmp = f2Tmp.Cross(v);
       for (int iCnt = 1; iCnt <= 3; iCnt++) {
-	 WM.fPutItem(66+iCnt, iNode2FirstMomIndex+3+iCnt,
+	 WM.PutItem(66+iCnt, iNode2FirstMomIndex+3+iCnt,
 		     iFirstReactionIndex+4, Tmp.dGet(iCnt));
       }
       
@@ -987,7 +987,7 @@ DistanceJointWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
       
       /* termini di Delta_v su alpha */
       for (int iCnt = 1; iCnt <= 3; iCnt++) {	 
-	 WM.fPutItem(69+iCnt, iFirstReactionIndex+4,
+	 WM.PutItem(69+iCnt, iFirstReactionIndex+4,
 		     iFirstReactionIndex+iCnt, v.dGet(iCnt)/d);      
       }      
    }
@@ -1018,13 +1018,13 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
    
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
       /* Indici del nodo 1 */
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
    }
    
    /* Indici del vincolo */
    for(int iCnt = 1; iCnt <= 4; iCnt++) {
-      WorkVec.fPutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
+      WorkVec.PutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
    }
 
    Vec3 x1(pNode1->GetXCurr());
@@ -1114,15 +1114,15 @@ DistanceJointWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    integer iReactionPrimeIndex = iFirstReactionIndex+4;
    
    for (int iCnt = 1; iCnt <= 12; iCnt++) {
-      WM.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutRowIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutColIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutRowIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutColIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
    }
    
    for (int iCnt = 1; iCnt <= 8; iCnt++) {
-      WM.fPutRowIndex(24+iCnt, iFirstReactionIndex+iCnt);
-      WM.fPutColIndex(24+iCnt, iFirstReactionIndex+iCnt);
+      WM.PutRowIndex(24+iCnt, iFirstReactionIndex+iCnt);
+      WM.PutColIndex(24+iCnt, iFirstReactionIndex+iCnt);
    }
         
    doublereal dAlphaP = XCurr.dGetCoef(iReactionPrimeIndex+4);  
@@ -1347,12 +1347,12 @@ DistanceJointWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
    integer iReactionPrimeIndex = iFirstReactionIndex+4;
 
    for (int iCnt = 1; iCnt <= 12; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WorkVec.fPutRowIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
    }
    
    for (int iCnt = 1; iCnt <= 8; iCnt++) {
-      WorkVec.fPutRowIndex(24+iCnt, iFirstReactionIndex+iCnt);
+      WorkVec.PutRowIndex(24+iCnt, iFirstReactionIndex+iCnt);
    }
 
    v = Vec3(XCurr, iFirstReactionIndex+1);
@@ -1653,9 +1653,9 @@ ClampJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    /* Attenzione: modifico dividendo le equazioni di vincolo per dCoef */
    
    for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-      WM.fPutItem(iCnt, iFirstReactionIndex+iCnt, 
+      WM.PutItem(iCnt, iFirstReactionIndex+iCnt, 
 		  iFirstPositionIndex+iCnt, 1.);    
-      WM.fPutItem(6+iCnt, iFirstMomentumIndex+iCnt,
+      WM.PutItem(6+iCnt, iFirstMomentumIndex+iCnt,
 		  iFirstReactionIndex+iCnt, -1.);
    }
         
@@ -1703,8 +1703,8 @@ SubVectorHandler& ClampJoint::AssRes(SubVectorHandler& WorkVec,
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
    integer iFirstReactionIndex = iGetFirstIndex();
    for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iFirstReactionIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iFirstReactionIndex+iCnt);
    }   
    
    /* Aggiorna le reazioni vincolari */
@@ -1774,16 +1774,16 @@ ClampJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
     */
    
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WM.fPutItem(iCnt, iFirstReactionIndex+iCnt, 
+      WM.PutItem(iCnt, iFirstReactionIndex+iCnt, 
 		  iFirstPositionIndex+iCnt, 1.);
    
-      WM.fPutItem(6+iCnt, iReactionPrimeIndex+iCnt, 
+      WM.PutItem(6+iCnt, iReactionPrimeIndex+iCnt, 
 		  iFirstVelocityIndex+iCnt, 1.);
    
-      WM.fPutItem(12+iCnt, iFirstPositionIndex+iCnt, 
+      WM.PutItem(12+iCnt, iFirstPositionIndex+iCnt, 
 		  iFirstReactionIndex+iCnt, -1.);
    
-      WM.fPutItem(18+iCnt, iFirstVelocityIndex+iCnt, 
+      WM.PutItem(18+iCnt, iFirstVelocityIndex+iCnt, 
 		  iReactionPrimeIndex+iCnt, -1.);
    }
    
@@ -1810,8 +1810,8 @@ ClampJoint::InitialAssRes(SubVectorHandler& WorkVec,
    integer iReactionPrimeIndex = iFirstReactionIndex+6;
 
    for (int iCnt = 1; iCnt <= 12; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
-      WorkVec.fPutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);
+      WorkVec.PutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
    }   
    
    

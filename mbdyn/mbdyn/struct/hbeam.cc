@@ -501,10 +501,10 @@ HBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 	WM.ResizeInit(12, 12, 0.);
 	
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WM.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-		WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-		WM.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
-		WM.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+		WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+		WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+		WM.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+		WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
 	}      
 	
 	AssStiffnessMat(WM, WM, dCoef, XCurr, XPrimeCurr);
@@ -530,8 +530,8 @@ HBeam::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.Reset(0.);
 	
 	for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {
-		WorkVec.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-		WorkVec.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+		WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
 	}      
 	
 	AssStiffnessVec(WorkVec, dCoef, XCurr, XPrimeCurr);
@@ -657,10 +657,10 @@ HBeam::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	integer iNode2FirstPosIndex = pNode[NODE2]->iGetFirstPositionIndex();
    
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WM.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-		WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-		WM.fPutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-		WM.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+		WM.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+		WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+		WM.PutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+		WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
 	}      
 	
 	AssStiffnessMat(WM, WM, 1., XCurr, XCurr);
@@ -683,8 +683,8 @@ HBeam::InitialAssRes(SubVectorHandler& WorkVec,
 	integer iNode2FirstPosIndex = pNode[NODE2]->iGetFirstPositionIndex();
    
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WorkVec.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-		WorkVec.fPutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+		WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+		WorkVec.PutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
 	}      
 	
 	AssStiffnessVec(WorkVec, 1., XCurr, XCurr);

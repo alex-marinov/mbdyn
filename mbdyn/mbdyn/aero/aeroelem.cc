@@ -237,7 +237,7 @@ AerodynamicBody::AssRes(SubVectorHandler& WorkVec,
    
    	integer iFirstIndex = pNode->iGetFirstMomentumIndex();
    	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      		WorkVec.fPutRowIndex(iCnt, iFirstIndex+iCnt);
+      		WorkVec.PutRowIndex(iCnt, iFirstIndex+iCnt);
    	}
    
    	AssVec(WorkVec);
@@ -257,7 +257,7 @@ AerodynamicBody::InitialAssRes(SubVectorHandler& WorkVec,
    
    	integer iFirstIndex = pNode->iGetFirstPositionIndex();
    	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      		WorkVec.fPutRowIndex(iCnt, iFirstIndex+iCnt);
+      		WorkVec.PutRowIndex(iCnt, iFirstIndex+iCnt);
    	}
    
    	AssVec(WorkVec);
@@ -1052,9 +1052,9 @@ AerodynamicBeam::AssRes(SubVectorHandler& WorkVec,
 	integer iNode2FirstIndex = pNode2->iGetFirstMomentumIndex();
 	integer iNode3FirstIndex = pNode3->iGetFirstMomentumIndex();
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WorkVec.fPutRowIndex(iCnt, iNode1FirstIndex+iCnt);
-		WorkVec.fPutRowIndex(6+iCnt, iNode2FirstIndex+iCnt);
-		WorkVec.fPutRowIndex(12+iCnt, iNode3FirstIndex+iCnt);
+		WorkVec.PutRowIndex(iCnt, iNode1FirstIndex+iCnt);
+		WorkVec.PutRowIndex(6+iCnt, iNode2FirstIndex+iCnt);
+		WorkVec.PutRowIndex(12+iCnt, iNode3FirstIndex+iCnt);
 	}
 	
 	AssVec(WorkVec);
@@ -1075,9 +1075,9 @@ AerodynamicBeam::InitialAssRes(SubVectorHandler& WorkVec,
 	integer iNode2FirstIndex = pNode2->iGetFirstPositionIndex();
 	integer iNode3FirstIndex = pNode3->iGetFirstPositionIndex();
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WorkVec.fPutRowIndex(iCnt, iNode1FirstIndex+iCnt);
-		WorkVec.fPutRowIndex(6+iCnt, iNode2FirstIndex+iCnt);
-		WorkVec.fPutRowIndex(12+iCnt, iNode3FirstIndex+iCnt);
+		WorkVec.PutRowIndex(iCnt, iNode1FirstIndex+iCnt);
+		WorkVec.PutRowIndex(6+iCnt, iNode2FirstIndex+iCnt);
+		WorkVec.PutRowIndex(12+iCnt, iNode3FirstIndex+iCnt);
 	}
 	
 	AssVec(WorkVec);
@@ -1675,8 +1675,8 @@ AerodynamicBeam2::AssRes(
 	integer iNode1FirstIndex = pNode1->iGetFirstMomentumIndex();
 	integer iNode2FirstIndex = pNode2->iGetFirstMomentumIndex();
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WorkVec.fPutRowIndex(iCnt, iNode1FirstIndex+iCnt);
-		WorkVec.fPutRowIndex(6+iCnt, iNode2FirstIndex+iCnt);
+		WorkVec.PutRowIndex(iCnt, iNode1FirstIndex+iCnt);
+		WorkVec.PutRowIndex(6+iCnt, iNode2FirstIndex+iCnt);
 	}
 	
 	AssVec(WorkVec);
@@ -1698,8 +1698,8 @@ AerodynamicBeam2::InitialAssRes(
 	integer iNode1FirstIndex = pNode1->iGetFirstPositionIndex();
 	integer iNode2FirstIndex = pNode2->iGetFirstPositionIndex();
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WorkVec.fPutRowIndex(iCnt, iNode1FirstIndex+iCnt);
-		WorkVec.fPutRowIndex(6+iCnt, iNode2FirstIndex+iCnt);
+		WorkVec.PutRowIndex(iCnt, iNode1FirstIndex+iCnt);
+		WorkVec.PutRowIndex(6+iCnt, iNode2FirstIndex+iCnt);
 	}
 	
 	AssVec(WorkVec);

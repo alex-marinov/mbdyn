@@ -165,15 +165,15 @@ AerodynamicModal::AssJac(VariableSubMatrixHandler& WorkMat,
 
    
     	for (unsigned int iCnt = 1; iCnt <= NStModes; iCnt++) {
-      		WM.fPutRowIndex(iCnt, iModalIndex+NStModes+iCnt);
-      		WM.fPutColIndex(iCnt, iModalIndex+iCnt);
-      		WM.fPutColIndex(iCnt+NStModes, iModalIndex+NStModes+iCnt);
+      		WM.PutRowIndex(iCnt, iModalIndex+NStModes+iCnt);
+      		WM.PutColIndex(iCnt, iModalIndex+iCnt);
+      		WM.PutColIndex(iCnt+NStModes, iModalIndex+NStModes+iCnt);
     	} 
    
     	integer iAeroIndex = iGetFirstIndex();		   
     	for (unsigned int iCnt = 1; iCnt <= NAeroStates+2*NGust; iCnt++) {
-      		WM.fPutRowIndex(NStModes+iCnt, iAeroIndex+iCnt);
-      		WM.fPutColIndex(2*NStModes+iCnt, iAeroIndex+iCnt);
+      		WM.PutRowIndex(NStModes+iCnt, iAeroIndex+iCnt);
+      		WM.PutColIndex(2*NStModes+iCnt, iAeroIndex+iCnt);
     	}
 
    	/* Dati del nodo rigido */
@@ -286,7 +286,7 @@ SubVectorHandler& AerodynamicModal::AssRes(SubVectorHandler& WorkVec,
    if (RigidF) {
    	integer iFirstIndex = pModalNode->iGetFirstIndex();
     	for (int iCnt = 1; iCnt <= RigidF; iCnt++) {
-      		WorkVec.fPutRowIndex(iCnt, iFirstIndex+RigidF+iCnt);
+      		WorkVec.PutRowIndex(iCnt, iFirstIndex+RigidF+iCnt);
 	}
    	Vec3 X0(pModalNode->GetXCurr());
    	Vec3 V0(pModalNode->GetVCurr());
@@ -319,12 +319,12 @@ SubVectorHandler& AerodynamicModal::AssRes(SubVectorHandler& WorkVec,
 
    
     for (unsigned int iCnt = 1; iCnt <= NStModes; iCnt++) {
-      WorkVec.fPutRowIndex(RigidF+iCnt, iModalIndex+NStModes+iCnt);
+      WorkVec.PutRowIndex(RigidF+iCnt, iModalIndex+NStModes+iCnt);
     } 
    
     integer iAeroIndex = iGetFirstIndex();		   
     for (unsigned int iCnt = 1; iCnt <= NAeroStates+2*NGust; iCnt++) {
-      WorkVec.fPutRowIndex(RigidF+NStModes+iCnt, iAeroIndex+iCnt);
+      WorkVec.PutRowIndex(RigidF+NStModes+iCnt, iAeroIndex+iCnt);
     } 
     	
 
@@ -369,7 +369,7 @@ SubVectorHandler& AerodynamicModal::InitialAssRes(SubVectorHandler& WorkVec,
    if (RigidF) {
    	integer iFirstIndex = pModalNode->iGetFirstIndex();
     	for (int iCnt = 1; iCnt <= RigidF; iCnt++) {
-      		WorkVec.fPutRowIndex(iCnt, iFirstIndex+RigidF+iCnt);
+      		WorkVec.PutRowIndex(iCnt, iFirstIndex+RigidF+iCnt);
 	}
    	Vec3 X0(pModalNode->GetXCurr());
    	Vec3 V0(pModalNode->GetVCurr());
@@ -400,12 +400,12 @@ SubVectorHandler& AerodynamicModal::InitialAssRes(SubVectorHandler& WorkVec,
 
    
     for (unsigned int iCnt = 1; iCnt <= NStModes; iCnt++) {
-      WorkVec.fPutRowIndex(RigidF+iCnt, iModalIndex+NStModes+iCnt);
+      WorkVec.PutRowIndex(RigidF+iCnt, iModalIndex+NStModes+iCnt);
     } 
    
     integer iAeroIndex = iGetFirstIndex();		   
     for (unsigned int iCnt = 1; iCnt <= NAeroStates+2*NGust; iCnt++) {
-      WorkVec.fPutRowIndex(RigidF+NStModes+iCnt, iAeroIndex+iCnt);
+      WorkVec.PutRowIndex(RigidF+NStModes+iCnt, iAeroIndex+iCnt);
     } 
 
 

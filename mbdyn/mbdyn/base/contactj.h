@@ -118,7 +118,7 @@ class ContactJoint : virtual public Elem, public Joint {
 	  || (dD == 0. && dF == 0. && dV > 0.)) {
 	 /* non attivo */
 	 WM.Resize(1, 0);
-	 WM.fPutItem(1, iIndex, iIndex, 1.);
+	 WM.PutItem(1, iIndex, iIndex, 1.);
       } else {
 	 /* attivo */
 	 WM.Resize(27, 0);
@@ -130,12 +130,12 @@ class ContactJoint : virtual public Elem, public Joint {
 	       	 
 	 Vec3 Tmp(N.Cross(D));	 
 	 for (integer i = 1; i <= 3; i++) {
-	    WM.fPutItem(i, iIndex, iNode1ColIndex+3+i, Tmp.dGet(i));
+	    WM.PutItem(i, iIndex, iNode1ColIndex+3+i, Tmp.dGet(i));
 	    doublereal d = N.dGet(i);
-	    WM.fPutItem(9+i, iNode1RowIndex+i, iIndex, -d);
-	    WM.fPutItem(12+i, iNode2RowIndex+i, iIndex, d);	   
-	    WM.fPutItem(3+i, iIndex, iNode1ColIndex+i, -d);	    
-	    WM.fPutItem(6+i, iIndex, iNode2ColIndex+i, d);
+	    WM.PutItem(9+i, iNode1RowIndex+i, iIndex, -d);
+	    WM.PutItem(12+i, iNode2RowIndex+i, iIndex, d);	   
+	    WM.PutItem(3+i, iIndex, iNode1ColIndex+i, -d);	    
+	    WM.PutItem(6+i, iIndex, iNode2ColIndex+i, d);
 	 }
 	 
 	 Tmp = N*(dF*dCoef);
@@ -164,7 +164,7 @@ class ContactJoint : virtual public Elem, public Joint {
 	  || (dD == 0. && dF == 0. && dV > 0.)) {
 	 /* non attivo */
 	 WorkVec.Resize(1);
-	 WorkVec.fPutItem(1, iIndex, -dF);
+	 WorkVec.PutItem(1, iIndex, -dF);
       } else {
 	 /* attivo */
 	 WorkVec.Resize(7);
@@ -175,10 +175,10 @@ class ContactJoint : virtual public Elem, public Joint {
 	 Vec3 Tmp(N*dF);
 	 for (integer i = 1; i <= 3; i++) {
 	    doublereal d = Tmp.dGet(i);
-	    WorkVec.fPutItem(i, iNode1RowIndex+i, d);
-	    WorkVec.fPutItem(3+i, iNode2RowIndex+i, -d);
+	    WorkVec.PutItem(i, iNode1RowIndex+i, d);
+	    WorkVec.PutItem(3+i, iNode2RowIndex+i, -d);
 	 }
-	 WorkVec.fPutItem(7, iIndex, -dD/dCoef);
+	 WorkVec.PutItem(7, iIndex, -dD/dCoef);
       }
       
       return WorkVec;

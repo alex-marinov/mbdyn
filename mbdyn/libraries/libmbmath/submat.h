@@ -109,12 +109,12 @@ class SubMatrixHandler : public MatrixHandler {
    /* 
     Scrive l'indice di riga.
     */
-   virtual flag fPutRowIndex(integer, integer) = 0;
+   virtual void PutRowIndex(integer, integer) = 0;
       
    /* 
     Scrive l'indice di colonna.
     */
-   virtual flag fPutColIndex(integer, integer) = 0;
+   virtual void PutColIndex(integer, integer) = 0;
    
    /* 
     Ottiene l'indice di riga.
@@ -396,7 +396,7 @@ class FullSubMatrixHandler : public SubMatrixHandler {
    /*
     Scrive un indice di riga 
     */
-   inline flag fPutRowIndex(integer iSubRow, integer iRow) {	
+   inline void PutRowIndex(integer iSubRow, integer iRow) {	
 #ifdef DEBUG	
       IsValid();
 #endif	
@@ -404,14 +404,12 @@ class FullSubMatrixHandler : public SubMatrixHandler {
       ASSERT((iSubRow > 0) && (iSubRow <= iNumRows));
       
       piRow[--iSubRow] = iRow;
-      
-      return flag(0);
    };   
    
    /* 
     Scrive un indice di colonna 
     */
-   inline flag fPutColIndex(integer iSubCol, integer iCol) {
+   inline void PutColIndex(integer iSubCol, integer iCol) {
 #ifdef DEBUG	
       IsValid();
 #endif	
@@ -419,8 +417,6 @@ class FullSubMatrixHandler : public SubMatrixHandler {
       ASSERT((iSubCol > 0) && (iSubCol <= iNumCols));
       
       piCol[--iSubCol] = iCol;
-      
-      return flag(0);
    };   
    
    /* 
@@ -794,29 +790,25 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
    /*
     Scrive un indice di riga 
     */
-   inline flag fPutRowIndex(integer iSubIt, integer iRow) {
+   inline void PutRowIndex(integer iSubIt, integer iRow) {
 #ifdef DEBUG
       IsValid();
 #endif	
       
       ASSERT((iSubIt > 0) && (iSubIt <= iNumItems));      
       piRow[--iSubIt] = iRow;
-      
-      return flag(0);
    };   
    
    /*
     Scrive un indice di colonna
     */
-   inline flag fPutColIndex(integer iSubIt, integer iCol) {
+   inline void PutColIndex(integer iSubIt, integer iCol) {
 #ifdef DEBUG
       IsValid();
 #endif	
       
       ASSERT((iSubIt > 0) && (iSubIt <= iNumItems));      
       piCol[--iSubIt] = iCol;
-      
-      return flag(0);
    };   
    
    /*
@@ -852,7 +844,7 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
     @param iCol     indice di colonna
     @param dCoef    coefficiente
     */
-   inline flag fPutItem(integer iSubIt, integer iRow, integer iCol, const doublereal& dCoef) {
+   inline void PutItem(integer iSubIt, integer iRow, integer iCol, const doublereal& dCoef) {
 #ifdef DEBUG
       IsValid();
 #endif
@@ -864,8 +856,6 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
       pdMat[--iSubIt] = dCoef;
       piRow[iSubIt] = iRow;
       piCol[iSubIt] = iCol;
-      
-      return flag(0);
    }
 
    /*
@@ -1165,7 +1155,7 @@ class SubVectorHandler : public VectorHandler {
    /*
     * Scrive un indice di riga 
     */
-   virtual flag fPutRowIndex(integer iSubRow, integer iRow) = 0;
+   virtual void PutRowIndex(integer iSubRow, integer iRow) = 0;
    
    /*
     * Ottiene un indice di riga
@@ -1178,11 +1168,10 @@ class SubVectorHandler : public VectorHandler {
     @param iRow    indice della entry
     @param dCoef   coefficiente della entry
     */
-   virtual inline void fPutItem(integer iSubRow, integer iRow,
+   virtual inline void PutItem(integer iSubRow, integer iRow,
 				const doublereal& dCoef) {
-      fPutRowIndex(iSubRow, iRow);
+      PutRowIndex(iSubRow, iRow);
       PutCoef(iSubRow, dCoef);
-      return;
    };
    
    
@@ -1338,7 +1327,7 @@ class MySubVectorHandler : public SubVectorHandler, public MyVectorHandler {
    /* 
     Scrive un indice di riga in base al sottoindice.
     */
-   virtual inline flag fPutRowIndex(integer iSubRow, integer iRow);
+   virtual inline void PutRowIndex(integer iSubRow, integer iRow);
       
    /* 
     Ottiene un indice di riga in base al sottoindice.
@@ -1351,7 +1340,7 @@ class MySubVectorHandler : public SubVectorHandler, public MyVectorHandler {
     @param iRow    indice della entry
     @param dCoef   coefficiente della entry    
     */
-   virtual inline void fPutItem(integer iSubRow, integer iRow, const doublereal& dCoef);
+   virtual inline void PutItem(integer iSubRow, integer iRow, const doublereal& dCoef);
    
    
    /*Interazione con i vettori */
@@ -1366,10 +1355,9 @@ class MySubVectorHandler : public SubVectorHandler, public MyVectorHandler {
     Si somma ad un MyVectorHandler
     */
    virtual VectorHandler& AddTo(MyVectorHandler& VH) const;
-   
 };
 
-inline flag MySubVectorHandler::fPutRowIndex(integer iSubRow, integer iRow) {
+inline void MySubVectorHandler::PutRowIndex(integer iSubRow, integer iRow) {
 #ifdef DEBUG
    IsValid();
    ASSERT((iSubRow > 0) && (iSubRow <= iCurSize));
@@ -1377,8 +1365,6 @@ inline flag MySubVectorHandler::fPutRowIndex(integer iSubRow, integer iRow) {
 #endif
    
    piRowm1[iSubRow] = iRow;
-   
-   return flag(0);
 }
    
 inline integer MySubVectorHandler::iGetRowIndex(integer iSubRow) const {
@@ -1390,7 +1376,7 @@ inline integer MySubVectorHandler::iGetRowIndex(integer iSubRow) const {
    return piRowm1[iSubRow];
 }
 
-inline void MySubVectorHandler::fPutItem(integer iSubRow, integer iRow, 
+inline void MySubVectorHandler::PutItem(integer iSubRow, integer iRow, 
 					 const doublereal& dCoef) {	
 #ifdef DEBUG
    IsValid();
@@ -1400,8 +1386,6 @@ inline void MySubVectorHandler::fPutItem(integer iSubRow, integer iRow,
    
    piRowm1[iSubRow] = iRow;
    pdVecm1[iSubRow] = dCoef;
-   
-   return;
 }
 
 
@@ -1425,4 +1409,4 @@ operator << (std::ostream& out, const FullSubMatrixHandler& m);
 
 /* SubVectorHandler - end */
 
-#endif
+#endif /* SUBMAT_H */

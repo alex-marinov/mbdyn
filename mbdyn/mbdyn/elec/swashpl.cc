@@ -154,13 +154,13 @@ SwashPlate::AssJac(VariableSubMatrixHandler& WorkMat,
    
    doublereal d = dDynamicCoef+dCoef;
    
-   WM.fPutItem(1, iCollFirstIndex, iCollFirstIndex, dCoef);
-   WM.fPutItem(2, iLongFirstIndex, iLongFirstIndex, dCoef);
-   WM.fPutItem(3, iLatFirstIndex, iLatFirstIndex, dCoef);
+   WM.PutItem(1, iCollFirstIndex, iCollFirstIndex, dCoef);
+   WM.PutItem(2, iLongFirstIndex, iLongFirstIndex, dCoef);
+   WM.PutItem(3, iLatFirstIndex, iLatFirstIndex, dCoef);
 
-   WM.fPutItem(4, iNode1FirstIndex, iNode1FirstIndex, d);
-   WM.fPutItem(5, iNode2FirstIndex, iNode2FirstIndex, d);
-   WM.fPutItem(6, iNode3FirstIndex, iNode3FirstIndex, d);   
+   WM.PutItem(4, iNode1FirstIndex, iNode1FirstIndex, d);
+   WM.PutItem(5, iNode2FirstIndex, iNode2FirstIndex, d);
+   WM.PutItem(6, iNode3FirstIndex, iNode3FirstIndex, d);   
 
    return WorkMat;
 }
@@ -187,13 +187,13 @@ SwashPlate::AssRes(SubVectorHandler& WorkVec,
    integer iNode2FirstIndex = pNode2->iGetFirstIndex()+1;
    integer iNode3FirstIndex = pNode3->iGetFirstIndex()+1;
    
-   WorkVec.fPutRowIndex(1, iCollFirstIndex);
-   WorkVec.fPutRowIndex(2, iLongFirstIndex);
-   WorkVec.fPutRowIndex(3, iLatFirstIndex);
+   WorkVec.PutRowIndex(1, iCollFirstIndex);
+   WorkVec.PutRowIndex(2, iLongFirstIndex);
+   WorkVec.PutRowIndex(3, iLatFirstIndex);
          
-   WorkVec.fPutRowIndex(4, iNode1FirstIndex);
-   WorkVec.fPutRowIndex(5, iNode2FirstIndex);
-   WorkVec.fPutRowIndex(6, iNode3FirstIndex);
+   WorkVec.PutRowIndex(4, iNode1FirstIndex);
+   WorkVec.PutRowIndex(5, iNode2FirstIndex);
+   WorkVec.PutRowIndex(6, iNode3FirstIndex);
          
    doublereal dXColl = XCurr.dGetCoef(iCollFirstIndex);
    doublereal dXLong = XCurr.dGetCoef(iLongFirstIndex);

@@ -45,12 +45,12 @@ Joint_1Node::AssRes(SubVectorHandler& WorkVec,
    
    integer iNodeFirstRowIndex = pNode->iGetFirstRowIndex();
    for (int i = 1; i <= 6; i++) {
-      WorkVec.fPutRowIndex(i, iNodeFirstRowIndex+i);
+      WorkVec.PutRowIndex(i, iNodeFirstRowIndex+i);
    }
    
    integer iFirstIndex = iGetFirstIndex();
    for (int i = 1; i <= iGetNumDofs(); i++) {
-      WorkVec.fPutRowIndex(6+i, iFirstIndex+i);
+      WorkVec.PutRowIndex(6+i, iFirstIndex+i);
    }
 
    AssRes_(WorkVec, dCoef, XCurr, XPrimeCurr);
@@ -73,14 +73,14 @@ Joint_1Node::AssJac(VariableSubVectorHandler& WorkMat,
    integer iNodeFirstRowIndex = pNode->iGetFirstRowIndex();
    integer iNodeFirstColIndex = pNode->iGetFirstColIndex();
    for (int i = 1; i <= 6; i++) {
-      WM.fPutRowIndex(i, iNodeFirstRowIndex+i);
-      WM.fPutColIndex(i, iNodeFirstColIndex+i);
+      WM.PutRowIndex(i, iNodeFirstRowIndex+i);
+      WM.PutColIndex(i, iNodeFirstColIndex+i);
    }
    
    integer iFirstIndex = iGetFirstIndex();
    for (int i = 1; i <= iGetNumDofs(); i++) {
-      WM.fPutRowIndex(6+i, iFirstIndex+i);
-      WM.fPutColIndex(6+i, iFirstIndex+i);
+      WM.PutRowIndex(6+i, iFirstIndex+i);
+      WM.PutColIndex(6+i, iFirstIndex+i);
    }
 
    AssJac_(WM, dCoef, XCurr, XPrimeCurr);
@@ -98,12 +98,12 @@ Joint_1Node::InitialAssRes(SubVectorHandler& WorkVec,
    
    integer iNodeFirstIndex = pNode->iGetFirstIndex();   
    for (int i = 1; i <= 12; i++) {
-      WorkVec.fPutRowIndex(i, iNodeFirstIndex+i);
+      WorkVec.PutRowIndex(i, iNodeFirstIndex+i);
    }
    
    integer iFirstIndex = iGetFirstIndex();
    for (int i = 1; i <= iGetInitialNumDofs(); i++) {
-      WorkVec.fPutRowIndex(12+i, iFirstIndex+i);
+      WorkVec.PutRowIndex(12+i, iFirstIndex+i);
    }
 
    InitialAssRes_(WorkVec, dCoef, XCurr, XPrimeCurr);
@@ -123,14 +123,14 @@ Joint_1Node::InitialAssJac(VariableSubVectorHandler& WorkMat,
    
    integer iNodeFirstIndex = pNode->iGetFirstIndex();  
    for (int i = 1; i <= 12; i++) {
-      WM.fPutRowIndex(i, iNodeFirstIndex+i);
-      WM.fPutColIndex(i, iNodeFirstIndex+i);
+      WM.PutRowIndex(i, iNodeFirstIndex+i);
+      WM.PutColIndex(i, iNodeFirstIndex+i);
    }
    
    integer iFirstIndex = iGetFirstIndex();
    for (int i = 1; i <= iGetInitialNumDofs(); i++) {
-      WM.fPutRowIndex(12+i, iFirstIndex+i);
-      WM.fPutColIndex(12+i, iFirstIndex+i);
+      WM.PutRowIndex(12+i, iFirstIndex+i);
+      WM.PutColIndex(12+i, iFirstIndex+i);
    }
 
    InitialAssJac_(WM, dCoef, XCurr, XPrimeCurr);
@@ -156,13 +156,13 @@ Joint_2Nodes::AssRes(SubVectorHandler& WorkVec,
    integer iNode1FirstRowIndex = pNode1->iGetFirstRowIndex();
    integer iNode2FirstRowIndex = pNode2->iGetFirstRowIndex();
    for (int i = 1; i <= 6; i++) {
-      WorkVec.fPutRowIndex(i, iNode1FirstRowIndex+i);
-      WorkVec.fPutRowIndex(6+i, iNode2FirstRowIndex+i);
+      WorkVec.PutRowIndex(i, iNode1FirstRowIndex+i);
+      WorkVec.PutRowIndex(6+i, iNode2FirstRowIndex+i);
    }
    
    integer iFirstIndex = iGetFirstIndex();
    for (int i = 1; i <= iGetNumDofs(); i++) {
-      WorkVec.fPutRowIndex(12+i, iFirstIndex+i);
+      WorkVec.PutRowIndex(12+i, iFirstIndex+i);
    }
 
    AssRes_(WorkVec, dCoef, XCurr, XPrimeCurr);
@@ -187,16 +187,16 @@ Joint_2Nodes::AssJac(VariableSubVectorHandler& WorkMat,
    integer iNode2FirstRowIndex = pNode2->iGetFirstRowIndex();
    integer iNode2FirstColIndex = pNode2->iGetFirstColIndex();
    for (int i = 1; i <= 6; i++) {
-      WM.fPutRowIndex(i, iNode1FirstRowIndex+i);
-      WM.fPutColIndex(i, iNode1FirstColIndex+i);
-      WM.fPutRowIndex(6+i, iNode2FirstRowIndex+i);
-      WM.fPutColIndex(6+i, iNode2FirstColIndex+i);
+      WM.PutRowIndex(i, iNode1FirstRowIndex+i);
+      WM.PutColIndex(i, iNode1FirstColIndex+i);
+      WM.PutRowIndex(6+i, iNode2FirstRowIndex+i);
+      WM.PutColIndex(6+i, iNode2FirstColIndex+i);
    }
    
    integer iFirstIndex = iGetFirstIndex();
    for (int i = 1; i <= iGetNumDofs(); i++) {
-      WM.fPutRowIndex(12+i, iFirstIndex+i);
-      WM.fPutColIndex(12+i, iFirstIndex+i);
+      WM.PutRowIndex(12+i, iFirstIndex+i);
+      WM.PutColIndex(12+i, iFirstIndex+i);
    }
 
    AssJac_(WM, dCoef, XCurr, XPrimeCurr);
@@ -216,13 +216,13 @@ Joint_2Nodes::InitialAssRes(SubVectorHandler& WorkVec,
    integer iNode1FirstIndex = pNode1->iGetFirstIndex();
    integer iNode2FirstIndex = pNode2->iGetFirstIndex();
    for (int i = 1; i <= 6; i++) {
-      WorkVec.fPutRowIndex(i, iNode1FirstIndex+i);
-      WorkVec.fPutRowIndex(12+i, iNode2FirstIndex+i);
+      WorkVec.PutRowIndex(i, iNode1FirstIndex+i);
+      WorkVec.PutRowIndex(12+i, iNode2FirstIndex+i);
    }
    
    integer iFirstIndex = iGetFirstIndex();
    for (int i = 1; i <= iGetInitialNumDofs(); i++) {
-      WorkVec.fPutRowIndex(24+i, iFirstIndex+i);
+      WorkVec.PutRowIndex(24+i, iFirstIndex+i);
    }
 
    InitialAssRes_(WorkVec, dCoef, XCurr, XPrimeCurr);
@@ -243,16 +243,16 @@ Joint_2Nodes::AssJac(VariableSubVectorHandler& WorkMat,
    integer iNode1FirstIndex = pNode1->iGetFirstIndex();
    integer iNode2FirstIndex = pNode2->iGetFirstIndex();
    for (int i = 1; i <= 6; i++) {
-      WM.fPutRowIndex(i, iNode1FirstIndex+i);
-      WM.fPutColIndex(i, iNode1FirstIndex+i);
-      WM.fPutRowIndex(12+i, iNode2FirstIndex+i);
-      WM.fPutColIndex(12+i, iNode2FirstIndex+i);
+      WM.PutRowIndex(i, iNode1FirstIndex+i);
+      WM.PutColIndex(i, iNode1FirstIndex+i);
+      WM.PutRowIndex(12+i, iNode2FirstIndex+i);
+      WM.PutColIndex(12+i, iNode2FirstIndex+i);
    }
    
    integer iFirstIndex = iGetFirstIndex();
    for (int i = 1; i <= iGetInitialNumDofs(); i++) {
-      WM.fPutRowIndex(24+i, iFirstIndex+i);
-      WM.fPutColIndex(24+i, iFirstIndex+i);
+      WM.PutRowIndex(24+i, iFirstIndex+i);
+      WM.PutColIndex(24+i, iFirstIndex+i);
    }
 
    InitialAssJac_(WM, dCoef, XCurr, XPrimeCurr);
@@ -282,14 +282,14 @@ Joint_NNodes::AssRes(SubVectorHandler& WorkVec,
       integer iNodeFirstRowIndex = pNodes[j]->iGetFirstRowIndex();    
    
       for (int i = 1; i <= 6; i++) {
-	 WorkVec.fPutRowIndex(6*j+i, iNodeFirstRowIndex+i);
+	 WorkVec.PutRowIndex(6*j+i, iNodeFirstRowIndex+i);
       }
    }
    
    integer iFirstIndex = iGetFirstIndex();
    integer iOff = 6*iNNod;
    for (int i = 1; i <= iGetNumDofs(); i++) {
-      WorkVec.fPutRowIndex(iOff+i, iFirstIndex+i);
+      WorkVec.PutRowIndex(iOff+i, iFirstIndex+i);
    }
 
    AssRes_(WorkVec, dCoef, XCurr, XPrimeCurr);
@@ -315,16 +315,16 @@ Joint_NNodes::AssJac(VariableSubVectorHandler& WorkMat,
       integer iNodeFirstColIndex = pNodes[j]->iGetFirstColIndex();
    
       for (int i = 1; i <= 6; i++) {
-	 WM.fPutRowIndex(6*j+i, iNodeFirstRowIndex+i);
-	 WM.fPutColIndex(6*j+i, iNodeFirstColIndex+i);
+	 WM.PutRowIndex(6*j+i, iNodeFirstRowIndex+i);
+	 WM.PutColIndex(6*j+i, iNodeFirstColIndex+i);
       }
    }
    
    integer iFirstIndex = iGetFirstIndex();
    integer iOff = 6*iNNod;
    for (int i = 1; i <= iGetNumDofs(); i++) {
-      WM.fPutRowIndex(iOff+i, iFirstIndex+i);
-      WM.fPutColIndex(iOff+i, iFirstIndex+i);
+      WM.PutRowIndex(iOff+i, iFirstIndex+i);
+      WM.PutColIndex(iOff+i, iFirstIndex+i);
    }
 
    AssJac_(WM, dCoef, XCurr, XPrimeCurr);
@@ -348,14 +348,14 @@ Joint_NNodes::InitialAssRes(SubVectorHandler& WorkVec,
       integer iNodeFirstIndex = pNodes[j]->iGetFirstIndex();
    
       for (int i = 1; i <= 12; i++) {
-	 WorkVec.fPutRowIndex(12*j+i, iNodeFirstIndex+i);
+	 WorkVec.PutRowIndex(12*j+i, iNodeFirstIndex+i);
       }
    }
    
    integer iFirstIndex = iGetFirstIndex();
    integer iOff = 12*iNNod;
    for (int i = 1; i <= iGetInitialNumDofs(); i++) {
-      WorkVec.fPutRowIndex(iOff+i, iFirstIndex+i);
+      WorkVec.PutRowIndex(iOff+i, iFirstIndex+i);
    }
 
    InitialAssRes_(WorkVec, dCoef, XCurr, XPrimeCurr);
@@ -378,16 +378,16 @@ Joint_NNodes::InitialAssJac(VariableSubVectorHandler& WorkMat,
       integer iNodeFirstIndex = pNodes[j]->iGetFirstIndex();  
    
       for (int i = 1; i <= 12; i++) {
-	 WM.fPutRowIndex(12*j+i, iNodeFirstIndex+i);
-	 WM.fPutColIndex(12*j+i, iNodeFirstIndex+i);
+	 WM.PutRowIndex(12*j+i, iNodeFirstIndex+i);
+	 WM.PutColIndex(12*j+i, iNodeFirstIndex+i);
       }
    }
    
    integer iFirstIndex = iGetFirstIndex();
    integer iOff = 12*iNNod;
    for (int i = 1; i <= iGetInitialNumDofs(); i++) {
-      WM.fPutRowIndex(iOff+i, iFirstIndex+i);
-      WM.fPutColIndex(iOff+i, iFirstIndex+i);
+      WM.PutRowIndex(iOff+i, iFirstIndex+i);
+      WM.PutColIndex(iOff+i, iFirstIndex+i);
    }
 
    InitialAssJac_(WM, dCoef, XCurr, XPrimeCurr);

@@ -111,8 +111,8 @@ ConservativeForce::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex()+3;
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex()+3;
    for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iFirstMomentumIndex+iCnt); 
-      WM.fPutColIndex(iCnt, iFirstPositionIndex+iCnt);
+      WM.PutRowIndex(iCnt, iFirstMomentumIndex+iCnt); 
+      WM.PutColIndex(iCnt, iFirstPositionIndex+iCnt);
    }      
    
    /* Dati */
@@ -151,7 +151,7 @@ SubVectorHandler& ConservativeForce::AssRes(SubVectorHandler& WorkVec,
    /* Indici delle incognite del nodo */
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
    for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
    }   
    
    Mat3x3 R(pNode->GetRCurr());
@@ -190,10 +190,10 @@ ConservativeForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex()+3;
    integer iFirstVelocityIndex = iFirstPositionIndex+6;
    for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);     
-      WM.fPutRowIndex(3+iCnt, iFirstVelocityIndex+iCnt);     
-      WM.fPutColIndex(iCnt, iFirstPositionIndex+iCnt);
-      WM.fPutColIndex(3+iCnt, iFirstVelocityIndex+iCnt);
+      WM.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);     
+      WM.PutRowIndex(3+iCnt, iFirstVelocityIndex+iCnt);     
+      WM.PutColIndex(iCnt, iFirstPositionIndex+iCnt);
+      WM.PutColIndex(3+iCnt, iFirstVelocityIndex+iCnt);
    }      
 
    /* Dati */
@@ -235,8 +235,8 @@ ConservativeForce::InitialAssRes(SubVectorHandler& WorkVec,
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
    integer iFirstVelocityIndex = iFirstPositionIndex+6;
    for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iFirstVelocityIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iFirstVelocityIndex+iCnt);
    }   
    
    Mat3x3 R(pNode->GetRCurr());
@@ -303,9 +303,9 @@ FollowerForce::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iFirstRotationIndex = pNode->iGetFirstPositionIndex()+3;
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
    for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iFirstMomentumIndex+iCnt);     /* forza */
-      WM.fPutRowIndex(3+iCnt, iFirstMomentumIndex+3+iCnt); /* coppia */
-      WM.fPutColIndex(iCnt, iFirstRotationIndex+iCnt);     /* rotazione */
+      WM.PutRowIndex(iCnt, iFirstMomentumIndex+iCnt);     /* forza */
+      WM.PutRowIndex(3+iCnt, iFirstMomentumIndex+3+iCnt); /* coppia */
+      WM.PutColIndex(iCnt, iFirstRotationIndex+iCnt);     /* rotazione */
    }      
    
    /* Dati */
@@ -346,7 +346,7 @@ SubVectorHandler& FollowerForce::AssRes(SubVectorHandler& WorkVec,
    /* Indici delle incognite del nodo */
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
    for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
    }   
    
    Mat3x3 R(pNode->GetRCurr());
@@ -386,12 +386,12 @@ FollowerForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
    integer iFirstVelocityIndex = iFirstPositionIndex+6;
    for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);     
-      WM.fPutRowIndex(3+iCnt, iFirstPositionIndex+3+iCnt);     
-      WM.fPutRowIndex(6+iCnt, iFirstVelocityIndex+iCnt);     
-      WM.fPutRowIndex(9+iCnt, iFirstVelocityIndex+3+iCnt);     
-      WM.fPutColIndex(iCnt, iFirstPositionIndex+3+iCnt);
-      WM.fPutColIndex(3+iCnt, iFirstVelocityIndex+3+iCnt);
+      WM.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);     
+      WM.PutRowIndex(3+iCnt, iFirstPositionIndex+3+iCnt);     
+      WM.PutRowIndex(6+iCnt, iFirstVelocityIndex+iCnt);     
+      WM.PutRowIndex(9+iCnt, iFirstVelocityIndex+3+iCnt);     
+      WM.PutColIndex(iCnt, iFirstPositionIndex+3+iCnt);
+      WM.PutColIndex(3+iCnt, iFirstVelocityIndex+3+iCnt);
    }      
 
    /* Dati */
@@ -437,8 +437,8 @@ FollowerForce::InitialAssRes(SubVectorHandler& WorkVec,
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
    integer iFirstVelocityIndex = iFirstPositionIndex+6;
    for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iFirstVelocityIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iFirstVelocityIndex+iCnt);
    }   
    
    Mat3x3 R(pNode->GetRCurr());
@@ -505,7 +505,7 @@ SubVectorHandler& ConservativeCouple::AssRes(SubVectorHandler& WorkVec,
    /* Indici delle incognite del nodo */
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex()+3;
    for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
    }   
    
    WorkVec.Add(1, Dir*dAmplitude);
@@ -540,7 +540,7 @@ ConservativeCouple::InitialAssRes(SubVectorHandler& WorkVec,
    /* Indici delle incognite del nodo */
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex()+3;
    for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);
    }   
    
    WorkVec.Add(1, Dir*dAmplitude);
@@ -592,8 +592,8 @@ FollowerCouple::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iFirstRotationIndex = pNode->iGetFirstPositionIndex()+3;
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex()+3;
    for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iFirstMomentumIndex+iCnt);    /* coppia */
-      WM.fPutColIndex(iCnt, iFirstRotationIndex+iCnt);    /* rotazione */
+      WM.PutRowIndex(iCnt, iFirstMomentumIndex+iCnt);    /* coppia */
+      WM.PutColIndex(iCnt, iFirstRotationIndex+iCnt);    /* rotazione */
    }      
    
    /* Dati */
@@ -630,7 +630,7 @@ SubVectorHandler& FollowerCouple::AssRes(SubVectorHandler& WorkVec,
    /* Indici delle incognite del nodo */
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex()+3;
    for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
    }
        
    Mat3x3 R(pNode->GetRCurr());
@@ -664,10 +664,10 @@ FollowerCouple::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex()+3;
    integer iFirstVelocityIndex = iFirstPositionIndex+6;
    for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);     
-      WM.fPutRowIndex(3+iCnt, iFirstVelocityIndex+iCnt);     
-      WM.fPutColIndex(iCnt, iFirstPositionIndex+iCnt);
-      WM.fPutColIndex(3+iCnt, iFirstVelocityIndex+iCnt);
+      WM.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);     
+      WM.PutRowIndex(3+iCnt, iFirstVelocityIndex+iCnt);     
+      WM.PutColIndex(iCnt, iFirstPositionIndex+iCnt);
+      WM.PutColIndex(3+iCnt, iFirstVelocityIndex+iCnt);
    }      
    
    /* Dati */
@@ -706,8 +706,8 @@ FollowerCouple::InitialAssRes(SubVectorHandler& WorkVec,
    integer iFirstVelocityIndex = iFirstPositionIndex+6;
    for(integer iCnt = 1; iCnt <= 3; iCnt++)
      {
-	WorkVec.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
-	WorkVec.fPutRowIndex(6+iCnt, iFirstVelocityIndex+iCnt);
+	WorkVec.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);
+	WorkVec.PutRowIndex(6+iCnt, iFirstVelocityIndex+iCnt);
      }   
    
    Mat3x3 R(pNode->GetRCurr());
@@ -805,11 +805,11 @@ ConservativeInternalForce::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iFirstMomentumIndex2 = pNode2->iGetFirstMomentumIndex()+3;
    
    for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iFirstMomentumIndex1+iCnt); 
-      WM.fPutColIndex(iCnt, iFirstPositionIndex1+iCnt);
+      WM.PutRowIndex(iCnt, iFirstMomentumIndex1+iCnt); 
+      WM.PutColIndex(iCnt, iFirstPositionIndex1+iCnt);
 
-      WM.fPutRowIndex(3+iCnt, iFirstMomentumIndex2+iCnt); 
-      WM.fPutColIndex(3+iCnt, iFirstPositionIndex2+iCnt);
+      WM.PutRowIndex(3+iCnt, iFirstMomentumIndex2+iCnt); 
+      WM.PutColIndex(3+iCnt, iFirstPositionIndex2+iCnt);
    }      
    
    /* Dati */
@@ -852,8 +852,8 @@ ConservativeInternalForce::AssRes(SubVectorHandler& WorkVec,
    integer iFirstMomentumIndex1 = pNode1->iGetFirstMomentumIndex();
    integer iFirstMomentumIndex2 = pNode2->iGetFirstMomentumIndex();
    for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstMomentumIndex1+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iFirstMomentumIndex2+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex1+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iFirstMomentumIndex2+iCnt);
    }   
    
    Vec3 F(Dir*dAmplitude);
@@ -902,17 +902,17 @@ ConservativeInternalForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    integer iFirstVelocityIndex2 = iFirstPositionIndex2+6;
 
    for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iFirstPositionIndex1+iCnt);     
-      WM.fPutRowIndex(3+iCnt, iFirstVelocityIndex1+iCnt);     
+      WM.PutRowIndex(iCnt, iFirstPositionIndex1+iCnt);     
+      WM.PutRowIndex(3+iCnt, iFirstVelocityIndex1+iCnt);     
 
-      WM.fPutColIndex(iCnt, iFirstPositionIndex1+iCnt);
-      WM.fPutColIndex(3+iCnt, iFirstVelocityIndex1+iCnt);
+      WM.PutColIndex(iCnt, iFirstPositionIndex1+iCnt);
+      WM.PutColIndex(3+iCnt, iFirstVelocityIndex1+iCnt);
 
-      WM.fPutRowIndex(6+iCnt, iFirstPositionIndex2+iCnt);     
-      WM.fPutRowIndex(9+iCnt, iFirstVelocityIndex2+iCnt);     
+      WM.PutRowIndex(6+iCnt, iFirstPositionIndex2+iCnt);     
+      WM.PutRowIndex(9+iCnt, iFirstVelocityIndex2+iCnt);     
 
-      WM.fPutColIndex(6+iCnt, iFirstPositionIndex2+iCnt);
-      WM.fPutColIndex(9+iCnt, iFirstVelocityIndex2+iCnt);
+      WM.PutColIndex(6+iCnt, iFirstPositionIndex2+iCnt);
+      WM.PutColIndex(9+iCnt, iFirstVelocityIndex2+iCnt);
    }      
 
    /* Dati */
@@ -964,11 +964,11 @@ ConservativeInternalForce::InitialAssRes(SubVectorHandler& WorkVec,
    integer iFirstVelocityIndex2 = iFirstPositionIndex2+6;
    
    for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstPositionIndex1+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iFirstVelocityIndex1+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstPositionIndex1+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iFirstVelocityIndex1+iCnt);
 
-      WorkVec.fPutRowIndex(12+iCnt, iFirstPositionIndex2+iCnt);
-      WorkVec.fPutRowIndex(18+iCnt, iFirstVelocityIndex2+iCnt);
+      WorkVec.PutRowIndex(12+iCnt, iFirstPositionIndex2+iCnt);
+      WorkVec.PutRowIndex(18+iCnt, iFirstVelocityIndex2+iCnt);
    }   
    
    Vec3 TmpDir(Dir*dAmplitude);
@@ -1048,13 +1048,13 @@ FollowerInternalForce::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iFirstRotationIndex1 = pNode1->iGetFirstPositionIndex()+3;
    integer iFirstMomentumIndex1 = pNode1->iGetFirstMomentumIndex();
    for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iFirstMomentumIndex1+iCnt);     /* forza */
-      WM.fPutRowIndex(3+iCnt, iFirstMomentumIndex1+3+iCnt); /* coppia */
-      WM.fPutColIndex(iCnt, iFirstRotationIndex1+iCnt);     /* rotazione */
+      WM.PutRowIndex(iCnt, iFirstMomentumIndex1+iCnt);     /* forza */
+      WM.PutRowIndex(3+iCnt, iFirstMomentumIndex1+3+iCnt); /* coppia */
+      WM.PutColIndex(iCnt, iFirstRotationIndex1+iCnt);     /* rotazione */
 
-      WM.fPutRowIndex(6+iCnt, iFirstMomentumIndex1+iCnt);   /* forza */
-      WM.fPutRowIndex(9+iCnt, iFirstMomentumIndex1+3+iCnt); /* coppia */
-      WM.fPutColIndex(3+iCnt, iFirstRotationIndex1+iCnt);   /* rotazione */
+      WM.PutRowIndex(6+iCnt, iFirstMomentumIndex1+iCnt);   /* forza */
+      WM.PutRowIndex(9+iCnt, iFirstMomentumIndex1+3+iCnt); /* coppia */
+      WM.PutColIndex(3+iCnt, iFirstRotationIndex1+iCnt);   /* rotazione */
    }      
    
    /* Dati */
@@ -1102,8 +1102,8 @@ FollowerInternalForce::AssRes(SubVectorHandler& WorkVec,
    integer iFirstMomentumIndex1 = pNode1->iGetFirstMomentumIndex();
    integer iFirstMomentumIndex2 = pNode2->iGetFirstMomentumIndex();
    for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstMomentumIndex1+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iFirstMomentumIndex2+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex1+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iFirstMomentumIndex2+iCnt);
    }   
    
    Vec3 TmpDir = Dir*dAmplitude;
@@ -1155,21 +1155,21 @@ FollowerInternalForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    integer iFirstVelocityIndex2 = iFirstPositionIndex2+6;
 
    for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iFirstPositionIndex1+iCnt);     
-      WM.fPutRowIndex(3+iCnt, iFirstPositionIndex1+3+iCnt);     
-      WM.fPutRowIndex(6+iCnt, iFirstVelocityIndex1+iCnt);     
-      WM.fPutRowIndex(9+iCnt, iFirstVelocityIndex1+3+iCnt);     
+      WM.PutRowIndex(iCnt, iFirstPositionIndex1+iCnt);     
+      WM.PutRowIndex(3+iCnt, iFirstPositionIndex1+3+iCnt);     
+      WM.PutRowIndex(6+iCnt, iFirstVelocityIndex1+iCnt);     
+      WM.PutRowIndex(9+iCnt, iFirstVelocityIndex1+3+iCnt);     
 
-      WM.fPutColIndex(iCnt, iFirstPositionIndex1+3+iCnt);
-      WM.fPutColIndex(3+iCnt, iFirstVelocityIndex1+3+iCnt);
+      WM.PutColIndex(iCnt, iFirstPositionIndex1+3+iCnt);
+      WM.PutColIndex(3+iCnt, iFirstVelocityIndex1+3+iCnt);
       
-      WM.fPutRowIndex(12+iCnt, iFirstPositionIndex2+iCnt);     
-      WM.fPutRowIndex(15+iCnt, iFirstPositionIndex2+3+iCnt);     
-      WM.fPutRowIndex(18+iCnt, iFirstVelocityIndex2+iCnt);     
-      WM.fPutRowIndex(21+iCnt, iFirstVelocityIndex2+3+iCnt);     
+      WM.PutRowIndex(12+iCnt, iFirstPositionIndex2+iCnt);     
+      WM.PutRowIndex(15+iCnt, iFirstPositionIndex2+3+iCnt);     
+      WM.PutRowIndex(18+iCnt, iFirstVelocityIndex2+iCnt);     
+      WM.PutRowIndex(21+iCnt, iFirstVelocityIndex2+3+iCnt);     
 
-      WM.fPutColIndex(12+iCnt, iFirstPositionIndex2+3+iCnt);
-      WM.fPutColIndex(15+iCnt, iFirstVelocityIndex2+3+iCnt);
+      WM.PutColIndex(12+iCnt, iFirstPositionIndex2+3+iCnt);
+      WM.PutColIndex(15+iCnt, iFirstVelocityIndex2+3+iCnt);
    }      
 
    /* Dati */
@@ -1231,11 +1231,11 @@ FollowerInternalForce::InitialAssRes(SubVectorHandler& WorkVec,
    integer iFirstVelocityIndex2 = iFirstPositionIndex2+6;
 
    for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstPositionIndex1+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iFirstVelocityIndex1+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstPositionIndex1+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iFirstVelocityIndex1+iCnt);
 
-      WorkVec.fPutRowIndex(12+iCnt, iFirstPositionIndex2+iCnt);
-      WorkVec.fPutRowIndex(18+iCnt, iFirstVelocityIndex2+iCnt);
+      WorkVec.PutRowIndex(12+iCnt, iFirstPositionIndex2+iCnt);
+      WorkVec.PutRowIndex(18+iCnt, iFirstVelocityIndex2+iCnt);
    }   
    
    Vec3 TmpDir(pNode1->GetRCurr()*(Dir*dAmplitude));
@@ -1313,8 +1313,8 @@ ConservativeInternalCouple::AssRes(SubVectorHandler& WorkVec,
    integer iFirstMomentumIndex1 = pNode1->iGetFirstMomentumIndex()+3;
    integer iFirstMomentumIndex2 = pNode2->iGetFirstMomentumIndex()+3;
    for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstMomentumIndex1+iCnt);
-      WorkVec.fPutRowIndex(3+iCnt, iFirstMomentumIndex2+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex1+iCnt);
+      WorkVec.PutRowIndex(3+iCnt, iFirstMomentumIndex2+iCnt);
    }   
    
    WorkVec.Add(1, Dir*dAmplitude);
@@ -1352,8 +1352,8 @@ ConservativeInternalCouple::InitialAssRes(SubVectorHandler& WorkVec,
    integer iFirstPositionIndex1 = pNode1->iGetFirstPositionIndex()+3;
    integer iFirstPositionIndex2 = pNode2->iGetFirstPositionIndex()+3;
    for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstPositionIndex1+iCnt);
-      WorkVec.fPutRowIndex(3+iCnt, iFirstPositionIndex2+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstPositionIndex1+iCnt);
+      WorkVec.PutRowIndex(3+iCnt, iFirstPositionIndex2+iCnt);
    }   
    
    WorkVec.Add(1, Dir*dAmplitude);
@@ -1410,10 +1410,10 @@ FollowerInternalCouple::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iFirstMomentumIndex1 = pNode1->iGetFirstMomentumIndex()+3;
    integer iFirstMomentumIndex2 = pNode2->iGetFirstMomentumIndex()+3;
    for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iFirstMomentumIndex1+iCnt);    /* coppia */
-      WM.fPutColIndex(iCnt, iFirstRotationIndex1+iCnt);    /* rotazione */
+      WM.PutRowIndex(iCnt, iFirstMomentumIndex1+iCnt);    /* coppia */
+      WM.PutColIndex(iCnt, iFirstRotationIndex1+iCnt);    /* rotazione */
 
-      WM.fPutRowIndex(3+iCnt, iFirstMomentumIndex2+iCnt);    /* coppia */
+      WM.PutRowIndex(3+iCnt, iFirstMomentumIndex2+iCnt);    /* coppia */
    }      
    
    /* Dati */
@@ -1452,8 +1452,8 @@ FollowerInternalCouple::AssRes(SubVectorHandler& WorkVec,
    integer iFirstMomentumIndex1 = pNode1->iGetFirstMomentumIndex()+3;
    integer iFirstMomentumIndex2 = pNode2->iGetFirstMomentumIndex()+3;
    for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstMomentumIndex1+iCnt);
-      WorkVec.fPutRowIndex(3+iCnt, iFirstMomentumIndex2+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex1+iCnt);
+      WorkVec.PutRowIndex(3+iCnt, iFirstMomentumIndex2+iCnt);
    }
  
    Vec3 M((pNode1->GetRCurr()*Dir)*dAmplitude);
@@ -1491,14 +1491,14 @@ FollowerInternalCouple::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    integer iFirstPositionIndex2 = pNode2->iGetFirstPositionIndex()+3;
    integer iFirstVelocityIndex2 = iFirstPositionIndex2+6;
    for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iFirstPositionIndex1+iCnt);     
-      WM.fPutRowIndex(3+iCnt, iFirstVelocityIndex1+iCnt);     
+      WM.PutRowIndex(iCnt, iFirstPositionIndex1+iCnt);     
+      WM.PutRowIndex(3+iCnt, iFirstVelocityIndex1+iCnt);     
 
-      WM.fPutColIndex(iCnt, iFirstPositionIndex1+iCnt);
-      WM.fPutColIndex(3+iCnt, iFirstVelocityIndex1+iCnt);
+      WM.PutColIndex(iCnt, iFirstPositionIndex1+iCnt);
+      WM.PutColIndex(3+iCnt, iFirstVelocityIndex1+iCnt);
 
-      WM.fPutRowIndex(6+iCnt, iFirstPositionIndex2+iCnt);     
-      WM.fPutRowIndex(9+iCnt, iFirstVelocityIndex2+iCnt);     
+      WM.PutRowIndex(6+iCnt, iFirstPositionIndex2+iCnt);     
+      WM.PutRowIndex(9+iCnt, iFirstVelocityIndex2+iCnt);     
    }      
    
    /* Dati */
@@ -1544,11 +1544,11 @@ FollowerInternalCouple::InitialAssRes(SubVectorHandler& WorkVec,
    integer iFirstVelocityIndex2 = iFirstPositionIndex2+6;
 
    for(integer iCnt = 1; iCnt <= 3; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstPositionIndex1+iCnt);
-      WorkVec.fPutRowIndex(3+iCnt, iFirstVelocityIndex1+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstPositionIndex1+iCnt);
+      WorkVec.PutRowIndex(3+iCnt, iFirstVelocityIndex1+iCnt);
       
-      WorkVec.fPutRowIndex(6+iCnt, iFirstPositionIndex2+iCnt);
-      WorkVec.fPutRowIndex(9+iCnt, iFirstVelocityIndex2+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iFirstPositionIndex2+iCnt);
+      WorkVec.PutRowIndex(9+iCnt, iFirstVelocityIndex2+iCnt);
    }   
    
    Vec3 TmpDir(pNode1->GetRCurr()*(Dir*dAmplitude));

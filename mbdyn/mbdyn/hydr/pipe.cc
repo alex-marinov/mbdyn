@@ -128,12 +128,12 @@ Pipe::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iNode2ColIndex = pNode2->iGetFirstColIndex()+1;
    integer iFirstIndex = iGetFirstIndex()+1;
    
-   WM.fPutRowIndex(1, iNode1RowIndex);
-   WM.fPutRowIndex(2, iNode2RowIndex);
-   WM.fPutColIndex(1, iNode1ColIndex);
-   WM.fPutColIndex(2, iNode2ColIndex);
-   WM.fPutRowIndex(3, iFirstIndex);
-   WM.fPutColIndex(3, iFirstIndex);
+   WM.PutRowIndex(1, iNode1RowIndex);
+   WM.PutRowIndex(2, iNode2RowIndex);
+   WM.PutColIndex(1, iNode1ColIndex);
+   WM.PutColIndex(2, iNode2ColIndex);
+   WM.PutRowIndex(3, iFirstIndex);
+   WM.PutColIndex(3, iFirstIndex);
 
    doublereal p1 = pNode1->dGetX();
    doublereal p2 = pNode2->dGetX();
@@ -415,9 +415,9 @@ Pipe::AssRes(SubVectorHandler& WorkVec,
    DEBUGCOUT("RES Res_3:     " << Res_3 << std::endl);
 #endif /* HYDR_DEVEL */
    
-   WorkVec.fPutItem(1, iNode1RowIndex, Res_1);	
-   WorkVec.fPutItem(2, iNode2RowIndex, Res_2);
-   WorkVec.fPutItem(3, iFirstIndex, Res_3);
+   WorkVec.PutItem(1, iNode1RowIndex, Res_1);	
+   WorkVec.PutItem(2, iNode2RowIndex, Res_2);
+   WorkVec.PutItem(3, iFirstIndex, Res_3);
 
    return WorkVec;
 }
@@ -543,16 +543,16 @@ Dynamic_pipe::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iNode2ColIndex = pNode2->iGetFirstColIndex()+1;
    integer iFirstIndex = iGetFirstIndex();
   
-   WM.fPutRowIndex(1, iNode1RowIndex);
-   WM.fPutRowIndex(2, iNode2RowIndex);
-   WM.fPutColIndex(1, iNode1ColIndex);
-   WM.fPutColIndex(2, iNode2ColIndex);
-   WM.fPutRowIndex(3, iFirstIndex+1);
-   WM.fPutColIndex(3, iFirstIndex+1);
-   WM.fPutRowIndex(4, iFirstIndex+2);
-   WM.fPutColIndex(4, iFirstIndex+2);
-   WM.fPutRowIndex(5, iFirstIndex+3);
-   WM.fPutColIndex(5, iFirstIndex+3);
+   WM.PutRowIndex(1, iNode1RowIndex);
+   WM.PutRowIndex(2, iNode2RowIndex);
+   WM.PutColIndex(1, iNode1ColIndex);
+   WM.PutColIndex(2, iNode2ColIndex);
+   WM.PutRowIndex(3, iFirstIndex+1);
+   WM.PutColIndex(3, iFirstIndex+1);
+   WM.PutRowIndex(4, iFirstIndex+2);
+   WM.PutColIndex(4, iFirstIndex+2);
+   WM.PutRowIndex(5, iFirstIndex+3);
+   WM.PutColIndex(5, iFirstIndex+3);
    
    doublereal p1 = pNode1->dGetX();
    doublereal p2 = pNode2->dGetX();
@@ -939,11 +939,11 @@ Dynamic_pipe::AssRes(SubVectorHandler& WorkVec,
    DEBUGCOUT("RES Res_5:            " << Res_5 << std::endl);
 #endif   /* HYDR_DEVEL */ 
    
-   WorkVec.fPutItem(1, iNode1RowIndex, Res_1);	
-   WorkVec.fPutItem(2, iNode2RowIndex, Res_2);
-   WorkVec.fPutItem(3, iFirstIndex+1, Res_3);
-   WorkVec.fPutItem(4, iFirstIndex+2, Res_4);    
-   WorkVec.fPutItem(5, iFirstIndex+3, Res_5);
+   WorkVec.PutItem(1, iNode1RowIndex, Res_1);	
+   WorkVec.PutItem(2, iNode2RowIndex, Res_2);
+   WorkVec.PutItem(3, iFirstIndex+1, Res_3);
+   WorkVec.PutItem(4, iFirstIndex+2, Res_4);    
+   WorkVec.PutItem(5, iFirstIndex+3, Res_5);
    
    return WorkVec;
 }
@@ -1092,19 +1092,19 @@ DynamicPipe::AssJac(VariableSubMatrixHandler& WorkMat,
    
    integer iFirstIndex = iGetFirstIndex();  
    
-   WM.fPutRowIndex(1, iNode1RowIndex);
-   WM.fPutRowIndex(2, iNode2RowIndex);
-   WM.fPutRowIndex(3, iFirstIndex+1);
-   WM.fPutRowIndex(4, iFirstIndex+2);
-   WM.fPutRowIndex(5, iFirstIndex+3);
-   WM.fPutRowIndex(6, iFirstIndex+4);
+   WM.PutRowIndex(1, iNode1RowIndex);
+   WM.PutRowIndex(2, iNode2RowIndex);
+   WM.PutRowIndex(3, iFirstIndex+1);
+   WM.PutRowIndex(4, iFirstIndex+2);
+   WM.PutRowIndex(5, iFirstIndex+3);
+   WM.PutRowIndex(6, iFirstIndex+4);
    
-   WM.fPutColIndex(1, iNode1ColIndex);
-   WM.fPutColIndex(2, iNode2ColIndex);
-   WM.fPutColIndex(3, iFirstIndex+1);
-   WM.fPutColIndex(4, iFirstIndex+2);
-   WM.fPutColIndex(5, iFirstIndex+3);
-   WM.fPutColIndex(6, iFirstIndex+4);
+   WM.PutColIndex(1, iNode1ColIndex);
+   WM.PutColIndex(2, iNode2ColIndex);
+   WM.PutColIndex(3, iFirstIndex+1);
+   WM.PutColIndex(4, iFirstIndex+2);
+   WM.PutColIndex(5, iFirstIndex+3);
+   WM.PutColIndex(6, iFirstIndex+4);
 
    doublereal dRDP1 = HF->dGetDensityDPres(p1);
    doublereal dRDP2 = HF->dGetDensityDPres(p2);
@@ -1326,21 +1326,21 @@ DynamicPipe::AssRes(SubVectorHandler& WorkVec,
 
    /* mass conservation */
    doublereal dr = area*length/8.;
-   WorkVec.fPutItem(1, iNode1RowIndex , q12+dr*densityDPres1*(3.*p1p+p2p));
-   WorkVec.fPutItem(2, iNode2RowIndex , -q12+dr*densityDPres2*(p1p+3.*p2p));
+   WorkVec.PutItem(1, iNode1RowIndex , q12+dr*densityDPres1*(3.*p1p+p2p));
+   WorkVec.PutItem(2, iNode2RowIndex , -q12+dr*densityDPres2*(p1p+3.*p2p));
    
    /* momentum balance */
    doublereal dp = .5*area*(p2-p1);
    doublereal dq12 = q12*q12/(density0*area);
    dr = length/8.;
-   WorkVec.fPutItem(3, iFirstIndex+1,
+   WorkVec.PutItem(3, iFirstIndex+1,
 		    -dr*(3.*q1p+q2p)-dq12+q1*q1/(density1*area)-dp-dLoss1);
-   WorkVec.fPutItem(4, iFirstIndex+2,
+   WorkVec.PutItem(4, iFirstIndex+2,
 		    -dr*(q1p+3.*q2p)-q2*q2/(density2*area)+dq12-dp-dLoss2);
    
    /* differential pressure definition */
-   WorkVec.fPutItem(5, iFirstIndex+3, pn1-p1);
-   WorkVec.fPutItem(6, iFirstIndex+4, pn2-p2);
+   WorkVec.PutItem(5, iFirstIndex+3, pn1-p1);
+   WorkVec.PutItem(6, iFirstIndex+4, pn2-p2);
       
    return WorkVec;
 }

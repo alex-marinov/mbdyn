@@ -138,13 +138,13 @@ PrismaticJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Setta gli indici delle equazioni */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WM.fPutRowIndex(0+iCnt, iNode1FirstMomIndex+iCnt);
-      WM.fPutColIndex(0+iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
-      WM.fPutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutRowIndex(0+iCnt, iNode1FirstMomIndex+iCnt);
+      WM.PutColIndex(0+iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
+      WM.PutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
 	
-      WM.fPutRowIndex(6+iCnt, iFirstReactionIndex+iCnt);
-      WM.fPutColIndex(6+iCnt, iFirstReactionIndex+iCnt);
+      WM.PutRowIndex(6+iCnt, iFirstReactionIndex+iCnt);
+      WM.PutColIndex(6+iCnt, iFirstReactionIndex+iCnt);
    }
    
    Vec3 MTmp = M*dCoef; /* M e' stato aggiornato da AssRes */
@@ -219,10 +219,10 @@ SubVectorHandler& PrismaticJoint::AssRes(SubVectorHandler& WorkVec,
    
    /* Indici dei nodi */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WorkVec.fPutRowIndex(0+iCnt, iNode1FirstMomIndex+iCnt);
-      WorkVec.fPutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(0+iCnt, iNode1FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
       
-      WorkVec.fPutRowIndex(6+iCnt, iFirstReactionIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iFirstReactionIndex+iCnt);
    }   
    
    /* Aggiorna i dati propri */
@@ -303,20 +303,20 @@ PrismaticJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Setta gli indici dei nodi */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(0+iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutColIndex(0+iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutRowIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
-      WM.fPutColIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
-      WM.fPutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutRowIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
-      WM.fPutColIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
+      WM.PutRowIndex(0+iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutColIndex(0+iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutRowIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
+      WM.PutColIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
+      WM.PutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutRowIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
+      WM.PutColIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
    }
    
    /* Setta gli indici delle reazioni */
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WM.fPutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
-      WM.fPutColIndex(12+iCnt, iFirstReactionIndex+iCnt);	
+      WM.PutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
+      WM.PutColIndex(12+iCnt, iFirstReactionIndex+iCnt);	
    }   
    
    /* Recupera i dati */
@@ -481,14 +481,14 @@ PrismaticJoint::InitialAssRes(SubVectorHandler& WorkVec,
    
    /* Setta gli indici */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WorkVec.fPutRowIndex(0+iCnt, iNode1FirstPosIndex+iCnt);
-      WorkVec.fPutRowIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-      WorkVec.fPutRowIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
+      WorkVec.PutRowIndex(0+iCnt, iNode1FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
    }
    
    for (int iCnt = 1; iCnt <= 6; iCnt++) {      
-      WorkVec.fPutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
+      WorkVec.PutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
    }   
 
    /* Recupera i dati */

@@ -152,15 +152,15 @@ UniversalHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Setta gli indici delle equazioni */
    for (int iCnt = 1; iCnt <= 6; iCnt++) {	
-      WM.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
-      WM.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+      WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
    }
    
    for (int iCnt = 1; iCnt <= 4; iCnt++) {	
-      WM.fPutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
-      WM.fPutColIndex(12+iCnt, iFirstReactionIndex+iCnt);
+      WM.PutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
+      WM.PutColIndex(12+iCnt, iFirstReactionIndex+iCnt);
    }
    
    /* Contributo della forza alle equazioni di equilibrio dei due nodi */
@@ -251,13 +251,13 @@ SubVectorHandler& UniversalHingeJoint::AssRes(SubVectorHandler& WorkVec,
    
    /* Indici dei nodi */
    for (int iCnt = 1; iCnt <= 6; iCnt++) {	
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
    }   
    
    /* Indici del vincolo */
    for (int iCnt = 1; iCnt <= 4; iCnt++) {
-      WorkVec.fPutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
+      WorkVec.PutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
    }
 
    /* Aggiorna i dati propri */
@@ -369,20 +369,20 @@ UniversalHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Setta gli indici dei nodi */
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WM.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutRowIndex(6+iCnt, iNode1FirstVelIndex+iCnt);
-      WM.fPutColIndex(6+iCnt, iNode1FirstVelIndex+iCnt);
-      WM.fPutRowIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutColIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutRowIndex(18+iCnt, iNode2FirstVelIndex+iCnt);
-      WM.fPutColIndex(18+iCnt, iNode2FirstVelIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutRowIndex(6+iCnt, iNode1FirstVelIndex+iCnt);
+      WM.PutColIndex(6+iCnt, iNode1FirstVelIndex+iCnt);
+      WM.PutRowIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutColIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutRowIndex(18+iCnt, iNode2FirstVelIndex+iCnt);
+      WM.PutColIndex(18+iCnt, iNode2FirstVelIndex+iCnt);
    }
    
    /* Setta gli indici delle reazioni */
    for (int iCnt = 1; iCnt <= 8; iCnt++) {
-      WM.fPutRowIndex(24+iCnt, iFirstReactionIndex+iCnt);
-      WM.fPutColIndex(24+iCnt, iFirstReactionIndex+iCnt);	
+      WM.PutRowIndex(24+iCnt, iFirstReactionIndex+iCnt);
+      WM.PutColIndex(24+iCnt, iFirstReactionIndex+iCnt);	
    }   
    
    /* Matrici identita' */   
@@ -570,14 +570,14 @@ UniversalHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    
    /* Setta gli indici */
    for (int iCnt = 1; iCnt <= 6; iCnt++) {	
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iNode1FirstVelIndex+iCnt);
-      WorkVec.fPutRowIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
-      WorkVec.fPutRowIndex(18+iCnt, iNode2FirstVelIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iNode1FirstVelIndex+iCnt);
+      WorkVec.PutRowIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(18+iCnt, iNode2FirstVelIndex+iCnt);
    }
    
    for (int iCnt = 1; iCnt <= 8; iCnt++) {
-      WorkVec.fPutRowIndex(24+iCnt, iFirstReactionIndex+iCnt);
+      WorkVec.PutRowIndex(24+iCnt, iFirstReactionIndex+iCnt);
    }
    
    /* Recupera i dati */
@@ -763,14 +763,14 @@ UniversalRotationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Setta gli indici delle equazioni */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WM.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
-      WM.fPutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
+      WM.PutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
    }
    
-   WM.fPutRowIndex(6+1, iFirstReactionIndex+1);
-   WM.fPutColIndex(6+1, iFirstReactionIndex+1);
+   WM.PutRowIndex(6+1, iFirstReactionIndex+1);
+   WM.PutColIndex(6+1, iFirstReactionIndex+1);
    
    Vec3 e3a(R1hTmp.GetVec(3));
    Vec3 e2b(R2hTmp.GetVec(2));
@@ -825,12 +825,12 @@ UniversalRotationJoint::AssRes(SubVectorHandler& WorkVec,
    
    /* Indici dei nodi */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WorkVec.fPutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
    }   
    
    /* Indici del vincolo */
-   WorkVec.fPutRowIndex(6+1, iFirstReactionIndex+1);
+   WorkVec.PutRowIndex(6+1, iFirstReactionIndex+1);
 
    /* Aggiorna i dati propri */
    dM = XCurr.dGetCoef(iFirstReactionIndex+1);
@@ -939,20 +939,20 @@ UniversalRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Setta gli indici dei nodi */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutRowIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
-      WM.fPutColIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
-      WM.fPutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutRowIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
-      WM.fPutColIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutRowIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
+      WM.PutColIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
+      WM.PutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutRowIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
+      WM.PutColIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
    }
    
    /* Setta gli indici delle reazioni */
    for (int iCnt = 1; iCnt <= 2; iCnt++) {
-      WM.fPutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
-      WM.fPutColIndex(12+iCnt, iFirstReactionIndex+iCnt);	
+      WM.PutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
+      WM.PutColIndex(12+iCnt, iFirstReactionIndex+iCnt);	
    }   
    
    /* Recupera i dati */
@@ -1086,14 +1086,14 @@ UniversalRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
    
    /* Setta gli indici */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WorkVec.fPutRowIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-      WorkVec.fPutRowIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
    }
    
    for (int iCnt = 1; iCnt <= 2; iCnt++) {
-      WorkVec.fPutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
+      WorkVec.PutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
    }
    
    /* Recupera i dati */
@@ -1241,9 +1241,9 @@ UniversalPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    
    /* termini di reazione sul nodo (forza e momento) */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutItem(iCnt, iFirstMomentumIndex+iCnt, 
+      WM.PutItem(iCnt, iFirstMomentumIndex+iCnt, 
 		  iFirstReactionIndex+iCnt, 1.);
-      WM.fPutItem(3+iCnt, 3+iFirstMomentumIndex+iCnt,
+      WM.PutItem(3+iCnt, 3+iFirstMomentumIndex+iCnt,
 		  iFirstReactionIndex+4, Tmp.dGet(iCnt));
    }   
    
@@ -1262,7 +1262,7 @@ UniversalPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    
    /* termini di vincolo dovuti al nodo 1 */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutItem(21+iCnt, iFirstReactionIndex+iCnt, 
+      WM.PutItem(21+iCnt, iFirstReactionIndex+iCnt, 
 		  iFirstPositionIndex+iCnt, -1.);
    }
    
@@ -1270,7 +1270,7 @@ UniversalPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		iFirstPositionIndex+3, dTmp);
    
    for (int iCnt = 1; iCnt <= 3; iCnt ++) {
-      WM.fPutItem(30+iCnt, iFirstReactionIndex+4, 
+      WM.PutItem(30+iCnt, iFirstReactionIndex+4, 
 		  iFirstPositionIndex+3+iCnt, Tmp.dGet(iCnt));	
    }
    
@@ -1298,12 +1298,12 @@ SubVectorHandler& UniversalPinJoint::AssRes(SubVectorHandler& WorkVec,
    
    /* Indici dei nodi */
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
    }
    
    /* Indici del vincolo */
    for (int iCnt = 1; iCnt <= 4; iCnt++) {
-      WorkVec.fPutRowIndex(6+iCnt, iFirstReactionIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iFirstReactionIndex+iCnt);
    }
 
    F = Vec3(XCurr, iFirstReactionIndex+1);
@@ -1371,15 +1371,15 @@ UniversalPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Setto gli indici */
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WM.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
-      WM.fPutColIndex(iCnt, iFirstPositionIndex+iCnt);
-      WM.fPutRowIndex(6+iCnt, iFirstVelocityIndex+iCnt);
-      WM.fPutColIndex(6+iCnt, iFirstVelocityIndex+iCnt);
+      WM.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);
+      WM.PutColIndex(iCnt, iFirstPositionIndex+iCnt);
+      WM.PutRowIndex(6+iCnt, iFirstVelocityIndex+iCnt);
+      WM.PutColIndex(6+iCnt, iFirstVelocityIndex+iCnt);
    }
    
    for (int iCnt = 1; iCnt <= 8; iCnt++) {
-      WM.fPutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
-      WM.fPutColIndex(12+iCnt, iFirstReactionIndex+iCnt);
+      WM.PutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
+      WM.PutColIndex(12+iCnt, iFirstReactionIndex+iCnt);
    }   
       
    /* Recupera i dati */
@@ -1510,12 +1510,12 @@ UniversalPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
    
    /* Setta gli indici */
    for (int iCnt = 1; iCnt <= 6; iCnt++) {	
-      WorkVec.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iFirstVelocityIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iFirstVelocityIndex+iCnt);
    }
    
    for (int iCnt = 1; iCnt <= 8; iCnt++) {	
-      WorkVec.fPutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
+      WorkVec.PutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
    }
    
    /* Recupera i dati */

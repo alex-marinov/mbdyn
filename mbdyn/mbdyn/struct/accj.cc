@@ -123,17 +123,17 @@ LinearAccelerationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iIndex = iGetFirstIndex();
       
    doublereal d = Dir.dGet(1);
-   WorkMat.fPutItem(1, iIndex+1, iNodeColIndex+1, d);
-   WorkMat.fPutItem(2, iNodeRowIndex+1, iIndex+2, d);
+   WorkMat.PutItem(1, iIndex+1, iNodeColIndex+1, d);
+   WorkMat.PutItem(2, iNodeRowIndex+1, iIndex+2, d);
    d = Dir.dGet(2);
-   WorkMat.fPutItem(3, iIndex+1, iNodeColIndex+2, d);
-   WorkMat.fPutItem(4, iNodeRowIndex+2, iIndex+2, d);
+   WorkMat.PutItem(3, iIndex+1, iNodeColIndex+2, d);
+   WorkMat.PutItem(4, iNodeRowIndex+2, iIndex+2, d);
    d = Dir.dGet(3);
-   WorkMat.fPutItem(5, iIndex+1, iNodeColIndex+3, d);
-   WorkMat.fPutItem(6, iNodeRowIndex+3, iIndex+2, d);
+   WorkMat.PutItem(5, iIndex+1, iNodeColIndex+3, d);
+   WorkMat.PutItem(6, iNodeRowIndex+3, iIndex+2, d);
    
-   WorkMat.fPutItem(7, iIndex+1, iIndex+1, -dCoef);
-   WorkMat.fPutItem(8, iIndex+2, iIndex+1, 1.);   
+   WorkMat.PutItem(7, iIndex+1, iIndex+1, -dCoef);
+   WorkMat.PutItem(8, iIndex+2, iIndex+1, 1.);   
    
    return WorkMat;
 }
@@ -156,11 +156,11 @@ LinearAccelerationJoint::AssRes(SubVectorHandler& WorkVec,
    
    Vec3 V = pNode->GetVCurr();
    
-   WorkVec.fPutItem(1, iNodeRowIndex+1, -dF*Dir.dGet(1));
-   WorkVec.fPutItem(2, iNodeRowIndex+2, -dF*Dir.dGet(2));
-   WorkVec.fPutItem(3, iNodeRowIndex+3, -dF*Dir.dGet(3));
-   WorkVec.fPutItem(4, iIndex+1, dQ-Dir.Dot(V));
-   WorkVec.fPutItem(5, iIndex+2, dGet()-dQP);
+   WorkVec.PutItem(1, iNodeRowIndex+1, -dF*Dir.dGet(1));
+   WorkVec.PutItem(2, iNodeRowIndex+2, -dF*Dir.dGet(2));
+   WorkVec.PutItem(3, iNodeRowIndex+3, -dF*Dir.dGet(3));
+   WorkVec.PutItem(4, iIndex+1, dQ-Dir.Dot(V));
+   WorkVec.PutItem(5, iIndex+2, dGet()-dQP);
    
    return WorkVec;
 }
@@ -343,17 +343,17 @@ AngularAccelerationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    Vec3 TmpDir = pNode->GetRRef()*Dir;
    
    doublereal d = TmpDir.dGet(1);
-   WorkMat.fPutItem(1, iIndex+1, iNodeColIndex+4, d);
-   WorkMat.fPutItem(2, iNodeRowIndex+4, iIndex+2, d);
+   WorkMat.PutItem(1, iIndex+1, iNodeColIndex+4, d);
+   WorkMat.PutItem(2, iNodeRowIndex+4, iIndex+2, d);
    d = TmpDir.dGet(2);
-   WorkMat.fPutItem(3, iIndex+1, iNodeColIndex+5, d);
-   WorkMat.fPutItem(4, iNodeRowIndex+5, iIndex+2, d);
+   WorkMat.PutItem(3, iIndex+1, iNodeColIndex+5, d);
+   WorkMat.PutItem(4, iNodeRowIndex+5, iIndex+2, d);
    d = TmpDir.dGet(3);
-   WorkMat.fPutItem(5, iIndex+1, iNodeColIndex+6, d);
-   WorkMat.fPutItem(6, iNodeRowIndex+6, iIndex+2, d);     
+   WorkMat.PutItem(5, iIndex+1, iNodeColIndex+6, d);
+   WorkMat.PutItem(6, iNodeRowIndex+6, iIndex+2, d);     
    
-   WorkMat.fPutItem(7, iIndex+1, iIndex+1, -dCoef);
-   WorkMat.fPutItem(8, iIndex+2, iIndex+1, 1.);      
+   WorkMat.PutItem(7, iIndex+1, iIndex+1, -dCoef);
+   WorkMat.PutItem(8, iIndex+2, iIndex+1, 1.);      
    
    return WorkMat;
 }
@@ -377,11 +377,11 @@ AngularAccelerationJoint::AssRes(SubVectorHandler& WorkVec,
    Vec3 W = pNode->GetWCurr();
    Vec3 TmpDir = pNode->GetRCurr()*Dir;
    
-   WorkVec.fPutItem(1, iNodeRowIndex+4, -dM*TmpDir.dGet(1));
-   WorkVec.fPutItem(2, iNodeRowIndex+5, -dM*TmpDir.dGet(2));
-   WorkVec.fPutItem(3, iNodeRowIndex+6, -dM*TmpDir.dGet(3));
-   WorkVec.fPutItem(4, iIndex+1, dQ-TmpDir.Dot(W));
-   WorkVec.fPutItem(5, iIndex+2, dGet()-dQP);
+   WorkVec.PutItem(1, iNodeRowIndex+4, -dM*TmpDir.dGet(1));
+   WorkVec.PutItem(2, iNodeRowIndex+5, -dM*TmpDir.dGet(2));
+   WorkVec.PutItem(3, iNodeRowIndex+6, -dM*TmpDir.dGet(3));
+   WorkVec.PutItem(4, iIndex+1, dQ-TmpDir.Dot(W));
+   WorkVec.PutItem(5, iIndex+2, dGet()-dQP);
    
    return WorkVec;
 }

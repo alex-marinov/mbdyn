@@ -129,29 +129,29 @@ Accelerometer::AssJac(VariableSubMatrixHandler& WorkMat,
     */
    
    /* Dinamica dell'accelerometro */
-   WM.fPutItem(1, iFirstIndex+1, iFirstIndex+1, dCoef);
-   WM.fPutItem(2, iAbstractIndex+1, iFirstIndex+1, -dKappa*dOmega*dOmega);
-   WM.fPutItem(3, iFirstIndex+2, iFirstIndex+2, 1.);
-   WM.fPutItem(4, iAbstractIndex+1, iFirstIndex+2, -dCoef);
-   WM.fPutItem(5, iFirstIndex+2, iFirstIndex+3, dCoef*dOmega*dOmega/dTau);
-   WM.fPutItem(6, iFirstIndex+3, iFirstIndex+3, 
+   WM.PutItem(1, iFirstIndex+1, iFirstIndex+1, dCoef);
+   WM.PutItem(2, iAbstractIndex+1, iFirstIndex+1, -dKappa*dOmega*dOmega);
+   WM.PutItem(3, iFirstIndex+2, iFirstIndex+2, 1.);
+   WM.PutItem(4, iAbstractIndex+1, iFirstIndex+2, -dCoef);
+   WM.PutItem(5, iFirstIndex+2, iFirstIndex+3, dCoef*dOmega*dOmega/dTau);
+   WM.PutItem(6, iFirstIndex+3, iFirstIndex+3, 
 	       1.+dCoef*(2.*dCsi*dOmega+1./dTau));
-   WM.fPutItem(7, iAbstractIndex+1, iFirstIndex+3, 
+   WM.PutItem(7, iAbstractIndex+1, iFirstIndex+3, 
 	       dCoef*dOmega*(dOmega+2.*dCsi/dTau));
-   WM.fPutItem(8, iFirstIndex+3, iAbstractIndex+1, -dCoef);
-   WM.fPutItem(9, iAbstractIndex+1, iAbstractIndex+1, 1.);
+   WM.PutItem(8, iFirstIndex+3, iAbstractIndex+1, -dCoef);
+   WM.PutItem(9, iAbstractIndex+1, iAbstractIndex+1, 1.);
       
    /* Misura dell'accelerazione */
    Vec3 TmpDir((pStrNode->GetRRef())*Dir);
    for(int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutItem(9+iCnt, iFirstIndex+1, iFirstPositionIndex+iCnt, 
+      WM.PutItem(9+iCnt, iFirstIndex+1, iFirstPositionIndex+iCnt, 
 		  -TmpDir.dGet(iCnt));
    }
    
    Vec3 XP(pStrNode->GetVCurr());
    TmpDir = -TmpDir.Cross(XP);
    for(int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutItem(12+iCnt, iFirstIndex+1, iFirstPositionIndex+3+iCnt, 
+      WM.PutItem(12+iCnt, iFirstIndex+1, iFirstPositionIndex+3+iCnt, 
 		  dCoef*TmpDir.dGet(iCnt));
    }
    
@@ -188,10 +188,10 @@ Accelerometer::AssRes(SubVectorHandler& WorkVec,
     * 
     * per il significato dei termini vedi AssJac */
     
-   WorkVec.fPutRowIndex(1, iFirstIndex+1);
-   WorkVec.fPutRowIndex(2, iFirstIndex+2);
-   WorkVec.fPutRowIndex(3, iFirstIndex+3);
-   WorkVec.fPutRowIndex(4, iAbstractIndex+1);
+   WorkVec.PutRowIndex(1, iFirstIndex+1);
+   WorkVec.PutRowIndex(2, iFirstIndex+2);
+   WorkVec.PutRowIndex(3, iFirstIndex+3);
+   WorkVec.PutRowIndex(4, iAbstractIndex+1);
    
    Vec3 XP(pStrNode->GetVCurr());
    Mat3x3 R(pStrNode->GetRCurr());
@@ -305,21 +305,21 @@ TraslAccel::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iAbstractIndex = pAbsNode->iGetFirstIndex()+1;
    integer iFirstIndex = iGetFirstIndex()+1;
 
-   WM.fPutItem(1, iAbstractIndex, iAbstractIndex, dCoef);
-   WM.fPutItem(2, iAbstractIndex, iFirstIndex, -1.);
-   WM.fPutItem(3, iFirstIndex, iFirstIndex, dCoef);
+   WM.PutItem(1, iAbstractIndex, iAbstractIndex, dCoef);
+   WM.PutItem(2, iAbstractIndex, iFirstIndex, -1.);
+   WM.PutItem(3, iFirstIndex, iFirstIndex, dCoef);
    
    Vec3 tmpf = pStrNode->GetRCurr()*f;
    Vec3 tmpd = pStrNode->GetRCurr()*Dir;
    Vec3 tmp = tmpf.Cross(tmpd);
-   WM.fPutItem(4, iFirstIndex, iFirstColIndex+1, -tmpd.dGet(1));
-   WM.fPutItem(5, iFirstIndex, iFirstColIndex+2, -tmpd.dGet(2));
-   WM.fPutItem(6, iFirstIndex, iFirstColIndex+3, -tmpd.dGet(3));
+   WM.PutItem(4, iFirstIndex, iFirstColIndex+1, -tmpd.dGet(1));
+   WM.PutItem(5, iFirstIndex, iFirstColIndex+2, -tmpd.dGet(2));
+   WM.PutItem(6, iFirstIndex, iFirstColIndex+3, -tmpd.dGet(3));
    
    tmp = tmpd.Cross((pStrNode->GetVCurr()*(-dCoef)+tmpf));
-   WM.fPutItem(7, iFirstIndex, iFirstColIndex+4, tmp.dGet(1));
-   WM.fPutItem(8, iFirstIndex, iFirstColIndex+5, tmp.dGet(2));
-   WM.fPutItem(9, iFirstIndex, iFirstColIndex+6, tmp.dGet(3));
+   WM.PutItem(7, iFirstIndex, iFirstColIndex+4, tmp.dGet(1));
+   WM.PutItem(8, iFirstIndex, iFirstColIndex+5, tmp.dGet(2));
+   WM.PutItem(9, iFirstIndex, iFirstColIndex+6, tmp.dGet(3));
 
    return WorkMat;
 }
@@ -340,8 +340,8 @@ TraslAccel::AssRes(SubVectorHandler& WorkVec,
    integer iAbstractIndex = pAbsNode->iGetFirstIndex()+1;
    integer iFirstIndex = iGetFirstIndex()+1;
 
-   WorkVec.fPutRowIndex(1, iAbstractIndex);
-   WorkVec.fPutRowIndex(2, iFirstIndex);
+   WorkVec.PutRowIndex(1, iAbstractIndex);
+   WorkVec.PutRowIndex(2, iFirstIndex);
    
    Vec3 tmpf = pStrNode->GetRCurr()*f;
    Vec3 tmpd = pStrNode->GetRCurr()*Dir;
@@ -450,14 +450,14 @@ RotAccel::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iAbstractIndex = pAbsNode->iGetFirstIndex()+1;
    integer iFirstIndex = iGetFirstIndex()+1;
 
-   WM.fPutItem(1, iAbstractIndex, iAbstractIndex, dCoef);
-   WM.fPutItem(2, iAbstractIndex, iFirstIndex, -1.);
-   WM.fPutItem(3, iFirstIndex, iFirstIndex, dCoef);
+   WM.PutItem(1, iAbstractIndex, iAbstractIndex, dCoef);
+   WM.PutItem(2, iAbstractIndex, iFirstIndex, -1.);
+   WM.PutItem(3, iFirstIndex, iFirstIndex, dCoef);
    
    Vec3 tmp = pStrNode->GetRCurr()*Dir;
-   WM.fPutItem(4, iFirstIndex, iFirstColIndex+4, tmp.dGet(1));
-   WM.fPutItem(5, iFirstIndex, iFirstColIndex+5, tmp.dGet(2));
-   WM.fPutItem(6, iFirstIndex, iFirstColIndex+6, tmp.dGet(3));
+   WM.PutItem(4, iFirstIndex, iFirstColIndex+4, tmp.dGet(1));
+   WM.PutItem(5, iFirstIndex, iFirstColIndex+5, tmp.dGet(2));
+   WM.PutItem(6, iFirstIndex, iFirstColIndex+6, tmp.dGet(3));
 
    return WorkMat;
 }
@@ -478,8 +478,8 @@ RotAccel::AssRes(SubVectorHandler& WorkVec,
    integer iAbstractIndex = pAbsNode->iGetFirstIndex()+1;
    integer iFirstIndex = iGetFirstIndex()+1;
 
-   WorkVec.fPutRowIndex(1, iAbstractIndex);
-   WorkVec.fPutRowIndex(2, iFirstIndex);
+   WorkVec.PutRowIndex(1, iAbstractIndex);
+   WorkVec.PutRowIndex(2, iFirstIndex);
    
    Vec3 tmp = pStrNode->GetRCurr()*Dir;
    

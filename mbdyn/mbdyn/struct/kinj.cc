@@ -77,15 +77,15 @@ KinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iFirstIndex = iGetFirstIndex();
    
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WM.fPutRowIndex(iCnt, iNodeFirstMomentumIndex+iCnt);
-      WM.fPutRowIndex(6+iCnt, iFirstIndex+iCnt);
-      WM.fPutRowIndex(12+iCnt, iFirstIndex+6+iCnt);
-      WM.fPutRowIndex(18+iCnt, iFirstIndex+12+iCnt);      
+      WM.PutRowIndex(iCnt, iNodeFirstMomentumIndex+iCnt);
+      WM.PutRowIndex(6+iCnt, iFirstIndex+iCnt);
+      WM.PutRowIndex(12+iCnt, iFirstIndex+6+iCnt);
+      WM.PutRowIndex(18+iCnt, iFirstIndex+12+iCnt);      
       
-      WM.fPutColIndex(iCnt, iNodeFirstPositionIndex+iCnt);
-      WM.fPutColIndex(6+iCnt, iFirstIndex+iCnt);
-      WM.fPutColIndex(12+iCnt, iFirstIndex+6+iCnt);
-      WM.fPutColIndex(18+iCnt, iFirstIndex+12+iCnt);      
+      WM.PutColIndex(iCnt, iNodeFirstPositionIndex+iCnt);
+      WM.PutColIndex(6+iCnt, iFirstIndex+iCnt);
+      WM.PutColIndex(12+iCnt, iFirstIndex+6+iCnt);
+      WM.PutColIndex(18+iCnt, iFirstIndex+12+iCnt);      
    }
      
    /* suppongo dati: */   
@@ -145,10 +145,10 @@ KinJoint::AssRes(SubVectorHandler& WorkVec,
    integer iFirstIndex = iGetFirstIndex();
    
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iNodeFirstMomentumIndex+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iFirstIndex+iCnt);
-      WorkVec.fPutRowIndex(12+iCnt, iFirstIndex+6+iCnt);
-      WorkVec.fPutRowIndex(18+iCnt, iFirstIndex+12+iCnt);      
+      WorkVec.PutRowIndex(iCnt, iNodeFirstMomentumIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iFirstIndex+iCnt);
+      WorkVec.PutRowIndex(12+iCnt, iFirstIndex+6+iCnt);
+      WorkVec.PutRowIndex(18+iCnt, iFirstIndex+12+iCnt);      
    }
    
    v = Vec3(XCurr, iFirstIndex+1);

@@ -115,8 +115,8 @@ Body::AssJac(VariableSubMatrixHandler& WorkMat,
      * e' dato da iGetFirstPositionIndex()+i */
     integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
     for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-        WM.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
-        WM.fPutColIndex(iCnt, iFirstPositionIndex+iCnt);   
+        WM.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);
+        WM.PutColIndex(iCnt, iFirstPositionIndex+iCnt);   
     }
       
     AssMat_(WM, WM, dCoef, XCurr, XPrimeCurr);
@@ -150,11 +150,11 @@ Body::AssMats(VariableSubMatrixHandler& WorkMatA,
      * e' dato da iGetFirstPositionIndex()+i */
     integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
     for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-        WMA.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
-        WMA.fPutColIndex(iCnt, iFirstPositionIndex+iCnt);
+        WMA.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);
+        WMA.PutColIndex(iCnt, iFirstPositionIndex+iCnt);
       
-        WMB.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
-        WMB.fPutColIndex(iCnt, iFirstPositionIndex+iCnt);
+        WMB.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);
+        WMB.PutColIndex(iCnt, iFirstPositionIndex+iCnt);
     }   
    
     AssMat_(WMA, WMB, 1., XCurr, XPrimeCurr);
@@ -230,7 +230,7 @@ Body::AssRes(SubVectorHandler& WorkVec,
 
     integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
     for (integer iCnt = 1; iCnt <= iNumRows; iCnt++) {
-        WorkVec.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
+        WorkVec.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);
     }
       
     Vec3 V(pNode->GetVCurr());
@@ -283,9 +283,9 @@ Body::InitialAssJac(VariableSubMatrixHandler& WorkMat,
     integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
     integer iFirstVelocityIndex = iFirstPositionIndex+6;
     for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-        WM.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
-        WM.fPutRowIndex(6+iCnt, iFirstVelocityIndex+iCnt);
-        WM.fPutColIndex(iCnt, iFirstPositionIndex+iCnt);
+        WM.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);
+        WM.PutRowIndex(6+iCnt, iFirstVelocityIndex+iCnt);
+        WM.PutColIndex(iCnt, iFirstPositionIndex+iCnt);
     }   
    
     /* Prepara matrici e vettori */
@@ -339,7 +339,7 @@ Body::InitialAssRes(SubVectorHandler& WorkVec,
    
     integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
     for (integer iCnt = 1; iCnt <= 12; iCnt++) {
-        WorkVec.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
+        WorkVec.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);
     }
     
     Vec3 X(pNode->GetXCurr());

@@ -123,8 +123,8 @@ class BulkSpringSupport
 	
 	integer iRowIndex = SD.pNode->iGetFirstRowIndex()+1;
 	integer iColIndex = SD.pNode->iGetFirstColIndex()+1;
-	WM.fPutRowIndex(1, iRowIndex);
-	WM.fPutColIndex(1, iColIndex);
+	WM.PutRowIndex(1, iRowIndex);
+	WM.PutColIndex(1, iColIndex);
 	
 	doublereal d = dGet();
 	if (SD.iOrder == 0) {
@@ -145,7 +145,7 @@ class BulkSpringSupport
 
       integer iRowIndex = SD.pNode->iGetFirstRowIndex()+1;
       doublereal dVal = SD.pNode->dGetDofValue(1, SD.iOrder);
-      WorkVec.fPutItem(1, iRowIndex, -dGet()*dVal);
+      WorkVec.PutItem(1, iRowIndex, -dGet()*dVal);
 
       return WorkVec;
    };

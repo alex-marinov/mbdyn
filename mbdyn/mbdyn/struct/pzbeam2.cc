@@ -214,14 +214,14 @@ PiezoActuatorBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 	WM.ResizeInit(12, 12+iNumElec, 0.);
 	
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WM.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-		WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-		WM.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
-		WM.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+		WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+		WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+		WM.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+		WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
 	}
 	
 	for (int iCnt = 1; iCnt <= iNumElec; iCnt++) {
-		WM.fPutColIndex(12+iCnt,
+		WM.PutColIndex(12+iCnt,
 				pvElecDofs[iCnt-1]->iGetFirstColIndex()+1);
 	}   
 	
@@ -432,14 +432,14 @@ PiezoActuatorVEBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 	WM.ResizeInit(12, 12+iNumElec, 0.);
 	
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WM.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-		WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-		WM.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
-		WM.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+		WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+		WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+		WM.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+		WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
 	}
 	
 	for (int iCnt = 1; iCnt <= iNumElec; iCnt++) {
-		WM.fPutColIndex(12+iCnt,
+		WM.PutColIndex(12+iCnt,
 				pvElecDofs[iCnt-1]->iGetFirstColIndex()+1);
 	}
 	

@@ -134,15 +134,15 @@ RotorTrim::AssJac(VariableSubMatrixHandler& WorkMat,
 	
 	iRowIndex = pvNodes[0]->iGetFirstRowIndex()+1;
 	iColIndex = pvNodes[0]->iGetFirstColIndex()+1;
-        WM.fPutItem(1, iRowIndex, iColIndex, dTau0+dCoef);      
+        WM.PutItem(1, iRowIndex, iColIndex, dTau0+dCoef);      
 
  	iRowIndex = pvNodes[1]->iGetFirstRowIndex()+1;
 	iColIndex = pvNodes[1]->iGetFirstColIndex()+1;
-        WM.fPutItem(2, iRowIndex, iColIndex, dTau1+dCoef);      
+        WM.PutItem(2, iRowIndex, iColIndex, dTau1+dCoef);      
 
  	iRowIndex = pvNodes[2]->iGetFirstRowIndex()+1;
 	iColIndex = pvNodes[2]->iGetFirstColIndex()+1;
-        WM.fPutItem(3, iRowIndex, iColIndex, dTau1+dCoef);      
+        WM.PutItem(3, iRowIndex, iColIndex, dTau1+dCoef);      
 
         return WorkMat;
 }
@@ -159,9 +159,9 @@ RotorTrim::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.Resize(3);
 	WorkVec.Reset(0.);
 	
-	WorkVec.fPutRowIndex(1, pvNodes[0]->iGetFirstRowIndex()+1);
-	WorkVec.fPutRowIndex(2, pvNodes[1]->iGetFirstRowIndex()+1);
-	WorkVec.fPutRowIndex(3, pvNodes[2]->iGetFirstRowIndex()+1);
+	WorkVec.PutRowIndex(1, pvNodes[0]->iGetFirstRowIndex()+1);
+	WorkVec.PutRowIndex(2, pvNodes[1]->iGetFirstRowIndex()+1);
+	WorkVec.PutRowIndex(3, pvNodes[2]->iGetFirstRowIndex()+1);
 	
 	doublereal dX1 = pvNodes[0]->dGetX();
 	doublereal dX2 = pvNodes[1]->dGetX();

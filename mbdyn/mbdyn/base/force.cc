@@ -104,7 +104,7 @@ AbstractForce::AssRes(SubVectorHandler& WorkVec,
    
    /* Indici delle incognite del nodo */
    integer iFirstIndex = pNode->iGetFirstRowIndex();
-   WorkVec.fPutRowIndex(1, iFirstIndex+1);
+   WorkVec.PutRowIndex(1, iFirstIndex+1);
 
    WorkVec.PutCoef(1, dAmplitude);
 
@@ -178,8 +178,8 @@ AbstractInternalForce::AssRes(SubVectorHandler& WorkVec,
    /* Indici delle incognite del nodo */
    integer iFirstIndex1 = pNode1->iGetFirstRowIndex();
    integer iFirstIndex2 = pNode2->iGetFirstRowIndex();
-   WorkVec.fPutRowIndex(1, iFirstIndex1+1);
-   WorkVec.fPutRowIndex(2, iFirstIndex2+1);
+   WorkVec.PutRowIndex(1, iFirstIndex1+1);
+   WorkVec.PutRowIndex(2, iFirstIndex2+1);
 
    WorkVec.PutCoef(1, dAmplitude);
    WorkVec.PutCoef(2, -dAmplitude);

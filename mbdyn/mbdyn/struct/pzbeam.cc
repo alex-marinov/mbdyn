@@ -226,25 +226,25 @@ PiezoActuatorBeam::AssJac(VariableSubMatrixHandler& WorkMat,
    }
    
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WM.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
-      WM.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutRowIndex(12+iCnt, iNode3FirstMomIndex+iCnt);
-      WM.fPutColIndex(12+iCnt, iNode3FirstPosIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+      WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutRowIndex(12+iCnt, iNode3FirstMomIndex+iCnt);
+      WM.PutColIndex(12+iCnt, iNode3FirstPosIndex+iCnt);
    }
  
    for (int iCnt = 1; iCnt <= iNumElec; iCnt++) {
-      WM.fPutColIndex(18+iCnt, pvElecDofs[iCnt-1]->iGetFirstColIndex()+1);
+      WM.PutColIndex(18+iCnt, pvElecDofs[iCnt-1]->iGetFirstColIndex()+1);
    }   
    
    AssStiffnessMat(WM, WM, dCoef, XCurr, XPrimeCurr);
    
    if (fConsistentInertia) {
       for (int iCnt = 1; iCnt <= 6; iCnt++) {
-	 WM.fPutRowIndex(18+iCnt, iNode1FirstPosIndex+iCnt);
-	 WM.fPutRowIndex(24+iCnt, iNode2FirstPosIndex+iCnt);
-	 WM.fPutRowIndex(30+iCnt, iNode3FirstPosIndex+iCnt);
+	 WM.PutRowIndex(18+iCnt, iNode1FirstPosIndex+iCnt);
+	 WM.PutRowIndex(24+iCnt, iNode2FirstPosIndex+iCnt);
+	 WM.PutRowIndex(30+iCnt, iNode3FirstPosIndex+iCnt);
       }
       Beam::AssInertiaMat(WM, WM, dCoef, XCurr, XPrimeCurr);
    }
@@ -469,25 +469,25 @@ PiezoActuatorVEBeam::AssJac(VariableSubMatrixHandler& WorkMat,
    }
    
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WM.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
-      WM.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutRowIndex(12+iCnt, iNode3FirstMomIndex+iCnt);
-      WM.fPutColIndex(12+iCnt, iNode3FirstPosIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+      WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutRowIndex(12+iCnt, iNode3FirstMomIndex+iCnt);
+      WM.PutColIndex(12+iCnt, iNode3FirstPosIndex+iCnt);
    }
  
    for (int iCnt = 1; iCnt <= iNumElec; iCnt++) {
-      WM.fPutColIndex(18+iCnt, pvElecDofs[iCnt-1]->iGetFirstColIndex()+1);
+      WM.PutColIndex(18+iCnt, pvElecDofs[iCnt-1]->iGetFirstColIndex()+1);
    }   
    
    AssStiffnessMat(WM, WM, dCoef, XCurr, XPrimeCurr);
    
    if (fConsistentInertia) {
       for (int iCnt = 1; iCnt <= 6; iCnt++) {
-	 WM.fPutRowIndex(18+iCnt, iNode1FirstPosIndex+iCnt);
-	 WM.fPutRowIndex(24+iCnt, iNode2FirstPosIndex+iCnt);
-	 WM.fPutRowIndex(30+iCnt, iNode3FirstPosIndex+iCnt);
+	 WM.PutRowIndex(18+iCnt, iNode1FirstPosIndex+iCnt);
+	 WM.PutRowIndex(24+iCnt, iNode2FirstPosIndex+iCnt);
+	 WM.PutRowIndex(30+iCnt, iNode3FirstPosIndex+iCnt);
       }
       ViscoElasticBeam::AssInertiaMat(WM, WM, dCoef, XCurr, XPrimeCurr);
    }

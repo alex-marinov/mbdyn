@@ -200,14 +200,14 @@ ass_jac(LoadableElem* pEl,
 	integer iFirstPositionIndex = p->pos.pNode->iGetFirstRowIndex();
 	integer iFirstReactionIndex = pEl->iGetFirstIndex();
 
-	WM.fPutRowIndex(1, iFirstMomentumIndex+1);
-	WM.fPutRowIndex(2, iFirstPositionIndex+1);
-	WM.fPutColIndex(1, iFirstMomentumIndex+1);
-	WM.fPutColIndex(2, iFirstPositionIndex+1);
+	WM.PutRowIndex(1, iFirstMomentumIndex+1);
+	WM.PutRowIndex(2, iFirstPositionIndex+1);
+	WM.PutColIndex(1, iFirstMomentumIndex+1);
+	WM.PutColIndex(2, iFirstPositionIndex+1);
 	if (p->fc) {
 	for (unsigned int i=1; i<=p->fc->iGetNumDof(); i++) {
-		WM.fPutRowIndex(2+i,iFirstReactionIndex+i);
-		WM.fPutColIndex(2+i,iFirstReactionIndex+i);
+		WM.PutRowIndex(2+i,iFirstReactionIndex+i);
+		WM.PutColIndex(2+i,iFirstReactionIndex+i);
 	}
 	}
 
@@ -274,11 +274,11 @@ ass_res(LoadableElem* pEl,
 	integer iFirstPositionIndex = p->pos.pNode->iGetFirstRowIndex();
 	integer iFirstReactionIndex = pEl->iGetFirstIndex();
 	
-	WorkVec.fPutRowIndex(1,iFirstMomentumIndex+1);
-	WorkVec.fPutRowIndex(2,iFirstPositionIndex+1);
+	WorkVec.PutRowIndex(1,iFirstMomentumIndex+1);
+	WorkVec.PutRowIndex(2,iFirstPositionIndex+1);
 	if (p->fc) {
 	for (unsigned int i=1; i<=p->fc->iGetNumDof(); i++) {
-		WorkVec.fPutRowIndex(2+i,iFirstReactionIndex+i);
+		WorkVec.PutRowIndex(2+i,iFirstReactionIndex+i);
 	}
 	}
 	

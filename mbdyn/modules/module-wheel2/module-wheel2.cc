@@ -428,8 +428,8 @@ ass_res(LoadableElem* pEl,
 	 * Indici equazioni
 	 */
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WorkVec.fPutRowIndex(iCnt, iGroundFirstMomIndex+iCnt);
-		WorkVec.fPutRowIndex(6+iCnt, iWheelFirstMomIndex+iCnt);
+		WorkVec.PutRowIndex(iCnt, iGroundFirstMomIndex+iCnt);
+		WorkVec.PutRowIndex(6+iCnt, iWheelFirstMomIndex+iCnt);
 	}
 
 	/*

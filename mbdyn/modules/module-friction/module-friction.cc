@@ -230,7 +230,7 @@ ass_res(LoadableElem* pEl,
 
 	//std::cerr << "; F=" << p->f->F() << std::endl;
 
-	WorkVec.fPutItem(1, iIndex, p->f->F());
+	WorkVec.PutItem(1, iIndex, p->f->F());
 
 	return WorkVec;
 }

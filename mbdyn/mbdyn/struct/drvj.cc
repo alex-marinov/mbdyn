@@ -88,9 +88,9 @@ LinearVelocityJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
       doublereal d = Dir.dGet(iCnt);
-      WM.fPutItem(iCnt, iFirstMomentumIndex+iCnt,
+      WM.PutItem(iCnt, iFirstMomentumIndex+iCnt,
 		  iFirstReactionIndex+1, d);
-      WM.fPutItem(3+iCnt, iFirstReactionIndex+1,
+      WM.PutItem(3+iCnt, iFirstReactionIndex+1,
 		  iFirstPositionIndex+iCnt, d);
    }
    
@@ -120,10 +120,10 @@ LinearVelocityJoint::AssRes(SubVectorHandler& WorkVec,
    
    /* Indici del nodo */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WorkVec.fPutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
    }
    
-   WorkVec.fPutRowIndex(4, iFirstReactionIndex+1);
+   WorkVec.PutRowIndex(4, iFirstReactionIndex+1);
 
    /* Aggiorna i dati propri */
    dF = XCurr.dGetCoef(iFirstReactionIndex+1);
@@ -169,9 +169,9 @@ LinearVelocityJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
       doublereal d = Dir.dGet(iCnt);
-      WM.fPutItem(iCnt, iFirstVelocityIndex+iCnt,
+      WM.PutItem(iCnt, iFirstVelocityIndex+iCnt,
 		  iFirstReactionIndex+1, d);
-      WM.fPutItem(3+iCnt, iFirstReactionIndex+1,
+      WM.PutItem(3+iCnt, iFirstReactionIndex+1,
 		  iFirstVelocityIndex+iCnt, d);
    }
    
@@ -199,10 +199,10 @@ LinearVelocityJoint::InitialAssRes(SubVectorHandler& WorkVec,
    
    /* Indici del nodo */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WorkVec.fPutRowIndex(iCnt, iFirstVelocityIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstVelocityIndex+iCnt);
    }
    
-   WorkVec.fPutRowIndex(4, iFirstReactionIndex+1);
+   WorkVec.PutRowIndex(4, iFirstReactionIndex+1);
 
    /* Aggiorna i dati propri */
    dF = XCurr.dGetCoef(iFirstReactionIndex+1);
@@ -279,9 +279,9 @@ AngularVelocityJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
       doublereal d = TmpDir.dGet(iCnt);
-      WM.fPutItem(iCnt, iFirstMomentumIndex+iCnt,
+      WM.PutItem(iCnt, iFirstMomentumIndex+iCnt,
 		  iFirstReactionIndex+1, d);
-      WM.fPutItem(3+iCnt, iFirstReactionIndex+1,
+      WM.PutItem(3+iCnt, iFirstReactionIndex+1,
 		  iFirstPositionIndex+iCnt, d);
    }
    
@@ -313,10 +313,10 @@ AngularVelocityJoint::AssRes(SubVectorHandler& WorkVec,
    
    /* Indici del nodo */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WorkVec.fPutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
    }
    
-   WorkVec.fPutRowIndex(4, iFirstReactionIndex+1);
+   WorkVec.PutRowIndex(4, iFirstReactionIndex+1);
 
    /* Aggiorna i dati propri */
    dM = XCurr.dGetCoef(iFirstReactionIndex+1);
@@ -367,11 +367,11 @@ AngularVelocityJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    for(int iCnt = 1; iCnt <= 3; iCnt++)
      {
 	doublereal d = Dir.dGet(iCnt);
-	WM.fPutItem(iCnt, iFirstVelocityIndex+iCnt,
+	WM.PutItem(iCnt, iFirstVelocityIndex+iCnt,
 		    iFirstReactionIndex+1, d);
-	WM.fPutItem(3+iCnt, iFirstReactionIndex+1,
+	WM.PutItem(3+iCnt, iFirstReactionIndex+1,
 		    iFirstVelocityIndex+iCnt, d);
-	WM.fPutItem(6+iCnt, iFirstReactionIndex+1,
+	WM.PutItem(6+iCnt, iFirstReactionIndex+1,
 		    iFirstPositionIndex+iCnt, Tmp.dGet(iCnt));
      }
    
@@ -402,10 +402,10 @@ AngularVelocityJoint::InitialAssRes(SubVectorHandler& WorkVec,
    /* Indici del nodo */
    for(int iCnt = 1; iCnt <= 3; iCnt++)
      {	
-	WorkVec.fPutRowIndex(iCnt, iFirstVelocityIndex+iCnt);
+	WorkVec.PutRowIndex(iCnt, iFirstVelocityIndex+iCnt);
      }
    
-   WorkVec.fPutRowIndex(4, iFirstReactionIndex+1);
+   WorkVec.PutRowIndex(4, iFirstReactionIndex+1);
 
    /* Aggiorna i dati propri */
    dM = XCurr.dGetCoef(iFirstReactionIndex+1);

@@ -700,21 +700,21 @@ VariableSubMatrixHandler& Beam::AssJac(VariableSubMatrixHandler& WorkMat,
    }   
    
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WM.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
-      WM.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutRowIndex(12+iCnt, iNode3FirstMomIndex+iCnt);
-      WM.fPutColIndex(12+iCnt, iNode3FirstPosIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+      WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutRowIndex(12+iCnt, iNode3FirstMomIndex+iCnt);
+      WM.PutColIndex(12+iCnt, iNode3FirstPosIndex+iCnt);
    }      
    
    AssStiffnessMat(WM, WM, dCoef, XCurr, XPrimeCurr);
    
    if (fConsistentInertia) {	
       for (int iCnt = 1; iCnt <= 6; iCnt++) {
-	 WM.fPutRowIndex(18+iCnt, iNode1FirstPosIndex+iCnt);
-	 WM.fPutRowIndex(24+iCnt, iNode2FirstPosIndex+iCnt);
-	 WM.fPutRowIndex(30+iCnt, iNode3FirstPosIndex+iCnt);
+	 WM.PutRowIndex(18+iCnt, iNode1FirstPosIndex+iCnt);
+	 WM.PutRowIndex(24+iCnt, iNode2FirstPosIndex+iCnt);
+	 WM.PutRowIndex(30+iCnt, iNode3FirstPosIndex+iCnt);
       }      
       
       AssInertiaMat(WM, WM, dCoef, XCurr, XPrimeCurr);
@@ -752,34 +752,34 @@ void Beam::AssMats(VariableSubMatrixHandler& WorkMatA,
    }   
       
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WMA.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WMA.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WMA.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
-      WMA.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-      WMA.fPutRowIndex(12+iCnt, iNode3FirstMomIndex+iCnt);
-      WMA.fPutColIndex(12+iCnt, iNode3FirstPosIndex+iCnt);
+      WMA.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WMA.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WMA.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+      WMA.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WMA.PutRowIndex(12+iCnt, iNode3FirstMomIndex+iCnt);
+      WMA.PutColIndex(12+iCnt, iNode3FirstPosIndex+iCnt);
    }
 
    AssStiffnessMat(WMA, WMA, 1., XCurr, XPrimeCurr);
    
    if (fConsistentInertia) {	
       for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {
-	 WMB.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-	 WMB.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-	 WMB.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
-	 WMB.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-	 WMB.fPutRowIndex(12+iCnt, iNode3FirstMomIndex+iCnt);
-	 WMB.fPutColIndex(12+iCnt, iNode3FirstPosIndex+iCnt);
+	 WMB.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+	 WMB.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+	 WMB.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+	 WMB.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+	 WMB.PutRowIndex(12+iCnt, iNode3FirstMomIndex+iCnt);
+	 WMB.PutColIndex(12+iCnt, iNode3FirstPosIndex+iCnt);
       }     
       
       for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {
-	 WMA.fPutRowIndex(18+iCnt, iNode1FirstPosIndex+iCnt);
-	 WMA.fPutRowIndex(24+iCnt, iNode2FirstPosIndex+iCnt);
-	 WMA.fPutRowIndex(30+iCnt, iNode3FirstPosIndex+iCnt);
+	 WMA.PutRowIndex(18+iCnt, iNode1FirstPosIndex+iCnt);
+	 WMA.PutRowIndex(24+iCnt, iNode2FirstPosIndex+iCnt);
+	 WMA.PutRowIndex(30+iCnt, iNode3FirstPosIndex+iCnt);
 
-	 WMB.fPutRowIndex(18+iCnt, iNode1FirstPosIndex+iCnt);
-	 WMB.fPutRowIndex(24+iCnt, iNode2FirstPosIndex+iCnt);
-	 WMB.fPutRowIndex(30+iCnt, iNode3FirstPosIndex+iCnt);
+	 WMB.PutRowIndex(18+iCnt, iNode1FirstPosIndex+iCnt);
+	 WMB.PutRowIndex(24+iCnt, iNode2FirstPosIndex+iCnt);
+	 WMB.PutRowIndex(30+iCnt, iNode3FirstPosIndex+iCnt);
       }      
       
       AssInertiaMat(WMA, WMB, 1., XCurr, XPrimeCurr);
@@ -809,9 +809,9 @@ SubVectorHandler& Beam::AssRes(SubVectorHandler& WorkVec,
    WorkVec.Reset(0.);
          
    for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
-      WorkVec.fPutRowIndex(12+iCnt, iNode3FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(12+iCnt, iNode3FirstMomIndex+iCnt);
    }      
    
    AssStiffnessVec(WorkVec, dCoef, XCurr, XPrimeCurr);
@@ -822,9 +822,9 @@ SubVectorHandler& Beam::AssRes(SubVectorHandler& WorkVec,
       integer iNode3FirstPosIndex = pNode[NODE3]->iGetFirstPositionIndex();
       
       for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {
-	 WorkVec.fPutRowIndex(18+iCnt, iNode1FirstPosIndex+iCnt);
-	 WorkVec.fPutRowIndex(24+iCnt, iNode2FirstPosIndex+iCnt);
-	 WorkVec.fPutRowIndex(30+iCnt, iNode3FirstPosIndex+iCnt);
+	 WorkVec.PutRowIndex(18+iCnt, iNode1FirstPosIndex+iCnt);
+	 WorkVec.PutRowIndex(24+iCnt, iNode2FirstPosIndex+iCnt);
+	 WorkVec.PutRowIndex(30+iCnt, iNode3FirstPosIndex+iCnt);
       }      
       
       AssInertiaVec(WorkVec, dCoef, XCurr, XPrimeCurr);
@@ -1134,12 +1134,12 @@ Beam::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    integer iNode3FirstPosIndex = pNode[NODE3]->iGetFirstPositionIndex();
    
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WM.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutRowIndex(12+iCnt, iNode3FirstPosIndex+iCnt);
-      WM.fPutColIndex(12+iCnt, iNode3FirstPosIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutRowIndex(12+iCnt, iNode3FirstPosIndex+iCnt);
+      WM.PutColIndex(12+iCnt, iNode3FirstPosIndex+iCnt);
    }      
    
    AssStiffnessMat(WM, WM, 1., XCurr, XCurr);
@@ -1162,9 +1162,9 @@ SubVectorHandler& Beam::InitialAssRes(SubVectorHandler& WorkVec,
    integer iNode3FirstPosIndex = pNode[NODE3]->iGetFirstPositionIndex();
    
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-      WorkVec.fPutRowIndex(12+iCnt, iNode3FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(12+iCnt, iNode3FirstPosIndex+iCnt);
    }      
    
    AssStiffnessVec(WorkVec, 1., XCurr, XCurr);

@@ -1446,11 +1446,11 @@ DynamicInflowRotor::AssJac(VariableSubMatrixHandler& WorkMat,
 
 		WM.ResizeInit(5, 0, 0.);
    
-		WM.fPutItem(1, iFirstIndex+1, iFirstIndex+1, dM11+dCoef*dL11);
-		WM.fPutItem(2, iFirstIndex+3, iFirstIndex+1, dCoef*dL31);
-		WM.fPutItem(3, iFirstIndex+2, iFirstIndex+2, dM22+dCoef*dL22);
-		WM.fPutItem(4, iFirstIndex+1, iFirstIndex+3, dCoef*dL13);
-		WM.fPutItem(5, iFirstIndex+3, iFirstIndex+3, dM33+dCoef*dL33);
+		WM.PutItem(1, iFirstIndex+1, iFirstIndex+1, dM11+dCoef*dL11);
+		WM.PutItem(2, iFirstIndex+3, iFirstIndex+1, dCoef*dL31);
+		WM.PutItem(3, iFirstIndex+2, iFirstIndex+2, dM22+dCoef*dL22);
+		WM.PutItem(4, iFirstIndex+1, iFirstIndex+3, dCoef*dL13);
+		WM.PutItem(5, iFirstIndex+3, iFirstIndex+3, dM33+dCoef*dL33);
 
 #ifdef USE_MPI
 	}
@@ -1481,9 +1481,9 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
        	   	WorkVec.Resize(3);
 	   	integer iFirstIndex = iGetFirstIndex();
      	
-	   	WorkVec.fPutRowIndex(1, iFirstIndex+1);
-	   	WorkVec.fPutRowIndex(2, iFirstIndex+2);
-	   	WorkVec.fPutRowIndex(3, iFirstIndex+3);
+	   	WorkVec.PutRowIndex(1, iFirstIndex+1);
+	   	WorkVec.PutRowIndex(2, iFirstIndex+2);
+	   	WorkVec.PutRowIndex(3, iFirstIndex+3);
      
 	   	dVConst = XCurr.dGetCoef(iFirstIndex+1);
 	   	dVSine = XCurr.dGetCoef(iFirstIndex+2);

@@ -108,10 +108,10 @@ Minor_loss::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iNode1ColIndex = pNode1->iGetFirstColIndex()+1;
    integer iNode2ColIndex = pNode2->iGetFirstColIndex()+1;
    
-   WM.fPutRowIndex(1, iNode1RowIndex);
-   WM.fPutRowIndex(2, iNode2RowIndex);
-   WM.fPutColIndex(1, iNode1ColIndex);
-   WM.fPutColIndex(2, iNode2ColIndex);
+   WM.PutRowIndex(1, iNode1RowIndex);
+   WM.PutRowIndex(2, iNode2RowIndex);
+   WM.PutColIndex(1, iNode1ColIndex);
+   WM.PutColIndex(2, iNode2ColIndex);
    
    doublereal p1 = pNode1->dGetX();
    doublereal p2 = pNode2->dGetX();
@@ -183,8 +183,8 @@ Minor_loss::AssRes(SubVectorHandler& WorkVec,
    DEBUGCOUT("RES portata (nodo2): " << flow << std::endl);
    DEBUGCOUT("****************************************************" << std::endl);
 #endif
-   WorkVec.fPutItem(1, iNode1RowIndex, flow);
-   WorkVec.fPutItem(2, iNode2RowIndex, -flow);         
+   WorkVec.PutItem(1, iNode1RowIndex, flow);
+   WorkVec.PutItem(2, iNode2RowIndex, -flow);         
 
    return WorkVec;
 }
@@ -282,10 +282,10 @@ ThreeWayMinorLoss::AssJac(
 	integer iNode0ColIndex = pNode0->iGetFirstColIndex()+1;
 	integer iNodeNColIndex = pNodeN->iGetFirstColIndex()+1;
 	
-	WM.fPutRowIndex(1, iNode0RowIndex);
-	WM.fPutRowIndex(2, iNodeNRowIndex);
-	WM.fPutColIndex(1, iNode0ColIndex);
-	WM.fPutColIndex(2, iNodeNColIndex);
+	WM.PutRowIndex(1, iNode0RowIndex);
+	WM.PutRowIndex(2, iNodeNRowIndex);
+	WM.PutColIndex(1, iNode0ColIndex);
+	WM.PutColIndex(2, iNodeNColIndex);
 
 	doublereal p0 = pNode0->dGetX();
 	doublereal p = pNodeN->dGetX();
@@ -373,8 +373,8 @@ ThreeWayMinorLoss::AssRes(
 	integer iNode0RowIndex = pNode0->iGetFirstRowIndex()+1;
 	integer iNodeNRowIndex = pNodeN->iGetFirstRowIndex()+1;
 	
-	WorkVec.fPutItem(1, iNode0RowIndex, flow);
-	WorkVec.fPutItem(2, iNodeNRowIndex, -flow);         
+	WorkVec.PutItem(1, iNode0RowIndex, flow);
+	WorkVec.PutItem(2, iNodeNRowIndex, -flow);         
 	
 	return WorkVec;
 }
@@ -480,10 +480,10 @@ Orifice::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iNode1ColIndex = pNode1->iGetFirstColIndex()+1;
    integer iNode2ColIndex = pNode2->iGetFirstColIndex()+1;
    
-   WM.fPutRowIndex(1, iNode1RowIndex);
-   WM.fPutRowIndex(2, iNode2RowIndex);
-   WM.fPutColIndex(1, iNode1ColIndex);
-   WM.fPutColIndex(2, iNode2ColIndex);
+   WM.PutRowIndex(1, iNode1RowIndex);
+   WM.PutRowIndex(2, iNode2RowIndex);
+   WM.PutColIndex(1, iNode1ColIndex);
+   WM.PutColIndex(2, iNode2ColIndex);
    
    doublereal p1 = pNode1->dGetX();
    doublereal p2 = pNode2->dGetX();
@@ -610,8 +610,8 @@ SubVectorHandler& Orifice::AssRes(SubVectorHandler& WorkVec,
    DEBUGCOUT("*********************************************" << std::endl);
 #endif
    
-   WorkVec.fPutItem(1, iNode1RowIndex, flow);	
-   WorkVec.fPutItem(2, iNode2RowIndex, -flow);
+   WorkVec.PutItem(1, iNode1RowIndex, flow);	
+   WorkVec.PutItem(2, iNode2RowIndex, -flow);
 
    return WorkVec;
 }

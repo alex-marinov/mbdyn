@@ -96,39 +96,39 @@ InLineJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    Vec3 Tmp1_2(RvTmp.GetVec(2).Cross(x2mx1));
    for(int iCnt = 1; iCnt <= 3; iCnt++) {
       doublereal d = RvTmp.dGet(iCnt, 1);
-      WM.fPutItem(iCnt, iNode1FirstMomIndex+iCnt,
+      WM.PutItem(iCnt, iNode1FirstMomIndex+iCnt,
 		  iFirstReactionIndex+1, -d);
-      WM.fPutItem(3+iCnt, iNode2FirstMomIndex+iCnt,
+      WM.PutItem(3+iCnt, iNode2FirstMomIndex+iCnt,
 		  iFirstReactionIndex+1, d);      
       
-      WM.fPutItem(6+iCnt, iFirstReactionIndex+1,
+      WM.PutItem(6+iCnt, iFirstReactionIndex+1,
 		  iNode1FirstPosIndex+iCnt, -d);
-      WM.fPutItem(9+iCnt, iFirstReactionIndex+1,
+      WM.PutItem(9+iCnt, iFirstReactionIndex+1,
 		  iNode2FirstPosIndex+iCnt, d);
       
       d = RvTmp.dGet(iCnt, 2);
-      WM.fPutItem(12+iCnt, iNode1FirstMomIndex+iCnt,
+      WM.PutItem(12+iCnt, iNode1FirstMomIndex+iCnt,
 		  iFirstReactionIndex+2, -d);
-      WM.fPutItem(15+iCnt, iNode2FirstMomIndex+iCnt,
+      WM.PutItem(15+iCnt, iNode2FirstMomIndex+iCnt,
 		  iFirstReactionIndex+2, d);      
       
-      WM.fPutItem(18+iCnt, iFirstReactionIndex+2,
+      WM.PutItem(18+iCnt, iFirstReactionIndex+2,
 		  iNode1FirstPosIndex+iCnt, -d);
-      WM.fPutItem(21+iCnt, iFirstReactionIndex+2,
+      WM.PutItem(21+iCnt, iFirstReactionIndex+2,
 		  iNode2FirstPosIndex+iCnt, d);
 
       d = Tmp1_1.dGet(iCnt);
-      WM.fPutItem(24+iCnt, iNode1FirstMomIndex+3+iCnt,
+      WM.PutItem(24+iCnt, iNode1FirstMomIndex+3+iCnt,
 		  iFirstReactionIndex+1, d);
       
-      WM.fPutItem(27+iCnt, iFirstReactionIndex+1,
+      WM.PutItem(27+iCnt, iFirstReactionIndex+1,
 		  iNode1FirstPosIndex+3+iCnt, d);
       
       d = Tmp1_2.dGet(iCnt);
-      WM.fPutItem(30+iCnt, iNode1FirstMomIndex+3+iCnt,
+      WM.PutItem(30+iCnt, iNode1FirstMomIndex+3+iCnt,
 		  iFirstReactionIndex+2, d);
       
-      WM.fPutItem(33+iCnt, iFirstReactionIndex+2,
+      WM.PutItem(33+iCnt, iFirstReactionIndex+2,
 		  iNode1FirstPosIndex+3+iCnt, d);
    }
    
@@ -163,13 +163,13 @@ InLineJoint::AssRes(SubVectorHandler& WorkVec,
 
    /* Indici equazioni */
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
    }
    
    /* Indice equazione vincolo */
-   WorkVec.fPutRowIndex(13, iFirstReactionIndex+1);
-   WorkVec.fPutRowIndex(14, iFirstReactionIndex+2);
+   WorkVec.PutRowIndex(13, iFirstReactionIndex+1);
+   WorkVec.PutRowIndex(14, iFirstReactionIndex+2);
 
    Vec3 x2mx1(pNode2->GetXCurr()-pNode1->GetXCurr());
    Mat3x3 RvTmp = pNode1->GetRCurr()*Rv;
@@ -218,16 +218,16 @@ InLineJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Indici equazioni nodi */
    for(int iCnt = 1; iCnt <= 12; iCnt++) {
-      WM.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutRowIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutColIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutRowIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutColIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
    }
    
    /* Indici vincoli */
    for(int iCnt = 1; iCnt <= 4; iCnt++) {
-      WM.fPutRowIndex(24+iCnt, iFirstReactionIndex+iCnt);
-      WM.fPutColIndex(24+iCnt, iFirstReactionIndex+iCnt);
+      WM.PutRowIndex(24+iCnt, iFirstReactionIndex+iCnt);
+      WM.PutColIndex(24+iCnt, iFirstReactionIndex+iCnt);
    }
    
    /* Dati */
@@ -372,15 +372,15 @@ InLineJoint::InitialAssRes(SubVectorHandler& WorkVec,
    
    /* Indici equazioni nodi */
    for(int iCnt = 1; iCnt <= 12; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WorkVec.fPutRowIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
    }
    
    /* Indici equazioni vincoli */
-   WorkVec.fPutRowIndex(25, iFirstReactionIndex+1);
-   WorkVec.fPutRowIndex(26, iFirstReactionIndex+2);
-   WorkVec.fPutRowIndex(27, iReactionPrimeIndex+1);
-   WorkVec.fPutRowIndex(28, iReactionPrimeIndex+2);
+   WorkVec.PutRowIndex(25, iFirstReactionIndex+1);
+   WorkVec.PutRowIndex(26, iFirstReactionIndex+2);
+   WorkVec.PutRowIndex(27, iReactionPrimeIndex+1);
+   WorkVec.PutRowIndex(28, iReactionPrimeIndex+2);
       
    /* Dati */
    Vec3 x2mx1(pNode2->GetXCurr()-pNode1->GetXCurr());
@@ -477,53 +477,53 @@ InLineWithOffsetJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    Vec3 Tmp2_2(qTmp.Cross(RvTmp.GetVec(2)));
    for(int iCnt = 1; iCnt <= 3; iCnt++) {
       doublereal d = RvTmp.dGet(iCnt, 1);
-      WM.fPutItem(iCnt, iNode1FirstMomIndex+iCnt,
+      WM.PutItem(iCnt, iNode1FirstMomIndex+iCnt,
 		  iFirstReactionIndex+1, -d);
-      WM.fPutItem(3+iCnt, iNode2FirstMomIndex+iCnt,
+      WM.PutItem(3+iCnt, iNode2FirstMomIndex+iCnt,
 		  iFirstReactionIndex+1, d);      
       
-      WM.fPutItem(6+iCnt, iFirstReactionIndex+1,
+      WM.PutItem(6+iCnt, iFirstReactionIndex+1,
 		  iNode1FirstPosIndex+iCnt, -d);
-      WM.fPutItem(9+iCnt, iFirstReactionIndex+1,
+      WM.PutItem(9+iCnt, iFirstReactionIndex+1,
 		  iNode2FirstPosIndex+iCnt, d);
       
       d = RvTmp.dGet(iCnt, 2);
-      WM.fPutItem(12+iCnt, iNode1FirstMomIndex+iCnt,
+      WM.PutItem(12+iCnt, iNode1FirstMomIndex+iCnt,
 		  iFirstReactionIndex+2, -d);
-      WM.fPutItem(15+iCnt, iNode2FirstMomIndex+iCnt,
+      WM.PutItem(15+iCnt, iNode2FirstMomIndex+iCnt,
 		  iFirstReactionIndex+2, d);      
       
-      WM.fPutItem(18+iCnt, iFirstReactionIndex+2,
+      WM.PutItem(18+iCnt, iFirstReactionIndex+2,
 		  iNode1FirstPosIndex+iCnt, -d);
-      WM.fPutItem(21+iCnt, iFirstReactionIndex+2,
+      WM.PutItem(21+iCnt, iFirstReactionIndex+2,
 		  iNode2FirstPosIndex+iCnt, d);
 
       d = Tmp1_1.dGet(iCnt);
-      WM.fPutItem(24+iCnt, iNode1FirstMomIndex+3+iCnt,
+      WM.PutItem(24+iCnt, iNode1FirstMomIndex+3+iCnt,
 		  iFirstReactionIndex+1, d);
       
-      WM.fPutItem(27+iCnt, iFirstReactionIndex+1,
+      WM.PutItem(27+iCnt, iFirstReactionIndex+1,
 		  iNode1FirstPosIndex+3+iCnt, d);
       
       d = Tmp1_2.dGet(iCnt);
-      WM.fPutItem(30+iCnt, iNode1FirstMomIndex+3+iCnt,
+      WM.PutItem(30+iCnt, iNode1FirstMomIndex+3+iCnt,
 		  iFirstReactionIndex+2, d);
       
-      WM.fPutItem(33+iCnt, iFirstReactionIndex+2,
+      WM.PutItem(33+iCnt, iFirstReactionIndex+2,
 		  iNode1FirstPosIndex+3+iCnt, d);
 
       d = Tmp2_1.dGet(iCnt);
-      WM.fPutItem(36+iCnt, iNode2FirstMomIndex+3+iCnt,
+      WM.PutItem(36+iCnt, iNode2FirstMomIndex+3+iCnt,
 		  iFirstReactionIndex+1, d);
       
-      WM.fPutItem(39+iCnt, iFirstReactionIndex+1,
+      WM.PutItem(39+iCnt, iFirstReactionIndex+1,
 		  iNode2FirstPosIndex+3+iCnt, d);
 
       d = Tmp2_2.dGet(iCnt);
-      WM.fPutItem(42+iCnt, iNode2FirstMomIndex+3+iCnt,
+      WM.PutItem(42+iCnt, iNode2FirstMomIndex+3+iCnt,
 		  iFirstReactionIndex+2, d);
       
-      WM.fPutItem(45+iCnt, iFirstReactionIndex+2,
+      WM.PutItem(45+iCnt, iFirstReactionIndex+2,
 		  iNode2FirstPosIndex+3+iCnt, d);
    }
    
@@ -567,13 +567,13 @@ InLineWithOffsetJoint::AssRes(SubVectorHandler& WorkVec,
 
    /* Indici equazioni */
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
    }
    
    /* Indice equazione vincolo */
-   WorkVec.fPutRowIndex(13, iFirstReactionIndex+1);
-   WorkVec.fPutRowIndex(14, iFirstReactionIndex+2);
+   WorkVec.PutRowIndex(13, iFirstReactionIndex+1);
+   WorkVec.PutRowIndex(14, iFirstReactionIndex+2);
 
    Vec3 qTmp(pNode2->GetRCurr()*q);
    Vec3 x2qmx1(pNode2->GetXCurr()+qTmp-pNode1->GetXCurr());
@@ -633,16 +633,16 @@ InLineWithOffsetJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Indici equazioni nodi */
    for(int iCnt = 1; iCnt <= 12; iCnt++) {
-      WM.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutRowIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutColIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutRowIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutColIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
    }
    
    /* Indici vincoli */
    for(int iCnt = 1; iCnt <= 4; iCnt++) {
-      WM.fPutRowIndex(24+iCnt, iFirstReactionIndex+iCnt);
-      WM.fPutColIndex(24+iCnt, iFirstReactionIndex+iCnt);
+      WM.PutRowIndex(24+iCnt, iFirstReactionIndex+iCnt);
+      WM.PutColIndex(24+iCnt, iFirstReactionIndex+iCnt);
    }
    
    /* Dati */
@@ -844,15 +844,15 @@ InLineWithOffsetJoint::InitialAssRes(SubVectorHandler& WorkVec,
    
    /* Indici equazioni nodi */
    for(int iCnt = 1; iCnt <= 12; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WorkVec.fPutRowIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
    }
    
    /* Indici equazioni vincoli */
-   WorkVec.fPutRowIndex(25, iFirstReactionIndex+1);
-   WorkVec.fPutRowIndex(26, iFirstReactionIndex+2);
-   WorkVec.fPutRowIndex(27, iReactionPrimeIndex+1);
-   WorkVec.fPutRowIndex(28, iReactionPrimeIndex+2);
+   WorkVec.PutRowIndex(25, iFirstReactionIndex+1);
+   WorkVec.PutRowIndex(26, iFirstReactionIndex+2);
+   WorkVec.PutRowIndex(27, iReactionPrimeIndex+1);
+   WorkVec.PutRowIndex(28, iReactionPrimeIndex+2);
       
    /* Dati */
    Mat3x3 RvTmp(pNode1->GetRCurr()*Rv);

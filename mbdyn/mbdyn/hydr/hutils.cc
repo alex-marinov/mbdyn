@@ -140,12 +140,12 @@ Accumulator::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iNode1ColIndex = pNode1->iGetFirstColIndex()+1;
    integer iFirstIndex = iGetFirstIndex();
    
-   WM.fPutRowIndex(1, iNode1RowIndex);
-   WM.fPutColIndex(1, iNode1ColIndex);
-   WM.fPutRowIndex(2, iFirstIndex+1);
-   WM.fPutColIndex(2, iFirstIndex+1);
-   WM.fPutRowIndex(3, iFirstIndex+2);
-   WM.fPutColIndex(3, iFirstIndex+2);
+   WM.PutRowIndex(1, iNode1RowIndex);
+   WM.PutColIndex(1, iNode1ColIndex);
+   WM.PutRowIndex(2, iFirstIndex+1);
+   WM.PutColIndex(2, iFirstIndex+1);
+   WM.PutRowIndex(3, iFirstIndex+2);
+   WM.PutColIndex(3, iFirstIndex+2);
    doublereal density = HF->dGetDensity();
   
    /* unused? doublereal p1 = pNode1->dGetX(); */
@@ -353,9 +353,9 @@ Accumulator::AssRes(SubVectorHandler& WorkVec,
    DEBUGCOUT("Res_3:                  " << Res_3 << std::endl);
 #endif
    
-   WorkVec.fPutItem(1, iNode1RowIndex, Res_1);
-   WorkVec.fPutItem(2, iFirstIndex+1, Res_2);         
-   WorkVec.fPutItem(3, iFirstIndex+2, Res_3);
+   WorkVec.PutItem(1, iNode1RowIndex, Res_1);
+   WorkVec.PutItem(2, iFirstIndex+1, Res_2);         
+   WorkVec.PutItem(3, iFirstIndex+2, Res_3);
        
    return WorkVec;
 }
@@ -477,13 +477,13 @@ Tank::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iNode2ColIndex = pNode2->iGetFirstColIndex()+1;
    integer iFirstIndex = iGetFirstIndex();
  
-   WM.fPutRowIndex(1, iNode1RowIndex);
-   WM.fPutRowIndex(2, iNode2RowIndex);
-   WM.fPutColIndex(1, iNode1ColIndex);
-   WM.fPutColIndex(2, iNode2ColIndex);
+   WM.PutRowIndex(1, iNode1RowIndex);
+   WM.PutRowIndex(2, iNode2RowIndex);
+   WM.PutColIndex(1, iNode1ColIndex);
+   WM.PutColIndex(2, iNode2ColIndex);
 
-   WM.fPutRowIndex(3, iFirstIndex+1);
-   WM.fPutColIndex(3, iFirstIndex+1);
+   WM.PutRowIndex(3, iFirstIndex+1);
+   WM.PutColIndex(3, iFirstIndex+1);
    
    doublereal p1 = pNode1->dGetX();
    doublereal p2 = pNode2->dGetX(); 
@@ -648,9 +648,9 @@ Tank::AssRes(SubVectorHandler& WorkVec,
    DEBUGCOUT("Res_3:      " << Res_3 << std::endl); 
 #endif
    
-   WorkVec.fPutItem(1, iNode1RowIndex, Res_1);
-   WorkVec.fPutItem(2, iNode2RowIndex, Res_2);         
-   WorkVec.fPutItem(3, iFirstIndex+1, Res_3);  
+   WorkVec.PutItem(1, iNode1RowIndex, Res_1);
+   WorkVec.PutItem(2, iNode2RowIndex, Res_2);         
+   WorkVec.PutItem(3, iFirstIndex+1, Res_3);  
 
    return WorkVec;
 }

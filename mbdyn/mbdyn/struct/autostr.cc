@@ -96,9 +96,9 @@ AutomaticStructElem::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
   
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WM.fPutItem(iCnt, iFirstPositionIndex+iCnt,
+      WM.PutItem(iCnt, iFirstPositionIndex+iCnt,
 		  iFirstMomentumIndex+iCnt, -dCoef);
-      WM.fPutItem(6+iCnt, iFirstMomentumIndex+iCnt,
+      WM.PutItem(6+iCnt, iFirstMomentumIndex+iCnt,
 		  iFirstMomentumIndex+iCnt, 1.);    
    }
 
@@ -139,9 +139,9 @@ AutomaticStructElem::AssMats(VariableSubMatrixHandler& WorkMatA,
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
   
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WMA.fPutItem(iCnt, iFirstPositionIndex+iCnt,
+      WMA.PutItem(iCnt, iFirstPositionIndex+iCnt,
 		   iFirstMomentumIndex+iCnt, -1.);
-      WMB.fPutItem(iCnt, iFirstMomentumIndex+iCnt,
+      WMB.PutItem(iCnt, iFirstMomentumIndex+iCnt,
 		   iFirstMomentumIndex+iCnt, 1.);    
    }   
 }
@@ -162,7 +162,7 @@ AutomaticStructElem::AssRes(SubVectorHandler& WorkVec,
    integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
    for (integer iCnt = 1; iCnt <= 12; iCnt++) {      
-      WorkVec.fPutRowIndex(iCnt, iFirstPositionIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);
    }   
    
    /* Collects data */

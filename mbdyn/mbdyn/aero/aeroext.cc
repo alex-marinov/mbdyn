@@ -249,7 +249,7 @@ AerodynamicExternal::AssRes(SubVectorHandler& WorkVec,
 	for (int i=0; i < NodeN; i++) {
 		integer iFirstIndex = ppNode[i]->iGetFirstMomentumIndex();
    		for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      			WorkVec.fPutRowIndex(i*6+iCnt, iFirstIndex+iCnt);
+      			WorkVec.PutRowIndex(i*6+iCnt, iFirstIndex+iCnt);
    		}
 	}
 		
@@ -559,7 +559,7 @@ AerodynamicExternalModal::AssRes(SubVectorHandler& WorkVec,
 	
 	integer iFirstIndex = pModal->iGetFirstIndex();
 	for (int iCnt=0; iCnt < NModes; iCnt++) {
-      		WorkVec.fPutRowIndex(iCnt, iFirstIndex+NModes+iCnt);
+      		WorkVec.PutRowIndex(iCnt, iFirstIndex+NModes+iCnt);
 	}
 		
 	pInterfComm->Recv(pdBuffer->pdGetVec(), 3*ModalNodes, MPI::DOUBLE, 0,(this->GetLabel())*10+4);

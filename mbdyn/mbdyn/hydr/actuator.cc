@@ -199,10 +199,10 @@ Actuator::AssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Setta gli indici della matrice */
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WM.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
-      WM.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
-      WM.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
+      WM.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+      WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
    }           
     
    integer iNode1RowIndex = pNodeHyd1->iGetFirstRowIndex()+1;
@@ -210,15 +210,15 @@ Actuator::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iNode2RowIndex = pNodeHyd2->iGetFirstRowIndex()+1;
    integer iNode2ColIndex = pNodeHyd2->iGetFirstColIndex()+1;
  
-   WM.fPutRowIndex(13, iNode1RowIndex);
-   WM.fPutColIndex(13, iNode1ColIndex);
-   WM.fPutRowIndex(14, iNode2RowIndex);
-   WM.fPutColIndex(14, iNode2ColIndex);
+   WM.PutRowIndex(13, iNode1RowIndex);
+   WM.PutColIndex(13, iNode1ColIndex);
+   WM.PutRowIndex(14, iNode2RowIndex);
+   WM.PutColIndex(14, iNode2ColIndex);
    
-   WM.fPutRowIndex(15, iIndex+1);
-   WM.fPutColIndex(15, iIndex+1);
-   WM.fPutRowIndex(16, iIndex+2);
-   WM.fPutColIndex(16, iIndex+2);
+   WM.PutRowIndex(15, iIndex+1);
+   WM.PutColIndex(15, iIndex+1);
+   WM.PutRowIndex(16, iIndex+2);
+   WM.PutColIndex(16, iIndex+2);
 
    doublereal p1 = pNodeHyd1->dGetX();
    doublereal p2 = pNodeHyd2->dGetX();
@@ -371,15 +371,15 @@ Actuator::AssRes(SubVectorHandler& WorkVec,
      
    /* Setta gli indici */
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
    }
    
-   WorkVec.fPutRowIndex(13, iNode1RowIndex);
-   WorkVec.fPutRowIndex(14, iNode2RowIndex);
+   WorkVec.PutRowIndex(13, iNode1RowIndex);
+   WorkVec.PutRowIndex(14, iNode2RowIndex);
    
-   WorkVec.fPutRowIndex(15, iIndex+1);
-   WorkVec.fPutRowIndex(16, iIndex+2);
+   WorkVec.PutRowIndex(15, iIndex+1);
+   WorkVec.PutRowIndex(16, iIndex+2);
    
    /* Dati */
    doublereal p1 = pNodeHyd1->dGetX();

@@ -146,10 +146,10 @@ ElasticDispHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Setta gli indici della matrice */
    for(int iCnt = 1; iCnt <= 6; iCnt++) {
-      WM.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
-      WM.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
-      WM.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
+      WM.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+      WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
    }  
    
    AssMat(WM, dCoef);
@@ -221,8 +221,8 @@ ElasticDispHingeJoint::AssRes(SubVectorHandler& WorkVec,
    
    /* Setta gli indici della matrice */
    for(int iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
    }  
    
    AssVec(WorkVec);
@@ -270,10 +270,10 @@ ElasticDispHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Setta gli indici della matrice */
    for(int iCnt = 1; iCnt <= 6; iCnt++) {
-      WM.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
    }  
    
    AssMat(WM, 1.);
@@ -300,8 +300,8 @@ ElasticDispHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    
    /* Setta gli indici della matrice */
    for(int iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
    }  
  
    AssVec(WorkVec);
@@ -365,10 +365,10 @@ ViscousDispHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Setta gli indici della matrice */
    for(int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
-      WM.fPutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
-      WM.fPutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
+      WM.PutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
+      WM.PutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
    }  
 
    Mat3x3 R1(pNode1->GetRRef()*R1h);
@@ -409,8 +409,8 @@ ViscousDispHingeJoint::AssRes(SubVectorHandler& WorkVec,
    
    /* Setta gli indici della matrice */
    for(int iCnt = 1; iCnt <= 3; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WorkVec.fPutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
    }  
  
    Mat3x3 R1(pNode1->GetRCurr()*R1h);
@@ -453,13 +453,13 @@ ViscousDispHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Setta gli indici della matrice */
    for(int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutColIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutColIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
       
-      WM.fPutRowIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutColIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
+      WM.PutRowIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutColIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
    }  
 
    Mat3x3 R1(pNode1->GetRRef()*R1h);
@@ -502,8 +502,8 @@ ViscousDispHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    
    /* Setta gli indici della matrice */
    for(int iCnt = 1; iCnt <= 3; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WorkVec.fPutRowIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
    }  
    
    Mat3x3 R1(pNode1->GetRCurr()*R1h);
@@ -581,10 +581,10 @@ ViscoElasticDispHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Setta gli indici della matrice */
    for(int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
-      WM.fPutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
-      WM.fPutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
+      WM.PutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
+      WM.PutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
    }  
 
    Mat3x3 R1(pNode1->GetRRef()*R1h);
@@ -629,8 +629,8 @@ ViscoElasticDispHingeJoint::AssRes(SubVectorHandler& WorkVec,
    
    /* Setta gli indici della matrice */
    for(int iCnt = 1; iCnt <= 3; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WorkVec.fPutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
    }  
    
    Mat3x3 R1(pNode1->GetRCurr()*R1h);
@@ -676,13 +676,13 @@ ViscoElasticDispHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Setta gli indici della matrice */
    for(int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutColIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutColIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
       
-      WM.fPutRowIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutColIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
+      WM.PutRowIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutColIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
    }  
    
    Mat3x3 R1(pNode1->GetRRef()*R1h);
@@ -731,8 +731,8 @@ ViscoElasticDispHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    
    /* Setta gli indici della matrice */
    for(int iCnt = 1; iCnt <= 3; iCnt++) {
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WorkVec.fPutRowIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
    }  
    
    Mat3x3 R1(pNode1->GetRCurr()*R1h);

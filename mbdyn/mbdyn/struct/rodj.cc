@@ -187,10 +187,10 @@ VariableSubMatrixHandler& Rod::AssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Setta gli indici della matrice */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
-      WM.fPutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
-      WM.fPutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
+      WM.PutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
+      WM.PutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
    }  
    
    /* Genera la matrice */
@@ -224,10 +224,10 @@ void Rod::AssMats(VariableSubMatrixHandler& WorkMatA,
    
    /* Setta gli indici della matrice */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WMA.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WMA.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
-      WMA.fPutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
-      WMA.fPutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
+      WMA.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WMA.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
+      WMA.PutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
+      WMA.PutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
    }  
    
    /* Genera la matrice */
@@ -255,8 +255,8 @@ SubVectorHandler& Rod::AssRes(SubVectorHandler& WorkVec,
    
    /* Setta gli indici */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WorkVec.fPutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
    }
    
    /* Costruisce il vettore */
@@ -389,10 +389,10 @@ Rod::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Setta gli indici della matrice */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
-      WM.fPutRowIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
+      WM.PutRowIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
    }  
    
    /* Genera la matrice */
@@ -420,8 +420,8 @@ SubVectorHandler& Rod::InitialAssRes(SubVectorHandler& WorkVec,
    
    /* Setta gli indici */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WorkVec.fPutRowIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
    }
    
    /* Costruisce il vettore */
@@ -586,10 +586,10 @@ ViscoElasticRod::AssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Setta gli indici della matrice */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
-      WM.fPutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
-      WM.fPutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
+      WM.PutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
+      WM.PutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
    }           
    
    /* v = x2-x1 */
@@ -654,8 +654,8 @@ ViscoElasticRod::AssRes(SubVectorHandler& WorkVec,
    
    /* Setta gli indici */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WorkVec.fPutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
    }
          
    /* v = x2-x1 */
@@ -717,13 +717,13 @@ ViscoElasticRod::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Setta gli indici della matrice */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
-      WM.fPutColIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
+      WM.PutColIndex(3+iCnt, iNode1FirstVelIndex+iCnt);
       
-      WM.fPutRowIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutColIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
+      WM.PutRowIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutColIndex(9+iCnt, iNode2FirstVelIndex+iCnt);
    }           
    
    /* v = x2-x1 */
@@ -794,8 +794,8 @@ ViscoElasticRod::InitialAssRes(SubVectorHandler& WorkVec,
    
    /* Setta gli indici */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WorkVec.fPutRowIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
    }
          
    /* v = x2-x1 */
@@ -928,10 +928,10 @@ RodWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Setta gli indici della matrice */
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WM.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
-      WM.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
-      WM.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
+      WM.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+      WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
    }           
    
    Mat3x3 R1(pNode1->GetRRef());
@@ -1049,8 +1049,8 @@ RodWithOffset::AssRes(SubVectorHandler& WorkVec,
    
    /* Setta gli indici */
    for (int iCnt = 1; iCnt <= 6; iCnt++) {	
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
    }
 
    /* Dati */
@@ -1256,13 +1256,13 @@ RodWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Setta gli indici della matrice */
    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WM.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
-      WM.fPutColIndex(6+iCnt, iNode1FirstVelIndex+iCnt);
+      WM.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);	
+      WM.PutColIndex(6+iCnt, iNode1FirstVelIndex+iCnt);
       
-      WM.fPutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutColIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
-      WM.fPutColIndex(18+iCnt, iNode2FirstVelIndex+iCnt);
+      WM.PutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutColIndex(12+iCnt, iNode2FirstPosIndex+iCnt);
+      WM.PutColIndex(18+iCnt, iNode2FirstVelIndex+iCnt);
    }           
    
    Mat3x3 R1(pNode1->GetRRef());
@@ -1419,8 +1419,8 @@ RodWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
    
    /* Setta gli indici */
    for (int iCnt = 1; iCnt <= 6; iCnt++) {	
-      WorkVec.fPutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-      WorkVec.fPutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
    }
 
    /* Dati */

@@ -136,14 +136,14 @@ Control_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iNode3ColIndex = pNode3->iGetFirstColIndex()+1;
    integer iNode4ColIndex = pNode4->iGetFirstColIndex()+1;
   
-   WM.fPutRowIndex(1, iNode1RowIndex);
-   WM.fPutRowIndex(2, iNode2RowIndex);
-   WM.fPutRowIndex(3, iNode3RowIndex);
-   WM.fPutRowIndex(4, iNode4RowIndex);
-   WM.fPutColIndex(1, iNode1ColIndex);
-   WM.fPutColIndex(2, iNode2ColIndex);
-   WM.fPutColIndex(3, iNode3ColIndex);
-   WM.fPutColIndex(4, iNode4ColIndex);   
+   WM.PutRowIndex(1, iNode1RowIndex);
+   WM.PutRowIndex(2, iNode2RowIndex);
+   WM.PutRowIndex(3, iNode3RowIndex);
+   WM.PutRowIndex(4, iNode4RowIndex);
+   WM.PutColIndex(1, iNode1ColIndex);
+   WM.PutColIndex(2, iNode2ColIndex);
+   WM.PutColIndex(3, iNode3ColIndex);
+   WM.PutColIndex(4, iNode4ColIndex);   
    
    doublereal p1 = pNode1->dGetX();
    doublereal p2 = pNode2->dGetX();
@@ -303,10 +303,10 @@ Control_valve::AssRes(SubVectorHandler& WorkVec,
    DEBUGCOUT("-Res_4 (portata nodo4): " << -Res_4 << std::endl); 
 #endif
    
-   WorkVec.fPutItem(1, iNode1RowIndex, Res_1);
-   WorkVec.fPutItem(2, iNode2RowIndex, Res_2);         
-   WorkVec.fPutItem(3, iNode3RowIndex, Res_3);
-   WorkVec.fPutItem(4, iNode4RowIndex, Res_4);    
+   WorkVec.PutItem(1, iNode1RowIndex, Res_1);
+   WorkVec.PutItem(2, iNode2RowIndex, Res_2);         
+   WorkVec.PutItem(3, iNode3RowIndex, Res_3);
+   WorkVec.PutItem(4, iNode4RowIndex, Res_4);    
 
    return WorkVec;
 }
@@ -422,13 +422,13 @@ Control_valve2::AssJac(VariableSubMatrixHandler& WorkMat,
 	integer iFirstIndex = iGetFirstIndex();
 	
 	for (int i = 0; i < LAST_N; i++) {
-		WM.fPutRowIndex(1+i, pNode[i]->iGetFirstRowIndex()+1);
-		WM.fPutColIndex(1+i, pNode[i]->iGetFirstColIndex()+1);
+		WM.PutRowIndex(1+i, pNode[i]->iGetFirstRowIndex()+1);
+		WM.PutColIndex(1+i, pNode[i]->iGetFirstColIndex()+1);
 	}
 
 	for (int i = 1; i <= LAST_Q; i++) {
-		WM.fPutRowIndex(4+i, iFirstIndex+i);
-		WM.fPutColIndex(4+i, iFirstIndex+i);
+		WM.PutRowIndex(4+i, iFirstIndex+i);
+		WM.PutColIndex(4+i, iFirstIndex+i);
 	}
 	
 	doublereal dKappa = 2.*Cd*Cd*density;
@@ -583,11 +583,11 @@ Control_valve2::AssRes(SubVectorHandler& WorkVec,
 #endif /* !VALVE_6 */
 
 	for (int i = 0; i < LAST_N; i++) {
-		WorkVec.fPutItem(1+i, iNodeRowIndex[i], f[i]);
+		WorkVec.PutItem(1+i, iNodeRowIndex[i], f[i]);
 	}
 	
 	for (int i = 0; i < LAST_Q; i++) {
-		WorkVec.fPutItem(5+i, iFirstIndex+i, 
+		WorkVec.PutItem(5+i, iFirstIndex+i, 
 			A[i]*A[i]*dp[i]-q[i]*fabs(q[i])/dKappa);
 	}
 
@@ -733,19 +733,19 @@ Dynamic_control_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iNode4ColIndex = pNode4->iGetFirstColIndex()+1;
    integer iFirstIndex = iGetFirstIndex();
    
-   WM.fPutRowIndex(1, iNode1RowIndex);
-   WM.fPutRowIndex(2, iNode2RowIndex);
-   WM.fPutRowIndex(3, iNode3RowIndex);
-   WM.fPutRowIndex(4, iNode4RowIndex);
-   WM.fPutColIndex(1, iNode1ColIndex);
-   WM.fPutColIndex(2, iNode2ColIndex);
-   WM.fPutColIndex(3, iNode3ColIndex);
-   WM.fPutColIndex(4, iNode4ColIndex);
+   WM.PutRowIndex(1, iNode1RowIndex);
+   WM.PutRowIndex(2, iNode2RowIndex);
+   WM.PutRowIndex(3, iNode3RowIndex);
+   WM.PutRowIndex(4, iNode4RowIndex);
+   WM.PutColIndex(1, iNode1ColIndex);
+   WM.PutColIndex(2, iNode2ColIndex);
+   WM.PutColIndex(3, iNode3ColIndex);
+   WM.PutColIndex(4, iNode4ColIndex);
    
-   WM.fPutRowIndex(5, iFirstIndex+1);
-   WM.fPutColIndex(5, iFirstIndex+1);
-   WM.fPutRowIndex(6, iFirstIndex+2);
-   WM.fPutColIndex(6, iFirstIndex+2);
+   WM.PutRowIndex(5, iFirstIndex+1);
+   WM.PutColIndex(5, iFirstIndex+1);
+   WM.PutRowIndex(6, iFirstIndex+2);
+   WM.PutColIndex(6, iFirstIndex+2);
    
    doublereal p1 = pNode1->dGetX();
    doublereal p2 = pNode2->dGetX();
@@ -1032,12 +1032,12 @@ Dynamic_control_valve::AssRes(SubVectorHandler& WorkVec,
    DEBUGCOUT("-Res_6 sp-v           : " << -Res_6 << std::endl); 
 #endif
    
-   WorkVec.fPutItem(1, iNode1RowIndex, Res_1);
-   WorkVec.fPutItem(2, iNode2RowIndex, Res_2);         
-   WorkVec.fPutItem(3, iNode3RowIndex, Res_3);
-   WorkVec.fPutItem(4, iNode4RowIndex, Res_4);    
-   WorkVec.fPutItem(5, iFirstIndex+1, Res_5);
-   WorkVec.fPutItem(6, iFirstIndex+2, Res_6);    
+   WorkVec.PutItem(1, iNode1RowIndex, Res_1);
+   WorkVec.PutItem(2, iNode2RowIndex, Res_2);         
+   WorkVec.PutItem(3, iNode3RowIndex, Res_3);
+   WorkVec.PutItem(4, iNode4RowIndex, Res_4);    
+   WorkVec.PutItem(5, iFirstIndex+1, Res_5);
+   WorkVec.PutItem(6, iFirstIndex+2, Res_6);    
     
    return WorkVec;
 }
@@ -1177,23 +1177,23 @@ Pressure_flow_control_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iNode6ColIndex = pNode6->iGetFirstColIndex()+1;
    integer iFirstIndex = iGetFirstIndex();
    
-   WM.fPutRowIndex(1, iNode1RowIndex);
-   WM.fPutRowIndex(2, iNode2RowIndex);
-   WM.fPutRowIndex(3, iNode3RowIndex);
-   WM.fPutRowIndex(4, iNode4RowIndex);
-   WM.fPutRowIndex(5, iNode5RowIndex);
-   WM.fPutRowIndex(6, iNode6RowIndex);
-   WM.fPutColIndex(1, iNode1ColIndex);
-   WM.fPutColIndex(2, iNode2ColIndex);
-   WM.fPutColIndex(3, iNode3ColIndex);
-   WM.fPutColIndex(4, iNode4ColIndex);
-   WM.fPutColIndex(5, iNode5ColIndex);
-   WM.fPutColIndex(6, iNode6ColIndex);
+   WM.PutRowIndex(1, iNode1RowIndex);
+   WM.PutRowIndex(2, iNode2RowIndex);
+   WM.PutRowIndex(3, iNode3RowIndex);
+   WM.PutRowIndex(4, iNode4RowIndex);
+   WM.PutRowIndex(5, iNode5RowIndex);
+   WM.PutRowIndex(6, iNode6RowIndex);
+   WM.PutColIndex(1, iNode1ColIndex);
+   WM.PutColIndex(2, iNode2ColIndex);
+   WM.PutColIndex(3, iNode3ColIndex);
+   WM.PutColIndex(4, iNode4ColIndex);
+   WM.PutColIndex(5, iNode5ColIndex);
+   WM.PutColIndex(6, iNode6ColIndex);
  
-   WM.fPutRowIndex(7, iFirstIndex+1);
-   WM.fPutColIndex(7, iFirstIndex+1);
-   WM.fPutRowIndex(8, iFirstIndex+2);
-   WM.fPutColIndex(8, iFirstIndex+2);
+   WM.PutRowIndex(7, iFirstIndex+1);
+   WM.PutColIndex(7, iFirstIndex+1);
+   WM.PutRowIndex(8, iFirstIndex+2);
+   WM.PutColIndex(8, iFirstIndex+2);
    
    doublereal p1 = pNode1->dGetX();
    doublereal p2 = pNode2->dGetX();
@@ -1446,14 +1446,14 @@ Pressure_flow_control_valve::AssRes(SubVectorHandler& WorkVec,
    DEBUGCOUT("-Res_7 sp-v           : " << -Res_8 << std::endl); 
 #endif
    
-   WorkVec.fPutItem(1, iNode1RowIndex, Res_1);
-   WorkVec.fPutItem(2, iNode2RowIndex, Res_2);         
-   WorkVec.fPutItem(3, iNode3RowIndex, Res_3);
-   WorkVec.fPutItem(4, iNode4RowIndex, Res_4);    
-   WorkVec.fPutItem(5, iNode5RowIndex, Res_5);
-   WorkVec.fPutItem(6, iNode6RowIndex, Res_6);    
-   WorkVec.fPutItem(7, iFirstIndex+1, Res_7);
-   WorkVec.fPutItem(8, iFirstIndex+2, Res_8);    
+   WorkVec.PutItem(1, iNode1RowIndex, Res_1);
+   WorkVec.PutItem(2, iNode2RowIndex, Res_2);         
+   WorkVec.PutItem(3, iNode3RowIndex, Res_3);
+   WorkVec.PutItem(4, iNode4RowIndex, Res_4);    
+   WorkVec.PutItem(5, iNode5RowIndex, Res_5);
+   WorkVec.PutItem(6, iNode6RowIndex, Res_6);    
+   WorkVec.PutItem(7, iFirstIndex+1, Res_7);
+   WorkVec.PutItem(8, iFirstIndex+2, Res_8);    
     
    return WorkVec;
 }
@@ -1575,15 +1575,15 @@ Pressure_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iNode2ColIndex = pNode2->iGetFirstColIndex()+1;
    integer iFirstIndex = iGetFirstIndex();
  
-   WM.fPutRowIndex(1, iNode1RowIndex);
-   WM.fPutRowIndex(2, iNode2RowIndex);
-   WM.fPutColIndex(1, iNode1ColIndex);
-   WM.fPutColIndex(2, iNode2ColIndex);
+   WM.PutRowIndex(1, iNode1RowIndex);
+   WM.PutRowIndex(2, iNode2RowIndex);
+   WM.PutColIndex(1, iNode1ColIndex);
+   WM.PutColIndex(2, iNode2ColIndex);
 
-   WM.fPutRowIndex(3, iFirstIndex+1);
-   WM.fPutColIndex(3, iFirstIndex+1);
-   WM.fPutRowIndex(4, iFirstIndex+2);
-   WM.fPutColIndex(4, iFirstIndex+2);
+   WM.PutRowIndex(3, iFirstIndex+1);
+   WM.PutColIndex(3, iFirstIndex+1);
+   WM.PutRowIndex(4, iFirstIndex+2);
+   WM.PutColIndex(4, iFirstIndex+2);
 
    doublereal p1 = pNode1->dGetX();
    doublereal p2 = pNode2->dGetX(); 
@@ -1799,10 +1799,10 @@ Pressure_valve::AssRes(SubVectorHandler& WorkVec,
    DEBUGCOUT("Res_4:                  " << Res_4 << std::endl); 
 #endif
    
-   WorkVec.fPutItem(1, iNode1RowIndex, Res_1);
-   WorkVec.fPutItem(2, iNode2RowIndex, Res_2);         
-   WorkVec.fPutItem(3, iFirstIndex+1, Res_3);
-   WorkVec.fPutItem(4, iFirstIndex+2, Res_4);    
+   WorkVec.PutItem(1, iNode1RowIndex, Res_1);
+   WorkVec.PutItem(2, iNode2RowIndex, Res_2);         
+   WorkVec.PutItem(3, iFirstIndex+1, Res_3);
+   WorkVec.PutItem(4, iFirstIndex+2, Res_4);    
      	
    return WorkVec;
 }
@@ -1929,17 +1929,17 @@ Flow_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iNode3ColIndex = pNode3->iGetFirstColIndex()+1;
    integer iFirstIndex = iGetFirstIndex();
    
-   WM.fPutRowIndex(1, iNode1RowIndex);
-   WM.fPutRowIndex(2, iNode2RowIndex);
-   WM.fPutRowIndex(3, iNode3RowIndex);
-   WM.fPutColIndex(1, iNode1ColIndex);
-   WM.fPutColIndex(2, iNode2ColIndex);
-   WM.fPutColIndex(3, iNode3ColIndex);
+   WM.PutRowIndex(1, iNode1RowIndex);
+   WM.PutRowIndex(2, iNode2RowIndex);
+   WM.PutRowIndex(3, iNode3RowIndex);
+   WM.PutColIndex(1, iNode1ColIndex);
+   WM.PutColIndex(2, iNode2ColIndex);
+   WM.PutColIndex(3, iNode3ColIndex);
 
-   WM.fPutRowIndex(4, iFirstIndex+1);
-   WM.fPutColIndex(4, iFirstIndex+1);
-   WM.fPutRowIndex(5, iFirstIndex+2);
-   WM.fPutColIndex(5, iFirstIndex+2);
+   WM.PutRowIndex(4, iFirstIndex+1);
+   WM.PutColIndex(4, iFirstIndex+1);
+   WM.PutRowIndex(5, iFirstIndex+2);
+   WM.PutColIndex(5, iFirstIndex+2);
 
    doublereal p1 = pNode1->dGetX();
    doublereal p2 = pNode2->dGetX();
@@ -2252,11 +2252,11 @@ Flow_valve::AssRes(SubVectorHandler& WorkVec,
    DEBUGCOUT("-Res_5:                 " << -Res_5 << std::endl); 
 #endif
    
-   WorkVec.fPutItem(1, iNode1RowIndex, Res_1);
-   WorkVec.fPutItem(2, iNode2RowIndex, Res_2);         
-   WorkVec.fPutItem(3, iNode3RowIndex, Res_3);
-   WorkVec.fPutItem(4, iFirstIndex+1, Res_4);    
-   WorkVec.fPutItem(5, iFirstIndex+2, Res_5);    
+   WorkVec.PutItem(1, iNode1RowIndex, Res_1);
+   WorkVec.PutItem(2, iNode2RowIndex, Res_2);         
+   WorkVec.PutItem(3, iNode3RowIndex, Res_3);
+   WorkVec.PutItem(4, iFirstIndex+1, Res_4);    
+   WorkVec.PutItem(5, iFirstIndex+2, Res_5);    
      
    return WorkVec;
 }

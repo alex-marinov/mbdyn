@@ -780,7 +780,7 @@ DiscreteControlElem::AssRes(SubVectorHandler& WorkVec,
    /* Sets the parameters */   
    for (int iCnt = iNumInputs; iCnt-- > 0; ) {
       /* Equivalent to an abstract force */
-      WorkVec.fPutItem(iCnt+1, pInputs[iCnt].pNode->iGetFirstRowIndex()+1, pdIn[iCnt]);     
+      WorkVec.PutItem(iCnt+1, pInputs[iCnt].pNode->iGetFirstRowIndex()+1, pdIn[iCnt]);     
    }
    
    return WorkVec;

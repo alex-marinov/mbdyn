@@ -114,8 +114,8 @@ class GenelClamp : virtual public Elem, public Genel, public DriveOwner {
 	integer iColIndex = SD.pNode->iGetFirstColIndex()+1;
 	integer iFirstReactionIndex = iGetFirstIndex()+1;
 	
-	WM.fPutItem(1, iRowIndex, iFirstReactionIndex, 1.);
-	WM.fPutItem(2, iFirstReactionIndex, iColIndex, 1.);
+	WM.PutItem(1, iRowIndex, iFirstReactionIndex, 1.);
+	WM.PutItem(2, iFirstReactionIndex, iColIndex, 1.);
 	
 	return WorkMat;
      };
@@ -135,7 +135,7 @@ class GenelClamp : virtual public Elem, public Genel, public DriveOwner {
       doublereal dVal = SD.pNode->dGetDofValue(1, SD.iOrder);
       dRct = XCurr.dGetCoef(iFirstReactionIndex);
       
-      WorkVec.fPutItem(1, iRowIndex, -dRct);
+      WorkVec.PutItem(1, iRowIndex, -dRct);
 
       doublereal dConstr = dGet()-dVal;
       if (SD.iOrder == 0 
@@ -143,7 +143,7 @@ class GenelClamp : virtual public Elem, public Genel, public DriveOwner {
      		      && dCoef != 0.) {
 	 dConstr /= dCoef;
       }
-      WorkVec.fPutItem(2, iFirstReactionIndex, dConstr);
+      WorkVec.PutItem(2, iFirstReactionIndex, dConstr);
 
       return WorkVec;
    };
@@ -249,8 +249,8 @@ class GenelDistance : virtual public Elem, public Genel, public DriveOwner {
 	integer iNode2ColIndex = SD2.pNode->iGetFirstColIndex()+1;
 	integer iFirstReactionIndex = iGetFirstIndex()+1;
 	
-	WM.fPutItem(1, iNode1RowIndex, iFirstReactionIndex, -1.);
-	WM.fPutItem(2, iNode2RowIndex, iFirstReactionIndex, 1.);
+	WM.PutItem(1, iNode1RowIndex, iFirstReactionIndex, -1.);
+	WM.PutItem(2, iNode2RowIndex, iFirstReactionIndex, 1.);
 	
 	doublereal d = dCoef;
 	if ((SD1.iOrder == 0) && (SD2.iOrder == 0)) {
@@ -258,15 +258,15 @@ class GenelDistance : virtual public Elem, public Genel, public DriveOwner {
 	}
 	
 	if (SD1.iOrder == 1) {
-	   WM.fPutItem(3, iFirstReactionIndex, iNode1ColIndex, -1.);
+	   WM.PutItem(3, iFirstReactionIndex, iNode1ColIndex, -1.);
 	} else {
-	   WM.fPutItem(3, iFirstReactionIndex, iNode1ColIndex, -d);
+	   WM.PutItem(3, iFirstReactionIndex, iNode1ColIndex, -d);
 	}      
 	
 	if (SD2.iOrder == 1) {
-	   WM.fPutItem(4, iFirstReactionIndex, iNode2ColIndex, 1.);
+	   WM.PutItem(4, iFirstReactionIndex, iNode2ColIndex, 1.);
 	} else {
-	   WM.fPutItem(4, iFirstReactionIndex, iNode2ColIndex, d);
+	   WM.PutItem(4, iFirstReactionIndex, iNode2ColIndex, d);
 	}      
 	
 	return WorkMat;
@@ -290,16 +290,16 @@ class GenelDistance : virtual public Elem, public Genel, public DriveOwner {
       doublereal dVal2 = SD2.pNode->dGetDofValue(1, SD2.iOrder);
       dRct = XCurr.dGetCoef(iFirstReactionIndex);
       
-      WorkVec.fPutItem(1, iNode1RowIndex, dRct);
-      WorkVec.fPutItem(2, iNode2RowIndex, -dRct);
+      WorkVec.PutItem(1, iNode1RowIndex, dRct);
+      WorkVec.PutItem(2, iNode2RowIndex, -dRct);
       
       if ((SD1.iOrder == 0) && (SD2.iOrder == 0)) {     
 	 if (dCoef != 0.) {
-	    WorkVec.fPutItem(3, iFirstReactionIndex, 
+	    WorkVec.PutItem(3, iFirstReactionIndex, 
 			     (dGet()-dVal2+dVal1)/dCoef);
 	 }	 
       } else {
-	 WorkVec.fPutItem(3, iFirstReactionIndex, dGet()-dVal2+dVal1);
+	 WorkVec.PutItem(3, iFirstReactionIndex, dGet()-dVal2+dVal1);
       }
 
       return WorkVec;
@@ -398,10 +398,10 @@ class GenelSpring
 	integer iNode2RowIndex = SD2.pNode->iGetFirstRowIndex()+1;
 	integer iNode2ColIndex = SD2.pNode->iGetFirstColIndex()+1;
 	
-	WM.fPutRowIndex(1, iNode1RowIndex);
-	WM.fPutColIndex(1, iNode1ColIndex);
-	WM.fPutRowIndex(2, iNode2RowIndex);
-	WM.fPutColIndex(2, iNode2ColIndex);
+	WM.PutRowIndex(1, iNode1RowIndex);
+	WM.PutColIndex(1, iNode1ColIndex);
+	WM.PutRowIndex(2, iNode2RowIndex);
+	WM.PutColIndex(2, iNode2ColIndex);
 	
 	doublereal dFDE = GetFDE();
       	
@@ -445,8 +445,8 @@ class GenelSpring
       
       doublereal d = GetF();
       
-      WorkVec.fPutItem(1, iNode1RowIndex, d);
-      WorkVec.fPutItem(2, iNode2RowIndex, -d);
+      WorkVec.PutItem(1, iNode1RowIndex, d);
+      WorkVec.PutItem(2, iNode2RowIndex, -d);
 
       return WorkVec;
    };
@@ -532,8 +532,8 @@ class GenelSpringSupport
 	integer iNodeRowIndex = SD.pNode->iGetFirstRowIndex()+1;
 	integer iNodeColIndex = SD.pNode->iGetFirstColIndex()+1;
 	
-	WM.fPutRowIndex(1, iNodeRowIndex);
-	WM.fPutColIndex(1, iNodeColIndex);            
+	WM.PutRowIndex(1, iNodeRowIndex);
+	WM.PutColIndex(1, iNodeColIndex);            
 	     	              
 	WM.PutCoef(1, 1, GetFDE()*dCoef);
 	
@@ -555,7 +555,7 @@ class GenelSpringSupport
       dVal = SD.pNode->dGetX();
       ConstitutiveLaw1DOwner::Update(dVal, 0.);
       
-      WorkVec.fPutItem(1, iNodeRowIndex, -GetF());  
+      WorkVec.PutItem(1, iNodeRowIndex, -GetF());  
 
       return WorkVec;
    };
@@ -642,8 +642,8 @@ class GenelCrossSpringSupport
 	integer iNodeRowIndex = SDRow.pNode->iGetFirstRowIndex()+1;
 	integer iNodeColIndex = SDCol.pNode->iGetFirstColIndex()+1;
 	
-	WM.fPutRowIndex(1, iNodeRowIndex);
-	WM.fPutColIndex(1, iNodeColIndex);            
+	WM.PutRowIndex(1, iNodeRowIndex);
+	WM.PutColIndex(1, iNodeColIndex);            
 	     	              
 	WM.PutCoef(1, 1, GetFDE()*dCoef);
 	
@@ -665,7 +665,7 @@ class GenelCrossSpringSupport
       dVal = SDCol.pNode->dGetX();    
       ConstitutiveLaw1DOwner::Update(dVal, 0.);
       
-      WorkVec.fPutItem(1, iNodeRowIndex, -GetF());  
+      WorkVec.PutItem(1, iNodeRowIndex, -GetF());  
 
       return WorkVec;
    };
@@ -756,8 +756,8 @@ class GenelCrossSpringDamperSupport
 	integer iNodeRowIndex = SDRow.pNode->iGetFirstRowIndex()+1;
 	integer iNodeColIndex = SDCol.pNode->iGetFirstColIndex()+1;
 	
-	WM.fPutRowIndex(1, iNodeRowIndex);
-	WM.fPutColIndex(1, iNodeColIndex);            
+	WM.PutRowIndex(1, iNodeRowIndex);
+	WM.PutColIndex(1, iNodeColIndex);            
 	     	              
 	WM.PutCoef(1, 1, GetFDE()*dCoef+GetFDEPrime());
 	
@@ -780,7 +780,7 @@ class GenelCrossSpringDamperSupport
       dValPrime = SDCol.pNode->dGetXPrime();
       ConstitutiveLaw1DOwner::Update(dVal, dValPrime);
       
-      WorkVec.fPutItem(1, iNodeRowIndex, -GetF());  
+      WorkVec.PutItem(1, iNodeRowIndex, -GetF());  
 
       return WorkVec;
    };
@@ -868,8 +868,8 @@ class GenelSpringDamperSupport
 	integer iNodeRowIndex = SD.pNode->iGetFirstRowIndex()+1;
 	integer iNodeColIndex = SD.pNode->iGetFirstColIndex()+1;
 	
-	WM.fPutRowIndex(1, iNodeRowIndex);
-	WM.fPutColIndex(1, iNodeColIndex);            
+	WM.PutRowIndex(1, iNodeRowIndex);
+	WM.PutColIndex(1, iNodeColIndex);            
 	     	              
 	WM.PutCoef(1, 1, GetFDE()*dCoef+GetFDEPrime());
 	
@@ -893,7 +893,7 @@ class GenelSpringDamperSupport
       
       ConstitutiveLaw1DOwner::Update(dVal, dValPrime);    
       
-      WorkVec.fPutItem(1, iNodeRowIndex, -GetF());  
+      WorkVec.PutItem(1, iNodeRowIndex, -GetF());  
 
       return WorkVec;
    };
@@ -984,9 +984,9 @@ class GenelMass : virtual public Elem, public Genel, public DriveOwner {
 	integer iColIndex = SD.pNode->iGetFirstColIndex()+1;
 	integer iDerivativeIndex = iGetFirstIndex()+1;
 	
-	WM.fPutItem(1, iRowIndex, iDerivativeIndex, dGet());
-	WM.fPutItem(2, iDerivativeIndex, iColIndex, -1.);
-	WM.fPutItem(3, iDerivativeIndex, iDerivativeIndex, dCoef);
+	WM.PutItem(1, iRowIndex, iDerivativeIndex, dGet());
+	WM.PutItem(2, iDerivativeIndex, iColIndex, -1.);
+	WM.PutItem(3, iDerivativeIndex, iDerivativeIndex, dCoef);
 	
 	return WorkMat;
      };
@@ -1008,8 +1008,8 @@ class GenelMass : virtual public Elem, public Genel, public DriveOwner {
       doublereal dDer = XCurr.dGetCoef(iDerivativeIndex);
       doublereal dDerPrime = XPrimeCurr.dGetCoef(iDerivativeIndex);
       
-      WorkVec.fPutItem(1, iRowIndex, -dGet()*dDerPrime);      
-      WorkVec.fPutItem(2, iDerivativeIndex, dVal-dDer);
+      WorkVec.PutItem(1, iRowIndex, -dGet()*dDerPrime);      
+      WorkVec.PutItem(2, iDerivativeIndex, dVal-dDer);
 
       return WorkVec;
    };

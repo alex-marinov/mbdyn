@@ -96,7 +96,7 @@ DispMeasure::AssJac(VariableSubMatrixHandler& WorkMat,
    /* Indici delle equazioni */
    integer iAbstractIndex = pAbsNode->iGetFirstIndex()+1;
 
-   WM.fPutItem(1, iAbstractIndex, iAbstractIndex, dCoef);
+   WM.PutItem(1, iAbstractIndex, iAbstractIndex, dCoef);
 
    return WorkMat;
 }
@@ -116,7 +116,7 @@ DispMeasure::AssRes(SubVectorHandler& WorkVec,
       
    integer iAbstractIndex = pAbsNode->iGetFirstIndex()+1;
 
-   WorkVec.fPutRowIndex(1, iAbstractIndex);
+   WorkVec.PutRowIndex(1, iAbstractIndex);
    
    Vec3 x1 = pStrNode1->GetXCurr()+pStrNode1->GetRCurr()*f1;
    Vec3 x2 = pStrNode2->GetXCurr()+pStrNode2->GetRCurr()*f2;

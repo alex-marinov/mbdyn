@@ -176,13 +176,13 @@ DistanceJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	integer iFirstReactionIndex = iGetFirstIndex();
 
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {
-		WM.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-		WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-		WM.fPutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
-		WM.fPutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
+		WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+		WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+		WM.PutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
+		WM.PutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
 	}
-	WM.fPutRowIndex(6+1, iFirstReactionIndex+1);
-	WM.fPutColIndex(6+1, iFirstReactionIndex+1);
+	WM.PutRowIndex(6+1, iFirstReactionIndex+1);
+	WM.PutColIndex(6+1, iFirstReactionIndex+1);
 
 	AssMat_(WM, WM, dCoef, XCurr, XPrimeCurr);
  
@@ -212,21 +212,21 @@ DistanceJoint::AssMats(VariableSubMatrixHandler& WorkMatA,
 	integer iFirstReactionIndex = iGetFirstIndex();
 
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {
-		WMA.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-		WMA.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-		WMA.fPutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
-		WMA.fPutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
+		WMA.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+		WMA.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+		WMA.PutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
+		WMA.PutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
 		
-		WMB.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-		WMB.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-		WMB.fPutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
-		WMB.fPutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
+		WMB.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+		WMB.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+		WMB.PutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
+		WMB.PutColIndex(3+iCnt, iNode2FirstPosIndex+iCnt);
 	}
-	WMA.fPutRowIndex(6+1, iFirstReactionIndex+1);
-	WMA.fPutColIndex(6+1, iFirstReactionIndex+1);
+	WMA.PutRowIndex(6+1, iFirstReactionIndex+1);
+	WMA.PutColIndex(6+1, iFirstReactionIndex+1);
 
-	WMB.fPutRowIndex(6+1, iFirstReactionIndex+1);
-	WMB.fPutColIndex(6+1, iFirstReactionIndex+1);
+	WMB.PutRowIndex(6+1, iFirstReactionIndex+1);
+	WMB.PutColIndex(6+1, iFirstReactionIndex+1);
 
 	AssMat_(WMA, WMB, 1., XCurr, XPrimeCurr);
 }
@@ -254,14 +254,14 @@ DistanceJoint::AssRes(SubVectorHandler& WorkVec,
    
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {      
 		/* Indici del nodo 1 */
-		WorkVec.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
 
 		/* Indici del nodo 2 */
-		WorkVec.fPutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
+		WorkVec.PutRowIndex(3+iCnt, iNode2FirstMomIndex+iCnt);
 	}
 	
 	/* Indici del vincolo */
-	WorkVec.fPutRowIndex(6+1, iFirstReactionIndex+1);
+	WorkVec.PutRowIndex(6+1, iFirstReactionIndex+1);
 
 	Vec3 x1(pNode1->GetXCurr());
 	Vec3 x2(pNode2->GetXCurr());
@@ -549,13 +549,13 @@ DistanceJointWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
 	integer iFirstReactionIndex = iGetFirstIndex();
 
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WM.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-		WM.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-		WM.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
-		WM.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+		WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+		WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+		WM.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+		WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
 	}
-	WM.fPutRowIndex(12+1, iFirstReactionIndex+1);
-	WM.fPutColIndex(12+1, iFirstReactionIndex+1);
+	WM.PutRowIndex(12+1, iFirstReactionIndex+1);
+	WM.PutColIndex(12+1, iFirstReactionIndex+1);
 
 	AssMat_(WM, WM, dCoef, XCurr, XPrimeCurr);
 
@@ -584,21 +584,21 @@ DistanceJointWithOffset::AssMats(VariableSubMatrixHandler& WorkMatA,
 	integer iFirstReactionIndex = iGetFirstIndex();
 
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WMA.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-		WMA.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-		WMA.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
-		WMA.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+		WMA.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+		WMA.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+		WMA.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+		WMA.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
 		
-		WMB.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-		WMB.fPutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-		WMB.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
-		WMB.fPutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+		WMB.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+		WMB.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+		WMB.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+		WMB.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
 	}
-	WMA.fPutRowIndex(12+1, iFirstReactionIndex+1);
-	WMA.fPutColIndex(12+1, iFirstReactionIndex+1);
+	WMA.PutRowIndex(12+1, iFirstReactionIndex+1);
+	WMA.PutColIndex(12+1, iFirstReactionIndex+1);
 
-	WMB.fPutRowIndex(12+1, iFirstReactionIndex+1);
-	WMB.fPutColIndex(12+1, iFirstReactionIndex+1);
+	WMB.PutRowIndex(12+1, iFirstReactionIndex+1);
+	WMB.PutColIndex(12+1, iFirstReactionIndex+1);
 
 	AssMat_(WMA, WMB, 1., XCurr, XPrimeCurr);
 }
@@ -625,14 +625,14 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
    
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {      
 		/* Indici del nodo 1 */
-		WorkVec.fPutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
 
 		/* Indici del nodo 2 */
-		WorkVec.fPutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+		WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
 	}
 	
 	/* Indici del vincolo */
-	WorkVec.fPutRowIndex(12+1, iFirstReactionIndex+1);
+	WorkVec.PutRowIndex(12+1, iFirstReactionIndex+1);
 
 	Vec3 x1(pNode1->GetXCurr());
 	Vec3 x2(pNode2->GetXCurr());

@@ -347,8 +347,8 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 		integer iRigidIndex = pModalNode->iGetFirstIndex();
 
 		for (unsigned int iCnt = 1; iCnt <= iRigidOffset; iCnt++) {
-			WM.fPutRowIndex(iCnt, iRigidIndex+iCnt);
-			WM.fPutColIndex(iCnt, iRigidIndex+iCnt);
+			WM.PutRowIndex(iCnt, iRigidIndex+iCnt);
+			WM.PutColIndex(iCnt, iRigidIndex+iCnt);
 		}
 	}
 
@@ -357,8 +357,8 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 	unsigned int iNumDof = iGetNumDof();
 
 	for (unsigned int iCnt = 1; iCnt <= iNumDof; iCnt++) {
-		WM.fPutRowIndex(iRigidOffset+iCnt, iFlexIndex+iCnt);
-		WM.fPutColIndex(iRigidOffset+iCnt, iFlexIndex+iCnt);
+		WM.PutRowIndex(iRigidOffset+iCnt, iFlexIndex+iCnt);
+		WM.PutColIndex(iRigidOffset+iCnt, iFlexIndex+iCnt);
 	}
 
 	/* indici delle equazioni vincolari (solo per il nodo 2) */
@@ -370,8 +370,8 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 
 		integer iOffset = iRigidOffset+iNumDof+6*iStrNodem1;
 		for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-			WM.fPutRowIndex(iOffset+iCnt, iNodeFirstMomIndex+iCnt);
-			WM.fPutColIndex(iOffset+iCnt, iNodeFirstPosIndex+iCnt);
+			WM.PutRowIndex(iOffset+iCnt, iNodeFirstMomIndex+iCnt);
+			WM.PutColIndex(iOffset+iCnt, iNodeFirstPosIndex+iCnt);
 		}
 	}
 
@@ -783,7 +783,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 	integer iModalIndex = iGetFirstIndex();
 	unsigned int iNumDof = iGetNumDof();
 	for (unsigned int iCnt = 1; iCnt <= iNumDof; iCnt++) {
-		WorkVec.fPutRowIndex(iRigidOffset+iCnt, iModalIndex+iCnt);
+		WorkVec.PutRowIndex(iRigidOffset+iCnt, iModalIndex+iCnt);
 	}
 
 	/* interface nodes equilibrium indices */
@@ -793,7 +793,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 			pInterfaceNodes[iStrNodem1]->iGetFirstMomentumIndex();
 
 		for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {
-			WorkVec.fPutRowIndex(iOffset+iCnt,
+			WorkVec.PutRowIndex(iOffset+iCnt,
 					iNodeFirstMomIndex+iCnt);
 		}
 
@@ -936,7 +936,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 		/* rigid body indices */
 		integer iRigidIndex = pModalNode->iGetFirstIndex();
 		for (unsigned int iCnt = 1; iCnt <= iRigidOffset; iCnt++) {
-			WorkVec.fPutRowIndex(iCnt, iRigidIndex+iCnt);
+			WorkVec.PutRowIndex(iCnt, iRigidIndex+iCnt);
 		}
 
 		/* recupera i dati necessari */
@@ -1229,16 +1229,16 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		integer iRigidIndex = pModalNode->iGetFirstIndex();
 
 		for (unsigned int iCnt = 1; iCnt <= iRigidOffset; iCnt++) {
-			WM.fPutRowIndex(iCnt, iRigidIndex+iCnt);
-			WM.fPutColIndex(iCnt, iRigidIndex+iCnt);
+			WM.PutRowIndex(iCnt, iRigidIndex+iCnt);
+			WM.PutColIndex(iCnt, iRigidIndex+iCnt);
 		}
 	}
 
 	integer iFlexIndex = iGetFirstIndex();
 
 	for (unsigned int iCnt = 1; iCnt <= iGetInitialNumDof(); iCnt++) {
-		WM.fPutRowIndex(iRigidOffset+iCnt, iFlexIndex+iCnt);
-		WM.fPutColIndex(iRigidOffset+iCnt, iFlexIndex+iCnt);
+		WM.PutRowIndex(iRigidOffset+iCnt, iFlexIndex+iCnt);
+		WM.PutColIndex(iRigidOffset+iCnt, iFlexIndex+iCnt);
 	}
 
 	for (unsigned iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++) {
@@ -1248,13 +1248,13 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 		integer iOffset = iRigidOffset + iGetInitialNumDof() + 12*iStrNodem1;
 		for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {
-			WM.fPutRowIndex(iOffset+iCnt,
+			WM.PutRowIndex(iOffset+iCnt,
 					iNodeFirstPosIndex+iCnt);
-			WM.fPutColIndex(iOffset+iCnt,
+			WM.PutColIndex(iOffset+iCnt,
 					iNodeFirstPosIndex+iCnt);
-			WM.fPutRowIndex(iOffset+6+iCnt,
+			WM.PutRowIndex(iOffset+6+iCnt,
 					iNodeFirstVelIndex+iCnt);
-			WM.fPutColIndex(iOffset+6+iCnt,
+			WM.PutColIndex(iOffset+6+iCnt,
 					iNodeFirstVelIndex+iCnt);
 		}
 	}
@@ -1689,14 +1689,14 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 		integer iRigidIndex = pModalNode->iGetFirstIndex();
 
 		for (unsigned int iCnt = 1; iCnt <= iRigidOffset; iCnt++) {
-			WorkVec.fPutRowIndex(iCnt, iRigidIndex+iCnt);
+			WorkVec.PutRowIndex(iCnt, iRigidIndex+iCnt);
 		}
 	}
 
 	integer iFlexIndex = iGetFirstIndex();
 
 	for (unsigned int iCnt = 1; iCnt <= iGetInitialNumDof(); iCnt++) {
-		WorkVec.fPutRowIndex(iRigidOffset+iCnt, iFlexIndex+iCnt);
+		WorkVec.PutRowIndex(iRigidOffset+iCnt, iFlexIndex+iCnt);
 	}
 
 	for (unsigned iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++) {
@@ -1706,9 +1706,9 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 
 		integer iOffset2 = iRigidOffset+iGetInitialNumDof()+12*iStrNodem1;
 		for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {
-			WorkVec.fPutRowIndex(iOffset2+iCnt,
+			WorkVec.PutRowIndex(iOffset2+iCnt,
 					iNodeFirstPosIndex+iCnt);
-			WorkVec.fPutRowIndex(iOffset2+6+iCnt,
+			WorkVec.PutRowIndex(iOffset2+6+iCnt,
 					iNodeFirstVelIndex+iCnt);
 		}
 	}

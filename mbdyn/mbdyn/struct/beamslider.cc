@@ -214,8 +214,8 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	
 	/* Indici dei nodi */
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WM.fPutRowIndex(iCnt, iNodeFirstMomIndex+iCnt);
-		WM.fPutColIndex(iCnt, iNodeFirstPosIndex+iCnt);
+		WM.PutRowIndex(iCnt, iNodeFirstMomIndex+iCnt);
+		WM.PutColIndex(iCnt, iNodeFirstPosIndex+iCnt);
 	}
 	
 	for (int nCnt = 1; nCnt <= Beam::NUMNODES; nCnt++) {
@@ -226,18 +226,18 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			pBeamNode[nCnt-1]->iGetFirstPositionIndex();
 
 		for (int iCnt = 1; iCnt <= 6; iCnt++) {
-			WM.fPutRowIndex(6*nCnt+iCnt, 
+			WM.PutRowIndex(6*nCnt+iCnt, 
 					iBeamFirstMomIndex+iCnt);
-			WM.fPutColIndex(6*nCnt+iCnt, 
+			WM.PutColIndex(6*nCnt+iCnt, 
 					iBeamFirstPosIndex+iCnt);
 		}
 	}
 	
 	/* Indici del vincolo */
 	for (unsigned int iCnt = 1; iCnt <= iGetNumDof(); iCnt++) {
-		WM.fPutRowIndex(6*(1+Beam::NUMNODES)+iCnt, 
+		WM.PutRowIndex(6*(1+Beam::NUMNODES)+iCnt, 
 				iFirstReactionIndex+iCnt);
-		WM.fPutColIndex(6*(1+Beam::NUMNODES)+iCnt, 
+		WM.PutColIndex(6*(1+Beam::NUMNODES)+iCnt, 
 				iFirstReactionIndex+iCnt);
 	}
 
@@ -622,7 +622,7 @@ BeamSliderJoint::AssRes(SubVectorHandler& WorkVec,
 
 	/* Indici dei nodi */
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WorkVec.fPutRowIndex(iCnt, iNodeFirstMomIndex+iCnt);
+		WorkVec.PutRowIndex(iCnt, iNodeFirstMomIndex+iCnt);
 	}
 	for (int nCnt = 1; nCnt <= Beam::NUMNODES; nCnt++) {
 		pBeamNode[nCnt-1] = ppBeam[iCurrBeam]->pGetNode(nCnt);
@@ -630,14 +630,14 @@ BeamSliderJoint::AssRes(SubVectorHandler& WorkVec,
 			pBeamNode[nCnt-1]->iGetFirstMomentumIndex();
 
 		for (int iCnt = 1; iCnt <= 6; iCnt++) {
-			WorkVec.fPutRowIndex(6*nCnt+iCnt, 
+			WorkVec.PutRowIndex(6*nCnt+iCnt, 
 					iBeamFirstMomIndex+iCnt);
 		}
 	}
 	
 	/* Indici del vincolo */
 	for (unsigned int iCnt = 1; iCnt <= iGetNumDof(); iCnt++) {
-		WorkVec.fPutRowIndex(6*(1+Beam::NUMNODES)+iCnt, 
+		WorkVec.PutRowIndex(6*(1+Beam::NUMNODES)+iCnt, 
 				iFirstReactionIndex+iCnt);
 	}
 	
