@@ -7,6 +7,9 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+*** Tue Apr 23 18:41:18 CEST 2002 Giuseppe Quaranta <quaranta@aero.polimi.it>
+ - iterative BGGSTAB solver added to repository; needs work
+
 *** Tue Apr 23 12:08:47 CEST 2002 Marco Morandini <morandini@aero.polimi.it>
  - improve deformable hinge; need work for viscoelastic joints
 
