@@ -86,10 +86,10 @@ The \texttt{aerodynamic body} input format is:
         (shape_1D)       <surface_aerodynamic_center> ,
         (shape_1D)       <surface_b_c_point> ,
         (shape_1D)       <surface_twist> ,
-                         <unsteady_flag> ,
                          <integration_points>
         [ , control , (drive_caller) <control_drive> ] 
-        [ , { naca 0012 | rae 9671 } ]
+        [ , { naca 0012 | rae 9671 | c81 , <c81_data> } ]
+        [ , unsteady , { bielawa } ]
 \end{verbatim}
 The \texttt{aerodynamic beam} input format is:
 \begin{verbatim}
@@ -105,10 +105,20 @@ The \texttt{aerodynamic beam} input format is:
         (shape_1D)       <surface_aerodynamic_center> ,
         (shape_1D)       <surface_b_c_point> ,
         (shape_1D)       <surface_twist> ,
-                         <unsteady_flag> ,
                          <integration_points>
         [ , control , (drive_caller) <control_drive> ] 
-        [ , { naca 0012 | rae 9671 } ]
+        [ , <airfoil_data> ]
+        [ , unsteady , { bielawa } ]
+\end{verbatim}
+where
+\begin{verbatim}
+    <airfoil_data> ::= { naca 0012 | rae 9671 | c81 , <c81_data> }
+\end{verbatim}
+and
+\begin{verbatim}
+    <c81_data> ::= <c81_label> 
+        | multiple , <airfoil_number> ,
+        <c81_label> , <end_point> [ , ... ]
 \end{verbatim}
 The field \texttt{rotor} instructs the element that it is linked to a 
 \texttt{rotor} element; this means that it can get information about the
@@ -132,7 +142,8 @@ The direction 1 is assumed to be the ``reference'' line of the airfoil,
 from the trailing edge to the leading edge (points ``forward''),
 while direction 2 is normal to the other two and goes from the lower 
 to the upper side of the airfoil (points ``up''). 
-Figure~\ref{fig:AIRFOIL} shows the arrangement of the airfoil data.
+Figure~\ref{fig:AIRFOIL} shows the arrangement of the airfoil geometry 
+and properties.
 
 \begin{figure}[h]
   \centering
@@ -140,6 +151,10 @@ Figure~\ref{fig:AIRFOIL} shows the arrangement of the airfoil data.
     \includegraphics[width=80mm]{airfoil.eps}
   \caption{\em Airfoil Geometry}\label{fig:AIRFOIL}
 \end{figure}
+
+The \texttt{airfoil\_ data} defaults to a builtin NACA 0012 semianalytical
+model (FIXME: the unsteady correction is buggy; use the \texttt{c81} 
+mode instead).
 
 
 \subsection{Output}
