@@ -23,6 +23,7 @@ MBDyn 1.0 Engineering
 		- explicitly referenced std namespace symbols (complying
 		  with ANSI C++)
 		- better header handling/system properties detection
+		- optimal storage detection for y12m
 	Bug fixes:
 		- Hydraulic nodes did not honor the output flag (always on)
 		- minor fixes in documentation

@@ -7,6 +7,11 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+*** Fri Jan 11 17:38:50 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+				 Marco Morandini <morandini@aero.polimi.it>
+ - optimal storage allocation for y12m wrapper (dramatic performance 
+   improvement; need to do the same for Harwell)
+
 *** Thu Jan 10 11:10:55 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - std::ified all the package
  - major reworking of configuration/system detection/header handling
