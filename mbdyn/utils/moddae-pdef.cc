@@ -102,7 +102,8 @@ static int init(void* p, VectorHandler& X, VectorHandler& XP)
 }
 
 static int grad(void* p, MatrixHandler& J, MatrixHandler& JP, 
-		const VectorHandler& X, const doublereal& t)
+		const VectorHandler& X, const VectorHandler& XP,
+		const doublereal& t)
 {
    private_data* pd = (private_data*)p;
    
@@ -120,19 +121,19 @@ static int grad(void* p, MatrixHandler& J, MatrixHandler& JP,
    doublereal l = l0+u;
    doublereal g = pd->g;
    
-   J.fPutCoef(1, 3, 1.);
-   J.fPutCoef(2, 4, 1.);
-   J.fPutCoef(3, 1, -g*ctheta/l);
-   J.fPutCoef(3, 2, (2.*phi*w+g*stheta)/(l*l));
-   J.fPutCoef(3, 3, -2.*w/l);
-   J.fPutCoef(3, 4, -2.*phi/l);
-   J.fPutCoef(4, 1, -g*stheta);
-   J.fPutCoef(4, 2, phi*phi-k/m);
-   J.fPutCoef(4, 3, 2*l*phi);
-   J.fPutCoef(4, 4, -c/m);
+   J.fPutCoef(1, 3, -1.);
+   J.fPutCoef(2, 4, -1.);
+   J.fPutCoef(3, 1, g*ctheta/l);
+   J.fPutCoef(3, 2, -(2.*phi*w + g*stheta)/(l*l));
+   J.fPutCoef(3, 3, 2.*w/l);
+   J.fPutCoef(3, 4, 2.*phi/l);
+   J.fPutCoef(4, 1, g*stheta);
+   J.fPutCoef(4, 2, k/m - phi*phi);
+   J.fPutCoef(4, 3, -2*l*phi);
+   J.fPutCoef(4, 4, c/m);
 
    for (int i = 1; i <= 4; i++) {
-	   JP.fPutCoef(i, i, -1.);
+	   JP.fPutCoef(i, i, 1.);
    }
 
    return 0;
@@ -156,10 +157,10 @@ static int func(void* p, VectorHandler& R, const VectorHandler& X, const VectorH
    doublereal l = l0+u;
    doublereal g = pd->g;
 
-   R.fPutCoef(1, phi);
-   R.fPutCoef(2, w);
-   R.fPutCoef(3, -(2.*phi*w+g*stheta)/l);
-   R.fPutCoef(4, phi*phi*l-k/m*u-c/m*w+g*ctheta);
+   R.fPutCoef(1, phi - XP.dGetCoef(1));
+   R.fPutCoef(2, w - XP.dGetCoef(2));
+   R.fPutCoef(3, (2.*phi*w + g*stheta)/l - XP.dGetCoef(3));
+   R.fPutCoef(4, (phi*phi*l - (k*u + c*w)/m + g*ctheta) - XP.dGetCoef(4));
 
    return 0;
 }
@@ -187,11 +188,18 @@ static std::ostream& out(void* p, std::ostream& o,
    doublereal E = .5*m*(xp*xp+yp*yp)+m*g*y+.5*k*u*u;
   
    
-   return o << theta << " " << u
-     << " " << X.dGetCoef(3) << " " << X.dGetCoef(4)
-     << " " << XP.dGetCoef(1) << " " << XP.dGetCoef(2)
-     << " " << XP.dGetCoef(3) << " " << XP.dGetCoef(4)
-     << " " << x << " " << y << " " << E;
+   return o
+	   << theta			/*  3 */
+	   << " " << u			/*  4 */
+	   << " " << X.dGetCoef(3)	/*  5 */
+	   << " " << X.dGetCoef(4)	/*  6 */
+	   << " " << XP.dGetCoef(1)	/*  7 */
+	   << " " << XP.dGetCoef(2)	/*  8 */
+	   << " " << XP.dGetCoef(3)	/*  9 */
+	   << " " << XP.dGetCoef(4)	/* 10 */
+	   << " " << x 			/* 11 */
+	   << " " << y 			/* 12 */
+	   << " " << E;			/* 13 */
 }
 
 static int destroy(void** p)

@@ -64,12 +64,12 @@ struct integration_data {
    	doublereal rho;
 };
 
-int method_multistep(const char*, integration_data*, void*, const char*);
-int method_hope(const char*, integration_data*, void*, const char*);
-int method_cubic(const char*, integration_data*, void*, const char*);
-int method_cn(const char*, integration_data*, void*, const char*);
+static int method_multistep(const char*, integration_data*, void*, const char*);
+static int method_hope(const char*, integration_data*, void*, const char*);
+static int method_cubic(const char*, integration_data*, void*, const char*);
+static int method_cn(const char*, integration_data*, void*, const char*);
 
-void* get_method_data(int, const char*);
+static void* get_method_data(int, const char*);
 
 int 
 main(int argn, char *const argv[])
@@ -257,7 +257,7 @@ main(int argn, char *const argv[])
    	return 0;
 }
 
-void* 
+static void* 
 get_method_data(int curr_method, const char* optarg)
 {
    	switch (curr_method) {
@@ -272,7 +272,7 @@ get_method_data(int curr_method, const char* optarg)
 #include <dae-intg.h>
 static struct funcs *ff = NULL;
 
-int
+static int
 open_module(const char* module) 
 {
    	const char* err = NULL;
@@ -329,7 +329,7 @@ open_module(const char* module)
    	return 0;
 }
 
-void
+static void
 flip(VectorHandler** ppX, VectorHandler** ppXP,
      VectorHandler** ppXm1, VectorHandler** ppXPm1,
      VectorHandler** ppXm2, VectorHandler** ppXPm2)
@@ -393,7 +393,7 @@ cn1p(const doublereal& xi)
 	return 2.*xi + 3.*xi*xi;
 }
 
-int
+static int
 method_multistep(const char* module, integration_data* d, 
 		 void* method_data, const char* user_defined)
 {
@@ -547,7 +547,7 @@ method_multistep(const char* module, integration_data* d,
    	return 0;
 }
 
-int
+static int
 method_hope(const char* module, integration_data* d, 
 	    void* method_data, const char* user_defined)
 {
@@ -559,7 +559,7 @@ method_hope(const char* module, integration_data* d,
    	return 0;
 }
 
-int
+static int
 method_cubic(const char* module, integration_data* d, 
 	     void* method_data, const char* user_defined)
 {
@@ -636,10 +636,12 @@ method_cubic(const char* module, integration_data* d,
    	doublereal m1 = cm1(z);
    	doublereal n0 = cn0(z);
    	doublereal n1 = cn1(z);
+#if 0
    	doublereal m0p = cm0p(z);
    	doublereal m1p = cm1p(z);
    	doublereal n0p = cn0p(z);
    	doublereal n1p = cn1p(z);
+#endif
 
 	doublereal jzz = (1.+3.*rho)/(6.*rho*(1.+rho))*dt;
 	doublereal jz0 = -1./(6.*rho*(1.+rho)*(1.+rho))*dt;
@@ -655,7 +657,7 @@ method_cubic(const char* module, integration_data* d,
       		doublereal x = pX->dGetCoef(k);
       		doublereal xp = pXP->dGetCoef(k);
       		pXPm1->fPutCoef(k, xp);
-      		pXm1->fPutCoef(k, x-dt*xp);
+      		pXm1->fPutCoef(k, x - dt*xp);
    	}
    
    	// output iniziale
@@ -673,12 +675,12 @@ method_cubic(const char* module, integration_data* d,
 	 		doublereal xPm1 = pXPm1->dGetCoef(k);
 	 		doublereal xm2 = pXm2->dGetCoef(k);
 	 		doublereal xPm2 = pXPm2->dGetCoef(k);
-	 		doublereal xP = cm0p(1.)*xm1+cm1p(1.)*xm2
-				+dt*(cn0p(1.)*xPm1+cn1p(1.)*xPm2);
-	 		doublereal xPz = cm0p(1.+z)*xm1+cm1p(1.+z)*xm2
-				+dt*(cn0p(1.+z)*xPm1+cn1p(1.+z)*xPm2);
-	 		doublereal x = xm1 + dt*(w1*xPm1+wz*xPz+w0*xP);
-	 		doublereal xz = m0*x+m1*xm1+dt*(n0*xP+n1*xPm1);
+	 		doublereal xP = cm0p(1.)*xm1 + cm1p(1.)*xm2
+				+dt*(cn0p(1.)*xPm1 + cn1p(1.)*xPm2);
+	 		doublereal xPz = cm0p(1. + z)*xm1 + cm1p(1. + z)*xm2
+				+dt*(cn0p(1. + z)*xPm1 + cn1p(1. + z)*xPm2);
+	 		doublereal x = xm1 + dt*(w1*xPm1 + wz*xPz + w0*xP);
+	 		doublereal xz = m0*x + m1*xm1 + dt*(n0*xP + n1*xPm1);
 
 	 		pX->fPutCoef(k, x);
 	 		pXP->fPutCoef(k, xP);
@@ -693,7 +695,7 @@ method_cubic(const char* module, integration_data* d,
 	 		Res.Reset();
 	 		(*::ff->func)(p_data, Res, *pX, *pXP, t);
 	 		Resz.Reset();
-	 		(*::ff->func)(p_data, Resz, Xz, XPz, t+z*dt);
+	 		(*::ff->func)(p_data, Resz, Xz, XPz, t + z*dt);
 
 	 		test = Res.Norm() + Resz.Norm();
 	 		if (test < tol) {
@@ -712,15 +714,15 @@ method_cubic(const char* module, integration_data* d,
 	 		JPz.Init();
 	 		J0.Init();
 	 		JP0.Init();
-	 		(*::ff->grad)(p_data, Jz, JPz, Xz, XPz, t+z*dt);
+	 		(*::ff->grad)(p_data, Jz, JPz, Xz, XPz, t + z*dt);
 	 		(*::ff->grad)(p_data, J0, JP0, *pX, *pXP, t);
 
 			for (int ir = 1; ir <= size; ir++) {
 				for (int ic = 1; ic <= size; ic++) {
 					Jac.fIncCoef(ir, ic, j00*J0.dGetCoef(ir, ic) + JP0.dGetCoef(ir, ic));
-					Jac.fIncCoef(ir, size+ic, j0z*J0.dGetCoef(ir, ic));
-					Jac.fIncCoef(size+ir, ic, jz0*Jz.dGetCoef(ir, ic));
-					Jac.fIncCoef(size+ir, size+ic, jzz*Jz.dGetCoef(ir, ic) + JPz.dGetCoef(ir, ic));
+					Jac.fIncCoef(ir, size + ic, j0z*J0.dGetCoef(ir, ic));
+					Jac.fIncCoef(size + ir, ic, jz0*Jz.dGetCoef(ir, ic));
+					Jac.fIncCoef(size + ir, size + ic, jzz*Jz.dGetCoef(ir, ic) + JPz.dGetCoef(ir, ic));
 				}
 			}
 
@@ -729,11 +731,11 @@ method_cubic(const char* module, integration_data* d,
 	 		// update
 	 		for (int ir = size; ir > 0; ir--) {
 	    			doublereal dxP0 = Sol.dGetCoef(ir);
-	    			pXP->fIncCoef(ir, dxP0);
-	    			pX->fIncCoef(ir, dt*w0*dxP0);
 	    			doublereal dxPz = Sol.dGetCoef(size+ir);
+	    			pXP->fIncCoef(ir, dxP0);
 				XPz.fIncCoef(ir, dxPz);
-				Xz.fIncCoef(ir, dt*(m0*(wz*dxPz+w0*dxP0)+n0*dxP0));
+	    			pX->fIncCoef(ir, dt*(wz*dxPz + w0*dxP0));
+				Xz.fIncCoef(ir, dt*(m0*(wz*dxPz + w0*dxP0)+n0*dxP0));
 	 		}
      	 	} while (true);
       
@@ -751,7 +753,7 @@ method_cubic(const char* module, integration_data* d,
    	return 0;
 }
 
-int
+static int
 method_cn(const char* module, integration_data* d,
 	  void* method_data, const char* user_defined)
 {
