@@ -18,6 +18,7 @@ MBDyn 1.0.1
 		- added helper for BDF integration scheme
 		- transition Reynolds numbers moved to fluid properties
 		  (still incomplete)
+		- reviewed parallel stuff
 		- selected documentation updates
 	Bugs:
 		- fixed multiple . in floats in math parser

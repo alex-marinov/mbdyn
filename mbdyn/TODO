@@ -13,8 +13,6 @@ A. Configuration:
 	- test for '_' appended to F77 symbols
 	- eliminate horrible blank lines in '--with-*'
 	- audit all the suite for not-so-GNU systems
-	- add test for crypt and put auth code in ifdefs & --with
-	- fix missing -lcrypt on some systems when configuring with pam
 	- add test for pow_dd stuff (might be needed by fortran code)
 
 
@@ -60,6 +58,6 @@ D. Code:
 E. Bugs/missing features:
 
 	- check for nested /* */ comments in parsers
-	- check for laminar loss coefficients
+	- check laminar loss coefficients
 
 

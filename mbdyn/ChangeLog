@@ -8,6 +8,9 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
 
+*** Tue Nov 13 19:39:46 CET 2001 Giuseppe Quaranta <quaranta@aero.polimi.it>
+ - reviewed parallel stuff
+
 *** Fri Nov  9 21:56:01 CET 2001 Pierangelo Masarati <masarati@aero.polimi.it>
  - added "bdf" option to integration methods (updated manuals)
  - the asymptotic radius for algebraic unknowns is optional
