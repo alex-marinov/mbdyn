@@ -150,6 +150,28 @@ public:
 	};
 
 	void Reset(const doublereal &r);
+	
+	virtual
+	integer MakeCompressedColumnForm(doublereal *const Ax,
+			integer *const Ai, integer *const Ap,
+			int offset = 0) const;
+
+	virtual
+        integer MakeCompressedColumnForm(std::vector<doublereal>& Ax,
+                	std::vector<integer>& Ai, std::vector<integer>& Ap,
+			int offset = 0) const;
+
+	virtual
+	integer MakeIndexForm(doublereal *const Ax,
+			integer *const Arow, integer *const Acol,
+			integer *const AcolSt,
+			int offset = 0) const;
+
+	virtual
+        integer MakeIndexForm(std::vector<doublereal>& Ax,
+			std::vector<integer>& Arow, std::vector<integer>& Acol,
+			std::vector<integer>& AcolSt,
+			int offset = 0) const;
 };
 
 #endif /* SPMH_H */

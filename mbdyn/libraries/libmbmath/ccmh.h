@@ -132,24 +132,6 @@ public:
 		return ::dZero;
 	};
 
-	integer MakeCompressedColumnForm(doublereal *const Ax,
-			integer *const Ai, integer *const Ap,
-			int offset = 0) const;
-
-        integer MakeCompressedColumnForm(std::vector<doublereal>& Ax,
-                	std::vector<integer>& Ai, std::vector<integer>& Ap,
-			int offset = 0) const;
-
-	integer MakeIndexForm(doublereal *const rAx,
-			integer *const Arow, integer *const Acol,
-			integer *const AcolSt,
-			int offset = 0) const;
-
-        integer MakeIndexForm(std::vector<doublereal>& rAx,
-                	std::vector<integer>& Arow, std::vector<integer>& Acol,
-			std::vector<integer>& AcolSt,
-			int offset = 0) const;
-
 	void Resize(integer ir, integer ic);
 
 	/* Estrae una colonna da una matrice */

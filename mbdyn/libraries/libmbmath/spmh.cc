@@ -114,3 +114,38 @@ CompactSparseMatrixHandler::Reset(const doublereal &r)
 	std::fill(Ax.begin(), Ax.end(), r);
 }
 
+integer
+CompactSparseMatrixHandler::MakeCompressedColumnForm(doublereal *const Ax,
+		integer *const Ai, integer *const Ap,
+		int offset) const
+{
+	THROW(ErrGeneric());
+	return Nz();
+}
+
+integer
+CompactSparseMatrixHandler::MakeCompressedColumnForm(std::vector<doublereal>& Ax,
+		std::vector<integer>& Ai, std::vector<integer>& Ap,
+		int offset) const
+{
+	THROW(ErrGeneric());
+	return Nz();
+}
+
+integer
+CompactSparseMatrixHandler::MakeIndexForm(doublereal *const rAx,
+		integer *const Arow, integer *const Acol,
+		integer *const AcolSt, int offset) const
+{
+	THROW(ErrGeneric());
+	return Nz();
+}
+
+integer
+CompactSparseMatrixHandler::MakeIndexForm(std::vector<doublereal>& rAx,
+                std::vector<integer>& Arow, std::vector<integer>& Acol,
+		std::vector<integer>& AcolSt, int offset) const
+{
+	THROW(ErrGeneric());
+	return Nz();
+}
