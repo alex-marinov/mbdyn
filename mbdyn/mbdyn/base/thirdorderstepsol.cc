@@ -165,11 +165,11 @@ ThirdOrderIntegrator::Advance(const doublereal TStep,
 	Predict();
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
 	
-	doublereal dErr = 0.;        
+	Err = 0.;        
 	pNLS->Solve(this, pSM, MaxIters, dTol,
-    			EffIter, dErr , dSolTol, SolErr);
+    			EffIter, Err , dSolTol, SolErr);
 	
-	return dErr;
+	return Err;
 };
 
 void ThirdOrderIntegrator::Predict(void) {
