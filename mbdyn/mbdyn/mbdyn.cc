@@ -186,7 +186,7 @@ mbdyn_usage(std::ostream& out, const char *sShortOpts)
 }
 
 /* Dati di getopt */
-static char sShortOpts[] = "a:d:f:hHlm:n::o:pPrRstTwW:";
+static char sShortOpts[] = "a:d:f:hHlm:n:N::o:pPrRstTwW:";
 enum MyOptions {
 	MAIL = 0,
 	INPUT_FILE,
@@ -211,6 +211,7 @@ static struct option LongOpts[] = {
 	{ "license",        no_argument,       NULL,           int('l') },
 	{ "mail",           required_argument, NULL,           int('m') },
 	{ "nice",           optional_argument, NULL,           int('n') },
+	{ "threads",	    required_argument, NULL,	       int('N') },
 	{ "output-file",    required_argument, NULL,           int('o') },
 	{ "parallel",	    no_argument,       NULL,           int('p') },
 	{ "pedantic",	    no_argument,       NULL,           int('P') },
@@ -401,6 +402,9 @@ main(int argc, char* argv[])
 					"vulnerabilities" << std::endl);
 #endif /* ! MBDYN_X_MAIL_MESSAGE */
 	        		break;
+
+			case int('N'):
+				break;
 
 #ifdef HAVE_NICE
 			case int('n'):
