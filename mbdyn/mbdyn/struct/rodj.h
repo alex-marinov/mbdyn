@@ -67,6 +67,7 @@ protected:
 	doublereal dElle;
 
 	doublereal dEpsilon;
+	doublereal dEpsilonPrime;
    
 	/* Le funzioni di assemblaggio sono le stesse, cambiano gli indici 
 	 * delle equazioni. Allora, dopo aver settato indici e matrici,
@@ -205,9 +206,6 @@ public:
 /* ViscoElasticRod - begin */
 
 class ViscoElasticRod : virtual public Elem, public Rod {
-protected:
-	doublereal dEpsilonPrime;
-
 public:
 	/* Costruttore non banale */
 	ViscoElasticRod(unsigned int uL, const DofOwner* pDO,
@@ -255,10 +253,6 @@ public:
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec,
 			const VectorHandler& XCurr);   
-
-	virtual unsigned int iGetNumPrivData(void) const;
-	virtual unsigned int iGetPrivDataIdx(const char *s) const;
-	virtual doublereal dGetPrivData(unsigned int i) const;
 };
 
 /* ViscoElasticRod - end */
@@ -268,7 +262,6 @@ public:
 
 class RodWithOffset : virtual public Elem, public Rod {
 protected:
-	doublereal dEpsilonPrime;
 	const Vec3 f1;
 	const Vec3 f2;
 
@@ -341,10 +334,6 @@ public:
 	std::ostream& WriteAdamsDummyPartCmd(std::ostream& out,
 		unsigned int part, unsigned int firstId) const;
 #endif /* USE_ADAMS */
-
-	virtual unsigned int iGetNumPrivData(void) const;
-	virtual unsigned int iGetPrivDataIdx(const char *s) const;
-	virtual doublereal dGetPrivData(unsigned int i) const;
 };
 
 /* RodWithOffset - end */

@@ -50,7 +50,13 @@ Rod::Rod(unsigned int uL, const DofOwner* pDO,
 : Elem(uL, Elem::JOINT, fOut), 
 Joint(uL, Joint::ROD, pDO, fOut),
 ConstitutiveLaw1DOwner(pCL), RodT(Rod::ELASTIC),
-pNode1(pN1), pNode2(pN2), dL0(dLength), v(0.), dElle(0.), dEpsilon(0.)
+pNode1(pN1),
+pNode2(pN2),
+dL0(dLength),
+v(0.),
+dElle(0.),
+dEpsilon(0.),
+dEpsilonPrime(0.)
 {
    /* Verifica di consistenza dei dati iniziali */   
    ASSERT(pN1 != NULL);
@@ -152,6 +158,9 @@ void Rod::AssVec(SubVectorHandler& WorkVec)
    dElle = sqrt(dCross);
    dEpsilon = dElle/dL0-1.;
    
+   Vec3 vPrime(pNode2->GetVCurr()-pNode1->GetVCurr());
+   dEpsilonPrime = (v.Dot(vPrime))/(dElle*dL0);
+
    /* Ampiezza della forza */
    bool ChangeJac(false);
    try {
@@ -287,7 +296,7 @@ void Rod::Output(OutputHandler& OH) const
       
       Joint::Output(out, "Rod", GetLabel(),
 		    Vec3(d, 0., 0.), Zero3, vTmp*d, Zero3)
-	<< " " << dElle << " " << vTmp,
+	<< " " << dElle << " " << vTmp << " " << dEpsilonPrime*dL0, 
         ConstitutiveLaw1DOwner::OutputAppend(out) << std::endl;
    }
 }
@@ -507,7 +516,7 @@ Rod::WriteAdamsDummyPartCmd(std::ostream& out,
 unsigned int
 Rod::iGetNumPrivData(void) const 
 {
-	return 2 + ConstitutiveLaw1DOwner::iGetNumPrivData();
+	return 3 + ConstitutiveLaw1DOwner::iGetNumPrivData();
 }
 
 unsigned int
@@ -523,9 +532,13 @@ Rod::iGetPrivDataIdx(const char *s) const
 		return 2;
 	}
 
+	if (strcmp(s, "LPrime") == 0) {
+		return 3;
+	}
+
 	size_t l = sizeof("constitutiveLaw.") - 1;
 	if (strncmp(s, "constitutiveLaw.", l) == 0) {
-		return 2 + ConstitutiveLaw1DOwner::iGetPrivDataIdx(s + l);
+		return 3 + ConstitutiveLaw1DOwner::iGetPrivDataIdx(s + l);
 	}
 
 	/* error; handle later */
@@ -543,9 +556,12 @@ Rod::dGetPrivData(unsigned int i) const
 
 	case 2:
 		return dElle;
+
+	case 3:
+		return dL0*dEpsilonPrime;
 	}
 
-	i -= 2;
+	i -= 3;
 	ASSERT(i <= ConstitutiveLaw1DOwner::iGetNumPrivData());
 
 	return ConstitutiveLaw1DOwner::dGetPrivData(i);
@@ -564,8 +580,7 @@ ViscoElasticRod::ViscoElasticRod(unsigned int uL,
 					   const StructNode* pN2,
 					   doublereal dLength, flag fOut)
 : Elem(uL, Elem::JOINT, fOut), 
-Rod(uL, pDO, pCL, pN1, pN2, dLength, fOut),
-dEpsilonPrime(0.)
+Rod(uL, pDO, pCL, pN1, pN2, dLength, fOut)
 {
    SetRodType(Rod::VISCOELASTIC);
 }
@@ -699,7 +714,7 @@ ViscoElasticRod::AssRes(SubVectorHandler& WorkVec,
    
    /* Velocita' di deformazione */
    Vec3 vPrime(pNode2->GetVCurr()-pNode1->GetVCurr());
-   dEpsilonPrime  = (v.Dot(vPrime))/(dElle*dL0);
+   dEpsilonPrime = (v.Dot(vPrime))/(dElle*dL0);
    
    /* Ampiezza della forza */
    bool ChangeJac(false);
@@ -846,7 +861,7 @@ ViscoElasticRod::InitialAssRes(SubVectorHandler& WorkVec,
    
    /* Velocita' di deformazione */
    Vec3 vPrime(pNode2->GetVCurr()-pNode1->GetVCurr());
-   dEpsilonPrime  = (v.Dot(vPrime))/(dElle*dL0);
+   dEpsilonPrime = (v.Dot(vPrime))/(dElle*dL0);
    
    /* Ampiezza della forza */
    ConstitutiveLaw1DOwner::Update(dEpsilon, dEpsilonPrime);
@@ -859,60 +874,6 @@ ViscoElasticRod::InitialAssRes(SubVectorHandler& WorkVec,
    WorkVec.Sub(4, F);
    
    return WorkVec;
-}
-
-unsigned int
-ViscoElasticRod::iGetNumPrivData(void) const 
-{
-	return 3 + ConstitutiveLaw1DOwner::iGetNumPrivData();
-}
-
-unsigned int
-ViscoElasticRod::iGetPrivDataIdx(const char *s) const 
-{
-	ASSERT(s != NULL);
-
-	if (strcmp(s, "F") == 0) {
-		return 1;
-	}
-
-	if (strcmp(s, "L") == 0) {
-		return 2;
-	}
-
-	if (strcmp(s, "LPrime") == 0) {
-		return 3;
-	}
-
-	size_t l = sizeof("constitutiveLaw.") - 1;
-	if (strncmp(s, "constitutiveLaw.", l) == 0) {
-		return 3 + ConstitutiveLaw1DOwner::iGetPrivDataIdx(s + l);
-	}
-
-	/* error; handle later */
-	return 0;
-}
-
-doublereal
-ViscoElasticRod::dGetPrivData(unsigned int i) const
-{
-	ASSERT(i > 0);
-
-	switch (i) {
-	case 1:
-		return GetF();
-
-	case 2:
-		return dElle;
-
-	case 3:
-		return dL0*dEpsilonPrime;
-	}
-
-	i -= 3;
-	ASSERT(i <= ConstitutiveLaw1DOwner::iGetNumPrivData());
-
-	return ConstitutiveLaw1DOwner::dGetPrivData(i);
 }
 
 /* ViscoElasticRod - end */
@@ -932,8 +893,8 @@ RodWithOffset::RodWithOffset(unsigned int uL,
 				       flag fOut)
 : Elem(uL, Elem::JOINT, fOut), 
 Rod(uL, pDO, pCL, pN1, pN2, dLength, fOut, 1),
-dEpsilonPrime(0.),
-f1(f1Tmp), f2(f2Tmp)
+f1(f1Tmp),
+f2(f2Tmp)
 {
    /* Verifica di consistenza dei dati iniziali */   
    ASSERT(pN1 != NULL);
@@ -1621,61 +1582,6 @@ RodWithOffset::WriteAdamsDummyPartCmd(std::ostream& out,
      << Zero3 << std::endl;   
 }
 #endif /* USE_ADAMS */
-
-unsigned int
-RodWithOffset::iGetNumPrivData(void) const 
-{
-	return 3 + ConstitutiveLaw1DOwner::iGetNumPrivData();
-}
-
-unsigned int
-RodWithOffset::iGetPrivDataIdx(const char *s) const 
-{
-	ASSERT(s != NULL);
-
-	if (strcmp(s, "F") == 0) {
-		return 1;
-	}
-
-	if (strcmp(s, "L") == 0) {
-		return 2;
-	}
-
-	if (strcmp(s, "LPrime") == 0) {
-		return 3;
-	}
-
-	size_t l = sizeof("constitutiveLaw.") - 1;
-	if (strncmp(s, "constitutiveLaw.", l) == 0) {
-		return 3 + ConstitutiveLaw1DOwner::iGetPrivDataIdx(s + l);
-	}
-
-	/* error; handle later */
-	return 0;
-}
-
-doublereal
-RodWithOffset::dGetPrivData(unsigned int i) const
-{
-	ASSERT(i > 0);
-
-	switch (i) {
-	case 1:
-		return GetF();
-
-	case 2:
-		return dElle;
-
-	case 3:
-		return dL0*dEpsilonPrime;
-	}
-
-	i -= 3;
-	ASSERT(i <= ConstitutiveLaw1DOwner::iGetNumPrivData());
-
-	return ConstitutiveLaw1DOwner::dGetPrivData(i);
-}
-
 
 /* RodWithOffset - end */
 

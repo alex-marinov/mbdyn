@@ -33,6 +33,9 @@ MBDyn 1.2-Engineering
 	Backward compatibility issues:
 		- bind now uses "name" instead of "string";
 		  compatibility preserved
+		- rod joints now output stroke velocity as column 18,
+		  so output appended by the constitutive laws is now
+		  shifted by 1
 
 MBDyn 1.2-beta.2
 	Bug fixes:
