@@ -131,19 +131,19 @@ C FIXME: solo 0 e' valido, gli altri due sono probabilmente bacati ...
       IGO = INST+1
       GOTO(100, 200, 300), IGO
 C
-C PK di ordine 0? FIXME: credo che sia stazionario e basta!
+C Steady
  100  CALL COE0(VCSTR, OUTA, CS,
      &  CLIFT, CDRAG, CMOME, ASLOP, BSLOP, CSLOP,
      &  CRF, CFSLOP, DCPDM, DCDRDM, DCMDM, DCRFDM, JPRO)
       GOTO 400
 C
-C PK di ordine 1?
+C Unsteady, HARRIS A.H.S. JULY 1970
  200  CALL COE1(VCSTR, OUTA, CS, CORDA, RSPEED, 
      &  CLIFT, CDRAG, CMOME, ASLOP, BSLOP, CSLOP,
      &  CRF, CFSLOP, DCPDM, DCDRDM, DCMDM, DCRFDM, JPRO)
       GOTO 400
 C
-C PK di ordine 2?
+C Unsteady, BIELAWA 31TH A.H.S. FORUM 1975
  300  CALL COE2(VCSTR, OUTA, CS, CORDA, RSPEED,
      &  CLIFT, CDRAG, CMOME, ASLOP, BSLOP, CSLOP,
      &  CRF, CFSLOP, DCPDM, DCDRDM, DCMDM, DCRFDM, JPRO)
@@ -381,16 +381,39 @@ C=    COMPILER (LINK=IBJ$)
 C      IMPLICIT REAL*8(A-H,O-Z)
 C
 C Input:
+C
+C VCSTR(*)	Speed
+C OUTA(*)	Array with different parameters, used as I/O
+C CS		?
+C CORDA		Chord
+C RSPEED	?
+C
       real*8 VCSTR(*),CS,CORDA,RSPEED
       integer*4 JPRO
 C
 C Output:
+C
+C OUTA(*)	Array with different parameters, used as I/O
+C CLIFT		?
+C CDRAG		?
+C CMOME		?
+C ASLOP		?
+C BSLOP		?
+C CSLOP		?
+C CRF		?
+C CFSLOP	?
+C DCPDM		?
+C DCRDRM	?
+C DCMDM		?
+C DCRFDM	?
+C DUM		?
+C
       real*8 OUTA(*),CLIFT,CDRAG,CMOME,ASLOP,BSLOP,CSLOP,CRF,CFSLOP,
      &  DCPDM,DCRDRM,DCMDM,DCRFDM,DUM
 C
 C Local:
-      real*8 ALFA,ALF1,ALF2,VP,A,B,VC1,GAM,COSGAM,RMACH,ETA,SEGNO,
-     &  A2,B2,ASN,ASM,SIGN,SIGM,SIGMAX,S2,DAN,DCN,DAM,DCM,
+      real*8 ALFA,ALF1,ALF2,VP,VP2,A,B,VC1,GAM,COSGAM,RMACH,ETA,SEGNO,
+     &  A2,B2,ASN,ASM,SGN,SGM,SGMAX,S2,DAN,DCN,DAM,DCM,
      &  ASLOP0,CSLOP0,ASLRF,C1,
      &  ATMP
 C
@@ -428,10 +451,12 @@ C      OUTA(9) = ALF1
 C      ALF2 = OUTA(10)/(DA*DA)
 C      OUTA(10) = ALF2
 C
+C Coefficienti usati per il ritardo instazionario
       ALF1 = OUTA(9)
       ALF2 = OUTA(10)
 C
-      VP = DSQRT(VCSTR(1)**2+VCSTR(2)**2)
+      VP2 = VCSTR(1)**2+VCSTR(2)**2
+      VP = DSQRT(VP2)
       A = .5*CORDA*ALF1/VP
       B = .25*CORDA*CORDA*ALF2/(VP*VP)
       VC1 = DABS(VCSTR(1))
@@ -439,10 +464,9 @@ C
       OUTA(3) = GAM/DEGRAD
       IF(DABS(GAM).GT.PG/3.D0) GAM = PG/3.D0
       COSGAM = DCOS(GAM)
-      RMACH = DSQRT(VCSTR(1)**2+VCSTR(2)**2+VCSTR(3)**2)/CS
-      RMACH = RMACH*DSQRT(COSGAM)
+      RMACH = DSQRT((VP2+VCSTR(3)**2)*COSGAM)/CS
       OUTA(4) = RMACH
-      IF(RMACH.GE.1.D0) RMACH = .99D0
+      IF(RMACH.GT..99D0) RMACH = .99D0
       ETA = DSQRT((A/.048)**2+(B/.016)**2)
       SEGNO = 1.D0
       IF(ALFA.LT.0D0) SEGNO = -1.D0
@@ -453,27 +477,27 @@ C
       B2 = B*B
       ASN = ASN0*(1.D0-RMACH)
       ASM = ASM0*(1.D0-RMACH)
-      SIGN = DABS(ALFA/ASN)
-      SIGM = DABS(ALFA/ASM)
-      SIGMAX = 1.839-70.33*B
-      IF(SIGMAX.GT.1.86D0) SIGMAX = 1.86D0
-      IF(SIGN.GT.SIGMAX) SIGN = SIGMAX
-      IF(SIGM.GT.SIGMAX) SIGM = SIGMAX
-      DAN = A*(PN(1)+PN(5)*SIGN)+B*(PN(2)+PN(6)*SIGN)
-      DAN = DAN+DEXP(-1072.52*A2)*(A*(PN(3)+PN(7)*SIGN)+
-     &  A2*(PN(9)+PN(10)*SIGN))
-      DAN = DAN+DEXP(-40316.42D0*B2)*B*(PN(4)+PN(8)*SIGN)
+      SGN = DABS(ALFA/ASN)
+      SGM = DABS(ALFA/ASM)
+      SGMAX = 1.839-70.33*B
+      IF(SGMAX.GT.1.86D0) SGMAX = 1.86D0
+      IF(SGN.GT.SGMAX) SGN = SGMAX
+      IF(SGM.GT.SGMAX) SGM = SGMAX
+      DAN = A*(PN(1)+PN(5)*SGN)+B*(PN(2)+PN(6)*SGN)
+      DAN = DAN+DEXP(-1072.52*A2)*(A*(PN(3)+PN(7)*SGN)+
+     &  A2*(PN(9)+PN(10)*SGN))
+      DAN = DAN+DEXP(-40316.42D0*B2)*B*(PN(4)+PN(8)*SGN)
       DAN = DAN*ASN
-      DCN = A*(QN(1)+QN(3)*A2+SIGN*(QN(7)+QN(9)*A2+QN(13)*SIGN)+
-     &  B2*(QN(5)+QN(11)*SIGN))
-      DCN = DCN+B*(QN(2)+QN(4)*A2+SIGN*(QN(8)+QN(10)*A2+QN(14)*SIGN)+
-     &  B2*(QN(6)+QN(12)*SIGN))
-      DAM = A*(PM(1)+PM(3)*A2+PM(5)*B2+PM(10)*SIGM+PM(7)*A)
-      DAM = DAM+B*(PM(2)+PM(4)*B2+PM(6)*A2+PM(11)*SIGM+PM(8)*B+PM(9)*A)
+      DCN = A*(QN(1)+QN(3)*A2+SGN*(QN(7)+QN(9)*A2+QN(13)*SGN)+
+     &  B2*(QN(5)+QN(11)*SGN))
+      DCN = DCN+B*(QN(2)+QN(4)*A2+SGN*(QN(8)+QN(10)*A2+QN(14)*SGN)+
+     &  B2*(QN(6)+QN(12)*SGN))
+      DAM = A*(PM(1)+PM(3)*A2+PM(5)*B2+PM(10)*SGM+PM(7)*A)
+      DAM = DAM+B*(PM(2)+PM(4)*B2+PM(6)*A2+PM(11)*SGM+PM(8)*B+PM(9)*A)
       DAM = DAM*ASM
-      S2 = SIGM*SIGM
-      DCM = A*(QM(2)+QM(8)*A+SIGM*(QM(4)+QM(10)*A)+S2*(QM(6)+QM(12)*A))
-      DCM = DCM+B*(QM(1)+QM(7)*B+SIGM*(QM(3)+QM(9)*B)+
+      S2 = SGM*SGM
+      DCM = A*(QM(2)+QM(8)*A+SGM*(QM(4)+QM(10)*A)+S2*(QM(6)+QM(12)*A))
+      DCM = DCM+B*(QM(1)+QM(7)*B+SGM*(QM(3)+QM(9)*B)+
      &  S2*(QM(5)+QM(11)*B))
       OUTA(11) = DAN/DEGRAD
       OUTA(12) = DAM/DEGRAD
