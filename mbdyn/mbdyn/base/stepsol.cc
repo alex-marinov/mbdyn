@@ -186,10 +186,10 @@ ImplicitStepIntegrator::TestScale(const NonlinearSolverTest *pTest) const
 		Dof CurrDof;
 		doublereal dXPr = 0.;
 
-		DofIterator.fGetFirst(CurrDof); 
+		DofIterator.bGetFirst(CurrDof); 
 
 	   	for (int iCntp1 = 1; iCntp1 <= pXPrimeCurr->iGetSize(); 
-				iCntp1++, DofIterator.fGetNext(CurrDof)) {
+				iCntp1++, DofIterator.bGetNext(CurrDof)) {
 
 			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
 				doublereal d = pXPrimeCurr->dGetCoef(iCntp1);

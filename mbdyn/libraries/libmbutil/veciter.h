@@ -47,8 +47,8 @@ template <class T>
 class Iter {
  public:
    virtual ~Iter(void) { NO_OP; };
-   virtual flag fGetFirst(T& TReturn) const = 0;
-   virtual flag fGetNext(T& TReturn) const = 0;
+   virtual bool bGetFirst(T& TReturn) const = 0;
+   virtual bool bGetNext(T& TReturn) const = 0;
 };
 
 template<class T>
@@ -77,7 +77,7 @@ class VecIter : public Iter<T> {
 	iSize = i;
      };
    
-   inline flag fGetFirst(T& TReturn) const
+   inline bool bGetFirst(T& TReturn) const
      {
 	ASSERT(pStart != NULL);
 	ASSERT(iSize > 0);
@@ -87,7 +87,7 @@ class VecIter : public Iter<T> {
 	return flag(1);
      };
    
-   inline flag fGetNext(T& TReturn) const
+   inline bool bGetNext(T& TReturn) const
      {
 	ASSERT(pStart != NULL);     
 	ASSERT(iSize > 0);

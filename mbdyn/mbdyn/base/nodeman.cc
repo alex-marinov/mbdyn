@@ -100,10 +100,10 @@ void DataManager::NodeDataInit(void)
       
       /* Con iteratore:
        Node* pTmp = NULL;
-       if(NodeIter.fGetFirst(pTmp)) {	  
+       if(NodeIter.bGetFirst(pTmp)) {	  
 	  do {
 	     pTmp = NULL;
-	  } while(NodeIter.fGetNext(pTmp));
+	  } while(NodeIter.bGetNext(pTmp));
        }
        */
 	
@@ -134,10 +134,10 @@ void DataManager::NodeOutput(OutputHandler& OH) const
 #if 0
    /* Con iteratore: */
     Node* pTmpNode = NULL;
-    if(NodeIter.fGetFirst(pTmpNode)) {      
+    if(NodeIter.bGetFirst(pTmpNode)) {      
        do {
 	  pTmpNode->Output(OH);
-       } while(NodeIter.fGetNext(pTmpNode));
+       } while(NodeIter.bGetNext(pTmpNode));
     }
 #endif
 }
@@ -158,10 +158,10 @@ DataManager::NodeOutput(
 #if 0
    /* Con iteratore: */
     Node* pTmpNode = NULL;
-    if(NodeIter.fGetFirst(pTmpNode)) {      
+    if(NodeIter.bGetFirst(pTmpNode)) {      
        do {
 	  pTmpNode->Output(OH, X, XP);
-       } while(NodeIter.fGetNext(pTmpNode));
+       } while(NodeIter.bGetNext(pTmpNode));
     }
 #endif
 }
@@ -180,10 +180,10 @@ DataManager::NodeOutput_pch(
 #if 0
    /* Con iteratore: */
     Node* pTmpNode = NULL;
-    if(NodeIter.fGetFirst(pTmpNode)) {      
+    if(NodeIter.bGetFirst(pTmpNode)) {      
        do {
 	  pTmpNode->Output_pch(pch);
-       } while(NodeIter.fGetNext(pTmpNode));
+       } while(NodeIter.bGetNext(pTmpNode));
     }
 #endif
 }
@@ -203,10 +203,10 @@ DataManager::NodeOutput_f06(
 #if 0
    /* Con iteratore: */
     Node* pTmpNode = NULL;
-    if(NodeIter.fGetFirst(pTmpNode)) {      
+    if(NodeIter.bGetFirst(pTmpNode)) {      
        do {
 	  pTmpNode->Output_f06(f06, X);
-       } while(NodeIter.fGetNext(pTmpNode));
+       } while(NodeIter.bGetNext(pTmpNode));
     }
 #endif
 }
@@ -227,10 +227,10 @@ DataManager::NodeOutput_f06(
 #if 0
    /* Con iteratore: */
     Node* pTmpNode = NULL;
-    if(NodeIter.fGetFirst(pTmpNode)) {      
+    if(NodeIter.bGetFirst(pTmpNode)) {      
        do {
 	  pTmpNode->Output_f06(f06, Xr, Xi);
-       } while(NodeIter.fGetNext(pTmpNode));
+       } while(NodeIter.bGetNext(pTmpNode));
     }
 #endif
 }

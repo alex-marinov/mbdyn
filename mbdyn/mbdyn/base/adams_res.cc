@@ -78,13 +78,13 @@ DataManager::AdamsResOutputInit(void)
 	iAdamsOutputParts = nStrNodes;
 
 	Elem* p = NULL;
-	if (ElemIter.fGetFirst(p)) {
+	if (ElemIter.bGetFirst(p)) {
 		do {
 			ASSERT(p != NULL);
 			if (p != NULL) {
 				iAdamsOutputParts += p->iGetNumAdamsDummyParts();
 			}
-		} while (ElemIter.fGetNext(p));
+		} while (ElemIter.bGetNext(p));
 	}
    
 	/* Cmd Init */
@@ -149,7 +149,7 @@ DataManager::AdamsResOutputInit(void)
 			<< std::setw(8) << 5+i+iAdamsOutputParts << std::endl;
 	}
    
-	if (ElemIter.fGetFirst(p)) {
+	if (ElemIter.bGetFirst(p)) {
 		do {
 			ASSERT(p != NULL);
 			if (p != NULL) {
@@ -162,7 +162,7 @@ DataManager::AdamsResOutputInit(void)
 					i++;
 				}
 			}
-		} while (ElemIter.fGetNext(p));
+		} while (ElemIter.bGetNext(p));
 	}
 
 	out
@@ -384,7 +384,7 @@ DataManager::AdamsResOutputInit(void)
 
 	}
 
-	if (ElemIter.fGetFirst(p)) {
+	if (ElemIter.bGetFirst(p)) {
 		do {
 			ASSERT(p != NULL);
 			
@@ -417,7 +417,7 @@ DataManager::AdamsResOutputInit(void)
 					}
 				}
 			}
-		} while (ElemIter.fGetNext(p));
+		} while (ElemIter.bGetNext(p));
 	}
 
 	out 
@@ -492,7 +492,7 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 	}
 
 	Elem *p = NULL;
-	if (ElemIter.fGetFirst(p)) {
+	if (ElemIter.bGetFirst(p)) {
 		do {
 			ASSERT(p != NULL);
 			
@@ -522,7 +522,7 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 #endif /* HAVE_FORM_IN_OSTREAM */
 				}
 			}
-		} while (ElemIter.fGetNext(p));
+		} while (ElemIter.bGetNext(p));
 	}
 
 	out.flags(oldflags);

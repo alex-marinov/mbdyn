@@ -269,7 +269,7 @@ DataManager::DofOwnerInit(void)
 	}
 #else /* USE_ELEM_ITER */
 	Elem* pEl = NULL;
-	if (ElemIter.fGetFirst(pEl)) {
+	if (ElemIter.bGetFirst(pEl)) {
 		do {
 			ASSERT(pEl != NULL);
 			DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY,
@@ -316,7 +316,7 @@ DataManager::DofOwnerInit(void)
 					pDf[iCnt].EqOrder = pElWD->GetEqType(iCnt);
 				}
 			}
-		} while (ElemIter.fGetNext(pEl));
+		} while (ElemIter.bGetNext(pEl));
 	}
 #endif /* USE_ELEM_ITER */
 } /* End of DataManager::DofOwnerInit() */
@@ -850,10 +850,10 @@ DataManager::SetValue(VectorHandler& X, VectorHandler& XP)
 #else /* USE_ELEM_ITER */
 	/* Versione con iteratore: */
 	Elem* pEl = NULL;
-	if (ElemIter.fGetFirst(pEl)) {
+	if (ElemIter.bGetFirst(pEl)) {
 		do {
 			pEl->SetValue(X, XP);
-		} while (ElemIter.fGetNext(pEl));
+		} while (ElemIter.bGetNext(pEl));
 	}
 #endif /* USE_ELEM_ITER */
 } /* End of SetValue */
@@ -977,10 +977,10 @@ DataManager::BeforePredict(VectorHandler& X, VectorHandler& XP,
 #else /* USE_ELEM_ITER */
 	/* Versione con iteratore: */
 	Elem* pEl = NULL;
-	if (ElemIter.fGetFirst(pEl)) {
+	if (ElemIter.bGetFirst(pEl)) {
 		do {
 			pEl->BeforePredict(X, XP, XPrev, XPPrev);
-		} while (ElemIter.fGetNext(pEl));
+		} while (ElemIter.bGetNext(pEl));
 	}
 #endif /* USE_ELEM_ITER */
 }
@@ -1005,11 +1005,11 @@ DataManager::AfterPredict(void) const
 #else /* USE_ELEM_ITER */
 	/* Versione con iteratore: */
 	Elem* pEl = NULL;
-	if (ElemIter.fGetFirst(pEl)) {
+	if (ElemIter.bGetFirst(pEl)) {
 		do {
 			pEl->AfterPredict(*(VectorHandler*)pXCurr,
 					*(VectorHandler*)pXPrimeCurr);
-		} while (ElemIter.fGetNext(pEl));
+		} while (ElemIter.bGetNext(pEl));
 	}
 #endif /* USE_ELEM_ITER */
 }
@@ -1032,10 +1032,10 @@ DataManager::Update(void) const
 #else /* USE_ELEM_ITER */
 	/* Versione con iteratore: */
 	Elem* pEl = NULL;
-	if (ElemIter.fGetFirst(pEl)) {
+	if (ElemIter.bGetFirst(pEl)) {
 		do {
 			pEl->Update(*pXCurr, *pXPrimeCurr);
-		} while (ElemIter.fGetNext(pEl));
+		} while (ElemIter.bGetNext(pEl));
 	}
 #endif /* USE_ELEM_ITER */
 }
@@ -1060,11 +1060,11 @@ DataManager::AfterConvergence(void) const
 #else /* USE_ELEM_ITER */
 	/* Versione con iteratore: */
 	Elem* pEl = NULL;
-	if (ElemIter.fGetFirst(pEl)) {
+	if (ElemIter.bGetFirst(pEl)) {
 		do {
 			pEl->AfterConvergence(*(VectorHandler*)pXCurr,
 					*(VectorHandler*)pXPrimeCurr);
-		} while (ElemIter.fGetNext(pEl));
+		} while (ElemIter.bGetNext(pEl));
 	}
 #endif /* USE_ELEM_ITER */
 
@@ -1116,10 +1116,10 @@ DataManager::DerivativesUpdate(void) const
 #else /* USE_ELEM_ITER */
 	/* Versione con iteratore: */
 	Elem* pEl = NULL;
-	if (ElemIter.fGetFirst(pEl)) {
+	if (ElemIter.bGetFirst(pEl)) {
 		do {
 			pEl->Update(*pXCurr, *pXPrimeCurr);
-		} while (ElemIter.fGetNext(pEl));
+		} while (ElemIter.bGetNext(pEl));
 	}
 #endif /* USE_ELEM_ITER */
 }

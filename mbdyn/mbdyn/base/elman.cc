@@ -165,7 +165,7 @@ void DataManager::ElemManagerDestructor(void)
 #if defined(USE_ELEM_ITER)
       /* Usa l'iteratore built-in */
        Elem* p = NULL;
-       if (ElemIter.fGetFirst(p)) {
+       if (ElemIter.bGetFirst(p)) {
 	  do {
 	     ASSERT(p != NULL);
 	     if(p != NULL) {		  
@@ -174,7 +174,7 @@ void DataManager::ElemManagerDestructor(void)
 			  << std::endl);
 		SAFEDELETE(p);
 	     }
-	  } while (ElemIter.fGetNext(p));
+	  } while (ElemIter.bGetNext(p));
        }
 #else /* !USE_ELEM_ITER */
       Elem** pp = ppElems;
@@ -259,10 +259,10 @@ void DataManager::ElemDataInit(void)
       /* Puo' essere sostituito con un opportuno iteratore:
        VecIter<Drive*> DriveIter(ppDrive, iTotDrive);
        Drive* pTmp = NULL;
-       if (DriveIter.fGetFirst(pTmp)) {	       
+       if (DriveIter.bGetFirst(pTmp)) {	       
 	  do {
 	     pTmp = NULL;
-	  } while (DriveIter.fGetNext(pTmp));
+	  } while (DriveIter.bGetNext(pTmp));
        }
        */
       
@@ -370,10 +370,10 @@ void DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
    
    /* Versione con iteratore: */
     Elem* pTmpEl = NULL;
-    if (ElemIter.fGetFirst(pTmpEl)) {
+    if (ElemIter.bGetFirst(pTmpEl)) {
        do {	
 	  JacHdl += pTmpEl->AssJac(*pWorkMatA, dCoef, *pXCurr, *pXPrimeCurr);
-       } while (ElemIter.fGetNext(pTmpEl));    
+       } while (ElemIter.bGetNext(pTmpEl));    
     }   
 #endif /* USE_ELEM_ITER */
 }
@@ -418,12 +418,12 @@ void DataManager::AssEig(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl)
    
    /* Versione con iteratore: */
     Elem* pTmpEl = NULL;
-    if (ElemIter.fGetFirst(pTmpEl)) {
+    if (ElemIter.bGetFirst(pTmpEl)) {
        do {		 
 	  pTmpEl->AssMats(*pWorkMatA, *pWorkMatB, *pXCurr, *pXPrimeCurr);
 	  A_Hdl += *pWorkMatA;
 	  B_Hdl += *pWorkMatB;
-       } while (ElemIter.fGetNext(pTmpEl));    
+       } while (ElemIter.bGetNext(pTmpEl));    
     }   
 #endif /* USE_ELEM_ITER */
 }
@@ -447,7 +447,7 @@ void DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 #else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pTmpEl = NULL;
-    if (ElemIter.fGetFirst(pTmpEl)) {       
+    if (ElemIter.bGetFirst(pTmpEl)) {       
        do {
 	  DEBUGCOUT(psElemNames[pTmpEl->GetElemType()]
 		    << "(" << pTmpEl->GetLabel() << ")" << std::endl);
@@ -456,7 +456,7 @@ void DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 	    << "(" << pTmpEl->GetLabel() << ")" << std::endl;
 #endif
 	  ResHdl += pTmpEl->AssRes(WorkVec, dCoef, *pXCurr, *pXPrimeCurr);
-       } while (ElemIter.fGetNext(pTmpEl));
+       } while (ElemIter.bGetNext(pTmpEl));
     }
 #endif /* USE_ELEM_ITER */
 }
@@ -471,10 +471,10 @@ void DataManager::ElemOutput(OutputHandler& OH) const
 #else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pTmpEl = NULL;
-    if (ElemIter.fGetFirst(pTmpEl)) {       
+    if (ElemIter.bGetFirst(pTmpEl)) {       
        do {	
 	  pTmpEl->Output(OH);
-       } while (ElemIter.fGetNext(pTmpEl));
+       } while (ElemIter.bGetNext(pTmpEl));
     }
 #endif /* USE_ELEM_ITER */
 }
@@ -494,10 +494,10 @@ DataManager::ElemOutput(
 #else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pTmpEl = NULL;
-    if (ElemIter.fGetFirst(pTmpEl)) {       
+    if (ElemIter.bGetFirst(pTmpEl)) {       
        do {	
 	  pTmpEl->Output(OH, X, XP);
-       } while (ElemIter.fGetNext(pTmpEl));
+       } while (ElemIter.bGetNext(pTmpEl));
     }
 #endif /* USE_ELEM_ITER */
 }
@@ -515,10 +515,10 @@ DataManager::ElemOutput_pch(
 #else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pTmpEl = NULL;
-    if (ElemIter.fGetFirst(pTmpEl)) {       
+    if (ElemIter.bGetFirst(pTmpEl)) {       
        do {	
 	  pTmpEl->Output_pch(pch);
-       } while (ElemIter.fGetNext(pTmpEl));
+       } while (ElemIter.bGetNext(pTmpEl));
     }
 #endif /* USE_ELEM_ITER */
 }
@@ -537,10 +537,10 @@ DataManager::ElemOutput_f06(
 #else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pTmpEl = NULL;
-    if (ElemIter.fGetFirst(pTmpEl)) {       
+    if (ElemIter.bGetFirst(pTmpEl)) {       
        do {	
 	  pTmpEl->Output_f06(f06, X);
-       } while (ElemIter.fGetNext(pTmpEl));
+       } while (ElemIter.bGetNext(pTmpEl));
     }
 #endif /* USE_ELEM_ITER */
 }
@@ -560,10 +560,10 @@ DataManager::ElemOutput_f06(
 #else /* USE_ELEM_ITER */
    /* Versione con iteratore: */
     Elem* pTmpEl = NULL;
-    if (ElemIter.fGetFirst(pTmpEl)) {       
+    if (ElemIter.bGetFirst(pTmpEl)) {       
        do {	
 	  pTmpEl->Output_f06(f06, Xr, Xi);
-       } while (ElemIter.fGetNext(pTmpEl));
+       } while (ElemIter.bGetNext(pTmpEl));
     }
 #endif /* USE_ELEM_ITER */
 }

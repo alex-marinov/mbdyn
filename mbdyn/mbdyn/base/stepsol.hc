@@ -71,11 +71,11 @@ StepIntegrator::UpdateLoop(
 
 	} else {
 		
-   		DofIterator.fGetFirst(CurrDof);
+   		DofIterator.bGetFirst(CurrDof);
 		integer iNumDofs = pDM->iGetNumDofs();
 
 	   	for (int iCntp1 = 1; iCntp1 <= iNumDofs;
-				iCntp1++, DofIterator.fGetNext(CurrDof)) {
+				iCntp1++, DofIterator.bGetNext(CurrDof)) {
 			(t->*pUpd)(iCntp1,CurrDof.Order,pSol);
    		}
 	}

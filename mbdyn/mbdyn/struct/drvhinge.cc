@@ -35,8 +35,6 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <drvhinge.h>
-
-#include <matvecexp.h>
 #include <Rot.hh>
 
 /* DriveHingeJoint - begin */

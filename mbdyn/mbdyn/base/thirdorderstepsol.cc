@@ -141,14 +141,14 @@ ThirdOrderIntegrator::Advance(Solver* pS,
 		EqIsAlgebraic.resize(n);
 		EqIsDifferential.resize(n);
 	   	Dof CurrDof;
-		DofIterator.fGetFirst(CurrDof);
-		for (int iCntp1 = 0; iCntp1 < n;
-			iCntp1++, DofIterator.fGetNext(CurrDof)) {
-			EqIsAlgebraic[iCntp1] = (
+		DofIterator.bGetFirst(CurrDof);
+		for (int iCntm1 = 0; iCntm1 < n;
+			iCntm1++, DofIterator.bGetNext(CurrDof)) {
+			EqIsAlgebraic[iCntm1] = (
 				CurrDof.EqOrder==DofOrder::ALGEBRAIC);
-			EqIsDifferential[iCntp1] = (!EqIsAlgebraic[iCntp1]);
+			EqIsDifferential[iCntm1] = (!EqIsAlgebraic[iCntm1]);
 		}
-		DofIterator.fGetFirst(CurrDof);
+		DofIterator.bGetFirst(CurrDof);
 		Jacxi_xp.Resize(n);
 		Jacxi_x.Resize(n);
 		Jac_xp.Resize(n);
@@ -168,7 +168,7 @@ ThirdOrderIntegrator::Advance(Solver* pS,
 	
 	Err = 0.;        
 	pS->pGetNonlinearSolver()->Solve(this, pS, MaxIters, dTol, 
-			EffIter, Err , dSolTol, SolErr);
+			EffIter, Err, dSolTol, SolErr);
 	
 	return Err;
 };
@@ -257,9 +257,8 @@ void ThirdOrderIntegrator::Predict(void) {
 		std::cerr << "Warning: ThirdOrderIntegrator currently is "
 			<< "untested with the parallel solver\n";
 	}}
-	
 
-	DofIterator.fGetFirst(CurrDof);
+	DofIterator.bGetFirst(CurrDof);
 	//integer iNumDofs = pDM->iGetNumDofs();
 	
    	/* 
@@ -269,13 +268,14 @@ void ThirdOrderIntegrator::Predict(void) {
 	/*
 	 * Predict for AfterPredict
 	*/
-	UpdateLoop(this,&ThirdOrderIntegrator::PredictDof_for_AfterPredict);
+	UpdateLoop(this, &ThirdOrderIntegrator::PredictDof_for_AfterPredict);
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
       	pDM->AfterPredict();
+
 	/*
 	 * Vero Predict
 	 */
-	UpdateLoop(this,&ThirdOrderIntegrator::RealPredictDof);
+	UpdateLoop(this, &ThirdOrderIntegrator::RealPredictDof);
 	return;
 };
 
@@ -289,16 +289,16 @@ void ThirdOrderIntegrator::Residual(VectorHandler* pRes) const
 	MyVectorHandler state, stateder, res;
 	
 	/* theta*dT */
-	state.Attach(iNumDofs,pXCurr->pdGetVec()+iNumDofs);
-	stateder.Attach(iNumDofs,pXPrimeCurr->pdGetVec()+iNumDofs);
-	res.Attach(iNumDofs,pRes->pdGetVec()+iNumDofs);
-	pDM->SetTime(pDM->dGetTime()+theta*dT);
+	state.Attach(iNumDofs, pXCurr->pdGetVec()+iNumDofs);
+	stateder.Attach(iNumDofs, pXPrimeCurr->pdGetVec()+iNumDofs);
+	res.Attach(iNumDofs, pRes->pdGetVec()+iNumDofs);
+	pDM->SetTime(pDM->dGetTime() + theta*dT);
 	pDM->LinkToSolution(state, stateder);
 	pDM->Update();
 	pDM->AssRes(res, 1.);
 	
 	/* dT */
-	pDM->SetTime(pDM->dGetTime()-theta*dT);
+	pDM->SetTime(pDM->dGetTime() - theta*dT);
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
 	pDM->Update();
 	pDM->AssRes(*pRes, 1.);
@@ -320,16 +320,16 @@ void ThirdOrderIntegrator::Jacobian(MatrixHandler* pJac) const
 	pJac_xp->Init();
 
 	/* theta*dT */
-	state.Attach(iNumDofs,pXCurr->pdGetVec()+iNumDofs);
-	stateder.Attach(iNumDofs,pXPrimeCurr->pdGetVec()+iNumDofs);
-	pDM->SetTime(pDM->dGetTime()+theta*dT);
+	state.Attach(iNumDofs, pXCurr->pdGetVec()+iNumDofs);
+	stateder.Attach(iNumDofs, pXPrimeCurr->pdGetVec()+iNumDofs);
+	pDM->SetTime(pDM->dGetTime() + theta*dT);
 	pDM->LinkToSolution(state, stateder);
 	pDM->Update();
 	pDM->AssJac(*pJacxi_x, 1.);
 	pDM->AssJac(*pJacxi_xp, 0.);
 	
 	/* dT */
-	pDM->SetTime(pDM->dGetTime()-theta*dT);
+	pDM->SetTime(pDM->dGetTime() - theta*dT);
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
 	pDM->Update();
 	pDM->AssJac(*pJac_x, 1.);
@@ -431,10 +431,10 @@ void ThirdOrderIntegrator::SetDriveHandler(const DriveHandler* pDH)
 //    	Dof CurrDof;
 // 	doublereal dXPr = 0.;
 // 
-// 	DofIterator.fGetFirst(CurrDof); 
+// 	DofIterator.bGetFirst(CurrDof); 
 // 
 //    	for (int iCntp1 = 1; iCntp1 <= pXPrimeCurr->iGetSize(); 
-// 			iCntp1++, DofIterator.fGetNext(CurrDof)) {
+// 			iCntp1++, DofIterator.bGetNext(CurrDof)) {
 // 
 // 		if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
 // 			doublereal d = pXPrimeCurr->dGetCoef(iCntp1);
