@@ -7,12 +7,19 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
-MBDyn 1.2-Engineering
+MBDyn 1.X-Engineering
 	Enhancements:
 		- added matrix-free nonlinear solver (BiCGStab/GMRES)
 		- added third order step solver
 		- added TAUCS linear solver (eXperimental)
 		- added "ad hoc" (Radau IIA) third-order integrator
+	Backward compatibility issues:
+	Known issues:
+		- parallel is not working yet
+	Bug fixes:
+
+MBDyn 1.2.1
+	Enhancements:
 		- added provisions for detailed dof stats
 		- added linear and angular acceleration to dynamic
 		  structural nodes output
@@ -22,6 +29,7 @@ MBDyn 1.2-Engineering
 		  as automatic structural element private data
 		- added SimulinkInterface code and example as contrib
 		  by Michele Attolico
+		- improved local and inet socket input/output
 	Backward compatibility issues:
 	Known issues:
 		- parallel is not working yet
