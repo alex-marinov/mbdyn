@@ -56,6 +56,19 @@
  * in fase di sviluppo, modella dinamicamente alcuni stati a dare
  * il comportamento instazionario di una superficie aerodinamica
  * modellata con la strip theory
+ *
+ * - Elemento Aerodinamico modale:
+ * in fase di sviluppo, contiene una rappresentazione agli stati delle forze
+ * aerodinamiche generalizzate associate ai modi di vibrare e alle raffiche
+ * deve essere associato ad un elemento modale su cui il modello si appoggia.
+ *
+ * -Elemento aerodinamico external:
+ * in fase di sviluppo, elemento che permette di svolgere simulazioni 
+ * integrate di interazioni fluido-struttura interfacciando MBDyn con 
+ * codici aerodynamici esterni. L'elemento manda all'esterno le informazioni 
+ * riguardo alla posizione dei nodi associati e ottiene i carichi che il codice 
+ * aerodinamico esterno genera 
+ * 
  * 
  */
 
@@ -310,7 +323,8 @@ class AerodynamicElem : virtual public Elem, public AirPropOwner {
 	AEROMODAL,
 	AERODYNAMICBODY,
 	AERODYNAMICBEAM,
-
+	AERODYNAMICEXTERNAL,
+	
 	AERODYNAMICLOADABLE,
 	
 	LASTAEROTYPE

@@ -29,7 +29,7 @@
  */
  /* Elemento aerodinamico modale */
 
-/* Aerodynmic Modal Element by Giuseppe Quaranta(C) - Marzo 2002
+/* Aerodynmic Modal Element by Giuseppe Quaranta(C) - March 2002
  * <quaranta@aero.polimi.it>	
  * This element is connected to a modal joint element.
  * It needs a state-space representation of the instationary 
