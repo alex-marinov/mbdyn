@@ -201,10 +201,16 @@ SchurMatrixHandler::PutCoef(integer iRow, integer iCol,
 		}
 	}
 
+#ifdef USE_MPI
 	silent_cerr("SchurMatrixHandler::PutCoef() "
 		"Process(" << MBDynComm.Get_rank() << "): "
 		"trying to operate on nonlocal indices "
 		<< iRow << "," << iCol << std::endl);
+#else /* ! USE_MPI */
+	silent_cerr("SchurMatrixHandler::PutCoef() "
+		"trying to operate on nonlocal indices "
+		<< iRow << "," << iCol << std::endl);
+#endif /* ! USE_MPI */
 
 	throw ErrGeneric();
 }
@@ -238,10 +244,16 @@ SchurMatrixHandler::IncCoef(integer iRow, integer iCol,
 		}
 	}
 
+#ifdef USE_MPI
 	silent_cerr("SchurMatrixHandler::IncCoef() "
 		"Process(" << MBDynComm.Get_rank() << "): "
 		"trying to operate on nonlocal indices "
 		<< iRow << "," << iCol << std::endl);
+#else /* ! USE_MPI */
+	silent_cerr("SchurMatrixHandler::IncCoef() "
+		"trying to operate on nonlocal indices "
+		<< iRow << "," << iCol << std::endl);
+#endif /* ! USE_MPI */
 
 	throw ErrGeneric();
 }
@@ -275,10 +287,16 @@ SchurMatrixHandler::DecCoef(integer iRow, integer iCol,
 		}
 	}
 
+#ifdef USE_MPI
 	silent_cerr("SchurMatrixHandler::DecCoef() "
 		"Process(" << MBDynComm.Get_rank() << "): "
 		"trying to operate on nonlocal indices "
 		<< iRow << "," << iCol << std::endl);
+#else /* ! USE_MPI */
+	silent_cerr("SchurMatrixHandler::DecCoef() "
+		"trying to operate on nonlocal indices "
+		<< iRow << "," << iCol << std::endl);
+#endif /* ! USE_MPI */
 
 	throw ErrGeneric();
 }
@@ -307,10 +325,16 @@ SchurMatrixHandler::dGetCoef(integer iRow, integer iCol) const
 		}
 	}
 
+#ifdef USE_MPI
 	silent_cerr("SchurMatrixHandler::dGetCoef() "
 		"Process(" << MBDynComm.Get_rank() << "): "
 		"trying to operate on nonlocal indices "
 		<< iRow << "," << iCol << std::endl);
+#else /* ! USE_MPI */
+	silent_cerr("SchurMatrixHandler::dGetCoef() "
+		"trying to operate on nonlocal indices "
+		<< iRow << "," << iCol << std::endl);
+#endif /* ! USE_MPI */
 
 	return ::dZero;
 }
@@ -339,10 +363,16 @@ SchurMatrixHandler::operator()(integer iRow, integer iCol)
 		}
 	}
 
+#ifdef USE_MPI
 	silent_cerr("SchurMatrixHandler::operator() "
 		"Process(" << MBDynComm.Get_rank() << "): "
 		"trying to operate on nonlocal indices "
 		<< iRow << "," << iCol << std::endl);
+#else /* ! USE_MPI */
+	silent_cerr("SchurMatrixHandler::operator() "
+		"trying to operate on nonlocal indices "
+		<< iRow << "," << iCol << std::endl);
+#endif /* ! USE_MPI */
 
 	throw ErrGeneric();
 }
@@ -371,10 +401,16 @@ SchurMatrixHandler::operator () (integer iRow, integer iCol) const
 		}
 	}
 
+#ifdef USE_MPI
 	silent_cerr("SchurMatrixHandler::operator() "
 		"Process(" << MBDynComm.Get_rank() << "): "
 		"trying to operate on nonlocal indices "
 		<< iRow << "," << iCol << std::endl);
+#else /* ! USE_MPI */
+	silent_cerr("SchurMatrixHandler::operator() "
+		"trying to operate on nonlocal indices "
+		<< iRow << "," << iCol << std::endl);
+#endif /* ! USE_MPI */
 
 	return ::dZero;
 }
@@ -568,10 +604,16 @@ SchurVectorHandler::PutCoef(integer iRow, const doublereal& dCoef)
 		pIV->PutCoef(-pGTL[iRow], dCoef);
 
 	} else {
+#ifdef USE_MPI
 		silent_cerr("SchurVectorHandler::PutCoef() "
 			"Process(" << MBDynComm.Get_rank() << "): "
 			"trying to operate on nonlocal index "
 			<< iRow << std::endl);
+#else /* ! USE_MPI */
+		silent_cerr("SchurVectorHandler::PutCoef() "
+			"trying to operate on nonlocal index "
+			<< iRow << std::endl);
+#endif /* ! USE_MPI */
 		throw ErrGeneric();
 	}
 	return;
@@ -591,10 +633,16 @@ SchurVectorHandler::IncCoef(integer iRow, const doublereal& dCoef)
 		pIV->IncCoef(-pGTL[iRow], dCoef);
 
 	} else {
+#ifdef USE_MPI
 		silent_cerr("SchurVectorHandler::IncCoef "
 			"Process(" << MBDynComm.Get_rank() << "): "
 			"trying to operate on nonlocal index "
 			<< iRow << std::endl);
+#else /* ! USE_MPI */
+		silent_cerr("SchurVectorHandler::IncCoef "
+			"trying to operate on nonlocal index "
+			<< iRow << std::endl);
+#endif /* ! USE_MPI */
 		throw ErrGeneric();
 	}
 	return;
@@ -614,10 +662,16 @@ SchurVectorHandler::DecCoef(integer iRow, const doublereal& dCoef)
 		pIV->DecCoef(-pGTL[iRow], dCoef);
 
 	} else {
+#ifdef USE_MPI
 		silent_cerr("SchurVectorHandler::DecCoef "
 			"Process(" << MBDynComm.Get_rank() << "): "
 			"trying to operate on nonlocal index "
 			<< iRow << std::endl);
+#else /* ! USE_MPI */
+		silent_cerr("SchurVectorHandler::DecCoef "
+			"trying to operate on nonlocal index "
+			<< iRow << std::endl);
+#endif /* ! USE_MPI */
 		throw ErrGeneric();
 	}
 	return;
@@ -637,10 +691,16 @@ SchurVectorHandler::dGetCoef(integer iRow) const
 		return pIV->dGetCoef(-pGTL[iRow]);
 
 	} else {
+#ifdef USE_MPI
 		silent_cerr("SchurVectorHandler::dGetCoef "
 			"Process(" << MBDynComm.Get_rank() << "): "
 			"trying to operate on nonlocal index "
 			<< iRow << std::endl);
+#else /* ! USE_MPI */
+		silent_cerr("SchurVectorHandler::dGetCoef "
+			"trying to operate on nonlocal index "
+			<< iRow << std::endl);
+#endif /* ! USE_MPI */
 		return dZero;
 	}
 }
@@ -659,10 +719,16 @@ SchurVectorHandler::operator()(integer iRow) const
 		return pIV->dGetCoef(-pGTL[iRow]);
 
 	} else {
+#ifdef USE_MPI
 		silent_cerr("SchurVectorHandler::operator()"
 			"Process(" << MBDynComm.Get_rank() << "): "
 			"trying to operate on nonlocal index "
 			<< iRow << std::endl);
+#else /* ! USE_MPI */
+		silent_cerr("SchurVectorHandler::operator()"
+			"trying to operate on nonlocal index "
+			<< iRow << std::endl);
+#endif /* ! USE_MPI */
 		return dZero;
 	}
 }
@@ -810,10 +876,16 @@ SchurMatrixHandlerUm::PutCoef(integer iRow, integer iCol,
 		}
 	}
 
+#ifdef USE_MPI
 	silent_cerr("SchurMatrixHandlerUm::PutCoef() "
 		"Process(" << MBDynComm.Get_rank() << "): "
 		"trying to operate on nonlocal indices "
 		<< iRow << "," << iCol << std::endl);
+#else /* ! USE_MPI */
+	silent_cerr("SchurMatrixHandlerUm::PutCoef() "
+		"trying to operate on nonlocal indices "
+		<< iRow << "," << iCol << std::endl);
+#endif /* ! USE_MPI */
 
 	throw ErrGeneric();
 }
@@ -852,10 +924,16 @@ SchurMatrixHandlerUm::IncCoef(integer iRow, integer iCol,
 		}
 	}
 
+#ifdef USE_MPI
 	silent_cerr("SchurMatrixHandlerUm::IncCoef() "
 		"Process(" << MBDynComm.Get_rank() << "): "
 		"trying to operate on nonlocal indices "
 		<< iRow << "," << iCol << std::endl);
+#else /* ! USE_MPI */
+	silent_cerr("SchurMatrixHandlerUm::IncCoef() "
+		"trying to operate on nonlocal indices "
+		<< iRow << "," << iCol << std::endl);
+#endif /* ! USE_MPI */
 
 	throw ErrGeneric();
 }
@@ -894,10 +972,16 @@ SchurMatrixHandlerUm::DecCoef(integer iRow, integer iCol,
 		}
 	}
 
+#ifdef USE_MPI
 	silent_cerr("SchurMatrixHandlerUm::DecCoef() "
 		"Process(" << MBDynComm.Get_rank() << "): "
 		"trying to operate on nonlocal indices "
 		<< iRow << "," << iCol << std::endl);
+#else /* ! USE_MPI */
+	silent_cerr("SchurMatrixHandlerUm::DecCoef() "
+		"trying to operate on nonlocal indices "
+		<< iRow << "," << iCol << std::endl);
+#endif /* ! USE_MPI */
 
 	throw ErrGeneric();
 }
@@ -931,10 +1015,16 @@ SchurMatrixHandlerUm::dGetCoef(integer iRow, integer iCol) const
 		}
 	}
 
+#ifdef USE_MPI
 	silent_cerr("SchurMatrixHandlerUm::dGetCoef() "
 		"Process(" << MBDynComm.Get_rank() << "): "
 		"trying to operate on nonlocal indices "
 		<< iRow << "," << iCol << std::endl);
+#else /* ! USE_MPI */
+	silent_cerr("SchurMatrixHandlerUm::dGetCoef() "
+		"trying to operate on nonlocal indices "
+		<< iRow << "," << iCol << std::endl);
+#endif /* ! USE_MPI */
 
 	return ::dZero;
 }
