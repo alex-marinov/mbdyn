@@ -177,24 +177,21 @@ StructNode::SetDofValue(const doublereal& dValue,
       THROW(StructNode::ErrGeneric());
    }   
 }
-      
+
+
+DofOrder::Order 
+StructNode::SetDof(unsigned int i) const
+{
+	ASSERT(i >= 1 && i <= iGetNumDofs());
+	return DofOrder::DIFFERENTIAL;
+}
+
 
 /* Output del nodo strutturale (da mettere a punto) */
 void 
 StructNode::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {      
-#ifdef DEBUG
-      if (DEBUG_LEVEL(MYDEBUG_OUTPUT)) {
-	 OH.Output() 
-	   << "Node " << uLabel << ':' << std::endl 
-	   << "Current position: " << std::endl << XCurr << std::endl
-	   << "Current orientation: " << std::endl << RCurr << std::endl 
-	   << "Current velocity: " << std::endl << VCurr << std::endl
-	   << "Current spin: " << std::endl << WCurr << std::endl;
-      }
-#endif   
-   
       OH.StrNodes() << std::setw(8) << GetLabel() << " "
 	<< XCurr << " " << EulerAngles(RCurr) << " "
 	<< VCurr << " " << WCurr << " " << std::endl;
@@ -1032,7 +1029,8 @@ ReadStructNode(DataManager* pDM,
 #ifdef __GNUC__
 #warning "deprecated default node = DYNAMIC"
 #endif
-      std::cerr << "deprecated default node type (=DYNAMIC)" << std::endl;
+      std::cerr << "missing node type at line " << HP.GetLineData() 
+	      << " (default = \"dynamic\")" << std::endl;
       CurrType = DYNAMIC;
    }   
    
@@ -1106,17 +1104,38 @@ ReadStructNode(DataManager* pDM,
        }
       }
    } else {
-      /* posizione (vettore di 3 elementi) */     
+      /* posizione (vettore di 3 elementi) */
+      if (!HP.IsKeyWord("position")) {
+	 std::cerr << "StructNode(" << uLabel 
+		 << "): missing keyword \"position\" at line " 
+		 << HP.GetLineData() << std::endl;
+      }
       Vec3 X0(HP.GetPosAbs(AbsRefFrame));   
       DEBUGCOUT("X0 =" << std::endl << X0 << std::endl);
       
       /* sistema di riferimento (trucco dei due vettori) */  
+      if (!HP.IsKeyWord("orientation")) {
+	 std::cerr << "StructNode(" << uLabel 
+		 << "): missing keyword \"orientation\" at line " 
+		 << HP.GetLineData() << std::endl;
+      }
       Mat3x3 R0(HP.GetRotAbs(AbsRefFrame));
       DEBUGCOUT("R0 =" << std::endl << R0 << std::endl);
       
       /* Velocita' iniziali (due vettori di 3 elementi, con la possibilita' 
        * di usare "null" per porli uguali a zero) */
+      if (!HP.IsKeyWord("velocity")) {
+	 std::cerr << "StructNode(" << uLabel 
+		 << "): missing keyword \"velocity\" at line " 
+		 << HP.GetLineData() << std::endl;
+      }
       Vec3 XPrime0(HP.GetVelAbs(AbsRefFrame, X0));
+
+      if (!HP.IsKeyWord("angular" "velocity")) {
+	 std::cerr << "StructNode(" << uLabel 
+		 << "): missing keyword \"angular velocity\" at line " 
+		 << HP.GetLineData() << std::endl;
+      }
       Vec3 Omega0(HP.GetOmeAbs(AbsRefFrame));
       DEBUGCOUT("Xprime0 =" << std::endl << XPrime0 << std::endl 
 		<< "Omega0 =" << std::endl << Omega0 << std::endl);
@@ -1187,5 +1206,7 @@ ReadStructNode(DataManager* pDM,
    }
    
    ASSERT(pNd != NULL);
+
    return pNd;
 } /* End of ReadStructNode() */
+

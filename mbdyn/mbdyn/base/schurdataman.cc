@@ -1167,10 +1167,14 @@ SchurDataManager::CreatePartition(void)
     if (iNumRt  != 0) {
       	SAFENEWARR(pMyRot, integer, iNumRt);
       	for (unsigned int i = 0; i < ElemData[Elem::AERODYNAMIC].iNum; i++) {
-	    integer pTmpLab = 
-	    	((ElemData[Elem::AERODYNAMIC].ppFirstElem)[i])->GetRotor();
-	    int pos = 0;
-	    if (pTmpLab != -1) {
+	    const AerodynamicElem *pAero = 
+	    	(ElemData[Elem::AERODYNAMIC].ppFirstElem[i])->pGetAerodynamicElem();
+	    ASSERT(pAero != NULL);
+	    const Rotor *pRotor = pAero->pGetRotor();
+
+	    if (pRotor != NULL) {
+	        int pos = 0;
+	        unsigned int pTmpLab = pRotor->GetLabel();
 	  	for (int k = 0; k < iNumRt; k++) {
 	    	    if (pTmpLab == pRotLab[k]) {
 	      		pos  = pRotPos[k];

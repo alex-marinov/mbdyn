@@ -41,6 +41,7 @@
 #include <output.h>
 #include <withlab.h>
 #include <dofown.h>
+#include <simentity.h>
 
 /* 
  Array dei nomi dei nodi. 
@@ -48,12 +49,14 @@
  @see Node::Type
  */
 extern const char* psNodeNames[];
+
 /* 
  Array delle stringhe di identificazione dei tipi di nodi.
  Usato per input di controllo
  @see Node::Type
  */
 extern const char* psReadControlNodes[];
+
 /* 
  Array delle stringhe di identificazione dei tipi di nodi.
  Usato per input dei nodi
@@ -63,7 +66,8 @@ extern const char* psReadNodesNodes[];
 
 /* Node - begin */
 
-class Node : public WithLabel, public DofOwnerOwner, public ToBeOutput {
+class Node : public WithLabel, public SimulationEntity, 
+public DofOwnerOwner, public ToBeOutput {
  public:
    /* Enumerazione dei tipi di nodi */
    enum Type {
@@ -111,33 +115,7 @@ class Node : public WithLabel, public DofOwnerOwner, public ToBeOutput {
    
 
    /* Metodi che operano sui DoF */
-   
       
-   /* 
-    Ritorna il numero di DoFs.
-    Non usa il DofOwner in quanto viene usata per generale il DofOwner
-    stesso (per compatibilita' con gli elementi che generano gradi di 
-    liberta' ed in previsione di nodi con un numero variabile di DoF) 
-    */
-   virtual inline unsigned int iGetNumDof(void) const = 0;
-    
-   /*
-    Test di validita' di un indice. 
-    Nota: gli indici vanno da 1 a iGetNumDofs()
-    */
-   virtual flag fIsValidIndex(unsigned int i) const;
-   
-   /*
-    Esegue operazioni sui DoF di proprieta' dell'elemento.
-    In particolare ritorna il tipo di DoF in base all'indice i.
-    Di default i DoF dei nodi sono assunti differenziali.
-    Il tipo e' preso dall'enum DofOrder.
-    Nota: gli indici sono in base 0, ovvero deve essere
-    0 < i < iGetNumDof()
-    @see DofOrder
-    */   
-   virtual DofOrder::Order SetDof(unsigned int i) const;
-
    /* 
     Ritorna il primo indice di riga dei DoF del nodo, in base 0.
     Ovvero, l'indice del primo DoF del nodo in un vettore a base zero.
@@ -169,8 +147,6 @@ class Node : public WithLabel, public DofOwnerOwner, public ToBeOutput {
    virtual void SetDofValue(const doublereal& dValue,
 			    unsigned int iDof, 
 			    unsigned int iOrder = 0) = 0;
-   
-   
       
    /* Metodi legati all'integrazione */
    
@@ -181,37 +157,6 @@ class Node : public WithLabel, public DofOwnerOwner, public ToBeOutput {
    virtual void Output(OutputHandler& OH) const;
    virtual void Output(OutputHandler& OH,
 		   const VectorHandler& X, const VectorHandler& XP) const;
-   
-   /*
-    Setta i valori iniziali dei DoF.
-    Puo' essere usata per altre inizializzazioni prima di 
-    iniziare l'integrazione 
-    */
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
-            
-   /*
-    Elaborazione vettori e dati prima della predizione.
-    Per MultiStepIntegrator
-    */
-   virtual void BeforePredict(VectorHandler& /* X */ ,
-      			      VectorHandler& /* XP */ ,
-			      VectorHandler& /* XPrev */ ,
-			      VectorHandler& /* XPPrev */ ) const;
-   
-   /*
-    Elaborazione vettori e dati dopo la predizione.
-    Per MultiStepIntegrator
-    */
-   virtual void AfterPredict(VectorHandler& X, VectorHandler& XP) = 0;
-
-   /*
-    Aggiorna dati in base alla soluzione. 
-    Usata per operazioni aggiuntive al semplice aggiornamento additivo,
-    effettuato gia' dall'integratore.
-    */
-   virtual void Update(const VectorHandler& XCurr, 
-		       const VectorHandler& XPrimeCurr) = 0;
-   
 };
 
 /* Node - end */
@@ -239,7 +184,7 @@ class ScalarNode : public Node {
     (per compatibilita' con gli elementi che generano gradi di 
     liberta' ed in previsione di nodi con un numero variabile di DoF
     */
-   virtual inline unsigned int iGetNumDof(void) const;
+   virtual unsigned int iGetNumDof(void) const;
    
 
    /* Metodi che operano sui valori del DoF.
@@ -267,12 +212,6 @@ class ScalarNode : public Node {
    virtual inline const doublereal& dGetXPrime(void) const = 0;
    
 };
-
-
-inline unsigned int ScalarNode::iGetNumDof(void) const
-{
-   return 1;
-}
 
 /* ScalarNode - end */
 
@@ -348,18 +287,16 @@ class ScalarDifferentialNode : public ScalarNode {
    virtual inline const doublereal& dGetXPrime(void) const;
 
    /* Consente di settare il valore iniziale nel vettore della soluzione*/
-   virtual inline void SetValue(VectorHandler& X, VectorHandler& XP) const;
+   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
 
    /* Aggiorna i valori interni */   
-   virtual inline void Update(const class VectorHandler&, const class VectorHandler&);
+   virtual void Update(const class VectorHandler&, const class VectorHandler&);
    
    /* scrive l'output */
-   virtual inline std::ostream& Output(std::ostream& out) const;
+   virtual std::ostream& Output(std::ostream& out) const;
 
-   /*
-    * Each node should prepend its type
-    */
-   std::ostream& Restart(std::ostream& out) const;      
+   /* restart */
+   std::ostream& Restart(std::ostream& out) const;
 };
 
 
@@ -372,25 +309,6 @@ inline const doublereal& ScalarDifferentialNode::dGetX(void) const
 inline const doublereal& ScalarDifferentialNode::dGetXPrime(void) const
 {
    return dXP;
-}
-
-void 
-ScalarDifferentialNode::Update(const class VectorHandler& X, 
-		const class VectorHandler& XP) 
-{
-   integer iFirstIndex = iGetFirstIndex()+1;
-   dX = X.dGetCoef(iFirstIndex);
-   dXP = XP.dGetCoef(iFirstIndex);
-}
-   
-std::ostream& 
-ScalarDifferentialNode::Output(std::ostream& out) const 
-{
-   if (fToBeOutput()) {
-      out << std::setw(8) << GetLabel() << " "
-   	      << dX << " " << dXP << std::endl;
-   }
-   return out;
 }
 
 /* ScalarDifferentialNode - end */
@@ -409,13 +327,13 @@ class ScalarAlgebraicNode : public ScalarNode {
    /* Costruttore */
    ScalarAlgebraicNode(unsigned int uL, const DofOwner* pDO, 
 		       doublereal dx, flag fOut);
+
    /* Distruttore */
    virtual ~ScalarAlgebraicNode(void);
    
 
    /* Metodi di servizio */
    
-      
    /*
     Esegue operazioni sui DoF di proprieta' dell'elemento.
     In particolare ritorna il tipo di DoF in base all'indice i. 
@@ -459,8 +377,15 @@ class ScalarAlgebraicNode : public ScalarNode {
       
    /* Consente di settare il valore iniziale nel vettore della soluzione*/
    virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
-      
+
+   /* Aggiorna i valori interni */   
+   virtual void Update(const class VectorHandler&, const class VectorHandler&);
    
+   /* scrive l'output */
+   virtual std::ostream& Output(std::ostream& out) const;
+
+   /* restart */
+   std::ostream& Restart(std::ostream& out) const;
 };
 
 
@@ -508,42 +433,16 @@ class ParameterNode : public ScalarAlgebraicNode {
    /* Tipo del nodo. Usato solo per debug ecc. */
    virtual Node::Type GetNodeType(void) const;
    
-   /* Contributo del nodo al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const;
-         
    /* 
     Ritorna il numero di dofs.
     non usa il DofOwner in quanto viene usato per generale il DofOwner stesso.
     Ritorna 0 perche' il parametro non ha DoFs
     */
-   virtual inline unsigned int iGetNumDof(void) const;
-      
-   /* 
-    Verifica di validita' di un indice.
-    Deve essere 0 perche' il parametro non ha DoFs 
-    */
-   virtual flag fIsValidIndex(unsigned int i) const;
-   
+   virtual unsigned int iGetNumDof(void) const;
+   virtual DofOrder::Order SetDof(unsigned int i) const;
       
    /* Metodi che agiscono sul valore */
    
-   /* 
-    Restituisce il valore del DoF iDof.
-    Se differenziale, iOrder puo' essere = 1 per la derivata.
-    Il parametro e' algebrico.
-    */
-   virtual const doublereal& dGetDofValue(int iDof, int iOrder = 0) const;
-   
-   /*
-    Setta il valore del DoF iDof a dValue.
-    Se differenziale, iOrder puo' essere = 1 per la derivata.
-    Il parametro e' algebrico.
-    */
-   virtual void SetDofValue(const doublereal& dValue, 
-			    unsigned int iDof, 
-			    unsigned int iOrder = 0);
-   
-      
    /* Metodi relativi al metodo di intergazione */
    
    /* Output di default per nodi di cui non si desidera output */
@@ -561,12 +460,6 @@ class ParameterNode : public ScalarAlgebraicNode {
 			     VectorHandler& XP);
    
 };
-
-
-inline unsigned int ParameterNode::iGetNumDof(void) const
-{
-   return 0;
-}
 
 /* ParameterNode - end */
 
@@ -625,12 +518,8 @@ class Node2Scalar : public ScalarNode {
     Ritorna il numero di dofs.
     Non usa il DofOwner in quanto viene usata per generare il DofOwner stesso 
     */
-   virtual inline unsigned int iGetNumDof(void) const;
+   virtual unsigned int iGetNumDof(void) const;
       
-   /* Verifica la validita' dell'indice i */
-   virtual flag fIsValidIndex(unsigned int i) const;
-   
-   
    /* Metodi che operano sui valori del DoF */
    
    /* 
@@ -681,36 +570,7 @@ class Node2Scalar : public ScalarNode {
    
    /* Setta il valore della derivata del DoF */
    virtual inline const doublereal& dGetXPrime(void) const;
-   
-      
-   /* Metodi relativi al metodo di integrazione */
-   
-   /* Output di default per nodi di cui non si desidera output */
-   virtual void Output(OutputHandler& /* OH */ ) const;
-   
-   /* Inizializza i DoF del nodo */
-   void SetValue(VectorHandler& X, VectorHandler& XP) const;
-   
-   /* Aggiorna dati in base alla soluzione */
-   virtual void Update(const VectorHandler& XCurr,
-		       const VectorHandler& XPrimeCurr);
-
-   /* Elaborazione vettori e dati prima della predizione */
-   virtual void BeforePredict(VectorHandler& X,
-      			      VectorHandler& XP,
-			      VectorHandler& XPrev,
-			      VectorHandler& XPPrev) const;
-   
-   /* Elaborazione vettori e dati dopo la predizione */
-   virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
-   
 };
-
-
-inline unsigned int Node2Scalar::iGetNumDof(void) const
-{
-   return 1; 
-}
 
 
 inline const doublereal& Node2Scalar::dGetX(void) const
@@ -754,7 +614,6 @@ struct ScalarDof {
    
    /* Ottiene il valore del DoF */
    doublereal dGetValue(void) const;
-   
 };
 
 /* ScalarDof - end */

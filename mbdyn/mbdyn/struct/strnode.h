@@ -135,7 +135,8 @@ class StructNode : public Node {
     * se differenziale, iOrder puo' essere = 1 per la derivata */
    virtual void SetDofValue(const doublereal& dValue, 
 			    unsigned int iDof, unsigned int iOrder = 0);
-      
+
+   virtual DofOrder::Order SetDof(unsigned int) const;
    
    /* Tipo di nodo strutturale */
    virtual StructNode::Type GetStructNodeType(void) const = 0;

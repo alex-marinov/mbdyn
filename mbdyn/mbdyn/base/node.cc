@@ -53,29 +53,6 @@ Node::~Node(void)
    NO_OP; 
 }
 
-   
-flag Node::fIsValidIndex(unsigned int i) const
-{
-   if (i >= 1 && i <= this->iGetNumDof()) {
-      return flag(1);
-   }
-   return flag(0);
-}
- 
-
-/* esegue operazioni sui dof di proprieta' dell'elemento 
- * in particolare ritorna il tipo di Dof in base all'indice i. Di default
- * i Dof dei nodi sono assunti differenziali */   
-#ifdef DEBUG
-DofOrder::Order Node::SetDof(unsigned int i) const 
-#else
-DofOrder::Order Node::SetDof(unsigned int /* i */ ) const 
-#endif     
-{
-   ASSERT(i < this->iGetNumDof());
-   return DofOrder::DIFFERENTIAL; 
-}
-
 
 /* Ritorna gli indici di riga e colonna. Tipicamente sono gli stessi */
 integer Node::iGetFirstRowIndex(void) const 
@@ -108,25 +85,6 @@ Node::Output(
    NO_OP;
 }
 
-
-/* Setta i valori iniziali delle variabili (e fa altre cose) 
- * prima di iniziare l'integrazione */
-void Node::SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const 
-{
-   NO_OP;
-}
-
-
-/* Elaborazione vettori e dati prima e dopo la predizione
- * per MultiStepIntegrator */
-void Node::BeforePredict(VectorHandler& /* X */ ,
-			 VectorHandler& /* XP */ ,
-			 VectorHandler& /* XPrev */ ,
-			 VectorHandler& /* XPPrev */ ) const 
-{
-   NO_OP; 
-}
-
 /* Node - end */
 
 
@@ -142,6 +100,13 @@ ScalarNode::ScalarNode(unsigned int uL, const DofOwner* pDO, flag fOut)
 ScalarNode::~ScalarNode(void)
 {
    NO_OP;
+}
+
+
+unsigned int 
+ScalarNode::iGetNumDof(void) const
+{
+   return 1;
 }
 
 /* ScalarNode - end */
@@ -175,7 +140,7 @@ DofOrder::Order ScalarDifferentialNode::SetDof(unsigned int i) const
 DofOrder::Order ScalarDifferentialNode::SetDof(unsigned int /* i */ ) const
 #endif     
 { 
-   ASSERT(i < this->iGetNumDof());
+   ASSERT(i < iGetNumDof());
    return DofOrder::DIFFERENTIAL; 
 }
 
@@ -243,12 +208,40 @@ void ScalarDifferentialNode::SetValue(VectorHandler& X, VectorHandler& XP) const
    XP.fPutCoef(iIndex+1, dXP);
 }
 
+
+void 
+ScalarDifferentialNode::Update(const class VectorHandler& X, 
+		const class VectorHandler& XP) 
+{
+   integer iFirstIndex = iGetFirstIndex()+1;
+   dX = X.dGetCoef(iFirstIndex);
+   dXP = XP.dGetCoef(iFirstIndex);
+}
+
+
+std::ostream& 
+ScalarDifferentialNode::Output(std::ostream& out) const 
+{
+   if (fToBeOutput()) {
+      out << std::setw(8) << GetLabel() << " "
+   	      << dX << " " << dXP << std::endl;
+   }
+   return out;
+}
+
 /*
  * Each node should prepend its type
  */
 std::ostream& 
 ScalarDifferentialNode::Restart(std::ostream& out) const
 {
+	out << "  " << psReadNodesNodes[GetNodeType()] 
+		<< ": " << GetLabel();
+
+	if (GetName() != NULL) {
+		out << ", name, \"" << GetName() << "\"";
+	}
+
 	return out << ", value, " << dX 
 		<< ", derivative, " << dXP << ";" << std::endl;
 }
@@ -283,7 +276,7 @@ DofOrder::Order ScalarAlgebraicNode::SetDof(unsigned int i) const
 DofOrder::Order ScalarAlgebraicNode::SetDof(unsigned int /* i */ ) const
 #endif     
 { 
-   ASSERT(i < this->iGetNumDof());
+   ASSERT(i < iGetNumDof());
    return DofOrder::ALGEBRAIC; 
 }
 
@@ -291,11 +284,7 @@ DofOrder::Order ScalarAlgebraicNode::SetDof(unsigned int /* i */ ) const
 /* Restituisce il valore del dof iDof;
  * se differenziale, iOrder puo' essere = 1 per la derivata */
 const doublereal&
-#ifdef DEBUG
 ScalarAlgebraicNode::dGetDofValue(int iDof, int iOrder) const
-#else
-ScalarAlgebraicNode::dGetDofValue(int /* iDof */ , int /* iOrder */ ) const
-#endif
 {
    ASSERT(iDof == 1);
    ASSERT(iOrder == 0);      
@@ -306,15 +295,9 @@ ScalarAlgebraicNode::dGetDofValue(int /* iDof */ , int /* iOrder */ ) const
 /* Setta il valore del dof iDof a dValue;
  * se differenziale, iOrder puo' essere = 1 per la derivata */
 void 
-#ifdef DEBUG
 ScalarAlgebraicNode::SetDofValue(const doublereal& dValue, 
 				 unsigned int iDof, 
 				 unsigned int iOrder)
-#else
-ScalarAlgebraicNode::SetDofValue(const doublereal& dValue, 
-				 unsigned int /* iDof */ ,
-				 unsigned int /* iOrder */ )
-#endif
 {
    ASSERT(iDof == 1);
    ASSERT(iOrder == 0);      
@@ -325,24 +308,63 @@ ScalarAlgebraicNode::SetDofValue(const doublereal& dValue,
 /* Funzioni "spurie": consentono l'accesso ai dati privati;
  * sono state definite perche' i nodi astratti sono usati nei
  * modi piu' strani e quindi puo' essere necessario l'accesso */
-void ScalarAlgebraicNode::SetX(const doublereal& d)
+void 
+ScalarAlgebraicNode::SetX(const doublereal& d)
 {
    dX = d;
 }
 
 
 /* only for differential nodes!?! */
-void ScalarAlgebraicNode::SetXPrime(const doublereal& /* d */ ) 
+void 
+ScalarAlgebraicNode::SetXPrime(const doublereal& /* d */ ) 
 {
    DEBUGCERR("Error, setting derivative from algebraic dof" << std::endl);      
    THROW(Node::ErrGeneric());
 }
 
 
-void ScalarAlgebraicNode::SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const
+void 
+ScalarAlgebraicNode::SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const
 {
    integer iIndex = iGetFirstIndex();
    X.fPutCoef(iIndex+1, dX);
+}
+
+
+void 
+ScalarAlgebraicNode::Update(const class VectorHandler& X, 
+		const class VectorHandler& /* XP */ ) 
+{
+   integer iFirstIndex = iGetFirstIndex()+1;
+   dX = X.dGetCoef(iFirstIndex);
+}
+
+
+std::ostream& 
+ScalarAlgebraicNode::Output(std::ostream& out) const 
+{
+   if (fToBeOutput()) {
+      out << std::setw(8) << GetLabel() << " "
+   	      << dX << std::endl;
+   }
+   return out;
+}
+
+/*
+ * Each node should prepend its type
+ */
+std::ostream& 
+ScalarAlgebraicNode::Restart(std::ostream& out) const
+{
+	out << "  " << psReadNodesNodes[GetNodeType()] 
+		<< ": " << GetLabel();
+
+	if (GetName() != NULL) {
+		out << ", name, \"" << GetName() << "\"";
+	}
+
+	return out << ", value, " << dX << ";" << std::endl;
 }
 
 /* ScalarAlgebraicNode - end */
@@ -373,37 +395,17 @@ Node::Type ParameterNode::GetNodeType(void) const
 }
 
 
-/* Contributo del nodo al file di restart */
-std::ostream& ParameterNode::Restart(std::ostream& out) const
+unsigned int ParameterNode::iGetNumDof(void) const
 {
-   return out << "parameter: " << GetLabel() << ", " << dX << ';' << std::endl;
+   return 0;
 }
 
 
-flag ParameterNode::fIsValidIndex(unsigned int i) const
+DofOrder::Order 
+ParameterNode::SetDof(unsigned int i) const
 {
-   if(i == 0) {
-      return flag(1);
-   }
-   return flag(0);
-}
-
-
-/* Restituisce il valore del dof iDof;
- * se differenziale, iOrder puo' essere = 1 per la derivata */
-const doublereal& 
-ParameterNode::dGetDofValue(int /* iDof */, int /* iOrder */ ) const
-{
-   return dX;
-}
-
-
-/* Setta il valore del dof iDof a dValue;
- * se differenziale, iOrder puo' essere = 1 per la derivata */
-void ParameterNode::SetDofValue(const doublereal& dValue, 
-				unsigned int /* iDof */ , 
-				unsigned int /* iOrder */) {
-   dX = dValue;
+	THROW(ErrGeneric());
+	return DofOrder::UNKNOWN;
 }
 
 
@@ -480,30 +482,23 @@ Node::Type Node2Scalar::GetNodeType(void) const
 /* Contributo del nodo al file di restart */
 std::ostream& Node2Scalar::Restart(std::ostream& out) const
 {
-   out << "# Warning not implemented yet " << std::endl; // adds a remark!
+   out << "# Node2Scalar: warning, not implemented yet " << std::endl;
      return out;
 }
 
 
-flag Node2Scalar::fIsValidIndex(unsigned int i) const
+unsigned int Node2Scalar::iGetNumDof(void) const
 {
-   if (i == 1) {
-      return flag(1);
-   }
-   return flag(0);
+   return 1; 
 }
 
 
 /* esegue operazioni sui dof di proprieta' dell'elemento 
- * in particolare ritorna il tipo di Dof in base all'indice i. Di default
- * i Dof dei nodi sono assunti differenziali */   
-#ifdef DEBUG
+ * in particolare ritorna il tipo di Dof in base all'indice i. 
+ * Di default i Dof dei nodi sono assunti differenziali */   
 DofOrder::Order Node2Scalar::SetDof(unsigned int i) const 
-#else
-DofOrder::Order Node2Scalar::SetDof(unsigned int /* i */ ) const 
-#endif     
 {
-   ASSERT(i < this->iGetNumDof());
+   ASSERT(i < iGetNumDof());
    return DofOrder::DIFFERENTIAL; 
 }
 
@@ -543,48 +538,6 @@ void Node2Scalar::SetDofValue(const doublereal& dValue,
       ((Node*)ND.pNode)->SetDofValue(dValue, ND.iDofNumber+1, iOrder);
    } 
    THROW(ErrGeneric());    
-}
-
-
-/* Output di default per nodi di cui non si desidera output */
-void Node2Scalar::Output(OutputHandler& /* OH */ ) const
-{
-#ifdef DEBUG
-   std::cout << "Default Node::Output(), the " << psNodeNames[GetNodeType()] 
-     << " doesn't have any output" << std::endl;
-#endif      
-}
-
-
-void Node2Scalar::SetValue(VectorHandler& /* X */ , 
-			   VectorHandler& /* XP */ ) const
-{
-   NO_OP;
-}
-
-/* Aggiorna dati in base alla soluzione */
-void Node2Scalar::Update(const VectorHandler& /* XCurr */ , 
-			 const VectorHandler& /* XPrimeCurr */ )
-{
-   NO_OP;
-}
-
-
-/* Elaborazione vettori e dati prima e dopo la predizione
- * per MultiStepIntegrator */
-void Node2Scalar::BeforePredict(VectorHandler& /* X */ ,
-				VectorHandler& /* XP */ ,
-				VectorHandler& /* XPrev */ ,
-				VectorHandler& /* XPPrev */ ) const
-{
-   NO_OP; 
-}
-
-
-void Node2Scalar::AfterPredict(VectorHandler& /* X */ , 
-			       VectorHandler& /* XP */ )
-{
-   NO_OP;
 }
 
    
@@ -635,3 +588,4 @@ doublereal ScalarDof::dGetValue(void) const
 }
 
 /* ScalarDof - end */
+

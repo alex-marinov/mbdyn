@@ -892,7 +892,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
       Vec3 vtemp = RT*pF[iStrNodem1];
       for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
 	 /* PHItTranspose(iMode) * vtemp */
-	 WorkVec.fIncCoef(12+NModes+iMode, -(PHIt.GetVec(iMode)*vtemp));
+	 WorkVec.fDecCoef(12+NModes+iMode, PHIt.GetVec(iMode)*vtemp);
       }
 
       /* Eq. d'equilibrio, nodo 2 */
@@ -926,16 +926,23 @@ Modal::AssRes(SubVectorHandler& WorkVec,
       vtemp = pR1tot[iStrNodem1].Transpose()*MTmp;
       for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
 	 /* PHIrTranspose(iMode) * vtemp */
-	 WorkVec.fIncCoef(12+NModes+iMode, -(PHIr.GetVec(iMode)*vtemp));
+	 WorkVec.fDecCoef(12+NModes+iMode, PHIr.GetVec(iMode)*vtemp);
       }
       
       /* Modifica: divido le equazioni di vincolo per dCoef */
       if (dCoef != 0.) {
 	 /* Equazioni di vincolo di rotazione */
-	 WorkVec.fIncCoef(iReactionIndex+4, -(e3b.Dot(e2a)/dCoef));
-	 WorkVec.fIncCoef(iReactionIndex+5, -(e1b.Dot(e3a)/dCoef));
-	 WorkVec.fIncCoef(iReactionIndex+6, -(e2b.Dot(e1a)/dCoef));
+	 WorkVec.fDecCoef(iReactionIndex+4, e3b.Dot(e2a)/dCoef);
+	 WorkVec.fDecCoef(iReactionIndex+5, e1b.Dot(e3a)/dCoef);
+	 WorkVec.fDecCoef(iReactionIndex+6, e2b.Dot(e1a)/dCoef);
       }   
+   }
+
+   std::cerr << "###" << std::endl;
+   for (int i = 1; i <= WorkVec.iGetSize(); i++) {
+	   std::cerr << std::setw(2) << i << "(" << std::setw(2) 
+		   << WorkVec.iGetRowIndex(i) << ")"
+		   << std::setw(20) << WorkVec.dGetCoef(i) << std::endl;
    }
    
    return WorkVec;
@@ -945,6 +952,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 void 
 Modal::Output(OutputHandler& OH) const
 {
+   std::cerr << "******" << std::endl;
    if (fToBeOutput()) {
       /* stampa sul file di output i modi */       
       

@@ -67,35 +67,12 @@ class AbstractNode : public ScalarDifferentialNode {
       return Node::ABSTRACT;
    };
    
-   /* Contributo del nodo astratto al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const { 
-      out << "  abstract: ";
-      return ScalarDifferentialNode::Restart(out);
-   };
-   
    /* Output del nodo */
    virtual void Output(OutputHandler& OH) const;
    
-   /* Aggiorna dati in base alla soluzione */
-   virtual void Update(const VectorHandler& XCurr, 
-		       const VectorHandler& XPrimeCurr);
-   
-   /* Funzioni di inizializzazione, ereditate da DofOwnerOwner */
-   virtual void SetInitialValue(VectorHandler& /* X */ ) const { 
-      NO_OP; 
-   };
-   
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
-   
    virtual void AfterPredict(VectorHandler& X, VectorHandler& XP) {
-      this->Update(X, XP);
+      Update(X, XP);
    };
-   
-#ifdef DEBUG
-   virtual const char* sClassName(void) const { 
-      return "AbstractNode";
-   };
-#endif   
 };
 
 /* AbstractNode - end */
@@ -133,23 +110,9 @@ class ElectricNode : public AbstractNode {
    virtual Node::Type GetNodeType(void) const { 
       return Node::ELECTRIC;
    };
-   
-   /* Contributo del nodo elettrico al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const { 
-      return out << "  electric: " << GetLabel() << ", "
-	<< dX << ", " << dXP << ';' << std::endl;
-   };
-   
-   /* Output del nodo */
-   virtual void Output(OutputHandler& OH) const;
-      
-#ifdef DEBUG
-   virtual const char* sClassName(void) const { 
-      return "ElectricNode";
-   };
-#endif   
 };
 
 /* ElectricNode - end */
 
-#endif /* #define ELECNODE_H */
+#endif /* ELECNODE_H */
+

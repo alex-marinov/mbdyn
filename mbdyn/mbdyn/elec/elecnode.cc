@@ -43,34 +43,7 @@
 /* Output del nodo */
 void AbstractNode::Output(OutputHandler& OH) const
 {
-   if(fToBeOutput()) {      
-#ifdef DEBUG   
-      OH.Output() << "Abstract node " << GetLabel() 
-	<< ": x = " << dX << ", x' = " << dXP << std::endl;
-#endif
-   
-      OH.Abstract() << std::setw(8) << GetLabel() << " "
-	<< dX << " " << dXP << std::endl;
-   }
-}
-
-
-/* Aggiorna dati in base alla soluzione */
-void AbstractNode::Update(const VectorHandler& XCurr,
-			  const VectorHandler& XPrimeCurr)
-{
-   integer iFirstIndex = iGetFirstIndex()+1;
-   dX = XCurr.dGetCoef(iFirstIndex);
-   dXP = XPrimeCurr.dGetCoef(iFirstIndex);
-}
-
-
-/* Funzioni di inizializzazione, ereditate da DofOwnerOwner */
-void AbstractNode::SetValue(VectorHandler& X, VectorHandler& XP) const
-{
-   integer iFirstIndex = iGetFirstIndex()+1;
-   X.fPutCoef(iFirstIndex, dX);
-   XP.fPutCoef(iFirstIndex, dXP);
+   ScalarDifferentialNode::Output(OH.Abstract());
 }
 
 /* AbstractNode - end */
@@ -78,17 +51,6 @@ void AbstractNode::SetValue(VectorHandler& X, VectorHandler& XP) const
 
 
 /* ElectricNode - begin */
-
-/* Output del nodo */
-void ElectricNode::Output(OutputHandler& OH) const 
-{
-   if(fToBeOutput()) {      
-#ifdef DEBUG   
-      OH.Output() << "Electric node " << uLabel << ':' << std::endl 
-	<< "sorry, not implemented yet" << std::endl;
-#endif   
-   }   
-}
 
 /* ElectricNode - end */
 

@@ -134,14 +134,14 @@ class GenelClamp : virtual public Elem, public Genel, public DriveOwner {
       dRct = XCurr.dGetCoef(iFirstReactionIndex);
       
       WorkVec.fPutItem(1, iRowIndex, -dRct);
-      
-      if (SD.iOrder == 1 || SD.pNode->SetDof(0) == DofOrder::ALGEBRAIC) {
-	 WorkVec.fPutItem(2, iFirstReactionIndex, dGet()-dVal);
-      } else {
-	 if (dCoef != 0.) {
-	    WorkVec.fPutItem(2, iFirstReactionIndex, (dGet()-dVal)/dCoef);
-	 }
+
+      doublereal dConstr = dGet()-dVal;
+      if (SD.iOrder == 0 
+		      && SD.pNode->SetDof(0) == DofOrder::DIFFERENTIAL
+     		      && dCoef != 0.) {
+	 dConstr /= dCoef;
       }
+      WorkVec.fPutItem(2, iFirstReactionIndex, dConstr);
 
       return WorkVec;
    };

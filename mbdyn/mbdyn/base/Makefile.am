@@ -69,6 +69,8 @@ schurdataman.cc \
 schurdataman.h \
 shape.h \
 shockabsorber.h \
+simentity.cc \
+simentity.h \
 sockdrv.cc \
 sockdrv.h \
 symcltp.h \

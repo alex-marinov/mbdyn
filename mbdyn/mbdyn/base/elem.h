@@ -214,10 +214,6 @@ class Elem : public WithLabel, public ToBeOutput {
    virtual ElemGravityOwner* pGetElemGravityOwner(void) const;
    virtual AerodynamicElem* pGetAerodynamicElem(void) const;
    virtual InitialAssemblyElem* pGetInitialAssemblyElem(void) const;
-   virtual integer GetRotor(void) const {
-     return -1;
-   };
-   
    
    /* Adams output stuff */
    virtual unsigned int iGetNumAdamsDummyParts(void) const {

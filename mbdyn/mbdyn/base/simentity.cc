@@ -2,7 +2,7 @@
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2000
+ * Copyright (C) 1996-2002
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -28,36 +28,62 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* 
- * Copyright 1999-2000 Lamberto Puggelli <puggelli@tiscalinet.it>
- * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
- */
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
 
-#ifndef PRESNODE_H
-#define PRESNODE_H
+#include <simentity.h>
 
-#include "node.h"
+/* SimulationEntity - begin */
 
-class PressureNode : public ScalarAlgebraicNode {
- public:
-   PressureNode(unsigned int uL, const DofOwner* pDO, 
-		doublereal dx, flag fOut) 
-     : ScalarAlgebraicNode(uL, pDO, dx, fOut) {
+SimulationEntity::SimulationEntity(void)
+{
 	NO_OP;
-     };
-   
-   virtual ~PressureNode(void) { 
-      NO_OP;      
-   };
-   
-   virtual Node::Type GetNodeType(void) const {
-      return Node::HYDRAULIC;
-   };
-   
-   void Output(OutputHandler& OH) const {
-      ScalarAlgebraicNode::Output(OH.PresNodes());
-   };
-};
+}
 
-#endif /* PRESNODE_H */
+SimulationEntity::~SimulationEntity(void)
+{
+	NO_OP;
+}
+
+flag 
+SimulationEntity::fIsValidIndex(unsigned int i) const
+{
+	if (i >= 1 && i <= iGetNumDof()) {
+		return flag(1);
+	}
+	return flag(0);
+}
+
+void 
+SimulationEntity::SetValue(VectorHandler& /* X */ , 
+		VectorHandler& /* XP */ ) const
+{
+	NO_OP;
+}
+	         
+void 
+SimulationEntity::BeforePredict(VectorHandler& /* X */ ,
+		VectorHandler& /* XP */ ,
+		VectorHandler& /* XPrev */ ,
+		VectorHandler& /* XPPrev */ ) const
+{
+	NO_OP;
+}
+	
+void 
+SimulationEntity::AfterPredict(VectorHandler& /* X */ , 
+		VectorHandler& /* XP */ )
+{
+	NO_OP;
+}
+
+void
+SimulationEntity::Update(const VectorHandler& /* XCurr */ , 
+		const VectorHandler& /* XPrimeCurr */ )
+{
+	NO_OP;
+}
+
+/* SimulationEntity - end */
 

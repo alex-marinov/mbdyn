@@ -12,6 +12,13 @@ export LTCXXCOMPILE = @LIBTOOL@ --mode=compile @CXX@ @DEFS@ \
 CXXLD = @CXX@
 export CXXLINK = @LIBTOOL@ --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	@CXXFLAGS@ @LDFLAGS@ -shared -lg2c
+export LTCOMPILE = @LIBTOOL@ --mode=compile @CC@ @DEFS@ \
+	-I. -I@srcdir@ -I../../include \
+	-I../../libraries/libmbutil -I../../libraries/libmbmath \
+	-I../../libraries/libobjs -I../../mbdyn -I../../mbdyn/base \
+	-I../../mbdyn/struct -I../../mbdyn/aero -I../../mbdyn/elec \
+	-I../../mbdyn/hydr -fPIC \
+	$(AM_CPPFLAGS) @CPPFLAGS@ $(AM_CFLAGS) @CFLAGS@
 export LTF77COMPILE = @LIBTOOL@ --mode=compile @F77@ $(AM_FFLAGS) @FFLAGS@ \
 	-fPIC
 export MODULES_DIRS=@MODULES_DIRS@
@@ -20,7 +27,7 @@ export MODULES_DIRS=@MODULES_DIRS@
 
 all:
 	-@for i in $(MODULES_DIRS) ; do \
-		echo "playing with $$i ..."; \
+		echo "Playing with $$i ..."; \
 		export MBDYN_MODULE=$$i ; \
 		cp Makefile.module $$i/Makefile ; \
 		cd $$i && $(MAKE) ; \
@@ -30,7 +37,7 @@ all:
 
 clean:
 	-@for i in $(MODULES_DIRS) ; do \
-		echo "cleaning $$i ..."; \
+		echo "Cleaning $$i ..."; \
 		export MBDYN_MODULE=$$i ; \
 		cp Makefile.module $$i/Makefile ; \
 		cd $$i && $(MAKE) clean ; \
@@ -40,7 +47,7 @@ clean:
 
 distclean:
 	-@for i in $(MODULES_DIRS) ; do \
-		echo "cleaning $$i ..."; \
+		echo "Dist-cleaning $$i ..."; \
 		export MBDYN_MODULE=$$i ; \
 		cp Makefile.module $$i/Makefile ; \
 		cd $$i && $(MAKE) distclean ; \

@@ -215,12 +215,8 @@ public:
 		NdLabels[0] = pNode->GetLabel();
 	};
 	
-	virtual integer  GetRotor(void) const {
-		if (pRotor != NULL) {
-			return (pRotor)->GetLabel();
-		} else {
-			return -1;
-		}
+	virtual const Rotor *pGetRotor(void) const {
+		return pRotor;
 	};
 	/* ************************************************ */
 };
@@ -396,12 +392,8 @@ public:
 		NdLabels[2] = pNode3->GetLabel();     
 	};
 	
-	virtual integer GetRotor(void) const {
-		if (pRotor != NULL) {
-			return (pRotor)->GetLabel();
-		} else {
-			return -1;
-		}
+	virtual const Rotor *pGetRotor(void) const {
+		return pRotor;
 	};
    	/* ************************************************ */
 };
@@ -567,12 +559,8 @@ public:
 		NdLabels[1] = pNode2->GetLabel();
 	};
 	
-	virtual integer GetRotor(void) const {
-		if (pRotor != NULL) {
-			return (pRotor)->GetLabel();
-		} else {
-			return -1;
-		}
+	virtual const Rotor *pGetRotor(void) const {
+		return pRotor;
 	};
    	/* ************************************************ */
 };
