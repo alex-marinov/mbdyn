@@ -34,7 +34,6 @@
 #define NAIVEMH_H
 
 #include <vector>
-#include <limits>
 
 #include "myassert.h"
 #include "solman.h"
