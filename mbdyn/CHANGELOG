@@ -42,6 +42,8 @@ MBDyn 1.2-Engineering
 		- selected loadable elements can be used as joints
 		- parameter nodes value is output in .prm files
 		- very rough implementation of aircraft instruments
+		- add matrix-free solver
+		- improve API
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility
