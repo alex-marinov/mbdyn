@@ -183,6 +183,13 @@ public:
 	virtual bool
 	GetAirProps(const Vec3& X, doublereal& rho, doublereal& c,
 			doublereal& p, doublereal& T) const = 0;
+
+	/* *******PER IL SOLUTORE BLOCK JACOBI-BROYDEN******** */
+	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
+	virtual int GetNumConnectedNodes(void) const {
+		return 0;
+	};
 };
 
 class DataManager;
