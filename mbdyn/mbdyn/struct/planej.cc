@@ -2128,7 +2128,7 @@ AxialRotationJoint::iGetPrivDataIdx(const char *s) const
 {
 	ASSERT(s != NULL);
 
-	if (strcmp(s, "wx") == 0) {
+	if (strcmp(s, "wz") == 0) {
 		return 1;
 	}
 
