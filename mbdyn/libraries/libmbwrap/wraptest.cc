@@ -319,15 +319,11 @@ main(int argc, char *argv[])
 	
 	std::cout << *pM << "\n";
 	
-#ifdef USE_EXCEPTIONS
 	try {
-#endif /* USE_EXCEPTIONS */
-	pSM->Solve();
-#ifdef USE_EXCEPTIONS
+		pSM->Solve();
 	} catch (...) {
 		exit(EXIT_FAILURE);
 	}
-#endif /* USE_EXCEPTIONS */
 	for (int i = 1; i <= size; i++) {
 		std::cout << "\tsol[" << i << "] = " << px->dGetCoef(i) 
 			<< std::endl;
@@ -344,15 +340,11 @@ main(int argc, char *argv[])
 	pV->PutCoef(2, 1.);
 	pV->PutCoef(3, 1.);
 	std::cout << *pM << "\n";
-#ifdef USE_EXCEPTIONS
 	try {
-#endif /* USE_EXCEPTIONS */
-	pSM->Solve();
-#ifdef USE_EXCEPTIONS
+		pSM->Solve();
 	} catch (...) {
 		exit(EXIT_FAILURE);
 	}
-#endif /* USE_EXCEPTIONS */
 	
 	for (int i = 1; i <= size; i++) {
 		std::cout << "\tsol[" << i << "] = " << px->dGetCoef(i) 

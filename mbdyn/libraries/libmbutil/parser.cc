@@ -733,20 +733,14 @@ HighParser::GetInt(int iDefval)
 
    integer iReturnValue;
 
-#ifdef USE_EXCEPTIONS
    try {
-#endif
-
       iReturnValue = int(MathP.Get(*pIn, (doublereal)iDefval));
-
-#ifdef USE_EXCEPTIONS
    }
    catch (MathParser::ErrGeneric e) {
       silent_cerr(sFuncName << ": error return from MathParser at line "
 	      << GetLineData() << std::endl);
       throw e;
    }
-#endif
 
    NextToken(sFuncName);
    return iReturnValue;
@@ -766,20 +760,14 @@ HighParser::GetReal(const doublereal& dDefval)
    }
 
    doublereal dReturnValue;
-#ifdef USE_EXCEPTIONS
    try {
-#endif
-
       dReturnValue = doublereal(MathP.Get(*pIn, dDefval));
-
-#ifdef USE_EXCEPTIONS
    }
    catch (MathParser::ErrGeneric e) {
       silent_cerr(sFuncName << ": error return from MathParser at line "
 	      << GetLineData() << std::endl);
       throw e;
    }
-#endif
 
    NextToken(sFuncName);
    return dReturnValue;

@@ -98,17 +98,13 @@ main(int argc, const char* const argv[])
 	    			std::cout << "argv[" << i << "] = ";
 			}
 
-#ifdef USE_EXCEPTIONS
 			try {
-#endif /* USE_EXCEPTIONS */
-	    		mp.GetForever(std::cout, "; ");
-	    		std::cout << std::endl;
-#ifdef USE_EXCEPTIONS
+	    			mp.GetForever(std::cout, "; ");
+	    			std::cout << std::endl;
 			} catch (...) {
       				std::cout << std::endl;
 				exit(EXIT_FAILURE);
 			}
-#endif /* USE_EXCEPTIONS */
 	 	}
 	 	exit(EXIT_SUCCESS);
       	}
@@ -128,17 +124,13 @@ main(int argc, const char* const argv[])
 			(void *)"configure with --with-tcl to use tcl plugin");
 #endif /* USE_TCL */
 
-#ifdef USE_EXCEPTIONS
 	try {	
-#endif /* USE_EXCEPTIONS */
-	mp.GetForever(std::cout, "\n");
-      	std::cout << std::endl;
-      	exit(EXIT_SUCCESS);
-#ifdef USE_EXCEPTIONS
+		mp.GetForever(std::cout, "\n");
+      		std::cout << std::endl;
+      		exit(EXIT_SUCCESS);
 	} catch (...) {
       		std::cout << std::endl;
 		exit(EXIT_FAILURE);
 	}
-#endif /* USE_EXCEPTIONS */
 }
 
