@@ -54,9 +54,9 @@ int read(void** pp, const char* user_defined)
    
    if (user_defined != NULL) {
       // cerr << "opening file \"" << user_defined << "\"" << endl;
-      ifstream in(user_defined);
+      std::ifstream in(user_defined);
       if (!in) {
-	 cerr << "unable to open file \"" << user_defined << "\"" << endl;
+	 std::cerr << "unable to open file \"" << user_defined << "\"" << std::endl;
 	 exit(EXIT_FAILURE);
       }
       in >> pd->m >> pd->c >> pd->k >> pd->l >> pd->g
@@ -73,10 +73,10 @@ int read(void** pp, const char* user_defined)
       pd->x[3] = 0.;
    }
    
-   cerr << "m=" << pd->m << ", c=" << pd->c << ", k=" << pd->k << endl
-     << "l=" << pd->l << ", g=" << pd->g << endl
+   std::cerr << "m=" << pd->m << ", c=" << pd->c << ", k=" << pd->k << std::endl
+     << "l=" << pd->l << ", g=" << pd->g << std::endl
      << "x={" << pd->x[0] << "," << pd->x[1] << "," 
-     << pd->x[2] << "," << pd->x[3] << "}" << endl;
+     << pd->x[2] << "," << pd->x[3] << "}" << std::endl;
    
    return 0;
 }
@@ -155,7 +155,7 @@ int func(void* p, VectorHandler& R, const VectorHandler& X, const doublereal& t)
    return 0;
 }
 
-ostream& out(void* p, ostream& o, 
+std::ostream& out(void* p, std::ostream& o, 
 	     const VectorHandler& X, const VectorHandler& XP)
 {
    private_data* pd = (private_data*)p;
