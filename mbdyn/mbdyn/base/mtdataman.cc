@@ -175,6 +175,10 @@ MultiThreadDataManager::dataman_thread(void *p)
 						*arg->pWorkMat);
 
 			} catch (MatrixHandler::ErrRebuildMatrix) {
+				silent_cerr("Thread " << arg->threadNumber
+						<< " caught ErrRebuildMatrix"
+						<< std::endl);
+
 				mbdyn_compare_and_swap(&arg->pDM->propagate_ErrMatrixRebuild,
 						sig_atomic_t(true), sig_atomic_t(false));
 
@@ -393,6 +397,10 @@ MultiThreadDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 				*ptd[0].pWorkMat);
 
 	} catch (MatrixHandler::ErrRebuildMatrix) {
+		silent_cerr("Thread " << ptd[0].threadNumber
+				<< " caught ErrRebuildMatrix"
+				<< std::endl);
+
 		mbdyn_compare_and_swap(&propagate_ErrMatrixRebuild,
 				sig_atomic_t(true), sig_atomic_t(false));
 
@@ -404,12 +412,18 @@ MultiThreadDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 	pthread_mutex_unlock(&dataman_thread_mutex);
 
 	if (propagate_ErrMatrixRebuild) {
+		for (unsigned i = 1; i < nThreads; i++) {
+			SAFEDELETE(ptd[i].pJacHdl);
+			ptd[i].pJacHdl = 0;
+		}
+		CCReady = CC_NO;
+
 		throw MatrixHandler::ErrRebuildMatrix();
 	}
 
 	CColMatrixHandler *pMH = dynamic_cast<CColMatrixHandler *>(&JacHdl);
-	for (unsigned t = 1; t < nThreads; t++) {
-		pMH->AddUnchecked(*ptd[t].pJacHdl);
+	for (unsigned i = 1; i < nThreads; i++) {
+		pMH->AddUnchecked(*ptd[i].pJacHdl);
 	}
 }
 
@@ -437,8 +451,8 @@ MultiThreadDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 	pthread_cond_wait(&dataman_thread_cond, &dataman_thread_mutex);
 	pthread_mutex_unlock(&dataman_thread_mutex);
 
-	for (unsigned t = 1; t < nThreads; t++) {
-		ResHdl += *ptd[t].pResHdl;
+	for (unsigned i = 1; i < nThreads; i++) {
+		ResHdl += *ptd[i].pResHdl;
 	}
 }
 
