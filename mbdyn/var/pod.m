@@ -139,6 +139,5 @@ BB(:, gt) = B;
 % y = mn(l+2)+k*[1 1]*X([6 7], l+2);
 %
 % eigenvalues:
-% [x,I]=sort(imag(ee));
-% [I,-100*real(ee(I))./abs(ee(I)),imag(ee(I))/2/pi,(S'*abs(vv(:,I)))']
+% [x,I]=sort(imag(ee));I=I(length(I)/2+1:length(I));[I,-100*real(ee(I))./abs(ee(I)),imag(ee(I))/2/pi,(S'*abs(vv(:,I)))']
 
