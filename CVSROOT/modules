@@ -5,22 +5,3 @@ mbdyn-web	mbdyn/mbdyn-web
 mbdyn-legacy	mbdyn/mbdyn-devel
 meschach	mbdyn/meschach
 
-ldap2bibtex	masarati/ldap2bibtex
-ldap-rewrite	masarati/ldap-rewrite
-
-anba		masarati/anba/C++
-
-anpa		masarati/anpa
-anpa-base	masarati/anpa/anpa-base
-
-esa		masarati/esa
-agusta		masarati/agusta
-wrats		masarati/wrats
-
-dispense	masarati/docs/dispense
-
-# articoli
-slider		masarati/docs/articoli/multibody/slider
-
-Latex-tools	masarati/Latex-tools
-
