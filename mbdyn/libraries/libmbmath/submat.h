@@ -248,6 +248,20 @@ public:
 	/* Gestione dei coefficienti */
 
 	/* Inserisce un coefficiente */
+
+	/*
+	 * NOTE: 
+	 * 
+	 * these functions need be redefined here because their
+	 * inheritance is ambiguous, and we want to use the
+	 * (very efficient) FullMatrixHandler version instead
+	 * of the (less efficient) MatrixHandler version, which
+	 * is a wrapper for the () operator.
+	 *
+	 * However, if compiled with appropriate optimization,
+	 * they are absolutely equivalent to directly accessing
+	 * the matrix, as the #if 0'ed code does.
+	 */
 	inline void
 	PutCoef(integer iRow, integer iCol, const doublereal& dCoef);
 
@@ -439,6 +453,9 @@ inline void
 FullSubMatrixHandler::PutCoef(integer iRow, integer iCol,
 		const doublereal& dCoef)
 {
+#if 0
+	ppdColsm1[iCol][iRow] = dCoef;
+#endif
 	FullMatrixHandler::PutCoef(iRow, iCol, dCoef);
 }
 
@@ -447,6 +464,9 @@ inline void
 FullSubMatrixHandler::IncCoef(integer iRow, integer iCol,
 		const doublereal& dCoef)
 {
+#if 0
+	ppdColsm1[iCol][iRow] += dCoef;
+#endif
 	FullMatrixHandler::IncCoef(iRow, iCol, dCoef);
 }
 
@@ -455,6 +475,9 @@ inline void
 FullSubMatrixHandler::DecCoef(integer iRow, integer iCol,
 		const doublereal& dCoef)
 {
+#if 0
+	ppdColsm1[iCol][iRow] -= dCoef;
+#endif
 	FullMatrixHandler::DecCoef(iRow, iCol, dCoef);
 }
 
@@ -462,6 +485,9 @@ FullSubMatrixHandler::DecCoef(integer iRow, integer iCol,
 inline const doublereal&
 FullSubMatrixHandler::dGetCoef(integer iRow, integer iCol) const
 {
+#if 0
+	return ppdColsm1[iCol][iRow];
+#endif
 	return FullMatrixHandler::dGetCoef(iRow, iCol);
 }
 
