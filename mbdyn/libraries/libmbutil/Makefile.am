@@ -26,7 +26,6 @@ mynewmem.cc \
 mynewmem.h \
 mysleep.c\
 mysleep.h\
-mystddef.h \
 parser.cc \
 parser.h \
 parsinc.cc \

@@ -52,7 +52,6 @@
 #define RotCoeff_hh
 
 #include <ac/f2c.h>
-#include <mystddef.h>
 
 #include <matvec3.h>
 #include <matvecexp.h>

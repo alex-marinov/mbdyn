@@ -75,7 +75,7 @@ _Safenewfill(void *pv, size_t size, char fill)
    	ASSERT(pv);
    	ASSERT(size);
    
-   	byte* pb = (byte*)pv;
+   	void* pb = (void*)pv;
    	while (size--) {
       		*pb++ = fill;
    	}
@@ -256,8 +256,8 @@ clMemMan::fIsValid(const void *pvValid, size_t sizeValid) const
    	while (pstL->pstNext) {
       		pstL = pstL->pstNext;
       		flag fCond1 = (pstL->stMB.pv <= pvValid);
-      		flag fCond2 = (((byte*)pstL->stMB.pv+pstL->stMB.size) 
-			>= ((byte*)pvValid+sizeValid));
+      		flag fCond2 = (((void*)pstL->stMB.pv+pstL->stMB.size) 
+			>= ((void*)pvValid+sizeValid));
       
       		if (fCond1 && fCond2) {
 	 		ASSERT(pstL->stMB.eSt != UNKNOWN);

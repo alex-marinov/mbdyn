@@ -33,6 +33,8 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <string.h>	/* for memset() */
+#include <ac/iostream>
+#include <ac/iomanip>
 
 #include <fullmh.h>
 #include <submat.h>

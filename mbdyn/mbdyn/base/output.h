@@ -41,7 +41,6 @@
 #include <ac/fstream>
 
 #include <myassert.h>
-#include <mystddef.h>
 #include <except.h>
 #include <solman.h>
 #include <filename.h>

@@ -34,6 +34,9 @@
 
 #ifdef USE_MESCHACH
 
+#include <ac/iostream>
+#include <ac/iomanip>
+
 #include <mschwrap.h>
 
 /* MeschachVectorHandler - begin */

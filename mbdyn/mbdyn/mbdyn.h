@@ -37,6 +37,15 @@ typedef int mbInt;
 typedef long int mbLong;
 typedef long int mbFlag;
 
+/* Math typedefs (deprecated; will be obsoleted) */
+typedef long int flag; /* boolean return value; will be obsoleted by "bool" */
+#if 0
+typedef unsigned int  Index;
+#endif
+typedef int           Int;
+typedef long int      Lint;
+typedef double        Real;
+
 /* signal types */
 #ifdef HAVE_SIGNAL
 #ifndef HAVE___SIGHANDLER_T

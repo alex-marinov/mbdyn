@@ -36,6 +36,9 @@
 
 #include <string.h>	/* for memset() */
 
+#include <ac/iostream>
+#include <ac/iomanip>
+
 #include <solman.h>
 #include <submat.h>
 #include <matvec3.h>

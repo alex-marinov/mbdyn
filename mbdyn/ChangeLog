@@ -9,6 +9,7 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 *** Wed Jan 30 14:49:04 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - added renice command-line switch
+ - removed obsolete dependency on "mystddef.h"
 
 *** Tue Jan 22 16:48:30 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
 				 Massimiliano Lanz <lanz@aero.polimi.it>

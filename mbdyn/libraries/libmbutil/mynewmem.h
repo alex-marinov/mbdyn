@@ -188,7 +188,7 @@ flag clMemMan::fIsPointerToBlock(const void* pvBlock) const;
 
 flag clMemMan::fIsValid(const void* pvValid, size_t sizeValid = 1) const;
 	se <pvValid> e' una valida locazione all'interno di un blocco e
-	<(byte*)pvalid+sizeValid-1> non eccede il blocco ritorna TRUE,
+	<(void*)pvalid+sizeValid-1> non eccede il blocco ritorna TRUE,
 	altrimenti FALSE
 
 size_t clMemMan::sizeOfBlock(const void* pvSizeOf) const;
@@ -238,8 +238,8 @@ Esempio completo:
 		clMemMan m("Test"); // Memory Manager
 		#endif
 
-		byte* pb = NULL;
-		SAFENEW(pb, byte, m); // Allocazione di un byte
+		void* pb = NULL;
+		SAFENEW(pb, char, m); // Allocazione di un byte
 
 		#ifdef DEBUG_MEMMANAGER
 		m.ClearRefs();       		// Pulisce i Ref
@@ -256,7 +256,7 @@ Esempio completo:
 
 		// Uso delle utilities:
 
-		SAFENEWARR(pb, byte, 10, m); // Allocazione di 10 bytes
+		SAFENEWARR(pb, char, 10, m); // Allocazione di 10 bytes
 
 		#ifdef DEBUG_MEMMANAGER
 		if (m.fIsPointerToBlock(pb), 10) {	// Ritorna TRUE
@@ -267,7 +267,7 @@ Esempio completo:
 				cout << "\nNumero di elementi: " 
 					<< iItems << endl;
 			}
-			byte* pbTmp = pb;
+			void* pbTmp = pb;
 			while (size--) {	// Azzera la memoria
 						// (operazione da non fare
 				*pbTmp++ = '\0';// se devono essere eseguiti
@@ -289,7 +289,6 @@ in versione release, senza alcun overhead
 #define MYNEWMEM_H
 
 
-#include <mystddef.h>
 #include <myassert.h>
 #include <except.h>
 
