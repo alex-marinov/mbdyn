@@ -692,8 +692,13 @@ if test $ol_with_blas != no ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
 			AC_TRY_LINK([
+				/* FIXME: some architectures might use different
+				 * naming conventions, e.g. uppercase, no underscore
+				 */
+				extern int dgemm_(void);
 			],[
 				/* test for blas */
+				return dgemm_();
 			],[have_blas=goto],[have_blas=no])
 			LIBS="$save_LIBS"
 
@@ -704,13 +709,15 @@ if test $ol_with_blas != no ; then
 	fi
 
 	if test $have_blas = no ; then
-		try_blas_LIBS="-lcblas -latlas $F2C_LIBS -lm"
+		try_blas_LIBS="-lcblas -latlas -lm"
 		if test $ol_with_blas = "auto" -o $ol_with_blas = "atlas" ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
 			AC_TRY_LINK([
+				extern int dgemm(void);
 			],[
 				/* test for blas */
+				return dgemm();
 			],[have_blas=atlas],[have_blas=no])
 			LIBS="$save_LIBS"
 
@@ -721,13 +728,15 @@ if test $ol_with_blas != no ; then
 	fi
 
 	if test $have_blas = no ; then
-		try_blas_LIBS="-lcblas $F2C_LIBS -lm"
+		try_blas_LIBS="-lcblas -lm"
 		if test $ol_with_blas = "auto" -o $ol_with_blas = "cblas" ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
 			AC_TRY_LINK([
+				extern int dgemm(void);
 			],[
 				/* test for blas */
+				return dgemm();
 			],[have_blas=cblas],[have_blas=no])
 			LIBS="$save_LIBS"
 
@@ -743,8 +752,13 @@ if test $ol_with_blas != no ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
 			AC_TRY_LINK([
+				/* FIXME: some architectures might use different
+				 * naming conventions, e.g. uppercase, no underscore
+				 */
+				extern int dgemm_(void);
 			],[
 				/* test for blas */
+				return dgemm_();
 			],[have_blas=blas],[have_blas=no])
 			LIBS="$save_LIBS"
 
@@ -759,6 +773,7 @@ if test $ol_with_blas != no ; then
 	if test $have_blas != no ; then
 		ol_link_blas=yes
 		BLAS_LIBS="$try_blas_LIBS"
+		AC_DEFINE(HAVE_BLAS,1,[define if BLAS are available])
 	fi
 
 	dnl from now on, add $BLAS_LIBS to libraries that (may) depend on them
@@ -788,6 +803,7 @@ if test "$ol_with_umfpack" != "no" ; then
 		AC_TRY_LINK([
 		],[
 			/* test for amd */
+			return 0;
 		],[have_amd="yes"],[have_amd="no"])
 		if test "$have_amd" = "yes" ; then
 			try_umfpack_LIBS="$try_amd_LIBS"
@@ -834,7 +850,7 @@ if test "$ol_with_umfpack" != "no" ; then
 			],[
 				have_umfpack4="yes"
 				have_umfpack="yes"
-				AC_MSG_RESULT([(>= 4.1) yes])
+				AC_MSG_RESULT([(>= 4.0) yes])
 			],[
 				have_umfpack4="no"
 				have_umfpack="notfound"
