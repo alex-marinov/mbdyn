@@ -689,6 +689,9 @@ MultiStepIntegrator::Run(void)
 #endif /* MBDYN_X_CONVSOL */
 
 #ifdef HAVE_SIGNAL
+	/*
+	 * FIXME: don't do this if compiling with USE_RTAI
+	 */
    	::sh_term = signal(SIGTERM, modify_final_time_handler);
    	::sh_int = signal(SIGINT, modify_final_time_handler);
    	::sh_hup = signal(SIGHUP, modify_final_time_handler);
@@ -2560,7 +2563,9 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 			"umfpack",
 			"umfpack3",
 		"iterative" "tollerance",
-		"iterative" "max" "steps"
+		"iterative" "max" "steps",
+
+		NULL
    	};
    
    	/* enum delle parole chiave */
