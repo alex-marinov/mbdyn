@@ -160,13 +160,12 @@ Rotor::Output(OutputHandler& OH) const
 	    		if (RotorComm.Get_rank() == 0) {
 				Vec3 TmpF(pTmpVecR);
 				Vec3 TmpM(pTmpVecR+3);
-				Mat3x3 RT((pCraft->GetRCurr()*RRot).Transpose());
+
 				OH.Rotors() 
 					<< std::setw(8) << GetLabel()	/* 1 */
-					<< " " << (RT*TmpF)	/* 2-4 */
-					<< " " << (RT*TmpM)	/* 5-7 */
+					<< " " << RRotTranspose*TmpF /* 2-4 */
+					<< " " << RRotTranspose*TmpM /* 5-7 */
 					<< " " << dUMean 	/* 8 */
-#if 1
 					<< " " << dVelocity	/* 9 */
 					<< " " << dSinAlphad	/* 10 */
 					<< " " << dCosAlphad	/* 11 */
@@ -174,12 +173,12 @@ Rotor::Output(OutputHandler& OH) const
 					<< " " << dLambda	/* 13 */
 					<< " " << dChi		/* 14 */
 					<< " " << dPsi0		/* 15 */
-#endif
 					<< std::endl;
 
 				for (int i = 0; ppRes && ppRes[i]; i++) {
 					Vec3 TmpF(pTmpVecR+6+6*i);
 					Vec3 TmpM(pTmpVecR+9+6*i);
+
 					OH.Rotors()
 						<< std::setw(8) << GetLabel() 
 						<< ":" << ppRes[i]->GetLabel()
@@ -189,22 +188,18 @@ Rotor::Output(OutputHandler& OH) const
 				}
 	    		}
 		} else {
-	    		Mat3x3 RT((pCraft->GetRCurr()*RRot).Transpose());
-
 	    		OH.Rotors()
-				<< std::setw(8) << GetLabel()
-	    			<< " " << (RT*Res.Force())
-				<< " " << (RT*Res.Couple())
-	    			<< " " << dUMean 
-#if 1
-	    			<< " " << dVelocity
-	    			<< " " << dSinAlphad
-				<< " " << dCosAlphad
-	    			<< " " << dMu
-	    			<< " " << dLambda
-				<< " " << dChi
-	    			<< " " << dPsi0
-#endif
+				<< std::setw(8) << GetLabel()	/* 1 */
+	    			<< " " << RRotTranspose*Res.Force()  /* 2-4 */
+				<< " " << RRotTranspose*Res.Couple() /* 5-7 */
+	    			<< " " << dUMean		/* 8 */
+	    			<< " " << dVelocity		/* 9 */
+	    			<< " " << dSinAlphad		/* 10 */
+				<< " " << dCosAlphad		/* 11 */
+	    			<< " " << dMu			/* 12 */
+	    			<< " " << dLambda		/* 13 */
+				<< " " << dChi			/* 14 */
+	    			<< " " << dPsi0			/* 15 */
 	    			<< std::endl;
 
 	    		for (int i = 0; ppRes && ppRes[i]; i++) {
@@ -218,14 +213,11 @@ Rotor::Output(OutputHandler& OH) const
 		}
 
 #else /* !USE_MPI */     
-		Mat3x3 RT((pCraft->GetRCurr()*RRot).Transpose());
-
 		OH.Rotors()
 			<< std::setw(8) << GetLabel()	/* 1 */
-			<< " " << (RT*Res.Force())	/* 2-4 */
-			<< " " << (RT*Res.Couple())	/* 5-7 */
+			<< " " << RRotTranspose*Res.Force()	/* 2-4 */
+			<< " " << RRotTranspose*Res.Couple()	/* 5-7 */
 			<< " " << dUMean		/* 8 */
-#if 1
 			<< " " << dVelocity		/* 9 */
 			<< " " << dSinAlphad		/* 10 */
 			<< " " << dCosAlphad		/* 11 */
@@ -233,7 +225,6 @@ Rotor::Output(OutputHandler& OH) const
 			<< " " << dLambda		/* 13 */
 			<< " " << dChi			/* 14 */
 			<< " " << dPsi0			/* 15 */
-#endif
 			<< std::endl;
 
 		/* FIXME: check for parallel stuff ... */
@@ -260,52 +251,38 @@ Rotor::Output(OutputHandler& OH) const
  * che il corpo rotore forma con la direzione del vento relativo dPsi0, 
  * calcolata in precedenza.
  */
-doublereal Rotor::dGetPsi(const Vec3& X) const
+doublereal
+Rotor::dGetPsi(const Vec3& X) const
 {
-#if 0
-   Vec3 XRel(RRotTranspose*(X-Res.Pole()));
-   return atan2(XRel.dGet(2), XRel.dGet(1)) - dPsi0;
-#endif
-
-   doublereal dr, dp;
-   GetPos(X, dr, dp);
-   return dp;
+	doublereal dr, dp;
+	GetPos(X, dr, dp);
+	return dp;
 }
 
 /* Calcola la distanza di un punto dall'asse di rotazione in coordinate 
  * adimensionali */
-doublereal Rotor::dGetPos(const Vec3& X) const
+doublereal
+Rotor::dGetPos(const Vec3& X) const
 {
-#if 0
-   ASSERT(dRadius > 0.);
-   Vec3 XRel(RRotTranspose*(X-Res.Pole()));
-   doublereal d1 = XRel.dGet(1);
-   doublereal d2 = XRel.dGet(2);
-   doublereal d = sqrt(d1*d1+d2*d2);
-
-   ASSERT(dRadius > DBL_EPSILON);
-   return d/dRadius;   
-#endif
-
-   doublereal dr, dp;
-   GetPos(X, dr, dp);
-   return dr;
+	doublereal dr, dp;
+	GetPos(X, dr, dp);
+	return dr;
 }
 
 void
 Rotor::GetPos(const Vec3& X, doublereal& dr, doublereal& dp) const
 {
-   Vec3 XRel(RRotTranspose*(X-Res.Pole()));
+	Vec3 XRel(RRotTranspose*(X-Res.Pole()));
 
-   doublereal d1 = XRel.dGet(1);
-   doublereal d2 = XRel.dGet(2);
+	doublereal d1 = XRel.dGet(1);
+	doublereal d2 = XRel.dGet(2);
 
-   doublereal d = sqrt(d1*d1+d2*d2);
+	doublereal d = sqrt(d1*d1+d2*d2);
 
-   ASSERT(dRadius > DBL_EPSILON);
-   dr = d/dRadius;   
+	ASSERT(dRadius > DBL_EPSILON);
+	dr = d/dRadius;   
 
-   dp = atan2(d2, d1) - dPsi0;
+	dp = atan2(d2, d1) - dPsi0;
 }
 
 /* Calcola vari parametri geometrici
@@ -1186,15 +1163,22 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 		if (is_parallel && RotorComm.Get_size() > 1) {
 			if (RotorComm.Get_rank() == 0) {
 				Vec3 TmpF(pTmpVecR), TmpM(pTmpVecR+3);
-				Mat3x3 RT((pCraft->GetRCurr()*RRot).Transpose());
+
 				OH.Rotors() 
 					<< std::setw(8) << GetLabel()	/* 1 */
-					<< " " << (RT*TmpF)	/* 2-4 */
-					<< " " << (RT*TmpM)	/* 5-7 */
+					<< " " << RRotTranspose*TmpF /* 2-4 */
+					<< " " << RRotTranspose*TmpM /* 5-7 */
 					<< " " << dUMean	/* 8 */
-					<< " " << dVConst	/* 9 */
-					<< " " << dVSine	/* 10 */
-					<< " " << dVCosine	/* 11 */
+					<< " " << dVelocity	/* 9 */
+					<< " " << dSinAlphad	/* 10 */
+					<< " " << dCosAlphad	/* 11 */
+					<< " " << dMu		/* 12 */
+					<< " " << dLambda	/* 13 */
+					<< " " << dChi		/* 14 */
+					<< " " << dPsi0		/* 15 */
+					<< " " << dVConst	/* 16 */
+					<< " " << dVSine	/* 17 */
+					<< " " << dVCosine	/* 18 */
 					<< std::endl; 
 
 				for (int i = 0; ppRes && ppRes[i]; i++) {
@@ -1210,16 +1194,21 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 				}
 			}
 		} else {
-			Mat3x3 RT((pCraft->GetRCurr()*RRot).Transpose());
-	
 			OH.Rotors()
 				<< std::setw(8) << GetLabel()	/* 1 */
-				<< " " << (RT*Res.Force())	/* 2-4 */
-				<< " " << (RT*Res.Couple())	/* 5-7 */
-				<< " " << dUMean		/* 8 */
-				<< " " << dVConst		/* 9 */
-				<< " " << dVSine		/* 10 */
-				<< " " << dVCosine		/* 11 */
+				<< " " << RRotTranspose*Res.Force()  /* 2-4 */
+				<< " " << RRotTranspose*Res.Couple() /* 5-7 */
+				<< " " << dUMean	/* 8 */
+				<< " " << dVelocity	/* 9 */
+				<< " " << dSinAlphad	/* 10 */
+				<< " " << dCosAlphad	/* 11 */
+				<< " " << dMu		/* 12 */
+				<< " " << dLambda	/* 13 */
+				<< " " << dChi		/* 14 */
+				<< " " << dPsi0		/* 15 */
+				<< " " << dVConst	/* 16 */
+				<< " " << dVSine	/* 17 */
+				<< " " << dVCosine	/* 18 */
 				<< std::endl;
 
 			for (int i = 0; ppRes && ppRes[i]; i++) {
@@ -1233,16 +1222,21 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 		}
 
 #else /* !USE_MPI */
-		Mat3x3 RT((pCraft->GetRCurr()*RRot).Transpose());
-
 		OH.Rotors()
 			<< std::setw(8) << GetLabel()	/* 1 */
-			<< " " << (RT*Res.Force())	/* 2-4 */
-			<< " " << (RT*Res.Couple())	/* 5-7 */
-			<< " " << dUMean		/* 8 */
-			<< " " << dVConst		/* 9 */
-			<< " " << dVSine		/* 10 */
-			<< " " << dVCosine		/* 11 */
+			<< " " << RRotTranspose*Res.Force()	/* 2-4 */
+			<< " " << RRotTranspose*Res.Couple()	/* 5-7 */
+			<< " " << dUMean	/* 8 */
+			<< " " << dVelocity	/* 9 */
+			<< " " << dSinAlphad	/* 10 */
+			<< " " << dCosAlphad	/* 11 */
+			<< " " << dMu		/* 12 */
+			<< " " << dLambda	/* 13 */
+			<< " " << dChi		/* 14 */
+			<< " " << dPsi0		/* 15 */
+			<< " " << dVConst	/* 16 */
+			<< " " << dVSine	/* 17 */
+			<< " " << dVCosine	/* 18 */
 			<< std::endl;
 
 		for (int i = 0; ppRes && ppRes[i]; i++) {
@@ -1360,88 +1354,36 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 
 	   	/*
 		 * Attenzione: moltiplico tutte le equazioni per dOmega
-		 * (ovvero, i coefficienti sono divisi per dOmega
-		 * anziche' dOmega^2)
+		 * (ovvero, i coefficienti CT, CL e CM sono divisi
+		 * per dOmega anziche' dOmega^2)
 		 */
 	   	doublereal dDim = dGetAirDensity(GetXCurr())*dArea*dOmega*(dRadius*dRadius);
 	   	if (dDim > DBL_EPSILON) {
-	   	
-		 	/*** FIXME: this is from Rotor::InitParams() ***/
-	
-		     	/* 
-			 * Velocita' nel sistema del velivolo (del disco?)
-			 * decomposta
-			 */
-		     	Vec3 VTmp = RRotTranspose*VCraft;
-		     	doublereal dV1 = VTmp.dGet(1);
-		     	doublereal dV2 = VTmp.dGet(2);
-		     	doublereal dV3 = VTmp.dGet(3);
-		     	doublereal dVV = dV1*dV1+dV2*dV2;
-		     	doublereal dV = sqrt(dVV);
-      	 
-		     	/* Angolo di azimuth 0 del rotore */
-		     	dPsi0 = atan2(dV2, dV1);
-  	 
-		     	/* Angolo di influsso */
-		     	dVelocity = sqrt(dV3*dV3+dVV);
-		     	if (dVelocity > DBL_EPSILON) {
-			  	dSinAlphad = -dV3/dVelocity;
-			  	dCosAlphad = dV/dVelocity;
-
-		     	} else {
-			  	dSinAlphad = 1.;
-			  	dCosAlphad = 0.;
-		     	}
-	
-		     	/* 
-			 * Parametri di influsso
-			 */
-		     	doublereal dVTip = 0.;
-		     	dMu = 0.;
-		     	dLambda = 0.;
-		     	dVTip = dOmega*dRadius;
-		     	if (dVTip > DBL_EPSILON) {
-			  	dMu = (dVelocity*dCosAlphad)/dVTip;
-			  	dLambda = (dVelocity*dSinAlphad)/dVTip;
-		     	}
-  	 
-		     	if (dMu == 0. && dLambda == 0.) {
-			  	dChi = 0.;
-
-		     	} else {      
-			  	dChi = atan2(dMu, dLambda);
-		     	}
-		 	/*** end of FIXME ***/
-
 			/*
-			 * FIXME: these mu, lambda are in TPP; however,
-			 * those computed by MBDyn are in shaft plane;
-			 * conversion is required
+			 * From Claudio Monteggia:
+			 *
+			 *                        Ct
+			 * Um = -------------------------------------
+			 *       sqrt( lambda^2 / KH^4 + mu^2 / KF^2)
 			 */
-#if 0
-		 	doublereal dUt = sqrt(dLambda*dLambda+dMu*dMu);
-		 	doublereal dUm = 0.;
-		 	if (dUt > DBL_EPSILON) { 
-		       		dUm = (dMu*dMu+dLambda*(dLambda+dVConst))/dUt;
-		 	}
-#else /* !0 */
 		 	doublereal dLambdaTmp
 				= dLambda/(dHoverCorrection*dHoverCorrection);
 		 	doublereal dMuTmp = dMu/dForwardFlightCorrection;
 	
-		 	doublereal dUt
+		 	doublereal dVT
 				= sqrt(dLambdaTmp*dLambdaTmp+dMuTmp*dMuTmp);
-		 	doublereal dUm = 0.;
-		 	if (dUt > DBL_EPSILON) { 
-		       		dUm = (dMuTmp*dMuTmp+dLambdaTmp*(dLambdaTmp+dVConst))/dUt;
+		 	doublereal dVm = 0.;
+		 	if (dVT > DBL_EPSILON) { 
+		       		dVm = (dMuTmp*dMuTmp+dLambdaTmp*(dLambdaTmp+dVConst))/dVT;
 		 	}
-#endif /* !0 */
       
-			/* This is just for output */	
+			/* 
+			 * dUMean is just for output;
+			 */	
 		   	dUMean = dVConst*dOmega*dRadius;
      
 		   	/* Trazione nel sistema rotore */
-		   	doublereal dT(RRot3*Res.Force());
+		   	doublereal dT = RRot3*Res.Force();
      
 		   	/* Momento nel sistema rotore-vento */
 		   	doublereal dCosP = cos(dPsi0);
@@ -1462,51 +1404,30 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 			std::cout << dCt/fabs(dOmega)
 				<< " " << dCl/fabs(dOmega)
 				<< " " << dCm/fabs(dOmega)
+				<< " " << RRotTranspose*Res.Couple()
+				<< " " << M
 				<< std::endl;
 #endif /* 0 */
 
-			/* Matgrix coefficients */
+			/* Matrix coefficients */
 		 	doublereal d = dChi/2.;      
 		 	doublereal dSinChi2 = sin(d);
 		 	doublereal dCosChi2 = cos(d);
 
-#if 1
-			/*
-			 * FIXME: neither works; need to check whether
-			 * Mat3x3.Inv() works correctly, and to cross-check
-			 * with the paper.
-			 */
-		 	d = 15./64.*M_PI*dSinChi2;
-		 	doublereal dDen;
-		 	dDen = 1.+d*d;
-       
-		 	dL11 = dOmega*(2*dUt/dDen);
-		 	d = dOmega*(15./64.*M_PI*dSinChi2*dCosChi2/dDen);
-		 	dL13 = d*dUt;
-		 	dL31 = d*dUm;
-		 	d = dOmega*(dCosChi2*dCosChi2/2.);
-		 	dL22 = -d*dUm;
-			dL33 = -d*dUm/dDen;
-#else
-		 	dL11 = .5/dUt;
+		 	doublereal dl11 = .5/dVT;
 		 	d = 15./64.*M_PI*(dSinChi2/dCosChi2);
-		 	dL13 = d/dUm;
-		 	dL31 = d/dUt;
+		 	doublereal dl13 = d/dVm;
+		 	doublereal dl31 = d/dVT;
 		 	d = 2.*dCosChi2*dCosChi2;
-		 	dL22 = -4./(d*dUm);
-			dL33 = -4.*(d - 1)/(d*dUm);
+		 	doublereal dl22 = -4./(d*dVm);
+			doublereal dl33 = -4.*(d - 1)/(d*dVm);
 
-			Mat3x3 L(dL11, 0., dL31,
-					0., dL22, 0.,
-					dL13, 0., dL33);
-			L.Inv();
-
-			dL11 = L.dGet(1, 1)*dOmega;
-			dL31 = L.dGet(3, 1)*dOmega;
-			dL22 = L.dGet(2, 2)*dOmega;
-			dL13 = L.dGet(1, 3)*dOmega;
-			dL33 = L.dGet(3, 3)*dOmega;
-#endif
+			d = dl11*dl33 - dl31*dl13;
+			dL11 = dOmega*dl33/d;
+			dL31 = -dOmega*dl31/d;
+			dL13 = -dOmega*dl13/d;
+			dL33 = dOmega*dl11/d;
+			dL22 = dOmega/dl22;
 
 	   	} else {   
 			dL11 = 0.;
