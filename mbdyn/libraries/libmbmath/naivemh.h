@@ -49,8 +49,8 @@ protected:
 	doublereal **ppdRows;
 	integer **ppiRows, **ppiCols;
 	integer *piNzr, *piNzc;
-	const integer HIGH;
-	const integer LOW;
+	const integer iHIGH;
+	const integer iLOW;
 
 #ifdef DEBUG
 	void IsValid(void) const {
@@ -59,7 +59,7 @@ protected:
 #endif /* DEBUG */
 
 public:
-	/* FIXME: always square? */
+	/* FIXME: always square? yes! */
 	NaiveMatrixHandler(const integer n);
 
 	virtual ~NaiveMatrixHandler(void);
@@ -73,7 +73,9 @@ public:
 	};
 
 	void Reset(const doublereal r = 0.);
-	void Init(const doublereal r = 0.) {Reset(r);};
+	void Init(const doublereal d = 0.) {
+		Reset(d);
+	};
 
 	/* Ridimensiona la matrice */
 	virtual void Resize(integer, integer) {
@@ -108,11 +110,10 @@ NaiveMatrixHandler::operator () (integer iRow, integer iCol) const
 {
 	--iRow;
 	--iCol;
-	if (ppiRows[iRow][iCol] & HIGH) {
+	if (ppiRows[iRow][iCol] & iHIGH) {
 		return ppdRows[iRow][iCol];
-	} else {
-		return ::dZero;
 	}
+	return ::dZero;
 }
 
 doublereal&
@@ -120,8 +121,8 @@ NaiveMatrixHandler::operator () (integer iRow, integer iCol)
 {
 	--iRow;
 	--iCol;
-	if (!(ppiRows[iRow][iCol] & HIGH)) {
-		ppiRows[iRow][iCol] |= HIGH;
+	if (!(ppiRows[iRow][iCol] & iHIGH)) {
+		ppiRows[iRow][iCol] |= iHIGH;
 		ppiRows[iCol][piNzr[iCol]] |= iRow;
 		ppiCols[iRow][piNzc[iRow]] = iCol;
 		piNzr[iCol]++;

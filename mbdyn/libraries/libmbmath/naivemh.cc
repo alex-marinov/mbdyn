@@ -38,14 +38,17 @@
 #include "mh.h"
 #include "submat.h"
 #include "naivemh.h"
+#include "mthrdslv.h"
 
 NaiveMatrixHandler::NaiveMatrixHandler(const integer n)
 :  iSize(n),
 ppdRows(0), ppiRows(0), ppiCols(0), piNzr(0), piNzc(0),
-// HIGH(std::numeric_limits<int>::min()),
-// LOW(std::numeric_limits<int>::max())
-HIGH(0x80000000),
-LOW(0x7FFFFFFF)
+#if 0
+iHIGH(std::numeric_limits<int>::min()),
+iLOW(std::numeric_limits<int>::max())
+#endif
+iHIGH(HIGH),
+iLOW(LOW)
 {
 	SAFENEWARR(ppiRows, integer *, iSize);
 	ppiRows[0] = 0;
@@ -60,9 +63,9 @@ LOW(0x7FFFFFFF)
 	SAFENEWARR(ppdRows[0], doublereal, iSize*iSize);
 
 	for (integer i = 1; i < iSize; i++) {
-		ppiRows[i] = ppiRows[i-1] + iSize;
-		ppiCols[i] = ppiCols[i-1] + iSize;
-		ppdRows[i] = ppdRows[i-1] + iSize;
+		ppiRows[i] = ppiRows[i - 1] + iSize;
+		ppiCols[i] = ppiCols[i - 1] + iSize;
+		ppdRows[i] = ppdRows[i - 1] + iSize;
 	}
 
 	SAFENEWARR(piNzr, integer, iSize);
@@ -104,17 +107,17 @@ NaiveMatrixHandler::~NaiveMatrixHandler(void)
 void
 NaiveMatrixHandler::Reset(const doublereal c)
 {
-	ASSERTMSGBREAK(c==0., "NaiveMatrixHandler::Init(const doublereal& c) with c!= 0. is meaningless");
+	ASSERTMSGBREAK(c == 0., "NaiveMatrixHandler::Init(const doublereal& c) with c!= 0. is meaningless");
 #ifdef HAVE_MEMSET_H
 	memset(ppiRows[0], 0, sizeof(integer)*iSize*iSize);
 	memset(piNzr, 0, sizeof(integer)*iSize);
 	memset(piNzc, 0, sizeof(integer)*iSize);
 #else /* ! HAVE_MEMSET_H */
-	for (integer i = 0; i < iSize*iSize; i++) {
-		ppiRows[0][i] = 0;
-	}
-
 	for (integer i = 0; i < iSize; i++) {
+		for (integer j = 0; j < iSize; j++) {
+			ppiRows[i][j] = 0;
+		}
+
 		piNzr[i] = 0;
 		piNzc[i] = 0;
 	}
@@ -127,6 +130,7 @@ NaiveMatrixHandler::operator += (const SubMatrixHandler& SubMH)
 {
 	integer nr = SubMH.iGetNumRows();
 	integer nc = SubMH.iGetNumCols();
+	
 	for (integer ir = 1; ir <= nr; ir++) {
 		integer iRow = SubMH.iGetRowIndex(ir);
 
@@ -135,7 +139,8 @@ NaiveMatrixHandler::operator += (const SubMatrixHandler& SubMH)
 
 			if (d != 0.) {
 				integer iCol = SubMH.iGetColIndex(ic);
-				operator()(iRow,iCol) += d;
+
+				operator()(iRow, iCol) += d;
 			}
 		}
 	}
@@ -149,6 +154,7 @@ NaiveMatrixHandler::operator -= (const SubMatrixHandler& SubMH)
 {
 	integer nr = SubMH.iGetNumRows();
 	integer nc = SubMH.iGetNumCols();
+
 	for (integer ir = 1; ir <= nr; ir++) {
 		integer iRow = SubMH.iGetRowIndex(ir);
 
@@ -157,7 +163,8 @@ NaiveMatrixHandler::operator -= (const SubMatrixHandler& SubMH)
 
 			if (d != 0.) {
 				integer iCol = SubMH.iGetColIndex(ic);
-				operator()(iRow,iCol) -= d;
+
+				operator()(iRow, iCol) -= d;
 			}
 		}
 	}
@@ -176,32 +183,29 @@ NaiveMatrixHandler::operator += (const VariableSubMatrixHandler& SubMH)
 	{
 		const FullSubMatrixHandler& SMH =
 			*dynamic_cast<const FullSubMatrixHandler *>(&SubMH);
+		/* NOTE: pirm1 is 1-based, for optimization purposes */
 		integer *pirm1 = SMH.piRowm1;
-		integer *picm1 = SMH.piColm1;
+		/* NOTE: pic is 0-based, for optimization purposes */
+		integer *pic = SMH.piColm1 + 1;
+
+		/* NOTE: ppd is 1-based for rows; access to SMH(iRow, iCol)
+		 * results in ppd[iCol - 1][iRow] */
 		doublereal **ppd = SMH.ppdCols;
 
 		integer nr = SMH.iGetNumRows();
 		integer nc = SMH.iGetNumCols();
-		for (integer ir = 0; ir < nr; ir++) {
-			integer iRow = pirm1[ir + 1];
+		/* NOTE: iR is 1-based, for optimization purposes */
+		for (integer iR = 1; iR <= nr; iR++) {
+			integer iRow = pirm1[iR];
 
+			/* NOTE: ic is 0-based, for optimization purposes */
 			for (integer ic = 0; ic < nc; ic++) {
-#warning FIXME
-#warning FIXME
-#warning FIXME
-#warning
-#warning ppd matrix is partially 1-based!!!!!
-#warning
-#warning FIXME
-#warning FIXME
-#warning FIXME
-				//FIXME!!!!!
-				//that array is partlially 1-based!!!!!
-				doublereal d = ppd[ic][ir+1];
+				doublereal d = ppd[ic][iR];
 
 				if (d != 0.) {
-					integer iCol = picm1[ic + 1];
-					operator()(iRow,iCol) += d;
+					integer iCol = pic[ic];
+
+					operator()(iRow, iCol) += d;
 				}
 			}
 		}
@@ -219,7 +223,8 @@ NaiveMatrixHandler::operator += (const VariableSubMatrixHandler& SubMH)
 			if (d != 0.) {
 				integer iRow = SMH.piRowm1[i];
 				integer iCol = SMH.piColm1[i];
-				operator()(iRow,iCol) += d;
+
+				operator()(iRow, iCol) += d;
 			}
 		}
 		break;
@@ -241,21 +246,21 @@ NaiveMatrixHandler::operator -= (const VariableSubMatrixHandler& SubMH)
 		const FullSubMatrixHandler& SMH =
 			*dynamic_cast<const FullSubMatrixHandler *>(&SubMH);
 		integer *pirm1 = SMH.piRowm1;
-		integer *picm1 = SMH.piColm1;
+		integer *pic = SMH.piColm1 + 1;
 		doublereal **ppd = SMH.ppdCols;
 
 		integer nr = SMH.iGetNumRows();
 		integer nc = SMH.iGetNumCols();
-		for (integer ir = 0; ir < nr; ir++) {
-			integer iRow = pirm1[ir + 1];
-// 			integer iRow = pirm1[ir + 1] - 1;
+		for (integer iR = 1; iR <= nr; iR++) {
+			integer iRow = pirm1[iR];
 
 			for (integer ic = 0; ic < nc; ic++) {
-				doublereal d = ppd[ic][ir];
+				doublereal d = ppd[ic][iR];
 
 				if (d != 0.) {
-					integer iCol = picm1[ic + 1];
-					operator()(iRow,iCol) -= d;
+					integer iCol = pic[ic];
+
+					operator()(iRow, iCol) -= d;
 				}
 			}
 		}
@@ -273,7 +278,8 @@ NaiveMatrixHandler::operator -= (const VariableSubMatrixHandler& SubMH)
 			if (d != 0.) {
 				integer iRow = SMH.piRowm1[i];
 				integer iCol = SMH.piColm1[i];
-				operator()(iRow,iCol) -= d;
+
+				operator()(iRow, iCol) -= d;
 			}
 		}
 		break;
