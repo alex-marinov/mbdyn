@@ -745,7 +745,7 @@ The equality
 \end{displaymath}
 is equivalent to
 \begin{displaymath}
-	\llk{ax}\plbr{\exp^{-1}\plbr{\T{R}_0^T \T{R}_{rel}}} = \T{0}
+	\llk{ax}\plbr{\exp^{-1}\plbr{\T{R}_{rel} \T{R}_0^T}} = \T{0}
 \end{displaymath}
 
 \noindent
@@ -760,13 +760,14 @@ nodes 1 and 2,
 through the previous redefinition can be expressed as
 \begin{displaymath}
 	\T{\theta}^{\Delta} = \llk{ax}\plbr{\exp^{-1}\plbr{
-		\T{R}_0^T \T{R}_{1h}^T \T{R}_1^T \T{R}_2 \T{R}_{2h}
+		\T{R}_{1h}^T \T{R}_1^T \T{R}_2 \T{R}_{2h} \T{R}_0^T
 	}}
 \end{displaymath}
 and is equivalent to
 \begin{displaymath}
 	\T{\theta}^{\Delta} = \T{\theta} - \T{\theta}_0
 \end{displaymath}
+when $\T{\theta}^{\Delta}=\T{0}$.
 Each component of $\T{\theta}^{\Delta}$ can be selectively set
 to zero to enforce a constraint on that degree of freedom.
 The axis about which the constraint is applied can be arbitrarily 
@@ -794,18 +795,18 @@ straightforward.
 We need to compute the perturbation of $\T{\theta}^{\Delta}$, i.e.,
 after defining
 \begin{displaymath}
-	\T{R}^{\Delta} = \T{R}_0^T \T{R}_{1h}^T \T{R}_1^T \T{R}_2 \T{R}_{2h}
+	\T{R}^{\Delta} = \T{R}_{1h}^T \T{R}_1^T \T{R}_2 \T{R}_{2h} \T{R}_0^T
 \end{displaymath}
 we obtain
 \begin{eqnarray*}
 	\T{\theta}^{\Delta}_{\delta}
 	& = & \llk{ax}\plbr{\delta\T{R}^{\Delta} \T{R}^{\Delta T}} \\
-	& = & \llk{ax}\plbr{\T{R}_0^T \T{R}_{1h}^T \T{R}_1^T
+	& = & \llk{ax}\plbr{\T{R}_{1h}^T \T{R}_1^T
 		\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}\times{}
-		\T{R}_1 \T{R}_{1h} \T{R}_0} \\
+		\T{R}_1 \T{R}_{1h}} \\
 	& = & \bar{\T{R}}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
 \end{eqnarray*}
-where $\bar{\T{R}}=\T{R}_1 \T{R}_{1h} \T{R}_0$.
+where $\bar{\T{R}}=\T{R}_1 \T{R}_{1h}$.
 Note that, since the constraint equations are defined by setting 
 to zero any components of the vector $\T{\theta}^{\Delta}$, the
 related jacobian contribution is obtained by selecting 
