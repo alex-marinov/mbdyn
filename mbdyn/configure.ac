@@ -971,9 +971,9 @@ if test "$ol_with_umfpack" != "no" ; then
 			AC_MSG_RESULT([no])
 		fi
 
-		try_umfpack_LIBS="-lumfpack $try_umfpack_LIBS $BLAS_LIBS"
+		try_umfpack_LIBS="-lumfpack $try_umfpack_LIBS"
 		AC_MSG_CHECKING([for umfpack library])
-		LIBS="$try_umfpack_LIBS $save_LIBS"
+		LIBS="$try_umfpack_LIBS $BLAS_LIBS $save_LIBS"
 		
 		AC_TRY_LINK([
 #include <umfpack.h>
@@ -1162,8 +1162,8 @@ if test $ol_with_lapack != no ; then
 	AC_MSG_CHECKING([for lapack])
 
 	save_LIBS="$LIBS"
-	try_lapack_LIBS="-llapack $BLAS_LIBS"
-	LIBS="$try_lapack_LIBS $LIBS"
+	try_lapack_LIBS="-llapack"
+	LIBS="$try_lapack_LIBS $BLAS_LIBS $LIBS"
 	AC_TRY_LINK([
 	extern double dgesvd(double *);
 		],[
@@ -1659,9 +1659,7 @@ AC_SUBST(MPI_LIBS)
 AC_SUBST(CHACO_LIBS)
 AC_SUBST(METIS_LIBS)
 AC_SUBST(UMFPACK_LIBS)
-dnl NOTE: at present, BLAS_LIBS, if required, are added directly 
-dnl to UMFPACK_LIBS, since Umfpack is the sole library that may require them.
-dnl AC_SUBST(BLAS_LIBS)
+AC_SUBST(BLAS_LIBS)
 AC_SUBST(THREAD_LIBS)
 AC_SUBST(MESCHACH_LIBS)
 AC_SUBST(LAPACK_LIBS)
