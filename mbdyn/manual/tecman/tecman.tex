@@ -43,7 +43,7 @@
 \begin{latexonly}
 \title{\bf MBDyn Technical Manual \\
 Version
-\input{version}
+\input{../build/version}
 }
 \author{Pierangelo Masarati \vspace{5mm}\\
     \sc Dipartimento di Ingegneria Aerospaziale \\
@@ -203,12 +203,12 @@ of dofs while elements have a weight equal to eventual internal dofs of it.
 in \texttt{SimulationEntity::GetDofType()} 
 by returning \texttt{DofOrder::DIFFERENTIAL}.
 The increment of the value of a differential variable is equal 
-to $\Delta x=d_{Coef}\Delta \dot{x}$.
+to $\Delta x=\texttt{dCoef}\Delta \dot{x}$.
 When writing the jacobian, this must be considered;
 as a consequence, for an equation $f=0$ (the residual is $-f$)
 the linearization is 
-$f_{/\dot{x}}+f_{/x}*d_{Coef})*\Delta \dot{x}=-f$, 
-as $d_{Coef}*\Delta \dot{x}=\Delta x$.
+$f_{/\dot{x}}+f_{/x}*\texttt{dCoef})*\Delta \dot{x}=-f$, 
+as $\texttt{dCoef}*\Delta \dot{x}=\Delta x$.
 
 \item[algebraic variable:] a variable is declared algebraic
 in \texttt{SimulationEntity::GetDofType()}
@@ -221,7 +221,7 @@ in \texttt{SimulationEntity::GetEqType()}
 by returning \texttt{DofOrder::DIFFERENTIAL}.
 An equation $f=0$ must be declared differential if $f_{/\dot{x}}$ is not null.
 The residual is $-f$, and its linearization is:
-$\plbr{f_{/\dot{x}}+f_{/x}*d_{Coef}}*\Delta \dot{x}=-f$.
+$\plbr{f_{/\dot{x}}+f_{/x}*\texttt{dCoef}}*\Delta \dot{x}=-f$.
 
 \item[algebraic equation:] an equation is declared algebraic
 in \texttt{SimulationEntity::GetEqType()}
@@ -231,10 +231,10 @@ is structurally null (e.g.\ regardless of the values the state may assume)
 and $x$ is not algebraic.
 If an equation $f\plbr{x,t}=0$ is declared differential,
 the residual is $-f$, and its linearization is:
-$f_{/x}*d_{Coef}*\Delta \dot{x}=-f$.
-If the equation can be declared algebraic, it can be divided by $d_{Coef}$:
-$f/d_{Coef}=0$, with residual $-f/d_{Coef}$,
-and linearization $f_{/x}*\Delta \dot{x} = -f/d_{Coef}$.
+$f_{/x}*\texttt{dCoef}*\Delta \dot{x}=-f$.
+If the equation can be declared algebraic, it can be divided by $\texttt{dCoef}$:
+$f/\texttt{dCoef}=0$, with residual $-f/\texttt{dCoef}$,
+and linearization $f_{/x}*\Delta \dot{x} = -f/\texttt{dCoef}$.
 This helps scaling the equations.
 Clearly, this has no sense if $x$ is algebraic,
 or if $f_{/\dot{x}} \neq 0$.
@@ -246,7 +246,7 @@ The rotational gdl unknown during \texttt{AssRes()} and \texttt{AssJac()}
 are the increment of (Gibbs-Rodriguez) rotation parameters
 with respect to the reference configuration.
 Of course the increment of the parameter is
-$\Delta \T g=d_{Coef}\Delta \dot{\T g}$.
+$\Delta \T g=\texttt{dCoef}\Delta \dot{\T g}$.
 The increment of angular velocity is 
 $\Delta \T \omega = \T G\Delta \dot{\T g}+ \Delta \T G \dot{\T g}-
 \T \omega_{ref}\times \T G \Delta \T g$,
@@ -255,7 +255,7 @@ and $\T \omega_{ref}$ is the nodal reference angular velocity (Wref).
 We assume $\T G = \T I$ and $\Delta \T G = \T 0$,
 so that $\Delta \T \omega = \Delta \dot{\T g}-\T \omega_{ref}\times\Delta \T g$
 and so $\Delta \T \omega = \Delta \dot{\T g}-
-\T \omega_{ref}\times\Delta \dot{\T g} * d_{Coef}$.
+\T \omega_{ref}\times\Delta \dot{\T g} * \texttt{dCoef}$.
 
 
 \chapter{Solution Phases}
@@ -348,7 +348,7 @@ Implementation issues are still open as well.
 
 
 \section{Initial Derivatives}
-The so-called "derivatives" phase can be thought as computing the initial value of the highest order derivatives at t=t0 before any iteration starts.  For simplifity, think of an explicit Ordinary Differential Equation (ODE) problem like
+The so-called ``derivatives'' phase can be thought as computing the initial value of the highest order derivatives at t=t0 before any iteration starts.  For simplifity, think of an explicit Ordinary Differential Equation (ODE) problem like
 \begin{displaymath}
   \dot{y} = f(y, t)
 \end{displaymath}
@@ -370,12 +370,12 @@ we solve a problem of the form
 \end{displaymath}
 and, according to the integration formula that we're using,
 \begin{displaymath}
-  \Delta y = Coef * Delta \dot{y}
+  \Delta y = \texttt{dCoef} * \Delta \dot{y}
 \end{displaymath}
-where Coef is essentially the time step times some number that is specific to the integration formula; it's 1/2 for Crank-Nicholson, it's 2/3 for BDF and so on.
+where \texttt{dCoef} is essentially the time step times some number that is specific to the integration formula; it's 1/2 for Crank-Nicholson, it's 2/3 for BDF and so on.
 So the real iteration is
 \begin{displaymath}
-  ( F_{/\dot{y}} + Coef F_{/y} ) \Delta \dot{y} = - F
+  ( F_{/\dot{y}} + \texttt{dCoef} F_{/y} ) \Delta \dot{y} = - F
 \end{displaymath}
 
 To avoid the need to implement a dedicated routine to compute 
@@ -385,12 +385,12 @@ However, since the problem is differential algebraic,
 matrix $F_{/\dot{y}}$ is structurally singular, so the time step 
 must be different from $0$, but small enough to let the correction
 \begin{displaymath}
-  \Delta y = Coef * \Delta \dot{y}
+  \Delta y = \texttt{dCoef} * \Delta \dot{y}
 \end{displaymath}
 be negligible with respect to $\Delta \dot{y}$.  
-To conclude, the "derivatives coefficient" defined in the imput file 
-is this ``Coef'', 
-which can be interpreted as the time step of a "fake" 
+To conclude, the ``derivatives coefficient'' defined in the imput file 
+is this ``\texttt{dCoef}'', 
+which can be interpreted as the time step of a ``fake'' 
 initial step that is used to compute the initial value of 
 the highest order derivatives.  
 It should be as small as possible, but too small makes 
@@ -602,7 +602,7 @@ $\T d_1$, $\T d_2$: offset of nodes 1,2 in node reference;\\
 $\T R_{h1}$, $\T R_{h2}$: joint relative orientation wrt. nodes 1,2 (FIXME).\\
 
 \noindent
-Constraint equations (normalized by dCoef)
+Constraint equations (normalized by \texttt{dCoef})
 \begin{eqnarray*}
 	(\T x_1+\T R_1\cdot \T d_1) - (\T x_2+\T R_1\cdot \T d_2)& = & 0 \\
 	(\T R_1\cdot \T R_{h1})[3]\cdot (\T R_2\cdot \T R_{h2})[2] & = & 0 \\
@@ -630,11 +630,11 @@ Residual vector:
 	&&	(\T R_1\cdot \T R_{h1})[3]\times
 		(\T R_2\cdot \T R_{h2})[1]*\T M[2]\\
 	\mathrm{constraint}:\ 13-15& = &  ((\T x_1+\T R_1\cdot \T d_1) - 
-			(\T x_2+\T R_1\cdot \T d_2))/dCoef\\
+			(\T x_2+\T R_1\cdot \T d_2))/\texttt{dCoef}\\
 	\mathrm{constraint}:\ 16& = &  ((\T R_1\cdot \T R_{h1})[3]\cdot 
-			(\T R_2\cdot \T R_{h2})[2])/dCoef\\
+			(\T R_2\cdot \T R_{h2})[2])/\texttt{dCoef}\\
 	\mathrm{constraint}:\ 17& = &  ((\T R_1\cdot \T R_{h1})[3]\cdot 
-			(\T R_2\cdot \T R_{h2})[1])/dCoef\\
+			(\T R_2\cdot \T R_{h2})[1])/\texttt{dCoef}\\
 \end{eqnarray*}
 where:\\
 $\T F$: constraint reaction force;\\
@@ -672,11 +672,11 @@ Residual vector:
 		(\T R_2\cdot \T R_{h2})[1]*\T M[2] +\\
 	&&	(\T R_1\cdot \T R_{h1})[3]*\T M[3]\\
 	\mathrm{constraint}:\ 13-15& = &  ((\T x_1+\T R_1\cdot \T d_1) - 
-			(\T x_2+\T R_1\cdot \T d_2))/dCoef\\
+			(\T x_2+\T R_1\cdot \T d_2))/\texttt{dCoef}\\
 	\mathrm{constraint}:\ 16& = &  ((\T R_1\cdot \T R_{h1})[3]\cdot 
-			(\T R_2\cdot \T R_{h2})[2])/dCoef\\
+			(\T R_2\cdot \T R_{h2})[2])/\texttt{dCoef}\\
 	\mathrm{constraint}:\ 17& = &  ((\T R_1\cdot \T R_{h1})[3]\cdot 
-			(\T R_2\cdot \T R_{h2})[1])/dCoef\\
+			(\T R_2\cdot \T R_{h2})[1])/\texttt{dCoef}\\
 	\mathrm{friction:}\ 18& = &  \T M[3] -f(\T F, v, 
 			\mathrm{friction\ coef})\\
 		& = &  (\mathrm{rel\ velocity})[3]\\
