@@ -6,6 +6,9 @@ Copyright (C) 1996-2004
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Wed Aug  4 16:00:47 CEST 2004 Michele Attoluico <attolico@aero.polimi.it>
+ - added SimulinkInterface and examples as contrib
+
 *** Sat Jul 31 09:32:07 CEST 2004 Pierangelo Masarati <masarati@aero.polimi.it>
  - added linear and angular acceleration to dynamic structural nodes output
 

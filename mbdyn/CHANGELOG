@@ -20,6 +20,8 @@ MBDyn 1.2-Engineering
 		  dof plugin and drive
 		- added momentum and momenta moment and their derivatives
 		  as automatic structural element private data
+		- added SimulinkInterface code and example as contrib
+		  by Michele Attolico
 	Backward compatibility issues:
 	Known issues:
 		- parallel is not working yet
