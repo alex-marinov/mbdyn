@@ -37,14 +37,14 @@ MBDyn 1.2-Engineering
 		- the syntax of most nodes changed; backward compatibility
 		  is preserved; if run with -PP warnings are issued
 		- changed module API (callback structure holds info fields)
-		- rotor elements do not use a colon ':' as a separator
+		- rotor elements do not use any more a colon ':' as separator
 		  between the keyword "induced velocity" and the induced
 		  velocity type (need to update all the models...)
 	Bug fixes:
 		- do not output RelativeFrame dummy struct nodes in ADAMS
 		  res format
 		- fixed time handling
-		- fixed force ando couple initial assembly
+		- fixed force and couple initial assembly
 		- fix rotor output when no induced velocity is used
 
 
