@@ -41,8 +41,6 @@
 
 #include <crypt.h>
 
-#define HAVE_CRYPT
-
 static void
 usage(int rc)
 {
@@ -130,7 +128,7 @@ main(int argc, char *argv[])
 			}
 		} else {
 			c = crypt(cred, salt);
-			printf("%s %s %s\n", cred, salt, c);
+			printf("%s\n", c);
 		}
 	}
 
