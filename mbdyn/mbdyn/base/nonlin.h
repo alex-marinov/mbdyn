@@ -109,6 +109,9 @@ public:
 #endif /* MBDYN_X_CONVSOL  */	
 			) = 0;
 
+	virtual integer TotalAssembledJacobian(void) {
+		return TotJac;
+	};
 	
 #ifdef USE_EXTERNAL
 	void SetExternal(const External::ExtMessage Ty)
@@ -116,10 +119,6 @@ public:
 		ExtStepType = Ty;
 		return;
 	
-	};
-
-	virtual integer TotalAssembledJacobian(void) {
-		return TotJac;
 	};
 	
 protected:
