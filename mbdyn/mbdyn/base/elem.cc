@@ -66,6 +66,12 @@ Elem::iGetNumDof(void) const
 	return 0;
 }
 
+std::ostream&
+Elem::DescribeDof(std::ostream& out, int i) const
+{
+	return out;
+}
+
 DofOrder::Order 
 Elem::GetDofType(unsigned int) const
 {

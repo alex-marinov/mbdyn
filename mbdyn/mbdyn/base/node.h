@@ -112,6 +112,10 @@ public DofOwnerOwner, public ToBeOutput {
    /* Contributo del nodo al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const = 0;
    
+   /*
+    * Describe the degrees of freedom
+    */
+   virtual std::ostream& DescribeDof(std::ostream& out, int i = -1) const;
 
    /* Metodi che operano sui DoF */
       

@@ -128,6 +128,10 @@ public:
 		return 0;
 	};
 
+	virtual std::ostream& DescribeDof(std::ostream& out, int i = -1) const {
+		return out;
+	};
+
 	virtual DofOrder::Order GetDofType(unsigned int i) const {
 		throw ErrGeneric();
 	};
@@ -200,6 +204,10 @@ public:
 	virtual unsigned int iGetNumDof(void) const {
 		ASSERT(pConstLaw != NULL);
 		return pConstLaw->iGetNumDof();
+	};
+
+	virtual std::ostream& DescribeDof(std::ostream& out, int i = -1) const {
+		return out;
 	};
 
 	virtual DofOrder::Order GetDofType(unsigned int i) const {

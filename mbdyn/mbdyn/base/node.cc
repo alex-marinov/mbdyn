@@ -53,6 +53,11 @@ Node::~Node(void)
    NO_OP; 
 }
 
+std::ostream&
+Node::DescribeDof(std::ostream& out, int i) const
+{
+	return out;
+}
 
 /* Ritorna gli indici di riga e colonna. Tipicamente sono gli stessi */
 integer Node::iGetFirstRowIndex(void) const 

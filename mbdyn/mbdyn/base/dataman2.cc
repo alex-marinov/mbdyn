@@ -198,8 +198,12 @@ DataManager::DofOwnerInit(void)
 #endif /* DEBUG */
 			(!silent_output && bPrintDofStats);
 
+	/* NOTE: further direct use of std::cout instead
+	 * of silent_cout() macro because silent_cout is
+	 * tested in "pds".
+	 */
 	if (pds) {
-		silent_cout("Regular steps dof stats" << std::endl);
+		std::cout << "Regular steps dof stats" << std::endl;
 	}
 
 	/* per ogni nodo strutturale */
@@ -257,13 +261,14 @@ DataManager::DofOwnerInit(void)
 				unsigned int nd = (*ppNd)->iGetNumDof();
 				integer fd = pDf->iIndex;
 
-				silent_cout(psNodeNames[(*ppNd)->GetNodeType()]
+				std::cout << psNodeNames[(*ppNd)->GetNodeType()]
 					<< "(" << (*ppNd)->GetLabel() << "): "
-					<< nd << " " << fd + 1);
+					<< nd << " " << fd + 1;
 				if (nd > 1) {
-					silent_cout("->" << fd + nd);
+					std::cout << "->" << fd + nd;
 				}
-				silent_cout(std::endl);
+				std::cout << std::endl;
+				(*ppNd)->DescribeDof(std::cout);
 			}
 #endif /* !DEBUG */
 
@@ -308,13 +313,14 @@ DataManager::DofOwnerInit(void)
 					unsigned int nd = pElWD->iGetNumDof();
 					integer fd = pDf->iIndex;
 
-					silent_cout(psElemNames[pElWD->GetElemType()]
+					std::cout << psElemNames[pElWD->GetElemType()]
 						<< "(" << pElWD->GetLabel()
-						<< "): " << nd << " " << fd + 1);
+						<< "): " << nd << " " << fd + 1;
 					if (nd > 1) {
-						silent_cout("->" << fd + nd);
+						std::cout << "->" << fd + nd;
 					}
-					silent_cout(std::endl);
+					std::cout << std::endl;
+					pElWD->DescribeDof(std::cout);
 				}
 #endif /* !DEBUG */
 

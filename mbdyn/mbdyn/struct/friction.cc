@@ -76,6 +76,12 @@ unsigned int ModLugreFriction::iGetNumDof(void) const {
 	return 1;
 };
 
+std::ostream&
+ModLugreFriction::DescribeDof(std::ostream& out, int i) const
+{
+	return out;
+}
+
 DofOrder::Order ModLugreFriction::GetDofType(unsigned int i) const {
 	ASSERTMSGBREAK(i<iGetNumDof(), "INDEX ERROR in ModLugreFriction::GetDofType");
 	return DofOrder::DIFFERENTIAL;
@@ -251,6 +257,12 @@ void DiscreteCoulombFriction::SetValue(VectorHandler&X,
 unsigned int DiscreteCoulombFriction::iGetNumDof(void) const {
 	return 1;
 };
+
+std::ostream&
+DiscreteCoulombFriction::DescribeDof(std::ostream& out, int i) const
+{
+	return out;
+}
 
 DofOrder::Order DiscreteCoulombFriction::GetDofType(unsigned int i) const {
 	ASSERTMSGBREAK(i<iGetNumDof(), "INDEX ERROR in ModLugreFriction::GetDofType");

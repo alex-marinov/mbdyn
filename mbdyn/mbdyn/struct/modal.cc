@@ -285,6 +285,26 @@ Modal::iGetNumDof(void) const
 	return 2*NModes + 6*NStrNodes;
 }
 
+std::ostream&
+Modal::DescribeDof(std::ostream& out, int i) const
+{
+	integer iModalIndex = iGetFirstIndex();
+
+	/* FIXME: allow to describe the i-th Dof */
+
+	out 
+		<< "        " << iModalIndex + 1 << "->" << iModalIndex + NModes << ": modal deformations" << std::endl
+		<< "        " << iModalIndex + NModes + 1 << "->" << iModalIndex + 2*NModes << ": modal velocities" << std::endl;
+	iModalIndex += 2*NModes;
+	for (unsigned iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++, iModalIndex += 6) {
+		out
+			<< "        " << iModalIndex + 1 << "->" << iModalIndex + 6 << ": "
+				"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") reactions" << std::endl;
+	}
+
+	return out;
+}
+
 DofOrder::Order
 Modal::GetDofType(unsigned int i) const
 {
@@ -2206,18 +2226,19 @@ ReadModal(DataManager* pDM,
 	}
 
 	/* Legge i dati relativi al corpo flessibile */
-	int NModes = HP.GetInt();     /* numero di modi */
-	if (NModes <= 0) {
+	int tmpNModes = HP.GetInt();     /* numero di modi */
+	if (tmpNModes <= 0) {
 		silent_cerr("Modal(" << uLabel << "): "
-			"illegal number of modes " << NModes << " at line "
+			"illegal number of modes " << tmpNModes << " at line "
 			<< HP.GetLineData() << std::endl);
 		throw DataManager::ErrGeneric();
 	}
+	unsigned int NModes = (unsigned int)tmpNModes;
 
 	unsigned int *uModeNumber = NULL;
 	SAFENEWARR(uModeNumber, unsigned int, NModes);
 	if (HP.IsKeyWord("list")) {
-		for (int iCnt = 0; iCnt < NModes; iCnt++) {
+		for (unsigned int iCnt = 0; iCnt < NModes; iCnt++) {
 			int n = HP.GetInt();
 
 			if (n <= 0) {
@@ -2259,13 +2280,14 @@ ReadModal(DataManager* pDM,
 	}
 
 	/* numero di nodi FEM del modello */
-	int NFemNodes = HP.GetInt();
-	if (NFemNodes == 0) {
+	int tmpNFemNodes = HP.GetInt();
+	if (tmpNFemNodes <= 0) {
 		silent_cerr("Modal(" << uLabel << "): "
-			"illegal number of FEM nodes " << NFemNodes
+			"illegal number of FEM nodes " << tmpNFemNodes
 			<< " at line " << HP.GetLineData() << std::endl);
 		throw DataManager::ErrGeneric();
 	}
+	unsigned int NFemNodes = (unsigned int)tmpNFemNodes;
 
 #ifdef MODAL_SCALE_DATA
 	/* Legge gli eventuali fattori di scala per le masse nodali

@@ -77,6 +77,11 @@ public:
 	 * liberta' ed in previsione di nodi con un numero variabile di DoF) 
 	 */
 	virtual unsigned int iGetNumDof(void) const = 0;
+
+	/*
+	 * Describe the degrees of freedom
+	 */
+	virtual std::ostream& DescribeDof(std::ostream& out, int i = -1) const = 0;
 	 
 	/*
 	 * Test di validita' di un indice. 
