@@ -53,7 +53,7 @@
 
 class Modal : virtual public Elem, public Joint {
  protected:
-   const StructNode* pModalNode;
+   const ModalNode* pModalNode;
    unsigned int NModes;
    unsigned int NStrNodes;
    unsigned int NFemNodes;
@@ -109,7 +109,7 @@ class Modal : virtual public Elem, public Joint {
  public:
    /* Costruttore non banale */
    Modal(unsigned int uL,
-         const StructNode* pModalNodeTmp, 
+         const ModalNode* pModalNodeTmp, 
 	 const DofOwner* pDO,
 	 unsigned int N,
 	 unsigned int NS,

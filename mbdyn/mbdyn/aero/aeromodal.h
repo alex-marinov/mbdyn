@@ -60,7 +60,7 @@
 #include <elem.h>
 #include <aerodyn.h>
 #include <modal.h>
-#include <vector>
+#include <spmapmh.h>
 
 
 
@@ -68,12 +68,13 @@
 
 
 class AerodynamicModal : virtual public Elem, public AerodynamicElem, 
-                         public InitialAssemblyElem, public ElemWithDofs, 
-			 public DriveOwner {
+                         public InitialAssemblyElem, public ElemWithDofs {
  
  protected:
    const StructNode* pModalNode; /* Nodo modale per il moto rigido */
    const Modal* pModalJoint;     /* puntatore all'elemento modale di riferimento */
+   Vec3 P0;                      /* Posizione iniziale nodo modale */
+   Mat3x3 R0;                    /* Rotazione iniziale nel sistema aerodinamico del nodo modale */
    const Mat3x3 Ra;             /* Rotaz. del sistema aerodinamico al nodo */
 
    doublereal Chord;          /* Reference Cord */
@@ -81,7 +82,7 @@ class AerodynamicModal : virtual public Elem, public AerodynamicElem,
    unsigned int NAeroStates;		 /* Numero stati aerodinamici */
    unsigned int NGust;		 /* Numero ingressi raffica */
    
-   std::vector<double>* pA;	         /* Vettore degli autovalori del sistema aerodinamco */		   
+   SpMapMatrixHandler* pA;	         /* Vettore degli autovalori del sistema aerodinamco */		   
    FullMatrixHandler* pB;	 	 /* Matrici del modello agli stati dell'aerodinamica */	   
    FullMatrixHandler* pC;		   
    FullMatrixHandler* pD0;
@@ -95,7 +96,14 @@ class AerodynamicModal : virtual public Elem, public AerodynamicElem,
    MyVectorHandler* pxa;                      /* coordinate modali aerodinamiche*/
    MyVectorHandler* pxaPrime;		/* velocita' modali aerodinamiche*/
 
+   MyVectorHandler* pgs;                      /* coordinate modali raffica*/
+   MyVectorHandler* pgsPrime;		     /* derivate prime modali raffica*/
 
+   const double gustVff;               /* frequenza di taglio filtro passa basso raffica */
+   const double gustXi;                /* smorzamento filtro del secondo ordine raffica */
+
+   flag RigidF;                         /* flag che indica se sono presenti i 
+   					 * dati aerodinamici relativi ai moti rigidi */
    /* Assemblaggio residuo */
    void AssVec(SubVectorHandler& WorkVec);
    
@@ -108,14 +116,16 @@ class AerodynamicModal : virtual public Elem, public AerodynamicElem,
 		   doublereal Cd,
 		   const int NModal,
 		   const int NAero,
+		   flag rgF,
 		   const int Gust,
-		   std::vector<double>* pAMat,
+		   const double Vff,
+		   SpMapMatrixHandler* pAMat,
 		   FullMatrixHandler* pBMat,
 		   FullMatrixHandler* pCMat,
 		   FullMatrixHandler* pD0Mat,
 		   FullMatrixHandler* pD1Mat,
 		   FullMatrixHandler* pD2Mat, 
-		   const DriveCaller* pDC, flag fout);
+		   flag fout);
    
    ~AerodynamicModal(void);
    
@@ -128,14 +138,15 @@ class AerodynamicModal : virtual public Elem, public AerodynamicElem,
    
    /* ritorna il numero di Dofs per gli elementi che sono anche DofOwners */
    unsigned int iGetNumDof(void) const {
-   	return NAeroStates;
+	
+	return NAeroStates + NGust*2;
    };
       
    /* esegue operazioni sui dof di proprieta' dell'elemento */
    DofOrder::Order SetDof(unsigned int i) const {
    	/* gradi di liberta' differenziali (eq. modali) */   
-   	ASSERT(i < NAeroStates);
-      	if (i < NAeroStates) {
+   	ASSERT(i < NAeroStates+NGust*2);
+      	if (i < NAeroStates+NGust*2) {
 		return DofOrder::DIFFERENTIAL;
 	} else {
 		THROW(ErrGeneric());
@@ -153,7 +164,9 @@ class AerodynamicModal : virtual public Elem, public AerodynamicElem,
    /* Dimensioni del workspace */
    void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
       
-       *piNumRows = *piNumCols = NAeroStates+2*NStModes;
+      	*piNumRows = NAeroStates+NStModes+NGust*2;
+      	*piNumCols = NAeroStates+2*NStModes+NGust*2;
+	
    };
    
    /* assemblaggio jacobiano */
@@ -175,13 +188,14 @@ class AerodynamicModal : virtual public Elem, public AerodynamicElem,
 
    /* Numero di GDL iniziali */
    unsigned int iGetInitialNumDof(void) const { 
-      return NAeroStates;
+		return NAeroStates + NGust*2;
    };
    
    /* Dimensioni del workspace */
    void InitialWorkSpaceDim(integer* piNumRows,
 				    integer* piNumCols) const {
-      *piNumRows = *piNumCols = NAeroStates+2*NStModes;
+      	*piNumRows = NAeroStates+NStModes+NGust*2;
+      	*piNumCols = NAeroStates+2*NStModes+NGust*2;
    };
    
    /* assemblaggio jacobiano */

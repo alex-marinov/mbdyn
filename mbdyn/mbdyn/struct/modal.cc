@@ -94,7 +94,7 @@
 #include <dataman.h>
 
 Modal::Modal(unsigned int uL,
-             const StructNode* pR,
+             const ModalNode* pR,
              const DofOwner* pDO,
 	     unsigned int N,        /* numero modi */
 	     unsigned int NS,       /* numero nodi d'interfaccia */
@@ -665,7 +665,6 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
       SubMat1.LeftMult(M1Wedge, PHIr);
       WM.Add(iReactionIndex+4, 13, SubMat1); 
    } 
-   
    return WorkMat;
 }
 
@@ -710,8 +709,8 @@ Modal::AssRes(SubVectorHandler& WorkVec,
    Vec3 wr = pModalNode->GetWRef();     
    Vec3 gP = pModalNode->GetgPCurr();
    Vec3 xP = pModalNode->GetVCurr();
-   Vec3 vP(XPrimeCurr, iRigidIndex+7); 
-   Vec3 wP(XPrimeCurr, iRigidIndex+10);
+   Vec3 vP = pModalNode->GetXPPCurr(); 
+   Vec3 wP = pModalNode->GetWPCurr();
    Vec3 v(XCurr, iRigidIndex+7);
    Vec3 w(XCurr, iRigidIndex+10); 
    VecN b(XCurr, NModes, iModalIndex+NModes+1);
@@ -723,15 +722,15 @@ Modal::AssRes(SubVectorHandler& WorkVec,
    
    /* spostamenti, velocita' e accelerazioni modali correnti */
    for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
+      a->Put(iCnt, XCurr.dGetCoef(iModalIndex+iCnt));
       aPrime->Put(iCnt, XPrimeCurr.dGetCoef(iModalIndex+iCnt));
       bPrime.Put(iCnt, XPrimeCurr.dGetCoef(iModalIndex+NModes+iCnt));
-      a->Put(iCnt, XCurr.dGetCoef(iModalIndex+iCnt));
    } 
    
    /* aggiorna gli invarianti */   
    MaPP.Mult(*pModalMass, bPrime);
-   Ka.Mult(*pModalStiff, *a);
    CaP.Mult(*pModalDamp, *aPrime);
+   Ka.Mult(*pModalStiff, *a);
    
    Inv3jaj = (*pInv3)*(*a);
    Inv3jaPj = (*pInv3)*(*aPrime);
@@ -741,14 +740,15 @@ Modal::AssRes(SubVectorHandler& WorkVec,
    Vec3 Inv11jaPj;
    Inv11jaPj = R*(*(pInv11)*(*aPrime));
    
-   Inv8jaj *= 0; 
-   Inv8jaPj *= 0;  
-   Inv5jaj *= 0;
-   /* Inv9jkajaPk *= 0; */
+   Inv8jaj = 0.; 
+   Inv8jaPj = 0.;  
+   Inv5jaj *= 0.;	/* need a helper! */
    
-   Mat3xN Inv5jaPj(NModes, 0);
+   Mat3xN Inv5jaPj(NModes, 0.);
    Mat3x3 MatTmp1(0.), MatTmp2(0.);
-   /* Mat3x3 Inv9jkajak(0.); */
+#if 0
+   Mat3x3 Inv9jkajak(0.);
+#endif 
    Mat3x3 Inv10jaPj(0.);
    
    for (unsigned int iMode = 1; iMode <= NModes; iMode++)  {
@@ -798,6 +798,10 @@ Modal::AssRes(SubVectorHandler& WorkVec,
    
    /* forze d'inerzia */
    WorkVec.Add(7, -vP*dMass+S.Cross(wP)-w.Cross(w.Cross(S))-(w.Cross(R*Inv3jaPj))*2-R*Inv3jaPPj);
+/*   
+   std::cerr << "-m*vP=" << -vP*dMass << "; -R*I3*aPP=" << -R*Inv3jaPPj << "; tot=" 
+   	<< -vP*dMass+S.Cross(wP)-w.Cross(w.Cross(S))-(w.Cross(R*Inv3jaPj))*2-R*Inv3jaPPj << std::endl;
+*/
    WorkVec.Add(10, -S.Cross(vP)-J*wP-w.Cross(J*w)-R*(Inv8jaPj/*-Inv9jkajaPk*/)*RT*w*2
 	       -Inv4Curr*bPrime-Inv5jajCurr*bPrime);
    
@@ -832,8 +836,11 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 	 }
 	 Inv9jkak += MatTmp1;
       }
-      WorkVec.fIncCoef(12+NModes+iMode, -(R*Inv3j).Dot(vP)-(R*(Inv4j+VInv5jaj)).Dot(wP)+w.Dot(R*(Inv8j.Transpose()
-												 -Inv9jkak+Inv10j)*RT*w)-(R*VInv5jaPj).Dot(w)*2-MaPP.dGet(iMode)-CaP.dGet(iMode)-Ka.dGet(iMode));
+      WorkVec.fIncCoef(12+NModes+iMode, 
+      		-(R*Inv3j).Dot(vP)-(R*(Inv4j+VInv5jaj)).Dot(wP)
+		+w.Dot(R*(Inv8j.Transpose()-Inv9jkak+Inv10j)*RT*w)
+		-(R*VInv5jaPj).Dot(w)*2
+		-MaPP.dGet(iMode)-CaP.dGet(iMode)-Ka.dGet(iMode));
       
       /* forza di gravita': */
 #if 0
@@ -901,7 +908,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
       Vec3 dTmp2((*ppR2[iStrNode-1])*(*ppd2[iStrNode-1]));
       
       /* Eq. d'equilibrio, nodo 1 */
-      WorkVec.Add(7, -(*ppF[iStrNode-1]));
+      WorkVec.Sub(7, *ppF[iStrNode-1]);
       WorkVec.Add(10, ppF[iStrNode-1]->Cross(dTmp1));
       
       /*termine aggiuntivo dovuto alla deformabilita': -PHItiT*RT*F */
@@ -1661,20 +1668,22 @@ ReadModal(DataManager* pDM,
    
    DEBUGCOUT("Linked to Modal Node: " << uNode << std::endl);    
    
-   /* verifica di esistenza del nodo */   
-   StructNode* pModalNode;
+   /* verifica di esistenza del nodo */  
+   StructNode* pTmpNode; 
+   ModalNode* pModalNode;
    
-   if ((pModalNode = pDM->pFindStructNode(uNode)) == NULL) {
+   if ((pTmpNode = pDM->pFindStructNode(uNode)) == NULL) {
       std::cerr << "structural node " << uNode
 	<< " at line " << HP.GetLineData()
 	<< " not defined" << std::endl;
       THROW(DataManager::ErrGeneric());
    }
    
-   if (pModalNode->GetStructNodeType() != StructNode::MODAL) {
+   if (pTmpNode->GetStructNodeType() != StructNode::MODAL) {
       std::cerr << "Illegal structural node type for body " << uLabel << std::endl;
       THROW(DataManager::ErrGeneric());
-   }  
+   }
+   pModalNode = (ModalNode *)pTmpNode;
    
    
    /* la posizione del nodo modale e' quella dell'origine del SdR 
@@ -1781,7 +1790,7 @@ ReadModal(DataManager* pDM,
    
    doublereal d;
    unsigned int i, NFemNodesDADS = 0, NModesDADS = 0, NRejModes = 0;
-   char str[255];
+   char str[BUFSIZ];
    
    /* alloca la memoria per le matrici necessarie a memorizzare i dati 
     * relativi al corpo flessibile
@@ -1810,10 +1819,10 @@ ReadModal(DataManager* pDM,
    }
    
    while (!fdat.eof()) {        /* parsing del file */ 
-      fdat.getline(str,255);
+      fdat.getline(str,sizeof(str));
 
       if (!strncmp("** RECORD GROUP 1,", str, 18)) {  /* legge il primo blocco (HEADER) */
-	 fdat.getline(str,255);
+	 fdat.getline(str,sizeof(str));
 	 fdat >> str;
 	 for (unsigned int iCnt = 0; iCnt < 5; iCnt++)  { 
 	    fdat >> i;  
@@ -1838,103 +1847,87 @@ ReadModal(DataManager* pDM,
 		    << "of modal joint " << uLabel << std::endl;
 	    THROW(DataManager::ErrGeneric());
 	 }
-      }
-      
-      if (!strncmp("** RECORD GROUP 2,", str, 18)) {  /* legge il secondo blocco (Id.nodi) */
+	 
+      } else if (!strncmp("** RECORD GROUP 2,", str, 18)) {  /* legge il secondo blocco (Id.nodi) */
 	 unsigned int ui;
 	 for (iNode = 1; iNode <= NFemNodes; iNode++) {
 	    fdat >> ui;
 	    IdFemNodes[iNode-1] = ui;
 	 } 
-      }
       
       /* nota: i blocchi 3 e 4 (spostamenti e velocita' modali iniziali) 
        * sono ignorati (per adesso, metterli in seguito!) */
       
-      if (!strncmp("** RECORD GROUP 3,", str, 18)) {  /* deformate iniziali dei modi */
+      } else if (!strncmp("** RECORD GROUP 3,", str, 18)) {  /* deformate iniziali dei modi */
 	 for (iMode = 1; iMode <= NModes; iMode++) {
 	    fdat >> d;
 	    a->Put(iMode, d);
 	 } 
-      }  
-      
-      if (!strncmp("** RECORD GROUP 4,", str, 18)) {  /* velocita' iniziali dei modi */   
+	 
+      } else if (!strncmp("** RECORD GROUP 4,", str, 18)) {  /* velocita' iniziali dei modi */   
 	 for (iMode = 1; iMode <= NModes; iMode++) {
 	    fdat >> d;
 	    aP->Put(iMode, d);
 	 } 
-      }
-      
-      if (!strncmp("** RECORD GROUP 5,", str, 18)) {  /* Coordinate X dei nodi*/
+	 
+      } else if (!strncmp("** RECORD GROUP 5,", str, 18)) {  /* Coordinate X dei nodi*/
 	 for (iNode = 1; iNode <= NFemNodes; iNode++) {
 	    fdat >> d;  
 	    pXYZFemNodes->Put(1, iNode, d /**scalemodes*/ );
 	 }
-      }
-      
-      if (!strncmp("** RECORD GROUP 6,", str, 18)) {  /* Coordinate Y dei nodi*/    
+	 
+      } else if (!strncmp("** RECORD GROUP 6,", str, 18)) {  /* Coordinate Y dei nodi*/    
 	 for (iNode = 1; iNode <= NFemNodes; iNode++) {
 	    fdat >> d;  
 	    pXYZFemNodes->Put(2, iNode, d /**scalemodes*/ );
 	 }
-      }
-      
-      if (!strncmp("** RECORD GROUP 7,", str, 18)) {  /* Coordinate Z dei nodi*/   
+	 
+      } else if (!strncmp("** RECORD GROUP 7,", str, 18)) {  /* Coordinate Z dei nodi*/   
 	 for (iNode = 1; iNode <= NFemNodes; iNode++) {
 	    fdat >> d;  
 	    pXYZFemNodes->Put(3, iNode, d /**scalemodes*/ );
 	 }
-      }
-      
-      if (!strncmp("** RECORD GROUP 8,", str, 18)) {  /* Forme modali */
+	 
+      } else if (!strncmp("** RECORD GROUP 8,", str, 18)) {  /* Forme modali */
+	 std::cerr << "RECORD GROUP 8" << std::endl;
 	 for (iMode = 1; iMode <= NRejModes; iMode++) {
-	    for (int iCnt = 1; iCnt <= 6; iCnt++) {
-	      fdat >> str;
-	    }
-	    for (int iCnt = 1; iCnt <= 5; iCnt++) {
-	       fdat >> str;  
-	    }
+     		fdat.getline(str,sizeof(str));
+     		fdat.getline(str,sizeof(str));
 	 }
 	 for (iMode = 1; iMode <= NModes; iMode++) {
-	    for(int iCnt = 1; iCnt <= 6; iCnt++) {
-	       fdat >> str;  
-	    }
-	    for (iNode = 1; iNode <= NFemNodes; iNode++) {
-	       for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		  fdat >> d;
-		  
-		  if (iCnt <= 3) {
-		     pModeShapest->Put(iCnt, (iMode-1)*NFemNodes+iNode, d /**scalemodes*/ );
-		  } else {
-		     pModeShapesr->Put(iCnt-3, (iMode-1)*NFemNodes+iNode, d);
-		  }
-	       }
-	    }
-	 }
-      }	
-   
+     		 fdat.getline(str,sizeof(str));
+	   	 for (iNode = 1; iNode <= NFemNodes; iNode++) {
+	       		for (int iCnt = 1; iCnt <= 3; iCnt++) {
+		  		fdat >> d;
+		  		pModeShapest->Put(iCnt, (iMode-1)*NFemNodes+iNode, d /**scalemodes*/ );
+	       		}
+	       		for (int iCnt = 1; iCnt <= 3; iCnt++) {
+		  		fdat >> d;
+		  		pModeShapesr->Put(iCnt, (iMode-1)*NFemNodes+iNode, d);
+	       		}
+	    	 }
+     		 fdat.getline(str,sizeof(str));
+	 }   
    
        /* double scalfact = scalemodes*scalemodes; */
   	 
-      if (!strncmp("** RECORD GROUP 9,", str, 18)) {  /* Matrice di massa  modale */
+      }	else if (!strncmp("** RECORD GROUP 9,", str, 18)) {  /* Matrice di massa  modale */
          for (iMode = 1; iMode <= NModes; iMode++) {
 	    for (jMode = 1; jMode <= NModes; jMode++) {
 	       fdat >> d;
 	       pGenMass->Put(iMode, jMode, d /**scalfact*/ );
 	    }
          }
-      }
-   
-      if (!strncmp("** RECORD GROUP 10,", str, 19)) {  /* Matrice di rigidezza  modale */
+	 
+      } else if (!strncmp("** RECORD GROUP 10,", str, 19)) {  /* Matrice di rigidezza  modale */
          for (iMode = 1; iMode <= NModes; iMode++) {
 	    for (jMode = 1; jMode <= NModes; jMode++) {
 	       fdat >> d;
 	       pGenStiff->Put(iMode, jMode, d/**scalfact*/);
 	    }
          }
-      }
-   
-      if (!strncmp("** RECORD GROUP 11,", str, 19)) {  /* Lumped Masses  */
+	 
+      } else if (!strncmp("** RECORD GROUP 11,", str, 19)) {  /* Lumped Masses  */
          for (iNode = 1; iNode <= NFemNodes; iNode++) {
 	    for (unsigned int jCnt = 1; jCnt <= 6; jCnt++) {
 	       fdat >> d;
@@ -2167,7 +2160,6 @@ ReadModal(DataManager* pDM,
 		       sqrt(pGenStiff->dGet(iCnt, iCnt)*pGenMass->dGet(iCnt,iCnt)));
       }
    }
-   
 #ifdef DEBUG
    DEBUGCOUT("Total Mass : " << dMass << std::endl); 
    DEBUGCOUT("Inertia Matrix : " << std::endl << JTmp << std::endl);

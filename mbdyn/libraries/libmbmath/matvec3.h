@@ -763,9 +763,32 @@ class Mat3x3 {
 		      );
    };
 
+   const Mat3x3& Symm(const Mat3x3& m) {
+      pdMat[M11] = m.pdMat[M11];
+      pdMat[M22] = m.pdMat[M22];
+      pdMat[M33] = m.pdMat[M33];
+      pdMat[M12] = pdMat[M21] = .5*(m.pdMat[M21]+m.pdMat[M12]);
+      pdMat[M13] = pdMat[M31] = .5*(m.pdMat[M31]+m.pdMat[M13]);
+      pdMat[M23] = pdMat[M32] = .5*(m.pdMat[M32]+m.pdMat[M23]);
+
+      return *this;
+   };
+
    Mat3x3 Skew(void) const {
       return Mat3x3(this->Ax());
-   }
+   };
+
+   const Mat3x3& Skew(const Mat3x3& m) {
+      pdMat[M11] = pdMat[M22] = pdMat[M13] = 0.;
+      pdMat[M12] = m.pdMat[M12] - m.pdMat[M21];
+      pdMat[M21] = -pdMat[M12];
+      pdMat[M13] = m.pdMat[M13] - m.pdMat[M31];
+      pdMat[M31] = -pdMat[M13];
+      pdMat[M23] = m.pdMat[M23] - m.pdMat[M32];
+      pdMat[M32] = -pdMat[M23];
+
+      return *this;
+   };
 
    /** 
     Ottiene un sottovettore dalla matrice.
