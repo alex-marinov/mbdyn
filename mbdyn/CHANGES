@@ -20,7 +20,7 @@ MBDyn 1.X-Devel
 	Known issues:
 	Bug fixes:
 		- fixed SuperLU memory leak
-		- fix (mostly socket) portability issues for Cygwin
+		- fixed (mostly socket) portability issues for Cygwin
 		  and FreeBSD (patches from Kay Lehmann).
 
 MBDyn 1.2.3
