@@ -35,9 +35,11 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#define  NOPIV    1
-#define  SPRSPIV  2
-#define  FULLPIV  3
+enum {
+	NOPIV,
+	SPRSPIV,
+	FULLPIV
+};
 
 /* #define  PIVMETH  NOPIV */
 #define  PIVMETH  SPRSPIV

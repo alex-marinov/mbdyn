@@ -30,13 +30,20 @@
 
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+
+#include "ac/math.h"
+#include "ac/f2c.h"
+
+#else /* !HAVE_CONFIG_H */
+/* to ease compilation outside of MBDyn...
+ * replace long and double with the preferred types */
+typedef long int integer;
+typedef double doublereal;
+#endif /* !HAVE_CONFIG_H */
 
 #include <stdlib.h>
 #include <limits.h>
 
-#include "ac/math.h"
-#include "ac/f2c.h"
 #include "mthrdslv.h"
 
 #define BIGINT   (1 << 30)
