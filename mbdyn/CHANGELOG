@@ -18,11 +18,13 @@ MBDyn 1.1 Engineering
 		  changes input syntax)
 		- facility for partial force and moment output from rotor
 		  elements (set).
+		- added threshold switch to axel velocity for tire slip 
+		  ratio computation
 	Bug fixes:
 		- fixed bug in tire friction force in module-wheel2
 		- fixed bug in tire reference volume computation
 		- cleanup of ANSI-fication also in debug mode
-		- fix bug in calculator (+)
+		- fix bug in calculator (cross type +)
 	Known bugs:
 		- parallel build still requires HSL library
 		- Built-in naca0012/RAE* unsteady aero still broken
