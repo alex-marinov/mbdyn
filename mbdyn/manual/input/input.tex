@@ -2,6 +2,7 @@
 
 \input{stdmacro}
 \usepackage{graphicx}
+\usepackage{amsmath}
 
 \begin{document}
 
@@ -477,6 +478,49 @@ The {\tt fluid\_type}s, with the related {\tt fluid\_properties}, are:
                                        <ref_temperature> ]
                            [ , viscosity , <viscosity> ]
 \end{verbatim}
+
+\subsubsection{Super (linearly compressible, with thermal dependency)}
+\begin{verbatim}
+    <fluid_type> ::= x-super
+    <fluid_properties> ::= [ density , <ref_density> , 
+                                       <beta> , 
+                                       <ref_pressure> ,
+                                       <alpha> ,
+                                       <ref_temperature> ]
+                           [ , viscosity , <viscosity> ]
+\end{verbatim}
+according to equation
+\begin{displaymath}
+	\matr{ll}{
+		\rho \ = \ \rho_0 + \rho_{ref}\cfrac{1}{2}\plbr{
+			1 + \llk{tanh}\plbr{a\plbr{p-p_{ref}}}
+		} & p < p_{ref} \\
+		+= \ \cfrac{p-p_{ref}}{\beta} & p > p_{ref}
+	}
+\end{displaymath}
+\emph{Note: highly experimental}
+
+\subsubsection{AMESim's compressible fluid, with saturation}
+\begin{verbatim}
+    <fluid_type> ::= amesim
+    <fluid_properties> ::= [ density , <ref_density> , 
+                                       <beta> , 
+                                       <ref_pressure> ,
+                                       <alpha> ,
+                                       <ref_temperature> , ]
+                           [ viscosity , <viscosity> , ]
+                           <psat>
+\end{verbatim}
+where {\tt psat} is the saturation pressure, according to equation
+\begin{displaymath}
+	\matr{ll}{
+		\rho \ = \ \rho_0 \e{\cfrac{p-p_0}{\beta}} &
+		p > p_{sat} \\
+		\rho \ = \ \rho_0 \e{1000\cfrac{p-p_0}{\beta}} &
+		p < p_{sat}
+	}
+\end{displaymath}
+
 
 
 \section{Node Degrees of Freedom}
@@ -1681,6 +1725,13 @@ The format of each row is
 
 
 
+\section{Hydraulic Node}
+\begin{verbatim}
+    <arglist> ::= <initial_value>
+\end{verbatim}
+
+
+
 \section{Parameter Node}
 \begin{verbatim}
     <arglist> ::= { <initial_value>
@@ -2640,6 +2691,7 @@ previously defined fluid can be recalled by using the keyword
     <hydr_elem_data> ::= <node_1> , <node_2> , 
                          <struct_node_1> , (Vec3) <offset_1> ,
                          <struct_node_2> , (Vec3) <offset_2> ,
+                         [ direction , (Vec3) <direction> , ]
                          <area_1> ,
                          <area_2> ,
                          <cylinder_length> ,
@@ -2654,6 +2706,84 @@ previously defined fluid can be recalled by using the keyword
                          <k12> , <k21> , <area> ,
                          <hydraulic_fluid_properties>
 \end{verbatim}
+
+\subsection{Control Valve}
+\begin{verbatim}
+    <hydr_elem_type> ::= control valve ,
+    <hydr_elem_data> ::= <node_1> , <node_2> , <node_3> , <node_4>
+                         <area> ,
+                         [ loss , <loss_factor> , ]
+                         (DriveCaller) <state> ,
+                         <hydraulic_fluid_properties>
+\end{verbatim}
+This element represrents a valve that connects
+{\tt node\_1} to {\tt node\_2} and {\tt node\_3} to {\tt node\_4}
+when {\tt state} is positive and {\tt node\_1} to {\tt node\_3}
+and {\tt node\_2} to {\tt node\_4} when {\tt state} is negative,
+with area proportional to {\tt area} times the norm of {\tt state}, 
+being the latter comprised between $-1$ and $1$.
+If {\tt loss\_factor} is defined, it represents the fraction
+of area that leaks even when {\tt state} is zero.
+
+
+
+\subsection{Dynamic Control Valve}\label{sec:DYNAMIC_CONTROL_VALVE}
+\begin{verbatim}
+    <hydr_elem_type> ::= dynamic control valve ,
+    <hydr_elem_data> ::= <node_1> , <node_2> ,
+                         <node_3> , <node_4> ,
+                         (DriveCaller) <force> ,
+                         <initial_displacement> ,
+                         <max_displacement> ,
+                         <duct_width> ,
+                         [ loss , <loss_factor> , ]
+                         <valve_diameter> ,
+                         <valve_density> ,
+                         <displacement> ,
+                         <velocity> ,
+                         <acceleration> ,
+                         <hydraulic_fluid_properties>
+\end{verbatim}
+This element represrents a valve that connects
+{\tt node\_1} to {\tt node\_2} and {\tt node\_3} to {\tt node\_4}
+when the displacement is positive and {\tt node\_1} to {\tt node\_3}
+and {\tt node\_2} to {\tt node\_4} when the displacement is negative,
+accounting for the dynamics of the valve body.
+The control force {\tt force} is applied to the valve, whose 
+geometric and structural properties are described by 
+{\tt initial\_displacement}, {\tt max\_displacement},
+{\tt duct\_width}, {\tt valve\_diameter} and {\tt valve\_density}.
+Again the {\tt loss\_factor}, if defined, represents the fraction
+of the area that leaks when the displacement is zero.
+Finally, {\tt displacement}, {\tt velocity} and {\tt acceleration}
+are the penalty coefficients for displacement, valocity and acceleration
+when the maximum stroke is reached.
+
+
+
+
+\subsection{Pressure Flow Control Valve}
+\begin{verbatim}
+    <hydr_elem_type> ::= pressure flow control valve ,
+    <hydr_elem_data> ::= <node_1> , <node_2> ,
+                         <node_3> , <node_4> ,
+                         <node_5> , <node_6> ,
+                         (DriveCaller) <force> ,
+                         <initial_displacement> ,
+                         <max_displacement> ,
+                         <duct_width> ,
+                         [ loss , <loss_factor> , ]
+                         <valve_diameter> ,
+                         <valve_density> ,
+                         <displacement> ,
+                         <velocity> ,
+                         <acceleration> ,
+                         <hydraulic_fluid_properties>
+\end{verbatim}
+Same as Dynamic Control Valve (\ref{sec:DYNAMIC_CONTROL_VALVE}),
+only the pressures at {\tt node\_5} and {\tt node\_6} are applied
+at the sides of the valve body and participate in the force balance.
+
 
 
 \section{Joint Element}
