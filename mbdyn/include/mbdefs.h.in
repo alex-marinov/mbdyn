@@ -35,5 +35,7 @@
 #define	MODULE_LOADPATH		"%MODULE_LOADPATH%"
 #endif /* MODULE_LOADPATH */
 
+#define BINPATH                 "%BINPATH%"
+
 #endif /* MBDEFS_H */
 

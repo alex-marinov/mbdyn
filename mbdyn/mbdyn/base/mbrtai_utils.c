@@ -47,7 +47,7 @@
 
 int
 mbdyn_rt_task_init(const char *name, int priority, int stack_size,
-		int max_msg_size, void **__task)
+		int max_msg_size, int cpu, void **__task)
 {
 	assert(name != NULL);
 	assert(strlen(name) == 6);
@@ -55,7 +55,7 @@ mbdyn_rt_task_init(const char *name, int priority, int stack_size,
 	assert(*__task == NULL);
 
 	*__task = (void *)rt_task_init_schmod(nam2num(name), priority,
-			stack_size, max_msg_size, SCHED_FIFO, 0x2);
+			stack_size, max_msg_size, SCHED_FIFO,/*0x2*/ cpu);
 	return (*__task == NULL);
 }
 
@@ -254,6 +254,16 @@ mbdyn_rt_task_suspend(void *__task)
 
 }
 
+int
+mbdyn_rt_task_resume(void *__task)
+{
+	RT_TASK		*task = (RT_TASK *)__task;
+	
+	assert(__task != NULL);
+
+	return rt_task_resume(task);
+
+}
 void
 mbdyn_rt_sleep(long long count)
 {

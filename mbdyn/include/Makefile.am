@@ -11,6 +11,7 @@ all-local: mbdefs.h FORCE
 mbdefs.h: mbdefs.h.in Makefile
 	sed \
 		-e "s;%MODULE_LOADPATH%;@MODULE_LOADPATH@;" \
+		-e "s;%BINPATH%;${bindir};" \
 		$@.in > $@
 
 FORCE:

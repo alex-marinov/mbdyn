@@ -40,7 +40,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 extern int mbdyn_rt_task_init(const char *name, int priority, int stack_size,
-	int max_msg_size, void **__task);
+	int max_msg_size, int cpu, void **__task);
 extern int mbdyn_rt_task_delete(void **__task);
 
 extern	void mbdyn_rt_make_hard_real_time(void);
@@ -74,6 +74,7 @@ extern int mbdyn_RT_get_adr(unsigned long node, int port, const char *name,
 		void **__task);
 		
 extern int mbdyn_rt_task_suspend(void *__task);
+extern int mbdyn_rt_task_resume(void *__task);
 extern void mbdyn_rt_sleep(long long count);
 
 extern int mbdyn_rt_sem_init(char *name, int value, void **__sem);

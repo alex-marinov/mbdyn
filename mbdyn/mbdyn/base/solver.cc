@@ -49,11 +49,15 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+/* required for configure time macros with paths */
+#include <mbdefs.h>
+
 #define RTAI_LOG
 
 #include <unistd.h>
 #include <ac/float.h>
 #include <ac/math.h>
+#include <ac/sys_sysinfo.h>
 
 #include <solver.h>
 #include "thirdorderstepsol.h"
@@ -172,6 +176,7 @@ bRTHard(false),
 lRTPeriod(-1),
 RTSemPtr(NULL),
 RTStackSize(1024),
+RTCpuMap(0xff),
 #ifdef RTAI_LOG
 bRTlog(false),
 mbxlog(NULL),
@@ -265,7 +270,7 @@ void Solver::Run(void)
 #ifdef USE_RTAI
 	if (bRT) {
 		/* Init RTAI; if init'ed, it will be shut down at exit */
-		if (mbdyn_rt_task_init("MBDTSK", 1, 0, 0, &mbdyn_rtai_task)) {
+		if (mbdyn_rt_task_init("MBDTSK", 1, 0, 0,RTCpuMap, &mbdyn_rtai_task)) {
 			std::cerr << "unable to init RTAI task" << std::endl;
 			THROW(ErrGeneric());
 		}
@@ -1048,7 +1053,7 @@ IfFirstStepIsToBeRepeated:
 #ifdef RTAI_LOG		    
 	struct {
 		int step;
-		unsigned long time;
+		int time;
 	} msg;
 #endif /* RTAI_LOG */
 
@@ -1112,26 +1117,58 @@ IfFirstStepIsToBeRepeated:
 			char *mbxlogname = "logmb";
 			std::cout << "Mbdyn start overruns monitor" << std::endl;
 
-			if (mbdyn_rt_mbx_init(mbxlogname, sizeof(msg)*8, &mbxlog)){
+			if (mbdyn_rt_mbx_init(mbxlogname, sizeof(msg)*16, &mbxlog)){
 				bRTlog = false;
 				std::cerr << "Cannot init mail box log" << std::endl;
 			}
 			switch (fork()) {
-			case 0:
-				if (execl(LogProcName, LogProcName, "MBDTSK",
-						mbxlogname,NULL) == -1){
-				/* error */
-				std::cout << "Cannot start log procedure" 
-						<< std::endl;
+			case 0: {
+				char LogCpuMap[] = "0xFF";
+				
+				if (RTCpuMap != 0xff){   //MBDyn can use any cpu
+					//The overruns monitor will use any free cpu 
+					snprintf(LogCpuMap, sizeof(LogCpuMap), "%4x", ~RTCpuMap);
+				}
+				if(!(strcmp(LogProcName,"logproc") == 0)){
+					if (execl(LogProcName, LogProcName, "MBDTSK",
+							mbxlogname, LogCpuMap, NULL) == -1) {
+						/* error */
+						std::cout << "Cannot start log procedure" 
+							<< std::endl 
+							<< "Startig dafault log procedure"
+							<< std::endl;
+					
+						/* sets new path */
+						/* BINPATH is the ${bindir} variable 
+						 * at configure time, defined in
+						 * include/mbdefs.h.in */
+						setenv("PATH", ".:" BINPATH, 1);
+						
+						/* start logger */
+						execlp("logproc", "logproc", "MBDTSK",
+				                	mbxlogname, LogCpuMap, NULL);					
+					}
+				} else {
+					/* sets new path */
+					/* BINPATH is the ${bindir} variable 
+					 * at configure time, defined in
+					 * include/mbdefs.h.in */
+					setenv("PATH", ".:" BINPATH, 1);
+					
+					/* start logger */
+					execlp("logproc", "logproc", "MBDTSK",
+			                	mbxlogname, LogCpuMap, NULL);									
 				}
 				break;
-
+			}
+				
 			case -1:
 				std::cerr << "Cannot init log procedure" << std::endl;
 				bRTlog = false;
+				break;
 
 			default:
-				mbdyn_rt_task_suspend(mbdyn_rtai_task);
+				mbdyn_rt_sleep(mbdyn_nano2count(1000000000));
 			}
 		}
 #endif /* RTAI_LOG */
@@ -1191,10 +1228,10 @@ IfFirstStepIsToBeRepeated:
 				<< "total iterations: " << iTotIter << std::endl
 				<< "total Jacobians: " << pNLS->TotalAssembledJacobian() << std::endl
 				<< "total error: " << dTotErr << std::endl;
-
-			std::cout << "Total overruns:" << or_counter  << std::endl
-				<< "Total overruns time:" << t_tot << "micro s" << std::endl;
-
+			if (!bRTlog){
+				std::cout << "Total overruns:" << or_counter  << std::endl
+					<< "Total overruns time:" << t_tot << "micro s" << std::endl;
+			}
 			return;
 #endif /* USE_RTAI */
 
@@ -1235,7 +1272,7 @@ IfFirstStepIsToBeRepeated:
 #ifdef RTAI_LOG
 				if (bRTlog){
 					msg.step = RTSteps;
-					msg.time = mbdyn_count2nano(t1 - t0 - lRTPeriod)/1000;
+					msg.time =(int)mbdyn_count2nano(t1 - t0 - lRTPeriod)/1000;
 
 					mbdyn_RT_mbx_send_if(0, 0, mbxlog, &msg, sizeof(msg));
 				}
@@ -2778,6 +2815,27 @@ Solver::ReadData(MBDynParser& HP)
 			if (HP.IsKeyWord("hard" "real" "time")) {
 				bRTHard = true;
 			}
+
+			if (HP.IsKeyWord("cpu" "map")) {
+				int cpumap = HP.GetInt();
+				int ncpu = get_nprocs();
+				int newcpumap = 1;
+				while(ncpu-1){
+					newcpumap = newcpumap*2 +1;
+					ncpu --;
+				}
+				/*i bit non legati ad alcuna cpu sono posti
+				 * a zero*/
+				newcpumap = cpumap & newcpumap;
+				if (newcpumap < 1 || newcpumap > 0xff) {
+					std::cerr << "illegal cpu map "
+						<< cpumap << " at line "
+						<< HP.GetLineData()
+						<< std::endl;
+					THROW(ErrGeneric());
+				}
+				RTCpuMap = newcpumap;
+			}
 #ifdef RTAI_LOG
 			if (HP.IsKeyWord("real" "time" "log")) {
 				if (HP.IsKeyWord("file" "name")){
@@ -2785,7 +2843,7 @@ Solver::ReadData(MBDynParser& HP)
 					SAFESTRDUP(LogProcName, m);
 				} else {
 					/* FIXME */
-					SAFESTRDUP(LogProcName, "./logproc");
+					SAFESTRDUP(LogProcName, "logproc");
 				}
 				bRTlog = true;
 			}

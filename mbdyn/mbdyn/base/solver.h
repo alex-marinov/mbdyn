@@ -126,6 +126,7 @@ private:
 	long long lRTPeriod;		/* if RTMode == MBRTAI_WAITPERIOD */
 	void *RTSemPtr;			/* if RTMode == MBRTAI_SEMAPHORE */
 	unsigned long RTStackSize;
+	int RTCpuMap;
 #ifdef RTAI_LOG
 	bool bRTlog;
 	void *mbxlog;
