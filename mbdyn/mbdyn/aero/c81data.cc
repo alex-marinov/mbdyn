@@ -156,6 +156,8 @@ read_c81_data(std::istream& in, c81_data* data)
    	in.getline(buf, sizeof(buf));
 
 #ifdef HAVE_STRTOL
+   	buf[42] = '\0';
+
 	char *endptr = NULL;
    	data->NAM = strtol(buf + 40, &endptr, 10);
 	if (endptr != NULL && endptr[0] != '\0') {
