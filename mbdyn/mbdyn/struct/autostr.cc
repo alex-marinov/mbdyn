@@ -301,6 +301,7 @@ AutomaticStructElem::iGetPrivDataIdx(const char *s) const
 	case '2':
 	case '3':
 		idx += s[0] - '0';
+		s++;
 		break;
 
 	default:
