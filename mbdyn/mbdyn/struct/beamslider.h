@@ -111,6 +111,8 @@ private:
 	doublereal sRef;
 	doublereal s;
 	int activeNode;
+	doublereal dL;
+	doublereal dW[2];
 
 	Vec3 xNod[Beam::NUMNODES];
 	Vec3 fTmp[Beam::NUMNODES];
@@ -131,6 +133,7 @@ public:
 			const StructNode* pN, enum Type iT,
 			unsigned int nB, const BeamConn *const *pB,
 			unsigned int uIB, unsigned int uIN,
+			doublereal dl,
 			const Vec3& fTmp, const Mat3x3& RTmp, flag fOut);
    
 	/* Distruttore */
@@ -178,7 +181,8 @@ public:
 	
 	/* funzioni usate nell'assemblaggio iniziale */
 	virtual unsigned int iGetInitialNumDof(void) const { 
-		return 8+2*nRotConstr;
+		// return 8+2*nRotConstr;
+		return 0;
 	};
 	virtual void 
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {

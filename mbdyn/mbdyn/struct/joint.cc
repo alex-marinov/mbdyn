@@ -1476,7 +1476,7 @@ Elem* ReadJoint(DataManager* pDM,
 	       uIB = HP.GetInt();
 
 	       if (uIB < 1 || uIB > nB) {
-		       cerr << "illebal initial beam " << uIB
+		       cerr << "illegal initial beam " << uIB
 			       << " at line " << HP.GetLineData() << endl;
 		       THROW(ErrGeneric());
 	       }
@@ -1487,9 +1487,19 @@ Elem* ReadJoint(DataManager* pDM,
 	       uIN = HP.GetInt();
 
 	       if (uIN < 1 || uIN > 3) {
-		       cerr << "illebal initial node " << uIN
+		       cerr << "illegal initial node " << uIN
 			       << " at line " << HP.GetLineData() << endl;
 		       THROW(ErrGeneric());
+	       }
+       }
+
+       doublereal dL = 0.;
+       if (HP.IsKeyWord("smearing")) {
+	       dL = HP.GetReal();
+	       if (dL < 0. || dL > .4) {
+		       cerr << "illegal smearing factor " << dL 
+			       << "; using default" << endl;
+		       dL = 0.;
 	       }
        }
       
@@ -1499,7 +1509,7 @@ Elem* ReadJoint(DataManager* pDM,
 			       pNode, 
 			       sliderType,
 			       nB, bc,
-			       uIB, uIN,
+			       uIB, uIN, dL,
 			       f, R, fOut));
        break;
     }

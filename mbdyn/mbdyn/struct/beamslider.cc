@@ -76,6 +76,7 @@ BeamSliderJoint::BeamSliderJoint(unsigned int uL, const DofOwner* pDO,
 		const StructNode* pN, enum Type iT,
 		unsigned int nB, const BeamConn *const * ppB,
 		unsigned int uIB, unsigned int uIN,
+		doublereal dl,
 		const Vec3& fTmp, const Mat3x3& RTmp, flag fOut)
 : Elem(uL, Elem::JOINT, fOut),
 Joint(uL, Joint::BEAMSLIDER, pDO, fOut),
@@ -84,6 +85,7 @@ pNode(pN), ppBeam(ppB),
 f(fTmp), R(RTmp),
 F(0.), M(0.),
 sRef(0.), s(0.),
+dL(dl),
 x(0.), l(0.)
 {
 	ASSERT(pNode != NULL);
@@ -474,16 +476,39 @@ BeamSliderJoint::AssRes(SubVectorHandler& WorkVec,
 
 	/* Cerco il tratto di trave a cui le forze si applicano ... */
 	/* Primo tratto */
-	if (s < -dS) {
+	if (s < -dS - dL) {
 		activeNode = 1;
 
+		dW[0] = 1.;
+		dW[1] = 0.;
+
+	} else if ( s < -dS + dL) {
+		activeNode = 1;
+
+		doublereal d = .5*(dS + s)/dL;
+		dW[0] = .5 - d;
+		dW[1] = .5 + d;
+
 	/* Ultimo tratto */
-	} else if (s > dS) {
+	} else if (s > dS + dL) {
 		activeNode = 3;
+
+		dW[0] = 1.;
+		dW[1] = 0.;
+
+	} else if (s > dS - dL) {
+		activeNode = 2;
+
+		doublereal d = .5*(dS - s)/dL;
+		dW[0] = .5 + d;
+		dW[1] = .5 - d;
 
 	/* Tratto centrale */
 	} else {
 		activeNode = 2;
+
+		dW[0] = 1.;
+		dW[1] = 0.;
 	}
 
 	/* Indici dei nodi */
@@ -560,8 +585,15 @@ BeamSliderJoint::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.Add(1, F);
 	WorkVec.Add(3+1, M+fb.Cross(F));
 
-	WorkVec.Sub(6*activeNode+1, F);
-	WorkVec.Sub(6*activeNode+3+1, M+(xb-xNod[activeNode-1]).Cross(F));
+	WorkVec.Sub(6*activeNode+1, F*dW[0]);
+	WorkVec.Sub(6*activeNode+3+1, 
+			(M+(xb-xNod[activeNode-1]).Cross(F))*dW[0]);
+
+	if (dW[1] != 0.) {
+		WorkVec.Sub(6*(activeNode+1)+1, F*dW[1]);
+		WorkVec.Sub(6*(activeNode+1)+3+1, 
+				(M+(xb-xNod[activeNode]).Cross(F))*dW[1]);
+	}
 
 	return WorkVec;
 }
