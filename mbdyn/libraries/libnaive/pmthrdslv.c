@@ -178,8 +178,10 @@ int pnaivfct(doublereal** a,
 				} else {
 					par[pvc] = -mul*papvr[pvc];
 					ci[r][nzc[r]++] = pvc;
-					//while (atomic_inc_and_test((atomic_t *)&col_locks[pvc]));
-					while (mbdyn_cmpxchgl(&col_locks[pvc], 1, 0) != 0);
+#if 0
+					while (atomic_inc_and_test((atomic_t *)&col_locks[pvc]));
+#endif
+					while (mbdyn_cmpxchgl((int32_t *)&col_locks[pvc], 1, 0) != 0);
 					pnzk[pvc] = 1;
 					ri[pvc][nzr[pvc]++] = r;
 					atomic_set((atomic_t *)&col_locks[pvc], 0); 
@@ -229,7 +231,9 @@ void pnaivslv(doublereal** a,
 	}
 
 	for (i = 1; i < neq; i++) {
-	//for (i = 1 + task; i < neq; i+=ncpu) {
+#if 0
+	for (i = 1 + task; i < neq; i+=ncpu) {
+#endif
 		if (i%ncpu != task) { continue; }
 		//used[task + 2]++;
 		nc = nzc[r = piv[i]];
@@ -244,7 +248,9 @@ void pnaivslv(doublereal** a,
 			}
 		}
 		set_wmb(fwd[i], s);
-		//fwd[i] = s;
+#if 0
+		fwd[i] = s;
+#endif
 		atomic_set((atomic_t *)&locks[i], 1);
 	}
 
@@ -258,9 +264,13 @@ void pnaivslv(doublereal** a,
 		atomic_set((atomic_t *)&locks[neq], 0);
 	}
 	for (i = neq - 1; i >= 0; i--) {
-	//for (i = neq - 1 - task; i >= 0; i-=ncpu) {
+#if 0
+	for (i = neq - 1 - task; i >= 0; i-=ncpu) {
+#endif
 		if (i%ncpu != task) { continue; }
-		//used[task + 4]++;
+#if 0
+		used[task + 4]++;
+#endif
 		r = piv[i];
 		nc = nzc[r];
 		s = fwd[i];
@@ -273,7 +283,9 @@ void pnaivslv(doublereal** a,
 			}
 		}
 		set_wmb(sol[i], s*par[i]);
-		//sol[i] = s*par[i];
+#if 0
+		sol[i] = s*par[i];
+#endif
 		atomic_set((atomic_t *)&locks[i], 0);
 	}
 

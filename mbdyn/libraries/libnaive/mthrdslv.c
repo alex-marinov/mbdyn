@@ -87,22 +87,27 @@ naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 			}
 		}
 		if (nc == BIGINT) { return ENOPIV + i; }
-		//printf("i = %d, pvr = %d\n",i,pvr);
-/*// #if PIVMETH == SPRSPIV
-// 		mul *= minpiv;
-// 		for (k = 0; k < nr; k++) {
-// 			r = pri[k];
-// 			if (todo[r] && nzc[r] < m && fabs(a[r][i]) > mul) {
-// 				m = nzc[pvr = r];	
-// 			}
-// 		}
-// #endif *//* PIVMETH == SPRSPIV */
+#if 0
+		printf("i = %d, pvr = %d\n",i,pvr);
+#if PIVMETH == SPRSPIV
+ 		mul *= minpiv;
+ 		for (k = 0; k < nr; k++) {
+ 			r = pri[k];
+			/* FIXME: m would be used uninitialized */
+ 			if (todo[r] && nzc[r] < m && fabs(a[r][i]) > mul) {
+ 				m = nzc[pvr = r];	
+ 			}
+ 		}
+#endif /* PIVMETH == SPRSPIV */
+#endif
 		piv[i] = pvr;
 		todo[pvr] = 0;
 		papvr = a[pvr];
 		den = papvr[i] = 1.0/papvr[i];
-		//nr = nzr[i];
-		//nc = nzc[pvr];
+#if 0
+		nr = nzr[i];
+		nc = nzc[pvr];
+#endif
 		for (k = 0; k < nr; k++) {
 			if (!todo[r = pri[k]]) { continue; }
 			par = a[r];
