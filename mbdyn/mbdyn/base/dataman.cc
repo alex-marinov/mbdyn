@@ -293,7 +293,7 @@ DofIter()
    
    
    while (CurrDesc == SCALARFUNCTION) {
-   	ParseScalarFunction(HP,MapOfScalarFunctions);
+   	ParseScalarFunction(HP,this);
 	try {
 		CurrDesc = KeyWords(HP.GetDescription());
 	} catch (EndOfFile) {} 

@@ -45,6 +45,7 @@
 #include <dataman_.h>
 
 #include <drive.h>
+#include "filedrv.h"
 #include <presnode.h>
 #include <readclaw.h>
 #include <j2p.h>

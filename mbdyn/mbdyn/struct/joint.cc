@@ -627,13 +627,14 @@ Elem* ReadJoint(DataManager* pDM,
 	   BasicShapeCoefficient * bsh = 0;
 	   if (HP.IsKeyWord("friction")) {
 	       r = HP.GetReal();
-	       bf = ParseFriction(HP,pDM->MapOfScalarFunctions);
+	       bf = ParseFriction(HP,pDM);
 	       bsh = ParseShapeCoefficient(HP);
 	   }	
 	   SAFENEWWITHCONSTRUCTOR(pEl, 
 				  PlaneHingeJoint,
 				  PlaneHingeJoint(uLabel, pDO, pNode1, pNode2, 
-						  d1, d2, R1h, R2h, fOut));
+						  d1, d2, R1h, R2h, fOut,
+						  r,bsh,bf));
 	   break;
 	}
 

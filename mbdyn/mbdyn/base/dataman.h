@@ -89,6 +89,9 @@ class DataManager : public SolutionDataManager, public SolverDiagnostics {
    MathParser& MathPar;      /* Received from MultiStepIntegrator */
    Table& GlobalSymbolTable; /* note: do not invert declaration order */
 
+   /* scalar functions */
+   std::map<std::string, const BasicScalarFunction *> MapOfScalarFunctions;
+   
  protected:
    DriveHandler DrvHdl;
    mutable OutputHandler OutHdl;
@@ -165,30 +168,6 @@ class DataManager : public SolutionDataManager, public SolverDiagnostics {
    void ReadNodes(MBDynParser& HP);
    void ReadDrivers(MBDynParser& HP);
    void ReadElems(MBDynParser& HP);
-         
-   /* read functions */
-   friend Node* ReadStructNode(DataManager* pDM, MBDynParser& HP, DofOwner* pDO, unsigned int uLabel);   
-   friend Elem** ReadOneElem(DataManager* pDM, MBDynParser& HP, unsigned int uLabel, int CurrType);   
-   friend Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
-   friend Elem* ReadJoint(DataManager* pDM, MBDynParser& HP, const DofOwner* pDO, unsigned int uLabel);
-   friend Elem* ReadGenel(DataManager* pDM, MBDynParser& HP, const DofOwner* pDO, unsigned int uLabel);
-   friend Elem* ReadElectric(DataManager* pDM, MBDynParser& HP, const DofOwner* pDO, unsigned int uLabel);
-   friend Elem* ReadBulk(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
-   friend Elem* ReadForce(DataManager* pDM, MBDynParser& HP, unsigned int uLabel, flag = 0);  
-   friend Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
-   friend Elem* ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
-   friend Elem* ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
-   friend Elem* ReadRotor(DataManager* pDM, MBDynParser& HP, const DofOwner* pDO, unsigned int uLabel);
-   friend Elem* ReadAerodynamicBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
-   friend Elem* ReadAerodynamicBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
-   friend Elem* ReadAerodynamicBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
-   friend Elem* ReadAerodynamicModal(DataManager* pDM, MBDynParser& HP, const DofOwner* pDO, unsigned int uLabel);
-#ifdef USE_EXTERNAL
-   friend Elem* ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
-   friend Elem* ReadAerodynamicExternalModal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
-#endif /*  USE_EXTERNAL */
-   friend Elem* ReadHydraulicElem(DataManager* pDM, MBDynParser& HP, const DofOwner* pDO, unsigned int uLabel);
-   friend Drive* ReadFileDriver(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);   
    
  public:
    flag fReadOutput(MBDynParser& HP, enum Elem::Type t);
@@ -196,7 +175,13 @@ class DataManager : public SolutionDataManager, public SolverDiagnostics {
 
    doublereal dReadScale(MBDynParser& HP, enum DofOwner::Type t);
    
- private:
+   const doublereal& dGetInitialPositionStiffness(void) const;
+   const doublereal& dGetInitialVelocityStiffness(void) const;
+   flag fDoesOmegaRotate(void) const;
+
+   void IncElemCount(Elem::Type type);
+ 
+   
    /* legge i legami costitutivi */
    ConstitutiveLaw1D* ReadConstLaw1D(MBDynParser& HP, DefHingeType::Type& T);
    ConstitutiveLaw3D* ReadConstLaw3D(MBDynParser& HP, DefHingeType::Type& T);
@@ -209,6 +194,7 @@ class DataManager : public SolutionDataManager, public SolverDiagnostics {
 	LASTDIM
    };   
    
+ private:
    /* chiamate a funzioni di inizializzazione */
 #if defined(USE_STRUCT_NODES)   
    void InitialJointAssembly(void);
@@ -321,6 +307,12 @@ class DataManager : public SolutionDataManager, public SolverDiagnostics {
    /* da ElemManager */
    friend class ElemManIterator;
    friend class InitialAssemblyIterator;
+
+   /* scalar functions */
+   const BasicScalarFunction * GetScalarFunction(std::string) const;
+   const BasicScalarFunction * SetScalarFunction(std::string, const BasicScalarFunction *);
+   
+
      
  public:
    enum DerivationTable { 
@@ -354,9 +346,6 @@ class DataManager : public SolutionDataManager, public SolverDiagnostics {
    Elem** ppElems;         /* puntatore all'array di puntatori agli el. */
    unsigned int iTotElem;  /* numero totale di el. definiti */
    
-   /* scalar functions */
-   std::map<std::string, const BasicScalarFunction *> MapOfScalarFunctions;
-   
    /* struttura dei drivers */
    struct {
       Drive** ppFirstDrive; 
@@ -380,7 +369,6 @@ class DataManager : public SolutionDataManager, public SolverDiagnostics {
 
 
    /* ricerca elementi*/
-   void* pFindElem(Elem::Type Typ, unsigned int uL) const;
    void* pFindElem(Elem::Type Typ, unsigned int uL, unsigned int iDeriv) const;
    void* pChooseElem(Elem* p, unsigned int iDeriv) const;
    
@@ -391,8 +379,14 @@ class DataManager : public SolutionDataManager, public SolverDiagnostics {
    
    
    flag fGetDefaultOutputFlag(const Elem::Type& t) const;
+   Elem** ReadOneElem(MBDynParser& HP,
+		   unsigned int uLabel,
+		   int CurrType);
    
  public:
+   /* ricerca elementi*/
+   void* pFindElem(Elem::Type Typ, unsigned int uL) const;
+   
    /* pseudocostruttore */
    void ElemManager(void);
    void ElemManagerDestructor(void);

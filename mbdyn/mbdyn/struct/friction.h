@@ -39,6 +39,8 @@
 /** Base class for friction models
  */
 class BasicFriction : public SimulationEntity{
+private:
+	void SetValue(VectorHandler&X, VectorHandler&XP) const{};
 public:
 /*
  * 	unsigned int iGetNumDof(void) const;
@@ -53,6 +55,11 @@ public:
  * 	void Update(const VectorHandler&XCurr, const VectorHandler&XPrimeCurr);
  * 	void AfterConvergence(VectorHandler&X, VectorHandler&XP);
  */
+/** Set Initial Values
+ */
+	virtual void SetValue(VectorHandler&X, 
+		VectorHandler&XP, 
+		const unsigned int solution_startdof) const;
 /** Return last computed friction coefficient
  */
 	virtual doublereal fc(void) const = 0;
@@ -61,6 +68,7 @@ public:
 	virtual void AssRes(
 		SubVectorHandler& WorkVec,
 		const unsigned int startdof,
+		const unsigned int solution_startdof,
 		const doublereal F,
 		const doublereal v,
 		const VectorHandler& X,
@@ -71,6 +79,7 @@ public:
 		FullSubMatrixHandler& WorkMat,
 		ExpandableRowVector& dfc,
 		const unsigned int startdof,
+		const unsigned int solution_startdof,
 		const doublereal dCoef,
 		const doublereal F,
 		const doublereal v,
@@ -117,14 +126,16 @@ private:
 	const doublereal sigma1;
 	const doublereal sigma2;
 	const doublereal kappa;
-	doublereal f;
 	const DifferentiableScalarFunction & fss;
+	doublereal f;
 	doublereal alpha(const doublereal z,
 		const doublereal v) const;
 	doublereal alphad_v(const doublereal z,
 		const doublereal v) const;
 	doublereal alphad_z(const doublereal z,
 		const doublereal v) const;
+	const doublereal fs(const doublereal&v) const;
+	const doublereal fsd(const doublereal&v) const;
 public:
 	ModLugreFriction(
 		const doublereal sigma0,
@@ -132,6 +143,9 @@ public:
 		const doublereal sigma2,
 		const doublereal kappa,
 		const BasicScalarFunction *const f);
+	void SetValue(VectorHandler&X, 
+		VectorHandler&XP, 
+		const unsigned int solution_startdof) const;
 	unsigned int iGetNumDof(void) const;
 	DofOrder::Order GetDofType(unsigned int i) const;
 	DofOrder::Order GetEqType (unsigned int i) const;
@@ -139,6 +153,7 @@ public:
 	void AssRes(
 		SubVectorHandler& WorkVec,
 		const unsigned int startdof,
+		const unsigned int solution_startdof,
 		const doublereal F,
 		const doublereal v,
 		const VectorHandler& X,
@@ -147,6 +162,7 @@ public:
 		FullSubMatrixHandler& WorkMat,
 		ExpandableRowVector& dfc,
 		const unsigned int startdof,
+		const unsigned int solution_startdof,
 		const doublereal dCoef,
 		const doublereal F,
 		const doublereal v,
@@ -155,6 +171,27 @@ public:
 		const ExpandableRowVector& dF,
 		const ExpandableRowVector& dv) const;
 };
+
+/** Simple shape coefficient: 1.
+ */
+class SimpleShapeCoefficient : public BasicShapeCoefficient {
+public:
+	virtual doublereal Sh_c(void) const;
+	virtual doublereal Sh_c(
+		const doublereal f,
+		const doublereal F,
+		const doublereal v);
+	virtual void dSh_c(
+		ExpandableRowVector& dShc,
+		const doublereal f,
+		const doublereal F,
+		const doublereal v,
+		const ExpandableRowVector& dfc,
+		const ExpandableRowVector& dF,
+		const ExpandableRowVector& dv) const;
+};
+
+
 
 /** Simple, low load shape coefficient for revolute hinge (PlaneHingeJoint)
  */
@@ -182,7 +219,7 @@ public:
 //---------------------------------------
 
 BasicFriction *const ParseFriction(MBDynParser& HP,
-	std::map<std::string,const BasicScalarFunction *> &MapOfScalarFunctions);
+	DataManager * pDM);
 
 BasicShapeCoefficient *const ParseShapeCoefficient(MBDynParser& HP);
 

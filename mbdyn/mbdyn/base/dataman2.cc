@@ -44,6 +44,53 @@
 
 /* DataManager - continue */
 
+const BasicScalarFunction * 
+DataManager::GetScalarFunction(std::string func_name) const 
+{
+	typedef std::map<std::string,const BasicScalarFunction *> mbf;
+	mbf::const_iterator i = MapOfScalarFunctions.find(func_name);
+	if (i == MapOfScalarFunctions.end()) {
+		return 0;
+	}
+	return i->second;
+}
+
+const BasicScalarFunction * 
+DataManager::SetScalarFunction(
+	std::string func_name, 
+	const BasicScalarFunction * p)
+{
+	MapOfScalarFunctions[func_name] = p;
+	return MapOfScalarFunctions[func_name];
+}
+
+
+
+const doublereal&
+DataManager::dGetInitialPositionStiffness(void) const
+{
+	return dInitialPositionStiffness;
+}
+
+const doublereal&
+DataManager::dGetInitialVelocityStiffness(void) const 
+{
+	return dInitialVelocityStiffness;
+}
+   
+flag
+DataManager::fDoesOmegaRotate(void) const
+{
+	return fOmegaRotates;
+}
+
+void
+DataManager::IncElemCount(Elem::Type type)
+{  
+	/* FIXME: assert the data structure has not been allocated yet */
+	ElemData[type].iNum++;
+}
+
 /* Setta il valore della variabile Time nel DataManager
  * usato dal metodo numerico all'inizio di ogni step temporale */
 

@@ -369,10 +369,7 @@ doublereal MultiLinearScalarFunction::ComputeDiff(const doublereal x, const inte
 //---------------------------------------
 
 const BasicScalarFunction *const ParseScalarFunction(MBDynParser& HP,
-	std::map<
-		std::string,
-		const BasicScalarFunction *
-	> &MapOfScalarFunctions)
+	DataManager* const pDM)
 {
    const char* sKeyWords[] = { 
       "const",
@@ -397,36 +394,33 @@ const BasicScalarFunction *const ParseScalarFunction(MBDynParser& HP,
 	     LASTKEYWORD
 	};
 	/* token corrente */
-	KeyWords CurrDesc;
 	KeyWords FuncType;
 
-	typedef std::map<std::string,const BasicScalarFunction *> mbf;
 	std::string func_name;
 	
-	mbf::const_iterator sf1,sf2;
-
 	KeyTable K(HP, sKeyWords);
 	
 	func_name = HP.GetStringWithDelims();
 	
-	if (MapOfScalarFunctions.find(func_name) == MapOfScalarFunctions.end()) {
+	if (!pDM->GetScalarFunction(func_name)) {
 		FuncType = KeyWords(HP.IsKeyWord());
 		switch (FuncType) {
 		case CONST: {
 			doublereal c = HP.GetReal();
-			MapOfScalarFunctions[func_name] = new ConstScalarFunction(c);
+			pDM->SetScalarFunction(func_name, 
+				new ConstScalarFunction(c));
 			break;
 		}
 		case POW: {
 			doublereal p = HP.GetReal();
-			MapOfScalarFunctions[func_name] = 
-				new PowScalarFunction(p);
+			pDM->SetScalarFunction(func_name,
+				new PowScalarFunction(p));
 			break;
 		}
 		case LOG: {
 			doublereal m = HP.GetReal();
-			MapOfScalarFunctions[func_name] = 
-				new LogScalarFunction(m);
+			pDM->SetScalarFunction(func_name,
+				new LogScalarFunction(m));
 			break;
 		}
 		case LINEAR: {
@@ -434,8 +428,8 @@ const BasicScalarFunction *const ParseScalarFunction(MBDynParser& HP,
 			doublereal y_f = HP.GetReal();
 			doublereal t_i = HP.GetReal();
 			doublereal t_f = HP.GetReal();
-			MapOfScalarFunctions[func_name] = 
-				new LinearScalarFunction(y_i,y_f,t_i,t_f);
+			pDM->SetScalarFunction(func_name,
+				new LinearScalarFunction(y_i,y_f,t_i,t_f));
 			break;
 		}
 		case CUBICSPLINE: {
@@ -454,8 +448,8 @@ const BasicScalarFunction *const ParseScalarFunction(MBDynParser& HP,
 				x_i[size] = HP.GetReal();
 				y_i[size] = HP.GetReal();
 			}
-			MapOfScalarFunctions[func_name] = 
-				new CubicSplineScalarFunction(y_i,x_i);
+			pDM->SetScalarFunction(func_name,
+				new CubicSplineScalarFunction(y_i,x_i));
 			break;
 		}
 		case MULTILINEAR: {
@@ -474,24 +468,32 @@ const BasicScalarFunction *const ParseScalarFunction(MBDynParser& HP,
 				x_i[size] = HP.GetReal();
 				y_i[size] = HP.GetReal();
 			}
-			MapOfScalarFunctions[func_name] = 
-				new MultiLinearScalarFunction(y_i,x_i);
+			pDM->SetScalarFunction(func_name,
+				new MultiLinearScalarFunction(y_i,x_i));
 			break;
 		}
 		case SUM: {
 			const BasicScalarFunction *const
-				f1(ParseScalarFunction(HP,MapOfScalarFunctions));
+				f1(ParseScalarFunction(HP,pDM));
 			const BasicScalarFunction *const 
-				f2(ParseScalarFunction(HP,MapOfScalarFunctions));
-			MapOfScalarFunctions[func_name] = new SumScalarFunction(f1,f2);
+				f2(ParseScalarFunction(HP,pDM));
+			pDM->SetScalarFunction(func_name,
+				new SumScalarFunction(f1,f2));
 			break;
 		}
 		case MUL: {
 			const BasicScalarFunction *const
-				f1(ParseScalarFunction(HP,MapOfScalarFunctions));
+				f1(ParseScalarFunction(HP,pDM));
 			const BasicScalarFunction *const 
-				f2(ParseScalarFunction(HP,MapOfScalarFunctions));
-			MapOfScalarFunctions[func_name] = new MulScalarFunction(f1,f2);
+				f2(ParseScalarFunction(HP,pDM));
+			pDM->SetScalarFunction(func_name,
+				new MulScalarFunction(f1,f2));
+			break;
+		}
+		default: {
+			std::cerr << "unknown ScalarFunction type"
+			<< " at line " << HP.GetLineData() << std::endl;       
+			THROW(DataManager::ErrGeneric());
 			break;
 		}
 		} 
@@ -502,5 +504,5 @@ const BasicScalarFunction *const ParseScalarFunction(MBDynParser& HP,
 		throw MBDynParser::ErrGeneric();
 	}
 	
-	return MapOfScalarFunctions[func_name];
+	return 	pDM->GetScalarFunction(func_name);
 }

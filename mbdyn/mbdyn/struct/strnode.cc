@@ -1347,9 +1347,9 @@ ReadStructNode(DataManager* pDM,
 
       /* Rigidezza in assemblaggio diversa da quella di default
        * e flag di output */
-      doublereal dPosStiff = pDM->dInitialPositionStiffness;
-      doublereal dVelStiff = pDM->dInitialVelocityStiffness;
-      flag fOmRot = pDM->fOmegaRotates;
+      doublereal dPosStiff = pDM->dGetInitialPositionStiffness();
+      doublereal dVelStiff = pDM->dGetInitialVelocityStiffness();
+      flag fOmRot = pDM->fDoesOmegaRotate();
 
       if (HP.fIsArg()) {
 	 if (HP.IsKeyWord("assembly")) {
@@ -1403,7 +1403,7 @@ ReadStructNode(DataManager* pDM,
 						  fOmRot, fOut));
 
 	 /* Incrementa il numero di elementi automatici dei nodi dinamici */
-	 pDM->ElemData[Elem::AUTOMATICSTRUCTURAL].iNum++;
+	 pDM->IncElemCount(Elem::AUTOMATICSTRUCTURAL);
 
       } else if(CurrType == MODAL) {
 	 SAFENEWWITHCONSTRUCTOR(pNd, ModalNode,

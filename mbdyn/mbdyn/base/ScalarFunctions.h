@@ -65,13 +65,10 @@ public:
 };
 
 #include "mbpar.h"
-#include <map>
+#include "dataman.h"
 //implemented in ScalarFunctionsImpl.cc
 const BasicScalarFunction *const ParseScalarFunction(MBDynParser& HP,
-	std::map<
-		std::string,
-		const BasicScalarFunction *
-	> &MapOfScalarFunctions);
+	DataManager* const pDM);
 
 
 #endif //ScalarFunctions_hh

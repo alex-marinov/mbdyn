@@ -253,5 +253,11 @@ class AbstractInternalForce : virtual public Elem, public Force {
 
 /* AbstractInternalForce - end */
 
+extern Elem* 
+ReadForce(DataManager* pDM, 
+	MBDynParser& HP, 
+	unsigned int uLabel, 
+	flag);
+
 #endif /* FORCE_H */
 

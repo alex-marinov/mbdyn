@@ -72,6 +72,9 @@ PlaneHingeJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
 	Vec3 v(MatR2EulerAngles(RTmp));
 
 	dTheta = v.dGet(3);
+	if (fc) {
+		fc->SetValue(X,XP,iGetFirstIndex()+NumSelfDof);
+	}
 }
 
 void
@@ -281,25 +284,34 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
       ExpandableRowVector dv;
           //variation of reaction force
       dF.ReDim(3);
-      dF.Set(F.dGet(1)/modF,1,iFirstReactionIndex+1);
-      dF.Set(F.dGet(2)/modF,2,iFirstReactionIndex+2);
-      dF.Set(F.dGet(3)/modF,3,iFirstReactionIndex+3);
+      if (modF == 0.) {
+          dF.Set(0.,1,12+1);
+          dF.Set(0.,2,12+2);
+          dF.Set(0.,3,12+3);
+      } else {
+          dF.Set(F.dGet(1)/modF,1,12+1);
+          dF.Set(F.dGet(2)/modF,2,12+2);
+          dF.Set(F.dGet(3)/modF,3,12+3);
+      }
           //variation of relative velocity
       dv.ReDim(6);
-      Vec3 vrot = R1hTmp*(Omega1-Omega2);
-      Vec3 e3aO1(e3a*Omega1);
-      Vec3 e3aO2(e3a*Omega2);
-      dv.Set((e3a.dGet(1)-(Omega1r.dGet(3)-Omega1r.dGet(2))*dCoef)*r,1,iNode1FirstPosIndex+4);
-          dv.Sub(e3aO1.dGet(2)*dCoef,1);
-      dv.Set((e3a.dGet(2)-(-Omega1r.dGet(3)+Omega1r.dGet(1))*dCoef)*r,2,iNode1FirstPosIndex+5);
-          dv.Add(e3aO1.dGet(1)*dCoef,2);
-      dv.Set((e3a.dGet(3)-(Omega1r.dGet(2)-Omega1r.dGet(1))*dCoef)*r,3,iNode1FirstPosIndex+6);
+      Vec3 domega = Omega1-Omega2;
+      //Vec3 e3aO1(e3a*Omega1);
+      //Vec3 e3aO2(e3a*Omega2);
+      dv.Set(e3a.dGet(1)*(1.-( Omega1r.dGet(3)-Omega1r.dGet(2))*dCoef)*r,1,0+4);
+          dv.Add((R1hTmp.dGet(2,3)*domega.dGet(3)-R1hTmp.dGet(3,3)*domega.dGet(2))*dCoef*r,1);
+          //dv.Sub(e3aO1.dGet(2)*dCoef,1);
+      dv.Set(e3a.dGet(2)*(1.-(-Omega1r.dGet(3)+Omega1r.dGet(1))*dCoef)*r,2,0+5);
+          dv.Add((R1hTmp.dGet(3,3)*domega.dGet(1)-R1hTmp.dGet(1,3)*domega.dGet(3))*dCoef*r,2);
+          //dv.Add(e3aO1.dGet(1)*dCoef,2);
+      dv.Set(e3a.dGet(3)*(1.-( Omega1r.dGet(2)-Omega1r.dGet(1))*dCoef)*r,3,0+6);
+          dv.Add((R1hTmp.dGet(1,3)*domega.dGet(2)-R1hTmp.dGet(2,3)*domega.dGet(1))*dCoef*r,3);
       
-      dv.Set(-(e3a.dGet(1)-(Omega2r.dGet(3)-Omega2r.dGet(2))*dCoef)*r,4,iNode2FirstPosIndex+4);
-      dv.Set(-(e3a.dGet(2)-(-Omega2r.dGet(3)+Omega2r.dGet(1))*dCoef)*r,5,iNode2FirstPosIndex+5);
-      dv.Set(-(e3a.dGet(3)-(Omega2r.dGet(2)-Omega2r.dGet(1))*dCoef)*r,6,iNode2FirstPosIndex+6);
+      dv.Set(-e3a.dGet(1)*(1.-( Omega2r.dGet(3)-Omega2r.dGet(2))*dCoef)*r,4,6+4);
+      dv.Set(-e3a.dGet(2)*(1.-(-Omega2r.dGet(3)+Omega2r.dGet(1))*dCoef)*r,5,6+5);
+      dv.Set(-e3a.dGet(3)*(1.-( Omega2r.dGet(2)-Omega2r.dGet(1))*dCoef)*r,6,6+6);
       //assemble friction states
-      fc->AssJac(WM,dfc,iFirstReactionIndex+NumSelfDof,dCoef,modF,v,
+      fc->AssJac(WM,dfc,12+NumSelfDof,iFirstReactionIndex+NumSelfDof,dCoef,modF,v,
       		XCurr,XPrimeCurr,dF,dv);
       ExpandableRowVector dM3;
       ExpandableRowVector dShc;
@@ -307,29 +319,42 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
           //variation of shape function
       Sh_c->dSh_c(dShc,f,modF,v,dfc,dF,dv);
           //variation of moment component
-      dM3.ReDim(2);
+      dM3.ReDim(3);
       dM3.Set(shc*f,1); dM3.Link(1,&dF);
       dM3.Set(modF*f,2); dM3.Link(2,&dShc);
+      dM3.Set(shc*modF,3); dM3.Link(3,&dfc);
       //assemble first node
           //variation of moment component
-      dM3.Sub(WM,iNode1FirstPosIndex+4,e3a.dGet(1));
-      dM3.Sub(WM,iNode1FirstPosIndex+5,e3a.dGet(2));
-      dM3.Sub(WM,iNode1FirstPosIndex+6,e3a.dGet(3));
+      dM3.Sub(WM,0+4,e3a.dGet(1));
+      dM3.Sub(WM,0+5,e3a.dGet(2));
+      dM3.Sub(WM,0+6,e3a.dGet(3));
           // variation of node direction: $R_{\delta 1}\times$"
-      WM.fDecCoef(iNode1FirstPosIndex+4,iNode1FirstPosIndex+5,R1.dGet(1,1)*(M3*dCoef));
-      WM.fDecCoef(iNode1FirstPosIndex+4,iNode1FirstPosIndex+4,R1.dGet(2,1)*(-M3*dCoef));
-      WM.fDecCoef(iNode1FirstPosIndex+5,iNode1FirstPosIndex+5,R1.dGet(1,2)*(M3*dCoef));
-      WM.fDecCoef(iNode1FirstPosIndex+5,iNode1FirstPosIndex+4,R1.dGet(2,2)*(-M3*dCoef));
-      //assemble first node
+      WM.fDecCoef(0+4,0+6,-R1hTmp.dGet(2,3)*M3*dCoef);
+      WM.fDecCoef(0+4,0+5, R1hTmp.dGet(3,3)*M3*dCoef);
+      WM.fDecCoef(0+5,0+6, R1hTmp.dGet(1,3)*M3*dCoef);
+      WM.fDecCoef(0+5,0+1,-R1hTmp.dGet(3,3)*M3*dCoef);
+      WM.fDecCoef(0+6,0+5,-R1hTmp.dGet(1,3)*M3*dCoef);
+      WM.fDecCoef(0+6,0+1, R1hTmp.dGet(2,3)*M3*dCoef);
+//       WM.fDecCoef(0+4,0+5,R1.dGet(1,1)*(M3*dCoef));
+//       WM.fDecCoef(0+4,0+4,R1.dGet(2,1)*(-M3*dCoef));
+//       WM.fDecCoef(0+5,0+5,R1.dGet(1,2)*(M3*dCoef));
+//       WM.fDecCoef(0+5,0+4,R1.dGet(2,2)*(-M3*dCoef));
+      //assemble second node
           //variation of moment component
-      dM3.Add(WM,iNode2FirstPosIndex+4,e3a.dGet(1));
-      dM3.Add(WM,iNode2FirstPosIndex+5,e3a.dGet(2));
-      dM3.Add(WM,iNode2FirstPosIndex+6,e3a.dGet(3));
+      dM3.Add(WM,6+4,e3a.dGet(1));
+      dM3.Add(WM,6+5,e3a.dGet(2));
+      dM3.Add(WM,6+6,e3a.dGet(3));
           // variation of node direction: $R_{\delta 1}\times$"
-      WM.fIncCoef(iNode2FirstPosIndex+4,iNode1FirstPosIndex+5,R1.dGet(1,1)*(M3*dCoef));
-      WM.fIncCoef(iNode2FirstPosIndex+4,iNode1FirstPosIndex+4,R1.dGet(2,1)*(-M3*dCoef));
-      WM.fIncCoef(iNode2FirstPosIndex+5,iNode1FirstPosIndex+5,R1.dGet(1,2)*(M3*dCoef));
-      WM.fIncCoef(iNode2FirstPosIndex+5,iNode1FirstPosIndex+4,R1.dGet(2,2)*(-M3*dCoef));
+      WM.fIncCoef(6+4,0+6,-R1hTmp.dGet(2,3)*M3*dCoef);
+      WM.fIncCoef(6+4,0+5, R1hTmp.dGet(3,3)*M3*dCoef);
+      WM.fIncCoef(6+5,0+6, R1hTmp.dGet(1,3)*M3*dCoef);
+      WM.fIncCoef(6+5,0+1,-R1hTmp.dGet(3,3)*M3*dCoef);
+      WM.fIncCoef(6+6,0+5,-R1hTmp.dGet(1,3)*M3*dCoef);
+      WM.fIncCoef(6+6,0+1, R1hTmp.dGet(2,3)*M3*dCoef);
+//       WM.fIncCoef(6+4,0+5,R1.dGet(1,1)*(M3*dCoef));
+//       WM.fIncCoef(6+4,0+4,R1.dGet(2,1)*(-M3*dCoef));
+//       WM.fIncCoef(6+5,0+5,R1.dGet(1,2)*(M3*dCoef));
+//       WM.fIncCoef(6+5,0+4,R1.dGet(2,2)*(-M3*dCoef));
    }
    
    return WorkMat;
@@ -363,7 +388,7 @@ SubVectorHandler& PlaneHingeJoint::AssRes(SubVectorHandler& WorkVec,
    }   
    
    /* Indici del vincolo */
-   for (int iCnt = 1; iCnt <= iGetNumDof(); iCnt++) {
+   for (unsigned int iCnt = 1; iCnt <= iGetNumDof(); iCnt++) {
       WorkVec.fPutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
    }
 
@@ -421,7 +446,7 @@ SubVectorHandler& PlaneHingeJoint::AssRes(SubVectorHandler& WorkVec,
       Vec3 Omega2(pNode2->GetWCurr());
       doublereal v = (Omega1-Omega2).Dot(e3a)*r;
       doublereal modF = F.Norm();
-      fc->AssRes(WorkVec,iFirstReactionIndex+NumSelfDof,modF,v,XCurr,XPrimeCurr);
+      fc->AssRes(WorkVec,12+NumSelfDof,iFirstReactionIndex+NumSelfDof,modF,v,XCurr,XPrimeCurr);
       doublereal f = fc->fc();
       doublereal shc = Sh_c->Sh_c(f,modF,v);
       doublereal M3 = shc*modF*f;
@@ -459,7 +484,7 @@ PlaneHingeJoint::GetEqType(unsigned int i) const
    if (i<NumSelfDof) {
        return DofOrder::ALGEBRAIC; 
    } else {
-       return fc->GetDofType(i-NumSelfDof);
+       return fc->GetEqType(i-NumSelfDof);
    }
 }
 
