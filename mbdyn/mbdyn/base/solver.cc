@@ -1078,9 +1078,9 @@ IfFirstStepIsToBeRepeated:
 
 			DEBUGCOUT("Task: " << mbdyn_rtai_task 
 				<< "; time: " << t 
-				<< "; period: " << lRTPeriod << std::endl);
+				<< "; period: " << mbdyn_count2nano(lRTPeriod) << std::endl);
 			r = mbdyn_rt_task_make_periodic(mbdyn_rtai_task,
-					t, mbdyn_nano2count(lRTPeriod));
+					t,lRTPeriod);
 
 			if (r) {
 				std::cerr << "rt_task_make_periodic() failed ("
@@ -1224,14 +1224,14 @@ IfFirstStepIsToBeRepeated:
 			mbdyn_rt_receive_if(NULL, &RTStpFlag);
 
 			t1 = mbdyn_rt_get_time();
-			if ((RTSteps >= 2) && (t1 > (t0 + mbdyn_nano2count(lRTPeriod)))) {
+			if ((RTSteps >= 2) && (t1 > (t0 + lRTPeriod))) {
 				or_counter++;
-				t_tot = t_tot + (mbdyn_count2nano(t1 - t0) - lRTPeriod)/1000;
+				t_tot = t_tot + mbdyn_count2nano(t1 - t0 - lRTPeriod)/1000;
 
 #ifdef RTAI_LOG
 				if (bRTlog){
 					msg.step = RTSteps;
-					msg.time = (mbdyn_count2nano(t1 - t0) - lRTPeriod)/1000;
+					msg.time = mbdyn_count2nano(t1 - t0 - lRTPeriod)/1000;
 
 					mbdyn_RT_mbx_send_if(0, 0, mbxlog, &msg, sizeof(msg));
 				}
