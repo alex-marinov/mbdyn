@@ -41,6 +41,7 @@ MBDyn 1.2-Engineering
 		- reworked distance joints; d=0 not allowed any more
 		- selected loadable elements can be used as joints
 		- parameter nodes value is output in .prm files
+		- very rough implementation of aircraft instruments
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility
