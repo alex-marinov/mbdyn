@@ -259,9 +259,13 @@ main(int argc, char* argv[])
 	 * invoked thru mpirun (which means we need to initialize
 	 * MPI) or not (which means we don't); need to check how 
 	 * portable it is ...
+	 *
+	 * the check is on the first two chars because "most" of
+	 * the mpirun/MPI extra args start with -p<something>
 	 */
-	for (char **s = argv; s[0]; s++) {
-		if (strcmp(s[0], "-p") == 0) {
+	for (int i = 1; i <= argc; i++) {
+		if (strncmp(argv[i], "-p", 2) == 0) {
+
 			MPI::Init(argc, argv);	   
 			WorldSize = MPI::COMM_WORLD.Get_size();
 			myrank = MPI::COMM_WORLD.Get_rank();
