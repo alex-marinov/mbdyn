@@ -19,6 +19,8 @@ MBDyn 1.2-Engineering
 		- added environment vars expansion in file names
 		- added separate definition of constitutive laws
 		- added "bailout" output mode (residual at divergence)
+		- added "stop" function in math parser
+		- added brake joint
 	Bug fixes:
 		- fixed aeromodal bug for v=0
 		- fixed solver diagnostics incremental activation
