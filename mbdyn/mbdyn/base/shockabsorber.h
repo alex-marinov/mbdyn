@@ -45,6 +45,7 @@
 const doublereal defaultEpsMin = -.5;
 const doublereal defaultEpsMax = 0.;
 const doublereal defaultPenalty = 1.e9;
+const doublereal defaultPenaltyPrime = 0.e9;
 
 /* ShockAbsorberConstitutiveLaw - begin */
 
@@ -145,6 +146,7 @@ private:
 	doublereal EpsMax;
 	doublereal EpsMin;
 	doublereal Penalty;
+	doublereal PenaltyPrime;
 	doublereal FMax;
 	doublereal FMin;
 
@@ -178,6 +180,7 @@ private:
 		EpsMax = p->EpsMax;
 		EpsMin = p->EpsMin;
 		Penalty = p->Penalty;
+		PenaltyPrime = p->PenaltyPrime;
 		FMax = p->FMax;
 		FMin = p->FMin;
 
@@ -198,7 +201,8 @@ public:
 			TplDriveCaller<doublereal>* pDC,
 			MBDynParser& HP
 	) : ElasticConstitutiveLaw<doublereal, doublereal>(pDC, 0.),
-	EpsMax(defaultEpsMax), EpsMin(defaultEpsMin), Penalty(defaultPenalty),
+	EpsMax(defaultEpsMax), EpsMin(defaultEpsMin), 
+	Penalty(defaultPenalty), PenaltyPrime(defaultPenaltyPrime),
 	pAreaPin(NULL), pAreaOrifices(NULL),
 	EpsPrimeRef(1.), FrictionAmpl(0.) {
 		if (HP.IsKeyWord("help")) {
@@ -216,7 +220,8 @@ public:
 "\t<gamma (polytropic exponent)> ,\n"
 "\t[ epsilon max , <upper strain bound, > prestrain; defaults to " << defaultEpsMax << ")> , ]\n"
 "\t[ epsilon min , <lower strain bound, < prestrain; defaults to " << defaultEpsMin << ")> , ]\n"
-"\t[ penalty , <penalty factor for strain bound enforcement, defaults to " << defaultPenalty << "> , ]\n"
+"\t[ penalty , <penalty factor for strain bound enforcement, defaults to " << defaultPenalty << "> ,\n"
+"\t\t<penalty factor for strain rate, active only when strain bounds are violated; defaults to " << defaultPenaltyPrime << "> ]\n"
 "\t[ metering , <metering area (drive, strain dependent)> , ]\n"
 "\t[ orifice , <orifice area (drive, strain rate dependent)> , ]\n"
 "\t<fluid area> ,\n"
@@ -263,6 +268,7 @@ public:
 
 		if (HP.IsKeyWord("penalty")) {
 			Penalty = HP.GetReal(defaultPenalty);
+			PenaltyPrime = HP.GetReal(defaultPenaltyPrime);
 		}
 
 		if (HP.IsKeyWord("metering")) { 
@@ -342,7 +348,7 @@ public:
 			<< Gamma << ", "
 			<< "epsilon max, " << EpsMax << ", "
 			<< "epsilon min, " << EpsMin << ", "
-			<< "penalty, " << Penalty;
+			<< "penalty, " << Penalty << ", " << PenaltyPrime;
 
 		/*
 		 * drive delle aree (solo quelli definiti)
@@ -376,17 +382,25 @@ public:
 		Epsilon = Eps;
 		EpsilonPrime = EpsPrime;
 
+		FDEPrime = 0.;
+
 		/*
 		 * Parte elastica
 		 */
-		
+
 		doublereal CurrEpsilon = Epsilon-Get();
 		if ( CurrEpsilon > EpsMax) {
-			F = FMin+Penalty*(CurrEpsilon-EpsMax);
+			F = FMin+Penalty*(CurrEpsilon-EpsMax)
+				+PenaltyPrime*EpsPrime;
 			FDE = Penalty;
+			FDEPrime = PenaltyPrime;
+
 		} else if ( CurrEpsilon < EpsMin ) {
-			F = FMax + Penalty*(CurrEpsilon-EpsMin);
+			F = FMax + Penalty*(CurrEpsilon-EpsMin)
+				+PenaltyPrime*EpsPrime;
 			FDE = Penalty;
+			FDEPrime = PenaltyPrime;
+
 		} else {
 			doublereal VRatio = 1./(1.+Cint*CurrEpsilon);
 			doublereal Adiab = pow(VRatio, Gamma);
@@ -423,7 +437,7 @@ public:
 		
 		doublereal d = .5*RhoFluid*AreaFluid*pow(AreaFluid/(a*Cd), 2);
 		F += d*EpsPrime*fabs(EpsPrime);
-		FDEPrime = d*fabs(EpsPrime);
+		FDEPrime += d*fabs(EpsPrime);
 	}
 
 	virtual void
