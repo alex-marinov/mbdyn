@@ -113,7 +113,7 @@
 
 /* classi dichiarate in questo file */
 
-class HarwellSparse;        /* gestore di sparsita' */
+class SparseData;           /* gestore di sparsita' */
 class HSMatrixHandler;      /* gestore matrice sparsa (assemblaggio) */
 class VectorHandler;        /* gestore vettore (pieno, assemblaggio) */
 class HarwellLUSolver;      /* solutore */
@@ -145,12 +145,12 @@ union uPacVec {
 };
 
 
-/* HarwellSparse - begin */
+/* SparseData - begin */
 
 /* Gestore di entita' sparse con hash + linked list. 
  * usa spazio di lavoro messo a disposizione da altri. */
 
-class HarwellSparse {
+class SparseData {
    friend class HSLUSolutionManager;
    friend class HSMatrixHandler;
 
@@ -192,7 +192,7 @@ class HarwellSparse {
     * piKeys  - puntatore a punt. ad un array delle stesse dimensioni del 
     *           precedente, che viene usato per contenere le keys
     */
-   HarwellSparse(integer iSize, integer** ppiTmpTable, integer** ppiTmpKeys) 
+   SparseData(integer iSize, integer** ppiTmpTable, integer** ppiTmpKeys) 
      : iMaxSize(iSize), iCurSize(iSize), iNumItem(0),
      ppiTable(ppiTmpTable), ppiKeys(ppiTmpKeys) {
 	ASSERT(iCurSize > 0);
@@ -207,7 +207,7 @@ class HarwellSparse {
      };
    
    /* Distruttore (banalissimo): non c'e' nulla da distruggere  */
-   ~HarwellSparse(void) { 
+   ~SparseData(void) { 
       NO_OP;
    };
    
@@ -235,21 +235,21 @@ class HarwellSparse {
       integer iFree = 0;
       __FC_DECL__(kd01b)(*ppiTable, *ppiKeys, &iKey, &iFree);
       if (iFree == 0) {
-	 cerr << "HarwellSparse: there's no room left in matrix" << endl;	 
-	 THROW(HarwellSparse::ErrNoRoom());
+	 cerr << "SparseData: there's no room left in matrix" << endl;	 
+	 THROW(SparseData::ErrNoRoom());
       }
       
       return iFree;
    };
 };
 
-/* HarwellSparse - end */
+/* SparseData - end */
 
 
 /* HSMatrixHandler - begin */
 
 /* Gestore di matrici sparse; usa spazio messo a disposizione da altri;
- * usa il gestore di sparsita' HarwellSparse */
+ * usa il gestore di sparsita' SparseData */
  
 class HSMatrixHandler : public MatrixHandler {
    friend class HSLUSolutionManager;
@@ -261,7 +261,7 @@ class HSMatrixHandler : public MatrixHandler {
    
    integer iMatSize; /* Ordine della matrice (supposta quadrata) */
 
-   HarwellSparse* pHS; /* Puntatore all'oggetto HarwellSparse da utilizzare */
+   SparseData* pHS;  /* Puntatore all'oggetto SparseData da utilizzare */
    
    const doublereal dZero;
    
@@ -276,9 +276,9 @@ class HSMatrixHandler : public MatrixHandler {
    /* Costruttore; gli vengono passati:
     * iMSize   - ordine della matrice;
     * ppiRow   - puntatore ad array di interi di dimensione iSize,
-    *            contiene la tabella usata da HarwellSparse;
+    *            contiene la tabella usata da SparseData;
     * ppiCol   - puntatore ad array di interi di dimensione iSize,
-    *            contiene le keys usate da HarwellSparse
+    *            contiene le keys usate da SparseData
     * ppdMat   - puntatore ad array di reali, contiene la matrice;
     * iWSSize  - dimensione del workspace
     */
@@ -688,8 +688,8 @@ class HSLUSolutionManager : public SolutionManager {
  protected:
    integer iMatMaxSize;  /* Dimensione massima della matrice (per resize) */
    integer iMatSize;     /* ordine della matrice */
-   integer* piRow;       /* puntatore ad array di interi con: tabella di HarwellSparse/indici di riga di HarwellLUSolver */
-   integer* piCol;       /* puntatore ad array di interi con: keys di HarwellSparse/indici di colonna di HarwellLUSolver */
+   integer* piRow;       /* puntatore ad array di interi con: tabella di SparseData/indici di riga di HarwellLUSolver */
+   integer* piCol;       /* puntatore ad array di interi con: keys di SparseData/indici di colonna di HarwellLUSolver */
    doublereal* pdMat;    /* puntatore ad array di reali con la matrice */
    doublereal* pdVec;    /* punattore ad array di reali con residuo/soluzione */
    

@@ -64,8 +64,8 @@ ppdMat(ppdTmpMat)
 #endif
 
    SAFENEWWITHCONSTRUCTOR(pHS,
-			  HarwellSparse,
-			  HarwellSparse(iCurSize, ppiRow, ppiCol), 
+			  SparseData,
+			  SparseData(iCurSize, ppiRow, ppiCol), 
 			  MHmm);
 }
 
@@ -391,3 +391,4 @@ void HSLUSolutionManager::Solve(void)
 }
 
 /* HSLUSolutionManager - end */
+
