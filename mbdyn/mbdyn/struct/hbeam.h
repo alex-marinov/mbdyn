@@ -134,11 +134,12 @@ class HBeam
      * in modo consistente */
     virtual void Omega0(void);
    
-    /* Scrive una matrice 6x6 formata da quattro 3x3 */
+    /* Scrive una matrice 6x6 formata da quattro 3x3
     virtual ostream& 
     WriteMat6x6(ostream& Out, 
                 const Mat3x3& m11, const Mat3x3& m12, 
 		const Mat3x3& m21, const Mat3x3& m22) const;
+    */
    
     /* Funzione interna di restart */
     virtual ostream& Restart_(ostream& out) const;
@@ -203,13 +204,6 @@ class HBeam
 	   const VectorHandler& XCurr,
 	   const VectorHandler& XPrimeCurr);
 
-    /* assemblaggio matrici per autovalori */
-    void 
-    AssEig(VariableSubMatrixHandler& WorkMatA,
-	   VariableSubMatrixHandler& WorkMatB,
-	   const VectorHandler& XCurr,
-	   const VectorHandler& XPrimeCurr);
-   
     /* output; si assume che ogni tipo di elemento sappia, attraverso
      * l'OutputHandler, dove scrivere il proprio output */
     virtual void Output(OutputHandler& OH) const;   

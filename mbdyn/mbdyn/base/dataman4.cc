@@ -71,6 +71,7 @@ enum KeyWords {
    JOINT,
    COUPLE,
    BEAM,
+   HBEAM,
    
    AIRPROPERTIES,
    ROTOR,
@@ -111,6 +112,7 @@ void DataManager::ReadElems(MBDynParser& HP)
       "joint",
       "couple",
       "beam",
+      "hbeam",
       
       "airproperties",
       "rotor",
@@ -198,7 +200,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 	     Typ = Elem::JOINT;
 	     break;
 	  }
-	  case BEAM: {
+	  case BEAM:
+	  case HBEAM: {
 	     DEBUGLCOUT(MYDEBUG_INPUT, "beams" << endl);
 	     Typ = Elem::BEAM;
 	     break;
@@ -309,6 +312,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	    t = Elem::FORCE;
 	    break;
 	  case BEAM:
+	  case HBEAM:
 	    t = Elem::BEAM;
 	    break;
 	  case ROTOR:
@@ -526,6 +530,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		  case JOINT:
 		  case COUPLE:
 		  case BEAM:
+		  case HBEAM:
 #ifdef USE_AERODYNAMIC_ELEMS
 		  case ROTOR:
 		  case AERODYNAMICBODY:
@@ -583,7 +588,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 			ppE = ppFindElem(Elem::FORCE, uLabel);
 			break;
 		     }
-		     case BEAM: {
+		     case BEAM:
+		     case HBEAM: {
 			ppE = ppFindElem(Elem::BEAM, uLabel);
 			break;
 		     }
@@ -687,6 +693,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	      case JOINT:
 	      case COUPLE:
 	      case BEAM:
+	      case HBEAM:
 #ifdef USE_AERODYNAMIC_ELEMS
 	      case ROTOR:
 	      case AERODYNAMICBODY:
@@ -881,7 +888,7 @@ Elem** ReadOneElem(DataManager* pDM,
 
    Elem** ppE = NULL;
    
-   switch(KeyWords(CurrType)) {
+   switch (KeyWords(CurrType)) {
 
       /* forza */
     case FORCE:
@@ -999,7 +1006,8 @@ Elem** ReadOneElem(DataManager* pDM,
     }
       
       /* trave */
-    case BEAM: {      
+    case BEAM:
+    case HBEAM: {      
        silent_cout("Reading beam " << uLabel << endl);
        
        if (iNumTypes[Elem::BEAM]-- <= 0) {
@@ -1025,8 +1033,15 @@ Elem** ReadOneElem(DataManager* pDM,
        int i = pDM->ElemData[Elem::BEAM].iNum
 	 -iNumTypes[Elem::BEAM]-1;
        ppE = pDM->ElemData[Elem::BEAM].ppFirstElem+i;
-       
-       *ppE = ReadBeam(pDM, HP, uLabel);
+      
+       switch (KeyWords(CurrType)) {
+       case BEAM:
+          *ppE = ReadBeam(pDM, HP, uLabel);
+	  break;
+       case HBEAM:
+	  *ppE = ReadHBeam(pDM, HP, uLabel);
+	  break;
+       }
        
        break;
     }
