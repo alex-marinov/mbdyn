@@ -31,8 +31,17 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#if defined(HAVE_LTDL_H) || defined(HAVE_DLFCN_H)
+
 #include <string.h>
+#ifdef HAVE_LTDL_H
+#include <ltdl.h>
+#elif defined(HAVE_DLFCN_H)
 #include <dlfcn.h>
+#else /* !HAVE_LTDL_H && !HAVE_DLFCN_H */
+#error "no dynamic linking headers, sorry"
+#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
+
 #include <ac/getopt.h>
 
 #include <myassert.h>
@@ -235,6 +244,14 @@ main(int argn, char *const argv[])
       		delete[] user_defined;
       		user_defined = NULL;
    	}
+
+#ifdef HAVE_LTDL_H
+	if (lt_dlexit()) {
+		std::cerr << "lt_dlexit() failed" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+#endif /* HAVE_LTDL_H */
+	
    	return 0;
 }
 
@@ -256,8 +273,33 @@ static funcs *ff;
 int
 open_module(const char* module) 
 {
-   	void* handle = NULL;
    	const char* err = NULL;
+
+#ifdef HAVE_LTDL_H
+	lt_dlhandle handle;
+
+	if (lt_dlinit()) {
+		std::cerr << "lt_dlinit() failed" << std::endl;
+      		exit(EXIT_FAILURE);
+   	}
+
+   	if ((handle = lt_dlopen(module)) == NULL) {
+      		err = lt_dlerror();
+      		std::cerr << "lt_dlopen(\"" << module << "\") returned \"" << err
+			<< "\"" << std::endl;
+      		exit(EXIT_FAILURE);
+   	}
+   
+   	if ((::ff = (funcs *)lt_dlsym(handle, "ff")) == NULL) {
+      		err = lt_dlerror();
+      		std::cerr << "lt_dlsym(\"ff\") returned \"" << err << "\""
+			<< std::endl;
+      		exit(EXIT_FAILURE);
+   	}
+
+#elif defined(HAVE_DLFCN_H)
+   	void* handle = NULL;
+
    	if ((handle = dlopen(module, RTLD_NOW)) == NULL) {
       		err = dlerror();
       		std::cerr << "dlopen(\"" << module << "\") returned \"" << err
@@ -271,6 +313,7 @@ open_module(const char* module)
 			<< std::endl;
       		exit(EXIT_FAILURE);
    	}
+#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
 
    	return 0;
 }
@@ -658,4 +701,15 @@ method_cn(const char* module, integration_data* d,
 
    	return 0;
 }
+
+#else /* defined(HAVE_LTDL_H) || defined(HAVE_DLFCN_H) */
+
+int
+main(void)
+{
+	std::cerr << "Need dynamic load capabilities" << atd::endl;
+   	exit(EXIT_FAILURE);
+}
+
+#endif /* defined(HAVE_LTDL_H) || defined(HAVE_DLFCN_H) */
 
