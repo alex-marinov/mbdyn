@@ -59,8 +59,7 @@ ThirdOrderIntegrator::ThirdOrderIntegrator(const doublereal dT,
 pXPrev(0),
 pXPrimePrev(0),
 Rho(pRho),
-bAdvanceCalledFirstTime(true),
-Restmp(pDM->iGetNumDofs())
+bAdvanceCalledFirstTime(true)
 {
 	pJacxi_xp = &Jacxi_xp;
 	pJacxi_x  = &Jacxi_x;
@@ -139,6 +138,7 @@ ThirdOrderIntegrator::Advance(Solver* pS,
 {
 	if (bAdvanceCalledFirstTime) {
 		integer n = pDM->iGetNumDofs();
+		Restmp.Resize(n);
 		EqIsAlgebraic.resize(n);
 		EqIsDifferential.resize(n);
 	   	Dof CurrDof;
