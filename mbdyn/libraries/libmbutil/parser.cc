@@ -363,13 +363,16 @@ restart_parsing:
 bool
 HighParser::GetDescription_int(const char *s)
 {
-   if (strcmp(s, "set") == 0) {
-      Set_();
-      return true;
+	if (strcmp(s, "set") == 0) {
+		Set_();
+		return true;
 
-   }
+	} else if (strcmp(s, "exit") == 0) {
+		THROW(NoErr());
 
-   return false;
+	}
+
+	return false;
 }
 
 

@@ -37,6 +37,7 @@ MBDyn 1.2-Engineering
 		- added revolute/universal rotation joints, e.g.
 		  revolute/universal joints with no position constraint
 		- added Umfpack 4.1 support
+		- added "exit" statement
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility
