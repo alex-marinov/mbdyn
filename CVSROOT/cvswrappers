@@ -22,9 +22,10 @@
 # For example:
 #*.gif -k 'b'
 
-# Rich Text Format and StarOffice Documents
+# Rich Text Format, StarOffice Documents, Word docs
 *.rtf -k 'b'
 *.sdw -k 'b'
+*.doc -k 'b'
 
 # Images
 *.gif -k 'b'
