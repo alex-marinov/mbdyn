@@ -7,6 +7,10 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+*** Wed May  8 15:10:57 CEST 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+				  Stefania Gualdi <gualdi@aero.polimi.it>
+ - added threshold to module-wheel2 when computing slip angle
+
 *** Tue May  7 15:39:42 CEST 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - added vec2rot to utils; need to rework and document stuff ...
  - silenced warning due to uninitialized MPI stuff in dof drives input

@@ -102,6 +102,7 @@ struct module_wheel {
 	doublereal dVn;
 	doublereal dSr;
 	doublereal dAlpha;
+	doublereal dAlphaThreshold;
 	doublereal dMuX;
 	doublereal dMuY;
 };
@@ -269,6 +270,7 @@ read(LoadableElem* pEl,
 		p->pMuY1 = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
 	
 		p->dvThreshold = 0.;
+		p->dAlphaThreshold = 0.;
 		if (HP.IsKeyWord("threshold")) {
 			p->dvThreshold = HP.GetReal();
 			if (p->dvThreshold < 0.) {
@@ -276,6 +278,14 @@ read(LoadableElem* pEl,
 					<< p->dvThreshold << " at line "
 					<< HP.GetLineData() << std::endl;
 				p->dvThreshold = fabs(p->dvThreshold);
+			}
+
+			p->dAlphaThreshold = HP.GetReal();
+			if (p->dvThreshold < 0.) {
+				std::cerr << "illegal slip angle threshold "
+					<< p->dAlphaThreshold << " at line "
+					<< HP.GetLineData() << std::endl;
+				p->dAlphaThreshold = fabs(p->dAlphaThreshold);
 			}
 		}
 	}
@@ -517,14 +527,25 @@ ass_res(LoadableElem* pEl,
 
 		/*
 		 * Angolo di deriva del mozzo
+		 * Nota: ristretto al Io-IVo quadrante
+		 * questa threshold sul modulo della velocita' fa in modo
+		 * che l'angolo vada a zero se il modulo della velocita'
+		 * e' troppo piccolo
 		 */
 		p->dAlpha = atan2(dvay, fabs(dvax));
+		if (p->dAlphaThreshold > 0.) {
+			doublereal dtmp = tanh(sqrt(dvax*dvax+dvay*dvay)/p->dAlphaThreshold);
+			p->dAlpha *= dtmp*dtmp;
+		}
 
 		/*
 		 * Coefficiente di attrito longitudinale
 		 */
 		doublereal dMuX0 = p->pMuX0->dGet(p->dSr);
-		p->dMuX = dMuX0*sgn*fabs(1.-fabs(p->dAlpha)/M_PI_2);
+		/*
+		 * Nota: alpha/(pi/2) e' compreso tra -1. e 1.
+		 */
+		p->dMuX = dMuX0*sgn*(1.-fabs(p->dAlpha)/M_PI_2);
 		
 		/*
 		 * Correggo le forze:
@@ -536,11 +557,13 @@ ass_res(LoadableElem* pEl,
 		if (dvay != 0.) {
 			doublereal dAlpha = p->dAlpha;
 
+#if 0 /* non serve piu': Alpha e' ristretta al Io-IVo quadrante */
 			if (dAlpha > M_PI_2) {
 				dAlpha = M_PI-dAlpha;
 			} else if (dAlpha < -M_PI_2) {
 				dAlpha = -M_PI-dAlpha;
 			}
+#endif
 			
 			doublereal dMuY0 = p->pMuY0->dGet(dAlpha);
 			doublereal dMuY1 = p->pMuY1->dGet(dAlpha);

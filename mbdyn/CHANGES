@@ -11,6 +11,8 @@ MBDyn 1.1-Engineering
 	Enhancements:
 		- more improved Mat3x3 and Mat3xN APIs
 		- vec2rot added to utils
+		- added velocity threshold to module-wheel2 when computing
+		  slip angle
 	Bug fixes:
 		- fixed SIGSEGV when reading from stdin
 
