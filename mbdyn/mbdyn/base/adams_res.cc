@@ -399,17 +399,25 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
    std::ostream& out = OutHdl.AdamsRes();
 
    unsigned int nStrNodes = NodeData[Node::STRUCTURAL].iNum;
+   std::ios::fmtflags oldflags, tmpflags;
+
+   oldflags = out.flags(std::ios::scientific);
    
    out 
      << "ANALYSIS OUTPUT BLOCK                   " << std::setw(8) << 5+iAdamsOutputParts << std::endl
      << std::setw(8) << iAdamsOutputBlock;
 #if HAVE_FORM_IN_OSTREAM
    out.form("%-20s", type);
+#else /* HAVE_FORM_IN_OSTREAM */
+   tmpflags = out.flags(std::ios::right);
+   out << std::setw(20) << type;
+   out.flags(tmpflags);
 #endif /* HAVE_FORM_IN_OSTREAM */
-   out
-     << id << std::endl;
+   out << id << std::endl;
 #if HAVE_FORM_IN_OSTREAM
    out.form("%12.5e\n", pTime->GetVal().GetReal());
+#else /* HAVE_FORM_IN_OSTREAM */
+   out << std::setw(12) << std::setprecision(5) << pTime->GetVal().GetReal() << std::endl;
 #endif /* HAVE_FORM_IN_OSTREAM */
    out
      << std::endl
@@ -429,6 +437,16 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
       out.form("%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e\n",
 	       x.dGet(1), x.dGet(2), x.dGet(3),
 	       e0, e.dGet(1), e.dGet(2), e.dGet(3));
+#else /* HAVE_FORM_IN_OSTREAM */
+      out 
+	      << std::setw(12) << std::setprecision(5) << x.dGet(1)
+	      << std::setw(12) << std::setprecision(5) << x.dGet(2)
+	      << std::setw(12) << std::setprecision(5) << x.dGet(3)
+	      << std::setw(12) << std::setprecision(5) << e0
+	      << std::setw(12) << std::setprecision(5) << e.dGet(1)
+	      << std::setw(12) << std::setprecision(5) << e.dGet(2)
+	      << std::setw(12) << std::setprecision(5) << e.dGet(3)
+	      << std::endl;
 #endif /* HAVE_FORM_IN_OSTREAM */
    }
 
@@ -448,11 +466,23 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 	       out.form("%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e%12.5e\n",
 			x.dGet(1), x.dGet(2), x.dGet(3),
 			e0, e.dGet(1), e.dGet(2), e.dGet(3));
+#else /* HAVE_FORM_IN_OSTREAM */
+	       out 
+	 	       << std::setw(12) << std::setprecision(5) << x.dGet(1)
+	 	       << std::setw(12) << std::setprecision(5) << x.dGet(2)
+	 	       << std::setw(12) << std::setprecision(5) << x.dGet(3)
+	 	       << std::setw(12) << std::setprecision(5) << e0
+	 	       << std::setw(12) << std::setprecision(5) << e.dGet(1)
+	 	       << std::setw(12) << std::setprecision(5) << e.dGet(2)
+	 	       << std::setw(12) << std::setprecision(5) << e.dGet(3)
+	 	       << std::endl;
 #endif /* HAVE_FORM_IN_OSTREAM */
 	    }
 	 }
       } while (ElemIter.fGetNext(p));
    }
    
+   out.flags(oldflags);
+
    out << "!" << std::endl;
 }

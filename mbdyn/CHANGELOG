@@ -17,6 +17,7 @@ MBDyn 1.1-Engineering
 		- removed last COMMON from F77 code in sparse matrix handling
 		- strengthen hydraulic turbulent elems at small pressure 
 		  differentials
+		- added replacement for form() method to ADAMS output
 	Bug fixes:
 		- fixed SIGSEGV when reading from stdin
 		- fixed SIGSEGV when including nonexisting file
