@@ -91,6 +91,7 @@ SparseMatrixHandler *spM = 0;
 
 void SetupSystem(
 	const bool random,
+	char *random_args,
 	const bool singular,
 	const char *const matrixfilename,
 	const char *const filename,
@@ -106,20 +107,94 @@ void SetupSystem(
 	
 	if (filename == 0) {
 		if (random) {
-			int size = 0;
-			size = (*pM).iGetNumRows();
+			int size = (*pM).iGetNumRows();
 			if (spM == 0) {
 				spM = new SpMapMatrixHandler(size);
 
 				int halfband = 0;
+				if (random_args) {
+					char	*next;
+
+					halfband = (int)strtol(random_args,
+							&next, 10);
+					switch (next[0]) {
+					case '\0':
+						random_args = 0;
+						break;
+
+					case ':':
+						random_args = &next[1];
+						break;
+
+					default:
+						std::cerr << "unable to parse "
+							"<halfband> "
+							"from -r args"
+							<< std::endl;
+						exit(EXIT_FAILURE);
+					}
+
+				} else {
+					std::cout << "Halfband?" << std::endl;
+					std::cin >> halfband;
+				}
+
 				int activcol = 0;
+				if (random_args) {
+					char	*next;
+
+					activcol = (int)strtol(random_args,
+							&next, 10);
+					switch (next[0]) {
+					case '\0':
+						random_args = 0;
+						break;
+
+					case ':':
+						random_args = &next[1];
+						break;
+
+					default:
+						std::cerr << "unable to parse "
+							"<activcol> "
+							"from -r args"
+							<< std::endl;
+						exit(EXIT_FAILURE);
+					}
+
+				} else {
+					std::cout << "Activcol?" << std::endl;
+					std::cin >> activcol;
+				}
+			
 				double sprfct = 0.9;
-				std::cout << "Halfband?" << std::endl;
-				std::cin >> halfband;
-				std::cout << "Activcol?" << std::endl;
-				std::cin >> activcol;
-				std::cout << "Sprfct (hint: 0.9)?" << std::endl;
-				std::cin >> sprfct;
+				if (random_args) {
+					char	*next;
+
+					sprfct = (int)strtod(random_args,
+							&next);
+					switch (next[0]) {
+					case '\0':
+						random_args = 0;
+						break;
+
+					case ':':
+						random_args = &next[1];
+						break;
+
+					default:
+						std::cerr << "unable to parse "
+							"<sprfct> "
+							"from -r args"
+							<< std::endl;
+						exit(EXIT_FAILURE);
+					}
+
+				} else {
+					std::cout << "Sprfct (hint: 0.9)?"
+						<< std::endl;
+					std::cin >> sprfct;
+				}
 			
 				for (int i = 0; i < size; i++) {
 					for (int k = (i - halfband) < 0 ? 0 : i - halfband; k < ((i + halfband) > size ? size : i + halfband); k++) {
@@ -227,26 +302,44 @@ static inline unsigned long long rd_CPU_ts(void)
 static void
 usage(int err)
 {
-	std::cerr << "usage: wraptest [-c] [-d] [-m <solver>]  [-b <block_size>]  [-p <pivot>] [-s] [-t <nthreads>] [-f <filename>] [-o] [-w <filename>] " << std::endl
-		<< "\t<solver>={" << solvers[0];
+	std::cerr << "usage: wraptest "
+		"[-c] "
+		"[-d] "
+		"[-f <filename>] "
+		"[-m <solver>] "
+		<< std::endl << "\t\t"
+		"[-o] "
+		"[-O <option>[=<value>]] "
+		"[-p <pivot>] "
+		<< std::endl << "\t\t"
+		"[-r[<size>[:<halfband>[:<activcol>[:<sprfct>]]]]] "
+		<< std::endl << "\t\t"
+		"[-s] "
+		"[-t <nthreads>] "
+		"[-w <filename>] "
+		<< std::endl;
+	std::cerr << "  -c :  if possible, use compressed column matrix format" << std::endl;
+	std::cerr << "\tfor the naive solver: use colamd" << std::endl;
+	std::cerr << "  -d :  if possible, use dir matrix format" << std::endl;
+	std::cerr << "  -f <filename> : load the matrix from <filename>" << std::endl;
+	std::cerr << "\tIf the matrix is loaded from file the solution should be [0 0 .... 1]" << std::endl;
+	std::cerr << "\tThe file format is: size row col x row col x etc..." << std::endl;
+	std::cerr << "\tThe file format is: size row col x row col x etc..." << std::endl;
+	std::cerr << "  -m <solver> : {" << solvers[0];
 	for (int i = 1; solvers[i]; i++) {
 		std::cerr << "|" << solvers[i];
 	}
 	std::cerr << "}" << std::endl;
-	std::cerr << "-c : if possible, use compressed column matrix format" << std::endl;
-	std::cerr << "\tfor the naive solver: use colamd" << std::endl;
-	std::cerr << "-d : if possible, use dir matrix format" << std::endl;
-	std::cerr << "-b <block_size> : if meaningful, use <block_size>" << std::endl;
-	std::cerr << "-p <pivot> : if meaningful, use <pivot> thresold" << std::endl;
-	std::cerr << "-s : (singular) with the 3x3 matrix, do not set the element (3,3)" << std::endl;
-	std::cerr << "-t : with multi-threaded solutors, use <nthreads> threads" << std::endl;
-	std::cerr << "-f <filename> : load the matrix from <filename>" << std::endl;
-	std::cerr << "\tIf the matrix is loaded from file the solution should be [0 0 .... 1]" << std::endl;
-	std::cerr << "\tThe file format is: size row col x row col x etc..." << std::endl;
-	std::cerr << "\tThe file format is: size row col x row col x etc..." << std::endl;
-	std::cerr << "-o : output of the solution" << std::endl;
-	std::cerr << "-r : generate a random matrix" << std::endl;
-	std::cerr << "-w : write the random matrix to <filename>" << std::endl;
+	std::cerr << "  -o :  output of the solution" << std::endl;
+	std::cerr << "  -O <option[=<value>]>" << std::endl
+		<< "\tblocksize=<blocksize> (umfpack only)" << std::endl;
+	std::cerr << "  -p <pivot> : if meaningful, use <pivot> thresold" << std::endl;
+	std::cerr << "  -r[<size>[:<halfband>[:<activcol>[:<sprfct>]]]] :" << std::endl;
+	std::cerr << "\tgenerate a random matrix with <size>, <halfband>, <activcol>" << std::endl;
+	std::cerr << "\tand <sprfct> (prompts for values not provided)" << std::endl;
+	std::cerr << "  -s :  (singular) with the 3x3 matrix, do not set the element (3,3)" << std::endl;
+	std::cerr << "  -t :  with multi-threaded solutors, use <nthreads> threads" << std::endl;
+	std::cerr << "  -w :  write the random matrix to <filename>" << std::endl;
 	exit(err);
 }
 
@@ -285,6 +378,7 @@ main(int argc, char *argv[])
 	char *matrixfilename = 0;
 	std::ifstream file;
 	bool random(false);
+	char *random_args = 0;
 	bool cc(false);
 	bool dir(false);
 	unsigned nt = 1;
@@ -296,7 +390,7 @@ main(int argc, char *argv[])
 	long long tf;
 	
 	while (1) {
-		int opt = getopt(argc, argv, "cdm:st:f:ob:p:rw:");
+		int opt = getopt(argc, argv, "cdf:m:oO:p:r::st:w:");
 
 		if (opt == EOF) {
 			break;
@@ -330,12 +424,32 @@ main(int argc, char *argv[])
 			dpivot = atof(optarg);
 			break;
 
-		case 'b':
-			block_size = atoi(optarg);
-			if (block_size < 1) {
-				block_size = 0;
+		case 'O':
+		{
+			if (strncasecmp(optarg, "blocksize=", sizeof("blocksize=") - 1) == 0) {
+				char	*next;
+
+				if (strcasecmp(solver, "umfpack") != 0) {
+					std::cerr << "blocksize only meaningful for umfpack solver" << std::endl;
+				}
+
+				optarg += sizeof("blocksize=") - 1;
+				block_size = (int)strtol(optarg, &next, 10);
+				if (next[0] != '\0') {
+					std::cerr << "unable to parse blocksize value" << std::endl;
+					exit(EXIT_FAILURE);
+				}
+				if (block_size < 1) {
+					block_size = 0;
+				}
+
+			} else {
+				std::cerr << "unrecognized option \"" << optarg << "\"" << std::endl;
+				exit(EXIT_FAILURE);
 			}
+
 			break;
+		}
 
 		case 'f':
 			filename = optarg;
@@ -347,6 +461,7 @@ main(int argc, char *argv[])
 
 		case 'r':
 			random = true;
+			random_args = optarg;
 			break;
 			
 		case 'w':
@@ -363,9 +478,31 @@ main(int argc, char *argv[])
 		file.open(filename);
 		file >> size;
 		file.close();
+
 	} else if (random) {
-		std::cout << "Matrix size?" << std::endl;
-		std::cin >> size;
+		if (random_args) {
+			char	*next;
+
+			size = (int)strtol(random_args, &next, 10);
+			switch (next[0]) {
+			case '\0':
+				random_args = 0;
+				break;
+
+			case ':':
+				random_args = &next[1];
+				break;
+
+			default:
+				std::cerr << "unable to parse <size> "
+					"from -r args" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+
+		} else {
+			std::cout << "Matrix size?" << std::endl;
+			std::cin >> size;
+		}
 	}
 	
 	std::cerr << std::endl;
@@ -580,7 +717,8 @@ main(int argc, char *argv[])
 
 	pM->Reset();
 
-	SetupSystem(random, singular, matrixfilename, filename, pM, pV);
+	SetupSystem(random, random_args, singular,
+			matrixfilename, filename, pM, pV);
 	
 	try {
 		start = clock();
@@ -611,7 +749,7 @@ main(int argc, char *argv[])
 
 	pM->Reset();
 
-	SetupSystem(random, singular, 0, filename, pM, pV);
+	SetupSystem(random, random_args, singular, 0, filename, pM, pV);
 	
 	try {
 		start = clock();
