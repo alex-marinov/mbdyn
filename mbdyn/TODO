@@ -78,6 +78,7 @@ D. Code:
 		the module path and then use the file name as a label;
 		the underlying library will open modules exactly once
 		despite they're loaded many times)
+	- link to Taucs sparse solver: http://www.tau.ac.il/~stoledo/taucs
 
 
 
