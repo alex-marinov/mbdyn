@@ -1092,11 +1092,18 @@ ReadStructNode(DataManager* pDM,
 	 if (HP.IsKeyWord("assembly")) {
 	    dPosStiff = HP.GetReal(dPosStiff);
 	    dVelStiff = HP.GetReal(dVelStiff);
-	    fOmRot = HP.GetInt(fOmRot);
+	    if (HP.IsKeyWord("yes")) {
+	       fOmRot = 1;
+	    } else if (HP.IsKeyWord("no")) {
+	       fOmRot = 0;
+	    } else {
+	       silent_cerr("use keywords \"yes\" or \"no\"" << endl);
+	       fOmRot = HP.GetInt(fOmRot);
+	    }
 	    
 	    DEBUGCOUT("Initial position stiffness: " << dPosStiff << endl);
 	    DEBUGCOUT("Initial velocity stiffness: " << dVelStiff << endl);
-	    DEBUGCOUT("Omega rotates? : " << fOmRot << endl);
+	    DEBUGCOUT("Omega rotates? : " << (fOmRot ? "yes" : "no") << endl);
 	 }
       }
       fOut = pDM->fReadOutput(HP, Node::STRUCTURAL);   
