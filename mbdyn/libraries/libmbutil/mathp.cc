@@ -1470,24 +1470,74 @@ powerstack()
    srand(tm);
 }
 
-void 
-MathParser::InsertSym(const char* const s, const Real& v)
+NamedValue * 
+MathParser::InsertSym(const char* const s, const Real& v, int redefine)
 {
-   NamedValue* var = table.Put(s, TypedValue(v));
+   /* cerco la variabile */
+   NamedValue* var = table.Get(s);
+
+   if (var == NULL) {
+      /* Se non c'e' la inserisco */
+      var = table.Put(s, TypedValue(v));
+   } else {
+      /* altrimenti, se la posso ridefinire, mi limito 
+       * ad assegnarle il nuovo valore */
+      if (redefine) {
+         if (var->IsVar()) {
+            ((Var *)var)->SetVal(TypedValue(v));
+         } else {
+            cerr << "cannot redefine a non-var named value" << endl;
+            THROW(MathParser::ErrGeneric(this,
+		"cannot redefine non-var named value '", var->GetName(), "'"));
+         }
+      } else {
+         /* altrimenti la reinserisco, cosi' da provocare l'errore
+          * di table */
+          var = table.Put(s, TypedValue(v));
+      }
+   }
+
    if (var == NULL) {
       THROW(ErrGeneric(this, "error while adding real var '", s, ""));
    }
+
+   return var;
 }
 
-void 
-MathParser::InsertSym(const char* const s, const Int& v) 
+NamedValue *
+MathParser::InsertSym(const char* const s, const Int& v, int redefine)
 {
-   NamedValue* var = table.Put(s, TypedValue(v));
+   /* cerco la variabile */
+   NamedValue* var = table.Get(s);
+
+   if (var == NULL) {
+      /* Se non c'e' la inserisco */
+      var = table.Put(s, TypedValue(v));
+   } else {
+      /* altrimenti, se la posso ridefinire, mi limito 
+       * ad assegnarle il nuovo valore */
+      if (redefine) {
+         if (var->IsVar()) {
+            ((Var *)var)->SetVal(TypedValue(v));
+         } else {
+            cerr << "cannot redefine a non-var named value" << endl;
+            THROW(MathParser::ErrGeneric(this,
+		"cannot redefine non-var named value '", var->GetName(), "'"));
+         }
+      } else {
+         /* altrimenti la reinserisco, cosi' da provocare l'errore
+          * di table */
+          var = table.Put(s, TypedValue(v));
+      }
+   }
+
    if (var == NULL) {  
       THROW(ErrGeneric(this, "error while adding integer var '", s, ""));
    }
+
+   return var;
 }
-   
+
 MathParser::~MathParser(void) 
 {
    DEBUGCOUTFNAME("MathParser::~MathParser");

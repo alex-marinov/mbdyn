@@ -71,8 +71,10 @@ const char sDefaultOutputFileName[] = "Mbdyn";
 
 
 
-/* costruttore: inizializza l'oggetto, legge i dati e crea le strutture di
- * gestione di Dof, nodi, elementi e drivers. */
+/*
+ * costruttore: inizializza l'oggetto, legge i dati e crea le strutture di
+ * gestione di Dof, nodi, elementi e drivers.
+ */
 
 DataManager::DataManager(MBDynParser& HP, 
 			 doublereal dInitialTime,
@@ -81,8 +83,8 @@ DataManager::DataManager(MBDynParser& HP,
 			 flag fAbortAfterInput)
 :
 MathPar(HP.GetMathParser()),
-GlobalSymbolTable((HP.GetMathParser()).GetSymbolTable()), // redundant, but safe
-DrvHdl((HP.GetMathParser()).GetSymbolTable()),            //   ''
+GlobalSymbolTable((HP.GetMathParser()).GetSymbolTable()),
+DrvHdl((HP.GetMathParser()).GetSymbolTable()),
 OutHdl(),
 pTime(NULL),
 pXCurr(NULL), pXPrimeCurr(NULL),
@@ -94,7 +96,7 @@ dInitialVelocityStiffness(dDefaultInitialStiffness),
 fOmegaRotates(fDefaultOmegaRotates),
 dInitialAssemblyToll(dDefaultInitialAssemblyToll),
 iMaxInitialIterations(iDefaultMaxInitialIterations),
-#endif // USE_STRUCT_NODES
+#endif /* USE_STRUCT_NODES */
 fPrintDofStats(0),
 sSimulationTitle(NULL),
 RestartEvery(NEVER),
@@ -158,11 +160,13 @@ DofIter()
    DEBUGLCOUT(MYDEBUG_INIT, "GlobalSymbolTable:" 
 	      << endl << GlobalSymbolTable << endl);
    
-   /* Possiede MathParser, con relativa SymbolTable. 
+   /*
+    * Possiede MathParser, con relativa SymbolTable. 
     * Crea ExternKeyTable, MBDynParser, 
     * e legge i dati esterni. Quindi, quando trova 
     * i dati di controllo, chiama la relativa 
-    * funzione di lettura (distinta per comodita') */
+    * funzione di lettura (distinta per comodita')
+    */
    
    /* parole chiave */
    const char* sKeyWords[] = { 
@@ -214,10 +218,12 @@ DofIter()
 
    
    
-   /* a questo punto ElemManager contiene i numeri totali di elementi;
+   /*
+    * a questo punto ElemManager contiene i numeri totali di elementi;
     * NodeManager contiene i numeri totali di nodi;
     * DofManager contiene i numeri totali di potenziali possessori di gradi 
-    * di liberta'; quindi si puo' cominciare ad allocare matrici */
+    * di liberta'; quindi si puo' cominciare ad allocare matrici
+    */
 
    
    
@@ -227,8 +233,10 @@ DofIter()
    /* Costruzione struttura NodeData e creazione array Node* */
    NodeDataInit();
 
-   /* legge i nodi, crea gli item della struttura ppNodes
-    * e contemporaneamente aggiorna i dof */
+   /*
+    * legge i nodi, crea gli item della struttura ppNodes
+    * e contemporaneamente aggiorna i dof
+    */
    if(iTotNodes > 0) {	
       if(KeyWords(HP.GetDescription()) != BEGIN) {
 	 DEBUGCERR("");
@@ -253,8 +261,10 @@ DofIter()
    }   
    /* fine lettura nodi */
    
-   /* Costruzione struttura ElemData, DriveData
-    * e creazione array Elem* e Drive* */
+   /*
+    * Costruzione struttura ElemData, DriveData
+    * e creazione array Elem* e Drive*
+    */
    ElemDataInit();
    
    /* legge i drivers, crea la struttura ppDrive */
@@ -283,8 +293,10 @@ DofIter()
    /* fine lettura drivers */
    
    
-   /* legge gli elementi, crea la struttura ppElems
-    * e contemporaneamente aggiorna i dof */
+   /*
+    * legge gli elementi, crea la struttura ppElems
+    * e contemporaneamente aggiorna i dof
+    */
    if(iTotElem > 0) {	
       if(KeyWords(HP.GetDescription()) != BEGIN) {
 	 DEBUGCERR("");
@@ -311,8 +323,10 @@ DofIter()
    /* fine lettura elementi */     
    
    
-   /* Qui non deve leggere piu' niente, 
-    * quindi chiude e apre i files di output */
+   /*
+    * Qui non deve leggere piu' niente, 
+    * quindi chiude e apre i files di output
+    */
    HP.Close();
    
 #ifdef __HACK_BEAM__
@@ -481,7 +495,7 @@ DataManager::~DataManager(void)
 
 void DataManager::MakeRestart(void) 
 {
-  if(RestartEvery == ATEND) {	
+  if (RestartEvery == ATEND) {	
    silent_cout("Making restart file ..." << endl);
    
    /* Inizializzazione del file di restart */
@@ -606,3 +620,16 @@ void DataManager::MakeRestart(void)
    OutHdl.Restart() << "end: elements;" << endl << endl << endl << endl;
   }
 }
+
+NamedValue *
+DataManager::InsertSym(const char* const s, const Real& v, int redefine)
+{
+	return MathPar.InsertSym(s, v, redefine);
+}
+
+NamedValue *
+DataManager::InsertSym(const char* const s, const Int& v, int redefine)
+{
+	return MathPar.InsertSym(s, v, redefine);
+}
+

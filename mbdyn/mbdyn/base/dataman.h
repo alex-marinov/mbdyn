@@ -35,9 +35,7 @@
 #ifndef DATAMAN_H
 #define DATAMAN_H
 
-
 #include <iomanip.h>
-
 
 /* per il debug */
 #include "myassert.h"
@@ -209,6 +207,9 @@ class DataManager {
    /* Setta il valore della variabile tempo nella tabella dei simboli del
     * DataManager e nel DriveHandler */
    void SetTime(doublereal dTime);
+
+   NamedValue *InsertSym(const char* const s, const Real& v, int redefine = 0);
+   NamedValue *InsertSym(const char* const s, const Int& v, int redefine = 0);
    
    /* Collega il DataManager ed il DriveHandler ai vettori soluzione */
    void LinkToSolution(const VectorHandler& XCurr, 
@@ -472,6 +473,7 @@ extern ScalarDof ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOr
 
 #if (defined(USE_STRUCT_NODES) && defined(USE_AERODYNAMIC_ELEMS))
 extern Shape* ReadShape(MBDynParser& HP);
-#endif // STRUCT && AERODYNAMIC
+#endif /* STRUCT && AERODYNAMIC */
 
-#endif
+#endif /* DATAMAN_H */
+

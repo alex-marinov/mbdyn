@@ -43,6 +43,10 @@
 #include "constltp.h"
 #include <fstream.h>
 
+const doublereal defaultEpsMin = -.5;
+const doublereal defaultEpsMax = 0.;
+const doublereal defaultPenalty = 1.e9;
+
 /* ShockAbsorberConstitutiveLaw - begin */
 
 template <class T, class Tder>
@@ -71,7 +75,9 @@ public:
 
 	virtual ostream&
 	Restart(ostream& out) const {
-		return out << "/* Shock absorber, not implemented yet */";
+		return out
+			<< "/* Shock absorber, not implemented yet */"
+			<< endl;
 	};
 
 	virtual void
@@ -187,7 +193,7 @@ public:
 			TplDriveCaller<doublereal>* pDC,
 			MBDynParser& HP
 	) : ElasticConstitutiveLaw<doublereal, doublereal>(pDC, 0.),
-	EpsMax(0.), EpsMin(-.5), Penalty(1.e9),
+	EpsMax(defaultEpsMax), EpsMin(defaultEpsMin), Penalty(defaultPenalty),
 	pAreaPin(NULL), pAreaOrifices(NULL) {
 		if (HP.IsKeyWord("help")) {
 
@@ -196,19 +202,22 @@ public:
 "this help refers to the specific \"shock absorber\" constitutive\n"
 "law input data.  The prestrain value, if required, must be inserted\n"
 "at the beginning of the data.  The syntax is:\n"
+"\n"
 "\t[ prestrain , <value> , ]\n"
 "\t<reference pressure> ,\n"
 "\t<reference area for force computation> ,\n"
 "\t<interpolation coefficient (kinematic scale * ( L * A / V0 ) )> ,\n"
 "\t<gamma (polytropic exponent)> ,\n"
-"\t[ epsilon max , <upper strain bound, > prestrain; defaults to 0.)> , ]\n"
-"\t[ epsilon min , <lower strain bound, < prestrain; defaults to -.5)> , ]\n"
-"\t[ penalty , <penalty factor for strain bound enforcement> , ]\n"
+"\t[ epsilon max , <upper strain bound, > prestrain; defaults to " << defaultEpsMax << ")> , ]\n"
+"\t[ epsilon min , <lower strain bound, < prestrain; defaults to " << defaultEpsMin << ")> , ]\n"
+"\t[ penalty , <penalty factor for strain bound enforcement, defaults to " << defaultPenalty << "> , ]\n"
 "\t[ metering , <metering area (drive, strain dependent)> , ]\n"
 "\t[ orifice , <orifice area (drive, strain rate dependent)> , ]\n"
 "\t<fluid area> ,\n"
 "\t<fluid density> ,\n"
 "\t<drag coefficient / reference length (scales strain rate to velocity)> ;\n"
+"\n"
+"Note: at least one of \"metering\" and \"orifice\" must be defined.\n"
 "\n"
 				<< endl;
 
@@ -227,11 +236,11 @@ public:
 		Gamma = HP.GetReal();
 
 		if (HP.IsKeyWord("epsilon" "max")) {
-			EpsMax = HP.GetReal();
+			EpsMax = HP.GetReal(defaultEpsMax);
 		}
 		
 		if (HP.IsKeyWord("epsilon" "min")) {
-			EpsMin = HP.GetReal();
+			EpsMin = HP.GetReal(defaultEpsMin);
 			if ( EpsMin >= EpsMax) {
 				cerr << "line " << HP.GetLineData()
 					<< ": epsilon min must be less"
@@ -241,7 +250,7 @@ public:
 		}
 
 		if (HP.IsKeyWord("penalty")) {
-			Penalty = HP.GetReal();
+			Penalty = HP.GetReal(defaultPenalty);
 		}
 
 		if (HP.IsKeyWord("metering")) { 
@@ -285,8 +294,55 @@ public:
 
 	virtual ostream&
 	Restart(ostream& out) const {
-		return out << "ShockAbsorberConstitutiveLaw"
-			" not implemented yet!" << endl;
+		
+		/*
+		 * FIXME: devo trovare il modo di ripristinare
+		 * le deformazioni iniziali senza grossi danni :)
+		 */
+		if (pGetDriveCaller()) {
+			out
+				<< ", prestrain, single, ",
+				Write(out, -Epsilon, ", ") << ", one /* ",
+				pGetDriveCaller()->Restart(out) << " */ , ";
+		}
+		
+		/*
+		 * dati sempre presenti
+		 */
+		out
+			<< P0 << ", "
+			<< A0 << ", "
+			<< Cint << ", "
+			<< Gamma << ", "
+			<< "epsilon max, " << EpsMax << ", "
+			<< "epsilon min, " << EpsMin << ", "
+			<< "penalty, " << Penalty;
+
+		/*
+		 * drive delle aree (solo quelli definiti)
+		 */
+		if (pAreaPin) {
+			out
+				<< ", metering, ",
+				pAreaPin()->Restart(out);
+		}
+		
+		if (pOrifice) {
+			out
+				<< ", orifice, ",
+				pOrifice->Restart(out);
+		}
+
+		/*
+		 * dati parte viscosa
+		 */
+		out
+			<< ", "
+			<< AreaFluid << ", "
+			<< RhoFluid << ", "
+			<< Cd;
+		
+		return out;
 	};
 
 	virtual void

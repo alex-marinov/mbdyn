@@ -50,7 +50,8 @@ public:
 private:
 	unsigned int ReadLabel(const char* s);
 	Node *ReadNode(unsigned int uLabel, const char *s);
-	unsigned int ReadIndex(Node *pNode, unsigned int iMaxIndex, const char *s);
+	unsigned int ReadIndex(Node *pNode, unsigned int iMaxIndex,
+			const char *s);
 	int ReadDofOrder(Node *pNode, unsigned int iIndex, const char *s);
 };
 
@@ -58,3 +59,4 @@ extern MathParser::PlugIn *
 dof_plugin(MathParser& mp, void *arg);
 
 #endif /* DOFPGIN_H */
+

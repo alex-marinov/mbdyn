@@ -54,7 +54,7 @@ DofPlugIn::sName(void) const
 
 int 
 DofPlugIn::Read(int argc, char *argv[])
-{		
+{
 	unsigned int uLabel = ReadLabel(argv[0]);
 	Node *pNode = ReadNode(uLabel, argv[1]);
 	int iOrder = 0;
@@ -70,7 +70,8 @@ DofPlugIn::Read(int argc, char *argv[])
 				       Node2Scalar, 
 				       Node2Scalar(nd), 
 				       DMmm);
-		cerr << "warning, possibly allocating a NodeDof that nobody will delete until Handles will be used" << endl;
+		cerr << "warning, possibly allocating a NodeDof that nobody"
+			" will delete until handles will be used" << endl;
 	} else {
 		iOrder = ReadDofOrder(pNode, 1, argv[2]);
 	}
