@@ -1059,9 +1059,8 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	    unsigned int uL = (unsigned int)HP.GetInt();	    	 
 	    Node* pN = pFindNode(Typ, uL);
 	    if (pN == NULL) {
-	       std::cerr << "Error: node " << uL << ", type " 
-		       << psNodeNames[Typ] 
-		       << "is not defined; output cannot be modified" 
+	       std::cerr << "Error: " << psNodeNames[Typ] << "(" 
+		       << uL << ") is not defined; output cannot be modified" 
 		       << std::endl;
 	    } else {
 	       DEBUGLCOUT(MYDEBUG_INPUT, "node " << uL << std::endl);
