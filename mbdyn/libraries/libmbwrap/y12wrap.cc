@@ -83,8 +83,6 @@ bFirstSol(true)
 	if (bDuplicateIndices) {
 		/*
 		 * NOTE: Y12 alters the index arrays :(
-		 *
-		 * FIXME: make it stl-ish
 		 */
 		iRow.reserve(iCurSize);
 		iCol.reserve(iCurSize);
