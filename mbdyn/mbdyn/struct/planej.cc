@@ -338,13 +338,12 @@ SubVectorHandler& PlaneHingeJoint::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
-DofOrder::Order PlaneHingeJoint::GetEqType(unsigned int i) const {
-	ASSERTMSGBREAK((i>0) and (i<18), 
+DofOrder::Order
+PlaneHingeJoint::GetEqType(unsigned int i) const
+{
+	ASSERTMSGBREAK(i < iGetNumDof(), 
 		"INDEX ERROR in PlaneHingeJoint::GetEqType");
-	if ((i>12) and (i<18)) {
-		return DofOrder::ALGEBRAIC;
-	}
-	return DofOrder::DIFFERENTIAL;
+	return DofOrder::ALGEBRAIC;
 }
 
 /* Output (da mettere a punto) */
@@ -1045,13 +1044,12 @@ SubVectorHandler& PlaneRotationJoint::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
-DofOrder::Order PlaneRotationJoint::GetEqType(unsigned int i) const {
-	ASSERTMSGBREAK((i>0) and (i<9), 
+DofOrder::Order
+PlaneRotationJoint::GetEqType(unsigned int i) const
+{
+	ASSERTMSGBREAK(i < iGetNumDof(), 
 		"INDEX ERROR in PlaneRotationJoint::GetEqType");
-	if ((i==7) or (i==8)) {
-		return DofOrder::ALGEBRAIC;
-	}
-	return DofOrder::DIFFERENTIAL;
+	return DofOrder::ALGEBRAIC;
 }
 
 
@@ -1741,13 +1739,12 @@ SubVectorHandler& AxialRotationJoint::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
-DofOrder::Order AxialRotationJoint::GetEqType(unsigned int i) const {
-	ASSERTMSGBREAK((i>0) and (i<19), 
+DofOrder::Order
+AxialRotationJoint::GetEqType(unsigned int i) const
+{
+	ASSERTMSGBREAK(i < iGetNumDof(),
 		"INDEX ERROR in AxialRotationJoint::GetEqType");
-	if ((i>12) and (i<18)) {
-		return DofOrder::ALGEBRAIC;
-	}
-	return DofOrder::DIFFERENTIAL;
+	return DofOrder::ALGEBRAIC;
 }
 
 
@@ -2426,12 +2423,12 @@ SubVectorHandler& PlanePinJoint::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
-DofOrder::Order PlanePinJoint::GetEqType(unsigned int i) const {
-	ASSERTMSGBREAK(i<12 and i>0, "FATAL ERROR in PlanePinJoint::GetEqType");
-	if (i>6 and i<12) {
-		return DofOrder::ALGEBRAIC;
-	}
-	return DofOrder::DIFFERENTIAL;
+DofOrder::Order
+PlanePinJoint::GetEqType(unsigned int i) const
+{
+	ASSERTMSGBREAK(i < iGetNumDof(), 
+			"FATAL ERROR in PlanePinJoint::GetEqType");
+	return DofOrder::ALGEBRAIC;
 }
 
 /* Output (da mettere a punto) */
