@@ -42,20 +42,4 @@ INCLUDES = \
 -I../../mbdyn/elec \
 -I../../mbdyn/hydr
 
-# Program that tests Deadbeat Predictive Control
-noinst_PROGRAMS = dpc
-dpc_SOURCES =
-dpc_LDADD = dpc.o \
-../base/libbase.la \
-../../libraries/libmbutil/libmbutil.la \
-../../libraries/libmbmath/libmbmath.la \
-@MESCHACH_LIBS@ @LAPACK_LIBS@ @F2C_LIBS@ @LIBS@
-
-# Explicit compile rules to enforce the use of CXX!
-dpc.o : gpc.cc
-	-$(CXXCOMPILE) $(CXXFLAGS) -DTEST_DPC -c gpc.cc && mv gpc.o dpc.o
-
-dpc : dpc.o
-	-$(CXXLINK) -o dpc $(dpc_LDADD)
-
 include $(top_srcdir)/build/bot.mk
