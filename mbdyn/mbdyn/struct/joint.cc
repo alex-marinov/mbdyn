@@ -519,7 +519,8 @@ Elem* ReadJoint(DataManager* pDM,
 	  
 	  /* allocazione e creazione cerniera piana */
 	case PLANEHINGE:
-	   cerr << "deprecated 'plane hinge' name;"
+	   cerr << "line " << HP.GetLineData() 
+		   << ": deprecated 'plane hinge' name;"
 		   << " use 'revolute hinge' instead" << endl;
 	case REVOLUTEHINGE: {	
 	   SAFENEWWITHCONSTRUCTOR(pEl, 
