@@ -49,22 +49,22 @@
 #define RTAI_LOG
 
 #include <unistd.h>
-#include <ac/float.h>
-#include <ac/math.h>
+#include "ac/float.h"
+#include "ac/math.h"
 
 
-#include <myassert.h>
-#include <mynewmem.h>
-#include <except.h>
-#include <dataman.h>
-#include <schurdataman.h>
-#include <schsolman.h>
+#include "myassert.h"
+#include "mynewmem.h"
+#include "except.h"
+#include "dataman.h"
+#include "schurdataman.h"
+#include "schsolman.h"
 #include <deque>
-#include <integr.h>
-#include <stepsol.h>
-#include <nonlin.h>
-#include <mfree.h>
-#include <precond.h>
+#include "linearsolver.h"
+#include "stepsol.h"
+#include "nonlin.h"
+#include "mfree.h"
+#include "precond.h"
 
 class Solver : public SolverDiagnostics {
 public:

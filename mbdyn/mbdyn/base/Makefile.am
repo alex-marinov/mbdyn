@@ -54,10 +54,10 @@ force.h \
 ginaccltp.h \
 gmres.cc \
 gmres.h \
-integr.cc \
-integr.h \
 j2p.cc \
 j2p.h \
+linearsolver.cc \
+linearsolver.h \
 loadable.cc \
 loadable.h \
 mbpar.cc \

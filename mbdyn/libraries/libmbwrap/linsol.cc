@@ -29,19 +29,19 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <myassert.h>
+#include "myassert.h"
 
-#include <harwrap.h>
-#include <mschwrap.h>
-#include <y12wrap.h>
-#include <umfpackwrap.h>
+#include "harwrap.h"
+#include "mschwrap.h"
+#include "y12wrap.h"
+#include "umfpackwrap.h"
 
-#include <mbpar.h>
+#include "mbpar.h"
 
-#include <integr.h>
+#include "linearsolver.h"
 
 /*
  * Default solver
@@ -67,6 +67,7 @@ const char *psSolverNames[] = {
 	"Meschach",
 	"Y12",
 	"Umfpack",
+	"UmfpackCC",
 	"Empty",
 	NULL
 };
@@ -135,7 +136,14 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 				"use \"umfpack\" instead" << std::endl);
 	case UMFPACK:
 #ifdef USE_UMFPACK
+		/*
+		 * FIXME: use CC as default???
+		 */
+#if 1
 		CurrSolver = LinSol::UMFPACK_SOLVER;
+#else
+		CurrSolver = LinSol::UMFPACK_CC_SOLVER;
+#endif
 		DEBUGLCOUT(MYDEBUG_INPUT,
 				"Using umfpack sparse LU solver" << std::endl);
 		break;
@@ -164,6 +172,20 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		DEBUGLCOUT(MYDEBUG_INPUT,
 				"Unknown solver; switching to default" << std::endl);
 		break;
+	}
+
+	if (HP.IsKeyWord("column" "compressed") || HP.IsKeyWord("cc")) {
+		switch (CurrSolver) {
+		case LinSol::UMFPACK_SOLVER:
+			CurrSolver = LinSol::UMFPACK_CC_SOLVER;
+			break;
+
+		default:
+			pedantic_cerr("column compressed is meaningless for "
+					<< psSolverNames[CurrSolver]
+					<< " solver" << std::endl);
+			break;
+		}
 	}
 
 	if (HP.IsKeyWord("workspace" "size")) {
@@ -285,6 +307,19 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 #else /* !USE_UMFPACK */
       		std::cerr << "Configure with --with-umfpack "
 			"to enable Umfpack solver" << std::endl;
+      		THROW(ErrGeneric());
+#endif /* !USE_UMFPACK */
+
+	case LinSol::UMFPACK_CC_SOLVER:
+#ifdef USE_UMFPACK
+		SAFENEWWITHCONSTRUCTOR(pCurrSM,
+			UmfpackSparseCCLUSolutionManager,
+			UmfpackSparseCCLUSolutionManager(iNLD, 
+				0, dPivotFactor));
+      		break;
+#else /* !USE_UMFPACK */
+      		std::cerr << "Configure with --with-umfpack "
+			"to enable Umfpack CC solver" << std::endl;
       		THROW(ErrGeneric());
 #endif /* !USE_UMFPACK */
 

@@ -30,8 +30,8 @@
 
 /* linear solver generico */
 
-#ifndef INTEGR_H
-#define INTEGR_H
+#ifndef LINEARSOLVER_H
+#define LINEARSOLVER_H
 
 /* Integrator - begin */
 
@@ -43,6 +43,7 @@ public:
 		MESCHACH_SOLVER,
 		Y12_SOLVER,
                 UMFPACK_SOLVER,
+                UMFPACK_CC_SOLVER,
 		EMPTY_SOLVER,
 
 		LAST_SOLVER
@@ -72,5 +73,5 @@ extern const char *psSolverNames[];
 
 /* Integrator - end */
 
-#endif /* INTEGR_H */
+#endif /* LINEARSOLVER_H */
 

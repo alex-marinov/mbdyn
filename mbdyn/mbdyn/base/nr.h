@@ -45,7 +45,6 @@ class NewtonRaphsonSolver : public NonlinearSolver
 {
 	VectorHandler* 	pRes;
 	VectorHandler* 	pSol;
-	MatrixHandler*  pJac;
 	bool bTrueNewtonRaphson;
 	integer IterationBeforeAssembly;
 	bool bKeepJac;

@@ -214,7 +214,24 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 		
 		if (bBuildMat) {
 			pSM->MatrInit(0.);
-			pNLP->Jacobian(pSM->pMatHdl());
+
+rebuild_matrix:;
+			try {
+      				pNLP->Jacobian(pSM->pMatHdl());
+
+			} catch (MatrixHandler::ErrRebuildMatrix) {
+				silent_cout("NewtonRaphsonSolver: "
+						"rebuilding matrix..."
+						<< std::endl);
+
+				/* need to rebuild the matrix... */
+      				pSM->MatrInitialize(0.);
+				goto rebuild_matrix;
+
+			} catch (...) {
+				throw;
+			}
+
 			bBuildMat = false;
 			TotalIter = 0;
 			TotJac++;

@@ -37,29 +37,29 @@
   */
   
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <solver.h>
-#include <nr.h>  
+#include <unistd.h>
+
+#include "solver.h"
+#include "nr.h"  
 #ifdef USE_MPI
-#include <mbcomm.h>
-#include <schsolman.h>
+#include "mbcomm.h"
+#include "schsolman.h"
 #endif /* USE_MPI */
 
-#include <dofown.h>
-#include <umfpackwrap.h>
-#include <unistd.h>
-#include <output.h>
-#include <ac/float.h>
-#include <ac/math.h>
+#include "dofown.h"
+#include "umfpackwrap.h"
+#include "output.h"
+#include "ac/float.h"
+#include "ac/math.h"
 
 NewtonRaphsonSolver::NewtonRaphsonSolver(const bool bTNR,
 		const bool bKJ, 
 		const integer IterBfAss)
 : pRes(NULL),
 pSol(NULL),
-pJac(NULL),
 bTrueNewtonRaphson(bTNR),
 IterationBeforeAssembly(IterBfAss),
 bKeepJac(bKJ),
@@ -96,8 +96,6 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 	dSolErr = 0.;
 
 	while (true) {
-
-		pJac = pSM->pMatHdl();
 		pRes = pSM->pResHdl();
 		pSol = pSM->pSolHdl();
 		Size = pRes->iGetSize();
@@ -109,12 +107,13 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
       		pNLP->Residual(pRes);
 		
       		if (outputRes()) {
-	 		std::cout << "Residual (" << iIterCnt 
-				<< "):" << std::endl;
+	 		silent_cout("Residual (" << iIterCnt 
+				<< "):" << std::endl);
 	 		for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
-	    			std::cout << "Dof " << std::setw(8)
+	    			silent_cout("Dof " << std::setw(8)
 					<< iTmpCnt << ": " 
-					<< pRes->dGetCoef(iTmpCnt) << std::endl;
+					<< pRes->dGetCoef(iTmpCnt)
+					<< std::endl);
 			}
       		}
 
@@ -130,12 +129,12 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 #ifdef USE_MPI
 			if (MBDynComm.Get_rank() == 0) {
 #endif /* USE_MPI */
-				std::cout << "\tIteration " << iIterCnt
-					<< " " << dErr;
+				silent_cout("\tIteration " << iIterCnt
+					<< " " << dErr);
 				if (dErr >= Tol && (bTrueNewtonRaphson || (iPerformedIterations%IterationBeforeAssembly == 0))){
-					std::cout << " J";
+					silent_cout(" J");
 				}
-				std::cout << std::endl;
+				silent_cout(std::endl);
 #ifdef USE_MPI
 			}
 #endif /* USE_MPI */
@@ -153,7 +152,23 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 
 		if (bTrueNewtonRaphson || (iPerformedIterations%IterationBeforeAssembly == 0)) {
       			pSM->MatrInit(0.);
-      			pNLP->Jacobian(pJac);
+rebuild_matrix:;
+			try {
+      				pNLP->Jacobian(pSM->pMatHdl());
+
+			} catch (MatrixHandler::ErrRebuildMatrix) {
+				silent_cout("NewtonRaphsonSolver: "
+						"rebuilding matrix..."
+						<< std::endl);
+
+				/* need to rebuild the matrix... */
+      				pSM->MatrInitialize(0.);
+				goto rebuild_matrix;
+
+			} catch (...) {
+				throw;
+			}
+
 			TotJac++;
 		}
 		
@@ -163,14 +178,14 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 #ifdef USE_UMFPACK
 			if (dynamic_cast<UmfpackSparseLUSolutionManager*>(pSM) == 0) {
 #endif /* USE_UMFPACK */
-			std::cout << "Warning, Jacobian output "
-					"avaliable only "
-					"with umfpack solver"
-					<< std::endl;
+				silent_cerr("Warning, Jacobian output "
+						"avaliable only "
+						"with umfpack solver"
+						<< std::endl);
 #ifdef USE_UMFPACK
 			} else {
-			 	std::cout << "Jacobian:" << std::endl
-					<< *(pSM->pMatHdl());
+			 	silent_cout("Jacobian:" << std::endl
+						<< *(pSM->pMatHdl()));
 		 	}
 #endif /* USE_UMFPACK */
       		}		
@@ -178,10 +193,12 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 		pSM->Solve();
 
       		if (outputSol()) {      
-	 		std::cout << "Solution:" << std::endl;
+	 		silent_cout("Solution:" << std::endl);
 	 		for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
-	    			std::cout << "Dof " << std::setw(8) << iTmpCnt << ": "
-					<< pSol->dGetCoef(iTmpCnt) << std::endl;
+	    			silent_cout("Dof " << std::setw(8) << iTmpCnt
+						<< ": "
+						<< pSol->dGetCoef(iTmpCnt)
+						<< std::endl);
 			}
 		}		
 		
@@ -192,8 +209,8 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 #ifdef USE_MPI
 			if (MBDynComm.Get_rank() == 0) {
 #endif /* USE_MPI */
-				std::cout << "\t\tSolErr "
-					<< dSolErr << std::endl;
+				silent_cout("\t\tSolErr "
+					<< dSolErr << std::endl);
 #ifdef USE_MPI
 			}
 #endif /* USE_MPI */
