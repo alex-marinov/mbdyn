@@ -1756,12 +1756,10 @@ EndOfStep:
 
 #ifdef __HACK_POD__
               if (fPOD && dTime >= pod.dTime) {
-                      if (iPODStep == pod.iSteps) {
+                      if (++iPODStep == pod.iSteps) {
                               APOD.AddTVec(pXCurr, iPODFrames);
                               iPODFrames++;
                               iPODStep = 0;
-                      } else {
-                              iPODStep++;
                       }
                       if (iPODFrames >= pod.iFrames){
                               APOD.Output();

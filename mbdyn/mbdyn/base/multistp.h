@@ -68,14 +68,18 @@ class PODMat {
  
        doublereal* A;
        int Rows, Cols;
+       bool bOutput;
  
  public:
  
-       PODMat(int rows, int cols): Rows(rows), Cols(cols) {
+       PODMat(int rows, int cols): Rows(rows), Cols(cols), bOutput(false) {
                SAFENEWARR(A, doublereal, rows*cols);
        };
  
        ~PODMat(void) {
+	       if (!bOutput) {
+		       Output();
+	       }
                SAFEDELETEARR(A);
        }
  
@@ -94,6 +98,8 @@ class PODMat {
                        }
                        out << std::endl;
                }
+
+	       bOutput = true;
        };
 };     
         
