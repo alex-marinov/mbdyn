@@ -158,6 +158,7 @@ reserve_stack(unsigned long size)
 
 
 /* Parametri locali */
+const doublereal dDefaultDerivativesCoefficient = 1.e-6;
 const integer iDefaultFictitiousStepsNumber = 0;
 const doublereal dDefaultFictitiousStepsRatio = 1.e-3;
 const integer iDefaultIterationsBeforeAssembly = 2;
@@ -243,7 +244,7 @@ pRhoRegular(NULL),
 pRhoAlgebraicRegular(NULL),
 pRhoFictitious(NULL),
 pRhoAlgebraicFictitious(NULL),
-dDerivativesCoef(1.),
+dDerivativesCoef(dDefaultDerivativesCoefficient),
 ResTest(NonlinearSolverTest::NORM),
 SolTest(NonlinearSolverTest::NONE),
 bScale(false),
@@ -857,8 +858,8 @@ Solver::Run(void)
 	}
 	catch (NonlinearSolver::NoConvergence) {
 		silent_cerr("Initial derivatives calculation " << iStIter
-			<< " does not converge;" << std::endl
-			<< "aborting ..." << std::endl);
+			<< " does not converge; aborting..." << std::endl
+			<< "(hint: try playing with the \"derivatives coefficient\" value)" << std::endl);
 	 	pDM->Output(true);
 	 	throw ErrMaxIterations();
 
@@ -1832,7 +1833,11 @@ Solver::Restart(std::ostream& out,DataManager::eRestart type) const
 		break;
 	case NonlinearSolverTest::NONE:
 		NO_OP;
+	default:
+		silent_cerr("unhandled nonlinear solver test type" << std::endl);
+		throw ErrGeneric();
 	}
+
 	if (bScale) {
 		out << ", scale"
 			<< ", " << pRegularSteps->GetIntegratorDSolTol();
@@ -2732,7 +2737,7 @@ Solver::ReadData(MBDynParser& HP)
 		case DERIVATIVESCOEFFICIENT: {
 			dDerivativesCoef = HP.GetReal();
 			if (dDerivativesCoef <= 0.) {
-				dDerivativesCoef = 1.;
+				dDerivativesCoef = dDefaultDerivativesCoefficient;
 				silent_cerr("warning, derivatives "
 					"coefficient <= 0. is illegal; "
 					"using default value "
