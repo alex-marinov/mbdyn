@@ -243,7 +243,7 @@ private:
 	/* Alloca Solman */
 	SolutionManager *const AllocateSolman(integer iNLD, integer iLWS = 0);
 	/* Alloca SchurSolman */
-	SolutionManager *const AllocateSchurSolman();
+	SolutionManager *const AllocateSchurSolman(integer iStates);
 	/* Alloca Nonlinear Solver */
 	NonlinearSolver *const AllocateNonlinearSolver();
    

@@ -83,6 +83,7 @@ template <class S> SchurSolutionManager::SchurSolutionManager (integer iSize,
 : 
 SolvCommSize(0),
 iPrbmSize(iSize),
+iPrbmBlocks(iBlocks),
 pLocDofs(pLocalDofs),
 pIntDofs(pInterfDofs),
 iLocVecDim(iDim1),
@@ -784,6 +785,7 @@ SchurSolutionManager::ComplExchInt(doublereal& dR, doublereal& dXP)
 
 #ifdef USE_Y12
 template SchurSolutionManager::SchurSolutionManager(integer iSize, 
+					    integer iBlocks,
 					    integer* pLocalDofs,
 					    int iDim1,
 					    integer* pInterfDofs,
@@ -795,6 +797,7 @@ template SchurSolutionManager::SchurSolutionManager(integer iSize,
 #endif //USE_Y12
 #ifdef USE_MESCHACH					    
 template SchurSolutionManager::SchurSolutionManager(integer iSize, 
+					    integer iBlocks,
 					    integer* pLocalDofs,
 					    int iDim1,
 					    integer* pInterfDofs,
@@ -806,6 +809,7 @@ template SchurSolutionManager::SchurSolutionManager(integer iSize,
 #endif /* USE_MESCHACH */
 #ifdef USE_UMFPACK
 template SchurSolutionManager::SchurSolutionManager(integer iSize, 
+					    integer iBlocks,
 					    integer* pLocalDofs,
 					    int iDim1,
 					    integer* pInterfDofs,

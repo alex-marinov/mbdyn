@@ -454,7 +454,8 @@ void Solver::Run(void)
 #endif /* __HACK_POD__ */
 
 
-   	/* Immediately link DataManager to current solution */
+   	/* Immediately link DataManager to current solution              */
+	/*                                                               */
 	/* this shuold work as long as the last unknown time step is put */
 	/* at the beginning of pX, pXPrime                               */
    	pDM->LinkToSolution(*(pX), *(pXPrime));         
@@ -484,7 +485,7 @@ void Solver::Run(void)
 		pLocalSM = pCurrSM;
 
 		/* Crea il solutore di Schur globale */
-		pSM = AllocateSchurSolman();
+		pSM = AllocateSchurSolman(iUnkStates);
 
 	} else {
 		pSM = pCurrSM;
@@ -3389,13 +3390,13 @@ Solver::AllocateSolman(integer iNLD, integer iLWS)
 };
 
 
-SolutionManager *const Solver::AllocateSchurSolman() {
+SolutionManager *const Solver::AllocateSchurSolman(integer iStates) {
 	SolutionManager *pSSM(NULL);
 #ifdef USE_MPI
 	switch (CurrIntSolver) {
 		case LinSol::Y12_SOLVER:
 #ifdef USE_Y12
-		SAFENEWWITHCONSTRUCTOR(pSSM,
+		SAFENEWWITHCONSTRUCTOR(pSSM, iStates,
 			SchurSolutionManager,
 			SchurSolutionManager(iNumDofs, pLocDofs,
 				iNumLocDofs,
@@ -3424,7 +3425,7 @@ SolutionManager *const Solver::AllocateSchurSolman() {
 
 	case LinSol::MESCHACH_SOLVER:
 #ifdef USE_MESCHACH
-		SAFENEWWITHCONSTRUCTOR(pSSM,
+		SAFENEWWITHCONSTRUCTOR(pSSM, iStates,
 			SchurSolutionManager,
 			SchurSolutionManager(iNumDofs, pLocDofs,
 				iNumLocDofs,
@@ -3442,7 +3443,7 @@ SolutionManager *const Solver::AllocateSchurSolman() {
 
 	case LinSol::UMFPACK_SOLVER:
 #ifdef USE_UMFPACK
-		SAFENEWWITHCONSTRUCTOR(pSSM,
+		SAFENEWWITHCONSTRUCTOR(pSSM, iStates,
 			SchurSolutionManager,
 			SchurSolutionManager(iNumDofs, pLocDofs,
 				iNumLocDofs,
