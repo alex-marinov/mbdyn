@@ -67,7 +67,8 @@ SymbolicElasticIsotropicConstitutiveLaw<T, Tder>::SymbolicElasticIsotropicConsti
 		const char *const *symbols = NULL)
 : ElasticConstitutiveLaw<T, Tder>(pDC, PStress)
 { 
-	THROW(Err(std::cerr, "symbolic constitutive law "
+	typedef typename ConstitutiveLaw<T, Tder>::ErrNotAvailable E;
+	THROW(E(std::cerr, "symbolic constitutive law "
 				"is allowed only for scalar")); 
 }
  
@@ -136,7 +137,8 @@ SymbolicViscousIsotropicConstitutiveLaw<T, Tder>::SymbolicViscousIsotropicConsti
 		const char *const *symbols = NULL)
 : ElasticConstitutiveLaw<T, Tder>(pDC, PStress)
 { 
-	THROW(Err(std::cerr, "symbolic constitutive law "
+	typedef typename ConstitutiveLaw<T, Tder>::ErrNotAvailable E;
+	THROW(E(std::cerr, "symbolic constitutive law "
 				"is allowed only for scalar")); 
 }
  
@@ -206,7 +208,8 @@ SymbolicViscoElasticIsotropicConstitutiveLaw<T, Tder>::SymbolicViscoElasticIsotr
 		const char *expression, const char *const *symbols = NULL)
 : ElasticConstitutiveLaw<T, Tder>(pDC, PStress)
 { 
-	THROW(Err(std::cerr, "symbolic constitutive law "
+	typedef typename ConstitutiveLaw<T, Tder>::ErrNotAvailable E;
+	THROW(E(std::cerr, "symbolic constitutive law "
 				"is allowed only for scalar")); 
 }
  
