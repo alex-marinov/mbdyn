@@ -132,6 +132,8 @@ class OutputHandler : public FileName {
 
    bool IsOpen(const OutputHandler::OutFiles out) const;
    
+   bool Close(const OutputHandler::OutFiles out);
+   
    bool OutputOpen(void);
    bool RestartOpen(void);
 

@@ -407,7 +407,23 @@ OutputHandler::IsOpen(const OutputHandler::OutFiles out) const
 	return OutData[out].IsOpen;
 }
    
-   
+bool
+OutputHandler::Close(const OutputHandler::OutFiles out)
+{
+   if (!OutData[out].IsOpen) {
+#ifdef HAVE_ISOPEN
+      ASSERT(!OutData[out].pof->is_open());
+#endif /* HAVE_ISOPEN */
+
+      return false;
+   }
+
+   /* Chiude lo stream */
+   OutData[out].pof->close();
+
+   return true;
+}
+
 bool
 OutputHandler::OutputOpen(void) 
 {
