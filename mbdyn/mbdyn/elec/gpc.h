@@ -235,6 +235,7 @@ GPCDesigner::iGetContrHor(void) const
  
 /* DeadBeat - begin */
 
+#ifdef USE_DBC
 class DeadBeat : public GPCDesigner{
 protected:
    	integer iDim;
@@ -256,6 +257,7 @@ public:
 		           doublereal** ppda = NULL, doublereal** ppdb = NULL,
 		      	   doublereal** ppdm = NULL, doublereal** ppdc = NULL);
 };
+#endif /* USE_DBC */
 
 /* DeadBeat - end */
 

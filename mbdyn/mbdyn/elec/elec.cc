@@ -1216,6 +1216,7 @@ Elem* ReadElectric(DataManager* pDM,
 	}	   
 	   
 	case ADAPTIVECONTROL:  {
+#ifdef USE_DBC
 	   flag f_ma = 0;
 	   doublereal dPeriodicFactor(0.);
 	   
@@ -1375,6 +1376,10 @@ Elem* ReadElectric(DataManager* pDM,
 						    f_ma));
 	   
 	   break;
+#else /* !USE_DBC */
+	      cerr << "GPC/deadbeat control is not available" << endl;
+	      THROW(ErrGeneric());
+#endif /* !USE_DBC */
 	}	   
 
 	  

@@ -185,6 +185,9 @@
 /* define if you want to use Metis */
 #undef USE_METIS
 
+/* define if you want to use DeadBeat control */
+#undef USE_DBC
+
 /* define if class ostream has 'form' method */
 #undef HAVE_FORM_IN_OSTREAM
 

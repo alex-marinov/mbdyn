@@ -848,7 +848,7 @@ GPCDesigner::DesignControl(const doublereal* /* pdTheta */ ,
 
 
 /* DeadBeat - begin */
-
+#ifdef USE_DBC
 DeadBeat::DeadBeat(integer iNumOut, integer iNumIn,
 		   integer iOrdA, integer iOrdB,
 		   integer iPredS, integer iContrS, 
@@ -1010,12 +1010,14 @@ DeadBeat::DesignControl(const doublereal* pdTheta,
    	/* linka i puntatori alle matrici, se richiesto */
    	GPCDesigner::DesignControl(NULL, ppda, ppdb, ppdm, ppdc);
 }
+#endif /* USE_DBC */
 
 /* DeadBeat - end */
  
 
 /* GPC - begin */
 
+#ifdef USE_DBC
 GPC::GPC(integer iNumOut, integer iNumIn,
 	 integer iOrdA, integer iOrdB,
 	 integer iPredS, integer iContrS, integer iPredH, integer iContrH,
@@ -1302,9 +1304,11 @@ GPC::DesignControl(const doublereal* pdTheta,
    	/* linka i puntatori alle matrici, se richiesto */
    	GPCDesigner::DesignControl(NULL, ppda, ppdb, ppdm, ppdc);
 }
+#endif /* USE_DBC */
 
 /* GPC - end */
 
+#endif /* USE_ELECTRIC_NODES */
 
 /*
  * Test of matrix computation 
@@ -1314,6 +1318,8 @@ GPC::DesignControl(const doublereal* pdTheta,
 
 int main(void)
 {
+#ifdef USE_ELECTRIC_NODES
+#ifdef USE_DBC
    const integer nout = 2;
    const integer nin = 2;
    const integer s = 4;
@@ -1430,21 +1436,14 @@ int main(void)
       }
       cout << endl;
    }
-
+#else /* !USE_DBC */
+   cerr << "cannot use GPC/Deadbeat" << endl;
+#endif /* !USE_DBC */
+#else /* !USE_ELECTRIC_NODES */
+   cerr << "configure with --with-elec to enable electric stuff" << endl;
+#endif /* !USE_ELECTRIC_NODES */
    return 0;
 }
 
 #endif /* TEST_DPC */
-
-#else /* !USE_ELECTRIC_NODES */
-#ifdef TEST_DPC
-
-int
-main(void)
-{
-	return 0;
-}
-
-#endif /* TEST_DPC */
-#endif /* !USE_ELECTRIC_NODES */
 

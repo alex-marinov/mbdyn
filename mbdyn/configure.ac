@@ -219,7 +219,7 @@ Y12_LIBS=
 MESCHACH_LIBS=
 HARWELL_LIBS=
 LAPACK_LIBS=
-PAM_LIBS=
+SECURITY_LIBS=
 TCL_LIBS=
 
 dnl MODULES_DIRS=
@@ -643,6 +643,7 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Check for LAPACK
 dnl
+ol_link_lapack=no
 if test $ol_with_lapack != no ; then
 	OL_ADD_DIRS(lapack)
 
@@ -661,6 +662,7 @@ if test $ol_with_lapack != no ; then
 	AC_LANG_C
 
 	if test $have_lapack != no ; then
+		ol_link_lapack=yes
 		AC_DEFINE(HAVE_DGEGV,1,[define to use LAPACK's dgegv in Eig])
 	fi
 fi
@@ -683,7 +685,7 @@ if test $ol_with_pam != no ; then
 				[-lcrypt -lpam_misc -ldl])
 			
 			if test $have_pam != no ; then
-				PAM_LIBS="-lcrypt -lpam -lpam_misc -ldl"
+				SECURITY_LIBS="-lcrypt -lpam -lpam_misc -ldl"
 				AC_DEFINE(USE_PAM,1,
 					[define if you want to use PAM])
 				ol_link_pam=yes
@@ -702,8 +704,42 @@ if test $ol_with_pam != no ; then
 else
 	AC_MSG_WARN([PAM not supported!])
 fi
-		
-	
+
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check if crypt needs libcrypt
+dnl
+AC_MSG_CHECKING([how to link crypt])
+crypt_pool="\"\" -lcrypt -lcrypto"
+for i in $crypt_pool ; do
+	save_LIBS=$LIBS
+	LIBS="$LIBS $i"
+	AC_TRY_LINK([
+		#include <unistd.h>
+		#include <pwd.h>
+	],[
+		crypt(NULL,NULL);
+	],[crypt_ok=yes],[crypt_ok=no])
+	LIBS=$save_LIBS
+
+	if test $crypt_ok = yes ; then
+		if test "x$i" = "x" ; then
+			AC_MSG_RESULT([automatically linked])
+		else
+			AC_MSG_RESULT([with $i])
+			SECURITY_LIBS="$SECURITY_LIBS $i"
+		fi
+		break
+	fi
+done
+
+if test $crypt_ok != yes ; then
+	AC_MSG_RESULT([no])
+	AC_MSG_WARN([don't know how to link crypt...])
+fi
+
+
 dnl ----------------------------------------------------------------
 dnl
 dnl Check for MPI & MPI++
@@ -813,6 +849,20 @@ fi
 
 
 dnl ----------------------------------------------------------------
+dnl
+dnl Checks id DeadBeat can be built
+dnl
+if test $ol_link_lapack != no -o $ol_link_meschach != no ; then
+	AC_DEFINE(USE_DBC,1,[define if you want to use GPC/DeadBeat control])
+else
+	if test $ol_with_elec != no ; then
+		AC_MSG_WARN([GPC/Deadbeat not allowed!])
+	fi
+fi
+
+
+dnl ----------------------------------------------------------------
+dnl
 dnl Checks for library functions.
 dnl
 AC_CHECK_FUNCS([ \
@@ -825,9 +875,9 @@ AC_CHECK_FUNCS([ \
 
 
 dnl ----------------------------------------------------------------
+dnl
 dnl Checks whether ostream has form method
 dnl
-
 AC_LANG_CPLUSPLUS
 AC_MSG_CHECKING([whether class ostream has method 'form'])
 AC_TRY_COMPILE([#include <iostream.h>],[
@@ -845,6 +895,7 @@ fi
 
 
 dnl ----------------------------------------------------------------
+dnl
 dnl Checks whether ios has fmtflags type
 dnl
 
@@ -865,13 +916,15 @@ fi
 
 
 dnl ----------------------------------------------------------------
+dnl
 dnl Variable substituion
+dnl
 AC_SUBST(F2C_LIBS)
 AC_SUBST(MPI_LIBS)
 AC_SUBST(METIS_LIBS)
 AC_SUBST(MESCHACH_LIBS)
 AC_SUBST(LAPACK_LIBS)
-AC_SUBST(PAM_LIBS)
+AC_SUBST(SECURITY_LIBS)
 AC_SUBST(TCL_LIBS)
 
 AC_SUBST(Y12_LIBS)
@@ -880,6 +933,7 @@ AC_SUBST(MODULES_DIRS)
 
 
 dnl ----------------------------------------------------------------
+dnl
 dnl Prepare for libtool output:
 dnl
 
@@ -890,6 +944,7 @@ dnl AC_SUBST(LTALLOCA)
 
 
 dnl ----------------------------------------------------------------
+dnl
 dnl final output
 dnl
 
