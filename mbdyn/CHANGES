@@ -13,7 +13,7 @@ MBDyn 1.X-Engineering
 		  by Giuseppe Quaranta)
 		- added (experimental) third order step solver
 		  (by Marco Morandini)
-		- added TAUCS linear solver (eXperimental)
+		- added TAUCS linear solver (experimental)
 		- added "ad hoc" (Radau IIA) third-order integrator
 		- honor describe dofs directive in initial assembly
 		- added support for describing equations
@@ -176,11 +176,11 @@ MBDyn 1.2-Beta.1
 		  private data from math parser (companion of 'dof' plugin)
 		- added 'element' drive to allow direct access to element
 		  private data from math parser (companion of 'dof' drive)
-		- added multithreaded assembly (eXperimental)
+		- added multithreaded assembly (experimental)
 		- compact column form and multithread assembly works also
 		  with Y12
 		- direct access compact column matrix for further improvements
-		- support for multithread SuperLU solver (eXperimental)
+		- support for multithread SuperLU solver (experimental)
 		- viscoelastic rods also output length rate
 		- shock absorber allows separate metering based on stroke rate
 		- beamslider joint
