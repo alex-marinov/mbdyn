@@ -54,3 +54,9 @@ D. Code:
 	- develop a trim control as an external command that drives
 		a simulation.
 
+
+
+E. Bugs/missing features:
+
+	- check for nested /* */ comments
+
