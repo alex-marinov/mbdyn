@@ -74,6 +74,8 @@ tmp_sym consts[] = {
      { "m2ft",      Real(1./.3048)   }, /* conversion meters -> feet */
      { "lb2kg",     Real(.4535)      }, /* conversion pounds -> kg */
      { "kg2lb",     Real(1./.4535)   }, /* conversion kg -> pounds */
+     { "deg2rad",   Real(M_PI/180.)  }, /* conversion degrees -> radians */
+     { "rad2deg",   Real(180./M_PI)  }, /* conversion radians -> degrees */
    
    /* add as needed ... */
 
@@ -90,6 +92,8 @@ tmp_sym consts[] = {
      { "m2ft",      TABLE_REAL, Int(0),        Real(1./.3048) }, /* conversion meters -> feet */
      { "lb2kg",     TABLE_REAL, Int(0),        Real(.4535)    }, /* conversion pounds -> kg */
      { "kg2lb",     TABLE_REAL, Int(0),        Real(1./.4535) }, /* conversion kg -> pounds */
+     { "deg2rad",   TABLE_REAL, Int(0),        Real(M_PI/180.)}, /* conversion degrees -> radians */
+     { "rad2deg",   TABLE_REAL, Int(0),        Real(180./M_PI)}, /* conversion radians -> degrees */
    
    /* add as needed ... */
 
