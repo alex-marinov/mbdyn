@@ -232,8 +232,12 @@ public:
 	VectorHandler& GetCol(integer icol, VectorHandler& out) const;
 	
         /* Prodotto Matrice per Matrice */
-	SpMapMatrixHandler& MatMatMul(SpMapMatrixHandler& out,
-			const SpMapMatrixHandler& in) const;
+	MatrixHandler* MatMatMul(MatrixHandler* out,
+			const MatrixHandler& in) const;
+	
+        /* Prodotto Matrice per Matrice */
+	MatrixHandler* MatMatMulSum(MatrixHandler* out,
+			const MatrixHandler& in) const;
 	
         /* Moltiplica per uno scalare e somma a una matrice */
 	MatrixHandler& MulAndSumWithShift(MatrixHandler& out,

@@ -108,9 +108,9 @@ DirCColMatrixHandler<off>::GetCol(integer icol, VectorHandler& out) const
 	
 /* Prodotto Matrice per Matrice */
 template <int off>
-SpMapMatrixHandler& 
-DirCColMatrixHandler<off>::MatMatMul(SpMapMatrixHandler& out,
-		const SpMapMatrixHandler& in) const
+MatrixHandler* 
+DirCColMatrixHandler<off>::MatMatMul(MatrixHandler* out,
+		const MatrixHandler& in) const
 {
 	silent_cerr("DirCColMatrixHandler<off>::MatMatMul called" << std::endl);
 	throw ErrGeneric();		

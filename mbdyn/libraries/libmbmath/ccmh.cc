@@ -99,9 +99,9 @@ CColMatrixHandler<off>::GetCol(integer icol, VectorHandler& out) const
 	
 /* Prodotto Matrice per Matrice */
 template <int off>
-SpMapMatrixHandler& 
-CColMatrixHandler<off>::MatMatMul(SpMapMatrixHandler& out,
-		const SpMapMatrixHandler& in) const
+MatrixHandler* 
+CColMatrixHandler<off>::MatMatMul(MatrixHandler* out,
+		const MatrixHandler& in) const
 {
 	silent_cerr("CColMatrixHandler<off>::MatMatMul called" << std::endl);
 	throw ErrGeneric();		

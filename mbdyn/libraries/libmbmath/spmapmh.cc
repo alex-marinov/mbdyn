@@ -209,28 +209,44 @@ SpMapMatrixHandler::GetCol(integer icol, VectorHandler& out) const
 }
 	
 /* Prodotto Matrice per Matrice */
-SpMapMatrixHandler &
-SpMapMatrixHandler::MatMatMul(SpMapMatrixHandler& out,
-		const SpMapMatrixHandler& in) const
+MatrixHandler *
+SpMapMatrixHandler::MatMatMul(MatrixHandler* out,
+		const MatrixHandler& in) const
 {
-	if ((in.iGetNumCols() != iGetNumRows())
-			|| (in.iGetNumRows() != out.iGetNumRows())
-			|| (out.iGetNumCols() != iGetNumCols()))
+	if ((in.iGetNumRows() != iGetNumCols())
+			|| (in.iGetNumCols() != out->iGetNumCols())
+			|| (out->iGetNumRows() != iGetNumRows()))
 	{
 		silent_cerr("Assertion fault "
 			"in SpMapMatrixHandler::MatMatMul" << std::endl);
 		throw ErrGeneric();
 	}
 
-	out.Reset();
+	out->Reset();
+	
+	return this->MatMatMulSum(out, in);
 
+}
+MatrixHandler *
+SpMapMatrixHandler::MatMatMulSum(MatrixHandler* out,
+		const MatrixHandler& in) const
+{
+	if ((in.iGetNumRows() != iGetNumCols())
+			|| (in.iGetNumCols() != out->iGetNumCols())
+			|| (out->iGetNumRows() != iGetNumRows()))
+	{
+		silent_cerr("Assertion fault "
+			"in SpMapMatrixHandler::MatMatMulSum" << std::endl);
+		throw ErrGeneric();
+	}
+
+	integer iend = in.iGetNumCols();
 	for (integer col = 0; col < NCols; col++) {
 		row_cont_type::const_iterator ri, re;
 		re = col_indices[col].end();
 		for (ri = col_indices[col].begin(); ri != re; ri++) {
-			integer iend = in.iGetNumCols();
-			for (integer col2 = 0; col2 < iend;  col2++) {
-				out.IncCoef(ri->first,col2,
+			for (integer col2 = 1; col2 <= iend;  col2++) {
+				out->IncCoef(ri->first+1,col2,
 						ri->second*in(col, col2));
 			}
 		}
