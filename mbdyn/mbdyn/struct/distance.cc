@@ -427,7 +427,7 @@ DistanceJointWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.fDecCoef(iCnt, iCnt, dd);
 
 		/* F1: lambda/d Delta x_2 */
-		WM.fIncCoef(iCnt, 3+iCnt, dd);
+		WM.fIncCoef(iCnt, 6+iCnt, dd);
 
 		/* F2: lambda/d Delta x_1 */
 		WM.fIncCoef(6+iCnt, iCnt, dd);
@@ -476,10 +476,10 @@ DistanceJointWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
 	/* F2: lambda/d f2 Cross Delta g_2 */
 	WM.Add(6+1, 9+1, Tmp);
 
-	/* M1: - lambda/d f2 Cross Delta x_1 */
+	/* M2: - lambda/d f2 Cross Delta x_1 */
 	WM.Add(9+1, 1, Tmp);
 	
-	/* M1: lambda/d f2 Cross Delta x_2 */
+	/* M2: lambda/d f2 Cross Delta x_2 */
 	WM.Sub(9+1, 6+1, Tmp);
 
 	Tmp = Mat3x3(f1Tmp, f2Tmp*dd);
@@ -492,12 +492,12 @@ DistanceJointWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
 	/* M2: lambda/d f2 Cross f1 Cross Delta g_1 */
 	WM.Add(9+1, 3+1, Tmp);
 
-	Tmp = Mat3x3(Vec+f1Tmp/dDistance, f1Tmp*dd);
+	Tmp = Mat3x3(Vec*dDistance+f1Tmp, f1Tmp*dd);
 
 	/* M1: - lambda/d (x2 + f2 - x1) Cross f1 Cross Delta g_1 */
 	WM.Add(3+1, 3+1, Tmp);
       
-	Tmp = Mat3x3(Vec-f2Tmp/dDistance, f2Tmp*dd);
+	Tmp = Mat3x3(Vec*dDistance-f2Tmp, f2Tmp*dd);
 
 	/* M2: - lambda/d (x2 - x1 - f1) Cross f2 Cross Delta g_2 */
 	WM.Sub(9+1, 9+1, Tmp);
