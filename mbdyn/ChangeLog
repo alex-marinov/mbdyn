@@ -6,6 +6,12 @@ Copyright (C) 1996-2004
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Thu Aug 19 14:16:31 CEST 2004 Pierangelo Masarati <masarati@aero.polimi.it>
+ - Chaco partitioning works; issues on quality of partitions
+
+*** Mon Aug 16 18:00:00 CEST 2004 Pierangelo Masarati <masarati@aero.polimi.it>
+ - Schur parallel solver works; 1.2.1 released
+
 *** Thu Aug 12 15:19:27 CEST 2004 Pierangelo Masarati <masarati@aero.polimi.it>
  - fixed revolute joint relative rotation private data bug
 

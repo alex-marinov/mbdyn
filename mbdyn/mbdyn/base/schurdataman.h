@@ -77,11 +77,18 @@ private:
 	int iNumMyInt;
 	integer* pMyIntDofs;
 	unsigned int* pLabelsList;	/* str. di serv. per CreatePartition */
-	int wgtflag;
+	enum {
+		WEIGHT_NONE = 0x00U,
+		WEIGHT_VERTICES = 0x01U,
+		WEIGHT_COMM = 0x02U,
+		WEIGHT_EDGES = 0x04U
+	};
+	unsigned wgtflag;
 	int* pParAmgProcs; 
 
 	enum PartitionLibrary {
 		PARTITIONER_UNKNOWN,
+		PARTITIONER_MANUAL,
 		PARTITIONER_METIS,
 		PARTITIONER_CHACO,
 
@@ -90,7 +97,7 @@ private:
 #elif defined(USE_METIS)
 		PARTITIONER_DEFAULT = PARTITIONER_METIS,
 #else /* ! USE_CHACO && ! USE_METIS */
-		PARTITIONER_DEFAULT = PARTITIONER_UNKNOWN,
+		PARTITIONER_DEFAULT = PARTITIONER_MANUAL,
 #endif /* ! USE_CHACO && ! USE_METIS */
 
 		PARTITIONER_LAST

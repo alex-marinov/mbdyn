@@ -370,9 +370,13 @@ DofIter()
       }
 	
       ReadElems(HP);
+#if 0
+      /* FIXME: we don't check extra statements after "end: elements;"
+       * because there might be more... */
       try {
 	      CurrDesc = KeyWords(HP.GetDescription());
       } catch (EndOfFile) {}
+#endif
    } else {
       DEBUGCERR("");
       silent_cerr("warning, no elements are defined" << std::endl);
@@ -393,19 +397,6 @@ DofIter()
 
    /* fine lettura elementi */     
    
-#ifdef __HACK_BEAM__
-   for (unsigned int i = 0; i < ElemData[Elem::BEAM].iNum; i++) {
-      Beam* p = (Beam*)ElemData[Elem::BEAM].ppFirstElem[i]->pGet();
-      OutHdl.Output()
-	<< "beam " << p->GetLabel()
-	<< " " << p->pGetNode(1)->GetLabel()
-	<< " " << p->pGetNode(2)->GetLabel()
-	<< " " << p->pGetNode(3)->GetLabel()
-	<< std::endl;
-	  
-   }
-#endif /* __HACK_BEAM__ */
-   
    for (int i = 0; i < Node::LASTNODETYPE; i++) {
       if(NodeData[i].iNum > 0 
 	 && NodeData[i].OutFile != OutputHandler::UNKNOWN) {
@@ -421,7 +412,6 @@ DofIter()
    
    /* Inizializza il drive handler */
    DrvHdl.iRandInit(0);
-
    
    /* Verifica dei dati di controllo */
 #ifdef DEBUG

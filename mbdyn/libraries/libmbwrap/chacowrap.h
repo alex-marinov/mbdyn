@@ -23,9 +23,17 @@
 #ifndef CHACO_INTERFACE
 #define CHACO_INTERFACE
 
-void chaco_interface(const int iTotVertices, int *start, int *adjacency,
-                     int *vertex_weights, float *edge_weights,
-                     const int num_processors, int *pParAmgProcs);
+extern void
+chaco_interface(
+		const int	iTotVertices,
+		int		*start,
+		int		*adjacency,
+		int		*vertex_weights,
+		int		*comm_weights,
+		int		*edge_weights,
+		const int	num_processors,
+		int		*pParAmgProcs
+	);
 
 #endif /* CHACO_INTERFACE */
 

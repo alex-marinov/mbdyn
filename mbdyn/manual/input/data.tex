@@ -729,8 +729,20 @@ The cards are:
 \begin{verbatim}
     <card> ::= skip initial joint assembly ;
 \end{verbatim}
+This directive inhibits the execution of the initial joint assembly.
+Note that for a model to behave correctly, the initial joint assembly
+should always succeed.
+A correct model succeeds with 0 iterations, i.e.\ it intrinsically 
+satisfies the constraints from the beginning.
+However, the initial joint assembly is more than a simple compliance
+test; it represents a static preprocessor for models.
+See the directives \kw{use} in Section~\ref{sec:CONTROLDATA:USE}
+and \kw{initial stiffness} in Section~\ref{sec:CONTROLDATA:INITIALSTIFFNESS}
+for more details on performing appropriate initial joint assembly.
 
-\subsubsection{Use}
+
+
+\subsubsection{Use}\label{sec:CONTROLDATA:USE}
 \begin{verbatim}
     <card> ::= use : <item_list> , in assembly ;
     <item_list> ::= <item> [ , <item_list> ]
@@ -738,17 +750,30 @@ The cards are:
                | gravity
                | forces
                | beams
-               | aerodynamic elements } 
+               | aerodynamic elements
+               | loadable elements } 
 \end{verbatim}
-\kw{joints} are used by default, and shouldn't be added to the list.
+\kw{joints} are used by default, and cannot be added to the list.
 \kw{beams} are used by default, too, but can be added to the list
 essentially for backwards compatibility.
 
-\subsubsection{Initial Stiffness}
+\subsubsection{Initial Stiffness}\label{sec:CONTROLDATA:INITIALSTIFFNESS}
 \begin{verbatim}
     <card> ::= initial stiffness : <position_stiffness>
                                    [ , <velocity_stiffness> ] ;
 \end{verbatim}
+This directive affects the stiffness of the dummy springs thaat constrain
+the position and the orientation (\kw{<position\_stiffness>})
+and the linear and angular velocity (\kw{<velocity\_stiffness>})
+of the structural nodes (either \kw{static} or \kw{dynamic}) 
+during the initial assembly; the default is 1.0 for both.
+Note that each node can use a specific value; 
+see Section~\ref{sec:NODE:STRUCTURAL} for details. \\
+\emph{Note that the same value is used for the position and the orientation,
+so this stiffness is dimensionally inconsistent; It should really 
+be intended as a penalty coefficient.
+The same considerations apply to the penalty value for linear 
+and angular velocities.}
 
 \subsubsection{Omega Rotates}
 \begin{verbatim}
@@ -757,15 +782,24 @@ essentially for backwards compatibility.
 Sets whether the imposed angular velocity should be considered attached 
 to the node or fixed in the global system during the initial assembly.
 
-\subsubsection{Initial Tolerance}
+\subsubsection{Tolerance}
 \begin{verbatim}
-    <card> ::= initial tolerance : <tolerance> ;
+    <card> ::= tolerance : <tolerance> ;
 \end{verbatim}
+The tolerance that applies to the initial joint assembly; 
+this tolerance is used to test the norm 2 of the residual,
+because it is very important, for a correct start of the simulation,
+that the algebraic constraints be satisfied as much as possible.
+The alternate statement \kw{initial tolerance} is tolerated 
+for backwards compatibility.
 
-\subsubsection{Max Initial Iterations}
+\subsubsection{Max Iterations}
 \begin{verbatim}
-    <card> ::= max initial iterations : <max_iterations> ;
+    <card> ::= max iterations : <max_iterations> ;
 \end{verbatim}
+The number of iterations that are allowed during the initial assembly.
+The alternate statement \kw{max initial iterations} is tolerated
+for backwards compatibility.
 
 \subsubsection{Title}
 \begin{verbatim}
@@ -992,7 +1026,7 @@ The nodes are read as follows:
 
 
 
-\section{Structural Node}\label{sec:NODE-STRUCT}
+\section{Structural Node}\label{sec:NODE:STRUCTURAL}
 The historical 6 dof structural node can be \kw{static},
 \kw{dynamic}, \kw{\bf modal} or \kw{dummy}.
 The \kw{static} keyword means no inertia is related to that node, 

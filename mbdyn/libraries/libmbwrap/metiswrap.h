@@ -37,7 +37,7 @@ mbdyn_METIS_PartGraph(int piTotVertices,
 		int *pAdjncy,
 		int *pVertexWgts,
 		int *pCommWgts,
-		int wgtflag,
+		int *pEdgeWgts,
 		int DataCommSize,
 		int *pParAmgProcs);
 

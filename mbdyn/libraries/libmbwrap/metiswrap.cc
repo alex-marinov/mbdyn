@@ -39,6 +39,8 @@ extern "C" {
 }
 
 #undef ASSERT /* kill annoying redefiniton message */
+#include <mynewmem.h>
+
 #endif /* !USE_METIS */
 
 int
@@ -47,7 +49,7 @@ mbdyn_METIS_PartGraph(int iTotVertices,
 		int *pAdjncy,
 		int *pVertexWgts,
 		int *pCommWgts,
-		int wgtflag,
+		int *pEdgeWgts,
 		int DataCommSize,
 		int *pParAmgProcs)
 {
@@ -57,25 +59,104 @@ mbdyn_METIS_PartGraph(int iTotVertices,
 	int	numflag = 0;
 	/* if options[0] == 0, the rest is ignored */
 	int	options[5] = { 0 };
-	/* number of edges cut */
-	int	edgecut = 0;
+	/* total communication volume */
+	int	volume = 0;
+	/* weiht flags */
+	int	wgtflag;
+
+	idxtype	*xadj = 0,
+		*adjncy = 0,
+		*vwgt = 0,
+		*adjwgt = 0,
+		*part = 0;
+
+	if (sizeof(idxtype) == sizeof(int)) {
+		xadj = pXadj;
+		adjncy = pAdjncy;
+		vwgt = pVertexWgts;
+		adjwgt = pCommWgts;
+		part = pParAmgProcs;
+
+	} else {
+		SAFENEWARR(xadj, idxtype, iTotVertices);
+		SAFENEWARR(adjncy, idxtype, pXadj[iTotVertices]);
+		if (pVertexWgts) {
+			SAFENEWARR(vwgt, idxtype, iTotVertices);
+		}
+		if (pCommWgts) {
+			SAFENEWARR(adjwgt, idxtype, pXadj[iTotVertices]);
+		}
+		SAFENEWARR(part, idxtype, iTotVertices);
+
+		for (int i = 0; i < iTotVertices; i++) {
+			xadj[i] = pXadj[i];
+			part[i] = pParAmgProcs[i];
+		}
+
+		if (pVertexWgts) {
+			for (int i = 0; i < iTotVertices; i++) {
+				vwgt[i] = pVertexWgts[i];
+			}
+		}
+
+		for (int i = 0; i < pXadj[iTotVertices]; i++) {
+			adjncy[i] = pAdjncy[i];
+		}
+
+		if (pCommWgts) {
+			for (int i = 0; i < pXadj[iTotVertices]; i++) {
+				adjwgt[i] = pCommWgts[i];
+			}
+		}
+	}
+
+	if (pVertexWgts && pCommWgts) {
+		wgtflag = 3;
+	} else if (pVertexWgts) {
+		wgtflag = 2;
+	} else if (pCommWgts) {
+		wgtflag = 1;
+	} else {
+		wgtflag = 0;
+	}
 
 	METIS_PartGraphVKway(&iTotVertices,
-			pXadj,
-			pAdjncy,
-			pVertexWgts,
-			pCommWgts,
+			xadj,
+			adjncy,
+			vwgt,
+			adjwgt,
 			&wgtflag,
 			&numflag,
 			&DataCommSize,
 			options,
-			&edgecut,
-			pParAmgProcs);
+			&volume,
+			part);
+
+
+	if (sizeof(idxtype) != sizeof(int)) {
+		for (int i = 0; i < iTotVertices; i++) {
+			pParAmgProcs[i] = part[i];
+		}
+
+		SAFEDELETEARR(xadj);
+		SAFEDELETEARR(adjncy);
+
+		if (pVertexWgts) {
+			SAFEDELETEARR(vwgt);
+		}
+
+		if (pCommWgts) {
+			SAFEDELETEARR(adjwgt);
+		}
+
+		SAFEDELETEARR(part);
+	}
 
 	/* NOTE: the manual suggests to use
 	 * METIS_PartGraphRecursive if DataCommSize < 8 */
 
-#endif /* !USE_METIS */
+#endif /* USE_METIS */
+
 	return 0;
 }
 

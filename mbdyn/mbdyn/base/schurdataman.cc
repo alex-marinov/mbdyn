@@ -51,6 +51,7 @@
 
 #undef min
 #undef max
+#include <vector>
 #include <algorithm>
 
 #include <rotor.h>
@@ -188,7 +189,7 @@ iNumIntNodes(0),
 iNumMyInt(0),
 pMyIntDofs(NULL),
 pLabelsList(NULL),
-wgtflag(1),
+wgtflag(WEIGHT_VERTICES),
 pParAmgProcs(NULL),
 Partitioner(PARTITIONER_DEFAULT),
 pRotorComm(NULL),
@@ -206,7 +207,7 @@ iTotalExpConnections(0)
 	DEBUGCOUT("Communicator Size: " << DataCommSize << std::endl);
 
 	iTotVertices = iTotNodes + iTotElem;
-	DEBUGCOUT("iTotVertexes: " << iTotVertices << std::endl);
+	DEBUGCOUT("iTotVertices: " << iTotVertices << std::endl);
 
 	/* parole chiave del blocco parallelizzazione */
 	const char* sKeyWords[] = {
@@ -282,13 +283,13 @@ iTotalExpConnections(0)
 
 	try {
 		if (KeyWords(HP.GetDescription()) != BEGIN) {
-			pedantic_cerr("no explicit connection declared "
+			pedantic_cerr("no explicit connections declared "
 				"for this input file" << std::endl);
 			return;
 		}
 
 	} catch (EndOfFile) {
-		pedantic_cerr("no explicit connection declared "
+		pedantic_cerr("no explicit connections declared "
 			"for this input file" << std::endl);
 		return;
 	}
@@ -296,8 +297,8 @@ iTotalExpConnections(0)
 	int iNumElems = 0;
 	int iNumNodes = 0;
 	if (KeyWords(HP.GetWord()) != PARALLEL) {
-		silent_cerr("Error: <begin: parallel;> expected at line "
-			<< HP.GetLineData() << "; aborting..." << std::endl);
+		silent_cerr("Error: \"begin: parallel;\" expected at line "
+			<< HP.GetLineData() << std::endl);
 		throw ErrGeneric();
 	}
 
@@ -307,23 +308,28 @@ iTotalExpConnections(0)
 			if (!HP.IsArg()) {
 				silent_cerr("Error: Weight flag expected "
 					"at line " << HP.GetLineData()
-					<< "; aborting ..." << std::endl);
+					<< std::endl);
 				throw ErrGeneric();
 			}
 
-			if (HP.IsKeyWord("no" "weights")) {
-				wgtflag = 0;
-			} else if (HP.IsKeyWord("edges" "only")) {
-				wgtflag = 1;
-			} else if (HP.IsKeyWord("vertices" "only")) {
-				wgtflag = 2;
-			} else if (HP.IsKeyWord("vertices" "and" "edges")) {
-				wgtflag = 3;
-			} else {
-				wgtflag = HP.GetInt();
-				if (wgtflag < 0 || wgtflag > 3) {
-					silent_cerr("invalid weights " << wgtflag
-						<< " at line " << HP.GetLineData()
+			while (HP.IsArg()) {
+				if (HP.IsKeyWord("none")) {
+					wgtflag = WEIGHT_NONE;
+
+				} else if (HP.IsKeyWord("vertices")
+						|| HP.IsKeyWord("computation"))
+				{
+					wgtflag |= WEIGHT_VERTICES;
+
+				} else if (HP.IsKeyWord("communication")) {
+					wgtflag |= WEIGHT_COMM;
+
+				} else if (HP.IsKeyWord("edges")) {
+					wgtflag |= WEIGHT_EDGES;
+
+				} else {
+					silent_cerr("invalid weight "
+						" at line " << HP.GetLineData()
 						<< std::endl);
 					throw ErrGeneric();
 				}
@@ -334,16 +340,27 @@ iTotalExpConnections(0)
 			SAFENEWARR(pParAmgProcs, int, iTotVertices);
 			for (int i = 0; i < iTotVertices; i++) {
 				if (!HP.IsArg()) {
-					silent_cerr("Error: the partition "
-						"assignment is not complete, "
+					silent_cerr("the partition "
+						"assignment is not complete; "
 						"only " << i << " vertices "
 						"input so far "
 						"at line " << HP.GetLineData()
-						<< "; aborting ..." 
 						<< std::endl);
 					throw ErrGeneric();
 				}
 				pParAmgProcs[i] = HP.GetInt();
+				if (pParAmgProcs[i] < 0 ||
+						pParAmgProcs[i] >= DataCommSize)
+				{
+					silent_cerr("illegal value "
+						<< pParAmgProcs[i]
+						<< " for partition "
+						"assignment[" << i << "] "
+						"at line " << HP.GetLineData()
+						<< "; must be between 0 and "
+						<< DataCommSize - 1 << std::endl);
+					throw ErrGeneric();
+				}
 			}
 			break;
 
@@ -363,10 +380,13 @@ iTotalExpConnections(0)
 				silent_cerr("CHACO partitioner not available; aborting..." << std::endl);
 				throw ErrGeneric();
 #endif /* ! USE_CHACO */
+			} else if (HP.IsKeyWord("manual")) {
+				Partitioner = PARTITIONER_MANUAL;
 
 			} else {
-				silent_cerr("unknown partitioner at line " << HP.GetLineData()
-					<< "; aborting..." << std::endl);
+				silent_cerr("unknown partitioner "
+					"at line " << HP.GetLineData()
+					<< std::endl);
 				throw ErrGeneric();
 			}
 			break;
@@ -672,12 +692,13 @@ SchurDataManager::CreatePartition(void)
 {
 	DEBUGCOUT("Entering SchurDataManager::CreatePartition()" << std::endl);
 
+	std::vector<std::vector<int> > adj(iTotVertices);	/* adjacency */
+	std::vector<int> CommWgts(iTotVertices);		/* communication weights */
+
 	Adjacency Vertices;	/* Struttura contenente le connessioni fra i vertici */
-	int* pVertexWgts = 0;	/* Pesi dei vertici = dofs x ogni v. utile per METIS */
-	int* pCommWgts = 0;
+	std::vector<int> VertexWgts(iTotVertices);	/* Pesi dei vertici = dofs x ogni v. utile per METIS */
 	Vertices.pXadj = 0;
 	Vertices.pAdjncy = 0;
-	pVertexWgts = 0;
 	integer iMax = 0;
 	integer iRMax = 0;
 	int iCount = 0;
@@ -688,11 +709,7 @@ SchurDataManager::CreatePartition(void)
 	
 	/* Costruisco e inizializzo le due strutture */
 	SAFENEWARR(Vertices.pXadj, int, iTotVertices + 1);
-	SAFENEWARR(pVertexWgts, int, iTotVertices*2);
-	SAFENEWARR(pCommWgts, int, iTotVertices);
 	memset(Vertices.pXadj, 0, (iTotVertices + 1)*sizeof(int));
-	memset(pVertexWgts, 0, iTotVertices*2*sizeof(int));
-	memset(pCommWgts, 0, iTotVertices*sizeof(int));
 
 	/* Ciclo per la scrittura degli array delle connessioni.
 	 * Il ciclo viene ripetuto se per un vertice si ha un numero
@@ -721,13 +738,15 @@ SchurDataManager::CreatePartition(void)
 	memset(pLabelsList, 0, iTotNodes*sizeof(unsigned int));
 
 	while (true) {
-		InitList(Vertices.pXadj, iTotVertices+1, 0);
-		InitList(pVertexWgts, iTotVertices*2, 0);
-		InitList(pCommWgts, iTotVertices, 0);
+		InitList(Vertices.pXadj, iTotVertices + 1, 0);
 
 		SAFENEWARR(Vertices.pAdjncy, int, iTotVertices*iMaxConnectionsPerVertex);
 		InitList(Vertices.pAdjncy, iTotVertices*iMaxConnectionsPerVertex, ADJ_UNDEFINED);
 		ASSERT(ppElems != NULL);
+
+		for (unsigned int i = 0; i < iTotNodes; i++) {
+			pLabelsList[i] = ppNodes[i]->GetLabel();
+		}
 
 		/* ciclo sugli elementi per assemblare la struttura delle connessioni */
 		Node** ppCurrNode = NULL;
@@ -735,14 +754,10 @@ SchurDataManager::CreatePartition(void)
 		 * al nodo nell'array ppNodes */
 		int position;
 		iCount = iTotNodes;
-		for (unsigned int i = 0; i < iTotNodes; i++) {
-			pLabelsList[i] = ppNodes[i]->GetLabel();
-		}
-
 		iNumRt = 0;
 
 		for (Elem** ppTmpEl = ppElems;
-				ppTmpEl < ppElems+iTotElem;
+				ppTmpEl < ppElems + iTotElem;
 				ppTmpEl++, iCount++)
 		{
 			if ((*ppTmpEl)->GetElemType() == Elem::GRAVITY) {
@@ -764,13 +779,12 @@ SchurDataManager::CreatePartition(void)
 			/* peso dell'elemento */
 			integer dimA, dimB;
 			(*ppTmpEl)->WorkSpaceDim(&dimA, &dimB);
-			pVertexWgts[iCount] = dimA * dimB;
+			VertexWgts[iCount] = dimA * dimB;
 
-			pCommWgts[iCount] =
-				(*ppTmpEl)->iGetNumDof()*(*ppTmpEl)->iGetNumDof();
+			CommWgts[iCount] = (*ppTmpEl)->iGetNumDof()*(*ppTmpEl)->iGetNumDof();
 
-			for (int i = 0; i <= iNumberOfNodes-1; i++) {
-				Vertices.pXadj[iCount+1] += 1;
+			for (int i = 0; i < iNumberOfNodes; i++) {
+				Vertices.pXadj[iCount + 1]++;
 
 				/* trovo la pos. del nodo nella lista dei puntatori ai nodi */
 				ppCurrNode = SearchNode(NodeData[pMyTypes[i]].ppFirstNode,
@@ -782,24 +796,24 @@ SchurDataManager::CreatePartition(void)
 				 * di ciascun nodo connesso */
 
 #if 0   /* FIXME: i nodi hanno peso comp. nullo */
-				pVertexWgts[iCount] += (*ppCurrNode)->iGetNumDof();
+				VertexWgts[iCount] += (*ppCurrNode)->iGetNumDof();
 #endif
 
 				/* aggiungo fra le connessioni dell'elemento il nodo attuale */
-				if ((iCount*iMaxConnectionsPerVertex) + Vertices.pXadj[iCount+1] - 1 < iTotVertices*iMaxConnectionsPerVertex) {
+				if ((iCount*iMaxConnectionsPerVertex) + Vertices.pXadj[iCount + 1] - 1 < iTotVertices*iMaxConnectionsPerVertex) {
 					Vertices.pAdjncy[(iCount*iMaxConnectionsPerVertex)
-						+ Vertices.pXadj[iCount+1] - 1] = position;
+						+ Vertices.pXadj[iCount + 1] - 1] = position;
 				}
 
 				/* aggiungo alle connessioni del nodo l'elemento attuale */
-				Vertices.pXadj[position+1] += 1;
-				if ((position*iMaxConnectionsPerVertex) + Vertices.pXadj[position+1] - 1 < iTotVertices*iMaxConnectionsPerVertex) {
+				Vertices.pXadj[position + 1]++;
+				if ((position*iMaxConnectionsPerVertex) + Vertices.pXadj[position + 1] - 1 < iTotVertices*iMaxConnectionsPerVertex) {
 					Vertices.pAdjncy[(position*iMaxConnectionsPerVertex)
-						+ Vertices.pXadj[position+1] - 1] = iCount;
+						+ Vertices.pXadj[position + 1] - 1] = iCount;
 				}
 
 				/* peso (di comunicazione) del nodo */
-				pCommWgts[position] = (*ppCurrNode)->iGetNumDof();
+				CommWgts[position] = (*ppCurrNode)->iGetNumDof();
 			}
 		}
 
@@ -818,12 +832,12 @@ SchurDataManager::CreatePartition(void)
 				}
 				iElPos = j;
 
-				Vertices.pXadj[iNdPos+1] += 1;
-				Vertices.pXadj[iTotNodes + iElPos+1] += 1;
+				Vertices.pXadj[iNdPos + 1]++;
+				Vertices.pXadj[iTotNodes + iElPos + 1]++;
 				Vertices.pAdjncy[(iNdPos*iMaxConnectionsPerVertex)
-					+ Vertices.pXadj[iNdPos+1] - 1] = iElPos+iTotNodes;
-				Vertices.pAdjncy[((iTotNodes+iElPos)*iMaxConnectionsPerVertex)
-					+ Vertices.pXadj[iTotNodes+iElPos+1] - 1] = iNdPos;
+					+ Vertices.pXadj[iNdPos + 1] - 1] = iElPos + iTotNodes;
+				Vertices.pAdjncy[((iTotNodes + iElPos)*iMaxConnectionsPerVertex)
+					+ Vertices.pXadj[iTotNodes + iElPos + 1] - 1] = iNdPos;
 			}
 		}
 
@@ -844,7 +858,7 @@ SchurDataManager::CreatePartition(void)
 	}
 
 	for (int i = 1; i <= iTotVertices; i++) {
-		Vertices.pXadj[i] += Vertices.pXadj[i-1];
+		Vertices.pXadj[i] += Vertices.pXadj[i - 1];
 	}
 
 	/* Compatta il vettore delle adiacenze */
@@ -856,85 +870,111 @@ SchurDataManager::CreatePartition(void)
 		SAFENEWARR(pParAmgProcs, int, iTotVertices);
 
 #ifdef DEBUG
-		ofstream ofMetis;
 		if (MyRank == 0) {
-			ofMetis.open("metis_conn.debug");
-			ofMetis << "# METIS Input File" << std::endl
-				<< "Column 1 is for Computational weights " << std::endl
-				<< "Column 2 is for Comunicational weight " << std::endl
-				<< "Total Vertexes: " << iTotVertices << std::endl
+			std::ofstream ofPartition;
+
+			ofPartition.open("partition.debug");
+			ofPartition << "# METIS-like Input File" << std::endl
+				<< "# Column 1: computational weight" << std::endl
+				<< "# Column 2: communication weight" << std::endl
+				<< "# Total Vertices: " << iTotVertices << std::endl
 				<< "# Nodes" << std::endl;
-			for (int i = 0; i < iTotNodes; i++) {
-				ofMetis << "# " << i << "  Node Type: "
+			for (unsigned int i = 0; i < iTotNodes; i++) {
+				ofPartition << "# " << i << "  Node Type: "
 					<< "(" << psNodeNames[ppNodes[i]->GetNodeType()] << ")"
 					<< " Label: " << ppNodes[i]->GetLabel() << std::endl
-					<< pVertexWgts[i] << " " << pCommWgts[i];
-				for (int j = Vertices.pXadj[i]; j < Vertices.pXadj[i+1]; j++) {
-					ofMetis << " " << Vertices.pAdjncy[j];
+					<< VertexWgts[i] << " " << CommWgts[i];
+				for (int j = Vertices.pXadj[i]; j < Vertices.pXadj[i + 1]; j++) {
+					ofPartition << " " << Vertices.pAdjncy[j];
 				}
-				ofMetis << std::endl;
+				ofPartition << std::endl;
 			}
-			ofMetis << "# Elements" << std::endl;
-			for (int i = 0; i < iTotElem; i++) {
-				ofMetis << "# " << i+iTotNodes << "  Element Type: "
+			ofPartition << "# Elements" << std::endl;
+			for (unsigned int i = 0; i < iTotElem; i++) {
+				ofPartition << "# " << i + iTotNodes << "  Element Type: "
 					<< "("  << psElemNames[ppElems[i]->GetElemType()] << ")"
 					<< " Label: " << ppElems[i]->GetLabel() << std::endl
-					<< pVertexWgts[i+iTotNodes]
-					<< " " << pCommWgts[i+iTotNodes];
-				for (int j = Vertices.pXadj[i+iTotNodes];
-						j < Vertices.pXadj[i+iTotNodes+1];
+					<< VertexWgts[i + iTotNodes]
+					<< " " << CommWgts[i + iTotNodes];
+				for (int j = Vertices.pXadj[i + iTotNodes];
+						j < Vertices.pXadj[i + iTotNodes + 1];
 						j++) {
-					ofMetis << " " << Vertices.pAdjncy[j];
+					ofPartition << " " << Vertices.pAdjncy[j];
 				}
-				ofMetis << std::endl;
+				ofPartition << std::endl;
 			}
-			ofMetis.close();
+			ofPartition.close();
 		}
 #endif /* DEBUG */
 
 		switch (Partitioner) {
+		case PARTITIONER_MANUAL:
+			ASSERT(0);
+			break;
+				
 		case PARTITIONER_CHACO: {
-			silent_cerr("CHACO partitioning algorithm not supported yet" << std::endl);
-			throw ErrGeneric();
+			int	*vwgt = 0;
+			int	*cwgt = 0;
+			int	*ewgt = 0;
 
-			/* Chaco uses floats for the communication weights */
-			float* pfCommWgts = NULL;
+			if (wgtflag & WEIGHT_VERTICES) {
+				vwgt = &VertexWgts[0];
+			}
 
-			SAFENEWARR(pfCommWgts, float, iTotVertices);
+			if (wgtflag & WEIGHT_COMM) {
+				/* unsupported */
+				silent_cout("communication weights currently unsupported by CHACO; trying to emulate..." << std::endl);
+				cwgt = &CommWgts[0];
+			}
 
-			for (int i = 0; i < iTotVertices; i++) {
-				pfCommWgts[i] = pCommWgts[i];
+			if (wgtflag & WEIGHT_EDGES) {
+				/* unsupported ... */
+				silent_cout("edges weights currently unsupported by MBDyn" << std::endl);
 			}
 
 			chaco_interface(iTotVertices,
 					Vertices.pXadj,
 					Vertices.pAdjncy,
-					pVertexWgts,
-					pfCommWgts,
-					/* wgtflag */
+					vwgt,
+					cwgt,
+					ewgt,
 					DataCommSize,
 					pParAmgProcs);
-
-			SAFEDELETEARR(pfCommWgts);
 			break;
 		}
 
-		case PARTITIONER_METIS:
+		case PARTITIONER_METIS: {
+			int	*vwgt = 0;
+			int	*cwgt = 0;
+
+			if (wgtflag & WEIGHT_VERTICES) {
+				vwgt = &VertexWgts[0];
+			}
+
+			if (wgtflag & WEIGHT_EDGES) {
+				/* unsupported ... */
+				silent_cout("edges weights currently unsupported by MBDyn" << std::endl);
+			}
+
+			if (wgtflag & WEIGHT_COMM) {
+				cwgt = &CommWgts[0];
+			}
+
 			mbdyn_METIS_PartGraph(iTotVertices,
 					Vertices.pXadj,
 					Vertices.pAdjncy,
-					pVertexWgts,
-					pCommWgts,
-					wgtflag,
+					vwgt,
+					cwgt,
+					NULL,	/* ewgt */
 					DataCommSize,
 					pParAmgProcs);
 			break;
+		}
 
 		default:
-			silent_cerr("Sorry. You need to compile with -DUSE_METIS " // "or -DUSE_CHACO."
-				<< std::endl
-				<< "No other partition library is implemented yet."
-				" Aborting ..." << std::endl);
+			silent_cerr("no partition library is available; "
+				"partition assignments must be provided "
+				"manually" << std::endl);
 			throw ErrGeneric();
 		}
 	}
@@ -974,7 +1014,7 @@ SchurDataManager::CreatePartition(void)
 			if (pParAmgProcs[i] == MyRank) {
 				/* se uno dei nodi e' connesso ad un elemento non appartenente
 				 * a questo processo e' un nodo di interfaccia */
-				for (int j = Vertices.pXadj[i]; j < Vertices.pXadj[i+1]; j++) {
+				for (int j = Vertices.pXadj[i]; j < Vertices.pXadj[i + 1]; j++) {
 					TmpPrc = pParAmgProcs[Vertices.pAdjncy[j]];
 					if (TmpPrc != MyRank) {
 						InterfNodes.pXadj[TmpPrc] += 1;
@@ -1050,7 +1090,7 @@ SchurDataManager::CreatePartition(void)
 		/* FIXME: there's a better way to find GravityPos and so on... */
 		ppMyElems[iNumLocElems] = ppElems[GravityPos];
 		iNumLocElems++;
-		pParAmgProcs[GravityPos+iTotNodes] = -1;
+		pParAmgProcs[GravityPos + iTotNodes] = -1;
 		move++;
 	}
 
@@ -1058,7 +1098,7 @@ SchurDataManager::CreatePartition(void)
 	if (ElemData[Elem::AIRPROPERTIES].iNum != 0) {
 		ppMyElems[iNumLocElems] = ppElems[AirPropPos];
 		iNumLocElems++;
-		pParAmgProcs[AirPropPos+iTotNodes] = -1;
+		pParAmgProcs[AirPropPos + iTotNodes] = -1;
 		move++;
 	}
 
@@ -1108,14 +1148,14 @@ SchurDataManager::CreatePartition(void)
 				key = MyRank;
 			} else {
 				color = 1;
-				if (pParAmgProcs[pMyRot[i]+iTotNodes] == MyRank) {
+				if (pParAmgProcs[pMyRot[i] + iTotNodes] == MyRank) {
 					silent_cout("Rotor " << ppElems[pRotPos[i]]->GetLabel()
 							<< " assigned to process "
 							<< MyRank << std::endl);
 					iRotorIsMine = 1;
 					key = 0;
 				} else {
-					key = MyRank+1;
+					key = MyRank + 1;
 				}
 			}
 			pRotorComm[i] = MBDynComm.Split(color, key);
@@ -1128,13 +1168,13 @@ SchurDataManager::CreatePartition(void)
 
 		for (int i = 0; i < iMyTotRot; i++) {
 			ppMyElems[iNumLocElems] = ppElems[pMyRot[i]];
-			if (pParAmgProcs[pMyRot[i]+iTotNodes] == MyRank) {
+			if (pParAmgProcs[pMyRot[i] + iTotNodes] == MyRank) {
 				iNumLocDofs += ppMyElems[iNumLocElems]->iGetNumDof();
 			} else {
 				move++;
 			}
 			iNumLocElems++;
-			pParAmgProcs[pMyRot[i]+iTotNodes] = -1;
+			pParAmgProcs[pMyRot[i] + iTotNodes] = -1;
 		}
 	}
 
@@ -1220,8 +1260,8 @@ SchurDataManager::CreatePartition(void)
 					ppMyElems[i]->GetConnectedNodes(iNumberOfNodes, pMyTypes, pMyLabels);
 					for (int j = 0; j < iNumberOfNodes; j++) {
 						unsigned int* p =
-							std::find(llabels, llabels+iNumIntNodes, pMyLabels[j]);
-						if (p != llabels+iNumIntNodes) {
+							std::find(llabels, llabels + iNumIntNodes, pMyLabels[j]);
+						if (p != llabels + iNumIntNodes) {
 							ppMyIntElems[iNumIntElems] =  ppMyElems[i];
 							iNumIntDofs += ppMyElems[i]->iGetNumDof();
 							iNumLocDofs -= ppMyElems[i]->iGetNumDof();
@@ -1243,8 +1283,8 @@ SchurDataManager::CreatePartition(void)
 						pMyTypes, pMyLabels);
 				for (int j = 0; j < iNumberOfNodes; j++) {
 					unsigned int* p =
-						std::find(llabels, llabels+iNumIntNodes, pMyLabels[j]);
-					if (p != llabels+iNumIntNodes) {
+						std::find(llabels, llabels + iNumIntNodes, pMyLabels[j]);
+					if (p != llabels + iNumIntNodes) {
 						ppMyIntElems[iNumIntElems] =  ppMyElems[i];
 						iNumIntDofs += ppMyElems[i]->iGetNumDof();
 						iNumLocDofs -= ppMyElems[i]->iGetNumDof();
@@ -1267,7 +1307,7 @@ SchurDataManager::CreatePartition(void)
 		if (ppMyNodes[i]->iGetNumDof() != 0) {
 			integer First = (ppMyNodes[i])->iGetFirstIndex();
 
-			pLocalDofs[iCount] = First+1;
+			pLocalDofs[iCount] = First + 1;
 			iCount++;
 			for (unsigned int j = 1; j < ppMyNodes[i]->iGetNumDof(); j++) {
 				pLocalDofs[iCount] = First + j + 1;
@@ -1287,7 +1327,7 @@ SchurDataManager::CreatePartition(void)
 				ElemWithDofs* pWithDofs = ppMyElems[i]->pGetElemWithDofs();
 				integer First = (pWithDofs)->iGetFirstIndex();
 
-				pLocalDofs[iCount] = First+1;
+				pLocalDofs[iCount] = First + 1;
 				iCount++;
 				for (int j = 1; j < TmpDofNum; j++) {
 					pLocalDofs[iCount] = First + 1 + j;
@@ -1383,14 +1423,6 @@ SchurDataManager::CreatePartition(void)
 		SAFEDELETEARR(pLabelsList);
 	}
 
-	if ( pVertexWgts != NULL) {
-		SAFEDELETEARR(pVertexWgts);
-	}
-
-	if ( pCommWgts != NULL) {
-		SAFEDELETEARR(pCommWgts);
-	}
-
 	if ( pPosIntElems != NULL) {
 		SAFEDELETEARR(pPosIntElems);
 	}
@@ -1417,22 +1449,47 @@ SchurDataManager::OutputPartition(void)
 	time_t tCurrTime(time(NULL));
 	OutHdl.Partition()
 		<< "# Partition file for MBDyn. Time: " << ctime(&tCurrTime)  << std::endl
-		<< "# Partition produced with METIS" << std::endl << std::endl << std::endl;
+		<< "# Partition produced ";
+	switch (Partitioner) {
+	case PARTITIONER_MANUAL:
+		OutHdl.Partition()
+			<< "manually";
+		break;
+
+	case PARTITIONER_METIS:
+		OutHdl.Partition()
+			<< "with METIS";
+		break;
+
+	case PARTITIONER_CHACO:
+		OutHdl.Partition()
+			<< "with CHACO";
+		break;
+
+	default:
+		ASSERT(0);
+	}
+	OutHdl.Partition()
+		<< std::endl
+		<< std::endl
+		<< std::endl;
 
 	/* Dati */
 	OutHdl.Partition()
 		<< "# Control data useful to verify the partition "
-		<< std::endl << std::endl
+		<< std::endl
+		<< std::endl
 		<< "Total number of processes: " << DataCommSize << ";" << std::endl
-		<< " Process #: " << MyRank << ";" << std::endl
+		<< "Process #: " << MyRank << ";" << std::endl
 		<< "Total number of Nodes: " << iTotNodes << ";"  << std::endl
 		<< "Total number of Elements: " << iTotElem << ";"  << std::endl
 		<< "Total number of Dofs: " << iTotDofs << ";"  << std::endl
-		<< std::endl << std::endl;
+		<< std::endl
+		<< std::endl;
 
-	OutHdl.Partition() << " Local Dofs number: " << iNumLocDofs << std::endl;
+	OutHdl.Partition() << "Local Dofs number: " << iNumLocDofs << std::endl;
 
-	OutHdl.Partition() << " Local Nodes: " << iNumLocNodes << std::endl;
+	OutHdl.Partition() << "Local Nodes: " << iNumLocNodes << std::endl;
 	for (int i = 0; i < iNumLocNodes; i++) {
 		ASSERT(ppMyNodes[i] != NULL);
 		OutHdl.Partition()
@@ -1444,7 +1501,10 @@ SchurDataManager::OutputPartition(void)
 	}
 
 	OutHdl.Partition()
-		<< std::endl << std::endl << "Local Elements: "<< iNumLocElems << std::endl << std::endl;
+		<< std::endl
+		<< std::endl
+		<< "Local Elements: "<< iNumLocElems << std::endl
+		<< std::endl;
 	for (int i = 0; i < iNumLocElems; i++) {
 		ASSERT(ppMyElems[i] != NULL);
 		OutHdl.Partition()
@@ -1456,9 +1516,12 @@ SchurDataManager::OutputPartition(void)
 	}
 
 	OutHdl.Partition()
-		<< std::endl << std::endl << " Interface Dofs number: " << iNumIntDofs << std::endl;
+		<< std::endl
+		<< std::endl
+		<< "Interface Dofs number: " << iNumIntDofs << std::endl;
 	OutHdl.Partition()
-		<< std::endl << "Interface Nodes: " << iNumIntNodes << std::endl;
+		<< std::endl
+		<< "Interface Nodes: " << iNumIntNodes << std::endl;
 	for (int i = 0; i < iNumIntNodes; i++) {
 		ASSERT(ppIntNodes[i] != NULL);
 		OutHdl.Partition()
@@ -1470,8 +1533,11 @@ SchurDataManager::OutputPartition(void)
 	}
 
 	OutHdl.Partition()
-		<< std::endl << std::endl << "Elements whose internal dofs are interface dofs: "
-		<< iNumIntElems << std::endl << std::endl;
+		<< std::endl
+		<< std::endl
+		<< "Elements whose internal dofs are interface dofs: "
+		<< iNumIntElems << std::endl
+		<< std::endl;
 	for (int i = 0; i < iNumIntElems; i++) {
 		OutHdl.Partition()
 			<< "Element Type: "
@@ -1482,7 +1548,9 @@ SchurDataManager::OutputPartition(void)
 	}
 
 #ifdef DEBUG
-	OutHdl.Partition() << std::endl << "Local Dofs List:" << std::endl;
+	OutHdl.Partition()
+		<< std::endl
+		<< "Local Dofs List:" << std::endl;
 
 	int j = 0;
 	for (int i = 0; i < iNumLocDofs; i++) {
@@ -1493,9 +1561,12 @@ SchurDataManager::OutputPartition(void)
 			j = 0;
 		}
 	}
-	OutHdl.Partition() << std::endl;
+	OutHdl.Partition()
+		<< std::endl;
 
-	OutHdl.Partition() << std::endl << "Local Interface Dofs List:" <<std::endl;
+	OutHdl.Partition()
+		<< std::endl
+		<< "Local Interface Dofs List:" <<std::endl;
 	j = 0;
 	for (int i = 0; i < iNumIntDofs; i++) {
 		OutHdl.Partition() << pLocalIntDofs[i] << " ";

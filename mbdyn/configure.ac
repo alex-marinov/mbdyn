@@ -164,8 +164,8 @@ OL_ARG_ENABLE(debug_mpi,[  --enable-debug-mpi      enable MPI debugging], no)dnl
 OL_ARG_WITH(metis,[  --with-metis            with Metis model partitioning support],auto,[auto yes no])
 
 dnl temporarily disabled until we figure out how to make chaco work...
-dnl OL_ARG_WITH(chaco,[  --with-chaco            with Chaco model partitioning support],auto,[auto yes no])
-ol_with_chaco=no
+OL_ARG_WITH(chaco,[  --with-chaco            with Chaco model partitioning support],auto,[auto yes no])
+dnl ol_with_chaco=no
 
 OL_ARG_WITH(threads,[  --with-threads          with threads],auto,[auto yes no])
 OL_ARG_WITH(rtai,[  --with-rtai             with RTAI support],no,[auto yes no])
@@ -361,7 +361,7 @@ if test "$ol_enable_schur" = yes ; then
 		;;
 	esac
 	if test "$ol_with_metis" = no -a "$ol_with_chaco" = no ; then
-		AC_MSG_ERROR([Schur parallel solver needs either Metis or Chaco])
+		AC_MSG_WARN([No partitioning library available; Schur parallel solver will allow manual partitioning only...])
 	fi
 fi
 
