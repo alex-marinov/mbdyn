@@ -47,7 +47,9 @@ extern "C" {
 
 #define MB_EXIT(err) \
 	do { \
-		MPI::Finalize(); \
+		if (using_mpi) { \
+			MPI::Finalize(); \
+		} \
 		exit((err)); \
 	} while (0)
 
@@ -204,17 +206,33 @@ int
 main(int argc, char* argv[])
 {
 #ifdef USE_MPI
-
+	int using_mpi = 0;
 	int WorldSize = 1;
 	int myrank = 0;
-	char ProcessorName[1024] = "localhost";
+	char ProcessorName_[1024] = "localhost", *ProcessorName = ProcessorName_;
 
-    	/* Inizializza i processi */
-	if (getenv("MPIRUN_DEVICE") != NULL) {
-		MPI::Init(argc, argv);	   
-		WorldSize = MPI::COMM_WORLD.Get_size();
-		myrank = MPI::COMM_WORLD.Get_rank();
-		MPI::Get_processor_name(ProcessorName, sizeof(ProcessorName)); 
+    	/* 
+	 * FIXME: this is a hack to detect whether mbdyn has been
+	 * invoked thru mpirun (which means we need to initialize
+	 * MPI) or not (which means we don't); need to check how 
+	 * portable it is ...
+	 */
+	for (char **s = argv; s[0]; s++) {
+		if (strncmp(s[0], "-p", 2) == 0) {
+			MPI::Init(argc, argv);	   
+			WorldSize = MPI::COMM_WORLD.Get_size();
+			myrank = MPI::COMM_WORLD.Get_rank();
+		
+			/*
+			 * all these temporaries are to avoid complains from
+			 * the compiler (MPI's API is really messy ):
+			 */
+			int ProcessorNameLength = sizeof(ProcessorName);
+			MPI::Get_processor_name(ProcessorName, 
+					ProcessorNameLength); 
+			using_mpi = 1;
+			break;
+		}
 	}
 #endif /* USE_MPI */
    
@@ -309,10 +327,13 @@ main(int argc, char* argv[])
 		    			std::cerr 
 		        			<< std::endl 
 		        			<< "Unable to open file '"
-						<< sInputFileName
+						<< sInputFileName;
 #ifdef USE_MPI
-		        			<< "' on " << ProcessorName
+					if (using_mpi) {
+						std::cerr << "' on " << ProcessorName;
+					}
 #endif /* USE_MPI */
+					std::cerr
 						<< ";" << std::endl 
 						<< "aborting ..." << std::endl;
 		    			THROW(ErrGeneric());
@@ -453,9 +474,11 @@ main(int argc, char* argv[])
 			    << std::endl 
 		    	    << std::endl);
 #ifdef USE_MPI
-        	std::cerr << "Process " << myrank 
-	    		<< " (" << myrank+1 << " of " << WorldSize
-            		<< ") is alive on " << ProcessorName << std::endl;
+		if (using_mpi) {
+        		std::cerr << "Process " << myrank 
+	    			<< " (" << myrank+1 << " of " << WorldSize
+            			<< ") is alive on " << ProcessorName << std::endl;
+		}
 #endif /* USE_MPI */
       
       		/* Mostra la tabella dei simboli ed esce */
@@ -633,7 +656,9 @@ main(int argc, char* argv[])
 	        		<< tSecs << '.' << tCents 
 	        		<< " seconds of CPU time";
 #ifdef USE_MPI
-	    		std::cout << " on " << ProcessorName;
+			if (using_mpi) {
+	    			std::cout << " on " << ProcessorName;
+			}
 #endif /* USE_MPI */
 	    		std::cout << std::endl;
 #endif /* HAVE_TIMES_H */
