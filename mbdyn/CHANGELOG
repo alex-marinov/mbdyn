@@ -16,6 +16,9 @@ MBDyn 1.1 Engineering
 		- rotors can be arbitrarily oriented wrt the craft (ITS#5)
 		- improved Mat3x3 and Mat3xN APIs (Need critical redesign)
 		- modal element can use a portion of the available modes
+		- deformable hinge rewritten using absolute rotation
+		  (caveat: more accurate and insensitive to drift, 
+		  but prone to singularities for excessively large rotations)
 	Bug fixes:
 		- fix unsteady Cm sign bug in unsteady c81 aerodynamics
 		- fix input file command line arg delete[] failure 
