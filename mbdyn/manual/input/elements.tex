@@ -219,7 +219,7 @@ by correcting the section stiffness matrix in a straightforward form:
 \end{displaymath}
 where $F=K^{-1}$ is the compliance of the section, and
 \begin{displaymath}
-	T \ = \ sqbr{\matr{cc}{
+	T \ = \ \sqbr{\matr{cc}{
 		0 & e_x \times{} \\
 		0 & 0
 	}}
@@ -228,7 +228,7 @@ is the ``arm'' matrix that appears in the differential equilibrium equation
 \begin{displaymath}
 	\vartheta_{/x} - T^T\vartheta + f \ = \ 0 .
 \end{displaymath}
-The two-node beam will be reimplemented using helicoidal interpolation
+The two-node beam will be reimplemented using a helicoidal interpolation
 of the nodal displacements and rotations, to reduce the shear-locking effect.
 
 \subsection{Three-node beam element}
