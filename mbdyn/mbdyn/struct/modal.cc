@@ -721,7 +721,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
    
    VecN MaPP(NModes), Ka(NModes), CaP(NModes);
    
-   /* spostamenti, velocità e accelerazioni modali correnti */
+   /* spostamenti, velocita' e accelerazioni modali correnti */
    for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
       aPrime->Put(iCnt, XPrimeCurr.dGetCoef(iModalIndex+iCnt));
       bPrime.Put(iCnt, XPrimeCurr.dGetCoef(iModalIndex+NModes+iCnt));

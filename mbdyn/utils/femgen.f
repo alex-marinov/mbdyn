@@ -61,8 +61,8 @@ C     legge la prima matrice in modo da conoscere il numero di modi
       call GETIDS(m,ncol,nrow,name,maxmod,maxmod,m,1,in4f,err)
       nmodes = nrow
       
-      write(outfil,*) '** MBdyn MODAL DATA FILE'
-      write(outfil,*) '** NODE SET "ALL" '
+      write(outfil,'(A24)') '** MBdyn MODAL DATA FILE'
+      write(outfil,'(A18)') '** NODE SET "ALL" '
       write(outfil,*) ' '
       write(outfil,*) ' '
 
@@ -77,13 +77,14 @@ C     legge il trailer del blocco che indica il numero di elementi b(1)
          goto 902
       endif
       
-      write(outfil,*) '** RECORD GROUP 1, HEADER'
-      write(outfil,*) '**   REVISION.  NODES.  NORMAL, ATTACHMENT,', 
-     *     ' CONSTRAINT, REJECTED MODES.'
+      write(outfil,'(A25)') '** RECORD GROUP 1, HEADER'
+      write(outfil,'(A31, A39)') '**   REVISION,  NODE,  NORMAL, ',
+     *     'ATTACHMENT, CONSTRAINT, REJECTED MODES.'
       write(outfil,'(6X, A4, 5I10)') 'REV01', nword, nmodes, 0, 0, 0
 
-      write(outfil,*) '**'
-      write(outfil,*) '** RECORD GROUP 2, FINITE ELEMENT NODE LIST'
+      write(outfil,'(A2)') '**'
+      write(outfil,'(A34,A9)') '** RECORD GROUP 2, FINITE ELEMENT ',
+     *     'NODE LIST'
       do j=0,nword,6
 	 if (j+6 .gt. nword) then
 	    write(outfil,'(6I10)') (ib(i), i=j+1,nword)
@@ -101,11 +102,13 @@ C     il secondo record DI GRT non serve
          call IREAD(in2f,sysout,ib,maxnod,0,nword,irtn)
       enddo 
 
-      write(outfil,*) '**'
-      write(outfil,*) '** RECORD GROUP 3, INITIAL MODAL DISPLACEMENTS'
+      write(outfil,'(A2)') '**'
+      write(outfil,'(A33, A13)') '** RECORD GROUP 3, INITIAL MODAL ',
+     *     'DISPLACEMENTS'
       write(outfil,'(500(1X,1PE17.10))') (0.0*i, i=1,nmodes)        
-      write(outfil,*) '**'
-      write(outfil,*) '** RECORD GROUP 4, INITIAL MODAL VELOCITIES'
+      write(outfil,'(A2)') '**'
+      write(outfil,'(A32,A10)') '** RECORD GROUP 4, INITIAL MODAL', 
+     *     'VELOCITIES'
       write(outfil,'(500(1X,1PE17.10))') (0.0*i, i=1,nmodes)        
       
 C     legge la matrice BGPDT che ha le posizioni dei nodi 
@@ -124,18 +127,18 @@ C     legge le posizioni che possono essere al piu' 4000 da errore
      *        '. You must recompile with bigger arrays !!'
          goto 902
       endif
-      write(outfil,*) '**'
-      write(outfil,*) '** RECORD GROUP 5, NODAL X COORDINATES'   
+      write(outfil,'(A2)') '**'
+      write(outfil,'(A38)') '** RECORD GROUP 5, NODAL X COORDINATES'   
       do j=2,nword,4
          write(outfil,'(E17.10)') b(j) 
       enddo
-      write(outfil,*) '**'
-      write(outfil,*) '** RECORD GROUP 6, NODAL Y COORDINATES'   
+      write(outfil,'(A2)') '**'
+      write(outfil,'(A38)') '** RECORD GROUP 6, NODAL Y COORDINATES'   
       do j=3,nword,4
          write(outfil,'(E17.10)') b(j) 
       enddo
-      write(outfil,*) '**'
-      write(outfil,*) '** RECORD GROUP 7, NODAL Z COORDINATES'   
+      write(outfil,'(A2)') '**'
+      write(outfil,'(A38)') '** RECORD GROUP 7, NODAL Z COORDINATES'   
       do j=4,nword,4
          write(outfil,'(E17.10)') b(j) 
       enddo
@@ -148,30 +151,30 @@ C     il secondo record DI BGPDT non serve
       enddo 
       
 C     legge la tabella delle forme dei modi OUGV1
-      write(outfil,*) '**'
-      write(outfil,*) 'RECORD GROUP 8, MODE SHAPES'    
+      write(outfil,'(A2)') '**'
+      write(outfil,'(A30)') '** RECORD GROUP 8, MODE SHAPES'    
       call tabrd(in2f, outfil, outfil,7)
 
 C     stampa la matrice di massa
-      write(outfil,*) '**'
-      write(outfil,*) '** RECORD GROUP 9, MODAL MASS MATRIX.'  
+      write(outfil,'(A2)') '**'
+      write(outfil,'(A36)') '** RECORD GROUP 9, MODAL MASS MATRIX'  
       do  j = 1,nrow 
          write(outfil,'(500(1X,1PE17.10))')(m(j,i),i=1,ncol) 	  
       enddo
 C     legge la matrice di rigidezza     
       call GETIDS(m,ncol,nrow,name,maxmod,maxmod,m,1,in4f,err)
 C     stampa la matrice di rigidezza
-      write(outfil,*) '**'
-      write(outfil,*) '** RECORD GROUP 10, MODAL STIFFNESS MATRIX.'  
+      write(outfil,'(A2)') '**'
+      write(outfil,'(A42)') '** RECORD GROUP 10, MODAL STIFFNESS MATRIX'  
       do  j = 1,nrow 
          write(outfil,'(500(1X,1PE17.10))')(m(j,i),i=1,ncol) 	  
       enddo      
 C     legge il vettore lumped mass      
       call GETIDS(b,ncol,nrow,name,6*maxnod,1,db,1,in4f,err)
 C     stampa il vettore lumped mass
-      write(outfil,*) '**'
-      write(outfil,*) '** RECORD GROUP 11, DIAGONAL OF LUMPED',
-     *     ' MASS MATRIX'  
+      write(outfil,'(A2)') '**'
+      write(outfil,'(A38,A12)') '** RECORD GROUP 11, DIAGONAL OF LUMPED'
+     *     ,' MASS MATRIX'
       do  j = 0,nrow,6 
          write(outfil,'(500(1X,1PE17.10))')(db(j+i),i=1,6) 	  
       enddo  
@@ -547,7 +550,7 @@ C     WHICH DATA BLOCK IS IT?
          
 C     ... EVALUATING IN THE CONTROL BLOCK
 	  IMODE = IMODE + 1
-          WRITE(IOUT,*)'**    NORMAL MODE SHAPE # ', IMODE  
+          WRITE(IOUT,'(A26,I2)')'**    NORMAL MODE SHAPE # ', IMODE  
          
 C     istruzioni per i blocchi conteneti i dati relativi agli elementi  
          IF ((TTYP .GE. 4).AND.(TTYP .LE. 5)) THEN
