@@ -583,10 +583,12 @@ public:
 	/* socket select stuff */
 private:
 	std::map<int, UseSocket *> SocketUsers;
+	time_t SocketUsersTimeout;
+
+	void WaitSocketUsers(void);
 
 public:
 	void RegisterSocketUser(UseSocket *pUS);
-	void WaitSocketUsers(void);
 };
 
 /* DataManager - end */

@@ -165,7 +165,8 @@ iTotDofOwners(0),
 pDofOwners(NULL), 
 iTotDofs(0), 
 pDofs(NULL), 
-DofIter()
+DofIter(),
+SocketUsersTimeout(0)
 {
    DEBUGCOUTFNAME("DataManager::DataManager");
 

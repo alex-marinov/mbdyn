@@ -56,6 +56,11 @@ void
 DataManager::WaitSocketUsers(void)
 {
 	int n;
+	time_t finalTime = 0;
+
+	if (SocketUsersTimeout != 0) {
+		finalTime = time(NULL) + SocketUsersTimeout;
+	}
 	
 	fd_set	active_set, read_set;
 	FD_ZERO(&active_set);
@@ -69,8 +74,27 @@ DataManager::WaitSocketUsers(void)
 
 	/* wait for all registered */
 	while (n > 0) {
+		struct timeval	timeout, *timeoutp = 0;
+
+		if (finalTime != 0) {
+			timeout.tv_sec = time(NULL);
+			if (timeout.tv_sec >= finalTime) {
+do_timeout:;
+				silent_cerr("DataManager::WaitSocketUsers(): "
+						"timeout " << SocketUsersTimeout
+						<< " s exceeded" << std::endl);
+				throw ErrGeneric();
+			}
+			timeout.tv_sec = finalTime - timeout.tv_sec;
+			timeout.tv_usec = 0;
+
+			timeoutp = &timeout;
+		}
+
 		read_set = active_set;
-		if (select(FD_SETSIZE, &read_set, NULL, NULL, NULL) < 0) {
+		int a = select(FD_SETSIZE, &read_set, 0, 0, timeoutp);
+		switch (a) {
+		case -1: {
 			int save_errno = errno;
 			char *msg = strerror(save_errno);
 
@@ -79,8 +103,12 @@ DataManager::WaitSocketUsers(void)
 			throw ErrGeneric();
 		}
 
+		case 0:
+			 goto do_timeout;
+		}
+
 		/* loop on active to see what is being connected */
-		for (int i = 0; i < FD_SETSIZE; i++) {
+		for (int i = 0; i < FD_SETSIZE && a > 0; i++) {
 			if (FD_ISSET(i, &read_set)) {
 				UseSocket *pUS = SocketUsers[i];
 				int sock;
@@ -105,6 +133,7 @@ DataManager::WaitSocketUsers(void)
 				/* register as connected */
 				pUS->ConnectSock(sock);
 				n--;
+				a--;
 			}
 		}
 	}

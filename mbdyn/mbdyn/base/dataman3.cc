@@ -128,6 +128,8 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName)
       "default" "scale",
       
       "read" "solution" "array",
+
+      "select" "timeout",
       
       NULL
    };
@@ -200,6 +202,8 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName)
       DEFAULTSCALE,
       
       READSOLUTIONARRAY,
+
+      SELECTTIMEOUT,
 
       LASTKEYWORD
    };
@@ -1152,6 +1156,18 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName)
 	  SAFENEWARR(solArrFileName, char, len);
 	  snprintf(solArrFileName, len, "%s.X", sOutputFileName);
           break;
+       }
+
+       case SELECTTIMEOUT: {
+	  int timeout = HP.GetInt();
+	  if (timeout <= 0) {
+	     silent_cerr("illegal select timeout " << timeout
+			     << " at line " << HP.GetLineData()
+			     << std::endl);
+	  } else {
+	     SocketUsersTimeout = 60*timeout;
+	  }
+	  break;
        }
  
        case UNKNOWN: { /*
