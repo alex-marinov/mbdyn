@@ -215,6 +215,21 @@ reused is expected; otherwise a default value is used.
               full jacobian [ , steps, <steps> ]
       } ];
 \end{verbatim}
+Tolerance is the iterative linear solver tolerance;
+steps is the maximum number of the linear solver iteration.
+Tau is a measure of the configuration pertubation used
+to obtain a matrix free approximation of the product
+of the jacobian matrix times the solution vector;
+it is seldom necessary to change the default value of this parameter,
+mainly for very ``stiff'' problems.
+Eta allows to change the convergence requirements; further reference for
+this parameter may be found in \cite{KELLEY-1995}; do not change it
+unless you know what you are doing.
+The preconditioner steps fixes the maximum number of
+iterations that can be performed without requiring
+an update of the preconditioner; this parameter can heavily influence
+the performance of the matrix free solver.
+
 
 \subsubsection{Eigenanalysis}
 Experimental, not available nor documented yet.
