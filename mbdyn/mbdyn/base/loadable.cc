@@ -37,8 +37,6 @@
 #include <loadable.h>
 #include <dataman.h>
 
-#define LOADABLE_VERSION	0x01000000U
-
 /* funzioni di default */
 static unsigned int 
 __i_get_num_dof(const LoadableElem* /* pEl */ )
