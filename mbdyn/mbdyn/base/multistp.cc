@@ -3574,9 +3574,28 @@ MultiStepIntegrator::Eig(void)
    if (iInfo == 0) {
       /* = 0:  successful exit */
       Out << "success" << std::endl;
-   } else if (iInfo < 0) {         
+
+   } else if (iInfo < 0) {
+      char *th = "th";
+
+      /* Aaaaah, English! :) */
+      if (-iInfo/10 != 10) {
+         switch ((-iInfo+20)%10) {
+         case 1:
+	    th = "st";
+	    break;
+         case 2:
+	    th = "nd";
+	    break;
+	 case 3:
+	    th = "rd";
+	    break;
+	 }
+      }
       /* < 0:  if INFO = -i, the i-th argument had an illegal value. */
-      Out << "the " << -iInfo << "-th argument had illegal value" << std::endl;
+      Out << "the " << -iInfo << "-" << th 
+	      << " argument had an illegal value" << std::endl;
+
    } else if (iInfo > 0 && iInfo <= iSize) {
       /* = 1,...,N:   
        * The QZ iteration failed.  No eigenvectors have been   
@@ -3584,6 +3603,7 @@ MultiStepIntegrator::Eig(void)
        * should be correct for j=INFO+1,...,N. */
       Out << "the QZ iteration failed, but eigenvalues " 
 	<< iInfo+1 << "->" << iSize << "should be correct" << std::endl;
+
    } else if (iInfo > iSize) {
       /* > N:  errors that usually indicate LAPACK problems:   
        * =N+1: error return from DGGBAL
