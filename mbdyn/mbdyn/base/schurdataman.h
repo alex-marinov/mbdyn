@@ -148,7 +148,7 @@ class SchurDataManager : public DataManager {
       break;
     default:
       cerr << " Wrong request"  << endl;
-      break;
+      THROW(ErrGeneric());
     } 
   };
 
@@ -160,6 +160,8 @@ class SchurDataManager : public DataManager {
       return LocalIntDofs;
     case 4: 
       return pMyIntDofs;
+    default:
+      THROW(ErrGeneric());
     } 
   };
   

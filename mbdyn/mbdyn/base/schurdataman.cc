@@ -800,8 +800,7 @@ SchurDataManager::~SchurDataManager(void)
 void 
 SchurDataManager::CreatePartition(void)
 { 
-    const char sFuncName[] = "CreatePartition()";
-    DEBUGCOUT("Entering " << sFuncName << endl);
+    DEBUGCOUT("Entering SchurDataManager::CreatePartition()" << endl);
 
     Adjacency Vertexs;  /* Struttura contenente le connessioni fra i vertici */
     int* pVertexWgts;   /* Pesi dei vertici = dofs x ogni v. utile per METIS */
@@ -829,7 +828,7 @@ SchurDataManager::CreatePartition(void)
     int iMaxConnectionsPerVertex = 
       (iTotVertexs < iDefaultMaxConnectionsPerVertex) ? iTotVertexs 
       : iDefaultMaxConnectionsPerVertex;
-    int GravityPos, AirPropPos;
+    int GravityPos = 0, AirPropPos = 0;
     int* pRotPos = NULL;
     integer* pRotLab = NULL;
     int iNumberOfNodes;
@@ -1046,7 +1045,7 @@ SchurDataManager::CreatePartition(void)
       	iCount = 0;
       	int TmpPrc = 0;
       	flag fIsNInterf;
-      	for (int i = 0; i < iTotNodes; i++) {
+      	for (unsigned int i = 0; i < iTotNodes; i++) {
             fIsNInterf = flag(1);
 
 	    if (pParAmgProcs[i] == MyRank) {
@@ -1111,7 +1110,9 @@ SchurDataManager::CreatePartition(void)
     /* Trattamento elementi particolari */
     int move = 0;
     /* Gravity */
+#if 0
     Elem* pTmpElem;
+#endif /* 0 */
     if (ElemData[Elem::GRAVITY].iNum != 0) {
         ppMyElems[iNumLocElems] = ppElems[GravityPos];
       	iNumLocElems += 1;
@@ -1133,10 +1134,10 @@ SchurDataManager::CreatePartition(void)
     integer iRotorIsMine = 0;
     if (iNumRt  != 0) {
       	SAFENEWARR(pMyRot, integer, iNumRt, DMmm);
-      	for (int i = 0; i < ElemData[Elem::AERODYNAMIC].iNum; i++) {
+      	for (unsigned int i = 0; i < ElemData[Elem::AERODYNAMIC].iNum; i++) {
 	    integer pTmpLab = 
 	    	((ElemData[Elem::AERODYNAMIC].ppFirstElem)[i])->GetRotor();
-	    int pos;
+	    int pos = 0;
 	    if (pTmpLab != -1) {
 	  	for (int k = 0; k < iNumRt; k++) {
 	    	    if (pTmpLab == pRotLab[k]) {
@@ -1302,7 +1303,7 @@ SchurDataManager::CreatePartition(void)
             integer First = (ppMyNodes[i])->iGetFirstIndex();
             LocalDofs[iCount] = First+1;
             iCount++;
-            for (int j = 1; j < (ppMyNodes[i])->iGetNumDof(); j++) {
+            for (unsigned int j = 1; j < (ppMyNodes[i])->iGetNumDof(); j++) {
           	LocalDofs[iCount] = First + j + 1;
           	iCount++;
             }
@@ -1348,7 +1349,7 @@ SchurDataManager::CreatePartition(void)
           	pMyIntDofs[i2Count] = (First + 1);
 	  	i2Count++;
 	    }
-	    for (int j = 1; 
+	    for (unsigned int j = 1; 
 	         j < (ppNodes[InterfNodes.pAdjncy[i]])->iGetNumDof(); 
 	         j++) {
 	  	/* il - serve a distinguere questi dofs da quelli interni */
@@ -1587,9 +1588,7 @@ SchurDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 void 
 SchurDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 {
-    const char sFuncName[] = "SchurDataManager::AssJac()";
-  
-    DEBUGCOUT("Entering " << sFuncName << endl);
+    DEBUGCOUT("Entering SchurDataManager::AssJac()" << endl);
     ASSERT(pWorkMatA != NULL);   
     ASSERT(ppElems != NULL);
 

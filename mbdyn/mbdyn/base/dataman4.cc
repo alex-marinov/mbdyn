@@ -1052,6 +1052,8 @@ Elem** ReadOneElem(DataManager* pDM,
        case HBEAM:
 	  *ppE = ReadHBeam(pDM, HP, uLabel);
 	  break;
+       default:
+	  THROW(DataManager::ErrGeneric());
        }
        
        break;

@@ -97,11 +97,16 @@ const integer iDefaultIterationsBeforeAssembly = 2;
 MultiStepIntegrator::MultiStepIntegrator(MBDynParser& HPar,
 					 const char* sInFName,
 					 const char* sOutFName)
-:sInputFileName(NULL),
-sOutputFileName(NULL),
-HP(HPar),
+:
 CurrStrategy(NOCHANGE),
 CurrSolver(HARWELL_SOLVER),
+sInputFileName(NULL),
+sOutputFileName(NULL),
+HP(HPar),
+#ifdef __HACK_EIG__
+fEigenAnalysis(0),
+dEigParam(1.),
+#endif /* __HACK_EIG__ */
 pdWorkSpace(NULL),
 pXCurr(NULL),
 pXPrimeCurr(NULL),
@@ -142,10 +147,6 @@ pMethod(NULL),
 pFictitiousStepsMethod(NULL),
 db0Differential(0.),
 db0Algebraic(0.),
-#ifdef __HACK_EIG__
-fEigenAnalysis(0),
-dEigParam(1.),
-#endif /* __HACK_EIG__ */
 iWorkSpaceSize(0),
 dPivotFactor(1.)
 {
@@ -2234,7 +2235,8 @@ MultiStepIntegrator::Eig(void)
    /* Data Handlers */
    doublereal* pdTmp = pd;
    doublereal** ppdTmp = ppd;
-   
+  
+#if 0
    doublereal* pdA = pd;
    doublereal* pdB = pdA+iSize*iSize;
    doublereal* pdVL = pdB+iSize*iSize;
@@ -2243,6 +2245,7 @@ MultiStepIntegrator::Eig(void)
    doublereal* pdAlphaI = pdAlphaR+iSize;
    doublereal* pdBeta = pdAlphaI+iSize;
    doublereal* pdWork = pdBeta+iSize;
+#endif /* 0 */
 
    FullMatrixHandler MatA(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);
    MatA.Init();

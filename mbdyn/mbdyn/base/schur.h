@@ -85,7 +85,7 @@ class SchurMultiStepIntegrator : public Integrator {
       integer iMinIters;
    } StrategyFactor;
    
-   
+#ifdef __HACK_EIG__
    /********** TEMPORARY ***********/
    /* Dati per esecuzione di eigenanalysis */
    struct WhenEigen {
@@ -94,7 +94,7 @@ class SchurMultiStepIntegrator : public Integrator {
    };
    
    WhenEigen OneEig;
-   
+#endif /* __HACK_EIG__ */
    
    
    /* puntatori alle strutture di gestione delle soluzioni ai vari passi */
@@ -165,8 +165,10 @@ class SchurMultiStepIntegrator : public Integrator {
    doublereal db0Differential;
    doublereal db0Algebraic;
    
-   //******* TEMPORARY
+#ifdef __HACK_EIG__
+   /******* TEMPORARY */
    flag fEigenAnalysis;
+#endif /* __HACK_EIG__ */
     
    /* Dimensioni del workspace (se 0, su misura per la matrice) */
    integer iWorkSpaceSize;
@@ -211,10 +213,10 @@ class SchurMultiStepIntegrator : public Integrator {
    /* Aggiornamento normale */
    void Update(const VectorHandler& Sol);
 
-#ifdef USE_LAPACK   
+#ifdef __HACK_EIG__
    /* Estrazione Autovalori (sperimentale) */
    void Eig(void);
-#endif   
+#endif /* __HACK_EIG__ */
    
  public:
    

@@ -169,9 +169,8 @@ pSchSM(NULL), pSchMH(NULL), pSchVH(NULL),
 pGSReq(NULL), pGRReq(NULL),  
 iWorkSpaceSize(0), fNewMatrix(0) 
 {
-  const char sFuncName[] = "BroySchSolutionManager::BroySchSolutionManager()";
- 
- DEBUGCOUT("Entering " << sFuncName << endl);
+  DEBUGCOUT("Entering BroySchSolutionManager::BroySchSolutionManager()"
+		  << endl);
   
   ASSERT(iPrbmSize > 0);
   ASSERT(pLocDofs != NULL);
@@ -185,7 +184,7 @@ iWorkSpaceSize(0), fNewMatrix(0)
   if (SolvCommSize != 1) {
     ASSERT(pIntDofs != NULL);
   }
-#endif
+#endif /* DEBUG */
   
   DEBUGCOUT("Solution Communicator Size: " << SolvCommSize << endl);
   
@@ -291,23 +290,21 @@ iWorkSpaceSize(0), fNewMatrix(0)
     cout << endl;
   }
   IsValid();
-#endif      
+#endif /* DEBUG */
 }
 
 SchurSolutionManager::~SchurSolutionManager(void)
 {
-
- const char sFuncName[] = "SchurSolutionManager::~SchurSolutionManager()";
-   
-  DEBUGCOUT("Entering " << sFuncName << endl);
+  DEBUGCOUT("Entering SchurSolutionManager::~SchurSolutionManager()" << endl);
 
 #ifdef DEBUG
   IsValid();
-#endif      
+#endif /* DEBUG */
+
  /* FIXME : la cancellazione di questi arrays da alcuni problemi
 	    in chiusura. Per ora viene commentata .
   */
-  /*
+#if 0
   if(pLocDofs != NULL) {
     SAFEDELETEARR(pLocDofs, SMmm);
   }
@@ -399,7 +396,7 @@ SchurSolutionManager::~SchurSolutionManager(void)
   if(pGRReq != NULL) {
     SAFEDELETEARR(pGRReq, SMmm);
   }
- */
+#endif /* 0 */
 }
 
 
@@ -414,7 +411,7 @@ void SchurSolutionManager::MatrInit(const doublereal& dResetVal)
 {
 #ifdef DEBUG
   IsValid();
-#endif
+#endif /* DEBUG */
   pMH->Init(dResetVal);
   fNewMatrix = flag(1);
 }
@@ -423,12 +420,10 @@ void SchurSolutionManager::MatrInit(const doublereal& dResetVal)
 
 void SchurSolutionManager::Solve(void)
 {
-  const char sFuncName[] = "SchurSolutionManager::Solve()";
-  
-  DEBUGCOUT("Entering " << sFuncName << endl);
+  DEBUGCOUT("Entering SchurSolutionManager::Solve()" << endl);
 #ifdef DEBUG
   IsValid();
-#endif
+#endif /* DEBUG */
 
 #ifdef MPI_PROFILING 
   MPE_Log_event(31, 0, "start");
@@ -623,13 +618,12 @@ void SchurSolutionManager::AssSchur(void)
 #ifdef MPI_PROFILING
    MPE_Log_event(41, 0, "start");
 #endif /* MPI_PROFILING */ 
-  const char sFuncName[] = "SchurSolutionManager::AssSchur()";
   
-  DEBUGCOUT("Entering " << sFuncName << endl);
+  DEBUGCOUT("Entering SchurSolutionManager::AssSchur()" << endl);
   
 #ifdef DEBUG
   IsValid();
-#endif
+#endif /* DEBUG */
   
   /* Calcola le Schur locali */
   for(int j=0; j < IntVecDim; j++) {

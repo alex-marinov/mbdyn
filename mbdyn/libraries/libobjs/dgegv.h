@@ -56,6 +56,10 @@
 #ifndef DGEGV_H
 #define DGEGV_H
 
+#if defined(__cplusplus)
+extern "C" {
+#endif /* __cplusplus */
+	
 #include <myf2c.h>
 
 /* Subroutine */ extern int
@@ -64,6 +68,10 @@ __FC_DECL__(dgegv)(char *jobvl, char *jobvr, integer *n, doublereal *
 	doublereal *alphai, doublereal *beta, doublereal *vl, integer *ldvl, 
 	doublereal *vr, integer *ldvr, doublereal *work, integer *lwork, 
 	integer *info);
+
+#if defined(__cplusplus)
+}
+#endif /* __cplusplus */
 
 #endif /* DGEGV_H */
 

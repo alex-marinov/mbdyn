@@ -127,7 +127,9 @@ pMethod(NULL),
 pFictitiousStepsMethod(NULL),
 db0Differential(0.),
 db0Algebraic(0.),
+#ifdef __HACK_EIG__
 fEigenAnalysis(0),		/********* TEMPORARY *******/
+#endif /* __HACK_EIG__ */
 iWorkSpaceSize(0),
 dPivotFactor(1.),
 fParallel(fPar)
@@ -332,7 +334,7 @@ SchurMultiStepIntegrator::Run(void)
    pDM->SetValue(*pXCurr, *pXPrimeCurr);
    DofIterator = pDM->GetDofIterator();
 
-#ifdef USE_LAPACK
+#ifdef __HACK_EIG__
    /************************
     * TEMPORANEO: FA UN'EIGENANALYSIS */
    if (fEigenAnalysis) {
@@ -341,7 +343,7 @@ SchurMultiStepIntegrator::Run(void)
        OneEig.fDone = flag(1);
      }
    }
-#endif /* USE_LAPACK */
+#endif /* __HACK_EIG__ */
 
    integer iTotIter = 0;
    doublereal dTotErr = 0.;
@@ -949,7 +951,7 @@ SchurMultiStepIntegrator::Run(void)
    dTotErr += dTest;
    iTotIter += iIterCnt;
 
-#ifdef USE_LAPACK
+#ifdef __HACK_EIG__
    /************************
     * TEMPORANEO: FA UN'EIGENANALYSIS */
    if (fEigenAnalysis) {
@@ -958,7 +960,7 @@ SchurMultiStepIntegrator::Run(void)
        OneEig.fDone = flag(1);
      }
    }
-#endif /* USE_LAPACK */
+#endif /* __HACK_EIG__ */
    
    /*************************************************************************
     * Altri passi regolari
@@ -1134,7 +1136,7 @@ SchurMultiStepIntegrator::Run(void)
      dTime += dRefTimeStep;
      
      
-#ifdef USE_LAPACK
+#ifdef __HACK_EIG__
      /************************
       * TEMPORANEO: FA UN'EIGENANALYSIS */
      if (fEigenAnalysis) {
@@ -1143,7 +1145,7 @@ SchurMultiStepIntegrator::Run(void)
 	 OneEig.fDone = flag(1);
        }
      }
-#endif /* USE_LAPACK */
+#endif /* __HACK_EIG__ */
      
      
      /* Calcola il nuovo timestep */
@@ -1918,6 +1920,8 @@ SchurMultiStepIntegrator::ReadData(MBDynParser& HP)
                      DMmm);
           break;
            }
+	   default:
+          THROW(SchurMultiStepIntegrator::ErrGeneric());
           }
           break;
        }
@@ -2202,6 +2206,7 @@ SchurMultiStepIntegrator::ReadData(MBDynParser& HP)
       break;
        }
 
+#ifdef __HACK_EIG__
        case EIGENANALYSIS: {
       OneEig.dTime = HP.GetReal();
       OneEig.fDone = flag(0);
@@ -2211,6 +2216,7 @@ SchurMultiStepIntegrator::ReadData(MBDynParser& HP)
              << OneEig.dTime << endl);
       break;
        }
+#endif /* __HACK_EIG__ */
 
        case SOLVER: {
       switch(KeyWords(HP.GetWord())) {
@@ -2319,13 +2325,14 @@ EndOfCycle:
    return;
 }
 
-
+#ifdef __HACK_EIG__
 /* Estrazione autovalori, vincolata alla disponibilita' delle LAPACK */
 void
 SchurMultiStepIntegrator::Eig(void)
 {
 	cerr << "SchurMultiStepIntegrator::Eig() not available" << endl;
 }
+#endif /* __HACK_EIG__ */
 
 /* SchurMultiStepIntegrator - end */
 

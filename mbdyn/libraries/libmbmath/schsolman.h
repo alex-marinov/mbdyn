@@ -322,7 +322,9 @@ inline flag SchurVectorHandler::fPutCoef(integer iRow, const doublereal& dCoef)
   }
   else {
     pIV[-pGTL[iRow]-1] = dCoef;
-  }  
+  }
+
+  return flag(0);
 }
 
 inline flag SchurVectorHandler::fIncCoef(integer iRow, const doublereal& dCoef)
