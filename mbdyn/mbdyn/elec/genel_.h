@@ -338,6 +338,8 @@ class GenelSpring
  protected: 
    ScalarDof SD1;
    ScalarDof SD2;
+
+   doublereal dVal;
    
  public:
    GenelSpring(unsigned int uLabel, const DofOwner* pDO, 
@@ -345,7 +347,7 @@ class GenelSpring
 	       const ScalarDof& sd1, const ScalarDof& sd2, flag fOutput)
      : Elem(uLabel, Elem::BULK, fOutput), 
      Genel(uLabel, Genel::SPRING, pDO, fOutput),
-     ConstitutiveLaw1DOwner(pCL), SD1(sd1), SD2(sd2) { 
+     ConstitutiveLaw1DOwner(pCL), SD1(sd1), SD2(sd2), dVal(0.) { 
       NO_OP;
    };
    
@@ -362,6 +364,11 @@ class GenelSpring
       return out; 
    };
   
+   virtual void AfterConvergence(const VectorHandler& X, 
+			const VectorHandler& XP) {
+      ConstitutiveLaw1DOwner::AfterConvergence(dVal, 0.);
+   };
+
    /* Tipo di Genel */
    virtual Genel::Type GetGenelType(void) const { 
       return Genel::SPRING; 
@@ -431,10 +438,10 @@ class GenelSpring
       doublereal dVal1 = SD1.pNode->dGetDofValue(1, SD1.iOrder);
       doublereal dVal2 = SD2.pNode->dGetDofValue(1, SD2.iOrder);
       
-      doublereal d = dVal2-dVal1;
-      ConstitutiveLaw1DOwner::Update(d, 0.);
+      dVal = dVal2-dVal1;
+      ConstitutiveLaw1DOwner::Update(dVal, 0.);
       
-      d = GetF();
+      doublereal d = GetF();
       
       WorkVec.fPutItem(1, iNode1RowIndex, d);
       WorkVec.fPutItem(2, iNode2RowIndex, -d);
@@ -467,7 +474,8 @@ class GenelSpring
 class GenelSpringSupport
 : virtual public Elem, public Genel, public ConstitutiveLaw1DOwner {
  protected: 
-   ScalarDof SD;  
+   ScalarDof SD;
+   doublereal dVal;
    
  public:
    GenelSpringSupport(unsigned int uLabel, const DofOwner* pDO, 
@@ -475,7 +483,7 @@ class GenelSpringSupport
 	       const ScalarDof& sd, flag fOutput)
      : Elem(uLabel, Elem::BULK, fOutput), 
      Genel(uLabel, Genel::SPRINGSUPPORT, pDO, fOutput),
-     ConstitutiveLaw1DOwner(pCL), SD(sd) {
+     ConstitutiveLaw1DOwner(pCL), SD(sd), dVal(0.) {
       ASSERT(SD.iOrder == 0);
    };
    
@@ -490,6 +498,11 @@ class GenelSpringSupport
    /* Scrive il contributo dell'elemento al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const {
       return out; 
+   };
+
+   virtual void AfterConvergence(const VectorHandler& X, 
+			const VectorHandler& XP) {
+      ConstitutiveLaw1DOwner::AfterConvergence(dVal, 0.);
    };
 
    /* Tipo di Genel */
@@ -537,8 +550,7 @@ class GenelSpringSupport
       
       integer iNodeRowIndex = SD.pNode->iGetFirstRowIndex()+1;
       
-      doublereal dVal = SD.pNode->dGetX();    
-      
+      dVal = SD.pNode->dGetX();
       ConstitutiveLaw1DOwner::Update(dVal, 0.);
       
       WorkVec.fPutItem(1, iNodeRowIndex, -GetF());  
@@ -571,6 +583,7 @@ class GenelCrossSpringSupport
  protected: 
    ScalarDof SDRow;
    ScalarDof SDCol;
+   doublereal dVal;
    
  public:
    GenelCrossSpringSupport(unsigned int uLabel, const DofOwner* pDO, 
@@ -580,7 +593,7 @@ class GenelCrossSpringSupport
 			   flag fOutput)
      : Elem(uLabel, Elem::BULK, fOutput), 
      Genel(uLabel, Genel::CROSSSPRINGSUPPORT, pDO, fOutput),
-     ConstitutiveLaw1DOwner(pCL), SDRow(sdrow), SDCol(sdcol) {
+     ConstitutiveLaw1DOwner(pCL), SDRow(sdrow), SDCol(sdcol), dVal(0.) {
       ASSERT(SDCol.iOrder == 0);
    };
    
@@ -597,6 +610,11 @@ class GenelCrossSpringSupport
       return out; 
    };
    
+   virtual void AfterConvergence(const VectorHandler& X, 
+			const VectorHandler& XP) {
+      ConstitutiveLaw1DOwner::AfterConvergence(dVal, 0.);
+   };
+
    /* Tipo di Genel */
    virtual Genel::Type GetGenelType(void) const { 
       return Genel::CROSSSPRINGSUPPORT; 
@@ -642,8 +660,7 @@ class GenelCrossSpringSupport
       
       integer iNodeRowIndex = SDRow.pNode->iGetFirstRowIndex()+1;
       
-      doublereal dVal = SDCol.pNode->dGetX();    
-      
+      dVal = SDCol.pNode->dGetX();    
       ConstitutiveLaw1DOwner::Update(dVal, 0.);
       
       WorkVec.fPutItem(1, iNodeRowIndex, -GetF());  
@@ -678,6 +695,8 @@ class GenelCrossSpringDamperSupport
  protected: 
    ScalarDof SDRow;
    ScalarDof SDCol;
+   doublereal dVal;
+   doublereal dValPrime;
    
  public:
    GenelCrossSpringDamperSupport(unsigned int uLabel, const DofOwner* pDO, 
@@ -687,7 +706,8 @@ class GenelCrossSpringDamperSupport
 				 flag fOutput)
      : Elem(uLabel, Elem::BULK, fOutput), 
      Genel(uLabel, Genel::CROSSSPRINGDAMPERSUPPORT, pDO, fOutput),
-     ConstitutiveLaw1DOwner(pCL), SDRow(sdrow), SDCol(sdcol) {
+     ConstitutiveLaw1DOwner(pCL), SDRow(sdrow), SDCol(sdcol),
+     dVal(0.), dValPrime(0.) {
       ASSERT(SDCol.iOrder == 0);
    };
    
@@ -704,6 +724,11 @@ class GenelCrossSpringDamperSupport
       return out; 
    };
    
+   virtual void AfterConvergence(const VectorHandler& X, 
+			const VectorHandler& XP) {
+      ConstitutiveLaw1DOwner::AfterConvergence(dVal, dValPrime);
+   };
+
    /* Tipo di Genel */
    virtual Genel::Type GetGenelType(void) const { 
       return Genel::CROSSSPRINGDAMPERSUPPORT; 
@@ -749,9 +774,8 @@ class GenelCrossSpringDamperSupport
       
       integer iNodeRowIndex = SDRow.pNode->iGetFirstRowIndex()+1;
       
-      doublereal dVal = SDCol.pNode->dGetX();
-      doublereal dValPrime = SDCol.pNode->dGetXPrime();
-      
+      dVal = SDCol.pNode->dGetX();
+      dValPrime = SDCol.pNode->dGetXPrime();
       ConstitutiveLaw1DOwner::Update(dVal, dValPrime);
       
       WorkVec.fPutItem(1, iNodeRowIndex, -GetF());  
@@ -785,6 +809,8 @@ class GenelSpringDamperSupport
 : virtual public Elem, public Genel, public ConstitutiveLaw1DOwner {
  protected: 
    ScalarDof SD;  
+   doublereal dVal;
+   doublereal dValPrime;
    
  public:
    GenelSpringDamperSupport(unsigned int uLabel, const DofOwner* pDO, 
@@ -792,7 +818,7 @@ class GenelSpringDamperSupport
 			    const ScalarDof& sd, flag fOutput)
      : Elem(uLabel, Elem::BULK, fOutput), 
      Genel(uLabel, Genel::SPRINGDAMPERSUPPORT, pDO, fOutput),
-     ConstitutiveLaw1DOwner(pCL), SD(sd) {
+     ConstitutiveLaw1DOwner(pCL), SD(sd), dVal(0.),dValPrime(0.) {
 	ASSERT(sd.pNode->SetDof(0) == DofOrder::DIFFERENTIAL);
 	ASSERT(sd.iOrder == 0);
    };
@@ -810,6 +836,11 @@ class GenelSpringDamperSupport
       return out; 
    };
    
+   virtual void AfterConvergence(const VectorHandler& X, 
+			const VectorHandler& XP) {
+      ConstitutiveLaw1DOwner::AfterConvergence(dVal, dValPrime);
+   };
+
    /* Tipo di Genel */
    virtual Genel::Type GetGenelType(void) const { 
       return Genel::SPRINGDAMPERSUPPORT; 
@@ -855,8 +886,8 @@ class GenelSpringDamperSupport
       
       integer iNodeRowIndex = SD.pNode->iGetFirstRowIndex()+1;
       
-      doublereal dVal = SD.pNode->dGetX();
-      doublereal dValPrime = SD.pNode->dGetXPrime();
+      dVal = SD.pNode->dGetX();
+      dValPrime = SD.pNode->dGetXPrime();
       
       ConstitutiveLaw1DOwner::Update(dVal, dValPrime);    
       

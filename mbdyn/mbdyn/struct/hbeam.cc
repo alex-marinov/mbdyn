@@ -329,6 +329,11 @@ HBeam::Restart_(std::ostream& out) const
 	return out;
 }
 
+void
+HBeam::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
+{
+	pD->AfterConvergence(DefLoc);
+}
 
 /* Assembla la matrice */
 void

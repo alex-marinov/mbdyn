@@ -40,7 +40,6 @@
 
 /* Costruttore non banale */
 DeformableDispHingeJoint::DeformableDispHingeJoint(unsigned int uL,
-						   DefHingeType::Type T,
 						   const DofOwner* pDO, 
 						   const ConstitutiveLaw3D* pCL,
 						   const StructNode* pN1,
@@ -52,8 +51,9 @@ DeformableDispHingeJoint::DeformableDispHingeJoint(unsigned int uL,
 						   flag fOut)
 : Elem(uL, Elem::JOINT, fOut), 
 Joint(uL, Joint::DEFORMABLEHINGE, pDO, fOut), 
-ConstitutiveLaw3DOwner(pCL), DefHingeT(T),
-pNode1(pN1), pNode2(pN2), f1(f1Tmp), f2(f2Tmp), R1h(R1), R2h(R2)
+ConstitutiveLaw3DOwner(pCL),
+pNode1(pN1), pNode2(pN2), f1(f1Tmp), f2(f2Tmp), R1h(R1), R2h(R2),
+k(0.), kPrime(0.)
 {
    ASSERT(pNode1 != NULL);
    ASSERT(pNode2 != NULL);
@@ -111,9 +111,7 @@ ElasticDispHingeJoint::ElasticDispHingeJoint(unsigned int uL,
 					     const Mat3x3& R2,
 					     flag fOut)
 : Elem(uL, Elem::JOINT, fOut), 
-DeformableDispHingeJoint(uL, DefHingeType::ELASTIC, 
-			 pDO, pCL, pN1, pN2, 
-			 f1Tmp, f2Tmp, R1, R2, fOut)
+DeformableDispHingeJoint(uL, pDO, pCL, pN1, pN2, f1Tmp, f2Tmp, R1, R2, fOut)
 {
    NO_OP;
 }
@@ -137,7 +135,7 @@ ElasticDispHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Recupera gli indici */
@@ -172,34 +170,34 @@ void ElasticDispHingeJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
    Mat3x3 FDE(R1*GetFDE()*(R1.Transpose()*dCoef));
    
    Mat3x3 MTmp(FDE); /* F/e */
-   WM.Put(1, 1, MTmp);
-   WM.Put(7, 7, MTmp);
+   WM.Add(1, 1, MTmp);
+   WM.Add(7, 7, MTmp);
    MTmp = -MTmp; /* -F/e */
-   WM.Put(1, 7, MTmp);
-   WM.Put(7, 1, MTmp);
+   WM.Add(1, 7, MTmp);
+   WM.Add(7, 1, MTmp);
    
    MTmp = FDE*Mat3x3(f2Tmp); /* F/e * f2/\ */
-   WM.Put(1, 10, MTmp);   
-   WM.Put(7, 10, -MTmp);
+   WM.Add(1, 10, MTmp);   
+   WM.Sub(7, 10, MTmp);
    
-   WM.Put(4, 10, Mat3x3(f1Tmp)*MTmp); /* f1/\ F/e f2/\ */
+   WM.Add(4, 10, Mat3x3(f1Tmp)*MTmp); /* f1/\ F/e f2/\ */
    
    MTmp = Mat3x3(f2Tmp)*FDE; /* f2/\ F/e */
-   WM.Put(10, 7, MTmp);
-   WM.Put(10, 1, -MTmp);
+   WM.Add(10, 7, MTmp);
+   WM.Sub(10, 1, MTmp);
    
-   WM.Put(10, 10, (MatF-MTmp)*Mat3x3(f2Tmp)); /* (F/\ - f2/\ F/e) f2/\ */
+   WM.Add(10, 10, (MatF-MTmp)*Mat3x3(f2Tmp)); /* (F/\ - f2/\ F/e) f2/\ */
    
    MTmp = Mat3x3(f1Tmp)*FDE; /* f1/\ F/e */
-   WM.Put(4, 1, MTmp);
-   WM.Put(4, 7, -MTmp);
+   WM.Add(4, 1, MTmp);
+   WM.Sub(4, 7, MTmp);
    
    MTmp = FDE*Mat3x3(d1)-MatF; /* F/e * d1/\ - F/\ */
-   WM.Put(7, 4, MTmp);
-   WM.Put(1, 4, -MTmp);
-   WM.Put(10, 4, Mat3x3(f2Tmp)*MTmp); /* f2/\ (F/e * d1/\ - F/\) */
+   WM.Add(7, 4, MTmp);
+   WM.Sub(1, 4, MTmp);
+   WM.Add(10, 4, Mat3x3(f2Tmp)*MTmp); /* f2/\ (F/e * d1/\ - F/\) */
    
-   WM.Put(4, 4, Mat3x3(f1Tmp, F)-Mat3x3(f1Tmp)*FDE*Mat3x3(d1)); /* ... */
+   WM.Add(4, 4, Mat3x3(f1Tmp, F)-Mat3x3(f1Tmp)*FDE*Mat3x3(d1)); /* ... */
 }
 
 
@@ -213,7 +211,7 @@ ElasticDispHingeJoint::AssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
    
@@ -241,15 +239,15 @@ void ElasticDispHingeJoint::AssVec(SubVectorHandler& WorkVec)
    Vec3 d1(pNode2->GetXCurr()+f2Tmp-pNode1->GetXCurr());   
 
    /* k = R1^T*(d1-f1) */   
-   Vec3 k(R1.Transpose()*(d1-f1Tmp));
+   k = R1.Transpose()*(d1-f1Tmp);
    ConstitutiveLaw3DOwner::Update(k);
    
    Vec3 F(R1*GetF());
    
-   WorkVec.Put(1, F);
-   WorkVec.Put(4, f1Tmp.Cross(F));
-   WorkVec.Put(7, -F);   
-   WorkVec.Put(10, F.Cross(f2Tmp));
+   WorkVec.Add(1, F);
+   WorkVec.Add(4, f1Tmp.Cross(F));
+   WorkVec.Sub(7, F);   
+   WorkVec.Add(10, F.Cross(f2Tmp));
 }
 
 
@@ -263,7 +261,7 @@ ElasticDispHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Recupera gli indici */
@@ -292,7 +290,7 @@ ElasticDispHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);   
 
@@ -327,13 +325,13 @@ ViscousDispHingeJoint::ViscousDispHingeJoint(unsigned int uL,
 					     const Mat3x3& R2,
 					     flag fOut)
 : Elem(uL, Elem::JOINT, fOut), 
-DeformableDispHingeJoint(uL, DefHingeType::VISCOUS, 
-			 pDO, pCL, pN1, pN2, f1Tmp, f2Tmp, R1, R2, fOut)
+DeformableDispHingeJoint(uL, pDO, pCL, pN1, pN2, f1Tmp, f2Tmp, R1, R2, fOut)
 {
    NO_OP;
    
    /* Temporary */
-   std::cerr << "DeformableHingeJoint(): warning, this element is not implemented yet" << std::endl;
+   std::cerr << "DeformableHingeJoint(): "
+	   "warning, this element is not implemented yet" << std::endl;
    THROW(ErrNotImplementedYet());
 }
 
@@ -356,7 +354,7 @@ ViscousDispHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Recupera gli indici */
@@ -380,12 +378,12 @@ ViscousDispHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    Mat3x3 FDEPrime(R1*GetFDEPrime()*R1.Transpose());
    Mat3x3 Tmp(FDEPrime-FDEPrime*Mat3x3(Omega2*dCoef));
    
-   WM.Put(4, 4, Tmp);
-   WM.Put(1, 4, -Tmp);
+   WM.Add(4, 4, Tmp);
+   WM.Sub(1, 4, Tmp);
    
    Tmp += Mat3x3(F*dCoef);
-   WM.Put(1, 1, Tmp);   
-   WM.Put(4, 1, -Tmp);
+   WM.Add(1, 1, Tmp);   
+   WM.Sub(4, 1, Tmp);
 
    return WorkMat;
 }
@@ -401,7 +399,7 @@ ViscousDispHingeJoint::AssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
    
@@ -422,13 +420,13 @@ ViscousDispHingeJoint::AssRes(SubVectorHandler& WorkVec,
    Vec3 g1(pNode1->GetgCurr());
    Vec3 g2(pNode2->GetgCurr());
    
-   Vec3 kPrime(R1.Transpose()*(Omega2-Omega1));
-   IncrementalUpdate(Vec3(0.), kPrime);
+   kPrime = R1.Transpose()*(Omega2-Omega1);
+   IncrementalUpdate(Zero3, kPrime);
    
    Vec3 F(R1*GetF());
    
-   WorkVec.Put(1, F);
-   WorkVec.Put(4, -F);   
+   WorkVec.Add(1, F);
+   WorkVec.Sub(4, F);   
    
    return WorkVec;
 }
@@ -444,7 +442,7 @@ ViscousDispHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Recupera gli indici */
@@ -472,15 +470,14 @@ ViscousDispHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    Mat3x3 FDEPrime(R1*GetFDEPrime()*R1.Transpose());      
    Mat3x3 Tmp(Mat3x3(F)-FDEPrime*Mat3x3(Omega2-Omega1));
    
-   WM.Put(1, 1, Tmp);
-   WM.Put(4, 1, -Tmp);
+   WM.Add(1, 1, Tmp);
+   WM.Sub(4, 1, Tmp);
    
-   WM.Put(1, 4, FDEPrime);
-   WM.Put(4, 10, FDEPrime);
+   WM.Add(1, 4, FDEPrime);
+   WM.Add(4, 10, FDEPrime);
    
-   FDEPrime = -FDEPrime;
-   WM.Put(1, 10, FDEPrime);   
-   WM.Put(4, 4, FDEPrime);
+   WM.Sub(1, 10, FDEPrime);   
+   WM.Sub(4, 4, FDEPrime);
 
    return WorkMat;
 }
@@ -494,7 +491,7 @@ ViscousDispHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
    
@@ -517,15 +514,15 @@ ViscousDispHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    Vec3 g2(pNode2->GetgCurr());
    
    /* Aggiornamento: k += R1^T(G(g2)*g2-G(g1)*g1) */
-   Vec3 k(R1.Transpose()*(g2*(4./(4.+g2.Dot()))
-			  -g1*(4./(4.+g1.Dot()))));
-   Vec3 kPrime(R1.Transpose()*(Omega2-Omega1));
+   k = R1.Transpose()*(g2*(4./(4.+g2.Dot()))
+			  -g1*(4./(4.+g1.Dot())));
+   kPrime = R1.Transpose()*(Omega2-Omega1);
    IncrementalUpdate(k, kPrime);
    
    Vec3 F(R1*GetF());
    
-   WorkVec.Put(1, F);
-   WorkVec.Put(4, -F);   
+   WorkVec.Add(1, F);
+   WorkVec.Sub(4, F);   
    
    return WorkVec;
 }
@@ -546,11 +543,11 @@ ViscoElasticDispHingeJoint::ViscoElasticDispHingeJoint(unsigned int uL,
 						       const Mat3x3& R2, 
 						       flag fOut)
 : Elem(uL, Elem::JOINT, fOut), 
-DeformableDispHingeJoint(uL, DefHingeType::VISCOELASTIC, 
-			 pDO, pCL, pN1, pN2, f1Tmp, f2Tmp, R1, R2, fOut)
+DeformableDispHingeJoint(uL, pDO, pCL, pN1, pN2, f1Tmp, f2Tmp, R1, R2, fOut)
 {
    /* Temporary */
-   std::cerr << "DeformableHingeJoint(): warning, this element is not implemented yet" << std::endl;
+   std::cerr << "DeformableHingeJoint(): "
+	   "warning, this element is not implemented yet" << std::endl;
    THROW(ErrNotImplementedYet());
 }
 
@@ -573,7 +570,7 @@ ViscoElasticDispHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Recupera gli indici */
@@ -600,12 +597,12 @@ ViscoElasticDispHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    
    Mat3x3 Tmp(FDEPrime-FDEPrime*Mat3x3(Omega2*dCoef)+FDE);
          
-   WM.Put(4, 4, Tmp);
-   WM.Put(1, 4, -Tmp);
+   WM.Add(4, 4, Tmp);
+   WM.Sub(1, 4, Tmp);
    
    Tmp += Mat3x3(F*dCoef);
-   WM.Put(1, 1, Tmp);   
-   WM.Put(4, 1, -Tmp);
+   WM.Add(1, 1, Tmp);   
+   WM.Sub(4, 1, Tmp);
 
    return WorkMat;
 }
@@ -621,7 +618,7 @@ ViscoElasticDispHingeJoint::AssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
    
@@ -645,15 +642,14 @@ ViscoElasticDispHingeJoint::AssRes(SubVectorHandler& WorkVec,
    Vec3 g2(pNode2->GetgCurr());
    
    /* Aggiornamento: k += R1^T(G(g2)*g2-G(g1)*g1) */
-   Vec3 k(R1t*(g2*(4./(4.+g2.Dot()))
-	       -g1*(4./(4.+g1.Dot()))));
-   Vec3 kPrime(R1t*(Omega2-Omega1));
+   k = R1t*(g2*(4./(4.+g2.Dot())) -g1*(4./(4.+g1.Dot())));
+   kPrime = R1t*(Omega2-Omega1);
    IncrementalUpdate(k, kPrime);
    
    Vec3 F(R1*GetF());
    
-   WorkVec.Put(1, F);
-   WorkVec.Put(4, -F);   
+   WorkVec.Add(1, F);
+   WorkVec.Sub(4, F);   
    
    return WorkVec;
 }
@@ -669,7 +665,7 @@ ViscoElasticDispHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WM.ResizeInit(iNumRows, iNumCols, 0.);
 
    /* Recupera gli indici */
@@ -700,18 +696,17 @@ ViscoElasticDispHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    Mat3x3 Tmp(Mat3x3(F)-FDEPrime*Mat3x3(Omega2-Omega1)+FDE);
    
-   WM.Put(1, 1, Tmp);
-   WM.Put(4, 1, -Tmp);
+   WM.Add(1, 1, Tmp);
+   WM.Sub(4, 1, Tmp);
    
-   WM.Put(4, 7, FDE);
-   WM.Put(1, 7, -FDE);
+   WM.Add(4, 7, FDE);
+   WM.Sub(1, 7, FDE);
    
-   WM.Put(1, 4, FDEPrime);
-   WM.Put(4, 10, FDEPrime);
+   WM.Add(1, 4, FDEPrime);
+   WM.Add(4, 10, FDEPrime);
    
-   FDEPrime = -FDEPrime;
-   WM.Put(1, 10, FDEPrime);   
-   WM.Put(4, 4, FDEPrime);
+   WM.Sub(1, 10, FDEPrime);   
+   WM.Sub(4, 4, FDEPrime);
 
    return WorkMat;
 }
@@ -725,7 +720,7 @@ ViscoElasticDispHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
    integer iNumCols = 0;
-   this->InitialWorkSpaceDim(&iNumRows, &iNumCols);
+   InitialWorkSpaceDim(&iNumRows, &iNumCols);
    WorkVec.Resize(iNumRows);
    WorkVec.Reset(0.);
    
@@ -749,15 +744,14 @@ ViscoElasticDispHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    Vec3 g2(pNode2->GetgCurr());
    
    /* Aggiornamento: k += R1^T(G(g2)*g2-G(g1)*g1) */
-   Vec3 k(R1t*(g2*(4./(4.+g2.Dot()))
-	       -g1*(4./(4.+g1.Dot()))));
-   Vec3 kPrime(R1t*(Omega2-Omega1));
+   k = R1t*(g2*(4./(4.+g2.Dot())) - g1*(4./(4.+g1.Dot())));
+   kPrime = R1t*(Omega2-Omega1);
    IncrementalUpdate(k, kPrime);
    
    Vec3 F(R1*GetF());
    
-   WorkVec.Put(1, F);
-   WorkVec.Put(4, -F);   
+   WorkVec.Add(1, F);
+   WorkVec.Sub(4, F);   
    
    return WorkVec;
 }

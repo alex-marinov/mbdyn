@@ -332,6 +332,11 @@ Beam2::Restart_(std::ostream& out) const
 	return out;
 }
 
+void
+Beam2::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
+{
+	pD->AfterConvergence(DefLoc);
+}
 
 /* Assembla la matrice */
 void

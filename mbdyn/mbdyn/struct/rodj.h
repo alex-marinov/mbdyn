@@ -65,6 +65,8 @@ protected:
    
 	Vec3 v;
 	doublereal dElle;
+
+	doublereal dEpsilon;
    
 	/* Le funzioni di assemblaggio sono le stesse, cambiano gli indici 
 	 * delle equazioni. Allora, dopo aver settato indici e matrici,
@@ -104,6 +106,9 @@ public:
       
 	/* Contributo al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
+
+	virtual void
+	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 
 	/* Tipo di Rod */
 	virtual Rod::Type GetRodType(void) const {
@@ -196,6 +201,9 @@ public:
 /* ViscoElasticRod - begin */
 
 class ViscoElasticRod : virtual public Elem, public Rod {
+protected:
+	doublereal dEpsilonPrime;
+
 public:
 	/* Costruttore non banale */
 	ViscoElasticRod(unsigned int uL, const DofOwner* pDO,
@@ -209,6 +217,9 @@ public:
 	virtual inline void* pGet(void) const { 
 		return (void*)this;
 	};
+
+	virtual void
+	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 
 	/* Tipo di Rod */
 	virtual Rod::Type GetRodType(void) const {
@@ -259,6 +270,7 @@ public:
 
 class RodWithOffset : virtual public Elem, public Rod {
 protected:
+	doublereal dEpsilonPrime;
 	const Vec3 f1;
 	const Vec3 f2;
 
@@ -279,6 +291,9 @@ public:
 
 	/* Contributo al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
+
+	virtual void
+	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 
 	/* Tipo di Rod */
 	virtual Rod::Type GetRodType(void) const { 

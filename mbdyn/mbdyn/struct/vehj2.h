@@ -41,9 +41,6 @@
 
 class DeformableDispHingeJoint : 
 virtual public Elem, public Joint, public ConstitutiveLaw3DOwner {
- private:
-   DefHingeType::Type DefHingeT;
-   
  protected:
    const StructNode* pNode1;
    const StructNode* pNode2;
@@ -52,10 +49,12 @@ virtual public Elem, public Joint, public ConstitutiveLaw3DOwner {
    const Mat3x3 R1h;
    const Mat3x3 R2h;      
    
+   Vec3 k;
+   Vec3 kPrime;
+
  public:
    /* Costruttore non banale */
    DeformableDispHingeJoint(unsigned int uL,
-			    DefHingeType::Type T,
 			    const DofOwner* pDO,
 			    const ConstitutiveLaw3D* pCL,
 			    const StructNode* pN1, 
@@ -80,9 +79,7 @@ virtual public Elem, public Joint, public ConstitutiveLaw3DOwner {
    virtual void Output(OutputHandler& OH) const;
    
    /* Tipo di DeformableDispHinge */
-   virtual DefHingeType::Type GetDefHingeType(void) const {
-      return DefHingeT;
-   };
+   virtual DefHingeType::Type GetDefHingeType(void) const = 0;
    
    virtual unsigned int iGetNumDof(void) const { 
       return 0;
@@ -103,10 +100,6 @@ virtual public Elem, public Joint, public ConstitutiveLaw3DOwner {
       return 0;
    };
    
-#ifdef DEBUG
-   virtual const char* sClassName(void) const { return "DeformableHingeJoint"; };
-#endif 
-
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
@@ -148,11 +141,10 @@ class ElasticDispHingeJoint : virtual public Elem, public DeformableDispHingeJoi
       return (void*)this;
    };
 
-   /* Tipo di DeformableDispHinge
+   /* Tipo di DeformableDispHinge */
    virtual DefHingeType::Type GetDefHingeType(void) const {
       return DefHingeType::ELASTIC; 
    };
-    */
    
    /* assemblaggio jacobiano */
    virtual VariableSubMatrixHandler& 
@@ -182,10 +174,6 @@ class ElasticDispHingeJoint : virtual public Elem, public DeformableDispHingeJoi
    virtual SubVectorHandler& 
      InitialAssRes(SubVectorHandler& WorkVec,
 		   const VectorHandler& XCurr);   
-
-#ifdef DEBUG
-   virtual const char* sClassName(void) const { return "ElasticDispHingeJoint"; };
-#endif   
 };
 
 /* ElasticDispHingeJoint - end */
@@ -194,8 +182,6 @@ class ElasticDispHingeJoint : virtual public Elem, public DeformableDispHingeJoi
 /* ViscousDispHingeJoint - begin */
 
 class ViscousDispHingeJoint : virtual public Elem, public DeformableDispHingeJoint {
- protected:
-   
  public:
    ViscousDispHingeJoint(unsigned int uL, 
 			 const DofOwner* pDO, 
@@ -214,11 +200,10 @@ class ViscousDispHingeJoint : virtual public Elem, public DeformableDispHingeJoi
       return (void*)this;
    };
 
-   /* Tipo di DeformableDispHinge 
+   /* Tipo di DeformableDispHinge */
    virtual DefHingeType::Type GetDefHingeType(void) const {
       return DefHingeType::VISCOUS; 
    };
-    */
    
    /* assemblaggio jacobiano */
    virtual VariableSubMatrixHandler& 
@@ -248,10 +233,6 @@ class ViscousDispHingeJoint : virtual public Elem, public DeformableDispHingeJoi
    virtual SubVectorHandler& 
      InitialAssRes(SubVectorHandler& WorkVec,
 		   const VectorHandler& XCurr);   
-
-#ifdef DEBUG
-   virtual const char* sClassName(void) const { return "ViscousDispHingeJoint"; };
-#endif   
 };
 
 /* ViscousDispHingeJoint - end */
@@ -261,8 +242,6 @@ class ViscousDispHingeJoint : virtual public Elem, public DeformableDispHingeJoi
 
 class ViscoElasticDispHingeJoint 
 : virtual public Elem, public DeformableDispHingeJoint {
- protected:
-   
  public:
    ViscoElasticDispHingeJoint(unsigned int uL, 
 			      const DofOwner* pDO, 
@@ -279,11 +258,10 @@ class ViscoElasticDispHingeJoint
    
    virtual inline void* pGet(void) const { return (void*)this; };   
 
-   /* Tipo di DeformableDispHinge
+   /* Tipo di DeformableDispHinge */
    virtual DefHingeType::Type GetDefHingeType(void) const {
       return DefHingeType::VISCOELASTIC; 
    };
-    */
    
    /* assemblaggio jacobiano */
    virtual VariableSubMatrixHandler& 
@@ -313,12 +291,9 @@ class ViscoElasticDispHingeJoint
    virtual SubVectorHandler& 
      InitialAssRes(SubVectorHandler& WorkVec,
 		   const VectorHandler& XCurr);   
-
-#ifdef DEBUG
-   virtual const char* sClassName(void) const { return "ViscoElasticDispHingeJoint"; };
-#endif   
 };
 
 /* ViscoElasticDispHingeJoint - end */
 
-#endif
+#endif /* VEHJ2_H */
+

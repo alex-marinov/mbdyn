@@ -43,7 +43,6 @@
 
 /* Costruttore non banale */
 DeformableHingeJoint::DeformableHingeJoint(unsigned int uL,
-					   DefHingeType::Type T,
 					   const DofOwner* pDO, 
 					   const ConstitutiveLaw3D* pCL,
 					   const StructNode* pN1, 
@@ -53,7 +52,7 @@ DeformableHingeJoint::DeformableHingeJoint(unsigned int uL,
 					   flag fOut)
 : Elem(uL, Elem::JOINT, fOut), 
 Joint(uL, Joint::DEFORMABLEHINGE, pDO, fOut), 
-ConstitutiveLaw3DOwner(pCL), DefHingeT(T),
+ConstitutiveLaw3DOwner(pCL),
 pNode1(pN1), pNode2(pN2), R1h(R1), R2h(R2), bFirstRes(true)
 {
    ASSERT(pNode1 != NULL);
@@ -109,8 +108,7 @@ ElasticHingeJoint::ElasticHingeJoint(unsigned int uL,
 				     const Mat3x3& R2,
 				     flag fOut)
 : Elem(uL, Elem::JOINT, fOut), 
-DeformableHingeJoint(uL, DefHingeType::ELASTIC, 
-		     pDO, pCL, pN1, pN2, R1, R2, fOut),
+DeformableHingeJoint(uL, pDO, pCL, pN1, pN2, R1, R2, fOut),
 ThetaRef(0.), FDE(0.)
 {
    /* 
@@ -126,7 +124,13 @@ ElasticHingeJoint::~ElasticHingeJoint(void)
    NO_OP;
 }
 
-   
+void
+ElasticHingeJoint::AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP)
+{
+	ConstitutiveLaw3DOwner::AfterConvergence(ThetaCurr);
+}
+ 
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler& 
 ElasticHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
@@ -334,8 +338,7 @@ ViscousHingeJoint::ViscousHingeJoint(unsigned int uL,
 				     const Mat3x3& R2,
 				     flag fOut)
 : Elem(uL, Elem::JOINT, fOut), 
-DeformableHingeJoint(uL, DefHingeType::VISCOUS, 
-		     pDO, pCL, pN1, pN2, R1, R2, fOut),
+DeformableHingeJoint(uL, pDO, pCL, pN1, pN2, R1, R2, fOut),
 ThetaRefPrime(0.), ThetaCurrPrime(0.), TaCurrPrime(0.), TbCurrPrime(0.)
 {
    Mat3x3 Ra(pNode1->GetRRef());
@@ -348,6 +351,12 @@ ViscousHingeJoint::~ViscousHingeJoint(void)
    NO_OP;
 }
 
+void
+ViscousHingeJoint::AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP)
+{
+	ConstitutiveLaw3DOwner::AfterConvergence(Zero3, ThetaCurrPrime);
+}
    
 void ViscousHingeJoint::AfterPredict(VectorHandler& /* X */ ,
 				     VectorHandler& /* XP */ )
@@ -376,7 +385,7 @@ void ViscousHingeJoint::AfterPredict(VectorHandler& /* X */ ,
    ThetaCurrPrime = ThetaRefPrime = RaT*(TbCurrPrime-TaCurrPrime); // +ThetaCurrPrime;
    
    /* Aggiorna il legame costitutivo */
-   ConstitutiveLaw3DOwner::Update(0., ThetaRefPrime);
+   ConstitutiveLaw3DOwner::Update(Zero3, ThetaRefPrime);
       
    /* Chiede la matrice tangente di riferimento e la porta
     * nel sistema globale */
@@ -420,12 +429,12 @@ ViscousHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
  
    Mat3x3 Tmp(FDEPrime-FDEPrime*Mat3x3(Wa*dCoef));
          
-   WM.Put(4, 4, Tmp);
-   WM.Put(1, 4, -Tmp);
+   WM.Add(4, 4, Tmp);
+   WM.Sub(1, 4, Tmp);
 
    Tmp += Mat3x3(Ra*(ConstitutiveLaw3DOwner::GetF()*dCoef));
-   WM.Put(1, 1, Tmp);   
-   WM.Put(4, 1, -Tmp);
+   WM.Add(1, 1, Tmp);   
+   WM.Sub(4, 1, Tmp);
 
    return WorkMat;
 }
@@ -478,13 +487,13 @@ ViscousHingeJoint::AssRes(SubVectorHandler& WorkVec,
         
       ThetaCurrPrime = RaT*(TbCurrPrime-TaCurrPrime)+ThetaRefPrime;   
    
-      ConstitutiveLaw3DOwner::Update(0., ThetaCurrPrime);
+      ConstitutiveLaw3DOwner::Update(Zero3, ThetaCurrPrime);
    }   
    
    Vec3 F(Ra*ConstitutiveLaw3DOwner::GetF());
    
-   WorkVec.Put(1, F);
-   WorkVec.Put(4, -F);
+   WorkVec.Add(1, F);
+   WorkVec.Sub(4, F);
    
    return WorkVec;
 }
@@ -613,8 +622,7 @@ ViscoElasticHingeJoint::ViscoElasticHingeJoint(unsigned int uL,
 					       const Mat3x3& R2, 
 					       flag fOut)
 : Elem(uL, Elem::JOINT, fOut), 
-DeformableHingeJoint(uL, DefHingeType::VISCOELASTIC, 
-		     pDO, pCL, pN1, pN2, R1, R2, fOut),
+DeformableHingeJoint(uL, pDO, pCL, pN1, pN2, R1, R2, fOut),
 ThetaRef(0.), ThetaCurr(0.), ThetaRefPrime(0.), ThetaCurrPrime(0.),
 TaCurr(0.), TbCurr(0.), TaCurrPrime(0.), TbCurrPrime(0.)
 {
@@ -630,6 +638,12 @@ ViscoElasticHingeJoint::~ViscoElasticHingeJoint(void)
    NO_OP;
 }
 
+void
+ViscoElasticHingeJoint::AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP)
+{
+	ConstitutiveLaw3DOwner::AfterConvergence(ThetaCurr, ThetaCurrPrime);
+}
    
 void ViscoElasticHingeJoint::AfterPredict(VectorHandler& /* X */ ,
 					  VectorHandler& /* XP */ )

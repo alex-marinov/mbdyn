@@ -59,9 +59,6 @@ extern const char* psDefHingeNames[];
 
 class DeformableHingeJoint : 
 virtual public Elem, public Joint, public ConstitutiveLaw3DOwner {
- private:   
-   DefHingeType::Type DefHingeT;      
-   
  protected:
    const StructNode* pNode1;
    const StructNode* pNode2;
@@ -73,7 +70,6 @@ virtual public Elem, public Joint, public ConstitutiveLaw3DOwner {
  public:
    /* Costruttore non banale */
    DeformableHingeJoint(unsigned int uL,
-			DefHingeType::Type T,
 			const DofOwner* pDO,
 			const ConstitutiveLaw3D* pCL,
 			const StructNode* pN1, 
@@ -96,9 +92,7 @@ virtual public Elem, public Joint, public ConstitutiveLaw3DOwner {
    virtual void Output(OutputHandler& OH) const;
    
    /* Tipo di DeformableHinge */
-   virtual DefHingeType::Type GetDefHingeType(void) const {
-      return DefHingeT;
-   };
+   virtual DefHingeType::Type GetDefHingeType(void) const = 0;
    
    virtual unsigned int iGetNumDof(void) const { 
       return 0;
@@ -170,11 +164,13 @@ class ElasticHingeJoint : virtual public Elem, public DeformableHingeJoint {
       return (void*)this;
    };
 
-   /* Tipo di DeformableHinge
+   virtual void
+   AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
+
+   /* Tipo di DeformableHinge */
    virtual DefHingeType::Type GetDefHingeType(void) const {
       return DefHingeType::ELASTIC; 
    };
-    */
    
    /* assemblaggio jacobiano */
    virtual VariableSubMatrixHandler& 
@@ -247,11 +243,13 @@ class ViscousHingeJoint : virtual public Elem, public DeformableHingeJoint {
       return (void*)this;
    };
 
-   /* Tipo di DeformableHinge 
+   virtual void
+   AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
+
+   /* Tipo di DeformableHinge */
    virtual DefHingeType::Type GetDefHingeType(void) const {
       return DefHingeType::VISCOUS; 
    };
-    */
 
    /* Aggiorna le deformazioni ecc. */
    virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
@@ -332,11 +330,13 @@ class ViscoElasticHingeJoint
       return (void*)this;
    };
 
-   /* Tipo di DeformableHinge
+   virtual void
+   AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
+
+   /* Tipo di DeformableHinge */
    virtual DefHingeType::Type GetDefHingeType(void) const {
       return DefHingeType::VISCOELASTIC; 
    };
-    */
    
    /* assemblaggio jacobiano */
    virtual VariableSubMatrixHandler& 

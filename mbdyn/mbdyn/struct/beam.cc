@@ -498,6 +498,12 @@ std::ostream& Beam::Restart_(std::ostream& out) const
    return out;
 }
 
+void
+Beam::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
+{
+	pD[S_I]->AfterConvergence(DefLoc[S_I]);
+	pD[SII]->AfterConvergence(DefLoc[SII]);
+}
 
 /* Assembla la matrice */
 void Beam::AssStiffnessMat(FullSubMatrixHandler& WMA,

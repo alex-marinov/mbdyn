@@ -203,6 +203,9 @@ class HBeam
     /* Contributo al file di restart */
     virtual std::ostream& Restart(std::ostream& out) const;
    
+    virtual void
+    AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
+
     /* funzioni proprie */
    
     /* Dimensioni del workspace; sono 36 righe perche' se genera anche le 

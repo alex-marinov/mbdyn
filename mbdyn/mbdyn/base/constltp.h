@@ -174,7 +174,7 @@ public:
 
 	inline void AfterConvergence(const T& Eps, const T& EpsPrime = 0.) {
 		ASSERT(pConstLaw != NULL);
-		pConstLaw->AfterConvergence(DeltaEps, EpsPrime);
+		pConstLaw->AfterConvergence(Eps, EpsPrime);
 	};
    
 	inline const T& GetF(void) const {

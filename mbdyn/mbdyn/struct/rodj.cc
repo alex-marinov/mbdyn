@@ -49,7 +49,7 @@ Rod::Rod(unsigned int uL, const DofOwner* pDO,
 : Elem(uL, Elem::JOINT, fOut), 
 Joint(uL, Joint::ROD, pDO, fOut),
 ConstitutiveLaw1DOwner(pCL), RodT(Rod::ELASTIC),
-pNode1(pN1), pNode2(pN2), dL0(dLength), v(0.), dElle(0.)
+pNode1(pN1), pNode2(pN2), dL0(dLength), v(0.), dElle(0.), dEpsilon(0.)
 {
 #ifdef DEBUG   
    /* Verifica di consistenza dei dati iniziali */   
@@ -75,6 +75,11 @@ Rod::~Rod(void)
    NO_OP;
 }
 
+void
+Rod::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
+{
+	ConstitutiveLaw1DOwner::AfterConvergence(dEpsilon);
+}
 
 /* Contributo al file di restart */
 std::ostream& Rod::Restart(std::ostream& out) const
@@ -140,7 +145,7 @@ void Rod::AssVec(SubVectorHandler& WorkVec)
    
    /* Deformazione */
    dElle = sqrt(dCross);
-   doublereal dEpsilon = dElle/dL0-1.;
+   dEpsilon = dElle/dL0-1.;
    
    /* Ampiezza della forza */
    ConstitutiveLaw1DOwner::Update(dEpsilon);
@@ -530,7 +535,8 @@ ViscoElasticRod::ViscoElasticRod(unsigned int uL,
 					   const StructNode* pN2,
 					   doublereal dLength, flag fOut)
 : Elem(uL, Elem::JOINT, fOut), 
-Rod(uL, pDO, pCL, pN1, pN2, dLength, fOut)
+Rod(uL, pDO, pCL, pN1, pN2, dLength, fOut),
+dEpsilonPrime(0.)
 {
    SetRodType(Rod::VISCOELASTIC);
 }
@@ -542,6 +548,12 @@ ViscoElasticRod::~ViscoElasticRod(void)
    NO_OP; 
 }
 
+void
+ViscoElasticRod::AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP)
+{
+	ConstitutiveLaw1DOwner::AfterConvergence(dEpsilon, dEpsilonPrime);
+}
 
 VariableSubMatrixHandler& 
 ViscoElasticRod::AssJac(VariableSubMatrixHandler& WorkMat,
@@ -656,11 +668,11 @@ ViscoElasticRod::AssRes(SubVectorHandler& WorkVec,
    dElle = sqrt(dCross);
 
    /* Deformazione */
-   doublereal dEpsilon = dElle/dL0-1.;
+   dEpsilon = dElle/dL0-1.;
    
    /* Velocita' di deformazione */
    Vec3 vPrime(pNode2->GetVCurr()-pNode1->GetVCurr());
-   doublereal dEpsilonPrime  = (v.Dot(vPrime))/(dElle*dL0);
+   dEpsilonPrime  = (v.Dot(vPrime))/(dElle*dL0);
    
    /* Ampiezza della forza */
    ConstitutiveLaw1DOwner::Update(dEpsilon, dEpsilonPrime);
@@ -796,11 +808,11 @@ ViscoElasticRod::InitialAssRes(SubVectorHandler& WorkVec,
    dElle = sqrt(dCross);
 
    /* Deformazione */
-   doublereal dEpsilon = dElle/dL0-1.;
+   dEpsilon = dElle/dL0-1.;
    
    /* Velocita' di deformazione */
    Vec3 vPrime(pNode2->GetVCurr()-pNode1->GetVCurr());
-   doublereal dEpsilonPrime  = (v.Dot(vPrime))/(dElle*dL0);
+   dEpsilonPrime  = (v.Dot(vPrime))/(dElle*dL0);
    
    /* Ampiezza della forza */
    ConstitutiveLaw1DOwner::Update(dEpsilon, dEpsilonPrime);
@@ -832,6 +844,7 @@ RodWithOffset::RodWithOffset(unsigned int uL,
 				       flag fOut)
 : Elem(uL, Elem::JOINT, fOut), 
 Rod(uL, pDO, pCL, pN1, pN2, dLength, fOut, 1),
+dEpsilonPrime(0.),
 f1(f1Tmp), f2(f2Tmp)
 {
 #ifdef DEBUG   
@@ -871,6 +884,12 @@ std::ostream& RodWithOffset::Restart(std::ostream& out) const
    return pGetConstLaw()->Restart(out) << ';' << std::endl;
 }
 
+void
+RodWithOffset::AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP)
+{
+	ConstitutiveLaw1DOwner::AfterConvergence(dEpsilon, dEpsilonPrime);
+}
          
 VariableSubMatrixHandler& 
 RodWithOffset::AssJac(VariableSubMatrixHandler& WorkMat, 
@@ -1052,11 +1071,11 @@ RodWithOffset::AssRes(SubVectorHandler& WorkVec,
    dElle = sqrt(dCross);
 
    /* Deformazione */
-   doublereal dEpsilon = dElle/dL0-1.;
+   dEpsilon = dElle/dL0-1.;
    
    /* Velocita' di deformazione */
    Vec3 vPrime(v2+Omega2.Cross(f2Tmp)-v1-Omega1.Cross(f1Tmp));
-   doublereal dEpsilonPrime  = (v.Dot(vPrime))/(dElle*dL0);
+   dEpsilonPrime  = (v.Dot(vPrime))/(dElle*dL0);
    
    /* Ampiezza della forza */
    ConstitutiveLaw1DOwner::Update(dEpsilon, dEpsilonPrime);
@@ -1422,11 +1441,11 @@ RodWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
    dElle = sqrt(dCross);
 
    /* Deformazione */
-   doublereal dEpsilon = dElle/dL0-1.;
+   dEpsilon = dElle/dL0-1.;
    
    /* Velocita' di deformazione */
    Vec3 vPrime(v2+Omega2.Cross(f2Tmp)-v1-Omega1.Cross(f1Tmp));
-   doublereal dEpsilonPrime  = (v.Dot(vPrime))/(dElle*dL0);
+   dEpsilonPrime  = (v.Dot(vPrime))/(dElle*dL0);
    
    /* Ampiezza della forza */
    ConstitutiveLaw1DOwner::Update(dEpsilon, dEpsilonPrime);
