@@ -77,9 +77,11 @@ get_coef(int nm, double* m, int na, double* a, double alpha, double mach,
 		double* c, double* c0);
 static double
 get_dcla(int nm, double* m, double* s, double mach);
+#ifdef USE_GET_STALL
 static int
 get_stall(int nm, double* m, double* s, double mach,
           double *dcpa, double *dasp, double *dasm);
+#endif /* USE_GET_STALL */
 
 double
 get_c81_coef(int nm, double* m, int na, double* a, double alpha, double mach)
@@ -321,6 +323,9 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 		mach = .99;
 	}
 
+	/*
+	 * Compute cl, cd, cm based on selected theory
+	 */
 	switch (unsteadyflag) {
 	case 0: 
 
@@ -576,30 +581,46 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 		cl += cn*v[V_X]/vp;	/* cos(alpha) */
 		cd -= cn*v[V_Y]/vp;	/* sin(alpha) */
 
+#if 0
 		/* 
 		 * I suspect Bielawa '75 considers cm positive 
 		 * when nose-down, while the c81 data considers 
 		 * it positive when nose-up
 		 */
 		cm -= dcma*DAM+DCM*C1;
+#else
+		cm += dcma*DAM+DCM*C1;
+#endif
 
 		break;
 	}
 	}
 
-	
+	/*
+	 * Save cl, cd, cm for output purposes
+	 */
 	OUTA[4] = cl;
 	OUTA[5] = cd;
 	OUTA[6] = cm;
 
+	/*
+	 * Local dynamic pressure
+	 */
 	q = .5*rho*chord*vp2;
 
+	/*
+	 * airfoil forces and moments in the airfoil frame
+	 */
 	TNG[V_X] = -q*(cl*v[V_Y]+cd*v[V_X])/vp;
 	TNG[V_Y] = q*(cl*v[V_X]-cd*v[V_Y])/vp;
 	TNG[V_Z] = -q*cd0*v[V_Z]/vp;
 	TNG[W_X] = 0.;
 	TNG[W_Y] = -ca*TNG[V_Z];
+#if 0
 	TNG[W_Z] = -q*chord*cm-ca*TNG[V_Y];
+#else
+	TNG[W_Z] = q*chord*cm+ca*TNG[V_Y];
+#endif
 	
 	/* 
 	 * Radial drag (TNG[V_Z]) consistent with Harris, JAHS 1970
@@ -777,6 +798,7 @@ get_dcla(int nm, double* m, double* s, double mach)
 	}
 }
 
+#ifdef USE_GET_STALL
 static int
 get_stall(int nm, double* m, double* s, double mach,
 	  double *dcpa, double *dasp, double *dasm)
@@ -808,4 +830,5 @@ get_stall(int nm, double* m, double* s, double mach,
 	
 	return 0;
 }
+#endif /* USE_GET_STALL */
 

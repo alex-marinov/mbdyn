@@ -439,12 +439,17 @@ main(int argc, char* argv[])
 #endif /* !USE_EXCEPTIONS */
 
 			case int('W'):
+#ifdef HAVE_CHDIR
       				if (chdir(optarg)) {
 					std::cerr << "Error in chdir(\""
 						<< optarg << "\")"
 						<< std::endl;
 	 				THROW(ErrFileSystem());
       				}
+#else /* !HAVE_CHDIR */
+				std::cerr << "chdir() not available"
+					<< std::endl;
+#endif /* !HAVE_CHDIR */
 				break;
 	    
 	    		case int('?'):

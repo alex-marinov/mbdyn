@@ -343,6 +343,28 @@ restart:
    	} else if (!strcmp(s, "set")) {
       		Set_();
       		goto restart;
+
+#ifdef USE_INCLUDE_PARSER
+	} else if (!strcmp(s, "chdir")) {
+  	 	if (FirstToken() == UNKNOWN) {
+			std::cerr << "Parser error "
+				"in IncludeParser::Include_(), "
+				"colon expected at line " << GetLineData() 
+				<< std::endl;
+      			THROW(HighParser::ErrColonExpected());
+   		}
+   
+   		const char* sfname = GetFileName();
+
+      		if (chdir(sfname)) {
+			std::cerr << "Error in chdir, path = " 
+				<< sfname << std::endl;
+	 		THROW(ErrFileSystem());
+      		}
+      		goto restart;
+
+#endif /* USE_INCLUDE_PARSER*/
+		
    	} /* else */   
    	return iGetDescription_(s);
 }
