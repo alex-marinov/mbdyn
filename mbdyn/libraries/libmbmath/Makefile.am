@@ -7,6 +7,8 @@ lib_LTLIBRARIES = libmbmath.la
 libmbmath_la_SOURCES = \
 ccmh.hc \
 ccmh.h \
+dirccmh.hc \
+dirccmh.h \
 fullmh.cc \
 fullmh.h \
 interp.h \
