@@ -27,6 +27,7 @@
 *.sdw -k 'b'
 *.sda -k 'b'
 *.doc -k 'b'
+*.DOC -k 'b'
 *.pdf -k 'b'
 *.xls -k 'b'
 
