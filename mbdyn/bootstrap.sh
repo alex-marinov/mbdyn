@@ -5,8 +5,10 @@ aclocal
 libtoolize --force --copy
 autoheader
 for i in `find . -name 'Makefile.am'` ; do
-	j=`echo $i | sed "s/\.am//"`
-	automake --foreign --add-missing --copy $j
+	j=`echo $i | sed "s/\.am//" | grep -v "^\./contrib"`
+	if test "x$j" != "x" ; then
+		automake --foreign --add-missing --copy $j
+	fi
 done
 if test -d contrib ; then
 	for i in `find contrib -name 'bootstrap.sh'` ; do
