@@ -40,28 +40,29 @@ MBDyn 1.2-Engineering
 		- added "exit" statement
 		- reworked distance joints (1 dof instead of 4); 
 		  d=0 not allowed any more
-		- selected loadable elements can be used as joints
+		- selected loadable elements (modules) can be read as joints
 		- parameter nodes value is output in .prm files
 		- very rough implementation of aircraft instruments
-		- add matrix-free solver
-		- improve API
+		- added matrix-free solver
+		- improved API
 		- added a cycle to better approximate reference
-		  induced velocity in rotors
-		- convergence test based on solution
+		  induced velocity in helicopter rotors
+		- added convergence test based on solution
 		- selected scaling of residual before testing
 		- specialized tests for residual and solution: 
-		  norm and minmax (need to fix for parallel)
+		  none, norm and minmax (need to fix for parallel)
 		- added ALTER file for normal modes only in
 		  "etc/modal.d/MBDyn_NASTRAN_alter_3.nas"
 		- added RTAI support for soft/hard real-time simulations
 		- allow to clamp the modal element, thus not requiring
 		  the modal node (save 18 dofs)
 		- added general framework for friction
-		- added compressed column matrix with extenal storage
+		- added compressed column matrix with external storage
 		- added 'element' plugins to allow direct access to element 
 		  private data from math parser (companion of 'dof' plugin)
 		- added 'element' drive to allow direct access to element
 		  private data from math parser (companion of 'dof' drive)
+		- added multithreaded assembly (eXperimental)
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility

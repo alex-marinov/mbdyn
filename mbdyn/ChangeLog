@@ -6,6 +6,17 @@ Copyright (C) 1996-2003
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Tue Dec 30 23:43:38 CET 2003 Pierangelo Masarati <masarati@aero.polimi.it>
+ - fixed transition from column-compressed to sparse-map umfpack
+   when the matrix is invalidated
+ - fixed multithread support
+ - fixed signal handling in multithread support
+ - added 'element' plugins to allow direct access to element 
+   private data from math parser (companion of 'dof' plugin)
+ - added 'element' drive to allow direct access to element
+   private data from math parser (companion of 'dof' drive)
+ - detect nested comments (/* ... /* ... */) and warn
+
 *** Wed Dec 24 00:56:31 CET 2003 Pierangelo Masarati <masarati@aero.polimi.it>
  - fixed endless loop bug when silencing output with '-s'
  - added support for multithreaded solution; currently works only
