@@ -252,6 +252,8 @@ public:
    	virtual integer iGetNumCols(void) const {
       		return iMatSize;
    	};
+
+	std::ostream& SparseOutput(std::ostream& out) const;
 };
 
 

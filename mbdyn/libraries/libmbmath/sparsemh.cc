@@ -334,5 +334,55 @@ SparseMatrixHandler::iPacVec(void)
 	return iNew;
 }
 
+std::ostream& 
+SparseMatrixHandler::SparseOutput(std::ostream& out) const
+{
+#ifdef DEBUG
+	IsValid();
+#endif  /* DEBUG */
+
+	ASSERT(iCurSize > 0);
+
+#if 0	
+	doublereal* pdMatNew = *ppdMat;
+	integer* piRowNew = *ppiRow;
+	integer* piColNew = *ppiCol;
+	
+	doublereal* pdMatOld = *ppdMat;
+	integer* piRowOld = *ppiRow;
+	integer* piColOld = *ppiCol;
+#endif
+	
+	integer iEmpty = -(iCurSize+1);
+
+#if 0
+	for ( ;
+	     piRowOld < *ppiRow+iCurSize;
+	     pdMatOld++, piRowOld++, piColOld++) {	     
+	     	if (*piRowOld != iEmpty) {
+			SparseData::uPacVec uPV;
+			uPV.iInt = *piColOld;		
+			*pdMatNew++ = *pdMatOld;
+			*piRowNew++ = integer(uPV.sRC.ir);
+			*piColNew++ = integer(uPV.sRC.ic);
+			iNew++;
+		}
+	}
+#endif
+	
+	for (integer iCnt = 0; iCnt < iCurSize; iCnt++) {
+		if ((*ppiRow)[iCnt] != iEmpty) {
+			SparseData::uPacVec uPV;
+			uPV.iInt = (*ppiCol)[iCnt];
+			out 
+				<< integer(uPV.sRC.ir) << " "
+				<< integer(uPV.sRC.ic) << " "
+				<< (*ppdMat)[iCnt] << std::endl;
+		}
+	}
+
+	return out;
+}
+
 /* SparseMatrixHandler - end */
 
