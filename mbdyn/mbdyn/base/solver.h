@@ -200,10 +200,10 @@ private:
 
    	/* Parametri per il metodo */
    	StepIntegrator* pDerivativeSteps;
-   	StepIntegrator* pFirstRegularStep;
-   	StepIntegrator* pRegularSteps;
    	StepIntegrator* pFirstFictitiousStep;
 	StepIntegrator* pFictitiousSteps;
+   	StepIntegrator* pFirstRegularStep;
+   	StepIntegrator* pRegularSteps;
 	
 	/* Type of linear solver */
 	LinSol CurrLinearSolver;

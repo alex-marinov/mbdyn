@@ -6,6 +6,9 @@ Copyright (C) 1996-2004
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Mon May 24 10:31:08 CEST 2004 Pierangelo Masarati <masarati@aero.polimi.it>
+ - added first order BDF method
+
 *** Thu May 20 11:18:01 CEST 2004 Pierangelo Masarati <masarati@aero.polimi.it>
  - allow velocities in ADAMS .res output
 
