@@ -147,10 +147,10 @@ function skip_label(l)
 
 # Output
 function output() {
-	for (node in label) {
-		if (node == RefNode) {
+	for (node = 0; node < num_labels; node++) {
+		if (label[node] == RefNode) {
 			printf("%8d %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e\n",
-				node,
+				label[node],
 				0., 0., 0., 0., 0., 0.,
 				0., 0., 0., 0., 0., 0.);
 			continue;
@@ -191,7 +191,7 @@ function output() {
 		mat3T_mul_vec3(R0, Wtmp, W);
 
 		printf("%8d %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e\n",
-			node,
+			label[node],
 			X[1], X[2], X[3], e[1], e[2], e[3],
 			V[1], V[2], V[3], W[1], W[2], W[3]);
 	}
@@ -203,6 +203,7 @@ BEGIN {
 	FirstStep = 1;
 	# SkipSteps = 0;
 	step = 0;
+	node = 0;
 
 	deg2rad = 0.017453293;
 	rad2deg = 57.29578;
@@ -212,10 +213,16 @@ BEGIN {
 {
 	# every time a new step starts, output the previous one
 	if ($1 == FirstLabel) {
+		if (num_labels == 0) {
+			num_labels = node;
+		}
+
 		if (step >= SkipSteps) {
 			output();
 		}
 		step++;
+
+		node = 0;
 	}
 
 	# get the first label, which marks the beginning of a new time step
@@ -250,23 +257,25 @@ BEGIN {
 	}
 
 	# store the configuration of the current node
-	label[$1] = $1;
+	label[node] = $1;
 
-	Pos[$1, 1] = $2;
-	Pos[$1, 2] = $3;
-	Pos[$1, 3] = $4;
+	Pos[node, 1] = $2;
+	Pos[node, 2] = $3;
+	Pos[node, 3] = $4;
 
-	The[$1, 1] = $5;
-	The[$1, 2] = $6;
-	The[$1, 3] = $7;
+	The[node, 1] = $5;
+	The[node, 2] = $6;
+	The[node, 3] = $7;
 
-	Vel[$1, 1] = $8;
-	Vel[$1, 2] = $9;
-	Vel[$1, 3] = $10;
+	Vel[node, 1] = $8;
+	Vel[node, 2] = $9;
+	Vel[node, 3] = $10;
 
-	Ome[$1, 1] = $11;
-	Ome[$1, 2] = $12;
-	Ome[$1, 3] = $13;
+	Ome[node, 1] = $11;
+	Ome[node, 2] = $12;
+	Ome[node, 3] = $13;
+
+	node++;
 }
 
 END {
