@@ -48,12 +48,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "matvecexp.h"
-#include "Rot.hh"
-
 // Input:
-// node_pos	array delle posizioni attuali dei due nodi
-// node_or		array delle orientazioni attuali dei due nodi
+// node_pos	array delle posizioni attuali dei due nodi piu' offset
+// node_or	array delle orientazioni attuali dei due nodi
+// node_f	array degli offset attuali (R*f_tilde) dei due nodi
 // w		array dei pesi associati ai due nodi nel punto di calcolo
 // wder		array dei pesi derivati rispetto all'ascissa curvilinea
 // 
@@ -78,6 +76,7 @@
 
 void ComputeInterpolation(const Vec3 *const node_pos,
 			const Mat3x3 *const node_or,
+			const Vec3 *const node_f,
 			const doublereal *const w,
 			const doublereal *const wder,
 			Vec3 &pos,

@@ -128,10 +128,12 @@ HBeam::DsDxi(void)
 {
 	/* Calcola il ds/dxi e le deformazioni iniziali */
 	Mat3x3 RTmp[NUMNODES];
-	Vec3 xTmp[NUMNODES];
+	Vec3 yTmp[NUMNODES];
+	Vec3 fTmp[NUMNODES];
 	for (unsigned int i = 0; i < NUMNODES; i++) {
 		RTmp[i] = pNode[i]->GetRCurr()*Rn[i];
-		xTmp[i] = pNode[i]->GetXCurr()+pNode[i]->GetRCurr()*f[i];
+		fTmp[i] = pNode[i]->GetRCurr()*f[i];
+		yTmp[i] = pNode[i]->GetXCurr()+fTmp[i];
 	}
 
 	w[NODE1] = .5;
@@ -141,7 +143,7 @@ HBeam::DsDxi(void)
 	wder[NODE2] = .5;
 	
 	/* Calcolo i wder ... */
-	ComputeInterpolation(xTmp, RTmp,
+	ComputeInterpolation(yTmp, RTmp, fTmp,
 			w, wder,
 			p, R,
 			RdP, pdP, pdp,
@@ -162,7 +164,7 @@ HBeam::DsDxi(void)
 	wder[NODE2] = wder[NODE2]/d;
 
 	/* Calcolo le caratteristiche iniziali ... */
-	ComputeInterpolation(xTmp, RTmp,
+	ComputeInterpolation(yTmp, RTmp, fTmp,
 			w, wder,
 			p, R,
 			RdP, pdP, pdp,
@@ -172,9 +174,10 @@ HBeam::DsDxi(void)
 	/* Grandezze iniziali e di riferimento */
 	/* FIXME: fare un temporaneo per i trasposti ... */
 	RRef = R;
-	Rho0 = R.Transpose()*Rho;
+	Mat3x3 RT(R.Transpose());
+	Rho0 = RT*Rho;
 	LRef = L;
-	L0 = R.Transpose()*L;
+	L0 = RT*L;
 }
 
 
@@ -257,12 +260,6 @@ HBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 	 * e con gli indici di righe e colonne a posto
 	 */
    
-	/* offset nel riferimento globale */
-	Vec3 fTmp[NUMNODES];
-	for (unsigned int i = 0; i < NUMNODES; i++) {
-		fTmp[i] = pNode[i]->GetRCurr()*f[i];
-	}
-
 	/* Legame costitutivo (viene generato sempre) */
 	DRef = MultRMRt(pD->GetFDE(), R);
 	
@@ -302,27 +299,25 @@ HBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 				+Mat3x3(bTmp[0])*AzTmp[i].GetMat11());
 		WMA.Sub(4, 6*i+4, 
 				AzTmp[i].GetMat22()
-				-Mat3x3(AzRef.GetVec1()*(-dCoef*dN2[i]),
-					fTmp[i])
 				+Mat3x3(bTmp[0])*AzTmp[i].GetMat12());
 		
 		/* Equazione in avanti: */
 		WMA.Add(7, 6*i+1, AzTmp[i].GetMat11());
-		WMA.Add(7, 6*i+4, AzTmp[i].GetMat12());
+		WMA.Add(7, 6*i+4,
+				AzTmp[i].GetMat12()
+				-Mat3x3(AzRef.GetVec1()*dCoef)*pdP[i]);
 		
 		WMA.Add(10, 6*i+1,
 				AzTmp[i].GetMat21()
-				-Mat3x3(AzRef.GetVec1()*(dCoef*dN2[i]))
+				-Mat3x3(AzRef.GetVec1()*dCoef)*pdp[i]
 				+Mat3x3(bTmp[1])*AzTmp[i].GetMat11());
-		WMA.Add(10, 6*i+4, 
+		WMA.Add(10, 6*i+4,
 				AzTmp[i].GetMat22()
-				+Mat3x3(AzRef.GetVec1()*(dCoef*dN2[i]),
-					fTmp[i])
 				+Mat3x3(bTmp[1])*AzTmp[i].GetMat12());
 	}
 	
 	/* correzione alle equazioni */
-	WMA.Add(4, 1, Mat3x3(AzRef.GetVec1()*(-dCoef)));
+	WMA.Sub(4, 1, Mat3x3(AzRef.GetVec1()*dCoef));
 	WMA.Add(10, 7, Mat3x3(AzRef.GetVec1()*dCoef));
 };
 
@@ -342,15 +337,19 @@ HBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
 	 */
 	
 	/* Recupera i dati dei nodi */
-	Vec3 xTmp[NUMNODES];
+	Vec3 x[NUMNODES];
+	Vec3 yTmp[NUMNODES];
+	Vec3 fTmp[NUMNODES];
 	Mat3x3 RTmp[NUMNODES];
 	for (unsigned int i = 0; i < NUMNODES; i++) {
-		xTmp[i] = pNode[i]->GetXCurr()+pNode[i]->GetRCurr()*f[i];
 		RTmp[i] = pNode[i]->GetRCurr()*Rn[i];
+		fTmp[i] = pNode[i]->GetRCurr()*f[i];
+		x[i] = pNode[i]->GetXCurr();
+		yTmp[i] = x[i]+fTmp[i];
 	}   
 	
 	/* Interpolazione generica */
-	ComputeInterpolation(xTmp, RTmp,
+	ComputeInterpolation(yTmp, RTmp, fTmp,
 			w, wder,
 			p, R,
 			RdP, pdP, pdp,
@@ -371,9 +370,9 @@ HBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
 	Az = MultRV(AzLoc, R);
 	
 	WorkVec.Add(1, Az.GetVec1());
-	WorkVec.Add(4, (p-xTmp[NODE1]).Cross(Az.GetVec1())+Az.GetVec2());
+	WorkVec.Add(4, (p-x[NODE1]).Cross(Az.GetVec1())+Az.GetVec2());
 	WorkVec.Sub(7, Az.GetVec1());
-	WorkVec.Sub(10, Az.GetVec2()+(p-xTmp[NODE2]).Cross(Az.GetVec1()));
+	WorkVec.Sub(10, Az.GetVec2()+(p-x[NODE2]).Cross(Az.GetVec1()));
 }
 
    

@@ -50,10 +50,12 @@
 
 #include "matvecexp.h"
 #include "Rot.hh"
+#include <hbeam_interp.h>
 
 // Input:
-// node_pos	array delle posizioni attuali dei due nodi
-// node_or		array delle orientazioni attuali dei due nodi
+// node_pos	array delle posizioni attuali dei due nodi piu' offset
+// node_or	array delle orientazioni attuali dei due nodi
+// node_f	array degli offset attuali (R*f_tilde) dei due nodi
 // w		array dei pesi associati ai due nodi nel punto di calcolo
 // wder		array dei pesi derivati rispetto all'ascissa curvilinea
 // 
@@ -84,6 +86,7 @@ enum {
 
 void ComputeInterpolation(const Vec3 *const node_pos,
 			const Mat3x3 *const node_or,
+			const Vec3 *const node_f,
 			const doublereal *const w,
 			const doublereal *const wder,
 			Vec3 &pos,
@@ -186,5 +189,19 @@ void ComputeInterpolation(const Vec3 *const node_pos,
 	tmp += delta_pos_w_pos[NODE2];
 	tmp += or_delta_w_or[NODE2];
 	delta_F_ws_or[NODE2] += LT*tmp;
+	
+	
+	//tarocco per l'aggiunta dell'offset f
+	//le curvature e le posizioni invece sono giuste perche' 
+	//viene passato node_pos=x_node+node_or*f
+	Mat3x3 fodo;
+	
+	fodo = Mat3x3(node_f[NODE1])*or_delta_w_or[NODE1];
+	delta_pos_w_or[NODE1] -= delta_pos_w_pos[NODE1]*fodo;
+	delta_F_ws_or[NODE1] -=	delta_F_ws_pos[NODE1]*fodo;
+	
+	fodo = Mat3x3(node_f[NODE2])*or_delta_w_or[NODE2];
+	delta_pos_w_or[NODE2] -= delta_pos_w_pos[NODE2]*fodo;
+	delta_F_ws_or[NODE2] -=	delta_F_ws_pos[NODE2]*fodo;
 };
 
