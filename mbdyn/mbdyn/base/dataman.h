@@ -71,7 +71,6 @@
 #include "usesock.h"
 
 class Solver;
-struct LoadableCalls;
 
 /* DataManager - begin */
 
