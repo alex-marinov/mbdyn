@@ -76,8 +76,8 @@ Version
 \newpage
 
 \chapter{Introduction}
-This document describes the format of the input data for MBDyn ---
-MultiBody Analysis program.
+This document describes the format of the input data for MBDyn,
+the \underline{M}ulti\underline{b}ody \underline{D}ynamics analysis suite.
 It should be considered a syntax more than a format, since the rules of the
 input allow a lot of freedom in the file format. 
 
@@ -101,15 +101,16 @@ self-explanatory) type enclosed in plain brackets \kw{()}.
 The input of the program MBDyn is subject to continuous changes
 at a fast pace, since the code is under development.
 This documentation attempts to give some insight into the logics 
-that drove the implementation of such an input.
+that drove its implementation.
 While most of the software resulted from a careful design, 
 some portions are ``as they are'' only because they were made in a hurry, 
 or because no better way was at hand at the moment they were made.
 The input format partially reflects the development of the software.
-In changing the input format and syntax of many parts, an effort 
-will be made to make it as much backward compatible as possible,
-or at least a reliable error checking will be put in place that warns 
-for possible erroneous inputs due to a change in the input format. 
+Whenever changes in the input format and in the syntax 
+of existing parts are required, an effort will be attempted to make 
+it as much backward compatible as possible, or at least reliable 
+diagnostics and error checking will be put in place that warns 
+for possible erroneous inputs related to a change in the input format. 
 At present the input of MBDyn already warns for many possible errors 
 and makes as many cross-checks as possible on the consistency of the data. 
 Nearly every warning and error issue shows the line of the input file 
@@ -118,7 +119,7 @@ Since at present multiple files can be scanned by means of the
 \kw{include} directive, the file where the error occurred
 may not be clearly indicated if no reliable C++ exception handling 
 is supported by the compiler.
-This document will be subject to changes, so be sure you always have 
+This document will be subjected to changes, so be sure you always have 
 a release that is aligned with the version of the code you're running.
 
 For any question or problem, to fix typos, bugs, for comments and
