@@ -444,7 +444,6 @@ MultiThreadDataManager::ThreadSpawn(void)
 void
 MultiThreadDataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 {
-	silent_cerr("AssJac" << std::endl);
 retry:;
 	switch (AssMode) {
 	case ASS_CC:
@@ -652,8 +651,6 @@ MultiThreadDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 	throw(ChangedEquationStructure)
 {
 	ASSERT(thread_data != NULL);
-
-	silent_cerr("AssRes" << std::endl);
 
 	thread_data[0].ElemIter.ResetAccessData();
 	op = MultiThreadDataManager::OP_ASSRES;
