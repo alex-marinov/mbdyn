@@ -692,6 +692,11 @@ AC_CHECK_FUNCS([ \
 	chdir \
 ])
 
+
+dnl ----------------------------------------------------------------
+dnl Checks whether ostream has form method
+dnl
+
 AC_LANG_CPLUSPLUS
 AC_MSG_CHECKING([whether class ostream has method 'form'])
 AC_TRY_COMPILE([#include <iostream.h>],[
@@ -702,6 +707,26 @@ AC_LANG_C
 if test $have_form != no ; then
 	AC_DEFINE(HAVE_FORM_IN_OSTREAM,1,
 		[define if class ostream has 'form' method])
+	AC_MSG_RESULT([yes])
+else
+	AC_MSG_RESULT([no])
+fi
+
+
+dnl ----------------------------------------------------------------
+dnl Checks whether ios has fmtflags type
+dnl
+
+AC_LANG_CPLUSPLUS
+AC_MSG_CHECKING([whether class ios has fmtflags type])
+AC_TRY_COMPILE([#include <iostream.h>],[
+	ios::fmtflags flag;
+],[have_fmtflags=yes],[have_fmtflags=no])
+AC_LANG_C
+
+if test $have_fmtflags != no ; then
+	AC_DEFINE(HAVE_FMTFLAGS_IN_IOS,1,
+		[define if class ios has 'fmtflags' type])
 	AC_MSG_RESULT([yes])
 else
 	AC_MSG_RESULT([no])
