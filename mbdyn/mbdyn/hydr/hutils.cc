@@ -577,7 +577,8 @@ Tank::AssRes(SubVectorHandler& WorkVec,
    sp = XPrimeCurr.dGetCoef(iFirstIndex+1); /* velocita' del livello */
   
    if (s < 0.) {
-      std::cerr << "Livello dell'olio " << s << " negativo: IMPOSSIBILE " << std::endl;
+      silent_cerr("Tank(" << GetLabel() << ": negative fluid level "
+		      << s << " impossible" << std::endl);
       throw ErrGeneric();
    }
      
