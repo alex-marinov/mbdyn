@@ -58,9 +58,11 @@
  * che rappresentano le posizioni, nei sistemi di riferimento 
  * dei rispettivi nodi, dei baricentri delle due superfici che si affacciano 
  * sulla camera 1; quindi i due punti coincidono quando la camera 1 e' a pacco.
- * Tra i dati in ingresso figura anche una dimension e "dl", che rappresenta
+ * Tra i dati in ingresso figura anche una dimensione "dl", che rappresenta
  * la massima estensione della camera 1, ovvero la lunghezza del cilindro
  * a meno dello spessore del pistone.
+ * la dimensione della camera 2 e' data dall'area 2 per la differenza tra
+ * la dimensione massima dell'area 1 e la sua dimensione corrente.
  * 
  * La forza scambiata e' calcolata come (p2*A2-p1*A1) e viene proiettata
  * nella direzione "axis".
@@ -238,8 +240,8 @@ Actuator::AssJac(VariableSubMatrixHandler& WorkMat,
    
    Vec3 FHyd = TmpAxis*(area1*p1-area2*p2); /* forza idraulica (scalare) */
    
-   doublereal Dist = TmpAxis.Dot(x2+f2Tmp-x1-f1Tmp);
-   doublereal Vel = TmpAxis.Dot(v2+Omega2.Cross(f2Tmp)-v1-Omega1.Cross(f1Tmp));
+   doublereal dDist = TmpAxis.Dot(x2+f2Tmp-x1-f1Tmp);
+   doublereal dVel = TmpAxis.Dot(v2+Omega2.Cross(f2Tmp)-v1-Omega1.Cross(f1Tmp));
    
    /* prima equazione & terza equazione
     * moltiplica deltagpuntonodo1 */
@@ -288,10 +290,10 @@ Actuator::AssJac(VariableSubMatrixHandler& WorkMat,
    }
 
    /* inerzia del fluido */
-   WM.fPutCoef(13, 15, -densityDP1*Dist*area1);
-   WM.fPutCoef(13, 13, -densityDP1*Vel*area1);
-   WM.fPutCoef(14, 16, -densityDP2*(dl-Dist)*area2);
-   WM.fPutCoef(14, 14, densityDP2*Vel*area2);
+   WM.fPutCoef(13, 15, -densityDP1*dDist*area1);
+   WM.fPutCoef(13, 13, -densityDP1*dVel*area1);
+   WM.fPutCoef(14, 16, -densityDP2*(dl-dDist)*area2);
+   WM.fPutCoef(14, 14, densityDP2*dVel*area2);
    
    /* termini in spostamento e velocita' */
    doublereal rho1A1 = (density1+dCoef*densityDP1*dpP1)*area1;
@@ -413,12 +415,12 @@ Actuator::AssRes(SubVectorHandler& WorkVec,
    Vec3 FHyd = TmpAxis*(area1*p1-area2*p2);
    
    /* Calcolo delle portate */
-   doublereal Dist = TmpAxis.Dot(x2+f2Tmp-x1-f1Tmp);
-   doublereal Vel = TmpAxis.Dot(v2+Omega2.Cross(f2Tmp)-v1-Omega1.Cross(f1Tmp));
-   flow1 = area1*(densityDP1*dpP1*Dist+density1*Vel);
-   flow2 = area2*(densityDP2*dpP2*(dl-Dist)-density2*Vel);
-   Vol1 = area1*Dist;
-   Vol2 = area2*(dl-Dist);
+   doublereal dDist = TmpAxis.Dot(x2+f2Tmp-x1-f1Tmp);
+   doublereal dVel = TmpAxis.Dot(v2+Omega2.Cross(f2Tmp)-v1-Omega1.Cross(f1Tmp));
+   flow1 = area1*(densityDP1*dpP1*dDist+density1*dVel);
+   flow2 = area2*(densityDP2*dpP2*(dl-dDist)-density2*dVel);
+   Vol1 = area1*dDist;
+   Vol2 = area2*(dl-dDist);
 
    /* Forze e coppia sul nodo strutturale 1 */
    WorkVec.Sub(1, FHyd);
