@@ -222,11 +222,9 @@ AutomaticStructElem::AssRes(SubVectorHandler& WorkVec,
    WorkVec.Sub(7, QP);
    WorkVec.Sub(10, GP + pNode->GetVCurr().Cross(Q));
 
-   if (fToBeOutput()) {
-      m = 0.;
-      S = Zero3;
-      J = Zero3x3;
-   }
+   m = 0.;
+   S = Zero3;
+   J = Zero3x3;
 
    return WorkVec;
 }

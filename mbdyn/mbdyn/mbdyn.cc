@@ -181,6 +181,34 @@ mbdyn_usage(const char *sShortOpts)
 	<< std::endl);
 }
 
+static void
+mbdyn_welcome(void)
+{
+       	silent_cout(std::endl
+		<< "MBDyn - Multi-Body Dynamics " << VERSION 
+		<< std::endl
+		<< "compiled on " << __DATE__
+			<< " at " << __TIME__ << std::endl
+		<< std::endl
+		<< "Copyright 1997-2004 (C) Paolo Mantegazza "
+			"and Pierangelo Masarati," << std::endl
+		<< "Dipartimento di Ingegneria Aerospaziale "
+			"<http://www.aero.polimi.it/>" << std::endl
+		<< "Politecnico di Milano                   "
+			"<http://www.polimi.it/>" << std::endl
+		<< std::endl
+		<< "MBDyn is free software, covered by the"
+			" GNU General Public License," << std::endl
+		<< "and you are welcome to change it and/or "
+			"distribute copies of it" << std::endl
+		<< "under certain conditions.  Use 'mbdyn --license' "
+			"to see the conditions." << std::endl
+		<< "There is absolutely no warranty for"
+			" MBDyn.  Use \"mbdyn --warranty\"" << std::endl
+		<< "for details." << std::endl 
+		<< std::endl);
+}
+
 /* Dati di getopt */
 static char sShortOpts[] = "a:d:f:hHlm:n:N::o:pPrRstTwW:";
 enum MyOptions {
@@ -531,6 +559,7 @@ main(int argc, char* argv[])
 	        		break;
 
 	    		case int('l'):
+				mbdyn_welcome();
 	        		mbdyn_license();
 #ifdef USE_EXCEPTIONS
 	        		throw NoErr();
@@ -540,6 +569,7 @@ main(int argc, char* argv[])
 #endif /* !USE_EXCEPTIONS */
 	    
 	    		case int('w'):
+				mbdyn_welcome();
 				mbdyn_warranty();
 #ifdef USE_EXCEPTIONS
 	        		throw NoErr();
@@ -567,13 +597,7 @@ main(int argc, char* argv[])
 					<< char(optopt) << std::endl);
 
 	    		case int('h'):
-#ifdef USE_MPI
-	        		if (myrank == 0) {
-#endif /* USE_MPI */
-		    			mbdyn_usage(sShortOpts);
-#ifdef USE_MPI
-	        		}
-#endif /* USE_MPI */
+		    		mbdyn_usage(sShortOpts);
 #ifdef USE_EXCEPTIONS
 	        		throw NoErr();
 #else /* !USE_EXCEPTIONS */
@@ -598,28 +622,7 @@ main(int argc, char* argv[])
 		 */
         	currarg = optind;
 #endif /* HAVE_GETOPT */
-
-        	silent_cout(std::endl
-                    	    << "MBDyn - Multi-Body Dynamics " << VERSION 
-		    	    << std::endl
-		    	    << "compiled on " << __DATE__ << " at " << __TIME__ 
-		    	    << std::endl
-			    << std::endl
-		    	    << "Copyright 1997-2004 (C) Paolo Mantegazza and Pierangelo Masarati,"
-			    << std::endl
-		    	    << "Dipartimento di Ingegneria Aerospaziale,"
-		    	    " Politecnico di Milano." << std::endl
- 			    << std::endl
-		    	    << "MBDyn is free software, covered by the"
-		    	    " GNU General Public License, and you are" << std::endl
-		    	    << "welcome to change it and/or distribute"
-		    	    " copies of it under certain conditions." << std::endl
-		    	    << "Use 'mbdyn --license' to see the conditions."
-			    << std::endl
-		    	    << "There is absolutely no warranty for"
-		    	    " MBDyn.  Use \"mbdyn --warranty\" for details."
-			    << std::endl 
-		    	    << std::endl);
+		mbdyn_welcome();
 #ifdef USE_MPI
 		if (using_mpi) {
         		silent_cerr("Process " << myrank 

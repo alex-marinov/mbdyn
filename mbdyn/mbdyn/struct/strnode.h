@@ -392,18 +392,18 @@ class AutomaticStructElem;
 
 class DynamicStructNode : public StructNode {
    friend class AutomaticStructElem;
+
  protected:
    /* Acceleration and angular acceleration; DynamicStructNode uses them
     * only for output; ModalNode uses them to store actual unknowns */
+   bool bComputeAccelerations;
    mutable AutomaticStructElem *pAutoStr;
    mutable Vec3 XPPCurr;   /* Accelerazione lineare  corrente */
    mutable Vec3 WPCurr;    /* Accelerazione angolare corrente */
    mutable Vec3 XPPPrev;   /* Accelerazione lineare  corrente */
    mutable Vec3 WPPrev;    /* Accelerazione angolare corrente */
 
-   virtual void SetAutoStr(const AutomaticStructElem *p) {
-	   pAutoStr = (AutomaticStructElem *)p;
-   };
+   virtual inline void SetAutoStr(const AutomaticStructElem *p);
 
  public:
    /* Costruttore definitivo (da mettere a punto) */
@@ -467,14 +467,30 @@ class DynamicStructNode : public StructNode {
    virtual void SetDofValue(const doublereal& dValue, 
 			    unsigned int iDof, unsigned int iOrder = 0);
 
-   const Vec3& GetXPPCurr(void) const {
-	   return XPPCurr;
-   }
+   inline const Vec3& GetXPPCurr(void) const;
+   inline const Vec3& GetWPCurr(void) const;
 
-   const Vec3& GetWPCurr(void) const {
-	   return WPCurr;
-   }
+   virtual void ComputeAccelerations(bool b);
+   virtual void SetOutputFlag(flag f = flag(1));
 };
+
+inline void
+DynamicStructNode::SetAutoStr(const AutomaticStructElem *p)
+{
+	pAutoStr = (AutomaticStructElem *)p;
+}
+
+inline const Vec3&
+DynamicStructNode::GetXPPCurr(void) const
+{
+	return XPPCurr;
+}
+
+inline const Vec3&
+DynamicStructNode::GetWPCurr(void) const
+{
+	return WPCurr;
+}
 
 
 /* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */

@@ -829,9 +829,13 @@ DynamicStructNode::DynamicStructNode(unsigned int uL,
 				     doublereal dVelStiff,
 				     flag fOmRot,
 				     flag fOut)
-: StructNode(uL, pDO, X0, R0, V0, W0, pRN, dPosStiff, dVelStiff, fOmRot, fOut)
+: StructNode(uL, pDO, X0, R0, V0, W0, pRN, dPosStiff, dVelStiff, fOmRot, fOut),
+bComputeAccelerations(fOut ? true : false),
+pAutoStr(0),
+XPPCurr(0.), WPCurr(0.),
+XPPPrev(0.), WPPrev(0.)
 {
-   NO_OP;
+	NO_OP;
 }
 
 
@@ -864,16 +868,31 @@ DynamicStructNode::AddInertia(const doublereal& dm, const Vec3& dS,
 		const Mat3x3& dJ) const
 {
 	/* FIXME: do it only if to be output... */
-	if ( fToBeOutput()) {
+	if (bComputeAccelerations) {
 		pAutoStr->AddInertia(dm, dS, dJ);
 	}
 };
 
 void
+DynamicStructNode::ComputeAccelerations(bool b)
+{
+	bComputeAccelerations = b;
+}
+
+void
+DynamicStructNode::SetOutputFlag(flag f)
+{
+	if (f) {
+		bComputeAccelerations = true;
+	}
+	ToBeOutput::SetOutputFlag(f);
+}
+
+void
 DynamicStructNode::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP)
 {
-	if (fToBeOutput()) {
+	if (bComputeAccelerations) {
 		pAutoStr->ComputeAccelerations(XPPCurr, WPCurr);
 	}
 }
@@ -901,8 +920,10 @@ DynamicStructNode::BeforePredict(VectorHandler& X,
 			  VectorHandler& XPr,
 			  VectorHandler& XPPr) const
 {
-	XPPPrev = XPPCurr;
-	WPPrev = WPCurr;
+	if (bComputeAccelerations) {
+		XPPPrev = XPPCurr;
+		WPPrev = WPCurr;
+	}
 
 	StructNode::BeforePredict(X, XP, XPr, XPPr);
 }
@@ -916,11 +937,22 @@ DynamicStructNode::dGetDofValue(int iDof, int iOrder) const
    ASSERT(iOrder >= 0 && iOrder <= 2);
 
    if (iOrder == 2) {
+      /* FIXME: should not happen */
+      ASSERT(bComputeAccelerations);
+      if (!bComputeAccelerations) {
+	 silent_cerr("DynamicStructNode::dGetDofValue("
+			 << iDof << "," << iOrder << "): "
+			 "accelerations are not computed while they should"
+			 << std::endl);
+	 throw ErrGeneric();
+      }
+
       if (iDof >= 1 && iDof <= 3) {
 	 return XPPCurr.dGet(iDof);
       } else {
 	 return WPCurr.dGet(iDof);
       }
+
    } else {
       return StructNode::dGetDofValue(iDof, iOrder);
    }
@@ -935,6 +967,16 @@ DynamicStructNode::dGetDofValuePrev(int iDof, int iOrder) const
    ASSERT(iOrder == 0 || iOrder == 1);
 
    if (iOrder == 2) {
+      /* FIXME: should not happen */
+      ASSERT(bComputeAccelerations);
+      if (!bComputeAccelerations) {
+	 silent_cerr("DynamicStructNode::dGetDofValuePrev("
+			 << iDof << "," << iOrder << "): "
+			 "accelerations are not computed while they should"
+			 << std::endl);
+	 throw ErrGeneric();
+      }
+
       if (iDof >= 1 && iDof <= 3) {
 	 return XPPPrev.dGet(iDof);
       } else {
@@ -956,6 +998,16 @@ DynamicStructNode::SetDofValue(const doublereal& dValue,
    ASSERT(iOrder == 0 || iOrder == 1);
 
    if (iOrder == 2) {
+      /* FIXME: should not happen */
+      ASSERT(bComputeAccelerations);
+      if (!bComputeAccelerations) {
+	 silent_cerr("DynamicStructNode::SetDofValue("
+			 << dValue << "," << iDof << "," << iOrder << "): "
+			 "accelerations are not computed while they should"
+			 << std::endl);
+	 throw ErrGeneric();
+      }
+
       if (iDof >= 1 && iDof <= 3) {
 	 XPPCurr.Put(iDof, dValue);
 	 return;
