@@ -56,10 +56,10 @@
 #ifndef DGEGV_H
 #define DGEGV_H
 
-#include "f2c.h"
+#include <myf2c.h>
 
 /* Subroutine */ extern int
-dgegv_(char *jobvl, char *jobvr, integer *n, doublereal *
+__FC_DECL__(dgegv)(char *jobvl, char *jobvr, integer *n, doublereal *
 	a, integer *lda, doublereal *b, integer *ldb, doublereal *alphar, 
 	doublereal *alphai, doublereal *beta, doublereal *vl, integer *ldvl, 
 	doublereal *vr, integer *ldvr, doublereal *work, integer *lwork, 
