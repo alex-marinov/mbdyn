@@ -35,7 +35,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <error.h>
 #include <sys/ioctl.h>
 
 #include <ac/pthread.h>
