@@ -42,6 +42,7 @@
 class CColMatrixHandler : public MatrixHandler {
 private:
 	std::vector<doublereal>& Ax;
+	bool bMatDuplicate;
 	const std::vector<int>& Ai;
 	const std::vector<int>& Ap;
 	int NRows;
@@ -55,12 +56,61 @@ private:
 public:
 	CColMatrixHandler(std::vector<doublereal>&x,
 		const std::vector<int>& i,
-		const std::vector<int>& p) : Ax(x), Ai(i), Ap(p), 
-			NRows(Ap.size()-1), NCols(Ap.size()-1), 
+		const std::vector<int>& p) : Ax(x), bMatDuplicate(false), 
+			Ai(i), Ap(p), 
+			NRows(Ap.size()-1), NCols(NRows),
 			NZ(Ax.size()), zero(0.) {
 	};
 
-	virtual ~CColMatrixHandler() {};
+	virtual ~CColMatrixHandler() {
+		if (bMatDuplicate) {
+			delete &Ax;
+		}
+	};
+
+	/* used by MultiThreadDataManager to duplicate the storage array
+	 * while preserving the CC indices */
+	CColMatrixHandler * Copy(void) const {
+		std::vector<doublereal> *pax = new std::vector<doublereal>(Ax);
+		CColMatrixHandler *p = new CColMatrixHandler(*pax, Ai, Ap);
+		p->bMatDuplicate = true;
+		return p;
+	};
+
+	/* used to sum CC matrices with identical indices */
+	void AddUnchecked(CColMatrixHandler& m) {
+		/* FIXME: put in stl-ish form */
+
+		/* checks - uncomment to enable */
+#if 0
+		ASSERT(Ax.size() == m.Ax.size());
+		ASSERT(Ai.size() == m.Ai.size());
+		ASSERT(Ap.size() == m.Ap.size());
+		for (unsigned i = 0; i < Ai.size(); i++) {
+			if (Ai[i] != m.Ai[i]) {
+				std::cerr << "Ai[" << i << "]" << std::endl;
+				THROW(ErrGeneric());
+			}
+		}
+		for (unsigned i = 0; i < Ap.size(); i++) {
+			if (Ap[i] != m.Ap[i]) {
+				std::cerr << "Ap[" << i << "]" << std::endl;
+				THROW(ErrGeneric());
+			}
+		}
+#endif
+		
+		
+		doublereal *d = &Ax[0], *s = &m.Ax[0];
+		for (unsigned long i = 0; i < Ax.size(); i++) {
+			d[i] += s[i];
+		}
+	};
+
+	/* Restituisce un puntatore all'array di reali della matrice */
+	virtual inline doublereal* pdGetMat(void) const {
+		return &Ax[0];
+	};
 
 	void Init(const doublereal& c = 0.) {
 		Reset(c);
