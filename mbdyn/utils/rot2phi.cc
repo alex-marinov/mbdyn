@@ -54,9 +54,10 @@ int main(int argn, const char* const argv[])
 
    static doublereal d[9];
    while (1) {
-      std::cin >> d[0];
+      std::cin >> d[M11];
       if (std::cin) {
-	 std::cin >> d[3] >> d[6] >> d[1] >> d[4] >> d[7] >> d[2] >> d[5] >> d[8];
+	 std::cin >> d[M12] >> d[M13] 
+	 	>> d[M21] >> d[M22] >> d[M23] >> d[M31] >> d[M32] >> d[M33];
 	 Vec3 phi(RotManip::VecRot(Mat3x3(d, 3)));
 	 doublereal d = phi.Norm();
 	 if (d != 0.) {
