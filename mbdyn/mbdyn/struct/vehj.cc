@@ -36,6 +36,9 @@
 
 #include <vehj.h>
 
+#include <matvecexp.h>
+#include <Rot.hh>
+
 /* DeformableHingeJoint - begin */
 
 /* Costruttore non banale */
@@ -110,9 +113,11 @@ DeformableHingeJoint(uL, DefHingeType::ELASTIC,
 		     pDO, pCL, pN1, pN2, R1, R2, fOut),
 ThetaRef(0.), TaCurr(0.), TbCurr(0.), FDE(0.)
 {
-   // Chiede la matrice tangente di riferimento e la porta nel sistema globale
-   Mat3x3 Ra(pNode1->GetRRef());
-   FDE = Ra*GetFDE()*Ra.Transpose();   
+   /* 
+    * Chiede la matrice tangente di riferimento e la porta nel sistema globale 
+    */
+   Mat3x3 R1(pNode1->GetRRef()*R1h);
+   FDE = R1*GetFDE()*R1.Transpose();   
 }
 
 
@@ -165,26 +170,22 @@ void ElasticHingeJoint::AfterPredict(VectorHandler& /* X */ ,
    /* Calcola le deformazioni, aggiorna il legame costitutivo e crea la FDE */
 
    /* Recupera i dati */
-   Mat3x3 Ra(pNode1->GetRRef()*R1h);
-   Mat3x3 RaT(Ra.Transpose());
-   
-   Vec3 ga(pNode1->GetgRef());
-   Vec3 gb(pNode2->GetgRef());
-   
-   /* Aggiorna le deformazioni di riferimento nel sistema globale
-    * Nota: non occorre G*g in quanto g x g e' zero. */
-   TaCurr = ga*(4./(4.+ga.Dot()));
-   TbCurr = gb*(4./(4.+gb.Dot()));
+   Mat3x3 R1(pNode1->GetRRef()*R1h);
+   Mat3x3 R2(pNode2->GetRRef()*R2h);
+   Mat3x3 R1T(R1.Transpose());
    
    /* Calcola la deformazione corrente nel sistema locale (nodo a) */
-   ThetaCurr = ThetaRef = RaT*(TbCurr-TaCurr)+ThetaCurr;
+   ThetaCurr = ThetaRef = RotManip::VecRot(R1T*R2);
+
+   /* Calcola l'inversa di Gamma di ThetaRef */
+   Mat3x3 GammaRefm1 = RotManip::DRot_I(ThetaRef);
    
    /* Aggiorna il legame costitutivo */
    ConstitutiveLaw3DOwner::Update(ThetaRef);
       
    /* Chiede la matrice tangente di riferimento e la porta 
     * nel sistema globale */
-   FDE = Ra*ConstitutiveLaw3DOwner::GetFDE()*RaT;
+   FDE = R1*ConstitutiveLaw3DOwner::GetFDE()*GammaRefm1*R1T;
 						     
    fFirstRes = flag(1);						     
 }
@@ -192,14 +193,14 @@ void ElasticHingeJoint::AfterPredict(VectorHandler& /* X */ ,
 
 void ElasticHingeJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)   
 {   
-   Mat3x3 Ra(pNode1->GetRRef()*R1h);
+   Mat3x3 R1(pNode1->GetRRef()*R1h);
   
-   Mat3x3 FDETmp = FDE*dCoef;  
+   Mat3x3 FDETmp = FDE*dCoef;
    
    WM.Add(4, 4, FDETmp);
    WM.Sub(1, 4, FDETmp);
 
-   FDETmp += Mat3x3(Ra*(GetF()*dCoef));
+   FDETmp += Mat3x3(R1*(GetF()*dCoef));
    WM.Add(1, 1, FDETmp);   
    WM.Sub(4, 1, FDETmp);
 }
@@ -239,28 +240,22 @@ ElasticHingeJoint::AssRes(SubVectorHandler& WorkVec,
 
    
 void ElasticHingeJoint::AssVec(SubVectorHandler& WorkVec)
-{   
-   Mat3x3 Ra(pNode1->GetRCurr()*R1h);
-   
-   if (fFirstRes) {
-      fFirstRes = flag(0);
-   } else {
-      Vec3 ga(pNode1->GetgCurr());
-      Vec3 gb(pNode2->GetgCurr());
+{
+   Mat3x3 R1(pNode1->GetRCurr()*R1h);
 
-      TaCurr = ga*(4./(4.+ga.Dot()));
-      TbCurr = gb*(4./(4.+gb.Dot()));
-  
-      ThetaCurr = Ra.Transpose()*(TbCurr-TaCurr)+ThetaRef;
-   
-      // Aggiorna il legame costitutivo
+   if (fFirstRes) {
+      fFirstRes = 0;
+
+   } else {
+      Mat3x3 R2(pNode2->GetRCurr()*R2h);
+      ThetaCurr = RotManip::VecRot(R1.Transpose()*R2);
       ConstitutiveLaw3DOwner::Update(ThetaCurr);
-   }   
-       
-   Vec3 F(Ra*GetF());
+   }
+
+   Vec3 F(R1*GetF());
    
    WorkVec.Add(1, F);
-   WorkVec.Sub(4, F);   
+   WorkVec.Sub(4, F);
 }
 
 
