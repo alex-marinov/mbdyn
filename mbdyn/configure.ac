@@ -1269,7 +1269,7 @@ dnl
 dnl Check if crypt needs libcrypt
 dnl
 ol_link_crypt=no
-if test "$ol_enable_crypt" != no ; then
+if test "$ol_with_crypt" != no ; then
 	AC_MSG_CHECKING([how to link crypt])
 	crypt_pool="\"\" -lcrypt -lcrypto"
 	for i in $crypt_pool ; do
