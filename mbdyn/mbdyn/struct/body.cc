@@ -166,31 +166,42 @@ Body::AssMat_(FullSubMatrixHandler& WMA,
    
     S = pNode->GetRRef()*S0;
     J = pNode->GetRRef()*(J0*(pNode->GetRRef()).Transpose());
-               
-    /* matrice di massa: J[1,1] = M */  
-    WMB.fPutCoef(1, 1, dMass);        
-    WMB.fPutCoef(2, 2, dMass);        
-    WMB.fPutCoef(3, 3, dMass);        
+
+    Mat3x3 SWedge(S);			/* S /\ */
+    Mat3x3 VWedgeSWedge(V, S);		/* V /\ S /\ */
+    Mat3x3 SWedgeWWedge(S.Cross(W));	/* ( S /\ W ) /\ */
+
+    /* 
+     * momentum: 
+     *
+     * m * I DeltaV - S /\ DeltagP + ( S /\ W ) /\ Deltag 
+     */
+    WMB.fPutCoef(1, 1, dMass);
+    WMB.fPutCoef(2, 2, dMass);
+    WMB.fPutCoef(3, 3, dMass);
       
-    /* matrice momento statico: J[1,2] = (S/\W)/\Deltag-S/\DeltagP,
-     *                          J[2,1] = S/\DeltaV */
-    Mat3x3 SWedge(S);
-    Mat3x3 VWedgeSWedge(V, S);
-    Mat3x3 SWedgeWWedge(S.Cross(W));
-    WMB.Add(4, 1, SWedge); 
-    WMB.Add(1, 4, -SWedge);
+    WMB.Sub(1, 4, SWedge);
     WMA.Add(1, 4, SWedgeWWedge*dCoef);
    
-    /* matrice momenti d'inerzia: J[2,2] = J*DeltagP+(V/\S/\-(J*W)/\)Deltag */
-    WMA.Add(4, 4, (VWedgeSWedge-J*W)*dCoef);
+    /* 
+     * momenta moment: 
+     *
+     * S /\ DeltaV + J DeltagP + ( V /\ S /\ - ( J * W ) /\ ) Deltag
+     */
+    WMB.Add(4, 1, SWedge); 
+
     WMB.Add(4, 4, J);
+    WMA.Add(4, 4, (VWedgeSWedge-Mat3x3(J*W))*dCoef);
       
-    /* J[4,1] = (S/\W)/\DeltaV */
+    /* 
+     * moment equilibrium:
+     *
+     * ( S /\ W ) /\ DeltaV - V /\ S /\ DeltagP + V /\ ( S /\ W ) /\ Deltag
+     */
     WMB.Add(10, 1, SWedgeWWedge);
-   
-    /* J[4,2] = V/\(2S/\W/\W-W/\S/\)Deltag-V/\S/\DeltagP */
-    WMA.Add(10,4, Mat3x3(V*dCoef)*SWedgeWWedge);
-    WMB.Add(10,4, -VWedgeSWedge);			  
+
+    WMB.Sub(10, 4, VWedgeSWedge);
+    WMA.Add(10, 4, Mat3x3(V*dCoef)*SWedgeWWedge);
 }
 
 
