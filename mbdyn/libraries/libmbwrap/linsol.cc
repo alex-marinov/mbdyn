@@ -57,7 +57,7 @@ LinSol::SolverType LinSol::defaultSolver =
 	LinSol::MESCHACH_SOLVER
 #else /* !USE_MESCHACH */
 	LinSol::EMPTY_SOLVER
-/* FIXME: remove this error if no solver becomes acceptaable :) */
+/* FIXME: remove this error if no solver becomes acceptable :) */
 #error "need a solver!"
 #endif /* !USE_MESCHACH */
 	;
