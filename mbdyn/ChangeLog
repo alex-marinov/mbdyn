@@ -7,9 +7,13 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+*** Wed Jan 30 14:49:04 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+ - added renice command-line switch
+
 *** Tue Jan 22 16:48:30 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
 				 Massimiliano Lanz <lanz@aero.polimi.it>
  - native and c81 unsteady aerodynamic forces work with "Bielawa" model
+   (native still need some reworking)
 
 *** Sun Jan 13 09:04:22 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - actually there's no need to reset the matrix as we know in advance

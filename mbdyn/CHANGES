@@ -12,11 +12,11 @@ MBDyn 1.1 Engineering
 		- unsteady aerodynamics from Bielawa 31th A.H.S. Forum 1975
 		  for C81 aerodynamics
 		- unsteady aerodynamic model selection by keywords
+		- added renice command-line switch
 	Bug fixes:
-		- fixed native aerodynamic forces with unsteady aerodynamics
-		  (see above)
 	Known bugs:
 		- parallel build still requires HSL library
+		- Built-in naca0012/RAE* unsteady aero still broken
 
 
 MBDyn 1.1.0
