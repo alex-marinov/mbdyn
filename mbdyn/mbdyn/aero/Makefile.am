@@ -12,6 +12,7 @@ aerodc81.c \
 aerodc81.h \
 aerodyn.cc \
 aerodyn.h \
+aerodyn_.h \
 aeroelem.cc \
 aeroelem.h \
 aeroext.h \

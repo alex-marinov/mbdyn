@@ -63,7 +63,9 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <aerodyn.h>
+#include <aerodyn_.h>
+#include <dataman.h>
+#include <tpldrive_.h>
 
 /* AirProperties - begin */
 
@@ -378,6 +380,184 @@ StdAirProperties::GetAirProps(const Vec3& X, doublereal& rho,
 }
 
 /* StdAirProperties - end */
+
+
+Elem*
+ReadAirProperties(DataManager* pDM, MBDynParser& HP)
+{
+	Elem *pEl = NULL;
+
+	if (HP.IsKeyWord("std")) {
+		doublereal PRef(0.);
+		doublereal rhoRef(0.);
+		DriveCaller *RhoRef(NULL);
+		doublereal TRef(0.);
+		doublereal a(0.);
+		doublereal R(0.);
+		doublereal g0(0.);
+		doublereal z1(0.);
+		doublereal z2(0.);
+
+		bool Std = false;
+
+		if (HP.IsKeyWord("SI")) {
+			Std = true;
+
+			PRef = 101325.;		/* Pa */
+			rhoRef = 1.2250;	/* kg/m^3 */
+			TRef = 288.16;		/* K */
+			a = -6.5e-3;		/* K/m */
+			R = 287.;		/* J/kgK */
+			g0 = 9.81; 		/* m/s^2 */
+			z1 = 11000.; 		/* m */
+			z2 = 25000.; 		/* m */
+
+		} else if (HP.IsKeyWord("british")) {
+			Std = true;
+			PRef = 2116.2; 		/* lb/ft^2 */
+			rhoRef = 0.002377;	/* slug/ft3 */
+			TRef = 518.69;		/* R */
+			a = -3.566e-3;		/* R/ft */
+			R = 1716;		/* ft lb/slug R */
+			g0 = 32.17;		/* ft/s^2 */
+			z1 = 36089;		/* ft */
+			z2 = 82021;		/* ft */
+
+		} else {
+			PRef = HP.GetReal();
+			if (PRef <= 0.) {
+				std::cerr << "illegal reference "
+					"pressure" << PRef 
+					<< " at line " << HP.GetLineData()
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
+
+			RhoRef = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+			/* FIXME: we need to do runtime checks ... */
+
+			TRef = HP.GetReal();
+			if (TRef <= 0.) {
+				std::cerr << "illegal reference "
+					"temperature " << TRef 
+					<< " at line " << HP.GetLineData()
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
+
+			a = HP.GetReal();
+			if (a >= 0.) {
+				/* FIXME: should we leave this free? */
+				std::cerr << "illegal temperature gradient "
+					<< a << " at line " << HP.GetLineData()
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
+
+			R = HP.GetReal();
+			if (R <= 0.) {
+				std::cerr << "illegal gas constant " << R
+					<< " at line " << HP.GetLineData()
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
+
+			g0 = HP.GetReal();
+			if (g0 <= 0.) {
+				std::cerr << "illegal reference "
+					"gravity acceleration " << g0
+					<< " at line " << HP.GetLineData()
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
+
+			z1 = HP.GetReal();
+			if (z1 <= 0.) {
+				std::cerr << "illegal troposphere altitude "
+					<< z1
+					<< " at line " << HP.GetLineData()
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
+
+			z2 = HP.GetReal();
+			if (z2 <= z1) {
+				std::cerr << "illegal stratosphere altitude "
+					<< z2
+					<< " at line " << HP.GetLineData()
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
+		}
+	
+		if (Std) {
+			if (HP.IsKeyWord("temperature" "deviation")) {
+				doublereal T = HP.GetReal();
+
+				if (TRef + T <= 0.) {
+					std::cerr << "illegal "
+						"temperature deviation " << T
+						<< " at line " 
+						<< HP.GetLineData()
+						<< std::endl;
+					THROW(ErrGeneric());
+				}
+
+				/*
+				 * trasformazione isobara applicata
+				 * all'equazione
+				 * di stato: rho * R * T = cost
+				 *
+				 * rho = rho_0 T_0 / T
+				 */
+				rhoRef *= TRef / (TRef + T);
+				TRef += T;
+			}
+			
+			SAFENEWWITHCONSTRUCTOR(RhoRef, ConstDriveCaller,
+					ConstDriveCaller(pDM->pGetDrvHdl(),
+						rhoRef));
+		}
+
+	     	/* Driver multiplo */	   
+	     	TplDriveCaller<Vec3>* pDC 
+	       		= ReadTplDrive(pDM, HP, pDM->pGetDrvHdl(), Vec3(0.));
+	     
+	     	flag fOut = pDM->fReadOutput(HP, Elem::AIRPROPERTIES);
+	     
+	     	SAFENEWWITHCONSTRUCTOR(pEl, 
+				StdAirProperties,
+				StdAirProperties(pDC, 
+					PRef, RhoRef, TRef, a, R, g0, z1, z2,
+					fOut));
+	} else {
+		/* Legacy: density and sound celerity at one altitude;
+		 * no altitude dependency */
+		
+		DriveCaller *pRho = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
+
+	     	doublereal dSS = HP.GetReal();
+	     	DEBUGLCOUT(MYDEBUG_INPUT, "Sound speed: " << dSS << std::endl);
+	     	if (dSS <= 0.) {
+			std::cerr << "illegal null or negative sound speed "
+				"at line " << HP.GetLineData() << std::endl;
+		
+			THROW(DataManager::ErrGeneric());
+	     	}	      
+	     
+	     	/* Driver multiplo */	   
+	     	TplDriveCaller<Vec3>* pDC 
+	       		= ReadTplDrive(pDM, HP, pDM->pGetDrvHdl(), Vec3(0.));
+	     
+	     	flag fOut = pDM->fReadOutput(HP, Elem::AIRPROPERTIES);
+	     
+	     	SAFENEWWITHCONSTRUCTOR(pEl, 
+				BasicAirProperties,
+				BasicAirProperties(pDC, pRho, dSS, fOut));
+	}
+
+	return pEl;
+}
 
 
 /* AirPropOwner - begin */
