@@ -64,6 +64,12 @@ NaiveSolver::~NaiveSolver(void)
 }
 
 void
+NaiveSolver::SetMat(NaiveMatrixHandler *const a)
+{
+	A = a;
+}
+
+void
 NaiveSolver::Reset(void)
 {
 	bHasBeenReset = true;
@@ -132,12 +138,13 @@ NaiveSolver::Factor(void)
 
 NaiveSparseSolutionManager::NaiveSparseSolutionManager(const integer Dim,
 		const doublereal dMP)
-: A(Dim),
+: A(0),
 VH(Dim),
 XH(Dim)
 {
+	SAFENEWWITHCONSTRUCTOR(A, NaiveMatrixHandler, NaiveMatrixHandler(Dim));
 	SAFENEWWITHCONSTRUCTOR(pLS, NaiveSolver, 
-		NaiveSolver(Dim, dMP, &A));
+		NaiveSolver(Dim, dMP, A));
 
 	pLS->ChangeResPoint(VH.pdGetVec());
 	pLS->ChangeSolPoint(XH.pdGetVec());
@@ -147,7 +154,10 @@ XH(Dim)
 
 NaiveSparseSolutionManager::~NaiveSparseSolutionManager(void) 
 {
-	NO_OP;
+	if (A != 0) {
+		SAFEDELETE(A);
+		A = 0;
+	}
 }
 
 void
@@ -167,7 +177,7 @@ NaiveSparseSolutionManager::Solve(void)
 MatrixHandler*
 NaiveSparseSolutionManager::pMatHdl(void) const
 {
-	return &A;
+	return A;
 }
 
 /* Rende disponibile l'handler per il termine noto */
@@ -196,56 +206,65 @@ NaiveSparsePermSolutionManager::NaiveSparsePermSolutionManager(const integer Dim
 	const doublereal dMP)
 : NaiveSparseSolutionManager(Dim, dMP),
 dMinPiv(dMP),
-bPermReady(false),
-Ap(0)
+ePermState(PERM_NO)
 {
-	perm.resize(Dim,0);
-	invperm.resize(Dim,0);
+	perm.resize(Dim, 0);
+	invperm.resize(Dim, 0);
+
+	SAFEDELETE(A);
+	A = 0;
+	SAFENEWWITHCONSTRUCTOR(A, NaivePermMatrixHandler, NaivePermMatrixHandler(Dim, &perm[0]));
+
+	dynamic_cast<NaiveSolver *>(pLS)->SetMat(A);
+
+	MatrInitialize();
 }
 
 NaiveSparsePermSolutionManager::~NaiveSparsePermSolutionManager(void) 
 {
-	if (Ap) {
-		SAFEDELETE(Ap);
-	}
+	NO_OP;
 }
 
 void
 NaiveSparsePermSolutionManager::MatrReset(void)
 {
-	if (Ap) {
-		bPermReady = true;
+	if (ePermState == PERM_INTERMEDIATE) {
+		ePermState = PERM_READY;
 
 		pLS->ChangeResPoint(VH.pdGetVec());
 		pLS->ChangeSolPoint(XH.pdGetVec());
 
 		pLS->SetSolutionManager(this);
 	}
+
 	pLS->Reset();
 }
 
 void
-NaiveSparsePermSolutionManager::ComputePermutation(void) {
+NaiveSparsePermSolutionManager::ComputePermutation(void)
+{
 	std::vector<integer> Ai;
-	A.MakeCCStructure(Ai, invperm);
-	doublereal knobs [COLAMD_KNOBS];
-	integer stats [COLAMD_STATS];
-	integer Alen = colamd_recommended (Ai.size(), A.iGetNumRows(), A.iGetNumCols());
+	A->MakeCCStructure(Ai, invperm);
+	doublereal knobs[COLAMD_KNOBS];
+	integer stats[COLAMD_STATS];
+	integer Alen = colamd_recommended (Ai.size(), A->iGetNumRows(), A->iGetNumCols());
 	Ai.resize(Alen);
 	colamd_set_defaults(knobs);
-	if (!colamd(A.iGetNumRows(), A.iGetNumCols(), Alen,
-		&(Ai[0]), &(invperm[0]), knobs, stats)) {
+	if (!colamd(A->iGetNumRows(), A->iGetNumCols(), Alen,
+		&(Ai[0]), &invperm[0], knobs, stats)) {
 		silent_cerr("colamd permutation failed" << std::endl);
 		throw ErrGeneric();
 	}
-	for (integer i = 0; i < A.iGetNumRows(); i++) {
+	for (integer i = 0; i < A->iGetNumRows(); i++) {
 		perm[invperm[i]] = i;
 	}
+	ePermState = PERM_INTERMEDIATE;
 }
 
 void
-NaiveSparsePermSolutionManager::BackPerm(void) {
-	for (integer i = 0; i < A.iGetNumCols(); i++) {
+NaiveSparsePermSolutionManager::BackPerm(void)
+{
+	for (integer i = 0; i < A->iGetNumCols(); i++) {
 		XH.PutCoef(invperm[i] + 1, VH.dGetCoef(i + 1));
 	}
 }
@@ -255,20 +274,16 @@ NaiveSparsePermSolutionManager::BackPerm(void) {
 void
 NaiveSparsePermSolutionManager::Solve(void)
 {
-	if ((!bPermReady) && (!Ap)) {
+	if (ePermState == PERM_NO) {
 		ComputePermutation();
-		if (Ap) {
-			SAFEDELETE(Ap);
-		}
-		ASSERT(Ap == 0);
-		SAFENEWWITHCONSTRUCTOR(Ap, NaivePermMatrixHandler, 
-			NaivePermMatrixHandler(&A, &(perm[0])));
+
 	} else {
 		pLS->ChangeSolPoint(VH.pdGetVec());
 	}
 
 	pLS->Solve();
-	if (bPermReady) {
+
+	if (ePermState == PERM_READY) {
 		BackPerm();
 		pLS->ChangeSolPoint(XH.pdGetVec());
 	}
@@ -278,23 +293,14 @@ NaiveSparsePermSolutionManager::Solve(void)
 void
 NaiveSparsePermSolutionManager::MatrInitialize()
 {
-	bPermReady = false;
+	ePermState = PERM_NO;
+	for (integer i = 0; i < A->iGetNumRows(); i++) {
+		perm[i] = i;
+		invperm[i] = i;
+	}
 
 	MatrReset();
 }
 	
-/* Rende disponibile l'handler per la matrice */
-MatrixHandler*
-NaiveSparsePermSolutionManager::pMatHdl(void) const
-{
-	if (!bPermReady) {
-		return &A;
-	}
-
-	ASSERT(Ap != 0);
-	return Ap;
-}
-
-
-
 /* NaivePermSparseSolutionManager - end */
+

@@ -71,9 +71,10 @@ private:
 	mutable std::vector<integer> piv;
 	mutable std::vector<doublereal> fwd;
 	std::vector<integer>	todo; 
-	mutable std::vector<unsigned long> locks;
+	mutable std::vector<unsigned long> row_locks;
+	mutable std::vector<unsigned long> col_locks;
 
-	NaiveMatrixHandler *const A;
+	NaiveMatrixHandler *A;
 
 	unsigned nThreads;
 
@@ -88,6 +89,7 @@ private:
 		ParNaiveSolver		*pSLUS;
 		unsigned		threadNumber;
 		sem_t			sem;
+		int			retval;
 	} *thread_data;
 
 	mutable Op	thread_operation;
@@ -119,6 +121,7 @@ public:
 	/* Risolve */
 	void Solve(void) const;
 
+	void SetMat(NaiveMatrixHandler *const a);
 };
 
 /* ParNaiveSolver - end */
@@ -139,7 +142,7 @@ public:
 private:
 
 protected:
-	mutable NaiveMatrixHandler A;
+	mutable NaiveMatrixHandler *A;
 
 	mutable MyVectorHandler VH;
 	mutable MyVectorHandler XH;
@@ -169,9 +172,7 @@ public:
 	void Solve(void);
 
 	/* Rende disponibile l'handler per la matrice */
-	MatrixHandler* pMatHdl(void) const {
-		return &A;
-	};
+	MatrixHandler* pMatHdl(void) const;
 
 	/* Rende disponibile l'handler per il termine noto */
 	VectorHandler* pResHdl(void) const;
@@ -189,9 +190,14 @@ private:
 	const doublereal dMinPiv;
 	void ComputePermutation();
 	void BackPerm();
+
 protected:
-	bool PermReady;
-	NaivePermMatrixHandler *Ap;
+	/* See NaiveSparsePermSolutionManager */
+	enum {
+		PERM_NO,
+		PERM_INTERMEDIATE,
+		PERM_READY
+	} ePermState;
 	
 	mutable std::vector<integer> perm;
 	mutable std::vector<integer> invperm;
@@ -209,9 +215,6 @@ public:
 
 	/* Inizializzatore "speciale" */
 	virtual void MatrInitialize(void);
-	
-	/* Rende disponibile l'handler per la matrice */
-	virtual MatrixHandler* pMatHdl(void) const;
 };
 
 /* ParNaiveSparsePermSolutionManager - end */

@@ -52,17 +52,17 @@ class NaiveSolver: public LinearSolver {
 private:
 	integer iSize;
 	doublereal dMinPiv;
-	
 	mutable std::vector<integer> piv;
+	NaiveMatrixHandler *A;
 
 	void Factor(void);
 
-	NaiveMatrixHandler *const A;
 public:
 	NaiveSolver(const integer &size, const doublereal &dMP,
-			NaiveMatrixHandler *const a);
+			NaiveMatrixHandler *const a = 0);
 	~NaiveSolver(void);
 
+	void SetMat(NaiveMatrixHandler *const a);
 	void Reset(void);
 	void Solve(void) const;
 };
@@ -73,7 +73,7 @@ public:
 
 class NaiveSparseSolutionManager: public SolutionManager {
 protected:
-	mutable NaiveMatrixHandler A;
+	mutable NaiveMatrixHandler *A;
 	mutable MyVectorHandler VH;
 	mutable MyVectorHandler XH;
 
@@ -112,9 +112,13 @@ private:
 	const doublereal dMinPiv;
 	void ComputePermutation();
 	void BackPerm();
+
 protected:
-	bool bPermReady;
-	NaivePermMatrixHandler *Ap;
+	enum {
+		PERM_NO,
+		PERM_INTERMEDIATE,
+		PERM_READY
+	} ePermState;
 	
 	mutable std::vector<integer> perm;
 	mutable std::vector<integer> invperm;
@@ -130,13 +134,9 @@ public:
 
 	/* Inizializzatore "speciale" */
 	virtual void MatrInitialize(void);
-	
-	/* Rende disponibile l'handler per la matrice */
-	virtual MatrixHandler* pMatHdl(void) const;
 };
 
 /* NaiveSparsePermSolutionManager - end */
-
 
 #endif /* NaiveSolutionManager_hh */
 

@@ -51,11 +51,10 @@ extern "C" {
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <stdio.h>
-
-
 }
 
 #include "mtdataman.h"
+#include "task2cpu.h"
 
 static inline void
 do_lock(integer &p)
@@ -247,16 +246,7 @@ MultiThreadDataManager::thread(void *p)
 	sigaddset(&newset, SIGHUP);
 	pthread_sigmask(SIG_BLOCK, &newset, /* &oldset */ NULL);
 
-
-	do {
-		int fd;
-		fd = open("/dev/TASK2CPU",O_RDWR);
-		if (fd <= 0) {
-			silent_cerr("Error opening /dev/TASK2CPU" << std::endl);
-		}
-		ioctl(fd, 0, arg->threadNumber - 1);
-		close(fd);
-	} while(false);
+	(void)mbdyn_task2cpu(arg->threadNumber - 1);
 
 	while (bKeepGoing) {
 		/* stop here until told to start */
@@ -308,6 +298,10 @@ MultiThreadDataManager::thread(void *p)
 
 		case MultiThreadDataManager::OP_SUM_NAIVE:
 		{
+			/* FIXME: if the naive matrix is permuted (colamd),
+			 * this should not impact the parallel assembly,
+			 * because all the matrices refer to the same 
+			 * permutation vector */
 			NaiveMatrixHandler* to = arg->ppNaiveJacHdl[0];
 			integer nn = to->iGetNumRows();
 			integer iFrom = (nn*(arg->threadNumber))/arg->pDM->nThreads;
@@ -470,16 +464,7 @@ MultiThreadDataManager::ThreadSpawn(void)
 		}
 	}
 	
-	do {
-		int fd;
-		fd = open("/dev/TASK2CPU",O_RDWR);
-		if (fd <= 0) {
-			silent_cerr("Error opening /dev/TASK2CPU" << std::endl);
-		}
-		ioctl(fd, 0, nThreads);
-		close(fd);
-	} while(false);
-
+	(void)mbdyn_task2cpu(nThreads - 1);
 }
 
 void
@@ -492,8 +477,22 @@ retry:;
 		break;
 
 	case ASS_NAIVE:
-		NaiveAssJac(JacHdl, dCoef);
-		break;
+		if (&JacHdl == thread_data[0].ppNaiveJacHdl[0]) {
+			NaiveAssJac(JacHdl, dCoef);
+			break;
+		}
+
+		for (unsigned i = 1; i < nThreads; i++) {
+			if (thread_data[0].ppNaiveJacHdl[i]) {
+				SAFEDELETE(thread_data[0].ppNaiveJacHdl[i]);
+				thread_data[0].ppNaiveJacHdl[i] = 0;
+			}
+		}
+
+		SAFEDELETEARR(thread_data[0].lock);
+		thread_data[0].lock = 0;
+
+		/* intentionally continue to next block */
 
 	case ASS_UNKNOWN:
 	{
@@ -501,8 +500,11 @@ retry:;
 		if (pNaiveJacHdl) {
 			AssMode = ASS_NAIVE;
 
-			/* TODO: use JacHdl as matrix for the first thread,
-			 * and create copies for the other threads */
+			/* use JacHdl as matrix for the first thread,
+			 * and create copies for the other threads;
+			 * each thread sees the array of all the matrices,
+			 * and uses only its own for element assembly,
+			 * all for per-thread matrix summation */
 			SAFENEWARR(thread_data[0].lock, integer, JacHdl.iGetNumRows());
 			memset(thread_data[0].lock, 0, sizeof(integer)*JacHdl.iGetNumRows());
 
@@ -510,14 +512,23 @@ retry:;
 					NaiveMatrixHandler*, nThreads);
 			thread_data[0].ppNaiveJacHdl[0] = pNaiveJacHdl;
 
+			NaivePermMatrixHandler *pNaivePermJacHdl = dynamic_cast<NaivePermMatrixHandler *>(&JacHdl);	
 			for (unsigned i = 1; i < nThreads; i++) {
 				thread_data[i].lock = thread_data[0].lock;
 				thread_data[i].ppNaiveJacHdl = thread_data[0].ppNaiveJacHdl;
 				thread_data[0].ppNaiveJacHdl[i] = 0;
 
-				SAFENEWWITHCONSTRUCTOR(thread_data[0].ppNaiveJacHdl[i],
-						NaiveMatrixHandler,
-						NaiveMatrixHandler(JacHdl.iGetNumRows()));
+				if (pNaivePermJacHdl) {
+					SAFENEWWITHCONSTRUCTOR(thread_data[0].ppNaiveJacHdl[i],
+							NaivePermMatrixHandler,
+							NaivePermMatrixHandler(JacHdl.iGetNumRows(),
+								pNaivePermJacHdl->pGetPerm()));
+
+				} else {
+					SAFENEWWITHCONSTRUCTOR(thread_data[0].ppNaiveJacHdl[i],
+							NaiveMatrixHandler,
+							NaiveMatrixHandler(JacHdl.iGetNumRows()));
+				}
 			}
 			goto retry;
 		}
@@ -656,8 +667,7 @@ MultiThreadDataManager::NaiveAssJac(MatrixHandler& JacHdl, doublereal dCoef)
 	}
 
 	/* FIXME Right now it's already done before calling AssJac;
-	 * needs be moved here to improve parallel performances...
-	 */
+	 * needs be moved here to improve parallel performances... */
 #if 0
 	thread_data[0].ppNaiveJacHdl[0]->Reset();
 #endif

@@ -101,7 +101,8 @@ ppdRows(0), ppiRows(0), ppiCols(0), piNzr(0), piNzc(0)
 }
 
 NaiveMatrixHandler::~NaiveMatrixHandler(void)
-{	if (bOwnsMemory) {
+{
+	if (bOwnsMemory) {
 		if (ppiRows) {
 			if (ppiRows[0]) {
 				SAFEDELETEARR(ppiRows[0]);
@@ -150,8 +151,8 @@ NaiveMatrixHandler::Reset(void)
 #else
 	for (integer row = 0; row < iSize; row++) {
 		integer ncols = piNzc[row];
-		integer * piCols = ppiCols[row];
-		char * pnonzero = ppnonzero[row];
+		integer *piCols = ppiCols[row];
+		char *pnonzero = ppnonzero[row];
 		for (integer col = 0; col < ncols; col++) {
 			pnonzero[piCols[col]] = 0;
 		}
@@ -162,8 +163,8 @@ NaiveMatrixHandler::Reset(void)
 #else /* ! HAVE_MEMSET_H */
 	for (integer row = 0; row < iSize; row++) {
 		integer ncols = piNzc[row];
-		integer * piCols = ppiCols[row];
-		char * pnonzero = ppnonzero[row];
+		integer *piCols = ppiCols[row];
+		char *pnonzero = ppnonzero[row];
 		for (integer col = 0; col < ncols; col++) {
 			pnonzero[piCols[col]] = 0;
 		}

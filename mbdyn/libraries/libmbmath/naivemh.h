@@ -162,12 +162,14 @@ public:
 
 	virtual inline const doublereal&
 	operator () (integer iRow, integer iCol) const {
+		/* FIXME: stupid 0/1 based arrays... */
 		iCol = perm[iCol - 1] + 1;
 		return NaiveMatrixHandler::operator()(iRow, iCol);
 	};
 
 	virtual inline doublereal&
 	operator () (integer iRow, integer iCol) {
+		/* FIXME: stupid 0/1 based arrays... */
 		iCol = perm[iCol - 1] + 1;
 		return NaiveMatrixHandler::operator()(iRow, iCol);
 	};

@@ -268,6 +268,8 @@ dnl Checks for header files.
 dnl
 AC_STDC_HEADERS
 AC_CHECK_HEADERS(arpa/inet.h)
+AC_CHECK_HEADERS(asm/atomic.h)
+AC_CHECK_HEADERS(asm/bitops.h)
 AC_CHECK_HEADERS(asm/system.h)
 AC_CHECK_HEADERS(float.h)
 AC_CHECK_HEADERS(getopt.h)
@@ -278,9 +280,12 @@ AC_CHECK_HEADERS(pwd.h)
 AC_CHECK_HEADERS(pthread.h)
 AC_CHECK_HEADERS(semaphore.h)
 AC_CHECK_HEADERS(signal.h)
+AC_CHECK_HEADERS(stdio.h)
+AC_CHECK_HEADERS(stdlib.h)
 AC_CHECK_HEADERS(string.h)
 AC_CHECK_HEADERS(sys/mman.h)
 AC_CHECK_HEADERS(sys/param.h)
+AC_CHECK_HEADERS(sys/poll.h)
 AC_CHECK_HEADERS(sys/pstat.h)
 AC_CHECK_HEADERS(sys/socket.h)
 AC_CHECK_HEADERS(sys/sysinfo.h)
@@ -288,6 +293,7 @@ AC_CHECK_HEADERS(sys/times.h)
 AC_CHECK_HEADERS(sys/types.h)
 AC_CHECK_HEADERS(unistd.h)
 AC_CHECK_HEADERS(values.h)
+
 
 dnl ----------------------------------------------------------------
 dnl
@@ -913,6 +919,12 @@ if test "$ol_enable_multithread_naive" != no ; then
 	if test "$have_threads" = no ; then
 		AC_MSG_RESULT([no])
 	else
+		if test "$ac_cv_header_asm_atomic_h" = no \
+				-o "$ac_cv_header_asm_bitops_h" = no \
+				-o "$ac_cv_header_asm_system_h" = no \
+				; then
+			AC_MSG_ERROR([missing required system headers])
+		fi
 		ol_link_multithread_naive=yes
 		AC_DEFINE(USE_NAIVE_MULTITHREAD,1,[define to enable multithread naive solver])
 		AC_MSG_RESULT([yes])
@@ -994,6 +1006,18 @@ if test "$ol_enable_multithread" != no ; then
 fi
 
 
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for /dev/TASK2CPU
+dnl
+AC_MSG_CHECKING([for /dev/TASK2CPU])
+if test -f "/dev/TASK2CPU" ; then
+	AC_DEFINE(HAVE_TASK2CPU,1,[define if /dev/TASK2CPU is available])
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
 
 dnl ----------------------------------------------------------------
 dnl

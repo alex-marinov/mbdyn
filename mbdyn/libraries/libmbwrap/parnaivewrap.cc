@@ -53,6 +53,8 @@
 #include <signal.h>
 
 #include "parnaivewrap.h"
+#include "mthrdslv.h"
+#include "task2cpu.h"
 
 extern "C" {
 int pnaivfct(doublereal** a,
@@ -63,7 +65,8 @@ int pnaivfct(doublereal** a,
 	integer *piv,
 	integer *todo,
 	doublereal minpiv,
-	unsigned long *locks,
+	unsigned long *row_locks,
+	unsigned long *col_locks,
 	int task,
 	int NCPU);
 
@@ -89,7 +92,6 @@ ParNaiveSolver::ParNaiveSolver(unsigned nt, const integer &size,
 : LinearSolver(0),
 iSize(size),
 dMinPiv(dMP),
-piv(size),
 A(a),
 nThreads(nt),
 thread_data(0)
@@ -100,26 +102,20 @@ thread_data(0)
 	piv.resize(iSize);
 	fwd.resize(iSize);
 	todo.resize(iSize);
-	locks.resize(iSize+2);
+	row_locks.resize(iSize + 2);
+	col_locks.resize(iSize, 0);
 
 	pthread_mutex_init(&thread_mutex, NULL);
 	pthread_cond_init(&thread_cond, NULL);
 
 	SAFENEWARR(thread_data, thread_data_t, nThreads);
 	
-	do {
-		int fd;
-		fd = open("/dev/TASK2CPU",O_RDWR);
-		if (fd <= 0) {
-			silent_cerr("Error opening /dev/TASK2CPU" << std::endl);
-		}
-		ioctl(fd, 0, nThreads);
-		close(fd);
-	} while(false);
+	(void)mbdyn_task2cpu(nThreads - 1);
 
 	for (unsigned t = 0; t < nThreads; t++) {
 		thread_data[t].pSLUS = this;
 		thread_data[t].threadNumber = t;
+		thread_data[t].retval = 0;
 
 		sem_init(&thread_data[t].sem, 0, 0);
 		if (pthread_create(&thread_data[t].thread, NULL, thread_op, &thread_data[t]) != 0) {
@@ -178,16 +174,7 @@ ParNaiveSolver::thread_op(void *arg)
 	sigaddset(&newset, SIGHUP);
 	pthread_sigmask(SIG_BLOCK, &newset, /* &oldset */ NULL);
 
-	do {
-		int fd;
-		fd = open("/dev/TASK2CPU",O_RDWR);
-		if (fd <= 0) {
-			silent_cerr("Error opening /dev/TASK2CPU" << std::endl);
-		}
-		ioctl(fd, 0, td->threadNumber);
-		close(fd);
-	} while(false);
-
+	(void)mbdyn_task2cpu(td->threadNumber);
 
 	bool bKeepGoing(true);
 
@@ -196,21 +183,38 @@ ParNaiveSolver::thread_op(void *arg)
 
 		switch (td->pSLUS->thread_operation) {
 		case ParNaiveSolver::FACTOR:
-			pnaivfct(td->pSLUS->A->ppdRows,
+			td->retval = pnaivfct(td->pSLUS->A->ppdRows,
 				td->pSLUS->A->iSize,
 				td->pSLUS->A->piNzr,
 				td->pSLUS->A->ppiRows,
 				td->pSLUS->A->piNzc,
 				td->pSLUS->A->ppiCols,
 				td->pSLUS->A->ppnonzero,
-				&(td->pSLUS->piv[0]),
-				&(td->pSLUS->todo[0]),
+				&td->pSLUS->piv[0],
+				&td->pSLUS->todo[0],
 				td->pSLUS->dMinPiv,
-				&(td->pSLUS->locks[0]),
+				&td->pSLUS->row_locks[0],
+				&td->pSLUS->col_locks[0],
 				td->threadNumber,
-				//std::min(td->threadNumber,1U),
 				td->pSLUS->nThreads
 			);
+
+			if (td->retval) {
+				if (td->retval & ENULCOL) {
+					silent_cerr("NaiveSolver: ENULCOL("
+							<< (td->retval & ~ENULCOL) << ")" << std::endl);
+					throw ErrGeneric();
+				}
+
+				if (td->retval & ENOPIV) {
+					silent_cerr("NaiveSolver: ENOPIV("
+							<< (td->retval & ~ENOPIV) << ")" << std::endl);
+					throw ErrGeneric();
+				}
+
+				/* default */
+				throw ErrGeneric();
+			}
 			break;
 
 		case ParNaiveSolver::SOLVE:
@@ -219,12 +223,11 @@ ParNaiveSolver::thread_op(void *arg)
 				td->pSLUS->A->piNzc,
 				td->pSLUS->A->ppiCols,
 				td->pSLUS->LinearSolver::pdRhs,
-				&(td->pSLUS->piv[0]),
-				&(td->pSLUS->fwd[0]),
+				&td->pSLUS->piv[0],
+				&td->pSLUS->fwd[0],
 				td->pSLUS->LinearSolver::pdSol,
-				&(td->pSLUS->locks[0]),
+				&td->pSLUS->row_locks[0],
 				td->threadNumber,
-				//std::min(td->threadNumber,1U),
 				td->pSLUS->nThreads
 			);
 			break;
@@ -290,19 +293,18 @@ ParNaiveSolver::Factor(void)
 	thread_operation = ParNaiveSolver::FACTOR;
 	thread_count = nThreads;
 
-	//prepara i dati
 	for (int i = 0; i < iSize; i++) {
 			piv[i] = -1;
 			todo[i] = -1;
+			row_locks[i] = 0;
 	}
-	for (int i = 0; i < iSize+2; i++) {
-			locks[i] = 0;
-	}
+	row_locks[iSize] = 0;
+	row_locks[iSize + 1] = 0;
 
 	for (unsigned t = 0; t < nThreads; t++) {
+		thread_data[t].retval = 0;
 		sem_post(&thread_data[t].sem);
 	}
-
 
 	pthread_mutex_lock(&thread_mutex);
 	if (thread_count > 0) {
@@ -323,17 +325,17 @@ ParNaiveSolver::Solve(void) const
 	if (bHasBeenReset) {
       		((ParNaiveSolver *)this)->Factor();
       		bHasBeenReset = false;
-	} else {
-		for (int i = 0; i < iSize+2; i++) {
-			locks[i] = 0;
-		}
+	}
+
+	for (int i = 0; i < iSize + 2; i++) {
+		row_locks[i] = 0;
 	}
 
 	thread_operation = ParNaiveSolver::SOLVE;
 	thread_count = nThreads;
-
 	
 	for (unsigned t = 0; t < nThreads; t++) {
+		thread_data[t].retval = 0;
 		sem_post(&thread_data[t].sem);
 	}
 
@@ -345,6 +347,11 @@ ParNaiveSolver::Solve(void) const
 	pthread_mutex_unlock(&thread_mutex);
 }
 
+void
+ParNaiveSolver::SetMat(NaiveMatrixHandler *const a)
+{
+	A = a;
+}
 
 /* ParNaiveSolver - end */
 
@@ -354,16 +361,17 @@ ParNaiveSolver::Solve(void) const
 /* Costruttore */
 ParNaiveSparseSolutionManager::ParNaiveSparseSolutionManager(unsigned nt,
 		const integer Dim, const doublereal dMP)
-: A(Dim),
+: A(0),
 VH(Dim),
 XH(Dim)
 {
    	ASSERT(Dim > 0);
    	ASSERT((dMP >= 0.0) && (dMP <= 1.0));
 
+	SAFENEWWITHCONSTRUCTOR(A, NaiveMatrixHandler, NaiveMatrixHandler(Dim));
    	SAFENEWWITHCONSTRUCTOR(SolutionManager::pLS, 
 			       ParNaiveSolver,
-			       ParNaiveSolver(nt, Dim, dMP, &A));
+			       ParNaiveSolver(nt, Dim, dMP, A));
    
 	pLS->ChangeResPoint(VH.pdGetVec());
 	pLS->ChangeSolPoint(XH.pdGetVec());
@@ -382,7 +390,13 @@ ParNaiveSparseSolutionManager::~ParNaiveSparseSolutionManager(void)
    	IsValid();
 #endif /* DEBUG */
    
-   	/* Dealloca roba, tra cui i thread */
+   	/* Dealloca roba, ... */
+	if (A != 0) {
+		SAFEDELETE(A);
+		A = 0;
+	}
+
+   	/* ... tra cui i thread */
 }
 
 #ifdef DEBUG
@@ -429,20 +443,31 @@ ParNaiveSparseSolutionManager::Solve(void)
 
 }
 
-VectorHandler* ParNaiveSparseSolutionManager::pResHdl(void) const {
+/* Rende disponibile l'handler per la matrice */
+MatrixHandler*
+ParNaiveSparseSolutionManager::pMatHdl(void) const
+{
+	return A;
+}
+
+VectorHandler*
+ParNaiveSparseSolutionManager::pResHdl(void) const
+{
 #ifdef DEBUG
 	VH.IsValid();
 #endif /* DEBUG */
 	return &VH;
-};
+}
 
-	/* Rende disponibile l'handler per la soluzione */
-VectorHandler* ParNaiveSparseSolutionManager::pSolHdl(void) const {
+/* Rende disponibile l'handler per la soluzione */
+VectorHandler*
+ParNaiveSparseSolutionManager::pSolHdl(void) const
+{
 #ifdef DEBUG
 	XH.IsValid();
 #endif /* DEBUG */
 	return &XH;
-};
+}
 
 /* ParNaiveSparseSolutionManager - end */
 
@@ -459,56 +484,65 @@ ParNaiveSparsePermSolutionManager::ParNaiveSparsePermSolutionManager(
 	const doublereal dMP)
 : ParNaiveSparseSolutionManager(nt, Dim, dMP),
 dMinPiv(dMP),
-PermReady(false),
-Ap(0)
+ePermState(PERM_NO)
 {
-	perm.resize(Dim,0);
-	invperm.resize(Dim,0);
+	perm.resize(Dim, 0);
+	invperm.resize(Dim, 0);
+
+	SAFEDELETE(A);
+	A = 0;
+	SAFENEWWITHCONSTRUCTOR(A, NaivePermMatrixHandler, NaivePermMatrixHandler(Dim, &perm[0]));
+
+	dynamic_cast<ParNaiveSolver *>(pLS)->SetMat(A);
+
+	MatrInitialize();
 }
 
 ParNaiveSparsePermSolutionManager::~ParNaiveSparsePermSolutionManager(void) 
 {
-	if (Ap) {
-		SAFEDELETE(Ap);
-	}
+	NO_OP;
 }
 
 void
 ParNaiveSparsePermSolutionManager::MatrReset(void)
 {
-	if (Ap) {
-		PermReady = true;
+	if (ePermState == PERM_INTERMEDIATE) {
+		ePermState = PERM_READY;
 
 		pLS->ChangeResPoint(VH.pdGetVec());
 		pLS->ChangeSolPoint(XH.pdGetVec());
 
 		pLS->SetSolutionManager(this);
 	}
+
 	pLS->Reset();
 }
 
 void
-ParNaiveSparsePermSolutionManager::ComputePermutation(void) {
+ParNaiveSparsePermSolutionManager::ComputePermutation(void)
+{
 	std::vector<integer> Ai;
-	A.MakeCCStructure(Ai, invperm);
+	A->MakeCCStructure(Ai, invperm);
 	doublereal knobs [COLAMD_KNOBS];
 	integer stats [COLAMD_STATS];
-	integer Alen = colamd_recommended (Ai.size(), A.iGetNumRows(), A.iGetNumCols());
+	integer Alen = colamd_recommended (Ai.size(), A->iGetNumRows(), A->iGetNumCols());
 	Ai.resize(Alen);
 	colamd_set_defaults(knobs);
-	if (!colamd(A.iGetNumRows(), A.iGetNumCols(), Alen,
+	if (!colamd(A->iGetNumRows(), A->iGetNumCols(), Alen,
 		&(Ai[0]), &(invperm[0]), knobs, stats)) {
 		silent_cerr("colamd permutation failed" << std::endl);
 		throw ErrGeneric();
 	}
-	for (integer i = 0; i < A.iGetNumRows(); i++) {
+	for (integer i = 0; i < A->iGetNumRows(); i++) {
 		perm[invperm[i]] = i;
 	}
+	ePermState = PERM_INTERMEDIATE;
 }
 
 void
-ParNaiveSparsePermSolutionManager::BackPerm(void) {
-	for (integer i = 0; i < A.iGetNumCols(); i++) {
+ParNaiveSparsePermSolutionManager::BackPerm(void)
+{
+	for (integer i = 0; i < A->iGetNumCols(); i++) {
 		XH.PutCoef(invperm[i] + 1, VH.dGetCoef(i + 1));
 	}
 }
@@ -518,18 +552,16 @@ ParNaiveSparsePermSolutionManager::BackPerm(void) {
 void
 ParNaiveSparsePermSolutionManager::Solve(void)
 {
-	if ((!PermReady) && (!Ap)) {
+	if (ePermState == PERM_NO) {
 		ComputePermutation();
-		if (Ap) {
-			SAFEDELETE(Ap);
-		}
-		SAFENEWWITHCONSTRUCTOR(Ap, NaivePermMatrixHandler, 
-				NaivePermMatrixHandler(&A, &(perm[0])));
+
 	} else {
 		pLS->ChangeSolPoint(VH.pdGetVec());
 	}
+
 	pLS->Solve();
-	if (PermReady) {
+
+	if (ePermState == PERM_READY) {
 		BackPerm();
 		pLS->ChangeSolPoint(XH.pdGetVec());
 	}
@@ -539,25 +571,16 @@ ParNaiveSparsePermSolutionManager::Solve(void)
 void
 ParNaiveSparsePermSolutionManager::MatrInitialize()
 {
-	PermReady = false;
+	ePermState = PERM_NO;
 
+	for (integer i = 0; i < A->iGetNumRows(); i++) {
+		perm[i] = i;
+		invperm[i] = i;
+	}
+ 
 	MatrReset();
 }
 	
-/* Rende disponibile l'handler per la matrice */
-MatrixHandler*
-ParNaiveSparsePermSolutionManager::pMatHdl(void) const
-{
-	if (!PermReady) {
-		return &A;
-	}
-
-	ASSERT(Ap != 0);
-	return Ap;
-}
-
-
-
 /* ParParNaiveSparsePermSolutionManager - end */
 
 

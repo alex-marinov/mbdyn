@@ -42,6 +42,8 @@ sock.h \
 stack.h \
 table.cc \
 table.h \
+task2cpu.cc \
+task2cpu.h \
 tclpgin.cc \
 tclpgin.h \
 veciter.h \

@@ -48,6 +48,7 @@
 #include <sys/poll.h>
 
 struct task_struct;
+
 #include <asm/system.h>
 #include <asm/atomic.h>
 #include <asm/bitops.h>
@@ -75,7 +76,8 @@ int pnaivfct(doublereal** a,
 	integer *piv,
 	integer *todo,
 	doublereal minpiv,
-	unsigned long *locks,
+	unsigned long *row_locks,
+	unsigned long *col_locks,
 	int task,
 	int ncpu)
 {
@@ -84,37 +86,44 @@ int pnaivfct(doublereal** a,
 	char *pnzk;
 	doublereal den, mul;
 	doublereal *par, *papvr;
+	unsigned long *sync_lock = &row_locks[neq];
+	unsigned long *pivot_lock = &row_locks[neq + 1];
 
-	if (!minpiv) {
+	if (minpiv == 0.) {
 		minpiv = MINPIV;
 	}
 
-	atomic_inc((atomic_t *)&locks[0]);
-	
-	while (atomic_read((atomic_t *)&locks[0]) < ncpu);
+	atomic_inc((atomic_t *)&sync_lock[0]);
+	while (atomic_read((atomic_t *)&sync_lock[0]) < ncpu);
 	
 	for (i = 0; i < neq; i++) {
-		if (!(nr = nzr[i])) {
+		nr = nzr[i];
+		if (nr == 0) {
 			return ENULCOL + i; 
 		}
 		pri = ri[i];
-		if (!task) {
+		if (task == 0) {
 			m = BIGINT;	
 			mul = 0.0;
 			for (k = 0; k < nr; k++) {
 				r = pri[k];
-				if (todo[r] && fabs(a[r][i]) > mul) {
-					mul = fabs(a[r][i]);
-					m = nzc[pvr = r];	
+				doublereal dAri = fabs(a[r][i]);
+				if (todo[r] && dAri > mul) {
+					mul = dAri;
+					pvr = r;
+					m = nzc[pvr];	
 				}
 			}
-			if (m == BIGINT) { return ENOPIV + i; }
+			if (m == BIGINT) {
+				return ENOPIV + i;
+			}
 #ifdef SPRSPIV
 			mul *= minpiv;
 			for (k = 0; k < nr; k++) {
 				r = pri[k];
 				if (todo[r] && nzc[r] < m && fabs(a[r][i]) > mul) {
-					m = nzc[pvr = r];
+					pvr = r;
+					m = nzc[pvr];
 				}
 			}
 #endif
@@ -123,52 +132,71 @@ int pnaivfct(doublereal** a,
 			den = 1.0/papvr[i];
 			if (pri[i]%ncpu == task) {
 				papvr[i] = den;
-				atomic_set((atomic_t *)locks, 0);
+				wmb();
+				atomic_set((atomic_t *)&pivot_lock[0], 0);
 			}
+
 			set_wmb(piv[i], pvr);
-			while (atomic_read((atomic_t *)locks) != 0);
+
+			while (atomic_read((atomic_t *)&pivot_lock[0]) != 0);
+
 		} else {
-			pvr = piv[i];
 			while ((pvr = atomic_read((atomic_t *)&piv[i])) < 0);
 			papvr = a[pvr];
+
 			if (pri[i]%ncpu == task) {
 				den = papvr[i] = 1./papvr[i];
 				wmb();
-				atomic_set((atomic_t *)locks, 0);
+				atomic_set((atomic_t *)&pivot_lock[0], 0);
+			
 			} else {
-				while (atomic_read((atomic_t *)locks) != 0);
+				while (atomic_read((atomic_t *)&pivot_lock[0]) != 0);
 				den = papvr[i];
 			}
 		}
+
 		nc  = nzc[pvr];
 		pci = ci[pvr];
-		//for (k = 0; k < nr; k++) {
-		for (k = task; k < nr; k+=ncpu) {
-			//if (!todo[r = pri[k]] || r%ncpu != task) { continue; }
-			if (!todo[r = pri[k]]) { continue; }
+
+		for (k = task; k < nr; k += ncpu) {
+			r = pri[k];
+			if (todo[r] == 0) {
+				continue;
+			}
 			pnzk = nz[r];
 			par = a[r];
 			mul = par[i] = par[i]*den;
 			for (j = 0; j < nc; j++) {
-				if ((pvc = pci[j]) <= i) { continue; }
-				if (pnzk[pvc]) {
-					par[pvc] -= mul*papvr[pvc];
-				} else {
-					par[pvc] = -mul*papvr[pvc];
+				pvc = pci[j];
+				if (pvc <= i) {
+					continue;
+				}
+
+				par[pvc] -= mul*papvr[pvc];
+				if (pnzk[pvc] == 0) {
 					ci[r][nzc[r]++] = pvc;
-					while (test_and_set_bit(31, &locks[pvc]));
+					while (atomic_inc_and_test((atomic_t *)&col_locks[pvc]));
 					pnzk[pvc] = 1;
 					ri[pvc][nzr[pvc]++] = r;
-					test_and_clear_bit(31, &locks[pvc]); 
+					atomic_set((atomic_t *)&col_locks[pvc], 0); 
 				}
 			}
 		}
-		atomic_inc((atomic_t *)&locks[i + 2]);
-		while (atomic_read((atomic_t *)&locks[i + 2]) < ncpu);
-		locks[i] = 0;
+
+		atomic_inc((atomic_t *)&row_locks[i]);
+		while (atomic_read((atomic_t *)&row_locks[i]) < ncpu);
 	}
-	locks[0] = 0;
-	locks[neq] = 0;
+
+	if (task == 0) {
+		/* NOTE: same as sync_lock[0] */
+		sync_lock[0] = 0;
+
+		/* NOTE: same as pivot_lock[0] */
+		pivot_lock[0] = 0;
+
+		wmb();
+	}
+
 	return 0;
 }
 
@@ -195,6 +223,7 @@ void pnaivslv(doublereal** a,
 		wmb();
 		atomic_set((atomic_t *)locks, 1);
 	}
+
 	for (i = 1; i < neq; i++) {
 	//for (i = 1 + task; i < neq; i+=ncpu) {
 		if (i%ncpu != task) { continue; }
