@@ -684,6 +684,7 @@ if test $ol_with_blas != no ; then
 	have_blas="no"
 
 	if test "${ol_with_goto_lib:-set}" = set ; then
+		dnl in case one relies on a symbolic link named libgoto.{a,so}
 		ol_with_goto_lib="goto"
 	fi
 
@@ -701,12 +702,13 @@ if test $ol_with_blas != no ; then
 			],[
 	/* test for blas */
 	return dgemm_();
-			],[have_blas=goto],[have_blas=no])
+			],[have_blas="goto"],[
+				have_blas="no"
+				if test "$ol_with_blas" = "goto" ; then
+					AC_MSG_ERROR([Goto blas implementation not available])
+				fi
+			])
 			LIBS="$save_LIBS"
-
-			if test "$ol_with_blas" = "goto" ; then
-				AC_MSG_ERROR([Goto blas implementation not available])
-			fi
 		fi
 	fi
 
@@ -720,12 +722,13 @@ if test $ol_with_blas != no ; then
 			],[
 	/* test for blas */
 	return cblas_dgemm();
-			],[have_blas="atlas"],[have_blas="no"])
+			],[have_blas="atlas"],[
+				have_blas="no"
+				if test "$ol_with_blas" = "atlas" ; then
+					AC_MSG_ERROR([Atlas blas implementation not available])
+				fi
+			])
 			LIBS="$save_LIBS"
-
-			if test "$ol_with_blas" = "atlas" ; then
-				AC_MSG_ERROR([Atlas blas implementation not available])
-			fi
 		fi
 	fi
 
@@ -739,12 +742,13 @@ if test $ol_with_blas != no ; then
 			],[
 	/* test for blas */
 	return cblas_dgemm();
-			],[have_blas="cblas"],[have_blas="no"])
+			],[have_blas="cblas"],[
+				have_blas="no"
+				if test "$ol_with_blas" = "cblas" ; then
+					AC_MSG_ERROR([CBLAS not available])
+				fi
+			])
 			LIBS="$save_LIBS"
-
-			if test "$ol_with_blas" = "cblas" ; then
-				AC_MSG_ERROR([CBLAS not available])
-			fi
 		fi
 	fi
 
@@ -761,12 +765,13 @@ if test $ol_with_blas != no ; then
 			],[
 	/* test for blas */
 	return dgemm_();
-			],[have_blas="blas"],[have_blas="no"])
+			],[have_blas="blas"],[
+				have_blas="no"
+				if test "$ol_with_blas" = "blas" ; then
+					AC_MSG_ERROR([BLAS not available])
+				fi
+			])
 			LIBS="$save_LIBS"
-
-			if test "$ol_with_blas" = "blas" ; then
-				AC_MSG_ERROR([BLAS not available])
-			fi
 		fi
 	fi
 
@@ -779,7 +784,7 @@ if test $ol_with_blas != no ; then
 	fi
 
 	dnl from now on, add $BLAS_LIBS to libraries that (may) depend on them
-	AC_MSG_RESULT(["$have_blas"])
+	AC_MSG_RESULT([$have_blas])
 fi
 
 
