@@ -133,7 +133,7 @@ reserve_stack(unsigned long size)
 	int buf[size];
 
 #ifdef HAVE_MEMSET
-	memset(buf, '\0', size*sizeof(int));
+	memset(buf, 0, size*sizeof(int));
 #else /* !HAVE_MEMSET */
 	for (unsigned long i = 0; i < size; i++) {
 		buf[i] = 0;
@@ -190,7 +190,7 @@ RTCpuMap(0xff),
 bRTlog(false),
 mbxlog(NULL),
 LogProcName(NULL),
-#endif /*RTAI_LOG*/
+#endif /* RTAI_LOG */
 #endif /* USE_RTAI */
 #ifdef __HACK_POD__
 bPOD(0),
@@ -235,7 +235,7 @@ iPrecondSteps(iDefaultPreconditionerSteps),
 iIterativeMaxSteps(iDefaultPreconditionerSteps),
 dIterertiveEtaMax(defaultIterativeEtaMax),
 dIterertiveTau(defaultIterativeTau),
-/* FOR PARALLEL SOLVERS*/
+/* for parallel solvers */
 bParallel(bPar),
 pSDM(NULL),
 iNumLocDofs(0),
@@ -244,7 +244,7 @@ pLocDofs(NULL),
 pIntDofs(NULL),
 pDofs(NULL),
 pLocalSM(NULL),
-/* end of FOR PARALLEL SOLVERS */
+/* end of parallel solvers */
 pDM(NULL),
 iNumDofs(0),
 pSM(NULL),
@@ -271,15 +271,16 @@ pNLS(NULL)
 #endif /* USE_RTAI */
 }
 
-
-void Solver::Run(void)
+void
+Solver::Run(void)
 {
    	DEBUGCOUTFNAME("Solver::Run");
 
 #ifdef USE_RTAI
 	if (bRT) {
 		/* Init RTAI; if init'ed, it will be shut down at exit */
-		if (mbdyn_rt_task_init("MBDTSK", 1, 0, 0,RTCpuMap, &mbdyn_rtai_task)) {
+		if (mbdyn_rt_task_init("MBDTSK", 1, 0, 0, RTCpuMap,
+					&mbdyn_rtai_task)) {
 			std::cerr << "unable to init RTAI task" << std::endl;
 			THROW(ErrGeneric());
 		}
@@ -332,8 +333,9 @@ void Solver::Run(void)
 		
 		pDM = pSDM;
 
-	} else {
+	} else
 #endif /* USE_MPI */
+	{
 
 		/* chiama il gestore dei dati generali della simulazione */
 		DEBUGLCOUT(MYDEBUG_MEM, "creating DataManager" << std::endl);
@@ -345,9 +347,7 @@ void Solver::Run(void)
 					sInputFileName,
 					sOutputFileName,
 					eAbortAfter == AFTER_INPUT));
-#ifdef USE_MPI
 	}
-#endif /* USE_MPI */
 
 	HP.Close();
 	
@@ -475,20 +475,21 @@ void Solver::Run(void)
 #endif /* __HACK_POD__ */
 
 
-   	/* Immediately link DataManager to current solution              */
-	/*                                                               */
-	/* this should work as long as the last unknown time step is put */
-	/* at the beginning of pX, pXPrime                               */
+   	/*
+	 * Immediately link DataManager to current solution
+	 *
+	 * this should work as long as the last unknown time step is put
+	 * at the beginning of pX, pXPrime
+	 */
    	pDM->LinkToSolution(*(pX), *(pXPrime));         
 
 	/* a questo punto si costruisce il nonlinear solver */
 	pNLS = AllocateNonlinearSolver();
 
 	MyVectorHandler Scale(iNumDofs);
-	VectorHandler *pScale = &Scale;
 	if (bScale) {
 		/* collects scale factors from data manager */
-		pDM->SetScale(*pScale);
+		pDM->SetScale(Scale);
 	}
 
 	/*
@@ -516,7 +517,7 @@ void Solver::Run(void)
 		}
 
 		/* registers scale factors at nonlinear solver */
-		pResTestScale->SetScale(pScale);
+		pResTestScale->SetScale(&Scale);
 
 		pResTest = pResTestScale;
 		
@@ -2595,10 +2596,10 @@ Solver::ReadData(MBDynParser& HP)
 				bOutputModes = false;
 #endif /* !__HACK_EIG__ */
 			} else {
-				std::cerr << "line " << HP.GetLineData()
+				silent_cerr("line " << HP.GetLineData()
 					<< ": unknown mode output flag "
 					"(should be { yes | no })"
-					<< std::endl;
+					<< std::endl);
 			}
 			break;
 
@@ -2610,8 +2611,8 @@ Solver::ReadData(MBDynParser& HP)
 			CurrIntSolver.Read(HP, true);
 
 #ifndef USE_MPI
-			std::cerr << "Interface solver only allowed "
-				"when compiled with MPI support" << std::endl;
+			silent_cerr("Interface solver only allowed "
+				"when compiled with MPI support" << std::endl);
 #endif /* ! USE_MPI */
 			break;
 
@@ -3590,23 +3591,22 @@ Solver::AllocateSchurSolman(integer iStates)
 					dIPivotFactor));
 		break;
 #else /* !USE_UMFPACK */
-		std::cerr << "Configure with --with-umfpack "
+		std::cerr << "Configure --with-umfpack "
 			"to enable Umfpack solver" << std::endl;
 		THROW(ErrGeneric());
 #endif /* !USE_UMFPACK */
 	case LinSol::EMPTY_SOLVER:
 
 	default: 
-		std::cerr << "Unknown interface solver. Aborting ..."
+		std::cerr << "Unknown interface solver; aborting..."
 			<< std::endl;
 		THROW(ErrGeneric());
 
 		break;
 	}
 #else /* !USE_MPI */
-		std::cerr << "Configure --with-mpi "
-			"to enable schur solver" << std::endl;
-		THROW(ErrGeneric());
+	std::cerr << "Configure --with-mpi to enable Schur solver" << std::endl;
+	THROW(ErrGeneric());
 #endif /* !USE_MPI */
 	return pSSM;
 };
@@ -3714,4 +3714,4 @@ Solver::SetupSolmans(integer iStates)
 		std::cerr << "No linear solver defined" << std::endl;
 		THROW(ErrGeneric());
 	}
-};
+}
