@@ -36,6 +36,7 @@ extern "C" {
 
 #ifdef HAVE_F2C_H
 #include <f2c.h>
+#undef abs
 #define HAVE_FLAG_T
 #else /* !HAVE_F2C_H */
 
