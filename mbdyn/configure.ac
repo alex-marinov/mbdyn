@@ -608,11 +608,20 @@ if test $ol_with_umfpack != no ; then
 			double t;
 			t = umfpack_timer();
 		],[have_umfpack=yes],[have_umfpack=no])
+		AC_TRY_LINK([
+#include <umfpack.h>
+],[
+			double Control[UMFPACK_CONTROL];
+			umfpack_dl_defaults(Control);
+		],[have_umfpack4=yes],[have_umfpack4=no])
 		LIBS=$save_LIBS
 
 		if test $have_umfpack != no ; then
 			UMFPACK_LIBS="$try_umfpack_LIBS"
 			AC_DEFINE(USE_UMFPACK,1,[define if you want to use Umfpack])
+			if test $have_umfpack4 != no ; then
+				AC_DEFINE(HAVE_UMFPACK4,1,[define if Umfpack4 is available])
+			fi
 			ol_link_umfpack=yes
 			AC_MSG_RESULT([yes])
 		else
@@ -625,11 +634,20 @@ if test $ol_with_umfpack != no ; then
 				double t;
 				t = umfpack_timer();
 			],[have_umfpack=yes],[have_umfpack=no])
+			AC_TRY_LINK([
+#include <umfpack.h>
+],[
+				double Control[UMFPACK_CONTROL];
+				umfpack_dl_defaults(Control);
+			],[have_umfpack4=yes],[have_umfpack4=no])
 			LIBS=$save_LIBS
 	
 			if test $have_umfpack != no ; then
 				UMFPACK_LIBS="$try_umfpack_LIBS"
 				AC_DEFINE(USE_UMFPACK,1,[define if you want to use Umfpack])
+				if test $have_umfpack4 != no ; then
+					AC_DEFINE(HAVE_UMFPACK4,1,[define if Umfpack4 is available])
+				fi
 				ol_link_umfpack=yes
 				AC_MSG_RESULT([yes])
 				AC_DEFINE(NBLAS,1,[define if BLAS/ATLAS are not available to Umfpack])
