@@ -87,6 +87,7 @@ MBDyn 1.2-Engineering
 		- fix point where airstream speed is evaluated
 		  for aerodynamic body
 		- fixed endless loop bug when silencing output with '-s'
+		- detect nested comments (/* ... /* ... */) and warn
 	Known Issues:
 		- the static shapes extraction NASTRAN ALTER in 
 		  "etc/modal.d/MBDyn_NASTRAN_alter_1.nas" 
