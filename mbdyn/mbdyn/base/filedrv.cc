@@ -141,6 +141,22 @@ dT0(t0), dDT(dt), iNumSteps(is), pd(NULL), pvd(NULL)
    for (integer i = iNumDrives; i-- > 0; ) {
       pvd[i+1] = pd+i*iNumSteps;
    }
+
+   /*
+    * Mangia gli eventuali commenti iniziali
+    */
+   char c = '\0';
+   while (in.get(c), c == '#') {
+      char buf[1024];
+
+      do {
+	 in.getline(buf, sizeof(buf));
+      } while (strlen(buf) == sizeof(buf) - 1 && buf[sizeof(buf) - 1] != '\n');
+   }
+
+   if (c != '#') {
+      in.putback(c);
+   }
    
    for (integer j = 0; j < iNumSteps; j++) {
       for (integer i = 1; i <= iNumDrives; i++) {
