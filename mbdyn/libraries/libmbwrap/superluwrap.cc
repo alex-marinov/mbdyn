@@ -79,17 +79,21 @@ struct SuperLUSolverData {
 
 /* Costruttore: si limita ad allocare la memoria */
 SuperLUSolver::SuperLUSolver(integer iMatOrd,
-		const doublereal &dPivot)
+		const doublereal &dPivot,
+		unsigned ptype)
 : Aip(0),
 App(0),
 Axp(0),
 iN(iMatOrd),
 iNonZeroes(0),
 dPivotFactor(dPivot),
+permutation(ptype),
 bFirstSol(true),
 bRegenerateMatrix(true)
 {
 	ASSERT(iN > 0);
+	ASSERTMSGBREAK(permutation & (SUPERLU_COLAMD|SUPERLU_MMDATA),
+		"SuperLU scalar solver unknown permutation strategy");
 
 	SAFENEW(sld, SuperLUSolverData);
 	
@@ -135,9 +139,23 @@ SuperLUSolver::Factor(void)
 			relax = sp_ienv(2);
 
 	set_default_options(&sld->options);
+	sld->options.DiagPivotThresh = dPivotFactor;
+
 	if (bRegenerateMatrix) {
-		colperm_t permc_spec = MMD_AT_PLUS_A;
-		//colperm_t permc_spec = COLAMD;
+		//colperm_t permc_spec = MMD_AT_PLUS_A;
+		colperm_t permc_spec;
+		switch (permutation) {
+		case SUPERLU_MMDATA:
+			permc_spec = MMD_ATA;
+			break;
+		case SUPERLU_COLAMD: 
+		default:
+			permc_spec = COLAMD;
+			break;
+		}
+
+			 
+			
 		sld->options.ColPerm = permc_spec;
 		
 		/* NOTE: we could use sld->A.Store == NULL */
@@ -298,7 +316,7 @@ SuperLUSolver::MakeCompactForm(SparseMatrixHandler& mh,
 
 /* Costruttore */
 SuperLUSparseSolutionManager::SuperLUSparseSolutionManager(integer iSize,
-		const doublereal& dPivotFactor)
+		const doublereal& dPivotFactor, unsigned ptype)
 : iMatSize(iSize), 
 Ap(iSize + 1),
 xb(iSize),
@@ -310,7 +328,7 @@ VH(iSize, &xb[0])
 
    	SAFENEWWITHCONSTRUCTOR(SolutionManager::pLS, 
 			       SuperLUSolver,
-			       SuperLUSolver(iMatSize, dPivotFactor));
+			       SuperLUSolver(iMatSize, dPivotFactor, ptype));
    
 	pLS->ChangeResPoint(&(xb[0]));
 	pLS->ChangeSolPoint(&(xb[0]));
@@ -429,8 +447,8 @@ SuperLUSparseSolutionManager::Solve(void)
 
 template <class CC>
 SuperLUSparseCCSolutionManager<CC>::SuperLUSparseCCSolutionManager(integer Dim,
-		const doublereal &dPivot)
-: SuperLUSparseSolutionManager(Dim, dPivot),
+		const doublereal &dPivot, unsigned ptype)
+: SuperLUSparseSolutionManager(Dim, dPivot, ptype),
 CCReady(false),
 Ac(0)
 {

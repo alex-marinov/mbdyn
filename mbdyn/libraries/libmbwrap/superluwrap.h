@@ -77,6 +77,7 @@ private:
 	mutable integer iNonZeroes;
 
 	doublereal dPivotFactor;
+	unsigned permutation;
 
 	mutable bool bFirstSol;		/* true se prima backsubst */
 	mutable bool bRegenerateMatrix;	/* true se prima backsubst */
@@ -87,8 +88,13 @@ private:
 	void Factor(void);
 
 public:
+	enum {
+		SUPERLU_COLAMD = 0x01U,
+		SUPERLU_MMDATA = 0x02U
+	};
+	
 	/* Costruttore: si limita ad allocare la memoria */
-	SuperLUSolver(integer iMatOrd, const doublereal &dPivot);
+	SuperLUSolver(integer iMatOrd, const doublereal &dPivot, unsigned ptype);
 
 	/* Distruttore */
 	~SuperLUSolver(void);
@@ -151,7 +157,8 @@ protected:
 public:
 	/* Costruttore: usa e mette a disposizione matrici che gli sono date */
 	SuperLUSparseSolutionManager(integer iSize,
-			const doublereal& dPivotFactor = 1.0);
+			const doublereal& dPivotFactor = 1.0,
+			unsigned ptype = SuperLUSolver::SUPERLU_COLAMD);
 
 	/* Distruttore: dealloca le matrici e distrugge gli oggetti propri */
 	~SuperLUSparseSolutionManager(void);
@@ -199,7 +206,8 @@ protected:
 	
 public:
 	SuperLUSparseCCSolutionManager(integer Dim,
-			const doublereal &dPivot = -1.);
+			const doublereal &dPivot = 1.,
+			unsigned ptype = SuperLUSolver::SUPERLU_COLAMD);
 	virtual ~SuperLUSparseCCSolutionManager(void);
 
 	/* Inizializzatore "speciale" */

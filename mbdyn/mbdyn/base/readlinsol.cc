@@ -237,7 +237,19 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 	if (HP.IsKeyWord("colamd")) {
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_COLAMD) {
 			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_COLAMD);
-			pedantic_cout("using colamd preordering for "
+			pedantic_cout("using mmd symmetric preordering for "
+					<< currSolver.s_name
+					<< " solver" << std::endl);
+
+		} else {
+			pedantic_cerr("colamd preordering is meaningless for "
+					<< currSolver.s_name
+					<< " solver" << std::endl);
+		}
+	} else if (HP.IsKeyWord("mmdata")) {
+		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MMDATA) {
+			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_MMDATA);
+			pedantic_cout("using mmd symmetric preordering for "
 					<< currSolver.s_name
 					<< " solver" << std::endl);
 

@@ -83,8 +83,8 @@ const LinSol::solver_t solver[] = {
 		1.e-8 },
 	{ "SuperLU", NULL, 
 		LinSol::SUPERLU_SOLVER,
-		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT,
-		LinSol::SOLVER_FLAGS_ALLOWS_MAP,
+		LinSol::SOLVER_FLAGS_ALLOWS_COLAMD|LinSol::SOLVER_FLAGS_ALLOWS_MMDATA|LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_COLAMD,
 		1. },
 	{ "Taucs", NULL, 
 		LinSol::TAUCS_SOLVER,
@@ -375,6 +375,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 {
 	SolutionManager *pCurrSM = NULL;
 	const unsigned type = (solverFlags & LinSol::SOLVER_FLAGS_TYPE_MASK);
+	const unsigned perm = (solverFlags & LinSol::SOLVER_FLAGS_PERM_MASK);
 	const bool mt = (solverFlags & LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT);
 
 	ASSERT((::solver[currSolver].s_flags & solverFlags) == solverFlags);
@@ -580,7 +581,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 #endif /* !USE_UMFPACK */
 
 	case LinSol::NAIVE_SOLVER:
-		if (solverFlags & LinSol::SOLVER_FLAGS_ALLOWS_COLAMD) {
+		if (perm == LinSol::SOLVER_FLAGS_ALLOWS_COLAMD) {
 			if (nThreads == 1) {
 				SAFENEWWITHCONSTRUCTOR(pCurrSM,
 					NaiveSparsePermSolutionManager,
