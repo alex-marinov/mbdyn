@@ -11,6 +11,7 @@ via La Masa, 34 - 20156 Milano, Italy
 http://www.aero.polimi.it
 
 
+
 developers:
 
   - check out from the CVS tree
@@ -24,12 +25,8 @@ developers:
 
   NOTE: at least on my system I could not use the syntax
   AC_CONFIG_HEADER(include/mbconfig.h:pre:include/mbconfig.h.in:post)
-  so the lines
-  
-	/* this file must be included by every .c/.cc file */
-	#include <mbdyn.h>
-  
-  must be manually added at the bottom of include/mbconfig.h.in
+  so I'm using acconfig.h
+
 
 
 distribution:
