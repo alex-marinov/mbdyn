@@ -1,4 +1,4 @@
 ## Process this file with automake to produce Makefile.in
 
-SUBDIRS = libmbutil libmbmath liby12
+SUBDIRS = libmbutil libmbmath liby12 libobjs
 

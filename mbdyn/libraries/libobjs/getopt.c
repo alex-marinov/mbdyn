@@ -51,14 +51,16 @@
 	modified by Pierangelo Masarati for inclusion with MBDyn
 */
 
-#include "portable.h"
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
 
 #ifndef HAVE_GETOPT
 
 #include <stdio.h>
 
-#include <ac/string.h>
-#include <ac/unistd.h>
+#include <string.h>
+#include <unistd.h>
 
 #ifdef HAVE_IO_H
 #include <io.h>
@@ -148,3 +150,4 @@ printf("DF_TRACE_DEBUG: 	int getopt () in getopt.c\n");
 	return (int) c;
 }
 #endif /* HAVE_GETOPT */
+
