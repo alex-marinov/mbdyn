@@ -155,7 +155,7 @@ BeamSliderJoint::Output(OutputHandler& OH) const
 		Joint::Output(OH.Joints(), "BeamSlider", GetLabel(),
 				RTmpT*F, M, F, RTmp*M)
 			<< " " << ppBeam[iCurrBeam]->pGetBeam()->GetLabel()
-			<< " " << sRef << std::endl;
+			<< " " << sRef << " " << l << std::endl;
 	}
 }
 
