@@ -5,9 +5,9 @@ include $(top_srcdir)/build/top.mk
 lib_LTLIBRARIES = libmbmath.la
 
 libmbmath_la_SOURCES = \
-ccmh.hc \
+ccmh.cc \
 ccmh.h \
-dirccmh.hc \
+dirccmh.cc \
 dirccmh.h \
 fullmh.cc \
 fullmh.h \
