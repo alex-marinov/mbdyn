@@ -42,6 +42,7 @@ public:
 		HARWELL_SOLVER = 0,
 		MESCHACH_SOLVER,
 		Y12_SOLVER,
+		Y12_CC_SOLVER,
                 UMFPACK_SOLVER,
                 UMFPACK_CC_SOLVER,
 		EMPTY_SOLVER,

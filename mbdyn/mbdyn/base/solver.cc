@@ -368,19 +368,29 @@ Solver::Run(void)
 			/* set solver for multithreaded solution */
 			switch (CurrLinearSolver.GetSolver()) {
 			case LinSol::UMFPACK_CC_SOLVER:
+			case LinSol::Y12_CC_SOLVER:
 				break;
 
 			default:
-				silent_cout("multithreaded solution needs Umfpack CC solver" << std::endl);
+			{
+				silent_cout("multithreaded solution needs "
+						"a CC solver" << std::endl);
 
-#if 0
-			case LinSol::UMFPACK_SOLVER:
+				bool b;
+#if defined(USE_UMFPACK)
+				b = CurrLinearSolver.SetSolver(LinSol::UMFPACK_CC_SOLVER);
+#elif defined (USE_Y12)
+				b = CurrLinearSolver.SetSolver(LinSol::Y12_CC_SOLVER);
+#else
+				b = false;
 #endif
-				if (!CurrLinearSolver.SetSolver(LinSol::UMFPACK_CC_SOLVER)) {
-					silent_cerr("unable to set Umfpack CC solver" << std::endl);
+				if (!b) {
+					silent_cerr("unable to set a CC solver"
+								<< std::endl);
 					THROW(ErrGeneric());
 				}
 				break;
+			}
 			}
 
 			SAFENEWWITHCONSTRUCTOR(pDM,

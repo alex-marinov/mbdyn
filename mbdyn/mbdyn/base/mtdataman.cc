@@ -204,7 +204,7 @@ MultiThreadDataManager::thread(void *p)
 						<< " caught ErrRebuildMatrix"
 						<< std::endl);
 
-				mbdyn_compare_and_swap(&arg->pDM->propagate_ErrMatrixRebuild,
+				mbdyn_compare_and_swap(arg->pDM->propagate_ErrMatrixRebuild,
 						sig_atomic_t(true), sig_atomic_t(false));
 
 			} catch (...) {
@@ -453,7 +453,7 @@ retry:;
 				<< " caught ErrRebuildMatrix"
 				<< std::endl);
 
-		mbdyn_compare_and_swap(&propagate_ErrMatrixRebuild,
+		mbdyn_compare_and_swap(propagate_ErrMatrixRebuild,
 				sig_atomic_t(true), sig_atomic_t(false));
 
 	} catch (...) {

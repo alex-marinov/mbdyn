@@ -43,14 +43,24 @@
 
 #include "linearsolver.h"
 
+// #define DEFAULT_CC
+
 /*
  * Default solver
  */
 LinSol::SolverType LinSol::defaultSolver =
 #if defined(USE_UMFPACK)
+#ifdef DEFAULT_CC
+	LinSol::UMFPACK_CC_SOLVER
+#else /* ! DEFAULT_CC */
 	LinSol::UMFPACK_SOLVER
+#endif /* ! DEFAULT_CC */
 #elif /* !USE_UMFPACK */ defined(USE_Y12)
+#ifdef DEFAULT_CC
+	LinSol::Y12_CC_SOLVER
+#else /* ! DEFAULT_CC */
 	LinSol::Y12_SOLVER
+#endif /* ! DEFAULT_CC */
 #elif /* !USE_Y12 */ defined(USE_HARWELL)
 	LinSol::HARWELL_SOLVER
 #elif /* !USE_HARWELL */ defined(USE_MESCHACH)
@@ -66,6 +76,7 @@ const char *psSolverNames[] = {
 	"Harwell",
 	"Meschach",
 	"Y12",
+	"Y12CC",
 	"Umfpack",
 	"UmfpackCC",
 	"Empty",
@@ -125,7 +136,14 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 
 	case Y12:
 #ifdef USE_Y12
+		/*
+		 * FIXME: use CC as default???
+		 */
+#ifdef DEFAULT_CC
+		CurrSolver = LinSol::Y12_CC_SOLVER;
+#else /* ! DEFAULT_CC */
 		CurrSolver = LinSol::Y12_SOLVER;
+#endif /* ! DEFAULT_CC */
 		DEBUGLCOUT(MYDEBUG_INPUT,
 				"Using y12 sparse LU solver" << std::endl);
 		break;
@@ -139,11 +157,11 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		/*
 		 * FIXME: use CC as default???
 		 */
-#if 1
-		CurrSolver = LinSol::UMFPACK_SOLVER;
-#else
+#ifdef DEFAULT_CC
 		CurrSolver = LinSol::UMFPACK_CC_SOLVER;
-#endif
+#else /* ! DEFAULT_CC */
+		CurrSolver = LinSol::UMFPACK_SOLVER;
+#endif /* ! DEFAULT_CC */
 		DEBUGLCOUT(MYDEBUG_INPUT,
 				"Using umfpack sparse LU solver" << std::endl);
 		break;
@@ -178,6 +196,10 @@ LinSol::Read(HighParser &HP, bool bAllowEmpty)
 		switch (CurrSolver) {
 		case LinSol::UMFPACK_SOLVER:
 			CurrSolver = LinSol::UMFPACK_CC_SOLVER;
+			break;
+
+		case LinSol::Y12_SOLVER:
+			CurrSolver = LinSol::Y12_CC_SOLVER;
 			break;
 
 		default:
@@ -248,6 +270,7 @@ LinSol::SetSolver(LinSol::SolverType t)
 #endif /* USE_UMFPACK */
 
 	case LinSol::Y12_SOLVER:
+	case LinSol::Y12_CC_SOLVER:
 #ifdef USE_Y12
 		CurrSolver = t;
 		return true;
@@ -310,6 +333,19 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 #else /* !USE_Y12 */
       		std::cerr << "Configure with --with-y12 "
 			"to enable Y12 solver" << std::endl;
+      		THROW(ErrGeneric());
+#endif /* !USE_Y12 */
+
+     	case LinSol::Y12_CC_SOLVER: 
+#ifdef USE_Y12
+      		SAFENEWWITHCONSTRUCTOR(pCurrSM,
+			Y12SparseCCSolutionManager,
+			Y12SparseCCSolutionManager(iNLD, iLWS,
+				dPivotFactor == -1. ? 1. : dPivotFactor));
+      		break;
+#else /* !USE_Y12 */
+      		std::cerr << "Configure with --with-y12 "
+			"to enable Y12 CC solver" << std::endl;
       		THROW(ErrGeneric());
 #endif /* !USE_Y12 */
 

@@ -57,17 +57,20 @@ struct __xchg_dummy { unsigned long a[100]; };
 #endif
 
 #define CMPXCHG(f) \
-	__asm__ __volatile__( LOCK_PREFIX #f " %b1,%2" \
+	__asm__ __volatile__( LOCK_PREFIX f \
 			: "=a"(prev) \
 			: "q"(newval), "m"(*__xg(valptr)), "0"(oldval) \
 			: "memory")
+#define CMPXCHGB CMPXCHG("cmpxchgb %b1,%2")
+#define CMPXCHGW CMPXCHG("cmpxchgw %w1,%2")
+#define CMPXCHGL CMPXCHG("cmpxchgl %1,%2")
 
 static inline int8_t
 mbdyn_cmpxchgb(int8_t *valptr, int8_t newval, int8_t oldval)
 {
 	int8_t	prev;
 
-	CMPXCHG(cmpxchgb);
+	CMPXCHGB;
 
 	return prev;
 }
@@ -77,7 +80,7 @@ mbdyn_cmpxchgw(int16_t *valptr, int16_t newval, int16_t oldval)
 {
 	int16_t	prev;
 
-	CMPXCHG(cmpxchgw);
+	CMPXCHGW;
 
 	return prev;
 }
@@ -87,24 +90,26 @@ mbdyn_cmpxchgl(int32_t *valptr, int32_t newval, int32_t oldval)
 {
 	int32_t	prev;
 
-	CMPXCHG(cmpxchgl);
+	CMPXCHGL;
 
 	return prev;
 }
 
+#ifdef NEED_INT_VERSION
 static inline int
 mbdyn_cmpxchg(int *valptr, int newval, int oldval)
 {
 	int prev;
 
 #if __INT_MAX__ == 32767
-	CMPXCHG(cmpxchgw);
+	CMPXCHGW;
 #else 
-	CMPXCHG(cmpxchgl);
+	CMPXCHGL;
 #endif
 
 	return prev;
 }
+#endif /* NEED_INT_VERSION */
 
 #endif /* HAVE_CMPXCHG */
 
@@ -159,6 +164,7 @@ mbdyn_compare_and_swap(int32_t &val, int32_t newval, int32_t oldval)
 #endif
 }
 
+#ifdef NEED_INT_VERSION
 static inline bool
 mbdyn_compare_and_swap(int &val, int newval, int oldval)
 {
@@ -174,6 +180,7 @@ mbdyn_compare_and_swap(int &val, int newval, int oldval)
 	/* FIXME: provide an alternative ... */
 #endif
 }
+#endif /* NEED_INT_VERSION */
 
 #endif /* __cplusplus */
 	
