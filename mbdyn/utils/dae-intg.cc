@@ -303,8 +303,8 @@ open_module(const char* module)
 
    	if ((handle = lt_dlopen(module)) == NULL) {
       		err = lt_dlerror();
-      		std::cerr << "lt_dlopen(\"" << module << "\") returned \"" << err
-			<< "\"" << std::endl;
+      		std::cerr << "lt_dlopen(\"" << module 
+			<< "\") returned \"" << err << "\"" << std::endl;
       		exit(EXIT_FAILURE);
    	}
 
