@@ -97,13 +97,15 @@
 
 #ifdef USE_Y12
 
+#include <ac/iostream>
+#include <vector>
+
 #include <myassert.h>
 #include <mynewmem.h>
 #include <except.h>
-#include <spdata.h>
 #include <solman.h>
 #include <submat.h>
-#include <sparsemh.h>
+#include <spmapmh.h>
 
 /* classi dichiarate in questo file */
 class Y12LUSolver;      	/* solutore */
@@ -155,13 +157,13 @@ private:
    	integer iMatSize;
    	integer iCurSize;
 
-   	integer** ppiRow;
-   	integer** ppiCol;
-   	doublereal** ppdMat;
+   	std::vector<integer>*const piRow;
+   	std::vector<integer>*const piCol;
+   	std::vector<doublereal>*const pdMat;
    
    	integer iN;         	/* ordine della matrice */
    	integer iNonZeroes; 	/* coeff. non nulli */
-   	doublereal* pdRhs;  	/* Soluzione e termine noto */
+   	doublereal* pdRhs;  /* Soluzione e termine noto */
 private:   
    	integer* piHA;    	/* vettore di lavoro */
    	integer  iIFLAG[10];    /* vettore di lavoro */
@@ -178,9 +180,11 @@ private:
 protected:
    	/* Costruttore: si limita ad allocare la memoria */
    	Y12LUSolver(integer iMatOrd, integer iSize,
-		    integer** ppiTmpRow, integer** ppiTmpCol, 
-		    doublereal** ppdTmpMat,
-		    doublereal* pdTmpRhs, integer iPivotParam);
+		    std::vector<integer>*const piTmpRow, 
+		    std::vector<integer>*const piTmpCol, 
+		    std::vector<doublereal>*const  pdTmpMat,
+		    doublereal*  pdTmpRhs, 
+		    integer iPivotParam);
    	/* Distruttore */
    	~Y12LUSolver(void);
    
@@ -212,16 +216,17 @@ private:
 protected:
    	integer iMatMaxSize;  /* Dimensione max della matrice (per resize) */
    	integer iMatSize;     /* ordine della matrice */
-   	integer* piRow;       /* puntatore ad array di interi con:
+   	std::vector<integer> iRow;       /* array di interi con:
 			       * tabella di SparseData/indici di riga
 			       * di Y12LUSolver */
-   	integer* piCol;       /* puntatore ad array di interi con:
+   	std::vector<integer> iCol;       /* array di interi con:
 	                       * keys di SparseData/indici di colonna
 			       * di Y12LUSolver */
-   	doublereal* pdMat;    /* puntatore ad array di reali con la matrice */
-   	doublereal* pdVec;    /* p. ad array di reali con residuo/soluzione */
+   	std::vector<doublereal> dMat;    /* reali con la matrice */
+   	std::vector<doublereal> dVec;    /* reali con residuo/soluzione */
    
-   	SparseMatrixHandler* pMH; /* puntatore a SparseMatrixHandler */
+	mutable SpMapMatrixHandler MH; /* SparseMatrixHandler */
+   	/* SparseMatrixHandler* pMH;  puntatore a SparseMatrixHandler */
    	VectorHandler* pVH;   /* puntatore a VectorHandler */
    	Y12LUSolver* pLU;     /* puntatore a Y12LUSolver */
    
@@ -265,15 +270,14 @@ public:
 		pLU->pdRhs = pRes;
 	};
    
-   	/* sposta il puntatore al vettore del residuo */
+   	/* sposta il puntatore al vettore della soluzione */
    	void ChangeSolPoint(doublereal* pSol){
 		pLU->pdRhs = pSol;
 	};
 
    	/* Rende disponibile l'handler per la matrice */
    	MatrixHandler* pMatHdl(void) const {
-      		ASSERT(pMH != NULL);	
-      		return pMH;
+      		return &MH;
    	};
    
    	/* Rende disponibile l'handler per il termine noto */

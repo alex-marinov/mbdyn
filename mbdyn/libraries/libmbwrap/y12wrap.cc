@@ -47,14 +47,16 @@
 
 /* Costruttore: si limita ad allocare la memoria */
 Y12LUSolver::Y12LUSolver(integer iMatOrd, integer iSize,
-			 integer** ppiTmpRow, integer** ppiTmpCol,
-			 doublereal** ppdTmpMat,
-			 doublereal* pdTmpRhs, integer iPivotParam)
+			 std::vector<integer>*const piTmpRow, 
+			 std::vector<integer>*const piTmpCol,
+			 std::vector<doublereal>*const pdTmpMat,
+			 doublereal* pdTmpRhs, 
+			 integer iPivotParam)
 : iMatSize(iSize),
 iCurSize(iSize),
-ppiRow(ppiTmpRow),
-ppiCol(ppiTmpCol),
-ppdMat(ppdTmpMat),
+piRow(piTmpRow),
+piCol(piTmpCol),
+pdMat(pdTmpMat),
 iN(iMatOrd),
 iNonZeroes(0),
 pdRhs(pdTmpRhs),
@@ -63,26 +65,12 @@ pdPIVOT(NULL),
 iFirstSol(-1)
 {
 	ASSERT(iMatSize > 0);
-	ASSERT(ppiRow != NULL);
-	ASSERT(ppiCol != NULL);
-	ASSERT(ppdMat != NULL);
-	ASSERT(*ppiRow != NULL);
-	ASSERT(*ppiCol != NULL);
-	ASSERT(*ppdMat != NULL);
+	ASSERT(piRow != NULL);
+	ASSERT(piCol != NULL);
+	ASSERT(pdMat != NULL);
 	ASSERT(pdRhs != NULL);
 	ASSERT(iN > 0);
 	
-#ifdef DEBUG_MEMMANAGER
-	ASSERT(defaultMemoryManager.fIsValid(*ppiRow, 
-				iMatSize*sizeof(integer)));
-	ASSERT(defaultMemoryManager.fIsValid(*ppiCol, 
-				iMatSize*sizeof(integer)));
-	ASSERT(defaultMemoryManager.fIsValid(*ppdMat, 
-				iMatSize*sizeof(doublereal)));
-	ASSERT(defaultMemoryManager.fIsValid(pdRhs, 
-				iN*sizeof(doublereal)));
-#endif /* DEBUG_MEMMANAGER */
-
 	SAFENEWARR(piHA, integer, 11*iN);
 	SAFENEWARR(pdPIVOT, doublereal, iN);
 	
@@ -123,27 +111,12 @@ Y12LUSolver::IsValid(void) const
 {
 	ASSERT(iMatSize > 0);
 	ASSERT(iCurSize > 0 && iCurSize <= iMatSize);
-	ASSERT(ppiRow != NULL);
-	ASSERT(ppiCol != NULL);
-	ASSERT(ppdMat != NULL);
-	ASSERT(*ppiRow != NULL);
-	ASSERT(*ppiCol != NULL);
-	ASSERT(*ppdMat != NULL);
+	ASSERT(piRow != NULL);
+	ASSERT(piCol != NULL);
+	ASSERT(pdMat != NULL);
 	ASSERT(pdRhs != NULL);
 	ASSERT(iN > 0); 
 	
-#ifdef DEBUG_MEMMANAGER
-	ASSERT(defaultMemoryManager.fIsValid(*ppiRow, 
-				iMatSize*sizeof(integer)));
-	ASSERT(defaultMemoryManager.fIsValid(*ppiCol, 
-				iMatSize*sizeof(integer)));
-	ASSERT(defaultMemoryManager.fIsValid(*ppdMat, 
-				iMatSize*sizeof(doublereal)));
-	
-	ASSERT(defaultMemoryManager.fIsValid(pdRhs, 
-				iN*sizeof(doublereal)));
-#endif /* DEBUG_MEMMANAGER */
-
 	ASSERT(piHA != NULL);
 	ASSERT(pdPIVOT != NULL);
 	
@@ -196,10 +169,9 @@ Y12LUSolver::fLUFactor(void)
 	iIFLAG[I_1] = 0;
 	iIFLAG[I_5] = 2;
 	
-	/* Prepares for factorization */
-	__FC_DECL__(y12mbf)(&iN, &iNonZeroes, *ppdMat,
-			    *ppiCol, &iCurSize,
-			    *ppiRow, &iCurSize,
+	__FC_DECL__(y12mbf)(&iN, &iNonZeroes, &((*pdMat)[0]),
+			    &((*piCol)[0]), &iCurSize,
+			    &((*piRow)[0]), &iCurSize,
 			    piHA, &iN,
 			    dAFLAG, iIFLAG, &iIFAIL);
 			    
@@ -212,9 +184,9 @@ Y12LUSolver::fLUFactor(void)
 	}
 
 	/* actual factorization */
-	__FC_DECL__(y12mcf)(&iN, &iNonZeroes, *ppdMat,
-			    *ppiCol, &iCurSize,
-			    *ppiRow, &iCurSize,
+	__FC_DECL__(y12mcf)(&iN, &iNonZeroes, &((*pdMat)[0]),
+			    &((*piCol)[0]), &iCurSize,
+			    &((*piRow)[0]), &iCurSize,
 			    pdPIVOT, pdRhs,
 			    piHA, &iN,
 			    dAFLAG, iIFLAG, &iIFAIL);
@@ -246,8 +218,8 @@ Y12LUSolver::Solve(void)
 
 	integer iIFAIL = 0;
 	
-	__FC_DECL__(y12mdf)(&iN, *ppdMat, &iCurSize, pdRhs,
-			    pdPIVOT, *ppiCol,
+	__FC_DECL__(y12mdf)(&iN, &((*pdMat)[0]), &iCurSize, pdRhs,
+			    pdPIVOT, &((*piCol)[0]),
 			    piHA, &iN,
 			    iIFLAG, &iIFAIL);
 	
@@ -531,11 +503,10 @@ Y12SparseLUSolutionManager::Y12SparseLUSolutionManager(integer iSize,
 						       const doublereal& dPivotFactor) :
 iMatMaxSize(iSize),
 iMatSize(iSize), 
-piRow(NULL),
-piCol(NULL), 
-pdMat(NULL),
-pdVec(NULL),
-pMH(NULL),
+// iRow(iWorkSpaceSize,0),
+// iCol(iWorkSpaceSize,0), 
+// dMat(iWorkSpaceSize,0.),
+MH(iSize),
 pVH(NULL),
 pLU(NULL),
 fHasBeenReset(1),
@@ -544,7 +515,6 @@ optimizeWorkSize(false)
    	ASSERT(iSize > 0);
    	ASSERT((dPivotFactor >= 0.0) && (dPivotFactor <= 1.0));
 
-	integer iWMatSize;
 
    	/* Valore di default */
    	if (iWorkSpaceSize == 0) {
@@ -555,28 +525,12 @@ optimizeWorkSize(false)
       		iWorkSpaceSize = 3*iSize*iSize;
 
 		/*
-		 * hash table requires an optimal size to reduce 
-		 * collisions; the size is tuned based on matrix
-		 * filling at previous iteration
-		 */
-		iWMatSize = 2*iSize*iSize;
-
-		/*
 		 * work size will be optimized
 		 */
 		optimizeWorkSize = true;
 
-   	} else if (iWorkSpaceSize > 2*iSize*iSize) {
-		/*
-		 * If work size is specified, limit matrix size 
-		 * to trade collision reduction with reset time
-		 */
-		iWMatSize = 2*iSize*iSize;
-		
-	} else {
-		iWMatSize = iWorkSpaceSize;
-	}
-
+   	}
+	
 	integer iPivot;
 	if (dPivotFactor == 0.) {
 		iPivot = 0;
@@ -585,25 +539,20 @@ optimizeWorkSize(false)
 	}
 
    	/* Alloca arrays */
-   	SAFENEWARR(piRow, integer, iWorkSpaceSize);
-   	SAFENEWARR(piCol, integer, iWorkSpaceSize);
-   	SAFENEWARR(pdMat, doublereal, iWorkSpaceSize);
-   	SAFENEWARR(pdVec, doublereal, iMatSize);
+	dVec.resize(iMatSize,0.);
    
    	/* Alloca handlers ecc. */
-   	SAFENEWWITHCONSTRUCTOR(pMH, 
-			       SparseMatrixHandler,
-			       SparseMatrixHandler(iMatSize, &piRow, 
-			       			   &piCol, &pdMat,
-			       			   iWMatSize));
    	SAFENEWWITHCONSTRUCTOR(pVH,
 			       MyVectorHandler,
-			       MyVectorHandler(iMatSize, pdVec));
+			       MyVectorHandler(iMatSize, &(dVec[0])));
+	iRow.reserve(iWorkSpaceSize);
+	iCol.reserve(iWorkSpaceSize);
+	dMat.reserve(iWorkSpaceSize);
    	SAFENEWWITHCONSTRUCTOR(pLU, 
 			       Y12LUSolver,
 			       Y12LUSolver(iMatSize, iWorkSpaceSize,
-			       		   &piRow, &piCol,
-					   &pdMat, pdVec, iPivot));
+			       		   &iRow, &iCol,
+					   &dMat, &(dVec[0]), iPivot));
    
 #ifdef DEBUG
    	IsValid();
@@ -625,23 +574,8 @@ Y12SparseLUSolutionManager::~Y12SparseLUSolutionManager(void)
    	if (pVH != NULL) {      
       		SAFEDELETE(pVH);
    	}
-   	if (pMH != NULL) {
-      		SAFEDELETE(pMH);
-   	}
    
    	/* Dealloca arrays */
-   	if (pdVec != NULL) {	
-      		SAFEDELETEARR(pdVec);
-   	}
-   	if (pdMat != NULL) {	
-      		SAFEDELETEARR(pdMat);
-   	}
-   	if (piCol != NULL) {	
-      		SAFEDELETEARR(piCol);
-   	}
-   	if (piRow != NULL) {	
-      		SAFEDELETEARR(piRow);
-   	}
 }
 
 /* Test di validita' del manager */
@@ -650,21 +584,12 @@ Y12SparseLUSolutionManager::IsValid(void) const
 {   
    	ASSERT(iMatMaxSize > 0);
    	ASSERT(iMatSize > 0);
-   	ASSERT(pMH != NULL);
-   	ASSERT(pdMat != NULL);
-   	ASSERT(piRow != NULL);
-   	ASSERT(piCol != NULL);
    
 #ifdef DEBUG_MEMMANAGER
-   	ASSERT(defaultMemoryManager.fIsPointerToBlock(piRow));
-   	ASSERT(defaultMemoryManager.fIsPointerToBlock(piCol));
-   	ASSERT(defaultMemoryManager.fIsPointerToBlock(pdMat));
-   	ASSERT(defaultMemoryManager.fIsPointerToBlock(pMH));
    	ASSERT(defaultMemoryManager.fIsPointerToBlock(pVH));
    	ASSERT(defaultMemoryManager.fIsPointerToBlock(pLU));
 #endif /* DEBUG_MEMMANAGER */
    
-   	ASSERT((pMH->IsValid(), 1));
    	ASSERT((pVH->IsValid(), 1));
    	ASSERT((pLU->IsValid(), 1));
 }
@@ -680,13 +605,15 @@ Y12SparseLUSolutionManager::PacVec(void)
    	ASSERT(fHasBeenReset == 1);
 	
 	/* FIXME: move this to the matrix handler! */
-   	pLU->iNonZeroes = pMH->iPacVec();
+   	pLU->iNonZeroes = MH.MakeIndexForm(dMat,iRow,iCol,1);
 
+#if 0
 	/*
 	 * This is not much important because we actually have
 	 * all the space we need; the real optimization is in reducing
 	 * the space for the sparse matrix.
 	 */
+
 	if (optimizeWorkSize) {
 		integer cs = pLU->iGetCurSize();
 		integer nz = pLU->iNonZeroes;
@@ -711,6 +638,7 @@ Y12SparseLUSolutionManager::PacVec(void)
 		}
 		pMH->SetCurSize(2*nz);	/* optimal fill? */
 	}
+#endif
 }
 
 /* Inizializza il gestore delle matrici */
@@ -721,7 +649,7 @@ Y12SparseLUSolutionManager::MatrInit(const doublereal& dResetVal)
    	IsValid();
 #endif /* DEBUG */
 
-   	pMH->Init(dResetVal);
+   	MH.Init(dResetVal);
    	fHasBeenReset = flag(1);
 }
 
@@ -734,6 +662,15 @@ Y12SparseLUSolutionManager::Solve(const doublereal /* dCoef */)
 #endif /* DEBUG */
 
    	if (fHasBeenReset == 1) {
+// 		std::fill(iRow.begin(),iRow.end(),0);
+// 		std::fill(iCol.begin(),iCol.end(),0);
+// 		std::fill(dMat.begin(),dMat.end(),0.);
+// 		iRow.resize(iRow.capacity(),0);
+// 		iCol.resize(iCol.capacity(),0);
+// 		dMat.resize(dMat.capacity(),0.);
+// 		std::fill(iRow.begin(),iRow.end(),0);
+// 		std::fill(iCol.begin(),iCol.end(),0);
+// 		std::fill(dMat.begin(),dMat.end(),0.);
       		PacVec();
       		if (pLU->fLUFactor() < 0) {	 
 	 		THROW(Y12SparseLUSolutionManager::ErrGeneric());

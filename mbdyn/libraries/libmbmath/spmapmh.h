@@ -98,8 +98,8 @@ public:
 
 	virtual ~SpMapMatrixHandler() {};
 
-	void Init(const double& = 0.) {
-		NO_OP;
+	void Init(const double& c = 0.) {
+		Reset(c);
 	};
 	long int iGetNumRows(void) const {
 		return NRows;
@@ -200,6 +200,38 @@ public:
                 Ai.resize(Nz());
                 Ap.resize(iGetNumCols()+1);
                 MakeCompressedColumnForm(&(Ax[0]),&(Ai[0]),&(Ap[0]));
+        };
+	integer MakeIndexForm(
+		doublereal *const Ax,
+		integer *const Arow,
+		integer *const Acol,
+		integer offset=0) const {
+		
+		integer x_ptr = 0;
+
+		row_cont_type::const_iterator ri, re;		
+		
+		for (int col=0; col<NCols; col++) {
+			re = col_indices[col].end();
+			for (ri = col_indices[col].begin();ri != re; ri++) {
+				Ax[x_ptr] = ri->second;
+				Arow[x_ptr] = ri->first+offset;
+				Acol[x_ptr] = col+offset;
+				x_ptr++;
+			}
+		}
+		ASSERTMSGBREAK(x_ptr == NZ, "Error in SpMapMatrixHandler::MakeIndexForm");
+		return Nz();
+	};
+        integer MakeIndexForm(
+                std::vector<doublereal>& Ax,
+                std::vector<integer>& Arow,
+                std::vector<integer>& Acol,
+		integer offset=0) const {
+                Ax.resize(Nz());
+                Arow.resize(Nz());
+                Acol.resize(Nz());
+                return MakeIndexForm(&(Ax[0]),&(Arow[0]),&(Acol[0]),offset);
         };
 	void Reset(Real r = 0.) {
 		row_cont_type::const_iterator re;
