@@ -198,6 +198,20 @@ public:
 	/* Contributo al residuo durante l'assemblaggio iniziale */
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
+
+#ifdef MBDYN_X_WORKAROUND_GCC_3_2
+	virtual unsigned int iGetNumPrivData(void) const {
+		return DeformableDispJoint::iGetNumPrivData();
+	};
+	virtual unsigned int iGetPrivDataIdx(const char *s) const {
+		return DeformableDispJoint::iGetPrivDataIdx(s);
+	};
+	virtual doublereal dGetPrivData(unsigned int i) const {
+		return dGetPrivData(i);
+	};
+#endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
+
+
 };
 
 /* ElasticDispJoint - end */
@@ -278,6 +292,19 @@ public:
 	/* Contributo al residuo durante l'assemblaggio iniziale */
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
+
+#ifdef MBDYN_X_WORKAROUND_GCC_3_2
+	virtual unsigned int iGetNumPrivData(void) const {
+		return DeformableDispJoint::iGetNumPrivData();
+	};
+	virtual unsigned int iGetPrivDataIdx(const char *s) const {
+		return DeformableDispJoint::iGetPrivDataIdx(s);
+	};
+	virtual doublereal dGetPrivData(unsigned int i) const {
+		return dGetPrivData(i);
+	};
+#endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
+
 };
 
 /* ViscousDispJoint - end */
@@ -358,6 +385,18 @@ public:
 	/* Contributo al residuo durante l'assemblaggio iniziale */
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
+
+#ifdef MBDYN_X_WORKAROUND_GCC_3_2
+	virtual unsigned int iGetNumPrivData(void) const {
+		return DeformableDispJoint::iGetNumPrivData();
+	};
+	virtual unsigned int iGetPrivDataIdx(const char *s) const {
+		return DeformableDispJoint::iGetPrivDataIdx(s);
+	};
+	virtual doublereal dGetPrivData(unsigned int i) const {
+		return dGetPrivData(i);
+	};
+#endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
 };
 
 /* ViscoElasticDispJoint - end */
