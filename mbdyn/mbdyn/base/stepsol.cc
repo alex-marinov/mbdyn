@@ -104,8 +104,13 @@ ImplicitStepIntegrator::EvalProd(doublereal Tau, const VectorHandler& f0,
          */
 	if (bEvalProdCalledFirstTime) {
 		XTau.Resize(w.iGetSize());
+		SavedState.Resize(w.iGetSize());
+		SavedDerState.Resize(w.iGetSize());
 		bEvalProdCalledFirstTime = false;
 	}
+	SavedState=(*pXCurr);
+	SavedDerState=(*pXPrimeCurr);
+
 	/* if w = 0; J * w = 0 */ 
 	ASSERT(pDM != NULL);
         
@@ -133,7 +138,10 @@ ImplicitStepIntegrator::EvalProd(doublereal Tau, const VectorHandler& f0,
 	this->Residual(&z);
 	XTau.ScalarMul(XTau, -1.);
 	/* riporta tutto nelle condizioni inziali */
-	this->Update(&XTau);
+	//this->Update(&XTau);
+	*pXCurr=SavedState;
+	*pXPrimeCurr=SavedDerState;
+	pDM->Update();
 	z -= f0;
 	z.ScalarMul(z, -1./Tau);
 	return;
