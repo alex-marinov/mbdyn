@@ -250,6 +250,20 @@ public:
 "\n"
 "\t\t1. - <friction amplitude coefficient> * tanh( <epsilon prime> / <reference epsilon prime> )\n"
 "\n"
+"\toutput available as element private data; syntax:\n"
+"\n"
+"\t\t# in nodes data block\n"
+"\t\tparameter: <parameter node label> , element ;\n"
+"\t\t# in elements data block\n"
+"\t\tbind: <rod label> , joint , <parameter node label> ,\n"
+"\t\t\tstring , \"constitutiveLaw.<X>\" ;\n"
+"\n"
+"\twhere \"<X>\" can be:\n"
+"\t\t\"p\":  gas pressure\n"
+"\t\t\"A\":  metering area\n"
+"\t\t\"Fe\": elastic force\n"
+"\t\t\"Fv\": viscous force\n"
+"\n"
 				<< std::endl;
 
 			if (!HP.IsArg()) {
