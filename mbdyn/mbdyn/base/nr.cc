@@ -175,20 +175,9 @@ rebuild_matrix:;
 		iPerformedIterations++;
 		
 		if (outputJac()) {
-#ifdef USE_UMFPACK
-			if (dynamic_cast<UmfpackSparseSolutionManager*>(pSM) == 0) {
-#endif /* USE_UMFPACK */
-				silent_cerr("Warning, Jacobian output "
-						"avaliable only "
-						"with umfpack solver"
-						<< std::endl);
-#ifdef USE_UMFPACK
-			} else {
-			 	silent_cout("Jacobian:" << std::endl
-						<< *(pSM->pMatHdl()));
-		 	}
-#endif /* USE_UMFPACK */
-      		}		
+			silent_cout("Jacobian:" << std::endl
+					<< *(pSM->pMatHdl()));
+		}		
 		
 		pSM->Solve();
 
