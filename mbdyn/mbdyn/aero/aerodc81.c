@@ -576,7 +576,12 @@ c81_aerod2_u(double* W, double* VAM, double* TNG, double* OUTA,
 		cl += cn*v[V_X]/vp;	/* cos(alpha) */
 		cd -= cn*v[V_Y]/vp;	/* sin(alpha) */
 
-		cm = cm+dcma*DAM+DCM*C1;
+		/* 
+		 * I suspect Bielawa '75 considers cm positive 
+		 * when nose-down, while the c81 data considers 
+		 * it positive when nose-up
+		 */
+		cm -= dcma*DAM+DCM*C1;
 
 		break;
 	}

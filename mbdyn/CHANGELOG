@@ -12,6 +12,7 @@ MBDyn 1.1 Engineering
 		- merged scalar and parallel multistep integrators
 		- detects if run by mpirun (appropriate MPI initialization)
 	Bug fixes:
+		- fix unsteady Cm sign bug in unsteady c81 aerodynamics
 	Known bugs:
 		- there's a library cross-dependency that's not handled
 		  correctly by recent versions of libtool (e.g. 1.4.1).

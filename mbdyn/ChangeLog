@@ -6,6 +6,9 @@ Copyright (C) 1996-2002
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Thu Mar 28 07:45:11 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
+ - fix unsteady Cm sign in c81 aerodynamics
+
 *** Wed Mar 27 17:28:42 CET 2002 Pierangelo Masarati <masarati@aero.polimi.it>
  - merged scalar and parallel multistep integrators
  - detects whether it is invoked by mpirun
