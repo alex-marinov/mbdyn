@@ -44,7 +44,7 @@ C81Data::C81Data(unsigned int uLabel)
    	NO_OP;
 }
 
-AeroData::AeroData(integer u) 
+AeroData::AeroData(AeroData::UnsteadyModel u) 
 : unsteadyflag(u), Omega(0.)
 {
    	NO_OP;
@@ -76,8 +76,28 @@ AeroData::SetSectionData(const doublereal& abscissa,
    	VAM[5] = twist;
    	Omega = omega;
 }
+
+std::ostream&
+AeroData::RestartUnsteady(std::ostream& out) const
+{
+	switch (unsteadyflag) {
+	case AeroData::HARRIS:
+		out << ", unsteady, harris";
+		break;
+
+	case AeroData::BIELAWA:
+		out << ", unsteady, bielawa";
+		break;
+
+	default:
+		break;
+	}
+
+	return out;
+}
    
-STAHRAeroData::STAHRAeroData(integer u, integer p, DriveCaller *ptime) 
+STAHRAeroData::STAHRAeroData(AeroData::UnsteadyModel u, integer p, 
+		DriveCaller *ptime) 
 : AeroData(u), profile(p), a(NULL), t(NULL), iPoints(0), pTime(ptime)
 {
 	ASSERT(u ? ptime : 1);
@@ -85,10 +105,15 @@ STAHRAeroData::STAHRAeroData(integer u, integer p, DriveCaller *ptime)
 
 STAHRAeroData::~STAHRAeroData(void)
 {
-	if (unsteadyflag) {
+	switch (unsteadyflag) {
+	case AeroData::HARRIS:
+	case AeroData::BIELAWA:
 		ASSERT(ptime);
 		SAFEDELETE(pTime);
 		SAFEDELETEARR(a);
+
+	default:
+		break;
 	}
 }
    
@@ -108,14 +133,16 @@ STAHRAeroData::Restart(std::ostream& out) const
       		THROW(ErrGeneric());
    	}
 	
-   	return out << ", unsteady, " << unsteadyflag;
+	return RestartUnsteady(out);
 }
    
 int 
 STAHRAeroData::GetForces(int i, doublereal* W, doublereal* TNG, 
 		doublereal* OUTA) 
 {
-	if (unsteadyflag) {
+	switch (unsteadyflag) {
+	case AeroData::HARRIS: 
+	case AeroData::BIELAWA: {
 		doublereal 	coe[3];
 		integer		order = 3;
 
@@ -143,10 +170,16 @@ STAHRAeroData::GetForces(int i, doublereal* W, doublereal* TNG,
 			OUTA[ALF1] = 0.;
 			OUTA[ALF2] = 0.;
 		}
+
+		break;
 	}
 
-   	__FC_DECL__(aerod2)(W, VAM, TNG, OUTA, 
-			    &unsteadyflag, &Omega, &profile);
+	default:
+		break;
+	}
+
+	integer u = unsteadyflag;
+   	__FC_DECL__(aerod2)(W, VAM, TNG, OUTA, &u, &Omega, &profile);
    	return 0;
 }
 
@@ -181,7 +214,8 @@ STAHRAeroData::SetNumPoints(int i)
 	}
 }
 
-C81AeroData::C81AeroData(integer u, integer p, const c81_data* d)
+C81AeroData::C81AeroData(AeroData::UnsteadyModel u, integer p, 
+		const c81_data* d)
 : AeroData(u), profile(p), data(d) 
 {
    	ASSERT(data != NULL);
@@ -190,7 +224,9 @@ C81AeroData::C81AeroData(integer u, integer p, const c81_data* d)
 std::ostream& 
 C81AeroData::Restart(std::ostream& out) const 
 {
-   	return out << "C81, " << profile << ", unsteady, " << unsteadyflag;
+   	out << "C81, " << profile;
+
+	return RestartUnsteady(out);
 }
 
 int
@@ -202,7 +238,7 @@ C81AeroData::GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA)
 
 
 C81MultipleAeroData::C81MultipleAeroData(
-		integer u,
+		AeroData::UnsteadyModel u,
 		integer np,
 		integer *p,
 		doublereal *ub,
@@ -226,11 +262,12 @@ C81MultipleAeroData::~C81MultipleAeroData(void)
 std::ostream& 
 C81MultipleAeroData::Restart(std::ostream& out) const 
 {
-   	out << "C81, ";
+   	out << "C81, multiple";
 	for (int i = 0; i < nprofiles; i++) {
-		out << profiles[i] << ", " << upper_bounds[i] << ", ";
+		out << ", " << profiles[i] << ", " << upper_bounds[i];
 	}
-	return out << "unsteady, " << unsteadyflag;
+
+	return RestartUnsteady(out);
 }
 
 void 

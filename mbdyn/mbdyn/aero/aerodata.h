@@ -54,16 +54,24 @@ public:
 /* AeroData - begin */
 
 class AeroData {
+public:
+	enum UnsteadyModel {
+		STEADY = 0,
+		HARRIS = 1,
+		BIELAWA = 2
+	};
+	
 protected:
-   	integer unsteadyflag;
+   	UnsteadyModel unsteadyflag;
    	doublereal VAM[6];
    	doublereal Omega;
    
 public:
-   	AeroData(integer u = 0);
+   	AeroData(UnsteadyModel u = STEADY);
    	virtual ~AeroData(void);
    
    	virtual std::ostream& Restart(std::ostream& out) const = 0;   
+	std::ostream& RestartUnsteady(std::ostream& out) const;
    	void SetAirData(const doublereal& rho, const doublereal& c);
    
    	virtual void SetSectionData(const doublereal& abscissa,
@@ -77,11 +85,11 @@ public:
 	GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA) = 0;
 	virtual void Update(int i) { NO_OP; };
 	virtual void SetNumPoints(int i) { NO_OP; };
-	inline integer Unsteady(void) const;
+	inline AeroData::UnsteadyModel Unsteady(void) const;
 };
 
 
-inline integer
+inline AeroData::UnsteadyModel
 AeroData::Unsteady(void) const
 {
 	return unsteadyflag;
@@ -103,7 +111,8 @@ protected:
 	enum { ALF1 = 8, ALF2 = 9 };
    
 public: 
-   	STAHRAeroData(integer u, integer p, DriveCaller *ptime = NULL);
+   	STAHRAeroData(AeroData::UnsteadyModel u, integer p, 
+			DriveCaller *ptime = NULL);
 	virtual ~STAHRAeroData(void);
    
 	std::ostream& Restart(std::ostream& out) const;   
@@ -123,7 +132,7 @@ protected:
    	const c81_data* data;
    
 public: 
-   	C81AeroData(integer u, integer p, const c81_data* d);
+   	C81AeroData(AeroData::UnsteadyModel u, integer p, const c81_data* d);
 
 	std::ostream& Restart(std::ostream& out) const;
    	int GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA);
@@ -144,7 +153,7 @@ protected:
 
 public: 
    	C81MultipleAeroData(
-			integer u,
+			AeroData::UnsteadyModel u,
 			integer np,
 			integer *p,
 			doublereal *ub,
