@@ -71,6 +71,7 @@ enum KeyWords {
    JOINT,
    COUPLE,
    BEAM,
+   BEAM3,		/* same as BEAM */
    BEAM2,
    HBEAM,
    
@@ -78,6 +79,7 @@ enum KeyWords {
    ROTOR,
    AERODYNAMICBODY,
    AERODYNAMICBEAM,
+   AERODYNAMICBEAM3,	/* same as AERODYNAMICBEAM */
    AERODYNAMICBEAM2,
    AEROMODAL,
    
@@ -115,6 +117,7 @@ void DataManager::ReadElems(MBDynParser& HP)
       "joint",
       "couple",
       "beam",
+      "beam3",
       "beam2",
       "hbeam",
       
@@ -122,6 +125,7 @@ void DataManager::ReadElems(MBDynParser& HP)
       "rotor",
       "aerodynamic" "body",
       "aerodynamic" "beam",
+      "aerodynamic" "beam3",
       "aerodynamic" "beam2",
       "aero" "modal",
       
@@ -207,6 +211,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	     break;
 	  }
 	  case BEAM:
+	  case BEAM3:			/* same as BEAM */
 	  case BEAM2:
 	  case HBEAM: {
 	     DEBUGLCOUT(MYDEBUG_INPUT, "beams" << std::endl);
@@ -226,6 +231,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	  }
 	  case AERODYNAMICBODY:
 	  case AERODYNAMICBEAM:
+	  case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
 	  case AERODYNAMICBEAM2:{
 	     DEBUGLCOUT(MYDEBUG_INPUT, "aerodynamic" << std::endl);
 	     Typ = Elem::AERODYNAMIC;
@@ -326,6 +332,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	    t = Elem::FORCE;
 	    break;
 	  case BEAM:
+	  case BEAM3:			/* same as BEAM */
 	  case BEAM2:
 	  case HBEAM:
 	    t = Elem::BEAM;
@@ -338,6 +345,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	    break;
 	  case AERODYNAMICBODY:
 	  case AERODYNAMICBEAM:	
+	  case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
 	  case AERODYNAMICBEAM2:	
 	    t = Elem::AERODYNAMIC;
 	    break;
@@ -538,12 +546,14 @@ void DataManager::ReadElems(MBDynParser& HP)
 		  case JOINT:
 		  case COUPLE:
 		  case BEAM:
+		  case BEAM3:			/* same as BEAM */
 		  case BEAM2:
 		  case HBEAM:
 #ifdef USE_AERODYNAMIC_ELEMS
 		  case ROTOR:
 		  case AERODYNAMICBODY:
 		  case AERODYNAMICBEAM:
+		  case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
 		  case AERODYNAMICBEAM2:
 		  case AEROMODAL:
 #endif /* USE_AERODYNAMIC_ELEMS */
@@ -600,6 +610,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 			break;
 		     }
 		     case BEAM:
+		     case BEAM3:		/* same as BEAM */
 		     case BEAM2:
 		     case HBEAM: {
 			ppE = ppFindElem(Elem::BEAM, uLabel);
@@ -616,6 +627,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		     }
 		     case AERODYNAMICBODY:
 		     case AERODYNAMICBEAM:
+		     case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
 		     case AERODYNAMICBEAM2:{
 			ppE = ppFindElem(Elem::AERODYNAMIC, uLabel);
 			break;
@@ -709,12 +721,14 @@ void DataManager::ReadElems(MBDynParser& HP)
 	      case JOINT:
 	      case COUPLE:
 	      case BEAM:
+	      case BEAM3:		/* same as BEAM */
 	      case BEAM2:
 	      case HBEAM:
 #ifdef USE_AERODYNAMIC_ELEMS
 	      case ROTOR:
 	      case AERODYNAMICBODY:
 	      case AERODYNAMICBEAM:
+	      case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
 	      case AERODYNAMICBEAM2:
 	      case AEROMODAL:
 #endif /* USE_AERODYNAMIC_ELEMS */
@@ -1026,6 +1040,7 @@ Elem** ReadOneElem(DataManager* pDM,
       
       /* trave */
     case BEAM:
+    case BEAM3:		/* same as BEAM */
     case BEAM2:
     case HBEAM: {      
        silent_cout("Reading beam " << uLabel << std::endl);
@@ -1056,6 +1071,7 @@ Elem** ReadOneElem(DataManager* pDM,
       
        switch (KeyWords(CurrType)) {
        case BEAM:
+       case BEAM3:	/* same as BEAM */
           *ppE = ReadBeam(pDM, HP, uLabel);
 	  break;
        case BEAM2:
@@ -1144,6 +1160,7 @@ Elem** ReadOneElem(DataManager* pDM,
       /* Elementi aerodinamici: aeromodal */
     case AERODYNAMICBODY:
     case AERODYNAMICBEAM:
+    case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
     case AERODYNAMICBEAM2: {
        silent_cout("Reading aerodynamic element " << uLabel << std::endl);
        
@@ -1177,20 +1194,18 @@ Elem** ReadOneElem(DataManager* pDM,
 	   break;
 	}
 	  
-	case AERODYNAMICBEAM: {
+	case AERODYNAMICBEAM:
+	case AERODYNAMICBEAM3:	/* same as BEAM */
 	   *ppE = ReadAerodynamicBeam(pDM, HP, uLabel);
 	   break;
-	}
 	  
-	case AERODYNAMICBEAM2: {
+	case AERODYNAMICBEAM2:
 	   *ppE = ReadAerodynamicBeam2(pDM, HP, uLabel);
 	   break;
-	}
 	  
-	default: {
+	default:
 	   ASSERTMSG(0, "You shouldn't have reached this point");
 	   break;
-	}
        }     
        
        break;
