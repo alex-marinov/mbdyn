@@ -38,7 +38,7 @@
 #include "drive.h"
 
 
-#if 1
+#if 0
 /* DistanceJoint - begin */
 
 class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {

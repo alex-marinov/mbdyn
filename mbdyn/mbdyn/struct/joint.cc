@@ -51,7 +51,9 @@
 #include <inplanej.h>  /* Vincoli di giacitura nel piano */
 #include <inline.h>
 #include <planej.h>
+/* No longer supported 
 #include <planedj.h>
+ */
 #include <prismj.h>    /* Vincolo prismatico */
 #include <rodj.h>      /* Aste elastiche */
 #include <spherj.h>
@@ -682,19 +684,11 @@ Elem* ReadJoint(DataManager* pDM,
 	  /* allocazione e creazione pattino */
 	case PLANEDISPLACEMENT: {
 
-	   /* 
-	    * FIXME: not working yet 
-	    */
-	   std::cerr << "PlaneDispJoint(" << uLabel << "): not supported yet"
+	   std::cerr << "PlaneDispJoint(" << uLabel << "): "
+		   "no longer supported; "
+		   "use an InPlane and a RevoluteRotation"
 		   << std::endl;
 	   THROW(ErrGeneric());
-	   
-	   SAFENEWWITHCONSTRUCTOR(pEl, 
-				  PlaneDispJoint,
-				  PlaneDispJoint(uLabel, pDO, pNode1, pNode2, 
-						 d1, d2, R1h, R2h, fOut));
-	   
-	   break;
 	}
 	  
 	default: {

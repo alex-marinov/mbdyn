@@ -203,55 +203,62 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Contributo della forza alle equazioni di equilibrio dei due nodi */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {	
-      WM.PutCoef(iCnt, 12+iCnt, 1.);
-      WM.PutCoef(6+iCnt, 12+iCnt, -1.);
+      WM.IncCoef(iCnt, 12+iCnt, 1.);
+      WM.DecCoef(6+iCnt, 12+iCnt, 1.);
    }
    
    WM.Add(4, 13, Mat3x3(d1Tmp));
-   WM.Add(10, 13, Mat3x3(-d2Tmp));   
+   WM.Sub(10, 13, Mat3x3(d2Tmp));   
    
    /* Moltiplica la forza ed il momento per il coefficiente
     * del metodo */
    Vec3 FTmp = F*dCoef;
    Vec3 MTmp = M*dCoef;
 
+   Vec3 e1a(R1hTmp.GetVec(1));
+   Vec3 e2a(R1hTmp.GetVec(2));
    Vec3 e3a(R1hTmp.GetVec(3));
    Vec3 e1b(R2hTmp.GetVec(1));
    Vec3 e2b(R2hTmp.GetVec(2));
-   MTmp = e2b*MTmp.dGet(1)-e1b*MTmp.dGet(2);
+   Vec3 e3b(R2hTmp.GetVec(3));
+
+   doublereal dM1 = MTmp.dGet(1)/2.;
+   doublereal dM2 = MTmp.dGet(2)/2.;
+
+   Mat3x3 Ma((Mat3x3(e3b, e2a) - Mat3x3(e2b, e3a))*dM1
+		   + (Mat3x3(e1b, e3a) - Mat3x3(e3b, e1a))*dM2);
+   Mat3x3 Mb((Mat3x3(e3a, e2b) - Mat3x3(e2a, e3b))*dM1
+		   + (Mat3x3(e1a, e3b) - Mat3x3(e3a, e1b))*dM2);
    
-   Mat3x3 MWedgee3aWedge(MTmp, e3a);
-   Mat3x3 e3aWedgeMWedge(e3a, MTmp);
-   
-   WM.Add(4, 4, Mat3x3(FTmp, d1Tmp)-MWedgee3aWedge);
-   WM.Add(4, 10, e3aWedgeMWedge);
-   
-   WM.Add(10, 4, MWedgee3aWedge);   
-   WM.Add(10, 10, Mat3x3(-FTmp, d2Tmp)-e3aWedgeMWedge);      
+   WM.Add(4, 4, Mat3x3(FTmp, d1Tmp)-Ma);
+   WM.Add(10, 4, Ma);
+
+   WM.Sub(4, 10, Mb);
+   WM.Sub(10, 10, Mat3x3(FTmp, d2Tmp)-Mb);      
    
    /* Contributo del momento alle equazioni di equilibrio dei nodi */
-   Vec3 Tmp1(e2b.Cross(e3a));
-   Vec3 Tmp2(e3a.Cross(e1b));
+   Vec3 Tmp1(e2b.Cross(e3a) - e3b.Cross(e2a));
+   Vec3 Tmp2(e3a.Cross(e1b) - e1a.Cross(e3b));
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      doublereal d = Tmp1.dGet(iCnt);
-      WM.PutCoef(3+iCnt, 16, d);
-      WM.PutCoef(9+iCnt, 16, -d);
-      d = Tmp2.dGet(iCnt);
-      WM.PutCoef(3+iCnt, 17, d);
-      WM.PutCoef(9+iCnt, 17, -d);
+      doublereal d = Tmp1.dGet(iCnt)/2.;
+      WM.IncCoef(3+iCnt, 16, d);
+      WM.DecCoef(9+iCnt, 16, d);
+      d = Tmp2.dGet(iCnt)/2.;
+      WM.IncCoef(3+iCnt, 17, d);
+      WM.DecCoef(9+iCnt, 17, d);
    }         
    
    /* Modifica: divido le equazioni di vincolo per dCoef */
    
    /* Equazioni di vincolo degli spostamenti */
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      WM.PutCoef(12+iCnt, iCnt, -1.);
-      WM.PutCoef(12+iCnt, 6+iCnt, 1.);
+      WM.DecCoef(12+iCnt, iCnt, 1.);
+      WM.IncCoef(12+iCnt, 6+iCnt, 1.);
    }
    
    WM.Add(13, 4, Mat3x3(d1Tmp));
-   WM.Add(13, 10, Mat3x3(-d2Tmp));
+   WM.Sub(13, 10, Mat3x3(d2Tmp));
    
    /* Equazione di vincolo del momento
     * 
@@ -265,11 +272,11 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
       doublereal d = Tmp1.dGet(iCnt);
-      WM.PutCoef(16, 3+iCnt, d);
-      WM.PutCoef(16, 9+iCnt, -d);
+      WM.IncCoef(16, 3+iCnt, d);
+      WM.DecCoef(16, 9+iCnt, d);
       d = Tmp2.dGet(iCnt);
-      WM.PutCoef(17, 3+iCnt, -d);
-      WM.PutCoef(17, 9+iCnt, d);
+      WM.DecCoef(17, 3+iCnt, d);
+      WM.IncCoef(17, 9+iCnt, d);
    }   
 
    if (fc) {
@@ -399,11 +406,15 @@ SubVectorHandler& PlaneHingeJoint::AssRes(SubVectorHandler& WorkVec,
    Mat3x3 R1hTmp(R1*R1h);
    Mat3x3 R2hTmp(R2*R2h);
    
+   Vec3 e1a(R1hTmp.GetVec(1));
+   Vec3 e2a(R1hTmp.GetVec(2));
    Vec3 e3a(R1hTmp.GetVec(3));
    Vec3 e1b(R2hTmp.GetVec(1));
    Vec3 e2b(R2hTmp.GetVec(2));
+   Vec3 e3b(R2hTmp.GetVec(3));
    
-   Vec3 MTmp(e2b.Cross(e3a)*M.dGet(1)+e3a.Cross(e1b)*M.dGet(2));
+   Vec3 MTmp((e2b.Cross(e3a)-e3b.Cross(e2a))*(M.dGet(1)/2.)
+		   +(e3a.Cross(e1b)-e1a.Cross(e3b))*(M.dGet(2)/2.));
    
    /* Equazioni di equilibrio, nodo 1 */
    WorkVec.Sub(1, F);
@@ -418,24 +429,26 @@ SubVectorHandler& PlaneHingeJoint::AssRes(SubVectorHandler& WorkVec,
 	
       /* Equazione di vincolo di posizione */
       WorkVec.Add(13, (x1+dTmp1-x2-dTmp2)/dCoef);
-      
+     
       /* Equazioni di vincolo di rotazione */
-      Vec3 Tmp = R1hTmp.GetVec(3);
-      WorkVec.PutCoef(16, Tmp.Dot(R2hTmp.GetVec(2))/dCoef);
-      WorkVec.PutCoef(17, Tmp.Dot(R2hTmp.GetVec(1))/dCoef);
+      WorkVec.PutCoef(16, (e2b.Dot(e3a) - e3b.Dot(e2a))/dCoef);
+      WorkVec.PutCoef(17, (e3a.Dot(e1b) - e1a.Dot(e3b))/dCoef);
+   }
 
-   }   
    if (fc) {
+      /* forse (e1a.Cross(e2b) - e2a.Cross(e1b))/2. e' meglio di e3a */
       Vec3 Omega1(pNode1->GetWCurr());
       Vec3 Omega2(pNode2->GetWCurr());
       doublereal v = (Omega1-Omega2).Dot(e3a)*r;
       doublereal modF = F.Norm();
-      fc->AssRes(WorkVec,12+NumSelfDof,iFirstReactionIndex+NumSelfDof,modF,v,XCurr,XPrimeCurr);
+      fc->AssRes(WorkVec, 12 + NumSelfDof, iFirstReactionIndex + NumSelfDof,
+		      modF, v, XCurr, XPrimeCurr);
       doublereal f = fc->fc();
-      doublereal shc = Sh_c->Sh_c(f,modF,v);
+      doublereal shc = Sh_c->Sh_c(f, modF, v);
       doublereal M3 = shc*modF*f;
-      WorkVec.Sub(4,e3a*M3);
-      WorkVec.Add(10,e3a*M3);
+
+      WorkVec.Sub(4, e3a*M3);
+      WorkVec.Add(10, e3a*M3);
    }
    
    return WorkVec;
@@ -483,7 +496,7 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
       Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),
 		    R2TmpT*F, M, F, R2Tmp*M)
 	<< " " << MatR2EulerAngles(RTmp)*dRaDegr
-	  << " " << R2TmpT*(pNode1->GetWCurr()-pNode2->GetWCurr()) << std::endl;
+	  << " " << R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()) << std::endl;
    }   
 }
 
@@ -1190,7 +1203,7 @@ void PlaneRotationJoint::Output(OutputHandler& OH) const
       Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),
 		    Zero3, M, Zero3, R2Tmp*M)
 	<< " " << Vec3(0., 0., dTheta)
-	<< " " << R2TmpT*(pNode1->GetWCurr()-pNode2->GetWCurr()) << std::endl;
+	<< " " << R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()) << std::endl;
    }
 }
 
@@ -1889,7 +1902,7 @@ void AxialRotationJoint::Output(OutputHandler& OH) const
       Joint::Output(OH.Joints(), "AxialRotation", GetLabel(),
 		    R2TmpT*F, M, F, R2Tmp*M) 
 	<< " " << MatR2EulerAngles(RTmp)*dRaDegr << " " << dGet()
-	<< " " << R2TmpT*(pNode1->GetWCurr()-pNode2->GetWCurr()) << std::endl;
+	<< " " << R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()) << std::endl;
    }
 }
 
