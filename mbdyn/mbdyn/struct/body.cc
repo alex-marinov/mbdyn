@@ -511,8 +511,10 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
         DEBUGLCOUT(MYDEBUG_INPUT, "position of mass(" << iCnt 
 		   << ") center of gravity = " << XgcTmp << endl);
       
-        /* matrice del mom. d'inerzia */
-        /* Usa la funzione che legge una matrice qualsiasi con parole chiave
+        /*
+	 * matrice del mom. d'inerzia
+	 *
+         * Usa la funzione che legge una matrice qualsiasi con parole chiave
          * per forme abbreviate:
          *   - null: matrice vuota
          *   - eye:  matrice identita'
