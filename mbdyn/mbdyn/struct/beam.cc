@@ -34,16 +34,16 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <ac/float.h>
+#include "ac/float.h"
 
-#include <constltp.h>
-#include <shapefnc.h>
-#include <beam.h>
-#include <pzbeam.h>
-#include <dataman.h>
+#include "dataman.h"
+#include "constltp.h"
+#include "shapefnc.h"
+#include "beam.h"
+#include "pzbeam.h"
 
 /*
  * Nota: non e' ancora stato implementato il contributo 
@@ -1756,7 +1756,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    
    /*     Legame costitutivo */
    ConstLawType::Type CLType_I = ConstLawType::UNKNOWN;
-   ConstitutiveLaw6D* pD_I = pDM->ReadConstLaw6D(HP, CLType_I);
+   ConstitutiveLaw6D* pD_I = HP.GetConstLaw6D(CLType_I);
    
    if (pD_I->iGetNumDof() != 0) {
    	   std::cerr << "line " << HP.GetLineData()
@@ -1815,7 +1815,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
        */
       pDII = pD_I->pCopy();
    } else {
-      pDII = pDM->ReadConstLaw6D(HP, CLTypeII);
+      pDII = HP.GetConstLaw6D(CLTypeII);
       
       if (pDII->iGetNumDof() != 0) {
    	      std::cerr << "line " << HP.GetLineData()

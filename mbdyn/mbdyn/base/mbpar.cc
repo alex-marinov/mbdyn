@@ -31,19 +31,21 @@
 /* parser */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <mbpar.h>
+#include "mbpar.h"
 
 #if defined(USE_HYDRAULIC_NODES)
-#include <hfluid.h>
+#include "hfluid.h"
 #endif /* USE_HYDRAULIC_NODES */
 
 #if defined(USE_AERODYNAMIC_ELEMS)
-#include <aerodc81.h>
-#include <c81data.h>
+#include "aerodc81.h"
+#include "c81data.h"
 #endif /* USE_AERODYNAMIC_ELEMS */
+
+#include "dataman.h"
 
 /* MBDynParser - begin */
 
@@ -62,21 +64,29 @@ mbdyn_warranty(std::ostream& out)
 		<< std::endl;
 }
 
-MBDynParser::MBDynParser(MathParser& MP, InputStream& streamIn,
+MBDynParser::MBDynParser(MathParser& MP, 
+		InputStream& streamIn,
 		const char *initial_file)
-: IncludeParser(MP, streamIn, initial_file)
+: IncludeParser(MP, streamIn, initial_file),
 #if defined(USE_STRUCT_NODES)
-, RFHD()
-, RF(RFHD)
+RFHD(),
+RF(RFHD),
 #endif /* USE_STRUCT_NODES */
 #if defined(USE_HYDRAULIC_NODES)
-, HFHD()
-, HF(HFHD)
+HFHD(),
+HF(HFHD),
 #endif /* USE_HYDRAULIC_NODES */
 #if defined(USE_AERODYNAMIC_ELEMS)
-, ADHD()
-, AD(ADHD)
+ADHD(),
+AD(ADHD),
 #endif /* USE_AERODYNAMIC_ELEMS */
+C1DHD(),
+C1D(C1DHD),
+C3DHD(),
+C3D(C3DHD),
+C6DHD(),
+C6D(C6DHD),
+pDM(0)
 {
 	NO_OP;
 }   
@@ -85,6 +95,13 @@ MBDynParser::MBDynParser(MathParser& MP, InputStream& streamIn,
 MBDynParser::~MBDynParser(void)
 {   
 	NO_OP;
+}
+
+void
+MBDynParser::SetDataManager(DataManager *pdm)
+{
+	ASSERT(pdm != NULL);
+	pDM = pdm;
 }
 
 #if defined(USE_STRUCT_NODES)
@@ -251,6 +268,127 @@ MBDynParser::C81Data_(void)
 }
 #endif /* USE_AERODYNAMIC_ELEMS */
 
+void 
+MBDynParser::ConstitutiveLaw_(void)
+{
+	if (FirstToken() == UNKNOWN) {
+		std::cerr << "Parser error in MBDynParser::ConstitutiveLaw_(),"
+			" colon expected at line "
+			<< GetLineData() << std::endl;
+		THROW(HighParser::ErrColonExpected());
+	}
+
+	if (pDM == 0) {
+		silent_cerr("consitutive law parsing at line "
+				<< GetLineData() << " allowed "
+				"only after control data block" << std::endl);
+		THROW(HighParser::ErrColonExpected());
+	}
+	
+	unsigned int uLabel(GetInt());
+	
+	/* Nome del fluido */
+	const char *sName = NULL;
+	if (IsKeyWord("name")) {
+		const char *sTmp = GetStringWithDelims();
+		SAFESTRDUP(sName, sTmp);
+	}
+
+	unsigned dim = GetInt();
+	ConstLawType::Type clt;
+	switch (dim) {
+	case 1:
+	{
+		ConstitutiveLaw1D *pCL = pDM->ReadConstLaw1D(*this, clt);
+		if (pCL == NULL) {
+			silent_cerr("unable to read constitutive law 1D " 
+					<< uLabel);
+			if (sName) {
+				silent_cerr(" (" << sName << ")");
+			}
+			silent_cerr(" at line " << GetLineData()
+					<< std::endl);
+			THROW(MBDynParser::ErrGeneric());
+		}
+	
+		if (C1D.Add(pCL)) {
+			silent_cerr("constitutive law 1D " << uLabel);
+			if (sName) {
+				silent_cerr(" (" << sName << ")");
+			}
+			silent_cerr(" already defined at line " 
+					<< GetLineData() << std::endl);
+			THROW(MBDynParser::ErrGeneric());
+		}
+		break;
+	}
+
+	case 3:
+	{
+		ConstitutiveLaw3D *pCL = pDM->ReadConstLaw3D(*this, clt);
+		if (pCL == NULL) {
+			silent_cerr("unable to read constitutive law 1D " 
+					<< uLabel);
+			if (sName) {
+				silent_cerr(" (" << sName << ")");
+			}
+			silent_cerr(" at line " << GetLineData()
+					<< std::endl);
+			THROW(MBDynParser::ErrGeneric());
+		}
+	
+		if (C3D.Add(pCL)) {
+			silent_cerr("constitutive law 3D " << uLabel);
+			if (sName) {
+				silent_cerr(" (" << sName << ")");
+			}
+			silent_cerr(" already defined at line " 
+					<< GetLineData() << std::endl);
+			THROW(MBDynParser::ErrGeneric());
+		}
+		break;
+	}
+
+	case 6:
+	{
+		ConstitutiveLaw6D *pCL = pDM->ReadConstLaw6D(*this, clt);
+		if (pCL == NULL) {
+			silent_cerr("unable to read constitutive law 6D " 
+					<< uLabel);
+			if (sName) {
+				silent_cerr(" (" << sName << ")");
+			}
+			silent_cerr(" at line " << GetLineData()
+					<< std::endl);
+			THROW(MBDynParser::ErrGeneric());
+		}
+	
+		if (C6D.Add(pCL)) {
+			silent_cerr("constitutive law 6D " << uLabel);
+			if (sName) {
+				silent_cerr(" (" << sName << ")");
+			}
+			silent_cerr(" already defined at line " 
+					<< GetLineData() << std::endl);
+			THROW(MBDynParser::ErrGeneric());
+		}
+		break;
+	}
+
+	default:
+		silent_cerr("unknown constitutive law dimensionality " 
+				<< dim << " at line " << GetLineData()
+				<< std::endl);
+		THROW(ErrGeneric());
+	}
+	
+	HydraulicFluid* pHF = ReadHydraulicFluid(*this, uLabel);
+
+	if (sName != NULL) {
+		pHF->PutName(sName);
+		SAFEDELETEARR(sName);
+	}
+}
 bool
 MBDynParser::GetDescription_int(const char *s)
 {
@@ -286,6 +424,10 @@ MBDynParser::GetDescription_int(const char *s)
 #else /* USE_AERODYNAMIC_ELEMS */
 		THROW(MBDynParser::ErrGeneric());
 #endif /* USE_AERODYNAMIC_ELEMS */
+
+	} else if (!strcmp(s, "constitutive" "law")) {
+		ConstitutiveLaw_();
+		return true;
 
 	/* Scrive la licenza */
 	} else if (!strcmp(s, "license")) {
@@ -767,7 +909,6 @@ MBDynParser::GetHydraulicFluid(void)
 	/* altrimenti usa un fluido predefinito, se lo trova */
 	unsigned int uLabel = GetInt();
 	const HydraulicFluid* pHF = HF.Get(uLabel);
-	ASSERT(pHF != NULL);
 	if (pHF == NULL) {
 		std::cerr << "hydraulic fluid " << uLabel
 			<< " is undefined at line " << GetLineData() << std::endl;
@@ -792,6 +933,87 @@ MBDynParser::GetC81Data(integer profile)
 	return data;
 }
 #endif /* USE_AERODYNAMIC_ELEM */
+
+ConstitutiveLaw1D *
+MBDynParser::GetConstLaw1D(ConstLawType::Type& clt)
+{
+	if (pDM == 0) {
+		silent_cerr("consitutive law parsing at line "
+				<< GetLineData() << " allowed "
+				"only after control data block" << std::endl);
+		THROW(HighParser::ErrColonExpected());
+	}
+
+	if (!IsKeyWord("reference")) {
+		return pDM->ReadConstLaw1D(*this, clt);
+	}
+
+	unsigned int uLabel = GetInt();
+	const ConstitutiveLaw1D *pCL = C1D.Get(uLabel);
+	if (pCL == NULL) {
+		silent_cerr("constitutive law 1D " << uLabel
+				<< " is undefined at line "
+				<< GetLineData() << std::endl);
+		THROW(MBDynParser::ErrGeneric());
+	}
+
+	clt = pCL->GetConstLawType();
+	return pCL->pCopy();
+}
+
+ConstitutiveLaw3D *
+MBDynParser::GetConstLaw3D(ConstLawType::Type& clt)
+{
+	if (pDM == 0) {
+		silent_cerr("consitutive law parsing at line "
+				<< GetLineData() << " allowed "
+				"only after control data block" << std::endl);
+		THROW(HighParser::ErrColonExpected());
+	}
+
+	if (!IsKeyWord("reference")) {
+		return pDM->ReadConstLaw3D(*this, clt);
+	}
+
+	unsigned int uLabel = GetInt();
+	const ConstitutiveLaw3D *pCL = C3D.Get(uLabel);
+	if (pCL == NULL) {
+		silent_cerr("constitutive law 3D " << uLabel
+				<< " is undefined at line "
+				<< GetLineData() << std::endl);
+		THROW(MBDynParser::ErrGeneric());
+	}
+
+	clt = pCL->GetConstLawType();
+	return pCL->pCopy();
+}
+
+ConstitutiveLaw6D *
+MBDynParser::GetConstLaw6D(ConstLawType::Type& clt)
+{
+	if (pDM == 0) {
+		silent_cerr("consitutive law parsing at line "
+				<< GetLineData() << " allowed "
+				"only after control data block" << std::endl);
+		THROW(HighParser::ErrColonExpected());
+	}
+
+	if (!IsKeyWord("reference")) {
+		return pDM->ReadConstLaw6D(*this, clt);
+	}
+
+	unsigned int uLabel = GetInt();
+	const ConstitutiveLaw6D *pCL = C6D.Get(uLabel);
+	if (pCL == NULL) {
+		silent_cerr("constitutive law 6D " << uLabel
+				<< " is undefined at line "
+				<< GetLineData() << std::endl);
+		THROW(MBDynParser::ErrGeneric());
+	}
+
+	clt = pCL->GetConstLawType();
+	return pCL->pCopy();
+}
 
 /* MBDynParser - end */
 

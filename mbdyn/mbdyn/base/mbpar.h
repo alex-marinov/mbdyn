@@ -120,6 +120,8 @@ extern const ReferenceFrame AbsRefFrame;
 #include <aerodata.h>
 #endif /* USE_AERODYNAMIC_ELEMS */
 
+#include "constltp.h"
+
 /* Deals with license and disclaimer output */
 extern void mbdyn_license(std::ostream& out);
 extern void mbdyn_warranty(std::ostream& out);
@@ -171,13 +173,26 @@ protected:
 	void C81Data_(void);
 #endif /* USE_AERODYNAMIC_ELEMS */
 
+	void ConstitutiveLaw_(void);
+	
+	HardDestructor<ConstitutiveLaw1D> C1DHD;
+	MyLList<ConstitutiveLaw1D> C1D;
+	HardDestructor<ConstitutiveLaw3D> C3DHD;
+	MyLList<ConstitutiveLaw3D> C3D;
+	HardDestructor<ConstitutiveLaw6D> C6DHD;
+	MyLList<ConstitutiveLaw6D> C6D;
+
 	/* Legge una parola chiave */
 	bool GetDescription_int(const char *s);
+
+	DataManager *pDM;
 
 public:
 	MBDynParser(MathParser& MP, InputStream& streamIn,
 			const char *initial_file);
 	~MBDynParser(void);
+
+	void SetDataManager(DataManager *pdm);
 	
 	
 	/*
@@ -208,6 +223,10 @@ public:
 #if defined(USE_AERODYNAMIC_ELEMS)
 	const c81_data* GetC81Data(integer profile);
 #endif /* USE_AERODYNAMIC_ELEMS */
+
+	ConstitutiveLaw1D* GetConstLaw1D(ConstLawType::Type& clt);
+	ConstitutiveLaw3D* GetConstLaw3D(ConstLawType::Type& clt);
+	ConstitutiveLaw6D* GetConstLaw6D(ConstLawType::Type& clt);
 };
 
 /*

@@ -17,6 +17,7 @@ MBDyn 1.2-Engineering
 		- added "sramp" (saturated ramp) function to math parser
 		- added "setenv" statement
 		- added environment vars expansion in file names
+		- added separate definition of constitutive laws
 	Bug fixes:
 		- fixed dof count in initial assembly dof stats print
 		- fixed element drive input

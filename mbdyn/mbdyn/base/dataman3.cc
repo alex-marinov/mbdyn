@@ -66,6 +66,9 @@ void DataManager::ReadControl(MBDynParser& HP,
    if (sOutputFileName != NULL) {
       SAFESTRDUP(sOutName, sOutputFileName);
    }
+
+   /* attach self to parser ... */
+   HP.SetDataManager(this);
    
    /* parole chiave del blocco di controllo */
    const char* sKeyWords[] = { 

@@ -34,13 +34,13 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <constltp.h>
-#include <shapefnc.h>
-#include <beamslider.h>
-#include <dataman.h>
+#include "dataman.h"
+#include "constltp.h"
+#include "shapefnc.h"
+#include "beamslider.h"
 
 
 /* BeamConn - begin */

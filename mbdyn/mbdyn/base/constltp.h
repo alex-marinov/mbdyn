@@ -33,10 +33,11 @@
 #ifndef CONSTLTP_H
 #define CONSTLTP_H
 
-#include <simentity.h>
-#include <tpldrive.h>
-#include <matvec3.h>
-#include <matvec6.h>
+#include "withlab.h"
+#include "simentity.h"
+#include "tpldrive.h"
+#include "matvec3.h"
+#include "matvec6.h"
 
 /* Tipi di cerniere deformabili */
 class ConstLawType {
@@ -48,13 +49,13 @@ public:
 		VISCOUS,
 		VISCOELASTIC,
 	
-		LASTDEFHINGETYPE
+		LASTCONSTLAWTYPE
 	};
 };
 
 /* ConstitutiveLaw - begin */
 template <class T, class Tder>
-class ConstitutiveLaw : public SimulationEntity {
+class ConstitutiveLaw : public WithLabel, public SimulationEntity {
 public:
 	class ErrNotAvailable {
 	public:
@@ -85,7 +86,8 @@ protected:
 
 public:
 	ConstitutiveLaw(void)
-	: Epsilon(0.), EpsilonPrime(0.),
+	: WithLabel(0),
+	Epsilon(0.), EpsilonPrime(0.),
 	F(0.), FDE(0.), FDEPrime(0.) {
 		NO_OP;
 	};
@@ -93,6 +95,8 @@ public:
 	virtual ~ConstitutiveLaw(void) {
 		NO_OP;
 	};
+
+	virtual ConstLawType::Type GetConstLawType(void) const = 0;
 
 	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const = 0;
 	virtual std::ostream& Restart(std::ostream& out) const = 0;

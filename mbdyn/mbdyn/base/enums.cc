@@ -221,10 +221,10 @@ extern const char* psRodNames[] = {
 
 
 /* Tipi di DeformableHinge */
-extern const char* psDefHingeNames[] = {
-   "Elastic Hinge",
-   "Viscous Hinge",
-   "Visco-Elastic Hinge",
+extern const char* psConstLawNames[] = {
+   "Elastic",
+   "Viscous",
+   "Visco-Elastic",
    
    NULL
 };

@@ -33,6 +33,7 @@
 
 #include "genel.h"
 #include "drive.h"
+#include "dataman.h"
 #include "constltp.h"
 
 /* GenelClamp - begin */

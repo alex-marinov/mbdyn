@@ -31,12 +31,13 @@
 /* Rods */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <ac/math.h>
+#include "ac/math.h"
 
-#include <rodj.h>
+#include "dataman.h"
+#include "rodj.h"
 
 
 /* Rod - begin */

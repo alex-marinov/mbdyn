@@ -29,11 +29,11 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <mynewmem.h>
-#include <pzbeam.h>
+#include "dataman.h"
+#include "pzbeam.h"
 
 /* PiezoActuatorBeam - begin */
 

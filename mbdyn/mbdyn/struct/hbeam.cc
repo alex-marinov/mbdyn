@@ -39,6 +39,7 @@
 
 #include <ac/float.h>
 
+#include <dataman.h>
 #include <constltp.h>
 #include <shapefnc.h>
 #include <beam.h>
@@ -47,7 +48,6 @@
 #include <pzhbeam.h>
 #endif
 #include <hbeam_interp.h>
-#include <dataman.h>
 
 /*
  * Nota: non e' ancora stato implementato il contributo 
@@ -1174,7 +1174,7 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	
 	/* Legame costitutivo */
 	ConstLawType::Type CLType = ConstLawType::UNKNOWN;
-	ConstitutiveLaw6D* pD = pDM->ReadConstLaw6D(HP, CLType);
+	ConstitutiveLaw6D* pD = HP.GetConstLaw6D(CLType);
 	
 	if (pD->iGetNumDof() != 0) {
      		std::cerr << "line " << HP.GetLineData()

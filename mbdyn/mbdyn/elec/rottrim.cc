@@ -29,17 +29,18 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #ifdef USE_ELECTRIC_NODES
 #ifdef USE_AERODYNAMIC_ELEMS
 
-#include <genel.h>
-#include <drive.h>
-#include <constltp.h>
-#include <strnode.h>
-#include <rottrim.h>
+#include "genel.h"
+#include "drive.h"
+#include "dataman.h"
+#include "constltp.h"
+#include "strnode.h"
+#include "rottrim.h"
 
 static unsigned iRotorTz = 0;
 static unsigned iRotorMx = 0;

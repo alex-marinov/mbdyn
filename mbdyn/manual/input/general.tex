@@ -685,6 +685,29 @@ where \kw{psat} is the saturation pressure, according to equation
 \end{displaymath}
 
 
+\subsection{C81 Data}\label{sec:C81-DATA}
+This keyword allows to define and read the \kw{c81 data} 
+airfoil tables that are used by aerodynamic elements.
+\begin{verbatim}
+    <card> ::= c81 data : <label> [ , name , " <name> " ]
+        " <filename> " ;
+\end{verbatim}
+
+
+
+\subsection{Constitutive Law}\label{sec:CONSTITUTIVE-LAW}
+\begin{verbatim}
+    <card> ::= constitutive law : <label>
+        [ , name , " <name> " ]
+        <dim> , (ConstitutiveLaw<dim>D) <constitutive_law> ;
+\end{verbatim}
+Constitutive laws are gouped by their dimensionality \kw{<dim>},
+which can be any of 1, 3 and 6; the \kw{<constitutive\_law>}
+is parsed according to the rules described
+in Section~\ref{sec:CONSTITUTIVE-LAWS}.
+
+
+
 
 \section{Node Degrees of Freedom}\label{sec:node_dof}
 A node in MBDyn is nothing but an entity that owns degrees of freedom and
@@ -1112,7 +1135,7 @@ For \kw{piecewise linear} shapes, there must be
 must be in the range $\sqbr{-1,1}$, in strict ascending order.
 
 
-\section{Constitutive Laws}
+\section{Constitutive Laws}\label{sec:CONSTITUTIVE-LAWS}
 Everytime a ``deformable'' entity requires a constitutive law, a template
 constitutive law is read. This has been implemented by means of the C++
 templates in order to allow the definition of a general constitutive law
@@ -1349,6 +1372,24 @@ Basically, it requires the user to supply the name of the GRAALL-style
 input file with damper data.
 It will be documented as soon as it reaches an appreciable level of
 stability.
+
+\subsection{Input}
+Usually, constitutive laws can be directly defined when required,
+according to the definition of an element.
+However, the special card described in Section~\ref{sec:CONSTITUTIVE-LAW}
+allows to define constitutive laws stand-alone, and attach them
+to the elements by means of the following mechanism:
+\begin{verbatim}
+    <constitutive_law_input> ::=
+        { <constitutive_law_definition>
+        | <constitutive_law_reference> }
+
+    <constitutive_law_reference> ::= reference , <label>
+\end{verbatim}
+where \kw{<constitutive\_law\_definition>} has been described above,
+while \kw{<label>} is the label of a previously defined consitutive law
+of the appropriate dimensionality, as described
+in Section~\ref{sec:CONSTITUTIVE-LAW}.
 
 
 

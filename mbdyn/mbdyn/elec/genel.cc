@@ -366,7 +366,7 @@ Elem* ReadGenel(DataManager* pDM,
        }	     	  
        
        ConstLawType::Type CLType = ConstLawType::UNKNOWN;
-       ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, CLType);
+       ConstitutiveLaw1D* pCL = HP.GetConstLaw1D(CLType);
 
        if (pCL->iGetNumDof() != 0) {
 	  std::cerr << "Error at line " << HP.GetLineData()
@@ -404,7 +404,7 @@ Elem* ReadGenel(DataManager* pDM,
        }	         
        
        ConstLawType::Type CLType = ConstLawType::UNKNOWN;
-       ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, CLType);
+       ConstitutiveLaw1D* pCL = HP.GetConstLaw1D(CLType);
        
        if (pCL->iGetNumDof() != 0) {
 	  std::cerr << "Error at line " << HP.GetLineData()
@@ -456,7 +456,7 @@ Elem* ReadGenel(DataManager* pDM,
        }	         
        
        ConstLawType::Type CLType = ConstLawType::UNKNOWN;
-       ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, CLType);
+       ConstitutiveLaw1D* pCL = HP.GetConstLaw1D(CLType);
        
        if (pCL->iGetNumDof() != 0) {
 	  std::cerr << "Error at line " << HP.GetLineData()

@@ -1048,7 +1048,7 @@ Elem* ReadJoint(DataManager* pDM,
        
        /* Legame costitutivo */
        ConstLawType::Type CLType = ConstLawType::UNKNOWN;
-       ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, CLType);
+       ConstitutiveLaw1D* pCL = HP.GetConstLaw1D(CLType);
        
        if (pCL->iGetNumDof() != 0) {
 	  std::cerr << "line " << HP.GetLineData()
@@ -1158,7 +1158,7 @@ Elem* ReadJoint(DataManager* pDM,
 
        /* Legame costitutivo */
        ConstLawType::Type CLType = ConstLawType::UNKNOWN;
-       ConstitutiveLaw1D* pCL = pDM->ReadConstLaw1D(HP, CLType);
+       ConstitutiveLaw1D* pCL = HP.GetConstLaw1D(CLType);
 
        if (pCL->iGetNumDof() != 0) {
 	  std::cerr << "line " << HP.GetLineData()
@@ -1216,7 +1216,7 @@ Elem* ReadJoint(DataManager* pDM,
        
        /* Legame costitutivo */
        ConstLawType::Type CLType;
-       ConstitutiveLaw3D* pCL = pDM->ReadConstLaw3D(HP, CLType);
+       ConstitutiveLaw3D* pCL = HP.GetConstLaw3D(CLType);
        
        if (pCL->iGetNumDof() != 0) {
 	  std::cerr << "line " << HP.GetLineData()

@@ -31,13 +31,14 @@
 /* Cerniera deformabile */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <vehj.h>
+#include "dataman.h"
+#include "vehj.h"
 
-#include <matvecexp.h>
-#include <Rot.hh>
+#include "matvecexp.h"
+#include "Rot.hh"
 
 /* DeformableHingeJoint - begin */
 

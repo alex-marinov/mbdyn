@@ -37,23 +37,7 @@
 #include "joint.h"
 #include "constltp.h"
 
-
-/* Tipi di cerniere deformabili (ora sta in constltp.h)
-class ConstLawType {
- public:
-   enum Type {
-      UNKNOWN = -1,
-	ELASTIC = 0,
-	VISCOUS,
-	VISCOELASTIC,
-	
-	LASTDEFHINGETYPE
-   };
-};
- */
-
-extern const char* psDefHingeNames[];
-
+extern const char* psConstLawNames[];
 
 /* DeformableHingeJoint - begin */
 

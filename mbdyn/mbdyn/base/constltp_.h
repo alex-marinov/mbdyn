@@ -75,6 +75,10 @@ public:
 	{
 		NO_OP;
 	};
+
+	ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::ELASTIC;
+	};
 };
 
 typedef ElasticConstitutiveLaw<doublereal, doublereal> ElasticConstitutiveLaw1D;
@@ -855,6 +859,10 @@ class LinearViscousIsotropicConstitutiveLaw
       NO_OP;
    };
 
+	ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::VISCOUS;
+	};
+
    virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
       ConstitutiveLaw<T, Tder>* pCL = NULL;
 
@@ -903,6 +911,10 @@ class LinearViscousGenericConstitutiveLaw
    virtual ~LinearViscousGenericConstitutiveLaw(void) {
       NO_OP;
    };
+
+	ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::VISCOUS;
+	};
 
    virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
       ConstitutiveLaw<T, Tder>* pCL = NULL;
@@ -959,6 +971,10 @@ class LinearViscoElasticIsotropicConstitutiveLaw
    virtual ~LinearViscoElasticIsotropicConstitutiveLaw(void) {
       NO_OP;
    };
+
+	ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::VISCOELASTIC;
+	};
 
    virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
       ConstitutiveLaw<T, Tder>* pCL = NULL;
@@ -1019,6 +1035,10 @@ class LinearViscoElasticGenericConstitutiveLaw
    virtual ~LinearViscoElasticGenericConstitutiveLaw(void) {
       NO_OP;
    };
+
+	ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::VISCOELASTIC;
+	};
 
    virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
       ConstitutiveLaw<T, Tder>* pCL = NULL;
@@ -1083,6 +1103,10 @@ class DoubleLinearViscoElasticConstitutiveLaw
       NO_OP;
    };
 
+	ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::VISCOELASTIC;
+	};
+
    virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
       return NULL;
    };
@@ -1130,6 +1154,10 @@ class DoubleLinearViscoElasticConstitutiveLaw<doublereal, doublereal>
    virtual ~DoubleLinearViscoElasticConstitutiveLaw(void) {
       NO_OP;
    };
+
+	ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::VISCOELASTIC;
+	};
 
    virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const {
       ConstitutiveLaw<doublereal, doublereal>* pCL = NULL;
@@ -1221,6 +1249,10 @@ class DoubleLinearViscoElasticConstitutiveLaw<Vec3, Mat3x3>
       NO_OP;
    };
 
+	ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::VISCOELASTIC;
+	};
+
    virtual ConstitutiveLaw<Vec3, Mat3x3>* pCopy(void) const {
       ConstitutiveLaw<Vec3, Mat3x3>* pCL = NULL;
 
@@ -1309,6 +1341,10 @@ class TurbulentViscoElasticConstitutiveLaw
       NO_OP;
    };
 
+	ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::VISCOELASTIC;
+	};
+
    virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
       return NULL;
    };
@@ -1352,6 +1388,10 @@ class TurbulentViscoElasticConstitutiveLaw<doublereal, doublereal>
    virtual ~TurbulentViscoElasticConstitutiveLaw(void) {
       NO_OP;
    };
+
+	ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::VISCOELASTIC;
+	};
 
    virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const {
       ConstitutiveLaw<doublereal, doublereal>* pCL = NULL;
@@ -1443,6 +1483,10 @@ public:
 	virtual
 	~LinearViscoElasticBiStopConstitutiveLaw(void) {
 		NO_OP;
+	};
+
+	ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::VISCOELASTIC;
 	};
 
 	virtual

@@ -1478,8 +1478,21 @@ and to rotate about the common relative axis 3.
                      (Vec3) <relative_offset_2> ] ,
         (ConstitutiveLaw1D) <const_law>
 \end{verbatim}
+The constitutive law \kw{<const\_law>} is used in form 
+of rod axial stiffness $EA$, i.e., for a linear constitutive law:
+\begin{displaymath}
+	F = EA \frac{l - l_0}{l_0}
+\end{displaymath}
+and in general
+\begin{displaymath}
+	F = F\plbr{\frac{l - l_0}{l_0}, \frac{\dot{l}}{l_0}}
+\end{displaymath}
+where $l_0=\kw{<rod\_length>}$.
+For further details on the constitutive laws, 
+see Section~\ref{sec:CONSTITUTIVE-LAWS}.
+See also \kw{rod with offset} in Section~\ref{sec:RD-WITH-OFFSET}.
 
-\subsection{Rod with offset}
+\subsection{Rod with offset}\label{sec:RD-WITH-OFFSET}.
 \begin{verbatim}
     <joint_type> ::= rod with offset
     <joint_arglist> ::= <node_1> , (Vec3) <relative_offset_1>
@@ -1487,7 +1500,7 @@ and to rotate about the common relative axis 3.
         (scalar) { <rod_length> | from nodes } ,
         (ConstitutiveLaw1D) <const_law>
 \end{verbatim}
-Analogous to \kw{rod} with the optional arg \kw{offset}.    
+Analogous to \kw{rod} with the optional arg \kw{offset}.
 
 \subsection{Deformable hinge}
 \begin{verbatim}
