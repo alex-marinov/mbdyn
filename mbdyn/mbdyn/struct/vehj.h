@@ -201,11 +201,7 @@ public:
 
 class ViscousHingeJoint : virtual public Elem, public DeformableHingeJoint {
 protected:
-	Vec3 ThetaRefPrime;
 	Vec3 ThetaCurrPrime;
-
-	Vec3 TaCurrPrime;
-	Vec3 TbCurrPrime;
 
 	Mat3x3 FDEPrime;
 
@@ -287,14 +283,7 @@ protected:
 	Vec3 ThetaRef;
 	Vec3 ThetaCurr;
 
-	Vec3 ThetaRefPrime;
 	Vec3 ThetaCurrPrime;
-
-	Vec3 TaCurr;
-	Vec3 TbCurr;
-
-	Vec3 TaCurrPrime;
-	Vec3 TbCurrPrime;
 
 	Mat3x3 FDE;
 	Mat3x3 FDEPrime;

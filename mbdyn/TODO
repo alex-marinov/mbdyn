@@ -128,7 +128,7 @@ E. Bugs/missing features:
 	- check for nested /* */ comments in parsers (DONE)
 	- eliminate nasty dependence from f2c typedef's (doublereal and so)
 	- review deformable viscous/viscoelastic hinge according
-	  to the elastic one
+	  to the elastic one (DONE)
 	- check "universal pin"
 	- fix etc/modal.d/MBDyn_NASTRAN_alter_[1-2].nas;
           allow the use of node sets to reduce the amount of FEM nodes 
