@@ -1,3 +1,9 @@
+#!/bin/awk
+# usage: awk -f GeoOut.awk <file>.mov
+# -v INCR=<time step>		: time step (1.0)
+# -v START=<initial time>	: initial time (0.0)
+# -v SKIP=<skip>		: print every <skip> time steps
+
 # Prints the labels
 function print_labels() {
 	printf("object \"TriadLabels\" class array type int rank 1 shape 1 items %d data follows\n", NumNodes);
@@ -7,7 +13,7 @@ function print_labels() {
 }
 # Prints the objects at one step
 function print_step() {
-	t = Start+Step*Incr;
+	t = Start+Step*Skip*Incr;
 	printf("attribute \"dep\" string \"positions\"\n");
 	printf("object \"TriadPositions%f\" class array type float rank 1 shape 3 items %d data follows\n", t, NumNodes);
 	for (i = 1; i <= NumNodes; i++) {
@@ -33,7 +39,7 @@ function print_step() {
 function print_members() {
 	printf("object \"series\" class series\n");
 	for (i = 0; i <= Step; i++) {
-		t = Start+i*Incr;
+		t = Start+i*Skip*Incr;
 		printf("member %d position %f value \"MbdynSym%f\"\n", i, t, t);
 	}
 	printf("end\n");
@@ -42,12 +48,28 @@ function print_members() {
 BEGIN {
 	FirstLabel = -1;
 	FirstStep = 1;
-	Incr = .5e-3;
-	Start = 0.0;
-	Step = 0;
+
 	deg2rad = 0.017453293;
 	rad2deg = 57.29578;
 	AngleScale = deg2rad;
+
+	# time step
+	Incr = 1.0;
+	if (INCR != 0.0) {
+		Incr = INCR;
+	}
+
+	# initial time
+	Start = 0.0;
+	if (START != 0.0) {
+		Start = START;
+	}
+
+	# print every SKIP steps
+	Skip = 1;
+	if (SKIP != 0) {
+		Skip = SKIP;
+	}
 }
 # Generic rule --- add here any specific check to filter out undesired labels
 $1 > 10 {
@@ -57,8 +79,14 @@ $1 > 10 {
 			FirstStep = 0;
 			print_labels();
 		}
-		print_step();
-		Step++;
+		if (!(blocks % Skip)) {
+			print_step();
+			Step++;
+		}
+		blocks++;
+	}
+	if (blocks % Skip) {
+		next;
 	}
 
 	if (FirstLabel == -1) {
