@@ -1,5 +1,5 @@
 //
-// time: Thu Jan 15 17:49:42 2004
+// time: Thu Jan 15 17:55:37 2004
 //
 // version: 3.1.2 (format), 4.2.0 (DX)
 //
@@ -36,12 +36,12 @@ include "P3TimesM3.net"
 // comment: without even the implied warranty of
 // comment: MERCHANTABILITY or FITNESS FOR 
 // comment: A PARTICULAR PURPOSE.
-// page assignment: MainControl	order=2, windowed=0, showing=0
-// page assignment: PlotAll	order=6, windowed=0, showing=1
+// page assignment: MainControl	order=2, windowed=0, showing=1
+// page assignment: PlotAll	order=6, windowed=0, showing=0
 // page assignment: ScaleDispl	order=3, windowed=0, showing=0
 // page assignment: ShowBeams2	order=5, windowed=0, showing=0
 // page assignment: ShowTriads	order=4, windowed=0, showing=0
-// workspace: width = 752, height = 748
+// workspace: width = 850, height = 903
 // layout: snap = 0, width = 50, height = 50, align = NN
 //
 macro main(
