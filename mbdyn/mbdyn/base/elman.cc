@@ -149,16 +149,6 @@ DataManager::ElemManagerDestructor(void)
 		SAFEDELETE(pWorkVec);
 	}
 
-	if (pdWorkMat != NULL) {
-		DEBUGCOUT("deleting assembly structure, double workspace" << std::endl);
-		SAFEDELETEARR(pdWorkMat);
-	}
-
-	if (piWorkIndex != NULL) {
-		DEBUGCOUT("deleting assembly structure, integer workspace" << std::endl);
-		SAFEDELETEARR(piWorkIndex);
-	}
-
 	/* Distruzione elementi */
 	ASSERT(ppElems != NULL);
 
@@ -293,37 +283,25 @@ DataManager::ElemAssInit(void)
 	iWorkDoubleSize = iMaxWorkNumRows*iMaxWorkNumCols;
 
 	if (iWorkIntSize > 0) {
-		SAFENEWARR(piWorkIndex, integer, 2*iWorkIntSize);
-		SAFENEWARR(pdWorkMat, doublereal, 2*iWorkDoubleSize);
 
 		/* SubMatrixHandlers */
 		SAFENEWWITHCONSTRUCTOR(pWorkMatA,
 				VariableSubMatrixHandler,
-				VariableSubMatrixHandler(iWorkIntSize,
-					piWorkIndex,
-					iWorkDoubleSize,
-					pdWorkMat,
-					iMaxWorkNumRows, iMaxWorkNumCols));
+				VariableSubMatrixHandler(iMaxWorkNumRows,
+					iMaxWorkNumCols));
 
 		SAFENEWWITHCONSTRUCTOR(pWorkMatB,
 				VariableSubMatrixHandler,
-				VariableSubMatrixHandler(iWorkIntSize,
-					piWorkIndex + iWorkIntSize,
-					iWorkDoubleSize,
-					pdWorkMat + iWorkDoubleSize,
-					iMaxWorkNumRows, iMaxWorkNumCols));
+				VariableSubMatrixHandler(iMaxWorkNumRows,
+					iMaxWorkNumCols));
 
 		pWorkMat = pWorkMatA;
 
 		SAFENEWWITHCONSTRUCTOR(pWorkVec,
 				MySubVectorHandler,
-				MySubVectorHandler(iWorkIntSize,
-					piWorkIndex, pdWorkMat));
+				MySubVectorHandler(iMaxWorkNumRows));
 
-		DEBUGCOUT("Creating working matrices: work int size = "
-				<< iWorkIntSize << ", work double size = "
-				<< iWorkDoubleSize << std::endl
-				<< "work matrices are " << iMaxWorkNumRows
+		DEBUGCOUT("Creating working matrices:" << iMaxWorkNumRows
 				<< " x " << iMaxWorkNumCols << std::endl);
 
 	} else {

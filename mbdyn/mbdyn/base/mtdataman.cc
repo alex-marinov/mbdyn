@@ -247,8 +247,6 @@ MultiThreadDataManager::thread_cleanup(ThreadData *arg)
 	SAFEDELETE(arg->pWorkMatA);
 	SAFEDELETE(arg->pWorkMatB);
 	SAFEDELETE(arg->pWorkVec);
-	SAFEDELETEARR(arg->piWorkIndex);
-	SAFEDELETEARR(arg->pdWorkMat);
 	if (arg->threadNumber > 0) {
 		if (arg->pJacHdl) {
 			SAFEDELETE(arg->pJacHdl);
@@ -307,34 +305,22 @@ MultiThreadDataManager::ThreadSpawn(void)
 		thread_data[i].threadNumber = i;
 		thread_data[i].ElemIter.Init(ppElems, iTotElem);
 
-		/* thread workspace */
-		SAFENEWARR(thread_data[i].piWorkIndex, integer, 2*iWorkIntSize);
-		SAFENEWARR(thread_data[i].pdWorkMat, doublereal, 2*iWorkDoubleSize);
-
 		/* SubMatrixHandlers */
 		SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkMatA,
 				VariableSubMatrixHandler,
-				VariableSubMatrixHandler(iWorkIntSize,
-					thread_data[i].piWorkIndex,
-					iWorkDoubleSize,
-					thread_data[i].pdWorkMat,
-					iMaxWorkNumRows, iMaxWorkNumCols));
+				VariableSubMatrixHandler(iMaxWorkNumRows,
+					iMaxWorkNumCols));
 
 		SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkMatB,
 				VariableSubMatrixHandler,
-				VariableSubMatrixHandler(iWorkIntSize,
-					thread_data[i].piWorkIndex + iWorkIntSize,
-					iWorkDoubleSize,
-					thread_data[i].pdWorkMat + iWorkDoubleSize,
-					iMaxWorkNumRows, iMaxWorkNumCols));
+				VariableSubMatrixHandler(iMaxWorkNumRows,
+					iMaxWorkNumCols));
 
 		thread_data[i].pWorkMat = thread_data[i].pWorkMatA;
 
 		SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkVec,
 				MySubVectorHandler,
-				MySubVectorHandler(iWorkIntSize,
-					thread_data[i].piWorkIndex,
-					thread_data[i].pdWorkMat));
+				MySubVectorHandler(iMaxWorkNumRows));
 
 		if (i == 0) continue;
 

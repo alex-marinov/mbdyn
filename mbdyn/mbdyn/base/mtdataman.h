@@ -64,12 +64,9 @@ protected:
 
 		mutable MT_VecIter<Elem *> ElemIter;
 	
-		integer	*piWorkIndex;    /* array di lavoro */
-		doublereal *pdWorkMat;   /* matrice di lavoro */
-
-		VariableSubMatrixHandler *pWorkMatA;  /* SubMatrix di lavoro */
+		VariableSubMatrixHandler *pWorkMatA;	/* Working SubMatrix */
 		VariableSubMatrixHandler *pWorkMatB;
-		VariableSubMatrixHandler *pWorkMat;
+		VariableSubMatrixHandler *pWorkMat;	/* same as pWorkMatA */
 		MySubVectorHandler *pWorkVec;
 
 		CompactSparseMatrixHandler* pJacHdl;

@@ -437,15 +437,6 @@ DataManager::InitialJointAssembly(void)
 		pTmpDof->iIndex = iIndex++;
 	}
 
-	/* Alloca spazio per l'assemblaggio */
-	integer iIntDim = iMaxRows*iMaxCols*2;
-	integer* piWI = NULL;
-	SAFENEWARR(piWI, integer, iIntDim);
-
-	integer iDoubleDim = iMaxRows*iMaxCols;
-	doublereal* pdWD = NULL;
-	SAFENEWARR(pdWD, doublereal, iDoubleDim);
-
 	/* Ciclo di iterazioni fino a convergenza */
 
 	/* Crea il solutore lineare, tenendo conto dei tipi
@@ -495,12 +486,11 @@ DataManager::InitialJointAssembly(void)
 
 	/* Vettore di lavoro */
 	VectorHandler* pResHdl = pSM->pResHdl();
-	MySubVectorHandler WorkVec(iDoubleDim, piWI, pdWD);
+	MySubVectorHandler WorkVec(iMaxRows);
 
 	/* Matrice di lavoro */
 	MatrixHandler* pMatHdl = pSM->pMatHdl();
-	VariableSubMatrixHandler WorkMat(iIntDim, piWI, iDoubleDim, pdWD,
-			iMaxRows, iMaxCols);
+	VariableSubMatrixHandler WorkMat(iMaxRows, iMaxCols);
 
 	/* Soluzione */
 	VectorHandler* pSolHdl = pSM->pSolHdl();
@@ -692,17 +682,6 @@ DataManager::InitialJointAssembly(void)
 	}
 
 endofcycle:
-	/* Distrugge il workspace */
-	ASSERT(pdWD != NULL);
-	if (pdWD != NULL) {
-		SAFEDELETEARR(pdWD);
-	}
-
-	ASSERT(piWI != NULL);
-	if (piWI != NULL) {
-		SAFEDELETEARR(piWI);
-	}
-
 	/* Distrugge il vettore soluzione */
 	ASSERT(pdX != NULL);
 	if (pdX != NULL) {
