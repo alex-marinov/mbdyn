@@ -256,6 +256,7 @@ are based on three-dimensional vectors which depend on multipliers.
             <T0> , <dT/dz> , <R> , <g0> , <z1> , <z2>
         } [ , reference altitude, <z0> ]
     } , (Vec3_tpl_drive_caller) <air_speed>
+    [ , gust , <gust_model> ]
 \end{verbatim}
 The first form consists in the bare input of the air density,
 in form of a drive caller, and of the sound celerity, e.g.:
@@ -276,7 +277,7 @@ deviation of -55 K degrees and a reference altitude of 1000 m.
 The air properties are computed based on the Z position of the
 point where the air properties are requested (plus the optional
 altitude offset).
-The last possibility requires the user to input all the parameters
+The last possibility lets the user input all the parameters
 required to compute the air properties based on the Z position
 of the point where they are requested, namely the reference
 pressure \kw{p0}, the reference density \kw{rho0},
@@ -299,9 +300,57 @@ altitudes of the null temperature gradient region \kw{z1} and
         reference altitude, 1000.,
         1.,0.,0., 150.;
 \end{verbatim}
-The asymptotic air properties are characterized by the drive of the 
-air speed, in the global reference frame.
-
+The asymptotic air properties are characterized by the 3D template drive 
+of the air speed, in the global reference frame.
+If the optional \kw{gust} keyword is used, a gust model can be added.
+Note that a very elementary gust model, represented by a uniform change
+in airstream speed and direction can be implemented by using
+a time-dependent airstream drive.
+A more sophisticated model is currently available, and provisions are
+made to allow four-dimensional gust profiles, dependent on time
+and position.
+The syntax is:
+\begin{verbatim}
+    <gust_model> ::= front 1D ,
+        (Vec3) <front_direction> ,
+        (Vec3) <perturbation_direction> ,
+        (scalar) <front_velocity> ,
+        (drive_caller) <front_profile>
+\end{verbatim}
+This model consists in a uniform front, defined as
+\begin{displaymath}
+	\T{v}\plbr{\T{x}, t} = \T{n} g\plbr{\T{f} \cdot \T{x} + V_{ref} \cdot t}
+\end{displaymath}
+where
+\begin{itemize}
+\item $\T{v}$ is the velocity perturbation;
+\item $\T{x}$ is the position of the point whose airstream velocity
+is being computed;
+\item $t$ is the current time;
+\item $\T{n}$ is the unit vector \kw{perturbation\_direction} 
+that defines the direction of the velocity perturbation;
+\item $g\plbr{\cdot}$ is the function \kw{front\_profile} 
+that defines the gust profile;
+\item $\T{f}$ is the unit vector \kw{front\_direction} 
+that defines the direction of propagation of the front;
+\item $V_{ref}$ is the velocity \kw{front\_velocity} 
+of propagation of the front in direction $\T{f}$.
+\end{itemize}
+As an example, a transverse cosine-shaped gust, with a wavelength of 100 m
+and a peak velocity of 5 m/s moving downstream at the airstream speed,
+100 m/s, in standard air, is presented:
+\begin{verbatim}
+    set: real waveLength = 100.; # m
+    set: real V_inf = 100.;      # m/s
+    set: real V_g = 5.;          # m/s
+    air properties: std, SI,
+        1.,0.,0., const, V_inf,  # reference airstream along X
+        gust, front 1D,
+            1.,0.,0.,            # front moving along X
+            0.,0.,1.,            # gust along Z
+            V_inf,               # front moving at V_inf
+            cosine, 0., pi/waveLength, V_g/2., one, 0.;
+\end{verbatim}
 
 
 
@@ -314,19 +363,19 @@ and orientations, and a two-node finite volume element, which has been
 recently introduced.
 Although this latter element presents some shear-locking, it may be overcome
 by correcting the section stiffness matrix in a straightforward form:
+\begin{equation}\label{eq:2-NODE-BEAM-STIFFNESS}
+	\hat{\T{K}} \ = \ \plbr{\T{F} + \frac{L^2}{12}\T{T} \T{F} \T{T}^T}^{-1} ,
+\end{equation}
+where $\T{F}=\T{K}^{-1}$ is the compliance of the section, and
 \begin{displaymath}
-	\hat{K} \ = \ \plbr{F + \frac{L^2}{12}T F T^T}^{-1} ,
-\end{displaymath}
-where $F=K^{-1}$ is the compliance of the section, and
-\begin{displaymath}
-	T \ = \ \sqbr{\matr{cc}{
-		0 & e_x \times{} \\
-		0 & 0
+	\T{T} \ = \ \sqbr{\matr{cc}{
+		\T{0} & \T{e}_x \times{} \\
+		\T{0} & \T{0}
 	}}
 \end{displaymath}
 is the ``arm'' matrix that appears in the differential equilibrium equation
 \begin{displaymath}
-	\vartheta_{/x} - T^T\vartheta + f \ = \ 0 .
+	\T{\vartheta}_{/x} - \T{T}^T\vartheta + \T{f} \ = \ 0 .
 \end{displaymath}
 The two-node beam will be reimplemented using a helicoidal interpolation
 of the nodal positions and orientations, to reduce the shear-locking effect.
@@ -362,7 +411,32 @@ Based on the type of constitutive law, the simple or the viscoelastic beam
 element is used.
 The two keywords \kw{same} respectively mean that the same orientation 
 and the same constitutive law defined for the first point will be used 
-for the second point. \\
+for the second point.
+As an example, a simple beam element, with diagonal section stiffness 
+matrix is presented:
+\begin{verbatim}
+    set: integer beam_label = 1000;
+    set: integer beam_node1 = 2001;
+    set: integer beam_node2 = 2002;
+    set: integer beam_node3 = 2003;
+    set: real EA = 1e6;   # N
+    set: real GAy = .6e6; # N
+    set: real GAy = .6e6; # N
+    set: real GJ = 1.e3;  # Nm^2
+    set: real EJy = 2.e3; # Nm^2
+    set: real EJz = 1.e4; # Nm^2
+    beam3: beam_label,
+        beam_node1, reference, node, null,
+        beam_node2, reference, node, null,
+        beam_node3, reference, node, null,
+        eye,
+        linear elastic generic, diag,
+            EA, GAy, GAz, GJ, EJy, EJz,
+        same,
+        same;
+\end{verbatim}
+
+\noindent
 A piezoelectric actuator beam element is available; an arbitrary
 linear piezoelectric actuation matrix is required, together with the labels
 of the abstract nodes that represent the input signal tensions, as follows:
@@ -373,8 +447,8 @@ of the abstract nodes that represent the input signal tensions, as follows:
         <node_3> , (Vec3) <relative_offset_3> ,
         (OrientationMatrix) <orientation_matrix_section_I> ,
         (ConstitutiveLaw6D) <constitutive_law_section_I> ,
-        (OrientationMatrix) <orientation_matrix_section_II> ,
-        (ConstitutiveLaw6D) <constitutive_law_section_II>
+        { same | (OrientationMatrix) <orientation_matrix_section_II> } ,
+        { same | (ConstitutiveLaw6D) <constitutive_law_section_II> } ,
         piezoelectric actuator , 
         <electrodes_number> ,
         <abstract_node_label_list> ,
@@ -397,6 +471,29 @@ abstract nodes that represent the electrodes.
         <abstract_node_label_list> ,
         (Mat6xN) <piezoelectric_matrix_I> ]
 \end{verbatim}
+As an example, a simple beam element, with diagonal section stiffness 
+matrix is presented:
+\begin{verbatim}
+    set: integer beam_label = 1000;
+    set: integer beam_node1 = 2001;
+    set: integer beam_node2 = 2002;
+    set: real L = .4;     # m
+    set: real EA = 1e6;   # N
+    set: real GAy = .6e6; # N
+    set: real GAy = .6e6; # N
+    set: real GJ = 1.e3;  # Nm^2
+    set: real EJy = 2.e3; # Nm^2
+    set: real EJz = 1.e4; # Nm^2
+    beam3: beam_label,
+        beam_node1, reference, node, null,
+        beam_node2, reference, node, null,
+        eye,
+        linear elastic generic, diag,
+            EA, 1./(1./GAy+L^2/12./EJz), 1./(1./GAz+L^2/12./EJy),
+            GJ, EJy, EJz;
+\end{verbatim}
+Note that the shear terms have been na\"{\i}vely inverted to eliminate
+shear locking, according to Equation~\ref{eq:2-NODE-BEAM-STIFFNESS}.
 
 \subsection{Output}
 The output related to beam elements is contained in a file with extension 
@@ -1018,13 +1115,13 @@ gain.
 This element models a scalar (SISO) state space filter of the form
 \begin{displaymath}
     \lvvect{ 
-        \dot{x} = Ax+Bu \\
-	y = Cx+Dx
+        \dot{\T{x}} = \T{A}\T{x}+\T{B}u \\
+	y = \T{C}\T{x}+Du
     }
 \end{displaymath}
-where $ A $ is a matrix \kw{state\_order}$\times$\kw{state\_order},
-$ B $ is a vector \kw{state\_order}$\times$1,
-$ C $ is a vector 1$\times$\kw{state\_order},
+where $ \T{A} $ is a matrix \kw{state\_order}$\times$\kw{state\_order},
+$ \T{B} $ is a vector \kw{state\_order}$\times$1,
+$ \T{C} $ is a vector 1$\times$\kw{state\_order},
 and $ D $ is scalar, if any.
 The matrices are read row-oriented.
 
@@ -1039,17 +1136,17 @@ The matrices are read row-oriented.
                         matrix C , <coefficient_list>
                         [ , matrix D , <coefficient_list> ]
 \end{verbatim}
-This element models a scalar (SISO) state space filter of the form
+This element models a vector (MISO) state space filter of the form
 \begin{displaymath}
     \lvvect{ 
-        \dot{x} = Ax+Bu \\
-	y = Cx+Dx
+        \dot{\T{x}} = \T{A}\T{x}+\T{B}\T{u} \\
+	\T{y} = \T{C}\T{x}+\T{D}\T{u}
     }
 \end{displaymath}
-where $ A $ is a matrix \kw{state\_order}$\times$\kw{state\_order},
-$ B $ is a matrix \kw{state\_order}$\times$\kw{num\_inputs},
-$ C $ is a matrix \kw{num\_outputs}$\times$\kw{state\_order},
-and $ D $ is scalar \kw{num\_outputs}$\times$\kw{num\_inputs}.
+where $ \T{A} $ is a matrix \kw{state\_order}$\times$\kw{state\_order},
+$ \T{B} $ is a matrix \kw{state\_order}$\times$\kw{num\_inputs},
+$ \T{C} $ is a matrix \kw{num\_outputs}$\times$\kw{state\_order},
+and $ \T{D} $ is scalar \kw{num\_outputs}$\times$\kw{num\_inputs}.
 The matrices are read row-oriented.
 
 

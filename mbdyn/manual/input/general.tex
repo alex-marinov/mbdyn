@@ -1488,9 +1488,9 @@ used.
 this constitutive law is defined as follows:
 \begin{displaymath}
     f \ = \ \kw{stiffness} \ \frac{
-        \alpha\shbr{\varepsilon}^2
+        \alpha\shbr{\T{\varepsilon}}^2
     }{
-        1+\alpha\shbr{\varepsilon}^2
+        1+\alpha\shbr{\T{\varepsilon}}^2
     }\varepsilon
 \end{displaymath}
 where $ \alpha=3/\shbr{\kw{reference\_strain}}^2 $. The resulting
@@ -1560,15 +1560,15 @@ except for the isotropic viscosity term.
 \end{verbatim}
 the constitutive law has the form:
 \begin{displaymath}
-    f \ = \ \kw{stiffness} \ \varepsilon + k \ \dot{\varepsilon}
+    \T{f} \ = \ \kw{stiffness} \ \T{\varepsilon} + k \ \dot{\T{\varepsilon}}
 \end{displaymath}
 where:
 \begin{displaymath}
     k = \lcubr{\matr{lcr}{
         \kw{linear\_viscous\_coefficient} & & 
-            \shbr{\dot{\varepsilon}} \leq \kw{threshold} \\
+            \shbr{\dot{\T{\varepsilon}}} \leq \kw{threshold} \\
         \kw{parabolic\_viscous\_coefficient} & &
-            \shbr{\dot{\varepsilon}} > \kw{threshold}
+            \shbr{\T{\dot{\varepsilon}}} > \kw{threshold}
     }}
 \end{displaymath}
 if \kw{threshold} is null, or not defined, the constitutive law is always
