@@ -41,6 +41,7 @@
 #ifdef USE_STRUCT_NODES
 #include <autostr.h>   /* Elementi automatici associati ai nodi dinamici */
 #include <gravity.h>   /* Elemento accelerazione di gravita' */
+#include <body.h>
 #ifdef USE_AERODYNAMIC_ELEMS
 #include <aerodyn.h>   /* Classe di base degli elementi aerodinamici */
 #endif /* USE_AERODYNAMIC_ELEMS */
@@ -94,6 +95,8 @@ enum KeyWords {
    LOADABLE,
    DRIVEN,
    
+   INERTIA,
+   
    EXISTING,
    OUTPUT,
    BIND,
@@ -139,6 +142,8 @@ void DataManager::ReadElems(MBDynParser& HP)
       "bulk",
       "loadable",
       "driven",
+
+      "inertia",
       
       "existing",
       "output",
@@ -311,6 +316,43 @@ void DataManager::ReadElems(MBDynParser& HP)
 	    }
 	 }
 
+#ifdef USE_STRUCT_NODES
+      } else if (CurrDesc == INERTIA) {
+	 unsigned int uL = (unsigned int)HP.GetInt();
+
+	 /*
+	  * add reference frame
+	  */
+	 if (HP.IsKeyWord("reference")) {
+		std::cerr << "inertia " << uL 
+			<< "at line " << HP.GetLineData() 
+			<< ": reference frames not supported yet" << std::endl;
+		THROW(ErrGeneric());
+	 }
+
+	 doublereal M = 0.;
+	 Vec3 S(0.);
+	 Mat3x3 J(0.);
+	 
+	 while (1) {
+		Body *pB;
+		StructNode *pN;
+
+		unsigned int uB = (unsigned int)HP.GetInt();
+		pB = (Body *)pFindElem(Elem::BODY, uB);
+		if (pB == NULL) {
+			std::cerr << "inertia " << uL 
+				<< " at line " << HP.GetLineData()
+				<< ": cannot find Body(" << uB << ")" 
+				<< std::endl;
+			THROW(ErrGeneric());
+		}
+		
+
+	 }
+
+#endif /* !USE_STRUCT_NODES */
+
       } else if (CurrDesc == BIND) {
 	 /* Label dell'elemento */
 	 unsigned int uL = HP.GetInt();
@@ -476,7 +518,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	     
 	     break;
 	  }
-	    
+
 #ifdef USE_AERODYNAMIC_ELEMS
 	    /* Elementi aerodinamici: proprieta' dell'aria */
 	  case AIRPROPERTIES: {
