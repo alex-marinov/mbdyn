@@ -1272,23 +1272,6 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 {
 	DEBUGCOUTFNAME("ReadBeam2");
 	
-	const char* sKeyWords[] = {
-		"piezoelectric",
-		NULL
-	};
-	
-	/* enum delle parole chiave */
-	enum KeyWords {
-		UNKNOWN = -1,
-
-		PIEZOELECTRIC = 0,
-
-		LASTKEYWORD 
-	};
-	
-	/* tabella delle parole chiave */
-	KeyTable K(HP, sKeyWords);
-	
 	/* Nodo 1 */
 	StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 	
@@ -1357,7 +1340,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	Mat3xN PiezoMat[2];
 	integer iNumElec = 0;
 	ScalarDifferentialNode** pvElecDofs = NULL;
-	if (HP.IsKeyWord("piezoelectricactuator")) {
+	if (HP.IsKeyWord("piezoelectric" "actuator")) {
 		fPiezo = flag(1);
 		DEBUGLCOUT(MYDEBUG_INPUT, 
 				"Piezoelectric actuator beam is expected"
