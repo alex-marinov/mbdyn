@@ -38,7 +38,6 @@ function print_preamble() {
 			printf("\t%d\n", beam3_label[i]);
 		}
 		printf("attribute \"dep\" string \"connections\"\n");
-		printf("attribute \"element type\" string \"lines\"\n");
 		printf("object \"Beam2Offsets\" class array type float shape 6 items %d data follows\n", beam_num);
 		for (i = 0; i < beam2_num; i++) {
 			l = beam2_label[i];
@@ -75,7 +74,7 @@ function print_preamble() {
 			printf("\t%d %d %d %d\n", aero3[l, 1], aero3[l, 2], aero3[l, 1], aero3[l, 2]);
 			printf("\t%d %d %d %d\n", aero3[l, 2], aero3[l, 3], aero3[l, 2], aero3[l, 3]);
 		}
-		printf("attribute \"element type\" string \"lines\"\n");
+		printf("attribute \"element type\" string \"quads\"\n");
 		printf("object \"Aero4Labels\" class array type int shape 1 items %d data follows\n", aero_num);
 		for (i = 0; i < aero0_num; i++) {
 			printf("\t%d\n", aero0_label[i]);
@@ -88,7 +87,6 @@ function print_preamble() {
 			printf("\t%d\n", aero3_label[i]);
 		}
 		printf("attribute \"dep\" string \"connections\"\n");
-		printf("attribute \"element type\" string \"quads\"\n");
 		printf("object \"Aero4Offsets\" class array type float shape 12 items %d data follows\n", aero_num);
 		for (i = 0; i < aero0_num; i++) {
 			l = aero0_label[i];
