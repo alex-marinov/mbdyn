@@ -138,8 +138,10 @@ mbdyn_usage(std::ostream& out, const char *sShortOpts)
         " runs quietly" << std::endl
         << "  -P, --pedantic           :"
         " pedantic warning messages" << std::endl
+#ifdef USE_MPI
         << "  -p, --parallel           :"
         " required when run in parallel (invoked by mpirun)" << std::endl
+#endif /* USE_MPI */
         << "  -h, --help               :"
         " prints this message" << std::endl
         << "  -l, --license            :"
