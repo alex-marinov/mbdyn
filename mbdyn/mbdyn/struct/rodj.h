@@ -101,7 +101,7 @@ virtual public Elem, public Joint, public ConstitutiveLaw1DOwner {
    };
       
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    /* Tipo di Rod */
    virtual Rod::Type GetRodType(void) const {
@@ -139,7 +139,7 @@ virtual public Elem, public Joint, public ConstitutiveLaw1DOwner {
    virtual void Output(OutputHandler& OH) const;
 
    /* Output di un modello NASTRAN equivalente nella configurazione corrente */
-   virtual void Output_pch(ostream& out) const;
+   virtual void Output_pch(std::ostream& out) const;
 
    /* funzioni usate nell'assemblaggio iniziale */
    
@@ -178,7 +178,7 @@ virtual public Elem, public Joint, public ConstitutiveLaw1DOwner {
       return 1;
    };
    virtual void GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const;
-   virtual ostream& WriteAdamsDummyPartCmd(ostream& out, unsigned int part, unsigned int firstId) const;
+   virtual std::ostream& WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const;
 };
 
 /* Rod - end */
@@ -258,7 +258,7 @@ class RodWithOffset : virtual public Elem, public Rod {
    };
    
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    /* Tipo di Rod */
    virtual Rod::Type GetRodType(void) const { 
@@ -283,7 +283,7 @@ class RodWithOffset : virtual public Elem, public Rod {
    virtual void Output(OutputHandler& OH) const;
 
    /* Output di un modello NASTRAN equivalente nella configurazione corrente */
-   virtual void Output_pch(ostream& out) const;
+   virtual void Output_pch(std::ostream& out) const;
 
    /* funzioni usate nell'assemblaggio iniziale */
    
@@ -303,7 +303,7 @@ class RodWithOffset : virtual public Elem, public Rod {
 				   const VectorHandler& XCurr);   
 
    void GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const;
-   ostream& WriteAdamsDummyPartCmd(ostream& out, unsigned int part, unsigned int firstId) const;
+   std::ostream& WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const;
 
 };
 

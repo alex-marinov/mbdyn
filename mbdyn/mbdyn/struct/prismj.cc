@@ -63,7 +63,7 @@ PrismaticJoint::~PrismaticJoint(void)
 
 
 /* Contributo al file di restart */
-ostream& PrismaticJoint::Restart(ostream& out) const
+std::ostream& PrismaticJoint::Restart(std::ostream& out) const
 {
    Joint::Restart(out) << ", prismatic, "
      << pNode1->GetLabel() 
@@ -71,7 +71,7 @@ ostream& PrismaticJoint::Restart(ostream& out) const
      << ", 2, ", (R1h.GetVec(2)).Write(out, ", ") << ", "
      << pNode2->GetLabel() 
      << ", hinge, reference, node, 1, ", (R2h.GetVec(1)).Write(out, ", ")
-     << ", 2, ", (R2h.GetVec(2)).Write(out, ", ") << ';' << endl;
+     << ", 2, ", (R2h.GetVec(2)).Write(out, ", ") << ';' << std::endl;
    
    return out;
 }
@@ -84,7 +84,7 @@ PrismaticJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		       const VectorHandler& /* XCurr */ ,
 		       const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering PrismaticJoint::AssJac()" << endl);
+   DEBUGCOUT("Entering PrismaticJoint::AssJac()" << std::endl);
    
    /* Setta la sottomatrice come piena (e' un po' dispersivo, ma lo jacobiano 
     * e' complicato */					
@@ -194,7 +194,7 @@ SubVectorHandler& PrismaticJoint::AssRes(SubVectorHandler& WorkVec,
 					 const VectorHandler& XCurr, 
 					 const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering PrismaticJoint::AssRes()" << endl);
+   DEBUGCOUT("Entering PrismaticJoint::AssRes()" << std::endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -258,16 +258,16 @@ void PrismaticJoint::Output(OutputHandler& OH) const
       OH.Output() << "Joint " << uLabel << ", type \""
 	<< psJointNames[Joint::PRISMATIC] 
 	<< "\", linked to nodes " << pNode1->GetLabel() 
-	<< " and " << pNode2->GetLabel() << ':' << endl 
-	<< "Hinge to node 1 relative orientation: " << endl << R1h << endl
-	<< "Hinge to node 2 relative orientation: " << endl << R2h << endl
-	<< "Current reaction couple: " << endl << M << endl;   
+	<< " and " << pNode2->GetLabel() << ':' << std::endl 
+	<< "Hinge to node 1 relative orientation: " << std::endl << R1h << std::endl
+	<< "Hinge to node 2 relative orientation: " << std::endl << R2h << std::endl
+	<< "Current reaction couple: " << std::endl << M << std::endl;   
 #endif   
    
       Mat3x3 R1Tmp(pNode1->GetRCurr()*R1h);
       
       Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),
-		    Zero3, M, Zero3, R1Tmp*M) << endl;      
+		    Zero3, M, Zero3, R1Tmp*M) << std::endl;      
    }   
 }
 
@@ -277,7 +277,7 @@ VariableSubMatrixHandler&
 PrismaticJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 			       const VectorHandler& XCurr)
 {
-   DEBUGCOUT("Entering PrismaticJoint::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering PrismaticJoint::InitialAssJac()" << std::endl);
    
    /* Per ora usa la matrice piena; eventualmente si puo' 
     * passare a quella sparsa quando si ottimizza */
@@ -390,9 +390,9 @@ PrismaticJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
    if (v1.Dot() < DBL_EPSILON || v2.Dot() < DBL_EPSILON || v3.Dot() < DBL_EPSILON) {
-      cerr << "joint " << GetLabel() << ':' << endl
-	<< "warning, first node hinge axis and second node hinge axis are (nearly) orthogonal;" << endl
-	<< "aborting ..." << endl;
+      std::cerr << "joint " << GetLabel() << ':' << std::endl
+	<< "warning, first node hinge axis and second node hinge axis are (nearly) orthogonal;" << std::endl
+	<< "aborting ..." << std::endl;
       THROW(Joint::ErrGeneric());
    }      
    
@@ -463,7 +463,7 @@ SubVectorHandler&
 PrismaticJoint::InitialAssRes(SubVectorHandler& WorkVec,
 			      const VectorHandler& XCurr)
 {   
-   DEBUGCOUT("Entering PrismaticJoint::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering PrismaticJoint::InitialAssRes()" << std::endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;

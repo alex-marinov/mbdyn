@@ -71,7 +71,7 @@ class InPlaneContactJoint : public Joint {
      { return Joint::INPLANECONTACT; };
    
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    virtual unsigned int iGetNumDof(void) const { 
       return 1;

@@ -110,7 +110,7 @@ class Joint
    };
 
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       return out << "  joint: " << GetLabel();
    };
    
@@ -118,7 +118,7 @@ class Joint
    virtual void Output(OutputHandler& OH) const;
    
    /* Output specifico dei vincoli */
-   ostream& Output(ostream& out, const char* sJointName,
+   std::ostream& Output(std::ostream& out, const char* sJointName,
 	           unsigned int uLabel, 
 		   const Vec3& FLocal, const Vec3& MLocal,
 		   const Vec3& FGlobal, const Vec3& MGlobal) const;

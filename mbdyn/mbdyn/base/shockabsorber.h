@@ -41,7 +41,6 @@
 #define SHOCKABSORBER_H
 
 #include "constltp.h"
-#include <fstream.h>
 
 const doublereal defaultEpsMin = -.5;
 const doublereal defaultEpsMax = 0.;
@@ -73,11 +72,11 @@ public:
 		return NULL;
 	};
 
-	virtual ostream&
-	Restart(ostream& out) const {
+	virtual std::ostream&
+	Restart(std::ostream& out) const {
 		return out
 			<< "/* Shock absorber, not implemented yet */"
-			<< endl;
+			<< std::endl;
 	};
 
 	virtual void
@@ -197,7 +196,7 @@ public:
 	pAreaPin(NULL), pAreaOrifices(NULL) {
 		if (HP.IsKeyWord("help")) {
 
-			cout <<
+			std::cout <<
 "\n"
 "this help refers to the specific \"shock absorber\" constitutive\n"
 "law input data.  The prestrain value, if required, must be inserted\n"
@@ -219,7 +218,7 @@ public:
 "\n"
 "Note: at least one of \"metering\" and \"orifice\" must be defined.\n"
 "\n"
-				<< endl;
+				<< std::endl;
 
 			if (!HP.fIsArg()) {
 				/*
@@ -242,9 +241,9 @@ public:
 		if (HP.IsKeyWord("epsilon" "min")) {
 			EpsMin = HP.GetReal(defaultEpsMin);
 			if ( EpsMin >= EpsMax) {
-				cerr << "line " << HP.GetLineData()
+				std::cerr << "line " << HP.GetLineData()
 					<< ": epsilon min must be less"
-					" than epsilon max" << endl;
+					" than epsilon max" << std::endl;
 				THROW(ErrGeneric());
 			}
 		}
@@ -262,9 +261,9 @@ public:
 		}
 
 		if (pAreaPin == NULL && pAreaOrifices == NULL) {
-			cerr << "line " << HP.GetLineData()
+			std::cerr << "line " << HP.GetLineData()
 				<< ": at least one area (metering or orifice)"
-				" must be defined" << endl;
+				" must be defined" << std::endl;
 			THROW(ErrGeneric());
 		}
 
@@ -292,8 +291,8 @@ public:
 		return p;
 	};
 
-	virtual ostream&
-	Restart(ostream& out) const {
+	virtual std::ostream&
+	Restart(std::ostream& out) const {
 		
 		/*
 		 * FIXME: devo trovare il modo di ripristinare
@@ -385,8 +384,8 @@ public:
 		}
 
 		if (a == 0.) {
-			cerr << "ShockAbsorberConstitutiveLaw::Update:"
-				" division by zero" << endl;
+			std::cerr << "ShockAbsorberConstitutiveLaw::Update:"
+				" division by zero" << std::endl;
 			THROW(ErrGeneric());
 		}
 		

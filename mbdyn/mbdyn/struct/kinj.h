@@ -57,7 +57,7 @@ class KinJoint : virtual public Elem, public Joint {
    virtual inline void* pGet(void) const { return (void *)this; };
 
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    virtual unsigned int iGetNumDof(void) const { 
       return 18;

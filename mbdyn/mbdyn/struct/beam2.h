@@ -165,7 +165,7 @@ class Beam2
     };
 
     /* Funzione interna di restart */
-    virtual ostream& Restart_(ostream& out) const;
+    virtual std::ostream& Restart_(std::ostream& out) const;
    
   public:
     /* Costruttore normale */
@@ -195,7 +195,7 @@ class Beam2
     };
    
     /* Contributo al file di restart */
-    virtual ostream& Restart(ostream& out) const;
+    virtual std::ostream& Restart(std::ostream& out) const;
    
     /* funzioni proprie */
    
@@ -233,7 +233,7 @@ class Beam2
     virtual void Output(OutputHandler& OH) const;   
 
     /* Output di un modello NASTRAN equivalente nella configurazione corrente */
-    virtual void Output_pch(ostream& out) const;
+    virtual void Output_pch(std::ostream& out) const;
 
     /* Funzioni proprie tipiche dei vincoli, usate durante l'assemblaggio 
      * iniziale. Le travi non sono vincoli (o meglio, non vengono considerate
@@ -293,12 +293,12 @@ class Beam2
 	    return DefLoc.dGet(i);
         case 2:
         case 3:
-	    cerr << "Beam2 " << GetLabel() 
-	        << ": not allowed to return shear strain" << endl;
+	    std::cerr << "Beam2 " << GetLabel() 
+	        << ": not allowed to return shear strain" << std::endl;
 	    THROW(ErrGeneric());
         default:
-	    cerr << "Beam2 " << GetLabel() << ": illegal private data " 
-	       << i << endl;
+	    std::cerr << "Beam2 " << GetLabel() << ": illegal private data " 
+	       << i << std::endl;
 	    THROW(ErrGeneric());
         }
 #ifndef USE_EXCEPTIONS
@@ -330,8 +330,8 @@ class Beam2
         return 1;
     };
     void GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const;
-    ostream& 
-    WriteAdamsDummyPartCmd(ostream& out,
+    std::ostream& 
+    WriteAdamsDummyPartCmd(std::ostream& out,
                            unsigned int part, 
 			   unsigned int firstId) const;
 };

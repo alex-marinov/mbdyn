@@ -59,12 +59,12 @@ DistanceJoint::~DistanceJoint(void)
 
 
 /* Contributo al file di restart */
-ostream& DistanceJoint::Restart(ostream& out) const
+std::ostream& DistanceJoint::Restart(std::ostream& out) const
 {
    Joint::Restart(out) << ", distance, " 
      << pNode1->GetLabel() << ", "
      << pNode2->GetLabel() << ", ";
-   return pGetDriveCaller()->Restart(out) << ';' << endl;
+   return pGetDriveCaller()->Restart(out) << ';' << std::endl;
 }
 
 
@@ -75,7 +75,7 @@ DistanceJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		      const VectorHandler& /* XCurr */ ,
 		      const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering DistanceJoint::AssJac()" << endl);
+   DEBUGCOUT("Entering DistanceJoint::AssJac()" << std::endl);
       
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
    
@@ -222,7 +222,7 @@ SubVectorHandler& DistanceJoint::AssRes(SubVectorHandler& WorkVec,
 					const VectorHandler& XCurr, 
 					const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering DistanceJoint::AssRes()" << endl);
+   DEBUGCOUT("Entering DistanceJoint::AssRes()" << std::endl);
       
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -302,10 +302,10 @@ void DistanceJoint::Output(OutputHandler& OH) const
       OH.Output() << "Joint " << uLabel << ", type \""
 	<< psJointNames[Joint::DISTANCE] 
 	<< "\", linked to nodes " << pNode1->GetLabel() 
-	<< " and " << pNode2->GetLabel() << ':' << endl 
-	<< "Current distance: " << pGetDriveCaller()->dGet() << endl 
-	<< "Current reaction direction: " << endl << v << endl 
-	<< "Current reaction amplitude: " << dAlpha << endl;
+	<< " and " << pNode2->GetLabel() << ':' << std::endl 
+	<< "Current distance: " << pGetDriveCaller()->dGet() << std::endl 
+	<< "Current reaction direction: " << std::endl << v << std::endl 
+	<< "Current reaction amplitude: " << dAlpha << std::endl;
 #endif  
       
       doublereal d = dGet();
@@ -317,7 +317,7 @@ void DistanceJoint::Output(OutputHandler& OH) const
       }
       Joint::Output(OH.Joints(), "Distance", GetLabel(),
 		    vTmp, Zero3, v*dAlpha, Zero3)
-	<< " " << v << " " << d << endl;
+	<< " " << v << " " << d << std::endl;
    }
 }
 
@@ -330,7 +330,7 @@ VariableSubMatrixHandler&
 DistanceJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 			     const VectorHandler& XCurr)
 {
-   DEBUGCOUT("Entering DistanceJoint::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering DistanceJoint::InitialAssJac()" << std::endl);
    
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
 
@@ -543,7 +543,7 @@ SubVectorHandler&
 DistanceJoint::InitialAssRes(SubVectorHandler& WorkVec,
 			     const VectorHandler& XCurr)
 {   
-   DEBUGCOUT("Entering DistanceJoint::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering DistanceJoint::InitialAssRes()" << std::endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    WorkVec.Resize(20);
@@ -660,11 +660,11 @@ void DistanceJoint::SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const
 	 (Vec3&)v = (pNode2->GetXCurr()-pNode1->GetXCurr());
 	 d = v.Dot();
 	 if(d <= DBL_EPSILON) {
-	    cerr << "Joint " << uLabel << ", linked to nodes " 
+	    std::cerr << "Joint " << uLabel << ", linked to nodes " 
 	      << pNode1->GetLabel() << " and " << pNode2->GetLabel() 
-	      << ": nodes are coincident." << endl
+	      << ": nodes are coincident." << std::endl
 	      << "Initial joint assembly is recommended; aborting ... " 
-	      << endl;
+	      << std::endl;
 	    
 	    THROW(ErrGeneric());
 	 }
@@ -688,8 +688,8 @@ DistanceJoint::GetAdamsDummyPart(unsigned int part,
 }
 
 
-ostream& 
-DistanceJoint::WriteAdamsDummyPartCmd(ostream& out,
+std::ostream& 
+DistanceJoint::WriteAdamsDummyPartCmd(std::ostream& out,
 				      unsigned int part, 
 				      unsigned int firstId) const
 {
@@ -715,14 +715,14 @@ DistanceJoint::WriteAdamsDummyPartCmd(ostream& out,
    Vec3 e(EulerAngles(MatR2vec(1, v1, 2, v2)));
    
    return out 
-     << psAdamsElemCode[GetElemType()] << "_" << GetLabel() << "_" << part << endl
+     << psAdamsElemCode[GetElemType()] << "_" << GetLabel() << "_" << part << std::endl
      << firstId << " "
      << x1 << " "
      << EulerAngles(pNode1->GetRCurr()) << " "
      << x1 << " "
      << e << " "
      << l << " " << 0. << " " << 0. << " "
-     << Zero3 << endl;
+     << Zero3 << std::endl;
 }
 
 /* DistanceJoint - end */
@@ -761,7 +761,7 @@ DistanceJointWithOffset::~DistanceJointWithOffset(void)
 
 
 /* Contributo al file di restart */
-ostream& DistanceJointWithOffset::Restart(ostream& out) const
+std::ostream& DistanceJointWithOffset::Restart(std::ostream& out) const
 {
    Joint::Restart(out) << ", distance with offset, " 
      << pNode1->GetLabel() 
@@ -770,7 +770,7 @@ ostream& DistanceJointWithOffset::Restart(ostream& out) const
      << pNode2->GetLabel() 
      << ", reference, node, ",
      f2.Write(out, ", ") << ", ";
-   return pGetDriveCaller()->Restart(out) << ';' << endl;
+   return pGetDriveCaller()->Restart(out) << ';' << std::endl;
 }
 
 
@@ -781,7 +781,7 @@ DistanceJointWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
 				const VectorHandler& /* XCurr */ ,
 				const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering DistanceJointWithOffset::AssJac()" << endl);
+   DEBUGCOUT("Entering DistanceJointWithOffset::AssJac()" << std::endl);
       
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
    
@@ -947,7 +947,7 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
 				const VectorHandler& XCurr, 
 				const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering DistanceJointWithOffset::AssRes()" << endl);
+   DEBUGCOUT("Entering DistanceJointWithOffset::AssRes()" << std::endl);
       
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -1031,10 +1031,10 @@ void DistanceJointWithOffset::Output(OutputHandler& OH) const
       OH.Output() << "Joint " << uLabel << ", type \""
 	<< psJointNames[Joint::DISTANCE] 
 	<< "\", linked to nodes " << pNode1->GetLabel() 
-	<< " and " << pNode2->GetLabel() << ':' << endl 
-	<< "Current distance: " << pGetDriveCaller()->dGet() << endl 
-	<< "Current reaction direction: " << endl << v << endl 
-	<< "Current reaction amplitude: " << dAlpha << endl;
+	<< " and " << pNode2->GetLabel() << ':' << std::endl 
+	<< "Current distance: " << pGetDriveCaller()->dGet() << std::endl 
+	<< "Current reaction direction: " << std::endl << v << std::endl 
+	<< "Current reaction amplitude: " << dAlpha << std::endl;
 #endif     
       
       doublereal d = dGet();
@@ -1046,7 +1046,7 @@ void DistanceJointWithOffset::Output(OutputHandler& OH) const
       }
       Joint::Output(OH.Joints(), "DistanceWithOffs", GetLabel(),
 		    vTmp, Zero3, v*dAlpha, Zero3)
-	<< " " << v << " " << d << endl;
+	<< " " << v << " " << d << std::endl;
    }   
 }
 
@@ -1056,7 +1056,7 @@ VariableSubMatrixHandler&
 DistanceJointWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 				       const VectorHandler& XCurr)
 {
-   DEBUGCOUT("Entering DistanceJointWithOffset::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering DistanceJointWithOffset::InitialAssJac()" << std::endl);
 
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
@@ -1289,7 +1289,7 @@ SubVectorHandler&
 DistanceJointWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
 				       const VectorHandler& XCurr)
 {   
-   DEBUGCOUT("Entering DistanceJointWithOffset::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering DistanceJointWithOffset::InitialAssRes()" << std::endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    WorkVec.Resize(32);
@@ -1424,11 +1424,11 @@ void DistanceJointWithOffset::SetValue(VectorHandler& X,
 	   -pNode1->GetXCurr()-pNode1->GetRCurr()*f1;
 	 d = v.Dot();
 	 if (d <= DBL_EPSILON) {
-	    cerr << endl << "Joint " << uLabel << ", linked to nodes " 
+	    std::cerr << std::endl << "Joint " << uLabel << ", linked to nodes " 
 	      << pNode1->GetLabel() << " and " << pNode2->GetLabel() 
-	      << ": nodes are coincident." << endl
+	      << ": nodes are coincident." << std::endl
 	      << "Initial joint assembly is recommended; aborting ... " 
-	      << endl;
+	      << std::endl;
 	    
 	    THROW(ErrMemory());
 	 }
@@ -1473,8 +1473,8 @@ DistanceJointWithOffset::GetAdamsDummyPart(unsigned int part,
 }
 
 
-ostream& 
-DistanceJointWithOffset::WriteAdamsDummyPartCmd(ostream& out,
+std::ostream& 
+DistanceJointWithOffset::WriteAdamsDummyPartCmd(std::ostream& out,
 						unsigned int part, 
 						unsigned int firstId) const
 {
@@ -1500,14 +1500,14 @@ DistanceJointWithOffset::WriteAdamsDummyPartCmd(ostream& out,
    Vec3 e(EulerAngles(MatR2vec(1, v1, 2, v2)));
    
    return out 
-     << psAdamsElemCode[GetElemType()] << "_" << GetLabel() << "_" << part << endl
+     << psAdamsElemCode[GetElemType()] << "_" << GetLabel() << "_" << part << std::endl
      << firstId << " "
      << x1 << " "
      << e /* EulerAngles(pNode1->GetRCurr()) */ << " "
      << x1 << " "
      << e << " "
      << l << " " << 0. << " " << 0. << " "
-     << Zero3 << endl;
+     << Zero3 << std::endl;
 }
 
 /* DistanceJointWithOffset - end */
@@ -1535,10 +1535,10 @@ ClampJoint::~ClampJoint(void)
 
 
 /* Contributo al file di restart */
-ostream& ClampJoint::Restart(ostream& out) const
+std::ostream& ClampJoint::Restart(std::ostream& out) const
 {
    return Joint::Restart(out) << ", clamp, "
-     << pNode->GetLabel() << ", node, node;" << endl;
+     << pNode->GetLabel() << ", node, node;" << std::endl;
 }
 
 
@@ -1548,7 +1548,7 @@ ClampJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		   const VectorHandler& /* XCurr */ ,
 		   const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering ClampJoint::AssJac()" << endl);
+   DEBUGCOUT("Entering ClampJoint::AssJac()" << std::endl);
       
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
    
@@ -1622,7 +1622,7 @@ void ClampJoint::AssEig(VariableSubMatrixHandler& WorkMatA,
 			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering ClampJoint::AssEig(); will result in call to AssJac()" << endl);
+   DEBUGCOUT("Entering ClampJoint::AssEig(); will result in call to AssJac()" << std::endl);
    
    WorkMatA.SetNullMatrix();
    AssJac(WorkMatB, 1., XCurr, XPrimeCurr);
@@ -1635,7 +1635,7 @@ SubVectorHandler& ClampJoint::AssRes(SubVectorHandler& WorkVec,
 				     const VectorHandler& XCurr, 
 				     const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering ClampJoint::AssRes()" << endl);
+   DEBUGCOUT("Entering ClampJoint::AssRes()" << std::endl);
 
    integer iNumRows;
    integer iNumCols;
@@ -1688,14 +1688,14 @@ void ClampJoint::Output(OutputHandler& OH) const
 #ifdef DEBUG   
       OH.Output() << "Joint " << uLabel << ", type \""
 	<< psJointNames[Joint::CLAMP] 
-	<< "\", linked to node " << pNode->GetLabel() << ':' << endl 
-	<< "Position: " << endl << XClamp << endl 
-	<< "Rotation Matrix: " << endl << RClamp << endl 
-	<< "Rotation Parameters: " << endl << gparam(RClamp) << endl;
+	<< "\", linked to node " << pNode->GetLabel() << ':' << std::endl 
+	<< "Position: " << std::endl << XClamp << std::endl 
+	<< "Rotation Matrix: " << std::endl << RClamp << std::endl 
+	<< "Rotation Parameters: " << std::endl << gparam(RClamp) << std::endl;
 #endif   
       
       Joint::Output(OH.Joints(), "Clamp", GetLabel(),
-		    F, M, F, M) << endl;
+		    F, M, F, M) << std::endl;
    }
 }
 
@@ -1705,7 +1705,7 @@ VariableSubMatrixHandler&
 ClampJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 			  const VectorHandler& /* XCurr */ )
 {
-   DEBUGCOUT("Entering ClampJoint::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering ClampJoint::InitialAssJac()" << std::endl);
    
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
    WM.ResizeInit(24, 1, 0.);
@@ -1752,7 +1752,7 @@ SubVectorHandler&
 ClampJoint::InitialAssRes(SubVectorHandler& WorkVec,
 			  const VectorHandler& XCurr)
 {   
-   DEBUGCOUT("Entering ClampJoint::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering ClampJoint::InitialAssRes()" << std::endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;

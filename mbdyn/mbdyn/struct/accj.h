@@ -64,7 +64,7 @@ class LinearAccelerationJoint
    virtual Joint::Type GetJointType(void) const;
 
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    virtual unsigned int iGetNumDof(void) const;
    DofOrder::Order SetDof(unsigned int i) const;
@@ -149,7 +149,7 @@ class AngularAccelerationJoint
    virtual Joint::Type GetJointType(void) const;
 
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    virtual unsigned int iGetNumDof(void) const;
    DofOrder::Order SetDof(unsigned int i) const;

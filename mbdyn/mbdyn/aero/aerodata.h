@@ -60,7 +60,7 @@ public:
    	AeroData(integer u = 0);
    	virtual ~AeroData(void);
    
-   	virtual ostream& Restart(ostream& out) const = 0;   
+   	virtual std::ostream& Restart(std::ostream& out) const = 0;   
    	void SetAirData(const doublereal& rho, const doublereal& c);
    
    	virtual void SetSectionData(const doublereal& abscissa,
@@ -94,7 +94,7 @@ protected:
 public: 
    	STAHRAeroData(integer u, integer p);
    
-   	ostream& Restart(ostream& out) const;   
+	std::ostream& Restart(std::ostream& out) const;   
    	int GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA);
 };
 
@@ -111,7 +111,7 @@ protected:
 public: 
    	C81AeroData(integer u, integer p, const c81_data* d);
 
-   	ostream& Restart(ostream& out) const;
+	std::ostream& Restart(std::ostream& out) const;
    	int GetForces(doublereal* W, doublereal* TNG, doublereal* OUTA);
 };
 
@@ -137,7 +137,7 @@ public:
 			const c81_data** d);
    	~C81MultipleAeroData(void);
 
-   	ostream& Restart(ostream& out) const;
+	std::ostream& Restart(std::ostream& out) const;
    	void SetSectionData(const doublereal& abscissa,
 			    const doublereal& chord,
 			    const doublereal& forcepoint,

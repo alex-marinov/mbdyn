@@ -58,7 +58,7 @@ class DofDriveCaller : public DriveCaller, public DriveOwner
    /* Copia */
    virtual DriveCaller* pCopy(void) const;
    
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    inline doublereal dGet(const doublereal& dVar) const;
    inline doublereal dGet(void) const;
@@ -67,7 +67,7 @@ class DofDriveCaller : public DriveCaller, public DriveOwner
 
 inline doublereal DofDriveCaller::dGet(const doublereal& dVar) const
 {
-   cerr << "warning, possible improper call of dof drive with real argument" << endl;
+   std::cerr << "warning, possible improper call of dof drive with real argument" << std::endl;
    return DriveOwner::pGetDriveCaller()->dGet(dVar);
 }
 

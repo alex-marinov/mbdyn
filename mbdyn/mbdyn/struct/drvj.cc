@@ -62,12 +62,12 @@ LinearVelocityJoint::~LinearVelocityJoint(void)
    
 
 /* Contributo al file di restart */
-ostream& LinearVelocityJoint::Restart(ostream& out) const
+std::ostream& LinearVelocityJoint::Restart(std::ostream& out) const
 {
    Joint::Restart(out) << ", linear velocity, " << pNode->GetLabel() 
      << ", reference, global, ",
       Dir.Write(out, ", ") << ", ";
-   return pGetDriveCaller()->Restart(out) << ';' << endl;
+   return pGetDriveCaller()->Restart(out) << ';' << std::endl;
 }
    
       
@@ -77,7 +77,7 @@ LinearVelocityJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			    const VectorHandler& /* XCurr */ ,
 			    const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering LinearVelocityJoint::AssJac()" << endl);
+   DEBUGCOUT("Entering LinearVelocityJoint::AssJac()" << std::endl);
 
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
    WM.ResizeInit(6, 0, 0.);
@@ -104,7 +104,7 @@ LinearVelocityJoint::AssRes(SubVectorHandler& WorkVec,
 			    const VectorHandler& XCurr,
 			    const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering LinearVelocityJoint::AssRes()" << endl);
+   DEBUGCOUT("Entering LinearVelocityJoint::AssRes()" << std::endl);
 
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -150,19 +150,19 @@ void LinearVelocityJoint::Output(OutputHandler& OH) const
 #ifdef DEBUG   
       OH.Output() << "Joint " << uLabel << ", type \""
 	<< psJointNames[Joint::LINEARVELOCITY]
-	<< "\", linked to node " << pNode->GetLabel() << endl
-	<< "Current force reaction: " << dF << endl
-	<< "Current imposed speed: " << dGet() << endl;
+	<< "\", linked to node " << pNode->GetLabel() << std::endl
+	<< "Current force reaction: " << dF << std::endl
+	<< "Current imposed speed: " << dGet() << std::endl;
 #endif   
       
       /*
       OH.Joints().write("LinearVelocity  ", 16)
-	<< setw(8) << GetLabel() << " " << Dir*dF << " " << Vec3(0.) << endl;
+	<< std::setw(8) << GetLabel() << " " << Dir*dF << " " << Vec3(0.) << std::endl;
        */
       
       Joint::Output(OH.Joints(), "LinearVelocity", GetLabel(),
 		    Vec3(dF, 0., 0.), Zero3, Dir*dF, Zero3)
-	<< " " << Dir << " " << dGet() << endl;
+	<< " " << Dir << " " << dGet() << std::endl;
    }   
 }
  
@@ -172,7 +172,7 @@ VariableSubMatrixHandler&
 LinearVelocityJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 				   const VectorHandler& /* XCurr */ )
 {   
-   DEBUGCOUT("Entering LinearVelocityJoint::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering LinearVelocityJoint::InitialAssJac()" << std::endl);
 
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
    WM.ResizeInit(6, 0, 0.);
@@ -197,7 +197,7 @@ SubVectorHandler&
 LinearVelocityJoint::InitialAssRes(SubVectorHandler& WorkVec,
 				   const VectorHandler& XCurr)
 {   
-   DEBUGCOUT("Entering LinearVelocityJoint::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering LinearVelocityJoint::InitialAssRes()" << std::endl);
 
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -264,12 +264,12 @@ AngularVelocityJoint::~AngularVelocityJoint(void)
    
 
 /* Contributo al file di restart */
-ostream& AngularVelocityJoint::Restart(ostream& out) const
+std::ostream& AngularVelocityJoint::Restart(std::ostream& out) const
 {
    Joint::Restart(out) << ", angular velocity, "
      << pNode->GetLabel() << ", reference, node, ",
      Dir.Write(out, ", ") << ", ";
-   return pGetDriveCaller()->Restart(out) << ';' << endl;
+   return pGetDriveCaller()->Restart(out) << ';' << std::endl;
 }
    
       
@@ -279,7 +279,7 @@ AngularVelocityJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			    const VectorHandler& /* XCurr */ ,
 			    const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering AngularVelocityJoint::AssJac()" << endl);
+   DEBUGCOUT("Entering AngularVelocityJoint::AssJac()" << std::endl);
 
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
    WM.ResizeInit(12, 0, 0.);
@@ -311,7 +311,7 @@ AngularVelocityJoint::AssRes(SubVectorHandler& WorkVec,
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering AngularVelocityJoint::AssRes()" << endl);
+   DEBUGCOUT("Entering AngularVelocityJoint::AssRes()" << std::endl);
 
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -356,21 +356,21 @@ void AngularVelocityJoint::Output(OutputHandler& OH) const
 #ifdef DEBUG   
       OH.Output() << "Joint " << uLabel << ", type \""
 	<< psJointNames[Joint::ANGULARVELOCITY]
-	<< "\", linked to node " << pNode->GetLabel() << endl
-	<< "Current couple reaction: " << dM << endl
-	<< "Current imposed speed: " << dGet() << endl;
+	<< "\", linked to node " << pNode->GetLabel() << std::endl
+	<< "Current couple reaction: " << dM << std::endl
+	<< "Current imposed speed: " << dGet() << std::endl;
 #endif   
       
       /*
       OH.Joints().write("AngularVelocity ", 16)
-	<< setw(8) << GetLabel() << " " << Vec3(0.) << " " << Dir*dM << endl;
+	<< std::setw(8) << GetLabel() << " " << Vec3(0.) << " " << Dir*dM << std::endl;
        */
       
       Vec3 Tmp(pNode->GetRCurr()*Dir);
       
       Joint::Output(OH.Joints(), "AngularVelocity", GetLabel(),
 		    Zero3, Vec3(dM, 0., 0.), Zero3, Tmp*dM)
-	<< " " << Tmp << " " << dGet() << endl;      
+	<< " " << Tmp << " " << dGet() << std::endl;      
    }   
 }
  
@@ -380,7 +380,7 @@ VariableSubMatrixHandler&
 AngularVelocityJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 				    const VectorHandler& /* XCurr */ )
 {   
-   DEBUGCOUT("Entering AngularVelocityJoint::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering AngularVelocityJoint::InitialAssJac()" << std::endl);
 
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
    WM.ResizeInit(15, 0, 0.);
@@ -412,7 +412,7 @@ SubVectorHandler&
 AngularVelocityJoint::InitialAssRes(SubVectorHandler& WorkVec,
 				    const VectorHandler& XCurr)
 {   
-   DEBUGCOUT("Entering AngularVelocityJoint::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering AngularVelocityJoint::InitialAssRes()" << std::endl);
 
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;

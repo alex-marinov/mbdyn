@@ -35,7 +35,7 @@
 #ifndef DATAMAN_H
 #define DATAMAN_H
 
-#include <iomanip.h>
+//#include <iomanip.h>
 
 /* per il debug */
 #include "myassert.h"
@@ -53,7 +53,6 @@
 #include "veciter.h"
 
 #include "elem.h"      /* Classe di base di tutti gli elementi */
-#include "joint.h"
 #include "output.h"
 
 #include "drive.h"     /* Drive vari */
@@ -141,7 +140,6 @@ class DataManager {
    friend Elem** ReadOneElem(DataManager* pDM, MBDynParser& HP, unsigned int uLabel, int CurrType);   
    friend Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
    friend Elem* ReadJoint(DataManager* pDM, MBDynParser& HP, const DofOwner* pDO, unsigned int uLabel);
-   friend Joint* ReadModal(DataManager* pDM, MBDynParser& HP, const DofOwner* pDO, unsigned int uLabel);
    friend Elem* ReadGenel(DataManager* pDM, MBDynParser& HP, const DofOwner* pDO, unsigned int uLabel);
    friend Elem* ReadElectric(DataManager* pDM, MBDynParser& HP, const DofOwner* pDO, unsigned int uLabel);
    friend Elem* ReadBulk(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
@@ -224,7 +222,7 @@ class DataManager {
 
    /* Restituisce l'ostream al file di output, 
     * usato dai vari metodi per scrivere il log del calcolo */
-   ostream& GetOutFile(void) { return OutHdl.Output(); };
+   std::ostream& GetOutFile(void) { return OutHdl.Output(); };
    
    /* Restituisce il DriveHandler */
    const DriveHandler* pGetDrvHdl(void) const { return &DrvHdl; };
@@ -241,8 +239,8 @@ class DataManager {
    /* stampa i risultati */
    virtual void Output(void) const;
    virtual void Output(const VectorHandler& X, const VectorHandler& XP) const;
-   virtual void Output_pch(ostream& pch) const;
-   virtual void Output_f06(ostream& f06, const VectorHandler& X) const;
+   virtual void Output_pch(std::ostream& pch) const;
+   virtual void Output_f06(std::ostream& f06, const VectorHandler& X) const;
    
    /* Adams output */
    flag fAdamsOutput(void) const;
@@ -351,8 +349,8 @@ class DataManager {
    void ElemOutput(OutputHandler& OH) const;
    void ElemOutput(OutputHandler& OH,
 		   const VectorHandler& X, const VectorHandler& XP) const;
-   void ElemOutput_pch(ostream& pch) const;
-   void ElemOutput_f06(ostream& f06, const VectorHandler& X) const;
+   void ElemOutput_pch(std::ostream& pch) const;
+   void ElemOutput_f06(std::ostream& f06, const VectorHandler& X) const;
    
    
    /* da NodeManager */
@@ -405,8 +403,8 @@ class DataManager {
    void NodeOutput(OutputHandler& OH) const;
    void NodeOutput(OutputHandler& OH, 
 		   const VectorHandler& X, const VectorHandler& XP) const;
-   void NodeOutput_pch(ostream& pch) const;
-   void NodeOutput_f06(ostream& f06, const VectorHandler& X) const;
+   void NodeOutput_pch(std::ostream& pch) const;
+   void NodeOutput_f06(std::ostream& f06, const VectorHandler& X) const;
    
    
    /* da DofManager */

@@ -152,7 +152,7 @@ void DataManager::ReadElems(MBDynParser& HP)
    }   
          
    int iMissingElems = iTotElem;
-   DEBUGLCOUT(MYDEBUG_INPUT, "Expected elements: " << iMissingElems << endl);
+   DEBUGLCOUT(MYDEBUG_INPUT, "Expected elements: " << iMissingElems << std::endl);
    
 #ifdef USE_STRUCT_NODES
    /* Aggiunta degli elementi strutturali automatici legati ai nodi dinamici */
@@ -174,7 +174,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 	    iNumTypes[Elem::AUTOMATICSTRUCTURAL]--;
 	    DEBUGLCOUT(MYDEBUG_INPUT, 
 		       "Initialising automatic structural element linked to node " 
-		       << (*ppTmp)->GetLabel() << endl);
+		       << (*ppTmp)->GetLabel() << std::endl);
 	 }
       }
    }
@@ -190,37 +190,37 @@ void DataManager::ReadElems(MBDynParser& HP)
 	    
 #ifdef USE_STRUCT_NODES
 	  case BODY: {
-	     DEBUGLCOUT(MYDEBUG_INPUT, "bodies" << endl);
+	     DEBUGLCOUT(MYDEBUG_INPUT, "bodies" << std::endl);
 	     Typ = Elem::BODY;
 	     break;
 	  }
 	  case AUTOMATICSTRUCTURAL: {
-	     DEBUGLCOUT(MYDEBUG_INPUT, "automatic structural" << endl);
+	     DEBUGLCOUT(MYDEBUG_INPUT, "automatic structural" << std::endl);
 	     Typ = Elem::AUTOMATICSTRUCTURAL;
 	     break;
 	  }
 	  case JOINT: {
-	     DEBUGLCOUT(MYDEBUG_INPUT, "joints" << endl);
+	     DEBUGLCOUT(MYDEBUG_INPUT, "joints" << std::endl);
 	     Typ = Elem::JOINT;
 	     break;
 	  }
 	  case BEAM:
 	  case BEAM2:
 	  case HBEAM: {
-	     DEBUGLCOUT(MYDEBUG_INPUT, "beams" << endl);
+	     DEBUGLCOUT(MYDEBUG_INPUT, "beams" << std::endl);
 	     Typ = Elem::BEAM;
 	     break;
 	  }
 #ifdef USE_AERODYNAMIC_ELEMS
 	  case ROTOR: {
-	     DEBUGLCOUT(MYDEBUG_INPUT, "rotors" << endl);
+	     DEBUGLCOUT(MYDEBUG_INPUT, "rotors" << std::endl);
 	     Typ = Elem::ROTOR;
 	     break;
 	  }
 	  case AERODYNAMICBODY:
 	  case AERODYNAMICBEAM:
 	  case AERODYNAMICBEAM2: {
-	     DEBUGLCOUT(MYDEBUG_INPUT, "aerodynamic" << endl);
+	     DEBUGLCOUT(MYDEBUG_INPUT, "aerodynamic" << std::endl);
 	     Typ = Elem::AERODYNAMIC;
 	     break;
 	  }
@@ -232,18 +232,18 @@ void DataManager::ReadElems(MBDynParser& HP)
 	  case COUPLE:
 #endif /* USE_STRUCT_NODES */
 	  {		 
-	     DEBUGLCOUT(MYDEBUG_INPUT, "forces" << endl);
+	     DEBUGLCOUT(MYDEBUG_INPUT, "forces" << std::endl);
 	     Typ = Elem::FORCE;
 	     break;
 	  }	
 #ifdef USE_ELECTRIC_NODES
 	  case GENEL: {
-	     DEBUGLCOUT(MYDEBUG_INPUT, "genels" << endl);
+	     DEBUGLCOUT(MYDEBUG_INPUT, "genels" << std::endl);
 	     Typ = Elem::GENEL;
 	     break;
 	  }
 	  case ELECTRIC: {
-	     DEBUGLCOUT(MYDEBUG_INPUT, "electric" << endl);
+	     DEBUGLCOUT(MYDEBUG_INPUT, "electric" << std::endl);
 	     Typ = Elem::ELECTRIC;
 	     break;
 	  }
@@ -251,35 +251,35 @@ void DataManager::ReadElems(MBDynParser& HP)
 
 #ifdef USE_HYDRAULIC_NODES
 	  case HYDRAULIC: {
-	     DEBUGLCOUT(MYDEBUG_INPUT, "hydraulic elements" << endl);
+	     DEBUGLCOUT(MYDEBUG_INPUT, "hydraulic elements" << std::endl);
 	     Typ = Elem::HYDRAULIC;
 	     break;
 	  }
 #endif /* USE_HYDRAULIC_NODES */
 
 	  case BULK: {
-	     DEBUGLCOUT(MYDEBUG_INPUT, "bulk" << endl);
+	     DEBUGLCOUT(MYDEBUG_INPUT, "bulk" << std::endl);
 	     Typ = Elem::BULK;
 	     break;
 	  }
 
 #ifdef HAVE_LOADABLE
 	  case LOADABLE: {
-	     DEBUGLCOUT(MYDEBUG_INPUT, "loadable" << endl);
+	     DEBUGLCOUT(MYDEBUG_INPUT, "loadable" << std::endl);
 	     Typ = Elem::LOADABLE;
 	     break;
 	  }
 #endif /* HAVE_LOADABLE */
 	    
 	  case UNKNOWNKEYWORD: {
-	     cerr << "Error: unknown element type, cannot modify output" << endl;	     
+	     std::cerr << "Error: unknown element type, cannot modify output" << std::endl;	     
 	     THROW(DataManager::ErrGeneric());
 	  }
 	    
 	  default: {
-	     cerr << "Error: element type " << sKeyWords[CurrDesc] 
+	     std::cerr << "Error: element type " << sKeyWords[CurrDesc] 
 	       << " at line " << HP.GetLineData() << " is not allowed"
-	       << endl;
+	       << std::endl;
 	     THROW(DataManager::ErrGeneric());	    
 	  }
 	 }
@@ -289,10 +289,10 @@ void DataManager::ReadElems(MBDynParser& HP)
 	    unsigned int uL = (unsigned int)HP.GetInt();	    	
 	    Elem* pE = (Elem*)pFindElem(Typ, uL);
 	    if (pE == NULL) {
-	       cerr << "Error: " << psElemNames[Typ] << "(" << uL
-		 << ") is not defined; output cannot be modified" << endl;
+	       std::cerr << "Error: " << psElemNames[Typ] << "(" << uL
+		 << ") is not defined; output cannot be modified" << std::endl;
 	    } else {
-	       DEBUGLCOUT(MYDEBUG_INPUT, "element " << uL << endl);
+	       DEBUGLCOUT(MYDEBUG_INPUT, "element " << uL << std::endl);
 	       pE->SetOutputFlag(flag(1));
 	    }
 	 }
@@ -351,8 +351,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 
 	 Elem* pEl = ((Elem*)pFindElem(t, uL));
 	 if (pEl == NULL) {
-	    cerr << "can't find " << psElemNames[t] << " (" << uL 
-	      << ") at line " << HP.GetLineData() << endl;
+	    std::cerr << "can't find " << psElemNames[t] << " (" << uL 
+	      << ") at line " << HP.GetLineData() << std::endl;
 	    THROW(ErrGeneric());
 	 }
       
@@ -361,8 +361,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 
 	 Elem2Param* pNd = ((Elem2Param*)pFindNode(Node::PARAMETER, uL));
 	 if (pNd == NULL) {
-	    cerr << "can't find parameter node (" << uL
-	      << ") at line " << HP.GetLineData() << endl;
+	    std::cerr << "can't find parameter node (" << uL
+	      << ") at line " << HP.GetLineData() << std::endl;
 	    THROW(ErrGeneric());
 	 }
 
@@ -371,16 +371,16 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 
 	 /* indice del dato a cui il parametro e' bound */
 	 if (i <= 0 || i > pEl->iGetNumPrivData()) {
-	    cerr << "error in private data number " << i << " for element "
+	    std::cerr << "error in private data number " << i << " for element "
 	      << psElemNames[t] << " (" << pEl->GetLabel() 
-	      << ") at line " << HP.GetLineData() << endl;
+	      << ") at line " << HP.GetLineData() << std::endl;
 	    THROW(ErrGeneric());
 	 }
 	 
 	 /* fa il binding del ParameterNode all'elemento */
 	 DEBUGLCOUT(MYDEBUG_INPUT, "Binding " << psElemNames[t] 
 		    << " (" << pEl->GetLabel() 
-		    << ") to Parameter " << pNd->GetLabel() << endl);
+		    << ") to Parameter " << pNd->GetLabel() << std::endl);
 	 pNd->Bind(pEl, i);
 
 	 
@@ -391,13 +391,13 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 unsigned int uLabel = HP.GetInt();
 	 Elem* pEl = (Elem*)pFindElem(Elem::AUTOMATICSTRUCTURAL, uLabel);
 	 if (pEl == NULL) {
-	    cerr << "line " << HP.GetLineData() 
+	    std::cerr << "line " << HP.GetLineData() 
 	      << ": unable to find automatic structural element " 
-	      << uLabel << endl;
+	      << uLabel << std::endl;
 	    THROW(ErrGeneric());
 	 }
 	 
-	 DEBUGCOUT("reading automatic structural element " << uLabel << endl);
+	 DEBUGCOUT("reading automatic structural element " << uLabel << std::endl);
 
 	 /* forse e' il caso di usare il riferimento del nodo? */
 	 
@@ -408,10 +408,10 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 Vec3 qp(HP.GetVecAbs(AbsRefFrame));
 	 Vec3 gp(HP.GetVecAbs(AbsRefFrame));
 	 
-	 DEBUGCOUT("Q  = " << q << endl
-		   << "G  = " << g << endl
-		   << "Qp = " << qp << endl
-		   << "Gp = " << gp << endl);
+	 DEBUGCOUT("Q  = " << q << std::endl
+		   << "G  = " << g << std::endl
+		   << "Qp = " << qp << std::endl
+		   << "Gp = " << gp << std::endl);
 	   
 	 AutomaticStructElem* pAuto = (AutomaticStructElem*)pEl->pGet();
 	 pAuto->Init(q, g, qp, gp);
@@ -431,12 +431,12 @@ void DataManager::ReadElems(MBDynParser& HP)
 #ifdef USE_STRUCT_NODES
 	    /* Accelerazione di gravita' */
 	  case GRAVITY: {
-	     silent_cout("Reading gravity acceleration" << endl);
+	     silent_cout("Reading gravity acceleration" << std::endl);
 	     
 	     if (iNumTypes[Elem::GRAVITY]-- <= 0) {
 		DEBUGCERR("");
-		cerr << "line " << HP.GetLineData() 
-		  << ": gravity acceleration element is not defined" << endl;
+		std::cerr << "line " << HP.GetLineData() 
+		  << ": gravity acceleration element is not defined" << std::endl;
 		
 		THROW(DataManager::ErrGeneric());
 	     }
@@ -461,12 +461,12 @@ void DataManager::ReadElems(MBDynParser& HP)
 #ifdef USE_AERODYNAMIC_ELEMS
 	    /* Elementi aerodinamici: proprieta' dell'aria */
 	  case AIRPROPERTIES: {
-	     silent_cout("Reading air properties" << endl);
+	     silent_cout("Reading air properties" << std::endl);
 	     
 	     if(iNumTypes[Elem::AIRPROPERTIES]-- <= 0) {
 		DEBUGCERR("");
-		cerr << "line " << HP.GetLineData() 
-		  << ": air properties element is not defined" << endl;
+		std::cerr << "line " << HP.GetLineData() 
+		  << ": air properties element is not defined" << std::endl;
 		
 		THROW(DataManager::ErrGeneric());
 	     }
@@ -475,21 +475,19 @@ void DataManager::ReadElems(MBDynParser& HP)
 	     uLabel = 1;
 	     
 	     doublereal dRho = HP.GetReal();
-	     DEBUGLCOUT(MYDEBUG_INPUT, "Air density: " << dRho << endl);
+	     DEBUGLCOUT(MYDEBUG_INPUT, "Air density: " << dRho << std::endl);
 	     if (dRho <= 0.) {
-		cerr 
-		  << "illegal null or negative air density at line "
-		  << HP.GetLineData() << endl;
+		std::cerr << "illegal null or negative air density at line "
+		  << HP.GetLineData() << std::endl;
 		
 		THROW(DataManager::ErrGeneric());
 	     }
 	     
 	     doublereal dSS = HP.GetReal();
-	     DEBUGLCOUT(MYDEBUG_INPUT, "Sound speed: " << dSS << endl);
+	     DEBUGLCOUT(MYDEBUG_INPUT, "Sound speed: " << dSS << std::endl);
 	     if (dSS <= 0.) {
-		cerr
-		  << "illegal null or negative sound speed at line "
-		  << HP.GetLineData() << endl;
+		std::cerr << "illegal null or negative sound speed at line "
+		  << HP.GetLineData() << std::endl;
 		
 		THROW(DataManager::ErrGeneric());
 	     }	      
@@ -557,12 +555,12 @@ void DataManager::ReadElems(MBDynParser& HP)
 		  case LOADABLE:
 #endif /* HAVE_LOADABLE */
 		  case EXISTING: {
-		     DEBUGLCOUT(MYDEBUG_INPUT, "OK, this element can be driven" << endl);
+		     DEBUGLCOUT(MYDEBUG_INPUT, "OK, this element can be driven" << std::endl);
 		     break;
 		  }
 		    
 		  default: {
-		     DEBUGCERR("warning, this element can't be driven" << endl);
+		     DEBUGCERR("warning, this element can't be driven" << std::endl);
 		     break;
 		  }
 		 }		     		  
@@ -573,7 +571,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		    CurrDriven = KeyWords(HP.GetWord());
 		    unsigned int uL = (unsigned int)HP.GetInt();
 		    if (uL != uLabel) {
-		       cerr << "Error: the driving element must have the same label of the driven" << endl;
+		       std::cerr << "Error: the driving element must have the same label of the driven" << std::endl;
 		       
 		       THROW(DataManager::ErrGeneric());
 		    }
@@ -643,14 +641,14 @@ void DataManager::ReadElems(MBDynParser& HP)
 #endif /* HAVE_LOADABLE */
 		       
 		     default: {
-			DEBUGCERR("warning, this element can't be driven" << endl);
+			DEBUGCERR("warning, this element can't be driven" << std::endl);
 			break;
 		     }
 		    }
 		    
 		    if (ppE == NULL) {
-		       cerr << "Error: element " << uLabel 
-			 << "cannot be driven since it doesn't exist" << endl;
+		       std::cerr << "Error: element " << uLabel 
+			 << "cannot be driven since it doesn't exist" << std::endl;
 		       
 		       THROW(DataManager::ErrGeneric());
 		    }
@@ -663,7 +661,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		 } else {
 		    unsigned int uDummy = (unsigned int)HP.GetInt();
 		    if (uDummy != uLabel) {
-		       cerr << "Error: the element label must be the same of the driving element" << endl;
+		       std::cerr << "Error: the element label must be the same of the driving element" << std::endl;
 		       
 		       THROW(DataManager::ErrGeneric());
 		    }
@@ -674,8 +672,8 @@ void DataManager::ReadElems(MBDynParser& HP)
 		    
 		    if (*ppE == NULL) {
 		       DEBUGCERR("");
-		       cerr << "error in allocation of element "
-			 << uLabel << endl;
+		       std::cerr << "error in allocation of element "
+			 << uLabel << std::endl;
 		       
 		       THROW(ErrMemory());
 		    }		  
@@ -745,17 +743,17 @@ void DataManager::ReadElems(MBDynParser& HP)
 		/* in caso di tipo sconosciuto */
 	      case UNKNOWNKEYWORD: {
 		 DEBUGCERR("");
-		 cerr << "error - unknown element type at line " 
-		   << HP.GetLineData() << endl;
+		 std::cerr << "error - unknown element type at line " 
+		   << HP.GetLineData() << std::endl;
 		 
 		 THROW(DataManager::ErrGeneric());
 	      }
 		
 	      default: {
 		 DEBUGCERR("");
-		 cerr << "error - element type " << sKeyWords[CurrDesc]
+		 std::cerr << "error - element type " << sKeyWords[CurrDesc]
 		   << " at line " << HP.GetLineData() 
-		   << " is not allowed " << endl;
+		   << " is not allowed " << std::endl;
 		 
 		 THROW(DataManager::ErrGeneric());
 	      }        
@@ -774,12 +772,12 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 if (iNumRows > iMaxWorkNumRows) {
 	    iMaxWorkNumRows = iNumRows;
 	    DEBUGLCOUT(MYDEBUG_INIT, "Current max work rows number: " 
-		       << iMaxWorkNumRows << endl);
+		       << iMaxWorkNumRows << std::endl);
 	 }
 	 if (iNumCols > iMaxWorkNumCols) {
 	    iMaxWorkNumCols = iNumCols;
 	    DEBUGLCOUT(MYDEBUG_INIT, "Current max work cols number: "
-		       << iMaxWorkNumCols << endl);
+		       << iMaxWorkNumCols << std::endl);
 	 }
 	 
 	 /* decrementa il totale degli elementi mancanti */
@@ -789,8 +787,8 @@ void DataManager::ReadElems(MBDynParser& HP)
    
    if (KeyWords(HP.GetWord()) != ELEMENTS) {
       DEBUGCERR("");
-      cerr << "<end: elements;> expected at line" 
-	<< HP.GetLineData() << endl;
+      std::cerr << "<end: elements;> expected at line" 
+	<< HP.GetLineData() << std::endl;
            
       THROW(DataManager::ErrGeneric());
    }
@@ -798,19 +796,19 @@ void DataManager::ReadElems(MBDynParser& HP)
    /* Se non c'e' il punto e virgola finale */
    if (HP.fIsArg()) {
       DEBUGCERR("");
-      cerr << "semicolon expected at line " << HP.GetLineData() << endl;
+      std::cerr << "semicolon expected at line " << HP.GetLineData() << std::endl;
      
       THROW(DataManager::ErrGeneric());
    }   
    
    if (iMissingElems > 0) {
       DEBUGCERR("");
-      cerr << "warning: " << iMissingElems
-	<< " elements are missing;" << endl;
+      std::cerr << "warning: " << iMissingElems
+	<< " elements are missing;" << std::endl;
       for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
 	 if (iNumTypes[iCnt] > 0) {
-	    cerr << "  " << iNumTypes[iCnt] 
-	      << ' ' << psElemNames[iCnt] << endl;
+	    std::cerr << "  " << iNumTypes[iCnt] 
+	      << ' ' << psElemNames[iCnt] << std::endl;
 	 }	 
       }      
       
@@ -869,16 +867,16 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 if ((ElemData[iCnt].fUsesAirProperties == 1)
 	     && (ElemData[iCnt].iNum > 0)) {
 	    if (fStop == 0) {
-	       cerr << "warning, the following aerodynamic elements are defined: " << endl;	       
+	       std::cerr << "warning, the following aerodynamic elements are defined: " << std::endl;	       
 	       fStop = 1;
 	    }
-	    cerr << ElemData[iCnt].iNum << " " 
-	      << psElemNames[iCnt] << endl;
+	    std::cerr << ElemData[iCnt].iNum << " " 
+	      << psElemNames[iCnt] << std::endl;
 	 }
       }
       
       if (fStop) {
-	 cerr << "while no air properties are defined; aborting ..." << endl;
+	 std::cerr << "while no air properties are defined; aborting ..." << std::endl;
 	 
 	 THROW(DataManager::ErrGeneric());
       }
@@ -886,7 +884,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 #endif /* USE_AERODYNAMIC_ELEMS */
 #endif /* USE_STRUCT_NODES */
    
-   DEBUGLCOUT(MYDEBUG_INPUT, "End of elements data" << endl);
+   DEBUGLCOUT(MYDEBUG_INPUT, "End of elements data" << std::endl);
 } /* End of DataManager::ReadElems() */
 
 
@@ -910,17 +908,17 @@ Elem** ReadOneElem(DataManager* pDM,
        int iForceType;
        if (KeyWords(CurrType) == FORCE) {
 	  iForceType = 0;
-	  silent_cout("Reading force " << uLabel << endl);
+	  silent_cout("Reading force " << uLabel << std::endl);
        } else /* if(KeyWords(CurrType) == COUPLE) */ {
 	  iForceType = 1;
-	  silent_cout("Reading couple " << uLabel << endl);
+	  silent_cout("Reading couple " << uLabel << std::endl);
        }
        
        if (iNumTypes[Elem::FORCE]-- <= 0) {
 	  DEBUGCERR("");
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": force " << uLabel
-	    << " exceedes force elements number" << endl;
+	    << " exceedes force elements number" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }
@@ -928,9 +926,9 @@ Elem** ReadOneElem(DataManager* pDM,
        /* verifica che non sia gia' definito */
        if (pDM->pFindElem(Elem::FORCE, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": force " << uLabel
-	    << " already defined" << endl;
+	    << " already defined" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }
@@ -948,13 +946,13 @@ Elem** ReadOneElem(DataManager* pDM,
       
 #ifdef USE_STRUCT_NODES
     case BODY: {
-       silent_cout("Reading rigid body " << uLabel << endl);
+       silent_cout("Reading rigid body " << uLabel << std::endl);
        
        if(iNumTypes[Elem::BODY]-- <= 0) {
 	  DEBUGCERR("");
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": rigid body " << uLabel
-	    << " exceedes rigid body elements number" << endl;
+	    << " exceedes rigid body elements number" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }
@@ -962,9 +960,9 @@ Elem** ReadOneElem(DataManager* pDM,
        /* verifica che non sia gia' definito */		    
        if(pDM->pFindElem(Elem::BODY, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": rigid body " << uLabel
-	    << " already defined" << endl;
+	    << " already defined" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }
@@ -981,13 +979,13 @@ Elem** ReadOneElem(DataManager* pDM,
       
       /* vincoli */
     case JOINT: {    
-       silent_cout("Reading joint " << uLabel << endl);
+       silent_cout("Reading joint " << uLabel << std::endl);
        
        if (iNumTypes[Elem::JOINT]-- <= 0) {
 	  DEBUGCERR("");
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": joint " << uLabel
-	    << " exceedes joint elements number" << endl;
+	    << " exceedes joint elements number" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }	  
@@ -995,9 +993,9 @@ Elem** ReadOneElem(DataManager* pDM,
        /* verifica che non sia gia' definito */		      
        if (pDM->pFindElem(Elem::JOINT, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": joint " << uLabel
-	    << " already defined" << endl;
+	    << " already defined" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }
@@ -1020,13 +1018,13 @@ Elem** ReadOneElem(DataManager* pDM,
     case BEAM:
     case BEAM2:
     case HBEAM: {      
-       silent_cout("Reading beam " << uLabel << endl);
+       silent_cout("Reading beam " << uLabel << std::endl);
        
        if (iNumTypes[Elem::BEAM]-- <= 0) {
 	  DEBUGCERR("");
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": beam " << uLabel
-	    << " exceedes beam elements number" << endl;
+	    << " exceedes beam elements number" << std::endl;
 	 
 	  THROW(DataManager::ErrGeneric());
        }
@@ -1034,9 +1032,9 @@ Elem** ReadOneElem(DataManager* pDM,
        /* verifica che non sia gia' definito */
        if (pDM->pFindElem(Elem::BEAM, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": beam " << uLabel
-	    << " already defined" << endl;
+	    << " already defined" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }
@@ -1066,13 +1064,13 @@ Elem** ReadOneElem(DataManager* pDM,
 #ifdef USE_AERODYNAMIC_ELEMS
       /* Elementi aerodinamici: rotori */
     case ROTOR: {
-       silent_cout("Reading rotor " << uLabel << endl);
+       silent_cout("Reading rotor " << uLabel << std::endl);
        
        if (iNumTypes[Elem::ROTOR]-- <= 0) {
 	  DEBUGCERR("");
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": rotor " << uLabel
-	    << " exceedes rotor elements number" << endl;
+	    << " exceedes rotor elements number" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }
@@ -1080,9 +1078,9 @@ Elem** ReadOneElem(DataManager* pDM,
        /* verifica che non sia gia' definito */
        if (pDM->pFindElem(Elem::ROTOR, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": rotor " << uLabel
-	    << " already defined" << endl;
+	    << " already defined" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }
@@ -1102,13 +1100,13 @@ Elem** ReadOneElem(DataManager* pDM,
     case AERODYNAMICBODY:
     case AERODYNAMICBEAM:
     case AERODYNAMICBEAM2: {
-       silent_cout("Reading aerodynamic element " << uLabel << endl);
+       silent_cout("Reading aerodynamic element " << uLabel << std::endl);
        
        if (iNumTypes[Elem::AERODYNAMIC]-- <= 0) {
 	  DEBUGCERR("");
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": aerodynamic element " << uLabel
-	    << " exceedes aerodynamic elements number" << endl;
+	    << " exceedes aerodynamic elements number" << std::endl;
 	 
 	  THROW(DataManager::ErrGeneric());
        }
@@ -1116,9 +1114,9 @@ Elem** ReadOneElem(DataManager* pDM,
        /* verifica che non sia gia' definito */
        if (pDM->pFindElem(Elem::AERODYNAMIC, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": aerodynamic element " << uLabel
-	    << " already defined" << endl;
+	    << " already defined" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }
@@ -1159,13 +1157,13 @@ Elem** ReadOneElem(DataManager* pDM,
 #ifdef USE_ELECTRIC_NODES
       /* genel */
     case GENEL: {
-       silent_cout("Reading genel " << uLabel << endl);
+       silent_cout("Reading genel " << uLabel << std::endl);
 
        if(iNumTypes[Elem::GENEL]-- <= 0) {
 	  DEBUGCERR("");
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": genel " << uLabel
-	    << " exceedes genel elements number" << endl;
+	    << " exceedes genel elements number" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }	  
@@ -1173,9 +1171,9 @@ Elem** ReadOneElem(DataManager* pDM,
        /* verifica che non sia gia' definito */		      
        if(pDM->pFindElem(Elem::GENEL, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": genel " << uLabel
-	    << " already defined" << endl;
+	    << " already defined" << std::endl;
 	 
 	  THROW(DataManager::ErrGeneric());
        }
@@ -1195,13 +1193,13 @@ Elem** ReadOneElem(DataManager* pDM,
 #ifdef USE_HYDRAULIC_NODES
       /* elementi idraulici */
     case HYDRAULIC: {
-       silent_cout("Reading hydraulic element " << uLabel << endl);
+       silent_cout("Reading hydraulic element " << uLabel << std::endl);
        
        if(iNumTypes[Elem::HYDRAULIC]-- <= 0) {
 	  DEBUGCERR("");
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": hydraulic element " << uLabel
-	    << " exceedes hydraulic elements number" << endl;
+	    << " exceedes hydraulic elements number" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }	  
@@ -1209,9 +1207,9 @@ Elem** ReadOneElem(DataManager* pDM,
        /* verifica che non sia gia' definito */
        if (pDM->pFindElem(Elem::HYDRAULIC, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": hydraulic element " << uLabel
-	    << " already defined" << endl;
+	    << " already defined" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }
@@ -1235,13 +1233,13 @@ Elem** ReadOneElem(DataManager* pDM,
       
       /* elementi elettrici */
     case ELECTRIC: {
-       silent_cout("Reading electric element " << uLabel << endl);
+       silent_cout("Reading electric element " << uLabel << std::endl);
        
        if(iNumTypes[Elem::ELECTRIC]-- <= 0) {
 	  DEBUGCERR("");
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": electric element " << uLabel
-	    << " exceedes electric elements number" << endl;
+	    << " exceedes electric elements number" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }	  
@@ -1249,9 +1247,9 @@ Elem** ReadOneElem(DataManager* pDM,
        /* verifica che non sia gia' definito */
        if (pDM->pFindElem(Elem::ELECTRIC, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": electric element " << uLabel
-	    << " already defined" << endl;
+	    << " already defined" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }
@@ -1274,13 +1272,13 @@ Elem** ReadOneElem(DataManager* pDM,
       
       /* elementi bulk */
     case BULK: {
-       silent_cout("Reading bulk element " << uLabel << endl);
+       silent_cout("Reading bulk element " << uLabel << std::endl);
        
        if (iNumTypes[Elem::BULK]-- <= 0) {
 	  DEBUGCERR("");
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": bulk element " << uLabel
-	    << " exceedes bulk elements number" << endl;
+	    << " exceedes bulk elements number" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }	  
@@ -1288,9 +1286,9 @@ Elem** ReadOneElem(DataManager* pDM,
        /* verifica che non sia gia' definito */
        if (pDM->pFindElem(Elem::BULK, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": bulk element " << uLabel
-	    << " already defined" << endl;
+	    << " already defined" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }
@@ -1310,13 +1308,13 @@ Elem** ReadOneElem(DataManager* pDM,
 #ifdef HAVE_LOADABLE
       /* elementi loadable */
     case LOADABLE: {
-       silent_cout("Reading loadable element " << uLabel << endl);
+       silent_cout("Reading loadable element " << uLabel << std::endl);
        
        if (iNumTypes[Elem::LOADABLE]-- <= 0) {
 	  DEBUGCERR("");
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": loadable element " << uLabel
-	    << " exceedes loadable elements number" << endl;
+	    << " exceedes loadable elements number" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }	  
@@ -1324,9 +1322,9 @@ Elem** ReadOneElem(DataManager* pDM,
        /* verifica che non sia gia' definito */
        if (pDM->pFindElem(Elem::LOADABLE, uLabel) != NULL) {
 	  DEBUGCERR("");
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": loadable element " << uLabel
-	    << " already defined" << endl;
+	    << " already defined" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }
@@ -1347,7 +1345,7 @@ Elem** ReadOneElem(DataManager* pDM,
      
       /* In case the element type is not correct */
     default: {
-       cerr << "You shouldn't be here" << endl;
+       std::cerr << "You shouldn't be here" << std::endl;
        
        THROW(DataManager::ErrGeneric());
     }

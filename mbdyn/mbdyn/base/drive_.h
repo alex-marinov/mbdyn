@@ -60,7 +60,7 @@ class StringDriveCaller : public DriveCaller {
    ~StringDriveCaller(void);
    
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    /* Copia */
    virtual DriveCaller* pCopy(void) const;
@@ -90,8 +90,8 @@ inline doublereal StringDriveCaller::dGet(const doublereal& dVar) const
       istrstream in(sEvalStr);
 #endif /* HAVE_STRSTREAM_H */
       InputStream In(in);
-      cout << "StringDriveCaller::dGet(): "
-	<< DriveCaller::pDrvHdl->dGet(In) << endl;
+      std::cout << "StringDriveCaller::dGet(): "
+	<< DriveCaller::pDrvHdl->dGet(In) << std::endl;
    } while (0);
 #endif /* DEBUG */
 
@@ -128,7 +128,7 @@ class TimeDriveCaller : public DriveCaller {
    virtual ~TimeDriveCaller(void);
    
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    /* Copia */
    virtual DriveCaller* pCopy(void) const;
@@ -167,7 +167,7 @@ class LinearDriveCaller : public DriveCaller {
    virtual DriveCaller* pCopy(void) const;
    
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    inline doublereal dGet(const doublereal& dVar) const;
    /* inline doublereal dGet(void) const; */
@@ -199,7 +199,7 @@ class ParabolicDriveCaller : public DriveCaller {
    virtual DriveCaller* pCopy(void) const;
    
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    inline doublereal dGet(const doublereal& dVar) const;
    /* inline doublereal dGet(void) const; */
@@ -233,7 +233,7 @@ class CubicDriveCaller : public DriveCaller {
    virtual DriveCaller* pCopy(void) const;
    
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    inline doublereal dGet(const doublereal& dVar) const;
    /* inline doublereal dGet(void) const; */
@@ -265,7 +265,7 @@ class StepDriveCaller : public DriveCaller {
    virtual DriveCaller* pCopy(void) const;
    
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    inline doublereal dGet(const doublereal& dVar) const;
    /* inline doublereal dGet(void) const; */
@@ -303,7 +303,7 @@ class DoubleStepDriveCaller : public DriveCaller {
    virtual DriveCaller* pCopy(void) const;
    
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    inline doublereal dGet(const doublereal& dVar) const;
    /* inline doublereal dGet(void) const; */
@@ -340,7 +340,7 @@ class RampDriveCaller : public DriveCaller {
    virtual DriveCaller* pCopy(void) const;
    
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    inline doublereal dGet(const doublereal& dVar) const;
    /* inline doublereal dGet(void) const; */
@@ -384,7 +384,7 @@ class DoubleRampDriveCaller : public DriveCaller {
    virtual DriveCaller* pCopy(void) const;
    
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    inline doublereal dGet(const doublereal& dVar) const;
    /* inline doublereal dGet(void) const; */
@@ -439,7 +439,7 @@ class SineDriveCaller : public DriveCaller {
    virtual DriveCaller* pCopy(void) const;
    
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    inline doublereal dGet(const doublereal& dVar) const;
    /* inline doublereal dGet(void) const; */
@@ -484,7 +484,7 @@ class CosineDriveCaller : public DriveCaller {
    virtual DriveCaller* pCopy(void) const;
    
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    inline doublereal dGet(const doublereal& dVar) const;
    /* inline doublereal dGet(void) const; */
@@ -531,7 +531,7 @@ class FreqSweepDriveCaller : public DriveCaller {
    virtual DriveCaller* pCopy(void) const;
    
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    inline doublereal dGet(const doublereal& dVar) const;
    /* inline doublereal dGet(void) const; */
@@ -573,7 +573,7 @@ class ExpDriveCaller : public DriveCaller {
    virtual DriveCaller* pCopy(void) const;
    
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    inline doublereal dGet(const doublereal& dVar) const;
    /* inline doublereal dGet(void) const; */
@@ -614,7 +614,7 @@ class RandDriveCaller : public DriveCaller {
    virtual DriveCaller* pCopy(void) const;
    
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    inline doublereal dGet(const doublereal& dVar) const;
    /* inline doublereal dGet(void) const; */
@@ -652,7 +652,7 @@ public:
 	virtual DriveCaller* pCopy(void) const;
 	
 	/* Scrive il contributo del DriveCaller al file di restart */
-	virtual ostream& Restart(ostream& out) const;
+	virtual std::ostream& Restart(std::ostream& out) const;
 	
 	inline doublereal dGet(const doublereal& dVar) const;
 };
@@ -701,7 +701,7 @@ class DriveArrayCaller : public DriveCaller {
    virtual DriveCaller* pCopy(void) const;
    
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    inline doublereal dGet(const doublereal& dVar) const;
    inline doublereal dGet(void) const;

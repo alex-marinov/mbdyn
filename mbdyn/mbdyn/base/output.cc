@@ -299,8 +299,8 @@ int OutputHandler::Open(OutFiles out)
       OutData[out].pof->open(_sPutExt((char*)(psExt[out])));
 
       if(!(*OutData[out].pof)) {
-	 cerr << "Unable to open file <" << _sPutExt((char*)(psExt[out]))
-	   << '>' << endl;
+	 std::cerr << "Unable to open file <" << _sPutExt((char*)(psExt[out]))
+	   << '>' << std::endl;
 	 THROW(ErrFile());
       }
       
@@ -311,7 +311,7 @@ int OutputHandler::Open(OutFiles out)
       
       /* Setta la notazione */
       if(OutData[out].fToUseScientific) {
-	 OutData[out].pof->setf(ios::scientific);
+	 OutData[out].pof->setf(std::ios::scientific);
       }
 
       return 0;

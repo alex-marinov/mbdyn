@@ -47,7 +47,7 @@ void
 DataManager::AdamsResOutputInit(void)
 {
    OutHdl.AdamsResOpen();
-   ostream& out = OutHdl.AdamsRes();
+   std::ostream& out = OutHdl.AdamsRes();
    time_t t = time(NULL);
 
    unsigned int nStrNodes = NodeData[Node::STRUCTURAL].iNum;
@@ -67,62 +67,62 @@ DataManager::AdamsResOutputInit(void)
    
    /* Cmd Init */
    OutHdl.AdamsCmdOpen();
-   ostream& cmd = OutHdl.AdamsCmd();
+   std::ostream& cmd = OutHdl.AdamsCmd();
    
-   cmd << sAdamsModelName << endl;
+   cmd << sAdamsModelName << std::endl;
 
 #if 0
    cmd 
-     << "!" << endl
-     << "model create  &" << endl
-     << "   model_name = " << sAdamsModelName << endl
-     << "!" << endl
-     << "defaults model  &" << endl
-     << "   part_name = ground" << endl
-     << "!" << endl
-     << "defaults coordinate_system  &" << endl
-     << "   default_coordinate_system = ." << sAdamsModelName << ".ground" << endl;   
+     << "!" << std::endl
+     << "model create  &" << std::endl
+     << "   model_name = " << sAdamsModelName << std::endl
+     << "!" << std::endl
+     << "defaults model  &" << std::endl
+     << "   part_name = ground" << std::endl
+     << "!" << std::endl
+     << "defaults coordinate_system  &" << std::endl
+     << "   default_coordinate_system = ." << sAdamsModelName << ".ground" << std::endl;   
 #endif
    
    out
      
      /* Header Block: File Type and Source Sub-Block */
-     << "FILE TYPE AND SOURCE                           6" << endl
-     << "ADAMS RESULTS FILE       M_KGS_N_RACA 0.100000000000000E+01" << endl
-     << "ADAMS VERSION - 10.0                    A.RE7" << endl
-     << "Mechanical Dynamics, Inc." << endl
-     << "Unknown" << endl
+     << "FILE TYPE AND SOURCE                           6" << std::endl
+     << "ADAMS RESULTS FILE       M_KGS_N_RACA 0.100000000000000E+01" << std::endl
+     << "ADAMS VERSION - 10.0                    A.RE7" << std::endl
+     << "Mechanical Dynamics, Inc." << std::endl
+     << "Unknown" << std::endl
      << ctime(&t)
-     << "!" << endl
+     << "!" << std::endl
      
      /* Header Block: Data Set Title Sub-Block */
-     << "DATA SET TITLE                                 3" << endl
-     << "ADAMS/View model name: " << (sSimulationTitle ? sSimulationTitle : "") << endl
-     << "" << endl
-     << "!" << endl
+     << "DATA SET TITLE                                 3" << std::endl
+     << "ADAMS/View model name: " << (sSimulationTitle ? sSimulationTitle : "") << std::endl
+     << "" << std::endl
+     << "!" << std::endl
 
      /* Header Block: Results Set Sub-Block */
-     << "RESULTS TITLE                                  3" << endl
-     << "" << endl
-     << "" << endl
-     << "!" << endl
+     << "RESULTS TITLE                                  3" << std::endl
+     << "" << std::endl
+     << "" << std::endl
+     << "!" << std::endl
      
      /* Header Block: Number of Analysis Output Blocs Sub-Block */
-     << "NUMBER OF ANALYSIS BLOCKS                      2" << endl
-     << setw(8) << 2+10000 << setw(8) << 123+3*iAdamsOutputParts << endl
-     << "!" << endl
+     << "NUMBER OF ANALYSIS BLOCKS                      2" << std::endl
+     << std::setw(8) << 2+10000 << std::setw(8) << 123+3*iAdamsOutputParts << std::endl
+     << "!" << std::endl
      
      /* Rigid Parts Map Block */
-     << "RIGID PARTS MAP                         " << setw(8) << 2+iAdamsOutputParts << endl
-     << setw(8) << iAdamsOutputParts << "YESNO NO" << endl;
+     << "RIGID PARTS MAP                         " << std::setw(8) << 2+iAdamsOutputParts << std::endl
+     << std::setw(8) << iAdamsOutputParts << "YESNO NO" << std::endl;
 
    unsigned int i;
    for (i = 0; i < nStrNodes; i++) {
       out 
-	<< setw(20) << 2+i  /* 2 perche' 1 e' il "ground" in Adams! */
-	<< setw(8) << 5+i
-	<< setw(8) << 5+i+iAdamsOutputParts
-	<< setw(8) << 5+i+iAdamsOutputParts << endl;
+	<< std::setw(20) << 2+i  /* 2 perche' 1 e' il "ground" in Adams! */
+	<< std::setw(8) << 5+i
+	<< std::setw(8) << 5+i+iAdamsOutputParts
+	<< std::setw(8) << 5+i+iAdamsOutputParts << std::endl;
    }
    
    if (ElemIter.fGetFirst(p)) {
@@ -131,10 +131,10 @@ DataManager::AdamsResOutputInit(void)
 	 if (p != NULL) {
 	    for (unsigned int part = 1; part <= p->iGetNumAdamsDummyParts(); part++) {
 	       out
-		 << setw(20) << 2+i
-		 << setw(8) << 5+i
-		 << setw(8) << 5+i+iAdamsOutputParts
-		 << setw(8) << 5+i+iAdamsOutputParts << endl;
+		 << std::setw(20) << 2+i
+		 << std::setw(8) << 5+i
+		 << std::setw(8) << 5+i+iAdamsOutputParts
+		 << std::setw(8) << 5+i+iAdamsOutputParts << std::endl;
 	       i++;
 	    }
 	 }
@@ -142,178 +142,178 @@ DataManager::AdamsResOutputInit(void)
    }
   
    
-   out << "!" << endl
+   out << "!" << std::endl
 
      /* Point Mass Map Block */
-     << "POINT MASS MAP                                 2" << endl
-     << setw(8) << 0 << "YESNO NO" << endl
-     << "!" << endl
+     << "POINT MASS MAP                                 2" << std::endl
+     << std::setw(8) << 0 << "YESNO NO" << std::endl
+     << "!" << std::endl
      
      /* Flexible Body Map Block */
-     << "FLEXIBLE BODY MAP                              2" << endl
-     << setw(8) << 0 << "YESNO NO" << endl
-     << "!" << endl
+     << "FLEXIBLE BODY MAP                              2" << std::endl
+     << std::setw(8) << 0 << "YESNO NO" << std::endl
+     << "!" << std::endl
      
      /* User Differential Equations Map Block */
-     << "USER DIFFERENTIAL EQUATIONS MAP                2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "USER DIFFERENTIAL EQUATIONS MAP                2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* Joints Map Block */
-     << "JOINTS MAP                                     2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "JOINTS MAP                                     2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* Joint Primitives Map Block */
-     << "JOINT PRIMITIVES MAP                           2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "JOINT PRIMITIVES MAP                           2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* Motion Generators Map Block */
-     << "MOTION GENERATORS MAP                          2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "MOTION GENERATORS MAP                          2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* Gears Map Block */
-     << "GEARS MAP                                      2" << endl
-     << setw(8) << 0 << "NO" << endl     
-     << "!" << endl
+     << "GEARS MAP                                      2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl     
+     << "!" << std::endl
      
      /* Couplers Map Block */
-     << "COUPLERS MAP                                   2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "COUPLERS MAP                                   2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* User Constraints Map Block */
-     << "USER CONSTRAINTS MAP                           2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "USER CONSTRAINTS MAP                           2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* Sforces Map Block */
-     << "SFORCES MAP                                    2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "SFORCES MAP                                    2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* Spring Damper Forces Map Block */
-     << "SPRINGDAMPER FORCES MAP                        2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "SPRINGDAMPER FORCES MAP                        2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* Bushings Map Block */
-     << "BUSHINGS MAP                                   2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "BUSHINGS MAP                                   2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* Beams Map Block */
-     << "BEAMS MAP                                      2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "BEAMS MAP                                      2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* Fields Map Block */
-     << "FIELDS MAP                                     2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "FIELDS MAP                                     2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* User Define Results Map Block */
-     << "USER DEFINED RESULTS MAP                       2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "USER DEFINED RESULTS MAP                       2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* Variable map Block */
-     << "VARIABLE MAP                                   2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "VARIABLE MAP                                   2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* Pinput Map Block */
-     << "PINPUT MAP                                     2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "PINPUT MAP                                     2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* Poutput Map Block */
-     << "POUTPUT MAP                                    2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "POUTPUT MAP                                    2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* Transfer Function SISO Map Block */
-     << "TFSISO MAP                                     2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "TFSISO MAP                                     2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* LSE Map Block */
-     << "LSE MAP                                        2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "LSE MAP                                        2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* GSE Map Block */
-     << "GSE MAP                                        2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "GSE MAP                                        2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* PTCV Map Block */
-     << "PTCV MAP                                       2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "PTCV MAP                                       2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* CVCV Map Block */
-     << "CVCV MAP                                       2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "CVCV MAP                                       2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* Nforces Map Block */
-     << "NFORCES MAP                                    2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "NFORCES MAP                                    2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* Vforces Map Block */
-     << "VFORCES MAP                                    2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "VFORCES MAP                                    2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* Vtorques Map Block */
-     << "VTORQUES MAP                                   2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "VTORQUES MAP                                   2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* Gforces map Block */
-     << "GFORCES MAP                                    2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "GFORCES MAP                                    2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* Frictions Map Block */
-     << "FRICTIONS MAP                                  2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "FRICTIONS MAP                                  2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* Floating Markers Map Block */
-     << "FLOATING MARKERS MAP                           2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "FLOATING MARKERS MAP                           2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* Mode Shapes Map Block */
-     << "MODE SHAPES MAP                                8" << endl
-     << setw(8) << 12 << setw(8) << 1 << endl
-     << setw(8) << 0 << setw(8) << 13 << endl
-     << setw(8) << 0 << setw(8) << 13 << endl
-     << setw(8) << 0 << setw(8) << 13 << endl
-     << setw(8) << 0 << setw(8) << 13 << endl
-     << setw(8) << 0 << setw(8) << 13 << endl
-     << setw(8) << 0 << setw(8) << 13 << endl     
-     << "!" << endl
+     << "MODE SHAPES MAP                                8" << std::endl
+     << std::setw(8) << 12 << std::setw(8) << 1 << std::endl
+     << std::setw(8) << 0 << std::setw(8) << 13 << std::endl
+     << std::setw(8) << 0 << std::setw(8) << 13 << std::endl
+     << std::setw(8) << 0 << std::setw(8) << 13 << std::endl
+     << std::setw(8) << 0 << std::setw(8) << 13 << std::endl
+     << std::setw(8) << 0 << std::setw(8) << 13 << std::endl
+     << std::setw(8) << 0 << std::setw(8) << 13 << std::endl     
+     << "!" << std::endl
      
      /* Tires Map Block */
-     << "TIRES MAP                                      2" << endl
-     << setw(8) << 0 << "NO" << endl
-     << "!" << endl
+     << "TIRES MAP                                      2" << std::endl
+     << std::setw(8) << 0 << "NO" << std::endl
+     << "!" << std::endl
      
      /* Name Map Block */
-     << "NAME MAP                                " << setw(8) << 2+2*iAdamsOutputParts << endl
-     << setw(8) << iAdamsOutputParts << "YES" << endl;
+     << "NAME MAP                                " << std::setw(8) << 2+2*iAdamsOutputParts << std::endl
+     << std::setw(8) << iAdamsOutputParts << "YES" << std::endl;
    for (i = 0; i < nStrNodes; i++) {
       StructNode *p = (StructNode *)NodeData[Node::STRUCTURAL].ppFirstNode[i];
       unsigned int l = p->GetLabel();
       out 
-	<< setw(20) << 2+i << "RIGID PART                 1" << endl
-	<< "." << sAdamsModelName << ".PART_" << l << endl;
+	<< std::setw(20) << 2+i << "RIGID PART                 1" << std::endl
+	<< "." << sAdamsModelName << ".PART_" << l << std::endl;
       
       Vec3 x(p->GetXCurr());
       Vec3 e(EulerAngles(p->GetRCurr()));
@@ -321,40 +321,40 @@ DataManager::AdamsResOutputInit(void)
       /* Commento con il nome del nodo */
       const char *sName = p->GetName();
       if (sName != NULL) {
-	 cmd << "! --- " << sName << endl;
+	 cmd << "! --- " << sName << std::endl;
       } else {
-	 cmd << "! --- Structural Node " << l << endl;
+	 cmd << "! --- Structural Node " << l << std::endl;
       }
       cmd 
-	<< "PART_" << l << endl
-	<< 2+i << " " << x << " " << e << endl;
+	<< "PART_" << l << std::endl
+	<< 2+i << " " << x << " " << e << std::endl;
      
 #if 0 
       cmd
-	<< "!" << endl
-	<< "part create rigid_body name_and_position  &" << endl
-	<< "   part_name = ." << sAdamsModelName << ".PART_" << 1+i << "  &" << endl
-	<< "   adams_id = " << 2+i << "  &" << endl
-	<< "   location = ", x.Write(cmd, ", ") << "  &" << endl
-	<< "   orientation = ", e.Write(cmd, ", ") << endl
-	<< "!" << endl
-	<< "marker create &" << endl
-	<< "   marker_name = ." << sAdamsModelName << ".PART_" << 1+i << ".MAR_1  &" << endl
-	<< "   adams_id = " << 2+i << "  &" << endl
-	<< "   location = ", x.Write(cmd, ", ") << "  &" << endl
-	<< "   orientation = ", e.Write(cmd, ", ") << endl
-	<< "!" << endl
-	<< "geometry create shape ellipsoid  &" << endl
-	<< "   ellipsoid_name = ." << sAdamsModelName << ".PART_" << 1+i << ".SPHERE_1  &" << endl
-	<< "   center_marker = ." << sAdamsModelName << ".PART_" << 1+i << ".MAR_1  &" << endl
-	<< "   x_scale_factor = 0.1414213562  &" << endl
-	<< "   y_scale_factor = 0.1414213562  &" << endl
-	<< "   z_scale_factor = 0.1414213562" << endl
-	<< "!" << endl
-	<< "part attributes  &" << endl
-	<< "   part_name = ." << sAdamsModelName << ".PART_" << 1+i << "  &" << endl
-	<< "   color = MAIZE  &" << endl
-	<< "   name_visibility = off" << endl;
+	<< "!" << std::endl
+	<< "part create rigid_body name_and_position  &" << std::endl
+	<< "   part_name = ." << sAdamsModelName << ".PART_" << 1+i << "  &" << std::endl
+	<< "   adams_id = " << 2+i << "  &" << std::endl
+	<< "   location = ", x.Write(cmd, ", ") << "  &" << std::endl
+	<< "   orientation = ", e.Write(cmd, ", ") << std::endl
+	<< "!" << std::endl
+	<< "marker create &" << std::endl
+	<< "   marker_name = ." << sAdamsModelName << ".PART_" << 1+i << ".MAR_1  &" << std::endl
+	<< "   adams_id = " << 2+i << "  &" << std::endl
+	<< "   location = ", x.Write(cmd, ", ") << "  &" << std::endl
+	<< "   orientation = ", e.Write(cmd, ", ") << std::endl
+	<< "!" << std::endl
+	<< "geometry create shape ellipsoid  &" << std::endl
+	<< "   ellipsoid_name = ." << sAdamsModelName << ".PART_" << 1+i << ".SPHERE_1  &" << std::endl
+	<< "   center_marker = ." << sAdamsModelName << ".PART_" << 1+i << ".MAR_1  &" << std::endl
+	<< "   x_scale_factor = 0.1414213562  &" << std::endl
+	<< "   y_scale_factor = 0.1414213562  &" << std::endl
+	<< "   z_scale_factor = 0.1414213562" << std::endl
+	<< "!" << std::endl
+	<< "part attributes  &" << std::endl
+	<< "   part_name = ." << sAdamsModelName << ".PART_" << 1+i << "  &" << std::endl
+	<< "   color = MAIZE  &" << std::endl
+	<< "   name_visibility = off" << std::endl;
 #endif
       
    }
@@ -373,16 +373,16 @@ DataManager::AdamsResOutputInit(void)
 		  /* file intermedio per generazione .cmd */
 		  const char *sName = p->GetName();
 		  if (sName != NULL) {
-		     cmd << "! --- " << sName << " (part " << part << ")" << endl;
+		     cmd << "! --- " << sName << " (part " << part << ")" << std::endl;
 		  } else {
-		     cmd << "! --- " << psElemNames[p->GetElemType()] << " " << l << " (part " << part << ")" << endl;
+		     cmd << "! --- " << psElemNames[p->GetElemType()] << " " << l << " (part " << part << ")" << std::endl;
 		  }
 		  p->WriteAdamsDummyPartCmd(cmd, part, 2+i);
 		  
 		  /* nome parte */
 		  out 
-		    << setw(20) << 2+i << "RIGID PART                 1" << endl
-		    << "." << sAdamsModelName << "." << s << "_" << l << "_" << part << endl;
+		    << std::setw(20) << 2+i << "RIGID PART                 1" << std::endl
+		    << "." << sAdamsModelName << "." << s << "_" << l << "_" << part << std::endl;
 	       }
 	    }
 	 }
@@ -390,30 +390,30 @@ DataManager::AdamsResOutputInit(void)
    }
    
    out 
-     << "!" << endl;
+     << "!" << std::endl;
 }
 
 void 
 DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) const
 {
-   ostream& out = OutHdl.AdamsRes();
+   std::ostream& out = OutHdl.AdamsRes();
 
    unsigned int nStrNodes = NodeData[Node::STRUCTURAL].iNum;
    
    out 
-     << "ANALYSIS OUTPUT BLOCK                   " << setw(8) << 5+iAdamsOutputParts << endl
-     << setw(8) << iAdamsOutputBlock;
+     << "ANALYSIS OUTPUT BLOCK                   " << std::setw(8) << 5+iAdamsOutputParts << std::endl
+     << std::setw(8) << iAdamsOutputBlock;
 #if HAVE_FORM_IN_OSTREAM
    out.form("%-20s", type);
 #endif /* HAVE_FORM_IN_OSTREAM */
    out
-     << id << endl;
+     << id << std::endl;
 #if HAVE_FORM_IN_OSTREAM
    out.form("%12.5e\n", pTime->GetVal().GetReal());
 #endif /* HAVE_FORM_IN_OSTREAM */
    out
-     << endl
-     << endl;
+     << std::endl
+     << std::endl;
 
    for (unsigned int i = 0; i < nStrNodes; i++) {
       Vec3 x;
@@ -454,5 +454,5 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
       } while (ElemIter.fGetNext(p));
    }
    
-   out << "!" << endl;
+   out << "!" << std::endl;
 }

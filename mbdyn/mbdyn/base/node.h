@@ -109,7 +109,7 @@ class Node : public WithLabel, public DofOwnerOwner, public ToBeOutput {
    virtual Node::Type GetNodeType(void) const = 0;
 
    /** Contributo del nodo al file di restart */
-   virtual ostream& Restart(ostream& out) const = 0;
+   virtual std::ostream& Restart(std::ostream& out) const = 0;
    //@}
 
    /**@name Metodi che operano sui DoF */
@@ -486,7 +486,7 @@ class ParameterNode : public ScalarAlgebraicNode {
    virtual Node::Type GetNodeType(void) const;
    
    /** Contributo del nodo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
          
    /** 
     Ritorna il numero di dofs.
@@ -596,7 +596,7 @@ class Node2Scalar : public ScalarNode {
    virtual Node::Type GetNodeType(void) const;
 
    /** Contributo del nodo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    /** 
     Ritorna il numero di dofs.

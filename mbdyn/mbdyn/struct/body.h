@@ -90,7 +90,7 @@ virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {
     };
    
     /* Scrive il contributo dell'elemento al file di restart */
-    virtual ostream& Restart(ostream& out) const;
+    virtual std::ostream& Restart(std::ostream& out) const;
    
     /* Tipo dell'elemento (usato solo per debug ecc.) */
     virtual Elem::Type GetElemType(void) const {

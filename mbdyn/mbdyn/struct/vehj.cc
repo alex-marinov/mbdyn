@@ -68,7 +68,7 @@ DeformableHingeJoint::~DeformableHingeJoint(void)
 
    
 /* Contributo al file di restart */
-ostream& DeformableHingeJoint::Restart(ostream& out) const
+std::ostream& DeformableHingeJoint::Restart(std::ostream& out) const
 {
    Joint::Restart(out) << ", deformable hinge, "
      << pNode1->GetLabel() << ", reference, node, 1, ",
@@ -77,7 +77,7 @@ ostream& DeformableHingeJoint::Restart(ostream& out) const
      << pNode2->GetLabel() << ", reference, node, 1, ",
      (R2h.GetVec(1)).Write(out, ", ")
      << ", 2, ", (R2h.GetVec(2)).Write(out, ", ") << ", ";
-   return pGetConstLaw()->Restart(out) << ';' << endl;
+   return pGetConstLaw()->Restart(out) << ';' << std::endl;
 }
 
 
@@ -88,7 +88,7 @@ void DeformableHingeJoint::Output(OutputHandler& OH) const
       Vec3 v(GetF());
       Joint::Output(OH.Joints(), "DeformableHinge", GetLabel(),
 		    Zero3, v, Zero3, pNode1->GetRCurr()*v) 
-	<< " " << d << endl;    
+	<< " " << d << std::endl;    
    }     
 }
 
@@ -129,7 +129,7 @@ ElasticHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			  const VectorHandler& /* XCurr */ ,
 			  const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering ElasticHingeJoint::AssJac()" << endl);
+   DEBUGCOUT("Entering ElasticHingeJoint::AssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -211,7 +211,7 @@ ElasticHingeJoint::AssRes(SubVectorHandler& WorkVec,
 			  const VectorHandler& /* XCurr */ ,
 			  const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering ElasticHingeJoint::AssRes()" << endl);   
+   DEBUGCOUT("Entering ElasticHingeJoint::AssRes()" << std::endl);   
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -268,7 +268,7 @@ VariableSubMatrixHandler&
 ElasticHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 				 const VectorHandler& /* XCurr */ )
 {
-   DEBUGCOUT("Entering ElasticHingeJoint::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering ElasticHingeJoint::InitialAssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    

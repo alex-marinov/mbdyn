@@ -107,7 +107,7 @@ class DrivenElem : /* virtual */ public Elem, protected DriveOwner {
      
 
    /* Scrive il contributo dell'elemento al file di restart */
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       ASSERT(pElem != NULL);
       out << "driven: " << GetLabel() << ", ",
 	pGetDriveCaller()->Restart(out) << ", ",
@@ -222,7 +222,7 @@ class DrivenElem : /* virtual */ public Elem, protected DriveOwner {
 		       const VectorHandler& XCurr,
 		       const VectorHandler& XPrimeCurr)
      {
-	cerr << "Sorry, not available yet" << endl;
+        std::cerr << "Sorry, not available yet" << std::endl;
 
 	THROW(ErrNotAvailableYet());
      };

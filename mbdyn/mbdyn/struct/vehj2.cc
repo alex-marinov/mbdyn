@@ -70,7 +70,7 @@ DeformableDispHingeJoint::~DeformableDispHingeJoint(void)
 
    
 /* Contributo al file di restart */
-ostream& DeformableDispHingeJoint::Restart(ostream& out) const
+std::ostream& DeformableDispHingeJoint::Restart(std::ostream& out) const
 {
    Joint::Restart(out) << ", deformable displacement hinge, " 
      << pNode1->GetLabel() << ", reference, node, ",
@@ -81,7 +81,7 @@ ostream& DeformableDispHingeJoint::Restart(ostream& out) const
      f2.Write(out, ", ") << ", hinge, reference, node, 1, ",
      (R2h.GetVec(1)).Write(out, ", ")
        << ", 2, ", (R2h.GetVec(2)).Write(out, ", ") << ", ";
-   return pGetConstLaw()->Restart(out) << ';' << endl;
+   return pGetConstLaw()->Restart(out) << ';' << std::endl;
 }
 
 
@@ -92,7 +92,7 @@ void DeformableDispHingeJoint::Output(OutputHandler& OH) const
       // Vec3 d(EulerAngles(pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()));
       Vec3 v(GetF());
       Joint::Output(OH.Joints(), "DeformableHinge", GetLabel(),
-		    v, Zero3, pNode1->GetRCurr()*v, Zero3) << endl;	
+		    v, Zero3, pNode1->GetRCurr()*v, Zero3) << std::endl;	
    }     
 }
 
@@ -334,7 +334,7 @@ DeformableDispHingeJoint(uL, DefHingeType::VISCOUS,
    NO_OP;
    
    /* Temporary */
-   cerr << "DeformableHingeJoint(): warning, this element is not implemented yet" << endl;
+   std::cerr << "DeformableHingeJoint(): warning, this element is not implemented yet" << std::endl;
    THROW(ErrNotImplementedYet());
 }
 
@@ -551,7 +551,7 @@ DeformableDispHingeJoint(uL, DefHingeType::VISCOELASTIC,
 			 pDO, pCL, pN1, pN2, f1Tmp, f2Tmp, R1, R2, fOut)
 {
    /* Temporary */
-   cerr << "DeformableHingeJoint(): warning, this element is not implemented yet" << endl;
+   std::cerr << "DeformableHingeJoint(): warning, this element is not implemented yet" << std::endl;
    THROW(ErrNotImplementedYet());
 }
 

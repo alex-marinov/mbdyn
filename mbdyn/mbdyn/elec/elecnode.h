@@ -68,9 +68,9 @@ class AbstractNode : public ScalarDifferentialNode {
    };
    
    /* Contributo del nodo astratto al file di restart */
-   virtual ostream& Restart(ostream& out) const { 
+   virtual std::ostream& Restart(std::ostream& out) const { 
       return out << "  abstract: " << GetLabel() << ", " 
-	<< dX << ", " << dXP << ';' << endl;
+	<< dX << ", " << dXP << ';' << std::endl;
    };
    
    /* Output del nodo */
@@ -135,9 +135,9 @@ class ElectricNode : public AbstractNode {
    };
    
    /* Contributo del nodo elettrico al file di restart */
-   virtual ostream& Restart(ostream& out) const { 
+   virtual std::ostream& Restart(std::ostream& out) const { 
       return out << "  electric: " << GetLabel() << ", "
-	<< dX << ", " << dXP << ';' << endl;
+	<< dX << ", " << dXP << ';' << std::endl;
    };
    
    /* Output del nodo */

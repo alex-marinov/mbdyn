@@ -96,10 +96,10 @@ class AirProperties
    };
    
    /* Scrive il contributo dell'elemento al file di restart */
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       return out << "  air properties: " 
 	<< dAirDensity << ", " << dSoundSpeed << ", ",
-	pGetDriveCaller()->Restart(out) << ';' << endl;	   
+	pGetDriveCaller()->Restart(out) << ';' << std::endl;	   
    };
    
    /* Tipo dell'elemento (usato per debug ecc.) */

@@ -80,7 +80,7 @@ class PiezoActuatorBeam2 : public Beam2 {
    virtual ~PiezoActuatorBeam2(void);
     
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
     
    /* Dimensioni del workspace; sono 36 righe perche' se genera anche le
     * forze d'inerzia consistenti deve avere accesso alle righe di definizione
@@ -173,7 +173,7 @@ class PiezoActuatorVEBeam2 : public ViscoElasticBeam2 {
    virtual ~PiezoActuatorVEBeam2(void);
     
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
     
    /* Dimensioni del workspace; sono 36 righe perche' se genera anche le
     * forze d'inerzia consistenti deve avere accesso alle righe di definizione

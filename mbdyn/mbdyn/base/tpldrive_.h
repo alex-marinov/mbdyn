@@ -63,7 +63,7 @@ class SingleTplDriveCaller : public TplDriveCaller<T>, public DriveOwner {
    };
 
    /* Scrive il contributo del DriveCaller al file di restart */
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       out << "single, ",
         Write(out, t, ", ") << ", ";
       return pGetDriveCaller()->Restart(out);
@@ -100,7 +100,7 @@ class SingleTplDriveCaller<doublereal>
    };
 
    /* Scrive il contributo del DriveCaller al file di restart */
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       out << "single, ";
       return pGetDriveCaller()->Restart(out);
    };
@@ -164,7 +164,7 @@ class ArrayTplDriveCaller : public TplDriveCaller<T> {
    };
 
    /* Scrive il contributo del DriveCaller al file di restart */
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       out << "array, " << iNumDrives;
       for (int i = 0; i < iNumDrives; i++) {
          out << ", ",
@@ -217,7 +217,7 @@ TplDriveCaller<T>* ReadTplDrive(const DataManager* pDM,
 				const DriveHandler* pDH, 
 				const T& t)
 {
-   DEBUGCOUT("Entering ReadTplDrive" << endl);
+   DEBUGCOUT("Entering ReadTplDrive" << std::endl);
    
    const char* sKeyWords[] = {
       "single",
@@ -274,7 +274,8 @@ restart:
        case ReadTplDriveKeyWords<T>::ARRAY: {
 	  unsigned short int iNumDr = HP.GetInt();
 	  if (iNumDr == 0) {
-	     cerr << "At least one drive is required in array template drive" << endl;
+	     std::cerr << "At least one drive is required "
+		     "in array template drive" << std::endl;
 	     THROW(ErrGeneric());
 	  } else if (iNumDr == 1) {
 	     CurrKeyWord = ReadTplDriveKeyWords<T>::SINGLE;
@@ -300,14 +301,14 @@ restart:
        }
 	 
        default: {
-	  cerr << "Unknown template drive type" << endl;
+	  std::cerr << "Unknown template drive type" << std::endl;
 	  THROW(ErrGeneric());
        }
       }
    }
    
    if (pTplDC == NULL) {
-      cerr << "Error in allocation of template drive" << endl;
+      std::cerr << "Error in allocation of template drive" << std::endl;
       THROW(ErrMemory());
    }
    

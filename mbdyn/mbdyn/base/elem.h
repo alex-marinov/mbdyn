@@ -107,7 +107,7 @@ class Elem : public WithLabel, public ToBeOutput {
    virtual ~Elem(void);
 
    /* Scrive il contributo dell'elemento al file di restart */
-   virtual ostream& Restart(ostream& out) const = 0;
+   virtual std::ostream& Restart(std::ostream& out) const = 0;
    
    /* Tipo dell'elemento (usato solo per debug ecc.) */
    virtual Elem::Type GetElemType(void) const = 0;
@@ -227,7 +227,7 @@ class Elem : public WithLabel, public ToBeOutput {
    virtual void GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const {
       THROW(ErrGeneric());
    };
-   virtual ostream& WriteAdamsDummyPartCmd(ostream& out, unsigned int part, unsigned int firstId) const {
+   virtual std::ostream& WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const {
       THROW(ErrGeneric());
    };
 };

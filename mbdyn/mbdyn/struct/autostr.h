@@ -70,7 +70,7 @@ class AutomaticStructElem : virtual public Elem {
    void Init(const Vec3& q, const Vec3& g, const Vec3& qp, const Vec3& gp);
 
    /* Scrive il contributo dell'elemento al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    /* Tipo dell'elemento (usato per debug ecc.) */
    virtual Elem::Type GetElemType(void) const { 

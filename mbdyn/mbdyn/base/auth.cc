@@ -273,7 +273,7 @@ PAM_Auth::PAM_Auth(const char *u)
    if (u == NULL) {
       struct passwd* pw = getpwuid(getuid());
       if (pw == NULL) {
-	 cerr << "cannot determine the effective user!" << endl;
+	 std::cerr << "cannot determine the effective user!" << std::endl;
 	 THROW(ErrGeneric());
       }
       
@@ -290,17 +290,18 @@ PAM_Auth::PAM_Auth(const char *u)
    int retval = pam_start("mbdyn", User, &conv, &pamh);
    
    if (retval != PAM_SUCCESS) {      
-      cerr << "user \"" << User << "\" cannot be authenticated " << endl;
+      std::cerr << "user \"" << User << "\" cannot be authenticated " 
+	      << std::endl;
       
       if (pam_end(pamh, retval) != PAM_SUCCESS) { 
-	 cerr << "unable to release PAM authenticator" << endl;
+	 std::cerr << "unable to release PAM authenticator" << std::endl;
       }
       
       THROW(ErrGeneric());
    }
    
    if (pam_end(pamh, retval) != PAM_SUCCESS) { 
-      cerr << "unable to release PAM authenticator" << endl;
+      std::cerr << "unable to release PAM authenticator" << std::endl;
    }
 }
 
@@ -318,7 +319,8 @@ PAM_Auth::Auth(const char *user, const char *cred) const
    }
    
    if (strcmp(User, user) != 0) {
-      cerr << "user \"" << user << "\" cannot be authenticated " << endl;
+      std::cerr << "user \"" << user << "\" cannot be authenticated " 
+	      << std::endl;
       return AuthMethod::AUTH_ERR;
    }
    
@@ -338,7 +340,7 @@ PAM_Auth::Auth(const char *user, const char *cred) const
    }
    
    if (pam_end(pamh, retval) != PAM_SUCCESS) { 
-      cerr << "unable to release PAM authenticator" << endl;
+      std::cerr << "unable to release PAM authenticator" << std::endl;
    }
    
    return r;
@@ -395,13 +397,15 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
     case PASSWORD: {
        
        if (!HP.IsKeyWord("user")) {
-	  cerr << "user expected at line " << HP.GetLineData() << endl;
+	  std::cerr << "user expected at line " 
+		  << HP.GetLineData() << std::endl;
 	  THROW(ErrGeneric());
        }
        
        const char* tmp = HP.GetStringWithDelims();
        if (strlen(tmp) == 0) {
-	  cerr << "Need a legal user id at line " << HP.GetLineData() << endl;
+	  std::cerr << "Need a legal user id at line " 
+		  << HP.GetLineData() << std::endl;
 	  THROW(ErrGeneric());
        }
        
@@ -409,7 +413,8 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
        SAFESTRDUP(user, tmp);
        
        if (!HP.IsKeyWord("credentials")) {
-	  cerr << "credentials expected at line " << HP.GetLineData() << endl;
+	  std::cerr << "credentials expected at line " 
+		  << HP.GetLineData() << std::endl;
 	  THROW(ErrGeneric());
        }
        if (HP.IsKeyWord("prompt")) {
@@ -418,7 +423,8 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
 	  tmp = HP.GetStringWithDelims();
        }
        if (strlen(tmp) == 0) {
-	  cerr << "Warning: null credentials at line " << HP.GetLineData()  << endl;
+	  std::cerr << "Warning: null credentials at line " 
+		  << HP.GetLineData() << std::endl;
        }
        
        char* cred = NULL;
@@ -441,7 +447,8 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
        if (HP.IsKeyWord("user")) {
 	  const char *tmp = HP.GetStringWithDelims();
 	  if (strlen(tmp) == 0) {
-	     cerr << "Need a legal user id at line " << HP.GetLineData() << endl;
+	     std::cerr << "Need a legal user id at line " 
+		     << HP.GetLineData() << std::endl;
 	     THROW(ErrGeneric());
 	  }
        	 
@@ -451,14 +458,14 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
        SAFENEWWITHCONSTRUCTOR(pAuth, PAM_Auth, PAM_Auth(user));
        break;
 #else /* !USE_PAM */       
-       cerr << "line " << HP.GetLineData() 
-	 << ": sorry, this system does not support PAM" << endl;
+       std::cerr << "line " << HP.GetLineData() 
+	 << ": sorry, this system does not support PAM" << std::endl;
        THROW(ErrGeneric());
 #endif /* !USE_PAM */       
     }
            
     case PWDB:
-      cerr << "not implemented yet" << endl;
+       std::cerr << "not implemented yet" << std::endl;
     default:
       THROW(ErrNotImplementedYet());
    }      

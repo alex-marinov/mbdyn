@@ -55,7 +55,7 @@ InPlaneJoint::~InPlaneJoint(void)
 }
 
 /* Contributo al file di restart */
-ostream& InPlaneJoint::Restart(ostream& out) const
+std::ostream& InPlaneJoint::Restart(std::ostream& out) const
 {
    Joint::Restart(out) << ", in plane, "
      << pNode1->GetLabel() 
@@ -63,7 +63,7 @@ ostream& InPlaneJoint::Restart(ostream& out) const
      p.Write(out, ", ") 
      << ", reference, node, ";
    v.Write(out, ", ") << ", "
-     << pNode2->GetLabel() << ';' << endl;
+     << pNode2->GetLabel() << ';' << std::endl;
    return out;
 }
 
@@ -74,7 +74,7 @@ InPlaneJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		     const VectorHandler& /* XCurr */ ,
 		     const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering InPlaneJoint::AssJac()" << endl);
+   DEBUGCOUT("Entering InPlaneJoint::AssJac()" << std::endl);
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
    WM.ResizeInit(51, 0, 0.);
    
@@ -130,7 +130,7 @@ SubVectorHandler& InPlaneJoint::AssRes(SubVectorHandler& WorkVec,
 				       const VectorHandler& XCurr, 
 				       const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering InPlaneJoint::AssRes()" << endl);
+   DEBUGCOUT("Entering InPlaneJoint::AssRes()" << std::endl);
    WorkVec.Resize(13);
    WorkVec.Reset(0.);
  
@@ -172,7 +172,7 @@ void InPlaneJoint::Output(OutputHandler& OH) const
    if(fToBeOutput()) {      
       Vec3 vTmp(pNode1->GetRCurr()*v);
       Joint::Output(OH.Joints(), "InPlane", GetLabel(),
-		    Vec3(dF, 0., 0.), Zero3, vTmp*dF, Zero3) << endl;      
+		    Vec3(dF, 0., 0.), Zero3, vTmp*dF, Zero3) << std::endl;      
    }   
 }
  
@@ -182,7 +182,7 @@ VariableSubMatrixHandler&
 InPlaneJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 			    const VectorHandler& XCurr)
 {
-   DEBUGCOUT("Entering InPlaneJoint::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering InPlaneJoint::InitialAssJac()" << std::endl);
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    WM.ResizeInit(26, 26, 0.);
    
@@ -295,7 +295,7 @@ InPlaneJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 SubVectorHandler& InPlaneJoint::InitialAssRes(SubVectorHandler& WorkVec,
 					      const VectorHandler& XCurr)
 {
-   DEBUGCOUT("Entering InPlaneJoint::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering InPlaneJoint::InitialAssRes()" << std::endl);
    WorkVec.Resize(26);
    WorkVec.Reset(0.);
    
@@ -384,7 +384,7 @@ InPlaneWithOffsetJoint::~InPlaneWithOffsetJoint(void)
 }
 
 /* Contributo al file di restart */
-ostream& InPlaneWithOffsetJoint::Restart(ostream& out) const
+std::ostream& InPlaneWithOffsetJoint::Restart(std::ostream& out) const
 {
    Joint::Restart(out) << ", in plane, "
      << pNode1->GetLabel() 
@@ -393,7 +393,7 @@ ostream& InPlaneWithOffsetJoint::Restart(ostream& out) const
      << ", reference, node, ",
      v.Write(out, ", ") << ", "
      << pNode2->GetLabel() << ", offset, reference, node, ";
-   return q.Write(out, ", ") << ';' << endl;
+   return q.Write(out, ", ") << ';' << std::endl;
 }
 
    
@@ -403,7 +403,7 @@ InPlaneWithOffsetJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			       const VectorHandler& /* XCurr */ ,
 			       const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering InPlaneWithOffsetJoint::AssJac()" << endl);
+   DEBUGCOUT("Entering InPlaneWithOffsetJoint::AssJac()" << std::endl);
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
    WM.ResizeInit(84, 0, 0.);
    
@@ -478,7 +478,7 @@ InPlaneWithOffsetJoint::AssRes(SubVectorHandler& WorkVec,
 			       const VectorHandler& XCurr,
 			       const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering InPlaneWithOffsetJoint::AssRes()" << endl);
+   DEBUGCOUT("Entering InPlaneWithOffsetJoint::AssRes()" << std::endl);
    WorkVec.Resize(13);
    WorkVec.Reset(0.);
  
@@ -522,7 +522,7 @@ void InPlaneWithOffsetJoint::Output(OutputHandler& OH) const
    if(fToBeOutput()) {            
       Vec3 vTmp(pNode1->GetRCurr()*v);
       Joint::Output(OH.Joints(), "InPlaneWithOffs", GetLabel(),
-		    Vec3(dF, 0., 0.), Zero3, vTmp*dF, Zero3) << endl;      
+		    Vec3(dF, 0., 0.), Zero3, vTmp*dF, Zero3) << std::endl;      
    }   
 }
  
@@ -532,7 +532,7 @@ VariableSubMatrixHandler&
 InPlaneWithOffsetJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 				      const VectorHandler& XCurr)
 {
-   DEBUGCOUT("Entering InPlaneWithOffsetJoint::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering InPlaneWithOffsetJoint::InitialAssJac()" << std::endl);
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    WM.ResizeInit(26, 26, 0.);
    
@@ -683,7 +683,7 @@ SubVectorHandler&
 InPlaneWithOffsetJoint::InitialAssRes(SubVectorHandler& WorkVec,
 				      const VectorHandler& XCurr)
 {
-   DEBUGCOUT("Entering InPlaneWithOffsetJoint::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering InPlaneWithOffsetJoint::InitialAssRes()" << std::endl);
    WorkVec.Resize(26);
    WorkVec.Reset(0.);
    

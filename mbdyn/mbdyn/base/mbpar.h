@@ -121,8 +121,8 @@ extern const ReferenceFrame AbsRefFrame;
 #endif /* USE_AERODYNAMIC_ELEMS */
 
 /* Deals with license and disclaimer output */
-extern void mbdyn_license(ostream& out);
-extern void mbdyn_warranty(ostream& out);
+extern void mbdyn_license(std::ostream& out);
+extern void mbdyn_warranty(std::ostream& out);
 
 /* MBDynParser - begin */
 

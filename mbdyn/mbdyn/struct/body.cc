@@ -59,13 +59,13 @@ J0(JTmp)
 
 
 /* Scrive il contributo dell'elemento al file di restart */
-ostream& 
-Body::Restart(ostream& out) const
+std::ostream& 
+Body::Restart(std::ostream& out) const
 {
     out << "  body: " << GetLabel() << ", " 
         << pNode->GetLabel() << ", " << dMass << ", "
 	<< "reference, node, ", Xgc.Write(out, ", ") << ", "
-        << "reference, node, ", J0.Write(out, ", ") << ';' << endl;
+        << "reference, node, ", J0.Write(out, ", ") << ';' << std::endl;
    
     return out;
 }
@@ -256,11 +256,11 @@ void Body::Output(OutputHandler& /* OH */ ) const
 #ifdef DEBUG
         if (DEBUG_LEVEL_MATCH(MYDEBUG_OUTPUT)) {
             OH.Output() << "Body Element " << uLabel << ", linked to node " 
-	        << pNode->GetLabel() << ':' << endl 
-		<< "Mass: " << dMass << endl 
-		<< "Mass Center Position: " << endl << Xgc << endl 
-		<< "Static Moment Vector: " << endl << S << endl 
-		<< "Inertia Moment Matrix: " << endl << J << endl;
+	        << pNode->GetLabel() << ':' << std::endl 
+		<< "Mass: " << dMass << std::endl 
+		<< "Mass Center Position: " << std::endl << Xgc << std::endl 
+		<< "Static Moment Vector: " << std::endl << S << std::endl 
+		<< "Inertia Moment Matrix: " << std::endl << J << std::endl;
 	}
 #endif
    }
@@ -437,20 +437,20 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
     /* nodo collegato */
     unsigned int uNode = (unsigned int)HP.GetInt();
    
-    DEBUGLCOUT(MYDEBUG_INPUT, "Linked to Node " << uNode << endl);
+    DEBUGLCOUT(MYDEBUG_INPUT, "Linked to Node " << uNode << std::endl);
    
     /* verifica di esistenza del nodo */
     StructNode* pNode;
     if ((pNode = pDM->pFindStructNode(uNode)) == NULL) {
-        cerr << endl
+        std::cerr << std::endl
 	    << "line " << HP.GetLineData() 
 	    << ": structural node " << uNode
-	    << " not defined" << endl;
+	    << " not defined" << std::endl;
         THROW(DataManager::ErrGeneric());
     }
    
     if (pNode->GetStructNodeType() != StructNode::DYNAMIC) {
-        cerr << "Illegal structural node type for body " << uLabel << endl;
+        std::cerr << "Illegal structural node type for body " << uLabel << std::endl;
         THROW(DataManager::ErrGeneric());
     }
       
@@ -458,11 +458,11 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
     if (HP.IsKeyWord("condense")) {
         iNumMasses = HP.GetInt();
         if (iNumMasses < 1) {
-	    cerr << "At least one mass is required" << endl;
+	    std::cerr << "At least one mass is required" << std::endl;
 	    THROW(DataManager::ErrGeneric());
         }
         DEBUGLCOUT(MYDEBUG_INPUT, 
-	           iNumMasses << " masses will be condensed" << endl);
+	           iNumMasses << " masses will be condensed" << std::endl);
       
         /* The inertia is calculated as follows:               
          *                                                     
@@ -501,7 +501,7 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
         /* massa */
         doublereal dmTmp = HP.GetReal();
    
-        DEBUGLCOUT(MYDEBUG_INPUT, "Mass(" << iCnt << ") = " << dmTmp << endl);
+        DEBUGLCOUT(MYDEBUG_INPUT, "Mass(" << iCnt << ") = " << dmTmp << std::endl);
         dm += dmTmp;
 
         /* posiz. c.g. */
@@ -509,7 +509,7 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
         STmp += XgcTmp*dmTmp;
    
         DEBUGLCOUT(MYDEBUG_INPUT, "position of mass(" << iCnt 
-		   << ") center of gravity = " << XgcTmp << endl);
+		   << ") center of gravity = " << XgcTmp << std::endl);
       
         /*
 	 * matrice del mom. d'inerzia
@@ -531,11 +531,11 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
          */
         Mat3x3 JTmp(HP.GetMatRel(RF));
         DEBUGLCOUT(MYDEBUG_INPUT, "Inertia matrix of mass(" << iCnt 
-		   << ") =" << endl << JTmp << endl);
+		   << ") =" << std::endl << JTmp << std::endl);
           
         if (HP.IsKeyWord("inertial")) {
 	    DEBUGLCOUT(MYDEBUG_INPUT, 
-	               "supplied in inertial reference frame" << endl);	 
+	               "supplied in inertial reference frame" << std::endl);	 
 	    if (HP.IsKeyWord("node")) {
 	        NO_OP;
 	    } else {	    	   
@@ -543,7 +543,7 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	        JTmp = RTmp*(JTmp*RTmp.Transpose());
 	    }
 	    DEBUGLCOUT(MYDEBUG_INPUT, "Inertia matrix of mass(" << iCnt 
-		       << ") in current frame =" << endl << JTmp << endl);
+		       << ") in current frame =" << std::endl << JTmp << std::endl);
         }      
 
         J += (JTmp-Mat3x3(XgcTmp, XgcTmp*dmTmp));      
@@ -551,9 +551,9 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
     
     Xgc = STmp/dm;
 
-    DEBUGLCOUT(MYDEBUG_INPUT, "Total mass: " << dm << endl
-	       << "Center of mass: " << Xgc << endl
-	       << "Inertia matrix:" << endl << J << endl);
+    DEBUGLCOUT(MYDEBUG_INPUT, "Total mass: " << dm << std::endl
+	       << "Center of mass: " << Xgc << std::endl
+	       << "Inertia matrix:" << std::endl << J << std::endl);
 	           
     flag fOut = pDM->fReadOutput(HP, Elem::BODY);
       
@@ -563,8 +563,8 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 
     /* Se non c'e' il punto e virgola finale */
     if (HP.fIsArg()) {
-        cerr << endl
-	    << "semicolon expected at line " << HP.GetLineData() << endl;
+        std::cerr << std::endl
+	    << "semicolon expected at line " << HP.GetLineData() << std::endl;
         THROW(DataManager::ErrGeneric());
     }   
    

@@ -34,6 +34,9 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <unistd.h>
+#include <float.h>
+
 #include <multistp.h>
 #include <mynewmem.h>
 #include <mymath.h>
@@ -42,8 +45,6 @@
 #include <mschwrap.h>
 #include <y12wrap.h>
 #include <umfpackwrap.h>
-
-#include <unistd.h>
 
 #ifdef HAVE_SIGNAL
 #ifdef HAVE_SIGNAL_H
@@ -174,7 +175,7 @@ MultiStepIntegrator::Run(void)
    	DEBUGCOUTFNAME("MultiStepIntegrator::Run");
    
    	/* chiama il gestore dei dati generali della simulazione */
-   	DEBUGLCOUT(MYDEBUG_MEM, "creating DataManager" << endl);
+   	DEBUGLCOUT(MYDEBUG_MEM, "creating DataManager" << std::endl);
    	SAFENEWWITHCONSTRUCTOR(pDM,
 			       DataManager,
 			       DataManager(HP, 
@@ -183,20 +184,20 @@ MultiStepIntegrator::Run(void)
 					   sOutputFileName,
 					   fAbortAfterInput));
 
-   	/* Si fa dare l'ostream al file di output per il log */
-   	ostream& Out = pDM->GetOutFile();
+   	/* Si fa dare l'std::ostream al file di output per il log */
+   	std::ostream& Out = pDM->GetOutFile();
 
    	if (fAbortAfterInput) {
       		/* Esce */
 		pDM->Output();
       		Out << "End of Input; no simulation or assembly is required."
-			<< endl;
+			<< std::endl;
       		return;
    	} else if (fAbortAfterAssembly) {
       		/* Fa l'output dell'assemblaggio iniziale e poi esce */
       		pDM->Output();
       		Out << "End of Initial Assembly; no simulation is required."
-		<< endl;
+		<< std::endl;
       		return;
    	}
 
@@ -206,7 +207,7 @@ MultiStepIntegrator::Run(void)
    	pFictitiousStepsMethod->SetDriveHandler(pDH);
    
    	/* Costruisce i vettori della soluzione ai vari passi */
-   	DEBUGLCOUT(MYDEBUG_MEM, "creating solution vectors" << endl);
+   	DEBUGLCOUT(MYDEBUG_MEM, "creating solution vectors" << std::endl);
    
    	iNumDofs = pDM->iGetNumDofs();
    	ASSERT(iNumDofs > 0);        
@@ -248,7 +249,7 @@ MultiStepIntegrator::Run(void)
       
    	/* costruisce il SolutionManager */
    	DEBUGLCOUT(MYDEBUG_MEM, "creating SolutionManager, size = "
-		   << iNumDofs << endl);
+		   << iNumDofs << std::endl);
    
    	switch (CurrSolver) {
      	case Y12_SOLVER: 
@@ -260,8 +261,8 @@ MultiStepIntegrator::Run(void)
 						   dPivotFactor));
       		break;
 #else /* !USE_Y12 */
-      		cerr << "Configure with --with-y12 "
-			"to enable Y12 solver" << endl;
+      		std::cerr << "Configure with --with-y12 "
+			"to enable Y12 solver" << std::endl;
       		THROW(ErrGeneric());
 #endif /* !USE_Y12 */
 
@@ -274,9 +275,9 @@ MultiStepIntegrator::Run(void)
 							dPivotFactor));
       		break;
 #else /* !USE_MESCHACH */
-      		cerr << "Configure with --with-meschach "
+      		std::cerr << "Configure with --with-meschach "
 			"to enable Meschach solver"
-			<< endl;
+			<< std::endl;
       		THROW(ErrGeneric());
 #endif /* !USE_MESCHACH */
 
@@ -289,8 +290,8 @@ MultiStepIntegrator::Run(void)
 						       dPivotFactor));
       		break;
 #else /* !USE_HARWELL */
-      		cerr << "Configure with --with-harwell "
-			"to enable Harwell solver" << endl;
+      		std::cerr << "Configure with --with-harwell "
+			"to enable Harwell solver" << std::endl;
       		THROW(ErrGeneric());
 #endif /* !USE_HARWELL */
 
@@ -301,8 +302,8 @@ MultiStepIntegrator::Run(void)
 			Umfpack3SparseLUSolutionManager(iNumDofs));
       		break;
 #else /* !USE_UMFPACK3 */
-      		cerr << "Configure with --with-umfpack3 "
-			"to enable Umfpack3 solver" << endl;
+      		std::cerr << "Configure with --with-umfpack3 "
+			"to enable Umfpack3 solver" << std::endl;
       		THROW(ErrGeneric());
 #endif /* !USE_UMFPACK3 */
    	}
@@ -349,7 +350,7 @@ MultiStepIntegrator::Run(void)
    	doublereal dTotErr = 0.;
    
 	/* calcolo delle derivate */
-   	DEBUGLCOUT(MYDEBUG_DERIVATIVES, "derivatives solution step" << endl);
+   	DEBUGLCOUT(MYDEBUG_DERIVATIVES, "derivatives solution step" << std::endl);
    	doublereal dTest = 1.;
 
 #ifdef HAVE_SIGNAL
@@ -376,10 +377,10 @@ MultiStepIntegrator::Run(void)
       
 #ifdef DEBUG
       		if (DEBUG_LEVEL_MATCH(MYDEBUG_DERIVATIVES|MYDEBUG_RESIDUAL)) {
-	 		cout << "Residual:" << endl;
+	 		std::cout << "Residual:" << std::endl;
 	 		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
-	    			cout << "Dof" << setw(4) << iTmpCnt << ": " 
-	      				<< pRes->dGetCoef(iTmpCnt) << endl;
+	    			std::cout << "Dof" << std::setw(4) << iTmpCnt << ": " 
+	      				<< pRes->dGetCoef(iTmpCnt) << std::endl;
 	 		}
       		}
 #endif /* DEBUG */
@@ -392,15 +393,15 @@ MultiStepIntegrator::Run(void)
           
       		DEBUGLCOUT(MYDEBUG_DERIVATIVES,
 			   "calculating derivatives, iteration "
-			   << setw(4) << iIterCnt
-			   << ", test = " << dTest << endl);
+			   << std::setw(4) << iIterCnt
+			   << ", test = " << dTest << std::endl);
 	
       		if (iIterCnt > iDerivativesMaxIterations || !isfinite(dTest)) {
-	 		cerr << endl
+	 		std::cerr << std::endl
 				<< "Maximum iterations number " << iIterCnt 
 				<< " has been reached during initial"
-				" derivatives calculation;" << endl
-				<< "aborting ..." << endl;	 
+				" derivatives calculation;" << std::endl
+				<< "aborting ..." << std::endl;	 
 	 		pDM->Output();	 
 	 		THROW(MultiStepIntegrator::ErrMaxIterations());
       		}
@@ -412,10 +413,10 @@ MultiStepIntegrator::Run(void)
 #ifdef DEBUG
       		/* Output della soluzione */
       		if (DEBUG_LEVEL_MATCH(MYDEBUG_SOL|MYDEBUG_DERIVATIVES)) {
-	 		cout << "Solution:" << endl;
+	 		std::cout << "Solution:" << std::endl;
 	 		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
-	    			cout << "Dof" << setw(4) << iTmpCnt << ": "
-					<< pSol->dGetCoef(iTmpCnt) << endl;
+	    			std::cout << "Dof" << std::setw(4) << iTmpCnt << ": "
+					<< pSol->dGetCoef(iTmpCnt) << std::endl;
 	 		}
       		}
 #endif /* DEBUG */
@@ -432,10 +433,10 @@ EndOfDerivatives:
    	Out << "Derivatives solution step at time " << dInitialTime
      		<< " performed in " << iIterCnt
      		<< " iterations with " << dTest
-     		<< " error" << endl;
+     		<< " error" << std::endl;
       
    	DEBUGCOUT("Derivatives solution step has been performed successfully"
-		  " in " << iIterCnt << " iterations" << endl);
+		  " in " << iIterCnt << " iterations" << std::endl);
    
    	if (fAbortAfterDerivatives) {
       		/*
@@ -443,7 +444,7 @@ EndOfDerivatives:
 		 */
       		pDM->Output();
       		Out << "End of derivatives; no simulation is required."
-			<< endl;
+			<< std::endl;
       		return;
 #ifdef HAVE_SIGNAL
    	} else if (!::keep_going) {
@@ -451,7 +452,7 @@ EndOfDerivatives:
 		 * Fa l'output della soluzione delle derivate iniziali ed esce
 		 */
       		pDM->Output();
-      		Out << "Interrupted during derivatives computation." << endl;
+      		Out << "Interrupted during derivatives computation." << std::endl;
       		return;
 #endif /* HAVE_SIGNAL */
    	}
@@ -481,7 +482,7 @@ EndOfDerivatives:
       		pDM->SetTime(dTime+dCurrTimeStep);    
       
       		DEBUGLCOUT(MYDEBUG_FSTEPS, "Current time step: "
-			   << dCurrTimeStep << endl);
+			   << dCurrTimeStep << std::endl);
       
       		/*
 		 * First step prediction must always be Crank-Nicholson
@@ -496,24 +497,24 @@ EndOfDerivatives:
       
 #ifdef DEBUG
       		if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_PRED)) {
-	 		cout << "Dof:      XCurr  ,    XPrev  ,   XPrev2  "
+	 		std::cout << "Dof:      XCurr  ,    XPrev  ,   XPrev2  "
 				",   XPrime  ,   XPPrev  ,   XPPrev2" 
-		   		<< endl;
+		   		<< std::endl;
 	 		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
-	    			cout << setw(4) << iTmpCnt << ": "
-					<< setw(12)
+	    			std::cout << std::setw(4) << iTmpCnt << ": "
+					<< std::setw(12)
 					<< pXCurr->dGetCoef(iTmpCnt) 
-					<< setw(12)
+					<< std::setw(12)
 					<< pXPrev->dGetCoef(iTmpCnt) 
-					<< setw(12)
+					<< std::setw(12)
 					<< pXPrev2->dGetCoef(iTmpCnt) 
-					<< setw(12)
+					<< std::setw(12)
 					<< pXPrimeCurr->dGetCoef(iTmpCnt) 
-					<< setw(12)
+					<< std::setw(12)
 					<< pXPrimePrev->dGetCoef(iTmpCnt) 
-					<< setw(12)
+					<< std::setw(12)
 					<< pXPrimePrev2->dGetCoef(iTmpCnt) 
-					<< endl;
+					<< std::endl;
 	 		}
       		}
 #endif /* DEBUG */
@@ -527,13 +528,13 @@ EndOfDerivatives:
 	 
 #ifdef DEBUG
 			if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_RESIDUAL)) {
-				cout << "Residual:" << endl;
+				std::cout << "Residual:" << std::endl;
 				for (int iTmpCnt = 1;
 				     iTmpCnt <= iNumDofs;
 				     iTmpCnt++) {	 
-       					cout << "Dof"
-						<< setw(4) << iTmpCnt << ": " 
-						<< pRes->dGetCoef(iTmpCnt) << endl;
+       					std::cout << "Dof"
+						<< std::setw(4) << iTmpCnt << ": " 
+						<< pRes->dGetCoef(iTmpCnt) << std::endl;
 	    			}
 	 		}
 #endif /* DEBUG */
@@ -545,15 +546,15 @@ EndOfDerivatives:
 	 		iIterCnt++;
 	 		if (iIterCnt > iFictitiousStepsMaxIterations
 			    || !isfinite(dTest)) {
-			    	cerr << endl
+			    	std::cerr << std::endl
 					<< "Maximum iterations number "
 					<< iIterCnt 
 					<< " has been reached during"
-					" first dummy step;" << endl
+					" first dummy step;" << std::endl
 					<< "time step dt = " << dCurrTimeStep 
 					<< " cannot be reduced further;"
-					<< endl
-					<< "aborting ..." << endl;
+					<< std::endl
+					<< "aborting ..." << std::endl;
 	    			pDM->Output();
 	    			THROW(MultiStepIntegrator::ErrMaxIterations());
 	 		}
@@ -564,14 +565,14 @@ EndOfDerivatives:
 	 
 #ifdef DEBUG
 	 		if (DEBUG_LEVEL_MATCH(MYDEBUG_SOL|MYDEBUG_FSTEPS)) {
-	    			cout << "Solution:" << endl;
+	    			std::cout << "Solution:" << std::endl;
 	    			for (int iTmpCnt = 1;
 				     iTmpCnt <= iNumDofs;
 				     iTmpCnt++) {
-				     	cout << "Dof"
-						<< setw(4) << iTmpCnt << ": "
+				     	std::cout << "Dof"
+						<< std::setw(4) << iTmpCnt << ": "
 						<< pSol->dGetCoef(iTmpCnt)
-						<< endl;
+						<< std::endl;
 	    			}
 	 		}
 #endif /* DEBUG */
@@ -597,7 +598,7 @@ EndOfFirstFictitiousStep:
 #ifdef DEBUG_FICTITIOUS
 	   		pDM->Output();
 #endif /* DEBUG_FICTITIOUS */
-	 		Out << "Interrupted during first dummy step." << endl;
+	 		Out << "Interrupted during first dummy step." << std::endl;
 	 		return;
       		}
 #endif /* HAVE_SIGNAL */
@@ -617,7 +618,7 @@ EndOfFirstFictitiousStep:
 	 		DEBUGLCOUT(MYDEBUG_FSTEPS, "Fictitious step "
 				   << iSubStep 
 				   << "; current time step: " << dCurrTimeStep
-				   << endl);
+				   << std::endl);
 	 
 	 		pDM->SetTime(dTime+dCurrTimeStep);
 	 		ASSERT(pFictitiousStepsMethod != NULL);
@@ -631,26 +632,26 @@ EndOfFirstFictitiousStep:
 	 
 #ifdef DEBUG
 	 		if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_PRED)) {
-	    			cout << "Dof:      XCurr  ,    XPrev  "
+	    			std::cout << "Dof:      XCurr  ,    XPrev  "
 					",   XPrev2  ,   XPrime  "
-					",   XPPrev  ,   XPPrev2" << endl;
+					",   XPPrev  ,   XPPrev2" << std::endl;
 	    			for (int iTmpCnt = 1;
 				     iTmpCnt <= iNumDofs;
 				     iTmpCnt++) {	 
-				     	cout << setw(4) << iTmpCnt << ": " 
-						<< setw(12)
+				     	std::cout << std::setw(4) << iTmpCnt << ": " 
+						<< std::setw(12)
 						<< pXCurr->dGetCoef(iTmpCnt) 
-						<< setw(12)
+						<< std::setw(12)
 						<< pXPrev->dGetCoef(iTmpCnt) 
-						<< setw(12)
+						<< std::setw(12)
 						<< pXPrev2->dGetCoef(iTmpCnt) 
-						<< setw(12)
+						<< std::setw(12)
 						<< pXPrimeCurr->dGetCoef(iTmpCnt) 
-						<< setw(12)
+						<< std::setw(12)
 						<< pXPrimePrev->dGetCoef(iTmpCnt) 
-						<< setw(12)
+						<< std::setw(12)
 						<< pXPrimePrev2->dGetCoef(iTmpCnt) 
-						<< endl;
+						<< std::endl;
 	    			}
 	 		}
 #endif /* DEBUG */
@@ -663,15 +664,15 @@ EndOfFirstFictitiousStep:
 	    
 #ifdef DEBUG
 	    			if (DEBUG_LEVEL_MATCH(MYDEBUG_FSTEPS|MYDEBUG_RESIDUAL)) {
-	       				cout << "Residual:" << endl;
+	       				std::cout << "Residual:" << std::endl;
 	       				for (int iTmpCnt = 1;
 					     iTmpCnt <= iNumDofs;
 					     iTmpCnt++) {	    
-		  				cout << "Dof"
-							<< setw(4) << iTmpCnt
+		  				std::cout << "Dof"
+							<< std::setw(4) << iTmpCnt
 							<< ": " 
 							<< pRes->dGetCoef(iTmpCnt)
-							<< endl;
+							<< std::endl;
 	       				}
 	    			}
 #endif /* DEBUG */
@@ -684,13 +685,13 @@ EndOfFirstFictitiousStep:
 	    			iIterCnt++;
 	    			if (iIterCnt > iFictitiousStepsMaxIterations
 				    || !isfinite(dTest) ) {
-				    	cerr << endl
+				    	std::cerr << std::endl
 						<< "Maximum iterations number "
 						<< iIterCnt 
 						<< " has been reached"
 						" during dummy step " 
-						<< iSubStep << ';' << endl
-						<< "aborting ..." << endl;
+						<< iSubStep << ';' << std::endl
+						<< "aborting ..." << std::endl;
 						
 	       				pDM->Output();
 					THROW(MultiStepIntegrator::ErrMaxIterations());
@@ -702,15 +703,15 @@ EndOfFirstFictitiousStep:
 	    
 #ifdef DEBUG
 	    			if (DEBUG_LEVEL_MATCH(MYDEBUG_SOL|MYDEBUG_FSTEPS)) {
-	       				cout << "Solution:" << endl;
+	       				std::cout << "Solution:" << std::endl;
 	       				for (int iTmpCnt = 1;
 					     iTmpCnt <= iNumDofs;
 					     iTmpCnt++) {
-					     	cout << "Dof"
-							<< setw(4) << iTmpCnt
+					     	std::cout << "Dof"
+							<< std::setw(4) << iTmpCnt
 							<< ": " 
 							<< pSol->dGetCoef(iTmpCnt)
-							<< endl;
+							<< std::endl;
 	       				}
 	    			}
 #endif /* DEBUG */
@@ -732,14 +733,14 @@ EndOfFictitiousStep:
 					<< " time " << dTime+dCurrTimeStep
 					<< " step " << dCurrTimeStep
 					<< " iterations " << iIterCnt
-					<< " error " << dTest << endl;
+					<< " error " << dTest << std::endl;
 	 		}
 #endif /* DEBUG */
 
 	 		DEBUGLCOUT(MYDEBUG_FSTEPS, "Substep " << iSubStep 
 				   << " of step " << iStep 
 				   << " has been completed successfully in "
-				   << iIterCnt << " iterations" << endl);
+				   << iIterCnt << " iterations" << std::endl);
 				   
 #ifdef HAVE_SIGNAL
 	 		if (!::keep_going) {
@@ -748,7 +749,7 @@ EndOfFictitiousStep:
 	    			pDM->Output();
 #endif /* DEBUG_FICTITIOUS */
 	    			Out << "Interrupted during dummy steps."
-					<< endl;
+					<< std::endl;
 				return;
 			}
 #endif /* HAVE_SIGNAL */
@@ -759,11 +760,11 @@ EndOfFictitiousStep:
       		Out << "Initial solution after dummy steps at time " << dTime
 			<< " performed in " << iIterCnt
 			<< " iterations with " << dTest 
-			<< " error" << endl;
+			<< " error" << std::endl;
 			
       		DEBUGLCOUT(MYDEBUG_FSTEPS, 
 			   "Fictitious steps have been completed successfully"
-			   " in " << iIterCnt << " iterations" << endl);
+			   " in " << iIterCnt << " iterations" << std::endl);
    	} /* Fine dei passi fittizi */
    
    
@@ -774,16 +775,16 @@ EndOfFictitiousStep:
      		<< " time " << dTime+dCurrTimeStep
      		<< " step " << dCurrTimeStep
      		<< " iterations " << iIterCnt
-     		<< " error " << dTest << endl;
+     		<< " error " << dTest << std::endl;
    
    	if (fAbortAfterFictitiousSteps) {
       		Out << "End of dummy steps; no simulation is required."
-			<< endl;
+			<< std::endl;
 		return;
 #ifdef HAVE_SIGNAL
    	} else if (!::keep_going) {
       		/* Fa l'output della soluzione ed esce */
-      		Out << "Interrupted during dummy steps." << endl;
+      		Out << "Interrupted during dummy steps." << std::endl;
       		return;
 #endif /* HAVE_SIGNAL */
    	}
@@ -791,7 +792,7 @@ EndOfFictitiousStep:
    	iStep = 1; /* Resetto di nuovo iStep */
       
    	DEBUGCOUT("Step " << iStep << " has been completed successfully in "
-		  << iIterCnt << " iterations" << endl);
+		  << iIterCnt << " iterations" << std::endl);
    
    	pDM->BeforePredict(*pXCurr, *pXPrimeCurr, *pXPrev, *pXPrimePrev);
    	this->Flip();
@@ -799,7 +800,7 @@ EndOfFictitiousStep:
    	dRefTimeStep = dInitialTimeStep;   
    	dCurrTimeStep = dRefTimeStep;
    
-   	DEBUGCOUT("Current time step: " << dCurrTimeStep << endl);
+   	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
    
     	/* Primo passo regolare */
    
@@ -820,17 +821,17 @@ IfFirstStepIsToBeRepeated:
 
 #ifdef DEBUG
    	if (DEBUG_LEVEL(MYDEBUG_PRED)) {
-      		cout << "Dof:      XCurr  ,    XPrev  ,   XPrev2  "
-			",   XPrime  ,   XPPrev  ,   XPPrev2" << endl;
+      		std::cout << "Dof:      XCurr  ,    XPrev  ,   XPrev2  "
+			",   XPrime  ,   XPPrev  ,   XPPrev2" << std::endl;
       		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
-	 		cout << setw(4) << iTmpCnt << ": " 
-				<< setw(12) << pXCurr->dGetCoef(iTmpCnt) 
-				<< setw(12) << pXPrev->dGetCoef(iTmpCnt) 
-				<< setw(12) << pXPrev2->dGetCoef(iTmpCnt) 
-				<< setw(12) << pXPrimeCurr->dGetCoef(iTmpCnt) 
-				<< setw(12) << pXPrimePrev->dGetCoef(iTmpCnt) 
-				<< setw(12) << pXPrimePrev2->dGetCoef(iTmpCnt) 
-				<< endl;
+	 		std::cout << std::setw(4) << iTmpCnt << ": " 
+				<< std::setw(12) << pXCurr->dGetCoef(iTmpCnt) 
+				<< std::setw(12) << pXPrev->dGetCoef(iTmpCnt) 
+				<< std::setw(12) << pXPrev2->dGetCoef(iTmpCnt) 
+				<< std::setw(12) << pXPrimeCurr->dGetCoef(iTmpCnt) 
+				<< std::setw(12) << pXPrimePrev->dGetCoef(iTmpCnt) 
+				<< std::setw(12) << pXPrimePrev2->dGetCoef(iTmpCnt) 
+				<< std::endl;
       		}
    	}
 #endif /* DEBUG */
@@ -844,11 +845,11 @@ IfFirstStepIsToBeRepeated:
       
 #ifdef DEBUG
       		if (DEBUG_LEVEL(MYDEBUG_RESIDUAL)) {
-	 		cout << "Residual:" << endl;
-	 		cout << iStep  << "   " << iIterCnt <<endl;
+	 		std::cout << "Residual:" << std::endl;
+	 		std::cout << iStep  << "   " << iIterCnt <<std::endl;
 	 		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
-	    			cout << "Dof" << setw(4) << iTmpCnt << ": " 
-					<< pRes->dGetCoef(iTmpCnt) << endl;
+	    			std::cout << "Dof" << std::setw(4) << iTmpCnt << ": " 
+					<< pRes->dGetCoef(iTmpCnt) << std::endl;
 			}
       		}
 #endif /* DEBUG */
@@ -869,19 +870,19 @@ IfFirstStepIsToBeRepeated:
 				DEBUGCOUT("Changing time step during"
 					  " first step after "
 					  << iIterCnt << " iterations"
-					  << endl);
+					  << std::endl);
 	    			goto IfFirstStepIsToBeRepeated;
 	 		} else {
-	    			cerr << endl
+	    			std::cerr << std::endl
 					<< "Maximum iterations number "
 					<< iIterCnt
 					<< " has been reached during"
 					" first step;"
-					<< endl
+					<< std::endl
 					<< "time step dt = " << dCurrTimeStep 
 					<< " cannot be reduced further;"
-					<< endl
-					<< "aborting ..." << endl;
+					<< std::endl
+					<< "aborting ..." << std::endl;
 	    			pDM->Output();
 				THROW(MultiStepIntegrator::ErrMaxIterations());
 	 		}
@@ -899,10 +900,10 @@ IfFirstStepIsToBeRepeated:
       
 #ifdef DEBUG
       		if (DEBUG_LEVEL(MYDEBUG_SOL)) {      
-	 		cout << "Solution:" << endl;
+	 		std::cout << "Solution:" << std::endl;
 	 		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
-	    			cout << "Dof" << setw(4) << iTmpCnt << ": "
-					<< pSol->dGetCoef(iTmpCnt) << endl;
+	    			std::cout << "Dof" << std::setw(4) << iTmpCnt << ": "
+					<< pSol->dGetCoef(iTmpCnt) << std::endl;
 			}
 		}
 #endif /* DEBUG */
@@ -919,7 +920,7 @@ EndOfFirstStep:
 #ifdef HAVE_SIGNAL
    	if (!::keep_going) {
       		/* Fa l'output della soluzione al primo passo ed esce */
-      		Out << "Interrupted during first dummy step." << endl;
+      		Out << "Interrupted during first dummy step." << std::endl;
       		return;
    	} else {
 #endif /* HAVE_SIGNAL */
@@ -927,7 +928,7 @@ EndOfFirstStep:
 			<< " time " << dTime+dCurrTimeStep
 			<< " step " << dCurrTimeStep
 			<< " iterations " << iIterCnt
-			<< " error " << dTest << endl;
+			<< " error " << dTest << std::endl;
 #ifdef HAVE_SIGNAL
    	}
 #endif /* HAVE_SIGNAL */
@@ -951,20 +952,20 @@ EndOfFirstStep:
 			= MultiStepIntegrationMethod::NEWSTEP;
       
       		if (dTime >= dFinalTime) {
-	 		cout << "End of simulation at time "
+	 		std::cout << "End of simulation at time "
 				<< dTime << " after " 
-				<< iStep << " steps;" << endl
-				<< "total iterations: " << iTotIter << endl
-				<< "total error: " << dTotErr << endl;
+				<< iStep << " steps;" << std::endl
+				<< "total iterations: " << iTotIter << std::endl
+				<< "total error: " << dTotErr << std::endl;
 			return;
 #ifdef HAVE_SIGNAL
       		} else if (!::keep_going) {
-	 		cout << "Interrupted!" << endl
+	 		std::cout << "Interrupted!" << std::endl
 	   			<< "Simulation ended at time "
 				<< dTime << " after " 
-				<< iStep << " steps;" << endl
-				<< "total iterations: " << iTotIter << endl
-				<< "total error: " << dTotErr << endl;
+				<< iStep << " steps;" << std::endl
+				<< "total iterations: " << iTotIter << std::endl
+				<< "total error: " << dTotErr << std::endl;
 	 		return;
 #endif /* HAVE_SIGNAL */
       		}
@@ -988,23 +989,23 @@ IfStepIsToBeRepeated:
    
 #ifdef DEBUG
       		if (DEBUG_LEVEL(MYDEBUG_PRED)) {
-			cout << "Dof:      XCurr  ,    XPrev  ,   XPrev2  "
-				",   XPrime  ,   XPPrev  ,   XPPrev2" << endl;
+			std::cout << "Dof:      XCurr  ,    XPrev  ,   XPrev2  "
+				",   XPrime  ,   XPPrev  ,   XPPrev2" << std::endl;
 			for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
-	    			cout << setw(4) << iTmpCnt << ": " 
-					<< setw(12)
+	    			std::cout << std::setw(4) << iTmpCnt << ": " 
+					<< std::setw(12)
 					<< pXCurr->dGetCoef(iTmpCnt) 
-					<< setw(12)
+					<< std::setw(12)
 					<< pXPrev->dGetCoef(iTmpCnt) 
-					<< setw(12)
+					<< std::setw(12)
 					<< pXPrev2->dGetCoef(iTmpCnt) 
-					<< setw(12)
+					<< std::setw(12)
 					<< pXPrimeCurr->dGetCoef(iTmpCnt) 
-					<< setw(12)
+					<< std::setw(12)
 					<< pXPrimePrev->dGetCoef(iTmpCnt) 
-					<< setw(12)
+					<< std::setw(12)
 					<< pXPrimePrev2->dGetCoef(iTmpCnt) 
-					<< endl;
+					<< std::endl;
 	 		}
       		}
 #endif /* DEBUG */
@@ -1026,7 +1027,7 @@ IfStepIsToBeRepeated:
 				 * da intraprendere in caso di errore ...
 				 */
 #if 0
-				cerr << *pJac << endl;
+				std::cerr << *pJac << std::endl;
 #endif /* 0 */
 				throw;
 			}
@@ -1034,15 +1035,15 @@ IfStepIsToBeRepeated:
 
 #ifdef DEBUG   
 	 		if (DEBUG_LEVEL(MYDEBUG_RESIDUAL)) {
-	    			cout << "Residual:" << endl;
-	    			cout << iStep  << "   " << iIterCnt << endl;
+	    			std::cout << "Residual:" << std::endl;
+	    			std::cout << iStep  << "   " << iIterCnt << std::endl;
 	    			for (int iTmpCnt = 1;
 				     iTmpCnt <= iNumDofs;
 				     iTmpCnt++) {
-	       				cout << "Dof"
-						<< setw(4) << iTmpCnt << ": " 
+	       				std::cout << "Dof"
+						<< std::setw(4) << iTmpCnt << ": " 
 						<< pRes->dGetCoef(iTmpCnt)
-						<< endl;
+						<< std::endl;
 	    			}
 	 		}
 #endif /* DEBUG */
@@ -1065,22 +1066,22 @@ IfStepIsToBeRepeated:
 						  " during step " 
 						  << iStep << " after "
 						  << iIterCnt << " iterations"
-						  << endl);
+						  << std::endl);
 					goto IfStepIsToBeRepeated;
 	    			} else {
-					cerr << endl
+					std::cerr << std::endl
 						<< "Maximum iterations number "
 						<< iIterCnt 
 						<< " has been reached during"
 						" step " << iStep << ';'
-						<< endl
+						<< std::endl
 						<< "time step dt = "
 						<< dCurrTimeStep
 						<< " cannot be reduced"
-						" further;" << endl
-						<< "aborting ..." << endl;
+						" further;" << std::endl
+						<< "aborting ..." << std::endl;
 #if 0
-					cerr << *pJac << endl;
+					std::cerr << *pJac << std::endl;
 #endif /* 0 */
 					
 	       				THROW(MultiStepIntegrator::ErrMaxIterations());
@@ -1099,14 +1100,14 @@ IfStepIsToBeRepeated:
 	 
 #ifdef DEBUG
 	 		if (DEBUG_LEVEL_MATCH(MYDEBUG_SOL|MYDEBUG_MPI)) {
-	    			cout << "Solution:" << endl;
+	    			std::cout << "Solution:" << std::endl;
 	    			for (int iTmpCnt = 1;
 				     iTmpCnt <= iNumDofs;
 				     iTmpCnt++) {	    
-	       				cout << "Dof"
-						<< setw(4) << iTmpCnt << ": " 
+	       				std::cout << "Dof"
+						<< std::setw(4) << iTmpCnt << ": " 
 						<< pSol->dGetCoef(iTmpCnt)
-						<< endl;
+						<< std::endl;
 	    			}
 	 		}
 #endif /* DEBUG */
@@ -1126,11 +1127,11 @@ EndOfStep:
 			<< " time " << dTime+dCurrTimeStep
 			<< " step " << dCurrTimeStep
 			<< " iterations " << iIterCnt
-			<< " error " << dTest << endl;
+			<< " error " << dTest << std::endl;
       
       		DEBUGCOUT("Step " << iStep
 			  << " has been completed successfully in "
-			  << iIterCnt << " iterations" << endl);
+			  << iIterCnt << " iterations" << std::endl);
       
       		dRefTimeStep = dCurrTimeStep;
       		dTime += dRefTimeStep;
@@ -1145,7 +1146,7 @@ EndOfStep:
       		/* Calcola il nuovo timestep */
       		dCurrTimeStep =
 			this->NewTimeStep(dCurrTimeStep, iIterCnt, CurrStep);
-		DEBUGCOUT("Current time step: " << dCurrTimeStep << endl);
+		DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
    	}
 }
 
@@ -1225,7 +1226,7 @@ MultiStepIntegrator::MakeTest(const VectorHandler& Res,
    	}
    	dRes /= (1.+dXPr);
    	if (!isfinite(dRes)) {      
-      		cerr << "The simulation diverged; aborting ..." << endl;       
+      		std::cerr << "The simulation diverged; aborting ..." << std::endl;       
       		THROW(MultiStepIntegrator::ErrSimulationDiverged());
    	}
    	return sqrt(dRes);
@@ -1265,8 +1266,8 @@ MultiStepIntegrator::FirstStepPredict(MultiStepIntegrationMethod* pM)
 	 		pXPrimeCurr->fPutCoef(iCntp1, dXIn);
 
       		} else {
-	 		cerr << "MultiStepIntegrator::FirstStepPredict():"
-				" unknown dof order" << endl;
+	 		std::cerr << "MultiStepIntegrator::FirstStepPredict():"
+				" unknown dof order" << std::endl;
 	 		THROW(ErrGeneric());
       		}
    	}
@@ -1314,7 +1315,7 @@ MultiStepIntegrator::Predict(MultiStepIntegrationMethod* pM)
 	 		pXPrimeCurr->fPutCoef(iCntp1, dXIn);
 
       		} else {
-	 		cerr << "unknown dof order" << endl;
+	 		std::cerr << "unknown dof order" << std::endl;
 	 		THROW(ErrGeneric());
       		}
    	}
@@ -1371,7 +1372,7 @@ MultiStepIntegrator::NewTimeStep(doublereal dCurrTimeStep,
        		return dCurrTimeStep;
       
     	default:
-       		cerr << "You shouldn't have reached this point!" << endl;
+       		std::cerr << "You shouldn't have reached this point!" << std::endl;
        		THROW(MultiStepIntegrator::ErrGeneric());
    	}
    
@@ -1573,14 +1574,14 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 
    	/* legge i dati della simulazione */
    	if (KeyWords(HP.GetDescription()) != BEGIN) {
-      		cerr << endl << "Error: <begin> expected at line " 
-			<< HP.GetLineData() << "; aborting ..." << endl;
+      		std::cerr << std::endl << "Error: <begin> expected at line " 
+			<< HP.GetLineData() << "; aborting ..." << std::endl;
       		THROW(MultiStepIntegrator::ErrGeneric());
    	}
    
    	if (KeyWords(HP.GetWord()) != MULTISTEP) {
-      		cerr << endl << "Error: <begin: multistep;> expected at line " 
-			<< HP.GetLineData() << "; aborting ..." << endl;
+      		std::cerr << std::endl << "Error: <begin: multistep;> expected at line " 
+			<< HP.GetLineData() << "; aborting ..." << std::endl;
       		THROW(MultiStepIntegrator::ErrGeneric());
    	}
 
@@ -1595,72 +1596,72 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
        		case INITIALTIME:
 	  		dInitialTime = HP.GetReal();
 	  		DEBUGLCOUT(MYDEBUG_INPUT, "Initial time is "
-				   << dInitialTime << endl);
+				   << dInitialTime << std::endl);
 	  		break;
 	 
        		case FINALTIME:
 	  		dFinalTime = HP.GetReal();
 	  		DEBUGLCOUT(MYDEBUG_INPUT, "Final time is "
-				   << dFinalTime << endl);
+				   << dFinalTime << std::endl);
 				   
 	  		if(dFinalTime <= dInitialTime) {
-	     			cerr << "warning: final time " << dFinalTime
+	     			std::cerr << "warning: final time " << dFinalTime
 	       				<< " is less than initial time "
-					<< dInitialTime << ';' << endl
+					<< dInitialTime << ';' << std::endl
 	       				<< "this will cause the simulation"
-					" to abort" << endl;
+					" to abort" << std::endl;
 			}
 	  		break;
 	 
        		case TIMESTEP:
 	  		dInitialTimeStep = HP.GetReal();
 	  		DEBUGLCOUT(MYDEBUG_INPUT, "Initial time step is "
-				   << dInitialTimeStep << endl);
+				   << dInitialTimeStep << std::endl);
 	  
 	  		if (dInitialTimeStep == 0.) {
-	     			cerr << "warning, null initial time step"
-					" is not allowed" << endl;
+	     			std::cerr << "warning, null initial time step"
+					" is not allowed" << std::endl;
 	  		} else if (dInitialTimeStep < 0.) {
 	     			dInitialTimeStep = -dInitialTimeStep;
-				cerr << "warning, negative initial time step"
-					" is not allowed;" << endl
+				std::cerr << "warning, negative initial time step"
+					" is not allowed;" << std::endl
 					<< "its modulus " << dInitialTimeStep 
-					<< " will be considered" << endl;
+					<< " will be considered" << std::endl;
 			}
 			break;
 	 
        		case MINTIMESTEP:
 	  		dMinimumTimeStep = HP.GetReal();
 	  		DEBUGLCOUT(MYDEBUG_INPUT, "Minimum time step is "
-				   << dMinimumTimeStep << endl);
+				   << dMinimumTimeStep << std::endl);
 	  
 	  		if (dMinimumTimeStep == 0.) {
-	     			cerr << "warning, null minimum time step"
-					" is not allowed" << endl;
+	     			std::cerr << "warning, null minimum time step"
+					" is not allowed" << std::endl;
 	     			THROW(MultiStepIntegrator::ErrGeneric());
 			} else if (dMinimumTimeStep < 0.) {
 				dMinimumTimeStep = -dMinimumTimeStep;
-				cerr << "warning, negative minimum time step"
-					" is not allowed;" << endl
+				std::cerr << "warning, negative minimum time step"
+					" is not allowed;" << std::endl
 					<< "its modulus " << dMinimumTimeStep 
-					<< " will be considered" << endl;
+					<< " will be considered" << std::endl;
 	  		}
 	  		break;
 	
        		case MAXTIMESTEP:
 	  		dMaxTimeStep = HP.GetReal();
 	  		DEBUGLCOUT(MYDEBUG_INPUT, "Max time step is "
-				   << dMaxTimeStep << endl);
+				   << dMaxTimeStep << std::endl);
 	  
 	  		if (dMaxTimeStep == 0.) {
-				cout << "no max time step limit will be"
-					" considered" << endl;
+				std::cout << "no max time step limit will be"
+					" considered" << std::endl;
 			} else if (dMaxTimeStep < 0.) {
 				dMaxTimeStep = -dMaxTimeStep;
-				cerr << "warning, negative max time step"
-					" is not allowed;" << endl
+				std::cerr << "warning, negative max time step"
+					" is not allowed;" << std::endl
 					<< "its modulus " << dMaxTimeStep 
-					<< " will be considered" << endl;
+					<< " will be considered" << std::endl;
 	  		}
 	  		break;
 	 
@@ -1670,18 +1671,18 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 			if (iFictitiousStepsNumber < 0) {
 				iFictitiousStepsNumber = 
 					iDefaultFictitiousStepsNumber;
-				cerr << "warning, negative dummy steps number"
-					" is illegal;" << endl
+				std::cerr << "warning, negative dummy steps number"
+					" is illegal;" << std::endl
 					<< "resorting to default value "
 					<< iDefaultFictitiousStepsNumber
-					<< endl;		       
+					<< std::endl;		       
 			} else if (iFictitiousStepsNumber == 1) {
-				cerr << "warning, a single dummy step"
-					" may be useless" << endl;
+				std::cerr << "warning, a single dummy step"
+					" may be useless" << std::endl;
 	  		}
 	  
 	  		DEBUGLCOUT(MYDEBUG_INPUT, "Fictitious steps number: " 
-		     		   << iFictitiousStepsNumber << endl);
+		     		   << iFictitiousStepsNumber << std::endl);
 	  		break;
 	 
        		case FICTITIOUSSTEPSRATIO:
@@ -1690,22 +1691,22 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  		if (dFictitiousStepsRatio < 0.) {
 	     			dFictitiousStepsRatio =
 					dDefaultFictitiousStepsRatio;
-				cerr << "warning, negative dummy steps ratio"
-					" is illegal;" << endl
+				std::cerr << "warning, negative dummy steps ratio"
+					" is illegal;" << std::endl
 					<< "resorting to default value "
 					<< dDefaultFictitiousStepsRatio
-					<< endl;		       
+					<< std::endl;		       
 			}
 			
 	  		if (dFictitiousStepsRatio > 1.) {
-				cerr << "warning, dummy steps ratio"
-					" is larger than one." << endl
+				std::cerr << "warning, dummy steps ratio"
+					" is larger than one." << std::endl
 					<< "Something like 1.e-3 should"
-					" be safer ..." << endl;
+					" be safer ..." << std::endl;
 	  		}
 	  
 	  		DEBUGLCOUT(MYDEBUG_INPUT, "Fictitious steps ratio: " 
-		     		   << dFictitiousStepsRatio << endl);
+		     		   << dFictitiousStepsRatio << std::endl);
 	  		break;
 	 
        		case FICTITIOUSSTEPSTOLERANCE:
@@ -1714,15 +1715,15 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  		if (dFictitiousStepsTolerance <= 0.) {
 				dFictitiousStepsTolerance =
 					dDefaultFictitiousStepsTolerance;
-				cerr << "warning, negative dummy steps"
-					" tolerance is illegal;" << endl
+				std::cerr << "warning, negative dummy steps"
+					" tolerance is illegal;" << std::endl
 					<< "resorting to default value "
 					<< dDefaultFictitiousStepsTolerance
-					<< endl;		       
+					<< std::endl;		       
 	  		}
 			DEBUGLCOUT(MYDEBUG_INPUT,
 				   "Fictitious steps tolerance: "
-		     		   << dFictitiousStepsTolerance << endl);
+		     		   << dFictitiousStepsTolerance << std::endl);
 	  		break;
 	 
        		case ABORTAFTER: {
@@ -1732,21 +1733,21 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	      			fAbortAfterInput = flag(1);
 	      			DEBUGLCOUT(MYDEBUG_INPUT, 
 			 		"Simulation will abort after"
-					" data input" << endl);
+					" data input" << std::endl);
 	      			break;
 			
 	   		case ASSEMBLY:
 	     			fAbortAfterAssembly = flag(1);
 	      			DEBUGLCOUT(MYDEBUG_INPUT,
 			 		   "Simulation will abort after"
-					   " initial assembly" << endl);
+					   " initial assembly" << std::endl);
 	      			break;	  
 	     
 	   		case DERIVATIVES:
 	      			fAbortAfterDerivatives = flag(1);
 	      			DEBUGLCOUT(MYDEBUG_INPUT, 
 			 		   "Simulation will abort after"
-					   " derivatives solution" << endl);
+					   " derivatives solution" << std::endl);
 	      			break;
 	     
 	   		case FICTITIOUSSTEPS:
@@ -1754,13 +1755,13 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	      			fAbortAfterFictitiousSteps = flag(1);
 	      			DEBUGLCOUT(MYDEBUG_INPUT, 
 			 		   "Simulation will abort after"
-					   " dummy steps solution" << endl);
+					   " dummy steps solution" << std::endl);
 	      			break;
 	     
 	   		default:
-	      			cerr << endl 
+	      			std::cerr << std::endl 
 					<< "Don't know when to abort,"
-					" so I'm going to abort now" << endl;
+					" so I'm going to abort now" << std::endl;
 	      			THROW(MultiStepIntegrator::ErrGeneric());
 	  		}
 	  		break;
@@ -1768,9 +1769,9 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	 
        		case METHOD: {
 	  		if (fMethod) {
-	     			cerr << "error: multiple definition"
+	     			std::cerr << "error: multiple definition"
 					" of integration method at line "
-					<< HP.GetLineData() << endl;
+					<< HP.GetLineData() << std::endl;
 	     			THROW(MultiStepIntegrator::ErrGeneric());
 	  		}
 	  		fMethod = flag(1);
@@ -1835,8 +1836,8 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	      			break;
 	   		}
 	   		default:
-	      			cerr << "Unknown integration method at line "
-					<< HP.GetLineData() << endl;
+	      			std::cerr << "Unknown integration method at line "
+					<< HP.GetLineData() << std::endl;
 				THROW(MultiStepIntegrator::ErrGeneric());
 	  		}
 	  		break;
@@ -1845,7 +1846,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
        case FICTITIOUSSTEPSMETHOD:
        case DUMMYSTEPSMETHOD: {
 	  if (fFictitiousStepsMethod) {
-	     cerr << "error: multiple definition of dummy steps integration"
+	     std::cerr << "error: multiple definition of dummy steps integration"
 	       " method at line "
 	       << HP.GetLineData();
 	     THROW(MultiStepIntegrator::ErrGeneric());
@@ -1911,7 +1912,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	      break;	      
 	   }
 	   default: {
-	      cerr << "Unknown integration method at line " << HP.GetLineData() << endl;
+	      std::cerr << "Unknown integration method at line " << HP.GetLineData() << std::endl;
 	      THROW(MultiStepIntegrator::ErrGeneric());
 	   }	     
 	  }	  
@@ -1922,11 +1923,11 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  dToll = HP.GetReal();
 	  if (dToll <= 0.) {
 	     dToll = dDefaultToll;
-	     cerr 
+	     std::cerr 
 	       << "warning, tolerance <= 0. is illegal; switching to default value "
-	       << dToll << endl;
+	       << dToll << std::endl;
 	  }		       		  
-	  DEBUGLCOUT(MYDEBUG_INPUT, "tolerance = " << dToll << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "tolerance = " << dToll << std::endl);
 	  break;
        }
 	 
@@ -1934,13 +1935,13 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  dDerivativesToll = HP.GetReal();
 	  if (dDerivativesToll <= 0.) {
 	     dDerivativesToll = 1e-6;
-	     cerr 
+	     std::cerr 
 	       << "warning, derivatives tolerance <= 0. is illegal; switching to default value " 
 	       << dDerivativesToll
-	       << endl;
+	       << std::endl;
 	  }		       		  
 	  DEBUGLCOUT(MYDEBUG_INPUT, 
-		     "Derivatives toll = " << dDerivativesToll << endl);
+		     "Derivatives toll = " << dDerivativesToll << std::endl);
 	  break;
        }
 	 
@@ -1948,13 +1949,13 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  iMaxIterations = HP.GetInt();
 	  if (iMaxIterations < 1) {
 	     iMaxIterations = iDefaultMaxIterations;
-	     cerr 
+	     std::cerr 
 	       << "warning, max iterations < 1 is illegal; switching to default value "
 	       << iMaxIterations
-	       << endl;
+	       << std::endl;
 	  }		       		  
 	  DEBUGLCOUT(MYDEBUG_INPUT, 
-		     "Max iterations = " << iMaxIterations << endl);
+		     "Max iterations = " << iMaxIterations << std::endl);
 	  break;
        }
 	 
@@ -1962,13 +1963,13 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  iDerivativesMaxIterations = HP.GetInt();
 	  if (iDerivativesMaxIterations < 1) {
 	     iDerivativesMaxIterations = iDefaultMaxIterations;
-	     cerr 
+	     std::cerr 
 	       << "warning, derivatives max iterations < 1 is illegal; switching to default value "
 	       << iDerivativesMaxIterations
-	       << endl;
+	       << std::endl;
 	  }		       		  
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Derivatives max iterations = " 
-		    << iDerivativesMaxIterations << endl);
+		    << iDerivativesMaxIterations << std::endl);
 	  break;
        }	     	  	       
 	 
@@ -1977,14 +1978,14 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  iFictitiousStepsMaxIterations = HP.GetInt();
 	  if (iFictitiousStepsMaxIterations < 1) {
 	     iFictitiousStepsMaxIterations = iDefaultMaxIterations;
-	     cerr 
+	     std::cerr 
 	       << "warning, dummy steps max iterations < 1 is illegal;"
 	       " switching to default value "
 	       << iFictitiousStepsMaxIterations
-	       << endl;
+	       << std::endl;
 	  }
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Fictitious steps max iterations = " 
-		    << iFictitiousStepsMaxIterations << endl);
+		    << iFictitiousStepsMaxIterations << std::endl);
 	  break;
        }	     	  	       
 	 
@@ -1992,13 +1993,13 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  dDerivativesCoef = HP.GetReal();
 	  if (dDerivativesCoef <= 0.) {
 	     dDerivativesCoef = 1.;
-	     cerr 
+	     std::cerr 
 	       << "warning, derivatives coefficient <= 0. is illegal; switching to default value "
 	       << dDerivativesCoef
-	       << endl;
+	       << std::endl;
 	  }
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Derivatives coefficient = "
-		    << dDerivativesCoef << endl);
+		    << dDerivativesCoef << std::endl);
 	  break;
        }	     	  	       
 	 
@@ -2013,16 +2014,16 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 		 iIterationsBeforeAssembly = iDefaultIterationsBeforeAssembly;
 	      }
 	      DEBUGLCOUT(MYDEBUG_INPUT, 
-			 "Modified Newton-Raphson will be used;" << endl
+			 "Modified Newton-Raphson will be used;" << std::endl
 			 << "matrix will be assembled at most after " 
 			 << iIterationsBeforeAssembly
-			 << " iterations" << endl);
+			 << " iterations" << std::endl);
 	      break;
 	   }
 	   default: {
-	      cerr 
+	      std::cerr 
 		<< "warning: unknown case; resorting to default" 
-		<< endl;
+		<< std::endl;
 	      /* Nota: non c'e' break; 
 	       * cosi' esegue anche il caso NR_TRUE */
 	   }		       
@@ -2037,9 +2038,9 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	 
        case END: {	     
 	  if (KeyWords(HP.GetWord()) != MULTISTEP) {
-	     cerr << endl 
+	     std::cerr << std::endl 
 	       << "Error: <end: multistep;> expected at line " 
-	       << HP.GetLineData() << "; aborting ..." << endl;
+	       << HP.GetLineData() << "; aborting ..." << std::endl;
 	     THROW(MultiStepIntegrator::ErrGeneric());
 	  }
 	  goto EndOfCycle;
@@ -2053,53 +2054,53 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	      
 	      StrategyFactor.dReductionFactor = HP.GetReal();
 	      if (StrategyFactor.dReductionFactor >= 1.) {
-		 cerr << "warning, illegal reduction factor at line "
+		 std::cerr << "warning, illegal reduction factor at line "
 		   << HP.GetLineData() 
 		   << "; default value 1. (no reduction) will be used"
-		   << endl;
+		   << std::endl;
 		 StrategyFactor.dReductionFactor = 1.;
 	      }
 	      
 	      StrategyFactor.iStepsBeforeReduction = HP.GetInt();
 	      if (StrategyFactor.iStepsBeforeReduction <= 0) {
-		 cerr << "Warning, illegal number of steps before reduction at line "
-		   << HP.GetLineData() << ';' << endl
+		 std::cerr << "Warning, illegal number of steps before reduction at line "
+		   << HP.GetLineData() << ';' << std::endl
 		   << "default value 1 will be used (it may be dangerous)" 
-		   << endl;
+		   << std::endl;
 		 StrategyFactor.iStepsBeforeReduction = 1;
 	      }
 	      
 	      StrategyFactor.dRaiseFactor = HP.GetReal();
 	      if (StrategyFactor.dRaiseFactor <= 1.) {
-		 cerr << "warning, illegal raise factor at line "
+		 std::cerr << "warning, illegal raise factor at line "
 		   << HP.GetLineData() 
 		   << "; default value 1. (no raise) will be used"
-		   << endl;
+		   << std::endl;
 		 StrategyFactor.dRaiseFactor = 1.;
 	      }
 	      
 	      StrategyFactor.iStepsBeforeRaise = HP.GetInt();
 	      if (StrategyFactor.iStepsBeforeRaise <= 0) {
-		 cerr << "Warning, illegal number of steps before raise at line "
-		   << HP.GetLineData() << ';' << endl
+		 std::cerr << "Warning, illegal number of steps before raise at line "
+		   << HP.GetLineData() << ';' << std::endl
 		   << "default value 1 will be used (it may be dangerous)" 
-		   << endl;
+		   << std::endl;
 		 StrategyFactor.iStepsBeforeRaise = 1;
 	      }
 	      
 	      StrategyFactor.iMinIters = HP.GetInt();
 	      if (StrategyFactor.iMinIters <= 0) {
-		 cerr << "Warning, illegal minimum number of iterations at line "
-		   << HP.GetLineData() << ';' << endl
+		 std::cerr << "Warning, illegal minimum number of iterations at line "
+		   << HP.GetLineData() << ';' << std::endl
 		   << "default value 0 will be used (never raise)" 
-		   << endl;
+		   << std::endl;
 		 StrategyFactor.iMinIters = 1;
 	      }
 	      
 	      
 	      
 	      DEBUGLCOUT(MYDEBUG_INPUT,
-			 "Time step control strategy: Factor" << endl
+			 "Time step control strategy: Factor" << std::endl
 			 << "Reduction factor: " 
 			 << StrategyFactor.dReductionFactor
 			 << "Steps before reduction: "
@@ -2109,7 +2110,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 			 << "Steps before raise: "
 			 << StrategyFactor.iStepsBeforeRaise 
 			 << "Min iterations: "
-			 << StrategyFactor.iMinIters << endl);
+			 << StrategyFactor.iMinIters << std::endl);
 
 	      break;  
 	   }		 
@@ -2120,8 +2121,8 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	   }
 	     
 	   default: {
-	      cerr << "Unknown time step control strategy at line "
-		<< HP.GetLineData() << endl;
+	      std::cerr << "Unknown time step control strategy at line "
+		<< HP.GetLineData() << std::endl;
 	      THROW(MultiStepIntegrator::ErrGeneric());
 	   }		 
 	  }
@@ -2139,22 +2140,22 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  fEigenAnalysis = flag(1);
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Eigenanalysis will be performed at time "
 	  	     << OneEig.dTime << " (parameter: " << dEigParam << ")" 
-		     << endl);
+		     << std::endl);
 #else /* !__HACK_EIG__ */
 	  HP.GetReal();
 	  if (HP.IsKeyWord("parameter")) {
 	     HP.GetReal();
 	  }
-	  cerr << HP.GetLineData()
-	    << ": eigenanalysis not supported (ignored)" << endl;
+	  std::cerr << HP.GetLineData()
+	    << ": eigenanalysis not supported (ignored)" << std::endl;
 #endif /* !__HACK_EIG__ */
 	  break;
        }
 
        case OUTPUTMODES:
 #ifndef __HACK_EIG__
-	  cerr << "line " << HP.GetLineData()
-	    << ": warning, no eigenvalue support available" << endl;
+	  std::cerr << "line " << HP.GetLineData()
+	    << ": warning, no eigenvalue support available" << std::endl;
 #endif /* !__HACK_EIG__ */
 	  if (HP.IsKeyWord("yes")) {
 #ifdef __HACK_EIG__
@@ -2162,20 +2163,20 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	     if (HP.fIsArg()) {
 		dUpperFreq = HP.GetReal();
 		if (dUpperFreq < 0.) {
-			cerr << "line "<< HP.GetLineData()
+			std::cerr << "line "<< HP.GetLineData()
 				<< ": illegal upper frequency limit " 
 				<< dUpperFreq << "; using " 
-				<< -dUpperFreq << endl;
+				<< -dUpperFreq << std::endl;
 			dUpperFreq = -dUpperFreq;
 		}
 		if (HP.fIsArg()) {
 			dLowerFreq = HP.GetReal();
 			if (dLowerFreq > dUpperFreq) {
-				cerr << "line "<< HP.GetLineData()
+				std::cerr << "line "<< HP.GetLineData()
 					<< ": illegal lower frequency limit "
 					<< dLowerFreq 
 					<< " higher than upper frequency limit; using " 
-					<< 0. << endl;
+					<< 0. << std::endl;
 				dLowerFreq = 0.;
 			}
 		}
@@ -2186,9 +2187,9 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	     fOutputModes = flag(0);
 #endif /* !__HACK_EIG__ */
 	  } else {
-	     cerr << HP.GetLineData()
+	     std::cerr << HP.GetLineData()
 	       << ": unknown mode output flag (should be { yes | no })"
-	       << endl;
+	       << std::endl;
 	  }
 	  break;
 
@@ -2198,7 +2199,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 #ifdef USE_MESCHACH
 	     CurrSolver = MESCHACH_SOLVER;
 	     DEBUGLCOUT(MYDEBUG_INPUT, 
-			"Using meschach sparse LU solver" << endl);
+			"Using meschach sparse LU solver" << std::endl);
 	     break;
 #endif /* USE_MESCHACH */
 
@@ -2206,7 +2207,7 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 #ifdef USE_Y12
              CurrSolver = Y12_SOLVER;
 	     DEBUGLCOUT(MYDEBUG_INPUT,
-			"Using y12 sparse LU solver" << endl);
+			"Using y12 sparse LU solver" << std::endl);
 	     break;
 #endif /* USE_Y12 */
 							       
@@ -2214,17 +2215,17 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 #ifdef USE_UMFPACK3
              CurrSolver = UMFPACK3_SOLVER;
 	     DEBUGLCOUT(MYDEBUG_INPUT,
-			"Using umfpack3 sparse LU solver" << endl);
+			"Using umfpack3 sparse LU solver" << std::endl);
 	     break;
 #endif /* USE_UMFPACK3 */
 
 	   default:
 	     DEBUGLCOUT(MYDEBUG_INPUT, 
-			"Unknown solver; switching to default" << endl);
+			"Unknown solver; switching to default" << std::endl);
 	   case HARWELL: 
 	     CurrSolver = HARWELL_SOLVER;
 	     DEBUGLCOUT(MYDEBUG_INPUT, 
-			"Using harwell sparse LU solver" << endl);	 
+			"Using harwell sparse LU solver" << std::endl);	 
 	     break;	   
 	  }
 	  
@@ -2243,13 +2244,13 @@ MultiStepIntegrator::ReadData(MBDynParser& HP)
 	  }
 	  
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Workspace size: " << iWorkSpaceSize 
-		    << ", pivor factor: " << dPivotFactor << endl);
+		    << ", pivor factor: " << dPivotFactor << std::endl);
 	  break;
        }
 	 	 
        default: {
-	  cerr << endl << "Unknown description at line " 
-	    << HP.GetLineData() << "; aborting ..." << endl;
+	  std::cerr << std::endl << "Unknown description at line " 
+	    << HP.GetLineData() << "; aborting ..." << std::endl;
 	  THROW(MultiStepIntegrator::ErrGeneric());
        }	
       }   
@@ -2370,7 +2371,7 @@ MultiStepIntegrator::Eig(void)
     * iWorkSize:  Size of the workspace
     */
    
-   DEBUGCOUT("MultiStepIntegrator::Eig(): performing eigenanalysis" << endl);
+   DEBUGCOUT("MultiStepIntegrator::Eig(): performing eigenanalysis" << std::endl);
    
    char sL[2] = "V";
    char sR[2] = "V";
@@ -2443,8 +2444,8 @@ MultiStepIntegrator::Eig(void)
    pDM->AssJac(MatB, h/2.);
 
 #ifdef DEBUG
-   DEBUGCOUT(endl << "Matrix A:" << endl << MatA << endl
-	     << "Matrix B:" << endl << MatB << endl);
+   DEBUGCOUT(std::endl << "Matrix A:" << std::endl << MatA << std::endl
+	     << "Matrix B:" << std::endl << MatB << std::endl);
 #endif /* DEBUG */
    
 #ifdef DEBUG_MEMMANAGER
@@ -2486,7 +2487,7 @@ MultiStepIntegrator::Eig(void)
 	  &iWorkSize,
 	  &iInfo);
    
-   ostream& Out = pDM->GetOutFile();
+   std::ostream& Out = pDM->GetOutFile();
    Out << "Info: " << iInfo << ", ";
    
    const char* const sErrs[] = {
@@ -2504,17 +2505,17 @@ MultiStepIntegrator::Eig(void)
    
    if (iInfo == 0) {
       /* = 0:  successful exit */
-      Out << "success" << endl;
+      Out << "success" << std::endl;
    } else if (iInfo < 0) {         
       /* < 0:  if INFO = -i, the i-th argument had an illegal value. */
-      Out << "the " << -iInfo << "-th argument had illegal value" << endl;
+      Out << "the " << -iInfo << "-th argument had illegal value" << std::endl;
    } else if (iInfo > 0 && iInfo <= iSize) {
       /* = 1,...,N:   
        * The QZ iteration failed.  No eigenvectors have been   
        * calculated, but ALPHAR(j), ALPHAI(j), and BETA(j)   
        * should be correct for j=INFO+1,...,N. */
       Out << "the QZ iteration failed, but eigenvalues " 
-	<< iInfo+1 << "->" << iSize << "should be correct" << endl;
+	<< iInfo+1 << "->" << iSize << "should be correct" << std::endl;
    } else if (iInfo > iSize) {
       /* > N:  errors that usually indicate LAPACK problems:   
        * =N+1: error return from DGGBAL
@@ -2527,14 +2528,14 @@ MultiStepIntegrator::Eig(void)
        * =N+8: error return from DGGBAK (computing VL)   
        * =N+9: error return from DGGBAK (computing VR)   
        * =N+10: error return from DLASCL (various calls) */
-      Out << "error return from " << sErrs[iInfo-iSize-1] << endl;	      
+      Out << "error return from " << sErrs[iInfo-iSize-1] << std::endl;	      
    }
    
    /* Output? */
-   Out << "Mode n. " "  " "    Real    " "   " "    Imag    " "  " "    " "   Damp %   " "  Freq Hz" << endl;
+   Out << "Mode n. " "  " "    Real    " "   " "    Imag    " "  " "    " "   Damp %   " "  Freq Hz" << std::endl;
 
    for (int iCnt = 1; iCnt <= iSize; iCnt++) {
-      Out << setw(8) << iCnt << ": ";
+      Out << std::setw(8) << iCnt << ": ";
 
       doublereal b = Beta.dGetCoef(iCnt);
       doublereal re = AlphaR.dGetCoef(iCnt);
@@ -2547,41 +2548,41 @@ MultiStepIntegrator::Eig(void)
       int isPi = do_eig(b, re, im, h, sigma, omega, csi, freq);
 
       if (isPi) {
-	      Out << setw(12) << 0. << " - " << "          PI j";
+	      Out << std::setw(12) << 0. << " - " << "          PI j";
       } else {
-	      Out << setw(12) << sigma << " + " << setw(12) << omega << " j";
+	      Out << std::setw(12) << sigma << " + " << std::setw(12) << omega << " j";
       }
 
       if (fabs(csi) > 1.e-15) {
-	      Out << "    " << setw(12) << csi;
+	      Out << "    " << std::setw(12) << csi;
       } else {
-	      Out << "    " << setw(12) << 0.;
+	      Out << "    " << std::setw(12) << 0.;
       }
 
       if (isPi) {
 	      Out << "    " << "PI";
       } else {
-	      Out << "    " << setw(12) << freq;
+	      Out << "    " << std::setw(12) << freq;
       }
 
-      Out << endl;
+      Out << std::endl;
    }
 
 #ifdef __HACK_NASTRAN_MODES__
    /* EXPERIMENTAL */
-   ofstream f06, pch;
+   std::ofstream f06, pch;
    if (fOutputModes) {
 	   /* crea il file .pch */
 	   pch.open("mbdyn.bdf");
-	   pch.setf(ios::showpoint);
-	   pch << "$.......2.......3.......4.......5.......6.......7.......8.......9.......0......." << endl;
-	   pch << "MAT1           1    1.E0    1.E0            1.E0" << endl;
+	   pch.setf(std::ios::showpoint);
+	   pch << "$.......2.......3.......4.......5.......6.......7.......8.......9.......0......." << std::endl;
+	   pch << "MAT1           1    1.E0    1.E0            1.E0" << std::endl;
 	   pDM->Output_pch(pch);
 	   
 	   /* crea il file .f06 */
 	   f06.open("mbdyn.f06");
-	   f06.setf(ios::showpoint);
-	   f06.setf(ios::scientific);
+	   f06.setf(std::ios::showpoint);
+	   f06.setf(std::ios::scientific);
    }
 #endif /* __HACK_NASTRAN_MODES__ */
 
@@ -2607,31 +2608,35 @@ MultiStepIntegrator::Eig(void)
 	      
 	    f06 
 	      << "                                                                                                 CSA/NASTRAN 11/14/95    PAGE   " 
-	      << setw(4) << iCnt << endl
-	      << "MBDyn modal analysis" << endl
-	      << endl
+	      << std::setw(4) << iCnt << std::endl
+	      << "MBDyn modal analysis" << std::endl
+	      << std::endl
 	      << "    LABEL=DISPLACEMENTS, ";
-	    ios::fmtflags iosfl = f06.setf(ios::left);
+#ifdef HAVE_FMTFLAGS_IN_IOS
+	    std::ios::fmtflags iosfl = f06.setf(std::ios::left);
+#else /* !HAVE_FMTFLAGS_IN_IOS */
+	    long iosfl = f06.setf(std::ios::left);
+#endif /* !HAVE_FMTFLAGS_IN_IOS */
 	    const char *comment = "(EXPERIMENTAL) MODAL ANALYSIS";
 	    int l = strlen(comment);
-	    f06 << setw(l+1) << comment;
-	    f06 << sigma << " " << (omega < 0. ? "-" : "+") << " " << fabs(omega) << " j (" << csi << ", "<< freq << setw(80-1-l) << ")";
+	    f06 << std::setw(l+1) << comment;
+	    f06 << sigma << " " << (omega < 0. ? "-" : "+") << " " << fabs(omega) << " j (" << csi << ", "<< freq << std::setw(80-1-l) << ")";
 	    f06.flags(iosfl);
-	    f06 << "   SUBCASE " << iCnt << endl
-	      << endl
-	      << "                                            D I S P L A C E M E N T  V E C T O R" << endl
-	      << endl
-	      << "     POINT ID.   TYPE          T1             T2             T3             R1             R2             R3" << endl;
+	    f06 << "   SUBCASE " << iCnt << std::endl
+	      << std::endl
+	      << "                                            D I S P L A C E M E N T  V E C T O R" << std::endl
+	      << std::endl
+	      << "     POINT ID.   TYPE          T1             T2             T3             R1             R2             R3" << std::endl;
 	 }
       }
 #endif /* __HACK_NASTRAN_MODES__ */
       
       doublereal cmplx = AlphaI.dGetCoef(iCnt);
       if (cmplx == 0.) {
-         Out << "Mode " << iCnt << ":" << endl;
+         Out << "Mode " << iCnt << ":" << std::endl;
          for (int jCnt = 1; jCnt <= iSize; jCnt++) {
-            Out << setw(12) << jCnt << ": "
-	      << setw(12) << MatR.dGetCoef(jCnt, iCnt) << endl;
+            Out << std::setw(12) << jCnt << ": "
+	      << std::setw(12) << MatR.dGetCoef(jCnt, iCnt) << std::endl;
 	 }
 	 
 	 if (fOutputModes) {
@@ -2651,13 +2656,13 @@ MultiStepIntegrator::Eig(void)
 	 }
       } else {
 	 if (cmplx > 0.) {
-            Out << "Modes " << iCnt << ", " << iCnt+1 << ":" << endl;
+            Out << "Modes " << iCnt << ", " << iCnt+1 << ":" << std::endl;
 	    for (int jCnt = 1; jCnt <= iSize; jCnt++) {
 	       doublereal im = MatR.dGetCoef(jCnt, iCnt+1);
-	       Out << setw(12) << jCnt << ": "
-	         << setw(12) << MatR.dGetCoef(jCnt, iCnt) 
+	       Out << std::setw(12) << jCnt << ": "
+	         << std::setw(12) << MatR.dGetCoef(jCnt, iCnt) 
 	         << ( im >= 0. ? " + " : " - " ) 
-	         << setw(12) << fabs(im) << " * j " << endl;
+	         << std::setw(12) << fabs(im) << " * j " << std::endl;
             }
 	 }
 

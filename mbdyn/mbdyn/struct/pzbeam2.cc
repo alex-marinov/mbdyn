@@ -45,7 +45,7 @@ PiezoActuatorBeam2::AssStiffnessMat(FullSubMatrixHandler& WMA,
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr)
 {
-	DEBUGCOUT("Entering PiezoActuatorBeam2::AssStiffnessMat()" << endl);
+	DEBUGCOUT("Entering PiezoActuatorBeam2::AssStiffnessMat()" << std::endl);
 	
    Beam2::AssStiffnessMat(WMA, WMB, dCoef, XCurr, XPrimeCurr);
    
@@ -72,7 +72,7 @@ PiezoActuatorBeam2::AssStiffnessVec(SubVectorHandler& WorkVec,
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr)
 {
-	DEBUGCOUT("Entering PiezoActuatorBeam2::AssStiffnessVec()" << endl);
+	DEBUGCOUT("Entering PiezoActuatorBeam2::AssStiffnessVec()" << std::endl);
 	
 	/*
 	 * Riceve il vettore gia' dimensionato e con gli indici a posto 
@@ -146,12 +146,12 @@ PiezoActuatorBeam2::~PiezoActuatorBeam2(void)
 
     
 /* Contributo al file di restart */
-ostream&
-PiezoActuatorBeam2::Restart(ostream& out) const
+std::ostream&
+PiezoActuatorBeam2::Restart(std::ostream& out) const
 {
 	Restart_(out);
 	return out << "/* piezoelectric actuator NOT IMPLEMENTED YET */ ;"
-		<< endl;
+		<< std::endl;
 }
 
 
@@ -201,7 +201,7 @@ PiezoActuatorBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 		const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUT("Entering PiezoActuatorBeam2::AssJac();"
-			" will result in call to AssStiffnessMat()" << endl);
+			" will result in call to AssStiffnessMat()" << std::endl);
 	
 	integer iNode1FirstMomIndex = pNode[NODE1]->iGetFirstMomentumIndex();
 	integer iNode1FirstPosIndex = pNode[NODE1]->iGetFirstPositionIndex();
@@ -261,7 +261,7 @@ PiezoActuatorVEBeam2::AssStiffnessMat(FullSubMatrixHandler& WMA,
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr)
 {
-	DEBUGCOUT("Entering PiezoActuatorVEBeam2::AssStiffnessMat()" << endl);
+	DEBUGCOUT("Entering PiezoActuatorVEBeam2::AssStiffnessMat()" << std::endl);
 	
 	ViscoElasticBeam2::AssStiffnessMat(WMA, WMB, dCoef, XCurr, XPrimeCurr);
 	
@@ -290,7 +290,7 @@ PiezoActuatorVEBeam2::AssStiffnessVec(SubVectorHandler& WorkVec,
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr)
 {
-	DEBUGCOUT("Entering PiezoActuatorVEBeam2::AssStiffnessVec()" << endl);
+	DEBUGCOUT("Entering PiezoActuatorVEBeam2::AssStiffnessVec()" << std::endl);
 	
 	/*
 	 * Riceve il vettore gia' dimensionato e con gli indici a posto 
@@ -365,12 +365,12 @@ PiezoActuatorVEBeam2::~PiezoActuatorVEBeam2(void)
 
 
 /* Contributo al file di restart */
-ostream&
-PiezoActuatorVEBeam2::Restart(ostream& out) const
+std::ostream&
+PiezoActuatorVEBeam2::Restart(std::ostream& out) const
 {
 	Restart_(out);
 	return out << "/* piezoelectric actuator NOT IMPLEMENTED YET */ ;"
-		<< endl;
+		<< std::endl;
 }
 
 
@@ -419,7 +419,7 @@ PiezoActuatorVEBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 		const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUT("Entering PiezoActuatorVEBeam2::AssJac();"
-			" will result in call to AssStiffnessMat()" << endl);
+			" will result in call to AssStiffnessMat()" << std::endl);
 	
 	integer iNode1FirstMomIndex = pNode[NODE1]->iGetFirstMomentumIndex();
 	integer iNode1FirstPosIndex = pNode[NODE1]->iGetFirstPositionIndex();

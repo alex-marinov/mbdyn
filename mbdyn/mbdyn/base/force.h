@@ -89,7 +89,7 @@ class Force
 	    doublereal /* dCoef */ ,
 	    const VectorHandler& /* XCurr */ , 
 	    const VectorHandler& /* XPrimeCurr */ ) {
-	DEBUGCOUT("Entering Force::AssJac()" << endl);
+	DEBUGCOUT("Entering Force::AssJac()" << std::endl);
 	
 	WorkMat.SetNullMatrix();
 	return WorkMat;
@@ -97,9 +97,9 @@ class Force
 
    /* Output comune a tutti i tipi di forza;
     * scrive su file il valore del drive (temporaneo) */
-   ostream& Output(unsigned int NodeLabel, ostream& out) const;
+   std::ostream& Output(unsigned int NodeLabel, std::ostream& out) const;
    
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    virtual unsigned int iGetInitialNumDof(void) const { 
       return 0;
@@ -173,7 +173,7 @@ class AbstractForce : virtual public Elem, public Force {
    };
 
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
       *piNumRows = 1; 
@@ -239,7 +239,7 @@ class ConservativeForce : virtual public Elem, public StructuralForce {
    };   
    
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
       *piNumRows = 6; 
@@ -302,7 +302,7 @@ class FollowerForce : virtual public Elem, public StructuralForce {
    };
 
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
       *piNumRows = 6;
@@ -363,7 +363,7 @@ class ConservativeCouple : virtual public Elem, public StructuralForce {
    };
 
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
       *piNumRows = 3;
@@ -414,7 +414,7 @@ class FollowerCouple : virtual public Elem, public StructuralForce {
    };   
 
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
       *piNumRows = 3; 

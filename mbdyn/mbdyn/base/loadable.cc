@@ -50,7 +50,7 @@ __i_get_num_dof(const LoadableElem* /* pEl */ )
 DofOrder::Order 
 __set_dof(const LoadableElem*, unsigned int /* i */ )
 {
-   	cerr << "You shouldn't be here!" << endl;
+   	std::cerr << "You shouldn't be here!" << std::endl;
    	THROW(ErrGeneric());
 #ifndef USE_EXCEPTIONS
    	return DofOrder::UNKNOWN;
@@ -63,11 +63,11 @@ __output(const LoadableElem* /* pEl */ , OutputHandler& /* OH */ )
    	NO_OP;
 }
 
-ostream& 
-__restart(const LoadableElem* pEl , ostream& out)
+std::ostream& 
+__restart(const LoadableElem* pEl , std::ostream& out)
 {
    	return out << "loadable: " << pEl->GetLabel() 
-		<< ", not implemented yet;" << endl;
+		<< ", not implemented yet;" << std::endl;
 }
 
 void 
@@ -194,7 +194,7 @@ __i_get_num_priv_data(const LoadableElem* /* pEl */ )
 doublereal 
 __d_get_priv_data(const LoadableElem* /* pEl */ , unsigned int /* i */ )
 {
-   	cerr << "You shouldn't be here!" << endl;
+   	std::cerr << "You shouldn't be here!" << std::endl;
    	THROW(ErrGeneric());
 #ifndef USE_EXCEPTIONS
         return 0.;
@@ -232,8 +232,8 @@ calls(NULL)
    	/* nome del modulo */
    	const char* s = HP.GetFileName();
 	if (s == NULL) {
-		cerr << "Loadable(" << uLabel
-			<< "): unable to get module name" << endl;
+		std::cerr << "Loadable(" << uLabel
+			<< "): unable to get module name" << std::endl;
 		THROW(ErrGeneric());
 	}
 
@@ -245,9 +245,9 @@ calls(NULL)
 		char cwd[1024];
 
 		if (getcwd(cwd, 1024) == NULL || strlen(cwd) >= 1024-1-3-l) {
-			cerr << "Loadable(" << uLabel 
+			std::cerr << "Loadable(" << uLabel 
 				<< "): unable to get current working directory"
-				<< endl;
+				<< std::endl;
 	                THROW(ErrGeneric());
 		}
 
@@ -259,10 +259,10 @@ calls(NULL)
 
 		handle = dlopen(cwd, RTLD_NOW /* RTLD_LAZY */ );
 		if (handle == NULL) {
-      			cerr << "Loadable(" << uLabel 
+      			std::cerr << "Loadable(" << uLabel 
 				<< "): unable to open module <" << module_name 
 				<< "> (dlopen returns \"" << dlerror() << "\")" 
-				<< endl;
+				<< std::endl;
       			THROW(ErrGeneric());
 		}
    	}
@@ -275,23 +275,23 @@ calls(NULL)
 		data_name = "calls";
 	}
    	DEBUGCOUT("binding to data \"" << data_name
-     		<< "\" (must be def'd!)" << endl);
+     		<< "\" (must be def'd!)" << std::endl);
 	tmpcalls = (LoadableCalls **)dlsym(handle, data_name);
 	
    	if (tmpcalls == NULL) {
       		const char* err = dlerror();
       		if (err == NULL) {
-	 		cerr << "Loadable(" << uLabel 
+	 		std::cerr << "Loadable(" << uLabel 
 	   			<< "): data \"" << data_name
 	   			<< "\" must be defined in module <" 
-				<< module_name << ">" << endl;
+				<< module_name << ">" << std::endl;
       		} else {
-	 		cerr << "Loadable(" << uLabel
+	 		std::cerr << "Loadable(" << uLabel
 	   			<< "): error while binding to data \"" 
 				<< data_name
 	   			<< "\" in module <" << module_name
 	   			<< "> (dlsym returns \"" << err 
-				<< "\")" << endl;
+				<< "\")" << std::endl;
       		}
       		THROW(ErrGeneric());
    	}
@@ -299,9 +299,9 @@ calls(NULL)
 	calls = *tmpcalls;
    
 	if (calls->read == NULL) {
-		cerr << "Loadable(" << uLabel
+		std::cerr << "Loadable(" << uLabel
 			<< "): function \"read\" must be defined in module <"
-			<< module_name << "> data" << endl;
+			<< module_name << "> data" << std::endl;
 		THROW(ErrGeneric());
 	}
 
@@ -430,13 +430,13 @@ LoadableElem::Output(OutputHandler& OH) const
    	(*calls->output)(this, OH);
 }
 
-ostream& 
-LoadableElem::Restart(ostream& out) const
+std::ostream& 
+LoadableElem::Restart(std::ostream& out) const
 {
 	ASSERT(calls->restart != NULL);
    	out << "    loadable: " << GetLabel() << ", \"" 
 		<< module_name << "\", ";
-   	return (*calls->restart)(this, out) << ';' << endl;
+   	return (*calls->restart)(this, out) << ';' << std::endl;
 }
 
 void 

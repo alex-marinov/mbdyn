@@ -44,7 +44,7 @@ void PiezoActuatorBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 					const VectorHandler& XCurr,
 					const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering PiezoActuatorBeam::AssStiffnessMat()" << endl);
+   DEBUGCOUT("Entering PiezoActuatorBeam::AssStiffnessMat()" << std::endl);
    
    Beam::AssStiffnessMat(WMA, WMB, dCoef, XCurr, XPrimeCurr);
    
@@ -82,7 +82,7 @@ void PiezoActuatorBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
 					const VectorHandler& XCurr,
 					const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering PiezoActuatorBeam::AssStiffnessVec()" << endl);
+   DEBUGCOUT("Entering PiezoActuatorBeam::AssStiffnessVec()" << std::endl);
    
    /* Riceve il vettore gia' dimensionato e con gli indici a posto 
     * per scrivere il residuo delle equazioni di equilibrio dei tre nodi */
@@ -157,11 +157,11 @@ PiezoActuatorBeam::~PiezoActuatorBeam(void)
 
     
 /* Contributo al file di restart */
-ostream&
-PiezoActuatorBeam::Restart(ostream& out) const
+std::ostream&
+PiezoActuatorBeam::Restart(std::ostream& out) const
 {
    Restart_(out);
-   return out << "/* piezoelectric actuator NOT IMPLEMENTED YET */ ;" << endl;
+   return out << "/* piezoelectric actuator NOT IMPLEMENTED YET */ ;" << std::endl;
 }
 
     
@@ -207,7 +207,7 @@ PiezoActuatorBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 			  const VectorHandler& XCurr,
 			  const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering PiezoActuatorBeam::AssJac(); will result in call to AssStiffnessMat()" << endl);
+   DEBUGCOUT("Entering PiezoActuatorBeam::AssJac(); will result in call to AssStiffnessMat()" << std::endl);
    
    integer iNode1FirstMomIndex = pNode[NODE1]->iGetFirstMomentumIndex();
    integer iNode1FirstPosIndex = pNode[NODE1]->iGetFirstPositionIndex();
@@ -282,7 +282,7 @@ void PiezoActuatorVEBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 					  const VectorHandler& XCurr,
 					  const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering PiezoActuatorVEBeam::AssStiffnessMat()" << endl);
+   DEBUGCOUT("Entering PiezoActuatorVEBeam::AssStiffnessMat()" << std::endl);
    
    ViscoElasticBeam::AssStiffnessMat(WMA, WMB, dCoef, XCurr, XPrimeCurr);
    
@@ -320,7 +320,7 @@ void PiezoActuatorVEBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
 					const VectorHandler& XCurr,
 					const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering PiezoActuatorVEBeam::AssStiffnessVec()" << endl);
+   DEBUGCOUT("Entering PiezoActuatorVEBeam::AssStiffnessVec()" << std::endl);
    
    /* Riceve il vettore gia' dimensionato e con gli indici a posto 
     * per scrivere il residuo delle equazioni di equilibrio dei tre nodi */
@@ -399,11 +399,11 @@ PiezoActuatorVEBeam::~PiezoActuatorVEBeam(void)
 
     
 /* Contributo al file di restart */
-ostream&
-PiezoActuatorVEBeam::Restart(ostream& out) const
+std::ostream&
+PiezoActuatorVEBeam::Restart(std::ostream& out) const
 {
    Restart_(out);
-   return out << "/* piezoelectric actuator NOT IMPLEMENTED YET */ ;" << endl;
+   return out << "/* piezoelectric actuator NOT IMPLEMENTED YET */ ;" << std::endl;
 }
 
 
@@ -450,7 +450,7 @@ PiezoActuatorVEBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 			  const VectorHandler& XCurr,
 			  const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering PiezoActuatorVEBeam::AssJac(); will result in call to AssStiffnessMat()" << endl);
+   DEBUGCOUT("Entering PiezoActuatorVEBeam::AssJac(); will result in call to AssStiffnessMat()" << std::endl);
    
    integer iNode1FirstMomIndex = pNode[NODE1]->iGetFirstMomentumIndex();
    integer iNode1FirstPosIndex = pNode[NODE1]->iGetFirstPositionIndex();

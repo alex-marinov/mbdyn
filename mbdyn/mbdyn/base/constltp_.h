@@ -49,7 +49,7 @@ class ElasticConstitutiveLaw
  protected:
    T PreStress;
    
-   virtual ostream& Restart_(ostream& out) const {
+   virtual std::ostream& Restart_(std::ostream& out) const {
       out << ", prestress, ", 
         Write(out, PreStress /* + GetF() */ , ", ");
       if (pGetDriveCaller()) {
@@ -111,7 +111,7 @@ class LinearElasticIsotropicConstitutiveLaw
       return pCL;
    };
    
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       out << "linear elastic isotropic, " << dStiffness;
       return Restart_(out);
    };
@@ -165,7 +165,7 @@ class LinearElasticGenericConstitutiveLaw
       return pCL;
    };
    
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       out << "linear elastic generic, ",
         Write(out, ConstitutiveLaw<T, Tder>::FDE, ", ");
       return Restart_(out);
@@ -200,7 +200,8 @@ class LinearElasticGenericAxialTorsionCouplingConstitutiveLaw
 							   const Tder& = 0.,
 							   doublereal = 0.)
      : ElasticConstitutiveLaw<T, Tder>(pDC, PStress) {     
-      THROW(Err(cerr, "axial-torsion coupling constitutive law is allowed only for beams (6x6)"));
+      THROW(Err(std::cerr, "axial-torsion coupling constitutive law "
+			      "is allowed only for beams (6x6)"));
    };
    
    virtual ~LinearElasticGenericAxialTorsionCouplingConstitutiveLaw(void) {
@@ -211,7 +212,7 @@ class LinearElasticGenericAxialTorsionCouplingConstitutiveLaw
       return NULL;
    };
    
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       return out;
    };
    
@@ -262,7 +263,7 @@ class LinearElasticGenericAxialTorsionCouplingConstitutiveLaw<Vec6, Mat6x6>
       return pCL;
    };
    
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       out << "linear eleastic generic axial torsion coupling, ",
         Write(out, FDE, ", ") << ", " << dAxialTorsionCoupling;
       return Restart_(out);
@@ -294,7 +295,7 @@ class LogConstitutiveLaw
 		      const T& PStress, 
 		      doublereal = 0.)
      : ElasticConstitutiveLaw<T, Tder>(pDC, PStress) {      
-      THROW(Err(cerr, "log constitutive law is allowed only for rods"));
+      THROW(Err(std::cerr, "log constitutive law is allowed only for rods"));
    };
    
    virtual ~LogConstitutiveLaw(void) { 
@@ -305,7 +306,7 @@ class LogConstitutiveLaw
       return NULL;
    };
    
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       return out;
    };
    
@@ -351,7 +352,7 @@ class LogConstitutiveLaw<doublereal, doublereal>
       return pCL;
    };
    
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       out << "log elastic, " << dStiffness;
       return Restart_(out);
    };
@@ -388,7 +389,8 @@ class DoubleLinearElasticConstitutiveLaw
 				      doublereal = 0.,
 				      doublereal = 0.)
      : ElasticConstitutiveLaw<T, Tder>(pDC, PStress) {    
-      THROW(Err(cerr, "double linear elastic constitutive law is allowed only for rods and 3D hinges"));
+      THROW(Err(std::cerr, "double linear elastic constitutive law "
+			      "is allowed only for rods and 3D hinges"));
    };
    
    virtual ~DoubleLinearElasticConstitutiveLaw(void) {
@@ -399,7 +401,7 @@ class DoubleLinearElasticConstitutiveLaw
       return NULL;
    };
    
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       return out;
    };
    
@@ -457,7 +459,7 @@ class DoubleLinearElasticConstitutiveLaw<doublereal, doublereal>
       return pCL;
    };
    
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       out << "double linear elastic, "
         << dStiffness << ", "
         << dUpperLimitStrain << ", "
@@ -536,7 +538,7 @@ class DoubleLinearElasticConstitutiveLaw<Vec3, Mat3x3>
       return pCL;
    };
    
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       out << "double linear elastic, "
         << dStiffness << ", "
 	<< dUpperLimitStrain << ", "
@@ -624,7 +626,7 @@ class IsotropicHardeningConstitutiveLaw
       return pCL;
    };
    
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       out << "isoropic hardening elastic, " << dStiffness << ", " 
         << sqrt(3./dAlpha);
       return Restart_(out);
@@ -664,7 +666,8 @@ class ContactConstitutiveLaw
 			  const doublereal = 0.,
 			  const doublereal = 0.)
      : ElasticConstitutiveLaw<T, Tder>(pDC, PStress) {      
-      THROW(Err(cerr, "contact constitutive law is allowed only for rods"));
+      THROW(Err(std::cerr, "contact constitutive law "
+			      "is allowed only for rods"));
    };
    
    virtual ~ContactConstitutiveLaw(void) { 
@@ -675,7 +678,7 @@ class ContactConstitutiveLaw
       return NULL;
    };
    
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       return out;
    };
    
@@ -733,7 +736,7 @@ class ContactConstitutiveLaw<doublereal, doublereal>
       return pCL;
    };
    
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       out << "contact elastic, "
         << dKappa << ", "
 	<< dGamma;
@@ -794,7 +797,7 @@ class ContactConstitutiveLaw<Vec3, Mat3x3>
       return pCL;
    };
    
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       out << "contact elastic, "
         << dKappa << ", "
 	<< dGamma;
@@ -861,7 +864,7 @@ class LinearViscousIsotropicConstitutiveLaw
       return pCL;
    };
    
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       out << "linear viscous isotropic, "
         << dStiffnessPrime;
       return Restart_(out);
@@ -910,7 +913,7 @@ class LinearViscousGenericConstitutiveLaw
       return pCL;
    };
    
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       out << "linear viscous generic, ",
         Write(out, ConstitutiveLaw<T, Tder>::FDEPrime, ", ");
       return Restart_(out);
@@ -967,7 +970,7 @@ class LinearViscoElasticIsotropicConstitutiveLaw
       return pCL;
    };
    
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       out << "linear viscoelastic isotropic, "
 	<< dStiffness << ", "
 	<< dStiffnessPrime;
@@ -1027,7 +1030,7 @@ class LinearViscoElasticGenericConstitutiveLaw
       return pCL;
    };
    
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
      out << "linear viscoelastic generic, ",
        Write(out, ConstitutiveLaw<T, Tder>::FDE, ", ") << ", ",
        Write(out, ConstitutiveLaw<T, Tder>::FDEPrime, ", ");
@@ -1068,7 +1071,8 @@ class DoubleLinearViscoElasticConstitutiveLaw
 					   doublereal = 0.,
 					   doublereal = 0.) 
      : ElasticConstitutiveLaw<T, Tder>(pDC, PStress) {             
-      THROW(Err(cerr, "doublelinear viscoelastic constitutive law is allowed only for rods ad 3D hinges"));
+      THROW(Err(std::cerr, "doublelinear viscoelastic constitutive law "
+			      "is allowed only for rods ad 3D hinges"));
    };
    
    virtual ~DoubleLinearViscoElasticConstitutiveLaw(void) {
@@ -1079,7 +1083,7 @@ class DoubleLinearViscoElasticConstitutiveLaw
       return NULL;
    };
    
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       return out;
    };
    
@@ -1139,7 +1143,7 @@ class DoubleLinearViscoElasticConstitutiveLaw<doublereal, doublereal>
       return pCL;
    };
    
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       out << "double linear viscoelastic, "
 	<< dStiffness << ", "
 	<< dUpperLimitStrain << ", "
@@ -1228,7 +1232,7 @@ class DoubleLinearViscoElasticConstitutiveLaw<Vec3, Mat3x3>
       return pCL;
    };
    
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       out << "double linear viscoelastic, "
         << dStiffness << ", "
 	<< dUpperLimitStrain << ", "
@@ -1291,7 +1295,8 @@ class TurbulentViscoElasticConstitutiveLaw
 					doublereal = 0.,
 					doublereal = 0.)
      : ElasticConstitutiveLaw<T, Tder>(pDC, PStress) {     
-      THROW(Err(cerr, "Turbulent viscoelastic constitutive law is allowed only for rods"));
+      THROW(Err(std::cerr, "Turbulent viscoelastic constitutive law "
+			      "is allowed only for rods"));
    };
    
    virtual ~TurbulentViscoElasticConstitutiveLaw(void) {
@@ -1302,7 +1307,7 @@ class TurbulentViscoElasticConstitutiveLaw
       return NULL;
    };
    
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       return out;
    };
    
@@ -1357,7 +1362,7 @@ class TurbulentViscoElasticConstitutiveLaw<doublereal, doublereal>
       return pCL;
    };
    
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       out << "turbulent viscoelastic, " 
 	<< dStiffness << ", "
 	<< dStiffnessPrime << ", "
@@ -1451,8 +1456,8 @@ public:
 		return pCL;
 	};
    
-	virtual ostream& 
-	Restart(ostream& out) const {
+	virtual std::ostream& 
+	Restart(std::ostream& out) const {
 		out << "linear viscoelastic bistop, ",
 			Write(out, ConstitutiveLaw<T, Tder>::FDE, ", ") << ", ",
 			Write(out, ConstitutiveLaw<T, Tder>::FDEPrime, ", ")
@@ -1534,7 +1539,7 @@ class TurbulentViscousIsotropicConstitutiveLaw3D : public ConstitutiveLaw3D {
    TurbulentViscousIsotropicConstitutiveLaw3D(doublereal dParabStiffPrime);
    virtual ~TurbulentViscousIsotropicConstitutiveLaw3D(void);
    
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    virtual void Update(const Vec3& Eps, const Vec3& EpsPrime = 0.);
    virtual void IncrementalUpdate(const Vec3& DeltaEps, const Vec3& EpsPrime = 0.);
@@ -1557,7 +1562,7 @@ class LinearTurbulentViscousIsotropicConstitutiveLaw3D : public ConstitutiveLaw3
 						    doublereal dParabStiffPrime);
    virtual ~LinearTurbulentViscousIsotropicConstitutiveLaw3D(void);
    
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    virtual void Update(const Vec3& Eps, const Vec3& EpsPrime = 0.);
    virtual void IncrementalUpdate(const Vec3& DeltaEps, const Vec3& EpsPrime = 0.);
@@ -1580,7 +1585,7 @@ class VelocityDamperConstitutiveLaw3D : public ConstitutiveLaw3D {
 				   doublereal dRefVel);
    virtual ~VelocityDamperConstitutiveLaw3D(void);
    
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    virtual void Update(const Vec3& Eps, const Vec3& EpsPrime = 0.);
    virtual void IncrementalUpdate(const Vec3& DeltaEps, const Vec3& EpsPrime = 0.);

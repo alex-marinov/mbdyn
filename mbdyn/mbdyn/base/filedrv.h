@@ -33,12 +33,7 @@
 #ifndef FILEDRV_H
 #define FILEDRV_H
 
-
-/* include del programma */
-
 #include "drive.h"
-#include <fstream.h>
-
 
 /* FileDrive - begin */
 
@@ -67,7 +62,7 @@ class FileDrive : public Drive {
    virtual FileDrive::Type GetFileDriveType(void) const = 0;
 
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const = 0;
+   virtual std::ostream& Restart(std::ostream& out) const = 0;
    
    virtual inline integer iGetNumDrives(void) const;
    
@@ -98,7 +93,7 @@ class FileDriveCaller : public DriveCaller {
    virtual DriveCaller* pCopy(void) const;
    
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    /* Restituisce il valore del driver */
    virtual inline doublereal dGet(const doublereal& dVal) const;
@@ -136,7 +131,7 @@ class FixedStepFileDrive : public FileDrive {
    };
 
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    virtual doublereal dGet(const doublereal& t, int i = 1) const;
 

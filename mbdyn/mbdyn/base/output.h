@@ -46,9 +46,21 @@
 #include "filename.h"
 
 /* include generali */
+#if defined(HAVE_IOSTREAM)
+#include <iostream>
+#elif defined(HAVE_IOSTREAM_H)
 #include <iostream.h>
-#include <fstream.h>
+#endif
+#if defined(HAVE_IOMANIP)
+#include <iomanip>
+#elif defined(HAVE_IOMANIP_H)
 #include <iomanip.h>
+#endif
+#if defined(HAVE_FSTREAM)
+#include <fstream>
+#elif defined(HAVE_FSTREAM_H)
+#include <fstream.h>
+#endif
 
 /* OutputHandler - begin */
 
@@ -82,29 +94,29 @@ class OutputHandler : public FileName {
    
    /* Aggiungere qui i files che si desidera avere a disposizione */
    struct {
-      ofstream* pof;
+       std::ofstream* pof;
       flag fToUseDefaultPrecision;
       flag fToUseScientific;
    } OutData[LASTFILE];
    
-   ofstream ofOutput;      /*  0 */
-   ofstream ofStrNodes;
-   ofstream ofElectric;
-   ofstream ofAbstract;
-   ofstream ofInertia;
-   ofstream ofJoints;      /*  5 */
-   ofstream ofForces;
-   ofstream ofBeams;
-   ofstream ofRotors;
-   ofstream ofRestart;
-   ofstream ofAerodynamic; /* 10 */
-   ofstream ofHydraulic;
-   ofstream ofPresNodes;
-   ofstream ofLoadable;
-   ofstream ofGenels;
-   ofstream ofPartition;   /* 15 */
-   ofstream ofAdamsRes;
-   ofstream ofAdamsCmd;
+   std::ofstream ofOutput;      /*  0 */
+   std::ofstream ofStrNodes;
+   std::ofstream ofElectric;
+   std::ofstream ofAbstract;
+   std::ofstream ofInertia;
+   std::ofstream ofJoints;      /*  5 */
+   std::ofstream ofForces;
+   std::ofstream ofBeams;
+   std::ofstream ofRotors;
+   std::ofstream ofRestart;
+   std::ofstream ofAerodynamic; /* 10 */
+   std::ofstream ofHydraulic;
+   std::ofstream ofPresNodes;
+   std::ofstream ofLoadable;
+   std::ofstream ofGenels;
+   std::ofstream ofPartition;   /* 15 */
+   std::ofstream ofAdamsRes;
+   std::ofstream ofAdamsCmd;
    
    int iCurrWidth;
    int iCurrPrecision;
@@ -151,7 +163,7 @@ class OutputHandler : public FileName {
    int AdamsCmdOpen(void);
 
    /* Aggiungere qui le funzioni che ritornano gli stream desiderati */
-   inline ostream& Get(const OutputHandler::OutFiles f) {
+   inline std::ostream& Get(const OutputHandler::OutFiles f) {
       ASSERT(f > -1 && f < LASTFILE);
 #if HAVE_ISOPEN
       ASSERT(OutData[f].pof->is_open());
@@ -159,134 +171,134 @@ class OutputHandler : public FileName {
       return *(OutData[f].pof);
    };
 
-   inline ostream& Output(void) const {
+   inline std::ostream& Output(void) const {
 #ifdef DEBUG_COUT
-      return (ostream&)cout;
+      return (std::ostream&)cout;
 #else
 #if HAVE_ISOPEN
       ASSERT(ofOutput.is_open());
 #endif /* HAVE_ISOPEN */
-      return (ostream&)ofOutput;
+      return (std::ostream&)ofOutput;
 #endif	
    };   
    
-   inline ostream& StrNodes(void) const {
+   inline std::ostream& StrNodes(void) const {
 #if HAVE_ISOPEN
       ASSERT(ofStrNodes.is_open());
 #endif /* HAVE_ISOPEN */
-      return (ostream&)ofStrNodes;	  
+      return (std::ostream&)ofStrNodes;	  
    };   
    
-   inline ostream& Electric(void) const {
+   inline std::ostream& Electric(void) const {
 #if HAVE_ISOPEN
       ASSERT(ofElectric.is_open());
 #endif /* HAVE_ISOPEN */
-      return (ostream&)ofElectric;	  
+      return (std::ostream&)ofElectric;	  
    };
    
-   inline ostream& Abstract(void) const {
+   inline std::ostream& Abstract(void) const {
 #if HAVE_ISOPEN
       ASSERT(ofAbstract.is_open());
 #endif /* HAVE_ISOPEN */
-      return (ostream&)ofAbstract;
+      return (std::ostream&)ofAbstract;
    };   
    
-   inline ostream& Inertia(void) const {
+   inline std::ostream& Inertia(void) const {
 #if HAVE_ISOPEN
       ASSERT(ofInertia.is_open());
 #endif /* HAVE_ISOPEN */
-      return (ostream&)ofInertia;	  
+      return (std::ostream&)ofInertia;	  
    };   
    
-   inline ostream& Joints(void) const {
+   inline std::ostream& Joints(void) const {
 #if HAVE_ISOPEN
       ASSERT(ofJoints.is_open());
 #endif /* HAVE_ISOPEN */
-      return (ostream&)ofJoints;	  
+      return (std::ostream&)ofJoints;	  
    };   
    
-   inline ostream& Forces(void) const {
+   inline std::ostream& Forces(void) const {
 #if HAVE_ISOPEN
       ASSERT(ofForces.is_open());
 #endif /* HAVE_ISOPEN */
-      return (ostream&)ofForces;	  
+      return (std::ostream&)ofForces;	  
    };   
    
-   inline ostream& Beams(void) const {
+   inline std::ostream& Beams(void) const {
 #if HAVE_ISOPEN
       ASSERT(ofBeams.is_open());
 #endif /* HAVE_ISOPEN */
-      return (ostream&)ofBeams;	  
+      return (std::ostream&)ofBeams;	  
    };   
    
-   inline ostream& Rotors(void) const {
+   inline std::ostream& Rotors(void) const {
 #if HAVE_ISOPEN
       ASSERT(ofRotors.is_open());
 #endif /* HAVE_ISOPEN */
-      return (ostream&)ofRotors;	  
+      return (std::ostream&)ofRotors;	  
    };   
    
-   inline ostream& Restart(void) const {
+   inline std::ostream& Restart(void) const {
 #if HAVE_ISOPEN
       ASSERT(ofRestart.is_open());
 #endif /* HAVE_ISOPEN */
-      return (ostream&)ofRestart;	  
+      return (std::ostream&)ofRestart;	  
    };   
    
-   inline ostream& Aerodynamic(void) const {
+   inline std::ostream& Aerodynamic(void) const {
 #if HAVE_ISOPEN
       ASSERT(ofAerodynamic.is_open());
 #endif /* HAVE_ISOPEN */
-      return (ostream&)ofAerodynamic;	  
+      return (std::ostream&)ofAerodynamic;	  
    };   
    
-   inline ostream& Hydraulic(void) const {
+   inline std::ostream& Hydraulic(void) const {
 #if HAVE_ISOPEN
       ASSERT(ofHydraulic.is_open());
 #endif /* HAVE_ISOPEN */
-      return (ostream&)ofHydraulic;	  
+      return (std::ostream&)ofHydraulic;	  
    };   
 
-   inline ostream& PresNodes(void) const {
+   inline std::ostream& PresNodes(void) const {
 #if HAVE_ISOPEN
       ASSERT(ofPresNodes.is_open());
 #endif /* HAVE_ISOPEN */
-      return (ostream&)ofPresNodes;	  
+      return (std::ostream&)ofPresNodes;	  
    };   
 
-   inline ostream& Loadable(void) const {
+   inline std::ostream& Loadable(void) const {
 #if HAVE_ISOPEN
       ASSERT(ofLoadable.is_open());
 #endif /* HAVE_ISOPEN */
-      return (ostream&)ofLoadable;	  
+      return (std::ostream&)ofLoadable;	  
    };   
 
-   inline ostream& Genels(void) const {
+   inline std::ostream& Genels(void) const {
 #if HAVE_ISOPEN
       ASSERT(ofGenels.is_open());
 #endif /* HAVE_ISOPEN */
-      return (ostream&)ofGenels;	  
+      return (std::ostream&)ofGenels;	  
    };   
 
-   inline ostream& Partition(void) const {
+   inline std::ostream& Partition(void) const {
 #if HAVE_ISOPEN
       ASSERT(ofPartition.is_open());
 #endif /* HAVE_ISOPEN */
-      return (ostream&)ofPartition;	  
+      return (std::ostream&)ofPartition;	  
    };
    
-   inline ostream& AdamsRes(void) const {
+   inline std::ostream& AdamsRes(void) const {
 #if HAVE_ISOPEN
       ASSERT(ofAdamsRes.is_open());
 #endif /* HAVE_ISOPEN */
-      return (ostream&)ofAdamsRes;	  
+      return (std::ostream&)ofAdamsRes;	  
    };
 
-   inline ostream& AdamsCmd(void) const {
+   inline std::ostream& AdamsCmd(void) const {
 #if HAVE_ISOPEN
       ASSERT(ofAdamsCmd.is_open());
 #endif /* HAVE_ISOPEN */
-      return (ostream&)ofAdamsCmd;
+      return (std::ostream&)ofAdamsCmd;
    };
 
    inline int iW(void) const { 
@@ -332,10 +344,10 @@ class ToBeOutput {
 #define __NASTRAN_FORMAT_FIXED__	1
 #define __NASTRAN_FORMAT_FIXED16__	2
 #define __NASTRAN_FORMAT_FREE__		3
-   virtual void Output_pch(ostream &pch) const {
+   virtual void Output_pch(std::ostream &pch) const {
 	   NO_OP;
    };
-   virtual void Output_f06(ostream &f06, const VectorHandler& X) const {
+   virtual void Output_f06(std::ostream &f06, const VectorHandler& X) const {
 	   NO_OP;
    };
 

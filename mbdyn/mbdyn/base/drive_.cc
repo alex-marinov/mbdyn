@@ -76,7 +76,7 @@ DriveCaller* StringDriveCaller::pCopy(void) const
 
 
 /* Scrive il contributo del DriveCaller al file di restart */
-ostream& StringDriveCaller::Restart(ostream& out) const
+std::ostream& StringDriveCaller::Restart(std::ostream& out) const
 {
    return out << "string, \"" << sEvalStr << "\"";
 }
@@ -110,7 +110,7 @@ DriveCaller* TimeDriveCaller::pCopy(void) const
 
 
 /* Scrive il contributo del DriveCaller al file di restart */
-ostream& TimeDriveCaller::Restart(ostream& out) const
+std::ostream& TimeDriveCaller::Restart(std::ostream& out) const
 {
    return out << "time";
 }
@@ -144,7 +144,7 @@ DriveCaller* ConstDriveCaller::pCopy(void) const
 
 
 /* Scrive il contributo del DriveCaller al file di restart */
-ostream& ConstDriveCaller::Restart(ostream& out) const
+std::ostream& ConstDriveCaller::Restart(std::ostream& out) const
 {      
    return out << " const, " << dConst;
 }
@@ -179,7 +179,7 @@ DriveCaller* LinearDriveCaller::pCopy(void) const
 
 
 /* Scrive il contributo del DriveCaller al file di restart */
-ostream& LinearDriveCaller::Restart(ostream& out) const
+std::ostream& LinearDriveCaller::Restart(std::ostream& out) const
 {
    return out << " linear, " << dC0 << ", " << dC1;
 }
@@ -216,7 +216,7 @@ DriveCaller* ParabolicDriveCaller::pCopy(void) const
 
 
 /* Scrive il contributo del DriveCaller al file di restart */
-ostream& ParabolicDriveCaller::Restart(ostream& out) const
+std::ostream& ParabolicDriveCaller::Restart(std::ostream& out) const
 {
    return out <<  " parabolic, " << dC0 << ", " << dC1 << ", " << dC2;
 }
@@ -252,7 +252,7 @@ CubicDriveCaller::~CubicDriveCaller(void)
 
 
 /* Scrive il contributo del DriveCaller al file di restart */   
-ostream& CubicDriveCaller::Restart(ostream& out) const
+std::ostream& CubicDriveCaller::Restart(std::ostream& out) const
 {
    return out << " cubic, " 
      << dC0 << ", " << dC1 << ", " << dC2 << ", " << dC3;
@@ -294,7 +294,7 @@ DriveCaller* StepDriveCaller::pCopy(void) const
 
 
 /* Scrive il contributo del DriveCaller al file di restart */   
-ostream& StepDriveCaller::Restart(ostream& out) const
+std::ostream& StepDriveCaller::Restart(std::ostream& out) const
 {
    return out
      << " step, " 
@@ -340,7 +340,7 @@ DriveCaller* DoubleStepDriveCaller::pCopy(void) const
 
 
 /* Scrive il contributo del DriveCaller al file di restart */   
-ostream& DoubleStepDriveCaller::Restart(ostream& out) const
+std::ostream& DoubleStepDriveCaller::Restart(std::ostream& out) const
 {
    return out 
      << " double step, "
@@ -387,7 +387,7 @@ DriveCaller* RampDriveCaller::pCopy(void) const
 
 
 /* Scrive il contributo del DriveCaller al file di restart */   
-ostream& RampDriveCaller::Restart(ostream& out) const
+std::ostream& RampDriveCaller::Restart(std::ostream& out) const
 {
    return out
      << "ramp, "
@@ -445,7 +445,7 @@ DriveCaller* DoubleRampDriveCaller::pCopy(void) const
 
 
 /* Scrive il contributo del DriveCaller al file di restart */   
-ostream& DoubleRampDriveCaller::Restart(ostream& out) const
+std::ostream& DoubleRampDriveCaller::Restart(std::ostream& out) const
 {
    return out
      << " double ramp, "
@@ -514,7 +514,7 @@ DriveCaller* SineDriveCaller::pCopy(void) const
 
 
 /* Scrive il contributo del DriveCaller al file di restart */   
-ostream& SineDriveCaller::Restart(ostream& out) const
+std::ostream& SineDriveCaller::Restart(std::ostream& out) const
 {
    return out 
      << " sine, "
@@ -581,7 +581,7 @@ DriveCaller* CosineDriveCaller::pCopy(void) const
 
 
 /* Scrive il contributo del DriveCaller al file di restart */   
-ostream& CosineDriveCaller::Restart(ostream& out) const
+std::ostream& CosineDriveCaller::Restart(std::ostream& out) const
 {
    return out
      << " cosine, "
@@ -644,7 +644,7 @@ DriveCaller* FreqSweepDriveCaller::pCopy(void) const
 
 
 /* Scrive il contributo del DriveCaller al file di restart */   
-ostream& FreqSweepDriveCaller::Restart(ostream& out) const
+std::ostream& FreqSweepDriveCaller::Restart(std::ostream& out) const
 {
    return out 
      << " frequency sweep, "
@@ -694,7 +694,7 @@ DriveCaller* ExpDriveCaller::pCopy(void) const
 
 
 /* Scrive il contributo del DriveCaller al file di restart */   
-ostream& ExpDriveCaller::Restart(ostream& out) const
+std::ostream& ExpDriveCaller::Restart(std::ostream& out) const
 {
    return out
      << " exponential, " 
@@ -744,7 +744,7 @@ DriveCaller* RandDriveCaller::pCopy(void) const
 
 
 /* Scrive il contributo del DriveCaller al file di restart */   
-ostream& RandDriveCaller::Restart(ostream& out) const
+std::ostream& RandDriveCaller::Restart(std::ostream& out) const
 {
    out
      << " random, " 
@@ -797,7 +797,7 @@ DriveCaller* PiecewiseLinearDriveCaller::pCopy(void) const
 }
 
 /* Scrive il contributo del DriveCaller al file di restart */
-ostream& PiecewiseLinearDriveCaller::Restart(ostream& out) const
+std::ostream& PiecewiseLinearDriveCaller::Restart(std::ostream& out) const
 {
 	out << "piecewise linear, " << iNumPoints;
 
@@ -862,7 +862,7 @@ DriveCaller* DriveArrayCaller::pCopy(void) const
 
 
 /* Scrive il contributo del DriveCaller al file di restart */   
-ostream& DriveArrayCaller::Restart(ostream& out) const
+std::ostream& DriveArrayCaller::Restart(std::ostream& out) const
 {
    out << " array, " << iNumDrivers;
    for (int i = 0; i < iNumDrivers; i++) {
@@ -954,7 +954,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
    
 #ifdef DEBUG   
    if (CurrKeyWord >= 0) {      
-      cout << "drive type: " << sKeyWords[CurrKeyWord] << endl;
+      std::cout<< "drive type: " << sKeyWords[CurrKeyWord] << std::endl;
    }   
 #endif   
 
@@ -993,7 +993,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
     case CONST: {
        /* lettura dei dati specifici */
        doublereal dConst = HP.GetReal();
-       DEBUGCOUT("Const value: " << dConst << endl);
+       DEBUGCOUT("Const value: " << dConst << std::endl);
 
        /* allocazione e creazione */
        if (dConst == 0.) {
@@ -1014,10 +1014,10 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
     case LINEAR: {
        /* lettura dei dati specifici */
        doublereal dC0 = HP.GetReal();
-       DEBUGCOUT("Offset: " << dC0 << endl);
+       DEBUGCOUT("Offset: " << dC0 << std::endl);
        
        doublereal dC1 = HP.GetReal();
-       DEBUGCOUT("Slope: " << dC1 << endl);
+       DEBUGCOUT("Slope: " << dC1 << std::endl);
        
        /* allocazione e creazione */
        SAFENEWWITHCONSTRUCTOR(pDC,
@@ -1033,13 +1033,13 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
     case PARABOLIC: {
        /* lettura dei dati specifici */
        doublereal dC0 = HP.GetReal();
-       DEBUGCOUT("Offset: " << dC0 << endl);
+       DEBUGCOUT("Offset: " << dC0 << std::endl);
        
        doublereal dC1 = HP.GetReal();
-       DEBUGCOUT("Slope: " << dC1 << endl);
+       DEBUGCOUT("Slope: " << dC1 << std::endl);
        
        doublereal dC2 = HP.GetReal();
-       DEBUGCOUT("Parabolic slope: " << dC2 << endl);
+       DEBUGCOUT("Parabolic slope: " << dC2 << std::endl);
        
        /* allocazione e creazione */
        SAFENEWWITHCONSTRUCTOR(pDC,
@@ -1055,16 +1055,16 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
     case CUBIC: {
        /* lettura dei dati specifici */
        doublereal dC0 = HP.GetReal();
-       DEBUGCOUT("Offset: " << dC0 << endl);
+       DEBUGCOUT("Offset: " << dC0 << std::endl);
        
        doublereal dC1 = HP.GetReal();
-       DEBUGCOUT("Slope: " << dC1 << endl);
+       DEBUGCOUT("Slope: " << dC1 << std::endl);
        
        doublereal dC2 = HP.GetReal();
-       DEBUGCOUT("Parabolic slope: " << dC2 << endl);
+       DEBUGCOUT("Parabolic slope: " << dC2 << std::endl);
        
        doublereal dC3 = HP.GetReal();
-       DEBUGCOUT("Cubic slope: " << dC3 << endl);
+       DEBUGCOUT("Cubic slope: " << dC3 << std::endl);
        
        /* allocazione e creazione */
        SAFENEWWITHCONSTRUCTOR(pDC,
@@ -1079,13 +1079,13 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
       /* Scalino semplice */
     case STEP: {	
        doublereal dStepTime = HP.GetReal();
-       DEBUGCOUT("Initial time: " << dStepTime << endl);
+       DEBUGCOUT("Initial time: " << dStepTime << std::endl);
        
        doublereal dStepValue = HP.GetReal(1.);
-       DEBUGCOUT("Step Value: " << dStepValue << endl);
+       DEBUGCOUT("Step Value: " << dStepValue << std::endl);
        
        doublereal dInitialValue = HP.GetReal();
-       DEBUGCOUT("InitialValue: " << dInitialValue << endl);
+       DEBUGCOUT("InitialValue: " << dInitialValue << std::endl);
        
        SAFENEWWITHCONSTRUCTOR(pDC,
 			      StepDriveCaller,
@@ -1097,24 +1097,24 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
       /* Scalino doppio */
     case DOUBLESTEP: {	
        doublereal dStepTime = HP.GetReal();
-       DEBUGCOUT("Initial time: " << dStepTime << endl);
+       DEBUGCOUT("Initial time: " << dStepTime << std::endl);
        
        doublereal dEndStepTime = HP.GetReal();
-       DEBUGCOUT("Final time: " << dEndStepTime << endl);
+       DEBUGCOUT("Final time: " << dEndStepTime << std::endl);
        
        if(dEndStepTime <= dStepTime) {	      
-	  cerr << "Warning at line " 
+	  std::cerr<< "Warning at line " 
 	    << HP.GetLineData() 
 	    << ": final time " << dEndStepTime
 	    << " is less than or equal to initial time " << dStepTime 
-	    << " in double step func drive" << endl;
+	    << " in double step func drive" << std::endl;
        }
        
        doublereal dStepValue = HP.GetReal(1.);
-       DEBUGCOUT("Step Value: " << dStepValue << endl);
+       DEBUGCOUT("Step Value: " << dStepValue << std::endl);
        
        doublereal dInitialValue = HP.GetReal();     
-       DEBUGCOUT("InitialValue: " << dInitialValue << endl);
+       DEBUGCOUT("InitialValue: " << dInitialValue << std::endl);
        
        SAFENEWWITHCONSTRUCTOR(pDC,
 			      DoubleStepDriveCaller,
@@ -1129,24 +1129,24 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
       /* Rampa saturata */
     case RAMP: {	
        doublereal dSlope = HP.GetReal(1.);
-       DEBUGCOUT("Slope Value: " << dSlope << endl);
+       DEBUGCOUT("Slope Value: " << dSlope << std::endl);
        
        doublereal dInitialTime = HP.GetReal();
-       DEBUGCOUT("Initial time: " << dInitialTime << endl);
+       DEBUGCOUT("Initial time: " << dInitialTime << std::endl);
        
        doublereal dFinalTime = HP.GetReal();
-       DEBUGCOUT("Final time: " << dFinalTime << endl);
+       DEBUGCOUT("Final time: " << dFinalTime << std::endl);
        
        if(dFinalTime <= dInitialTime) {	      
-	  cerr << "Warning at line "
+	  std::cerr<< "Warning at line "
 	    << HP.GetLineData() 
 	    << ": final time " << dFinalTime
 	    << " is less than or equal to initial time " << dInitialTime 
-	    << " in ramp func drive" << endl;
+	    << " in ramp func drive" << std::endl;
        }	   
        
        doublereal dInitialValue = HP.GetReal();	   
-       DEBUGCOUT("InitialValue: " << dInitialValue << endl);
+       DEBUGCOUT("InitialValue: " << dInitialValue << std::endl);
        
        SAFENEWWITHCONSTRUCTOR(pDC, 
 			      RampDriveCaller,
@@ -1159,55 +1159,55 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
       /* Rampa doppia */
     case DOUBLERAMP: {	
        doublereal dAscendingSlope = HP.GetReal(1.);
-       DEBUGCOUT("Ascending Slope Value: " << dAscendingSlope << endl);
+       DEBUGCOUT("Ascending Slope Value: " << dAscendingSlope << std::endl);
        
        doublereal dAscendingInitialTime = HP.GetReal();
-       DEBUGCOUT("Ascending Initial time: " << dAscendingInitialTime << endl);
+       DEBUGCOUT("Ascending Initial time: " << dAscendingInitialTime << std::endl);
        
        doublereal dAscendingFinalTime = HP.GetReal();
-       DEBUGCOUT("Ascending Final time: " << dAscendingFinalTime << endl);
+       DEBUGCOUT("Ascending Final time: " << dAscendingFinalTime << std::endl);
        
        if (dAscendingFinalTime <= dAscendingInitialTime) {	      
-	  cerr << "Warning at line " 
+	  std::cerr<< "Warning at line " 
 	    << HP.GetLineData() << ": ascending final time " 
 	    << dAscendingFinalTime
 	    << " is less than or equal to ascending initial time " 
 	    << dAscendingInitialTime 
-	    << " in double ramp func drive" << endl;
+	    << " in double ramp func drive" << std::endl;
 	  THROW(ErrGeneric());
        }
        
        doublereal dDescendingSlope = HP.GetReal(-1.);
-       DEBUGCOUT("Descending Slope Value: " << dDescendingSlope << endl);
+       DEBUGCOUT("Descending Slope Value: " << dDescendingSlope << std::endl);
        
        doublereal dDescendingInitialTime = HP.GetReal();
-       DEBUGCOUT("Descending Initial time: " << dDescendingInitialTime << endl);
+       DEBUGCOUT("Descending Initial time: " << dDescendingInitialTime << std::endl);
        
        if (dDescendingInitialTime < dAscendingFinalTime) {
-	  cerr << "Warning at line " 
+	  std::cerr<< "Warning at line " 
 	    << HP.GetLineData() << ": descending initial time " 
 	    << dDescendingInitialTime
 	    << " is less than ascending final time " 
 	    << dAscendingFinalTime 
-	    << " in double ramp func drive" << endl;
+	    << " in double ramp func drive" << std::endl;
 	  THROW(ErrGeneric());
        }	   
        
        doublereal dDescendingFinalTime = HP.GetReal();
-       DEBUGCOUT("Descending Final time: " << dDescendingFinalTime << endl);
+       DEBUGCOUT("Descending Final time: " << dDescendingFinalTime << std::endl);
        
        if (dDescendingFinalTime <= dDescendingInitialTime) {	      
-	  cerr << "Warning at line " 
+	  std::cerr<< "Warning at line " 
 	    << HP.GetLineData() << ": descending final time " 
 	    << dDescendingFinalTime
 	    << " is less than descending initial time " 
 	    << dDescendingInitialTime 
-	    << " in double ramp func drive" << endl;
+	    << " in double ramp func drive" << std::endl;
 	  THROW(ErrGeneric());
        }	   
        
        doublereal dInitialValue = HP.GetReal();	   
-       DEBUGCOUT("InitialValue: " << dInitialValue << endl);
+       DEBUGCOUT("InitialValue: " << dInitialValue << std::endl);
        
        SAFENEWWITHCONSTRUCTOR(pDC,
 			      DoubleRampDriveCaller,
@@ -1226,13 +1226,13 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
     case SINE:
     case COSINE: {	
        doublereal dInitialTime = HP.GetReal();
-       DEBUGCOUT("Initial time: " << dInitialTime << endl);
+       DEBUGCOUT("Initial time: " << dInitialTime << std::endl);
        
        doublereal dOmega = HP.GetReal(1.);
-       DEBUGCOUT("Omega: " << dOmega << endl);
+       DEBUGCOUT("Omega: " << dOmega << std::endl);
        
        doublereal dAmplitude = HP.GetReal();
-       DEBUGCOUT("Amplitude: " << dAmplitude << endl);
+       DEBUGCOUT("Amplitude: " << dAmplitude << std::endl);
        
        integer iNumCycles;
        if (HP.IsKeyWord("forever")) {
@@ -1244,10 +1244,10 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        } else {
           iNumCycles = HP.GetInt();
        }
-       DEBUGCOUT("Number of cycles: " << iNumCycles << endl);
+       DEBUGCOUT("Number of cycles: " << iNumCycles << std::endl);
        
        doublereal dInitialValue = HP.GetReal();	   
-       DEBUGCOUT("InitialValue: " << dInitialValue << endl);
+       DEBUGCOUT("InitialValue: " << dInitialValue << std::endl);
        
        if (CurrKeyWord == SINE) {			    
 	  SAFENEWWITHCONSTRUCTOR(pDC,
@@ -1274,22 +1274,22 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
       
     case FREQUENCYSWEEP: {	
        doublereal dInitialTime = HP.GetReal();
-       DEBUGCOUT("Initial time: " << dInitialTime << endl);
+       DEBUGCOUT("Initial time: " << dInitialTime << std::endl);
        
        DriveCaller* pOmega = ReadDriveData(pDM, HP, pDrvHdl);
-       // DEBUGCOUT("Omega: " << dOmega << endl);
+       // DEBUGCOUT("Omega: " << dOmega << std::endl);
        
        DriveCaller* pAmplitude = ReadDriveData(pDM, HP, pDrvHdl);
-       // DEBUGCOUT("Amplitude: " << dAmplitude << endl);
+       // DEBUGCOUT("Amplitude: " << dAmplitude << std::endl);
        
        doublereal dInitialValue = HP.GetReal();	   
-       DEBUGCOUT("Initial value: " << dInitialValue << endl);
+       DEBUGCOUT("Initial value: " << dInitialValue << std::endl);
        
        doublereal dFinalTime = HP.GetReal();
-       DEBUGCOUT("Final time: " << dFinalTime << endl);
+       DEBUGCOUT("Final time: " << dFinalTime << std::endl);
        
        doublereal dFinalValue = HP.GetReal();	   
-       DEBUGCOUT("Final value: " << dFinalValue << endl);
+       DEBUGCOUT("Final value: " << dFinalValue << std::endl);
        
        SAFENEWWITHCONSTRUCTOR(pDC,
 			      FreqSweepDriveCaller,
@@ -1307,16 +1307,16 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
       /* esponenziale */
     case EXPONENTIAL: {	
        doublereal dAmplitude = HP.GetReal(1.);
-       DEBUGCOUT("Amplitude value: " << dAmplitude << endl);
+       DEBUGCOUT("Amplitude value: " << dAmplitude << std::endl);
        
        doublereal dTimeConst = HP.GetReal();
-       DEBUGCOUT("Time constant value: " << dTimeConst << endl);
+       DEBUGCOUT("Time constant value: " << dTimeConst << std::endl);
        
        doublereal dInitialTime = HP.GetReal();
-       DEBUGCOUT("Initial time: " << dInitialTime << endl);
+       DEBUGCOUT("Initial time: " << dInitialTime << std::endl);
        
        doublereal dInitialValue = HP.GetReal();
-       DEBUGCOUT("Initial value: " << dInitialValue << endl);
+       DEBUGCOUT("Initial value: " << dInitialValue << std::endl);
        
        
        SAFENEWWITHCONSTRUCTOR(pDC,
@@ -1329,16 +1329,16 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
       /* Numero casuale */
     case RANDOM: {	
        doublereal dAmplitude = HP.GetReal(1.);
-       DEBUGCOUT("Amplitude value: " << dAmplitude << endl);
+       DEBUGCOUT("Amplitude value: " << dAmplitude << std::endl);
        
        doublereal dRefVal = HP.GetReal();
-       DEBUGCOUT("Mean value: " << dRefVal << endl);
+       DEBUGCOUT("Mean value: " << dRefVal << std::endl);
        
        doublereal dInitialTime = HP.GetReal();
-       DEBUGCOUT("Initial time: " << dInitialTime << endl);
+       DEBUGCOUT("Initial time: " << dInitialTime << std::endl);
        
        doublereal dFinalTime = HP.GetReal();
-       DEBUGCOUT("Final time: " << dFinalTime << endl);
+       DEBUGCOUT("Final time: " << dFinalTime << std::endl);
        
        /* Type of random number (additional data) */
        integer iSteps = 1;
@@ -1346,12 +1346,12 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
 	  if (HP.IsKeyWord("steps")) {
 	     iSteps = HP.GetInt();
 	     if (iSteps <= 0) {		    
-		cerr << "Warning: Steps number " << iSteps 
-		  << " is illegal; resorting to default value" << endl;
+		std::cerr<< "Warning: Steps number " << iSteps 
+		  << " is illegal; resorting to default value" << std::endl;
 		iSteps = 1;
 	     }
 	     DEBUGCOUT("Force changes every " << iSteps 
-		       << " steps" << endl);
+		       << " steps" << std::endl);
 	  } else if (HP.IsKeyWord("seed")) {
 	     if (HP.IsKeyWord("time")) {
 		DEBUGCOUT("(Re)Seeding random numbers with current time ...");
@@ -1380,11 +1380,11 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
       /* Lineare a pezzi */
     case PIECEWISELINEAR: {
        unsigned int n = HP.GetInt();
-       DEBUGCOUT("number of points: " << n << endl);
+       DEBUGCOUT("number of points: " << n << std::endl);
 
        if (n < 2) {
-	  cerr << "Need at least two points for piecewise linear drive at line "
-	    << HP.GetLineData() << endl;
+	  std::cerr<< "Need at least two points for piecewise linear drive at line "
+	    << HP.GetLineData() << std::endl;
 	  THROW(DataManager::ErrGeneric());
        }
 
@@ -1395,7 +1395,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        for (unsigned int i = 1; i < n; i++) {
 	  p[i] = HP.GetReal();
 	  if (p[i] <= p[i-1]) {
-	     cerr << "point " << p[i]
+	     std::cerr<< "point " << p[i]
 	       << " is smaller than or equal to preceding point " << p[i-1]
 	       << " at line " << HP.GetLineData();
 	     THROW(DataManager::ErrGeneric());
@@ -1415,7 +1415,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
     case STRING: {	     
        /* lettura dei dati specifici */
        const char* sTmp = HP.GetStringWithDelims();
-       DEBUGCOUT("String to evaluate: \"" << sTmp << '\"' << endl);
+       DEBUGCOUT("String to evaluate: \"" << sTmp << '\"' << std::endl);
        
        /* allocazione e creazione */
        SAFENEWWITHCONSTRUCTOR(pDC,
@@ -1428,8 +1428,8 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
       /* driver legato ad un grado di liberta' nodale */
     case DOF: {
        if (pDM == NULL) {
-	  cerr << "sorry, since the driver is not owned by a DataManager" << endl
-	    << "no DOF dependent drivers are allowed;" << endl
+	  std::cerr<< "sorry, since the driver is not owned by a DataManager" << std::endl
+	    << "no DOF dependent drivers are allowed;" << std::endl
 	    << "aborting ...";	  
 	  THROW(DataManager::ErrGeneric());
        }
@@ -1438,10 +1438,10 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        
 #ifdef USE_MPI
        if (MPI::COMM_WORLD.Get_size() > 1) {
-          cerr << "warning: add explicit connection entry for the "
+          std::cerr<< "warning: add explicit connection entry for the "
             << psNodeNames[SD.pNode->GetNodeType()] 
 	    << "(" << SD.pNode->GetLabel() << ") dof drive"
-            " at line " << HP.GetLineData() << endl;
+            " at line " << HP.GetLineData() << std::endl;
        }
 #endif /* USE_MPI */
        
@@ -1462,7 +1462,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
     case ARRAY: {
        unsigned short int iNumDr = (unsigned short int)HP.GetInt();
        if (iNumDr == 0) {	      
-	  cerr << "Sorry, at least one driver is required" << endl;
+	  std::cerr<< "Sorry, at least one driver is required" << std::endl;
 	  THROW(ErrGeneric());
        } else if (iNumDr == 1) {
 	  /* creazione di un driver normale mediante chiamata ricorsiva */
@@ -1492,8 +1492,8 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
        unsigned int uL = HP.GetInt();
        FileDrive* pDrv = (FileDrive*)pDM->pFindDrive(Drive::FILEDRIVE, uL);
        if (pDrv == NULL) {
-	  cerr << "line " << HP.GetLineData() 
-	    << ": can't find FileDrive(" << uL << ")" << endl;
+	  std::cerr<< "line " << HP.GetLineData() 
+	    << ": can't find FileDrive(" << uL << ")" << std::endl;
 	  THROW(ErrGeneric());
        }
               
@@ -1511,7 +1511,7 @@ DriveCaller* ReadDriveData(const DataManager* pDM,
     }
       
     default: {
-       cerr << "unknown drive type at line " << HP.GetLineData() << endl;       
+       std::cerr<< "unknown drive type at line " << HP.GetLineData() << std::endl;       
        THROW(DataManager::ErrGeneric());
     }	
    }

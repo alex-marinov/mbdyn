@@ -48,18 +48,18 @@
 /* MBDynParser - begin */
 
 void
-mbdyn_license(ostream& out)
+mbdyn_license(std::ostream& out)
 {
 	out << "license not available yet;"
-		" see GPL" << endl;
+		" see GPL" << std::endl;
 }
 
 void
-mbdyn_warranty(ostream& out)
+mbdyn_warranty(std::ostream& out)
 {
 	out << "warranty not available yet;"
 		" see warranty coming with GPL"
-		<< endl;
+		<< std::endl;
 }
 
 MBDynParser::MBDynParser(MathParser& MP, KeyTable& KT, InputStream& streamIn)
@@ -100,9 +100,9 @@ void
 MBDynParser::Reference_(void)
 {
 	if (FirstToken() == UNKNOWN) {
-		cerr << "Parser error in MBDynParser::Reference_(),"
+		std::cerr << "Parser error in MBDynParser::Reference_(),"
 			" colon expected at line " 
-			<< GetLineData() << endl;
+			<< GetLineData() << std::endl;
 		THROW(HighParser::ErrColonExpected());
 	}
 	
@@ -115,7 +115,7 @@ MBDynParser::Reference_(void)
 		SAFESTRDUP(sName, sTmp);
 	}
 	
-	DEBUGLCOUT(MYDEBUG_INPUT, "Reference frame " << uLabel << endl);
+	DEBUGLCOUT(MYDEBUG_INPUT, "Reference frame " << uLabel << std::endl);
 	
 	Vec3 x(GetPosAbs(AbsRefFrame));
 	Mat3x3 R(GetRotAbs(AbsRefFrame));
@@ -126,20 +126,20 @@ MBDynParser::Reference_(void)
 		w = GetOmeAbs(AbsRefFrame);
 	}
 	
-	DEBUGLCOUT(MYDEBUG_INPUT, endl
-		   << "\tX = " << x << endl
-		   << "\tR = " << R << endl
-		   << "\tV = " << v << endl
-		   << "\tW = " << w << endl);
+	DEBUGLCOUT(MYDEBUG_INPUT, std::endl
+		   << "\tX = " << x << std::endl
+		   << "\tR = " << R << std::endl
+		   << "\tV = " << v << std::endl
+		   << "\tW = " << w << std::endl);
 	
 	ReferenceFrame* pRF = NULL;
 	SAFENEWWITHCONSTRUCTOR(pRF,
 		ReferenceFrame,
 		ReferenceFrame(uLabel, x, R, v, w));
 	if (RF.iAdd(pRF)) {
-		cerr << "Reference frame " << uLabel
+		std::cerr << "Reference frame " << uLabel
 			<< " already defined at line " << GetLineData()
-			<< endl;
+			<< std::endl;
 		THROW(MBDynParser::ErrReferenceAlreadyDefined());
 	}
 	
@@ -155,9 +155,9 @@ void
 MBDynParser::HydraulicFluid_(void)
 {
 	if (FirstToken() == UNKNOWN) {
-		cerr << "Parser error in MBDynParser::HydraulicFluid_(),"
+		std::cerr << "Parser error in MBDynParser::HydraulicFluid_(),"
 			" colon expected at line "
-			<< GetLineData() << endl;
+			<< GetLineData() << std::endl;
 		THROW(HighParser::ErrColonExpected());
 	}
 	
@@ -174,15 +174,15 @@ MBDynParser::HydraulicFluid_(void)
 	
 	HydraulicFluid* pHF = ReadHydraulicFluid(*this, uLabel);
 	if (pHF == NULL) {
-		cerr << "unable to read hydraulic fluid " << uLabel << endl;
+		std::cerr << "unable to read hydraulic fluid " << uLabel << std::endl;
 		THROW(ErrGeneric());
 	}
 	PutKeyTable(CurrTable);
 	
 	if (HF.iAdd(pHF)) {
-		cerr << "hydraulic fluid " << uLabel
+		std::cerr << "hydraulic fluid " << uLabel
 			<< " already defined at line " << GetLineData()
-			<< endl;
+			<< std::endl;
 		THROW(MBDynParser::ErrGeneric());
 	}
 	
@@ -198,8 +198,8 @@ void
 MBDynParser::C81Data_(void)
 {
 	if (FirstToken() == UNKNOWN) {
-		cerr << "Parser error in MBDynParser::C81Data_(),"
-			" colon expected at line " << GetLineData() << endl;
+		std::cerr << "Parser error in MBDynParser::C81Data_(),"
+			" colon expected at line " << GetLineData() << std::endl;
 		THROW(HighParser::ErrColonExpected());
 	}
 	
@@ -213,36 +213,36 @@ MBDynParser::C81Data_(void)
 	}
 	
 	const char* filename = GetFileName();
-	ifstream in(filename);
+	std::ifstream in(filename);
 	if (!in) {
-		cerr << "unable to open file '" << filename << "' at line " 
-			<< GetLineData() << endl;
+		std::cerr << "unable to open file '" << filename << "' at line " 
+			<< GetLineData() << std::endl;
 		THROW(ErrGeneric());
 	}
 	
 	DEBUGLCOUT(MYDEBUG_INPUT, "reading c81 data " << uLabel 
-		   << " from file '" << filename << "'" << endl);
+		   << " from file '" << filename << "'" << std::endl);
 	
 	C81Data* data = NULL;
 	SAFENEWWITHCONSTRUCTOR(data, C81Data, C81Data(uLabel));
 	
 	if (read_c81_data(in, data) != 0) {
-		cerr << "unable to read c81 data " << uLabel 
+		std::cerr << "unable to read c81 data " << uLabel 
 			<< " from file '" << filename 
-			<< "' at line " << GetLineData() << endl;
+			<< "' at line " << GetLineData() << std::endl;
 		THROW(ErrGeneric());
 	}
 	
 #ifdef DEBUG
 	if (DEBUG_LEVEL(MYDEBUG_INPUT)) {
-		write_c81_data(cout, data);
+		write_c81_data(std::cout, data);
 	}
 #endif
 
 	if (AD.iAdd(data)) {
-		cerr << "c81 data " << uLabel
+		std::cerr << "c81 data " << uLabel
 			<< " already defined at line " << GetLineData()
-			<< endl;
+			<< std::endl;
 		THROW(MBDynParser::ErrGeneric());
 	}
 	
@@ -274,8 +274,8 @@ restart:
 				THROW(ErrFile());
 			}
 		} else {     	 
-			cerr << "Keyword expected at line "
-				<< GetLineData() << endl;
+			std::cerr << "Keyword expected at line "
+				<< GetLineData() << std::endl;
 			THROW(HighParser::ErrKeyWordExpected());
 		}      
 	}
@@ -330,13 +330,13 @@ restart:
 
 	/* Scrive la licenza */
 	} else if (!strcmp(s, "license")) {
-		mbdyn_license(cout);
+		mbdyn_license(std::cout);
 		CurrLowToken = LowP.GetToken(*pIn);
 		goto restart;
 	
 	/* Scrive il disclaimer */
 	} else if (!strcmp(s, "warranty")) {
-		mbdyn_warranty(cout);
+		mbdyn_warranty(std::cout);
 		CurrLowToken = LowP.GetToken(*pIn);
 		goto restart;
 	}
@@ -368,8 +368,8 @@ MBDynParser::GetRef(ReferenceFrame& rf)
 	unsigned int uLabel((unsigned int)GetInt());
 	const ReferenceFrame* pRF = RF.Get(uLabel);
 	if (pRF == NULL) {
-		cerr << "reference " << uLabel << " is undefined at line " 
-			<< GetLineData() << endl;
+		std::cerr << "reference " << uLabel << " is undefined at line " 
+			<< GetLineData() << std::endl;
 		THROW(MBDynParser::ErrReferenceUndefined());
 	}
 	
@@ -582,15 +582,15 @@ MBDynParser::GetVecRel(const ReferenceFrame& rf)
 	case UNKNOWNFRAME: /* global */
 		if (IsKeyWord("fromnode")) {
 			/* FIXME */
-			cerr << "'from node' at line " << GetLineData()
-				<< " not implemented yet :)" << endl;
+			std::cerr << "'from node' at line " << GetLineData()
+				<< " not implemented yet :)" << std::endl;
 			THROW(MBDynParser::ErrGeneric());
 			
 			unsigned int uLabel = GetInt();
 			StructNode *pNode1 = NULL; /* get node 1 */
 			if (IsKeyWord("tonode")) {
-				cerr << "missing keyword 'to node' at line "
-					<< GetLineData() << endl;
+				std::cerr << "missing keyword 'to node' at line "
+					<< GetLineData() << std::endl;
 				THROW(MBDynParser::ErrGeneric());
 			}
 			uLabel = GetInt();
@@ -628,15 +628,15 @@ MBDynParser::GetVecAbs(const ReferenceFrame& rf)
 	case UNKNOWNFRAME: /* global */
 		if (IsKeyWord("fromnode")) {
 			/* FIXME */
-			cerr << "'from node' at line " << GetLineData()
-				<< " not implemented yet :)" << endl;
+			std::cerr << "'from node' at line " << GetLineData()
+				<< " not implemented yet :)" << std::endl;
 			THROW(MBDynParser::ErrGeneric());
 			
 			unsigned int uLabel = GetInt();
 			StructNode *pNode1 = NULL; /* get node 1 */
 			if (IsKeyWord("tonode")) {
-				cerr << "missing keyword 'to node' at line "
-					<< GetLineData() << endl;
+				std::cerr << "missing keyword 'to node' at line "
+					<< GetLineData() << std::endl;
 				THROW(MBDynParser::ErrGeneric());
 			}
 			uLabel = GetInt();
@@ -782,8 +782,8 @@ MBDynParser::GetHydraulicFluid(void)
 {
 	/* verifica che sia stato chiamato con "hydraulic" "fluid" */
 	if (!IsKeyWord("hydraulic" "fluid") && !IsKeyWord("fluid")) {
-		cerr << "hydraulic fluid expected at line "
-			<< GetLineData() << endl;
+		std::cerr << "hydraulic fluid expected at line "
+			<< GetLineData() << std::endl;
 		THROW(ErrGeneric());
 	}
 	
@@ -797,8 +797,8 @@ MBDynParser::GetHydraulicFluid(void)
 	const HydraulicFluid* pHF = HF.Get(uLabel);
 	ASSERT(pHF != NULL);
 	if (pHF == NULL) {
-		cerr << "hydraulic fluid " << uLabel
-			<< " is undefined at line " << GetLineData() << endl;
+		std::cerr << "hydraulic fluid " << uLabel
+			<< " is undefined at line " << GetLineData() << std::endl;
 		THROW(MBDynParser::ErrGeneric());
 	}
 	return pHF->pCopy();
@@ -813,8 +813,8 @@ MBDynParser::GetC81Data(integer profile)
 	const c81_data* data = AD.Get(profile);
 	ASSERT(data != NULL);
 	if (data == NULL) {
-		cerr << "c81 data " << profile << " is undefined at line " 
-			<< GetLineData() << endl;
+		std::cerr << "c81 data " << profile << " is undefined at line " 
+			<< GetLineData() << std::endl;
 		THROW(MBDynParser::ErrGeneric());
 	}
 	return data;

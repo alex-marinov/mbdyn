@@ -48,7 +48,7 @@ class TplDriveCaller {
    virtual TplDriveCaller<T>* pCopy(void) const = 0;
    
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const = 0;
+   virtual std::ostream& Restart(std::ostream& out) const = 0;
    
    /* Restituisce il valore del driver */
    virtual inline T Get(void) const = 0;

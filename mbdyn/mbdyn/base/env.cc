@@ -62,7 +62,7 @@ GetEnviron(MathParser& MP)
    	SAFEDELETEARR(p);     
    
    	if (e != NULL) {
-      		DEBUGCOUT("GetEnv: reading variable <" << e << ">" << endl);
+      		DEBUGCOUT("GetEnv: reading variable <" << e << ">" << std::endl);
 #if defined(HAVE_SSTREAM)
 		std::istringstream in(e);
 #else /* HAVE_STRSTREAM_H */
@@ -70,7 +70,7 @@ GetEnviron(MathParser& MP)
 #endif /* HAVE_STRSTREAM_H */
       		InputStream In(in);	 
       		MP.GetLastStmt(In);
-      		DEBUGCOUT("GetEnv: variable <" << e << "> read" << endl);
+      		DEBUGCOUT("GetEnv: variable <" << e << "> read" << std::endl);
    	}
    
    	/* cerca le variabili definite singolarmente */
@@ -78,7 +78,7 @@ GetEnviron(MathParser& MP)
    	char** env = environ;
    	while (*env) {
       		if (strncmp(*env, MBDYNPREFIX, MBDYNPREFIXLEN) == 0) {
-	 		DEBUGCOUT("reading var <" << *env << ">" << endl);
+	 		DEBUGCOUT("reading var <" << *env << ">" << std::endl);
 	 		long int i = 0;
 	 		double d = 0.;
 	 		char* p = NULL;
@@ -88,8 +88,8 @@ GetEnviron(MathParser& MP)
 	 		SAFESTRDUP(p, *env);
 	 		v = strchr(p, '=');
 	 		if (v == NULL) {
-	    			cerr << "parse error in envvar <" 
-					<< p << ">" << endl;	  
+	    			std::cerr << "parse error in envvar <" 
+					<< p << ">" << std::endl;	  
 	    			THROW(ErrGeneric());
 	 		}
 
@@ -100,14 +100,14 @@ GetEnviron(MathParser& MP)
 	    			n = p+11;
 	    			d = atof(v);
 	    			DEBUGCOUT("setting real var <" 
-					<< n << "=" << d << ">" << endl);
+					<< n << "=" << d << ">" << std::endl);
 	    
 	    			if ((T.Get(n)) == NULL) {	   
 	       				if (T.Put(n, Real(d))  == NULL) {      
-		  				cerr << "SetEnv:"
+		  				std::cerr << "SetEnv:"
 							" error in insertion"
 							" of real symbol <"
-		    					<< n << ">" << endl;
+		    					<< n << ">" << std::endl;
 		  				THROW(ErrGeneric());
 	       				}
 	    			}
@@ -116,21 +116,21 @@ GetEnviron(MathParser& MP)
 	    			n = p+14;
 	    			i = atoi(v);
 	    			DEBUGCOUT("setting integer var <" 
-					<< n << "=" << i << ">" << endl);
+					<< n << "=" << i << ">" << std::endl);
 	    
 	    			if ((T.Get(n)) == NULL) {	   
 	       				if (T.Put(n, Int(i))  == NULL) {
-		  				cerr << "SetEnv:"
+		  				std::cerr << "SetEnv:"
 							" error in insertion"
 							" of integer symbol <"
-		    					<< n << ">" << endl;
+		    					<< n << ">" << std::endl;
 		  				THROW(ErrGeneric());
 	       				}
 	    			}
 	    
 	 		} else {
-	    			cerr << "unknown var type <" 
-					<< p << ">; skipping ..." << endl;
+	    			std::cerr << "unknown var type <" 
+					<< p << ">; skipping ..." << std::endl;
 	 		}
       		}
       		env++;

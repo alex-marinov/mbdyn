@@ -126,29 +126,29 @@ void DataManager::ElemManager(void)
 /* distruttore */
 void DataManager::ElemManagerDestructor(void)
 {
-   DEBUGCOUT("Entering DataManager::ElemManagerDestructor()" << endl);
+   DEBUGCOUT("Entering DataManager::ElemManagerDestructor()" << std::endl);
    
    /* Distruzione matrici di lavoro per assemblaggio */ 
    if(pWorkMatB != NULL) {
-      DEBUGCOUT("deleting assembly structure, SubMatrix B" << endl);
+      DEBUGCOUT("deleting assembly structure, SubMatrix B" << std::endl);
       SAFEDELETE(pWorkMatB);
    }   
    
    if(pWorkMatA != NULL) {
-      DEBUGCOUT("deleting assembly structure, SubMatrix A" << endl);
+      DEBUGCOUT("deleting assembly structure, SubMatrix A" << std::endl);
       SAFEDELETE(pWorkMatA);
    }   
    
    
    if(pdWorkMat != NULL) {
-      DEBUGCOUT("deleting assembly structure, double workspace" << endl);
+      DEBUGCOUT("deleting assembly structure, double workspace" << std::endl);
       SAFEDELETEARR(pdWorkMat);
    }   
 
    // ASSERT(piWorkIndex != NULL);
 
    if(piWorkIndex != NULL) {
-      DEBUGCOUT("deleting assembly structure, integer workspace" << endl);
+      DEBUGCOUT("deleting assembly structure, integer workspace" << std::endl);
       SAFEDELETEARR(piWorkIndex);
    }   
 
@@ -165,7 +165,7 @@ void DataManager::ElemManagerDestructor(void)
 	     if(p != NULL) {		  
 		DEBUGCOUT("deleting element " << p->GetLabel()
 			  << ", type " << psElemNames[p->GetElemType()]
-			  << endl);
+			  << std::endl);
 		SAFEDELETE(p);
 	     }
 	  } while(ElemIter.fGetNext(p));
@@ -177,13 +177,13 @@ void DataManager::ElemManagerDestructor(void)
 	 if(*pp != NULL) {		  
 	    DEBUGCOUT("deleting element " << (*pp)->GetLabel() 
 		      << ", type " << psElemNames[(*pp)->GetElemType()]
-		      << endl);
+		      << std::endl);
 	    SAFEDELETE(*pp);		  
 	 }	     
 	 pp++;
       }
 #endif /* !USE_ELEM_ITER */
-      DEBUGCOUT("deleting elements structure" << endl);
+      DEBUGCOUT("deleting elements structure" << std::endl);
       SAFEDELETEARR(ppElems);
    }   
      
@@ -193,13 +193,13 @@ void DataManager::ElemManagerDestructor(void)
       while(pp < ppDrive+iTotDrive) {
 	 if(*pp != NULL) {
 	    DEBUGCOUT("deleting driver " << (*pp)->GetLabel() << ", type " 
-		      << psDriveNames[(*pp)->GetDriveType()] << endl);
+		      << psDriveNames[(*pp)->GetDriveType()] << std::endl);
 	    SAFEDELETE(*pp);
 	 }	     
 	 pp++;
       }
       
-      DEBUGCOUT("deleting drivers structure" << endl);
+      DEBUGCOUT("deleting drivers structure" << std::endl);
       SAFEDELETEARR(ppDrive);
    }
       
@@ -215,7 +215,7 @@ void DataManager::ElemDataInit(void)
       iTotElem += ElemData[iCnt].iNum;
    }	
    
-   DEBUGCOUT("iTotElem = " << iTotElem << endl);
+   DEBUGCOUT("iTotElem = " << iTotElem << std::endl);
    
    if (iTotElem > 0) {	     
       SAFENEWARR(ppElems, Elem*, iTotElem);
@@ -236,7 +236,7 @@ void DataManager::ElemDataInit(void)
       }
       
    } else {
-      cerr << "warning, no elements are defined" << endl;
+      std::cerr << "warning, no elements are defined" << std::endl;
    }	
 
 		
@@ -245,7 +245,7 @@ void DataManager::ElemDataInit(void)
       iTotDrive += DriveData[iCnt].iNum;
    }	
    
-   DEBUGCOUT("iTotDrive = " << iTotDrive << endl);
+   DEBUGCOUT("iTotDrive = " << iTotDrive << std::endl);
    
    if (iTotDrive > 0) {
       SAFENEWARR(ppDrive, Drive*, iTotDrive);
@@ -273,7 +273,7 @@ void DataManager::ElemDataInit(void)
       }
       
    } else {
-      DEBUGCERR("warning, no drivers are defined" << endl);
+      DEBUGCERR("warning, no drivers are defined" << std::endl);
    }	   
 }
 
@@ -314,12 +314,12 @@ void DataManager::ElemAssInit(void)
 						      pdWorkMat+iWorkDoubleSize));
       
       DEBUGCOUT("Creating working matrices: work int size = " << iWorkIntSize 
-		<< ", work double size = " << iWorkDoubleSize << endl
+		<< ", work double size = " << iWorkDoubleSize << std::endl
 		<< "work matrices are " << iMaxWorkNumRows 
-		<< " x " << iMaxWorkNumCols << endl);
+		<< " x " << iMaxWorkNumCols << std::endl);
       
    } else {
-      cerr << "warning, null size of working matrix" << endl;
+      std::cerr << "warning, null size of working matrix" << std::endl;
    }      
 }
 
@@ -330,7 +330,7 @@ void DataManager::ElemAssInit(void)
 
 void DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 {
-   DEBUGCOUT("Entering DataManager::AssJac()" << endl);
+   DEBUGCOUT("Entering DataManager::AssJac()" << std::endl);
 
    ASSERT(pWorkMatA != NULL);   
    ASSERT(ppElems != NULL);
@@ -375,7 +375,7 @@ void DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 
 void DataManager::AssEig(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl)
 {
-   DEBUGCOUT("Entering DataManager::AssEig()" << endl);
+   DEBUGCOUT("Entering DataManager::AssEig()" << std::endl);
       
    ASSERT(pWorkMatA != NULL);
    ASSERT(pWorkMatB != NULL);
@@ -427,7 +427,7 @@ void DataManager::AssEig(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl)
 
 void DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 {
-   DEBUGCOUT("Entering AssRes()" << endl);
+   DEBUGCOUT("Entering AssRes()" << std::endl);
 
    /* Vedi quanto scritto per lo jacobiano */
    
@@ -444,10 +444,10 @@ void DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
     if(ElemIter.fGetFirst(pTmpEl)) {       
        do {
 	  DEBUGCOUT(psElemNames[pTmpEl->GetElemType()]
-		    << "(" << pTmpEl->GetLabel() << ")" << endl);
+		    << "(" << pTmpEl->GetLabel() << ")" << std::endl);
 #if 0
-	  cout << psElemNames[pTmpEl->GetElemType()]
-	    << "(" << pTmpEl->GetLabel() << ")" << endl;
+	  std::cout << psElemNames[pTmpEl->GetElemType()]
+	    << "(" << pTmpEl->GetLabel() << ")" << std::endl;
 #endif
 	  ResHdl += pTmpEl->AssRes(WorkVec, dCoef, *pXCurr, *pXPrimeCurr);
        } while (ElemIter.fGetNext(pTmpEl));
@@ -501,7 +501,7 @@ DataManager::ElemOutput(
 
 void
 DataManager::ElemOutput_pch(
-		ostream& pch
+		std::ostream& pch
 		) const
 {
 #if !defined(USE_ELEM_ITER)
@@ -523,7 +523,7 @@ DataManager::ElemOutput_pch(
 
 void
 DataManager::ElemOutput_f06(
-		ostream& f06,
+		std::ostream& f06,
 		const VectorHandler& X
 		) const
 {
@@ -691,8 +691,8 @@ InitialAssemblyElem* InitialAssemblyIterator::GetFirst(void) const
 #ifdef DEBUG   
    ASSERT(p != NULL);
    if (p == NULL) {
-      cerr << "warning, element " << (*ppCurr)->GetLabel() 
-	<< " is not subject to initial assembly" << endl;
+      std::cerr << "warning, element " << (*ppCurr)->GetLabel() 
+	<< " is not subject to initial assembly" << std::endl;
    }
 #endif
       
@@ -724,8 +724,8 @@ InitialAssemblyElem* InitialAssemblyIterator::GetNext(void) const
 #ifdef DEBUG   
       ASSERT(p != NULL);
       if (p == NULL) {
-	 cerr << "warning, element " << (*ppCurr)->GetLabel() 
-	   << " is not subject to initial assembly" << endl;
+	 std::cerr << "warning, element " << (*ppCurr)->GetLabel() 
+	   << " is not subject to initial assembly" << std::endl;
       }
 #endif
       
@@ -738,8 +738,8 @@ InitialAssemblyElem* InitialAssemblyIterator::GetNext(void) const
 #ifdef DEBUG   
    ASSERT(p != NULL);
    if (p == NULL) {
-      cerr << "warning, element " << (*ppCurr)->GetLabel() 
-	<< " is not subject to initial assembly" << endl;
+      std::cerr << "warning, element " << (*ppCurr)->GetLabel() 
+	<< " is not subject to initial assembly" << std::endl;
    }
 #endif
       

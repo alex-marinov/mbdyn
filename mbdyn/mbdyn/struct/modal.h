@@ -38,10 +38,13 @@
 #ifndef MODAL_H
 #define MODAL_H
 
-#include "joint.h"
-#include "elem.h"
-
+#if defined(HAVE_FSTREAM)
+#include <fstream>
+#elif defined(HAVE_FSTREAM_H)
 #include <fstream.h>
+#endif
+
+#include <joint.h>
 
 /* Modal - begin */
 
@@ -103,7 +106,7 @@ class Modal : virtual public Elem, public Joint {
    Mat3x3** ppR2;
    Vec3** ppF;
    Vec3** ppM;
-   ofstream fOutFlex;
+   std::ofstream fOutFlex;
    
    integer iModalIndex;
       
@@ -153,7 +156,7 @@ class Modal : virtual public Elem, public Joint {
    virtual Joint::Type GetJointType(void) const;
 
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    virtual unsigned int iGetNumDof(void) const;
    DofOrder::Order SetDof(unsigned int i) const;

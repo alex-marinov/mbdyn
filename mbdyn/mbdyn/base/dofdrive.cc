@@ -64,7 +64,7 @@ DriveCaller* DofDriveCaller::pCopy(void) const
 
 
 /* Restart */
-ostream& DofDriveCaller::Restart(ostream& out) const
+std::ostream& DofDriveCaller::Restart(std::ostream& out) const
 {
    out << " dof, " 
      << SD.pNode->GetLabel() << ", "

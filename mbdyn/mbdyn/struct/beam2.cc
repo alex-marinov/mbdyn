@@ -37,6 +37,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <float.h>
+
 #include <constltp.h>
 #include <shapefnc.h>
 #include <beam.h>
@@ -169,8 +171,8 @@ Beam2::DsDxi(void)
 	if (d > DBL_EPSILON) {
 		dsdxi = 1./sqrt(d);
 	} else {
-		cerr << "warning, beam " << GetLabel() 
-			<< " has singular metric; aborting ..." << endl;
+		std::cerr << "warning, beam " << GetLabel() 
+			<< " has singular metric; aborting ..." << std::endl;
 		
 		THROW(Beam2::ErrGeneric());
 	}
@@ -218,14 +220,14 @@ Beam2::Omega0(void)
 
 
 /* Contributo al file di restart */
-ostream&
-Beam2::Restart(ostream& out) const
+std::ostream&
+Beam2::Restart(std::ostream& out) const
 {
-	return Restart_(out)<< ';' << endl;
+	return Restart_(out)<< ';' << std::endl;
 }
 
-ostream&
-Beam2::Restart_(ostream& out) const
+std::ostream&
+Beam2::Restart_(std::ostream& out) const
 { 
 	out << "  beam2: " << GetLabel();
 	for (unsigned int i = 0; i < NUMNODES; i++) {
@@ -561,8 +563,8 @@ void
 Beam2::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		OH.Beams() << setw(8) << GetLabel() << " " 
-			<< AzLoc.GetVec1() << " " << AzLoc.GetVec2() << endl;
+		OH.Beams() << std::setw(8) << GetLabel() << " " 
+			<< AzLoc.GetVec1() << " " << AzLoc.GetVec2() << std::endl;
 	}
 }
 
@@ -570,7 +572,7 @@ Beam2::Output(OutputHandler& OH) const
  * Output di un modello NASTRAN equivalente nella configurazione corrente 
  */
 void
-Beam2::Output_pch(ostream& out) const
+Beam2::Output_pch(std::ostream& out) const
 {
 #if defined(__HACK_NASTRAN_MODES__)
 	if (fToBeOutput()) {
@@ -586,78 +588,78 @@ Beam2::Output_pch(ostream& out) const
 		Vec3 F2(pNode[NODE2]->GetRCurr()*f[NODE2]);
 
 #if __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FIXED__
-		out << endl
+		out << std::endl
 			/* PBEAM */
 			<< "PBEAM   "
-			<< setw(8) << label             /* label */
-			<< setw(8) << 1                 /* material */
-			<< setw(8) << 1.                /* area */
-			<< setw(8) << 1.                /* J1 */
-			<< setw(8) << 1.                /* J2 */
-			<< setw(8) << " "               /* J12 */
-			<< setw(8) << 1.                /* Jp */
-			<< endl
+			<< std::setw(8) << label             /* label */
+			<< std::setw(8) << 1                 /* material */
+			<< std::setw(8) << 1.                /* area */
+			<< std::setw(8) << 1.                /* J1 */
+			<< std::setw(8) << 1.                /* J2 */
+			<< std::setw(8) << " "               /* J12 */
+			<< std::setw(8) << 1.                /* Jp */
+			<< std::endl
 			
 			/* CBEAM */
 			<< "CBEAM   "
-			<< setw(8) << label             /* label */
-			<< setw(8) << label             /* prop */
-			<< setw(8) << pNode[NODE1]->GetLabel()  /* node 1 */
-			<< setw(8) << pNode[NODE2]->GetLabel()  /* node 2 */
-			<< setw(32) << " "
-			<< "+" << setw(7) << 1
-			<< endl
-			<< "+" << setw(7) << 1
-			<< setw(16) << " "
-			<< setw(8) << F1.dGet(1)
-			<< setw(8) << F1.dGet(2)
-			<< setw(8) << F1.dGet(3)
-			<< setw(8) << F2.dGet(1)
-			<< setw(8) << F2.dGet(2)
-			<< setw(8) << F2.dGet(3)
-			<< endl;
+			<< std::setw(8) << label             /* label */
+			<< std::setw(8) << label             /* prop */
+			<< std::setw(8) << pNode[NODE1]->GetLabel()  /* node 1 */
+			<< std::setw(8) << pNode[NODE2]->GetLabel()  /* node 2 */
+			<< std::setw(32) << " "
+			<< "+" << std::setw(7) << 1
+			<< std::endl
+			<< "+" << std::setw(7) << 1
+			<< std::setw(16) << " "
+			<< std::setw(8) << F1.dGet(1)
+			<< std::setw(8) << F1.dGet(2)
+			<< std::setw(8) << F1.dGet(3)
+			<< std::setw(8) << F2.dGet(1)
+			<< std::setw(8) << F2.dGet(2)
+			<< std::setw(8) << F2.dGet(3)
+			<< std::endl;
 #elif __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FIXED16__
-		out << endl
+		out << std::endl
 			/* PBEAM */
 			<< "PBEAM*  "
-			<< setw(16) << label            /* label */
-			<< setw(16) << 1                /* material */
-			<< setw(16) << 1.               /* area */
-			<< setw(16) << 1.               /* J1 */
-			<< "*" << setw(7) << 1
-			<< endl
-			<< "*" << setw(7) << 1
-			<< setw(16) << 1.               /* J2 */
-			<< setw(16) << " "              /* J12 */
-			<< setw(16) << 1.               /* Jp */
-			<< endl
+			<< std::setw(16) << label            /* label */
+			<< std::setw(16) << 1                /* material */
+			<< std::setw(16) << 1.               /* area */
+			<< std::setw(16) << 1.               /* J1 */
+			<< "*" << std::setw(7) << 1
+			<< std::endl
+			<< "*" << std::setw(7) << 1
+			<< std::setw(16) << 1.               /* J2 */
+			<< std::setw(16) << " "              /* J12 */
+			<< std::setw(16) << 1.               /* Jp */
+			<< std::endl
 			
 			/* CBEAM */
 			<< "CBEAM*  "
-			<< setw(16) << label            /* label */
-			<< setw(16) << label            /* prop */
-			<< setw(16) << pNode[NODE1]->GetLabel() /* node 1 */
-			<< setw(16) << pNode[NODE2]->GetLabel() /* node 2 */
-			<< "*" << setw(7) << 1
-			<< endl
-			<< "*" << setw(7) << 1
-			<< setw(64) << " "
-			<< "*" << setw(7) << 2
-			<< endl
-			<< "*" << setw(7) << 2
-			<< setw(32) << " "
-			<< setw(16) << F1.dGet(1)
-			<< setw(16) << F1.dGet(2)
-			<< "*" << setw(7) << 3
-			<< endl
-			<< "*" << setw(7) << 3
-			<< setw(16) << F1.dGet(3)
-			<< setw(16) << F2.dGet(1)
-			<< setw(16) << F2.dGet(2)
-			<< setw(16) << F2.dGet(3)
-			<< endl;
+			<< std::setw(16) << label            /* label */
+			<< std::setw(16) << label            /* prop */
+			<< std::setw(16) << pNode[NODE1]->GetLabel() /* node 1 */
+			<< std::setw(16) << pNode[NODE2]->GetLabel() /* node 2 */
+			<< "*" << std::setw(7) << 1
+			<< std::endl
+			<< "*" << std::setw(7) << 1
+			<< std::setw(64) << " "
+			<< "*" << std::setw(7) << 2
+			<< std::endl
+			<< "*" << std::setw(7) << 2
+			<< std::setw(32) << " "
+			<< std::setw(16) << F1.dGet(1)
+			<< std::setw(16) << F1.dGet(2)
+			<< "*" << std::setw(7) << 3
+			<< std::endl
+			<< "*" << std::setw(7) << 3
+			<< std::setw(16) << F1.dGet(3)
+			<< std::setw(16) << F2.dGet(1)
+			<< std::setw(16) << F2.dGet(2)
+			<< std::setw(16) << F2.dGet(3)
+			<< std::endl;
 #elif __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FREE__
-		out << endl
+		out << std::endl
 			/* PBEAM */
 			<< "PBEAM,"
 			<< label << ","
@@ -666,7 +668,7 @@ Beam2::Output_pch(ostream& out) const
 			<< 1. << ","
 			<< 1. << ","
 			<< ","
-			<< 1. << endl
+			<< 1. << std::endl
 			
 			/* CBEAM */
 			<< "CBEAM,"
@@ -677,12 +679,12 @@ Beam2::Output_pch(ostream& out) const
 #if 0
 			<< "," 
 #endif
-			<< endl
+			<< std::endl
 #if 1
 			<< ","
 #endif
 			<< " ,,", F1.Write(out, ",") << ",", F2.Write(out, ",")
-			<< endl;
+			<< std::endl;
 #else
 #error "unknown NASTRAN format"
 #endif
@@ -768,8 +770,8 @@ Beam2::GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& r) const
 }
 
 
-ostream& 
-Beam2::WriteAdamsDummyPartCmd(ostream& out,
+std::ostream& 
+Beam2::WriteAdamsDummyPartCmd(std::ostream& out,
 		unsigned int part,
 		unsigned int firstId) const
 {
@@ -784,14 +786,14 @@ Beam2::WriteAdamsDummyPartCmd(ostream& out,
 	Mat3x3 RT(R.Transpose());
 	
 	out << psAdamsElemCode[GetElemType()] << "_" << GetLabel()
-		<< "_" << 1 << endl
+		<< "_" << 1 << std::endl
 		<< firstId << " "
 		<< p << " " 
 		<< EulerAngles(R) << " "
 		<< RT*(xTmp[NODE1]-p) << " "
 		<< Zero3 /* EulerAngles(pNode[part]->GetRCurr()) */ << " "
 		<< RT*(xTmp[NODE2]-p) << " "
-		<< Zero3 /* EulerAngles(pNode[1+part]->GetRCurr()) */ << endl;
+		<< Zero3 /* EulerAngles(pNode[1+part]->GetRCurr()) */ << std::endl;
 	
 	return out;
 }
@@ -1207,8 +1209,8 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	}
 
 	DEBUGLCOUT(MYDEBUG_INPUT, "node 1 offset (node reference frame): " 
-			<< f1 << endl << "(global frame): "
-			<< pNode1->GetXCurr()+pNode1->GetRCurr()*f1 << endl);
+			<< f1 << std::endl << "(global frame): "
+			<< pNode1->GetXCurr()+pNode1->GetRCurr()*f1 << std::endl);
 	
 	/* Nodo 2 */
 	StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
@@ -1221,8 +1223,8 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	}
 	
 	DEBUGLCOUT(MYDEBUG_INPUT, "node 2 offset (node reference frame): " 
-			<< f2 << endl << "(global frame): "
-			<< pNode2->GetXCurr()+pNode2->GetRCurr()*f2 << endl);
+			<< f2 << std::endl << "(global frame): "
+			<< pNode2->GetXCurr()+pNode2->GetRCurr()*f2 << std::endl);
 	
 	/* Matrice R */
 	Mat3x3 R;
@@ -1245,10 +1247,10 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	Mat3x3 D22(MTmp.GetMat22());
 	
 	DEBUGLCOUT(MYDEBUG_INPUT, 
-			"First point matrix D11: " << endl << D11 << endl
-			<< "First point matrix D12: " << endl << D12 << endl
-			<< "First point matrix D21: " << endl << D21 << endl
-			<< "First point matrix D22: " << endl << D22 << endl);
+			"First point matrix D11: " << std::endl << D11 << std::endl
+			<< "First point matrix D12: " << std::endl << D12 << std::endl
+			<< "First point matrix D21: " << std::endl << D21 << std::endl
+			<< "First point matrix D22: " << std::endl << D22 << std::endl);
 #endif /* DEBUG */
 	
 #if defined(USE_ELECTRIC_NODES)
@@ -1260,16 +1262,16 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		fPiezo = flag(1);
 		DEBUGLCOUT(MYDEBUG_INPUT, 
 				"Piezoelectric actuator beam is expected"
-				<< endl);
+				<< std::endl);
 		
 		iNumElec = HP.GetInt();
 		DEBUGLCOUT(MYDEBUG_INPUT, 
 				"piezo actuator " << uLabel
 				<< " has " << iNumElec 
-				<< " electrodes" << endl);
+				<< " electrodes" << std::endl);
 		if (iNumElec <= 0) {
-			cerr << "illegal number of electric nodes "
-				<< iNumElec << endl;
+			std::cerr << "illegal number of electric nodes "
+				<< iNumElec << std::endl;
 			THROW(ErrGeneric());
 		}
 		
@@ -1278,11 +1280,11 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		for (integer i = 0; i < iNumElec; i++) {
 			unsigned int uL = HP.GetInt();
 			DEBUGLCOUT(MYDEBUG_INPUT, "linked to abstract node "
-					<< uL << endl);
+					<< uL << std::endl);
 			pvElecDofs[i] = (ScalarDifferentialNode*)(pDM->pFindNode(Node::ABSTRACT, uL));
 			if (pvElecDofs[i] == NULL) {
-				cerr << "can't find abstract node "
-					<< uL << endl;
+				std::cerr << "can't find abstract node "
+					<< uL << std::endl;
 				THROW(ErrGeneric());
 			}
 		}
@@ -1294,7 +1296,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		HP.GetMat6xN(PiezoMat[0], PiezoMat[1], iNumElec);
 		
 #if 0
-		DEBUGLCOUT(MYDEBUG_INPUT, "Piezo matrix I:" << endl
+		DEBUGLCOUT(MYDEBUG_INPUT, "Piezo matrix I:" << std::endl
 				<< PiezoMat[0][0] << PiezoMat[1][0]);
 #endif /* 0 */
 	}
@@ -1374,16 +1376,16 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 #endif /* defined(USE_ELECTRIC_NODES) */
 		
 #else /* VISCOELASTIC_BEAM */
-		cerr << "Sorry, the ViscoElasticBeam2 element"
-			" is not available yet" << endl;
+		std::cerr << "Sorry, the ViscoElasticBeam2 element"
+			" is not available yet" << std::endl;
 		THROW(ErrNotImplementedYet());
 #endif /* VISCOELASTIC_BEAM */
 	}
 	
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.fIsArg()) {
-		cerr << "semicolon expected at line "
-			<< HP.GetLineData() << endl;      
+		std::cerr << "semicolon expected at line "
+			<< HP.GetLineData() << std::endl;      
 		THROW(DataManager::ErrGeneric());
 	}
 	

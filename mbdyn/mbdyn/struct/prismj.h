@@ -67,7 +67,7 @@ class PrismaticJoint : virtual public Elem, public Joint {
    };
 
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    /* Tipo di Joint */
    virtual Joint::Type GetJointType(void) const { 

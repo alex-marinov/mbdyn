@@ -64,7 +64,7 @@ class LinearVelocityJoint
      { return Joint::LINEARVELOCITY; };
 
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    virtual unsigned int iGetNumDof(void) const { 
       return 1;
@@ -171,7 +171,7 @@ class AngularVelocityJoint
      { return Joint::ANGULARVELOCITY; };
 
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    virtual unsigned int iGetNumDof(void) const { 
       return 1;

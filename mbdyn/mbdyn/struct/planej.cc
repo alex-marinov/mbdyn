@@ -61,7 +61,7 @@ PlaneHingeJoint::~PlaneHingeJoint(void)
 
 
 /* Contributo al file di restart */
-ostream& PlaneHingeJoint::Restart(ostream& out) const
+std::ostream& PlaneHingeJoint::Restart(std::ostream& out) const
 {
    Joint::Restart(out) << ", plane hinge, "
      << pNode1->GetLabel() << ", reference, node, ",
@@ -71,7 +71,7 @@ ostream& PlaneHingeJoint::Restart(ostream& out) const
      << pNode2->GetLabel() << ", reference, node, ",
      d2.Write(out, ", ")
      << ", hinge, reference, node, 1, ", (R2h.GetVec(1)).Write(out, ", ")
-     << ", 2, ", (R2h.GetVec(2)).Write(out, ", ") << ';' << endl;
+     << ", 2, ", (R2h.GetVec(2)).Write(out, ", ") << ';' << std::endl;
    
    return out;
 }
@@ -84,7 +84,7 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			    const VectorHandler& /* XCurr */ ,
 			    const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering PlaneHingeJoint::AssJac()" << endl);
+   DEBUGCOUT("Entering PlaneHingeJoint::AssJac()" << std::endl);
    
    /* Setta la sottomatrice come piena (e' un po' dispersivo, ma lo jacobiano 
     * e' complicato */					
@@ -241,7 +241,7 @@ SubVectorHandler& PlaneHingeJoint::AssRes(SubVectorHandler& WorkVec,
 					  const VectorHandler& XCurr, 
 					  const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering PlaneHingeJoint::AssRes()" << endl);
+   DEBUGCOUT("Entering PlaneHingeJoint::AssRes()" << std::endl);
       
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -326,13 +326,13 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
       OH.Output() << "Joint " << uLabel << ", type \""
 	<< psJointNames[Joint::PLANEHINGE] 
 	<< "\", linked to nodes " << pNode1->GetLabel() 
-	<< " and " << pNode2->GetLabel() << ':' << endl 
-	<< "Distance from node 1 (node reference frame): " << endl << d1 << endl 
-	<< "Distance from node 2 (node reference frame): " << endl << d2 << endl
-	<< "Current force reaction: " << endl << F << endl
-	<< "Hinge to node 1 relative orientation: " << endl << R1h << endl
-	<< "Hinge to node 2 relative orientation: " << endl << R2h << endl
-	<< "Current reaction couple: " << endl << M << endl;   
+	<< " and " << pNode2->GetLabel() << ':' << std::endl 
+	<< "Distance from node 1 (node reference frame): " << std::endl << d1 << std::endl 
+	<< "Distance from node 2 (node reference frame): " << std::endl << d2 << std::endl
+	<< "Current force reaction: " << std::endl << F << std::endl
+	<< "Hinge to node 1 relative orientation: " << std::endl << R1h << std::endl
+	<< "Hinge to node 2 relative orientation: " << std::endl << R2h << std::endl
+	<< "Current reaction couple: " << std::endl << M << std::endl;   
 #endif /* DEBUG */
    
       Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
@@ -342,7 +342,7 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
       Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),
 		    R2TmpT*F, M, F, R2Tmp*M)
 	<< " " << EulerAngles(RTmp) 
-	  << " " << R2TmpT*(pNode1->GetWCurr()-pNode2->GetWCurr()) << endl;
+	  << " " << R2TmpT*(pNode1->GetWCurr()-pNode2->GetWCurr()) << std::endl;
    }   
 }
 
@@ -492,9 +492,9 @@ PlaneHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
    if (Tmp1.Dot() <= DBL_EPSILON || Tmp2.Dot() <= DBL_EPSILON) {
-      cerr << "joint " << GetLabel() << ':' << endl
-	<< "warning, first node hinge axis and second node hinge axis are (nearly) orthogonal;" << endl
-	<< "aborting ..." << endl;
+      std::cerr << "joint " << GetLabel() << ':' << std::endl
+	<< "warning, first node hinge axis and second node hinge axis are (nearly) orthogonal;" << std::endl
+	<< "aborting ..." << std::endl;
       THROW(Joint::ErrGeneric());
    }   
    
@@ -606,7 +606,7 @@ SubVectorHandler&
 PlaneHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 			       const VectorHandler& XCurr)
 {   
-   DEBUGCOUT("Entering PlaneHingeJoint::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering PlaneHingeJoint::InitialAssRes()" << std::endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -740,7 +740,7 @@ doublereal PlaneHingeJoint::dGetPrivData(unsigned int i) const
     }
       
     default:
-      cerr << "Illegal private data" << endl;
+      std::cerr << "Illegal private data" << std::endl;
       THROW(ErrGeneric());
    }
    
@@ -778,7 +778,7 @@ AxialRotationJoint::~AxialRotationJoint(void)
 
 
 /* Contributo al file di restart */
-ostream& AxialRotationJoint::Restart(ostream& out) const
+std::ostream& AxialRotationJoint::Restart(std::ostream& out) const
 {
    Joint::Restart(out) << ", axial rotation, "
      << pNode1->GetLabel() 
@@ -790,7 +790,7 @@ ostream& AxialRotationJoint::Restart(ostream& out) const
      << ", hinge, reference, node, 1, ", (R2h.GetVec(1)).Write(out, ", ")
      << ", 2, ", (R2h.GetVec(2)).Write(out, ", ") << ", ";
    
-   return pGetDriveCaller()->Restart(out) << ';' << endl;
+   return pGetDriveCaller()->Restart(out) << ';' << std::endl;
 }
 
 
@@ -801,7 +801,7 @@ AxialRotationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			   const VectorHandler& /* XCurr */ ,
 			   const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering AxialRotationJoint::AssJac()" << endl);
+   DEBUGCOUT("Entering AxialRotationJoint::AssJac()" << std::endl);
    
    /* Setta la sottomatrice come piena (e' un po' dispersivo, ma lo jacobiano 
     * e' complicato */					
@@ -973,7 +973,7 @@ SubVectorHandler& AxialRotationJoint::AssRes(SubVectorHandler& WorkVec,
 					     const VectorHandler& XCurr,
 					     const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering AxialRotationJoint::AssRes()" << endl);
+   DEBUGCOUT("Entering AxialRotationJoint::AssRes()" << std::endl);
 
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -1055,14 +1055,14 @@ void AxialRotationJoint::Output(OutputHandler& OH) const
       OH.Output() << "Joint " << uLabel << ", type \""
 	<< psJointNames[Joint::AXIALROTATION]
 	<< "\", linked to nodes " << pNode1->GetLabel() 
-	<< " and " << pNode2->GetLabel() << ':' << endl 
-	<< "Distance from node 1 (node reference frame): " << endl << d1 << endl 
-	<< "Distance from node 2 (node reference frame): " << endl << d2 << endl
-	<< "Current force reaction: " << endl << F << endl
-	<< "Hinge to node 1 relative orientation: " << endl << R1h << endl
-	<< "Hinge to node 2 relative orientation: " << endl << R2h << endl
-	<< "Current reaction couple: " << endl << M << endl
-	<< "Current hinge rotation speed: " << pGetDriveCaller()->dGet() << endl;
+	<< " and " << pNode2->GetLabel() << ':' << std::endl 
+	<< "Distance from node 1 (node reference frame): " << std::endl << d1 << std::endl 
+	<< "Distance from node 2 (node reference frame): " << std::endl << d2 << std::endl
+	<< "Current force reaction: " << std::endl << F << std::endl
+	<< "Hinge to node 1 relative orientation: " << std::endl << R1h << std::endl
+	<< "Hinge to node 2 relative orientation: " << std::endl << R2h << std::endl
+	<< "Current reaction couple: " << std::endl << M << std::endl
+	<< "Current hinge rotation speed: " << pGetDriveCaller()->dGet() << std::endl;
 #endif   
 
       Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
@@ -1072,7 +1072,7 @@ void AxialRotationJoint::Output(OutputHandler& OH) const
       Joint::Output(OH.Joints(), "AxialRotation", GetLabel(),
 		    R2TmpT*F, M, F, R2Tmp*M) 
 	<< " " << EulerAngles(RTmp) << " " << dGet() 
-	<< " " << R2TmpT*(pNode1->GetWCurr()-pNode2->GetWCurr()) << endl;
+	<< " " << R2TmpT*(pNode1->GetWCurr()-pNode2->GetWCurr()) << std::endl;
    }
 }
 
@@ -1224,9 +1224,9 @@ AxialRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
    if (Tmp1.Dot() <= DBL_EPSILON || Tmp2.Dot() <= DBL_EPSILON) {
-      cerr << "joint " << GetLabel() << ':' << endl
-	<< "warning, first node hinge axis and second node hinge axis are (nearly) orthogonal;" << endl
-	<< "aborting ..." << endl;
+      std::cerr << "joint " << GetLabel() << ':' << std::endl
+	<< "warning, first node hinge axis and second node hinge axis are (nearly) orthogonal;" << std::endl
+	<< "aborting ..." << std::endl;
       THROW(Joint::ErrGeneric());
    }   
    
@@ -1358,7 +1358,7 @@ SubVectorHandler&
 AxialRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
 				  const VectorHandler& XCurr)
 {   
-   DEBUGCOUT("Entering AxialRotationJoint::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering AxialRotationJoint::InitialAssRes()" << std::endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -1498,7 +1498,7 @@ PlanePinJoint::~PlanePinJoint(void)
 
 
 /* Contributo al file di restart */
-ostream& PlanePinJoint::Restart(ostream& out) const
+std::ostream& PlanePinJoint::Restart(std::ostream& out) const
 {
    Joint::Restart(out) << ", plane pin, "
      << pNode->GetLabel() 
@@ -1509,7 +1509,7 @@ ostream& PlanePinJoint::Restart(ostream& out) const
      << ", reference, global, ", X0.Write(out, ", ") 
      << ", reference, global, 1, ",
      (R0.GetVec(1)).Write(out, ", ") << ", 2, ", 
-     (R0.GetVec(2)).Write(out, ", ") << ';' << endl;
+     (R0.GetVec(2)).Write(out, ", ") << ';' << std::endl;
    
    return out;
 }
@@ -1522,7 +1522,7 @@ PlanePinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		      const VectorHandler& /* XCurr */ ,
 		      const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering PlanePinJoint::AssJac()" << endl);
+   DEBUGCOUT("Entering PlanePinJoint::AssJac()" << std::endl);
       
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
    WM.ResizeInit(39, 0, 0.);
@@ -1621,7 +1621,7 @@ SubVectorHandler& PlanePinJoint::AssRes(SubVectorHandler& WorkVec,
 					      const VectorHandler& XCurr,
 					      const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering PlanePinJoint::AssRes()" << endl);
+   DEBUGCOUT("Entering PlanePinJoint::AssRes()" << std::endl);
       
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -1680,12 +1680,12 @@ void PlanePinJoint::Output(OutputHandler& OH) const
 #ifdef DEBUG
       OH.Output() << "Joint " << uLabel << ", type \""
 	<< psJointNames[Joint::PLANEPIN]
-	<< "\", linked to node " << pNode->GetLabel() << ':' << endl
-	<< "Distance from node (node reference frame): " << endl << d << endl
-	<< "Hinge rotation matrix (node reference frame): " << endl << Rh << endl
-	<< "Current reaction force: " << endl << F << endl
-	<< "Current reaction couple (hinge reference frame):" << endl 
-	<< M << endl;
+	<< "\", linked to node " << pNode->GetLabel() << ':' << std::endl
+	<< "Distance from node (node reference frame): " << std::endl << d << std::endl
+	<< "Hinge rotation matrix (node reference frame): " << std::endl << Rh << std::endl
+	<< "Current reaction force: " << std::endl << F << std::endl
+	<< "Current reaction couple (hinge reference frame):" << std::endl 
+	<< M << std::endl;
 #endif
       
       Mat3x3 RTmp(pNode->GetRCurr()*Rh);
@@ -1695,7 +1695,7 @@ void PlanePinJoint::Output(OutputHandler& OH) const
       Joint::Output(OH.Joints(), "PlanePin", GetLabel(),
 		    RTmpT*F, M, F, RTmp*M) 
 	<< " " << EulerAngles(R0Tmp)
-	<< " " << RTmpT*(pNode->GetWCurr()) << endl;      
+	<< " " << RTmpT*(pNode->GetWCurr()) << std::endl;      
    }
 }
 
@@ -1778,9 +1778,9 @@ PlanePinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
    if (Tmp1.Dot() <= DBL_EPSILON || Tmp2.Dot() <= DBL_EPSILON) {
-      cerr << "joint " << GetLabel() << ':' << endl
-	<< "warning, node hinge axis and fixed point hinge axis are (nearly) orthogonal;" << endl
-	<< "aborting ..." << endl;
+      std::cerr << "joint " << GetLabel() << ':' << std::endl
+	<< "warning, node hinge axis and fixed point hinge axis are (nearly) orthogonal;" << std::endl
+	<< "aborting ..." << std::endl;
       THROW(Joint::ErrGeneric());
    }   
    
@@ -1867,7 +1867,7 @@ SubVectorHandler&
 PlanePinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 			const VectorHandler& XCurr)
 {   
-   DEBUGCOUT("Entering PlanePinJoint::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering PlanePinJoint::InitialAssRes()" << std::endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;

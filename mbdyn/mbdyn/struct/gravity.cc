@@ -53,10 +53,10 @@ Gravity::~Gravity(void)
 
 
 /* Scrive il contributo dell'elemento al file di restart */
-ostream& Gravity::Restart(ostream& out) const
+std::ostream& Gravity::Restart(std::ostream& out) const
 {
    return out << "  gravity: reference, global, ",
-     pGetDriveCaller()->Restart(out) << ";" << endl;
+     pGetDriveCaller()->Restart(out) << ";" << std::endl;
 }
 
 
@@ -66,7 +66,7 @@ VariableSubMatrixHandler& Gravity::AssJac(VariableSubMatrixHandler& WorkMat,
 					  const VectorHandler& /* XCurr */ ,
 					  const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering Gravity::AssJac()" << endl);
+   DEBUGCOUT("Entering Gravity::AssJac()" << std::endl);
    WorkMat.SetNullMatrix();
    return WorkMat;
 }
@@ -78,7 +78,7 @@ SubVectorHandler& Gravity::AssRes(SubVectorHandler& WorkVec,
 				  const VectorHandler& /* XCurr */ , 
 				  const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering Gravity::AssRes()" << endl);
+   DEBUGCOUT("Entering Gravity::AssRes()" << std::endl);
    WorkVec.Resize(0);
    
    /* Approfitto del fatto che Gravity viene aggiornato prima 

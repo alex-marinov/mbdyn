@@ -59,12 +59,12 @@ void DataManager::DofManagerDestructor(void)
    /* Distrugge le strutture dinamiche */
    ASSERT(pDofOwners != NULL);   
    if(pDofOwners != NULL) {	
-      DEBUGLCOUT(MYDEBUG_INIT, "deleting dof owners structure" << endl);
+      DEBUGLCOUT(MYDEBUG_INIT, "deleting dof owners structure" << std::endl);
       SAFEDELETEARR(pDofOwners);
    }
    
    if(pDofs != NULL) {	
-      DEBUGLCOUT(MYDEBUG_INIT, "deleting dofs structure" << endl);
+      DEBUGLCOUT(MYDEBUG_INIT, "deleting dofs structure" << std::endl);
       SAFEDELETEARR(pDofs);
    }   
 }
@@ -79,7 +79,7 @@ void DataManager::DofDataInit(void)
       iTotDofOwners += DofData[iCnt].iNum;
    }   
 
-   DEBUGLCOUT(MYDEBUG_INIT, "iTotDofOwners = " << iTotDofOwners << endl);
+   DEBUGLCOUT(MYDEBUG_INIT, "iTotDofOwners = " << iTotDofOwners << std::endl);
 	
    /* Crea la struttura dinamica dei DofOwner */
    if (iTotDofOwners > 0) {	     
@@ -105,8 +105,7 @@ void DataManager::DofDataInit(void)
       /* Se non sono definiti DofOwners, la simulazione non ha senso,
        * quindi il programma termina */
       DEBUGCERR("");
-      cerr << "warning, no dof owners are defined; program is aborting ..." 
-	<< endl;
+      std::cerr << "warning, no dof owners are defined" << std::endl;
 #ifdef USE_EXCEPTIONS      
       throw NoErr();
 #else
@@ -134,16 +133,16 @@ void DataManager::DofInit(void)
 	    iIndex += iNumDofs;
 	 } else {
 	    pTmp->iFirstIndex = -1;
-	    DEBUGCERR("warning, item " << iCnt << " has 0 dofs" << endl);
+	    DEBUGCERR("warning, item " << iCnt << " has 0 dofs" << std::endl);
 	 }
       }
       
       iTotDofs = iIndex;
 	
-      DEBUGLCOUT(MYDEBUG_INIT, "iTotDofs = " << iTotDofs << endl);
+      DEBUGLCOUT(MYDEBUG_INIT, "iTotDofs = " << iTotDofs << std::endl);
    } else {
       DEBUGCERR("");
-      cerr << "no dof owners are defined; aborting ..." << endl;
+      std::cerr << "no dof owners are defined" << std::endl;
       
       THROW(DataManager::ErrGeneric());
    }	   	
@@ -166,7 +165,7 @@ void DataManager::DofInit(void)
       }	
    } else {
       DEBUGCERR("");
-      cerr << "no dofs are defined, aborting ..." << endl;
+      std::cerr << "no dofs are defined" << std::endl;
       
       THROW(DataManager::ErrGeneric());
    }	   	

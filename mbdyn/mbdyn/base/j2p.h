@@ -49,7 +49,7 @@ class Elem2Param : public ParameterNode {
    virtual void Bind(const Elem* pEl, unsigned int i);
    
    /* Contributo del nodo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    /* Restituisce il valore del dof iDof;
     * se differenziale, iOrder puo' essere = 1 per la derivata */
@@ -104,7 +104,7 @@ class StrainGageParam : public Elem2Param {
    virtual void Bind(const Elem* pEl, unsigned int i);
    
    /* Contributo del nodo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    /* Restituisce il valore del dof iDof;
     * se differenziale, iOrder puo' essere = 1 per la derivata */

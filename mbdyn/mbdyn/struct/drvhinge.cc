@@ -73,7 +73,7 @@ DriveHingeJoint::~DriveHingeJoint(void)
 
    
 /* Contributo al file di restart */
-ostream& DriveHingeJoint::Restart(ostream& out) const
+std::ostream& DriveHingeJoint::Restart(std::ostream& out) const
 {
    Joint::Restart(out) << ", drive hinge, "
      << pNode1->GetLabel() << ", reference, node, 1, ",
@@ -82,7 +82,7 @@ ostream& DriveHingeJoint::Restart(ostream& out) const
      << pNode2->GetLabel() << ", reference, node, 1, ",
      (R2h.GetVec(1)).Write(out, ", ")
      << ", 2, ", (R2h.GetVec(2)).Write(out, ", ") << ", ";
-   return pGetDriveCaller()->Restart(out) << ';' << endl;
+   return pGetDriveCaller()->Restart(out) << ';' << std::endl;
 }
 
 
@@ -93,7 +93,7 @@ void DriveHingeJoint::Output(OutputHandler& OH) const
       Joint::Output(OH.Joints(), "DriveHinge", GetLabel(),
 		    Zero3, M, Zero3, pNode1->GetRCurr()*M)
 	<< " " << d 
-	<< " " << ThetaCurr << endl;
+	<< " " << ThetaCurr << std::endl;
    }     
 }
 
@@ -105,7 +105,7 @@ DriveHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			  const VectorHandler& /* XCurr */ ,
 			  const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering DriveHingeJoint::AssJac()" << endl);
+   DEBUGCOUT("Entering DriveHingeJoint::AssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -201,7 +201,7 @@ DriveHingeJoint::AssRes(SubVectorHandler& WorkVec,
 			  const VectorHandler& XCurr,
 			  const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering DriveHingeJoint::AssRes()" << endl);   
+   DEBUGCOUT("Entering DriveHingeJoint::AssRes()" << std::endl);   
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -263,7 +263,7 @@ VariableSubMatrixHandler&
 DriveHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 				 const VectorHandler& XCurr)
 {
-   DEBUGCOUT("Entering DriveHingeJoint::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering DriveHingeJoint::InitialAssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -338,7 +338,7 @@ SubVectorHandler&
 DriveHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 			       const VectorHandler& XCurr)
 {
-   DEBUGCOUT("Entering DriveHingeJoint::InitialAssRes()" << endl);   
+   DEBUGCOUT("Entering DriveHingeJoint::InitialAssRes()" << std::endl);   
    
    // Dimensiona e resetta la matrice di lavoro
    integer iNumRows = 0;

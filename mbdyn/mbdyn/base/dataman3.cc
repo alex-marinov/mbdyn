@@ -184,10 +184,11 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  int iDmy = HP.GetInt();
 	  NodeData[Node::STRUCTURAL].iNum = iDmy;
 	  DofData[DofOwner::STRUCTURALNODE].iNum = iDmy;
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Structural nodes: " << iDmy << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Structural nodes: " << iDmy << std::endl);
 	  break;
 #else /* USE_STRUCT_NODES */
-	  cerr << "you're not allowed to use structural nodes" << endl;
+	  std::cerr << "you're not allowed to use structural nodes" 
+		  << std::endl;
 	  THROW(ErrGeneric());
 #endif /* USE_STRUCT_NODES */
        }
@@ -198,10 +199,10 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  int iDmy = HP.GetInt();
 	  NodeData[Node::ELECTRIC].iNum = iDmy;
 	  DofData[DofOwner::ELECTRICNODE].iNum = iDmy;
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Electric nodes: " << iDmy << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Electric nodes: " << iDmy << std::endl);
 	  break;
 #else /* USE_ELECTRIC_NODES */
-	  cerr << "you're not allowed to use electric nodes" << endl;
+	  std::cerr << "you're not allowed to use electric nodes" << std::endl;
 	  THROW(ErrGeneric());
 #endif /* USE_ELECTRIC_NODES */
        }	     
@@ -212,10 +213,10 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  int iDmy = HP.GetInt();
 	  NodeData[Node::ABSTRACT].iNum = iDmy;
 	  DofData[DofOwner::ABSTRACTNODE].iNum = iDmy;
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Abstract nodes: " << iDmy << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Abstract nodes: " << iDmy << std::endl);
 	  break;
 #else /* USE_ELECTRIC_NODES */
-	  cerr << "you're not allowed to use abstract nodes" << endl;
+	  std::cerr << "you're not allowed to use abstract nodes" << std::endl;
 	  THROW(ErrGeneric());
 #endif /* USE_ELECTRIC_NODES */
        }
@@ -224,7 +225,7 @@ void DataManager::ReadControl(MBDynParser& HP,
        case PARAMETERNODES: {		  
 	  int iDmy = HP.GetInt();
 	  NodeData[Node::PARAMETER].iNum = iDmy;	     	     
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Parameter nodes: " << iDmy << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Parameter nodes: " << iDmy << std::endl);
 	  break;
        }	     
 	 
@@ -234,10 +235,10 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  int iDmy = HP.GetInt();
 	  NodeData[Node::HYDRAULIC].iNum = iDmy;
 	  DofData[DofOwner::HYDRAULICNODE].iNum = iDmy;
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Hydraulic nodes: " << iDmy << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Hydraulic nodes: " << iDmy << std::endl);
 	  break;
 #else /* defined(USE_HYDRAULIC_NODES) */
-	  cerr << "you're not allowed to use hydraulic nodes" << endl;
+	  std::cerr << "you're not allowed to use hydraulic nodes" << std::endl;
 	  THROW(ErrGeneric());
 #endif /* defined(USE_HYDRAULIC_NODES) */
        }	     
@@ -254,7 +255,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  ElemData[Elem::AUTOMATICSTRUCTURAL].iNum = iDmy;
 #endif /* 0 */
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Automatic structural elements expected: " 
-		    << iDmy << endl);
+		    << iDmy << std::endl);
 #else
           iDmy = 0;
 #endif
@@ -264,12 +265,12 @@ void DataManager::ReadControl(MBDynParser& HP,
 	 /* Accelerazione di gravita' */
        case GRAVITY: {
 	  if(ElemData[Elem::GRAVITY].iNum > 0) {
-	     cerr
-	       << "warning: gravity acceleration already defined;" << endl
-	       << "only one definition will be considered" << endl;
+	     std::cerr
+	       << "warning: gravity acceleration already defined;" << std::endl
+	       << "only one definition will be considered" << std::endl;
 	  }
 	  ElemData[Elem::GRAVITY].iNum = 1;
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Gravity acceleration expected in elements data" << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Gravity acceleration expected in elements data" << std::endl);
 	  break;
        }
 	 
@@ -277,7 +278,7 @@ void DataManager::ReadControl(MBDynParser& HP,
        case RIGIDBODIES: {
 	  int iDmy = HP.GetInt();
 	  ElemData[Elem::BODY].iNum = iDmy;
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Rigid bodies: " << iDmy << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Rigid bodies: " << iDmy << std::endl);
 	  break;
        }	     
 	 
@@ -286,7 +287,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  int iDmy = HP.GetInt();
 	  ElemData[Elem::JOINT].iNum = iDmy;	     
 	  DofData[DofOwner::JOINT].iNum = iDmy;
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Joints: " << iDmy << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Joints: " << iDmy << std::endl);
 	  if (iDmy > 0 ) {		       
 	     fInitialJointAssemblyToBeMade = flag(1);
 	  }
@@ -297,7 +298,7 @@ void DataManager::ReadControl(MBDynParser& HP,
        case BEAMS: {
 	  int iDmy = HP.GetInt();
 	  ElemData[Elem::BEAM].iNum = iDmy;	     
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Beams: " << iDmy << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Beams: " << iDmy << std::endl);
 	  if (iDmy > 0 ) {		       
 	     fInitialJointAssemblyToBeMade = flag(1);
 	  }
@@ -308,12 +309,12 @@ void DataManager::ReadControl(MBDynParser& HP,
 	 /* Elementi aerodinamici: proprieta' dell'aria */
        case AIRPROPERTIES: {
 	  if (ElemData[Elem::AIRPROPERTIES].iNum > 0) {
-	     cerr
-	       << "warning: air properties already defined;" << endl
-	       << "only one definition will be considered" << endl;
+	     std::cerr
+	       << "warning: air properties already defined;" << std::endl
+	       << "only one definition will be considered" << std::endl;
 	  }
 	  ElemData[Elem::AIRPROPERTIES].iNum = 1;
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Air properties expected in elements data" << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Air properties expected in elements data" << std::endl);
 	  break;
        }
 	 
@@ -322,7 +323,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  int iDmy = HP.GetInt();
 	  ElemData[Elem::ROTOR].iNum = iDmy;	     
 	  DofData[DofOwner::ROTOR].iNum = iDmy;
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Rotors: " << iDmy << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Rotors: " << iDmy << std::endl);
 	  break;
        }	     	     
 	 
@@ -330,7 +331,7 @@ void DataManager::ReadControl(MBDynParser& HP,
        case AERODYNAMICELEMENTS: {
 	  int iDmy = HP.GetInt();
 	  ElemData[Elem::AERODYNAMIC].iNum = iDmy;	     
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Aerodynamic Elements: " << iDmy << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Aerodynamic Elements: " << iDmy << std::endl);
 	  break;
        }
 #endif /* USE_AERODYNAMIC_ELEMS */
@@ -340,7 +341,7 @@ void DataManager::ReadControl(MBDynParser& HP,
        case FORCES: {
 	  int iDmy = HP.GetInt();
 	  ElemData[Elem::FORCE].iNum = iDmy;	     
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Forces: " << iDmy << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Forces: " << iDmy << std::endl);
 	  break;
        }	     
 	 
@@ -350,7 +351,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  int iDmy = HP.GetInt();
 	  ElemData[Elem::GENEL].iNum = iDmy;	     
 	  DofData[DofOwner::GENEL].iNum = iDmy;
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Genels: " << iDmy << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Genels: " << iDmy << std::endl);
 	  break;
        }	     
 	 
@@ -359,7 +360,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  int iDmy = HP.GetInt();
 	  ElemData[Elem::ELECTRIC].iNum = iDmy;	     
 	  DofData[DofOwner::ELECTRIC].iNum = iDmy;
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Electric elements: " << iDmy << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Electric elements: " << iDmy << std::endl);
 	  break;
        }	     
 #endif /* USE_ELECTRIC_NODES */
@@ -369,7 +370,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  int iDmy = HP.GetInt();
 	  ElemData[Elem::HYDRAULIC].iNum = iDmy;	     
 	  DofData[DofOwner::HYDRAULIC].iNum = iDmy;
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Hydraulic elements: " << iDmy << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Hydraulic elements: " << iDmy << std::endl);
 	  break;
        }	     
 	 
@@ -377,7 +378,7 @@ void DataManager::ReadControl(MBDynParser& HP,
        case BULKELEMENTS: {
 	  int iDmy = HP.GetInt();
 	  ElemData[Elem::BULK].iNum = iDmy;	     	    
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Bulk elements: " << iDmy << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Bulk elements: " << iDmy << std::endl);
 	  break;
        }	     
 	 
@@ -387,7 +388,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  int iDmy = HP.GetInt();
 	  ElemData[Elem::LOADABLE].iNum = iDmy;	     	    
 	  DofData[DofOwner::LOADABLE].iNum = iDmy;
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Loadable elements: " << iDmy << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Loadable elements: " << iDmy << std::endl);
 	  break;
        }
 #endif /* defined(HAVE_LOADABLE) */
@@ -396,7 +397,7 @@ void DataManager::ReadControl(MBDynParser& HP,
        case FILEDRIVERS: {
 	  int iDmy = HP.GetInt();
 	  DriveData[Drive::FILEDRIVE].iNum = iDmy;	     
-	  DEBUGLCOUT(MYDEBUG_INPUT, "File drivers: " << iDmy << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "File drivers: " << iDmy << std::endl);
 	  break;
        }	     
 	 
@@ -408,7 +409,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  * di default viene eseguito solo se sono definiti vincoli */
        case SKIPINITIALJOINTASSEMBLY: {
 	  fSkipInitialJointAssembly = flag(1);
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Skipping initial joint assembly" << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Skipping initial joint assembly" << std::endl);
 	  break;
        }	     
 	 
@@ -423,19 +424,19 @@ void DataManager::ReadControl(MBDynParser& HP,
 		
 	      case RIGIDBODIES: {			    
 		 ElemData[Elem::BODY].fToBeUsedInAssembly = flag(1);
-		 DEBUGLCOUT(MYDEBUG_INPUT, "Rigid bodies will be used in initial joint assembly" << endl);
+		 DEBUGLCOUT(MYDEBUG_INPUT, "Rigid bodies will be used in initial joint assembly" << std::endl);
 		 break;
 	      }
 		
 	      case GRAVITY: {			    
 		 ElemData[Elem::GRAVITY].fToBeUsedInAssembly = flag(1);
-		 DEBUGLCOUT(MYDEBUG_INPUT, "Gravity will be used in initial joint assembly" << endl);
+		 DEBUGLCOUT(MYDEBUG_INPUT, "Gravity will be used in initial joint assembly" << std::endl);
 		 break;
 	      }
 		
 	      case FORCES: {
 		 ElemData[Elem::FORCE].fToBeUsedInAssembly = flag(1);
-		 DEBUGLCOUT(MYDEBUG_INPUT, "Forces will be used in initial joint assembly" << endl);
+		 DEBUGLCOUT(MYDEBUG_INPUT, "Forces will be used in initial joint assembly" << std::endl);
 		 break;
 	      }
 		
@@ -444,14 +445,14 @@ void DataManager::ReadControl(MBDynParser& HP,
 #if 0
 		 ElemData[Elem::BEAM].fToBeUsedInAssembly = flag(1);
 #endif /* 0 */
-		 DEBUGLCOUT(MYDEBUG_INPUT, "Beams are used in initial joint assembly by default" << endl);
+		 DEBUGLCOUT(MYDEBUG_INPUT, "Beams are used in initial joint assembly by default" << std::endl);
 		 break;
 	      }			    
 
 #if defined(USE_AERODYNAMIC_ELEMS)
 	      case AERODYNAMICELEMENTS: {
 		 ElemData[Elem::AERODYNAMIC].fToBeUsedInAssembly = flag(1);
-		 DEBUGLCOUT(MYDEBUG_INPUT, "Aerodynamic Elements will be used in initial joint assembly" << endl);
+		 DEBUGLCOUT(MYDEBUG_INPUT, "Aerodynamic Elements will be used in initial joint assembly" << std::endl);
 		 
 		 if (ElemData[Elem::AIRPROPERTIES].fToBeUsedInAssembly == flag(0)) {
 		    ElemData[Elem::AIRPROPERTIES].fToBeUsedInAssembly = flag(1);
@@ -464,7 +465,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 #if defined(HAVE_LOADABLE)
 	      case LOADABLEELEMENTS: {
 		 ElemData[Elem::LOADABLE].fToBeUsedInAssembly = flag(1);
-		 DEBUGLCOUT(MYDEBUG_INPUT, "Loadable Elements will be used in initial joint assembly" << endl);
+		 DEBUGLCOUT(MYDEBUG_INPUT, "Loadable Elements will be used in initial joint assembly" << std::endl);
 		 break;
 	      }
 #endif /* defined(HAVE_LOADABLE) */
@@ -473,17 +474,17 @@ void DataManager::ReadControl(MBDynParser& HP,
 		
 		/* Elemento non autorizzato */
 	      default: {
-		 cerr << "Element type at line "
+	         std::cerr << "Element type at line "
 		   << HP.GetLineData() 
-		     << " is not allowed; aborting ..." << endl;
+		     << " is not allowed; aborting ..." << std::endl;
 		 
 		 THROW(DataManager::ErrElemNotAllowedInAssembly());
 	      }		       
 		
 		/* Errore */
 	      case UNKNOWN: {
-		 cerr << "Unknown element type at line "
-		   << HP.GetLineData() << "; aborting ..." << endl;
+		 std::cerr << "Unknown element type at line "
+		   << HP.GetLineData() << "; aborting ..." << std::endl;
 		 
 		 THROW(DataManager::ErrUnknownElem());
 	      }		       			      		       
@@ -513,9 +514,9 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  }
 	  
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Initial position stiffness: " 
-		     << dInitialPositionStiffness << endl
+		     << dInitialPositionStiffness << std::endl
 		     << "Initial velocity stiffness: "
-		     << dInitialVelocityStiffness << endl);
+		     << dInitialVelocityStiffness << std::endl);
 	  
 	  break;
        }
@@ -527,7 +528,8 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  } else if (HP.IsKeyWord("no")) {
 	     fOmegaRotates = flag(0);
 	  } else {
-	     cerr << "Invalid option at line " << HP.GetLineData() << endl;
+	     std::cerr << "Invalid option at line " 
+		     << HP.GetLineData() << std::endl;
 	     THROW(DataManager::ErrGeneric());
 	  }
 	  
@@ -540,7 +542,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  dInitialAssemblyToll = 
 	    HP.GetReal(dDefaultInitialAssemblyToll);
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Initial assembly tolerance: " 
-		     << dInitialAssemblyToll << endl);
+		     << dInitialAssemblyToll << std::endl);
 	  break;
        }	     
 	 
@@ -551,7 +553,7 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  iMaxInitialIterations = 
 	    HP.GetInt(iDefaultMaxInitialIterations);
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Max initial iterations: " 
-		     << iMaxInitialIterations << endl);
+		     << iMaxInitialIterations << std::endl);
 	  break;
        }
 #endif /* USE_STRUCT_NODES */
@@ -571,25 +573,25 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  const char* sTmp(HP.GetStringWithDelims());
 	  SAFESTRDUP(sSimulationTitle, sTmp);
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Simulation title: \"" 
-		     << sSimulationTitle << '"' << endl);
+		     << sSimulationTitle << '"' << std::endl);
 	  break;
        }	     
 	 
 	 /* Crea il file di restart */
        case MAKERESTARTFILE: {
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Restart file will be generated " << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Restart file will be generated " << std::endl);
 	  if (HP.fIsArg()) {
 	     if (HP.IsKeyWord("iterations")) {
 		RestartEvery = ITERATIONS;
 		iRestartIterations = HP.GetInt();
-		DEBUGLCOUT(MYDEBUG_INPUT, "every " << iRestartIterations << " iterations" << endl);
+		DEBUGLCOUT(MYDEBUG_INPUT, "every " << iRestartIterations << " iterations" << std::endl);
 	     } else if (HP.IsKeyWord("time")) {
 		RestartEvery = TIME;
 		dRestartTime = HP.GetReal();
-		DEBUGLCOUT(MYDEBUG_INPUT, "every " << dRestartTime << " time units" << endl);
+		DEBUGLCOUT(MYDEBUG_INPUT, "every " << dRestartTime << " time units" << std::endl);
 	     } else {
-		cerr << "Error: unrecognized restart option at line "
-		  << HP.GetLineData() << endl;
+		std::cerr << "Error: unrecognized restart option at line "
+		  << HP.GetLineData() << std::endl;
 
 		THROW(DataManager::ErrGeneric());
 	     }
@@ -606,7 +608,8 @@ void DataManager::ReadControl(MBDynParser& HP,
 	  }
 	  const char* sTmp(HP.GetFileName());
 	  if (sTmp == NULL) {
-	     cerr << "Null file name at line " << HP.GetLineData() << endl;
+	     std::cerr << "Null file name at line "
+		     << HP.GetLineData() << std::endl;
 	     THROW(DataManager::ErrGeneric());
 	  }
 	  SAFESTRDUP(sOutName, sTmp);
@@ -755,15 +758,15 @@ void DataManager::ReadControl(MBDynParser& HP,
 		
 		
 	      case UNKNOWN: {
-		 cerr << "warning: unknown output case at line " 
-		   << HP.GetLineData() << endl;
+		 std::cerr << "warning: unknown output case at line " 
+		   << HP.GetLineData() << std::endl;
 		 ASSERT(0);		 
 		 break;
 	      }
 		
 	      default: {
-		 cerr << "case " << sKeyWords[CurrDesc] << " at line "
-		   << HP.GetLineData() << " is not allowed" << endl;
+		 std::cerr << "case " << sKeyWords[CurrDesc] << " at line "
+		   << HP.GetLineData() << " is not allowed" << std::endl;
 		 ASSERT(0);		 
 		 break;
 	      }		    		    
@@ -782,14 +785,15 @@ void DataManager::ReadControl(MBDynParser& HP,
 	                * intercept control cases that are not allowed.
 			*/
 	  DEBUGCERR("");
-	  cerr << "unknown description at line " << HP.GetLineData() << endl;
+	  std::cerr << "unknown description at line " 
+		  << HP.GetLineData() << std::endl;
 	  ASSERT(0);
 	  break;
        }
 	 
        default: {
-	  cerr << "case " << sKeyWords[CurrDesc] << " at line " 
-	    << HP.GetLineData() << " is not allowed" << endl;
+	  std::cerr << "case " << sKeyWords[CurrDesc] << " at line " 
+	    << HP.GetLineData() << " is not allowed" << std::endl;
 	  THROW(DataManager::ErrGeneric());
        }	 
       }
@@ -797,15 +801,16 @@ void DataManager::ReadControl(MBDynParser& HP,
    
    if (KeyWords(HP.GetWord()) != CONTROLDATA) {	
       DEBUGCERR("");
-      cerr << "<end: control data;> expected at line " 
-	<< HP.GetLineData() << endl;
+      std::cerr << "<end: control data;> expected at line " 
+	<< HP.GetLineData() << std::endl;
       THROW(DataManager::ErrGeneric());
    }
    
    /* Se non c'e' il punto e virgola finale */
    if (HP.fIsArg()) {
       DEBUGCERR("");
-      cerr << "semicolon expected at line " << HP.GetLineData() << endl;
+      std::cerr << "semicolon expected at line "
+	      << HP.GetLineData() << std::endl;
       THROW(DataManager::ErrGeneric());
    }   
    
@@ -840,7 +845,7 @@ void DataManager::ReadControl(MBDynParser& HP,
       SAFEDELETEARR(sOutName);
    }
 
-   DEBUGLCOUT(MYDEBUG_INPUT, "End of control data" << endl);
+   DEBUGLCOUT(MYDEBUG_INPUT, "End of control data" << std::endl);
 } /* End of DataManager::ReadControl() */
 
 
@@ -860,8 +865,8 @@ flag DataManager::fReadOutput(MBDynParser& HP, enum Elem::Type t)
    } else if (HP.IsKeyWord("default")) {
       return fDef;
    } else {    
-      cerr << "Unknown output flag for element \""
-	<< psElemNames[t] << "\" at line " << HP.GetLineData() << endl;
+      std::cerr << "Unknown output flag for element \""
+	<< psElemNames[t] << "\" at line " << HP.GetLineData() << std::endl;
       THROW(DataManager::ErrGeneric());
    }
 #ifndef USE_EXCEPTIONS
@@ -884,8 +889,8 @@ flag DataManager::fReadOutput(MBDynParser& HP, enum Node::Type t)
    } else if (HP.IsKeyWord("default")) {
       return fDef;
    } else {    
-      cerr << "Unknown output flag for node \"" 
-	<< psNodeNames[t] << "\" at line " << HP.GetLineData() << endl;
+      std::cerr << "Unknown output flag for node \"" 
+	<< psNodeNames[t] << "\" at line " << HP.GetLineData() << std::endl;
       THROW(DataManager::ErrGeneric());
    }
 #ifndef USE_EXCEPTIONS
@@ -946,7 +951,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
    }      
          
    int iMissingNodes = iTotNodes;
-   DEBUGLCOUT(MYDEBUG_INPUT, "Expected nodes: " << iMissingNodes << endl);
+   DEBUGLCOUT(MYDEBUG_INPUT, "Expected nodes: " << iMissingNodes << std::endl);
 
    KeyWords CurrDesc;   
    while ((CurrDesc = KeyWords(HP.GetDescription())) != END) {
@@ -959,56 +964,61 @@ void DataManager::ReadNodes(MBDynParser& HP)
 
 	  case STRUCTURAL: {
 #if defined(USE_STRUCT_NODES)
-	     DEBUGLCOUT(MYDEBUG_INPUT, "structural" << endl);
+	     DEBUGLCOUT(MYDEBUG_INPUT, "structural" << std::endl);
 	     Typ = Node::STRUCTURAL;
 	     break;
 #else /* USE_STRUCT_NODES */
-	     cerr << "you're not allowed to use structural nodes" << endl;
+	     std::cerr << "you're not allowed to use structural nodes"
+		     << std::endl;
 	     THROW(ErrGeneric());
 #endif /* USE_STRUCT_NODES */
 	  }
 	    
 	  case ELECTRIC: {	
 #if defined(USE_ELECTRIC_NODES)
-	     DEBUGLCOUT(MYDEBUG_INPUT, "electric" << endl);
+	     DEBUGLCOUT(MYDEBUG_INPUT, "electric" << std::endl);
 	     Typ = Node::ELECTRIC;	     
 	     break;
 #else /* USE_ELECTRIC_NODES */
-	     cerr << "you're not allowed to use electric nodes" << endl;
+	     std::cerr << "you're not allowed to use electric nodes" 
+		     << std::endl;
 	     THROW(ErrGeneric());
 #endif /* USE_ELECTRIC_NODES */
 	  }
 	    
 	  case ABSTRACT: {	   
 #if defined(USE_ELECTRIC_NODES)
-	     DEBUGLCOUT(MYDEBUG_INPUT, "abstract" << endl);
+	     DEBUGLCOUT(MYDEBUG_INPUT, "abstract" << std::endl);
 	     Typ = Node::ABSTRACT;
 	     break;
 #else /* USE_ELECTRIC_NODES */
-	     cerr << "you're not allowed to use abstract nodes" << endl;
+	     std::cerr << "you're not allowed to use abstract nodes" 
+		     << std::endl;
 	     THROW(ErrGeneric());
 #endif /* USE_ELECTRIC_NODES */
 	  }
 	    
 	  case PARAMETER: {	    
-	     DEBUGLCOUT(MYDEBUG_INPUT, "parameter" << endl);
+	     DEBUGLCOUT(MYDEBUG_INPUT, "parameter" << std::endl);
 	     Typ = Node::PARAMETER;	     
 	     break;
 	  }
 
 	  case HYDRAULIC: {
 #if defined (USE_HYDRAULIC_NODES)
-	     DEBUGLCOUT(MYDEBUG_INPUT, "hydraulic" << endl);
+	     DEBUGLCOUT(MYDEBUG_INPUT, "hydraulic" << std::endl);
 	     Typ = Node::HYDRAULIC;	     
 	     break;
 #else /* defined (USE_HYDRAULIC_NODES) */
-	     cerr << "you're not allowed to use hydraulic nodes" << endl;
+	     std::cerr << "you're not allowed to use hydraulic nodes" 
+		     << std::endl;
 	     THROW(ErrGeneric());
 #endif /* defined (USE_HYDRAULIC_NODES) */
 	  }
 	    
 	  default: {
-	     cerr << "Error: unknown node type, cannot modify output" << endl;
+	     std::cerr << "Error: unknown node type, cannot modify output" 
+		     << std::endl;
 
 	     THROW(DataManager::ErrUnknownNode());
 	  }
@@ -1018,10 +1028,12 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	    unsigned int uL = (unsigned int)HP.GetInt();	    	 
 	    Node* pN = pFindNode(Typ, uL);
 	    if (pN == NULL) {
-	       cerr << "Error: node " << uL << ", type " << psNodeNames[Typ]
-		 << "is not defined; output cannot be modified" << endl;
+	       std::cerr << "Error: node " << uL << ", type " 
+		       << psNodeNames[Typ] 
+		       << "is not defined; output cannot be modified" 
+		       << std::endl;
 	    } else {
-	       DEBUGLCOUT(MYDEBUG_INPUT, "node " << uL << endl);
+	       DEBUGLCOUT(MYDEBUG_INPUT, "node " << uL << std::endl);
 	       pN->SetOutputFlag(flag(1));
 	    }
 	 }	 
@@ -1080,15 +1092,15 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	    /* Nodi strutturali */
 	  case STRUCTURAL: {
 #if defined(USE_STRUCT_NODES)	   
-	     silent_cout("Reading structural node " << uLabel << endl);
+	     silent_cout("Reading structural node " << uLabel << std::endl);
 	     
 	     /* verifica che non siano gia' stati letti tutti 
 	      * quelli previsti */
 	     if (iNumTypes[Node::STRUCTURAL]-- <= 0) {
 		DEBUGCERR("");
-		cerr << "line " << HP.GetLineData() 
+		std::cerr << "line " << HP.GetLineData() 
 		  << ": structural node " << uLabel 
-		  << " exceedes structural nodes number" << endl;
+		  << " exceedes structural nodes number" << std::endl;
 
 		THROW(DataManager::ErrGeneric());
 	     }
@@ -1096,9 +1108,9 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     /* verifica di esistenza del nodo */
 	     if (pFindStructNode(uLabel) != NULL) {
 		DEBUGCERR("");
-		cerr << "line " << HP.GetLineData() 
+		std::cerr << "line " << HP.GetLineData() 
 		  << ": structural node " << uLabel
-		  << " already defined" << endl;
+		  << " already defined" << std::endl;
 
 		THROW(DataManager::ErrGeneric());
 	     }		  
@@ -1117,7 +1129,8 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     
 	     break;
 #else /* USE_STRUCT_NODES */
-	     cerr << "you're not allowed to use structural nodes" << endl;
+	     std::cerr << "you're not allowed to use structural nodes" 
+		     << std::endl;
 	     THROW(ErrGeneric());
 #endif /* USE_STRUCT_NODES */
 	  }
@@ -1125,15 +1138,15 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	    /* nodi elettrici */
 	  case ELECTRIC: {
 #if defined(USE_ELECTRIC_NODES)	   
-	     silent_cout("Reading electric node " << uLabel << endl);
+	     silent_cout("Reading electric node " << uLabel << std::endl);
 	     
 	     /* verifica che non siano gia' stati letti tutti 
 	      * quelli previsti */
 	     if (iNumTypes[Node::ELECTRIC]-- <= 0) {
 		DEBUGCERR("");
-		cerr << "line " << HP.GetLineData() 
+		std::cerr << "line " << HP.GetLineData() 
 		  << ": electric node " << uLabel
-		  << " exceedes electric nodes number" << endl;
+		  << " exceedes electric nodes number" << std::endl;
 
 		THROW(DataManager::ErrGeneric());
 	     }
@@ -1141,9 +1154,9 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     /* verifica di esistenza del nodo */
 	     if (pFindElectricNode(uLabel) != NULL) {
 		DEBUGCERR("");
-		cerr << "line " << HP.GetLineData() 
+		std::cerr << "line " << HP.GetLineData() 
 		  << ": electric node " << uLabel
-		  << " already defined" << endl;
+		  << " already defined" << std::endl;
 
 		THROW(DataManager::ErrGeneric());
 	     }
@@ -1167,7 +1180,8 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     
 	     break;
 #else /* USE_ELECTRIC_NODES */
-	     cerr << "you're not allowed to use electric nodes" << endl;
+	     std::cerr << "you're not allowed to use electric nodes" 
+		     << std::endl;
 	     THROW(ErrGeneric());
 #endif /* USE_ELECTRIC_NODES */
 	  }
@@ -1175,15 +1189,15 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	    /* nodi astratti */
 	  case ABSTRACT: {
 #if defined(USE_ELECTRIC_NODES)	   
-	     silent_cout("Reading abstract node " << uLabel << endl);
+	     silent_cout("Reading abstract node " << uLabel << std::endl);
 	     
 	     /* verifica che non siano gia' stati letti tutti 
 	      * quelli previsti */
 	     if (iNumTypes[Node::ABSTRACT]-- <= 0) {
 		DEBUGCERR("");
-		cerr << "line " << HP.GetLineData() 
+		std::cerr << "line " << HP.GetLineData() 
 		  << ": abstract node " << uLabel
-		  << " exceedes abstract nodes number" << endl;
+		  << " exceedes abstract nodes number" << std::endl;
 
 		THROW(DataManager::ErrGeneric());
 	     }
@@ -1191,9 +1205,9 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     /* verifica di esistenza del nodo */
 	     if (pFindNode(Node::ABSTRACT, uLabel) != NULL) {
 		DEBUGCERR("");
-		cerr << "line " << HP.GetLineData() 
+		std::cerr << "line " << HP.GetLineData() 
 		  << ": abstract node " << uLabel
-		  << " already defined" << endl;
+		  << " already defined" << std::endl;
 
 		THROW(DataManager::ErrGeneric());
 	     }		  
@@ -1205,11 +1219,11 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     if (HP.fIsArg()) {
 		dX = HP.GetReal();
 		DEBUGLCOUT(MYDEBUG_INPUT, "Initial value x = " << dX
-			   << " is supplied" << endl);
+			   << " is supplied" << std::endl);
 		if (HP.fIsArg()) {
 		   dXP = HP.GetReal();
 		   DEBUGLCOUT(MYDEBUG_INPUT, "Initial value x' = " << dXP
-			      << " is supplied" << endl);
+			      << " is supplied" << std::endl);
 		}		 
 	     }		  
 	     
@@ -1227,22 +1241,23 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     
 	     break;
 #else /* USE_ELECTRIC_NODES */
-	     cerr << "you're not allowed to use abstract nodes" << endl;
+	     std::cerr << "you're not allowed to use abstract nodes" 
+		     << std::endl;
 	     THROW(ErrGeneric());
 #endif /* USE_ELECTRIC_NODES */
 	  }
 	    
 	    /* parametri */
 	  case PARAMETER: {	     
-	     silent_cout("Reading parameter " << uLabel << endl);
+	     silent_cout("Reading parameter " << uLabel << std::endl);
 	     
 	     /* verifica che non siano gia' stati letti tutti 
 	      * quelli previsti */
 	     if (iNumTypes[Node::PARAMETER]-- <= 0) {
 		DEBUGCERR("");
-		cerr << "line " << HP.GetLineData() 
+		std::cerr << "line " << HP.GetLineData() 
 		  << ": parameter " << uLabel
-		  << " exceedes parameters number" << endl;
+		  << " exceedes parameters number" << std::endl;
 
 		THROW(DataManager::ErrGeneric());
 	     }
@@ -1250,9 +1265,9 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     /* verifica di esistenza del nodo */
 	     if (pFindNode(Node::PARAMETER, uLabel) != NULL) {
 		DEBUGCERR("");
-		cerr << "line " << HP.GetLineData() 
+		std::cerr << "line " << HP.GetLineData() 
 		  << ": parameter " << uLabel
-		  << " already defined" << endl;
+		  << " already defined" << std::endl;
 		
 		THROW(DataManager::ErrGeneric());
 	     }		  
@@ -1260,7 +1275,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     /* bound a elemento */
 	     if (HP.IsKeyWord("element")) {
 		DEBUGLCOUT(MYDEBUG_INPUT, "parameter node " << uLabel 
-			   << "is linked to an element" << endl);
+			   << "is linked to an element" << std::endl);
 		flag fOut = fReadOutput(HP, Node::PARAMETER);
 		
 		/* allocazione e creazione */
@@ -1277,7 +1292,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     /* strain gage */
 	     } else if (HP.IsKeyWord("straingage")) {
 		DEBUGLCOUT(MYDEBUG_INPUT, "parameter node " << uLabel 
-			   << "is a strain gage" << endl);
+			   << "is a strain gage" << std::endl);
 		
 		doublereal dY = HP.GetReal();
 		doublereal dZ = HP.GetReal();
@@ -1304,7 +1319,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 		if (HP.fIsArg()) {
 		   dX = HP.GetReal();
 		   DEBUGLCOUT(MYDEBUG_INPUT, "Initial value x = " << dX
-			      << " is supplied" << endl);
+			      << " is supplied" << std::endl);
 		}	      
 		
 		flag fOut = fReadOutput(HP, Node::PARAMETER);
@@ -1330,15 +1345,15 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	    
 	    /* nodi idraulici */
 	  case HYDRAULIC: {
-	     silent_cout("Reading hydraulic node " << uLabel << endl);
+	     silent_cout("Reading hydraulic node " << uLabel << std::endl);
 	     
 	     /* verifica che non siano gia' stati letti tutti 
 	      * quelli previsti */
 	     if (iNumTypes[Node::HYDRAULIC]-- <= 0) {
 		DEBUGCERR("");
-		cerr << "line " << HP.GetLineData() 
+		std::cerr << "line " << HP.GetLineData() 
 		  << ": hydraulic node " << uLabel
-		  << " exceedes hydraulic nodes number" << endl;
+		  << " exceedes hydraulic nodes number" << std::endl;
 
 		THROW(DataManager::ErrGeneric());
 	     }
@@ -1346,9 +1361,9 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     /* verifica di esistenza del nodo */
 	     if (pFindNode(Node::HYDRAULIC, uLabel) != NULL) {
 		DEBUGCERR("");
-		cerr << "line " << HP.GetLineData() 
+		std::cerr << "line " << HP.GetLineData() 
 		  << ": hydraulic node " << uLabel
-		  << " already defined" << endl;
+		  << " already defined" << std::endl;
 
 		THROW(DataManager::ErrGeneric());
 	     }		  
@@ -1359,7 +1374,7 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	     if (HP.fIsArg()) {
 		dX = HP.GetReal();
 		DEBUGLCOUT(MYDEBUG_INPUT, "Initial value x = " << dX
-			  << " is supplied" << endl);
+			  << " is supplied" << std::endl);
 	     }		  
 	     
 	     flag fOut = fReadOutput(HP, Node::HYDRAULIC);
@@ -1385,15 +1400,16 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	    /* in caso di tipo errato */
 	  case UNKNOWN: {
 	     DEBUGCERR("");
-	     cerr << "unknown node type at line " << HP.GetLineData() << endl;
+	     std::cerr << "unknown node type at line " 
+		     << HP.GetLineData() << std::endl;
 	     THROW(DataManager::ErrGeneric());
 	  }
 	    
 	  default: {
 	     DEBUGCERR("");
-	     cerr << "node type " << sKeyWords[CurrDesc] 
+	     std::cerr << "node type " << sKeyWords[CurrDesc] 
 	       << " at line " << HP.GetLineData() << " is not allowed" 
-	       << endl;
+	       << std::endl;
 
 	     THROW(DataManager::ErrGeneric());
 	  }
@@ -1402,8 +1418,9 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	 /* verifica dell'allocazione - comune a tutti i casi */
 	 if (*ppN == NULL) {
 	    DEBUGCERR("");
-	    cerr << "error in allocation, item DataManager::*ppNodes, node "
-	      << uLabel << endl;
+	    std::cerr << "error in allocation, "
+		    "item DataManager::*ppNodes, node " 
+		    << uLabel << std::endl;
 
 	    THROW(ErrMemory());
 	 }
@@ -1420,8 +1437,8 @@ void DataManager::ReadNodes(MBDynParser& HP)
    
    if (KeyWords(HP.GetWord()) != NODES) {
       DEBUGCERR("");
-      cerr << "<end: nodes;> expected at line "
-	<< HP.GetLineData() << endl;
+      std::cerr << "<end: nodes;> expected at line "
+	<< HP.GetLineData() << std::endl;
 
       THROW(DataManager::ErrGeneric());
    }
@@ -1429,26 +1446,27 @@ void DataManager::ReadNodes(MBDynParser& HP)
    /* Se non c'e' il punto e virgola finale */
    if (HP.fIsArg()) {
       DEBUGCERR("");
-      cerr << "semicolon expected at line " << HP.GetLineData() << endl;
+      std::cerr << "semicolon expected at line " 
+	      << HP.GetLineData() << std::endl;
 
       THROW(DataManager::ErrGeneric());
    }   
    
    if (iMissingNodes > 0) {
       DEBUGCERR("");
-      cerr << "warning: " << iMissingNodes
-	<< " nodes are missing;" << endl;
+      std::cerr << "warning: " << iMissingNodes
+	<< " nodes are missing;" << std::endl;
       for (int iCnt = 0; iCnt < Node::LASTNODETYPE; iCnt++) {
 	 if (iNumTypes[iCnt] > 0) {
-	    cerr << "  " << iNumTypes[iCnt] 
-	      << ' ' << psNodeNames[iCnt] << endl;
+	    std::cerr << "  " << iNumTypes[iCnt] 
+	      << ' ' << psNodeNames[iCnt] << std::endl;
 	 }	 
       }      
 
       THROW(DataManager::ErrMissingNodes());
    }      
    
-   DEBUGLCOUT(MYDEBUG_INPUT, "End of nodes data" << endl);
+   DEBUGLCOUT(MYDEBUG_INPUT, "End of nodes data" << std::endl);
 } /* End of DataManager::ReadNodes() */
 
 
@@ -1490,7 +1508,8 @@ void DataManager::ReadDrivers(MBDynParser& HP)
    }   
    
    int iMissingDrivers = iTotDrive;
-   DEBUGLCOUT(MYDEBUG_INPUT, "Expected drivers: " << iMissingDrivers << endl);
+   DEBUGLCOUT(MYDEBUG_INPUT, "Expected drivers: " << iMissingDrivers 
+		   << std::endl);
 
    KeyWords CurrDesc;   
    while ((CurrDesc = KeyWords(HP.GetDescription())) != END) {		
@@ -1508,13 +1527,13 @@ void DataManager::ReadDrivers(MBDynParser& HP)
 	 
 	 /* drivers */
        case FILEDRIVE: {	    
-	  silent_cout("Reading file driver " << uLabel << endl);
+	  silent_cout("Reading file driver " << uLabel << std::endl);
 	  
 	  if (iNumTypes[Drive::FILEDRIVE]-- <= 0) {
 	     DEBUGCERR("");
-	     cerr << "line " << HP.GetLineData() 
+	     std::cerr << "line " << HP.GetLineData() 
 	       << ": driver " << uLabel
-	       << " exceedes file drivers number" << endl;	     
+	       << " exceedes file drivers number" << std::endl;	     
 	     THROW(DataManager::ErrGeneric());
 	  }	  
 	  
@@ -1533,7 +1552,8 @@ void DataManager::ReadDrivers(MBDynParser& HP)
 	 /* in caso di tipo sconosciuto */
        default: {
 	  DEBUGCERR("");
-	  cerr << "unknown drive type at line " << HP.GetLineData() << endl;	  
+	  std::cerr << "unknown drive type at line " 
+		  << HP.GetLineData() << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }
       }  
@@ -1541,8 +1561,9 @@ void DataManager::ReadDrivers(MBDynParser& HP)
       /* verifica dell'allocazione */
       if (*ppD == NULL) {
 	 DEBUGCERR("");
-	 cerr << "error in allocation, item DataManager::*ppDrive, element "
-	   << uLabel << endl;
+	 std::cerr << "error in allocation, "
+		 "item DataManager::*ppDrive, element " 
+		 << uLabel << std::endl;
 	 THROW(ErrMemory());
       }
       
@@ -1552,25 +1573,26 @@ void DataManager::ReadDrivers(MBDynParser& HP)
    
    if (KeyWords(HP.GetWord()) != DRIVERS) {
       DEBUGCERR("");
-      cerr << "<end: drivers;> expected at line " 
-	<< HP.GetLineData() << endl;
+      std::cerr << "<end: drivers;> expected at line " 
+	<< HP.GetLineData() << std::endl;
       THROW(DataManager::ErrGeneric());
    }
    
    /* Se non c'e' il punto e virgola finale */
    if (HP.fIsArg()) {
       DEBUGCERR("");
-      cerr << "semicolon expected at line " << HP.GetLineData() << endl;
+      std::cerr << "semicolon expected at line " 
+	      << HP.GetLineData() << std::endl;
       THROW(DataManager::ErrGeneric());
    }   
    
    if (iMissingDrivers > 0) {
-      cerr << endl << "warning, " << iMissingDrivers
-	<< " drivers are missing" << endl;
+      std::cerr << "warning, " << iMissingDrivers
+	<< " drivers are missing" << std::endl;
       THROW(DataManager::ErrGeneric());
    }      
    
-   DEBUGLCOUT(MYDEBUG_INPUT, "End of drivers data" << endl);
+   DEBUGLCOUT(MYDEBUG_INPUT, "End of drivers data" << std::endl);
 } /* End of ReadDrivers */
 
 
@@ -1603,13 +1625,14 @@ Node* DataManager::ReadNode(MBDynParser& HP, Node::Type type)
 {
 	unsigned int uNode = (unsigned int)HP.GetInt();
 	
-	DEBUGLCOUT(MYDEBUG_INPUT, "Linked to Node " << uNode << endl);
+	DEBUGLCOUT(MYDEBUG_INPUT, "Linked to Node " << uNode << std::endl);
 	
 	/* verifica di esistenza del nodo */
 	Node* pNode;
 	if ((pNode = pFindNode(type, uNode)) == NULL) {
-		cerr << ": " << psNodeNames[type] << " node " << uNode
-			<< " not defined at line " << HP.GetLineData() << endl;
+		std::cerr << ": " << psNodeNames[type] << " node " << uNode
+			<< " not defined at line " 
+			<< HP.GetLineData() << std::endl;
 		THROW(DataManager::ErrGeneric());
 	}
 
@@ -1620,14 +1643,15 @@ Elem* DataManager::ReadElem(MBDynParser& HP, Elem::Type type)
 {
 	unsigned int uElem = (unsigned int)HP.GetInt();
 	
-	DEBUGLCOUT(MYDEBUG_INPUT, "Element " << uElem << endl);
+	DEBUGLCOUT(MYDEBUG_INPUT, "Element " << uElem << std::endl);
 	
 	/* verifica di esistenza dell'elemento */
 	Elem* pElem;
 
 	if ((pElem = (Elem*)pFindElem(type, uElem)) == NULL) {
-		cerr << ": " << psElemNames[type] << uElem
-			<< " not defined at line " << HP.GetLineData() << endl;
+		std::cerr << ": " << psElemNames[type] << uElem
+			<< " not defined at line " 
+			<< HP.GetLineData() << std::endl;
 		THROW(DataManager::ErrGeneric());
 	}
 	
@@ -1642,10 +1666,10 @@ int GetDofOrder(MBDynParser& HP, Node* pNode, int iIndex)
    if (HP.IsKeyWord("differential")) {
       /* Questo check e' pleonastico, viene gia' fatto dal chiamante */
       if (pNode->SetDof(iIndex-1) != DofOrder::DIFFERENTIAL) {
-	 cerr << endl << sDMClassName 
+	 std::cerr << sDMClassName 
 	   << " at line " << HP.GetLineData()
 	     << ": invalid order for index " << iIndex 
-	   << " variable" << endl;
+	   << " variable" << std::endl;
 	 THROW(DataManager::ErrGeneric());
       }
       return 1;
@@ -1654,19 +1678,19 @@ int GetDofOrder(MBDynParser& HP, Node* pNode, int iIndex)
 #ifdef DEBUG
       if ((pNode->SetDof(iIndex-1) != DofOrder::DIFFERENTIAL)
 	  && (pNode->SetDof(iIndex-1) != DofOrder::ALGEBRAIC)) {
-	 cerr << endl << sDMClassName 
+	 std::cerr << sDMClassName 
 	   << " at line " << HP.GetLineData()
 	     << ": invalid order for index " << iIndex 
-	   << " variable" << endl;
+	   << " variable" << std::endl;
 	 THROW(DataManager::ErrGeneric());
       }	     
 #endif      
       return 0;
    } /* else */
-   cerr << endl << sDMClassName
+   std::cerr << sDMClassName
      << " at line " << HP.GetLineData()
        << ": unknown or illegal order for index " << iIndex
-     << " variable" << endl;
+     << " variable" << std::endl;
    THROW(DataManager::ErrGeneric());
 #ifndef USE_EXCEPTIONS
    return 0;
@@ -1682,41 +1706,42 @@ ScalarDof ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder)
 
    /* Label del nodo */
    unsigned int uNode = (unsigned int)HP.GetInt();
-   DEBUGLCOUT(MYDEBUG_INPUT, "Linked to Node " << uNode << endl);
+   DEBUGLCOUT(MYDEBUG_INPUT, "Linked to Node " << uNode << std::endl);
    
    /* Tipo del nodo */
    Node::Type Type = Node::Type(HP.GetWord());
    if (Type == Node::UNKNOWN) {
-      cerr << "line " << HP.GetLineData() << ": unknown node type" << endl;
+	   std::cerr << "line " << HP.GetLineData() 
+		   << ": unknown node type" << std::endl;
       THROW(ErrGeneric());
    }   
-   DEBUGLCOUT(MYDEBUG_INPUT, "Node type: " << psNodeNames[Type] << endl);
+   DEBUGLCOUT(MYDEBUG_INPUT, "Node type: " << psNodeNames[Type] << std::endl);
    
    /* verifica di esistenza del nodo */
    Node* pNode;
    if ((pNode = pDM->pFindNode(Type, uNode)) == NULL) {
-      cerr << endl << sDMClassName
+      std::cerr << sDMClassName
 	<< " at line " << HP.GetLineData() 
 	<< ": node " << uNode
-	<< " not defined" << endl;	 
+	<< " not defined" << std::endl;	 
       THROW(DataManager::ErrGeneric());
    }
 
    /* si procura il numero di dof del nodo */
    unsigned int iMaxIndex = pNode->iGetNumDof();
-   DEBUGLCOUT(MYDEBUG_INPUT, "max index: " << iMaxIndex << endl);
+   DEBUGLCOUT(MYDEBUG_INPUT, "max index: " << iMaxIndex << std::endl);
    
    /* se il nodo ha piu' di un dof, chiede quale dof si desidera */
    unsigned int iIndex = 1;
    if (iMaxIndex > 1) {
       iIndex = HP.GetInt();
       if (iIndex > iMaxIndex) {
-	 cerr << "Illegal index " << iIndex << ", " 
+	 std::cerr << "Illegal index " << iIndex << ", " 
 	   << psNodeNames[Type] << "(" << uNode << ") has only " 
-	   << iMaxIndex << " dofs" << endl;
+	   << iMaxIndex << " dofs" << std::endl;
 	 THROW(ErrGeneric());
       }
-      DEBUGLCOUT(MYDEBUG_INPUT, "index: " << iIndex << endl);
+      DEBUGLCOUT(MYDEBUG_INPUT, "index: " << iIndex << std::endl);
    }
    
    /* se e' richiesto l'order del dof e se il dof e' differenziale ... */
@@ -1724,7 +1749,7 @@ ScalarDof ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder)
    if (fOrder && pNode->iGetNumDof() > 0 && pNode->SetDof(iIndex-1) == DofOrder::DIFFERENTIAL) {
       iOrder = GetDofOrder(HP, pNode, iIndex);
    }
-   DEBUGLCOUT(MYDEBUG_INPUT, "order: " << iOrder << endl);
+   DEBUGLCOUT(MYDEBUG_INPUT, "order: " << iOrder << std::endl);
 
    /* se il nodo non e' scalare, alloca un Node2Scalar che lo wrappa */
    if (iMaxIndex > 1) {
@@ -1733,9 +1758,9 @@ ScalarDof ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder)
        pNode = NULL;
        /* Chi dealloca questa memoria? ci vorrebbe l'handle */	 
        SAFENEWWITHCONSTRUCTOR(pNode, Node2Scalar, Node2Scalar(nd));
-       cerr << sDMClassName
+       std::cerr << sDMClassName
 	 << ": warning, possibly allocating a NodeDof that nobody will delete until Handles will be used"
-	 << endl;
+	 << std::endl;
    } 
    
    return ScalarDof((ScalarNode*)pNode, iOrder);
@@ -1790,8 +1815,8 @@ Shape* ReadShape(MBDynParser& HP)
    }
    
 #ifdef DEBUG   
-   if(CurrKeyWord >= 0) {      
-      cout << "shape type: " << sKeyWords[CurrKeyWord] << endl;
+   if (CurrKeyWord >= 0) {      
+      std::cout << "shape type: " << sKeyWords[CurrKeyWord] << std::endl;
    }   
 #endif /* DEBUG */
 
@@ -1803,7 +1828,7 @@ Shape* ReadShape(MBDynParser& HP)
     case CONST: {
        /* lettura dei dati specifici */
        doublereal dConst = HP.GetReal();
-       DEBUGLCOUT(MYDEBUG_INPUT, "Const value: " << dConst << endl);
+       DEBUGLCOUT(MYDEBUG_INPUT, "Const value: " << dConst << std::endl);
        
        /* allocazione e creazione */
        SAFENEWWITHCONSTRUCTOR(pS,
@@ -1826,15 +1851,17 @@ Shape* ReadShape(MBDynParser& HP)
 	  doublereal dm = HP.GetReal();
 	  doublereal dp = HP.GetReal();
 	  if (dm < 0 || dp) {
-             cerr << "Illegal chord boundaries {" << dm << "," << dp
-	       << "} for linear shape at line " << HP.GetLineData() << endl;
+	     std::cerr << "Illegal chord boundaries {" << dm << "," << dp
+	       << "} for linear shape at line " 
+	       << HP.GetLineData() << std::endl;
 	     THROW(ErrGeneric());
 	  }
           da0 = (dp+dm)/2.;
           da1 = (dp-dm)/2;
        }
 
-       DEBUGLCOUT(MYDEBUG_INPUT, "Coefficients: " << da0 << ", " << da1 << endl);
+       DEBUGLCOUT(MYDEBUG_INPUT, "Coefficients: " 
+		       << da0 << ", " << da1 << std::endl);
        
        /* allocazione e creazione */
        SAFENEWWITHCONSTRUCTOR(pS,
@@ -1850,9 +1877,9 @@ Shape* ReadShape(MBDynParser& HP)
     case PIECEWISELINEAR: {
        int np = HP.GetInt();
        if (np <= 0) {
-	  cerr << "Illegal number of points " << np 
+	  std::cerr << "Illegal number of points " << np 
             << " for piecewise linear shape at line " 
-	    << HP.GetLineData() << endl;
+	    << HP.GetLineData() << std::endl;
 	  THROW(ErrGeneric());
        }
 
@@ -1864,9 +1891,10 @@ Shape* ReadShape(MBDynParser& HP)
 
        px[0] = HP.GetReal();
        if (px[0] < -1. || px[0] > 1.) {
-	  cerr << "Illegal value " << px[0] 
+	  std::cerr << "Illegal value " << px[0] 
 	    << "for first point abscissa (must be -1. < x < 1.) "
-	    "in piecewise linear shape at line " << HP.GetLineData() << endl;
+	    "in piecewise linear shape at line " 
+	    << HP.GetLineData() << std::endl;
 	  THROW(ErrGeneric());
        }
        pv[0] = HP.GetReal();
@@ -1874,10 +1902,10 @@ Shape* ReadShape(MBDynParser& HP)
        for (int i = 1; i < np; i++) {
 	  px[i] = HP.GetReal();
 	  if (px[i] <= px[i-1] || px[i] > 1.) {
-             cerr << "Illegal value " << px[i]
+	     std::cerr << "Illegal value " << px[i]
 	       << "for point " << i+1 << " abscissa (must be " << px[i-1]
 	       << " < x < 1.) in piecewise linear shape at line "
-	       << HP.GetLineData() << endl;
+	       << HP.GetLineData() << std::endl;
 	     THROW(ErrGeneric());
 	  }
 	  pv[i] = HP.GetReal();
@@ -1898,14 +1926,16 @@ Shape* ReadShape(MBDynParser& HP)
        doublereal da0 = HP.GetReal();
        doublereal dp = HP.GetReal();
        if (dm < 0. || da0 < 0. || dp < 0.) {
-             cerr << "Illegal chord boundaries {" 
-	       << dm << "," << da0 << "," << dp
-	       << "} for parabolic shape at line " << HP.GetLineData() << endl;
-	     THROW(ErrGeneric());
+	  std::cerr << "Illegal chord boundaries {" 
+	     << dm << "," << da0 << "," << dp
+	     << "} for parabolic shape at line " 
+	     << HP.GetLineData() << std::endl;
+	  THROW(ErrGeneric());
        }
        doublereal da1 = (dp-dm)/2.;
        doublereal da2 = (dp+dm)/2.-da0;
-       DEBUGLCOUT(MYDEBUG_INPUT, "Coefficients: " << da0 << ", " << da1 << ", " << da2 <<endl);
+       DEBUGLCOUT(MYDEBUG_INPUT, "Coefficients: " 
+		       << da0 << ", " << da1 << ", " << da2 << std::endl);
        
        /* allocazione e creazione */
        SAFENEWWITHCONSTRUCTOR(pS,

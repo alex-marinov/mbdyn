@@ -55,8 +55,8 @@ void DataManager::SetTime(doublereal dTime)
    pTime->SetVal(dTime);
 
    DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY, 
-	      "GlobalSymbolTable:" << endl
-	      << GlobalSymbolTable << endl);
+	      "GlobalSymbolTable:" << std::endl
+	      << GlobalSymbolTable << std::endl);
    
    /* Setta il tempo nel DriveHandler */
    DrvHdl.SetTime(dTime);
@@ -96,7 +96,7 @@ void DataManager::DofOwnerInit(void)
       DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY, 
 		 "Node type " << (*ppNd)->GetNodeType()
 		 << " (" << psNodeNames[(*ppNd)->GetNodeType()] 
-		 << "(" << (*ppNd)->GetLabel() << "))" << endl);
+		 << "(" << (*ppNd)->GetLabel() << "))" << std::endl);
       
       unsigned int iNumDof;
       
@@ -109,16 +109,16 @@ void DataManager::DofOwnerInit(void)
 	 DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY,
 		    psNodeNames[(*ppNd)->GetNodeType()] 
 		    << "(" << (*ppNd)->GetLabel()
-		    << "): first dof = " << pDf->iIndex+1 << endl);
+		    << "): first dof = " << pDf->iIndex+1 << std::endl);
 #else /* !DEBUG */
 	 if (fPrintDofStats) {
-	    cout << psNodeNames[(*ppNd)->GetNodeType()]
+	    std::cout << psNodeNames[(*ppNd)->GetNodeType()]
 	      << "(" << (*ppNd)->GetLabel()
 	      << "): first dof = " << pDf->iIndex+1;
 	    if ((*ppNd)->iGetNumDof() > 1) {
-	       cout << "->" << pDf->iIndex+(*ppNd)->iGetNumDof();
+	       std::cout << "->" << pDf->iIndex+(*ppNd)->iGetNumDof();
 	    }
-	    cout << endl;
+	    std::cout << std::endl;
 	 }
 #endif /* !DEBUG */
 	 
@@ -141,7 +141,7 @@ void DataManager::DofOwnerInit(void)
       DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY, 
 		 "Elem type " << (*ppEl)->GetElemType() 
 		 << " (" << psElemNames[(*ppEl)->GetElemType()] 
-		 << "(" << (*ppEl)->GetLabel() << "))" << endl);
+		 << "(" << (*ppEl)->GetLabel() << "))" << std::endl);
       
       unsigned int iNumDof;
 	
@@ -157,12 +157,12 @@ void DataManager::DofOwnerInit(void)
 	 DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY, 
 		    pdElemNames[pElWD->GetElemType()]
 		    << "(" << pElWD->GetLabel()
-		    << "): first dof = " << pDf->iIndex+1 << endl);
+		    << "): first dof = " << pDf->iIndex+1 << std::endl);
 #else /* !DEBUG */
 	 if (fPrintDofStats) {
-	    cout << pdElemNames[pElWD->GetElemType()] 
+	    std::cout << pdElemNames[pElWD->GetElemType()] 
 	      << "(" << pElWD->GetLabel()
-	      << "): first dof = " << pDf->iIndex+1 << endl
+	      << "): first dof = " << pDf->iIndex+1 << std::endl
 #endif /* !DEBUG */
 	 
 	 /* per ogni Dof, chiede all'elemento di che tipo e' e lo 
@@ -182,7 +182,7 @@ void DataManager::DofOwnerInit(void)
 	 DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY,
 		    "Elem type " << pEl->GetElemType() 
 		    << " (" << psElemNames[pEl->GetElemType()] 
-		    << "(" << pEl->GetLabel() << "))" << endl);
+		    << "(" << pEl->GetLabel() << "))" << std::endl);
 	 
 	 unsigned int iNumDof;
 	
@@ -202,16 +202,16 @@ void DataManager::DofOwnerInit(void)
 	    DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY,
 		       psElemNames[pEl->GetElemType()] 
 		       << "(" << pElWD->GetLabel()
-		       << "): first dof = " << pDf->iIndex+1 << endl);
+		       << "): first dof = " << pDf->iIndex+1 << std::endl);
 #else /* !DEBUG */
 	    if (fPrintDofStats) {
-	       cout << psElemNames[pEl->GetElemType()]
+	       std::cout << psElemNames[pEl->GetElemType()]
 		 << "(" << pElWD->GetLabel()
 		 << "): first dof = " << pDf->iIndex+1;
 	       if (pElWD->iGetNumDof() > 1) {
-		  cout << "->" << pDf->iIndex+pElWD->iGetNumDof();
+		  std::cout << "->" << pDf->iIndex+pElWD->iGetNumDof();
 	       }
-	       cout << endl;
+	       std::cout << std::endl;
 	    }
 #endif /* !DEBUG */
 	    
@@ -257,12 +257,12 @@ void DataManager::InitialJointAssembly(void)
       if (iNumDofs > 0) {
 	 DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY,
 		    "Node " << (*ppNode)->GetLabel() 
-		    << ": first index = " << iIndex+1 << endl);
+		    << ": first index = " << iIndex+1 << std::endl);
 	 pTmp->iFirstIndex = iIndex;
 	 iIndex += iNumDofs;
       } else {
 	 DEBUGCERR("");
-	 cerr << "warning, item " << iCnt << " has 0 dofs" << endl;
+	 std::cerr << "warning, item " << iCnt << " has 0 dofs" << std::endl;
       }
    }     
 
@@ -300,12 +300,12 @@ void DataManager::InitialJointAssembly(void)
 			     "Elem " << (*ppEl)->GetLabel()
 			     << " of type \"" << psElemNames[iCnt1]
 			     << "\": first index = "
-			     << iIndex+1 << endl);
+			     << iIndex+1 << std::endl);
 		  pTmp->iFirstIndex = iIndex;
 		  iIndex += iNumDofs;
 	       } else {
 		  DEBUGCERR("");
-		  cerr << "warning, item " << iCnt << " has 0 dofs" << endl;
+		  std::cerr << "warning, item " << iCnt << " has 0 dofs" << std::endl;
 	       }	
 	    }
 	 }	 
@@ -407,8 +407,8 @@ void DataManager::InitialJointAssembly(void)
    
 #ifdef DEBUG_MEMMANAGER
    DEBUGLCOUT(MYDEBUG_MEM|MYDEBUG_ASSEMBLY, 
-	      "After initialisation in InitialJointAssembly" << endl
-	      << defaultMemoryManager << endl);
+	      "After initialisation in InitialJointAssembly" << std::endl
+	      << defaultMemoryManager << std::endl);
 #endif /* DEBUG_MEMMANAGER */
    
    MyVectorHandler X(iInitialNumDofs, pdX);
@@ -512,10 +512,10 @@ void DataManager::InitialJointAssembly(void)
 #ifdef DEBUG
 	if (DEBUG_LEVEL_MATCH(MYDEBUG_ASSEMBLY|MYDEBUG_RESIDUAL)) {
 	   /* Output del residuo */
-	   cout << "Residual:" << endl;
+	   std::cout << "Residual:" << std::endl;
 	   for (int iTmpCnt = 1; iTmpCnt <= iInitialNumDofs; iTmpCnt++) {
-	      cout << "Dof" << setw(4) << iTmpCnt << ": "
-		<< pResHdl->dGetCoef(iTmpCnt) << endl;
+	      std::cout << "Dof" << setw(4) << iTmpCnt << ": "
+		<< pResHdl->dGetCoef(iTmpCnt) << std::endl;
 	   }
 	}
 #endif
@@ -524,7 +524,7 @@ void DataManager::InitialJointAssembly(void)
       /* Eseguo il test di convergenza; se e' positivo, esco */
       doublereal dTest = pResHdl->Dot()/(1.+X.Dot());
       if (!isfinite(dTest)) {
-	 cerr << "Assembly diverged; aborting ..." << endl;
+	 std::cerr << "Assembly diverged; aborting ..." << std::endl;
 
 	 THROW(DataManager::ErrAssemblyDiverged());
       }
@@ -532,12 +532,12 @@ void DataManager::InitialJointAssembly(void)
       
       DEBUGLCOUT(MYDEBUG_ASSEMBLY, "Iteration: " << iNumIter 
 		 << ", Test: " << dTest 
-		 << " (Toll = " << dInitialAssemblyToll << ") " << endl);
+		 << " (Toll = " << dInitialAssemblyToll << ") " << std::endl);
 	
       /* Se la tolleranza e' raggiunta, esce dal ciclo */
       if (dTest <= dInitialAssemblyToll) {
 	 DEBUGLCOUT(MYDEBUG_ASSEMBLY, "Initial assembly performed successfully in "
-		    << iNumIter << " iterations" << endl);
+		    << iNumIter << " iterations" << std::endl);
 	 goto endofcycle;
       }
 	
@@ -545,9 +545,9 @@ void DataManager::InitialJointAssembly(void)
 	
       /* Se ho raggiunto il numero massimo di iterazioni */
       if (iNumIter > iMaxInitialIterations) {
-	 cerr
+	 std::cerr
 	   << "Initial assembly iterations reached maximum number "
-	   << iMaxInitialIterations << "; aborting ..." << endl;
+	   << iMaxInitialIterations << "; aborting ..." << std::endl;
 
 	 THROW(DataManager::ErrAssemblyMaxIters());
       }
@@ -621,10 +621,10 @@ void DataManager::InitialJointAssembly(void)
 #ifdef DEBUG
       if (DEBUG_LEVEL_MATCH(MYDEBUG_ASSEMBLY|MYDEBUG_RESIDUAL)) {
 	 /* Output della soluzione */
-	 cout << "Solution:" << endl;
+	 std::cout << "Solution:" << std::endl;
 	 for (int iTmpCnt = 1; iTmpCnt <= iInitialNumDofs; iTmpCnt++) {	   
-	    cout << "Dof" << setw(4) << iTmpCnt << ": " 
-	      << pSolHdl->dGetCoef(iTmpCnt) << endl;
+	    std::cout << "Dof" << setw(4) << iTmpCnt << ": " 
+	      << pSolHdl->dGetCoef(iTmpCnt) << std::endl;
 	 }
       }
 #endif
@@ -722,7 +722,7 @@ void DataManager::DofOwnerSet(void)
       DofOwner::Type DT = ElemData[iCnt].DofOwnerType;
       if (DT != DofOwner::UNKNOWN) {
 	 DEBUGLCOUT(MYDEBUG_INIT, "Elem type " << iCnt 
-		    << " (" << psElemNames[iCnt] << ")" << endl);
+		    << " (" << psElemNames[iCnt] << ")" << std::endl);
 	 
 	 Elem** ppFirstEl = ElemData[iCnt].ppFirstElem;
 	 for (Elem** ppTmp = ppFirstEl; 
@@ -732,11 +732,11 @@ void DataManager::DofOwnerSet(void)
 	    ElemWithDofs* pTmp = (*ppTmp)->pGetElemWithDofs();
 	    
 	    DEBUGLCOUT(MYDEBUG_INIT, "    " << psElemNames[pTmp->GetElemType()]
-		       << "(" << pTmp->GetLabel() << ")" << endl);
+		       << "(" << pTmp->GetLabel() << ")" << std::endl);
 	    
 	    DofOwner* pDO = (DofOwner*)pTmp->pGetDofOwner();
 	    pDO->iNumDofs = pTmp->iGetNumDof();
-	    DEBUGLCOUT(MYDEBUG_INIT, "    num dofs: " << pDO->iNumDofs << endl);
+	    DEBUGLCOUT(MYDEBUG_INIT, "    num dofs: " << pDO->iNumDofs << std::endl);
 	 }
       }
    }   
@@ -839,7 +839,7 @@ DataManager::Output(const VectorHandler& X, const VectorHandler& XP) const
 
 /* Output dati pch */
 void
-DataManager::Output_pch(ostream& pch) const
+DataManager::Output_pch(std::ostream& pch) const
 {
    /* Dati dei nodi */
    NodeOutput_pch(pch);
@@ -851,7 +851,7 @@ DataManager::Output_pch(ostream& pch) const
 
 /* Output dati f06 */
 void
-DataManager::Output_f06(ostream& f06, const VectorHandler& X) const
+DataManager::Output_f06(std::ostream& f06, const VectorHandler& X) const
 {
    /* Dati dei nodi */
    NodeOutput_f06(f06, X);

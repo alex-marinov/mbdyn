@@ -65,10 +65,10 @@ PlaneDispJoint::~PlaneDispJoint(void)
 
 
 /* Contributo al file di restart */
-ostream& 
-PlaneDispJoint::Restart(ostream& out) const
+std::ostream& 
+PlaneDispJoint::Restart(std::ostream& out) const
 {
-   return out << "plane disp joint not implemented yet" << endl;
+   return out << "plane disp joint not implemented yet" << std::endl;
 }
 
 
@@ -296,7 +296,7 @@ PlaneDispJoint::Output(OutputHandler& OH) const
       Joint::Output(OH.Joints(), "PlaneDisp", GetLabel(),
 		    R2TmpT*F, M, F, R2Tmp*M)
 	<< " " << EulerAngles(RTmp) 
-	  << " " << R2TmpT*(pNode1->GetWCurr()-pNode2->GetWCurr()) << endl;
+	  << " " << R2TmpT*(pNode1->GetWCurr()-pNode2->GetWCurr()) << std::endl;
    }   
 }
 
@@ -506,9 +506,9 @@ PlaneDispJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
    if (Tmp1.Dot() <= DBL_EPSILON || Tmp2.Dot() <= DBL_EPSILON) {
-      cerr << "joint " << GetLabel() << ':' << endl
-	<< "warning, first node hinge axis and second node hinge axis are (nearly) orthogonal;" << endl
-	<< "aborting ..." << endl;
+      std::cerr << "joint " << GetLabel() << ':' << std::endl
+	<< "warning, first node hinge axis and second node hinge axis are (nearly) orthogonal;" << std::endl
+	<< "aborting ..." << std::endl;
       THROW(Joint::ErrGeneric());
    }   
    
@@ -765,7 +765,7 @@ PlaneDispJoint::dGetPrivData(unsigned int i) const
     }
       
     default:
-      cerr << "Illegal private data" << endl;
+      std::cerr << "Illegal private data" << std::endl;
       THROW(ErrGeneric());
    }
    
@@ -804,7 +804,7 @@ PlaneDispPinJoint::~PlaneDispPinJoint(void)
 
 
 /* Contributo al file di restart */
-ostream& PlaneDispPinJoint::Restart(ostream& out) const
+std::ostream& PlaneDispPinJoint::Restart(std::ostream& out) const
 {
    Joint::Restart(out) << ", plane pin, "
      << pNode->GetLabel() 
@@ -815,7 +815,7 @@ ostream& PlaneDispPinJoint::Restart(ostream& out) const
      << ", reference, global, ", X0.Write(out, ", ") 
      << ", reference, global, 1, ",
      (R0.GetVec(1)).Write(out, ", ") << ", 2, ", 
-     (R0.GetVec(2)).Write(out, ", ") << ';' << endl;
+     (R0.GetVec(2)).Write(out, ", ") << ';' << std::endl;
    
    return out;
 }
@@ -986,12 +986,12 @@ void PlaneDispPinJoint::Output(OutputHandler& OH) const
 #ifdef DEBUG
       OH.Output() << "Joint " << uLabel << ", type \""
 	<< psJointNames[Joint::PLANEPIN]
-	<< "\", linked to node " << pNode->GetLabel() << ':' << endl
-	<< "Distance from node (node reference frame): " << endl << d << endl
-	<< "Hinge rotation matrix (node reference frame): " << endl << Rh << endl
-	<< "Current reaction force: " << endl << F << endl
-	<< "Current reaction couple (hinge reference frame):" << endl 
-	<< M << endl;
+	<< "\", linked to node " << pNode->GetLabel() << ':' << std::endl
+	<< "Distance from node (node reference frame): " << std::endl << d << std::endl
+	<< "Hinge rotation matrix (node reference frame): " << std::endl << Rh << std::endl
+	<< "Current reaction force: " << std::endl << F << std::endl
+	<< "Current reaction couple (hinge reference frame):" << std::endl 
+	<< M << std::endl;
 #endif
       
       Mat3x3 RTmp(pNode->GetRCurr()*Rh);
@@ -1001,7 +1001,7 @@ void PlaneDispPinJoint::Output(OutputHandler& OH) const
       Joint::Output(OH.Joints(), "PlaneDispPin", GetLabel(),
 		    RTmpT*F, M, F, RTmp*M) 
 	<< " " << EulerAngles(R0Tmp)
-	<< " " << RTmpT*(pNode->GetWCurr()) << endl;      
+	<< " " << RTmpT*(pNode->GetWCurr()) << std::endl;      
    }
 }
 
@@ -1086,9 +1086,9 @@ PlaneDispPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
    if (Tmp1.Dot() <= DBL_EPSILON || Tmp2.Dot() <= DBL_EPSILON) {
-      cerr << "joint " << GetLabel() << ':' << endl
-	<< "warning, node hinge axis and fixed point hinge axis are (nearly) orthogonal;" << endl
-	<< "aborting ..." << endl;
+      std::cerr << "joint " << GetLabel() << ':' << std::endl
+	<< "warning, node hinge axis and fixed point hinge axis are (nearly) orthogonal;" << std::endl
+	<< "aborting ..." << std::endl;
       THROW(Joint::ErrGeneric());
    }   
    

@@ -54,9 +54,9 @@ InLineJoint::~InLineJoint(void)
 
 
 /* Contributo al file di restart */
-ostream& InLineJoint::Restart(ostream& out) const
+std::ostream& InLineJoint::Restart(std::ostream& out) const
 {
-   Joint::Restart(out) << ", in line, not implemented yet" << endl;
+   Joint::Restart(out) << ", in line, not implemented yet" << std::endl;
    return out;
 }
 
@@ -188,7 +188,7 @@ void InLineJoint::Output(OutputHandler& OH) const
    if (fToBeOutput()) {      
       Mat3x3 RvTmp(pNode1->GetRCurr()*Rv);
       Joint::Output(OH.Joints(), "inline", GetLabel(),
-		    F, Zero3, RvTmp*F, Zero3) << endl;
+		    F, Zero3, RvTmp*F, Zero3) << std::endl;
    }   
 }
  
@@ -446,9 +446,9 @@ InLineWithOffsetJoint::~InLineWithOffsetJoint(void)
 
 
 /* Contributo al file di restart */
-ostream& InLineWithOffsetJoint::Restart(ostream& out) const
+std::ostream& InLineWithOffsetJoint::Restart(std::ostream& out) const
 {
-   Joint::Restart(out) << ", in line, not implemented yet" << endl;
+   Joint::Restart(out) << ", in line, not implemented yet" << std::endl;
    return out;
 }
 
@@ -608,7 +608,7 @@ void InLineWithOffsetJoint::Output(OutputHandler& OH) const
    if (fToBeOutput()) {      
       Mat3x3 RvTmp(pNode1->GetRCurr()*Rv);
       Joint::Output(OH.Joints(), "inline", GetLabel(),
-		    F, Zero3, RvTmp*F, Zero3) << endl;
+		    F, Zero3, RvTmp*F, Zero3) << std::endl;
    }
 }
  

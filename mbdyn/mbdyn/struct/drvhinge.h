@@ -83,7 +83,7 @@ virtual public Elem, public Joint, public TplDriveOwner<Vec3> {
    };
    
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    virtual void Output(OutputHandler& OH) const;
    

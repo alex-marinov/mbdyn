@@ -54,8 +54,8 @@ class PressureNode : public ScalarAlgebraicNode {
       return Node::HYDRAULIC;
    };
    
-   ostream& Restart(ostream& out) const {
-      return out << "Pressure Node: not implemented yet!" << endl;
+   std::ostream& Restart(std::ostream& out) const {
+      return out << "Pressure Node: not implemented yet!" << std::endl;
    };
      
    void AfterPredict(VectorHandler&, VectorHandler&) {
@@ -68,10 +68,11 @@ class PressureNode : public ScalarAlgebraicNode {
    
    void Output(OutputHandler& OH) const {
       if (fToBeOutput()) {
-         OH.PresNodes() << setw(8) << GetLabel() << " "
-	   << dX << endl;
+         OH.PresNodes() << std::setw(8) << GetLabel() << " "
+	   << dX << std::endl;
       }
    };
 };
 
-#endif
+#endif /* PRESNODE_H */
+

@@ -63,7 +63,7 @@ class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
    };
    
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    virtual unsigned int iGetNumDof(void) const { 
       return 4;
@@ -145,7 +145,7 @@ class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
       return 1;
    };
    virtual void GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const;
-   virtual ostream& WriteAdamsDummyPartCmd(ostream& out, unsigned int part, unsigned int firstId) const;
+   virtual std::ostream& WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const;
 };
 
 /* DistanceJoint - end */
@@ -180,7 +180,7 @@ virtual public Elem, public Joint, public DriveOwner {
    };
    
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    virtual unsigned int iGetNumDof(void) const { 
       return 4;
@@ -263,7 +263,7 @@ virtual public Elem, public Joint, public DriveOwner {
       return 1;
    };
    virtual void GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const;
-   virtual ostream& WriteAdamsDummyPartCmd(ostream& out, unsigned int part, unsigned int firstId) const;
+   virtual std::ostream& WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const;
 };
 
 /* DistanceJointWithOffset - end */
@@ -295,7 +295,7 @@ class ClampJoint : virtual public Elem, public Joint {
    };
 
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    /* Funzioni obbligatorie, per la gestione dei dof */
    virtual unsigned int iGetNumDof(void) const {

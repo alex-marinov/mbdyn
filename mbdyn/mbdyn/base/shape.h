@@ -53,7 +53,7 @@ class Shape {
    };
    
    virtual doublereal dGet(doublereal d1, doublereal d2 = 0.) const = 0;
-   virtual ostream& Restart(ostream& out) const = 0;
+   virtual std::ostream& Restart(std::ostream& out) const = 0;
 };
 
 
@@ -127,7 +127,7 @@ class ConstShape1D : public Shape1D {
       return dConst; 
    };
    
-   ostream& Restart(ostream& out) const { 
+   std::ostream& Restart(std::ostream& out) const { 
       return out << "const, " << dConst; 
    };
 };
@@ -149,7 +149,7 @@ class LinearShape1D : public Shape1D {
       return dShift+dSlope*d; 
    };
    
-   ostream& Restart(ostream& out) const { 
+   std::ostream& Restart(std::ostream& out) const { 
       return out << "linear, " << dShift << ", " << dSlope; 
    };
 };
@@ -186,7 +186,7 @@ class PiecewiseLinearShape1D : public Shape1D {
       return pdV[nPoints-1];
    };
 
-   ostream& Restart(ostream& out) const {
+   std::ostream& Restart(std::ostream& out) const {
       out << "piecewise linear, " << nPoints;
       for (int i = 0; i < nPoints; i++) {
 	 out << ", " << pdX[i] << ", " << pdV[i];
@@ -214,7 +214,7 @@ class ParabolicShape1D : public Shape1D {
       return da0+(da1+da2*d)*d; 
    };
    
-   ostream& Restart(ostream& out) const { 
+   std::ostream& Restart(std::ostream& out) const { 
       return out << "parabolic, " << da0 << ", " << da1 << ", " << da2; 
    };
 };
@@ -250,7 +250,7 @@ class ConstShape2D : public Shape2D {
       return dConst; 
    };
    
-   ostream& Restart(ostream& out) const { 
+   std::ostream& Restart(std::ostream& out) const { 
       return out << "const, " << dConst;
    };
 };
@@ -276,7 +276,7 @@ class BilinearShape2D : public Shape2D {
       return da0+da1x*dx+da1y*dy+da1xy*dx*dy; 
    };
    
-   ostream& Restart(ostream& out) const { 
+   std::ostream& Restart(std::ostream& out) const { 
       return out << "bilinear, " << da0 << ", "
 	<< da1x << ", " << da1y << ", " << da1xy; 
    };

@@ -125,7 +125,7 @@ class StructNode : public Node {
    virtual Node::Type GetNodeType(void) const;
    
    /* Contributo del nodo strutturale al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    /* Restituisce il valore del dof iDof;
     * se differenziale, iOrder puo' essere = 1 per la derivata */
@@ -187,8 +187,8 @@ class StructNode : public Node {
 		   const VectorHandler& X, const VectorHandler& XP) const;
 
    /* Output di un modello NASTRAN equivalente nella configurazione corrente */
-   virtual void Output_pch(ostream& out) const;
-   virtual void Output_f06(ostream& out, const VectorHandler& X) const;
+   virtual void Output_pch(std::ostream& out) const;
+   virtual void Output_f06(std::ostream& out, const VectorHandler& X) const;
    
    /* Aggiorna dati in base alla soluzione */
    virtual void Update(const VectorHandler& X,

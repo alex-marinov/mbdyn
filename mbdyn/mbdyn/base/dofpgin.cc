@@ -67,8 +67,9 @@ DofPlugIn::Read(int argc, char *argv[])
 		pNode = NULL;
 		/* Chi dealloca questa memoria? ci vorrebbe l'handle */
 		SAFENEWWITHCONSTRUCTOR(pNode, Node2Scalar, Node2Scalar(nd));
-		cerr << "warning, possibly allocating a NodeDof that nobody"
-			" will delete until handles will be used" << endl;
+		std::cerr << "warning, possibly allocating a NodeDof "
+			"that nobody will delete until handles "
+			"will be used" << std::endl;
 	} else {
 		iOrder = ReadDofOrder(pNode, 1, argv[2]);
 	}
@@ -125,11 +126,11 @@ DofPlugIn::ReadNode(unsigned int uLabel, const char *s)
 		}
 	}
 	if (i == Node::LASTNODETYPE) {
-		cerr << "unknown node type '" << s << "'" << endl;
+		std::cerr << "unknown node type '" << s << "'" << std::endl;
 		THROW(ErrGeneric());
 	}
 	if ((pNode = pDM->pFindNode(Node::Type(i), uLabel)) == NULL) {
-		cerr << "node " << uLabel << " not defined" << endl;
+		std::cerr << "node " << uLabel << " not defined" << std::endl;
 		THROW(ErrGeneric());
 	}
 	return pNode;
@@ -140,9 +141,9 @@ DofPlugIn::ReadIndex(Node *pNode, unsigned int iMaxIndex, const char *s)
 {
 	unsigned int i = ReadLabel(s);
 	if (i == 0 || i > iMaxIndex) {
-		cerr << "illegal index " << i << " for node "
+		std::cerr << "illegal index " << i << " for node "
 			<< psNodeNames[pNode->GetNodeType()]
-			<< "(" << pNode->GetLabel() << ")" << endl;
+			<< "(" << pNode->GetLabel() << ")" << std::endl;
 		THROW(ErrGeneric());
 	}
 	return i;
@@ -153,17 +154,17 @@ DofPlugIn::ReadDofOrder(Node *pNode, unsigned int iIndex, const char *s)
 {
 	if (strcasecmp(s, "differential") == 0) {
 		if (pNode->SetDof(iIndex-1) != DofOrder::DIFFERENTIAL) {
-			cerr << "cannot take differential value of "
+			std::cerr << "cannot take differential value of "
 				<< psNodeNames[pNode->GetNodeType()] 
 				<< "(" << pNode->GetLabel() << ")[" 
-				<< iIndex << "]" << endl;
+				<< iIndex << "]" << std::endl;
 			THROW(ErrGeneric());
 		}
 		return 1;
 	} else if (strcasecmp(s, "algebraic") == 0) {
 		return 0;
 	} else {
-		cerr << "unknown dof order '" << s << "'" << endl;
+		std::cerr << "unknown dof order '" << s << "'" << std::endl;
 		THROW(ErrGeneric());
 	}
 	return -1;

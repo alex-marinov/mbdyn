@@ -37,6 +37,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <float.h>
+
 #include <constltp.h>
 #include <shapefnc.h>
 #include <beam.h>
@@ -153,8 +155,8 @@ HBeam::DsDxi(void)
 	if (d > DBL_EPSILON) {
 		d = sqrt(d);
 	} else {
-		cerr << "warning, beam " << GetLabel() 
-			<< " has singular metric; aborting ..." << endl;
+		std::cerr << "warning, beam " << GetLabel() 
+			<< " has singular metric; aborting ..." << std::endl;
 		
 		THROW(HBeam::ErrGeneric());
 	}
@@ -221,14 +223,14 @@ HBeam::Omega0(void)
 
 
 /* Contributo al file di restart */
-ostream&
-HBeam::Restart(ostream& out) const
+std::ostream&
+HBeam::Restart(std::ostream& out) const
 {
-	return Restart_(out)<< ';' << endl;
+	return Restart_(out)<< ';' << std::endl;
 }
 
-ostream&
-HBeam::Restart_(ostream& out) const
+std::ostream&
+HBeam::Restart_(std::ostream& out) const
 { 
 	out << "  beam2: " << GetLabel();
 	for (unsigned int i = 0; i < NUMNODES; i++) {
@@ -530,8 +532,8 @@ void
 HBeam::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		OH.Beams() << setw(8) << GetLabel() << " " 
-			<< AzLoc.GetVec1() << " " << AzLoc.GetVec2() << endl;
+		OH.Beams() << std::setw(8) << GetLabel() << " " 
+			<< AzLoc.GetVec1() << " " << AzLoc.GetVec2() << std::endl;
 	}
 }
 
@@ -614,8 +616,8 @@ HBeam::GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& r) const
 }
 
 
-ostream& 
-HBeam::WriteAdamsDummyPartCmd(ostream& out,
+std::ostream& 
+HBeam::WriteAdamsDummyPartCmd(std::ostream& out,
 		unsigned int part,
 		unsigned int firstId) const
 {
@@ -630,14 +632,14 @@ HBeam::WriteAdamsDummyPartCmd(ostream& out,
 	Mat3x3 RT(R.Transpose());
 	
 	out << psAdamsElemCode[GetElemType()] << "_" << GetLabel()
-		<< "_" << 1 << endl
+		<< "_" << 1 << std::endl
 		<< firstId << " "
 		<< p << " " 
 		<< EulerAngles(R) << " "
 		<< RT*(xTmp[NODE1]-p) << " "
 		<< Zero3 /* EulerAngles(pNode[part]->GetRCurr()) */ << " "
 		<< RT*(xTmp[NODE2]-p) << " "
-		<< Zero3 /* EulerAngles(pNode[1+part]->GetRCurr()) */ << endl;
+		<< Zero3 /* EulerAngles(pNode[1+part]->GetRCurr()) */ << std::endl;
 	
 	return out;
 }
@@ -1051,8 +1053,8 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	}
 	
 	DEBUGLCOUT(MYDEBUG_INPUT, "node 1 offset (node reference frame): " 
-			<< f1 << endl << "(global frame): "
-			<< pNode1->GetXCurr()+pNode1->GetRCurr()*R1*f1 << endl);
+			<< f1 << std::endl << "(global frame): "
+			<< pNode1->GetXCurr()+pNode1->GetRCurr()*R1*f1 << std::endl);
 	
 	/* Nodo 2 */
 	StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
@@ -1065,8 +1067,8 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	}
 	
 	DEBUGLCOUT(MYDEBUG_INPUT, "node 2 offset (node reference frame): " 
-			<< f2 << endl << "(global frame): "
-			<< pNode2->GetXCurr()+pNode2->GetRCurr()*R2*f2 << endl);
+			<< f2 << std::endl << "(global frame): "
+			<< pNode2->GetXCurr()+pNode2->GetRCurr()*R2*f2 << std::endl);
 	
 	/* Legame costitutivo */
 	DefHingeType::Type ConstLawType = DefHingeType::UNKNOWN;
@@ -1080,10 +1082,10 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	Mat3x3 D22(MTmp.GetMat22());
 	
 	DEBUGLCOUT(MYDEBUG_INPUT, 
-			"First point matrix D11: " << endl << D11 << endl
-			<< "First point matrix D12: " << endl << D12 << endl
-			<< "First point matrix D21: " << endl << D21 << endl
-			<< "First point matrix D22: " << endl << D22 << endl);
+			"First point matrix D11: " << std::endl << D11 << std::endl
+			<< "First point matrix D12: " << std::endl << D12 << std::endl
+			<< "First point matrix D21: " << std::endl << D21 << std::endl
+			<< "First point matrix D22: " << std::endl << D22 << std::endl);
 #endif /* DEBUG */
 
 #ifdef PIEZO_BEAM
@@ -1096,16 +1098,16 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		fPiezo = flag(1);
 		DEBUGLCOUT(MYDEBUG_INPUT, 
 				"Piezoelectric actuator beam is expected"
-				<< endl);
+				<< std::endl);
 		
 		iNumElec = HP.GetInt();
 		DEBUGLCOUT(MYDEBUG_INPUT, 
 				"piezo actuator " << uLabel
 				<< " has " << iNumElec 
-				<< " electrodes" << endl);
+				<< " electrodes" << std::endl);
 		if (iNumElec <= 0) {
-			cerr << "illegal number of electric nodes "
-				<< iNumElec << endl;
+			std::cerr << "illegal number of electric nodes "
+				<< iNumElec << std::endl;
 			THROW(ErrGeneric());
 		}
 		
@@ -1114,11 +1116,11 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		for (integer i = 0; i < iNumElec; i++) {
 			unsigned int uL = HP.GetInt();
 			DEBUGLCOUT(MYDEBUG_INPUT, "linked to abstract node "
-					<< uL << endl);
+					<< uL << std::endl);
 			pvElecDofs[i] = (ScalarDifferentialNode*)(pDM->pFindNode(Node::ABSTRACT, uL));
 			if (pvElecDofs[i] == NULL) {
-				cerr << "can't find abstract node "
-					<< uL << endl;
+				std::cerr << "can't find abstract node "
+					<< uL << std::endl;
 				THROW(ErrGeneric());
 			}
 		}
@@ -1130,7 +1132,7 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		HP.GetMat6xN(PiezoMat[0], PiezoMat[1], iNumElec);
 		
 #if 0
-		DEBUGLCOUT(MYDEBUG_INPUT, "Piezo matrix I:" << endl
+		DEBUGLCOUT(MYDEBUG_INPUT, "Piezo matrix I:" << std::endl
 				<< PiezoMat[0][0] << PiezoMat[1][0]);
 #endif /* 0 */
 	}
@@ -1207,16 +1209,16 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 #endif /* PIEZO_BEAM */
 
 #else /* VISCOELASTIC_BEAM */
-		cerr << "Sorry, the ViscoElasticHBeam element"
-			" is not available yet" << endl;
+		std::cerr << "Sorry, the ViscoElasticHBeam element"
+			" is not available yet" << std::endl;
 		THROW(ErrNotImplementedYet());
 #endif /* VISCOELASTIC_BEAM */
 	}
 	
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.fIsArg()) {
-		cerr << "semicolon expected at line "
-			<< HP.GetLineData() << endl;      
+		std::cerr << "semicolon expected at line "
+			<< HP.GetLineData() << std::endl;      
 		THROW(DataManager::ErrGeneric());
 	}
 	

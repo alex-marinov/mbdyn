@@ -65,7 +65,7 @@ UniversalHingeJoint::~UniversalHingeJoint(void)
 
 
 /* Contributo al file di restart */
-ostream& UniversalHingeJoint::Restart(ostream& out) const
+std::ostream& UniversalHingeJoint::Restart(std::ostream& out) const
 {   
    Joint::Restart(out) << ", universal hinge, "
      << pNode1->GetLabel() 
@@ -75,7 +75,7 @@ ostream& UniversalHingeJoint::Restart(ostream& out) const
      << pNode2->GetLabel() 
      << ", reference, node, ", d2.Write(out, ", ")
      << ", hinge, reference, node, 1, ", (R2h.GetVec(1)).Write(out, ", ")
-     << ", 2, ", (R2h.GetVec(2)).Write(out, ", ") << ';' << endl;
+     << ", 2, ", (R2h.GetVec(2)).Write(out, ", ") << ';' << std::endl;
    
    return out;
 }
@@ -88,7 +88,7 @@ UniversalHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			    const VectorHandler& /* XCurr */ ,
 			    const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering UniversalHingeJoint::AssJac()" << endl);
+   DEBUGCOUT("Entering UniversalHingeJoint::AssJac()" << std::endl);
    
    /* Setta la sottomatrice come piena (e' un po' dispersivo, ma lo jacobiano 
     * e' complicato */					
@@ -235,7 +235,7 @@ SubVectorHandler& UniversalHingeJoint::AssRes(SubVectorHandler& WorkVec,
 					      const VectorHandler& XCurr, 
 					      const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering UniversalHingeJoint::AssRes()" << endl);
+   DEBUGCOUT("Entering UniversalHingeJoint::AssRes()" << std::endl);
       
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -311,13 +311,13 @@ void UniversalHingeJoint::Output(OutputHandler& OH) const
       OH.Output() << "Joint " << uLabel << ", type \""
 	<< psJointNames[Joint::UNIVERSALHINGE] 
 	<< "\", linked to nodes " << pNode1->GetLabel() 
-	<< " and " << pNode2->GetLabel() << ':' << endl 
-	<< "Distance from node 1 (node reference frame): " << endl << d1 << endl 
-	<< "Distance from node 2 (node reference frame): " << endl << d2 << endl
-	<< "Current force reaction: " << endl << F << endl
-	<< "Hinge to node 1 relative orientation: " << endl << R1h << endl
-	<< "Hinge to node 2 relative orientation: " << endl << R2h << endl
-	<< "Current reaction couple: " << endl << dM << endl;
+	<< " and " << pNode2->GetLabel() << ':' << std::endl 
+	<< "Distance from node 1 (node reference frame): " << std::endl << d1 << std::endl 
+	<< "Distance from node 2 (node reference frame): " << std::endl << d2 << std::endl
+	<< "Current force reaction: " << std::endl << F << std::endl
+	<< "Hinge to node 1 relative orientation: " << std::endl << R1h << std::endl
+	<< "Hinge to node 2 relative orientation: " << std::endl << R2h << std::endl
+	<< "Current reaction couple: " << std::endl << dM << std::endl;
 #endif   
          
       Mat3x3 R1Tmp(pNode1->GetRCurr()*R1h);
@@ -326,7 +326,7 @@ void UniversalHingeJoint::Output(OutputHandler& OH) const
 
       Joint::Output(OH.Joints(), "UniversalHinge", GetLabel(),
 		    R1Tmp.Transpose()*F, Vec3(dM, 0., 0.), F, vTmp*dM)
-	<< " " << EulerAngles(R2Tmp.Transpose()*R1Tmp) << endl;      
+	<< " " << EulerAngles(R2Tmp.Transpose()*R1Tmp) << std::endl;      
    }   
 }
 
@@ -336,7 +336,7 @@ VariableSubMatrixHandler&
 UniversalHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 				   const VectorHandler& XCurr)
 {
-   DEBUGCOUT("Entering UniversalHingeJoint::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering UniversalHingeJoint::InitialAssJac()" << std::endl);
    
    /* Per ora usa la matrice piena; eventualmente si puo' 
     * passare a quella sparsa quando si ottimizza */
@@ -472,9 +472,9 @@ UniversalHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
    if (Tmp.Dot() < DBL_EPSILON) {
-      cerr << "joint " << GetLabel() << ':' << endl
-	<< "warning, first node hinge axis and second node hinge axis are (nearly) orthogonal;" << endl
-	<< "aborting ..." << endl;
+      std::cerr << "joint " << GetLabel() << ':' << std::endl
+	<< "warning, first node hinge axis and second node hinge axis are (nearly) orthogonal;" << std::endl
+	<< "aborting ..." << std::endl;
       THROW(Joint::ErrGeneric());
    }   
    
@@ -563,7 +563,7 @@ SubVectorHandler&
 UniversalHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 				   const VectorHandler& XCurr)
 {   
-   DEBUGCOUT("Entering UniversalHingeJoint::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering UniversalHingeJoint::InitialAssRes()" << std::endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -686,7 +686,7 @@ UniversalPinJoint::~UniversalPinJoint(void)
 
 
 /* Contributo al file di restart */
-ostream& UniversalPinJoint::Restart(ostream& out) const
+std::ostream& UniversalPinJoint::Restart(std::ostream& out) const
 {
    Joint::Restart(out) << ", universal pin, "
      << pNode->GetLabel() << ", reference, node, ", d.Write(out, ", ") 
@@ -696,7 +696,7 @@ ostream& UniversalPinJoint::Restart(ostream& out) const
      << ", reference, global, ", X0.Write(out, ", ") 
      << ", reference, global, 1, ",
      (R0.GetVec(1)).Write(out, ", ") << ", 2, ", 
-     (R0.GetVec(2)).Write(out, ", ") << ';' << endl;
+     (R0.GetVec(2)).Write(out, ", ") << ';' << std::endl;
    
    return out;
 }
@@ -709,7 +709,7 @@ UniversalPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			  const VectorHandler& /* XCurr */ ,
 			  const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering UniversalPinJoint::AssJac()" << endl);
+   DEBUGCOUT("Entering UniversalPinJoint::AssJac()" << std::endl);
       
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
    WM.ResizeInit(33, 0, 0.);
@@ -802,7 +802,7 @@ SubVectorHandler& UniversalPinJoint::AssRes(SubVectorHandler& WorkVec,
 					    const VectorHandler& XCurr, 
 					    const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering UniversalPinJoint::AssRes()" << endl);
+   DEBUGCOUT("Entering UniversalPinJoint::AssRes()" << std::endl);
       
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -857,12 +857,12 @@ void UniversalPinJoint::Output(OutputHandler& OH) const
 #ifdef DEBUG   
       OH.Output() << "Joint " << uLabel << ", type \""
 	<< psJointNames[Joint::UNIVERSALPIN]
-	<< "\", linked to node " << pNode->GetLabel() << ':' << endl
-	<< "Distance from node (node reference frame): " << endl << d << endl
-	<< "Hinge rotation matrix (node reference frame): " << endl << Rh << endl
-	<< "Current reaction force: " << endl << F << endl
-	<< "Current reaction couple (hinge reference frame):" << endl 
-	<< dM << endl;
+	<< "\", linked to node " << pNode->GetLabel() << ':' << std::endl
+	<< "Distance from node (node reference frame): " << std::endl << d << std::endl
+	<< "Hinge rotation matrix (node reference frame): " << std::endl << Rh << std::endl
+	<< "Current reaction force: " << std::endl << F << std::endl
+	<< "Current reaction couple (hinge reference frame):" << std::endl 
+	<< dM << std::endl;
 #endif   
 
       Mat3x3 RTmp(pNode->GetRCurr()*Rh);
@@ -870,7 +870,7 @@ void UniversalPinJoint::Output(OutputHandler& OH) const
       
       Joint::Output(OH.Joints(), "UniversalPin", GetLabel(),
 		    RTmp.Transpose()*F, Vec3(dM, 0., 0.), F, vTmp*dM)
-	<< " " << EulerAngles(R0.Transpose()*RTmp) << endl;      
+	<< " " << EulerAngles(R0.Transpose()*RTmp) << std::endl;      
    }   
 }
 
@@ -880,7 +880,7 @@ VariableSubMatrixHandler&
 UniversalPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 				   const VectorHandler& XCurr)
 {
-   DEBUGCOUT("Entering UniversalPinJoint::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering UniversalPinJoint::InitialAssJac()" << std::endl);
 
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -951,9 +951,9 @@ UniversalPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
    if (Tmp.Dot() < DBL_EPSILON) {
-      cerr << "joint " << GetLabel() << ':' << endl
-	<< "warning, node hinge axis and fixed point hinge axis are (nearly) orthogonal;" << endl
-	<< "aborting ..." << endl;
+      std::cerr << "joint " << GetLabel() << ':' << std::endl
+	<< "warning, node hinge axis and fixed point hinge axis are (nearly) orthogonal;" << std::endl
+	<< "aborting ..." << std::endl;
       THROW(Joint::ErrGeneric());
    }   
    
@@ -1022,7 +1022,7 @@ SubVectorHandler&
 UniversalPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 			const VectorHandler& XCurr)
 {   
-   DEBUGCOUT("Entering UniversalPinJoint::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering UniversalPinJoint::InitialAssRes()" << std::endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;

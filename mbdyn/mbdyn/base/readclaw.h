@@ -81,7 +81,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 				       DefHingeType::Type& ConstLawType,
 				       ConstitutiveLaw<T, Tder>*)
 {
-   DEBUGCOUT("Entering ReadConstLaw" << endl);
+   DEBUGCOUT("Entering ReadConstLaw" << std::endl);
    
    const char* sKeyWords[] = {
       "linear" "elastic",
@@ -150,11 +150,11 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        
        doublereal dS = HP.GetReal();
        DEBUGCOUT("Linear Elastic Isotropic Constitutive Law, stiffness = "
-		 << dS << endl);
+		 << dS << std::endl);
        
        if (dS <= 0.) {		      
-	  cerr << "warning, null or negative stiffness at line " 
-	    << HP.GetLineData() << endl;
+	  std::cerr << "warning, null or negative stiffness at line " 
+	    << HP.GetLineData() << std::endl;
        }
 
        /* Prestress and prestrain */
@@ -172,7 +172,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
     case LINEARELASTICGENERIC: {
        ConstLawType = DefHingeType::ELASTIC;
              
-       DEBUGCOUT("Linear Elastic Generic Constitutive Law" << endl);
+       DEBUGCOUT("Linear Elastic Generic Constitutive Law" << std::endl);
        Tder S(0.);
        S = HP.Get(S);
               
@@ -191,13 +191,13 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
     case LINEARELASTICGENERICAXIALTORSIONCOUPLING: {
        ConstLawType = DefHingeType::ELASTIC;
              
-       DEBUGCOUT("Linear Elastic Generic Constitutive Law with Axial-Torsion Coupling" << endl);
+       DEBUGCOUT("Linear Elastic Generic Constitutive Law with Axial-Torsion Coupling" << std::endl);
        Tder S(0.);
        S = HP.Get(S);
        
        // coefficiente di accoppiamento
        doublereal dCoupl = HP.GetReal();
-       DEBUGCOUT("coupling coefficient: " << dCoupl << endl);
+       DEBUGCOUT("coupling coefficient: " << dCoupl << std::endl);
        
        /* Prestress and prestrain */
        T PreStress(0.);
@@ -214,11 +214,11 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
    case LOGELASTIC: {
        ConstLawType = DefHingeType::ELASTIC;
              
-       DEBUGCOUT("Logaritmic Elastic Constitutive Law" << endl);
+       DEBUGCOUT("Logaritmic Elastic Constitutive Law" << std::endl);
        doublereal dS = HP.GetReal();
        if (dS <= 0.) {		      
-	  cerr << "warning, null or negative stiffness at line " 
-	    << HP.GetLineData() << endl;
+	  std::cerr << "warning, null or negative stiffness at line " 
+	    << HP.GetLineData() << std::endl;
        }
        
        /* Prestress and prestrain */
@@ -238,29 +238,29 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        ConstLawType = DefHingeType::ELASTIC;
        
        doublereal dS = HP.GetReal();
-       DEBUGCOUT("stiffness = " << dS << endl);
+       DEBUGCOUT("stiffness = " << dS << std::endl);
        
        if (dS <= 0.) {
-	  cerr << "warning, null or negative stiffness at line " 
-	    << HP.GetLineData() << endl;
+	  std::cerr << "warning, null or negative stiffness at line " 
+	    << HP.GetLineData() << std::endl;
        }
        
        doublereal dUpp = HP.GetReal();
        if (dUpp <= 0.) {
-	  cerr << "warning, null or negative upper limit strain at line "
-	    << HP.GetLineData() << endl;
+	  std::cerr << "warning, null or negative upper limit strain at line "
+	    << HP.GetLineData() << std::endl;
        }
        
        doublereal dLow = HP.GetReal();
        if (dLow >= 0.) {
-	  cerr << "warning, null or positive lower limit strain at line "
-	    << HP.GetLineData() << endl;
+	  std::cerr << "warning, null or positive lower limit strain at line "
+	    << HP.GetLineData() << std::endl;
        }
        
        doublereal dSecondS = HP.GetReal();
        if (dSecondS <= 0.) {		      
-	  cerr << "warning, null or negative second stiffness at line "
-	    << HP.GetLineData() << endl;
+	  std::cerr << "warning, null or negative second stiffness at line "
+	    << HP.GetLineData() << std::endl;
        }
        
        /* Prestress and prestrain */
@@ -281,19 +281,19 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        ConstLawType = DefHingeType::ELASTIC;
        
        doublereal dS = HP.GetReal();
-       DEBUGCOUT("Stiffness = " << dS << endl);
+       DEBUGCOUT("Stiffness = " << dS << std::endl);
        
        if (dS <= 0.) {		      
-	  cerr << "warning, null or negative stiffness at line " 
-	    << HP.GetLineData() << endl;
+	  std::cerr << "warning, null or negative stiffness at line " 
+	    << HP.GetLineData() << std::endl;
        }
        
        doublereal dE = HP.GetReal();
-       DEBUGCOUT("Reference strain = " << dE << endl);
+       DEBUGCOUT("Reference strain = " << dE << std::endl);
        
        if (dE <= 0.) {		      
-	  cerr << "error, null or negative reference strain at line " 
-	    << HP.GetLineData() << endl;	  
+	  std::cerr << "error, null or negative reference strain at line " 
+	    << HP.GetLineData() << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }
        
@@ -313,19 +313,19 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        ConstLawType = DefHingeType::ELASTIC;
        
        doublereal dK = HP.GetReal();
-       DEBUGCOUT("Stiffness = " << dK << endl);
+       DEBUGCOUT("Stiffness = " << dK << std::endl);
        
        if (dK <= 0.) {		      
-	  cerr << "warning, null or negative stiffness at line " 
-	    << HP.GetLineData() << endl;
+	  std::cerr << "warning, null or negative stiffness at line " 
+	    << HP.GetLineData() << std::endl;
        }
        
        doublereal dGamma = HP.GetReal();
-       DEBUGCOUT("Exponent = " << dGamma << endl);
+       DEBUGCOUT("Exponent = " << dGamma << std::endl);
        
        if (dGamma < 1.) {
-	  cerr << "error, exponent < 1. at line "
-	    << HP.GetLineData() << endl;	  
+	  std::cerr << "error, exponent < 1. at line "
+	    << HP.GetLineData() << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }
        
@@ -346,11 +346,11 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        ConstLawType = DefHingeType::VISCOUS;
        
        doublereal dSP = HP.GetReal();
-       DEBUGCOUT("stiffness prime = " << dSP << endl);
+       DEBUGCOUT("stiffness prime = " << dSP << std::endl);
        
        if (dSP <= 0.) {
-	  cerr << "warning, null or negative stiffness prime at line " 
-	    << HP.GetLineData() << endl;
+	  std::cerr << "warning, null or negative stiffness prime at line " 
+	    << HP.GetLineData() << std::endl;
        }
        
        /* Prestress (no prestrain) */
@@ -384,11 +384,11 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        ConstLawType = DefHingeType::VISCOELASTIC;     
        
        doublereal dS = HP.GetReal();
-       DEBUGCOUT("Stiffness = " << dS << endl);
+       DEBUGCOUT("Stiffness = " << dS << std::endl);
        
        if (dS <= 0.) {
-	  cerr << "warning, null or negative stiffness at line " 
-	    << HP.GetLineData() << endl;
+	  std::cerr << "warning, null or negative stiffness at line " 
+	    << HP.GetLineData() << std::endl;
        }
        
        doublereal dSP = 0.;
@@ -398,11 +398,11 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        } else {	 
 	  dSP = HP.GetReal();
        }       
-       DEBUGCOUT("stiffness prime = " << dSP << endl);
+       DEBUGCOUT("stiffness prime = " << dSP << std::endl);
        
        if (dSP <= 0.) {
-	  cerr << "warning, null or negative stiffness prime at line " 
-	    << HP.GetLineData() << endl;
+	  std::cerr << "warning, null or negative stiffness prime at line " 
+	    << HP.GetLineData() << std::endl;
        }
        
        /* Prestress and prestrain */
@@ -447,38 +447,37 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        ConstLawType = DefHingeType::VISCOELASTIC;
        
        doublereal dS = HP.GetReal();
-       DEBUGCOUT("stiffness = " << dS << endl);
+       DEBUGCOUT("stiffness = " << dS << std::endl);
        
        if (dS <= 0.) {
-	  cerr << "warning, null or negative stiffness at line " 
-	    << HP.GetLineData() << endl;
+	  std::cerr << "warning, null or negative stiffness at line " 
+	    << HP.GetLineData() << std::endl;
        }
        
        doublereal dUpp = HP.GetReal();
        if (dUpp <= 0.) {
-	  cerr << "warning, null or negative upper limit strain at line "
-	    << HP.GetLineData() << endl;
+	  std::cerr << "warning, null or negative upper limit strain at line "
+	    << HP.GetLineData() << std::endl;
        }
        
        doublereal dLow = HP.GetReal();
        if (dLow >= 0.) {
-	  cerr << "warning, null or positive lower limit strain at line "
-	    << HP.GetLineData() << endl;
+	  std::cerr << "warning, null or positive lower limit strain at line "
+	    << HP.GetLineData() << std::endl;
        }
        
        doublereal dSecondS = HP.GetReal();
        if (dSecondS <= 0.) {		      
-	  cerr << "warning, null or negative second stiffness at line "
-	    << HP.GetLineData() << endl;
+	  std::cerr << "warning, null or negative second stiffness at line "
+	    << HP.GetLineData() << std::endl;
        }
        
        doublereal dSP = HP.GetReal();
-       DEBUGCOUT("stiffness prime = " 
-		 << dSP << endl);
+       DEBUGCOUT("stiffness prime = " << dSP << std::endl);
        
        if (dSP <= 0.) {
-	  cerr << "warning, null or negative stiffness prime at line " 
-	    << HP.GetLineData() << endl;
+	  std::cerr << "warning, null or negative stiffness prime at line " 
+	    << HP.GetLineData() << std::endl;
        }
        
        /* Prestress and prestrain */
@@ -501,20 +500,19 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        
        doublereal dS = HP.GetReal();
        DEBUGCOUT("Visco-Elastic Turbulent Rod Joint, stiffness = " 
-		 << dS << endl);
+		 << dS << std::endl);
        
        if (dS <= 0.) {
-	  cerr << "warning, null or negative stiffness at line " 
-	    << HP.GetLineData() << endl;
+	  std::cerr << "warning, null or negative stiffness at line " 
+	    << HP.GetLineData() << std::endl;
        }
        
        doublereal dParabStiff = HP.GetReal();
-       DEBUGCOUT("stiffness prime = " 
-		 << dParabStiff << endl);
+       DEBUGCOUT("stiffness prime = " << dParabStiff << std::endl);
        
        if (dParabStiff <= 0.) {
-	  cerr << "warning, null or negative derivative stiffness at line " 
-	    << HP.GetLineData() << endl;
+	  std::cerr << "warning, null or negative derivative stiffness at line " 
+	    << HP.GetLineData() << std::endl;
        }
        
        doublereal dTreshold = 0.;
@@ -563,19 +561,19 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        typedef LinearViscoElasticBiStopConstitutiveLaw<T, Tder> L;
        ConstLawType = DefHingeType::VISCOELASTIC;
              
-       DEBUGCOUT("Linear Viscoelastic Bi Stop Constitutive Law" << endl);
+       DEBUGCOUT("Linear Viscoelastic Bi Stop Constitutive Law" << std::endl);
        doublereal dS = HP.GetReal();
        if (dS <= 0.) {
-	  cerr << "warning, null or negative stiffness at line " 
-	    << HP.GetLineData() << endl;
+	  std::cerr << "warning, null or negative stiffness at line " 
+	    << HP.GetLineData() << std::endl;
        }
 
        doublereal dSp = 0.;
        if (CurrKW == LINEARVISCOELASTICBISTOP) {
 	  dSp = HP.GetReal();
 	  if (dSp <= 0.) {
-             cerr << "warning, null or negative stiffness prime at line " 
-		     << HP.GetLineData() << endl;
+	     std::cerr << "warning, null or negative stiffness prime at line " 
+		     << HP.GetLineData() << std::endl;
 	  }
        }
 
@@ -586,7 +584,8 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 	  } else if (HP.IsKeyWord("inactive")) {
 	     s = L::INACTIVE;
 	  } else {
-             cerr << "unknown initial status at line " << HP.GetLineData() << endl;
+	     std::cerr << "unknown initial status at line " 
+		     << HP.GetLineData() << std::endl;
 	     THROW(ErrGeneric());
 	  }
        }
@@ -610,10 +609,11 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
        ConstLawType = DefHingeType::VISCOELASTIC;
 
        const char* filename = HP.GetFileName();
-       DEBUGCOUT("Graall damper input file: \"" << filename << "\"" << endl);
+       DEBUGCOUT("Graall damper input file: \"" 
+		       << filename << "\"" << std::endl);
        
        doublereal rla = HP.GetReal();
-       DEBUGCOUT("Reference length: " << rla << endl);
+       DEBUGCOUT("Reference length: " << rla << std::endl);
        
        DriveCaller* pDC = NULL;
        SAFENEWWITHCONSTRUCTOR(pDC,
@@ -633,7 +633,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
               
        break;
 #else /* USE_GRAALLDAMPER */
-       cerr << "can't use GRAALL Damper" << endl;
+       std::cerr << "can't use GRAALL Damper" << std::endl;
        THROW(ErrGeneric());
 #endif /* USE_GRAALLDAMPER */
     }
@@ -662,8 +662,8 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
     // Aggiungere altri rods
       
     default: {
-       cerr << "Unknown constitutive law type at line " 
-	 << HP.GetLineData() << endl;
+       std::cerr << "Unknown constitutive law type at line " 
+	 << HP.GetLineData() << std::endl;
        
        THROW(ErrGeneric());
     }		       
@@ -680,7 +680,7 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 					       DefHingeType::Type& T)
 {
    const char sFuncName[] = "DataManager::ReadConstLaw3D()";
-   DEBUGCOUT("Entering " << sFuncName << endl);
+   DEBUGCOUT("Entering " << sFuncName << std::endl);
    
    const char* sKeyWords[] = {
       "linear" "elastic" "isotropic",        // Lineare elastico
@@ -719,12 +719,11 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 	   T = DefHingeType::ELASTIC;
 		   
 	   doublereal dS = HP.GetReal();
-	   DEBUGCOUT("stiffness = "
-		     << dS << endl);
+	   DEBUGCOUT("stiffness = " << dS << std::endl);
 	   
-	   if(dS <= 0.) {		      
-	      cerr << "warning, null or negative stiffness at line " 
-		<< HP.GetLineData() << endl;
+	   if (dS <= 0.) {		      
+	      std::cerr << "warning, null or negative stiffness at line " 
+		<< HP.GetLineData() << std::endl;
 	   }
 	   	   
 	   Vec3 PreStress(0.);
@@ -776,30 +775,29 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 	   T = DefHingeType::ELASTIC;
 		   
 	   doublereal dS = HP.GetReal();
-	   DEBUGCOUT("stiffness = "
-		     << dS << endl);
+	   DEBUGCOUT("stiffness = " << dS << std::endl);
 	   
-	   if(dS <= 0.) {		      
-	      cerr << "warning, null or negative stiffness at line " 
-		<< HP.GetLineData() << endl;
+	   if (dS <= 0.) {		      
+	      std::cerr << "warning, null or negative stiffness at line " 
+		<< HP.GetLineData() << std::endl;
 	   }
 	   
 	   doublereal dUpp = HP.GetReal();
-	   if(dUpp <= 0.) {
-	      cerr << "warning, null or negative upper limit strain at line "
-		<< HP.GetLineData() << endl;
+	   if (dUpp <= 0.) {
+	      std::cerr << "warning, null or negative upper limit strain at line "
+		<< HP.GetLineData() << std::endl;
 	   }
 	   
 	   doublereal dLow = HP.GetReal();
 	   if(dLow >= 0.) {
-	      cerr << "warning, null or positive lower limit strain at line "
-		<< HP.GetLineData() << endl;
+	      std::cerr << "warning, null or positive lower limit strain at line "
+		<< HP.GetLineData() << std::endl;
 	   }
 	   
 	   doublereal dSecondS = HP.GetReal();
 	   if(dSecondS <= 0.) {		      
-	      cerr << "warning, null or negative second stiffness at line "
-		<< HP.GetLineData() << endl;
+	      std::cerr << "warning, null or negative second stiffness at line "
+		<< HP.GetLineData() << std::endl;
 	   }
 	   	   
 	   Vec3 PreStress(0.);
@@ -829,12 +827,11 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 	   T = DefHingeType::VISCOUS;
 		   
 	   doublereal dS = HP.GetReal();
-	   DEBUGCOUT("stiffness prime = " 
-		     << dS << endl);
+	   DEBUGCOUT("stiffness prime = " << dS << std::endl);
 	   
-	   if(dS <= 0.) {		      
-	      cerr << "warning, null or negative stiffness prime at line "
-		<< HP.GetLineData() << endl;
+	   if (dS <= 0.) {		      
+	      std::cerr << "warning, null or negative stiffness prime at line "
+		<< HP.GetLineData() << std::endl;
 	   }
 	   	   
 	   // Legame costitutivo
@@ -850,11 +847,11 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 	   
 	   doublereal dParabStiff = HP.GetReal();
 	   DEBUGCOUT("Visco-Elastic Turbulent Rod Joint, stiffness = " 
-		     << dParabStiff << endl);
+		     << dParabStiff << std::endl);
 	   
-	   if(dParabStiff <= 0.) {
-	      cerr << "warning, null or negative stiffness at line " 
-		<< HP.GetLineData() << endl;
+	   if (dParabStiff <= 0.) {
+	      std::cerr << "warning, null or negative stiffness at line " 
+		<< HP.GetLineData() << std::endl;
 	   }
 	   
 	   doublereal dTreshold = 0.;
@@ -903,19 +900,18 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 	   T = DefHingeType::VISCOUS;
 	
 	   doublereal dR = HP.GetReal();	   	   
-	   DEBUGCOUT("Reference value: " << dR << endl);
+	   DEBUGCOUT("Reference value: " << dR << std::endl);
 	   
 	   doublereal dS = HP.GetReal();
-	   DEBUGCOUT("stiffness prime = " 
-		     << dS << endl);
+	   DEBUGCOUT("stiffness prime = " << dS << std::endl);
 	   
-	   if(dS <= 0.) {		      
-	      cerr << "warning, null or negative stiffness prime at line "
-		<< HP.GetLineData() << endl;
+	   if (dS <= 0.) {		      
+	      std::cerr << "warning, null or negative stiffness prime at line "
+		<< HP.GetLineData() << std::endl;
 	   }
 	   	   
 	   doublereal dV = HP.GetReal();
-	   DEBUGCOUT("Reference velocity around axis 3: " << dV << endl);
+	   DEBUGCOUT("Reference velocity around axis 3: " << dV << std::endl);
 	   
 	   // Legame costitutivo
 	   SAFENEWWITHCONSTRUCTOR(pCL,
@@ -930,20 +926,19 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
 	   
 	   doublereal dS = HP.GetReal();
 	   DEBUGCOUT("Visco-Elastic Linear Rod Joint, stiffness = " 
-		     << dS << endl);
+		     << dS << std::endl);
 	   
-	   if(dS <= 0.) {
-	      cerr << "warning, null or negative stiffness at line " 
-		<< HP.GetLineData() << endl;
+	   if (dS <= 0.) {
+	      std::cerr << "warning, null or negative stiffness at line " 
+		<< HP.GetLineData() << std::endl;
 	   }
 	   
 	   doublereal dSP = HP.GetReal();
-	   DEBUGCOUT("stiffness prime = " 
-		     << dSP << endl);
+	   DEBUGCOUT("stiffness prime = " << dSP << std::endl);
 	   
-	   if(dSP <= 0.) {
-	      cerr << "warning, null or negative stiffness prime at line " 
-		<< HP.GetLineData() << endl;
+	   if (dSP <= 0.) {
+	      std::cerr << "warning, null or negative stiffness prime at line " 
+		<< HP.GetLineData() << std::endl;
 	   }
 	   
 	   Vec3 PreStress(0.);
@@ -969,9 +964,8 @@ ConstitutiveLaw3D* DataManager::ReadConstLaw3D(MBDynParser& HP,
       // Aggiungere altri rods
     default:
 	{
-	   cerr << endl 
-	     << "Unknown constitutive law type at line " 
-	     << HP.GetLineData() << endl;
+	   std::cerr << "Unknown constitutive law type at line " 
+	     << HP.GetLineData() << std::endl;
 
 	   THROW(DataManager::ErrGeneric());
 	}

@@ -60,7 +60,7 @@ void DataManager::NodeManager(void)
 
 void DataManager::NodeManagerDestructor(void)
 {
-   DEBUGCOUT("Entering DataManager::NodeManagerDestructor()" << endl);
+   DEBUGCOUT("Entering DataManager::NodeManagerDestructor()" << std::endl);
 
    ASSERT(ppNodes != NULL);
    
@@ -71,14 +71,14 @@ void DataManager::NodeManagerDestructor(void)
 	 if(*pp != NULL) {		  
 	    DEBUGCOUT("deleting node " << (*pp)->GetLabel() 
 		      << ", type " << psNodeNames[(*pp)->GetNodeType()]
-		      << endl);
+		      << std::endl);
 	    SAFEDELETE(*pp);
 	 }
 	 
 	 pp++;
       }	  
       
-      DEBUGCOUT("deleting node structure" << endl);
+      DEBUGCOUT("deleting node structure" << std::endl);
       SAFEDELETEARR(ppNodes);
    }	
 }
@@ -86,13 +86,13 @@ void DataManager::NodeManagerDestructor(void)
 
 void DataManager::NodeDataInit(void)
 {
-   for(int iCnt = 0; iCnt < Node::LASTNODETYPE; iCnt++) {      
+   for (int iCnt = 0; iCnt < Node::LASTNODETYPE; iCnt++) {      
       iTotNodes += NodeData[iCnt].iNum;
    }
 
-   DEBUGCOUT("iTotNodes = " << iTotNodes << endl);
+   DEBUGCOUT("iTotNodes = " << iTotNodes << std::endl);
    
-   if(iTotNodes > 0) {	
+   if (iTotNodes > 0) {	
       SAFENEWARR(ppNodes, Node*, iTotNodes);
       
       NodeIter.Init(ppNodes, iTotNodes);
@@ -117,9 +117,8 @@ void DataManager::NodeDataInit(void)
 	 NodeData[iCnt+1].ppFirstNode =
 	   NodeData[iCnt].ppFirstNode+NodeData[iCnt].iNum;
       }      
-   }
-   else {
-      cerr << "warning, no nodes are defined" << endl;
+   } else {
+      std::cerr << "warning, no nodes are defined" << std::endl;
    }
 }
 
@@ -169,7 +168,7 @@ DataManager::NodeOutput(
 
 void
 DataManager::NodeOutput_pch(
-		ostream& pch
+		std::ostream& pch
 		) const
 {
    Node** ppTmpNode = ppNodes;
@@ -191,7 +190,7 @@ DataManager::NodeOutput_pch(
 
 void
 DataManager::NodeOutput_f06(
-		ostream& f06,
+		std::ostream& f06,
 		const VectorHandler& X
 		) const
 {

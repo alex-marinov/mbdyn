@@ -78,13 +78,13 @@ Rod::~Rod(void)
 
 
 /* Contributo al file di restart */
-ostream& Rod::Restart(ostream& out) const
+std::ostream& Rod::Restart(std::ostream& out) const
 {
    Joint::Restart(out) << ", rod, "
      << pNode1->GetLabel() << ", "
      << pNode2->GetLabel() << ", " 
      << dL0 << ", ";
-   return pGetConstLaw()->Restart(out) << ';' << endl;
+   return pGetConstLaw()->Restart(out) << ';' << std::endl;
 }
 
 
@@ -96,10 +96,10 @@ void Rod::AssMat(FullSubMatrixHandler& WorkMat, doublereal dCoef)
    
    /* Verifica che la distanza non sia nulla */
    if (dCross <= DBL_EPSILON) {
-      cerr << endl << "Null distance between nodes " << pNode1->GetLabel() 
+      std::cerr << std::endl << "Null distance between nodes " << pNode1->GetLabel() 
 	<< " and " << pNode2->GetLabel() 
-	<< " in Rod Joint " << uLabel << ';' << endl
-	<< "aborting ..." << endl;
+	<< " in Rod Joint " << uLabel << ';' << std::endl
+	<< "aborting ..." << std::endl;
       THROW(Joint::ErrGeneric());
    }   
 
@@ -132,10 +132,10 @@ void Rod::AssVec(SubVectorHandler& WorkVec)
    
    /* Verifica che la distanza non sia nulla */
    if (dCross <= DBL_EPSILON) {
-      cerr << endl << "Null distance between nodes " << pNode1->GetLabel() 
+      std::cerr << std::endl << "Null distance between nodes " << pNode1->GetLabel() 
 	<< " and " << pNode2->GetLabel() 
-	<< " in Rod Joint " << uLabel << ';' << endl
-	<< "aborting ..." << endl;
+	<< " in Rod Joint " << uLabel << ';' << std::endl
+	<< "aborting ..." << std::endl;
       THROW(Joint::ErrGeneric());
    }   
    
@@ -160,7 +160,7 @@ VariableSubMatrixHandler& Rod::AssJac(VariableSubMatrixHandler& WorkMat,
 					   const VectorHandler& /* XCurr */ ,
 					   const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering Rod::AssJac()" << endl);
+   DEBUGCOUT("Entering Rod::AssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -196,7 +196,7 @@ void Rod::AssEig(VariableSubMatrixHandler& WorkMatA,
 		      const VectorHandler& /* XCurr */ ,
 		      const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering Rod::AssEig()" << endl);
+   DEBUGCOUT("Entering Rod::AssEig()" << std::endl);
    
    WorkMatB.SetNullMatrix();   
    FullSubMatrixHandler& WMA = WorkMatA.SetFull();
@@ -231,7 +231,7 @@ SubVectorHandler& Rod::AssRes(SubVectorHandler& WorkVec,
 				   const VectorHandler& /* XCurr */ ,
 				   const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering Rod::AssRes()" << endl);
+   DEBUGCOUT("Entering Rod::AssRes()" << std::endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -264,8 +264,8 @@ void Rod::Output(OutputHandler& OH) const
       OH.Output() << "Joint " << uLabel << ", type \""
 	<< psJointNames[Joint::ROD]
 	<< "\", linked to nodes " 
-	<< pNode1->GetLabel() << " and " << pNode2->GetLabel() << ':' << endl
-	<< "Initial length = " << dL0 << endl;
+	<< pNode1->GetLabel() << " and " << pNode2->GetLabel() << ':' << std::endl
+	<< "Initial length = " << dL0 << std::endl;
 #endif   
       
       ASSERT(dElle > DBL_EPSILON);	
@@ -274,20 +274,20 @@ void Rod::Output(OutputHandler& OH) const
       
       Joint::Output(OH.Joints(), "Rod", GetLabel(),
 		    Vec3(d, 0., 0.), Zero3, vTmp*d, Zero3)
-	<< " " << dElle << " " << vTmp << endl;
+	<< " " << dElle << " " << vTmp << std::endl;
    }
 }
 
 
 /* Output di un modello NASTRAN equivalente nella configurazione corrente */
 void
-Rod::Output_pch(ostream& out) const
+Rod::Output_pch(std::ostream& out) const
 {
 #if defined(__HACK_NASTRAN_MODES__)
 	if (fToBeOutput()) {
 		unsigned int label = GetLabel();
 		if (label > 9999999) {
-			cerr << "label of Rod(" << label <<") is too large" << endl;
+			std::cerr << "label of Rod(" << label <<") is too large" << std::endl;
 			THROW(ErrGeneric());
 		}
 
@@ -300,50 +300,50 @@ Rod::Output_pch(ostream& out) const
 #define __NASTRAN_FORMAT__ __HACK_NASTRAN_MODES__
 
 #if __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FIXED__
-		out << endl
+		out << std::endl
 			/* PBEAM */
 			<< "PBEAM   "
-			<< setw(8) << 20000000+label	/* label */
-			<< setw(8) << 1			/* material */
-			<< setw(8) << 1.		/* area */
-			<< setw(8) << 1.		/* J1 */
-			<< setw(8) << 1.		/* J2 */
-			<< setw(8) << ""		/* J12 */
-			<< setw(8) << 1.		/* Jp */
-			<< endl
+			<< std::setw(8) << 20000000+label	/* label */
+			<< std::setw(8) << 1			/* material */
+			<< std::setw(8) << 1.		/* area */
+			<< std::setw(8) << 1.		/* J1 */
+			<< std::setw(8) << 1.		/* J2 */
+			<< std::setw(8) << ""		/* J12 */
+			<< std::setw(8) << 1.		/* Jp */
+			<< std::endl
 
 			/* CBEAM */
 			<< "CBEAM   "
-			<< setw(8) << 20000000+label	/* label */
-			<< setw(8) << 20000000+label	/* prop */
-			<< setw(8) << pNode1->GetLabel()	/* node 1 */
-			<< setw(8) << pNode2->GetLabel()	/* node 2 */
+			<< std::setw(8) << 20000000+label	/* label */
+			<< std::setw(8) << 20000000+label	/* prop */
+			<< std::setw(8) << pNode1->GetLabel()	/* node 1 */
+			<< std::setw(8) << pNode2->GetLabel()	/* node 2 */
 			<< enld;
 #elif __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FIXED16__
-		out << endl
+		out << std::endl
 			/* PBEAM */
 			<< "PBEAM*  "
-			<< setw(16) << 20000000+label	/* label */
-			<< setw(16) << 1		/* material */
-			<< setw(16) << 1.		/* area */
-			<< setw(16) << 1.		/* J1 */
-			<< "*" << setw(7) << 1
-			<< endl
-			<< "*" << setw(7) << 1
-			<< setw(16) << 1.		/* J2 */
-			<< setw(16) << " "		/* J12 */
-			<< setw(16) << 1.		/* Jp */
-			<< endl
+			<< std::setw(16) << 20000000+label	/* label */
+			<< std::setw(16) << 1		/* material */
+			<< std::setw(16) << 1.		/* area */
+			<< std::setw(16) << 1.		/* J1 */
+			<< "*" << std::setw(7) << 1
+			<< std::endl
+			<< "*" << std::setw(7) << 1
+			<< std::setw(16) << 1.		/* J2 */
+			<< std::setw(16) << " "		/* J12 */
+			<< std::setw(16) << 1.		/* Jp */
+			<< std::endl
 
 			/* CBEAM */
 			<< "CBEAM*  "
-			<< setw(16) << 20000000+label 	/* label */
-			<< setw(16) << 20000000+label	/* prop */
-			<< setw(16) << pNode1->GetLabel()	/* node 1 */
-			<< setw(16) << pNode2->GetLabel()	/* node 2 */
-			<< endl;
+			<< std::setw(16) << 20000000+label 	/* label */
+			<< std::setw(16) << 20000000+label	/* prop */
+			<< std::setw(16) << pNode1->GetLabel()	/* node 1 */
+			<< std::setw(16) << pNode2->GetLabel()	/* node 2 */
+			<< std::endl;
 #elif __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FREE__
-		out << endl
+		out << std::endl
 			/* PBEAM */
 			<< "PBEAM," 
 			<< 20000000+label << ","
@@ -352,14 +352,14 @@ Rod::Output_pch(ostream& out) const
 			<< 1. << ","
 			<< 1. << ","
 			<< ","
-			<< 1. << endl
+			<< 1. << std::endl
 
 			/* CBEAM */
 			<< "CBEAM,"
 			<< 20000000+label << ","
 			<< 20000000+label << ","
 			<< pNode1->GetLabel() << ","
-			<< pNode2->GetLabel() << endl;
+			<< pNode2->GetLabel() << std::endl;
 #else
 #error "unknown NASTRAN format"
 #endif
@@ -372,7 +372,7 @@ VariableSubMatrixHandler&
 Rod::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 			const VectorHandler& /* XCurr */ )
 {
-   DEBUGCOUT("Entering Rod::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering Rod::InitialAssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -404,7 +404,7 @@ Rod::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 SubVectorHandler& Rod::InitialAssRes(SubVectorHandler& WorkVec,
 					  const VectorHandler& /* XCurr */ )
 {
-   DEBUGCOUT("Entering Rod::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering Rod::InitialAssRes()" << std::endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -441,8 +441,8 @@ Rod::GetAdamsDummyPart(unsigned int part,
 }
 
 
-ostream& 
-Rod::WriteAdamsDummyPartCmd(ostream& out,
+std::ostream& 
+Rod::WriteAdamsDummyPartCmd(std::ostream& out,
 				 unsigned int part, 
 				 unsigned int firstId) const
 {
@@ -468,14 +468,14 @@ Rod::WriteAdamsDummyPartCmd(ostream& out,
    Vec3 e(EulerAngles(MatR2vec(1, v1, 2, v2)));
    
    return out 
-     << psAdamsElemCode[GetElemType()] << "_" << GetLabel() << "_" << part << endl
+     << psAdamsElemCode[GetElemType()] << "_" << GetLabel() << "_" << part << std::endl
      << firstId << " "
      << x1 << " "
      << EulerAngles(pNode1->GetRCurr()) << " "
      << x1 << " "
      << e << " "
      << l << " " << 0. << " " << 0. << " "
-     << Zero3 << endl;
+     << Zero3 << std::endl;
 }
 
 /* Rod - end */
@@ -510,7 +510,7 @@ ViscoElasticRod::AssJac(VariableSubMatrixHandler& WorkMat,
 			     const VectorHandler& /* XCurr */ ,
 			     const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering ViscoElasticRod::AssJac()" << endl);
+   DEBUGCOUT("Entering ViscoElasticRod::AssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -540,10 +540,10 @@ ViscoElasticRod::AssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Verifica che la distanza non sia nulla */
    if (dCross <= DBL_EPSILON) {
-      cerr << endl << "Null distance between nodes " << pNode1->GetLabel() 
+      std::cerr << std::endl << "Null distance between nodes " << pNode1->GetLabel() 
 	<< " and " << pNode2->GetLabel() 
-	<< " in Rod Joint " << uLabel << ';' << endl
-	<< "aborting ..." << endl;
+	<< " in Rod Joint " << uLabel << ';' << std::endl
+	<< "aborting ..." << std::endl;
       THROW(Joint::ErrGeneric());
    }   
 
@@ -581,7 +581,7 @@ ViscoElasticRod::AssRes(SubVectorHandler& WorkVec,
 			     const VectorHandler& /* XCurr */ ,
 			     const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering ViscoElasticRod::AssRes()" << endl);
+   DEBUGCOUT("Entering ViscoElasticRod::AssRes()" << std::endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -606,10 +606,10 @@ ViscoElasticRod::AssRes(SubVectorHandler& WorkVec,
    
    /* Verifica che la distanza non sia nulla */
    if (dCross <= DBL_EPSILON) {
-      cerr << endl << "Null distance between nodes " << pNode1->GetLabel() 
+      std::cerr << std::endl << "Null distance between nodes " << pNode1->GetLabel() 
 	<< " and " << pNode2->GetLabel() 
-	<< " in Rod Joint " << uLabel << ';' << endl
-	<< "aborting ..." << endl;
+	<< " in Rod Joint " << uLabel << ';' << std::endl
+	<< "aborting ..." << std::endl;
       THROW(Joint::ErrGeneric());
    }   
 
@@ -641,7 +641,7 @@ VariableSubMatrixHandler&
 ViscoElasticRod::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 				    const VectorHandler& /* XCurr */ )
 {
-   DEBUGCOUT("Entering ViscoElasticRod::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering ViscoElasticRod::InitialAssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -674,10 +674,10 @@ ViscoElasticRod::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Verifica che la distanza non sia nulla */
    if (dCross <= DBL_EPSILON) {
-      cerr << endl << "Null distance between nodes " << pNode1->GetLabel() 
+      std::cerr << std::endl << "Null distance between nodes " << pNode1->GetLabel() 
 	<< " and " << pNode2->GetLabel() 
-	<< " in Rod Joint " << uLabel << ';' << endl
-	<< "aborting ..." << endl;
+	<< " in Rod Joint " << uLabel << ';' << std::endl
+	<< "aborting ..." << std::endl;
       THROW(Joint::ErrGeneric());
    }   
 
@@ -721,7 +721,7 @@ SubVectorHandler&
 ViscoElasticRod::InitialAssRes(SubVectorHandler& WorkVec,
 				    const VectorHandler& /* XCurr */ )
 {
-   DEBUGCOUT("Entering ViscoElasticRod::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering ViscoElasticRod::InitialAssRes()" << std::endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -746,10 +746,10 @@ ViscoElasticRod::InitialAssRes(SubVectorHandler& WorkVec,
    
    /* Verifica che la distanza non sia nulla */
    if (dCross <= DBL_EPSILON) {
-      cerr << endl << "Null distance between nodes " << pNode1->GetLabel() 
+      std::cerr << std::endl << "Null distance between nodes " << pNode1->GetLabel() 
 	<< " and " << pNode2->GetLabel() 
-	<< " in Rod Joint " << uLabel << ';' << endl
-	<< "aborting ..." << endl;
+	<< " in Rod Joint " << uLabel << ';' << std::endl
+	<< "aborting ..." << std::endl;
       THROW(Joint::ErrGeneric());
    }   
 
@@ -821,7 +821,7 @@ RodWithOffset::~RodWithOffset(void)
       
    
 /* Contributo al file di restart */
-ostream& RodWithOffset::Restart(ostream& out) const
+std::ostream& RodWithOffset::Restart(std::ostream& out) const
 {
    Joint::Restart(out) << ", rod, "
      << pNode1->GetLabel() << ", "
@@ -829,7 +829,7 @@ ostream& RodWithOffset::Restart(ostream& out) const
      << dL0 << ", offset, reference, node, ",
      f1.Write(out, ", ") << ", reference, node, ",
      f2.Write(out, ", ") << ", ";
-   return pGetConstLaw()->Restart(out) << ';' << endl;
+   return pGetConstLaw()->Restart(out) << ';' << std::endl;
 }
 
          
@@ -839,7 +839,7 @@ RodWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
 			   const VectorHandler& /* XCurr */ ,
 			   const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering RodWithOffset::AssJac()" << endl);
+   DEBUGCOUT("Entering RodWithOffset::AssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -881,10 +881,10 @@ RodWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Verifica che la distanza non sia nulla */
    if (dCross <= DBL_EPSILON) {
-      cerr << endl << "Null distance between nodes " << pNode1->GetLabel() 
+      std::cerr << std::endl << "Null distance between nodes " << pNode1->GetLabel() 
 	<< " and " << pNode2->GetLabel() 
-	<< " in Rod Joint " << uLabel << ';' << endl
-	<< "aborting ..." << endl;
+	<< " in Rod Joint " << uLabel << ';' << std::endl
+	<< "aborting ..." << std::endl;
       THROW(Joint::ErrGeneric());
    }   
 
@@ -963,7 +963,7 @@ RodWithOffset::AssRes(SubVectorHandler& WorkVec,
 			   const VectorHandler& /* XCurr */ ,
 			   const VectorHandler& /* XPrimeCurr */ )
 {   
-   DEBUGCOUT("RodWithOffset::AssRes()" << endl);
+   DEBUGCOUT("RodWithOffset::AssRes()" << std::endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -1002,10 +1002,10 @@ RodWithOffset::AssRes(SubVectorHandler& WorkVec,
    
    /* Verifica che la distanza non sia nulla */
    if (dCross <= DBL_EPSILON) {
-      cerr << endl << "Null distance between nodes " << pNode1->GetLabel() 
+      std::cerr << std::endl << "Null distance between nodes " << pNode1->GetLabel() 
 	<< " and " << pNode2->GetLabel() 
-	<< " in Rod Joint " << uLabel << ';' << endl
-	<< "aborting ..." << endl;
+	<< " in Rod Joint " << uLabel << ';' << std::endl
+	<< "aborting ..." << std::endl;
       THROW(Joint::ErrGeneric());
    }   
 
@@ -1046,20 +1046,20 @@ void RodWithOffset::Output(OutputHandler& OH) const
       doublereal d = GetF();
       Joint::Output(OH.Joints(), "RodWithOffs", GetLabel(),
 		    Vec3(d, 0., 0.), Zero3, vTmp*d, Zero3) 
-	<< " " << dElle << " " << vTmp << endl;      
+	<< " " << dElle << " " << vTmp << std::endl;      
    }
 } 
 
 
 /* Output di un modello NASTRAN equivalente nella configurazione corrente */
 void
-RodWithOffset::Output_pch(ostream& out) const
+RodWithOffset::Output_pch(std::ostream& out) const
 {
 #if defined(__HACK_NASTRAN_MODES__)
 	if (fToBeOutput()) {
 		unsigned int label = GetLabel();
 		if (label > 9999999) {
-			cerr << "label of Rod(" << label <<") is too large" << endl;
+			std::cerr << "label of Rod(" << label <<") is too large" << std::endl;
 			THROW(ErrGeneric());
 		}
 
@@ -1074,78 +1074,78 @@ RodWithOffset::Output_pch(ostream& out) const
 		Vec3 F2(pNode2->GetRCurr()*f2);
 
 #if __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FIXED__
-		out << endl
+		out << std::endl
 			/* PBEAM */
 			<< "PBEAM   "
-			<< setw(8) << 20000000+label	/* label */
-			<< setw(8) << 1			/* material */
-			<< setw(8) << 1.		/* area */
-			<< setw(8) << 1.		/* J1 */
-			<< setw(8) << 1.		/* J2 */
-			<< setw(8) << " "		/* J12 */
-			<< setw(8) << 1.		/* Jp */
-			<< endl
+			<< std::setw(8) << 20000000+label	/* label */
+			<< std::setw(8) << 1			/* material */
+			<< std::setw(8) << 1.		/* area */
+			<< std::setw(8) << 1.		/* J1 */
+			<< std::setw(8) << 1.		/* J2 */
+			<< std::setw(8) << " "		/* J12 */
+			<< std::setw(8) << 1.		/* Jp */
+			<< std::endl
 
 			/* CBEAM */
 			<< "CBEAM   "
-			<< setw(8) << 20000000+label	/* label */
-			<< setw(8) << 20000000+label	/* prop */
-			<< setw(8) << pNode1->GetLabel()	/* node 1 */
-			<< setw(8) << pNode2->GetLabel()	/* node 2 */
-			<< setw(32) << " " 
-			<< "+" << setw(7) << 1
-			<< endl
-			<< "+" << setw(7) << 1
-			<< setw(16) << " "
-			<< setw(8) << F1.dGet(1)
-			<< setw(8) << F1.dGet(2)
-			<< setw(8) << F1.dGet(3)
-			<< setw(8) << F2.dGet(1)
-			<< setw(8) << F2.dGet(2)
-			<< setw(8) << F2.dGet(3)
+			<< std::setw(8) << 20000000+label	/* label */
+			<< std::setw(8) << 20000000+label	/* prop */
+			<< std::setw(8) << pNode1->GetLabel()	/* node 1 */
+			<< std::setw(8) << pNode2->GetLabel()	/* node 2 */
+			<< std::setw(32) << " " 
+			<< "+" << std::setw(7) << 1
+			<< std::endl
+			<< "+" << std::setw(7) << 1
+			<< std::setw(16) << " "
+			<< std::setw(8) << F1.dGet(1)
+			<< std::setw(8) << F1.dGet(2)
+			<< std::setw(8) << F1.dGet(3)
+			<< std::setw(8) << F2.dGet(1)
+			<< std::setw(8) << F2.dGet(2)
+			<< std::setw(8) << F2.dGet(3)
 			<< enld;
 #elif __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FIXED16__
-		out << endl
+		out << std::endl
 			/* PBEAM */
 			<< "PBEAM*  "
-			<< setw(16) << 20000000+label	/* label */
-			<< setw(16) << 1		/* material */
-			<< setw(16) << 1.		/* area */
-			<< setw(16) << 1.		/* J1 */
-			<< "*" << setw(7) << 1
-			<< endl
-			<< "*" << setw(7) << 1
-			<< setw(16) << 1.		/* J2 */
-			<< setw(16) << " "		/* J12 */
-			<< setw(16) << 1.		/* Jp */
-			<< endl
+			<< std::setw(16) << 20000000+label	/* label */
+			<< std::setw(16) << 1		/* material */
+			<< std::setw(16) << 1.		/* area */
+			<< std::setw(16) << 1.		/* J1 */
+			<< "*" << std::setw(7) << 1
+			<< std::endl
+			<< "*" << std::setw(7) << 1
+			<< std::setw(16) << 1.		/* J2 */
+			<< std::setw(16) << " "		/* J12 */
+			<< std::setw(16) << 1.		/* Jp */
+			<< std::endl
 
 			/* CBEAM */
 			<< "CBEAM*  "
-			<< setw(16) << 20000000+label 	/* label */
-			<< setw(16) << 20000000+label	/* prop */
-			<< setw(16) << pNode1->GetLabel()	/* node 1 */
-			<< setw(16) << pNode2->GetLabel()	/* node 2 */
-			<< "*" << setw(7) << 1
-			<< endl
-			<< "*" << setw(7) << 1
-			<< setw(64) << " "
-			<< "*" << setw(7) << 2
-			<< endl
-			<< "*" << setw(7) << 2
-			<< setw(32) << " "
-			<< setw(16) << F1.dGet(1)
-			<< setw(16) << F1.dGet(2)
-			<< "*" << setw(7) << 3
-			<< endl
-			<< "*" << setw(7) << 3
-			<< setw(16) << F1.dGet(3)
-			<< setw(16) << F2.dGet(1)
-			<< setw(16) << F2.dGet(2)
-			<< setw(16) << F2.dGet(3)
-			<< endl;
+			<< std::setw(16) << 20000000+label 	/* label */
+			<< std::setw(16) << 20000000+label	/* prop */
+			<< std::setw(16) << pNode1->GetLabel()	/* node 1 */
+			<< std::setw(16) << pNode2->GetLabel()	/* node 2 */
+			<< "*" << std::setw(7) << 1
+			<< std::endl
+			<< "*" << std::setw(7) << 1
+			<< std::setw(64) << " "
+			<< "*" << std::setw(7) << 2
+			<< std::endl
+			<< "*" << std::setw(7) << 2
+			<< std::setw(32) << " "
+			<< std::setw(16) << F1.dGet(1)
+			<< std::setw(16) << F1.dGet(2)
+			<< "*" << std::setw(7) << 3
+			<< std::endl
+			<< "*" << std::setw(7) << 3
+			<< std::setw(16) << F1.dGet(3)
+			<< std::setw(16) << F2.dGet(1)
+			<< std::setw(16) << F2.dGet(2)
+			<< std::setw(16) << F2.dGet(3)
+			<< std::endl;
 #elif __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FREE__
-		out << endl
+		out << std::endl
 			/* PBEAM */
 			<< "PBEAM," 
 			<< 20000000+label << ","
@@ -1154,7 +1154,7 @@ RodWithOffset::Output_pch(ostream& out) const
 			<< 1. << ","
 			<< 1. << ","
 			<< ","
-			<< 1. << endl
+			<< 1. << std::endl
 
 			/* CBEAM */
 			<< "CBEAM,"
@@ -1165,12 +1165,12 @@ RodWithOffset::Output_pch(ostream& out) const
 #if 0
 			<< "," 
 #endif
-			<< endl
+			<< std::endl
 #if 1
 			<< "," 
 #endif
 			<< " ,,", F1.Write(out, ",") << ",", F2.Write(out, ",")
-			<< endl;
+			<< std::endl;
 #else
 #error "unknown NASTRAN format"
 #endif
@@ -1184,7 +1184,7 @@ VariableSubMatrixHandler&
 RodWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat, 
 				  const VectorHandler& /* XCurr */ )
 {
-   DEBUGCOUT("Entering RodWithOffset::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering RodWithOffset::InitialAssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -1229,10 +1229,10 @@ RodWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    /* Verifica che la distanza non sia nulla */
    if (dCross <= DBL_EPSILON) {
-      cerr << endl << "Null distance between nodes " << pNode1->GetLabel() 
+      std::cerr << std::endl << "Null distance between nodes " << pNode1->GetLabel() 
 	<< " and " << pNode2->GetLabel() 
-	<< " in Rod Joint " << uLabel << ';' << endl
-	<< "aborting ..." << endl;
+	<< " in Rod Joint " << uLabel << ';' << std::endl
+	<< "aborting ..." << std::endl;
       THROW(Joint::ErrGeneric());
    }   
 
@@ -1350,7 +1350,7 @@ SubVectorHandler&
 RodWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
 				  const VectorHandler& /* XCurr */ )
 {
-   DEBUGCOUT("RodWithOffset::InitialAssRes()" << endl);
+   DEBUGCOUT("RodWithOffset::InitialAssRes()" << std::endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -1389,10 +1389,10 @@ RodWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
    
    /* Verifica che la distanza non sia nulla */
    if (dCross <= DBL_EPSILON) {
-      cerr << endl << "Null distance between nodes " << pNode1->GetLabel() 
+      std::cerr << std::endl << "Null distance between nodes " << pNode1->GetLabel() 
 	<< " and " << pNode2->GetLabel() 
-	<< " in Rod Joint " << uLabel << ';' << endl
-	<< "aborting ..." << endl;
+	<< " in Rod Joint " << uLabel << ';' << std::endl
+	<< "aborting ..." << std::endl;
       THROW(Joint::ErrGeneric());
    }   
 
@@ -1433,8 +1433,8 @@ RodWithOffset::GetAdamsDummyPart(unsigned int part,
 }
 
 
-ostream& 
-RodWithOffset::WriteAdamsDummyPartCmd(ostream& out,
+std::ostream& 
+RodWithOffset::WriteAdamsDummyPartCmd(std::ostream& out,
 					   unsigned int part, 
 					   unsigned int firstId) const
 {
@@ -1460,14 +1460,14 @@ RodWithOffset::WriteAdamsDummyPartCmd(ostream& out,
    Vec3 e(EulerAngles(MatR2vec(1, v1, 2, v2)));
    
    return out 
-     << psAdamsElemCode[GetElemType()] << "_" << GetLabel() << "_" << part << endl
+     << psAdamsElemCode[GetElemType()] << "_" << GetLabel() << "_" << part << std::endl
      << firstId << " "
      << x1 << " "
      << EulerAngles(pNode1->GetRCurr()) << " "
      << x1 << " "
      << e << " "
      << l << " " << 0. << " " << 0. << " "
-     << Zero3 << endl;   
+     << Zero3 << std::endl;   
 }
 
 /* RodWithOffset - end */

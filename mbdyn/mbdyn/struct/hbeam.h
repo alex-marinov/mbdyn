@@ -172,7 +172,7 @@ class HBeam
     };
 
     /* Funzione interna di restart */
-    virtual ostream& Restart_(ostream& out) const;
+    virtual std::ostream& Restart_(std::ostream& out) const;
    
   public:
     /* Costruttore normale */
@@ -201,7 +201,7 @@ class HBeam
     };
    
     /* Contributo al file di restart */
-    virtual ostream& Restart(ostream& out) const;
+    virtual std::ostream& Restart(std::ostream& out) const;
    
     /* funzioni proprie */
    
@@ -296,12 +296,12 @@ class HBeam
 	    return DefLoc.dGet(i);
         case 2:
         case 3:
-	    cerr << "HBeam " << GetLabel() 
-	        << ": not allowed to return shear strain" << endl;
+	    std::cerr << "HBeam " << GetLabel() 
+	        << ": not allowed to return shear strain" << std::endl;
 	    THROW(ErrGeneric());
         default:
-	    cerr << "HBeam " << GetLabel() << ": illegal private data " 
-	       << i << endl;
+	    std::cerr << "HBeam " << GetLabel() << ": illegal private data " 
+	       << i << std::endl;
 	    THROW(ErrGeneric());
         }
 #ifndef USE_EXCEPTIONS
@@ -333,8 +333,8 @@ class HBeam
         return 1;
     };
     void GetAdamsDummyPart(unsigned int part, Vec3& x, Mat3x3& R) const;
-    ostream& 
-    WriteAdamsDummyPartCmd(ostream& out,
+    std::ostream& 
+    WriteAdamsDummyPartCmd(std::ostream& out,
                            unsigned int part, 
 			   unsigned int firstId) const;
 };

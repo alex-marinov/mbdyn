@@ -138,11 +138,11 @@ BeamSliderJoint::~BeamSliderJoint(void)
 	NO_OP;
 }
 
-ostream& 
-BeamSliderJoint::Restart(ostream& out) const
+std::ostream& 
+BeamSliderJoint::Restart(std::ostream& out) const
 {
-	return out << "# beam slider not implemented yet" << endl
-		<< "beam slider;" << endl;
+	return out << "# beam slider not implemented yet" << std::endl
+		<< "beam slider;" << std::endl;
 }
 
 void 
@@ -155,7 +155,7 @@ BeamSliderJoint::Output(OutputHandler& OH) const
 		Joint::Output(OH.Joints(), "BeamSlider", GetLabel(),
 				RTmpT*F, M, F, RTmp*M)
 			<< " " << ppBeam[iCurrBeam]->pGetBeam()->GetLabel()
-			<< " " << sRef << endl;
+			<< " " << sRef << std::endl;
 	}
 }
 
@@ -172,7 +172,7 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr)
 {
-	DEBUGCOUT("Entering BeamSliderJoint::AssJac()" << endl);
+	DEBUGCOUT("Entering BeamSliderJoint::AssJac()" << std::endl);
 
 	/* Dimensiona e resetta la matrice di lavoro */
 	integer iNumRows = 0;

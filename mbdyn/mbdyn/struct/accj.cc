@@ -71,9 +71,9 @@ Joint::Type LinearAccelerationJoint::GetJointType(void) const
 
 
 /* Contributo al file di restart */
-ostream& LinearAccelerationJoint::Restart(ostream& out) const
+std::ostream& LinearAccelerationJoint::Restart(std::ostream& out) const
 {
-   return out << "Not implemented yet!" << endl;
+   return out << "Not implemented yet!" << std::endl;
 }
 
 
@@ -92,7 +92,7 @@ DofOrder::Order LinearAccelerationJoint::SetDof(unsigned int i) const
     case 1:
       return DofOrder::ALGEBRAIC;
     default:
-      cerr << "invalid dof number" << endl;
+      std::cerr << "invalid dof number" << std::endl;
       THROW(ErrGeneric());
    }
 #ifndef USE_EXCEPTIONS
@@ -170,7 +170,7 @@ void LinearAccelerationJoint::Output(OutputHandler& OH) const
 {
    Joint::Output(OH.Joints(), "LinearAcc", GetLabel(), 
 		 Vec3(dF, 0., 0.), Zero3, Dir*dF, Zero3) 
-     << " " << dGet() << endl;
+     << " " << dGet() << std::endl;
 }
  
 
@@ -272,9 +272,9 @@ Joint::Type AngularAccelerationJoint::GetJointType(void) const
 
 
 /* Contributo al file di restart */
-ostream& AngularAccelerationJoint::Restart(ostream& out) const
+std::ostream& AngularAccelerationJoint::Restart(std::ostream& out) const
 {
-   return out << "Not implemented yet!" << endl;
+   return out << "Not implemented yet!" << std::endl;
 }
 
 
@@ -293,7 +293,7 @@ DofOrder::Order AngularAccelerationJoint::SetDof(unsigned int i) const
     case 1:
       return DofOrder::ALGEBRAIC;
     default:
-      cerr << "invalid dof number" << endl;
+      std::cerr << "invalid dof number" << std::endl;
       THROW(ErrGeneric());
    }
 #ifndef USE_EXCEPTIONS
@@ -374,7 +374,7 @@ void AngularAccelerationJoint::Output(OutputHandler& OH) const
 {
    Joint::Output(OH.Joints(), "AngularAcc", GetLabel(), 
 		 Vec3(dM, 0., 0.), Zero3, Dir*dM, Zero3) 
-     << " " << dGet() << endl;   
+     << " " << dGet() << std::endl;   
 }
  
 

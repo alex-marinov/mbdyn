@@ -54,26 +54,26 @@ Elem2Param::~Elem2Param(void)
 void Elem2Param::Bind(const Elem* pEl, unsigned int i)
 {
    if (pElem != NULL) {
-      cerr << "Elem2Param::Bind(): parameter (" << GetLabel()
+      std::cerr << "Elem2Param::Bind(): parameter (" << GetLabel()
 	<< ") is already bound to " 
 	<< psElemNames[pElem->GetElemType()] 
-	<< " (" << pElem->GetLabel() << ')' << endl;
+	<< " (" << pElem->GetLabel() << ')' << std::endl;
       THROW(ErrGeneric());
    }
    
    if (i <= 0) {
-      cerr << "Elem2Param::Bind(): illegal value " << i 
+      std::cerr << "Elem2Param::Bind(): illegal value " << i 
 	<< " for " << psElemNames[pEl->GetElemType()] 
-	<< " (" << pEl->GetLabel() << ") private data" << endl;
+	<< " (" << pEl->GetLabel() << ") private data" << std::endl;
       THROW(ErrGeneric());
    }
    
    iNum = i;     
    
    if (iNum <= 0 || iNum > pEl->iGetNumPrivData()) {
-      cerr << "Elem2Param::Bind(): wrong element private data number "
+      std::cerr << "Elem2Param::Bind(): wrong element private data number "
 	<< iNum << " for " << psElemNames[pEl->GetElemType()]
-	<< " (" << pEl->GetLabel() << ')' << endl;
+	<< " (" << pEl->GetLabel() << ')' << std::endl;
       THROW(ErrGeneric());
    }
    pElem = (Elem*)pEl;
@@ -83,9 +83,9 @@ void Elem2Param::Bind(const Elem* pEl, unsigned int i)
 
 
 /* Contributo del nodo al file di restart */
-ostream& Elem2Param::Restart(ostream& out) const
+std::ostream& Elem2Param::Restart(std::ostream& out) const
 {
-   return out << "Elem2Param is not implemented yet" << endl;
+   return out << "Elem2Param is not implemented yet" << std::endl;
 }
 
 
@@ -121,7 +121,7 @@ void StrainGageParam::Bind(const Elem* pEl, unsigned int i)
 {
    ASSERT(pEl != NULL);
    if (pEl->GetElemType() != Elem::BEAM) {
-      cerr << "StrainGageParam::Bind(): must bind to a beam" << endl;
+      std::cerr << "StrainGageParam::Bind(): must bind to a beam" << std::endl;
       THROW(ErrGeneric());
    }
    
@@ -131,9 +131,9 @@ void StrainGageParam::Bind(const Elem* pEl, unsigned int i)
 
 
 /* Contributo del nodo al file di restart */
-ostream& StrainGageParam::Restart(ostream& out) const
+std::ostream& StrainGageParam::Restart(std::ostream& out) const
 {
-   return out << "StrainGageParam is not implemented yet" << endl;
+   return out << "StrainGageParam is not implemented yet" << std::endl;
 }
 
 /* StrainGageParam - end */

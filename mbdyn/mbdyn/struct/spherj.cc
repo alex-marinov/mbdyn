@@ -64,7 +64,7 @@ SphericalHingeJoint::~SphericalHingeJoint(void)
 
 
 /* Contributo al file di restart */
-ostream& SphericalHingeJoint::Restart(ostream& out) const
+std::ostream& SphericalHingeJoint::Restart(std::ostream& out) const
 {
    Joint::Restart(out) << ", spherical hinge, "
      << pNode1->GetLabel() << ", reference, node, ",
@@ -72,7 +72,7 @@ ostream& SphericalHingeJoint::Restart(ostream& out) const
      << ", 2, ", (R1h.GetVec(2)).Write(out, ", ") << ", "       
      << pNode2->GetLabel() << ", reference, node, ",
      d2.Write(out, ", ") << ", hinge, reference, node, 1, ", (R2h.GetVec(1)).Write(out, ", ")
-     << ", 2, ", (R2h.GetVec(2)).Write(out, ", ") << ';' << endl;
+     << ", 2, ", (R2h.GetVec(2)).Write(out, ", ") << ';' << std::endl;
    
    return out;
 }
@@ -85,7 +85,7 @@ SphericalHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			    const VectorHandler& /* XCurr */ ,
 			    const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering SphericalHingeJoint::AssJac()" << endl);
+   DEBUGCOUT("Entering SphericalHingeJoint::AssJac()" << std::endl);
       
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
    WM.ResizeInit(54, 1, 0.);
@@ -182,7 +182,7 @@ SubVectorHandler& SphericalHingeJoint::AssRes(SubVectorHandler& WorkVec,
 					      const VectorHandler& XCurr, 
 					      const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering SphericalHingeJoint::AssRes()" << endl);
+   DEBUGCOUT("Entering SphericalHingeJoint::AssRes()" << std::endl);
       
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -237,17 +237,17 @@ void SphericalHingeJoint::Output(OutputHandler& OH) const
       OH.Output() << "Joint " << uLabel << ", type \""
 	<< psJointNames[Joint::SPHERICALHINGE] 
 	<< "\", linked to nodes " << pNode1->GetLabel() 
-	<< " and " << pNode2->GetLabel() << ':' << endl 
-	<< "Distance from node 1 (node reference frame): " << endl << d1 << endl 
-	<< "Distance from node 2 (node reference frame): " << endl << d2 << endl 
-	<< "Current reaction: " << endl << F << endl;
+	<< " and " << pNode2->GetLabel() << ':' << std::endl 
+	<< "Distance from node 1 (node reference frame): " << std::endl << d1 << std::endl 
+	<< "Distance from node 2 (node reference frame): " << std::endl << d2 << std::endl 
+	<< "Current reaction: " << std::endl << F << std::endl;
 #endif   
          
       Mat3x3 RTmp((pNode2->GetRCurr()*R2h).Transpose()*(pNode1->GetRCurr()*R1h));
       
       Joint::Output(OH.Joints(), "SphericalHinge", GetLabel(),
 		    F, Zero3, F, Zero3) 
-	<< " " << EulerAngles(RTmp) << endl;
+	<< " " << EulerAngles(RTmp) << std::endl;
    }   
 }
 
@@ -257,7 +257,7 @@ VariableSubMatrixHandler&
 SphericalHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 				   const VectorHandler& XCurr)
 {
-   DEBUGCOUT("Entering SphericalHingeJoint::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering SphericalHingeJoint::InitialAssJac()" << std::endl);
 
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -378,7 +378,7 @@ SubVectorHandler&
 SphericalHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 				   const VectorHandler& XCurr)
 {   
-   DEBUGCOUT("Entering SphericalHingeJoint::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering SphericalHingeJoint::InitialAssRes()" << std::endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -472,12 +472,12 @@ PinJoint::~PinJoint(void)
 
 
 /* Contributo al file di restart */
-ostream& PinJoint::Restart(ostream& out) const
+std::ostream& PinJoint::Restart(std::ostream& out) const
 {
    Joint::Restart(out) << ", pin, "
      << pNode->GetLabel() << ", reference, node, ",
      d.Write(out, ", ") << ", reference, global, ",
-     X0.Write(out, ", ") << ';' << endl;
+     X0.Write(out, ", ") << ';' << std::endl;
    
    return out;
 }
@@ -490,7 +490,7 @@ PinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		 const VectorHandler& /* XCurr */ ,
 		 const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering PinJoint::AssJac()" << endl);
+   DEBUGCOUT("Entering PinJoint::AssJac()" << std::endl);
       
    SparseSubMatrixHandler& WM = WorkMat.SetSparse();
    WM.ResizeInit(27, 0, 0.);
@@ -557,7 +557,7 @@ SubVectorHandler& PinJoint::AssRes(SubVectorHandler& WorkVec,
 					      const VectorHandler& XCurr,
 					      const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering PinJoint::AssRes()" << endl);
+   DEBUGCOUT("Entering PinJoint::AssRes()" << std::endl);
       
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;
@@ -605,21 +605,21 @@ void PinJoint::Output(OutputHandler& OH) const
 #ifdef DEBUG   
       OH.Output() << "Joint " << uLabel << ", type \""
 	<< psJointNames[Joint::PIN] 
-	<< "\", linked to node " << pNode->GetLabel() << ':' << endl
-	<< "Distance from node (node reference frame): " << endl << d << endl 
-	<< "Current reaction: " << endl << F << endl;   
+	<< "\", linked to node " << pNode->GetLabel() << ':' << std::endl
+	<< "Distance from node (node reference frame): " << std::endl << d << std::endl 
+	<< "Current reaction: " << std::endl << F << std::endl;   
 #endif   
    
       /*
       OH.Joints().write("Pin             ", 16)
-	<< setw(8) << GetLabel() << " " << F << " " << Vec3(0.) << endl;
+	<< std::setw(8) << GetLabel() << " " << F << " " << Vec3(0.) << std::endl;
        */
       
       Mat3x3 RTmp(pNode->GetRCurr());
       
       Joint::Output(OH.Joints(), "Pin", GetLabel(),
 		    F, Zero3, F, Zero3) 
-	<< " " << EulerAngles(RTmp) << endl;      
+	<< " " << EulerAngles(RTmp) << std::endl;      
    }   
 }
 
@@ -629,7 +629,7 @@ VariableSubMatrixHandler&
 PinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 				   const VectorHandler& XCurr)
 {
-   DEBUGCOUT("Entering PinJoint::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering PinJoint::InitialAssJac()" << std::endl);
 
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -714,7 +714,7 @@ SubVectorHandler&
 PinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 			const VectorHandler& XCurr)
 {   
-   DEBUGCOUT("Entering PinJoint::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering PinJoint::InitialAssRes()" << std::endl);
    
    /* Dimensiona e resetta la matrice di lavoro */
    integer iNumRows = 0;

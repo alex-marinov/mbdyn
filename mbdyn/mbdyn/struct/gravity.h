@@ -76,7 +76,7 @@ class Gravity : public Elem, public TplDriveOwner<Vec3> {
    };
    
    /* Scrive il contributo dell'elemento al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    /* Tipo dell'elemento (usato solo per debug ecc.) */
    virtual Elem::Type GetElemType(void) const { 
@@ -162,12 +162,12 @@ class ElemGravityOwner : virtual public Elem, public GravityOwner {
     * momento statico e momento di inerzia nel sistema globale
     */
    virtual Vec3 _GetS(void) const {
-      cerr << "warning: using default _GetS()" << endl;
+      std::cerr << "warning: using default _GetS()" << std::endl;
       return Vec3(0.);
    };
 
    virtual Mat3x3 _GetJ(void) const {
-      cerr << "warning: using default _GetJ()" << endl;
+      std::cerr << "warning: using default _GetJ()" << std::endl;
       return Mat3x3(0.);
    };
 

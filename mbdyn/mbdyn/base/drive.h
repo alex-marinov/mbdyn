@@ -257,7 +257,7 @@ class DriveCaller {
    virtual DriveCaller* pCopy(void) const = 0;
    
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const = 0;
+   virtual std::ostream& Restart(std::ostream& out) const = 0;
    
    /* Restituisce il valore del driver */
    virtual inline doublereal dGet(const doublereal& dVal) const = 0;
@@ -286,7 +286,7 @@ class NullDriveCaller : public DriveCaller {
    virtual DriveCaller* pCopy(void) const;
    
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    /* Restituisce il valore del driver */
    virtual inline doublereal dGet(const doublereal& dVal) const;
@@ -321,7 +321,7 @@ class OneDriveCaller : public DriveCaller {
    virtual DriveCaller* pCopy(void) const;
    
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    /* Restituisce il valore del driver */
    virtual inline doublereal dGet(const doublereal& dVal) const;
@@ -359,7 +359,7 @@ class ConstDriveCaller : public DriveCaller {
    virtual DriveCaller* pCopy(void) const;
    
    /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
    
    inline doublereal dGet(const doublereal& /* dVar */ ) const;
    inline doublereal dGet(void) const;

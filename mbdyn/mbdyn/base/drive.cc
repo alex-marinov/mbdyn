@@ -76,12 +76,12 @@ ppMyRand(NULL)
    if (v == NULL) {
       pTime = SymbolTable.Put("Time", Real(0));  
       if (pTime == NULL) {
-	 cerr << "DriveHandler::DriveHandler(): error in insertion Time symbol" << endl;	 
+	 std::cerr << "DriveHandler::DriveHandler(): error in insertion Time symbol" << std::endl;	 
 	 THROW(ErrGeneric());
       }
    } else {
       if (!v->IsVar()) {
-         cerr << "Symbol 'Time' must be a variable" << endl;
+	 std::cerr << "Symbol 'Time' must be a variable" << std::endl;
          THROW(ErrGeneric());
       }
       pTime = (Var *)v;
@@ -93,13 +93,13 @@ ppMyRand(NULL)
    if (v == NULL) {
       pVar = SymbolTable.Put("Var", Real(0)); 
       if (pVar == NULL) {
-	 cerr << "DriveHandler::DriveHandler(): error in insertion Var symbol" << endl;	 
+	 std::cerr << "DriveHandler::DriveHandler(): error in insertion Var symbol" << std::endl;	 
 	 THROW(ErrGeneric());      
       }
       // pVar->SetVal(Real(0));
    } else {
       if (!v->IsVar()) {
- 	 cerr << "Symbol 'Var' must be a variable" << endl;
+	 std::cerr << "Symbol 'Var' must be a variable" << std::endl;
 	 THROW(ErrGeneric());
       }
       pVar = (Var *)v;
@@ -115,7 +115,7 @@ DriveHandler::~DriveHandler(void)
       if (ppMyRand != NULL) {
 	 SAFEDELETEARR(ppMyRand);
       } else {
-	 cerr << "Error, random drive data array should exist" << endl;
+	 std::cerr << "Error, random drive data array should exist" << std::endl;
       }
    }
 }
@@ -168,7 +168,7 @@ integer DriveHandler::iRandInit(integer iSteps)
       MyRand** ppmr = ppMyRand;
       MyRand* pmr = NULL;
       if (!MyRandLL.iGetFirst(pmr)) {
-	 cerr << "Error in getting first random drive data" << endl;
+	 std::cerr << "Error in getting first random drive data" << std::endl;
 	 
 	 THROW(ErrGeneric());
       }
@@ -192,7 +192,7 @@ integer DriveHandler::iRandInit(integer iSteps)
 			  MyRand((unsigned int)iNumber, iSteps, rand()));
    
    if (MyRandLL.iAdd(pmr)) {
-      cerr << "Error in insertion of random driver data" << endl;
+      std::cerr << "Error in insertion of random driver data" << std::endl;
       THROW(ErrGeneric());
    }
    
@@ -283,7 +283,7 @@ DriveCaller* NullDriveCaller::pCopy(void) const
 
 
 /* Scrive il contributo del DriveCaller al file di restart */
-ostream& NullDriveCaller::Restart(ostream& out) const
+std::ostream& NullDriveCaller::Restart(std::ostream& out) const
 {      
    return out << "null";
 }
@@ -317,7 +317,7 @@ DriveCaller* OneDriveCaller::pCopy(void) const
 
 
 /* Scrive il contributo del DriveCaller al file di restart */
-ostream& OneDriveCaller::Restart(ostream& out) const
+std::ostream& OneDriveCaller::Restart(std::ostream& out) const
 {      
    return out << "one";
 }
@@ -349,7 +349,7 @@ void DriveOwner::Set(const DriveCaller* pDC)
    ASSERT(pDC != NULL);
 #ifdef DEBUG
    if (pDriveCaller != NULL) {
-      DEBUGCERR("warning: the original pointer to a drive caller is not null!" << endl);
+      DEBUGCERR("warning: the original pointer to a drive caller is not null!" << std::endl);
    }
 #endif /* DEBUG */
    pDriveCaller = (DriveCaller*)pDC;

@@ -58,13 +58,13 @@ class ConstitutiveLaw {
    class ErrNotAvailable {
     public:
       ErrNotAvailable(void) {
-	 cerr << "Constitutive law not available" << endl;
+	 std::cerr << "Constitutive law not available" << std::endl;
       };
-      ErrNotAvailable(ostream& out) {
-	 out << "Constitutive law not available" << endl;
+      ErrNotAvailable(std::ostream& out) {
+	 out << "Constitutive law not available" << std::endl;
       };
-      ErrNotAvailable(ostream& out, const char* const s) {
-	 out << s << endl;
+      ErrNotAvailable(std::ostream& out, const char* const s) {
+	 out << s << std::endl;
       };
    };
    typedef typename ConstitutiveLaw<T, Tder>::ErrNotAvailable Err;   
@@ -97,7 +97,7 @@ class ConstitutiveLaw {
    
    virtual ConstitutiveLaw<T, Tder>* pCopy(void) const = 0;
    
-   virtual ostream& Restart(ostream& out) const = 0;
+   virtual std::ostream& Restart(std::ostream& out) const = 0;
    
    virtual void Update(const T& Eps, const T& EpsPrime = 0.) = 0;
    virtual void IncrementalUpdate(const T& DeltaEps, const T& EpsPrime = 0.) = 0;

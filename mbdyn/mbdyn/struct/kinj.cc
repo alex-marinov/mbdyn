@@ -56,10 +56,10 @@ KinJoint::~KinJoint(void)
 }
 
 /* Contributo al file di restart */
-ostream& 
-KinJoint::Restart(ostream& out) const
+std::ostream& 
+KinJoint::Restart(std::ostream& out) const
 {
-   return out << "not implemented yet" << endl;
+   return out << "not implemented yet" << std::endl;
 }
 
 
@@ -169,13 +169,13 @@ KinJoint::AssRes(SubVectorHandler& WorkVec,
    Vec3 V(pNode->GetVCurr());
    Vec3 W(pNode->GetWCurr());
    
-   DEBUGCOUT(endl
-	     << "v = " << v << endl
-	     << "w = " << w << endl
-	     << "mu_v = " << mu_v << endl
-	     << "mu_w = " << mu_w << endl
-	     << "l_v = " << lambda_v << endl
-	     << "l_w = " << lambda_w << endl);
+   DEBUGCOUT(std::endl
+	     << "v = " << v << std::endl
+	     << "w = " << w << std::endl
+	     << "mu_v = " << mu_v << std::endl
+	     << "mu_w = " << mu_w << std::endl
+	     << "l_v = " << lambda_v << std::endl
+	     << "l_w = " << lambda_w << std::endl);
    
    Mat3x3 H(R.GetVec(2).Cross(R0.GetVec(3)),
 	    R.GetVec(3).Cross(R0.GetVec(1)),
@@ -208,7 +208,7 @@ KinJoint::Output(OutputHandler& OH) const
       
       Joint::Output(OH.Joints(), "Kinematic", GetLabel(),
                     RT*lambda_v, lambda_w, lambda_v, R*lambda_w) << " " 
-	<< mu_v << " " << mu_w << endl;
+	<< mu_v << " " << mu_w << std::endl;
    }
 }
 

@@ -84,7 +84,7 @@ void Joint::Output(OutputHandler& OH) const
 #ifdef DEBUG   
       OH.Output() << "Joint " << uLabel 
 	<< ", type \"" << psJointNames[GetJointType()] 
-	<< "\": sorry, not implemented yet" << endl;
+	<< "\": sorry, not implemented yet" << std::endl;
 #endif
       
       Output(OH.Joints(), "UnknownJoint", GetLabel(), 
@@ -94,7 +94,7 @@ void Joint::Output(OutputHandler& OH) const
 
 
 /* Output specifico dei vincoli */
-ostream& Joint::Output(ostream& out, const char* sJointName, 
+std::ostream& Joint::Output(std::ostream& out, const char* sJointName, 
 		       unsigned int uLabel,
 		       const Vec3& FLocal, const Vec3& MLocal,
 		       const Vec3& FGlobal, const Vec3& MGlobal) const
@@ -103,12 +103,12 @@ ostream& Joint::Output(ostream& out, const char* sJointName,
     * ai nomi dei vincoli futuri */
    ASSERT(strlen(sJointName) <= 16);
    
-   /* Nota: non c'e' *endl* perche' i vincoli possono aggiungere outut 
+   /* Nota: non c'e' *std::endl* perche' i vincoli possono aggiungere outut 
     * ulteriore a quello comune a tutti
-   return out << sJointName << setw(16+8-strlen(sJointName)) << uLabel << " "
+   return out << sJointName << std::setw(16+8-strlen(sJointName)) << uLabel << " "
      << FLocal << " " << MLocal << " " << FGlobal << " " << MGlobal;
     */
-   return out << setw(8) << uLabel << " "
+   return out << std::setw(8) << uLabel << " "
      << FLocal << " " << MLocal << " " << FGlobal << " " << MGlobal;
 }
 
@@ -212,7 +212,7 @@ Elem* ReadJoint(DataManager* pDM,
    
 #ifdef DEBUG   
    if (CurrKeyWord >= 0) {
-      cout << "joint type: " << sKeyWords[CurrKeyWord] << endl;
+      std::cout << "joint type: " << sKeyWords[CurrKeyWord] << std::endl;
    }
 #endif   
 
@@ -228,28 +228,28 @@ Elem* ReadJoint(DataManager* pDM,
        /* nodo collegato 1 */
        unsigned int uNode1 = (unsigned int)HP.GetInt();
        
-       DEBUGCOUT("Linked to Node " << uNode1 << endl);
+       DEBUGCOUT("Linked to Node " << uNode1 << std::endl);
        
        /* verifica di esistenza del nodo */
        StructNode* pNode1;
        if ((pNode1 = pDM->pFindStructNode(uNode1)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": structural node " << uNode1
-	    << " not defined" << endl;	  
+	    << " not defined" << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }
        
        /* nodo collegato 2 */
        unsigned int uNode2 = (unsigned int)HP.GetInt();
        
-       DEBUGCOUT("Linked to Node " << uNode2 << endl);
+       DEBUGCOUT("Linked to Node " << uNode2 << std::endl);
        
        /* verifica di esistenza del nodo */
        StructNode* pNode2;
        if ((pNode2 = pDM->pFindStructNode(uNode2)) == NULL) {
-	  cerr << "line " << HP.GetLineData()
+	  std::cerr << "line " << HP.GetLineData()
 	    << ": structural node " << uNode2
-	    << " not defined" << endl;
+	    << " not defined" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }		  
@@ -284,45 +284,45 @@ Elem* ReadJoint(DataManager* pDM,
        /* nodo collegato 1 */
        unsigned int uNode1 = (unsigned int)HP.GetInt();
        
-       DEBUGCOUT("Linked to Node " << uNode1 << endl);
+       DEBUGCOUT("Linked to Node " << uNode1 << std::endl);
        
        /* verifica di esistenza del nodo */
        StructNode* pNode1;
        if ((pNode1 = pDM->pFindStructNode(uNode1)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": structural node " << uNode1
-	    << " not defined" << endl;	  
+	    << " not defined" << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }		  
        
        Vec3 f1(HP.GetPosRel(ReferenceFrame(pNode1)));
        
-       DEBUGCOUT("Offset 1: " << f1 << endl);
+       DEBUGCOUT("Offset 1: " << f1 << std::endl);
        
               
        /* nodo collegato 2 */
        unsigned int uNode2 = (unsigned int)HP.GetInt();
        
-       DEBUGCOUT("Linked to Node " << uNode2 << endl);
+       DEBUGCOUT("Linked to Node " << uNode2 << std::endl);
        
        /* verifica di esistenza del nodo */
        StructNode* pNode2;
        if ((pNode2 = pDM->pFindStructNode(uNode2)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": structural node " << uNode2
-	    << " not defined" << endl;	  
+	    << " not defined" << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }		  
        
        Vec3 f2(HP.GetPosRel(ReferenceFrame(pNode2)));
        
-       DEBUGCOUT("Offset 2: " << f2 << endl);
+       DEBUGCOUT("Offset 2: " << f2 << std::endl);
        
  
        /* Legge e costruisce il drivecaller */
        if (!HP.fIsArg()) {
-	  cerr << "line " << HP.GetLineData()
-	    << ": driver data expected" << endl;
+	  std::cerr << "line " << HP.GetLineData()
+	    << ": driver data expected" << std::endl;
 	  THROW(DataManager::ErrGeneric());
        }	     
        
@@ -359,14 +359,14 @@ Elem* ReadJoint(DataManager* pDM,
        /* nodo collegato */
        unsigned int uNode = (unsigned int)HP.GetInt();
        
-       DEBUGCOUT("Linked to Node " << uNode << endl);
+       DEBUGCOUT("Linked to Node " << uNode << std::endl);
        
        /* verifica di esistenza del nodo */
        StructNode* pNode;
        if ((pNode = pDM->pFindStructNode(uNode)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": structural node " << uNode
-	    << " not defined" << endl;
+	    << " not defined" << std::endl;
 	  
 	  THROW(DataManager::ErrGeneric());
        }		  
@@ -380,7 +380,7 @@ Elem* ReadJoint(DataManager* pDM,
 	  X0 = HP.GetPosAbs(RF);
        }	   	       	     	       
        
-       DEBUGCOUT("X0 =" << endl << X0 << endl);
+       DEBUGCOUT("X0 =" << std::endl << X0 << std::endl);
        
        /* sistema di riferimento (trucco dei due vettori) */
        Mat3x3 R0;
@@ -390,7 +390,7 @@ Elem* ReadJoint(DataManager* pDM,
 	  R0 = HP.GetRotAbs(RF);
        }	   
        
-       DEBUGCOUT("R0 =" << endl << R0 << endl);
+       DEBUGCOUT("R0 =" << std::endl << R0 << std::endl);
        
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
        
@@ -406,20 +406,20 @@ Elem* ReadJoint(DataManager* pDM,
        
        /* nodo collegato */
        unsigned int uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Node " << uNode << endl);
+       DEBUGCOUT("Linked to Node " << uNode << std::endl);
        
        /* verifica di esistenza del nodo */
        StructNode* pNode;
        if ((pNode = pDM->pFindStructNode(uNode)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": structural node " << uNode
-	    << " not defined" << endl;	  
+	    << " not defined" << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }		  
        
        Vec3 d(HP.GetPosRel(ReferenceFrame(pNode)));
        
-       DEBUGCOUT("Node reference frame d:" << endl << d << endl);
+       DEBUGCOUT("Node reference frame d:" << std::endl << d << std::endl);
        
        
        /* posizione (vettore di 3 elementi) */	 
@@ -445,25 +445,25 @@ Elem* ReadJoint(DataManager* pDM,
     case PLANEDISPLACEMENT: {
        /* nodo collegato 1 */
        unsigned int uNode1 = (unsigned int)HP.GetInt();	    
-       DEBUGCOUT("Linked to Node " << uNode1 << endl);
+       DEBUGCOUT("Linked to Node " << uNode1 << std::endl);
        
        /* verifica di esistenza del nodo */
        StructNode* pNode1;
        if ((pNode1 = pDM->pFindStructNode(uNode1)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": structural node " << uNode1
-	    << " not defined" << endl;	  
+	    << " not defined" << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }		  
        
        ReferenceFrame RF(pNode1);
        Vec3 d1(HP.GetPosRel(RF));	   
        
-       DEBUGCOUT("Node 1 reference frame d1:" << endl << d1 << endl);
+       DEBUGCOUT("Node 1 reference frame d1:" << std::endl << d1 << std::endl);
        
        Mat3x3 R1h(Eye3);
        if (HP.IsKeyWord("hinge")) {
-	  DEBUGCOUT("Hinge Rotation matrix is supplied" << endl);
+	  DEBUGCOUT("Hinge Rotation matrix is supplied" << std::endl);
 	  R1h = HP.GetRotRel(RF);
        }
        
@@ -471,14 +471,14 @@ Elem* ReadJoint(DataManager* pDM,
        
        /* nodo collegato 2 */
        unsigned int uNode2 = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Node " << uNode2 << endl);
+       DEBUGCOUT("Linked to Node " << uNode2 << std::endl);
        
        /* verifica di esistenza del nodo */
        StructNode* pNode2;
        if ((pNode2 = pDM->pFindStructNode(uNode2)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": structural node " << uNode2
-	    << " not defined" << endl;	  
+	    << " not defined" << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }		  
        
@@ -487,11 +487,11 @@ Elem* ReadJoint(DataManager* pDM,
        RF = ReferenceFrame(pNode2);
        Vec3 d2(HP.GetPosRel(RF));	   
        
-       DEBUGCOUT("Node 2 reference frame d2:" << endl << d2 << endl);
+       DEBUGCOUT("Node 2 reference frame d2:" << std::endl << d2 << std::endl);
        
        Mat3x3 R2h(Eye3);
        if (HP.IsKeyWord("hinge")) {
-	  DEBUGCOUT("Hinge Rotation matrix is supplied" << endl);
+	  DEBUGCOUT("Hinge Rotation matrix is supplied" << std::endl);
 	  R2h = HP.GetRotRel(RF);
        }
        
@@ -520,9 +520,9 @@ Elem* ReadJoint(DataManager* pDM,
 	  
 	  /* allocazione e creazione cerniera piana */
 	case PLANEHINGE:
-	   cerr << "line " << HP.GetLineData() 
+	   std::cerr << "line " << HP.GetLineData() 
 		   << ": deprecated 'plane hinge' name;"
-		   << " use 'revolute hinge' instead" << endl;
+		   << " use 'revolute hinge' instead" << std::endl;
 	case REVOLUTEHINGE: {	
 	   SAFENEWWITHCONSTRUCTOR(pEl, 
 				  PlaneHingeJoint,
@@ -578,37 +578,37 @@ Elem* ReadJoint(DataManager* pDM,
     case PLANEDISPLACEMENTPIN: {
        /* nodo collegato */
        unsigned int uNode = (unsigned int)HP.GetInt();	    
-       DEBUGCOUT("Linked to Node " << uNode << endl);
+       DEBUGCOUT("Linked to Node " << uNode << std::endl);
        
        /* verifica di esistenza del nodo */
        StructNode* pNode;
        if ((pNode = pDM->pFindStructNode(uNode)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": structural node " << uNode
-	    << " not defined" << endl;
+	    << " not defined" << std::endl;
 	  THROW(DataManager::ErrGeneric());
        }		  
        
        ReferenceFrame RF(pNode);
        Vec3 d(HP.GetPosRel(RF));
        
-       DEBUGCOUT("Node reference frame d:" << endl << d << endl);
+       DEBUGCOUT("Node reference frame d:" << std::endl << d << std::endl);
        
        Mat3x3 Rh(Eye3);
        if (HP.IsKeyWord("hinge")) {
-	  DEBUGCOUT("Hinge Rotation matrix is supplied" << endl);
+	  DEBUGCOUT("Hinge Rotation matrix is supplied" << std::endl);
 	  Rh = HP.GetRotRel(RF);
-	  DEBUGCOUT("Hinge Rotation matrix Rh:" << endl << Rh << endl);
+	  DEBUGCOUT("Hinge Rotation matrix Rh:" << std::endl << Rh << std::endl);
        }
 
        Vec3 X0(HP.GetPosAbs(AbsRefFrame));
-       DEBUGCOUT("Absolute X:" << endl << X0 << endl);
+       DEBUGCOUT("Absolute X:" << std::endl << X0 << std::endl);
 
        Mat3x3 R0(Eye3);
        if (HP.IsKeyWord("hinge")) {
 	  R0 = HP.GetRotAbs(AbsRefFrame);
        }
-       DEBUGCOUT("Absolute R:" << endl << R0 << endl);
+       DEBUGCOUT("Absolute R:" << std::endl << R0 << std::endl);
        
        
        flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
@@ -617,8 +617,8 @@ Elem* ReadJoint(DataManager* pDM,
 	  
 	  /* allocazione e creazione cerniera piana */	     
 	case PLANEPIN:
-		cerr << "deprecated 'plane pin' name;" 
-			<< " use 'revolute pin' instead" << endl;
+		std::cerr << "deprecated 'plane pin' name;" 
+			<< " use 'revolute pin' instead" << std::endl;
 	case REVOLUTEPIN: {
 	   SAFENEWWITHCONSTRUCTOR(pEl, 
 				  PlanePinJoint,
@@ -656,26 +656,26 @@ Elem* ReadJoint(DataManager* pDM,
     case INPLANE: {
        /* nodo collegato 1 */
        unsigned int uNode1 = (unsigned int)HP.GetInt();	    
-       DEBUGCOUT("Linked to Node " << uNode1 << endl);
+       DEBUGCOUT("Linked to Node " << uNode1 << std::endl);
        
        /* verifica di esistenza del nodo */
        StructNode* pNode1;
        if ((pNode1 = pDM->pFindStructNode(uNode1)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": structural node " << uNode1
-	    << " not defined" << endl;	  
+	    << " not defined" << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }		  
        
        ReferenceFrame RF(pNode1);
        Vec3 p(HP.GetPosRel(RF));
        
-       DEBUGCOUT("Node 1 reference frame p:" << endl << p << endl);
+       DEBUGCOUT("Node 1 reference frame p:" << std::endl << p << std::endl);
        
        Vec3 v(HP.GetVecRel(RF));
        doublereal d = v.Dot();
        if (d <= DBL_EPSILON) {
-	  cerr << "null direction at line " << HP.GetLineData() << endl;	  
+	  std::cerr << "null direction at line " << HP.GetLineData() << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }
        v /= sqrt(d);
@@ -683,14 +683,14 @@ Elem* ReadJoint(DataManager* pDM,
        
        /* nodo collegato 2 */
        unsigned int uNode2 = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Node " << uNode2 << endl);
+       DEBUGCOUT("Linked to Node " << uNode2 << std::endl);
        
        /* verifica di esistenza del nodo */
        StructNode* pNode2;
        if ((pNode2 = pDM->pFindStructNode(uNode2)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": structural node " << uNode2
-	    << " not defined" << endl;	  
+	    << " not defined" << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }		  
               
@@ -702,7 +702,7 @@ Elem* ReadJoint(DataManager* pDM,
 	  if (HP.IsKeyWord("offset")) {
 	     fOffset = 1;	     
 	     q = HP.GetPosRel(ReferenceFrame(pNode2));	     
-	     DEBUGCOUT("Node 2 reference frame q:" << endl << p << endl);
+	     DEBUGCOUT("Node 2 reference frame q:" << std::endl << p << std::endl);
 	  }
        }
        
@@ -727,34 +727,34 @@ Elem* ReadJoint(DataManager* pDM,
     case INLINE: {
        /* nodo collegato 1 */
        unsigned int uNode1 = (unsigned int)HP.GetInt();	    
-       DEBUGCOUT("Linked to Node " << uNode1 << endl);
+       DEBUGCOUT("Linked to Node " << uNode1 << std::endl);
        
        /* verifica di esistenza del nodo */
        StructNode* pNode1;
        if ((pNode1 = pDM->pFindStructNode(uNode1)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": structural node " << uNode1
-	    << " not defined" << endl;	  
+	    << " not defined" << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }		  
        
        ReferenceFrame RF(pNode1);
        Vec3 p(HP.GetPosRel(RF));
        
-       DEBUGCOUT("Node 1 reference frame p:" << endl << p << endl);
+       DEBUGCOUT("Node 1 reference frame p:" << std::endl << p << std::endl);
        
        Mat3x3 R(HP.GetRotRel(RF));       
        
        /* nodo collegato 2 */
        unsigned int uNode2 = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Node " << uNode2 << endl);
+       DEBUGCOUT("Linked to Node " << uNode2 << std::endl);
        
        /* verifica di esistenza del nodo */
        StructNode* pNode2;
        if ((pNode2 = pDM->pFindStructNode(uNode2)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": structural node " << uNode2
-	    << " not defined" << endl;	  
+	    << " not defined" << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }		  
               
@@ -766,7 +766,7 @@ Elem* ReadJoint(DataManager* pDM,
 	  if (HP.IsKeyWord("offset")) {
 	     fOffset = 1;	     
 	     q = HP.GetPosRel(ReferenceFrame(pNode2));	     
-	     DEBUGCOUT("Node 2 reference frame q:" << endl << p << endl);
+	     DEBUGCOUT("Node 2 reference frame q:" << std::endl << p << std::endl);
 	  }
        }
        
@@ -799,21 +799,21 @@ Elem* ReadJoint(DataManager* pDM,
        
        /* nodo collegato 1 */
        StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
-       DEBUGCOUT("Linked to Node " << pNode1->GetLabel() << endl);
+       DEBUGCOUT("Linked to Node " << pNode1->GetLabel() << std::endl);
 
        /* nodo collegato 2 */
        StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
-       DEBUGCOUT("Linked to Node " << pNode2->GetLabel() << endl);
+       DEBUGCOUT("Linked to Node " << pNode2->GetLabel() << std::endl);
        
        /* Lunghezza iniziale */
        doublereal dL = 0.;
        flag fFromNodes(0);
        if (HP.IsKeyWord("fromnodes")) {
 	  fFromNodes = 1;
-	  DEBUGCOUT("Initial length will be computed from nodes position" << endl);	  
+	  DEBUGCOUT("Initial length will be computed from nodes position" << std::endl);	  
        } else {
 	  dL = HP.GetReal();
-	  DEBUGCOUT("Initial length = " << dL << endl);
+	  DEBUGCOUT("Initial length = " << dL << std::endl);
        }
        
        flag fOffset(0);
@@ -825,10 +825,10 @@ Elem* ReadJoint(DataManager* pDM,
        if (HP.IsKeyWord("offset")) {
 	  fOffset = 1;
 	  f1 = HP.GetPosRel(ReferenceFrame(pNode1));	  
-	  DEBUGCOUT("Offset 1: " << f1 << endl);
+	  DEBUGCOUT("Offset 1: " << f1 << std::endl);
 
 	  f2 = HP.GetPosRel(ReferenceFrame(pNode2));	  
-	  DEBUGCOUT("Offset 2: " << f2 << endl);
+	  DEBUGCOUT("Offset 2: " << f2 << std::endl);
        }
        
        if (fFromNodes) {
@@ -837,7 +837,7 @@ Elem* ReadJoint(DataManager* pDM,
 	     v += pNode2->GetRCurr()*f2-pNode1->GetRCurr()*f1;
 	  }
 	  dL = v.Norm();
-	  DEBUGCOUT("Initial length = " << dL << endl);	  
+	  DEBUGCOUT("Initial length = " << dL << std::endl);	  
        }
        
        /* Legame costitutivo */
@@ -886,13 +886,13 @@ Elem* ReadJoint(DataManager* pDM,
        StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        Vec3 f1(HP.GetPosRel(ReferenceFrame(pNode1)));
        DEBUGCOUT("Linked to Node " << pNode1->GetLabel()
-		       << "with offset " << f1 << endl);
+		       << "with offset " << f1 << std::endl);
 
        /* nodo collegato 2 */
        StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        Vec3 f2(HP.GetPosRel(ReferenceFrame(pNode2)));
        DEBUGCOUT("Linked to Node " << pNode2->GetLabel()
-		       << "with offset " << f2 << endl);
+		       << "with offset " << f2 << std::endl);
 
        /* Lunghezza iniziale */
        doublereal dL = 0.;
@@ -902,7 +902,7 @@ Elem* ReadJoint(DataManager* pDM,
        } else {
           dL = HP.GetReal();
        }
-       DEBUGCOUT("Initial length = " << dL << endl);
+       DEBUGCOUT("Initial length = " << dL << std::endl);
 
        /* Legame costitutivo */
        DefHingeType::Type ConstLawType = DefHingeType::UNKNOWN;
@@ -926,14 +926,14 @@ Elem* ReadJoint(DataManager* pDM,
        
        /* nodo collegato 1 */
        unsigned int uNode1 = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Node " << uNode1 << endl);
+       DEBUGCOUT("Linked to Node " << uNode1 << std::endl);
        
        /* verifica di esistenza del nodo */
        StructNode* pNode1;
        if ((pNode1 = pDM->pFindStructNode(uNode1)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": structural node " << uNode1
-	    << " not defined" << endl;	  
+	    << " not defined" << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }
        
@@ -951,14 +951,14 @@ Elem* ReadJoint(DataManager* pDM,
        
        /* nodo collegato 2 */
        unsigned int uNode2 = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Node " << uNode2 << endl);
+       DEBUGCOUT("Linked to Node " << uNode2 << std::endl);
        
        /* verifica di esistenza del nodo */
        StructNode* pNode2;
        if((pNode2 = pDM->pFindStructNode(uNode2)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": structural node " << uNode2
-	    << " not defined" << endl;	  
+	    << " not defined" << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }		  
 
@@ -1054,14 +1054,14 @@ Elem* ReadJoint(DataManager* pDM,
     case ANGULARVELOCITY: {
        /* nodo collegato */
        unsigned int uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Node " << uNode << endl);
+       DEBUGCOUT("Linked to Node " << uNode << std::endl);
        
        /* verifica di esistenza del nodo */
        StructNode* pNode;
        if ((pNode = pDM->pFindStructNode(uNode)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": structural node " << uNode
-	    << " not defined" << endl;	  
+	    << " not defined" << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }		  
        
@@ -1071,7 +1071,7 @@ Elem* ReadJoint(DataManager* pDM,
        if (d > 0.) {	      
 	  Dir /= sqrt(d);
        } else {
-	  cerr << "warning, direction vector is null" << endl;
+	  std::cerr << "warning, direction vector is null" << std::endl;
        }	     
        
        DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
@@ -1109,14 +1109,14 @@ Elem* ReadJoint(DataManager* pDM,
     case ANGULARACCELERATION: {
        /* nodo collegato */
        unsigned int uNode = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Node " << uNode << endl);
+       DEBUGCOUT("Linked to Node " << uNode << std::endl);
        
        /* verifica di esistenza del nodo */
        StructNode* pNode;
        if ((pNode = pDM->pFindStructNode(uNode)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": structural node " << uNode
-	    << " not defined" << endl;	  
+	    << " not defined" << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }		  
        
@@ -1126,7 +1126,7 @@ Elem* ReadJoint(DataManager* pDM,
        if (d > 0.) {	      
 	  Dir /= sqrt(d);
        } else {
-	  cerr << "warning, direction vector is null" << endl;
+	  std::cerr << "warning, direction vector is null" << std::endl;
        }	     
        
        DriveCaller* pDC = ReadDriveData(pDM, HP, pDM->pGetDrvHdl());
@@ -1165,34 +1165,34 @@ Elem* ReadJoint(DataManager* pDM,
     case PRISMATIC: {	     
        /* nodo collegato 1 */
        unsigned int uNode1 = (unsigned int)HP.GetInt();	    
-       DEBUGCOUT("Linked to Node " << uNode1 << endl);
+       DEBUGCOUT("Linked to Node " << uNode1 << std::endl);
        
        /* verifica di esistenza del nodo */
        StructNode* pNode1;
        if ((pNode1 = pDM->pFindStructNode(uNode1)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": structural node " << uNode1
-	    << " not defined" << endl;	  
+	    << " not defined" << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }		  
        
        Mat3x3 R1h(Eye3);
        if (HP.IsKeyWord("hinge")) {
-	  DEBUGCOUT("Hinge Rotation matrix is supplied" << endl);	   
+	  DEBUGCOUT("Hinge Rotation matrix is supplied" << std::endl);	   
 	  R1h = HP.GetRotRel(ReferenceFrame(pNode1));
        }
        
        
        /* nodo collegato 2 */
        unsigned int uNode2 = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Node " << uNode2 << endl);
+       DEBUGCOUT("Linked to Node " << uNode2 << std::endl);
        
        /* verifica di esistenza del nodo */
        StructNode* pNode2;
        if ((pNode2 = pDM->pFindStructNode(uNode2)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": structural node " << uNode2
-	    << " not defined" << endl;	  
+	    << " not defined" << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }		  
        
@@ -1200,7 +1200,7 @@ Elem* ReadJoint(DataManager* pDM,
        
        Mat3x3 R2h(Eye3);
        if (HP.IsKeyWord("hinge")) {
-	  DEBUGCOUT("Hinge Rotation matrix is supplied" << endl);
+	  DEBUGCOUT("Hinge Rotation matrix is supplied" << std::endl);
 	  R2h = HP.GetRotRel(ReferenceFrame(pNode2));
        }
        
@@ -1219,34 +1219,34 @@ Elem* ReadJoint(DataManager* pDM,
     case DRIVEHINGE: {
        /* nodo collegato 1 */
        unsigned int uNode1 = (unsigned int)HP.GetInt();	    
-       DEBUGCOUT("Linked to Node " << uNode1 << endl);
+       DEBUGCOUT("Linked to Node " << uNode1 << std::endl);
        
        /* verifica di esistenza del nodo */
        StructNode* pNode1;
        if ((pNode1 = pDM->pFindStructNode(uNode1)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": structural node " << uNode1
-	    << " not defined" << endl;	  
+	    << " not defined" << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }		  
        
        Mat3x3 R1h(Eye3);
        if (HP.IsKeyWord("hinge")) {
-	  DEBUGCOUT("Hinge Rotation matrix is supplied" << endl);	   
+	  DEBUGCOUT("Hinge Rotation matrix is supplied" << std::endl);	   
 	  R1h = HP.GetRotRel(ReferenceFrame(pNode1));
        }
        
        
        /* nodo collegato 2 */
        unsigned int uNode2 = (unsigned int)HP.GetInt();	     
-       DEBUGCOUT("Linked to Node " << uNode2 << endl);
+       DEBUGCOUT("Linked to Node " << uNode2 << std::endl);
        
        /* verifica di esistenza del nodo */
        StructNode* pNode2;
        if ((pNode2 = pDM->pFindStructNode(uNode2)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": structural node " << uNode2
-	    << " not defined" << endl;	  
+	    << " not defined" << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }		  
        
@@ -1254,7 +1254,7 @@ Elem* ReadJoint(DataManager* pDM,
        
        Mat3x3 R2h(Eye3);
        if (HP.IsKeyWord("hinge")) {
-	  DEBUGCOUT("Hinge Rotation matrix is supplied" << endl);
+	  DEBUGCOUT("Hinge Rotation matrix is supplied" << std::endl);
 	  R2h = HP.GetRotRel(ReferenceFrame(pNode2));
        }
        
@@ -1278,14 +1278,14 @@ Elem* ReadJoint(DataManager* pDM,
     case KINEMATIC: {
        /* nodo collegato */
        unsigned int uNode = (unsigned int)HP.GetInt();	    
-       DEBUGCOUT("Linked to Node " << uNode << endl);
+       DEBUGCOUT("Linked to Node " << uNode << std::endl);
        
        /* verifica di esistenza del nodo */
        StructNode* pNode;
        if ((pNode = pDM->pFindStructNode(uNode)) == NULL) {
-	  cerr << "line " << HP.GetLineData() 
+	  std::cerr << "line " << HP.GetLineData() 
 	    << ": structural node " << uNode
-	    << " not defined" << endl;	  
+	    << " not defined" << std::endl;	  
 	  THROW(DataManager::ErrGeneric());
        }
        
@@ -1316,14 +1316,14 @@ Elem* ReadJoint(DataManager* pDM,
        ReferenceFrame RF(pNode);
        Vec3 f(HP.GetPosRel(RF));
        DEBUGCOUT("Linked to Node " << pNode->GetLabel()
-		       << "with offset " << f << endl);
+		       << "with offset " << f << std::endl);
        
        Mat3x3 R = Eye3;
        if (HP.IsKeyWord("hinge")) {
 	       R = HP.GetRotRel(RF);
        }
        DEBUGLCOUT(MYDEBUG_INPUT,
-		       "Slider rotation matrix: " << endl << R << endl);
+		       "Slider rotation matrix: " << std::endl << R << std::endl);
 
        /* Slider type */
        BeamSliderJoint::Type sliderType = BeamSliderJoint::SPHERICAL;
@@ -1335,16 +1335,16 @@ Elem* ReadJoint(DataManager* pDM,
 	       } else if (HP.IsKeyWord("spline")) {
 		       sliderType = BeamSliderJoint::SPLINE;
 	       } else {
-		       cerr << "unknown slider type at line " 
-			       << HP.GetLineData() << endl;
+		       std::cerr << "unknown slider type at line " 
+			       << HP.GetLineData() << std::endl;
 		       THROW(ErrGeneric());
 	       }
        }
 
        unsigned int nB = HP.GetInt();
        if (nB < 1) {
-	       cerr << "At least one beam is required at line " 
-		       << HP.GetLineData() << endl;
+	       std::cerr << "At least one beam is required at line " 
+		       << HP.GetLineData() << std::endl;
 	       THROW(ErrGeneric());
        }
        
@@ -1359,9 +1359,9 @@ Elem* ReadJoint(DataManager* pDM,
 	  Beam* pBeam;
 	  Elem* p = (Elem*)(pDM->pFindElem(Elem::BEAM, uBeam));
 	  if (p == NULL) {
-		  cerr << " at line " << HP.GetLineData()
+		  std::cerr << " at line " << HP.GetLineData()
 			  << ": Beam(" << uBeam
-			  << ") not defined" << endl;
+			  << ") not defined" << std::endl;
 		  THROW(DataManager::ErrGeneric());
 	  }
 	  pBeam = (Beam*)p->pGet();
@@ -1375,14 +1375,14 @@ Elem* ReadJoint(DataManager* pDM,
 	  Mat3x3 R1 = Eye3;
 	  if (i != 0) {
 		  if (pNode1 != pLastNode) {
-			cerr 
+			std::cerr 
 				<< "line " << HP.GetLineData()
 				<< ": Beam(" << pBeam->GetLabel() 
 				<< ").Node1(" << pNode1->GetLabel()
  				<< ") and Beam(" 
 				<< bc[i-1]->pGetBeam()->GetLabel() 
 				<< ").Node3(" << pLastNode->GetLabel()
-				<< ") do not match" << endl;
+				<< ") do not match" << std::endl;
 			THROW(ErrGeneric());
 		  }
 		  
@@ -1391,16 +1391,16 @@ Elem* ReadJoint(DataManager* pDM,
 		  } else {
 			  f1 = HP.GetPosRel(RF);
 			  if (f1 != bc[i-1]->Getf(3)) {
-				cerr 
+				std::cerr 
 					<< "line " << HP.GetLineData()
 					<< ": Beam(" << pBeam->GetLabel()
 					<< ").f1 and Beam("
 					<< bc[i-1]->pGetBeam()->GetLabel()
-					<< ").f3 do not match" << endl;
+					<< ").f3 do not match" << std::endl;
 				THROW(ErrGeneric());
 			  }
 		  }
-	  	  DEBUGLCOUT(MYDEBUG_INPUT, "Node 1 offset: " << f1 << endl);
+	  	  DEBUGLCOUT(MYDEBUG_INPUT, "Node 1 offset: " << f1 << std::endl);
 
 	  	  if (HP.IsKeyWord("hinge")) {
   			  if (HP.IsKeyWord("same")) {
@@ -1408,17 +1408,17 @@ Elem* ReadJoint(DataManager* pDM,
 			  } else {
 				  R1 = HP.GetRotRel(RF);
 				  if (R1 != bc[i-1]->GetR(3)) {
-					cerr 
+					std::cerr 
 						<< "line " << HP.GetLineData()
 						<< ": Beam(" << pBeam->GetLabel()
 						<< ").R1 and Beam("
 						<< bc[i-1]->pGetBeam()->GetLabel()
-						<< ").R3 do not match" << endl;
+						<< ").R3 do not match" << std::endl;
 					THROW(ErrGeneric());
 				  }
 			  }
 		  	  DEBUGLCOUT(MYDEBUG_INPUT, "Node 1 rotation matrix: " 
-					  << endl << R1 << endl);
+					  << std::endl << R1 << std::endl);
 		  }
 
 	  } else {
@@ -1426,7 +1426,7 @@ Elem* ReadJoint(DataManager* pDM,
 		if (HP.IsKeyWord("hinge")) {
 			R1 = HP.GetRotRel(RF);
 		  	DEBUGLCOUT(MYDEBUG_INPUT, "Node 1 rotation matrix: " 
-					<< endl << R1 << endl);
+					<< std::endl << R1 << std::endl);
 		}
 	  }
        
@@ -1437,14 +1437,14 @@ Elem* ReadJoint(DataManager* pDM,
        
 	  RF = ReferenceFrame(pNode2);
 	  Vec3 f2(HP.GetPosRel(RF));
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Node 2 offset: " << f2 << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Node 2 offset: " << f2 << std::endl);
        
 	  Mat3x3 R2(Eye3);
 	  if (HP.IsKeyWord("hinge")) {
 		  R2 = HP.GetRotRel(RF);
 		  DEBUGLCOUT(MYDEBUG_INPUT,
-				  "Node 2 rotation matrix: " << endl 
-				  << R2 << endl);
+				  "Node 2 rotation matrix: " << std::endl 
+				  << R2 << std::endl);
 	  }
        
 	  /* Nodo 3: */
@@ -1454,14 +1454,14 @@ Elem* ReadJoint(DataManager* pDM,
        
 	  RF = ReferenceFrame(pNode3);
 	  Vec3 f3(HP.GetPosRel(RF));
-	  DEBUGLCOUT(MYDEBUG_INPUT, "Node 3 offset: " << f3 << endl);
+	  DEBUGLCOUT(MYDEBUG_INPUT, "Node 3 offset: " << f3 << std::endl);
 	  
 	  Mat3x3 R3(Eye3);
 	  if (HP.IsKeyWord("hinge")) {
 		  R3 = HP.GetRotRel(RF);
 		  DEBUGLCOUT(MYDEBUG_INPUT,
-				  "Node 3 rotation matrix: " << endl 
-				  << R3 << endl);
+				  "Node 3 rotation matrix: " << std::endl 
+				  << R3 << std::endl);
 	  }
 	  
 	  pLastNode = pNode3;
@@ -1476,8 +1476,8 @@ Elem* ReadJoint(DataManager* pDM,
 	       uIB = HP.GetInt();
 
 	       if (uIB < 1 || uIB > nB) {
-		       cerr << "illegal initial beam " << uIB
-			       << " at line " << HP.GetLineData() << endl;
+		       std::cerr << "illegal initial beam " << uIB
+			       << " at line " << HP.GetLineData() << std::endl;
 		       THROW(ErrGeneric());
 	       }
        }
@@ -1487,8 +1487,8 @@ Elem* ReadJoint(DataManager* pDM,
 	       uIN = HP.GetInt();
 
 	       if (uIN < 1 || uIN > 3) {
-		       cerr << "illegal initial node " << uIN
-			       << " at line " << HP.GetLineData() << endl;
+		       std::cerr << "illegal initial node " << uIN
+			       << " at line " << HP.GetLineData() << std::endl;
 		       THROW(ErrGeneric());
 	       }
        }
@@ -1497,8 +1497,8 @@ Elem* ReadJoint(DataManager* pDM,
        if (HP.IsKeyWord("smearing")) {
 	       dL = HP.GetReal();
 	       if (dL < 0. || dL > .4) {
-		       cerr << "illegal smearing factor " << dL 
-			       << "; using default" << endl;
+		       std::cerr << "illegal smearing factor " << dL 
+			       << "; using default" << std::endl;
 		       dL = 0.;
 	       }
        }
@@ -1517,15 +1517,15 @@ Elem* ReadJoint(DataManager* pDM,
       /* Aggiungere altri vincoli */
       
     default: {
-       cerr << "unknown joint type in joint " << uLabel
-	 << " at line " << HP.GetLineData() << endl;       
+       std::cerr << "unknown joint type in joint " << uLabel
+	 << " at line " << HP.GetLineData() << std::endl;       
        THROW(DataManager::ErrGeneric());
     }
    }
 
    /* Se non c'e' il punto e virgola finale */
    if (HP.fIsArg()) {
-      cerr << "semicolon expected at line " << HP.GetLineData() << endl;
+      std::cerr << "semicolon expected at line " << HP.GetLineData() << std::endl;
       THROW(DataManager::ErrGeneric());
    }
 

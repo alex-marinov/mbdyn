@@ -90,8 +90,8 @@ StructNode::GetNodeType(void) const
 
 
 /* Contributo del nodo strutturale al file di restart */
-ostream& 
-StructNode::Restart(ostream& out) const
+std::ostream& 
+StructNode::Restart(std::ostream& out) const
 {
    out << "  structural: " << GetLabel() << ", ";
    if (GetStructNodeType() == StructNode::DYNAMIC) {	
@@ -109,7 +109,7 @@ StructNode::Restart(ostream& out) const
      WCurr.Write(out, ", ") << ", assembly, "
      << dPositionStiffness << ", "
      << dVelocityStiffness << ", " 
-     << fOmegaRot << ';' << endl;
+     << fOmegaRot << ';' << std::endl;
    
    return out;
 }
@@ -132,12 +132,12 @@ StructNode::dGetDofValue(int iDof, int iOrder) const
       if (iOrder == 1) {
 	 return WCurr.dGet(iDof-3);
       } else if (iOrder == 0) {
-	 cerr << "Node " << GetLabel() 
-	   << ": unable to return the angle." << endl;
+	 std::cerr << "Node " << GetLabel() 
+	   << ": unable to return the angle." << std::endl;
 	 THROW(StructNode::ErrGeneric());
       }	 
    } else {
-      cerr << "Required dof is not available." << endl;
+      std::cerr << "Required dof is not available." << std::endl;
       THROW(StructNode::ErrGeneric());
    }
 
@@ -168,12 +168,12 @@ StructNode::SetDofValue(const doublereal& dValue,
 	 WCurr.Put(iDof, dValue);
 	 return;
       } else if (iOrder == 0) {
-	 cerr << "Node " << GetLabel() 
-	   << ": unable to set the angle." << endl;
+	 std::cerr << "Node " << GetLabel() 
+	   << ": unable to set the angle." << std::endl;
 	 THROW(StructNode::ErrGeneric());	 
       }	 
    } else {
-      cerr << "Required dof is not available." << endl;
+      std::cerr << "Required dof is not available." << std::endl;
       THROW(StructNode::ErrGeneric());
    }   
 }
@@ -187,17 +187,17 @@ StructNode::Output(OutputHandler& OH) const
 #ifdef DEBUG
       if (DEBUG_LEVEL(MYDEBUG_OUTPUT)) {
 	 OH.Output() 
-	   << "Node " << uLabel << ':' << endl 
-	   << "Current position: " << endl << XCurr << endl
-	   << "Current orientation: " << endl << RCurr << endl 
-	   << "Current velocity: " << endl << VCurr << endl
-	   << "Current spin: " << endl << WCurr << endl;
+	   << "Node " << uLabel << ':' << std::endl 
+	   << "Current position: " << std::endl << XCurr << std::endl
+	   << "Current orientation: " << std::endl << RCurr << std::endl 
+	   << "Current velocity: " << std::endl << VCurr << std::endl
+	   << "Current spin: " << std::endl << WCurr << std::endl;
       }
 #endif   
    
-      OH.StrNodes() << setw(8) << GetLabel() << " "
+      OH.StrNodes() << std::setw(8) << GetLabel() << " "
 	<< XCurr << " " << EulerAngles(RCurr) << " "
-	<< VCurr << " " << WCurr << " " << endl;
+	<< VCurr << " " << WCurr << " " << std::endl;
    }   
 }
 
@@ -216,16 +216,16 @@ StructNode::Output(
       Vec3 Dg(X, iFirstIndex+4);
       Mat3x3 DR(MatR, Dg);
 
-      OH.StrNodes() << setw(8) << GetLabel() << " "
+      OH.StrNodes() << std::setw(8) << GetLabel() << " "
 	<< (XCurr+DX) << " " << EulerAngles(DR*RCurr) << " "
-	<< "#" << endl;
+	<< "#" << std::endl;
    }
 }
 
 /* Output di un modello NASTRAN equivalente nella configurazione corrente */
 void 
 StructNode::Output_pch(
-		ostream& out
+		std::ostream& out
 		) const
 {
 #if defined(__HACK_NASTRAN_MODES__)
@@ -243,65 +243,65 @@ StructNode::Output_pch(
 		Vec3 eX = XCurr+RCurr.GetVec(1);
 
 #if __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FIXED__
-		out << endl
+		out << std::endl
 			/* CORD2R with node position and orientation */
 			<< "CORD2R  " 
-			<< setw(8) << GetLabel()
-			<< setw(8) << 0
-			<< setw(8) << XCurr.dGet(1)
-			<< setw(8) << XCurr.dGet(2)
-			<< setw(8) << XCurr.dGet(3)
-			<< setw(8) << eZ.dGet(1)
-			<< setw(8) << eZ.dGet(2)
-			<< setw(8) << eZ.dGet(3)
-			<< "+" << setw(1) << 1
-			<< endl
-			<< "+" << setw(7) << 1
-			<< setw(8) << eX.dGet(1)
-			<< setw(8) << eX.dGet(2)
-			<< setw(8) << eX.dGet(3)
-			<< endl
+			<< std::setw(8) << GetLabel()
+			<< std::setw(8) << 0
+			<< std::setw(8) << XCurr.dGet(1)
+			<< std::setw(8) << XCurr.dGet(2)
+			<< std::setw(8) << XCurr.dGet(3)
+			<< std::setw(8) << eZ.dGet(1)
+			<< std::setw(8) << eZ.dGet(2)
+			<< std::setw(8) << eZ.dGet(3)
+			<< "+" << std::setw(1) << 1
+			<< std::endl
+			<< "+" << std::setw(7) << 1
+			<< std::setw(8) << eX.dGet(1)
+			<< std::setw(8) << eX.dGet(2)
+			<< std::setw(8) << eX.dGet(3)
+			<< std::endl
 			<< "GRID    "
-			<< setw(8) << GetLabel()
-			<< setw(8) << GetLabel()
-			<< setw(8) << 0.
-			<< setw(8) << 0.
-			<< setw(8) << 0.
-			<< endl;
+			<< std::setw(8) << GetLabel()
+			<< std::setw(8) << GetLabel()
+			<< std::setw(8) << 0.
+			<< std::setw(8) << 0.
+			<< std::setw(8) << 0.
+			<< std::endl;
 #elif __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FIXED16__
-		out << endl
+		out << std::endl
 			/* CORD2R with node position and orientation */
 			<< "CORD2R* " 
-			<< setw(16) << GetLabel()
-			<< setw(16) << 0
-			<< setw(16) << XCurr.dGet(1)
-			<< setw(16) << XCurr.dGet(2)
-			<< "*" << setw(7) << 1
-			<< endl
-			<< "*" << setw(7) << 1
-			<< setw(16) << XCurr.dGet(3)
-			<< setw(16) << eZ.dGet(1)
-			<< setw(16) << eZ.dGet(2)
-			<< setw(16) << eZ.dGet(3)
-			<< "*" << setw(7) << 2
-			<< endl
-			<< "*" << setw(7) << 2
-			<< setw(16) << eX.dGet(1)
-			<< setw(16) << eX.dGet(2)
-			<< setw(16) << eX.dGet(3)
-			<< endl
+			<< std::setw(16) << GetLabel()
+			<< std::setw(16) << 0
+			<< std::setw(16) << XCurr.dGet(1)
+			<< std::setw(16) << XCurr.dGet(2)
+			<< "*" << std::setw(7) << 1
+			<< std::endl
+			<< "*" << std::setw(7) << 1
+			<< std::setw(16) << XCurr.dGet(3)
+			<< std::setw(16) << eZ.dGet(1)
+			<< std::setw(16) << eZ.dGet(2)
+			<< std::setw(16) << eZ.dGet(3)
+			<< "*" << std::setw(7) << 2
+			<< std::endl
+			<< "*" << std::setw(7) << 2
+			<< std::setw(16) << eX.dGet(1)
+			<< std::setw(16) << eX.dGet(2)
+			<< std::setw(16) << eX.dGet(3)
+			<< std::endl
 			<< "GRID*   "
-			<< setw(16) << GetLabel()
-			<< setw(16) << GetLabel()
-			<< setw(16) << 0.
-			<< setw(16) << 0.
-			<< "*" << setw(7) << 1
-			<< endl
-			<< "*" << setw(7) << 1
-			<< setw(16) << 0.
-			<< endl;
+			<< std::setw(16) << GetLabel()
+			<< std::setw(16) << GetLabel()
+			<< std::setw(16) << 0.
+			<< std::setw(16) << 0.
+			<< "*" << std::setw(7) << 1
+			<< std::endl
+			<< "*" << std::setw(7) << 1
+			<< std::setw(16) << 0.
+			<< std::endl;
 #elif __NASTRAN_FORMAT__ == __NASTRAN_FORMAT_FREE__
-		out << endl
+		out << std::endl
 			/* CORD2R with node position and orientation */
 			<< "CORD2R," << GetLabel()
 			<< ",0,", XCurr.Write(out, ",")
@@ -309,16 +309,16 @@ StructNode::Output_pch(
 #if 0
 			<< "," 
 #endif
-			<< endl
+			<< std::endl
 #if 1
 			<< "," 
 #endif
 			<< " ", eX.Write(out, ",")
-			<< endl
+			<< std::endl
 			/* grid in CORD2R */
 			<< "GRID," << GetLabel() 
 			<< "," << GetLabel()
-			<< ",0.,0.,0." << endl;
+			<< ",0.,0.,0." << std::endl;
 #else
 #error "unknown NASTRAN format"
 #endif
@@ -329,7 +329,7 @@ StructNode::Output_pch(
 
 void 
 StructNode::Output_f06(
-		ostream& out,
+		std::ostream& out,
 		const VectorHandler& X
 		) const
 {
@@ -337,21 +337,21 @@ StructNode::Output_f06(
 	if (fToBeOutput()) {
 		integer iFirstIndex = iGetFirstIndex();
 		
-		out << setw(13) << GetLabel() << "      G" 
-			<< setw(18) << setprecision(6) 
+		out << std::setw(13) << GetLabel() << "      G" 
+			<< std::setw(18) << std::setprecision(6) 
 			<< X.dGetCoef(iFirstIndex+1)
-			<< setw(15) << setprecision(6) 
+			<< std::setw(15) << std::setprecision(6) 
 			<< X.dGetCoef(iFirstIndex+2)
-			<< setw(15) << setprecision(6) 
+			<< std::setw(15) << std::setprecision(6) 
 			<< X.dGetCoef(iFirstIndex+3)
 
-			<< setw(15) << setprecision(6) 
+			<< std::setw(15) << std::setprecision(6) 
 			<< X.dGetCoef(iFirstIndex+4)
-			<< setw(15) << setprecision(6) 
+			<< std::setw(15) << std::setprecision(6) 
 			<< X.dGetCoef(iFirstIndex+5)
-			<< setw(15) << setprecision(6) 
+			<< std::setw(15) << std::setprecision(6) 
 			<< X.dGetCoef(iFirstIndex+6)
-			<< endl;
+			<< std::endl;
 	}
 #endif /* __HACK_NASTRAN_MODES__ */
 }
@@ -742,7 +742,7 @@ DummyStructNode::~DummyStructNode(void)
 void 
 DummyStructNode::Err(void) const
 {
-   cerr << "DummyStructNode(" << GetLabel() << ") has no dofs" << endl;
+   std::cerr << "DummyStructNode(" << GetLabel() << ") has no dofs" << std::endl;
    THROW(ErrGeneric());   
 }
 
@@ -951,7 +951,7 @@ ReadStructNode(DataManager* pDM,
 	       unsigned int uLabel)
 {
    const char sFuncName[] = "ReadStructNode()";
-   DEBUGCOUT("Entering " << sFuncName << endl);
+   DEBUGCOUT("Entering " << sFuncName << std::endl);
    
    const char* sKeyWords[] = {
       "static",
@@ -991,21 +991,21 @@ ReadStructNode(DataManager* pDM,
 #ifdef __GNUC__
 #warning "deprecated default node = DYNAMIC"
 #endif
-      cerr << "deprecated default node type (=DYNAMIC)" << endl;
+      std::cerr << "deprecated default node type (=DYNAMIC)" << std::endl;
       CurrType = DYNAMIC;
    }   
    
 #ifdef DEBUG
    if (CurrType == STATIC) {      
-      cout << "Static structural node" << endl;
+      std::cout << "Static structural node" << std::endl;
    } else if (CurrType == DYNAMIC) {
-     cout << "Dynamic structural node" << endl;
+      std::cout << "Dynamic structural node" << std::endl;
    } else if (CurrType == DUMMY) {
-     cout << "Dummy structural node" << endl;
+      std::cout << "Dummy structural node" << std::endl;
    } else if (CurrType == MODAL) {
-      cout << "Modal node" << endl;
+      std::cout << "Modal node" << std::endl;
    } else {
-      cout << "Unknown structural node" << endl;
+      std::cout << "Unknown structural node" << std::endl;
    }   
 #endif   
    
@@ -1013,15 +1013,15 @@ ReadStructNode(DataManager* pDM,
    if (CurrType == DUMMY) {
       unsigned int uNode = (unsigned int)HP.GetInt();
       
-      DEBUGCOUT("Linked to Node " << uNode << endl);
+      DEBUGCOUT("Linked to Node " << uNode << std::endl);
       
       /* verifica di esistenza del nodo */
       StructNode* pNode;
       if ((pNode = pDM->pFindStructNode(uNode)) == NULL) {
-	 cerr << endl << sFuncName
+	 std::cerr << std::endl << sFuncName
 	   << " at line " << HP.GetLineData() 
 	     << ": structural node " << uNode
-	   << " not defined" << endl;    
+	   << " not defined" << std::endl;    
 	 THROW(DataManager::ErrGeneric());
       }
       
@@ -1041,15 +1041,15 @@ ReadStructNode(DataManager* pDM,
        case RELATIVEFRAME: {
 	  unsigned int uNodeRef = (unsigned int)HP.GetInt();
 	  
-	  DEBUGCOUT("Linked to Node " << uNodeRef << endl);
+	  DEBUGCOUT("Linked to Node " << uNodeRef << std::endl);
 	  
 	  /* verifica di esistenza del nodo */
 	  StructNode* pNodeRef;
 	  if ((pNodeRef = pDM->pFindStructNode(uNodeRef)) == NULL) {
-	     cerr << endl << sFuncName
+	     std::cerr << std::endl << sFuncName
 	       << " at line " << HP.GetLineData() 
 		 << ": structural node " << uNodeRef
-	       << " not defined" << endl;    
+	       << " not defined" << std::endl;    
 	     THROW(DataManager::ErrGeneric());
 	  }
 	  
@@ -1060,25 +1060,25 @@ ReadStructNode(DataManager* pDM,
        }
 	 
        default: {
-	  cerr << "unknown dummy node type at line " << HP.GetLineData() << endl;
+	  std::cerr << "unknown dummy node type at line " << HP.GetLineData() << std::endl;
 	  THROW(ErrGeneric());
        }
       }
    } else {
       /* posizione (vettore di 3 elementi) */     
       Vec3 X0(HP.GetPosAbs(AbsRefFrame));   
-      DEBUGCOUT("X0 =" << endl << X0 << endl);
+      DEBUGCOUT("X0 =" << std::endl << X0 << std::endl);
       
       /* sistema di riferimento (trucco dei due vettori) */  
       Mat3x3 R0(HP.GetRotAbs(AbsRefFrame));
-      DEBUGCOUT("R0 =" << endl << R0 << endl);
+      DEBUGCOUT("R0 =" << std::endl << R0 << std::endl);
       
       /* Velocita' iniziali (due vettori di 3 elementi, con la possibilita' 
        * di usare "null" per porli uguali a zero) */
       Vec3 XPrime0(HP.GetVelAbs(AbsRefFrame, X0));
       Vec3 Omega0(HP.GetOmeAbs(AbsRefFrame));
-      DEBUGCOUT("Xprime0 =" << endl << XPrime0 << endl 
-		<< "Omega0 =" << endl << Omega0 << endl);
+      DEBUGCOUT("Xprime0 =" << std::endl << XPrime0 << std::endl 
+		<< "Omega0 =" << std::endl << Omega0 << std::endl);
       
       /* Rigidezza in assemblaggio diversa da quella di default
        * e flag di output */
@@ -1097,21 +1097,21 @@ ReadStructNode(DataManager* pDM,
 	    } else if (HP.IsKeyWord("no")) {
 	       fOmRot = 0;
 	    } else {
-	       silent_cerr("use keywords \"yes\" or \"no\"" << endl);
+	       silent_cerr("use keywords \"yes\" or \"no\"" << std::endl);
 	       fOmRot = HP.GetInt(fOmRot);
 	    }
 	    
-	    DEBUGCOUT("Initial position stiffness: " << dPosStiff << endl);
-	    DEBUGCOUT("Initial velocity stiffness: " << dVelStiff << endl);
-	    DEBUGCOUT("Omega rotates? : " << (fOmRot ? "yes" : "no") << endl);
+	    DEBUGCOUT("Initial position stiffness: " << dPosStiff << std::endl);
+	    DEBUGCOUT("Initial velocity stiffness: " << dVelStiff << std::endl);
+	    DEBUGCOUT("Omega rotates? : " << (fOmRot ? "yes" : "no") << std::endl);
 	 }
       }
       fOut = pDM->fReadOutput(HP, Node::STRUCTURAL);   
       
       /* Se non c'e' il punto e virgola finale */
       if (HP.fIsArg()) {
-	 cerr << endl << sFuncName
-	   << ": semicolon expected at line " << HP.GetLineData() << endl;      
+	 std::cerr << std::endl << sFuncName
+	   << ": semicolon expected at line " << HP.GetLineData() << std::endl;      
 	 THROW(DataManager::ErrGeneric());
       }   
       

@@ -72,7 +72,7 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
    };
 
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    /* Tipo di Joint */
    virtual Joint::Type GetJointType(void) const { 
@@ -193,7 +193,7 @@ public Joint, public DriveOwner {
    };
 
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    virtual unsigned int iGetNumDof(void) const { 
       return 6;
@@ -300,7 +300,7 @@ class PlanePinJoint : virtual public Elem, public Joint {
    };
 
    /* Contributo al file di restart */
-   virtual ostream& Restart(ostream& out) const;
+   virtual std::ostream& Restart(std::ostream& out) const;
 
    virtual unsigned int iGetNumDof(void) const { 
       return 5;

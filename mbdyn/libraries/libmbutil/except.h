@@ -32,25 +32,25 @@
 
 #include <stdio.h>
 
+#if defined(HAVE_IOSTREAM)
+#include <iostream>
+#elif defined(HAVE_IOSTREAM_H)
+#include <iostream.h>
+#endif
+
 #ifdef USE_EXCEPTIONS
 #define THROW(cl) \
     do {          \
         throw cl; \
     } while (0)
-#else
+#else /* !USE_EXCEPTIONS */
 #define THROW(cl)                                                   \
     do {                                                            \
         fprintf(stderr, "(%s,%d) aborting after call to exit()\n",  \
                 __FILE__, __LINE__);                                \
         exit(EXIT_FAILURE);                                         \
     } while (0)
-#endif
-
-#if defined(HAVE_IOSTREAM)
-#include <iostream>
-#elif defined(HAVE_IOSTREAM_H)
-#include <iostream.h>
-#endif
+#endif /* !USE_EXCEPTIONS */
 
 class NoErr {};
 class ErrGeneric {};

@@ -36,19 +36,19 @@
 
 #include <force.h>
 #include <dataman.h>
-
+#include <float.h>
 
 /* Force - begin */
 
-ostream& Force::Output(unsigned int NodeLabel, ostream& out) const
+std::ostream& Force::Output(unsigned int NodeLabel, std::ostream& out) const
 {
-   return out << setw(8) << GetLabel() << " "
-     << setw(8) << NodeLabel << " " 
+   return out << std::setw(8) << GetLabel() << " "
+     << std::setw(8) << NodeLabel << " " 
      << (pGetDriveCaller()->dGet());
 }
 
 
-ostream& Force::Restart(ostream& out) const
+std::ostream& Force::Restart(std::ostream& out) const
 {
    return out << "  force: " << GetLabel();
 }
@@ -99,12 +99,12 @@ pNode(pN)
 
 
 /* Contributo al file di restart */
-ostream& AbstractForce::Restart(ostream& out) const
+std::ostream& AbstractForce::Restart(std::ostream& out) const
 {
    Force::Restart(out) << ", abstract, " 
      << pNode->GetLabel() << ", " 
      << psReadNodesNodes[pNode->GetNodeType()] << ", " /* << iDofNumber << ", " */;
-   return pGetDriveCaller()->Restart(out) << ';' << endl;     
+   return pGetDriveCaller()->Restart(out) << ';' << std::endl;     
 }
 
 
@@ -114,7 +114,7 @@ SubVectorHandler& AbstractForce::AssRes(SubVectorHandler& WorkVec,
 					const VectorHandler& /* XCurr */ ,
 					const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering AbstractForce::AssRes()" << endl);
+   DEBUGCOUT("Entering AbstractForce::AssRes()" << std::endl);
 
    WorkVec.Resize(1);
    WorkVec.Reset(0.);
@@ -135,7 +135,7 @@ SubVectorHandler& AbstractForce::AssRes(SubVectorHandler& WorkVec,
 void AbstractForce::Output(OutputHandler& OH) const 
 {
    if (fToBeOutput()) {
-      Force::Output(pNode->GetLabel(), OH.Forces()) << endl;
+      Force::Output(pNode->GetLabel(), OH.Forces()) << std::endl;
    }
 }
 
@@ -144,7 +144,7 @@ SubVectorHandler&
 AbstractForce::InitialAssRes(SubVectorHandler& WorkVec,
 			     const VectorHandler& XCurr)
 {
-   DEBUGCOUT("Entering AbstractForce::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering AbstractForce::InitialAssRes()" << std::endl);
 
    return AssRes(WorkVec, 1., XCurr, XCurr);
 }
@@ -169,14 +169,14 @@ Arm(TmpArm)
 
 
 /* Contributo al file di restart */
-ostream& ConservativeForce::Restart(ostream& out) const
+std::ostream& ConservativeForce::Restart(std::ostream& out) const
 {
    Force::Restart(out) << ", conservative, " 
      << pNode->GetLabel() << ", reference, global, ",
      ((pNode->GetRCurr()).Transpose()*Dir).Write(out, ", ") 
        << ", reference, node, ",
      Arm.Write(out, ", ") << ", ";
-   return pGetDriveCaller()->Restart(out) << ';' << endl;     
+   return pGetDriveCaller()->Restart(out) << ';' << std::endl;     
 }
 
 
@@ -186,7 +186,7 @@ ConservativeForce::AssJac(VariableSubMatrixHandler& WorkMat,
 			  const VectorHandler& /* XCurr */ ,
 			  const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering ConservativeForce::AssJac()" << endl);
+   DEBUGCOUT("Entering ConservativeForce::AssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -221,7 +221,7 @@ SubVectorHandler& ConservativeForce::AssRes(SubVectorHandler& WorkVec,
 					    const VectorHandler& /* XCurr */ ,
 					    const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering ConservativeForce::AssRes()" << endl);
+   DEBUGCOUT("Entering ConservativeForce::AssRes()" << std::endl);
 
    integer iNumRows;
    integer iNumCols;
@@ -255,7 +255,7 @@ void ConservativeForce::Output(OutputHandler& OH) const
    if (fToBeOutput()) {      
       Force::Output(pNode->GetLabel(), OH.Forces())
 	<< " " << Dir*dGet()
-	  << " " << pNode->GetXCurr()+pNode->GetRCurr()*Arm << endl;
+	  << " " << pNode->GetXCurr()+pNode->GetRCurr()*Arm << std::endl;
    }
 }
 
@@ -265,7 +265,7 @@ VariableSubMatrixHandler&
 ConservativeForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 				 const VectorHandler& /* XCurr */ )
 {
-   DEBUGCOUT("Entering ConservativeForce::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering ConservativeForce::InitialAssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -304,7 +304,7 @@ SubVectorHandler&
 ConservativeForce::InitialAssRes(SubVectorHandler& WorkVec,
 				 const VectorHandler& /* XCurr */ )
 {
-   DEBUGCOUT("Entering ConservativeForce::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering ConservativeForce::InitialAssRes()" << std::endl);
 
    integer iNumRows;
    integer iNumCols;
@@ -357,7 +357,7 @@ Arm(TmpArm)
 
 
 /* Contributo al file di restart */
-ostream& FollowerForce::Restart(ostream& out) const
+std::ostream& FollowerForce::Restart(std::ostream& out) const
 {
    Force::Restart(out) << ", follower, "
      << pNode->GetLabel() 
@@ -365,7 +365,7 @@ ostream& FollowerForce::Restart(ostream& out) const
      Dir.Write(out, ", ") 
      << ", reference, node, ",
      Arm.Write(out, ", ") << ", ";
-   return pGetDriveCaller()->Restart(out) << ';' << endl;     
+   return pGetDriveCaller()->Restart(out) << ';' << std::endl;     
 }
 
 
@@ -375,7 +375,7 @@ FollowerForce::AssJac(VariableSubMatrixHandler& WorkMat,
 		      const VectorHandler& /* XCurr */ ,
 		      const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering FollowerForce::AssJac()" << endl);
+   DEBUGCOUT("Entering FollowerForce::AssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -416,7 +416,7 @@ SubVectorHandler& FollowerForce::AssRes(SubVectorHandler& WorkVec,
 					const VectorHandler& /* XCurr */ ,
 					const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering FollowerForce::AssRes()" << endl);
+   DEBUGCOUT("Entering FollowerForce::AssRes()" << std::endl);
    
    integer iNumRows;
    integer iNumCols;
@@ -451,7 +451,7 @@ void FollowerForce::Output(OutputHandler& OH) const
    if (fToBeOutput()) {
       Force::Output(pNode->GetLabel(), OH.Forces())
 	<< " " << pNode->GetRCurr()*(Dir*dGet())
-	  << " " << pNode->GetXCurr()+pNode->GetRCurr()*Arm << endl;
+	  << " " << pNode->GetXCurr()+pNode->GetRCurr()*Arm << std::endl;
    }
 }
 
@@ -461,7 +461,7 @@ VariableSubMatrixHandler&
 FollowerForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 			     const VectorHandler& /* XCurr */ )
 {
-   DEBUGCOUT("Entering FollowerForce::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering FollowerForce::InitialAssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -506,7 +506,7 @@ SubVectorHandler&
 FollowerForce::InitialAssRes(SubVectorHandler& WorkVec,
 			     const VectorHandler& /* XCurr */ )
 {
-   DEBUGCOUT("Entering FollowerForce::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering FollowerForce::InitialAssRes()" << std::endl);
 
    integer iNumRows;
    integer iNumCols;
@@ -559,13 +559,13 @@ StructuralForce(uL, Force::CONSERVATIVECOUPLE, pN, pDC, TmpDir, fOut)
 
 
 /* Contributo al file di restart */
-ostream& ConservativeCouple::Restart(ostream& out) const
+std::ostream& ConservativeCouple::Restart(std::ostream& out) const
 {
    out << "  couple: " << GetLabel() << ", conservative, " 
      << pNode->GetLabel() << ", reference, global, ",
      Dir.Write(out, ", ")
        << ", ";
-   return pGetDriveCaller()->Restart(out) << ';' << endl;     
+   return pGetDriveCaller()->Restart(out) << ';' << std::endl;     
 }
 
 
@@ -575,7 +575,7 @@ SubVectorHandler& ConservativeCouple::AssRes(SubVectorHandler& WorkVec,
 					     const VectorHandler& /* XCurr */ ,
 					     const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering ConservativeCouple::AssRes()" << endl);
+   DEBUGCOUT("Entering ConservativeCouple::AssRes()" << std::endl);
 
    integer iNumRows;
    integer iNumCols;
@@ -603,7 +603,7 @@ void ConservativeCouple::Output(OutputHandler& OH) const
 {   
    if (fToBeOutput()) {
       Force::Output(pNode->GetLabel(), OH.Forces())
-	<< " " << Dir*dGet() << endl;
+	<< " " << Dir*dGet() << std::endl;
    }
 }
 
@@ -613,7 +613,7 @@ SubVectorHandler&
 ConservativeCouple::InitialAssRes(SubVectorHandler& WorkVec,
 				  const VectorHandler& /* XCurr */ )
 {
-   DEBUGCOUT("Entering ConservativeCouple::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering ConservativeCouple::InitialAssRes()" << std::endl);
 
    WorkVec.Resize(3);
    WorkVec.Reset(0.);
@@ -649,12 +649,12 @@ StructuralForce(uL, Force::FOLLOWERCOUPLE, pN, pDC, TmpDir, fOut)
 
 
 /* Contributo al file di restart */
-ostream& FollowerCouple::Restart(ostream& out) const
+std::ostream& FollowerCouple::Restart(std::ostream& out) const
 {
    out << "  couple: " << GetLabel() << ", follower, " 
      << pNode->GetLabel() << ", reference, node, ",
      Dir.Write(out, ", ") << ", ";
-   return pGetDriveCaller()->Restart(out) << ';' << endl;
+   return pGetDriveCaller()->Restart(out) << ';' << std::endl;
 }
 
 
@@ -664,7 +664,7 @@ FollowerCouple::AssJac(VariableSubMatrixHandler& WorkMat,
 		       const VectorHandler& /* XCurr */ ,
 		       const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering FollowerCouple::AssJac()" << endl);
+   DEBUGCOUT("Entering FollowerCouple::AssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -700,7 +700,7 @@ SubVectorHandler& FollowerCouple::AssRes(SubVectorHandler& WorkVec,
 					 const VectorHandler& /* XCurr */ , 
 					 const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering FollowerCouple::AssRes()" << endl);
+   DEBUGCOUT("Entering FollowerCouple::AssRes()" << std::endl);
    
    integer iNumRows;
    integer iNumCols;
@@ -729,7 +729,7 @@ void FollowerCouple::Output(OutputHandler& OH) const
 {   
    if (fToBeOutput()) {
       Force::Output(pNode->GetLabel(), OH.Forces())
-	<< " " << pNode->GetRCurr()*(Dir*dGet()) << endl;
+	<< " " << pNode->GetRCurr()*(Dir*dGet()) << std::endl;
    }
 }
 
@@ -739,7 +739,7 @@ VariableSubMatrixHandler&
 FollowerCouple::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 			      const VectorHandler& /* XCurr */ )
 {
-   DEBUGCOUT("Entering FollowerCouple::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering FollowerCouple::InitialAssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    
@@ -777,7 +777,7 @@ SubVectorHandler&
 FollowerCouple::InitialAssRes(SubVectorHandler& WorkVec,
 			      const VectorHandler& /* XCurr */ )
 {
-   DEBUGCOUT("Entering FollowerCouple::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering FollowerCouple::InitialAssRes()" << std::endl);
 
    WorkVec.Resize(6);
    WorkVec.Reset(0.);
@@ -816,7 +816,7 @@ Elem* ReadForce(DataManager* pDM,
 		flag fCouple)
 {
    const char sFuncName[] = "ReadForce()";
-   DEBUGCOUT("Entering " << sFuncName << endl);
+   DEBUGCOUT("Entering " << sFuncName << std::endl);
    
    const char* sKeyWords[] = {
 #if defined(USE_STRUCT_NODES)
@@ -856,21 +856,21 @@ Elem* ReadForce(DataManager* pDM,
    /* tipo di forza */
    KeyWords CurrType = KeyWords(HP.GetWord());
    if (CurrType == UNKNOWN) {
-      cerr << endl << sFuncName << " at line " << HP.GetLineData() 
-	<< ": unknown force type" << endl;      
+      std::cerr << std::endl << sFuncName << " at line " << HP.GetLineData() 
+	<< ": unknown force type" << std::endl;      
       THROW(DataManager::ErrGeneric());
    }   
    
 #ifdef DEBUG
 #if defined(USE_STRUCT_NODES)
    if (CurrType == CONSERVATIVE) {      
-      cout << "Force type: \"Conservative\"" << endl;
+      std::cout << "Force type: \"Conservative\"" << std::endl;
    } else if (CurrType == FOLLOWER) {      
-      cout << "Force type: \"Follower\"" << endl;
+      std::cout << "Force type: \"Follower\"" << std::endl;
    }
 #if defined(USE_ELECTRIC_NODES)
    else if (CurrType == ABSTRACT) {
-      cout << "Force type: \"Abstract\"" << endl;
+      std::cout << "Force type: \"Abstract\"" << std::endl;
    }
 #endif
 #endif
@@ -907,15 +907,15 @@ Elem* ReadForce(DataManager* pDM,
       /* nodo collegato */
       unsigned int uNode = (unsigned int)HP.GetInt();
       
-      DEBUGCOUT("Linked to Node " << uNode << endl);
+      DEBUGCOUT("Linked to Node " << uNode << std::endl);
       
       /* verifica di esistenza del nodo */
       StructNode* pNode;
       if ((pNode = pDM->pFindStructNode(uNode)) == NULL) {
-	 cerr << endl << sFuncName
+	 std::cerr << std::endl << sFuncName
 	   << " at line " << HP.GetLineData() 
 	   << ": structural node " << uNode
-	   << " not defined" << endl;	 
+	   << " not defined" << std::endl;	 
 	 THROW(DataManager::ErrGeneric());
       }		        
       
@@ -935,8 +935,8 @@ Elem* ReadForce(DataManager* pDM,
       if (d > DBL_EPSILON) {      
 	 Dir /= sqrt(d);
       } else {      
-	 cerr << "Warning, force " << uLabel 
-	   << " has null direction" << endl;
+	 std::cerr << "Warning, force " << uLabel 
+	   << " has null direction" << std::endl;
       }        
       
       /* distanza dal nodo (vettore di 3 elementi) ( solo se e' una forza) */
@@ -944,20 +944,20 @@ Elem* ReadForce(DataManager* pDM,
       if (fCouple == 0) {	
 	 if (!HP.IsKeyWord("null")) {	  
 	    Arm = HP.GetPosRel(RF);	    
-	    DEBUGCOUT("Distance is supplied" << endl);
+	    DEBUGCOUT("Distance is supplied" << std::endl);
 	 }
       }   
             
             
 #ifdef DEBUG
       if (CurrType == CONSERVATIVE) {      
-	 cout << "Global reference frame direction: " << endl << Dir << endl;
+	 std::cout << "Global reference frame direction: " << std::endl << Dir << std::endl;
       } else if (CurrType == FOLLOWER) {      
-	 cout << "Node reference frame direction: " << endl << Dir << endl;
+	 std::cout << "Node reference frame direction: " << std::endl << Dir << std::endl;
       }
       
       if (!fCouple) {      
-	 cout << "Node reference frame arm: " << endl << Arm << endl;
+	 std::cout << "Node reference frame arm: " << std::endl << Arm << std::endl;
       }   
 #endif   
       
@@ -998,8 +998,8 @@ Elem* ReadForce(DataManager* pDM,
    
    /* Se non c'e' il punto e virgola finale */
    if (HP.fIsArg()) {
-      cerr << endl << sFuncName
-	<< ": semicolon expected at line " << HP.GetLineData() << endl;      
+      std::cerr << std::endl << sFuncName
+	<< ": semicolon expected at line " << HP.GetLineData() << std::endl;      
       THROW(DataManager::ErrGeneric());
    }      
    

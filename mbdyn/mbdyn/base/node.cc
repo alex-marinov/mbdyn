@@ -324,7 +324,7 @@ void ScalarAlgebraicNode::SetX(const doublereal& d)
 /* only for differential nodes!?! */
 void ScalarAlgebraicNode::SetXPrime(const doublereal& /* d */ ) 
 {
-   DEBUGCERR("Error, setting derivative from algebraic dof" << endl);      
+   DEBUGCERR("Error, setting derivative from algebraic dof" << std::endl);      
    THROW(Node::ErrGeneric());
 }
 
@@ -364,9 +364,9 @@ Node::Type ParameterNode::GetNodeType(void) const
 
 
 /* Contributo del nodo al file di restart */
-ostream& ParameterNode::Restart(ostream& out) const
+std::ostream& ParameterNode::Restart(std::ostream& out) const
 {
-   return out << "parameter: " << GetLabel() << ", " << dX << ';' << endl;
+   return out << "parameter: " << GetLabel() << ", " << dX << ';' << std::endl;
 }
 
 
@@ -468,9 +468,9 @@ Node::Type Node2Scalar::GetNodeType(void) const
 
 
 /* Contributo del nodo al file di restart */
-ostream& Node2Scalar::Restart(ostream& out) const
+std::ostream& Node2Scalar::Restart(std::ostream& out) const
 {
-   out << "# Warning not implemented yet " << endl; // adds a remark!
+   out << "# Warning not implemented yet " << std::endl; // adds a remark!
      return out;
 }
 
@@ -540,8 +540,8 @@ void Node2Scalar::SetDofValue(const doublereal& dValue,
 void Node2Scalar::Output(OutputHandler& /* OH */ ) const
 {
 #ifdef DEBUG
-   cout << "Default Node::Output(), the " << psNodeNames[GetNodeType()] 
-     << " doesn't have any output" << endl;
+   std::cout << "Default Node::Output(), the " << psNodeNames[GetNodeType()] 
+     << " doesn't have any output" << std::endl;
 #endif      
 }
 

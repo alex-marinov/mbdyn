@@ -100,7 +100,7 @@ class BulkSpringSupport
    
    
    /* Scrive il contributo dell'elemento al file di restart */
-   virtual ostream& Restart(ostream& out) const {
+   virtual std::ostream& Restart(std::ostream& out) const {
       return out; 
    };
    

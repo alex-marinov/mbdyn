@@ -34,6 +34,12 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#if defined(HAVE_FSTREAM)
+#include <fstream>
+#elif defined(HAVE_FSTREAM_H)
+#include <fstream.h>
+#endif
+
 #include <dataman.h>
 #include <filedrv.h>
 #include <sockdrv.h>
@@ -92,11 +98,11 @@ DriveCaller* FileDriveCaller::pCopy(void) const
 
 
 /* Scrive il contributo del DriveCaller al file di restart */   
-ostream& FileDriveCaller::Restart(ostream& out) const
+std::ostream& FileDriveCaller::Restart(std::ostream& out) const
 {
    return out << " file, " 
      << pFileDrive->GetLabel() << ", " 
-     << iNumDrive << endl;
+     << iNumDrive << std::endl;
 }
    
 /* FileDriveCaller - end */
@@ -117,10 +123,10 @@ dT0(t0), dDT(dt), iNumSteps(is), pd(NULL), pvd(NULL)
    ASSERT(sFileName != NULL);
    ASSERT(dDT > 0.);
    
-   ifstream in(sFileName);
+   std::ifstream in(sFileName);
    if (!in) {
-      cerr << "can't open file \""
-	<< sFileName << "\"" << endl;
+      std::cerr << "can't open file \""
+	<< sFileName << "\"" << std::endl;
       THROW(ErrGeneric());
    }
    
@@ -138,7 +144,7 @@ dT0(t0), dDT(dt), iNumSteps(is), pd(NULL), pvd(NULL)
       for (integer i = 1; i <= iNumDrives; i++) {
 	 in >> pvd[i][j];
 	 if (in.eof()) {
-	    cerr << "unexpected end of file" << endl;
+	    std::cerr << "unexpected end of file" << std::endl;
 	    THROW(ErrGeneric());
 	 }
       }
@@ -154,9 +160,9 @@ FixedStepFileDrive::~FixedStepFileDrive(void)
 
 
 /* Scrive il contributo del DriveCaller al file di restart */   
-ostream& FixedStepFileDrive::Restart(ostream& out) const
+std::ostream& FixedStepFileDrive::Restart(std::ostream& out) const
 {
-   return out << "FixedStepFileDrive::Restart(): not implemented yet!" << endl;
+   return out << "FixedStepFileDrive::Restart(): not implemented yet!" << std::endl;
 }
 
 
@@ -252,7 +258,7 @@ Drive* ReadFileDriver(DataManager* pDM,
        if (path == NULL) {
           AuthMethod* pAuth = ReadAuthMethod(pDM, HP);
           if (pAuth == NULL) {
-	     cerr << "need an authentication method at line " << HP.GetLineData() << endl;
+	     std::cerr << "need an authentication method at line " << HP.GetLineData() << std::endl;
 	     THROW(ErrGeneric());
 	  }
           SAFENEWWITHCONSTRUCTOR(pDr,
@@ -267,14 +273,14 @@ Drive* ReadFileDriver(DataManager* pDM,
        }
              
 #else /* USE_SOCKET_DRIVES */
-       cerr << "Sorry, socket drives not supported." << endl;
+       std::cerr << "Sorry, socket drives not supported." << std::endl;
        THROW(ErrGeneric());
 #endif /* USE_SOCKET_DRIVES */
        break;
     }
       
     default:     
-      cerr << "unknown file drive at line " << HP.GetLineData() << endl;
+      std::cerr << "unknown file drive at line " << HP.GetLineData() << std::endl;
       THROW(ErrGeneric());
    }
       

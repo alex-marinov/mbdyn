@@ -89,7 +89,7 @@ typedef void *
 typedef unsigned int (* p_i_get_num_dof)(const LoadableElem*);
 typedef DofOrder::Order (* p_set_dof)(const LoadableElem*, unsigned int);
 typedef void (* p_output)(const LoadableElem*, OutputHandler&);
-typedef ostream& (* p_restart)(const LoadableElem*, ostream&);
+typedef std::ostream& (* p_restart)(const LoadableElem*, std::ostream&);
 typedef void (* p_work_space_dim)(const LoadableElem*, integer*, integer*);
 typedef VariableSubMatrixHandler& 
 (* p_ass_jac)(LoadableElem*,
@@ -206,7 +206,7 @@ public:
    	virtual DofOrder::Order SetDof(unsigned int i) const;
    
    	virtual void Output(OutputHandler& OH) const;
-   	virtual ostream& Restart(ostream& out) const;
+   	virtual std::ostream& Restart(std::ostream& out) const;
    
    	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
    	virtual VariableSubMatrixHandler& 

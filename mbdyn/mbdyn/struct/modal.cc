@@ -176,7 +176,7 @@ ppR1tot(NULL),
 ppR2(NULL), 
 ppF(NULL), 
 ppM(NULL),
-fOutFlex(sFileMod, ios::out /* | ios::noreplace */ )
+fOutFlex(sFileMod, std::ios::out /* | std::ios::noreplace */ )
 {
    SAFENEWARR(ppd1tot, Vec3*, NStrNodes);
    SAFENEWARR(ppd2, Vec3*, NStrNodes);
@@ -186,9 +186,9 @@ fOutFlex(sFileMod, ios::out /* | ios::noreplace */ )
    SAFENEWARR(ppM, Vec3*, NStrNodes);
    
    if (!fOutFlex) {
-      cerr << "Modal(" << GetLabel() 
+      std::cerr << "Modal(" << GetLabel() 
 	<< "): unable to open output file \"" << sFileMod 
-	<< "\"" << endl;
+	<< "\"" << std::endl;
       THROW(ErrGeneric());
    }
    
@@ -269,10 +269,10 @@ Modal::GetJointType(void) const
 }
 
 
-ostream& 
-Modal::Restart(ostream& out) const      
+std::ostream& 
+Modal::Restart(std::ostream& out) const      
 {
-   return out << "not implemented yet" << endl;
+   return out << "not implemented yet" << std::endl;
 }
 
 
@@ -315,7 +315,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 	      const VectorHandler& XCurr, 
 	      const VectorHandler& XPrimeCurr)
 {  
-   DEBUGCOUT("Entering Modal::AssJac()" << endl);
+   DEBUGCOUT("Entering Modal::AssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    integer iNumRows = 0;
@@ -676,7 +676,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 	      const VectorHandler& XCurr, 
 	      const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering Modal::AssRes()" << endl);
+   DEBUGCOUT("Entering Modal::AssRes()" << std::endl);
    
    integer iNumRows;
    integer iNumCols;
@@ -970,10 +970,10 @@ Modal::Output(OutputHandler& OH) const
       /* stampa sul file di output i modi */       
       
       for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
-	 (ofstream&)fOutFlex << " " << iCnt
+	 (std::ofstream&)fOutFlex << " " << iCnt
 	   << " " << a->dGet(iCnt)
 	     << " " << aPrime->dGet(iCnt)
-	       << " " << bPrime.dGet(iCnt) << endl;
+	       << " " << bPrime.dGet(iCnt) << std::endl;
       }
    }
 }
@@ -998,7 +998,7 @@ VariableSubMatrixHandler&
 Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		     const VectorHandler& XCurr)
 {
-   DEBUGCOUT("Entering Modal::InitialAssJac()" << endl);
+   DEBUGCOUT("Entering Modal::InitialAssJac()" << std::endl);
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    integer iNumRows = 0;
@@ -1301,9 +1301,9 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       
       /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
       if (v1.Dot() < DBL_EPSILON || v2.Dot() < DBL_EPSILON || v3.Dot() < DBL_EPSILON) {
-	 cerr << "joint " << GetLabel() << ':' << endl
-	   << "warning, first node hinge axis and second node hinge axis are (nearly) orthogonal;" << endl
-	   << "aborting ..." << endl;
+	 std::cerr << "joint " << GetLabel() << ':' << std::endl
+	   << "warning, first node hinge axis and second node hinge axis are (nearly) orthogonal;" << std::endl
+	   << "aborting ..." << std::endl;
 	 THROW(Joint::ErrGeneric());
       }      
       MWedge = Mat3x3(v1, v2, v3);
@@ -1385,7 +1385,7 @@ SubVectorHandler&
 Modal::InitialAssRes(SubVectorHandler& WorkVec,
 		     const VectorHandler& XCurr)
 { 
-   DEBUGCOUT("Entering Modal::InitialAssRes()" << endl);
+   DEBUGCOUT("Entering Modal::InitialAssRes()" << std::endl);
    
    integer iNumRows;
    integer iNumCols;
@@ -1657,20 +1657,20 @@ ReadModal(DataManager* pDM,
    Joint* pEl = NULL;
    unsigned int uNode = HP.GetInt(); 
    
-   DEBUGCOUT("Linked to Modal Node: " << uNode << endl);    
+   DEBUGCOUT("Linked to Modal Node: " << uNode << std::endl);    
    
    /* verifica di esistenza del nodo */   
    StructNode* pModalNode;
    
    if ((pModalNode = pDM->pFindStructNode(uNode)) == NULL) {
-      cerr << "structural node " << uNode
+      std::cerr << "structural node " << uNode
 	<< " at line " << HP.GetLineData()
-	<< " not defined" << endl;
+	<< " not defined" << std::endl;
       THROW(DataManager::ErrGeneric());
    }
    
    if (pModalNode->GetStructNodeType() != StructNode::MODAL) {
-      cerr << "Illegal structural node type for body " << uLabel << endl;
+      std::cerr << "Illegal structural node type for body " << uLabel << std::endl;
       THROW(DataManager::ErrGeneric());
    }  
    
@@ -1722,14 +1722,14 @@ ReadModal(DataManager* pDM,
       }
    } else {
       silent_cout("no damping is assumed at line " 
-		  << HP.GetLineData() << " (deprecated)" << endl);
+		  << HP.GetLineData() << " (deprecated)" << std::endl);
    }    
    
-   DEBUGCOUT("Number of Modes Imported : " << NModes << endl);    
-   DEBUGCOUT("Number of FEM Nodes Imported : " << NFemNodes << endl);
-   DEBUGCOUT("Origin of FEM Model : " << X0 << endl);
-   DEBUGCOUT("Orientation of FEM Model : " << R << endl);
-   /* DEBUGCOUT("Damping coefficient: "<< cdamp << endl); */
+   DEBUGCOUT("Number of Modes Imported : " << NModes << std::endl);    
+   DEBUGCOUT("Number of FEM Nodes Imported : " << NFemNodes << std::endl);
+   DEBUGCOUT("Origin of FEM Model : " << X0 << std::endl);
+   DEBUGCOUT("Orientation of FEM Model : " << R << std::endl);
+   /* DEBUGCOUT("Damping coefficient: "<< cdamp << std::endl); */
    
    doublereal dMass = 0;              /* massa totale */
    Vec3 STmp(0.);                     /* momenti statici  */
@@ -1765,11 +1765,11 @@ ReadModal(DataManager* pDM,
    const char *sFileFem = HP.GetFileName();
    
    /* apre il file con i dati del modello FEM */ 
-   ifstream fdat(sFileFem);
+   std::ifstream fdat(sFileFem);
    
-   DEBUGCOUT("Reading Flexible Body Data from file " << sFileFem << endl);
+   DEBUGCOUT("Reading Flexible Body Data from file " << sFileFem << std::endl);
    if (!fdat) {
-      cerr << endl << "Unable to open file " << sFileFem << endl;
+      std::cerr << std::endl << "Unable to open file " << sFileFem << std::endl;
       THROW(DataManager::ErrGeneric());
    }
    
@@ -1825,15 +1825,15 @@ ReadModal(DataManager* pDM,
 	    }
 	 }
 	 if (NFemNodes != NFemNodesDADS) { 
-	    cerr << "file '" << sFileFem << "': FEM nodes " << NFemNodes
+	    std::cerr << "file '" << sFileFem << "': FEM nodes " << NFemNodes
 		    << " do not match node number " << NFemNodesDADS
-		    << "of modal joint " << uLabel << endl;
+		    << "of modal joint " << uLabel << std::endl;
 	    THROW(DataManager::ErrGeneric());
 	 }
 	 if (NModes != NModesDADS) { 
-	    cerr << "file '" << sFileFem << "': modes " << NModes
+	    std::cerr << "file '" << sFileFem << "': modes " << NModes
 		    << " do not match mode number" << NModesDADS
-		    << "of modal joint " << uLabel << endl;
+		    << "of modal joint " << uLabel << std::endl;
 	    THROW(DataManager::ErrGeneric());
 	 }
       }
@@ -1970,7 +1970,7 @@ ReadModal(DataManager* pDM,
    Mat3xN* pPHIrStrNode = NULL;
    
    unsigned int NStrNodes = HP.GetInt();  /* numero di nodi d'interfaccia */
-   DEBUGCOUT("Number of Interface Nodes : " << NStrNodes << endl);
+   DEBUGCOUT("Number of Interface Nodes : " << NStrNodes << std::endl);
    
    SAFENEWWITHCONSTRUCTOR(pXYZOffsetNodes, Mat3xN, Mat3xN(2*NStrNodes+1, 0.));
    SAFENEWWITHCONSTRUCTOR(pPHItStrNode, Mat3xN, Mat3xN(NStrNodes*NModes, 0.));
@@ -1989,13 +1989,13 @@ ReadModal(DataManager* pDM,
       
       /* nodo collegato 1 (è il nodo FEM) */
       unsigned int uNode1 = (unsigned int)HP.GetInt();	    
-      DEBUGCOUT("Linked to FEM Node " << uNode1 << endl);
+      DEBUGCOUT("Linked to FEM Node " << uNode1 << std::endl);
       
       /* offset del nodo FEM */
       ReferenceFrame RF(pModalNode);
       Vec3 d1(HP.GetPosRel(RF));
       
-      DEBUGCOUT("Fem Node reference frame d1:" << endl << d1 << endl);
+      DEBUGCOUT("Fem Node reference frame d1:" << std::endl << d1 << std::endl);
       
       /* verifica di esistenza del nodo 1*/  
       for (iNode = 1; iNode <= NFemNodes; iNode++) {
@@ -2003,9 +2003,9 @@ ReadModal(DataManager* pDM,
 	    break;
 	 }
 	 if (iNode == NFemNodes) { 
-	    cerr << "FEM node " << uNode1
+	    std::cerr << "FEM node " << uNode1
 	      << " at line " << HP.GetLineData() 
-		<< " not defined " << endl;
+		<< " not defined " << std::endl;
 	    THROW(DataManager::ErrGeneric());
 	 }
       }
@@ -2035,13 +2035,13 @@ ReadModal(DataManager* pDM,
       
       /* nodo collegato 2 (e' il nodo multibody) */
       unsigned int uNode2 = (unsigned int)HP.GetInt();	     
-      DEBUGCOUT("Linked to Multi-Body Node " << uNode2 << endl);
+      DEBUGCOUT("Linked to Multi-Body Node " << uNode2 << std::endl);
       
       /* verifica di esistenza del nodo 2 */
       if ((pN2[iStrNode-1] = pDM->pFindStructNode(uNode2)) == NULL) {
-         cerr << "structural node " << uNode2
+         std::cerr << "structural node " << uNode2
            << " at line " << HP.GetLineData() 
-	     << " not defined" << endl;	  
+	     << " not defined" << std::endl;	  
          THROW(DataManager::ErrGeneric());
       }
       
@@ -2053,7 +2053,7 @@ ReadModal(DataManager* pDM,
 	 pXYZOffsetNodes->Put(iCnt, NStrNodes+iStrNode, d2.dGet(iCnt));
       }
       
-      DEBUGCOUT("Multibody Node reference frame d2:" << endl << d2 << endl);
+      DEBUGCOUT("Multibody Node reference frame d2:" << std::endl << d2 << std::endl);
       
       /* salva le label dei nodi vincolati nell'array IntNodes
        * non serve piu' ricordarsi di toglierlo */
@@ -2167,70 +2167,70 @@ ReadModal(DataManager* pDM,
    }
    
 #ifdef DEBUG
-   DEBUGCOUT("Total Mass : " << dMass << endl); 
-   DEBUGCOUT("Inertia Matrix : " << endl << JTmp << endl);
-   DEBUGCOUT("Static Moment Vector : " << STmp << endl);
-   DEBUGCOUT("Generalized Stiffness: " << endl);
+   DEBUGCOUT("Total Mass : " << dMass << std::endl); 
+   DEBUGCOUT("Inertia Matrix : " << std::endl << JTmp << std::endl);
+   DEBUGCOUT("Static Moment Vector : " << STmp << std::endl);
+   DEBUGCOUT("Generalized Stiffness: " << std::endl);
    for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
       for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
-	 cout << " " << pGenStiff->dGet(iCnt, jCnt);
+	 std::cout << " " << pGenStiff->dGet(iCnt, jCnt);
       }
-      cout << endl;
+      std::cout << std::endl;
    }
-   DEBUGCOUT("Generalized Mass: " << endl);
+   DEBUGCOUT("Generalized Mass: " << std::endl);
    for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
       for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
-	 cout << " " << pGenMass->dGet(iCnt,jCnt);
+	 std::cout << " " << pGenMass->dGet(iCnt,jCnt);
       }
-      cout << endl; 
+      std::cout << std::endl; 
    }
-   DEBUGCOUT("Generalized Damping: " << endl);
+   DEBUGCOUT("Generalized Damping: " << std::endl);
    for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
       for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
-	 cout << " " << pGenDamp->dGet(iCnt,jCnt);
+	 std::cout << " " << pGenDamp->dGet(iCnt,jCnt);
       }
-      cout << endl; 
+      std::cout << std::endl; 
    }
-   DEBUGCOUT("Inv3 : " << endl); 
+   DEBUGCOUT("Inv3 : " << std::endl); 
    for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
       for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
-	 cout << " " << pInv3->dGet(iCnt,jCnt);
+	 std::cout << " " << pInv3->dGet(iCnt,jCnt);
       }
-      cout << endl;
+      std::cout << std::endl;
    }
-   DEBUGCOUT("Inv4 : " << endl); 
+   DEBUGCOUT("Inv4 : " << std::endl); 
    for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
       for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
-	 cout << " " << pInv4->dGet(iCnt,jCnt);
+	 std::cout << " " << pInv4->dGet(iCnt,jCnt);
       }
-      cout << endl;
+      std::cout << std::endl;
    }
    for (iMode = 1; iMode <= NModes; iMode++) {
-      DEBUGCOUT("Inv5j : " << " j = " << iMode << endl); 
+      DEBUGCOUT("Inv5j : " << " j = " << iMode << std::endl); 
       for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
 	 for (jMode = 1; jMode <= NModes; jMode++) {
-	    cout << " " << pInv5->dGet(iCnt, (iMode-1)*NModes+jMode);
+	    std::cout << " " << pInv5->dGet(iCnt, (iMode-1)*NModes+jMode);
 	 }
-	 cout << endl;
+	 std::cout << std::endl;
       }
    }
    for (iMode = 1; iMode <= NModes; iMode++) {
-      DEBUGCOUT("Inv8j : " << " j = " << iMode << endl);
+      DEBUGCOUT("Inv8j : " << " j = " << iMode << std::endl);
       for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
 	 for (unsigned int jCnt = 1; jCnt <= 3; jCnt++) {
-	    cout << " " << pInv8->dGet(iCnt, (iMode-1)*3+jCnt);
+	    std::cout << " " << pInv8->dGet(iCnt, (iMode-1)*3+jCnt);
 	 }
-	 cout << endl;
+	 std::cout << std::endl;
       }
    }
    for (iMode = 1; iMode <= NModes; iMode++) {
       for (jMode = 1; jMode <= NModes; jMode++) {
-	 DEBUGCOUT("Inv9jk : " << " j = " << iMode << " k = " << jMode << endl);
+	 DEBUGCOUT("Inv9jk : " << " j = " << iMode << " k = " << jMode << std::endl);
 	 for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
 	    for (unsigned int jCnt = 1; jCnt <= 3; jCnt++) {
-	       cout << " " << pInv9->dGet(iCnt, (iMode-1)*3*NModes+(jMode-1)*3+jCnt);
+	       std::cout << " " << pInv9->dGet(iCnt, (iMode-1)*3*NModes+(jMode-1)*3+jCnt);
 	    }
-	    cout << endl;
+	    std::cout << std::endl;
 	 }
       }
    }

@@ -37,7 +37,6 @@
 #include <dataman.h>
 #include <sockdrv.h>
 
-extern "C" {
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -56,7 +55,6 @@ extern "C" {
 #include <netinet/in.h>
 #include <sys/un.h>
 #include <arpa/inet.h>
-}
 
 const size_t USERLEN = 8;
 const size_t CREDLEN = 128;
@@ -137,12 +135,12 @@ pFlags(NULL)
 	data.Port = p;
    	sock = make_socket(data.Port);
    	if (sock == -1) {
-      		cerr << "SocketDrive(" << GetLabel() 
-			<< "): socket failed" << endl;
+      		std::cerr << "SocketDrive(" << GetLabel() 
+			<< "): socket failed" << std::endl;
       		THROW(ErrGeneric());
    	} else if (sock == -2) {
-      		cerr << "SocketDrive(" << GetLabel() 
-			<< "): bind failed" << endl;
+      		std::cerr << "SocketDrive(" << GetLabel() 
+			<< "): bind failed" << std::endl;
       		THROW(ErrGeneric());
    	}
    
@@ -157,8 +155,8 @@ pFlags(NULL)
    	}
    
    	if (listen(sock, 1) < 0) {
-      		cerr << "SocketDrive(" << GetLabel() 
-			<< "): listen failed" << endl;
+      		std::cerr << "SocketDrive(" << GetLabel() 
+			<< "): listen failed" << std::endl;
       		THROW(ErrGeneric());
    	}
 }
@@ -187,12 +185,12 @@ pFlags(NULL)
 	SAFESTRDUP(data.Path, path);
    	sock = make_named_socket(data.Path);
    	if (sock == -1) {
-      		cerr << "SocketDrive(" << GetLabel() 
-			<< "): socket failed" << endl;
+      		std::cerr << "SocketDrive(" << GetLabel() 
+			<< "): socket failed" << std::endl;
       		THROW(ErrGeneric());
    	} else if (sock == -2) {
-      		cerr << "SocketDrive(" << GetLabel() 
-			<< "): bind failed" << endl;
+      		std::cerr << "SocketDrive(" << GetLabel() 
+			<< "): bind failed" << std::endl;
       		THROW(ErrGeneric());
    	}
    
@@ -207,8 +205,8 @@ pFlags(NULL)
    	}
    
    	if (listen(sock, 1) < 0) {
-      		cerr << "SocketDrive(" << GetLabel() 
-			<< "): listen failed" << endl;
+      		std::cerr << "SocketDrive(" << GetLabel() 
+			<< "): listen failed" << std::endl;
       		THROW(ErrGeneric());
    	}
 }
@@ -370,36 +368,36 @@ SocketDrive::ServePending(void)
       
       		if (cur_sock == -1) {
 	 		if (errno != EWOULDBLOCK) {
-	    			cerr << "SocketDrive(" << GetLabel() 
-					<< "): accept failed" << endl;
+	    			std::cerr << "SocketDrive(" << GetLabel() 
+					<< "): accept failed" << std::endl;
 	 		}
 	 		return;
       		}
       
       		silent_cout("SocketDrive(" << GetLabel()
 		  	<< "): connect from " << inet_ntoa(client_name.sin_addr)
-		  	<< ":" << ntohs(client_name.sin_port) << endl);
+		  	<< ":" << ntohs(client_name.sin_port) << std::endl);
       
       		fd = fdopen(cur_sock, "r");
       
       		if (get_auth_token(fd, user, cred, &nextline) == -1) {
-	 		cerr << "SocketDrive(" << GetLabel() 
-				<< "): corrupted stream" << endl;
+	 		std::cerr << "SocketDrive(" << GetLabel() 
+				<< "): corrupted stream" << std::endl;
 	 		fclose(fd);
 	 		continue;
       		}
       
       		DEBUGCOUT("got auth token: user=\"" << user 
-			<< "\", cred=\"" << cred << "\"" << endl);
+			<< "\", cred=\"" << cred << "\"" << std::endl);
       
       		if (auth->Auth(user, cred) != AuthMethod::AUTH_OK) {
-	 		cerr << "SocketDrive(" << GetLabel() 
-				<< "): authentication failed" << endl;
+	 		std::cerr << "SocketDrive(" << GetLabel() 
+				<< "): authentication failed" << std::endl;
 	 		fclose(fd);
 	 		continue;
       		}
       
-      		DEBUGCOUT("authenticated" << endl);
+      		DEBUGCOUT("authenticated" << std::endl);
       
       		/*
 		 * la nuova linea puo' essere gia' stata letta
@@ -407,8 +405,8 @@ SocketDrive::ServePending(void)
 		 */
       		if (nextline == NULL) {	 
 	 		if (get_line(buf, bufsize, fd) == NULL) {
-	    			cerr << "SocketDrive(" << GetLabel() 
-					<< "): corrupted stream" << endl;
+	    			std::cerr << "SocketDrive(" << GetLabel() 
+					<< "): corrupted stream" << std::endl;
 	    			fclose(fd);
 	    			continue;
 	 		}
@@ -420,8 +418,8 @@ SocketDrive::ServePending(void)
 
       		/* legge la label */
       		if (strncasecmp(nextline, "label:", 6) != 0) {
-	 		cerr << "SocketDrive(" << GetLabel() 
-				<< "): missing label" << endl;
+	 		std::cerr << "SocketDrive(" << GetLabel() 
+				<< "): missing label" << std::endl;
 	 		fclose(fd);
 	 		continue;
       		} else {
@@ -431,25 +429,25 @@ SocketDrive::ServePending(void)
 	 		}
 	 
 	 		if (sscanf(p, "%ld", &label) != 1) {
-	    			cerr << "SocketDrive(" << GetLabel() 
-					<< "): unable to read label" << endl;
+	    			std::cerr << "SocketDrive(" << GetLabel() 
+					<< "): unable to read label" << std::endl;
 	    			fclose(fd);
 	    			continue;
 	 		}
 	 
 	 		if (label <= 0 || label > iNumDrives) {
-	    			cerr << "SocketDrive(" << GetLabel() 
+	    			std::cerr << "SocketDrive(" << GetLabel() 
 					<< "): illegal label " 
-					<< label << endl;
+					<< label << std::endl;
 	    			fclose(fd);
 	    			continue;
 	 		}
 	 
 	 		while (1) {
 	    			if (get_line(buf, bufsize, fd) == NULL) {
-	       				cerr << "SocketDrive(" << GetLabel()
+	       				std::cerr << "SocketDrive(" << GetLabel()
 						<< "): corrupted stream"
-						<< endl;
+						<< std::endl;
 	       				fclose(fd);
 	       				break;
 	    			}
@@ -468,10 +466,10 @@ SocketDrive::ServePending(void)
 	       				}
 	       
 	       				if (sscanf(p, "%lf", &value) != 1) {
-		  				cerr << "SocketDrive("
+		  				std::cerr << "SocketDrive("
 							<< GetLabel()
 							<< "): unable to read"
-							" value" << endl;
+							" value" << std::endl;
 		  				fclose(fd);
 		  				break;
 	       				}
@@ -488,12 +486,12 @@ SocketDrive::ServePending(void)
 	       				} else if (strncasecmp(p, "no", 2) == 0) {
 		  				pFlags[label] &= !SocketDrive::INCREMENTAL;
 	       				} else {
-		  				cerr << "SocketDrive(" 
+		  				std::cerr << "SocketDrive(" 
 							<< GetLabel() 
 		    					<< "): \"inc\" line"
 							" in \"" << nextline 
 		    					<< "\" looks corrupted"
-							<< endl;
+							<< std::endl;
 		  				fclose(fd);
 		  				break;
 	       				}
@@ -510,12 +508,12 @@ SocketDrive::ServePending(void)
 	       				} else if (strncasecmp(p, "no", 2) == 0) {
 		  				pFlags[label] &= !SocketDrive::IMPULSIVE;
 	       				} else {
-		  				cerr << "SocketDrive(" 
+		  				std::cerr << "SocketDrive(" 
 							<< GetLabel() 
 		    					<< "): \"imp\" line"
 							" in \"" << nextline 
 		    					<< "\" looks corrupted"
-							<< endl;
+							<< std::endl;
 		  				fclose(fd);
 		  				break;
 	       				}
@@ -529,14 +527,14 @@ SocketDrive::ServePending(void)
 	       				silent_cout("SocketDrive("
 						<< GetLabel() << "): adding "
 						<<  value << " to label "
-						<< label << endl);
+						<< label << std::endl);
 	       				pdVal[label] += value;
 	    			} else {
 	       				silent_cout("SocketDrive("
 						<< GetLabel() 
 			   			<< "): setting label "
 						<< label << " to value "
-						<<  value << endl);
+						<<  value << std::endl);
 	       				pdVal[label] = value;
 	    			}
 	 		}
@@ -551,10 +549,10 @@ SocketDrive::GetFileDriveType(void) const
 }
 
 /* Scrive il contributo del DriveCaller al file di restart */
-ostream&
-SocketDrive::Restart(ostream& out) const
+std::ostream&
+SocketDrive::Restart(std::ostream& out) const
 {
-   	return out << "SocketDrive not implemented yet" << endl;
+   	return out << "SocketDrive not implemented yet" << std::endl;
 }
    
 doublereal

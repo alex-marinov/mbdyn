@@ -56,14 +56,14 @@ AutomaticStructElem::Init(const Vec3& q, const Vec3& g,
 
 
 /* Scrive il contributo dell'elemento al file di restart */
-ostream& 
-AutomaticStructElem::Restart(ostream& out) const
+std::ostream& 
+AutomaticStructElem::Restart(std::ostream& out) const
 {
    out << "    automatic structural: " << GetLabel() << ", "
      "reference, global, ", Q.Write(out, ", ") << ", "
      "reference, global, ", G.Write(out, ", ") << ", "
      "reference, global, ", QP.Write(out, ", ") << ", "
-     "reference, global, ", GP.Write(out, ", ") << ";" << endl;
+     "reference, global, ", GP.Write(out, ", ") << ";" << std::endl;
 
    return out;
 }
@@ -183,13 +183,13 @@ AutomaticStructElem::Output(OutputHandler& OH) const
    ASSERT(pNode != NULL);
    if(pNode->fToBeOutput()) {
 #ifdef DEBUG   
-      OH.Output() << "Automatic structural element " << GetLabel() << endl
-	<< "Momentum: " << endl << Q <<endl << G << endl
-	<< "Momentum derivative: " << endl << QP << endl << GP << endl;
+      OH.Output() << "Automatic structural element " << GetLabel() << std::endl
+	<< "Momentum: " << std::endl << Q <<std::endl << G << std::endl
+	<< "Momentum derivative: " << std::endl << QP << std::endl << GP << std::endl;
 #endif   
    
-      OH.Inertia() << setw(8) << GetLabel() << " " 
-	<< Q << " " << G << " " << QP << " " << GP << endl;
+      OH.Inertia() << std::setw(8) << GetLabel() << " " 
+	<< Q << " " << G << " " << QP << " " << GP << std::endl;
    }
 }
 

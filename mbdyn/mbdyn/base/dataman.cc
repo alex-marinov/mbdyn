@@ -160,14 +160,14 @@ DofIter()
    ASSERT(pTime != NULL);
    if(pTime == NULL) {
       DEBUGCERR("");
-      cerr << "error in setting Time symbol" << endl;
+      std::cerr << "error in setting Time symbol" << std::endl;
 
       THROW(DataManager::ErrGeneric());
    }   
    SetTime(dInitialTime);
    
    DEBUGLCOUT(MYDEBUG_INIT, "GlobalSymbolTable:" 
-	      << endl << GlobalSymbolTable << endl);
+	      << GlobalSymbolTable << std::endl);
    
    /*
     * Possiede MathParser, con relativa SymbolTable. 
@@ -207,15 +207,15 @@ DofIter()
    /* legge i dati di controllo */
    if(KeyWords(HP.GetDescription()) != BEGIN) {
       DEBUGCERR("");
-      cerr << "<begin> expected at line "
-	<< HP.GetLineData() << endl;
+      std::cerr << "<begin> expected at line "
+	<< HP.GetLineData() << std::endl;
 
       THROW(DataManager::ErrGeneric());
    }
    if(KeyWords(HP.GetWord()) != CONTROLDATA) {
       DEBUGCERR("");
-      cerr << "<begin: control data;> expected at line " 
-	<< HP.GetLineData() << endl;
+      std::cerr << "<begin: control data;> expected at line " 
+	<< HP.GetLineData() << std::endl;
 
       THROW(DataManager::ErrGeneric());
    }
@@ -249,15 +249,15 @@ DofIter()
    if(iTotNodes > 0) {	
       if(KeyWords(HP.GetDescription()) != BEGIN) {
 	 DEBUGCERR("");
-	 cerr << "<begin> expected at line " 
-	   << HP.GetLineData() << endl;
+	 std::cerr << "<begin> expected at line " 
+	   << HP.GetLineData() << std::endl;
 
 	 THROW(DataManager::ErrGeneric());
       }
       if(KeyWords(HP.GetWord()) != NODES) {
 	 DEBUGCERR("");
-	 cerr << "<begin: nodes;> expected at line " 
-	   << HP.GetLineData() << endl;
+	 std::cerr << "<begin: nodes;> expected at line " 
+	   << HP.GetLineData() << std::endl;
 
 	 THROW(DataManager::ErrGeneric());
       }
@@ -266,7 +266,7 @@ DofIter()
       HP.PutKeyTable(K);
    } else {
       DEBUGCERR("");
-      cerr << "warning, no nodes are defined" << endl;
+      std::cerr << "warning, no nodes are defined" << std::endl;
    }   
    /* fine lettura nodi */
    
@@ -280,15 +280,15 @@ DofIter()
    if(iTotDrive > 0) {	
       if(KeyWords(HP.GetDescription()) != BEGIN) {
 	 DEBUGCERR("");
-	 cerr << "<begin> expected at line "
-	   << HP.GetLineData() << endl;
+	 std::cerr << "<begin> expected at line "
+	   << HP.GetLineData() << std::endl;
 
 	 THROW(DataManager::ErrGeneric());
       }
       if(KeyWords(HP.GetWord()) != DRIVERS) {
 	 DEBUGCERR("");
-	 cerr << "<begin: drivers;> expected at line " 
-	   << HP.GetLineData() << endl;
+	 std::cerr << "<begin: drivers;> expected at line " 
+	   << HP.GetLineData() << std::endl;
 
 	 THROW(DataManager::ErrGeneric());
       }
@@ -296,7 +296,7 @@ DofIter()
       ReadDrivers(HP);
       HP.PutKeyTable(K);
    } else {
-      DEBUGCERR("warning, no drivers are defined" << endl);
+      DEBUGCERR("warning, no drivers are defined" << std::endl);
    }   
 	
    /* fine lettura drivers */
@@ -309,15 +309,15 @@ DofIter()
    if(iTotElem > 0) {	
       if(KeyWords(HP.GetDescription()) != BEGIN) {
 	 DEBUGCERR("");
-	 cerr << "<begin> expected at line " 
-	   << HP.GetLineData() << endl;
+	 std::cerr << "<begin> expected at line " 
+	   << HP.GetLineData() << std::endl;
 
 	 THROW(DataManager::ErrGeneric());
       }
       if(KeyWords(HP.GetWord()) != ELEMENTS) {
 	 DEBUGCERR("");
-	 cerr << "<begin: elements;> expected at line " 
-	   << HP.GetLineData() << endl;
+	 std::cerr << "<begin: elements;> expected at line " 
+	   << HP.GetLineData() << std::endl;
 
 	 THROW(DataManager::ErrGeneric());
       }
@@ -326,7 +326,7 @@ DofIter()
       HP.PutKeyTable(K);
    } else {
       DEBUGCERR("");
-      cerr << "warning, no elements are defined" << endl;
+      std::cerr << "warning, no elements are defined" << std::endl;
    }   
 	
    /* fine lettura elementi */     
@@ -346,7 +346,7 @@ DofIter()
 	<< " " << p->pGetNode(1)->GetLabel()
 	<< " " << p->pGetNode(2)->GetLabel()
 	<< " " << p->pGetNode(3)->GetLabel()
-	<< endl;
+	<< std::endl;
 	  
    }
 #endif /* __HACK_BEAM__ */
@@ -373,28 +373,28 @@ DofIter()
    if (DEBUG_LEVEL_MATCH(MYDEBUG_INIT)) {
       /* mostra in modo succinto il numero di DofOwner per tipo */
       for(int i = 0; i < DofOwner::LASTDOFTYPE; i++)
-	cout << "DofType " << i << " (" << psDofOwnerNames[i] 
-	<< "), n. of owners: " << DofData[i].iNum << endl;
+	std::cout << "DofType " << i << " (" << psDofOwnerNames[i] 
+	<< "), n. of owners: " << DofData[i].iNum << std::endl;
       
       /* mostra in modo succinto il numero di nodi per tipo */
       for(int i = 0; i < Node::LASTNODETYPE; i++)
-	cout << "NodeType " << i << " (" << psNodeNames[i] 
-	<< "), n. of nodes: " << NodeData[i].iNum << endl;
+	std::cout << "NodeType " << i << " (" << psNodeNames[i] 
+	<< "), n. of nodes: " << NodeData[i].iNum << std::endl;
       
       /* mostra in modo succinto il numero di elementi per tipo */
       for(int i = 0; i < Elem::LASTELEMTYPE; i++)
-	cout << "Element Type " << i << " (" << psElemNames[i] 
-	<< "), n. of elems: " << ElemData[i].iNum << endl;
+	std::cout << "Element Type " << i << " (" << psElemNames[i] 
+	<< "), n. of elems: " << ElemData[i].iNum << std::endl;
       
       /* mostra in modo succinto il numero di drivers per tipo */
       for(int i = 0; i < Drive::LASTDRIVETYPE; i++)
-	cout << "DriveType " << i << " (" << psDriveNames[i] 
-	<< "), n. of drivers: " << DriveData[i].iNum << endl;
+	std::cout << "DriveType " << i << " (" << psDriveNames[i] 
+	<< "), n. of drivers: " << DriveData[i].iNum << std::endl;
    }
 #endif /* DEBUG */
 
    if(fAbortAfterInput) {
-      silent_cout("Only input is required" << endl);
+      silent_cout("Only input is required" << std::endl);
       return;
    }
    
@@ -417,11 +417,11 @@ DofIter()
       if (!fSkipInitialJointAssembly) {
 	 InitialJointAssembly();
       }	else {
-	 silent_cout("Skipping initial joints assembly" << endl);
+	 silent_cout("Skipping initial joints assembly" << std::endl);
       }
    } else {
       silent_cout("No initial assembly is required since no joints are defined"
-		  << endl);
+		  << std::endl);
    }
 #endif /* USE_STRUCT_NODES */
    
@@ -438,10 +438,10 @@ DofIter()
       /* mostra in modo succinto i DofOwners */
       int k = 0;
       for(int i = 0; i < DofOwner::LASTDOFTYPE; i++) {
-	 cout << "DofType " << i << ':' << endl;
+	 std::cout << "DofType " << i << ':' << std::endl;
 	 for(int j = 0; j < DofData[i].iNum; j++) {
-	    cout << "DofOwner " << j << ", n. of dofs: "
-	      << pDofOwners[k++].iNumDofs << endl;
+	    std::cout << "DofOwner " << j << ", n. of dofs: "
+	      << pDofOwners[k++].iNumDofs << std::endl;
 	 }
       }
    }
@@ -463,8 +463,8 @@ DofIter()
 #ifdef DEBUG
    if (DEBUG_LEVEL_MATCH(MYDEBUG_INIT)) {
       for (int iCnt = 0; iCnt < iTotDofs; iCnt++) {
-	 cout << "Dof " << setw(4) << iCnt+1 << ": order "
-	   << pDofs[iCnt].Order << endl;
+	 std::cout << "Dof " << setw(4) << iCnt+1 << ": order "
+	   << pDofs[iCnt].Order << std::endl;
       }
    }
 #endif /* DEBUG */
@@ -505,48 +505,48 @@ DataManager::~DataManager(void)
 void DataManager::MakeRestart(void) 
 {
   if (RestartEvery == ATEND) {	
-   silent_cout("Making restart file ..." << endl);
+   silent_cout("Making restart file ..." << std::endl);
    
    /* Inizializzazione del file di restart */
    OutHdl.RestartOpen();
   
    time_t tCurrTime(time(NULL));
    OutHdl.Restart() << "# Restart file prepared by Mbdyn, " 
-     << ctime(&tCurrTime) << endl << endl;
+     << ctime(&tCurrTime) << std::endl << std::endl;
    
    /* Dati iniziali */
-   OutHdl.Restart() << "begin: data;" << endl
-     << "# uncomment this line to use the default integrator" << endl
-     << "  # integrator: multistep;" << endl
-     << "end: data;" << endl << endl
+   OutHdl.Restart() << "begin: data;" << std::endl
+     << "# uncomment this line to use the default integrator" << std::endl
+     << "  # integrator: multistep;" << std::endl
+     << "end: data;" << std::endl << std::endl
      << "# the following block contains data for the multistep integrator" 
-     << endl
-     << "begin: multistep;" << endl
-     << "# add data for the multistep integrator:" << endl
-     << "  # initial time: " << pTime->GetVal().GetReal() << ';' << endl
-     << "  # final time: " << pTime->GetVal().GetReal() << ';' << endl
-     << "  # time step: 1.;" << endl
-     << "  # method: ms, .0, .0;" << endl
-     << "  # max iterations: 1;" << endl
-     << "  # tolerance: 1.e-6;" << endl
-     << "  # derivatives max iterations: 1;" << endl
-     << "  # derivatives tolerance: 1.e-6;" << endl
-     << "  # derivatives coefficient: 1.e-6;" << endl
-     << "  # fictitious steps max iterations: 1;" << endl
-     << "  # fictitious steps tolerance: 1.e-6;" << endl
-     << "  # fictitious steps number: 2;" << endl
-     << "  # fictitious steps ratio: 1.e-3;" << endl
-     << "  # Newton Raphson: true;" << endl
-     << "end: multistep;" << endl << endl;
+     << std::endl
+     << "begin: multistep;" << std::endl
+     << "# add data for the multistep integrator:" << std::endl
+     << "  # initial time: " << pTime->GetVal().GetReal() << ';' << std::endl
+     << "  # final time: " << pTime->GetVal().GetReal() << ';' << std::endl
+     << "  # time step: 1.;" << std::endl
+     << "  # method: ms, .0, .0;" << std::endl
+     << "  # max iterations: 1;" << std::endl
+     << "  # tolerance: 1.e-6;" << std::endl
+     << "  # derivatives max iterations: 1;" << std::endl
+     << "  # derivatives tolerance: 1.e-6;" << std::endl
+     << "  # derivatives coefficient: 1.e-6;" << std::endl
+     << "  # fictitious steps max iterations: 1;" << std::endl
+     << "  # fictitious steps tolerance: 1.e-6;" << std::endl
+     << "  # fictitious steps number: 2;" << std::endl
+     << "  # fictitious steps ratio: 1.e-3;" << std::endl
+     << "  # Newton Raphson: true;" << std::endl
+     << "end: multistep;" << std::endl << std::endl;
    
    /* Dati di controllo */	
-   OutHdl.Restart() << "begin: control data;" << endl;
+   OutHdl.Restart() << "begin: control data;" << std::endl;
    
    /* Nodi */
    for (int iCnt = 0; iCnt < Node::LASTNODETYPE; iCnt++) {	     
       if (NodeData[iCnt].iNum > 0) {		  
 	 OutHdl.Restart() << "  " << psReadControlNodes[iCnt] << ": "
-	   << NodeData[iCnt].iNum << ';' << endl;
+	   << NodeData[iCnt].iNum << ';' << std::endl;
       }
    }
    
@@ -555,7 +555,7 @@ void DataManager::MakeRestart(void)
       if (DriveData[iCnt].iNum > 0) {		  
 	 OutHdl.Restart() << "  " 
 	   << psReadControlDrivers[iCnt] << ": "
-	   << DriveData[iCnt].iNum << ';' << endl;
+	   << DriveData[iCnt].iNum << ';' << std::endl;
       }
    }
    
@@ -564,69 +564,69 @@ void DataManager::MakeRestart(void)
       if (ElemData[iCnt].iNum > 0) {
 	 if (ElemData[iCnt].fIsUnique == 1) {
 	    OutHdl.Restart() << "  " << psReadControlElems[iCnt] 
-	      << ';' << endl;
+	      << ';' << std::endl;
 	 } else {		     		     
 	    OutHdl.Restart() << "  " << psReadControlElems[iCnt] << ": "
-	      << ElemData[iCnt].iNum << ';' << endl;
+	      << ElemData[iCnt].iNum << ';' << std::endl;
 	 }		  
       }
    }	
    
    if (sSimulationTitle != NULL) {
       OutHdl.Restart() << "  title: \"" 
-	<< sSimulationTitle << "\";" << endl;
+	<< sSimulationTitle << "\";" << std::endl;
    }
 
 #if defined(USE_STRUCT_NODES)   
-   OutHdl.Restart() << endl
-     << "# comment this line if the model is to be modified!" << endl
-     << "  skip initial joint assembly;" << endl
+   OutHdl.Restart() << std::endl
+     << "# comment this line if the model is to be modified!" << std::endl
+     << "  skip initial joint assembly;" << std::endl
      << "# uncomment the following lines to improve the satisfaction of constraints"
-     << endl
+     << std::endl
      << "  # initial stiffness: " << dInitialPositionStiffness << ", "
-     << dInitialVelocityStiffness << ';' << endl
-     << "  # initial tolerance: " << dInitialAssemblyToll << ';' << endl
+     << dInitialVelocityStiffness << ';' << std::endl
+     << "  # initial tolerance: " << dInitialAssemblyToll << ';' << std::endl
      << "  # max initial iterations: " << iMaxInitialIterations 
-     << ';' << endl;
+     << ';' << std::endl;
 #endif // USE_STRUCT_NODES     
    OutHdl.Restart() << "# uncomment this line if restart file is to be made again" 
-     << endl
-     << "  # make restart file;" << endl
+     << std::endl
+     << "  # make restart file;" << std::endl
      << "# remember: it will replace the present file if you don't change its name"
-     << endl;
+     << std::endl;
    
-   OutHdl.Restart() << "end: control data;" << endl << endl;
+   OutHdl.Restart() << "end: control data;" << std::endl << std::endl;
    
    /* Dati dei nodi */
-   OutHdl.Restart() << "begin: nodes;" << endl;
+   OutHdl.Restart() << "begin: nodes;" << std::endl;
    for (Node** ppTmpNode = ppNodes;
 	ppTmpNode < ppNodes+iTotNodes;
 	ppTmpNode++) {
       (*ppTmpNode)->Restart(OutHdl.Restart());
    }	
-   OutHdl.Restart() << "end: nodes;" << endl << endl;
+   OutHdl.Restart() << "end: nodes;" << std::endl << std::endl;
    
    /* Dati dei driver */
    if (iTotDrive > 0) {	     
-      OutHdl.Restart() << "begin: drivers;" << endl;
+      OutHdl.Restart() << "begin: drivers;" << std::endl;
       for (Drive** ppTmpDrv = ppDrive;
 	   ppTmpDrv < ppDrive+iTotDrive;
 	   ppTmpDrv++) {
 	 OutHdl.Restart() 
 	   << "  # file driver " << (*ppTmpDrv)->GetLabel()
-	     << " is required" << endl;
+	     << " is required" << std::endl;
       }	
-      OutHdl.Restart() << "end: drivers;" << endl << endl;
+      OutHdl.Restart() << "end: drivers;" << std::endl << std::endl;
    }	
    
    /* Dati degli elementi */
-   OutHdl.Restart() << "begin: elements;" << endl;
+   OutHdl.Restart() << "begin: elements;" << std::endl;
    Elem** ppLastElem = ppElems+iTotElem;
    for (Elem** ppTmpEl = ppElems; ppTmpEl < ppLastElem; ppTmpEl++) {
       ASSERT(*ppTmpEl != NULL);
       (*ppTmpEl)->Restart(OutHdl.Restart());
    }
-   OutHdl.Restart() << "end: elements;" << endl << endl << endl << endl;
+   OutHdl.Restart() << "end: elements;" << std::endl << std::endl << std::endl << std::endl;
   }
 }
 
