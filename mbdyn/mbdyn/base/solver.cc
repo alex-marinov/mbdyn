@@ -1809,7 +1809,7 @@ Solver::ReadData(MBDynParser& HP)
        		}
 
 		case OUTPUT: {
-			unsigned OF = OUTPUT_NONE;
+			unsigned OF = OUTPUT_DEFAULT;
 
 			while (HP.fIsArg()) {
 				KeyWords OutputFlag(KeyWords(HP.GetWord()));
