@@ -579,7 +579,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 	  }
        }
 
-       enum L::Status s = L::INACTIVE;
+       L::Status s = L::INACTIVE;
        if (HP.IsKeyWord("initialstatus")) {
           if (HP.IsKeyWord("active")) {
 	     s = L::ACTIVE;
