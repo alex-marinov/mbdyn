@@ -217,7 +217,7 @@ AerodynamicBody::Restart(std::ostream& out) const
      		<< ", " << GDI.iGetNum() << ", control, ";
    	pGetDriveCaller()->Restart(out) << ", ";
    	aerodata->Restart(out);
-   	return out << ';' << std::endl;
+   	return out << ";" << std::endl;
 }
 
 SubVectorHandler&
@@ -449,14 +449,14 @@ AerodynamicBody::Output(OutputHandler& OH) const
 #else /* AEROD_OUTPUT != AEROD_OUT_NODE */
       		for (int i = 0; i < GDI.iGetNum(); i++) {
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-	 		out << ' ' << pOutput[i]->alpha
-				<< ' ' << pOutput[i]->f;
+	 		out << " " << pOutput[i]->alpha
+				<< " " << pOutput[i]->f;
 #elif AEROD_OUTPUT == AEROD_OUT_STD
 	 		for (int j = 1; j <= 6; j++) {
-	    			out << ' ' << pvdOuta[i][j];
+	    			out << " " << pvdOuta[i][j];
 	 		}
-			out << ' ' << pvdOuta[i][AeroData::ALF1]
-				<< ' ' << pvdOuta[i][AeroData::ALF2];
+			out << " " << pvdOuta[i][AeroData::ALF1]
+				<< " " << pvdOuta[i][AeroData::ALF2];
 #endif /* AEROD_OUTPUT == AEROD_OUT_STD */
       		}
 #endif /* AEROD_OUTPUT != AEROD_OUT_NODE */
@@ -485,9 +485,13 @@ ReadUnsteadyFlag(MBDynParser& HP)
 			} else if (HP.IsKeyWord("bielawa")) {
 				eInst = AeroData::BIELAWA;
 			} else {
-				silent_cerr("deprecated unsteady model "
+				/* demote to pedantic, because the integer
+				 * form allows to change unsteady model
+				 * parametrically (while waiting for string
+				 * vars) */	
+				pedantic_cerr("deprecated unsteady model "
 					"given by integer number;"
-					" use 'Steady', 'Harris' or 'Bielawa' "
+					" use \"steady\", \"Harris\" or \"Bielawa\" "
 					"instead, at line " << HP.GetLineData()
 					<< std::endl);
 
@@ -502,24 +506,6 @@ ReadUnsteadyFlag(MBDynParser& HP)
 				}
       				eInst = AeroData::UnsteadyModel(i);
 			}
-
-		} else {
-			silent_cerr("deprecated unsteady model "
-				"given by integer number "
-				"without \"unsteady\" keyword;"
-				" use \"Steady\", \"Harris\" or \"Bielawa\" "
-				"instead, at line " << HP.GetLineData()
-				<< std::endl);
-
-			int i = HP.GetInt();
-			if (i < AeroData::STEADY || i >= AeroData::LAST) {
-				silent_cerr("illegal unsteady flag "
-					"numeric value " << i << " at line "
-					<< HP.GetLineData()
-					<< std::endl);
-				throw ErrGeneric();
-			}
-      			eInst = AeroData::UnsteadyModel(i);
 		}
 
       		switch (eInst) {
@@ -1019,7 +1005,7 @@ AerodynamicBeam::Restart(std::ostream& out) const
 		<< GDI.iGetNum() << ", control, ";
 	pGetDriveCaller()->Restart(out) << ", ";
 	aerodata->Restart(out);
-	return out << ';' << std::endl;
+	return out << ";" << std::endl;
 }
 
 /* assemblaggio residuo */
@@ -1333,14 +1319,14 @@ AerodynamicBeam::Output(OutputHandler& OH ) const
 #else /* AEROD_OUTPUT != AEROD_OUT_NODE */
 		for (int i = 0; i < 3*GDI.iGetNum(); i++) {
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-			out << ' ' << pOutput[i]->alpha
-				<< ' ' << pOutput[i]->f;
+			out << " " << pOutput[i]->alpha
+				<< " " << pOutput[i]->f;
 #elif AEROD_OUTPUT == AEROD_OUT_STD
 			for (int j = 1; j <= 6; j++) {
-				out << ' ' << pvdOuta[i][j];
+				out << " " << pvdOuta[i][j];
 			}
-			out << ' ' << pvdOuta[i][AeroData::ALF1]
-				<< ' ' << pvdOuta[i][AeroData::ALF2];
+			out << " " << pvdOuta[i][AeroData::ALF1]
+				<< " " << pvdOuta[i][AeroData::ALF2];
 #endif /* AEROD_OUTPUT == AEROD_OUT_STD */
 		}
 #endif /* AEROD_OUTPUT != AEROD_OUT_NODE */
@@ -1631,7 +1617,7 @@ AerodynamicBeam2::Restart(std::ostream& out) const
 		<< GDI.iGetNum() << ", control, ";
 	pGetDriveCaller()->Restart(out) << ", ";
 	aerodata->Restart(out);
-	return out << ';' << std::endl;
+	return out << ";" << std::endl;
 }
 
 /* assemblaggio residuo */
@@ -1926,11 +1912,11 @@ AerodynamicBeam2::Output(OutputHandler& OH ) const
 #else /* AEROD_OUTPUT != AEROD_OUT_NODE */
 		for (int i = 0; i < 2*GDI.iGetNum(); i++) {
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-			out << ' ' << pOutput[i]->alpha
-				<< ' ' << pOutput[i]->f;
+			out << " " << pOutput[i]->alpha
+				<< " " << pOutput[i]->f;
 #elif AEROD_OUTPUT == AEROD_OUT_STD
 			for (int j = 1; j <= 6; j++) {
-				out << ' ' << pvdOuta[i][j];
+				out << " " << pvdOuta[i][j];
 			}
 #endif /* AEROD_OUTPUT == AEROD_OUT_STD */
 		}
