@@ -59,6 +59,18 @@ virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {
 		 doublereal dCoef,
 		 const VectorHandler& XCurr,
 		 const VectorHandler& XPrimeCurr);
+
+    /* momento statico */
+    Vec3 _GetS(void) const {
+        return pNode->GetXCurr()*dMass+pNode->GetRCurr()*S0;
+    };
+
+    /* momento d'inerzia */
+    Mat3x3 _GetJ(void) const {
+	Vec3 s = _GetS();
+        return pNode->GetRCurr()*J0*pNode->GetRCurr().Transpose()
+		-Mat3x3(s, s/dMass);
+    };
       
   public:
     /* Costruttore definitivo (da mettere a punto) */
@@ -70,6 +82,11 @@ virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {
    
     virtual inline void* pGet(void) const { 
         return (void*)this;
+    };
+
+    /* massa totale */
+    doublereal dGetM(void) const {
+        return dMass;
     };
    
     /* Scrive il contributo dell'elemento al file di restart */

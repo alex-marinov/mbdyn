@@ -157,6 +157,20 @@ class GravityOwner {
 /* ElemGravityOwner - begin */
 
 class ElemGravityOwner : virtual public Elem, public GravityOwner {
+ protected:
+   /*
+    * momento statico e momento di inerzia nel sistema globale
+    */
+   virtual Vec3 _GetS(void) const {
+      cerr << "warning: using default _GetS()" << endl;
+      return Vec3(0.);
+   };
+
+   virtual Mat3x3 _GetJ(void) const {
+      cerr << "warning: using default _GetJ()" << endl;
+      return Mat3x3(0.);
+   };
+
  public:
    ElemGravityOwner(unsigned int uL, Elem::Type T, flag fOut);
    ~ElemGravityOwner(void);
@@ -167,6 +181,26 @@ class ElemGravityOwner : virtual public Elem, public GravityOwner {
    /* Consente di effettuare un casting sicuro da Elem* a ElemGravityOwner* */
    virtual ElemGravityOwner* pGetElemGravityOwner(void) const { 
       return (ElemGravityOwner*)this; 
+   };
+
+   /*
+    * massa
+    */
+   virtual doublereal dGetM(void) const {
+      return 0.;
+   };
+
+   /*
+    * momento statico e momento di inerzia trasportati nel punto X
+    * e ruotati di R
+    */
+   Vec3 GetS(const Vec3& X, const Mat3x3& R) const {
+      return R(_GetS()-X*dGetM());
+   };
+
+   Mat3x3 GetJ(const Vec3& X, const Mat3x3& R) const {
+      Vec3 S = X*dGetM()+_GetS();
+      return R*(_GetJ()-Mat3x3(S, S/dGetM()))*R.Transpose();
    };
    
 #ifdef DEBUG

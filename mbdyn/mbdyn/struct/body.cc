@@ -63,9 +63,9 @@ ostream&
 Body::Restart(ostream& out) const
 {
     out << "  body: " << GetLabel() << ", " 
-        << pNode->GetLabel() << ", " << dMass << ", reference, node, ",
-        Xgc.Write(out, ", ") << ", ",
-        J0.Write(out, ", ") << ';' << endl;
+        << pNode->GetLabel() << ", " << dMass << ", "
+	<< "reference, node, ", Xgc.Write(out, ", ") << ", "
+        << "reference, node, ", J0.Write(out, ", ") << ';' << endl;
    
     return out;
 }
