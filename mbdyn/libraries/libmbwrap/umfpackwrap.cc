@@ -85,7 +85,7 @@
  * (will be automated in the future ...)
  */
 
-#define UMFPACK_LONG
+/* #define UMFPACK_LONG */
 
 #ifdef UMFPACK_LONG
 
