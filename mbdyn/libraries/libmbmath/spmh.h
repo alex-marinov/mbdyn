@@ -113,7 +113,7 @@ protected:
 
 public:
 	CompactSparseMatrixHandler(const int &n, const int &nn,
-			std::vector<doublereal>&x,
+			std::vector<doublereal>& x,
 			const std::vector<int>& i,
 			const std::vector<int>& p);
 

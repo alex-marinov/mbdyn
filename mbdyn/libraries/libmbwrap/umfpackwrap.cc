@@ -381,7 +381,7 @@ UmfpackSparseCCLUSolutionManager::MakeCompressedColumnForm(void)
 
 		ASSERT(Ac == 0);
 		SAFENEWWITHCONSTRUCTOR(Ac, CColMatrixHandler, 
-				CColMatrixHandler(Ax, Ai, Ap));
+				CColMatrixHandler(A.iGetNumRows(), Ax, Ai, Ap));
 
 		CCReady = true;
 	}

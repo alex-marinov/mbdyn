@@ -50,9 +50,10 @@ private:
 #endif /* DEBUG */
 
 public:
-	CColMatrixHandler(std::vector<doublereal>&x,
-		const std::vector<int>& i,
-		const std::vector<int>& p);
+	CColMatrixHandler(const int &n,
+			std::vector<doublereal>& x,
+			const std::vector<int>& i,
+			const std::vector<int>& p);
 
 	virtual ~CColMatrixHandler();
 

@@ -38,12 +38,13 @@
 #include "spmapmh.h"
 #include "ccmh.h"
 
-CColMatrixHandler::CColMatrixHandler(std::vector<doublereal>& x,
+CColMatrixHandler::CColMatrixHandler(const int &n,
+		std::vector<doublereal>& x,
 		const std::vector<int>& i,
 		const std::vector<int>& p)
-: CompactSparseMatrixHandler(Ap.size() - 1, Ap.size() - 1, x, i, p)
+: CompactSparseMatrixHandler(n, n, x, i, p)
 {
-	NO_OP;
+	ASSERT(n == Ap.size() - 1);
 }
 
 CColMatrixHandler::~CColMatrixHandler()
@@ -57,7 +58,8 @@ CompactSparseMatrixHandler *
 CColMatrixHandler::Copy(void) const
 {
 	std::vector<doublereal> *pax = new std::vector<doublereal>(Ax);
-	CColMatrixHandler *p = new CColMatrixHandler(*pax, Ai, Ap);
+	CColMatrixHandler *p = new CColMatrixHandler(iGetNumRows(),
+			*pax, Ai, Ap);
 	p->bMatDuplicate = true;
 
 	return p;
