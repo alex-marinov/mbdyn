@@ -45,7 +45,8 @@ D. Code:
 		containing variables and executes matlab code.
 	- develop a trim control as an external command that drives
 		a simulation.
-	- add friction to all joints
+	- improve friction and add it to all joints
+          (try a transition force from stick to slip that is higher)
 	- add Arnoldi-like eigenvalue extraction module
 	- review output to allow selective ascii/binary output
 	- replace MyLList and LLStack with STL containers
