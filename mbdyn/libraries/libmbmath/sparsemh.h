@@ -237,11 +237,11 @@ public:
 
    	/* dimensioni */
    	virtual integer iGetNumRows(void) const {
-      		return iCurSize;
+      		return iMatSize;
    	};
    
    	virtual integer iGetNumCols(void) const {
-      		return iCurSize;
+      		return iMatSize;
    	};
 };
 
