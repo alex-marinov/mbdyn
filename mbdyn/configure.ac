@@ -993,10 +993,10 @@ if test "$ol_with_umfpack" != "no" ; then
 ],[
 #define SIZE 2
 	int n_row = SIZE, n_col = SIZE;
-	const int Ap[SIZE], Ai[SIZE];
-	const double Ax[SIZE];
+	int Ap[SIZE], Ai[SIZE];
+	double Ax[SIZE];
 	void *Symbolic;
-	const double Control[UMFPACK_CONTROL];
+	double Control[UMFPACK_CONTROL];
 	double Info[UMFPACK_INFO];
 
 	umfpack_di_symbolic(n_row, n_col, Ap, Ai, Ax, &Symbolic, Control, Info);
