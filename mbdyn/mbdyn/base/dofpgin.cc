@@ -79,23 +79,56 @@ DofPlugIn::Read(int argc, char *argv[])
 	}
 	dof = ScalarDof((ScalarNode*)pNode, iOrder);
 
+	/* legge i parametri (<param>=<value>, separati da '&') */
 	if (argc == iParams + 1) {
-		/* prende il valore al passo precedente */
-		if (strncasecmp(argv[iParams], "prev=", sizeof("prev=") - 1) == 0) {
-			char *s = argv[iParams] + sizeof("prev=") - 1;
-			if (strcasecmp(s, "true") == 0) {
-				bPrev = true;
-			} else if (strcasecmp(s, "false") == 0) {
-				bPrev = false;
-			} else {
-				std::cerr << "unknown mode for dof plugin parameter \"" << argv[iParams] << "\"" << std::endl;
+		char *parm = NULL, *p, *v, *end;
+
+		SAFESTRDUP(parm, argv[iParams]);
+
+		for (p = parm; p != NULL; p = end) {
+			end = strchr(p, '&');
+			while (end != NULL && end[-1] == '\\') {
+				end = strchr(end+1, '&');
+			}
+
+			if (end != NULL) {
+				end[0] = '\0';
+				end++;
+			}
+
+			char *v = strchr(p, '=');
+			if (v == NULL) {
+				std::cerr << "dof plugin: missing \"=\" "
+					"in <param>=<value>" << std::endl;
 				THROW(ErrGeneric());
 			}
 
-		} else {
-			std::cerr << "unknown parameter for dof plugin" << std::endl;
-			THROW(ErrGeneric());
+			v[0] = '\0';
+			v++;
+
+			/* prende il valore al passo precedente */
+			if (strncasecmp(p, "prev", sizeof("prev") - 1) == 0) {
+				if (strcasecmp(v, "true") == 0) {
+					bPrev = true;
+				} else if (strcasecmp(v, "false") == 0) {
+					bPrev = false;
+				} else {
+					std::cerr << "dof plugin: "
+						"unknown mode for parameter "
+						"\"" << p << "=" << v << "\""
+						<< std::endl;
+					THROW(ErrGeneric());
+				}
+
+			} else {
+				std::cerr << "dof plugin: unknown parameter "
+					"\"" << p << "=" << v << "\""
+					<< std::endl;
+				THROW(ErrGeneric());
+			}
 		}
+
+		SAFEDELETEARR(parm);
 	}
 
 	return 0;
