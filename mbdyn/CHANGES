@@ -29,6 +29,7 @@ MBDyn 1.2-Engineering
 		- allow output of residual and jacobian for debugging purposes
 		- use a drive for the delay parameter of rotors
 		- allow extra amplitude scaling in file drives
+		- allow previous-step dof plugin
 	Backward compatibility issues:
 		- struct node type does not default to dynamic any more
 		- the syntax of most nodes changed; backward compatibility
