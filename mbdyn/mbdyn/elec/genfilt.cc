@@ -916,6 +916,22 @@ GenelStateSpaceMIMO::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+void
+GenelStateSpaceMIMO::Output(OutputHandler& OH) const
+{
+	if (fToBeOutput()) {
+		std::ostream &out(OH.Genels());
+		out << std::setw(8) << GetLabel();
+		for (unsigned int i = 0; i < iNumDofs; i++) {
+			out << " " << pdX[i];
+		}
+		for (unsigned int i = 0; i < iNumDofs; i++) {
+			out << " " << pdXP[i];
+		}
+		out << "\n";
+	}
+}
+
 /* GenelStateSpaceMIMO - end */
 
 #endif /* USE_ELECTRIC_NODES */
