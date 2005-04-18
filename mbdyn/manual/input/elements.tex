@@ -3005,6 +3005,10 @@ This joint has been renamed \kw{revolute pin}; the old name has been
 deprecated and may not be supported in future versions.
 
 \subsection{Prismatic}
+This joints contraints the relative rotation
+of two nodes. The initial orientation of the joint must be
+compatible: use the \kw{hinge} keyword to assign 
+the joint initial orientation.
 \begin{verbatim}
     <joint_type> ::= prismatic
     <joint_arglist> ::= 
