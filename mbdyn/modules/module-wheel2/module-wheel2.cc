@@ -298,6 +298,16 @@ read(LoadableElem* pEl,
 		}
 	}
 	
+	std::ostream& out = pDM->GetLogFile();
+	out << "wheel2: " << pEl->GetLabel()
+		<< " " << p->pWheel->GetLabel()	//node label
+		<< " " << p->WheelAxle		//wheel axle
+		<< " " << p->pGround->GetLabel()//ground label
+		<< " " << p->GroundDirection	//ground direction
+		<< " " << p->dRadius		//wheel radius
+		<< " " << p->dInternalRadius	//wheel internal radius
+		<< std::endl;
+	
 	return (void *)p;
 }
 
