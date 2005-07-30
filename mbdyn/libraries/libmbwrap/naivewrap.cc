@@ -277,7 +277,7 @@ NaiveSparsePermSolutionManager::Solve(void)
 	if (ePermState == PERM_NO) {
 		ComputePermutation();
 
-	} else {
+	} else if (ePermState == PERM_READY) {
 		pLS->ChangeSolPoint(VH.pdGetVec());
 	}
 
