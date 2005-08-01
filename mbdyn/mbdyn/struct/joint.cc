@@ -280,6 +280,14 @@ Elem* ReadJoint(DataManager* pDM,
 				       pNode1, pNode2, pDC, fOut));
        }
        
+       std::ostream& out = pDM->GetLogFile();
+       out << "distance: " << uLabel
+		<< " " << pNode1->GetLabel()
+		<< " ", f1.Write(out, " ")
+		<< " " << pNode2->GetLabel()
+		<< " ", f2.Write(out, " ")
+		<< std::endl;
+       
        break;
     }
       
@@ -364,6 +372,14 @@ Elem* ReadJoint(DataManager* pDM,
 		       DistanceJointWithOffset,
 		       DistanceJointWithOffset(uLabel, pDO, pNode1, pNode2,
 			       f1, f2, pDC, fOut));
+       
+       std::ostream& out = pDM->GetLogFile();
+       out << "distance: " << uLabel
+		<< " " << pNode1->GetLabel()
+		<< " ", f1.Write(out, " ")
+		<< " " << pNode2->GetLabel()
+		<< " ", f2.Write(out, " ")
+		<< std::endl;
        
        /* scrittura dei dati specifici */
        break;
