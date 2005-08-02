@@ -39,6 +39,7 @@ protected:
 	Rotor* pRotor;
 	ScalarDifferentialNode* pvNodes[3];
 	DriveOwner pvDrives[3];
+	DriveOwner Trigger;
 	
 	doublereal dSigma;
 	doublereal dCpAlpha;
@@ -56,22 +57,23 @@ protected:
 	
 public:
 	RotorTrim(unsigned int uL,
-		  const DofOwner* pDO,
-		  Rotor* pRot, 
-		  ScalarDifferentialNode* pNode1,
-		  ScalarDifferentialNode* pNode2,
-		  ScalarDifferentialNode* pNode3,
-		  DriveCaller* pDrive1,
-		  DriveCaller* pDrive2,
-		  DriveCaller* pDrive3,
-		  const doublereal& dS,	    
-		  const doublereal& dG,
-		  const doublereal& dp,
-		  const doublereal& dT0,
-		  const doublereal& dT1,
-		  const doublereal& dK0,
-		  const doublereal& dK1,
-		  flag fOut);
+		const DofOwner* pDO,
+		Rotor* pRot, 
+		ScalarDifferentialNode* pNode1,
+		ScalarDifferentialNode* pNode2,
+		ScalarDifferentialNode* pNode3,
+		DriveCaller* pDrive1,
+		DriveCaller* pDrive2,
+		DriveCaller* pDrive3,
+		const doublereal& dS,	    
+		const doublereal& dG,
+		const doublereal& dp,
+		const doublereal& dT0,
+		const doublereal& dT1,
+		const doublereal& dK0,
+		const doublereal& dK1,
+		DriveCaller *pTrigger,
+		flag fOut);
 
 	virtual ~RotorTrim(void);
 	

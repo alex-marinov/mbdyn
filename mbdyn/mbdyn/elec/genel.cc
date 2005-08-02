@@ -287,6 +287,13 @@ Elem* ReadGenel(DataManager* pDM,
 
        doublereal dKappa1 = HP.GetReal();
        DEBUGCOUT("Kappa1: " << dKappa1 << std::endl);
+
+       DriveCaller *pTrigger = 0;
+       if (HP.IsKeyWord("trigger")) {
+          pTrigger = HP.GetDriveCaller();
+       }
+       
+       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
 			      RotorTrim,
@@ -295,7 +302,7 @@ Elem* ReadGenel(DataManager* pDM,
 					pvDrives[0], pvDrives[1], pvDrives[2],
 					dSigma, dGamma, dP, 
 					dTau0, dTau1, dKappa0, dKappa1,
-					0 /* fOut */ ));
+					pTrigger, fOut));
 
 #else /* !USE_AERODYNAMIC_ELEMS */
        silent_cerr("can't use a rotor trim element without rotors" << std::endl);

@@ -47,25 +47,27 @@ static unsigned iRotorMx = 0;
 static unsigned iRotorMy = 0;
 
 RotorTrim::RotorTrim(unsigned int uL,
-		     const DofOwner* pDO,
-		     Rotor* pRot,
-		     ScalarDifferentialNode* pNode1,
-		     ScalarDifferentialNode* pNode2,
-		     ScalarDifferentialNode* pNode3,
-		     DriveCaller* pDrive1,
-		     DriveCaller* pDrive2,
-		     DriveCaller* pDrive3,
-		     const doublereal& dS,
-		     const doublereal& dG,
-		     const doublereal& dp,
-		     const doublereal& dT0,
-		     const doublereal& dT1,
-		     const doublereal& dK0,
-		     const doublereal& dK1,
-		     flag fOut)
+		const DofOwner* pDO,
+		Rotor* pRot,
+		ScalarDifferentialNode* pNode1,
+		ScalarDifferentialNode* pNode2,
+		ScalarDifferentialNode* pNode3,
+		DriveCaller* pDrive1,
+		DriveCaller* pDrive2,
+		DriveCaller* pDrive3,
+		const doublereal& dS,
+		const doublereal& dG,
+		const doublereal& dp,
+		const doublereal& dT0,
+		const doublereal& dT1,
+		const doublereal& dK0,
+		const doublereal& dK1,
+		DriveCaller *pTrigger,
+		flag fOut)
 : Elem(uL, Elem::GENEL, fOut),
 Genel(uL, Genel::ROTORTRIM, pDO, fOut),
 pRotor(pRot),
+Trigger(pTrigger),
 dSigma(dS),
 dCpAlpha(2*M_PI),
 dGamma(dG),
@@ -141,20 +143,22 @@ RotorTrim::AssJac(VariableSubMatrixHandler& WorkMat,
 	SparseSubMatrixHandler& WM = WorkMat.SetSparse();
 	WM.Resize(3, 0);
 
-        integer iRowIndex = 0;
-        integer iColIndex = 0;
+	doublereal	d[3];
+	if (Trigger.dGet() == 0.) {
+		d[0] = dCoef;
+		d[1] = dCoef;
+		d[2] = dCoef;
+	} else {
+		d[0] = dTau0 + dCoef;
+		d[1] = dTau1 + dCoef;
+		d[2] = dTau1 + dCoef;
+	}
 
-	iRowIndex = pvNodes[0]->iGetFirstRowIndex() + 1;
-	iColIndex = pvNodes[0]->iGetFirstColIndex() + 1;
-        WM.PutItem(1, iRowIndex, iColIndex, dTau0 + dCoef);
-
- 	iRowIndex = pvNodes[1]->iGetFirstRowIndex() + 1;
-	iColIndex = pvNodes[1]->iGetFirstColIndex() + 1;
-        WM.PutItem(2, iRowIndex, iColIndex, dTau1 + dCoef);
-
- 	iRowIndex = pvNodes[2]->iGetFirstRowIndex() + 1;
-	iColIndex = pvNodes[2]->iGetFirstColIndex() + 1;
-        WM.PutItem(3, iRowIndex, iColIndex, dTau1 + dCoef);
+	for (int iIdx = 0; iIdx < 3; iIdx++ ) {
+		integer iRowIndex = pvNodes[iIdx]->iGetFirstRowIndex() + 1;
+		integer iColIndex = pvNodes[iIdx]->iGetFirstColIndex() + 1;
+       		WM.PutItem(iIdx + 1, iRowIndex, iColIndex, d[iIdx]);
+	}
 
         return WorkMat;
 }
@@ -177,6 +181,15 @@ RotorTrim::AssRes(SubVectorHandler& WorkVec,
 	doublereal dX1 = pvNodes[0]->dGetX();
 	doublereal dX2 = pvNodes[1]->dGetX();
 	doublereal dX3 = pvNodes[2]->dGetX();
+
+	if (Trigger.dGet() == 0.) {
+		WorkVec.PutCoef(1, -dX1);
+		WorkVec.PutCoef(2, -dX2);
+		WorkVec.PutCoef(3, -dX3);
+
+		return WorkVec;
+	}
+
 	doublereal dX1Prime = pvNodes[0]->dGetXPrime();
 	doublereal dX2Prime = pvNodes[1]->dGetXPrime();
 	doublereal dX3Prime = pvNodes[2]->dGetXPrime();
