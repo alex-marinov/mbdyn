@@ -200,9 +200,9 @@ Elem* ReadGenel(DataManager* pDM,
        SAFENEWWITHCONSTRUCTOR(pEl,
 			      SwashPlate,
 			      SwashPlate(uLabel, pDO,
-					 pCollIn, // pColl, 
-					 pLongIn, // pLong,
-					 pLatIn,  // pLat,
+					 pCollIn,
+					 pLongIn,
+					 pLatIn,
 					 pNode1, pNode2, pNode3,
 					 dDynCoef,
 					 dCyclFact, 
@@ -291,6 +291,8 @@ Elem* ReadGenel(DataManager* pDM,
        DriveCaller *pTrigger = 0;
        if (HP.IsKeyWord("trigger")) {
           pTrigger = HP.GetDriveCaller();
+       } else {
+	  SAFENEW(pTrigger, OneDriveCaller);
        }
        
        flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
