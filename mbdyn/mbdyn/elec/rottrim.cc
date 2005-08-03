@@ -174,9 +174,9 @@ RotorTrim::AssRes(SubVectorHandler& WorkVec,
 
 	WorkVec.Resize(3);
 
-	WorkVec.PutRowIndex(1, pvNodes[0]->iGetFirstRowIndex()+1);
-	WorkVec.PutRowIndex(2, pvNodes[1]->iGetFirstRowIndex()+1);
-	WorkVec.PutRowIndex(3, pvNodes[2]->iGetFirstRowIndex()+1);
+	WorkVec.PutRowIndex(1, pvNodes[0]->iGetFirstRowIndex() + 1);
+	WorkVec.PutRowIndex(2, pvNodes[1]->iGetFirstRowIndex() + 1);
+	WorkVec.PutRowIndex(3, pvNodes[2]->iGetFirstRowIndex() + 1);
 
 	doublereal dX1 = pvNodes[0]->dGetX();
 	doublereal dX2 = pvNodes[1]->dGetX();
@@ -212,25 +212,25 @@ RotorTrim::AssRes(SubVectorHandler& WorkVec,
 	doublereal dRollMoment = pRotor->dGetPrivData(iRotorMx)/d;
 	doublereal dPitchMoment = pRotor->dGetPrivData(iRotorMy)/d;
 
-	doublereal f = dC/(1.+dC2);
+	doublereal f = dC/(1. + dC2);
 
-	Mat3x3 m((1.+3./2.*dMu2)/6.,
-		-f*dMu/6.*(dC-dGamma/(16.*dP2)),
-		f*dMu/6.*(1.+dC*dGamma/(16.*dP2)),
+	Mat3x3 m((1. + 3./2.*dMu2)/6.,
+		-f*dMu/6.*(dC - dGamma/(16.*dP2)),
+		f*dMu/6.*(1. + dC*dGamma/(16.*dP2)),
 		2./9.*dMu,
-		-f/16.*(dC*(1.+3./2.*dMu2)-2./9.*dMu2*dGamma/dP2),
-		f/16.*((1.+2.*dMu2)+2./9.*dMu2*dC*dGamma/dP2),
+		-f/16.*(dC*(1. + 3./2.*dMu2) - 2./9.*dMu2*dGamma/dP2),
+		f/16.*((1. + 2.*dMu2) + 2./9.*dMu2*dC*dGamma/dP2),
 		0.,
 		-f/16.,
-		-f/16.*(1.+1./2.*dMu2));
+		-f/16.*(1. + 1./2.*dMu2));
 	Vec3 v(pvDrives[0].dGet() - dTraction,
 		pvDrives[1].dGet() - dRollMoment,
 		pvDrives[2].dGet() - dPitchMoment);
 	v = m.Inv(v);
 
-	WorkVec.PutCoef(1, v.dGet(1)*dKappa0 - dX1 - dTau0*dX1Prime);
-	WorkVec.PutCoef(2, v.dGet(2)*dKappa1 - dX2 - dTau1*dX2Prime);
-	WorkVec.PutCoef(3, v.dGet(3)*dKappa1 - dX3 - dTau1*dX3Prime);
+	WorkVec.PutCoef(1, v(1)*dKappa0 - dX1 - dTau0*dX1Prime);
+	WorkVec.PutCoef(2, v(2)*dKappa1 - dX2 - dTau1*dX2Prime);
+	WorkVec.PutCoef(3, v(3)*dKappa1 - dX3 - dTau1*dX3Prime);
 
 	return WorkVec;
 }

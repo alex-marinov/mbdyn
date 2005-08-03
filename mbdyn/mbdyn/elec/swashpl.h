@@ -40,114 +40,111 @@
 /* SwashPlate - begin */
 
 class SwashPlate : virtual public Elem, public Genel {
- protected:   
-   const AbstractNode* pCollectiveIn;
-   // DriveOwner Collective;
-   const AbstractNode* pLongitudinalIn;
-   // DriveOwner Longitudinal;
-   const AbstractNode* pLateralIn;
-   // DriveOwner Lateral;
-   
-   const AbstractNode* pNode1;
-   const AbstractNode* pNode2;
-   const AbstractNode* pNode3;
-   
-   doublereal dDynamicCoef;
-   doublereal dCyclicFactor;
-   doublereal dCollectiveFactor;
-   
-   
-   flag fCollLimits;
-   doublereal dCollMax;
-   doublereal dCollMin;
-   
-   flag fForeAftLimits;
-   doublereal dForeAftMax;
-   doublereal dForeAftMin;
-   
-   flag fLatLimits;
-   doublereal dLatMax;
-   doublereal dLatMin;
-      
-   
- public:
-   SwashPlate(unsigned int uL, const DofOwner* pDO,
-	      const AbstractNode* pCollIn, // const DriveCaller* pColl, 
-	      const AbstractNode* pLongIn, // const DriveCaller* pLong, 
-	      const AbstractNode* pLatIn,  // const DriveCaller* pLat,
-	      const AbstractNode* pN1,
-	      const AbstractNode* pN2,
-	      const AbstractNode* pN3,
-	      doublereal dDynCoef,
-	      doublereal dCyclFact,
-	      doublereal dCollFact,
-	      flag fCL,
-	      doublereal dCMin,
-	      doublereal dCMax,
-	      flag fFL,
-	      doublereal dFMin,
-	      doublereal dFMax,
-	      flag fLL,
-	      doublereal dLMin,	      
-	      doublereal dLMax,
-	      flag fOut);
-	      
-   virtual ~SwashPlate(void);
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-   
-   
-   /* Scrive il contributo dell'elemento al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const;
-      
-   /* Tipo di Genel */
-   virtual Genel::Type GetGenelType(void) const { 
-      return Genel::SWASHPLATE; 
-   };
-   
-   /* Dimensioni del workspace */
-   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-      *piNumRows = 6;
-      *piNumCols = 6;
-   };
-   
-   /* assemblaggio jacobiano */
-   virtual VariableSubMatrixHandler& 
-     AssJac(VariableSubMatrixHandler& WorkMat,
-	    doublereal dCoef, 
-	    const VectorHandler& XCurr,
-	    const VectorHandler& XPrimeCurr);
-   
-   /* assemblaggio residuo */
-   virtual SubVectorHandler& 
-     AssRes(SubVectorHandler& WorkVec,
-	    doublereal dCoef,
-	    const VectorHandler& XCurr, 
-	    const VectorHandler& XPrimeCurr);
+protected:   
+	const AbstractNode* pCollectiveIn;
+	// DriveOwner Collective;
+	const AbstractNode* pLongitudinalIn;
+	// DriveOwner Longitudinal;
+	const AbstractNode* pLateralIn;
+	// DriveOwner Lateral;
 
-   virtual void SetInitialValue(VectorHandler& X) const;
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+	const AbstractNode* pNode1;
+	const AbstractNode* pNode2;
+	const AbstractNode* pNode3;
 
- /* *******PER IL SOLUTORE PARALLELO******** */        
-   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-      utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 6;
-     NdTyps[0] = pCollectiveIn->GetNodeType();
-     NdLabels[0] = pCollectiveIn->GetLabel();
-     NdTyps[1] = pLongitudinalIn->GetNodeType();
-     NdLabels[1] = pLongitudinalIn->GetLabel();
-     NdTyps[2] = pLateralIn->GetNodeType();
-     NdLabels[2] = pLateralIn->GetLabel();
-     NdTyps[3] = pNode1->GetNodeType();
-     NdLabels[3] = pNode1->GetLabel();
-     NdTyps[4] = pNode2->GetNodeType();
-     NdLabels[4] = pNode2->GetLabel();
-     NdTyps[5] = pNode3->GetNodeType();
-     NdLabels[5] = pNode3->GetLabel();
-   };
-   /* ************************************************ */
+	doublereal dDynamicCoef;
+	doublereal dCyclicFactor;
+	doublereal dCollectiveFactor;
+
+	flag fCollLimits;
+	doublereal dCollMax;
+	doublereal dCollMin;
+
+	flag fForeAftLimits;
+	doublereal dForeAftMax;
+	doublereal dForeAftMin;
+
+	flag fLatLimits;
+	doublereal dLatMax;
+	doublereal dLatMin;
+
+public:
+	SwashPlate(unsigned int uL, const DofOwner* pDO,
+		const AbstractNode* pCollIn, // const DriveCaller* pColl, 
+		const AbstractNode* pLongIn, // const DriveCaller* pLong, 
+		const AbstractNode* pLatIn,  // const DriveCaller* pLat,
+		const AbstractNode* pN1,
+		const AbstractNode* pN2,
+		const AbstractNode* pN3,
+		doublereal dDynCoef,
+		doublereal dCyclFact,
+		doublereal dCollFact,
+		flag fCL,
+		doublereal dCMin,
+		doublereal dCMax,
+		flag fFL,
+		doublereal dFMin,
+		doublereal dFMax,
+		flag fLL,
+		doublereal dLMin,	      
+		doublereal dLMax,
+		flag fOut);
+
+	virtual ~SwashPlate(void);
+	virtual inline void* pGet(void) const { 
+		return (void*)this;
+	};
+
+	/* Scrive il contributo dell'elemento al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	/* Tipo di Genel */
+	virtual Genel::Type GetGenelType(void) const { 
+		return Genel::SWASHPLATE; 
+	};
+
+	/* Dimensioni del workspace */
+	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+		*piNumRows = 6;
+		*piNumCols = 6;
+	};
+
+	/* assemblaggio jacobiano */
+	virtual VariableSubMatrixHandler& 
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		doublereal dCoef, 
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+
+	/* assemblaggio residuo */
+	virtual SubVectorHandler& 
+	AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr);
+
+	virtual void SetInitialValue(VectorHandler& X) const;
+	virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+
+	/* *******PER IL SOLUTORE PARALLELO******** */        
+	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
+	virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
+		NumNodes = 6;
+		NdTyps[0] = pCollectiveIn->GetNodeType();
+		NdLabels[0] = pCollectiveIn->GetLabel();
+		NdTyps[1] = pLongitudinalIn->GetNodeType();
+		NdLabels[1] = pLongitudinalIn->GetLabel();
+		NdTyps[2] = pLateralIn->GetNodeType();
+		NdLabels[2] = pLateralIn->GetLabel();
+		NdTyps[3] = pNode1->GetNodeType();
+		NdLabels[3] = pNode1->GetLabel();
+		NdTyps[4] = pNode2->GetNodeType();
+		NdLabels[4] = pNode2->GetLabel();
+		NdTyps[5] = pNode3->GetNodeType();
+		NdLabels[5] = pNode3->GetLabel();
+	};
+	/* ************************************************ */
 };
 
 /* SwashPlate - end */

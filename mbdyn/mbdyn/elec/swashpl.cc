@@ -44,25 +44,25 @@
 /* SwashPlate - begin */
 
 SwashPlate::SwashPlate(unsigned int uL, const DofOwner* pDO,
-		       const AbstractNode* pCollIn, // const DriveCaller* pColl, 
-		       const AbstractNode* pLongIn, // const DriveCaller* pLong, 
-		       const AbstractNode* pLatIn,  // const DriveCaller* pLat,
-		       const AbstractNode* pN1,
-		       const AbstractNode* pN2,
-		       const AbstractNode* pN3,
-		       doublereal dDynCoef,
-		       doublereal dCyclFact,
-		       doublereal dCollFact,
-		       flag fCL,
-		       doublereal dCMin,
-		       doublereal dCMax,
-		       flag fFL,
-		       doublereal dFMin,
-		       doublereal dFMax,
-		       flag fLL,
-		       doublereal dLMin,	      
-		       doublereal dLMax,
-		       flag fOut)
+		const AbstractNode* pCollIn, // const DriveCaller* pColl, 
+		const AbstractNode* pLongIn, // const DriveCaller* pLong, 
+		const AbstractNode* pLatIn,  // const DriveCaller* pLat,
+		const AbstractNode* pN1,
+		const AbstractNode* pN2,
+		const AbstractNode* pN3,
+		doublereal dDynCoef,
+		doublereal dCyclFact,
+		doublereal dCollFact,
+		flag fCL,
+		doublereal dCMin,
+		doublereal dCMax,
+		flag fFL,
+		doublereal dFMin,
+		doublereal dFMax,
+		flag fLL,
+		doublereal dLMin,	      
+		doublereal dLMax,
+		flag fOut)
 : Elem(uL, Elem::GENEL, fOut), 
 Genel(uL, Genel::SWASHPLATE, pDO, fOut),
 pCollectiveIn(pCollIn),   // Collective(pColl),
@@ -76,181 +76,198 @@ fCollLimits(fCL), dCollMax(dCMax), dCollMin(dCMin),
 fForeAftLimits(fFL), dForeAftMax(dFMax), dForeAftMin(dFMin),
 fLatLimits(fLL), dLatMax(dLMax), dLatMin(dLMin)
 {
-   ASSERT(pCollectiveIn != NULL);
-   ASSERT(pCollectiveIn->GetNodeType() == Node::ABSTRACT);
-   ASSERT(pLongitudinalIn != NULL);
-   ASSERT(pLongitudinalIn->GetNodeType() == Node::ABSTRACT);
-   ASSERT(pLateralIn != NULL);
-   ASSERT(pLateralIn->GetNodeType() == Node::ABSTRACT);
-   
-   ASSERT(pNode1 != NULL);
-   ASSERT(pNode1->GetNodeType() == Node::ABSTRACT);
-   ASSERT(pNode2 != NULL);
-   ASSERT(pNode2->GetNodeType() == Node::ABSTRACT);
-   ASSERT(pNode3 != NULL);
-   ASSERT(pNode3->GetNodeType() == Node::ABSTRACT);
-   
-   ASSERT(dCyclicFactor != 0.);
-   ASSERT(dCollectiveFactor != 0.);
-   ASSERT(dDynamicCoef >= 0.);   
+	ASSERT(pCollectiveIn != NULL);
+	ASSERT(pCollectiveIn->GetNodeType() == Node::ABSTRACT);
+	ASSERT(pLongitudinalIn != NULL);
+	ASSERT(pLongitudinalIn->GetNodeType() == Node::ABSTRACT);
+	ASSERT(pLateralIn != NULL);
+	ASSERT(pLateralIn->GetNodeType() == Node::ABSTRACT);
+
+	ASSERT(pNode1 != NULL);
+	ASSERT(pNode1->GetNodeType() == Node::ABSTRACT);
+	ASSERT(pNode2 != NULL);
+	ASSERT(pNode2->GetNodeType() == Node::ABSTRACT);
+	ASSERT(pNode3 != NULL);
+	ASSERT(pNode3->GetNodeType() == Node::ABSTRACT);
+
+	ASSERT(dCyclicFactor != 0.);
+	ASSERT(dCollectiveFactor != 0.);
+	ASSERT(dDynamicCoef >= 0.);   
 }
 
 
 SwashPlate::~SwashPlate(void)
 {
-   NO_OP;
+	NO_OP;
 }
 
 
 /* Scrive il contributo dell'elemento al file di restart */
-std::ostream& SwashPlate::Restart(std::ostream& out) const
+std::ostream&
+SwashPlate::Restart(std::ostream& out) const
 {
-   Genel::Restart(out) << ", swash plate, "
-     << pCollectiveIn->GetLabel() << ", ";
-   // Collective.pGetDriveCaller()->Restart(out) << ", ";
-   if(fCollLimits) {
-      out << "limits, " << dCollMin << ", " << dCollMax << ", ";
-   }
-   out << pLongitudinalIn->GetLabel() << ", ";
-   // Longitudinal.pGetDriveCaller()->Restart(out) << ", ";
-   if(fForeAftLimits) {
-      out << "limits, " << dForeAftMin << ", " << dForeAftMax << ", ";
-   }   
-   out << pLateralIn->GetLabel() << ", ";
-   // Lateral.pGetDriveCaller()->Restart(out) << ", ";
-   if(fLatLimits) {
-      out << "limits, " << dLatMin << ", " << dLatMax << ", ";
-   }
-   out << pNode1->GetLabel() << ", "
-     << pNode2->GetLabel() << ", "
-     << pNode3->GetLabel() << ", "
-     << dDynamicCoef << ", "
-     << dCyclicFactor << ", " << dCollectiveFactor << ';' << std::endl;
-   
-   return out;
-}
+	Genel::Restart(out) << ", swash plate, "
+		<< pCollectiveIn->GetLabel() << ", ";
+	// Collective.pGetDriveCaller()->Restart(out) << ", ";
+	if (fCollLimits) {
+		out << "limits, " << dCollMin << ", " << dCollMax << ", ";
+	}
+	out << pLongitudinalIn->GetLabel() << ", ";
+	// Longitudinal.pGetDriveCaller()->Restart(out) << ", ";
+	if (fForeAftLimits) {
+		out << "limits, " << dForeAftMin << ", " << dForeAftMax << ", ";
+	}   
+	out << pLateralIn->GetLabel() << ", ";
+	// Lateral.pGetDriveCaller()->Restart(out) << ", ";
+	if (fLatLimits) {
+		out << "limits, " << dLatMin << ", " << dLatMax << ", ";
+	}
+	out << pNode1->GetLabel() << ", "
+		<< pNode2->GetLabel() << ", "
+		<< pNode3->GetLabel() << ", "
+		<< dDynamicCoef << ", "
+		<< dCyclicFactor << ", " << dCollectiveFactor << ';' << std::endl;
 
+	return out;
+}
 
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler& 
 SwashPlate::AssJac(VariableSubMatrixHandler& WorkMat,
-		   doublereal dCoef, 
-		   const VectorHandler& /* XCurr */ ,
-		   const VectorHandler& /* XPrimeCurr */ )
+		doublereal dCoef, 
+		const VectorHandler& /* XCurr */ ,
+		const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering SwashPlate::AssJac()" << std::endl);
+	DEBUGCOUT("Entering SwashPlate::AssJac()" << std::endl);
 
-   /* Casting di WorkMat */
-   SparseSubMatrixHandler& WM = WorkMat.SetSparse();   
-   WM.ResizeReset(6, 0);
-      
-   integer iCollFirstIndex = pCollectiveIn->iGetFirstIndex()+1;
-   integer iLongFirstIndex = pLongitudinalIn->iGetFirstIndex()+1;
-   integer iLatFirstIndex = pLateralIn->iGetFirstIndex()+1;
+	/* Casting di WorkMat */
+	SparseSubMatrixHandler& WM = WorkMat.SetSparse();
+	WM.ResizeReset(14, 0);
 
-   integer iNode1FirstIndex = pNode1->iGetFirstIndex()+1;
-   integer iNode2FirstIndex = pNode2->iGetFirstIndex()+1;
-   integer iNode3FirstIndex = pNode3->iGetFirstIndex()+1;
-   
-   doublereal d = dDynamicCoef+dCoef;
-   
-   WM.PutItem(1, iCollFirstIndex, iCollFirstIndex, dCoef);
-   WM.PutItem(2, iLongFirstIndex, iLongFirstIndex, dCoef);
-   WM.PutItem(3, iLatFirstIndex, iLatFirstIndex, dCoef);
+	integer iCollFirstIndex = pCollectiveIn->iGetFirstIndex() + 1;
+	integer iLongFirstIndex = pLongitudinalIn->iGetFirstIndex() + 1;
+	integer iLatFirstIndex = pLateralIn->iGetFirstIndex() + 1;
 
-   WM.PutItem(4, iNode1FirstIndex, iNode1FirstIndex, d);
-   WM.PutItem(5, iNode2FirstIndex, iNode2FirstIndex, d);
-   WM.PutItem(6, iNode3FirstIndex, iNode3FirstIndex, d);   
+	integer iNode1FirstIndex = pNode1->iGetFirstIndex() + 1;
+	integer iNode2FirstIndex = pNode2->iGetFirstIndex() + 1;
+	integer iNode3FirstIndex = pNode3->iGetFirstIndex() + 1;
 
-   return WorkMat;
+	WM.PutItem(1, iCollFirstIndex, iCollFirstIndex, dCoef);
+	WM.PutItem(2, iLongFirstIndex, iLongFirstIndex, dCoef);
+	WM.PutItem(3, iLatFirstIndex, iLatFirstIndex, dCoef);
+
+	doublereal d = dDynamicCoef + dCoef;
+
+	WM.PutItem(4, iNode1FirstIndex, iNode1FirstIndex, d);
+	WM.PutItem(5, iNode2FirstIndex, iNode2FirstIndex, d);
+	WM.PutItem(6, iNode3FirstIndex, iNode3FirstIndex, d);
+
+	d = dCollectiveFactor;
+	
+	WM.PutItem(7, iNode1FirstIndex, iCollFirstIndex, -d);
+	WM.PutItem(8, iNode2FirstIndex, iCollFirstIndex, -d);
+	WM.PutItem(9, iNode3FirstIndex, iCollFirstIndex, -d);
+
+	d = dCollectiveFactor*dCyclicFactor;
+
+	WM.PutItem(10, iNode1FirstIndex, iLongFirstIndex, d);
+
+	d /= 2.;
+
+	WM.PutItem(11, iNode2FirstIndex, iLongFirstIndex, -d);
+	WM.PutItem(12, iNode3FirstIndex, iLongFirstIndex, -d);
+
+	d *= sqrt(3.);
+
+	WM.PutItem(13, iNode2FirstIndex, iLongFirstIndex, d);
+	WM.PutItem(14, iNode3FirstIndex, iLongFirstIndex, -d);
+
+	return WorkMat;
 }
 
 
 /* assemblaggio residuo */
 SubVectorHandler& 
 SwashPlate::AssRes(SubVectorHandler& WorkVec,
-		   doublereal /* dCoef */ ,
-		   const VectorHandler& XCurr, 
-		   const VectorHandler& XPrimeCurr)
-{   
-   DEBUGCOUT("Entering SwashPlate::AssRes()" << std::endl);
+		doublereal /* dCoef */ ,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr)
+{
+	DEBUGCOUT("Entering SwashPlate::AssRes()" << std::endl);
 
-   /* Dimensiona e resetta la matrice di lavoro */
-   WorkVec.ResizeReset(6);
- 
-   integer iCollFirstIndex = pCollectiveIn->iGetFirstIndex()+1;
-   integer iLongFirstIndex = pLongitudinalIn->iGetFirstIndex()+1;
-   integer iLatFirstIndex = pLateralIn->iGetFirstIndex()+1;
+	/* Dimensiona e resetta la matrice di lavoro */
+	WorkVec.ResizeReset(6);
 
-   integer iNode1FirstIndex = pNode1->iGetFirstIndex()+1;
-   integer iNode2FirstIndex = pNode2->iGetFirstIndex()+1;
-   integer iNode3FirstIndex = pNode3->iGetFirstIndex()+1;
-   
-   WorkVec.PutRowIndex(1, iCollFirstIndex);
-   WorkVec.PutRowIndex(2, iLongFirstIndex);
-   WorkVec.PutRowIndex(3, iLatFirstIndex);
-         
-   WorkVec.PutRowIndex(4, iNode1FirstIndex);
-   WorkVec.PutRowIndex(5, iNode2FirstIndex);
-   WorkVec.PutRowIndex(6, iNode3FirstIndex);
-         
-   doublereal dXColl = XCurr.dGetCoef(iCollFirstIndex);
-   doublereal dXLong = XCurr.dGetCoef(iLongFirstIndex);
-   doublereal dXLat = XCurr.dGetCoef(iLatFirstIndex);
-      
-   WorkVec.PutCoef(1, -dXColl);
-   WorkVec.PutCoef(2, -dXLong);
-   WorkVec.PutCoef(3, -dXLat);
-   
-   /* Limits on pitch angles */
-   if(fCollLimits) {
-      if(dXColl > dCollMax) {
-	 dXColl = dCollMax;
-      } else if(dXColl < dCollMin) {
-	 dXColl = dCollMin;
-      }
-   }
-   
-   if(fForeAftLimits) {
-      if(dXLong > dForeAftMax) {
-	 dXLong = dForeAftMax;
-      } else if(dXLong < dForeAftMin) {
-	 dXLong = dForeAftMin;
-      }
-   }
-   
-   if(fLatLimits) {
-      if(dXLat > dLatMax) {
-	 dXLat = dLatMax;
-      } else if(dXLat < dLatMin) {
-	 dXLat = dLatMin;
-      }
-   }   
-   
-   WorkVec.PutCoef(4, dCollectiveFactor*(dXColl-dCyclicFactor*dXLong)
-		    -XCurr.dGetCoef(iNode1FirstIndex)
-		    -dDynamicCoef*XPrimeCurr.dGetCoef(iNode1FirstIndex));
-   WorkVec.PutCoef(5, dCollectiveFactor*(dXColl+dCyclicFactor*(.5*dXLong-sqrt(3.)/2.*dXLat))
-		    -XCurr.dGetCoef(iNode2FirstIndex)
-		    -dDynamicCoef*XPrimeCurr.dGetCoef(iNode2FirstIndex));
-   WorkVec.PutCoef(6, dCollectiveFactor*(dXColl+dCyclicFactor*(.5*dXLong+sqrt(3.)/2.*dXLat))
-		    -XCurr.dGetCoef(iNode3FirstIndex)
-		    -dDynamicCoef*XPrimeCurr.dGetCoef(iNode3FirstIndex));
+	integer iCollFirstIndex = pCollectiveIn->iGetFirstIndex() + 1;
+	integer iLongFirstIndex = pLongitudinalIn->iGetFirstIndex() + 1;
+	integer iLatFirstIndex = pLateralIn->iGetFirstIndex() + 1;
 
-   return WorkVec;
+	integer iNode1FirstIndex = pNode1->iGetFirstIndex() + 1;
+	integer iNode2FirstIndex = pNode2->iGetFirstIndex() + 1;
+	integer iNode3FirstIndex = pNode3->iGetFirstIndex() + 1;
+
+	WorkVec.PutRowIndex(1, iCollFirstIndex);
+	WorkVec.PutRowIndex(2, iLongFirstIndex);
+	WorkVec.PutRowIndex(3, iLatFirstIndex);
+
+	WorkVec.PutRowIndex(4, iNode1FirstIndex);
+	WorkVec.PutRowIndex(5, iNode2FirstIndex);
+	WorkVec.PutRowIndex(6, iNode3FirstIndex);
+
+	doublereal dXColl = XCurr.dGetCoef(iCollFirstIndex);
+	doublereal dXLong = XCurr.dGetCoef(iLongFirstIndex);
+	doublereal dXLat = XCurr.dGetCoef(iLatFirstIndex);
+
+	WorkVec.PutCoef(1, -dXColl);
+	WorkVec.PutCoef(2, -dXLong);
+	WorkVec.PutCoef(3, -dXLat);
+
+	/* Limits on pitch angles */
+	if (fCollLimits) {
+		if (dXColl > dCollMax) {
+			dXColl = dCollMax;
+		} else if (dXColl < dCollMin) {
+			dXColl = dCollMin;
+		}
+	}
+
+	if (fForeAftLimits) {
+		if (dXLong > dForeAftMax) {
+			dXLong = dForeAftMax;
+		} else if (dXLong < dForeAftMin) {
+			dXLong = dForeAftMin;
+		}
+	}
+
+	if (fLatLimits) {
+		if (dXLat > dLatMax) {
+			dXLat = dLatMax;
+		} else if (dXLat < dLatMin) {
+			dXLat = dLatMin;
+		}
+	}
+
+	WorkVec.PutCoef(4, dCollectiveFactor*(dXColl - dCyclicFactor*dXLong)
+			- XCurr(iNode1FirstIndex) - dDynamicCoef*XPrimeCurr(iNode1FirstIndex));
+	WorkVec.PutCoef(5, dCollectiveFactor*(dXColl + dCyclicFactor*(.5*dXLong - sqrt(3.)/2.*dXLat))
+			- XCurr(iNode2FirstIndex) - dDynamicCoef*XPrimeCurr(iNode2FirstIndex));
+	WorkVec.PutCoef(6, dCollectiveFactor*(dXColl + dCyclicFactor*(.5*dXLong + sqrt(3.)/2.*dXLat))
+			- XCurr(iNode3FirstIndex) - dDynamicCoef*XPrimeCurr(iNode3FirstIndex));
+
+	return WorkVec;
+}
+
+void
+SwashPlate::SetInitialValue(VectorHandler& /* X */ ) const
+{
+	NO_OP;
 }
 
 
-void SwashPlate::SetInitialValue(VectorHandler& /* X */ ) const
+void
+SwashPlate::SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const
 {
-   NO_OP;
-}
-
-
-void SwashPlate::SetValue(VectorHandler& /* X */ , 
-			  VectorHandler& /* XP */ ) const
-{
-   NO_OP;
+	NO_OP;
 }
 
 /* SwashPlate - end */
