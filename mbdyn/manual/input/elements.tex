@@ -1857,12 +1857,16 @@ The syntax of the \kw{swashplate} is:
         <actuator_3_abstract_node> 
         [ , <dynamic_coef> , <cyclic_factor> , <collective_factor> ]
 \end{verbatim}
-The first three abstract nodes will contain the input values (they can be
-actuated by means of abstract forces), and the limits on the ``angles'' can
-be easily set. 
+The first three abstract nodes will contain the input values 
+of collective, fore/aft and cyclic pitch
+(they can be actuated by means of abstract forces),
+and the limits on the ``angles'' can be easily set. 
 The last three nodes will contain the values of the stroke of the actuators.
-It is assumed that one of the actuators is behind and the others two are in
-front of the rotor, numbered clockwise from the top. 
+The first actuator should be put at the azimuthal position 
+that makes the current blade assume the fore/aft pitch,
+so that its pitch link is $\llk{atan}\plbr{1/\omega_{\beta}}$
+before the front direction.
+The other actuators should follow, 120\degr apart in clockwise direction.
 The limits on the actuators will simply force the value of the control
 inputs to remain in the boundaries regardless of the input values.
 The last three optional parameters are a dynamic coefficient that is used to
