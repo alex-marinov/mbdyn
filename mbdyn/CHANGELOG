@@ -19,6 +19,7 @@ MBDyn 1.X-Devel
 		- added "fc511" aerodynamic cofficients format input
 		  (by permission)
 		- added trigger drive to switch on rotor trim element
+		- added "range" to node/element output specifications
 	Backward compatibility issues:
 		- s/solver/linear solver/
 		- dynamic structural node accelerations are now off by default

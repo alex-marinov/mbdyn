@@ -357,14 +357,34 @@ void DataManager::ReadElems(MBDynParser& HP)
 	 
 	 /* Elements list */
 	 while (HP.IsArg()) {
-	    unsigned int uL = (unsigned int)HP.GetInt();	    	
-	    Elem* pE = (Elem*)pFindElem(Typ, uL);
-	    if (pE == NULL) {
-	       silent_cerr("Error: " << psElemNames[Typ] << "(" << uL
-		 << ") is not defined; output cannot be modified" << std::endl);
+	    if (HP.IsKeyWord("range")) {
+	       unsigned int uL = (unsigned int)HP.GetInt();
+	       unsigned int uEndL = (unsigned int)HP.GetInt();
+	       if (uEndL < uL) {
+		  silent_cerr("End label " << uEndL << " must be larger "
+				  "than or equal to start label " << uL
+				  << std::endl);
+		  throw ErrGeneric();
+	       }
+	       for ( ; uL <= uEndL; uL++) {
+	          Elem* pE = (Elem*)pFindElem(Typ, uL);
+	          if (pE != NULL) {
+	             DEBUGLCOUT(MYDEBUG_INPUT, "element " << uL << std::endl);
+	             pE->SetOutputFlag(flag(1));
+		  }
+	       }
+
 	    } else {
-	       DEBUGLCOUT(MYDEBUG_INPUT, "element " << uL << std::endl);
-	       pE->SetOutputFlag(flag(1));
+	       unsigned int uL = (unsigned int)HP.GetInt();	    	
+	       Elem* pE = (Elem*)pFindElem(Typ, uL);
+	       if (pE == NULL) {
+	          silent_cerr(psElemNames[Typ] << "(" << uL << ") "
+			"is not defined; output cannot be modified"
+			<< std::endl);
+	       } else {
+	          DEBUGLCOUT(MYDEBUG_INPUT, "element " << uL << std::endl);
+	          pE->SetOutputFlag(flag(1));
+	       }
 	    }
 	 }
 

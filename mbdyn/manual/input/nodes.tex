@@ -273,10 +273,16 @@ combination of section strains and curvatures.
 There is an extra card, that is used to modify the output behavior of nodes:  
 \begin{verbatim}
     <card> ::= output : <node_type> , <node_list> ;
-    <node_list> ::= <node_label>  [ , <node_list> ]
+    <node_list> ::= { <node_label>  [ , <node_list> ] 
+        | range , <node_start_label> , <node_end_label> }
 \end{verbatim}
 \kw{node\_item} is a valid node type that can be read in the \kw{nodes}
-module. \\
+module.
+In case the keyword \kw{range} is used, all existing nodes comprised
+between \kw{<node\_start\_label>} and \kw{<node\_end\_label>}
+are set; missing ones are silently ignored.
+
+\noindent
 {\em
    Note: if a node should never (\kw{no}) or always (\kw{yes}) be output,
    its output flag should be set directly on the node card. 

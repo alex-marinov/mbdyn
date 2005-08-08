@@ -1455,15 +1455,34 @@ void DataManager::ReadNodes(MBDynParser& HP)
 	 }
 	 
 	 while (HP.IsArg()) {
-	    unsigned int uL = (unsigned int)HP.GetInt();	    	 
-	    Node* pN = pFindNode(Typ, uL);
-	    if (pN == NULL) {
-	       silent_cerr("Error: " << psNodeNames[Typ] << "(" 
-		       << uL << ") is not defined; output cannot be modified" 
-		       << std::endl);
+	    if (HP.IsKeyWord("range")) {
+	       unsigned int uL = (unsigned int)HP.GetInt();
+	       unsigned int uEndL = (unsigned int)HP.GetInt();
+	       if (uEndL < uL) {
+		  silent_cerr("End label " << uEndL << " must be larger "
+				  "than or equal to start label " << uL
+				  << std::endl);
+		  throw ErrGeneric();
+	       }
+	       for ( ; uL <= uEndL; uL++) {
+	          Node* pN = pFindNode(Typ, uL);
+	          if (pN != NULL) {
+	             DEBUGLCOUT(MYDEBUG_INPUT, "node " << uL << std::endl);
+	             pN->SetOutputFlag(fOutput);
+		  }
+	       }
+
 	    } else {
-	       DEBUGLCOUT(MYDEBUG_INPUT, "node " << uL << std::endl);
-	       pN->SetOutputFlag(fOutput);
+	       unsigned int uL = (unsigned int)HP.GetInt();
+	       Node* pN = pFindNode(Typ, uL);
+	       if (pN == NULL) {
+	          silent_cerr(psNodeNames[Typ] << "(" << uL << ") "
+				  "is not defined; output cannot be modified" 
+		          << std::endl);
+	       } else {
+	          DEBUGLCOUT(MYDEBUG_INPUT, "node " << uL << std::endl);
+	          pN->SetOutputFlag(fOutput);
+	       }
 	    }
 	 }	 
       } else {      

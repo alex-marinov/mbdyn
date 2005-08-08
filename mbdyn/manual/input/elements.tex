@@ -3869,11 +3869,14 @@ There is an extra card that is used to modify the output behavior of
 elements, analogous to that of the nodes:
 \begin{verbatim}
     <card> ::= output : <elem_type> , <elem_list> ;
-    <elem_list> ::= <elem_label>  [ , <elem_list> ]
+    <elem_list> ::= { <elem_label>  [ , <elem_list> ]
+        | range , <elem_start_label> , <elem_end_label> }
 \end{verbatim}
 \kw{elem\_type} is a valid element type that can be read 
 as card name in the \kw{elements} block.
-module.
+In case the keyword \kw{range} is used, all existing elements comprised
+between \kw{<elem\_start\_label>} and \kw{<elem\_end\_label>}
+are set; missing ones are silently ignored.
 
 
 
