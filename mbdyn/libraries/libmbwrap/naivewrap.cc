@@ -92,42 +92,23 @@ NaiveSolver::Factor(void)
 {
 	int		rc;
 
-#if 0
-	integer i = 0;
-	for (integer j = 0; j < iSize; j++) {
-		i += A->piNzr[j];
-	}
-	std::cerr << "prima: " << i << std::endl;
-#endif
-	
 	rc = naivfct(A->ppdRows, iSize,
 			A->piNzr, A->ppiRows, 
 			A->piNzc, A->ppiCols,
 			A->ppnonzero, 
 			&piv[0], dMinPiv);
 
-#if 0
-	i = 0;
-	for (integer j = 0; j < iSize; j++) {
-		i += A->piNzr[j];
-	}
-	std::cerr << "dopo: " << i << std::endl;
-#endif
-	
 	if (rc) {
 		if (rc & ENULCOL) {
 			silent_cerr("NaiveSolver: ENULCOL("
 					<< (rc & ~ENULCOL) << ")" << std::endl);
-			throw ErrGeneric();
-		}
-
-		if (rc & ENOPIV) {
+		} else if (rc & ENOPIV) {
 			silent_cerr("NaiveSolver: ENOPIV("
 					<< (rc & ~ENOPIV) << ")" << std::endl);
-			throw ErrGeneric();
+		} else {
+			silent_cerr("NaiveSolver: (" << rc << ")" << std::endl);
 		}
 
-		/* default */
 		throw ErrGeneric();
 	}
 }
@@ -139,15 +120,14 @@ NaiveSolver::Factor(void)
 NaiveSparseSolutionManager::NaiveSparseSolutionManager(const integer Dim,
 		const doublereal dMP)
 : A(0),
-RH(Dim),
-XH(Dim)
+VH(Dim)
 {
 	SAFENEWWITHCONSTRUCTOR(A, NaiveMatrixHandler, NaiveMatrixHandler(Dim));
 	SAFENEWWITHCONSTRUCTOR(pLS, NaiveSolver, 
 		NaiveSolver(Dim, dMP, A));
 
-	pLS->pdSetResVec(RH.pdGetVec());
-	pLS->pdSetSolVec(XH.pdGetVec());
+	pLS->pdSetResVec(VH.pdGetVec());
+	pLS->pdSetSolVec(VH.pdGetVec());
 
 	pLS->SetSolutionManager(this);
 }
@@ -184,14 +164,14 @@ NaiveSparseSolutionManager::pMatHdl(void) const
 MyVectorHandler*
 NaiveSparseSolutionManager::pResHdl(void) const
 {
-	return &RH;
+	return &VH;
 }
 
 /* Rende disponibile l'handler per la soluzione */
 MyVectorHandler*
 NaiveSparseSolutionManager::pSolHdl(void) const
 {
-	return &XH;
+	return &VH;
 }
 
 /* NaiveSparseSolutionManager - end */
@@ -206,6 +186,7 @@ NaiveSparsePermSolutionManager::NaiveSparsePermSolutionManager(const integer Dim
 	const doublereal dMP)
 : NaiveSparseSolutionManager(Dim, dMP),
 dMinPiv(dMP),
+TmpH(Dim),
 ePermState(PERM_NO)
 {
 	perm.resize(Dim, 0);
@@ -230,11 +211,9 @@ NaiveSparsePermSolutionManager::MatrReset(void)
 {
 	if (ePermState == PERM_INTERMEDIATE) {
 		ePermState = PERM_READY;
-
-		pLS->SetSolutionManager(this);
 	}
 
-	pLS->Reset();
+	NaiveSparseSolutionManager::MatrReset();
 }
 
 void
@@ -265,13 +244,12 @@ NaiveSparsePermSolutionManager::BackPerm(void)
 {
 	/* NOTE: use whatever is stored in pLS - someone could
 	 * trick us into using its memory */
-	doublereal *pdRes = pLS->pdGetResVec();
-	doublereal *pdSol = pLS->pdGetSolVec();
+	doublereal *pd = pLS->pdGetResVec();
 
-	ASSERT(pdRes != pdSol);
+	ASSERT(pd != TmpH.pdGetVec());
 	
 	for (integer i = 0; i < A->iGetNumCols(); i++) {
-		pdSol[invperm[i]] = pdRes[i];
+		pd[invperm[i]] = TmpH(i + 1);
 	}
 }
 
@@ -288,16 +266,16 @@ NaiveSparsePermSolutionManager::Solve(void)
 	} else if (ePermState == PERM_READY) {
 		/* We need to use local storage to allow BackPerm();
 		 * save and restore original pointer */
-		pd = pLS->pdSetSolVec(RH.pdGetVec());
+		pd = pLS->pdSetSolVec(TmpH.pdGetVec());
 	}
 
 	pLS->Solve();
 
 	if (ePermState == PERM_READY) {
+		BackPerm();
+
 		ASSERT(pd != 0);
 		pLS->pdSetSolVec(pd);
-
-		BackPerm();
 	}
 }
 

@@ -74,8 +74,7 @@ public:
 class NaiveSparseSolutionManager: public SolutionManager {
 protected:
 	mutable NaiveMatrixHandler *A;
-	mutable MyVectorHandler RH;
-	mutable MyVectorHandler XH;
+	mutable MyVectorHandler VH;
 
 public:
 	NaiveSparseSolutionManager(const integer Dim, const doublereal dMP = 1.e-9);
@@ -110,6 +109,8 @@ public:
 class NaiveSparsePermSolutionManager: public NaiveSparseSolutionManager {
 private:
 	const doublereal dMinPiv;
+	mutable MyVectorHandler TmpH;
+
 	void ComputePermutation();
 	void BackPerm();
 
