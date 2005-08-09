@@ -68,8 +68,8 @@ iNonZeroes(0),
 piHA(NULL),
 pdPIVOT(NULL)
 {
-	(void)ChangeResPoint(pdTmpRhs);
-	(void)ChangeSolPoint(pdTmpRhs);
+	(void)pdSetResVec(pdTmpRhs);
+	(void)pdSetSolVec(pdTmpRhs);
 
 	ASSERT(pdTmpRhs != NULL);
 	ASSERT(iN > 0);

@@ -77,9 +77,16 @@ LinearSolver::SetSolutionManager(SolutionManager *psm)
 	pSM = psm;
 }
 
+/* ritorna il puntatore al vettore del residuo */
+doublereal *
+LinearSolver::pdGetResVec(void) const
+{
+	return pdRhs;
+}
+
 /* sposta il puntatore al vettore del residuo */
 doublereal *
-LinearSolver::ChangeResPoint(doublereal* pd)
+LinearSolver::pdSetResVec(doublereal* pd)
 {
 	doublereal *p = pdRhs;
 
@@ -88,9 +95,16 @@ LinearSolver::ChangeResPoint(doublereal* pd)
 	return p;
 }
 
+/* ritorna il puntatore al vettore della soluzione */
+doublereal *
+LinearSolver::pdGetSolVec(void) const
+{
+	return pdSol;
+}
+
 /* sposta il puntatore al vettore della soluzione */
 doublereal *
-LinearSolver::ChangeSolPoint(doublereal* pd)
+LinearSolver::pdSetSolVec(doublereal* pd)
 {
 	doublereal *p = pdSol;
 

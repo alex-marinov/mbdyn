@@ -433,16 +433,16 @@ SchurSolutionManager::Solve(void)
 	/* Calcolo di E'. Va fatto solo se la matrice e' stata rifattorizzata */
    	if (bNewMatrix) {
      		for (int i = 0; i < iIntVecDim; i++) {
-   			pLocalSM->ChangeResPoint(pMH->GetECol(i));
-			pLocalSM->ChangeSolPoint(pMH->GetEColSol(i));
+   			pLocalSM->pdSetResVec(pMH->GetECol(i));
+			pLocalSM->pdSetSolVec(pMH->GetEColSol(i));
        			/* fa solo la back substitution perche'
 			 * la fattorizzazione e' gia' stata lanciata */
 			pLocalSM->Solve();
      		}
 	}
 
-   	pLocalSM->ChangeResPoint(prVH->pdGetVec());
-	pLocalSM->ChangeSolPoint(pSolrVH->pdGetVec());
+   	pLocalSM->pdSetResVec(prVH->pdGetVec());
+	pLocalSM->pdSetSolVec(pSolrVH->pdGetVec());
 
 	/* on master node... */
 	if (MyRank == 0) {
@@ -859,9 +859,9 @@ SchurSolutionManager::InitializeComm(void)
 
 /* sposta il puntatore al vettore del residuo */
 doublereal *
-SchurSolutionManager::ChangeResPoint(doublereal* pRes)
+SchurSolutionManager::pdSetResVec(doublereal* pRes)
 {
-	silent_cerr("SchurSolutionManager::ChangeResPoint(): "
+	silent_cerr("SchurSolutionManager::pdSetResVec(): "
 		"you should not be here!! "
 		"Aborting..." << std::endl);
 	throw ErrGeneric();
@@ -869,9 +869,9 @@ SchurSolutionManager::ChangeResPoint(doublereal* pRes)
 
 /* sposta il puntatore al vettore del residuo */
 doublereal *
-SchurSolutionManager::ChangeSolPoint(doublereal* pSol)
+SchurSolutionManager::pdSetSolVec(doublereal* pSol)
 {
-	silent_cerr("SchurSolutionManager::ChangeSolPoint(): "
+	silent_cerr("SchurSolutionManager::pdSetSolVec(): "
 		"you should not be here!! "
 		"Aborting..." << std::endl);
 	throw ErrGeneric();

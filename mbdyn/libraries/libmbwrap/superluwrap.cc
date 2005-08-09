@@ -290,8 +290,8 @@ VH(iSize, &xb[0])
 			       SuperLUSolver,
 			       SuperLUSolver(iMatSize, dPivotFactor, ptype));
    
-	pLS->ChangeResPoint(&(xb[0]));
-	pLS->ChangeSolPoint(&(xb[0]));
+	pLS->pdSetResVec(&(xb[0]));
+	pLS->pdSetSolVec(&(xb[0]));
 	pLS->SetSolutionManager(this);
 
 #ifdef DEBUG

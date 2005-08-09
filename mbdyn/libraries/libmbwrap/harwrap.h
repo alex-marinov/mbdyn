@@ -371,12 +371,12 @@ public:
    	void Solve(void);
    
    	/* sposta il puntatore al vettore del residuo */
-   	void ChangeResPoint(doublereal* pRes){
+   	void pdSetResVec(doublereal* pRes){
 		pLU->pdRhs = pRes;
 	};
    
    	/* sposta il puntatore al vettore del residuo */
-   	void ChangeSolPoint(doublereal* pSol){
+   	void pdSetSolVec(doublereal* pSol){
 		pLU->pdRhs = pSol;
 	};
 

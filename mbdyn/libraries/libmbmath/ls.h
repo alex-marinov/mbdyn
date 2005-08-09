@@ -73,8 +73,10 @@ public:
 
 	bool bReset(void) const { return bHasBeenReset; };
 	void SetSolutionManager(SolutionManager *pSM);
-	doublereal *ChangeResPoint(doublereal* pd);
-	doublereal *ChangeSolPoint(doublereal* pd);
+	doublereal *pdGetResVec(void) const;
+	doublereal *pdGetSolVec(void) const;
+	doublereal *pdSetResVec(doublereal* pd);
+	doublereal *pdSetSolVec(doublereal* pd);
 
 	virtual void MakeCompactForm(SparseMatrixHandler& mh,
 			std::vector<doublereal>& Ax,

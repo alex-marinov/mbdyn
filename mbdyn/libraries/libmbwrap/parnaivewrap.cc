@@ -379,8 +379,8 @@ XH(Dim)
 			       ParNaiveSolver,
 			       ParNaiveSolver(nt, Dim, dMP, A));
    
-	pLS->ChangeResPoint(VH.pdGetVec());
-	pLS->ChangeSolPoint(XH.pdGetVec());
+	pLS->pdSetResVec(VH.pdGetVec());
+	pLS->pdSetSolVec(XH.pdGetVec());
 	pLS->SetSolutionManager(this);
 
 #ifdef DEBUG
@@ -515,8 +515,8 @@ ParNaiveSparsePermSolutionManager::MatrReset(void)
 	if (ePermState == PERM_INTERMEDIATE) {
 		ePermState = PERM_READY;
 
-		pLS->ChangeResPoint(VH.pdGetVec());
-		pLS->ChangeSolPoint(XH.pdGetVec());
+		pLS->pdSetResVec(VH.pdGetVec());
+		pLS->pdSetSolVec(XH.pdGetVec());
 
 		pLS->SetSolutionManager(this);
 	}
@@ -562,14 +562,14 @@ ParNaiveSparsePermSolutionManager::Solve(void)
 		ComputePermutation();
 
 	} else {
-		pLS->ChangeSolPoint(VH.pdGetVec());
+		pLS->pdSetSolVec(VH.pdGetVec());
 	}
 
 	pLS->Solve();
 
 	if (ePermState == PERM_READY) {
 		BackPerm();
-		pLS->ChangeSolPoint(XH.pdGetVec());
+		pLS->pdSetSolVec(XH.pdGetVec());
 	}
 }
 

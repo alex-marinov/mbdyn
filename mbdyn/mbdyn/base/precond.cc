@@ -74,19 +74,19 @@ FullJacobianPr::Precond(VectorHandler& b, VectorHandler& x,
 	 * copies rhs in sol and uses only sol
 	 */
 	if (pSM->pSolHdl() != pSM->pResHdl()) {	
-		pdr = pSM->ChangeResPoint(b.pdGetVec());
-		pds = pSM->ChangeSolPoint(x.pdGetVec());
+		pdr = pSM->pdSetResVec(b.pdGetVec());
+		pds = pSM->pdSetSolVec(x.pdGetVec());
 
 	} else {
 		x = b;
-		pdr = pSM->ChangeResPoint(x.pdGetVec());
+		pdr = pSM->pdSetResVec(x.pdGetVec());
 	}
 
 	pSM->Solve();
 
-	(void)pSM->ChangeResPoint(pdr);
+	(void)pSM->pdSetResVec(pdr);
 	if (pds != pdr) {
-		(void)pSM->ChangeSolPoint(pds);
+		(void)pSM->pdSetSolVec(pds);
 	}
 }
 

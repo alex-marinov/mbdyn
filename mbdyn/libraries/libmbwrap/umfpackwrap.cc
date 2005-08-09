@@ -347,8 +347,8 @@ bVH(Dim, &b[0])
 	SAFENEWWITHCONSTRUCTOR(pLS, UmfpackSolver,
 			UmfpackSolver(Dim, dPivot, blockSize));
 
-	(void)pLS->ChangeResPoint(&(b[0]));
-	(void)pLS->ChangeSolPoint(&(x[0]));
+	(void)pLS->pdSetResVec(&b[0]);
+	(void)pLS->pdSetSolVec(&x[0]);
 	pLS->SetSolutionManager(this);
 }
 

@@ -288,8 +288,8 @@ xbVH(Dim, &xb[0])
 	SAFENEWWITHCONSTRUCTOR(pLS, WsmpSolver,
 			WsmpSolver(Dim, dPivot, blockSize, nt));
 
-	(void)pLS->ChangeResPoint(&(xb[0]));
-	(void)pLS->ChangeSolPoint(&(xb[0]));
+	(void)pLS->pdSetResVec(&xb[0]);
+	(void)pLS->pdSetSolVec(&xb[0]);
 	pLS->SetSolutionManager(this);
 }
 

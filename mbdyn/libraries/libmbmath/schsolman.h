@@ -157,10 +157,10 @@ public:
 	void Solve(void);
 
 	/* sposta il puntatore al vettore del residuo */
-	doublereal *ChangeResPoint(doublereal* pRes);
+	doublereal *pdSetResVec(doublereal* pRes);
 
 	/* sposta il puntatore al vettore del residuo */
-	doublereal *ChangeSolPoint(doublereal* pSol);
+	doublereal *pdSetSolVec(doublereal* pSol);
 
 	/* Rende disponibile l'handler per la matrice */
 	MatrixHandler* pMatHdl(void) const;

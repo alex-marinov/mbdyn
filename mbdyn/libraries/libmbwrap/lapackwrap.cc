@@ -140,8 +140,8 @@ VH(Dim)
 	SAFENEWWITHCONSTRUCTOR(pLS, LapackSolver,
 			LapackSolver(Dim, dPivot, A.pdGetMat(), VH.pdGetVec()));
 
-	(void)pLS->ChangeResPoint(VH.pdGetVec());
-	(void)pLS->ChangeSolPoint(VH.pdGetVec());
+	(void)pLS->pdSetResVec(VH.pdGetVec());
+	(void)pLS->pdSetSolVec(VH.pdGetVec());
 
 	pLS->SetSolutionManager(this);
 }

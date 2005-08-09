@@ -86,18 +86,18 @@ SolutionManager::LinkToSolution(const VectorHandler& XCurr,
 
 /* sposta il puntatore al vettore del residuo */
 doublereal *
-SolutionManager::ChangeResPoint(doublereal* pd)
+SolutionManager::pdSetResVec(doublereal* pd)
 {
 	ASSERT(pLS);
-	return pLS->ChangeResPoint(pd);
+	return pLS->pdSetResVec(pd);
 }
    
 /* sposta il puntatore al vettore della soluzione */
 doublereal *
-SolutionManager::ChangeSolPoint(doublereal* pd)
+SolutionManager::pdSetSolVec(doublereal* pd)
 {
 	ASSERT(pLS);
-	return pLS->ChangeSolPoint(pd);
+	return pLS->pdSetSolVec(pd);
 }
 
 /* SolutionManager - end */

@@ -330,14 +330,14 @@ public:
    	void Solve(void);
    	
 	/* sposta il puntatore al vettore del residuo */
-   	void ChangeResPoint(doublereal* pRes){
+   	void pdSetResVec(doublereal* pRes){
 		silent_cerr("Sorry Meschach is not available as local parallel solver. "
 			<< "Aborting" << std::endl);
 		throw ErrGeneric();
 	};
    
    	/* sposta il puntatore al vettore del residuo */
-   	void ChangeSolPoint(doublereal* pSol) {
+   	void pdSetSolVec(doublereal* pSol) {
 		silent_cerr("Sorry Meschach is not available as local parallel solver. "
 			<< "Aborting" << std::endl);
 		throw ErrGeneric();
