@@ -139,14 +139,14 @@ NaiveSolver::Factor(void)
 NaiveSparseSolutionManager::NaiveSparseSolutionManager(const integer Dim,
 		const doublereal dMP)
 : A(0),
-VH(Dim),
+RH(Dim),
 XH(Dim)
 {
 	SAFENEWWITHCONSTRUCTOR(A, NaiveMatrixHandler, NaiveMatrixHandler(Dim));
 	SAFENEWWITHCONSTRUCTOR(pLS, NaiveSolver, 
 		NaiveSolver(Dim, dMP, A));
 
-	pLS->pdSetResVec(VH.pdGetVec());
+	pLS->pdSetResVec(RH.pdGetVec());
 	pLS->pdSetSolVec(XH.pdGetVec());
 
 	pLS->SetSolutionManager(this);
@@ -184,7 +184,7 @@ NaiveSparseSolutionManager::pMatHdl(void) const
 MyVectorHandler*
 NaiveSparseSolutionManager::pResHdl(void) const
 {
-	return &VH;
+	return &RH;
 }
 
 /* Rende disponibile l'handler per la soluzione */
@@ -231,9 +231,6 @@ NaiveSparsePermSolutionManager::MatrReset(void)
 	if (ePermState == PERM_INTERMEDIATE) {
 		ePermState = PERM_READY;
 
-		pLS->pdSetResVec(VH.pdGetVec());
-		pLS->pdSetSolVec(XH.pdGetVec());
-
 		pLS->SetSolutionManager(this);
 	}
 
@@ -247,11 +244,13 @@ NaiveSparsePermSolutionManager::ComputePermutation(void)
 	A->MakeCCStructure(Ai, invperm);
 	doublereal knobs[COLAMD_KNOBS];
 	integer stats[COLAMD_STATS];
-	integer Alen = mbdyn_colamd_recommended (Ai.size(), A->iGetNumRows(), A->iGetNumCols());
+	integer Alen = mbdyn_colamd_recommended(Ai.size(), A->iGetNumRows(),
+			A->iGetNumCols());
 	Ai.resize(Alen);
 	mbdyn_colamd_set_defaults(knobs);
 	if (!mbdyn_colamd(A->iGetNumRows(), A->iGetNumCols(), Alen,
-		&(Ai[0]), &invperm[0], knobs, stats)) {
+		&Ai[0], &invperm[0], knobs, stats))
+	{
 		silent_cerr("colamd permutation failed" << std::endl);
 		throw ErrGeneric();
 	}
@@ -264,8 +263,15 @@ NaiveSparsePermSolutionManager::ComputePermutation(void)
 void
 NaiveSparsePermSolutionManager::BackPerm(void)
 {
+	/* NOTE: use whatever is stored in pLS - someone could
+	 * trick us into using its memory */
+	doublereal *pdRes = pLS->pdGetResVec();
+	doublereal *pdSol = pLS->pdGetSolVec();
+
+	ASSERT(pdRes != pdSol);
+	
 	for (integer i = 0; i < A->iGetNumCols(); i++) {
-		XH.PutCoef(invperm[i] + 1, VH.dGetCoef(i + 1));
+		pdSol[invperm[i]] = pdRes[i];
 	}
 }
 
@@ -274,18 +280,24 @@ NaiveSparsePermSolutionManager::BackPerm(void)
 void
 NaiveSparsePermSolutionManager::Solve(void)
 {
+	doublereal *pd = 0;
+
 	if (ePermState == PERM_NO) {
 		ComputePermutation();
 
 	} else if (ePermState == PERM_READY) {
-		pLS->pdSetSolVec(VH.pdGetVec());
+		/* We need to use local storage to allow BackPerm();
+		 * save and restore original pointer */
+		pd = pLS->pdSetSolVec(RH.pdGetVec());
 	}
 
 	pLS->Solve();
 
 	if (ePermState == PERM_READY) {
+		ASSERT(pd != 0);
+		pLS->pdSetSolVec(pd);
+
 		BackPerm();
-		pLS->pdSetSolVec(XH.pdGetVec());
 	}
 }
 

@@ -74,7 +74,7 @@ public:
 class NaiveSparseSolutionManager: public SolutionManager {
 protected:
 	mutable NaiveMatrixHandler *A;
-	mutable MyVectorHandler VH;
+	mutable MyVectorHandler RH;
 	mutable MyVectorHandler XH;
 
 public:
