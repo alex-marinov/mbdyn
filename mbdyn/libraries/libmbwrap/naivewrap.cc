@@ -182,8 +182,9 @@ extern "C" {
 #include "colamd.h"
 }
 
-NaiveSparsePermSolutionManager::NaiveSparsePermSolutionManager(const integer Dim, 
-	const doublereal dMP)
+NaiveSparsePermSolutionManager::NaiveSparsePermSolutionManager(
+		const integer Dim, 
+		const doublereal dMP)
 : NaiveSparseSolutionManager(Dim, dMP),
 dMinPiv(dMP),
 TmpH(Dim),
@@ -194,7 +195,8 @@ ePermState(PERM_NO)
 
 	SAFEDELETE(A);
 	A = 0;
-	SAFENEWWITHCONSTRUCTOR(A, NaivePermMatrixHandler, NaivePermMatrixHandler(Dim, &perm[0]));
+	SAFENEWWITHCONSTRUCTOR(A, NaivePermMatrixHandler,
+			NaivePermMatrixHandler(Dim, &perm[0]));
 
 	dynamic_cast<NaiveSolver *>(pLS)->SetMat(A);
 
@@ -254,7 +256,7 @@ NaiveSparsePermSolutionManager::BackPerm(void)
 }
 
 
-/* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
+/* Risolve il sistema: Fattorizzazione + Bacward Substitution */
 void
 NaiveSparsePermSolutionManager::Solve(void)
 {
