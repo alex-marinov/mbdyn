@@ -34,6 +34,7 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <Rot.hh>
 #include <strings.h>
 
 #include <joint.h>
@@ -443,6 +444,15 @@ Elem* ReadJoint(DataManager* pDM,
        SAFENEWWITHCONSTRUCTOR(pEl,
 			      ClampJoint,
 			      ClampJoint(uLabel, pDO, pNode, X0, R0, fOut));
+       std::ostream& out = pDM->GetLogFile();
+       out << "clamp: " << uLabel
+	   	<< " " << pNode->GetLabel()
+	   	<< " " << Vec3(0.)
+	   	<< " " << Mat3x3(1.)
+	   	<< " " << pNode->GetLabel()
+	   	<< " " << Vec3(0.)
+	   	<< " " << Mat3x3(1.)
+		<< std::endl;
        break;
     }      	   	            
       
@@ -506,6 +516,15 @@ Elem* ReadJoint(DataManager* pDM,
 			      PinJoint,
 			      PinJoint(uLabel, pDO, pNode, X0, d, fOut));
        
+       std::ostream& out = pDM->GetLogFile();
+       out << "sphericalpin: " << uLabel
+	   	<< " " << pNode->GetLabel()
+	   	<< " " << d
+	   	<< " " << Mat3x3(1.)
+	   	<< " " << pNode->GetLabel()
+	   	<< " " << d
+	   	<< " " << Mat3x3(1.)
+		<< std::endl;
        break;
     }	
       
@@ -643,6 +662,15 @@ Elem* ReadJoint(DataManager* pDM,
 						      pNode1, pNode2, 
 						      d1, R1h,
 						      d2, R2h, fOut));
+	   std::ostream& out = pDM->GetLogFile();
+	   out << "sphericalhinge: " << uLabel
+	   	<< " " << pNode1->GetLabel()
+	   	<< " " << d1
+	   	<< " " << R1h
+	   	<< " " << pNode2->GetLabel()
+	   	<< " " << d2
+	   	<< " " << R2h
+		<< std::endl;
 	   break;
 	}
 	  
@@ -669,6 +697,15 @@ Elem* ReadJoint(DataManager* pDM,
 				  PlaneHingeJoint(uLabel, pDO, pNode1, pNode2, 
 						  d1, d2, R1h, R2h, fOut,
 						  r, preload, bsh, bf));
+	   std::ostream& out = pDM->GetLogFile();
+	   out << "revolutehinge: " << uLabel
+	   	<< " " << pNode1->GetLabel()
+	   	<< " " << d1
+	   	<< " " << R1h
+	   	<< " " << pNode2->GetLabel()
+	   	<< " " << d2
+	   	<< " " << R2h
+		<< std::endl;
 	   break;
 	}
         case BRAKE: {
@@ -719,6 +756,15 @@ Elem* ReadJoint(DataManager* pDM,
 				  UniversalHingeJoint(uLabel, pDO, 
 						      pNode1, pNode2,
 						      d1, d2, R1h, R2h, fOut));
+       std::ostream& out = pDM->GetLogFile();
+       out << "universalhinge: " << uLabel
+	   	<< " " << pNode1->GetLabel()
+	   	<< " " << d1
+	   	<< " " << R1h
+	   	<< " " << pNode2->GetLabel()
+	   	<< " " << d2
+	   	<< " " << R2h
+		<< std::endl;
 	   break;
 	}
 	  
@@ -729,6 +775,15 @@ Elem* ReadJoint(DataManager* pDM,
 				  UniversalRotationJoint(uLabel, pDO, 
 						      pNode1, pNode2,
 						      R1h, R2h, fOut));
+       std::ostream& out = pDM->GetLogFile();
+       out << "universalrotation: " << uLabel
+	   	<< " " << pNode1->GetLabel()
+	   	<< " " << Vec3(0.)
+	   	<< " " << R1h
+	   	<< " " << pNode2->GetLabel()
+	   	<< " " << Vec3(0.)
+	   	<< " " << R2h
+		<< std::endl;
 	   break;
 	}
 	  
@@ -873,6 +928,15 @@ Elem* ReadJoint(DataManager* pDM,
 				  UniversalPinJoint,
 				  UniversalPinJoint(uLabel, pDO, pNode,
 						    X0, R0, d, Rh, fOut));
+       std::ostream& out = pDM->GetLogFile();
+       out << "universalpin: " << uLabel
+	   	<< " " << pNode->GetLabel()
+	   	<< " " << d
+	   	<< " " << Rh
+	   	<< " " << pNode->GetLabel()
+	   	<< " " << pNode->GetRCurr().Transpose()*(X0-pNode->GetXCurr())
+	   	<< " " << R0*(pNode->GetRCurr().Transpose())
+		<< std::endl;
 	   break;
 	}
 	  
@@ -954,6 +1018,17 @@ Elem* ReadJoint(DataManager* pDM,
 				 InPlaneJoint(uLabel, pDO, pNode1, pNode2, 
 					      v, p, fOut));
        }
+       std::ostream& out = pDM->GetLogFile();
+       Vec3 relrot(Vec3(0,0,1).Cross(v));
+       relrot = relrot*std::asin(relrot.Norm());
+       out << "inplane: " << uLabel
+		<< " " << pNode1->GetLabel()
+		<< " " << p
+		<< " " << (pNode1->GetRCurr().Transpose())*RotManip::Rot(relrot)
+		<< " " << pNode2->GetLabel()
+		<< " " << q
+		<< " " << Mat3x3(1.)
+		<< std::endl;
        
        break;
     }	
@@ -1024,6 +1099,15 @@ Elem* ReadJoint(DataManager* pDM,
 					     pNode1, pNode2,
 					     R, p, fOut));
        }
+       std::ostream& out = pDM->GetLogFile();
+       out << "inline: " << uLabel
+		<< " " << pNode1->GetLabel()
+		<< " " << p
+		<< " " << R
+		<< " " << pNode2->GetLabel()
+		<< " " << q
+		<< " " << Mat3x3(1.)
+		<< std::endl;
        
        break;
     }	
@@ -1315,6 +1399,15 @@ Elem* ReadJoint(DataManager* pDM,
 				     ElasticHingeJoint(uLabel, pDO, pCL,
 						       pNode1, pNode2, 
 						       R1, R2, fOut));
+	   std::ostream& out = pDM->GetLogFile();
+	   out << "deformablehinge: " << uLabel
+	   	<< " " << pNode1->GetLabel()
+	   	<< " " << Vec3(0.)
+	   	<< " " << R1
+	   	<< " " << pNode2->GetLabel()
+	   	<< " " << Vec3(0.)
+	   	<< " " << R2
+		<< std::endl;
 	   } else if (CurrKeyWord == DEFORMABLEDISPHINGE || CurrKeyWord == DEFORMABLEDISPJOINT) {
 	      SAFENEWWITHCONSTRUCTOR(pEl,
 				     ElasticDispJoint,
@@ -1324,6 +1417,15 @@ Elem* ReadJoint(DataManager* pDM,
 							   fOut));
 	   }
 	   
+	   std::ostream& out = pDM->GetLogFile();
+	   out << "deformabledisplacementjoint: " << uLabel
+	   	<< " " << pNode1->GetLabel()
+	   	<< " " << f1
+	   	<< " " << R1
+	   	<< " " << pNode2->GetLabel()
+	   	<< " " << f2
+	   	<< " " << R2
+		<< std::endl;
 	   break;
 	}
 	  
@@ -1334,6 +1436,15 @@ Elem* ReadJoint(DataManager* pDM,
 				     ViscousHingeJoint(uLabel, pDO, pCL,
 						       pNode1, pNode2, 
 						       R1, R2, fOut));
+	   std::ostream& out = pDM->GetLogFile();
+	   out << "deformablehinge: " << uLabel
+	   	<< " " << pNode1->GetLabel()
+	   	<< " " << Vec3(0.)
+	   	<< " " << R1
+	   	<< " " << pNode2->GetLabel()
+	   	<< " " << Vec3(0.)
+	   	<< " " << R2
+		<< std::endl;
 	   } else if (CurrKeyWord == DEFORMABLEDISPHINGE || CurrKeyWord == DEFORMABLEDISPJOINT) {
 	      SAFENEWWITHCONSTRUCTOR(pEl, 
 				     ViscousDispJoint,
@@ -1341,6 +1452,15 @@ Elem* ReadJoint(DataManager* pDM,
 							   pNode1, pNode2,
 							   f1, f2, R1, R2, 
 							   fOut));
+	   std::ostream& out = pDM->GetLogFile();
+	   out << "deformabledisplacementjoint: " << uLabel
+	   	<< " " << pNode1->GetLabel()
+	   	<< " " << f1
+	   	<< " " << R1
+	   	<< " " << pNode2->GetLabel()
+	   	<< " " << f2
+	   	<< " " << R2
+		<< std::endl;
 	   }
 	   
 	   break;
@@ -1353,6 +1473,15 @@ Elem* ReadJoint(DataManager* pDM,
 				     ViscoElasticHingeJoint(uLabel, pDO, pCL,
 							    pNode1, pNode2, 
 							    R1, R2, fOut));
+	   std::ostream& out = pDM->GetLogFile();
+	   out << "deformablehinge: " << uLabel
+	   	<< " " << pNode1->GetLabel()
+	   	<< " " << Vec3(0.)
+	   	<< " " << R1
+	   	<< " " << pNode2->GetLabel()
+	   	<< " " << Vec3(0.)
+	   	<< " " << R2
+		<< std::endl;
 	   } else if (CurrKeyWord == DEFORMABLEDISPHINGE || CurrKeyWord == DEFORMABLEDISPJOINT) {
 	      SAFENEWWITHCONSTRUCTOR(pEl,
 				     ViscoElasticDispJoint,
@@ -1361,6 +1490,15 @@ Elem* ReadJoint(DataManager* pDM,
 								pNode1, pNode2,
 								f1, f2, R1, R2,
 								fOut));
+	   std::ostream& out = pDM->GetLogFile();
+	   out << "deformabledisplacementjoint: " << uLabel
+	   	<< " " << pNode1->GetLabel()
+	   	<< " " << f1
+	   	<< " " << R1
+	   	<< " " << pNode2->GetLabel()
+	   	<< " " << f2
+	   	<< " " << R2
+		<< std::endl;
 	   }
 	   
 	   break;
@@ -1422,6 +1560,15 @@ Elem* ReadJoint(DataManager* pDM,
 							   pNode1, pNode2, 
 							   f1, f2, R1, R2, 
 							   fOut));
+	   std::ostream& out = pDM->GetLogFile();
+	   out << "deformablejoint: " << uLabel
+	   	<< " " << pNode1->GetLabel()
+	   	<< " " << f1
+	   	<< " " << R1
+	   	<< " " << pNode2->GetLabel()
+	   	<< " " << f2
+	   	<< " " << R2
+		<< std::endl;
 	   break;
 	}
 
@@ -1579,6 +1726,15 @@ Elem* ReadJoint(DataManager* pDM,
 			      PrismaticJoint(uLabel, pDO, pNode1, pNode2, 
 					     R1h, R2h, fOut));
        
+       std::ostream& out = pDM->GetLogFile();
+       out << "prismatic: " << uLabel
+	   	<< " " << pNode1->GetLabel()
+	   	<< " " << Vec3(0.)
+	   	<< " " << R1h
+	   	<< " " << pNode2->GetLabel()
+	   	<< " " << Vec3(0.)
+	   	<< " " << R2h
+		<< std::endl;
        break;
     }
       
