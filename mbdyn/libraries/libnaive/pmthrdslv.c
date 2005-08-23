@@ -56,7 +56,6 @@ struct task_struct;
 #include "ac/spinlock.h"
 
 
-
 /* FIXME: from <f2c.h> */
 typedef int     integer;
 typedef double  doublereal;
@@ -82,13 +81,13 @@ int pnaivfct(doublereal** a,
 	int task,
 	int ncpu)
 {
-	integer i, j, k, m, pvr = 0, pvc, nr, nc, r;
+	integer i, j, k, pvr = 0, pvc, nr, nc, r;
 	integer *pri, *pci;
 	char *pnzk;
 	doublereal den, mul, mulpiv, fapvr, fari;
 	doublereal *par, *papvr;
 	unsigned long *sync_lock = &row_locks[neq];
-	unsigned long *pivot_lock = &row_locks[neq + 1];
+	//unsigned long *pivot_lock = &row_locks[neq + 1];
 
 	if (minpiv == 0.) {
 		minpiv = MINPIV;
@@ -104,24 +103,26 @@ int pnaivfct(doublereal** a,
 		}
 		pri = ri[i];
 		if (task == 0) {
-			m = neq + 1;	
+			nc = neq + 1;	
 			mul = mulpiv = fapvr = 0.0;
-// 			for (k = 0; k < nr; k++) {
-// 				r = pri[k];
-// 				if (todo[r]) {
-// 					fari = fabs(a[r][i]);
-// 					if (fari > mul) {
-// 						mulpiv = fari*minpiv;
-// 						if (nzc[r] <= m  || mulpiv > fapvr) {
-// 							m = nzc[pvr = r];
-// 							fapvr = fari;
-// 						}
-// 						mul = fari;
-// 					} else if (nzc[r] < m && fari > mulpiv) {
-// 						m = nzc[pvr = r];
-// 					}
-// 				}
-// 			}
+/*
+ * 			for (k = 0; k < nr; k++) {
+ * 				r = pri[k];
+ * 				if (todo[r]) {
+ * 					fari = fabs(a[r][i]);
+ * 					if (fari > mul) {
+ * 						mulpiv = fari*minpiv;
+ * 						if (nzc[r] <= m  || mulpiv > fapvr) {
+ * 							m = nzc[pvr = r];
+ * 							fapvr = fari;
+ * 						}
+ * 						mul = fari;
+ * 					} else if (nzc[r] < m && fari > mulpiv) {
+ * 						m = nzc[pvr = r];
+ * 					}
+ * 				}
+ * 			}
+ */
 			for (k = 0; k < nr; k++) {
 				r = pri[k];
 				if (todo[r]) {
@@ -136,46 +137,37 @@ int pnaivfct(doublereal** a,
 				r = pri[k];
 				if (todo[r]) {
 					fari = fabs(a[r][i]);
-					if (fari >= mulpiv && nzc[r] < m) {
-						m = nzc[pvr = r];
+					if (fari >= mulpiv && nzc[r] < nc) {
+						nc = nzc[pvr = r];
 					}
 				}
 			}
-			if (m == neq + 1) { return ENOPIV + i; }
+			if (nc == neq + 1) { return ENOPIV + i; }
 
 			todo[pvr] = 0;
 			papvr = a[pvr];
-			den = 1.0/papvr[i];
-			if (pri[i]%ncpu == task) {
-				papvr[i] = den;
-				wmb();
-				atomic_set((atomic_t *)pivot_lock, 1);
-			}
+			den = papvr[i] = 1.0/papvr[i];
+			wmb();
 
-			set_wmb(piv[i], pvr);
+			//set_wmb(piv[i], pvr);
+			piv[i] = pvr;
 
-			while (atomic_read((atomic_t *)pivot_lock) != 1);
 
 		} else {
 			while ((pvr = atomic_read((atomic_t *)&piv[i])) < 0);
 			papvr = a[pvr];
-
-			if (pri[i]%ncpu == task) {
-				den = papvr[i] = 1./papvr[i];
-				wmb();
-				atomic_set((atomic_t *)pivot_lock, 1);
-			} else {
-				while (atomic_read((atomic_t *)pivot_lock) != 1);
-				den = papvr[i];
-			}
+			
+			den = papvr[i];
 		}
 
 		nc  = nzc[pvr];
 		pci = ci[pvr];
-
-		for (k = task; k < nr; k += ncpu) {
+		
+		for (k = 0; k < nr; k++) {
+		//for (k = task; k < nr; k += ncpu) {
 			r = pri[k];
-			if (todo[r] == 0) {
+			if (todo[r] == 0 || r%ncpu != task) {
+			//if (todo[r] == 0) {
 				continue;
 			}
 			pnzk = nz[r];
@@ -198,7 +190,8 @@ int pnaivfct(doublereal** a,
 					while (mbdyn_cmpxchgl((int32_t *)&col_locks[pvc], 1, 0) != 0);
 					pnzk[pvc] = 1;
 					ri[pvc][nzr[pvc]++] = r;
-					atomic_set((atomic_t *)&col_locks[pvc], 0); 
+					col_locks[pvc] = 0;
+					//atomic_set((atomic_t *)&col_locks[pvc], 0); 
 				}
 			}
 		}
@@ -207,15 +200,12 @@ int pnaivfct(doublereal** a,
 		while (atomic_read((atomic_t *)&row_locks[i]) < ncpu);
 	}
 
-	if (task == 0) {
+//	if (task == 0) {
 		/* NOTE: same as sync_lock[0] */
-		sync_lock[0] = 0;
+//		sync_lock[0] = 0;
 
-		/* NOTE: same as pivot_lock[0] */
-		pivot_lock[0] = 0;
-
-		wmb();
-	}
+//		wmb();
+//	}
 
 	return 0;
 }
