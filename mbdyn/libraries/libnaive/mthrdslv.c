@@ -99,18 +99,37 @@ naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 		pvr = pri[0];
 		mulpiv = 0.;
 		fapvr = 0.;
+// 		for (k = 0; k < nr; k++) {
+// 			r = pri[k];
+// 			if (todo[r]) {
+// 				fari = fabs(a[r][i]);
+// 				if (fari > mul) {
+// 					mulpiv = fari*minpiv;
+// 					if (nzc[r] <= nc  || mulpiv > fapvr) {
+// 						nc = nzc[pvr = r];
+// 						fapvr = fari;
+// 					}
+// 					mul = fari;
+// 				} else if (nzc[r] < nc && fari > mulpiv) {
+// 					nc = nzc[pvr = r];
+// 				}
+// 			}
+// 		}
 		for (k = 0; k < nr; k++) {
 			r = pri[k];
 			if (todo[r]) {
 				fari = fabs(a[r][i]);
 				if (fari > mul) {
-					mulpiv = fari*minpiv;
-					if (nzc[r] <= nc  || mulpiv > fapvr) {
-						nc = nzc[pvr = r];
-						fapvr = fari;
-					}
 					mul = fari;
-				} else if (nzc[r] < nc && fari > mulpiv) {
+				}
+			}
+		}
+		mulpiv = mul*minpiv;
+		for (k = 0; k < nr; k++) {
+			r = pri[k];
+			if (todo[r]) {
+				fari = fabs(a[r][i]);
+				if (fari >= mulpiv && nzc[r] < nc) {
 					nc = nzc[pvr = r];
 				}
 			}

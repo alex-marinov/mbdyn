@@ -106,18 +106,37 @@ int pnaivfct(doublereal** a,
 		if (task == 0) {
 			m = neq + 1;	
 			mul = mulpiv = fapvr = 0.0;
+// 			for (k = 0; k < nr; k++) {
+// 				r = pri[k];
+// 				if (todo[r]) {
+// 					fari = fabs(a[r][i]);
+// 					if (fari > mul) {
+// 						mulpiv = fari*minpiv;
+// 						if (nzc[r] <= m  || mulpiv > fapvr) {
+// 							m = nzc[pvr = r];
+// 							fapvr = fari;
+// 						}
+// 						mul = fari;
+// 					} else if (nzc[r] < m && fari > mulpiv) {
+// 						m = nzc[pvr = r];
+// 					}
+// 				}
+// 			}
 			for (k = 0; k < nr; k++) {
 				r = pri[k];
 				if (todo[r]) {
 					fari = fabs(a[r][i]);
 					if (fari > mul) {
-						mulpiv = fari*minpiv;
-						if (nzc[r] <= m  || mulpiv > fapvr) {
-							m = nzc[pvr = r];
-							fapvr = fari;
-						}
 						mul = fari;
-					} else if (nzc[r] < m && fari > mulpiv) {
+					}
+				}
+			}
+			mulpiv = mul*minpiv;
+			for (k = 0; k < nr; k++) {
+				r = pri[k];
+				if (todo[r]) {
+					fari = fabs(a[r][i]);
+					if (fari >= mulpiv && nzc[r] < m) {
 						m = nzc[pvr = r];
 					}
 				}
