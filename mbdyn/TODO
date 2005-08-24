@@ -123,6 +123,7 @@ D. Code:
 	  to the unconstrained displacements/rotations of selected joints:
 	  - the revolute family
 	  - ...
+	- add function max(), min() to math parser
 
 
 
