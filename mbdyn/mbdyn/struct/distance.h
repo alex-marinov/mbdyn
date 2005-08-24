@@ -57,7 +57,7 @@ protected:
 	 * A = dF/dx e B = dCoef * dF/dxp
 	 */
 	virtual void
-	AssMat_(FullSubMatrixHandler& WorkMatA,
+	AssMat(FullSubMatrixHandler& WorkMatA,
 			FullSubMatrixHandler& WorkMatB,
 			doublereal dCoef,
 			const VectorHandler& XCurr,
@@ -194,7 +194,7 @@ private:
 	 * A = dF/dx e B = dCoef * dF/dxp
 	 */
 	virtual void
-	AssMat_(FullSubMatrixHandler& WorkMatA,
+	AssMat(FullSubMatrixHandler& WorkMatA,
 			FullSubMatrixHandler& WorkMatB,
 			doublereal dCoef,
 			const VectorHandler& XCurr,
