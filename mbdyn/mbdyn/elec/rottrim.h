@@ -41,8 +41,6 @@ protected:
 	DriveOwner pvDrives[3];
 	DriveOwner Trigger;
 	
-	doublereal dSigma;
-	doublereal dCpAlpha;
 	doublereal dGamma;
 	doublereal dP;
 	
@@ -65,7 +63,6 @@ public:
 		DriveCaller* pDrive1,
 		DriveCaller* pDrive2,
 		DriveCaller* pDrive3,
-		const doublereal& dS,	    
 		const doublereal& dG,
 		const doublereal& dp,
 		const doublereal& dT0,

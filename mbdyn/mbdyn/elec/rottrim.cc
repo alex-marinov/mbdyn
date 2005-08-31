@@ -55,7 +55,6 @@ RotorTrim::RotorTrim(unsigned int uL,
 		DriveCaller* pDrive1,
 		DriveCaller* pDrive2,
 		DriveCaller* pDrive3,
-		const doublereal& dS,
 		const doublereal& dG,
 		const doublereal& dp,
 		const doublereal& dT0,
@@ -68,8 +67,6 @@ RotorTrim::RotorTrim(unsigned int uL,
 Genel(uL, Genel::ROTORTRIM, pDO, fOut),
 pRotor(pRot),
 Trigger(pTrigger),
-dSigma(dS),
-dCpAlpha(2*M_PI),
 dGamma(dG),
 dP(dp),
 dP2(dP*dP),
@@ -84,8 +81,6 @@ dKappa1(dK1)
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode2 != NULL);
 	ASSERT(pNode3 != NULL);
-	ASSERT(dSigma > 0.);
-	ASSERT(dCpAlpha > 0.);
 	ASSERT(dGamma > 0.);
 	ASSERT(dP > 0.);
 
@@ -205,8 +200,7 @@ RotorTrim::AssRes(SubVectorHandler& WorkVec,
 	doublereal dMu = pRotor->dGetMu();
 	doublereal dMu2 = dMu*dMu;
 
-	doublereal d =
-		M_PI*pow(dRadius, 4)*dRho*dOmega*dOmega*(dSigma*dCpAlpha);
+	doublereal d = M_PI*pow(dRadius, 4)*dRho*dOmega*dOmega;
 	doublereal dTraction = pRotor->dGetPrivData(iRotorTz)/d;
 	d *= dRadius;
 	doublereal dRollMoment = pRotor->dGetPrivData(iRotorMx)/d;

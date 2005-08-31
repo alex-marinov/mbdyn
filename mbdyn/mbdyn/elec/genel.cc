@@ -267,9 +267,6 @@ Elem* ReadGenel(DataManager* pDM,
        pvDrives[1] = HP.GetDriveCaller();
        pvDrives[2] = HP.GetDriveCaller();
        
-       doublereal dSigma = HP.GetReal();
-       DEBUGCOUT("Sigma: " << dSigma << std::endl);
-
        doublereal dGamma = HP.GetReal();
        DEBUGCOUT("Gamma: " << dGamma << std::endl);
        
@@ -302,7 +299,7 @@ Elem* ReadGenel(DataManager* pDM,
 			      RotorTrim(uLabel, pDO, pRot,
 					pvNodes[0], pvNodes[1], pvNodes[2],
 					pvDrives[0], pvDrives[1], pvDrives[2],
-					dSigma, dGamma, dP, 
+					dGamma, dP, 
 					dTau0, dTau1, dKappa0, dKappa1,
 					pTrigger, fOut));
 
