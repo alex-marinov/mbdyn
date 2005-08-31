@@ -40,7 +40,7 @@ typedef Real (*ModelFunc_1args_t)(DataManager *, Real);
 typedef Real (*ModelFunc_2args_t)(DataManager *, Real, Real);
 
 /*
- * Computes the distance between two structural nodes
+ * Computes the position of a structural node
  */
 template <unsigned IDX>
 static Real
@@ -56,9 +56,16 @@ position(DataManager *pDM, Real n)
 		throw ErrGeneric();
 	}
 
+	if (IDX == 0) {
+		return pNode->GetXCurr().Norm();
+	}
+
 	return pNode->GetXCurr()(IDX);
 }
 
+/*
+ * Computes the distance between two structural nodes
+ */
 template <unsigned IDX>
 static Real
 distance(DataManager *pDM, Real n1, Real n2)
@@ -91,14 +98,85 @@ distance(DataManager *pDM, Real n1, Real n2)
 	return d(IDX);
 }
 
+/*
+ * Computes the velocity of a structural node
+ */
+template <unsigned IDX>
+static Real
+velocity(DataManager *pDM, Real n)
+{
+	unsigned uLabel = unsigned(n);
+
+	StructNode *pNode = pDM->pFindStructNode(uLabel);
+	if (pNode == 0) {
+		silent_cerr("velocity<" << IDX << ">(" << uLabel << "): "
+				"unable to find StructNode(" << uLabel << ")"
+				<< std::endl);
+		throw ErrGeneric();
+	}
+
+	if (IDX == 0) {
+		return pNode->GetVCurr().Norm();
+	}
+	
+	return pNode->GetVCurr()(IDX);
+}
+
+/*
+ * Computes the relative velocity between two structural nodes
+ */
+template <unsigned IDX>
+static Real
+vrel(DataManager *pDM, Real n1, Real n2)
+{
+	unsigned uLabel1 = unsigned(n1);
+	unsigned uLabel2 = unsigned(n2);
+
+	StructNode *pNode1 = pDM->pFindStructNode(uLabel1);
+	if (pNode1 == 0) {
+		silent_cerr("distance(" << uLabel1 << "," << uLabel2 << "): "
+				"unable to find StructNode(" << uLabel1 << ")"
+				<< std::endl);
+		throw ErrGeneric();
+	}
+
+	StructNode *pNode2 = pDM->pFindStructNode(uLabel2);
+	if (pNode2 == 0) {
+		silent_cerr("distance(" << uLabel1 << "," << uLabel2 << "): "
+				"unable to find StructNode(" << uLabel2 << ")"
+				<< std::endl);
+		throw ErrGeneric();
+	}
+
+	Vec3 d = pNode2->GetVCurr() - pNode1->GetVCurr();
+
+	if (IDX == 0) {
+		return d.Norm();
+	}
+
+	return d(IDX);
+}
+
 static MathFunc_t	ModelFunc[] = {
+	{ "position",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)position<0>) },	0,	"" },
 	{ "xposition",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)position<1>) },	0,	"" },
 	{ "yposition",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)position<2>) },	0,	"" },
 	{ "zposition",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)position<3>) },	0,	"" },
-	{ "distance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<0>) },		0,	"" },
+
+	{ "distance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<0>) },	0,	"" },
 	{ "xdistance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<1>) },	0,	"" },
 	{ "ydistance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<2>) },	0,	"" },
 	{ "zdistance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<3>) },	0,	"" },
+
+	{ "velocity",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)velocity<0>) },	0,	"" },
+	{ "xvelocity",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)velocity<1>) },	0,	"" },
+	{ "yvelocity",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)velocity<2>) },	0,	"" },
+	{ "zvelocity",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)velocity<3>) },	0,	"" },
+
+	{ "vrel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)vrel<0>) },	0,	"" },
+	{ "xvrel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)vrel<1>) },	0,	"" },
+	{ "yvrel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)vrel<2>) },	0,	"" },
+	{ "zvrel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)vrel<3>) },	0,	"" },
 
      /* add more as needed */
 	{ 0,		0,	{ (MathFunc_0args_t)0 },		0,	0 }
