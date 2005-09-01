@@ -39,10 +39,39 @@ typedef Real (*ModelFunc_0args_t)(DataManager *);
 typedef Real (*ModelFunc_1args_t)(DataManager *, Real);
 typedef Real (*ModelFunc_2args_t)(DataManager *, Real, Real);
 
+enum IDX_t {
+	IDX1 = 1,
+	IDX2 = 2,
+	IDX3 = 3,
+	NORM,
+	SQUARE
+};
+
+static const char *
+IDX2str(IDX_t IDX)
+{
+	switch (IDX) {
+	case NORM:
+		return "";
+
+	case SQUARE:
+		return "2";
+
+	case IDX1:
+		return "<1>";
+
+	case IDX2:
+		return "<2>";
+
+	case IDX3:
+		return "<3>";
+	}
+}
+
 /*
  * Computes the position of a structural node
  */
-template <unsigned IDX>
+template <IDX_t IDX>
 static Real
 position(DataManager *pDM, Real n)
 {
@@ -50,23 +79,29 @@ position(DataManager *pDM, Real n)
 
 	StructNode *pNode = pDM->pFindStructNode(uLabel);
 	if (pNode == 0) {
-		silent_cerr("position<" << IDX << ">(" << uLabel << "): "
+		silent_cerr("position" << IDX2str(IDX)
+				<< "(" << uLabel << "): "
 				"unable to find StructNode(" << uLabel << ")"
 				<< std::endl);
 		throw ErrGeneric();
 	}
 
-	if (IDX == 0) {
+	switch (IDX) {
+	case NORM:
 		return pNode->GetXCurr().Norm();
-	}
 
-	return pNode->GetXCurr()(IDX);
+	case SQUARE:
+		return pNode->GetXCurr().Dot();
+
+	default:
+		return pNode->GetXCurr()(IDX);
+	}
 }
 
 /*
  * Computes the distance between two structural nodes
  */
-template <unsigned IDX>
+template <IDX_t IDX>
 static Real
 distance(DataManager *pDM, Real n1, Real n2)
 {
@@ -75,7 +110,8 @@ distance(DataManager *pDM, Real n1, Real n2)
 
 	StructNode *pNode1 = pDM->pFindStructNode(uLabel1);
 	if (pNode1 == 0) {
-		silent_cerr("distance(" << uLabel1 << "," << uLabel2 << "): "
+		silent_cerr("distance" << IDX2str(IDX)
+				<< "(" << uLabel1 << "," << uLabel2 << "): "
 				"unable to find StructNode(" << uLabel1 << ")"
 				<< std::endl);
 		throw ErrGeneric();
@@ -83,7 +119,8 @@ distance(DataManager *pDM, Real n1, Real n2)
 
 	StructNode *pNode2 = pDM->pFindStructNode(uLabel2);
 	if (pNode2 == 0) {
-		silent_cerr("distance(" << uLabel1 << "," << uLabel2 << "): "
+		silent_cerr("distance" << IDX2str(IDX)
+				<< "(" << uLabel1 << "," << uLabel2 << "): "
 				"unable to find StructNode(" << uLabel2 << ")"
 				<< std::endl);
 		throw ErrGeneric();
@@ -91,17 +128,22 @@ distance(DataManager *pDM, Real n1, Real n2)
 
 	Vec3 d = pNode2->GetXCurr() - pNode1->GetXCurr();
 
-	if (IDX == 0) {
+	switch (IDX) {
+	case NORM:
 		return d.Norm();
-	}
 
-	return d(IDX);
+	case SQUARE:
+		return d.Dot();
+
+	default:
+		return d(IDX);
+	}
 }
 
 /*
  * Computes the velocity of a structural node
  */
-template <unsigned IDX>
+template <IDX_t IDX>
 static Real
 velocity(DataManager *pDM, Real n)
 {
@@ -109,23 +151,29 @@ velocity(DataManager *pDM, Real n)
 
 	StructNode *pNode = pDM->pFindStructNode(uLabel);
 	if (pNode == 0) {
-		silent_cerr("velocity<" << IDX << ">(" << uLabel << "): "
+		silent_cerr("velocity" << IDX2str(IDX)
+				<< "(" << uLabel << "): "
 				"unable to find StructNode(" << uLabel << ")"
 				<< std::endl);
 		throw ErrGeneric();
 	}
 
-	if (IDX == 0) {
+	switch (IDX) {
+	case NORM:
 		return pNode->GetVCurr().Norm();
+
+	case SQUARE:
+		return pNode->GetVCurr().Dot();
+
+	default:
+		return pNode->GetVCurr()(IDX);
 	}
-	
-	return pNode->GetVCurr()(IDX);
 }
 
 /*
  * Computes the relative velocity between two structural nodes
  */
-template <unsigned IDX>
+template <IDX_t IDX>
 static Real
 vrel(DataManager *pDM, Real n1, Real n2)
 {
@@ -134,7 +182,8 @@ vrel(DataManager *pDM, Real n1, Real n2)
 
 	StructNode *pNode1 = pDM->pFindStructNode(uLabel1);
 	if (pNode1 == 0) {
-		silent_cerr("distance(" << uLabel1 << "," << uLabel2 << "): "
+		silent_cerr("vrel" << IDX2str(IDX)
+				<< "(" << uLabel1 << "," << uLabel2 << "): "
 				"unable to find StructNode(" << uLabel1 << ")"
 				<< std::endl);
 		throw ErrGeneric();
@@ -142,7 +191,8 @@ vrel(DataManager *pDM, Real n1, Real n2)
 
 	StructNode *pNode2 = pDM->pFindStructNode(uLabel2);
 	if (pNode2 == 0) {
-		silent_cerr("distance(" << uLabel1 << "," << uLabel2 << "): "
+		silent_cerr("vrel" << IDX2str(IDX)
+				<< "(" << uLabel1 << "," << uLabel2 << "): "
 				"unable to find StructNode(" << uLabel2 << ")"
 				<< std::endl);
 		throw ErrGeneric();
@@ -150,33 +200,42 @@ vrel(DataManager *pDM, Real n1, Real n2)
 
 	Vec3 d = pNode2->GetVCurr() - pNode1->GetVCurr();
 
-	if (IDX == 0) {
+	switch (IDX) {
+	case NORM:
 		return d.Norm();
-	}
 
-	return d(IDX);
+	case SQUARE:
+		return d.Dot();
+
+	default:
+		return d(IDX);
+	}
 }
 
 static MathFunc_t	ModelFunc[] = {
-	{ "position",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)position<0>) },	0,	"" },
-	{ "xposition",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)position<1>) },	0,	"" },
-	{ "yposition",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)position<2>) },	0,	"" },
-	{ "zposition",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)position<3>) },	0,	"" },
+	{ "position",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)position<NORM>) },	0,	"" },
+	{ "position2",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)position<SQUARE>) },	0,	"" },
+	{ "xposition",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)position<IDX1>) },	0,	"" },
+	{ "yposition",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)position<IDX2>) },	0,	"" },
+	{ "zposition",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)position<IDX3>) },	0,	"" },
 
-	{ "distance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<0>) },	0,	"" },
-	{ "xdistance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<1>) },	0,	"" },
-	{ "ydistance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<2>) },	0,	"" },
-	{ "zdistance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<3>) },	0,	"" },
+	{ "distance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<NORM>) },	0,	"" },
+	{ "distance2",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<SQUARE>) },	0,	"" },
+	{ "xdistance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<IDX1>) },	0,	"" },
+	{ "ydistance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<IDX2>) },	0,	"" },
+	{ "zdistance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<IDX3>) },	0,	"" },
 
-	{ "velocity",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)velocity<0>) },	0,	"" },
-	{ "xvelocity",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)velocity<1>) },	0,	"" },
-	{ "yvelocity",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)velocity<2>) },	0,	"" },
-	{ "zvelocity",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)velocity<3>) },	0,	"" },
+	{ "velocity",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)velocity<NORM>) },	0,	"" },
+	{ "velocity2",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)velocity<SQUARE>) },	0,	"" },
+	{ "xvelocity",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)velocity<IDX1>) },	0,	"" },
+	{ "yvelocity",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)velocity<IDX2>) },	0,	"" },
+	{ "zvelocity",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)velocity<IDX3>) },	0,	"" },
 
-	{ "vrel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)vrel<0>) },	0,	"" },
-	{ "xvrel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)vrel<1>) },	0,	"" },
-	{ "yvrel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)vrel<2>) },	0,	"" },
-	{ "zvrel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)vrel<3>) },	0,	"" },
+	{ "vrel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)vrel<NORM>) },		0,	"" },
+	{ "vrel2",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)vrel<SQUARE>) },	0,	"" },
+	{ "xvrel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)vrel<IDX1>) },		0,	"" },
+	{ "yvrel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)vrel<IDX2>) },		0,	"" },
+	{ "zvrel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)vrel<IDX3>) },		0,	"" },
 
      /* add more as needed */
 	{ 0,		0,	{ (MathFunc_0args_t)0 },		0,	0 }
