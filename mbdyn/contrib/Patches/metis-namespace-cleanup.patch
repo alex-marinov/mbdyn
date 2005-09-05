@@ -1,0 +1,72 @@
+diff -ur metis-4.0.orig/Lib/kmetis.c metis-4.0/Lib/kmetis.c
+--- metis-4.0.orig/Lib/kmetis.c	Mon Nov 30 17:26:47 1998
++++ metis-4.0/Lib/kmetis.c	Wed Jul 24 09:29:41 2002
+@@ -66,7 +66,7 @@
+     ctrl.dbglvl = options[OPTION_DBGLVL];
+   }
+   ctrl.optype = OP_KMETIS;
+-  ctrl.CoarsenTo = amax((*nvtxs)/(40*log2(*nparts)), 20*(*nparts));
++  ctrl.CoarsenTo = amax((*nvtxs)/(40*metis_log2(*nparts)), 20*(*nparts));
+   ctrl.maxvwgt = 1.5*((graph.vwgt ? idxsum(*nvtxs, graph.vwgt) : (*nvtxs))/ctrl.CoarsenTo);
+ 
+   InitRandom(-1);
+diff -ur metis-4.0.orig/Lib/kvmetis.c metis-4.0/Lib/kvmetis.c
+--- metis-4.0.orig/Lib/kvmetis.c	Mon Nov 30 17:26:47 1998
++++ metis-4.0/Lib/kvmetis.c	Wed Jul 24 09:29:50 2002
+@@ -66,7 +66,7 @@
+     ctrl.dbglvl = options[OPTION_DBGLVL];
+   }
+   ctrl.optype = OP_KVMETIS;
+-  ctrl.CoarsenTo = amax((*nvtxs)/(40*log2(*nparts)), 20*(*nparts));
++  ctrl.CoarsenTo = amax((*nvtxs)/(40*metis_log2(*nparts)), 20*(*nparts));
+   ctrl.maxvwgt = 1.5*((graph.vwgt ? idxsum(*nvtxs, graph.vwgt) : (*nvtxs))/ctrl.CoarsenTo);
+ 
+   InitRandom(-1);
+diff -ur metis-4.0.orig/Lib/mkmetis.c metis-4.0/Lib/mkmetis.c
+--- metis-4.0.orig/Lib/mkmetis.c	Mon Nov 30 17:26:48 1998
++++ metis-4.0/Lib/mkmetis.c	Wed Jul 24 09:30:01 2002
+@@ -47,7 +47,7 @@
+     ctrl.dbglvl = options[OPTION_DBGLVL];
+   }
+   ctrl.optype = OP_KMETIS;
+-  ctrl.CoarsenTo = amax((*nvtxs)/(20*log2(*nparts)), 30*(*nparts));
++  ctrl.CoarsenTo = amax((*nvtxs)/(20*metis_log2(*nparts)), 30*(*nparts));
+ 
+   ctrl.nmaxvwgt = 1.5/(1.0*ctrl.CoarsenTo);
+ 
+diff -ur metis-4.0.orig/Lib/proto.h metis-4.0/Lib/proto.h
+--- metis-4.0.orig/Lib/proto.h	Mon Nov 30 17:26:50 1998
++++ metis-4.0/Lib/proto.h	Wed Jul 24 09:28:35 2002
+@@ -459,7 +459,7 @@
+ void srand48(long);
+ int ispow2(int);
+ void InitRandom(int);
+-int log2(int);
++int metis_log2(int);
+ 
+ 
+ 
+diff -ur metis-4.0.orig/Lib/rename.h metis-4.0/Lib/rename.h
+--- metis-4.0.orig/Lib/rename.h	Mon Nov 30 17:26:50 1998
++++ metis-4.0/Lib/rename.h	Wed Jul 24 09:29:02 2002
+@@ -410,7 +410,7 @@
+ #define RandomPermute			__RandomPermute
+ #define ispow2				__ispow2
+ #define InitRandom			__InitRandom
+-#define log2				__log2
++#define metis_log2			__metis_log2
+ 
+ 
+ 
+diff -ur metis-4.0.orig/Lib/util.c metis-4.0/Lib/util.c
+--- metis-4.0.orig/Lib/util.c	Mon Nov 30 17:26:50 1998
++++ metis-4.0/Lib/util.c	Wed Jul 24 09:28:25 2002
+@@ -509,7 +509,7 @@
+ /*************************************************************************
+ * This function returns the log2(x)
+ **************************************************************************/
+-int log2(int a)
++int metis_log2(int a)
+ {
+   int i;
+ 

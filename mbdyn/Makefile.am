@@ -13,7 +13,15 @@ contrib/SimulinkInterface/sfun_mbdyn_start.c \
 	contrib/SimulinkInterface/examples/pendulum \
 	contrib/SimulinkInterface/examples/pendulum.mdl \
 	contrib/SimulinkInterface/examples/README \
-	contrib/SimulinkInterface/tmp/README
+	contrib/SimulinkInterface/tmp/README \
+contrib/Patches/README \
+contrib/Patches/chaco-2.2-lib.patch \
+contrib/Patches/meschach-2-mbdyn.diff \
+contrib/Patches/metis-namespace-cleanup.patch \
+contrib/Patches/mpich-1.2.0-c++cast.patch \
+contrib/Patches/mpich-1.2.0-g++exceptions.patch
+
+
 
 SUBDIRS = include build etc libraries manual mbdyn modules utils var
 
