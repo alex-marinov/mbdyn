@@ -78,7 +78,14 @@ const LinSol::solver_t solver[] = {
 		-1. },
 	{ "Naive", NULL,
 		LinSol::NAIVE_SOLVER,
-		LinSol::SOLVER_FLAGS_ALLOWS_COLAMD|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS|LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT,
+		LinSol::SOLVER_FLAGS_ALLOWS_REVERSE_CUTHILL_MC_KEE |
+			LinSol::SOLVER_FLAGS_ALLOWS_COLAMD |
+			LinSol::SOLVER_FLAGS_ALLOWS_MMDATA |
+			LinSol::SOLVER_FLAGS_ALLOWS_REVERSE_CUTHILL_MC_KEE |
+			LinSol::SOLVER_FLAGS_ALLOWS_KING |
+			LinSol::SOLVER_FLAGS_ALLOWS_NESTED_DISSECTION |
+			LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS |
+			LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT,
 		LinSol::SOLVER_FLAGS_NONE,
 		1.e-8 },
 	{ "SuperLU", NULL, 
@@ -584,8 +591,8 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 		if (perm == LinSol::SOLVER_FLAGS_ALLOWS_COLAMD) {
 			if (nThreads == 1) {
 				SAFENEWWITHCONSTRUCTOR(pCurrSM,
-					NaiveSparsePermSolutionManager,
-					NaiveSparsePermSolutionManager(iNLD, dPivotFactor));
+					NaiveSparsePermSolutionManager<Colamd_ordering>,
+					NaiveSparsePermSolutionManager<Colamd_ordering>(iNLD, dPivotFactor));
 			} else {
 #ifdef USE_NAIVE_MULTITHREAD
 				SAFENEWWITHCONSTRUCTOR(pCurrSM,
@@ -599,6 +606,104 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 				throw ErrGeneric();
 #endif /* USE_NAIVE_MULTITHREAD */
 			}
+		} else if (perm == LinSol::SOLVER_FLAGS_ALLOWS_REVERSE_CUTHILL_MC_KEE) {
+			if (nThreads == 1) {
+				SAFENEWWITHCONSTRUCTOR(pCurrSM,
+					NaiveSparsePermSolutionManager<rcmk_ordering>,
+					NaiveSparsePermSolutionManager<rcmk_ordering>(iNLD, dPivotFactor));
+			} else {
+#ifdef USE_NAIVE_MULTITHREAD
+//				SAFENEWWITHCONSTRUCTOR(pCurrSM,
+//					ParNaiveSparsePermSolutionManager,
+//					ParNaiveSparsePermSolutionManager(nThreads, iNLD, dPivotFactor));
+				silent_cerr("multithread naive solver with"
+					"reverse Cuthill-McKee permutation not"
+					"available yet. Patches welcome"
+					<< std::endl);
+				throw ErrGeneric();
+#else
+				silent_cerr("multithread naive solver support not compiled; "
+					"you can configure --enable-multithread-naive "
+					"on a linux ix86 to get it"
+					<< std::endl);
+				throw ErrGeneric();
+#endif /* USE_NAIVE_MULTITHREAD */
+			}
+// 		} else if (perm == LinSol::SOLVER_FLAGS_ALLOWS_MMDATA) {
+// 			if (nThreads == 1) {
+// 				SAFENEWWITHCONSTRUCTOR(pCurrSM,
+// 					NaiveSparsePermSolutionManager<amd_ordering>,
+// 					NaiveSparsePermSolutionManager<amd_ordering>(iNLD, dPivotFactor));
+// 			} else {
+// #ifdef USE_NAIVE_MULTITHREAD
+// //				SAFENEWWITHCONSTRUCTOR(pCurrSM,
+// //					ParNaiveSparsePermSolutionManager,
+// //					ParNaiveSparsePermSolutionManager(nThreads, iNLD, dPivotFactor));
+// 				silent_cerr("multithread naive solver with"
+// 					"approximate minimum degree permutation not"
+// 					"available yet. Patches welcome"
+// 					<< std::endl);
+// 				throw ErrGeneric();
+// #else
+// 				silent_cerr("multithread naive solver support not compiled; "
+// 					"you can configure --enable-multithread-naive "
+// 					"on a linux ix86 to get it"
+// 					<< std::endl);
+// 				throw ErrGeneric();
+// #endif /* USE_NAIVE_MULTITHREAD */
+// 			}
+		} else if (perm == LinSol::SOLVER_FLAGS_ALLOWS_KING) {
+			if (nThreads == 1) {
+				SAFENEWWITHCONSTRUCTOR(pCurrSM,
+					NaiveSparsePermSolutionManager<king_ordering>,
+					NaiveSparsePermSolutionManager<king_ordering>(iNLD, dPivotFactor));
+			} else {
+#ifdef USE_NAIVE_MULTITHREAD
+//				SAFENEWWITHCONSTRUCTOR(pCurrSM,
+//					ParNaiveSparsePermSolutionManager,
+//					ParNaiveSparsePermSolutionManager(nThreads, iNLD, dPivotFactor));
+				silent_cerr("multithread naive solver with"
+					"king permutation not"
+					"available yet. Patches welcome"
+					<< std::endl);
+				throw ErrGeneric();
+#else
+				silent_cerr("multithread naive solver support not compiled; "
+					"you can configure --enable-multithread-naive "
+					"on a linux ix86 to get it"
+					<< std::endl);
+				throw ErrGeneric();
+#endif /* USE_NAIVE_MULTITHREAD */
+			}
+		} else if (perm == LinSol::SOLVER_FLAGS_ALLOWS_NESTED_DISSECTION) {
+#ifdef USE_METIS
+			if (nThreads == 1) {
+				SAFENEWWITHCONSTRUCTOR(pCurrSM,
+					NaiveSparsePermSolutionManager<metis_ordering>,
+					NaiveSparsePermSolutionManager<metis_ordering>(iNLD, dPivotFactor));
+			} else {
+#ifdef USE_NAIVE_MULTITHREAD
+//				SAFENEWWITHCONSTRUCTOR(pCurrSM,
+//					ParNaiveSparsePermSolutionManager,
+//					ParNaiveSparsePermSolutionManager(nThreads, iNLD, dPivotFactor));
+				silent_cerr("multithread naive solver with"
+					"nested dissection permutation not"
+					"available yet. Patches welcome"
+					<< std::endl);
+				throw ErrGeneric();
+#else
+				silent_cerr("multithread naive solver support not compiled; "
+					"you can configure --enable-multithread-naive "
+					"on a linux ix86 to get it"
+					<< std::endl);
+				throw ErrGeneric();
+#endif /* USE_NAIVE_MULTITHREAD */
+			}
+#else //!USE_METIS
+			silent_cerr("you should not get here("<< __FILE__ << ":" <<
+				__LINE__ << ")" << std::endl);
+			throw ErrGeneric();
+#endif //USE_METIS
 		} else {
 			if (nThreads == 1) {
 				SAFENEWWITHCONSTRUCTOR(pCurrSM,

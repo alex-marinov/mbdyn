@@ -178,11 +178,9 @@ NaiveSparseSolutionManager::pSolHdl(void) const
 
 /* NaivePermSparseSolutionManager - begin */
 
-extern "C" {
-#include "colamd.h"
-}
 
-NaiveSparsePermSolutionManager::NaiveSparsePermSolutionManager(
+template<class T>
+NaiveSparsePermSolutionManager<T>::NaiveSparsePermSolutionManager(
 		const integer Dim, 
 		const doublereal dMP)
 : NaiveSparseSolutionManager(Dim, dMP),
@@ -203,13 +201,15 @@ ePermState(PERM_NO)
 	MatrInitialize();
 }
 
-NaiveSparsePermSolutionManager::~NaiveSparsePermSolutionManager(void) 
+template<class T>
+NaiveSparsePermSolutionManager<T>::~NaiveSparsePermSolutionManager(void) 
 {
 	NO_OP;
 }
 
+template<class T>
 void
-NaiveSparsePermSolutionManager::MatrReset(void)
+NaiveSparsePermSolutionManager<T>::MatrReset(void)
 {
 	if (ePermState == PERM_INTERMEDIATE) {
 		ePermState = PERM_READY;
@@ -218,31 +218,9 @@ NaiveSparsePermSolutionManager::MatrReset(void)
 	NaiveSparseSolutionManager::MatrReset();
 }
 
+template<class T>
 void
-NaiveSparsePermSolutionManager::ComputePermutation(void)
-{
-	std::vector<integer> Ai;
-	A->MakeCCStructure(Ai, invperm);
-	doublereal knobs[COLAMD_KNOBS];
-	integer stats[COLAMD_STATS];
-	integer Alen = mbdyn_colamd_recommended(Ai.size(), A->iGetNumRows(),
-			A->iGetNumCols());
-	Ai.resize(Alen);
-	mbdyn_colamd_set_defaults(knobs);
-	if (!mbdyn_colamd(A->iGetNumRows(), A->iGetNumCols(), Alen,
-		&Ai[0], &invperm[0], knobs, stats))
-	{
-		silent_cerr("colamd permutation failed" << std::endl);
-		throw ErrGeneric();
-	}
-	for (integer i = 0; i < A->iGetNumRows(); i++) {
-		perm[invperm[i]] = i;
-	}
-	ePermState = PERM_INTERMEDIATE;
-}
-
-void
-NaiveSparsePermSolutionManager::BackPerm(void)
+NaiveSparsePermSolutionManager<T>::BackPerm(void)
 {
 	/* NOTE: use whatever is stored in pLS - someone could
 	 * trick us into using its memory */
@@ -257,8 +235,9 @@ NaiveSparsePermSolutionManager::BackPerm(void)
 
 
 /* Risolve il sistema: Fattorizzazione + Bacward Substitution */
+template<class T>
 void
-NaiveSparsePermSolutionManager::Solve(void)
+NaiveSparsePermSolutionManager<T>::Solve(void)
 {
 	doublereal *pd = 0;
 
@@ -282,8 +261,9 @@ NaiveSparsePermSolutionManager::Solve(void)
 }
 
 /* Inizializzatore "speciale" */
+template<class T>
 void
-NaiveSparsePermSolutionManager::MatrInitialize()
+NaiveSparsePermSolutionManager<T>::MatrInitialize()
 {
 	ePermState = PERM_NO;
 	for (integer i = 0; i < A->iGetNumRows(); i++) {
@@ -293,6 +273,272 @@ NaiveSparsePermSolutionManager::MatrInitialize()
 
 	MatrReset();
 }
+
+//explicit specializations
+
+extern "C" {
+#include "colamd.h"
+}
+
+template<>
+void
+NaiveSparsePermSolutionManager<Colamd_ordering>::ComputePermutation(void)
+{
+	std::vector<integer> Ai;
+	A->MakeCCStructure(Ai, invperm);
+	doublereal knobs[COLAMD_KNOBS];
+	integer stats[COLAMD_STATS];
+	integer Alen = mbdyn_colamd_recommended(Ai.size(), A->iGetNumRows(),
+			A->iGetNumCols());
+	Ai.resize(Alen);
+	mbdyn_colamd_set_defaults(knobs);
+	if (!mbdyn_colamd(A->iGetNumRows(), A->iGetNumCols(), Alen,
+		&Ai[0], &invperm[0], knobs, stats))
+	{
+		silent_cerr("colamd permutation failed" << std::endl);
+		throw ErrGeneric();
+	}
+	for (integer i = 0; i < A->iGetNumRows(); i++) {
+		perm[invperm[i]] = i;
+	}
+	ePermState = PERM_INTERMEDIATE;
+}
+
+
 	
 /* NaivePermSparseSolutionManager - end */
+#include "boost/config.hpp"
+#include "boost/graph/adjacency_list.hpp"
+#include "boost/graph/cuthill_mckee_ordering.hpp"
+#include "boost/graph/king_ordering.hpp"
+#include <boost/graph/sloan_ordering.hpp>
+#include "boost/graph/properties.hpp"
+#include "boost/graph/bandwidth.hpp"
+#include <boost/graph/wavefront.hpp>
+
+
+template<>
+void
+NaiveSparsePermSolutionManager<rcmk_ordering>::ComputePermutation(void)
+{
+	std::vector<integer> Ai;
+	std::vector<integer> Ac;
+	
+
+	invperm.resize(A->iGetNumCols());
+	A->MakeCCStructure(Ai, Ac);
+
+
+/* boost */
+
+	typedef boost::adjacency_list<
+			boost::setS,
+			boost::vecS,
+			boost::undirectedS,
+			boost::property<
+				boost::vertex_color_t,
+				boost::default_color_type,
+				boost::property<
+					boost::vertex_degree_t,
+					integer
+// 					,
+// 					boost::property<
+// 						boost::vertex_priority_t,
+// 						double
+// 					>
+				>
+			>
+		> Graph;
+	typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
+	typedef boost::graph_traits<Graph>::vertices_size_type size_type;
+
+
+	Graph G(A->iGetNumRows());
+	for (int col=0; col<A->iGetNumCols(); col++) {
+		for (int i = Ac[col]; i < Ac[col + 1]; i++) {
+			int row = Ai[i];
+			if (row != col) {
+				boost::add_edge(row, col, G);
+				boost::add_edge(col, row, G);
+			}
+		}
+	}
+
+	
+	std::vector<Vertex> inv_perm(num_vertices(G));
+	boost::cuthill_mckee_ordering(G, inv_perm.rbegin());//, 
+// 	boost::sloan_ordering(G, inv_perm.rbegin(),
+// 		boost::get(boost::vertex_color, G), 
+// 		boost::make_degree_map(G),
+// 		boost::get(boost::vertex_priority, G));
+
+	for (integer i = 0; i < A->iGetNumRows(); i++) {
+		invperm[i] = inv_perm[i];
+		perm[invperm[i]] = i;
+	}
+	ePermState = PERM_INTERMEDIATE;
+}
+
+template<>
+void
+NaiveSparsePermSolutionManager<king_ordering>::ComputePermutation(void)
+{
+	std::vector<integer> Ai;
+	std::vector<integer> Ac;
+	
+
+	invperm.resize(A->iGetNumCols());
+	A->MakeCCStructure(Ai, Ac);
+
+
+/* boost */
+
+	typedef boost::adjacency_list<
+			boost::setS,
+			boost::vecS,
+			boost::undirectedS,
+			boost::property<
+				boost::vertex_color_t,
+				boost::default_color_type,
+				boost::property<
+					boost::vertex_degree_t,
+					integer
+				>
+			>
+		> Graph;
+	typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
+	typedef boost::graph_traits<Graph>::vertices_size_type size_type;
+
+
+	Graph G(A->iGetNumRows());
+	for (int col=0; col<A->iGetNumCols(); col++) {
+		for (int i = Ac[col]; i < Ac[col + 1]; i++) {
+			int row = Ai[i];
+			if (row != col) {
+				boost::add_edge(row, col, G);
+				boost::add_edge(col, row, G);
+			}
+		}
+	}
+
+	std::vector<Vertex> inv_perm(num_vertices(G));
+	boost::cuthill_mckee_ordering(G, inv_perm.rbegin());//, 
+	boost::king_ordering(G, inv_perm.rbegin());
+
+	for (integer i = 0; i < A->iGetNumRows(); i++) {
+		invperm[i] = inv_perm[i];
+		perm[invperm[i]] = i;
+	}
+	ePermState = PERM_INTERMEDIATE;
+}
+
+#ifdef USE_METIS
+extern "C" {
+#include "metis.h"
+}
+
+template<>
+void
+NaiveSparsePermSolutionManager<metis_ordering>::ComputePermutation(void)
+{
+	std::vector<integer> Ai;
+	std::vector<integer> Ac;
+	
+
+	invperm.resize(A->iGetNumCols());
+	A->MakeCCStructure(Ai, Ac);
+
+
+/* metis */
+
+	typedef std::set<integer> row_cont_type;
+	std::vector<row_cont_type> col_indices(A->iGetNumCols());
+	
+	integer NZ = 0;
+	{
+		integer ncols = A->iGetNumCols();
+		for (integer col_id=0; col_id<ncols; col_id++) {
+			for (integer i=Ac[col_id]; i<Ac[col_id+1]; i++) {
+				int row_id = Ai[i];
+				if (row_id != col_id) {
+					//A
+					row_cont_type& row1 = col_indices[col_id];
+					if (row1.find(row_id) == row1.end()) {
+						NZ++;
+						row1.insert(row_id);
+					}
+					// + A^T
+					row_cont_type& row2 = col_indices[row_id];
+					if (row2.find(col_id) == row2.end()) {
+						NZ++;
+						row2.insert(col_id);
+					}
+				}
+			}
+		}
+	}
+	Ai.resize(NZ);
+	{
+		integer x_ptr = 0;
+		row_cont_type::iterator ri;
+		row_cont_type::const_iterator re;
+		integer NCols = A->iGetNumCols();
+		for (integer col = 0; col < NCols; col++) {
+			Ac[col] = x_ptr;
+			re = col_indices[col].end();
+			for (ri = col_indices[col].begin(); ri != re; ri++) {
+				Ai[x_ptr] = *ri;
+				x_ptr++;
+			}
+		}
+		Ac[NCols] = x_ptr;
+	}
+	int numflag = 0;
+	int n = A->iGetNumCols();
+	int options[8] = {1, 3, 1, 3, 0, 1, 200, 3};
+//	METIS_EdgeND(&n, &(Ac[0]), &Ai[0], &numflag, options, &(perm[0]), &(invperm[0]));
+ 	METIS_NodeND(&n, &(Ac[0]), &Ai[0], &numflag, options, &(perm[0]), &(invperm[0]));
+
+}
+
+#endif //USE_METIS
+
+// #ifdef HAVE_UMFPACK4_1
+// extern "C" {
+// #include "amd.h"
+// }
+// template<>
+// void
+// NaiveSparsePermSolutionManager<amd_ordering>::ComputePermutation(void)
+// {
+// 	std::vector<integer> Ai;
+// 	std::vector<integer> Ac;
+// 	
+// 
+// 	invperm.resize(A->iGetNumCols());
+// 	A->MakeCCStructure(Ai, Ac);
+// 
+// /* amd */
+// 	double Control[AMD_CONTROL], Info[AMD_INFO];
+// 	amd_defaults(Control);
+// 	amd_order(A->iGetNumCols(), &(Ac[0]), &(Ai[0]), &(invperm[0]), Control, Info);
+// 	for (integer i = 0; i < A->iGetNumRows(); i++) {
+// 		perm[invperm[i]] = i;
+// 	}
+// 	
+// 
+// 
+// }
+// #endif //HAVE_UMFPACK4_1
+
+//explicit instantiations:
+template class NaiveSparsePermSolutionManager<Colamd_ordering>;
+template class NaiveSparsePermSolutionManager<rcmk_ordering>;
+template class NaiveSparsePermSolutionManager<king_ordering>;
+#ifdef USE_METIS
+template class NaiveSparsePermSolutionManager<metis_ordering>;
+#endif //USE_METIS
+// #ifdef HAVE_UMFPACK4_1
+// template class NaiveSparsePermSolutionManager<amd_ordering>;
+// #endif //HAVE_UMFPACK4_1
 

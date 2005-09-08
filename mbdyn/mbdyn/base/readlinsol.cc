@@ -237,7 +237,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 	if (HP.IsKeyWord("colamd")) {
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_COLAMD) {
 			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_COLAMD);
-			pedantic_cout("using mmd symmetric preordering for "
+			pedantic_cout("using colamd symmetric preordering for "
 					<< currSolver.s_name
 					<< " solver" << std::endl);
 
@@ -247,6 +247,13 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 					<< " solver" << std::endl);
 		}
 	} else if (HP.IsKeyWord("mmdata")) {
+		silent_cerr("approximate minimum degree solver support si still TODO"
+			"task: detect (or import) the MD library;" 
+			"uncomment the relevant bits in naivewrap;"
+			"remove this check (readlinsol.cc)."
+			"Patches welcome"
+			<< std::endl);
+		throw ErrGeneric();
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MMDATA) {
 			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_MMDATA);
 			pedantic_cout("using mmd symmetric preordering for "
@@ -254,10 +261,53 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 					<< " solver" << std::endl);
 
 		} else {
-			pedantic_cerr("colamd preordering is meaningless for "
+			pedantic_cerr("mmdata preordering is meaningless for "
 					<< currSolver.s_name
 					<< " solver" << std::endl);
 		}
+	} else if (HP.IsKeyWord("rcmk")) {
+		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_REVERSE_CUTHILL_MC_KEE) {
+			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_REVERSE_CUTHILL_MC_KEE);
+			pedantic_cout("using rcmk symmetric preordering for "
+					<< currSolver.s_name
+					<< " solver" << std::endl);
+
+		} else {
+			pedantic_cerr("rcmk preordering is meaningless for "
+					<< currSolver.s_name
+					<< " solver" << std::endl);
+		}
+	} else if (HP.IsKeyWord("king")) {
+		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_KING) {
+			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_KING);
+			pedantic_cout("using king symmetric preordering for "
+					<< currSolver.s_name
+					<< " solver" << std::endl);
+
+		} else {
+			pedantic_cerr("king preordering is meaningless for "
+					<< currSolver.s_name
+					<< " solver" << std::endl);
+		}
+	} else if (HP.IsKeyWord("nested" "dissection")) {
+#ifdef USE_METIS
+		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_NESTED_DISSECTION) {
+			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_NESTED_DISSECTION);
+			pedantic_cout("using nested dissection symmetric preordering for "
+					<< currSolver.s_name
+					<< " solver" << std::endl);
+
+		} else {
+			pedantic_cerr("nested dissection preordering is meaningless for "
+					<< currSolver.s_name
+					<< " solver" << std::endl);
+		}
+#else //!USE_METIS
+		silent_cerr("nested dissection permutation not built in;"
+			"please configure --with-metis to get it"
+			<< std::endl);
+		throw ErrGeneric();
+#endif //USE_METIS
 	}
 
 	/* multithread? */

@@ -106,6 +106,7 @@ public:
 
 /* NaiveSparsePermSolutionManager - begin */
 
+template<class T>
 class NaiveSparsePermSolutionManager: public NaiveSparseSolutionManager {
 private:
 	const doublereal dMinPiv;
@@ -137,7 +138,47 @@ public:
 	virtual void MatrInitialize(void);
 };
 
+// class NaiveSparseCuthillMcKeePermSolutionManager: public NaiveSparseSolutionManager {
+// private:
+// 	const doublereal dMinPiv;
+// 	mutable MyVectorHandler TmpH;
+// 
+// 	void ComputePermutation();
+// 	void BackPerm();
+// 
+// protected:
+// 	enum {
+// 		PERM_NO,
+// 		PERM_INTERMEDIATE,
+// 		PERM_READY
+// 	} ePermState;
+// 	
+// 	mutable std::vector<integer> perm;
+// 	mutable std::vector<integer> invperm;
+// 
+// 	virtual void MatrReset(void);
+// 	
+// public:
+// 	NaiveSparseCuthillMcKeePermSolutionManager(const integer Dim, const doublereal dMP = 1.e-9);
+// 	virtual ~NaiveSparseCuthillMcKeePermSolutionManager(void);
+// 
+// 	/* Risolve il sistema Backward Substitution; fattorizza se necessario */
+// 	virtual void Solve(void);
+// 
+// 	/* Inizializzatore "speciale" */
+// 	virtual void MatrInitialize(void);
+// };
+
 /* NaiveSparsePermSolutionManager - end */
+
+
+//supported permutations
+class Colamd_ordering;
+class rcmk_ordering;
+class king_ordering;
+class metis_ordering;
+class amd_ordering;
+
 
 #endif /* NaiveSolutionManager_hh */
 
