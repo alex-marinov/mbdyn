@@ -11,6 +11,8 @@ harwout.h \
 harwout_.cc \
 harwrap.cc \
 harwrap.h \
+iterwrap.cc \
+iterwrap.h \
 lapackwrap.cc \
 lapackwrap.h \
 linsol.cc \
@@ -106,6 +108,7 @@ INCLUDES = \
 -I../libmbmath \
 -I../liby12 \
 -I../libcolamd \
--I../libnaive
+-I../libnaive \
+-I../libboost
 
 include $(top_srcdir)/build/bot.mk
