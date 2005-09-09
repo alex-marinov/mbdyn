@@ -176,8 +176,10 @@ public:
 class Colamd_ordering;
 class rcmk_ordering;
 class king_ordering;
+class sloan_ordering;
 class metis_ordering;
 class amd_ordering;
+class md_ordering;
 
 
 #endif /* NaiveSolutionManager_hh */

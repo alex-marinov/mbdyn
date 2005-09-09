@@ -195,7 +195,6 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 			pedantic_cout("using map matrix handling for "
 					<< currSolver.s_name
 					<< " solver" << std::endl);
-
 		} else {
 			pedantic_cerr("map is meaningless for "
 					<< currSolver.s_name
@@ -225,7 +224,6 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 			pedantic_cout("using direct access matrix handling for "
 					<< currSolver.s_name
 					<< " solver" << std::endl);
-
 		} else {
 			pedantic_cerr("direct is meaningless for "
 					<< currSolver.s_name
@@ -240,7 +238,6 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 			pedantic_cout("using colamd symmetric preordering for "
 					<< currSolver.s_name
 					<< " solver" << std::endl);
-
 		} else {
 			pedantic_cerr("colamd preordering is meaningless for "
 					<< currSolver.s_name
@@ -259,9 +256,19 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 			pedantic_cout("using mmd symmetric preordering for "
 					<< currSolver.s_name
 					<< " solver" << std::endl);
-
 		} else {
 			pedantic_cerr("mmdata preordering is meaningless for "
+					<< currSolver.s_name
+					<< " solver" << std::endl);
+		}
+	} else if (HP.IsKeyWord("minimum" "degree")) {
+		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MDAPLUSAT) {
+			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_MDAPLUSAT);
+			pedantic_cout("using minimum degree symmetric preordering of A+A^T for "
+					<< currSolver.s_name
+					<< " solver" << std::endl);
+		} else {
+			pedantic_cerr("md preordering is meaningless for "
 					<< currSolver.s_name
 					<< " solver" << std::endl);
 		}
@@ -286,6 +293,18 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 
 		} else {
 			pedantic_cerr("king preordering is meaningless for "
+					<< currSolver.s_name
+					<< " solver" << std::endl);
+		}
+	} else if (HP.IsKeyWord("sloan")) {
+		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_KING) {
+			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_KING);
+			pedantic_cout("using sloan symmetric preordering for "
+					<< currSolver.s_name
+					<< " solver" << std::endl);
+
+		} else {
+			pedantic_cerr("sloan preordering is meaningless for "
 					<< currSolver.s_name
 					<< " solver" << std::endl);
 		}
