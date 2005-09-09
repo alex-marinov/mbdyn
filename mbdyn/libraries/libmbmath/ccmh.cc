@@ -115,9 +115,19 @@ CColMatrixHandler<off>::MatTMatMul_base(void (MatrixHandler::*op)(integer iRow,
 			integer iCol, const doublereal& dCoef),
 			MatrixHandler* out, const MatrixHandler& in) const
 {
-	silent_cerr("CColMatrixHandler<off>::MatTMatMul_base called"
-			<< std::endl);
-	throw ErrGeneric();		
+	integer ncols_in = in.iGetNumCols();
+	for (integer row_out = 0; row_out < NCols; row_out++) {
+		integer ri, re;
+		re = Ap[row_out + 1] - off;
+		for (ri = Ap[row_out] - off; ri < re; ri++) {
+			for (integer col_in = 1; col_in <= ncols_in;  col_in++) {
+				(out->*op)(row_out + 1, col_in,
+						Ax[Ai[ri] - off]*in(Ai[ri] - off + 1, col_in));
+			}
+		}
+	}
+
+	return out;
 }
 
 /* Moltiplica per uno scalare e somma a una matrice */
