@@ -760,8 +760,8 @@ main(int argc, char *argv[])
 #endif /* USE_NAIVE_MULTITHREAD */
 			} else {
 				SAFENEWWITHCONSTRUCTOR(pSM,
-					NaiveSparsePermSolutionManager,
-					NaiveSparsePermSolutionManager(size, dpivot));
+					NaiveSparsePermSolutionManager<Colamd_ordering>,
+					NaiveSparsePermSolutionManager<Colamd_ordering>(size, dpivot));
 			}
 		} else {
 			if (nt > 1) {
