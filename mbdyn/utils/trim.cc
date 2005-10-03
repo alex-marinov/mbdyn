@@ -78,7 +78,28 @@ main(int argc, char *argv[])
 		goto done;
 	}
 
-	/* main loop */
+	/* main loop:
+	 *
+	 * finche' non e' trimmato (trim - in ~= 0) {
+	 *
+	 * 	nuovo out {
+	 * 	case NR:
+	 * 		se deve calcolare lo jacobiano {
+	 *			per ogni out {
+	 *				perturba
+	 *				aspetta la convergenza
+	 *				aggiorna la colonna
+	 *			}
+	 *			inverti la matrice (se invertibile ecc.)
+	 * 		}
+	 *
+	 * 		calcola il nuovo out: out = J^-1 * error
+	 * 		break;
+	 * 	}
+	 *
+	 * 	manda il nuovo out
+	 * 	aspetta convergenza
+	 */
 
 done:;
 	s2s_in.shutdown();
