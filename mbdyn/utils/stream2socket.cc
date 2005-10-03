@@ -58,20 +58,23 @@
 int
 main(int argc, char *argv[])
 {
+	struct s2s_t	s2s;
+
 	try {
-		s2s_prepare(argc, argv);
+		s2s.prepare(argc, argv);
 
 	} catch (...) {
-		s2s_shutdown(EXIT_FAILURE);
+		s2s.shutdown();
+		exit(EXIT_FAILURE);
 	}
 
-	if (::s2s.nChannels == 0) {
-		std::cin.getline(::s2s.buf, sizeof(::s2s.buf));
+	if (s2s.nChannels == 0) {
+		std::cin.getline(s2s.buf, sizeof(s2s.buf));
 
-		std::istringstream	str(::s2s.buf);
+		std::istringstream	str(s2s.buf);
 		std::vector<double>	data;
 
-		for (;; ::s2s.nChannels++) {
+		for (;; s2s.nChannels++) {
 			double	d;
 
 			str >> d;
@@ -83,22 +86,23 @@ main(int argc, char *argv[])
 			data.insert(data.end(), d);
 		}
 
-		send(::s2s.sock, (char *)&data[0], sizeof(double)*::s2s.nChannels, 0);
+		send(s2s.sock, (char *)&data[0], sizeof(double)*s2s.nChannels, 0);
 	}
 
-	double	dbuf[::s2s.nChannels];
+	double	dbuf[s2s.nChannels];
 	while (true) {
-		for (int i = 0; i < ::s2s.nChannels; i++) {
+		for (int i = 0; i < s2s.nChannels; i++) {
 			std::cin >> dbuf[i];
 			if (!std::cin) {
 				goto done;
 			}
 		}
 		
-		send(::s2s.sock, (char *)dbuf, sizeof(double)*::s2s.nChannels, 0);
+		send(s2s.sock, (char *)dbuf, sizeof(double)*s2s.nChannels, 0);
 	}
 
 done:;
-	s2s_shutdown(EXIT_SUCCESS);
+	s2s.shutdown();
+	exit(EXIT_SUCCESS);
 }
 

@@ -28,38 +28,61 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef S2S_H
-#define S2S_H
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
 
-struct s2s_sockaddr_t {
-	int	ms_type;
-	int	ms_domain;
-	union {
-		struct sockaddr		ms_addr_generic;
-		struct sockaddr_in	ms_addr_inet;
-		struct sockaddr_un	ms_addr_local;
-	}	ms_addr;
-};
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <sys/un.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <signal.h>
 
-struct s2s_t {
-	int	sock;
-	int	nChannels;
-	char	*path;
-	char	*host;
-	int	port;
-	char	buf[1024];
-	bool	create;
-	bool	stream2socket;
-	char	*progname;
+#include <iostream>
+#include <sstream>
+#include <vector>
 
-	s2s_t(void);
-	~s2s_t(void);
+#include "sock.h"
+#include "s2s.h"
 
-	void usage(int rc);
-	void prepare(int argc, char *argv[]);
-	void shutdown();
+int
+main(int argc, char *argv[])
+{
+	struct s2s_t	s2s_in;
+	struct s2s_t	s2s_out;
+	int		rc = EXIT_SUCCESS;
 
-	struct s2s_t	*next;
-};
+	try {
+		s2s_in.prepare(argc, argv);
 
-#endif /* S2S_H */
+	} catch (...) {
+		rc = EXIT_FAILURE;
+		goto done;
+	}
+
+	try {
+		s2s_out.prepare(argc, argv);
+
+	} catch (...) {
+		rc = EXIT_FAILURE;
+		goto done;
+	}
+
+	/* main loop */
+
+done:;
+	s2s_in.shutdown();
+	s2s_out.shutdown();
+	exit(rc);
+}
+

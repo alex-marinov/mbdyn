@@ -58,28 +58,31 @@
 int
 main(int argc, char *argv[])
 {
+	s2s_t	s2s;
+
 	try {
-		s2s_prepare(argc, argv);
+		s2s.prepare(argc, argv);
 
 	} catch (...) {
-		s2s_shutdown(EXIT_FAILURE);
+		s2s.shutdown();
+		exit(EXIT_FAILURE);
 	}
 
-	if (::s2s.nChannels == 0) {
-		::s2s.nChannels = 1;
+	if (s2s.nChannels == 0) {
+		s2s.nChannels = 1;
 	}
 
-	double	dbuf[::s2s.nChannels];
+	double	dbuf[s2s.nChannels];
 	char	*sep = " ";
 	while (true) {
-		int len = recv(::s2s.sock, (char *)dbuf, sizeof(double)*::s2s.nChannels, 0);
+		int len = recv(s2s.sock, (char *)dbuf, sizeof(double)*s2s.nChannels, 0);
 
 		switch (len) {
 		case -1: {
 			int		save_errno = errno;
 			const char	*err_msg = strerror(save_errno);
 			
-			silent_cerr("recv(" << ::s2s.sock << ",\"" << ::s2s.buf << "\") "
+			silent_cerr("recv(" << s2s.sock << ",\"" << s2s.buf << "\") "
 				"failed (" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
 		}
@@ -91,13 +94,14 @@ main(int argc, char *argv[])
 			break;
 		}
 
-		for (int i = 0; i < ::s2s.nChannels - 1; i++) {
+		for (int i = 0; i < s2s.nChannels - 1; i++) {
 			std::cout << dbuf[i] << sep;
 		}
-		std::cout << dbuf[::s2s.nChannels - 1] << std::endl;
+		std::cout << dbuf[s2s.nChannels - 1] << std::endl;
 	}
 
 done:;
-	s2s_shutdown(EXIT_SUCCESS);
+	s2s.shutdown();
+	exit(EXIT_SUCCESS);
 }
 

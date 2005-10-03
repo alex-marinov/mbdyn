@@ -24,6 +24,7 @@ rotrel \
 sockdrive \
 socket2stream \
 stream2socket \
+trim \
 vec2rot
 
 MYLIBS = \
@@ -62,6 +63,7 @@ rotrel_SOURCES = rotrel.cc
 sockdrive_SOURCES = sockdrive.c
 socket2stream_SOURCES = socket2stream.cc s2s.cc s2s.h
 stream2socket_SOURCES = stream2socket.cc s2s.cc s2s.h
+trim_SOURCES = trim.cc s2s.cc s2s.h
 vec2rot_SOURCES = vec2rot.cc
 
 autopilot_LDADD = $(MYLIBS) @SECURITY_LIBS@
@@ -88,6 +90,7 @@ rotrel_LDADD = $(MYLIBS)
 sockdrive_LDADD = $(MYLIBS) @SECURITY_LIBS@
 socket2stream_LDADD = $(MYLIBS)
 stream2socket_LDADD = $(MYLIBS)
+trim_LDADD = $(MYLIBS)
 vec2rot_LDADD = $(MYLIBS)
 
 logproc_LDFLAGS = -static

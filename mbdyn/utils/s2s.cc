@@ -56,6 +56,8 @@
 #include "sock.h"
 #include "s2s.h"
 
+static struct s2s_t	*s2s_list = 0;
+
 s2s_t::s2s_t(void)
 : sock(-1),
 nChannels(0),
@@ -67,12 +69,25 @@ stream2socket(true),
 progname(0)
 {
 	buf[0] = '\0';
+
+	next = ::s2s_list;
+	::s2s_list = next;
 }
 
-s2s_t	s2s;
+s2s_t::~s2s_t(void)
+{
+	struct s2s_t	**p;
 
-static void
-usage(int rc)
+	for (p = &::s2s_list; *p != 0; p = &(*p)->next) {
+		if (*p == this) {
+			*p = (*p)->next;
+			break;
+		}
+	}
+}
+
+void
+s2s_t::usage(int rc)
 {
 	char	*C = "",
 		*F = "",
@@ -89,7 +104,7 @@ usage(int rc)
 	P = "    -P <path>\t\t"		"path (for LOCAL sockets)\n";
 	s = "    -s\t\t\t"		"decrease verbosity level\n";
 
-	if (!::s2s.stream2socket) {
+	if (!this->stream2socket) {
 		F = "    -F <format>\t\t"	"output format (%[.<precision>]{eEfF})\n";
 	}
 
@@ -106,7 +121,7 @@ usage(int rc)
 "    via La Masa, 34 - 20156 Milano, Italy\n"
 "    http://www.aero.polimi.it\n"
 "\n"
-"    usage: " << s2s.progname << " [options]\n"
+"    usage: " << this->progname << " [options]\n"
 "\n"
 			<< C
 			<< F
@@ -120,17 +135,31 @@ usage(int rc)
 }
 
 void
-s2s_shutdown(int signum)
+s2s_t::shutdown(void)
 {
-	if (::s2s.sock >= 0) {
-		shutdown(::s2s.sock, SHUT_RDWR);
-		::s2s.sock = -1;
+	if (this->sock >= 0) {
+		::shutdown(this->sock, SHUT_RDWR);
+		sock = -1;
 	}
 
-	if (::s2s.path) {
-		unlink(::s2s.path);
-		::s2s.path = 0;
+	if (this->path) {
+		unlink(this->path);
+		this->path = 0;
 	}
+}
+
+void
+s2s_shutdown(int signum)
+{
+	struct s2s_t	**p, **nextp;
+
+	for (p = &::s2s_list; *p != 0; p = nextp ) {
+		nextp = &(*p)->next;
+		(*p)->shutdown();
+		*p = 0;
+	}
+
+	::s2s_list = 0;
 
 	exit(EXIT_SUCCESS);
 }
@@ -168,7 +197,7 @@ parse_format(const char *fmt)
 }
 
 void
-s2s_prepare(int argc, char *argv[])
+s2s_t::prepare(int argc, char *argv[])
 {
 	char	*next;
 
@@ -181,12 +210,12 @@ s2s_prepare(int argc, char *argv[])
 	}
 
 	if (strcmp(next, "socket2stream") == 0) {
-		::s2s.stream2socket = false;
-		::s2s.progname = "socket2stream";
+		this->stream2socket = false;
+		this->progname = "socket2stream";
 
 	} else if (strcmp(next, "stream2socket") == 0) {
-		::s2s.stream2socket = true;
-		::s2s.progname = "stream2socket";
+		this->stream2socket = true;
+		this->progname = "stream2socket";
 
 	} else {
 		silent_cerr("tool name mismatch: \"" << argv[0] << "\"" << std::endl);
@@ -194,7 +223,7 @@ s2s_prepare(int argc, char *argv[])
 	}
 
 	char	*optstring;
-	if (::s2s.stream2socket) {
+	if (this->stream2socket) {
 		optstring = "Ch:n:p:P:s";
 
 	} else {
@@ -210,7 +239,7 @@ s2s_prepare(int argc, char *argv[])
 
 		switch (opt) {
 		case 'C':
-			::s2s.create = true;
+			this->create = true;
 			break;
 
 		case 'F':
@@ -218,11 +247,11 @@ s2s_prepare(int argc, char *argv[])
 			break;
 
 		case 'h':
-			::s2s.host = optarg;
+			this->host = optarg;
 			break;
 
 		case 'n':
-			::s2s.nChannels = strtoul(optarg, &next, 10);
+			this->nChannels = strtoul(optarg, &next, 10);
 			if (next[0] != '\0') {
 				silent_cerr("unable to parse option -n "
 						"\"" << optarg << "\""
@@ -232,7 +261,7 @@ s2s_prepare(int argc, char *argv[])
 			break;
 
 		case 'p':
-			::s2s.port = strtoul(optarg, &next, 10);
+			this->port = strtoul(optarg, &next, 10);
 			if (next[0] != '\0') {
 				silent_cerr("unable to parse option -p "
 						"\"" << optarg << "\""
@@ -242,7 +271,7 @@ s2s_prepare(int argc, char *argv[])
 			break;
 
 		case 'P':
-			::s2s.path = optarg;
+			this->path = optarg;
 			break;
 
 		case 's':
@@ -254,7 +283,7 @@ s2s_prepare(int argc, char *argv[])
 		}
 	}
 
-	if (::s2s.path == 0 && (::s2s.host == 0 && ::s2s.port == -1)) {
+	if (this->path == 0 && (this->host == 0 && this->port == -1)) {
 		usage(EXIT_FAILURE);
 	}
 
@@ -263,28 +292,28 @@ s2s_prepare(int argc, char *argv[])
 	struct sockaddr	*addrp = 0;
 	socklen_t	addrl = 0;
 
-	if (::s2s.path) {
+	if (this->path) {
 		addr.ms_type = AF_LOCAL;
 		addr.ms_domain = PF_LOCAL;
 		addrp = (struct sockaddr *)&addr.ms_addr.ms_addr_local;
 		addrl = sizeof(addr.ms_addr.ms_addr_local);
-		strncpy(s2s.buf, ::s2s.path, sizeof(s2s.buf));
+		strncpy(this->buf, this->path, sizeof(this->buf));
 		
-		if (::s2s.create) {
-			::s2s.sock = mbdyn_make_named_socket(::s2s.path, 1, &save_errno);
+		if (this->create) {
+			this->sock = mbdyn_make_named_socket(this->path, 1, &save_errno);
 		
-			if (::s2s.sock == -1) {
+			if (this->sock == -1) {
 				const char	*err_msg = strerror(save_errno);
 
-      				silent_cerr("socket(" << s2s.buf << ") failed "
+      				silent_cerr("socket(" << this->buf << ") failed "
 					"(" << save_errno << ": " << err_msg << ")"
 					<< std::endl);
       				throw;
 
- 		  	} else if (::s2s.sock == -2) {
+ 		  	} else if (this->sock == -2) {
 				const char	*err_msg = strerror(save_errno);
 
-		      		silent_cerr("bind(" << s2s.buf << ") failed "
+		      		silent_cerr("bind(" << this->buf << ") failed "
 					"(" << save_errno << ": " << err_msg << ")"
 					<< std::endl);
 		      		throw;
@@ -292,7 +321,7 @@ s2s_prepare(int argc, char *argv[])
 
 		} else {
 			addr.ms_addr.ms_addr_local.sun_family = AF_UNIX;
-			strncpy(addr.ms_addr.ms_addr_local.sun_path, ::s2s.path,
+			strncpy(addr.ms_addr.ms_addr_local.sun_path, this->path,
 					sizeof(addr.ms_addr.ms_addr_local.sun_path));
 		}
 
@@ -302,47 +331,47 @@ s2s_prepare(int argc, char *argv[])
 		addrp = (struct sockaddr *)&addr.ms_addr.ms_addr_inet;
 		addrl = sizeof(addr.ms_addr.ms_addr_inet);
 
-		if (::s2s.host == 0) {
-			::s2s.host = "127.0.0.1";
+		if (this->host == 0) {
+			this->host = "127.0.0.1";
 
 		} else {
-			char	*p = strchr(::s2s.host, ':');
+			char	*p = strchr(this->host, ':');
 			if (p != 0) {
 				p[0] = '\0';
 				p++;
-				::s2s.port = strtoul(p, &next, 10);
+				this->port = strtoul(p, &next, 10);
 				if (next[0] != '\0') {
 					silent_cerr("unable to parse port out of "
-						"\"" << ::s2s.host << ":" << p << "\""
+						"\"" << this->host << ":" << p << "\""
 						<< std::endl);
 					exit(EXIT_FAILURE);
 				}
 			}
 		}
-		snprintf(s2s.buf, sizeof(s2s.buf), "%s:%u", ::s2s.host, ::s2s.port);
+		snprintf(this->buf, sizeof(this->buf), "%s:%u", this->host, this->port);
 
-		if (::s2s.create) {
-	 	  	::s2s.sock = mbdyn_make_inet_socket(&addr.ms_addr.ms_addr_inet, 
-					::s2s.host, ::s2s.port, 1, &save_errno);
+		if (this->create) {
+	 	  	this->sock = mbdyn_make_inet_socket(&addr.ms_addr.ms_addr_inet, 
+					this->host, this->port, 1, &save_errno);
 
-			if (::s2s.sock == -1) {
+			if (this->sock == -1) {
 				const char	*err_msg = strerror(save_errno);
 
-      				silent_cerr("socket(" << s2s.buf << ") failed "
+      				silent_cerr("socket(" << this->buf << ") failed "
 					"(" << save_errno << ": " << err_msg << ")"
 					<< std::endl);
 				throw;
 
-   			} else if (::s2s.sock == -2) {
+   			} else if (this->sock == -2) {
 				const char	*err_msg = strerror(save_errno);
 
-      				silent_cerr("bind(" << s2s.buf << ") failed "
+      				silent_cerr("bind(" << this->buf << ") failed "
 					"(" << save_errno << ": " << err_msg << ")"
 					<< std::endl);
 				throw;
 
-			} else if (::s2s.sock == -3) {
-     				silent_cerr("illegal host[:port] name \"" << s2s.buf << "\" "
+			} else if (this->sock == -3) {
+     				silent_cerr("illegal host[:port] name \"" << this->buf << "\" "
 					"(" << save_errno << ")"
 					<< std::endl);
 				throw;
@@ -350,56 +379,56 @@ s2s_prepare(int argc, char *argv[])
 
 		} else {
 			addr.ms_addr.ms_addr_inet.sin_family = AF_INET;
-			addr.ms_addr.ms_addr_inet.sin_port = htons(::s2s.port);
+			addr.ms_addr.ms_addr_inet.sin_port = htons(this->port);
 					
-			if (inet_aton(::s2s.host, &addr.ms_addr.ms_addr_inet.sin_addr) == 0) {
-				silent_cerr("unknown host \"" << ::s2s.host << "\"" << std::endl);
+			if (inet_aton(this->host, &addr.ms_addr.ms_addr_inet.sin_addr) == 0) {
+				silent_cerr("unknown host \"" << this->host << "\"" << std::endl);
 				throw;	
 			}
 		}
 	}
 
-	if (::s2s.create) {
-		if (listen(::s2s.sock, 1) < 0) {
+	if (this->create) {
+		if (listen(this->sock, 1) < 0) {
 			save_errno = errno;
 			const char	*err_msg = strerror(save_errno);
 
-      			silent_cerr("listen(" << ::s2s.sock << "," << s2s.buf << ") failed "
+      			silent_cerr("listen(" << this->sock << "," << this->buf << ") failed "
 				"(" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
       			throw;
    		}
 
-		int sock = ::s2s.sock;
-		::s2s.sock = accept(sock, addrp, &addrl);
+		int sock = this->sock;
+		this->sock = accept(sock, addrp, &addrl);
 		close(sock);
-		if (::s2s.sock == -1) {
+		if (this->sock == -1) {
 			save_errno = errno;
 			const char	*err_msg = strerror(save_errno);
 
-                	silent_cerr("accept(" << ::s2s.sock << ",\"" << s2s.buf << "\") "
+                	silent_cerr("accept(" << this->sock << ",\"" << this->buf << "\") "
 				"failed (" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
 			throw;
         	}
 
 	} else {
-		::s2s.sock = socket(addr.ms_domain, SOCK_STREAM, 0);
-		if (::s2s.sock < 0){
+		this->sock = socket(addr.ms_domain, SOCK_STREAM, 0);
+		if (this->sock < 0){
 			save_errno = errno;
 			const char	*err_msg = strerror(save_errno);
 				
-			silent_cerr("socket(" << s2s.buf << ") failed "
+			silent_cerr("socket(" << this->buf << ") failed "
 				"(" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
 			throw;
 		}
 
-		if (connect(::s2s.sock, addrp, addrl) < 0) {
+		if (connect(this->sock, addrp, addrl) < 0) {
 			save_errno = errno;
 			const char	*err_msg = strerror(save_errno);
 				
-			silent_cerr("connect(" << ::s2s.sock << ",\"" << s2s.buf << "\"," << addrl << ") "
+			silent_cerr("connect(" << this->sock << ",\"" << this->buf << "\"," << addrl << ") "
 				"failed (" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
 			throw;
