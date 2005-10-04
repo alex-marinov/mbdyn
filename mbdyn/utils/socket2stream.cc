@@ -61,7 +61,8 @@ main(int argc, char *argv[])
 	s2s_t	s2s;
 
 	try {
-		s2s.prepare(argc, argv);
+		s2s.parse(argc, argv);
+		s2s.prepare();
 
 	} catch (...) {
 		s2s.shutdown();
@@ -72,10 +73,10 @@ main(int argc, char *argv[])
 		s2s.nChannels = 1;
 	}
 
-	double	dbuf[s2s.nChannels];
+	s2s.dbuf.resize(s2s.nChannels);
 	char	*sep = " ";
 	while (true) {
-		int len = recv(s2s.sock, (char *)dbuf, sizeof(double)*s2s.nChannels, 0);
+		int len = recv(s2s.sock, (char *)&s2s.dbuf[0], sizeof(double)*s2s.nChannels, 0);
 
 		switch (len) {
 		case -1: {
@@ -95,9 +96,9 @@ main(int argc, char *argv[])
 		}
 
 		for (int i = 0; i < s2s.nChannels - 1; i++) {
-			std::cout << dbuf[i] << sep;
+			std::cout << s2s.dbuf[i] << sep;
 		}
-		std::cout << dbuf[s2s.nChannels - 1] << std::endl;
+		std::cout << s2s.dbuf[s2s.nChannels - 1] << std::endl;
 	}
 
 done:;

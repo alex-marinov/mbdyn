@@ -197,7 +197,7 @@ parse_format(const char *fmt)
 }
 
 void
-s2s_t::prepare(int argc, char *argv[])
+s2s_t::parse(int argc, char *argv[])
 {
 	char	*next;
 
@@ -286,7 +286,11 @@ s2s_t::prepare(int argc, char *argv[])
 	if (this->path == 0 && (this->host == 0 && this->port == -1)) {
 		usage(EXIT_FAILURE);
 	}
+}
 
+void
+s2s_t::prepare(void)
+{
 	s2s_sockaddr_t	addr;
 	int		save_errno;
 	struct sockaddr	*addrp = 0;
@@ -337,6 +341,8 @@ s2s_t::prepare(int argc, char *argv[])
 		} else {
 			char	*p = strchr(this->host, ':');
 			if (p != 0) {
+				char	*next;
+
 				p[0] = '\0';
 				p++;
 				this->port = strtoul(p, &next, 10);

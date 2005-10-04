@@ -31,6 +31,8 @@
 #ifndef S2S_H
 #define S2S_H
 
+const int	S2S_BUFSIZE = 1024;
+
 struct s2s_sockaddr_t {
 	int	ms_type;
 	int	ms_domain;
@@ -47,7 +49,8 @@ struct s2s_t {
 	char	*path;
 	char	*host;
 	int	port;
-	char	buf[1024];
+	char	buf[S2S_BUFSIZE];
+	std::vector<double>	dbuf;
 	bool	create;
 	bool	stream2socket;
 	char	*progname;
@@ -56,7 +59,8 @@ struct s2s_t {
 	~s2s_t(void);
 
 	void usage(int rc);
-	void prepare(int argc, char *argv[]);
+	void parse(int argc, char *argv[]);
+	void prepare(void);
 	void shutdown();
 
 	struct s2s_t	*next;

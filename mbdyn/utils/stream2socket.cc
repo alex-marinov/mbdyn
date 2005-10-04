@@ -61,7 +61,8 @@ main(int argc, char *argv[])
 	struct s2s_t	s2s;
 
 	try {
-		s2s.prepare(argc, argv);
+		s2s.parse(argc, argv);
+		s2s.prepare();
 
 	} catch (...) {
 		s2s.shutdown();
@@ -72,7 +73,6 @@ main(int argc, char *argv[])
 		std::cin.getline(s2s.buf, sizeof(s2s.buf));
 
 		std::istringstream	str(s2s.buf);
-		std::vector<double>	data;
 
 		for (;; s2s.nChannels++) {
 			double	d;
@@ -83,22 +83,24 @@ main(int argc, char *argv[])
 				break;
 			}
 			
-			data.insert(data.end(), d);
+			s2s.dbuf.insert(s2s.dbuf.end(), d);
 		}
 
-		send(s2s.sock, (char *)&data[0], sizeof(double)*s2s.nChannels, 0);
+		send(s2s.sock, (char *)&s2s.dbuf[0], sizeof(double)*s2s.nChannels, 0);
+
+	} else {
+		s2s.dbuf.resize(s2s.nChannels);
 	}
 
-	double	dbuf[s2s.nChannels];
 	while (true) {
 		for (int i = 0; i < s2s.nChannels; i++) {
-			std::cin >> dbuf[i];
+			std::cin >> s2s.dbuf[i];
 			if (!std::cin) {
 				goto done;
 			}
 		}
 		
-		send(s2s.sock, (char *)dbuf, sizeof(double)*s2s.nChannels, 0);
+		send(s2s.sock, (char *)&s2s.dbuf[0], sizeof(double)*s2s.nChannels, 0);
 	}
 
 done:;
