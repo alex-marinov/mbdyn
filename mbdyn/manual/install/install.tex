@@ -139,6 +139,28 @@ and can be used by Lapack (see Section~\ref{sec:DOWNLOAD:SOLVERS:LAPACK})
 and other packages that require BLAS
 (see Section~\ref{sec:DOWNLOAD:NUMERICAL:BLAS}).
 
+Note that ATLAS provides its own implementation of Lapack
+but only for a limited set of functions.
+This set of functions is packed into an archive called \kw{liblapack.a},
+so in typical installations it may shadow complete implementations
+of the Lapack package.
+A useful ``trick'' to have a complete Lapack installation that exploits
+ATLAS performances where available is described in 
+\htmladdnormallink{\kw{http://math-atlas.sourceforge.net/errata.html\#completelp}}{http://math-atlas.sourceforge.net/errata.html\#completelp}.
+The essential instructions are reported below, assuming that
+\kw{\$ATLAS} and \kw{\$LAPACK} respectively are the paths to your ATLAS
+and Lapack static library archive files:
+\begin{verbatim}
+  mkdir tmp
+  cd tmp
+  ar x $ATLAS/liblapack.a
+  cp $LAPACK/liblapack.a $ATLAS/liblapack.a
+  ar r $ATLAS/liblapack.a *.o
+  cd ..
+  rm -rf tmp
+\end{verbatim}
+
+
 \subsection{BLAS}\label{sec:DOWNLOAD:NUMERICAL:BLAS}
 The Basic Linear Algebra Subroutines
 can be used by Umfpack (see Section~\ref{sec:DOWNLOAD:SOLVERS:UMFPACK})
@@ -150,6 +172,21 @@ otherwise, instead of compiling them of your own, ATLAS
 a better replacement.
 
 \subsection{Metis}
+Metis is a package that performs automatic domain decomposition.
+It is used by the Schur solution manager to partition the model
+into submodels of nearly equal computational cost and with minimal
+interface size.
+Its compilation is straightforward.
+It can be downloaded from
+\htmladdnormallink{\kw{http://www-users.cs.umn.edu/\~{}karypis/metis/metis/}}{http://www-users.cs.umn.edu/~karypis/metis/metis/}.
+Its compilation for MBDyn used to require a special patch to cleanup
+its namespace; now the patch is no longer required as a better namespace
+separation has been operated.
+No installation procedure is provided as of version 4.0; at the end
+of compilation, the library \kw{libmetis.a} is available in the build tree,
+and it should be copied to a directory where the loader can locate it;
+the headers \kw{Lib/*.h} should be copied where the C preprocessor
+can locate them.
 
 
 \section{Linear Solvers}
@@ -186,14 +223,19 @@ This solver is recommended for very large problems,
 and as a general purpose solver.
 
 \subsection{Lapack}
+\label{sec:DOWNLOAD:SOLVERS:LAPACK}
 
 \subsection{SuperLU (experimental)}
+\label{sec:DOWNLOAD:SOLVERS:SUPERLU}
 
 \subsection{TAUCS (experimental)}
+\label{sec:DOWNLOAD:SOLVERS:TAUCS}
 
 \subsection{Harwell (historical)}
+\label{sec:DOWNLOAD:SOLVERS:HSL}
 
 \subsection{Meschach (historical)}
+\label{sec:DOWNLOAD:SOLVERS:MESCHACH}
 
 
 
