@@ -41,5 +41,23 @@ mbdyn_METIS_PartGraph(int piTotVertices,
 		int DataCommSize,
 		int *pParAmgProcs);
 
+extern void
+METIS_EdgeND(int*,
+	int*,
+	int*,
+	int*,
+	int*,
+	int*,
+	int*);
+
+extern void
+METIS_NodeND(int *,
+	int *,
+	int *,
+	int *,
+	int *,
+	int *,
+	int *);
+
 #endif /* METISWRAP_H */
 

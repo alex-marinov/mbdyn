@@ -498,7 +498,7 @@ NaiveSparsePermSolutionManager<king_ordering>::ComputePermutation(void)
 
 #ifdef USE_METIS
 extern "C" {
-#include "metis.h"
+#include "metiswrap.h"
 }
 
 template<>
