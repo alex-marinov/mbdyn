@@ -20,8 +20,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef CHACO_INTERFACE
-#define CHACO_INTERFACE
+#ifndef CHACOWRAP_H
+#define CHACOWRAP_H
 
 extern void
 chaco_interface(
@@ -35,5 +35,5 @@ chaco_interface(
 		int		*pParAmgProcs
 	);
 
-#endif /* CHACO_INTERFACE */
+#endif /* CHACOWRAP_H */
 

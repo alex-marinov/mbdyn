@@ -5,6 +5,8 @@ include $(top_srcdir)/build/top.mk
 lib_LTLIBRARIES = libmbwrap.la
 
 libmbwrap_la_SOURCES = \
+chacowrap.cc \
+chacowrap.h \
 harwlib.h \
 harwout.c \
 harwout.h \

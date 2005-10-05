@@ -41,7 +41,7 @@
 
 /* libraries for mesh partitioning computation */
 #include "metiswrap.h"
-#include "chaco_interface.h"
+#include "chacowrap.h"
 
 #include "schurdataman.h"
 #include "mbcomm.h"
