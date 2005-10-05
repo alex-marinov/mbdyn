@@ -39,22 +39,21 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-/* libraries for mesh partitioning computation
- * FIXME: they're currently */
-#include <metiswrap.h>
-#include <chaco_interface.h>
+/* libraries for mesh partitioning computation */
+#include "metiswrap.h"
+#include "chaco_interface.h"
 
-#include <schurdataman.h>
-#include <mbcomm.h>
-#include <mysleep.h>
-#include <except.h>
+#include "schurdataman.h"
+#include "mbcomm.h"
+#include "mysleep.h"
+#include "except.h"
 #include "solver.h"
 #undef min
 #undef max
 #include <vector>
 #include <algorithm>
 
-#include <rotor.h>
+#include "rotor.h"
 
 /* struttura contenente le distribuzioni di dofs */
 struct Adjacency{

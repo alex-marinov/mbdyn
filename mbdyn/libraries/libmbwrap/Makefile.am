@@ -15,6 +15,8 @@ lapackwrap.cc \
 lapackwrap.h \
 linsol.cc \
 linsol.h \
+metiswrap.cc \
+metiswrap.h \
 mschwrap.cc \
 mschwrap.h \
 naivewrap.cc \

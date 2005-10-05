@@ -63,8 +63,6 @@ mbpar.cc \
 mbpar.h \
 mbrtai_utils.c \
 mbrtai_utils.h \
-metiswrap.cc \
-metiswrap.h \
 mfree.cc \
 mfree.h \
 modelns.cc \
