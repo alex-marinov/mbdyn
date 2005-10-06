@@ -244,7 +244,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 					<< " solver" << std::endl);
 		}
 	} else if (HP.IsKeyWord("mmdata")) {
-		silent_cerr("approximate minimum degree solver support si still TODO"
+		silent_cerr("approximate minimum degree solver support is still TODO"
 			"task: detect (or import) the MD library;" 
 			"uncomment the relevant bits in naivewrap;"
 			"remove this check (readlinsol.cc)."

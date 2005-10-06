@@ -88,6 +88,25 @@ public:
 
 	virtual void SetOutputFlag(flag f);
 
+	/* Setta il valore iniziale delle proprie variabili */
+	virtual void SetInitialValue(VectorHandler& X) const {
+		ASSERT(pElem != NULL);
+		if (dGet() != 0.) {
+			ElemWithDofs*	pEwD = pGetElemWithDofs();
+			if (pEwD) {
+				return pEwD->SetInitialValue(X);
+			}
+		}
+	};
+
+	virtual void SetValue(VectorHandler& X, VectorHandler& XP) const
+	{
+		ASSERT(pElem != NULL);
+		if (dGet() != 0.) {
+			return pElem->SetValue(X, XP);
+		}
+	};
+
 	/* Scrive il contributo dell'elemento al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
