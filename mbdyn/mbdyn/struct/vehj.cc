@@ -76,10 +76,10 @@ std::ostream&
 DeformableHingeJoint::Restart(std::ostream& out) const
 {
 	Joint::Restart(out) << ", deformable hinge, "
-		<< pNode1->GetLabel() << ", reference, node, 1, ",
+		<< pNode1->GetLabel() << ", hinge, reference, node, 1, ",
 		(tilde_R1h.GetVec(1)).Write(out, ", ")
 		<< ", 2, ", (tilde_R1h.GetVec(2)).Write(out, ", ") << ", "
-		<< pNode2->GetLabel() << ", reference, node, 1, ",
+		<< pNode2->GetLabel() << ", hinge, reference, node, 1, ",
 		(tilde_R2h.GetVec(1)).Write(out, ", ")
 		<< ", 2, ", (tilde_R2h.GetVec(2)).Write(out, ", ") << ", ";
 	return pGetConstLaw()->Restart(out) << ';' << std::endl;
