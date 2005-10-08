@@ -59,7 +59,8 @@ INCLUDES = \
 -I../../mbdyn
 
 noinst_PROGRAMS = mbsasltest
-mbsasltest_SOURCES = mbsasl.c mbsasl.h mbsasltest.c
-mbsasltest_LDADD = @THREAD_LIBS@ @SECURITY_LIBS@
+mbsasltest_SOURCES = mbsasltest.c
+mbsasltest_LDADD = @THREAD_LIBS@ @SECURITY_LIBS@ \
+./libmbutil.la
 
 include $(top_srcdir)/build/bot.mk
