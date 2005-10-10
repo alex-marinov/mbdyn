@@ -46,6 +46,7 @@
 class DrivenElem : public Elem, protected DriveOwner {
 protected: 
 	Elem* pElem;
+	bool bActive;
  
 public:
 	DrivenElem(const DriveCaller* pDC, const Elem* pE);

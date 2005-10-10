@@ -44,10 +44,13 @@
 DrivenElem::DrivenElem(const DriveCaller* pDC, const Elem* pE)
 : Elem(pE->GetLabel(), Elem::DRIVEN, pE->fToBeOutput()),
 DriveOwner(pDC),
-pElem((Elem*)pE)
+pElem((Elem*)pE),
+bActive(false)
 {
 	ASSERT(pDC != NULL);
 	ASSERT(pE != NULL);
+
+	bActive = pDC->dGet() != 0.;
 }
 
 
@@ -131,7 +134,15 @@ DrivenElem::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
 	ASSERT(pElem != NULL);
 	if (dGet() != 0.) {
+		if (!bActive) {
+			bActive = true;
+			pElem->SetValue(X, XP);
+		}
 		pElem->AfterPredict(X, XP);
+	} else {
+		if (bActive) {
+			bActive = false;
+		}
 	}
 }
 
