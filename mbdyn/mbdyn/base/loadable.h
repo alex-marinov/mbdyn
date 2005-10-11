@@ -152,7 +152,7 @@ typedef SubVectorHandler&
 typedef void
 (* p_set_value)(const LoadableElem*, DataManager *pDM,
 		VectorHandler&, VectorHandler&,
-		SimulationEntity::Hints *ph = 0);
+		SimulationEntity::Hints *ph);
 typedef void (* p_set_initial_value)(const LoadableElem*, VectorHandler&);
 typedef unsigned int (* p_i_get_num_priv_data)(const LoadableElem* pEl);
 typedef unsigned int

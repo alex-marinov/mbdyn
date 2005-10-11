@@ -295,7 +295,9 @@ initial_ass_res(
 }
 
 static void
-set_value(const LoadableElem* pEl, VectorHandler& X, VectorHandler& XP)
+set_value(const LoadableElem* pEl, DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph)
 {
 	DEBUGCOUTFNAME("set_value");
 }

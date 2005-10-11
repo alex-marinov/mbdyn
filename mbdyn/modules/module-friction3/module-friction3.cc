@@ -359,7 +359,9 @@ destroy(LoadableElem* pEl)
 }
 
 static void
-set_value(const LoadableElem* pEl, VectorHandler& X, VectorHandler& XP)
+set_value(const LoadableElem* pEl, DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph)
 {
 	DEBUGCOUTFNAME("set_value");
 	module_friction* p = (module_friction *)pEl->pGetData();
