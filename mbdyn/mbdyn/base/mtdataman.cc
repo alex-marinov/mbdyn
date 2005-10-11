@@ -370,7 +370,7 @@ MultiThreadDataManager::thread_cleanup(ThreadData *arg)
 	struct tms tmsbuf;
 	times(&tmsbuf);
 
-	pedantic_cout("Thread " << arg->threadNumber << ":" << std::endl
+	pedantic_cout("thread " << arg->threadNumber << ":" << std::endl
 		<< "\tutime:  " << tmsbuf.tms_utime << std::endl
 		<< "\tstime:  " << tmsbuf.tms_stime << std::endl
 		<< "\tcutime: " << tmsbuf.tms_cutime << std::endl
@@ -617,7 +617,7 @@ retry:;
 				*thread_data[0].pWorkMat);
 
 	} catch (MatrixHandler::ErrRebuildMatrix) {
-		silent_cerr("Thread " << thread_data[0].threadNumber
+		silent_cerr("thread " << thread_data[0].threadNumber
 				<< " caught ErrRebuildMatrix"
 				<< std::endl);
 
