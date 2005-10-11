@@ -86,6 +86,13 @@ public:
 
 	virtual void Output(OutputHandler& OH) const;
 
+	void SetValue(DataManager *pDM,
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints *ph = 0) const;
+
+	virtual SimulationEntity::Hint *
+	ParseHint(DataManager *pDM, const char *s) const;
+	         
 	virtual unsigned int iGetNumDof(void) const { 
 		return 3;
 	};
