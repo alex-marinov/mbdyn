@@ -198,10 +198,6 @@ void Minor_loss::Output(OutputHandler& OH) const
    }
 }
 
-void Minor_loss::SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const {
-   NO_OP;
-}
-
 /* Minor_loss - end */
 
 
@@ -387,14 +383,6 @@ ThreeWayMinorLoss::Output(OutputHandler& OH) const
 		out << std::setw(8) << GetLabel() 
 			<< " " << vel  << " " << flow << std::endl;
 	}
-}
-
-void 
-ThreeWayMinorLoss::SetValue(
-		VectorHandler& /* X */ , 
-		VectorHandler& /* XP */ 
-		) const {
-	NO_OP;
 }
 
 /* ThreeWayMinorLoss - end */
@@ -621,12 +609,6 @@ Orifice::Output(OutputHandler& OH) const
 			<< " " << turbulent		/*  5 */
 			<< std::endl;
 	}
-}
-
-void
-Orifice::SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const 
-{
-	NO_OP;
 }
 
 /* Orifice - end */

@@ -229,12 +229,6 @@ RotorTrim::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
-void
-RotorTrim::SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const
-{
-	NO_OP;
-}
-
 #endif /* USE_AERODYNAMIC_ELEMS */
 #endif /* USE_ELECTRIC_NODES */
 

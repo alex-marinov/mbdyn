@@ -21,6 +21,7 @@ MBDyn 1.X-Devel
 		- added trigger drive to switch on rotor trim element
 		- added "range" to node/element output specifications
 		- added velocity and relative velocity to "model" namespace
+		- added "hint" infrastructure to enhance driven element
 	Backward compatibility issues:
 		- s/solver/linear solver/
 		- dynamic structural node accelerations are now off by default

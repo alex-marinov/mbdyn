@@ -41,7 +41,9 @@
  */
 class BasicFriction : public SimulationEntity{
 private:
-	void SetValue(VectorHandler&X, VectorHandler&XP) const{};
+	void SetValue(DataManager *pDM,
+			VectorHandler&X, VectorHandler&XP,
+			SimulationEntity::Hints *ph = 0) const{};
 public:
 /*
  * 	unsigned int iGetNumDof(void) const;
@@ -58,9 +60,10 @@ public:
  */
 /** Set Initial Values
  */
-	virtual void SetValue(VectorHandler&X, 
-		VectorHandler&XP, 
-		const unsigned int solution_startdof) const;
+	virtual void SetValue(DataManager *pDM,
+			VectorHandler&X, VectorHandler&XP,
+			SimulationEntity::Hints *ph = 0,
+			const unsigned int solution_startdof = 0) const;
 /** Return last computed friction coefficient
  */
 	virtual doublereal fc(void) const = 0;
@@ -151,9 +154,10 @@ public:
 		const doublereal sigma2,
 		const doublereal kappa,
 		const BasicScalarFunction *const ff);
-	void SetValue(VectorHandler&X, 
-		VectorHandler&XP, 
-		const unsigned int solution_startdof) const;
+	void SetValue(DataManager *pDM,
+			VectorHandler&X, VectorHandler&XP, 
+			SimulationEntity::Hints *ph = 0,
+			const unsigned int solution_startdof = 0) const;
 	unsigned int iGetNumDof(void) const;
 	virtual std::ostream& DescribeDof(std::ostream& out,
 			char *prefix = "",
@@ -222,9 +226,10 @@ public:
 		const BasicScalarFunction *const ff,
 		const doublereal s2,
 		const doublereal vr);
-	void SetValue(VectorHandler&X, 
-		VectorHandler&XP, 
-		const unsigned int solution_startdof) const;
+	void SetValue(DataManager *pDM,
+			VectorHandler&X, VectorHandler&XP, 
+			SimulationEntity::Hints *ph = 0,
+			const unsigned int solution_startdof = 0) const;
 	unsigned int iGetNumDof(void) const;
 	virtual std::ostream& DescribeDof(std::ostream& out,
 			char *prefix = "",

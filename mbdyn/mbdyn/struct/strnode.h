@@ -242,7 +242,9 @@ class StructNode : public Node {
       
    /* Funzioni di inizializzazione, ereditate da DofOwnerOwner */
    virtual void SetInitialValue(VectorHandler& X) const;   
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+   virtual void SetValue(DataManager *pDM,
+		   VectorHandler& X, VectorHandler& XP,
+		   SimulationEntity::Hints *ph = 0) const;
       
    /* Elaborazione vettori e dati prima e dopo la predizione
     * per MultiStepIntegrator */
@@ -731,7 +733,9 @@ class DummyStructNode : public StructNode {
       
    /* Funzioni di inizializzazione, ereditate da DofOwnerOwner */
    virtual void SetInitialValue(VectorHandler& X) const;   
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+   virtual void SetValue(DataManager *pDM,
+		   VectorHandler& X, VectorHandler& XP,
+		   SimulationEntity::Hints *ph = 0) const;
       
    /* Elaborazione vettori e dati prima e dopo la predizione
     * per MultiStepIntegrator */

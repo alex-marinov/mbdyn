@@ -65,7 +65,9 @@ public:
 			unsigned int iDof, 
 			unsigned int iOrder = 0);
 
-	virtual void SetValue(VectorHandler&, VectorHandler&) const;
+	virtual void SetValue(DataManager *pDM,
+			VectorHandler&, VectorHandler&,
+			SimulationEntity::Hints *ph = 0) const;
 };
 
 

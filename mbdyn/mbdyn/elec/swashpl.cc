@@ -263,13 +263,6 @@ SwashPlate::SetInitialValue(VectorHandler& /* X */ ) const
 	NO_OP;
 }
 
-
-void
-SwashPlate::SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const
-{
-	NO_OP;
-}
-
 /* SwashPlate - end */
 
 #endif /* USE_ELECTRIC_NODES */

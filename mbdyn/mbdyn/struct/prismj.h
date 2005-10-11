@@ -102,7 +102,13 @@ class PrismaticJoint : virtual public Elem, public Joint {
    
    void Output(OutputHandler& OH) const;
  
+   void SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0) const;
 
+	virtual SimulationEntity::Hint *
+	ParseHint(DataManager *pDM, const char *s) const;
+	         
    /* funzioni usate nell'assemblaggio iniziale */
    
    virtual unsigned int iGetInitialNumDof(void) const { 

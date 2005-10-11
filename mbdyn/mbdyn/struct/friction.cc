@@ -47,9 +47,10 @@ int sign(const doublereal x) {
 	return 0;
 };
 
-void BasicFriction::SetValue(VectorHandler&X, 
-	VectorHandler&XP, 
-	const unsigned int solution_startdof) const{};
+void BasicFriction::SetValue(DataManager *pDM,
+		VectorHandler&X, VectorHandler&XP,
+		SimulationEntity::Hints *ph,
+		const unsigned int solution_startdof) const{};
 
 ModLugreFriction::ModLugreFriction(
 		const doublereal s0,
@@ -66,9 +67,12 @@ fss(dynamic_cast<const DifferentiableScalarFunction&>(*ff)),
 f(0.) {
 };
 
-void ModLugreFriction::SetValue(VectorHandler&X, 
-	VectorHandler&XP, 
-	const unsigned int solution_startdof) const{
+void ModLugreFriction::SetValue(DataManager *pDM,
+		VectorHandler&X, 
+		VectorHandler&XP,
+		SimulationEntity::Hints *ph,
+		const unsigned int solution_startdof) const
+{
 	X.PutCoef(solution_startdof+1,f/sigma0);
 };
 
@@ -256,9 +260,12 @@ fss(dynamic_cast<const DifferentiableScalarFunction&>(*ff)),
 f(0) {
 };
 
-void DiscreteCoulombFriction::SetValue(VectorHandler&X, 
-	VectorHandler&XP, 
-	const unsigned int solution_startdof) const{
+void DiscreteCoulombFriction::SetValue(DataManager *pDM,
+		VectorHandler&X, 
+		VectorHandler&XP, 
+		SimulationEntity::Hints *ph,
+		const unsigned int solution_startdof) const
+{
 	X.PutCoef(solution_startdof+1,f);
 };
 

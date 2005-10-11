@@ -56,20 +56,24 @@ SimulationEntity::bIsValidIndex(unsigned int i) const
 }
 
 void 
-SimulationEntity::SetValue(VectorHandler&  X  , 
-		VectorHandler&  XP  ) const
+SimulationEntity::SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph) const
 {
 #if 0
-	if(*ppX0_Xp0!=NULL) {
-		/*(*ppX0_Xp0)[0]
-		(*ppX0_Xp0)[1]*/
-		//scive in X e XP i dati iniziali
+	if (*ppX0_Xp0 != NULL) {
+		// scrive in X e XP i dati iniziali
 	}
 #endif
 	NO_OP;
-	
 }
-	         
+     
+SimulationEntity::Hint *
+SimulationEntity::ParseHint(DataManager *pDM, const char *s) const
+{
+	return 0;
+}
+
 void 
 SimulationEntity::BeforePredict(VectorHandler& /* X */ ,
 		VectorHandler& /* XP */ ,

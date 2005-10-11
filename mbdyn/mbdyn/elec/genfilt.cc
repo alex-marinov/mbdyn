@@ -405,7 +405,9 @@ GenelFilterEq::AssRes(SubVectorHandler& WorkVec,
 /* Setta i valori iniziali delle variabili (e fa altre cose) 
  * prima di iniziare l'integrazione */
 void 
-GenelFilterEq::SetValue(VectorHandler& X, VectorHandler& XP) const
+GenelFilterEq::SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph) const
 {
 #ifdef USE_Y12
    if (fSteady) {

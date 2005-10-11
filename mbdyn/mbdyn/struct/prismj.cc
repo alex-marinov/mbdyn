@@ -269,6 +269,49 @@ void PrismaticJoint::Output(OutputHandler& OH) const
    }   
 }
 
+void
+PrismaticJoint::SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph) const
+{
+	if (ph) {
+		for (unsigned i = 0; i < ph->size(); i++) {
+			Joint::JointHint *pjh = dynamic_cast<Joint::JointHint *>((*ph)[i]);
+
+			if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
+				(Mat3x3&)R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2h;
+
+			} else if (dynamic_cast<Joint::HingeHint<2> *>(pjh)) {
+				(Mat3x3&)R2h = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1h;
+
+			} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
+				/* TODO */
+			}
+		}
+	}
+}
+
+SimulationEntity::Hint *
+PrismaticJoint::ParseHint(DataManager *pDM, const char *s) const
+{
+	if (strncasecmp(s, "hinge[", sizeof("hinge[") - 1) == 0) {
+		s += sizeof("hinge[") - 1;
+
+		if (strcmp(&s[1], "]") != 0) {
+			return 0;
+		}
+
+		switch (s[0]) {
+		case '1':
+			return new Joint::HingeHint<1>;
+
+		case '2':
+			return new Joint::HingeHint<2>;
+		}
+	}
+
+	return 0;
+}
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
 VariableSubMatrixHandler& 

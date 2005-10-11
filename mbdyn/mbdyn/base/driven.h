@@ -45,11 +45,14 @@
 
 class DrivenElem : public Elem, protected DriveOwner {
 protected: 
+	DataManager *pDM;
 	Elem* pElem;
+	SimulationEntity::Hints *pHints;
 	bool bActive;
  
 public:
-	DrivenElem(const DriveCaller* pDC, const Elem* pE);
+	DrivenElem(DataManager *pDM, const DriveCaller* pDC,
+			const Elem* pE, SimulationEntity::Hints *ph = 0);
 	~DrivenElem(void);
 
 	inline void* pGet(void) const {
@@ -95,18 +98,14 @@ public:
 		if (dGet() != 0.) {
 			ElemWithDofs*	pEwD = pGetElemWithDofs();
 			if (pEwD) {
-				return pEwD->SetInitialValue(X);
+				pEwD->SetInitialValue(X);
 			}
 		}
 	};
 
-	virtual void SetValue(VectorHandler& X, VectorHandler& XP) const
-	{
-		ASSERT(pElem != NULL);
-		if (dGet() != 0.) {
-			return pElem->SetValue(X, XP);
-		}
-	};
+	virtual void SetValue(DataManager *pdm,
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints *ph = 0) const;
 
 	/* Scrive il contributo dell'elemento al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;

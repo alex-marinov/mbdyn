@@ -173,8 +173,10 @@ int_initial_ass_res(LoadableElem* /* pEl */ ,
 
 static void 
 int_set_value(const LoadableElem* /* pEl */ , 
-	    VectorHandler& /* X */ ,
-	    VectorHandler& /* XP */ )
+		DataManager *pDM,
+		VectorHandler& /* X */ ,
+		VectorHandler& /* XP */ ,
+		SimulationEntity::Hints *ph)
 {
    	NO_OP;
 }
@@ -720,10 +722,12 @@ LoadableElem::SetInitialValue(VectorHandler& X) const
 #endif /* USE_STRUCT_NODES */
 
 void 
-LoadableElem::SetValue(VectorHandler& X, VectorHandler& XP) const
+LoadableElem::SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph) const
 {
    	ASSERT(calls->set_value != NULL);
-   	(*calls->set_value)(this, X, XP);
+   	(*calls->set_value)(this, pDM, X, XP, ph);
 }
 
 unsigned int 

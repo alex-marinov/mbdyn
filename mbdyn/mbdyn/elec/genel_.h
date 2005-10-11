@@ -149,7 +149,10 @@ class GenelClamp : virtual public Elem, public Genel, public DriveOwner {
       return WorkVec;
    };
    
-   void SetValue(VectorHandler& X, VectorHandler& XP) const {
+   void SetValue(DataManager *pDM,
+		   VectorHandler& X, VectorHandler& XP,
+		   SimulationEntity::Hints *ph = 0) const
+   {
       if (SD.iOrder == 0) {
 	 X.PutCoef(SD.pNode->iGetFirstRowIndex()+1, dGet());
       } else if (SD.iOrder == 1) {
@@ -305,7 +308,10 @@ class GenelDistance : virtual public Elem, public Genel, public DriveOwner {
       return WorkVec;
    };
    
-   void SetValue(VectorHandler& X, VectorHandler& XP) const {
+   void SetValue(DataManager *pDM,
+		   VectorHandler& X, VectorHandler& XP,
+		   SimulationEntity::Hints *ph = 0) const
+   {
       if (SD2.iOrder == 0) {
 	 X.PutCoef(SD2.pNode->iGetFirstRowIndex()+1,
 		    dGet()-SD2.pNode->dGetX()
@@ -450,9 +456,6 @@ class GenelSpring
       return WorkVec;
    };
    
-   void SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const {
-      NO_OP;
-   };
  /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
@@ -558,9 +561,6 @@ class GenelSpringSupport
       return WorkVec;
    };
    
-   void SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const {
-      NO_OP;
-   };
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
@@ -667,9 +667,6 @@ class GenelCrossSpringSupport
       return WorkVec;
    };
    
-   void SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const {
-      NO_OP;
-   };
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
@@ -781,9 +778,6 @@ class GenelCrossSpringDamperSupport
       return WorkVec;
    };
    
-   void SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const {
-      NO_OP;
-   };
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
@@ -893,9 +887,6 @@ class GenelSpringDamperSupport
       return WorkVec;
    };
    
-   void SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const {
-      NO_OP;
-   };
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
@@ -1008,7 +999,10 @@ class GenelMass : virtual public Elem, public Genel, public DriveOwner {
       return WorkVec;
    };
    
-   void SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const {
+   void SetValue(DataManager *pDM,
+		   VectorHandler& X, VectorHandler& /* XP */ ,
+		   SimulationEntity::Hints *ph = 0) const
+   {
       X.PutCoef(iGetFirstIndex()+1, SD.pNode->dGetXPrime());
    };
    /* *******PER IL SOLUTORE PARALLELO******** */        

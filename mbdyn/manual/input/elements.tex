@@ -3744,6 +3744,7 @@ instantiated once only.
 The syntax for a driven element is:
 \begin{verbatim}
     <normal_arglist> ::= (drive_caller) <element_driver> ,
+        [ hint , " <hint> " , [ ... ] ]
         <driven_element>
 
     <driven_element> ::= existing : <elem_type> , <elem_label>

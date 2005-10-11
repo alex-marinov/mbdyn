@@ -117,7 +117,9 @@ class Brake : virtual public Elem, public Joint {
    
    DofOrder::Order GetDofType(unsigned int i) const;
 
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+   virtual void SetValue(DataManager *pDM,
+		   VectorHandler& X, VectorHandler& XP,
+		   SimulationEntity::Hints *ph = 0) const;
 
    virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP);

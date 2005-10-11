@@ -232,7 +232,7 @@ SubVectorHandler& DistanceJoint::AssRes(SubVectorHandler& WorkVec,
    dAlpha = XCurr.dGetCoef(iFirstReactionIndex+4);   
 
    doublereal dDistance = pGetDriveCaller()->dGet();
-   
+
    /* Distanza nulla */
    if (fabs(dDistance) <= DBL_EPSILON) {	
       silent_cerr("DistanceJoint(" << GetLabel() << "): "
@@ -538,7 +538,10 @@ void DistanceJoint::SetInitialValue(VectorHandler& X) const
 }
 
 
-void DistanceJoint::SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const
+void
+DistanceJoint::SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& /* XP */ ,
+		SimulationEntity::Hints *ph) const
 {
 	doublereal dDistance = pGetDriveCaller()->dGet();
    
@@ -1182,9 +1185,30 @@ void DistanceJointWithOffset::SetInitialValue(VectorHandler& X) const
 }
 
 
-void DistanceJointWithOffset::SetValue(VectorHandler& X, 
-				       VectorHandler& /* XP */ ) const
+void
+DistanceJointWithOffset::SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& /* XP */ ,
+		SimulationEntity::Hints *ph) const
 {
+	if (ph) {
+		for (unsigned i = 0; i < ph->size(); i++) {
+			Joint::JointHint *pjh = dynamic_cast<Joint::JointHint *>((*ph)[i]);
+
+			if (dynamic_cast<Joint::OffsetHint<1> *>(pjh)) {
+				Mat3x3 R1t = pNode1->GetRCurr().Transpose();
+				Vec3 f2Tmp(pNode2->GetRCurr()*f2);
+
+				(Vec3&)f1 = R1t*(pNode2->GetXCurr() + f2Tmp - pNode1->GetXCurr());
+
+			} else if (dynamic_cast<Joint::OffsetHint<2> *>(pjh)) {
+				Mat3x3 R2t = pNode2->GetRCurr().Transpose();
+				Vec3 f1Tmp(pNode1->GetRCurr()*f1);
+
+				(Vec3&)f2 = R2t*(pNode1->GetXCurr() + f1Tmp - pNode2->GetXCurr());
+			}
+		}
+	}
+	
 	doublereal dDistance = pGetDriveCaller()->dGet();
 
 	/* Setta a 1 dAlpha, che e' indipendente dalle altre variabili
@@ -1213,9 +1237,30 @@ void DistanceJointWithOffset::SetValue(VectorHandler& X,
 	}
 
 	/* Scrittura sul vettore soluzione */
-	X.Put(iGetFirstIndex()+1, v);	 
+	X.Put(iGetFirstIndex() + 1, v);	 
 }
 
+SimulationEntity::Hint *
+DistanceJointWithOffset::ParseHint(DataManager *pDM, const char *s) const
+{
+	if (strncasecmp(s, "offset[", sizeof("offset[") - 1) == 0) {
+		s += sizeof("offset[") - 1;
+
+		if (strcmp(&s[1], "]") != 0) {
+			return 0;
+		}
+
+		switch (s[0]) {
+		case '1':
+			return new Joint::OffsetHint<1>;
+
+		case '2':
+			return new Joint::OffsetHint<2>;
+		}
+	}
+
+	return 0;
+}
 
 void 
 DistanceJointWithOffset::GetDummyPartPos(unsigned int part,
@@ -1675,7 +1720,10 @@ ClampJoint::InitialAssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
-void ClampJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
+void
+ClampJoint::SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph) const
 {
 	integer iFirstReactionIndex = iGetFirstIndex();
 	X.Put(iFirstReactionIndex+1,F);

@@ -240,7 +240,9 @@ KinJoint::SetInitialValue(VectorHandler& /* X */ ) const
 }
 
 void 
-KinJoint::SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const
+KinJoint::SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& /* XP */ ,
+		SimulationEntity::Hints *ph) const
 {
    integer iIndex = iGetFirstIndex();
    X.Put(iIndex+1, pNode->GetVCurr());

@@ -47,7 +47,7 @@ class SphericalHingeJoint : virtual public Elem, public Joint {
    Vec3 d2;
    Mat3x3 R2h;
    Vec3 F;
-   
+
  public:
    /* Costruttore non banale */
    SphericalHingeJoint(unsigned int uL, const DofOwner* pDO,
@@ -97,7 +97,13 @@ class SphericalHingeJoint : virtual public Elem, public Joint {
    
    virtual void Output(OutputHandler& OH) const;
  
+   virtual void SetValue(DataManager *pDM,
+		   VectorHandler& X, VectorHandler& XP,
+		   SimulationEntity::Hints *ph = 0) const;
 
+	virtual SimulationEntity::Hint *
+	ParseHint(DataManager *pDM, const char *s) const;
+	         
    /* funzioni usate nell'assemblaggio iniziale */
    
    virtual unsigned int iGetInitialNumDof(void) const {

@@ -350,10 +350,6 @@ class DiscreteControlElem : virtual public Elem, public Electric {
 				    const VectorHandler& XCurr, 
 				    const VectorHandler& XPrimeCurr);
    
-   virtual void SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const {
-      NO_OP;
-   };
-
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */

@@ -170,10 +170,12 @@ PiezoActuatorBeam2::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 
 /* Settings iniziali, prima della prima soluzione */
 void
-PiezoActuatorBeam2::SetValue(VectorHandler& X, VectorHandler& XP) const
+PiezoActuatorBeam2::SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph) const
 {
 	/* se proprio non serve, si puo' eliminare */
-	Beam2::SetValue(X, XP);
+	Beam2::SetValue(pDM, X, XP, ph);
 }
 
 
@@ -388,10 +390,12 @@ PiezoActuatorVEBeam2::WorkSpaceDim(integer* piNumRows,
 
 /* Settings iniziali, prima della prima soluzione */
 void
-PiezoActuatorVEBeam2::SetValue(VectorHandler& X, VectorHandler& XP) const
+PiezoActuatorVEBeam2::SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph) const
 {
 	/* se proprio non serve, si puo' eliminare */
-	ViscoElasticBeam2::SetValue(X, XP);
+	ViscoElasticBeam2::SetValue(pDM, X, XP, ph);
 }
 
 

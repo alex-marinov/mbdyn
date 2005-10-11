@@ -822,6 +822,19 @@ void DataManager::ReadElems(MBDynParser& HP)
 	      case DRIVEN: {
 		 /* Reads the driver */
 		 DriveCaller* pDC = HP.GetDriveCaller();
+		 std::vector<std::string> hints;
+
+		 for (unsigned i = 1; HP.IsKeyWord("hint"); i++) {
+			 const char *hint = HP.GetStringWithDelims();
+			 if (hint == 0) {
+				silent_cerr("Driven(" << uLabel << "): "
+					"unable to read hint #" << i 
+					<< " at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric();
+			 }
+			 hints.push_back(hint);
+		 }
 		 
 		 HP.ExpectDescription();
 		 KeyWords CurrDriven = KeyWords(HP.GetDescription());
@@ -990,13 +1003,27 @@ void DataManager::ReadElems(MBDynParser& HP)
 		       throw ErrMemory();
 		    }
 		 }
-		 
+
+		 SimulationEntity::Hints *pHints = 0;
+		 if (hints.size() > 0) {
+		 	 pHints = new SimulationEntity::Hints;
+		 	 for (unsigned i = 0; i < hints.size(); i++) {
+				 SimulationEntity::Hint *ph = (*ppE)->ParseHint(this, hints[i].c_str());
+				 if (ph != 0) {
+					 pHints->push_back(ph);
+				 }
+			 }
+			 if (pHints->size() == 0) {
+				 delete pHints;
+				 pHints = 0;
+			 }
+		 }
 		 
 		 /* Creates the driver for the element */
 		 Elem* pEl = NULL;
 		 SAFENEWWITHCONSTRUCTOR(pEl,
 					DrivenElem,
-					DrivenElem(pDC, *ppE));
+					DrivenElem(this, pDC, *ppE, pHints));
 		 		 
 		 /* Substitutes the element with the driver */
 		 *ppE = pEl;

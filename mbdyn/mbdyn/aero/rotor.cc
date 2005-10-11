@@ -1739,7 +1739,9 @@ DynamicInflowRotor::SetInitialValue(VectorHandler& /* X */ ) const
 
 /* Relativo ai ...WithDofs */
 void
-DynamicInflowRotor::SetValue(VectorHandler& X, VectorHandler& XP) const
+DynamicInflowRotor::SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph) const
 {
 	integer iFirstIndex = iGetFirstIndex();
 

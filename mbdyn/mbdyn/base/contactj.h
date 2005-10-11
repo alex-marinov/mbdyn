@@ -221,8 +221,11 @@ class ContactJoint : virtual public Elem, public Joint {
       NO_OP;
    };
    
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const {
-      X.PutCoef(iGetFirstIndex()+1, 0.);
+   virtual void SetValue(DataManager *pDM,
+		   VectorHandler& X, VectorHandler& XP,
+		   SimulationEntity::Hints *ph = 0) const
+   {
+      X.PutCoef(iGetFirstIndex() + 1, 0.);
    };
 
    /* *******PER IL SOLUTORE PARALLELO******** */        

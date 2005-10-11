@@ -2017,7 +2017,9 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 }
 
 void
-Modal::SetValue(VectorHandler& X, VectorHandler& XP) const
+Modal::SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph) const
 {
 	/* inizializza la soluzione e la sua derivata
 	 * subito dopo l'assemblaggio iniziale

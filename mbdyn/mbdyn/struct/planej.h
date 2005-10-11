@@ -109,8 +109,13 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
    
    DofOrder::Order GetDofType(unsigned int i) const;
 
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+   virtual void SetValue(DataManager *pDM,
+		   VectorHandler& X, VectorHandler& XP,
+		   SimulationEntity::Hints *ph = 0) const;
 
+	virtual SimulationEntity::Hint *
+	ParseHint(DataManager *pDM, const char *s) const;
+	         
    virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP);
 
@@ -235,8 +240,13 @@ class PlaneRotationJoint : virtual public Elem, public Joint {
       return DofOrder::ALGEBRAIC; 
    };
 
-	virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+   virtual void SetValue(DataManager *pDM,
+		   VectorHandler& X, VectorHandler& XP,
+		   SimulationEntity::Hints *ph = 0) const;
 
+	virtual SimulationEntity::Hint *
+	ParseHint(DataManager *pDM, const char *s) const;
+	         
 	virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP);
 
@@ -387,8 +397,13 @@ public Joint, public DriveOwner {
       }
    };
 
-	virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+   virtual void SetValue(DataManager *pDM,
+		   VectorHandler& X, VectorHandler& XP,
+		   SimulationEntity::Hints *ph = 0) const;
 
+	virtual SimulationEntity::Hint *
+	ParseHint(DataManager *pDM, const char *s) const;
+	         
 	virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP);
 
@@ -511,8 +526,13 @@ class PlanePinJoint : virtual public Elem, public Joint {
 
 	DofOrder::Order GetEqType(unsigned int i) const;
 
-	virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+   virtual void SetValue(DataManager *pDM,
+		   VectorHandler& X, VectorHandler& XP,
+		   SimulationEntity::Hints *ph = 0) const;
 
+	virtual SimulationEntity::Hint *
+	ParseHint(DataManager *pDM, const char *s) const;
+	         
 	virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP);
 

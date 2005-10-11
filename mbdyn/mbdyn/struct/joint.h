@@ -92,6 +92,19 @@ class Joint
       LASTJOINTTYPE
    };
 
+ public:
+   struct JointHint : public SimulationEntity::Hint {
+	   virtual ~JointHint(void) {};
+   };
+   template <int i>
+   struct OffsetHint : public Joint::JointHint {};
+   template <int i>
+   struct HingeHint : public Joint::JointHint {};
+   struct ReactionsHint : public Joint::JointHint {};
+   struct ForcesHint : public Joint::JointHint {};
+   struct MomentsHint : public Joint::JointHint {};
+   struct DriveHint : public Joint::JointHint {};
+   
  public: 
    class ErrGeneric {};
    
@@ -131,9 +144,12 @@ class Joint
    virtual void SetInitialValue(VectorHandler& /* X */ ) const { 
       NO_OP;
    };
-   
-   virtual void SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const { 
-			    NO_OP;
+
+   virtual void SetValue(DataManager *pDM,
+		   VectorHandler& /* X */ , VectorHandler& /* Xp */ ,
+		   SimulationEntity::Hints *ph = 0) const
+   {
+      NO_OP;
    };
 
    /* per la lettura dei dati dell'elemento modale */

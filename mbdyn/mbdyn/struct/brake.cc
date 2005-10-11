@@ -74,14 +74,16 @@ Brake::~Brake(void)
 };
 
 void
-Brake::SetValue(VectorHandler& X, VectorHandler& XP) const
+Brake::SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph) const
 {
 	Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*(pNode2->GetRCurr()*R2h));
 	Vec3 v(MatR2EulerAngles(RTmp));
 
 	dTheta = v.dGet(3);
 
-	fc->SetValue(X,XP,iGetFirstIndex()+NumSelfDof);
+	fc->SetValue(pDM, X, XP, ph, iGetFirstIndex() + NumSelfDof);
 }
 
 void

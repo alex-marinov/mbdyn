@@ -556,7 +556,9 @@ HBeam::AssRes(SubVectorHandler& WorkVec,
     
 /* Settings iniziali, prima della prima soluzione */
 void
-HBeam::SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const
+HBeam::SetValue(DataManager *pDM,
+		VectorHandler& /* X */ , VectorHandler& /* XP */ ,
+		SimulationEntity::Hints *ph) const
 {
 	/* Aggiorna le grandezze della trave nei punti di valutazione */
 	(Mat3x3&)RRef = R;
@@ -1029,9 +1031,11 @@ ViscoElasticHBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
 
 /* Settings iniziali, prima della prima soluzione */
 void
-ViscoElasticHBeam::SetValue(VectorHandler& X, VectorHandler& XP) const
+ViscoElasticHBeam::SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph) const
 {
-	HBeam::SetValue(X, XP);
+	HBeam::SetValue(pDM, X, XP. ph);
 	
 	/* Aggiorna le grandezze della trave nei punti di valutazione */
 	(Vec3&)OmegaRef = Omega;

@@ -43,11 +43,13 @@
 
 #define LOADABLE_VERSION_SET(maj, min, fix)	\
 	(((maj) << 24) | ((min) << 16) | (fix))
-#define LOADABLE_VERSION	LOADABLE_VERSION_SET(1, 3, 0)
+#define LOADABLE_VERSION	LOADABLE_VERSION_SET(1, 4, 0)
 #define LOADABLE_VERSION_OUT(v) \
 	((v & 0xFF000000U) >> 24) << '.' << ((v & 0x00FF0000U) >> 16) << '.' << (v & 0x0000FFFFU)
 /*
  * CHANGELOG:
+ * 2005-10-11: 1.4.0 changed SetValue API (hints and so...)
+ * ????-??-??: 1.3.0 ???
  * 2004-05-21: 1.2.0 added hooks for dummy part output calls
  * 2003-02-25: 1.1.0 added hook for iGetPrivDataIdx()
  * 2002-XX-XX: 1.0.0 added versioning system to detect structure conflicts
@@ -148,7 +150,9 @@ typedef VariableSubMatrixHandler&
 typedef SubVectorHandler&
 (* p_initial_ass_res)(LoadableElem*, SubVectorHandler&, const VectorHandler&);
 typedef void
-(* p_set_value)(const LoadableElem*, VectorHandler&, VectorHandler&);
+(* p_set_value)(const LoadableElem*, DataManager *pDM,
+		VectorHandler&, VectorHandler&,
+		SimulationEntity::Hints *ph = 0);
 typedef void (* p_set_initial_value)(const LoadableElem*, VectorHandler&);
 typedef unsigned int (* p_i_get_num_priv_data)(const LoadableElem* pEl);
 typedef unsigned int
@@ -324,7 +328,9 @@ public:
    	virtual void SetInitialValue(VectorHandler& X) const;   
 #endif /* USE_STRUCT_NODES */
 
-   	virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+   	virtual void SetValue(DataManager *pDM,
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints *ph = 0) const;
 
    	virtual unsigned int iGetNumPrivData(void) const;
    	virtual unsigned int iGetPrivDataIdx(const char *s) const;

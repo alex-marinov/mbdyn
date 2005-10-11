@@ -169,7 +169,9 @@ SocketStreamElem::AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
 }
 
 void
-SocketStreamElem::SetValue(VectorHandler& X, VectorHandler& XP) const
+SocketStreamElem::SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph) const
 {
 	if (bSendFirst) {
 #if 1

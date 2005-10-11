@@ -114,8 +114,9 @@ Elem2Param::SetDofValue(const doublereal& /* dValue */ ,
 }
 
 void
-Elem2Param::SetValue(VectorHandler& /* X */,
-		VectorHandler& /* XP */ ) const
+Elem2Param::SetValue(DataManager *pDM,
+		VectorHandler& /* X */, VectorHandler& /* XP */ ,
+		SimulationEntity::Hints *ph) const
 {
 	if (pElem == NULL) {
 		silent_cerr("ParameterNode(" << GetLabel() 

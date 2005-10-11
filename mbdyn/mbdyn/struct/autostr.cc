@@ -249,7 +249,9 @@ AutomaticStructElem::Output(OutputHandler& OH) const
 /* Setta i valori iniziali delle variabili (e fa altre cose) 
  * prima di iniziare l'integrazione */
 void 
-AutomaticStructElem::SetValue(VectorHandler& /* X */ , VectorHandler& XP) const
+AutomaticStructElem::SetValue(DataManager *pDM,
+		VectorHandler& /* X */ , VectorHandler& XP,
+		SimulationEntity::Hints *ph) const
 {
    integer iIndex = pNode->iGetFirstMomentumIndex();
    

@@ -66,8 +66,9 @@ SampleAndHold::Restart(std::ostream& out) const
 }
 
 void
-SampleAndHold::SetValue(VectorHandler& /* X */,
-		VectorHandler& /* XP */ ) const
+SampleAndHold::SetValue(DataManager *pDM,
+		VectorHandler& /* X */, VectorHandler& /* XP */ ,
+		SimulationEntity::Hints *ph) const
 {
 	dSampleTime = Time.dGet() + dSamplePeriod;
 	dX = pNode->dGetX();

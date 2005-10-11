@@ -168,7 +168,6 @@ DataManager::SetTime(doublereal dTime, bool bServePending)
 				DriveData[iType].ppFirstDrive[iCnt]->ServePending(dTime);
 			}
 		}
-		
 	}
 } /* End of DataManager::SetTime() */
 
@@ -876,7 +875,7 @@ DataManager::SetValue(VectorHandler& X, VectorHandler& XP)
 	/* Nodi */
 	for (Node** ppNode = ppNodes; ppNode < ppNodes+iTotNodes; ppNode++) {
 		ASSERT(*ppNode != NULL);
-		(*ppNode)->SetValue(X, XP);
+		(*ppNode)->SetValue(this, X, XP);
 	}
 
 	/* Elementi */
@@ -884,7 +883,7 @@ DataManager::SetValue(VectorHandler& X, VectorHandler& XP)
 	Elem* pEl = NULL;
 	if (ElemIter.bGetFirst(pEl)) {
 		do {
-			pEl->SetValue(X, XP);
+			pEl->SetValue(this, X, XP);
 		} while (ElemIter.bGetNext(pEl));
 	}
 	if (solArrFileName != NULL) {
@@ -892,7 +891,8 @@ DataManager::SetValue(VectorHandler& X, VectorHandler& XP)
 #ifdef HAVE_ISOPEN
    		if (!fp.is_open()) {
 			silent_cerr("DataManager::SetValue(): " 
-				"Cannot open file " << solArrFileName << std::endl);
+				"Cannot open file \"" << solArrFileName << "\""
+				<< std::endl);
 			throw ErrGeneric();	
 		}
 #endif /* HAVE_ISOPEN */
@@ -913,14 +913,16 @@ DataManager::SetValue(VectorHandler& X, VectorHandler& XP)
 		fp.read((char*)X.pdGetVec() , X.iGetSize()*sizeof(double));
 		if (fp.gcount() != std::streamsize(X.iGetSize()*sizeof(double))) {
 			silent_cerr("DataManager::SetValue(): " 
-				"File(" << solArrFileName << ") too short!" << std::endl);
+				"File(" << solArrFileName << ") too short!"
+				<< std::endl);
 			throw ErrGeneric();				
 		}
 		fp.read((char*)XP.pdGetVec() , XP.iGetSize()*sizeof(double));
 		if (fp.gcount() != std::streamsize(XP.iGetSize()*sizeof(double))) {
 			silent_cerr("DataManager::SetValue(): " 
-				"File(" << solArrFileName << ") too short!" << std::endl);
-			throw ErrGeneric();				
+				"File(" << solArrFileName << ") too short!" 
+				<< std::endl);
+			throw ErrGeneric();
 		}
 		SAFEDELETEARR(solArrFileName);
 		fp.close();

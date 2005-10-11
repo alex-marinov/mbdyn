@@ -56,7 +56,9 @@ public:
 	virtual std::ostream& Restart(std::ostream& out) const;
 
 	/* inizializza i dati */
-	virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+	virtual void SetValue(DataManager *pDM,
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints *ph = 0) const;
 
 	/* Aggiorna i valori interni */   
 	virtual void Update(const class VectorHandler&,

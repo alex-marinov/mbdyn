@@ -163,8 +163,38 @@ PlaneHingeJoint::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int 
 }
 
 void
-PlaneHingeJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
+PlaneHingeJoint::SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph) const
 {
+	if (ph) {
+		for (unsigned i = 0; i < ph->size(); i++) {
+			Joint::JointHint *pjh = dynamic_cast<Joint::JointHint *>((*ph)[i]);
+
+			if (dynamic_cast<Joint::OffsetHint<1> *>(pjh)) {
+				Mat3x3 R1t(pNode1->GetRCurr().Transpose());
+				Vec3 dTmp2(pNode2->GetRCurr()*d2);
+   
+				(Vec3&)d1 = R1t*(pNode2->GetXCurr() + dTmp2 - pNode1->GetXCurr());
+
+			} else if (dynamic_cast<Joint::OffsetHint<2> *>(pjh)) {
+				Mat3x3 R2t(pNode2->GetRCurr().Transpose());
+				Vec3 dTmp1(pNode1->GetRCurr()*d1);
+   
+				(Vec3&)d2 = R2t*(pNode1->GetXCurr() + dTmp1 - pNode2->GetXCurr());
+
+			} else if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
+				(Mat3x3&)R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2h;
+
+			} else if (dynamic_cast<Joint::HingeHint<2> *>(pjh)) {
+				(Mat3x3&)R2h = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1h;
+
+			} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
+				/* TODO */
+			}
+		}
+	}
+
 	Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*(pNode2->GetRCurr()*R2h));
 	Vec3 v(MatR2EulerAngles(RTmp));
 
@@ -181,8 +211,48 @@ PlaneHingeJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
 	X.PutCoef(iFirstReactionIndex + 5, M.dGet(2));
 
 	if (fc) {
-		fc->SetValue(X,XP,iGetFirstIndex()+NumSelfDof);
+		fc->SetValue(pDM, X, XP, ph, iGetFirstIndex() + NumSelfDof);
 	}
+}
+
+SimulationEntity::Hint *
+PlaneHingeJoint::ParseHint(DataManager *pDM, const char *s) const
+{
+	if (strncasecmp(s, "offset[", sizeof("offset[") - 1) == 0) {
+		s += sizeof("offset[") - 1;
+
+		if (strcmp(&s[1], "]") != 0) {
+			return 0;
+		}
+
+		switch (s[0]) {
+		case '1':
+			return new Joint::OffsetHint<1>;
+
+		case '2':
+			return new Joint::OffsetHint<2>;
+		}
+
+	} else if (strncasecmp(s, "hinge[", sizeof("hinge[") - 1) == 0) {
+		s += sizeof("hinge[") - 1;
+
+		if (strcmp(&s[1], "]") != 0) {
+			return 0;
+		}
+
+		switch (s[0]) {
+		case '1':
+			return new Joint::HingeHint<1>;
+
+		case '2':
+			return new Joint::HingeHint<2>;
+		}
+
+	} else if (fc) {
+		return fc->ParseHint(pDM, s);
+	}
+
+	return 0;
 }
 
 void
@@ -1206,12 +1276,52 @@ PlaneRotationJoint::DescribeEq(std::ostream& out, char *prefix, bool bInitial, i
 }
 
 void
-PlaneRotationJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
+PlaneRotationJoint::SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph) const
 {
+	if (ph) {
+		for (unsigned i = 0; i < ph->size(); i++) {
+			Joint::JointHint *pjh = dynamic_cast<Joint::JointHint *>((*ph)[i]);
+
+			if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
+				(Mat3x3&)R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2h;
+
+			} else if (dynamic_cast<Joint::HingeHint<2> *>(pjh)) {
+				(Mat3x3&)R2h = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1h;
+
+			} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
+				/* TODO */
+			}
+		}
+	}
+
 	Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*(pNode2->GetRCurr()*R2h));
 	Vec3 v(MatR2EulerAngles(RTmp));
 
 	dTheta = v.dGet(3);
+}
+
+SimulationEntity::Hint *
+PlaneRotationJoint::ParseHint(DataManager *pDM, const char *s) const
+{
+	if (strncasecmp(s, "hinge[", sizeof("hinge[") - 1) == 0) {
+		s += sizeof("hinge[") - 1;
+
+		if (strcmp(&s[1], "]") != 0) {
+			return 0;
+		}
+
+		switch (s[0]) {
+		case '1':
+			return new Joint::HingeHint<1>;
+
+		case '2':
+			return new Joint::HingeHint<2>;
+		}
+	}
+
+	return 0;
 }
 
 void
@@ -1975,16 +2085,86 @@ AxialRotationJoint::DescribeEq(std::ostream& out, char *prefix, bool bInitial, i
 }
 
 void
-AxialRotationJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
+AxialRotationJoint::SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph) const
 {
+	if (ph) {
+		for (unsigned i = 0; i < ph->size(); i++) {
+			Joint::JointHint *pjh = dynamic_cast<Joint::JointHint *>((*ph)[i]);
+
+			if (dynamic_cast<Joint::OffsetHint<1> *>(pjh)) {
+				Mat3x3 R1t(pNode1->GetRCurr().Transpose());
+				Vec3 dTmp2(pNode2->GetRCurr()*d2);
+   
+				(Vec3&)d1 = R1t*(pNode2->GetXCurr() + dTmp2 - pNode1->GetXCurr());
+
+			} else if (dynamic_cast<Joint::OffsetHint<2> *>(pjh)) {
+				Mat3x3 R2t(pNode2->GetRCurr().Transpose());
+				Vec3 dTmp1(pNode1->GetRCurr()*d1);
+   
+				(Vec3&)d2 = R2t*(pNode1->GetXCurr() + dTmp1 - pNode2->GetXCurr());
+
+			} else if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
+				(Mat3x3&)R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2h;
+
+			} else if (dynamic_cast<Joint::HingeHint<2> *>(pjh)) {
+				(Mat3x3&)R2h = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1h;
+
+			} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
+				/* TODO */
+			}
+		}
+	}
+
 	Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*(pNode2->GetRCurr()*R2h));
 	Vec3 v(MatR2EulerAngles(RTmp));
 
 	dTheta = v.dGet(3);
 	
 	if (fc) {
-		fc->SetValue(X,XP,iGetFirstIndex()+NumSelfDof);
+		fc->SetValue(pDM, X, XP, ph, iGetFirstIndex() + NumSelfDof);
 	}
+}
+
+SimulationEntity::Hint *
+AxialRotationJoint::ParseHint(DataManager *pDM, const char *s) const
+{
+	if (strncasecmp(s, "offset[", sizeof("offset[") - 1) == 0) {
+		s += sizeof("offset[") - 1;
+
+		if (strcmp(&s[1], "]") != 0) {
+			return 0;
+		}
+
+		switch (s[0]) {
+		case '1':
+			return new Joint::OffsetHint<1>;
+
+		case '2':
+			return new Joint::OffsetHint<2>;
+		}
+
+	} else if (strncasecmp(s, "hinge[", sizeof("hinge[") - 1) == 0) {
+		s += sizeof("hinge[") - 1;
+
+		if (strcmp(&s[1], "]") != 0) {
+			return 0;
+		}
+
+		switch (s[0]) {
+		case '1':
+			return new Joint::HingeHint<1>;
+
+		case '2':
+			return new Joint::HingeHint<2>;
+		}
+
+	} else if (fc) {
+		return fc->ParseHint(pDM, s);
+	}
+
+	return 0;
 }
 
 void
@@ -2977,12 +3157,78 @@ PlanePinJoint::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i)
 }
 
 void
-PlanePinJoint::SetValue(VectorHandler& X, VectorHandler& XP) const
+PlanePinJoint::SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph) const
 {
+	if (ph) {
+		for (unsigned i = 0; i < ph->size(); i++) {
+			Joint::JointHint *pjh = dynamic_cast<Joint::JointHint *>((*ph)[i]);
+
+			if (dynamic_cast<Joint::OffsetHint<1> *>(pjh)) {
+				Mat3x3 Rt(pNode->GetRCurr().Transpose());
+   
+				(Vec3&)d = Rt*(X0 - pNode->GetXCurr());
+
+			} else if (dynamic_cast<Joint::OffsetHint<0> *>(pjh)) {
+				Mat3x3 Rt(R0.Transpose());
+				Vec3 dTmp(pNode->GetRCurr()*d);
+   
+				(Vec3&)X0 = Rt*(pNode->GetXCurr() + dTmp);
+
+			} else if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
+				(Mat3x3&)Rh = pNode->GetRCurr().Transpose()*R0;
+
+			} else if (dynamic_cast<Joint::HingeHint<2> *>(pjh)) {
+				(Mat3x3&)R0 = pNode->GetRCurr()*Rh;
+
+			} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
+				/* TODO */
+			}
+		}
+	}
+
 	Mat3x3 RTmp(R0.Transpose()*(pNode->GetRCurr()*Rh));
 	Vec3 v(MatR2EulerAngles(RTmp));
 
 	dTheta = v.dGet(3);
+}
+
+SimulationEntity::Hint *
+PlanePinJoint::ParseHint(DataManager *pDM, const char *s) const
+{
+	if (strncasecmp(s, "offset[", sizeof("offset[") - 1) == 0) {
+		s += sizeof("offset[") - 1;
+
+		if (strcmp(&s[1], "]") != 0) {
+			return 0;
+		}
+
+		switch (s[0]) {
+		case '1':
+			return new Joint::OffsetHint<1>;
+
+		case '0':
+			return new Joint::OffsetHint<0>;
+		}
+
+	} else if (strncasecmp(s, "hinge[", sizeof("hinge[") - 1) == 0) {
+		s += sizeof("hinge[") - 1;
+
+		if (strcmp(&s[1], "]") != 0) {
+			return 0;
+		}
+
+		switch (s[0]) {
+		case '1':
+			return new Joint::HingeHint<1>;
+
+		case '0':
+			return new Joint::HingeHint<0>;
+		}
+	}
+
+	return 0;
 }
 
 DofOrder::Order

@@ -88,8 +88,6 @@ class Minor_loss : virtual public Elem, public HydraulicElem {
    
    virtual void Output(OutputHandler& OH) const;
    
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP ) const;
-
   /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
@@ -160,8 +158,6 @@ public:
 			const VectorHandler& XPrimeCurr);
 	
 	virtual void Output(OutputHandler& OH) const;
-	
-	virtual void SetValue(VectorHandler& X, VectorHandler& XP ) const;
 	
 	/* *******PER IL SOLUTORE PARALLELO******** */        
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
@@ -237,8 +233,6 @@ class Orifice : virtual public Elem, public HydraulicElem {
    
    virtual void Output(OutputHandler& OH) const;
    
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP ) const;
-
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */

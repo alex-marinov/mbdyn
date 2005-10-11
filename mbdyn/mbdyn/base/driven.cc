@@ -41,24 +41,37 @@
 
 #include "driven.h"
 
-DrivenElem::DrivenElem(const DriveCaller* pDC, const Elem* pE)
+DrivenElem::DrivenElem(DataManager *pdm, 
+		const DriveCaller* pDC, const Elem* pE,
+		SimulationEntity::Hints *ph)
 : Elem(pE->GetLabel(), Elem::DRIVEN, pE->fToBeOutput()),
 DriveOwner(pDC),
-pElem((Elem*)pE),
+pDM(pdm),
+pElem((Elem *)pE),
+pHints(ph),
 bActive(false)
 {
 	ASSERT(pDC != NULL);
 	ASSERT(pE != NULL);
 
-	bActive = pDC->dGet() != 0.;
+	bActive = (pDC->dGet() != 0.);
 }
 
 
 DrivenElem::~DrivenElem(void)
 {
-	ASSERT(pElem != NULL);
-  	if (pElem != NULL) {
+	ASSERT(pElem != 0);
+
+  	if (pElem != 0) {
 		SAFEDELETE(pElem);
+	}
+
+	if (pHints != 0) {
+		for (unsigned i = 0; i < pHints->size(); i++) {
+			delete (*pHints)[i];
+		}
+		delete pHints;
+		pHints = 0;
 	}
 }
 
@@ -83,9 +96,22 @@ std::ostream&
 DrivenElem::Restart(std::ostream& out) const
 {
 	ASSERT(pElem != NULL);
+
 	out << "driven: " << GetLabel() << ", ",
-		pGetDriveCaller()->Restart(out) << ", ",
-		pElem->Restart(out);
+		pGetDriveCaller()->Restart(out) << ", ";
+
+	if (pHints) {
+		for (unsigned i = 0; i < pHints->size(); i++) {
+			out << "hint, \"";
+
+			// TODO
+
+			out << "\", ";
+		}
+	}
+
+	pElem->Restart(out);
+
 	return out;
 }
 
@@ -136,13 +162,26 @@ DrivenElem::AfterPredict(VectorHandler& X, VectorHandler& XP)
 	if (dGet() != 0.) {
 		if (!bActive) {
 			bActive = true;
-			pElem->SetValue(X, XP);
+			pElem->SetValue(pDM, X, XP, pHints);
 		}
 		pElem->AfterPredict(X, XP);
+
 	} else {
 		if (bActive) {
 			bActive = false;
 		}
+	}
+}
+
+void
+DrivenElem::SetValue(DataManager *pdm,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph) const
+{
+	ASSERT(pElem != NULL);
+
+	if (dGet() != 0.) {
+		pElem->SetValue(pdm, X, XP, ph);
 	}
 }
 

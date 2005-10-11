@@ -31,6 +31,7 @@
 #ifndef SIMENTITY_H
 #define SIMENTITY_H
 
+#include <vector>
 
 #include <myassert.h>
 
@@ -66,17 +67,25 @@
  */
 
 class MBDynParser;
+class DataManager;
 
 class SimulationEntity {
-#if 0 
 protected:
+#if 0 
 	/*punta a un vettore di due elementi che sono il valore
 	 iniziale dello stato e la sue derivata prima*/
 	const VectorHandler const** ppX0_Xp0;
 #endif
+
 public:
 	SimulationEntity(void);
 	virtual ~SimulationEntity(void);
+
+	/* used to pass hints to SetValue */
+	struct Hint {
+		virtual ~Hint(void) {};
+	};
+	typedef std::vector<SimulationEntity::Hint *> Hints;
 
 	/* 
 	 * Ritorna il numero di DoFs.
@@ -136,7 +145,12 @@ public:
 	 * Puo' essere usata per altre inizializzazioni prima di 
 	 * iniziare l'integrazione 
 	 */
-	virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+	virtual void SetValue(DataManager *pDM,
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints* h = 0) const;
+
+	virtual SimulationEntity::Hint *
+	ParseHint(DataManager *pDM, const char *s) const;
 	         
 	/*
 	 * Elaborazione vettori e dati prima della predizione.

@@ -229,9 +229,3 @@ Motor::SetInitialValue(VectorHandler& /* X */ ) const
 	NO_OP;
 }
 
-void
-Motor::SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const
-{
-	NO_OP;
-}
-

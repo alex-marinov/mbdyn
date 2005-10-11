@@ -231,7 +231,9 @@ public:
 	SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
  
-	void SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const;
+	void SetValue(DataManager *pDM,
+			VectorHandler& /* X */ , VectorHandler& /* XP */ ,
+			SimulationEntity::Hints *ph = 0) const;
 	
 	/* Dati privati */
 	virtual unsigned int iGetNumPrivData(void) const;

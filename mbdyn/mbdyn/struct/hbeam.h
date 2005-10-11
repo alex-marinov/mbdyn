@@ -217,7 +217,9 @@ class HBeam
     };
    
     /* Settings iniziali, prima della prima soluzione */
-    void SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const;
+    void SetValue(DataManager *pDM,
+		    VectorHandler& /* X */ , VectorHandler& /* XP */ ,
+		    SimulationEntity::Hints *ph = 0) const;
    
     /* Prepara i parametri di riferimento dopo la predizione */
     virtual void 
@@ -382,7 +384,9 @@ class ViscoElasticHBeam : virtual public Elem, public HBeam {
     };
 
     /* Settings iniziali, prima della prima soluzione */
-    void SetValue(VectorHandler& /* X */ , VectorHandler& /* XP */ ) const;
+    void SetValue(DataManager *pDM,
+		    VectorHandler& /* X */ , VectorHandler& /* XP */ ,
+		    SimulationEntity::Hints *ph = 0) const;
    
     /* Prepara i parametri di riferimento dopo la predizione */
     virtual void 

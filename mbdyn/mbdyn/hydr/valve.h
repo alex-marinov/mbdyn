@@ -99,9 +99,6 @@ class Control_valve : virtual public Elem, public HydraulicElem, public DriveOwn
    
    virtual void Output(OutputHandler& OH) const;
    
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP ) const;
-
-
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
@@ -215,7 +212,9 @@ public:
 	
 	virtual void Output(OutputHandler& OH) const;
 	
-	virtual void SetValue(VectorHandler& X, VectorHandler& XP ) const;
+	virtual void SetValue(DataManager *pDM,
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints *ph = 0) const;
 	
 	/* *******PER IL SOLUTORE PARALLELO******** */        
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
@@ -321,7 +320,9 @@ class Dynamic_control_valve : virtual public Elem, public HydraulicElem, public 
    
    virtual void Output(OutputHandler& OH) const;
    
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+	virtual void SetValue(DataManager *pDM,
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints *ph = 0) const;
 
     /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
@@ -431,7 +432,9 @@ class Pressure_flow_control_valve : virtual public Elem, public HydraulicElem, p
    
    virtual void Output(OutputHandler& OH) const;
    
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+	virtual void SetValue(DataManager *pDM,
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints *ph = 0) const;
 
     /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
@@ -527,7 +530,9 @@ class Pressure_valve : virtual public Elem, public HydraulicElem {
    
    virtual void Output(OutputHandler& OH) const;
    
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+	virtual void SetValue(DataManager *pDM,
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints *ph = 0) const;
 
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
@@ -620,7 +625,9 @@ class  Flow_valve : virtual public Elem, public HydraulicElem {
    
    virtual void Output(OutputHandler& OH) const;
    
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+	virtual void SetValue(DataManager *pDM,
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints *ph = 0) const;
 
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento

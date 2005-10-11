@@ -380,7 +380,9 @@ Body::InitialAssRes(SubVectorHandler& WorkVec,
 
 /* Usata per inizializzare la quantita' di moto */
 void 
-Body::SetValue(VectorHandler& X, VectorHandler& /* XP */ ) const
+Body::SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& /* XP */ ,
+		SimulationEntity::Hints *ph) const
 {
     integer iFirstIndex = pNode->iGetFirstMomentumIndex();
    

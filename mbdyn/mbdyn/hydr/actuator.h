@@ -112,7 +112,9 @@ class Actuator : virtual public Elem, public HydraulicElem {
    
    virtual void Output(OutputHandler& OH) const;
    
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+   virtual void SetValue(DataManager *pDM,
+		   VectorHandler& X, VectorHandler& XP,
+		   SimulationEntity::Hints *ph = 0) const;
 
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento

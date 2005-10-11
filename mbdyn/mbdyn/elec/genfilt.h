@@ -161,7 +161,9 @@ class GenelFilterEq : public Genel {
 
    /* Setta i valori iniziali delle variabili (e fa altre cose) 
     * prima di iniziare l'integrazione */
-   virtual void SetValue(VectorHandler& X, VectorHandler& XP) const;
+   virtual void SetValue(DataManager *pDm,
+		   VectorHandler& X, VectorHandler& XP,
+		   SimulationEntity::Hints *ph = 0) const;
    
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
