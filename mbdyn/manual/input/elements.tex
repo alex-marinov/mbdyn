@@ -3830,7 +3830,40 @@ to the \kw{axial rotation} joint.
             hinge, 1, 1.,0.,0., 3, 0.,0.,1.;
 \end{verbatim}
 
+The \kw{hint} feature consists in allowing the setup of elements
+to be computed when they are activated rather than at startup.
+For example, a joint that is activated after some simulation time
+may need to compute its relative position and orientation
+from the parameters of the simulation; a drive that controls
+the evolution of the relative configuration of a joint may need
+to infer its parameters from the current configuration
+of the overall system; and so on.
 
+Currently, only few elements, significantly joints, support 
+and honor hints.
+The typical syntax is given by a keywork followed by some optional
+parameters within curly brackets.
+For instance, the hint that instructs a joint to compute the offset
+with respect to the second node when it is activated is
+\begin{verbatim}
+    driven: 10, string, "Time>1.", hint, "offset{2}",
+    joint: 10, ..."
+\end{verbatim}
+A similar for is used to instruct a joint to compute the relative
+orientation with respect to node 1:
+\begin{verbatim}
+    driven: 20, string, "Time>1.", hint, "hinge{1}",
+    joint: 20, ..."
+\end{verbatim}
+A distance joint may be fed a new drive by using:
+\begin{verbatim}
+    driven: 30, string, "Time>1.",
+        hint, "drive{cosine,0.,pi/.1,-.9/2.,half,model::distance(1,2)}",
+    joint: 30, distance, ... 
+\end{verbatim}
+
+This feature will likely be extended to other elements
+and generalized as much as possible.
 
 
 \subsection{Inertia}\label{sec:EL:MISC:INERTIA}
