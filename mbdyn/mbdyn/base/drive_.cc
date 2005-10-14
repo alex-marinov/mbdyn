@@ -32,18 +32,19 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <ac/math.h>
-#include <ac/float.h>
+#include "ac/math.h"
+#include "ac/float.h"
 
 #ifdef USE_MPI
-#include <mbcomm.h>
+#include "mbcomm.h"
 #endif /* USE_MPI */
 
-#include <dataman.h>
-#include <drive_.h>
-#include <dofdrive.h>
-#include <privdrive.h>
-#include <filedrv.h>
+#include "dataman.h"
+#include "drive_.h"
+#include "dofdrive.h"
+#include "privdrive.h"
+#include "filedrv.h"
+#include "ddrive.h"
 
 /* StringDriveCaller - begin */
 
@@ -914,6 +915,7 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	"string",
 	"dof",
 	"element",
+	"drive",
 	"array",
 	NULL
    };
@@ -945,6 +947,7 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	STRING,
 	DOF,
 	ELEMENT,
+	DRIVE,
 	ARRAY,
 
 	LASTKEYWORD
@@ -973,6 +976,7 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
        case ONEDRIVE:
        case UNITDRIVE:
        case CONST:
+       case DRIVE:
        case ARRAY:
 
        /* leave the checks for later... */
@@ -1575,6 +1579,16 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
        if (sIndexName) {
 	       SAFEDELETEARR(sIndexName);
        }
+       break;
+    }
+
+    case DRIVE: {
+       DriveCaller *pD1 = ReadDriveData(pDM, HP, bDeferred);
+       DriveCaller *pD2 = ReadDriveData(pDM, HP, bDeferred);
+
+       SAFENEWWITHCONSTRUCTOR(pDC,
+		       DriveDriveCaller,
+		       DriveDriveCaller(pDrvHdl, pD1, pD2));
        break;
     }
 

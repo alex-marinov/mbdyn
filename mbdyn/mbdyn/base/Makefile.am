@@ -24,6 +24,8 @@ dataman3.cc \
 dataman4.cc \
 dataman6.cc \
 dataman_.h \
+ddrive.cc \
+ddrive.h \
 dofdrive.cc \
 dofdrive.h \
 dofman.cc \
