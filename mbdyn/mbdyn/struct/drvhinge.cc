@@ -111,6 +111,10 @@ DriveHingeJoint::SetValue(DataManager *pDM,
 		for (unsigned i = 0; i < ph->size(); i++) {
 			Joint::JointHint *pjh = dynamic_cast<Joint::JointHint *>((*ph)[i]);
 
+			if (pjh == 0) {
+				continue;
+			}
+
 			if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
 				(Mat3x3&)R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2h;
 
@@ -127,10 +131,11 @@ DriveHingeJoint::SetValue(DataManager *pDM,
 SimulationEntity::Hint *
 DriveHingeJoint::ParseHint(DataManager *pDM, const char *s) const
 {
-	if (strncasecmp(s, "hinge[", sizeof("hinge[") - 1) == 0) {
-		s += sizeof("hinge[") - 1;
+	if (strncasecmp(s, "hinge{" /* } */ , sizeof("hinge{" /* } */ ) - 1) == 0)
+	{
+		s += sizeof("hinge{" /* } */ ) - 1;
 
-		if (strcmp(&s[1], "]") != 0) {
+		if (strcmp(&s[1], /* { */ "}") != 0) {
 			return 0;
 		}
 

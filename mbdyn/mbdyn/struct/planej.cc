@@ -222,10 +222,11 @@ PlaneHingeJoint::SetValue(DataManager *pDM,
 SimulationEntity::Hint *
 PlaneHingeJoint::ParseHint(DataManager *pDM, const char *s) const
 {
-	if (strncasecmp(s, "offset[", sizeof("offset[") - 1) == 0) {
-		s += sizeof("offset[") - 1;
+	if (strncasecmp(s, "offset{" /* } */ , sizeof("offset{" /* } */ ) - 1) == 0)
+	{
+		s += sizeof("offset{" /* } */ ) - 1;
 
-		if (strcmp(&s[1], "]") != 0) {
+		if (strcmp(&s[1], /* { */ "}") != 0) {
 			return 0;
 		}
 
@@ -237,10 +238,10 @@ PlaneHingeJoint::ParseHint(DataManager *pDM, const char *s) const
 			return new Joint::OffsetHint<2>;
 		}
 
-	} else if (strncasecmp(s, "hinge[", sizeof("hinge[") - 1) == 0) {
-		s += sizeof("hinge[") - 1;
+	} else if (strncasecmp(s, "hinge{" /* } */, sizeof("hinge{" /* } */) - 1) == 0) {
+		s += sizeof("hinge{" /* } */) - 1;
 
-		if (strcmp(&s[1], "]") != 0) {
+		if (strcmp(&s[1], /* { */ "}") != 0) {
 			return 0;
 		}
 
@@ -1313,10 +1314,10 @@ PlaneRotationJoint::SetValue(DataManager *pDM,
 SimulationEntity::Hint *
 PlaneRotationJoint::ParseHint(DataManager *pDM, const char *s) const
 {
-	if (strncasecmp(s, "hinge[", sizeof("hinge[") - 1) == 0) {
-		s += sizeof("hinge[") - 1;
+	if (strncasecmp(s, "hinge{" /* } */, sizeof("hinge{" /* } */) - 1) == 0) {
+		s += sizeof("hinge{" /* } */) - 1;
 
-		if (strcmp(&s[1], "]") != 0) {
+		if (strcmp(&s[1], /* { */ "}") != 0) {
 			return 0;
 		}
 
@@ -2155,10 +2156,10 @@ AxialRotationJoint::SetValue(DataManager *pDM,
 SimulationEntity::Hint *
 AxialRotationJoint::ParseHint(DataManager *pDM, const char *s) const
 {
-	if (strncasecmp(s, "offset[", sizeof("offset[") - 1) == 0) {
-		s += sizeof("offset[") - 1;
+	if (strncasecmp(s, "offset{" /* } */, sizeof("offset{" /* } */) - 1) == 0) {
+		s += sizeof("offset{" /* } */) - 1;
 
-		if (strcmp(&s[1], "]") != 0) {
+		if (strcmp(&s[1], /* { */ "}") != 0) {
 			return 0;
 		}
 
@@ -2170,10 +2171,10 @@ AxialRotationJoint::ParseHint(DataManager *pDM, const char *s) const
 			return new Joint::OffsetHint<2>;
 		}
 
-	} else if (strncasecmp(s, "hinge[", sizeof("hinge[") - 1) == 0) {
-		s += sizeof("hinge[") - 1;
+	} else if (strncasecmp(s, "hinge{" /* } */, sizeof("hinge{" /* } */) - 1) == 0) {
+		s += sizeof("hinge{" /* } */) - 1;
 
-		if (strcmp(&s[1], "]") != 0) {
+		if (strcmp(&s[1], /* { */ "}") != 0) {
 			return 0;
 		}
 
@@ -3226,10 +3227,10 @@ PlanePinJoint::SetValue(DataManager *pDM,
 SimulationEntity::Hint *
 PlanePinJoint::ParseHint(DataManager *pDM, const char *s) const
 {
-	if (strncasecmp(s, "offset[", sizeof("offset[") - 1) == 0) {
-		s += sizeof("offset[") - 1;
+	if (strncasecmp(s, "offset{" /* } */, sizeof("offset{" /* } */) - 1) == 0) {
+		s += sizeof("offset{" /* } */) - 1;
 
-		if (strcmp(&s[1], "]") != 0) {
+		if (strcmp(&s[1], /* { */ "}") != 0) {
 			return 0;
 		}
 
@@ -3241,10 +3242,10 @@ PlanePinJoint::ParseHint(DataManager *pDM, const char *s) const
 			return new Joint::OffsetHint<0>;
 		}
 
-	} else if (strncasecmp(s, "hinge[", sizeof("hinge[") - 1) == 0) {
-		s += sizeof("hinge[") - 1;
+	} else if (strncasecmp(s, "hinge{" /* } */, sizeof("hinge{" /* } */) - 1) == 0) {
+		s += sizeof("hinge{" /* } */) - 1;
 
-		if (strcmp(&s[1], "]") != 0) {
+		if (strcmp(&s[1], /* { */ "}") != 0) {
 			return 0;
 		}
 

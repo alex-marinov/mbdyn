@@ -298,10 +298,10 @@ PrismaticJoint::SetValue(DataManager *pDM,
 SimulationEntity::Hint *
 PrismaticJoint::ParseHint(DataManager *pDM, const char *s) const
 {
-	if (strncasecmp(s, "hinge[", sizeof("hinge[") - 1) == 0) {
-		s += sizeof("hinge[") - 1;
+	if (strncasecmp(s, "hinge{" /* } */, sizeof("hinge{" /* } */) - 1) == 0) {
+		s += sizeof("hinge{" /* } */) - 1;
 
-		if (strcmp(&s[1], "]") != 0) {
+		if (strcmp(&s[1], /* { */ "}") != 0) {
 			return 0;
 		}
 
