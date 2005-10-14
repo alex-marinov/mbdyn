@@ -1269,6 +1269,36 @@ a \kw{string} drive which depends on variable $x$; this, on turn,
 is defined as an \kw{element} plugin, which causes its evaluation
 in terms of the element's private data at each invocation.
 
+\subsection{Drive drive}
+\begin{verbatim}
+    <drive_caller> ::= array ,
+            <drive_caller1> , 
+            <drive_caller2>
+\end{verbatim}
+This is simply a ``function of function'' drive: the output 
+of \kw{drive\_caller2} is fed to \kw{drive\_caller1}
+and the result is returned.
+Note that the very same thing occurs, for instance, in the
+\kw{dof} and in the \kw{element} drives.
+
+\noindent
+Example:
+\begin{verbatim}
+    force: 1, abstract,
+        1, abstract,
+        drive,
+            string, "Var*(Var>0.)",
+            sine, 0., 2*pi/.2, 10., forever, 0.;
+\end{verbatim}
+is equivalent to
+\begin{verbatim}
+    set: real v;
+    force: 1, abstract,
+        1, abstract,
+        string, "v=sin(5.*2*pi*Time); 10.*v*(v>0)";
+\end{verbatim}
+
+
 \subsection{Array drive}
 \begin{verbatim}
     <drive_caller> ::= array ,
