@@ -295,7 +295,7 @@ PrismaticJoint::SetValue(DataManager *pDM,
 	}
 }
 
-SimulationEntity::Hint *
+Hint *
 PrismaticJoint::ParseHint(DataManager *pDM, const char *s) const
 {
 	if (strncasecmp(s, "hinge{" /* } */, sizeof("hinge{" /* } */) - 1) == 0) {

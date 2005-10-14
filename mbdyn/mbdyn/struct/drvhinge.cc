@@ -37,6 +37,7 @@
 #include "dataman.h"
 #include "drvhinge.h"
 #include "Rot.hh"
+#include "hint_impl.h"
 
 /* DriveHingeJoint - begin */
 
@@ -111,24 +112,38 @@ DriveHingeJoint::SetValue(DataManager *pDM,
 		for (unsigned i = 0; i < ph->size(); i++) {
 			Joint::JointHint *pjh = dynamic_cast<Joint::JointHint *>((*ph)[i]);
 
-			if (pjh == 0) {
+			if (pjh) {
+				if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
+					(Mat3x3&)R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2h;
+
+				} else if (dynamic_cast<Joint::HingeHint<2> *>(pjh)) {
+					(Mat3x3&)R2h = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1h;
+
+				} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
+					/* TODO */
+				}
 				continue;
 			}
 
-			if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
-				(Mat3x3&)R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2h;
+			TplDriveHint<Vec3> *pdh = dynamic_cast<TplDriveHint<Vec3> *>((*ph)[i]);
 
-			} else if (dynamic_cast<Joint::HingeHint<2> *>(pjh)) {
-				(Mat3x3&)R2h = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1h;
-
-			} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
-				/* TODO */
+			if (pdh) {
+				TplDriveCaller<Vec3> *pDC = pdh->pCreateDrive(pDM);
+				if (pDC == 0) {
+					silent_cerr("DriveHingeJoint(" << uLabel << "): "
+						"unable to create drive "
+						"after hint #" << i << std::endl);
+					throw ErrGeneric();
+				}
+				
+				TplDriveOwner<Vec3>::Set(pDC);
+				continue;
 			}
 		}
 	}
 }
 
-SimulationEntity::Hint *
+Hint *
 DriveHingeJoint::ParseHint(DataManager *pDM, const char *s) const
 {
 	if (strncasecmp(s, "hinge{" /* } */ , sizeof("hinge{" /* } */ ) - 1) == 0)
@@ -148,7 +163,8 @@ DriveHingeJoint::ParseHint(DataManager *pDM, const char *s) const
 		}
 	}
 
-	return 0;
+	/* take care of "drive" hint... */
+	return SimulationEntity::ParseHint(pDM, s);
 }
 
 std::ostream&

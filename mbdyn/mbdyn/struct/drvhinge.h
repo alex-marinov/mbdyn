@@ -90,7 +90,7 @@ public:
 			VectorHandler& X, VectorHandler& XP,
 			SimulationEntity::Hints *ph = 0);
 
-	virtual SimulationEntity::Hint *
+	virtual Hint *
 	ParseHint(DataManager *pDM, const char *s) const;
 	         
 	virtual unsigned int iGetNumDof(void) const { 

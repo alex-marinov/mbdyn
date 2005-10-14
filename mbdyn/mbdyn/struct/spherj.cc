@@ -259,7 +259,7 @@ SphericalHingeJoint::SetValue(DataManager *pDM,
 	}
 }
 
-SimulationEntity::Hint *
+Hint *
 SphericalHingeJoint::ParseHint(DataManager *pDM, const char *s) const
 {
 	if (strncasecmp(s, "offset{" /* } */, sizeof("offset{" /* } */) - 1) == 0) {

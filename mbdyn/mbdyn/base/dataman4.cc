@@ -1008,7 +1008,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 		 if (hints.size() > 0) {
 		 	 pHints = new SimulationEntity::Hints;
 		 	 for (unsigned i = 0; i < hints.size(); i++) {
-				 SimulationEntity::Hint *ph = (*ppE)->ParseHint(this, hints[i].c_str());
+				 Hint *ph = (*ppE)->ParseHint(this, hints[i].c_str());
 				 if (ph != 0) {
 					 pHints->push_back(ph);
 				 }

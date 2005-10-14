@@ -34,7 +34,10 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <genj.h>
+#include "dataman.h"
+#include "genj.h"
+#include "hint.h"
+#include "hint_impl.h"
 
 #ifndef MBDYN_X_DISTANCE_JOINT
 
@@ -545,22 +548,20 @@ DistanceJoint::SetValue(DataManager *pDM,
 {
 	if (ph) {
 		for (unsigned i = 0; i < ph->size(); i++) {
-			SimulationEntity::DriveHint *pdh = 
-				dynamic_cast<SimulationEntity::DriveHint *>((*ph)[i]);
+			DriveHint *pdh = dynamic_cast<DriveHint *>((*ph)[i]);
 
-			if (pdh == 0) {
+			if (pdh) {
+				DriveCaller *pDC = pdh->pCreateDrive(pDM);
+				if (pDC == 0) {
+					silent_cerr("DistanceJoint(" << uLabel << "): "
+						"unable to create drive after hint "
+						"#" << i << std::endl);
+					throw ErrGeneric();
+				}
+
+				DriveOwner::Set(pDC);
 				continue;
 			}
-
-			DriveCaller *pDC = pdh->pCreateDrive(pDM);
-			if (pDC == 0) {
-				silent_cerr("DistanceJoint(" << uLabel << "): "
-					"unable to create drive after hint "
-					"#" << i << std::endl);
-				throw ErrGeneric();
-			}
-
-			DriveOwner::Set(pDC);
 		}
 	}
 	
@@ -1213,22 +1214,20 @@ DistanceJointWithOffset::SetValue(DataManager *pDM,
 {
 	if (ph) {
 		for (unsigned i = 0; i < ph->size(); i++) {
-			SimulationEntity::DriveHint *pdh = 
-				dynamic_cast<SimulationEntity::DriveHint *>((*ph)[i]);
+			DriveHint *pdh = dynamic_cast<DriveHint *>((*ph)[i]);
 
-			if (pdh == 0) {
+			if (pdh) {
+				DriveCaller *pDC = pdh->pCreateDrive(pDM);
+				if (pDC == 0) {
+					silent_cerr("DistanceJointWithOffset(" << uLabel << "): "
+						"unable to create drive after hint "
+						"#" << i << std::endl);
+					throw ErrGeneric();
+				}
+
+				DriveOwner::Set(pDC);
 				continue;
 			}
-
-			DriveCaller *pDC = pdh->pCreateDrive(pDM);
-			if (pDC == 0) {
-				silent_cerr("DistanceJointWithOffset(" << uLabel << "): "
-					"unable to create drive after hint "
-					"#" << i << std::endl);
-				throw ErrGeneric();
-			}
-
-			DriveOwner::Set(pDC);
 		}
 	}
 	

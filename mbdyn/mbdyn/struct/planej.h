@@ -113,7 +113,7 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
 		   VectorHandler& X, VectorHandler& XP,
 		   SimulationEntity::Hints *ph = 0);
 
-	virtual SimulationEntity::Hint *
+	virtual Hint *
 	ParseHint(DataManager *pDM, const char *s) const;
 	         
    virtual void AfterConvergence(const VectorHandler& X, 
@@ -244,7 +244,7 @@ class PlaneRotationJoint : virtual public Elem, public Joint {
 		   VectorHandler& X, VectorHandler& XP,
 		   SimulationEntity::Hints *ph = 0);
 
-	virtual SimulationEntity::Hint *
+	virtual Hint *
 	ParseHint(DataManager *pDM, const char *s) const;
 	         
 	virtual void AfterConvergence(const VectorHandler& X, 
@@ -401,7 +401,7 @@ public Joint, public DriveOwner {
 		   VectorHandler& X, VectorHandler& XP,
 		   SimulationEntity::Hints *ph = 0);
 
-	virtual SimulationEntity::Hint *
+	virtual Hint *
 	ParseHint(DataManager *pDM, const char *s) const;
 	         
 	virtual void AfterConvergence(const VectorHandler& X, 
@@ -530,7 +530,7 @@ class PlanePinJoint : virtual public Elem, public Joint {
 		   VectorHandler& X, VectorHandler& XP,
 		   SimulationEntity::Hints *ph = 0);
 
-	virtual SimulationEntity::Hint *
+	virtual Hint *
 	ParseHint(DataManager *pDM, const char *s) const;
 	         
 	virtual void AfterConvergence(const VectorHandler& X, 

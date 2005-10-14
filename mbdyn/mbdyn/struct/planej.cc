@@ -34,10 +34,11 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <iostream>
-#include<fstream>
+#include <ac/iostream>
+#include <fstream>
 
-#include <planej.h>
+#include "planej.h"
+#include "hint_impl.h"
 
 /* PlaneHingeJoint - begin */
 
@@ -219,7 +220,7 @@ PlaneHingeJoint::SetValue(DataManager *pDM,
 	}
 }
 
-SimulationEntity::Hint *
+Hint *
 PlaneHingeJoint::ParseHint(DataManager *pDM, const char *s) const
 {
 	if (strncasecmp(s, "offset{" /* } */ , sizeof("offset{" /* } */ ) - 1) == 0)
@@ -1311,7 +1312,7 @@ PlaneRotationJoint::SetValue(DataManager *pDM,
 	dTheta = v.dGet(3);
 }
 
-SimulationEntity::Hint *
+Hint *
 PlaneRotationJoint::ParseHint(DataManager *pDM, const char *s) const
 {
 	if (strncasecmp(s, "hinge{" /* } */, sizeof("hinge{" /* } */) - 1) == 0) {
@@ -2103,8 +2104,7 @@ AxialRotationJoint::SetValue(DataManager *pDM,
 			Joint::JointHint *pjh = dynamic_cast<Joint::JointHint *>((*ph)[i]);
 
 			if (pjh == 0) {
-				SimulationEntity::DriveHint *pdh =
-					dynamic_cast<SimulationEntity::DriveHint *>((*ph)[i]);
+				DriveHint *pdh = dynamic_cast<DriveHint *>((*ph)[i]);
 				if (pdh) {
 					DriveCaller *pDC = pdh->pCreateDrive(pDM);
 					if (pDC == 0) {
@@ -2153,7 +2153,7 @@ AxialRotationJoint::SetValue(DataManager *pDM,
 	}
 }
 
-SimulationEntity::Hint *
+Hint *
 AxialRotationJoint::ParseHint(DataManager *pDM, const char *s) const
 {
 	if (strncasecmp(s, "offset{" /* } */, sizeof("offset{" /* } */) - 1) == 0) {
@@ -3224,7 +3224,7 @@ PlanePinJoint::SetValue(DataManager *pDM,
 	dTheta = v.dGet(3);
 }
 
-SimulationEntity::Hint *
+Hint *
 PlanePinJoint::ParseHint(DataManager *pDM, const char *s) const
 {
 	if (strncasecmp(s, "offset{" /* } */, sizeof("offset{" /* } */) - 1) == 0) {

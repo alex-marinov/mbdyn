@@ -37,7 +37,6 @@
 #include "joint.h"
 #include "drive.h"
 
-
 #ifndef MBDYN_X_DISTANCE_JOINT
 /* DistanceJoint - begin */
 

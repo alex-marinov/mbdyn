@@ -101,7 +101,7 @@ class SphericalHingeJoint : virtual public Elem, public Joint {
 		   VectorHandler& X, VectorHandler& XP,
 		   SimulationEntity::Hints *ph = 0);
 
-	virtual SimulationEntity::Hint *
+	virtual Hint *
 	ParseHint(DataManager *pDM, const char *s) const;
 	         
    /* funzioni usate nell'assemblaggio iniziale */

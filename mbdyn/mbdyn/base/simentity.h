@@ -40,6 +40,7 @@
 #include "withlab.h"
 #include "dofown.h"
 #include "drive.h"
+#include "hint.h"
 
 /* SimulationEntity - begin */
 
@@ -73,8 +74,8 @@ class DataManager;
 class SimulationEntity {
 protected:
 #if 0 
-	/*punta a un vettore di due elementi che sono il valore
-	 iniziale dello stato e la sue derivata prima*/
+	/* punta a un vettore di due elementi che sono il valore
+	 * iniziale dello stato e la sua derivata prima */
 	const VectorHandler const** ppX0_Xp0;
 #endif
 
@@ -83,18 +84,7 @@ public:
 	virtual ~SimulationEntity(void);
 
 	/* used to pass hints to SetValue */
-	struct Hint {
-		virtual ~Hint(void) {};
-	};
-
-	typedef std::vector<SimulationEntity::Hint *> Hints;
-
-	struct DriveHint : public Hint {
-		char	*sDriveStr;
-		DriveHint(const char *s);
-		virtual ~DriveHint(void);
-		DriveCaller *pCreateDrive(DataManager *pDM) const;
-	};
+	typedef std::vector<Hint *> Hints;
 
 	/* 
 	 * Ritorna il numero di DoFs.
@@ -158,7 +148,7 @@ public:
 			VectorHandler& X, VectorHandler& XP,
 			SimulationEntity::Hints* h = 0);
 
-	virtual SimulationEntity::Hint *
+	virtual Hint *
 	ParseHint(DataManager *pDM, const char *s) const;
 	         
 	/*

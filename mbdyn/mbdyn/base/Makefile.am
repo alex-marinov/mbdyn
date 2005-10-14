@@ -55,6 +55,9 @@ force.h \
 ginaccltp.h \
 gmres.cc \
 gmres.h \
+hint.h \
+hint_impl.cc \
+hint_impl.h \
 j2p.cc \
 j2p.h \
 loadable.cc \

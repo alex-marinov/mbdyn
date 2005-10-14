@@ -93,7 +93,7 @@ class Joint
    };
 
  public:
-   struct JointHint : public SimulationEntity::Hint {
+   struct JointHint : public Hint {
 	   virtual ~JointHint(void) {};
    };
    template <int i>
@@ -103,7 +103,6 @@ class Joint
    struct ReactionsHint : public Joint::JointHint {};
    struct ForcesHint : public Joint::JointHint {};
    struct MomentsHint : public Joint::JointHint {};
-   struct DriveHint : public Joint::JointHint {};
    
  public: 
    class ErrGeneric {};
