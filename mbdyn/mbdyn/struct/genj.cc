@@ -548,6 +548,9 @@ DistanceJoint::SetValue(DataManager *pDM,
 {
 	if (ph) {
 		for (unsigned i = 0; i < ph->size(); i++) {
+			pedantic_cout("DistanceJoint(" << uLabel << "): "
+				"creating drive from hint..." << std::endl);
+
 			DriveHint *pdh = dynamic_cast<DriveHint *>((*ph)[i]);
 
 			if (pdh) {
@@ -1214,6 +1217,9 @@ DistanceJointWithOffset::SetValue(DataManager *pDM,
 {
 	if (ph) {
 		for (unsigned i = 0; i < ph->size(); i++) {
+			pedantic_cout("DistanceJointWithOffset(" << uLabel << "): "
+				"creating drive from hint..." << std::endl);
+
 			DriveHint *pdh = dynamic_cast<DriveHint *>((*ph)[i]);
 
 			if (pdh) {
