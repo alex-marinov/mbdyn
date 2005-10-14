@@ -241,7 +241,7 @@ void Accelerometer::SetInitialValue(VectorHandler& /* X */ ) const
 
 void Accelerometer::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& /* XP */ ,
-		SimulationEntity::Hints *ph) const 
+		SimulationEntity::Hints *ph)
 {
    doublereal v = (pStrNode->GetRCurr()*Dir).Dot(pStrNode->GetVCurr());
    X.PutCoef(iGetFirstIndex()+1, v);
@@ -386,7 +386,7 @@ void TraslAccel::SetInitialValue(VectorHandler& /* X */ ) const
 
 void TraslAccel::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
    doublereal v = 
      (pStrNode->GetRCurr()*Dir).Dot(pStrNode->GetVCurr()
@@ -525,7 +525,7 @@ void RotAccel::SetInitialValue(VectorHandler& /* X */ ) const
 
 void RotAccel::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& /* XP */ ,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
    doublereal v = (pStrNode->GetRCurr()*Dir).Dot(pStrNode->GetWCurr());
    X.PutCoef(iGetFirstIndex()+1, v);

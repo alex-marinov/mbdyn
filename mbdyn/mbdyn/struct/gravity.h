@@ -174,7 +174,7 @@ class ElemGravityOwner : virtual public Elem, public GravityOwner {
    /* Usata per inizializzare la quantita' di moto */
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& XP,
-		   SimulationEntity::Hints *ph = 0) const = 0;
+		   SimulationEntity::Hints *ph = 0) = 0;
 
    /* Consente di effettuare un casting sicuro da Elem* a ElemGravityOwner* */
    virtual ElemGravityOwner* pGetElemGravityOwner(void) const { 

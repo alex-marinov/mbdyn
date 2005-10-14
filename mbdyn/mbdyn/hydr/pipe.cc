@@ -455,7 +455,7 @@ void Pipe::Output(OutputHandler& OH) const
 
 void Pipe::SetValue(DataManager *pDM,
 		VectorHandler& X , VectorHandler& /* XP */ ,
-		SimulationEntity::Hints *ph) const 
+		SimulationEntity::Hints *ph)
 {
    integer i = iGetFirstIndex();
    X.PutCoef(i+1, q0);  /* portata iniziale nodo 2 */
@@ -982,7 +982,7 @@ void Dynamic_pipe::Output(OutputHandler& OH) const
 void 
 Dynamic_pipe::SetValue(DataManager *pDM,
 		VectorHandler& X , VectorHandler& XP,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
    integer i = iGetFirstIndex();
    
@@ -1392,7 +1392,7 @@ void DynamicPipe::Output(OutputHandler& OH) const
 void 
 DynamicPipe::SetValue(DataManager *pDM,
 		VectorHandler& X , VectorHandler& XP,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
    integer i = iGetFirstIndex();
    

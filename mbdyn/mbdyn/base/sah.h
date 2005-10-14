@@ -58,7 +58,7 @@ public:
 	/* inizializza i dati */
 	virtual void SetValue(DataManager *pDM,
 			VectorHandler& X, VectorHandler& XP,
-			SimulationEntity::Hints *ph = 0) const;
+			SimulationEntity::Hints *ph = 0);
 
 	/* Aggiorna i valori interni */   
 	virtual void Update(const class VectorHandler&,

@@ -89,7 +89,7 @@ public:
 
 	virtual void SetValue(DataManager *pDM,
 			VectorHandler& X, VectorHandler& XP,
-			SimulationEntity::Hints *ph = 0) const;
+			SimulationEntity::Hints *ph = 0);
 	virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP);
 };

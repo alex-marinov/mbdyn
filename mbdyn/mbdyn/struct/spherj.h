@@ -99,7 +99,7 @@ class SphericalHingeJoint : virtual public Elem, public Joint {
  
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& XP,
-		   SimulationEntity::Hints *ph = 0) const;
+		   SimulationEntity::Hints *ph = 0);
 
 	virtual SimulationEntity::Hint *
 	ParseHint(DataManager *pDM, const char *s) const;

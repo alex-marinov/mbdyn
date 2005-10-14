@@ -32,7 +32,9 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <simentity.h>
+#include <ac/sstream>
+#include "simentity.h"
+#include "dataman.h"
 
 /* SimulationEntity - begin */
 
@@ -58,7 +60,7 @@ SimulationEntity::bIsValidIndex(unsigned int i) const
 void 
 SimulationEntity::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
 #if 0
 	if (*ppX0_Xp0 != NULL) {
@@ -71,6 +73,22 @@ SimulationEntity::SetValue(DataManager *pDM,
 SimulationEntity::Hint *
 SimulationEntity::ParseHint(DataManager *pDM, const char *s) const
 {
+	if (strncasecmp(s, "drive{", sizeof("drive{") - 1) == 0) {
+		s += sizeof("drive{") - 1;
+		
+		size_t	len = strlen(s);
+
+		if (s[len - 1] != '}') {
+			return 0;
+		}
+
+		char *sDriveStr = new char[len + 1];
+		memcpy(sDriveStr, s, len + 1);
+		sDriveStr[len - 1] = ';';
+
+		return new SimulationEntity::DriveHint(sDriveStr);
+	}
+
 	return 0;
 }
 
@@ -133,6 +151,35 @@ SimulationEntity::OutputAppend(std::ostream& out) const
 void SimulationEntity::ReadIinitialState(MBDynParser& HP)
 {
 	NO_OP;
+}
+
+SimulationEntity::DriveHint::DriveHint(const char *s)
+: sDriveStr((char *)s)
+{
+	NO_OP;
+}
+
+SimulationEntity::DriveHint::~DriveHint(void)
+{
+	if (sDriveStr != 0) {
+		SAFEDELETEARR(sDriveStr);
+	}
+}
+
+DriveCaller *
+SimulationEntity::DriveHint::pCreateDrive(DataManager *pDM) const
+{
+#if defined(HAVE_SSTREAM)
+	std::istringstream in(sDriveStr);
+#else /* HAVE_STRSTREAM_H */
+	istrstream in(sDriveStr);
+#endif /* HAVE_STRSTREAM_H */
+	InputStream In(in);
+
+	MBDynParser HP(pDM->GetMathParser(), In, "DriveHint::pCreateDrive");
+	HP.ExpectArg();
+
+	return ReadDriveData(pDM, HP, false);
 }
 
 /* SimulationEntity - end */

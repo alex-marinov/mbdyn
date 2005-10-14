@@ -468,7 +468,7 @@ void Actuator::Output(OutputHandler& OH) const
 
 void Actuator::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const 
+		SimulationEntity::Hints *ph)
 {
    integer iIndex = iGetFirstIndex();
    (doublereal&)dp1 = pNodeHyd1->dGetX();

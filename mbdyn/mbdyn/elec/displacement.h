@@ -78,7 +78,7 @@ class DispMeasure : virtual public Elem, public Electric {
     * prima di iniziare l'integrazione */
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& XP,
-		   SimulationEntity::Hints *ph = 0) const;
+		   SimulationEntity::Hints *ph = 0);
    
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento

@@ -33,12 +33,13 @@
 
 #include <vector>
 
-#include <myassert.h>
+#include "myassert.h"
 
 /* include del programma */
-#include <output.h>
-#include <withlab.h>
-#include <dofown.h>
+#include "output.h"
+#include "withlab.h"
+#include "dofown.h"
+#include "drive.h"
 
 /* SimulationEntity - begin */
 
@@ -85,7 +86,15 @@ public:
 	struct Hint {
 		virtual ~Hint(void) {};
 	};
+
 	typedef std::vector<SimulationEntity::Hint *> Hints;
+
+	struct DriveHint : public Hint {
+		char	*sDriveStr;
+		DriveHint(const char *s);
+		virtual ~DriveHint(void);
+		DriveCaller *pCreateDrive(DataManager *pDM) const;
+	};
 
 	/* 
 	 * Ritorna il numero di DoFs.
@@ -147,7 +156,7 @@ public:
 	 */
 	virtual void SetValue(DataManager *pDM,
 			VectorHandler& X, VectorHandler& XP,
-			SimulationEntity::Hints* h = 0) const;
+			SimulationEntity::Hints* h = 0);
 
 	virtual SimulationEntity::Hint *
 	ParseHint(DataManager *pDM, const char *s) const;

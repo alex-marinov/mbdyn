@@ -176,7 +176,7 @@ DrivenElem::AfterPredict(VectorHandler& X, VectorHandler& XP)
 void
 DrivenElem::SetValue(DataManager *pdm,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
 	ASSERT(pElem != NULL);
 

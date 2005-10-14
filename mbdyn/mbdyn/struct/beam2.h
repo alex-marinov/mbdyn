@@ -211,7 +211,7 @@ class Beam2
     /* Settings iniziali, prima della prima soluzione */
     void SetValue(DataManager *pDM,
 		    VectorHandler& /* X */ , VectorHandler& /* XP */ ,
-		    SimulationEntity::Hints *ph = 0) const;
+		    SimulationEntity::Hints *ph = 0);
    
     /* Prepara i parametri di riferimento dopo la predizione */
     virtual void 
@@ -381,7 +381,7 @@ class ViscoElasticBeam2 : virtual public Elem, public Beam2 {
     /* Settings iniziali, prima della prima soluzione */
     void SetValue(DataManager *pDM,
 		    VectorHandler& /* X */ , VectorHandler& /* XP */ ,
-		    SimulationEntity::Hints *ph = 0) const;
+		    SimulationEntity::Hints *ph = 0);
    
     /* Prepara i parametri di riferimento dopo la predizione */
     virtual void 

@@ -251,7 +251,7 @@ AutomaticStructElem::Output(OutputHandler& OH) const
 void 
 AutomaticStructElem::SetValue(DataManager *pDM,
 		VectorHandler& /* X */ , VectorHandler& XP,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
    integer iIndex = pNode->iGetFirstMomentumIndex();
    

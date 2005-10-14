@@ -151,7 +151,7 @@ class GenelClamp : virtual public Elem, public Genel, public DriveOwner {
    
    void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& XP,
-		   SimulationEntity::Hints *ph = 0) const
+		   SimulationEntity::Hints *ph = 0)
    {
       if (SD.iOrder == 0) {
 	 X.PutCoef(SD.pNode->iGetFirstRowIndex()+1, dGet());
@@ -310,7 +310,7 @@ class GenelDistance : virtual public Elem, public Genel, public DriveOwner {
    
    void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& XP,
-		   SimulationEntity::Hints *ph = 0) const
+		   SimulationEntity::Hints *ph = 0)
    {
       if (SD2.iOrder == 0) {
 	 X.PutCoef(SD2.pNode->iGetFirstRowIndex()+1,
@@ -1001,7 +1001,7 @@ class GenelMass : virtual public Elem, public Genel, public DriveOwner {
    
    void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& /* XP */ ,
-		   SimulationEntity::Hints *ph = 0) const
+		   SimulationEntity::Hints *ph = 0)
    {
       X.PutCoef(iGetFirstIndex()+1, SD.pNode->dGetXPrime());
    };

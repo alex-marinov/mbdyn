@@ -80,7 +80,7 @@ class Accelerometer : virtual public Elem, public Electric {
    virtual void SetInitialValue(VectorHandler& /* X */ ) const;
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& /* XP */ ,
-		   SimulationEntity::Hints *ph = 0) const;
+		   SimulationEntity::Hints *ph = 0);
 
  /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
@@ -145,7 +145,7 @@ class TraslAccel : virtual public Elem, public Electric {
    virtual void SetInitialValue(VectorHandler& /* X */ ) const;
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& /* XP */ ,
-		   SimulationEntity::Hints *ph = 0) const;
+		   SimulationEntity::Hints *ph = 0);
 
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
@@ -209,7 +209,7 @@ class RotAccel : virtual public Elem, public Electric {
    virtual void SetInitialValue(VectorHandler& /* X */ ) const;
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& /* XP */ ,
-		   SimulationEntity::Hints *ph = 0) const;
+		   SimulationEntity::Hints *ph = 0);
 
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento

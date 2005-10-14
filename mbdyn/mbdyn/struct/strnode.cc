@@ -657,7 +657,7 @@ StructNode::SetInitialValue(VectorHandler& X) const
 void
 StructNode::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
 #ifdef MBDYN_X_RELATIVE_PREDICTION
 	if (pRefNode) {
@@ -1380,9 +1380,9 @@ DummyStructNode::SetInitialValue(VectorHandler& /* X */ ) const
 void
 DummyStructNode::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
-   ((DummyStructNode*)this)->Update(X, XP);
+   Update(X, XP);
 }
 
 

@@ -105,7 +105,7 @@ DriveHingeJoint::Output(OutputHandler& OH) const
 void
 DriveHingeJoint::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
 	if (ph) {
 		for (unsigned i = 0; i < ph->size(); i++) {

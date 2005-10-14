@@ -244,7 +244,7 @@ class StructNode : public Node {
    virtual void SetInitialValue(VectorHandler& X) const;   
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& XP,
-		   SimulationEntity::Hints *ph = 0) const;
+		   SimulationEntity::Hints *ph = 0);
       
    /* Elaborazione vettori e dati prima e dopo la predizione
     * per MultiStepIntegrator */
@@ -735,7 +735,7 @@ class DummyStructNode : public StructNode {
    virtual void SetInitialValue(VectorHandler& X) const;   
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& XP,
-		   SimulationEntity::Hints *ph = 0) const;
+		   SimulationEntity::Hints *ph = 0);
       
    /* Elaborazione vettori e dati prima e dopo la predizione
     * per MultiStepIntegrator */

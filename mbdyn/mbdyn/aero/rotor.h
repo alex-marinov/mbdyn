@@ -239,7 +239,7 @@ class Rotor
    /* Relativo ai ...WithDofs */
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& /* X */ , VectorHandler& /* XP */ ,
-		   SimulationEntity::Hints *ph = 0) const
+		   SimulationEntity::Hints *ph = 0)
    {
       NO_OP;
    };   
@@ -617,7 +617,7 @@ class DynamicInflowRotor : virtual public Elem, public Rotor {
    /* Relativo ai ...WithDofs */
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& XP,
-		   SimulationEntity::Hints *ph = 0) const;   
+		   SimulationEntity::Hints *ph = 0);
 
    Rotor::Type GetRotorType(void) const {
       return Rotor::DYNAMICINFLOW;

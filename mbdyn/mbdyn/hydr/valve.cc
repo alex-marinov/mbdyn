@@ -603,7 +603,7 @@ Control_valve2::Output(OutputHandler& OH) const
 void 
 Control_valve2::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& /* XP */ ,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
 	integer iFirstIndex = iGetFirstIndex()+1;
 	
@@ -1054,7 +1054,7 @@ void Dynamic_control_valve::Output(OutputHandler& OH) const
 void 
 Dynamic_control_valve::SetValue(DataManager *pDM,
 		VectorHandler& X , VectorHandler& XP,
-		SimulationEntity::Hints *ph) const 
+		SimulationEntity::Hints *ph)
 {
    integer i = iGetFirstIndex();
    
@@ -1473,7 +1473,7 @@ void Pressure_flow_control_valve::Output(OutputHandler& OH) const
 void 
 Pressure_flow_control_valve::SetValue(DataManager *pDM,
 		VectorHandler& X , VectorHandler& XP,
-		SimulationEntity::Hints *ph) const 
+		SimulationEntity::Hints *ph)
 {
    integer i = iGetFirstIndex();
    
@@ -1821,7 +1821,7 @@ void Pressure_valve::Output(OutputHandler& OH) const
 
 void Pressure_valve::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const 
+		SimulationEntity::Hints *ph)
 {
    integer i = iGetFirstIndex();
    
@@ -2275,7 +2275,7 @@ void Flow_valve::Output(OutputHandler& OH) const
 
 void Flow_valve::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const 
+		SimulationEntity::Hints *ph)
 {   
    integer i = iGetFirstIndex();
    X.PutCoef(i+1, 0.);

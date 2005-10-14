@@ -213,7 +213,7 @@ void ScalarDifferentialNode::SetXPrime(const doublereal& d)
 
 void ScalarDifferentialNode::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
    integer iIndex = iGetFirstIndex();
    X.PutCoef(iIndex+1, dX);
@@ -350,7 +350,7 @@ ScalarAlgebraicNode::SetXPrime(const doublereal& /* d */ )
 void 
 ScalarAlgebraicNode::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& /* XP */ ,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
    integer iIndex = iGetFirstIndex();
    X.PutCoef(iIndex+1, dX);
@@ -450,7 +450,7 @@ void ParameterNode::Output(OutputHandler& OH) const
 
 void ParameterNode::SetValue(DataManager *pDM,
 		VectorHandler& /* X */ , VectorHandler& /* XP */ ,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
    NO_OP; 
 }

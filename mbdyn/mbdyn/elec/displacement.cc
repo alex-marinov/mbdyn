@@ -143,7 +143,7 @@ DispMeasure::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 void 
 DispMeasure::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
    integer iIndex = pAbsNode->iGetFirstIndex()+1;
    

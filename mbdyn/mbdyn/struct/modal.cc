@@ -2019,7 +2019,7 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 void
 Modal::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
 	/* inizializza la soluzione e la sua derivata
 	 * subito dopo l'assemblaggio iniziale

@@ -106,7 +106,7 @@ protected:
 	DriveHandler DrvHdl;
 	mutable OutputHandler OutHdl;
 
-	/* Puntatore alla variabile Time nella symbol table di MathPar*/
+	/* Puntatore alla variabile Time nella symbol table di MathPar */
 	Var* pTime;
 
 	/* Puntatori ai vettori soluzione durante il passo */
@@ -291,6 +291,7 @@ public:
 
 	/* Restituisce il DriveHandler */
 	const DriveHandler* pGetDrvHdl(void) const { return &DrvHdl; };
+	MathParser& GetMathParser(void) const { return MathPar; };
 
 	/* Assembla lo jacobiano */
 	virtual void AssJac(MatrixHandler& JacHdl, doublereal dCoef);

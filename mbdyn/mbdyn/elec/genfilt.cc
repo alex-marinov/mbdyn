@@ -407,7 +407,7 @@ GenelFilterEq::AssRes(SubVectorHandler& WorkVec,
 void 
 GenelFilterEq::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
 #ifdef USE_Y12
    if (fSteady) {

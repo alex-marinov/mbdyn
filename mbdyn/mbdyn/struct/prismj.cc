@@ -272,17 +272,21 @@ void PrismaticJoint::Output(OutputHandler& OH) const
 void
 PrismaticJoint::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
 	if (ph) {
 		for (unsigned i = 0; i < ph->size(); i++) {
 			Joint::JointHint *pjh = dynamic_cast<Joint::JointHint *>((*ph)[i]);
 
+			if (pjh == 0) {
+				continue;
+			}
+
 			if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
-				(Mat3x3&)R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2h;
+				R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2h;
 
 			} else if (dynamic_cast<Joint::HingeHint<2> *>(pjh)) {
-				(Mat3x3&)R2h = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1h;
+				R2h = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1h;
 
 			} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
 				/* TODO */

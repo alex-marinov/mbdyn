@@ -105,7 +105,7 @@ public:
 
 	virtual void SetValue(DataManager *pdm,
 			VectorHandler& X, VectorHandler& XP,
-			SimulationEntity::Hints *ph = 0) const;
+			SimulationEntity::Hints *ph = 0);
 
 	/* Scrive il contributo dell'elemento al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;

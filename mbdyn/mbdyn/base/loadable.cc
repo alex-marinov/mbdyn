@@ -724,7 +724,7 @@ LoadableElem::SetInitialValue(VectorHandler& X) const
 void 
 LoadableElem::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
    	ASSERT(calls->set_value != NULL);
    	(*calls->set_value)(this, pDM, X, XP, ph);

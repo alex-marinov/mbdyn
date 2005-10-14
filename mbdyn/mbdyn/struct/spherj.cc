@@ -230,23 +230,27 @@ void SphericalHingeJoint::Output(OutputHandler& OH) const
 void
 SphericalHingeJoint::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
 	if (ph) {
 		for (unsigned i = 0; i < ph->size(); i++) {
 			Joint::JointHint *pjh = dynamic_cast<Joint::JointHint *>((*ph)[i]);
 
+			if (pjh == 0) {
+				continue;
+			}
+
 			if (dynamic_cast<Joint::OffsetHint<1> *>(pjh)) {
 				Mat3x3 R1t(pNode1->GetRCurr().Transpose());
 				Vec3 dTmp2(pNode2->GetRCurr()*d2);
    
-				(Vec3&)d1 = R1t*(pNode2->GetXCurr() + dTmp2 - pNode1->GetXCurr());
+				d1 = R1t*(pNode2->GetXCurr() + dTmp2 - pNode1->GetXCurr());
 
 			} else if (dynamic_cast<Joint::OffsetHint<2> *>(pjh)) {
 				Mat3x3 R2t(pNode2->GetRCurr().Transpose());
 				Vec3 dTmp1(pNode1->GetRCurr()*d1);
    
-				(Vec3&)d2 = R2t*(pNode1->GetXCurr() + dTmp1 - pNode2->GetXCurr());
+				d2 = R2t*(pNode1->GetXCurr() + dTmp1 - pNode2->GetXCurr());
 
 			} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
 				/* TODO */

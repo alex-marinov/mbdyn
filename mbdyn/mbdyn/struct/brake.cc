@@ -76,7 +76,7 @@ Brake::~Brake(void)
 void
 Brake::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
 	Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*(pNode2->GetRCurr()*R2h));
 	Vec3 v(MatR2EulerAngles(RTmp));

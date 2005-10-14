@@ -366,15 +366,15 @@ DriveOwner::~DriveOwner(void)
 }
 
 
-void DriveOwner::Set(const DriveCaller* pDC)
+void
+DriveOwner::Set(const DriveCaller* pDC)
 {
-   ASSERT(pDC != NULL);
-#ifdef DEBUG
-   if (pDriveCaller != NULL) {
-      DEBUGCERR("warning: the original pointer to a drive caller is not null!" << std::endl);
-   }
-#endif /* DEBUG */
-   pDriveCaller = (DriveCaller*)pDC;
+	ASSERT(pDC != NULL);
+	if (pDriveCaller != NULL) {
+		DEBUGCERR("warning: the original pointer to a drive caller is not null!" << std::endl);
+		SAFEDELETE(pDriveCaller);
+	}
+	pDriveCaller = (DriveCaller *)pDC;
 }
 
 

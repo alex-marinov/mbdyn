@@ -305,7 +305,7 @@ class ScalarDifferentialNode : public ScalarNode {
    /* Consente di settare il valore iniziale nel vettore della soluzione*/
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& XP,
-		   SimulationEntity::Hints *ph = 0) const;
+		   SimulationEntity::Hints *ph = 0);
 
    /* Aggiorna i valori interni */   
    virtual void Update(const class VectorHandler&, const class VectorHandler&);
@@ -405,7 +405,7 @@ class ScalarAlgebraicNode : public ScalarNode {
    /* Consente di settare il valore iniziale nel vettore della soluzione*/
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& XP,
-		   SimulationEntity::Hints *ph = 0) const;
+		   SimulationEntity::Hints *ph = 0);
 
    /* Aggiorna i valori interni */   
    virtual void Update(const class VectorHandler&, const class VectorHandler&);
@@ -476,7 +476,7 @@ class ParameterNode : public ScalarAlgebraicNode {
    /* Inizializzazione del valore */
    void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& XP,
-		   SimulationEntity::Hints *ph = 0) const;
+		   SimulationEntity::Hints *ph = 0);
    
    /* Aggiorna dati in base alla soluzione */
    virtual void Update(const VectorHandler& XCurr,

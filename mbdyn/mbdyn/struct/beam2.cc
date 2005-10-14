@@ -581,7 +581,7 @@ Beam2::AssRes(SubVectorHandler& WorkVec,
 void
 Beam2::SetValue(DataManager *pDM,
 		VectorHandler& /* X */ , VectorHandler& /* XP */ ,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
 	/* Aggiorna le grandezze della trave nei punti di valutazione */
 	(Mat3x3&)RRef = R;
@@ -1179,7 +1179,7 @@ ViscoElasticBeam2::AssStiffnessVec(SubVectorHandler& WorkVec,
 void
 ViscoElasticBeam2::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
 	Beam2::SetValue(pDM, X, XP, ph);
 	

@@ -147,7 +147,7 @@ class Joint
 
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& /* X */ , VectorHandler& /* Xp */ ,
-		   SimulationEntity::Hints *ph = 0) const
+		   SimulationEntity::Hints *ph = 0)
    {
       NO_OP;
    };

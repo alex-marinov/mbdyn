@@ -165,29 +165,33 @@ PlaneHingeJoint::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int 
 void
 PlaneHingeJoint::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
 	if (ph) {
 		for (unsigned i = 0; i < ph->size(); i++) {
 			Joint::JointHint *pjh = dynamic_cast<Joint::JointHint *>((*ph)[i]);
 
+			if (pjh == 0) {
+				continue;
+			}
+
 			if (dynamic_cast<Joint::OffsetHint<1> *>(pjh)) {
 				Mat3x3 R1t(pNode1->GetRCurr().Transpose());
 				Vec3 dTmp2(pNode2->GetRCurr()*d2);
    
-				(Vec3&)d1 = R1t*(pNode2->GetXCurr() + dTmp2 - pNode1->GetXCurr());
+				d1 = R1t*(pNode2->GetXCurr() + dTmp2 - pNode1->GetXCurr());
 
 			} else if (dynamic_cast<Joint::OffsetHint<2> *>(pjh)) {
 				Mat3x3 R2t(pNode2->GetRCurr().Transpose());
 				Vec3 dTmp1(pNode1->GetRCurr()*d1);
    
-				(Vec3&)d2 = R2t*(pNode1->GetXCurr() + dTmp1 - pNode2->GetXCurr());
+				d2 = R2t*(pNode1->GetXCurr() + dTmp1 - pNode2->GetXCurr());
 
 			} else if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
-				(Mat3x3&)R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2h;
+				R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2h;
 
 			} else if (dynamic_cast<Joint::HingeHint<2> *>(pjh)) {
-				(Mat3x3&)R2h = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1h;
+				R2h = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1h;
 
 			} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
 				/* TODO */
@@ -1278,17 +1282,21 @@ PlaneRotationJoint::DescribeEq(std::ostream& out, char *prefix, bool bInitial, i
 void
 PlaneRotationJoint::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
 	if (ph) {
 		for (unsigned i = 0; i < ph->size(); i++) {
 			Joint::JointHint *pjh = dynamic_cast<Joint::JointHint *>((*ph)[i]);
 
+			if (pjh == 0) {
+				continue;
+			}
+
 			if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
-				(Mat3x3&)R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2h;
+				R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2h;
 
 			} else if (dynamic_cast<Joint::HingeHint<2> *>(pjh)) {
-				(Mat3x3&)R2h = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1h;
+				R2h = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1h;
 
 			} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
 				/* TODO */
@@ -2087,29 +2095,46 @@ AxialRotationJoint::DescribeEq(std::ostream& out, char *prefix, bool bInitial, i
 void
 AxialRotationJoint::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
 	if (ph) {
 		for (unsigned i = 0; i < ph->size(); i++) {
 			Joint::JointHint *pjh = dynamic_cast<Joint::JointHint *>((*ph)[i]);
 
+			if (pjh == 0) {
+				SimulationEntity::DriveHint *pdh =
+					dynamic_cast<SimulationEntity::DriveHint *>((*ph)[i]);
+				if (pdh) {
+					DriveCaller *pDC = pdh->pCreateDrive(pDM);
+					if (pDC == 0) {
+						silent_cerr("AxialRotationJoint::SetValue: "
+							"unable to create drive after hint "
+							"#" << i << std::endl);
+						throw ErrGeneric();
+					}
+
+					DriveOwner::Set(pDC);
+				}
+				continue;
+			}
+
 			if (dynamic_cast<Joint::OffsetHint<1> *>(pjh)) {
 				Mat3x3 R1t(pNode1->GetRCurr().Transpose());
 				Vec3 dTmp2(pNode2->GetRCurr()*d2);
    
-				(Vec3&)d1 = R1t*(pNode2->GetXCurr() + dTmp2 - pNode1->GetXCurr());
+				d1 = R1t*(pNode2->GetXCurr() + dTmp2 - pNode1->GetXCurr());
 
 			} else if (dynamic_cast<Joint::OffsetHint<2> *>(pjh)) {
 				Mat3x3 R2t(pNode2->GetRCurr().Transpose());
 				Vec3 dTmp1(pNode1->GetRCurr()*d1);
    
-				(Vec3&)d2 = R2t*(pNode1->GetXCurr() + dTmp1 - pNode2->GetXCurr());
+				d2 = R2t*(pNode1->GetXCurr() + dTmp1 - pNode2->GetXCurr());
 
 			} else if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
-				(Mat3x3&)R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2h;
+				R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2h;
 
 			} else if (dynamic_cast<Joint::HingeHint<2> *>(pjh)) {
-				(Mat3x3&)R2h = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1h;
+				R2h = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1h;
 
 			} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
 				/* TODO */
@@ -3159,28 +3184,32 @@ PlanePinJoint::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i)
 void
 PlanePinJoint::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
 	if (ph) {
 		for (unsigned i = 0; i < ph->size(); i++) {
 			Joint::JointHint *pjh = dynamic_cast<Joint::JointHint *>((*ph)[i]);
 
+			if (pjh == 0) {
+				continue;
+			}
+
 			if (dynamic_cast<Joint::OffsetHint<1> *>(pjh)) {
 				Mat3x3 Rt(pNode->GetRCurr().Transpose());
    
-				(Vec3&)d = Rt*(X0 - pNode->GetXCurr());
+				d = Rt*(X0 - pNode->GetXCurr());
 
 			} else if (dynamic_cast<Joint::OffsetHint<0> *>(pjh)) {
 				Mat3x3 Rt(R0.Transpose());
 				Vec3 dTmp(pNode->GetRCurr()*d);
    
-				(Vec3&)X0 = Rt*(pNode->GetXCurr() + dTmp);
+				X0 = Rt*(pNode->GetXCurr() + dTmp);
 
 			} else if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
-				(Mat3x3&)Rh = pNode->GetRCurr().Transpose()*R0;
+				Rh = pNode->GetRCurr().Transpose()*R0;
 
 			} else if (dynamic_cast<Joint::HingeHint<2> *>(pjh)) {
-				(Mat3x3&)R0 = pNode->GetRCurr()*Rh;
+				R0 = pNode->GetRCurr()*Rh;
 
 			} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
 				/* TODO */

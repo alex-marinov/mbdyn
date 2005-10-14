@@ -375,7 +375,7 @@ Accumulator::Output(OutputHandler& OH) const
 void 
 Accumulator::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const 
+		SimulationEntity::Hints *ph)
 {  
    integer i = iGetFirstIndex();
    
@@ -671,7 +671,7 @@ Tank::Output(OutputHandler& OH) const
 void 
 Tank::SetValue(DataManager *pDM,
 		VectorHandler& X , VectorHandler& /* XP */ ,
-		SimulationEntity::Hints *ph) const 
+		SimulationEntity::Hints *ph)
 {
    integer i = iGetFirstIndex();
    X.PutCoef(i+1, level);

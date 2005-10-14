@@ -99,7 +99,7 @@ class Pipe : virtual public Elem, public HydraulicElem {
    
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& XP,
-		   SimulationEntity::Hints *ph = 0) const;
+		   SimulationEntity::Hints *ph = 0);
 
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
@@ -189,7 +189,7 @@ class Dynamic_pipe : virtual public Elem, public HydraulicElem {
    
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& XP,
-		   SimulationEntity::Hints *ph = 0) const;
+		   SimulationEntity::Hints *ph = 0);
 
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
@@ -286,7 +286,7 @@ class DynamicPipe : virtual public Elem, public HydraulicElem {
    
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& XP,
-		   SimulationEntity::Hints *ph = 0) const;
+		   SimulationEntity::Hints *ph = 0);
    
    /* *******PER IL SOLUTORE PARALLELO******** */
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento

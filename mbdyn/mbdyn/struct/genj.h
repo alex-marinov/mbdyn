@@ -114,7 +114,7 @@ class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
    virtual void SetInitialValue(VectorHandler& X) const;
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& XP,
-		   SimulationEntity::Hints *ph = 0) const;
+		   SimulationEntity::Hints *ph = 0);
 
    /* Dati privati */
    virtual unsigned int iGetNumPrivData(void) const;
@@ -229,11 +229,8 @@ virtual public Elem, public Joint, public DriveOwner {
    virtual void SetInitialValue(VectorHandler& X) const;
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& XP,
-		   SimulationEntity::Hints *ph = 0) const ;
+		   SimulationEntity::Hints *ph = 0);
 
-	virtual SimulationEntity::Hint *
-	ParseHint(DataManager *pDM, const char *s) const;
-	         
    /* Dati privati */
    virtual unsigned int iGetNumPrivData(void) const;
    virtual unsigned int iGetPrivDataIdx(const char *s) const;
@@ -359,7 +356,7 @@ class ClampJoint : virtual public Elem, public Joint {
 				   
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& XP,
-		   SimulationEntity::Hints *ph = 0) const; 
+		   SimulationEntity::Hints *ph = 0); 
    /* Metodi per l'estrazione di dati "privati".
     * Si suppone che l'estrattore li sappia interpretare.
     * Come default non ci sono dati privati estraibili */

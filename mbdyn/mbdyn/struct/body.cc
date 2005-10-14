@@ -382,7 +382,7 @@ Body::InitialAssRes(SubVectorHandler& WorkVec,
 void 
 Body::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& /* XP */ ,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
     integer iFirstIndex = pNode->iGetFirstMomentumIndex();
    

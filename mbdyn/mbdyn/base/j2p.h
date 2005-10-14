@@ -67,7 +67,7 @@ public:
 
 	virtual void SetValue(DataManager *pDM,
 			VectorHandler&, VectorHandler&,
-			SimulationEntity::Hints *ph = 0) const;
+			SimulationEntity::Hints *ph = 0);
 };
 
 

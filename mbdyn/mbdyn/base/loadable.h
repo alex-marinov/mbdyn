@@ -330,7 +330,7 @@ public:
 
    	virtual void SetValue(DataManager *pDM,
 			VectorHandler& X, VectorHandler& XP,
-			SimulationEntity::Hints *ph = 0) const;
+			SimulationEntity::Hints *ph = 0);
 
    	virtual unsigned int iGetNumPrivData(void) const;
    	virtual unsigned int iGetPrivDataIdx(const char *s) const;

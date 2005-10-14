@@ -223,7 +223,7 @@ class ContactJoint : virtual public Elem, public Joint {
    
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& XP,
-		   SimulationEntity::Hints *ph = 0) const
+		   SimulationEntity::Hints *ph = 0)
    {
       X.PutCoef(iGetFirstIndex() + 1, 0.);
    };

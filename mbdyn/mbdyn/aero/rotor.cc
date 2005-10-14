@@ -1741,7 +1741,7 @@ DynamicInflowRotor::SetInitialValue(VectorHandler& /* X */ ) const
 void
 DynamicInflowRotor::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph) const
+		SimulationEntity::Hints *ph)
 {
 	integer iFirstIndex = iGetFirstIndex();
 

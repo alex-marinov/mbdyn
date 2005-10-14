@@ -138,7 +138,7 @@ virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {
     /* Usata per inizializzare la quantita' di moto */
     virtual void SetValue(DataManager *pDM,
 		    VectorHandler& X, VectorHandler& XP,
-		    SimulationEntity::Hints *ph = 0) const;
+		    SimulationEntity::Hints *ph = 0);
 
     virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
