@@ -1699,20 +1699,41 @@ Elem* ReadJoint(DataManager* pDM,
     case PRISMATIC: {	     
        /* nodo collegato 1 */
        StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+       ReferenceFrame RF(pNode1);
        
        Mat3x3 R1h(Eye3);
-       if (HP.IsKeyWord("hinge")) {
-	  DEBUGCOUT("Hinge Rotation matrix is supplied" << std::endl);	   
-	  R1h = HP.GetRotRel(ReferenceFrame(pNode1));
+       if (HP.IsKeyWord("orientation")) {
+	  DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+	  R1h = HP.GetRotRel(RF);
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+       } else if (HP.IsKeyWord("hinge")) {
+	  pedantic_cerr("Joint(" << uLabel 
+		 << "): keyword \"hinge\" at line " << HP.GetLineData()
+		 << " is deprecated; use \"orientation\" instead" << std::endl);
+	  DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+	  R1h = HP.GetRotRel(RF);
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
        }
-       
        
        /* nodo collegato 2 */
        StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+       RF = ReferenceFrame(pNode2);
        
        /* Stessa cosa per il nodo 2 */
        
        Mat3x3 R2h(Eye3);
+       if (HP.IsKeyWord("orientation")) {
+	  DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+	  R2h = HP.GetRotRel(RF);
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+       } else if (HP.IsKeyWord("hinge")) {
+	  pedantic_cerr("Joint(" << uLabel 
+		 << "): keyword \"hinge\" at line " << HP.GetLineData()
+		 << " is deprecated; use \"orientation\" instead" << std::endl);
+	  DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+	  R2h = HP.GetRotRel(RF);
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+       }
        if (HP.IsKeyWord("hinge")) {
 	  DEBUGCOUT("Hinge Rotation matrix is supplied" << std::endl);
 	  R2h = HP.GetRotRel(ReferenceFrame(pNode2));
@@ -1742,23 +1763,41 @@ Elem* ReadJoint(DataManager* pDM,
     case DRIVEHINGE: {
        /* nodo collegato 1 */
        StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+       ReferenceFrame RF(pNode1);
        
        Mat3x3 R1h(Eye3);
-       if (HP.IsKeyWord("hinge")) {
-	  DEBUGCOUT("Hinge Rotation matrix is supplied" << std::endl);	   
-	  R1h = HP.GetRotRel(ReferenceFrame(pNode1));
+       if (HP.IsKeyWord("orientation")) {
+	  DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+	  R1h = HP.GetRotRel(RF);
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+       } else if (HP.IsKeyWord("hinge")) {
+	  pedantic_cerr("Joint(" << uLabel 
+		 << "): keyword \"hinge\" at line " << HP.GetLineData()
+		 << " is deprecated; use \"orientation\" instead" << std::endl);
+	  DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+	  R1h = HP.GetRotRel(RF);
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
        }
        
        
        /* nodo collegato 2 */
        StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+       RF = ReferenceFrame(pNode2);
        
        /* Stessa cosa per il nodo 2 */
        
        Mat3x3 R2h(Eye3);
-       if (HP.IsKeyWord("hinge")) {
-	  DEBUGCOUT("Hinge Rotation matrix is supplied" << std::endl);
-	  R2h = HP.GetRotRel(ReferenceFrame(pNode2));
+       if (HP.IsKeyWord("orientation")) {
+	  DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+	  R2h = HP.GetRotRel(RF);
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+       } else if (HP.IsKeyWord("hinge")) {
+	  pedantic_cerr("Joint(" << uLabel 
+		 << "): keyword \"hinge\" at line " << HP.GetLineData()
+		 << " is deprecated; use \"orientation\" instead" << std::endl);
+	  DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+	  R2h = HP.GetRotRel(RF);
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
        }
        
 
