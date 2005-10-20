@@ -144,7 +144,6 @@ public:
 			sStr[len - 1] = ';';
 
 			return new TplDriveHint<T>(sStr);
-
 		}
 
 		return 0;
