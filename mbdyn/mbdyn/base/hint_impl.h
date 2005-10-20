@@ -39,10 +39,16 @@
 extern Hint *
 ParseHint(DataManager *pDM, const char *s);
 
-class DriveHint : public Hint {
+class ParsableHint : public Hint {
 protected:
-	char	*sDriveStr;
+	char	*sHint;
 
+public:
+	ParsableHint(const char *s);
+	virtual ~ParsableHint(void);
+};
+
+class DriveHint : public ParsableHint {
 public:
 	DriveHint(const char *s);
 	virtual ~DriveHint(void);
@@ -51,18 +57,66 @@ public:
 };
 
 template <class T>
+class TplVecHint : public ParsableHint {
+protected:
+	T t;
+
+public:
+	TplVecHint(const char *s, const T& t = 0.);
+	virtual ~TplVecHint(void);
+
+	T pCreateVec(DataManager *pDM) const;
+};
+
+template <class T>
+TplVecHint<T>::TplVecHint<T>(const char *s, const T& t)
+: ParsableHint(s), t(t)
+{
+	NO_OP;
+}
+
+template <class T>
+TplVecHint<T>::~TplVecHint<T>(void)
+{
+	NO_OP;
+}
+
+template <class T>
+T
+TplVecHint<T>::pCreateVec(DataManager *pDM) const
+{
+#if defined(HAVE_SSTREAM)
+	std::istringstream in(sHint);
+#else /* HAVE_STRSTREAM_H */
+	istrstream in(sHint);
+#endif /* HAVE_STRSTREAM_H */
+	InputStream In(in);
+
+	MBDynParser HP(pDM->GetMathParser(), In, "TplVecHint::pCreateVec");
+	HP.ExpectArg();
+
+	T vec(0.);
+	HP.Get(vec);
+
+	return vec;
+}
+
+typedef TplVecHint<Vec3> TplVecHint3;
+typedef TplVecHint<Vec6> TplVecHint6;
+
+template <class T>
 class TplDriveHint : public DriveHint {
 protected:
 	T	t;
 
 public:
-	TplDriveHint(const T& t, const char *s);
+	TplDriveHint(const char *s, const T& t = 0.);
 	virtual ~TplDriveHint(void);
 	TplDriveCaller<T> *pCreateDrive(DataManager *pDM) const;
 };
 
 template <class T>
-TplDriveHint<T>::TplDriveHint<T>(const T& t, const char *s)
+TplDriveHint<T>::TplDriveHint<T>(const char *s, const T& t)
 : DriveHint(s), t(t)
 {
 	NO_OP;
@@ -79,9 +133,9 @@ TplDriveCaller<T> *
 TplDriveHint<T>::pCreateDrive(DataManager *pDM) const
 {
 #if defined(HAVE_SSTREAM)
-	std::istringstream in(sDriveStr);
+	std::istringstream in(sHint);
 #else /* HAVE_STRSTREAM_H */
-	istrstream in(sDriveStr);
+	istrstream in(sHint);
 #endif /* HAVE_STRSTREAM_H */
 	InputStream In(in);
 

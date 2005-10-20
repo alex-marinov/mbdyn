@@ -40,6 +40,7 @@ extern "C" {
 
 #include "ac/float.h"
 #include "constltp.h"
+#include "hint_impl.h"
 #include "elem.h"
 
 /* ElasticConstitutiveLaw - begin */
@@ -78,6 +79,75 @@ public:
 
 	ConstLawType::Type GetConstLawType(void) const {
 		return ConstLawType::ELASTIC;
+	};
+
+	void SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0)
+	{
+		if (ph) {
+			for (unsigned i = 0; i < ph->size(); i++) {
+				TplVecHint<T> *pStressH = dynamic_cast<TplVecHint<T> *>((*ph)[i]);
+
+				if (pStressH) {
+					PreStress = pStressH->pCreateVec(pDM);
+					continue;
+				}
+
+				TplDriveHint<T> *pStrainH = dynamic_cast<TplDriveHint<T> *>((*ph)[i]);
+
+				if (pStrainH) {
+					TplDriveCaller<T> *pDC = pStrainH->pCreateDrive(pDM);
+					if (pDC == 0) {
+						silent_cerr("ElasticConstitutiveLaw: "
+							"unable to create prestrain drive after hint "
+							"#" << i << std::endl);
+						throw ErrGeneric();
+					}
+					TplDriveOwner<T>::Set(pDC);
+
+					continue;
+				}
+			}
+		}
+	};
+
+	virtual Hint *
+	ParseHint(DataManager *pDM, const char *s) const
+	{
+		if (strncasecmp(s, "prestress{" /* } */ , sizeof("prestress{" /* } */ ) - 1) == 0) {
+			s += sizeof("prestress{") - 1;
+		
+			size_t	len = strlen(s);
+
+			if (s[len - 1] != '}') {
+				return 0;
+			}
+
+			char *sStr = new char[len + 1];
+			memcpy(sStr, s, len + 1);
+			sStr[len - 1] = ';';
+
+			return new TplVecHint<T>(sStr);
+
+		} else if (strncasecmp(s, "prestrain{" /* } */ , sizeof("prestrain{" /* } */ ) - 1) == 0) {
+			s += sizeof("prestrain{") - 1;
+		
+			size_t	len = strlen(s);
+
+			if (s[len - 1] != '}') {
+				return 0;
+			}
+
+			char *sStr = new char[len + 1];
+			memcpy(sStr, s, len + 1);
+			sStr[len - 1] = ';';
+
+			return new TplDriveHint<T>(sStr);
+
+		}
+
+		return 0;
 	};
 };
 

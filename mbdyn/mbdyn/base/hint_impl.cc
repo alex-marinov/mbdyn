@@ -56,28 +56,41 @@ ParseHint(DataManager *pDM, const char *s)
 	return 0;
 }
 
+/* ParsableHint - start */
+
+ParsableHint::ParsableHint(const char *s)
+: sHint((char *)s)
+{
+	NO_OP;
+}
+
+ParsableHint::~ParsableHint(void)
+{
+	if (sHint != 0) {
+		SAFEDELETEARR(sHint);
+	}
+}
+
 /* DriveHint - start */
 
 DriveHint::DriveHint(const char *s)
-: sDriveStr((char *)s)
+: ParsableHint(s)
 {
 	NO_OP;
 }
 
 DriveHint::~DriveHint(void)
 {
-	if (sDriveStr != 0) {
-		SAFEDELETEARR(sDriveStr);
-	}
+	NO_OP;
 }
 
 DriveCaller *
 DriveHint::pCreateDrive(DataManager *pDM) const
 {
 #if defined(HAVE_SSTREAM)
-	std::istringstream in(sDriveStr);
+	std::istringstream in(sHint);
 #else /* HAVE_STRSTREAM_H */
-	istrstream in(sDriveStr);
+	istrstream in(sHint);
 #endif /* HAVE_STRSTREAM_H */
 	InputStream In(in);
 
@@ -92,7 +105,7 @@ DriveHint::pCreateDrive(DataManager *pDM) const
 
 /* TplDriveHint - start */
 
-TplDriveHint3 tdh3(Zero3, 0);
-TplDriveHint6 tdh6(Zero6, 0);
+TplDriveHint3 tdh3(0);
+TplDriveHint6 tdh6(0);
 
 /* TplDriveHint - end */
