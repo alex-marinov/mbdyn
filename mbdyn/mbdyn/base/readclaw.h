@@ -34,7 +34,7 @@
 #include <drive_.h>		/* per TimeDriveCaller */
 #include <tpldrive.h>
 #include <tpldrive_.h>
-#include <constltp_.h>
+#include <constltp_impl.h>
 #include <symcltp.h>
 #include <ginaccltp.h>
 #ifdef USE_GRAALLDAMPER

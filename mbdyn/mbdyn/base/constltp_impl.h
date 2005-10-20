@@ -51,7 +51,7 @@ protected:
 	T PreStress;
 
 	virtual std::ostream&
-	Restart_(std::ostream& out) const
+	Restart_int(std::ostream& out) const
 	{
 		out << ", prestress, ",
 			Write(out, PreStress /* + GetF() */ , ", ");
@@ -121,7 +121,7 @@ public:
 
 	virtual std::ostream& Restart(std::ostream& out) const {
 		out << "linear elastic isotropic, " << dStiffness;
-		return ElasticConstitutiveLaw<T, Tder>::Restart_(out);
+		return ElasticConstitutiveLaw<T, Tder>::Restart_int(out);
 	};
 
 	virtual void Update(const T& Eps, const T& /* EpsPrime */  = 0.) {
@@ -173,7 +173,7 @@ public:
 	virtual std::ostream& Restart(std::ostream& out) const {
 		out << "linear elastic generic, ",
 			Write(out, ConstitutiveLaw<T, Tder>::FDE, ", ");
-		return ElasticConstitutiveLaw<T, Tder>::Restart_(out);
+		return ElasticConstitutiveLaw<T, Tder>::Restart_int(out);
 	};
 
 	virtual void Update(const T& Eps, const T& /* EpsPrime */ = 0.) {
@@ -270,7 +270,7 @@ public:
 	virtual std::ostream& Restart(std::ostream& out) const {
 		out << "linear elastic generic axial torsion coupling, ",
 			Write(out, FDE, ", ") << ", " << dAxialTorsionCoupling;
-		return Restart_(out);
+		return Restart_int(out);
 	};
 
 	virtual void Update(const Vec6& Eps, const Vec6& /* EpsPrime */ = 0.) {
@@ -356,7 +356,7 @@ public:
 
 	virtual std::ostream& Restart(std::ostream& out) const {
 		out << "log elastic, " << dStiffness;
-		return Restart_(out);
+		return Restart_int(out);
 	};
 
 	virtual void Update(const doublereal& Eps, const doublereal& /* EpsPrime */ = 0.) {
@@ -472,7 +472,7 @@ public:
 			<< dUpperLimitStrain << ", "
 			<< dLowerLimitStrain << ", "
 			<< dSecondStiffness;
-		return Restart_(out);
+		return Restart_int(out);
 	};
 
 	virtual void Update(const doublereal& Eps, const doublereal& /* EpsPrime */ = 0.) {
@@ -552,7 +552,7 @@ public:
 			<< dUpperLimitStrain << ", "
 			<< dLowerLimitStrain << ", "
 			<< dSecondStiffness;
-		return Restart_(out);
+		return Restart_int(out);
 	};
 
 	virtual void Update(const Vec3& Eps, const Vec3& /* EpsPrime */ = 0.) {
@@ -637,7 +637,7 @@ public:
 	virtual std::ostream& Restart(std::ostream& out) const {
 		out << "isoropic hardening elastic, " << dStiffness << ", "
 			<< sqrt(3./dAlpha);
-		return ElasticConstitutiveLaw<T, Tder>::Restart_(out);
+		return ElasticConstitutiveLaw<T, Tder>::Restart_int(out);
 	};
 
 	virtual void Update(const T& Eps, const T& /* EpsPrime */ = 0.) {
@@ -747,7 +747,7 @@ public:
 		out << "contact elastic, "
 			<< dKappa << ", "
 			<< dGamma;
-		return Restart_(out);
+		return Restart_int(out);
 	};
 
 	virtual void Update(const doublereal& Eps, const doublereal& /* EpsPrime */  = 0.) {
@@ -809,7 +809,7 @@ public:
 		out << "contact elastic, "
 			<< dKappa << ", "
 			<< dGamma;
-		return Restart_(out);
+		return Restart_int(out);
 	};
 
 	virtual void Update(const Vec3& Eps, const Vec3& /* EpsPrime */  = 0.) {
@@ -879,7 +879,7 @@ class LinearViscousIsotropicConstitutiveLaw
    virtual std::ostream& Restart(std::ostream& out) const {
       out << "linear viscous isotropic, "
         << dStiffnessPrime;
-      return ElasticConstitutiveLaw<T, Tder>::Restart_(out);
+      return ElasticConstitutiveLaw<T, Tder>::Restart_int(out);
    };
 
    virtual void Update(const T& /* Eps */ , const T& EpsPrime = 0.) {
@@ -932,7 +932,7 @@ class LinearViscousGenericConstitutiveLaw
    virtual std::ostream& Restart(std::ostream& out) const {
       out << "linear viscous generic, ",
         Write(out, ConstitutiveLaw<T, Tder>::FDEPrime, ", ");
-      return ElasticConstitutiveLaw<T, Tder>::Restart_(out);
+      return ElasticConstitutiveLaw<T, Tder>::Restart_int(out);
    };
 
    virtual void Update(const T& /* Eps */ , const T& EpsPrime = 0.) {
@@ -994,7 +994,7 @@ class LinearViscoElasticIsotropicConstitutiveLaw
       out << "linear viscoelastic isotropic, "
 	<< dStiffness << ", "
 	<< dStiffnessPrime;
-      return ElasticConstitutiveLaw<T, Tder>::Restart_(out);
+      return ElasticConstitutiveLaw<T, Tder>::Restart_int(out);
    };
 
    virtual void Update(const T& Eps, const T& EpsPrime = 0.) {
@@ -1058,7 +1058,7 @@ class LinearViscoElasticGenericConstitutiveLaw
      out << "linear viscoelastic generic, ",
        Write(out, ConstitutiveLaw<T, Tder>::FDE, ", ") << ", ",
        Write(out, ConstitutiveLaw<T, Tder>::FDEPrime, ", ");
-       return ElasticConstitutiveLaw<T, Tder>::Restart_(out);
+       return ElasticConstitutiveLaw<T, Tder>::Restart_int(out);
    };
 
    virtual void Update(const T& Eps, const T& EpsPrime = 0.) {
@@ -1168,7 +1168,7 @@ public:
 		out << "linear viscoelastic generic axial torsion coupling, ",
 		Write(out, ConstitutiveLaw<Vec6, Mat6x6>::FDE, ", ") << ", ",
 		Write(out, ConstitutiveLaw<Vec6, Mat6x6>::FDEPrime, ", ") << ", " << dAxialTorsionCoupling;
-		ElasticConstitutiveLaw<Vec6, Mat6x6>::Restart_(out);
+		ElasticConstitutiveLaw<Vec6, Mat6x6>::Restart_int(out);
 		((Mat6x6&)ConstitutiveLaw<Vec6, Mat6x6>::FDE)(4, 4) = d;
 		return out;
 	};
@@ -1296,7 +1296,7 @@ class DoubleLinearViscoElasticConstitutiveLaw<doublereal, doublereal>
 	<< dLowerLimitStrain << ", "
 	<< dSecondStiffness << ", "
 	<< dStiffnessPrime << ", ";
-      return Restart_(out);
+      return Restart_int(out);
    };
 
    virtual void Update(const doublereal& Eps, const doublereal& EpsPrime = 0.) {
@@ -1390,7 +1390,7 @@ class DoubleLinearViscoElasticConstitutiveLaw<Vec3, Mat3x3>
 	<< dLowerLimitStrain << ", "
 	<< dSecondStiffness << ", "
 	<< dStiffnessPrime << ", ";
-      return Restart_(out);
+      return Restart_int(out);
    };
 
    virtual void Update(const Vec3& Eps, const Vec3& EpsPrime = 0.) {
@@ -1528,7 +1528,7 @@ class TurbulentViscoElasticConstitutiveLaw<doublereal, doublereal>
 	<< dStiffnessPrime << ", "
 	<< dTreshold << ", "
 	<< dParabolicStiffness << ", ";
-      return Restart_(out);
+      return Restart_int(out);
    };
 
    virtual void Update(const doublereal& Eps, const doublereal& EpsPrime = 0.) {
@@ -1634,7 +1634,7 @@ public:
 		out << ", ",
 			pActivatingCondition->Restart(out) << ", ",
 			pDeactivatingCondition->Restart(out);
-		return ElasticConstitutiveLaw<T, Tder>::Restart_(out);
+		return ElasticConstitutiveLaw<T, Tder>::Restart_int(out);
 	};
 
 	virtual void
