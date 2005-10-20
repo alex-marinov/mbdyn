@@ -44,10 +44,10 @@ virtual public Elem, public Joint, public ConstitutiveLaw3DOwner {
 protected:
 	const StructNode* pNode1;
 	const StructNode* pNode2;
-	const Vec3 tilde_f1;
-	const Vec3 tilde_f2;
-	const Mat3x3 tilde_R1h;
-	const Mat3x3 tilde_R2h;
+	mutable Vec3 tilde_f1;
+	mutable Vec3 tilde_f2;
+	mutable Mat3x3 tilde_R1h;
+	mutable Mat3x3 tilde_R2h;
 
 	Vec3 tilde_d;
 	Vec3 tilde_dPrime;
@@ -82,6 +82,13 @@ public:
 
 	virtual void Output(OutputHandler& OH) const;
 
+	void SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0);
+
+	virtual Hint *
+	ParseHint(DataManager *pDM, const char *s) const;
+	         
 	/* Tipo di DeformableDispHinge */
 	virtual ConstLawType::Type GetConstLawType(void) const = 0;
 

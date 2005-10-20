@@ -98,6 +98,84 @@ DeformableDispJoint::Output(OutputHandler& OH) const
 	}
 }
 
+void
+DeformableDispJoint::SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph)
+{
+	if (ph) {
+		for (unsigned i = 0; i < ph->size(); i++) {
+			Joint::JointHint *pjh = dynamic_cast<Joint::JointHint *>((*ph)[i]);
+
+			if (pjh) {
+				if (dynamic_cast<Joint::OffsetHint<1> *>(pjh)) {
+					Mat3x3 R1t(pNode1->GetRCurr().Transpose());
+					Vec3 f2(pNode2->GetRCurr()*tilde_f2);
+  	 
+					tilde_f1 = R1t*(pNode2->GetXCurr() + f2 - pNode1->GetXCurr());
+	
+				} else if (dynamic_cast<Joint::OffsetHint<2> *>(pjh)) {
+					Mat3x3 R2t(pNode2->GetRCurr().Transpose());
+					Vec3 f1(pNode1->GetRCurr()*tilde_f1);
+  	 
+					tilde_f2 = R2t*(pNode1->GetXCurr() + f1 - pNode2->GetXCurr());
+	
+				} else if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
+					tilde_R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*tilde_R2h;
+	
+				} else if (dynamic_cast<Joint::HingeHint<2> *>(pjh)) {
+					tilde_R2h = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*tilde_R1h;
+	
+				} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
+					/* TODO */
+				}
+
+				continue;
+			}
+
+			ConstitutiveLaw3DOwner::SetValue(pDM, X, XP, ph);
+		}
+	}
+}
+
+Hint *
+DeformableDispJoint::ParseHint(DataManager *pDM, const char *s) const
+{
+	if (strncasecmp(s, "offset{" /* } */ , sizeof("offset{" /* } */ ) - 1) == 0)
+	{
+		s += sizeof("offset{" /* } */ ) - 1;
+
+		if (strcmp(&s[1], /* { */ "}") != 0) {
+			return 0;
+		}
+
+		switch (s[0]) {
+		case '1':
+			return new Joint::OffsetHint<1>;
+
+		case '2':
+			return new Joint::OffsetHint<2>;
+		}
+
+	} else if (strncasecmp(s, "hinge{" /* } */, sizeof("hinge{" /* } */) - 1) == 0) {
+		s += sizeof("hinge{" /* } */) - 1;
+
+		if (strcmp(&s[1], /* { */ "}") != 0) {
+			return 0;
+		}
+
+		switch (s[0]) {
+		case '1':
+			return new Joint::HingeHint<1>;
+
+		case '2':
+			return new Joint::HingeHint<2>;
+		}
+	}
+
+	return ConstitutiveLaw3DOwner::ParseHint(pDM, s);
+}
+
 unsigned int
 DeformableDispJoint::iGetNumPrivData(void) const
 {

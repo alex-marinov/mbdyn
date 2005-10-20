@@ -46,8 +46,8 @@ virtual public Elem, public Joint, public ConstitutiveLaw3DOwner {
 protected:
 	const StructNode* pNode1;
 	const StructNode* pNode2;
-	const Mat3x3 tilde_R1h;
-	const Mat3x3 tilde_R2h;
+	mutable Mat3x3 tilde_R1h;
+	mutable Mat3x3 tilde_R2h;
 
 	bool bFirstRes;
 
@@ -75,6 +75,13 @@ public:
 
 	virtual void Output(OutputHandler& OH) const;
 
+	void SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0);
+
+	virtual Hint *
+	ParseHint(DataManager *pDM, const char *s) const;
+	         
 	/* Tipo di DeformableHinge */
 	virtual ConstLawType::Type GetConstLawType(void) const = 0;
 
