@@ -185,7 +185,7 @@ SymbolicElasticIsotropicConstitutiveLaw<doublereal, doublereal>::Restart(std::os
 		}
 	}
 
-  	return Restart_(out);
+  	return Restart_int(out);
 }
 
 void
@@ -371,7 +371,7 @@ SymbolicViscousIsotropicConstitutiveLaw<doublereal, doublereal>::Restart(std::os
 		}
 	}
 
-  	return Restart_(out);
+  	return Restart_int(out);
 }
 
 void
@@ -570,7 +570,7 @@ SymbolicViscoElasticIsotropicConstitutiveLaw<doublereal, doublereal>::Restart(st
 		}
 	}
 
-  	return Restart_(out);
+  	return Restart_int(out);
 }
 
 void
