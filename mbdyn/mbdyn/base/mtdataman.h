@@ -146,6 +146,7 @@ public:
 			Solver* pS,
 			doublereal dInitialTime,
 			const char* sOutputFileName,
+			const char* sInputFileName,
 			bool bAbortAfterInput,
 			unsigned nt);
 

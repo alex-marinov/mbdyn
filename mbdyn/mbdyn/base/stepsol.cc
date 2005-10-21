@@ -276,7 +276,6 @@ DerivativeSolver::Advance(Solver* pS,
 	Err = 0.;
 	pS->pGetNonlinearSolver()->Solve(this, pS, MaxIters, dTol,
     			EffIter, Err, dSolTol, SolErr);
-
 	/* if it gets here, it surely converged */
 	pDM->AfterConvergence();
 

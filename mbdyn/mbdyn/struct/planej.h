@@ -57,6 +57,7 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
    Mat3x3 R2h;
    Vec3 F;
    Vec3 M;
+   bool calcInitdTheta;
    mutable doublereal dTheta;
 
    /* friction related data */
@@ -75,6 +76,8 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
 		   const StructNode* pN1, const StructNode* pN2,
 		   const Vec3& dTmp1, const Vec3& dTmp2,
 		   const Mat3x3& R1hTmp, const Mat3x3& R2hTmp, flag fOut,
+		   const bool _calcInitdTheta = true,
+		   const doublereal initDTheta = 0.,
 		   const doublereal rr = 0.,
 		   const doublereal pref = 0.,
 		   BasicShapeCoefficient *const sh = 0,
@@ -484,6 +487,7 @@ class PlanePinJoint : virtual public Elem, public Joint {
    Mat3x3 Rh;
    Vec3 F;
    Vec3 M;
+   bool calcInitdTheta;
    mutable doublereal dTheta;
    
  public:
@@ -491,7 +495,9 @@ class PlanePinJoint : virtual public Elem, public Joint {
    PlanePinJoint(unsigned int uL, const DofOwner* pDO,
 		 const StructNode* pN,
 		 const Vec3& X0Tmp, const Mat3x3& R0Tmp, 
-		 const Vec3& dTmp, const Mat3x3& RhTmp, flag fOut);
+		 const Vec3& dTmp, const Mat3x3& RhTmp, 
+		 flag fOut, const bool _calcInitdTheta,
+		 const doublereal initDTheta);
    
    ~PlanePinJoint(void);
 
@@ -503,7 +509,10 @@ class PlanePinJoint : virtual public Elem, public Joint {
    virtual Joint::Type GetJointType(void) const { 
       return Joint::PIN; 
    };
-
+   
+   /* legge lo sato iniziale*/
+   virtual void ReadIinitialState(MBDynParser& HP);
+   
    /* Contributo al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
 

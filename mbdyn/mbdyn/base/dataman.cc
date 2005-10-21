@@ -87,6 +87,7 @@ DataManager::DataManager(MBDynParser& HP,
 		Solver* pS,
 		doublereal dInitialTime,
 		const char* sOutputFileName,
+		const char* sInputFileName,
 		bool bAbortAfterInput)
 :
 SolverDiagnostics(OF),
@@ -263,7 +264,7 @@ SocketUsersTimeout(0)
       throw DataManager::ErrGeneric();
    }
 
-   ReadControl(HP, sOutputFileName);
+   ReadControl(HP, sOutputFileName, sInputFileName);
    try {
 	   CurrDesc = KeyWords(HP.GetDescription());
    } catch (EndOfFile) {

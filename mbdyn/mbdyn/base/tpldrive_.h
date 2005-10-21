@@ -69,9 +69,17 @@ class SingleTplDriveCaller : public TplDriveCaller<T>, public DriveOwner {
       return pGetDriveCaller()->Restart(out);
    }; 
    
+   virtual std::ostream& Restart_int(std::ostream& out) const {
+      Write(out, t, ", ") << ", ";
+      return pGetDriveCaller()->Restart(out);
+   }; 
+   
    inline T Get(void) const {
       return t*dGet();
-   };   
+   };
+   inline int getNDrives(void) const {
+      return 1;
+   };
 };
 
 /* Nota: in caso di reale, viene semplificata la classe in modo da
@@ -106,9 +114,16 @@ class SingleTplDriveCaller<doublereal>
       return pGetDriveCaller()->Restart(out);
    };
    
+   virtual std::ostream& Restart_int(std::ostream& out) const {
+      return pGetDriveCaller()->Restart(out);
+   };
+   
    inline doublereal Get(void) const {
       return dGet();
    };   
+   inline int getNDrives(void) const {
+      return 1;
+   };
 };
 
 /* SingleTplDriveCaller - end */
@@ -175,13 +190,26 @@ class ArrayTplDriveCaller : public TplDriveCaller<T> {
       return out;
    };
    
+   virtual std::ostream& Restart_int(std::ostream& out) const {
+      for (int i = 0; i < iNumDrives; i++) {
+         out << ", ",
+           Write(out, pDrivesArray[i].t, ", ") << ", ",
+           pDrivesArray[i].pDriveCaller->Restart(out);
+      }
+      return out;
+   };
+   
    inline T Get(void) const {
       T v = 0.;
       for (int i = 0; i < iNumDrives; i++) {
 	 v += (pDrivesArray[i].t)*(pDrivesArray[i].pDriveCaller->dGet());
       }      
       return v;
-   };   
+   };
+   
+   inline int getNDrives(void) const {
+      return iNumDrives;
+   };
 };
 
 template<>
@@ -234,12 +262,23 @@ class ArrayTplDriveCaller<doublereal> : public TplDriveCaller<doublereal> {
       return out;
    };
    
+   virtual std::ostream& Restart_int(std::ostream& out) const {
+      for (int i = 0; i < iNumDrives; i++) {
+         out << ", ", pDrivesArray[i].pDriveCaller->Restart(out);
+      }
+      return out;
+   };
+   
    inline doublereal Get(void) const {
       doublereal v = 0.;
       for (int i = 0; i < iNumDrives; i++) {
 	 v += pDrivesArray[i].pDriveCaller->dGet();
       }      
       return v;
+   };
+   
+   inline int getNDrives(void) const {
+      return iNumDrives;
    };
 };
 

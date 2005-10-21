@@ -680,6 +680,12 @@ Elem* ReadJoint(DataManager* pDM,
 		   << ": deprecated 'plane hinge' name;"
 		   << " use 'revolute hinge' instead" << std::endl);
 	case REVOLUTEHINGE: {
+	   bool calcInitdTheta = true;
+	   doublereal initDTheta = 0.;
+	   if (HP.IsKeyWord("initial" "theta")) {
+		initDTheta = HP.GetReal();
+		calcInitdTheta = false;
+	   }	
 	   doublereal r = 0.;
 	   doublereal preload = 0.;
 	   BasicFriction * bf = 0;
@@ -696,6 +702,7 @@ Elem* ReadJoint(DataManager* pDM,
 				  PlaneHingeJoint,
 				  PlaneHingeJoint(uLabel, pDO, pNode1, pNode2, 
 						  d1, d2, R1h, R2h, fOut,
+			   			  calcInitdTheta, initDTheta,
 						  r, preload, bsh, bf));
 	   std::ostream& out = pDM->GetLogFile();
 	   out << "revolutehinge: " << uLabel
@@ -916,10 +923,17 @@ Elem* ReadJoint(DataManager* pDM,
 		silent_cerr("deprecated 'plane pin' name;" 
 			<< " use 'revolute pin' instead" << std::endl);
 	case REVOLUTEPIN: {
+	   bool calcInitdTheta = true;
+	   doublereal initDTheta = 0.;
+	   if (HP.IsKeyWord("initial" "theta")) {
+		initDTheta = HP.GetReal();
+		calcInitdTheta = false;
+	   }	
 	   SAFENEWWITHCONSTRUCTOR(pEl, 
 				  PlanePinJoint,
 				  PlanePinJoint(uLabel, pDO, pNode,
-						X0, R0, d, Rh, fOut));
+						X0, R0, d, Rh, fOut,
+						calcInitdTheta, initDTheta));
 	   break;
 	}
 	  

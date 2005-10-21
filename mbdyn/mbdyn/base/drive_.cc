@@ -349,8 +349,8 @@ std::ostream& DoubleStepDriveCaller::Restart(std::ostream& out) const
    return out 
      << " double step, "
      << dStepTime << ", " 
-     << dStepValue << ", "
      << dEndStepTime << ", "
+     << dStepValue << ", "
      << dInitialValue;
 }
 

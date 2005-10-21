@@ -197,7 +197,8 @@ protected:
 
 private:
 	/* chiamate dal costruttore per leggere i relativi articoli */
-	void ReadControl(MBDynParser& HP, const char* sOutputFileName);
+	void ReadControl(MBDynParser& HP, const char* sOutputFileName, 
+				const char* sInputFileName);
 	void ReadNodes(MBDynParser& HP);
 	void ReadDrivers(MBDynParser& HP);
 	void ReadElems(MBDynParser& HP);
@@ -249,6 +250,7 @@ public:
 			Solver* pS,
 			doublereal dInitialTime,
 			const char* sOutputFileName,
+			const char* sInputFileName,
 			bool bAbortAfterInput);
 
 	/* distruttore */

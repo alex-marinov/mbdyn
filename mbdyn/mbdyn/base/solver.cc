@@ -456,6 +456,7 @@ Solver::Run(void)
 				this,
 				dInitialTime,
 				sOutputFileName,
+				sInputFileName,
 				eAbortAfter == AFTER_INPUT));
 
 		/* FIXME: who frees sNewOutname? */
@@ -504,6 +505,7 @@ Solver::Run(void)
 						this,
 						dInitialTime,
 						sOutputFileName,
+						sInputFileName,
 						eAbortAfter == AFTER_INPUT,
 						nThreads));
 
@@ -526,6 +528,7 @@ Solver::Run(void)
 						this,
 						dInitialTime,
 						sOutputFileName,
+						sInputFileName,
 						eAbortAfter == AFTER_INPUT));
 		}
 	}
@@ -1586,6 +1589,16 @@ IfStepIsToBeRepeated:
 			 * Mettere qui eventuali azioni speciali
 			 * da intraprendere in caso di errore ...
 			 */
+			silent_cerr("Simulation diverged before "
+				"reaching max iteration number "
+				<< iStIter
+				<< " during step " << iStep << ';'
+				<< std::endl
+				<< "time step dt = "
+				<< dCurrTimeStep
+				<< " cannot be reduced"
+				" further;" << std::endl
+				<< "aborting ..." << std::endl);
 			throw SimulationDiverged();
 		}
 		catch (NonlinearSolver::ConvergenceOnSolution) {

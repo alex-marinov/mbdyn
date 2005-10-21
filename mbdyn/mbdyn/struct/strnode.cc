@@ -231,7 +231,8 @@ StructNode::Restart(std::ostream& out) const
      WCurr.Write(out, ", ") << ", assembly, "
      << dPositionStiffness << ", "
      << dVelocityStiffness << ", "
-     << fOmegaRot << ';' << std::endl;
+     << fOmegaRot 
+     << ", scale, " << pGetDofOwner()->dGetScale() << ';' << std::endl;
 
    return out;
 }

@@ -123,10 +123,11 @@ MultiThreadDataManager::MultiThreadDataManager(MBDynParser& HP,
 		Solver* pS,
 		doublereal dInitialTime,
 		const char* sOutputFileName,
+		const char* sInputFileName,
 		bool bAbortAfterInput,
 		unsigned nt)
 :
-DataManager(HP, OF, pS, dInitialTime, sOutputFileName, bAbortAfterInput),
+DataManager(HP, OF, pS, dInitialTime, sOutputFileName, sInputFileName, bAbortAfterInput),
 nThreads(nt),
 AssMode(ASS_UNKNOWN),
 CCReady(CC_NO),

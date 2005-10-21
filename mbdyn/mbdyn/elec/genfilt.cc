@@ -256,7 +256,7 @@ fSteady(fSt)
    if (Nb == Na) {
       pdBeta[Nb] = pdB[Nb]/pdA[Na];
       for (unsigned long i = 0; i < Nb; i++) {
-	 pdBeta[i] = pdB[i]/pdA[Na]-pdA[i]/pdA[Na]*pdBeta[Nb];
+ 	 pdBeta[i] = pdB[i]/pdA[Na]-pdA[i]/pdA[Na]*pdBeta[Nb];
       }
    } else {
       for (unsigned long i = 0; i <= Nb; i++) {

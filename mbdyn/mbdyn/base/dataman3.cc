@@ -55,7 +55,8 @@ class NotAllowed {};
 
 /* Legge i dati di controllo */
 
-void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName)
+void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName, 
+			const char* sInputFileName)
 {
    DEBUGCOUTFNAME("DataManager::ReadControl");
 
@@ -1158,9 +1159,9 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName)
 	 
 	 /* add more entries ... */
        case READSOLUTIONARRAY:{
-	  int len = strlen(sOutputFileName)+sizeof(".X");
+	  int len = strlen(sInputFileName)+sizeof(".X");
 	  SAFENEWARR(solArrFileName, char, len);
-	  snprintf(solArrFileName, len, "%s.X", sOutputFileName);
+	  snprintf(solArrFileName, len, "%s.X", sInputFileName);
           break;
        }
 

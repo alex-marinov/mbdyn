@@ -51,6 +51,8 @@ PlaneHingeJoint::PlaneHingeJoint(unsigned int uL, const DofOwner* pDO,
 		const Vec3& dTmp1, const Vec3& dTmp2,
 		const Mat3x3& R1hTmp, const Mat3x3& R2hTmp,
 		flag fOut, 
+		const bool _calcInitdTheta,
+		const doublereal initDTheta,
 		const doublereal rr,
 		const doublereal pref,
 		BasicShapeCoefficient *const sh,
@@ -58,7 +60,8 @@ PlaneHingeJoint::PlaneHingeJoint(unsigned int uL, const DofOwner* pDO,
 : Elem(uL, Elem::JOINT, fOut), 
 Joint(uL, Joint::PLANEHINGE, pDO, fOut), 
 pNode1(pN1), pNode2(pN2),
-d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(0.), M(0.), dTheta(0.),
+d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(0.), M(0.),
+calcInitdTheta(_calcInitdTheta), dTheta(initDTheta),
 Sh_c(sh), fc(f), preF(pref), r(rr)
 {
 	NO_OP;
@@ -200,11 +203,13 @@ PlaneHingeJoint::SetValue(DataManager *pDM,
 		}
 	}
 
-	Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*(pNode2->GetRCurr()*R2h));
-	Vec3 v(MatR2EulerAngles(RTmp));
-
-	dTheta = v.dGet(3);
-
+	if (calcInitdTheta) {
+		Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*(pNode2->GetRCurr()*R2h));
+		Vec3 v(MatR2EulerAngles(RTmp));
+		
+		dTheta = v.dGet(3);
+	}
+	
 #if 0
 	std::cerr << "F: " << F << std::endl;
 	std::cerr << "M: " << M << std::endl;
@@ -300,7 +305,7 @@ PlaneHingeJoint::ReadIinitialState(MBDynParser& HP)
 /* Contributo al file di restart */
 std::ostream& PlaneHingeJoint::Restart(std::ostream& out) const
 {
-   Joint::Restart(out) << ", plane hinge, "
+   Joint::Restart(out) << ", revolute hinge, "
      << pNode1->GetLabel() << ", reference, node, ",
      d1.Write(out, ", ")
      << ", hinge, reference, node, 1, ", (R1h.GetVec(1)).Write(out, ", ")
@@ -309,6 +314,7 @@ std::ostream& PlaneHingeJoint::Restart(std::ostream& out) const
      d2.Write(out, ", ")
      << ", hinge, reference, node, 1, ", (R2h.GetVec(1)).Write(out, ", ")
      << ", 2, ", (R2h.GetVec(2)).Write(out, ", ") << ", " 
+     << "initial theta, " << dTheta << ", "
      << "initial state, ", F.Write(out, ", ") 
      << ", " << M.dGet(1) << ", " << M.dGet(2) << ';' << std::endl;
    
@@ -1351,7 +1357,7 @@ PlaneRotationJoint::AfterConvergence(const VectorHandler& X,
 /* Contributo al file di restart */
 std::ostream& PlaneRotationJoint::Restart(std::ostream& out) const
 {
-   Joint::Restart(out) << ", plane hinge, "
+   Joint::Restart(out) << ", revolute hinge, "
      << pNode1->GetLabel() 
      << ", hinge, reference, node, 1, ", (R1h.GetVec(1)).Write(out, ", ")
      << ", 2, ", (R1h.GetVec(2)).Write(out, ", ") << ", "
@@ -3104,12 +3110,14 @@ PlanePinJoint::PlanePinJoint(unsigned int uL, const DofOwner* pDO,
 			     const StructNode* pN,
 			     const Vec3& X0Tmp, const Mat3x3& R0Tmp, 
 			     const Vec3& dTmp, const Mat3x3& RhTmp,
-			     flag fOut)
+			     flag fOut, const bool _calcInitdTheta,
+			     const doublereal initDTheta)
 : Elem(uL, Elem::JOINT, fOut), 
 Joint(uL, Joint::PLANEPIN, pDO, fOut), 
 pNode(pN), 
 X0(X0Tmp), R0(R0Tmp), d(dTmp), Rh(RhTmp),
-F(0.), M(0.), dTheta(0.)
+F(0.), M(0.),
+calcInitdTheta(_calcInitdTheta), dTheta(initDTheta)
 {
    NO_OP;
 }
@@ -3218,10 +3226,11 @@ PlanePinJoint::SetValue(DataManager *pDM,
 		}
 	}
 
-	Mat3x3 RTmp(R0.Transpose()*(pNode->GetRCurr()*Rh));
-	Vec3 v(MatR2EulerAngles(RTmp));
-
-	dTheta = v.dGet(3);
+	if (calcInitdTheta) {
+		Mat3x3 RTmp(R0.Transpose()*(pNode->GetRCurr()*Rh));
+		Vec3 v(MatR2EulerAngles(RTmp));
+		dTheta = v.dGet(3);
+	}
 }
 
 Hint *
@@ -3279,11 +3288,17 @@ PlanePinJoint::AfterConvergence(const VectorHandler& X,
 	dTheta += v.dGet(3);
 }
 
+void
+PlanePinJoint::ReadIinitialState(MBDynParser& HP)
+{
+	F = Vec3(HP.GetVec3());
+	M = Vec3(HP.GetReal(), HP.GetReal(), 0.);
+}
 
 /* Contributo al file di restart */
 std::ostream& PlanePinJoint::Restart(std::ostream& out) const
 {
-   Joint::Restart(out) << ", plane pin, "
+   Joint::Restart(out) << ", revolute pin, "
      << pNode->GetLabel() 
      << ", reference, node, ", d.Write(out, ", ") 
      << ", hinge, reference, node, 1, ", 
@@ -3292,7 +3307,10 @@ std::ostream& PlanePinJoint::Restart(std::ostream& out) const
      << ", reference, global, ", X0.Write(out, ", ") 
      << ",hinge, reference, global, 1, ",
      (R0.GetVec(1)).Write(out, ", ") << ", 2, ", 
-     (R0.GetVec(2)).Write(out, ", ") << ';' << std::endl;
+     (R0.GetVec(2)).Write(out, ", ")  << ", " 
+     << "initial theta, " << dTheta << ", "
+     << "initial state, ", F.Write(out, ", ") 
+     << ", " << M.dGet(1) << ", " << M.dGet(2) << ';' << std::endl;
    
    return out;
 }

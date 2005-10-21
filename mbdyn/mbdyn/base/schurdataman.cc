@@ -73,8 +73,9 @@ SchurDataManager::SchurDataManager(MBDynParser& HP,
 		Solver* pS,
 		doublereal dInitialTime,
 		const char* sOutputFileName,
+		const char* sInputFileName,
 		bool bAbortAfterInput)
-: DataManager(HP, OF, pS, dInitialTime, sOutputFileName, bAbortAfterInput)
+: DataManager(HP, OF, pS, dInitialTime, sOutputFileName, sInputFileName, bAbortAfterInput)
 {
 	silent_cerr("fatal error: you are building SchurDataManager, "
 		"but mbdyn was compiled without MPI. "
