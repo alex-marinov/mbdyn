@@ -1,4 +1,4 @@
-%[S, Aout, B, mn, scl, ee, vv, X, H, BB] = pod(A, ns, dt, uu, dec, ord)
+%[S, Aout, B, mn, scl, ee, vv, X, H, BB, fm] = pod(A, ns, dt, uu, dec, ord)
 %
 %input:
 %	A	data (n. of frames x n. of outputs)
@@ -19,8 +19,9 @@
 %	X	physical eigenvectors
 %	H	transition matrix
 %	BB	expanded POMs
+%       fm      figure of merit: evaluates the relative quality of POMs
 %
-function [S, Aout, B, mn, scl, ee, vv, X, H, BB] = pod(A, ns, dt, uu, dec, ord)
+function [S, Aout, B, mn, scl, ee, vv, X, H, BB, fm] = pod(A, ns, dt, uu, dec, ord)
 
 % MBDyn (C) is a multibody analysis code. 
 % http://www.mbdyn.org
@@ -145,7 +146,7 @@ end
 [nt, nd] = size(A);
 nn = min(nt, nd);
 if (nn < ns),
-	error(sprintf('number of requested modes %d is too high', ns));
+	error(sprintf('number of requested modes %d is too high (%d max)', ns, nn));
 end
 
 if exist('OCTAVE_HOME'),
@@ -200,12 +201,12 @@ if MATLAB_IS_BRAINDEAD, % exist('OCTAVE_HOME'),
 
 	hh = [];
 	for i = 1:ord,
-		hh(:, ns2*(i-1)+1:ns2*i) = Aout(ord-i+1:r-i, 1:ns2);
+		hh(:, ns2*(i - 1) + 1:ns2*i) = Aout(ord - i + 1:r - i, 1:ns2);
 	end
-	H = (hh\Aout(ord+1:r, 1:ns2))';
+	H = (hh\Aout(ord + 1:r, 1:ns2))';
 	if (ord > 1),
-		H(ns2+1:ord*ns2, 1:(ord-1)*ns2) = eye((ord-1)*ns2);
-		C = [eye(ns2), zeros(ns2, (ord-1)*ns2)];
+		H(ns2 + 1:ord*ns2, 1:(ord - 1)*ns2) = eye((ord - 1)*ns2);
+		C = [eye(ns2), zeros(ns2, (ord - 1)*ns2)];
 	end
 else
        if (exist('uu') & ~isempty(uu)),
@@ -229,6 +230,10 @@ X = zeros(ord*ns2, c);
 X(:, gt) = vv'*B(1:ns2, :);
 BB = zeros(ns2, c);
 BB(:, gt) = B;
+
+% figure of merit...
+fm = (S(1:ns2)'*abs(vv))';
+fm = fm./max(fm);
 
 %
 % node indices:
