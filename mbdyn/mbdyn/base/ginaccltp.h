@@ -43,6 +43,7 @@
 
 /* SymbolicElasticIsotropicConstitutiveLaw - begin */
 
+template<>
 class SymbolicElasticIsotropicConstitutiveLaw<doublereal, doublereal>
 : public ElasticConstitutiveLaw<doublereal, doublereal> {
 private:
@@ -226,6 +227,7 @@ SymbolicElasticIsotropicConstitutiveLaw<doublereal, doublereal>::IncrementalUpda
 
 /* SymbolicViscousIsotropicConstitutiveLaw - begin */
 
+template<>
 class SymbolicViscousIsotropicConstitutiveLaw<doublereal, doublereal>
 : public ElasticConstitutiveLaw<doublereal, doublereal> {
 private:
@@ -410,6 +412,7 @@ SymbolicViscousIsotropicConstitutiveLaw<doublereal, doublereal>::IncrementalUpda
 
 /* SymbolicViscoElasticIsotropicConstitutiveLaw - begin */
 
+template<>
 class SymbolicViscoElasticIsotropicConstitutiveLaw<doublereal, doublereal>
 : public ElasticConstitutiveLaw<doublereal, doublereal> {
 private:

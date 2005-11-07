@@ -470,6 +470,10 @@ class _Mat3x3_Manip {
     argomenti un manipolatore e un vettore di parametri di rotazione.
     */
    virtual void Make(Mat3x3& m, const Vec3& v) const = 0;
+
+   virtual ~_Mat3x3_Manip(void) { 
+      NO_OP;
+   };
 };
 
 /* _Mat3x3_Manip - end */

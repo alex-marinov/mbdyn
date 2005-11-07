@@ -32,6 +32,8 @@
 #define MATVEC3N_H
 
 #include "matvec3.h"
+class MatNx3;
+class MatNxN;
 
 /* VecN - begin */
 

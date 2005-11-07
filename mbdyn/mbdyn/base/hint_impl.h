@@ -69,14 +69,14 @@ public:
 };
 
 template <class T>
-TplVecHint<T>::TplVecHint<T>(const char *s, const T& t)
+TplVecHint<T>::TplVecHint(const char *s, const T& t)
 : ParsableHint(s), t(t)
 {
 	NO_OP;
 }
 
 template <class T>
-TplVecHint<T>::~TplVecHint<T>(void)
+TplVecHint<T>::~TplVecHint(void)
 {
 	NO_OP;
 }
@@ -116,14 +116,14 @@ public:
 };
 
 template <class T>
-TplDriveHint<T>::TplDriveHint<T>(const char *s, const T& t)
+TplDriveHint<T>::TplDriveHint(const char *s, const T& t)
 : DriveHint(s), t(t)
 {
 	NO_OP;
 }
 
 template <class T>
-TplDriveHint<T>::~TplDriveHint<T>(void)
+TplDriveHint<T>::~TplDriveHint(void)
 {
 	NO_OP;
 }
