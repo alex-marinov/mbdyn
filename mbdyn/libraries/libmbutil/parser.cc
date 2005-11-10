@@ -1057,16 +1057,38 @@ HighParser::GetMatR2vec(void)
    }
 
    int i1 = GetInt();
-   doublereal x1 = GetReal();
-   doublereal x2 = GetReal();
-   doublereal x3 = GetReal();
-   Vec3 v1(x1, x2, x3);
+   Vec3 v1;
+   v1(1) = GetReal();
+   v1(2) = GetReal();
+   v1(3) = GetReal();
 
    int i2 = GetInt();
-   x1 = GetReal();
-   x2 = GetReal();
-   x3 = GetReal();
-   Vec3 v2(x1, x2, x3);
+   Vec3 v2(0.);
+
+   if (IsKeyWord("guess")) {
+      int i_max = 1;
+      int i_min = 1;
+
+      if (fabs(v1(2)) > fabs(v1(1))) {
+         i_max = 2;
+      } else {
+         i_min = 2;
+      }
+
+      if (fabs(v1(3)) > fabs(v1(i_max))) {
+         i_max = 3;
+      } else if (fabs(v1(3)) < fabs(v1(i_min))) {
+         i_min = 3;
+      }
+
+      v2(i_min) = 1.;
+      v2(i_max) = -v1(i_min)/v1(i_max);
+
+   } else {
+      v2(1) = GetReal();
+      v2(2) = GetReal();
+      v2(3) = GetReal();
+   }
 
    return MatR2vec(i1, v1, i2, v2);
 }

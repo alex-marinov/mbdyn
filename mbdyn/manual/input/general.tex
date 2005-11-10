@@ -411,6 +411,23 @@ For example, the identity matrix can be defined as:
     in global direction 2, while direction 3 in the local frame remains
     parallel to \kw{0.,0.,1.} which represents direction 3 in the global
     frame.
+    \item a variant of the above, which may be useful when only one
+    direction really matters, is illustrated in the example below:
+    \begin{verbatim}
+    1, 1.,0.,0., 2, guess
+    \end{verbatim}
+    The keyword \kw{guess} tells the parser to generate a random vector
+    that is orthogonal to the given one, which is used as the direction
+    indicated by the index.
+    The vector is computed based on a very simple algorithm: it contains
+    \begin{itemize}
+        \item 1.0 corresponding to the index with smallest module,
+        $v_1\plbr{\mathrm{min}}$;
+	\item $-v_1\plbr{\mathrm{min}}/v_1\plbr{\mathrm{max}}$
+	corresponding to the index with the largest module,
+	$v_1\plbr{\mathrm{max}}$;
+	\item 0.0 on the remaining index.
+    \end{itemize}
     \item identity matrix: keyword \kw{eye}; the identity matrix,
     which means there is no rotation with respect to the global reference
     frame.
