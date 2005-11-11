@@ -3855,11 +3855,21 @@ orientation with respect to node 1:
     driven: 20, string, "Time>1.", hint, "hinge{1}",
     joint: 20, ..."
 \end{verbatim}
-A distance joint may be fed a new drive by using:
+A \kw{distance} joint may be fed a new drive by using:
 \begin{verbatim}
     driven: 30, string, "Time>1.",
         hint, "drive{cosine,0.,pi/.1,-.9/2.,half,model::distance(1,2)}",
     joint: 30, distance, ... 
+\end{verbatim}
+A \kw{drive hinge} joint may be fed a new drive by using:
+\begin{verbatim}
+    driven: 40, string, "Time>1.",
+        # note: the lines wrap for typographical reasons
+        # in the actual file, the string has to be a single line
+        hint, "drive3{model::xdistance(1,2),\
+            model::ydistance(1,2), model::zdistance(1,2),\
+            cosine,0.,pi/.1,-.9/2.,half,model::distance(1,2)}",
+    joint: 30, drive hinge, ... 
 \end{verbatim}
 
 This feature will likely be extended to other elements
