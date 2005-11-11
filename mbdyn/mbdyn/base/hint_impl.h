@@ -141,6 +141,7 @@ TplDriveHint<T>::pCreateDrive(DataManager *pDM) const
 
 	MBDynParser HP(pDM->GetMathParser(), In, "TplDriveHint::pCreateDrive");
 	HP.ExpectArg();
+	HP.SetDataManager(pDM);
 
 	return ReadTplDrive(pDM, HP, t);
 }

@@ -51,7 +51,37 @@ ParseHint(DataManager *pDM, const char *s)
 		sDriveStr[len - 1] = ';';
 
 		return new DriveHint(sDriveStr);
-	}
+
+	} else if (strncasecmp(s, "drive3{", sizeof("drive3{") - 1) == 0) {
+		s += sizeof("drive3{") - 1;
+		
+		size_t	len = strlen(s);
+
+		if (s[len - 1] != '}') {
+			return 0;
+		}
+
+		char *sDriveStr = new char[len + 1];
+		memcpy(sDriveStr, s, len + 1);
+		sDriveStr[len - 1] = ';';
+
+		return new TplDriveHint<Vec3>(sDriveStr);
+
+	} else if (strncasecmp(s, "drive6{", sizeof("drive6{") - 1) == 0) {
+		s += sizeof("drive6{") - 1;
+		
+		size_t	len = strlen(s);
+
+		if (s[len - 1] != '}') {
+			return 0;
+		}
+
+		char *sDriveStr = new char[len + 1];
+		memcpy(sDriveStr, s, len + 1);
+		sDriveStr[len - 1] = ';';
+
+		return new TplDriveHint<Vec6>(sDriveStr);
+	} 
 
 	return 0;
 }
@@ -96,6 +126,7 @@ DriveHint::pCreateDrive(DataManager *pDM) const
 
 	MBDynParser HP(pDM->GetMathParser(), In, "DriveHint::pCreateDrive");
 	HP.ExpectArg();
+	HP.SetDataManager(pDM);
 
 	return ReadDriveData(pDM, HP, false);
 }
