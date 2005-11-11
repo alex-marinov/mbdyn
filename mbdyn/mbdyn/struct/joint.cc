@@ -1363,33 +1363,76 @@ Elem* ReadJoint(DataManager* pDM,
        /* nodo collegato 1 */
        StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
        
+       ReferenceFrame RF(pNode1);
+
        /* Offset if displacement hinge */
        Vec3 f1(0.);
        if (CurrKeyWord == DEFORMABLEDISPHINGE || CurrKeyWord == DEFORMABLEDISPJOINT) {
-	  f1 = HP.GetPosRel(ReferenceFrame(pNode1));
-       }	   
-       
-       Mat3x3 R1(Eye3);
-       if (HP.IsKeyWord("hinge")) {
-	  R1 = HP.GetRotRel(ReferenceFrame(pNode1));
+          if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+	       NO_OP;
+          } else {
+	       pedantic_cerr("Joint(" << uLabel 
+			       << "): missing keyword \"position\" at line "
+			       << HP.GetLineData() << std::endl);
+          }
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+	  f1 = HP.GetPosRel(RF);
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+	  }
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
        }
-       
+
+       Mat3x3 R1(Eye3);
+       if (HP.IsKeyWord("orientation")) {
+	  DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+	  R1 = HP.GetRotRel(RF);
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+       } else if (HP.IsKeyWord("hinge")) {
+	  pedantic_cerr("Joint(" << uLabel << "): "
+		 "keyword \"hinge\" at line " << HP.GetLineData()
+		 << " is deprecated; use \"orientation\" instead" << std::endl);
+	  DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+	  R1 = HP.GetRotRel(RF);
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+       }
        
        /* nodo collegato 2 */
        StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
+       RF = ReferenceFrame(pNode2);
 	   
        /* Offset if displacement hinge */
        Vec3 f2(Zero3);
        if (CurrKeyWord == DEFORMABLEDISPHINGE || CurrKeyWord == DEFORMABLEDISPJOINT) {
+          if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+	       NO_OP;
+          } else {
+	       pedantic_cerr("Joint(" << uLabel 
+			       << "): missing keyword \"position\" at line "
+			       << HP.GetLineData() << std::endl);
+          }
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
 	  f2 = HP.GetPosRel(ReferenceFrame(pNode2));
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+	  }
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
        }	   
        
        Mat3x3 R2(Eye3);
-       if (HP.IsKeyWord("hinge")) {
-	  R2 = HP.GetRotRel(ReferenceFrame(pNode2));
+       if (HP.IsKeyWord("orientation")) {
+	  DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+	  R2 = HP.GetRotRel(RF);
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+       } else if (HP.IsKeyWord("hinge")) {
+	  pedantic_cerr("Joint(" << uLabel << "): "
+		 "keyword \"hinge\" at line " << HP.GetLineData()
+		 << " is deprecated; use \"orientation\" instead" << std::endl);
+	  DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+	  R2 = HP.GetRotRel(RF);
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
        }
-       
        
        /* Legame costitutivo */
        ConstLawType::Type CLType;
