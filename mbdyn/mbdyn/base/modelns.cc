@@ -34,6 +34,8 @@
 
 #include "modelns.h"
 #include "strnode.h"
+#include <matvecexp.h>
+#include <Rot.hh>
 
 typedef Real (*ModelFunc_0args_t)(DataManager *);
 typedef Real (*ModelFunc_1args_t)(DataManager *, Real);
@@ -141,6 +143,45 @@ distance(DataManager *pDM, Real n1, Real n2)
 }
 
 /*
+ * Computes the distance between two structural nodes
+ */
+template <IDX_t IDX>
+static Real
+anglerel(DataManager *pDM, Real n1, Real n2)
+{
+	unsigned uLabel1 = unsigned(n1);
+	unsigned uLabel2 = unsigned(n2);
+
+	StructNode *pNode1 = pDM->pFindStructNode(uLabel1);
+	if (pNode1 == 0) {
+		silent_cerr("angle" << IDX2str(IDX)
+				<< "(" << uLabel1 << "," << uLabel2 << "): "
+				"unable to find StructNode(" << uLabel1 << ")"
+				<< std::endl);
+		throw ErrGeneric();
+	}
+
+	StructNode *pNode2 = pDM->pFindStructNode(uLabel2);
+	if (pNode2 == 0) {
+		silent_cerr("angle" << IDX2str(IDX)
+				<< "(" << uLabel1 << "," << uLabel2 << "): "
+				"unable to find StructNode(" << uLabel2 << ")"
+				<< std::endl);
+		throw ErrGeneric();
+	}
+
+	Vec3 phi(RotManip::VecRot(pNode2->GetRCurr()*pNode1->GetRCurr().Transpose()));
+
+	switch (IDX) {
+	case NORM:
+		return phi.Norm();
+
+	default:
+		return phi(IDX);
+	}
+}
+
+/*
  * Computes the velocity of a structural node
  */
 template <IDX_t IDX>
@@ -224,6 +265,11 @@ static MathFunc_t	ModelFunc[] = {
 	{ "xdistance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<IDX1>) },	0,	"" },
 	{ "ydistance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<IDX2>) },	0,	"" },
 	{ "zdistance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<IDX3>) },	0,	"" },
+
+	{ "anglerel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)anglerel<NORM>) },	0,	"" },
+	{ "xanglerel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)anglerel<IDX1>) },	0,	"" },
+	{ "yanglerel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)anglerel<IDX2>) },	0,	"" },
+	{ "zanglerel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)anglerel<IDX3>) },	0,	"" },
 
 	{ "velocity",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)velocity<NORM>) },	0,	"" },
 	{ "velocity2",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)velocity<SQUARE>) },	0,	"" },
