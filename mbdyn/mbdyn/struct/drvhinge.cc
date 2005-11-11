@@ -129,7 +129,7 @@ DriveHingeJoint::SetValue(DataManager *pDM,
 
 			if (pdh) {
 				pedantic_cout("DriveHingeJoint(" << uLabel << "): "
-					"creating drive from hint..." << std::endl);
+					"creating drive from hint[" << i << "]..." << std::endl);
 
 				TplDriveCaller<Vec3> *pDC = pdh->pCreateDrive(pDM);
 				if (pDC == 0) {

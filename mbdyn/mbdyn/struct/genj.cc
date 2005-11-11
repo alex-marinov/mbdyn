@@ -548,12 +548,12 @@ DistanceJoint::SetValue(DataManager *pDM,
 {
 	if (ph) {
 		for (unsigned i = 0; i < ph->size(); i++) {
-			pedantic_cout("DistanceJoint(" << uLabel << "): "
-				"creating drive from hint..." << std::endl);
-
 			DriveHint *pdh = dynamic_cast<DriveHint *>((*ph)[i]);
 
 			if (pdh) {
+				pedantic_cout("DistanceJoint(" << uLabel << "): "
+					"creating drive from hint[" << i << "]..." << std::endl);
+
 				DriveCaller *pDC = pdh->pCreateDrive(pDM);
 				if (pDC == 0) {
 					silent_cerr("DistanceJoint(" << uLabel << "): "
@@ -580,24 +580,21 @@ DistanceJoint::SetValue(DataManager *pDM,
 
 	/* Scrive la direzione della distanza. Se e' stata ottenuta con 
 	 * l'assemblaggio iniziale bene, se no' la calcola */
+	v = pNode2->GetXCurr() - pNode1->GetXCurr();
 	doublereal d = v.Dot();
 	if (d <= DBL_EPSILON) {
-		v = (pNode2->GetXCurr()-pNode1->GetXCurr());
-		d = v.Dot();
-		if (d <= DBL_EPSILON) {
-    			silent_cerr("DistanceJoint(" << uLabel << ") "
-				"linked to nodes " << pNode1->GetLabel()
-				<< " and " << pNode2->GetLabel() << ": "
-				"nodes are coincident;" << std::endl
-		  		<< "initial joint assembly is recommended"
-				<< std::endl);
-			throw ErrGeneric();
-		}
-		v /= sqrt(d);	     
+    		silent_cerr("DistanceJoint(" << uLabel << ") "
+			"linked to nodes " << pNode1->GetLabel()
+			<< " and " << pNode2->GetLabel() << ": "
+			"nodes are coincident;" << std::endl
+	  		<< "initial joint assembly is recommended"
+			<< std::endl);
+		throw ErrGeneric();
 	}
+	v /= sqrt(d);	     
 
 	/* Scrittura sul vettore soluzione */
-	X.Put(iGetFirstIndex()+1, v);	 
+	X.Put(iGetFirstIndex() + 1, v);	 
 }
 
 
@@ -1247,22 +1244,17 @@ DistanceJointWithOffset::SetValue(DataManager *pDM,
 		throw ErrGeneric();
 	}
 
+	v = pNode2->GetXCurr() + pNode2->GetRCurr()*f2 - pNode1->GetXCurr() - pNode1->GetRCurr()*f1;
 	doublereal d = v.Dot();
 	if (d <= DBL_EPSILON) {
-		v = pNode2->GetXCurr() + pNode2->GetRCurr()*f2
-			- pNode1->GetXCurr() - pNode1->GetRCurr()*f1;
-		d = v.Dot();
-
-		if (d <= DBL_EPSILON) {
-			silent_cerr("DistanceJoint(" << GetLabel() << ") "
-				"linked to nodes " << pNode1->GetLabel()
-				<< " and " << pNode2->GetLabel() << ": "
-				"nodes are coincident;" << std::endl
-				<< "this is no longer supported" << std::endl);
-			throw ErrGeneric();
-		}
-		v /= sqrt(d);
+		silent_cerr("DistanceJoint(" << GetLabel() << ") "
+			"linked to nodes " << pNode1->GetLabel()
+			<< " and " << pNode2->GetLabel() << ": "
+			"nodes are coincident;" << std::endl
+			<< "this is no longer supported" << std::endl);
+		throw ErrGeneric();
 	}
+	v /= sqrt(d);
 
 	/* Scrittura sul vettore soluzione */
 	X.Put(iGetFirstIndex() + 1, v);	 
