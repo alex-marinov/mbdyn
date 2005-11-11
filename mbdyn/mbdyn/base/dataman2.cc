@@ -593,8 +593,7 @@ DataManager::InitialJointAssembly(void)
 	VectorHandler* pSolHdl = pSM->pSolHdl();
 
 	/* Ciclo di assemblaggio */
-	integer iNumIter = 0;
-	while (++iNumIter) {
+	for (integer iNumIter = 0; ; iNumIter++) {
 		/* Assemblo il residuo */
 		pResHdl->Reset();
 
@@ -652,7 +651,7 @@ DataManager::InitialJointAssembly(void)
 #endif /* DEBUG */
 				outputRes()) {
 			/* Output del residuo */
-			silent_cout("Residual (" << iNumIter << "):" << std::endl);
+			silent_cout("Residual(" << iNumIter << "):" << std::endl);
 			for (int iTmpCnt = 1; iTmpCnt <= iInitialNumDofs; iTmpCnt++) {
 				silent_cout("Eq  " << std::setw(8) << iTmpCnt << ": "
 					<< pResHdl->dGetCoef(iTmpCnt) << std::endl);
@@ -673,9 +672,9 @@ DataManager::InitialJointAssembly(void)
 				DEBUG_LEVEL_MATCH(MYDEBUG_ASSEMBLY) ||
 #endif /* DEBUG */
 				outputIters()) {
-			silent_cout("Iteration: " << iNumIter
-				<< ", Test: " << dTest
-				<< " (Tol = " << dInitialAssemblyTol << ")"
+			silent_cout("Iteration(" << iNumIter << "), "
+				"Test=" << dTest
+				<< " (Tol=" << dInitialAssemblyTol << ")"
 				<< std::endl);
 		}
 

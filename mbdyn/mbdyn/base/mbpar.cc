@@ -176,13 +176,35 @@ MBDynParser::Reference_int(void)
 	
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reference frame " << uLabel << std::endl);
 	
+	if (!IsKeyWord("position")) {
+		pedantic_cerr("ReferenceFrame(" << uLabel
+			<< "): missing keyword \"position\" at line "
+			<< GetLineData() << std::endl);
+	}
 	Vec3 x(GetPosAbs(AbsRefFrame));
+	if (!IsKeyWord("orientation")) {
+		pedantic_cerr("ReferenceFrame(" << uLabel
+			<< "): missing keyword \"orientation\" at line "
+			<< GetLineData() << std::endl);
+	}
 	Mat3x3 R(GetRotAbs(AbsRefFrame));
 	Vec3 v(0.);
 	Vec3 w(0.);
 	if (IsArg()) {
+		if (!IsKeyWord("velocity")) {
+			pedantic_cerr("ReferenceFrame(" << uLabel
+				<< "): missing keyword \"velocity\" at line "
+				<< GetLineData() << std::endl);
+		}
 		v = GetVelAbs(AbsRefFrame, x);
-		w = GetOmeAbs(AbsRefFrame);
+		if (IsArg()) {
+			if (!IsKeyWord("angular" "velocity")) {
+				pedantic_cerr("ReferenceFrame(" << uLabel
+					<< "): missing keyword \"angular velocity\" at line "
+					<< GetLineData() << std::endl);
+			}
+			w = GetOmeAbs(AbsRefFrame);
+		}
 	}
 	
 	DEBUGLCOUT(MYDEBUG_INPUT, std::endl

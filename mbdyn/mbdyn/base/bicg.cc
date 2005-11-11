@@ -152,7 +152,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 		}
 		
       		if (outputRes()) {
-	 		silent_cout("Residual (" << iIterCnt << "):"
+	 		silent_cout("Residual(" << iIterCnt << "):"
 					<< std::endl);
 	 		for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
 	    			silent_cout("Eq  " << std::setw(8)
@@ -172,8 +172,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 #ifdef USE_MPI
 			if (!bParallel || MBDynComm.Get_rank() == 0) {
 #endif /* USE_MPI */
-				silent_cout("\tIteration " << iIterCnt
-					<< " " << dErr);
+				silent_cout("\tIteration(" << iIterCnt << ") " << dErr);
 				if (bBuildMat && dErr >= Tol) {
 					silent_cout(" J");
 				}
@@ -191,8 +190,8 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 		}
 		if (iIterCnt > iMaxIter) {
 			if (outputBailout()) {
-	 			silent_cout("Residual (" << iIterCnt 
-					<< "):" << std::endl);
+	 			silent_cout("Residual(" << iIterCnt << "):"
+					<< std::endl);
 	 			for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
 	    				silent_cout("Eq  " << std::setw(8)
 						<< iTmpCnt << ": " 
