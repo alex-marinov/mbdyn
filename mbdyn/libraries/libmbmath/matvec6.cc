@@ -163,7 +163,7 @@ Write(std::ostream& out, const Mat6x6& m, const char* sFill,
 
 Vec6 MultRV(const Vec6& v, const Mat3x3& R)
 {
-   return Vec6(R*v.GetVec1(),R*v.GetVec2());
+   return Vec6(R*v.GetVec1(), R*v.GetVec2());
 }
 
 

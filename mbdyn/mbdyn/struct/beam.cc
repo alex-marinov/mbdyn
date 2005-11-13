@@ -98,12 +98,12 @@ fFirstRes(1)
     pNode[NODE2] = pN2;
     pNode[NODE3] = pN3;
     
-    (Vec3&)f[NODE1] = F1;
-    (Vec3&)f[NODE2] = F2;
-    (Vec3&)f[NODE3] = F3;
-    (Mat3x3&)RNode[NODE1] = R1;
-    (Mat3x3&)RNode[NODE2] = R2;
-    (Mat3x3&)RNode[NODE3] = R3;
+    f[NODE1] = F1;
+    f[NODE2] = F2;
+    f[NODE3] = F3;
+    RNode[NODE1] = R1;
+    RNode[NODE2] = R2;
+    RNode[NODE3] = R3;
     RRef[S_I] = R[S_I] = (Mat3x3&)r_I;
     RRef[SII] = R[SII] = (Mat3x3&)rII;
   
@@ -677,8 +677,8 @@ void Beam::AssStiffnessVec(SubVectorHandler& WorkVec,
 	 Mat3x3 RTmp(R[iSez].Transpose());
 	 
 	 /* Calcola le deformazioni nel sistema locale nei punti di valutazione */
-	 DefLoc[iSez] = Vec6(RTmp*L[iSez]-L0[iSez],
-			     RTmp*(Mat3x3(MatG, g[iSez])*gGrad[iSez])+DefLocRef[iSez].GetVec2());
+	 DefLoc[iSez] = Vec6(RTmp*L[iSez] - L0[iSez],
+			     RTmp*(Mat3x3(MatG, g[iSez])*gGrad[iSez]) + DefLocRef[iSez].GetVec2());
 	 
 	 /* Calcola le azioni interne */
 	 pD[iSez]->Update(DefLoc[iSez]);
@@ -869,17 +869,17 @@ void Beam::SetValue(DataManager *pDM,
 {
    /* Aggiorna le grandezze della trave nei punti di valutazione */
    for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {
-      (Mat3x3&)RRef[iSez] = R[iSez];
-      (Vec3&)LRef[iSez] = L[iSez];
-      (Vec6&)DefLocRef[iSez] = DefLoc[iSez];
-      (Vec6&)AzLocRef[iSez] = AzLoc[iSez];
-      (Vec6&)AzRef[iSez] = Az[iSez];
+      RRef[iSez] = R[iSez];
+      LRef[iSez] = L[iSez];
+      DefLocRef[iSez] = DefLoc[iSez];
+      AzLocRef[iSez] = AzLoc[iSez];
+      AzRef[iSez] = Az[iSez];
       
       /* Aggiorna il legame costitutivo di riferimento
        * (la deformazione e' gia' stata aggiornata dall'ultimo residuo) */
-      (Mat6x6&)DRef[iSez] = MultRMRt(pD[iSez]->GetFDE(), RRef[iSez]);      
+      DRef[iSez] = MultRMRt(pD[iSez]->GetFDE(), RRef[iSez]);      
    }
-   (flag&)fFirstRes = flag(1);
+   fFirstRes = flag(1);
 }
               
 
@@ -925,8 +925,8 @@ void Beam::AfterPredict(VectorHandler& /* X */ ,
       
       /* Calcola le deformazioni nel sistema locale nei punti di valutazione */
       DefLoc[iSez] = DefLocRef[iSez]
-	= Vec6(RTmp*L[iSez]-L0[iSez],
-	       RTmp*(Mat3x3(MatG, g[iSez])*gGrad[iSez])+DefLoc[iSez].GetVec2());
+	= Vec6(RTmp*L[iSez] - L0[iSez],
+	       RTmp*(Mat3x3(MatG, g[iSez])*gGrad[iSez]) + DefLoc[iSez].GetVec2());
       
       /* Calcola le azioni interne */
       pD[iSez]->Update(DefLoc[iSez]);
@@ -1553,14 +1553,14 @@ void ViscoElasticBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
 	 Mat3x3 RTmp(R[iSez].Transpose());
 	 
 	 /* Calcola le deformazioni nel sistema locale nei punti di valutazione */
-	 DefLoc[iSez] = Vec6(RTmp*L[iSez]-L0[iSez],
-			     RTmp*(Mat3x3(MatG, g[iSez])*gGrad[iSez])+DefLocRef[iSez].GetVec2());
+	 DefLoc[iSez] = Vec6(RTmp*L[iSez] - L0[iSez],
+			     RTmp*(Mat3x3(MatG, g[iSez])*gGrad[iSez]) + DefLocRef[iSez].GetVec2());
 
 	 /* Calcola le velocita' di deformazione nel sistema locale nei punti di valutazione */
-	 DefPrimeLoc[iSez] = Vec6(RTmp*(LPrime[iSez]+L[iSez].Cross(Omega[iSez])),
+	 DefPrimeLoc[iSez] = Vec6(RTmp*(LPrime[iSez] + L[iSez].Cross(Omega[iSez])),
 				  RTmp*(Mat3x3(MatG, g[iSez])*gPrimeGrad[iSez]
-					+(Mat3x3(MatG, g[iSez])*gGrad[iSez]).Cross(Omega[iSez]))
-				  +DefPrimeLocRef[iSez].GetVec2());
+					+ (Mat3x3(MatG, g[iSez])*gGrad[iSez]).Cross(Omega[iSez]))
+				  + DefPrimeLocRef[iSez].GetVec2());
 	 
 	 /* Calcola le azioni interne */
 	 pD[iSez]->Update(DefLoc[iSez], DefPrimeLoc[iSez]);
@@ -1575,15 +1575,15 @@ void ViscoElasticBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
    }
    
    WorkVec.Add(1, Az[S_I].GetVec1());
-   WorkVec.Add(4, (p[S_I]-xNod[NODE1]).Cross(Az[S_I].GetVec1())
-	          +Az[S_I].GetVec2());
-   WorkVec.Add(7, Az[SII].GetVec1()-Az[S_I].GetVec1());
-   WorkVec.Add(10, Az[SII].GetVec2()-Az[S_I].GetVec2()
-	           +(p[SII]-xNod[NODE2]).Cross(Az[SII].GetVec1())
-	           -(p[S_I]-xNod[NODE2]).Cross(Az[S_I].GetVec1()));
+   WorkVec.Add(4, (p[S_I] - xNod[NODE1]).Cross(Az[S_I].GetVec1())
+	          + Az[S_I].GetVec2());
+   WorkVec.Add(7, Az[SII].GetVec1() - Az[S_I].GetVec1());
+   WorkVec.Add(10, Az[SII].GetVec2() - Az[S_I].GetVec2()
+	           + (p[SII] - xNod[NODE2]).Cross(Az[SII].GetVec1())
+	           - (p[S_I] - xNod[NODE2]).Cross(Az[S_I].GetVec1()));
    WorkVec.Sub(13, Az[SII].GetVec1());
-   WorkVec.Add(16, Az[SII].GetVec1().Cross(p[SII]-xNod[NODE3])
-	           -Az[SII].GetVec2());   
+   WorkVec.Add(16, Az[SII].GetVec1().Cross(p[SII] - xNod[NODE3])
+	           - Az[SII].GetVec2());
 }
 
 
@@ -1624,9 +1624,9 @@ void ViscoElasticBeam::AfterPredict(VectorHandler& /* X */ ,
    for (unsigned int i = 0; i < NUMNODES; i++) {            
       gNod[i] = pNode[i]->GetgRef();
       Vec3 fTmp = pNode[i]->GetRRef()*f[i];
-      xTmp[i] = pNode[i]->GetXCurr()+fTmp;
+      xTmp[i] = pNode[i]->GetXCurr() + fTmp;
       gPrimeNod[i] = pNode[i]->GetgPRef();
-      xPrimeTmp[i] = pNode[i]->GetVCurr()+pNode[i]->GetWRef().Cross(fTmp);
+      xPrimeTmp[i] = pNode[i]->GetVCurr() + pNode[i]->GetWRef().Cross(fTmp);
    }      
       
    Mat3x3 RDelta[NUMSEZ];
@@ -1679,14 +1679,14 @@ void ViscoElasticBeam::AfterPredict(VectorHandler& /* X */ ,
       
       /* Calcola le deformazioni nel sistema locale nei punti di valutazione */
       DefLoc[iSez] = DefLocRef[iSez] 
-	= Vec6(RTmp*L[iSez]-L0[iSez],
-	       RTmp*(Mat3x3(MatG, g[iSez])*gGrad[iSez])+DefLoc[iSez].GetVec2());
+	= Vec6(RTmp*L[iSez] - L0[iSez],
+	       RTmp*(Mat3x3(MatG, g[iSez])*gGrad[iSez]) + DefLoc[iSez].GetVec2());
       
       /* Calcola le velocita' di deformazione nel sistema locale nei punti di valutazione */
       DefPrimeLoc[iSez] = DefPrimeLocRef[iSez] 
-	= Vec6(RTmp*(LPrime[iSez]+L[iSez].Cross(Omega[iSez])),
+	= Vec6(RTmp*(LPrime[iSez] + L[iSez].Cross(Omega[iSez])),
 	       RTmp*(Mat3x3(MatG, g[iSez])*gPrimeGrad[iSez]
-		     +(Mat3x3(MatG, g[iSez])*gGrad[iSez]).Cross(Omega[iSez])));
+		     + (Mat3x3(MatG, g[iSez])*gGrad[iSez]).Cross(Omega[iSez])));
       
       /* Calcola le azioni interne */
       pD[iSez]->Update(DefLoc[iSez], DefPrimeLoc[iSez]);
