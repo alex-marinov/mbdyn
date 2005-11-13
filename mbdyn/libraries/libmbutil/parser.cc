@@ -79,7 +79,7 @@ skip_again:;
 			return -1;
 
 		} else if (cIn == '*') {
-			for (; !In.eof(); cIn = In.get()) {
+			for (cIn = In.get(); !In.eof(); cIn = In.get()) {
 				if (cIn == '*') {
 end_of_comment:;
 					cIn = In.get();
@@ -876,7 +876,7 @@ HighParser::GetString(void)
 
 
 const char*
-HighParser::GetStringWithDelims(enum Delims Del)
+HighParser::GetStringWithDelims(enum Delims Del, bool escape)
 {
    const char sFuncName[] = "HighParser::GetStringWithDelims()";
 
@@ -930,18 +930,78 @@ HighParser::GetStringWithDelims(enum Delims Del)
 	 /* Attenzione! cosi' la legge tutta,
 	  * ma ne tiene solo iBufSize-1 caratteri */
 	 if (pIn->eof()) {
+	    /* FIXME: this should be an error ... */
 	    sTmp[0] = '\0';
 	    return s;
 	 } else if (sTmp < s + iDefaultBufSize - 1) {
 	    if (cIn == ESCAPE_CHAR) {
-#if 0
-	       /* FIXME: the escape char must be eaten 
-	        * NOTE: the only charthat is worth escaping 
-	        * is the right delimiter, I guess */
-	       sTmp[0] = cIn;
-	       ++sTmp;
-#endif
 	       cIn = pIn->get();
+	       if (cIn == '\n') {
+
+		  /*
+		   * eat the newline as well, so that
+
+			"first line\
+			second line"
+
+		   * actually results in "first linesecond line"
+		   */
+
+		  cIn = pIn->get();
+
+	       } else if (cIn == '\r') {
+		  cIn = pIn->get();
+		  if (cIn != '\n') {
+		     pIn->putback(cIn);
+		     goto escaped_generic;
+		  }
+		  cIn = pIn->get();
+
+	       } else if (cIn == ESCAPE_CHAR) {
+		   if (!escape) {
+	             sTmp[0] = ESCAPE_CHAR;
+	             ++sTmp;
+		   }
+
+	       } else {
+escaped_generic:;
+		  if (escape) {
+		     int i, c = 0;
+		     char hex[3];
+
+		     /*
+		      * allow non-printable chars in the form "\<hexpair>",
+		      * so that "\78" is equivalent to "x";
+		      * "\<non-hexpair>" is treated as an error.
+		      */
+
+		     hex[0] = cIn;
+		     hex[1] = pIn->get();
+		     hex[2] = '\0';
+
+		     for (i = 0; i < 2; i++) {
+		        int shift = 4*(1 - i), h = 0;
+
+		        if (hex[i] >= '0' && hex[i]  <= '9') {
+		           h = hex[i] - '0';
+		        } else if (hex[i] >= 'a' && hex[i] <= 'f') {
+			   h = hex[i] - 'a';
+		        } else if (hex[i] >= 'A' && hex[i] <= 'F') {
+			   h = hex[i] - 'A';
+		        } else {
+			   silent_cerr("invalid escape sequence \"\\" << hex << "\" at line " << GetLineData() << std::endl);
+			   throw ErrGeneric();
+		        }
+
+		        c += (h << shift);
+		     }
+		     cIn = c;
+
+		  } else {
+		     sTmp[0] = ESCAPE_CHAR;
+		     ++sTmp;
+		  }
+	       }
 	    }
 	    sTmp[0] = cIn;
 	    ++sTmp;

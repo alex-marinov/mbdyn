@@ -124,7 +124,13 @@ class KeyTable;
 class HighParser;
 
 
-const unsigned int iDefaultBufSize = 1024;
+const unsigned int iDefaultBufSize =
+#ifdef BUFSIZ
+	BUFSIZ
+#else /* ! BUFSIZ */
+	8192
+#endif /* ! BUFSIZ */
+;
 
 
 /* LowParser - begin */
@@ -307,7 +313,7 @@ public:
 	/* legge una stringa */
 	virtual const char* GetString(void);
 	/* stringa delimitata */
-	virtual const char* GetStringWithDelims(enum Delims Del = DEFAULTDELIM); 
+	virtual const char* GetStringWithDelims(enum Delims Del = DEFAULTDELIM, bool escape = true); 
 	/* vettore Vec3 */
 	virtual Vec3 GetVec3(void);
 	/* vettore Vec3 */
