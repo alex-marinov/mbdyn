@@ -2303,6 +2303,21 @@ The following data is available:
 \item \kw{"Mz"} constraint reaction moment about node 1 local direction 3
 \end{enumerate}
 
+\paragraph{Hints}
+When wrapped by a \kw{driven} element, it honors the following hints:
+\begin{itemize}
+\item \kw{hinge\{1\}} the relative orientation of the joint
+with respect to node 1 is reset;
+\item \kw{hinge\{2\}} the relative orientation of the joint
+with respect to node 2 is reset;
+\item \kw{offset\{1\}} the offset of the joint
+with respect to node 1 is reset;
+\item \kw{offset\{2\}} the offset of the joint
+with respect to node 2 is reset;
+\item unrecognized hints are passed through to the friction model,
+if any.
+\end{itemize}
+
 
 
 
@@ -2464,6 +2479,20 @@ They are accessed by prefixing the name of the data with the string
 \kw{"constitutiveLaw."}; see the specific constitutive law
 description of the available data in Section~\ref{sec:CONSTITUTIVE-LAWS}.
 
+\paragraph{Hints}
+When wrapped by a \kw{driven} element, it honors the following hints:
+\begin{itemize}
+\item \kw{hinge\{1\}} the orientation with respect to node 1
+of the reference used to compute the linear strain is reset;
+\item \kw{hinge\{2\}} the orientation with respect to node 2
+of the reference used to compute the linear strain is reset;
+\item \kw{offset\{1\}} the offset of the joint
+with respect to node 1 is reset;
+\item \kw{offset\{2\}} the offset of the joint
+with respect to node 2 is reset;
+\item unrecognized hints are passed through to the constitutive law.
+\end{itemize}
+
 
 
 
@@ -2503,6 +2532,16 @@ access to the private data provided by the constitutive law.
 They are accessed by prefixing the name of the data with the string
 \kw{"constitutiveLaw."}; see the specific constitutive law
 description of the available data in Section~\ref{sec:CONSTITUTIVE-LAWS}.
+
+\paragraph{Hints}
+When wrapped by a \kw{driven} element, it honors the following hints:
+\begin{itemize}
+\item \kw{hinge\{1\}} the orientation with respect to node 1
+of the reference used to compute the angular strain is reset;
+\item \kw{hinge\{2\}} the orientation with respect to node 2
+of the reference used to compute the angular strain is reset;
+\item unrecognized hints are passed through to the constitutive law.
+\end{itemize}
 
 
 
@@ -2602,6 +2641,12 @@ The following data is available:
 \item \kw{"d"} enforced distance
 \end{enumerate}
 
+\paragraph{Hints}
+When wrapped by a \kw{driven} element, it honors the following hints:
+\begin{itemize}
+\item unrecognized hints are passed through to the distance drive.
+\end{itemize}
+
 
 
 \subsection{Distance with offset}
@@ -2634,6 +2679,16 @@ The following data is available:
 \item \kw{"ry"} imposed rotation about node 1 hinge axis 2
 \item \kw{"rz"} imposed rotation about node 1 hinge axis 3
 \end{enumerate}
+
+\paragraph{Hints}
+When wrapped by a \kw{driven} element, it honors the following hints:
+\begin{itemize}
+\item \kw{hinge\{1\}} the orientation with respect to node 1
+of the reference in which the enforced orientation is expressed is reset;
+\item \kw{hinge\{2\}} the orientation with respect to node 2
+of the reference in which the enforced orientation is expressed is reset;
+\item unrecognized hints are passed through to the \kw{Vec3} drive.
+\end{itemize}
 
 \subsection{Gimbal rotation}
 A constant velocity joint without position constraints;
@@ -3031,6 +3086,15 @@ the joint initial orientation.
         [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,    
 \end{verbatim}
 
+\paragraph{Hints}
+When wrapped by a \kw{driven} element, it honors the following hints:
+\begin{itemize}
+\item \kw{hinge\{1\}} the relative orientation of the joint
+with respect to node 1 is reset;
+\item \kw{hinge\{2\}} the relative orientation of the joint
+with respect to node 2 is reset;
+\end{itemize}
+
 \subsection{Revolute hinge}
 \begin{verbatim}
     <joint_type> ::= revolute hinge
@@ -3064,6 +3128,21 @@ The following data is available:
 \item \kw{"Mz"} constraint reaction moment about node 1 local direction 3
 \end{enumerate}
 
+\paragraph{Hints}
+When wrapped by a \kw{driven} element, it honors the following hints:
+\begin{itemize}
+\item \kw{hinge\{1\}} the relative orientation of the joint
+with respect to node 1 is reset;
+\item \kw{hinge\{2\}} the relative orientation of the joint
+with respect to node 2 is reset;
+\item \kw{offset\{1\}} the offset of the joint
+with respect to node 1 is reset;
+\item \kw{offset\{2\}} the offset of the joint
+with respect to node 2 is reset;
+\item unrecognized hints are passed through to the friction model,
+if any.
+\end{itemize}
+
 
 
 
@@ -3094,6 +3173,19 @@ The following data is available:
 \item \kw{"My"} constraint reaction moment about node 1 local direction 2
 \item \kw{"Mz"} constraint reaction moment about node 1 local direction 3
 \end{enumerate}
+
+\paragraph{Hints}
+When wrapped by a \kw{driven} element, it honors the following hints:
+\begin{itemize}
+\item \kw{hinge\{1\}} the relative orientation of the joint
+with respect to the node is reset;
+\item \kw{hinge\{0\}} the relative orientation of the joint
+with respect to the absolute frame is reset;
+\item \kw{offset\{1\}} the offset of the joint
+with respect to the node is reset;
+\item \kw{offset\{0\}} the offset of the joint
+with respect to the absolute frame is reset;
+\end{itemize}
 
 
 
@@ -3128,6 +3220,15 @@ The following data is available:
 \item \kw{"My"} constraint reaction moment about node 1 local direction 2
 \item \kw{"Mz"} constraint reaction moment about node 1 local direction 3
 \end{enumerate}
+
+\paragraph{Hints}
+When wrapped by a \kw{driven} element, it honors the following hints:
+\begin{itemize}
+\item \kw{hinge\{1\}} the relative orientation of the joint
+with respect to node 1 is reset;
+\item \kw{hinge\{2\}} the relative orientation of the joint
+with respect to node 2 is reset;
+\end{itemize}
 
 
 
@@ -3208,6 +3309,15 @@ The syntax is:
 \end{verbatim}
 Note: the orientation matrix is used for output purposes only. 
 A default identity matrix is assumed.
+
+\paragraph{Hints}
+When wrapped by a \kw{driven} element, it honors the following hints:
+\begin{itemize}
+\item \kw{offset\{1\}} the offset of the joint
+with respect to node 1 is reset;
+\item \kw{offset\{2\}} the offset of the joint
+with respect to node 2 is reset;
+\end{itemize}
 
 \subsection{Spherical pin}
 \begin{verbatim}
@@ -3731,7 +3841,7 @@ during model input.
 
 
 
-\subsection{Driven Element}
+\subsection{Driven Element}\label{sec:EL:BASE:DRIVEN}
 The \kw{driven} type is not an element by itself. It is a wrapper that
 masks another element and switches it on and off depending on the (boolean)
 value of a drive. It can be used to emulate a variable topology model, where 

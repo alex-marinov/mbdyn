@@ -36,7 +36,40 @@ in very different contexts.
 
 
 
-\section{Numeric Values}
+\section{Types}
+
+
+
+\subsection{Keywords}
+
+
+
+
+\subsection{Strings}
+Strings are not so important in MBDyn; however, they may be used
+in quite a few significant places, like when parsing file names,
+so a few details on their syntax are provided.
+Strings are typically delimited by double quotes (").
+When a string is requested, the parser looks for the opening 
+double quotes and eats up all the white space before it.
+Then all characters are read as they are until the closing 
+double quotes are encountered.
+The escape character is the backslash ($\backslash$); it is used:
+\begin{itemize}
+	\item to escape the escape character itself ($\backslash$);
+	\item to break a string on multiple lines by placing it
+		before the newline character (\texttt{$\backslash$n}); in this case,
+		the escape character and the newline are eaten up;
+	\item to allow the use of non-printing characters,
+		represented in the form \texttt{$\backslash$<hexpair>},
+		so that the hexadecimal representation of the
+		non-printing char is converted into its integer
+		equivalent in the 0--255 range.
+\end{itemize}
+
+
+
+\subsection{Numeric Values}
 Every time a numeric value is expected, the result of evaluating 
 a mathematical expression can be used, including variable declaration 
 and assignment (variable names and values are kept in memory throughout
@@ -1334,6 +1367,36 @@ is created and at every call their value is added to give
 the final value of the array drive.
 
 
+\subsection{Hints}\label{sec:GENERAL:DRIVE:HINT}
+In some cases, during the analysis, different entities can be reinitialized
+as a consequence of some event, typically triggered by the waking up 
+of a so-called \kw{driven} element (See Section~\ref{sec:EL:BASE:DRIVEN}).
+The \kw{drive caller} is re-parsed when the entity that owns it is sent
+a \kw{hint} of the form
+\begin{verbatim}
+    "drive{ <drive_caller> }"
+\end{verbatim}
+is used, where \kw{<drive\_caller} is an arbitrary drive caller specification,
+enclosed in double quotes.
+Typically, the use of a \kw{hint} is necessary when the specification of the
+drive caller parameters depends on the configuration of the system when the
+entity that uses it is waken up.
+For example, a \kw{distance joint}, an element that enforces the distance
+between two nodes, may be waken up by some event.
+In the case detailed below, the initial value of the \kw{cosine} drive caller
+is computed by extracting the current distance between the nodes at the time
+the element is waken up:
+\begin{verbatim}
+    driven: 1, string, "Time > 10.",
+        hint, "drive{cosine, 10., 2., .25, half, model::distance(10, 20)}",
+    joint: 1, distance,
+        10,
+        20,
+        const, 1;
+\end{verbatim}
+
+
+
 \subsection{Template drive}\label{sec:TPL-DRIVE}
 A particular \kw{DriveCaller} is the template drive caller. This is made
 of a constant entity that multiplies a conventional 
@@ -1363,6 +1426,18 @@ At least 1 drive caller is expected.
 If \kw{num\_template\_drive\_callers} is exactly 1, only a single
 template drive caller is actually constructed, thus avoiding the overhead 
 related to the handling of the drive caller array.    
+
+\noindent
+Also the \kw{template drive} can be re-parsed; in this case, the syntax
+of the \kw{hint} is:
+\begin{verbatim}
+    "drive<n>{ <entity> , <drive_caller> }"
+\end{verbatim}
+For example, a \kw{Vec3} drive hint is:
+\begin{verbatim}
+    "drive3{ 1., 0., 0. , sine, 0., 2*pi, 1., forever, 0.}"
+\end{verbatim}
+
 
 
 \input{scalarfunctions.tex}
