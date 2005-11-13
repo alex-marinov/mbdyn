@@ -3347,12 +3347,7 @@ Solver::ReadData(MBDynParser& HP)
 			} else if (HP.IsKeyWord("disable")) {
 #ifdef USE_MULTITHREAD
 				nThreads = 1;
-#else /* ! USE_MULTITHREAD */
-				silent_cerr("configure with "
-						"--enable-multithread "
-						"for multithreaded assembly"
-						<< std::endl);
-#endif /* ! USE_MULTITHREAD */
+#endif /* USE_MULTITHREAD */
 
 			} else {
 				bool bAssembly = false;
