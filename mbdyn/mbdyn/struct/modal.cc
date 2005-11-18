@@ -2607,12 +2607,24 @@ ReadModal(DataManager* pDM,
 		unsigned int	NRejModes = 0;
 		char		str[BUFSIZ];
 
+		/* Note: to keep it readable, we use a base 1 array */
+		bool		bRecordGroup[12];
+		for (int i = 1; i < 12; i++) {
+			bRecordGroup[i] = false;
+		}
+
 		while (fdat && !fdat.eof()) {        /* parsing del file */
 			fdat.getline(str, sizeof(str));
 	
 			/* legge il primo blocco (HEADER) */
 			if (!strncmp("** RECORD GROUP 1,", str,
-						sizeof("** RECORD GROUP 1,") - 1)) {
+						sizeof("** RECORD GROUP 1,") - 1))
+			{
+				if (bRecordGroup[1]) {
+					silent_cerr("file=\"" << sFileFem << "\": \"RECORD GROUP 1\" already parsed" << std::endl);
+					throw ErrGeneric();
+				}
+
 		 		fdat.getline(str, sizeof(str));
 				fdat >> str;
 	
@@ -2684,7 +2696,13 @@ ReadModal(DataManager* pDM,
 
 			/* legge il secondo blocco (Id.nodi) */
 			} else if (!strncmp("** RECORD GROUP 2,", str,
-						sizeof("** RECORD GROUP 2,") - 1)) {
+						sizeof("** RECORD GROUP 2,") - 1))
+			{
+				if (bRecordGroup[2]) {
+					silent_cerr("file=\"" << sFileFem << "\": \"RECORD GROUP 2\" already parsed" << std::endl);
+					throw ErrGeneric();
+				}
+
 				for (iNode = 1; iNode <= NFemNodes; iNode++) {
 					fdat >> IdFemNodes[iNode-1];
 				}
@@ -2697,7 +2715,13 @@ ReadModal(DataManager* pDM,
 
 			/* deformate iniziali dei modi */
 			} else if (!strncmp("** RECORD GROUP 3,", str,
-						sizeof("** RECORD GROUP 3,") - 1)) {
+						sizeof("** RECORD GROUP 3,") - 1))
+			{
+				if (bRecordGroup[3]) {
+					silent_cerr("file=\"" << sFileFem << "\": \"RECORD GROUP 3\" already parsed" << std::endl);
+					throw ErrGeneric();
+				}
+
 				unsigned int iCnt = 1;
 
 				if (bActiveModes == NULL) {
@@ -2729,7 +2753,13 @@ ReadModal(DataManager* pDM,
 	
 			/* velocita' iniziali dei modi */
 			} else if (!strncmp("** RECORD GROUP 4,", str,
-						sizeof("** RECORD GROUP 4,") - 1)) {
+						sizeof("** RECORD GROUP 4,") - 1))
+			{
+				if (bRecordGroup[4]) {
+					silent_cerr("file=\"" << sFileFem << "\": \"RECORD GROUP 4\" already parsed" << std::endl);
+					throw ErrGeneric();
+				}
+
 				unsigned int iCnt = 1;
 	
 				if (bActiveModes == NULL) {
@@ -2761,7 +2791,13 @@ ReadModal(DataManager* pDM,
 	
 			/* Coordinate X dei nodi */
 			} else if (!strncmp("** RECORD GROUP 5,", str,
-						sizeof("** RECORD GROUP 5,") - 1)) {
+						sizeof("** RECORD GROUP 5,") - 1))
+			{
+				if (bRecordGroup[5]) {
+					silent_cerr("file=\"" << sFileFem << "\": \"RECORD GROUP 5\" already parsed" << std::endl);
+					throw ErrGeneric();
+				}
+
 				if (bWriteBIN) {
 					checkPoint = 5;
 					fbin.write(&checkPoint, sizeof(checkPoint));
@@ -2782,7 +2818,13 @@ ReadModal(DataManager* pDM,
 
 			/* Coordinate Y dei nodi*/
 			} else if (!strncmp("** RECORD GROUP 6,", str,
-						sizeof("** RECORD GROUP 6,") - 1)) {
+						sizeof("** RECORD GROUP 6,") - 1))
+			{
+				if (bRecordGroup[6]) {
+					silent_cerr("file=\"" << sFileFem << "\": \"RECORD GROUP 6\" already parsed" << std::endl);
+					throw ErrGeneric();
+				}
+
 				if (bWriteBIN) {
 					checkPoint = 6;
 					fbin.write(&checkPoint, sizeof(checkPoint));
@@ -2803,7 +2845,13 @@ ReadModal(DataManager* pDM,
 	
 			/* Coordinate Z dei nodi*/
 			} else if (!strncmp("** RECORD GROUP 7,", str,
-						sizeof("** RECORD GROUP 7,") - 1)) {
+						sizeof("** RECORD GROUP 7,") - 1))
+			{
+				if (bRecordGroup[7]) {
+					silent_cerr("file=\"" << sFileFem << "\": \"RECORD GROUP 7\" already parsed" << std::endl);
+					throw ErrGeneric();
+				}
+
 				if (bWriteBIN) {
 					checkPoint = 7;
 					fbin.write(&checkPoint, sizeof(checkPoint));
@@ -2824,7 +2872,13 @@ ReadModal(DataManager* pDM,
 	
 			/* Forme modali */
 			} else if (!strncmp("** RECORD GROUP 8,", str,
-						sizeof("** RECORD GROUP 8,") - 1)) {
+						sizeof("** RECORD GROUP 8,") - 1))
+			{
+				if (bRecordGroup[8]) {
+					silent_cerr("file=\"" << sFileFem << "\": \"RECORD GROUP 8\" already parsed" << std::endl);
+					throw ErrGeneric();
+				}
+
 				if (bWriteBIN) {
 					checkPoint = 8;
 					fbin.write(&checkPoint, sizeof(checkPoint));
@@ -2879,7 +2933,13 @@ ReadModal(DataManager* pDM,
 
 			/* Matrice di massa  modale */
 			} else if (!strncmp("** RECORD GROUP 9,", str,
-						sizeof("** RECORD GROUP 9,") - 1)) {
+						sizeof("** RECORD GROUP 9,") - 1))
+			{
+				if (bRecordGroup[9]) {
+					silent_cerr("file=\"" << sFileFem << "\": \"RECORD GROUP 9\" already parsed" << std::endl);
+					throw ErrGeneric();
+				}
+
 				if (bActiveModes == NULL) {
 					silent_cerr("Modal(" << uLabel << "): "
 						"input file \"" << sFileFem << "\""
@@ -2918,7 +2978,13 @@ ReadModal(DataManager* pDM,
 	
 			/* Matrice di rigidezza  modale */
 			} else if (!strncmp("** RECORD GROUP 10,", str,
-						sizeof("** RECORD GROUP 10,") - 1)) {
+						sizeof("** RECORD GROUP 10,") - 1))
+			{
+				if (bRecordGroup[10]) {
+					silent_cerr("file=\"" << sFileFem << "\": \"RECORD GROUP 10\" already parsed" << std::endl);
+					throw ErrGeneric();
+				}
+
 				if (bActiveModes == NULL) {
 					silent_cerr("Modal(" << uLabel << "): "
 						"input file \"" << sFileFem << "\""
@@ -2957,7 +3023,13 @@ ReadModal(DataManager* pDM,
 
 			/* Lumped Masses */
 			} else if (!strncmp("** RECORD GROUP 11,", str,
-						sizeof("** RECORD GROUP 11,") - 1)) {
+						sizeof("** RECORD GROUP 11,") - 1))
+			{
+				if (bRecordGroup[11]) {
+					silent_cerr("file=\"" << sFileFem << "\": \"RECORD GROUP 11\" already parsed" << std::endl);
+					throw ErrGeneric();
+				}
+
 				if (bWriteBIN) {
 					checkPoint = 11;
 					fbin.write(&checkPoint, sizeof(checkPoint));

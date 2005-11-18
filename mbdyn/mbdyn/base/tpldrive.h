@@ -32,7 +32,6 @@
 #define TPLDRIVE_H
 
 #include "drive.h"
-//#include "mbpar.h"
 
 
 /* TplDriveCaller - begin */

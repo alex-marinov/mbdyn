@@ -6,6 +6,9 @@ Copyright (C) 1996-2005
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Fri Oct 21 16:16:58 CEST 2005 Michele Attolico <attolico@aero.polimi.it>
+ - more improvements to initialization and restart
+
 *** Fri Oct 14 15:48:11 CEST 2005 Pierangelo Masarati <masarati@aero.polimi.it>
  - added "hint" support for drives
 
