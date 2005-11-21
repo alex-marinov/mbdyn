@@ -13,10 +13,17 @@ MBDyn 1.X-Devel
 		  (by Marco Morandini)
 		- added TAUCS linear solver (experimental) (by Marco Morandini)
 		- added "ad hoc" (Radau IIA) third-order integrator
+	Backward compatibility issues:
+	Known issues:
+	Bug fixes:
+
+MBDyn 1.2.5
+	Enhancements:
 		- added trigger drive to switch on rotor trim element
 		- added "range" to node/element output specifications
-		- added velocity and relative velocity to "model" namespace
+		- added new functions to "model" namespace
 		- added "hint" infrastructure to enhance driven element
+		  (sponsored by Hutchinson CRC)
 		- added "guess" for orientation matrix input
 		- added '\<hexpair>' to read non-print chars in strings
 	Backward compatibility issues:
