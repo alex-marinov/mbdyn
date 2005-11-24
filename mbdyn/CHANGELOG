@@ -37,6 +37,7 @@ MBDyn 1.2.5
 		- fixed logic of colamd Naive solution manager
 		- fixed aerodynamic coefficients normalization in rotor trim
 		- fixed C-style comment parsing (/**/ was failing)
+		- fixed manual *.tex *.eps files
 
 MBDyn 1.2.4
 	Enhancements:

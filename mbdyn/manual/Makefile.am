@@ -6,14 +6,23 @@ man_MANS = mbdyn.1
 
 EXTRA_DIST = \
 mbdyn.1.in \
+controldata.tex \
 data.tex \
+drivers.tex \
 elements.tex \
 general.tex \
 input.tex \
-parallel.txt \
+integrators.tex \
+install.tex \
+nodes.tex \
+overview.tex \
 scalarfilter.tex \
+scalarfunctions.tex \
 stdmacro.tex \
+mybib.bib \
 airfoil.eps \
-hydr-in.txt
+beamsect.eps \
+hydr-in.txt \
+parallel.txt 
 
 include $(top_srcdir)/build/bot.mk
