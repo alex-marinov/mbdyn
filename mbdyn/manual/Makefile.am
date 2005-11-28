@@ -14,6 +14,7 @@ general.tex \
 input.tex \
 integrators.tex \
 install.tex \
+modal.tex \
 nodes.tex \
 overview.tex \
 scalarfilter.tex \

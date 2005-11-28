@@ -1,0 +1,158 @@
+\chapter{Modal Element FEM File Format}
+\label{sec:APP:EL:STRUCT:JOINT:MODAL:FORMAT}
+
+This section describes the format of the FEM input to the \kw{modal}
+joint of MBDyn, as resulting from the \kw{femgen} utility.
+The usage of that utility has been already detailed 
+in Section~\ref{sec:EL:STRUCT:JOINT:MODAL}; in short, it processes
+binary output from NASTRAN, as defined by means of appropriate
+ALTER files provided with MBDyn sources, into a file that is suitable
+for direct input in MBDyn.
+Since it is essentially a plain ASCII file, it is straightforward
+to generate it from analogous results obtained with a different 
+FEM software, from experiments or manually generated from analytical
+or numerical models of any kind.
+
+The format is:
+{\small
+\begin{verbatim}
+<comments>
+** RECORD GROUP 1,<any comment; "HEADER">
+<comment>
+<REV> <NNODES> <NNORMAL> <NATTACHMENT> <NCONSTRAINT> <NREJECTED>
+<comments; NMODES = NNORMAL + NATTACHMENT + NCONSTRAINT - NREJECTED>
+** RECORD GROUP 2,<any comment; "FINITE ELEMENT NODE LIST">
+<FEMLABEL> [...<NNODES>]
+<comments; FEM label list: <NNODES> integers>
+** RECORD GROUP 3,<any comment; "INITIAL MODAL DISPLACEMENTS">
+<MODEDISP> [..<NMODES>]
+<comments; initial mode displacements: <NMODES> reals>
+** RECORD GROUP 4,<any comment; "INITIAL MODAL VELOCITIES">
+<MODEVEL> [..<NMODES>]
+<comments; initial mode velocities: <NMODES> reals>
+** RECORD GROUP 5,<any comment; "NODAL X COORDINATES">
+<FEMX> [...<NNODES>]
+<comments; FEM node X coordinates>
+** RECORD GROUP 6,<any comment; "NODAL Y COORDINATES">
+<FEMY> [...<NNODES>]
+<comments; FEM node Y coordinates>
+** RECORD GROUP 7,<any comment; "NODAL Z COORDINATES">
+<FEMZ> [...<NNODES>]
+<comments; FEM node Z coordinates>
+** RECORD GROUP 8,<any comment; "NON-ORTHOGONALIZED MODE SHAPES">
+<comment; NORMAL MODE SHAPE # 1>
+    <FEM1 X> <FEM1 Y> <FEM1 Z> <FEM1 RX> <FEM1 RY> <FEM1 RZ>
+    <... NNODES>
+<comment; NORMAL MODE SHAPE # 2>
+    <FEM1 X> <FEM1 Y> <FEM1 Z> <FEM1 RX> <FEM1 RY> <FEM1 RZ>
+    <... NNODES>
+<... NMODES>
+<comments; for each MODE, for each NODE: modal displacements/rotations>
+** RECORD GROUP 9,<any comment; "MODAL MASS MATRIX. COLUMN-MAJOR FORM">
+<M_1_1>      <...> <M_1_NMODES>
+<...>
+<M_NMODES_1> <...> <M_NMODES_NMODES>
+<comments; the modal mass matrix in column-major (symmetric?)>
+** RECORD GROUP 10,<any comment; "MODAL STIFFNESS MATRIX. COLUMN-MAJOR FORM">
+<K_1_1>      <...> <K_1_NMODES>
+<...>
+<K_NMODES_1> <...> <K_NMODES_NMODES>
+<comments; the modal stiffness matrix in column-major (symmetric?)>
+** RECORD GROUP 11,<any comment; "DIAGONAL OF LUMPED MASS MATRIX">
+<M_1_X> <M_1_Y> <M_1_Z> <M_1_RX> <M_1_RY> <M_1_RZ>
+<...>
+<M_NNODES_X> <...> <M_NNODES_RZ>
+<comments; the lumped diagonal mass matrix of the FEM model>
+\end{verbatim}
+}
+
+Although the format loosely requires that no more than 6 numerical values 
+appear on a single line, MBDyn is very forgiving about this and can parse
+the input regardless of the formatting within each block.
+
+An arbitrary number of comment lines may appera within blocks;
+the beginning of a block is marked
+\begin{verbatim}
+** RECORD GROUP <DD>
+\end{verbatim}
+where the number \kw{<DD>} indicates what block is being read.
+The size of each block, i.e.\ the number of values that are expected,
+is defined based on the header block, so MBDyn should be able to detect
+incomplete or mis-formatted files.
+
+As an example, a very simple, hand-made FEM model file is presented below.
+It models a FEM model made of three aligned nodes, where inertia 
+is only associated to the mid-node.
+As a consequence, the three mode shapes must be interpreted as static
+shapes, since the modal mass matrix is null.
+Note that each line is prefixed with a two-digit line number 
+that is not part of the iput file.
+Also, for readability, all comments are prefixed by \kw{**} 
+like the mandatory \kw{** RECORD GROUP} lines, although not required 
+by the format of the file.
+
+{\small
+\begin{verbatim}
+01  ** MBDyn MODAL DATA FILE
+02  ** NODE SET "ALL" 
+03    
+04    
+05  ** RECORD GROUP 1, HEADER
+06  **   REVISION,  NODE,  NORMAL, ATTACHMENT, CONSTRAINT, REJECTED MODES.
+07        REV0         3         3         0         0         0
+08  **
+09  ** RECORD GROUP 2, FINITE ELEMENT NODE LIST
+10       1001 1002 1003
+11  
+12  **
+13  ** RECORD GROUP 3, INITIAL MODAL DISPLACEMENTS
+14   0 0 0
+15  **
+16  ** RECORD GROUP 4, INITIAL MODALVELOCITIES
+17   0 0 0
+18  **
+19  ** RECORD GROUP 5, NODAL X COORDINATES
+20   0
+21   0
+22   0
+23  **
+24  ** RECORD GROUP 6, NODAL Y COORDINATES
+25  -2.
+26   0
+27   2.
+28  **
+29  ** RECORD GROUP 7, NODAL Z COORDINATES
+30   0
+31   0
+32   0
+33  **
+34  ** RECORD GROUP 8, MODE SHAPES
+35  **    NORMAL MODE SHAPE #  1
+36  0 0 1 0 0 0
+37  0 0 0 0 0 0
+38  0 0 1 0 0 0
+39  **    NORMAL MODE SHAPE #  2
+40  1 0 0 0 0 0
+41  0 0 0 0 0 0
+42  1 0 0 0 0 0
+43  **    NORMAL MODE SHAPE #  3
+44  0 1 0 0 0 0
+45  0 0 0 0 0 0
+46  0 -1 0 0 0 0
+47  **
+48  ** RECORD GROUP 9, MODAL MASS MATRIX
+49  0 0 0
+50  0 0 0
+51  0 0 0
+52  **
+53  ** RECORD GROUP 10, MODAL STIFFNESS MATRIX
+54  1 0   0
+55  0 1e2 0
+56  0 0   1e6
+57  **
+58  ** RECORD GROUP 11, DIAGONAL OF LUMPED MASS MATRIX
+59  0 0 0 0 0 0
+60  1 1 1 1 1 1
+61  0 0 0 0 0 0
+\end{verbatim}
+}
