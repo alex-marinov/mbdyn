@@ -2626,6 +2626,8 @@ ReadModal(DataManager* pDM,
 				}
 
 		 		fdat.getline(str, sizeof(str));
+
+				/* ignore REV by now */
 				fdat >> str;
 	
 				/* FEM nodes number */
@@ -3554,7 +3556,7 @@ ReadModal(DataManager* pDM,
 		pOffsetMBNodes->PutVec(iStrNode, d2);
 		pRotMBNodes->PutMat3x3(3*(iStrNode-1)+1, R2);
 
-		DEBUGCOUT("Multibody Node reference frame d2:" << std::endl
+		DEBUGCOUT("Multibody Node reference frame d2: " << std::endl
 				<< d2 << std::endl);
 
 		/* salva le label dei nodi vincolati nell'array IntNodes;
