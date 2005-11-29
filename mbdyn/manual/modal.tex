@@ -19,8 +19,8 @@ The format is:
 <comments>
 ** RECORD GROUP 1,<any comment; "HEADER">
 <comment>
-<REV> <NNODES> <NNORMAL> <NATTACHMENT> <NCONSTRAINT> <NREJECTED>
-<comments; NMODES = NNORMAL + NATTACHMENT + NCONSTRAINT - NREJECTED>
+<REV> <NNODES> <NNORMAL> <NATTACHED> <NCONSTRAINT> <NREJECTED>
+<comments; NMODES = NNORMAL + NATTACHED + NCONSTRAINT - NREJECTED>
 ** RECORD GROUP 2,<any comment; "FINITE ELEMENT NODE LIST">
 <FEMLABEL> [...<NNODES>]
 <comments; FEM label list: <NNODES> integers>
@@ -66,11 +66,89 @@ The format is:
 \end{verbatim}
 }
 
+The blocks contain:
+\begin{itemize}
+\item \kw{RECORD GROUP 1}, a.k.a.\ the ``header'', contains a summary
+of the contents of the file:
+	\begin{itemize}
+	\item \kw{<REV>} is a string that indicates the revision number;
+	it is currently ignored;
+	\item \kw{<NNODES>} is the number of (exposed) FEM nodes 
+	in the FEM model;
+	\item \kw{<NNORMAL>} is the number of normal modes;
+	\item \kw{<NATTACHED>} is the number of ``attached'',
+	i.e.\ static, modes;
+	\item \kw{<NCONSTRAINT>} is the number of constraint modes;
+	\item \kw{<NREJECTED>} is the number of rejected modes.
+	\end{itemize}
+	Currently, the number of available modes is computed as
+	\begin{displaymath}
+		\kw{NMODES} = \kw{NNORMAL} + \kw{NATTACHED}
+			+ \kw{NCONSTRAINT} - \kw{NREJECTED}
+	\end{displaymath}
+
+\item \kw{RECORD GROUP 2} contains a listing of the \kw{<NNODES>} lables
+of the (exposed) FEM nodes.
+
+\item \kw{RECORD GROUP 3} contains the initial values of the \kw{<NMODES>}
+modal unknowns;
+
+\item \kw{RECORD GROUP 4} contains the initial values of the \kw{<NMODES>}
+modal unknowns derivatives;
+
+\item \kw{RECORD GROUP 5} contains the $X$ component of the position
+of the \kw{<NNODES>} FEM nodes in the reference frame attached 
+to the \kw{modal} node (or to the \kw{origin node}, if given).
+
+\item \kw{RECORD GROUP 6} contains the $Y$ component of the data above;
+
+\item \kw{RECORD GROUP 7} contains the $Z$ component of the data above;
+
+\item \kw{RECORD GROUP 8} contains the non-orthogonalized components 
+of the \kw{<NMODES>} modes; for each mode, the three components 
+$X$, $Y$, $Z$ of the modal displacement, and the three components
+$RX$, $RY$, $RZ$ of the linearized modal rotations are listed;
+each mode shape is separated by a comment line, which typically is
+\begin{verbatim}
+**    NORMAL MODE SHAPE #  <N>
+\end{verbatim}
+for readability;
+
+\item \kw{RECORD GROUP 9} contains the modal mass matrix,
+i.e.\ a square, \kw{NMODES} times \kw{NMODES} matrix that contains
+the reduced mass $\sqbr{m}$ resulting from the multiplication
+\begin{equation}
+	\label{eq:modal-mass-constraint}
+	\sqbr{m} = \cubr{X}^T \sqbr{M} \cubr{X}
+\end{equation}
+When only normal modes are used, it is diagonal.
+It can be semi-definite positive, or even zero, if a partially 
+or entirely static model is considered.
+
+\item \kw{RECORD GROUP 10} contains the modal stiffness matrix,
+i.e.\ a square, \kw{NMODES} times \kw{NMODES} matrix that contains
+the reduced stiffness $\sqbr{k}$ resulting from the multiplication
+\begin{displaymath}
+	\sqbr{k} = \cubr{X}^T \sqbr{K} \cubr{X}
+\end{displaymath}
+When only normal modes are used, it is diagonal; in that case,
+the diagonal contains the modal mass times the square 
+of the eigenvalues, i.e.\ $k_{ii} = \omega_i^2 m_{ii}$.
+It should be definite positive.
+
+\item \kw{RECORD GROUP 11} contains the lumped inertia matrix
+associated to the \kw{<NNODES>} (exposed) FEM nodes;
+for each node, the $X$, $Y$, $Z$, $RX$, $RY$ and $RY$ inertia
+coefficients are listed.
+The resulting diagonal matrix must satisfy the constraint
+illustrated in Equation~\ref{eq:modal-mass-constraint}.
+\end{itemize}
+
 Although the format loosely requires that no more than 6 numerical values 
 appear on a single line, MBDyn is very forgiving about this and can parse
 the input regardless of the formatting within each block.
 
-An arbitrary number of comment lines may appera within blocks;
+An arbitrary number of comment lines may appear within blocks;
 the beginning of a block is marked
 \begin{verbatim}
 ** RECORD GROUP <DD>
@@ -87,8 +165,8 @@ As a consequence, the three mode shapes must be interpreted as static
 shapes, since the modal mass matrix is null.
 Note that each line is prefixed with a two-digit line number 
 that is not part of the iput file.
-Also, for readability, all comments are prefixed by \kw{**} 
-like the mandatory \kw{** RECORD GROUP} lines, although not required 
+Also, for readability, all comments are prefixed by ``\kw{**}''
+like the mandatory ``\kw{** RECORD GROUP}'' lines, although not required 
 by the format of the file.
 
 {\small
