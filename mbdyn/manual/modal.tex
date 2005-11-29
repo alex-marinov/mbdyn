@@ -93,6 +93,16 @@ The format is:
 \end{verbatim}
 }
 
+An arbitrary number of comment lines may appear within blocks;
+the beginning of a block is marked
+\begin{verbatim}
+** RECORD GROUP <DD>
+\end{verbatim}
+where the number \kw{<DD>} indicates what block is being read.
+The size of each block, i.e.\ the number of values that are expected,
+is defined based on the header block, so MBDyn should be able to detect
+incomplete or mis-formatted files.
+
 The blocks contain:
 \begin{itemize}
 \item \kw{RECORD GROUP 1}, a.k.a.\ the ``header'', contains a summary
@@ -108,13 +118,22 @@ of the contents of the file:
 	\item \kw{<NCONSTRAINT>} is the number of constraint modes;
 	\item \kw{<NREJECTED>} is the number of rejected modes.
 	\end{itemize}
-	Currently, the number of available modes is computed as
-	\begin{displaymath}
-		\kw{NMODES} = \kw{NNORMAL} + \kw{NATTACHED}
-			+ \kw{NCONSTRAINT} - \kw{NREJECTED}
-	\end{displaymath}
+Currently, the number of available modes is computed as
+\begin{displaymath}
+	\kw{NMODES} = \kw{NNORMAL} + \kw{NATTACHED}
+		+ \kw{NCONSTRAINT} - \kw{NREJECTED}
+\end{displaymath}
+because modes are treated in a generalized manner,
+so there is no need to consider the different types of shapes
+in a specific manner.
+Typically, one should put all numbers to 0, except for
+\kw{<NNORMAL>} which should be set equal to the number of modes
+actually present in the data set.
+Remember that MBDyn can still select a subset of the available 
+modes to be used in the analysis, so that there is no need 
+to further edit this file.
 
-\item \kw{RECORD GROUP 2} contains a listing of the \kw{<NNODES>} lables
+\item \kw{RECORD GROUP 2} contains a listing of the \kw{<NNODES>} labels
 of the (exposed) FEM nodes.
 
 \item \kw{RECORD GROUP 3} contains the initial values of the \kw{<NMODES>}
@@ -161,7 +180,11 @@ the reduced stiffness $\sqbr{k}$ resulting from the multiplication
 When only normal modes are used, it is diagonal; in that case,
 the diagonal contains the modal mass times the square 
 of the eigenvalues, i.e.\ $k_{ii} = \omega_i^2 m_{ii}$.
-It should be definite positive.
+It should be definite positive; in fact, rigid degrees of freedom
+that would make it semi-definite should rather be modeled by combining
+separate modal submodels by way of multibody connections, so that
+the multibody capability to handle finite relative displacements
+and rotations is exploited.
 
 \item \kw{RECORD GROUP 11} contains the lumped inertia matrix
 associated to the \kw{<NNODES>} (exposed) FEM nodes;
@@ -174,16 +197,6 @@ illustrated in Equation~\ref{eq:modal-mass-constraint}.
 Although the format loosely requires that no more than 6 numerical values 
 appear on a single line, MBDyn is very forgiving about this and can parse
 the input regardless of the formatting within each block.
-
-An arbitrary number of comment lines may appear within blocks;
-the beginning of a block is marked
-\begin{verbatim}
-** RECORD GROUP <DD>
-\end{verbatim}
-where the number \kw{<DD>} indicates what block is being read.
-The size of each block, i.e.\ the number of values that are expected,
-is defined based on the header block, so MBDyn should be able to detect
-incomplete or mis-formatted files.
 
 As an example, a very simple, hand-made FEM model file is presented below.
 It models a FEM model made of three aligned nodes, where inertia 
