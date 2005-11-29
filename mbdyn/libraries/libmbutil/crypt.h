@@ -35,10 +35,14 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#ifdef NEED_CRYPT_DECL
 /*
  * FIXME: sometimes it is not defined even if present
+ *
+ * TODO: automate check in configure
  */
 char *crypt(const char *key, const char *salt);
+#endif /* NEED_CRYPT_DECL */
 
 extern char *
 mbdyn_make_salt(char *salt, size_t saltlen, const char *salt_format);

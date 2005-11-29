@@ -318,7 +318,7 @@ inline void Mat3xN::Sub(int i, integer j, const doublereal& d)
    ASSERT(i > 0 && i <= 3);
    ASSERT(j > 0 && j <= iNumCols);
    pdRows[--i][--j] -= d;
-};   
+}
 
 inline const doublereal& Mat3xN::dGet(int i, integer j) const
 {

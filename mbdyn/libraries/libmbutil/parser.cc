@@ -418,14 +418,12 @@ HighParser::SetEnv_int(void)
 			throw ErrGeneric();
 		}
 
-		unsigned l = avasep - ava;
-		char buf[l + 1];
-		memcpy(buf, ava, l);
-		buf[l] = '\0';
+		avasep[0] = '\0';
 		avasep++;
-		if (setenv(buf, avasep, overwrite)) {
+		int rc = setenv(ava, avasep, overwrite);
+		if (rc) {
 			silent_cerr("unable to set the environment variable \""
-					<< buf << "\" to \"" << avasep 
+					<< ava << "\" to \"" << avasep 
 					<< "\" at line " << GetLineData()
 					<< std::endl);
 			throw ErrGeneric();
