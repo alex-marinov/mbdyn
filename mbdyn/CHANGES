@@ -23,7 +23,7 @@ MBDyn 1.2.5
 		- added "range" to node/element output specifications
 		- added new functions to "model" namespace
 		- added "hint" infrastructure to enhance driven element
-		  (sponsored by Hutchinson CRC)
+		  (sponsored by Hutchinson CDR)
 		- added "guess" for orientation matrix input
 		- added '\<hexpair>' to read non-print chars in strings
 	Backward compatibility issues:
