@@ -213,6 +213,19 @@ public:
 			const VectorHandler& XCurr);
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
+	virtual void SetValue(DataManager *pDM,
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints *ph = 0)
+	{
+		DeformableJoint::SetValue(pDM, X, XP, ph);
+	};
+
+	virtual Hint *
+	ParseHint(DataManager *pDM, const char *s) const
+	{
+		DeformableJoint::ParseHint(pDM, s);
+	};
+
 	virtual unsigned int iGetNumPrivData(void) const {
 		return DeformableJoint::iGetNumPrivData();
 	};
@@ -305,6 +318,19 @@ public:
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
+	virtual void SetValue(DataManager *pDM,
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints *ph = 0)
+	{
+		DeformableJoint::SetValue(pDM, X, XP, ph);
+	};
+
+	virtual Hint *
+	ParseHint(DataManager *pDM, const char *s) const
+	{
+		DeformableJoint::ParseHint(pDM, s);
+	};
+
 	virtual unsigned int iGetNumPrivData(void) const {
 		return DeformableJoint::iGetNumPrivData();
 	};
@@ -397,6 +423,19 @@ public:
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
+	virtual void SetValue(DataManager *pDM,
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints *ph = 0)
+	{
+		DeformableJoint::SetValue(pDM, X, XP, ph);
+	};
+
+	virtual Hint *
+	ParseHint(DataManager *pDM, const char *s) const
+	{
+		DeformableJoint::ParseHint(pDM, s);
+	};
+
 	virtual unsigned int iGetNumPrivData(void) const {
 		return DeformableJoint::iGetNumPrivData();
 	};

@@ -126,6 +126,12 @@ public:
 		*piNumCols = 6; 
 	};
 
+#ifdef MBDYN_X_WORKAROUND_GCC_3_2
+	virtual void SetValue(DataManager *pDM,
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints *ph = 0) {};
+#endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
+
 	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
 			const VectorHandler& XCurr, 
@@ -255,6 +261,9 @@ public:
 			const VectorHandler& XCurr);   
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
+	virtual void SetValue(DataManager *pDM,
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints *ph = 0) {};
 	virtual unsigned int iGetNumPrivData(void) const {
 		return Rod::iGetNumPrivData();
 	};
@@ -348,6 +357,9 @@ public:
 #endif /* USE_ADAMS */
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
+	virtual void SetValue(DataManager *pDM,
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints *ph = 0) {};
 	virtual unsigned int iGetNumPrivData(void) const {
 		return Rod::iGetNumPrivData();
 	};
