@@ -13,6 +13,7 @@ A. Configuration:
 	- test for '_' appended to F77 symbols (recent autoconf does that)
 	- audit all the suite for not-so-GNU systems
 	- add test for pow_dd stuff (might be needed by fortran code)
+	- add check for make
 
 
 
@@ -37,8 +38,7 @@ D. Code:
 		Large project: turn mbdyn into a module for Simulink.
 	- remove node/element type listing from "control data" block;
 	  use STL containers to keep track of model components
-	- implement a postprocessor with OpenDX (http://www.opendx.org;
-		contact point: Marco Morandini <morandini@aero.polimi.it>)
+	- implement contacts with non-flat surfaces
 
 	Medium Projects:
 	- recover existing soft restart (Michele Attolico is working at it)
@@ -55,6 +55,7 @@ D. Code:
 		is working at it; see var/pod*.m)
 	- review output to allow selective ascii/binary output
 	- replace MyLList and LLStack with STL containers
+	- add friction to contacts
 
 	Small Projects:
 	- add MATLAB/Octave and Simulink hooks.
@@ -124,6 +125,10 @@ D. Code:
 	  - the revolute family
 	  - ...
 	- add function max(), min() to math parser
+	- implement an output trigger (replaces output frequency)
+	- modal element:
+	  - add singularity checks (warn if modal k is singular)
+	  - add consistency checks of modal mass matrices (m = X^T*M*X)
 
 
 
@@ -140,14 +145,17 @@ E. Bugs/missing features:
 	  inertia that do not participate in the interface)
 	- clarify how to increase the size of models utils/femgen can
 	  handle
+	- introduce references for hints
 
 
 
 F. Documentation:
 
-	- document the utilities in a separate man page
-	- update and audit the input manual
-	- document output
-	- document element private data names
-	- document piezo beam; tutorial per piezo
+	- document the utilities in a separate man page (utils & scripts)
+	- update and audit the input manual (PARTLY DONE)
+	- document output (PARTLY DONE)
+	- document element private data names (PARTLY DONE)
+	- document piezo beam
+	- tutorial for piezo beam (DONE)
+	- clarify (with demos) the functionality of the modal element
 
