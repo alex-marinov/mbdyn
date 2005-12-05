@@ -1,4 +1,4 @@
-%[S, Aout, B, mn, scl, ee, vv, X, H, BB, fm] = pod(A, ns, dt, uu, dec, ord)
+%[S, Aout, B, mn, scl, ee, vv, X, H, BB, fm] = pod(A, ns, dt, uu, dec, ord, thr, wgt)
 %
 %input:
 %	A	data (n. of frames x n. of outputs)
@@ -7,6 +7,8 @@
 %       uu      input signals (n. of frames x n. of inputs; MATLAB only) 
 %	dec	decimation factor
 %	ord	model order (default 1)
+%	thr	threshold for discarding signals
+%	wgt	'norm', 'none' or weight matrix
 %
 %output:
 %	S	singular values
@@ -21,7 +23,7 @@
 %	BB	expanded POMs
 %       fm      figure of merit: evaluates the relative quality of POMs
 %
-function [S, Aout, B, mn, scl, ee, vv, X, H, BB, fm] = pod(A, ns, dt, uu, dec, ord)
+function [S, Aout, B, mn, scl, ee, vv, X, H, BB, fm] = pod(A, ns, dt, uu, dec, ord, thr, wgt)
 
 % MBDyn (C) is a multibody analysis code. 
 % http://www.mbdyn.org
@@ -55,6 +57,15 @@ function [S, Aout, B, mn, scl, ee, vv, X, H, BB, fm] = pod(A, ns, dt, uu, dec, o
 % Authors:	Giuseppe Quaranta	<quaranta@aero.polimi.it>
 %		Pierangelo Masarati	<masarati@aero.polimi.it>
 %
+
+if (nargin < 8 || isempty(wgt)),
+	% backwards compatibility
+	wgt = 'norm';
+end
+
+if (nargin < 7 || isempty(thr)),
+	thr = 1.e-16;
+end
 
 if (nargin < 6),
 	ord = 1;
@@ -98,27 +109,43 @@ end
 % detrend and normalize
 mn = mean(A);
 A = A - ones(r, 1)*mn;
-% scl = max(abs(A));
-scl = std(A);
-thr = 1.e-16;
-lt = find(scl <= thr);
-nlt = length(lt);
-gt = find(scl > thr);
-ngt = length(gt);
-A = A(:, gt)./(ones(r, 1)*scl(gt));
-for i = 1:nlt,
-	disp(sprintf('dof %d: output is negligible', lt(i)));
+if (length(wgt) == 4 && wgt == 'norm'),
+	scl = std(A);
+	le = find(scl <= thr);
+	nle = length(le);
+	gt = find(scl > thr);
+	ngt = length(gt);
+	A = A(:, gt)./(ones(r, 1)*scl(gt));
+	for i = 1:nle,
+		disp(sprintf('dof %d: output is negligible', le(i)));
+	end
+	msg = sprintf('using %d dofs', ngt);
+	if (ngt < c),
+		msg = [msg, sprintf(' (out of %d)', c)];
+	end
+	msg = [msg, sprintf(' and %d', r)];
+	if (dec > 1),
+		msg = [msg, sprintf('/%d', dec)];
+	end
+	msg = [msg, ' samples'];
+	disp(msg);
+elseif (length(wgt) == 4 && wgt == 'none'),
+	[dmy, ngt] = size(A);
+	scl = ones(1, ngt);
+	gt = [1:ngt];
+	le = [];
+	nle = 0;
+else
+	[dmy, ngt] = size(A);
+	nwgt = size(wgt);
+	if (nwgt(1) ~= 1 || nwgt(2) ~= ngt),
+		error(sprintf('illegal dimensions %dx%d of vector wgt', nwgt(1), nwgt(2)));
+	end
+	scl = wgt;
+	gt = [1:ngt];
+	le = [];
+	nle = 0;
 end
-msg = sprintf('using %d dofs', ngt);
-if (ngt < c),
-	msg = [msg, sprintf(' (out of %d)', c)];
-end
-msg = [msg, sprintf(' and %d', r)];
-if (dec > 1),
-	msg = [msg, sprintf('/%d', dec)];
-end
-msg = [msg, ' samples'];
-disp(msg);
 
 if (ns == 0),
 	S = [];
