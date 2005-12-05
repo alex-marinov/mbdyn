@@ -305,7 +305,7 @@ NaiveSparsePermSolutionManager<Colamd_ordering>::ComputePermutation(void)
 }
 
 
-	
+#ifdef USE_BOOST
 /* NaivePermSparseSolutionManager - end */
 #include "boost/config.hpp"
 #include "boost/graph/adjacency_list.hpp"
@@ -496,6 +496,70 @@ NaiveSparsePermSolutionManager<king_ordering>::ComputePermutation(void)
 	ePermState = PERM_INTERMEDIATE;
 }
 
+template<>
+void
+NaiveSparsePermSolutionManager<md_ordering>::ComputePermutation(void)
+{
+	std::vector<integer> Ai;
+	std::vector<integer> Ac;
+	
+
+	invperm.resize(A->iGetNumCols());
+	A->MakeCCStructure(Ai, Ac);
+
+	typedef boost::adjacency_list<
+			boost::setS,
+			boost::vecS,
+			boost::directedS
+		> Graph;
+	typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
+	typedef boost::graph_traits<Graph>::vertices_size_type size_type;
+
+
+	Graph G(A->iGetNumRows());
+	for (int col=0; col<A->iGetNumCols(); col++) {
+		for (int i = Ac[col]; i < Ac[col + 1]; i++) {
+			int row = Ai[i];
+			if (row != col) {
+				boost::add_edge(row, col, G);
+				boost::add_edge(col, row, G);
+			}
+		}
+	}
+
+	boost::property_map<Graph, boost::vertex_index_t>::type 
+		id = boost::get(boost::vertex_index, G);
+	std::vector<Vertex> inv_perm(num_vertices(G));
+	std::vector<Vertex> _perm(num_vertices(G));
+	std::vector<integer> degree(A->iGetNumRows(), 0);
+	std::vector<integer> supernode_sizes(A->iGetNumRows(), 1); // init has to be 1
+	int delta = 0;
+
+	boost::minimum_degree_ordering(
+		G,
+		make_iterator_property_map(&degree[0], id, degree[0]),
+		&invperm[0],
+		&perm[0],
+		boost::make_iterator_property_map(
+			&supernode_sizes[0],
+			id,
+			supernode_sizes[0]
+		), 
+		delta,
+		id
+	);
+
+// 	for (integer i = 0; i < A->iGetNumRows(); i++) {
+// 		invperm[i] = inv_perm[i];
+// 		perm[invperm[i]] = i;
+// 	}
+	ePermState = PERM_INTERMEDIATE;
+	
+
+
+}
+#endif /* USE_BOOST */
+
 #ifdef USE_METIS
 extern "C" {
 #include "metiswrap.h"
@@ -595,76 +659,15 @@ NaiveSparsePermSolutionManager<metis_ordering>::ComputePermutation(void)
 // }
 // #endif //HAVE_UMFPACK4_1
 
-template<>
-void
-NaiveSparsePermSolutionManager<md_ordering>::ComputePermutation(void)
-{
-	std::vector<integer> Ai;
-	std::vector<integer> Ac;
-	
-
-	invperm.resize(A->iGetNumCols());
-	A->MakeCCStructure(Ai, Ac);
-
-	typedef boost::adjacency_list<
-			boost::setS,
-			boost::vecS,
-			boost::directedS
-		> Graph;
-	typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
-	typedef boost::graph_traits<Graph>::vertices_size_type size_type;
-
-
-	Graph G(A->iGetNumRows());
-	for (int col=0; col<A->iGetNumCols(); col++) {
-		for (int i = Ac[col]; i < Ac[col + 1]; i++) {
-			int row = Ai[i];
-			if (row != col) {
-				boost::add_edge(row, col, G);
-				boost::add_edge(col, row, G);
-			}
-		}
-	}
-
-	boost::property_map<Graph, boost::vertex_index_t>::type 
-		id = boost::get(boost::vertex_index, G);
-	std::vector<Vertex> inv_perm(num_vertices(G));
-	std::vector<Vertex> _perm(num_vertices(G));
-	std::vector<integer> degree(A->iGetNumRows(), 0);
-	std::vector<integer> supernode_sizes(A->iGetNumRows(), 1); // init has to be 1
-	int delta = 0;
-
-	boost::minimum_degree_ordering(
-		G,
-		make_iterator_property_map(&degree[0], id, degree[0]),
-		&invperm[0],
-		&perm[0],
-		boost::make_iterator_property_map(
-			&supernode_sizes[0],
-			id,
-			supernode_sizes[0]
-		), 
-		delta,
-		id
-	);
-
-// 	for (integer i = 0; i < A->iGetNumRows(); i++) {
-// 		invperm[i] = inv_perm[i];
-// 		perm[invperm[i]] = i;
-// 	}
-	ePermState = PERM_INTERMEDIATE;
-	
-
-
-}
-
 
 //explicit instantiations:
 template class NaiveSparsePermSolutionManager<Colamd_ordering>;
+#ifdef USE_BOOST
 template class NaiveSparsePermSolutionManager<rcmk_ordering>;
 template class NaiveSparsePermSolutionManager<king_ordering>;
 template class NaiveSparsePermSolutionManager<md_ordering>;
 template class NaiveSparsePermSolutionManager<sloan_ordering>;
+#endif /* USE_BOOST */
 #ifdef USE_METIS
 template class NaiveSparsePermSolutionManager<metis_ordering>;
 #endif //USE_METIS

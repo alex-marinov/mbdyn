@@ -608,6 +608,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 				throw ErrGeneric();
 #endif /* USE_NAIVE_MULTITHREAD */
 			}
+#ifdef USE_BOOST
 		} else if (perm == LinSol::SOLVER_FLAGS_ALLOWS_REVERSE_CUTHILL_MC_KEE) {
 			if (nThreads == 1) {
 				SAFENEWWITHCONSTRUCTOR(pCurrSM,
@@ -752,6 +753,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 				__LINE__ << ")" << std::endl);
 			throw ErrGeneric();
 #endif //USE_METIS
+#endif /* USE_BOOST */
 		} else {
 			if (nThreads == 1) {
 				SAFENEWWITHCONSTRUCTOR(pCurrSM,

@@ -174,12 +174,18 @@ public:
 
 //supported permutations
 class Colamd_ordering;
+/* #ifdef USE_BOOST */
 class rcmk_ordering;
 class king_ordering;
 class sloan_ordering;
-class metis_ordering;
-class amd_ordering;
 class md_ordering;
+/* #endif USE_BOOST */
+/* #ifdef USE_METIS */
+class metis_ordering;
+/* #endif USE_METIS */
+/* #ifdef HAVE_UMFPACK4_1 */
+class amd_ordering;
+/* #endif */
 
 
 #endif /* NaiveSolutionManager_hh */
