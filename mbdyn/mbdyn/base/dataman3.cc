@@ -120,7 +120,8 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
       "make" "restart" "file",
       "output" "file" "name",
       "output" "precision",
-      "output" "frequency",
+      "output" "frequency", /* deprecated */
+      "output" "meter",
       "output" "results",
       "default" "output",
       "all",	
@@ -195,6 +196,7 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
       OUTPUTFILENAME,
       OUTPUTPRECISION,
       OUTPUTFREQUENCY,
+      OUTPUTMETER,
 
       OUTPUTRESULTS,
       DEFAULTOUTPUT,
@@ -806,10 +808,18 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 			  << " at line " << HP.GetLineData() << std::endl);
 		  throw ErrGeneric();
 	  }
-	  iOutputFrequency = iFreq;
+	  SAFENEWWITHCONSTRUCTOR(pOutputMeter, MeterDriveCaller, MeterDriveCaller(&DrvHdl, -DBL_MAX, DBL_MAX, iFreq));
 	  break;
        }
-	 
+
+       case OUTPUTMETER:
+	  if (pOutputMeter != 0 ) {
+	     silent_cerr("Output meter already defined" << std::endl);
+	     throw ErrGeneric();
+	  }
+	  pOutputMeter = ReadDriveData(this, HP, false);
+	  break;
+
        case OUTPUTRESULTS: {
 	while (HP.IsArg()) {
 	
@@ -1214,8 +1224,23 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 
    /* inizializza l'output handler */
    OutHdl.Init(sOutputFileName, 0);
-   
-   OutHdl.Log() << "output frequency: " << iOutputFrequency << std::endl;
+
+   integer iOutputFrequency = 0;
+   if (pOutputMeter == 0) {
+      SAFENEW(pOutputMeter, OneDriveCaller);
+      iOutputFrequency = 1;
+   } else {
+      MeterDriveCaller *pMDC = dynamic_cast<MeterDriveCaller *>(pOutputMeter);
+      if (pMDC != 0) {
+	 iOutputFrequency = pMDC->iGetSteps();
+      }
+   }
+
+   if (iOutputFrequency == 0) {
+      OutHdl.Log() << "output frequency: custom" << std::endl;
+   } else {
+      OutHdl.Log() << "output frequency: " << iOutputFrequency << std::endl;
+   }
 
    DEBUGLCOUT(MYDEBUG_INPUT, "End of control data" << std::endl);
 } /* End of DataManager::ReadControl() */

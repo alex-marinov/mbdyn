@@ -634,6 +634,52 @@ inline doublereal RandDriveCaller::dGet(const doublereal& dVar) const
 /* RandDriveCaller - end */
 
 
+/* MeterDriveCaller - begin */
+
+class MeterDriveCaller : public DriveCaller {
+ private:
+   long int iBase;
+   doublereal dStartTime;
+   doublereal dEndTime;
+   integer iSteps;
+   integer iMeterDriveNumber;
+   
+ public:
+   MeterDriveCaller(const DriveHandler* pDH, 
+		   doublereal dS, doublereal dE, integer iS);
+   virtual ~MeterDriveCaller(void);
+   
+   /* Copia */
+   virtual DriveCaller* pCopy(void) const;
+   
+   /* Scrive il contributo del DriveCaller al file di restart */   
+   virtual std::ostream& Restart(std::ostream& out) const;
+   
+   inline doublereal dGet(const doublereal& dVar) const;
+   /* inline doublereal dGet(void) const; */
+
+   inline integer iGetSteps(void) const;
+};
+
+
+inline doublereal MeterDriveCaller::dGet(const doublereal& dVar) const
+{
+   if (dVar < dStartTime || dVar > dEndTime) {
+      return 0.;
+   }
+   
+   return doublereal(pDrvHdl->bGetMeter(iMeterDriveNumber));
+}
+
+
+inline integer MeterDriveCaller::iGetSteps(void) const
+{
+   return iSteps;
+}
+
+/* MeterDriveCaller - end */
+
+
 /* PiecewiseLinearDriveCaller - begin */
 
 class PiecewiseLinearDriveCaller : public DriveCaller {

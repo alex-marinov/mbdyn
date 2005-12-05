@@ -65,6 +65,10 @@ pVar(NULL),
 pXCurr(NULL), 
 pXPrimeCurr(NULL),
 iCurrStep(0),
+MyMeterD(),
+MyMeterLL(MyMeterD),
+iMeterDriveSize(0),
+ppMyMeter(NULL),
 MyRandD(),
 MyRandLL(MyRandD),
 iRandDriveSize(0),
@@ -125,6 +129,14 @@ DriveHandler::~DriveHandler(void)
    pthread_mutex_destroy(&parser_mutex);
 #endif /* USE_MULTITHREAD */
 
+   if (iMeterDriveSize > 0) { 
+      if (ppMyMeter != NULL) {
+	 SAFEDELETEARR(ppMyMeter);
+      } else {
+	 silent_cerr("Error, meter drive data array should exist" << std::endl);
+      }
+   }
+
    if (iRandDriveSize > 0) { 
       if (ppMyRand != NULL) {
 	 SAFEDELETEARR(ppMyRand);
@@ -143,13 +155,16 @@ void DriveHandler::SetTime(const doublereal& dt, flag fNewStep)
    if (fNewStep) {
       iCurrStep++;
       
+      /* update the meter drivers */
+      for (long int iCnt = 0; iCnt < iMeterDriveSize; iCnt++) {
+	 MyMeter* pmm = ppMyMeter[iCnt];
+	 pmm->SetMeter();
+      }      
+      
       /* update the random drivers */
       for (long int iCnt = 0; iCnt < iRandDriveSize; iCnt++) {
 	 MyRand* pmr = ppMyRand[iCnt];
-	 if (iCurrStep%pmr->iGetSteps() == 0) {
-	    integer iR = rand();
-	    pmr->SetRand(iR);
-	 }
+	 pmr->SetMeter();
       }      
    }
 }
@@ -214,6 +229,57 @@ integer DriveHandler::iRandInit(integer iSteps)
 }
 
 
+/*
+ * se iSteps == 0 inizializza la lista dei meter drivers;
+ * se iSteps != 0 allora alloca un nuovo gestore dei dati del
+ * meter driver, e ritorna il numero d'ordine
+ */
+integer DriveHandler::iMeterInit(integer iSteps) 
+{
+   if (iSteps == 0) {
+      /* initialises the structure */
+      iMeterDriveSize = MyMeterLL.iGetSize();
+      if (iMeterDriveSize == 0) {
+	 return 0;
+      }
+      
+      SAFENEWARR(ppMyMeter, MyMeter*, iMeterDriveSize);
+      
+      MyMeter** ppmm = ppMyMeter;
+      MyMeter* pmm = NULL;
+      if (!MyMeterLL.GetFirst(pmm)) {
+	 silent_cerr("Error in getting first meter drive data" << std::endl);
+	 
+	 throw ErrGeneric();
+      }
+      
+#ifdef DEBUG
+      long int iCnt = 0;
+#endif      
+      do {
+	 ASSERT(++iCnt <= iMeterDriveSize);
+	 *ppmm++ = pmm;	 
+      } while (MyMeterLL.GetNext(pmm));
+	                   
+      return 0;
+   }
+   
+   /* else, adds a driver */
+   MyMeter* pmm = NULL;
+   integer iNumber = MyMeterLL.iGetSize();
+   SAFENEWWITHCONSTRUCTOR(pmm, 
+			  MyMeter, 
+			  MyMeter((unsigned int)iNumber, iSteps));
+   
+   if (MyMeterLL.Add(pmm)) {
+      silent_cerr("Error in insertion of meter driver data" << std::endl);
+      throw ErrGeneric();
+   }
+   
+   return iNumber;
+}
+
+
 void DriveHandler::PutSymbolTable(Table& T) 
 {
    Parser.PutSymbolTable(T);
@@ -242,13 +308,26 @@ doublereal DriveHandler::dGet(InputStream& InStr) const
 
 
 DriveHandler::MyRand::MyRand(unsigned int uLabel, integer iS, integer iR)
-: WithLabel(uLabel), iSteps(iS), iRand(iR) 
+: MyMeter(uLabel, iS), iRand(iR) 
 {
    NO_OP;
 }
 
 
 DriveHandler::MyRand::~MyRand(void)
+{
+   NO_OP;
+}
+
+ 
+DriveHandler::MyMeter::MyMeter(unsigned int uLabel, integer iS)
+: WithLabel(uLabel), iSteps(iS)
+{
+   NO_OP;
+}
+
+
+DriveHandler::MyMeter::~MyMeter(void)
 {
    NO_OP;
 }

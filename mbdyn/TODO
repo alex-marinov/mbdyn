@@ -124,7 +124,7 @@ D. Code:
 	  to the unconstrained displacements/rotations of selected joints:
 	  - the revolute family
 	  - ...
-	- add function max(), min() to math parser
+	- add function max(), min() to math parser (DONE)
 	- implement an output trigger (replaces output frequency)
 	- modal element:
 	  - add singularity checks (warn if modal k is singular)

@@ -948,8 +948,8 @@ DataManager::Output(bool force) const
 	 * dovuta al fatto che i dati propri non vengono modificati in modo
 	 * incontrollabile */
 
-	/* output only at multiples of iOutputFrequency */
-	if ((!force) && (iOutputCount++%iOutputFrequency)) {
+	/* output only when allowed by the output meter */
+	if ((!force) && !pOutputMeter->dGet()) {
 		return;
 	}
 

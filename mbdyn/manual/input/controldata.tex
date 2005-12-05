@@ -208,7 +208,26 @@ This will be fixed when a binary output is implemented.
     <card> ::= output precision : <number_of_digits> ;
 \end{verbatim}
 
-\subsubsection{Output results}
+\subsubsection{Output Meter}
+A drive that causes output to be generated when different from zero,
+while no output is created when equal to zero.  It is useful to reduce 
+the size of the output file during analysis phases that are not of interest.
+\begin{verbatim}
+    <card> ::= output meter: (DriveCaller)<meter> ;
+\end{verbatim}
+
+\subsubsection{Output Frequency}
+A deprecated form to provide an \kw{output meter} that outputs every
+\kw{steps}:
+\begin{verbatim}
+    <card> ::= output frequency: <steps> ;
+\end{verbatim}
+Equivalent to
+\begin{verbatim}
+    <card> ::= output meter: meter, 0, forever, steps, <steps> ;
+\end{verbatim}
+
+\subsubsection{Output Results}
 Sets the desired mode for the output of results in a form
 compatible with other pre/post processing packages.
 Note that, in most of the cases, the preparation of the 

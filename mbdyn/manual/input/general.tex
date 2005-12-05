@@ -1232,6 +1232,18 @@ the internal clock. A given seed can be used to ensure that two
 simulations use exactly the same random sequence (concurrent settings 
 are not managed, so it is not very reliable).
 
+\subsection{Meter drive}
+The \kw{meter} drive has value zero expect for every \kw{steps} steps,
+where it assumes unit value.
+\begin{verbatim}
+    <drive_caller> ::= meter ,
+        <initial_time> ,
+        { forever | <final_time> }
+        [ , steps , <steps_between_spikes>]
+\end{verbatim}
+the first optional entry, preceded by the keyword \kw{steps}, sets the
+number of steps between spikes.
+
 \subsection{File drive}\label{sec:FILE-DRIVE}
 A family of file drivers is being planned.
 At present only a multiple-valued, constant time-step file drive is

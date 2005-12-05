@@ -126,7 +126,7 @@ iCurrRestartIter(0),
 dLastRestartTime(dInitialTime),
 saveXSol(false),
 solArrFileName(NULL),
-iOutputFrequency(1),
+pOutputMeter(0),
 iOutputCount(0),
 ResMode(RES_NATIVE),
 #if defined(USE_ADAMS) || defined(USE_MOTIONVIEW)
@@ -423,6 +423,7 @@ SocketUsersTimeout(0)
    
    /* Inizializza il drive handler */
    DrvHdl.iRandInit(0);
+   DrvHdl.iMeterInit(0);
    
    /* Verifica dei dati di controllo */
 #ifdef DEBUG

@@ -144,6 +144,7 @@ class Drive : public WithLabel {
 class DriveHandler {
    friend class DataManager;
    friend class RandDriveCaller;
+   friend class MeterDriveCaller;
    
  private:
    doublereal dTime;
@@ -163,10 +164,29 @@ class DriveHandler {
    
    integer iCurrStep;
    
-   /* For random drivers */
-   class MyRand : public WithLabel {
+   /* For meters */
+   class MyMeter : public WithLabel {
     protected:
       integer iSteps;
+      mutable integer iCurr;
+
+    public:
+      MyMeter(unsigned int uLabel, integer iS = 1);
+      virtual ~MyMeter(void);
+
+      inline integer iGetSteps(void) const;
+      inline bool bGetMeter(void) const;
+      virtual inline void SetMeter(void);
+   };
+
+   HardDestructor<MyMeter> MyMeterD;
+   MyLList<MyMeter> MyMeterLL;
+   integer iMeterDriveSize;
+   MyMeter **ppMyMeter;
+ 
+   /* For random drivers */
+   class MyRand : public MyMeter {
+    protected:
       integer iRand;
       
     public:
@@ -175,20 +195,20 @@ class DriveHandler {
       
       inline integer iGetSteps(void) const;
       inline integer iGetRand(void) const;
-      inline void SetRand(integer& iR);
+      virtual inline void SetMeter(void);
    };
    
    HardDestructor<MyRand> MyRandD;
    MyLList<MyRand> MyRandLL;
    integer iRandDriveSize;
    MyRand** ppMyRand;
-   
-   
+
  protected:
    void SetTime(const doublereal& dt, flag fNewStep = 1);
    void LinkToSolution(const VectorHandler& XCurr, 
 		       const VectorHandler& XPrimeCurr);
    integer iRandInit(integer iSteps);
+   integer iMeterInit(integer iSteps);
    
  public:
    DriveHandler(MathParser &mp);
@@ -201,14 +221,8 @@ class DriveHandler {
       
    inline const doublereal& dGetTime(void) const;
    inline long int iGetRand(integer iNumber) const;
+   inline bool bGetMeter(integer iNumber) const;
 };
-
-
-inline integer 
-DriveHandler::MyRand::iGetSteps(void) const 
-{
-   return iSteps;
-}
 
 
 inline integer 
@@ -219,9 +233,35 @@ DriveHandler::MyRand::iGetRand(void) const
 
 
 inline void 
-DriveHandler::MyRand::SetRand(integer& iR)
+DriveHandler::MyRand::SetMeter(void)
 {
-   iRand = iR;
+	MyMeter::SetMeter();
+	if (iCurr == 0) {
+		iRand = rand();
+	}
+}
+
+
+inline integer 
+DriveHandler::MyMeter::iGetSteps(void) const 
+{
+   return iSteps;
+}
+
+
+inline bool
+DriveHandler::MyMeter::bGetMeter(void) const
+{
+   return iCurr == 0;
+}
+
+
+inline void 
+DriveHandler::MyMeter::SetMeter(void)
+{
+   if (++iCurr == iSteps) {
+	   iCurr = 0;
+   }
 }
 
 
@@ -236,6 +276,13 @@ inline long int
 DriveHandler::iGetRand(integer iNumber) const
 {
    return ppMyRand[iNumber]->iGetRand();
+}
+
+
+inline bool
+DriveHandler::bGetMeter(integer iNumber) const
+{
+   return ppMyMeter[iNumber]->bGetMeter();
 }
 
 /* DriveHandler - end */

@@ -162,7 +162,7 @@ protected:
 	char * solArrFileName;
 	
 	/* raw output stuff */
-	integer iOutputFrequency;
+	DriveCaller *pOutputMeter;
 	mutable integer iOutputCount;
 
 	/* specialized output stuff */

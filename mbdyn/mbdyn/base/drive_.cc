@@ -765,6 +765,56 @@ std::ostream& RandDriveCaller::Restart(std::ostream& out) const
 /* RandDriveCaller - end */
 
 
+/* MeterDriveCaller - begin */
+
+MeterDriveCaller::MeterDriveCaller(const DriveHandler* pDH, 
+				 doublereal dS, doublereal dE, integer iS)
+: DriveCaller(pDH),
+dStartTime(dS),
+dEndTime(dE),
+iSteps(iS)
+{
+   iMeterDriveNumber = ((DriveHandler*)pDrvHdl)->iMeterInit(iSteps);
+}
+
+
+MeterDriveCaller::~MeterDriveCaller(void)
+{
+   NO_OP; 
+}
+
+
+/* Copia */
+DriveCaller* MeterDriveCaller::pCopy(void) const
+{
+   DriveCaller* pDC = NULL;
+   SAFENEWWITHCONSTRUCTOR(pDC, 
+			  MeterDriveCaller, 
+			  MeterDriveCaller(pDrvHdl,
+					  dStartTime, 
+					  dEndTime,
+					  iSteps));
+   
+   return pDC;
+}
+
+
+/* Scrive il contributo del DriveCaller al file di restart */   
+std::ostream& MeterDriveCaller::Restart(std::ostream& out) const
+{
+   out
+     << " meter, " 
+     << dStartTime << ", "
+     << dEndTime;
+   if(iSteps > 1) {
+      out << ", steps, " << iSteps;
+   }
+   return out;
+}
+
+/* MeterDriveCaller - end */
+
+
 /* PiecewiseLinearDriveCaller - begin */
 
 PiecewiseLinearDriveCaller::PiecewiseLinearDriveCaller(const DriveHandler* pDH,
@@ -910,6 +960,7 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	"frequency" "sweep",
 	"exponential",
 	"random",
+	"meter",
 	"piecewise" "linear",
 	"file", 
 	"string",
@@ -942,6 +993,7 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	FREQUENCYSWEEP,
 	EXPONENTIAL,
 	RANDOM,
+	METER,
 	PIECEWISELINEAR,
 	FILEDRIVE,      
 	STRING,
@@ -1415,6 +1467,44 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 			      RandDriveCaller(pDrvHdl, 
 					      dAmplitude, 
 					      dRefVal,
+					      dInitialTime, 
+					      dFinalTime,
+					      iSteps));
+       break;
+    }
+
+      /* spike every N steps */
+    case METER: {	
+       doublereal dInitialTime = HP.GetReal();
+       DEBUGCOUT("Initial time: " << dInitialTime << std::endl);
+       
+       doublereal dFinalTime = DBL_MAX;
+       if (!HP.IsKeyWord("forever")) {
+          dFinalTime = HP.GetReal();
+       }
+       DEBUGCOUT("Final time: " << dFinalTime << std::endl);
+       
+       /* Type of random number (additional data) */
+       integer iSteps = 1;
+       while (true) {
+	  if (HP.IsKeyWord("steps")) {
+	     iSteps = HP.GetInt();
+	     if (iSteps <= 0) {		    
+		silent_cerr("Warning: Steps number " << iSteps 
+		  << " is illegal; resorting to default value" << std::endl);
+		iSteps = 1;
+	     }
+	     DEBUGCOUT("Force changes every " << iSteps 
+		       << " steps" << std::endl);
+	  }else {
+	     break;
+	  }	      
+       }
+       
+       
+       SAFENEWWITHCONSTRUCTOR(pDC,
+			      MeterDriveCaller,
+			      MeterDriveCaller(pDrvHdl, 
 					      dInitialTime, 
 					      dFinalTime,
 					      iSteps));
