@@ -170,6 +170,7 @@ dnl ol_with_chaco=no
 
 OL_ARG_WITH(threads,[  --with-threads          with threads],auto,[auto yes no])
 OL_ARG_WITH(rtai,[  --with-rtai             with RTAI support],no,[auto yes no])
+OL_ARG_WITH(boost,[  --with-boost            with BOOST support],auto,[auto yes no])
 OL_ARG_WITH(blas,[
        math libraries:
   --with-blas             with (C)BLAS math library],auto,[auto goto atlas cblas blas])
@@ -1001,6 +1002,32 @@ if test -e "/dev/TASK2CPU" ; then
 	AC_MSG_RESULT(yes)
 else
 	AC_MSG_RESULT(no)
+fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for BOOST
+dnl
+ol_link_boost=no
+if test $ol_with_boost != no ; then
+	AC_LANG_CPLUSPLUS
+	AC_CHECK_HEADERS(boost/config.hpp)
+	AC_CHECK_HEADERS(boost/graph/adjacency_list.hpp)
+	AC_CHECK_HEADERS(boost/graph/cuthill_mckee_ordering.hpp)
+	AC_CHECK_HEADERS(boost/graph/king_ordering.hpp)
+	AC_CHECK_HEADERS(boost/graph/sloan_ordering.hpp)
+	AC_CHECK_HEADERS(boost/graph/properties.hpp)
+	AC_CHECK_HEADERS(boost/graph/bandwidth.hpp)
+	AC_CHECK_HEADERS(boost/graph/wavefront.hpp)
+	AC_CHECK_HEADERS(boost/graph/minimum_degree_ordering.hpp)
+	AC_LANG_C
+	if test "$ac_cv_header_boost_config_hpp" = "yes" ; then
+		AC_DEFINE(USE_BOOST,1,[define to use BOOST])
+	else
+		if test $ol_with_boost != auto ; then
+			AC_MSG_ERROR([BOOST library headers not available])
+		fi
+	fi
 fi
 
 dnl ----------------------------------------------------------------

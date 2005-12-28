@@ -110,7 +110,6 @@ INCLUDES = \
 -I../libmbmath \
 -I../liby12 \
 -I../libcolamd \
--I../libnaive \
--I../libboost
+-I../libnaive
 
 include $(top_srcdir)/build/bot.mk

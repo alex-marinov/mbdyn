@@ -309,15 +309,24 @@ NaiveSparsePermSolutionManager<Colamd_ordering>::ComputePermutation(void)
 /* NaivePermSparseSolutionManager - end */
 #include "boost/config.hpp"
 #include "boost/graph/adjacency_list.hpp"
-#include "boost/graph/cuthill_mckee_ordering.hpp"
-#include "boost/graph/king_ordering.hpp"
-#include <boost/graph/sloan_ordering.hpp>
 #include "boost/graph/properties.hpp"
 #include "boost/graph/bandwidth.hpp"
 #include <boost/graph/wavefront.hpp>
+
+#ifdef HAVE_BOOST_GRAPH_CUTHILL_MCKEE_ORDERING_HPP
+#include "boost/graph/cuthill_mckee_ordering.hpp"
+#endif /* HAVE_BOOST_GRAPH_CUTHILL_MCKEE_ORDERING_HPP */
+#ifdef HAVE_BOOST_GRAPH_KING_ORDERING_HPP
+#include "boost/graph/king_ordering.hpp"
+#endif /* HAVE_BOOST_GRAPH_KING_ORDERING_HPP */
+#ifdef HAVE_BOOST_GRAPH_MINIMUM_DEGREE_ORDERING_HPP
+#include <boost/graph/sloan_ordering.hpp>
+#endif /* HAVE_BOOST_GRAPH_MINIMUM_DEGREE_ORDERING_HPP */
+#ifdef HAVE_BOOST_GRAPH_SLOAN_ORDERING_HPP
 #include "boost/graph/minimum_degree_ordering.hpp"
+#endif /* HAVE_BOOST_GRAPH_SLOAN_ORDERING_HPP */
 
-
+#ifdef HAVE_BOOST_GRAPH_CUTHILL_MCKEE_ORDERING_HPP
 template<>
 void
 NaiveSparsePermSolutionManager<rcmk_ordering>::ComputePermutation(void)
@@ -367,11 +376,13 @@ NaiveSparsePermSolutionManager<rcmk_ordering>::ComputePermutation(void)
 
 	
 	std::vector<Vertex> inv_perm(num_vertices(G));
-	boost::cuthill_mckee_ordering(G, inv_perm.rbegin());//, 
-// 	boost::sloan_ordering(G, inv_perm.rbegin(),
-// 		boost::get(boost::vertex_color, G), 
-// 		boost::make_degree_map(G),
-// 		boost::get(boost::vertex_priority, G));
+	boost::cuthill_mckee_ordering(G, inv_perm.rbegin());
+#if 0
+	boost::sloan_ordering(G, inv_perm.rbegin(),
+		boost::get(boost::vertex_color, G),
+		boost::make_degree_map(G),
+		boost::get(boost::vertex_priority, G));
+#endif
 
 	for (integer i = 0; i < A->iGetNumRows(); i++) {
 		invperm[i] = inv_perm[i];
@@ -379,7 +390,9 @@ NaiveSparsePermSolutionManager<rcmk_ordering>::ComputePermutation(void)
 	}
 	ePermState = PERM_INTERMEDIATE;
 }
+#endif /* HAVE_BOOST_GRAPH_CUTHILL_MCKEE_ORDERING_HPP */
 
+#ifdef HAVE_BOOST_GRAPH_SLOAN_ORDERING_HPP
 template<>
 void
 NaiveSparsePermSolutionManager<sloan_ordering>::ComputePermutation(void)
@@ -442,8 +455,9 @@ NaiveSparsePermSolutionManager<sloan_ordering>::ComputePermutation(void)
 	}
 	ePermState = PERM_INTERMEDIATE;
 }
+#endif /* HAVE_BOOST_GRAPH_SLOAN_ORDERING_HPP */
 
-
+#ifdef HAVE_BOOST_GRAPH_KING_ORDERING_HPP
 template<>
 void
 NaiveSparsePermSolutionManager<king_ordering>::ComputePermutation(void)
@@ -495,7 +509,9 @@ NaiveSparsePermSolutionManager<king_ordering>::ComputePermutation(void)
 	}
 	ePermState = PERM_INTERMEDIATE;
 }
+#endif /* HAVE_BOOST_GRAPH_KING_ORDERING_HPP */
 
+#ifdef HAVE_BOOST_GRAPH_MINIMUM_DEGREE_ORDERING_HPP
 template<>
 void
 NaiveSparsePermSolutionManager<md_ordering>::ComputePermutation(void)
@@ -558,6 +574,7 @@ NaiveSparsePermSolutionManager<md_ordering>::ComputePermutation(void)
 
 
 }
+#endif /* HAVE_BOOST_GRAPH_MINIMUM_DEGREE_ORDERING_HPP */
 #endif /* USE_BOOST */
 
 #ifdef USE_METIS
@@ -663,10 +680,18 @@ NaiveSparsePermSolutionManager<metis_ordering>::ComputePermutation(void)
 //explicit instantiations:
 template class NaiveSparsePermSolutionManager<Colamd_ordering>;
 #ifdef USE_BOOST
+#ifdef HAVE_BOOST_GRAPH_CUTHILL_MCKEE_ORDERING_HPP
 template class NaiveSparsePermSolutionManager<rcmk_ordering>;
+#endif /* HAVE_BOOST_GRAPH_CUTHILL_MCKEE_ORDERING_HPP */
+#ifdef HAVE_BOOST_GRAPH_KING_ORDERING_HPP
 template class NaiveSparsePermSolutionManager<king_ordering>;
+#endif /* HAVE_BOOST_GRAPH_KING_ORDERING_HPP */
+#ifdef HAVE_BOOST_GRAPH_MINIMUM_DEGREE_ORDERING_HPP
 template class NaiveSparsePermSolutionManager<md_ordering>;
+#endif /* HAVE_BOOST_GRAPH_MINIMUM_DEGREE_ORDERING_HPP */
+#ifdef HAVE_BOOST_GRAPH_SLOAN_ORDERING_HPP
 template class NaiveSparsePermSolutionManager<sloan_ordering>;
+#endif /* HAVE_BOOST_GRAPH_SLOAN_ORDERING_HPP */
 #endif /* USE_BOOST */
 #ifdef USE_METIS
 template class NaiveSparsePermSolutionManager<metis_ordering>;
