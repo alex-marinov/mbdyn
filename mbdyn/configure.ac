@@ -1012,22 +1012,22 @@ ol_link_boost=no
 if test $ol_with_boost != no ; then
 	AC_LANG_CPLUSPLUS
 	AC_CHECK_HEADERS(boost/config.hpp)
-	AC_CHECK_HEADERS(boost/graph/adjacency_list.hpp)
-	AC_CHECK_HEADERS(boost/graph/cuthill_mckee_ordering.hpp)
-	AC_CHECK_HEADERS(boost/graph/king_ordering.hpp)
-	AC_CHECK_HEADERS(boost/graph/sloan_ordering.hpp)
-	AC_CHECK_HEADERS(boost/graph/properties.hpp)
-	AC_CHECK_HEADERS(boost/graph/bandwidth.hpp)
-	AC_CHECK_HEADERS(boost/graph/wavefront.hpp)
-	AC_CHECK_HEADERS(boost/graph/minimum_degree_ordering.hpp)
-	AC_LANG_C
 	if test "$ac_cv_header_boost_config_hpp" = "yes" ; then
 		AC_DEFINE(USE_BOOST,1,[define to use BOOST])
+		AC_CHECK_HEADERS(boost/graph/adjacency_list.hpp)
+		AC_CHECK_HEADERS(boost/graph/cuthill_mckee_ordering.hpp)
+		AC_CHECK_HEADERS(boost/graph/king_ordering.hpp)
+		AC_CHECK_HEADERS(boost/graph/sloan_ordering.hpp)
+		AC_CHECK_HEADERS(boost/graph/properties.hpp)
+		AC_CHECK_HEADERS(boost/graph/bandwidth.hpp)
+		AC_CHECK_HEADERS(boost/graph/wavefront.hpp)
+		AC_CHECK_HEADERS(boost/graph/minimum_degree_ordering.hpp)
 	else
 		if test $ol_with_boost != auto ; then
 			AC_MSG_ERROR([BOOST library headers not available])
 		fi
 	fi
+	AC_LANG_C
 fi
 
 dnl ----------------------------------------------------------------
