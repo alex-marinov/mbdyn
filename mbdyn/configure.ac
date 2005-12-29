@@ -170,7 +170,7 @@ dnl ol_with_chaco=no
 
 OL_ARG_WITH(threads,[  --with-threads          with threads],auto,[auto yes no])
 OL_ARG_WITH(rtai,[  --with-rtai             with RTAI support],no,[auto yes no])
-OL_ARG_WITH(boost,[  --with-boost            with BOOST support],auto,[auto yes no])
+OL_ARG_WITH(boost,[  --with-boost            with BOOST support],no,[auto yes no])
 OL_ARG_WITH(blas,[
        math libraries:
   --with-blas             with (C)BLAS math library],auto,[auto goto atlas cblas blas])
