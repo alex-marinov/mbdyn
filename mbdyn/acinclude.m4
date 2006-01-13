@@ -1,7 +1,7 @@
 dnl MBDyn (C) is a multibody analysis code.
 dnl http://www.mbdyn.org
 dnl
-dnl Copyright (C) 1996-2005
+dnl Copyright (C) 1996-2006
 dnl
 dnl Pierangelo Masarati     <masarati@aero.polimi.it>
 dnl Paolo Mantegazza        <mantegazza@aero.polimi.it>

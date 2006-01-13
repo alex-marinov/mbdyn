@@ -2,7 +2,7 @@
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2005
+ * Copyright (C) 1996-2006
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -31,7 +31,7 @@
 /* Schur Data Manager */
 
 /* 
- * Copyright 1999-2005 Giuseppe Quaranta <quaranta@aero.polimi.it>
+ * Copyright 1999-2006 Giuseppe Quaranta <quaranta@aero.polimi.it>
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  */
  

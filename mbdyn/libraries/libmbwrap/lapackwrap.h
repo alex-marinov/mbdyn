@@ -1,7 +1,7 @@
 /* 
  * HmFe (C) is a FEM analysis code. 
  *
- * Copyright (C) 1996-2005
+ * Copyright (C) 1996-2006
  *
  * Marco Morandini  <morandini@aero.polimi.it>
  *
@@ -19,7 +19,7 @@
  * Modified to add a  matrix in row form and to implement methods
  * to be used in the parallel MBDyn Solver.
  *
- * Copyright (C) 2001-2005
+ * Copyright (C) 2001-2006
  *
  * Giuseppe Quaranta  <quaranta@aero.polimi.it>
  *
@@ -32,7 +32,7 @@
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2005
+ * Copyright (C) 1996-2006
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>

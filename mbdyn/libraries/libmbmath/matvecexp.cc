@@ -2,7 +2,7 @@
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2005
+ * Copyright (C) 1996-2006
  * 
  * This code is a partial merge of HmFe and MBDyn.
  *
@@ -32,7 +32,7 @@
 /* 
  * HmFe (C) is a FEM analysis code. 
  *
- * Copyright (C) 1996-2005
+ * Copyright (C) 1996-2006
  *
  * Marco Morandini  <morandini@aero.polimi.it>
  * Teodoro Merlini  <merlini@aero.polimi.it>

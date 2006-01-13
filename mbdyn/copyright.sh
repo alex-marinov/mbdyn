@@ -1,6 +1,6 @@
 #!/bin/sh
 
-OLD=2004
+OLD=2005
 NEW=`expr $OLD + 1`
 
 for i in `grep -ErIl 'Copyright.*-'${OLD} .`; do 
