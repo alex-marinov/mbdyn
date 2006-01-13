@@ -115,9 +115,8 @@ protected:
 	Mat3xN Inv5jaj, Inv5jaPj;
 	Vec3 Inv4j, VInv5jaj, VInv5jaPj;
 	Mat3x3 Inv8jTranspose, Inv9jkak;
-#ifdef MODAL_USE_INV9
+	Mat3x3 Inv9jkajak;
 	Mat3x3 Inv9jkajaPk;
-#endif /* MODAL_USE_INV9 */
 
 	VecN a;
 	VecN aPrime;
