@@ -961,7 +961,7 @@ Solver::Run(void)
 		catch (NonlinearSolver::NoConvergence) {
 			silent_cerr(" first dummy step;" << std::endl
 				<< " does not converge;" << std::endl
-				<< "time step dt = " << dCurrTimeStep
+				<< "time step dt=" << dCurrTimeStep
 				<< " cannot be reduced further;"
 				<< std::endl
 				<< "aborting ..." << std::endl);
@@ -1037,7 +1037,7 @@ Solver::Run(void)
 			catch (NonlinearSolver::NoConvergence) {
 				silent_cerr("Dummy step: " << iSubStep << std::endl
 					<< " does not converge;" << std::endl
-					<< "time step dt = " << dCurrTimeStep
+					<< "time step dt=" << dCurrTimeStep
 					<< " cannot be reduced further;"
 					<< std::endl
 					<< "aborting ..." << std::endl);
@@ -1192,11 +1192,11 @@ IfFirstStepIsToBeRepeated:
 	 	}
 
 	    	silent_cerr("Maximum iterations number "
-			<< iStIter
+			<< pRegularSteps->GetIntegratorMaxIters()
 			<< " has been reached during"
-			" first step (time = "
+			" first step (time="
 			<< dTime << ");" << std::endl
-			<< "time step dt = " << dCurrTimeStep
+			<< "time step dt=" << dCurrTimeStep
 			<< " cannot be reduced further;"
 			<< std::endl
 			<< "aborting ..." << std::endl);
@@ -1570,12 +1570,12 @@ IfStepIsToBeRepeated:
 					<< std::endl);
 				goto IfStepIsToBeRepeated;
 	    		} else {
-				silent_cerr("Maximum iterations number "
-					<< iStIter
+				silent_cerr("Max iterations number "
+					<< pRegularSteps->GetIntegratorMaxIters()
 					<< " has been reached during"
 					" step " << iStep << ';'
 					<< std::endl
-					<< "time step dt = "
+					<< "time step dt="
 					<< dCurrTimeStep
 					<< " cannot be reduced"
 					" further;" << std::endl
@@ -1589,12 +1589,13 @@ IfStepIsToBeRepeated:
 			 * Mettere qui eventuali azioni speciali
 			 * da intraprendere in caso di errore ...
 			 */
-			silent_cerr("Simulation diverged before "
+			silent_cerr("Simulation diverged after "
+				<< iStIter << " iterations, before "
 				"reaching max iteration number "
-				<< iStIter
+				<< pRegularSteps->GetIntegratorMaxIters()
 				<< " during step " << iStep << ';'
 				<< std::endl
-				<< "time step dt = "
+				<< "time step dt="
 				<< dCurrTimeStep
 				<< " cannot be reduced"
 				" further;" << std::endl
