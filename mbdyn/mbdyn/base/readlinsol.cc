@@ -341,12 +341,11 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 			}
 			cs.SetNumThreads(nThreads);
 
-		} else {
+		} else if (nThreads != 1) {
 			pedantic_cerr("multithread is meaningless for "
 					<< currSolver.s_name
-					<< " solver" << std::endl);
+					<< " solver; ignored" << std::endl);
 		}
-
 
 	} else {
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT) {
