@@ -580,17 +580,17 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 		 * in base modale (anche questi termini dovrebbero essere
 		 * trascurabili) */
 #if 0
-		for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
-			Inv4j = pInv4->GetVec(iMode);
-			VInv5jaj = Inv5jaj.GetVec(iMode);
-			VInv5jaPj = Inv5jaPj.GetVec(iMode);
-			unsigned int jOffset = (iMode-1)*3+1;
+		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+			Inv4j = pInv4->GetVec(jMode);
+			VInv5jaj = Inv5jaj.GetVec(jMode);
+			VInv5jaPj = Inv5jaPj.GetVec(jMode);
+			unsigned int jOffset = (jMode-1)*3+1;
 			Inv8jTranspose = (pInv8->GetMat3x3(jOffset)).Transpose();
 			if (pInv9 != 0 ) {
 				Inv9jkak = 0.;
 				for (unsigned int kModem1 = 0; kModem1 < NModes; kModem1++)  {
 		 			doublereal a_kMode = a.dGet(kModem1+1);
-		 			integer iOffset = (iMode-1)*3*NModes+kModem1*3+1;
+		 			integer iOffset = (jMode-1)*3*NModes+kModem1*3+1;
 					Inv9jkak += pInv9->GetMat3x3ScalarMult(iOffset, a_kMode);
 				}
 			}
@@ -604,7 +604,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 					}
 		 			temp2 += -(R*(Inv4j+VInv5jaj)).dGet(jCnt)*wrWedge.dGet(iCnt, jCnt);
 				}
-				WM.IncCoef(iRigidOffset+NModes+iMode, 9+iCnt,
+				WM.IncCoef(iRigidOffset+NModes+jMode, 9+iCnt,
 						dCoef*(temp1+temp2));
 			}
 		 	for (int iCnt = 1; iCnt<=3; iCnt++) {
@@ -612,7 +612,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 				for (int jCnt = 1; jCnt<=3; jCnt++) {
 		 			temp1 += (R*VInv5jaPj*2).dGet(jCnt);
 				}
-				WM.IncCoef(iRigidOffset+NModes+iMode, 9+iCnt,
+				WM.IncCoef(iRigidOffset+NModes+jMode, 9+iCnt,
 						dCoef*temp1);
 			}
 		}
@@ -625,11 +625,11 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 
 		/* recupero le forme modali del nodo vincolato */
 		Mat3xN PHIt(NModes), PHIr(NModes);
-		for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
-			integer iOffset = (iMode-1)*NStrNodes+iStrNode;
+		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+			integer iOffset = (jMode-1)*NStrNodes+iStrNode;
 
-			PHIt.PutVec(iMode, pPHIt->GetVec(iOffset));
-			PHIr.PutVec(iMode, pPHIr->GetVec(iOffset));
+			PHIt.PutVec(jMode, pPHIt->GetVec(iOffset));
+			PHIr.PutVec(jMode, pPHIr->GetVec(iOffset));
 		}
 
 		MatNx3 PHItT(NModes), PHIrT(NModes);
@@ -777,11 +777,11 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 		SubMat2.LeftMult(R1totTranspose*M1Wedge, PHIr);
 		SubMat1 += SubMat2;
 		SubMat4.Mult(PHIrT, SubMat1);
-		for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
-			for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
-				WM.IncCoef(iRigidOffset+NModes+iMode,
-						iRigidOffset+jMode,
-						SubMat4.dGet(iMode, jMode));
+		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+			for (unsigned int kMode = 1; kMode <= NModes; kMode++) {
+				WM.IncCoef(iRigidOffset+NModes+jMode,
+						iRigidOffset+kMode,
+						SubMat4.dGet(jMode, kMode));
 			}
 		}
 
@@ -959,29 +959,29 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 	}
 	Mat3x3 Inv10jaPj(Zero3x3);
 
-	for (unsigned int iMode = 1; iMode <= NModes; iMode++)  {
+	for (unsigned int jMode = 1; jMode <= NModes; jMode++)  {
 		Mat3x3 Inv8jajTmp;
 		Mat3x3 Inv10jaPjTmp;
 
-		doublereal a_iMode = a.dGet(iMode);
-		doublereal aP_iMode = b.dGet(iMode);
+		doublereal a_jMode = a.dGet(jMode);
+		doublereal aP_jMode = b.dGet(jMode);
 
 		for (unsigned int jCnt = 1; jCnt <= 3; jCnt++) {
-			unsigned int iMjC = (iMode-1)*3+jCnt;
+			unsigned int iMjC = (jMode-1)*3+jCnt;
 
 			Inv8jajTmp.PutVec(jCnt, pInv8->GetVec(iMjC));
-			Inv10jaPjTmp.PutVec(jCnt, pInv10->GetVec(iMjC)*aP_iMode);
+			Inv10jaPjTmp.PutVec(jCnt, pInv10->GetVec(iMjC)*aP_jMode);
 		}
 
-		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
-			Vec3 v = pInv5->GetVec((iMode-1)*NModes+jMode);
+		for (unsigned int kMode = 1; kMode <= NModes; kMode++) {
+			Vec3 v = pInv5->GetVec((jMode-1)*NModes+kMode);
 
-			Inv5jaj.AddVec(jMode, v*a_iMode);
-			Inv5jaPj.AddVec(jMode, v*aP_iMode);
+			Inv5jaj.AddVec(kMode, v*a_jMode);
+			Inv5jaPj.AddVec(kMode, v*aP_jMode);
 		}
 				
-		Inv8jaj += Inv8jajTmp * a_iMode;
-		Inv8jaPj += Inv8jajTmp * aP_iMode;
+		Inv8jaj += Inv8jajTmp * a_jMode;
+		Inv8jaPj += Inv8jajTmp * aP_jMode;
 		Inv10jaPj += Inv10jaPjTmp;
 
 		if (pInv9 != 0) {
@@ -994,9 +994,9 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 			for (unsigned int kMode = 1; kMode <= NModes; kMode++) {
 				doublereal a_kMode = a.dGet(kMode);
 				doublereal aP_kMode = b.dGet(kMode);
-				unsigned int iOffset = (iMode-1)*3*NModes+(kMode-1)*3+1;
-				Inv9jkajak += pInv9->GetMat3x3ScalarMult(iOffset, a_iMode*a_kMode);
-				Inv9jkajaPk += pInv9->GetMat3x3ScalarMult(iOffset, a_iMode*aP_kMode);
+				unsigned int iOffset = (jMode-1)*3*NModes+(kMode-1)*3+1;
+				Inv9jkajak += pInv9->GetMat3x3ScalarMult(iOffset, a_jMode*a_kMode);
+				Inv9jkajaPk += pInv9->GetMat3x3ScalarMult(iOffset, a_jMode*aP_kMode);
 			}
 		}
 	} /* fine ciclo sui modi */
@@ -1093,14 +1093,14 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 
 	/* forze modali */
 	Mat3x3 Inv10j;
-	for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
-		Vec3 Inv3j = pInv3->GetVec(iMode);
+	for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+		Vec3 Inv3j = pInv3->GetVec(jMode);
 
-		Inv4j = pInv4->GetVec(iMode);
-		VInv5jaj = Inv5jaj.GetVec(iMode);
-		VInv5jaPj = Inv5jaPj.GetVec(iMode);
+		Inv4j = pInv4->GetVec(jMode);
+		VInv5jaj = Inv5jaj.GetVec(jMode);
+		VInv5jaPj = Inv5jaPj.GetVec(jMode);
 
-		unsigned int jOffset = (iMode-1)*3+1;
+		unsigned int jOffset = (jMode-1)*3+1;
 		Inv8jTranspose = (pInv8->GetMat3x3(jOffset)).Transpose();
 		Inv10j = pInv10->GetMat3x3(jOffset);
 
@@ -1109,23 +1109,23 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 
 			for (unsigned int kModem1 = 0; kModem1 < NModes; kModem1++) {
 				doublereal a_kMode = a.dGet(kModem1+1);
-				integer iOffset = (iMode-1)*3*NModes+kModem1*3+1;
+				integer iOffset = (jMode-1)*3*NModes+kModem1*3+1;
 	
 				Inv9jkak += pInv9->GetMat3x3ScalarMult(iOffset, a_kMode);
 			}
 
-			WorkVec.IncCoef(iRigidOffset + NModes + iMode,
+			WorkVec.IncCoef(iRigidOffset + NModes + jMode,
 				- (R*Inv3j).Dot(vP) - (R*(Inv4j + VInv5jaj)).Dot(wP)
 				+ w.Dot(R*((Inv8jTranspose - Inv9jkak + Inv10j)*RTw))
 				- (R*VInv5jaPj).Dot(w)*2.
-				- MaPP.dGet(iMode) - CaP.dGet(iMode) - Ka.dGet(iMode));
+				- MaPP.dGet(jMode) - CaP.dGet(jMode) - Ka.dGet(jMode));
 
 		} else {
-			WorkVec.IncCoef(iRigidOffset + NModes + iMode,
+			WorkVec.IncCoef(iRigidOffset + NModes + jMode,
 				- (R*Inv3j).Dot(vP) - (R*(Inv4j + VInv5jaj)).Dot(wP)
 				+ w.Dot(R*((Inv8jTranspose + Inv10j)*RTw))
 				- (R*VInv5jaPj).Dot(w)*2.
-				- MaPP.dGet(iMode) - CaP.dGet(iMode) - Ka.dGet(iMode));
+				- MaPP.dGet(jMode) - CaP.dGet(jMode) - Ka.dGet(jMode));
 		}
 
 #if 0
@@ -1137,14 +1137,14 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 			<< w.Dot(R*((Inv8jTranspose+Inv10j)*RTw)) << std::endl
 			<< " -(R*VInv5jaPj).Dot(w)*2."
 			<< -(R*VInv5jaPj).Dot(w)*2.<< std::endl
-			<< " -CaP.dGet(iMode)" << -CaP.dGet(iMode)<< std::endl
-			<< "-Ka.dGet(iMode) "
-			<< -CaP.dGet(iMode)-Ka.dGet(iMode) << std::endl;
+			<< " -CaP.dGet(jMode)" << -CaP.dGet(jMode)<< std::endl
+			<< "-Ka.dGet(jMode) "
+			<< -CaP.dGet(jMode)-Ka.dGet(jMode) << std::endl;
 #endif
 #ifdef MODAL_USE_GRAVITY
 		/* forza di gravita': */
 		if (bGravity) {
-			WorkVec.IncCoef(iRigidOffset+NModes+iMode,
+			WorkVec.IncCoef(iRigidOffset+NModes+jMode,
 					(R*Inv3j).Dot(GravityAcceleration));
 		}
 #endif /* MODAL_USE_GRAVITY */
@@ -1168,10 +1168,10 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 		/* recupero le forme modali del nodo vincolato */
 		/* FIXME: what about using Blitz++ ? :) */
 		Mat3xN PHIt(NModes), PHIr(NModes);
-		for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
-			integer iOffset = (iMode-1)*NStrNodes+iStrNode;
-			PHIt.PutVec(iMode, pPHIt->GetVec(iOffset));
-			PHIr.PutVec(iMode, pPHIr->GetVec(iOffset));
+		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+			integer iOffset = (jMode-1)*NStrNodes+iStrNode;
+			PHIt.PutVec(jMode, pPHIt->GetVec(iOffset));
+			PHIr.PutVec(jMode, pPHIr->GetVec(iOffset));
 		}
 
 		/*
@@ -1203,10 +1203,10 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 		/* termine aggiuntivo dovuto alla deformabilita':
 		 * -PHItiT*RT*F */
 		Vec3 vtemp = RT*pF[iStrNodem1];
-		for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
-			/* PHItTranspose(iMode) * vtemp */
-			WorkVec.DecCoef(iRigidOffset+NModes+iMode,
-					PHIt.GetVec(iMode)*vtemp);
+		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+			/* PHItTranspose(jMode) * vtemp */
+			WorkVec.DecCoef(iRigidOffset+NModes+jMode,
+					PHIt.GetVec(jMode)*vtemp);
 		}
 
 		/* Eq. d'equilibrio, nodo 2 */
@@ -1243,10 +1243,10 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 
 		/* Contributo dovuto alla flessibilita' :-PHIrT*RtotT*M */
 		vtemp = pR1tot[iStrNodem1].Transpose()*MTmp;
-		for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
-			/* PHIrTranspose(iMode) * vtemp */
-			WorkVec.DecCoef(iRigidOffset+NModes+iMode,
-					PHIr.GetVec(iMode)*vtemp);
+		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+			/* PHIrTranspose(jMode) * vtemp */
+			WorkVec.DecCoef(iRigidOffset+NModes+jMode,
+					PHIr.GetVec(jMode)*vtemp);
 		}
 
 		/* Modifica: divido le equazioni di vincolo per dCoef */
@@ -1385,9 +1385,9 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		Mat3xN PHIt(NModes,0), PHIr(NModes, 0);
 		MatNx3 PHItT(NModes, 0), PHIrT(NModes, 0);
 
-		for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
-			PHIt.PutVec(iMode, pPHIt->GetVec((iMode-1)*NStrNodes+iStrNode));
-			PHIr.PutVec(iMode, pPHIr->GetVec((iMode-1)*NStrNodes+iStrNode));
+		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+			PHIt.PutVec(jMode, pPHIt->GetVec((jMode-1)*NStrNodes+iStrNode));
+			PHIr.PutVec(jMode, pPHIr->GetVec((jMode-1)*NStrNodes+iStrNode));
 		}
 
 		PHItT.Transpose(PHIt);
@@ -1597,10 +1597,10 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		SubMat3.LeftMult(R1totT*M1Wedge, PHIr);
 		SubMat1 += SubMat3;
 		SubMat4.Mult(PHIrT, SubMat1);
-		for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
-			for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
-				WM.IncCoef(iRigidOffset+iMode, iRigidOffset+jMode,
-						SubMat4.dGet(iMode,jMode));
+		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+			for (unsigned int kMode = 1; kMode <= NModes; kMode++) {
+				WM.IncCoef(iRigidOffset+jMode, iRigidOffset+kMode,
+						SubMat4.dGet(jMode,kMode));
 			}
 		}
 
@@ -1844,9 +1844,9 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 		integer iOffset2 = iRigidOffset+iGetInitialNumDof()+12*iStrNodem1;
 
 		for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-			for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
-				PHIt.Put(iCnt, iMode, pPHIt->dGet(iCnt, (iMode-1)*NStrNodes+iStrNode));
-				PHIr.Put(iCnt, iMode, pPHIr->dGet(iCnt, (iMode-1)*NStrNodes+iStrNode));
+			for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+				PHIt.Put(iCnt, jMode, pPHIt->dGet(iCnt, (jMode-1)*NStrNodes+iStrNode));
+				PHIr.Put(iCnt, jMode, pPHIr->dGet(iCnt, (jMode-1)*NStrNodes+iStrNode));
 			}
 		}
 
@@ -1890,12 +1890,12 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 		}
 
 		/* Eq. d'equilibrio ai modi */
-		for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
+		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
 			doublereal temp = 0.;
 			for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-				temp += PHIt.dGet(iCnt, iMode)*(RT*F).dGet(iCnt);
+				temp += PHIt.dGet(iCnt, jMode)*(RT*F).dGet(iCnt);
 			}
-			WorkVec.DecCoef(iRigidOffset+iMode, temp);
+			WorkVec.DecCoef(iRigidOffset+jMode, temp);
 		}
 
 		/* Derivate delle equazioni di equilibrio, nodo 1 */
@@ -1907,13 +1907,13 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 		/* Derivata dell'eq. di equilibrio ai modi */
 		MatNx3 PHItTR1T(NModes);
 		PHItTR1T.RightMult(PHItT, RT);
-		for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
+		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
 			doublereal temp = 0.;
 
 			for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-				temp += PHItTR1T.dGet(iMode,iCnt)*(Omega1.Cross(F)-FPrime).dGet(iCnt);
+				temp += PHItTR1T.dGet(jMode,iCnt)*(Omega1.Cross(F)-FPrime).dGet(iCnt);
 			}
-			WorkVec.IncCoef(iRigidOffset+NModes+iMode, temp);
+			WorkVec.IncCoef(iRigidOffset+NModes+jMode, temp);
 		}
 
 		/* Equazioni di equilibrio, nodo 2 */
@@ -1954,13 +1954,13 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 		WorkVec.Add(iOffset2+3+1, MTmp);
 
 		/* Equazioni di equilibrio, contributo modale */
-		for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
+		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
 			doublereal temp = 0;
 			
 			for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-				temp += PHIrT.dGet(iMode, iCnt)*(R1totT*MTmp).dGet(iCnt);
+				temp += PHIrT.dGet(jMode, iCnt)*(R1totT*MTmp).dGet(iCnt);
 			}
-			WorkVec.DecCoef(iRigidOffset+iMode, temp);
+			WorkVec.DecCoef(iRigidOffset+jMode, temp);
 		}
 
 		/* eaPrime = w/\ea + R*[(PHIr*b)/\]ia */
@@ -1993,14 +1993,14 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 		Vec3 T1 = MTmpPrime-Omega1.Cross(MTmp);
 		Vec3 T2 = (PHIr*b).Cross(RT*MTmp);
 
-		for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
+		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
 			doublereal temp = 0;
 			
 			for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-				temp += SubMat1.dGet(iMode, iCnt)*T1.dGet(iCnt)
-					-PHIrT.dGet(iMode, iCnt)*T2.dGet(iCnt);
+				temp += SubMat1.dGet(jMode, iCnt)*T1.dGet(iCnt)
+					-PHIrT.dGet(jMode, iCnt)*T2.dGet(iCnt);
 			}
-			WorkVec.DecCoef(iRigidOffset+NModes+iMode, temp);
+			WorkVec.DecCoef(iRigidOffset+NModes+jMode, temp);
 		}
 
 		/* Equazioni di vincolo di rotazione */
@@ -2135,11 +2135,11 @@ Modal::GetCurrFemNodesPosition(void)
 		x = pModalNode->GetXCurr();
 	}
 
-	for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
+	for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
 		for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
       			for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
 				pCurrXYZ->Add(iCnt, iNode,
-					pXYZFemNodes->dGet(iCnt, iNode) + pModeShapest->dGet(iCnt, (iMode-1)*NFemNodes+iNode) * a.dGet(iMode) );
+					pXYZFemNodes->dGet(iCnt, iNode) + pModeShapest->dGet(iCnt, (jMode-1)*NFemNodes+iNode) * a.dGet(jMode) );
 			}
 		}
 	}
@@ -2173,12 +2173,12 @@ Modal::GetCurrFemNodesVelocity(void)
 	Mat3x3 wWedge(w);
 
       	Mat3xN CurrXYZTmp(NFemNodes, 0.);
-	for (unsigned int iMode = 1; iMode <= NModes; iMode++) {
+	for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
 		for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
       			for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-				doublereal d = pModeShapest->dGet(iCnt,(iMode-1)*NFemNodes+iNode);
-				pCurrXYZVel->Add(iCnt, iNode, pXYZFemNodes->dGet(iCnt,iNode) + d * a.dGet(iMode) );
-				CurrXYZTmp.Add(iCnt, iNode,d * b.dGet(iMode) );
+				doublereal d = pModeShapest->dGet(iCnt,(jMode-1)*NFemNodes+iNode);
+				pCurrXYZVel->Add(iCnt, iNode, pXYZFemNodes->dGet(iCnt,iNode) + d * a.dGet(jMode) );
+				CurrXYZTmp.Add(iCnt, iNode,d * b.dGet(jMode) );
 			}
 		}
 	}
@@ -2443,8 +2443,6 @@ ReadModal(DataManager* pDM,
 
 	VecN *a = NULL;                    /* spostamenti e velocita' modali */
 	VecN *aP = NULL;
-
-	unsigned int iNode, iMode, jMode, iStrNode;
 
 	/* input file */
 	const char *s = HP.GetFileName();
@@ -2715,7 +2713,7 @@ ReadModal(DataManager* pDM,
 					throw ErrGeneric();
 				}
 
-				for (iNode = 1; iNode <= NFemNodes; iNode++) {
+				for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
 					fdat >> IdFemNodes[iNode-1];
 				}
 
@@ -2749,14 +2747,14 @@ ReadModal(DataManager* pDM,
 					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
-				for (iMode = 1; iMode <= NModesFEM; iMode++) {
+				for (unsigned int jMode = 1; jMode <= NModesFEM; jMode++) {
 					fdat >> d;
 
 					if (bWriteBIN) {
 						fbin.write((char *)&d, sizeof(d));
 					}
 					
-					if (!bActiveModes[iMode]) {
+					if (!bActiveModes[jMode]) {
 						continue;
 					}
 					a->Put(iCnt, d);
@@ -2787,14 +2785,14 @@ ReadModal(DataManager* pDM,
 					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
-				for (iMode = 1; iMode <= NModesFEM; iMode++) {
+				for (unsigned int jMode = 1; jMode <= NModesFEM; jMode++) {
 					fdat >> d;
 
 					if (bWriteBIN) {
 						fbin.write((char *)&d, sizeof(d));
 					}
 					
-					if (!bActiveModes[iMode]) {
+					if (!bActiveModes[jMode]) {
 						continue;
 					}
 					aP->Put(iCnt, d);
@@ -2815,7 +2813,7 @@ ReadModal(DataManager* pDM,
 					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
-				for (iNode = 1; iNode <= NFemNodes; iNode++) {
+				for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
 					fdat >> d;
 					
 					if (bWriteBIN) {
@@ -2842,7 +2840,7 @@ ReadModal(DataManager* pDM,
 					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
-				for (iNode = 1; iNode <= NFemNodes; iNode++) {
+				for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
 					fdat >> d;
 
 					if (bWriteBIN) {
@@ -2869,7 +2867,7 @@ ReadModal(DataManager* pDM,
 					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
-				for (iNode = 1; iNode <= NFemNodes; iNode++) {
+				for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
 					fdat >> d;
 
 					if (bWriteBIN) {
@@ -2896,7 +2894,7 @@ ReadModal(DataManager* pDM,
 					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
-				for (iMode = 1; iMode <= NRejModes; iMode++) {
+				for (unsigned int jMode = 1; jMode <= NRejModes; jMode++) {
 					/* FIXME: siamo sicuri di avere 
 					 * raggiunto '\n'? */
 					fdat.getline(str, sizeof(str));
@@ -2912,9 +2910,9 @@ ReadModal(DataManager* pDM,
 				}
 	
 				unsigned int iCnt = 1;
-				for (iMode = 1; iMode <= NModesFEM; iMode++) {
+				for (unsigned int jMode = 1; jMode <= NModesFEM; jMode++) {
 					fdat.getline(str, sizeof(str));
-					for (iNode = 1; iNode <= NFemNodes; iNode++) {
+					for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
 						doublereal n[6];
 	
 						fdat >> n[0] >> n[1] >> n[2]
@@ -2924,7 +2922,7 @@ ReadModal(DataManager* pDM,
 							fbin.write((char *)n, sizeof(n));
 						}
 	
-						if (!bActiveModes[iMode]) {
+						if (!bActiveModes[jMode]) {
 							continue;
 						}
 
@@ -2937,7 +2935,7 @@ ReadModal(DataManager* pDM,
 						pModeShapesr->PutVec((iCnt-1)*NFemNodes+iNode, Vec3(&n[3]));
 					}
 
-					if (bActiveModes[iMode]) {
+					if (bActiveModes[jMode]) {
 						iCnt++;
 					}
 					fdat.getline(str, sizeof(str));
@@ -2966,24 +2964,24 @@ ReadModal(DataManager* pDM,
 				}
 
 				unsigned int iCnt = 1;
-				for (iMode = 1; iMode <= NModesFEM; iMode++) {
+				for (unsigned int jMode = 1; jMode <= NModesFEM; jMode++) {
 					unsigned int jCnt = 1;
 	
-					for (jMode = 1; jMode <= NModesFEM; jMode++) {
+					for (unsigned int kMode = 1; kMode <= NModesFEM; kMode++) {
 						fdat >> d;
 
 						if (bWriteBIN) {
 							fbin.write((char *)&d, sizeof(d));
 						}
 						
-						if (!bActiveModes[iMode] || !bActiveModes[jMode]) {
+						if (!bActiveModes[jMode] || !bActiveModes[kMode]) {
 							continue;
 						}
 						pGenMass->Put(iCnt, jCnt, d);
 						jCnt++;
 					}
 	
-					if (bActiveModes[iMode]) {
+					if (bActiveModes[jMode]) {
 						iCnt++;
 					}
 				}
@@ -3011,24 +3009,24 @@ ReadModal(DataManager* pDM,
 				}
 
 				unsigned int iCnt = 1;
-				for (iMode = 1; iMode <= NModesFEM; iMode++) {
+				for (unsigned int jMode = 1; jMode <= NModesFEM; jMode++) {
 					unsigned int jCnt = 1;
 	
-					for (jMode = 1; jMode <= NModesFEM; jMode++) {
+					for (unsigned int kMode = 1; kMode <= NModesFEM; kMode++) {
 						fdat >> d;
 						
 						if (bWriteBIN) {
 							fbin.write((char *)&d, sizeof(d));
 						}
 						
-						if (!bActiveModes[iMode] || !bActiveModes[jMode]) {
+						if (!bActiveModes[jMode] || !bActiveModes[kMode]) {
 							continue;
 						}
 						pGenStiff->Put(iCnt, jCnt, d);
 						jCnt++;
 					}
 
-					if (bActiveModes[iMode]) {
+					if (bActiveModes[jMode]) {
 						iCnt++;
 					}
 				}
@@ -3047,7 +3045,8 @@ ReadModal(DataManager* pDM,
 					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
-				for (iNode = 1; iNode <= NFemNodes; iNode++) {
+				for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
+					doublereal tmpmass = 0.;
 					for (unsigned int jCnt = 1; jCnt <= 6; jCnt++) {
 						fdat >> d;
 
@@ -3057,10 +3056,20 @@ ReadModal(DataManager* pDM,
 						
 						switch (jCnt) {
 						case 1:
+							tmpmass = d;
 #ifdef MODAL_SCALE_DATA
 							d *= scalemass;
 #endif /* MODAL_SCALE_DATA */
 							FemMass.Put(iNode, d);
+							break;
+
+						case 2:
+						case 3:
+							if (d != tmpmass) {
+								silent_cout("Warning: component(" << jCnt << ") "
+									"of FEM node(" << iNode << ") mass "
+									"differs from component(1)=" << tmpmass << std::endl);
+							}
 							break;
 					
 						case 4:
@@ -3195,13 +3204,12 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric();
 		}
 
-		unsigned int	iCnt;
-		doublereal	d;
+		for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
+			doublereal	d;
 
-		for (iCnt = 1, iMode = 1; iMode <= NModesFEM; iMode++) {
 			fbin.read((char *)&d, sizeof(d));
 				
-			if (!bActiveModes[iMode]) {
+			if (!bActiveModes[jMode]) {
 				continue;
 			}
 
@@ -3219,10 +3227,12 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric();
 		}
 
-		for (iCnt = 1, iMode = 1; iMode <= NModesFEM; iMode++) {
+		for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
+			doublereal	d;
+
 			fbin.read((char *)&d, sizeof(d));
 				
-			if (!bActiveModes[iMode]) {
+			if (!bActiveModes[jMode]) {
 				continue;
 			}
 
@@ -3240,7 +3250,9 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric();
 		}
 
-		for (iNode = 1; iNode <= NFemNodes; iNode++) {
+		for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
+			doublereal	d;
+
 			fbin.read((char *)&d, sizeof(d));
 
 #ifdef MODAL_SCALE_DATA
@@ -3260,7 +3272,9 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric();
 		}
 
-		for (iNode = 1; iNode <= NFemNodes; iNode++) {
+		for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
+			doublereal	d;
+
 			fbin.read((char *)&d, sizeof(d));
 
 #ifdef MODAL_SCALE_DATA
@@ -3280,7 +3294,9 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric();
 		}
 
-		for (iNode = 1; iNode <= NFemNodes; iNode++) {
+		for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
+			doublereal	d;
+
 			fbin.read((char *)&d, sizeof(d));
 
 #ifdef MODAL_SCALE_DATA
@@ -3300,13 +3316,13 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric();
 		}
 
-		for (iCnt = 1, iMode = 1; iMode <= NModesFEM; iMode++) {
-			for (iNode = 1; iNode <= NFemNodes; iNode++) {
+		for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
+			for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
 				doublereal n[6];
 	
 				fbin.read((char *)n, sizeof(n));
 	
-				if (!bActiveModes[iMode]) {
+				if (!bActiveModes[jMode]) {
 					continue;
 				}
 
@@ -3319,7 +3335,7 @@ ReadModal(DataManager* pDM,
 				pModeShapesr->PutVec((iCnt-1)*NFemNodes+iNode, Vec3(&n[3]));
 			}
 
-			if (bActiveModes[iMode]) {
+			if (bActiveModes[jMode]) {
 				iCnt++;
 			}
 		}
@@ -3334,20 +3350,22 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric();
 		}
 
-		for (iCnt = 1, iMode = 1; iMode <= NModesFEM; iMode++) {
+		for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
 			unsigned int jCnt = 1;
 	
-			for (jMode = 1; jMode <= NModesFEM; jMode++) {
+			for (unsigned int kMode = 1; kMode <= NModesFEM; kMode++) {
+				doublereal	d;
+
 				fbin.read((char *)&d, sizeof(d));
 
-				if (!bActiveModes[iMode] || !bActiveModes[jMode]) {
+				if (!bActiveModes[jMode] || !bActiveModes[kMode]) {
 					continue;
 				}
 				pGenMass->Put(iCnt, jCnt, d);
 				jCnt++;
 			}
 	
-			if (bActiveModes[iMode]) {
+			if (bActiveModes[jMode]) {
 				iCnt++;
 			}
 		}
@@ -3362,20 +3380,22 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric();
 		}
 
-		for (iCnt = 1, iMode = 1; iMode <= NModesFEM; iMode++) {
+		for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
 			unsigned int jCnt = 1;
 	
-			for (jMode = 1; jMode <= NModesFEM; jMode++) {
+			for (unsigned int kMode = 1; kMode <= NModesFEM; kMode++) {
+				doublereal	d;
+
 				fbin.read((char *)&d, sizeof(d));
 
-				if (!bActiveModes[iMode] || !bActiveModes[jMode]) {
+				if (!bActiveModes[jMode] || !bActiveModes[kMode]) {
 					continue;
 				}
 				pGenStiff->Put(iCnt, jCnt, d);
 				jCnt++;
 			}
 	
-			if (bActiveModes[iMode]) {
+			if (bActiveModes[jMode]) {
 				iCnt++;
 			}
 		}
@@ -3390,8 +3410,10 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric();
 		}
 
-		for (iNode = 1; iNode <= NFemNodes; iNode++) {
+		for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
 			for (unsigned int jCnt = 1; jCnt <= 6; jCnt++) {
+				doublereal	d;
+
 				fbin.read((char *)&d, sizeof(d));
 						
 				switch (jCnt) {
@@ -3457,6 +3479,7 @@ ReadModal(DataManager* pDM,
 	if (HP.IsKeyWord("origin" "node")) {
 		/* numero di nodi FEM del modello */
 		unsigned int NFemOriginNode = HP.GetInt();
+		unsigned int iNode;
 
 		for (iNode = 0; iNode < NFemNodes; iNode++) {
 			if (NFemOriginNode == IdFemNodes[iNode]) {
@@ -3477,7 +3500,7 @@ ReadModal(DataManager* pDM,
 
 		pedantic_cout("Modal(" << uLabel << "): origin x={" << Origin << "}" << std::endl);
 
-		for (iStrNode = 1; iStrNode <= NFemNodes; iStrNode++) {
+		for (unsigned int iStrNode = 1; iStrNode <= NFemNodes; iStrNode++) {
 			pXYZFemNodes->SubVec(iStrNode, Origin);
 		}
 	}
@@ -3498,11 +3521,12 @@ ReadModal(DataManager* pDM,
 	SAFENEWARR(IntFEMNodes, unsigned int, NStrNodes);
 	SAFENEWARR(IntMBNodes, unsigned int, NStrNodes);
 
-	for (iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
+	for (unsigned int iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
 		/* nodo collegato 1 (è il nodo FEM) */
 		unsigned int uNode1 = (unsigned int)HP.GetInt();
 		DEBUGCOUT("Linked to FEM Node " << uNode1 << std::endl);
 
+		unsigned int iNode;
 		/* verifica di esistenza del nodo 1*/
 		for (iNode = 0; iNode < NFemNodes; iNode++) {
 			if (uNode1 == IdFemNodes[iNode]) {
@@ -3534,11 +3558,11 @@ ReadModal(DataManager* pDM,
 
 		/* salva le forme modali del nodo d'interfaccia
 		 * nell'array pPHIStrNode */
-		for (iMode = 0; iMode < NModes; iMode++) {
-			pPHItStrNode->PutVec(iMode*NStrNodes+iStrNode,
-					pModeShapest->GetVec(iMode*NFemNodes+iNodeCurr));
-			pPHIrStrNode->PutVec(iMode*NStrNodes+iStrNode,
-					pModeShapesr->GetVec(iMode*NFemNodes+iNodeCurr));
+		for (unsigned int jMode = 0; jMode < NModes; jMode++) {
+			pPHItStrNode->PutVec(jMode*NStrNodes+iStrNode,
+					pModeShapest->GetVec(jMode*NFemNodes+iNodeCurr));
+			pPHIrStrNode->PutVec(jMode*NStrNodes+iStrNode,
+					pModeShapesr->GetVec(jMode*NFemNodes+iNodeCurr));
 		}
 
 		/* nodo collegato 2 (e' il nodo multibody) */
@@ -3591,7 +3615,7 @@ ReadModal(DataManager* pDM,
 	 */
 
 	/* inizio ciclo scansione nodi */
-	for (iNode = 1; iNode <= NFemNodes; iNode++) {
+	for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
 		doublereal mi = FemMass.dGet(iNode);
 
 		/* massa totale (Inv 1) */
@@ -3611,11 +3635,11 @@ ReadModal(DataManager* pDM,
 		STmp += ui*mi;
 
 		/* estrae le forme modali del nodo i-esimo */
-		for (iMode = 1; iMode <= NModes; iMode++) {
-			unsigned int iOffset = (iMode-1)*NFemNodes+iNode;
+		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+			unsigned int iOffset = (jMode-1)*NFemNodes+iNode;
 
-			PHIti.PutVec(iMode, pModeShapest->GetVec(iOffset));
-			PHIri.PutVec(iMode, pModeShapesr->GetVec(iOffset));
+			PHIti.PutVec(jMode, pModeShapest->GetVec(iOffset));
+			PHIri.PutVec(jMode, pModeShapesr->GetVec(iOffset));
 		}
 
 		Mat3xN Inv3Tmp(NModes, 0.);
@@ -3635,9 +3659,9 @@ ReadModal(DataManager* pDM,
 		*pInv11 += Inv4JTmp;
 
 		/* inizio ciclo scansione modi */
-		for (iMode = 1; iMode <= NModes; iMode++) {
-			Vec3 PHItij = PHIti.GetVec(iMode);
-			Vec3 PHIrij = PHIri.GetVec(iMode);
+		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+			Vec3 PHItij = PHIti.GetVec(jMode);
+			Vec3 PHIrij = PHIri.GetVec(jMode);
 
 			Mat3x3 PHItijvett_mi(PHItij*mi);
 			Mat3xN Inv5jTmp(NModes, 0);
@@ -3645,15 +3669,15 @@ ReadModal(DataManager* pDM,
 			/* Inv5 = mi*PHItij/\*PHIti,
 			 * i = 1,...nnodi, j = 1,...nmodi */
 			Inv5jTmp.LeftMult(PHItijvett_mi, PHIti);
-			for (jMode = 1; jMode <= NModes; jMode++)  {
-				pInv5->AddVec((iMode-1)*NModes+jMode,
-						Inv5jTmp.GetVec(jMode));
+			for (unsigned int kMode = 1; kMode <= NModes; kMode++)  {
+				pInv5->AddVec((jMode-1)*NModes+kMode,
+						Inv5jTmp.GetVec(kMode));
 			}
 
 			/* Inv8 = -mi*ui/\*PHItij/\,
 			 * i = 1,...nnodi, j = 1,...nmodi */
 			Mat3x3 Inv8jTmp = -uivett*PHItijvett_mi;
-			pInv8->AddMat3x3((iMode-1)*3+1, Inv8jTmp);
+			pInv8->AddMat3x3((jMode-1)*3+1, Inv8jTmp);
 
 			/* Inv9 = mi*PHItij/\*PHItik/\,
 			 * i = 1,...nnodi, j, k = 1...nmodi */
@@ -3662,14 +3686,14 @@ ReadModal(DataManager* pDM,
 					Mat3x3 PHItikvett(PHIti.GetVec(kMode));
 					Mat3x3 Inv9jkTmp = PHItijvett_mi*PHItikvett;
 
-					pInv9->AddMat3x3((iMode-1)*3*NModes+(kMode-1)*3+1, Inv9jkTmp);
+					pInv9->AddMat3x3((jMode-1)*3*NModes+(kMode-1)*3+1, Inv9jkTmp);
 				}
 			}
 
 			/* Inv10 = [PHIrij/\][J0i],
 			 * i = 1,...nnodi, j = 1,...nmodi */
 			Mat3x3 Inv10jTmp = Mat3x3(PHIrij)*JiNodeTmp;
-			pInv10->AddMat3x3((iMode-1)*3+1, Inv10jTmp);
+			pInv10->AddMat3x3((jMode-1)*3+1, Inv10jTmp);
 		} /*  fine ciclo scansione modi */
 	} /* fine ciclo scansione nodi */
 
@@ -3735,33 +3759,33 @@ ReadModal(DataManager* pDM,
 		silent_cout(std::endl);
 	}
 	
-	for (iMode = 1; iMode <= NModes; iMode++) {
-		silent_cout("Inv5j(j=" << iMode << "): " << std::endl);
+	for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+		silent_cout("Inv5j(j=" << jMode << "): " << std::endl);
 		for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-			for (jMode = 1; jMode <= NModes; jMode++) {
-				silent_cout(" " << pInv5->dGet(iCnt, (iMode-1)*NModes+jMode));
+			for (unsigned int kMode = 1; kMode <= NModes; kMode++) {
+				silent_cout(" " << pInv5->dGet(iCnt, (jMode-1)*NModes+kMode));
 			}
 			silent_cout(std::endl);
 		}
 	}
 	
-	for (iMode = 1; iMode <= NModes; iMode++) {
-		silent_cout("Inv8j(j=" << iMode << "): " << std::endl);
+	for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+		silent_cout("Inv8j(j=" << jMode << "): " << std::endl);
 		for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
 			for (unsigned int jCnt = 1; jCnt <= 3; jCnt++) {
-				silent_cout(" " << pInv8->dGet(iCnt, (iMode-1)*3+jCnt));
+				silent_cout(" " << pInv8->dGet(iCnt, (jMode-1)*3+jCnt));
 			}
 			silent_cout(std::endl);
 		}
 	}
 
 	if (pInv9 != 0) {
-		for (iMode = 1; iMode <= NModes; iMode++) {
-			for (jMode = 1; jMode <= NModes; jMode++) {
-				silent_cout("Inv9jk(j=" << iMode << ",k=" << jMode << "): " << std::endl);
+		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+			for (unsigned int kMode = 1; kMode <= NModes; kMode++) {
+				silent_cout("Inv9jk(j=" << jMode << ",k=" << kMode << "): " << std::endl);
 				for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
 					for (unsigned int jCnt = 1; jCnt <= 3; jCnt++) {
-						silent_cout(" " << pInv9->dGet(iCnt, (iMode-1)*3*NModes+(jMode-1)*3+jCnt));
+						silent_cout(" " << pInv9->dGet(iCnt, (jMode-1)*3*NModes+(kMode-1)*3+jCnt));
 					}
 					silent_cout(std::endl);
 				}

@@ -1,0 +1,230 @@
+\subsection{Kinematics}
+Position of an arbitrary point $P$
+\begin{equation}
+	\T{x}_P = \T{x}_0 + \T{f}_P + \T{u}_P
+\end{equation}
+where $\T{x}_0$ is the position of the point that describes the global
+motion of the body,
+$\T{f}_P$ is the relative position of the point when the body 
+is undeformed,
+and $\T{u}_P$ is the relative displacement of the point when the body
+is deformed.
+
+It can be rewritten as
+\begin{equation}
+	\T{x}_P = \T{x}_0 + \T{R}_0\plbr{\tilde{\T{f}}_P + \tilde{\T{u}}_P}
+\end{equation}
+where $\T{R}_0$ is the global orientation matrix of the body,
+and the \emph{tilde} $\plbr{\tilde{\cdot}}$ indicates entities
+expressed in the reference frame attached to the body.
+
+The deformation of the body is expressed by a linear combination
+of displacement shapes
+\begin{equation}
+	\tilde{\T{u}}_P = \sum_{j=1,M} \T{U}_{Pj} q_j = \T{U}_P \T{q}
+\end{equation}
+where $\T{U}_{Pj}$ is the vector containing the components
+of the $j$-th displacement shape related to point $P$.
+
+The orientation of the generic point $P$ is
+\begin{equation}
+	\T{R}_P = \T{R}_0 \tilde{\T{R}}_P
+\end{equation}
+and, assuming a representation of the relative orientation by a linear
+combination of rotation shapes
+\begin{equation}
+	\tilde{\T{\phi}} = \sum_{j=1,M} \T{V}_{Pj} q_j = \T{V}_P \T{q}
+\end{equation}
+it results in a linearized orientation
+\begin{equation}
+	\T{R}_P \cong \T{R}_0 \plbr{\T{I} + \plbr{\T{V}_P \T{q}}\times{}}
+\end{equation}
+which is no longer orthogonal.
+
+The first and second derivatives of position and orientation yield:
+\begin{align}
+	\dot{\T{x}}_P &= \dot{\T{x}}_0
+		+ \T{\omega}_0 \times \T{R}_0 \plbr{\tilde{\T{f}}_P + \T{U}_P \T{q}}
+		+ \T{R}_0 \T{U}_P \dot{\T{q}} \\
+	\T{\omega}_P &= \T{\omega}_0
+		+ \T{R}_0 \T{V}_P \dot{\T{q}} \\
+	\ddot{\T{x}}_P &= \ddot{\T{x}}_0
+		+ \dot{\T{\omega}}_0 \times \T{R}_0 \plbr{\tilde{\T{f}}_P + \T{U}_P \T{q}}
+		+ \T{\omega}_0 \times \T{\omega}_0 \times \T{R}_0 \plbr{\tilde{\T{f}}_P + \T{U}_P \T{q}} \nonumber \\
+		& \mbox{} + 2 \T{\omega}_0 \times \T{R}_0 \T{U}_P \dot{\T{q}}
+		+ \T{R}_0 \T{U}_P \ddot{\T{q}} \\
+	\dot{\T{\omega}}_P &= \dot{\T{\omega}}_0
+		+ \T{\omega}_0 \times \T{R}_0 \T{V}_P \dot{\T{q}}
+		+ \T{R}_0 \T{V}_P \ddot{\T{q}}
+\end{align}
+
+The virtual perturbation of the position and orientation
+of the generic point $P$ are:
+\begin{align}
+	\delta{\T{x}}_P &= \delta{\T{x}}_0
+		+ \delta\T{\phi}_0 \times \T{R}_0 \plbr{\tilde{\T{f}} + \T{U} \T{q}}
+		+ \T{R}_0 \T{U} \delta{\T{q}} \\
+	\delta\T{\phi}_P &= \delta\T{\phi}_0
+		+ \T{R}_0 \T{V} \delta{\T{q}}
+\end{align}
+
+From now on, it is assumed that the structure of the problem is
+given in form of lumped inertia parameters in specific points,
+corresponding to FEM nodes, and that the node corresponds to the
+center of mass of each lumped mass.
+So the nodal mass of the $i$-th FEM node is
+\begin{equation}
+	\T{M}_i = \sqbr{\matr{cc}{
+		m_i \T{I} & \T{0} \\
+		\T{0} & \T{J}_i
+	}}
+\end{equation}
+There is no requirement for matrix $\T{J}_i$ to be diagonal.
+
+The inertia forces and moments acting on each FEM node are:
+\begin{align}
+	\T{F}_i &= - m_i \ddot{\T{x}}_i \\
+	\T{C}_i &= - \T{R}_i \T{J}_i \T{R}_i^T \dot{\T{\omega}}_i
+\end{align}
+and the virtual work done by the inertia forces is
+\begin{equation}
+	\delta{L} = \sum_{i=1,N} \plbr{
+		\delta{\T{x}}_i^T \T{F}_i
+		+ \delta\T{\phi}_i^T \T{C}_i
+	}
+\end{equation}
+which results in
+\begin{equation}
+	\delta{L} = \cubr{\cvvect{
+		\delta\T{x}_0 \\
+		\delta\T{\phi}_0 \\
+		\delta\T{q}
+	}}^T \plbr{
+	\sqbr{\matr{ccc}{
+		\T{M}_{xx} & \T{M}_{x\phi} & \T{M}_{xq} \\
+			& \T{M}_{\phi\phi} & \T{M}_{\phi q} \\
+		\llk{sym.} & & \T{M}_{qq}
+	}} \cubr{\cvvect{
+		\ddot{\T{x}}_0 \\
+		\dot{\T{\omega}}_0 \\
+		\ddot{\T{q}}
+	}} + \cubr{\cvvect{
+		\T{F}_x \\
+		\T{F}_{\phi} \\
+		\T{F}_q
+	}}
+	}
+\end{equation}
+with
+\begin{align}
+	\T{M}_{xx}	&= \T{I} \sum_{i=1,N} m_i \\
+	\T{M}_{x\phi}	&= \T{R}_0 \sum_{i=1,N} m_i \plbr{\T{f}_i + \T{U}_i \T{q}}\times^T \T{R}_0^T \\
+	\T{M}_{xq}	&= \T{R}_0 \sum_{i=1,N} m_i \T{U}_i \\
+	\T{M}_{\phi\phi}&= \T{R}_0 \sum_{i=1,N} \plbr{
+		m_i \plbr{\T{f}_i + \T{U}_i \T{q}}\times
+		\plbr{\T{f}_i + \T{U}_i \T{q}}\times^T
+		+ \tilde{\T{R}}_i \T{J}_i \tilde{\T{R}}_i^T
+	} \T{R}_0^T \\
+	\T{M}_{\phi q}	&= \T{R}_0 \sum_{i=1,N} \plbr{
+		m_i \plbr{\T{f}_i + \T{U}_i \T{q}}\times \T{U}_i
+		+ \tilde{\T{R}}_i \T{J}_i \tilde{\T{R}}_i^T \T{V}_i
+	} \\
+	\T{M}_{qq}	&= \sum_{i=1,N} \plbr{
+		m_i \T{U}_i^T \T{U}_i
+		+ \T{V}_i^T \tilde{\T{R}}_i \T{J}_i \tilde{\T{R}}_i^T \T{V}_i
+	} \\
+	\T{F}_x		&= \sum_{i=1,N} m_i \plbr{
+		\T{\omega}_0 \times \T{\omega}_0 \times \T{R}_0 \plbr{\tilde{\T{f}_i} + \T{U}_i \T{q}}
+		+ 2 \T{\omega}_0 \times \T{R}_0 \T{U}_i \dot{\T{q}} 
+	} \\
+	\T{F}_{\phi}	&= \sum_{i=1,N} \T{R}_0 \lplbr{
+		m_i \plbr{\tilde{\T{f}_i} + \T{U}_i \T{q}}\times \plbr{
+			\T{\omega}_0 \times \T{\omega}_0 \times \T{R}_0 \plbr{\tilde{\T{f}_i} + \T{U}_i \T{q}}
+			+ 2 \T{\omega}_0 \times \T{R}_0 \T{U}_i \dot{\T{q}}
+		}
+	} \nonumber \\
+			& \rplbr{
+		\mbox{} + \tilde{\T{R}}_i \T{J}_i \tilde{\T{R}}_i^T \T{R}_0^T \T{\omega}_0 \times \T{R}_0 \T{V}_i \dot{\T{q}}
+	} \\
+	\T{F}_q		&= \sum_{i=1,N} \lplbr{
+		m_i \T{U}_i^T \T{R}_0^T \lplbr{
+			\T{\omega}_0 \times \T{\omega}_0 \times \T{R}_0 \plbr{\tilde{\T{f}_i} + \T{U}_i \T{q}}
+			+ 2 \T{\omega}_0 \times \T{R}_0 \T{U}_i \dot{\T{q}}
+		}
+	} \nonumber \\
+			& \rplbr{
+		\mbox{} + \T{V}_i^T \tilde{\T{R}}_i \T{J}_i \tilde{\T{R}}_i^T \T{R}_0^T \T{\omega}_0 \times \T{R}_0 \T{V}_i \dot{\T{q}}
+	}
+\end{align}
+These terms are usually simplified to neglect higher-order contributions;
+all the terms that can be computed once for all, called \emph{invariants},
+are collected.
+
+
+\subsection{Invariants}
+\begin{enumerate}
+\item[1.] Total mass
+\begin{equation}
+	\mathrm{Inv}_1 = \sum_{i=1,N} m_i
+\end{equation}
+where $m_i$ is the mass of the $i$-th FEM node\footnote{Although the input
+format, because of NASTRAN legacy, allows each global direction to have
+a separate mass value, invariants assume that the same value is given,
+and only use the one associated to component 1.}.
+
+\item[2.] \textbf{FIXME}
+
+\item[3.] Static coupling between rigid body and FEM node displacements
+\begin{equation}
+	\T{\mathrm{Inv}}_{3j} = \sum_{i=1,N} m_i \T{U}_{ij}
+\end{equation}
+where the portion related to the $j$-th mode is computed by summation
+of the contribute of each FEM node, obtained by multiplying the FEM node
+mass $m_i$ by the three components of the modal displacement $\T{U}_{ij}$
+of the $j$-th mode.
+
+\item[4.] Static coupling between rigid body rotations and FEM node 
+displacements
+\begin{equation}
+	\T{\mathrm{Inv}}_{4j} = \sum_{i=1,N} \plbr{
+		m_i \T{X}_i \times \T{U}_{ij}
+		+ \T{J}_i \T{V}_{ij}
+	}
+\end{equation}
+where the portion related to the $j$-th mode is computed by summation
+of the contribute of each FEM node, obtained by multiplying the FEM node
+mass $m_i$ by the cross product of the FEM node position $\T{X}_i$ 
+and the three components of the modal displacement $\T{U}_{ij}$ of the
+$j$-th mode.
+
+\item[5.] Static coupling between FEM node displacements
+\begin{equation}
+	\T{\mathrm{Inv}}_{5jk} = \sum_{i=1,N} m_i \T{U}_{ij} \times \T{U}_{ik}
+\end{equation}
+where the portion related to the $j$-th mode is computed by summation
+of the contribute of each FEM node, obtained by multiplying the FEM node
+mass $m_i$ by the cross product of the three components of the FEM node 
+$j$-th modal displacement $\T{U}_{ij}$ and the three components of the 
+$k$-th modal displacement $\T{U}_{ik}$.
+
+\item[8.]
+\begin{equation}
+	\T{\mathrm{Inv}}_{8j} = \sum_{i=1,N} m_i \T{X}_{i} \times \T{U}_{ij} \times{}^T
+\end{equation}
+
+\item[9.]
+\begin{equation}
+	\T{\mathrm{Inv}}_{9jk} = \sum_{i=1,N} m_i \T{U}_{ij} \times \T{U}_{ik} \times{}
+\end{equation}
+
+\item[10.]
+\begin{equation}
+	\T{\mathrm{Inv}}_{9jk} = \sum_{i=1,N} \T{V}_{ij}\times \T{J}_i
+\end{equation}
+
+\item[11.]
+\begin{equation}
+	\T{\mathrm{Inv}}_{4j} = \sum_{i=1,N} \T{J}_i \T{V}_{ij}
+\end{equation}
+
+\end{enumerate}
