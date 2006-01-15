@@ -39,7 +39,11 @@ it results in a linearized orientation
 \begin{equation}
 	\T{R}_P \cong \T{R}_0 \plbr{\T{I} + \plbr{\T{V}_P \T{q}}\times{}}
 \end{equation}
-which is no longer orthogonal.
+which is no longer orthogonal, because of matrix
+\begin{equation}
+	\tilde{\T{R}}_P = \T{I} + \plbr{\T{V}_P \T{q}}\times{}
+\end{equation}
+which represents a linearized rotation.
 
 The first and second derivatives of position and orientation yield:
 \begin{align}
@@ -68,10 +72,11 @@ of the generic point $P$ are:
 		+ \T{R}_0 \T{V} \delta{\T{q}}
 \end{align}
 
-From now on, it is assumed that the structure of the problem is
-given in form of lumped inertia parameters in specific points,
-corresponding to FEM nodes, and that the node corresponds to the
-center of mass of each lumped mass.
+Without significant losses in generality, from now on it is assumed
+that the structure of the problem is given in form of lumped inertia
+parameters in specific points, corresponding to FEM nodes,
+and that the position of each node corresponds to the center of mass
+of each lumped mass.
 So the nodal mass of the $i$-th FEM node is
 \begin{equation}
 	\T{M}_i = \sqbr{\matr{cc}{
@@ -79,7 +84,7 @@ So the nodal mass of the $i$-th FEM node is
 		\T{0} & \T{J}_i
 	}}
 \end{equation}
-There is no requirement for matrix $\T{J}_i$ to be diagonal.
+There is no strict requirement for matrix $\T{J}_i$ to be diagonal.
 
 The inertia forces and moments acting on each FEM node are:
 \begin{align}
@@ -118,15 +123,15 @@ which results in
 with
 \begin{align}
 	\T{M}_{xx}	&= \T{I} \sum_{i=1,N} m_i \\
-	\T{M}_{x\phi}	&= \T{R}_0 \sum_{i=1,N} m_i \plbr{\T{f}_i + \T{U}_i \T{q}}\times^T \T{R}_0^T \\
+	\T{M}_{x\phi}	&= \T{R}_0 \sum_{i=1,N} m_i \plbr{\tilde{\T{f}}_i + \T{U}_i \T{q}}\times^T \T{R}_0^T \\
 	\T{M}_{xq}	&= \T{R}_0 \sum_{i=1,N} m_i \T{U}_i \\
 	\T{M}_{\phi\phi}&= \T{R}_0 \sum_{i=1,N} \plbr{
-		m_i \plbr{\T{f}_i + \T{U}_i \T{q}}\times
-		\plbr{\T{f}_i + \T{U}_i \T{q}}\times^T
+		m_i \plbr{\tilde{\T{f}}_i + \T{U}_i \T{q}}\times
+		\plbr{\tilde{\T{f}}_i + \T{U}_i \T{q}}\times^T
 		+ \tilde{\T{R}}_i \T{J}_i \tilde{\T{R}}_i^T
 	} \T{R}_0^T \\
 	\T{M}_{\phi q}	&= \T{R}_0 \sum_{i=1,N} \plbr{
-		m_i \plbr{\T{f}_i + \T{U}_i \T{q}}\times \T{U}_i
+		m_i \plbr{\tilde{\T{f}}_i + \T{U}_i \T{q}}\times \T{U}_i
 		+ \tilde{\T{R}}_i \T{J}_i \tilde{\T{R}}_i^T \T{V}_i
 	} \\
 	\T{M}_{qq}	&= \sum_{i=1,N} \plbr{
@@ -156,6 +161,100 @@ with
 		\mbox{} + \T{V}_i^T \tilde{\T{R}}_i \T{J}_i \tilde{\T{R}}_i^T \T{R}_0^T \T{\omega}_0 \times \T{R}_0 \T{V}_i \dot{\T{q}}
 	}
 \end{align}
+The $\T{M}_{jk}$ terms can be rewritten to highlight contributions of order
+0, 1, and higher:
+\begin{align}
+	\T{M}_{xx}	&= \T{I} \plbr{\sum_{i=1,N} m_i} \\
+	\T{M}_{x\phi}	&= \T{R}_0 \plbr{\plbr{
+		\sum_{i=1,N} m_i \tilde{\T{f}}_i
+	} + \plbr{\plbr{
+		\sum_{i=1,N} m_i \T{U}_i
+	} \T{q}}} \times^T \T{R}_0^T \\
+	\T{M}_{xq}	&= \T{R}_0 \plbr{\sum_{i=1,N} m_i \T{U}_i} \\
+	\T{M}_{\phi\phi}&= \T{R}_0 \lplbr{
+		\sum_{i=1,N} \plbr{
+			m_i \tilde{\T{f}}_i \times \tilde{\T{f}}_i\times^T
+			+ \T{J}_i
+		}
+	} \nonumber \\
+			& \mbox{} + \sum_{i=1,N} \plbr{
+			m_i \tilde{\T{f}}_i \times \plbr{\T{U}_i \T{q}}\times^T
+			+ m_i \plbr{\T{U}_i \T{q}}\times \tilde{\T{f}}_i \times^T
+			+ \T{J}_i \plbr{\T{V}_i \T{q}}\times^T
+			+ \plbr{\T{V}_i \T{q}}\times \T{J}_i
+	} \nonumber \\
+			& \rplbr{ \mbox + \sum_{i=1,N} \plbr{
+			m_i \plbr{\T{U}_i \T{q}}\times \plbr{\T{U}_i \T{q}}\times^T
+			+ \plbr{\T{V}_i \T{q}}\times \T{J}_i \plbr{\T{V}_i \T{q}}\times^T
+	}} \T{R}_0^T \\
+	\T{M}_{\phi q}	&= \T{R}_0 \lplbr{
+		\sum_{i=1,N} \plbr{
+			m_i \tilde{\T{f}}_i \times \T{U}_i
+			+ \T{J}_i \T{V}_i
+		}
+	} \nonumber \\
+			& \mbox{} + \sum_{i=1,N} \plbr{
+			m_i \plbr{\T{U}_i \T{q}} \times \T{U}_i
+			+ \T{J}_i \plbr{\T{V}_i \T{q}}\times^T \T{V}_i
+			+ \plbr{\T{V}_i \T{q}}\times \T{J}_i \T{V}_i
+	} \nonumber \\
+			& \rplbr{ \mbox{} + \sum_{i=1,N} \plbr{\T{V}_i \T{q}}\times \T{J}_i \plbr{\T{V}_i \T{q}}\times^T \T{V}_i
+	} \\
+	\T{M}_{qq}	&= \sum_{i=1,N} \plbr{
+		m_i \T{U}_i^T \T{U}_i
+		+ \T{V}_i^T \T{J}_i \T{V}_i
+	} \nonumber \\
+			& \mbox{} + \sum_{i=1,N} \plbr{
+			\T{V}_i^T \T{J}_i \plbr{\T{V}_i \T{q}}\times^T \T{V}_i
+			+ \T{V}_i^T \plbr{\T{V}_i \T{q}}\times \T{J}_i \T{V}_i
+	} \nonumber \\
+			& \mbox{} + \sum_{i=1,N}
+			\T{V}_i^T \plbr{\T{V}_i \T{q}}\times \T{J}_i \plbr{\T{V}_i \T{q}}\times^T \T{V}_i
+\end{align}
+
+\subsection{Orthogonality}
+Some noteworthy entities appear in the above equations, which may partially
+simplify under special circumstances.
+
+The static (first order) inertia moment
+\begin{equation}
+	\T{S}_{x\phi} = \sum_{i=1,N} m_i \tilde{\T{f}}_i
+\end{equation}
+vanishes if point $\T{x}_0$ is the center of mass of the undeformed body.
+
+Similarly, the static (first order) inertia moment computed with 
+the modal displacement shapes
+\begin{equation}
+	\T{S}_{xq} = \sum_{i=1,N} m_i \T{U}_i
+\end{equation}
+vanishes if the mode shapes have been inertially decoupled
+from the rigid body displacements.
+In the same case, also the zero-order terms of the coupling
+between the rigid body rotations and the modal variables,
+\begin{equation}
+	\T{S}_{\phi q} = \sum_{i=1,N} \plbr{
+		m_i \tilde{\T{f}}_i \times \T{U}_i
+		+ \T{J}_i \T{V}_i
+	}
+\end{equation}
+also vanishes.
+
+\subsection{Simplifications}
+The problem, as stated up to now, already contains some simplifications.
+First of all, those related to the lumped inertia model of a continuum;
+moreover, those related to the mode superposition to describe the
+straining of the body which, in the case of the FEM node rotation,
+yields a non-orthogonal linearized rotation matrix.
+
+Further simplifications are usually accepted in common modeling practice,
+where some of the higher order terms are simply discarded.
+
+From now on, the simplification
+\begin{equation}
+	\T{J}_i \cong \tilde{\T{R}}_i \T{J}_i \tilde{\T{R}}_i^T
+\end{equation}
+will be used.
+
 These terms are usually simplified to neglect higher-order contributions;
 all the terms that can be computed once for all, called \emph{invariants},
 are collected.
@@ -163,7 +262,7 @@ are collected.
 
 \subsection{Invariants}
 \begin{enumerate}
-\item[1.] Total mass
+\item[1.] Total mass (scalar)
 \begin{equation}
 	\mathrm{Inv}_1 = \sum_{i=1,N} m_i
 \end{equation}
@@ -175,6 +274,7 @@ and only use the one associated to component 1.}.
 \item[2.] \textbf{FIXME}
 
 \item[3.] Static coupling between rigid body and FEM node displacements
+(matrix $3\times{M}$)
 \begin{equation}
 	\T{\mathrm{Inv}}_{3j} = \sum_{i=1,N} m_i \T{U}_{ij}
 \end{equation}
@@ -185,19 +285,21 @@ of the $j$-th mode.
 
 \item[4.] Static coupling between rigid body rotations and FEM node 
 displacements
+(matrix $3\times{M}$)
 \begin{equation}
 	\T{\mathrm{Inv}}_{4j} = \sum_{i=1,N} \plbr{
-		m_i \T{X}_i \times \T{U}_{ij}
+		m_i \tilde{\T{f}}_i \times \T{U}_{ij}
 		+ \T{J}_i \T{V}_{ij}
 	}
 \end{equation}
 where the portion related to the $j$-th mode is computed by summation
 of the contribute of each FEM node, obtained by multiplying the FEM node
-mass $m_i$ by the cross product of the FEM node position $\T{X}_i$ 
+mass $m_i$ by the cross product of the FEM node position $\tilde{\T{f}}_i$ 
 and the three components of the modal displacement $\T{U}_{ij}$ of the
 $j$-th mode.
 
 \item[5.] Static coupling between FEM node displacements
+(matrix $3\times{M}\times{M}$)
 \begin{equation}
 	\T{\mathrm{Inv}}_{5jk} = \sum_{i=1,N} m_i \T{U}_{ij} \times \T{U}_{ik}
 \end{equation}
@@ -208,23 +310,35 @@ $j$-th modal displacement $\T{U}_{ij}$ and the three components of the
 $k$-th modal displacement $\T{U}_{ik}$.
 
 \item[8.]
+(matrix $3\times{M}\times{3}$)
 \begin{equation}
-	\T{\mathrm{Inv}}_{8j} = \sum_{i=1,N} m_i \T{X}_{i} \times \T{U}_{ij} \times{}^T
+	\T{\mathrm{Inv}}_{8j} =
+		\sum_{i=1,N} m_i \tilde{\T{f}}_{i} \times \T{U}_{ij} \times{}^T
 \end{equation}
 
 \item[9.]
+(matrix $3\times{M}\times{M}\times{3}$)
 \begin{equation}
 	\T{\mathrm{Inv}}_{9jk} = \sum_{i=1,N} m_i \T{U}_{ij} \times \T{U}_{ik} \times{}
 \end{equation}
 
 \item[10.]
+(matrix $3\times{M}\times{3}$)
 \begin{equation}
-	\T{\mathrm{Inv}}_{9jk} = \sum_{i=1,N} \T{V}_{ij}\times \T{J}_i
+	\T{\mathrm{Inv}}_{10j} = \sum_{i=1,N} \T{V}_{ij}\times \T{J}_i
 \end{equation}
 
 \item[11.]
+(matrix $3\times{M}$)
 \begin{equation}
-	\T{\mathrm{Inv}}_{4j} = \sum_{i=1,N} \T{J}_i \T{V}_{ij}
+	\T{\mathrm{Inv}}_{11j} = \sum_{i=1,N} \T{J}_i \T{V}_{ij}
 \end{equation}
 
 \end{enumerate}
+
+\subsection{TODO}
+\begin{itemize}
+\item allow selective elimination of nonlinear terms
+\item allow alternative input format with $M$, $J$, C.G.\ location
+and no FEM nodal inertia
+\end{itemize}
