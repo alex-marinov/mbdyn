@@ -113,8 +113,8 @@ protected:
 	Mat3x3 Inv8jaj;
 	Mat3x3 Inv8jaPj;
 	Mat3xN Inv5jaj, Inv5jaPj;
-	Vec3 Inv4j, VInv5jaj, VInv5jaPj;
-	Mat3x3 Inv8jTranspose, Inv9jkak;
+	Vec3 VInv5jaj, VInv5jaPj;
+	Mat3x3 Inv8jTranspose;
 	Mat3x3 Inv9jkajak;
 	Mat3x3 Inv9jkajaPk;
 
