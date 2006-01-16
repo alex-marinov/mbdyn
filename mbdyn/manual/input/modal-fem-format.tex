@@ -93,6 +93,20 @@ The format is:
 \end{verbatim}
 }
 
+Optionally, \kw{RECORD GROUP 12} can be used as an alternative
+to \kw{RECORD GROUP 11}; it contains:
+{\small
+\begin{verbatim}
+** RECORD GROUP 12,<any comment; "GLOBAL INERTIA PROPERTIES">
+<MASS>
+<X_CG> <Y_CG> <Z_CG>
+<J_XX> <J_XY> <J_XZ>
+<J_YX> <J_YY> <J_YZ>
+<J_ZX> <J_ZY> <J_ZZ>
+<comments; the global inertia properties of the modal element>
+\end{verbatim}
+}
+
 An arbitrary number of comment lines may appear within blocks;
 the beginning of a block is marked
 \begin{verbatim}
@@ -192,7 +206,22 @@ for each node, the $X$, $Y$, $Z$, $RX$, $RY$ and $RY$ inertia
 coefficients are listed.
 The resulting diagonal matrix must satisfy the constraint
 illustrated in Equation~\ref{eq:modal-mass-constraint}.
+
+\item \kw{RECORD GROUP 12} contains the global inertia properties
+of the modal element: the total mass, the three components 
+of the position of the center of mass in the local frame
+of the FEM model, and the $3\times{3}$ inertia matrix
+with respect to the center of mass, which is supposed
+to be symmetric and positive definite (or semi-definite,
+if the model is static).
 \end{itemize}
+
+Note that \kw{RECORD GROUP 11} and \kw{RECORD GROUP 12} are mutually
+exclusive.
+The reason for accepting \kw{RECORD GROUP 12} format is that 
+in many applications the FEM nodal inertia may not available and,
+at the same time, a zero-order approximation of the inertia 
+is acceptable.
 
 Although the format loosely requires that no more than 6 numerical values 
 appear on a single line, MBDyn is very forgiving about this and can parse

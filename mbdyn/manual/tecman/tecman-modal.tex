@@ -19,12 +19,14 @@ and the \emph{tilde} $\plbr{\tilde{\cdot}}$ indicates entities
 expressed in the reference frame attached to the body.
 
 The deformation of the body is expressed by a linear combination
-of displacement shapes
+of $M$ displacement (and rotation, for those models that consider
+them, like beam trusses) shapes
 \begin{equation}
 	\tilde{\T{u}}_P = \sum_{j=1,M} \T{U}_{Pj} q_j = \T{U}_P \T{q}
 \end{equation}
 where $\T{U}_{Pj}$ is the vector containing the components
-of the $j$-th displacement shape related to point $P$.
+of the $j$-th displacement shape related to point $P$,
+and $q_j$ is the $j$-th mode multiplier.
 
 The orientation of the generic point $P$ is
 \begin{equation}
@@ -77,7 +79,8 @@ that the structure of the problem is given in form of lumped inertia
 parameters in specific points, corresponding to FEM nodes,
 and that the position of each node corresponds to the center of mass
 of each lumped mass.
-So the nodal mass of the $i$-th FEM node is
+A model made of $N$ FEM nodes is considered.
+The nodal mass of the $i$-th FEM node is
 \begin{equation}
 	\T{M}_i = \sqbr{\matr{cc}{
 		m_i \T{I} & \T{0} \\
@@ -212,9 +215,14 @@ The $\T{M}_{jk}$ terms can be rewritten to highlight contributions of order
 			\T{V}_i^T \plbr{\T{V}_i \T{q}}\times \T{J}_i \plbr{\T{V}_i \T{q}}\times^T \T{V}_i
 \end{align}
 
-\subsection{Orthogonality}
+\subsection{Physics: Orthogonality}
 Some noteworthy entities appear in the above equations, which may partially
 simplify under special circumstances.
+
+The overall mass of the body
+\begin{equation}
+	m = \sum_{i=1,N} m_i
+\end{equation}
 
 The static (first order) inertia moment
 \begin{equation}
@@ -225,19 +233,67 @@ vanishes if point $\T{x}_0$ is the center of mass of the undeformed body.
 Similarly, the static (first order) inertia moment computed with 
 the modal displacement shapes
 \begin{equation}
+	\label{eq:MODAL-Sxq}
 	\T{S}_{xq} = \sum_{i=1,N} m_i \T{U}_i
 \end{equation}
 vanishes if the mode shapes have been inertially decoupled
 from the rigid body displacements.
+In fact, the decoupling of the rigid and the deformable modes
+is expressed by
+\begin{align}
+	\sum_{i=1,N} \T{x}_r^T m_i \T{U}_i &= \nonumber \\
+	\T{x}_r^T \sum_{i=1,N} m_i \T{U}_i &= 0
+\end{align}
+where $\T{x}_r^T$ describes three independent rigid translations,
+which, for the arbitrariety of $\T{x}_r$,
+implies the above Equation~(\ref{eq:MODAL-Sxq}).
+
 In the same case, also the zero-order terms of the coupling
 between the rigid body rotations and the modal variables,
 \begin{equation}
+	\label{eq:MODAL-Sphiq}
 	\T{S}_{\phi q} = \sum_{i=1,N} \plbr{
 		m_i \tilde{\T{f}}_i \times \T{U}_i
 		+ \T{J}_i \T{V}_i
 	}
 \end{equation}
 also vanishes.
+In fact, the decoupling of the rigid and the deformable modes
+is expressed by
+\begin{align}
+	\sum_{i=1,N} \plbr{
+		m_i \T{\phi}_r^T \tilde{\T{f}}_i \times \T{U}_i
+		+ \T{\phi}_r^T \T{J}_i \T{V}_i
+	} &= \nonumber \\
+	\T{\phi}_r^T \sum_{i=1,N} \plbr{
+		m_i \tilde{\T{f}}_i \times \T{U}_i
+		+ \T{J}_i \T{V}_i
+	} &= 0
+\end{align}
+where $\T{\phi}_r^T$ describes three independent rigid rotations,
+and $\T{\phi}_r^T \tilde{\T{f}}_i \times$ describes the corresponding
+displacements, which, for the arbitrariety of $\T{\phi}_r$,
+implies the above Equation~(\ref{eq:MODAL-Sphiq}).
+
+
+The second order inertia moment is
+\begin{equation}
+	\T{J} = \sum_{i=1,N} \plbr{
+		m_i \tilde{\T{f}}_i \times \tilde{\T{f}}_i\times^T
+		+ \T{J}_i
+	}
+\end{equation}
+It results in a diagonal matrix if the orientation of the body
+is aligned with the principal inertia axes.
+
+The modal mass matrix is
+\begin{equation}
+	\T{m} = \sum_{i=1,N} \plbr{
+		m_i \T{U}_i^T \T{U}_i
+		+ \T{V}_i^T \T{J}_i \T{V}_i
+	}
+\end{equation}
+It is diagonal if only the normal modes are considered.
 
 \subsection{Simplifications}
 The problem, as stated up to now, already contains some simplifications.
@@ -249,20 +305,26 @@ yields a non-orthogonal linearized rotation matrix.
 Further simplifications are usually accepted in common modeling practice,
 where some of the higher order terms are simply discarded.
 
-From now on, the simplification
-\begin{equation}
-	\T{J}_i \cong \tilde{\T{R}}_i \T{J}_i \tilde{\T{R}}_i^T
-\end{equation}
-will be used.
+When only the 0-th order coefficients are used in matrices $M_{uv}$,
+the dynamics of the body are written referred to the undeformed shape.
+This approximation can be quite drastic, but in some cases it may be
+resaonable, if the reference straining, represented by $\T{q}$,
+remains very small throughout the simulation.
+This approximation is also required when the only available data
+are the global inertia properties (e.g.\ $m$, the postion 
+of the center of mass and the inertia matrix $\T{J}$),
+and the modal mass matrix $\T{m}$.
 
-These terms are usually simplified to neglect higher-order contributions;
-all the terms that can be computed once for all, called \emph{invariants},
-are collected.
-
+More refined approximations include higher order terms: for example, the
+first and second order contributions illustrated before.
+This corresponds to using finer and finer descriptions of the inertia
+properties of the system, corresponding to computing the inertia properties 
+in the deformed condition with first and second order accuracy, respectively.
 
 \subsection{Invariants}
 \begin{enumerate}
-\item[1.] Total mass (scalar)
+\item[1.] Total mass
+(scalar)
 \begin{equation}
 	\mathrm{Inv}_1 = \sum_{i=1,N} m_i
 \end{equation}
@@ -271,7 +333,11 @@ format, because of NASTRAN legacy, allows each global direction to have
 a separate mass value, invariants assume that the same value is given,
 and only use the one associated to component 1.}.
 
-\item[2.] \textbf{FIXME}
+\item[2.] Static moment
+(matrix $3\times{1}$)
+\begin{equation}
+	\T{\mathrm{Inv}}_2 = \sum_{i=1,N} m_i \tilde{\T{f}}_i
+\end{equation}
 
 \item[3.] Static coupling between rigid body and FEM node displacements
 (matrix $3\times{M}$)
@@ -308,6 +374,16 @@ of the contribute of each FEM node, obtained by multiplying the FEM node
 mass $m_i$ by the cross product of the three components of the FEM node 
 $j$-th modal displacement $\T{U}_{ij}$ and the three components of the 
 $k$-th modal displacement $\T{U}_{ik}$.
+
+\item[6.] \textbf{FIXME}
+
+\item[7.] Inertia matrix
+(matrix $3\times{3}$)
+\begin{equation}
+	\T{\mathrm{Inv}}_7 = \sum_{i=1,N} \plbr{
+		m_i \tilde{\T{f}}_i \times \tilde{\T{f}}_i \times^T + \T{J}_i
+	}
+\end{equation}
 
 \item[8.]
 (matrix $3\times{M}\times{3}$)
