@@ -25,7 +25,9 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-\chapter{Modal Element FEM File Format}
+\chapter{Modal Element}
+
+\section{FEM File Format}
 \label{sec:APP:EL:STRUCT:JOINT:MODAL:FORMAT}
 
 This section describes the format of the FEM input to the \kw{modal}
@@ -107,17 +109,17 @@ to \kw{RECORD GROUP 11}; it contains:
 \end{verbatim}
 }
 
-An arbitrary number of comment lines may appear within blocks;
-the beginning of a block is marked
+An arbitrary number of comment lines may appear within records;
+the beginning of a record is marked
 \begin{verbatim}
-** RECORD GROUP <DD>
+** RECORD GROUP <RID>
 \end{verbatim}
-where the number \kw{<DD>} indicates what block is being read.
-The size of each block, i.e.\ the number of values that are expected,
-is defined based on the header block, so MBDyn should be able to detect
+where the number \kw{<RID>} indicates what record is being read.
+The size of each record, i.e.\ the number of values that are expected,
+is defined based on the header record, so MBDyn should be able to detect
 incomplete or mis-formatted files.
 
-The blocks contain:
+The record contain:
 \begin{itemize}
 \item \kw{RECORD GROUP 1}, a.k.a.\ the ``header'', contains a summary
 of the contents of the file:
@@ -188,9 +190,9 @@ or entirely static model is considered.
 \item \kw{RECORD GROUP 10} contains the modal stiffness matrix,
 i.e.\ a square, \kw{NMODES} times \kw{NMODES} matrix that contains
 the reduced stiffness $\sqbr{k}$ resulting from the multiplication
-\begin{displaymath}
+\begin{equation}
 	\sqbr{k} = \cubr{X}^T \sqbr{K} \cubr{X}
-\end{displaymath}
+\end{equation}
 When only normal modes are used, it is diagonal; in that case,
 the diagonal contains the modal mass times the square 
 of the eigenvalues, i.e.\ $k_{ii} = \omega_i^2 m_{ii}$.
@@ -225,18 +227,21 @@ is acceptable.
 
 Although the format loosely requires that no more than 6 numerical values 
 appear on a single line, MBDyn is very forgiving about this and can parse
-the input regardless of the formatting within each block.
+the input regardless of the formatting within each record.
+However this liberality may lead to inconsistent or unexpected parsing
+behavior, so be careful.
 
+
+
+\subsection{Example: Dynamic Model}
 As an example, a very simple, hand-made FEM model file is presented below.
 It models a FEM model made of three aligned nodes, where inertia 
-is only associated to the mid-node.
-As a consequence, the three mode shapes must be interpreted as static
-shapes, since the modal mass matrix is null.
+is evenly distributed.
 Note that each line is prefixed with a two-digit line number 
-that is not part of the iput file.
-Also, for readability, all comments are prefixed by ``\kw{**}''
-like the mandatory ``\kw{** RECORD GROUP}'' lines, although not required 
-by the format of the file.
+that is not part of the input file.
+Also, for readability, all comments are prefixed by ``\kw{**}'', in analogy
+with the mandatory ``\kw{** RECORD GROUP}'' lines, although not strictly
+required by the format of the file.
 
 {\small
 \begin{verbatim}
@@ -246,17 +251,17 @@ by the format of the file.
 04    
 05  ** RECORD GROUP 1, HEADER
 06  **   REVISION,  NODE,  NORMAL, ATTACHMENT, CONSTRAINT, REJECTED MODES.
-07        REV0         3         3         0         0         0
+07        REV0         3         2         0         0         0
 08  **
 09  ** RECORD GROUP 2, FINITE ELEMENT NODE LIST
 10       1001 1002 1003
 11  
 12  **
 13  ** RECORD GROUP 3, INITIAL MODAL DISPLACEMENTS
-14   0 0 0
+14   0 0
 15  **
 16  ** RECORD GROUP 4, INITIAL MODALVELOCITIES
-17   0 0 0
+17   0 0
 18  **
 19  ** RECORD GROUP 5, NODAL X COORDINATES
 20   0
@@ -282,24 +287,216 @@ by the format of the file.
 40  1 0 0 0 0 0
 41  0 0 0 0 0 0
 42  1 0 0 0 0 0
-43  **    NORMAL MODE SHAPE #  3
-44  0 1 0 0 0 0
-45  0 0 0 0 0 0
-46  0 -1 0 0 0 0
+43  **
+44  ** RECORD GROUP 9, MODAL MASS MATRIX
+45  2 0
+46  0 2
 47  **
-48  ** RECORD GROUP 9, MODAL MASS MATRIX
-49  0 0 0
-50  0 0 0
-51  0 0 0
-52  **
-53  ** RECORD GROUP 10, MODAL STIFFNESS MATRIX
-54  1 0   0
-55  0 1e2 0
-56  0 0   1e6
-57  **
-58  ** RECORD GROUP 11, DIAGONAL OF LUMPED MASS MATRIX
-59  0 0 0 0 0 0
-60  1 1 1 1 1 1
-61  0 0 0 0 0 0
+48  ** RECORD GROUP 10, MODAL STIFFNESS MATRIX
+49  1 0
+50  0 1e2
+51  **
+52  ** RECORD GROUP 11, DIAGONAL OF LUMPED MASS MATRIX
+53  1 1 1 1 1 1
+54  1 1 1 1 1 1
+55  1 1 1 1 1 1
 \end{verbatim}
 }
+
+The corresponding global inertia properties are:
+\begin{align}
+	m		&= 3 \\
+	\T{x}_{CM}	&= \cubr{\cvvect{
+		0 \\
+		0 \\
+		0
+	}} \\
+	\T{J}		&= \sqbr{\matr{ccc}{
+		11 &  0 &  0 \\
+		 0 &  3 &  0 \\
+		 0 &  0 & 11
+	}}
+\end{align}
+
+
+\subsection{Example: Static Model}
+As an example, a very simple, hand-made FEM model file is presented below.
+It models a FEM model made of three aligned nodes, where inertia 
+is only associated to the mid-node.
+As a consequence, the three mode shapes must be interpreted as static
+shapes, since the modal mass matrix is null.
+Note that each line is prefixed with a two-digit line number 
+that is not part of the input file.
+Also, for readability, all comments are prefixed by ``\kw{**}'', in analogy
+with the mandatory ``\kw{** RECORD GROUP}'' lines, although not strictly 
+required by the format of the file.
+
+\noindent
+{\small
+\begin{verbatim}
+01  ** MBDyn MODAL DATA FILE
+02  ** NODE SET "ALL" 
+03    
+04    
+05  ** RECORD GROUP 1, HEADER
+06  **   REVISION,  NODE,  NORMAL, ATTACHMENT, CONSTRAINT, REJECTED MODES.
+07        REV0         3         2         0         0         0
+08  **
+09  ** RECORD GROUP 2, FINITE ELEMENT NODE LIST
+10       1001 1002 1003
+11  
+12  **
+13  ** RECORD GROUP 3, INITIAL MODAL DISPLACEMENTS
+14   0 0
+15  **
+16  ** RECORD GROUP 4, INITIAL MODALVELOCITIES
+17   0 0
+18  **
+19  ** RECORD GROUP 5, NODAL X COORDINATES
+20   0
+21   0
+22   0
+23  **
+24  ** RECORD GROUP 6, NODAL Y COORDINATES
+25  -2.
+26   0
+27   2.
+28  **
+29  ** RECORD GROUP 7, NODAL Z COORDINATES
+30   0
+31   0
+32   0
+33  **
+34  ** RECORD GROUP 8, MODE SHAPES
+35  **    NORMAL MODE SHAPE #  1
+36  0 0 1 0 0 0
+37  0 0 0 0 0 0
+38  0 0 1 0 0 0
+39  **    NORMAL MODE SHAPE #  2
+40  1 0 0 0 0 0
+41  0 0 0 0 0 0
+42  1 0 0 0 0 0
+43  **
+44  ** RECORD GROUP 9, MODAL MASS MATRIX
+45  0 0
+46  0 0
+47  **
+48  ** RECORD GROUP 10, MODAL STIFFNESS MATRIX
+49  1 0
+50  0 1e2
+51  **
+52  ** RECORD GROUP 11, DIAGONAL OF LUMPED MASS MATRIX
+53  0 0 0 0 0 0
+54  1 1 1 1 1 1
+55  0 0 0 0 0 0
+\end{verbatim}
+}
+
+The corresponding global inertia properties are:
+\begin{align}
+	m		&= 1 \\
+	\T{x}_{CM}	&= \cubr{\cvvect{
+		0 \\
+		0 \\
+		0
+	}} \\
+	\T{J}		&= \sqbr{\matr{ccc}{
+		 1 &  0 &  0 \\
+		 0 &  1 &  0 \\
+		 0 &  0 &  1
+	}}
+\end{align}
+
+
+
+\section{NASTRAN Procedure}
+\label{sec:APP:EL:STRUCT:JOINT:MODAL:NASTRAN}
+
+The \kw{fem\_data\_file} can be generated by NASTRAN, using
+the \kw{ALTER} cards provided in directory \kw{etc/modal.d/} 
+of the distribution.
+
+The steps of the procedure are as follows:
+\begin{enumerate} % procedure
+
+\item prepare a NASTRAN input card deck, made of bulk data,
+eigenanalysis properties data and/or static loads (details about 
+this phase are currently missing and will be provided in future 
+releases of the manual).
+
+\item complete the NASTRAN input file by putting some specific
+\kw{ALTER} cards.
+In detail:
+\begin{enumerate}
+\item the file \kw{MBDyn\_NASTRAN\_alter\_1.nas} contains
+	\kw{ALTER} definitions for static solutions; appropriate
+	loading subcases for each solution must be provided
+	in the case control and in the bulk data sections
+	of the input file;
+
+	\emph{FIXME: I don't know how to use static shapes only}.
+
+\item the file \kw{MBDyn\_NASTRAN\_alter\_2.nas} contains
+	\kw{ALTER} definitions for eigenanalysis solutions;
+	an appropriate eigenanalysis method, with the related
+	data card must be provided in the case control 
+	and in the bulk data sections of the input file;
+
+	\emph{FIXME: I don't know how to use this together
+		with static shapes; I only get the normal mode shapes,
+		even if the matrices are complete}.
+
+\item the file \kw{MBDyn\_NASTRAN\_alter\_3.nas} contains
+	\kw{ALTER} definitions for eigenanalysis solutions;
+	an appropriate eigenanalysis method, with the related
+	data card must be provided in the case control 
+	and in the bulk data sections of the input file;
+
+	\emph{Note: this works; see} \kw{tests/modal/beam.README}.
+
+\end{enumerate}
+Exactly one of these files must be included at the very top 
+of the NASTRAN input file;
+they already include the appropriate \kw{SOL} statement, so the
+input file must begin with
+\begin{verbatim}
+$ Replace '#' below with number that matches your needs
+INCLUDE 'MBDyn_NASTRAN_alter_#.nas'
+CEND
+$... any other executive control and bulk data card
+\end{verbatim}
+The static solution of case (a: \kw{SOL 101}) and the eigensolution
+of case (b: \kw{SOL 103}) need to be performed in sequence; 
+if only the eigensolution is to be used, the \kw{ALTER} file 
+of case (c: \kw{SOL 103}) must be used.
+The static solution of case (a) generates a binary file \kw{mbdyn.stm};
+the eigensolutions of cases (b--c) generate two binary files, 
+\kw{mbdyn.mat} and \kw{mbdyn.tab}, which, in case (b), include
+the static solutions as well.
+
+
+\item Run NASTRAN.
+
+
+\item Run the tool \kw{utils/femgen}, which transforms the above binary files
+into the \kw{fem\_data\_file}.
+The file name is currently requested as terminal input; this is the name 
+of the file that will be used in the input model for \kw{mbdyn}.
+Conventionally, the \kw{.fem} extension is used.
+
+\end{enumerate} % procedure
+
+
+
+\section{Procedures for Other FEA Software}
+Currently, no (semi-)automatic procedures are available to extract modal
+element data from other FEA software.
+If you need to use any other software, and possibly an Open Source software,
+you'll need to design your own procedure, which may go from a very simple
+script (shell, awk, python) for handling of textual output, to a fully
+featured modeling and translation interface.
+If you want to share what you developed with the MBDyn project, feel free
+to submit code, procedures or just ideas and discuss them on the
+\htmladdnormallink{\kw{mbdyn-devel@mbdyn.org}}{mailto:mbdyn-devel@mbdyn.org}
+mailing list.
+

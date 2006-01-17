@@ -3618,6 +3618,9 @@ ReadModal(DataManager* pDM,
 	Mat3xN* pPHIrStrNode = NULL;
 
 	/* traslazione origine delle coordinate */
+	Vec3 Origin(0.);
+	bool bOrigin(false);
+
 	if (HP.IsKeyWord("origin" "node")) {
 		/* numero di nodi FEM del modello */
 		unsigned int NFemOriginNode = HP.GetInt();
@@ -3638,10 +3641,17 @@ ReadModal(DataManager* pDM,
 		}
 
 		iNode++;
-		Vec3 Origin(pXYZFemNodes->GetVec(iNode));
+		Origin = pXYZFemNodes->GetVec(iNode);
 
 		pedantic_cout("Modal(" << uLabel << "): origin x={" << Origin << "}" << std::endl);
+		bOrigin = true;
 
+	} else if (HP.IsKeyWord("origin" "position")) {
+		Origin = HP.GetPosAbs(AbsRefFrame);
+		bOrigin = true;
+	}
+
+	if (bOrigin) {
 		for (unsigned int iStrNode = 1; iStrNode <= NFemNodes; iStrNode++) {
 			pXYZFemNodes->SubVec(iStrNode, Origin);
 		}
