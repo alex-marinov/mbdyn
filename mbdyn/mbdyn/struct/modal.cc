@@ -3194,7 +3194,8 @@ ReadModal(DataManager* pDM,
 						fbin.write((char *)&d, sizeof(d));
 					}
 
-					STmp(iRow) = dMass*d;
+					/* NOTE: need to multiply by dMass later */
+					STmp(iRow) = d;
 				}
 
 				for (int iRow = 1; iRow <= 3; iRow++) {
@@ -3655,6 +3656,10 @@ ReadModal(DataManager* pDM,
 		for (unsigned int iStrNode = 1; iStrNode <= NFemNodes; iStrNode++) {
 			pXYZFemNodes->SubVec(iStrNode, Origin);
 		}
+
+		if (!bBuildInvariants) {
+			STmp -= Origin;
+		}
 	}
 
 	/* numero di nodi d'interfaccia */
@@ -3875,6 +3880,10 @@ ReadModal(DataManager* pDM,
 				pInv10->AddMat3x3((jMode - 1)*3 + 1, Inv10jTmp);
 			} /*  fine ciclo scansione modi */
 		} /* fine ciclo scansione nodi */
+
+	} else {
+		/* left over when reading XCG */
+		STmp *= dMass;
 	}
 	
 	/*
