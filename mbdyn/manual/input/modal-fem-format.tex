@@ -234,6 +234,7 @@ behavior, so be careful.
 
 
 \subsection{Example: Dynamic Model}
+\label{sec:APP:EL:STRUCT:JOINT:MODAL:DYNAMIC-MODEL}
 As an example, a very simple, hand-made FEM model file is presented below.
 It models a FEM model made of three aligned nodes, where inertia 
 is evenly distributed.
@@ -385,27 +386,22 @@ required by the format of the file.
 49  1 0
 50  0 1e2
 51  **
-52  ** RECORD GROUP 11, DIAGONAL OF LUMPED MASS MATRIX
-53  0 0 0 0 0 0
-54  1 1 1 1 1 1
-55  0 0 0 0 0 0
+52  ** RECORD GROUP 12, GLOBAL INERTIA
+53   3
+54   0  0  0
+55  11  0  0
+56   0  3  0
+57   0  0 11
 \end{verbatim}
 }
 
-The corresponding global inertia properties are:
-\begin{align}
-	m		&= 1 \\
-	\T{x}_{CM}	&= \cubr{\cvvect{
-		0 \\
-		0 \\
-		0
-	}} \\
-	\T{J}		&= \sqbr{\matr{ccc}{
-		 1 &  0 &  0 \\
-		 0 &  1 &  0 \\
-		 0 &  0 &  1
-	}}
-\end{align}
+The same global inertia properties of the model 
+in Section~\ref{sec:APP:EL:STRUCT:JOINT:MODAL:DYNAMIC-MODEL} have been used;
+as a result, the two models show the same rigid body dynamics behavior,
+but the dynamic model also shows deformable body dynamic behavior, while
+the static one only behaves statically when straining is involved.
+
+
 
 
 

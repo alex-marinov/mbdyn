@@ -14,7 +14,7 @@ general.tex \
 input.tex \
 integrators.tex \
 install.tex \
-modal.tex \
+modal-fem-format.tex \
 nodes.tex \
 overview.tex \
 scalarfilter.tex \
