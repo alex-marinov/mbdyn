@@ -125,7 +125,7 @@ D. Code:
 	  - the revolute family
 	  - ...
 	- add function max(), min() to math parser (DONE)
-	- implement an output trigger (replaces output frequency)
+	- implement an output trigger (replaces output frequency; DONE)
 	- modal element:
 	  - add singularity checks (warn if modal k is singular)
 	  - add consistency checks of modal mass matrices (m = X^T*M*X)

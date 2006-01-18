@@ -3456,7 +3456,7 @@ ReadModal(DataManager* pDM,
 			}
 		}
 
-		/* Matrice di massa  modale */
+		/* Matrice di massa modale */
 		fbin.read(&checkPoint, sizeof(checkPoint));
 		if (checkPoint != 9) {
 			silent_cerr("Modal(" << uLabel << "): "
@@ -3774,6 +3774,8 @@ ReadModal(DataManager* pDM,
 	/* NOTE: right now, either they are all used (except for Inv9)
 	 * or none is used, and the global inertia of the body is expected */
 	if (bBuildInvariants) {
+		MatNxN GenMass(NModes, 0.);
+
 		/* TODO: select what terms are used */
 
 		SAFENEWWITHCONSTRUCTOR(pInv3, Mat3xN, Mat3xN(NModes, 0.));
@@ -3856,6 +3858,12 @@ ReadModal(DataManager* pDM,
 				for (unsigned int kMode = 1; kMode <= NModes; kMode++)  {
 					pInv5->AddVec((jMode - 1)*NModes + kMode,
 							Inv5jTmp.GetVec(kMode));
+
+					/* compute the modal mass matrix
+					 * using the FEM inertia and the
+					 * mode shapes */
+					GenMass(jMode, kMode) += (PHItij*PHIti.GetVec(kMode))*mi
+						+ PHIrij*(JiNodeTmp*PHIri.GetVec(kMode));
 				}
 	
 				/* Inv8 = -mi*ui/\*PHItij/\,
@@ -3881,10 +3889,25 @@ ReadModal(DataManager* pDM,
 			} /*  fine ciclo scansione modi */
 		} /* fine ciclo scansione nodi */
 
+		/*
+		 * TODO: check modal mass
+		 */
+		silent_cout("Generalized Mass: input - computed" << std:: endl);
+		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+			for (unsigned int kMode = 1; kMode <= NModes; kMode++) {
+				silent_cout(" " << pGenMass->dGet(jMode, kMode) - GenMass(jMode, kMode));
+			}
+			silent_cout(std::endl);
+		}
+
 	} else {
 		/* left over when reading XCG */
 		STmp *= dMass;
 	}
+
+	/*
+	 * TODO: Check rank of modal stiffness matrix
+	 */
 	
 	/*
 	 * costruisce la matrice di smorzamento:
@@ -3919,7 +3942,7 @@ ReadModal(DataManager* pDM,
 	silent_cout("Generalized Mass: " << std::endl);
 	for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
 		for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
-			silent_cout(" " << pGenMass->dGet(iCnt,jCnt));
+			silent_cout(" " << pGenMass->dGet(iCnt, jCnt));
 		}
 		silent_cout(std::endl);
 	}
@@ -3927,7 +3950,7 @@ ReadModal(DataManager* pDM,
 	silent_cout("Generalized Damping: " << std::endl);
 	for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
 		for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
-			silent_cout(" " << pGenDamp->dGet(iCnt,jCnt));
+			silent_cout(" " << pGenDamp->dGet(iCnt, jCnt));
 		}
 		silent_cout(std::endl);
 	}
@@ -3936,7 +3959,7 @@ ReadModal(DataManager* pDM,
 		silent_cout("Inv3 : " << std::endl);
 		for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
 			for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
-				silent_cout(" " << pInv3->dGet(iCnt,jCnt));
+				silent_cout(" " << pInv3->dGet(iCnt, jCnt));
 			}
 			silent_cout(std::endl);
 		}
@@ -3948,7 +3971,7 @@ ReadModal(DataManager* pDM,
 		silent_cout("Inv4 : " << std::endl);
 		for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
 			for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
-				silent_cout(" " << pInv4->dGet(iCnt,jCnt));
+				silent_cout(" " << pInv4->dGet(iCnt, jCnt));
 			}
 			silent_cout(std::endl);
 		}
