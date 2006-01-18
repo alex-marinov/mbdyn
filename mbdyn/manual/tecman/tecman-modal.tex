@@ -349,6 +349,11 @@ properties of the system, corresponding to computing the inertia properties
 in the deformed condition with first and second order accuracy, respectively.
 
 \subsection{Invariants}
+The dynamics of the deformed body can be written without any detailed
+knowledge of the mass distribution, provided some aggregate information
+can be gathered in so-called \emph{invariants}.
+They are:
+
 \begin{enumerate}
 \item[1.] Total mass
 (scalar)
@@ -369,32 +374,32 @@ and only use the one associated to component 1.}.
 \item[3.] Static coupling between rigid body and FEM node displacements
 (matrix $3\times{M}$)
 \begin{equation}
-	\T{\mathrm{Inv}}_{3j} = \sum_{i=1,N} m_i \T{U}_{ij}
+	\T{\mathrm{Inv}}_3 = \sum_{i=1,N} m_i \T{U}_i
 \end{equation}
-where the portion related to the $j$-th mode is computed by summation
+where the portion related to the $k$-th mode is computed by summation
 of the contribute of each FEM node, obtained by multiplying the FEM node
-mass $m_i$ by the three components of the modal displacement $\T{U}_{ij}$
-of the $j$-th mode.
+mass $m_i$ by the three components of the modal displacement $\T{U}_{ik}$
+of the $k$-th mode.
 
 \item[4.] Static coupling between rigid body rotations and FEM node 
 displacements
 (matrix $3\times{M}$)
 \begin{equation}
-	\T{\mathrm{Inv}}_{4j} = \sum_{i=1,N} \plbr{
-		m_i \tilde{\T{f}}_i \times \T{U}_{ij}
-		+ \T{J}_i \T{V}_{ij}
+	\T{\mathrm{Inv}}_4 = \sum_{i=1,N} \plbr{
+		m_i \tilde{\T{f}}_i \times \T{U}_i
+		+ \T{J}_i \T{V}_i
 	}
 \end{equation}
-where the portion related to the $j$-th mode is computed by summation
+where the portion related to the $k$-th mode is computed by summation
 of the contribute of each FEM node, obtained by multiplying the FEM node
 mass $m_i$ by the cross product of the FEM node position $\tilde{\T{f}}_i$ 
-and the three components of the modal displacement $\T{U}_{ij}$ of the
-$j$-th mode.
+and the three components of the modal displacement $\T{U}_{ik}$ of the
+$k$-th mode.
 
 \item[5.] Static coupling between FEM node displacements
 (matrix $3\times{M}\times{M}$)
 \begin{equation}
-	\T{\mathrm{Inv}}_{5jk} = \sum_{i=1,N} m_i \T{U}_{ij} \times \T{U}_{ik}
+	\T{\mathrm{Inv}}_{5j} = \sum_{i=1,N} m_i \T{U}_{ij} \times \T{U}_i
 \end{equation}
 where the portion related to the $j$-th mode is computed by summation
 of the contribute of each FEM node, obtained by multiplying the FEM node
@@ -402,7 +407,14 @@ mass $m_i$ by the cross product of the three components of the FEM node
 $j$-th modal displacement $\T{U}_{ij}$ and the three components of the 
 $k$-th modal displacement $\T{U}_{ik}$.
 
-\item[6.] \textbf{FIXME}
+\item[6.] Modal mass matrix
+(matrix $M\times{M}$)
+\begin{equation}
+	\T{\mathrm{Inv}}_6 = \sum_{i=1,N} \plbr{
+		m_i \T{U}_i^T \T{U}_i
+		+ \T{V}_i^T \T{J}_i \T{V}_i
+	}
+\end{equation}
 
 \item[7.] Inertia matrix
 (matrix $3\times{3}$)
@@ -434,14 +446,62 @@ $k$-th modal displacement $\T{U}_{ik}$.
 \item[11.]
 (matrix $3\times{M}$)
 \begin{equation}
-	\T{\mathrm{Inv}}_{11j} = \sum_{i=1,N} \T{J}_i \T{V}_{ij}
+	\T{\mathrm{Inv}}_{11} = \sum_{i=1,N} \T{J}_i \T{V}_i
 \end{equation}
 
 \end{enumerate}
 
-\subsection{TODO}
-\begin{itemize}
-\item allow selective elimination of nonlinear terms
-\item allow alternative input format with $M$, $J$, C.G.\ location
-and no FEM nodal inertia
-\end{itemize}
+Using the invariants, the contributions to the inertia matrix of the body
+become
+\begin{align}
+	\T{M}_{xx}	&= \T{I} \mathrm{Inv}_1 \\
+	\T{M}_{x\phi}	&= \T{R}_0 \plbr{
+		\T{\mathrm{Inv}}_2 + \T{\mathrm{Inv}}_3 \T{q}}\times{}  \T{R}_0^T \\
+	\T{M}_{xq}	&= \T{R}_0 \T{\mathrm{Inv}}_3 \\
+	\T{M}_{\phi\phi}&= \T{R}_0 \plbr{
+		\T{\mathrm{Inv}}_7
+		+ \plbr{\T{\mathrm{Inv}}_{8j} + \T{\mathrm{Inv}}_{8j}^T} q_j
+		+ \T{\mathrm{Inv}}_{9jk} q_j q_k
+	} \T{R}_0^T \\
+	\T{M}_{\phi q}	&= \T{R}_0 \lplbr{
+		\T{\mathrm{Inv}}_4
+		+ \T{\mathrm{Inv}}_{5j} q_j 
+		+ \sum_{i=1,N} \plbr{
+			\T{J}_i \plbr{\T{V}_i \T{q}}\times^T \T{V}_i
+			+ \plbr{\T{V}_i \T{q}}\times \T{J}_i \T{V}_i
+		}
+	} \nonumber \\
+			& \rplbr{ \mbox{} + \sum_{i=1,N} \plbr{\T{V}_i \T{q}}\times \T{J}_i \plbr{\T{V}_i \T{q}}\times^T \T{V}_i
+	} \\
+	\T{M}_{qq}	&= \T{\mathrm{Inv}}_6 \nonumber \\
+			& \mbox{} + \sum_{i=1,N} \plbr{
+			\T{V}_i^T \T{J}_i \plbr{\T{V}_i \T{q}}\times^T \T{V}_i
+			+ \T{V}_i^T \plbr{\T{V}_i \T{q}}\times \T{J}_i \T{V}_i
+	} \nonumber \\
+			& \mbox{} + \sum_{i=1,N}
+			\T{V}_i^T \plbr{\T{V}_i \T{q}}\times \T{J}_i \plbr{\T{V}_i \T{q}}\times^T \T{V}_i
+\end{align}
+where summation over repeated indices is assumed.
+The remaining summation terms could be also cast into some invariant form;
+however, in common practice (e.g.\ in ADAMS) they are simply neglected,
+under the assumption that the finer the discretization, the smaller 
+the FEM node inertia, so that linear and quadratic terms 
+in the nodal rotation become reasonably small, yielding
+\begin{align}
+	\T{M}_{xx}	&= \T{I} \mathrm{Inv}_1 \\
+	\T{M}_{x\phi}	&= \T{R}_0 \plbr{
+		\T{\mathrm{Inv}}_2 + \T{\mathrm{Inv}}_3 \T{q}}\times{}  \T{R}_0^T \\
+	\T{M}_{xq}	&= \T{R}_0 \T{\mathrm{Inv}}_3 \\
+	\T{M}_{\phi\phi}&= \T{R}_0 \plbr{
+		\T{\mathrm{Inv}}_7
+		+ \plbr{\T{\mathrm{Inv}}_{8j} + \T{\mathrm{Inv}}_{8j}^T} q_j
+		+ \T{\mathrm{Inv}}_{9jk} q_j q_k
+	} \T{R}_0^T \\
+	\T{M}_{\phi q}	&= \T{R}_0 \plbr{
+		\T{\mathrm{Inv}}_4
+		+ \T{\mathrm{Inv}}_{5j} q_j 
+	} \\
+	\T{M}_{qq}	&= \T{\mathrm{Inv}}_6 
+\end{align}
+In some cases, the only remaining quadratic term in $\T{\mathrm{Inv}}_{9jk}$
+is neglected as well.
