@@ -156,7 +156,7 @@ The first refers to the kinematics of the node; its extension is \kw{.mov},
 and for each time step it contains one row for each node whose output is
 required.
 The rows contain: \vspace{2mm} \\
-\begin{tabular}{ll}
+\begin{tabular}{lp{140mm}}
 	\hline
 	1      & the label of the node \\
 	2--4   & the three components of the position of the node \\
@@ -182,15 +182,20 @@ nodes whose output is required.
 Notice that more than one inertia body can be attached to one node; the
 information in this file refers to the sum of all the inertia referring to
 the node.
-The rows contain:
-\begin{itemize}
-    \item the label of the node
-    \item the three components of the momentum
-    \item the three components of the momentum moment referred to the node
-    coordinates, thus to a moving frame
-    \item the three components of the derivative of the momentum
-    \item the three components of the derivative of the momentum moment
-\end{itemize}
+The rows contain: \vspace{2mm} \\
+\begin{tabular}{lp{140mm}}
+        \hline
+	1	& the label of the node \\
+	2--4	& item the three components of the momentum
+		in the absolute reference frame \\
+	5--7	& item the three components of the momenta moment
+		in the absolute reference frame,
+		with respect to the coordinates of the node, 
+		thus to a moving frame \\
+    	8--10	& the three components of the derivative of the momentum \\
+    	11--13	& the three components of the derivative of the momentum moment \\
+	\hline
+\end{tabular}\vspace{2mm}\\
 
 
 \section{Electric Node}
