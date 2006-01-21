@@ -1335,18 +1335,18 @@ Linearization: by defining
 the linearization becomes
 \begin{equation*}
 	\sqbr{\matr{ccccc}{
-		-\plbr{\T{R}_a \T{\lambda}}\times{} & & \T{R}_a & & \\
-		\plbr{\T{R}_a \T{\lambda}}\times{} & & -\T{R}_a & & \\
-			\T{R}_a^T & -\T{R}_a^T & & \T{w}_{\vartheta} & \T{w}_{\varphi} \\
-		& & \T{w}_{\vartheta}^T &
+		-\plbr{\T{R}_a \T{\lambda}}\times{} & \T{0} & \T{R}_a & \T{0} & \T{0} \\
+		\plbr{\T{R}_a \T{\lambda}}\times{} & \T{0} & -\T{R}_a & \T{0} & \T{0} \\
+			\T{R}_a^T & -\T{R}_a^T & 0 & \T{w}_{\vartheta} & \T{w}_{\varphi} \\
+		\T{0} & \T{0} & \T{w}_{\vartheta}^T &
 			\sin\varphi\T{w}_{\varphi}^T \T{\lambda} &
 			\plbr{\cvvect{
 				\cos\varphi\sin\vartheta\T{e}_1 \\
 				- \sin\varphi\T{e}_2 \\
 				+ \cos\varphi\cos\vartheta\T{e}_3
 			}}^T\T{\lambda} \\
-		& & \T{w}_{\varphi}^T &
-			-\plbr{\sin\vartheta\T{e}_1 + \cos\vartheta\T{e}_3}^T \T{\lambda} &
+		\T{0} & \T{0} & \T{w}_{\varphi}^T &
+			-\plbr{\sin\vartheta\T{e}_1 + \cos\vartheta\T{e}_3}^T \T{\lambda} & 0
 	}} \cubr{\cvvect{
 		\delta\T{g}_a \\
 		\delta\T{g}_b \\
@@ -1364,6 +1364,88 @@ the linearization becomes
 		-\T{w}_{\varphi}^T \T{\lambda}
 	}}
 \end{equation*}
+
+
+\subsection{Screw Joint}
+The screw joint is a combination of:
+\begin{itemize}
+\item an inline joint, that constrains one point to move along 
+a line attached to another point:
+\begin{align*}
+	\T{e}_{1x}^T\plbr{\T{x}_2 + \T{f}_2 - \T{x}_1 - \T{f}_1} &= 0 \\
+	\T{e}_{1y}^T\plbr{\T{x}_2 + \T{f}_2 - \T{x}_1 - \T{f}_1} &= 0
+\end{align*}
+
+\item a revolute rotation joint, that constrains the relative
+orientation of two nodes to be a rotation about an axis that
+is fixed with respect to the two bodies:
+\begin{align*}
+	\T{e}_{2x}^T \T{e}_{1z} = 0 \\
+	\T{e}_{2y}^T \T{e}_{1z} = 0
+\end{align*}
+
+\item a linear relationship between the relative rotation
+about the common axis and the relative position along the common axis:
+\begin{equation}
+	\label{eq:SCREW-constraint}
+	\frac{p}{2 \pi} \theta - \T{e}_{1z}^T\plbr{\T{x}_2 + \T{f}_2 - \T{x}_1 - \T{f}_1} = 0
+\end{equation}
+where $p$ represents the distance between the nodes corresponding 
+to one revolution about the common axis.
+\end{itemize}
+
+Vectors $\T{e}_{ij}$ are defined as
+\begin{equation*}
+	\plbr{\T{R}_i \T{R}_{ih}}\sqbr{j}
+\end{equation*}
+
+
+
+
+The rotation $\theta$ is formulated as
+\begin{equation*}
+	\theta = \T{e}_{1z}^T \llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_1^T \T{R}_2}}
+\end{equation*}
+To overcome the limitation $\shbr{\theta}<\pi/2$, an incremental
+approach is used; since the revolute constraint guarantees that
+the rotation will always occur with respect to axis $z$ of node 1,
+$\T{e}_{1z}$
+\begin{equation}
+	\label{eq:SCREW-constraint-incremental}
+	\theta = \theta_{\llk{ref}}
+		+ \T{e}_{1z}^T \llk{ax}\plbr{\llk{exp}^{-1}\plbr{\plbr{\T{R}_1^T \T{R}_{1\llk{ref}}}^T \plbr{\T{R}_2^T \T{R}_{2\llk{ref}}}}}
+\end{equation}
+The previous time step is assumed as reference, under the assumption
+that the change in orientation during a time step remains limited.
+
+The virtual perturbation of Equation~(\ref{eq:SCREW-constraint-incremental})
+yields
+\begin{equation*}
+	\delta\theta = \T{e}_{1z}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
+\end{equation*}
+so the virtual perturbation of Equation~(\ref{eq:SCREW-constraint})
+\begin{align*}
+	\frac{p}{2 \pi} \T{e}_{1z}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
+	- \plbr{\T{e}_{1z} \times \plbr{\T{x}_2 + \T{f}_2 - \T{x}_1 - \T{f}_1}}^T \T{\theta}_{1\delta} & \\
+	- \T{e}_{1z}^T\plbr{\delta\T{x}_2 - \T{f}_2 \times \T{\theta}_{2\delta} - \delta\T{x}_1 + \T{f}_1 \times \T{\theta}_{1\delta}} &= 0
+\end{align*}
+yields the contribution of the constraint to the forces and moments
+acting on the constrained nodes:
+\begin{align*}
+	F_1 &= \T{e}_{1z} \lambda \\
+	C_1 &= - \plbr{
+		\cfrac{p}{2 \pi} \T{e}_{1z}
+		+ \T{e}_{1z} \times\plbr{\T{x}_2 + \T{f}_2 - \T{x}_1}
+	} \lambda \\
+	F_2 &= - \T{e}_{1z} \lambda \\
+	C_2 &= \plbr{
+		\cfrac{p}{2 \pi} \T{e}_{1z}
+		- \T{e}_{1z} \times \T{f}_2
+	} \lambda
+\end{align*}
+where $\lambda$ is the Lagrange multiplier that here assumes the meaning
+of reaction force along the screw axis.
+
 
 
 
