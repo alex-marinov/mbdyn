@@ -1381,9 +1381,9 @@ a line attached to another point:
 \end{align*}
 where $\T{e}_{1hi}$ is the orientation of axis $i$ in the reference
 of the joint with respect to node 1, i.e.\ the $i$-th column of matrix
-$\T{R}_1 \T{R}_{1h}$
+$\T{R}_1 \tilde{\T{R}}_{1h}$
 \begin{equation*}
-	\T{e}_{jhi} = \plbr{\T{R}_j \T{R}_{jh}}\sqbr{i}
+	\T{e}_{jhi} = \plbr{\T{R}_j \tilde{\T{R}}_{jh}}\sqbr{i}
 \end{equation*}
 $\T{x}_j$ is the position of node $j$
 and $\T{f}_j$ is the offset of the joint with respect node $j$,
@@ -1444,13 +1444,13 @@ so the virtual perturbation of Equation~(\ref{eq:SCREW-constraint})
 yields the contribution of the constraint to the forces and moments
 acting on the constrained nodes:
 \begin{align*}
-	F_1 &= \T{e}_{1hz} \lambda \\
-	C_1 &= \plbr{
+	\T{F}_1 &= \T{e}_{1hz} \lambda \\
+	\T{C}_1 &= \plbr{
 		\plbr{\T{x}_2 + \T{f}_2 - \T{x}_1} \times \T{e}_{1hz} 
 		- \cfrac{p}{2 \pi} \T{e}_{1hz}
 	} \lambda \\
-	F_2 &= - \T{e}_{1hz} \lambda \\
-	C_2 &= - \plbr{
+	\T{F}_2 &= - \T{e}_{1hz} \lambda \\
+	\T{C}_2 &= - \plbr{
 		\T{f}_2 \times \T{e}_{1hz}
 		- \cfrac{p}{2 \pi} \T{e}_{1hz}
 	} \lambda
