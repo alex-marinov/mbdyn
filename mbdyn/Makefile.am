@@ -14,8 +14,7 @@ contrib/SimulinkInterface/sfun_mbdyn_start.c \
 	contrib/SimulinkInterface/examples/pendulum.mdl \
 	contrib/SimulinkInterface/examples/README \
 	contrib/SimulinkInterface/tmp/README \
-contrib/Patches \
-libraries/libboost
+contrib/Patches
 
 dist-hook:
 	rm -rf `find $(distdir) -name CVS`
