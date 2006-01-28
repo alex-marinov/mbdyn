@@ -3051,6 +3051,22 @@ with respect to node 2 is reset;
     axis 3.
 }
 
+\subsection{Output}
+The output occurs in the \kw{.jnt} file, according to default joint output
+for the first 13 columns; specific columns contain:
+\begin{itemize}
+\item columns 14--16: the so-called \emph{Euler} angles that describe 
+	the relative rotation; only the third component is relevant,
+	the first two essentially indicate the accuracy of the rotation 
+	constraint;
+\item column 17: the angular velocity about the revolute axis;
+\end{itemize}
+If friction is present:
+\begin{itemize}
+\item column 18: the friction moment about the revolute axis;
+\item subsequent columns: any friction model specific data.
+\end{itemize}
+
 \paragraph{Private Data}
 The following data is available:
 \begin{enumerate}
