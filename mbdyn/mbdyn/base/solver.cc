@@ -1685,10 +1685,12 @@ Solver::~Solver(void)
       		SAFEDELETEARR(sOutputFileName);
    	}
 
-	for (int ivec = 0; ivec < iNumPreviousVectors; ivec++) {
-   		if (qX[ivec] != NULL) {
-			SAFEDELETE(qX[ivec]);
-			SAFEDELETE(qXPrime[ivec]);
+	if (!qX.empty()) {
+		for (int ivec = 0; ivec < iNumPreviousVectors; ivec++) {
+   			if (qX[ivec] != NULL) {
+				SAFEDELETE(qX[ivec]);
+				SAFEDELETE(qXPrime[ivec]);
+			}
 		}
 	}
 	SAFEDELETE(pX);
