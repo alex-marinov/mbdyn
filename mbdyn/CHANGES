@@ -15,7 +15,7 @@ MBDyn 1.X-Devel
 		- added "ad hoc" (Radau IIA) third-order integrator
 		- added meter to make output selection more flexible
 		- streamlined and improved modal element input
-		- added output trigger for selective output
+		- added output meter for selective output
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
