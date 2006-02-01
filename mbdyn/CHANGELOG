@@ -13,7 +13,6 @@ MBDyn 1.X-Devel
 		  (by Marco Morandini)
 		- added TAUCS linear solver (experimental) (by Marco Morandini)
 		- added "ad hoc" (Radau IIA) third-order integrator
-		- added meter to make output selection more flexible
 		- streamlined and improved modal element input
 		- added output meter for selective output
 	Backward compatibility issues:
