@@ -1283,6 +1283,13 @@ e.g.:
 \end{verbatim}
 generates a cosine modulated by an exponential.
 
+\noindent
+\emph{Note: currently, the expression is parsed each time it is evaluated;
+this is not very efficient.
+A future version should result in building a tree-like form of the
+parsed expression, where non-symbolic branches are evaluated once for all,
+to speed up evaluation.}
+
 
 \subsection{Dof drive}\label{sec:DRIVE-DOF}
 \begin{verbatim}
@@ -1315,6 +1322,20 @@ a string expression.
 Refer to the description of a 
 \hyperref{\kw{node\_dof}}{\kw{node\_dof} (see Section~}{)}{sec:NODEDOF}
 entry for further details.
+
+\noindent
+The same effect can be obtained using the \kw{dof} plugin as follows:
+\begin{verbatim}
+    set: [dof,x,1000,structural,1,algebraic];
+    # ...
+    couple: 1, conservative, 1, 0.,0.,1.,
+        string, "2.*exp(-100.*x)";
+\end{verbatim}
+which applies a couple whose amplitude is computed by evaluating
+a \kw{string} drive which depends on variable $x$; this, in turn,
+is defined as a \kw{dof} plugin, which causes its evaluation
+in terms of the selected degree of freedom of the node at each invocation.
+
 
 \subsection{Element drive}\label{sec:DRIVE-ELEMENT}
 \begin{verbatim}
@@ -1352,15 +1373,17 @@ and unit linear coefficient, while
 \end{verbatim}
 uses the same value, addressed in an alternative manner, in computing
 a string expression.
-The same effect can be obtained by using the element plugin as follows:
+
+\noindent
+The same effect can be obtained using the \kw{element} plugin as follows:
 \begin{verbatim}
-    set: [elem,x,1000,joint,name=rz];
+    set: [element,x,1000,joint,name=rz];
     # ...
     couple: 1, conservative, 1, 0.,0.,1.,
         string, "2.*exp(-100.*x)";
 \end{verbatim}
 which applies a couple whose amplitude is computed by evaluating
-a \kw{string} drive which depends on variable $x$; this, on turn,
+a \kw{string} drive which depends on variable $x$; this, in turn,
 is defined as an \kw{element} plugin, which causes its evaluation
 in terms of the element's private data at each invocation.
 
