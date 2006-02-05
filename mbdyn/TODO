@@ -34,11 +34,16 @@ D. Code:
 
 	Large Projects:
 	- implement binary, or hard, restart
-	- add MATLAB/Octave and Simulink hooks.
-		Large project: turn mbdyn into a module for Simulink.
+	- add MATLAB/Octave/Scilab and Simulink/Scicos hooks.
+		Large project: turn mbdyn into a module for Simulink/Scicos
+		(see contrib/SimulinkInterface/; need an implicit
+		extension).
 	- remove node/element type listing from "control data" block;
 	  use STL containers to keep track of model components
 	- implement contacts with non-flat surfaces
+	- implement "smart" structural nodes, so that static/dynamic
+		is detected
+	- implement optional binary/ascii output (based on netcdf?)
 
 	Medium Projects:
 	- recover existing soft restart (Michele Attolico is working at it)
@@ -56,6 +61,20 @@ D. Code:
 	- review output to allow selective ascii/binary output
 	- replace MyLList and LLStack with STL containers
 	- add friction to contacts
+	- rework modal element to be static/dynamic
+	- rework modal element to use momentum and momenta moment instead
+		of linear and angular velocities (so the "modal" node
+		is no longer required)
+	- rework revolute joints to allow normal force to be computed
+		as a combination of contraint reactions (constraint location)
+	- implement modal element binary data using netcdf:
+		.fem:
+			femgen > ascii
+			femgen > netcdf
+			mbdyn < ascii > netcdf
+		.mod:
+			mbdyn > ascii
+			mbdyn > netcdf (in global output database)
 
 	Small Projects:
 	- add MATLAB/Octave and Simulink hooks.
