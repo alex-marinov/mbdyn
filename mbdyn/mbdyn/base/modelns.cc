@@ -68,6 +68,8 @@ IDX2str(IDX_t IDX)
 	case IDX3:
 		return "<3>";
 	}
+
+	throw ErrGeneric();
 }
 
 /*
