@@ -162,10 +162,9 @@ class GenelClamp : virtual public Elem, public Genel, public DriveOwner {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 1;
-     NdTyps[0] = SD.pNode->GetNodeType();
-     NdLabels[0] = SD.pNode->GetLabel();
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(1);
+     connectedNodes[0] = SD.pNode;
    };
    /* ************************************************ */
 };
@@ -325,12 +324,10 @@ class GenelDistance : virtual public Elem, public Genel, public DriveOwner {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 2;
-     NdTyps[0] = SD1.pNode->GetNodeType();
-     NdLabels[0] = SD1.pNode->GetLabel();
-     NdTyps[1] = SD2.pNode->GetNodeType();
-     NdLabels[2] = SD2.pNode->GetLabel();
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(2);
+     connectedNodes[0] = SD1.pNode;
+     connectedNodes[1] = SD2.pNode;
 
    };
    /* ************************************************ */
@@ -459,13 +456,10 @@ class GenelSpring
  /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 2;
-     NdTyps[0] = SD1.pNode->GetNodeType();
-     NdLabels[0] = SD1.pNode->GetLabel();
-     NdTyps[1] = SD2.pNode->GetNodeType();
-     NdLabels[2] = SD2.pNode->GetLabel();
-     
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(2);
+     connectedNodes[0] = SD1.pNode;
+     connectedNodes[1] = SD2.pNode;
    };
    /* ************************************************ */
 };
@@ -564,10 +558,9 @@ class GenelSpringSupport
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 1;
-     NdTyps[0] = SD.pNode->GetNodeType();
-     NdLabels[0] = SD.pNode->GetLabel();
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(1);
+     connectedNodes[0] = SD.pNode;
    };
    /* ************************************************ */
 
@@ -670,13 +663,10 @@ class GenelCrossSpringSupport
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 2;
-     NdTyps[0] = SDRow.pNode->GetNodeType();
-     NdLabels[0] = SDRow.pNode->GetLabel();
-     NdTyps[1] = SDCol.pNode->GetNodeType();
-     NdLabels[2] = SDCol.pNode->GetLabel();
-
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(2);
+     connectedNodes[0] = SDRow.pNode;
+     connectedNodes[1] = SDCol.pNode;
    };
    /* ************************************************ */
 };
@@ -781,13 +771,10 @@ class GenelCrossSpringDamperSupport
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 2;
-     NdTyps[0] = SDRow.pNode->GetNodeType();
-     NdLabels[0] = SDRow.pNode->GetLabel();
-     NdTyps[1] = SDCol.pNode->GetNodeType();
-     NdLabels[2] = SDCol.pNode->GetLabel();
-     
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(2);
+     connectedNodes[0] = SDRow.pNode;
+     connectedNodes[1] = SDCol.pNode;
    };
    /* ************************************************ */
 };
@@ -890,10 +877,9 @@ class GenelSpringDamperSupport
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 1;
-     NdTyps[0] = SD.pNode->GetNodeType();
-     NdLabels[0] = SD.pNode->GetLabel();
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(1);
+     connectedNodes[0] = SD.pNode;
    };
    /* ************************************************ */
 };
@@ -1008,10 +994,9 @@ class GenelMass : virtual public Elem, public Genel, public DriveOwner {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 1;
-     NdTyps[0] = SD.pNode->GetNodeType();
-     NdLabels[0] = SD.pNode->GetLabel();
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(1);
+     connectedNodes[0] = SD.pNode;
    };
    /* ************************************************ */
 };

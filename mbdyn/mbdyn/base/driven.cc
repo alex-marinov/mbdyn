@@ -306,11 +306,9 @@ DrivenElem::GetNumConnectedNodes(void) const
 }
 
 void
-DrivenElem::GetConnectedNodes(int& NumNodes,
-		Node::Type* NdTyps,
-		unsigned int* NdLabels)
+DrivenElem::GetConnectedNodes(std::vector<const Node *>& connectedNodes)
 {
 	ASSERT(pElem != NULL);
-	return pElem->GetConnectedNodes(NumNodes, NdTyps, NdLabels);
+	pElem->GetConnectedNodes(connectedNodes);
 }
 

@@ -213,12 +213,9 @@ public:
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs
 	 */
 	virtual void
-	GetConnectedNodes(int& NumNodes,
-			  Node::Type* NdTyps,
-			  unsigned int* NdLabels) {
-		NumNodes = 1;
-		NdTyps[0] = pNode->GetNodeType();
-		NdLabels[0] = pNode->GetLabel();
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+		connectedNodes.resize(1);
+		connectedNodes[0] = pNode;
 	};
 	
 	virtual const Rotor *pGetRotor(void) const {
@@ -392,16 +389,11 @@ public:
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs
 	 */
 	virtual void
-	GetConnectedNodes(int& NumNodes,
-			  Node::Type* NdTyps,
-			  unsigned int* NdLabels) {
-		NumNodes = 3;
-		NdTyps[0] = pNode1->GetNodeType();
-		NdLabels[0] = pNode1->GetLabel();
-		NdTyps[1] = pNode2->GetNodeType();
-		NdLabels[1] = pNode2->GetLabel();
-		NdTyps[2] = pNode3->GetNodeType();
-		NdLabels[2] = pNode3->GetLabel();     
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+		connectedNodes.resize(3);
+		connectedNodes[0] = pNode1;
+		connectedNodes[1] = pNode2;
+		connectedNodes[2] = pNode3;
 	};
 	
 	virtual const Rotor *pGetRotor(void) const {
@@ -567,14 +559,10 @@ public:
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs
 	 */
 	virtual void
-	GetConnectedNodes(int& NumNodes,
-			  Node::Type* NdTyps,
-			  unsigned int* NdLabels) {
-		NumNodes = 2;
-		NdTyps[0] = pNode1->GetNodeType();
-		NdLabels[0] = pNode1->GetLabel();
-		NdTyps[1] = pNode2->GetNodeType();
-		NdLabels[1] = pNode2->GetLabel();
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+		connectedNodes.resize(2);
+		connectedNodes[0] = pNode1;
+		connectedNodes[1] = pNode2;
 	};
 	
 	virtual const Rotor *pGetRotor(void) const {

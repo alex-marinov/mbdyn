@@ -216,12 +216,10 @@ int_i_get_num_connected_nodes(const LoadableElem* pEl)
 }
 
 static void
-int_get_connected_nodes(const LoadableElem* pEl, 
-		int& NumNodes, 
-		Node::Type* /* NdTyps */ , 
-		unsigned int* /* NdLabels */ )
+int_get_connected_nodes(const LoadableElem* pEl, std::vector<const Node *>& connectedNodes)
 {
-	NumNodes = int_i_get_num_connected_nodes(pEl);
+	/* NOTE: this will cause an exception to be thrown */
+	connectedNodes.resize(int_i_get_num_connected_nodes(pEl));
 }
 
 static void 
@@ -759,12 +757,10 @@ LoadableElem::GetNumConnectedNodes(void) const
 }
 
 void
-LoadableElem::GetConnectedNodes(int& NumNodes, 
-		Node::Type* NdTyps, 
-		unsigned int* NdLabels)
+LoadableElem::GetConnectedNodes(std::vector<const Node *>& connectedNodes)
 {
 	ASSERT(calls->get_connected_nodes != NULL);
-	return (*calls->get_connected_nodes)(this, NumNodes, NdTyps, NdLabels);
+	return (*calls->get_connected_nodes)(this, connectedNodes);
 }
 
 /* Adams output stuff */

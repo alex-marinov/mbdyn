@@ -310,19 +310,14 @@ class Rotor
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps,
-		   unsigned int* NdLabels) {
-	   NumNodes = 2;
-	   NdTyps[0] = pCraft->GetNodeType();
-	   NdLabels[0] = pCraft->GetLabel();
-	   NdTyps[1] = pRotor->GetNodeType();
-	   NdLabels[1] = pRotor->GetLabel();
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+	   connectedNodes.resize(2);
+	   connectedNodes[0] = pCraft;
+	   connectedNodes[1] = pRotor;
 	   if (pGround != NULL) {
-	      	   NumNodes++;
-		   NdTyps[2] = pGround->GetNodeType();
-		   NdLabels[2] = pGround->GetLabel();
+	      	   connectedNodes.resize(3);
+		   connectedNodes[2] = pGround;
 	   }
-
    };
    /* ************************************************ */
 #ifdef USE_MPI

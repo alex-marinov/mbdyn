@@ -126,12 +126,10 @@ class InPlaneJoint : virtual public Elem, public Joint {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 2;
-     NdTyps[0] = pNode1->GetNodeType();
-     NdLabels[0] = pNode1->GetLabel();
-     NdTyps[1] = pNode2->GetNodeType();
-     NdLabels[1] = pNode2->GetLabel();
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(2);
+     connectedNodes[0] = pNode1;
+     connectedNodes[1] = pNode2;
    };
    /* ************************************************ */
 
@@ -228,12 +226,10 @@ class InPlaneWithOffsetJoint : virtual public Elem, public Joint {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 2;
-     NdTyps[0] = pNode1->GetNodeType();
-     NdLabels[0] = pNode1->GetLabel();
-     NdTyps[1] = pNode2->GetNodeType();
-     NdLabels[1] = pNode2->GetLabel();
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(2);
+     connectedNodes[0] = pNode1;
+     connectedNodes[1] = pNode2;
    };
    /* ************************************************ */  
 };

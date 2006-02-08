@@ -85,12 +85,10 @@ class Accelerometer : virtual public Elem, public Electric {
  /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 2;
-     NdTyps[0] = pStrNode->GetNodeType();
-     NdLabels[0] = pStrNode->GetLabel();
-     NdTyps[1] = pAbsNode->GetNodeType();
-     NdLabels[1] = pAbsNode->GetLabel();
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(2);
+     connectedNodes[0] = pStrNode;
+     connectedNodes[1] = pAbsNode;
    };
    /* ************************************************ */
 };
@@ -150,12 +148,10 @@ class TraslAccel : virtual public Elem, public Electric {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 2;
-     NdTyps[0] = pStrNode->GetNodeType();
-     NdLabels[0] = pStrNode->GetLabel();
-     NdTyps[1] = pAbsNode->GetNodeType();
-     NdLabels[1] = pAbsNode->GetLabel();
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(2);
+     connectedNodes[0] = pStrNode;
+     connectedNodes[1] = pAbsNode;
    };
    /* ************************************************ */
 };
@@ -214,12 +210,10 @@ class RotAccel : virtual public Elem, public Electric {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 2;
-     NdTyps[0] = pStrNode->GetNodeType();
-     NdLabels[0] = pStrNode->GetLabel();
-     NdTyps[1] = pAbsNode->GetNodeType();
-     NdLabels[1] = pAbsNode->GetLabel();
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(2);
+     connectedNodes[0] = pStrNode;
+     connectedNodes[1] = pAbsNode;
    };
    /* ************************************************ */
 };

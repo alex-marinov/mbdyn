@@ -117,10 +117,9 @@ class LinearVelocityJoint
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 1;
-     NdTyps[0] = pNode->GetNodeType();
-     NdLabels[0] = pNode->GetLabel();
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(1);
+     connectedNodes[0] = pNode;
    };
    /* ************************************************ */
 
@@ -213,10 +212,9 @@ class AngularVelocityJoint
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 1;
-     NdTyps[0] = pNode->GetNodeType();
-     NdLabels[0] = pNode->GetLabel();
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(1);
+     connectedNodes[0] = pNode;
    };
    /* ************************************************ */ 
 };

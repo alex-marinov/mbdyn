@@ -102,16 +102,12 @@ class Control_valve : virtual public Elem, public HydraulicElem, public DriveOwn
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 4;
-     NdTyps[0] = pNode1->GetNodeType();
-     NdLabels[0] = pNode1->GetLabel();
-     NdTyps[1] = pNode2->GetNodeType();
-     NdLabels[1] = pNode2->GetLabel();
-     NdTyps[2] = pNode3->GetNodeType();
-     NdLabels[2] = pNode3->GetLabel();
-     NdTyps[3] = pNode4->GetNodeType();
-     NdLabels[3] = pNode4->GetLabel();
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(4);
+     connectedNodes[0] = pNode1;
+     connectedNodes[1] = pNode2;
+     connectedNodes[2] = pNode3;
+     connectedNodes[3] = pNode4;
    };
    /* ************************************************ */ 	
 };
@@ -219,17 +215,12 @@ public:
 	/* *******PER IL SOLUTORE PARALLELO******** */        
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
-	virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, 
-			unsigned int* NdLabels) {
-		NumNodes = 4;
-		NdTyps[0] = pNode[N1]->GetNodeType();
-		NdLabels[0] = pNode[N1]->GetLabel();
-		NdTyps[1] = pNode[N2]->GetNodeType();
-		NdLabels[1] = pNode[N2]->GetLabel();
-		NdTyps[2] = pNode[N3]->GetNodeType();
-		NdLabels[2] = pNode[N3]->GetLabel();
-		NdTyps[3] = pNode[N4]->GetNodeType();
-		NdLabels[3] = pNode[N4]->GetLabel();
+	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+		connectedNodes.resize(4);
+		connectedNodes[0] = pNode[N1];
+		connectedNodes[1] = pNode[N2];
+		connectedNodes[2] = pNode[N3];
+		connectedNodes[3] = pNode[N4];
 	};
 	/* ************************************************ */ 	
 };
@@ -327,16 +318,12 @@ class Dynamic_control_valve : virtual public Elem, public HydraulicElem, public 
     /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 4;
-     NdTyps[0] = pNode1->GetNodeType();
-     NdLabels[0] = pNode1->GetLabel();
-     NdTyps[1] = pNode2->GetNodeType();
-     NdLabels[1] = pNode2->GetLabel();
-     NdTyps[2] = pNode3->GetNodeType();
-     NdLabels[2] = pNode3->GetLabel();
-     NdTyps[3] = pNode4->GetNodeType();
-     NdLabels[3] = pNode4->GetLabel();
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(4);
+     connectedNodes[0] = pNode1;
+     connectedNodes[1] = pNode2;
+     connectedNodes[2] = pNode3;
+     connectedNodes[3] = pNode4;
    };
    /* ************************************************ */
 };
@@ -439,20 +426,14 @@ class Pressure_flow_control_valve : virtual public Elem, public HydraulicElem, p
     /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 6;
-     NdTyps[0] = pNode1->GetNodeType();
-     NdLabels[0] = pNode1->GetLabel();
-     NdTyps[1] = pNode2->GetNodeType();
-     NdLabels[1] = pNode2->GetLabel();
-     NdTyps[2] = pNode3->GetNodeType();
-     NdLabels[2] = pNode3->GetLabel();
-     NdTyps[3] = pNode4->GetNodeType();
-     NdLabels[3] = pNode4->GetLabel();
-     NdTyps[4] = pNode5->GetNodeType();
-     NdLabels[4] = pNode5->GetLabel();
-     NdTyps[5] = pNode6->GetNodeType();
-     NdLabels[5] = pNode6->GetLabel();
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(6);
+     connectedNodes[0] = pNode1;
+     connectedNodes[1] = pNode2;
+     connectedNodes[2] = pNode3;
+     connectedNodes[3] = pNode4;
+     connectedNodes[4] = pNode5;
+     connectedNodes[5] = pNode6;
   };
    /* ************************************************ */
 };
@@ -537,13 +518,10 @@ class Pressure_valve : virtual public Elem, public HydraulicElem {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 2;
-     NdTyps[0] = pNode1->GetNodeType();
-     NdLabels[0] = pNode1->GetLabel();
-     NdTyps[1] = pNode2->GetNodeType();
-     NdLabels[1] = pNode2->GetLabel();
-    
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(2);
+     connectedNodes[0] = pNode1;
+     connectedNodes[1] = pNode2;
    };
    /* ************************************************ */
 
@@ -632,14 +610,11 @@ class  Flow_valve : virtual public Elem, public HydraulicElem {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 3;
-     NdTyps[0] = pNode1->GetNodeType();
-     NdLabels[0] = pNode1->GetLabel();
-     NdTyps[1] = pNode2->GetNodeType();
-     NdLabels[1] = pNode2->GetLabel();
-     NdTyps[2] = pNode3->GetNodeType();
-     NdLabels[2] = pNode3->GetLabel();
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(3);
+     connectedNodes[0] = pNode1;
+     connectedNodes[1] = pNode2;
+     connectedNodes[2] = pNode3;
    };
   /* ************************************************ */ 	 
 };

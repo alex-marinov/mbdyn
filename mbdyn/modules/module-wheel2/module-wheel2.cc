@@ -749,19 +749,16 @@ i_get_num_connected_nodes(const LoadableElem* /* pEl */ )
 
 static void
 get_connected_nodes(const LoadableElem* pEl, 
-		int& NumNodes, Node::Type* NdTyp, unsigned int* NdLabels)
+		std::vector<const Node *>& connectedNodes)
 {
 	DEBUGCOUTFNAME("get_connected_nodes");
 	module_wheel* p = (module_wheel *)pEl->pGetData();
 	
 	/* wheel + ground */
-	NumNodes = 2;
+	connectedNodes.resize(2);
 
-	NdTyp[0] = Node::STRUCTURAL;
-	NdTyp[1] = Node::STRUCTURAL;
-
-	NdLabels[0] = p->pWheel->GetLabel();
-	NdLabels[1] = p->pGround->GetLabel();
+	connectedNodes[0] = p->pWheel;
+	connectedNodes[1] = p->pGround;
 }
 
 #ifdef MBDYN_MODULE

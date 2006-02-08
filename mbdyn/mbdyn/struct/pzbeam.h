@@ -124,13 +124,13 @@ class PiezoActuatorBeam : public Beam {
  /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) { 
-     Beam::GetConnectedNodes(NumNodes, NdTyps, NdLabels);
-     for(int i=0; i <= iNumElec-1; i++) {
-       NdTyps[NumNodes+i] = pvElecDofs[i]->GetNodeType();
-       NdLabels[NumNodes+i] = pvElecDofs[i]->GetLabel();
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     Beam::GetConnectedNodes(connectedNodes);
+     int NumNodes = connectedNodes.size();
+     connectedNodes.resize(NumNodes + iNumElec);
+     for (int i = 0; i < iNumElec; i++) {
+       connectedNodes[NumNodes + i] = pvElecDofs[i];
      }
-     NumNodes += iNumElec;
    };
    /* ************************************************ */
 };
@@ -228,13 +228,13 @@ class PiezoActuatorVEBeam : public ViscoElasticBeam {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) { 
-     ViscoElasticBeam::GetConnectedNodes(NumNodes, NdTyps, NdLabels);
-     for(int i=0; i <= iNumElec-1; i++) {
-       NdTyps[NumNodes+i] = pvElecDofs[i]->GetNodeType();
-       NdLabels[NumNodes+i] = pvElecDofs[i]->GetLabel();
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     ViscoElasticBeam::GetConnectedNodes(connectedNodes);
+     int NumNodes = connectedNodes.size();
+     connectedNodes.resize(NumNodes + iNumElec);
+     for (int i = 0; i < iNumElec; i++) {
+       connectedNodes[NumNodes + i] = pvElecDofs[i];
      }
-     NumNodes += iNumElec;
    };
    /* ************************************************ */
 };

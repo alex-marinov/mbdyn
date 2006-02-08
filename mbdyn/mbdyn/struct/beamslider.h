@@ -212,20 +212,15 @@ public:
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs
 	 */
 	virtual void 
-	GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, 
-			unsigned int* NdLabels) {
-		NumNodes = 1+nBeams*Beam::NUMNODES;
-		NdTyps[0] = pNode->GetNodeType();
-		NdLabels[0] = pNode->GetLabel();
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+		connectedNodes.resize(1 + nBeams*Beam::NUMNODES);
+		connectedNodes[0] = pNode;
 
 		/* for each beam */
 		for (unsigned int i = 0; i < nBeams; i++) {
 			/* for each node */
 			for (int j = 1; j <= Beam::NUMNODES; j++) {
-				const StructNode *pN = 
-					ppBeam[i]->pGetNode(j);
-				NdTyps[Beam::NUMNODES*i+j] = pN->GetNodeType();
-				NdLabels[Beam::NUMNODES*i+j] = pN->GetLabel();
+				connectedNodes[Beam::NUMNODES*i + j] = ppBeam[i]->pGetNode(j);
 			}
 		}
 	};

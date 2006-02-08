@@ -43,7 +43,7 @@
 
 #define LOADABLE_VERSION_SET(maj, min, fix)	\
 	(((maj) << 24) | ((min) << 16) | (fix))
-#define LOADABLE_VERSION	LOADABLE_VERSION_SET(1, 4, 0)
+#define LOADABLE_VERSION	LOADABLE_VERSION_SET(1, 5, 0)
 #define LOADABLE_VERSION_OUT(v) \
 	((v & 0xFF000000U) >> 24) << '.' << ((v & 0x00FF0000U) >> 16) << '.' << (v & 0x0000FFFFU)
 /*
@@ -161,8 +161,8 @@ typedef doublereal
 (* p_d_get_priv_data)(const LoadableElem* pEl, unsigned int i);
 typedef int (* p_i_get_num_connected_nodes)(const LoadableElem*);
 typedef void
-(* p_get_connected_nodes)(const LoadableElem*, int&,
-		Node::Type*, unsigned int*);
+(* p_get_connected_nodes)(const LoadableElem*,
+		std::vector<const Node *>& connectedNodes);
 typedef void (* p_destroy)(LoadableElem*);
 
 /* Adams output stuff -- added with 1.2.0 */
@@ -345,9 +345,7 @@ public:
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs 
 	 */
      	virtual int GetNumConnectedNodes(void) const;
-	virtual void GetConnectedNodes(int& NumNodes, 
-			Node::Type* /* NdTyps */ , 
-			unsigned int* /* NdLabels */ );
+	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes);
      	/* ************************************************ */
 
 	/* Adams output stuff */

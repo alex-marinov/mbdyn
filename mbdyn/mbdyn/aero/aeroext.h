@@ -175,18 +175,10 @@ public:
 	
 	
 	virtual void
-	GetConnectedNodes(int& NumNodes,
-			  Node::Type* NdTyps,
-			  unsigned int* NdLabels) {
-		if (NumNodes != NodeN) {
-			silent_cerr("Parallel Connection Computation, "
-					"wrong array size. Aborting ..."
-					<< std::endl);
-			throw ErrGeneric();
-		}
-		for (int i=0; i < NodeN; i++) {
-			NdTyps[i] = ppNode[i]->GetNodeType();
-			NdLabels[i] = ppNode[i]->GetLabel();
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+		connectedNodes.resize(NodeN);
+		for (int i = 0; i < NodeN; i++) {
+			connectedNodes[i] = ppNode[i];
 		}
 	};
 
@@ -316,12 +308,9 @@ public:
 	
 	
 	virtual void
-	GetConnectedNodes(int& NumNodes,
-			  Node::Type* NdTyps,
-			  unsigned int* NdLabels) {
-		const ModalNode* pMN = pModal->pGetModalNode();
-		NdTyps[0] = pMN->GetNodeType();
-		NdLabels[0] = pMN->GetLabel();
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+		connectedNodes.resize(1);
+		connectedNodes[0] = pModal->pGetModalNode();
 	};
 	
    private:

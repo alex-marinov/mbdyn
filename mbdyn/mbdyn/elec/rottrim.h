@@ -112,14 +112,12 @@ public:
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs
 	 */
 	virtual void
-	GetConnectedNodes(int& NumNodes,
-			  Node::Type* NdTyps,
-			  unsigned int* NdLabels) {
-		pRotor->GetConnectedNodes(NumNodes,  NdTyps, NdLabels);
-		for (int i = 0; i <= 2; i++) {
-			NdTyps[NumNodes+i] = pvNodes[i]->GetNodeType();
-			NdLabels[NumNodes+i] = pvNodes[i]->GetLabel();
-			NumNodes += 3;
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+		pRotor->GetConnectedNodes(connectedNodes);
+		int NumNodes = connectedNodes.size();
+		connectedNodes.resize(NumNodes + 3);
+		for (int i = 0; i < 3; i++) {
+			connectedNodes[NumNodes + i] = pvNodes[i];
 		}
 	};
 	/* ************************************************ */

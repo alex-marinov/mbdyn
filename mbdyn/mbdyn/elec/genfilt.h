@@ -168,12 +168,10 @@ class GenelFilterEq : public Genel {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 2;
-     NdTyps[0] = SD_y.pNode->GetNodeType();
-     NdLabels[0] = SD_y.pNode->GetLabel();
-     NdTyps[1] = SD_u.pNode->GetNodeType();
-     NdLabels[1] = SD_u.pNode->GetLabel();
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(2);
+     connectedNodes[0] = SD_y.pNode;
+     connectedNodes[1] = SD_u.pNode;
    };
    /* ************************************************ */
 
@@ -255,12 +253,10 @@ class GenelStateSpaceSISO : public Genel {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 2;
-     NdTyps[0] = SD_y.pNode->GetNodeType();
-     NdLabels[0] = SD_y.pNode->GetLabel();
-     NdTyps[1] = SD_u.pNode->GetNodeType();
-     NdLabels[1] = SD_u.pNode->GetLabel();
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(2);
+     connectedNodes[0] = SD_y.pNode;
+     connectedNodes[1] = SD_u.pNode;
    };
    /* ************************************************ */
 };
@@ -337,15 +333,13 @@ class GenelStateSpaceMIMO : public Genel {
  /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = iNumInputs +iNumOutputs;
-     for(unsigned int i= 0; i <= iNumOutputs-1; i++) { 
-       NdTyps[i] = (pvSD_y[i].pNode)->GetNodeType();
-       NdLabels[i] = (pvSD_y[i].pNode)->GetLabel();
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(iNumInputs + iNumOutputs);
+     for (unsigned int i = 0; i < iNumOutputs; i++) { 
+       connectedNodes[i] = pvSD_y[i].pNode;
      }
-     for(unsigned int i= 0; i <= iNumInputs-1; i++) {
-       NdTyps[iNumOutputs+i] = (pvSD_u[i].pNode)->GetNodeType();
-       NdLabels[iNumOutputs+i] = (pvSD_u[i].pNode)->GetLabel();
+     for (unsigned int i = 0; i < iNumInputs; i++) {
+       connectedNodes[iNumOutputs + i] = pvSD_u[i].pNode;
      }
    };
    /* ************************************************ */

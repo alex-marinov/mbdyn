@@ -353,15 +353,13 @@ class DiscreteControlElem : virtual public Elem, public Electric {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = iNumInputs +iNumOutputs;
-     for(int i = 0; i <= iNumInputs-1; i++) { 
-       NdTyps[i] = (pInputs[i].pNode)->GetNodeType();
-       NdLabels[i] = (pInputs[i].pNode)->GetLabel();
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+     connectedNodes.resize(iNumInputs + iNumOutputs);
+     for (int i = 0; i < iNumInputs; i++) { 
+       connectedNodes[i] = pInputs[i].pNode;
      }
-     for(int i = 0; i <= iNumOutputs-1; i++) {
-       NdTyps[iNumInputs+i] = (pOutputs[i].pNode)->GetNodeType();
-       NdLabels[iNumInputs+i] = (pOutputs[i].pNode)->GetLabel();
+     for (int i = 0; i < iNumOutputs; i++) {
+       connectedNodes[iNumInputs + i] = pOutputs[i].pNode;
      }
    };
    /* ************************************************ */

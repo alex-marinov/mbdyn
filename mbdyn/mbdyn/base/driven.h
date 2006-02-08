@@ -190,8 +190,7 @@ public:
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs
 	 */
 	virtual int GetNumConnectedNodes(void) const;
-	virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps,
-			unsigned int* NdLabels);
+	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes);
 };
 
 #endif /* DRIVEN_H */

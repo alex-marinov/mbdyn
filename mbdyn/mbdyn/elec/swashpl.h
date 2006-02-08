@@ -128,20 +128,14 @@ public:
 	/* *******PER IL SOLUTORE PARALLELO******** */        
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
-	virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-		NumNodes = 6;
-		NdTyps[0] = pCollectiveIn->GetNodeType();
-		NdLabels[0] = pCollectiveIn->GetLabel();
-		NdTyps[1] = pLongitudinalIn->GetNodeType();
-		NdLabels[1] = pLongitudinalIn->GetLabel();
-		NdTyps[2] = pLateralIn->GetNodeType();
-		NdLabels[2] = pLateralIn->GetLabel();
-		NdTyps[3] = pNode1->GetNodeType();
-		NdLabels[3] = pNode1->GetLabel();
-		NdTyps[4] = pNode2->GetNodeType();
-		NdLabels[4] = pNode2->GetLabel();
-		NdTyps[5] = pNode3->GetNodeType();
-		NdLabels[5] = pNode3->GetLabel();
+	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+		connectedNodes.resize(6);
+		connectedNodes[0] = pCollectiveIn;
+		connectedNodes[1] = pLongitudinalIn;
+		connectedNodes[2] = pLateralIn;
+		connectedNodes[3] = pNode1;
+		connectedNodes[4] = pNode2;
+		connectedNodes[5] = pNode3;
 	};
 	/* ************************************************ */
 };

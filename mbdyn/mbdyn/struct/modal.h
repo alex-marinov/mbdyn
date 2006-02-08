@@ -278,15 +278,12 @@ public:
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
 	virtual void
-	GetConnectedNodes(int& NumNodes, Node::Type* NdTyps,
-			unsigned int* NdLabels) {
-		NumNodes = 1+NStrNodes;
-		NdTyps[0] = pModalNode[0].GetNodeType();
-		NdLabels[0] = pModalNode[0].GetLabel();
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+		connectedNodes.resize(NStrNodes + 1);
 		for (unsigned int j = 0; j < NStrNodes; j++) {
-			NdTyps[1+j] = pInterfaceNodes[j]->GetNodeType();
-			NdLabels[1+j] = pInterfaceNodes[j]->GetLabel();
+			connectedNodes[j] = pInterfaceNodes[j];
 		}
+		connectedNodes[NStrNodes] = pModalNode;
 	};
 	/* ************************************************ */
 };
