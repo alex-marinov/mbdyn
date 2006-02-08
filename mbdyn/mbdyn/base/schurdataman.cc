@@ -720,23 +720,16 @@ SchurDataManager::CreatePartition(void)
 	int GravityPos = 0, AirPropPos = 0;
 	int* pRotPos = NULL;
 	unsigned int* pRotLab = NULL;
-	int iNumberOfNodes;
-	Node::Type* pMyTypes = NULL;
-	unsigned int* pMyLabels = NULL;
 	if (ElemData[Elem::ROTOR].iNum != 0) {
 		SAFENEWARR(pRotPos, int, ElemData[Elem::ROTOR].iNum);
 		SAFENEWARR(pRotLab, unsigned int, ElemData[Elem::ROTOR].iNum);
 		memset(pRotPos, 0, ElemData[Elem::ROTOR].iNum*sizeof(int));
 		memset(pRotLab, 0, ElemData[Elem::ROTOR].iNum*sizeof(unsigned int));
 	}
-	SAFENEWARR(pMyTypes, Node::Type, iDefaultMaxNodesPerElem);
-	SAFENEWARR(pMyLabels, unsigned int, iDefaultMaxNodesPerElem);
 	SAFENEWARR(pLabelsList, unsigned int, iTotNodes);
-	memset(pMyTypes, 0, iDefaultMaxNodesPerElem*sizeof(Node::Type));
-	memset(pMyLabels, 0, iDefaultMaxNodesPerElem*sizeof(unsigned int));
 	memset(pLabelsList, 0, iTotNodes*sizeof(unsigned int));
 
-	std::vector<Node *> connectedNodes;
+	std::vector<const Node *> connectedNodes;
 
 	while (true) {
 		InitList(Vertices.pXadj, iTotVertices + 1, 0);
@@ -784,12 +777,12 @@ SchurDataManager::CreatePartition(void)
 
 			CommWgts[iCount] = (*ppTmpEl)->iGetNumDof()*(*ppTmpEl)->iGetNumDof();
 
-			for (int i = 0; i < connectedNodes.size(); i++) {
+			for (unsigned i = 0; i < connectedNodes.size(); i++) {
 				Vertices.pXadj[iCount + 1]++;
 
 				/* trovo la pos. del nodo nella lista dei puntatori ai nodi */
 				Node::Type type = connectedNodes[i]->GetNodeType();
-				unsigned label = connectedNodes[i]->GetLabel()
+				unsigned label = connectedNodes[i]->GetLabel();
 				ppCurrNode = SearchNode(NodeData[type].ppFirstNode,
 						NodeData[type].iNum, label);
 				position = ppCurrNode - ppNodes;
@@ -1260,7 +1253,7 @@ SchurDataManager::CreatePartition(void)
 			case Elem::ROTOR:
 				if (iRotorIsMine == 1) {
 					ppMyElems[i]->GetConnectedNodes(connectedNodes);
-					for (int j = 0; j < connectedNodes.size(); j++) {
+					for (unsigned j = 0; j < connectedNodes.size(); j++) {
 						unsigned int* p = std::find(llabels, llabels + iNumIntNodes, connectedNodes[i]->GetLabel());
 						if (p != llabels + iNumIntNodes) {
 							ppMyIntElems[iNumIntElems] =  ppMyElems[i];
@@ -1281,7 +1274,7 @@ SchurDataManager::CreatePartition(void)
 
 			default:
 				ppMyElems[i]->GetConnectedNodes(connectedNodes);
-				for (int j = 0; j < connectedNodes.size(); j++) {
+				for (unsigned j = 0; j < connectedNodes.size(); j++) {
 					unsigned label = connectedNodes[j]->GetLabel();
 					unsigned int* p = std::find(llabels, llabels + iNumIntNodes, label);
 					if (p != llabels + iNumIntNodes) {
@@ -1390,14 +1383,6 @@ SchurDataManager::CreatePartition(void)
 	}
 
 	iNumMyInt = i2Count;
-
-	if (pMyTypes != NULL) {
-		SAFEDELETEARR(pMyTypes);
-	}
-
-	if (pMyLabels != NULL) {
-		SAFEDELETEARR(pMyLabels);
-	}
 
 	if ( Vertices.pXadj != NULL) {
 		SAFEDELETEARR(Vertices.pXadj);
@@ -1836,7 +1821,7 @@ SchurDataManager::Output(bool force) const
 	DEBUGCOUT("Entering SchurDataManager::Output()" << std::endl);
 
 	/* output only at multiples of iOutputFrequency */
-	if ((!force) && (iOutputCount++%iOutputFrequency)) {
+	if ((!force) && !pOutputMeter->dGet()) {
 		return;
 	}
 
