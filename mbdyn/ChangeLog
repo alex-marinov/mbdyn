@@ -6,6 +6,9 @@ Copyright (C) 1996-2006
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Wed Feb  8 22:30:25 CET 2006
+ - reworked GetConnectedNodes() API to use std::vector
+
 *** Fri Oct 21 16:16:58 CEST 2005 Michele Attolico <attolico@aero.polimi.it>
  - more improvements to initialization and restart
 
