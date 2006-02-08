@@ -3895,6 +3895,7 @@ Solver::Eig(void)
       Out << std::endl;
    }
 
+#if 0
 #ifdef __HACK_NASTRAN_MODES__
    /* EXPERIMENTAL */
    std::ofstream f06, pch;
@@ -4048,6 +4049,7 @@ Solver::Eig(void)
       f06.close();
    }
 #endif /* __HACK_NASTRAN_MODES__ */
+#endif
 
    /* Non puo' arrivare qui se le due aree di lavoro non sono definite */
    SAFEDELETEARR(pd);

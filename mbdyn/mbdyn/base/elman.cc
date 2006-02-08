@@ -457,6 +457,7 @@ DataManager::ElemOutput( OutputHandler& OH, const VectorHandler& X,
 	}
 }
 
+#if 0
 void
 DataManager::ElemOutput_pch( std::ostream& pch) const
 {
@@ -493,6 +494,7 @@ DataManager::ElemOutput_f06( std::ostream& f06, const VectorHandler& Xr,
 		} while (ElemIter.bGetNext(pTmpEl));
 	}
 }
+#endif
 
 
 /* cerca un elemento qualsiasi */

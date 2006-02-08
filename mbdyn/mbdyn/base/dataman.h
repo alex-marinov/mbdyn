@@ -323,13 +323,17 @@ public:
 	virtual void Output(bool force = false) const;
 	virtual void Output(const VectorHandler& X,
 			const VectorHandler& XP) const;
+#if 0
 	virtual void Output_pch(std::ostream& pch) const;
 	virtual void Output_f06(std::ostream& f06,
 			const VectorHandler& X) const;
 	virtual void Output_f06(std::ostream& f06, const VectorHandler& Xr,
 			const VectorHandler& Xi) const;
+#endif
+#if 0
 	virtual void Output_OpenDX(std::ostream& dx, const VectorHandler& Xr,
 			const VectorHandler& Xi) const;
+#endif
 
 	/* Aggiungere qui le funzioni che aprono i singoli stream */
 	void OutputOpen(const OutputHandler::OutFiles out);
@@ -472,10 +476,12 @@ public:
 	void ElemOutput(OutputHandler& OH) const;
 	void ElemOutput(OutputHandler& OH,
 			const VectorHandler& X, const VectorHandler& XP) const;
+#if 0
 	void ElemOutput_pch(std::ostream& pch) const;
 	void ElemOutput_f06(std::ostream& f06, const VectorHandler& X) const;
 	void ElemOutput_f06(std::ostream& f06, const VectorHandler& Xr,
 			const VectorHandler& Xi) const;
+#endif
 
 	/* da NodeManager */
 protected:

@@ -379,6 +379,7 @@ StructNode::Output(
    }
 }
 
+#if 0
 /* Output di un modello NASTRAN equivalente nella configurazione corrente */
 void
 StructNode::Output_pch(
@@ -560,6 +561,7 @@ StructNode::Output_f06(
 	}
 #endif /* __HACK_NASTRAN_MODES__ */
 }
+#endif
 
 
 /* Aggiorna dati in base alla soluzione */

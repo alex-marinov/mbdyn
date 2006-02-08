@@ -614,6 +614,7 @@ ToBeOutput::Output(OutputHandler& OH,
 	NO_OP;
 }
 
+#if 0
 /* Output of modes in NASTRAN's pch/f06 format */
 void
 ToBeOutput::Output_pch(std::ostream &pch) const
@@ -633,6 +634,7 @@ ToBeOutput::Output_f06(std::ostream &f06,
 {
 	NO_OP;
 }
+#endif
 
 flag
 ToBeOutput::fToBeOutput(void) const

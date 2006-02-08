@@ -989,6 +989,7 @@ DataManager::Output(const VectorHandler& X, const VectorHandler& XP) const
 	ElemOutput((OutputHandler&)OutHdl, X, XP);
 }
 
+#if 0
 /* Output dati pch */
 void
 DataManager::Output_pch(std::ostream& pch) const
@@ -1022,13 +1023,16 @@ DataManager::Output_f06(std::ostream& f06, const VectorHandler& Xr,
 	/* Dati degli elementi */
 	ElemOutput_f06(f06, Xr, Xi);
 }
+#endif
 
+#if 0
 /* OpenDX output (tbi) */
 void
 DataManager::Output_OpenDX(std::ostream& dx, const VectorHandler& Xr, const VectorHandler& Xi) const
 {
 	NO_OP;
 }
+#endif
 
 void
 DataManager::BeforePredict(VectorHandler& X, VectorHandler& XP,

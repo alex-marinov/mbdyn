@@ -167,6 +167,7 @@ DataManager::NodeOutput(
 }
 
 
+#if 0
 void
 DataManager::NodeOutput_pch(
 		std::ostream& pch
@@ -234,6 +235,7 @@ DataManager::NodeOutput_f06(
     }
 #endif
 }
+#endif
 
 
 flag DataManager::fGetDefaultOutputFlag(const Node::Type& t) const
