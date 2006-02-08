@@ -150,10 +150,11 @@ OL_ARG_WITH(static_modules,[  --with-static-modules   build (known) modules as s
 OL_ARG_ENABLE(crypt,[  --enable-crypt          enable crypt (deprecated)], no)dnl
 OL_ARG_ENABLE(schur,[  --enable-schur          enable Schur parallel solver
                           (needs MPI and either Metis or Chaco)],auto,[auto yes no])dnl needs MPI and Metis or Chaco
-OL_ARG_ENABLE(multithread,[  --enable-multithread    enable multithread assembly], no,[auto yes no force])dnl
-OL_ARG_ENABLE(multithread_naive,[  --enable-multithread-naive    enable multithread naive solver], no,[auto yes no force])dnl
-OL_ARG_ENABLE(adams,[  --enable-adams          enable MSC.ADAMS output], no)dnl
-OL_ARG_ENABLE(motionview,[  --enable-motionview     enable Altair's Motion View output], no)dnl
+OL_ARG_ENABLE(multithread,[  --enable-multithread    enable multithread assembly],no,[auto yes no force])dnl
+OL_ARG_ENABLE(multithread_naive,[  --enable-multithread-naive    enable multithread naive solver],no,[auto yes no force])dnl
+OL_ARG_ENABLE(adams,[  --enable-adams          enable MSC.ADAMS output],no)dnl
+OL_ARG_ENABLE(motionview,[  --enable-motionview     enable Altair's Motion View output],no)dnl
+OL_ARG_ENABLE(netcdf,[  --enable-netcdf         enable NetCDF based binary output],auto)dnl
 
 dnl ----------------------------------------------------------------
 dnl General "with" options
@@ -248,6 +249,7 @@ LAPACK_LIBS=
 TAUCS_LIBS=
 SECURITY_LIBS=
 TCL_LIBS=
+NETCDF_LIBS=
 
 GINACLIB_CONFIG=
 GINACLIB_LIBS=
@@ -410,6 +412,40 @@ if test "$ol_enable_motionview" != no ; then
 		if test $ol_enable_motionview != auto ; then
 			AC_MSG_ERROR([Could not locate mbs_result_api.h header])
 		fi
+	fi
+fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Enable NetCDF binary output
+dnl
+if test "$ol_enable_netcdf" != no ; then
+	have_netcdf=no
+	AC_LANG_CPLUSPLUS
+	AC_CHECK_HEADER(netcdfcpp.h,[have_netcdfcpp_h=yes],[have_netcdfcpp_h=no])
+	AC_LANG_C
+	if test $have_netcdfcpp_h = "yes" ; then
+		save_LIBS="$LIBS"
+		try_NETCDF_LIBS="-lnetcdf_c++ -lnetcdf"
+		LIBS="$try_NETCDF_LIBS $LIBS"
+		AC_LANG_CPLUSPLUS
+		AC_TRY_LINK([
+#include <netcdfcpp.h>
+			],[
+	/* test for netcdf */
+	NcFile nc("foobar", NcFile::Replace); // Create and leave in define mode
+			],[
+				have_libnetcdf=yes
+				NETCDF_LIBS="$try_NETCDF_LIBS"
+			],[have_libnetcdf=no])
+		AC_LANG_C
+		LIBS="$save_LIBS"
+	fi
+
+	if test $have_netcdf = yes ; then
+		AC_DEFINE(USE_NETCDF,1,[define this to enable NetCDF based output])
+	elif test $ol_enable_netcdf != auto ; then
+		AC_MSG_ERROR([Could not locate netcdfcpp.h header])
 	fi
 fi
 
@@ -2060,6 +2096,7 @@ AC_SUBST(THREAD_LIBS)
 AC_SUBST(TAUCS_LIBS)
 AC_SUBST(SECURITY_LIBS)
 AC_SUBST(TCL_LIBS)
+AC_SUBST(NETCDF_LIBS)
 
 AC_SUBST(MODULES_DIRS)
 AC_SUBST(MODULE_LOADPATH)
