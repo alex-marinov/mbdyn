@@ -291,9 +291,7 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
    const char sFuncName[] = "MatR2vec()";
    
    ASSERT(ia >= 1 && ia <= 3); 
-   ASSERT(va.Dot() > DBL_EPSILON);
    ASSERT(ib >= 1 && ib <= 3); 
-   ASSERT(vb.Dot() > DBL_EPSILON);
    
    Vec3 r[3];
 
@@ -311,9 +309,19 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
    int i3 = (ia+1)%3;
    
    if (ib == (ia%3)+1) {
-      r[i1] = va/va.Norm();
+      doublereal d = va.Norm();
+      if (d <= DBL_EPSILON) {
+	 silent_cerr(sFuncName << ": first vector must be non-null" << std::endl );
+	 throw ErrGeneric();
+      }
+      r[i1] = va/d;
+      d = vb.Norm();
+      if (d <= DBL_EPSILON) {
+	 silent_cerr(sFuncName << ": second vector must be non-null" << std::endl );
+	 throw ErrGeneric();
+      }
       r[i3] = r[i1].Cross(vb);
-      doublereal d = r[i3].Dot();
+      d = r[i3].Dot();
       if (d <= DBL_EPSILON) {
 	 silent_cerr(sFuncName << ": vectors must be distinct" 
 		 << std::endl);
@@ -327,9 +335,19 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
       
       return Mat3x3(r[0], r[1], r[2]);
    } else if (ib == ((ia+1)%3+1)) {
-      r[i1] = va/va.Norm();	
+      doublereal d = va.Norm();
+      if (d <= DBL_EPSILON) {
+	 silent_cerr(sFuncName << ": first vector must be non-null" << std::endl );
+	 throw ErrGeneric();
+      }
+      r[i1] = va/d;
+      d = vb.Norm();
+      if (d <= DBL_EPSILON) {
+	 silent_cerr(sFuncName << ": second vector must be non-null" << std::endl );
+	 throw ErrGeneric();
+      }
       r[i2] = vb.Cross(r[i1]);
-      doublereal d = r[i2].Dot();
+      d = r[i2].Dot();
       if (d <= DBL_EPSILON) {
 	 silent_cerr(sFuncName << ": vectors must be distinct" 
 		 << std::endl);
