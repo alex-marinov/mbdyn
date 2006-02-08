@@ -41,6 +41,8 @@
 #include <unistd.h>
 #include <signal.h>
 
+#include <set>
+
 #include "spmh.h"
 #include "spmapmh.h"
 #include "naivewrap.h"
