@@ -18,6 +18,7 @@ MBDyn 1.X-Devel
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
+		- fixed orientation matrix input check and diagnostics
 
 MBDyn 1.2.5
 	Enhancements:
