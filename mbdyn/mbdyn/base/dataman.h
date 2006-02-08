@@ -531,10 +531,12 @@ public:
 	void NodeOutput(OutputHandler& OH) const;
 	void NodeOutput(OutputHandler& OH,
 			const VectorHandler& X, const VectorHandler& XP) const;
+#if 0
 	void NodeOutput_pch(std::ostream& pch) const;
 	void NodeOutput_f06(std::ostream& f06, const VectorHandler& X) const;
 	void NodeOutput_f06(std::ostream& f06, const VectorHandler& Xr,
 			const VectorHandler& Xi) const;
+#endif
 
 	/* da DofManager */
 protected:

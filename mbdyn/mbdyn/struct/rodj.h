@@ -150,9 +150,11 @@ public:
    
 	virtual void Output(OutputHandler& OH) const;
 
+#if 0
 	/* Output di un modello NASTRAN equivalente
 	 * nella configurazione corrente */
 	virtual void Output_pch(std::ostream& out) const;
+#endif
 
 	/* funzioni usate nell'assemblaggio iniziale */
 	virtual unsigned int iGetInitialNumDof(void) const {
@@ -325,9 +327,11 @@ public:
 			const VectorHandler& XCurr, 
 			const VectorHandler& XPrimeCurr);
 
+#if 0
 	/* Output di un modello NASTRAN equivalente
 	 * nella configurazione corrente */
 	virtual void Output_pch(std::ostream& out) const;
+#endif
 
 	/* funzioni usate nell'assemblaggio iniziale */
    

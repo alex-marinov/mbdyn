@@ -679,6 +679,7 @@ Beam2::Output(OutputHandler& OH) const
 	}
 }
 
+#if 0
 /* 
  * Output di un modello NASTRAN equivalente nella configurazione corrente 
  */
@@ -802,6 +803,7 @@ Beam2::Output_pch(std::ostream& out) const
 	}
 #endif /* __HACK_NASTRAN_MODES__ */
 }
+#endif
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
 VariableSubMatrixHandler& 

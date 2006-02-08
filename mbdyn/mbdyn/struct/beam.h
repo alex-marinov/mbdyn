@@ -294,8 +294,10 @@ class Beam
      * l'OutputHandler, dove scrivere il proprio output */
     virtual void Output(OutputHandler& OH) const;   
 
+#if 0
     /* Output di un modello NASTRAN equivalente nella configurazione corrente */
     virtual void Output_pch(std::ostream& out) const;
+#endif
 
     /* Funzioni proprie tipiche dei vincoli, usate durante l'assemblaggio 
      * iniziale. Le travi non sono vincoli (o meglio, non vengono considerate

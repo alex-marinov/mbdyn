@@ -299,7 +299,7 @@ void Rod::Output(OutputHandler& OH) const
    }
 }
 
-
+#if 0
 /* Output di un modello NASTRAN equivalente nella configurazione corrente */
 void
 Rod::Output_pch(std::ostream& out) const
@@ -388,7 +388,7 @@ Rod::Output_pch(std::ostream& out) const
 	}
 #endif /* __HACK_NASTRAN_MODES__ */
 }
- 
+#endif 
 
 VariableSubMatrixHandler& 
 Rod::InitialAssJac(VariableSubMatrixHandler& WorkMat,
@@ -1149,6 +1149,7 @@ RodWithOffset::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+#if 0
 /* Output di un modello NASTRAN equivalente nella configurazione corrente */
 void
 RodWithOffset::Output_pch(std::ostream& out) const
@@ -1276,7 +1277,7 @@ RodWithOffset::Output_pch(std::ostream& out) const
 	}
 #endif /* __HACK_NASTRAN_MODES__ */
 }
-
+#endif
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
 VariableSubMatrixHandler& 
