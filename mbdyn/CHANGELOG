@@ -13,13 +13,16 @@ MBDyn 1.X-Devel
 		  (by Marco Morandini)
 		- added TAUCS linear solver (experimental) (by Marco Morandini)
 		- added "ad hoc" (Radau IIA) third-order integrator
-		- streamlined and improved modal element input
-		- added output meter for selective output
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
 		- fixed orientation matrix input check and diagnostics
 		- fixed Schur data manager output bug
+
+MBDyn 1.2.6
+	Enhancements:
+		- streamlined and improved modal element input
+		- added output meter for selective output
 
 MBDyn 1.2.5
 	Enhancements:
