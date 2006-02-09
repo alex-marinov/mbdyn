@@ -22,16 +22,19 @@ generated = mbdyn2easyanim.sh
 all-local: $(generated)
 
 $(generated):
-	@sed -e "s;@AWKDIR@;$(awkdir);" $@.in > $@
+	@echo "generating $(generated)..."
+	@for g in $(generated) ; do \
+		sed -e "s;@AWKDIR@;$(awkdir);" $$g.in > $$g ; \
+	done
 
 install-data-local: $(EXTRA_DIST) $(generated)
 	$(mkinstalldirs) $(DESTDIR)$(sharedir) $(DESTDIR)$(awkdir) $(DESTDIR)$(c81dir) $(DESTDIR)$(octavedir) $(DESTDIR)$(bindir)
 	@for f in $^ ; do \
 		case $$f in \
-		*.awk) $(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(awkdir) ;; \
-		*.c81) $(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(c81dir) ;; \
-		*.m) $(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(octavedir) ;; \
-		*.sh) $(INSTALL_SCRIPT) -m 555 $$f $(DESTDIR)$(bindir) ;; \
+		*.awk) echo "$(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(awkdir)" ; $(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(awkdir) ;; \
+		*.c81) echo "$(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(c81dir)" ; $(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(c81dir) ;; \
+		*.m) echo "$(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(octavedir)" ; $(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(octavedir) ;; \
+		*.sh) echo "$(INSTALL_SCRIPT) -m 555 $$f $(DESTDIR)$(bindir)" ; $(INSTALL_SCRIPT) -m 555 $$f $(DESTDIR)$(bindir) ;; \
 		*.in) ;; \
 		*) echo "($$f ignored)" ;; \
 		esac ; \
