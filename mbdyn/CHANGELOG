@@ -13,6 +13,7 @@ MBDyn 1.X-Devel
 		  (by Marco Morandini)
 		- added TAUCS linear solver (experimental) (by Marco Morandini)
 		- added "ad hoc" (Radau IIA) third-order integrator
+		- automated installation of share data in $prefix/share
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
