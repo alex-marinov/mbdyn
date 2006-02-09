@@ -1803,6 +1803,7 @@ ReadStructNode(DataManager* pDM,
       std::ostream& out = pDM->GetLogFile();
       out << "structural node: " << uLabel
 	      << " ", pNd->GetXCurr().Write(out, " ")
+	      << " ", (MatR2EulerAngles(pNd->GetRCurr())*dRaDegr).Write(out, " ")
 	      << std::endl;
       break;
    }
