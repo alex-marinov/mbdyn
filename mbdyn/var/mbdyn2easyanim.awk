@@ -90,6 +90,10 @@ BEGIN {
 	aero2_num = 0;
 	aero3_num = 0;
 
+	deg2rad = 0.017453293;
+	rad2deg = 57.29578;
+	AngleScale = deg2rad;
+
 	volfile = file ".vol";
 	vanfile = file ".van";
 }
@@ -451,9 +455,12 @@ isvan == 0 && /^###/ {
 	}
 
 	printf("# edge properties\n") >> volfile;
+	printf("prop distance 1. 1\n") >> volfile;
 	printf("prop distance_offset 1. 1\n") >> volfile;
 	printf("prop rod_offset 1. 1\n") >> volfile;
+	printf("prop rod 1. 1\n") >> volfile;
 	printf("prop beam_offset 1. 1\n") >> volfile;
+	printf("prop beam 1. 1\n") >> volfile;
 
 	printf("# edges\n") >> volfile;
 	printf("%d\n", edge_num) >> volfile;
