@@ -21,7 +21,7 @@ generated = mbdyn2easyanim.sh
 
 all-local: $(generated)
 
-$(generated):
+$(generated): FORCE
 	@echo "generating $(generated)..."
 	@for g in $(generated) ; do \
 		sed -e "s;@AWKDIR@;$(awkdir);" $$g.in > $$g ; \
@@ -42,6 +42,8 @@ install-data-local: $(EXTRA_DIST) $(generated)
 
 distclean-local:
 	rm -f $(generated)
+
+.PHONY: FORCE
 
 include $(top_srcdir)/build/bot.mk
 

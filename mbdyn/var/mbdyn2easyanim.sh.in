@@ -49,8 +49,7 @@ if test "x$1" = "x" ; then
 fi
 
 FILENAME=$1
-MBDYN2VOL="@AWKDIR@/mbdyn2vol.awk"
-MBDYN2VAN="@AWKDIR@/mbdyn2van.awk"
+MBDYN2EASYANIM="@AWKDIR@/mbdyn2easyanim.awk"
 
 if test "x${FILENAME}.log" = "x" ; then
 	echo "missing log file \"${FILENAME}.log\""
@@ -62,18 +61,18 @@ if test "x${FILENAME}.mov" = "x" ; then
 	exit 1
 fi
 
-awk -f "${MBDYN2VOL}" "${FILENAME}.log" > "${FILENAME}.vol"
+echo "####" | \
+	cat "${FILENAME}.log" - "${FILENAME}.mov" | \
+	awk -f "${MBDYN2EASYANIM}" -vFILENAME="${FILENAME}"
 RC=$?
 if test $RC != 0 ; then
-	echo "${FILENAME}.log > ${FILENAME}.vol failed"
+	echo "conversion failed ($RC)"
 	exit $RC
 fi
 
-awk -f "${MBDYN2VAN}" "${FILENAME}.mov" > "${FILENAME}.van"
-RC=$?
-if test $RC != 0 ; then
-	echo "${FILENAME}.mov > ${FILENAME}.van failed"
-	exit $RC
+if test ! -f "x${FILENAME}.vol" -o ! -f "x${FILENAME}.van" ; then
+	echo "conversion failed (no files)"
+	exit 1
 fi
 
 exit 0
