@@ -434,14 +434,25 @@ function print_node(i, X) {
 
 van == 0 && /^###/ {
 	printf("# this is a comment\n");
-	# generate node properties
+
+	printf("# node properties\n");
+	printf("prop distance 1. 1\n");
+	printf("prop rod 1. 1\n");
+	printf("prop beam 1. 1\n");
+
+	printf("# nodes\n");
 	printf("%d\n", node_num);
 	for (i = 0; i < node_num; i++) {
 		print_node(i, X);
 		printf("%s %e %e %e %s\n", node[i], X[1], X[2], X[3], node[i, "prop"]);
 	}
 
-	# generate edge properties
+	printf("# edge properties\n");
+	printf("prop distance_offset 1. 1\n");
+	printf("prop rod_offset 1. 1\n");
+	printf("prop beam_offset 1. 1\n");
+
+	printf("# edges\n");
 	printf("%d\n", edge_num);
 	for (i = 0; i < edge_num; i++) {
 		label = edge[i];
@@ -455,21 +466,20 @@ van == 0 && /^###/ {
 
 # all
 van == 1 {
+	strnode[$1, 1] = $2;
+	strnode[$1, 2] = $3;
+	strnode[$1, 3] = $4;
+	strnode[$1, 4] = $5;
+	strnode[$1, 5] = $6;
+	strnode[$1, 6] = $7;
+
 	if (++i == strnode_num) {
 		# compute nodes
-		i = 0;
 		for (i = 0; i < node_num; i++) {
 			print_node(i, X);
 
 			printf("%e %e %e\n", X[1], X[2], X[3]);
 		}
-
-	} else {
-		strnode[$1, 1] = $2;
-		strnode[$1, 2] = $3;
-		strnode[$1, 3] = $4;
-		strnode[$1, 4] = $5;
-		strnode[$1, 5] = $6;
-		strnode[$1, 6] = $7;
+		i = 0;
 	}
 }
