@@ -44,32 +44,47 @@
 #
 # mbdyn2easyanim.sh <filename>
 
+# Location of the awk script
+MBDYN2EASYANIM="@AWKDIR@/mbdyn2easyanim.awk"
+
+# Check args
 if test "x$1" = "x" ; then
 	echo "usage: mbdyn2easyanim.sh <filename>"
 fi
 
+# Check log file
 FILENAME=$1
-MBDYN2EASYANIM="@AWKDIR@/mbdyn2easyanim.awk"
-
 if test "x${FILENAME}.log" = "x" ; then
 	echo "missing log file \"${FILENAME}.log\""
 	exit 1
 fi
 
+# Check mov file
+MOVFILE=yes
 if test "x${FILENAME}.mov" = "x" ; then
-	echo "missing mov file \"${FILENAME}.mov\""
-	exit 1
+	echo "warning: missing mov file \"${FILENAME}.mov\""
+	MOVFILE=no
+	touch "${FILENAME}.mov"
 fi
 
+# Make sure files do not exist
+rm -f "${FILENAME}.vol" "${FILENAME}.van"
+
+# Generate files
 echo "####" | \
 	cat "${FILENAME}.log" - "${FILENAME}.mov" | \
-	awk -f "${MBDYN2EASYANIM}" -vFILENAME="${FILENAME}"
+	awk -f "${MBDYN2EASYANIM}" -vfile="${FILENAME}"
 RC=$?
+if test $MOVFILE = no ; then
+	rm -f "${FILENAME}.mov"
+fi
+
 if test $RC != 0 ; then
 	echo "conversion failed ($RC)"
 	exit $RC
 fi
 
+# Check for file existence
 if test ! -f "x${FILENAME}.vol" -o ! -f "x${FILENAME}.van" ; then
 	echo "conversion failed (no files)"
 	exit 1

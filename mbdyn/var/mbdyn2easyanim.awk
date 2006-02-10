@@ -72,7 +72,7 @@ function euler2R(Alpha, Beta, Gamma, R,   dCosAlpha, dSinAlpha, dCosBeta, dSinBe
 }
 
 BEGIN {
-	van = 0;
+	isvan = 0;
 
 	node_num = 0;
 	edge_num = 0;
@@ -89,9 +89,12 @@ BEGIN {
 	aero0_num = 0;
 	aero2_num = 0;
 	aero3_num = 0;
+
+	volfile = file ".vol";
+	vanfile = file ".van";
 }
 
-van == 0 && /structural node:/ {
+isvan == 0 && /structural node:/ {
 	strnode_label[strnode_num] = $3;
 	strnode[$3] = strnode_num;
 	strnode[$3, 1] = $4;
@@ -110,7 +113,7 @@ van == 0 && /structural node:/ {
 	node_num++;
 }
 
-van == 0 && /distance:/ {
+isvan == 0 && /distance:/ {
 	j_distance_label[j_distance_num] = $2;
 	j_distance[$2] = j_distance_num;
 	j_distance[$2, 1] = $3;
@@ -173,7 +176,7 @@ van == 0 && /distance:/ {
 	edge_num++;
 }
 
-van == 0 && /rod:/ {
+isvan == 0 && /rod:/ {
 	j_rod_label[j_rod_num] = $2;
 	j_rod[$2] = j_rod_num;
 	j_rod[$2, 1] = $3;
@@ -236,7 +239,7 @@ van == 0 && /rod:/ {
 	edge_num++;
 }
 
-van == 0 && /beam2:/ {
+isvan == 0 && /beam2:/ {
 	if (!($3 in strnode)) {
 		print "structural node("$3") requested by beam2("$2") as node 1 not found" > "/dev/stderr";
 		exit;
@@ -306,7 +309,7 @@ van == 0 && /beam2:/ {
 	edge_num++;
 }
 
-van == 0 && /beam3:/ {
+isvan == 0 && /beam3:/ {
 	if (!($3 in strnode)) {
 		print "structural node("$3") requested by beam3("$2") as node 1 not found" > "/dev/stderr";
 		exit;
@@ -411,7 +414,7 @@ van == 0 && /beam3:/ {
 	edge_num++;
 }
 
-function print_node(i, X) {
+function node_pos(i, X) {
 	if (node[i, "relative"]) {
 		v2[1] = strnode[node[i, "relative"], 1];
 		v2[2] = strnode[node[i, "relative"], 2];
@@ -432,40 +435,42 @@ function print_node(i, X) {
 	}
 }
 
-van == 0 && /^###/ {
-	printf("# this is a comment\n");
+isvan == 0 && /^###/ {
+	printf("# this is a comment\n") >> volfile;
 
-	printf("# node properties\n");
-	printf("prop distance 1. 1\n");
-	printf("prop rod 1. 1\n");
-	printf("prop beam 1. 1\n");
+	printf("# node properties\n") >> volfile;
+	printf("prop distance 1. 1\n") >> volfile;
+	printf("prop rod 1. 1\n") >> volfile;
+	printf("prop beam 1. 1\n") >> volfile;
 
-	printf("# nodes\n");
-	printf("%d\n", node_num);
+	printf("# nodes\n") >> volfile;
+	printf("%d\n", node_num) >> volfile;
 	for (i = 0; i < node_num; i++) {
-		print_node(i, X);
-		printf("%s %e %e %e %s\n", node[i], X[1], X[2], X[3], node[i, "prop"]);
+		node_pos(i, X);
+		printf("%s %e %e %e %s\n", node[i], X[1], X[2], X[3], node[i, "prop"]) >> volfile;
 	}
 
-	printf("# edge properties\n");
-	printf("prop distance_offset 1. 1\n");
-	printf("prop rod_offset 1. 1\n");
-	printf("prop beam_offset 1. 1\n");
+	printf("# edge properties\n") >> volfile;
+	printf("prop distance_offset 1. 1\n") >> volfile;
+	printf("prop rod_offset 1. 1\n") >> volfile;
+	printf("prop beam_offset 1. 1\n") >> volfile;
 
-	printf("# edges\n");
-	printf("%d\n", edge_num);
+	printf("# edges\n") >> volfile;
+	printf("%d\n", edge_num) >> volfile;
 	for (i = 0; i < edge_num; i++) {
 		label = edge[i];
-		printf("%s %s %s %s\n", edge[i], edge[i, 1], edge[i, 2], edge[i, "prop"]);
+		printf("%s %s %s %s\n", edge[i], edge[i, 1], edge[i, 2], edge[i, "prop"]) >> volfile;
 	}
-	printf("%d\n", 0);
 
-	van = 1;
+	printf("# sides\n") >> volfile;
+	printf("%d\n", 0) >> volfile;
+
+	isvan = 1;
 	i = 0;
 }
 
 # all
-van == 1 {
+isvan == 1 {
 	strnode[$1, 1] = $2;
 	strnode[$1, 2] = $3;
 	strnode[$1, 3] = $4;
@@ -476,9 +481,9 @@ van == 1 {
 	if (++i == strnode_num) {
 		# compute nodes
 		for (i = 0; i < node_num; i++) {
-			print_node(i, X);
+			node_pos(i, X);
 
-			printf("%e %e %e\n", X[1], X[2], X[3]);
+			printf("%e %e %e\n", X[1], X[2], X[3]) >> vanfile;
 		}
 		i = 0;
 	}
