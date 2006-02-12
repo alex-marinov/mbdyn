@@ -433,9 +433,10 @@ function node_pos(i, X) {
 		mat3_mul_vec3_add_vec3(R, v1, v2, X);
 
 	} else {
-		X[1] = node[i, 1];
-		X[2] = node[i, 2];
-		X[3] = node[i, 3];
+		label = node[i];
+		X[1] = strnode[label, 1];
+		X[2] = strnode[label, 2];
+		X[3] = strnode[label, 3];
 	}
 }
 
@@ -456,11 +457,11 @@ isvan == 0 && /^###/ {
 
 	printf("# edge properties\n") >> volfile;
 	printf("prop distance 1. 1\n") >> volfile;
-	printf("prop distance_offset 1. 1\n") >> volfile;
-	printf("prop rod_offset 1. 1\n") >> volfile;
+	printf("prop distance_offset .5 12\n") >> volfile;
+	printf("prop rod_offset .5 12\n") >> volfile;
 	printf("prop rod 1. 1\n") >> volfile;
-	printf("prop beam_offset 1. 1\n") >> volfile;
-	printf("prop beam 1. 1\n") >> volfile;
+	printf("prop beam_offset .5 12\n") >> volfile;
+	printf("prop beam 1. 14\n") >> volfile;
 
 	printf("# edges\n") >> volfile;
 	printf("%d\n", edge_num) >> volfile;
