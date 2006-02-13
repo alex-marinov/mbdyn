@@ -76,6 +76,7 @@ BEGIN {
 
 	node_num = 0;
 	edge_num = 0;
+	side_num = 0;
 
 	strnode_num = 0;
 
@@ -161,7 +162,7 @@ isvan == 0 && /distance:/ {
 		node[node_num, 1] = j_distance[$2, 2, 1];
 		node[node_num, 2] = j_distance[$2, 2, 2];
 		node[node_num, 3] = j_distance[$2, 2, 3];
-		node[node_num, "prop"] = "distance";
+		node[node_num, "prop"] = "distance_node";
 		node_num++;
 		
 		edge[edge_num] = "distance_" $2 "_offset2";
@@ -176,7 +177,7 @@ isvan == 0 && /distance:/ {
 	edge[edge_num] = "distance_" $2;
 	edge[edge_num, 1] = label1;
 	edge[edge_num, 2] = label2;
-	edge[edge_num, "prop"] = "distance";
+	edge[edge_num, "prop"] = "distance_edge";
 	edge_num++;
 }
 
@@ -204,7 +205,7 @@ isvan == 0 && /rod:/ {
 		node[node_num, 1] = j_rod[$2, 1, 1];
 		node[node_num, 2] = j_rod[$2, 1, 2];
 		node[node_num, 3] = j_rod[$2, 1, 3];
-		node[node_num, "prop"] = "rod";
+		node[node_num, "prop"] = "rod_node";
 		node_num++;
 		
 		edge[edge_num] = "rod_" $2 "_offset1";
@@ -224,7 +225,7 @@ isvan == 0 && /rod:/ {
 		node[node_num, 1] = j_rod[$2, 2, 1];
 		node[node_num, 2] = j_rod[$2, 2, 2];
 		node[node_num, 3] = j_rod[$2, 2, 3];
-		node[node_num, "prop"] = "rod";
+		node[node_num, "prop"] = "rod_node";
 		node_num++;
 		
 		edge[edge_num] = "rod_" $2 "_offset2";
@@ -239,7 +240,7 @@ isvan == 0 && /rod:/ {
 	edge[edge_num] = "rod_" $2;
 	edge[edge_num, 1] = label1;
 	edge[edge_num, 2] = label2;
-	edge[edge_num, "prop"] = "rod";
+	edge[edge_num, "prop"] = "rod_edge";
 	edge_num++;
 }
 
@@ -274,7 +275,7 @@ isvan == 0 && /beam2:/ {
 		node[node_num, 1] = beam2[$2, 1, 1];
 		node[node_num, 2] = beam2[$2, 1, 2];
 		node[node_num, 3] = beam2[$2, 1, 3];
-		node[node_num, "prop"] = "beam";
+		node[node_num, "prop"] = "beam_node";
 		node_num++;
 		
 		edge[edge_num] = "beam_" $2 "_offset1";
@@ -294,7 +295,7 @@ isvan == 0 && /beam2:/ {
 		node[node_num, 1] = beam2[$2, 2, 1];
 		node[node_num, 2] = beam2[$2, 2, 2];
 		node[node_num, 3] = beam2[$2, 2, 3];
-		node[node_num, "prop"] = "beam";
+		node[node_num, "prop"] = "beam_node";
 		node_num++;
 		
 		edge[edge_num] = "beam_" $2 "_offset2";
@@ -309,7 +310,7 @@ isvan == 0 && /beam2:/ {
 	edge[edge_num] = "beam_" $2;
 	edge[edge_num, 1] = label1;
 	edge[edge_num, 2] = label2;
-	edge[edge_num, "prop"] = "beam";
+	edge[edge_num, "prop"] = "beam_edge";
 	edge_num++;
 }
 
@@ -353,7 +354,7 @@ isvan == 0 && /beam3:/ {
 		node[node_num, 1] = beam3[$2, 1, 1];
 		node[node_num, 2] = beam3[$2, 1, 2];
 		node[node_num, 3] = beam3[$2, 1, 3];
-		node[node_num, "prop"] = "beam";
+		node[node_num, "prop"] = "beam_node";
 		node_num++;
 		
 		edge[edge_num] = "beam_" $2 "_offset1";
@@ -373,7 +374,7 @@ isvan == 0 && /beam3:/ {
 		node[node_num, 1] = beam3[$2, 2, 1];
 		node[node_num, 2] = beam3[$2, 2, 2];
 		node[node_num, 3] = beam3[$2, 2, 3];
-		node[node_num, "prop"] = "beam";
+		node[node_num, "prop"] = "beam_node";
 		node_num++;
 		
 		edge[edge_num] = "beam_" $2 "_offset2";
@@ -393,7 +394,7 @@ isvan == 0 && /beam3:/ {
 		node[node_num, 1] = beam3[$2, 3, 1];
 		node[node_num, 2] = beam3[$2, 3, 2];
 		node[node_num, 3] = beam3[$2, 3, 3];
-		node[node_num, "prop"] = "beam";
+		node[node_num, "prop"] = "beam_node";
 		node_num++;
 		
 		edge[edge_num] = "beam_" $2 "_offset3";
@@ -408,14 +409,285 @@ isvan == 0 && /beam3:/ {
 	edge[edge_num] = "beam_" $2 "_1";
 	edge[edge_num, 1] = label1;
 	edge[edge_num, 2] = label2;
-	edge[edge_num, "prop"] = "beam";
+	edge[edge_num, "prop"] = "beam_edge";
 	edge_num++;
 
 	edge[edge_num] = "beam_" $2 "_2";
 	edge[edge_num, 1] = label2;
 	edge[edge_num, 2] = label3;
-	edge[edge_num, "prop"] = "beam";
+	edge[edge_num, "prop"] = "beam_edge";
 	edge_num++;
+}
+
+isvan == 0 && /aero0:/ {
+	if (!($3 in strnode)) {
+		print "structural node("$3") requested by aero0("$2") as node not found" > "/dev/stderr";
+		exit;
+	}
+
+	#   2-----4
+	#   |  1  |
+	#   1-----3
+
+	aero0_label[aero0_num] = $2;
+	aero0[$2] = $3;
+	aero0[$2, 1, 1] = $4;
+	aero0[$2, 1, 2] = $5;
+	aero0[$2, 1, 3] = $6;
+	aero0[$2, 2, 1] = $7;
+	aero0[$2, 2, 2] = $8;
+	aero0[$2, 2, 3] = $9;
+	aero0[$2, 3, 1] = $10;
+	aero0[$2, 3, 2] = $11;
+	aero0[$2, 3, 3] = $12;
+	aero0[$2, 4, 1] = $13;
+	aero0[$2, 4, 2] = $14;
+	aero0[$2, 4, 3] = $15;
+	aero0_num++;
+
+	# create offset node and side
+	label1 = "aero_" $2 "_point1";
+	node[node_num] = label1;
+	node[node_num, "relative"] = aero0[$2];
+	node[node_num, 1] = aero0[$2, 1, 1];
+	node[node_num, 2] = aero0[$2, 1, 2];
+	node[node_num, 3] = aero0[$2, 1, 3];
+	node[node_num, "prop"] = "aero_node";
+	node_num++;
+
+	label2 = "aero_" $2 "_point2";
+	node[node_num] = label2;
+	node[node_num, "relative"] = aero0[$2];
+	node[node_num, 1] = aero0[$2, 2, 1];
+	node[node_num, 2] = aero0[$2, 2, 2];
+	node[node_num, 3] = aero0[$2, 2, 3];
+	node[node_num, "prop"] = "aero_node";
+	node_num++;
+
+	label3 = "aero_" $2 "_point3";
+	node[node_num] = label3;
+	node[node_num, "relative"] = aero0[$2];
+	node[node_num, 1] = aero0[$2, 3, 1];
+	node[node_num, 2] = aero0[$2, 3, 2];
+	node[node_num, 3] = aero0[$2, 3, 3];
+	node[node_num, "prop"] = "aero_node";
+	node_num++;
+
+	label4 = "aero_" $2 "_point4";
+	node[node_num] = label4;
+	node[node_num, "relative"] = aero0[$2];
+	node[node_num, 1] = aero0[$2, 4, 1];
+	node[node_num, 2] = aero0[$2, 4, 2];
+	node[node_num, 3] = aero0[$2, 4, 3];
+	node[node_num, "prop"] = "aero_node";
+	node_num++;
+
+	label = "aero_" $2;
+	side[side_num] = label;
+	side[side_num, "N"] = 4;
+	side[side_num, 1] = label1;
+	side[side_num, 2] = label2;
+	side[side_num, 3] = label4;
+	side[side_num, 4] = label3;
+	side[side_num, "prop"] = "aero";
+	side_num++;
+}
+
+isvan == 0 && /aero2:/ {
+	if (!($3 in strnode)) {
+		print "structural node("$3") requested by aero2("$2") as node 1 not found" > "/dev/stderr";
+		exit;
+	}
+	if (!($10 in strnode)) {
+		print "structural node("$10") requested by aero2("$2") as node 2 not found" > "/dev/stderr";
+		exit;
+	}
+
+	#   2-----4
+	# 1 |     | 2
+	#   1-----3
+
+	aero2_label[aero2_num] = $2;
+	aero2[$2, 1] = $3;
+	aero2[$2, 1, 1] = $4;
+	aero2[$2, 1, 2] = $5;
+	aero2[$2, 1, 3] = $6;
+	aero2[$2, 2, 1] = $7;
+	aero2[$2, 2, 2] = $8;
+	aero2[$2, 2, 3] = $9;
+	aero2[$2, 2] = $10;
+	aero2[$2, 3, 1] = $11;
+	aero2[$2, 3, 2] = $12;
+	aero2[$2, 3, 3] = $13;
+	aero2[$2, 4, 1] = $14;
+	aero2[$2, 4, 2] = $15;
+	aero2[$2, 4, 3] = $16;
+	aero2_num++;
+
+	# create offset node and side
+	label1 = "aero_" $2 "_point1";
+	node[node_num] = label1;
+	node[node_num, "relative"] = aero2[$2];
+	node[node_num, 1] = aero2[$2, 1, 1];
+	node[node_num, 2] = aero2[$2, 1, 2];
+	node[node_num, 3] = aero2[$2, 1, 3];
+	node[node_num, "prop"] = "aero_node";
+	node_num++;
+
+	label2 = "aero_" $2 "_point2";
+	node[node_num] = label2;
+	node[node_num, "relative"] = aero2[$2];
+	node[node_num, 1] = aero2[$2, 2, 1];
+	node[node_num, 2] = aero2[$2, 2, 2];
+	node[node_num, 3] = aero2[$2, 2, 3];
+	node[node_num, "prop"] = "aero_node";
+	node_num++;
+
+	label3 = "aero_" $2 "_point3";
+	node[node_num] = label3;
+	node[node_num, "relative"] = aero2[$2];
+	node[node_num, 1] = aero2[$2, 3, 1];
+	node[node_num, 2] = aero2[$2, 3, 2];
+	node[node_num, 3] = aero2[$2, 3, 3];
+	node[node_num, "prop"] = "aero_node";
+	node_num++;
+
+	label4 = "aero_" $2 "_point4";
+	node[node_num] = label4;
+	node[node_num, "relative"] = aero2[$2];
+	node[node_num, 1] = aero2[$2, 4, 1];
+	node[node_num, 2] = aero2[$2, 4, 2];
+	node[node_num, 3] = aero2[$2, 4, 3];
+	node[node_num, "prop"] = "aero_node";
+	node_num++;
+
+	label = "aero_" $2;
+	side[side_num] = label;
+	side[side_num, "N"] = 4;
+	side[side_num, 1] = label1;
+	side[side_num, 2] = label2;
+	side[side_num, 3] = label4;
+	side[side_num, 4] = label3;
+	side[side_num, "prop"] = "aero";
+	side_num++;
+}
+
+isvan == 0 && /aero3:/ {
+	if (!($3 in strnode)) {
+		print "structural node("$3") requested by aero3("$2") as node 1 not found" > "/dev/stderr";
+		exit;
+	}
+	if (!($10 in strnode)) {
+		print "structural node("$10") requested by aero3("$2") as node 2 not found" > "/dev/stderr";
+		exit;
+	}
+	if (!($17 in strnode)) {
+		print "structural node("$17") requested by aero3("$2") as node 2 not found" > "/dev/stderr";
+		exit;
+	}
+
+	#   2-----4-----6
+	# 1 |     | 2   | 3
+	#   1-----3-----5
+
+	aero3_label[aero3_num] = $2;
+	aero3[$2, 1] = $3;
+	aero3[$2, 1, 1] = $4;
+	aero3[$2, 1, 2] = $5;
+	aero3[$2, 1, 3] = $6;
+	aero3[$2, 2, 1] = $7;
+	aero3[$2, 2, 2] = $8;
+	aero3[$2, 2, 3] = $9;
+	aero3[$2, 2] = $10;
+	aero3[$2, 3, 1] = $11;
+	aero3[$2, 3, 2] = $12;
+	aero3[$2, 3, 3] = $13;
+	aero3[$2, 4, 1] = $14;
+	aero3[$2, 4, 2] = $15;
+	aero3[$2, 4, 3] = $16;
+	aero3[$2, 3] = $17;
+	aero3[$2, 3, 1] = $18;
+	aero3[$2, 3, 2] = $19;
+	aero3[$2, 3, 3] = $20;
+	aero3[$2, 4, 1] = $21;
+	aero3[$2, 4, 2] = $22;
+	aero3[$2, 4, 3] = $23;
+	aero3_num++;
+
+	# create offset node and side
+	label1 = "aero_" $2 "_point1";
+	node[node_num] = label1;
+	node[node_num, "relative"] = aero3[$2];
+	node[node_num, 1] = aero3[$2, 1, 1];
+	node[node_num, 2] = aero3[$2, 1, 2];
+	node[node_num, 3] = aero3[$2, 1, 3];
+	node[node_num, "prop"] = "aero_node";
+	node_num++;
+
+	label2 = "aero_" $2 "_point2";
+	node[node_num] = label2;
+	node[node_num, "relative"] = aero3[$2];
+	node[node_num, 1] = aero3[$2, 2, 1];
+	node[node_num, 2] = aero3[$2, 2, 2];
+	node[node_num, 3] = aero3[$2, 2, 3];
+	node[node_num, "prop"] = "aero_node";
+	node_num++;
+
+	label3 = "aero_" $2 "_point3";
+	node[node_num] = label3;
+	node[node_num, "relative"] = aero3[$2];
+	node[node_num, 1] = aero3[$2, 3, 1];
+	node[node_num, 2] = aero3[$2, 3, 2];
+	node[node_num, 3] = aero3[$2, 3, 3];
+	node[node_num, "prop"] = "aero_node";
+	node_num++;
+
+	label4 = "aero_" $2 "_point4";
+	node[node_num] = label4;
+	node[node_num, "relative"] = aero3[$2];
+	node[node_num, 1] = aero3[$2, 4, 1];
+	node[node_num, 2] = aero3[$2, 4, 2];
+	node[node_num, 3] = aero3[$2, 4, 3];
+	node[node_num, "prop"] = "aero_node";
+	node_num++;
+
+	label5 = "aero_" $2 "_point5";
+	node[node_num] = label5;
+	node[node_num, "relative"] = aero5[$2];
+	node[node_num, 1] = aero3[$2, 5, 1];
+	node[node_num, 2] = aero3[$2, 5, 2];
+	node[node_num, 3] = aero3[$2, 5, 3];
+	node[node_num, "prop"] = "aero_node";
+	node_num++;
+
+	label6 = "aero_" $2 "_point6";
+	node[node_num] = label6;
+	node[node_num, "relative"] = aero3[$2];
+	node[node_num, 1] = aero3[$2, 6, 1];
+	node[node_num, 2] = aero3[$2, 6, 2];
+	node[node_num, 3] = aero3[$2, 6, 3];
+	node[node_num, "prop"] = "aero_node";
+	node_num++;
+
+	label = "aero_" $2 "_1";
+	side[side_num] = label;
+	side[side_num, "N"] = 4;
+	side[side_num, 1] = label1;
+	side[side_num, 2] = label2;
+	side[side_num, 3] = label4;
+	side[side_num, 4] = label3;
+	side[side_num, "prop"] = "aero";
+	side_num++;
+
+	label = "aero_" $2 "_2";
+	side[side_num] = label;
+	side[side_num, "N"] = 4;
+	side[side_num, 1] = label3;
+	side[side_num, 2] = label4;
+	side[side_num, 3] = label6;
+	side[side_num, 4] = label5;
+	side[side_num, "prop"] = "aero";
+	side_num++;
 }
 
 function node_pos(i, X) {
@@ -444,9 +716,10 @@ isvan == 0 && /^###/ {
 	printf("# this is a comment\n") >> volfile;
 
 	printf("# node properties\n") >> volfile;
-	printf("prop distance 1. 1\n") >> volfile;
-	printf("prop rod 1. 1\n") >> volfile;
-	printf("prop beam 1. 1\n") >> volfile;
+	printf("prop distance_node 1. 1\n") >> volfile;
+	printf("prop rod_node 1. 1\n") >> volfile;
+	printf("prop beam_node 1. 1\n") >> volfile;
+	printf("prop aero_node 0. 0\n") >> volfile;
 
 	printf("# nodes\n") >> volfile;
 	printf("%d\n", node_num) >> volfile;
@@ -456,22 +729,31 @@ isvan == 0 && /^###/ {
 	}
 
 	printf("# edge properties\n") >> volfile;
-	printf("prop distance 1. 1\n") >> volfile;
+	printf("prop distance_edge 1. 1\n") >> volfile;
 	printf("prop distance_offset .5 12\n") >> volfile;
 	printf("prop rod_offset .5 12\n") >> volfile;
-	printf("prop rod 1. 1\n") >> volfile;
+	printf("prop rod_edge 1. 1\n") >> volfile;
 	printf("prop beam_offset .5 12\n") >> volfile;
-	printf("prop beam 1. 14\n") >> volfile;
+	printf("prop beam_edge 1. 14\n") >> volfile;
 
 	printf("# edges\n") >> volfile;
 	printf("%d\n", edge_num) >> volfile;
 	for (i = 0; i < edge_num; i++) {
-		label = edge[i];
 		printf("%s %s %s %s\n", edge[i], edge[i, 1], edge[i, 2], edge[i, "prop"]) >> volfile;
 	}
 
+	printf("# side properties\n") >> volfile;
+	printf("prop aero 14\n") >> volfile;
+
 	printf("# sides\n") >> volfile;
-	printf("%d\n", 0) >> volfile;
+	printf("%d\n", side_num) >> volfile;
+	for (i = 0; i < side_num; i++) {
+		printf("%s %s", side[i], side[i, "N"]) >> volfile;
+		for (j = 1; j <= side[i, "N"]; j++) {
+			printf(" %s\n", side[i, j]) >> volfile;
+		}
+		printf(" %s\n", side[i, "prop"]) >> volfile;
+	}
 
 	isvan = 1;
 	i = 0;
