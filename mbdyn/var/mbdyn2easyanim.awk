@@ -709,10 +709,10 @@ isvan == 0 && /^###/ {
 	printf("# this is a comment\n") >> volfile;
 
 	printf("# node properties\n") >> volfile;
-	printf("prop distance_node 1. 1\n") >> volfile;
-	printf("prop rod_node 1. 1\n") >> volfile;
-	printf("prop beam_node 1. 1\n") >> volfile;
-	printf("prop aero_node 0. 0\n") >> volfile;
+	printf("prop distance_node 1 1.\n") >> volfile;
+	printf("prop rod_node 1 1.\n") >> volfile;
+	printf("prop beam_node 1 1.\n") >> volfile;
+	printf("prop aero_node 0 0.\n") >> volfile;
 
 	printf("# nodes\n") >> volfile;
 	printf("%d\n", node_num) >> volfile;
@@ -722,12 +722,12 @@ isvan == 0 && /^###/ {
 	}
 
 	printf("# edge properties\n") >> volfile;
-	printf("prop distance_edge 1. 1\n") >> volfile;
-	printf("prop distance_offset .5 12\n") >> volfile;
-	printf("prop rod_offset .5 12\n") >> volfile;
-	printf("prop rod_edge 1. 1\n") >> volfile;
-	printf("prop beam_offset .5 12\n") >> volfile;
-	printf("prop beam_edge 1. 14\n") >> volfile;
+	printf("prop distance_edge 1 1.\n") >> volfile;
+	printf("prop distance_offset 12 .5\n") >> volfile;
+	printf("prop rod_offset 12 .5\n") >> volfile;
+	printf("prop rod_edge 1 1.\n") >> volfile;
+	printf("prop beam_offset 12 .5\n") >> volfile;
+	printf("prop beam_edge 14 1.\n") >> volfile;
 
 	printf("# edges\n") >> volfile;
 	printf("%d\n", edge_num) >> volfile;
