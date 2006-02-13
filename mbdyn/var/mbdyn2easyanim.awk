@@ -485,10 +485,10 @@ isvan == 0 && /aero0:/ {
 	label = "aero_" $2;
 	side[side_num] = label;
 	side[side_num, "N"] = 4;
-	side[side_num, 1] = label1;
-	side[side_num, 2] = label2;
-	side[side_num, 3] = label4;
-	side[side_num, 4] = label3;
+	side[side_num, 1] = label2;
+	side[side_num, 2] = label4;
+	side[side_num, 3] = label3;
+	side[side_num, 4] = label1;
 	side[side_num, "prop"] = "aero";
 	side_num++;
 }
@@ -564,10 +564,10 @@ isvan == 0 && /aero2:/ {
 	label = "aero_" $2;
 	side[side_num] = label;
 	side[side_num, "N"] = 4;
-	side[side_num, 1] = label1;
-	side[side_num, 2] = label2;
-	side[side_num, 3] = label4;
-	side[side_num, 4] = label3;
+	side[side_num, 1] = label2;
+	side[side_num, 2] = label4;
+	side[side_num, 3] = label3;
+	side[side_num, 4] = label1;
 	side[side_num, "prop"] = "aero";
 	side_num++;
 }
@@ -669,23 +669,15 @@ isvan == 0 && /aero3:/ {
 	node[node_num, "prop"] = "aero_node";
 	node_num++;
 
-	label = "aero_" $2 "_1";
+	label = "aero_" $2;
 	side[side_num] = label;
-	side[side_num, "N"] = 4;
-	side[side_num, 1] = label1;
-	side[side_num, 2] = label2;
-	side[side_num, 3] = label4;
-	side[side_num, 4] = label3;
-	side[side_num, "prop"] = "aero";
-	side_num++;
-
-	label = "aero_" $2 "_2";
-	side[side_num] = label;
-	side[side_num, "N"] = 4;
-	side[side_num, 1] = label3;
+	side[side_num, "N"] = 6;
+	side[side_num, 1] = label2;
 	side[side_num, 2] = label4;
 	side[side_num, 3] = label6;
 	side[side_num, 4] = label5;
+	side[side_num, 5] = label3;
+	side[side_num, 6] = label1;
 	side[side_num, "prop"] = "aero";
 	side_num++;
 }
