@@ -207,7 +207,7 @@ mbdyn_welcome(void)
 			" GNU General Public License," << std::endl
 		<< "and you are welcome to change it and/or "
 			"distribute copies of it" << std::endl
-		<< "under certain conditions.  Use 'mbdyn --license' "
+		<< "under certain conditions.  Use \"mbdyn --license\" "
 			"to see the conditions." << std::endl
 		<< "There is absolutely no warranty for"
 			" MBDyn.  Use \"mbdyn --warranty\"" << std::endl

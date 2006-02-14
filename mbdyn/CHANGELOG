@@ -19,6 +19,7 @@ MBDyn 1.X-Devel
 	Bug fixes:
 		- fixed orientation matrix input check and diagnostics
 		- fixed Schur data manager output bug
+		- fixed misc one-time leaks
 
 MBDyn 1.2.6
 	Enhancements:
