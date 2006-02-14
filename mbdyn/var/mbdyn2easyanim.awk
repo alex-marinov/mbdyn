@@ -750,6 +750,7 @@ isvan == 0 && /^###/ {
 
 	isvan = 1;
 	i = 0;
+	getline;
 }
 
 # all
@@ -761,12 +762,14 @@ isvan == 1 {
 	strnode[$1, 5] = $6;
 	strnode[$1, 6] = $7;
 
+	printf("# %s\n", $1) >> vanfile;
+
 	if (++i == strnode_num) {
 		# compute nodes
 		for (i = 0; i < node_num; i++) {
 			node_pos(i, X);
 
-			printf("%e %e %e\n", X[1], X[2], X[3]) >> vanfile;
+			printf("%e %e %e # %s\n", X[1], X[2], X[3], node[i]) >> vanfile;
 		}
 		i = 0;
 	}
