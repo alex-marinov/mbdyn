@@ -221,7 +221,7 @@ public:
 	virtual Hint *
 	ParseHint(DataManager *pDM, const char *s) const
 	{
-		DeformableJoint::ParseHint(pDM, s);
+		return DeformableJoint::ParseHint(pDM, s);
 	};
 
 	virtual unsigned int iGetNumPrivData(void) const {
@@ -326,7 +326,7 @@ public:
 	virtual Hint *
 	ParseHint(DataManager *pDM, const char *s) const
 	{
-		DeformableJoint::ParseHint(pDM, s);
+		return DeformableJoint::ParseHint(pDM, s);
 	};
 
 	virtual unsigned int iGetNumPrivData(void) const {
@@ -431,7 +431,7 @@ public:
 	virtual Hint *
 	ParseHint(DataManager *pDM, const char *s) const
 	{
-		DeformableJoint::ParseHint(pDM, s);
+		return DeformableJoint::ParseHint(pDM, s);
 	};
 
 	virtual unsigned int iGetNumPrivData(void) const {

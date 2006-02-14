@@ -166,7 +166,7 @@ public:
 	virtual Hint *
 	ParseHint(DataManager *pDM, const char *s) const
 	{
-		DeformableHingeJoint::ParseHint(pDM, s);
+		return DeformableHingeJoint::ParseHint(pDM, s);
 	};
 #endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
 
@@ -273,7 +273,7 @@ public:
 	virtual Hint *
 	ParseHint(DataManager *pDM, const char *s) const
 	{
-		DeformableHingeJoint::ParseHint(pDM, s);
+		return DeformableHingeJoint::ParseHint(pDM, s);
 	};
 #endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
 
@@ -379,7 +379,7 @@ public:
 	virtual Hint *
 	ParseHint(DataManager *pDM, const char *s) const
 	{
-		DeformableHingeJoint::ParseHint(pDM, s);
+		return DeformableHingeJoint::ParseHint(pDM, s);
 	};
 #endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
 
