@@ -585,6 +585,10 @@ DataManager::~DataManager(void)
    if(sSimulationTitle != NULL) {
       SAFEDELETEARR(sSimulationTitle);
    }
+
+   if (pOutputMeter) {
+      SAFEDELETE(pOutputMeter);
+   }
    
    ElemManagerDestructor();
    NodeManagerDestructor();

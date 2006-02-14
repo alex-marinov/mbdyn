@@ -894,7 +894,7 @@ main(int argc, char* argv[])
 #endif /* MBDYN_X_MAIL_MESSAGE */
         	}
 
-        	throw NoErr();
+		throw NoErr();
 
     	} catch (NoErr) {     
         	silent_cout("MBDyn terminated normally" << std::endl);

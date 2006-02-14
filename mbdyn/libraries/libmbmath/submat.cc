@@ -1339,6 +1339,8 @@ MySubVectorHandler::Resize(integer iSize)
 
 		} else {
 			if (iSize > 0) {
+				bOwnsMemory = true;
+
 				SAFENEWARR(pdVecm1, doublereal, iSize);
 				pdVecm1--;
 				

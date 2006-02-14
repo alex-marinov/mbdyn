@@ -342,7 +342,8 @@ NonlinearSolver::SetTest(NonlinearSolverTest *pr, NonlinearSolverTest *ps)
 
 NonlinearSolver::~NonlinearSolver(void)
 {
-	NO_OP;
+	SAFEDELETE(pResTest);
+	SAFEDELETE(pSolTest);
 }
 
 integer

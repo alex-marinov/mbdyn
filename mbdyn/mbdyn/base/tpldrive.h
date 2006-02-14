@@ -73,7 +73,7 @@ class TplDriveOwner {
      };
    
    virtual ~TplDriveOwner(void) { 
-      NO_OP;
+      SAFEDELETE(pTplDriveCaller);
    };
    
    void Set(const TplDriveCaller<T>* pDC) {

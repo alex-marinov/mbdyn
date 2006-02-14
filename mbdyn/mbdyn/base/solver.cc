@@ -380,8 +380,8 @@ Solver::Run(void)
 							"\"" << sOutputFilePath << "\" is not a dir)" << std::endl);
 					throw ErrGeneric();
 				}
-				SAFEDELETEARR(sOutputFilePath);
 			}
+			SAFEDELETEARR(sOutputFilePath);
 
 		} else if (S_ISDIR(s.st_mode)) {
 			unsigned 	lOld, lNew;
@@ -564,7 +564,9 @@ Solver::Run(void)
    	/* Si fa dare il DriveHandler e linka i drivers di rho ecc. */
    	const DriveHandler* pDH = pDM->pGetDrvHdl();
    	pRegularSteps->SetDriveHandler(pDH);
-   	pFictitiousSteps->SetDriveHandler(pDH);
+	if (iFictitiousStepsNumber) {
+   		pFictitiousSteps->SetDriveHandler(pDH);
+	}
 
    	/* Costruisce i vettori della soluzione ai vari passi */
    	DEBUGLCOUT(MYDEBUG_MEM, "creating solution vectors" << std::endl);
@@ -592,11 +594,17 @@ Solver::Run(void)
    	ASSERT(iNumDofs > 0);
 
 	integer iRSteps = pRegularSteps->GetIntegratorNumPreviousStates();
-	integer iFSteps = pFictitiousSteps->GetIntegratorNumPreviousStates();
+	integer iFSteps = 0;
+	if (iFictitiousStepsNumber) {
+		iFSteps = pFictitiousSteps->GetIntegratorNumPreviousStates();
+	}
 	iNumPreviousVectors = (iRSteps < iFSteps) ? iFSteps : iRSteps;
 
 	integer iRUnkStates = pRegularSteps->GetIntegratorNumUnknownStates();
-	integer iFUnkStates = pFictitiousSteps->GetIntegratorNumUnknownStates();
+	integer iFUnkStates = 0;
+	if (iFictitiousStepsNumber) {
+		iFUnkStates = pFictitiousSteps->GetIntegratorNumUnknownStates();
+	}
 	iUnkStates = (iRUnkStates < iFUnkStates) ? iFUnkStates : iRUnkStates;
 
 	/* allocate workspace for previous time steps */
@@ -831,19 +839,16 @@ Solver::Run(void)
 	pNLS->SetOutputFlags(OF);
 
 	pDerivativeSteps->SetDataManager(pDM);
-	pFirstFictitiousStep->SetDataManager(pDM);
-	pFictitiousSteps->SetDataManager(pDM);
-	pFirstRegularStep->SetDataManager(pDM);
-	pRegularSteps->SetDataManager(pDM);
-
 	pDerivativeSteps->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
-
-	pFirstFictitiousStep->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
-
-	pFictitiousSteps->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
-
+	if (iFictitiousStepsNumber) {
+		pFirstFictitiousStep->SetDataManager(pDM);
+		pFirstFictitiousStep->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
+		pFictitiousSteps->SetDataManager(pDM);
+		pFictitiousSteps->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
+	}
+	pFirstRegularStep->SetDataManager(pDM);
 	pFirstRegularStep->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
-
+	pRegularSteps->SetDataManager(pDM);
 	pRegularSteps->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
 
 #ifdef USE_EXTERNAL
@@ -881,6 +886,9 @@ Solver::Run(void)
 	catch (...) {
 		throw;
 	}
+
+	SAFEDELETE(pDerivativeSteps);
+	pDerivativeSteps = 0;
 
 	dTotErr  += dTest;
 	iTotIter += iStIter;
@@ -982,6 +990,9 @@ Solver::Run(void)
 		catch (...) {
 			throw;
 		}
+
+		SAFEDELETE(pFirstFictitiousStep);
+		pFirstFictitiousStep = 0;
 
       		dRefTimeStep = dCurrTimeStep;
       		dTime += dRefTimeStep;
@@ -1219,6 +1230,9 @@ IfFirstStepIsToBeRepeated:
 	catch (...) {
 		throw;
 	}
+
+	SAFEDELETE(pFirstRegularStep);
+	pFirstRegularStep = 0;
 
    	pDM->Output();
 
@@ -1709,6 +1723,35 @@ Solver::~Solver(void)
 		mbdyn_rt_mbx_delete(&mbxlog);
 	}
 #endif /* USE_RTAI && RTAI_LOG */
+
+
+   	if (pDerivativeSteps) {
+   		SAFEDELETE(pDerivativeSteps);
+	}
+
+   	if (pFirstFictitiousStep) {
+   		SAFEDELETE(pFirstFictitiousStep);
+	}
+
+	if (pFictitiousSteps) {
+		SAFEDELETE(pFictitiousSteps);
+	}
+
+   	if (pFirstRegularStep) {
+   		SAFEDELETE(pFirstRegularStep);
+	}
+
+	if (pRegularSteps) {
+		SAFEDELETE(pRegularSteps);
+	}
+
+	if (pSM) {
+		SAFEDELETE(pSM);
+	}
+
+	if (pNLS) {
+		SAFEDELETE(pNLS);
+	}
 }
 
 /* Nuovo delta t */
@@ -1872,12 +1915,17 @@ Solver::Restart(std::ostream& out,DataManager::eRestart type) const
 	default:
 		ASSERT(0);
 	}
-	out<< ";" << std::endl
+	out
+		<< ";" << std::endl
 		<< "  derivatives max iterations: " << pDerivativeSteps->GetIntegratorMaxIters() << ";" << std::endl
 		<< "  derivatives tolerance: " << pDerivativeSteps->GetIntegratorDTol() << ";" << std::endl
-		<< "  derivatives coefficient: " << dDerivativesCoef << ";" << std::endl
-		<< "  fictitious steps max iterations: " << pFictitiousSteps->GetIntegratorMaxIters() << ";" << std::endl
-		<< "  fictitious steps tolerance: " << pFictitiousSteps->GetIntegratorDTol() << ";" << std::endl
+		<< "  derivatives coefficient: " << dDerivativesCoef << ";" << std::endl;
+	if (iFictitiousStepsNumber) {
+		out
+			<< "  fictitious steps max iterations: " << pFictitiousSteps->GetIntegratorMaxIters() << ";" << std::endl
+			<< "  fictitious steps tolerance: " << pFictitiousSteps->GetIntegratorDTol() << ";" << std::endl;
+	}
+	out
 		<< "  fictitious steps number: " << iFictitiousStepsNumber << ";" << std::endl
 		<< "  fictitious steps ratio: " << dFictitiousStepsRatio << ";" << std::endl;
 	switch (NonlinearSolverType) {
@@ -3422,7 +3470,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 	}
 
 	/* Metodo di integrazione di default */
-	if (!bFictitiousStepsMethod) {
+	if (iFictitiousStepsNumber && !bFictitiousStepsMethod) {
 		ASSERT(FictitiousType == INT_UNKNOWN);
 
 		SAFENEW(pRhoFictitious, NullDriveCaller);
@@ -3443,12 +3491,76 @@ EndOfCycle: /* esce dal ciclo di lettura */
 				bModResTest));
 
 	/* First step prediction must always be Crank-Nicholson for accuracy */
-	SAFENEWWITHCONSTRUCTOR(pFirstFictitiousStep,
-			CrankNicholsonIntegrator,
-			CrankNicholsonIntegrator(dFictitiousStepsTolerance,
-				0.,
-				iFictitiousStepsMaxIterations,
-				bModResTest));
+	if (iFictitiousStepsNumber) {
+		SAFENEWWITHCONSTRUCTOR(pFirstFictitiousStep,
+				CrankNicholsonIntegrator,
+				CrankNicholsonIntegrator(dFictitiousStepsTolerance,
+					0.,
+					iFictitiousStepsMaxIterations,
+					bModResTest));
+
+		/* costruzione dello step solver fictitious */
+		switch (FictitiousType) {
+		case INT_CRANKNICHOLSON:
+  			pFictitiousSteps = pFirstFictitiousStep;
+			break;
+	
+		case INT_MS2:
+  			SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
+					MultistepSolver,
+					MultistepSolver(dFictitiousStepsTolerance,
+						0.,
+						iFictitiousStepsMaxIterations,
+						pRhoFictitious,
+						pRhoAlgebraicFictitious,
+						bModResTest));
+			break;
+	
+		case INT_HOPE:
+			SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
+					HopeSolver,
+					HopeSolver(dFictitiousStepsTolerance,
+						dSolutionTol,
+						iFictitiousStepsMaxIterations,
+						pRhoFictitious,
+						pRhoAlgebraicFictitious,
+						bModResTest));
+			break;
+	
+		case INT_THIRDORDER:
+			if (pRhoFictitious == 0) {
+				SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
+						AdHocThirdOrderIntegrator,
+						AdHocThirdOrderIntegrator(dFictitiousStepsTolerance,
+							dSolutionTol,
+							iFictitiousStepsMaxIterations,
+							bModResTest));
+			} else {
+				SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
+						TunableThirdOrderIntegrator,
+						TunableThirdOrderIntegrator(dFictitiousStepsTolerance,
+							dSolutionTol,
+							iFictitiousStepsMaxIterations,
+							pRhoFictitious,
+							bModResTest));
+			}
+			break;
+	
+		case INT_IMPLICITEULER:
+			SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
+					ImplicitEulerIntegrator,
+					ImplicitEulerIntegrator(dFictitiousStepsTolerance,
+						dSolutionTol, iFictitiousStepsMaxIterations,
+						bModResTest));
+			break;
+	
+		default:
+			silent_cerr("unknown dummy steps integration method"
+				<< std::endl);
+			throw ErrGeneric();
+			break;
+		}
+	}
 
 	SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
 			CrankNicholsonIntegrator,
@@ -3456,68 +3568,6 @@ EndOfCycle: /* esce dal ciclo di lettura */
 				dSolutionTol,
 				iMaxIterations,
 				bModResTest));
-
-	/* costruzione dello step solver fictitious */
-	switch (FictitiousType) {
-	case INT_CRANKNICHOLSON:
-  		pFictitiousSteps = pFirstFictitiousStep;
-		break;
-
-	case INT_MS2:
-  		SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
-				MultistepSolver,
-				MultistepSolver(dFictitiousStepsTolerance,
-					0.,
-					iFictitiousStepsMaxIterations,
-					pRhoFictitious,
-					pRhoAlgebraicFictitious,
-					bModResTest));
-		break;
-
-	case INT_HOPE:
-		SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
-				HopeSolver,
-				HopeSolver(dFictitiousStepsTolerance,
-					dSolutionTol,
-					iFictitiousStepsMaxIterations,
-					pRhoFictitious,
-					pRhoAlgebraicFictitious,
-					bModResTest));
-		break;
-
-	case INT_THIRDORDER:
-		if (pRhoFictitious == 0) {
-			SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
-					AdHocThirdOrderIntegrator,
-					AdHocThirdOrderIntegrator(dFictitiousStepsTolerance,
-						dSolutionTol,
-						iFictitiousStepsMaxIterations,
-						bModResTest));
-		} else {
-			SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
-					TunableThirdOrderIntegrator,
-					TunableThirdOrderIntegrator(dFictitiousStepsTolerance,
-						dSolutionTol,
-						iFictitiousStepsMaxIterations,
-						pRhoFictitious,
-						bModResTest));
-		}
-		break;
-
-	case INT_IMPLICITEULER:
-		SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
-				ImplicitEulerIntegrator,
-				ImplicitEulerIntegrator(dFictitiousStepsTolerance,
-					dSolutionTol, iFictitiousStepsMaxIterations,
-					bModResTest));
-		break;
-
-	default:
-		silent_cerr("unknown dummy steps integration method"
-			<< std::endl);
-		throw ErrGeneric();
-		break;
-	}
 
 	/* costruzione dello step solver per i passi normali */
 	switch (RegularType) {

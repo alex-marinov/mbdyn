@@ -825,6 +825,7 @@ endofcycle:
 		SAFEDELETEARR((Dof*&)pDofs);
 	}
 
+	SAFEDELETE(pSM);
 } /* End of InitialJointAssembly */
 #endif /* USE_STRUCT_NODES */
 

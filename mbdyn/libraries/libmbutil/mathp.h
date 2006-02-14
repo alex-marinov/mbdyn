@@ -223,7 +223,7 @@ public:
    
 protected:
 
-	StaticNameSpace defaultNameSpace;
+	StaticNameSpace* defaultNameSpace;
 	typedef std::map<std::string, NameSpace *> NameSpaceMap;
 	NameSpaceMap nameSpaceMap;
 

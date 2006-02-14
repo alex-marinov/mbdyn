@@ -1576,7 +1576,7 @@ MathParser::expr(void)
 
 	if (currtoken == NAME) {
 		GetToken();
-		MathParser::NameSpace *currNameSpace = &defaultNameSpace;
+		MathParser::NameSpace *currNameSpace = defaultNameSpace;
 		if (currtoken == NAMESPACESEP) {
 			std::string name(namebuf);
 			NameSpaceMap::iterator i = nameSpaceMap.find(name);
@@ -1663,7 +1663,7 @@ MathParser::stmt(void)
 			}
 
 			/* FIXME: need to specialize symbol table for namespaces */
-			if (IsKeyWord(&defaultNameSpace, namebuf)) {
+			if (IsKeyWord(defaultNameSpace, namebuf)) {
 				throw ErrGeneric(this, "name '", namebuf, "' "
 						"is a keyword");
 			}
@@ -1981,7 +1981,7 @@ MathParser::MathParser(const InputStream& strm, Table& t, int redefine_vars)
 table(t),
 redefine_vars(redefine_vars),
 in((InputStream*)&strm),
-defaultNameSpace("default", FuncTable),
+defaultNameSpace(0),
 namebuf(NULL),
 namebuflen(default_namebuflen),
 value(Real(0)),
@@ -1993,9 +1993,10 @@ powerstack()
 
 	SAFENEWARR(namebuf, char, namebuflen + 1);
 
-	if (RegisterNameSpace(&defaultNameSpace)) {
+	defaultNameSpace = new StaticNameSpace("default", FuncTable);
+	if (RegisterNameSpace(defaultNameSpace)) {
 		throw ErrGeneric(this, "unable to register namespace "
-				"\"", defaultNameSpace.sGetName(), "\"");
+				"\"", defaultNameSpace->sGetName(), "\"");
 	}
 
 	time_t tm;
@@ -2008,7 +2009,7 @@ MathParser::MathParser(Table& t, int redefine_vars)
 table(t),
 redefine_vars(redefine_vars),
 in(NULL),
-defaultNameSpace("default", FuncTable),
+defaultNameSpace(0),
 namebuf(NULL),
 namebuflen(default_namebuflen),
 value(Real(0)),
@@ -2020,9 +2021,10 @@ powerstack()
 
 	SAFENEWARR(namebuf, char, namebuflen + 1);
 
-	if (RegisterNameSpace(&defaultNameSpace)) {
+	defaultNameSpace = new StaticNameSpace("default", FuncTable);
+	if (RegisterNameSpace(defaultNameSpace)) {
 		throw ErrGeneric(this, "unable to register namespace "
-				"\"", defaultNameSpace.sGetName(), "\"");
+				"\"", defaultNameSpace->sGetName(), "\"");
 	}
 
 	time_t tm;
@@ -2110,6 +2112,17 @@ MathParser::~MathParser(void)
 
 	if (namebuf != NULL) {
 		SAFEDELETEARR(namebuf);
+	}
+
+	while (PlugIns) {
+		PlugInRegister *next = PlugIns->next;
+		SAFEDELETEARR(PlugIns->name);
+		SAFEDELETE(PlugIns);
+		PlugIns = next;
+	}
+
+	for (NameSpaceMap::iterator i = nameSpaceMap.begin(); i != nameSpaceMap.end(); i++) {
+		delete i->second;
 	}
 }
 
