@@ -50,6 +50,7 @@ MBDYN2EASYANIM="@AWKDIR@/mbdyn2easyanim.awk"
 # Check args
 if test "x$1" = "x" ; then
 	echo "usage: mbdyn2easyanim.sh <filename>"
+	exit 1
 fi
 
 # Check log file
@@ -85,7 +86,7 @@ if test $RC != 0 ; then
 fi
 
 # Check for file existence
-if test ! -f "x${FILENAME}.vol" -o ! -f "x${FILENAME}.van" ; then
+if test ! -f "${FILENAME}.vol" -o ! -f "${FILENAME}.van" ; then
 	echo "conversion failed (no files)"
 	exit 1
 fi

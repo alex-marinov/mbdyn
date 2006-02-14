@@ -4,9 +4,8 @@ include $(top_srcdir)/build/top.mk
 
 EXTRA_DIST = \
 abs2rel.awk \
+mbdyn2easyanim.awk \
 mbdyn2pod.awk \
-mbdyn2van.awk \
-mbdyn2vol.awk \
 periodize.awk \
 naca0012.c81 \
 mbdyn2easyanim.sh.in \
