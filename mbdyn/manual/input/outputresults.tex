@@ -1,0 +1,129 @@
+% MBDyn (C) is a multibody analysis code.
+% http://www.mbdyn.org
+%
+% Copyright (C) 1996-2006
+%
+% Pierangelo Masarati  <masarati@aero.polimi.it>
+%
+% Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+% via La Masa, 34 - 20156 Milano, Italy
+% http://www.aero.polimi.it
+%
+% Changing this copyright notice is forbidden.
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation (version 2 of the License).
+% 
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+\chapter{Results Visualization}
+\label{sec:APP:OUTPUTRESULTS}
+This section describes the different ways the raw output from MBDyn
+can be arranged to work with third-party software for visualization.
+In most of the cases, the preparation of the results can be done 
+as a post-processing, starting from raw MBDyn output files.
+This is true, for instance, for EasyAnim (see
+\htmladdnormallink{\texttt{http://mecara.fpms.ac.be/EasyDyn/}}{http://mecara.fpms.ac.be/EasyDyn/}
+for details).
+In previous versions of MBDyn, the \kw{output results} statement
+allowed to generate output compatible with MSC.ADAMS; provisions 
+for Altair Motion View has been under preparation for long time,
+but it has never been truly supported.
+Anyone interested in that interface should contact MBDyn developers.
+The \kw{output results} statement is now deprecated;
+support for all visualization tools will be reworked
+in form of postprocessing of MBDyn's raw output.
+
+\noindent
+Some post-processing preparation instructions are available
+for those packages that require special handling and thus
+are builtin.
+\begin{itemize}
+\item \textbf{MSC.ADAMS:}
+must be enabled at configure time, by using the directive
+\kw{--enable-adams}.
+MBDyn generates a \kw{.ada} file and a \kw{.res} file.
+The \kw{.ada} file must be processed by the utility \kw{ada2cmd} 
+(under development), along with some user-defined data to improve
+the representation of the entities (e.g.\ shapes, colors, sizes
+and so on) to generate a \kw{.cmd} file.
+ADAMS/View interprets the \kw{.cmd} file to build the model,
+and reads the \kw{.res} file in text form (very verbose),
+which contains the analysis results.
+The interface is activated by the directive
+\begin{verbatim}
+    output results : adams
+        [ , model name , " <name> " ]
+        [ , velocity , { yes | no } ]
+        [ , acceleration , { yes | no } ] ;
+\end{verbatim}
+The model name is optional, defaulting to \kw{mbdyn}.
+By default, velocities and accelerations are not output; they can be
+explicitly enabled by using the \kw{velocity} and \kw{acceleration}
+keywords.
+Note that only the \kw{dynamic} structural nodes can output 
+the accelerations, and only if their output is explicitly selected,
+for performance reasons.
+As a consequence, only the nodes whose native output is set will add 
+their acceleration to ADAMS' output.
+The sequence is:
+\begin{itemize}
+\item compile MBDyn with ADAMS support
+\item add the directive
+\begin{verbatim}
+    output results : adams;
+\end{verbatim}
+\item run the analysis
+\item generate the \kw{.cmd} file from the resulting \kw{.ada} file
+\item run ADAMS/View
+\item import the \kw{.cmd} file
+\item import the \kw{.res} file
+\end{itemize}
+The \kw{velocity} flag enables the output of the velocities 
+of the parts; it defaults to \kw{no} because the output 
+is very verbose, and they are not required to animate
+the model; they can be useful to plot diagrams in the plotting
+facility of ADAMS/View.
+
+\item \textbf{EasyAnim:}
+MBDyn exploits a special version of EasyAnim, based on 1.3 sources
+and patched by MBDyn developers; the patch is known to work under UN*X
+(Linux, essentially); it has not been tested with Windows.
+It is available from the MBDyn web site, and it has submitted to EasyAnim
+developers for evaluation.
+
+the preparation of the output is done via \kw{awk}, which is invoked
+by the \kw{mbdyn2easyanim.sh} script.
+It uses the \kw{.log} and \kw{.mov} files, and generates a pair of
+\kw{.vol} and \kw{.van} files which contain the model and the motion,
+respectively.
+Use
+\begin{verbatim}
+    mbdyn2easyanim.sh $filename
+\end{verbatim}
+where \kw{\$filename} is the name of the output file from MBDyn,
+with no extension.
+
+\item \textbf{Altair MotionView:}
+must be enabled at configure time, by using the directive
+\kw{--enable-motionview}; the specific client libraries 
+are required.
+It should generate a binary model and results file compatible
+with MotionView.
+It is activated by the directive
+\begin{verbatim}
+    output results : motion view ;
+\end{verbatim}
+No special parameters are available at the moment; 
+this interface is under development.
+
+\end{itemize}
