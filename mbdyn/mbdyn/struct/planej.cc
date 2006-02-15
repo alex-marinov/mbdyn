@@ -3407,9 +3407,9 @@ PlanePinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    
    for (int iCnt = 1; iCnt <= 3; iCnt ++) {
       WM.PutItem(33+iCnt, iFirstReactionIndex+4, 
-		  iFirstPositionIndex+3+iCnt, Tmp1.dGet(iCnt));	
+		  iFirstPositionIndex+3+iCnt, -Tmp1.dGet(iCnt));	
       WM.PutItem(36+iCnt, iFirstReactionIndex+5, 
-		  iFirstPositionIndex+3+iCnt, -Tmp2.dGet(iCnt));	
+		  iFirstPositionIndex+3+iCnt, Tmp2.dGet(iCnt));	
    }
    
    return WorkMat;
