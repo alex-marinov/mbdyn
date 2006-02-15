@@ -45,16 +45,53 @@
 # mbdyn2easyanim.sh <filename>
 
 # Location of the awk script
-MBDYN2EASYANIM="@AWKDIR@/mbdyn2easyanim.awk"
+export AWKPATH="$AWKPATH:@AWKDIR@"
+SOURCES="-f mbdyn2easyanim.awk"
 
 # Check args
-if test "x$1" = "x" ; then
-	echo "usage: mbdyn2easyanim.sh <filename>"
+FILENAME=
+EXTRALOGFILES=
+while test "x$1" != "x" ; do
+	case $1 in
+	-f)
+		shift
+		if test "x$1" == "x" ; then
+			echo "usage:  mbdyn2easyanim.sh -f <awkfile> <filename>"	
+			exit 1
+		fi
+		SOURCES="$SOURCES -f $1"
+		;;
+
+	-l)
+		shift
+		if test "x$1" == "x" ; then
+			echo "usage:  mbdyn2easyanim.sh -l <(extra)logfile> <filename>"	
+			exit 1
+		fi
+		if test ! -f $1 ; then
+			echo "missing extra logfile \"$1\""
+			exit 1
+		fi
+		EXTRALOGFILES="$EXTRALOGFILES $1"
+		;;
+
+	-*)
+		echo "unknown option $1"
+		exit 1
+		;;
+	*)
+		FILENAME=$1
+		;;
+	esac
+	shift
+done
+
+if test "x$FILENAME" = "x" ; then
+	echo "usage:  mbdyn2easyanim.sh [OPTIONS] <filename>"
 	exit 1
 fi
 
 # Check log file
-FILENAME=$1
 if test "x${FILENAME}.log" = "x" ; then
 	echo "missing log file \"${FILENAME}.log\""
 	exit 1
@@ -73,8 +110,8 @@ rm -f "${FILENAME}.vol" "${FILENAME}.van"
 
 # Generate files
 echo "####" | \
-	cat "${FILENAME}.log" - "${FILENAME}.mov" | \
-	awk -f "${MBDYN2EASYANIM}" -vfile="${FILENAME}"
+	cat "${FILENAME}.log" $EXTRALOGFILES - "${FILENAME}.mov" | \
+	awk ${SOURCES} -vfile="${FILENAME}"
 RC=$?
 if test $MOVFILE = no ; then
 	rm -f "${FILENAME}.mov"
