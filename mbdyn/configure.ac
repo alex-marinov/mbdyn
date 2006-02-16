@@ -224,8 +224,17 @@ dnl
 dnl Checks for programs.
 dnl
 AC_PROG_CC
+if test "x$CC" = "x" ; then
+	AC_MSG_ERROR([Need a working C compiler])
+fi
 AC_PROG_CXX
+if test "x$CXX" = "x" ; then
+	AC_MSG_ERROR([Need a working C++ compiler])
+fi
 AC_PROG_F77
+if test "x$F77" = "x" ; then
+	AC_MSG_ERROR([Need a working F77 compiler])
+fi
 AM_DISABLE_SHARED dnl Remove when you want to build shared libs also
 AM_PROG_LIBTOOL
 
