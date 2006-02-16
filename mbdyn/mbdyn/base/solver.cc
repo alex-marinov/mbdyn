@@ -890,7 +890,10 @@ Solver::Run(void)
 	SAFEDELETE(pDerivativeSteps);
 	pDerivativeSteps = 0;
 
+#if 0
+	/* don't sum up the derivatives error */
 	dTotErr  += dTest;
+#endif
 	iTotIter += iStIter;
 
 	if (outputMsg()) {
@@ -997,7 +1000,10 @@ Solver::Run(void)
       		dRefTimeStep = dCurrTimeStep;
       		dTime += dRefTimeStep;
 
+#if 0
+		/* don't sum up the derivatives error */
       		dTotErr += dTest;
+#endif
       		iTotIter += iStIter;
 
 #ifdef HAVE_SIGNAL
@@ -1071,7 +1077,10 @@ Solver::Run(void)
 				throw;
 			}
 
+#if 0
+			/* don't sum up the derivatives error */
       			dTotErr += dTest;
+#endif
       			iTotIter += iStIter;
 
 #ifdef DEBUG
