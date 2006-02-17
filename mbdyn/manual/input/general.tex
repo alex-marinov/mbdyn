@@ -1888,10 +1888,16 @@ extension of the
         (scalar) <upper_strain> ,
         (scalar) <lower_strain> ,
         (scalar) <stiffness_2> ,
-        (scalar) <viscosity_coefficient>
+        (scalar) <viscosity_coefficient> ,
+        (scalar) <viscosity_coefficient_2>
 \end{verbatim}
 this is analogous to the \kw{double linear elastic} constitutive law,
 except for the isotropic viscosity term.
+The second viscosity value is used when the strain is outside the
+\kw{lower\_strain}-\kw{upper\_strain} range.
+
+When this constitutive law is used with \kw{3 x 1} vectors, 
+the double linear elastic and viscous term only applies to component 3.
   
 \subsection{Turbulent viscoelastic}
 \begin{verbatim}

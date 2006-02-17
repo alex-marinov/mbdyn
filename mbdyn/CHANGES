@@ -16,6 +16,7 @@ MBDyn 1.X-Devel
 		- automated installation of share data in $prefix/share
 		- reworked support for EasyAnim
 	Backward compatibility issues:
+		- double viscoelastic constitutive law syntax changed
 	Known issues:
 	Bug fixes:
 		- fixed orientation matrix input check and diagnostics
