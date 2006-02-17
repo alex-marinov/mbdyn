@@ -1275,6 +1275,7 @@ class DoubleLinearViscoElasticConstitutiveLaw
 					   doublereal = 0.,
 					   doublereal = 0.,
 					   doublereal = 0.,
+					   doublereal = 0.,
 					   doublereal = 0.)
      : ElasticConstitutiveLaw<T, Tder>(pDC, PStress) {
       throw (typename ElasticConstitutiveLaw<T, Tder>::Err(std::cerr, "doublelinear viscoelastic constitutive law "
@@ -1316,6 +1317,7 @@ class DoubleLinearViscoElasticConstitutiveLaw<doublereal, doublereal>
    doublereal dLowerLimitStrain;
    doublereal dSecondStiffness;
    doublereal dStiffnessPrime;
+   doublereal dSecondStiffnessPrime;
 
  public:
    DoubleLinearViscoElasticConstitutiveLaw(const TplDriveCaller<doublereal>* pDC,
@@ -1324,12 +1326,15 @@ class DoubleLinearViscoElasticConstitutiveLaw<doublereal, doublereal>
 					   doublereal dUpp,
 					   doublereal dLow,
 					   doublereal dSecondS,
-					   doublereal dStiffPrime)
+					   doublereal dStiffPrime,
+					   doublereal dSecondSPrime)
      : ElasticConstitutiveLaw1D(pDC, PStress),
      dStiffness(dStiff),
      dUpperLimitStrain(dUpp), dLowerLimitStrain(dLow),
      dSecondStiffness(dSecondS),
-     dStiffnessPrime(dStiffPrime) {
+     dStiffnessPrime(dStiffPrime),
+     dSecondStiffnessPrime(dSecondSPrime)
+   {
       FDEPrime = dStiffnessPrime;
    };
 
@@ -1353,7 +1358,8 @@ class DoubleLinearViscoElasticConstitutiveLaw<doublereal, doublereal>
                                dUpperLimitStrain,
                                dLowerLimitStrain,
                                dSecondStiffness,
-                               dStiffnessPrime));
+                               dStiffnessPrime,
+			       dSecondStiffnessPrime));
 
       return pCL;
    };
@@ -1364,7 +1370,8 @@ class DoubleLinearViscoElasticConstitutiveLaw<doublereal, doublereal>
 	<< dUpperLimitStrain << ", "
 	<< dLowerLimitStrain << ", "
 	<< dSecondStiffness << ", "
-	<< dStiffnessPrime << ", ";
+	<< dStiffnessPrime << ", "
+	<< dSecondStiffnessPrime << ", ";
       return Restart_int(out);
    };
 
@@ -1376,19 +1383,21 @@ class DoubleLinearViscoElasticConstitutiveLaw<doublereal, doublereal>
       doublereal dCurrStrain = Epsilon-dPreStrain;
       if (dCurrStrain <= dUpperLimitStrain && dCurrStrain >= dLowerLimitStrain) {
 	 FDE = dStiffness;
+	 FDEPrime = dStiffnessPrime;
 	 F = PreStress+dStiffness*dCurrStrain
 	   +dStiffnessPrime*EpsilonPrime;
       } else {
 	 FDE = dSecondStiffness;
+	 FDEPrime = dSecondStiffnessPrime;
 
 	 if (dCurrStrain > dUpperLimitStrain) {
 	    F = PreStress+dStiffness*dUpperLimitStrain
 	      +dSecondStiffness*(dCurrStrain-dUpperLimitStrain)
-		+dStiffnessPrime*EpsilonPrime;
+		+dSecondStiffnessPrime*EpsilonPrime;
 	 } else /* if (dCurrStrain < dLowerLimitStrain) */ {
 	    F = PreStress+dStiffness*dLowerLimitStrain
 	      +dSecondStiffness*(dCurrStrain-dLowerLimitStrain)
-		+dStiffnessPrime*EpsilonPrime;
+		+dSecondStiffnessPrime*EpsilonPrime;
 	 }
       }
    };
@@ -1408,6 +1417,7 @@ class DoubleLinearViscoElasticConstitutiveLaw<Vec3, Mat3x3>
    doublereal dLowerLimitStrain;
    doublereal dSecondStiffness;
    doublereal dStiffnessPrime;
+   doublereal dSecondStiffnessPrime;
 
  public:
    DoubleLinearViscoElasticConstitutiveLaw(const TplDriveCaller<Vec3>* pDC,
@@ -1416,13 +1426,16 @@ class DoubleLinearViscoElasticConstitutiveLaw<Vec3, Mat3x3>
 					   doublereal dUppLimStrain,
 					   doublereal dLowLimStrain,
 					   doublereal dSecondStiff,
-					   doublereal dStiffPrime)
+					   doublereal dStiffPrime,
+					   doublereal dSecondStiffPrime)
      : ElasticConstitutiveLaw3D(pDC, PStress),
      dStiffness(dStiff),
      dUpperLimitStrain(dUppLimStrain),
      dLowerLimitStrain(dLowLimStrain),
      dSecondStiffness(dSecondStiff),
-     dStiffnessPrime(dStiffPrime) {
+     dStiffnessPrime(dStiffPrime),
+     dSecondStiffnessPrime(dSecondStiffPrime)
+   {
       FDE = dStiffness;
       FDEPrime = dStiffnessPrime;
    };
@@ -1447,7 +1460,8 @@ class DoubleLinearViscoElasticConstitutiveLaw<Vec3, Mat3x3>
                                dUpperLimitStrain,
                                dLowerLimitStrain,
                                dSecondStiffness,
-                               dStiffnessPrime));
+                               dStiffnessPrime,
+			       dSecondStiffnessPrime));
 
       return pCL;
    };
@@ -1458,7 +1472,8 @@ class DoubleLinearViscoElasticConstitutiveLaw<Vec3, Mat3x3>
 	<< dUpperLimitStrain << ", "
 	<< dLowerLimitStrain << ", "
 	<< dSecondStiffness << ", "
-	<< dStiffnessPrime << ", ";
+	<< dStiffnessPrime << ", "
+	<< dSecondStiffnessPrime << ", ";
       return Restart_int(out);
    };
 
@@ -1472,24 +1487,26 @@ class DoubleLinearViscoElasticConstitutiveLaw<Vec3, Mat3x3>
 
       if (dCurrStrain <= dUpperLimitStrain && dCurrStrain >= dLowerLimitStrain) {
 	 FDE.Put(3, 3, dStiffness);
+	 FDEPrime.Put(3, 3, dStiffnessPrime);
 	 F = PreStress+CurrStrain*dStiffness+EpsilonPrime*dStiffnessPrime;
       } else {
 	 FDE.Put(3, 3, dSecondStiffness);
+	 FDEPrime.Put(3, 3, dSecondStiffnessPrime);
 
 	 if (dCurrStrain > dUpperLimitStrain) {
 	    F = PreStress
-	      +Vec3(CurrStrain.dGet(1)*dStiffness,
-		    CurrStrain.dGet(2)*dStiffness,
+	      +Vec3(CurrStrain(1)*dStiffness + EpsilonPrime(1)*dStiffnessPrime,
+		    CurrStrain(2)*dStiffness + EpsilonPrime(2)*dStiffnessPrime,
 		    dUpperLimitStrain*dStiffness
-		    +(dCurrStrain-dUpperLimitStrain)*dSecondStiffness)
-		+EpsilonPrime*dStiffnessPrime;
+		        +(dCurrStrain-dUpperLimitStrain)*dSecondStiffness
+	                +EpsilonPrime(3)*dSecondStiffnessPrime);
 	 } else /* if (dCurrStrain < dLowerLimitStrain) */ {
 	    F = PreStress
-	      +Vec3(CurrStrain.dGet(1)*dStiffness,
-		    CurrStrain.dGet(2)*dStiffness,
+	      +Vec3(CurrStrain.dGet(1)*dStiffness + EpsilonPrime(1)*dStiffnessPrime,
+		    CurrStrain.dGet(2)*dStiffness + EpsilonPrime(2)*dStiffnessPrime,
 		    dLowerLimitStrain*dStiffness
-		    +(dCurrStrain-dLowerLimitStrain)*dSecondStiffness)
-		+EpsilonPrime*dStiffnessPrime;
+		        +(dCurrStrain-dLowerLimitStrain)*dSecondStiffness
+		        +EpsilonPrime(3)*dSecondStiffnessPrime);
 	 }
       }
    };

@@ -615,6 +615,14 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 				<< HP.GetLineData() << std::endl);
 		}
 
+		doublereal dSecondSP = HP.GetReal();
+		DEBUGCOUT("second stiffness prime = " << dSecondSP << std::endl);
+
+		if (dSecondSP <= 0.) {
+			silent_cerr("warning, null or negative second stiffness prime at line "
+				<< HP.GetLineData() << std::endl);
+		}
+
 		/* Prestress and prestrain */
 		T PreStress(0.);
 		GetPreStress(HP, PreStress);
@@ -625,7 +633,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 		SAFENEWWITHCONSTRUCTOR(pCL,
 				L,
 				L(pTplDC, PreStress,
-					dS, dUpp, dLow, dSecondS, dSP));
+					dS, dUpp, dLow, dSecondS, dSP, dSecondSP));
 
 		break;
 	}
