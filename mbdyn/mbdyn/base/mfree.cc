@@ -67,7 +67,7 @@ pPrevNLP(NULL)
 {
 	
 	switch(PType) {
-	case Preconditioner::FULLJACOBIAN:
+	case Preconditioner::FULLJACOBIANMATRIX:
 		SAFENEW(pPM, FullJacobianPr);
 		break;
 	

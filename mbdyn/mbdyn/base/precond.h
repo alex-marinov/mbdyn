@@ -47,7 +47,7 @@ public:
 
 	enum PrecondType {
 		UNKNOWN = -1,
-		FULLJACOBIAN
+		FULLJACOBIANMATRIX
 	};
 	
 	virtual ~Preconditioner(void);

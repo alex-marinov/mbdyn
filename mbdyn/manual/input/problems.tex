@@ -252,19 +252,21 @@ is well tested.
 \begin{verbatim}
     <nonlinear_solver_data> ::= newton raphson : { 
         true | modified , <iterations>
-            [ , keep jacobian ]
+            [ , keep jacobian matrix ]
             [ , honor element requests ] } ;
 \end{verbatim}
 if \kw{modified}, the number of \kw{<iterations>} the same Jacobian matrix 
 will be reused, and thus factored only once, is expected.
-If the option \kw{keep jacobian} is selected, the Jacobian is preserved
+If the option \kw{keep jacobian matrix} is selected,
+the Jacobian matrix is preserved
 for the desired \kw{<iterations>} even across time steps.
-By default, the Jacobian is recomputed at the beginning of each time step.
+By default, the Jacobian matrix is recomputed at the beginning 
+of each time step.
 If the option \kw{honor element requests} is selected, the preconditioned
 is updated also when an element changes the structure of its equations.
 The default behavior is to ignore such requests\footnote{
 	At present, only few elements that can change the structure
-	of the equations, or at least radically change the Jacobian,
+	of the equations, or at least radically change the Jacobian matrix,
 	actually issue this request.
 }.
 The second nonlinear solver, based on a
@@ -276,7 +278,7 @@ matrix-free algorithm, is experimental.
         [ , tau , <tau> ]
         [ , eta , <eta> ]
         [ , preconditioner, {
-            full jacobian [ , steps, <steps> ] 
+            full jacobian matrix [ , steps, <steps> ] 
 	        [ , honor element requests ]
     } ];
 \end{verbatim}
@@ -643,7 +645,7 @@ This command requests special output related to the solution phase.
     <item> ::= { iterations
                | residual
                | solution
-               | jacobian
+               | jacobian matrix
                | messages
                | none }
 \end{verbatim}
@@ -651,9 +653,9 @@ The item \kw{iterations} logs a detailed output of the error
 at each iteration inside a time step 
 % in the \kw{.out} file.
 on the standard output.
-The items \kw{residual}, \kw{solution} and \kw{jacobian} log
-the residual, the solution and the Jacobian to standard output; they are
-currently available only for the umfpack solver, and they are
+The items \kw{residual}, \kw{solution} and \kw{jacobian matrix} log
+the residual, the solution and the Jacobian matrix to standard output;
+they are currently available only for the umfpack solver, and they are
 mainly intended for last resort debugging purposes.
 The item \kw{messages} refers to all messaging 
 on the \kw{.out} file; by default, it is on.

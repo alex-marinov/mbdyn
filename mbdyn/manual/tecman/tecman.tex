@@ -163,7 +163,7 @@ SolutionManager::MatrInitialize() is called
 when the structure of the underlying spares matrix changes.
 SolutionManager::MatrReset(), is called to delete a factorization.
 It usually calls LinearSolver::Reset(). The matrix has to be explicitly
-zeroed before a Jacobian assembly.
+zeroed before a Jacobian matrix assembly.
 
 \section{Non linear solvers}
 ...
@@ -187,7 +187,8 @@ There is no node to node or element to element connection.
 \texttt{pVertexWgts} 
 contains what we call the computational weight of each entity, 
 so nodes have weight null while elements has a weight related to 
-the dimension of the submatrix of the Jacobian assembled by each one of them.
+the dimension of the submatrix of the Jacobian matrix assembled
+by each one of them.
 
 \texttt{pCommWgts} contains the communication weights 
 (see metis documentation) which are a measure of the quantity 
@@ -206,7 +207,7 @@ in \texttt{SimulationEntity::GetDofType()}
 by returning \texttt{DofOrder::DIFFERENTIAL}.
 The increment of the value of a differential variable is equal 
 to $\Delta x=\texttt{dCoef}\Delta \dot{x}$.
-When writing the Jacobian, this must be considered;
+When writing the Jacobian matrix, this must be considered;
 as a consequence, for an equation $f=0$ (the residual is $-f$)
 the linearization is 
 $f_{/\dot{x}}+f_{/x}*\texttt{dCoef})*\Delta \dot{x}=-f$, 
@@ -294,7 +295,7 @@ Unfortunately, this requires the implementation of more constraints
 than required by the regular solution phases, namely the time derivative
 of the algebraic constraints that depend only on the configuration.
 A new procedure is being considered, which requires only the use 
-of the constraint equation $\Phi$ and its Jacobian $\Phi_{/x}$.
+of the constraint equation $\Phi$ and its Jacobian matrix $\Phi_{/x}$.
 
 The problem that is solved with the new procedure is (FIXME):
 \begin{eqnarray*}
@@ -306,12 +307,12 @@ The problem that is solved with the new procedure is (FIXME):
 \end{eqnarray*}
 so that only the configuration is required to comply 
 with the constraint equations, and the same constraint 
-Jacobian and residual of the regular steps are required;
+Jacobian matrix and residual of the regular steps are required;
 then, after convergence, the following equation is considered:
 \begin{displaymath}
 	\Phi_{/x} v + \Phi_{/t} = 0
 \end{displaymath}
-which uses the Jacobian of the constraint equations; 
+which uses the Jacobian matrix of the constraint equations; 
 only the derivative of the time-dependent constraints is required.
 
 The number of rows of matrix $\Phi_{/x}$ is equal to the number 
@@ -419,7 +420,7 @@ In this case, it is possible to increase the number of iterations, e.g.:
 \chapter{Data Structure}
 \section{ExpandableRowVector}
 \texttt{ExpandableRowVector} is a class that can be used to
-simplify the computation of complex Jacobians.
+simplify the computation of complex Jacobian matrices.
 An \texttt{ExpandableRowVector} is a vector with a given dimension,
 and is designed in order to carry the partial derivatives
 of a scalar quantity, say $y$, with respect to problem variables.
@@ -1092,7 +1093,7 @@ we obtain
 where $\bar{\T{R}}=\T{R}_1 \T{R}_{1h}$.
 Note that, since the constraint equations are defined by setting 
 to zero any components of the vector $\T{\theta}^{\delta}$, the
-related Jacobian contribution is obtained by selecting 
+related Jacobian matrix contribution is obtained by selecting 
 the corresponding columns of matrix $\bar{\T{R}}$.
 
 \noindent
@@ -1165,7 +1166,7 @@ and with respect to the spring and damper constraints:
 \end{eqnarray*}
 
 \noindent
-The Jacobian and the residual that results from the linearization
+The Jacobian matrix and the residual that results from the linearization
 of the constraint equations and of the couples, considering
 the simplifications related to the updated-updated approach,
 are summarized below:

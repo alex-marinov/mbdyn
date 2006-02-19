@@ -254,7 +254,7 @@ iIterationsBeforeAssembly(0),
 NonlinearSolverType(NonlinearSolver::UNKNOWN),
 MFSolverType(MatrixFreeSolver::UNKNOWN),
 dIterTol(dDefaultTol),
-PcType(Preconditioner::FULLJACOBIAN),
+PcType(Preconditioner::FULLJACOBIANMATRIX),
 iPrecondSteps(iDefaultPreconditionerSteps),
 iIterativeMaxSteps(iDefaultPreconditionerSteps),
 dIterertiveEtaMax(defaultIterativeEtaMax),
@@ -1468,7 +1468,7 @@ IfFirstStepIsToBeRepeated:
 				<< dTime << " after "
 				<< iStep << " steps;" << std::endl
 				<< "total iterations: " << iTotIter << std::endl
-				<< "total Jacobians: " << pNLS->TotalAssembledJacobian() << std::endl
+				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
 				<< "total error: " << dTotErr << std::endl);
 
 #ifdef USE_RTAI
@@ -1490,7 +1490,7 @@ IfFirstStepIsToBeRepeated:
 				<< dTime << " after "
 				<< iStep << " steps;" << std::endl
 				<< "total iterations: " << iTotIter << std::endl
-				<< "total Jacobians: " << pNLS->TotalAssembledJacobian() << std::endl
+				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
 				<< "total error: " << dTotErr << std::endl);
 			if (!bRTlog){
 				silent_cout("total overruns: " << or_counter  << std::endl
@@ -1517,7 +1517,7 @@ IfFirstStepIsToBeRepeated:
 				<< dTime << " after "
 				<< iStep << " steps;" << std::endl
 				<< "total iterations: " << iTotIter << std::endl
-				<< "total Jacobians: " << pNLS->TotalAssembledJacobian() << std::endl
+				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
 				<< "total error: " << dTotErr << std::endl);
 	 		throw ErrInterrupted();
 #endif /* HAVE_SIGNAL */
@@ -1947,7 +1947,7 @@ Solver::Restart(std::ostream& out,DataManager::eRestart type) const
 		if (!bTrueNewtonRaphson) {
 			out << ", modified, " << iIterationsBeforeAssembly;
 			if (bKeepJac) {
-				out << ", keep jacobian";
+				out << ", keep jacobian matrix";
 			}
 			if (bHonorJacRequest) {
 				out << ", honor element requests";
@@ -2007,7 +2007,8 @@ Solver::ReadData(MBDynParser& HP)
 			"iterations",
 			"residual",
 			"solution",
-			"jacobian",
+			/* DEPRECATED */ "jacobian" /* END OF DEPRECATED */ ,
+			"jacobian" "matrix",
 			"bailout",
 			"messages",
 
@@ -2058,7 +2059,8 @@ Solver::ReadData(MBDynParser& HP)
 			"matrix" "free",
 				"bicgstab",
 				"gmres",
-					"full" "jacobian",
+					/* DEPRECATED */ "full" "jacobian" /* END OF DEPRECATED */ ,
+					"full" "jacobian" "matrix",
 
 		/* RTAI stuff */
 		"real" "time",
@@ -2108,6 +2110,7 @@ Solver::ReadData(MBDynParser& HP)
 			RESIDUAL,
 			SOLUTION,
 			JACOBIAN,
+			JACOBIANMATRIX,
 			BAILOUT,
 			MESSAGES,
 
@@ -2158,6 +2161,7 @@ Solver::ReadData(MBDynParser& HP)
 				BICGSTAB,
 				GMRES,
 					FULLJACOBIAN,
+					FULLJACOBIANMATRIX,
 
 		/* RTAI stuff */
 		REALTIME,
@@ -2413,6 +2417,7 @@ Solver::ReadData(MBDynParser& HP)
 					break;
 
 				case JACOBIAN:
+				case JACOBIANMATRIX:
 					OF |= OUTPUT_JAC;
 					break;
 
@@ -3154,6 +3159,10 @@ Solver::ReadData(MBDynParser& HP)
 					iIterationsBeforeAssembly = HP.GetInt();
 
 					if (HP.IsKeyWord("keep" "jacobian")) {
+						pedantic_cout("Use of deprecated \"keep jacobian\" at line " << HP.GetLineData() << std::endl);
+						bKeepJac = true;
+
+					} else if (HP.IsKeyWord("keep" "jacobian" "matrix")) {
 						bKeepJac = true;
 					}
 
@@ -3244,7 +3253,8 @@ Solver::ReadData(MBDynParser& HP)
 					KeyWords KPrecond = KeyWords(HP.GetWord());
 					switch (KPrecond) {
 					case FULLJACOBIAN:
-						PcType = Preconditioner::FULLJACOBIAN;
+					case FULLJACOBIANMATRIX:
+						PcType = Preconditioner::FULLJACOBIANMATRIX;
 						if (HP.IsKeyWord("steps")) {
 							iPrecondSteps = HP.GetInt();
 							DEBUGLCOUT(MYDEBUG_INPUT,

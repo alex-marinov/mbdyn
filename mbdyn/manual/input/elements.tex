@@ -3153,7 +3153,7 @@ by the two \kw{hinge} statements.
             (OrientationMatrix) <absolute_pin_orientation_matrix> ]
 \end{verbatim}
 {\em
-    Note: this is the dual of the revolute hinge when one node is grounded.
+    Note: this is equivalent to a revolute hinge when one node is grounded.
 }
 
 \paragraph{Private Data}
@@ -3328,7 +3328,7 @@ the relative orientation is not constrained.
                                  (Vec3) <absolute_pin_position>
 \end{verbatim}
 {\em
-    Note: this is the dual of the spherical hinge when one node is grounded.
+    Note: this is equivalent to a spherical hinge when one node is grounded.
     An alternative way to model a grounded spherical hinge requires the use
     of a static, clamped node.
 }
@@ -3377,7 +3377,7 @@ See above for details about the formulation.
             (OrientationMatrix) <absolute_pin_orientation_matrix> ]
 \end{verbatim}
 {\em
-    Note: this is the dual of the universal hinge when one node is grounded.
+    Note: this is equivalent to a universal hinge when one node is grounded.
 }
 
 \subsection{Universal rotation}
@@ -3864,13 +3864,13 @@ during model input.
 \subsection{Driven Element}\label{sec:EL:BASE:DRIVEN}
 The \kw{driven} type is not an element by itself. It is a wrapper that
 masks another element and switches it on and off depending on the (boolean)
-value of a drive. It can be used to emulate a variable topology model, where 
-some elements simply don't contribute to the residual or to the Jacobian
-matrices when their drive has a certain value. Since the drivers can be
-arbitrary functions of the time, or other parameters including the value of
-any degree of freedom, the driven elements can be ``driven'' in a very
-flexible way. Every element can be driven, except those that can be
-instantiated once only.
+value of a drive. It can be used to emulate a variable topology model,
+where some elements simply don't contribute to the residual
+or to the Jacobian matrices when their drive has a certain value.
+Since the drivers can be arbitrary functions of the time, 
+or other parameters including the value of any degree of freedom, 
+the driven elements can be ``driven'' in a very flexible way.
+Every element can be driven, except those that can be instantiated once only.
 The syntax for a driven element is:
 \begin{verbatim}
     <normal_arglist> ::= (drive_caller) <element_driver> ,
