@@ -1233,7 +1233,7 @@ simulations use exactly the same random sequence (concurrent settings
 are not managed, so it is not very reliable).
 
 \subsection{Meter drive}
-The \kw{meter} drive has value zero expect for every \kw{steps} steps,
+The \kw{meter} drive has value zero except for every \kw{steps} steps,
 where it assumes unit value.
 \begin{verbatim}
     <drive_caller> ::= meter ,
@@ -1243,6 +1243,14 @@ where it assumes unit value.
 \end{verbatim}
 the first optional entry, preceded by the keyword \kw{steps}, sets the
 number of steps between spikes.
+
+\noindent
+Example:
+\begin{verbatim}
+    ..., meter, 0., forever, steps, 10, ...
+\end{verbatim}
+defines a drive whose value is zero except at time step 0. 
+and every 10 time steps from that, where it assumes unit value.
 
 \subsection{File drive}\label{sec:FILE-DRIVE}
 A family of file drivers is being planned.
