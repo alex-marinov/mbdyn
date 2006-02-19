@@ -26,3 +26,134 @@
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 \chapter{Frequently Asked Questions}\label{sec:FAQ}
+This section contains answers to frequently asked questions.
+It is an attempt to fill the knowledge gap between the user's needs
+and the description of each input statement.
+In fact, this manual assumes that the user already knows what statement
+is required to solve a given problem or to model a given system, so that
+all it is missing is the details about the syntax.
+This is typically not true, especially for inexperienced users, whose
+main problem is to understand how to solve a problem or model a system.
+Of course an input manual is not the right place to start, but, better
+than nothing, this section is trying to fill this gap allow to approach
+the manual ``the other way round''.
+
+If one's question is listed below, then it's likely that the answer 
+will point to reading the right sections of the manual.
+
+\section{Output}
+\subsection{How can I reduce the amount of output?}
+There are different possibilities: one can only output a portion
+of the results, or produce output only at selected time steps, or both.
+
+To selectively produce output there are different means:
+\begin{itemize}
+\item \textbf{by category:} use the \kw{default output} statement
+(Section~\ref{sec:CONTROLDATA:DEFAULTOUTPUT}) to indicate what entities
+should be output.
+By default, all entities output data, so the suggested use is:
+\begin{verbatim}
+    default output: none, structural nodes, beams;
+\end{verbatim}
+so that the first value, \kw{none}, turns all output off, while the
+following values re-enable the desired ones only.
+
+\item \textbf{entity by entity, directly:}
+all entities allow an output specification as the last argument
+(nodes: Section~\ref{sec:NODES}; elements: Section~\ref{sec:ELEMENTS});
+so, at the end of an entity's card just put
+\begin{verbatim}
+    ..., output, no;    # to disable output
+    ..., output, yes;   # to enable output
+\end{verbatim}
+
+\item \textbf{entity by entity, deferred:}
+all entitites allow to re-enable output after they have
+been instantiated by using the \kw{output} statement
+(nodes: Section~\ref{sec:NODE:MISC:OUTPUT};
+elements: Section~\ref{sec:EL:MISC:OUTPUT}).
+\end{itemize}
+
+So a typical strategy is:
+\begin{itemize}
+\item use \kw{default output} to select those types that must be on or off;
+also disable the types of those entities that must be partially 
+on and partially off;
+\item use the \kw{direct} option to respectively set the output
+of those entities that must be absolutely on or off; this overrides
+the \kw{default output} value.
+\item use the \kw{output} statement to enable the output of those
+entities that must be on for that simulation only; this overrides
+both the \kw{default output} and the \kw{direct} values.
+\end{itemize}
+
+The \kw{direct} option goes in the model, so it may be hidden 
+in an include file of a component that is used in different models;
+its value should not be modified directly.
+On the contrary, the \kw{output} statement can appear anywhere
+inside the node/element blocks, so the same subcomponents can have
+different output behavior by using different \kw{output} statements.
+
+\noindent
+Example:
+\begin{verbatim}
+    # ...
+    begin: control data;
+        default output: none, joints;
+        structural nodes: 2;
+        joints: 2;
+    end: control data;
+    begin: nodes;
+        structural: 1, static,
+            null, eye, null, null,
+            output, no;  # this is the ground; never output it
+        structural: 2, dynamic,
+            null, eye, null, null;
+            # defer decision about output
+
+        # uncomment to output
+        # output: structural, 2;
+    end: nodes;
+    begin: elements;
+        joint: 1, clamp, 1, node, node,
+            output, no;  # this is the ground; never output it
+        joint: 2, revolute hinge,
+            1, null,
+                hinge, eye,
+            2, null,
+                hinge, eye;
+             # this is output by "default output"
+
+        # make sure that no matter what "default output"
+        # is set, this joint is output
+        output: joint, 2;
+    end: elements;
+\end{verbatim}
+
+
+To reduce output in time, one can use the \kw{output meter} statement
+(Section~\ref{sec:CONTROLDATA:OUTPUTMETER}).
+It consists in a drive that causes output to be produced only when 
+its value is not 0.
+
+For example, to produce output only after a certain time, use
+\begin{verbatim}
+    output meter: string, "Time > 10.";
+\end{verbatim}
+to produce output every 5 time steps starting from 0., use
+\begin{verbatim}
+    output meter: meter, 0., forever, steps, 5;
+\end{verbatim}
+to produce output only when a certain variable reaches a certain value, use
+\begin{verbatim}
+    output meter: string, "Omega > 99.";
+\end{verbatim}
+if \kw{Omega} is the third component of the angular velocity 
+of a certain node (say, node 1000), later on, after the node is defined, 
+the related definition must appear:
+\begin{verbatim}
+    set: "[dof,Omega,1000,structural,6,differential]
+\end{verbatim}
+i.e.\ the sixth component of the derivative state of node 1000,
+the angular velocity about axis 3, is assigned to the variable \kw{Omega}.
+
