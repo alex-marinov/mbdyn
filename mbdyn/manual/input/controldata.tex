@@ -198,14 +198,14 @@ can be overridden for every entity both when it is created or later in
 each entity module.
 
 \subsubsection{Output Frequency}
-This deprecated statement was intended for producing partial output.
+This statement is intended for producing partial output.
 \begin{verbatim}
     <card> ::= output frequency: <steps> ;
 \end{verbatim}
 Despite the misleading name, this statement causes output to be produced
 every \kw{<steps>} time steps, starting from the initial time.
-This functionality is now provided by the \kw{output meter}
-statement.
+A more general functionality is now provided by the \kw{output meter}
+statement (Section~\ref{sec:CONTROLDATA:OUTPUTMETER}).
 
 \subsubsection{Output Meter}\label{sec:CONTROLDATA:OUTPUTMETER}
 A drive that causes output to be generated when different from zero,
