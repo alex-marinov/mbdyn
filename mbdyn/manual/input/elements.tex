@@ -2240,6 +2240,8 @@ Legal joint types, with relative data, are:
 
 
 \subsection{Angular acceleration}
+This joint imposes the absolute angular acceleration of a node
+about a given axis.
 \begin{verbatim}
     <joint_type> ::= angular acceleration
     <joint_arglist> ::= <node> , (Vec3) <relative_direction> , 
@@ -2257,6 +2259,8 @@ The following data is available:
 
 
 \subsection{Angular velocity}
+This joint imposes the absolute angular velocity of a node
+about a given axis.
 \begin{verbatim}
     <joint_type> ::= angular velocity
     <joint_arglist> ::= <node> , (Vec3) <relative_direction> , 
@@ -2270,6 +2274,8 @@ The following data is available:
 \end{enumerate}
 
 \subsection{Axial rotation}
+This joint is equivalent to a revolute hinge, but the angular velocity
+about axis 3 is imposed by means of the driver.
 \begin{verbatim}
     <joint_type> ::= axial rotation
     <joint_arglist> ::= 
@@ -2399,6 +2405,8 @@ The following data is available:
 
 
 \subsection{Clamp}
+This joint grounds all 6 degrees of freedom of a node
+in an arbitrary position and orientation that remains fixed.
 \begin{verbatim}
     <joint_type> ::= clamp 
     <joint_arglist> ::= <node>
@@ -2600,6 +2608,9 @@ description of the available data in Section~\ref{sec:CONSTITUTIVE-LAWS}.
 
 
 \subsection{Distance}
+This joint forces the distance between two points,
+each relative to a node, to assume the value indicated by the drive.
+If no offset is given, the points are coincident with the node themselves.
 \begin{verbatim}
     <joint_type> ::= distance 
     <joint_arglist> ::= <node_1> , 
@@ -2656,6 +2667,9 @@ See the \kw{distance} joint element.
 
 
 \subsection{Drive hinge}
+This joint imposes the relative orientation between two nodes,
+in the form of a rotation about an axis with an amplitude defined
+by the drive.
 \begin{verbatim}
     <joint_type> ::= drive hinge
     <joint_arglist> ::= 
@@ -2686,7 +2700,11 @@ of the reference in which the enforced orientation is expressed is reset;
 \item unrecognized hints are passed through to the \kw{Vec3} drive.
 \end{itemize}
 
-\subsection{Gimbal rotation}
+\subsection{Gimbal hinge}
+This joint has not been implemented yet; use a \kw{gimbal rotation}
+and a \kw{spherical hinge} to emulate.
+
+\subsection{Gimbal rotation}\label{sec:EL:JOINT:GIMBALROTATION}
 A constant velocity joint without position constraints;
 this joint, in conjunction with a \kw{spherical hinge} joint, 
 should be used to implement an ideal tiltrotor gimbal
@@ -2732,6 +2750,8 @@ The following data is available:
 
 
 \subsection{In line}
+This joint forces a point relative to the second node to move 
+along a line attached to the first node.
 \begin{verbatim}
     <joint_type> ::= in line
     <joint_arglist> ::= 
@@ -2747,6 +2767,8 @@ The following data is available:
 }
 
 \subsection{In plane}
+This joint forces a point relative to the second node to move 
+in a plane attached to the first node.
 \begin{verbatim}
     <joint_type> ::= in plane
     <joint_arglist> ::= 
@@ -2776,7 +2798,9 @@ by directly writing code in files \verb;mbdyn/struct/kin.cc; and
 \end{verbatim}
 \emph{Note: this element is eXperimental.}
 
- \subsection{Linear acceleration}
+\subsection{Linear acceleration}
+This joint imposes the absolute linear acceleration of a node
+along a given axis.
 \begin{verbatim}
     <joint_type> ::= linear acceleration
     <joint_arglist> ::= <node> , (Vec3) <relative_direction> , 
@@ -2791,6 +2815,8 @@ The following data is available:
 \end{enumerate}
 
 \subsection{Linear velocity}
+This joint imposes the absolute linear velocity of a node
+along a given axis.
 \begin{verbatim}
     <joint_type> ::= linear velocity
     <joint_arglist> ::= <node> , (Vec3) <relative_direction> , 
@@ -2808,6 +2834,11 @@ The following data is available:
     Author: Felice Felippone; \\
     Initial review: Giuseppe Quaranta; \\
     Current review: Pierangelo Masarati.}
+
+This joint implements a component synthesis deformable body.
+Its interface with the multibody domain is represented by clamps
+that constrain the multibody interface nodes to the position
+and orientation of the corresponding FEM nodes.
 
 \begin{verbatim}
     <joint_type> ::= modal
@@ -3009,8 +3040,10 @@ This joint has been renamed \kw{revolute pin}; the old name has been
 deprecated and may not be supported in future versions.
 
 \subsection{Prismatic}
-This joints contraints the relative rotation
-of two nodes. The initial orientation of the joint must be
+This joints constraints the relative orientation of two nodes, so that
+their orientations remain parallel.
+The relative position is not constrained.
+The initial orientation of the joint must be
 compatible: use the \kw{hinge} keyword to assign 
 the joint initial orientation.
 \begin{verbatim}
@@ -3032,6 +3065,9 @@ with respect to node 2 is reset;
 \end{itemize}
 
 \subsection{Revolute hinge}
+This joint only allows the relative rotation of two nodes about
+a given axis, which is axis 3 in the reference systems defined 
+by the two \kw{hinge} statements.
 \begin{verbatim}
     <joint_type> ::= revolute hinge
     <joint_arglist> ::= 
@@ -3046,10 +3082,14 @@ with respect to node 2 is reset;
                    <friction_model> , 
                    <shape_function> ]
 \end{verbatim}
-{\em
-    Note: this joint forces nodes 1 and 2 to rotate only about relative 
-    axis 3.
-}
+
+\subsection{Rationale}
+The rationale for having two statements to indicate the position
+and orientation of the same entity is that the joint is supposed
+to constrain the position and orientation of two points,
+each attached to a node.
+This is what is typically known from the geometry of the components
+of a mechanism.
 
 \subsection{Output}
 The output occurs in the \kw{.jnt} file, according to default joint output
@@ -3099,6 +3139,9 @@ if any.
 
 
 \subsection{Revolute pin}
+This joint only allows the absolute rotation of a node about
+a given axis, which is axis 3 in the reference systems defined 
+by the two \kw{hinge} statements.
 \begin{verbatim}
     <joint_type> ::= revolute pin
     <joint_arglist> ::= 
@@ -3145,9 +3188,10 @@ with respect to the absolute frame is reset;
 
 
 \subsection{Revolute rotation}
-A revolute joint without position constraints; this joint, in conjunction
-with an \kw{inline} joint, should be used to constrain the two nodes
-of a hydraulic actuator.
+This joint allows the relative rotation of two nodes about
+a given axis, which is axis 3 in the reference systems defined 
+by the two \kw{hinge} statements.
+The relative position is not constrained.
 \begin{verbatim}
     <joint_type> ::= revolute rotation
     <joint_arglist> ::= 
@@ -3158,10 +3202,11 @@ of a hydraulic actuator.
         [ , hinge , 
             (OrientationMatrix) <relative_orientation_matrix_2> ]
 \end{verbatim}
-{\em
-    Note: this joint forces nodes 1 and 2 to rotate only about relative 
-    axis 3.
-}
+
+\paragraph{Rationale}
+A revolute joint without position constraints; this joint, in conjunction
+with an \kw{inline} joint, should be used to constrain, for example,
+the two nodes of a hydraulic actuator.
 
 \paragraph{Private Data}
 The following data is available:
@@ -3188,10 +3233,11 @@ with respect to node 2 is reset;
 
 \subsection{Rod}\label{sec:EL:STRUCT:JOINT:ROD}
 The \kw{rod} element represents a force between two nodes that depends
-on the relative position and velocity of the nodes.
+on the relative position and velocity of two points, each attached
+to a node.
 The direction of the force is also based on the relative position
-of the nodes, usually the line passing through them, unless 
-an \kw{offset} is defined.
+of the points: it is the line that passes through them.
+If no \kw{offset} is defined, the points are the nodes themselves.
 The syntax is:
 \begin{verbatim}
     <joint_type> ::= rod 
@@ -3248,7 +3294,8 @@ Analogous to the \kw{rod} joint with the optional arg \kw{offset};
 see Section~\ref{sec:EL:STRUCT:JOINT:ROD} for details.
 
 \subsection{Spherical hinge}
-The syntax is:
+This joint constrains the relative position of two nodes;
+the relative orientation is not constrained.
 \begin{verbatim}
     <joint_type> ::= spherical hinge
     <joint_arglist> ::= 
@@ -3259,7 +3306,8 @@ The syntax is:
         [ , hinge , 
             (OrientationMatrix) <relative_orientation_matrix_2> ]
 \end{verbatim}
-Note: the orientation matrix is used for output purposes only. 
+Note: the orientation matrix, set by means of the \kw{hinge} keyword,
+is used for output purposes only. 
 A default identity matrix is assumed.
 
 \paragraph{Hints}
@@ -3272,6 +3320,8 @@ with respect to node 2 is reset;
 \end{itemize}
 
 \subsection{Spherical pin}
+This joint constrains the absolute position of a node;
+the relative orientation is not constrained.
 \begin{verbatim}
     <joint_type> ::= spherical pin
     <joint_arglist> ::= <node> , (Vec3) <relative_offset> ,
@@ -3284,6 +3334,14 @@ with respect to node 2 is reset;
 }
 
 \subsection{Universal hinge}
+This joint implements a ``Cardano'' joint, which is made of a sequence
+of two revolute hinges orthogonal to each other, one about relative axis 2
+and one about relative axis 3 of the reference systems
+defined by the two \kw{hinge} statements.
+Or, in other words, this joint constrains the relative axis 3 of node 1 
+to be always orthogonal to the relative axis 2 of node 2.
+As a result, torque is transmitted about axis 1 of both nodes.
+The relative position is also constrained.
 \begin{verbatim}
     <joint_type> ::= universal hinge
     <joint_arglist> ::= 
@@ -3294,12 +3352,20 @@ with respect to node 2 is reset;
         [ , hinge , 
             (OrientationMatrix) <relative_orientation_matrix_2> ]
 \end{verbatim}
-{\em
-    Note: this joint forces the relative direction 3 of node 1 to be always 
-    normal to the relative direction 2 of node 2.
-}
+Note: this joint does not represent a constant velocity joint,
+so, when a steady deflection between the two nodes is present,
+a constant velocity about axis 1 of one node results in an oscillating
+velocity about axis 1 for the other node.
+The constant velocity joint is implemented by the \kw{gimbal joint}
+(Section~\ref{sec:EL:JOINT:GIMBALROTATION}), which essentially consists
+of a sequence of two \kw{universal joints} with the hinges
+in reversed order, assembled in a manner that the deflection
+is split half and half between the two universal joints.
 
 \subsection{Universal pin}
+This joint implements a ``Cardano'' joint between a node and the ground.
+The absolute position is also constrained.
+See above for details about the formulation.
 \begin{verbatim}
     <joint_type> ::= universal pin
     <joint_arglist> ::= 
@@ -3315,7 +3381,9 @@ with respect to node 2 is reset;
 }
 
 \subsection{Universal rotation}
-A universal joint without position constraints.
+This joint implements a ``Cardano'' joint, which is made of a sequence
+of two revolute hinges orthogonal to each other.
+The relative position is not constrained.
 \begin{verbatim}
     <joint_type> ::= universal rotation
     <joint_arglist> ::= 
