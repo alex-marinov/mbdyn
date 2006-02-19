@@ -89,17 +89,36 @@ the \underline{M}ulti\underline{b}ody \underline{Dyn}amics analysis suite.
 It should be considered a syntax more than a format, since the rules of the
 input allow a lot of freedom in the file format. 
 
+As the title states, this manual describes the syntax of the input.
+The reader should not expect to \emph{learn} how to model systems
+from this text; it is rather a reference manual where the user
+can find the exact and detailed description of the syntax of some
+entity, where it is assumed that the user already knows that entity
+exactly does what is required to model that system or solve that problem.
+
+To get on the right track, one may have a look at the 
+\emph{Frequently Asked Questions} (Appendix~\ref{sec:FAQ}),
+a steadily growing chapter that collects the most common issues
+arising from users.
+They might help pointing to the right statement for a given purpose,
+but in any case nothing can replace the judgement of the user
+about what entity exactly fits some need.
+The only document that may help users in growing this type of judgement
+is the \emph{tutorials} book, available from the website.
+For more specific questions, one should try the \kw{mbdyn-users@mbdyn.org}
+mailing list (browse the archives, just in case, then post a question;
+posting is restricted to subscribers; subscription is free).
+
 \section*{Conventions on the Notation}
-throughout the manual, a (sometimes na\"{\i}ve) 
+Throughout the manual, a (sometimes na\"{\i}ve) 
 Backus-Naur-like syntax description is used. 
-Extensions are made, such as to put extra arguments in square brackets
-\kw{[]}, mutually exclusive arguments in curl brackets \kw{\{\}},
+Extensions are made, such as to put optional arguments in square brackets
+\kw{[]}, mutually exclusive arguments in curly brackets \kw{\{\}},
 separated by the logical ``or'' \kw{|} operator.
 Non-terminal symbols are enclosed in angle brackets \kw{<>}, while
 terminal symbols are written in normal types.
 The association of a non-terminal with terminal or non-terminal
 symbols is performed by means of the operator `\kw{::=}'. 
-% Special characters are enclosed in simple quotes \kw{`}, and \kw{'}.
 When required, the type of a non-terminal symbol is enforced in a ``C''
 programming language casting style, by prepending a (usually
 self-explanatory) type enclosed in plain brackets \kw{()}.
@@ -123,10 +142,6 @@ At present the input of MBDyn already warns for many possible errors
 and makes as many cross-checks as possible on the consistency of the data. 
 Nearly every warning and error issue shows the line of the input file 
 where the error occurred. 
-%Since at present multiple files can be scanned by means of the 
-%\kw{include} directive, the file where the error occurred
-%may not be clearly indicated if no reliable C++ exception handling 
-%is supported by the compiler.
 This document will be subjected to changes, so be sure you always have 
 a release that is aligned with the version of the code you're running.
 
@@ -179,6 +194,7 @@ release.
 \appendix
 \input{modal-fem-format}
 \input{outputresults} 
+\input{faq.tex}
 
 \bibliographystyle{unsrt}
 \bibliography{mybib}
