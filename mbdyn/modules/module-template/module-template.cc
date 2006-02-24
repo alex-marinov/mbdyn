@@ -361,12 +361,17 @@ static int
 i_get_num_connected_nodes(const LoadableElem* pEl)
 {
 	DEBUGCOUTFNAME("i_get_num_connected_nodes");
+
+#if 0
+	module_template* p = (module_template *)pEl->pGetData();
+#endif /* 0 */
+
 	return 0;
 }
 
 static void
 get_connected_nodes(const LoadableElem* pEl, 
-		int& NumNodes, Node::Type* NdTyp, unsigned int* NdLabels)
+		std::vector<const Node *>& connectedNodes)
 {
 	DEBUGCOUTFNAME("get_connected_nodes");
 
@@ -377,17 +382,17 @@ get_connected_nodes(const LoadableElem* pEl,
 	/*
 	 * set args according to element connections
 	 */
-	NumNodes = i_get_num_connected_nodes(pEl);
+	connectedNodes.resize(i_get_num_connected_nodes(pEl));
 }
 
 static struct
 LoadableCalls lc = {
-	LOADABLE_VERSION_SET(1, 3, 0),
+	LOADABLE_VERSION_SET(1, 5, 0),
 
 	"template",
 	"1.1",
 	"Dipartimento di Ingegneria Aerospaziale, Politecnico di Milano",
-	"template module; use it as guideline e.g. for user-defined elements",
+	"template module; use it as guideline for user-defined elements",
 
 	read,
 	i_get_num_dof,
