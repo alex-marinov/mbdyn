@@ -90,9 +90,7 @@ also known to fail at initializing const arrays with non-const values
    The same applies to some non-official versions like the so-called 
 2.96.X that ships with RedHat >= 7.0.
 
-   gcc 3.X works correctly (version 3.1 is recommended), but
-a snapshot of gdb is required for debugging because the mangling of the
-names has changed.
+   gcc 3.X (except 3.2) and 4.X work correctly.
 
    The parallel implementation used to need HSL (see 
    
