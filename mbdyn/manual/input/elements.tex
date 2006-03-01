@@ -3264,6 +3264,25 @@ to the more general \kw{rod with offset};
 see also \kw{rod with offset}
 in Section~\ref{sec:EL:STRUCT:JOINT:ROD_WITH_OFFSET}.
 
+\paragraph{Output}
+The output occurs in the \kw{.jnt} file, which contains:
+\begin{itemize}
+\item the label
+\item the three components of the internal force in the reference frame
+of the element (column 2, component $x$, contains the force)
+\item the three components of the internal moment in the reference frame
+of the element (always zero)
+\item the three components of the internal force in the global
+reference frame
+\item the three components of the internal moment in the global
+reference frame (always zero)
+\item the length of the rod
+\item the three components of the rod axis in the global reference frame
+(a unit vector)
+\item the length rate of the rod (derivative of length wrt/ time)
+\item optional data appended by the constitutive law
+\end{itemize}
+
 \paragraph{Private Data}
 The following data is available:
 \begin{enumerate}
