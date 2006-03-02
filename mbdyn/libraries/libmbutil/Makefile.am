@@ -54,9 +54,10 @@ libmbutil_la_LDFLAGS =
 
 INCLUDES = \
 -I../../include \
--I../../libraries/libmbutil \
--I../../libraries/libmbmath \
--I../../mbdyn
+-I$(srcdir)/../../include \
+-I$(srcdir)/../../libraries/libmbutil \
+-I$(srcdir)/../../libraries/libmbmath \
+-I$(srcdir)/../../mbdyn
 
 noinst_PROGRAMS = mbsasltest
 mbsasltest_SOURCES = mbsasltest.c

@@ -49,13 +49,16 @@ $(GINACLIB_LIBS)\
 $(GINACLIB_LIBS)
 
 INCLUDES = \
--I../libraries/libmbutil \
--I../libraries/libmbmath \
--I../libraries/libmbwrap \
--I../mbdyn/base \
--I../mbdyn/struct \
--I../mbdyn/aero \
--I../mbdyn/elec \
--I../mbdyn/hydr \
+-I../include \
+-I$(srcdir)/../include \
+-I$(srcdir)/../libraries/libmbutil \
+-I$(srcdir)/../libraries/libmbmath \
+-I$(srcdir)/../libraries/libmbwrap \
+-I$(srcdir)/../mbdyn/base \
+-I$(srcdir)/../mbdyn/struct \
+-I$(srcdir)/../mbdyn/aero \
+-I$(srcdir)/../mbdyn/elec \
+-I$(srcdir)/../mbdyn/hydr \
 $(GINACLIB_CPPFLAGS)
+
 include $(top_srcdir)/build/bot.mk

@@ -83,15 +83,17 @@ libstruct_la_LIBADD = @LIBS@
 libstruct_la_LDFLAGS = -static
 
 INCLUDES = \
--I../../libraries/libmbutil \
--I../../libraries/libmbmath \
--I../../libraries/libmbwrap \
--I../../mbdyn \
--I../../mbdyn/base \
--I../../mbdyn/struct \
--I../../mbdyn/aero \
--I../../mbdyn/elec \
--I../../mbdyn/hydr
+-I../../include \
+-I$(srcdir)/../../include \
+-I$(srcdir)/../../libraries/libmbutil \
+-I$(srcdir)/../../libraries/libmbmath \
+-I$(srcdir)/../../libraries/libmbwrap \
+-I$(srcdir)/../../mbdyn \
+-I$(srcdir)/../../mbdyn/base \
+-I$(srcdir)/../../mbdyn/struct \
+-I$(srcdir)/../../mbdyn/aero \
+-I$(srcdir)/../../mbdyn/elec \
+-I$(srcdir)/../../mbdyn/hydr
 
 include $(top_srcdir)/build/bot.mk
 
@@ -99,7 +101,6 @@ module-wheel2.cc:
 	if test -f module-wheel2.cc ; then \
 		rm -f module-wheel2.cc ; \
 	else \
-		ln -s ../../modules/module-wheel2/module-wheel2.cc . ; \
+		ln -s $(srcdir)/../../modules/module-wheel2/module-wheel2.cc . ; \
 	fi
 
-	

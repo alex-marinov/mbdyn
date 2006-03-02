@@ -99,12 +99,14 @@ vec2rot_LDADD = $(MYLIBS)
 logproc_LDFLAGS = -static
 
 INCLUDES = \
--I../libraries/libmbutil \
--I../libraries/libmbmath \
--I../libraries/libmbwrap \
--I../mbdyn \
--I../mbdyn/aero \
--I../mbdyn/base
+-I../include \
+-I$(srcdir)/../include \
+-I$(srcdir)/../libraries/libmbutil \
+-I$(srcdir)/../libraries/libmbmath \
+-I$(srcdir)/../libraries/libmbwrap \
+-I$(srcdir)/../mbdyn \
+-I$(srcdir)/../mbdyn/aero \
+-I$(srcdir)/../mbdyn/base
 
 # Rule to compile modules; run "make <module-name>.so"
 %.so: %.o

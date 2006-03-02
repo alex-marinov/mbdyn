@@ -13,6 +13,8 @@ libnaive_la_LIBADD = @LIBS@
 libnaive_la_LDFLAGS =
 
 INCLUDES = \
--I../../mbdyn
+-I../../include \
+-I$(srcdir)/../../include \
+-I$(srcdir)/../../mbdyn
 
 include $(top_srcdir)/build/bot.mk

@@ -105,11 +105,13 @@ cctest_LDADD = \
 @THREAD_LIBS@
 
 INCLUDES = \
--I../../mbdyn \
--I../libmbutil \
--I../libmbmath \
--I../liby12 \
--I../libcolamd \
--I../libnaive
+-I../../include \
+-I$(srcdir)/../../include \
+-I$(srcdir)/../../mbdyn \
+-I$(srcdir)/../libmbutil \
+-I$(srcdir)/../libmbmath \
+-I$(srcdir)/../liby12 \
+-I$(srcdir)/../libcolamd \
+-I$(srcdir)/../libnaive
 
 include $(top_srcdir)/build/bot.mk

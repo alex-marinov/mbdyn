@@ -57,13 +57,15 @@ libmbmath_la_LIBADD = @LIBS@ @F2C_LIBS@
 libmbmath_la_LDFLAGS =
 
 INCLUDES = \
--I../../libraries/liby12 \
--I../../libraries/libcolamd \
--I../../libraries/libmbutil \
--I../../libraries/libmbmath \
--I../../libraries/libnaive \
--I../../libraries/libmbwrap \
--I../../mbdyn \
--I../../mbdyn/base
+-I../../include \
+-I$(srcdir)/../../include \
+-I$(srcdir)/../../libraries/liby12 \
+-I$(srcdir)/../../libraries/libcolamd \
+-I$(srcdir)/../../libraries/libmbutil \
+-I$(srcdir)/../../libraries/libmbmath \
+-I$(srcdir)/../../libraries/libnaive \
+-I$(srcdir)/../../libraries/libmbwrap \
+-I$(srcdir)/../../mbdyn \
+-I$(srcdir)/../../mbdyn/base
 
 include $(top_srcdir)/build/bot.mk

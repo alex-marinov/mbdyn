@@ -25,7 +25,9 @@ noinst_PROGRAMS = y12test
 y12test_SOURCES = test.c
 y12test_LDADD = ./liby12.la
 INCLUDES = \
--I../libmbmath \
--I../../mbdyn
+-I../../include \
+-I$(srcdir)/../../include \
+-I$(srcdir)/../libmbmath \
+-I$(srcdir)/../../mbdyn
 
 include $(top_srcdir)/build/bot.mk
