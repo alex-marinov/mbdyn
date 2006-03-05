@@ -317,6 +317,7 @@ DriveDisplacementJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 		WM.DecCoef(iCnt, 12 + iCnt, 1.);
 		/* node 2 force */
 		WM.IncCoef(6 + iCnt, 12 + iCnt, 1.);
+
 		/* node 1 constraint */
 		WM.DecCoef(12 + iCnt, iCnt, 1.);
 		/* node 2 constraint */
@@ -412,7 +413,6 @@ DriveDisplacementJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 	WorkMat.SetNullMatrix();
 
-#if 0
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
 	/* Dimensiona e resetta la matrice di lavoro */
@@ -443,39 +443,74 @@ DriveDisplacementJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		WM.PutColIndex(24 + iCnt, iFirstReactionIndex + iCnt);
 	}
 
-	Mat3x3 Ra(pNode1->GetRRef()*R1h);
-	Mat3x3 RaT(Ra.Transpose());
-	Vec3 Wa(pNode1->GetWRef());
-	Vec3 Wb(pNode2->GetWRef());
+	Vec3 FPrime = Vec3(XCurr, iReactionPrimeIndex + 1);
 
-	Mat3x3 MTmp(M);
-	Mat3x3 MPrimeTmp(Ra*Vec3(XCurr, iReactionPrimeIndex+1));
+	for (int iCnt = 1; iCnt <= 3; iCnt++) {
+		/* node 1 force */
+		WM.DecCoef(iCnt, 24 + iCnt, 1.);
+		/* node 2 force */
+		WM.IncCoef(12 + iCnt, 24 + iCnt, 1.);
 
-	WM.Add(1, 1, MTmp);
-	WM.Add(4, 4, MTmp);   
-	WM.Sub(7, 1, MTmp);
-	WM.Sub(10, 4, MTmp);
+		/* node 1 force derivative */
+		WM.DecCoef(6 + iCnt, 27 + iCnt, 1.);
+		/* node 2 force derivative */
+		WM.IncCoef(18 + iCnt, 27 + iCnt, 1.);
 
-	MTmp = Mat3x3(Wa)*MTmp+MPrimeTmp;
-	WM.Add(4, 1, MTmp);
-	WM.Sub(10, 1, MTmp);
+		/* node 1 constraint */
+		WM.DecCoef(24 + iCnt, iCnt, 1.);
+		/* node 2 constraint */
+		WM.IncCoef(24 + iCnt, 12 + iCnt, 1.);
 
-	WM.Add(7, 13, Ra);
-	WM.Add(10, 16, Ra);
-	WM.Sub(1, 13, Ra);
-	WM.Sub(4, 16, Ra);
+		/* node 1 constraint derivative */
+		WM.DecCoef(27 + iCnt, 6 + iCnt, 1.);
+		/* node 2 constraint derivative */
+		WM.IncCoef(27 + iCnt, 18 + iCnt, 1.);
+	}
 
-	MTmp = Mat3x3(Wa)*Ra;
-	WM.Add(10, 13, MTmp);
-	WM.Sub(4, 13, MTmp);
+	Mat3x3 MTmp(dRef);
 
-	WM.Add(13, 7, RaT);
-	WM.Add(16, 10, RaT);
-	WM.Sub(13, 1, RaT);
-	WM.Sub(16, 4, RaT);
-	WM.Add(16, 1, RaT*Mat3x3(Wb));
-	WM.Sub(16, 7, RaT*Mat3x3(Wa));
-#endif
+	/* node 1 moment */
+	WM.Sub(3 + 1, 24 + 1, MTmp);
+	/* node 1 moment derivative */
+	WM.Sub(9 + 1, 27 + 1, MTmp);
+	/* node 1 constraint */
+	WM.Add(24 + 1, 3 + 1, MTmp);
+	/* node 1 constraint derivative */
+	WM.Add(27 + 1, 9 + 1, MTmp);
+
+	MTmp = Mat3x3(f2Ref);
+	/* node 2 moment */
+	WM.Add(15 + 1, 24 + 1, MTmp);
+	/* node 2 moment derivatives */
+	WM.Add(21 + 1, 27 + 1, MTmp);
+	/* node 2 constraint */
+	WM.Sub(24 + 1, 15 + 1, MTmp);
+	/* node 2 constraint derivative */
+	WM.Sub(27 + 1, 21 + 1, MTmp);
+
+	MTmp = Mat3x3(F, dRef);
+	/* node 1 moment */
+	WM.Sub(3 + 1, 3 + 1, MTmp);
+	
+	MTmp = Mat3x3(FPrime, dRef);
+	/* node 1 moment derivative */
+	WM.Sub(9 + 1, 9 + 1, MTmp);
+	
+	MTmp = Mat3x3(F, f2Ref);
+	/* node 2 moment */
+	WM.Add(15 + 1, 15 + 1, MTmp);
+
+	MTmp = Mat3x3(FPrime, f2Ref);
+	/* node 2 moment derivative */
+	WM.Add(21 + 1, 21 + 1, MTmp);
+
+	MTmp = Mat3x3(pNode1->GetWRef(), dRef);
+	/* node 2 constraint derivative */
+	WM.Sub(27 + 1, 3 + 1, MTmp);
+
+	MTmp = Mat3x3(pNode2->GetWRef(), f2Ref);
+	/* node 2 constraint derivative */
+	WM.Add(27 + 1, 15 + 1, MTmp);
 
 	return WorkMat;
 }
@@ -490,7 +525,6 @@ DriveDisplacementJoint::InitialAssRes(SubVectorHandler& WorkVec,
 
 	WorkVec.ResizeReset(0);
 
-#if 0
 	/* Dimensiona e resetta la matrice di lavoro */
 	integer iNumRows = 0;
 	integer iNumCols = 0;
@@ -514,28 +548,25 @@ DriveDisplacementJoint::InitialAssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(24 + iCnt, iFirstReactionIndex + iCnt);
 	}
 
-	Mat3x3 R1(pNode1->GetRCurr()*R1h);
-	Mat3x3 R1T(R1.Transpose());
-	Vec3 Wa(pNode1->GetWCurr());
-	Vec3 Wb(pNode2->GetWCurr());
+	F = Vec3(XCurr, iFirstReactionIndex + 1);
+	Vec3 FPrime = Vec3(XCurr, iReactionPrimeIndex + 1);
 
-	M = Vec3(XCurr, iFirstReactionIndex+1);
-	Vec3 MPrime = Vec3(XCurr, iReactionPrimeIndex+1);
+	dRef = pNode1->GetRCurr()*(f1 + Get());
+	f2Ref = pNode2->GetRCurr()*f2;
 
-	Vec3 MPrimeTmp(Wa.Cross(R1*M)+R1*MPrime);
+	WorkVec.Add(1, F);
+	WorkVec.Add(3 + 1, dRef.Cross(F));
+	WorkVec.Add(6 + 1, FPrime);
+	WorkVec.Add(9 + 1, dRef.Cross(FPrime));
 
-	Mat3x3 R2(pNode2->GetRCurr()*R2h);
-	ThetaCurr = RotManip::VecRot(R1.Transpose()*R2);
+	WorkVec.Sub(12 + 1, F);
+	WorkVec.Sub(15 + 1, f2.Cross(F));
+	WorkVec.Sub(18 + 1, FPrime);
+	WorkVec.Sub(21 + 1, f2.Cross(FPrime));
 
-	Vec3 ThetaPrime = R1T*(Wa.Cross(ThetaCurr)-Wb+Wa);
-
-	WorkVec.Add(1, MPrimeTmp);
-	WorkVec.Add(4, MPrimeTmp);
-	WorkVec.Sub(7, MPrimeTmp);
-	WorkVec.Sub(10, MPrimeTmp);
-	WorkVec.Add(13, Get()-ThetaCurr);
-	WorkVec.Add(16, ThetaPrime);   
-#endif
+	WorkVec.Add(24 + 1, pNode1->GetXCurr() + dRef - pNode2->GetXCurr() - f2Ref);
+	WorkVec.Add(27 + 1, pNode1->GetVCurr() + pNode1->GetWCurr().Cross(dRef)
+			- pNode2->GetVCurr() + pNode2->GetWCurr().Cross(f2Ref));
 
 	return WorkVec;
 }

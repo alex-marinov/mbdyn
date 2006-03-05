@@ -132,10 +132,7 @@ public:
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);           
 	/* funzioni usate nell'assemblaggio iniziale */
 	virtual unsigned int iGetInitialNumDof(void) const { 
-		return 0;
-#if 0
 		return 6;
-#endif
 	};
 
 	virtual void InitialWorkSpaceDim(integer* piNumRows,
