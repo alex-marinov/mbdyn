@@ -1175,6 +1175,7 @@ are summarized below:
 	\plbr{\bar{\T{R}}\T{\alpha}}\times{} & & - \bar{\T{R}} \\
 	- \plbr{\bar{\T{R}}\T{\alpha}}\times{} & & \bar{\T{R}} \\
 	- \bar{\T{R}} & \bar{\T{R}} & 0
+	% FIXME: ??? - \bar{\T{R}}^T & \bar{\T{R}}^T & 0
 	}}\cubr{\cvvect{
 		\delta\T{g}_1 \\
 		\delta\T{g}_2 \\
@@ -1241,6 +1242,146 @@ that are left free (or constrained by springs);
 \item an interesting option is to leave all the constraint equations
 always in place, and activate/deactivate them based on some trigger.
 \end{itemize}
+
+
+
+
+
+\subsection{Drive Displacement (TODO)}
+This joint constrains the relative position of node $b$ with
+respect to node $a$, in node $a$ reference frame, to match
+an imposed vector, which may depend on time and other states
+during the simulation:
+\begin{equation}
+	\T{\Phi} = \T{R}_a^T\plbr{
+		\T{x}_b + \T{f}_b - \T{x}_a - \T{f}_a
+	} - \tilde{v} = \T{0}
+\end{equation}
+which is equivalent to 
+\begin{equation}
+	\T{\Phi} = \T{R}_a^T\plbr{
+		\T{x}_b + \T{f}_b - \T{x}_a
+	} - \tilde{\T{f}}_a - \tilde{v} = \T{0}
+\end{equation}
+The perturbation of the constraint equation yields
+\begin{equation}
+	\delta\T{\Phi} = \T{R}_a^T\plbr{
+		\T{x}_b + \T{f}_b - \T{x}_a
+	}\times\T{\theta}_{\delta \ a}
+	+ \T{R}_a^T \delta\T{x}_b
+	- \T{R}_a^T \T{f}_b\times \T{\theta}_{\delta \ b}
+	- \T{R}_a^T \delta\T{x}_a
+\end{equation}
+The contributions of the constraint to the equilibrium equations is
+\begin{equation}
+	\cubr{\cvvect{
+		\T{F}_a \\
+		\T{C}_a \\
+		\T{F}_b \\
+		\T{C}_b
+	}} = \cubr{\cvvect{
+		- \T{R}_a \tilde{\T{\lambda}} \\
+		- \plbr{
+			\T{x}_b + \T{f}_b - \T{x}_a
+		}\times\T{R}_a \tilde{\T{\lambda}} \\
+		\T{R}_a \tilde{\T{\lambda}} \\
+		\T{f}_b\times\T{R}_a \tilde{\T{\lambda}}
+	}}
+\end{equation}
+where $\tilde{\T{\lambda}}$ is the reaction force in the reference frame
+of node $a$.
+
+The contribution of forces and moments and of the constraint equation 
+to the jacobian matrix is
+\begin{equation*}
+	\sqbr{\matr{cccc}{
+		\T{0} &
+			\plbr{\T{R}_a \tilde{\T{\lambda}}}\times{} &
+			\T{0} &
+			\T{0} \\
+		- \plbr{\T{R}_a \tilde{\T{\lambda}}}\times{} &
+			\T{d}\times\plbr{\T{R}_a \tilde{\T{\lambda}}}\times{} &
+			\plbr{\T{R}_a \tilde{\T{\lambda}}}\times{} &
+			- \plbr{\T{R}_a \tilde{\T{\lambda}}}\times\T{f}_b\times{} \\
+		\T{0} &
+			- \plbr{\T{R}_a \tilde{\T{\lambda}}}\times{} &
+			\T{0} &
+			\T{0} \\
+		\T{0} &
+			- \T{f}_b\times\plbr{\T{R}_a \tilde{\T{\lambda}}}\times{} &
+			\T{0} &
+			\plbr{\T{R}_a \tilde{\T{\lambda}}}\times\T{f}_b\times{} \\
+		- \T{R}_a^T &
+			\T{R}_a^T \T{d}\times{} &
+			\T{R}_a^T &
+			- \T{R}_a^T \T{f}_b\times{}
+	}}\cubr{\cvvect{
+		\delta\T{x}_a \\
+		\T{\theta}_{\delta \ a} \\
+		\delta\T{x}_b \\
+		\T{\theta}_{\delta \ b}
+	}}
+\end{equation*}
+\begin{equation*}
+	\mbox{} + \sqbr{\cvvect{
+		- \T{R}_a \\
+		- \T{d}\times\T{R}_a \\
+		\T{R}_a \\
+		\T{f}_b\times\T{R}_a \\
+		\T{0}
+	}} \delta\tilde{\T{\lambda}}
+\end{equation*}
+where $\T{d}=\T{x}_b + \T{f}_b - \T{x}_a$.
+
+A variant is the joint that imposes the absolute position $\T{v}$ of a point
+optionally connected to a node by a rigid offset $\T{f}$:
+\begin{equation}
+		\T{\Phi} = \T{x} + \T{f} - \T{v} = \T{0}
+\end{equation}
+The perturbation of the constraint equation yields
+\begin{equation}
+	\delta\T{\Phi} = 
+	\delta\T{x} - \T{f}\times \T{\theta}_{\delta}
+\end{equation}
+The contributions of the constraint to the equilibrium equations is
+\begin{equation}
+	\cubr{\cvvect{
+		\T{F} \\
+		\T{C}
+	}} = \cubr{\cvvect{
+		\T{\lambda} \\
+		\T{f}\times \T{\lambda}
+	}}
+\end{equation}
+where $\T{\lambda}$ is the reaction force in the absolute reference frame.
+
+The contribution of forces and moments and of the constraint equation 
+to the jacobian matrix is
+\begin{equation*}
+	\sqbr{\matr{ccc}{
+		\T{0} &
+			\T{0} &
+			\T{I} \\
+		\T{0} &
+			\T{\lambda}\times\T{f}\times{} &
+			\T{f}\times \\
+		\T{I} &
+			- \T{f}\times{} &
+			\T{0}
+	}}\cubr{\cvvect{
+		\delta\T{x} \\
+		\T{\theta}_{\delta} \\
+		\delta\T{\lambda}
+	}}
+\end{equation*}
+
+
+
+
+
+
+
+
 
 
 \subsection{Gimbal}
@@ -1371,7 +1512,7 @@ the linearization becomes
 
 
 
-\subsection{Screw Joint}
+\subsection{Screw Joint (TODO)}
 The screw joint is a combination of:
 \begin{itemize}
 \item an inline joint, that constrains one point to move along 
