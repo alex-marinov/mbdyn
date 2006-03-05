@@ -23,16 +23,16 @@ all-local: $(generated)
 $(generated): FORCE
 	@echo "generating $(generated)..."
 	@for g in $(generated) ; do \
-		sed -e "s;@AWKDIR@;$(awkdir);" $$g.in > $$g ; \
+		sed -e "s;@AWKDIR@;$(awkdir);" $(srcdir)/$$g.in > $$g ; \
 	done
 
 install-data-local: $(EXTRA_DIST) $(generated)
 	$(mkinstalldirs) $(DESTDIR)$(sharedir) $(DESTDIR)$(awkdir) $(DESTDIR)$(c81dir) $(DESTDIR)$(octavedir) $(DESTDIR)$(bindir)
 	@for f in $^ ; do \
 		case $$f in \
-		*.awk) echo "$(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(awkdir)" ; $(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(awkdir) ;; \
-		*.c81) echo "$(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(c81dir)" ; $(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(c81dir) ;; \
-		*.m) echo "$(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(octavedir)" ; $(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(octavedir) ;; \
+		*.awk) echo "$(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(awkdir)" ; $(INSTALL_SCRIPT) -m 444 $(srcdir)/$$f $(DESTDIR)$(awkdir) ;; \
+		*.c81) echo "$(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(c81dir)" ; $(INSTALL_SCRIPT) -m 444 $(srcdir)/$$f $(DESTDIR)$(c81dir) ;; \
+		*.m) echo "$(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(octavedir)" ; $(INSTALL_SCRIPT) -m 444 $(srcdir)/$$f $(DESTDIR)$(octavedir) ;; \
 		*.sh) echo "$(INSTALL_SCRIPT) -m 555 $$f $(DESTDIR)$(bindir)" ; $(INSTALL_SCRIPT) -m 555 $$f $(DESTDIR)$(bindir) ;; \
 		*.in) ;; \
 		*) echo "($$f ignored)" ;; \

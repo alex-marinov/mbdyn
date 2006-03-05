@@ -699,9 +699,8 @@ if test $ol_with_libf2c != no ; then
 		save_LIBS=$LIBS
 		LIBS="$LIBS $try_libf2c_LIBS -lm"
 		AC_TRY_LINK([
-#include <$top_builddir/include/ac/f2c.h>
 		],[
-	doublereal i = 1., o;
+	double i = 1., o;
 	o = d_cos(&i);
 		],[have_libf2c=yes],[have_libf2c=no])
 		LIBS=$save_LIBS
