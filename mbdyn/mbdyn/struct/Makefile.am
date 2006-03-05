@@ -20,6 +20,8 @@ brake.cc \
 brake.h \
 distance.h \
 distance.cc \
+drvdisp.cc \
+drvdisp.h \
 drvhinge.cc \
 drvhinge.h \
 drvj.cc \

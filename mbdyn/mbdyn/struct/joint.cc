@@ -46,6 +46,7 @@
 #include <distance.h>
 
 #include <drvhinge.h>
+#include <drvdisp.h>
 #include <drvj.h>      /* Vincoli di velocita' imposta */
 #include <accj.h>      /* Vincoli di accelerazione imposta */
 #include <genj.h>
@@ -154,6 +155,7 @@ Elem* ReadJoint(DataManager* pDM,
       "angular" "acceleration",
       "prismatic",
       "drive" "hinge",
+      "drive" "displacement",
       "kinematic",
       "beam" "slider",
       "brake",
@@ -200,6 +202,7 @@ Elem* ReadJoint(DataManager* pDM,
       ANGULARACCELERATION,
       PRISMATIC,
       DRIVEHINGE,
+      DRIVEDISPLACEMENT,
       KINEMATIC,
       BEAMSLIDER,
       BRAKE,
@@ -1867,6 +1870,61 @@ Elem* ReadJoint(DataManager* pDM,
 			      DriveHingeJoint(uLabel, pDO, pDC, 
 					      pNode1, pNode2, 
 					      R1h, R2h, fOut));
+       
+       
+       break;
+    }
+      
+      
+    case DRIVEDISPLACEMENT: {
+       /* nodo collegato 1 */
+       StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+       ReferenceFrame RF(pNode1);
+       
+       Vec3 f1(0.);
+       if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+	    NO_OP;
+       } else {
+	    pedantic_cerr("Joint(" << uLabel 
+			    << "): missing keyword \"position\" at line "
+			    << HP.GetLineData() << std::endl);
+       }
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+       f1 = HP.GetPosRel(ReferenceFrame(pNode1));
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+       }
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+
+       /* nodo collegato 2 */
+       StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+       RF = ReferenceFrame(pNode2);
+       
+       /* Stessa cosa per il nodo 2 */
+       Vec3 f2(0.);
+       if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+	    NO_OP;
+       } else {
+	    pedantic_cerr("Joint(" << uLabel 
+			    << "): missing keyword \"position\" at line "
+			    << HP.GetLineData() << std::endl);
+       }
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+       f2 = HP.GetPosRel(ReferenceFrame(pNode2));
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+       }
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+
+       TplDriveCaller<Vec3>* pDC = ReadTplDrive(pDM, HP, Vec3(0.));
+       
+       flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
+       
+       SAFENEWWITHCONSTRUCTOR(pEl, 
+			      DriveDisplacementJoint,
+			      DriveDisplacementJoint(uLabel, pDO, pDC, 
+					      pNode1, pNode2, 
+					      f1, f2, fOut));
        
        
        break;

@@ -15,6 +15,7 @@ MBDyn 1.X-Devel
 		- added "ad hoc" (Radau IIA) third-order integrator
 		- automated installation of share data in $prefix/share
 		- reworked support for EasyAnim
+		- added drive displacement joint
 	Backward compatibility issues:
 		- double viscoelastic constitutive law syntax changed
 	Known issues:
