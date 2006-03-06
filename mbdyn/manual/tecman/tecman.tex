@@ -1269,9 +1269,9 @@ The perturbation of the constraint equation yields
 \begin{equation}
 	\delta\T{\Phi} = 
 		\delta\T{x}_b
-		- \T{f}_b\times\T{\theta}_{\delta b}
+		- \T{f}_b\times\T{\theta}_{b\delta}
 		- \delta\T{x}_a
-		+ \T{d}\times\T{\theta}_{\delta a}
+		+ \T{d}\times\T{\theta}_{a\delta}
 \end{equation}
 where $\T{d}=\T{R}_a\plbr{\tilde{\T{f}}_a + \tilde{\T{v}}}$.
 The contributions of the constraint to the equilibrium equations is
@@ -1301,9 +1301,9 @@ to the jacobian matrix is
 		- \T{I} & \T{d}\times{} & \T{I} & - \T{f}_b\times{} & \T{0}
 	}}\cubr{\cvvect{
 		\delta\T{x}_a \\
-		\T{\theta}_{\delta \ a} \\
+		\T{\theta}_{a\delta} \\
 		\delta\T{x}_b \\
-		\T{\theta}_{\delta \ b} \\
+		\T{\theta}_{b\delta} \\
 		\delta\T{\lambda}
 	}}
 \end{equation}
@@ -1556,8 +1556,8 @@ yields
 so the virtual perturbation of Equation~(\ref{eq:SCREW-constraint})
 \begin{align*}
 	\frac{p}{2 \pi} \T{e}_{1hz}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
-	- \plbr{\T{e}_{1hz} \times \plbr{\T{x}_2 + \T{f}_2 - \T{x}_1 - \T{f}_1}}^T \T{\theta}_{1\delta} & \\
-	- \T{e}_{1hz}^T\plbr{\delta\T{x}_2 - \T{f}_2 \times \T{\theta}_{2\delta} - \delta\T{x}_1 + \T{f}_1 \times \T{\theta}_{1\delta}} &= 0
+	- \plbr{\T{e}_{1hz} \times \plbr{\T{x}_2 + \T{f}_2 - \T{x}_1}}^T \T{\theta}_{1\delta} & \\
+	- \T{e}_{1hz}^T\plbr{\delta\T{x}_2 - \T{f}_2 \times \T{\theta}_{2\delta} - \delta\T{x}_1} &= 0
 \end{align*}
 yields the contribution of the constraint to the forces and moments
 acting on the constrained nodes:
