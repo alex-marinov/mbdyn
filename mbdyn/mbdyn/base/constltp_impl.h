@@ -496,16 +496,30 @@ public:
 		ConstitutiveLaw3D::Epsilon = Eps;
 		Vec3 v1 = Eps - ElasticConstitutiveLaw3D::Get();
 		ConstitutiveLaw3D::F = ElasticConstitutiveLaw3D::PreStress;
+
+#ifdef MBDYN_X_WORKAROUND_GCC_3_3
+		Vec3 FTmp;
+#endif // MBDYN_X_WORKAROUND_GCC_3_3
+
 		for (int iCnt = 1; iCnt <= 3; iCnt++) {
 			doublereal e1 = v1(iCnt);
 			doublereal f1 = fabs(e1);
 			doublereal e2 = e1*e1;
 			doublereal f2 = f1*e1;
 			doublereal e3 = e2*e1;
-			
+
+#ifdef MBDYN_X_WORKAROUND_GCC_3_3
+			ConstitutiveLaw3D::FDE.Put(iCnt, iCnt, Stiff1(iCnt) + 2.*Stiff2(iCnt)*f1 + 3.*Stiff3(iCnt)*e2);
+			FTmp(iCnt) = Stiff1(iCnt)*e1 + Stiff2(iCnt)*f2 + Stiff3(iCnt)*e3;
+#else // ! MBDYN_X_WORKAROUND_GCC_3_3
 			ConstitutiveLaw3D::FDE(iCnt, iCnt) = Stiff1(iCnt) + 2.*Stiff2(iCnt)*f1 + 3.*Stiff3(iCnt)*e2;
 			ConstitutiveLaw3D::F(iCnt) += Stiff1(iCnt)*e1 + Stiff2(iCnt)*f2 + Stiff3(iCnt)*e3;
+#endif // ! MBDYN_X_WORKAROUND_GCC_3_3
 		}
+
+#ifdef MBDYN_X_WORKAROUND_GCC_3_3
+		ConstitutiveLaw3D::F += FTmp;
+#endif // MBDYN_X_WORKAROUND_GCC_3_3
 	};
 
 	virtual void IncrementalUpdate(const Vec3& DeltaEps, const Vec3& /* EpsPrime */ = 0.) {
@@ -1567,6 +1581,11 @@ public:
 		ConstitutiveLaw3D::EpsilonPrime = EpsPrime;
 		Vec3 v1 = Eps - ElasticConstitutiveLaw3D::Get();
 		ConstitutiveLaw3D::F = ElasticConstitutiveLaw3D::PreStress + ConstitutiveLaw3D::FDEPrime*EpsPrime;
+
+#ifdef MBDYN_X_WORKAROUND_GCC_3_3
+		Vec3 FTmp;
+#endif // MBDYN_X_WORKAROUND_GCC_3_3
+
 		for (int iCnt = 1; iCnt <= 3; iCnt++) {
 			doublereal e1 = v1(iCnt);
 			doublereal f1 = fabs(e1);
@@ -1574,9 +1593,18 @@ public:
 			doublereal f2 = f1*e1;
 			doublereal e3 = e2*e1;
 			
+#ifdef MBDYN_X_WORKAROUND_GCC_3_3
+			ConstitutiveLaw3D::FDE.Put(iCnt, iCnt, Stiff1(iCnt) + 2.*Stiff2(iCnt)*f1 + 3.*Stiff3(iCnt)*e2);
+			FTmp(iCnt) = Stiff1(iCnt)*e1 + Stiff2(iCnt)*f2 + Stiff3(iCnt)*e3;
+#else // ! MBDYN_X_WORKAROUND_GCC_3_3
 			ConstitutiveLaw3D::FDE(iCnt, iCnt) = Stiff1(iCnt) + 2.*Stiff2(iCnt)*f1 + 3.*Stiff3(iCnt)*e2;
 			ConstitutiveLaw3D::F(iCnt) += Stiff1(iCnt)*e1 + Stiff2(iCnt)*f2 + Stiff3(iCnt)*e3;
+#endif // ! MBDYN_X_WORKAROUND_GCC_3_3
 		}
+
+#ifdef MBDYN_X_WORKAROUND_GCC_3_3
+		ConstitutiveLaw3D::F += FTmp;
+#endif // MBDYN_X_WORKAROUND_GCC_3_3
 	};
 
 	virtual void IncrementalUpdate(const Vec3& DeltaEps, const Vec3& EpsPrime = 0.) {
