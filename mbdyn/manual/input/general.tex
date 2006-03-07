@@ -1683,6 +1683,7 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
 	linear elastic, linear elastic isotropic               & x & x & x \\
 	linear elastic generic                                 & x & x & x \\
 	linear elastic generic axial torsion coupling          &   &   & x \\
+	cubic elastic generic                                  & x & x &   \\
 	log elastic                                            & x &   &   \\
 	linear elastic generic bi-stop                         & x & x & x \\
 	double linear elastic                                  & x & x &   \\
@@ -1692,6 +1693,7 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
 	linear viscoelastic, linear viscoelastic isotropic     & x & x & x \\
 	linear viscoelastic generic                            & x & x & x \\
 	linear viscoelastic generic axial torsion coupling     &   &   & x \\
+	cubic viscoelastic generic                             & x & x &   \\
 	double linear viscoelastic                             & x & x &   \\
 	turbulent viscoelastic                                 & x &   &   \\
 	linear viscoelastic generic bi-stop                    & x & x & x \\
@@ -1782,6 +1784,24 @@ is estimated according to some geometric property \cite{HOUBOLT-BROOKS-1957};
 a general approach to the computation of prestressed beam properties
 is presented in \cite{BORRI-MERLINI}, which is implemented in some versions
 of the ANBA software.
+
+\subsection{Cubic elastic generic}
+\begin{verbatim}
+    <specific_const_law> ::= 
+        cubic elastic generic
+            (entity) <stiffness1> ,
+            (entity) <stiffness2> ,
+            (entity) <stiffness3>
+\end{verbatim}
+this is defined only for scalar and \kw{3 x 1} vectors; the constitutive
+law is written according to the formula
+\begin{displaymath}
+	F = \mathtt{stiffness1} \cdot \varepsilon
+	+ \mathtt{stiffness2} \cdot \shbr{\varepsilon}\varepsilon
+	+ \mathtt{stiffness3} \cdot \varepsilon^3
+\end{displaymath}
+and it is mainly intended for use with human body models 
+where the stiffness of the joints is typically given in this form.
 
 \subsection{Log elastic}
 \begin{verbatim}
@@ -1888,6 +1908,26 @@ this is defined only for \kw{6 x 1} vectors; it is the viscoelastic
 extension of the 
 \hyperref{\kw{linear elastic generic axial torsion coupling} constitutive law}{\kw{linear elastic generic axial torsion coupling} constitutive law (see Section~}{)}{sec:CONSTITUTIVE-LAWS:LINEAR-ELASTIC-GENERIC-AXIAL-TORSION-COUPLING}.
 
+
+\subsection{Cubic viscoelastic generic}
+\begin{verbatim}
+    <specific_const_law> ::= 
+        cubic elastic generic
+            (entity) <stiffness1> ,
+            (entity) <stiffness2> ,
+            (entity) <stiffness3> ,
+            (derivative_of_entity) <viscosity_matrix> 
+\end{verbatim}
+this is defined only for scalar and \kw{3 x 1} vectors; the constitutive
+law is written according to the formula
+\begin{displaymath}
+	F = \mathtt{stiffness1} \cdot \varepsilon
+	+ \mathtt{stiffness2} \cdot \shbr{\varepsilon}\varepsilon
+	+ \mathtt{stiffness3} \cdot \varepsilon^3
+	+ \mathtt{viscosity\_matrix} \cdot \dot{\varepsilon}
+\end{displaymath}
+and it is mainly intended for use with human body models 
+where the stiffness of the joints is typically given in this form.
 
 \subsection{Double linear viscoelastic}
 \begin{verbatim}

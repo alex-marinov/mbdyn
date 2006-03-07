@@ -1361,7 +1361,14 @@ to the jacobian matrix is
 
 
 \subsection{Gimbal}
-Ideal gimbal joint.
+This element implements an ideal gimbal joint.
+A gimbal is a joint that allows the rotation between two nodes
+about two orthogonal axes.
+The angular velocity about the remaining axis is preserved regardless
+of the relative angle between the two nodes.
+It is essentially equivalent to two Cardano joints (universal joints)
+each of which accounts for half of the relative orientation.
+
 The relative orientation is made of three steps, described by
 \begin{eqnarray*}
 	\T{R}_{rel}

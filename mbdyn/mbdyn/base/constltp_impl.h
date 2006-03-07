@@ -357,6 +357,165 @@ public:
 /* LinearElasticGenericAxialTorsionCouplingConstitutiveLaw - end */
 
 
+/* CubicElasticGenericConstitutiveLaw - begin */
+
+template <class T, class Tder>
+class CubicElasticGenericConstitutiveLaw
+: public ElasticConstitutiveLaw<T, Tder> {
+public:
+	CubicElasticGenericConstitutiveLaw(const TplDriveCaller<T>* pDC,
+			const T& PStress, const T& Stiff1, const T& Stiff2, const T& Stiff3)
+	: ElasticConstitutiveLaw<T, Tder>(pDC, PStress) {
+		throw (typename ConstitutiveLaw<T, Tder>::Err(std::cerr, "cubic elastic generic constitutive law "
+						"is allowed only for scalar and 3x3"));
+	};
+
+	virtual ~CubicElasticGenericConstitutiveLaw(void) {
+		NO_OP;
+	};
+
+	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
+		return NULL;
+	};
+
+	virtual std::ostream& Restart(std::ostream& out) const {
+		return out;
+	};
+
+	virtual void Update(const T& Eps, const T& /* EpsPrime */ = 0.) {
+		NO_OP;
+	};
+
+	virtual void IncrementalUpdate(const T& DeltaEps, const T& /* EpsPrime */ = 0.) {
+		NO_OP;
+	};
+};
+
+template <>
+class CubicElasticGenericConstitutiveLaw<doublereal, doublereal>
+: public ElasticConstitutiveLaw1D {
+private:
+	doublereal Stiff1;
+	doublereal Stiff2;
+	doublereal Stiff3;
+
+public:
+	CubicElasticGenericConstitutiveLaw(const TplDriveCaller<doublereal>* pDC,
+			const doublereal& PStress, const doublereal& Stiff1,
+			const doublereal& Stiff2, const doublereal& Stiff3)
+	: ElasticConstitutiveLaw1D(pDC, PStress),
+		Stiff1(Stiff1), Stiff2(Stiff2), Stiff3(Stiff3)
+	{
+		NO_OP;
+	};
+
+	virtual ~CubicElasticGenericConstitutiveLaw(void) {
+		NO_OP;
+	};
+
+	virtual ConstitutiveLaw1D* pCopy(void) const {
+		ConstitutiveLaw1D* pCL = NULL;
+
+		typedef CubicElasticGenericConstitutiveLaw<doublereal, doublereal> cl;
+		SAFENEWWITHCONSTRUCTOR(pCL,
+				cl,
+				cl(ElasticConstitutiveLaw1D::pGetDriveCaller()->pCopy(),
+					ElasticConstitutiveLaw1D::PreStress,
+					Stiff1, Stiff2, Stiff3));
+		return pCL;
+	};
+
+	virtual std::ostream& Restart(std::ostream& out) const {
+		out << "cubic elastic generic, ",
+			Write(out, Stiff1, ", ") << ", ",
+			Write(out, Stiff2, ", ") << ", ",
+			Write(out, Stiff3, ", ") << ", ";
+		return ElasticConstitutiveLaw1D::Restart_int(out);
+	};
+
+	virtual void Update(const doublereal& Eps, const doublereal& /* EpsPrime */ = 0.) {
+		ConstitutiveLaw1D::Epsilon = Eps;
+		doublereal e1 = Eps - ElasticConstitutiveLaw1D::Get();
+		doublereal f1 = fabs(e1);
+		doublereal e2 = e1*e1;
+		doublereal f2 = f1*e1;
+		doublereal e3 = e2*e1;
+		ConstitutiveLaw1D::FDE = Stiff1 + 2.*Stiff2*f1 + 3.*Stiff3*e2;
+		ConstitutiveLaw1D::F = ElasticConstitutiveLaw1D::PreStress
+			+ Stiff1*e1 + Stiff2*f2 + Stiff3*e3;
+	};
+
+	virtual void IncrementalUpdate(const doublereal& DeltaEps, const doublereal& /* EpsPrime */ = 0.) {
+		Update(ConstitutiveLaw1D::Epsilon + DeltaEps);
+	};
+};
+
+template <>
+class CubicElasticGenericConstitutiveLaw<Vec3, Mat3x3>
+: public ElasticConstitutiveLaw3D {
+private:
+	Vec3 Stiff1;
+	Vec3 Stiff2;
+	Vec3 Stiff3;
+
+public:
+	CubicElasticGenericConstitutiveLaw(const TplDriveCaller<Vec3>* pDC,
+			const Vec3& PStress, const Vec3& Stiff1,
+			const Vec3& Stiff2, const Vec3& Stiff3)
+	: ElasticConstitutiveLaw3D(pDC, PStress),
+		Stiff1(Stiff1), Stiff2(Stiff2), Stiff3(Stiff3)
+	{
+		NO_OP;
+	};
+
+	virtual ~CubicElasticGenericConstitutiveLaw(void) {
+		NO_OP;
+	};
+
+	virtual ConstitutiveLaw3D* pCopy(void) const {
+		ConstitutiveLaw3D* pCL = NULL;
+
+		typedef CubicElasticGenericConstitutiveLaw<Vec3, Mat3x3> cl;
+		SAFENEWWITHCONSTRUCTOR(pCL,
+				cl,
+				cl(ElasticConstitutiveLaw3D::pGetDriveCaller()->pCopy(),
+					ElasticConstitutiveLaw3D::PreStress,
+					Stiff1, Stiff2, Stiff3));
+		return pCL;
+	};
+
+	virtual std::ostream& Restart(std::ostream& out) const {
+		out << "cubic elastic generic, ",
+			Write(out, Stiff1, ", ") << ", ",
+			Write(out, Stiff2, ", ") << ", ",
+			Write(out, Stiff3, ", ") << ", ";
+		return ElasticConstitutiveLaw3D::Restart_int(out);
+	};
+
+	virtual void Update(const Vec3& Eps, const Vec3& /* EpsPrime */ = 0.) {
+		ConstitutiveLaw3D::Epsilon = Eps;
+		Vec3 v1 = Eps - ElasticConstitutiveLaw3D::Get();
+		ConstitutiveLaw3D::F = ElasticConstitutiveLaw3D::PreStress;
+		for (int iCnt = 1; iCnt <= 3; iCnt++) {
+			doublereal e1 = v1(iCnt);
+			doublereal f1 = fabs(e1);
+			doublereal e2 = e1*e1;
+			doublereal f2 = f1*e1;
+			doublereal e3 = e2*e1;
+			
+			ConstitutiveLaw3D::FDE(iCnt, iCnt) = Stiff1(iCnt) + 2.*Stiff2(iCnt)*f1 + 3.*Stiff3(iCnt)*e2;
+			ConstitutiveLaw3D::F(iCnt) += Stiff1(iCnt)*e1 + Stiff2(iCnt)*f2 + Stiff3(iCnt)*e3;
+		}
+	};
+
+	virtual void IncrementalUpdate(const Vec3& DeltaEps, const Vec3& /* EpsPrime */ = 0.) {
+		Update(ConstitutiveLaw3D::Epsilon + DeltaEps);
+	};
+};
+
+/* CubicElasticGenericConstitutiveLaw - end */
+
+
 /* LogConstitutiveLaw - begin */
 
 template <class T, class Tder>
@@ -1259,7 +1418,173 @@ public:
 
 typedef LinearViscoElasticGenericAxialTorsionCouplingConstitutiveLaw<Vec6, Mat6x6> LinearViscoElasticGenericAxialTorsionCouplingConstitutiveLaw6D;
 
-/* LinearElasticGenericAxialTorsionCouplingConstitutiveLaw - end */
+/* LinearViscoElasticGenericAxialTorsionCouplingConstitutiveLaw - end */
+
+
+/* CubicViscoElasticGenericConstitutiveLaw - begin */
+
+template <class T, class Tder>
+class CubicViscoElasticGenericConstitutiveLaw
+: public ElasticConstitutiveLaw<T, Tder> {
+public:
+	CubicViscoElasticGenericConstitutiveLaw(const TplDriveCaller<T>* pDC,
+			const T& PStress, const T& Stiff1, const T& Stiff2, const T& Stiff3,
+			const Tder& StiffPrime)
+	: ElasticConstitutiveLaw<T, Tder>(pDC, PStress) {
+		throw (typename ConstitutiveLaw<T, Tder>::Err(std::cerr, "cubic viscoelastic generic constitutive law "
+						"is allowed only for scalar and 3x3"));
+	};
+
+	virtual ~CubicViscoElasticGenericConstitutiveLaw(void) {
+		NO_OP;
+	};
+
+	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
+		return NULL;
+	};
+
+	virtual std::ostream& Restart(std::ostream& out) const {
+		return out;
+	};
+
+	virtual void Update(const T& Eps, const T& /* EpsPrime */ = 0.) {
+		NO_OP;
+	};
+
+	virtual void IncrementalUpdate(const T& DeltaEps, const T& /* EpsPrime */ = 0.) {
+		NO_OP;
+	};
+};
+
+template <>
+class CubicViscoElasticGenericConstitutiveLaw<doublereal, doublereal>
+: public ElasticConstitutiveLaw1D {
+private:
+	doublereal Stiff1;
+	doublereal Stiff2;
+	doublereal Stiff3;
+
+public:
+	CubicViscoElasticGenericConstitutiveLaw(const TplDriveCaller<doublereal>* pDC,
+			const doublereal& PStress, const doublereal& Stiff1,
+			const doublereal& Stiff2, const doublereal& Stiff3,
+			const doublereal& StiffPrime)
+	: ElasticConstitutiveLaw1D(pDC, PStress),
+		Stiff1(Stiff1), Stiff2(Stiff2), Stiff3(Stiff3)
+	{
+		ConstitutiveLaw1D::FDEPrime = StiffPrime;
+	};
+
+	virtual ~CubicViscoElasticGenericConstitutiveLaw(void) {
+		NO_OP;
+	};
+
+	virtual ConstitutiveLaw1D* pCopy(void) const {
+		ConstitutiveLaw1D* pCL = NULL;
+
+		typedef CubicViscoElasticGenericConstitutiveLaw<doublereal, doublereal> cl;
+		SAFENEWWITHCONSTRUCTOR(pCL,
+				cl,
+				cl(ElasticConstitutiveLaw1D::pGetDriveCaller()->pCopy(),
+					ElasticConstitutiveLaw1D::PreStress,
+					Stiff1, Stiff2, Stiff3, ConstitutiveLaw1D::FDEPrime));
+		return pCL;
+	};
+
+	virtual std::ostream& Restart(std::ostream& out) const {
+		out << "cubic elastic generic, ",
+			Write(out, Stiff1, ", ") << ", ",
+			Write(out, Stiff2, ", ") << ", ",
+			Write(out, Stiff3, ", ") << ", ",
+			Write(out, ConstitutiveLaw1D::FDEPrime, ", ") << ", ";
+		return ElasticConstitutiveLaw1D::Restart_int(out);
+	};
+
+	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime = 0.) {
+		ConstitutiveLaw1D::Epsilon = Eps;
+		ConstitutiveLaw1D::EpsilonPrime = EpsPrime;
+		doublereal e1 = Eps - ElasticConstitutiveLaw1D::Get();
+		doublereal f1 = fabs(e1);
+		doublereal e2 = e1*e1;
+		doublereal f2 = f1*e1;
+		doublereal e3 = e2*e1;
+		ConstitutiveLaw1D::FDE = Stiff1 + 2.*Stiff2*f1 + 3.*Stiff3*e2;
+		ConstitutiveLaw1D::F = ElasticConstitutiveLaw1D::PreStress
+			+ Stiff1*e1 + Stiff2*f2 + Stiff3*e3 + ConstitutiveLaw1D::FDEPrime*EpsPrime;
+	};
+
+	virtual void IncrementalUpdate(const doublereal& DeltaEps, const doublereal& EpsPrime = 0.) {
+		Update(ConstitutiveLaw1D::Epsilon + DeltaEps, EpsPrime);
+	};
+};
+
+template <>
+class CubicViscoElasticGenericConstitutiveLaw<Vec3, Mat3x3>
+: public ElasticConstitutiveLaw3D {
+private:
+	Vec3 Stiff1;
+	Vec3 Stiff2;
+	Vec3 Stiff3;
+
+public:
+	CubicViscoElasticGenericConstitutiveLaw(const TplDriveCaller<Vec3>* pDC,
+			const Vec3& PStress, const Vec3& Stiff1,
+			const Vec3& Stiff2, const Vec3& Stiff3,
+			const Mat3x3& StiffPrime)
+	: ElasticConstitutiveLaw3D(pDC, PStress),
+		Stiff1(Stiff1), Stiff2(Stiff2), Stiff3(Stiff3)
+	{
+		ConstitutiveLaw3D::FDEPrime = StiffPrime;
+	};
+
+	virtual ~CubicViscoElasticGenericConstitutiveLaw(void) {
+		NO_OP;
+	};
+
+	virtual ConstitutiveLaw3D* pCopy(void) const {
+		ConstitutiveLaw3D* pCL = NULL;
+
+		typedef CubicViscoElasticGenericConstitutiveLaw<Vec3, Mat3x3> cl;
+		SAFENEWWITHCONSTRUCTOR(pCL,
+				cl,
+				cl(ElasticConstitutiveLaw3D::pGetDriveCaller()->pCopy(),
+					ElasticConstitutiveLaw3D::PreStress,
+					Stiff1, Stiff2, Stiff3, ConstitutiveLaw3D::FDEPrime));
+		return pCL;
+	};
+
+	virtual std::ostream& Restart(std::ostream& out) const {
+		out << "cubic elastic generic, ",
+			Write(out, Stiff1, ", ") << ", ",
+			Write(out, Stiff2, ", ") << ", ",
+			Write(out, Stiff3, ", ") << ", ",
+			Write(out, ConstitutiveLaw3D::FDEPrime, ", ") << ", ";
+		return ElasticConstitutiveLaw3D::Restart_int(out);
+	};
+
+	virtual void Update(const Vec3& Eps, const Vec3& EpsPrime = 0.) {
+		ConstitutiveLaw3D::Epsilon = Eps;
+		ConstitutiveLaw3D::EpsilonPrime = EpsPrime;
+		Vec3 v1 = Eps - ElasticConstitutiveLaw3D::Get();
+		ConstitutiveLaw3D::F = ElasticConstitutiveLaw3D::PreStress + ConstitutiveLaw3D::FDEPrime*EpsPrime;
+		for (int iCnt = 1; iCnt <= 3; iCnt++) {
+			doublereal e1 = v1(iCnt);
+			doublereal f1 = fabs(e1);
+			doublereal e2 = e1*e1;
+			doublereal f2 = f1*e1;
+			doublereal e3 = e2*e1;
+			
+			ConstitutiveLaw3D::FDE(iCnt, iCnt) = Stiff1(iCnt) + 2.*Stiff2(iCnt)*f1 + 3.*Stiff3(iCnt)*e2;
+			ConstitutiveLaw3D::F(iCnt) += Stiff1(iCnt)*e1 + Stiff2(iCnt)*f2 + Stiff3(iCnt)*e3;
+		}
+	};
+
+	virtual void IncrementalUpdate(const Vec3& DeltaEps, const Vec3& EpsPrime = 0.) {
+		Update(ConstitutiveLaw3D::Epsilon + DeltaEps, EpsPrime);
+	};
+};
+
+/* CubicViscoElasticGenericConstitutiveLaw - end */
 
 
 

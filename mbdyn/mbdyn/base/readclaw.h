@@ -84,6 +84,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 		"linear" "elastic" "generic",
 		"linear" "elastic" "generic" "axial" "torsion" "coupling",
 		"linear" "elastic" "bistop",
+		"cubic" "elastic" "generic",
 		"log" "elastic",
 		"double" "linear" "elastic",
 		"isotropic" "hardening" "elastic",
@@ -99,6 +100,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 		"linear" "viscoelastic" "isotropic",
 		"linear" "viscoelastic" "generic",
 		"linear" "viscoelastic" "generic" "axial" "torsion" "coupling",
+		"cubic" "viscoelastic" "generic",
 		"doublelinear" "viscoelastic",
 		"turbulent" "viscoelastic",
 		"linear" "viscoelastic" "bistop",
@@ -118,6 +120,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 		LINEARELASTICGENERIC,
 		LINEARELASTICGENERICAXIALTORSIONCOUPLING,
 		LINEARELASTICBISTOP,
+		CUBICELASTICGENERIC,
 		LOGELASTIC,
 		DOUBLELINEARELASTIC,
 		ISOTROPICHARDENINGELASTIC,
@@ -133,6 +136,7 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 		LINEARVISCOELASTICISOTROPIC,
 		LINEARVISCOELASTICGENERIC,
 		LINEARVISCOELASTICGENERICAXIALTORSIONCOUPLING,
+		CUBICVISCOELASTICGENERIC,
 		DOUBLELINEARVISCOELASTIC,
 		TURBULENTVISCOELASTIC,
 		LINEARVISCOELASTICBISTOP,
@@ -574,6 +578,57 @@ ConstitutiveLaw<T, Tder>* ReadConstLaw(DataManager* pDM,
 
 		typedef LinearViscoElasticGenericAxialTorsionCouplingConstitutiveLaw<T, Tder> L;
 		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, S, SP, dCoupl));
+
+		break;
+	}
+
+	case CUBICELASTICGENERIC: {
+		CLType = ConstLawType::ELASTIC;
+
+		T S1(0.);
+		S1 = HP.Get(S1);
+
+		T S2(0.);
+		S2 = HP.Get(S2);
+
+		T S3(0.);
+		S3 = HP.Get(S3);
+
+		/* Prestress and prestrain */
+		T PreStress(0.);
+		GetPreStress(HP, PreStress);
+		T PreStrain(0.);
+		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
+
+		typedef CubicElasticGenericConstitutiveLaw<T, Tder> L;
+		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, S1, S2, S3));
+
+		break;
+	}
+
+	case CUBICVISCOELASTICGENERIC: {
+		CLType = ConstLawType::VISCOELASTIC;
+
+		T S1(0.);
+		S1 = HP.Get(S1);
+
+		T S2(0.);
+		S2 = HP.Get(S2);
+
+		T S3(0.);
+		S3 = HP.Get(S3);
+
+		Tder SP(0.);
+		SP = HP.Get(SP);
+
+		/* Prestress and prestrain */
+		T PreStress(0.);
+		GetPreStress(HP, PreStress);
+		T PreStrain(0.);
+		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
+
+		typedef CubicViscoElasticGenericConstitutiveLaw<T, Tder> L;
+		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, S1, S2, S3, SP));
 
 		break;
 	}

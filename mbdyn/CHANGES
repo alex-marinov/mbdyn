@@ -16,6 +16,7 @@ MBDyn 1.X-Devel
 		- automated installation of share data in $prefix/share
 		- reworked support for EasyAnim
 		- added drive displacement joint
+		- added cubic elastic and viscoelastic constitutive laws
 	Backward compatibility issues:
 		- double viscoelastic constitutive law syntax changed
 	Known issues:
