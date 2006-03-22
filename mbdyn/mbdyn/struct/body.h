@@ -43,117 +43,232 @@
 
 class Body : 
 virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {   
-  private:
-    const DynamicStructNode* pNode;
-    doublereal dMass;
-    Vec3 Xgc;
-    Vec3 S0;
-    Mat3x3 J0;
-    
-    mutable Vec3 S;
-    mutable Mat3x3 J;
-   
-    /* Assembla le due matrici necessarie per il calcolo degli
-     * autovalori e per lo jacobiano */  
-    void AssMats(FullSubMatrixHandler& WorkMatA,
-		 FullSubMatrixHandler& WorkMatB,
-		 doublereal dCoef);
+protected:
+	const StructNode *pNode;
+	doublereal dMass;
+	Vec3 Xgc;
+	Vec3 S0;
+	Mat3x3 J0;
+ 
+	mutable Vec3 S;
+	mutable Mat3x3 J;
 
-    /* momento statico */
-    Vec3 GetS_int(void) const;
+	/* momento statico */
+	Vec3 GetS_int(void) const;
 
-    /* momento d'inerzia */
-    Mat3x3 GetJ_int(void) const;
-      
-  public:
-    /* Costruttore definitivo (da mettere a punto) */
-    Body(unsigned int uL, const DynamicStructNode* pNodeTmp, 
-	 doublereal dMassTmp, const Vec3& XgcTmp, const Mat3x3& JTmp, 
-	 flag fOut);
-   
-    /* virtual ~Body(void); */
-   
-    virtual inline void* pGet(void) const { 
-        return (void*)this;
-    };
+	/* momento d'inerzia */
+	Mat3x3 GetJ_int(void) const;
 
-    /* massa totale */
-    doublereal dGetM(void) const {
-        return dMass;
-    };
-   
-    /* Scrive il contributo dell'elemento al file di restart */
-    virtual std::ostream& Restart(std::ostream& out) const;
-   
-    /* Tipo dell'elemento (usato solo per debug ecc.) */
-    virtual Elem::Type GetElemType(void) const {
-        return Elem::BODY; 
-    };
-   
-    void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-        *piNumRows = 12; 
-        *piNumCols = 6; 
-    };
-   
-    VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat,
-				     doublereal dCoef,
-				     const VectorHandler& XCurr, 
-				     const VectorHandler& XPrimeCurr);
-   
-    void AssMats(VariableSubMatrixHandler& WorkMatA,
-	        VariableSubMatrixHandler& WorkMatB,
-	        const VectorHandler& XCurr,
-	        const VectorHandler& XPrimeCurr);
-   
-    SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
-			     doublereal dCoef,
-			     const VectorHandler& XCurr, 
-			     const VectorHandler& XPrimeCurr);
-   
-    /* Numero gdl durante l'assemblaggio iniziale */
-    virtual unsigned int iGetInitialNumDof(void) const { 
-        return 0; 
-    };
-   
-    /* Dimensione del workspace durante l'assemblaggio iniziale.
-     * Occorre tener conto del numero di dof che l'elemento definisce
-     * in questa fase e dei dof dei nodi che vengono utilizzati.
-     * Sono considerati dof indipendenti la posizione e la velocita'
-     * dei nodi */
-    virtual void 
-    InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-        *piNumRows = 12; 
-        *piNumCols = 6; 
-    };
-   
-    /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-    virtual VariableSubMatrixHandler& 
-    InitialAssJac(VariableSubMatrixHandler& WorkMat,
-                  const VectorHandler& XCurr);
-   
-    /* Contributo al residuo durante l'assemblaggio iniziale */   
-    virtual SubVectorHandler& 
-    InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
+	/* Scrive il contributo dell'elemento al file di restart */
+	virtual std::ostream& Restart_int(std::ostream& out) const;
+ 
+public:
+	/* Costruttore definitivo (da mettere a punto) */
+	Body(unsigned int uL, const StructNode *pNode,
+		doublereal dMassTmp, const Vec3& XgcTmp, const Mat3x3& JTmp, 
+		flag fOut);
 
-    /* Usata per inizializzare la quantita' di moto */
-    virtual void SetValue(DataManager *pDM,
-		    VectorHandler& X, VectorHandler& XP,
-		    SimulationEntity::Hints *ph = 0);
+	virtual ~Body(void);
+ 
+	virtual inline void* pGet(void) const { 
+		return (void*)this;
+	};
 
-    virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+	/* massa totale */
+	doublereal dGetM(void) const {
+		return dMass;
+	};
+ 
+	/* Tipo dell'elemento (usato solo per debug ecc.) */
+	virtual Elem::Type GetElemType(void) const {
+		return Elem::BODY; 
+	};
+ 
+	/* Numero gdl durante l'assemblaggio iniziale */
+	virtual unsigned int iGetInitialNumDof(void) const { 
+		return 0; 
+	};
 
-    /******** PER IL SOLUTORE PARALLELO *********/        
-    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-     * utile per l'assemblaggio della matrice di connessione fra i dofs */
-    virtual void 
-    GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
-        connectedNodes.resize(1);
-        connectedNodes[0] = pNode;
-    };
-    /**************************************************/
+	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 };
 
 /* Body - end */
+
+/* DynamicBody - begin */
+
+class DynamicBody : 
+virtual public Elem, public Body {
+private:
+
+	/* Assembla le due matrici necessarie per il calcolo degli
+	 * autovalori e per lo jacobiano */  
+	void AssMats(FullSubMatrixHandler& WorkMatA,
+		FullSubMatrixHandler& WorkMatB,
+		doublereal dCoef);
+
+public:
+	/* Costruttore definitivo (da mettere a punto) */
+	DynamicBody(unsigned int uL, const DynamicStructNode* pNodeTmp, 
+		doublereal dMassTmp, const Vec3& XgcTmp, const Mat3x3& JTmp, 
+		flag fOut);
+
+	virtual ~DynamicBody(void);
+ 
+	virtual inline void* pGet(void) const { 
+		return (void*)this;
+	};
+
+	/* Scrive il contributo dell'elemento al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+ 
+	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+		*piNumRows = 12; 
+		*piNumCols = 6; 
+	};
+ 
+	virtual VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr);
+
+	void AssMats(VariableSubMatrixHandler& WorkMatA,
+		VariableSubMatrixHandler& WorkMatB,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+ 
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr);
+ 
+	/* Dimensione del workspace durante l'assemblaggio iniziale.
+	 * Occorre tener conto del numero di dof che l'elemento definisce
+	 * in questa fase e dei dof dei nodi che vengono utilizzati.
+	 * Sono considerati dof indipendenti la posizione e la velocita'
+	 * dei nodi */
+	virtual void 
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+		*piNumRows = 12; 
+		*piNumCols = 6; 
+	};
+
+	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+	virtual VariableSubMatrixHandler& 
+	InitialAssJac(VariableSubMatrixHandler& WorkMat,
+		const VectorHandler& XCurr);
+
+	/* Contributo al residuo durante l'assemblaggio iniziale */   
+	virtual SubVectorHandler& 
+	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
+
+	/* Usata per inizializzare la quantita' di moto */
+	virtual void SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0);
+
+	/******** PER IL SOLUTORE PARALLELO *********/        
+	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
+	virtual void 
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+		connectedNodes.resize(1);
+		connectedNodes[0] = pNode;
+	};
+	/**************************************************/
+};
+
+/* DynamicBody - end */
+
+/* StaticBody - begin */
+
+class StaticBody : 
+virtual public Elem, public Body {   
+private:
+	const StructNode *pRefNode;
+ 
+	/* Assembla le due matrici necessarie per il calcolo degli
+	 * autovalori e per lo jacobiano */  
+	void AssMats(FullSubMatrixHandler& WorkMatA,
+		FullSubMatrixHandler& WorkMatB,
+		doublereal dCoef);
+
+public:
+	/* Costruttore definitivo (da mettere a punto) */
+	StaticBody(unsigned int uL, const StaticStructNode* pNode,
+		const StructNode* pRefNode,
+		doublereal dMass, const Vec3& Xgc, const Mat3x3& J, 
+		flag fOut);
+
+	virtual ~StaticBody(void);
+ 
+	virtual inline void* pGet(void) const { 
+		return (void*)this;
+	};
+
+	/* Scrive il contributo dell'elemento al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+ 
+	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+		*piNumRows = 6; 
+		*piNumCols = 6; 
+	};
+ 
+	virtual VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr);
+
+	void AssMats(VariableSubMatrixHandler& WorkMatA,
+		VariableSubMatrixHandler& WorkMatB,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+ 
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr);
+ 
+	/* Dimensione del workspace durante l'assemblaggio iniziale.
+	 * Occorre tener conto del numero di dof che l'elemento definisce
+	 * in questa fase e dei dof dei nodi che vengono utilizzati.
+	 * Sono considerati dof indipendenti la posizione e la velocita'
+	 * dei nodi */
+	virtual void 
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+		*piNumRows = 6; 
+		*piNumCols = 6; 
+	};
+
+	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+	virtual VariableSubMatrixHandler& 
+	InitialAssJac(VariableSubMatrixHandler& WorkMat,
+		const VectorHandler& XCurr);
+
+	/* Contributo al residuo durante l'assemblaggio iniziale */   
+	virtual SubVectorHandler& 
+	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
+
+	/* Usata per inizializzare la quantita' di moto */
+	virtual void SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0);
+
+	/******** PER IL SOLUTORE PARALLELO *********/        
+	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
+	virtual void 
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+		connectedNodes.resize(1);
+		connectedNodes[0] = pNode;
+	};
+	/**************************************************/
+};
+
+/* StaticBody - end */
 
 class DataManager;
 class MBDynParser;

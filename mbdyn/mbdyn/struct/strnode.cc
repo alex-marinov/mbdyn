@@ -1750,6 +1750,11 @@ ReadStructNode(DataManager* pDM,
       	      fOut |= 2;
       }
 
+      if (CurrType == DYNAMIC && pDM->bIsStaticModel()) {
+	 pedantic_cout("DynamicStructNode(" << uLabel << ") turned into static" << std::endl);
+         CurrType = STATIC;
+      }
+
       /* Se non c'e' il punto e virgola finale */
       if (HP.IsArg()) {
 	 silent_cerr(sFuncName << ": semicolon expected "

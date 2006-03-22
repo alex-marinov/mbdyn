@@ -1040,7 +1040,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 	/* forza di gravita' (decidere come inserire g) */
 	/* FIXME: use a reasonable reference point where compute gravity */
 	Vec3 GravityAcceleration(Zero3);
-	bool bGravity = GravityOwner::fGetAcceleration(x, GravityAcceleration);
+	bool bGravity = GravityOwner::bGetAcceleration(x, GravityAcceleration);
 #endif /* MODAL_USE_GRAVITY */
 
 	Vec3 vP(Zero3);

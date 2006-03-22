@@ -126,6 +126,8 @@ private:
 	integer iMaxInitialIterations;
 	doublereal dEpsilon;
 	LinSol CurrSolver;
+
+	bool bStaticModel;
 #endif /* USE_STRUCT_NODES */
 
 #if defined(HAVE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
@@ -367,6 +369,10 @@ public:
 	virtual void AfterPredict(void) const;
 	virtual void Update(void) const;
 	virtual void AfterConvergence(void) const;
+
+	bool bIsStaticModel(void) const {
+		return bStaticModel;
+	};
 
 	/* da ElemManager */
 	friend class InitialAssemblyIterator;

@@ -133,6 +133,7 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
       "read" "solution" "array",
 
       "select" "timeout",
+      "model",
       
       NULL
    };
@@ -209,6 +210,7 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
       READSOLUTIONARRAY,
 
       SELECTTIMEOUT,
+      MODEL,
 
       LASTKEYWORD
    };
@@ -1186,6 +1188,12 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 	  }
 	  break;
        }
+
+       case MODEL:
+	  if (HP.IsKeyWord("static")) {
+	     bStaticModel = true;
+          }
+          break;
  
        case UNKNOWN: { /*
 			* If description is not in key table the parser

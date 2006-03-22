@@ -108,6 +108,11 @@ by the regular analysis, so it should be enabled only when strictly
 required.  Also note that accelerations may be inaccurate.
 %FIXME: elaborate on this.
 
+If the \kw{static} model type is used, all dynamic structural nodes
+are actually treated as static.
+This is a shortcut to ease running static analyses without the need
+to modify each node of a dynamic model.
+
 Dummy nodes take the label of the \kw{base\_node} they are attached to, 
 followed by the type of dummy node, possibly followed by specific data.
 The following dummy types are available:

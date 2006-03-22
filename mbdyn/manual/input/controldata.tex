@@ -241,6 +241,17 @@ of output that MBDyn can provide.
 Most of them are produced in form of postprocessing, based on the default
 raw output.
 
+\subsubsection{Model}
+\begin{verbatim}
+    <card> ::= model : static ;
+\end{verbatim}
+This statement allows to set the model type to \kw{static}, which means
+that all dynamic structural nodes will be treated as static, and inertia
+forces ignored.
+Gravity and centripetal acceleration will only be considered as forcing
+terms.
+See the \kw{structural} node (Section~\ref{sec:NODE:STRUCTURAL}) for details.
+
 
 \section{Model Counter Cards}
 The following counters can be defined:

@@ -49,7 +49,7 @@
  * tipo di elemento) mediante l'aggiunta di gradi di liberta', ecc.
  * 
  * L'accelerazione e' ottenuta mediante la chiamata della funzione propria 
- * flag fGetAcceleration(Vec3&) da parte degli elementi ElemGravityOwner.
+ * bool bGetAcceleration(Vec3&) da parte degli elementi ElemGravityOwner.
  * Il flag dice se e' definita l'accelerazione. 
  * In caso positivo, viene copiata nel vettore passato per reference.
  */
@@ -142,7 +142,7 @@ class GravityOwner {
    virtual ~GravityOwner(void);
 
    void PutGravity(const Gravity* pG);
-   virtual flag fGetAcceleration(const Vec3& X, Vec3& Acc) const;
+   virtual bool bGetAcceleration(const Vec3& X, Vec3& Acc) const;
 };
 
 /* GravityOwner - end */

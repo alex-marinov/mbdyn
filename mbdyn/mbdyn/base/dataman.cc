@@ -110,6 +110,7 @@ fOmegaRotates(fDefaultOmegaRotates),
 dInitialAssemblyTol(dDefaultInitialAssemblyTol),
 iMaxInitialIterations(iDefaultMaxInitialIterations),
 dEpsilon(1.),
+bStaticModel(false),
 #endif /* USE_STRUCT_NODES */
 #if defined(HAVE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
 loadableElemInitialized(false),

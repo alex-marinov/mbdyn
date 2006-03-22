@@ -17,6 +17,8 @@ MBDyn 1.X-Devel
 		- reworked support for EasyAnim
 		- added drive displacement joint
 		- added cubic elastic and viscoelastic constitutive laws
+		- added capability to run static analyses with gravity
+		  and reference centrifugal forces
 	Backward compatibility issues:
 		- double viscoelastic constitutive law syntax changed
 	Known issues:
