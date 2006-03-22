@@ -584,6 +584,9 @@ StaticBody::AssMats(FullSubMatrixHandler& WMA,
 	bool w(pRefNode != 0);
 
 	if (!g && !w) {
+		/* FIXME: should be (0, 0), but this requires
+		 * setting WMA.SetNullMatrix().
+		 * Need to change API */
 		WMA.ResizeReset(1, 1);
 		WMB.ResizeReset(1, 1);
 		return;

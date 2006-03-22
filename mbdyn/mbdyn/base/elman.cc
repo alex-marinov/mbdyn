@@ -334,6 +334,18 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
 
 	JacHdl.Reset();
 
+#if 0
+	for (int r = 1; r <= JacHdl.iGetNumRows(); r++) {
+		for (int c = 1; c <= JacHdl.iGetNumCols(); c++) {
+			if (JacHdl(r, c) != 0.) {
+				silent_cerr("JacHdl(" << r << "," << c << ")="
+						<< JacHdl(r, c) << std::endl);
+			}
+			JacHdl(r, c) = 1e-16;
+		}
+	}
+#endif
+
 	Elem* pTmpEl = NULL;
 	if (Iter.bGetFirst(pTmpEl)) {
 		do {
