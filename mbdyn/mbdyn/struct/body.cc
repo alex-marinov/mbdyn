@@ -2,7 +2,7 @@
  * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2006
+ * Copyright (C) 1996-2005
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -580,7 +580,7 @@ StaticBody::AssMats(FullSubMatrixHandler& WMA,
 		Acceleration);
 
 	/* TODO: reference */
-	Vec3 W;
+	Vec3 W(0.);
 	bool w(pRefNode != 0);
 
 	if (!g && !w) {
@@ -625,7 +625,7 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 	bool g = GravityOwner::bGetAcceleration(pNode->GetXCurr(), Acceleration);
 
 	/* TODO: reference */
-	Vec3 W;
+	Vec3 W(0.);
 	bool w(pRefNode != 0);
 
 	if (!g && !w) {
