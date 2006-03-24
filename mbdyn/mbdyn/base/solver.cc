@@ -1781,7 +1781,7 @@ Solver::NewTimeStep(doublereal dCurrTimeStep,
     	case FACTOR:
        		if (Why == StepIntegrator::REPEATSTEP) {
 	  		if (dCurrTimeStep*StrategyFactor.dReductionFactor
-	      		    >= dMinimumTimeStep) {
+	      		    > dMinimumTimeStep) {
 	     			if (bLastChance == true) {
 					bLastChance = false;
 	     			}
@@ -1790,7 +1790,7 @@ Solver::NewTimeStep(doublereal dCurrTimeStep,
 	  		} else {
 	     			if (bLastChance == false) {
 					bLastChance = true;
-					return StrategyFactor.dRaiseFactor*dCurrTimeStep;
+					return dMinimumTimeStep;
 	     			} else {
 					/*
 					 * Fuori viene intercettato
