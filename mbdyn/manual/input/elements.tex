@@ -2674,10 +2674,37 @@ See the \kw{distance} joint element.
 
 
 
+\subsection{Drive displacement}
+This joint imposes the relative position between two points 
+optionally offset from two structural nodes,
+in the form of a vector that expresses the direction of the displacement
+in the reference frame of node 1, whose amplitude is defined by a drive.
+\begin{verbatim}
+    <joint_type> ::= drive displacement
+    <joint_arglist> ::= 
+        <node_1> , (Ve3) <offset_1> ,
+        <node_2>  (Ve3) <offset_2> ,
+        (Vec3_tpl_drive_caller) <relative_position>
+\end{verbatim}
+
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"x"} imposed displacement component along node 1 axis 1
+\item \kw{"y"} imposed displacement component along node 1 axis 2
+\item \kw{"z"} imposed displacement component along node 1 axis 3
+\end{enumerate}
+
+\paragraph{Hints}
+When wrapped by a \kw{driven} element, it honors the following hints:
+\begin{itemize}
+\item unrecognized hints are passed through to the \kw{Vec3} drive.
+\end{itemize}
+
 \subsection{Drive hinge}
 This joint imposes the relative orientation between two nodes,
-in the form of a rotation about an axis with an amplitude defined
-by the drive.
+in the form of a rotation about an axis whose amplitude is defined
+by a drive.
 \begin{verbatim}
     <joint_type> ::= drive hinge
     <joint_arglist> ::= 
@@ -2693,9 +2720,9 @@ but it is limited to $\nrbr{\tt <hinge\_orientation>} < \pi$}.
 \paragraph{Private Data}
 The following data is available:
 \begin{enumerate}
-\item \kw{"rx"} imposed rotation about node 1 hinge axis 1
-\item \kw{"ry"} imposed rotation about node 1 hinge axis 2
-\item \kw{"rz"} imposed rotation about node 1 hinge axis 3
+\item \kw{"rx"} imposed relative rotation about node 1 hinge axis 1
+\item \kw{"ry"} imposed relative rotation about node 1 hinge axis 2
+\item \kw{"rz"} imposed relative rotation about node 1 hinge axis 3
 \end{enumerate}
 
 \paragraph{Hints}
@@ -3091,7 +3118,7 @@ by the two \kw{hinge} statements.
                    <shape_function> ]
 \end{verbatim}
 
-\subsection{Rationale}
+\subsubsection{Rationale}
 The rationale for having two statements to indicate the position
 and orientation of the same entity is that the joint is supposed
 to constrain the position and orientation of two points,
@@ -3099,7 +3126,7 @@ each attached to a node.
 This is what is typically known from the geometry of the components
 of a mechanism.
 
-\subsection{Output}
+\subsubsection{Output}
 The output occurs in the \kw{.jnt} file, according to default joint output
 for the first 13 columns; specific columns contain:
 \begin{itemize}
