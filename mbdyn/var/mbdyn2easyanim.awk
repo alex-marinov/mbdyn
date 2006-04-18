@@ -179,6 +179,23 @@ isvan == 0 && /structural node:/ {
 		node[node_num, "prop"] = "default";
 		node_num++;
 	}
+
+	print "#  0 = Black"
+	print "#  1 = Blue"
+	print "#  2 = Green"
+	print "#  3 = Cyan"
+	print "#  4 = Red"
+	print "#  5 = Magenta"
+	print "#  6 = Brown"
+	print "#  7 = Light Gray"
+	print "#  8 = Dark Gray"
+	print "#  9 = Light Blue"
+	print "# 10 = Light Green"
+	print "# 11 = Light Cyan"
+	print "# 12 = Light Red"
+	print "# 13 = Light Magenta"
+	print "# 14 = Yellow"
+	print "# 15 = White"
 }
 
 isvan == 0 && /distance:/ {
