@@ -179,23 +179,6 @@ isvan == 0 && /structural node:/ {
 		node[node_num, "prop"] = "default";
 		node_num++;
 	}
-
-	print "#  0 = Black"
-	print "#  1 = Blue"
-	print "#  2 = Green"
-	print "#  3 = Cyan"
-	print "#  4 = Red"
-	print "#  5 = Magenta"
-	print "#  6 = Brown"
-	print "#  7 = Light Gray"
-	print "#  8 = Dark Gray"
-	print "#  9 = Light Blue"
-	print "# 10 = Light Green"
-	print "# 11 = Light Cyan"
-	print "# 12 = Light Red"
-	print "# 13 = Light Magenta"
-	print "# 14 = Yellow"
-	print "# 15 = White"
 }
 
 isvan == 0 && /distance:/ {
@@ -801,6 +784,23 @@ function node_pos(i, X) {
 
 isvan == 0 && /^###/ {
 	printf("# this is a comment\n") >> volfile;
+
+	printf("#  0 = Black\n") >> volfile;
+	printf("#  1 = Blue\n") >> volfile;
+	printf("#  2 = Green\n") >> volfile;
+	printf("#  3 = Cyan\n") >> volfile;
+	printf("#  4 = Red\n") >> volfile;
+	printf("#  5 = Magenta\n") >> volfile;
+	printf("#  6 = Brown\n") >> volfile;
+	printf("#  7 = Light Gray\n") >> volfile;
+	printf("#  8 = Dark Gray\n") >> volfile;
+	printf("#  9 = Light Blue\n") >> volfile;
+	printf("# 10 = Light Green\n") >> volfile;
+	printf("# 11 = Light Cyan\n") >> volfile;
+	printf("# 12 = Light Red\n") >> volfile;
+	printf("# 13 = Light Magenta\n") >> volfile;
+	printf("# 14 = Yellow\n") >> volfile;
+	printf("# 15 = White\n") >> volfile;
 
 	printf("# node properties\n") >> volfile;
 	for (i = 0; i < nodeprop_num; i++) {
