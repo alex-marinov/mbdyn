@@ -98,6 +98,9 @@ dT0(t0), dDT(dt), iNumSteps(is), pd(NULL), pvd(NULL)
 			}
 		}
 	}
+
+	/* All data is available, so initialize the buffer accordingly */
+	ServePending(pDH->dGetTime());
 }
 
 FixedStepFileDrive::~FixedStepFileDrive(void)

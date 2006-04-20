@@ -27,6 +27,7 @@ MBDyn 1.X-Devel
 		- fixed Schur data manager output bug
 		- fixed misc one-time leaks
 		- fixed Jacobian matrix contribution of revolute pin
+		- fixed initialization of fixed step file drive
 
 MBDyn 1.2.6
 	Enhancements:
