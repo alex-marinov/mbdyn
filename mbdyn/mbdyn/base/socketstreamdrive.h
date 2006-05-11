@@ -53,14 +53,14 @@ protected:
 	int recv_flags;
 
 public:
-	SocketStreamDrive::SocketStreamDrive(unsigned int uL,
+	SocketStreamDrive(unsigned int uL,
 		DataManager* pDM,
 		const char* const sFileName,
 		integer nd, unsigned int ie, bool c,
 		unsigned short int p,
 		const char* const h, int flags);
 
-	SocketStreamDrive::SocketStreamDrive(unsigned int uL,
+	SocketStreamDrive(unsigned int uL,
 		DataManager* pDM,
 		const char* const sFileName,
 		integer nd, unsigned int ie, bool c,

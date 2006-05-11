@@ -95,7 +95,7 @@ public:
 
 	/* Resetta la matrice */
 	virtual inline void
-	SchurMatrixHandler::MatEFCReset(void);
+	MatEFCReset(void);
 
 	/* Inserisce un coefficiente */
 	virtual inline void PutCoef(integer iRow, integer iCol,
