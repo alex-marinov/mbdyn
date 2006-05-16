@@ -279,16 +279,16 @@ for configuration and velocity, to allow to selectively enforce
 the initial configuration.
 
 The problem can be stated as follows:
-\begin{eqnarray*}
-	k x + \Phi_{/x}^T \lambda_{\Phi} + \Psi_{/\dot{x}}^T \lambda_{\Psi}
-		& = & k x_0 + F \\
-	c v + \Phi_{/x}^T \mu & = & c v_0 \\
-	\Phi\plbr{x, t} & = & 0 \\
-	\Psi\plbr{v, x, t} & = & 0 \\
-	\Phi_{/x} v + \Phi_{/t} & = & 0
-\end{eqnarray*}
-where $\Phi(x,t)$ are holonomic and $\Psi(x,v,t)$ 
-non holonomic (and linear in $v$) constraints equations.
+\begin{align}
+	\T{k} \T{x} + \T{\Phi}_{/\T{x}}^T \T{\lambda}_{\T{\Phi}} + \T{A}^T \T{\lambda}_{\T{A}}
+		& = \T{k} \T{x}_0 + \T{F} \\
+	\T{c} \T{v} + \T{\Phi}_{/\T{x}}^T \T{\mu} & = \T{c} \T{v}_0 \\
+	\T{\Phi}\plbr{\T{x}, t} & = \T{0} \label{eq:in-ass:holonomic} \\
+	\T{A}\plbr{\T{x}, t} \T{v} + \T{B}\plbr{\T{x}, t} & = \T{0} \label{eq:in-ass:non-holonomic} \\
+	\T{\Phi}_{/\T{x}} v + \T{\Phi}_{/t} & = \T{0}
+\end{align}
+where Equation~(\ref{eq:in-ass:holonomic}) and (\ref{eq:in-ass:non-holonomic})
+respectively contain the holonomic and non holonomic constraint equations.
 The solution of this problem leads to the direct determination
 of an initial configuration and velocity that complies 
 with the constraints.
@@ -300,48 +300,51 @@ A new procedure is being considered, which requires only the use
 of the constraint equation $\Phi$ and its Jacobian matrix $\Phi_{/x}$.
 
 The problem that is solved with the new procedure is (FIXME):
-\begin{eqnarray*}
-	k x + \Phi_{/x}^T \lambda_{\Phi} + \Psi_{/x}^T \lambda_{\Psi} 
-		& = & k x_0 + F \\
-	c v + \Psi_{/\dot{x}}^T \lambda_{\Psi} & = & c v_0 \\
-	\Phi\plbr{x, t} & = & 0 \\
-	\Psi\plbr{v, x, t} & = & 0
-\end{eqnarray*}
+\begin{align}
+	\T{k} \T{x} + \T{\Phi}_{/\T{x}}^T \T{\lambda}_{\T{\Phi}} + \T{A}^T \T{\lambda}_{\T{A}} 
+		& = \T{k} \T{x}_0 + \T{F} \\
+	\T{c} \T{v} + \T{A}^T \T{\lambda}_{A} & = \T{c} \T{v}_0 \\
+	\T{\Phi}\plbr{\T{x}, t} & = \T{0} \\
+	\T{A}\plbr{\T{x}, t} \T{v} + \T{B}\plbr{\T{x}, t} & = \T{0}
+\end{align}
 so that only the configuration is required to comply 
 with the constraint equations, and the same constraint 
 Jacobian matrix and residual of the regular steps are required;
 then, after convergence, the following equation is considered:
-\begin{displaymath}
-	\Phi_{/x} v + \Phi_{/t} = 0
-\end{displaymath}
+\begin{equation}
+	\T{\Phi}_{/\T{x}} \T{v} + \T{\Phi}_{/t} = 0
+\end{equation}
 which uses the Jacobian matrix of the constraint equations; 
 only the derivative of the time-dependent constraints is required.
 
-The number of rows of matrix $\Phi_{/x}$ is equal to the number 
+The number of rows of matrix $\T{\Phi}_{/\T{x}}$ is equal to the number 
 of degrees of freedom that are constrained, so typically the matrix 
 must be underdetermined.
 It can be decomposed as
-\begin{displaymath}
-	\Phi_{/x}^T = Q R
-		= \sqbr{\matr{cc}{Q_1 & Q_2}}\sqbr{\cvvect{R_1 \\ 0}}
-\end{displaymath}
+\begin{equation}
+	\T{\Phi}_{/\T{x}}^T = \T{Q} \T{R}
+		= \sqbr{\matr{cc}{\T{Q}_1 & \T{Q}_2}}\sqbr{\cvvect{\T{R}_1 \\ \T{0}}}
+\end{equation}
 so
-\begin{displaymath}
-	Q_1^T v + R_1^{-T} \Phi_{/t} = 0
-\end{displaymath}
+\begin{equation}
+	\T{Q}_1^T \T{v} + \T{R}_1^{-T} \T{\Phi}_{/t} = 0
+	\label{eq:in-ass:test}
+\end{equation}
 becomes a compatibility test for the initial velocities.
 There are two possible choices:
 \begin{enumerate}
 \item the initial configuration assessment fails if the given 
 initial velocities, after the correction occurring during the position 
 and orientation assessment and correction phase, do not pass 
-the above test;
-\item the initial velocities $v$ are corrected into $v_c$ 
+test~(\ref{eq:in-ass:test});
+\item the initial velocities $\T{v}$ are corrected into $\T{v}_c$ 
 by projecting them in the space that is compatible with the constraints, 
 e.g.:
-\begin{displaymath}
-	v_c = v - Q_1 \plbr{Q_1^T v + R_1^{-T}\Phi_{/t}}
-\end{displaymath}
+\begin{equation}
+	\T{v}_c = \T{v} - \T{Q}_1 \plbr{\T{Q}_1^T \T{v} + \T{R}_1^{-T}\T{\Phi}_{/t}}
+\end{equation}
+The initial assembly procedure can be repeated until 
+test~(\ref{eq:in-ass:test}) passes.
 \end{enumerate}
 A consistent implementation of this approach is not available yet;
 it requires the availability of the time derivatives 
