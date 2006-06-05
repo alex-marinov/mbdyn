@@ -39,8 +39,10 @@ extern double pow_dd(double *, double *);
 void
 dummy_c(void)
 {
+#ifdef NEED_POW_DD
 	double a, b;
 	pow_dd(&a, &b);
+#endif /* NEED_POW_DD */
 
 #ifdef NEED_F77_IO
 #warning "needed for F77 I/o"

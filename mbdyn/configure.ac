@@ -688,7 +688,7 @@ if test $ol_with_libf2c != no ; then
 	if test $ol_with_libf2c = g2c ; then
 		libf2c_pool="g2c"
 	else
-		libf2c_pool="f2c g2c"
+		libf2c_pool="g2c f2c"
 	fi
 
 	for l in $libf2c_pool ; do
@@ -727,9 +727,22 @@ if test $ol_with_libf2c != no ; then
 		dnl that apparently do not implement integer power of double
 		AC_CHECK_LIB($try_libf2c,pow_di,[
 			AC_DEFINE(HAVE_POW_DI,1,[define if pow_di() function is available])])
+		dnl FIXME: do we still need this ?!?
+		AC_DEFINE(NEED_POW_DD,1,[define if pow_dd() function is needed])
 	fi
 fi
 
+dnl ----------------------------------------------------------------
+dnl
+dnl Add fortran lib
+dnl
+case "$F77" in
+gfortran)
+	F2C_LIBS="$F2C_LIBS -lgfortran"
+	;;
+*)
+	;;
+esac
 
 dnl ----------------------------------------------------------------
 dnl
