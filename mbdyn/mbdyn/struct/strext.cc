@@ -56,7 +56,7 @@ fin(fin.c_str()), fout(fout.c_str())
 	F.resize(nodes.size());
 	M.resize(nodes.size());
 
-	for (int i = 0; i < nodes.size(); i++) {
+	for (unsigned int i = 0; i < nodes.size(); i++) {
 		Nodes[i] = nodes[i];
 		Offsets[i] = offsets[i];
 	}
@@ -79,7 +79,7 @@ ExtForce::Update(const VectorHandler& XCurr,
 		throw ErrGeneric();
 	}
 
-	for (int i = 0; i < Nodes.size(); i++) {
+	for (unsigned int i = 0; i < Nodes.size(); i++) {
 		Vec3 f = Nodes[i]->GetRCurr()*Offsets[i];
 		Vec3 x = Nodes[i]->GetXCurr() + f;
 		Vec3 v = Nodes[i]->GetVCurr() + Nodes[i]->GetWCurr().Cross(f);
@@ -115,7 +115,7 @@ ExtForce::AssRes(SubVectorHandler& WorkVec,
 	std::ifstream inf(fin.c_str());
 	std::vector<bool> done(Nodes.size());
 
-	for (int i = 0; i < Nodes.size(); i++) {
+	for (unsigned int i = 0; i < Nodes.size(); i++) {
 		done[i] = false;
 	}
 
@@ -166,7 +166,7 @@ ExtForce::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.Add(i*6 + 4, M[i]);
 	}
 
-	for (int i = 0; i < Nodes.size(); i++) {
+	for (unsigned int i = 0; i < Nodes.size(); i++) {
 		if (!done[i]) {
 			silent_cerr("ExtForce(" << GetLabel() << "): node " << Nodes[i]->GetLabel() << " not done" << std::endl);
 			throw ErrGeneric();
@@ -181,7 +181,7 @@ ExtForce::Output(OutputHandler& OH) const
 {
 	std::ostream& out = OH.Forces();
 
-	for (int i = 0; i < Nodes.size(); i++) {
+	for (unsigned int i = 0; i < Nodes.size(); i++) {
 		out << GetLabel() << "." << Nodes[i]->GetLabel()
 			<< " " << F[i]
 			<< " " << M[i]

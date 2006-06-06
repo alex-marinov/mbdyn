@@ -448,8 +448,11 @@ Elem* ReadForce(DataManager* pDM,
 			}
 		}
 		} break;
-	}
 #endif /* USE_STRUCT_NODES */
+
+	default:
+		ASSERT(0);
+	}
    
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {
