@@ -39,6 +39,7 @@
 #include <force.h>
 #ifdef USE_STRUCT_NODES
 #include <strforce.h>
+#include <strext.h>
 #endif /* USE_STRUCT_NODES */
 #include <dataman.h>
 
@@ -213,285 +214,250 @@ Elem* ReadForce(DataManager* pDM,
 		unsigned int uLabel, 
 		flag fCouple)
 {
-   const char sFuncName[] = "ReadForce()";
-   DEBUGCOUT("Entering " << sFuncName << std::endl);
+	const char sFuncName[] = "ReadForce()";
+	DEBUGCOUT("Entering " << sFuncName << std::endl);
    
-   const char* sKeyWords[] = {
-
+	const char* sKeyWords[] = {
 #if defined(USE_STRUCT_NODES)
-      "conservative",
-      "follower",
-      
-      "conservative" "internal",
-      "follower" "internal",
+		"conservative",
+		"follower",
+
+		"conservative" "internal",
+		"follower" "internal",
+
+		"external" "structural",
 #endif /* USE_STRUCT_NODES */
 
 #if defined(USE_ELECTRIC_NODES)
-      "abstract",
-      "abstract" "internal",
+		"abstract",
+		"abstract" "internal",
 #endif /* USE_ELECTRIC_NODES */
 
-      NULL
-   };
-   
-   /* enum delle parole chiave */
-   enum KeyWords {
-      UNKNOWN = -1,
+		NULL
+	};
+
+	/* enum delle parole chiave */
+	enum KeyWords {
+		UNKNOWN = -1,
 
 #if defined(USE_STRUCT_NODES)
-	CONSERVATIVE,
-	FOLLOWER,
+		CONSERVATIVE,
+		FOLLOWER,
 	
-	CONSERVATIVEINTERNAL,
-	FOLLOWERINTERNAL,
+		CONSERVATIVEINTERNAL,
+		FOLLOWERINTERNAL,
+
+		EXTERNALSTRUCTURAL,
 #endif /* USE_STRUCT_NODES */
 
 #if defined(USE_ELECTRIC_NODES)
-	ABSTRACT,
-	ABSTRACTINTERNAL,
+		ABSTRACT,
+		ABSTRACTINTERNAL,
 #endif /* USE_ELECTRIC_NODES */
 
-	LASTKEYWORD 
-   };
+		LASTKEYWORD 
+	};
    
-   /* tabella delle parole chiave */
-   KeyTable K(HP, sKeyWords);
+	/* tabella delle parole chiave */
+	KeyTable K(HP, sKeyWords);
    
-   /* tipo di forza */
-   KeyWords CurrType = KeyWords(HP.GetWord());
-   if (CurrType == UNKNOWN) {
-      silent_cerr(sFuncName << " at line " << HP.GetLineData() 
-	<< ": unknown force type" << std::endl);
-      throw DataManager::ErrGeneric();
-   }   
-   
-#ifdef DEBUG
-   switch(CurrType) {
+	/* tipo di forza */
+	KeyWords CurrType = KeyWords(HP.GetWord());
+	if (CurrType == UNKNOWN) {
+		silent_cerr(sFuncName << " at line " << HP.GetLineData() 
+			<< ": unknown force type" << std::endl);
+		throw DataManager::ErrGeneric();
+	}
+
+	switch (CurrType) {
+	case CONSERVATIVE:
+	case FOLLOWER:
+	case CONSERVATIVEINTERNAL:
+	case FOLLOWERINTERNAL:
+		break;
+
+	default:
+		if (fCouple) {
+			silent_cerr("Force(" << uLabel << "): must be a \"force\"" << std::endl);
+			throw ErrGeneric();
+		}
+	}
+
+	Elem* pEl = NULL;
+
+	switch (CurrType) {
+#if defined(USE_ELECTRIC_NODES)
+	case ABSTRACT: {
+		/* tabella delle parole chiave */
+		KeyTable KDof(HP, psReadNodesNodes);
+		ScalarDof SD = ReadScalarDof(pDM, HP, 0);                          
+		DriveCaller* pDC = HP.GetDriveCaller();
+		flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			AbstractForce,
+			AbstractForce(uLabel, SD.pNode, pDC, fOut));
+		} break;
+
+	case ABSTRACTINTERNAL: {
+		/* tabella delle parole chiave */
+		KeyTable KDof(HP, psReadNodesNodes);
+		ScalarDof SD1 = ReadScalarDof(pDM, HP, 0);                          
+		ScalarDof SD2 = ReadScalarDof(pDM, HP, 0);                          
+		DriveCaller* pDC = HP.GetDriveCaller();
+		flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			AbstractInternalForce,
+			AbstractInternalForce(uLabel, SD1.pNode, SD2.pNode, pDC, fOut));
+		} break;
+#endif /* USE_ELECTRIC_NODES */
+
 #if defined(USE_STRUCT_NODES)
-    case CONSERVATIVE:
-      std::cout << "Force type: \"Conservative\"" << std::endl;
-      break;
+	case EXTERNALSTRUCTURAL:
+		pEl = ReadExtForce(pDM, HP, uLabel);
+		break;
 
-    case FOLLOWER:
-      std::cout << "Force type: \"Follower\"" << std::endl;
-      break;
-
-    case CONSERVATIVEINTERNAL:
-      std::cout << "Force type: \"Conservative Internal\"" << std::endl;
-      break;
-
-    case FOLLOWERINTERNAL:
-      std::cout << "Force type: \"Follower Internal\"" << std::endl;
-      break;
-
-#endif /* USE_STRUCT_NODES */
-
-#if defined(USE_ELECTRIC_NODES)
-    case ABSTRACT:
-      std::cout << "Force type: \"Abstract\"" << std::endl;
-      break;
-
-    case ABSTRACTINTERNAL:
-      std::cout << "Force type: \"Abstract Internal\"" << std::endl;
-      break;
-
-#endif /* USE_ELECTRIC_NODES */
-      
-    default:
-      throw ErrGeneric();
-   }
-#endif /* DEBUG */
-
-   Elem* pEl = NULL;
-   
-#if defined(USE_ELECTRIC_NODES)
-   if (CurrType == ABSTRACT) {
-      
-      /* tabella delle parole chiave */
-      KeyTable KDof(HP, psReadNodesNodes);
-      
-      ScalarDof SD = ReadScalarDof(pDM, HP, 0);                          
-      
-      DriveCaller* pDC = HP.GetDriveCaller();
-
-      flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
-      
-      SAFENEWWITHCONSTRUCTOR(pEl,
-			     AbstractForce,
-			     AbstractForce(uLabel, SD.pNode, pDC, fOut));
-            
-   } else if (CurrType == ABSTRACTINTERNAL) {
-      
-      /* tabella delle parole chiave */
-      KeyTable KDof(HP, psReadNodesNodes);
-      
-      ScalarDof SD1 = ReadScalarDof(pDM, HP, 0);                          
-      
-      ScalarDof SD2 = ReadScalarDof(pDM, HP, 0);                          
-      
-      DriveCaller* pDC = HP.GetDriveCaller();
-
-      flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
-      
-      SAFENEWWITHCONSTRUCTOR(pEl,
-		      AbstractInternalForce,
-		      AbstractInternalForce(uLabel, SD1.pNode, SD2.pNode,
-			      pDC, fOut));
+	case CONSERVATIVE:
+	case FOLLOWER:
+	case CONSERVATIVEINTERNAL:
+	case FOLLOWERINTERNAL: {
+		/* nodo collegato */
+		StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
  
-   } else
-     
-#endif /* USE_ELECTRIC_NODES */
-     
-#if defined(USE_STRUCT_NODES)
-     { /* CurrType e' <structural> */
-         
-      /* nodo collegato */
-      StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
-      
-      /* direzione della forza */   	     
-      Mat3x3 RNode(pNode->GetRCurr());     
-      ReferenceFrame RF(pNode);
-      Vec3 Dir(HP.GetVecRel(RF));
+		/* direzione della forza */   	     
+		Mat3x3 RNode(pNode->GetRCurr());     
+		ReferenceFrame RF(pNode);
+		Vec3 Dir(HP.GetVecRel(RF));
 
-      /* Se la forza e' conservativa, viene passata nel sistema globale */
-      if (CurrType == CONSERVATIVE || CurrType == CONSERVATIVEINTERNAL) {
-	 Dir = RNode*Dir;
-      }      	           
-      
-      /* Normalizza la direzione */
-      ASSERT(Dir.Dot() > DBL_EPSILON);
-      doublereal d = Dir.Dot();
-      if (d > DBL_EPSILON) {      
-	 Dir /= sqrt(d);
-      } else {      
-	 silent_cerr("Force(" << uLabel 
-	   << ") has null direction" << std::endl);
-	 throw ErrGeneric();
-      }        
-      
-      /* distanza dal nodo (vettore di 3 elementi) ( solo se e' una forza) */
-      Vec3 Arm(0.);
-      if (fCouple == 0) {	
-	 if (!HP.IsKeyWord("null")) {	  
-	    Arm = HP.GetPosRel(RF);	    
-	    DEBUGCOUT("Distance is supplied" << std::endl);
-	 }
-      }
+		/* Se la forza e' conservativa, viene passata nel sistema globale */
+		if (CurrType == CONSERVATIVE || CurrType == CONSERVATIVEINTERNAL) {
+			Dir = RNode*Dir;
+		}      	           
+ 
+		/* Normalizza la direzione */
+		ASSERT(Dir.Dot() > DBL_EPSILON);
+		doublereal d = Dir.Dot();
+		if (d <= DBL_EPSILON) {      
+			silent_cerr("Force(" << uLabel << ") has null direction" << std::endl);
+			throw ErrGeneric();
+		}
+		Dir /= sqrt(d);
+ 
+		/* distanza dal nodo (vettore di 3 elementi) ( solo se e' una forza) */
+		Vec3 Arm(0.);
+		if (fCouple == 0) {	
+			if (!HP.IsKeyWord("null")) {	  
+				Arm = HP.GetPosRel(RF);	    
+				DEBUGCOUT("Distance is supplied" << std::endl);
+			}
+		}
 
-      StructNode *pNode2 = NULL;
-      Vec3 Arm2(0.);
-      if (CurrType == CONSERVATIVEINTERNAL || CurrType == FOLLOWERINTERNAL) {
-	      
-         /* nodo collegato */
-	 pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
-      
-   	 /* distanza dal nodo (vettore di 3 elementi) ( solo se e' una forza) */
-   	 if (fCouple == 0) {	
-	    if (!HP.IsKeyWord("null")) {	  
-	       Arm2 = HP.GetPosRel(RF);	    
-	       DEBUGCOUT("Distance is supplied" << std::endl);
-   	    }
-   	 }
-      }
+		StructNode *pNode2 = NULL;
+		Vec3 Arm2(0.);
+		if (CurrType == CONSERVATIVEINTERNAL || CurrType == FOLLOWERINTERNAL) {
+			/* nodo collegato */
+			pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+
+			/* distanza dal nodo (vettore di 3 elementi) ( solo se e' una forza) */
+			if (fCouple == 0) {	
+				if (!HP.IsKeyWord("null")) {	  
+					Arm2 = HP.GetPosRel(RF);	    
+					DEBUGCOUT("Distance is supplied" << std::endl);
+				}
+			}
+		}
  
 #ifdef DEBUG
-      if (CurrType == CONSERVATIVE || CurrType == CONSERVATIVEINTERNAL) {      
-	 std::cout << "Global reference frame direction: " << std::endl
-		 << Dir << std::endl;
-      } else if (CurrType == FOLLOWER || CurrType == FOLLOWERINTERNAL) {      
-	 std::cout << "Node reference frame direction: " << std::endl
-		 << Dir << std::endl;
-      }
-      
-      if (!fCouple) {      
-	 std::cout << "Node reference frame arm: " << std::endl
-		 << Arm << std::endl;
-      }   
+		if (CurrType == CONSERVATIVE || CurrType == CONSERVATIVEINTERNAL) {      
+			std::cout << "Global reference frame direction: " << std::endl
+				<< Dir << std::endl;
+		} else if (CurrType == FOLLOWER || CurrType == FOLLOWERINTERNAL) {      
+			std::cout << "Node reference frame direction: " << std::endl
+				<< Dir << std::endl;
+		}
+ 
+		if (!fCouple) {      
+			std::cout << "Node reference frame arm: " << std::endl
+				<< Arm << std::endl;
+		}
 #endif /* DEBUG */
-            
-      DriveCaller* pDC = HP.GetDriveCaller();
-      
-      flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
-      
-      /* Alloca la forza */
-      if (fCouple == 0) {
-	 switch (CurrType) {
-	  case CONSERVATIVE:
-	    SAFENEWWITHCONSTRUCTOR(pEl, 
-			    ConservativeForce,
-			    ConservativeForce(uLabel, pNode, pDC, 
-				    Dir, Arm, fOut));
-	    break;
 
-	  case CONSERVATIVEINTERNAL:
-	    SAFENEWWITHCONSTRUCTOR(pEl, 
-			    ConservativeInternalForce,
-			    ConservativeInternalForce(uLabel, pNode, pNode2,
-				    pDC, Dir, Arm, Arm2, fOut));
-	    break;
+		DriveCaller* pDC = HP.GetDriveCaller();
+		flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
+ 
+		/* Alloca la forza */
+		if (fCouple == 0) {
+			switch (CurrType) {
+			case CONSERVATIVE:
+				SAFENEWWITHCONSTRUCTOR(pEl, 
+					ConservativeForce,
+					ConservativeForce(uLabel, pNode, pDC, Dir, Arm, fOut));
+				break;
 
-	  case FOLLOWER:
-	    SAFENEWWITHCONSTRUCTOR(pEl, 
-			    FollowerForce,
-			    FollowerForce(uLabel, pNode, pDC, 
-				    Dir, Arm, fOut));
-	    break;
+			case CONSERVATIVEINTERNAL:
+				SAFENEWWITHCONSTRUCTOR(pEl, 
+					ConservativeInternalForce,
+					ConservativeInternalForce(uLabel, pNode, pNode2, pDC, Dir, Arm, Arm2, fOut));
+				break;
 
-	  case FOLLOWERINTERNAL:
-	    SAFENEWWITHCONSTRUCTOR(pEl, 
-			    FollowerInternalForce,
-			    FollowerInternalForce(uLabel, pNode, pNode2,
-				    pDC, Dir, Arm, Arm2, fOut));
-	    break;
+			case FOLLOWER:
+				SAFENEWWITHCONSTRUCTOR(pEl, 
+					FollowerForce,
+					FollowerForce(uLabel, pNode, pDC, Dir, Arm, fOut));
+				break;
 
-	  default:
-	    ASSERT(0);
-	 }
+			case FOLLOWERINTERNAL:
+				SAFENEWWITHCONSTRUCTOR(pEl, 
+					FollowerInternalForce,
+					FollowerInternalForce(uLabel, pNode, pNode2, pDC, Dir, Arm, Arm2, fOut));
+				break;
+	
+			default:
+				ASSERT(0);
+			}
 
-      } else if (fCouple == 1) {
-	 switch (CurrType) {
-	  case  CONSERVATIVE:
-	    SAFENEWWITHCONSTRUCTOR(pEl, 
-			    ConservativeCouple,
-			    ConservativeCouple(uLabel, pNode, pDC, 
-				    Dir, fOut));
-	    break;
+		} else if (fCouple == 1) {
+			switch (CurrType) {
+			case  CONSERVATIVE:
+				SAFENEWWITHCONSTRUCTOR(pEl, 
+					ConservativeCouple,
+					ConservativeCouple(uLabel, pNode, pDC, Dir, fOut));
+				break;
 
-	  case CONSERVATIVEINTERNAL:
-	    SAFENEWWITHCONSTRUCTOR(pEl, 
-			    ConservativeInternalCouple,
-			    ConservativeInternalCouple(uLabel, pNode, pNode2,
-				    pDC, Dir, fOut));
-	    break;
+			case CONSERVATIVEINTERNAL:
+				SAFENEWWITHCONSTRUCTOR(pEl, 
+					ConservativeInternalCouple,
+					ConservativeInternalCouple(uLabel, pNode, pNode2, pDC, Dir, fOut));
+				break;
 
-	  case FOLLOWER:
-	    SAFENEWWITHCONSTRUCTOR(pEl, 
-			    FollowerCouple,
-			    FollowerCouple(uLabel, pNode, pDC, 
-				    Dir, fOut));
-	    break;
+			case FOLLOWER:
+				SAFENEWWITHCONSTRUCTOR(pEl, 
+					FollowerCouple,
+					FollowerCouple(uLabel, pNode, pDC, Dir, fOut));
+				break;
 
-	  case FOLLOWERINTERNAL:
-	    SAFENEWWITHCONSTRUCTOR(pEl, 
-			    FollowerInternalCouple,
-			    FollowerInternalCouple(uLabel, pNode, pNode2,
-				    pDC, Dir, fOut));
-	    break;
+			case FOLLOWERINTERNAL:
+				SAFENEWWITHCONSTRUCTOR(pEl, 
+					FollowerInternalCouple,
+					FollowerInternalCouple(uLabel, pNode, pNode2, pDC, Dir, fOut));
+				break;
 
-	  default:
-	    ASSERT(0);
-	 }
-      }
-   }
+			default:
+				ASSERT(0);
+			}
+		}
+		} break;
+	}
 #endif /* USE_STRUCT_NODES */
    
-   /* Se non c'e' il punto e virgola finale */
-   if (HP.IsArg()) {
-      silent_cerr(sFuncName
-	<< ": semicolon expected at line " << HP.GetLineData() << std::endl);
-      throw DataManager::ErrGeneric();
-   }
-   
-   return pEl;
+	/* Se non c'e' il punto e virgola finale */
+	if (HP.IsArg()) {
+		silent_cerr(sFuncName
+			<< ": semicolon expected at line " << HP.GetLineData() << std::endl);
+		throw DataManager::ErrGeneric();
+	}
+
+	return pEl;
 } /* End of ReadForce() */
 

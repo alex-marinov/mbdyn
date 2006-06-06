@@ -6,6 +6,10 @@ Copyright (C) 1996-2006
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Tue Jun  6 19:30:28 CEST 2006 Pierangelo masarati <masarati@aero.polimi.it>
+				  Marco Fossati <fossati@aero.polimi.it>
+ - External structural force element to couple with ROSITA
+
 *** Wed Feb  8 22:30:25 CET 2006
  - reworked GetConnectedNodes() API to use std::vector
 

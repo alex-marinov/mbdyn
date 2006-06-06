@@ -278,6 +278,8 @@ extern const char* psForceNames[] = {
    "Follower Reaction Force",
    "Conservative Reaction Couple",
    "Follower Reaction Couple",
+
+   "External Structural Force",
    
    NULL
 };

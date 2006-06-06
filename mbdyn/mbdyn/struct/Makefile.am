@@ -67,6 +67,8 @@ shapefnc.cc \
 shapefnc.h \
 spherj.cc \
 spherj.h \
+strext.cc \
+strext.h \
 strforce.cc \
 strforce.h \
 strnode.cc \
