@@ -44,6 +44,11 @@ protected:
 	std::vector<StructNode *> Nodes;
 	std::vector<Vec3> Offsets, F, M;
 	std::string fin, fout;
+	bool bRemoveIn, bNoClobberOut, bTightCoupling, bFirstRes;
+	int iSleepTime;
+
+	void Unlink(void);
+	void Send(void);
    
 public:
 	/* Costruttore */
@@ -51,24 +56,28 @@ public:
 		std::vector<StructNode *>& Nodes,
 		std::vector<Vec3>& Offsets,
 	        std::string& fin,
+		bool bRemoveIn,
 	        std::string& fout,
+		bool bNoClobberOut,
+		int iSleepTime,
+		bool bTightCoupling,
 		flag fOut);
 
-   virtual ~ExtForce(void);
+	virtual ~ExtForce(void);
 
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
+	virtual inline void* pGet(void) const { 
+		return (void*)this;
+	};
      
-   /* Tipo di forza */
-   virtual Force::Type GetForceType(void) const { 
-      return Force::EXTERNALFORCE; 
-   };   
-   
-   void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-      *piNumRows = 6*Nodes.size();
-      *piNumCols = 1;
-   };
+	/* Tipo di forza */
+	virtual Force::Type GetForceType(void) const { 
+		return Force::EXTERNALFORCE; 
+	};
+ 
+	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+		*piNumRows = 6*Nodes.size();
+		*piNumCols = 1;
+	};
 
 	virtual void Update(const VectorHandler& XCurr  , 
 		const VectorHandler& XPrimeCurr);
@@ -79,37 +88,40 @@ public:
 	virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP);
 
-   SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
-			    doublereal dCoef,
-			    const VectorHandler& XCurr, 
-			    const VectorHandler& XPrimeCurr);     
+	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
-   virtual void Output(OutputHandler& OH) const;
-   
-   virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-      *piNumRows = 0; 
-      *piNumCols = 0; 
-   };
-   
-   /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-   virtual VariableSubMatrixHandler& 
-     InitialAssJac(VariableSubMatrixHandler& WorkMat,
-		   const VectorHandler& XCurr) { WorkMat.SetNullMatrix(); return WorkMat; };
+	SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr);     
 
-   /* Contributo al residuo durante l'assemblaggio iniziale */   
-   virtual SubVectorHandler& 
-     InitialAssRes(SubVectorHandler& WorkVec,
-		   const VectorHandler& XCurr) { WorkVec.ResizeReset(0); return WorkVec; };   
-   /* *******PER IL SOLUTORE PARALLELO******** */        
-   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-      utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
-     connectedNodes.resize(Nodes.size());
-     for (unsigned int i = 0; i < Nodes.size(); i++) {
-        connectedNodes[i] = Nodes[i];
-     }
-   };
-   /* ************************************************ */
+	virtual void Output(OutputHandler& OH) const;
+
+	virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+		*piNumRows = 0; 
+		*piNumCols = 0; 
+	};
+   
+	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+	virtual VariableSubMatrixHandler& 
+	InitialAssJac(VariableSubMatrixHandler& WorkMat,
+		const VectorHandler& XCurr) { WorkMat.SetNullMatrix(); return WorkMat; };
+
+	/* Contributo al residuo durante l'assemblaggio iniziale */   
+	virtual SubVectorHandler& 
+	InitialAssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& XCurr) { WorkVec.ResizeReset(0); return WorkVec; };   
+	/* *******PER IL SOLUTORE PARALLELO******** */        
+	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
+	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes)
+	{
+		connectedNodes.resize(Nodes.size());
+		for (unsigned int i = 0; i < Nodes.size(); i++) {
+			connectedNodes[i] = Nodes[i];
+		}
+	};
+	/* ************************************************ */
 };
 
 /* ExtForce - end */

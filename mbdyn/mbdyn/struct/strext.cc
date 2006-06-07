@@ -37,6 +37,10 @@
 
 #include <fstream>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 /* ExtForce - begin */
 
 /* Costruttore */
@@ -44,11 +48,21 @@ ExtForce::ExtForce(unsigned int uL,
 	std::vector<StructNode *>& nodes,
 	std::vector<Vec3>& offsets,
 	std::string& fin,
-	std::string& fout,
+	bool bRemoveIn,
+        std::string& fout,
+	bool bNoClobberOut,
+	int iSleepTime,
+	bool bTightCoupling,
 	flag fOut)
 : Elem(uL, Elem::FORCE, fOut), 
 Force(uL, EXTERNALFORCE, 0, fOut), 
-fin(fin.c_str()), fout(fout.c_str())
+fin(fin.c_str()),
+fout(fout.c_str()),
+bRemoveIn(bRemoveIn),
+bNoClobberOut(bNoClobberOut),
+bTightCoupling(bTightCoupling),
+bFirstRes(true),
+iSleepTime(iSleepTime)
 {
 	ASSERT(nodes.size() == offsets.size());
 	Nodes.resize(nodes.size());
@@ -72,10 +86,96 @@ void
 ExtForce::Update(const VectorHandler& XCurr, 
 	const VectorHandler& XPrimeCurr)
 {
+	if (bTightCoupling) {
+		Send();
+	}
+
+}
+	
+/*
+ * Elaborazione stato interno dopo la convergenza
+ */
+void
+ExtForce::AfterPredict(VectorHandler& X, VectorHandler& XP)
+{
+	bFirstRes = true;
+}
+
+/*
+ * Elaborazione stato interno dopo la convergenza
+ */
+void
+ExtForce::AfterConvergence(const VectorHandler& X, 
+	const VectorHandler& XP)
+{
+        /* Added by Marco fossati June 07 2006. Instruction to delete 
+        input file after reading. */
+	if (!bTightCoupling) {
+		Send();
+		if (bRemoveIn) {
+			Unlink();
+		}
+	}
+}
+
+void
+ExtForce::Unlink(void)
+{
+	if (unlink(fin.c_str()) != 0) {
+		int save_errno = errno;
+
+		switch (save_errno) {
+		case ENOENT:
+			break;
+
+		default:
+			silent_cerr("ExtForce(" << GetLabel() << "): "
+				<< "unable to delete input file \"" << fin.c_str() 
+				<< "\": " << strerror(save_errno) << std::endl);
+			throw ErrGeneric();
+		}
+	}
+}
+
+void
+ExtForce::Send(void)
+{
+	if (bNoClobberOut) {
+		bool	bKeepGoing(true);
+
+		for (int cnt = 0; bKeepGoing; cnt++) {
+			struct stat	s;
+
+			if (stat(fout.c_str(), &s) != 0) {
+				int save_errno = errno;
+
+				switch (save_errno) {
+				case ENOENT:
+					bKeepGoing = false;
+					break;
+
+				default:
+					silent_cerr("ExtForce(" << GetLabel() << "): "
+						"unable to stat output file \"" << fout.c_str() << "\": "
+						<< strerror(save_errno) << std::endl);
+					throw ErrGeneric();
+				}
+
+			} else {
+				silent_cout("ExtForce(" << GetLabel() << "): "
+					"output file \"" << fout.c_str() << "\" still present, "
+					"try #" << cnt << "; "
+					"sleeping " << iSleepTime << " s" << std::endl);
+				sleep(iSleepTime);
+			}
+		}
+	}
+
 	std::ofstream	outf(fout.c_str());
 
 	if (!outf) {
-		silent_cerr("unable to open file " << fout.c_str() << std::endl);
+		silent_cerr("ExtForce(" << GetLabel() << "): "
+			"unable to open file \"" << fout.c_str() << "\"" << std::endl);
 		throw ErrGeneric();
 	}
 
@@ -94,17 +194,6 @@ ExtForce::Update(const VectorHandler& XCurr,
 	/* send */
 	outf.close();
 }
-	
-/*
- * Elaborazione stato interno dopo la convergenza
- */
-void
-ExtForce::AfterConvergence(const VectorHandler& X, 
-	const VectorHandler& XP)
-{
-	Update(X, XP);
-}
-
 
 SubVectorHandler&
 ExtForce::AssRes(SubVectorHandler& WorkVec,
@@ -112,51 +201,76 @@ ExtForce::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr, 
 	const VectorHandler& XPrimeCurr)
 {
-	std::ifstream inf(fin.c_str());
-	std::vector<bool> done(Nodes.size());
+	if (bTightCoupling || bFirstRes) {
+		//std::cout << "Prima della apertura" <<std::endl;
+	        std::ifstream inf(fin.c_str());
+		//std::cout << "Dopo della apertura" <<std::endl; 
+		std::vector<bool> done(Nodes.size());
 
-	for (unsigned int i = 0; i < Nodes.size(); i++) {
-		done[i] = false;
-	}
-
-	while (!inf) {
-		sleep(1);
-		inf.open(fin.c_str());
-	}
-
-	WorkVec.ResizeReset(6*Nodes.size());
-
-	for (int cnt = 0; inf; cnt++) {
-		/* assumo che la label sia un intero */
-		unsigned l, i;
-		doublereal f[3], m[3];
-
-		inf >> l >> f[0] >> f[1] >> f[2] >> m[0] >> m[1] >> m[2];
-
-		if (!inf) {
-			break;
+		for (unsigned int i = 0; i < Nodes.size(); i++) {
+			done[i] = false;
 		}
 
-		for (i = 0; i < Nodes.size(); i++) {
-			if (Nodes[i]->GetLabel() == l) {
+		for (int cnt = 0; !inf; cnt++) {
+			silent_cout("ExtForce(" << GetLabel() << "): "
+				"input file \"" << fin.c_str() << "\" missing, "
+				"try #" << cnt << "; "
+				"sleeping " << iSleepTime << " s" << std::endl); 
+               
+			sleep(iSleepTime);
+			inf.clear();
+			inf.open(fin.c_str());
+		}
+
+		WorkVec.ResizeReset(6*Nodes.size());
+
+		for (int cnt = 0; inf; cnt++) {
+			/* assumo che la label sia un intero */
+			unsigned l, i;
+			doublereal f[3], m[3];
+
+			inf >> l >> f[0] >> f[1] >> f[2] >> m[0] >> m[1] >> m[2];
+
+			if (!inf) {
 				break;
+			}
+
+			for (i = 0; i < Nodes.size(); i++) {
+				if (Nodes[i]->GetLabel() == l) {
+					break;
+				}
+			}
+
+			if (i == Nodes.size()) {
+				silent_cerr("ExtForce(" << GetLabel() << "): unknown label " << l << " as " << cnt << "-th node" << std::endl);
+				throw ErrGeneric();
+			}
+
+			if (done[i]) {
+				silent_cerr("ExtForce(" << GetLabel() << "): label " << l << " already done" << std::endl);
+				throw ErrGeneric();
+			}
+
+			done[i] = true;
+			F[i] = Vec3(f);
+			M[i] = Vec3(m);
+		}
+
+		for (unsigned int i = 0; i < Nodes.size(); i++) {
+			if (!done[i]) {
+				silent_cerr("ExtForce(" << GetLabel() << "): node " << Nodes[i]->GetLabel() << " not done" << std::endl);
+				throw ErrGeneric();
 			}
 		}
 
-		if (i == Nodes.size()) {
-			silent_cerr("ExtForce(" << GetLabel() << "): unknown label " << l << " as " << cnt << "-th node" << std::endl);
-			throw ErrGeneric();
+		if (bRemoveIn) {
+			Unlink();
 		}
+	}
 
-		if (done[i]) {
-			silent_cerr("ExtForce(" << GetLabel() << "): label " << l << " already done" << std::endl);
-			throw ErrGeneric();
-		}
+	bFirstRes = false;
 
-		done[i] = true;
-		F[i] = Vec3(f);
-		M[i] = Vec3(m);
-
+	for (unsigned int i = 0; i < Nodes.size(); i++) {
 		integer iFirstIndex = Nodes[i]->iGetFirstMomentumIndex();
 		for (int r = 1; r <= 6; r++) {
 			WorkVec.PutRowIndex(i*6 + r, iFirstIndex + r);
@@ -164,13 +278,6 @@ ExtForce::AssRes(SubVectorHandler& WorkVec,
 
 		WorkVec.Add(i*6 + 1, F[i]);
 		WorkVec.Add(i*6 + 4, M[i]);
-	}
-
-	for (unsigned int i = 0; i < Nodes.size(); i++) {
-		if (!done[i]) {
-			silent_cerr("ExtForce(" << GetLabel() << "): node " << Nodes[i]->GetLabel() << " not done" << std::endl);
-			throw ErrGeneric();
-		}
 	}
 
 	return WorkVec;
@@ -202,6 +309,11 @@ ReadExtForce(DataManager* pDM,
 	}
 	std::string fin(s);
 
+	bool bUnlinkIn(false);
+	if (HP.IsKeyWord("unlink")) {
+		bUnlinkIn = true;
+	}
+
 	s = HP.GetFileName();
 	if (s == 0) {
 		silent_cerr("ExtForce(" << uLabel << "): unable to get output file name "
@@ -209,6 +321,21 @@ ReadExtForce(DataManager* pDM,
 		throw ErrGeneric();
 	}
 	std::string fout(s);
+
+	bool bNoClobberOut(false);
+	if (HP.IsKeyWord("no" "clobber")) {
+		bNoClobberOut = true;
+	}
+
+	int iSleepTime = 1;
+	if (HP.IsKeyWord("sleep" "time")) {
+		iSleepTime = HP.GetInt();
+		if (iSleepTime <= 0 ) {
+			silent_cerr("ExtForce(" << uLabel << "): "
+				"invalid sleep time " << iSleepTime <<std::endl);
+			throw ErrGeneric();
+		}
+	}
 
 	int n = HP.GetInt();
 	if (n <= 0) {
@@ -235,7 +362,8 @@ ReadExtForce(DataManager* pDM,
 	flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
 	Elem *pEl = 0;
 	SAFENEWWITHCONSTRUCTOR(pEl, ExtForce,
-		ExtForce(uLabel, Nodes, Offsets, fin, fout, fOut));
+		ExtForce(uLabel, Nodes, Offsets, fin, bUnlinkIn, fout, bNoClobberOut,
+			iSleepTime, false, fOut));
 
 	return pEl;
 }
