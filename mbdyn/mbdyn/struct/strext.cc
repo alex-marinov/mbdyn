@@ -87,10 +87,11 @@ void
 ExtForce::Update(const VectorHandler& XCurr, 
 	const VectorHandler& XPrimeCurr)
 {
+	/* If running tight coupling, send kinematics every iteration */
+	/* NOTE: tight coupling may need relaxation */
 	if (bTightCoupling) {
 		Send();
 	}
-
 }
 	
 /*
@@ -99,6 +100,7 @@ ExtForce::Update(const VectorHandler& XCurr,
 void
 ExtForce::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
+	/* After prediction, mark next residual as first */
 	bFirstRes = true;
 }
 
@@ -109,8 +111,7 @@ void
 ExtForce::AfterConvergence(const VectorHandler& X, 
 	const VectorHandler& XP)
 {
-        /* Added by Marco fossati June 07 2006. Instruction to delete 
-        input file after reading. */
+	/* If not running tight coupling, send kinematics only at convergence */
 	if (!bTightCoupling) {
 		Send();
 		if (bRemoveIn) {
@@ -119,6 +120,10 @@ ExtForce::AfterConvergence(const VectorHandler& X,
 	}
 }
 
+/*
+ * Unlink input file when no longer required
+ * used to inform * companion software that a new input file can be written
+ */
 void
 ExtForce::Unlink(void)
 {
@@ -138,6 +143,9 @@ ExtForce::Unlink(void)
 	}
 }
 
+/*
+ * Send output to companion software
+ */
 void
 ExtForce::Send(void)
 {
@@ -203,9 +211,7 @@ ExtForce::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XPrimeCurr)
 {
 	if (bTightCoupling || bFirstRes) {
-		//std::cout << "Prima della apertura" <<std::endl;
 	        std::ifstream inf(fin.c_str());
-		//std::cout << "Dopo della apertura" <<std::endl; 
 		std::vector<bool> done(Nodes.size());
 
 		for (unsigned int i = 0; i < Nodes.size(); i++) {
@@ -226,7 +232,7 @@ ExtForce::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.ResizeReset(6*Nodes.size());
 
 		for (int cnt = 0; inf; cnt++) {
-			/* assumo che la label sia un intero */
+			/* assume unsigned int label */
 			unsigned l, i;
 			doublereal f[3], m[3];
 
@@ -337,6 +343,8 @@ ReadExtForce(DataManager* pDM,
 			throw ErrGeneric();
 		}
 	}
+
+	/* TODO: read loose/tight coupling flag */
 
 	int n = HP.GetInt();
 	if (n <= 0) {
