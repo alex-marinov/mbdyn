@@ -319,6 +319,7 @@ needsAirProperties(false)
 void
 LoadableElem::GetCalls(MBDynParser& HP)
 {
+#ifdef HAVE_RUNTIME_LOADING
    	/* nome del modulo */
    	const char* s = HP.GetFileName();
 	if (s == NULL) {
@@ -387,6 +388,11 @@ LoadableElem::GetCalls(MBDynParser& HP)
    	}
 
 	calls = *tmpcalls;
+#else /* !HAVE_RUNTIME_LOADING */
+	silent_cerr("LoadableElem(" << GetLabel() << ") GetCalls: "
+		"should not be called when --disable-runtime-loading" << std::endl);
+	throw ErrGeneric();
+#endif /* !HAVE_RUNTIME_LOADING */
 }
 
 void
@@ -558,7 +564,7 @@ LoadableElem::~LoadableElem(void)
 	ASSERT(calls->destroy != NULL);
    	(*calls->destroy)(this);
    
-#if !defined(HAVE_LTDL_H) && defined(HAVE_DLFCN_H)
+#if defined(HAVE_RUNTIME_LOADING) && !defined(HAVE_LTDL_H) && defined(HAVE_DLFCN_H)
    	if (handle != NULL) {
    		if (dlclose(handle) != 0) {
 			silent_cerr("unable to dlclose module \"" 
@@ -566,7 +572,7 @@ LoadableElem::~LoadableElem(void)
 			throw ErrGeneric();
 		}
 	}
-#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
+#endif /* HAVE_RUNTIME_LOADING && !HAVE_LTDL_H && HAVE_DLFCN_H */
 	
    	SAFEDELETEARR(module_name);
 }

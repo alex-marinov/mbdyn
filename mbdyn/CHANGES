@@ -28,6 +28,7 @@ MBDyn 1.X-Devel
 		- fixed misc one-time leaks
 		- fixed Jacobian matrix contribution of revolute pin
 		- fixed initialization of fixed step file drive
+		- fixed --enable-runtime-loading configuration
 
 MBDyn 1.2.6
 	Enhancements:

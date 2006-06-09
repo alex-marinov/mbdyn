@@ -762,32 +762,32 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Check for loadable
 dnl
-have_loadable=no
-if test "$ol_enable_loadable" != "no" ; then
+have_runtime_loading=no
+if test "$ol_enable_runtime_loading" != "no" ; then
 	AC_CHECK_HEADER(ltdl.h,[have_ltdl_h=yes],[have_ltdl_h=no])
 	if test $have_ltdl_h = "yes" ; then
 		AC_DEFINE(HAVE_LTDL_H,1,[define if you have <ltdl.h>])
 		AC_CHECK_LIB(ltdl, lt_dlinit,[have_lt_dlinit=yes],[have_lt_dlinit=no])
 		if test $have_lt_dlinit = "yes" ; then
 			LIBS="$LIBS -lltdl"
-			have_loadable=yes
+			have_runtime_loading=yes
 			MODULE_LOADPATH=$libexecdir
 		fi
 	fi
-	if test $have_loadable = no ; then
+	if test $have_runtime_loading = no ; then
 		AC_CHECK_HEADER(dlfcn.h,[have_dlfcn_h=yes],[have_dlfcn_h=no])
 		if test $have_dlfcn_h="yes" ; then
 			AC_DEFINE(HAVE_DLFCN_H,1,[define if you have <dlfcn.h>])
 			AC_CHECK_LIB(dl, dlopen,[have_dlopen_in_ldl=yes],[have_dlopen_in_ldl=no], -ldl)
 			if test $have_dlopen_in_ldl = "yes" ; then
 				LIBS="$LIBS -ldl"
-				have_loadable=yes
+				have_runtime_loading=yes
 			fi
 		fi
 	fi
-	if test $have_loadable=yes ; then
+	if test $have_runtime_loading=yes ; then
 		AC_DEFINE(HAVE_RUNTIME_LOADING,1,[define if you want to load runtime])
-	elif test "$ol_enable_loadable" = "yes" ; then
+	elif test "$ol_enable_runtime_loading" = "yes" ; then
 		AC_MSG_ERROR([no dynamic linking library detected])
 	else
 		AC_MSG_WARN([no dynamic linking library detected; runtime loading will not be enabled])
@@ -801,12 +801,12 @@ dnl
 build_static_modules=no
 case "$ol_with_static_modules" in
 	no)
-		if test "$have_loadable" != "yes" ; then
+		if test "$have_runtime_loading" != "yes" ; then
 			AC_MSG_ERROR([modules cannot be built as dynamic because no runtime loading capability is available])
 		fi
 		;;
 	auto)
-		if test "$have_loadable" != "yes" ; then
+		if test "$have_runtime_loading" != "yes" ; then
 			build_static_modules=yes
 		fi
 		;;

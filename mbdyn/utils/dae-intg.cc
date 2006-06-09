@@ -31,7 +31,7 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#if defined(HAVE_LTDL_H) || defined(HAVE_DLFCN_H)
+#if defined (HAVE_RUNTIME_LOADING) && (defined(HAVE_LTDL_H) || defined(HAVE_DLFCN_H))
 
 #include <string.h>
 #ifdef HAVE_LTDL_H
@@ -1130,7 +1130,7 @@ method_cn(const char* module, integration_data* d,
    	return 0;
 }
 
-#else /* defined(HAVE_LTDL_H) || defined(HAVE_DLFCN_H) */
+#else /* defined(HAVE_RUNTIME_LOADING) && (defined(HAVE_LTDL_H) || defined(HAVE_DLFCN_H)) */
 
 #include <ac/iostream>
 #include <stdlib.h>
@@ -1142,5 +1142,5 @@ main(void)
    	exit(EXIT_FAILURE);
 }
 
-#endif /* defined(HAVE_LTDL_H) || defined(HAVE_DLFCN_H) */
+#endif /* defined(HAVE_RUNTIME_LOADING) && (defined(HAVE_LTDL_H) || defined(HAVE_DLFCN_H)) */
 

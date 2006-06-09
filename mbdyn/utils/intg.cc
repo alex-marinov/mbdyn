@@ -31,6 +31,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#ifdef HAVE_RUNTIME_LOADING
+
 #include <stdlib.h>
 #include <string.h>
 #include <dlfcn.h>
@@ -721,3 +723,17 @@ int method_cn(const char* module, integration_data* d,
 
    return 0;
 }
+
+#else /* ! HAVE_RUNTIME_LOADING */
+
+#include <ac/iostream>
+#include <stdlib.h>
+
+int
+main(void)
+{
+	std::cerr << "Need dynamic load capabilities" << std::endl;
+   	exit(EXIT_FAILURE);
+}
+
+#endif /* ! HAVE_RUNTIME_LOADING */
