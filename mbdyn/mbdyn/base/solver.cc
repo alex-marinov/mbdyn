@@ -534,6 +534,10 @@ Solver::Run(void)
 		}
 	}
 
+	{ // log of symbol table
+		std::ostream& out = pDM->GetLogFile();
+		out << HP.GetMathParser().GetSymbolTable();
+	}
 	HP.Close();
 
    	/* Si fa dare l'std::ostream al file di output per il log */
