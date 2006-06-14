@@ -646,6 +646,8 @@ NaiveSparsePermSolutionManager<metis_ordering>::ComputePermutation(void)
 //	METIS_EdgeND(&n, &(Ac[0]), &Ai[0], &numflag, options, &(perm[0]), &(invperm[0]));
  	METIS_NodeND(&n, &(Ac[0]), &Ai[0], &numflag, options, &(perm[0]), &(invperm[0]));
 
+	ePermState = PERM_INTERMEDIATE;
+
 }
 
 #endif //USE_METIS
