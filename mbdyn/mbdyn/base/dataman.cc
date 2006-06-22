@@ -35,6 +35,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include "dataman.h"
+#include "friction.h"
 
 extern "C" {
 #include <strings.h>

@@ -64,9 +64,9 @@
 #include "solverdiagnostics.h"
 #include "linsol.h"
 
-#include "ScalarFunctions.h"
+class BasicScalarFunction;
+struct LoadableCalls;
 
-#include "loadable.h"
 
 #include "usesock.h"
 

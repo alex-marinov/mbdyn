@@ -34,6 +34,7 @@
 
 #include <unistd.h>
 #include <dataman.h>
+#include <loadable.h>
 
 /* funzioni di default */
 static unsigned int 

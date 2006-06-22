@@ -28,7 +28,7 @@
  */
 
 #include <mbconfig.h>
-#include <loadable.h>
+#include "loadable.h"
 
 
 /* funzioni di default */

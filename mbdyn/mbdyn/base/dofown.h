@@ -102,6 +102,7 @@ class DofOwnerOwner {
    
  public:   
    DofOwnerOwner(const DofOwner* pDO);
+   virtual ~DofOwnerOwner() { NO_OP; };
    
    inline const DofOwner* pGetDofOwner(void) const {
       ASSERT(pDofOwner != NULL);

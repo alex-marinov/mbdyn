@@ -34,7 +34,7 @@
 
 #include <ac/iostream>
 
-#include <loadable.h>
+#include "loadable.h"
 #include "friction.h"
 
 /*

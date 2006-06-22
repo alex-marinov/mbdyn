@@ -37,6 +37,7 @@
 #include <ac/f2c.h>
 
 #include <dataman.h>
+#include "loadable.h"
 
 #include "module-aerodyn.h"
 

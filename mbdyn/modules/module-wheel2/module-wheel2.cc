@@ -36,6 +36,7 @@
 #include <ac/float.h>
 
 #include <dataman.h>
+#include "loadable.h"
 
 /*
  * Usage:

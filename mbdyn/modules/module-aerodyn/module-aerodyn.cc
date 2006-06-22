@@ -31,7 +31,7 @@
 #include <mbconfig.h> 		/* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <loadable.h>
+#include "loadable.h"
 #include "module-aerodyn.h"
 
 module_aerodyn_t *module_aerodyn = NULL;

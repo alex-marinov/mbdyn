@@ -35,6 +35,7 @@
 #include <ac/float.h>
 
 #include <dataman.h>
+#include "loadable.h"
 
 /*
  * user-defined struct
