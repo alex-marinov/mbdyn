@@ -2111,44 +2111,67 @@ Modal::SetValue(DataManager *pDM,
 unsigned int
 Modal::iGetNumPrivData(void) const
 {
-	return 3*NModes;
+	return 3*NModes + 18*NFemNodes;
 }
 
 unsigned int
 Modal::iGetPrivDataIdx(const char *s) const
 {
 	/*
-	 * x[n] | xP[n] | xPP[n]
+	 * q[n]   | qP[n]   | qPP[n]
 	 *
-	 * dove n e' il numero del modo (a base 1)
+	 * where n is the 1-based mode number
+	 *
+	 * x[n,i] | xP[n,i] | xPP[n,i]
+	 *          w[n,i]  | wP[n,i]
+	 *
+	 * where n is the FEM node label and i is the index number (1-3)
 	 */
 
-	unsigned int idx = 0;
+	unsigned p = 0;
+	char what = s[0];
 
 	/* che cosa e' richiesto? */
-	if (strncmp(s, "x[", sizeof("x[") - 1) == 0) {
-		s += sizeof("x[") - 1;
+	switch (what) {
+	case 'q':
+		/* modal dofs */
+		break;
 
-	} else if (strncmp(s, "xP[", sizeof("xP[") - 1) == 0) {
-		s += sizeof("xP[") - 1;
-		idx += NModes;
+	case 'x':
+		/* structural nodes positions */
+		break;
 
-	} else if (strncmp(s, "xPP[", sizeof("xPP[") - 1) == 0) {
-		s += sizeof("xPP[") - 1;
-		idx += 2*NModes;
+	case 'w':
+		/* structural nodes angular velocities */
+		p = 1;
+		break;
 
-	} else {
+	default:
+		/* unknown priv data */
 		return 0;
 	}
 
+	while ((++s)[0] == 'P') {
+		p++;
+		if (p > 2) {
+			/* no more than two derivative levels allowed */
+			return 0;
+		}
+	}
+
+	if (s[0] != '[') {
+		return 0;
+	}
+	s++;
+
 	/* trova la parentesi chiusa (e il terminatore di stringa) */
 	char *end = strchr(s, ']');
-	if (end == NULL || end[1] != '\0') {
+	if (end == 0 || end[1] != '\0') {
 		return 0;
 	}
 
 	/* buffer per numero (dimensione massima: 32 bit) */
-	char buf[] = "18446744073709551615UL";
+	char buf[] = "18446744073709551615,18446744073709551615";
 	size_t		len = end - s;
 
 	ASSERT(len < sizeof(buf));
@@ -2157,23 +2180,58 @@ Modal::iGetPrivDataIdx(const char *s) const
 	buf[len] = '\0';
 
 	/* leggi il numero */
-#ifdef HAVE_STRTOUL
+	if (buf[0] == '-') {
+		return 0;
+	}
+
 	unsigned long n = strtoul(buf, &end, 10);
+	if (end == buf) {
+		return 0;
+	}
+
+	if (what == 'q') {
+		if (end[0] != '\0') {
+			return 0;
+		}
+
+		if (n > NModes) {
+			return 0;
+		}
+
+		return p*NModes + n;
+	}
+
+	if (end[0] != ',') {
+		return 0;
+	}
+
+	end++;
+	if (end[0] == '-') {
+		return 0;
+	}
+	memmove(buf, end, sizeof(buf) - (end - buf));
+
+	unsigned int index = strtoul(buf, &end, 10);
 	if (end == buf || end[0] != '\0') {
 		return 0;
 	}
-#else /* !HAVE_STRTOUL */
-	long n = atol(buf);
-	if (n <= 0) {
-		return 0;
-	}
-#endif /* !HAVE_STRTOUL */
 
-	if (n <= 0 || n > NModes) {
+	if (index == 0 || index > 3) {
 		return 0;
 	}
 
-	return idx + n;
+	unsigned int i;
+	for (i = 0; i < NFemNodes; i++) {
+		if (IdFemNodes[i] == n) {
+			break;
+		}
+	}
+
+	if (i == NFemNodes) {
+		return 0;
+	}
+
+	return 3*NModes + 18*i + (what == 'w' ? 3 : 0) + 6*p + index;
 }
 
 
@@ -2181,12 +2239,141 @@ doublereal
 Modal::dGetPrivData(unsigned int i) const
 {
 	ASSERT(i > 0 && i < iGetNumPrivData());
+
 	if (i <= NModes) {
 		return a.dGet(i);
-
-	} else {
-		return b.dGet(i - NModes);
 	}
+
+	i -= NModes;
+	if (i <= NModes) {
+		return b.dGet(i);
+	}
+
+	i -= NModes;
+	if (i <= NModes) {
+		return bPrime.dGet(i);
+	}
+
+	i -= NModes;
+	unsigned int n = (i - 1) / 18;
+	unsigned int index = (i - 1) % 18 + 1;
+	unsigned int p = (index - 1) / 6;
+	unsigned int c = (index - 1) % 6 + 1;
+	unsigned int w = (c - 1) / 3;
+	if (w) {
+		c -= 3;
+	}
+
+	switch (p) {
+	case 0:
+		if (w) {
+			throw ErrGeneric();
+
+		} else {
+			if (pModalNode) {
+				R = pModalNode->GetRCurr();
+				x = pModalNode->GetXCurr();
+			}
+			Vec3 Xn(pXYZFemNodes->GetVec(n + 1));
+			for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+				integer iOffset = (jMode - 1)*NFemNodes + n + 1;
+				Xn += pModeShapest->GetVec(iOffset)*a(jMode);
+			}
+
+			Vec3 X(x + R*Xn);
+			return X(c);
+		}
+		break;
+
+	case 1:
+		if (w) {
+			if (pModalNode) {
+				R = pModalNode->GetRCurr();
+			}
+			Vec3 Wn(0.);
+			for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+				integer iOffset = (jMode - 1)*NFemNodes + n + 1;
+				Wn += pModeShapesr->GetVec(iOffset)*b(jMode);
+			}
+
+			Vec3 W(R*Wn);
+			if (pModalNode) {
+				W += pModalNode->GetWCurr();
+			}
+			return W(c);
+
+		} else {
+			if (pModalNode) {
+				R = pModalNode->GetRCurr();
+			}
+			Vec3 Vn(0.);
+			Vec3 Xn(pXYZFemNodes->GetVec(n + 1));
+			for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+				integer iOffset = (jMode - 1)*NFemNodes + n + 1;
+				Vec3 v = pModeShapest->GetVec(iOffset);
+				Vn += v*b(jMode);
+				Xn += v*a(jMode);
+			}
+			Vec3 V(R*Vn);
+			if (pModalNode) {
+				V += pModalNode->GetWCurr().Cross(R*Xn);
+				V += pModalNode->GetVCurr();
+			}
+			return V(c);
+		}
+		break;
+
+	case 2:
+		if (w) {
+			if (pModalNode) {
+				R = pModalNode->GetRCurr();
+			}
+			Vec3 WPn(0.);
+			Vec3 Wn(0.);
+			for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+				integer iOffset = (jMode - 1)*NFemNodes + n + 1;
+				Vec3 v = pModeShapesr->GetVec(iOffset);
+				WPn += v*bPrime(jMode);
+				Wn += v*b(jMode);
+			}
+
+			Vec3 WP(R*WPn);
+			if (pModalNode) {
+				WP += pModalNode->GetWCurr().Cross(R*Wn);
+				WP += pModalNode->GetWPCurr();
+			}
+			return WP(c);
+
+		} else {
+			if (pModalNode) {
+				R = pModalNode->GetRCurr();
+			}
+			Vec3 XPPn(0.);
+			Vec3 XPn(0.);
+			Vec3 Xn(pXYZFemNodes->GetVec(n + 1));
+			for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+				integer iOffset = (jMode - 1)*NFemNodes + n + 1;
+				Vec3 v = pModeShapest->GetVec(iOffset);
+				XPPn += v*bPrime(jMode);
+				XPn += v*b(jMode);
+				Xn += v*a(jMode);
+			}
+			Vec3 XPP(R*XPPn);
+			if (pModalNode) {
+				Vec3 W0 = pModalNode->GetWCurr();
+				XPP += W0.Cross(R*(XPn*2.));
+
+				Vec3 X(R*Xn);
+				XPP += Mat3x3(W0, W0)*X;
+				XPP += pModalNode->GetWPCurr().Cross(X);
+				XPP += pModalNode->GetXPPCurr();
+			}
+			return XPP(c);
+		}
+		break;
+	}
+
+	throw ErrGeneric();
 }
 
 Mat3xN *

@@ -46,8 +46,8 @@ D. Code:
 	- implement optional binary/ascii output (based on netcdf?)
 
 	Medium Projects:
-	- recover existing soft restart (Michele Attolico is working at it)
-	- add MATLAB/Octave and Simulink hooks (Michele Attolico is working
+	- recover existing soft restart (Michele Attolico worked at it)
+	- add MATLAB/Octave and Simulink hooks (Michele Attolico worked
 		at it; see contrib/SimulinkInterface).
 		``matlab'' element that feeds matlab with data structures 
 		containing variables and executes matlab code.
@@ -90,7 +90,7 @@ D. Code:
 	  matrix eigenvalue analysis (eigs)
 	- add selected output streamed on sockets for interactive analysis
 		by implementing sort of "sensors", possibly based on the
-		elements' "private data" (Michele Attolico is working at it;
+		elements' "private data" (Michele Attolico worked at it;
 		see "output elements" and RTAI-related features)
 	- add rot2any/any2rot utilities
 	- try to rewrite hydraulic nodes as scalar differential (?)
@@ -148,6 +148,15 @@ D. Code:
 	- modal element:
 	  - add singularity checks (warn if modal k is singular; ???)
 	  - add consistency checks of modal mass matrices (m = X^T*M*X; DONE)
+	- modal interface node: accelerations can be recovered
+	  for use in loose connections; design and implement a solution (DONE)
+	- turn the modal joint into sets of elements:
+		- modal database: FEM model
+		- modal dynamics as a "deformable body"
+		- modal clamp contraint (as now, but separate from dynamics)
+		- specialized modal constraints (as opposed to clamping
+		  a node with the clamp constraint plus a regular joint)
+	  this allows to add arbitrary elements connected to the modal element
 
 
 

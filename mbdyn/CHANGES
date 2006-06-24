@@ -19,6 +19,8 @@ MBDyn 1.X-Devel
 		- added cubic elastic and viscoelastic constitutive laws
 		- added capability to run static analyses with gravity
 		  and reference centrifugal forces
+		- added access to modal element FEM nodes position,
+		  velocity and acceleration as private data
 	Backward compatibility issues:
 		- double viscoelastic constitutive law syntax changed
 	Known issues:

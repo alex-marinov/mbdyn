@@ -3022,10 +3022,19 @@ For example, a factor of 0.01 means 1\% damping.
 \paragraph{Private Data}
 The following data is available, for each mode:
 \begin{enumerate}
-\item \kw{"x[<i>]"} mode \kw{<i>} value
-\item \kw{"xP[<i>]"} mode \kw{<i>} derivative value
-\item \kw{"xPP[<i>]"} mode \kw{<i>} second derivative value
+\item \kw{"q[<i>]"} mode \kw{<i>} value
+\item \kw{"qP[<i>]"} mode \kw{<i>} derivative value
+\item \kw{"qPP[<i>]"} mode \kw{<i>} second derivative value
+\item \kw{"x[<n>,<i>]"} FEM node \kw{<n>} position \kw{<i>} component value
+\item \kw{"xP[<n>,<i>]"} FEM node \kw{<n>} velocity \kw{<i>} component value
+\item \kw{"xPP[<n>,<i>]"} FEM node \kw{<n>} acceleration \kw{<i>} component value
+\item \kw{"w[<n>,<i>]"} FEM node \kw{<n>} angular velocity \kw{<i>} component value
+\item \kw{"wP[<n>,<i>]"} FEM node \kw{<n>} angular acceleration \kw{<i>} component value
 \end{enumerate}
+``FEM'' node means that the label of the FEM node must be used;
+this allows to use the motion of nodes that are not attached
+to a multibody node.
+This motion is expressed in the global reference frame.
 
 
 
