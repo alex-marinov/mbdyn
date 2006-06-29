@@ -172,7 +172,7 @@ anglerel(DataManager *pDM, Real n1, Real n2)
 		throw ErrGeneric();
 	}
 
-	Vec3 phi(RotManip::VecRot(pNode2->GetRCurr()*pNode1->GetRCurr().Transpose()));
+	Vec3 phi(RotManip::VecRot(pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()));
 
 	switch (IDX) {
 	case NORM:
