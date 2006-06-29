@@ -1435,10 +1435,11 @@ OffsetDummyStructNode::~OffsetDummyStructNode(void)
 /* update - interno */
 void OffsetDummyStructNode::Update_int(void)
 {
-   RCurr = pNode->GetRCurr();
-   XCurr = pNode->GetXCurr()+RCurr*f;
-   WCurr = pNode->GetWCurr();
-   VCurr = pNode->GetVCurr()+WCurr.Cross(RCurr*f);
+	RCurr = pNode->GetRCurr();
+	XCurr = pNode->GetXCurr() + RCurr*f;
+	WCurr = pNode->GetWCurr();
+	VCurr = pNode->GetVCurr() + WCurr.Cross(RCurr*f);
+	RCurr = RCurr*R;
 }
 
 
