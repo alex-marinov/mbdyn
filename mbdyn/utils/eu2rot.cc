@@ -56,7 +56,7 @@ main(int argn, const char* const argv[])
 				" m31, m32, m33)" << std::endl
 				<< std::endl
 	   			<< "part of MBDyn package (Copyright (C)"
-				" Pierangelo Masarati, 1996-2004)" << std::endl
+				" Pierangelo Masarati, 1996-2006)" << std::endl
 				<< std::endl;
 	 		exit(EXIT_SUCCESS);
       		}
@@ -67,7 +67,7 @@ main(int argn, const char* const argv[])
       		std::cin >> d[0];
       		if (std::cin) {
 	 		std::cin >> d[1] >> d[2];
-	 		std::cout << EulerAngles2MatR(Vec3(d)/180.*M_PI) << std::endl;
+	 		std::cout << EulerAngles2MatR(Vec3(d)/(180./M_PI)) << std::endl;
       		} else {
 	 		break;
       		}

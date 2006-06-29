@@ -64,9 +64,10 @@ int main(int argn, const char* const argv[])
 
 		Vec3 phi(v1.Cross(v2));
 		doublereal d = phi.Norm();
+		doublereal c = v1*v2;
 		if (d != 0.) {
 			if (normalize) {
-				std::cout << std::asin(d)*180./M_PI;
+				std::cout << std::atan2(d, c)*(180./M_PI);
 
 			} else {
 				std::cout << d;
