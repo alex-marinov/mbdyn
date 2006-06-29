@@ -71,6 +71,7 @@ const char* psExt[] = {
    ".air",
    ".prm",
    ".ext",
+   ".mod",
    NULL
 };
 
@@ -103,6 +104,7 @@ ofLog(),
 ofAirProps(),
 ofParameters(),
 ofExternals(),
+ofModal(),
 iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision), nCurrRestartFile(0)
 {
    OutData[OUTPUT].UseDefaultPrecision = false;
@@ -205,6 +207,10 @@ iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision), nCurrRestartFile(0
    OutData[EXTERNALS].UseScientific = true;
    OutData[EXTERNALS].pof = &ofExternals;
 
+   OutData[MODAL].UseDefaultPrecision = true;
+   OutData[MODAL].UseScientific = true;
+   OutData[MODAL].pof = &ofModal;
+
    for (int iCnt = 0; iCnt < LASTFILE; iCnt++) {
       OutData[iCnt].IsOpen = false;
    }
@@ -240,6 +246,7 @@ ofLog(),
 ofAirProps(),
 ofParameters(),
 ofExternals(),
+ofModal(),
 iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision), nCurrRestartFile(0)
 {
    OutData[OUTPUT].UseDefaultPrecision = false;
@@ -345,6 +352,10 @@ iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision), nCurrRestartFile(0
    OutData[EXTERNALS].UseDefaultPrecision = true;
    OutData[EXTERNALS].UseScientific = true;
    OutData[EXTERNALS].pof = &ofExternals;
+
+   OutData[MODAL].UseDefaultPrecision = true;
+   OutData[MODAL].UseScientific = true;
+   OutData[MODAL].pof = &ofModal;
 
    for (int iCnt = 0; iCnt < LASTFILE; iCnt++) {
       OutData[iCnt].IsOpen = false;

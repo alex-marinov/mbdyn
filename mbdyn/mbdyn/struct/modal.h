@@ -129,7 +129,6 @@ protected:
 	Mat3x3* pR2;
 	Vec3* pF;
 	Vec3* pM;
-	mutable std::ofstream fOutFlex;
    
 	integer iModalIndex;
  
@@ -177,7 +176,6 @@ public:
 			Mat3xN *pInv11,
 			VecN *a,
 			VecN *aP,
-			const char *sFileMod,       
 			DataManager* pDM,
 			MBDynParser& HP,
 			flag fOut);

@@ -75,8 +75,9 @@ public:
 		AIRPROPS,
 		PARAMETERS,
 		EXTERNALS,
+		MODAL,
 
-		LASTFILE		/* = 25 */
+		LASTFILE		/* = 26 */
 };
 
 private:
@@ -114,6 +115,7 @@ private:
 	std::ofstream ofAirProps;
 	std::ofstream ofParameters;
 	std::ofstream ofExternals;
+	std::ofstream ofModal;
 
 	int iCurrWidth;
 	int iCurrPrecision;
@@ -172,6 +174,7 @@ public:
 	inline std::ostream& AirProps(void) const;
 	inline std::ostream& Parameters(void) const;
 	inline std::ostream& Externals(void) const;
+	inline std::ostream& Modal(void) const;
 
 	inline int iW(void) const;
 	inline int iP(void) const;
@@ -448,6 +451,16 @@ OutputHandler::Externals(void) const
 	ASSERT(ofExternal.is_open());
 #endif /* HAVE_ISOPEN */
 	return (std::ostream&)ofExternals;
+}
+
+inline std::ostream&
+OutputHandler::Modal(void) const
+{
+	ASSERT(OutData[MODAL].IsOpen);
+#ifdef HAVE_ISOPEN
+	ASSERT(ofModal.is_open());
+#endif /* HAVE_ISOPEN */
+	return (std::ostream&)ofModal;
 }
 
 inline int

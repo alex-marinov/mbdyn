@@ -2897,8 +2897,7 @@ and orientation of the corresponding FEM nodes.
         <interface_nodes_number> ,
             <fem_node_label> ,
                 <multibody_label> , (Vec3)<offset_of_FEM_node>
-            [ , ... ] ,
-        " <output_file_name> "
+            [ , ... ]
 \end{verbatim}
 The \kw{reference\_modal\_node} is a special dynamic structural node 
 that is required to handle the rigid body motion of the modal joint.
@@ -2985,9 +2984,9 @@ should be avoided unless strictly required.
 \noindent
 \textbf{Note about the FEM file:}
 the format of the \kw{fem\_data\_file} is relatively straightforward;
-each data block is commented; it is reported
+it is reported
 in Appendix~\ref{sec:APP:EL:STRUCT:JOINT:MODAL:FORMAT}.
-In detail, initial modal displacements and velocities can be added,
+Initial modal displacements and velocities can be added,
 if required, by manually editing the file; however this practice
 is discouraged, unless strictly required.
 

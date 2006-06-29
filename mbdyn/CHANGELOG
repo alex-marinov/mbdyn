@@ -23,6 +23,7 @@ MBDyn 1.X-Devel
 		  velocity and acceleration as private data
 	Backward compatibility issues:
 		- double viscoelastic constitutive law syntax changed
+		- per-element output removed from modal joints
 	Known issues:
 	Bug fixes:
 		- fixed orientation matrix input check and diagnostics
@@ -31,6 +32,11 @@ MBDyn 1.X-Devel
 		- fixed Jacobian matrix contribution of revolute pin
 		- fixed initialization of fixed step file drive
 		- fixed --enable-runtime-loading configuration
+		- fixed model::anglerel computation
+		- fixed output of drive hinge
+		- fixed offset dummy node orientation handling
+		  (noted by I. Wander)
+		- fixed misc errors in utils/*
 
 MBDyn 1.2.6
 	Enhancements:

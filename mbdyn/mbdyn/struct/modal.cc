@@ -151,7 +151,6 @@ Modal::Modal(unsigned int uL,
 		Mat3xN *pInv11,
 		VecN *aa,
 		VecN *bb,
-		const char *sFileMod,
 		DataManager* pDM,  /* non serve */
 		MBDynParser& HP,   /* non serve */
 		flag fOut)
@@ -212,8 +211,7 @@ pd2(NULL),
 pR1tot(NULL),
 pR2(NULL),
 pF(NULL),
-pM(NULL),
-fOutFlex(sFileMod, std::ios::out /* | std::ios::noreplace */ )
+pM(NULL)
 {
 	ASSERT(pModalNode->GetStructNodeType() == StructNode::MODAL);
 
@@ -223,13 +221,6 @@ fOutFlex(sFileMod, std::ios::out /* | std::ios::noreplace */ )
 	SAFENEWARR(pR2, Mat3x3, NStrNodes);
 	SAFENEWARR(pF, Vec3, NStrNodes);
 	SAFENEWARR(pM, Vec3, NStrNodes);
-
-	if (!fOutFlex) {
-		silent_cerr("Modal(" << GetLabel() << "): "
-			"unable to open output file \"" << sFileMod << "\""
-			<< std::endl);
-		throw ErrGeneric();
-	}
 
 	for (unsigned int i = 0; i < NStrNodes; i++) {
 		pd1tot[i] = Zero3;
@@ -1344,9 +1335,10 @@ Modal::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
 		/* stampa sul file di output i modi */
+		std::ostream& out = OH.Modal();
 
 		for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
-			fOutFlex << std::setw(8) << iCnt
+			out << std::setw(8) << GetLabel() << '.' << iCnt
 				<< " " << a.dGet(iCnt)
 				<< " " << b.dGet(iCnt)
 				<< " " << bPrime.dGet(iCnt) << std::endl;
@@ -2842,9 +2834,6 @@ ReadModal(DataManager* pDM,
 				"at line " << HP.GetLineData() << std::endl);
 			throw DataManager::ErrGeneric();
 		}
-		silent_cout("Modal(" << uLabel << "): "
-			"reading flexible body data from file "
-			"\"" << sFileFem << "\"" << std::endl);
 
 		std::ofstream fbin;
 		if (bWriteBIN) {
@@ -4211,7 +4200,6 @@ ReadModal(DataManager* pDM,
 	}
 #endif /* DEBUG */
 
-	const char *sFileMod = HP.GetFileName();
 	flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
 
 	SAFENEWWITHCONSTRUCTOR(pEl,
@@ -4251,10 +4239,13 @@ ReadModal(DataManager* pDM,
 				pInv11,
 				a,
 				aP,
-				sFileMod,
 				pDM,
 				HP,
 				fOut));
+
+	if (fOut) {
+		pDM->OutputOpen(OutputHandler::MODAL);
+	}
 
 	return pEl;
 }
