@@ -1976,7 +1976,8 @@ void DataManager::ReadDrivers(MBDynParser& HP)
    int iNumTypes[Drive::LASTDRIVETYPE];
    for (int i = 0; 
 	i < Drive::LASTDRIVETYPE; 
-	iNumTypes[i] = DriveData[i++].iNum) { 
+	iNumTypes[i] = DriveData[i].iNum) {
+	i++; 
       NO_OP; 
    }   
    
