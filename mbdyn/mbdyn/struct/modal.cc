@@ -2507,6 +2507,10 @@ ReadModal(DataManager* pDM,
 	Vec3 X0(Zero3);
 	Mat3x3 R(Eye3);
 
+	silent_cout("Modal(" << uLabel << "): warning, the syntax changed "
+		"since 1.2.7; the output now occurs to a common \".mod\" file, "
+		"the per-element file is no longer required." << std::endl);
+
 	/* If the modal element is clamped, a fixed position 
 	 * and orientation of the reference point can be added */
 	if (HP.IsKeyWord("clamped")) {
