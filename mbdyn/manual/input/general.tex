@@ -698,12 +698,18 @@ where \kw{file\_name} is the name of a runtime loadable object,
 causes the object to be opened, and a function \kw{module\_init},
 with prototype
 \begin{verbatim}
-    int module_init(const char *module_name,
-        void *data_manager, void* mbdyn_parser);
+        extern "C" int
+        module_init(const char *module_name,
+                void *data_manager, void* mbdyn_parser);
 \end{verbatim}
-to be executed; the function is assumed to perform the operations
-required by the module, eventually taking advantage of the parsing
+to be executed.
+The function is assumed to perform the operations required to initialize
+the module, eventually taking advantage of the parsing
 and of the data manager; see the technical manual for details.
+The function is expected to take care of the \kw{module\_arglist}
+arguments; in detail, module developers are encouraged to support
+\kw{help} as the first optional argument, that prints to standard output
+as much information as possible about the use of the module.
 The typical use consists in registering some methods for later use;
 a clear example is given in
 \begin{verbatim}
@@ -713,7 +719,7 @@ where the function registers the loadable element in the set
 of loadable element handlers which can later be retrieved by using
 the syntax described in Section~\ref{sec:EL:BASE:LOADABLE}.
 Note, however, that the execution of the \kw{module\_init} function 
-may be used for any purpose; typically, to register handlers of any kind
+may be used for any purpose; typically, to register any kind of handlers
 for subsequent use.
 
 
