@@ -180,7 +180,7 @@ ExtForce::Send(void)
 		}
 	}
 
-	std::string tmpout(fout.c_str() + ".tmp");
+	std::string tmpout(fout + ".tmp");
 	std::ofstream	outf(tmpout.c_str());
 
 	if (!outf) {
@@ -203,7 +203,7 @@ ExtForce::Send(void)
 
 	/* send */
 	outf.close();
-	std::ofstream	rename(tmpout.c_str(), fout.c_str());
+	rename(tmpout.c_str(), fout.c_str());
 }
 
 SubVectorHandler&
