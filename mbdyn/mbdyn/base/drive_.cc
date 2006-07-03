@@ -532,6 +532,86 @@ std::ostream& SineDriveCaller::Restart(std::ostream& out) const
 /* SineDriveCaller - end */
 
 
+/* FourierSeriesDriveCaller - begin */
+
+FourierSeriesDriveCaller::FourierSeriesDriveCaller(const DriveHandler* pDH,
+	doublereal dStartTime,
+	doublereal dOmega,
+	std::vector<doublereal>& a, 
+	integer iNumCyc,
+	doublereal dInitialValue)
+: DriveCaller(pDH),
+dStartTime(dStartTime),
+dOmega(dOmega),
+iNumCycles(iNumCyc),
+dInitialValue(dInitialValue),
+bNeverEnd(false)
+{
+	ASSERT(iNumCycles >= 0);
+
+	if (iNumCycles > 0) {
+		dEndTime = dStartTime
+			+ 2.*M_PI/dOmega*doublereal(iNumCycles);
+	
+	/* Onde di coseno che continuano all'infinito */
+	} else if (iNumCycles == 0) {	     
+		dEndTime = 0.;
+		bNeverEnd = true;
+	}
+
+	amplitudes.resize(a.size());
+	for (unsigned i; i < a.size(); i++) {
+		amplitudes[i] = a[i];
+	}
+}
+
+
+FourierSeriesDriveCaller::~FourierSeriesDriveCaller(void)
+{
+	NO_OP;
+}
+
+
+/* Copia */
+DriveCaller*
+FourierSeriesDriveCaller::pCopy(void) const
+{
+	DriveCaller* pDC = 0;
+
+	SAFENEWWITHCONSTRUCTOR(pDC, 
+		FourierSeriesDriveCaller, 
+		FourierSeriesDriveCaller(pDrvHdl,
+			dStartTime,
+			dOmega,
+			amplitudes,
+			iNumCycles,
+			dInitialValue));
+ 
+	return pDC;
+}
+
+
+/* Scrive il contributo del DriveCaller al file di restart */   
+std::ostream&
+FourierSeriesDriveCaller::Restart(std::ostream& out) const
+{
+	return out
+		<< " fourier series, "
+		<< dStartTime << ", "
+		<< dOmega << ", "
+		<< amplitudes.size()/2 << ", "
+		<< amplitudes[0] << ", ";
+	for (unsigned i = 1; i < amplitudes.size(); i++) {
+		out << amplitudes[i] << ", ";
+	}
+	out
+		<< iNumCycles << ", "
+		<< dInitialValue;
+}
+
+/* FourierSeriesDriveCaller - end */
+
+
 /* CosineDriveCaller - begin */
 
 CosineDriveCaller::CosineDriveCaller(const DriveHandler* pDH,
@@ -957,6 +1037,7 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	"double" "ramp",
 	"sine",
 	"cosine",
+	"fourier" "series",
 	"frequency" "sweep",
 	"exponential",
 	"random",
@@ -990,6 +1071,7 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	DOUBLERAMP,
 	SINE,
 	COSINE,
+	FOURIERSERIES,
 	FREQUENCYSWEEP,
 	EXPONENTIAL,
 	RANDOM,
@@ -1356,6 +1438,56 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 						   iNumCycles,
 						   dInitialValue));
        }
+       
+       break;
+    }
+      
+      /* Seno e coseno (limitati, illimitati, saturati) */
+    case FOURIERSERIES: {	
+       doublereal dInitialTime = HP.GetReal();
+       DEBUGCOUT("Initial time: " << dInitialTime << std::endl);
+       
+       doublereal dOmega = HP.GetReal(1.);
+       DEBUGCOUT("Omega: " << dOmega << std::endl);
+
+       int n = HP.GetInt();
+       if (n <= 0) {
+	       silent_cerr("FourierSeriesDriveCaller: invalid order " << n
+		       << " at line " << HP.GetLineData() << std::endl);
+	       throw ErrGeneric();
+       }
+
+       std::vector<doublereal> a(1 + 2*n); 
+       for (unsigned i = 0; i < 1 + 2*unsigned(n); i++) {
+	       a[i] = HP.GetReal();
+       }
+       
+       integer iNumCycles;
+       if (HP.IsKeyWord("forever")) {
+	  iNumCycles = 0;
+       } else if (HP.IsKeyWord("one")) {
+	  iNumCycles = 1;
+       } else {
+          iNumCycles = HP.GetInt();
+       }
+       DEBUGCOUT("Number of cycles: " << iNumCycles << std::endl);
+       if (iNumCycles < 0) {
+	       silent_cerr("FourierSeriesDriveCaller: invalid number of cycles "
+		       << iNumCycles << " at line " << HP.GetLineData() << std::endl);
+	       throw ErrGeneric();
+       }
+       
+       doublereal dInitialValue = HP.GetReal();	   
+       DEBUGCOUT("InitialValue: " << dInitialValue << std::endl);
+       
+       SAFENEWWITHCONSTRUCTOR(pDC,
+		FourierSeriesDriveCaller,
+		FourierSeriesDriveCaller(pDrvHdl,
+			dInitialTime,
+			dOmega,
+			a,
+			iNumCycles,
+			dInitialValue));
        
        break;
     }

@@ -1191,6 +1191,35 @@ Special keywords can be used for \kw{number\_of\_cycles}:
 	so the function stops at \kw{amplitude} + \kw{initial\_value}.
 \end{itemize}
 
+\subsection{Fourier series drive}
+\begin{verbatim}
+    <drive_caller> ::= fourier series ,
+        <initial_time> ,
+        <pulsation> ,
+        <num_terms> ,
+        a_0 ,
+        a_1 , b_1 , [ ... ]
+        { <number_of_cycles> | one | forever } , 
+        <initial_value>
+\end{verbatim}
+This drive corresponds to a truncated Fourier series over a given number
+of periods starting at a given initial time as
+\begin{displaymath}
+	f\plbr{t} = a_0 + \sum_{k=1}^n \plbr{
+		a_k \cos\plbr{k\omega t}
+		+ b_k \sin\plbr{k\omega t}
+	}
+\end{displaymath}
+The value of \kw{number\_of\_cycles} determines the behavior of the
+drive. 
+If it is positive, \kw{number\_of\_cycles} oscillations are
+performed.
+Special keywords can be used for \kw{number\_of\_cycles}:
+\begin{itemize}
+	\item \kw{forever}, which means the oscillation never stops;
+	\item \kw{one}, which means exactly one cycle is performed;
+\end{itemize}
+
 \subsection{Frequency sweep drive}
 \begin{verbatim}
     <drive_caller> ::= frequency sweep ,

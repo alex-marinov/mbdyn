@@ -504,6 +504,61 @@ inline doublereal CosineDriveCaller::dGet(const doublereal& dVar) const
 /* CosineDriveCaller - end */
 
 
+/* FourierSeriesDriveCaller - begin */
+
+class FourierSeriesDriveCaller : public DriveCaller {
+private:
+	doublereal dStartTime;
+	doublereal dOmega;
+	mutable std::vector<doublereal> amplitudes;
+	integer iNumCycles;
+	doublereal dInitialValue;
+	doublereal dEndTime;
+	bool bNeverEnd;
+
+public:
+	FourierSeriesDriveCaller(const DriveHandler* pDH,
+		doublereal dStartTime,
+		doublereal dOmega,
+		std::vector<doublereal>& a, 
+		integer iNumCyc,
+		doublereal dInitialValue);
+	~FourierSeriesDriveCaller(void);
+
+	/* Copia */
+	virtual DriveCaller* pCopy(void) const;
+
+	/* Scrive il contributo del DriveCaller al file di restart */   
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	inline doublereal dGet(const doublereal& dVar) const;
+	/* inline doublereal dGet(void) const; */
+};
+
+
+inline doublereal
+FourierSeriesDriveCaller::dGet(const doublereal& dVar) const
+{
+	doublereal d = dInitialValue;
+
+	if (dVar >= dStartTime || dVar < dEndTime) {
+		doublereal t = dVar - dStartTime;
+
+		d += amplitudes[0];
+
+		for (unsigned i = 2; i < amplitudes.size(); i += 2 ) {
+			doublereal theta = (i/2)*dOmega*t;
+
+			d += amplitudes[i - 1]*cos(theta) + amplitudes[i]*sin(theta);
+		}
+	}
+
+	return d;
+}
+
+/* FourierSeriesDriveCaller - end */
+
+
 /* FreqSweepDriveCaller - begin */
 
 class FreqSweepDriveCaller : public DriveCaller {
