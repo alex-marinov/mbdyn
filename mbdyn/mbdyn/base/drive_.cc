@@ -560,7 +560,7 @@ bNeverEnd(false)
 	}
 
 	amplitudes.resize(a.size());
-	for (unsigned i; i < a.size(); i++) {
+	for (unsigned i = 0; i < a.size(); i++) {
 		amplitudes[i] = a[i];
 	}
 }
@@ -600,7 +600,7 @@ FourierSeriesDriveCaller::Restart(std::ostream& out) const
 		<< dStartTime << ", "
 		<< dOmega << ", "
 		<< amplitudes.size()/2 << ", "
-		<< amplitudes[0] << ", ";
+		<< 2.*amplitudes[0] << ", ";
 	for (unsigned i = 1; i < amplitudes.size(); i++) {
 		out << amplitudes[i] << ", ";
 	}
@@ -1461,6 +1461,8 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
        for (unsigned i = 0; i < 1 + 2*unsigned(n); i++) {
 	       a[i] = HP.GetReal();
        }
+       /* don't remember why, but the series starts with a_0/2 */
+       a[0] /= 2.;
        
        integer iNumCycles;
        if (HP.IsKeyWord("forever")) {

@@ -541,7 +541,7 @@ FourierSeriesDriveCaller::dGet(const doublereal& dVar) const
 {
 	doublereal d = dInitialValue;
 
-	if (dVar >= dStartTime || dVar < dEndTime) {
+	if (dVar >= dStartTime && (bNeverEnd || dVar < dEndTime)) {
 		doublereal t = dVar - dStartTime;
 
 		d += amplitudes[0];
