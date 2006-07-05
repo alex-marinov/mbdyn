@@ -90,8 +90,7 @@ or "\fIMBDyn\fP".
 Issue pedantic warnings (more occurrences raise the level).
 .TP
 .B \-p, \-\-parallel
-Run in parallel mode (only if compiled with MPI); currently needs
-"parallel;" statement in "data" block.
+Run in parallel mode (only if compiled with MPI).
 .TP
 .B \-R, \-\-no\-redefine
 Do not allow symbols in the mathematical parser to be redefined.
