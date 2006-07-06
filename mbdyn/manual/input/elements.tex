@@ -1711,6 +1711,11 @@ which can be structural only.
 It is discussed in this section because of its input syntax commonality 
 with the structural force elements.
 
+There is yet another type of structural force,
+the \kw{external structural}, which is essentially used to provide
+an easy to use interface for coupling with external software
+in a loose or tight manner (the tight manner is not implemented yet).
+
 \subsection{Output}
 The output is discussed according to the types of forces. 
 The label of the element is output first in all the cases.
@@ -1802,7 +1807,7 @@ Example:
                         <node2> ,
                         (drive_caller) <couple_magnitude>
 \end{verbatim}
-i.e.\ the arm is not required. 
+i.e., as opposed to forces, the arm is not required. 
 
 \subsubsection{Output}
 The format is:
@@ -1824,6 +1829,54 @@ future.
 }
 
 
+\subsection{External structural}
+This element allows to communicate with an external software that computes
+forces applied in a pool of nodes and may depend on the kinematics of those
+nodes.
+Communication occurs by means of regulr files; a socket-based extension
+may appear in the future.
+\begin{verbatim}
+    <force_type> ::= external structural
+    <force_arglist> ::= " <input_file_name> " , [ unlink , ]
+        " <output_file_name> " , [ no clobber , ]
+        [ sleep time , <sleep_time> , ]
+        <num_nodes> ,
+            <node_label> [ , offset , (Vec3) <offset> ]
+            [ , ... ]
+\end{verbatim}
+
+\kw{input\_file\_name} is the name of the file MBDyn expects to find
+with the values of the forces in textual form, formatted as follows:
+\begin{itemize}
+\item a label
+\item three components of force in the global frame
+\item three components of moment in the global frame
+\end{itemize}
+The label indicates what node the force and the moment apply to; 
+each force is applied in a point that may be optionally offset 
+from the corresponding node location according to \kw{offset}.
+The option \kw{unlink} indicates that MBDyn is supposed to unlink
+the file as soon as it is ready to read another one.
+
+\kw{output\_file\_name} is the name of the file MBDyn creates
+to communicate the kinematics of the pool of nodes to the external software,
+in textual form, formatted as follows:
+\begin{itemize}
+\item a label
+\item the position in the global frame
+\item the orientation matrix in the global frame
+\item the velocity with respect to the global frame
+\item the angular velocity with respect to the global frame
+\end{itemize}
+The label indicates what node the kinematics is related to;
+the position and the velocity refer to a point that may be optionally
+offset from the node location according to \kw{offset}.
+The option \kw{no clobber} indicates that MBDyn is supposed to wait
+until the external software removed the file before generating a new one.
+
+The optional parameter \kw{sleep\_time} determines how long MBDyn
+is supposed to sleep while waiting for a new input file to appear
+or for an old output file to disappear.
 
 
 

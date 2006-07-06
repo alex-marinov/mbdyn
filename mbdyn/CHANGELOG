@@ -22,6 +22,8 @@ MBDyn 1.X-Devel
 		- added access to modal element FEM nodes position,
 		  velocity and acceleration as private data
 		- added truncated Fourier series drive
+		- added generic external forces for loose/tight coupling
+		  with external software via files
 	Backward compatibility issues:
 		- double viscoelastic constitutive law syntax changed
 		- per-element output removed from modal joints
