@@ -927,8 +927,23 @@ DriveArrayCaller::Restart(std::ostream& out) const
 /* DriveArrayCaller - end */
 
 /* bag that contains functions to parse drive callers */
-typedef std::map<std::string, ReadDriveDataFunc> DrvFuncMapType;
+
+struct ltstrcase {
+	/* case-insensitive string comparison */
+	bool operator()(const std::string& s1, const std::string& s2) const {
+		return strcasecmp(s1.c_str(), s2.c_str()) < 0;
+	};
+};
+
+typedef std::map<std::string, ReadDriveDataFunc, ltstrcase> DrvFuncMapType;
 static DrvFuncMapType DrvFuncMap;
+
+struct DriveWordSetType : public HighParser::WordSet {
+	bool IsWord(const char *s) const {
+		return DrvFuncMap.find(std::string(s)) != DrvFuncMap.end();
+	};
+};
+static DriveWordSetType DriveWordSet;
 
 void
 SetDriveData(const char *name, ReadDriveDataFunc func)
@@ -943,7 +958,7 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	DEBUGCOUTFNAME("ReadDriveData()");
 
-	const char *s = HP.GetString(HighParser::EATSPACES|HighParser::LOWER);
+	const char *s = HP.IsWord(DriveWordSet);
 	if (s == 0) {
 		s = "const";
 	}

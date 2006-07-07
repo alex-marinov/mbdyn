@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2006
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -38,22 +38,30 @@
 
 template <class T>
 class TplDriveCaller {
- public:
-   virtual ~TplDriveCaller(void) { 
-      NO_OP;
-   };
-   
-   /* copia */
-   virtual TplDriveCaller<T>* pCopy(void) const = 0;
-   
-   /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual std::ostream& Restart(std::ostream& out) const = 0;
-   virtual std::ostream& Restart_int(std::ostream& out) const = 0;
-   
-   /* Restituisce il valore del driver */
-   virtual T Get(void) const = 0;
-   
-   virtual int getNDrives(void) const = 0;
+public:
+	virtual ~TplDriveCaller(void) {
+		NO_OP;
+	};
+
+	/* copia */
+	virtual TplDriveCaller<T>* pCopy(void) const = 0;
+
+	/* Scrive il contributo del DriveCaller al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const = 0;
+	virtual std::ostream& Restart_int(std::ostream& out) const = 0;
+
+	/* Restituisce il valore del driver */
+	virtual T Get(void) const = 0;
+
+	/* this is about drives that are differentiable */
+	virtual bool bIsDifferentiable(void) const {
+		return false;
+	};
+	virtual T GetP(void) const {
+		throw ErrGeneric();
+	};
+
+	virtual int getNDrives(void) const = 0;
 };
 
 /* TplDriveCaller - end */
@@ -63,32 +71,40 @@ class TplDriveCaller {
 
 template <class T>
 class TplDriveOwner {
- protected:
-   TplDriveCaller<T>* pTplDriveCaller;
-   
- public:
-   TplDriveOwner(const TplDriveCaller<T>* pDC = NULL)
-     : pTplDriveCaller((TplDriveCaller<T>*)pDC) { 
-	NO_OP;
-     };
-   
-   virtual ~TplDriveOwner(void) { 
-      SAFEDELETE(pTplDriveCaller);
-   };
-   
-   void Set(const TplDriveCaller<T>* pDC) {
-      ASSERT(pDC != NULL);
-      ASSERT(pTplDriveCaller == NULL);
-      pTplDriveCaller = (TplDriveCaller<T>*)pDC;
-   };
-   
-   TplDriveCaller<T>* pGetDriveCaller(void) const { 
-      return pTplDriveCaller;
-   };
-   
-   T Get(void) const { 
-      return pTplDriveCaller->Get(); 
-   };
+protected:
+	TplDriveCaller<T>* pTplDriveCaller;
+
+public:
+	TplDriveOwner(const TplDriveCaller<T>* pDC = NULL)
+	: pTplDriveCaller((TplDriveCaller<T>*)pDC) {
+		NO_OP;
+	};
+
+	virtual ~TplDriveOwner(void) {
+		SAFEDELETE(pTplDriveCaller);
+	};
+
+	void Set(const TplDriveCaller<T>* pDC) {
+		ASSERT(pDC != NULL);
+		ASSERT(pTplDriveCaller == NULL);
+		pTplDriveCaller = (TplDriveCaller<T>*)pDC;
+	};
+
+	TplDriveCaller<T>* pGetDriveCaller(void) const {
+		return pTplDriveCaller;
+	};
+
+	T Get(void) const {
+		return pTplDriveCaller->Get();
+	};
+
+	/* this is about drives that are differentiable */
+	virtual bool bIsDifferentiable(void) const {
+		return pTplDriveCaller->bIsDifferentiable();
+	};
+	virtual T GetP(void) const {
+		return pTplDriveCaller->GetP();
+	};
 };
 
 /* TplDriveOwner - end */

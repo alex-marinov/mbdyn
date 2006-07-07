@@ -115,7 +115,8 @@ DCHD(),
 DC(DCHD),
 pDM(0)
 {
-	NO_OP;
+	/* make sure this is init'ed */
+	InitDriveData();
 }   
 
 

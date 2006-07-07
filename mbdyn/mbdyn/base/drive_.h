@@ -358,6 +358,13 @@ public:
 #if 0
 	inline doublereal dGet(void) const;
 #endif
+
+	/* this is about drives that are differentiable */
+	virtual bool bIsDifferentiable(void) const;
+	virtual doublereal dGetP(const doublereal& dVar) const;
+#if 0
+	virtual inline doublereal dGetP(void) const;
+#endif
 };
 
 inline doublereal
@@ -373,6 +380,24 @@ StepDriveCaller::dGet(const doublereal& dVar) const
 
 	/* else if dVar == dStepTime */
 	return (dInitialValue + dStepValue)/2.;
+}
+
+inline bool
+StepDriveCaller::bIsDifferentiable(void) const
+{
+	return true;
+}
+
+inline doublereal 
+StepDriveCaller::dGetP(const doublereal& dVar) const
+{
+	/* FIXME: what if we get exactly to the step time? */
+	if (dVar == dStepTime) {
+		silent_cerr("singularity in step drive derivative at " << dVar << std::endl);
+		throw ErrGeneric();
+	}
+
+	return 0.;
 }
 
 /* StepDriveCaller - end */
@@ -403,6 +428,13 @@ public:
 #if 0
 	inline doublereal dGet(void) const;
 #endif
+
+	/* this is about drives that are differentiable */
+	virtual bool bIsDifferentiable(void) const;
+	virtual doublereal dGetP(const doublereal& dVar) const;
+#if 0
+	virtual inline doublereal dGetP(void) const;
+#endif
 };
 
 inline doublereal
@@ -418,6 +450,24 @@ DoubleStepDriveCaller::dGet(const doublereal& dVar) const
 
 	/* else if dVar == dStepTime || dVar == dEndStepTime */
 	return (dInitialValue + dStepValue)/2.;
+}
+
+inline bool
+DoubleStepDriveCaller::bIsDifferentiable(void) const
+{
+	return true;
+}
+
+inline doublereal 
+DoubleStepDriveCaller::dGetP(const doublereal& dVar) const
+{
+	/* FIXME: what if we get exactly to the step time? */
+	if (dVar == dStepTime || dVar == dEndStepTime) {
+		silent_cerr("singularity in double step drive derivative at " << dVar << std::endl);
+		throw ErrGeneric();
+	}
+
+	return 0.;
 }
 
 /* DoubleStepDriveCaller - end */
@@ -447,6 +497,13 @@ public:
 #if 0
 	inline doublereal dGet(void) const;
 #endif
+
+	/* this is about drives that are differentiable */
+	virtual bool bIsDifferentiable(void) const;
+	virtual doublereal dGetP(const doublereal& dVar) const;
+#if 0
+	virtual inline doublereal dGetP(void) const;
+#endif
 };
 
 inline doublereal
@@ -467,6 +524,26 @@ RampDriveCaller::dGet(const doublereal& dVar) const
 	}
 
 	return dVal;
+}
+
+inline bool
+RampDriveCaller::bIsDifferentiable(void) const
+{
+	return true;
+}
+
+inline doublereal 
+RampDriveCaller::dGetP(const doublereal& dVar) const
+{
+	if (dVar < dStartTime || dVar > dEndTime) {
+		return 0.;
+	}
+
+	if (dVar == dStartTime || dVar == dEndTime) {
+		return dSlope/2.;
+	}
+
+	return dSlope;
 }
 
 /* RampDriveCaller - end */
@@ -503,6 +580,13 @@ public:
 #if 0
 	inline doublereal dGet(void) const;
 #endif
+
+	/* this is about drives that are differentiable */
+	virtual bool bIsDifferentiable(void) const;
+	virtual doublereal dGetP(const doublereal& dVar) const;
+#if 0
+	virtual inline doublereal dGetP(void) const;
+#endif
 };
 
 inline doublereal
@@ -534,6 +618,36 @@ DoubleRampDriveCaller::dGet(const doublereal& dVar) const
 	}
 
 	return dVal;
+}
+
+inline bool
+DoubleRampDriveCaller::bIsDifferentiable(void) const
+{
+	return true;
+}
+
+inline doublereal 
+DoubleRampDriveCaller::dGetP(const doublereal& dVar) const
+{
+	if (dVar < dAscendingStartTime || dVar > dDescendingEndTime
+		|| (dVar > dAscendingEndTime && dVar < dDescendingStartTime))
+	{
+		return 0.;
+	}
+
+	if (dVar == dAscendingStartTime || dVar == dAscendingEndTime) {
+		return dAscendingSlope/2.;
+	}
+
+	if (dVar == dDescendingStartTime || dVar == dDescendingEndTime) {
+		return dDescendingSlope/2.;
+	}
+
+	if (dVar < dAscendingEndTime) {
+		return dAscendingSlope;
+	}
+
+	return dDescendingSlope;
 }
 
 /* DoubleRampDriveCaller - end */
@@ -568,6 +682,13 @@ public:
 #if 0
 	inline doublereal dGet(void) const;
 #endif
+
+	/* this is about drives that are differentiable */
+	virtual bool bIsDifferentiable(void) const;
+	virtual doublereal dGetP(const doublereal& dVar) const;
+#if 0
+	virtual inline doublereal dGetP(void) const;
+#endif
 };
 
 inline doublereal
@@ -583,6 +704,31 @@ SineDriveCaller::dGet(const doublereal& dVar) const
 
 	/* else if dVar > dEndTime */
 	return dFinalValue;
+}
+
+inline bool
+SineDriveCaller::bIsDifferentiable(void) const
+{
+	return true;
+}
+
+inline doublereal 
+SineDriveCaller::dGetP(const doublereal& dVar) const
+{
+	if (dVar < dStartTime) {
+		return 0.;
+	}
+
+	if (!bNeverEnd && dVar > dEndTime) {
+		return 0.;
+	}
+
+	doublereal dVal = dAmplitude*dOmega*cos(dOmega*(dVar - dStartTime));
+	if (dVar == dStartTime || (!bNeverEnd && dVar == dEndTime)) {
+		dVal /= 2.;
+	}
+
+	return dVal;
 }
 
 /* SineDriveCaller - end */
@@ -617,6 +763,13 @@ public:
 #if 0
 	inline doublereal dGet(void) const;
 #endif
+
+	/* this is about drives that are differentiable */
+	virtual bool bIsDifferentiable(void) const;
+	virtual doublereal dGetP(const doublereal& dVar) const;
+#if 0
+	virtual inline doublereal dGetP(void) const;
+#endif
 };
 
 inline doublereal
@@ -632,6 +785,26 @@ CosineDriveCaller::dGet(const doublereal& dVar) const
 
 	/* else if dTime > dEndTime */
 	return dFinalValue;
+}
+
+inline bool
+CosineDriveCaller::bIsDifferentiable(void) const
+{
+	return true;
+}
+
+inline doublereal 
+CosineDriveCaller::dGetP(const doublereal& dVar) const
+{
+	if (dVar < dStartTime) {
+		return 0.;
+	}
+
+	if (!bNeverEnd && dVar > dEndTime) {
+		return 0.;
+	}
+
+	return -dAmplitude*dOmega*sin(dOmega*(dVar - dStartTime));
 }
 
 /* CosineDriveCaller - end */
@@ -668,6 +841,13 @@ public:
 #if 0
 	inline doublereal dGet(void) const;
 #endif
+
+	/* this is about drives that are differentiable */
+	virtual bool bIsDifferentiable(void) const;
+	virtual doublereal dGetP(const doublereal& dVar) const;
+#if 0
+	virtual inline doublereal dGetP(void) const;
+#endif
 };
 
 inline doublereal
@@ -688,6 +868,48 @@ FourierSeriesDriveCaller::dGet(const doublereal& dVar) const
 	}
 
 	return d;
+}
+
+inline bool
+FourierSeriesDriveCaller::bIsDifferentiable(void) const
+{
+	return true;
+}
+
+inline doublereal 
+FourierSeriesDriveCaller::dGetP(const doublereal& dVar) const
+{
+	if (dVar < dStartTime) {
+		return 0.;
+	}
+
+	if (!bNeverEnd && dVar > dEndTime) {
+		return 0.;
+	}
+
+	doublereal t = dVar - dStartTime;
+	doublereal dVal = 0.;
+	bool bSingular = (amplitudes[0] != 0);
+	for (unsigned i = 2; i < amplitudes.size(); i += 2 ) {
+		doublereal omega = (i/2)*dOmega;
+		doublereal theta = omega*t;
+
+		dVal += omega*(-amplitudes[i - 1]*sin(theta) + amplitudes[i]*cos(theta));
+
+		if (amplitudes[i - 1] != 0) {
+			bSingular = true;
+		}
+	}
+
+	if (dVar == dStartTime || (!bNeverEnd && dVar == dEndTime)) {
+		if (bSingular) {
+			silent_cerr("singularity in fourier series drive derivative at " << dVar << std::endl);
+			throw ErrGeneric();
+		}
+		dVal /= 2.;
+	}
+
+	return dVal;
 }
 
 /* FourierSeriesDriveCaller - end */
@@ -725,6 +947,13 @@ public:
 #if 0
 	inline doublereal dGet(void) const;
 #endif
+
+	/* this is about drives that are differentiable */
+	virtual bool bIsDifferentiable(void) const;
+	virtual doublereal dGetP(const doublereal& dVar) const;
+#if 0
+	virtual inline doublereal dGetP(void) const;
+#endif
 };
 
 inline doublereal
@@ -740,6 +969,33 @@ FreqSweepDriveCaller::dGet(const doublereal& dVar) const
 
 	/* else if dVar > dEndTime */
 	return dFinalValue;
+}
+
+inline bool
+FreqSweepDriveCaller::bIsDifferentiable(void) const
+{
+	return pAmplitude->bIsDifferentiable() && pOmega->bIsDifferentiable();
+}
+
+inline doublereal 
+FreqSweepDriveCaller::dGetP(const doublereal& dVar) const
+{
+	if (dVar < dStartTime || (!bNeverEnd && dVar > dEndTime)) {
+		return 0.;
+	}
+
+	doublereal A = pAmplitude->dGet(dVar);
+	doublereal w = pOmega->dGet(dVar);
+	doublereal AP = pAmplitude->dGetP(dVar);
+	doublereal wP = pOmega->dGetP(dVar);
+	doublereal t = dVar - dStartTime;
+
+	doublereal dVal = AP*sin(w*t) + A*cos(w*t)*(wP*t + w);
+	if (dVar == dStartTime || (!bNeverEnd && dVar == dEndTime)) {
+		dVal /= 2.;
+	}
+
+	return dVal;
 }
 
 /* FreqSweepDriveCaller - end */
@@ -770,6 +1026,13 @@ public:
 #if 0
 	inline doublereal dGet(void) const;
 #endif
+
+	/* this is about drives that are differentiable */
+	virtual bool bIsDifferentiable(void) const;
+	virtual doublereal dGetP(const doublereal& dVar) const;
+#if 0
+	virtual inline doublereal dGetP(void) const;
+#endif
 };
 
 inline doublereal
@@ -781,6 +1044,27 @@ ExpDriveCaller::dGet(const doublereal& dVar) const
 
 	return dInitialValue
 		+ dAmplitude*(1. - exp((dStartTime - dVar)/dTimeConst));
+}
+
+inline bool
+ExpDriveCaller::bIsDifferentiable(void) const
+{
+	return true;
+}
+
+inline doublereal 
+ExpDriveCaller::dGetP(const doublereal& dVar) const
+{
+	if (dVar < dStartTime) {
+		return 0.;
+	}
+
+	doublereal dVal = -dAmplitude/dTimeConst*exp((dStartTime - dVar)/dTimeConst);
+	if (dVal == dStartTime) {
+		dVal /= 2.;
+	}
+
+	return dVal;
 }
 
 /* ExpDriveCaller - end */
@@ -898,6 +1182,13 @@ public:
 	virtual std::ostream& Restart(std::ostream& out) const;
 
 	inline doublereal dGet(const doublereal& dVar) const;
+
+	/* this is about drives that are differentiable */
+	virtual bool bIsDifferentiable(void) const;
+	virtual doublereal dGetP(const doublereal& dVar) const;
+#if 0
+	virtual inline doublereal dGetP(void) const;
+#endif
 };
 
 inline doublereal
@@ -919,6 +1210,43 @@ PiecewiseLinearDriveCaller::dGet(const doublereal& dVar) const
 			doublereal dx = pPoints[i] - pPoints[i - 1];
 			return ((dVar - pPoints[i - 1])*pVals[i]
 				+ (pPoints[i] - dVar)*pVals[i - 1])/dx;
+		}
+	}
+
+	throw ErrGeneric();
+}
+
+inline bool
+PiecewiseLinearDriveCaller::bIsDifferentiable(void) const
+{
+	return true;
+}
+
+inline doublereal 
+PiecewiseLinearDriveCaller::dGetP(const doublereal& dVar) const
+{
+	if (dVar < pPoints[0] || dVar > pPoints[iNumPoints - 1]) {
+		return 0.;
+	}
+
+	if (dVar == pPoints[0]) {
+		return (pVals[1] - pVals[0])/(pPoints[1] - pPoints[0])/2.;
+	}
+
+	if (dVar == pPoints[iNumPoints - 1]) {
+		return (pVals[iNumPoints - 1] - pVals[iNumPoints - 2])/(pPoints[iNumPoints - 1] - pPoints[iNumPoints - 2])/2.;
+	}
+
+	for (unsigned int i = 1; i < iNumPoints; i++) {
+		if (dVar == pPoints[i]) {
+			doublereal dS1 = (pVals[i] - pVals[i - 1])/(pPoints[i] - pPoints[i - 1]);
+			doublereal dS2 = (pVals[i + 1] - pVals[i])/(pPoints[i + 1] - pPoints[i]);
+
+			return (dS1 + dS2)/2.;
+		}
+
+		if (dVar < pPoints[i]) {
+			return (pVals[i] - pVals[i - 1])/(pPoints[i] - pPoints[i - 1]);
 		}
 	}
 
@@ -948,6 +1276,13 @@ public:
 
 	inline doublereal dGet(const doublereal& dVar) const;
 	inline doublereal dGet(void) const;
+
+	/* this is about drives that are differentiable */
+	virtual bool bIsDifferentiable(void) const;
+	virtual doublereal dGetP(const doublereal& dVar) const;
+#if 0
+	virtual inline doublereal dGetP(void) const;
+#endif
 };
 
 inline doublereal
@@ -974,6 +1309,32 @@ DriveArrayCaller::dGet(void) const
 	}
 
 	return d;
+}
+
+inline bool
+DriveArrayCaller::bIsDifferentiable(void) const
+{
+	for (int i = 0; i < iNumDrivers; i++) {
+		ASSERT(ppDriveCallers[i] != 0);
+		if (!ppDriveCallers[i]->bIsDifferentiable()) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+inline doublereal 
+DriveArrayCaller::dGetP(const doublereal& dVar) const
+{
+	doublereal dP = 0.;
+
+	for (int i = 0; i < iNumDrivers; i++) {
+		ASSERT(ppDriveCallers[i] != 0);
+		dP += ppDriveCallers[i]->dGetP();
+	}
+
+	return dP;
 }
 
 /* DriveArrayCaller - end */
