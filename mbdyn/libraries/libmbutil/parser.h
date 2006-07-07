@@ -241,7 +241,19 @@ public:
 		const char* sFileName;
 		unsigned int iLineNumber;
 	};
+
+	struct WordSet {
+		virtual bool IsWord(const char *s) const = 0;
+	};
    
+	enum {
+		NONE		= 0x00U,
+		EATSPACES	= 0x01U,
+		ESCAPE		= 0x02U,
+		LOWER		= 0x04U,
+		UPPER		= 0x08U
+	};
+
 protected:   
 	/* Parser di basso livello, per semplice lettura dei tipi piu' comuni */
 	LowParser LowP;
@@ -275,6 +287,9 @@ protected:
 	virtual bool GetDescription_int(const char *s);
 	virtual void Eof(void);
 
+	int ParseWord(unsigned flags = HighParser::NONE);
+	void PutbackWord(void);
+
 public:   
 	HighParser(MathParser& MP, InputStream& streamIn);
 	virtual ~HighParser(void);
@@ -302,6 +317,8 @@ public:
 	virtual int IsKeyWord(void);
 	/* 1 se e' atteso un argomento */
 	virtual bool IsArg(void);
+	/* se l'argomento successivo e' una parola in un WordSet, la ritorna */
+	virtual const char *IsWord(const HighParser::WordSet& ws);
 	/* Se ha letto un ";" lo rimette a posto */
 	virtual void PutBackSemicolon(void);
 	/* legge un intero con il mathpar */
@@ -310,15 +327,6 @@ public:
 	virtual doublereal GetReal(const doublereal& dDefval = 0.0);
 	/* legge una keyword */
 	virtual int GetWord(void);
-
-	enum {
-		NONE		= 0x00U,
-		EATSPACES	= 0x01U,
-		ESCAPE		= 0x02U,
-		LOWER		= 0x04U,
-		UPPER		= 0x08U
-	};
-
 	/* legge una stringa */
 	virtual const char* GetString(unsigned flags = HighParser::NONE);
 	/* stringa delimitata */

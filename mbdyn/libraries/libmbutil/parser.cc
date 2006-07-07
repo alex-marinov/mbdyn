@@ -623,6 +623,72 @@ HighParser::NextToken(const char* sFuncName)
 	}
 }
 
+int
+HighParser::ParseWord(unsigned flags)
+{
+	char* sBuf = sStringBuf;
+	char* sBufWithSpaces = sStringBufWithSpaces;
+
+	char cIn;
+	if (skip_remarks(*this, *pIn, cIn)) {
+		return CurrToken = HighParser::ENDOFFILE;
+	}
+
+	if (!isalpha(cIn) && cIn != '_') {
+		pIn->putback(cIn);
+		return -1;
+	}
+
+	*sBufWithSpaces++ = cIn;
+
+	if (flags & LOWER) {
+		*sBuf++ = tolower(cIn);
+
+	} else if (flags & UPPER) {
+		*sBuf++ = toupper(cIn);
+
+	} else {
+		*sBuf++ = cIn;
+	}
+
+	for (cIn = pIn->get(); isalnum(cIn) || cIn == '_' || isspace(cIn); cIn = pIn->get()) {
+		*sBufWithSpaces++ = cIn;
+		if (sBufWithSpaces >= sStringBufWithSpaces + iDefaultBufSize - 1) {
+			break;
+		}
+
+		if (isspace(cIn)) {
+			continue;
+		}
+		
+		if (flags & LOWER) {
+			*sBuf++ = tolower(cIn);
+
+		} else if (flags & UPPER) {
+			*sBuf++ = toupper(cIn);
+
+		} else {
+			*sBuf++ = cIn;
+		}
+	}
+	pIn->putback(cIn);
+
+	*sBuf = '\0';
+	*sBufWithSpaces = '\0';
+
+	return 0;
+}
+
+void
+HighParser::PutbackWord(void)
+{
+	char* sBufWithSpaces = sStringBufWithSpaces + strlen(sStringBufWithSpaces);
+
+   
+	while (sBufWithSpaces > sStringBufWithSpaces) {
+		pIn->putback(*--sBufWithSpaces);
+	}
+}
 
 bool
 HighParser::IsKeyWord(const char* sKeyWord)
@@ -633,53 +699,26 @@ HighParser::IsKeyWord(const char* sKeyWord)
 		return false;
 	}
 
-	char* sBuf = sStringBuf;
-	char* sBufWithSpaces = sStringBufWithSpaces;
+	switch (ParseWord()) {
+	case 0:
+		break;
 
-	char cIn;
-	if (skip_remarks(*this, *pIn, cIn)) {
-		CurrToken = HighParser::ENDOFFILE;
+	case HighParser::ENDOFFILE:
 		return true;
-	}
 
-	if (!isalpha(cIn)) {
-		pIn->putback(cIn);
+	default:
 		return false;
 	}
-
-	*sBuf++ = cIn;
-	*sBufWithSpaces++ = cIn;
-
-	/* Forse e' meglio modificare in modo che digerisca anche gli spazi
-	 * tra due parole, magari con due buffer, uno in cui li mangia per fare
-	 * il confronto con la keyword, l'altro in cui li tiene per l'eventuale
-	 * putback */
-	for (cIn = pIn->get(); isalnum(cIn) || isspace(cIn); cIn = pIn->get()) {
-		*sBufWithSpaces++ = cIn;
-		if (isalnum(cIn)) {
-			*sBuf++ = cIn;
-		}
-		if (sBufWithSpaces >= sStringBufWithSpaces + iDefaultBufSize - 1) {
-			break;
-		}
-	}
-	pIn->putback(cIn);
-
-	*sBuf = '\0';
-	*sBufWithSpaces = '\0';
 
 	if (!strcasecmp(sStringBuf, sKeyWord)) {
 		NextToken(sFuncName);
 		return true;
 	}
 
-	while (sBufWithSpaces > sStringBufWithSpaces) {
-		pIn->putback(*--sBufWithSpaces);
-	}
+	PutbackWord();
 
 	return false;
 }
-
 
 int
 HighParser::IsKeyWord(void)
@@ -690,34 +729,16 @@ HighParser::IsKeyWord(void)
 		return -1;
 	}
 
-	char* sBuf = sStringBuf;
-	char* sBufWithSpaces = sStringBufWithSpaces;
+	switch (ParseWord()) {
+	case 0:
+		break;
 
-	char cIn;
-	if (skip_remarks(*this, *pIn, cIn)) {
-		return CurrToken = HighParser::ENDOFFILE;
-	}
+	case HighParser::ENDOFFILE:
+		return HighParser::ENDOFFILE;
 
-	if (!isalpha(cIn)) {
-		pIn->putback(cIn);
+	default:
 		return -1;
 	}
-	*sBuf++ = cIn;
-	*sBufWithSpaces++ = cIn;
-
-	for (cIn = pIn->get(); isalnum(cIn) || isspace(cIn); cIn = pIn->get()) {
-		*sBufWithSpaces++ = cIn;
-		if (isalnum(cIn)) {
-			*sBuf++ = cIn;
-		}
-		if (sBufWithSpaces >= sStringBufWithSpaces + iDefaultBufSize - 1) {
-			break;
-		}
-	}
-	pIn->putback(cIn);
-
-	*sBuf = '\0';
-	*sBufWithSpaces = '\0';
 
 	int iKW = -1;
 
@@ -730,13 +751,39 @@ HighParser::IsKeyWord(void)
 		return iKW;
 	}
 
-	while (sBufWithSpaces > sStringBufWithSpaces) {
-		pIn->putback(*--sBufWithSpaces);
-	}
+	PutbackWord();
 
 	return -1;
 }
 
+/* 1 se l'argomento successivo e' una parola in un WordSet */
+const char *
+HighParser::IsWord(const HighParser::WordSet& ws)
+{
+	const char sFuncName[] = "HighParser::IsWord()";
+
+	if (CurrToken != HighParser::ARG) {
+		return 0;
+	}
+
+	switch (ParseWord()) {
+	case 0:
+		break;
+
+	default:
+		return 0;
+	}
+
+	if (ws.IsWord(sStringBuf)) {
+		NextToken(sFuncName);
+		return sStringBuf;
+	}
+
+	PutbackWord();
+
+	return false;
+
+}
 
 integer
 HighParser::GetInt(int iDefval)
