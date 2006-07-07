@@ -173,6 +173,9 @@ SocketUsersTimeout(0)
 {
    DEBUGCOUTFNAME("DataManager::DataManager");
 
+   /* Drive parsing structure */
+   InitDriveData();
+
    /* pseudocostruttori */
    ElemManager(); 
    NodeManager();

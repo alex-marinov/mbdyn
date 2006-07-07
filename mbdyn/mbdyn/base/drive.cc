@@ -338,21 +338,20 @@ DriveHandler::MyMeter::~MyMeter(void)
 /* DriveCaller - begin */
 
 DriveCaller::DriveCaller(const DriveHandler* pDH)
-: pDrvHdl(pDH)
+: pDrvHdl((DriveHandler *)pDH)
 {
-   NO_OP;
+	NO_OP;
 }
-
 
 DriveCaller::~DriveCaller(void)
 {
-   NO_OP;
+	NO_OP;
 }
- 
 
-void DriveCaller::SetDrvHdl(const DriveHandler* pDH)
+void
+DriveCaller::SetDrvHdl(const DriveHandler* pDH)
 {
-   (DriveHandler*&)pDrvHdl = (DriveHandler*)pDH;
+	pDrvHdl = (DriveHandler *)pDH;
 }
 
 /* DriveCaller - end */
@@ -363,30 +362,29 @@ void DriveCaller::SetDrvHdl(const DriveHandler* pDH)
 NullDriveCaller::NullDriveCaller(void)
 : DriveCaller(0)
 {
-   NO_OP;
+	NO_OP;
 }
-
 
 NullDriveCaller::~NullDriveCaller(void)
 {
-   NO_OP;
+	NO_OP;
 }
-
 
 /* Copia */
-DriveCaller* NullDriveCaller::pCopy(void) const
+DriveCaller *
+NullDriveCaller::pCopy(void) const
 {
-   DriveCaller* pDC = NULL;
-   SAFENEW(pDC, NullDriveCaller);
-   
-   return pDC;
+	DriveCaller* pDC = NULL;
+	SAFENEW(pDC, NullDriveCaller);
+
+	return pDC;
 }
 
-
 /* Scrive il contributo del DriveCaller al file di restart */
-std::ostream& NullDriveCaller::Restart(std::ostream& out) const
+std::ostream&
+NullDriveCaller::Restart(std::ostream& out) const
 {      
-   return out << "null";
+	return out << "null";
 }
  
 /* NullDriveCaller - end */
@@ -397,30 +395,29 @@ std::ostream& NullDriveCaller::Restart(std::ostream& out) const
 OneDriveCaller::OneDriveCaller(void)
 : DriveCaller(0)
 {
-   NO_OP;
+	NO_OP;
 }
-
 
 OneDriveCaller::~OneDriveCaller(void)
 {
-   NO_OP;
+	NO_OP;
 }
-
 
 /* Copia */
-DriveCaller* OneDriveCaller::pCopy(void) const
+DriveCaller *
+OneDriveCaller::pCopy(void) const
 {
-   DriveCaller* pDC = NULL;
-   SAFENEW(pDC, OneDriveCaller);
-   
-   return pDC;
+	DriveCaller* pDC = NULL;
+	SAFENEW(pDC, OneDriveCaller);
+
+	return pDC;
 }
 
-
 /* Scrive il contributo del DriveCaller al file di restart */
-std::ostream& OneDriveCaller::Restart(std::ostream& out) const
+std::ostream&
+OneDriveCaller::Restart(std::ostream& out) const
 {      
-   return out << "one";
+	return out << "one";
 }
  
 /* OneDriveCaller - end */
@@ -431,19 +428,17 @@ std::ostream& OneDriveCaller::Restart(std::ostream& out) const
 DriveOwner::DriveOwner(const DriveCaller* pDC)
 : pDriveCaller((DriveCaller*)pDC) 
 {
-   NO_OP;
+	NO_OP;
 }
- 
 
 DriveOwner::~DriveOwner(void)
 { 
-   ASSERT(pDriveCaller != NULL);
-   
-   if (pDriveCaller != NULL) {
-      SAFEDELETE(pDriveCaller);
-   }
+	ASSERT(pDriveCaller != NULL);
+ 
+	if (pDriveCaller != NULL) {
+		SAFEDELETE(pDriveCaller);
+	}
 }
-
 
 void
 DriveOwner::Set(const DriveCaller* pDC)
@@ -456,22 +451,42 @@ DriveOwner::Set(const DriveCaller* pDC)
 	pDriveCaller = (DriveCaller *)pDC;
 }
 
-
-DriveCaller* DriveOwner::pGetDriveCaller(void) const
+DriveCaller *
+DriveOwner::pGetDriveCaller(void) const
 {
-   return pDriveCaller;
+	return pDriveCaller;
+}
+
+doublereal
+DriveOwner::dGet(const doublereal& dVal) const
+{
+	return pDriveCaller->dGet(dVal);
 }
 
 
-doublereal DriveOwner::dGet(const doublereal& dVal) const
+doublereal
+DriveOwner::dGet(void) const
 {
-   return pDriveCaller->dGet(dVal);
+	return pDriveCaller->dGet();
+}
+
+bool
+DriveOwner::bIsDifferentiable(void) const
+{
+	return pDriveCaller->bIsDifferentiable();
+}
+
+doublereal
+DriveOwner::dGetP(const doublereal& dVal) const
+{
+	return pDriveCaller->dGetP(dVal);
 }
 
 
-doublereal DriveOwner::dGet(void) const
+doublereal
+DriveOwner::dGetP(void) const
 {
-   return pDriveCaller->dGet();
+	return pDriveCaller->dGetP();
 }
 
 /* DriveOwner - end */

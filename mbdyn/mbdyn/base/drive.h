@@ -296,24 +296,30 @@ DriveHandler::bGetMeter(integer iNumber) const
  * Ogni oggetto contiene i parametri che gli occorrono per la chiamata. */
 
 class DriveCaller : public WithLabel {
- protected:
-   const DriveHandler* pDrvHdl;   
-   
- public:
-   DriveCaller(const DriveHandler* pDH);
-   virtual ~DriveCaller(void);
+protected:
+	mutable DriveHandler* pDrvHdl;
+ 
+public:
+	DriveCaller(const DriveHandler* pDH);
+	virtual ~DriveCaller(void);
 
-   /* Copia */
-   virtual DriveCaller* pCopy(void) const = 0;
-   
-   /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual std::ostream& Restart(std::ostream& out) const = 0;
-   
-   /* Restituisce il valore del driver */
-   virtual doublereal dGet(const doublereal& dVal) const = 0;
-   virtual inline doublereal dGet(void) const;
-   
-   virtual void SetDrvHdl(const DriveHandler* pDH);
+	/* Copia */
+	virtual DriveCaller* pCopy(void) const = 0;
+ 
+	/* Scrive il contributo del DriveCaller al file di restart */   
+	virtual std::ostream& Restart(std::ostream& out) const = 0;
+ 
+	/* Restituisce il valore del driver */
+	virtual doublereal dGet(const doublereal& dVar) const = 0;
+	virtual inline doublereal dGet(void) const;
+
+	/* this is about drives that are differentiable */
+	virtual bool bIsDifferentiable(void) const;
+	virtual doublereal dGetP(const doublereal& dVar) const;
+	virtual inline doublereal dGetP(void) const;
+
+	/* allows to set the drive handler */ 
+	virtual void SetDrvHdl(const DriveHandler* pDH);
 };
 
 inline doublereal 
@@ -322,39 +328,80 @@ DriveCaller::dGet(void) const
 	return dGet(pDrvHdl->dGetTime());
 }
 
+inline bool
+DriveCaller::bIsDifferentiable(void) const
+{
+	return false;
+}
+
+inline doublereal 
+DriveCaller::dGetP(const doublereal& dVar) const
+{
+	/* shouldn't get called if not differentiable,
+	 * or should be overridden if differentiable */
+	throw ErrGeneric();
+}
+
+inline doublereal 
+DriveCaller::dGetP(void) const 
+{
+	return dGetP(pDrvHdl->dGetTime());
+}
+
 /* DriveCaller - end */
 
 
 /* NullDriveCaller - begin */
 
 class NullDriveCaller : public DriveCaller {   
- public:
-   NullDriveCaller(void);
-   virtual ~NullDriveCaller(void);
-   
-   /* Copia */
-   virtual DriveCaller* pCopy(void) const;
-   
-   /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual std::ostream& Restart(std::ostream& out) const;
-   
-   /* Restituisce il valore del driver */
-   virtual inline doublereal dGet(const doublereal& dVal) const;
-   virtual inline doublereal dGet(void) const;
+public:
+	NullDriveCaller(void);
+	virtual ~NullDriveCaller(void);
+
+	/* Copia */
+	virtual DriveCaller* pCopy(void) const;
+
+	/* Scrive il contributo del DriveCaller al file di restart */   
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	/* Restituisce il valore del driver */
+	virtual inline doublereal dGet(const doublereal& dVar) const;
+	virtual inline doublereal dGet(void) const;
+
+	/* this is about drives that are differentiable */
+	virtual bool bIsDifferentiable(void) const;
+	virtual doublereal dGetP(const doublereal& dVar) const;
+	virtual inline doublereal dGetP(void) const;
 };
 
-
 inline doublereal 
-NullDriveCaller::dGet(const doublereal& /* dVal */ ) const
+NullDriveCaller::dGet(const doublereal& /* dVar */ ) const
 {
-   return 0.;
+	return 0.;
 }
-
 
 inline doublereal
 NullDriveCaller::dGet(void) const
 {
-   return 0.;
+	return 0.;
+}
+
+inline bool
+NullDriveCaller::bIsDifferentiable(void) const
+{
+	return true;
+}
+
+inline doublereal 
+NullDriveCaller::dGetP(const doublereal& /* dVar */ ) const
+{
+	return 0.;
+}
+
+inline doublereal 
+NullDriveCaller::dGetP(void) const
+{
+	return 0.;
 }
 
 /* NullDriveCaller - end */
@@ -363,33 +410,54 @@ NullDriveCaller::dGet(void) const
 /* OneDriveCaller - begin */
 
 class OneDriveCaller : public DriveCaller {   
- public:
-   OneDriveCaller(void);
-   virtual ~OneDriveCaller(void);
-   
-   /* Copia */
-   virtual DriveCaller* pCopy(void) const;
-   
-   /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual std::ostream& Restart(std::ostream& out) const;
-   
-   /* Restituisce il valore del driver */
-   virtual inline doublereal dGet(const doublereal& dVal) const;
-   virtual inline doublereal dGet(void) const;
+public:
+	OneDriveCaller(void);
+	virtual ~OneDriveCaller(void);
+
+	/* Copia */
+	virtual DriveCaller* pCopy(void) const;
+ 
+	/* Scrive il contributo del DriveCaller al file di restart */   
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	/* Restituisce il valore del driver */
+	virtual inline doublereal dGet(const doublereal& dVar) const;
+	virtual inline doublereal dGet(void) const;
+
+	/* this is about drives that are differentiable */
+	virtual bool bIsDifferentiable(void) const;
+	virtual doublereal dGetP(const doublereal& dVar) const;
+	virtual inline doublereal dGetP(void) const;
 };
 
-
 inline doublereal 
-OneDriveCaller::dGet(const doublereal& /* dVal */ ) const
+OneDriveCaller::dGet(const doublereal& /* dVar */ ) const
 {
-   return 1.;
+	return 1.;
 }
-
 
 inline doublereal 
 OneDriveCaller::dGet(void) const
 {
-   return 1.;
+	return 1.;
+}
+
+inline bool
+OneDriveCaller::bIsDifferentiable(void) const
+{
+	return true;
+}
+
+inline doublereal 
+OneDriveCaller::dGetP(const doublereal& /* dVar */ ) const
+{
+	return 0.;
+}
+
+inline doublereal 
+OneDriveCaller::dGetP(void) const
+{
+	return 0.;
 }
 
 /* OneDriveCaller - end */
@@ -398,35 +466,56 @@ OneDriveCaller::dGet(void) const
 /* ConstDriveCaller - begin */
 
 class ConstDriveCaller : public DriveCaller {
- private:
-   doublereal dConst;
-   
- public:
-   ConstDriveCaller(doublereal d);
-   virtual ~ConstDriveCaller(void);
-   
-   /* Copia */
-   virtual DriveCaller* pCopy(void) const;
-   
-   /* Scrive il contributo del DriveCaller al file di restart */   
-   virtual std::ostream& Restart(std::ostream& out) const;
-   
-   inline doublereal dGet(const doublereal& /* dVar */ ) const;
-   inline doublereal dGet(void) const;
-};
+private:
+	doublereal dConst;
+ 
+public:
+	ConstDriveCaller(doublereal d);
+	virtual ~ConstDriveCaller(void);
+ 
+	/* Copia */
+	virtual DriveCaller* pCopy(void) const;
+ 
+	/* Scrive il contributo del DriveCaller al file di restart */   
+	virtual std::ostream& Restart(std::ostream& out) const;
+ 
+	inline doublereal dGet(const doublereal& /* dVar */ ) const;
+	inline doublereal dGet(void) const;
 
+	/* this is about drives that are differentiable */
+	virtual bool bIsDifferentiable(void) const;
+	virtual doublereal dGetP(const doublereal& dVar) const;
+	virtual inline doublereal dGetP(void) const;
+};
 
 inline doublereal 
 ConstDriveCaller::dGet(const doublereal& /* dVar */ ) const 
 {
-   return dConst; 
+	return dConst; 
 }
- 
 
 inline doublereal
 ConstDriveCaller::dGet(void) const
 {
-   return dConst;
+	return dConst;
+}
+
+inline bool
+ConstDriveCaller::bIsDifferentiable(void) const
+{
+	return true;
+}
+
+inline doublereal 
+ConstDriveCaller::dGetP(const doublereal& /* dVar */ ) const
+{
+	return 0.;
+}
+
+inline doublereal 
+ConstDriveCaller::dGetP(void) const
+{
+	return 0.;
 }
 
 /* ConstDriveCaller - end */
@@ -437,17 +526,23 @@ ConstDriveCaller::dGet(void) const
 /* Possessore di DriveCaller, ne garantisce la corretta distruzione */
 
 class DriveOwner {
- protected:
-   DriveCaller* pDriveCaller;
-   
- public:
-   DriveOwner(const DriveCaller* pDC = NULL);
-   virtual ~DriveOwner(void);
-   
-   void Set(const DriveCaller* pDC);
-   DriveCaller* pGetDriveCaller(void) const;
-   doublereal dGet(const doublereal& dVal) const;
-   doublereal dGet(void) const;
+protected:
+	DriveCaller* pDriveCaller;
+
+public:
+	DriveOwner(const DriveCaller* pDC = NULL);
+	virtual ~DriveOwner(void);
+ 
+	void Set(const DriveCaller* pDC);
+	DriveCaller* pGetDriveCaller(void) const;
+
+	doublereal dGet(const doublereal& dVar) const;
+	doublereal dGet(void) const;
+
+	/* this is about drives that are differentiable */
+	bool bIsDifferentiable(void) const;
+	doublereal dGetP(const doublereal& dVar) const;
+	doublereal dGetP(void) const;
 };
 
 /* DriveOwner - end */
@@ -456,8 +551,13 @@ class DriveOwner {
 class DataManager;
 class MBDynParser;
 
+typedef DriveCaller * (*ReadDriveDataFunc)(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+
 extern DriveCaller* 
 ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+
+extern void
+InitDriveData(void);
 
 #endif /* DRIVE_H */
 
