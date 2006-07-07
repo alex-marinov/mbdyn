@@ -235,6 +235,49 @@ AC_PROG_F77
 if test "x$F77" = "x" ; then
 	AC_MSG_ERROR([Need a working F77 compiler])
 fi
+
+if test "$GCC" = "yes" ; then
+	dnl check for 3.3
+	AC_MSG_CHECKING(for gcc version = 3.3)
+	AC_CACHE_VAL(ac_cv_gcc33,
+	AC_LANG_SAVE
+	AC_LANG_CPLUSPLUS
+	[AC_TRY_COMPILE(
+	[#if !(__GNUC__ == 3 && __GNUC_MINOR__ == 3)
+	#error GCC is not 3.3 (good news ;)
+	#endif],
+	[return 0;],
+	[ac_cv_gcc33=yes],
+	[ac_cv_gcc33=no])]
+	AC_LANG_RESTORE)
+	if [[ $ac_cv_gcc33 = no ]]; then
+		AC_MSG_RESULT([no])
+
+		dnl then check for 3.2
+		AC_MSG_CHECKING(for gcc version = 3.2)
+		AC_CACHE_VAL(ac_cv_gcc32,
+		AC_LANG_SAVE
+		AC_LANG_CPLUSPLUS
+		[AC_TRY_COMPILE(
+		[#if !(__GNUC__ == 3 && __GNUC_MINOR__ == 2)
+		#error GCC is not 3.2 (good news ;)
+		#endif],
+		[return 0;],
+		[ac_cv_gcc32=yes],
+		[ac_cv_gcc32=no])]
+		AC_LANG_RESTORE)
+		if [[ $ac_cv_gcc32 = no ]]; then
+			AC_MSG_RESULT([no])
+		else
+			AC_DEFINE(MBDYN_X_WORKAROUND_GCC_3_2,1,[define to workaround known GCC 3.2 bug])
+			AC_MSG_RESULT([ok])
+		fi
+	else
+		AC_DEFINE(MBDYN_X_WORKAROUND_GCC_3_3,1,[define to workaround known GCC 3.3 bug])
+		AC_MSG_RESULT([ok])
+	fi
+fi
+
 AM_DISABLE_SHARED dnl Remove when you want to build shared libs also
 AM_PROG_LIBTOOL
 
