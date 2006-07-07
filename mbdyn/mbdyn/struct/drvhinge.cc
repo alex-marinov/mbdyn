@@ -519,16 +519,19 @@ DriveHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	Vec3 MPrimeTmp(Wa.Cross(R1*M)+R1*MPrime);
 
 	Mat3x3 R2(pNode2->GetRCurr()*R2h);
-	ThetaCurr = RotManip::VecRot(R1.Transpose()*R2);
+	ThetaCurr = RotManip::VecRot(R1T*R2);
 
-	Vec3 ThetaPrime = R1T*(Wa.Cross(ThetaCurr)-Wb+Wa);
+	Vec3 ThetaPrime = R1T*(Wb-Wa-Wa.Cross(ThetaCurr));
 
 	WorkVec.Add(1, MPrimeTmp);
 	WorkVec.Add(4, MPrimeTmp);
 	WorkVec.Sub(7, MPrimeTmp);
 	WorkVec.Sub(10, MPrimeTmp);
 	WorkVec.Add(13, Get()-ThetaCurr);
-	WorkVec.Add(16, ThetaPrime);   
+	if (bIsDifferentiable()) {
+		ThetaPrime -= GetP();
+	}
+	WorkVec.Sub(16, ThetaPrime);   
 
 	return WorkVec;
 }
