@@ -93,22 +93,27 @@ Joint::~Joint(void)
    
 
 /* Output specifico dei vincoli */
-std::ostream& Joint::Output(std::ostream& out, const char* sJointName, 
-		       unsigned int uLabel,
-		       const Vec3& FLocal, const Vec3& MLocal,
-		       const Vec3& FGlobal, const Vec3& MGlobal) const
+std::ostream&
+Joint::Output(std::ostream& out, const char* /* sJointName */ , 
+	unsigned int uLabel,
+	const Vec3& FLocal, const Vec3& MLocal,
+	const Vec3& FGlobal, const Vec3& MGlobal) const
 {
+#if 0
    /* Modificare le dimensioni del campo per il nome in base 
     * ai nomi dei vincoli futuri */
    ASSERT(strlen(sJointName) <= 16);
    
    /* Nota: non c'e' *std::endl* perche' i vincoli possono aggiungere outut 
-    * ulteriore a quello comune a tutti
+    * ulteriore a quello comune a tutti */
    return out << sJointName << std::setw(16+8-strlen(sJointName)) << uLabel << " "
      << FLocal << " " << MLocal << " " << FGlobal << " " << MGlobal;
-    */
-   return out << std::setw(8) << uLabel << " "
-     << FLocal << " " << MLocal << " " << FGlobal << " " << MGlobal;
+#endif 
+
+	return out
+		<< std::setw(8) << uLabel
+		<< " " << FLocal << " " << MLocal
+		<< " " << FGlobal << " " << MGlobal;
 }
 
 /* Joint - end */
