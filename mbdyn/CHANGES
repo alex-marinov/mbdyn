@@ -24,6 +24,7 @@ MBDyn 1.X-Devel
 		- added truncated Fourier series drive
 		- added generic external forces for loose/tight coupling
 		  with external software via files
+		- added support for user-defined drives
 	Backward compatibility issues:
 		- double viscoelastic constitutive law syntax changed
 		- per-element output removed from modal joints
