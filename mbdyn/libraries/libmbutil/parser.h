@@ -311,7 +311,7 @@ public:
 	/* legge una keyword */
 	virtual int GetWord(void);
 	/* legge una stringa */
-	virtual const char* GetString(void);
+	virtual const char* GetString(bool eatspaces = false);
 	/* stringa delimitata */
 	virtual const char* GetStringWithDelims(enum Delims Del = DEFAULTDELIM, bool escape = true); 
 	/* vettore Vec3 */

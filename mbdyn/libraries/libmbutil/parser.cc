@@ -824,7 +824,7 @@ HighParser::GetWord(void)
 
 
 const char*
-HighParser::GetString(void)
+HighParser::GetString(bool eatspaces)
 {
    const char sFuncName[] = "HighParser::GetString()";
 
@@ -860,7 +860,7 @@ HighParser::GetString(void)
 	 CurrToken = HighParser::ENDOFFILE;
          *sTmp = '\0';
 	 return s;
-      } else if (sTmp < s + iDefaultBufSize - 1) {
+      } else if (sTmp < s + iDefaultBufSize - 1 && (!eatspaces || !isspace(cIn))) {
 	 *sTmp++ = cIn;
       }
    }
