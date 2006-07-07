@@ -824,52 +824,63 @@ HighParser::GetWord(void)
 
 
 const char*
-HighParser::GetString(bool eatspaces)
+HighParser::GetString(unsigned flags)
 {
-   const char sFuncName[] = "HighParser::GetString()";
+	const char sFuncName[] = "HighParser::GetString()";
 
-   pedantic_cout("use of deprecated method \"GetString\" at line"
-		   << GetLineData() << std::endl);
+	pedantic_cout("use of deprecated method \"GetString\" at line"
+		<< GetLineData() << std::endl);
 
-   if (CurrToken != HighParser::ARG) {
-      silent_cerr("Parser error in "
-	<< sFuncName << ", string arg expected at line "
-	<< GetLineData() << std::endl);
-      throw HighParser::ErrStringExpected();
-   }
+	if (CurrToken != HighParser::ARG) {
+		silent_cerr("Parser error in "
+			<< sFuncName << ", string arg expected at line "
+			<< GetLineData() << std::endl);
+		throw HighParser::ErrStringExpected();
+	}
 
-   char* s = sStringBuf;
-   char* sTmp = s;
+	char* s = sStringBuf;
+	char* sTmp = s;
 
-   char cIn = '\0';
+	char cIn = '\0';
 
-   while (isspace(cIn = pIn->get())) {
-      NO_OP;
-   }
+	while (isspace(cIn = pIn->get())) {
+		NO_OP;
+	}
 
-   if (pIn->eof()) {
-      CurrToken = HighParser::ENDOFFILE;
-      return NULL;
-   }
+	if (pIn->eof()) {
+		CurrToken = HighParser::ENDOFFILE;
+		return NULL;
+	}
 
-   pIn->putback(cIn);
-   for (cIn = pIn->get(); cIn != ',' && cIn != ';'; cIn = pIn->get()) {
-      /* Attenzione! cosi' la legge tutta,
-       * ma ne tiene solo iBufSize-1 caratteri */
-      if (pIn->eof()) {
-	 CurrToken = HighParser::ENDOFFILE;
-         *sTmp = '\0';
-	 return s;
-      } else if (sTmp < s + iDefaultBufSize - 1 && (!eatspaces || !isspace(cIn))) {
-	 *sTmp++ = cIn;
-      }
-   }
+	pIn->putback(cIn);
+	for (cIn = pIn->get(); cIn != ',' && cIn != ';'; cIn = pIn->get()) {
+		/* Attenzione! cosi' la legge tutta,
+		 * ma ne tiene solo iBufSize-1 caratteri */
+		if (pIn->eof()) {
+			CurrToken = HighParser::ENDOFFILE;
+			*sTmp = '\0';
+			return s;
 
-   pIn->putback(cIn);
-   *sTmp = '\0';
+		} else if (sTmp < s + iDefaultBufSize - 1) {
+			if (!(flags & HighParser::EATSPACES) || !isspace(cIn)) {
+				if (flags & HighParser::LOWER) {
+					cIn = tolower(cIn);
 
-   NextToken(sFuncName);
-   return s;
+				} else if (flags & HighParser::UPPER) {
+					cIn = toupper(cIn);
+				}
+
+				*sTmp++ = cIn;
+			}
+		}
+	}
+
+	pIn->putback(cIn);
+	*sTmp = '\0';
+
+	NextToken(sFuncName);
+
+	return s;
 }
 
 

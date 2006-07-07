@@ -310,8 +310,17 @@ public:
 	virtual doublereal GetReal(const doublereal& dDefval = 0.0);
 	/* legge una keyword */
 	virtual int GetWord(void);
+
+	enum {
+		NONE		= 0x00U,
+		EATSPACES	= 0x01U,
+		ESCAPE		= 0x02U,
+		LOWER		= 0x04U,
+		UPPER		= 0x08U
+	};
+
 	/* legge una stringa */
-	virtual const char* GetString(bool eatspaces = false);
+	virtual const char* GetString(unsigned flags = HighParser::NONE);
 	/* stringa delimitata */
 	virtual const char* GetStringWithDelims(enum Delims Del = DEFAULTDELIM, bool escape = true); 
 	/* vettore Vec3 */
