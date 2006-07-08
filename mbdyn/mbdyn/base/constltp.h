@@ -43,11 +43,11 @@
 class ConstLawType {
 public:
 	enum Type {
-		UNKNOWN = -1,
+		UNKNOWN = 0x0,
 		
-		ELASTIC = 0,
-		VISCOUS,
-		VISCOELASTIC,
+		ELASTIC = 0x1,
+		VISCOUS = 0x2,
+		VISCOELASTIC = (ELASTIC | VISCOUS),
 	
 		LASTCONSTLAWTYPE
 	};

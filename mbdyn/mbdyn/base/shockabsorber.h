@@ -56,7 +56,7 @@ private:
    
 public:
 	ShockAbsorberConstitutiveLaw(
-			DataManager* pDM,
+			const DataManager* pDM,
 			TplDriveCaller<T>* pDC,
 			MBDynParser& HP
 	) : ElasticConstitutiveLaw<T, Tder>(pDC, 0.) {
@@ -209,7 +209,7 @@ private:
    
 public:
 	ShockAbsorberConstitutiveLaw(
-			DataManager* pDM,
+			const DataManager* pDM,
 			TplDriveCaller<doublereal>* pDC,
 			MBDynParser& HP
 	) : ElasticConstitutiveLaw<doublereal, doublereal>(pDC, 0.),

@@ -117,12 +117,14 @@ pDM(0)
 {
 	/* make sure this is init'ed */
 	InitDriveData();
+	InitCL();
 }   
 
 
 MBDynParser::~MBDynParser(void)
 {   
-	NO_OP;
+	DestroyDriveData();
+	DestroyCL();
 }
 
 void

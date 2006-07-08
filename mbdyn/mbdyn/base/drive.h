@@ -559,5 +559,8 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
 extern void
 InitDriveData(void);
 
+extern void
+DestroyDriveData(void);
+
 #endif /* DRIVE_H */
 

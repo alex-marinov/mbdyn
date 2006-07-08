@@ -928,13 +928,6 @@ DriveArrayCaller::Restart(std::ostream& out) const
 
 /* bag that contains functions to parse drive callers */
 
-struct ltstrcase {
-	/* case-insensitive string comparison */
-	bool operator()(const std::string& s1, const std::string& s2) const {
-		return strcasecmp(s1.c_str(), s2.c_str()) < 0;
-	};
-};
-
 typedef std::map<std::string, ReadDriveDataFunc, ltstrcase> DrvFuncMapType;
 static DrvFuncMapType DrvFuncMap;
 
@@ -945,10 +938,10 @@ struct DriveWordSetType : public HighParser::WordSet {
 };
 static DriveWordSetType DriveWordSet;
 
-void
+bool
 SetDriveData(const char *name, ReadDriveDataFunc func)
 {
-	DrvFuncMap.insert(DrvFuncMapType::value_type(name, func));
+	return DrvFuncMap.insert(DrvFuncMapType::value_type(name, func)).second;
 }
 
 /* Legge i dati dei drivers */
@@ -1946,14 +1939,16 @@ ReadFileDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
+static bool done = false;
+
 void
 InitDriveData(void)
 {
-	static bool done = false;
-
-	if (done) {
+	if (::done) {
 		return;
 	}
+
+	::done = true;
 
 	SetDriveData("time", ReadTimeDriveCaller);
 	SetDriveData("null", ReadNullDriveCaller);
@@ -1982,8 +1977,10 @@ InitDriveData(void)
 	SetDriveData("element", ReadElementDriveCaller);
 	SetDriveData("drive", ReadDriveDriveCaller);
 	SetDriveData("array", ReadArrayDriveCaller);
-
-	done = true;
 }
 
-
+void
+DestroyDriveData(void)
+{
+	::done = false;
+}
