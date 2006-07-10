@@ -551,16 +551,23 @@ public:
 class DataManager;
 class MBDynParser;
 
-typedef DriveCaller * (*ReadDriveDataFunc)(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+/* prototype of the functional object: reads a drive caller */
+struct DriveCallerRead {
+	virtual DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred) = 0;
+};
 
+/* drive caller registration function: call to register one */
+extern bool
+SetDriveData(const char *name, DriveCallerRead* rf);
+
+/* function that reads a drive caller */
 extern DriveCaller* 
 ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
 
-extern void
-InitDriveData(void);
-
-extern void
-DestroyDriveData(void);
+/* create/destroy */
+extern void InitDriveData(void);
+extern void DestroyDriveData(void);
 
 #endif /* DRIVE_H */
 

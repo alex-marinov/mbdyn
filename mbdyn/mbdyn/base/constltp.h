@@ -268,5 +268,32 @@ typedef ConstitutiveLawOwner<Vec6, Mat6x6> ConstitutiveLaw6DOwner;
 
 /* ConstitutiveLawOwner - end */
 
+/* functions that read a constitutive law */
+extern ConstitutiveLaw<doublereal, doublereal> *
+ReadCL1D(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType);
+extern ConstitutiveLaw<Vec3, Mat3x3> *
+ReadCL3D(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType);
+extern ConstitutiveLaw<Vec6, Mat6x6> *
+ReadCL6D(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType);
+
+/* prototype of the template functional object: reads a constitutive law */
+template <class T, class Tder>
+struct ConstitutiveLawRead {
+	virtual ConstitutiveLaw<T, Tder> *
+	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType) = 0;
+};
+
+/* constitutive law registration functions: call to register one */
+extern bool
+SetCL1D(const char *name, ConstitutiveLawRead<doublereal, doublereal> *rf);
+extern bool
+SetCL3D(const char *name, ConstitutiveLawRead<Vec3, Mat3x3> *rf);
+extern bool
+SetCL6D(const char *name, ConstitutiveLawRead<Vec6, Mat6x6> *rf);
+
+/* create/destroy */
+extern void InitCL(void);
+extern void DestroyCL(void);
+
 #endif /* CONSTLTP_H */
 

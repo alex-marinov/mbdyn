@@ -35,6 +35,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <unistd.h>
+#include "ac/float.h"
 
 #if defined(HAVE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
 #include <ltdl.h>
@@ -45,9 +46,9 @@
 #include "readlinsol.h"
 
 #include "drive.h"
+#include "drive_.h"
 #include "filedrv.h"
 #include "presnode.h"
-#include "readclaw.h"
 #include "j2p.h"
 #include "sah.h"
 
@@ -2073,7 +2074,7 @@ void DataManager::ReadDrivers(MBDynParser& HP)
 ConstitutiveLaw1D* 
 DataManager::ReadConstLaw1D(MBDynParser& HP, ConstLawType::Type& T)
 {
-   return ReadConstLaw(this, HP, T, (ConstitutiveLaw1D*)NULL);
+   return ReadCL1D(this, HP, T);
 }
 
 
@@ -2081,7 +2082,7 @@ DataManager::ReadConstLaw1D(MBDynParser& HP, ConstLawType::Type& T)
 ConstitutiveLaw3D* 
 DataManager::ReadConstLaw3D(MBDynParser& HP, ConstLawType::Type& T)
 {  
-   return ReadConstLaw(this, HP, T, (ConstitutiveLaw3D*)NULL);
+   return ReadCL3D(this, HP, T);
 }
 
 
@@ -2089,7 +2090,7 @@ DataManager::ReadConstLaw3D(MBDynParser& HP, ConstLawType::Type& T)
 ConstitutiveLaw6D* 
 DataManager::ReadConstLaw6D(MBDynParser& HP, ConstLawType::Type& T)
 {
-   return ReadConstLaw(this, HP, T, (ConstitutiveLaw6D*)NULL);
+   return ReadCL6D(this, HP, T);
 }
 
 /* DataManager - end */

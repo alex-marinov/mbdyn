@@ -26,6 +26,7 @@ MBDyn 1.X-Devel
 		  with external software via files
 		- added support for user-defined drives
 		- added drive derivative where appropriate
+		- added support for user-defined constitutive laws
 	Backward compatibility issues:
 		- double viscoelastic constitutive law syntax changed
 		- per-element output removed from modal joints

@@ -928,7 +928,7 @@ DriveArrayCaller::Restart(std::ostream& out) const
 
 /* bag that contains functions to parse drive callers */
 
-typedef std::map<std::string, ReadDriveDataFunc, ltstrcase> DrvFuncMapType;
+typedef std::map<std::string, DriveCallerRead *, ltstrcase> DrvFuncMapType;
 static DrvFuncMapType DrvFuncMap;
 
 struct DriveWordSetType : public HighParser::WordSet {
@@ -939,9 +939,9 @@ struct DriveWordSetType : public HighParser::WordSet {
 static DriveWordSetType DriveWordSet;
 
 bool
-SetDriveData(const char *name, ReadDriveDataFunc func)
+SetDriveData(const char *name, DriveCallerRead *rf)
 {
-	return DrvFuncMap.insert(DrvFuncMapType::value_type(name, func)).second;
+	return DrvFuncMap.insert(DrvFuncMapType::value_type(name, rf)).second;
 }
 
 /* Legge i dati dei drivers */
@@ -963,10 +963,10 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 		throw DataManager::ErrGeneric();
 	}
 
-	return func->second(pDM, HP, bDeferred);
+	return func->second->Read(pDM, HP, bDeferred);
 }
 
-static void
+void
 NeedDM(const DataManager* pDM, MBDynParser& HP, bool bDeferred, const char *name)
 {
 	if (pDM == 0 && !bDeferred) {
@@ -976,8 +976,13 @@ NeedDM(const DataManager* pDM, MBDynParser& HP, bool bDeferred, const char *name
 	}
 }
 
-static DriveCaller *
-ReadTimeDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+struct TimeDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+TimeDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	NeedDM(pDM, HP, bDeferred, "time");
 
@@ -993,8 +998,13 @@ ReadTimeDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
-static DriveCaller *
-ReadNullDriveCaller(const DataManager* /* pDM */ , MBDynParser& /* HP */ , bool /* bDeferred */ )
+struct NullDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* /* pDM */ , MBDynParser& /* HP */ , bool /* bDeferred */ );
+};
+
+DriveCaller *
+NullDCR::Read(const DataManager* /* pDM */ , MBDynParser& /* HP */ , bool /* bDeferred */ )
 {
 	DriveCaller *pDC = 0;
 
@@ -1003,8 +1013,13 @@ ReadNullDriveCaller(const DataManager* /* pDM */ , MBDynParser& /* HP */ , bool 
 	return pDC;
 }
 
-static DriveCaller *
-ReadOneDriveCaller(const DataManager* /* pDM */ , MBDynParser& /* HP */ , bool /* bDeferred */ )
+struct OneDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* /* pDM */ , MBDynParser& /* HP */ , bool /* bDeferred */ );
+};
+
+DriveCaller *
+OneDCR::Read(const DataManager* /* pDM */ , MBDynParser& /* HP */ , bool /* bDeferred */ )
 {
 	DriveCaller *pDC = 0;
 
@@ -1013,8 +1028,13 @@ ReadOneDriveCaller(const DataManager* /* pDM */ , MBDynParser& /* HP */ , bool /
 	return pDC;
 }
 
-static DriveCaller *
-ReadConstDriveCaller(const DataManager* pDM, MBDynParser& HP, bool /* bDeferred */ )
+struct ConstDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool /* bDeferred */ );
+};
+
+DriveCaller *
+ConstDCR::Read(const DataManager* pDM, MBDynParser& HP, bool /* bDeferred */ )
 {
 	DriveCaller *pDC = 0;
 
@@ -1036,8 +1056,13 @@ ReadConstDriveCaller(const DataManager* pDM, MBDynParser& HP, bool /* bDeferred 
 	return pDC;
 }
 
-static DriveCaller *
-ReadLinearDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+struct LinearDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+LinearDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	NeedDM(pDM, HP, bDeferred, "linear");
 
@@ -1063,8 +1088,13 @@ ReadLinearDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
-static DriveCaller *
-ReadParabolicDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+struct ParabolicDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+ParabolicDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	NeedDM(pDM, HP, bDeferred, "parabolic");
 
@@ -1093,8 +1123,13 @@ ReadParabolicDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred
 	return pDC;
 }
 
-static DriveCaller *
-ReadCubicDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+struct CubicDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+CubicDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	NeedDM(pDM, HP, bDeferred, "cubic");
 
@@ -1126,14 +1161,24 @@ ReadCubicDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
-static DriveCaller *
-ReadFunctionDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+struct FunctionDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+FunctionDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	return ReadDriveData(pDM, HP, bDeferred);
 }
 
-static DriveCaller *
-ReadStepDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+struct StepDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+StepDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	NeedDM(pDM, HP, bDeferred, "step");
 
@@ -1160,8 +1205,13 @@ ReadStepDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
-static DriveCaller *
-ReadDoubleStepDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+struct DoubleStepDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+DoubleStepDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	NeedDM(pDM, HP, bDeferred, "double step");
 
@@ -1203,8 +1253,13 @@ ReadDoubleStepDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferre
 	return pDC;
 }
 
-static DriveCaller *
-ReadRampDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+struct RampDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+RampDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	NeedDM(pDM, HP, bDeferred, "ramp");
 
@@ -1247,8 +1302,13 @@ ReadRampDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
-static DriveCaller *
-ReadDoubleRampDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+struct DoubleRampDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+DoubleRampDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	NeedDM(pDM, HP, bDeferred, "double ramp");
 
@@ -1324,8 +1384,14 @@ ReadDoubleRampDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferre
 	return pDC;
 }
 
-static DriveCaller *
-ReadSineCosineDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred, bool bSine)
+struct SineCosineDCR {
+protected:
+	virtual DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred, bool bSine);
+};
+
+DriveCaller *
+SineCosineDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred, bool bSine)
 {
 	const DriveHandler* pDrvHdl = 0;
 	if (pDM != 0) {
@@ -1376,24 +1442,39 @@ ReadSineCosineDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferre
 	return pDC;
 }
 
-static DriveCaller *
-ReadSineDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+struct SineDCR : public DriveCallerRead, protected SineCosineDCR {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+SineDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	NeedDM(pDM, HP, bDeferred, "sine");
 
-	return ReadSineCosineDriveCaller(pDM, HP, bDeferred, true);
+	return SineCosineDCR::Read(pDM, HP, bDeferred, true);
 }
 
-static DriveCaller *
-ReadCosineDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+struct CosineDCR : public DriveCallerRead, protected SineCosineDCR {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+CosineDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	NeedDM(pDM, HP, bDeferred, "cosine");
 
-	return ReadSineCosineDriveCaller(pDM, HP, bDeferred, false);
+	return SineCosineDCR::Read(pDM, HP, bDeferred, false);
 }
 
-static DriveCaller *
-ReadFourierSeriesDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+struct FourierSeriesDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+FourierSeriesDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	NeedDM(pDM, HP, bDeferred, "Fourier series");
 
@@ -1457,8 +1538,13 @@ ReadFourierSeriesDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDefe
 	return pDC;
 }
 
-static DriveCaller *
-ReadFrequencySweepDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+struct FrequencySweepDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+FrequencySweepDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	NeedDM(pDM, HP, bDeferred, "frequency sweep");
 
@@ -1498,8 +1584,13 @@ ReadFrequencySweepDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDef
 	return pDC;
 }
 
-static DriveCaller *
-ReadExponentialDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+struct ExponentialDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+ExponentialDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	NeedDM(pDM, HP, bDeferred, "exponential");
 
@@ -1530,8 +1621,13 @@ ReadExponentialDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferr
 	return pDC;
 }
 
-static DriveCaller *
-ReadRandomDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+struct RandomDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+RandomDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	NeedDM(pDM, HP, bDeferred, "random");
 
@@ -1591,8 +1687,13 @@ ReadRandomDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
-static DriveCaller *
-ReadMeterDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+struct MeterDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+MeterDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	NeedDM(pDM, HP, bDeferred, "meter");
 
@@ -1637,8 +1738,13 @@ ReadMeterDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
-static DriveCaller *
-ReadPiecewiseLinearDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+struct PiecewiseLinearDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+PiecewiseLinearDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	NeedDM(pDM, HP, bDeferred, "piecewise linear");
 
@@ -1682,8 +1788,13 @@ ReadPiecewiseLinearDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDe
 	return pDC;
 }
 
-static DriveCaller *
-ReadStringDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+struct StringDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+StringDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	NeedDM(pDM, HP, bDeferred, "string");
 
@@ -1707,8 +1818,13 @@ ReadStringDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
-static DriveCaller *
-ReadDofDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+struct DofDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+DofDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	NeedDM(pDM, HP, bDeferred, "dof");
 
@@ -1750,8 +1866,13 @@ ReadDofDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
-static DriveCaller *
-ReadElementDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+struct ElementDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+ElementDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	NeedDM(pDM, HP, bDeferred, "element");
 
@@ -1838,8 +1959,13 @@ ReadElementDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
-static DriveCaller *
-ReadDriveDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+struct DriveDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+DriveDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	const DriveHandler* pDrvHdl = 0;
 	if (pDM != 0) {
@@ -1858,8 +1984,13 @@ ReadDriveDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
-static DriveCaller *
-ReadArrayDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+struct ArrayDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+ArrayDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	const DriveHandler* pDrvHdl = 0;
 	if (pDM != 0) {
@@ -1895,8 +2026,13 @@ ReadArrayDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
-static DriveCaller *
-ReadFileDriveCaller(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+struct FileDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+FileDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	NeedDM(pDM, HP, bDeferred, "file");
 
@@ -1950,37 +2086,53 @@ InitDriveData(void)
 
 	::done = true;
 
-	SetDriveData("time", ReadTimeDriveCaller);
-	SetDriveData("null", ReadNullDriveCaller);
-	SetDriveData("one", ReadOneDriveCaller);	/* deprecated */
-	SetDriveData("unit", ReadOneDriveCaller);
-	SetDriveData("const", ReadConstDriveCaller);
-	SetDriveData("linear", ReadLinearDriveCaller);
-	SetDriveData("parabolic", ReadParabolicDriveCaller);
-	SetDriveData("cubic", ReadCubicDriveCaller);
-	SetDriveData("function", ReadFunctionDriveCaller);
-	SetDriveData("step", ReadStepDriveCaller);
-	SetDriveData("double" "step", ReadDoubleStepDriveCaller);
-	SetDriveData("ramp", ReadRampDriveCaller);
-	SetDriveData("double" "ramp", ReadDoubleRampDriveCaller);
-	SetDriveData("sine", ReadSineDriveCaller);
-	SetDriveData("cosine", ReadCosineDriveCaller);
-	SetDriveData("fourier" "series", ReadFourierSeriesDriveCaller);
-	SetDriveData("frequency" "sweep", ReadFrequencySweepDriveCaller);
-	SetDriveData("exponential", ReadExponentialDriveCaller);
-	SetDriveData("random", ReadRandomDriveCaller);
-	SetDriveData("meter", ReadMeterDriveCaller);
-	SetDriveData("piecewise" "linear", ReadPiecewiseLinearDriveCaller);
-	SetDriveData("file", ReadFileDriveCaller);
-	SetDriveData("string", ReadStringDriveCaller);
-	SetDriveData("dof", ReadDofDriveCaller);
-	SetDriveData("element", ReadElementDriveCaller);
-	SetDriveData("drive", ReadDriveDriveCaller);
-	SetDriveData("array", ReadArrayDriveCaller);
+	SetDriveData("time", new TimeDCR);
+	SetDriveData("null", new NullDCR);
+	SetDriveData("one", new OneDCR);	/* deprecated */
+	SetDriveData("unit", new OneDCR);
+	SetDriveData("const", new ConstDCR);
+	SetDriveData("linear", new LinearDCR);
+	SetDriveData("parabolic", new ParabolicDCR);
+	SetDriveData("cubic", new CubicDCR);
+	SetDriveData("function", new FunctionDCR);
+	SetDriveData("step", new StepDCR);
+	SetDriveData("double" "step", new DoubleStepDCR);
+	SetDriveData("ramp", new RampDCR);
+	SetDriveData("double" "ramp", new DoubleRampDCR);
+	SetDriveData("sine", new SineDCR);
+	SetDriveData("cosine", new CosineDCR);
+	SetDriveData("fourier" "series", new FourierSeriesDCR);
+	SetDriveData("frequency" "sweep", new FrequencySweepDCR);
+	SetDriveData("exponential", new ExponentialDCR);
+	SetDriveData("random", new RandomDCR);
+	SetDriveData("meter", new MeterDCR);
+	SetDriveData("piecewise" "linear", new PiecewiseLinearDCR);
+	SetDriveData("file", new FileDCR);
+	SetDriveData("string", new StringDCR);
+	SetDriveData("dof", new DofDCR);
+	SetDriveData("element", new ElementDCR);
+	SetDriveData("drive", new DriveDCR);
+	SetDriveData("array", new ArrayDCR);
+
+	/* NOTE: add here initialization of new built-in drive callers;
+	 * alternative ways to register new custom drive callers are:
+	 * - call SetCL*D() from anywhere in the code
+	 * - write a module that calls SetDriveData() from inside a function
+	 *   called module_init(), and load it using "module load".
+	 */
 }
 
 void
 DestroyDriveData(void)
 {
+	if (!::done) {
+		return;
+	}
+
 	::done = false;
+
+	/* free stuff */
+	for (DrvFuncMapType::iterator i = DrvFuncMap.begin(); i != DrvFuncMap.end(); i++) {
+		delete i->second;
+	}
 }

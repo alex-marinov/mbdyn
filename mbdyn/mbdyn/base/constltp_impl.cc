@@ -45,13 +45,6 @@
 #endif /* USE_GRAALLDAMPER */
 #include <shockabsorber.h>
 
-/* prototype of the template functional object: reads a constitutive law */
-template <class T, class Tder>
-struct ConstitutiveLawRead {
-	virtual ConstitutiveLaw<T, Tder> *
-	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType);
-};
-
 /* constitutive law containers */
 typedef std::map<std::string, ConstitutiveLawRead<doublereal, doublereal> *, ltstrcase> CL1DFuncMapType;
 typedef std::map<std::string, ConstitutiveLawRead<Vec3, Mat3x3> *, ltstrcase> CL3DFuncMapType;
@@ -86,21 +79,21 @@ static CL6DWordSetType CL6DWordSet;
 
 /* constitutive law registration functions: call to register one */
 bool
-SetCL1D(const char *name, ConstitutiveLawRead<doublereal, doublereal> *func)
+SetCL1D(const char *name, ConstitutiveLawRead<doublereal, doublereal> *rf)
 {
-	return CL1DFuncMap.insert(CL1DFuncMapType::value_type(name, func)).second;
+	return CL1DFuncMap.insert(CL1DFuncMapType::value_type(name, rf)).second;
 }
 
 bool
-SetCL3D(const char *name, ConstitutiveLawRead<Vec3, Mat3x3> *func)
+SetCL3D(const char *name, ConstitutiveLawRead<Vec3, Mat3x3> *rf)
 {
-	return CL3DFuncMap.insert(CL3DFuncMapType::value_type(name, func)).second;
+	return CL3DFuncMap.insert(CL3DFuncMapType::value_type(name, rf)).second;
 }
 
 bool
-SetCL6D(const char *name, ConstitutiveLawRead<Vec6, Mat6x6> *func)
+SetCL6D(const char *name, ConstitutiveLawRead<Vec6, Mat6x6> *rf)
 {
-	return CL6DFuncMap.insert(CL6DFuncMapType::value_type(name, func)).second;
+	return CL6DFuncMap.insert(CL6DFuncMapType::value_type(name, rf)).second;
 }
 
 /* function that reads a constitutive law */
@@ -1156,6 +1149,13 @@ InitCL(void)
 
 	/* GRAALL damper */
 	SetCL1D("shock" "absorber", new ShockAbsorberCLR<doublereal, doublereal>);
+
+	/* NOTE: add here initialization of new built-in constitutive laws;
+	 * alternative ways to register new custom constitutive laws are:
+	 * - call SetCL*D() from anywhere in the code
+	 * - write a module that calls SetCL*D() from inside a function
+	 *   called module_init(), and load it using "module load".
+	 */
 }
 
 void
