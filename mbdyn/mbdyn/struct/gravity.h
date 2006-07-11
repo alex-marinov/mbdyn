@@ -49,7 +49,7 @@
  * tipo di elemento) mediante l'aggiunta di gradi di liberta', ecc.
  * 
  * L'accelerazione e' ottenuta mediante la chiamata della funzione propria 
- * bool bGetAcceleration(Vec3&) da parte degli elementi ElemGravityOwner.
+ * bool bGetGravity(Vec3&) da parte degli elementi ElemGravityOwner.
  * Il flag dice se e' definita l'accelerazione. 
  * In caso positivo, viene copiata nel vettore passato per reference.
  */
@@ -142,7 +142,7 @@ class GravityOwner {
    virtual ~GravityOwner(void);
 
    void PutGravity(const Gravity* pG);
-   virtual bool bGetAcceleration(const Vec3& X, Vec3& Acc) const;
+   virtual bool bGetGravity(const Vec3& X, Vec3& Acc) const;
 };
 
 /* GravityOwner - end */
@@ -188,21 +188,7 @@ class ElemGravityOwner : virtual public Elem, public GravityOwner {
       return 0.;
    };
 
-   /*
-    * momento statico e momento di inerzia trasportati nel punto X
-    * e ruotati di R
-    */
-#if 0
-   Vec3 GetS(const Vec3& X, const Mat3x3& R) const {
-      return R*(GetS_int()-X*dGetM());
-   };
-
-   Mat3x3 GetJ(const Vec3& X, const Mat3x3& R) const {
-      Vec3 S = X*dGetM()+GetS_int();
-      return R*(GetJ_int()-Mat3x3(S, S/dGetM()))*R.Transpose();
-   };
-#endif
-   
+  
    Vec3 GetS(void) const {
 	   return GetS_int();
    };

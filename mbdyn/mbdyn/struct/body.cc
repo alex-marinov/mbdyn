@@ -269,7 +269,7 @@ DynamicBody::AssRes(SubVectorHandler& WorkVec,
 	/* Se e' definita l'accelerazione di gravita',
 	 * la aggiunge (solo al residuo) */
 	Vec3 GravityAcceleration(0.);
-	bool g = GravityOwner::bGetAcceleration(pNode->GetXCurr(),
+	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(),
 		GravityAcceleration);
 
 	integer iNumRows = 6;
@@ -422,7 +422,7 @@ DynamicBody::InitialAssRes(SubVectorHandler& WorkVec,
 	/* Se e' definita l'accelerazione di gravita',
 	 * la aggiunge (solo al residuo) */
 	Vec3 GravityAcceleration(0.);
-	if (GravityOwner::bGetAcceleration(X, GravityAcceleration)) {
+	if (GravityOwner::bGetGravity(X, GravityAcceleration)) {
 		WorkVec.Add(1, GravityAcceleration*dMass);
 		WorkVec.Add(4, STmp.Cross(GravityAcceleration));
 		WorkVec.Add(10, (W.Cross(STmp)).Cross(GravityAcceleration));
@@ -576,7 +576,7 @@ StaticBody::AssMats(FullSubMatrixHandler& WMA,
 	/* Se e' definita l'accelerazione di gravita',
 	 * la aggiunge (solo al residuo) */
 	Vec3 Acceleration(0.);
-	bool g = GravityOwner::bGetAcceleration(pNode->GetXCurr(),
+	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(),
 		Acceleration);
 
 	/* TODO: reference */
@@ -625,7 +625,7 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 	/* Se e' definita l'accelerazione di gravita',
 	 * la aggiunge (solo al residuo) */
 	Vec3 Acceleration(0.);
-	bool g = GravityOwner::bGetAcceleration(pNode->GetXCurr(), Acceleration);
+	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(), Acceleration);
 
 	/* TODO: reference */
 	Vec3 W(0.);

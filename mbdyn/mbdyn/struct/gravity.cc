@@ -116,7 +116,7 @@ void GravityOwner::PutGravity(const Gravity* pG)
 }
 
 
-bool GravityOwner::bGetAcceleration(const Vec3& X, Vec3& Acc) const
+bool GravityOwner::bGetGravity(const Vec3& X, Vec3& Acc) const
 {
    if(pGravity == NULL) {
       return false;
