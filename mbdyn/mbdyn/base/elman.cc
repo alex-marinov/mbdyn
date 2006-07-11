@@ -48,11 +48,7 @@ DataManager::ElemManager(void)
 		ElemData[i].ppFirstElem = NULL;
 		ElemData[i].iNum = 0;
 		ElemData[i].DofOwnerType = DofOwner::UNKNOWN;
-		ElemData[i].fIsUnique = flag(0);
-		ElemData[i].fToBeUsedInAssembly = flag(0);
-		ElemData[i].fGeneratesInertialForces = flag(0);
-		ElemData[i].fUsesAirProperties = flag(0);
-		ElemData[i].fDefaultOut = fDefaultOut;		/* "output.h" */
+		ElemData[i].uFlags = 0U;
 		ElemData[i].OutFile = OutputHandler::UNKNOWN;	/* "output.h" */
 	}
 
@@ -100,26 +96,26 @@ DataManager::ElemManager(void)
 	ElemData[Elem::AEROMODAL].iDerivation = ELEM | AIRPROPOWNER;
 
 	/* Types that must be unique */
-	ElemData[Elem::GRAVITY].fIsUnique = flag(1);
-	ElemData[Elem::AIRPROPERTIES].fIsUnique = flag(1);
+	ElemData[Elem::GRAVITY].IsUnique(true);
+	ElemData[Elem::AIRPROPERTIES].IsUnique(true);
 
 	/* Types that are used by default in initial assembly */
-	ElemData[Elem::JOINT].fToBeUsedInAssembly = flag(1);
-	ElemData[Elem::BEAM].fToBeUsedInAssembly = flag(1);
+	ElemData[Elem::JOINT].ToBeUsedInAssembly(true);
+	ElemData[Elem::BEAM].ToBeUsedInAssembly(true);
 
 	/* Aggiungere qui se un tipo genera forze d'inerzia e quindi
 	 * deve essere collegato all'elemento accelerazione di gravita' */
-	ElemData[Elem::BODY].fGeneratesInertialForces = flag(1);
-	ElemData[Elem::JOINT].fGeneratesInertialForces = flag(1);
-	ElemData[Elem::LOADABLE].fGeneratesInertialForces = flag(1);
+	ElemData[Elem::BODY].GeneratesInertiaForces(true);
+	ElemData[Elem::JOINT].GeneratesInertiaForces(true);
+	ElemData[Elem::LOADABLE].GeneratesInertiaForces(true);
 
 	/* Aggiungere qui se un tipo usa le proprieta' dell'aria e quindi
 	 * deve essere collegato all'elemento proprieta' dell'aria */
-	ElemData[Elem::ROTOR].fUsesAirProperties = flag(1);
-	ElemData[Elem::AEROMODAL].fUsesAirProperties = flag(1);
-	ElemData[Elem::AERODYNAMIC].fUsesAirProperties = flag(1);
-	ElemData[Elem::LOADABLE].fUsesAirProperties = flag(1);
-	ElemData[Elem::EXTERNAL].fUsesAirProperties = flag(1);
+	ElemData[Elem::ROTOR].UsesAirProperties(true);
+	ElemData[Elem::AEROMODAL].UsesAirProperties(true);
+	ElemData[Elem::AERODYNAMIC].UsesAirProperties(true);
+	ElemData[Elem::LOADABLE].UsesAirProperties(true);
+	ElemData[Elem::EXTERNAL].UsesAirProperties(true);
 
 	/* Reset della struttura DriveData */
 	for (int i = 0; i < Drive::LASTDRIVETYPE; i++) {
@@ -617,7 +613,7 @@ DataManager::pFindDrive(Drive::Type Typ, unsigned int uL) const
 flag
 DataManager::fGetDefaultOutputFlag(const Elem::Type& t) const
 {
-	return ElemData[t].fDefaultOut;
+	return ElemData[t].bDefaultOut();
 }
 
 /* DataManager - end */
@@ -634,7 +630,7 @@ CurrType(Elem::UNKNOWN), ppCurr(NULL)
 {
 	int iCnt = 0;
 
-	while ((*pElemData)[iCnt].fToBeUsedInAssembly == 0
+	while (!(*pElemData)[iCnt].bToBeUsedInAssembly()
 			|| (*pElemData)[iCnt].iNum == 0)
 	{
 		if (++iCnt >= Elem::LASTELEMTYPE) {
@@ -688,7 +684,7 @@ InitialAssemblyElem* InitialAssemblyIterator::GetNext(void) const
 				if (++iCnt >= Elem::LASTELEMTYPE) {
 					return NULL;
 				}
-			} while ((*pElemData)[iCnt].fToBeUsedInAssembly == 0
+			} while (!(*pElemData)[iCnt].bToBeUsedInAssembly()
 					|| (*pElemData)[iCnt].iNum == 0);
 
 			ASSERT((*pElemData)[iCnt].ppFirstElem != NULL);

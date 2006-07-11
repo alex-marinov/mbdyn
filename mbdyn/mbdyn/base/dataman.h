@@ -394,6 +394,7 @@ public:
 			ModuleInsertMode = FAIL);
 
 public:
+	/* FIXME: will be eliminated */
 	enum DerivationTable {
 		ELEM			= 0,  // pleonastico
 		DOFOWNER		= 1,
@@ -401,22 +402,46 @@ public:
 		AIRPROPOWNER		= 4,
 		INITIALASSEMBLY		= 8
 	};
+	/* end of FIXME: will be eliminated */
+
+	enum DataFlags {
+		NONE			= 0x00U,
+		ISUNIQUE		= 0x01U,
+		TOBEUSEDINASSEMBLY	= 0x02U,
+		GENERATESINERTIAFORCES	= 0x04U,
+		USESAIRPROPERTIES	= 0x08U,
+		DEFAULTOUT		= 0x10U
+	};
 
 protected:
-
 	/* struttura dei dati fondamentali degli elementi */
 	struct ElemDataStructure {
-		Elem** ppFirstElem; /* punt. al punt. al primo el. del tipo */
-		unsigned int iNum;          /* numero di elementi del tipo */
-		DofOwner::Type DofOwnerType; /* Tipo di DofOwner */
-		unsigned int iDerivation;   /* Tabella delle derivazioni */
-		flag fIsUnique;             /* Unico? */
-		flag fToBeUsedInAssembly;   /* Usato nell'assemblaggio? */
-		flag fGeneratesInertialForces; /* Genera forze d'inerzia? */
-		flag fUsesAirProperties;    /* Usa le proprieta' dell'aria? */
-		flag fDefaultOut;           /* Flag di default output */
+		Elem** ppFirstElem;		// punt. al punt. al primo el. del tipo
+		unsigned int iNum;		// numero di elementi del tipo
 
-		OutputHandler::OutFiles OutFile; /* Tipo di file in output */
+		DofOwner::Type DofOwnerType;	// Tipo di DofOwner
+		unsigned int iDerivation;	// Tabella delle derivazioni
+
+		OutputHandler::OutFiles OutFile;	// Tipo di file in output
+
+		unsigned uFlags;		// flags
+
+		/* helpers */
+		void IsUnique(bool b) { if (b) { uFlags |= ISUNIQUE; } else { uFlags &= ~ISUNIQUE; } };
+		void ToBeUsedInAssembly(bool b) { if (b) { uFlags |= TOBEUSEDINASSEMBLY; } else { uFlags &= ~TOBEUSEDINASSEMBLY; } };
+		void GeneratesInertiaForces(bool b) { if (b) { uFlags |= GENERATESINERTIAFORCES; } else { uFlags &= ~GENERATESINERTIAFORCES; } };
+		void UsesAirProperties(bool b) { if (b) { uFlags |= USESAIRPROPERTIES; } else { uFlags &= ~USESAIRPROPERTIES; } };
+		void DefaultOut(bool b) { if (b) { uFlags |= DEFAULTOUT; } else { uFlags &= ~DEFAULTOUT; } };
+
+		bool bIsUnique(void) const { return (uFlags & ISUNIQUE) == ISUNIQUE; };
+		bool bToBeUsedInAssembly(void) const { return (uFlags & TOBEUSEDINASSEMBLY) == TOBEUSEDINASSEMBLY; };
+		bool bGeneratesInertiaForces(void) const { return (uFlags & GENERATESINERTIAFORCES) == GENERATESINERTIAFORCES; };
+		bool bUsesAirProperties(void) const { return (uFlags & USESAIRPROPERTIES) == USESAIRPROPERTIES; };
+		bool bDefaultOut(void) const { return (uFlags & DEFAULTOUT) == DEFAULTOUT; };
+
+		/* element read functional objects */
+		typedef std::map<std::string, void *> ElemReadType;
+		ElemReadType ElemRead;
 
 	} ElemData[Elem::LASTELEMTYPE];
 
@@ -497,7 +522,12 @@ protected:
 	struct {
 		Node** ppFirstNode;
 		unsigned int iNum;
-		flag fDefaultOut;
+		unsigned uFlags;		// flags
+
+		/* helpers */
+		void DefaultOut(bool b) { if (b) { uFlags |= DEFAULTOUT; } else { uFlags &= ~DEFAULTOUT; } };
+
+		bool bDefaultOut(void) const { return (uFlags & DEFAULTOUT) == DEFAULTOUT; };
 
 		OutputHandler::OutFiles OutFile; /* Tipo di file in output */
 	} NodeData[Node::LASTNODETYPE];

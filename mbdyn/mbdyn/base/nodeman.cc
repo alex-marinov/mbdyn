@@ -46,7 +46,7 @@ void DataManager::NodeManager(void)
    for(int i = 0; i < Node::LASTNODETYPE; i++) {
       NodeData[i].ppFirstNode = NULL;
       NodeData[i].iNum = 0;
-      NodeData[i].fDefaultOut = fDefaultOut; /* Da "output.h" */
+      NodeData[i].DefaultOut(::fDefaultOut == 1); /* Da "output.h" */
       NodeData[i].OutFile = OutputHandler::UNKNOWN; /* Da "output.h" */
    }
    
@@ -240,7 +240,7 @@ DataManager::NodeOutput_f06(
 
 flag DataManager::fGetDefaultOutputFlag(const Node::Type& t) const
 {
-   return NodeData[t].fDefaultOut;
+   return NodeData[t].bDefaultOut();
 }
 
 

@@ -1190,7 +1190,7 @@ void DataManager::ReadElems(MBDynParser& HP)
       Gravity* pGrav = 
 	(Gravity*)(*(ElemData[Elem::GRAVITY].ppFirstElem))->pGet();
       for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
-	 if ((ElemData[iCnt].fGeneratesInertialForces == 1)
+	 if ((ElemData[iCnt].bGeneratesInertiaForces())
 	     && (ElemData[iCnt].iNum > 0)) {
 	    
 	    Elem** ppTmp = ElemData[iCnt].ppFirstElem;
@@ -1212,9 +1212,9 @@ void DataManager::ReadElems(MBDynParser& HP)
 	(AirProperties*)(*(ElemData[Elem::AIRPROPERTIES].ppFirstElem))->pGet();
       
       for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
-	 if ((ElemData[iCnt].fUsesAirProperties == 1)
-	     && (ElemData[iCnt].iNum > 0)) {	    
-	    
+	 if (ElemData[iCnt].bUsesAirProperties()
+	     && ElemData[iCnt].iNum > 0)
+	 {	    
 	    Elem** ppTmp = ElemData[iCnt].ppFirstElem;	    
 	    Elem** ppLastEl = ppTmp+ElemData[iCnt].iNum;	    
 	    while (ppTmp < ppLastEl) {
@@ -1232,8 +1232,9 @@ void DataManager::ReadElems(MBDynParser& HP)
       flag fStop(0);
       
       for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
-	 if ((ElemData[iCnt].fUsesAirProperties == 1)
-	     && (ElemData[iCnt].iNum > 0)) {
+	 if (ElemData[iCnt].bUsesAirProperties()
+	     && ElemData[iCnt].iNum > 0)
+	 {
 	    for (unsigned int iEl = 0; iEl < ElemData[iCnt].iNum; iEl++) {
 	       if (ElemData[iCnt].ppFirstElem[iEl]->pGetAerodynamicElem()->NeedsAirProperties()) {
 	          if (fStop == 0) {

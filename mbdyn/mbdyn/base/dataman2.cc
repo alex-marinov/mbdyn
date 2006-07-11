@@ -424,7 +424,7 @@ DataManager::InitialJointAssembly(void)
 	/* Elementi: mette gli indici agli eventuali DofOwner */
 	for (int iCnt1 = 0; iCnt1 < Elem::LASTELEMTYPE; iCnt1++) {
 		/* Pre ogni tipo di elemento */
-		if (ElemData[iCnt1].fToBeUsedInAssembly && ElemData[iCnt1].iNum > 0) {
+		if (ElemData[iCnt1].bToBeUsedInAssembly() && ElemData[iCnt1].iNum > 0) {
 			/* Se deve essere usato nell'assemblaggio e ne sono definiti */
 
 			/* Tipo di dof dell'elemento corrente */
@@ -569,7 +569,7 @@ DataManager::InitialJointAssembly(void)
 	for (int iCnt1 = 0; iCnt1 < Elem::LASTELEMTYPE; iCnt1++) {
 		/* Pre ogni tipo di elemento */
 		if (ElemData[iCnt1].DofOwnerType != DofOwner::UNKNOWN &&
-				ElemData[iCnt1].fToBeUsedInAssembly &&
+				ElemData[iCnt1].bToBeUsedInAssembly() &&
 				ElemData[iCnt1].iNum > 0) {
 			Elem** ppFirstEl = ElemData[iCnt1].ppFirstElem;
 			integer iNumEl = ElemData[iCnt1].iNum;
@@ -793,7 +793,7 @@ endofcycle:
 	for (int iCnt1 = 0; iCnt1 < Elem::LASTELEMTYPE; iCnt1++) {
 		/* Per ogni tipo di elemento */
 		if (ElemData[iCnt1].DofOwnerType != DofOwner::UNKNOWN &&
-				ElemData[iCnt1].fToBeUsedInAssembly &&
+				ElemData[iCnt1].bToBeUsedInAssembly() &&
 				ElemData[iCnt1].iNum > 0) {
 			/* Se possiede dofs, se deve essere usato nell'assemblaggio
 			 * e se ne sono presenti */

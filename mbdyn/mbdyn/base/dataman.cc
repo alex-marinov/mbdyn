@@ -662,7 +662,7 @@ void DataManager::MakeRestart(void)
 	/* Elementi */
 	for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) { 	  
 	   if (ElemData[iCnt].iNum > 0) {
-	      if (ElemData[iCnt].fIsUnique == 1) {
+	      if (ElemData[iCnt].bIsUnique()) {
 	     	 OutHdl.Restart() << "  " << psReadControlElems[iCnt] 
 	     	   << ';' << std::endl;
 	      } else {  				  
@@ -696,12 +696,12 @@ void DataManager::MakeRestart(void)
 	  << std::endl
 	  << "  default output: none";
 	for (int iCnt = 0; iCnt < Node::LASTNODETYPE; iCnt++) {
-	     if(NodeData[iCnt].fDefaultOut == flag(1)) {
+	     if (NodeData[iCnt].bDefaultOut()) {
 	     	 OutHdl.Restart() << ", " << psReadControlNodes[iCnt];
 	     }
 	}		      
 	for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
-	     if(ElemData[iCnt].fDefaultOut == flag(1)) {
+	     if (ElemData[iCnt].bDefaultOut()) {
 	     	 OutHdl.Restart() << ", " << psReadControlElems[iCnt];
 	     }
 	}		      

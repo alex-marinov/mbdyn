@@ -219,18 +219,6 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
    /* tabella delle parole chiave */
    KeyTable K(HP, sKeyWords);
    
-#if 0
-   /*
-    * reset default output in case of realtime
-    */
-   for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
-      ElemData[iCnt].fDefaultOut = flag(0);
-   }			 
-   for (int iCnt = 0; iCnt < Node::LASTNODETYPE; iCnt++) {
-      NodeData[iCnt].fDefaultOut = flag(0);
-   }			 
-#endif /* 0 */
-
    KeyWords CurrDesc;
    while ((CurrDesc = KeyWords(HP.GetDescription())) != END) {
       switch (CurrDesc) {
@@ -559,19 +547,19 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 	      }
 		
 	      case RIGIDBODIES: {			    
-		 ElemData[Elem::BODY].fToBeUsedInAssembly = flag(1);
+		 ElemData[Elem::BODY].ToBeUsedInAssembly(true);
 		 DEBUGLCOUT(MYDEBUG_INPUT, "Rigid bodies will be used in initial joint assembly" << std::endl);
 		 break;
 	      }
 		
 	      case GRAVITY: {			    
-		 ElemData[Elem::GRAVITY].fToBeUsedInAssembly = flag(1);
+		 ElemData[Elem::GRAVITY].ToBeUsedInAssembly(true);
 		 DEBUGLCOUT(MYDEBUG_INPUT, "Gravity will be used in initial joint assembly" << std::endl);
 		 break;
 	      }
 		
 	      case FORCES: {
-		 ElemData[Elem::FORCE].fToBeUsedInAssembly = flag(1);
+		 ElemData[Elem::FORCE].ToBeUsedInAssembly(true);
 		 DEBUGLCOUT(MYDEBUG_INPUT, "Forces will be used in initial joint assembly" << std::endl);
 		 break;
 	      }
@@ -579,7 +567,7 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 		/* Lo lascio per backwards compatibility */
 	      case BEAMS: {			    
 #if 0
-		 ElemData[Elem::BEAM].fToBeUsedInAssembly = flag(1);
+		 ElemData[Elem::BEAM].ToBeUsedInAssembly(true);
 #endif /* 0 */
 		 DEBUGLCOUT(MYDEBUG_INPUT, "Beams are used in initial joint assembly by default" << std::endl);
 		 break;
@@ -587,11 +575,11 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 
 #if defined(USE_AERODYNAMIC_ELEMS)
 	      case AERODYNAMICELEMENTS: {
-		 ElemData[Elem::AERODYNAMIC].fToBeUsedInAssembly = flag(1);
+		 ElemData[Elem::AERODYNAMIC].ToBeUsedInAssembly(true);
 		 DEBUGLCOUT(MYDEBUG_INPUT, "Aerodynamic Elements will be used in initial joint assembly" << std::endl);
 		 
-		 if (ElemData[Elem::AIRPROPERTIES].fToBeUsedInAssembly == flag(0)) {
-		    ElemData[Elem::AIRPROPERTIES].fToBeUsedInAssembly = flag(1);
+		 if (!ElemData[Elem::AIRPROPERTIES].bToBeUsedInAssembly()) {
+		    ElemData[Elem::AIRPROPERTIES].ToBeUsedInAssembly(true);
 		 }
 		 
 		 break;
@@ -599,7 +587,7 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 #endif /* USE_AERODYNAMIC_ELEMS */
 		
 	      case LOADABLEELEMENTS: {
-		 ElemData[Elem::LOADABLE].fToBeUsedInAssembly = flag(1);
+		 ElemData[Elem::LOADABLE].ToBeUsedInAssembly(true);
 		 DEBUGLCOUT(MYDEBUG_INPUT, "Loadable Elements will be used in initial joint assembly" << std::endl);
 		 break;
 	      }
@@ -908,20 +896,20 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 	     switch (CurrDefOut) {
 	      case ALL: {
 		 for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
-		    ElemData[iCnt].fDefaultOut = flag(1);
+		    ElemData[iCnt].DefaultOut(true);
 		 }			 
 		 for (int iCnt = 0; iCnt < Node::LASTNODETYPE; iCnt++) {
-		    NodeData[iCnt].fDefaultOut = flag(1);
+		    NodeData[iCnt].DefaultOut(true);
 		 }			 
 		 break;
 	      }
 		
 	      case NONE: {
 		 for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
-		    ElemData[iCnt].fDefaultOut = flag(0);
+		    ElemData[iCnt].DefaultOut(false);
 		 }			 
 		 for (int iCnt = 0; iCnt < Node::LASTNODETYPE; iCnt++) {
-		    NodeData[iCnt].fDefaultOut = flag(0);
+		    NodeData[iCnt].DefaultOut(false);
 		 }			 
 		 break;
 	      }
@@ -934,113 +922,113 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 
 #if defined(USE_STRUCT_NODES)
 	      case STRUCTURALNODES: {
-		 NodeData[Node::STRUCTURAL].fDefaultOut = flag(1);
+		 NodeData[Node::STRUCTURAL].DefaultOut(true);
 		 break;
 	      }
 #endif /* USE_STRUCT_NODES */
 		
 #if defined(USE_ELECTRIC_NODES)
 	      case ELECTRICNODES: {			 
-		 NodeData[Node::ELECTRIC].fDefaultOut = flag(1);
+		 NodeData[Node::ELECTRIC].DefaultOut(true);
 		 break;
 	      }
 		
 	      case ABSTRACTNODES: {			 
-		 NodeData[Node::ABSTRACT].fDefaultOut = flag(1);
+		 NodeData[Node::ABSTRACT].DefaultOut(true);
 		 break;
 	      }
 #endif /* USE_ELECTRIC_NODES */
 
 #if defined(USE_HYDRAULIC_NODES)
 	      case HYDRAULICNODES: {
-		 NodeData[Node::HYDRAULIC].fDefaultOut = flag(1);
+		 NodeData[Node::HYDRAULIC].DefaultOut(true);
 		 break;
 	      }
 #endif /* USE_HYDRAULIC_NODES */
 		
 #if defined(USE_STRUCT_NODES)
 	      case GRAVITY: {			 
-		 ElemData[Elem::GRAVITY].fDefaultOut = flag(1);
+		 ElemData[Elem::GRAVITY].DefaultOut(true);
 		 break;
 	      }
 		
 	      case RIGIDBODIES: {			 
-		 ElemData[Elem::BODY].fDefaultOut = flag(1);
+		 ElemData[Elem::BODY].DefaultOut(true);
 		 break;
 	      }
 		
 	      case JOINTS: {			 
-		 ElemData[Elem::JOINT].fDefaultOut = flag(1);
+		 ElemData[Elem::JOINT].DefaultOut(true);
 		 break;
 	      }
 		
 	      case BEAMS: {			 
-		 ElemData[Elem::BEAM].fDefaultOut = flag(1);
+		 ElemData[Elem::BEAM].DefaultOut(true);
 		 break;
 	      }
 		
 	      case PLATES: {
-		 ElemData[Elem::PLATE].fDefaultOut = flag(1);
+		 ElemData[Elem::PLATE].DefaultOut(true);
 		 break;
 	      }
 
 #if defined(USE_AERODYNAMIC_ELEMS)
 	      case AIRPROPERTIES: {			 
-		 ElemData[Elem::AIRPROPERTIES].fDefaultOut = flag(1);
+		 ElemData[Elem::AIRPROPERTIES].DefaultOut(true);
 		 break;
 	      }
 		
 	      case ROTORS: {			 
-		 ElemData[Elem::ROTOR].fDefaultOut = flag(1);
+		 ElemData[Elem::ROTOR].DefaultOut(true);
 		 break;
 	      }
 		
 	      case AEROMODALS: {			 
-		 ElemData[Elem::AEROMODAL].fDefaultOut = flag(1);
+		 ElemData[Elem::AEROMODAL].DefaultOut(true);
 		 break;
 	      }
 	      case AERODYNAMICELEMENTS: {			 
-		 ElemData[Elem::AERODYNAMIC].fDefaultOut = flag(1);
+		 ElemData[Elem::AERODYNAMIC].DefaultOut(true);
 		 break;
 	      }
 #endif /* USE_AERODYNAMIC_ELEMS */
 #endif /* USE_STRUCT_NODES */
 
 	      case FORCES: {			 
-		 ElemData[Elem::FORCE].fDefaultOut = flag(1);
+		 ElemData[Elem::FORCE].DefaultOut(true);
 		 break;
 	      }
 		
 #if defined(USE_ELECTRIC_NODES)
 	      case GENELS: {			 
-		 ElemData[Elem::GENEL].fDefaultOut = flag(1);
+		 ElemData[Elem::GENEL].DefaultOut(true);
 		 break;
 	      }
 		
 	      case ELECTRICBULKELEMENTS: {			 
-		 ElemData[Elem::ELECTRICBULK].fDefaultOut = flag(1);
+		 ElemData[Elem::ELECTRICBULK].DefaultOut(true);
 		 break;
 	      }
 		
 	      case ELECTRICELEMENTS: {			 
-		 ElemData[Elem::ELECTRIC].fDefaultOut = flag(1);
+		 ElemData[Elem::ELECTRIC].DefaultOut(true);
 		 break;
 	      }
 #endif /* USE_ELECTRIC_NODES */
 
 #if defined(USE_HYDRAULIC)
 	      case HYDRAULICELEMENTS: {
-		 ElemData[Elem::HYDRAULIC].fDefaultOut = flag(1);
+		 ElemData[Elem::HYDRAULIC].DefaultOut(true);
 		 break;
 	      }
 #endif /* USE_HYDRAULIC */
 	      case LOADABLEELEMENTS: {
-		 ElemData[Elem::LOADABLE].fDefaultOut = flag(1);
+		 ElemData[Elem::LOADABLE].DefaultOut(true);
 		 break;
 	      }
 #ifdef USE_EXTERNAL
 	       case EXTERNALELEMENTS: {		
-		 ElemData[Elem::EXTERNAL].fDefaultOut = flag(1);
+		 ElemData[Elem::EXTERNAL].DefaultOut(true);
 		 break;
 	      }
 #endif /* USE_EXTERNAL */
