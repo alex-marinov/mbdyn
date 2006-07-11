@@ -413,6 +413,13 @@ public:
 		DEFAULTOUT		= 0x10U
 	};
 
+	/* element read functional object prototype */
+	struct ElemRead {
+		virtual Elem *
+		Read(const DataManager *pDM, MBDynParser& HP,
+			unsigned int uLabel, int CurrType) const = 0;
+	};
+
 protected:
 	/* struttura dei dati fondamentali degli elementi */
 	struct ElemDataStructure {
@@ -439,11 +446,17 @@ protected:
 		bool bUsesAirProperties(void) const { return (uFlags & USESAIRPROPERTIES) == USESAIRPROPERTIES; };
 		bool bDefaultOut(void) const { return (uFlags & DEFAULTOUT) == DEFAULTOUT; };
 
-		/* element read functional objects */
-		typedef std::map<std::string, void *> ElemReadType;
+		/* element read map */
+		typedef std::map<std::string, DataManager::ElemRead *> ElemReadType;
 		ElemReadType ElemRead;
 
 	} ElemData[Elem::LASTELEMTYPE];
+
+#if 0
+	/* element type map; will replace ElemData */
+	typedef std::map<std::string, ElemDataStructure *> ElemDataMapType;
+	ElemDataStrMapType ElemDataMap;
+#endif
 
 	mutable VecIter<Elem *> ElemIter;
 
