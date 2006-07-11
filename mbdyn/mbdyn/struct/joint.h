@@ -107,11 +107,8 @@ class Joint
  public: 
    class ErrGeneric {};
    
- private:
-   Joint::Type JointT;
-   
  public:
-   Joint(unsigned int uL, Joint::Type T, const DofOwner* pD, flag fOut);
+   Joint(unsigned int uL, const DofOwner* pD, flag fOut);
    virtual ~Joint(void);
 
    /* Derivate da Elem */
@@ -122,9 +119,7 @@ class Joint
    };   
    
    /* Tipo di joint */
-   virtual Joint::Type GetJointType(void) const {
-      return JointT;
-   };
+   virtual Joint::Type GetJointType(void) const = 0;
 
    /* Contributo al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const {

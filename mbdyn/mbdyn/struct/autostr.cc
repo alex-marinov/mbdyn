@@ -39,7 +39,7 @@
 
 /* Costruttore */
 AutomaticStructElem::AutomaticStructElem(const DynamicStructNode* pN)
-: Elem(pN->GetLabel(), Elem::AUTOMATICSTRUCTURAL, pN->fToBeOutput()), 
+: Elem(pN->GetLabel(), pN->fToBeOutput()), 
 pNode((DynamicStructNode *)pN), B(0.), G(0.), BP(0.), GP(0.),
 m(0.), S(0.), J(0.)
 { 

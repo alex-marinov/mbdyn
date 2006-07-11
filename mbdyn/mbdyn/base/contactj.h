@@ -50,8 +50,8 @@ class ContactJoint : virtual public Elem, public Joint {
    ContactJoint(unsigned int uL, const DofOwner* pDO,
 		const StructNode* pN1, const StructNode* pN2, 
 		const Vec3& n, flag fOut) 
-     : Elem(uL, Elem::JOINT, fOut), 
-     Joint(uL, Joint::INPLANECONTACT, pDO, fOut),
+     : Elem(uL, fOut), 
+     Joint(uL, pDO, fOut),
      pNode1(pN1), pNode2(pN2),
      n(n), dD(0.), dF(0.) {
 	ASSERT(pNode1 != NULL);

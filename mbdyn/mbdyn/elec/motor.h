@@ -73,7 +73,7 @@ public:
 
 	virtual inline void* pGet(void) const;
 
-	virtual Electric::Type GetElectric(void) const {
+	virtual Electric::Type GetElectricType(void) const {
 		return Electric::MOTOR;
 	};
    

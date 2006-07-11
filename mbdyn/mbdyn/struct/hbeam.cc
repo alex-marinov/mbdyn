@@ -71,10 +71,9 @@ HBeam::HBeam(unsigned int uL,
 		const Mat3x3& R1, const Mat3x3& R2,
 		const ConstitutiveLaw6D* pd,
 		flag fOut)
-: Elem(uL, Elem::BEAM, fOut), 
-ElemGravityOwner(uL, Elem::BEAM, fOut), 
-InitialAssemblyElem(uL, Elem::BEAM, fOut),
-BeamT(Beam::ELASTIC),
+: Elem(uL, fOut), 
+ElemGravityOwner(uL, fOut), 
+InitialAssemblyElem(uL, fOut),
 fFirstRes(1)
 {
 	/* Validazione dati */
@@ -787,11 +786,9 @@ ViscoElasticHBeam::ViscoElasticHBeam(unsigned int uL,
 		const Mat3x3& r,
 		const ConstitutiveLaw6D* pd, 
 		flag fOut)
-: Elem(uL, Elem::BEAM, fOut),
+: Elem(uL, fOut),
 HBeam(uL, pN1, pN2, F1, F2, r, pd, fOut)
 {
-	SetBeamType(Beam::VISCOELASTIC);
-	
 	LPrimeRef = LPrime = Vec3(0.);  
 	gPrime = Vec3(0.);
 	

@@ -170,6 +170,7 @@ class Rotor
 
    /* Tipo dell'elemento (usato per debug ecc.) */
    virtual Elem::Type GetElemType(void) const;
+   virtual AerodynamicElem::Type GetAerodynamicElemType(void) const;
    
    /* Il metodo iGetNumDof() serve a ritornare il numero di gradi di liberta'
     * propri che l'elemento definisce. Non e' virtuale in quanto serve a 

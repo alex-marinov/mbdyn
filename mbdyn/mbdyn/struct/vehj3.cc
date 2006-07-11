@@ -53,8 +53,8 @@ DeformableJoint::DeformableJoint(unsigned int uL,
 		const Mat3x3& tilde_R1h,
 		const Mat3x3& tilde_R2h,
 		flag fOut)
-: Elem(uL, Elem::JOINT, fOut),
-Joint(uL, Joint::DEFORMABLEJOINT, pDO, fOut),
+: Elem(uL, fOut),
+Joint(uL, pDO, fOut),
 ConstitutiveLaw6DOwner(pCL),
 pNode1(pN1), pNode2(pN2),
 tilde_f1(tilde_f1), tilde_f2(tilde_f2),
@@ -333,7 +333,7 @@ ElasticJoint::ElasticJoint(unsigned int uL,
 		const Mat3x3& tilde_R1h,
 		const Mat3x3& tilde_R2h,
 		flag fOut)
-: Elem(uL, Elem::JOINT, fOut),
+: Elem(uL, fOut),
 DeformableJoint(uL, pDO, pCL, pN1, pN2, tilde_f1, tilde_f2, tilde_R1h, tilde_R2h, fOut),
 ThetaRef(0.)
 {

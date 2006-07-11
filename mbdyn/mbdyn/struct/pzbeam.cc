@@ -128,7 +128,7 @@ PiezoActuatorBeam::PiezoActuatorBeam(
 		const Mat3xN& T_Ie, const Mat3xN& T_Ik,
 		const Mat3xN& TIIe, const Mat3xN& TIIk,
 		flag fOut
-) : Elem(uL, Elem::BEAM, fOut),
+) : Elem(uL, fOut),
 Beam(uL, pN1, pN2, pN3, F1, F2, F3, R1, R2, R3, r_I, rII, pD_I, pDII, fOut),
 iNumElec(iEl), pvElecDofs(pEDof), V(iEl)
 {
@@ -140,8 +140,6 @@ iNumElec(iEl), pvElecDofs(pEDof), V(iEl)
    }   
 #endif // DEBUG
 
-   SetBeamType(Beam::PIEZOELECTRIC);
-   
    PiezoMat[STRAIN][S_I].Copy(T_Ie);
    PiezoMat[STRAIN][SII].Copy(TIIe);
    PiezoMat[CURVAT][S_I].Copy(T_Ik);
@@ -371,7 +369,7 @@ PiezoActuatorVEBeam::PiezoActuatorVEBeam(
 		const Mat3xN& TIIe,
 		const Mat3xN& TIIk,
 		flag fOut
-) : Elem(uL, Elem::BEAM, fOut),
+) : Elem(uL, fOut),
 ViscoElasticBeam(uL, pN1, pN2, pN3, F1, F2, F3, R1, R2, R3,
 		r_I, rII, pD_I, pDII, fOut),
 iNumElec(iEl), pvElecDofs(pEDof), V(iEl)
@@ -384,8 +382,6 @@ iNumElec(iEl), pvElecDofs(pEDof), V(iEl)
    }   
 #endif /* DEBUG */
 
-   SetBeamType(Beam::PIEZOELECTRIC);
-   
    PiezoMat[STRAIN][S_I].Copy(T_Ie);
    PiezoMat[STRAIN][SII].Copy(TIIe);
    PiezoMat[CURVAT][S_I].Copy(T_Ik);

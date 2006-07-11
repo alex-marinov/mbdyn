@@ -56,10 +56,10 @@ AerodynamicModal::AerodynamicModal(unsigned int uLabel,
 		   		FullMatrixHandler* pD1Mat,
 		   		FullMatrixHandler* pD2Mat,
 		   		flag fout)
-: Elem(uLabel, Elem::AERODYNAMIC, fout), 
-AerodynamicElem(uLabel, AerodynamicElem::AEROMODAL, fout), 
-InitialAssemblyElem(uLabel, Elem::AEROMODAL, fout),
-ElemWithDofs(uLabel, Elem::AEROMODAL, pDO, fout),
+: Elem(uLabel, fout), 
+AerodynamicElem(uLabel, fout), 
+InitialAssemblyElem(uLabel, fout),
+ElemWithDofs(uLabel, pDO, fout),
 pModalNode(pN), pModalJoint(pMJ),
 Ra(RaTmp), 
 Chord(Cd),
@@ -74,7 +74,6 @@ pgs(NULL), pgsPrime(NULL),
 gustVff(Vff), gustXi(0.707),
 RigidF(rgF)
 {
-   
    R0 = pModalNode->GetRCurr()*Ra;
    P0 = R0.Transpose()*pModalNode->GetXCurr();   
    DEBUGCOUTFNAME("AerodynamicModal::AerodynamicModal");

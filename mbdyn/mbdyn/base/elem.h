@@ -124,11 +124,8 @@ public:
 
 	struct ChangedEquationStructure {};
    
-private:
-	Elem::Type ElemT;
-
 public:
-	Elem(unsigned int uL, Elem::Type T, flag fOut);
+	Elem(unsigned int uL, flag fOut);
 	virtual ~Elem(void);
 
 	/* Scrive il contributo dell'elemento al file di restart */
@@ -264,7 +261,7 @@ Elem::WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int 
 
 class ElemWithDofs : virtual public Elem, public DofOwnerOwner {
 public:
-	ElemWithDofs(unsigned int uL, Elem::Type T, 
+	ElemWithDofs(unsigned int uL,
 		const DofOwner* pDO, flag fOut);
 
 	virtual ~ElemWithDofs(void);
@@ -317,7 +314,7 @@ public:
 class InitialAssemblyElem 
 : virtual public Elem, public SubjectToInitialAssembly {
 public:
-	InitialAssemblyElem(unsigned int uL, Elem::Type T, flag fOut);
+	InitialAssemblyElem(unsigned int uL, flag fOut);
 	virtual ~InitialAssemblyElem(void);
 
 	/* Consente di effettuare un casting sicuro da Elem* a InitialAssemblyElem* */

@@ -271,15 +271,15 @@ LoadableElem::LoadableElem(unsigned int uLabel,
 			   const DofOwner* pDO, 
 			   DataManager* pDM, 
 			   MBDynParser& HP)
-: Elem(uLabel, Elem::LOADABLE, flag(0)),
+: Elem(uLabel, flag(0)),
 #ifdef USE_STRUCT_NODES
-InitialAssemblyElem(uLabel, Elem::LOADABLE, flag(0)),
+InitialAssemblyElem(uLabel, flag(0)),
 #ifdef USE_AERODYNAMIC_ELEMS
-AerodynamicElem(uLabel, AerodynamicElem::AERODYNAMICLOADABLE, flag(0)),
+AerodynamicElem(uLabel, flag(0)),
 #endif /* USE_AERODYNAMIC_ELEMS */
-ElemGravityOwner(uLabel, Elem::LOADABLE, flag(0)),
+ElemGravityOwner(uLabel, flag(0)),
 #endif /* USE_STRUCT_NODES */
-ElemWithDofs(uLabel, Elem::LOADABLE, pDO, flag(0)),
+ElemWithDofs(uLabel, pDO, flag(0)),
 priv_data(NULL),
 module_name(NULL),
 handle(NULL),
@@ -297,15 +297,15 @@ LoadableElem::LoadableElem(unsigned int uLabel,
 			   const LoadableCalls *c,
 			   DataManager* pDM, 
 			   MBDynParser& HP)
-: Elem(uLabel, Elem::LOADABLE, flag(0)),
+: Elem(uLabel, flag(0)),
 #ifdef USE_STRUCT_NODES
-InitialAssemblyElem(uLabel, Elem::LOADABLE, flag(0)),
+InitialAssemblyElem(uLabel, flag(0)),
 #ifdef USE_AERODYNAMIC_ELEMS
-AerodynamicElem(uLabel, AerodynamicElem::AERODYNAMICLOADABLE, flag(0)),
+AerodynamicElem(uLabel, flag(0)),
 #endif /* USE_AERODYNAMIC_ELEMS */
-ElemGravityOwner(uLabel, Elem::LOADABLE, flag(0)),
+ElemGravityOwner(uLabel, flag(0)),
 #endif /* USE_STRUCT_NODES */
-ElemWithDofs(uLabel, Elem::LOADABLE, pDO, flag(0)),
+ElemWithDofs(uLabel, pDO, flag(0)),
 priv_data(NULL),
 module_name(NULL),
 handle(NULL),
@@ -582,6 +582,12 @@ Elem::Type
 LoadableElem::GetElemType(void) const
 {
    	return Elem::LOADABLE;
+}
+
+AerodynamicElem::Type
+LoadableElem::GetAerodynamicElemType(void) const
+{
+	return AerodynamicElem::AERODYNAMICLOADABLE;
 }
 
 unsigned int 

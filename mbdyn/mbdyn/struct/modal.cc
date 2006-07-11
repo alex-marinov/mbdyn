@@ -154,8 +154,8 @@ Modal::Modal(unsigned int uL,
 		DataManager* pDM,  /* non serve */
 		MBDynParser& HP,   /* non serve */
 		flag fOut)
-: Elem(uL, Elem::JOINT, fOut),
-Joint(uL, Joint::MODAL, pDO, fOut),
+: Elem(uL, fOut),
+Joint(uL, pDO, fOut),
 pModalNode(pR),
 iRigidOffset(pModalNode ? 12 : 0),
 x(x0),

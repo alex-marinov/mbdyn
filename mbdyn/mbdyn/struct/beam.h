@@ -63,16 +63,14 @@ class Beam
         UNKNOWN = -1,
 	ELASTIC = 0,
 	VISCOELASTIC,
-	PIEZOELECTRIC,
+	PIEZOELECTRICELASTIC,
+	PIEZOELECTRICVISCOELASTIC,
 	
 	LASTBEAMTYPE
     };
 
   public:
     class ErrGeneric {};
-   
-  private:
-    Beam::Type BeamT;
    
   public:   
     enum Section { S_I = 0, SII = 1, NUMSEZ = 2 };
@@ -192,11 +190,6 @@ class Beam
      * in modo consistente */
     virtual void Omega0(void);
   
-    /* cambia il tipo (?) */
-    void SetBeamType(Beam::Type T) { 
-        BeamT = T;
-    };
-
     /* Funzione interna di restart */
     virtual std::ostream& Restart_(std::ostream& out) const;
    

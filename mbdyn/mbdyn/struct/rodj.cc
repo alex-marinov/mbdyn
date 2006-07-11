@@ -47,9 +47,9 @@ Rod::Rod(unsigned int uL, const DofOwner* pDO,
 		   const ConstitutiveLaw1D* pCL,
 		   const StructNode* pN1, const StructNode* pN2,
 		   doublereal dLength, flag fOut, flag fHasOffsets)
-: Elem(uL, Elem::JOINT, fOut), 
-Joint(uL, Joint::ROD, pDO, fOut),
-ConstitutiveLaw1DOwner(pCL), RodT(Rod::ELASTIC),
+: Elem(uL, fOut), 
+Joint(uL, pDO, fOut),
+ConstitutiveLaw1DOwner(pCL),
 pNode1(pN1),
 pNode2(pN2),
 dL0(dLength),
@@ -578,10 +578,10 @@ ViscoElasticRod::ViscoElasticRod(unsigned int uL,
 					   const StructNode* pN1, 
 					   const StructNode* pN2,
 					   doublereal dLength, flag fOut)
-: Elem(uL, Elem::JOINT, fOut), 
+: Elem(uL, fOut), 
 Rod(uL, pDO, pCL, pN1, pN2, dLength, fOut)
 {
-   SetRodType(Rod::VISCOELASTIC);
+   NO_OP;
 }
 
 
@@ -886,7 +886,7 @@ RodWithOffset::RodWithOffset(unsigned int uL,
 				       const Vec3& f2Tmp,
 				       doublereal dLength, 
 				       flag fOut)
-: Elem(uL, Elem::JOINT, fOut), 
+: Elem(uL, fOut), 
 Rod(uL, pDO, pCL, pN1, pN2, dLength, fOut, 1),
 f1(f1Tmp),
 f2(f2Tmp)
@@ -910,8 +910,6 @@ f2(f2Tmp)
    dElle = sqrt(dDot);
    
    ASSERT(dLength > DBL_EPSILON);
-   
-   SetRodType(Rod::VISCOELASTICWITHOFFSET);
 }
 
 

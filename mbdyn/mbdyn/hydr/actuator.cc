@@ -109,7 +109,7 @@ Actuator::Actuator(unsigned int uL, const DofOwner* pDO,
 		   doublereal A_1, doublereal A_2, 
 		   doublereal l,
 		   flag fOut)
-: Elem(uL, Elem::HYDRAULIC, fOut),
+: Elem(uL, fOut),
 HydraulicElem(uL, pDO, hf1, fOut),
 pNodeHyd1(p1), pNodeHyd2(p2),
 HF2(hf2),

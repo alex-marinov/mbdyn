@@ -48,11 +48,10 @@
 
 /* Electric - begin */
 
-Electric::Electric(unsigned int uL, Electric::Type T, 
+Electric::Electric(unsigned int uL,
 		   const DofOwner* pDO, flag fOut)
-: Elem(uL, Elem::ELECTRIC, fOut), 
-ElemWithDofs(uL, Elem::ELECTRIC, pDO, fOut), 
-ElecT(T) 
+: Elem(uL, fOut), 
+ElemWithDofs(uL, pDO, fOut)
 {
    NO_OP; 
 }

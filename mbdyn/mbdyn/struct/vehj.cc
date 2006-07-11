@@ -54,8 +54,8 @@ DeformableHingeJoint::DeformableHingeJoint(unsigned int uL,
 		const Mat3x3& tilde_R1h,
 		const Mat3x3& tilde_R2h,
 		flag fOut)
-: Elem(uL, Elem::JOINT, fOut),
-Joint(uL, Joint::DEFORMABLEHINGE, pDO, fOut),
+: Elem(uL, fOut),
+Joint(uL, pDO, fOut),
 ConstitutiveLaw3DOwner(pCL),
 pNode1(pN1), pNode2(pN2), tilde_R1h(tilde_R1h), tilde_R2h(tilde_R2h), bFirstRes(true)
 {
@@ -257,7 +257,7 @@ ElasticHingeJoint::ElasticHingeJoint(unsigned int uL,
 		const Mat3x3& tilde_R1h,
 		const Mat3x3& tilde_R2h,
 		flag fOut)
-: Elem(uL, Elem::JOINT, fOut),
+: Elem(uL, fOut),
 DeformableHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, fOut),
 tilde_ThetaRef(0.), FDE(0.)
 {
@@ -522,7 +522,7 @@ ViscousHingeJoint::ViscousHingeJoint(unsigned int uL,
 		const Mat3x3& tilde_R1h,
 		const Mat3x3& tilde_R2h,
 		flag fOut)
-: Elem(uL, Elem::JOINT, fOut),
+: Elem(uL, fOut),
 DeformableHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, fOut)
 {
 	Mat3x3 R1h(pNode1->GetRRef());
@@ -815,7 +815,7 @@ ViscoElasticHingeJoint::ViscoElasticHingeJoint(unsigned int uL,
 		const Mat3x3& tilde_R1h,
 		const Mat3x3& tilde_R2h,
 		flag fOut)
-: Elem(uL, Elem::JOINT, fOut),
+: Elem(uL, fOut),
 DeformableHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, fOut),
 tilde_ThetaRef(0.)
 {

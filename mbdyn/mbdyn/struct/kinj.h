@@ -54,6 +54,12 @@ class KinJoint : virtual public Elem, public Joint {
 	    const StructNode* pN, const Kinematics* pK, flag fOut);
    
    ~KinJoint(void);
+
+   /* Tipo di joint */
+   virtual Joint::Type GetJointType(void) const {
+      return INLINE;
+   };
+
    virtual inline void* pGet(void) const { return (void *)this; };
 
    /* Contributo al file di restart */

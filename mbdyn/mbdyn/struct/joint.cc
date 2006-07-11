@@ -76,12 +76,12 @@
 
 /* Joint - begin */
 
-Joint::Joint(unsigned int uL, Joint::Type T, const DofOwner* pDO, 
+Joint::Joint(unsigned int uL, const DofOwner* pDO, 
 	     flag fOut)
-: Elem(uL, Elem::JOINT, fOut), 
-ElemGravityOwner(uL, Elem::JOINT, fOut), 
-ElemWithDofs(uL, Elem::JOINT, pDO, fOut), 
-InitialAssemblyElem(uL, Elem::JOINT, fOut), JointT(T)
+: Elem(uL, fOut), 
+ElemGravityOwner(uL, fOut), 
+ElemWithDofs(uL, pDO, fOut), 
+InitialAssemblyElem(uL, fOut)
 { 
    NO_OP;
 }

@@ -47,12 +47,10 @@
 /* genel - begin */
 
 Genel::Genel(unsigned int uL,
-	     Genel::Type T, 
 	     const DofOwner* pDO, 
 	     flag fOut)
-: Elem(uL, Elem::GENEL, fOut), 
-ElemWithDofs(uL, Elem::GENEL, pDO, fOut),
-GenelT(T)
+: Elem(uL, fOut), 
+ElemWithDofs(uL, pDO, fOut)
 {
    NO_OP;
 }

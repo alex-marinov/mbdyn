@@ -45,9 +45,9 @@ Body::Body(unsigned int uL,
 	const Vec3& Xgc,
 	const Mat3x3& J,
 	flag fOut)
-: Elem(uL, Elem::BODY, fOut),
-ElemGravityOwner(uL, Elem::BODY, fOut),
-InitialAssemblyElem(uL, Elem::BODY, fOut),
+: Elem(uL, fOut),
+ElemGravityOwner(uL, fOut),
+InitialAssemblyElem(uL, fOut),
 pNode(pNode),
 dMass(dMass),
 Xgc(Xgc),
@@ -120,7 +120,7 @@ DynamicBody::DynamicBody(unsigned int uL,
 	const Vec3& Xgc,
 	const Mat3x3& J,
 	flag fOut)
-: Elem(uL, Elem::BODY, fOut),
+: Elem(uL, fOut),
 Body(uL, pNode, dMass, Xgc, J, fOut)
 {
 	NO_OP;
@@ -461,7 +461,7 @@ StaticBody::StaticBody(unsigned int uL,
 	const Vec3& Xgc,
 	const Mat3x3& J,
 	flag fOut)
-: Elem(uL, Elem::BODY, fOut),
+: Elem(uL, fOut),
 Body(uL, pNode, dMass, Xgc, J, fOut),
 pRefNode(pRefNode)
 {

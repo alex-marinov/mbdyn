@@ -67,6 +67,11 @@ public:
 	/* Distruttore */
 	virtual ~GimbalRotationJoint(void);
 
+	/* Tipo di joint */
+	virtual Joint::Type GetJointType(void) const {
+		return GIMBAL;
+	};
+
 	virtual inline void* pGet(void) const { 
 		return (void*)this;
 	};

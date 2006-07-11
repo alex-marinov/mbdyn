@@ -74,10 +74,9 @@ Beam::Beam(unsigned int uL,
 	   const ConstitutiveLaw6D* pD_I,
 	   const ConstitutiveLaw6D* pDII,
 	   flag fOut)
-: Elem(uL, Elem::BEAM, fOut), 
-ElemGravityOwner(uL, Elem::BEAM, fOut), 
-InitialAssemblyElem(uL, Elem::BEAM, fOut),
-BeamT(Beam::ELASTIC),
+: Elem(uL, fOut), 
+ElemGravityOwner(uL, fOut), 
+InitialAssemblyElem(uL, fOut),
 fConsistentInertia(0), 
 dMass_I(0.),
 S0_I(0.),
@@ -168,10 +167,9 @@ Beam::Beam(unsigned int uL,
 	   const Mat3x3& s0II,
 	   const Mat3x3& j0II,
 	   flag fOut)
-: Elem(uL, Elem::BEAM, fOut), 
-ElemGravityOwner(uL, Elem::BEAM, fOut), 
-InitialAssemblyElem(uL, Elem::BEAM, fOut),
-BeamT(Beam::ELASTIC),
+: Elem(uL, fOut), 
+ElemGravityOwner(uL, fOut), 
+InitialAssemblyElem(uL, fOut),
 fConsistentInertia(1),
 dMass_I(dM_I),
 S0_I(s0_I),
@@ -1288,11 +1286,9 @@ ViscoElasticBeam::ViscoElasticBeam(
 		const ConstitutiveLaw6D* pD_I, 
 		const ConstitutiveLaw6D* pDII,
 		flag fOut
-) : Elem(uL, Elem::BEAM, fOut),
+) : Elem(uL, fOut),
 Beam(uL, pN1, pN2, pN3, F1, F2, F3, R1, R2, R3, r_I, rII, pD_I, pDII, fOut)
 {   
-   SetBeamType(Beam::VISCOELASTIC);
-
    LPrimeRef[S_I] = LPrime[S_I] = Vec3(0.);  
    gPrime[S_I] = Vec3(0.);
    LPrimeRef[SII] = LPrime[SII] = Vec3(0.); 
@@ -1326,12 +1322,10 @@ ViscoElasticBeam::ViscoElasticBeam(
 		doublereal dMII,
 		const Mat3x3& s0II, const Mat3x3& j0II,
 		flag fOut
-) : Elem(uL, Elem::BEAM, fOut),
+) : Elem(uL, fOut),
 Beam(uL, pN1, pN2, pN3, F1, F2, F3, R1, R2, R3, r_I, rII, pD_I, pDII,
      dM_I, s0_I, j0_I, dMII, s0II, j0II, fOut)
 {
-   SetBeamType(Beam::VISCOELASTIC);
-
    LPrimeRef[S_I] = LPrime[S_I] = Vec3(0.);  
    gPrime[S_I] = Vec3(0.);
    LPrimeRef[SII] = LPrime[SII] = Vec3(0.); 

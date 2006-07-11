@@ -64,11 +64,8 @@ class Genel : virtual public Elem, public ElemWithDofs {
 	LASTGENELTYPE
    };
 
- private:
-   Genel::Type GenelT;
-   
  public:
-   Genel(unsigned int uL, Genel::Type T, const DofOwner* pDO, flag fOut);
+   Genel(unsigned int uL, const DofOwner* pDO, flag fOut);
    virtual ~Genel(void);
    
    /* Scrive il contributo dell'elemento al file di restart */

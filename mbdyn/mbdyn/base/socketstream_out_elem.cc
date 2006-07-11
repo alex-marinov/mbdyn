@@ -65,7 +65,7 @@ SocketStreamElem::SocketStreamElem(unsigned int uL, unsigned int nch,
 		DataManager *pDM,
 		const char *h, const char *m, unsigned short int p, bool c,
 		int flags, bool bSF)
-: Elem(uL, Elem::SOCKETSTREAM_OUTPUT, flag(0)),
+: Elem(uL, flag(0)),
 NumChannels(nch), pNodes(pn), size(-1), buf(0),
 OutputEvery(oe), OutputCounter(0), 
 pUS(0), name(m), send_flags(flags), bSendFirst(bSF)
@@ -91,7 +91,7 @@ SocketStreamElem::SocketStreamElem(unsigned int uL, unsigned int nch,
 		DataManager *pDM,
 		const char *m, const char* const p, bool c,
 		int flags, bool bSF)
-: Elem(uL, Elem::SOCKETSTREAM_OUTPUT, flag(0)),
+: Elem(uL, flag(0)),
 NumChannels(nch), pNodes(pn), size(-1), buf(0),
 OutputEvery(oe), OutputCounter(0), 
 pUS(0), name(m), send_flags(flags), bSendFirst(bSF)

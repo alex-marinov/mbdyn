@@ -56,7 +56,7 @@ class DispMeasure : virtual public Elem, public Electric {
    ~DispMeasure(void);
    virtual inline void* pGet(void) const;
 
-   virtual Electric::Type GetElectric(void) const {
+   virtual Electric::Type GetElectricType(void) const {
       return Electric::DISPLACEMENT;
    };
    

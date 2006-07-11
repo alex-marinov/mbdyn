@@ -287,7 +287,7 @@ class DiscreteControlElem : virtual public Elem, public Electric {
       return (void*)this;
    };
 
-   virtual Electric::Type GetElectric(void) const {
+   virtual Electric::Type GetElectricType(void) const {
       return Electric::DISCRETECONTROL;
    };
 

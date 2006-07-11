@@ -53,11 +53,8 @@ class Electric : virtual public Elem, public ElemWithDofs {
       LASTELECTRICTYPE
    };
 
- private:
-   Electric::Type ElecT;
-   
  public:
-   Electric(unsigned int uL, Electric::Type T, 
+   Electric(unsigned int uL,
 	    const DofOwner* pDO, flag fOut);
    virtual ~Electric(void);
    
@@ -70,7 +67,7 @@ class Electric : virtual public Elem, public ElemWithDofs {
    virtual Elem::Type GetElemType(void) const;
 
    /* Tipo di elemento elettrico (usato solo per debug ecc.) */
-   virtual Electric::Type GetElectric(void) const = 0;
+   virtual Electric::Type GetElectricType(void) const = 0;
 };
 
 /* Electric - end */

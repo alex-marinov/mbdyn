@@ -42,7 +42,7 @@
 InPlaneJoint::InPlaneJoint(unsigned int uL, const DofOwner* pDO,
 			   const StructNode* pN1, const StructNode* pN2, 
 			   const Vec3& vTmp, const Vec3& pTmp, flag fOut)
-: Elem(uL, Elem::JOINT, fOut), Joint(uL, Joint::INPLANE, pDO, fOut),
+: Elem(uL, fOut), Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2), v(vTmp), p(pTmp), dF(0.)
 {
    NO_OP;
@@ -362,7 +362,7 @@ InPlaneWithOffsetJoint::InPlaneWithOffsetJoint(unsigned int uL,
 					       const Vec3& pT, 
 					       const Vec3& qT,
 					       flag fOut)
-: Elem(uL, Elem::JOINT, fOut), Joint(uL, Joint::INPLANE, pDO, fOut),
+: Elem(uL, fOut), Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2), v(vT), p(pT), q(qT), dF(0.)
 {
    NO_OP;

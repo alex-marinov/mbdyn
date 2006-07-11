@@ -75,6 +75,11 @@ public:
 	/* Distruttore */
 	virtual ~DriveDisplacementJoint(void);
 
+	/* Tipo di joint */
+	virtual Joint::Type GetJointType(void) const {
+		return INLINE;
+	};
+
 	virtual inline void* pGet(void) const { 
 		return (void*)this;
 	};

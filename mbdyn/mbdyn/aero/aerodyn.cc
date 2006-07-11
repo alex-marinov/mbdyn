@@ -124,8 +124,8 @@ Gust1D::GetVelocity(const Vec3& X, Vec3& V) const
 
 AirProperties::AirProperties(const TplDriveCaller<Vec3>* pDC,
 		Gust *pG, flag fOut)
-: Elem(1, Elem::AIRPROPERTIES, fOut),
-InitialAssemblyElem(1, Elem::AIRPROPERTIES, fOut),
+: Elem(1, fOut),
+InitialAssemblyElem(1, fOut),
 TplDriveOwner<Vec3>(pDC),
 Velocity(0.),
 pGust(pG)
@@ -258,7 +258,7 @@ AirProperties::GetVelocity(const Vec3& X, Vec3& V) const
 
 BasicAirProperties::BasicAirProperties(const TplDriveCaller<Vec3>* pDC,
 		DriveCaller *pRho, doublereal dSS, Gust *pG, flag fOut)
-: Elem(1, Elem::AIRPROPERTIES, fOut),
+: Elem(1, fOut),
 AirProperties(pDC, pG, fOut),
 pAirDensity(pRho),
 dSoundSpeed(dSS)
@@ -327,7 +327,7 @@ StdAirProperties::StdAirProperties(const TplDriveCaller<Vec3>* pDC,
 		 doublereal a_, doublereal R_, doublereal g0_,
 		 doublereal z0_, doublereal z1_, doublereal z2_,
 		 Gust *pG, flag fOut)
-: Elem(1, Elem::AIRPROPERTIES, fOut),
+: Elem(1, fOut),
 AirProperties(pDC, pG, fOut),
 PRef(PRef_),
 RhoRef(RhoRef_),
@@ -744,9 +744,8 @@ AirPropOwner::GetAirProps(const Vec3& X, doublereal& rho,
 /* AerodynamicElem - begin */
 
 AerodynamicElem::AerodynamicElem(unsigned int uL,
-		AerodynamicElem::Type T, flag fOut)
-: Elem(uL, Elem::AERODYNAMIC, fOut),
-AeroT(T)
+	flag fOut)
+: Elem(uL, fOut)
 {
 	NO_OP; 
 }

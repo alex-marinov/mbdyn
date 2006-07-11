@@ -168,7 +168,7 @@ class ElemGravityOwner : virtual public Elem, public GravityOwner {
    };
 
  public:
-   ElemGravityOwner(unsigned int uL, Elem::Type T, flag fOut);
+   ElemGravityOwner(unsigned int uL, flag fOut);
    ~ElemGravityOwner(void);
    
    /* Usata per inizializzare la quantita' di moto */

@@ -44,8 +44,8 @@
 DistanceJoint::DistanceJoint(unsigned int uL, const DofOwner* pDO,
 		const StructNode* pN1, const StructNode* pN2,
 		const DriveCaller* pDC, flag fOut)
-: Elem(uL, Elem::JOINT, fOut), 
-Joint(uL, Joint::DISTANCE, pDO, fOut),
+: Elem(uL, fOut), 
+Joint(uL, pDO, fOut),
 DriveOwner(pDC),
 pNode1(pN1), pNode2(pN2), Vec(0.), dAlpha(0.)
 {
@@ -395,7 +395,7 @@ DistanceJointWithOffset::DistanceJointWithOffset(unsigned int uL,
 		const Vec3& f2Tmp,
 		const DriveCaller* pDC,
 		flag fOut)
-: Elem(uL, Elem::JOINT, fOut), 
+: Elem(uL, fOut), 
 DistanceJoint(uL, pDO, pN1, pN2, pDC, fOut),
 f1(f1Tmp), f2(f2Tmp)
 {

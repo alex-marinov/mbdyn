@@ -48,8 +48,8 @@ DispMeasure::DispMeasure(unsigned int uL, const DofOwner* pDO,
 			 const AbstractNode* pA,
 			 const Vec3& Tmpf1, const Vec3& Tmpf2,
 			 flag fOut)
-: Elem(uL, Elem::ELECTRIC, fOut), 
-Electric(uL, Electric::DISPLACEMENT, pDO, fOut),
+: Elem(uL, fOut), 
+Electric(uL, pDO, fOut),
 pStrNode1(pS1), pStrNode2(pS2), pAbsNode(pA),
 f1(Tmpf1), f2(Tmpf2)
 {

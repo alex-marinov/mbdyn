@@ -48,8 +48,8 @@ GimbalRotationJoint::GimbalRotationJoint(unsigned int uL,
 				 const Mat3x3& R1,
 				 const Mat3x3& R2,
 				 flag fOut)
-: Elem(uL, Elem::JOINT, fOut),
-Joint(uL, Joint::GIMBAL, pDO, fOut),
+: Elem(uL, fOut),
+Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2), R1h(R1), R2h(R2),
 M(0.), dTheta(0.), dPhi(0.)
 {

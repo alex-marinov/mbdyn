@@ -36,8 +36,8 @@
 
 /* Elem - begin */
 
-Elem::Elem(unsigned int uL, Elem::Type T, flag fOut)
-: WithLabel(uL), ToBeOutput(fOut), ElemT(T)
+Elem::Elem(unsigned int uL, flag fOut)
+: WithLabel(uL), ToBeOutput(fOut)
 {
    ASSERTMSG(uL > 0, "Null label shouldn't be used");
 }
@@ -121,9 +121,9 @@ InitialAssemblyElem* Elem::pGetInitialAssemblyElem(void) const
 
 /* ElemWithDofs - begin */
 
-ElemWithDofs::ElemWithDofs(unsigned int uL, Elem::Type T, 
+ElemWithDofs::ElemWithDofs(unsigned int uL,
 			   const DofOwner* pDO, flag fOut)
-: Elem(uL, T, fOut), DofOwnerOwner((DofOwner*)pDO)
+: Elem(uL, fOut), DofOwnerOwner((DofOwner*)pDO)
 {
    NO_OP;
 }
@@ -163,9 +163,8 @@ SubjectToInitialAssembly::~SubjectToInitialAssembly(void)
 /* InitialAssemblyElem - begin */
 
 InitialAssemblyElem::InitialAssemblyElem(unsigned int uL, 
-					 Elem::Type T, 
-					 flag fOut)
-: Elem(uL, T, fOut)
+	flag fOut)
+: Elem(uL, fOut)
 { 
    NO_OP;
 }

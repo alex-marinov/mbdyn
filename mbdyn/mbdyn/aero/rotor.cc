@@ -59,9 +59,9 @@ Rotor::Rotor(unsigned int uL, const DofOwner* pDO,
 	     const StructNode* pR, const StructNode* pG, 
 	     unsigned int iMaxIt, doublereal dTol, doublereal dE,
 	     ResForceSet **ppres, flag fOut)
-: Elem(uL, Elem::ROTOR, fOut), 
-AerodynamicElem(uL, AerodynamicElem::ROTOR, fOut), 
-ElemWithDofs(uL, Elem::ROTOR, pDO, fOut),
+: Elem(uL, fOut), 
+AerodynamicElem(uL, fOut), 
+ElemWithDofs(uL, pDO, fOut),
 #ifdef USE_MPI
 is_parallel(false),
 pBlockLenght(NULL),
@@ -194,6 +194,12 @@ Rotor::dGetPrivData(unsigned int i) const
 Elem::Type Rotor::GetElemType(void) const
 {
 	return Elem::ROTOR;
+}
+
+/* Tipo dell'elemento (usato per debug ecc.) */
+AerodynamicElem::Type Rotor::GetAerodynamicElemType(void) const
+{
+	return AerodynamicElem::ROTOR;
 }
 
 void 
@@ -647,7 +653,7 @@ NoRotor::NoRotor(unsigned int uLabel,
 		 ResForceSet **ppres, 
 		 doublereal dR,
 		 flag fOut)
-: Elem(uLabel, Elem::ROTOR, fOut), 
+: Elem(uLabel, fOut), 
 Rotor(uLabel, pDO, pCraft, rrot, pRotor, NULL, 0, 0., 0., ppres, fOut)
 {
 	dRadius = dR; /* puo' essere richiesto dal trim */
@@ -781,7 +787,7 @@ UniformRotor::UniformRotor(unsigned int uLabel,
 			   doublereal dCH,
 			   doublereal dCFF,
 			   flag fOut)
-: Elem(uLabel, Elem::ROTOR, fOut), 
+: Elem(uLabel, fOut), 
 Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, iMaxIt, dTol, dE, ppres, fOut)
 {
 	ASSERT(dOR > 0.);
@@ -952,7 +958,7 @@ GlauertRotor::GlauertRotor(unsigned int uLabel,
 			   doublereal dCH,
 			   doublereal dCFF,
 			   flag fOut)
-: Elem(uLabel, Elem::ROTOR, fOut),
+: Elem(uLabel, fOut),
 Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, iMaxIt, dTol, dE, ppres, fOut)
 {
 	ASSERT(dOR > 0.);
@@ -1127,7 +1133,7 @@ ManglerRotor::ManglerRotor(unsigned int uLabel,
 			   doublereal dCH,
 			   doublereal dCFF,
 			   flag fOut)
-: Elem(uLabel, Elem::ROTOR, fOut), 
+: Elem(uLabel, fOut), 
 Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, iMaxIt, dTol, dE, ppres, fOut)
 {
 	ASSERT(dOR > 0.);
@@ -1357,7 +1363,7 @@ DynamicInflowRotor::DynamicInflowRotor(unsigned int uLabel,
 				       doublereal dVSineTmp,
 				       doublereal dVCosineTmp,
 				       flag fOut)
-: Elem(uLabel, Elem::ROTOR, fOut),
+: Elem(uLabel, fOut),
 Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, iMaxIt, dTol, dE, ppres, fOut),
 dVConst(dVConstTmp), dVSine(dVSineTmp), dVCosine(dVCosineTmp), 
 dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)

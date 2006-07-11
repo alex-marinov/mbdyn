@@ -44,7 +44,7 @@
 DrivenElem::DrivenElem(DataManager *pdm, 
 		const DriveCaller* pDC, const Elem* pE,
 		SimulationEntity::Hints *ph)
-: Elem(pE->GetLabel(), Elem::DRIVEN, pE->fToBeOutput()),
+: Elem(pE->GetLabel(), pE->fToBeOutput()),
 DriveOwner(pDC),
 pDM(pdm),
 pElem((Elem *)pE),

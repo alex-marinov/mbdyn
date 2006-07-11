@@ -56,7 +56,7 @@ class Accelerometer : virtual public Elem, public Electric {
    ~Accelerometer(void);
    virtual inline void* pGet(void) const;
 
-   virtual Electric::Type GetElectric(void) const {
+   virtual Electric::Type GetElectricType(void) const {
       return Electric::ACCELEROMETER;
    };
    
@@ -119,7 +119,7 @@ class TraslAccel : virtual public Elem, public Electric {
    ~TraslAccel(void);
    virtual inline void* pGet(void) const;
 
-   virtual Electric::Type GetElectric(void) const {
+   virtual Electric::Type GetElectricType(void) const {
       return Electric::ACCELEROMETER;
    };
    
@@ -181,7 +181,7 @@ class RotAccel : virtual public Elem, public Electric {
    ~RotAccel(void);
    virtual inline void* pGet(void) const;
 
-   virtual Electric::Type GetElectric(void) const {
+   virtual Electric::Type GetElectricType(void) const {
       return Electric::ACCELEROMETER;
    };
    

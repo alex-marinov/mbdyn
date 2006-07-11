@@ -62,8 +62,8 @@ Motor::Motor(unsigned int uL, const DofOwner* pD,
 		const Vec3& TmpDir, doublereal dG,
 		doublereal dl, doublereal dr,
 		flag fOut)
-: Elem(uL, Elem::ELECTRIC, fOut), 
-Electric(uL, Electric::MOTOR, pD, fOut),
+: Elem(uL, fOut), 
+Electric(uL, pD, fOut),
 pStrNode1(pN1), pStrNode2(pN2), pVoltage1(pV1), pVoltage2(pV2),
 Dir(TmpDir), dGain(dG), dL(dl), dR(dr)
 {

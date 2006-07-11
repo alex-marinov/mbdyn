@@ -40,7 +40,7 @@
 InLineJoint::InLineJoint(unsigned int uL, const DofOwner* pDO,
 			 const StructNode* pN1, const StructNode* pN2, 
 			 const Mat3x3& RvTmp, const Vec3& pTmp, flag fOut)
-: Elem(uL, Elem::JOINT, fOut), Joint(uL, Joint::INLINE, pDO, fOut),
+: Elem(uL, fOut), Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2), Rv(RvTmp), p(pTmp), F(0.)
 {
    NO_OP;
@@ -425,7 +425,7 @@ InLineWithOffsetJoint::InLineWithOffsetJoint(unsigned int uL,
 					     const Vec3& pTmp,
 					     const Vec3& qTmp, 
 					     flag fOut)
-: Elem(uL, Elem::JOINT, fOut), Joint(uL, Joint::INLINE, pDO, fOut),
+: Elem(uL, fOut), Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2), Rv(RvTmp), p(pTmp), q(qTmp), F(0.)
 {
    NO_OP;

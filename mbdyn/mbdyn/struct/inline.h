@@ -52,6 +52,12 @@ class InLineJoint : virtual public Elem, public Joint {
 	       const Mat3x3& RvTmp, const Vec3& pTmp, flag fOut);
    
    ~InLineJoint(void);
+
+   /* Tipo di joint */
+   virtual Joint::Type GetJointType(void) const {
+      return INLINE;
+   };
+
    virtual inline void* pGet(void) const { return (void *)this; };
 
    /* Contributo al file di restart */
@@ -141,6 +147,12 @@ class InLineWithOffsetJoint : virtual public Elem, public Joint {
 			 const Vec3& pTmp, const Vec3& qTmp, flag fOut);
    
    ~InLineWithOffsetJoint(void);
+
+   /* Tipo di joint */
+   virtual Joint::Type GetJointType(void) const {
+      return INLINE;
+   };
+
    virtual inline void* pGet(void) const { return (void *)this; };
 
    /* Contributo al file di restart */

@@ -55,9 +55,6 @@ public:
 		LASTRODTYPE
 	};
 
-private: 
-	Rod::Type RodT;
-   
 protected:
 	const StructNode* pNode1;
 	const StructNode* pNode2;
@@ -80,11 +77,6 @@ protected:
 	void AssMat(FullSubMatrixHandler& WorkMat, doublereal dCoef = 1.);
 	void AssVec(SubVectorHandler& WorkVec);
    
-	/* Sets the type */
-	void SetRodType(Rod::Type T) { 
-		RodT = T;
-	};
-
 public:
 	/* Costruttore non banale */
 	Rod(unsigned int uL, const DofOwner* pDO,

@@ -40,190 +40,6 @@
 #undef catch
 #endif /* USE_Y12 */
 
-#if 0
-/* GenelFilter - begin */
-
-GenelFilter::GenelFilter(unsigned int uLabel, const DofOwner* pDO,
-			 const ScalarDof& y, const ScalarDof& u,
-			 unsigned int na, unsigned int nb,
-			 doublereal* p, doublereal* tau,
-			 flag fOutput)
-: Elem(uLabel, Elem::GENEL, fOutput),
-Genel(uLabel, Genel::SCALARFILTER, pDO, fOutput),
-SD_y(y), SD_u(u),
-Na(na), Nb(nb),
-pdP(p), pdTau(tau) 
-{
-   ASSERT(na > 0 ? pdP != NULL : 1);
-   ASSERT(nb > 0 ? pdTau != NULL : 1);
-   ASSERT(SD_y.iOrder == 0);
-   ASSERT(SD_u.iOrder == 0);
-   iNumDofs = max(integer(na-1), 0)+max(integer(nb-1), 0);
-   DEBUGCOUT("GenelFilter " << uLabel << ", NumDofs: " << iNumDofs << std::endl);
-}
-
-
-GenelFilter::~GenelFilter(void) 
-{
-   if (pdTau != NULL) {
-      SAFEDELETEARR(pdTau);
-   }
-   if (pdP != NULL) {
-      SAFEDELETEARR(pdP);
-   }
-}
- 
-   
-unsigned int GenelFilter::iGetNumDof(void) const
-{
-   return iNumDofs;
-}
-
-   
-/* esegue operazioni sui dof di proprieta' dell'elemento */
-DofOrder::Order GenelFilter::GetDofType(unsigned int i) const
-{
-   ASSERT(i < iNumDofs);
-   return DofOrder::DIFFERENTIAL;
-}
-
-
-/* Scrive il contributo dell'elemento al file di restart */
-std::ostream& GenelFilter::Restart(std::ostream& out) const
-{
-   return out << "GenelFilter: not implemented yet!" << std::endl;
-}
-
-
-/* Dimensioni del workspace */
-void GenelFilter::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
-{
-   *piNumRows = max(integer(Na)-1, 0)+max(integer(Nb)-1, 0)+1;
-   *piNumCols = max(integer(Na)-1, 0)+max(integer(Nb)-1, 0)+2;
-}
-
-
-/* assemblaggio jacobiano */
-VariableSubMatrixHandler& 
-GenelFilter::AssJac(VariableSubMatrixHandler& WorkMat,
-		    doublereal dCoef,
-		    const VectorHandler& /* XCurr */ ,
-		    const VectorHandler& /* XPrimeCurr */ )
-{
-   DEBUGCOUT("Entering GenelFilter::AssJac()" << std::endl);
-   
-   FullSubMatrixHandler& WM = WorkMat.SetFull();
-   integer iNumRows = 0;
-   integer iNumCols = 0;
-   WorkSpaceDim(&iNumRows, &iNumCols);
-   WM.ResizeReset(iNumRows, iNumCols);
-   
-   integer iRowIndex_y = SD_y.pNode->iGetFirstRowIndex()+1;
-   integer iColIndex_y = SD_y.pNode->iGetFirstColIndex()+1;
-   integer iColIndex_u = SD_u.pNode->iGetFirstColIndex()+1;
-   integer iFirstIndex = iGetFirstIndex();
-   
-   unsigned int row_u = 1;
-   unsigned int col_u = 2;
-   WM.PutRowIndex(1, iRowIndex_y);
-   WM.PutColIndex(1, iColIndex_y);
-   WM.PutCoef(1, 1, dCoef); /* sarebbe *(pdP), ma e' == 1. per def. */
-   if (Na >= 1) {
-      if (Na > 1) {
-	 row_u = Na;
-	 col_u = Na+1;
-	 for (unsigned int iCnt = 1; iCnt <= Na-1; iCnt++) {
-	    WM.PutRowIndex(iCnt+1, iFirstIndex+iCnt);
-	    WM.PutColIndex(iCnt+1, iFirstIndex+iCnt);
-	    WM.PutCoef(iCnt+1, iCnt, 1.);
-	    WM.PutCoef(iCnt+1, iCnt+1, -dCoef);
-	    WM.PutCoef(1, iCnt+1, pdP[iCnt]*dCoef);
-	 }
-	 iFirstIndex += Na-1;
-      }
-      WM.IncCoef(1, Na, pdP[Na]);
-   }	          
-   
-   WM.PutColIndex(col_u, iColIndex_u);
-   WM.PutCoef(1, col_u, -pdTau[0]*dCoef);
-   if (Nb >= 1) {
-      if (Nb > 1) {
-	 for (unsigned int iCnt = 1; iCnt <= Nb-1; iCnt++) {
-	    WM.PutRowIndex(row_u+iCnt, iFirstIndex+iCnt);
-	    WM.PutColIndex(col_u+iCnt, iFirstIndex+iCnt);
-	    WM.PutCoef(row_u+iCnt, col_u-1+iCnt, 1.);
-	    WM.PutCoef(row_u+iCnt, col_u+iCnt, -dCoef);
-	    WM.PutCoef(1, col_u+iCnt, -pdTau[iCnt]*dCoef);
-	 }	      
-      }
-      WM.IncCoef(1, col_u+Nb-1, -pdTau[Nb]);
-   }
-   
-   return WorkMat;
-}
-
-
-/* assemblaggio residuo */
-SubVectorHandler& 
-GenelFilter::AssRes(SubVectorHandler& WorkVec,
-		    doublereal /* dCoef */ ,
-		    const VectorHandler& XCurr,
-		    const VectorHandler& XPrimeCurr)
-{
-   DEBUGCOUT("Entering GenelFilter::AssRes()" << std::endl);
-   
-   integer iNumRows = 0;
-   integer iNumCols = 0;
-   WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeReset(iNumRows);
-   
-   integer iRowIndex_y = SD_y.pNode->iGetFirstRowIndex()+1;
-   integer iFirstIndex = iGetFirstIndex();
-   
-   integer row_u = 1;
-   
-   doublereal y = SD_y.pNode->dGetX();
-   doublereal d = -y;
-   if (Na >= 1) {
-      doublereal yp = SD_y.pNode->dGetXPrime();
-      if (Na > 1) {
-	 row_u = Na;
-	 for (unsigned int iCnt = 1; iCnt <= Na-1; iCnt++) {
-	    WorkVec.PutRowIndex(iCnt+1, iFirstIndex+iCnt);
-	    y = XCurr.dGetCoef(iFirstIndex+iCnt);	       
-	    d -= pdP[iCnt]*y;
-	    WorkVec.PutCoef(iCnt+1, y-yp);	       
-	    yp = XPrimeCurr.dGetCoef(iFirstIndex+iCnt);
-	 }
-	 iFirstIndex += Na-1;
-      } 
-      d -= pdP[Na]*yp;	 
-   }
-   
-   doublereal u = SD_u.pNode->dGetX();
-   d += pdTau[0]*u;
-   if (Nb >= 1) {
-      doublereal up = SD_u.pNode->dGetXPrime();
-      if (Nb > 1) {
-	 for (unsigned int iCnt = 1; iCnt <= Nb-1; iCnt++) {
-	    WorkVec.PutRowIndex(row_u+iCnt, iFirstIndex+iCnt);
-	    u = XCurr.dGetCoef(iFirstIndex+iCnt);
-	    d += pdTau[iCnt]*u;
-	    WorkVec.PutCoef(row_u+iCnt, u-up);	       
-	    up = XPrimeCurr.dGetCoef(iFirstIndex+iCnt);
-	 }
-      }
-      d += pdTau[Nb]*up;
-   }      
-   
-   WorkVec.PutItem(1, iRowIndex_y, d);
-   
-   return WorkVec;
-}
-
-/* GenelFilter - end */
-#endif
-
 /* GenelFilterEq - begin */
 
 GenelFilterEq::GenelFilterEq(unsigned int uLabel, const DofOwner* pDO,
@@ -231,8 +47,8 @@ GenelFilterEq::GenelFilterEq(unsigned int uLabel, const DofOwner* pDO,
 			     unsigned int na, unsigned int nb,
 			     doublereal* pa, doublereal* pb,
 			     flag fSt, flag fOutput)
-: Elem(uLabel, Elem::GENEL, fOutput),
-Genel(uLabel, Genel::SCALARFILTER, pDO, fOutput),
+: Elem(uLabel, fOutput),
+Genel(uLabel, pDO, fOutput),
 SD_y(y), SD_u(u),
 Na(na), Nb(nb),
 pdA(pa), pdB(pb),
@@ -501,8 +317,8 @@ GenelStateSpaceSISO::GenelStateSpaceSISO(unsigned int uLabel,
 					 doublereal* pC, 
 					 doublereal D,
 					 flag fOutput)
-: Elem(uLabel, Elem::GENEL, fOutput),
-Genel(uLabel, Genel::STATESPACESISO, pDO, fOutput),
+: Elem(uLabel, fOutput),
+Genel(uLabel, pDO, fOutput),
 SD_y(y), SD_u(u),
 iNumDofs(Order),
 pdA(pA), pdB(pB), pdC(pC), dD(D),
@@ -701,8 +517,8 @@ GenelStateSpaceMIMO::GenelStateSpaceMIMO(unsigned int uLabel,
 					 doublereal* pC, 
 					 doublereal* pD,
 					 flag fOutput)
-: Elem(uLabel, Elem::GENEL, fOutput),
-Genel(uLabel, Genel::STATESPACEMIMO, pDO, fOutput),
+: Elem(uLabel, fOutput),
+Genel(uLabel, pDO, fOutput),
 iNumOutputs(iNumOut), iNumInputs(iNumIn),
 pvSD_y((ScalarDof*)y), pvSD_u((ScalarDof*)u),
 iNumDofs(Order),

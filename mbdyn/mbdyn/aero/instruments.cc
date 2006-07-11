@@ -41,8 +41,8 @@
 
 AircraftInstruments::AircraftInstruments(unsigned int uLabel, 
 		const StructNode* pN, flag fOut)
-: Elem(uLabel, Elem::AERODYNAMIC, fOut),
-AerodynamicElem(uLabel, AerodynamicElem::AIRCRAFTINSTRUMENTS, fOut),
+: Elem(uLabel, fOut),
+AerodynamicElem(uLabel, fOut),
 pNode(pN)
 {
 	NO_OP;

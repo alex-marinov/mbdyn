@@ -79,6 +79,11 @@ class PiezoActuatorBeam2 : public Beam2 {
    /* Distruttore banale */
    virtual ~PiezoActuatorBeam2(void);
     
+   /* Tipo di trave */
+   virtual Beam::Type GetBeamType(void) const {
+      return Beam::PIEZOELECTRICELASTIC; 
+   };
+   
    /* Contributo al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
     
@@ -174,6 +179,11 @@ class PiezoActuatorVEBeam2 : public ViscoElasticBeam2 {
    /* Distruttore banale */
    virtual ~PiezoActuatorVEBeam2(void);
     
+   /* Tipo di trave */
+   virtual Beam::Type GetBeamType(void) const {
+      return Beam::PIEZOELECTRICVISCOELASTIC; 
+   };
+   
    /* Contributo al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
     

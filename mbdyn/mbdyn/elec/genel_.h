@@ -46,8 +46,8 @@ class GenelClamp : virtual public Elem, public Genel, public DriveOwner {
  public:
    GenelClamp(unsigned int uLabel, const DofOwner* pDO, const DriveCaller* pDC,
 	      const ScalarDof& sd, flag fOutput)
-     : Elem(uLabel, Elem::BULK, fOutput), 
-     Genel(uLabel, Genel::CLAMP, pDO, fOutput),
+     : Elem(uLabel, fOutput), 
+     Genel(uLabel, pDO, fOutput),
      DriveOwner(pDC), SD(sd), dRct(0.) {
       NO_OP;
    };
@@ -184,8 +184,8 @@ class GenelDistance : virtual public Elem, public Genel, public DriveOwner {
    GenelDistance(unsigned int uLabel, const DofOwner* pDO, 
 		 const DriveCaller* pDC,
 		 const ScalarDof& sd1, const ScalarDof& sd2, flag fOutput)
-     : Elem(uLabel, Elem::BULK, fOutput), 
-     Genel(uLabel, Genel::DISTANCE, pDO, fOutput),
+     : Elem(uLabel, fOutput), 
+     Genel(uLabel, pDO, fOutput),
      DriveOwner(pDC), SD1(sd1), SD2(sd2), dRct(0.) {
       NO_OP;
    };
@@ -350,8 +350,8 @@ class GenelSpring
    GenelSpring(unsigned int uLabel, const DofOwner* pDO, 
 	       const ConstitutiveLaw1D* pCL,
 	       const ScalarDof& sd1, const ScalarDof& sd2, flag fOutput)
-     : Elem(uLabel, Elem::BULK, fOutput), 
-     Genel(uLabel, Genel::SPRING, pDO, fOutput),
+     : Elem(uLabel, fOutput), 
+     Genel(uLabel, pDO, fOutput),
      ConstitutiveLaw1DOwner(pCL), SD1(sd1), SD2(sd2), dVal(0.) { 
       NO_OP;
    };
@@ -479,8 +479,8 @@ class GenelSpringSupport
    GenelSpringSupport(unsigned int uLabel, const DofOwner* pDO, 
 	       const ConstitutiveLaw1D* pCL,
 	       const ScalarDof& sd, flag fOutput)
-     : Elem(uLabel, Elem::BULK, fOutput), 
-     Genel(uLabel, Genel::SPRINGSUPPORT, pDO, fOutput),
+     : Elem(uLabel, fOutput), 
+     Genel(uLabel, pDO, fOutput),
      ConstitutiveLaw1DOwner(pCL), SD(sd), dVal(0.) {
       ASSERT(SD.iOrder == 0);
    };
@@ -584,8 +584,8 @@ class GenelCrossSpringSupport
 			   const ScalarDof& sdrow,
 			   const ScalarDof& sdcol,
 			   flag fOutput)
-     : Elem(uLabel, Elem::BULK, fOutput), 
-     Genel(uLabel, Genel::CROSSSPRINGSUPPORT, pDO, fOutput),
+     : Elem(uLabel, fOutput), 
+     Genel(uLabel, pDO, fOutput),
      ConstitutiveLaw1DOwner(pCL), SDRow(sdrow), SDCol(sdcol), dVal(0.) {
       ASSERT(SDCol.iOrder == 0);
    };
@@ -690,8 +690,8 @@ class GenelCrossSpringDamperSupport
 				 const ScalarDof& sdrow,
 				 const ScalarDof& sdcol,
 				 flag fOutput)
-     : Elem(uLabel, Elem::BULK, fOutput), 
-     Genel(uLabel, Genel::CROSSSPRINGDAMPERSUPPORT, pDO, fOutput),
+     : Elem(uLabel, fOutput), 
+     Genel(uLabel, pDO, fOutput),
      ConstitutiveLaw1DOwner(pCL), SDRow(sdrow), SDCol(sdcol),
      dVal(0.), dValPrime(0.) {
       ASSERT(SDCol.iOrder == 0);
@@ -795,8 +795,8 @@ class GenelSpringDamperSupport
    GenelSpringDamperSupport(unsigned int uLabel, const DofOwner* pDO, 
 			    const ConstitutiveLaw1D* pCL,
 			    const ScalarDof& sd, flag fOutput)
-     : Elem(uLabel, Elem::BULK, fOutput), 
-     Genel(uLabel, Genel::SPRINGDAMPERSUPPORT, pDO, fOutput),
+     : Elem(uLabel, fOutput), 
+     Genel(uLabel, pDO, fOutput),
      ConstitutiveLaw1DOwner(pCL), SD(sd), dVal(0.),dValPrime(0.) {
 	ASSERT(sd.pNode->GetDofType(0) == DofOrder::DIFFERENTIAL);
 	ASSERT(sd.iOrder == 0);
@@ -896,8 +896,8 @@ class GenelMass : virtual public Elem, public Genel, public DriveOwner {
  public:
    GenelMass(unsigned int uLabel, const DofOwner* pDO, const DriveCaller* pDC,
 	      const ScalarDof& sd, flag fOutput)
-     : Elem(uLabel, Elem::BULK, fOutput), 
-     Genel(uLabel, Genel::MASS, pDO, fOutput),
+     : Elem(uLabel, fOutput), 
+     Genel(uLabel, pDO, fOutput),
      DriveOwner(pDC), SD(sd) { 
       NO_OP;
    };

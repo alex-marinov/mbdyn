@@ -43,13 +43,12 @@
 
 /* Costruttore */
 StructuralForce::StructuralForce(unsigned int uL, 
-				 Force::Type T,
 				 const StructNode* pN,
 				 const DriveCaller* pDC, 
 				 const Vec3& TmpDir,
 				 flag fOut)
-: Elem(uL, Elem::FORCE, fOut), 
-Force(uL, T, pDC, fOut), 
+: Elem(uL, fOut), 
+Force(uL, pDC, fOut), 
 pNode(pN), Dir(TmpDir)
 { 
    ASSERT(pNode != NULL);
@@ -75,8 +74,8 @@ ConservativeForce::ConservativeForce(unsigned int uL, const StructNode* pN,
 				     const DriveCaller* pDC,
 				     const Vec3& TmpDir, const Vec3& TmpArm,
 				     flag fOut)
-: Elem(uL, Elem::FORCE, fOut), 
-StructuralForce(uL, Force::CONSERVATIVEFORCE, pN, pDC, TmpDir, fOut), 
+: Elem(uL, fOut), 
+StructuralForce(uL, pN, pDC, TmpDir, fOut), 
 Arm(TmpArm)
 { 
    NO_OP; 
@@ -261,8 +260,8 @@ FollowerForce::FollowerForce(unsigned int uL, const StructNode* pN,
 			     const DriveCaller* pDC,
 			     const Vec3& TmpDir, const Vec3& TmpArm,
 			     flag fOut)
-: Elem(uL, Elem::FORCE, fOut), 
-StructuralForce(uL, Force::FOLLOWERFORCE, pN, pDC, TmpDir, fOut), 
+: Elem(uL, fOut), 
+StructuralForce(uL, pN, pDC, TmpDir, fOut), 
 Arm(TmpArm)
 { 
    NO_OP; 
@@ -462,8 +461,8 @@ ConservativeCouple::ConservativeCouple(unsigned int uL, const StructNode* pN,
 				       const DriveCaller* pDC, 
 				       const Vec3& TmpDir,
 				       flag fOut)
-: Elem(uL, Elem::FORCE, fOut), 
-StructuralForce(uL, Force::CONSERVATIVECOUPLE, pN, pDC, TmpDir, fOut)
+: Elem(uL, fOut), 
+StructuralForce(uL, pN, pDC, TmpDir, fOut)
 { 
    NO_OP; 
 };
@@ -550,8 +549,8 @@ ConservativeCouple::InitialAssRes(SubVectorHandler& WorkVec,
 FollowerCouple::FollowerCouple(unsigned int uL, const StructNode* pN, 
 			       const DriveCaller* pDC, const Vec3& TmpDir,
 			       flag fOut)
-: Elem(uL, Elem::FORCE, fOut), 
-StructuralForce(uL, Force::FOLLOWERCOUPLE, pN, pDC, TmpDir, fOut)
+: Elem(uL, fOut), 
+StructuralForce(uL, pN, pDC, TmpDir, fOut)
 { 
    NO_OP; 
 };
@@ -719,12 +718,11 @@ FollowerCouple::InitialAssRes(SubVectorHandler& WorkVec,
 
 /* Costruttore */
 StructuralInternalForce::StructuralInternalForce(unsigned int uL, 
-		Force::Type T,
 		const StructNode* pN1, const StructNode* pN2,
 		const DriveCaller* pDC, const Vec3& TmpDir,
 		flag fOut)
-: Elem(uL, Elem::FORCE, fOut), 
-Force(uL, T, pDC, fOut), 
+: Elem(uL, fOut), 
+Force(uL, pDC, fOut), 
 pNode1(pN1), pNode2(pN2), Dir(TmpDir)
 { 
    ASSERT(pNode1 != NULL);
@@ -753,9 +751,8 @@ ConservativeInternalForce::ConservativeInternalForce(unsigned int uL,
 		const DriveCaller* pDC, const Vec3& TmpDir,
 		const Vec3& TmpArm1, const Vec3& TmpArm2,
 		flag fOut)
-: Elem(uL, Elem::FORCE, fOut), 
-StructuralInternalForce(uL, Force::CONSERVATIVEFORCE, pN1, pN2, pDC,
-		TmpDir, fOut), 
+: Elem(uL, fOut), 
+StructuralInternalForce(uL, pN1, pN2, pDC, TmpDir, fOut), 
 Arm1(TmpArm1), Arm2(TmpArm2)
 { 
    NO_OP; 
@@ -994,8 +991,8 @@ FollowerInternalForce::FollowerInternalForce(unsigned int uL,
 		const DriveCaller* pDC, const Vec3& TmpDir,
 		const Vec3& TmpArm1, const Vec3& TmpArm2,
 		flag fOut)
-: Elem(uL, Elem::FORCE, fOut), 
-StructuralInternalForce(uL, Force::FOLLOWERFORCE, pN1, pN2, pDC, TmpDir, fOut), 
+: Elem(uL, fOut), 
+StructuralInternalForce(uL, pN1, pN2, pDC, TmpDir, fOut), 
 Arm1(TmpArm1), Arm2(TmpArm2)
 { 
    NO_OP; 
@@ -1258,9 +1255,8 @@ ConservativeInternalCouple::ConservativeInternalCouple(unsigned int uL,
 		const StructNode* pN1, const StructNode* pN2, 
 		const DriveCaller* pDC, const Vec3& TmpDir,
 		flag fOut)
-: Elem(uL, Elem::FORCE, fOut), 
-StructuralInternalForce(uL, Force::CONSERVATIVECOUPLE, pN1, pN2, pDC,
-		TmpDir, fOut)
+: Elem(uL, fOut), 
+StructuralInternalForce(uL, pN1, pN2, pDC, TmpDir, fOut)
 { 
    NO_OP; 
 };
@@ -1357,8 +1353,8 @@ FollowerInternalCouple::FollowerInternalCouple(unsigned int uL,
 		const StructNode* pN1, const StructNode* pN2, 
 		const DriveCaller* pDC, const Vec3& TmpDir,
 		flag fOut)
-: Elem(uL, Elem::FORCE, fOut), 
-StructuralInternalForce(uL, Force::FOLLOWERCOUPLE, pN1, pN2, pDC, TmpDir, fOut)
+: Elem(uL, fOut), 
+StructuralInternalForce(uL, pN1, pN2, pDC, TmpDir, fOut)
 { 
    NO_OP; 
 };

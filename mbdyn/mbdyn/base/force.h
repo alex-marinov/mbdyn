@@ -67,16 +67,13 @@ class Force
 	LASTFORCETYPE
    };
 
- private:
-   Force::Type ForceT;
-   
  public:
    /* Costruttore banale */
-   Force(unsigned int uL, Force::Type T, 
+   Force(unsigned int uL,
 	 const DriveCaller* pDC, flag fOut)
-     : Elem(uL, Elem::FORCE, fOut), 
-     InitialAssemblyElem(uL, Elem::FORCE, fOut), 
-     DriveOwner(pDC), ForceT(T) { 
+     : Elem(uL, fOut), 
+     InitialAssemblyElem(uL, fOut), 
+     DriveOwner(pDC) { 
 	NO_OP; 
      };
       

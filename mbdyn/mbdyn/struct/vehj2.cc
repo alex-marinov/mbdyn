@@ -50,8 +50,8 @@ DeformableDispJoint::DeformableDispJoint(unsigned int uL,
 		const Mat3x3& tilde_R1h,
 		const Mat3x3& tilde_R2h,
 		flag fOut)
-: Elem(uL, Elem::JOINT, fOut),
-Joint(uL, Joint::DEFORMABLEDISPJOINT, pDO, fOut),
+: Elem(uL, fOut),
+Joint(uL, pDO, fOut),
 ConstitutiveLaw3DOwner(pCL),
 pNode1(pN1), pNode2(pN2),
 tilde_f1(tilde_f1), tilde_f2(tilde_f2),
@@ -291,7 +291,7 @@ ElasticDispJoint::ElasticDispJoint(unsigned int uL,
 		const Mat3x3& tilde_R1h,
 		const Mat3x3& tilde_R2h,
 		flag fOut)
-: Elem(uL, Elem::JOINT, fOut),
+: Elem(uL, fOut),
 DeformableDispJoint(uL, pDO, pCL, pN1, pN2, tilde_f1, tilde_f2, tilde_R1h, tilde_R2h, fOut)
 {
 	/*
@@ -584,7 +584,7 @@ ViscousDispJoint::ViscousDispJoint(unsigned int uL,
 		const Mat3x3& tilde_R1h,
 		const Mat3x3& tilde_R2h,
 		flag fOut)
-: Elem(uL, Elem::JOINT, fOut),
+: Elem(uL, fOut),
 DeformableDispJoint(uL, pDO, pCL, pN1, pN2, tilde_f1, tilde_f2, tilde_R1h, tilde_R2h, fOut)
 {
 #if 0
@@ -961,7 +961,7 @@ ViscoElasticDispJoint::ViscoElasticDispJoint(unsigned int uL,
 		const Mat3x3& tilde_R1h,
 		const Mat3x3& tilde_R2h,
 		flag fOut)
-: Elem(uL, Elem::JOINT, fOut),
+: Elem(uL, fOut),
 DeformableDispJoint(uL, pDO, pCL, pN1, pN2, tilde_f1, tilde_f2, tilde_R1h, tilde_R2h, fOut)
 {
 #if 0

@@ -40,7 +40,7 @@
 
 Gravity::Gravity(const TplDriveCaller<Vec3>* pDC, 
 		 flag fOut)
-: Elem(1, Elem::GRAVITY, fOut), TplDriveOwner<Vec3>(pDC)
+: Elem(1, fOut), TplDriveOwner<Vec3>(pDC)
 {
    Acc = Get();
 }
@@ -131,9 +131,9 @@ bool GravityOwner::bGetGravity(const Vec3& X, Vec3& Acc) const
 
 /* ElemGravityOwner - begin */
 
-ElemGravityOwner::ElemGravityOwner(unsigned int uL, Elem::Type T, 
+ElemGravityOwner::ElemGravityOwner(unsigned int uL,
 				   flag fOut)
-: Elem(uL, T, fOut), GravityOwner()
+: Elem(uL, fOut), GravityOwner()
 {
    NO_OP;
 }

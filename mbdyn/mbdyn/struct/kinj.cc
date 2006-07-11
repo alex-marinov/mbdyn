@@ -40,8 +40,8 @@ KinJoint::KinJoint(unsigned int uL,
 		   const StructNode* pN,
 		   const Kinematics* pK,
 		   flag fOut)
-: Elem(uL, Elem::JOINT, fOut),
-Joint(uL, Joint::IMPOSEDKINEMATICS, pDO, fOut),
+: Elem(uL, fOut),
+Joint(uL, pDO, fOut),
 pNode(pN), pKin(pK)
 {
    ASSERT(pNode != NULL);

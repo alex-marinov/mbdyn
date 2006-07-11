@@ -282,6 +282,7 @@ public:
    	inline void* pGetData(void) const;
    
    	virtual Elem::Type GetElemType(void) const;
+   	virtual AerodynamicElem::Type GetAerodynamicElemType(void) const;
 
    	virtual unsigned int iGetNumDof(void) const;   
    	virtual DofOrder::Order GetDofType(unsigned int i) const;

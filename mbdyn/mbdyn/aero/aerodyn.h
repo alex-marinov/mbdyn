@@ -252,19 +252,14 @@ public:
 		LASTAEROTYPE
 	};
 
-private:
-	AerodynamicElem::Type AeroT;
-
 protected:
  
 public:
-	AerodynamicElem(unsigned int uL, AerodynamicElem::Type T, flag fOut);
+	AerodynamicElem(unsigned int uL, flag fOut);
 	virtual ~AerodynamicElem(void);
 
 	/* Tipo di elemento aerodinamico */
-	virtual AerodynamicElem::Type GetAerodynamicElemType(void) const {
-		return AeroT;
-	};
+	virtual AerodynamicElem::Type GetAerodynamicElemType(void) const = 0;
 
 	/* Consente di effettuare un casting sicuro da Elem* a AerodynamicElem* */
 	virtual AerodynamicElem* pGetAerodynamicElem(void) const {

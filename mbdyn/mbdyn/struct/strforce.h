@@ -46,7 +46,7 @@ class StructuralForce : virtual public Elem, public Force {
    
  public:
    /* Costruttore */
-   StructuralForce(unsigned int uL, Force::Type T, 
+   StructuralForce(unsigned int uL,
 		   const StructNode* pN,
 		   const DriveCaller* pDC, const Vec3& TmpDir,
 		   flag fOut);
@@ -316,7 +316,7 @@ class StructuralInternalForce : virtual public Elem, public Force {
    
  public:
    /* Costruttore */
-   StructuralInternalForce(unsigned int uL, Force::Type T, 
+   StructuralInternalForce(unsigned int uL,
 		   const StructNode* pN1, const StructNode* pN2,
 		   const DriveCaller* pDC, const Vec3& TmpDir,
 		   flag fOut);
