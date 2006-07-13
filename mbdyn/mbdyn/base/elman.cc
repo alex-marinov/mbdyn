@@ -49,6 +49,7 @@ DataManager::ElemManager(void)
 		ElemData[i].iNum = 0;
 		ElemData[i].DofOwnerType = DofOwner::UNKNOWN;
 		ElemData[i].uFlags = 0U;
+		ElemData[i].DefaultOut(::fDefaultOut == 1); /* Da "output.h" */
 		ElemData[i].OutFile = OutputHandler::UNKNOWN;	/* "output.h" */
 	}
 

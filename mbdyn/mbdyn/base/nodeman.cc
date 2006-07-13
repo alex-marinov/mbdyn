@@ -46,6 +46,7 @@ void DataManager::NodeManager(void)
    for(int i = 0; i < Node::LASTNODETYPE; i++) {
       NodeData[i].ppFirstNode = NULL;
       NodeData[i].iNum = 0;
+      NodeData[i].uFlags = 0U;
       NodeData[i].DefaultOut(::fDefaultOut == 1); /* Da "output.h" */
       NodeData[i].OutFile = OutputHandler::UNKNOWN; /* Da "output.h" */
    }
