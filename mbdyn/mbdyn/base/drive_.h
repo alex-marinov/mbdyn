@@ -804,7 +804,7 @@ CosineDriveCaller::dGetP(const doublereal& dVar) const
 		return 0.;
 	}
 
-	return -dAmplitude*dOmega*sin(dOmega*(dVar - dStartTime));
+	return dAmplitude*dOmega*sin(dOmega*(dVar - dStartTime));
 }
 
 /* CosineDriveCaller - end */
