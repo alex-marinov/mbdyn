@@ -91,8 +91,8 @@ struct DummyCLR : public ConstitutiveLawRead<T, Tder> {
 
 		doublereal dS = HP.GetReal();
 		if (dS <= 0.) {
-			silent_cerr("warning, null or negative stiffness at line "
-				<< HP.GetLineData() << std::endl);
+			silent_cerr("warning, null or negative stiffness "
+				"at line " << HP.GetLineData() << std::endl);
 		}
 
 		typedef DummyConstitutiveLaw<T, Tder> L;
@@ -105,14 +105,19 @@ struct DummyCLR : public ConstitutiveLawRead<T, Tder> {
 extern "C" int
 module_init(const char *module_name, void *pdm, void *php)
 {
+#if 0
 	DataManager	*pDM = (DataManager *)pdm;
 	MBDynParser	*pHP = (MBDynParser *)php;
+#endif
 
-	ConstitutiveLawRead<doublereal, doublereal> *rf1D = new DummyCLR<doublereal, doublereal>;
+	ConstitutiveLawRead<doublereal, doublereal> *rf1D
+		= new DummyCLR<doublereal, doublereal>;
 	if (!SetCL1D("dummy", rf1D)) {
 		delete rf1D;
 
-		silent_cerr("DummyConstitutiveLaw1D: module_init(" << module_name << ") failed" << std::endl);
+		silent_cerr("DummyConstitutiveLaw1D: "
+			"module_init(" << module_name << ") "
+			"failed" << std::endl);
 
 		return -1;
 	}
@@ -121,7 +126,9 @@ module_init(const char *module_name, void *pdm, void *php)
 	if (!SetCL3D("dummy", rf3D)) {
 		delete rf3D;
 
-		silent_cerr("DummyConstitutiveLaw3D: module_init(" << module_name << ") failed" << std::endl);
+		silent_cerr("DummyConstitutiveLaw3D: "
+			"module_init(" << module_name << ") "
+			"failed" << std::endl);
 
 		return -1;
 	}
@@ -130,7 +137,9 @@ module_init(const char *module_name, void *pdm, void *php)
 	if (!SetCL6D("dummy", rf6D)) {
 		delete rf6D;
 
-		silent_cerr("DummyConstitutiveLaw6D: module_init(" << module_name << ") failed" << std::endl);
+		silent_cerr("DummyConstitutiveLaw6D: "
+			"module_init(" << module_name << ") "
+			"failed" << std::endl);
 
 		return -1;
 	}

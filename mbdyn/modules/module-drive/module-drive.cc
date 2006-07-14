@@ -127,15 +127,19 @@ struct DummyDCR : public DriveCallerRead {
 extern "C" int
 module_init(const char *module_name, void *pdm, void *php)
 {
+#if 0
 	DataManager	*pDM = (DataManager *)pdm;
 	MBDynParser	*pHP = (MBDynParser *)php;
+#endif
 
 	DriveCallerRead	*rf = new DummyDCR;
 
 	if (!SetDriveData("dummy", rf)) {
 		delete rf;
 
-		silent_cerr("DummyDrive: module_init(" << module_name << ") failed" << std::endl);
+		silent_cerr("DummyDrive: "
+			"module_init(" << module_name << ") "
+			"failed" << std::endl);
 
 		return -1;
 	}
