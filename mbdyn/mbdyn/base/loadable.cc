@@ -343,6 +343,10 @@ LoadableElem::GetCalls(MBDynParser& HP)
 		const char *err = dlerror();
 #endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
 
+		if (err == 0) {
+			err = "";
+		}
+
       		silent_cerr("Loadable(" << uLabel 
 			<< "): unable to open module <" << module_name 
 			<< "> (" << err << ") at line " << HP.GetLineData()

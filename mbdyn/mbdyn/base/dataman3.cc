@@ -43,6 +43,7 @@
 
 #include "dataman.h"
 #include "dataman_.h"
+#include "modules.h"
 #include "readlinsol.h"
 
 #include "drive.h"
@@ -450,10 +451,7 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
           int mode = 0;
 
 	  if (loadableElemInitialized == false) {
-	     if (lt_dlinit()) {
-	  	silent_cerr("unable to initialize loadable elements" << std::endl);
-      		throw ErrGeneric();
-	     }
+             module_initialize();
 	     loadableElemInitialized = true;
 	  }
 

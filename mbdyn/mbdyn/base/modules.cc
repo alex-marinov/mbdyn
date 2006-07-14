@@ -28,19 +28,41 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef MODULES_H
-#define MODULES_H
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
 
-#ifdef STATIC_MODULES
+#ifdef HAVE_LTDL_H
+#include <ltdl.h>
+#elif defined(HAVE_DLFCN_H)
+#include <dlfcn.h>
+#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
 
-#include <loadable.h>
+#include "dataman.h"
+#include "mbdefs.h"
 
-extern LoadableCalls module_wheel2_lc;
+static bool done = false;
 
-#endif /* STATIC_MODULES */
+void
+module_initialize(void)
+{
+	if (::done) {
+		return;
+	}
 
-extern void
-module_initialize(void);
+	::done = true;
 
-#endif /* MODULES_H */
+	if (lt_dlinit()) {
+		silent_cerr("unable to initialize run-time loading" << std::endl);
+		throw ErrGeneric();
+	}
+
+	/*
+	 * NOTE: this macro is defined in mbdefs.h
+	 */
+	if (lt_dlsetsearchpath(MODULE_LOADPATH) != 0) {
+		silent_cerr("unable to initialize load path" << std::endl);
+		throw ErrGeneric();
+	}
+}
 

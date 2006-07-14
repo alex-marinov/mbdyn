@@ -52,6 +52,7 @@
 #endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
 
 #include "dataman.h"
+#include "modules.h"
 
 /* MBDynParser - begin */
 
@@ -578,6 +579,8 @@ MBDynParser::ModuleLoad_int(void)
 	char *module_name = 0;
    	SAFESTRDUP(module_name, s);
 
+	module_initialize();
+
 #ifdef HAVE_LTDL_H
 	lt_dlhandle handle = lt_dlopenext(module_name);
 #elif defined(HAVE_DLFCN_H)
@@ -590,6 +593,10 @@ MBDynParser::ModuleLoad_int(void)
 #elif defined(HAVE_DLFCN_H)
       		const char* err = dlerror();
 #endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
+
+		if (err == 0) {
+			err = "";
+		}
 
       		silent_cerr("ModuleLoad_int: "
 			<< "unable to open module <" << module_name 

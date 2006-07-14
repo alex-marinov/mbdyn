@@ -71,6 +71,7 @@ mfree.cc \
 mfree.h \
 modelns.cc \
 modelns.h \
+modules.cc \
 modules.h \
 motionview_res.cc \
 mtdataman.cc \

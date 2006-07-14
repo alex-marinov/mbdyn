@@ -34,7 +34,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <mbdefs.h>
+#include "mbdefs.h"
+#include "modules.h"
 
 #include <float.h>
 #include <vector>
@@ -1078,19 +1079,7 @@ void DataManager::ReadElems(MBDynParser& HP)
 #if defined(HAVE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
 		 if (CurrDesc == LOADABLE) {
 		    if (loadableElemInitialized == false) {
-		       if (lt_dlinit()) {
-	   		  silent_cerr("unable to initialize loadable elements"
-					  << std::endl);
-      			  throw ErrGeneric();
-      		       }
-
-		       /*
-		        * NOTE: this macro is defined in mbdefs.h
-		        */
-		       if (lt_dlsetsearchpath(MODULE_LOADPATH) != 0) {
-			  silent_cerr("unable to initialize load path"
-				  << std::endl);
-		       }
+                       module_initialize();
 		       loadableElemInitialized = true;
 		    }
 		 }
