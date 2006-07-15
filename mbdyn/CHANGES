@@ -30,6 +30,7 @@ MBDyn 1.X-Devel
 	Backward compatibility issues:
 		- double viscoelastic constitutive law syntax changed
 		- per-element output removed from modal joints
+		- spherical hinge output now refers to node 1 instead of 2
 	Known issues:
 	Bug fixes:
 		- fixed orientation matrix input check and diagnostics

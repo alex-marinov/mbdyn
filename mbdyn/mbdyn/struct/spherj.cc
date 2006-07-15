@@ -218,11 +218,11 @@ DofOrder::Order SphericalHingeJoint::GetEqType(unsigned int i) const {
 void SphericalHingeJoint::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {
-      Mat3x3 R2TmpT((pNode2->GetRCurr()*R2h).Transpose());
-      Mat3x3 RTmp(R2TmpT*(pNode1->GetRCurr()*R1h));
+      Mat3x3 R1TmpT((pNode1->GetRCurr()*R1h).Transpose());
+      Mat3x3 RTmp(R1TmpT*(pNode2->GetRCurr()*R2h));
       
       Joint::Output(OH.Joints(), "SphericalHinge", GetLabel(),
-		    R2TmpT*F, Zero3, F, Zero3) 
+		    R1TmpT*F, Zero3, F, Zero3) 
 	<< " " << MatR2EulerAngles(RTmp)*dRaDegr << std::endl;
    }   
 }
