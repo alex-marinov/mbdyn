@@ -64,11 +64,14 @@ public:
 	virtual doublereal ComputeDiff(const doublereal x, const integer order = 1) const = 0;
 };
 
-#include "mbpar.h"
-#include "dataman.h"
-//implemented in ScalarFunctionsImpl.cc
-const BasicScalarFunction *const ParseScalarFunction(MBDynParser& HP,
-	DataManager* const pDM);
+class MBDynParser;
+class DataManager;
 
+// implemented in ScalarFunctionsImpl.cc
+extern const BasicScalarFunction *const
+ParseScalarFunction(MBDynParser& HP, DataManager* const pDM);
+
+extern void
+SetScalarFunctionDriveData(void);
 
 #endif //ScalarFunctions_hh

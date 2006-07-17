@@ -35,6 +35,8 @@
 
 #include <cmath>
 
+#include "mbpar.h"
+#include "dataman.h"
 #include "friction.h"
 #include "submat.h"
 

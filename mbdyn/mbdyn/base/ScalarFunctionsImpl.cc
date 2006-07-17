@@ -50,6 +50,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <cmath>
+
 #include "myassert.h"
 
 #include "ScalarFunctionsImpl.h"
@@ -410,31 +412,35 @@ MultiLinearScalarFunction::ComputeDiff(const doublereal x, const integer order) 
 
 //---------------------------------------
 
-const BasicScalarFunction *const ParseScalarFunction(MBDynParser& HP,
-	DataManager* const pDM)
+#include "mbpar.h"
+#include "dataman.h"
+
+const BasicScalarFunction *const
+ParseScalarFunction(MBDynParser& HP, DataManager* const pDM)
 {
-   const char* sKeyWords[] = { 
-      "const",
-	"linear",
-	"pow",
-	"log",
-	"sum",
-	"mul",
-	"cubic" "spline",
-	"multilinear",
-	NULL
-   };
-	enum KeyWords { 
-	   CONST = 0,
-	     LINEAR,
-	     POW,
-	     LOG,
-	     SUM,
-	     MUL,
-	     CUBICSPLINE,
-	     MULTILINEAR,
-	     LASTKEYWORD
+	const char* sKeyWords[] = { 
+		"const",
+		"linear",
+		"pow",
+		"log",
+		"sum",
+		"mul",
+		"cubic" "spline",
+		"multilinear",
+		NULL
 	};
+	enum KeyWords { 
+		CONST = 0,
+		LINEAR,
+		POW,
+		LOG,
+		SUM,
+		MUL,
+		CUBICSPLINE,
+		MULTILINEAR,
+		LASTKEYWORD
+	};
+
 	/* token corrente */
 	KeyWords FuncType;
 
@@ -557,4 +563,96 @@ const BasicScalarFunction *const ParseScalarFunction(MBDynParser& HP,
 	}
 	
 	return 	pDM->GetScalarFunction(func_name);
+}
+
+//---------------------------------------
+
+/* Scalar FunctionDrive - begin */
+
+class ScalarFunctionDriveCaller : public DriveCaller {
+private:
+	const BasicScalarFunction *const sc;
+
+public:
+	ScalarFunctionDriveCaller(const DriveHandler* pDH,
+    		const BasicScalarFunction *const f)
+	: DriveCaller(pDH), sc(f)
+	{ NO_OP; };
+
+	virtual ~ScalarFunctionDriveCaller(void) { NO_OP; };
+
+	/* Copia */
+	virtual DriveCaller*
+	pCopy(void) const {
+		DriveCaller* pDC = NULL;
+		SAFENEWWITHCONSTRUCTOR(pDC, ScalarFunctionDriveCaller,
+			ScalarFunctionDriveCaller(pDrvHdl, sc));
+		return pDC;
+	};
+
+	/* Scrive il contributo del DriveCaller al file di restart */	
+	virtual std::ostream& Restart(std::ostream& out) const {
+		silent_cerr("ScalarFunctionDriveCaller: Restart not implemented"
+			<< std::endl);
+		throw ErrGeneric();
+	};
+
+	virtual doublereal dGet(const doublereal& dVar) const {
+		return (*sc)(dVar);
+	};
+
+	virtual bool bIsDifferentiable(void) const {
+		return ptr_cast<const DifferentiableScalarFunction*const>(sc);
+	};
+
+	virtual doublereal dGetP(const doublereal& dVar) const {
+		return ptr_cast<const DifferentiableScalarFunction *const>(sc)->ComputeDiff(dVar);
+	};
+};
+
+struct ScalarFunctionDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+ScalarFunctionDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+{
+	NeedDM(pDM, HP, bDeferred, "scalar function");
+
+	/* driver legato alle scalar function */
+	if (pDM == 0) {
+		silent_cerr("sorry, since the driver is not owned by a DataManager" << std::endl
+			<< "no driver dependent drivers are allowed;" << std::endl
+			<< "aborting ..." << std::endl);
+		throw DataManager::ErrGeneric();
+	}
+
+	const DriveHandler* pDrvHdl = pDM->pGetDrvHdl();
+
+	const BasicScalarFunction *const sc = ParseScalarFunction(HP, (DataManager *const)pDM);
+
+	DriveCaller *pDC = 0;
+
+	/* allocazione e creazione */
+	SAFENEWWITHCONSTRUCTOR(pDC,
+		ScalarFunctionDriveCaller,
+		ScalarFunctionDriveCaller(pDrvHdl, sc));
+
+	return pDC;
+}
+
+void
+SetScalarFunctionDriveData(void)
+{
+	ScalarFunctionDCR *rf = new ScalarFunctionDCR;
+
+	if (!SetDriveData("scalar" "function", rf)) {
+		delete rf;
+
+		silent_cerr("unable to register scalar function drive caller"
+			<< std::endl);
+
+		throw ErrGeneric();
+	}
 }

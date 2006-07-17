@@ -553,6 +553,13 @@ class MBDynParser;
 
 /* prototype of the functional object: reads a drive caller */
 struct DriveCallerRead {
+protected:
+	/* Helper */
+	void
+	NeedDM(const DataManager* pDM, MBDynParser& HP, bool bDeferred,
+		const char *const name);
+
+public:
 	virtual DriveCaller *
 	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred) = 0;
 };

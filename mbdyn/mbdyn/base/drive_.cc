@@ -967,7 +967,8 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 }
 
 void
-NeedDM(const DataManager* pDM, MBDynParser& HP, bool bDeferred, const char *name)
+DriveCallerRead::NeedDM(const DataManager* pDM, MBDynParser& HP, bool bDeferred,
+	const char *const name)
 {
 	if (pDM == 0 && !bDeferred) {
 		silent_cerr("\"" << name << "\" drive needs data manager "
