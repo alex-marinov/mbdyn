@@ -602,7 +602,7 @@ public:
 	};
 
 	virtual bool bIsDifferentiable(void) const {
-		return ptr_cast<const DifferentiableScalarFunction*const>(sc);
+		return (ptr_cast<const DifferentiableScalarFunction*const>(sc) != 0);
 	};
 
 	virtual doublereal dGetP(const doublereal& dVar) const {
