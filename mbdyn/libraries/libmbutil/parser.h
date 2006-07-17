@@ -243,6 +243,7 @@ public:
 	};
 
 	struct WordSet {
+		virtual ~WordSet() {NO_OP;};
 		virtual bool IsWord(const char *s) const = 0;
 	};
    
