@@ -330,14 +330,6 @@ SocketUsersTimeout(0)
     */
    ElemDataInit();
    
-   
-   while (CurrDesc == SCALARFUNCTION) {
-   	ParseScalarFunction(HP, this);
-	try {
-		CurrDesc = KeyWords(HP.GetDescription());
-	} catch (EndOfFile) {} 
-   }
-   
    /* legge i drivers, crea la struttura ppDrive */
    if(iTotDrive > 0) {	
       if(CurrDesc != BEGIN) {

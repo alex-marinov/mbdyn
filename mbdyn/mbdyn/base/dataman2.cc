@@ -43,29 +43,6 @@
 #include <gravity.h>
 #include <solver.h>
 
-
-/* DataManager - continue */
-
-const BasicScalarFunction * 
-DataManager::GetScalarFunction(std::string func_name) const 
-{
-	typedef std::map<std::string,const BasicScalarFunction *> mbf;
-	mbf::const_iterator i = MapOfScalarFunctions.find(func_name);
-	if (i == MapOfScalarFunctions.end()) {
-		return 0;
-	}
-	return i->second;
-}
-
-const BasicScalarFunction * 
-DataManager::SetScalarFunction(
-	std::string func_name, 
-	const BasicScalarFunction * p)
-{
-	MapOfScalarFunctions[func_name] = p;
-	return MapOfScalarFunctions[func_name];
-}
-
 const LoadableCalls *
 DataManager::GetLoadableElemModule(std::string name) const
 {

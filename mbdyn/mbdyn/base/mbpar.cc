@@ -155,7 +155,7 @@ MBDynParser::SetDataManager(DataManager *pdm)
 	} else {
 		/* add the drive handler to the drive callers... */
 		for (DCType::const_iterator i = DC.begin(); i != DC.end(); i++) {
-			i->second->SetDrvHdl(pDH);
+			((DriveCaller *)i->second)->SetDrvHdl(pDH);
 		}
 	}
 }
@@ -565,6 +565,19 @@ MBDynParser::DriveCaller_int(void)
 }
 
 void 
+MBDynParser::ScalarFunction_int(void)
+{
+	if (FirstToken() == UNKNOWN) {
+		silent_cerr("Parser error in MBDynParser::ScalarFunction_int(), "
+			" colon expected at line "
+			<< GetLineData() << std::endl);
+		throw HighParser::ErrColonExpected();
+	}
+
+	(void)ParseScalarFunction(*this, pDM);
+}
+
+void 
 MBDynParser::ModuleLoad_int(void)
 {
 #if !defined(HAVE_RUNTIME_LOADING)
@@ -696,6 +709,11 @@ MBDynParser::GetDescription_int(const char *s)
 	/* Reads a drive caller */
 	} else if (!strcmp(s, "drive" "caller")) {
 		DriveCaller_int();
+		return true;
+
+	/* Reads a scalar function */
+	} else if (!strcmp(s, "scalar" "function")) {
+		ScalarFunction_int();
 		return true;
 
 	/* Loads a dynamic module */
@@ -1275,6 +1293,33 @@ MBDynParser::GetDriveCaller(bool bDeferred)
 	}
 
 	return i->second->pCopy();
+}
+
+const BasicScalarFunction *
+MBDynParser::GetScalarFunction(void)
+{
+	if (!IsKeyWord("reference")) {
+		return ParseScalarFunction(*this, pDM);
+	}
+
+	std::string s(GetStringWithDelims());
+	return GetScalarFunction(s);
+}
+
+const BasicScalarFunction *
+MBDynParser::GetScalarFunction(const std::string &s)
+{
+	SFType::const_iterator i = SF.find(s);
+	if (i != SF.end()) {
+		return i->second;
+	}
+	return 0;
+}
+
+bool
+MBDynParser::SetScalarFunction(const std::string &s, const BasicScalarFunction *sf)
+{
+	return SF.insert(SFType::value_type(s, sf)).second;
 }
 
 /* MBDynParser - end */

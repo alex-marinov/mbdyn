@@ -450,25 +450,23 @@ ParseScalarFunction(MBDynParser& HP, DataManager* const pDM)
 	
 	func_name = HP.GetStringWithDelims();
 	
-	if (!pDM->GetScalarFunction(func_name)) {
+	const BasicScalarFunction *sf = HP.GetScalarFunction(func_name);
+	if (sf == 0) {
 		FuncType = KeyWords(HP.IsKeyWord());
 		switch (FuncType) {
 		case CONST: {
 			doublereal c = HP.GetReal();
-			pDM->SetScalarFunction(func_name, 
-				new ConstScalarFunction(c));
+			sf = new ConstScalarFunction(c);
 			break;
 		}
 		case POW: {
 			doublereal p = HP.GetReal();
-			pDM->SetScalarFunction(func_name,
-				new PowScalarFunction(p));
+			sf = new PowScalarFunction(p);
 			break;
 		}
 		case LOG: {
 			doublereal m = HP.GetReal();
-			pDM->SetScalarFunction(func_name,
-				new LogScalarFunction(m));
+			sf = new LogScalarFunction(m);
 			break;
 		}
 		case LINEAR: {
@@ -476,8 +474,7 @@ ParseScalarFunction(MBDynParser& HP, DataManager* const pDM)
 			doublereal y_f = HP.GetReal();
 			doublereal t_i = HP.GetReal();
 			doublereal t_f = HP.GetReal();
-			pDM->SetScalarFunction(func_name,
-				new LinearScalarFunction(y_i,y_f,t_i,t_f));
+			sf = new LinearScalarFunction(y_i,y_f,t_i,t_f);
 			break;
 		}
 		case CUBICSPLINE: {
@@ -500,9 +497,8 @@ ParseScalarFunction(MBDynParser& HP, DataManager* const pDM)
 				x_i[size] = HP.GetReal();
 				y_i[size] = HP.GetReal();
 			}
-			pDM->SetScalarFunction(func_name,
-				new CubicSplineScalarFunction(y_i, x_i,
-					doNotExtrapolate));
+			sf = new CubicSplineScalarFunction(y_i, x_i,
+					doNotExtrapolate);
 			break;
 		}
 		case MULTILINEAR: {
@@ -525,9 +521,8 @@ ParseScalarFunction(MBDynParser& HP, DataManager* const pDM)
 				x_i[size] = HP.GetReal();
 				y_i[size] = HP.GetReal();
 			}
-			pDM->SetScalarFunction(func_name,
-				new MultiLinearScalarFunction(y_i, x_i,
-					doNotExtrapolate));
+			sf = new MultiLinearScalarFunction(y_i, x_i,
+					doNotExtrapolate);
 			break;
 		}
 		case SUM: {
@@ -535,8 +530,7 @@ ParseScalarFunction(MBDynParser& HP, DataManager* const pDM)
 				f1(ParseScalarFunction(HP,pDM));
 			const BasicScalarFunction *const 
 				f2(ParseScalarFunction(HP,pDM));
-			pDM->SetScalarFunction(func_name,
-				new SumScalarFunction(f1,f2));
+			sf = new SumScalarFunction(f1,f2);
 			break;
 		}
 		case MUL: {
@@ -544,8 +538,7 @@ ParseScalarFunction(MBDynParser& HP, DataManager* const pDM)
 				f1(ParseScalarFunction(HP,pDM));
 			const BasicScalarFunction *const 
 				f2(ParseScalarFunction(HP,pDM));
-			pDM->SetScalarFunction(func_name,
-				new MulScalarFunction(f1,f2));
+			sf = new MulScalarFunction(f1,f2);
 			break;
 		}
 		default: {
@@ -554,7 +547,14 @@ ParseScalarFunction(MBDynParser& HP, DataManager* const pDM)
 			throw DataManager::ErrGeneric();
 			break;
 		}
-		} 
+		}
+
+		if (!HP.SetScalarFunction(func_name, sf)) {
+			silent_cerr("scalar function \"" << func_name.c_str() << "\" "
+				"already defined at line " << HP.GetLineData() << std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
 	} else if (HP.IsKeyWord() != -1) {
 		silent_cerr("Error: redefinition of "
 			"\"" << func_name << "\" scalar function "
@@ -562,7 +562,7 @@ ParseScalarFunction(MBDynParser& HP, DataManager* const pDM)
 		throw MBDynParser::ErrGeneric();
 	}
 	
-	return 	pDM->GetScalarFunction(func_name);
+	return sf;
 }
 
 //---------------------------------------

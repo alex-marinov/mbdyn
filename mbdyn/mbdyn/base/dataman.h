@@ -64,7 +64,6 @@
 #include "solverdiagnostics.h"
 #include "linsol.h"
 
-class BasicScalarFunction;
 struct LoadableCalls;
 
 
@@ -95,9 +94,6 @@ private:
 	/* Handler vari */
 	MathParser& MathPar;      /* Received from MultiStepIntegrator */
 	Solver* pSolver;
-
-	/* scalar functions */
-	std::map<std::string, const BasicScalarFunction *> MapOfScalarFunctions;
 
 	/* loadable elements */
 	std::map<std::string, const LoadableCalls *> MapOfLoadableElemHandlers;
@@ -382,11 +378,6 @@ public:
 		REPLACE,
 		IGNORE
 	};
-
-	/* scalar functions */
-	const BasicScalarFunction * GetScalarFunction(std::string) const;
-	const BasicScalarFunction * SetScalarFunction(std::string,
-			const BasicScalarFunction *);
 
 	/* loadable elements */
 	const LoadableCalls *GetLoadableElemModule(std::string) const;

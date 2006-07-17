@@ -120,6 +120,7 @@ extern const ReferenceFrame AbsRefFrame;
 #endif /* USE_AERODYNAMIC_ELEMS */
 
 #include "constltp.h"
+#include "ScalarFunctions.h"
 
 /* Deals with license and disclaimer output */
 extern void mbdyn_license(void);
@@ -148,7 +149,7 @@ public:
 protected:      
 	/* Struttura e dati per la linked list di reference frames */
 #if defined(USE_STRUCT_NODES)   
-	typedef std::map<unsigned, ReferenceFrame *> RFType;
+	typedef std::map<unsigned, const ReferenceFrame *> RFType;
 	RFType RF;
 	
 	Frame GetRef(ReferenceFrame& rf);
@@ -158,7 +159,7 @@ protected:
  
 	/* Struttura e dati per la linked list di hydraulic fluids */
 #if defined(USE_HYDRAULIC_NODES)   
-	typedef std::map<unsigned, HydraulicFluid *> HFType;
+	typedef std::map<unsigned, const HydraulicFluid *> HFType;
 	HFType HF;
 	
 	void HydraulicFluid_int(void);
@@ -166,15 +167,15 @@ protected:
  
 	/* Struttura e dati per la linked list di c81 data */
 #if defined(USE_AERODYNAMIC_ELEMS)   
-	typedef std::map<integer, C81Data *> ADType;
+	typedef std::map<integer, const C81Data *> ADType;
 	ADType AD;
 
 	void C81Data_int(void);
 #endif /* USE_AERODYNAMIC_ELEMS */
 
-	typedef std::map<unsigned, ConstitutiveLaw1D *> C1DType;
-	typedef std::map<unsigned, ConstitutiveLaw3D *> C3DType;
-	typedef std::map<unsigned, ConstitutiveLaw6D *> C6DType;
+	typedef std::map<unsigned, const ConstitutiveLaw1D *> C1DType;
+	typedef std::map<unsigned, const ConstitutiveLaw3D *> C3DType;
+	typedef std::map<unsigned, const ConstitutiveLaw6D *> C6DType;
 	C1DType C1D;
 	C3DType C3D;
 	C6DType C6D;
@@ -182,10 +183,16 @@ protected:
 	void ConstitutiveLaw_int(void);
 
 	/* Drives */
-	typedef std::map<unsigned, DriveCaller *> DCType;
+	typedef std::map<unsigned, const DriveCaller *> DCType;
 	DCType DC;
 
 	void DriveCaller_int(void);
+
+	/* Scalar functions */
+	typedef std::map<std::string, const BasicScalarFunction *> SFType;
+	SFType SF;
+
+	void ScalarFunction_int(void);
 
 	/* Dynamic modules */
 	void ModuleLoad_int(void);
@@ -234,7 +241,12 @@ public:
 	ConstitutiveLaw1D* GetConstLaw1D(ConstLawType::Type& clt);
 	ConstitutiveLaw3D* GetConstLaw3D(ConstLawType::Type& clt);
 	ConstitutiveLaw6D* GetConstLaw6D(ConstLawType::Type& clt);
+
 	DriveCaller* GetDriveCaller(bool bDeferred = false);
+
+	const BasicScalarFunction* GetScalarFunction(void);
+	const BasicScalarFunction* GetScalarFunction(const std::string &s);
+	bool SetScalarFunction(const std::string &s, const BasicScalarFunction *sf);
 };
 
 /*
