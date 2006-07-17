@@ -52,6 +52,7 @@ module_initialize(void)
 
 	::done = true;
 
+#ifdef HAVE_LTDL_H
 	if (lt_dlinit()) {
 		silent_cerr("unable to initialize run-time loading" << std::endl);
 		throw ErrGeneric();
@@ -64,5 +65,6 @@ module_initialize(void)
 		silent_cerr("unable to initialize load path" << std::endl);
 		throw ErrGeneric();
 	}
+#endif /* HAVE_LTDL_H */
 }
 
