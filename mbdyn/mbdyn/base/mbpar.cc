@@ -99,6 +99,7 @@ pDM(0)
 	/* make sure this is init'ed */
 	InitDriveData();
 	InitCL();
+	InitSF();
 }   
 
 
@@ -106,6 +107,7 @@ MBDynParser::~MBDynParser(void)
 {   
 	DestroyDriveData();
 	DestroyCL();
+	DestroySF();
 
 #if defined(USE_STRUCT_NODES)
 	for (RFType::iterator i = RF.begin(); i != RF.end(); i++) {

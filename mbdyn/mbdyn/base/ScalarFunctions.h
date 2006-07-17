@@ -74,4 +74,15 @@ ParseScalarFunction(MBDynParser& HP, DataManager* const pDM);
 extern void
 SetScalarFunctionDriveData(void);
 
+struct ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const = 0;
+};
+
+extern bool
+SetSF(const std::string &s, const ScalarFunctionRead *rf);
+
+extern void InitSF(void);
+extern void DestroySF(void);
+
 #endif //ScalarFunctions_hh

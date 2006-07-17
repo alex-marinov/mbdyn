@@ -27,6 +27,8 @@ MBDyn 1.X-Devel
 		- added support for user-defined drives
 		- added drive derivative where appropriate
 		- added support for user-defined constitutive laws
+		- added scalar function-based drive caller
+		- added support for user-defined scalar functions
 	Backward compatibility issues:
 		- double viscoelastic constitutive law syntax changed
 		- per-element output removed from modal joints

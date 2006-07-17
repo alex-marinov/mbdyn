@@ -415,151 +415,48 @@ MultiLinearScalarFunction::ComputeDiff(const doublereal x, const integer order) 
 #include "mbpar.h"
 #include "dataman.h"
 
+typedef std::map<std::string, const ScalarFunctionRead *, ltstrcase> SFReadType;
+static SFReadType SFRead;
+
+struct SFWordSetType : public HighParser::WordSet {
+	bool IsWord(const char *s) const {
+		return SFRead.find(std::string(s)) != SFRead.end();
+	};
+};
+static SFWordSetType SFWordSet;
+
 const BasicScalarFunction *const
 ParseScalarFunction(MBDynParser& HP, DataManager* const pDM)
 {
-	const char* sKeyWords[] = { 
-		"const",
-		"linear",
-		"pow",
-		"log",
-		"sum",
-		"mul",
-		"cubic" "spline",
-		"multilinear",
-		NULL
-	};
-	enum KeyWords { 
-		CONST = 0,
-		LINEAR,
-		POW,
-		LOG,
-		SUM,
-		MUL,
-		CUBICSPLINE,
-		MULTILINEAR,
-		LASTKEYWORD
-	};
-
-	/* token corrente */
-	KeyWords FuncType;
-
-	std::string func_name;
-	
-	KeyTable K(HP, sKeyWords);
-	
-	func_name = HP.GetStringWithDelims();
+	std::string func_name(HP.GetStringWithDelims());
 	
 	const BasicScalarFunction *sf = HP.GetScalarFunction(func_name);
 	if (sf == 0) {
-		FuncType = KeyWords(HP.IsKeyWord());
-		switch (FuncType) {
-		case CONST: {
-			doublereal c = HP.GetReal();
-			sf = new ConstScalarFunction(c);
-			break;
-		}
-		case POW: {
-			doublereal p = HP.GetReal();
-			sf = new PowScalarFunction(p);
-			break;
-		}
-		case LOG: {
-			doublereal m = HP.GetReal();
-			sf = new LogScalarFunction(m);
-			break;
-		}
-		case LINEAR: {
-			doublereal y_i = HP.GetReal();
-			doublereal y_f = HP.GetReal();
-			doublereal t_i = HP.GetReal();
-			doublereal t_f = HP.GetReal();
-			sf = new LinearScalarFunction(y_i,y_f,t_i,t_f);
-			break;
-		}
-		case CUBICSPLINE: {
-			bool doNotExtrapolate(false);
-			if (HP.IsKeyWord("do" "not" "extrapolate")) {
-				doNotExtrapolate = true;
-			}
-			std::vector<doublereal> y_i;
-			std::vector<doublereal> x_i;
-			y_i.resize(3);
-			x_i.resize(3);
-			for (int i=0; i<3; i++) {
-				x_i[i] = HP.GetReal();
-				y_i[i] = HP.GetReal();
-			}
-			while (HP.IsArg()) {
-				int size = x_i.size();
-				x_i.resize(size+1);
-				y_i.resize(size+1);
-				x_i[size] = HP.GetReal();
-				y_i[size] = HP.GetReal();
-			}
-			sf = new CubicSplineScalarFunction(y_i, x_i,
-					doNotExtrapolate);
-			break;
-		}
-		case MULTILINEAR: {
-			bool doNotExtrapolate(false);
-			if (HP.IsKeyWord("do" "not" "extrapolate")) {
-				doNotExtrapolate = true;
-			}
-			std::vector<doublereal> y_i;
-			std::vector<doublereal> x_i;
-			y_i.resize(2);
-			x_i.resize(2);
-			for (int i=0; i<2; i++) {
-				x_i[i] = HP.GetReal();
-				y_i[i] = HP.GetReal();
-			}
-			while (HP.IsArg()) {
-				int size = x_i.size();
-				x_i.resize(size+1);
-				y_i.resize(size+1);
-				x_i[size] = HP.GetReal();
-				y_i[size] = HP.GetReal();
-			}
-			sf = new MultiLinearScalarFunction(y_i, x_i,
-					doNotExtrapolate);
-			break;
-		}
-		case SUM: {
-			const BasicScalarFunction *const
-				f1(ParseScalarFunction(HP,pDM));
-			const BasicScalarFunction *const 
-				f2(ParseScalarFunction(HP,pDM));
-			sf = new SumScalarFunction(f1,f2);
-			break;
-		}
-		case MUL: {
-			const BasicScalarFunction *const
-				f1(ParseScalarFunction(HP,pDM));
-			const BasicScalarFunction *const 
-				f2(ParseScalarFunction(HP,pDM));
-			sf = new MulScalarFunction(f1,f2);
-			break;
-		}
-		default: {
-			silent_cerr("unknown ScalarFunction type"
-				<< " at line " << HP.GetLineData() << std::endl);
-			throw DataManager::ErrGeneric();
-			break;
-		}
+		const char *s = HP.IsWord(SFWordSet);
+		if (s == 0) {
+			s = "const";
 		}
 
+		SFReadType::iterator func = SFRead.find(std::string(s));
+		if (func == SFRead.end()) {
+			silent_cerr("unknown scalar function type \"" << s << "\" "
+				"for function \"" << func_name << "\" "
+				"at line " << HP.GetLineData() << std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		sf = func->second->Read(pDM, HP);
 		if (!HP.SetScalarFunction(func_name, sf)) {
-			silent_cerr("scalar function \"" << func_name.c_str() << "\" "
+			silent_cerr("scalar function \"" << func_name << "\" "
 				"already defined at line " << HP.GetLineData() << std::endl);
 			throw DataManager::ErrGeneric();
 		}
 
-	} else if (HP.IsKeyWord() != -1) {
+	} else if (HP.IsWord(SFWordSet)) {
 		silent_cerr("Error: redefinition of "
 			"\"" << func_name << "\" scalar function "
 			"at line " << HP.GetLineData() << std::endl);
-		throw MBDynParser::ErrGeneric();
+		throw DataManager::ErrGeneric();
 	}
 	
 	return sf;
@@ -642,11 +539,145 @@ ScalarFunctionDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
-void
-SetScalarFunctionDriveData(void)
-{
-	ScalarFunctionDCR *rf = new ScalarFunctionDCR;
+struct ConstSFR: public ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const {
+		doublereal c = HP.GetReal();
+		return new ConstScalarFunction(c);
+	};
+};
 
+struct PowSFR: public ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const {
+		doublereal p = HP.GetReal();
+		return new PowScalarFunction(p);
+	};
+};
+
+struct LogSFR: public ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const {
+		doublereal m = HP.GetReal();
+		return new LogScalarFunction(m);
+	};
+};
+
+struct LinearSFR: public ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const {
+		doublereal y_i = HP.GetReal();
+		doublereal y_f = HP.GetReal();
+		doublereal t_i = HP.GetReal();
+		doublereal t_f = HP.GetReal();
+		return new LinearScalarFunction(y_i,y_f,t_i,t_f);
+	};
+};
+
+struct CubicSplineSFR: public ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const {
+		bool doNotExtrapolate(false);
+		if (HP.IsKeyWord("do" "not" "extrapolate")) {
+			doNotExtrapolate = true;
+		}
+		std::vector<doublereal> y_i;
+		std::vector<doublereal> x_i;
+		y_i.resize(3);
+		x_i.resize(3);
+		for (int i=0; i<3; i++) {
+			x_i[i] = HP.GetReal();
+			y_i[i] = HP.GetReal();
+		}
+		while (HP.IsArg()) {
+			int size = x_i.size();
+			x_i.resize(size+1);
+			y_i.resize(size+1);
+			x_i[size] = HP.GetReal();
+			y_i[size] = HP.GetReal();
+		}
+		return new CubicSplineScalarFunction(y_i, x_i,
+			doNotExtrapolate);
+	};
+};
+
+struct MultiLinearSFR: public ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const {
+		bool doNotExtrapolate(false);
+		if (HP.IsKeyWord("do" "not" "extrapolate")) {
+			doNotExtrapolate = true;
+		}
+		std::vector<doublereal> y_i;
+		std::vector<doublereal> x_i;
+		y_i.resize(2);
+		x_i.resize(2);
+		for (int i=0; i<2; i++) {
+			x_i[i] = HP.GetReal();
+			y_i[i] = HP.GetReal();
+		}
+		while (HP.IsArg()) {
+			int size = x_i.size();
+			x_i.resize(size+1);
+			y_i.resize(size+1);
+			x_i[size] = HP.GetReal();
+			y_i[size] = HP.GetReal();
+		}
+		return new MultiLinearScalarFunction(y_i, x_i,
+			doNotExtrapolate);
+	};
+};
+
+struct SumSFR: public ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const {
+		const BasicScalarFunction *const
+			f1(ParseScalarFunction(HP, pDM));
+		const BasicScalarFunction *const 
+			f2(ParseScalarFunction(HP, pDM));
+		return new SumScalarFunction(f1,f2);
+	};
+};
+
+struct MulSFR: public ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const {
+		const BasicScalarFunction *const
+			f1(ParseScalarFunction(HP, pDM));
+		const BasicScalarFunction *const 
+			f2(ParseScalarFunction(HP, pDM));
+		return new MulScalarFunction(f1,f2);
+	};
+};
+
+bool
+SetSF(const std::string &s, const ScalarFunctionRead *rf)
+{
+	return SFRead.insert(SFReadType::value_type(s, rf)).second;
+}
+
+static bool done = false;
+
+void
+InitSF(void)
+{
+	if (::done) {
+		return;
+	}
+
+	::done = true;
+
+	SetSF("const", new ConstSFR);
+	SetSF("linear", new LinearSFR);
+	SetSF("pow", new PowSFR);
+	SetSF("log", new LogSFR);
+	SetSF("sum", new SumSFR);
+	SetSF("mul", new MulSFR);
+	SetSF("cubic" "spline", new CubicSplineSFR);
+	SetSF("multilinear", new MultiLinearSFR);
+
+	/* this is about initializing the scalar function drive */
+	ScalarFunctionDCR *rf = new ScalarFunctionDCR;
 	if (!SetDriveData("scalar" "function", rf)) {
 		delete rf;
 
@@ -656,3 +687,18 @@ SetScalarFunctionDriveData(void)
 		throw ErrGeneric();
 	}
 }
+
+void
+DestroySF(void)
+{
+	if (!::done) {
+		return;
+	}
+
+	done = false;
+
+	for (SFReadType::iterator i = SFRead.begin(); i != SFRead.end(); i++) {
+		delete i->second;
+	}
+}
+

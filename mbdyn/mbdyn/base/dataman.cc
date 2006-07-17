@@ -173,10 +173,6 @@ SocketUsersTimeout(0)
 {
    DEBUGCOUTFNAME("DataManager::DataManager");
 
-	/* FIXME: will move somewhere else when user-defined scalar functions
-	 * are supported */
-	SetScalarFunctionDriveData();
-
    /* pseudocostruttori */
    ElemManager(); 
    NodeManager();
