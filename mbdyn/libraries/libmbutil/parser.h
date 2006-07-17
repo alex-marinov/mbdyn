@@ -111,11 +111,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <input.h>
-#include <mathp.h>
-#include <matvec3.h>
-#include <matvec3n.h>
-#include <matvec6.h>
+#include "myassert.h"
+#include "input.h"
+#include "mathp.h"
+#include "matvec3.h"
+#include "matvec3n.h"
+#include "matvec6.h"
 
 
 /* Classi dichiarate */
@@ -243,7 +244,7 @@ public:
 	};
 
 	struct WordSet {
-		virtual ~WordSet() {NO_OP;};
+		virtual ~WordSet(void) { NO_OP; };
 		virtual bool IsWord(const char *s) const = 0;
 	};
    
