@@ -94,26 +94,6 @@ MBDynParser::MBDynParser(MathParser& MP,
 		InputStream& streamIn,
 		const char *initial_file)
 : IncludeParser(MP, streamIn, initial_file),
-#if defined(USE_STRUCT_NODES)
-RFHD(),
-RF(RFHD),
-#endif /* USE_STRUCT_NODES */
-#if defined(USE_HYDRAULIC_NODES)
-HFHD(),
-HF(HFHD),
-#endif /* USE_HYDRAULIC_NODES */
-#if defined(USE_AERODYNAMIC_ELEMS)
-ADHD(),
-AD(ADHD),
-#endif /* USE_AERODYNAMIC_ELEMS */
-C1DHD(),
-C1D(C1DHD),
-C3DHD(),
-C3D(C3DHD),
-C6DHD(),
-C6D(C6DHD),
-DCHD(),
-DC(DCHD),
 pDM(0)
 {
 	/* make sure this is init'ed */
@@ -126,6 +106,40 @@ MBDynParser::~MBDynParser(void)
 {   
 	DestroyDriveData();
 	DestroyCL();
+
+#if defined(USE_STRUCT_NODES)
+	for (RFType::iterator i = RF.begin(); i != RF.end(); i++) {
+		SAFEDELETE(i->second);
+	}
+#endif /* USE_STRUCT_NODES */
+
+#if defined(USE_HYDRAULIC_NODES)
+	for (HFType::iterator i = HF.begin(); i != HF.end(); i++) {
+		SAFEDELETE(i->second);
+	}
+#endif /* USE_HYDRAULIC_NODES */
+
+#if defined(USE_AERODYNAMIC_ELEMS)
+	for (ADType::iterator i = AD.begin(); i != AD.end(); i++) {
+		SAFEDELETE(i->second);
+	}
+#endif /* USE_AERODYNAMIC_ELEMS */
+
+	for (C1DType::iterator i = C1D.begin(); i != C1D.end(); i++) {
+		SAFEDELETE(i->second);
+	}
+
+	for (C3DType::iterator i = C3D.begin(); i != C3D.end(); i++) {
+		SAFEDELETE(i->second);
+	}
+
+	for (C6DType::iterator i = C6D.begin(); i != C6D.end(); i++) {
+		SAFEDELETE(i->second);
+	}
+
+	for (DCType::iterator i = DC.begin(); i != DC.end(); i++) {
+		SAFEDELETE(i->second);
+	}
 }
 
 void
@@ -140,11 +154,8 @@ MBDynParser::SetDataManager(DataManager *pdm)
 
 	} else {
 		/* add the drive handler to the drive callers... */
-		DriveCaller *pDC;
-		if (DC.GetFirst(pDC)) {
-			do {
-				pDC->SetDrvHdl(pDH);
-			} while (DC.GetNext(pDC));
+		for (DCType::const_iterator i = DC.begin(); i != DC.end(); i++) {
+			i->second->SetDrvHdl(pDH);
 		}
 	}
 }
@@ -221,7 +232,7 @@ MBDynParser::Reference_int(void)
 	SAFENEWWITHCONSTRUCTOR(pRF,
 		ReferenceFrame,
 		ReferenceFrame(uLabel, x, R, v, w));
-	if (RF.Add(pRF)) {
+	if (!RF.insert(RFType::value_type(uLabel, pRF)).second) {
 		silent_cerr("Reference frame " << uLabel
 			<< " already defined at line " << GetLineData()
 			<< std::endl);
@@ -262,7 +273,7 @@ MBDynParser::HydraulicFluid_int(void)
 		throw ErrGeneric();
 	}
 	
-	if (HF.Add(pHF)) {
+	if (!HF.insert(HFType::value_type(uLabel, pHF)).second) {
 		silent_cerr("hydraulic fluid " << uLabel
 			<< " already defined at line " << GetLineData()
 			<< std::endl);
@@ -341,7 +352,7 @@ MBDynParser::C81Data_int(void)
 	}
 #endif
 
-	if (AD.Add(data)) {
+	if (!AD.insert(ADType::value_type(uLabel, data)).second) {
 		silent_cerr("c81 data " << uLabel
 			<< " already defined at line " << GetLineData()
 			<< std::endl);
@@ -403,7 +414,7 @@ MBDynParser::ConstitutiveLaw_int(void)
 			pCL->PutName(sName);
 		}
 	
-		if (C1D.Add(pCL)) {
+		if (!C1D.insert(C1DType::value_type(uLabel, pCL)).second) {
 			silent_cerr("constitutive law 1D " << uLabel);
 			if (sName) {
 				silent_cerr(" (" << sName << ")");
@@ -434,7 +445,7 @@ MBDynParser::ConstitutiveLaw_int(void)
 			pCL->PutName(sName);
 		}
 	
-		if (C3D.Add(pCL)) {
+		if (!C3D.insert(C3DType::value_type(uLabel, pCL)).second) {
 			silent_cerr("constitutive law 3D " << uLabel);
 			if (sName) {
 				silent_cerr(" (" << sName << ")");
@@ -465,7 +476,7 @@ MBDynParser::ConstitutiveLaw_int(void)
 			pCL->PutName(sName);
 		}
 	
-		if (C6D.Add(pCL)) {
+		if (!C6D.insert(C6DType::value_type(uLabel, pCL)).second) {
 			silent_cerr("constitutive law 6D " << uLabel);
 			if (sName) {
 				silent_cerr(" (" << sName << ")");
@@ -538,7 +549,7 @@ MBDynParser::DriveCaller_int(void)
 		pDC->PutName(sName);
 	}
 	
-	if (DC.Add(pDC)) {
+	if (!DC.insert(DCType::value_type(uLabel, pDC)).second) {
 		silent_cerr("drive caller " << uLabel);
 		if (sName) {
 			silent_cerr(" (" << sName << ")");
@@ -730,28 +741,24 @@ MBDynParser::GetRef(ReferenceFrame& rf)
 	}
 	
 	unsigned int uLabel((unsigned int)GetInt());
-	const ReferenceFrame* pRF = RF.Get(uLabel);
-	if (pRF == NULL) {
+	RFType::const_iterator i = RF.find(uLabel);
+	if (i == RF.end()) {
 		silent_cerr("reference " << uLabel << " is undefined at line " 
 			<< GetLineData() << std::endl);
 		throw MBDynParser::ErrReferenceUndefined();
 	}
-	
-	rf = *pRF;
+
+	rf = *(i->second);
+
 	return MBDynParser::REFERENCE;   
 }
 
 void 
 MBDynParser::OutputFrames(std::ostream& out) const
 {
-	ReferenceFrame *pRF = NULL;
-
-	if (!RF.GetFirst(pRF)) {
-		return;	
+	for (RFType::const_iterator i = RF.begin(); i != RF.end(); i++) {
+		i->second->Output(out);
 	}
-	do {
-		pRF->Output(out);
-	} while (RF.GetNext(pRF));
 }
 
 Vec3 
@@ -934,7 +941,7 @@ MBDynParser::GetVecRel(const ReferenceFrame& rf)
 		return (rf.GetR()).Transpose()*GetVec3();
 	
 	case UNKNOWNFRAME: /* global */
-		if (IsKeyWord("fromnode")) {
+		if (IsKeyWord("from" "node")) {
 			/* FIXME */
 			silent_cerr("'from node' at line " << GetLineData()
 				<< " not implemented yet :)" << std::endl);
@@ -942,7 +949,7 @@ MBDynParser::GetVecRel(const ReferenceFrame& rf)
 			
 			unsigned int uLabel = GetInt();
 			StructNode *pNode1 = NULL; /* get node 1 */
-			if (IsKeyWord("tonode")) {
+			if (IsKeyWord("to" "node")) {
 				silent_cerr("missing keyword 'to node' at line "
 					<< GetLineData() << std::endl);
 				throw MBDynParser::ErrGeneric();
@@ -976,7 +983,7 @@ MBDynParser::GetVecAbs(const ReferenceFrame& rf)
 	ReferenceFrame rfOut;
 	switch (GetRef(rfOut)) {
 	case UNKNOWNFRAME: /* global */
-		if (IsKeyWord("fromnode")) {
+		if (IsKeyWord("from" "node")) {
 			/* FIXME */
 			silent_cerr("'from node' at line " << GetLineData()
 				<< " not implemented yet :)" << std::endl);
@@ -984,7 +991,7 @@ MBDynParser::GetVecAbs(const ReferenceFrame& rf)
 			
 			unsigned int uLabel = GetInt();
 			StructNode *pNode1 = NULL; /* get node 1 */
-			if (IsKeyWord("tonode")) {
+			if (IsKeyWord("to" "node")) {
 				silent_cerr("missing keyword 'to node' at line "
 					<< GetLineData() << std::endl);
 				throw MBDynParser::ErrGeneric();
@@ -992,8 +999,9 @@ MBDynParser::GetVecAbs(const ReferenceFrame& rf)
 			uLabel = GetInt();
 			StructNode *pNode2 = NULL; /* get node 2 */
 
-			return pNode2->GetXCurr()-pNode1->GetXCurr();
-		} /* else global */
+			return pNode2->GetXCurr() - pNode1->GetXCurr();
+		} /* else global: fallthru */
+
 	case GLOBAL:
 		return GetVec3();
 	
@@ -1124,14 +1132,15 @@ MBDynParser::GetHydraulicFluid(void)
 	
 	/* altrimenti usa un fluido predefinito, se lo trova */
 	unsigned int uLabel = GetInt();
-	const HydraulicFluid* pHF = HF.Get(uLabel);
-	if (pHF == NULL) {
+	HFType::const_iterator i = HF.find(uLabel);
+	if (i == HF.end()) {
 		silent_cerr("hydraulic fluid " << uLabel
 			<< " is undefined at line " << GetLineData()
 			<< std::endl);
 		throw MBDynParser::ErrGeneric();
 	}
-	return pHF->pCopy();
+
+	return i->second->pCopy();
 }
 #endif /* USE_HYDRAULIC_NODES */
 
@@ -1140,14 +1149,20 @@ const c81_data*
 MBDynParser::GetC81Data(integer profile)
 {
 	/* cerca i dati predefiniti, se li trova */
-	const c81_data* data = AD.Get(profile);
-	ASSERT(data != NULL);
-	if (data == NULL) {
+	ADType::const_iterator i = AD.find(profile);
+	if (i == AD.end()) {
 		silent_cerr("c81 data " << profile << " is undefined at line " 
 			<< GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric();
 	}
-	return data;
+
+	if (i == AD.end()) {
+		silent_cerr("c81 data " << profile << " is undefined at line " 
+			<< GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric();
+	}
+
+	return i->second;
 }
 #endif /* USE_AERODYNAMIC_ELEM */
 
@@ -1166,16 +1181,16 @@ MBDynParser::GetConstLaw1D(ConstLawType::Type& clt)
 	}
 
 	unsigned int uLabel = GetInt();
-	const ConstitutiveLaw1D *pCL = C1D.Get(uLabel);
-	if (pCL == NULL) {
+	C1DType::const_iterator i = C1D.find(uLabel);
+	if (i == C1D.end()) {
 		silent_cerr("constitutive law 1D " << uLabel
 				<< " is undefined at line "
 				<< GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric();
 	}
 
-	clt = pCL->GetConstLawType();
-	return pCL->pCopy();
+	clt = i->second->GetConstLawType();
+	return i->second->pCopy();
 }
 
 ConstitutiveLaw3D *
@@ -1193,16 +1208,16 @@ MBDynParser::GetConstLaw3D(ConstLawType::Type& clt)
 	}
 
 	unsigned int uLabel = GetInt();
-	const ConstitutiveLaw3D *pCL = C3D.Get(uLabel);
-	if (pCL == NULL) {
+	C3DType::const_iterator i = C3D.find(uLabel);
+	if (i == C3D.end()) {
 		silent_cerr("constitutive law 3D " << uLabel
 				<< " is undefined at line "
 				<< GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric();
 	}
 
-	clt = pCL->GetConstLawType();
-	return pCL->pCopy();
+	clt = i->second->GetConstLawType();
+	return i->second->pCopy();
 }
 
 ConstitutiveLaw6D *
@@ -1220,16 +1235,16 @@ MBDynParser::GetConstLaw6D(ConstLawType::Type& clt)
 	}
 
 	unsigned int uLabel = GetInt();
-	const ConstitutiveLaw6D *pCL = C6D.Get(uLabel);
-	if (pCL == NULL) {
-		silent_cerr("constitutive law 6D " << uLabel
+	C6DType::const_iterator i = C6D.find(uLabel);
+	if (i == C6D.end()) {
+		silent_cerr("constitutive law 3D " << uLabel
 				<< " is undefined at line "
 				<< GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric();
 	}
 
-	clt = pCL->GetConstLawType();
-	return pCL->pCopy();
+	clt = i->second->GetConstLawType();
+	return i->second->pCopy();
 }
 
 DriveCaller *
@@ -1251,15 +1266,15 @@ MBDynParser::GetDriveCaller(bool bDeferred)
 	}
 
 	unsigned int uLabel = GetInt();
-	const DriveCaller *pDC = DC.Get(uLabel);
-	if (pDC == NULL) {
+	DCType::const_iterator i = DC.find(uLabel);
+	if (i == DC.end()) {
 		silent_cerr("drive caller " << uLabel
 				<< " is undefined at line "
 				<< GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric();
 	}
 
-	return pDC->pCopy();
+	return i->second->pCopy();
 }
 
 /* MBDynParser - end */

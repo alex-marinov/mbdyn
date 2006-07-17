@@ -103,7 +103,6 @@
 
 #include <parsinc.h>
 
-#include <llist.h>
 /* Per reference frame */
 #if defined(USE_STRUCT_NODES)
 #include <reffrm.h>
@@ -149,8 +148,8 @@ public:
 protected:      
 	/* Struttura e dati per la linked list di reference frames */
 #if defined(USE_STRUCT_NODES)   
-	HardDestructor<ReferenceFrame> RFHD;
-	MyLList<ReferenceFrame> RF;
+	typedef std::map<unsigned, ReferenceFrame *> RFType;
+	RFType RF;
 	
 	Frame GetRef(ReferenceFrame& rf);
 	
@@ -159,32 +158,32 @@ protected:
  
 	/* Struttura e dati per la linked list di hydraulic fluids */
 #if defined(USE_HYDRAULIC_NODES)   
-	HardDestructor<HydraulicFluid> HFHD;
-	MyLList<HydraulicFluid> HF;
+	typedef std::map<unsigned, HydraulicFluid *> HFType;
+	HFType HF;
 	
 	void HydraulicFluid_int(void);
 #endif /* USE_HYDRAULIC_NODES */
  
 	/* Struttura e dati per la linked list di c81 data */
 #if defined(USE_AERODYNAMIC_ELEMS)   
-	HardDestructor<C81Data> ADHD;
-	MyLList<C81Data> AD;
-	
+	typedef std::map<integer, C81Data *> ADType;
+	ADType AD;
+
 	void C81Data_int(void);
 #endif /* USE_AERODYNAMIC_ELEMS */
-	
-	HardDestructor<ConstitutiveLaw1D> C1DHD;
-	MyLList<ConstitutiveLaw1D> C1D;
-	HardDestructor<ConstitutiveLaw3D> C3DHD;
-	MyLList<ConstitutiveLaw3D> C3D;
-	HardDestructor<ConstitutiveLaw6D> C6DHD;
-	MyLList<ConstitutiveLaw6D> C6D;
+
+	typedef std::map<unsigned, ConstitutiveLaw1D *> C1DType;
+	typedef std::map<unsigned, ConstitutiveLaw3D *> C3DType;
+	typedef std::map<unsigned, ConstitutiveLaw6D *> C6DType;
+	C1DType C1D;
+	C3DType C3D;
+	C6DType C6D;
 
 	void ConstitutiveLaw_int(void);
 
 	/* Drives */
-	HardDestructor<DriveCaller> DCHD;
-	MyLList<DriveCaller> DC;
+	typedef std::map<unsigned, DriveCaller *> DCType;
+	DCType DC;
 
 	void DriveCaller_int(void);
 
@@ -202,8 +201,7 @@ public:
 	~MBDynParser(void);
 
 	void SetDataManager(DataManager *pdm);
-	
-	
+
 	/*
 	 * Lettura di posizioni, vettori e matrici di rotazione
 	 * relative ed assolute rispetto ad un riferimento
