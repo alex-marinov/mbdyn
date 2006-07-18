@@ -77,9 +77,43 @@ This document describes details about the formulation MBDyn:
 Multi-Body Dynamics relies on.
 
 \chapter{Parsing}
-The parser ... bla... bla.. 
+In MBDyn there are different levels of parsing.
+Input file parsing suffers from a scattered and occasionally outdated design.
+The need to preserver backwards compatibility with existing models
+restrains from entirely redesign it, although selected improvements
+occur over time.
 
-\section{HighParser} ... 
+MBDyn provides support for the implementation of new functionalities,
+and to parse their input.
+Parsing is delegated to a dedicated object, the MBDynParser, which
+inherits from the HighParser, a higher-level parsing object 
+with bits of MBDyn's syntax built-in in a somewhat modular way.
+It exploits the functionalities of the LowParser, a lower-level
+parsing object that deals with tokenizing an input stream
+based on the expected tokens.
+Whenever appropriate (e.g.\ whenever a number is expected),
+control is delegated to the MathParser, which allows to parse and evaluate
+sequences of mathematical expressions, including variable declaration
+and definition.
+Variables are saved in a table as soon as they appear, and can be
+used by subsequent expressions when the mathematical parser is called again.
+
+The traditional approach to data parsing consists in defining a table
+of keywords that are looked up and, based on the corresponding key code,
+by executing the appropriate code in a switch-case block.
+
+The code is being gradually moved to a newer approach based on sets
+of associative arrays that map keywords to the functional objects
+that are used to parse the related items.
+
+Although no significant improvement results in parsing of existing 
+data types, this approach allows to register new data types run-time,
+e.g.\ from a run-time loaded module, thus easing the extension
+and the customization of the code.
+
+
+\section{HighParser}
+\subsection{Traditional Usage}
 The \texttt{HighParser} class and its descendants use a \texttt{KeyTable}
 object containing a list of legal keywords to return a valid keyword index
 when \texttt{HighParser::GetWord()}, and significantly 
@@ -92,6 +126,7 @@ The last string in the array must be null.
 The \texttt{KeyTable} class constructor keeps track 
 of previous \texttt{KeyTable} objects in the \texttt{HighParser}, 
 and restores them upon destruction.
+
 The suggested usage inside a stacked call sequence of parsing functions is
 \begin{verbatim}
 Part *
@@ -145,8 +180,95 @@ is automatically restored after the call to \texttt{read\_part()};
 \texttt{read\_part()} temporarily changes the \texttt{KeyTable}
 used by the parser.
 
-\section{LowParser} ... 
-\section{MathParser} ...
+\subsection{Table-Driven Usage}
+The table-driven usage is based on defining a functional object 
+that is able to parse a data type:
+\begin{verbatim}
+    class Datum {
+    public:
+        virtual ~Datum(void) {};
+    };
+
+    struct DatumRead {
+        virtual ~DatumRead(void) {};
+        virtual Datum *Read(MBDynParser &HP) const = 0;
+    };
+\end{verbatim}
+and a container for its descendants:
+\begin{verbatim}
+    typedef std::string KeyType;
+    typedef std::map<KeyType, DatumRead *> DatumMapType;
+    DatumMapType DatumMap;
+\end{verbatim}
+Then, a functional object for each specific datum type is derived from
+\texttt{DatumRead} \ldots
+\begin{verbatim}
+    class MyDatum : public Datum {
+        // ...
+    public:
+        Datum(int);
+        // ...
+    }
+
+    struct MyDatumRead : public DatumRead {
+        Datum *Read(MBDynParser &HP) const {
+            return new MyDatum(HP.GetInt());
+        };
+    };
+\end{verbatim}
+\ldots and stored exactly once into the associative container by means
+of a dedicated helper:
+\begin{verbatim}
+    bool
+    SetDatumRead(KeyType key, DatumRead *rf)
+    {
+        return DatumMap.insert(DatumMapType::value_type(key, rf)).second;
+    }
+
+    // somewhere early in the code ...
+    SetDatumRead("mydatum", new MyDatumRead);
+
+    // note: somewhere else later, in the code, place
+    for (DatumMapType::iterator i = DatumMap.begin();
+        i != DatumMap.end();
+        i++)
+    {
+        delete i->second;
+    }
+\end{verbatim}
+The parsing function is something like
+\begin{verbatim}
+    Datum *
+    ReadDatum(MBDynParser &HP)
+    {
+        KeyType key(HP.GetStringWithDelims());
+        if (key.c_str() == 0) {
+            // error ...
+            return 0;
+        }
+        DatumMapType::iterator i = DatumMap.find(key);
+        if (i == DatumMap.end()) {
+            // error ...
+            return 0;
+        }
+        return i->second->Read(HP);
+    }
+\end{verbatim}
+Only the \texttt{MyDatum} portions need be added for each new datum type;
+they can be declared, defined and registered anywhere in the code,
+including in run-time loaded modules.
+
+Currently, drives, constitutive laws and scalar functions are handled
+according to this scheme; examples are provided
+in \texttt{modules/module-drive/} and \texttt{modules/module-constlaw/}.
+More types will be reworked accordingly.
+
+
+\section{LowParser}
+... 
+
+\section{MathParser}
+...
 
 \chapter{Solvers}
 ...
