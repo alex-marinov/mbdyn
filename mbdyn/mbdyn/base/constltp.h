@@ -279,6 +279,7 @@ ReadCL6D(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType);
 /* prototype of the template functional object: reads a constitutive law */
 template <class T, class Tder>
 struct ConstitutiveLawRead {
+	virtual ~ConstitutiveLawRead<T, Tder>( void ) { NO_OP; };
 	virtual ConstitutiveLaw<T, Tder> *
 	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType) = 0;
 };

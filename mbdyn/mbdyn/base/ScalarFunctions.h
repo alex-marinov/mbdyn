@@ -75,6 +75,7 @@ extern void
 SetScalarFunctionDriveData(void);
 
 struct ScalarFunctionRead {
+	virtual ~ScalarFunctionRead( void ) { NO_OP; };
 	virtual const BasicScalarFunction *
 	Read(DataManager* const pDM, MBDynParser& HP) const = 0;
 };

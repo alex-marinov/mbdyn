@@ -406,6 +406,7 @@ public:
 
 	/* element read functional object prototype */
 	struct ElemRead {
+		virtual ~ElemRead( void ) { NO_OP; };
 		virtual Elem *
 		Read(const DataManager *pDM, MBDynParser& HP,
 			unsigned int uLabel, int CurrType) const = 0;

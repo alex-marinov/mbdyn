@@ -560,6 +560,7 @@ protected:
 		const char *const name);
 
 public:
+	virtual ~DriveCallerRead( void ) { NO_OP; };
 	virtual DriveCaller *
 	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred) = 0;
 };
