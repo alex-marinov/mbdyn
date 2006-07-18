@@ -573,9 +573,16 @@ giving the partial derivatives of $k$ (say $w$): \texttt{v.Set(i,\&w)}.
 \noindent
 After having built $v$ it is possible to assemble it 
 to a particular equation. For example,
-\texttt{v.Add(FullSubMatrixHandler\& WM, const integer eq, const doublereal c = 1.) const}
-is computed in such a way that \texttt{WM(eq,:)+=c*v}, with every linked 
-\texttt{ExpandableRowVector} taken in account.
+\begin{verbatim}
+    v.Add(FullSubMatrixHandler& WM,
+        const integer eq,
+        const doublereal c = 1.) const
+\end{verbatim}
+is computed in such a way that
+\begin{verbatim}
+    WM(eq,:) += c*v
+\end{verbatim}
+with every linked \texttt{ExpandableRowVector} taken in account.
 
 \chapter{Constraints}
 
