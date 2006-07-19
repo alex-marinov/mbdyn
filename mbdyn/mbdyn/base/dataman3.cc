@@ -300,7 +300,7 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 	  int iDmy = HP.GetInt();
 #ifdef DEBUG
 #if 0
-	  ElemData[Elem::AUTOMATICSTRUCTURAL].iNum = iDmy;
+	  ElemData[Elem::AUTOMATICSTRUCTURAL].iExpectedNum = iDmy;
 #endif /* 0 */
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Automatic structural elements expected: " 
 		    << iDmy << std::endl);
@@ -312,11 +312,11 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 	 
 	 /* Accelerazione di gravita' */
        case GRAVITY: {
-	  if(ElemData[Elem::GRAVITY].iNum > 0) {
+	  if(ElemData[Elem::GRAVITY].iExpectedNum > 0) {
 	     silent_cerr("warning: gravity acceleration already defined;" << std::endl
 	       << "only one definition will be considered" << std::endl);
 	  }
-	  ElemData[Elem::GRAVITY].iNum = 1;
+	  ElemData[Elem::GRAVITY].iExpectedNum = 1;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Gravity acceleration expected in elements data" << std::endl);
 	  break;
        }
@@ -324,7 +324,7 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 	 /* Numero di corpi rigidi attesi */
        case RIGIDBODIES: {
 	  int iDmy = HP.GetInt();
-	  ElemData[Elem::BODY].iNum = iDmy;
+	  ElemData[Elem::BODY].iExpectedNum = iDmy;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Rigid bodies: " << iDmy << std::endl);
 	  break;
        }	     
@@ -332,7 +332,7 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 	 /* Numero di vincoli attesi */
        case JOINTS: {
 	  int iDmy = HP.GetInt();
-	  ElemData[Elem::JOINT].iNum = iDmy;	     
+	  ElemData[Elem::JOINT].iExpectedNum = iDmy;	     
 	  DofData[DofOwner::JOINT].iNum = iDmy;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Joints: " << iDmy << std::endl);
 	  if (iDmy > 0 ) {		       
@@ -344,7 +344,7 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 	 /* Numero di travi attese */
        case BEAMS: {
 	  int iDmy = HP.GetInt();
-	  ElemData[Elem::BEAM].iNum = iDmy;	     
+	  ElemData[Elem::BEAM].iExpectedNum = iDmy;	     
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Beams: " << iDmy << std::endl);
 	  if (iDmy > 0 ) {		       
 	     fInitialJointAssemblyToBeDone = flag(1);
@@ -355,11 +355,11 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 #if defined(USE_AERODYNAMIC_ELEMS)
 	 /* Elementi aerodinamici: proprieta' dell'aria */
        case AIRPROPERTIES: {
-	  if (ElemData[Elem::AIRPROPERTIES].iNum > 0) {
+	  if (ElemData[Elem::AIRPROPERTIES].iExpectedNum > 0) {
 	     silent_cerr("warning: air properties already defined;" << std::endl
 	       << "only one definition will be considered" << std::endl);
 	  }
-	  ElemData[Elem::AIRPROPERTIES].iNum = 1;
+	  ElemData[Elem::AIRPROPERTIES].iExpectedNum = 1;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Air properties expected in elements data" << std::endl);
 	  break;
        }
@@ -367,7 +367,7 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 	 /* Elementi aerodinamici: rotori */
        case ROTORS: {
 	  int iDmy = HP.GetInt();
-	  ElemData[Elem::ROTOR].iNum = iDmy;	     
+	  ElemData[Elem::ROTOR].iExpectedNum = iDmy;	     
 	  DofData[DofOwner::ROTOR].iNum = iDmy;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Rotors: " << iDmy << std::endl);
 	  break;
@@ -375,7 +375,7 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 	 
        case AEROMODALS: {
 	  int iDmy = HP.GetInt();
-	  ElemData[Elem::AEROMODAL].iNum = iDmy;	     
+	  ElemData[Elem::AEROMODAL].iExpectedNum = iDmy;	     
 	  DofData[DofOwner::AEROMODAL].iNum = iDmy;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Aeromodals: " << iDmy << std::endl);
 	  break;
@@ -384,7 +384,7 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 	 /* Elementi aerodinamici: vari elementi aerodinamici senza dof */
        case AERODYNAMICELEMENTS: {
 	  int iDmy = HP.GetInt();
-	  ElemData[Elem::AERODYNAMIC].iNum = iDmy;	     
+	  ElemData[Elem::AERODYNAMIC].iExpectedNum = iDmy;	     
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Aerodynamic Elements: " << iDmy << std::endl);
 	  break;
        }
@@ -394,7 +394,7 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 	 /* Numero di forze e coppie attese */
        case FORCES: {
 	  int iDmy = HP.GetInt();
-	  ElemData[Elem::FORCE].iNum = iDmy;	     
+	  ElemData[Elem::FORCE].iExpectedNum = iDmy;	     
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Forces: " << iDmy << std::endl);
 	  break;
        }	     
@@ -403,7 +403,7 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 	 /* Numero di vincoli attesi */
        case GENELS: {
 	  int iDmy = HP.GetInt();
-	  ElemData[Elem::GENEL].iNum = iDmy;	     
+	  ElemData[Elem::GENEL].iExpectedNum = iDmy;	     
 	  DofData[DofOwner::GENEL].iNum = iDmy;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Genels: " << iDmy << std::endl);
 	  break;
@@ -412,7 +412,7 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 	 /* Numero di elementi elettrici attesi */
        case ELECTRICELEMENTS: {
 	  int iDmy = HP.GetInt();
-	  ElemData[Elem::ELECTRIC].iNum = iDmy;	     
+	  ElemData[Elem::ELECTRIC].iExpectedNum = iDmy;	     
 	  DofData[DofOwner::ELECTRIC].iNum = iDmy;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Electric elements: " << iDmy << std::endl);
 	  break;
@@ -422,7 +422,7 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 	 /* Numero di elementi idraulici attesi */
        case HYDRAULICELEMENTS: {
 	  int iDmy = HP.GetInt();
-	  ElemData[Elem::HYDRAULIC].iNum = iDmy;	     
+	  ElemData[Elem::HYDRAULIC].iExpectedNum = iDmy;	     
 	  DofData[DofOwner::HYDRAULIC].iNum = iDmy;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Hydraulic elements: " << iDmy << std::endl);
 	  break;
@@ -431,7 +431,7 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 	 /* Numero di elementi elettrici attesi */
        case BULKELEMENTS: {
 	  int iDmy = HP.GetInt();
-	  ElemData[Elem::BULK].iNum = iDmy;	     	    
+	  ElemData[Elem::BULK].iExpectedNum = iDmy;	     	    
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Bulk elements: " << iDmy << std::endl);
 	  break;
        }	     
@@ -439,7 +439,7 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
 	 /* Numero di elementi caricabili attesi */
        case LOADABLEELEMENTS: {
 	  int iDmy = HP.GetInt();
-	  ElemData[Elem::LOADABLE].iNum = iDmy;	     	    
+	  ElemData[Elem::LOADABLE].iExpectedNum = iDmy;	     	    
 	  DofData[DofOwner::LOADABLE].iNum = iDmy;
 	  DEBUGLCOUT(MYDEBUG_INPUT, "Loadable elements: " << iDmy << std::endl);
 	  break;
@@ -495,7 +495,7 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
        case EXTERNALELEMENTS: {
 #ifdef USE_EXTERNAL
 	  int iDmy = HP.GetInt();
-	  ElemData[Elem::EXTERNAL].iNum = iDmy;	     
+	  ElemData[Elem::EXTERNAL].iExpectedNum = iDmy;	     
 	  DEBUGLCOUT(MYDEBUG_INPUT, "External elements: " << iDmy
 		<< std::endl);
 #else /* USE_EXTERNAL */
@@ -506,7 +506,7 @@ void DataManager::ReadControl(MBDynParser& HP, const char* sOutputFileName,
        case SOCKETSTREAMOUTPUTELEMENTS:
        case RTAIOUTPUTELEMENTS: {
 	  int iDmy = HP.GetInt();
-	  ElemData[Elem::SOCKETSTREAM_OUTPUT].iNum = iDmy;	     
+	  ElemData[Elem::SOCKETSTREAM_OUTPUT].iExpectedNum = iDmy;	     
 	  DEBUGLCOUT(MYDEBUG_INPUT, "RTAI output elements: " << iDmy
 		<< std::endl);
 #ifndef USE_RTAI

@@ -414,7 +414,7 @@ MultiThreadDataManager::ThreadSpawn(void)
 		thread_data[i].pDM = this;
 		sem_init(&thread_data[i].sem, 0, 0);
 		thread_data[i].threadNumber = i;
-		thread_data[i].ElemIter.Init(ppElems, iTotElem);
+		thread_data[i].ElemIter.Init(&Elems[0], Elems.size());
 		thread_data[i].lock = 0;
 
 		/* SubMatrixHandlers */

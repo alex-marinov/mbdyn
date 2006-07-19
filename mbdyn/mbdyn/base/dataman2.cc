@@ -118,7 +118,7 @@ void
 DataManager::IncElemCount(Elem::Type type)
 {  
 	/* FIXME: assert the data structure has not been allocated yet */
-	ElemData[type].iNum++;
+	ElemData[type].iExpectedNum++;
 }
 
 /* Setta il valore della variabile Time nel DataManager
@@ -170,7 +170,6 @@ DataManager::DofOwnerInit(void)
 	DEBUGCOUTFNAME("DataManager::DofOwnerInit");
 	ASSERT(pDofs != NULL);
 	ASSERT(ppNodes != NULL);
-	ASSERT(ppElems != NULL);
 
 	bool pds =
 #ifdef DEBUG
@@ -401,7 +400,7 @@ DataManager::InitialJointAssembly(void)
 	/* Elementi: mette gli indici agli eventuali DofOwner */
 	for (int iCnt1 = 0; iCnt1 < Elem::LASTELEMTYPE; iCnt1++) {
 		/* Pre ogni tipo di elemento */
-		if (ElemData[iCnt1].bToBeUsedInAssembly() && ElemData[iCnt1].iNum > 0) {
+		if (ElemData[iCnt1].bToBeUsedInAssembly() && ElemData[iCnt1].ElemMap.size() > 0) {
 			/* Se deve essere usato nell'assemblaggio e ne sono definiti */
 
 			/* Tipo di dof dell'elemento corrente */
@@ -409,23 +408,22 @@ DataManager::InitialJointAssembly(void)
 				ElemData[iCnt1].DofOwnerType;
 
 			if (CurrDofType != DofOwner::UNKNOWN) {
-				/* Puntatore al primo DofOwner */
-				pTmp = DofData[CurrDofType].pFirstDofOwner;
-
-				Elem** ppFirstEl = ElemData[iCnt1].ppFirstElem;
-				integer iNumEls = ElemData[iCnt1].iNum;
-				ASSERT(DofData[CurrDofType].iNum == iNumEls);
+				ASSERT(DofData[CurrDofType].iNum == ElemData[iCnt1].ElemMap.size());
 
 				/* Iterazione sugli Elem */
-				Elem** ppEl = ppFirstEl;
-				for (int iCnt = 0;
-						pTmp < DofData[CurrDofType].pFirstDofOwner + iNumEls;
-						pTmp++, ppEl++, iCnt++)
+				for (ElemMapType::const_iterator p = ElemData[iCnt1].ElemMap.begin();
+					p != ElemData[iCnt1].ElemMap.end();
+					p++)
 				{
-					InitialAssemblyElem *pEl = (*ppEl)->pGetInitialAssemblyElem();
+					InitialAssemblyElem *pEl = p->second->pGetInitialAssemblyElem();
 					if (pEl == 0) {
 						continue;
 					}
+					ElemWithDofs *pDOEl = p->second->pGetElemWithDofs();
+					if (pDOEl == 0) {
+						continue;	/* ?!? */
+					}
+					pTmp = (DofOwner *)pDOEl->pGetDofOwner();
 					iNumDofs = pEl->iGetInitialNumDof();
 					pTmp->iNumDofs = iNumDofs;
 					if (iNumDofs > 0) {
@@ -433,10 +431,10 @@ DataManager::InitialJointAssembly(void)
 						if (pds) {
 							unsigned int nd = iNumDofs;
 							integer fd = iIndex;
-							ElemWithDofs* pElWD = (ElemWithDofs*)(*ppEl)->pGetElemWithDofs();
+							ElemWithDofs* pElWD = (ElemWithDofs*)p->second->pGetElemWithDofs();
 
-							silent_cout(psElemNames[(*ppEl)->GetElemType()]
-								<< "(" << (*ppEl)->GetLabel()
+							silent_cout(psElemNames[pEl->GetElemType()]
+								<< "(" << pEl->GetLabel()
 								<< "): " << nd << " " << fd + 1);
 							if (nd > 1) {
 								silent_cout("->" << fd + nd);
@@ -455,8 +453,8 @@ DataManager::InitialJointAssembly(void)
 
 					} else {
 						pedantic_cerr(psElemNames[iCnt1]
-								<< "(" << (*ppEl)->GetLabel()
-								<< ") has 0 dofs" << std::endl);
+							<< "(" << pEl->GetLabel() << ") "
+							"has 0 dofs" << std::endl);
 					}
 				}
 			}
@@ -506,8 +504,7 @@ DataManager::InitialJointAssembly(void)
 	SAFENEWARR(pDofs, Dof, iInitialNumDofs);
 
 	iIndex = 0;
-	for (Dof* pTmpDof = pDofs;
-			pTmpDof < pDofs+iInitialNumDofs; pTmpDof++) {
+	for (Dof* pTmpDof = pDofs; pTmpDof < pDofs + iInitialNumDofs; pTmpDof++) {
 		pTmpDof->iIndex = iIndex++;
 	}
 
@@ -546,14 +543,15 @@ DataManager::InitialJointAssembly(void)
 	for (int iCnt1 = 0; iCnt1 < Elem::LASTELEMTYPE; iCnt1++) {
 		/* Pre ogni tipo di elemento */
 		if (ElemData[iCnt1].DofOwnerType != DofOwner::UNKNOWN &&
-				ElemData[iCnt1].bToBeUsedInAssembly() &&
-				ElemData[iCnt1].iNum > 0) {
-			Elem** ppFirstEl = ElemData[iCnt1].ppFirstElem;
-			integer iNumEl = ElemData[iCnt1].iNum;
-			for (Elem** ppTmpEl = ppFirstEl;
-					ppTmpEl < ppFirstEl+iNumEl; ppTmpEl++) {
-				ASSERT((*ppTmpEl)->pGetElemWithDofs() != NULL);
-				(*ppTmpEl)->pGetElemWithDofs()->SetInitialValue(X);
+			ElemData[iCnt1].bToBeUsedInAssembly() &&
+			ElemData[iCnt1].ElemMap.size() > 0)
+		{
+			for (ElemMapType::const_iterator p = ElemData[iCnt1].ElemMap.begin();
+				p != ElemData[iCnt1].ElemMap.end();
+				p++)
+			{
+				ASSERT(p->second->pGetElemWithDofs() != 0);
+				p->second->pGetElemWithDofs()->SetInitialValue(X);
 			}
 		}
 	}
@@ -770,8 +768,9 @@ endofcycle:
 	for (int iCnt1 = 0; iCnt1 < Elem::LASTELEMTYPE; iCnt1++) {
 		/* Per ogni tipo di elemento */
 		if (ElemData[iCnt1].DofOwnerType != DofOwner::UNKNOWN &&
-				ElemData[iCnt1].bToBeUsedInAssembly() &&
-				ElemData[iCnt1].iNum > 0) {
+			ElemData[iCnt1].bToBeUsedInAssembly() &&
+			ElemData[iCnt1].ElemMap.size() > 0)
+		{
 			/* Se possiede dofs, se deve essere usato nell'assemblaggio
 			 * e se ne sono presenti */
 
@@ -781,17 +780,11 @@ endofcycle:
 			/* Puntatore al primo DofOwner */
 			pTmp = DofData[CurrDofType].pFirstDofOwner;
 
-			/* Puntatore al primo Elem */
-			Elem** ppFirstEl = ElemData[iCnt1].ppFirstElem;
-
-			/* Numero di Elem (== al numero di DofOwner) */
-			integer iNumEls = DofData[CurrDofType].iNum;
-
-			/* Iterazione sugli Elem */
-			Elem** ppEl = ppFirstEl;
-			for (; pTmp < DofData[CurrDofType].pFirstDofOwner+iNumEls;
-					pTmp++, ppEl++) {
-				pTmp->iNumDofs = (*ppEl)->iGetNumDof();
+			for (ElemMapType::const_iterator p = ElemData[iCnt1].ElemMap.begin();
+				p != ElemData[iCnt1].ElemMap.end();
+				p++)
+			{
+				pTmp->iNumDofs = p->second->iGetNumDof();
 			}
 		}
 	}
@@ -828,12 +821,12 @@ DataManager::DofOwnerSet(void)
 					<< " (" << psElemNames[iCnt] << ")" 
 					<< std::endl);
 
-			Elem** ppFirstEl = ElemData[iCnt].ppFirstElem;
-			for (Elem** ppTmp = ppFirstEl;
-					ppTmp < ppFirstEl+ElemData[iCnt].iNum;
-					ppTmp++) {
-				ASSERT((*ppTmp)->pGetElemWithDofs() != NULL);
-				ElemWithDofs* pTmp = (*ppTmp)->pGetElemWithDofs();
+			for (ElemMapType::const_iterator p = ElemData[iCnt].ElemMap.begin();
+				p != ElemData[iCnt].ElemMap.end();
+				p++)
+			{
+				ASSERT(p->second->pGetElemWithDofs() != 0);
+				ElemWithDofs* pTmp = p->second->pGetElemWithDofs();
 
 				DEBUGLCOUT(MYDEBUG_INIT, "    " << psElemNames[pTmp->GetElemType()]
 						<< "(" << pTmp->GetLabel() << ")" << std::endl);

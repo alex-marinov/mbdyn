@@ -45,8 +45,6 @@ DataManager::ElemManager(void)
 {
 	/* Reset della struttura ElemData */
 	for (int i = 0; i < Elem::LASTELEMTYPE; i++) {
-		ElemData[i].ppFirstElem = NULL;
-		ElemData[i].iNum = 0;
 		ElemData[i].DofOwnerType = DofOwner::UNKNOWN;
 		ElemData[i].uFlags = 0U;
 		ElemData[i].DefaultOut(::fDefaultOut == 1); /* Da "output.h" */
@@ -147,27 +145,12 @@ DataManager::ElemManagerDestructor(void)
 		SAFEDELETE(pWorkVec);
 	}
 
-	/* Distruzione elementi */
-	ASSERT(ppElems != NULL);
-
-	if (ppElems != NULL) {
-		Elem* p = NULL;
-		if (ElemIter.bGetFirst(p)) {
-			do {
-				ASSERT(p != NULL);
-				if (p != NULL) {
-					DEBUGCOUT("deleting element "
-							<< p->GetLabel()
-							<< ", type "
-							<< psElemNames[p->GetElemType()]
-							<< std::endl);
-					SAFEDELETE(p);
-				}
-			} while (ElemIter.bGetNext(p));
-		}
-
-		DEBUGCOUT("deleting elements structure" << std::endl);
-		SAFEDELETEARR(ppElems);
+	for (ElemVecType::iterator p = Elems.begin(); p != Elems.end(); p++) {
+		DEBUGCOUT("deleting element "
+			<< psElemNames[p->GetElemType()]
+			<< "(" << p->GetLabel() << ")"
+			<< std::endl);
+		SAFEDELETE(*p);
 	}
 
 	/* Distruzione drivers */
@@ -196,29 +179,28 @@ DataManager::ElemManagerDestructor(void)
 void
 DataManager::ElemDataInit(void)
 {
+	unsigned iTotElem = 0;
+
 	/* struttura degli elementi */
 	for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
-		iTotElem += ElemData[iCnt].iNum;
+		iTotElem += ElemData[iCnt].iExpectedNum;
 	}
 
 	DEBUGCOUT("iTotElem = " << iTotElem << std::endl);
 
+	/* FIXME: reverse this:
+	 * - read and populate ElemData[iCnt].ElemMap first
+	 * - then create Elems and fill it with Elem*
+	 */
 	if (iTotElem > 0) {
-		SAFENEWARR(ppElems, Elem*, iTotElem);
+		Elems.resize(iTotElem);
 
 		/* Inizializza l'iteratore degli elementi usato all'interno
 		 * dell'ElemManager */
-		ElemIter.Init(ppElems, iTotElem);
+		ElemIter.Init(&Elems[0], iTotElem);
 
-		Elem** ppTmp = ppElems;
-		while (ppTmp < ppElems + iTotElem) {
-			*ppTmp++ = NULL;
-		}
-
-		ElemData[0].ppFirstElem = ppElems;
-		for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE-1; iCnt++) {
-			ElemData[iCnt+1].ppFirstElem =
-				ElemData[iCnt].ppFirstElem + ElemData[iCnt].iNum;
+		for (unsigned iCnt = 0; iCnt < iTotElem; iCnt++) {
+			Elems[iCnt] = 0;
 		}
 
 	} else {
@@ -317,7 +299,7 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef)
 	DEBUGCOUT("Entering DataManager::AssJac()" << std::endl);
 
 	ASSERT(pWorkMat != NULL);
-	ASSERT(ppElems != NULL);
+	ASSERT(Elems.begin() != Elems.end());
 
 	AssJac(JacHdl, dCoef, ElemIter, *pWorkMat);
 }
@@ -360,7 +342,7 @@ DataManager::AssMats(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl)
 
 	ASSERT(pWorkMatA != NULL);
 	ASSERT(pWorkMatB != NULL);
-	ASSERT(ppElems != NULL);
+	ASSERT(Elems.begin() != Elems.end());
 
 	AssMats(A_Hdl, B_Hdl, ElemIter, *pWorkMatA, *pWorkMatB);
 }
@@ -510,18 +492,14 @@ DataManager::ElemOutput_f06( std::ostream& f06, const VectorHandler& Xr,
 void *
 DataManager::pFindElem(Elem::Type Typ, unsigned int uL) const
 {
-	ASSERT(ElemData[Typ].ppFirstElem != NULL);
-	ASSERT(ElemData[Typ].iNum > 0);
 	ASSERT(uL > 0);
 
-	Elem* p = pLabelSearch(ElemData[Typ].ppFirstElem, ElemData[Typ].iNum, uL);
-
-	if (p == NULL) {
-		return NULL;
+	ElemMapType::const_iterator p = ElemData[Typ].ElemMap.find(uL);
+	if (p == ElemData[Typ].ElemMap.end()) {
+		return 0;
 	}
 
-	ASSERT(p->pGetElem() != NULL);
-	return p->pGetElem();
+	return p->second->pGetElem();
 }
 
 
@@ -529,17 +507,14 @@ DataManager::pFindElem(Elem::Type Typ, unsigned int uL) const
 Elem **
 DataManager::ppFindElem(Elem::Type Typ, unsigned int uL) const
 {
-	ASSERT(ElemData[Typ].ppFirstElem != NULL);
-	ASSERT(ElemData[Typ].iNum > 0);
 	ASSERT(uL > 0);
 
-	int i = LabelSearch(ElemData[Typ].ppFirstElem, ElemData[Typ].iNum, uL);
-
-	if (i < 0) {
-		return NULL;
+	ElemMapType::const_iterator p = ElemData[Typ].ElemMap.find(uL);
+	if (p == ElemData[Typ].ElemMap.end()) {
+		return 0;
 	}
 
-	return ElemData[Typ].ppFirstElem+i;
+	return (Elem**)&p->second;
 }
 
 /* cerca un elemento qualsiasi */
@@ -547,18 +522,15 @@ void *
 DataManager::pFindElem(Elem::Type Typ, unsigned int uL,
 		unsigned int iDeriv) const
 {
-	ASSERT(ElemData[Typ].ppFirstElem != NULL);
-	ASSERT(ElemData[Typ].iNum > 0);
 	ASSERT(uL > 0);
 	ASSERT(iDeriv == int(ELEM) || ElemData[Typ].iDerivation & iDeriv);
 
-	Elem* p = pLabelSearch(ElemData[Typ].ppFirstElem, ElemData[Typ].iNum, uL);
-
-	if (p == NULL) {
-		return NULL;
+	ElemMapType::const_iterator p = ElemData[Typ].ElemMap.find(uL);
+	if (p == ElemData[Typ].ElemMap.end()) {
+		return 0;
 	}
 
-	return pChooseElem(p, iDeriv);
+	return pChooseElem(p->second, iDeriv);
 }
 
 /* Usata dalle due funzioni precedenti */
@@ -626,13 +598,13 @@ InitialAssemblyIterator::InitialAssemblyIterator(
 		const DataManager::ElemDataStructure (*pED)[Elem::LASTELEMTYPE]
 		)
 : pElemData(pED),
-FirstType(Elem::UNKNOWN), ppFirst(NULL),
-CurrType(Elem::UNKNOWN), ppCurr(NULL)
+FirstType(Elem::UNKNOWN),
+CurrType(Elem::UNKNOWN)
 {
 	int iCnt = 0;
 
 	while (!(*pElemData)[iCnt].bToBeUsedInAssembly()
-			|| (*pElemData)[iCnt].iNum == 0)
+			|| (*pElemData)[iCnt].ElemMap.size() == 0)
 	{
 		if (++iCnt >= Elem::LASTELEMTYPE) {
 			break;
@@ -640,29 +612,28 @@ CurrType(Elem::UNKNOWN), ppCurr(NULL)
 	}
 
 	ASSERT(iCnt < Elem::LASTELEMTYPE);
-	ASSERT((*pElemData)[iCnt].ppFirstElem != NULL);
+	ASSERT((*pElemData)[iCnt].ElemMap.begin() != (*pElemData)[iCnt].ElemMap.end());
 
-	(Elem**&)ppFirst = (*pElemData)[iCnt].ppFirstElem;
-	ppCurr = (Elem**)ppFirst;
-	(Elem::Type&)FirstType = CurrType = Elem::Type(iCnt);
+	pCurr = (*pElemData)[iCnt].ElemMap.begin();
+	FirstType = CurrType = Elem::Type(iCnt);
 }
 
 InitialAssemblyElem *
 InitialAssemblyIterator::GetFirst(void) const
 {
 	CurrType = FirstType;
-	ppCurr = (Elem**)ppFirst;
+	pCurr = (*pElemData)[FirstType].ElemMap.begin();
 
 	/* La variabile temporanea e' necessaria per il debug. */
 	InitialAssemblyElem* p;
-	for (p = (*ppCurr)->pGetInitialAssemblyElem();
-			p == 0;
-			p = GetNext())
+	for (p = pCurr->second->pGetInitialAssemblyElem();
+		p == 0;
+		p = GetNext())
 	{
 #ifdef DEBUG
 		if (p == NULL) {
-			silent_cerr(psElemNames[(*ppCurr)->GetElemType()]
-				<< "(" << (*ppCurr)->GetLabel() << ")"
+			silent_cerr(psElemNames[pCurr->second->GetElemType()]
+				<< "(" << pCurr->second->GetLabel() << ")"
 				" is not subject to initial assembly" << std::endl);
 		}
 #endif
@@ -671,14 +642,13 @@ InitialAssemblyIterator::GetFirst(void) const
 	return p;
 }
 
-InitialAssemblyElem* InitialAssemblyIterator::GetNext(void) const
+InitialAssemblyElem*
+InitialAssemblyIterator::GetNext(void) const
 {
 	InitialAssemblyElem* p = 0;
 	do {
-		ppCurr++;
-		if (ppCurr >= (*pElemData)[CurrType].ppFirstElem
-				+ (*pElemData)[CurrType].iNum)
-		{
+		pCurr++;
+		if (pCurr == (*pElemData)[CurrType].ElemMap.end()) {
 			int iCnt = int(CurrType);
 
 			do {
@@ -686,20 +656,20 @@ InitialAssemblyElem* InitialAssemblyIterator::GetNext(void) const
 					return NULL;
 				}
 			} while (!(*pElemData)[iCnt].bToBeUsedInAssembly()
-					|| (*pElemData)[iCnt].iNum == 0);
+					|| (*pElemData)[iCnt].ElemMap.size() == 0);
 
-			ASSERT((*pElemData)[iCnt].ppFirstElem != NULL);
+			ASSERT((*pElemData)[iCnt].ElemMap.begin() != (*pElemData)[iCnt].ElemMap.end());
 			CurrType = Elem::Type(iCnt);
-			ppCurr = (*pElemData)[iCnt].ppFirstElem;
+			pCurr = (*pElemData)[iCnt].ElemMap.begin();
 		}
 
 		/* La variabile temporanea e' necessaria per il debug. */
-		p = (*ppCurr)->pGetInitialAssemblyElem();
+		p = pCurr->second->pGetInitialAssemblyElem();
 
 #ifdef DEBUG
 		if (p == 0) {
-			silent_cerr(psElemNames[(*ppCurr)->GetELemType()]
-				<< "(" << (*ppCurr)->GetLabel() << ")"
+			silent_cerr(psElemNames[pCurr->second->GetElemType()]
+				<< "(" << pCurr->second->GetLabel() << ")"
 				" is not subjected to initial assembly"
 				<< std::endl);
 		}

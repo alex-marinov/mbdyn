@@ -64,12 +64,18 @@
 #include "solverdiagnostics.h"
 #include "linsol.h"
 
-struct LoadableCalls;
-
-
 #include "usesock.h"
 
+struct LoadableCalls;
 class Solver;
+
+/* used by maps to compare strings case-insensitive */
+struct ltstrcase {
+	/* case-insensitive string comparison */
+	bool operator()(const std::string& s1, const std::string& s2) const {
+		return strcasecmp(s1.c_str(), s2.c_str()) < 0;
+	};
+};
 
 /* DataManager - begin */
 
@@ -387,11 +393,11 @@ public:
 public:
 	/* FIXME: will be eliminated */
 	enum DerivationTable {
-		ELEM			= 0,  // pleonastico
-		DOFOWNER		= 1,
-		GRAVITYOWNER		= 2,
-		AIRPROPOWNER		= 4,
-		INITIALASSEMBLY		= 8
+		ELEM			= 0x0U,  // pleonastico
+		DOFOWNER		= 0x1U,
+		GRAVITYOWNER		= 0x2U,
+		AIRPROPOWNER		= 0x4U,
+		INITIALASSEMBLY		= 0x8U
 	};
 	/* end of FIXME: will be eliminated */
 
@@ -413,10 +419,16 @@ public:
 	};
 
 protected:
+	typedef std::map<std::string, DataManager::ElemRead *, ltstrcase> ElemReadType;
+	typedef std::map<unsigned, Elem *> ElemMapType;
+
 	/* struttura dei dati fondamentali degli elementi */
 	struct ElemDataStructure {
+#if 0
 		Elem** ppFirstElem;		// punt. al punt. al primo el. del tipo
 		unsigned int iNum;		// numero di elementi del tipo
+#endif
+		unsigned int iExpectedNum;	// numero di elementi del tipo
 
 		DofOwner::Type DofOwnerType;	// Tipo di DofOwner
 		unsigned int iDerivation;	// Tabella delle derivazioni
@@ -439,21 +451,23 @@ protected:
 		bool bDefaultOut(void) const { return (uFlags & DEFAULTOUT) == DEFAULTOUT; };
 
 		/* element read map */
-		typedef std::map<std::string, DataManager::ElemRead *> ElemReadType;
 		ElemReadType ElemRead;
-
+		ElemMapType ElemMap;
 	} ElemData[Elem::LASTELEMTYPE];
 
 #if 0
 	/* element type map; will replace ElemData */
-	typedef std::map<std::string, ElemDataStructure *> ElemDataMapType;
-	ElemDataStrMapType ElemDataMap;
+	typedef std::map<std::string, ElemDataStructure *, ltstrcase> ElemDataMapType;
+	ElemDataMapType ElemDataMap;
 #endif
 
-	mutable VecIter<Elem *> ElemIter;
+	/* array of elements */
+	typedef std::vector<Elem *> ElemVecType;
+	ElemVecType Elems;
 
-	Elem** ppElems;         /* puntatore all'array di puntatori agli el. */
-	unsigned int iTotElem;  /* numero totale di el. definiti */
+	/* NOTE: will be removed? */
+	mutable VecIter<Elem *> ElemIter;
+	/* end of NOTE: will be removed? */
 
 	/* struttura dei drivers */
 	struct {
@@ -654,10 +668,9 @@ public:
 class InitialAssemblyIterator {
 private:
 	const DataManager::ElemDataStructure (*pElemData)[Elem::LASTELEMTYPE];
-	const Elem::Type FirstType;
-	const Elem** ppFirst;
+	mutable Elem::Type FirstType;
+	mutable DataManager::ElemMapType::const_iterator pCurr;
 	mutable Elem::Type CurrType;
-	mutable Elem** ppCurr;
 
 public:
 	InitialAssemblyIterator(const DataManager::ElemDataStructure
@@ -675,14 +688,6 @@ ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder);
 #if (defined(USE_STRUCT_NODES) && defined(USE_AERODYNAMIC_ELEMS))
 extern Shape* ReadShape(MBDynParser& HP);
 #endif /* STRUCT && AERODYNAMIC */
-
-/* used by maps to compare strings case-insensitive */
-struct ltstrcase {
-	/* case-insensitive string comparison */
-	bool operator()(const std::string& s1, const std::string& s2) const {
-		return strcasecmp(s1.c_str(), s2.c_str()) < 0;
-	};
-};
 
 #endif /* DATAMAN_H */
 

@@ -146,8 +146,6 @@ adamsNoab(0),
 
 /* ElemManager */
 ElemIter(), 
-ppElems(NULL), 
-iTotElem(0), 
 ppDrive(NULL), 
 iTotDrive(0),
 iMaxWorkNumRows(0),
@@ -359,7 +357,7 @@ SocketUsersTimeout(0)
     * legge gli elementi, crea la struttura ppElems
     * e contemporaneamente aggiorna i dof
     */
-   if(iTotElem > 0) {	
+   if (Elems.size() > 0) {	
       if(CurrDesc != BEGIN) {
 	 DEBUGCERR("");
 	 silent_cerr("\"begin\" expected at line " 
@@ -395,7 +393,7 @@ SocketUsersTimeout(0)
    }
 
 #ifdef USE_AERODYNAMIC_ELEMS
-   if (ElemData[Elem::AIRPROPERTIES].iNum > 0) {
+   if (ElemData[Elem::AIRPROPERTIES].ElemMap.size() > 0) {
       OutHdl.Open(OutputHandler::AIRPROPS);
    }
 #endif /* USE_AERODYNAMIC_ELEMS */
@@ -411,7 +409,7 @@ SocketUsersTimeout(0)
    }
 
    for (int i = 0; i < Elem::LASTELEMTYPE; i++) {
-      if(ElemData[i].iNum > 0 && ElemData[i].OutFile != OutputHandler::UNKNOWN) {
+      if (ElemData[i].ElemMap.size() > 0 && ElemData[i].OutFile != OutputHandler::UNKNOWN) {
 	 OutHdl.Open(ElemData[i].OutFile);
       }
    }
@@ -436,7 +434,7 @@ SocketUsersTimeout(0)
       /* mostra in modo succinto il numero di elementi per tipo */
       for(int i = 0; i < Elem::LASTELEMTYPE; i++)
 	std::cout << "Element Type " << i << " (" << psElemNames[i] 
-	<< "), n. of elems: " << ElemData[i].iNum << std::endl;
+	<< "), n. of elems: " << ElemData[i].ElemMap.size() << std::endl;
       
       /* mostra in modo succinto il numero di drivers per tipo */
       for(int i = 0; i < Drive::LASTDRIVETYPE; i++)
@@ -654,13 +652,13 @@ void DataManager::MakeRestart(void)
 
 	/* Elementi */
 	for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) { 	  
-	   if (ElemData[iCnt].iNum > 0) {
+	   if (ElemData[iCnt].ElemMap.size() > 0) {
 	      if (ElemData[iCnt].bIsUnique()) {
 	     	 OutHdl.Restart() << "  " << psReadControlElems[iCnt] 
 	     	   << ';' << std::endl;
 	      } else {  				  
 	     	 OutHdl.Restart() << "  " << psReadControlElems[iCnt] << ": "
-	     	   << ElemData[iCnt].iNum << ';' << std::endl;
+	     	   << ElemData[iCnt].ElemMap.size() << ';' << std::endl;
 	      } 	       
 	   }
 	}    
@@ -729,10 +727,8 @@ void DataManager::MakeRestart(void)
 
 	/* Dati degli elementi */
 	OutHdl.Restart() << "begin: elements;" << std::endl;
-	Elem** ppLastElem = ppElems+iTotElem;
-	for (Elem** ppTmpEl = ppElems; ppTmpEl < ppLastElem; ppTmpEl++) {
-	   ASSERT(*ppTmpEl != NULL);
-	   (*ppTmpEl)->Restart(OutHdl.Restart());
+	for (ElemVecType::const_iterator pTmpEl = Elems.begin(); pTmpEl != Elems.end(); pTmpEl++) {
+	   (*pTmpEl)->Restart(OutHdl.Restart());
 	}
 
 	Node** pLastNP = NodeData[Node::PARAMETER].ppFirstNode
