@@ -95,10 +95,10 @@ The virtual perturbation of the position and orientation
 of the generic point $P$ are:
 \begin{align}
 	\delta{\T{x}}_P &= \delta{\T{x}}_0
-		+ \delta\T{\phi}_0 \times \T{R}_0 \plbr{\tilde{\T{f}} + \T{U} \T{q}}
-		+ \T{R}_0 \T{U} \delta{\T{q}} \\
+		+ \delta\T{\phi}_0 \times \T{R}_0 \plbr{\tilde{\T{f}}_P + \T{U}_P \T{q}}
+		+ \T{R}_0 \T{U}_P \delta{\T{q}} \\
 	\delta\T{\phi}_P &= \delta\T{\phi}_0
-		+ \T{R}_0 \T{V} \delta{\T{q}}
+		+ \T{R}_0 \T{V}_P \delta{\T{q}}
 \end{align}
 
 Without significant losses in generality, from now on it is assumed
@@ -505,3 +505,112 @@ in the nodal rotation become reasonably small, yielding
 \end{align}
 In some cases, the only remaining quadratic term in $\T{\mathrm{Inv}}_{9jk}$
 is neglected as well.
+
+
+
+\subsection{Interface}
+The interface between the FEM and the multibody world occurs by clamping
+interface multibody nodes to selected points on the FEM mesh.
+The clamping is imposed by means of a coincidence and a parallelism
+constraint between the locations and the orientations of the two points:
+the multibody node $N$ and the FEM node $P$, according to the expressions
+\begin{align}
+	\T{x}_N + \T{f}_N &= \T{x}_P \\
+	\mathrm{ax}\plbr{\mathrm{exp}^{-1}\plbr{\T{R}_N^T \T{R}_P}} &= \T{0}
+\end{align}
+which becomes
+\begin{align}
+	\T{x}_N + \T{R}_N \tilde{\T{f}}_N
+	- \T{x}_0 - \T{R}_0 \plbr{\tilde{\T{f}}_P + \T{U}_P \T{q}} &= \T{0}
+		\label{eq:modal:pos-constr} \\
+	\mathrm{ax}\plbr{\mathrm{exp}^{-1}\plbr{\T{R}_N^T \T{R}_0 \plbr{\T{I} + \plbr{\T{V}_P \T{q}}\times{}}}} &= \T{0}
+		\label{eq:modal:rot-constr}
+\end{align}
+The reaction forces exchanged are $\T{\lambda}$ in the global frame, 
+while the reaction moments are $\T{R}_N \T{\alpha}$ in the reference frame 
+of node $N$:
+\begin{align}
+	\T{F}_N &= -\T{\lambda} \\
+	\T{M}_N &= -\T{f}_N \times \T{\lambda} - \T{R}_N \T{\alpha} \\
+	\T{F}_P &= \T{\lambda} \\
+	\T{M}_P &= \T{R}_N \T{\alpha}
+\end{align}
+The force and the moment apply on the rigid body displacement and rotation,
+and on the modal equations as well, according to
+\begin{equation}
+	\cvvect{
+		\delta\T{x}_P^T \T{F}_P \\
+		\mbox{} + \delta\T{\phi}_P^T \T{M}_P
+	}
+	= \cubr{\cvvect{
+		\delta\T{x}_0 \\
+		\delta\T{\phi}_0 \\
+		\delta\T{q}
+	}}^T \cubr{\cvvect{
+		\T{\lambda} \\
+		\plbr{\T{R}_0 \plbr{\tilde{\T{f}}_P + \T{U}_P \T{q}}} \times \T{\lambda} + \T{R}_N \T{\alpha} \\
+		\T{U}_P^T \T{R}_0^T \T{\lambda} + \T{V}_P^T \T{R}_0^T \T{R}_N \T{\alpha}
+	}}
+	\label{eq:modal:modal-forces}
+\end{equation}
+
+The linearization of the constraint yields
+\begin{equation}
+	\sqbr{\matr{ccccc}{
+		\T{I} & -\T{f}_N \times{} & -\T{I} & \plbr{\T{R}_0\plbr{\tilde{\T{f}}_P + \T{U}_P \T{q}}}\times{} & -\T{R}_0 \T{U}_P \\
+		\T{0} & \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_N^T & \T{0} & -\T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_N^T & -\T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_N^T \T{R}_0 \T{V}_P
+	}}\cubr{\cvvect{
+		\delta\T{x}_N \\
+		\delta\T{g}_N \\
+		\delta\T{x}_0 \\
+		\delta\T{g}_0 \\
+		\delta\T{q}
+	}} = \cubr{\cvvect{
+			\eqref{eq:modal:pos-constr} \\
+			\eqref{eq:modal:rot-constr}
+	}}
+\end{equation}
+Note that $\T{\Gamma}\plbr{\T{\theta}}^{-1}\cong\T{I}$
+since $\T{\theta}\rightarrow\T{0}$ when the constraint is satisfied.
+The linearization of forces and moments yields
+\begin{align}
+	&\sqbr{\matr{cc}{
+		\T{0} & \T{0} \\
+		\T{0} & \T{\lambda}\times\T{f}_P\times{} - \plbr{\T{R}_N \T{\alpha}}\times{} \\
+		\T{0} & \T{0} \\
+		\T{0} & \plbr{\T{R}_N \T{\alpha}}\times{} \\
+		\T{0} & \T{V}_P^T \T{R}_0^T \plbr{\T{R}_N \T{\alpha}}\times{}
+	}}\cubr{\cvvect{
+		\delta\T{x}_N \\
+		\delta\T{g}_N
+	}} \\
+	+& \sqbr{\matr{ccc}{
+		\T{0} & \T{0} & \T{0} \\
+		\T{0} & \T{0} & \T{0} \\
+		\T{0} & \T{0} & \T{0} \\
+		\T{0} & -\T{\lambda}\times\plbr{\T{R}_0\plbr{\tilde{\T{f}}_P + \T{U}_P \T{q}}}\times{} & \T{\lambda}\times\T{R}_0 \T{U}_P \\
+		\T{0} & -\T{U}_P^T \T{R}_0^T \T{\lambda}\times{} - \T{V}_P^T \T{R}_0^T \plbr{\T{R}_N \T{\alpha}} \times{} & \T{0}
+	}}\cubr{\cvvect{
+		\delta\T{x}_0 \\
+		\delta\T{g}_0 \\
+		\delta\T{q}
+	}} \nonumber \\
+	+& \sqbr{\matr{cc}{
+		\T{I} & \T{0} \\
+		\T{f}_N\times{} & \T{R}_N \\
+		-\T{I} & \T{0} \\
+		- \plbr{\T{R}_0\plbr{\tilde{\T{f}}_P + \T{U}_P \T{q}}}\times{} & -\T{R}_N \\
+		-\T{U}_P^T \T{R}_0^T & -\T{V}_P^T \T{R}_0^T \T{R}_N
+	}}\cubr{\cvvect{
+		\delta\T{\lambda} \\
+		\delta\T{\alpha}
+	}} = \cubr{\cvvect{
+			-\T{\lambda} \\
+			-\T{f}_N \times \T{\lambda} - \T{R}_N \T{\alpha} \\
+			\\
+			\eqref{eq:modal:modal-forces} \\
+			\mbox{}
+	}} \nonumber
+\end{align}
+
+
