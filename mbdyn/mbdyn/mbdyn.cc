@@ -524,7 +524,7 @@ main(int argc, char* argv[])
 	    
 	    		case int('P'):
 #ifdef USE_MPI
-				if (parallel_fPedantic> 0) {
+				if (parallel_fPedantic > 0) {
 					parallel_fPedantic--;
 				} else 
 #endif /* USE_MPI */
