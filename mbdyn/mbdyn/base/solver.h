@@ -307,6 +307,9 @@ public:
 	SolutionManager *pGetSolutionManager(void) const {
 		return pSM;
 	};
+	const LinSol& GetLinearSolver(void) const {
+		return CurrLinearSolver;
+	};
 	NonlinearSolver *pGetNonlinearSolver(void) const {
 		return pNLS;
 	};
