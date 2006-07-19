@@ -47,10 +47,12 @@ in form of postprocessing of MBDyn's raw output.
 Some post-processing preparation instructions are available
 for those packages that require special handling and thus
 are builtin.
-\begin{itemize}
-\item \textbf{MSC.ADAMS:}
-must be enabled at configure time, by using the directive
-\kw{--enable-adams}.
+
+
+\section{MSC.ADAMS}
+Support for MSC.ADAMS in form of \kw{.res} file output 
+in ASCII form must be enabled at configure time, by using 
+the directive \kw{--enable-adams}.
 MBDyn generates a \kw{.ada} file and a \kw{.res} file.
 The \kw{.ada} file must be processed by the utility \kw{ada2cmd} 
 (under development), along with some user-defined data to improve
@@ -94,14 +96,20 @@ is very verbose, and they are not required to animate
 the model; they can be useful to plot diagrams in the plotting
 facility of ADAMS/View.
 
-\item \textbf{EasyAnim:}
+\emph{NOTE: this feature will be trimmed out of MBDyn and moved
+to an external, post-processing script.}
+
+
+
+\section{EasyAnim}
 MBDyn exploits a special version of EasyAnim, based on 1.3 sources
 and patched by MBDyn developers; the patch is known to work under UN*X
-(Linux, essentially); it has not been tested with Windows.
+(Linux, essentially); it has not been tested with Windows, except with
+\kw{cygwin}.
 It is available from the MBDyn web site, and it has submitted to EasyAnim
 developers for evaluation.
 
-the preparation of the output is done via \kw{awk}, which is invoked
+The preparation of the output is done via \kw{awk}, which is invoked
 by the \kw{mbdyn2easyanim.sh} script.
 It uses the \kw{.log} and \kw{.mov} files, and generates a pair of
 \kw{.vol} and \kw{.van} files which contain the model and the motion,
@@ -113,10 +121,80 @@ Use
 where \kw{\$filename} is the name of the output file from MBDyn,
 with no extension.
 
-\item \textbf{Altair MotionView:}
-must be enabled at configure time, by using the directive
-\kw{--enable-motionview}; the specific client libraries 
-are required.
+The above script generates a model based on the topology information
+contained in the \kw{.log} file, plus the animation information
+according to the contents of the \kw{.mov} file.
+
+To check the model during preparation, run MBDyn with
+\begin{verbatim}
+    abort after: input;
+\end{verbatim}
+in the \kw{multistep} section, so that the model is output 
+in the input configuration, and EasyAnim can visualize it.
+
+The model can be customized by supplying the \kw{mbdyn2easyanim.sh}
+script additional \kw{awk} code that adds nodes, edges and sides 
+whose movement is associated to that of existing nodes.
+
+For this purpose, one needs to write an \kw{awk} script like
+\begin{verbatim}
+BEGIN {
+    # add a node property
+    nodeprop[nodeprop_num, "name"] = "dummy_node";   # node prop name
+    nodeprop[nodeprop_num, "color"] = 4;             # color
+    nodeprop[nodeprop_num, "radius"] = 1.;           # radius
+    nodeprop_num++;
+
+    # add a node
+    node[node_num] = "added_node"                    # node name
+    node[node_num, "relative"] = "base_node";        # base node name (label)
+    node[node_num, 1] = 1.;                          # x in base node frame
+    node[node_num, 2] = 2.;                          # y in base node frame
+    node[node_num, 3] = 3.;                          # z in base node frame
+    node[node_num, "prop"] = "dummy_node";           # node prop name
+    node_num++;
+
+    # add an edge property
+    edgeprop[edgeprop_num, "name"] = "dummy_edge";   # edge prop name
+    edgeprop[edgeprop_num, "color"] = 15;            # color
+    edgeprop[edgeprop_num, "radius"] = 2.;           # radius
+    edgeprop_num++;
+
+    # add an edge
+    edge[edge_num] = "added_edge";                   # edge name
+    edge[edge_num, 1] = "node_1";                    # node 1 name
+    edge[edge_num, 2] = "node_2;                     # node 2 name
+    edge[edge_num, "prop"] = "dummy_edge";           # edge prop name
+    edge_num++;
+
+    # add a side property
+    sideprop[sideprop_num, "name"] = "dummy_side";   # side prop name
+    sideprop[sideprop_num, "color"] = 8;             # color
+    sideprop_num++;
+
+    # add a side
+    side[side_num] = "added_side";
+    side[side_num, "N"] = 4;
+    side[side_num, 1] = "node_1";
+    side[side_num, 2] = "node_2";
+    side[side_num, 3] = "node_3";
+    side[side_num, 4] = "node_4";
+    side[side_num, "prop"] = "dummy_side";
+    side_num++;
+}
+\end{verbatim}
+place it into a file, say \kw{custom.awk},
+and then invoke the interface script as
+\begin{verbatim}
+    mbdyn2easyanim.sh -f custom.awk $filename
+\end{verbatim}
+
+
+
+\section{Altair MotionView}
+Support for Altair's MotionView must be enabled at configure time, 
+by using the directive \kw{--enable-motionview};
+the specific client libraries are required.
 It should generate a binary model and results file compatible
 with MotionView.
 It is activated by the directive
@@ -126,4 +204,3 @@ It is activated by the directive
 No special parameters are available at the moment; 
 this interface is under development.
 
-\end{itemize}
