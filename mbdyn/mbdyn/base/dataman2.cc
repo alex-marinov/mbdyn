@@ -544,7 +544,7 @@ DataManager::InitialJointAssembly(void)
 		/* Pre ogni tipo di elemento */
 		if (ElemData[iCnt1].DofOwnerType != DofOwner::UNKNOWN &&
 			ElemData[iCnt1].bToBeUsedInAssembly() &&
-			ElemData[iCnt1].ElemMap.size() > 0)
+			!ElemData[iCnt1].ElemMap.empty())
 		{
 			for (ElemMapType::const_iterator p = ElemData[iCnt1].ElemMap.begin();
 				p != ElemData[iCnt1].ElemMap.end();
@@ -769,7 +769,7 @@ endofcycle:
 		/* Per ogni tipo di elemento */
 		if (ElemData[iCnt1].DofOwnerType != DofOwner::UNKNOWN &&
 			ElemData[iCnt1].bToBeUsedInAssembly() &&
-			ElemData[iCnt1].ElemMap.size() > 0)
+			!ElemData[iCnt1].ElemMap.empty())
 		{
 			/* Se possiede dofs, se deve essere usato nell'assemblaggio
 			 * e se ne sono presenti */
