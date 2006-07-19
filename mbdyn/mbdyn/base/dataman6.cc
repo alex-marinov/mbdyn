@@ -55,7 +55,7 @@ DataManager::RegisterSocketUser(UseSocket *pUS)
 void
 DataManager::WaitSocketUsers(void)
 {
-	if (SocketUsers.size() == 0) {
+	if (SocketUsers.empty()) {
 		return;
 	}
 

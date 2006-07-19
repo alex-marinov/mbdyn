@@ -604,7 +604,7 @@ CurrType(Elem::UNKNOWN)
 	int iCnt = 0;
 
 	while (!(*pElemData)[iCnt].bToBeUsedInAssembly()
-			|| (*pElemData)[iCnt].ElemMap.size() == 0)
+			|| (*pElemData)[iCnt].ElemMap.empty())
 	{
 		if (++iCnt >= Elem::LASTELEMTYPE) {
 			break;
@@ -656,7 +656,7 @@ InitialAssemblyIterator::GetNext(void) const
 					return NULL;
 				}
 			} while (!(*pElemData)[iCnt].bToBeUsedInAssembly()
-					|| (*pElemData)[iCnt].ElemMap.size() == 0);
+					|| (*pElemData)[iCnt].ElemMap.empty());
 
 			ASSERT((*pElemData)[iCnt].ElemMap.begin() != (*pElemData)[iCnt].ElemMap.end());
 			CurrType = Elem::Type(iCnt);

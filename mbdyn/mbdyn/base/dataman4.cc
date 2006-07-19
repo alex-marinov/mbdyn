@@ -1023,17 +1023,18 @@ DataManager::ReadElems(MBDynParser& HP)
 					}
 
 					SimulationEntity::Hints *pHints = 0;
-					if (hints.size() > 0) {
-						pHints = new SimulationEntity::Hints;
-						for (unsigned i = 0; i < hints.size(); i++) {
-							Hint *ph = pE->ParseHint(this, hints[i].c_str());
+					if (!hints.empty()) {
+						for (std::vector<std::string>::const_iterator i = hints.begin();
+								i != hints.end();
+								i++)
+						{
+							Hint *ph = pE->ParseHint(this, i->c_str());
 							if (ph != 0) {
+								if (pHints == 0) {
+									pHints = new SimulationEntity::Hints;
+								}
 								pHints->push_back(ph);
 							}
-						}
-						if (pHints->size() == 0) {
-							delete pHints;
-							pHints = 0;
 						}
 					}
 
@@ -1193,12 +1194,12 @@ DataManager::ReadElems(MBDynParser& HP)
 #ifdef USE_STRUCT_NODES
 	/* Linka gli elementi che generano forze d'inerzia all'elemento
 	 * accelerazione di gravita' */
-	if (ElemData[Elem::GRAVITY].ElemMap.size() > 0) {
+	if (!ElemData[Elem::GRAVITY].ElemMap.empty()) {
 		Gravity* pGrav = (Gravity*)(ElemData[Elem::GRAVITY].ElemMap.begin()->second)->pGet();
 
 		for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
 			if (ElemData[iCnt].bGeneratesInertiaForces()
-				&& ElemData[iCnt].ElemMap.size() > 0)
+				&& !ElemData[iCnt].ElemMap.empty())
 			{
 				for (ElemMapType::const_iterator p = ElemData[iCnt].ElemMap.begin();
 					p != ElemData[iCnt].ElemMap.end();
@@ -1214,12 +1215,12 @@ DataManager::ReadElems(MBDynParser& HP)
 #ifdef USE_AERODYNAMIC_ELEMS
 	/* Linka gli elementi che usano le proprieta' dell'aria all'elemento
 	 * proprieta' dell'aria */
-	if (ElemData[Elem::AIRPROPERTIES].ElemMap.size() > 0) {
+	if (!ElemData[Elem::AIRPROPERTIES].ElemMap.empty()) {
 		AirProperties* pProp = (AirProperties*)(ElemData[Elem::AIRPROPERTIES].ElemMap.begin()->second)->pGet();
 
 		for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
 			if (ElemData[iCnt].bUsesAirProperties()
-				&& ElemData[iCnt].ElemMap.size() > 0)
+				&& !ElemData[iCnt].ElemMap.empty())
 			{
 				for (ElemMapType::const_iterator p = ElemData[iCnt].ElemMap.begin();
 					p != ElemData[iCnt].ElemMap.end();
@@ -1239,7 +1240,7 @@ DataManager::ReadElems(MBDynParser& HP)
 
 		for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
 			if (ElemData[iCnt].bUsesAirProperties()
-				&& ElemData[iCnt].ElemMap.size() > 0)
+				&& !ElemData[iCnt].ElemMap.empty())
 			{
 				for (ElemMapType::const_iterator p = ElemData[iCnt].ElemMap.begin();
 					p != ElemData[iCnt].ElemMap.end();

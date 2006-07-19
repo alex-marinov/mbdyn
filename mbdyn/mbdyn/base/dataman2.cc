@@ -400,7 +400,7 @@ DataManager::InitialJointAssembly(void)
 	/* Elementi: mette gli indici agli eventuali DofOwner */
 	for (int iCnt1 = 0; iCnt1 < Elem::LASTELEMTYPE; iCnt1++) {
 		/* Pre ogni tipo di elemento */
-		if (ElemData[iCnt1].bToBeUsedInAssembly() && ElemData[iCnt1].ElemMap.size() > 0) {
+		if (ElemData[iCnt1].bToBeUsedInAssembly() && !ElemData[iCnt1].ElemMap.empty()) {
 			/* Se deve essere usato nell'assemblaggio e ne sono definiti */
 
 			/* Tipo di dof dell'elemento corrente */

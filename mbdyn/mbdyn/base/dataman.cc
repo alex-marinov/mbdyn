@@ -357,7 +357,7 @@ SocketUsersTimeout(0)
     * legge gli elementi, crea la struttura ppElems
     * e contemporaneamente aggiorna i dof
     */
-   if (Elems.size() > 0) {	
+   if (!Elems.empty()) {	
       if(CurrDesc != BEGIN) {
 	 DEBUGCERR("");
 	 silent_cerr("\"begin\" expected at line " 
@@ -393,7 +393,7 @@ SocketUsersTimeout(0)
    }
 
 #ifdef USE_AERODYNAMIC_ELEMS
-   if (ElemData[Elem::AIRPROPERTIES].ElemMap.size() > 0) {
+   if (!ElemData[Elem::AIRPROPERTIES].ElemMap.empty()) {
       OutHdl.Open(OutputHandler::AIRPROPS);
    }
 #endif /* USE_AERODYNAMIC_ELEMS */
@@ -409,7 +409,7 @@ SocketUsersTimeout(0)
    }
 
    for (int i = 0; i < Elem::LASTELEMTYPE; i++) {
-      if (ElemData[i].ElemMap.size() > 0 && ElemData[i].OutFile != OutputHandler::UNKNOWN) {
+      if (!ElemData[i].ElemMap.empty() && ElemData[i].OutFile != OutputHandler::UNKNOWN) {
 	 OutHdl.Open(ElemData[i].OutFile);
       }
    }
@@ -652,7 +652,7 @@ void DataManager::MakeRestart(void)
 
 	/* Elementi */
 	for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) { 	  
-	   if (ElemData[iCnt].ElemMap.size() > 0) {
+	   if (!ElemData[iCnt].ElemMap.empty()) {
 	      if (ElemData[iCnt].bIsUnique()) {
 	     	 OutHdl.Restart() << "  " << psReadControlElems[iCnt] 
 	     	   << ';' << std::endl;
