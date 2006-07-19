@@ -656,16 +656,14 @@ SetSF(const std::string &s, const ScalarFunctionRead *rf)
 	return SFRead.insert(SFReadType::value_type(s, rf)).second;
 }
 
-static bool done = false;
+static unsigned done = 0;
 
 void
 InitSF(void)
 {
-	if (::done) {
+	if (::done++ > 0) {
 		return;
 	}
-
-	::done = true;
 
 	SetSF("const", new ConstSFR);
 	SetSF("linear", new LinearSFR);
@@ -691,11 +689,14 @@ InitSF(void)
 void
 DestroySF(void)
 {
-	if (!::done) {
-		return;
+	if (::done == 0) {
+		silent_cerr("DestroySF() called once too many" << std::endl);
+		throw ErrGeneric();
 	}
 
-	done = false;
+	if (--done > 0) {
+		return;
+	}
 
 	for (SFReadType::iterator i = SFRead.begin(); i != SFRead.end(); i++) {
 		delete i->second;

@@ -1034,17 +1034,15 @@ struct ShockAbsorberCLR : public ConstitutiveLawRead<T, Tder> {
 	};
 };
 
-static bool done = false;
+static unsigned done = 0;
 
 /* initialization function */
 void
 InitCL(void)
 {
-	if (::done) {
+	if (::done++ > 0) {
 		return;
 	}
-
-	::done = true;
 
 	/* linear elastic */
 	SetCL1D("linear" "elastic", new LinearElasticCLR<doublereal, doublereal>);
@@ -1161,11 +1159,14 @@ InitCL(void)
 void
 DestroyCL(void)
 {
-	if (!::done) {
-		return;
+	if (::done == 0) {
+		silent_cerr("DestroyCL() called once too many" << std::endl);
+		throw ErrGeneric();
 	}
 
-	::done = false;
+	if (--::done > 0) {
+		return;
+	}
 
 	/* free stuff */
 	for (CL1DFuncMapType::iterator i = CL1DFuncMap.begin(); i != CL1DFuncMap.end(); i++) {

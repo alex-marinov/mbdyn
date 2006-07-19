@@ -2076,16 +2076,14 @@ FileDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
-static bool done = false;
+static unsigned done = 0;
 
 void
 InitDriveData(void)
 {
-	if (::done) {
+	if (::done++ > 0) {
 		return;
 	}
-
-	::done = true;
 
 	SetDriveData("time", new TimeDCR);
 	SetDriveData("null", new NullDCR);
@@ -2126,11 +2124,14 @@ InitDriveData(void)
 void
 DestroyDriveData(void)
 {
-	if (!::done) {
-		return;
+	if (::done == 0) {
+		silent_cerr("DestroyDriveData() called once too many" << std::endl);
+		throw ErrGeneric();
 	}
 
-	::done = false;
+	if (--::done > 0) {
+		return;
+	}
 
 	/* free stuff */
 	for (DrvFuncMapType::iterator i = DrvFuncMap.begin(); i != DrvFuncMap.end(); i++) {
