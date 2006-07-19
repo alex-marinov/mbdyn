@@ -783,8 +783,8 @@ SchurDataManager::CreatePartition(void)
 				Vertices.pXadj[iCount + 1]++;
 
 				/* trovo la pos. del nodo nella lista dei puntatori ai nodi */
-				Node::Type type = i->GetNodeType();
-				unsigned label = i->GetLabel();
+				Node::Type type = (*i)->GetNodeType();
+				unsigned label = (*i)->GetLabel();
 				ppCurrNode = SearchNode(NodeData[type].ppFirstNode,
 						NodeData[type].iNum, label);
 				position = ppCurrNode - ppNodes;
@@ -1257,11 +1257,11 @@ SchurDataManager::CreatePartition(void)
 			case Elem::ROTOR:
 				if (iRotorIsMine == 1) {
 					ppMyElems[i]->GetConnectedNodes(connectedNodes);
-					for (std::vector<const Node *>::cont_iterator j = connectedNodes.begin();
+					for (std::vector<const Node *>::const_iterator j = connectedNodes.begin();
 						j != connectedNodes.end();
 						j++)
 					{
-						unsigned int* p = std::find(llabels, llabels + iNumIntNodes, j->GetLabel());
+						unsigned int* p = std::find(llabels, llabels + iNumIntNodes, (*j)->GetLabel());
 						if (p != llabels + iNumIntNodes) {
 							ppMyIntElems[iNumIntElems] =  ppMyElems[i];
 							iNumIntDofs += ppMyElems[i]->iGetNumDof();
@@ -1285,7 +1285,7 @@ SchurDataManager::CreatePartition(void)
 					j != connectedNodes.end();
 					j++)
 				{
-					unsigned int* p = std::find(llabels, llabels + iNumIntNodes, j->GetLabel());
+					unsigned int* p = std::find(llabels, llabels + iNumIntNodes, (*j)->GetLabel());
 					if (p != llabels + iNumIntNodes) {
 						ppMyIntElems[iNumIntElems] =  ppMyElems[i];
 						iNumIntDofs += ppMyElems[i]->iGetNumDof();
