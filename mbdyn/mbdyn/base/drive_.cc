@@ -1387,6 +1387,7 @@ DoubleRampDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 
 struct SineCosineDCR {
 protected:
+	virtual ~SineCosineDCR( void ) { NO_OP; };
 	virtual DriveCaller *
 	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred, bool bSine);
 };
