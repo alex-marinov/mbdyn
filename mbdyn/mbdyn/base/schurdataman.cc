@@ -205,7 +205,7 @@ iTotalExpConnections(0)
 
 	DEBUGCOUT("Communicator Size: " << DataCommSize << std::endl);
 
-	iTotVertices = iTotNodes + iTotElem;
+	iTotVertices = iTotNodes + Elems.size();
 	DEBUGCOUT("iTotVertices: " << iTotVertices << std::endl);
 
 	/* parole chiave del blocco parallelizzazione */
@@ -720,11 +720,12 @@ SchurDataManager::CreatePartition(void)
 	int GravityPos = 0, AirPropPos = 0;
 	int* pRotPos = NULL;
 	unsigned int* pRotLab = NULL;
-	if (ElemData[Elem::ROTOR].iNum != 0) {
-		SAFENEWARR(pRotPos, int, ElemData[Elem::ROTOR].iNum);
-		SAFENEWARR(pRotLab, unsigned int, ElemData[Elem::ROTOR].iNum);
-		memset(pRotPos, 0, ElemData[Elem::ROTOR].iNum*sizeof(int));
-		memset(pRotLab, 0, ElemData[Elem::ROTOR].iNum*sizeof(unsigned int));
+	if (ElemData[Elem::ROTOR].ElemMap.size() != 0) {
+		unsigned iNum = ElemData[Elem::ROTOR].ElemMap.size();
+		SAFENEWARR(pRotPos, int, iNum);
+		SAFENEWARR(pRotLab, unsigned int, iNum);
+		memset(pRotPos, 0, iNum*sizeof(int));
+		memset(pRotLab, 0, iNum*sizeof(unsigned int));
 	}
 	SAFENEWARR(pLabelsList, unsigned int, iTotNodes);
 	memset(pLabelsList, 0, iTotNodes*sizeof(unsigned int));
@@ -736,7 +737,7 @@ SchurDataManager::CreatePartition(void)
 
 		SAFENEWARR(Vertices.pAdjncy, int, iTotVertices*iMaxConnectionsPerVertex);
 		InitList(Vertices.pAdjncy, iTotVertices*iMaxConnectionsPerVertex, ADJ_UNDEFINED);
-		ASSERT(ppElems != NULL);
+		ASSERT(Elems.begin() != Elems.end());
 
 		for (unsigned int i = 0; i < iTotNodes; i++) {
 			pLabelsList[i] = ppNodes[i]->GetLabel();
@@ -750,32 +751,30 @@ SchurDataManager::CreatePartition(void)
 		iCount = iTotNodes;
 		iNumRt = 0;
 
-		for (Elem** ppTmpEl = ppElems;
-				ppTmpEl < ppElems + iTotElem;
-				ppTmpEl++, iCount++)
+		for (ElemVecType::const_iterator pTmpEl = Elems.begin();
+			pTmpEl != Elems.end();
+			pTmpEl++, iCount++)
 		{
-			if ((*ppTmpEl)->GetElemType() == Elem::GRAVITY) {
-				GravityPos = ppTmpEl - ppElems;
-			}
+			if ((*pTmpEl)->GetElemType() == Elem::GRAVITY) {
+				GravityPos = iCount - iTotNodes;
 
-			if ((*ppTmpEl)->GetElemType() == Elem::AIRPROPERTIES) {
-				AirPropPos = ppTmpEl - ppElems;
-			}
+			} else if ((*pTmpEl)->GetElemType() == Elem::AIRPROPERTIES) {
+				AirPropPos = iCount - iTotNodes;
 
-			if ((*ppTmpEl)->GetElemType() == Elem::ROTOR) {
-				pRotPos[iNumRt] = ppTmpEl - ppElems;
-				pRotLab[iNumRt] = (*ppTmpEl)->GetLabel();
+			} else if ((*pTmpEl)->GetElemType() == Elem::ROTOR) {
+				pRotPos[iNumRt] = iCount - iTotNodes;
+				pRotLab[iNumRt] = (*pTmpEl)->GetLabel();
 				iNumRt++;
 			}
 
-			(*ppTmpEl)->GetConnectedNodes(connectedNodes);
+			(*pTmpEl)->GetConnectedNodes(connectedNodes);
 
 			/* peso dell'elemento */
 			integer dimA, dimB;
-			(*ppTmpEl)->WorkSpaceDim(&dimA, &dimB);
+			(*pTmpEl)->WorkSpaceDim(&dimA, &dimB);
 			VertexWgts[iCount] = dimA * dimB;
 
-			CommWgts[iCount] = (*ppTmpEl)->iGetNumDof()*(*ppTmpEl)->iGetNumDof();
+			CommWgts[iCount] = (*pTmpEl)->iGetNumDof()*(*pTmpEl)->iGetNumDof();
 
 			for (unsigned i = 0; i < connectedNodes.size(); i++) {
 				Vertices.pXadj[iCount + 1]++;
@@ -822,7 +821,7 @@ SchurDataManager::CreatePartition(void)
 				}
 				iNdPos = j;
 
-				for (j = 0; ppExpCntElems[i] != ppElems[j]; j++) {
+				for (j = 0; ppExpCntElems[i] != Elems[j]; j++) {
 					NO_OP;
 				}
 				iElPos = j;
@@ -887,8 +886,8 @@ SchurDataManager::CreatePartition(void)
 			ofPartition << "# Elements" << std::endl;
 			for (unsigned int i = 0; i < iTotElem; i++) {
 				ofPartition << "# " << i + iTotNodes << "  Element Type: "
-					<< "("  << psElemNames[ppElems[i]->GetElemType()] << ")"
-					<< " Label: " << ppElems[i]->GetLabel() << std::endl
+					<< "("  << psElemNames[Elems[i]->GetElemType()] << ")"
+					<< " Label: " << Elems[i]->GetLabel() << std::endl
 					<< VertexWgts[i + iTotNodes]
 					<< " " << CommWgts[i + iTotNodes];
 				for (int j = Vertices.pXadj[i + iTotNodes];
@@ -1081,17 +1080,17 @@ SchurDataManager::CreatePartition(void)
 	int move = 0;
 
 	/* Gravity */
-	if (ElemData[Elem::GRAVITY].iNum != 0) {
+	if (ElemData[Elem::GRAVITY].ElemMap.size() != 0) {
 		/* FIXME: there's a better way to find GravityPos and so on... */
-		ppMyElems[iNumLocElems] = ppElems[GravityPos];
+		ppMyElems[iNumLocElems] = Elems[GravityPos];
 		iNumLocElems++;
 		pParAmgProcs[GravityPos + iTotNodes] = -1;
 		move++;
 	}
 
 	/* Air Properties */
-	if (ElemData[Elem::AIRPROPERTIES].iNum != 0) {
-		ppMyElems[iNumLocElems] = ppElems[AirPropPos];
+	if (ElemData[Elem::AIRPROPERTIES].ElemMap.size() != 0) {
+		ppMyElems[iNumLocElems] = Elems[AirPropPos];
 		iNumLocElems++;
 		pParAmgProcs[AirPropPos + iTotNodes] = -1;
 		move++;
@@ -1103,9 +1102,11 @@ SchurDataManager::CreatePartition(void)
 	integer iRotorIsMine = 0;
 	if (iNumRt  != 0) {
 		SAFENEWARR(pMyRot, integer, iNumRt);
-		for (unsigned int i = 0; i < ElemData[Elem::AERODYNAMIC].iNum; i++) {
-			const AerodynamicElem *pAero =
-				(ElemData[Elem::AERODYNAMIC].ppFirstElem[i])->pGetAerodynamicElem();
+		for (ElemMapType::const_iterator i = ElemData[Elem::AERODYNAMIC].ElemMap.begin();
+			i != ElemData[Elem::AERODYNAMIC].ElemMap.end();
+			i++)
+		{
+			const AerodynamicElem *pAero = i->second->pGetAerodynamicElem();
 			ASSERT(pAero != NULL);
 			const Rotor *pRotor = pAero->pGetRotor();
 
@@ -1144,7 +1145,7 @@ SchurDataManager::CreatePartition(void)
 			} else {
 				color = 1;
 				if (pParAmgProcs[pMyRot[i] + iTotNodes] == MyRank) {
-					silent_cout("Rotor " << ppElems[pRotPos[i]]->GetLabel()
+					silent_cout("Rotor " << Elems[pRotPos[i]]->GetLabel()
 							<< " assigned to process "
 							<< MyRank << std::endl);
 					iRotorIsMine = 1;
@@ -1157,12 +1158,12 @@ SchurDataManager::CreatePartition(void)
 #if 0
 			RotorComm[i] = MPI::COMM_WORLD.Split(color, key);
 #endif
-			Rotor *r = (Rotor *)ppElems[pRotPos[i]]->pGet();
+			Rotor *r = (Rotor *)Elems[pRotPos[i]]->pGet();
 			r->InitializeRotorComm(pRotorComm + i);
 		}
 
 		for (int i = 0; i < iMyTotRot; i++) {
-			ppMyElems[iNumLocElems] = ppElems[pMyRot[i]];
+			ppMyElems[iNumLocElems] = Elems[pMyRot[i]];
 			if (pParAmgProcs[pMyRot[i] + iTotNodes] == MyRank) {
 				iNumLocDofs += ppMyElems[iNumLocElems]->iGetNumDof();
 			} else {
@@ -1175,7 +1176,7 @@ SchurDataManager::CreatePartition(void)
 
 	for (unsigned int i = 0; i < iTotVertices - iTotNodes; i++) {
 		if (pParAmgProcs[iTotNodes + i] == MyRank) {
-			ppMyElems[iNumLocElems] = ppElems[i];
+			ppMyElems[iNumLocElems] = Elems[i];
 			iNumLocDofs += ppMyElems[iNumLocElems]->iGetNumDof();
 			iNumLocElems++;
 		}
@@ -1467,7 +1468,7 @@ SchurDataManager::OutputPartition(void)
 		<< "Total number of processes: " << DataCommSize << ";" << std::endl
 		<< "Process #: " << MyRank << ";" << std::endl
 		<< "Total number of Nodes: " << iTotNodes << ";"  << std::endl
-		<< "Total number of Elements: " << iTotElem << ";"  << std::endl
+		<< "Total number of Elements: " << Elems.size() << ";"  << std::endl
 		<< "Total number of Dofs: " << iTotDofs << ";"  << std::endl
 		<< std::endl
 		<< std::endl;

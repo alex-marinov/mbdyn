@@ -147,8 +147,8 @@ DataManager::ElemManagerDestructor(void)
 
 	for (ElemVecType::iterator p = Elems.begin(); p != Elems.end(); p++) {
 		DEBUGCOUT("deleting element "
-			<< psElemNames[p->GetElemType()]
-			<< "(" << p->GetLabel() << ")"
+			<< psElemNames[(*p)->GetElemType()]
+			<< "(" << (*p)->GetLabel() << ")"
 			<< std::endl);
 		SAFEDELETE(*p);
 	}
