@@ -508,9 +508,27 @@ is neglected as well.
 
 
 
-\subsection{Interface}
-The interface between the FEM and the multibody world occurs by clamping
-interface multibody nodes to selected points on the FEM mesh.
+\subsection{Interfacing}
+\emph{NOTE: the interface is currently based on the assumptions
+described below, but the implementation is a bit different.
+Below a future implementation is discussed and documented in support
+to development.}
+
+The basic interface between the FEM and the multibody world occurs 
+by clamping regular multibody nodes to selected nodes on the FEM mesh.
+Whenever more sophisticated interfacing is required, for example 
+connecting a multibody node to a combination of FEM nodes, 
+an FEM node equivalent to the desired aggregate of nodes 
+should either be prepared at the FEM side, for example by means of RBEs,
+or at the FEM database side, for example by averaging existing mode shapes
+according to the desired pattern, into an equivalent FEM node\footnote{%
+%
+For example, to constrain the displacement of a FEM node $P$ 
+that represents the weighing of the displacement of a set of FEM nodes
+according to a constant weighing matrix $\T{W}_P\in\mathbb{R}^{3n\times{3}}$,
+simply use $\T{U}_P=\T{W}_P^T\T{U}$.
+}.
+
 The clamping is imposed by means of a coincidence and a parallelism
 constraint between the locations and the orientations of the two points:
 the multibody node $N$ and the FEM node $P$, according to the expressions
