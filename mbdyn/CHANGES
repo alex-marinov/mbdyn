@@ -46,6 +46,7 @@ MBDyn 1.X-Devel
 		- fixed offset dummy node orientation handling
 		  (noted by I. Wander)
 		- fixed misc errors in utils/*
+		- fixed corrupted binary FEM file leftover when parse fails
 
 MBDyn 1.2.6
 	Enhancements:

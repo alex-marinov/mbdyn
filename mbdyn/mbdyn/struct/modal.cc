@@ -2493,7 +2493,6 @@ Modal::GetJ_int(void) const
 		- Mat3x3(s, x);
 }
 
-
 Joint *
 ReadModal(DataManager* pDM,
 		MBDynParser& HP,
@@ -2735,7 +2734,7 @@ ReadModal(DataManager* pDM,
 	}
 
 	/* stuff for binary FEM file handling */
-	char		*sBinFileFem = 0;
+	std::string	sBinFileFem;
 	struct stat	stFEM, stBIN;
 	bool		bReadFEM = true,
 			bWriteBIN = false,
@@ -2753,13 +2752,9 @@ ReadModal(DataManager* pDM,
 	}
 
 	if (bUseBinary || bCreateBinary || bUpdateBinary) {
-		unsigned len = strlen(sFileFem);
+		sBinFileFem = std::string(sFileFem) + ".bin";
 
-		SAFENEWARR(sBinFileFem, char, len + sizeof(".bin"));
-		snprintf(sBinFileFem, len + sizeof(".bin"),
-				"%s.bin", sFileFem);
-
-		if (stat(sBinFileFem, &stBIN) == -1) {
+		if (stat(sBinFileFem.c_str(), &stBIN) == -1) {
 			int	save_errno = errno;
 			char	*errmsg = strerror(save_errno);
 
@@ -2839,9 +2834,12 @@ ReadModal(DataManager* pDM,
 			throw DataManager::ErrGeneric();
 		}
 
+		/* don't leave behind a corrupted .bin file */
+		try {
+
 		std::ofstream fbin;
 		if (bWriteBIN) {
-			fbin.open(sBinFileFem);
+			fbin.open(sBinFileFem.c_str());
 			if (!fbin) {
 				silent_cerr("Modal(" << uLabel << "): "
 					"unable to open file \"" << sBinFileFem << "\""
@@ -3401,8 +3399,16 @@ ReadModal(DataManager* pDM,
 			fbin.close();
 		}
 
+		/* unlink binary file if create/update failed */
+		} catch (...) {
+			if (bWriteBIN) {
+				(void)unlink(sBinFileFem.c_str());
+			}
+			throw;
+		}
+
 	} else {
-		std::ifstream fbin(sBinFileFem);
+		std::ifstream fbin(sBinFileFem.c_str());
 		if (!fbin) {
 			silent_cerr("Modal(" << uLabel << "): "
 				"unable to open file \"" << sBinFileFem << "\""
@@ -3776,12 +3782,6 @@ ReadModal(DataManager* pDM,
 
 	SAFEDELETEARR(sFileFem);
 	sFileFem = NULL;
-
-	if (sBinFileFem) {
-		SAFEDELETEARR(sBinFileFem);
-		sBinFileFem = NULL;
-	}
-
 
 	/* lettura dati di vincolo:
 	 * l'utente specifica la label del nodo FEM e del nodo rigido
