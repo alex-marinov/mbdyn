@@ -548,10 +548,10 @@ The reaction forces exchanged are $\T{\lambda}$ in the global frame,
 while the reaction moments are $\T{R}_N \T{\alpha}$ in the reference frame 
 of node $N$:
 \begin{align}
-	\T{F}_N &= -\T{\lambda} \\
-	\T{M}_N &= -\T{f}_N \times \T{\lambda} - \T{R}_N \T{\alpha} \\
-	\T{F}_P &= \T{\lambda} \\
-	\T{M}_P &= \T{R}_N \T{\alpha}
+	\T{F}_N &= \T{\lambda} \\
+	\T{M}_N &= \T{f}_N \times \T{\lambda} + \T{R}_N \T{\alpha} \\
+	\T{F}_P &= - \T{\lambda} \\
+	\T{M}_P &= - \T{R}_N \T{\alpha}
 \end{align}
 The force and the moment apply on the rigid body displacement and rotation,
 and on the modal equations as well, according to
@@ -565,9 +565,9 @@ and on the modal equations as well, according to
 		\delta\T{\phi}_0 \\
 		\delta\T{q}
 	}}^T \cubr{\cvvect{
-		\T{\lambda} \\
-		\plbr{\T{R}_0 \plbr{\tilde{\T{f}}_P + \T{U}_P \T{q}}} \times \T{\lambda} + \T{R}_N \T{\alpha} \\
-		\T{U}_P^T \T{R}_0^T \T{\lambda} + \T{V}_P^T \T{R}_0^T \T{R}_N \T{\alpha}
+		- \T{\lambda} \\
+		- \plbr{\T{R}_0 \plbr{\tilde{\T{f}}_P + \T{U}_P \T{q}}} \times \T{\lambda} - \T{R}_N \T{\alpha} \\
+		- \T{U}_P^T \T{R}_0^T \T{\lambda} - \T{V}_P^T \T{R}_0^T \T{R}_N \T{\alpha}
 	}}
 	\label{eq:modal:modal-forces}
 \end{equation}
@@ -575,8 +575,8 @@ and on the modal equations as well, according to
 The linearization of the constraint yields
 \begin{equation}
 	\sqbr{\matr{ccccc}{
-		\T{I} & -\T{f}_N \times{} & -\T{I} & \plbr{\T{R}_0\plbr{\tilde{\T{f}}_P + \T{U}_P \T{q}}}\times{} & -\T{R}_0 \T{U}_P \\
-		\T{0} & \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_N^T & \T{0} & -\T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_N^T & -\T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_N^T \T{R}_0 \T{V}_P
+		-\T{I} & \T{f}_N \times{} & \T{I} & -\plbr{\T{R}_0\plbr{\tilde{\T{f}}_P + \T{U}_P \T{q}}}\times{} & \T{R}_0 \T{U}_P \\
+		\T{0} & -\T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_N^T & \T{0} & \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_N^T & \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_N^T \T{R}_0 \T{V}_P
 	}}\cubr{\cvvect{
 		\delta\T{x}_N \\
 		\delta\T{g}_N \\
@@ -594,10 +594,10 @@ The linearization of forces and moments yields
 \begin{align}
 	&\sqbr{\matr{cc}{
 		\T{0} & \T{0} \\
-		\T{0} & \T{\lambda}\times\T{f}_P\times{} - \plbr{\T{R}_N \T{\alpha}}\times{} \\
+		\T{0} & -\T{\lambda}\times\T{f}_P\times{} + \plbr{\T{R}_N \T{\alpha}}\times{} \\
 		\T{0} & \T{0} \\
-		\T{0} & \plbr{\T{R}_N \T{\alpha}}\times{} \\
-		\T{0} & \T{V}_P^T \T{R}_0^T \plbr{\T{R}_N \T{\alpha}}\times{}
+		\T{0} & -\plbr{\T{R}_N \T{\alpha}}\times{} \\
+		\T{0} & -\T{V}_P^T \T{R}_0^T \plbr{\T{R}_N \T{\alpha}}\times{}
 	}}\cubr{\cvvect{
 		\delta\T{x}_N \\
 		\delta\T{g}_N
@@ -606,25 +606,25 @@ The linearization of forces and moments yields
 		\T{0} & \T{0} & \T{0} \\
 		\T{0} & \T{0} & \T{0} \\
 		\T{0} & \T{0} & \T{0} \\
-		\T{0} & -\T{\lambda}\times\plbr{\T{R}_0\plbr{\tilde{\T{f}}_P + \T{U}_P \T{q}}}\times{} & \T{\lambda}\times\T{R}_0 \T{U}_P \\
-		\T{0} & -\T{U}_P^T \T{R}_0^T \T{\lambda}\times{} - \T{V}_P^T \T{R}_0^T \plbr{\T{R}_N \T{\alpha}} \times{} & \T{0}
+		\T{0} & \T{\lambda}\times\plbr{\T{R}_0\plbr{\tilde{\T{f}}_P + \T{U}_P \T{q}}}\times{} & -\T{\lambda}\times\T{R}_0 \T{U}_P \\
+		\T{0} & \T{U}_P^T \T{R}_0^T \T{\lambda}\times{} + \T{V}_P^T \T{R}_0^T \plbr{\T{R}_N \T{\alpha}} \times{} & \T{0}
 	}}\cubr{\cvvect{
 		\delta\T{x}_0 \\
 		\delta\T{g}_0 \\
 		\delta\T{q}
 	}} \nonumber \\
 	+& \sqbr{\matr{cc}{
-		\T{I} & \T{0} \\
-		\T{f}_N\times{} & \T{R}_N \\
 		-\T{I} & \T{0} \\
-		- \plbr{\T{R}_0\plbr{\tilde{\T{f}}_P + \T{U}_P \T{q}}}\times{} & -\T{R}_N \\
-		-\T{U}_P^T \T{R}_0^T & -\T{V}_P^T \T{R}_0^T \T{R}_N
+		-\T{f}_N\times{} & -\T{R}_N \\
+		\T{I} & \T{0} \\
+		\plbr{\T{R}_0\plbr{\tilde{\T{f}}_P + \T{U}_P \T{q}}}\times{} & \T{R}_N \\
+		\T{U}_P^T \T{R}_0^T & \T{V}_P^T \T{R}_0^T \T{R}_N
 	}}\cubr{\cvvect{
 		\delta\T{\lambda} \\
 		\delta\T{\alpha}
 	}} = \cubr{\cvvect{
-			-\T{\lambda} \\
-			-\T{f}_N \times \T{\lambda} - \T{R}_N \T{\alpha} \\
+			\T{\lambda} \\
+			\T{f}_N \times \T{\lambda} + \T{R}_N \T{\alpha} \\
 			\\
 			\eqref{eq:modal:modal-forces} \\
 			\mbox{}
