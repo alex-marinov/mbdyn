@@ -3071,6 +3071,21 @@ for \kw{proportional damping} (same for all modes) or the list
 of values provided for \kw{diag damping} (for each mode).
 For example, a factor of 0.01 means 1\% damping.
 
+\paragraph{Output}
+Up to MBDyn 1.2.6 output occurred in a specific file that needed
+to be mandatorily given as the last argument to each modal element
+definition.
+Now output occurs in a \kw{.mod} file, which contains, for each time step,
+as many rows as all the modes of all the modal elements whose output is enabled.
+Each row is structured as follows:
+\begin{itemize}
+\item a field containing the label of the modal joint and the number of the mode,
+separated by a dot (e.g. \kw{label.mode})
+\item the value of the modal unknown
+\item the value of the first derivative of the modal unknown
+\item the value of the second derivative of the modal unknown
+\end{itemize}
+
 \paragraph{Private Data}
 The following data is available, for each mode:
 \begin{enumerate}
