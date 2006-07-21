@@ -664,63 +664,64 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
    SAFENEWWITHCONSTRUCTOR(pD2Mat, FullMatrixHandler, FullMatrixHandler(NModes, NModes+GustN));
    
    doublereal d;
-   char str[256];
+   char str[BUFSIZ];
 
    while (!fdat.eof()) {        /* parsing del file */ 
       fdat.getline(str, sizeof(str));
 
 	/* legge il primo blocco (HEADER) */
       if (!strncmp("*** MATRIX A", str, 12)) {  
-	for (unsigned int iCnt = 0; iCnt < AeroN; iCnt++)  { 
-		for (unsigned int jCnt = 0; jCnt < AeroN; jCnt++)  { 
+	for (unsigned int iCnt = 1; iCnt <= AeroN; iCnt++)  { 
+		for (unsigned int jCnt = 1; jCnt <= AeroN; jCnt++)  { 
 			fdat >> d;
-			if (d != 0) { pAMat->PutCoef(iCnt+1,jCnt+1,d);} 
+			pAMat->PutCoef(iCnt, jCnt, d);
 		}
 	}
+
 	/* legge il primo blocco (HEADER) */
       } else if (!strncmp("*** MATRIX B", str, 12)) {  
-	for (unsigned int iCnt = 0; iCnt < AeroN; iCnt++)  { 
-		for (unsigned int jCnt = 0; jCnt < NModes+GustN; jCnt++)  { 
+	for (unsigned int iCnt = 1; iCnt <= AeroN; iCnt++)  { 
+		for (unsigned int jCnt = 1; jCnt <= NModes + GustN; jCnt++)  { 
 			fdat >> d;
-			pBMat->PutCoef(iCnt+1,jCnt+1,d);
+			pBMat->PutCoef(iCnt, jCnt, d);
 		} 
 	}
 	
 	/* legge il primo blocco (HEADER) */
       } else if (!strncmp("*** MATRIX C", str, 12)) {  
-	for (unsigned int iCnt = 0; iCnt < NModes; iCnt++)  { 
-		for (unsigned int jCnt = 0; jCnt < AeroN; jCnt++)  { 
+	for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++)  { 
+		for (unsigned int jCnt = 1; jCnt <= AeroN; jCnt++)  { 
 			fdat >> d;
-			pCMat->PutCoef(iCnt+1,jCnt+1,d);
+			pCMat->PutCoef(iCnt, jCnt, d);
 		} 
 	}
 
 	/* legge il primo blocco (HEADER) */
       } else if (!strncmp("*** MATRIX D0", str, 13)) {  
-	for (unsigned int iCnt = 0; iCnt < NModes; iCnt++)  { 
-		for (unsigned int jCnt = 0; jCnt < NModes+GustN; jCnt++)  { 
+	for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++)  { 
+		for (unsigned int jCnt = 1; jCnt <= NModes+GustN; jCnt++)  { 
 			fdat >> d;
-			pD0Mat->PutCoef(iCnt+1,jCnt+1,d);
+			pD0Mat->PutCoef(iCnt, jCnt, d);
 		} 
 	}
 
 	/* legge il primo blocco (HEADER) */
       } else if (!strncmp("*** MATRIX D1", str, 13)) {
-	for (unsigned int iCnt = 0; iCnt < NModes; iCnt++)  { 
-		for (unsigned int jCnt = 0; jCnt < NModes+GustN; jCnt++)  { 
+	for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++)  { 
+		for (unsigned int jCnt = 1; jCnt <= NModes + GustN; jCnt++)  { 
 			fdat >> d;
-			pD1Mat->PutCoef(iCnt+1,jCnt+1,d);
+			pD1Mat->PutCoef(iCnt, jCnt, d);
 		} 
 	}
 	
 	/* legge il primo blocco (HEADER) */
       } else if (!strncmp("*** MATRIX D2", str, 13)) {  
-	for (unsigned int iCnt = 0; iCnt < NModes; iCnt++)  { 
-		for (unsigned int jCnt = 0; jCnt < NModes+GustN; jCnt++)  { 
+	for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++)  { 
+		for (unsigned int jCnt = 1; jCnt <= NModes + GustN; jCnt++)  { 
 			fdat >> d;
-			pD2Mat->PutCoef(iCnt+1,jCnt+1,d);
+			pD2Mat->PutCoef(iCnt, jCnt, d);
 		} 
-	}   
+	}
       }
    }
    fdat.close();  
