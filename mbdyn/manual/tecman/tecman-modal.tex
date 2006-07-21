@@ -509,11 +509,6 @@ is neglected as well.
 
 
 \subsection{Interfacing}
-\emph{NOTE: the interface is currently based on the assumptions
-described below, but the implementation is a bit different.
-Below a future implementation is discussed and documented in support
-to development.}
-
 The basic interface between the FEM and the multibody world occurs 
 by clamping regular multibody nodes to selected nodes on the FEM mesh.
 Whenever more sophisticated interfacing is required, for example 
@@ -594,7 +589,7 @@ The linearization of forces and moments yields
 \begin{align}
 	&\sqbr{\matr{cc}{
 		\T{0} & \T{0} \\
-		\T{0} & -\T{\lambda}\times\T{f}_P\times{} + \plbr{\T{R}_N \T{\alpha}}\times{} \\
+		\T{0} & -\T{\lambda}\times\T{f}_N\times{} + \plbr{\T{R}_N \T{\alpha}}\times{} \\
 		\T{0} & \T{0} \\
 		\T{0} & -\plbr{\T{R}_N \T{\alpha}}\times{} \\
 		\T{0} & -\T{V}_P^T \T{R}_0^T \plbr{\T{R}_N \T{\alpha}}\times{}
