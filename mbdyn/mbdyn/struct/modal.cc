@@ -113,8 +113,10 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-#include <modal.h>
-#include <dataman.h>
+#include "modal.h"
+#include "dataman.h"
+#include "Rot.hh"
+#include "hint_impl.h"
 
 Modal::Modal(unsigned int uL,
 		const ModalNode* pR,
@@ -667,16 +669,16 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 			WM.DecCoef(iStrNodeIndex + iCnt, iReactionIndex + iCnt, 1.);
 
 			/* termini di vincolo dovuti ai nodi */
-			WM.IncCoef(iReactionIndex + iCnt, iStrNodeIndex + iCnt, 1.);
+			WM.DecCoef(iReactionIndex + iCnt, iStrNodeIndex + iCnt, 1.);
 		}
 
 		if (pModalNode) {
 			for (int iCnt = 1; iCnt <= 3; iCnt++) {
-				/* termini di reazione sui nodi */
+				/* termini di reazione sul nodo modale */
 				WM.IncCoef(6 + iCnt, iReactionIndex + iCnt, 1.);
 		
-				/* termini di vincolo dovuti ai nodi */
-				WM.DecCoef(iReactionIndex + iCnt, iCnt, 1.);
+				/* termini di vincolo dovuti al nodo modale */
+				WM.IncCoef(iReactionIndex + iCnt, iCnt, 1.);
 			}
 
 			/* pd1Tot e' il puntatore all'array
@@ -689,7 +691,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 			WM.Add(9 + 1, 3 + 1, FTmpWedge*dTmp1Wedge);
 			
 			/* termini di vincolo dovuti ai nodi */
-			WM.Add(iReactionIndex + 1, 3 + 1, dTmp1Wedge);
+			WM.Sub(iReactionIndex + 1, 3 + 1, dTmp1Wedge);
 			
 			/* termini aggiuntivi dovuti alla deformabilita' */
 			SubMat3.RightMult(PHItT, RT*FTmpWedge);
@@ -700,7 +702,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 		}
 			
 		/* contributo dovuto alla flessibilita' */
-		WM.Sub(iReactionIndex + 1, iRigidOffset + 1, PHItR);
+		WM.Add(iReactionIndex + 1, iRigidOffset + 1, PHItR);
 
 		/* idem per pd2 e pR2 */
 		Mat3x3 dTmp2Wedge(pR2[iStrNodem1]*pd2[iStrNodem1]);
@@ -717,115 +719,47 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 		/* modifica: divido le equazioni di vincolo per dCoef */
 
 		/* termini di vincolo dovuti al nodo 2 */
-		WM.Sub(iReactionIndex + 1, iStrNodeIndex + 3 + 1, dTmp2Wedge);
+		WM.Add(iReactionIndex + 1, iStrNodeIndex + 3 + 1, dTmp2Wedge);
 
 		/* fine cerniera sferica */
 
 		/* equazioni di vincolo : giunto prismatico */
 
 		/* Vec3 M(XCurr, iModalIndex + 2*NModes + 6*iStrNodem1 + 3 + 1); */
-		Vec3 MTmp = pM[iStrNodem1]*dCoef;
+		Vec3 MTmp = pR2[iStrNodem1]*(pM[iStrNodem1]*dCoef);
+		Mat3x3 MTmpWedge(MTmp);
 
-		Mat3x3 R1totTranspose = pR1tot[iStrNodem1].Transpose();
-
-		Vec3 e1tota(pR1tot[iStrNodem1].GetVec(1));
-		Vec3 e2tota(pR1tot[iStrNodem1].GetVec(2));
-		Vec3 e3tota(pR1tot[iStrNodem1].GetVec(3));
-		Vec3 e1b(pR2[iStrNodem1].GetVec(1));
-		Vec3 e2b(pR2[iStrNodem1].GetVec(2));
-		Vec3 e3b(pR2[iStrNodem1].GetVec(3));
-
-		Mat3x3 MWedge(Mat3x3(e3b, e2tota*MTmp.dGet(1))
-				+ Mat3x3(e1b, e3tota*MTmp.dGet(2))
-				+ Mat3x3(e2b, e1tota*MTmp.dGet(3)));
-		Mat3x3 MWedgeT(MWedge.Transpose());
-
-		/* Eq. dei momenti (termini del tipo [e3b/\][e2a/\]M) */
+		/* Eq. dei momenti */
 		if (pModalNode) {
-			WM.Add(9 + 1, 3 + 1, MWedge);
-			WM.Sub(9 + 1, iStrNodeIndex + 3 + 1, MWedgeT);
-
-			WM.Sub(iStrNodeIndex + 3 + 1, 3 + 1, MWedge);
+			WM.Sub(9 + 1, iStrNodeIndex + 3 + 1, MTmpWedge);
 		}
-		WM.Add(iStrNodeIndex + 3 + 1, iStrNodeIndex + 3 + 1, MWedgeT);
-
-		/* Eq. dei momenti, contributo modale */
-		Vec3 e1ra(R.GetVec(1));
-		Vec3 e2ra(R.GetVec(2));
-		Vec3 e3ra(R.GetVec(3));
-		Mat3x3 M1Wedge(Mat3x3(e3b, e2ra*MTmp.dGet(1))
-				+ Mat3x3(e1b, e3ra*MTmp.dGet(2))
-				+ Mat3x3(e2b, e1ra*MTmp.dGet(3)));
-
-		SubMat1.LeftMult(M1Wedge, PHIr);
-		if (pModalNode) {
-			WM.Add(9 + 1, iRigidOffset + 1, SubMat1);
-		}
-		WM.Sub(iStrNodeIndex + 3 + 1, iRigidOffset + 1, SubMat1);
+		WM.Add(iStrNodeIndex + 3 + 1, iStrNodeIndex + 3 + 1, MTmpWedge);
 
 		/* Eq. d'equilibrio ai modi */
+		SubMat3.RightMult(PHIrT, R*MTmpWedge);
 		if (pModalNode) {
-			SubMat3.RightMult(PHIrT, R1totTranspose*MWedge);
 			WM.Add(iRigidOffset + NModes + 1, 3 + 1, SubMat3);
 		}
-		SubMat3.RightMult(PHIrT, R1totTranspose*MWedgeT);
-		WM.Sub(iRigidOffset + NModes + 1, iStrNodeIndex + 1, SubMat3);
+		WM.Sub(iRigidOffset + NModes + 1, iStrNodeIndex + 3 + 1, SubMat3);
 
-		Vec3 MA(Mat3x3(e2tota.Cross(e3b), e3tota.Cross(e1b),
-				e1tota.Cross(e2b))*(pM[iStrNodem1]*dCoef));
-		Mat3x3 MAWedge(MA);
+		/* */
+		Mat3x3 R2T = pR2[iStrNodem1].Transpose();
 		if (pModalNode) {
-			SubMat3.RightMult(PHIrT, R1totTranspose*MAWedge);
-			WM.Add(iRigidOffset + NModes + 1, 3 + 1, SubMat3);
+			WM.Add(iReactionIndex + 3 + 1, 3 + 1, R2T);
+			WM.Add(9 + 1, iReactionIndex + 3 + 1, pR2[iStrNodem1]);
 		}
+		WM.Sub(iReactionIndex + 3 + 1, iStrNodeIndex + 3 + 1, R2T);
+		WM.Sub(iStrNodeIndex + 3 + 1, iReactionIndex + 3 + 1, pR2[iStrNodem1]);
 
-		Mat3x3 R1TMAWedge(RT*MAWedge);
-		SubMat1.LeftMult(R1TMAWedge, PHIr);
-		SubMat2.LeftMult(R1totTranspose*M1Wedge, PHIr);
-		SubMat1 += SubMat2;
-		SubMat4.Mult(PHIrT, SubMat1);
-		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
-			for (unsigned int kMode = 1; kMode <= NModes; kMode++) {
-				WM.IncCoef(iRigidOffset + NModes + jMode,
-						iRigidOffset + kMode,
-						SubMat4.dGet(jMode, kMode));
+		/* */
+		SubMat3.RightMult(PHIrT, RT*pR2[iStrNodem1]);
+		WM.Add(iRigidOffset + NModes + 1, iReactionIndex + 3 + 1, SubMat3);
+		for (unsigned iMode = 1; iMode <= NModes; iMode++) {
+			for (unsigned jIdx = 1; jIdx <= 3; jIdx++) {
+				WM.IncCoef(iReactionIndex + 3 + jIdx, iRigidOffset + iMode,
+					SubMat3(iMode, jIdx));
 			}
 		}
-
-		/* Termine e2a/\e3b + e3a/\e1b + e1a/\e2b */
-		Vec3 v1(e2tota.Cross(e3b));
-		Vec3 v2(e3tota.Cross(e1b));
-		Vec3 v3(e1tota.Cross(e2b));
-
-		MWedge = Mat3x3(v1, v2, v3);
-
-		if (pModalNode) {
-			WM.Add(9 + 1, iReactionIndex + 3 + 1, MWedge);
-		}
-		WM.Sub(iStrNodeIndex + 3 + 1, iReactionIndex + 3 + 1, MWedge);
-
-		/* contributo modale:
-		 * PHIrT*RT*(e2a/\e3b + e3a/\e1b + e1a/\e2b) */
-		SubMat3.RightMult(PHIrT, R1totTranspose*MWedge);
-		WM.Add(iRigidOffset + NModes + 1, iReactionIndex + 3 + 1, SubMat3);
-
-		/* Modifica: divido le equazioni di vincolo per dCoef */
-		MWedge = MWedge.Transpose();
-
-		/* Eq. di vincolo */
-		if (pModalNode) {
-			WM.Add(iReactionIndex + 3 + 1, 3 + 1, MWedge);
-		}
-		WM.Sub(iReactionIndex + 3 + 1, iStrNodeIndex + 3 + 1, MWedge);
-
-		/* Eq. di vincolo, termine aggiuntivo modale */
-		Vec3 u1(e2ra.Cross(e3b));
-		Vec3 u2(e3ra.Cross(e1b));
-		Vec3 u3(e1ra.Cross(e2b));
-
-		M1Wedge = (Mat3x3(u1, u2, u3)).Transpose();
-		SubMat1.LeftMult(M1Wedge, PHIr);
-		WM.Add(iReactionIndex + 3 + 1, iRigidOffset + 1, SubMat1);
 	}
 
 	return WorkMat;
@@ -1272,7 +1206,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 
 		/* Eq. di vincolo */
 		if (dCoef != 0.) {
-			WorkVec.Add(iReactionIndex + 1, (x + dTmp1 - x2 - dTmp2)/dCoef);
+			WorkVec.Add(iReactionIndex + 1, (x2 + dTmp2 - x - dTmp1)/dCoef);
 		}
 
 		/* constraint reaction (moment) */
@@ -1280,15 +1214,8 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 				iModalIndex + 2*NModes + 6*iStrNodem1 + 3 + 1);
 
 		/* giunto prismatico */
-		Vec3 e1a(pR1tot[iStrNodem1].GetVec(1));
-		Vec3 e2a(pR1tot[iStrNodem1].GetVec(2));
-		Vec3 e3a(pR1tot[iStrNodem1].GetVec(3));
-		Vec3 e1b(pR2[iStrNodem1].GetVec(1));
-		Vec3 e2b(pR2[iStrNodem1].GetVec(2));
-		Vec3 e3b(pR2[iStrNodem1].GetVec(3));
-
-		Vec3 MTmp(Mat3x3(e2a.Cross(e3b), e3a.Cross(e1b),
-					e1a.Cross(e2b))*pM[iStrNodem1]);
+		Vec3 ThetaCurr = RotManip::VecRot(pR2[iStrNodem1].Transpose()*pR1tot[iStrNodem1]);
+		Vec3 MTmp = pR2[iStrNodem1]*pM[iStrNodem1];
 
 		/* Equazioni di equilibrio, nodo 1 */
 		if (pModalNode) {
@@ -1299,7 +1226,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.Add(iStrNodeIndex + 3 + 1, MTmp);
 
 		/* Contributo dovuto alla flessibilita' :-PHIrT*RtotT*M */
-		vtemp = pR1tot[iStrNodem1].Transpose()*MTmp;
+		vtemp = RT*MTmp;
 		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
 			/* PHIrTranspose(jMode) * vtemp */
 			WorkVec.DecCoef(iRigidOffset + NModes + jMode,
@@ -1309,12 +1236,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 		/* Modifica: divido le equazioni di vincolo per dCoef */
 		if (dCoef != 0.) {
 			/* Equazioni di vincolo di rotazione */
-			WorkVec.DecCoef(iReactionIndex + 3 + 1,
-					e3b.Dot(e2a)/dCoef);
-			WorkVec.DecCoef(iReactionIndex + 3 + 2,
-					e1b.Dot(e3a)/dCoef);
-			WorkVec.DecCoef(iReactionIndex + 3 + 3,
-					e2b.Dot(e1a)/dCoef);
+			WorkVec.Sub(iReactionIndex + 3 + 1, ThetaCurr/dCoef);
 		}
 	}
 
