@@ -1766,6 +1766,140 @@ of the joint with respect to node $i$ in the global frame, and
 $\T{x}_i+\T{f}_i$ is the position of the joint with respect 
 to the global frame.
 
+\subsection{Rod With Offsets}
+Distance between pin points
+\begin{equation}
+	\T{v} = \T{x}_2 + \T{f}_2 - \T{x}_1 - \T{f}_1
+\end{equation}
+scalar distance
+\begin{equation}
+	l = \sqrt{\T{v}^T \T{v}}
+\end{equation}
+strain
+\begin{equation}
+	\varepsilon = \frac{l}{l_0} - 1
+\end{equation}
+strain rate
+\begin{equation}
+	\dot{\varepsilon} = \frac{\dot{l}}{l_0}
+\end{equation}
+where
+\begin{align}
+	\dot{l} &= \frac{1}{l} \T{v}^T \dot{\T{v}} \\
+	\dot{\T{v}} &= \dot{\T{x}}_2 + \T{\omega}_2 \times \T{f}_2
+		- \dot{\T{x}}_1 - \T{\omega}_1 \times \T{f}_1
+\end{align}
+scalar force
+\begin{equation}
+	f = f\plbr{\varepsilon, \dot{\varepsilon}}
+\end{equation}
+force vector
+\begin{equation}
+	\T{F} = \frac{\T{v}}{l} f
+\end{equation}
+nodal forces and moments
+\begin{align}
+	\T{F}_1 &= -\T{F} \\
+	\T{M}_1 &= -\T{f}_1 \times \T{F} \\
+	\T{F}_2 &= \T{F} \\
+	\T{M}_2 &= \T{f}_2 \times \T{F}
+\end{align}
+equation linearization
+\begin{align}
+	\delta\T{F}_1 &= -\delta\T{F} \\
+	\delta\T{M}_1 &= -\T{f}_1 \times \delta\T{F} - \T{F}\times\T{f}_1\times \T{\theta}_{1\delta} \\
+	\delta\T{F}_2 &= \delta\T{F} \\
+	\delta\T{M}_2 &= \T{f}_2 \times \delta\T{F} + \T{F}\times\T{f}_2\times \T{\theta}_{2\delta}
+\end{align}
+force linearization
+\begin{equation}
+	\delta\T{F} = \frac{f}{l}\plbr{\T{I} - \frac{\T{v}\T{v}^T}{l^2}} \delta\T{v} + \frac{\T{v}}{l} \delta{f}
+\end{equation}
+scalar force linearization
+\begin{equation}
+	\delta{f} = \frac{\partial{f}}{\partial\varepsilon} \delta\varepsilon
+	+ \frac{\partial{f}}{\partial\dot{\varepsilon}} \delta\dot{\varepsilon}
+\end{equation}
+strain linearization
+\begin{equation}
+	\delta\varepsilon = \frac{1}{l_0}\delta{l}
+\end{equation}
+where
+\begin{align}
+	\delta{l} &= \frac{1}{l}\T{v}^T \delta\T{v} \\
+	\delta\T{v} &= \delta\T{x}_2 - \T{f}_2 \times \T{\theta}_{2\delta}
+		- \delta\T{x}_1 + \T{f}_1 \times \T{\theta}_{1\delta}
+\end{align}
+strain rate linearization
+\begin{equation}
+	\delta\dot{\varepsilon} = \frac{1}{l_0} \delta\dot{l}
+\end{equation}
+where
+\begin{align}
+	\delta\dot{l} &= \frac{\T{v}^T}{l} \delta\dot{\T{v}}
+		+ \frac{\dot{\T{v}}^T}{l}\plbr{\T{I} - \frac{\T{v}\T{v}^T}{l^2}} \delta\T{v} \\
+	\delta\dot{\T{v}} &= \delta\dot{\T{x}}_2
+		- \T{f}_2 \times \delta\T{\omega}_2 - \T{\omega}_2 \times \T{f}_2 \times \T{\theta}_{2\delta}
+		\nonumber \\
+		& \mbox{} - \delta\dot{\T{x}}_1
+		+ \T{f}_1 \times \delta\T{\omega}_1 + \T{\omega}_1 \times \T{f}_1 \times \T{\theta}_{1\delta}
+\end{align}
+to summarize:
+\begin{equation}
+	\delta\T{F} = \T{K}_{\T{v}} \delta\T{v} + \T{K}_{\dot{\T{v}}} \delta\dot{\T{v}}
+\end{equation}
+with
+\begin{align}
+	\T{K}_{\T{v}} &= \frac{f}{l} \T{I}
+		+ \plbr{
+			\frac{1}{l^2 l_0} \frac{\partial{f}}{\partial\varepsilon}
+			- \frac{\dot{l}}{l^3 l_0} \frac{\partial{f}}{\partial\dot{\varepsilon}}
+			- \frac{f}{l^3}
+		}\T{v}\T{v}^T
+		+ \frac{1}{l^2 l_0} \frac{\partial{f}}{\partial\dot{\varepsilon}} \T{v}\dot{\T{v}}^T \\
+	\T{K}_{\dot{\T{v}}} &= \frac{1}{l^2 l_0} \frac{\partial{f}}{\partial\dot{\varepsilon}} \T{v}\T{v}^T
+\end{align}
+according to the updated-updated approach,
+\begin{align}
+	\T{\theta}_{i\delta} &\cong \delta\T{g}_i \\
+	\delta\T{\omega}_i &\cong \delta\dot{\T{g}}_i - \T{\omega}\times\delta\T{g}_i
+\end{align}
+recalling that
+\begin{equation}
+	\delta{z} = c \delta\dot{z}
+\end{equation}
+the linearization of the force becomes
+\begin{align}
+	\delta\T{F} &= \plbr{c\T{K}_{\T{v}} + \T{K}_{\dot{\T{v}}}} \delta\dot{\T{x}}_2
+		\nonumber \\
+		& + \plbr{
+			- \plbr{c\T{K}_{\T{v}} + \T{K}_{\dot{\T{v}}}} \T{f}_2\times{}
+			+ c \T{K}_{\dot{\T{v}}} \plbr{\T{f}_2 \times \T{\omega}_2}\times{}
+		} \delta\dot{\T{g}}_2
+		\nonumber \\
+		& - \plbr{c\T{K}_{\T{v}} + \T{K}_{\dot{\T{v}}}} \delta\dot{\T{x}}_1
+		\nonumber \\
+		& - \plbr{
+			- \plbr{c\T{K}_{\T{v}} + \T{K}_{\dot{\T{v}}}} \T{f}_1\times{}
+			+ c \T{K}_{\dot{\T{v}}} \plbr{\T{f}_1 \times \T{\omega}_1}\times{}
+		} \delta\dot{\T{g}}_1
+\end{align}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 \subsection{Deformable Hinge}
 The deformable hinge applies an internal moment to two nodes that may depend
