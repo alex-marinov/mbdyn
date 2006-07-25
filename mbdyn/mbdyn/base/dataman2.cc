@@ -574,7 +574,8 @@ DataManager::InitialJointAssembly(void)
 
 		/* Contributo dei nodi */
 		for (StructNode** ppTmpNode = ppFirstNode;
-				ppTmpNode < ppFirstNode+iNumNodes; ppTmpNode++) {
+			ppTmpNode < ppFirstNode+iNumNodes; ppTmpNode++)
+		{
 			integer iFirstIndex = ((*ppTmpNode)->pGetDofOwner())->iFirstIndex;
 
 			/* Nuova feature: ogni nodo ha la sua stiffness */

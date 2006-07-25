@@ -1767,7 +1767,7 @@ $\T{x}_i+\T{f}_i$ is the position of the joint with respect
 to the global frame.
 
 \subsection{Rod With Offsets}
-Distance between pin points
+Distance vector between pin points
 \begin{equation}
 	\T{v} = \T{x}_2 + \T{f}_2 - \T{x}_1 - \T{f}_1
 \end{equation}
@@ -1853,7 +1853,7 @@ with
 	\T{K}_{\T{v}} &= \frac{f}{l} \T{I}
 		+ \plbr{
 			\frac{1}{l^2 l_0} \frac{\partial{f}}{\partial\varepsilon}
-			- \frac{\dot{l}}{l^3 l_0} \frac{\partial{f}}{\partial\dot{\varepsilon}}
+			- \frac{\dot{\varepsilon}}{l^3} \frac{\partial{f}}{\partial\dot{\varepsilon}}
 			- \frac{f}{l^3}
 		}\T{v}\T{v}^T
 		+ \frac{1}{l^2 l_0} \frac{\partial{f}}{\partial\dot{\varepsilon}} \T{v}\dot{\T{v}}^T \\
