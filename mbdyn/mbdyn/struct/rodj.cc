@@ -981,21 +981,6 @@ RodWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
 	Vec3 Omega1(pNode1->GetWRef());
 	Vec3 Omega2(pNode2->GetWRef());
 
-	/* v = p2-p1 */
-	/* v = x2+f2Tmp-x1-f1Tmp; */
-	doublereal dCross = v.Dot();
-
-	/* Verifica che la distanza non sia nulla */
-	if (dCross <= DBL_EPSILON) {
-		silent_cerr("RodWithOffset(" << GetLabel() << "): "
-			"null distance between nodes " << pNode1->GetLabel()
-			<< " and " << pNode2->GetLabel() << std::endl);
-		throw Joint::ErrGeneric();
-	}
-
-	/* Lunghezza corrente */
-	dElle = sqrt(dCross);
-
 	/* Velocita' di deformazione */
 	Vec3 vPrime(v2 + Omega2.Cross(f2Tmp) - v1 - Omega1.Cross(f1Tmp));
 
@@ -1007,54 +992,69 @@ RodWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
 	/* Vettore forza */
 	Vec3 F = v*(dF/dElle);
 
-	Mat3x3 K(Mat3x3(v, v*((-dF*dCoef)/(dElle*dCross)))
-		+ v.Tens(v*((dFDE*dCoef)/(dL0*dCross)))
-		+ v.Tens(v.Cross(vPrime.Cross(v*((dFDEPrime*dCoef)/(dL0*dCross*dCross))))));
+	Mat3x3 K(v.Tens(v*(dCoef*(dFDE/dL0 - (dEpsilonPrime*dFDEPrime + dF)/dElle)/(dElle*dElle))));
+	if (dFDEPrime != 0.) {
+		K += v.Tens(vPrime*(dCoef*dFDEPrime/(dElle*dElle*dL0)));
+	}
+	doublereal d = dCoef*dF/dElle;
+	for (unsigned iCnt = 1; iCnt <= 3; iCnt++) {
+		K(iCnt, iCnt) += d;
+	}
 
-	Mat3x3 KPrime(v.Tens(v*((dFDEPrime)/(dL0*dCross))));
+	Mat3x3 KPrime;
+	if (dFDEPrime != 0) {
+		KPrime = v.Tens(v*((dFDEPrime)/(dL0*dElle*dElle)));
+	}
 
 	/* Termini di forza diagonali */
-	Mat3x3 Tmp(K + KPrime);
-	WM.Add(1, 1, Tmp);
-	WM.Add(6 + 1, 6 + 1, Tmp);
+	Mat3x3 Tmp1(K);
+	if (dFDEPrime != 0.) {
+		Tmp1 += KPrime;
+	}
+	WM.Add(1, 1, Tmp1);
+	WM.Add(6 + 1, 6 + 1, Tmp1);
 
 	/* Termini di coppia, nodo 1 */
-	Mat3x3 Tmp2 = Mat3x3(f1Tmp)*Tmp;
+	Mat3x3 Tmp2 = Mat3x3(f1Tmp)*Tmp1;
 	WM.Add(3 + 1, 1, Tmp2);
 	WM.Sub(3 + 1, 6 + 1, Tmp2);
 
 	/* Termini di coppia, nodo 2 */
-	Tmp2 = Mat3x3(f2Tmp)*Tmp;
+	Tmp2 = Mat3x3(f2Tmp)*Tmp1;
 	WM.Add(9 + 1, 6 + 1, Tmp2);
 	WM.Sub(9 + 1, 1, Tmp2);
 
 	/* termini di forza extradiagonali */
-	WM.Sub(1, 6 + 1, Tmp);
-	WM.Sub(6 + 1, 1, Tmp);
+	WM.Sub(1, 6 + 1, Tmp1);
+	WM.Sub(6 + 1, 1, Tmp1);
 
 	/* Termini di rotazione, Delta g1 */
-	Tmp = K*Mat3x3(-f1Tmp)
-		+ KPrime*(Mat3x3(Omega1.Cross(f1Tmp*dCoef)) - Mat3x3(f1Tmp));
-	WM.Add(1, 3 + 1, Tmp);
-	WM.Sub(6 + 1, 3 + 1, Tmp);
+	Mat3x3 Tmp3 = Tmp1*Mat3x3(-f1Tmp);
+	if (dFDEPrime != 0.) {
+		Tmp3 += KPrime*Mat3x3(f1Tmp.Cross(Omega1*dCoef));
+	}
+	WM.Add(1, 3 + 1, Tmp3);
+	WM.Sub(6 + 1, 3 + 1, Tmp3);
 
 	/* Termini di coppia, Delta g1 */
-	Tmp2 = Mat3x3(f1Tmp)*Tmp;
-	WM.Sub(9 + 1, 3 + 1, Tmp2);
-	Tmp2 += Mat3x3(f1Tmp*dCoef, F);
+	Tmp2 = Mat3x3(f1Tmp)*Tmp3 + Mat3x3(f1Tmp*dCoef, F);
 	WM.Add(3 + 1, 3 + 1, Tmp2);
+	Tmp2 = Mat3x3(f2Tmp)*Tmp3;
+	WM.Sub(9 + 1, 3 + 1, Tmp2);
 
 	/* Termini di rotazione, Delta g2 */
-	Tmp = K*Mat3x3(-f2Tmp)
-		+ KPrime*(Mat3x3(Omega2.Cross(f2Tmp*dCoef)) - Mat3x3(f2Tmp));
-	WM.Add(6 + 1, 9 + 1, Tmp);
-	WM.Sub(1, 9 + 1, Tmp);
+	Tmp3 = Tmp1*Mat3x3(-f2Tmp);
+	if (dFDEPrime != 0.) {
+		Tmp3 += KPrime*Mat3x3(f2Tmp.Cross(Omega2*dCoef));
+	}
+	WM.Add(6 + 1, 9 + 1, Tmp3);
+	WM.Sub(1, 9 + 1, Tmp3);
 
 	/* Termini di coppia, Delta g2 */
-	Tmp2 = Mat3x3(f2Tmp)*Tmp;
-	WM.Sub(3 + 1, 9 + 1, Tmp2);
-	Tmp2 += Mat3x3(f2Tmp*dCoef, F);
+	Tmp2 = Mat3x3(f2Tmp)*Tmp3 + Mat3x3(f2Tmp*dCoef, F);
 	WM.Add(9 + 1, 9 + 1, Tmp2);
+	Tmp2 = Mat3x3(f1Tmp)*Tmp3;
+	WM.Sub(3 + 1, 9 + 1, Tmp2);
 
 	return WorkMat;
 }

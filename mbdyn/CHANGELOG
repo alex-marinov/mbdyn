@@ -47,6 +47,7 @@ MBDyn 1.X-Devel
 		  (noted by I. Wander)
 		- fixed misc errors in utils/*
 		- fixed corrupted binary FEM file leftover when parse fails
+		- fixed rod with offset bug when offset != 0
 
 MBDyn 1.2.6
 	Enhancements:
