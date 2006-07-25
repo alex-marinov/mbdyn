@@ -83,7 +83,7 @@ public:
 			const ConstitutiveLaw1D* pCL,
 			const StructNode* pN1, const StructNode* pN2,
 			doublereal dLength, flag fOut,
-			flag fHasOffsets = 0);
+			bool bHasOffsets = 0);
 
 	/* Distruttore */
 	virtual ~Rod(void);
@@ -318,6 +318,7 @@ public:
 	AssRes(SubVectorHandler& WorkVec, doublereal dCoef,
 			const VectorHandler& XCurr, 
 			const VectorHandler& XPrimeCurr);
+	void AssVec(SubVectorHandler& WorkVec);
 
 #if 0
 	/* Output di un modello NASTRAN equivalente
