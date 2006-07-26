@@ -36,7 +36,7 @@ C     Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
 C
 C
       integer maxnod, maxmod
-      parameter(maxnod=10000,maxmod=1000)
+      parameter(maxnod=20000,maxmod=1000)
       character*72 modnam, name*8,filein*9
       dimension lab(2),t(7),nam(2)
       integer outfil,in2f,in4f,sysout
@@ -248,11 +248,11 @@ C
 C     A,DA AND IA REPRESENT THE LARGEST COLUMN OF A MATRIX WHICH CAN BE
 C     READ
 C     
-      DIMENSION A(20000),DA(10000),IA(20000)
+      DIMENSION A(360000),DA(180000),IA(360000)
       EQUIVALENCE (A(1),DA(1),IA(1))
       EQUIVALENCE (DD(1),DR(1))
 C     
-      DATA LENA/20000/
+      DATA LENA/360000/
       DATA SYSOUT /6/
       
 C     
