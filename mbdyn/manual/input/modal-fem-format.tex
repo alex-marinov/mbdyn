@@ -469,6 +469,11 @@ The static solution of case (a) generates a binary file \kw{mbdyn.stm};
 the eigensolutions of cases (b--c) generate two binary files, 
 \kw{mbdyn.mat} and \kw{mbdyn.tab}, which, in case (b), include
 the static solutions as well.
+The \kw{ALTER} currently included in the MBDyn distribution work 
+correctly only with the following \kw{PARAM} data card:
+\begin{verbatim}
+PARAM,POST,-1 
+\end{verbatim}
 
 
 \item Run NASTRAN.
