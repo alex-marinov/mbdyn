@@ -259,6 +259,90 @@ is repeated for each portion of the beam.
 
 
 
+\section{Aeromodal Element}
+\emph{Note: prepared by Alessandro Scotti.}
+
+\noindent
+This element is used to model an aerodynamic modal element,
+i.e.\ an unsteady aerodynamic model that inherits the structural 
+motion from a  \htmlref{\kw{modal}}{sec:EL:STRUCT:JOINT:MODAL} element
+Its definition is very similar to that of the pure modal element, 
+but it also includes some data representing unsteady aerodynamics 
+in the time domain trough the residualization matrices.
+This element is defined as follows:
+\begin{verbatim}
+    <joint_type> ::= aeromodal
+    <joint_arglist> ::= <label> , 
+        <modal node> ,  
+        <reference modal joint> ,
+        (Mat3x3)<orientation> ,
+        <reference chord> ,
+        <number of aerodynamic states> ,
+        <state space modal matrices file>
+\end{verbatim}
+With this formulation, anytime an aeromodal element is defined, 
+the user needs to declare the number of modal aerodynamic elements 
+in use in the \kw{control data} section.
+An \htmlref{\kw{air properties}}{sec:EL:AERO:AIRPORPERTIES}
+card definition is also required. 
+The \kw{.fea} file includes the state space model in form 
+of matrices $A$, $B$, $C$, $D_0$, $D_1$ and $D_2$, according to the representation
+\begin{align*}
+	\dot{\T{x}} &= \T{A}\T{x} + \T{B}\T{q} \\	
+	\T{f} &= q\plbr{\T{C}\T{x} + \T{D}_0 \T{q} + \frac{2V_{\infty}}{c} \T{D}_1 \dot{\T{q}} + \plbr{\frac{2V_{\infty}}{c}}^2 \T{D}_2 \ddot{\T{q}}}
+\end{align*}
+where $\T{q}$ are the modal variables that describe the structural motion,
+and $\T{f}$ are the unsteady aerodynamic forces that apply to the structural
+dynamics equations.
+
+The file is formatted as follows:
+\begin{verbatim}
+    *** MATRIX A
+    (<na> x <na> coefficients)
+    *** MATRIX B
+    (<na> x <ns> coefficients)
+    *** MATRIX C
+    (<ns> x <na> coefficients)
+    *** MATRIX D0
+    (<ns> x <ns> coefficients)
+    *** MATRIX D1
+    (<ns> x <ns> coefficients)
+    *** MATRIX D2
+    (<ns> x <ns> coefficients)
+\end{verbatim}
+
+\noindent
+Example:
+\begin{verbatim}
+    aeromodal: Wing, Wing, Wing,
+        eye,
+        131.25, 10, "ha145b.fea";
+\end{verbatim}
+The \kw{aeromodal} element is declared with the label \kw{Wing}.
+This element is attached to a modal node, also labeled
+with the name \kw{Wing}, and the reference \kw{modal} joint 
+it is referred to is named \kw{Wing} as well.
+The orientation of the aerodynamic reference with respect 
+to the nodal reference is here expressed by the matrix eye.
+The aerodynamic element chord is 131.25 (inches!).
+This quantity must be consistent with the system chosen to define 
+the whole model (S.I., for example; in this case, British Units).
+The next field, 10, indicates the number of states needed to use 
+the aerodynamic model.
+The string \kw{ha145b.fea} is the name of the file that contains
+the state space model matrices, obtained with an approximation 
+chosen by the user.
+In this particular case, a 10 states Pad\'e approximation 
+has been chosen.
+This example is taken from the Bisplinghoff Ashley Halfman
+(BAH) Jet Transport Wing cantilevered wing with modal aerodynamic 
+frequency responce, computed by a double-lattice method at Mach 0.0.
+Data were extracted from the MSC-NASTRAN aeroelastic example file, 
+named \kw{ha145b}, while the aerodynamic state-space fitting 
+has been computed using a Pad\'e polynomial approximation
+(by Pasinetti \& Mantegazza).
+All quantities are expressed in inches and pounds.
+
 
 
 \section{Aircraft instruments}
@@ -304,7 +388,7 @@ The following data is available:
 
 
 
-\section{Air Properties Element}
+\section{Air Properties Element}\label{sec:EL:AERO:AIRPORPERTIES}
 The properties of the airstream are made of the physical properties
 of the air plus the description of the airstream velocity direction
 and amplitude.
