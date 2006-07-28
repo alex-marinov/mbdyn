@@ -628,6 +628,18 @@ and with arbitrary precision, with fields separated by blanks.
 The header is made of an arbitrary string, terminated by a semicolon,
 followed by the six numbers that define the dimensionality of the expected data.
 
+A simple program that allows to read and plot the C81 tables
+is available at \\
+\htmladdnormallink{\kw{http://homepage.mac.com/jhuwaldt/java/Applications/TableReader/TableReader.html}}
+        {http://homepage.mac.com/jhuwaldt/java/Applications/TableReader/TableReader.html} \\
+(thanks to Marco Fossati for pointing it out).
+
+A simple utility that parses the C81 file and computes 
+the aerodynamic coefficients for a given pair of angle of attack 
+and Mach number is \kw{c81test}, available in the MBDyn utils suite.
+This routine uses exactly the same code internally used by MBDyn,
+so it should be considered a check of the code rather than a real tool.
+
 
 \subsection{Drive Caller}\label{sec:DRIVE-CALLER}
 \begin{verbatim}
