@@ -164,7 +164,7 @@ mdlStart(SimStruct *S)
 			mxGetString(MBDYN_PATH_NAME_PARAM, mbdyn_name,
 					sizeof(mbdyn_name));
 		} else {
-			strcpy(mbdyn_name, "./mbdyn");
+			strcpy(mbdyn_name, "./mbdyn.sh");
 		}
 		parameter[count] = mbdyn_name;
 		count++;	

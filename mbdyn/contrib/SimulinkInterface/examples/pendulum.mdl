@@ -364,7 +364,7 @@ Model {
       SourceBlock	      "MBDynCom/start MBDyn"
       SourceType	      ""
       enable_path	      on
-      mbdyn_path	      "'../../mbdyn/mbdyn'"
+      mbdyn_path	      "'./mbdyn.sh'"
       input_file	      "'examples/pendulum'"
       enable_out	      on
       output_file	      "'tmp/pendulum_controlled'"

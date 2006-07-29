@@ -216,7 +216,7 @@ Library {
       MaskIconOpaque	      on
       MaskIconRotate	      "none"
       MaskIconUnits	      "autoscale"
-      MaskValueString	      "off|'../../mbdyn/mbdyn'|''|off|''|off|off"
+      MaskValueString	      "off|'./mbdyn.sh'|''|off|''|off|off"
     }
     Block {
       BlockType		      "S-Function"
