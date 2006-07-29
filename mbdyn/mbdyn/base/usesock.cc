@@ -70,7 +70,7 @@ socklen(0)
 UseSocket::~UseSocket(void)
 {
 	if (sock != -1) {
-		shutdown(sock, SHUT_RD);
+		shutdown(sock, SHUT_RDWR);
 		close(sock);
 	}
 }
