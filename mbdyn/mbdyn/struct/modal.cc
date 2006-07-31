@@ -2428,10 +2428,6 @@ ReadModal(DataManager* pDM,
 	Vec3 X0(Zero3);
 	Mat3x3 R(Eye3);
 
-	silent_cout("Modal(" << uLabel << "): warning, the syntax changed "
-		"since 1.2.7; the output now occurs to a common \".mod\" file, "
-		"the per-element file is no longer required." << std::endl);
-
 	/* If the modal element is clamped, a fixed position 
 	 * and orientation of the reference point can be added */
 	if (HP.IsKeyWord("clamped")) {
@@ -3078,6 +3074,14 @@ ReadModal(DataManager* pDM,
 				unsigned int iCnt = 1;
 				for (unsigned int jMode = 1; jMode <= NModesFEM; jMode++) {
 					fdat.getline(str, sizeof(str));
+					if (strncmp("**", str, sizeof("**") - 1) != 0) {
+						silent_cerr("Modal(" << uLabel << "): "
+							"input file \"" << sFileFem << "\""
+							"is bogus (\"**\" expected)"
+							<< std::endl);
+						throw ErrGeneric();
+					}
+					
 					for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
 						doublereal n[6];
 	
@@ -4126,6 +4130,13 @@ ReadModal(DataManager* pDM,
 	}
 #endif /* DEBUG */
 
+	if (HP.IsStringWithDelims()) {
+		const char *sTmp = HP.GetFileName();
+		silent_cout("Modal(" << uLabel << "): warning, the syntax changed "
+			"since 1.2.7; the output now occurs to a common \".mod\" file, "
+			"the per-element file \"" << sTmp << "\" is no longer required, "
+			"and will actually be ignored." << std::endl);
+	}
 	flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
 
 	SAFENEWWITHCONSTRUCTOR(pEl,

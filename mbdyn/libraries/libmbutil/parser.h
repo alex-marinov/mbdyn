@@ -289,6 +289,9 @@ protected:
 	virtual bool GetDescription_int(const char *s);
 	virtual void Eof(void);
 
+	virtual void
+	SetDelims(enum Delims Del, char &cLdelim, char &cRdelim) const;
+
 	int ParseWord(unsigned flags = HighParser::NONE);
 	void PutbackWord(void);
 
@@ -319,6 +322,8 @@ public:
 	virtual int IsKeyWord(void);
 	/* 1 se e' atteso un argomento */
 	virtual bool IsArg(void);
+	/* 1 se e' atteso un argomento */
+	virtual bool IsStringWithDelims(enum Delims Del = DEFAULTDELIM);
 	/* se l'argomento successivo e' una parola in un WordSet, la ritorna */
 	virtual const char *IsWord(const HighParser::WordSet& ws);
 	/* Se ha letto un ";" lo rimette a posto */

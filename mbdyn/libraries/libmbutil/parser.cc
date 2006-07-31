@@ -930,6 +930,60 @@ HighParser::GetString(unsigned flags)
 	return s;
 }
 
+void
+HighParser::SetDelims(enum Delims Del, char &cLdelim, char &cRdelim) const
+{
+	cLdelim = '\0';
+	cRdelim = '\0';
+
+	switch (Del) {
+	case PLAINBRACKETS:
+		cLdelim = '(';
+		cRdelim = ')';
+		break;
+
+	case SQUAREBRACKETS:
+		cLdelim = '[';
+		cRdelim = ']';
+		break;
+
+	case CURLYBRACKETS:
+		cLdelim = '{';
+		cRdelim = '}';
+		break;
+
+	case SINGLEQUOTE:
+		cLdelim = '`';
+		cRdelim = '\'';
+		break;
+
+	default:
+	case UNKNOWNDELIM:
+	case DEFAULTDELIM:
+	case DOUBLEQUOTE:
+		cLdelim = '"';
+		cRdelim = '"';
+		break;
+	}
+}
+
+bool
+HighParser::IsStringWithDelims(enum Delims Del)
+{
+	char cLdelim, cRdelim;
+	SetDelims(Del, cLdelim, cRdelim);
+
+	char cIn;
+	if (skip_remarks(*this, *pIn, cIn)) {
+		return false;
+	}
+
+	/* put back the first non-remark char */
+	pIn->putback(cIn);
+
+	/* if the left delimiter is found, true */
+	return (cIn == cLdelim);
+}
 
 const char*
 HighParser::GetStringWithDelims(enum Delims Del, bool escape)
@@ -946,34 +1000,8 @@ HighParser::GetStringWithDelims(enum Delims Del, bool escape)
    char* s = sStringBuf;
    char* sTmp = s;
 
-   char cLdelim = '\0';
-   char cRdelim = '\0';
-
-   switch (Del) {
-    case PLAINBRACKETS:
-      cLdelim = '(';
-      cRdelim = ')';
-      break;
-    case SQUAREBRACKETS:
-      cLdelim = '[';
-      cRdelim = ']';
-      break;
-    case CURLYBRACKETS:
-      cLdelim = '{';
-      cRdelim = '}';
-      break;
-    case SINGLEQUOTE:
-      cLdelim = '`';
-      cRdelim = '\'';
-      break;
-    default:
-    case UNKNOWNDELIM:
-    case DEFAULTDELIM:
-    case DOUBLEQUOTE:
-      cLdelim = '"';
-      cRdelim = '"';
-      break;
-   }
+   char cLdelim, cRdelim;
+   SetDelims(Del, cLdelim, cRdelim);
 
    char cIn;
    if (skip_remarks(*this, *pIn, cIn)) {
