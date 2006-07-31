@@ -1471,6 +1471,7 @@ IfFirstStepIsToBeRepeated:
 			silent_cout("End of simulation at time "
 				<< dTime << " after "
 				<< iStep << " steps;" << std::endl
+				<< "output in file \"" << sOutputFileName << "\"" << std::endl
 				<< "total iterations: " << iTotIter << std::endl
 				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
 				<< "total error: " << dTotErr << std::endl);
