@@ -1913,13 +1913,18 @@ $ \varepsilon $ is smaller than \kw{reference\_strain}, while it grows to
 quasi-linear for higher $ \varepsilon$s
 
 \subsection{Scalar function elastic, scalar function elastic isotropic}
+This constitutive law is based on a 
+\htmlref{\kw{scalar function} (Section~\ref{sec:SCALARFUNCS})}
+	{sec:SCALARFUNCS}
+to represent an analytical curve of a single variable that is automatically
+differentiated to compute the slope of the curve.
 \begin{verbatim}
     <specific_const_law> ::= scalar function elastic isotropic ,
         (DifferentiableScalarFunction)<function>
 \end{verbatim}
 this constitutive law is defined as follows:
 \begin{displaymath}
-	f_i = \mathrm{<function>}\plbr{\T{\varepsilon}_i}
+	f_i = \mathtt{<function>}\plbr{\T{\varepsilon}_i}
 \end{displaymath}
 the force is computed for each direction as a function of the respective
 strain component using the same function.
@@ -1928,12 +1933,12 @@ When used for 1D elements, the word \kw{isotropic} can be omitted.
 \subsection{Scalar function elastic orthotropic}
 \begin{verbatim}
     <specific_const_law> ::= scalar function elastic orthotropic ,
-        (DifferentiableScalarFunction)<function>
+        { (DifferentiableScalarFunction)<function> | null }
         [ , ... ]
 \end{verbatim}
 this constitutive law is defined as follows:
 \begin{displaymath}
-	f_i = \mathrm{<function>}_i\plbr{\T{\varepsilon}_i}
+	f_i = \mathtt{<function>}_i\plbr{\T{\varepsilon}_i}
 \end{displaymath}
 the force is computed for each direction as a function of the respective
 strain component using a specific function for each component.
