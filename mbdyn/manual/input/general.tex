@@ -1735,24 +1735,26 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
 	\multicolumn{1}{c}{\textbf{\emph{3D}}} &
 	\multicolumn{1}{c}{\textbf{\emph{6D}}} \\ 
 	\hline
-	linear elastic, linear elastic isotropic               & x & x & x \\
-	linear elastic generic                                 & x & x & x \\
-	linear elastic generic axial torsion coupling          &   &   & x \\
-	cubic elastic generic                                  & x & x &   \\
-	log elastic                                            & x &   &   \\
-	linear elastic generic bi-stop                         & x & x & x \\
-	double linear elastic                                  & x & x &   \\
-	isotropic hardening elastic                            & x & x & x \\
-	linear viscous, linear viscous isotropic               & x & x & x \\
-	linear viscous generic                                 & x & x & x \\
-	linear viscoelastic, linear viscoelastic isotropic     & x & x & x \\
-	linear viscoelastic generic                            & x & x & x \\
-	linear viscoelastic generic axial torsion coupling     &   &   & x \\
-	cubic viscoelastic generic                             & x & x &   \\
-	double linear viscoelastic                             & x & x &   \\
-	turbulent viscoelastic                                 & x &   &   \\
-	linear viscoelastic generic bi-stop                    & x & x & x \\
-	shock absorber                                         & x &   &   \\
+	linear elastic, linear elastic isotropic			& x & x & x \\
+	linear elastic generic						& x & x & x \\
+	linear elastic generic axial torsion coupling			&   &   & x \\
+	cubic elastic generic						& x & x &   \\
+	log elastic							& x &   &   \\
+	linear elastic generic bi-stop					& x & x & x \\
+	double linear elastic						& x & x &   \\
+	isotropic hardening elastic					& x & x & x \\
+	scalar function elastic, scalar function elastic isotropic	& x & x & x \\
+	scalar function elastic orthotropic				& x & x & x \\
+	linear viscous, linear viscous isotropic			& x & x & x \\
+	linear viscous generic						& x & x & x \\
+	linear viscoelastic, linear viscoelastic isotropic		& x & x & x \\
+	linear viscoelastic generic					& x & x & x \\
+	linear viscoelastic generic axial torsion coupling		&   &   & x \\
+	cubic viscoelastic generic					& x & x &   \\
+	double linear viscoelastic					& x & x &   \\
+	turbulent viscoelastic						& x &   &   \\
+	linear viscoelastic generic bi-stop				& x & x & x \\
+	shock absorber							& x &   &   \\
 	\hline
     \end{tabular}
 \end{table}
@@ -1909,6 +1911,59 @@ where $ \alpha=3/\shbr{\kw{reference\_strain}}^2 $. The resulting
 constitutive law, in the scalar case, is somewhat soft when
 $ \varepsilon $ is smaller than \kw{reference\_strain}, while it grows to
 quasi-linear for higher $ \varepsilon$s
+
+\subsection{Scalar function elastic isotropic}
+\begin{verbatim}
+    <specific_const_law> ::= scalar function elastic isotropic ,
+        (DifferentiableScalarFunction)<function>
+\end{verbatim}
+this constitutive law is defined as follows:
+\begin{displaymath}
+	f_i = \mathrm{<function>}\plbr{\T{\varepsilon}_i}
+\end{displaymath}
+the force is computed for each direction as a function of the respective
+strain component using the same function.
+When used for 1D elements, the word \kw{isotropic} can be omitted.
+
+\subsection{Scalar function elastic orthotropic}
+\begin{verbatim}
+    <specific_const_law> ::= scalar function elastic orthotropic ,
+        (DifferentiableScalarFunction)<function>
+        [ , ... ]
+\end{verbatim}
+this constitutive law is defined as follows:
+\begin{displaymath}
+	f_i = \mathrm{<function>}_i\plbr{\T{\varepsilon}_i}
+\end{displaymath}
+the force is computed for each direction as a function of the respective
+strain component using a specific function for each component.
+If no force ought to be used for a direction, for example because 
+that direction is constrained by a kinematic joint, the keyword \kw{null}
+can be used to indicate that no function is expected for that component.
+When used for 1D elements, the word \kw{orthotropic} can be omitted;
+note that in this case a \kw{scalar function elastic isotropic}
+constitutive law is actually instantiated.
+Example:
+\begin{verbatim}
+    scalar function: "myfunc", multilinear,
+        -1., -100.,
+        -.5, -70.,
+        0., 0.,
+        .5, 70.,
+        1., 100.;
+    joint: 1000, revolute hinge,
+        2000, reference, node, null,
+        3000, reference, node, null;
+    joint: 1001, deformable hinge,
+        2000,                                 # node 1
+        3000,                                 # node 2
+        scalar function elastic orthotropic,
+            null,                             # no couple is computed
+            null,                             # no couple is computed
+            "myfunc";
+\end{verbatim}
+indicates that the deformable hinge joint constitutive law
+is only defined about axis 2 as a multilinear function.
 
 \subsection{Linear viscous, linear viscous isotropic}
 \begin{verbatim}

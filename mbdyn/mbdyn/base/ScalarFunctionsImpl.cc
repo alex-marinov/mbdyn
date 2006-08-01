@@ -662,15 +662,20 @@ ScalarFunctionIsotropicCLR<T, Tder>::Read(const DataManager* pDM,
 
 	CLType = ConstLawType::ELASTIC;
 
-	int n = 1;
-	if (typeid(T) == typeid(Vec3)) {
+	int n = 0;
+	if (typeid(T) == typeid(doublereal)) {
+		n = 1;
+
+	} else if (typeid(T) == typeid(Vec3)) {
 		n = 3;
 
 	} else if (typeid(T) == typeid(Vec6)) {
 		n = 6;
 
-	} else if (typeid(T) != typeid(doublereal)) {
-		silent_cerr("ScalarFunctionIsotropicCL<" << typeid(T).name() << ", " << typeid(Tder).name() << "> not implemented" << std::endl);
+	} else {
+		silent_cerr("ScalarFunctionIsotropicCL"
+			"<" << typeid(T).name() << ", " << typeid(Tder).name() << "> "
+			"not implemented" << std::endl);
 		throw ErrGeneric();
 	}
 	
@@ -960,7 +965,7 @@ InitSF(void)
 	/* this is about initializing the scalar function constitutive law(s) */
 	ConstitutiveLawRead<doublereal, doublereal> *rf1D
 		= new ScalarFunctionIsotropicCLR<doublereal, doublereal>;
-	if (!SetCL1D("scalar" "function" "isotropic", rf1D)) {
+	if (!SetCL1D("scalar" "function" "elastic" "isotropic", rf1D)) {
 		delete rf1D;
 
 		silent_cerr("unable to register scalar function isotropic 1D constitutive law"
@@ -970,7 +975,7 @@ InitSF(void)
 	}
 
 	rf1D = new ScalarFunctionIsotropicCLR<doublereal, doublereal>;
-	if (!SetCL1D("scalar" "function" "orthotropic", rf1D)) {
+	if (!SetCL1D("scalar" "function" "elastic" "orthotropic", rf1D)) {
 		delete rf1D;
 
 		silent_cerr("unable to register scalar function orthotropic 1D constitutive law"
@@ -980,7 +985,7 @@ InitSF(void)
 	}
 
 	rf1D = new ScalarFunctionIsotropicCLR<doublereal, doublereal>;
-	if (!SetCL1D("scalar" "function", rf1D)) {
+	if (!SetCL1D("scalar" "function" "elastic", rf1D)) {
 		delete rf1D;
 
 		silent_cerr("unable to register scalar function 1D constitutive law"
@@ -990,7 +995,7 @@ InitSF(void)
 	}
 
 	ConstitutiveLawRead<Vec3, Mat3x3> *rf3D = new ScalarFunctionIsotropicCLR<Vec3, Mat3x3>;
-	if (!SetCL3D("scalar" "function" "isotropic", rf3D)) {
+	if (!SetCL3D("scalar" "function" "elastic" "isotropic", rf3D)) {
 		delete rf3D;
 
 		silent_cerr("unable to register scalar function isotropic 3D constitutive law"
@@ -1000,7 +1005,7 @@ InitSF(void)
 	}
 
 	rf3D = new ScalarFunctionOrthotropicCLR<Vec3, Mat3x3>;
-	if (!SetCL3D("scalar" "function" "orthotropic", rf3D)) {
+	if (!SetCL3D("scalar" "function" "elastic" "orthotropic", rf3D)) {
 		delete rf3D;
 
 		silent_cerr("unable to register scalar function orthotropic 3D constitutive law"
@@ -1010,7 +1015,7 @@ InitSF(void)
 	}
 
 	ConstitutiveLawRead<Vec6, Mat6x6> *rf6D = new ScalarFunctionIsotropicCLR<Vec6, Mat6x6>;
-	if (!SetCL6D("scalar" "function" "isotropic", rf6D)) {
+	if (!SetCL6D("scalar" "function" "elastic" "isotropic", rf6D)) {
 		delete rf6D;
 
 		silent_cerr("unable to register scalar function isotropic 6D constitutive law"
@@ -1020,7 +1025,7 @@ InitSF(void)
 	}
 
 	rf6D = new ScalarFunctionOrthotropicCLR<Vec6, Mat6x6>;
-	if (!SetCL6D("scalar" "function" "orthotropic", rf6D)) {
+	if (!SetCL6D("scalar" "function" "elastic" "orthotropic", rf6D)) {
 		delete rf6D;
 
 		silent_cerr("unable to register scalar function orthotropic 6D constitutive law"
