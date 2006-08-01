@@ -56,7 +56,7 @@
 #include "s2s.h"
 
 #include "solman.h"
-#include "lapackwrap.h"
+#include "linsol.h"
 
 /* I/O classes (stream, using cin/cout) or socket,
  * using MBDyn native socket communication */
@@ -492,10 +492,11 @@ NRTrim::DoTrim(const std::vector<double> expectedMeasures,
 				X(incrControls.size());
 	std::vector<double>	Fref(expectedMeasures.size()),
 				F(expectedMeasures.size(), 0.);
-	LapackSolutionManager	sm(expectedMeasures.size(), 1.);
-	MatrixHandler		*pM = sm.pMatHdl();
-	VectorHandler		*pR = sm.pResHdl();
-	VectorHandler		*pX = sm.pSolHdl();
+	LinSol			LS;
+	SolutionManager		*psm(LS.GetSolutionManager(expectedMeasures.size()));
+	MatrixHandler		*pM = psm->pMatHdl();
+	VectorHandler		*pR = psm->pResHdl();
+	VectorHandler		*pX = psm->pSolHdl();
 
 	if (expectedMeasures.size() != incrControls.size()) {
 		return -1;
@@ -527,7 +528,7 @@ NRTrim::DoTrim(const std::vector<double> expectedMeasures,
 			pR->PutCoef(i + 1, expectedMeasures[i] - Fref[i]);
 		}
 
-		sm.Solve();
+		psm->Solve();
 
 		for (unsigned int i = 0; i < incrControls.size(); i++) {
 			X[i] = Xref[i] + pX->dGetCoef(i + 1);
