@@ -739,6 +739,11 @@ public:
 	virtual void Update(const T& Eps, const T& /* EpsPrime */  = 0.) {
 		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
 		for (int i = 1; i <= n; i++) {
+			/* skip null scalar functions */
+			if (SF[i - 1] == 0) {
+				continue;
+			}
+
 #ifdef MBDYN_X_WORKAROUND_GCC_3_3
 			ConstitutiveLaw<T, Tder>::F.Put(i, (*SF[i - 1])(Eps(i)));
 			ConstitutiveLaw<T, Tder>::FDE.Put(i, i, SF[i - 1]->ComputeDiff(Eps(i)));
@@ -785,12 +790,17 @@ ScalarFunctionOrthotropicCLR<T, Tder>::Read(const DataManager* pDM,
 	
 	std::vector<const DifferentiableScalarFunction *> SF(n);
 	for (int i = 0; i < n; i++) {
-		const BasicScalarFunction *pSF = ParseScalarFunction(HP, (DataManager *const)pDM);
-		SF[i] = dynamic_cast<const DifferentiableScalarFunction *>(pSF);
-		if (SF[i] == 0) {
-			silent_cerr("ScalarFunction #" << i + 1 << " must be differentiable "
-				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+		if (HP.IsKeyWord("null")) {
+			SF[i] = 0;
+
+		} else {
+			const BasicScalarFunction *pSF = ParseScalarFunction(HP, (DataManager *const)pDM);
+			SF[i] = dynamic_cast<const DifferentiableScalarFunction *>(pSF);
+			if (SF[i] == 0) {
+				silent_cerr("ScalarFunction #" << i + 1 << " must be differentiable "
+					"at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric();
+			}
 		}
 	}
 
