@@ -49,7 +49,7 @@
 #ifndef ScalarFunctionsImpl_hh
 #define ScalarFunctionsImpl_hh
 
-#include<vector>
+#include <vector>
 
 #include "ScalarFunctions.h"
 
@@ -156,9 +156,6 @@ public:
 	virtual doublereal operator()(const doublereal x) const;
 	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
 };
-
-
-
 
 #endif /* ScalarFunctionsImpl_hh */
 

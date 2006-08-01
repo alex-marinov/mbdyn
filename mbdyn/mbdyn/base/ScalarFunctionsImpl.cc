@@ -51,6 +51,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <cmath>
+#include <typeinfo>
 
 #include "myassert.h"
 
@@ -539,6 +540,267 @@ ScalarFunctionDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
+// ScalarFunction constitutive laws
+
+template <class T, class Tder>
+class ScalarFunctionIsotropicCL
+: public ConstitutiveLaw<T, Tder> {
+private:
+	const DifferentiableScalarFunction * pSF;
+	int n;
+
+public:
+	ScalarFunctionIsotropicCL(const DifferentiableScalarFunction * psf)
+	: pSF(psf) {
+		if (typeid(T) == typeid(Vec3)) {
+			n = 3;
+
+		} else if (typeid(T) == typeid(Vec6)) {
+			n = 6;
+
+		} else {
+			silent_cerr("ScalarFunctionIsotropicCL<" << typeid(T).name() << ", " << typeid(Tder).name() << "> not implemented" << std::endl);
+			throw ErrGeneric();
+		}
+	};
+
+	virtual ~ScalarFunctionIsotropicCL(void) {
+		NO_OP;
+	};
+
+	ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::ELASTIC;
+	};
+
+	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
+		ConstitutiveLaw<T, Tder>* pCL = NULL;
+
+		typedef ScalarFunctionIsotropicCL<T, Tder> cl;
+		SAFENEWWITHCONSTRUCTOR(pCL, cl, cl(pSF));
+		return pCL;
+	};
+
+	virtual std::ostream& Restart(std::ostream& out) const {
+		return out << "# not implemented!";
+	};
+
+	virtual void Update(const T& Eps, const T& /* EpsPrime */  = 0.) {
+		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
+		for (int i = 1; i <= n; i++) {
+#ifdef MBDYN_X_WORKAROUND_GCC_3_3
+			ConstitutiveLaw<T, Tder>::F.Put(i, (*pSF)(Eps(i)));
+			ConstitutiveLaw<T, Tder>::FDE.Put(i, i, pSF->ComputeDiff(Eps(i)));
+#else // !MBDYN_X_WORKAROUND_GCC_3_3
+			ConstitutiveLaw<T, Tder>::F(i) = (*pSF)(Eps(i));
+			ConstitutiveLaw<T, Tder>::FDE(i, i) = pSF->ComputeDiff(Eps(i));
+#endif // !MBDYN_X_WORKAROUND_GCC_3_3
+		}
+	};
+
+	virtual void IncrementalUpdate(const T& DeltaEps, const T& /* EpsPrime */ = 0.) {
+		Update(ConstitutiveLaw<T, Tder>::Epsilon + DeltaEps);
+	};
+};
+
+template <>
+class ScalarFunctionIsotropicCL<doublereal, doublereal>
+: public ConstitutiveLaw<doublereal, doublereal> {
+private:
+	const DifferentiableScalarFunction *pSF;
+
+public:
+	ScalarFunctionIsotropicCL(const DifferentiableScalarFunction * psf)
+	: pSF(psf) {
+		NO_OP;
+	};
+
+	virtual ~ScalarFunctionIsotropicCL(void) {
+		NO_OP;
+	};
+
+	ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::ELASTIC;
+	};
+
+	virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const {
+		ConstitutiveLaw<doublereal, doublereal>* pCL = NULL;
+
+		typedef ScalarFunctionIsotropicCL<doublereal, doublereal> cl;
+		SAFENEWWITHCONSTRUCTOR(pCL, cl, cl(pSF));
+		return pCL;
+	};
+
+	virtual std::ostream& Restart(std::ostream& out) const {
+		return out << "# not implemented!";
+	};
+
+	virtual void Update(const doublereal& Eps, const doublereal& /* EpsPrime */  = 0.) {
+		ConstitutiveLaw<doublereal, doublereal>::Epsilon = Eps;
+		ConstitutiveLaw<doublereal, doublereal>::F = (*pSF)(Eps);
+		ConstitutiveLaw<doublereal, doublereal>::FDE = pSF->ComputeDiff(Eps);
+	};
+
+	virtual void IncrementalUpdate(const doublereal& DeltaEps, const doublereal& /* EpsPrime */ = 0.) {
+		Update(ConstitutiveLaw<doublereal, doublereal>::Epsilon + DeltaEps);
+	};
+};
+
+/* specific functional object(s) */
+template <class T, class Tder>
+struct ScalarFunctionIsotropicCLR : public ConstitutiveLawRead<T, Tder> {
+	virtual ConstitutiveLaw<T, Tder> *
+	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType);
+};
+
+template <class T, class Tder>
+ConstitutiveLaw<T, Tder> *
+ScalarFunctionIsotropicCLR<T, Tder>::Read(const DataManager* pDM,
+	MBDynParser& HP,
+	ConstLawType::Type& CLType)
+{
+	ConstitutiveLaw<T, Tder>* pCL = 0;
+
+	CLType = ConstLawType::ELASTIC;
+
+	int n = 1;
+	if (typeid(T) == typeid(Vec3)) {
+		n = 3;
+
+	} else if (typeid(T) == typeid(Vec6)) {
+		n = 6;
+
+	} else if (typeid(T) != typeid(doublereal)) {
+		silent_cerr("ScalarFunctionIsotropicCL<" << typeid(T).name() << ", " << typeid(Tder).name() << "> not implemented" << std::endl);
+		throw ErrGeneric();
+	}
+	
+	const BasicScalarFunction *pSF = ParseScalarFunction(HP, (DataManager *const)pDM);
+	const DifferentiableScalarFunction *psf = dynamic_cast<const DifferentiableScalarFunction *>(pSF);
+	if (psf == 0) {
+		silent_cerr("ScalarFunction must be differentiable "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric();
+	}
+
+	typedef ScalarFunctionIsotropicCL<T, Tder> L;
+	SAFENEWWITHCONSTRUCTOR(pCL, L, L(psf));
+
+	return pCL;
+}
+
+template <class T, class Tder>
+class ScalarFunctionOrthotropicCL
+: public ConstitutiveLaw<T, Tder> {
+private:
+	std::vector<const DifferentiableScalarFunction *> SF;
+	int n;
+
+public:
+	ScalarFunctionOrthotropicCL(const std::vector<const DifferentiableScalarFunction *>& sf)
+	{
+		if (typeid(T) == typeid(Vec3)) {
+			n = 3;
+
+		} else if (typeid(T) == typeid(Vec6)) {
+			n = 6;
+
+		} else {
+			silent_cerr("ScalarFunctionOrthotropicCL<" << typeid(T).name() << ", " << typeid(Tder).name() << "> not implemented" << std::endl);
+			throw ErrGeneric();
+		}
+
+		ASSERT(sf.size() == n);
+		SF.resize(n);
+		for (int i = 0; i < n; i++) {
+			SF[i] = sf[i];
+		}
+	};
+
+	virtual ~ScalarFunctionOrthotropicCL(void) {
+		NO_OP;
+	};
+
+	ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::ELASTIC;
+	};
+
+	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
+		ConstitutiveLaw<T, Tder>* pCL = NULL;
+
+		typedef ScalarFunctionOrthotropicCL<T, Tder> cl;
+		SAFENEWWITHCONSTRUCTOR(pCL, cl, cl(SF));
+		return pCL;
+	};
+
+	virtual std::ostream& Restart(std::ostream& out) const {
+		return out << "# not implemented!";
+	};
+
+	virtual void Update(const T& Eps, const T& /* EpsPrime */  = 0.) {
+		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
+		for (int i = 1; i <= n; i++) {
+#ifdef MBDYN_X_WORKAROUND_GCC_3_3
+			ConstitutiveLaw<T, Tder>::F.Put(i, (*SF[i - 1])(Eps(i)));
+			ConstitutiveLaw<T, Tder>::FDE.Put(i, i, SF[i - 1]->ComputeDiff(Eps(i)));
+#else // !MBDYN_X_WORKAROUND_GCC_3_3
+			ConstitutiveLaw<T, Tder>::F(i) = (*SF[i - 1])(Eps(i));
+			ConstitutiveLaw<T, Tder>::FDE(i, i) = SF[i - 1]->ComputeDiff(Eps(i));
+#endif // !MBDYN_X_WORKAROUND_GCC_3_3
+		}
+	};
+
+	virtual void IncrementalUpdate(const T& DeltaEps, const T& /* EpsPrime */ = 0.) {
+		Update(ConstitutiveLaw<T, Tder>::Epsilon + DeltaEps);
+	};
+};
+
+/* specific functional object(s) */
+template <class T, class Tder>
+struct ScalarFunctionOrthotropicCLR : public ConstitutiveLawRead<T, Tder> {
+	virtual ConstitutiveLaw<T, Tder> *
+	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType);
+};
+
+template <class T, class Tder>
+ConstitutiveLaw<T, Tder> *
+ScalarFunctionOrthotropicCLR<T, Tder>::Read(const DataManager* pDM,
+	MBDynParser& HP,
+	ConstLawType::Type& CLType)
+{
+	ConstitutiveLaw<T, Tder>* pCL = 0;
+
+	CLType = ConstLawType::ELASTIC;
+
+	int n = 1;
+	if (typeid(T) == typeid(Vec3)) {
+		n = 3;
+
+	} else if (typeid(T) == typeid(Vec6)) {
+		n = 6;
+
+	} else if (typeid(T) != typeid(doublereal)) {
+		silent_cerr("ScalarFunctionOrthotropicCL<" << typeid(T).name() << ", " << typeid(Tder).name() << "> not implemented" << std::endl);
+		throw ErrGeneric();
+	}
+	
+	std::vector<const DifferentiableScalarFunction *> SF(n);
+	for (int i = 0; i < n; i++) {
+		const BasicScalarFunction *pSF = ParseScalarFunction(HP, (DataManager *const)pDM);
+		SF[i] = dynamic_cast<const DifferentiableScalarFunction *>(pSF);
+		if (SF[i] == 0) {
+			silent_cerr("ScalarFunction #" << i + 1 << " must be differentiable "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric();
+		}
+	}
+
+	typedef ScalarFunctionOrthotropicCL<T, Tder> L;
+	SAFENEWWITHCONSTRUCTOR(pCL, L, L(SF));
+
+	return pCL;
+}
+
+// ScalarFunction parsing functional objects
 struct ConstSFR: public ScalarFunctionRead {
 	virtual const BasicScalarFunction *
 	Read(DataManager* const pDM, MBDynParser& HP) const {
@@ -680,6 +942,78 @@ InitSF(void)
 		delete rf;
 
 		silent_cerr("unable to register scalar function drive caller"
+			<< std::endl);
+
+		throw ErrGeneric();
+	}
+
+	/* this is about initializing the scalar function constitutive law(s) */
+	ConstitutiveLawRead<doublereal, doublereal> *rf1D
+		= new ScalarFunctionIsotropicCLR<doublereal, doublereal>;
+	if (!SetCL1D("scalar" "function" "isotropic", rf1D)) {
+		delete rf1D;
+
+		silent_cerr("unable to register scalar function isotropic 1D constitutive law"
+			<< std::endl);
+
+		throw ErrGeneric();
+	}
+
+	rf1D = new ScalarFunctionIsotropicCLR<doublereal, doublereal>;
+	if (!SetCL1D("scalar" "function" "orthotropic", rf1D)) {
+		delete rf1D;
+
+		silent_cerr("unable to register scalar function orthotropic 1D constitutive law"
+			<< std::endl);
+
+		throw ErrGeneric();
+	}
+
+	rf1D = new ScalarFunctionIsotropicCLR<doublereal, doublereal>;
+	if (!SetCL1D("scalar" "function", rf1D)) {
+		delete rf1D;
+
+		silent_cerr("unable to register scalar function 1D constitutive law"
+			<< std::endl);
+
+		throw ErrGeneric();
+	}
+
+	ConstitutiveLawRead<Vec3, Mat3x3> *rf3D = new ScalarFunctionIsotropicCLR<Vec3, Mat3x3>;
+	if (!SetCL3D("scalar" "function" "isotropic", rf3D)) {
+		delete rf3D;
+
+		silent_cerr("unable to register scalar function isotropic 3D constitutive law"
+			<< std::endl);
+
+		throw ErrGeneric();
+	}
+
+	rf3D = new ScalarFunctionOrthotropicCLR<Vec3, Mat3x3>;
+	if (!SetCL3D("scalar" "function" "orthotropic", rf3D)) {
+		delete rf3D;
+
+		silent_cerr("unable to register scalar function orthotropic 3D constitutive law"
+			<< std::endl);
+
+		throw ErrGeneric();
+	}
+
+	ConstitutiveLawRead<Vec6, Mat6x6> *rf6D = new ScalarFunctionIsotropicCLR<Vec6, Mat6x6>;
+	if (!SetCL6D("scalar" "function" "isotropic", rf6D)) {
+		delete rf6D;
+
+		silent_cerr("unable to register scalar function isotropic 6D constitutive law"
+			<< std::endl);
+
+		throw ErrGeneric();
+	}
+
+	rf6D = new ScalarFunctionOrthotropicCLR<Vec6, Mat6x6>;
+	if (!SetCL6D("scalar" "function" "orthotropic", rf6D)) {
+		delete rf6D;
+
+		silent_cerr("unable to register scalar function orthotropic 6D constitutive law"
 			<< std::endl);
 
 		throw ErrGeneric();
