@@ -1956,19 +1956,14 @@ Example:
         0., 0.,
         .5, 70.,
         1., 100.;
-    joint: 1000, revolute hinge,
-        2000, reference, node, null,
-        3000, reference, node, null;
-    joint: 1001, deformable hinge,
-        2000,                                 # node 1
-        3000,                                 # node 2
+    constitutive law: 1000, 3,
         scalar function elastic orthotropic,
-            null,                             # no couple is computed
-            null,                             # no couple is computed
+            null,
+            null,
             "myfunc";
 \end{verbatim}
-indicates that the deformable hinge joint constitutive law
-is only defined about axis 2 as a multilinear function.
+indicates that the constitutive law is only defined in direction 3 
+as a multilinear function.
 
 \subsection{Linear viscous, linear viscous isotropic}
 \begin{verbatim}
