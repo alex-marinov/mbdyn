@@ -325,9 +325,6 @@ dnl Checks for header files.
 dnl
 AC_STDC_HEADERS
 AC_CHECK_HEADERS(arpa/inet.h)
-AC_CHECK_HEADERS(asm/atomic.h)
-AC_CHECK_HEADERS(asm/bitops.h)
-AC_CHECK_HEADERS(asm/system.h)
 AC_CHECK_HEADERS(float.h)
 AC_CHECK_HEADERS(getopt.h)
 AC_CHECK_HEADERS(math.h)

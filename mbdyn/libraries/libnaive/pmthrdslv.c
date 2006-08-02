@@ -49,12 +49,13 @@
 
 struct task_struct;
 
+#if 0	/* moved to "ac/spinlock.h" */
 #include <asm/system.h>
 #include <asm/atomic.h>
 #include <asm/bitops.h>
+#endif
 
 #include "ac/spinlock.h"
-
 
 /* FIXME: from <f2c.h> */
 typedef int     integer;

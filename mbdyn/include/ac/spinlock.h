@@ -31,6 +31,42 @@
 #ifndef ac_spinlock_h
 #define ac_spinlock_h
 
+#include <asm/atomic.h>
+
+/* from <asm/system.h> */
+
+#ifdef CONFIG_SMP
+#define smp_mb()	mb()
+#define smp_rmb()	rmb()
+#define smp_wmb()	wmb()
+#define smp_read_barrier_depends()	do {} while(0)
+#else
+#define smp_mb()	barrier()
+#define smp_rmb()	barrier()
+#define smp_wmb()	barrier()
+#define smp_read_barrier_depends()	do {} while(0)
+#endif
+
+    
+/*
+ * Force strict CPU ordering.
+ * And yes, this is required on UP too when we're talking
+ * to devices.
+ */
+#define mb() 	asm volatile("mfence":::"memory")
+#define rmb()	asm volatile("lfence":::"memory")
+
+#ifdef CONFIG_UNORDERED_IO
+#define wmb()	asm volatile("sfence" ::: "memory")
+#else
+#define wmb()	asm volatile("" ::: "memory")
+#endif
+#define read_barrier_depends()	do {} while(0)
+#define set_mb(var, value) do { xchg(&var, value); } while (0)
+#define set_wmb(var, value) do { var = value; wmb(); } while (0)
+
+/* end of from <asm/system.h> */
+
 /*
  * inspired by <asm/system.h>; requires <sys/types.h>
  */
