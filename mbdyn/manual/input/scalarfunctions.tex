@@ -40,10 +40,14 @@ and $(x_1,y_1)$
 set of points $\{(x_i,y_i), i\in[1,k\geq3]\}$
 \item \kw{multilinear}: multilinear interpolation between the 
 set of points $\{(x_i,y_i), i\in[1,k\geq2]\}$
+\item \kw{sum}: $f(x)=f_1(x) + f_2(x)$
+\item \kw{sub}: $f(x)=f_1(x) - f_2(x)$
+\item \kw{mul}: $f(x)=f_1(x) \cdot f_2(x)$
+\item \kw{div}: $f(x)=f_1(x) / f_2(x)$
 \end{itemize}
 
 \noindent
-Every \kw{ScalarFunction} card has the following format:
+Every \kw{ScalarFunction} card follows the format
 \begin{verbatim}
     <card> :: = scalar function : <unique_scalar_func_name>, 
                     <scalar_func_type>,
@@ -63,22 +67,29 @@ are as follows:
     <scalar_func_type> ::= const
     <scalar_func_args> ::= <const_coef>
 \end{verbatim}
+Note: if the \kw{scalar\_func\_type} is omitted,
+a \kw{const} scalar function is assumed.
+
 \subsubsection{Log Scalar Function}
 \begin{verbatim}
     <scalar_func_type> ::= log
-    <scalar_func_args> ::= <multiplier_coef>
+    <scalar_func_args> ::= [ { base , <base> } , ] <multiplier_coef>
 \end{verbatim}
+Note: the argument must be positive.
+
 \subsubsection{Pow Scalar Function}
 \begin{verbatim}
     <scalar_func_type> ::= pow
     <scalar_func_args> ::= <exponent_coef>
 \end{verbatim}
+
 \subsubsection{Linear Scalar Function}
 \begin{verbatim}
     <scalar_func_type> ::= linear
     <scalar_func_args> ::= <point>, <point>
     <point>            ::= <x>, <y>
 \end{verbatim}
+
 \subsubsection{Cubic Natural Spline Scalar Function}
 \begin{verbatim}
     <scalar_func_type> ::= cubicspline
@@ -89,6 +100,7 @@ are as follows:
         [, ...]
     <point>            ::= <x>, <y>
 \end{verbatim}
+
 \subsubsection{Multilinear Scalar Function}
 \begin{verbatim}
     <scalar_func_type> ::= multilinear
@@ -98,4 +110,29 @@ are as follows:
         [, ...]
     <point>            ::= <x>, <y>
 \end{verbatim}
+
+\subsubsection{Sum Scalar Function}
+\begin{verbatim}
+    <scalar_func_type> ::= sum
+    <scalar_func_args> ::= (ScalarFunction)<f1>, (ScalarFunction)<f2>
+\end{verbatim}
+
+\subsubsection{Sub Scalar Function}
+\begin{verbatim}
+    <scalar_func_type> ::= sum
+    <scalar_func_args> ::= (ScalarFunction)<f1>, (ScalarFunction)<f2>
+\end{verbatim}
+
+\subsubsection{Mul Scalar Function}
+\begin{verbatim}
+    <scalar_func_type> ::= sum
+    <scalar_func_args> ::= (ScalarFunction)<f1>, (ScalarFunction)<f2>
+\end{verbatim}
+
+\subsubsection{Div Scalar Function}
+\begin{verbatim}
+    <scalar_func_type> ::= sum
+    <scalar_func_args> ::= (ScalarFunction)<f1>, (ScalarFunction)<f2>
+\end{verbatim}
+Note: division by zero is checked.
 
