@@ -112,6 +112,20 @@ public:
 	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
 };
 
+class SubScalarFunction : public DifferentiableScalarFunction {
+private:
+	const DifferentiableScalarFunction *const a1;
+	const DifferentiableScalarFunction *const a2;
+public:
+	SubScalarFunction(
+		const BasicScalarFunction *const b1,
+		const BasicScalarFunction *const b2
+	);
+	virtual ~SubScalarFunction();
+	virtual doublereal operator()(const doublereal x) const;
+	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
+};
+
 class MulScalarFunction : public DifferentiableScalarFunction {
 private:
 	const DifferentiableScalarFunction *const a1;
@@ -122,6 +136,20 @@ public:
 		const BasicScalarFunction *const b2
 	);
 	virtual ~MulScalarFunction();
+	virtual doublereal operator()(const doublereal x) const;
+	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
+};
+
+class DivScalarFunction : public DifferentiableScalarFunction {
+private:
+	const DifferentiableScalarFunction *const a1;
+	const DifferentiableScalarFunction *const a2;
+public:
+	DivScalarFunction(
+		const BasicScalarFunction *const b1,
+		const BasicScalarFunction *const b2
+	);
+	virtual ~DivScalarFunction();
 	virtual doublereal operator()(const doublereal x) const;
 	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
 };

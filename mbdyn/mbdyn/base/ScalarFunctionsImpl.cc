@@ -58,6 +58,9 @@
 #include "ScalarFunctionsImpl.h"
 #include "interp.h"
 
+#include "mbpar.h"
+#include "dataman.h"
+
 //ptr_cast: I use an helper stuct to avoid troubles
 //to be re-written when compilers will
 //support partial specialization of functions template
@@ -67,6 +70,7 @@
 template<class T1, class T2> struct ptr_cast_helper {
         static T1 cast(T2&);
 };
+
 template<class T1, class T2> struct ptr_cast_helper<T1*, T2> {
         static T1*  cast(T2&arg) {
                 T1* out = dynamic_cast<T1*>(arg);
@@ -79,6 +83,7 @@ template<class T1, class T2> struct ptr_cast_helper<T1*, T2> {
                 return out;
         };
 };
+
 template<class T1, class T2> struct ptr_cast_helper<T1*const, T2> {
         static T1*const  cast(T2&arg) {
                 T1*const out = dynamic_cast<T1*const>(arg);
@@ -91,6 +96,7 @@ template<class T1, class T2> struct ptr_cast_helper<T1*const, T2> {
                 return out;
         };
 };
+
 template<class T1, class T2> struct ptr_cast_helper<const T1*, T2> {
         static const T1* cast(T2&arg) {
                 const T1* out = dynamic_cast<const T1*>(arg);
@@ -103,6 +109,7 @@ template<class T1, class T2> struct ptr_cast_helper<const T1*, T2> {
                 return out;
         };
 };
+
 template<class T1, class T2> struct ptr_cast_helper<const T1*const, T2> {
         static const T1*const  cast(T2&arg) {
                 const T1*const out = dynamic_cast<const T1*const>(arg);
@@ -119,19 +126,38 @@ template<class T1, class T2> struct ptr_cast_helper<const T1*const, T2> {
 template<class T1,class T2>
 T1 ptr_cast(T2& arg) {
         return ptr_cast_helper<T1,T2>::cast(arg);
-};
+}
 
+BasicScalarFunction::~BasicScalarFunction(void)
+{
+	NO_OP;
+}
 
-BasicScalarFunction::~BasicScalarFunction() {};
+DifferentiableScalarFunction::~DifferentiableScalarFunction(void)
+{
+	NO_OP;
+}
 
-DifferentiableScalarFunction::~DifferentiableScalarFunction() {};
+ConstScalarFunction::ConstScalarFunction(const doublereal v)
+: y(v)
+{
+	NO_OP;
+}
 
-ConstScalarFunction::ConstScalarFunction(const doublereal v) : y(v) {
-};
+ConstScalarFunction::~ConstScalarFunction(void)
+{
+	NO_OP;
+}
 
-ConstScalarFunction::~ConstScalarFunction() {};
-doublereal ConstScalarFunction::operator()(const doublereal x) const {return y;};
-doublereal ConstScalarFunction::ComputeDiff(const doublereal x, const integer order) const {
+doublereal
+ConstScalarFunction::operator()(const doublereal x) const
+{
+	return y;
+}
+
+doublereal
+ConstScalarFunction::ComputeDiff(const doublereal x, const integer order) const
+{
 	ASSERTMSGBREAK(order >=0, "Error in ConstScalarFunction::ComputeDiff, order<0");
 	switch (order) {
 	case 0: 
@@ -141,174 +167,397 @@ doublereal ConstScalarFunction::ComputeDiff(const doublereal x, const integer or
 		return 0;
 		break;
 	}
+}
+
+// ScalarFunction parsing functional object
+struct ConstSFR: public ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const {
+		doublereal c = HP.GetReal();
+		return new ConstScalarFunction(c);
+	};
 };
 
 LinearScalarFunction::LinearScalarFunction(
 	const doublereal y_i,
 	const doublereal y_f,
 	const doublereal t_i,
-	const doublereal t_f) {
+	const doublereal t_f)
+{
 	ASSERTMSGBREAK(t_i != t_f, "LinearScalarFunction error, t_i == t_f");
-	m=(y_f-y_i)/(t_f-t_i);
-	y0=y_i-m*t_i;
-};
-LinearScalarFunction::~LinearScalarFunction() {};
-doublereal LinearScalarFunction::operator()(const doublereal x) const {
-	return (y0+m*x);
-};
-doublereal LinearScalarFunction::ComputeDiff(const doublereal x, const integer order) const {
+	m = (y_f - y_i)/(t_f - t_i);
+	y0 = y_i - m*t_i;
+}
+
+LinearScalarFunction::~LinearScalarFunction(void)
+{
+	NO_OP;
+}
+
+doublereal
+LinearScalarFunction::operator()(const doublereal x) const
+{
+	return y0 + m*x;
+}
+
+doublereal
+LinearScalarFunction::ComputeDiff(const doublereal x, const integer order) const
+{
 	ASSERTMSGBREAK(order >=0, "Error in LinearScalarFunction::ComputeDiff, order<0");
 	switch (order) {
 	case 0: 
 		return this->operator()(x);
-		break;
+
 	case 1: 
 		return m;
-		break;
+
 	default:
-		return 0;
-		break;
+		return 0.;
+
 	}
+}
+
+// ScalarFunction parsing functional object
+struct LinearSFR: public ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const {
+		doublereal y_i = HP.GetReal();
+		doublereal y_f = HP.GetReal();
+		doublereal t_i = HP.GetReal();
+		doublereal t_f = HP.GetReal();
+		return new LinearScalarFunction(y_i,y_f,t_i,t_f);
+	};
 };
 
-PowScalarFunction::PowScalarFunction(const doublereal p) : pw(p) {
-};
-PowScalarFunction::~PowScalarFunction() {};
-doublereal PowScalarFunction::operator()(const doublereal x) const {
-	return (pow(x,pw));
-};
-doublereal PowScalarFunction::ComputeDiff(const doublereal x, const integer order) const {
+PowScalarFunction::PowScalarFunction(const doublereal p)
+: pw(p)
+{
+	NO_OP;
+}
+
+PowScalarFunction::~PowScalarFunction(void)
+{
+	NO_OP;
+}
+
+doublereal
+PowScalarFunction::operator()(const doublereal x) const
+{
+	return pow(x, pw);
+}
+
+doublereal
+PowScalarFunction::ComputeDiff(const doublereal x, const integer order) const
+{
 	ASSERTMSGBREAK(order >=0, "Error in PowScalarFunction::ComputeDiff, order<0");
 	switch (order) {
 	case 0: 
 		return this->operator()(x);
-		break;
+
 	default:
 		doublereal mul = 1.;
-		for (integer i=0; i<order; i++) {
-			mul *= (pw-i);
+		for (integer i = 0; i < order; i++) {
+			mul *= pw - i;
 		}
-		return mul*pow(x,pw-order);
-		break;
+		return mul*pow(x, pw - order);
+
 	}
+}
+
+// ScalarFunction parsing functional object
+struct PowSFR: public ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const {
+		doublereal p = HP.GetReal();
+		return new PowScalarFunction(p);
+	};
 };
 
-LogScalarFunction::LogScalarFunction(const doublereal ml) : mul_const(ml){
-};
-LogScalarFunction::~LogScalarFunction() {};
-doublereal LogScalarFunction::operator()(const doublereal x) const {
-	if (x>0.) {
+LogScalarFunction::LogScalarFunction(const doublereal ml)
+: mul_const(ml)
+{
+	NO_OP;
+}
+
+LogScalarFunction::~LogScalarFunction()
+{
+	NO_OP;
+}
+
+doublereal
+LogScalarFunction::operator()(const doublereal x) const
+{
+	if (x > 0.) {
 		return log(x)*mul_const;
-	} else {
-#warning FIXME: bogus solution to the problem (avoid fp error)
-		return 0.;
 	}
+#warning FIXME: bogus solution to the problem (avoid fp error)
+	return 0.;
+
+#if 0
 	//will never reach this point :(
 	return log(x)*mul_const;
-};
-doublereal LogScalarFunction::ComputeDiff(const doublereal x, const integer order) const {
+#endif
+}
+
+doublereal
+LogScalarFunction::ComputeDiff(const doublereal x, const integer order) const
+{
 	ASSERTMSGBREAK(order >=0, "Error in LogScalarFunction::ComputeDiff, order<0");
 	switch (order) {
 	case 0: 
 		return this->operator()(x);
-		break;
+
 	case 1: 
 		return mul_const/x;
-		break;
+
 	case 2: 
 		return -mul_const/(x*x);
-		break;
+
 	case 3: 
-		return 2.*mul_const/pow(x,3.);
-		break;
+		return 2.*mul_const/pow(x, 3.);
+
 	case 4: 
-		return -6.*mul_const/pow(x,4.);
-		break;
+		return -6.*mul_const/pow(x, 4.);
+
 	default:
 		silent_cerr("Error, LogScalarFunction::ComputeDiff "
 			<< "with diff order " << order
 			<< " while the maximum implemented is 4" << std::endl);
 		throw ErrGeneric();
-		break;
 	}
+}
+
+// ScalarFunction parsing functional object
+struct LogSFR: public ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const {
+		doublereal m = HP.GetReal();
+		return new LogScalarFunction(m);
+	};
 };
 
 SumScalarFunction::SumScalarFunction(
 	const BasicScalarFunction*const b1,
-	const BasicScalarFunction*const b2
-) : 
-	a1(ptr_cast<const DifferentiableScalarFunction*const>(b1)), 
-	a2(ptr_cast<const DifferentiableScalarFunction*const>(b2)) {
-};
-SumScalarFunction::~SumScalarFunction() {};
-doublereal SumScalarFunction::operator()(const doublereal x) const {
-	doublereal t;
-	t = a1->operator()(x);
-	t += a2->operator()(x);
-	return t;
-};
-doublereal SumScalarFunction::ComputeDiff(const doublereal x, const integer order) const {
+	const BasicScalarFunction*const b2)
+: a1(ptr_cast<const DifferentiableScalarFunction*const>(b1)), 
+a2(ptr_cast<const DifferentiableScalarFunction*const>(b2))
+{
+	NO_OP;
+}
+
+SumScalarFunction::~SumScalarFunction(void)
+{
+	NO_OP;
+}
+
+doublereal
+SumScalarFunction::operator()(const doublereal x) const
+{
+	return a1->operator()(x) + a2->operator()(x);
+}
+
+doublereal
+SumScalarFunction::ComputeDiff(const doublereal x, const integer order) const
+{
 	ASSERTMSGBREAK(order >=0, "Error in SumScalarFunction::ComputeDiff, order<0");
 	switch (order) {
 	case 0: 
 		return operator()(x);
-		break;
+
 	default:
-		return a1->ComputeDiff(x,order)+
-			a2->ComputeDiff(x,order);
-		break;
+		return a1->ComputeDiff(x, order)
+			+ a2->ComputeDiff(x, order);
 	}
+}
+
+// ScalarFunction parsing functional object
+struct SumSFR: public ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const {
+		const BasicScalarFunction *const
+			f1(ParseScalarFunction(HP, pDM));
+		const BasicScalarFunction *const 
+			f2(ParseScalarFunction(HP, pDM));
+		return new SumScalarFunction(f1,f2);
+	};
+};
+
+SubScalarFunction::SubScalarFunction(
+	const BasicScalarFunction*const b1,
+	const BasicScalarFunction*const b2)
+: a1(ptr_cast<const DifferentiableScalarFunction*const>(b1)), 
+a2(ptr_cast<const DifferentiableScalarFunction*const>(b2))
+{
+	NO_OP;
+}
+
+SubScalarFunction::~SubScalarFunction(void)
+{
+	NO_OP;
+}
+
+doublereal
+SubScalarFunction::operator()(const doublereal x) const
+{
+	return a1->operator()(x) - a2->operator()(x);
+}
+
+doublereal
+SubScalarFunction::ComputeDiff(const doublereal x, const integer order) const
+{
+	ASSERTMSGBREAK(order >= 0, "Error in SubScalarFunction::ComputeDiff, order<0");
+	switch (order) {
+	case 0: 
+		return operator()(x);
+
+	default:
+		return a1->ComputeDiff(x, order)
+			- a2->ComputeDiff(x, order);
+	}
+}
+
+// ScalarFunction parsing functional object
+struct SubSFR: public ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const {
+		const BasicScalarFunction *const
+			f1(ParseScalarFunction(HP, pDM));
+		const BasicScalarFunction *const 
+			f2(ParseScalarFunction(HP, pDM));
+		return new SubScalarFunction(f1,f2);
+	};
 };
 
 MulScalarFunction::MulScalarFunction(
 	const BasicScalarFunction*const b1,
-	const BasicScalarFunction*const b2
-) :
-	a1(ptr_cast<const DifferentiableScalarFunction*const>(b1)),
-	a2(ptr_cast<const DifferentiableScalarFunction*const>(b2)) {
-};
-MulScalarFunction::~MulScalarFunction() {};
-doublereal MulScalarFunction::operator()(const doublereal x) const {
-	doublereal t;
-	t = a1->operator()(x);
-	t *= a2->operator()(x);
-	return t;
-};
-doublereal MulScalarFunction::ComputeDiff(const doublereal x, const integer order) const {
-	ASSERTMSGBREAK(order >=0, "Error in MulScalarFunction::ComputeDiff, order<0");
+	const BasicScalarFunction*const b2)
+: a1(ptr_cast<const DifferentiableScalarFunction*const>(b1)),
+a2(ptr_cast<const DifferentiableScalarFunction*const>(b2))
+{
+	NO_OP;
+}
+
+MulScalarFunction::~MulScalarFunction()
+{
+	NO_OP;
+}
+
+doublereal
+MulScalarFunction::operator()(const doublereal x) const
+{
+	return a1->operator()(x)*a2->operator()(x);
+}
+
+doublereal
+MulScalarFunction::ComputeDiff(const doublereal x, const integer order) const
+{
+	ASSERTMSGBREAK(order >= 0, "Error in MulScalarFunction::ComputeDiff, order<0");
 	switch (order) {
 	case 0: 
 		return this->operator()(x);
-		break;
+
 	default:
-		return a1->ComputeDiff(x,order)*a2->operator()(x)+
-			a1->operator()(x)*a2->ComputeDiff(x,order);
-		break;
+		return a1->ComputeDiff(x, order)*a2->operator()(x)
+			+ a1->operator()(x)*a2->ComputeDiff(x, order);
 	}
+}
+
+// ScalarFunction parsing functional object
+struct MulSFR: public ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const {
+		const BasicScalarFunction *const
+			f1(ParseScalarFunction(HP, pDM));
+		const BasicScalarFunction *const 
+			f2(ParseScalarFunction(HP, pDM));
+		return new MulScalarFunction(f1, f2);
+	};
+};
+
+DivScalarFunction::DivScalarFunction(
+	const BasicScalarFunction*const b1,
+	const BasicScalarFunction*const b2)
+: a1(ptr_cast<const DifferentiableScalarFunction*const>(b1)),
+a2(ptr_cast<const DifferentiableScalarFunction*const>(b2))
+{
+	NO_OP;
+}
+
+DivScalarFunction::~DivScalarFunction()
+{
+	NO_OP;
+}
+
+doublereal
+DivScalarFunction::operator()(const doublereal x) const
+{
+	doublereal n, d;
+	d = a2->operator()(x);
+	if (d == 0) {
+		/* TODO: cleanup exception handling */
+		silent_cerr("DivScalarFunction: division by zero" << std::endl);
+		throw ErrGeneric();
+	}
+	n = a1->operator()(x);
+	return n/d;
+}
+
+doublereal
+DivScalarFunction::ComputeDiff(const doublereal x, const integer order) const
+{
+	doublereal d;
+	ASSERTMSGBREAK(order >= 0, "Error in DivScalarFunction::ComputeDiff, order<0");
+	switch (order) {
+	case 0: 
+		return this->operator()(x);
+
+	default:
+		d = a2->operator()(x);
+		if (d == 0.) {
+			/* TODO: cleanup exception handling */
+			silent_cerr("DivScalarFunction: division by zero" << std::endl);
+			throw ErrGeneric();
+		}
+
+		return a1->ComputeDiff(x, order)/d
+			- a1->operator()(x)/(d*d)*a2->ComputeDiff(x, order);
+	}
+}
+
+// ScalarFunction parsing functional object
+struct DivSFR: public ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const {
+		const BasicScalarFunction *const
+			f1(ParseScalarFunction(HP, pDM));
+		const BasicScalarFunction *const 
+			f2(ParseScalarFunction(HP, pDM));
+		return new DivScalarFunction(f1, f2);
+	};
 };
 
 CubicSplineScalarFunction::CubicSplineScalarFunction(
 	const std::vector<doublereal> y_i,
 	const std::vector<doublereal> x_i,
 	bool doNotExtrapolate)
-:doNotExtrapolate(doNotExtrapolate)
+: doNotExtrapolate(doNotExtrapolate)
 {
 	Y_i = y_i;
 	X_i = x_i;
 	ASSERTMSGBREAK(Y_i.size() == X_i.size(), "CubicSplineScalarFunction error, Y_i.size() != X_i.size()");
-	std::vector<doublereal>::iterator xi,xe;
+	std::vector<doublereal>::iterator xi, xe;
 	xi = X_i.begin();
-	xe = X_i.end()-1;
+	xe = X_i.end() - 1;
 	for (; xi != xe; xi++) {
-		if (*xi >= *(xi+1)) {
+		if (*xi >= *(xi + 1)) {
 			silent_cerr("CubicSplineScalarFunction error, X_i is not ordered" << std::endl);
 			throw ErrGeneric();
 		}
 	}
-	spline(X_i,Y_i,b,c,d);
+	spline(X_i, Y_i, b, c, d);
 }
 
-CubicSplineScalarFunction::~CubicSplineScalarFunction()
+CubicSplineScalarFunction::~CubicSplineScalarFunction(void)
 {
 	NO_OP;
 }
@@ -326,7 +575,7 @@ CubicSplineScalarFunction::operator()(const doublereal x) const
 			return Y_i[s];
 		}
 	}
-			
+
 	return seval(x, X_i, Y_i, b, c, d);
 }
 
@@ -337,21 +586,48 @@ CubicSplineScalarFunction::ComputeDiff(const doublereal x, const integer order) 
 	switch (order) {
 	case 0: 
 		return this->operator()(x);
-		break;
+
 	case 1: 
 		return seval(x, X_i, Y_i, b, c, d, 1);
-		break;
+
 	case 2: 
 		return seval(x, X_i, Y_i, b, c, d, 2);
-		break;
+
 	case 3: 
 		return seval(x, X_i, Y_i, b, c, d, 3);
-		break;
+
 	default:
 		return 0.;
-		break;
 	}
 }
+
+// ScalarFunction parsing functional object
+struct CubicSplineSFR: public ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const {
+		bool doNotExtrapolate(false);
+		if (HP.IsKeyWord("do" "not" "extrapolate")) {
+			doNotExtrapolate = true;
+		}
+		std::vector<doublereal> y_i;
+		std::vector<doublereal> x_i;
+		y_i.resize(3);
+		x_i.resize(3);
+		for (int i=0; i<3; i++) {
+			x_i[i] = HP.GetReal();
+			y_i[i] = HP.GetReal();
+		}
+		while (HP.IsArg()) {
+			int size = x_i.size();
+			x_i.resize(size+1);
+			y_i.resize(size+1);
+			x_i[size] = HP.GetReal();
+			y_i[size] = HP.GetReal();
+		}
+		return new CubicSplineScalarFunction(y_i, x_i,
+			doNotExtrapolate);
+	};
+};
 
 MultiLinearScalarFunction::MultiLinearScalarFunction(
 	const std::vector<doublereal> y_i,
@@ -362,7 +638,7 @@ MultiLinearScalarFunction::MultiLinearScalarFunction(
 	Y_i = y_i;
 	X_i = x_i;
 	ASSERTMSGBREAK(X_i.size() == Y_i.size(), "MultiLinearScalarFunction error, Y_i.size() != X_i.size()");
-	std::vector<doublereal>::iterator xi,xe;
+	std::vector<doublereal>::iterator xi, xe;
 	xi = X_i.begin();
 	xe = X_i.end()-1;
 	for (; xi != xe; xi++) {
@@ -373,12 +649,13 @@ MultiLinearScalarFunction::MultiLinearScalarFunction(
 	}
 }
 
-MultiLinearScalarFunction::~MultiLinearScalarFunction()
+MultiLinearScalarFunction::~MultiLinearScalarFunction(void)
 {
 	NO_OP;
 }
 
-doublereal MultiLinearScalarFunction::operator()(const doublereal x) const
+doublereal
+MultiLinearScalarFunction::operator()(const doublereal x) const
 {
 	if (doNotExtrapolate) {
 		if (x <= X_i[0]) {
@@ -401,20 +678,44 @@ MultiLinearScalarFunction::ComputeDiff(const doublereal x, const integer order) 
 	switch (order) {
 	case 0: 
 		return operator()(x);
-		break;
+
 	case 1: 
-		return leval(x,X_i,Y_i,order);
-		break;
+		return leval(x, X_i, Y_i, order);
+
 	default:
 		return 0.;
-		break;
 	}
 }
 
-//---------------------------------------
+// ScalarFunction parsing functional object
+struct MultiLinearSFR: public ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const {
+		bool doNotExtrapolate(false);
+		if (HP.IsKeyWord("do" "not" "extrapolate")) {
+			doNotExtrapolate = true;
+		}
+		std::vector<doublereal> y_i;
+		std::vector<doublereal> x_i;
+		y_i.resize(2);
+		x_i.resize(2);
+		for (int i=0; i<2; i++) {
+			x_i[i] = HP.GetReal();
+			y_i[i] = HP.GetReal();
+		}
+		while (HP.IsArg()) {
+			int size = x_i.size();
+			x_i.resize(size+1);
+			y_i.resize(size+1);
+			x_i[size] = HP.GetReal();
+			y_i[size] = HP.GetReal();
+		}
+		return new MultiLinearScalarFunction(y_i, x_i,
+			doNotExtrapolate);
+	};
+};
 
-#include "mbpar.h"
-#include "dataman.h"
+//---------------------------------------
 
 typedef std::map<std::string, const ScalarFunctionRead *, ltstrcase> SFReadType;
 static SFReadType SFRead;
@@ -541,6 +842,8 @@ ScalarFunctionDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 }
 
 // ScalarFunction constitutive laws
+
+// ScalarFunction elastic isotropic constitutive law
 
 template <class T, class Tder>
 class ScalarFunctionIsotropicCL
@@ -693,6 +996,8 @@ ScalarFunctionIsotropicCLR<T, Tder>::Read(const DataManager* pDM,
 	return pCL;
 }
 
+// ScalarFunction elastic orthotropic constitutive law
+
 template <class T, class Tder>
 class ScalarFunctionOrthotropicCL
 : public ConstitutiveLaw<T, Tder> {
@@ -815,118 +1120,6 @@ ScalarFunctionOrthotropicCLR<T, Tder>::Read(const DataManager* pDM,
 	return pCL;
 }
 
-// ScalarFunction parsing functional objects
-struct ConstSFR: public ScalarFunctionRead {
-	virtual const BasicScalarFunction *
-	Read(DataManager* const pDM, MBDynParser& HP) const {
-		doublereal c = HP.GetReal();
-		return new ConstScalarFunction(c);
-	};
-};
-
-struct PowSFR: public ScalarFunctionRead {
-	virtual const BasicScalarFunction *
-	Read(DataManager* const pDM, MBDynParser& HP) const {
-		doublereal p = HP.GetReal();
-		return new PowScalarFunction(p);
-	};
-};
-
-struct LogSFR: public ScalarFunctionRead {
-	virtual const BasicScalarFunction *
-	Read(DataManager* const pDM, MBDynParser& HP) const {
-		doublereal m = HP.GetReal();
-		return new LogScalarFunction(m);
-	};
-};
-
-struct LinearSFR: public ScalarFunctionRead {
-	virtual const BasicScalarFunction *
-	Read(DataManager* const pDM, MBDynParser& HP) const {
-		doublereal y_i = HP.GetReal();
-		doublereal y_f = HP.GetReal();
-		doublereal t_i = HP.GetReal();
-		doublereal t_f = HP.GetReal();
-		return new LinearScalarFunction(y_i,y_f,t_i,t_f);
-	};
-};
-
-struct CubicSplineSFR: public ScalarFunctionRead {
-	virtual const BasicScalarFunction *
-	Read(DataManager* const pDM, MBDynParser& HP) const {
-		bool doNotExtrapolate(false);
-		if (HP.IsKeyWord("do" "not" "extrapolate")) {
-			doNotExtrapolate = true;
-		}
-		std::vector<doublereal> y_i;
-		std::vector<doublereal> x_i;
-		y_i.resize(3);
-		x_i.resize(3);
-		for (int i=0; i<3; i++) {
-			x_i[i] = HP.GetReal();
-			y_i[i] = HP.GetReal();
-		}
-		while (HP.IsArg()) {
-			int size = x_i.size();
-			x_i.resize(size+1);
-			y_i.resize(size+1);
-			x_i[size] = HP.GetReal();
-			y_i[size] = HP.GetReal();
-		}
-		return new CubicSplineScalarFunction(y_i, x_i,
-			doNotExtrapolate);
-	};
-};
-
-struct MultiLinearSFR: public ScalarFunctionRead {
-	virtual const BasicScalarFunction *
-	Read(DataManager* const pDM, MBDynParser& HP) const {
-		bool doNotExtrapolate(false);
-		if (HP.IsKeyWord("do" "not" "extrapolate")) {
-			doNotExtrapolate = true;
-		}
-		std::vector<doublereal> y_i;
-		std::vector<doublereal> x_i;
-		y_i.resize(2);
-		x_i.resize(2);
-		for (int i=0; i<2; i++) {
-			x_i[i] = HP.GetReal();
-			y_i[i] = HP.GetReal();
-		}
-		while (HP.IsArg()) {
-			int size = x_i.size();
-			x_i.resize(size+1);
-			y_i.resize(size+1);
-			x_i[size] = HP.GetReal();
-			y_i[size] = HP.GetReal();
-		}
-		return new MultiLinearScalarFunction(y_i, x_i,
-			doNotExtrapolate);
-	};
-};
-
-struct SumSFR: public ScalarFunctionRead {
-	virtual const BasicScalarFunction *
-	Read(DataManager* const pDM, MBDynParser& HP) const {
-		const BasicScalarFunction *const
-			f1(ParseScalarFunction(HP, pDM));
-		const BasicScalarFunction *const 
-			f2(ParseScalarFunction(HP, pDM));
-		return new SumScalarFunction(f1,f2);
-	};
-};
-
-struct MulSFR: public ScalarFunctionRead {
-	virtual const BasicScalarFunction *
-	Read(DataManager* const pDM, MBDynParser& HP) const {
-		const BasicScalarFunction *const
-			f1(ParseScalarFunction(HP, pDM));
-		const BasicScalarFunction *const 
-			f2(ParseScalarFunction(HP, pDM));
-		return new MulScalarFunction(f1,f2);
-	};
-};
-
 bool
 SetSF(const std::string &s, const ScalarFunctionRead *rf)
 {
@@ -947,7 +1140,9 @@ InitSF(void)
 	SetSF("pow", new PowSFR);
 	SetSF("log", new LogSFR);
 	SetSF("sum", new SumSFR);
+	SetSF("sub", new SubSFR);
 	SetSF("mul", new MulSFR);
+	SetSF("div", new DivSFR);
 	SetSF("cubic" "spline", new CubicSplineSFR);
 	SetSF("multilinear", new MultiLinearSFR);
 
