@@ -58,7 +58,7 @@ private:
 	const doublereal y;
 public:
 	ConstScalarFunction(const doublereal v);
-	virtual ~ConstScalarFunction();
+	virtual ~ConstScalarFunction(void);
 	virtual doublereal operator()(const doublereal x) const;
 	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
 };
@@ -73,7 +73,7 @@ public:
 		const doublereal y_f,
 		const doublereal t_i,
 		const doublereal t_f);
-	virtual ~LinearScalarFunction();
+	virtual ~LinearScalarFunction(void);
 	virtual doublereal operator()(const doublereal x) const;
 	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
 };
@@ -83,73 +83,21 @@ private:
 	const doublereal pw;
 public:
 	PowScalarFunction(const doublereal p);
-	virtual ~PowScalarFunction();
+	virtual ~PowScalarFunction(void);
 	virtual doublereal operator()(const doublereal x) const;
 	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
 };
 
 class LogScalarFunction : public DifferentiableScalarFunction {
 private:
+	const doublereal mul_input;
 	const doublereal mul_const;
-public:
-	LogScalarFunction(const doublereal ml);
-	virtual ~LogScalarFunction();
-	virtual doublereal operator()(const doublereal x) const;
-	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
-};
+	const doublereal base;
+	const doublereal coef;
 
-class SumScalarFunction : public DifferentiableScalarFunction {
-private:
-	const DifferentiableScalarFunction *const a1;
-	const DifferentiableScalarFunction *const a2;
 public:
-	SumScalarFunction(
-		const BasicScalarFunction *const b1,
-		const BasicScalarFunction *const b2
-	);
-	virtual ~SumScalarFunction();
-	virtual doublereal operator()(const doublereal x) const;
-	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
-};
-
-class SubScalarFunction : public DifferentiableScalarFunction {
-private:
-	const DifferentiableScalarFunction *const a1;
-	const DifferentiableScalarFunction *const a2;
-public:
-	SubScalarFunction(
-		const BasicScalarFunction *const b1,
-		const BasicScalarFunction *const b2
-	);
-	virtual ~SubScalarFunction();
-	virtual doublereal operator()(const doublereal x) const;
-	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
-};
-
-class MulScalarFunction : public DifferentiableScalarFunction {
-private:
-	const DifferentiableScalarFunction *const a1;
-	const DifferentiableScalarFunction *const a2;
-public:
-	MulScalarFunction(
-		const BasicScalarFunction *const b1,
-		const BasicScalarFunction *const b2
-	);
-	virtual ~MulScalarFunction();
-	virtual doublereal operator()(const doublereal x) const;
-	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
-};
-
-class DivScalarFunction : public DifferentiableScalarFunction {
-private:
-	const DifferentiableScalarFunction *const a1;
-	const DifferentiableScalarFunction *const a2;
-public:
-	DivScalarFunction(
-		const BasicScalarFunction *const b1,
-		const BasicScalarFunction *const b2
-	);
-	virtual ~DivScalarFunction();
+	LogScalarFunction(const doublereal& ml, const doublereal& b, const doublereal& c);
+	virtual ~LogScalarFunction(void);
 	virtual doublereal operator()(const doublereal x) const;
 	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
 };
@@ -165,7 +113,7 @@ public:
 		const std::vector<doublereal> y_i,
 		const std::vector<doublereal> x_i,
 		bool doNotExtrapolate = false);
-	virtual ~CubicSplineScalarFunction();
+	virtual ~CubicSplineScalarFunction(void);
 	virtual doublereal operator()(const doublereal x) const;
 	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
 };
@@ -180,7 +128,63 @@ public:
 		const std::vector<doublereal> y_i,
 		const std::vector<doublereal> x_i,
 		bool doNotExtrapolate = false);
-	virtual ~MultiLinearScalarFunction();
+	virtual ~MultiLinearScalarFunction(void);
+	virtual doublereal operator()(const doublereal x) const;
+	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
+};
+
+class SumScalarFunction : public DifferentiableScalarFunction {
+private:
+	const DifferentiableScalarFunction *const a1;
+	const DifferentiableScalarFunction *const a2;
+public:
+	SumScalarFunction(
+		const BasicScalarFunction *const b1,
+		const BasicScalarFunction *const b2
+	);
+	virtual ~SumScalarFunction(void);
+	virtual doublereal operator()(const doublereal x) const;
+	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
+};
+
+class SubScalarFunction : public DifferentiableScalarFunction {
+private:
+	const DifferentiableScalarFunction *const a1;
+	const DifferentiableScalarFunction *const a2;
+public:
+	SubScalarFunction(
+		const BasicScalarFunction *const b1,
+		const BasicScalarFunction *const b2
+	);
+	virtual ~SubScalarFunction(void);
+	virtual doublereal operator()(const doublereal x) const;
+	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
+};
+
+class MulScalarFunction : public DifferentiableScalarFunction {
+private:
+	const DifferentiableScalarFunction *const a1;
+	const DifferentiableScalarFunction *const a2;
+public:
+	MulScalarFunction(
+		const BasicScalarFunction *const b1,
+		const BasicScalarFunction *const b2
+	);
+	virtual ~MulScalarFunction(void);
+	virtual doublereal operator()(const doublereal x) const;
+	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
+};
+
+class DivScalarFunction : public DifferentiableScalarFunction {
+private:
+	const DifferentiableScalarFunction *const a1;
+	const DifferentiableScalarFunction *const a2;
+public:
+	DivScalarFunction(
+		const BasicScalarFunction *const b1,
+		const BasicScalarFunction *const b2
+	);
+	virtual ~DivScalarFunction(void);
 	virtual doublereal operator()(const doublereal x) const;
 	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
 };

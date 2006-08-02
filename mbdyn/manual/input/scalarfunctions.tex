@@ -73,9 +73,13 @@ a \kw{const} scalar function is assumed.
 \subsubsection{Log Scalar Function}
 \begin{verbatim}
     <scalar_func_type> ::= log
-    <scalar_func_args> ::= [ { base , <base> } , ] <multiplier_coef>
+    <scalar_func_args> ::= [ { base , <base> } , ]
+        [ { coefficient , <coef> } , ]
+        <multiplier_coef>
 \end{verbatim}
-Note: the argument must be positive.
+Note: the optional base and the optional coefficient
+must be positive.
+The argument must be positive as well, otherwise an exception is thrown.
 
 \subsubsection{Pow Scalar Function}
 \begin{verbatim}
@@ -134,5 +138,5 @@ Note: the argument must be positive.
     <scalar_func_type> ::= sum
     <scalar_func_args> ::= (ScalarFunction)<f1>, (ScalarFunction)<f2>
 \end{verbatim}
-Note: division by zero is checked.
+Note: division by zero is checked, and an exception is thrown.
 
