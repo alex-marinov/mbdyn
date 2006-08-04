@@ -1764,14 +1764,17 @@ and $ s $ is the Laplace variable.
 
 \subsection{Discrete control}
   \begin{verbatim}
-    <electric_arglist> ::= <num_outputs> , <num_inputs> , <order> ,
+    <electric_arglist> ::= <num_outputs> , <num_inputs> , <num_iter>
+        <orderA> [, fir , <orderB> ] ,
         <control_data> , 
-        outputs [ , (node_dof) <output_dofs> [ , ... ] ] ,
-        inputs [ , (node_dof) <input_dofs> [ , ... ] ] ,
+        outputs [ , (node_dof) <output_dofs> [ , scale , (drive_caller) scale ] [ , [ ] ... ] ] ,
+        inputs [ , (node_dof) <input_dofs> [ , ... ] ]
   \end{verbatim}
   The lists of the output and input dofs follows. The input {\tt
-  node\_dof}s don't require the \kw{order} field, since they are simply
+  node\_dof}s don't require the \kw{orderA} and \kw {orderB} 
+  fields, since they are simply
   used to compute the control forces, and thus identify an equation.
+  \kw{orederB} defaults to \kw{orderA} unless a \kw{fir} control is choosen.\\
   The \kw{control\_data} has the following syntax:
   \begin{verbatim}  
         <control_data> ::= <control_type> , <control_arglist>
@@ -1813,14 +1816,16 @@ and $ s $ is the Laplace variable.
 The forgetting factor is defined as
 \begin{verbatim}
     <forgetting_factor> ::=
-        [ const , (scalar) d |
-          dynamic,
-            (integer) n1 ,
-            (integer) n2 ,
-            (scalar) rho ,
-            (scalar) fact ,
-            (scalar) kref ,
-            (scalar) klim
+        [ forgettingfactor,
+          { const , (scalar) d |
+            dynamic,
+              (integer) n1 ,
+              (integer) n2 ,
+              (scalar) rho ,
+              (scalar) fact ,
+              (scalar) kref ,
+              (scalar) klim
+           }
         ]    
 \end{verbatim}
 The default is a \kw{const} forgetting factor with $d=1$.
