@@ -941,6 +941,7 @@ static DriveWordSetType DriveWordSet;
 bool
 SetDriveData(const char *name, DriveCallerRead *rf)
 {
+	pedantic_cout("registering drive \"" << name << "\"" << std::endl);
 	return DrvFuncMap.insert(DrvFuncMapType::value_type(name, rf)).second;
 }
 

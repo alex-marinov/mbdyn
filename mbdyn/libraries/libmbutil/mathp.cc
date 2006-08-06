@@ -2202,6 +2202,8 @@ MathParser::RegisterPlugIn(const char *name,
 		MathParser::PlugIn * (*constructor)(MathParser&, void *),
 		void *arg)
 {
+	pedantic_cout("registering plugin \"" << name << "\"" << std::endl);
+
 	PlugInRegister *p = NULL;
 	SAFENEW(p, PlugInRegister);
 	SAFESTRDUP(p->name, name);
@@ -2218,7 +2220,7 @@ MathParser::RegisterNameSpace(MathParser::NameSpace *ns)
 {
 	ASSERT(ns != 0);
 
-	silent_cout("registering namespace \"" << ns->sGetName() << "\""
+	pedantic_cout("registering namespace \"" << ns->sGetName() << "\""
 			<< std::endl);
 
 	std::string name(ns->sGetName());

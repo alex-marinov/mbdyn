@@ -1163,6 +1163,8 @@ ScalarFunctionOrthotropicCLR<T, Tder>::Read(const DataManager* pDM,
 bool
 SetSF(const std::string &s, const ScalarFunctionRead *rf)
 {
+	pedantic_cout("registering scalar function \"" << s << "\""
+		<< std::endl );
 	return SFRead.insert(SFReadType::value_type(s, rf)).second;
 }
 

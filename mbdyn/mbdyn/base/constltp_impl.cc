@@ -81,18 +81,24 @@ static CL6DWordSetType CL6DWordSet;
 bool
 SetCL1D(const char *name, ConstitutiveLawRead<doublereal, doublereal> *rf)
 {
+	pedantic_cout("registering constitutive law 1D \"" << name << "\""
+		<< std::endl );
 	return CL1DFuncMap.insert(CL1DFuncMapType::value_type(name, rf)).second;
 }
 
 bool
 SetCL3D(const char *name, ConstitutiveLawRead<Vec3, Mat3x3> *rf)
 {
+	pedantic_cout("registering constitutive law 3D \"" << name << "\""
+		<< std::endl );
 	return CL3DFuncMap.insert(CL3DFuncMapType::value_type(name, rf)).second;
 }
 
 bool
 SetCL6D(const char *name, ConstitutiveLawRead<Vec6, Mat6x6> *rf)
 {
+	pedantic_cout("registering constitutive law 6D \"" << name << "\""
+		<< std::endl );
 	return CL6DFuncMap.insert(CL6DFuncMapType::value_type(name, rf)).second;
 }
 
