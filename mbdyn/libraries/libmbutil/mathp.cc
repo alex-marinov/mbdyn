@@ -2189,7 +2189,7 @@ MathParser::GetForever(std::ostream& out, const char* const sep)
 
 void
 MathParser::GetForever(const InputStream& strm, std::ostream& out,
-		const char* const sep)
+		const char* const /* sep */ )
 {
  	const InputStream* p = in;
 	in = (InputStream*)&strm;

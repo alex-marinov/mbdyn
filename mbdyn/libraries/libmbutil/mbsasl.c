@@ -414,8 +414,8 @@ retry:;
 		if (count == -1) {
 			printf("[client] read(Ml) failed errno=%d\n", errno);
 		} else {
-			printf("[client] read(Ml) failed (%d instead of %lu)\n",
-				count, sizeof(unsigned));
+			printf("[client] read(Ml) failed (%d instead of %u)\n",
+				count, (unsigned)sizeof(unsigned));
 		}
 		rc = SASL_FAIL;
 		goto cleanup;
@@ -426,11 +426,12 @@ retry:;
 		goto cleanup;
 	}
 	count = read(sock, serverin, serverinlen);
-	if (count != serverinlen) {
-		if (count == -1) {
+	if (count < 0 || (unsigned)count != serverinlen) {
+		if (count < 0) {
 			printf("[client] read(Md) failed errno=%d\n", errno);
 		} else {
-			printf("[client] read(Md) failed (%d instead of %d)\n", count, serverinlen);
+			printf("[client] read(Md) failed (%d instead of %d)\n",
+				count, serverinlen);
 		}
 		rc = SASL_FAIL;
 		goto cleanup;
@@ -520,40 +521,46 @@ retry:;
 		if (count == -1) {
 			printf("[client] write() failed errno=%d\n", errno);
 		} else {
-			printf("[client] write() failed (%d instead of %lu)\n",
-				count, sizeof(unsigned));
+			printf("[client] write() failed (%d instead of %u)\n",
+				count, (unsigned)sizeof(unsigned));
 		}
 		rc = SASL_FAIL;
 		goto cleanup;
 	}
 	count = write(sock, mechusing, serverinlen);
-	if (count != serverinlen) {
+	if (count < 0 || (unsigned)count != serverinlen) {
 		if (count == -1) {
-			printf("[client] mech=\"%s\" write failed errno=%d\n", mechusing, errno);
+			printf("[client] mech=\"%s\" write failed errno=%d\n",
+				mechusing, errno);
 		} else {
-			printf("[client] mech=\"%s\" write failed (%d instead of %d)\n", mechusing, count, serverinlen);
+			printf("[client] mech=\"%s\" write failed "
+				"(%d instead of %d)\n",
+				mechusing, count, serverinlen);
 		}
 		rc = SASL_FAIL;
 		goto cleanup;
 	}
 
 	count = write(sock, &outlen, sizeof(unsigned));
-	if (count != sizeof(unsigned)) {
+	if (count < 0 || (unsigned)count != sizeof(unsigned)) {
 		if (count == -1) {
 			printf("[client] write() failed errno=%d\n", errno);
 		} else {
-			printf("[client] write() failed (%d instead of %lu)\n",
-				count, sizeof(unsigned));
+			printf("[client] write() failed (%d instead of %u)\n",
+				count, (unsigned)sizeof(unsigned));
 		}
 		rc = SASL_FAIL;
 		goto cleanup;
 	}
 	count = write(sock, out ? out : "", outlen);
-	if (count != outlen) {
+	if (count < 0 || (unsigned)count != outlen) {
 		if (count == -1) {
-			printf("[client] mech=\"%s\" write failed errno=%d\n", mechusing, errno);
+			printf("[client] mech=\"%s\" write failed errno=%d\n",
+				mechusing, errno);
 		} else {
-			printf("[client] mech=\"%s\" write failed (%d instead of %d)\n", mechusing, count, outlen);
+			printf("[client] mech=\"%s\" write failed "
+				"(%d instead of %d)\n",
+				mechusing, count, outlen);
 		}
 		rc = SASL_FAIL;
 		goto cleanup;
@@ -593,8 +600,8 @@ retry:;
 					printf("[client] read(Cd) failed errno=%d\n", errno);
 				} else {
 					printf("[client] read(Cd) failed "
-						"(%d instead of %lu)\n",
-						count, sizeof(unsigned));
+						"(%d instead of %u)\n",
+						count, (unsigned)sizeof(unsigned));
 				}
 				rc = SASL_FAIL;
 				goto cleanup;
@@ -609,11 +616,12 @@ retry:;
 				goto cleanup;
 			}
 			count = read(sock, serverin, serverinlen);
-			if (count != serverinlen) {
+			if (count < 0 || (unsigned)count != serverinlen) {
 				if (count == -1) {
 					printf("[client] read() failed errno=%d\n", errno);
 				} else {
-					printf("[client] read() failed (%d instead of %d)\n", count, serverinlen);
+					printf("[client] read() failed (%d instead of %d)\n",
+						count, serverinlen);
 				}
 				rc = SASL_FAIL;
 				goto cleanup;
@@ -651,14 +659,14 @@ retry:;
 				printf("[client] write failed errno=%d\n", errno);
 			} else {
 				printf("[client] write failed "
-					"(%d instead of %lu)\n",
-					count, sizeof(unsigned));
+					"(%d instead of %u)\n",
+					count, (unsigned)sizeof(unsigned));
 			}
 			rc = SASL_FAIL;
 			goto cleanup;
 		}
 		count = write(sock, out ? out : "", outlen);
-		if (count != outlen) {
+		if (count < 0 || (unsigned)count != outlen) {
 			if (count == -1) {
 				printf("[client] write failed errno=%d\n", errno);
 			} else {
@@ -850,14 +858,14 @@ retry:;
 		if (count == -1) {
 			printf("[server] write() failed errno=%d\n", errno);
 		} else {
-			printf("[server] write() failed (%d instead of %lu)\n",
-				count, sizeof(unsigned));
+			printf("[server] write() failed (%d instead of %u)\n",
+				count, (unsigned)sizeof(unsigned));
 		}
 		rc = SASL_FAIL;
 		goto cleanup;
 	}
 	count = write(sock, result_string, string_length);
-	if (count != string_length) {
+	if (count < 0 || (unsigned)count != string_length) {
 		if (count == -1) {
 			printf("[server] write() failed errno=%d\n", errno);
 		} else {
@@ -893,8 +901,8 @@ retry:;
 		if (count == -1) {
 			printf("[server] read() failed errno=%d\n", errno);
 		} else {
-			printf("[server] read() failed (%d instead of %lu)\n",
-				count, sizeof(unsigned));
+			printf("[server] read() failed (%d instead of %u)\n",
+				count, (unsigned)sizeof(unsigned));
 		}
 		rc = SASL_FAIL;
 		goto cleanup;
@@ -905,7 +913,7 @@ retry:;
 		goto cleanup;
 	}
 	count = read(sock, mechanism_client_chose, clientinlen);
-	if (count != clientinlen) {
+	if (count < 0 || (unsigned)count != clientinlen) {
 		if (count == -1) {
 			printf("[server] read() failed errno=%d\n", errno);
 		} else {
@@ -923,8 +931,8 @@ retry:;
 		if (count == -1) {
 			printf("[server] read() failed errno=%d\n", errno);
 		} else {
-			printf("[server] read() failed (%d instead of %lu)\n",
-				count, sizeof(unsigned));
+			printf("[server] read() failed (%d instead of %u)\n",
+				count, (unsigned)sizeof(unsigned));
 		}
 		rc = SASL_FAIL;
 		goto cleanup;
@@ -936,7 +944,7 @@ retry:;
 		goto cleanup;
 	}
 	count = read(sock, clientin, clientinlen);
-	if (count != clientinlen) {
+	if (count < 0 || (unsigned)count != clientinlen) {
 		if (count == -1) {
 			printf("[server] read() failed errno=%d\n", errno);
 		} else {
@@ -988,14 +996,14 @@ retry:;
 			memcpy(buf + 1 + sizeof(unsigned), out, outlen);
 			
 			count = write(sock, buf, 1 + outlen + sizeof(unsigned));
-			if (count != 1 + outlen + sizeof(unsigned)) {
+			if (count < 0 || (unsigned)count != 1 + outlen + sizeof(unsigned)) {
 				if (count == -1) {
 					printf("[server] write() failed errno=%d\n", count);
 				} else {
 					printf("[server] write() failed "
-						"(%d instead of %lu)\n",
+						"(%d instead of %u)\n",
 						count,
-						1 + outlen + sizeof(unsigned));
+						(unsigned)(1 + outlen + sizeof(unsigned)));
 				}
 				rc = SASL_FAIL;
 				goto cleanup;
@@ -1043,8 +1051,8 @@ retry:;
 				printf("[server] read() failed errno=%d\n", errno);
 			} else {
 				printf("[server] read() failed "
-					"(%d instead of %lu)\n",
-					count, sizeof(unsigned));
+					"(%d instead of %u)\n",
+					count, (unsigned)sizeof(unsigned));
 			}
 			rc = SASL_FAIL;
 			goto cleanup;
@@ -1056,7 +1064,7 @@ retry:;
 			goto cleanup;
 		}
 		count = read(sock, clientin, clientinlen);
-		if (count != clientinlen) {
+		if (count < 0 || (unsigned)count != clientinlen) {
 			if (count == -1) {
 				printf("[server] read() failed errno=%d\n", errno);
 			} else {
