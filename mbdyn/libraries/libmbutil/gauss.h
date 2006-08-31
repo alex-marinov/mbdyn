@@ -180,6 +180,7 @@ class NumIntIterator {
    NumIntData& data;
  public:
    NumIntIterator(NumIntData& d);
+   virtual ~NumIntIterator(void);
    virtual doublereal dGetFirst(integer i = 0) const;
    virtual PntWght GetFirst(void) const;
    virtual flag fGetNext(doublereal& d, integer i = 0) const;

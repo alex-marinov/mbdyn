@@ -263,6 +263,12 @@ NumIntIterator::NumIntIterator(NumIntData& d)
 }
 
 
+NumIntIterator::~NumIntIterator(void)
+{
+	NO_OP;
+}
+
+
 doublereal NumIntIterator::dGetFirst(integer i) const
 {
    ASSERT(i == 0 || i == 1);
