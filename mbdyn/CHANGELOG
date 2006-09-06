@@ -30,8 +30,8 @@ MBDyn 1.X-Devel
 		- added scalar function-based drive caller
 		- added support for user-defined scalar functions
 		- added scalar function-based constitutive laws
+		- improved double viscoelastic constitutive
 	Backward compatibility issues:
-		- double viscoelastic constitutive law syntax changed
 		- per-element output removed from modal joints
 		- spherical hinge output now refers to node 1 instead of 2
 	Known issues:

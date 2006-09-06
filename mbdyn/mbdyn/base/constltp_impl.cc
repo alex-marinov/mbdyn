@@ -815,12 +815,15 @@ struct DoubleLinearViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 				<< HP.GetLineData() << std::endl);
 		}
 
-		doublereal dSecondSP = HP.GetReal();
-		DEBUGCOUT("second stiffness prime = " << dSecondSP << std::endl);
+		doublereal dSecondSP = dSP;
+		if (HP.IsKeyWord("second" "damping")) {
+			dSecondSP = HP.GetReal();
+			DEBUGCOUT("second stiffness prime = " << dSecondSP << std::endl);
 
-		if (dSecondSP <= 0.) {
-			silent_cerr("warning, null or negative second stiffness prime at line "
-				<< HP.GetLineData() << std::endl);
+			if (dSecondSP <= 0.) {
+				silent_cerr("warning, null or negative second stiffness prime at line "
+					<< HP.GetLineData() << std::endl);
+			}
 		}
 
 		/* Prestress and prestrain */

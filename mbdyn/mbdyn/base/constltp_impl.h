@@ -1724,7 +1724,7 @@ class DoubleLinearViscoElasticConstitutiveLaw<doublereal, doublereal>
 	<< dLowerLimitStrain << ", "
 	<< dSecondStiffness << ", "
 	<< dStiffnessPrime << ", "
-	<< dSecondStiffnessPrime << ", ";
+	"second damping, " << dSecondStiffnessPrime << ", ";
       return Restart_int(out);
    };
 
