@@ -953,12 +953,9 @@ ViscoElasticHingeJoint::AssMats(FullSubMatrixHandler& WMA,
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
 	Vec3 W2(pNode1->GetWRef());
 
-	WMB.Add(4, 4, FDEPrime);
-	WMB.Sub(1, 4, FDEPrime);
-	WMB.Add(1, 1, FDEPrime);
-	WMB.Sub(4, 1, FDEPrime);
-
-	Mat3x3 Tmp(FDE*dCoef - FDEPrime*Mat3x3(W2*dCoef));
+	Mat3x3 Tmp(FDE*dCoef);
+	Tmp += FDEPrime;
+	Tmp -= FDEPrime*Mat3x3(W2*dCoef);
 	WMA.Add(4, 4, Tmp);
 	WMA.Sub(1, 4, Tmp);
 
@@ -999,11 +996,8 @@ ViscoElasticHingeJoint::AssRes(SubVectorHandler& WorkVec,
 		Mat3x3 R1hT(R1h.Transpose());
 		Mat3x3 R2h(pNode2->GetRCurr()*tilde_R2h);
 
-		Vec3 W1(pNode1->GetWCurr());
-		Vec3 W2(pNode2->GetWCurr());
-
 		tilde_ThetaCurr = RotManip::VecRot(R1hT*R2h);
-		tilde_Omega = R1hT*(W2 - W1);
+		tilde_Omega = R1hT*(pNode2->GetWCurr() - pNode1->GetWCurr());
 
 		ConstitutiveLaw3DOwner::Update(tilde_ThetaCurr, tilde_Omega);
 	}
