@@ -49,6 +49,7 @@ MBDyn 1.X-Devel
 		- fixed misc errors in utils/*
 		- fixed corrupted binary FEM file leftover when parse fails
 		- fixed rod with offset bug when offset != 0
+		- fixed output of deformable hinge
 
 MBDyn 1.2.6
 	Enhancements:
