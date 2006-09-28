@@ -3924,7 +3924,7 @@ The syntax is:
         [ { local , " <socket_name> " , |
             [ port , <port_number> , ]
             [ host , " <host_name> " , ] } ]
-	[ no signal , ]
+        [ { no signal | no send first | non blocking } , [ ... ] ]
         <channel_number> ,
             (node_dof) <output_dof>
             [ , ... ]
@@ -3942,6 +3942,51 @@ of debugging the model and the control process without the overhead
 and the potential problems of running in real-time.
 Then the same model can be run in real-time without changing the details
 of the communication with the controller process.
+
+\subsection{Stream motion output}\label{sec:EL:BASE:STREAM_MOTION_OUTPUT}
+This is another special element which takes care of sending motion-related
+output to external processes by means of regular sockets/RTAI mailboxes
+during batch or real-time simulations.
+This topic is under development, so expect frequent changes, and
+please do not count too much on backward compatibility.
+The syntax is:
+\begin{verbatim}
+    <normal_arglist> ::= stream motion output
+        name , " <mailbox_name> " ,
+        create , { yes | no } ,
+        [ { local , " <socket_name> " , |
+            [ port , <port_number> , ]
+            [ host , " <host_name> " , ] } ]
+        [ { no signal | no send first | non blocking } , [ ... ] ]
+        <node_label>
+            [ , ... ]
+\end{verbatim}
+As opposed to the \kw{stream output}, which is intended for generic
+output for interprocess communication, this element is intended to ease
+and optimize the output of the motion, to be used for on-line visualization
+purposes.
+Currently, only the position of the selected nodes is sent.
+This is intended for interoperability with a development version
+of EasyAnim which can read the motion info (the so-called ``van'' file)
+from a stream.
+
+The stream output allows MBDyn to send motion-related streamed output 
+to remote processes both during regular simulations and during 
+real-time simulations under RTAI.
+If the simulation is run in real-time, it uses RTAI mailboxes, 
+otherwise regular UNIX sockets are used, either in the \kw{local} or 
+in the \kw{internet} namespace.
+
+This output element type is intended to allow the development 
+of real-time models by running regular simulations for the purpose 
+of debugging the model and the control process without the overhead 
+and the potential problems of running in real-time.
+Then the same model can be run in real-time without changing the details
+of the communication with the controller process.
+
+\noindent
+\emph{Note: the real-time variant of this element has not been implemented
+yet.}
 
 \paragraph{Non real-time simulation}
 During non real-time simulations, streams operate in blocking mode.
