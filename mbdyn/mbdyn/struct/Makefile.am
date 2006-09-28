@@ -65,6 +65,8 @@ rodj.cc \
 rodj.h \
 shapefnc.cc \
 shapefnc.h \
+socketstreammotionelem.cc \
+socketstreammotionelem.h \
 spherj.cc \
 spherj.h \
 strext.cc \

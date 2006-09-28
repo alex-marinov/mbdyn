@@ -90,6 +90,7 @@
 #endif /* USE_RTAI */
 
 #include <socketstream_out_elem.h>
+#include <socketstreammotionelem.h>
 
 static int iNumTypes[Elem::LASTELEMTYPE];
 
@@ -132,6 +133,7 @@ enum KeyWords {
 	DRIVEN,
 
 	SOCKETSTREAM_OUTPUT,
+	SOCKETSTREAM_MOTION_OUTPUT,
 	RTAI_OUTPUT,
 
 	INERTIA,
@@ -187,6 +189,7 @@ DataManager::ReadElems(MBDynParser& HP)
 		"driven",
 
 		"stream" "output",
+		"stream" "motion" "output",
 		"RTAI" "output",
 
 		"inertia",
@@ -681,6 +684,7 @@ DataManager::ReadElems(MBDynParser& HP)
 
 			case RTAI_OUTPUT:
 			case SOCKETSTREAM_OUTPUT:
+			case SOCKETSTREAM_MOTION_OUTPUT:
 				silent_cerr(psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 					<< " does not support bind" << std::endl);
 			default:
@@ -893,6 +897,7 @@ DataManager::ReadElems(MBDynParser& HP)
 
 					case RTAI_OUTPUT:
 					case SOCKETSTREAM_OUTPUT:
+					case SOCKETSTREAM_MOTION_OUTPUT:
 						silent_cerr(psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 							<< " cannot be driven" << std::endl);
 						throw ErrGeneric();
@@ -1085,6 +1090,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				case LOADABLE:
 				case RTAI_OUTPUT:
 				case SOCKETSTREAM_OUTPUT:
+				case SOCKETSTREAM_MOTION_OUTPUT:
 				{
 					Elem **ppE = 0;
 
@@ -1838,7 +1844,8 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, int CurrType)
 #endif /* ! USE_RTAI */
 		/* fall thru... */
 
-	case SOCKETSTREAM_OUTPUT: {
+	case SOCKETSTREAM_OUTPUT:
+	case SOCKETSTREAM_MOTION_OUTPUT: {
 		silent_cout("Reading stream output element " << uLabel
 			<< std::endl);
 
@@ -1864,13 +1871,37 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, int CurrType)
 		/* allocazione e creazione */
 #ifdef USE_RTAI
 		if (mbdyn_rtai_task != 0) {
-			silent_cerr("starting RTAI out element" << std::endl);
-			pE = ReadRTAIOutElem(this, HP, uLabel);
+			switch (KeyWords(CurrType)) {
+			case SOCKETSTREAM_OUTPUT:
+			case RTAI_OUTPUT:
+				silent_cerr("starting RTAI out element" << std::endl);
+				pE = ReadRTAIOutElem(this, HP, uLabel);
+				break;
+
+			case SOCKETSTREAM_MOTION_OUTPUT:
+			default:
+				silent_cerr("line " << HP.GetLineData()
+					<< ": stream motion element " << uLabel
+					<< " not allowed with RTAI" << std::endl);
+
+				throw DataManager::ErrGeneric();
+			}
+				
 		} else
 #endif /* USE_RTAI */
 		{
-			pedantic_cout("starting stream element" << std::endl);
-			pE = ReadSocketStreamElem(this, HP, uLabel);
+			switch (KeyWords(CurrType)) {
+			case SOCKETSTREAM_OUTPUT:
+			case RTAI_OUTPUT:
+				pedantic_cout("starting stream element" << std::endl);
+				pE = ReadSocketStreamElem(this, HP, uLabel);
+				break;
+
+			case SOCKETSTREAM_MOTION_OUTPUT:
+				pedantic_cout("starting stream motion element" << std::endl);
+				pE = ReadSocketStreamMotionElem(this, HP, uLabel);
+				break;
+			}
 		}
 		if (pE != 0) {
 			ppE = &ElemData[Elem::SOCKETSTREAM_OUTPUT].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
