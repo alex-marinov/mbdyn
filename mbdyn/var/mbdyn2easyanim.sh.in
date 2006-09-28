@@ -75,6 +75,15 @@ while test "x$1" != "x" ; do
 		EXTRALOGFILES="$EXTRALOGFILES $1"
 		;;
 
+	-v)
+		shift
+		if test "x$1" == "x" ; then
+			echo "usage:  mbdyn2easyanim.sh -v <name=value> <filename>"	
+			exit 1
+		fi
+		SOURCES="$SOURCES -v $1"
+		;;
+
 	-*)
 		echo "unknown option $1"
 		exit 1

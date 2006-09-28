@@ -103,12 +103,22 @@ BEGIN {
 	sideprop_num = 0;
 
 	# node props
+	nodeprop[nodeprop_num, "name"] = "hinge_node";
+	nodeprop[nodeprop_num, "color"] = 2;
+	nodeprop[nodeprop_num, "radius"] = 1.5;
+	nodeprop_num++;
+
 	nodeprop[nodeprop_num, "name"] = "distance_node";
 	nodeprop[nodeprop_num, "color"] = 1;
 	nodeprop[nodeprop_num, "radius"] = 1.;
 	nodeprop_num++;
 
 	nodeprop[nodeprop_num, "name"] = "rod_node";
+	nodeprop[nodeprop_num, "color"] = 1;
+	nodeprop[nodeprop_num, "radius"] = 1.;
+	nodeprop_num++;
+
+	nodeprop[nodeprop_num, "name"] = "deformablejoint_node";
 	nodeprop[nodeprop_num, "color"] = 1;
 	nodeprop[nodeprop_num, "radius"] = 1.;
 	nodeprop_num++;
@@ -124,6 +134,11 @@ BEGIN {
 	nodeprop_num++;
 
 	# edge props
+	edgeprop[edgeprop_num, "name"] = "hinge_offset";
+	edgeprop[edgeprop_num, "color"] = 10;
+	edgeprop[edgeprop_num, "radius"] = .5;
+	edgeprop_num++;
+
 	edgeprop[edgeprop_num, "name"] = "distance_edge";
 	edgeprop[edgeprop_num, "color"] = 1;
 	edgeprop[edgeprop_num, "radius"] = 1.;
@@ -140,6 +155,16 @@ BEGIN {
 	edgeprop_num++;
 
 	edgeprop[edgeprop_num, "name"] = "rod_offset";
+	edgeprop[edgeprop_num, "color"] = 12;
+	edgeprop[edgeprop_num, "radius"] = .5;
+	edgeprop_num++;
+
+	edgeprop[edgeprop_num, "name"] = "deformablejoint_edge";
+	edgeprop[edgeprop_num, "color"] = 5;
+	edgeprop[edgeprop_num, "radius"] = 2.5;
+	edgeprop_num++;
+
+	edgeprop[edgeprop_num, "name"] = "deformablejoint_offset";
 	edgeprop[edgeprop_num, "color"] = 12;
 	edgeprop[edgeprop_num, "radius"] = .5;
 	edgeprop_num++;
@@ -181,6 +206,65 @@ isvan == 0 && /structural node:/ {
 	}
 }
 
+isvan == 0 && showHinge && /sphericalhinge:/ {
+	if (!exclude["joint", $2]) {
+		j_hinge_label[j_hinge_num] = $2;
+		j_hinge[$2] = j_hinge_num;
+		j_hinge[$2, 1] = $3;
+		j_hinge[$2, 1, 1] = $4;
+		j_hinge[$2, 1, 2] = $5;
+		j_hinge[$2, 1, 3] = $6;
+		j_hinge[$2, 2] = $16;
+		j_hinge[$2, 2, 1] = $17;
+		j_hinge[$2, 2, 2] = $18;
+		j_hinge[$2, 2, 3] = $19;
+		j_hinge_num++;
+	
+		label1 = j_hinge[$2, 1];
+		label2 = j_hinge[$2, 2];
+	
+		if (j_hinge[$2, 1, 1] != 0. || j_hinge[$2, 1, 2] != 0. || j_hinge[$2, 1, 3] != 0.) {
+			# create offset node and link
+			label = "hinge_" $2 "_point1";
+			node[node_num] = label;
+			node[node_num, "relative"] = j_hinge[$2, 1];
+			node[node_num, 1] = j_hinge[$2, 1, 1];
+			node[node_num, 2] = j_hinge[$2, 1, 2];
+			node[node_num, 3] = j_hinge[$2, 1, 3];
+			node[node_num, "prop"] = "hinge_node";
+			node_num++;
+			
+			edge[edge_num] = "hinge_" $2 "_offset1";
+			edge[edge_num, 1] = label1;
+			edge[edge_num, 2] = label;
+			edge[edge_num, "prop"] = "hinge_offset";
+			edge_num++;
+	
+			label1 = label;
+		}
+	
+		if (j_hinge[$2, 2, 1] != 0. || j_hinge[$2, 2, 2] != 0. || j_hinge[$2, 2, 3] != 0.) {
+			# create offset node and link
+			label = "hinge_" $2 "_point2";
+			node[node_num] = label;
+			node[node_num, "relative"] = j_hinge[$2, 2];
+			node[node_num, 1] = j_hinge[$2, 2, 1];
+			node[node_num, 2] = j_hinge[$2, 2, 2];
+			node[node_num, 3] = j_hinge[$2, 2, 3];
+			node[node_num, "prop"] = "hinge_node";
+			node_num++;
+			
+			edge[edge_num] = "hinge_" $2 "_offset2";
+			edge[edge_num, 1] = label2;
+			edge[edge_num, 2] = label;
+			edge[edge_num, "prop"] = "hinge_offset";
+			edge_num++;
+	
+			label2 = label;
+		}
+	}
+}
+	
 isvan == 0 && /distance:/ {
 	if (!exclude["joint", $2]) {
 		j_distance_label[j_distance_num] = $2;
@@ -195,8 +279,8 @@ isvan == 0 && /distance:/ {
 		j_distance[$2, 2, 3] = $10;
 		j_distance_num++;
 	
-		label1 = $3;
-		label2 = $7;
+		label1 = j_distance[$2, 1];
+		label2 = j_distance[$2, 2];
 	
 		if (j_distance[$2, 1, 1] != 0. || j_distance[$2, 1, 2] != 0. || j_distance[$2, 1, 3] != 0.) {
 			# create offset node and link
@@ -260,8 +344,8 @@ isvan == 0 && /rod:/ {
 		j_rod[$2, 2, 3] = $10;
 		j_rod_num++;
 	
-		label1 = $3;
-		label2 = $7;
+		label1 = j_rod[$2, 1];
+		label2 = j_rod[$2, 2];
 	
 		if (j_rod[$2, 1, 1] != 0. || j_rod[$2, 1, 2] != 0. || j_rod[$2, 1, 3] != 0.) {
 			# create offset node and link
@@ -307,6 +391,71 @@ isvan == 0 && /rod:/ {
 		edge[edge_num, 1] = label1;
 		edge[edge_num, 2] = label2;
 		edge[edge_num, "prop"] = "rod_edge";
+		edge_num++;
+	}
+}
+
+isvan == 0 && showDeformableJoint && (/deformablejoint:/ || /deformabledisplacementjoint:/) {
+	if (!exclude["joint", $2]) {
+		j_deformablejoint_label[j_deformablejoint_num] = $2;
+		j_deformablejoint[$2] = j_deformablejoint_num;
+		j_deformablejoint[$2, 1] = $3;
+		j_deformablejoint[$2, 1, 1] = $4;
+		j_deformablejoint[$2, 1, 2] = $5;
+		j_deformablejoint[$2, 1, 3] = $6;
+		j_deformablejoint[$2, 2] = $16;
+		j_deformablejoint[$2, 2, 1] = $17;
+		j_deformablejoint[$2, 2, 2] = $18;
+		j_deformablejoint[$2, 2, 3] = $19;
+		j_deformablejoint_num++;
+	
+		label1 = j_deformablejoint[$2, 1];
+		label2 = j_deformablejoint[$2, 2];
+	
+		if (j_deformablejoint[$2, 1, 1] != 0. || j_deformablejoint[$2, 1, 2] != 0. || j_deformablejoint[$2, 1, 3] != 0.) {
+			# create offset node and link
+			label = "deformablejoint_" $2 "_point1";
+			node[node_num] = label;
+			node[node_num, "relative"] = j_deformablejoint[$2, 1];
+			node[node_num, 1] = j_deformablejoint[$2, 1, 1];
+			node[node_num, 2] = j_deformablejoint[$2, 1, 2];
+			node[node_num, 3] = j_deformablejoint[$2, 1, 3];
+			node[node_num, "prop"] = "deformablejoint_node";
+			node_num++;
+			
+			edge[edge_num] = "deformablejoint_" $2 "_offset1";
+			edge[edge_num, 1] = label1;
+			edge[edge_num, 2] = label;
+			edge[edge_num, "prop"] = "deformablejoint_offset";
+			edge_num++;
+	
+			label1 = label;
+		}
+	
+		if (j_deformablejoint[$2, 2, 1] != 0. || j_deformablejoint[$2, 2, 2] != 0. || j_deformablejoint[$2, 2, 3] != 0.) {
+			# create offset node and link
+			label = "deformablejoint_" $2 "_point2";
+			node[node_num] = label;
+			node[node_num, "relative"] = j_deformablejoint[$2, 2];
+			node[node_num, 1] = j_deformablejoint[$2, 2, 1];
+			node[node_num, 2] = j_deformablejoint[$2, 2, 2];
+			node[node_num, 3] = j_deformablejoint[$2, 2, 3];
+			node[node_num, "prop"] = "deformablejoint_node";
+			node_num++;
+			
+			edge[edge_num] = "deformablejoint_" $2 "_offset2";
+			edge[edge_num, 1] = label2;
+			edge[edge_num, 2] = label;
+			edge[edge_num, "prop"] = "deformablejoint_offset";
+			edge_num++;
+	
+			label2 = label;
+		}
+	
+		edge[edge_num] = "deformablejoint_" $2;
+		edge[edge_num, 1] = label1;
+		edge[edge_num, 2] = label2;
+		edge[edge_num, "prop"] = "deformablejoint_edge";
 		edge_num++;
 	}
 }
