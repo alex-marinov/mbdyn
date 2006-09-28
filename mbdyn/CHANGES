@@ -51,6 +51,7 @@ MBDyn 1.X-Devel
 		- fixed corrupted binary FEM file leftover when parse fails
 		- fixed rod with offset bug when offset != 0
 		- fixed output of deformable hinge
+		- fixed bug in .log of deformable joint(s)
 
 MBDyn 1.2.6
 	Enhancements:

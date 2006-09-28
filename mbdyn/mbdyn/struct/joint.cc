@@ -1465,15 +1465,16 @@ Elem* ReadJoint(DataManager* pDM,
 				     ElasticHingeJoint(uLabel, pDO, pCL,
 						       pNode1, pNode2, 
 						       R1, R2, fOut));
-	   std::ostream& out = pDM->GetLogFile();
-	   out << "deformablehinge: " << uLabel
-	   	<< " " << pNode1->GetLabel()
-	   	<< " " << Vec3(0.)
-	   	<< " " << R1
-	   	<< " " << pNode2->GetLabel()
-	   	<< " " << Vec3(0.)
-	   	<< " " << R2
-		<< std::endl;
+	      std::ostream& out = pDM->GetLogFile();
+	      out << "deformablehinge: " << uLabel
+	   	   << " " << pNode1->GetLabel()
+	   	   << " " << Vec3(0.)
+	   	   << " " << R1
+	   	   << " " << pNode2->GetLabel()
+	   	   << " " << Vec3(0.)
+	   	   << " " << R2
+		   << std::endl;
+
 	   } else if (CurrKeyWord == DEFORMABLEDISPHINGE || CurrKeyWord == DEFORMABLEDISPJOINT) {
 	      SAFENEWWITHCONSTRUCTOR(pEl,
 				     ElasticDispJoint,
@@ -1481,17 +1482,17 @@ Elem* ReadJoint(DataManager* pDM,
 							   pNode1, pNode2, 
 							   f1, f2, R1, R2, 
 							   fOut));
-	   }
 	   
-	   std::ostream& out = pDM->GetLogFile();
-	   out << "deformabledisplacementjoint: " << uLabel
-	   	<< " " << pNode1->GetLabel()
-	   	<< " " << f1
-	   	<< " " << R1
-	   	<< " " << pNode2->GetLabel()
-	   	<< " " << f2
-	   	<< " " << R2
-		<< std::endl;
+	      std::ostream& out = pDM->GetLogFile();
+	      out << "deformabledisplacementjoint: " << uLabel
+	   	   << " " << pNode1->GetLabel()
+	   	   << " " << f1
+	   	   << " " << R1
+	   	   << " " << pNode2->GetLabel()
+	   	   << " " << f2
+	   	   << " " << R2
+		   << std::endl;
+	   }
 	   break;
 	}
 	  
@@ -1502,8 +1503,8 @@ Elem* ReadJoint(DataManager* pDM,
 				     ViscousHingeJoint(uLabel, pDO, pCL,
 						       pNode1, pNode2, 
 						       R1, R2, fOut));
-	   std::ostream& out = pDM->GetLogFile();
-	   out << "deformablehinge: " << uLabel
+	      std::ostream& out = pDM->GetLogFile();
+	      out << "deformablehinge: " << uLabel
 	   	<< " " << pNode1->GetLabel()
 	   	<< " " << Vec3(0.)
 	   	<< " " << R1
@@ -1518,8 +1519,8 @@ Elem* ReadJoint(DataManager* pDM,
 							   pNode1, pNode2,
 							   f1, f2, R1, R2, 
 							   fOut));
-	   std::ostream& out = pDM->GetLogFile();
-	   out << "deformabledisplacementjoint: " << uLabel
+	      std::ostream& out = pDM->GetLogFile();
+	      out << "deformabledisplacementjoint: " << uLabel
 	   	<< " " << pNode1->GetLabel()
 	   	<< " " << f1
 	   	<< " " << R1
@@ -1528,7 +1529,6 @@ Elem* ReadJoint(DataManager* pDM,
 	   	<< " " << R2
 		<< std::endl;
 	   }
-	   
 	   break;
 	}
 	  
@@ -1539,8 +1539,8 @@ Elem* ReadJoint(DataManager* pDM,
 				     ViscoElasticHingeJoint(uLabel, pDO, pCL,
 							    pNode1, pNode2, 
 							    R1, R2, fOut));
-	   std::ostream& out = pDM->GetLogFile();
-	   out << "deformablehinge: " << uLabel
+	      std::ostream& out = pDM->GetLogFile();
+	      out << "deformablehinge: " << uLabel
 	   	<< " " << pNode1->GetLabel()
 	   	<< " " << Vec3(0.)
 	   	<< " " << R1
@@ -1548,6 +1548,7 @@ Elem* ReadJoint(DataManager* pDM,
 	   	<< " " << Vec3(0.)
 	   	<< " " << R2
 		<< std::endl;
+
 	   } else if (CurrKeyWord == DEFORMABLEDISPHINGE || CurrKeyWord == DEFORMABLEDISPJOINT) {
 	      SAFENEWWITHCONSTRUCTOR(pEl,
 				     ViscoElasticDispJoint,
@@ -1556,8 +1557,8 @@ Elem* ReadJoint(DataManager* pDM,
 								pNode1, pNode2,
 								f1, f2, R1, R2,
 								fOut));
-	   std::ostream& out = pDM->GetLogFile();
-	   out << "deformabledisplacementjoint: " << uLabel
+	      std::ostream& out = pDM->GetLogFile();
+	      out << "deformabledisplacementjoint: " << uLabel
 	   	<< " " << pNode1->GetLabel()
 	   	<< " " << f1
 	   	<< " " << R1
@@ -1566,7 +1567,6 @@ Elem* ReadJoint(DataManager* pDM,
 	   	<< " " << R2
 		<< std::endl;
 	   }
-	   
 	   break;
 	}
 	  
