@@ -299,7 +299,7 @@ UseInetSocket::Connect(void)
 	pedantic_cout("connecting to inet socket "
 			"\"" << inet_ntoa(addr.sin_addr) 
 			<< ":" << ntohs(addr.sin_port)
-			<< ") ..." << std::endl);
+			<< "\" ..." << std::endl);
 
 	UseSocket::Connect();
 }
