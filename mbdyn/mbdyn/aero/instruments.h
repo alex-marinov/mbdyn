@@ -49,11 +49,13 @@ public:
 		SLIP,
 		VERTICALSPEED,
 		AOA,
+		HEADING,
 		LASTMEASURE
 	};
 
 protected:
 	const StructNode* pNode;
+	Mat3x3 Rh;
 
 	doublereal dMeasure[LASTMEASURE];
 
@@ -61,7 +63,7 @@ protected:
 	
 public:
 	AircraftInstruments(unsigned int uLabel, const StructNode* pN,
-			flag fOut);
+			const Mat3x3 &R, flag fOut);
 	virtual ~AircraftInstruments(void);
 	
 	virtual inline void* pGet(void) const { 

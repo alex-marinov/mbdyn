@@ -40,10 +40,11 @@
 #include <instruments.h>
 
 AircraftInstruments::AircraftInstruments(unsigned int uLabel, 
-		const StructNode* pN, flag fOut)
+		const StructNode* pN, const Mat3x3 &R, flag fOut)
 : Elem(uLabel, fOut),
 AerodynamicElem(uLabel, fOut),
-pNode(pN)
+pNode(pN),
+Rh(R)
 {
 	NO_OP;
 }
@@ -57,7 +58,7 @@ void
 AircraftInstruments::Update(void)
 {
 	Vec3 X(pNode->GetXCurr());
-	Mat3x3 R(pNode->GetRCurr());
+	Mat3x3 R(pNode->GetRCurr()*Rh);
 	Vec3 V(pNode->GetVCurr());
 	Vec3 VV = V;
 	Vec3 e1(R.GetVec(1));
@@ -100,6 +101,9 @@ AircraftInstruments::Update(void)
 	/* angle of attack */
 	VTmp = R.Transpose()*VV;
 	dMeasure[AOA] = atan2(VTmp(3), VTmp(1));
+
+	/* heading */
+	dMeasure[HEADING] = atan2(e1(2), e1(1));
 }
 
 /* Scrive il contributo dell'elemento al file di restart */
@@ -107,7 +111,9 @@ std::ostream&
 AircraftInstruments::Restart(std::ostream& out) const
 {
 	out << "aircraft instruments: " << GetLabel()
-		<< ", " << pNode->GetLabel() << ";" << std::endl;
+		<< ", " << pNode->GetLabel() 
+		<< ", orientation, ", Rh.Write(out)
+		<< ";" << std::endl;
 
 	return out;
 }
@@ -227,6 +233,10 @@ AircraftInstruments::iGetPrivDataIdx(const char *s) const
 		return AOA;
 	}
 
+	if (strcasecmp(s, "heading") == 0) {
+		return HEADING;
+	}
+
 	return 0;
 }
 
@@ -248,10 +258,14 @@ ReadAircraftInstruments(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	Elem *pEl = NULL;
 
 	StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+	Mat3x3 R = Eye3;
+	if (HP.IsKeyWord("orientation")) {
+		R = HP.GetRotRel(ReferenceFrame(pNode));
+	}
 	flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
 
 	SAFENEWWITHCONSTRUCTOR(pEl, AircraftInstruments,
-			AircraftInstruments(uLabel, pNode, fOut));
+			AircraftInstruments(uLabel, pNode, R, fOut));
 
 	return pEl;
 }
