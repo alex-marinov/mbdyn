@@ -349,15 +349,21 @@ All quantities are expressed in inches and pounds.
 
 
 
-\section{Aircraft instruments}
+\section{Aircraft Instruments}
 \begin{verbatim}
     <card> ::= aircraft instruments
     <arglist> ::= <aircraft_node>
+        [ , orientation , (Mat3x3)<relative orientation> ]
 \end{verbatim}
 The \kw{<aircraft\_node>} represents the aircraft; it is assumed
 that the ``nose'' of the aircraft is toward the positive $x$ direction
 of the node, and the ``top'' of the aircraft is toward the positive 
 $z$ direction of the node.
+An optional orientation can be added to change the orientation 
+of the aircraft with respect to the node.
+This is useful, for example, with helicopters, where conventionally
+the positive direction of the $x$ axis is nose to tail.
+
 The available measures are accessed during the simulation 
 by defining appropriate \kw{parameter} nodes, and by binding
 the \kw{aircraft instruments} element private data to the nodes 
@@ -383,7 +389,9 @@ The following data is available:
 \item \kw{"verticalspeed"} the $z$ component of the node velocity
 \item \kw{"angleofattack"} the angle between the $z$ 
 \item \kw{"heading"} the angle between the $x$ axis of the aircraft 
-	and the ``north'' (the global $x$ axis) about the global $z$ axis
+	and the ``north'' (the global $x$ axis) about the global $z$ axis;
+	note: heading wraps about South
+	(+180 deg from East, -180 deg from West).
 \end{itemize}
 
 \noindent
