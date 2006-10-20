@@ -83,11 +83,11 @@ AircraftInstruments::Update(void)
 
 	/* attitude */
 	/* FIXME: better asin(e1(3)) ? */
-	dMeasure[ATTITUDE] = atan2(e1(3), e1(1));
+	dMeasure[ATTITUDE] = std::atan2(e1(3), e1(1));
 
 	/* bank */
 	/* FIXME: better asin(e2(3)) ? */
-	dMeasure[BANK] = atan2(e2(3), e2(2));
+	dMeasure[BANK] = std::atan2(e2(3), e2(2));
 
 	/* turn */
 	dMeasure[TURN] = 0.;	/* FIXME */
@@ -100,10 +100,10 @@ AircraftInstruments::Update(void)
 
 	/* angle of attack */
 	VTmp = R.Transpose()*VV;
-	dMeasure[AOA] = atan2(VTmp(3), VTmp(1));
+	dMeasure[AOA] = std::atan2(VTmp(3), VTmp(1));
 
 	/* heading */
-	dMeasure[HEADING] = atan2(e1(2), e1(1));
+	dMeasure[HEADING] = std::atan2(e1(2), e1(1));
 }
 
 /* Scrive il contributo dell'elemento al file di restart */
@@ -181,21 +181,6 @@ AircraftInstruments::iGetPrivDataIdx(const char *s) const
 {
 	ASSERT(s != NULL);
 	
-#if 0
-	enum Measure {
-		AIRSPEED = 1,
-		GROUNDSPEED,
-		ALTITUDE,
-		ATTITUDE,
-		BANK,
-		TURN,
-		SLIP,
-		VERTICALSPEED,
-		AOA,
-		LASTMEASURE
-	};
-#endif
-
 	if (strcasecmp(s, "airspeed") == 0) {
 		return AIRSPEED;
 	}
@@ -229,7 +214,8 @@ AircraftInstruments::iGetPrivDataIdx(const char *s) const
 	}
 
 	if (strcasecmp(s, "aoa") == 0
-			|| strcasecmp(s, "angle" "of" "attack") == 0) {
+			|| strcasecmp(s, "angle" "of" "attack") == 0)
+	{
 		return AOA;
 	}
 
@@ -244,8 +230,8 @@ doublereal
 AircraftInstruments::dGetPrivData(unsigned int i) const
 {
 	if (i <= 0 || i >= LASTMEASURE) {
-		silent_cerr("AircraftInstruments(" << GetLabel() 
-			<< "): illegal measure " << i << std::endl);
+		silent_cerr("AircraftInstruments(" << GetLabel() << "): "
+			"illegal measure " << i << std::endl);
 		throw ErrGeneric();
 	}
 
