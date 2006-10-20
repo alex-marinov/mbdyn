@@ -1628,7 +1628,7 @@ However, the matrix is reconstructed as
 \begin{displaymath}
 	\mathrm{NASTRAN \ ::= } \ \sqbr{\matr{cccccc}{
 		M & & & & & \\
-		& M & & \multicolumn{3}{c}{symmetric} \\
+		& M & & \multicolumn{3}{c}{\mathrm{symmetric}} \\
 		& & M & & & \\
 		& & & I11 & & \\
 		& & & -I21 & I22 & \\
@@ -1644,11 +1644,20 @@ that will be used in the computation, i.e.\
 as reported below:
 \begin{displaymath}
 	\mathrm{MBDyn \ ::= } \ \sqbr{\matr{ccc}{
-		I11 & & \\
-		I21 & I22 & \\
-		I31 & I32 & I33
+		i11 & \multicolumn{2}{r}{\mathrm{sym.}} \\
+		i21 & i22 & \\
+		i31 & i32 & i33
 	}}
 \end{displaymath}
+So:
+\begin{eqnarray*}
+	i11 & = & I11 \\
+	i22 & = & I22 \\
+	i33 & = & I33 \\
+	i21 & = & - I21 \\
+	i31 & = & - I31 \\
+	i32 & = & - I32
+\end{eqnarray*}
 The inertia properties of the model can be logged and verified
 by means of the \kw{inertia} keyword, as detailed
 in Section~\ref{sec:EL:MISC:INERTIA}.
