@@ -279,7 +279,7 @@ can be reassigned.
 		\multicolumn{1}{c}{\textbf{\emph{Value}}} \\
 		\hline
 		\kw{Time} & Real & Current simulation time \\
-		\kw{Val} & Real & Set by dof driver with DOF value \\
+		\kw{Var} & Real & Set by dof driver with DOF value \\
 		\\
 		\kw{e} & Real & Neper's number \\
 		\kw{pi} & Real & $\pi$ \\
@@ -1169,10 +1169,9 @@ Linear interpolation between pairs is used.
         { [ - ] <number_of_cycles> | half | one | forever } , 
         <initial_value>
 \end{verbatim}
-the value of \kw{number\_of\_cycles} determines the behavior of the
-drive. 
-If it is positive, \kw{number\_of\_cycles}$-1/2$ oscillations are
-performed. 
+where \kw{pulsation} is $2\pi/T$.
+The value of \kw{number\_of\_cycles} determines the behavior of the drive. 
+If it is positive, \kw{number\_of\_cycles}$-1/2$ oscillations are performed. 
 If it is negative, the oscillations end after 
 \kw{number\_of\_cycles}$-3/4$ cycles at the top of the sine, with null
 tangent.
@@ -1193,11 +1192,20 @@ Special keywords can be used for \kw{number\_of\_cycles}:
         { [ - ] <number_of_cycles> | half | one | forever } , 
         <initial_value>
 \end{verbatim}
-this drive actually computes a function of the type $ 1-\llk{cos}\plbr{x} $.
+where \kw{pulsation} is $2\pi/T$.
+This drive actually computes a function of the type
+\begin{displaymath}
+	\mathtt{amplitude} * \plbr{
+		1 - \llk{cos}\plbr{
+			\mathtt{pulsation} * \plbr{
+				t - \mathtt{initial\_time}
+			}
+		}
+	} + \mathtt{initial\_value} .
+\end{displaymath}
 The value of \kw{number\_of\_cycles} determines the behavior of the
 drive. 
-If it is positive, \kw{number\_of\_cycles} oscillations are
-performed.
+If it is positive, \kw{number\_of\_cycles} oscillations are performed.
 If it is negative, the oscillations end after
 \kw{number\_of\_cycles}$-1/2$ cycles at the top of the cosine, with null
 tangent.   
@@ -1206,8 +1214,21 @@ Special keywords can be used for \kw{number\_of\_cycles}:
 	\item \kw{forever}, which means the oscillation never stops;
 	\item \kw{one}, which means exactly one cycle is performed;
 	\item \kw{half}, which means exactly half cycle is performed,
-	so the function stops at \kw{amplitude} + \kw{initial\_value}.
+	so the function stops at
+	\begin{displaymath}
+		t = \mathtt{initial\_time} + \frac{\pi}{\mathtt{pulsation}} ,
+	\end{displaymath}
+	with a value of
+	\begin{displaymath}
+		f = 2 * \mathtt{amplitude} + \mathtt{initial\_value} ,
+	\end{displaymath}
+	starting and ending with continuous derivative.
+	In this case, it may be convenient to indicate the \kw{pulsation}
+	as $\pi/\mathtt{duration}$, where \kw{duration} is the time
+	required to complete the half-wave.
 \end{itemize}
+
+%%% TODO: add a plot that exemplifies the three cases
 
 \subsection{Fourier series drive}
 \begin{verbatim}

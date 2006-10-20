@@ -1558,9 +1558,9 @@ of a revolute hinge.
                 hinge, reference, node, eye,
             node2, reference, node, null,
                 hinge, reference, node, eye;
-        bind: 1, 1, joint, angle, string, "rx";
+        bind: 1, joint, angle, string, "rx";
         couple: 1, node1, 0.,0.,1.,
-            dof, 1, parameter, linear, 0.,1.;
+            dof, angle, parameter, 1, linear, 0.,1.;
         couple: 2, node2, 0.,0.,1.,
             element, 1, joint, string, "rx", linear, 0.,1.;
 
