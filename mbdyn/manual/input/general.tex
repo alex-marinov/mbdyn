@@ -570,7 +570,9 @@ airfoil tables that are used by aerodynamic elements.
     <card> ::= c81 data : <label> [ , name , " <name> " ]
         " <filename> " [ , fc511 | free format ] ;
 \end{verbatim}
-The file is in textual form; the format is:
+
+\subsubsection{Traditional Format}
+The file is in textual form; the traditional format (the default) is:
 \begin{itemize}
 \item first line: \kw{"\%30s\%2d\%2d\%2d\%2d\%2d\%2d"} 
 where the first 30 chars are a title string, currently ignored by MBDyn,
@@ -619,8 +621,12 @@ with \kw{MD} \emph{Mach} points and \kw{ND} angle of attack records;
 \item a block containing the $C_m$ data, same as for $C_l$,
 with \kw{MM} \emph{Mach} points and \kw{NM} angle of attack records.
 \end{itemize}
+
+\subsubsection{Alternate Format}
 An alternative format, required by some projects, can be used by supplying
 the optional switch \kw{fc511}; it is not documented.
+
+\subsubsection{Free Format}
 Finally, to allow higher precision whenever available, a native format,
 based on \kw{c81}, is available; it is called \kw{free format} and 
 basically consists in the c81 format without continuation lines

@@ -619,9 +619,11 @@ read_c81_data_free_format(std::istream& in, c81_data* data)
    		in >> data->ml[c];
 	}
    
-   	data->al = new doublereal[(data->NML+1)*data->NAL];
+   	data->al = new doublereal[(data->NML + 1)*data->NAL];
 	for (int r = 0; r < data->NAL; r++) {
-		for (int c = 0; c < data->NML; c++) {
+		/* NOTE: "<=" because the number of columns is data->NML + 1
+		 * for the angle of attack */
+		for (int c = 0; c <= data->NML; c++) {
 			in >> data->al[r + data->NAL*c];
 		}
 	}
@@ -632,9 +634,9 @@ read_c81_data_free_format(std::istream& in, c81_data* data)
    		in >> data->md[c];
 	}
    
-   	data->ad = new doublereal[(data->NMD+1)*data->NAD];      
+   	data->ad = new doublereal[(data->NMD + 1)*data->NAD];      
 	for (int r = 0; r < data->NAD; r++) {
-		for (int c = 0; c < data->NMD; c++) {
+		for (int c = 0; c <= data->NMD; c++) {
 			in >> data->ad[r + data->NAD*c];
 		}
 	}
@@ -645,9 +647,9 @@ read_c81_data_free_format(std::istream& in, c81_data* data)
    		in >> data->mm[c];
 	}
    
-   	data->am = new doublereal[(data->NMM+1)*data->NAM];
+   	data->am = new doublereal[(data->NMM + 1)*data->NAM];
 	for (int r = 0; r < data->NAM; r++) {
-		for (int c = 0; c < data->NMM; c++) {
+		for (int c = 0; c <= data->NMM; c++) {
 			in >> data->am[r + data->NAM*c];
 		}
 	}
@@ -682,7 +684,9 @@ write_c81_data_free_format(std::ostream& out, c81_data* data)
 	}
 	out << std::endl;
 	for (int r = 0; r < data->NAL; r++) {
-		for (int c = 0; c < data->NML; c++) {
+		/* NOTE: "<=" because the number of columns is data->NML + 1
+		 * for the angle of attack */
+		for (int c = 0; c <= data->NML; c++) {
 			out << data->al[r + data->NAL*c] << " ";
 		}
 		out << std::endl;
@@ -694,7 +698,7 @@ write_c81_data_free_format(std::ostream& out, c81_data* data)
 	}
 	out << std::endl;
 	for (int r = 0; r < data->NAD; r++) {
-		for (int c = 0; c < data->NMD; c++) {
+		for (int c = 0; c <= data->NMD; c++) {
 			out << data->ad[r + data->NAD*c] << " ";
 		}
 		out << std::endl;
@@ -706,7 +710,7 @@ write_c81_data_free_format(std::ostream& out, c81_data* data)
 	}
 	out << std::endl;
 	for (int r = 0; r < data->NAM; r++) {
-		for (int c = 0; c < data->NMM; c++) {
+		for (int c = 0; c <= data->NMM; c++) {
 			out << data->am[r + data->NAM*c] << " ";
 		}
 		out << std::endl;
