@@ -257,7 +257,22 @@ main(int argc, char *const argv[])
 
    	open_module(module);
 
-   	if ((*::ff->read)(&p_data, user_defined)) {
+	if (::ff->size == 0) {
+		std::cerr << "no \"size\" func in module" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+		
+	if (::ff->func == 0) {
+		std::cerr << "no \"func\" func in module" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+		
+	if (::ff->grad == 0) {
+		std::cerr << "no \"grad\" func in module" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+		
+   	if (::ff->read && ::ff->read(&p_data, user_defined)) {
 		std::cerr << "unable to read(" << user_defined << ") "
 			"data for module \"" << module << "\"" << std::endl;
 		exit(EXIT_FAILURE);
@@ -265,7 +280,7 @@ main(int argc, char *const argv[])
 
 	if (print_help) {
 		if (::ff->help) {
-			(*::ff->help)(p_data, std::cerr);
+			::ff->help(p_data, std::cerr);
 		} else {
 			std::cerr << "help not available for module "
 				"\"" << module << "\" (ignored)" << std::endl;
@@ -461,7 +476,7 @@ method_multistep(const char* module, integration_data* d,
 		 void* method_data, const char* user_defined)
 {
    	/* prepara le strutture dati per il calcolo */
-   	int size = (*::ff->size)(p_data);
+   	int size = ::ff->size(p_data);
    	MyVectorHandler v0(size);
    	MyVectorHandler v1(size);
    	MyVectorHandler v2(size);
@@ -524,7 +539,9 @@ method_multistep(const char* module, integration_data* d,
    	doublereal t = ti;
    
    	/* inizializza la soluzione */
-   	(*::ff->init)(p_data, *pX, *pXP);
+	if (::ff->init) {
+   		::ff->init(p_data, *pX, *pXP);
+	}
    	for (int k = 1; k <= size; k++) {
       		doublereal x = (*pX)(k);
       		doublereal xp = (*pXP)(k);
@@ -534,7 +551,9 @@ method_multistep(const char* module, integration_data* d,
    
    	/* output iniziale */
    	std::cout << ti << " " << 0. << " ";
-   	(*::ff->out)(p_data, std::cout, *pX, *pXP) << std::endl;
+	if (::ff->out) {
+   		::ff->out(p_data, std::cout, *pX, *pXP) << std::endl;
+	}
    
    	flip(&pX, &pXP, &pXm1, &pXPm1, &pXm2, &pXPm2);
    
@@ -566,9 +585,10 @@ method_multistep(const char* module, integration_data* d,
 			Res = sm.pResHdl();   
 			Sol = sm.pSolHdl();   
 	 		
-			(*::ff->func)(p_data, *Res, *pX, *pXP, t);
+			::ff->func(p_data, *Res, *pX, *pXP, t);
 
 	 		test = Res->Norm();
+			std::cerr << j << " " << test << std::endl;
 	 		if (test < tol) {
 	    			break;
 	 		}
@@ -582,7 +602,7 @@ method_multistep(const char* module, integration_data* d,
 	 		/* correct */
 	 		sm.MatrReset();
 	 		J.Reset();
-	 		(*::ff->grad)(p_data, J, JP, *pX, *pXP, t);
+	 		::ff->grad(p_data, J, JP, *pX, *pXP, t);
 	 		for (int ir = 1; ir <= size; ir++) {
 	    			for (int ic = 1; ic <= size; ic++) {
 	       				(*Jac)(ir, ic) = JP(ir, ic)
@@ -601,12 +621,17 @@ method_multistep(const char* module, integration_data* d,
       
       		/* output */
       		std::cout << t << " " << test << " ";
-      		(*::ff->out)(p_data, std::cout, *pX, *pXP) << std::endl;
+		if (::ff->out) {
+      			::ff->out(p_data, std::cout, *pX, *pXP) << std::endl;
+		}
       
       		flip(&pX, &pXP, &pXm1, &pXPm1, &pXm2, &pXPm2);            
-   	}
-   
-   	(*::ff->destroy)(&p_data);
+	}
+
+	if (::ff->destroy) {
+   		::ff->destroy(&p_data);
+	}
+
    	delete[] pd;
    	delete[] ppd;
 
@@ -636,7 +661,7 @@ method_cubic(const char* module, integration_data* d,
 	}
 
    	/* prepara le strutture dati per il calcolo */
-   	int size = (*::ff->size)(p_data);
+   	int size = ::ff->size(p_data);
    	MyVectorHandler v0(size);
    	MyVectorHandler v1(size);
    	MyVectorHandler v2(size);
@@ -707,8 +732,10 @@ method_cubic(const char* module, integration_data* d,
    	doublereal t = ti;
    
    	/* inizializza la soluzione */
-   	(*::ff->init)(p_data, *pX, *pXP);
-   	(*::ff->func)(p_data, *Res, *pX, *pXP, t);
+	if (::ff->init) {
+   		::ff->init(p_data, *pX, *pXP);
+	}
+   	::ff->func(p_data, *Res, *pX, *pXP, t);
    	for (int k = 1; k <= size; k++) {
       		doublereal x = (*pX)(k);
       		doublereal xp = (*pXP)(k);
@@ -718,7 +745,9 @@ method_cubic(const char* module, integration_data* d,
    
    	/* output iniziale */
    	std::cout << ti << " " << 0. << " ";
-   	(*::ff->out)(p_data, std::cout, *pX, *pXP) << std::endl;
+	if (::ff->out) {
+   		::ff->out(p_data, std::cout, *pX, *pXP) << std::endl;
+	}
    
    	flip(&pX, &pXP, &pXm1, &pXPm1, &pXm2, &pXPm2);
    
@@ -779,9 +808,9 @@ method_cubic(const char* module, integration_data* d,
 			Resz.Attach(size, Res->pdGetVec() + size);
 
 	 		Res->Reset();
-	 		(*::ff->func)(p_data, *Res, *pX, *pXP, t);
+	 		::ff->func(p_data, *Res, *pX, *pXP, t);
 			/* Res->Reset() zeros Resz as well */
-	 		(*::ff->func)(p_data, Resz, Xz, XPz, t + z*dt);
+	 		::ff->func(p_data, Resz, Xz, XPz, t + z*dt);
 
 			/* Res->Norm() computes Resz norm as well */
 	 		test = Res->Norm();
@@ -801,8 +830,8 @@ method_cubic(const char* module, integration_data* d,
 	 		JPz.Reset();
 	 		J0.Reset();
 	 		JP0.Reset();
-	 		(*::ff->grad)(p_data, Jz, JPz, Xz, XPz, t + z*dt);
-	 		(*::ff->grad)(p_data, J0, JP0, *pX, *pXP, t);
+	 		::ff->grad(p_data, Jz, JPz, Xz, XPz, t + z*dt);
+	 		::ff->grad(p_data, J0, JP0, *pX, *pXP, t);
 
 			for (int ir = 1; ir <= size; ir++) {
 				for (int ic = 1; ic <= size; ic++) {
@@ -834,12 +863,16 @@ method_cubic(const char* module, integration_data* d,
       
       		/* output */
       		std::cout << t << " " << test << " ";
-      		(*::ff->out)(p_data, std::cout, *pX, *pXP) << std::endl;
+		if (::ff->out) {
+      			::ff->out(p_data, std::cout, *pX, *pXP) << std::endl;
+		}
       
       		flip(&pX, &pXP, &pXm1, &pXPm1, &pXm2, &pXPm2);            
    	}
-   
-   	(*::ff->destroy)(&p_data);
+
+	if (::ff->destroy) {
+   		::ff->destroy(&p_data);
+	}
    	delete[] pd;
    	delete[] ppd;
 
@@ -907,7 +940,7 @@ method_radau_II(const char* module, integration_data* d,
 	}
 
    	/* prepara le strutture dati per il calcolo */
-   	int size = (*::ff->size)(p_data);
+   	int size = ::ff->size(p_data);
    	MyVectorHandler v0(size);
    	MyVectorHandler v1(size);
    	MyVectorHandler v2(size);
@@ -981,8 +1014,10 @@ method_radau_II(const char* module, integration_data* d,
    	doublereal t = ti;
    
    	/* inizializza la soluzione */
-   	(*::ff->init)(p_data, *pX, *pXP);
-   	(*::ff->func)(p_data, *Res, *pX, *pXP, t);
+	if (::ff->init) {
+   		::ff->init(p_data, *pX, *pXP);
+	}
+   	::ff->func(p_data, *Res, *pX, *pXP, t);
    	for (int k = 1; k <= size; k++) {
       		doublereal x = (*pX)(k);
       		doublereal xp = (*pXP)(k);
@@ -992,7 +1027,9 @@ method_radau_II(const char* module, integration_data* d,
    
    	/* output iniziale */
    	std::cout << ti << " " << 0. << " ";
-   	(*::ff->out)(p_data, std::cout, *pX, *pXP) << std::endl;
+	if (::ff->out) {
+   		::ff->out(p_data, std::cout, *pX, *pXP) << std::endl;
+	}
    
    	flip(&pX, &pXP, &pXm1, &pXPm1, &pXm2, &pXPm2);
    
@@ -1053,9 +1090,9 @@ method_radau_II(const char* module, integration_data* d,
 			Resz.Attach(size, Res->pdGetVec() + size);
 
 	 		Res->Reset();
-	 		(*::ff->func)(p_data, *Res, *pX, *pXP, t);
+	 		::ff->func(p_data, *Res, *pX, *pXP, t);
 			/* Res->Reset() zeros Resz as well */
-	 		(*::ff->func)(p_data, Resz, Xz, XPz, t + z*dt);
+	 		::ff->func(p_data, Resz, Xz, XPz, t + z*dt);
 
 			/* Res->Norm() computes Resz norm as well */
 	 		test = Res->Norm();
@@ -1075,8 +1112,8 @@ method_radau_II(const char* module, integration_data* d,
 	 		JPz.Reset();
 	 		J0.Reset();
 	 		JP0.Reset();
-	 		(*::ff->grad)(p_data, Jz, JPz, Xz, XPz, t + z*dt);
-	 		(*::ff->grad)(p_data, J0, JP0, *pX, *pXP, t);
+	 		::ff->grad(p_data, Jz, JPz, Xz, XPz, t + z*dt);
+	 		::ff->grad(p_data, J0, JP0, *pX, *pXP, t);
 
 			for (int ir = 1; ir <= size; ir++) {
 				for (int ic = 1; ic <= size; ic++) {
@@ -1108,12 +1145,16 @@ method_radau_II(const char* module, integration_data* d,
       
       		/* output */
       		std::cout << t << " " << test << " ";
-      		(*::ff->out)(p_data, std::cout, *pX, *pXP) << std::endl;
+		if (::ff->out) {
+      			::ff->out(p_data, std::cout, *pX, *pXP) << std::endl;
+		}
       
       		flip(&pX, &pXP, &pXm1, &pXPm1, &pXm2, &pXPm2);            
-   	}
-   
-   	(*::ff->destroy)(&p_data);
+	}	
+
+	if (::ff->destroy) {
+   		::ff->destroy(&p_data);
+	}
    	delete[] pd;
    	delete[] ppd;
 
