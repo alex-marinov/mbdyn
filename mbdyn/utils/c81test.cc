@@ -147,11 +147,42 @@ main(int argc, char *argv[])
 
 	argv += optind;
 	argc -= optind;
-		
+
+	/* C81 file name is mandatory */
 	if (argc != 1) {
 		usage(EXIT_FAILURE);
 	}
 
+	/* consistency checks... */
+	if (dump_fname || dump) {
+		if (got) {
+			std::cerr << "\"dump\" incompatible "
+				"with alpha/mach selection"
+				<< std::endl;
+			usage(EXIT_FAILURE);
+		}
+
+	} else {
+		switch (got) {
+		default:
+		case GOT_NONE:
+		case GOT_ALPHA:
+		case GOT_MACH:
+			if (coef == '\0') {
+				std::cerr << "need to select a coefficient "
+					"when both alpha and mach "
+					"are not selected"
+					<< std::endl;
+				usage(EXIT_FAILURE);
+			}
+			break;
+
+		case GOT_ALPHAMACH:
+			break;
+		}
+	}
+
+	/* read C81 database */
 	std::ifstream in(argv[0]);
 	if (!in) {
 		std::cerr << "unable to open file '" << argv[0] 
@@ -233,7 +264,7 @@ main(int argc, char *argv[])
 		}
 
 	} else if (got & GOT_ALPHAMACH) {
-		int NM, NA;
+		int NM = 0, NA = 0;
 		double *m = 0, *a = 0;
 
 		switch (coef) {
