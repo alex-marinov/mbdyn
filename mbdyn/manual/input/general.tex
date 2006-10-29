@@ -1486,8 +1486,12 @@ in terms of the element's private data at each invocation.
 This is simply a ``function of function'' drive: the output 
 of \kw{drive\_caller2} is fed to \kw{drive\_caller1}
 and the result is returned.
+So the value of \kw{drive\_caller2} becomes the input argument
+to \kw{drive\_caller1}.
 Note that the very same thing occurs, for instance, in the
-\kw{dof} and in the \kw{element} drives.
+\kw{dof} and in the \kw{element} drives, where the value of the dof
+or of the element's private datum, respectively, are fed 
+into the given drive.
 
 \noindent
 Example:
