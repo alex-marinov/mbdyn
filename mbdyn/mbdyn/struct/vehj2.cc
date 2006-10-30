@@ -1078,6 +1078,8 @@ ViscoElasticDispJoint::AssMats(FullSubMatrixHandler& WMA,
 	Vec3 f1(pNode1->GetRRef()*tilde_f1);
 	Vec3 f2(pNode2->GetRRef()*tilde_f2);
 	Vec3 d1(pNode2->GetXCurr() + f2 - pNode1->GetXCurr());
+	Vec3 d1Prime(pNode2->GetVCurr() - f2.Cross(pNode2->GetWCurr())
+			- pNode1->GetVCurr());
  
 	/* F/d */
 	Mat3x3 DTmp(FDE*dCoef);
@@ -1194,7 +1196,6 @@ ViscoElasticDispJoint::AssMats(FullSubMatrixHandler& WMA,
 	WMA.Add(6 + 4, 6 + 4, Mat3x3(f2)*MTmp);
 
 	/* F/dot{d} * ( [ d1Prime x ] - [ w1 x ] [ d1 x ] ) * dCoef */
-	Vec3 d1Prime(pNode2->GetVCurr() - f2.Cross(pNode2->GetWCurr()) - pNode1->GetVCurr());
 	MTmp = FDEPrime*(Mat3x3(d1Prime*dCoef) - Mat3x3(pNode1->GetWCurr(), d1*dCoef));
 	WMA.Sub(1, 4, MTmp);
 	WMA.Add(6 + 1, 4, MTmp);
@@ -1209,8 +1210,8 @@ ViscoElasticDispJoint::AssMats(FullSubMatrixHandler& WMA,
 	WMA.Add(1, 4, MTmp);
 	WMA.Sub(6 + 1, 4, MTmp);
 
-	WMA.Add(4, 6 + 4, Mat3x3(f1.Cross(FTmp)));
-	WMA.Sub(6 + 4, 6 + 4, Mat3x3(f2)*MTmp);
+	WMA.Add(4, 4, Mat3x3(f1.Cross(FTmp)));
+	WMA.Sub(6 + 4, 4, Mat3x3(f2)*MTmp);
 
 	/* [ F x ] [ fi x ] * dCoef */
 	WMA.Add(6 + 4, 6 + 4, Mat3x3(FTmp, f2));
@@ -1255,10 +1256,13 @@ ViscoElasticDispJoint::AssVec(SubVectorHandler& WorkVec)
 		bFirstRes = false;
 
 	} else {
-		tilde_d = R1h.Transpose()*(pNode2->GetXCurr() + f2 - pNode1->GetXCurr() - f1);
-		tilde_dPrime = R1h.Transpose()*(pNode2->GetVCurr() - pNode1->GetVCurr()
-				-f2.Cross(pNode2->GetWCurr())
-				- (pNode2->GetXCurr() + f2 - pNode1->GetXCurr()).Cross(pNode1->GetWCurr()));
+		Mat3x3 R1hT(R1h.Transpose());
+		Vec3 d1(pNode2->GetXCurr() + f2 - pNode1->GetXCurr());
+		Vec3 d1Prime(pNode2->GetVCurr() - f2.Cross(pNode2->GetWCurr())
+				- pNode1->GetVCurr());
+
+		tilde_d = R1hT*(d1 - f1);
+		tilde_dPrime = R1hT*(d1Prime - d1.Cross(pNode1->GetWCurr()));
 
 		ConstitutiveLaw3DOwner::Update(tilde_d, tilde_dPrime);
 	}
@@ -1278,11 +1282,12 @@ ViscoElasticDispJoint::AfterPredict(VectorHandler& X, VectorHandler& XP)
 	Mat3x3 R1hT(R1h.Transpose());
 	Vec3 f1(pNode1->GetRCurr()*tilde_f1);
 	Vec3 f2(pNode2->GetRCurr()*tilde_f2);
-
-	tilde_d = R1hT*(pNode2->GetXCurr() + f2 - pNode1->GetXCurr() - f1);
-	tilde_dPrime = R1h.Transpose()*(pNode2->GetVCurr() - pNode1->GetVCurr()
-			-f2.Cross(pNode2->GetWCurr())
-			- (pNode2->GetXCurr() + f2 - pNode1->GetXCurr()).Cross(pNode1->GetWCurr()));
+	Vec3 d1(pNode2->GetXCurr() + f2 - pNode1->GetXCurr());
+	Vec3 d1Prime(pNode2->GetVCurr() - f2.Cross(pNode2->GetWCurr())
+			- pNode1->GetVCurr());
+	
+	tilde_d = R1hT*(d1 - f1);
+	tilde_dPrime = R1hT*(d1Prime - d1.Cross(pNode1->GetWCurr()));
 
 	ConstitutiveLaw3DOwner::Update(tilde_d, tilde_dPrime);
 
