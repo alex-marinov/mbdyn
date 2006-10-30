@@ -25,7 +25,7 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-\documentclass[10pt,dvips]{report}
+\documentclass[10pt,dvips,fleqn]{report}
 
 %\usepackage[pdftex]{graphicx}
 \usepackage[T1]{fontenc}
@@ -2223,8 +2223,8 @@ The complete linearized problem is
 \end{eqnarray*}
 where 
 \begin{eqnarray*}
-	\T{d}_1 & = & \T{x}_2 + \T{f}_2 - \T{x}_1 \\
-	\dot{\T{d}}_1 & = & \dot{\T{x}}_2 - \T{f}_2 \times\T{\omega}_2 - \dot{\T{x}}_1
+	\T{F}_{/\tilde{\dot{\T{d}}}} & = & \T{R}_{1h} \tilde{\T{F}}_{/\tilde{\dot{\T{d}}}} \T{R}_{1h}^T \\
+	\T{F}_{/\tilde{\T{d}}} & = & \T{R}_{1h} \tilde{\T{F}}_{/\tilde{\T{d}}} \T{R}_{1h}^T
 \end{eqnarray*}
 
 
