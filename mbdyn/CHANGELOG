@@ -53,6 +53,7 @@ MBDyn 1.X-Devel
 		- fixed output of deformable hinge
 		- fixed bug in .log of deformable joint(s)
 		- fixed Jacobian matrix of deformable displacement joint
+		  (noted by Jerome Merel)
 
 MBDyn 1.2.6
 	Enhancements:
