@@ -953,8 +953,12 @@ ViscoElasticHingeJoint::AssMats(FullSubMatrixHandler& WMA,
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
 	Vec3 W2(pNode1->GetWRef());
 
+	WMB.Add(1, 1, FDEPrime);
+	WMB.Sub(1, 4, FDEPrime);
+	WMB.Sub(4, 1, FDEPrime);
+	WMB.Add(4, 4, FDEPrime);
+
 	Mat3x3 Tmp(FDE*dCoef);
-	Tmp += FDEPrime;
 	Tmp -= FDEPrime*Mat3x3(W2*dCoef);
 	WMA.Add(4, 4, Tmp);
 	WMA.Sub(1, 4, Tmp);

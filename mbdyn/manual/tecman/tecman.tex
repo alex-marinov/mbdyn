@@ -2050,10 +2050,23 @@ The relative velocity is
 		- \dot{\T{x}}_1 - \T{\omega}_1\times\T{f}_1
 	} + \tilde{\T{d}}\times\T{R}_{1h}^T \T{\omega}_1 \\
 	& = & \T{R}_{1h}^T\plbr{
-		\dot{\T{x}}_2 - \dot{\T{x}}_1
+		\dot{\T{x}}_2
 		+ \T{\omega}_2\times\T{f}_2
-		- \T{\omega}_1\times\plbr{\T{x}_2 + \T{f}_2 - \T{x}_1}
+		- \dot{\T{x}}_1
+		- \T{\omega}_1\times\plbr{
+			\T{x}_2
+			+ \T{f}_2
+			- \T{x}_1
+		}
+	} \\
+	& = & \T{R}_{1h}^T\plbr{
+		\dot{\T{d}}_1 - \T{\omega}_1 \times \T{d}_1
 	}
+\end{eqnarray*}
+where
+\begin{eqnarray*}
+	\T{d}_1 & = & \T{x}_2 + \T{f}_2 - \T{x}_1 \\
+	\dot{\T{d}}_1 & = & \dot{\T{x}}_2 + \T{\omega}_2 \times \T{f}_2 - \dot{\T{x}}_1
 \end{eqnarray*}
 The linearization of the distance yields
 \begin{eqnarray*}
@@ -2062,14 +2075,19 @@ The linearization of the distance yields
 		- \delta{\T{x}}_1 + \T{f}_1\times\delta\T{g}_1
 	} + \tilde{\T{d}}\times\T{R}_{1h}^T \delta\T{g}_1 \\
 	& \cong & \T{R}_{1h}^T\plbr{
-		\delta{\T{x}}_2 - \delta{\T{x}}_1
+		\delta{\T{x}}_2
 		- \T{f}_2\times\delta\T{g}_2
-		+ \plbr{\T{x}_2 + \T{f}_2 - \T{x}_1}\times\delta\T{g}_1
+		- \delta{\T{x}}_1
+		+ \plbr{
+			\T{x}_2
+			+ \T{f}_2
+			- \T{x}_1
+		}\times\delta\T{g}_1
 	} \\
 	& = & \T{R}_{1h}^T\plbr{
 		\delta{\T{x}}_2
-		- \delta{\T{x}}_1
 		- \T{f}_2\times\delta\T{g}_2
+		- \delta{\T{x}}_1
 		+ \T{d}_1\times\delta\T{g}_1
 	}
 \end{eqnarray*}
@@ -2077,17 +2095,21 @@ while the linearization of the relative velocity yields
 \begin{eqnarray*}
 	\delta\dot{\tilde{\T{d}}} & \cong & \T{R}_{1h}^T\lplbr{
 		\delta\dot{\T{x}}_2
-		- \delta\dot{\T{x}}_1
 		- \T{f}_2\times\delta\dot{\T{g}}_2
-		+ \plbr{\T{x}_2 + \T{f}_2 - \T{x}_1}\times\delta\dot{\T{g}}_1
+		- \delta\dot{\T{x}}_1
+		+ \plbr{
+			\T{x}_2
+			+ \T{f}_2
+			- \T{x}_1
+		}\times\delta\dot{\T{g}}_1
 	} \\
 	& & \mbox{} - \T{\omega}_1 \times \delta\T{x}_2
-		+ \T{\omega}_1 \times \delta\T{x}_1 \\
-	& & \mbox{} - \plbr{
+		- \plbr{
 			\plbr{\T{\omega}_2 \times \T{f}_2}\times{}
 			- \T{\omega}_1 \times \T{f}_2 \times{}
 		} \delta\T{g}_2 \\
 	& & \rplbr{
+		\mbox{} + \T{\omega}_1 \times \delta\T{x}_1
 		+ \plbr{
 			\plbr{
 				\dot{\T{x}}_2
@@ -2101,28 +2123,22 @@ while the linearization of the relative velocity yields
 	} \\
 	& = & \T{R}_{1h}^T\lplbr{
 		\delta\dot{\T{x}}_2
-		- \delta\dot{\T{x}}_1
 		- \T{f}_2\times\delta\dot{\T{g}}_2
+		- \delta\dot{\T{x}}_1
 		+ \T{d}_1\times\delta\dot{\T{g}}_1
 	} \\
 	& & \mbox{} - \T{\omega}_1 \times \delta\T{x}_2
-		+ \T{\omega}_1 \times \delta\T{x}_1 \\
-	& & \mbox{} 
 		- \plbr{
 			\plbr{\T{\omega}_2 \times \T{f}_2}\times{}
 			- \T{\omega}_1 \times \T{f}_2 \times{}
 		} \delta\T{g}_2 \\
 	& & \rplbr{
+		\mbox{} + \T{\omega}_1 \times \delta\T{x}_1
 		+ \plbr{
 			\dot{\T{d}}_1\times{}
 			- \T{\omega}_1\times\T{d}_1\times{}
 		} \delta\T{g}_1
 	}
-\end{eqnarray*}
-where
-\begin{eqnarray*}
-	\T{d}_1 & = & \T{x}_2 + \T{f}_2 - \T{x}_1 \\
-	\dot{\T{d}}_1 & = & \dot{\T{x}}_2 + \T{\omega}_2 \times \T{f}_2 - \dot{\T{x}}_1
 \end{eqnarray*}
 The force and the moment are
 \begin{eqnarray*}
@@ -2186,8 +2202,9 @@ The complete linearized problem is
 		\T{f}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} \T{d}_1 \times{}
 			+ \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
 				\dot{\T{d}}_1 \times{} - \T{\omega}_1 \times \T{d}_1\times{}
-			} - \T{F}\times
+			}
 		}
+		 - \T{f}_2 \times \T{F}\times{}
 	}} \delta\T{g}_1 \\
 	\mbox{} + \sqbr{\cvvect{
 		\T{F}_{/\tilde{\T{d}}} \T{f}_2 \times{}
