@@ -74,6 +74,18 @@ function euler2R(Alpha, Beta, Gamma, R,   dCosAlpha, dSinAlpha, dCosBeta, dSinBe
 BEGIN {
 	isvan = 0;
 
+	# Note: by default, distance, rod, beam and aero elements are output
+	# generic hinges and deformable joints can be optionally output
+	# by setting "-v showHinge=1" and "-v showDeformableJoint=1"
+	# to disable all output but that of structural nodes, create a .awk
+	# that sets the related members of "show" to 0 and include it with -f.
+	show["hinge"] = showHinge;
+	show["distance"] = 1;
+	show["rod"] = 1;
+	show["deformablejoint"] = showDeformableJoint;
+	show["beam"] = 1;
+	show["aero"] = 1;
+
 	node_num = 0;
 	edge_num = 0;
 	side_num = 0;
@@ -206,7 +218,7 @@ isvan == 0 && /structural node:/ {
 	}
 }
 
-isvan == 0 && showHinge && /sphericalhinge:/ {
+isvan == 0 && /sphericalhinge:/ && show["hinge"] {
 	if (!exclude["joint", $2]) {
 		j_hinge_label[j_hinge_num] = $2;
 		j_hinge[$2] = j_hinge_num;
@@ -265,7 +277,7 @@ isvan == 0 && showHinge && /sphericalhinge:/ {
 	}
 }
 	
-isvan == 0 && /distance:/ {
+isvan == 0 && /distance:/ && show["distance"] {
 	if (!exclude["joint", $2]) {
 		j_distance_label[j_distance_num] = $2;
 		j_distance[$2] = j_distance_num;
@@ -330,7 +342,7 @@ isvan == 0 && /distance:/ {
 	}
 }
 	
-isvan == 0 && /rod:/ {
+isvan == 0 && /rod:/ && show["rod"]{
 	if (!exclude["joint", $2]) {
 		j_rod_label[j_rod_num] = $2;
 		j_rod[$2] = j_rod_num;
@@ -395,7 +407,7 @@ isvan == 0 && /rod:/ {
 	}
 }
 
-isvan == 0 && showDeformableJoint && (/deformablejoint:/ || /deformabledisplacementjoint:/) {
+isvan == 0 && (/deformablejoint:/ || /deformabledisplacementjoint:/) && show["deformablejoint"] {
 	if (!exclude["joint", $2]) {
 		j_deformablejoint_label[j_deformablejoint_num] = $2;
 		j_deformablejoint[$2] = j_deformablejoint_num;
@@ -460,7 +472,7 @@ isvan == 0 && showDeformableJoint && (/deformablejoint:/ || /deformabledisplacem
 	}
 }
 
-isvan == 0 && /beam2:/ {
+isvan == 0 && /beam2:/ && show["beam"] {
 	if (!exclude["beam", $2]) {
 		if (!($3 in strnode)) {
 			print "structural node("$3") requested by beam2("$2") as node 1 not found" > "/dev/stderr";
@@ -532,7 +544,7 @@ isvan == 0 && /beam2:/ {
 	}
 }
 
-isvan == 0 && /beam3:/ {
+isvan == 0 && /beam3:/ && show["beam"] {
 	if (!exclude["beam", $2]) {
 		if (!($3 in strnode)) {
 			print "structural node("$3") requested by beam3("$2") as node 1 not found" > "/dev/stderr";
@@ -639,7 +651,7 @@ isvan == 0 && /beam3:/ {
 	}
 }
 
-isvan == 0 && /aero0:/ {
+isvan == 0 && /aero0:/ && show["aero"] {
 	if (!exclude["aerodynamic element", $2]) {
 		if (!($3 in strnode)) {
 			print "structural node("$3") requested by aero0("$2") as node not found" > "/dev/stderr";
@@ -715,7 +727,7 @@ isvan == 0 && /aero0:/ {
 	}
 }
 
-isvan == 0 && /aero2:/ {
+isvan == 0 && /aero2:/ && show["aero"] {
 	if (!exclude["aerodynamic element", $2]) {
 		if (!($3 in strnode)) {
 			print "structural node("$3") requested by aero2("$2") as node 1 not found" > "/dev/stderr";
@@ -796,7 +808,7 @@ isvan == 0 && /aero2:/ {
 	}
 }
 
-isvan == 0 && /aero3:/ {
+isvan == 0 && /aero3:/ && show["aero"] {
 	if (!exclude["aerodynamic element", $2]) {
 		if (!($3 in strnode)) {
 			print "structural node("$3") requested by aero3("$2") as node 1 not found" > "/dev/stderr";
