@@ -46,9 +46,9 @@ FixedStepFileDrive::FixedStepFileDrive(unsigned int uL,
 		const DriveHandler* pDH,
 		const char* const sFileName,
 		integer is, integer nd,
-		doublereal t0, doublereal dt)
+		doublereal t0, doublereal dt, bool pz)
 : FileDrive(uL, pDH, sFileName, nd),
-dT0(t0), dDT(dt), iNumSteps(is), pd(NULL), pvd(NULL)
+dT0(t0), dDT(dt), iNumSteps(is), bPadZeroes(pz), pd(NULL), pvd(NULL)
 {
 	ASSERT(iNumSteps > 0);
 	ASSERT(iNumDrives > 0);
@@ -63,13 +63,13 @@ dT0(t0), dDT(dt), iNumSteps(is), pd(NULL), pvd(NULL)
 	}
 
 	SAFENEWARR(pd, doublereal, iNumDrives*iNumSteps);
-	SAFENEWARR(pvd, doublereal*, iNumDrives+1);
+	SAFENEWARR(pvd, doublereal*, iNumDrives + 1);
 
 	/* Attenzione: il primo puntatore e' vuoto
 	 * (ne e' stato allocato uno in piu'),
 	 * cosi' i drives possono essere numerati da 1 a n */
 	for (integer i = iNumDrives; i-- > 0; ) {
-		pvd[i+1] = pd+i*iNumSteps;
+		pvd[i + 1] = pd + i*iNumSteps;
 	}
 
 	/*
@@ -121,20 +121,43 @@ FixedStepFileDrive::Restart(std::ostream& out) const
 void
 FixedStepFileDrive::ServePending(const doublereal& t)
 {
-	integer j1 = integer(floor((t-dT0)/dDT));
-	integer j2 = j1+1;
+	doublereal tt = t - dT0;
 
-	if (j2 < 0 || j1 > iNumSteps) {
-		for (int i = 1; i <= iNumDrives; i++) {
-			pdVal[i] = 0.;
+	if (tt < 0) {
+		if (bPadZeroes) {
+			for (int i = 1; i <= iNumDrives; i++) {
+				pdVal[i] = 0.;
+			}
+
+		} else {
+			for (int i = 1; i <= iNumDrives; i++) {
+				pdVal[i] = pvd[i][0];
+			}
+		}
+
+	} else if (tt > dDT*(iNumSteps - 1)) {
+		if (bPadZeroes) {
+			for (int i = 1; i <= iNumDrives; i++) {
+				pdVal[i] = 0.;
+			}
+
+		} else {
+			for (int i = 1; i <= iNumDrives; i++) {
+				pdVal[i] = pvd[i][iNumSteps - 1];
+			}
 		}
 
 	} else {
-		doublereal dt1 = dT0+j1*dDT;
-		doublereal dt2 = dt1+dDT;
+		integer j1 = integer(floor(tt/dDT));
+		if (j1 == iNumSteps) {
+			j1--;
+		}
+		integer j2 = j1 + 1;
+		doublereal dt1 = dT0 + j1*dDT;
+		doublereal dt2 = dt1 + dDT;
 
 		for (int i = 1; i <= iNumDrives; i++) {
-   			pdVal[i] = (pvd[i][j2]*(t-dt1)-pvd[i][j1]*(t-dt2))/dDT;
+   			pdVal[i] = (pvd[i][j2]*(t - dt1) - pvd[i][j1]*(t - dt2))/dDT;
 		}
 	}
 }
@@ -153,6 +176,19 @@ ReadFixedStepFileDrive(DataManager* pDM,
 	integer idrives = HP.GetInt();
 	doublereal t0 = HP.GetReal();
 	doublereal dt = HP.GetReal();
+
+	bool pz(true);
+	if (HP.IsKeyWord("pad" "zeros") || HP.IsKeyWord("pad" "zeroes")) {
+		if (HP.IsKeyWord("no")) {
+			pz = false;
+
+		} else if (!HP.IsKeyWord("yes")) {
+			silent_cerr("unknown value for \"pad zeros\" "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric();
+		}
+	}
+
 	const char* filename = HP.GetFileName();
 
 	Drive* pDr = NULL;
@@ -160,7 +196,7 @@ ReadFixedStepFileDrive(DataManager* pDM,
 			FixedStepFileDrive,
 			FixedStepFileDrive(uLabel, pDM->pGetDrvHdl(),
 				filename, isteps, idrives,
-				t0, dt));
+				t0, dt, pz));
 
 	return pDr;
 } /* End of ReadFixedStepFileDrive */

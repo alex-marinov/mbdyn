@@ -32,6 +32,7 @@ MBDyn 1.X-Devel
 		- added scalar function-based constitutive laws
 		- improved double viscoelastic constitutive
 		- added support for streamed output for EasyAnim
+		- added extrapolation to fixed step file driver
 	Backward compatibility issues:
 		- per-element output removed from modal joints
 		- spherical hinge output now refers to node 1 instead of 2
@@ -54,6 +55,7 @@ MBDyn 1.X-Devel
 		- fixed bug in .log of deformable joint(s)
 		- fixed Jacobian matrix of deformable displacement joint
 		  (noted by Jerome Merel)
+		- fixed minor memory issue in fixed step file driver
 
 MBDyn 1.2.6
 	Enhancements:

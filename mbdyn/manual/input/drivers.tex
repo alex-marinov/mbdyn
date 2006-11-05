@@ -51,14 +51,17 @@ The following \kw{file} drivers are supported at present:
 \subsection{Fixed Step}
 \begin{verbatim}
     <normal_arglist> ::= fixed step , 
-                         <steps_number> ,
-                         <columns_number> ,
-                         <initial_time> ,
-                         <time_step> ,
-                         " <file_name> "
+        <steps_number> ,
+        <columns_number> ,
+        <initial_time> ,
+        <time_step> ,
+        [ pad zeroes , { yes | no } , ]
+        " <file_name> "
 \end{verbatim}
 The value at an arbitrary time is linearly interpolated from the available
-data; if the requested value is out of time bounds, zero is returned.
+data; if the requested value is out of time bounds, zero is returned,
+unless \kw{pad zeroes} is set to \kw{no}, which means that the first
+or the last set of values is respectively used.
 
 
 
