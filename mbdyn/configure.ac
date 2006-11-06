@@ -491,7 +491,7 @@ if test "$ol_enable_netcdf" != no ; then
 		LIBS="$save_LIBS"
 	fi
 
-	if test $have_netcdf = yes ; then
+	if test $have_libnetcdf = yes ; then
 		AC_DEFINE(USE_NETCDF,1,[define this to enable NetCDF based output])
 	elif test $ol_enable_netcdf != auto ; then
 		AC_MSG_ERROR([Could not locate netcdfcpp.h header])
