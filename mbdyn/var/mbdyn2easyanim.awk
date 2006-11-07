@@ -38,9 +38,18 @@
 # 31, Bd Dolez; 7000 MONS (BELGIUM)
 # E-mail: Olivier.Verlinden@fpms.ac.be
 #
-# Usage:
+# Used by mbdyn2easyanim.sh; don't use directly.
 #
-# awk -f mbdyn2vol.awk <file>.log > <file>.vol
+# Recognized vars (set with -v <var>=<value>):
+#
+# showNone		suppresses all additional entities generation
+# showAll		enables all additional entities generation
+# showHinge		generates node at hinge and offsets for hinges
+# noShowDistance	suppresses generation of distance joints
+# noShowRod		suppresses generation of rod joints
+# showDeformableJoint	generates nodes at joints and offsets for def. joint
+# noShowBeam		suppresses generation of beam elements
+# noShowAero		suppresses generation of aerodynamic elements
 
 # multiplies a 3x3 matrix times a 3 vector, adds a second 3 vector
 # and stores result in another vector
@@ -79,12 +88,50 @@ BEGIN {
 	# by setting "-v showHinge=1" and "-v showDeformableJoint=1"
 	# to disable all output but that of structural nodes, create a .awk
 	# that sets the related members of "show" to 0 and include it with -f.
-	show["hinge"] = showHinge;
+
+	# safe defaults?
+	show["hinge"] = 0;
 	show["distance"] = 1;
 	show["rod"] = 1;
-	show["deformablejoint"] = showDeformableJoint;
+	show["deformablejoint"] = 0;
 	show["beam"] = 1;
 	show["aero"] = 1;
+
+	if (showNone) {
+		for (i in show) {
+			show[i] = 0;
+		}
+
+	} else if (showAll) {
+		for (i in show) {
+			show[i] = 1;
+		}
+
+	} else {
+		if (showHinge) {
+			show["hinge"] = 1;
+		}
+
+		if (noShowDistance) {
+			show["distance"] = 0;
+		}
+
+		if (noShowRod) {
+			show["rod"] = 0;
+		}
+
+		if (showDeformableJoint) {
+			show["deformablejoint"] = 1;
+		}
+
+		if (noShowBeam) {
+			show["beam"] = 0;
+		}
+
+		if (noShowAero) {
+			show["aero"] = 0;
+		}
+	}
 
 	node_num = 0;
 	edge_num = 0;
