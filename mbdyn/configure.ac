@@ -470,6 +470,7 @@ dnl Enable NetCDF binary output
 dnl
 if test "$ol_enable_netcdf" != no ; then
 	have_netcdf=no
+	have_libnetcdf=no
 	AC_LANG_CPLUSPLUS
 	AC_CHECK_HEADER(netcdfcpp.h,[have_netcdfcpp_h=yes],[have_netcdfcpp_h=no])
 	AC_LANG_C
@@ -486,7 +487,7 @@ if test "$ol_enable_netcdf" != no ; then
 			],[
 				have_libnetcdf=yes
 				NETCDF_LIBS="$try_NETCDF_LIBS"
-			],[have_libnetcdf=no])
+			])
 		AC_LANG_C
 		LIBS="$save_LIBS"
 	fi
