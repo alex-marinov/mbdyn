@@ -29,7 +29,12 @@
 
 #include "chacowrap.h"
 
+#ifdef USE_CHACO
 extern "C" {
+/*
+ * NOTE: the name "interface" has been reported (by Patrick Rix) 
+ * to cause issues with gcc 4.10
+ */
 int       interface(
 		int       nvtxs,		/* number of vertices in full graph */
 		int      *start,		/* start of edge list for each vertex */
@@ -53,6 +58,7 @@ int       interface(
 		long      seed			/* for random graph mutations */
 	);
 }
+#endif /* USE_CHACO */
 
 extern "C" int FREE_GRAPH;
 
