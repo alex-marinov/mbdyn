@@ -2268,7 +2268,7 @@ Shape* ReadShape(MBDynParser& HP)
    /* enum delle parole chiave */
    enum KeyWords {
       UNKNOWN = -1,
-	CONST = 0,
+	SHAPECONST = 0,
 	LINEAR,
 	PIECEWISELINEAR,
 	PARABOLIC,
@@ -2281,7 +2281,7 @@ Shape* ReadShape(MBDynParser& HP)
    /* lettura del tipo di drive */   
    KeyWords CurrKeyWord;
    if ((CurrKeyWord = KeyWords(HP.IsKeyWord())) == UNKNOWN) {
-      CurrKeyWord = CONST;
+      CurrKeyWord = SHAPECONST;
    }
    
 #ifdef DEBUG   
@@ -2295,7 +2295,7 @@ Shape* ReadShape(MBDynParser& HP)
    switch (CurrKeyWord) {
       
       /* forma costante */
-    case CONST: {
+    case SHAPECONST: {
        /* lettura dei dati specifici */
        doublereal dConst = HP.GetReal();
        DEBUGLCOUT(MYDEBUG_INPUT, "Const value: " << dConst << std::endl);
@@ -2405,7 +2405,7 @@ Shape* ReadShape(MBDynParser& HP)
     }
       
       /* Non c'e' default in quanto all'inizio il default e' stato messo
-       * pari a CONST */
+       * pari a SHAPECONST */
     default: {
        ASSERTMSG(0, "You shouldn't have reached this point");
        throw ErrGeneric();       

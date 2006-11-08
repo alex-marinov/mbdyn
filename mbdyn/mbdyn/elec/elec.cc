@@ -190,8 +190,6 @@ Elem* ReadElectric(DataManager* pDM,
 
       DISCRETECONTROL,	
       IDENTIFICATION,
-          CONST,
-          DYNAMIC,
       CONTROL,
       ADAPTIVECONTROL,
       
