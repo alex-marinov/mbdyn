@@ -157,6 +157,7 @@ D. Code:
 		- specialized modal constraints (as opposed to clamping
 		  a node with the clamp constraint plus a regular joint)
 	  this allows to add arbitrary elements connected to the modal element
+	- use getopt(3) in utils/
 
 
 
