@@ -365,15 +365,15 @@ public:
 	friend class InitialAssemblyIterator;
 
 	enum ModuleInsertMode {
-		FAIL,
-		REPLACE,
-		IGNORE
+		MIM_FAIL,
+		MIM_REPLACE,
+		MIM_IGNORE
 	};
 
 	/* loadable elements */
 	const LoadableCalls *GetLoadableElemModule(std::string) const;
 	void SetLoadableElemModule(std::string, const LoadableCalls *,
-			ModuleInsertMode = FAIL);
+			ModuleInsertMode = MIM_FAIL);
 
 public:
 	/* FIXME: will be eliminated */

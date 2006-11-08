@@ -70,21 +70,21 @@ DataManager::SetLoadableElemModule(std::string name,
 
 	if (tmp != 0) {
 		switch (mode) {
-		case FAIL:
+		case MIM_FAIL:
 		default:
 			silent_cerr("DataManager::SetLoadableElemModule(): "
 				"loadable element handler \"" << name
 				<< "\" already defined" << std::endl);
 			throw ErrGeneric();
 
-		case IGNORE:
+		case MIM_IGNORE:
 			silent_cout("DataManager::SetLoadableElemModule(): "
 				"loadable element handler \"" << name
 				<< "\" already defined; "
 				"new definition ignored" << std::endl);
 			return;
 
-		case REPLACE:
+		case MIM_REPLACE:
 			silent_cout("DataManager::SetLoadableElemModule(): "
 				"loadable element handler \"" << name
 				<< "\" already defined; "
