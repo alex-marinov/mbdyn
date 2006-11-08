@@ -7,7 +7,7 @@ autoheader
 for i in `find . -name 'Makefile.am'` ; do
 	j=`echo $i | sed "s/\.am$//" | grep -v "^\./contrib"`
 	if test "${j:+set}" = "set" ; then
-		automake --foreign --add-missing --copy $j
+		automake --foreign --add-missing --copy --force $j
 	fi
 done
 if test -d contrib ; then
