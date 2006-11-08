@@ -380,19 +380,6 @@ const char* psFileDriveNames[] = {
    NULL
 };
 
-const char* psFuncNames[] = {
-   "Const",
-   "Step",
-   "Double Step",
-   "Ramp",
-   "Double Ramp",
-   "Sine",
-   "Cosine",
-   
-   NULL
-};
-
-
 /* Tipi di Node */
 const char* psNodeNames[] = {   
    "Abstract",     

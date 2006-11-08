@@ -50,30 +50,8 @@
 #include <withlab.h>
 #include <llist.h>
 
-
-/* Tipi di Drive */
-class DriveType {
- public:
-   enum Func {
-      UNKNOWNFUNC = -1,
-	
-	CONST = 0,
-	STEP,
-	DOUBLESTEP,
-	RAMP,	
-	DOUBLERAMP,
-	SINE,
-	COSINE,
-	
-	LASTFUNCTYPE
-   };
-};      
-   
 extern const char* psDriveNames[];
 extern const char* psReadControlDrivers[];
-
-extern const char* psFuncNames[];
-
 
 /* Drive - begin */
 
