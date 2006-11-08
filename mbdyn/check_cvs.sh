@@ -20,6 +20,5 @@ awk '
 			}
 		}
 	}' | \
-	sed "s;/.*mbdyn-1\.0/;;" | \
-	sed "s;,v;;"
+	sed -e "s;/.*mbdyn-1\.0/;;" -e "s;,v;;"
 
