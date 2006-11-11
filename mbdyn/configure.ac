@@ -302,6 +302,7 @@ TAUCS_LIBS=
 SECURITY_LIBS=
 TCL_LIBS=
 NETCDF_LIBS=
+UDUNITS_LIBS=
 
 GINACLIB_CONFIG=
 GINACLIB_LIBS=
@@ -496,6 +497,24 @@ if test "$ol_enable_netcdf" != no ; then
 		AC_DEFINE(USE_NETCDF,1,[define this to enable NetCDF based output])
 	elif test $ol_enable_netcdf != auto ; then
 		AC_MSG_ERROR([Could not locate netcdfcpp.h header])
+	fi
+
+	have_udunits=no
+	have_libudunits=no
+	AC_CHECK_HEADER(udunits.h,[have_udunits_h=yes],[have_udunits_h=no])
+	if test $have_udunits_h = "yes" ; then
+		save_LIBS="$LIBS"
+		try_UDUNITS_LIBS="-ludunits"
+		LIBS="$try_UDUNITS_LIBS $LIBS"
+		AC_CHECK_LIB(udunits,utInit,[
+			have_libudunits=yes
+			UDUNITS_LIBS="$try_UDUNITS_LIBS"
+		],[have_libudunits=no],[-lm])
+		LIBS="$save_LIBS"
+	fi
+
+	if test $have_libudunits = yes ; then
+		AC_DEFINE(USE_UDUNITS,1,[define this to enable udunits in NetCDF based output])
 	fi
 fi
 
@@ -2159,6 +2178,7 @@ AC_SUBST(TAUCS_LIBS)
 AC_SUBST(SECURITY_LIBS)
 AC_SUBST(TCL_LIBS)
 AC_SUBST(NETCDF_LIBS)
+AC_SUBST(UDUNITS_LIBS)
 
 AC_SUBST(MODULES_DIRS)
 AC_SUBST(MODULE_LOADPATH)
