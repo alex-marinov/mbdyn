@@ -361,7 +361,8 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = ../libraries/libmbmath \
+INPUT                  = ../libraries/libcolamd \
+                         ../libraries/libmbmath \
                          ../libraries/libmbutil \
                          ../libraries/libmbwrap \
                          ../libraries/libobjs \
@@ -371,7 +372,8 @@ INPUT                  = ../libraries/libmbmath \
                          ../mbdyn/base \
                          ../mbdyn/elec \
                          ../mbdyn/hydr \
-                         ../mbdyn/struct
+                         ../mbdyn/struct \
+                         ../utils
 
 # If the value of the INPUT tag contains directories, you can use the 
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 
