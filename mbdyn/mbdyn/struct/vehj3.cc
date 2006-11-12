@@ -139,6 +139,7 @@ DeformableJoint::SetValue(DataManager *pDM,
 				continue;
 			}
 
+			/* else, pass to constitutive law */
 			ConstitutiveLaw6DOwner::SetValue(pDM, X, XP, ph);
 		}
 	}

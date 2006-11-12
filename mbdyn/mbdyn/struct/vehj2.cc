@@ -133,6 +133,7 @@ DeformableDispJoint::SetValue(DataManager *pDM,
 				continue;
 			}
 
+			/* else, pass to constitutive law */
 			ConstitutiveLaw3DOwner::SetValue(pDM, X, XP, ph);
 		}
 	}
