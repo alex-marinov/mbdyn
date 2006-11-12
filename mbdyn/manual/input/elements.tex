@@ -2703,16 +2703,24 @@ instead.
 
 \subsection{Deformable displacement hinge}
 Deprecated; use the 
-\hyperref{\kw{deformable displacement joint}}{\kw{deformable displacement joint} (see Section~}{)}{sec:EL:JOINT:DEFORMABLEDISP}
+\hyperref{\kw{deformable displacement joint}}
+	{\kw{deformable displacement joint} (see Section~}{)}
+	{sec:EL:JOINT:DEFORMABLEDISP}
 instead.
 
 
 \subsection{Deformable displacement joint}\label{sec:EL:JOINT:DEFORMABLEDISP}
 This joint implements a configuration dependent force that is exchanged
-between two points associated to two nodes with an offset, which may depend
-on the relative position and velocity of the two points in the reference
-frame of node 1.
-The consitutive law is also associated to the orientation of node 1.
+between two points associated to two nodes with an offset.
+The force may depend, by way of a generic 3D constitutive law, 
+on the relative position and velocity of the two points, 
+expressed in the reference frame of node 1.
+
+\noindent
+The constitutive law is attached to the reference frame of node 1,
+so the sequence of the connections may matter in case of anisotropic
+constitutive laws, if the relative orientation of the two nodes
+changes during the analysis.
 \begin{verbatim}
     <joint_type> ::= deformable displacement joint
     <joint_arglist> ::= 
@@ -2722,9 +2730,17 @@ The consitutive law is also associated to the orientation of node 1.
         [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,
         (ConstitutiveLaw3D) <const_law>
 \end{verbatim}
-%\emph{Note: this joint is experimental; it only works with elastic 
-%or viscous constitutive laws, the use with viscoelastic laws 
-%is untested yet, and thus it is disabled.}
+
+\noindent
+Note: a variant of this element is under development,
+which refers the material reference frame to an orientation 
+that is intermediate between those of the two nodes.
+See the
+\hyperref{\kw{invariant deformable displacement joint}}
+	{\kw{invariant deformable displacement joint} (Section~}{)}
+	{sec:EL:JOINT:INVDEFORMABLEDISP}.
+
+
 
 \paragraph{Private Data}
 The following data is available:
@@ -2740,22 +2756,49 @@ The following data is available:
 \item \kw{"Fz"} constraint reaction force in node 1 local direction 3
 \end{enumerate}
 In addition, the joint provides
-access to the private data provided by the constitutive law.
+access to any private data provided by the constitutive law.
 They are accessed by prefixing the name of the data with the string
 \kw{"constitutiveLaw."}; see the specific constitutive law
 description of the available data in Section~\ref{sec:CONSTITUTIVE-LAWS}.
 
 \paragraph{Hints}
-When wrapped by a \kw{driven} element, it honors the following hints:
+When wrapped by a \kw{driven} element, the \kw{deformable displacement joint}
+honors the following hints:
 \begin{itemize}
 \item \kw{hinge\{1\}} the orientation with respect to node 1
-of the reference used to compute the linear strain is reset;
+of the reference used to compute the linear strain is reset
+to the value resulting from the node 2 hinge orientation
+and the node 1 orientation
+\begin{displaymath}
+	\tilde{\T{R}}_{1h} = \T{R}_1^T \T{R}_2 \tilde{\T{R}}_{2h}
+\end{displaymath}
 \item \kw{hinge\{2\}} the orientation with respect to node 2
-of the reference used to compute the linear strain is reset;
+of the reference used to compute the linear strain is reset
+to the value resulting from the node 1 hinge orientation
+and the node 2 orientation
+\begin{displaymath}
+	\tilde{\T{R}}_{2h} = \T{R}_2^T \T{R}_1 \tilde{\T{R}}_{1h}
+\end{displaymath}
 \item \kw{offset\{1\}} the offset of the joint
-with respect to node 1 is reset;
+with respect to node 1 is reset to the value resulting 
+from the node 2 offset and the node 1 position
+\begin{displaymath}
+	\tilde{\T{f}}_1 = \T{R}_1^T \plbr{
+		\T{x}_2
+		+ \T{R}_2 \tilde{\T{f}}_2
+		- \T{x}_1
+	}
+\end{displaymath}
 \item \kw{offset\{2\}} the offset of the joint
-with respect to node 2 is reset;
+with respect to node 2 is reset to the value resulting 
+from the node 1 offset and the node 2 position
+\begin{displaymath}
+	\tilde{\T{f}}_2 = \T{R}_2^T \plbr{
+		\T{x}_1
+		+ \T{R}_1 \tilde{\T{f}}_1
+		- \T{x}_2
+	}
+\end{displaymath}
 \item unrecognized hints are passed through to the constitutive law.
 \end{itemize}
 
@@ -2764,9 +2807,16 @@ with respect to node 2 is reset;
 
 \subsection{Deformable hinge}\label{sec:EL:JOINT:DEFORMABLEHINGE}
 This joint implements a configuration dependent moment that is exchanged
-between two nodes, which may depend on the relative orientation and angular
-velocity of the two nodes.
-The consitutive law is associated to the orientation of node 1.
+between two nodes.
+The moment may depend, by way of a generic 3D constitutive law, 
+on the relative orientation and angular velocity of the two nodes, 
+expressed in the reference frame of node 1.
+
+\noindent
+The constitutive law is attached to the reference frame of node 1,
+so the sequence of the connections may matter in case of anisotropic
+constitutive laws, if the relative orientation of the two nodes
+changes during the analysis.
 \begin{verbatim}
     <joint_type> ::= deformable hinge
     <joint_arglist> ::= 
@@ -2776,9 +2826,21 @@ The consitutive law is associated to the orientation of node 1.
         [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,
         (ConstitutiveLaw3D) <const_law>
 \end{verbatim}
-\emph{Note: this hinge constrains the orientations only.
-    It should be used in conjunction with a spherical hinge or any kind of
-    joint that constrains the displacements too.}
+\noindent
+Note: a variant of this element has been developed,
+which refers the material reference frame to an orientation 
+that is intermediate between those of the two nodes.
+See the
+\hyperref{\kw{invariant deformable hinge}}
+	{\kw{invariant deformable hinge} (Section~}{)}
+	{sec:EL:JOINT:INVDEFORMABLEHINGE}.
+
+\noindent
+Note: this joint only applies internal moments; no forces
+and no constraints to displacements are applied.
+Usually, it is best used in conjunction with a spherical hinge,
+or any kind of joint that constrains the relative displacement
+of the nodes as appropriate.
 
 \paragraph{Private Data}
 The following data is available:
@@ -2800,12 +2862,23 @@ They are accessed by prefixing the name of the data with the string
 description of the available data in Section~\ref{sec:CONSTITUTIVE-LAWS}.
 
 \paragraph{Hints}
-When wrapped by a \kw{driven} element, it honors the following hints:
+When wrapped by a \kw{driven} element, the \kw{deformable hinge}
+joint honors the following hints:
 \begin{itemize}
 \item \kw{hinge\{1\}} the orientation with respect to node 1
-of the reference used to compute the angular strain is reset;
+of the reference used to compute the angular strain is reset
+to the value resulting from the node 2 hinge orientation
+and the node 1 orientation
+\begin{displaymath}
+	\tilde{\T{R}}_{1h} = \T{R}_1^T \T{R}_2 \tilde{\T{R}}_{2h}
+\end{displaymath}
 \item \kw{hinge\{2\}} the orientation with respect to node 2
-of the reference used to compute the angular strain is reset;
+of the reference used to compute the angular strain is reset
+to the value resulting from the node 1 hinge orientation
+and the node 2 orientation
+\begin{displaymath}
+	\tilde{\T{R}}_{2h} = \T{R}_2^T \T{R}_1 \tilde{\T{R}}_{1h}
+\end{displaymath}
 \item unrecognized hints are passed through to the constitutive law.
 \end{itemize}
 
@@ -2813,17 +2886,38 @@ of the reference used to compute the angular strain is reset;
 
 
 \subsection{Deformable joint}
-The \kw{deformable joint} connects two structural nodes by an arbitrary
-force and moment which depends on the relative displacement and orientation.
-It may be thought as a combination of a
-\hyperref{\kw{deformable displacement joint}}{\kw{deformable displacement joint} (see Section~}{)}{sec:EL:JOINT:DEFORMABLEDISP}
+This joint implements a configuration dependent force and moment
+that are exchanged by two points associated to two nodes with an offset.
+The force the and moment may depend, by way of a generic 6D constitutive law,
+on the relative position, orientation, velocity and angular velocity 
+of the two points, expressed in the reference frame of node 1.
+It may be thought of as a combination of a
+\hyperref{\kw{deformable displacement joint}}
+	{\kw{deformable displacement joint} (see Section~}{)}
+	{sec:EL:JOINT:DEFORMABLEDISP}
 and of a 
-\hyperref{\kw{deformable hinge}}{\kw{deformable hinge} (see Section~}{)}{sec:EL:JOINT:DEFORMABLEHINGE}.
-A significant difference is that the \kw{deformable joint} uses a 6D
-\hyperref{\kw{constitutive law}}{\kw{constitutive law} (see Section~}{)}{sec:CONSTITUTIVE-LAWS},
-so the force and the moment both depend on the displacement
+\hyperref{\kw{deformable hinge}}
+	{\kw{deformable hinge} (see Section~}{)}
+	{sec:EL:JOINT:DEFORMABLEHINGE};
+a significant difference is that the \kw{deformable joint} uses a 6D
+\hyperref{\kw{constitutive law}}
+	{\kw{constitutive law} (see Section~}{)}
+	{sec:CONSTITUTIVE-LAWS},
+so the force and the moment may both depend on the displacement
 and on the orientation.
-The consitutive law is associated to the reference frame of node 1.
+
+\noindent
+The constitutive law is attached to the reference frame of node 1,
+so the sequence of the connections may matter in case of anisotropic
+constitutive laws, if the relative orientation of the two nodes
+changes during the analysis.
+
+\noindent
+This element may add a considerable overhead because of the computation
+of the cross-coupling effects between the forces and moments and the
+relative positions and orientations; if the constitutive law does not couple
+relative displacements and orientations, a better choice consists 
+in combining a \kw{deformable hinge} and a \kw{deformable displacement joint}.
 \begin{verbatim}
     <joint_type> ::= deformable joint
     <joint_arglist> ::= 
@@ -2865,6 +2959,9 @@ They are accessed by prefixing the name of the data with the string
 \kw{"constitutiveLaw."}; see the specific constitutive law
 description of the available data in Section~\ref{sec:CONSTITUTIVE-LAWS}.
 
+\paragraph{Hints}
+When wrapped by a \kw{driven} element, the \kw{deformable joint}
+honors the same hints of the \kw{deformable displacement joint}.
 
 
 
@@ -3050,10 +3147,13 @@ along a line attached to the first node.
         <node_2>
         [ , offset , (Vec3) <relative_offset>]
 \end{verbatim}
-{\em 
-    Note: the \kw{in line} joint supersedes the former note; the orientation
-    assumes the sliding line is in direction 3.
-}
+A point, optionally offset by \kw{relative\_offset} from the position
+of node \kw{node\_2}, slides along a line that passes through a point 
+that is rigidly offset by \kw{relative\_line\_position}
+from the position of \kw{node\_1}, and is directed as direction 3 
+of \kw{relative orientation}.
+
+
 
 \subsection{In plane}
 This joint forces a point relative to the second node to move 
@@ -3067,12 +3167,52 @@ in a plane attached to the first node.
         <node_2>
         [ , offset , (Vec3) <relative_offset>]
 \end{verbatim}
-{\em
-    Note: to make an in-line joint, use two in-plane joints, with the
-    planes that intersect along the desired line. \\
-    Note: a \kw{inline} element has been added, which automates the above
-    reported procedure.
-}
+A point, optionally offset by \kw{relative\_offset} from the position
+of node \kw{node\_2}, slides on a plane that passes through a point 
+that is rigidly offset by \kw{relative\_plane\_position}
+from the position of \kw{node\_1}, and is perpendicular to direction 3 
+of \kw{relative orientation}.
+
+
+
+\subsection{Invariant deformable displacement joint}\label{sec:EL:JOINT:INVDEFORMABLEDISP}
+Under development; right now, use the
+\hyperref{\kw{deformable displacement joint}}
+	{\kw{deformable displacement joint} (see Section~}{)}
+	{sec:EL:JOINT:DEFORMABLEDISP}
+instead.
+
+
+
+\subsection{Invariant deformable hinge}\label{sec:EL:JOINT:INVDEFORMABLEHINGE}
+This (experimental) element is a variant of the
+\hyperref{\kw{deformable hinge}}
+	{\kw{deformable hinge} (see Section~}{)}
+	{sec:EL:JOINT:DEFORMABLEHINGE};
+refer to that joint for the input syntax.
+
+\noindent
+The \emph{invariant} form of the \kw{deformable hinge} joint 
+refers the constitutive law to an orientation that is intermediate 
+between those of the nodes it connects.
+As a result, the moment exchanged between the two nodes
+is invariant to the sequence of definition of the nodes
+when anisotropic constitutive laws are used.
+It is worth stressing that determining the consititive law for this
+element may be tricky, since usual measurement approaches
+directly measure forces and moments in a reference frame
+that is attached to one of the two ends of the component,
+so in practical cases it might be more appropriate to use the
+\emph{variant} form of the joint, and consistently referring
+the constitutive law to the same end used to measure
+the mechanical properties of the component.
+
+%%% FIXME: the residual (and the tecman) is available,
+%%% but needs work to split it out of the DeformableHinge,
+%%% define it as a separate element, and implement
+%%% the Jacobian matrix contribution
+
+
 
 \subsection{Kinematic}
 This joint will eventually evolve into a connection with external programs
