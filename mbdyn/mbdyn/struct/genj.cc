@@ -1453,7 +1453,7 @@ ClampJoint::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) co
 }
 
 /*Funzione che legge lo stato iniziale dal file di input*/
-void ClampJoint::ReadIinitialState(MBDynParser& HP)
+void ClampJoint::ReadInitialState(MBDynParser& HP)
 {
 	F = Vec3(HP.GetVec3());
 	M = Vec3(HP.GetVec3());

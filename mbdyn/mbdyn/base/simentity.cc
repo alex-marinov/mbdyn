@@ -135,7 +135,7 @@ SimulationEntity::OutputAppend(std::ostream& out) const
 	return out;
 }
 
-void SimulationEntity::ReadIinitialState(MBDynParser& HP)
+void SimulationEntity::ReadInitialState(MBDynParser& HP)
 {
 	NO_OP;
 }

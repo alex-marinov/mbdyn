@@ -284,7 +284,7 @@ class ClampJoint : virtual public Elem, public Joint {
    };
 
    /*Funzione che legge lo stato iniziale dal file di input*/
-   void ReadIinitialState(MBDynParser& HP);
+   void ReadInitialState(MBDynParser& HP);
 
    /* Contributo al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;

@@ -90,7 +90,7 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
       return (void*)this;
    };
 
-   virtual void ReadIinitialState(MBDynParser& HP);
+   virtual void ReadInitialState(MBDynParser& HP);
    
    /* Contributo al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
@@ -505,7 +505,7 @@ class PlanePinJoint : virtual public Elem, public Joint {
    };
    
    /* legge lo sato iniziale*/
-   virtual void ReadIinitialState(MBDynParser& HP);
+   virtual void ReadInitialState(MBDynParser& HP);
    
    /* Contributo al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;

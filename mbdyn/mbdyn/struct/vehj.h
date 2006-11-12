@@ -126,10 +126,10 @@ protected:
 	Vec3 tilde_ThetaRef;
 	Vec3 tilde_ThetaCurr;
 
-	Mat3x3 FDE;
+	Mat3x3 MDE;
 
-	void AssMat(FullSubMatrixHandler& WM, doublereal dCoef);
-	void AssVec(SubVectorHandler& WorkVec);
+	virtual void AssMat(FullSubMatrixHandler& WM, doublereal dCoef);
+	virtual void AssVec(SubVectorHandler& WorkVec);
 
 public:
 	ElasticHingeJoint(unsigned int uL,
@@ -141,7 +141,7 @@ public:
 			const Mat3x3& tilde_R2h,
 			flag fOut);
 
-	~ElasticHingeJoint(void);
+	virtual ~ElasticHingeJoint(void);
 
 	virtual inline void* pGet(void) const {
 		return (void*)this;
@@ -223,13 +223,58 @@ public:
 /* ElasticHingeJoint - end */
 
 
+/* ElasticHingeJointInv - begin */
+
+class ElasticHingeJointInv : virtual public Elem, public ElasticHingeJoint {
+protected:
+#if 0
+	// next step?
+	void AssMat(FullSubMatrixHandler& WM, doublereal dCoef);
+#endif
+	virtual void AssVec(SubVectorHandler& WorkVec);
+
+public:
+	ElasticHingeJointInv(unsigned int uL,
+			const DofOwner* pDO,
+			const ConstitutiveLaw3D* pCL,
+			const StructNode* pN1,
+			const StructNode* pN2,
+			const Mat3x3& tilde_R1h,
+			const Mat3x3& tilde_R2h,
+			flag fOut);
+
+	virtual ~ElasticHingeJointInv(void);
+
+	virtual inline void* pGet(void) const {
+		return (void*)this;
+	};
+
+#ifdef MBDYN_X_WORKAROUND_GCC_3_2
+	virtual void SetValue(DataManager *pDM,
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints *ph = 0)
+	{
+		ElasticHingeJoint::SetValue(pDM, X, XP, ph);
+	};
+
+	virtual Hint *
+	ParseHint(DataManager *pDM, const char *s) const
+	{
+		return ElasticHingeJoint::ParseHint(pDM, s);
+	};
+#endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
+};
+
+/* ElasticHingeJoint - end */
+
+
 /* ViscousHingeJoint - begin */
 
 class ViscousHingeJoint : virtual public Elem, public DeformableHingeJoint {
 protected:
 	Vec3 tilde_Omega;
 
-	Mat3x3 FDEPrime;
+	Mat3x3 MDEPrime;
 
 	void AssMats(FullSubMatrixHandler& WMA,
 			FullSubMatrixHandler& WMB,
@@ -337,8 +382,8 @@ protected:
 
 	Vec3 tilde_Omega;
 
-	Mat3x3 FDE;
-	Mat3x3 FDEPrime;
+	Mat3x3 MDE;
+	Mat3x3 MDEPrime;
 
 	void AssMats(FullSubMatrixHandler& WMA,
 			FullSubMatrixHandler& WMB,

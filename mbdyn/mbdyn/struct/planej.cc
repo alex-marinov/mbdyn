@@ -295,7 +295,7 @@ PlaneHingeJoint::AfterConvergence(const VectorHandler& X,
 
 /* Funzione che legge lo stato iniziale dal file di input */
 void
-PlaneHingeJoint::ReadIinitialState(MBDynParser& HP)
+PlaneHingeJoint::ReadInitialState(MBDynParser& HP)
 {
 	F = Vec3(HP.GetVec3());
 	M = Vec3(HP.GetReal(), HP.GetReal(), 0.);
@@ -3289,7 +3289,7 @@ PlanePinJoint::AfterConvergence(const VectorHandler& X,
 }
 
 void
-PlanePinJoint::ReadIinitialState(MBDynParser& HP)
+PlanePinJoint::ReadInitialState(MBDynParser& HP)
 {
 	F = Vec3(HP.GetVec3());
 	M = Vec3(HP.GetReal(), HP.GetReal(), 0.);

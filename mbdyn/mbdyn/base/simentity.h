@@ -204,7 +204,7 @@ public:
 	 * Contributes to output on a stream
 	 */
 	virtual std::ostream& OutputAppend(std::ostream& out) const;
-	virtual void ReadIinitialState(MBDynParser& HP);
+	virtual void ReadInitialState(MBDynParser& HP);
 
 };
 

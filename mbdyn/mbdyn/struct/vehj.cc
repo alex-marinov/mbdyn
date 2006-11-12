@@ -262,14 +262,14 @@ ElasticHingeJoint::ElasticHingeJoint(unsigned int uL,
 		flag fOut)
 : Elem(uL, fOut),
 DeformableHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, fOut),
-tilde_ThetaRef(0.), FDE(0.)
+tilde_ThetaRef(0.), MDE(0.)
 {
 	/*
 	 * Chiede la matrice tangente di riferimento
 	 * e la porta nel sistema globale
 	 */
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
-	FDE = R1h*GetFDE()*R1h.Transpose();
+	MDE = R1h*GetFDE()*R1h.Transpose();
 }
 
 ElasticHingeJoint::~ElasticHingeJoint(void)
@@ -360,7 +360,7 @@ ElasticHingeJoint::AfterPredict(VectorHandler& /* X */ ,
 		VectorHandler& /* XP */ )
 {
 	/* Calcola le deformazioni, aggiorna il legame costitutivo
-	 * e crea la FDE */
+	 * e crea la MDE */
 
 	/* Recupera i dati */
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
@@ -378,7 +378,7 @@ ElasticHingeJoint::AfterPredict(VectorHandler& /* X */ ,
 
 	/* Chiede la matrice tangente di riferimento e la porta
 	 * nel sistema globale */
-	FDE = R1h*ConstitutiveLaw3DOwner::GetFDE()*GammaRefm1*R1hT;
+	MDE = R1h*ConstitutiveLaw3DOwner::GetFDE()*GammaRefm1*R1hT;
 
 	bFirstRes = true;
 }
@@ -388,14 +388,14 @@ ElasticHingeJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 {
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
 
-	Mat3x3 FDETmp = FDE*dCoef;
+	Mat3x3 MDETmp = MDE*dCoef;
 
-	WM.Add(4, 4, FDETmp);
-	WM.Sub(1, 4, FDETmp);
+	WM.Add(4, 4, MDETmp);
+	WM.Sub(1, 4, MDETmp);
 
-	FDETmp += Mat3x3(R1h*(GetF()*dCoef));
-	WM.Add(1, 1, FDETmp);
-	WM.Sub(4, 1, FDETmp);
+	MDETmp += Mat3x3(R1h*(GetF()*dCoef));
+	WM.Add(1, 1, MDETmp);
+	WM.Sub(4, 1, MDETmp);
 }
 
 /* assemblaggio residuo */
@@ -442,13 +442,8 @@ ElasticHingeJoint::AssVec(SubVectorHandler& WorkVec)
 		ConstitutiveLaw3DOwner::Update(tilde_ThetaCurr);
 	}
 
-#ifndef MBDYN_DEFORMABLE_INVARIANT
 	/* Couple attached to node 1 */
 	Vec3 M(R1h*GetF());
-#else /* MBDYN_DEFORMABLE_INVARIANT */
-	/* Couple in intermediate reference frame (invariant) */
-	Vec3 M(R1h*(RotManip::Rot(tilde_ThetaCurr/2.)*GetF()));
-#endif /* MBDYN_DEFORMABLE_INVARIANT */
 
 	WorkVec.Add(1, M);
 	WorkVec.Sub(4, M);
@@ -515,6 +510,51 @@ ElasticHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 /* ElasticHingeJoint - end */
 
 
+/* ElasticHingeJointInv - begin */
+
+ElasticHingeJointInv::ElasticHingeJointInv(unsigned int uL,
+		const DofOwner* pDO,
+		const ConstitutiveLaw3D* pCL,
+		const StructNode* pN1,
+		const StructNode* pN2,
+		const Mat3x3& tilde_R1h,
+		const Mat3x3& tilde_R2h,
+		flag fOut)
+: Elem(uL, fOut),
+ElasticHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, fOut)
+{
+	NO_OP;
+}
+
+ElasticHingeJointInv::~ElasticHingeJointInv(void)
+{
+	NO_OP;
+}
+
+void
+ElasticHingeJointInv::AssVec(SubVectorHandler& WorkVec)
+{
+	Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
+
+	if (bFirstRes) {
+		bFirstRes = false;
+
+	} else {
+		Mat3x3 R2h(pNode2->GetRCurr()*tilde_R2h);
+		tilde_ThetaCurr = RotManip::VecRot(R1h.Transpose()*R2h);
+		ConstitutiveLaw3DOwner::Update(tilde_ThetaCurr);
+	}
+
+	/* Couple in intermediate reference frame (invariant) */
+	Vec3 M(R1h*(RotManip::Rot(tilde_ThetaCurr/2.)*GetF()));
+
+	WorkVec.Add(1, M);
+	WorkVec.Sub(4, M);
+}
+
+/* ElasticHingeJointInv - end */
+
+
 /* ViscousHingeJoint - begin */
 
 ViscousHingeJoint::ViscousHingeJoint(unsigned int uL,
@@ -529,7 +569,7 @@ ViscousHingeJoint::ViscousHingeJoint(unsigned int uL,
 DeformableHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, fOut)
 {
 	Mat3x3 R1h(pNode1->GetRRef());
-	FDEPrime = R1h*ConstitutiveLaw3DOwner::GetFDEPrime()*R1h.Transpose();
+	MDEPrime = R1h*ConstitutiveLaw3DOwner::GetFDEPrime()*R1h.Transpose();
 }
 
 ViscousHingeJoint::~ViscousHingeJoint(void)
@@ -549,7 +589,7 @@ ViscousHingeJoint::AfterPredict(VectorHandler& /* X */ ,
 		VectorHandler& /* XP */ )
 {
 	/* Calcola le deformazioni, aggiorna il legame costitutivo
-	 * e crea la FDE */
+	 * e crea la MDE */
 
 	/* Recupera i dati */
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
@@ -561,7 +601,7 @@ ViscousHingeJoint::AfterPredict(VectorHandler& /* X */ ,
 
 	/* Chiede la matrice tangente di riferimento e la porta
 	 * nel sistema globale */
-	FDEPrime = R1h*GetFDEPrime()*R1hT;
+	MDEPrime = R1h*GetFDEPrime()*R1hT;
 
 	bFirstRes = true;
 }
@@ -648,12 +688,12 @@ ViscousHingeJoint::AssMats(FullSubMatrixHandler& WMA,
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
 	Vec3 W2(pNode1->GetWRef());
 
-	WMB.Add(4, 4, FDEPrime);
-	WMB.Sub(1, 4, FDEPrime);
-	WMB.Add(1, 1, FDEPrime);
-	WMB.Sub(4, 1, FDEPrime);
+	WMB.Add(4, 4, MDEPrime);
+	WMB.Sub(1, 4, MDEPrime);
+	WMB.Add(1, 1, MDEPrime);
+	WMB.Sub(4, 1, MDEPrime);
 
-	Mat3x3 Tmp(FDEPrime*Mat3x3(W2*dCoef));
+	Mat3x3 Tmp(MDEPrime*Mat3x3(W2*dCoef));
 	WMA.Sub(4, 4, Tmp);
 	WMA.Add(1, 4, Tmp);
 
@@ -744,9 +784,9 @@ ViscousHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 	Vec3 W2(pNode2->GetWCurr());
 
-	FDEPrime = R1h*ConstitutiveLaw3DOwner::GetFDEPrime()*R1h.Transpose();
+	MDEPrime = R1h*ConstitutiveLaw3DOwner::GetFDEPrime()*R1h.Transpose();
 
-	Mat3x3 Tmp(FDEPrime*Mat3x3(W2));
+	Mat3x3 Tmp(MDEPrime*Mat3x3(W2));
 	WM.Add(4, 7, Tmp);
 	WM.Sub(1, 7, Tmp);
 
@@ -754,11 +794,11 @@ ViscousHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	WM.Add(1, 1, Tmp);
 	WM.Sub(4, 1, Tmp);
 
-	WM.Add(1, 4, FDEPrime);
-	WM.Add(4, 10, FDEPrime);
+	WM.Add(1, 4, MDEPrime);
+	WM.Add(4, 10, MDEPrime);
 
-	WM.Sub(1, 10, FDEPrime);
-	WM.Sub(4, 4, FDEPrime);
+	WM.Sub(1, 10, MDEPrime);
+	WM.Sub(4, 4, MDEPrime);
 
 	return WorkMat;
 }
@@ -824,8 +864,8 @@ tilde_ThetaRef(0.)
 {
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
 	Mat3x3 R1hT(R1h.Transpose());
-	FDE = R1h*ConstitutiveLaw3DOwner::GetFDE()*R1hT;
-	FDEPrime = R1h*ConstitutiveLaw3DOwner::GetFDEPrime()*R1hT;
+	MDE = R1h*ConstitutiveLaw3DOwner::GetFDE()*R1hT;
+	MDEPrime = R1h*ConstitutiveLaw3DOwner::GetFDEPrime()*R1hT;
 }
 
 ViscoElasticHingeJoint::~ViscoElasticHingeJoint(void)
@@ -845,7 +885,7 @@ ViscoElasticHingeJoint::AfterPredict(VectorHandler& /* X */ ,
 		VectorHandler& /* XP */ )
 {
 	/* Calcola le deformazioni, aggiorna il legame costitutivo
-	 * e crea la FDE */
+	 * e crea la MDE */
 
 	/* Recupera i dati */
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
@@ -866,8 +906,8 @@ ViscoElasticHingeJoint::AfterPredict(VectorHandler& /* X */ ,
 
 	/* Chiede la matrice tangente di riferimento e la porta
 	 * nel sistema globale */
-	FDE = R1h*ConstitutiveLaw3DOwner::GetFDE()*GammaRefm1*R1hT;
-	FDEPrime = R1h*GetFDEPrime()*R1hT;
+	MDE = R1h*ConstitutiveLaw3DOwner::GetFDE()*GammaRefm1*R1hT;
+	MDEPrime = R1h*GetFDEPrime()*R1hT;
 
 	bFirstRes = true;
 }
@@ -954,13 +994,13 @@ ViscoElasticHingeJoint::AssMats(FullSubMatrixHandler& WMA,
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
 	Vec3 W2(pNode1->GetWRef());
 
-	WMB.Add(1, 1, FDEPrime);
-	WMB.Sub(1, 4, FDEPrime);
-	WMB.Sub(4, 1, FDEPrime);
-	WMB.Add(4, 4, FDEPrime);
+	WMB.Add(1, 1, MDEPrime);
+	WMB.Sub(1, 4, MDEPrime);
+	WMB.Sub(4, 1, MDEPrime);
+	WMB.Add(4, 4, MDEPrime);
 
-	Mat3x3 Tmp(FDE*dCoef);
-	Tmp -= FDEPrime*Mat3x3(W2*dCoef);
+	Mat3x3 Tmp(MDE*dCoef);
+	Tmp -= MDEPrime*Mat3x3(W2*dCoef);
 	WMA.Add(4, 4, Tmp);
 	WMA.Sub(1, 4, Tmp);
 
@@ -1053,10 +1093,10 @@ ViscoElasticHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	Mat3x3 R1hT(R1h.Transpose());
 	Vec3 W2(pNode2->GetWCurr());
 
-	FDE = R1h*ConstitutiveLaw3DOwner::GetFDE()*R1hT;
-	FDEPrime = R1h*ConstitutiveLaw3DOwner::GetFDEPrime()*R1hT;
+	MDE = R1h*ConstitutiveLaw3DOwner::GetFDE()*R1hT;
+	MDEPrime = R1h*ConstitutiveLaw3DOwner::GetFDEPrime()*R1hT;
 
-	Mat3x3 Tmp(FDE + FDEPrime*Mat3x3(W2));
+	Mat3x3 Tmp(MDE + MDEPrime*Mat3x3(W2));
 	WM.Add(4, 7, Tmp);
 	WM.Sub(1, 7, Tmp);
 
@@ -1064,11 +1104,11 @@ ViscoElasticHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	WM.Add(1, 1, Tmp);
 	WM.Sub(4, 1, Tmp);
 
-	WM.Add(1, 4, FDEPrime);
-	WM.Add(4, 10, FDEPrime);
+	WM.Add(1, 4, MDEPrime);
+	WM.Add(4, 10, MDEPrime);
 
-	WM.Sub(1, 10, FDEPrime);
-	WM.Sub(4, 4, FDEPrime);
+	WM.Sub(1, 10, MDEPrime);
+	WM.Sub(4, 4, MDEPrime);
 
 	return WorkMat;
 }
