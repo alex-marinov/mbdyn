@@ -50,44 +50,51 @@ class OutputHandler : public FileName {
 public:
 	enum OutFiles {
 		UNKNOWN			= -1,
-		OUTPUT			= 0,
+		OUTPUT			= 0,	//  0
 		STRNODES,
 		ELECTRIC,
 		ABSTRACT,
 		INERTIA,
-		JOINTS,			/* =  5 */
+		JOINTS,				//  5
 		FORCES,
 		BEAMS,
 		ROTORS,
 		RESTART,
-		RESTARTXSOL,		/* = 10 */
+		RESTARTXSOL,			// 10
 		AERODYNAMIC,
 		HYDRAULIC,
 		PRESNODES,
 		LOADABLE,
-		GENELS,			/* = 15 */
+		GENELS,				// 15
 		PARTITION,
 		ADAMSRES,
 		ADAMSCMD,
 		AEROMODALS,
-		REFERENCEFRAMES,	/* = 20 */
+		REFERENCEFRAMES,		// 20
 		LOG,
 		AIRPROPS,
 		PARAMETERS,
 		EXTERNALS,
-		MODAL,
+		MODAL,				// 25
 
-		LASTFILE		/* = 26 */
-};
+		LASTFILE			// 26
+	};
 
 private:
 
-/* Aggiungere qui i files che si desidera avere a disposizione */
+	// flag values
+	enum {
+		OUTPUT_NONE			= 0x0U,
+		OUTPUT_USE_DEFAULT_PRECISION	= 0x1U,
+		OUTPUT_USE_SCIENTIFIC		= 0x2U,
+
+		LAST
+	};
+
+	/* Aggiungere qui i files che si desidera avere a disposizione */
 	struct {
 		std::ofstream* pof;
-		bool UseDefaultPrecision;
-		bool UseScientific;
-		bool IsOpen;
+		unsigned	flags;
 	} OutData[LASTFILE];
 
 	std::ofstream ofOutput;      		/*  0 */
@@ -121,6 +128,14 @@ private:
 	int iCurrPrecision;
 	int nCurrRestartFile;
 
+	// private because we know we're using valid out index
+	bool IsOpen(int out) const;
+	bool UseDefaultPrecision(int out) const;
+	bool UseScientific(int out) const;
+
+	// Pseudo-constructor
+	void OutputHandler_int(void);
+
 public:
 	OutputHandler(void);
 
@@ -130,11 +145,12 @@ public:
 
 	~OutputHandler(void);
 
-
 	/* Aggiungere qui le funzioni che aprono i singoli stream */
 	bool Open(const OutputHandler::OutFiles out);
 
 	bool IsOpen(const OutputHandler::OutFiles out) const;
+	bool UseDefaultPrecision(const OutputHandler::OutFiles out) const;
+	bool UseScientific(const OutputHandler::OutFiles out) const;
 
 	bool Close(const OutputHandler::OutFiles out);
 
@@ -188,10 +204,7 @@ inline std::ostream&
 OutputHandler::Get(const OutputHandler::OutFiles f)
 {
 	ASSERT(f > -1 && f < LASTFILE);
-	ASSERT(OutData[f].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(OutData[f].pof->is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(f));
 	return *(OutData[f].pof);
 }
 
@@ -201,10 +214,7 @@ OutputHandler::Output(void) const
 #ifdef DEBUG_COUT
 	return (std::ostream&)cout;
 #else
-	ASSERT(OutData[OUTPUT].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofOutput.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(OUTPUT));
 	return (std::ostream&)ofOutput;
 #endif
 }
@@ -212,200 +222,140 @@ OutputHandler::Output(void) const
 inline std::ostream&
 OutputHandler::StrNodes(void) const
 {
-	ASSERT(OutData[STRNODES].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofStrNodes.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(STRNODES));
 	return (std::ostream&)ofStrNodes;
 }
 
 inline std::ostream&
 OutputHandler::Electric(void) const
 {
-	ASSERT(OutData[ELECTRIC].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofElectric.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(ELECTRIC));
 	return (std::ostream&)ofElectric;
 }
 
 inline std::ostream&
 OutputHandler::Abstract(void) const
 {
-	ASSERT(OutData[ABSTRACT].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofAbstract.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(ABSTRACT));
 	return (std::ostream&)ofAbstract;
 }
 
 inline std::ostream&
 OutputHandler::Inertia(void) const
 {
-	ASSERT(OutData[INERTIA].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofInertia.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(INERTIA));
 	return (std::ostream&)ofInertia;
 }
 
 inline std::ostream&
 OutputHandler::Joints(void) const
 {
-	ASSERT(OutData[JOINTS].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofJoints.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(JOINTS));
 	return (std::ostream&)ofJoints;
 }
 
 inline std::ostream&
 OutputHandler::Forces(void) const
 {
-	ASSERT(OutData[FORCES].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofForces.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(FORCES));
 	return (std::ostream&)ofForces;
 }
 
 inline std::ostream&
 OutputHandler::Beams(void) const
 {
-	ASSERT(OutData[BEAMS].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofBeams.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(BEAMS));
 	return (std::ostream&)ofBeams;
 }
 
 inline std::ostream&
 OutputHandler::Rotors(void) const
 {
-	ASSERT(OutData[ROTORS].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofRotors.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(ROTORS));
 	return (std::ostream&)ofRotors;
 }
 
 inline std::ostream&
 OutputHandler::Restart(void) const
 {
-	ASSERT(OutData[RESTART].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofRestart.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(RESTART));
 	return (std::ostream&)ofRestart;
 }
 
 inline std::ostream&
 OutputHandler::RestartXSol(void) const
 {
-	ASSERT(OutData[RESTART].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofRestartXSol.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(RESTART));
 	return (std::ostream&)ofRestartXSol;
 }
 
 inline std::ostream&
 OutputHandler::Aerodynamic(void) const
 {
-	ASSERT(OutData[AERODYNAMIC].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofAerodynamic.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(AERODYNAMIC));
 	return (std::ostream&)ofAerodynamic;
 }
 
 inline std::ostream&
 OutputHandler::Hydraulic(void) const
 {
-	ASSERT(OutData[HYDRAULIC].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofHydraulic.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(HYDRAULIC));
 	return (std::ostream&)ofHydraulic;
 }
 
 inline std::ostream&
 OutputHandler::PresNodes(void) const
 {
-	ASSERT(OutData[PRESNODES].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofPresNodes.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(PRESNODES));
 	return (std::ostream&)ofPresNodes;
 }
 
 inline std::ostream&
 OutputHandler::Loadable(void) const
 {
-	ASSERT(OutData[LOADABLE].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofLoadable.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(LOADABLE));
 	return (std::ostream&)ofLoadable;
 }
 
 inline std::ostream&
 OutputHandler::Genels(void) const
 {
-	ASSERT(OutData[GENELS].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofGenels.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(GENELS));
 	return (std::ostream&)ofGenels;
 }
 
 inline std::ostream&
 OutputHandler::Partition(void) const
 {
-	ASSERT(OutData[PARTITION].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofPartition.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(PARTITION));
 	return (std::ostream&)ofPartition;
 }
 
 inline std::ostream&
 OutputHandler::AdamsRes(void) const
 {
-	ASSERT(OutData[ADAMSRES].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofAdamsRes.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(ADAMSRES));
 	return (std::ostream&)ofAdamsRes;
 }
 
 inline std::ostream&
 OutputHandler::AdamsCmd(void) const
 {
-	ASSERT(OutData[ADAMSCMD].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofAdamsCmd.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(ADAMSCMD));
 	return (std::ostream&)ofAdamsCmd;
 }
 
 inline std::ostream&
 OutputHandler::AeroModals(void) const
 {
-	ASSERT(OutData[AEROMODALS].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofAeroModals.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(AEROMODALS));
 	return (std::ostream&)ofAeroModals;
 }
 
 inline std::ostream&
 OutputHandler::ReferenceFrames(void) const
 {
-	ASSERT(OutData[REFERENCEFRAMES].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofReferenceFrames.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(REFERENCEFRAMES));
 	return (std::ostream&)ofReferenceFrames;
 }
 
@@ -415,10 +365,7 @@ OutputHandler::Log(void) const
 #ifdef DEBUG_COUT
 	return (std::ostream&)cout;
 #else
-	ASSERT(OutData[LOG].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofLog.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(LOG));
 	return (std::ostream&)ofLog;
 #endif
 }
@@ -426,40 +373,28 @@ OutputHandler::Log(void) const
 inline std::ostream&
 OutputHandler::AirProps(void) const
 {
-	ASSERT(OutData[AIRPROPS].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofAirProps.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(AIRPROPS));
 	return (std::ostream&)ofAirProps;
 }
 
 inline std::ostream&
 OutputHandler::Parameters(void) const
 {
-	ASSERT(OutData[PARAMETERS].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofParameters.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(PARAMETERS));
 	return (std::ostream&)ofParameters;
 }
 
 inline std::ostream&
 OutputHandler::Externals(void) const
 {
-	ASSERT(OutData[EXTERNALS].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofExternal.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(EXTERNALS));
 	return (std::ostream&)ofExternals;
 }
 
 inline std::ostream&
 OutputHandler::Modal(void) const
 {
-	ASSERT(OutData[MODAL].IsOpen);
-#ifdef HAVE_ISOPEN
-	ASSERT(ofModal.is_open());
-#endif /* HAVE_ISOPEN */
+	ASSERT(IsOpen(MODAL));
 	return (std::ostream&)ofModal;
 }
 
