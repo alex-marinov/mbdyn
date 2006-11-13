@@ -279,6 +279,7 @@ protected:
 	void AssMats(FullSubMatrixHandler& WMA,
 			FullSubMatrixHandler& WMB,
 			doublereal dCoef);
+	virtual void AssVec(SubVectorHandler& WorkVec);
 
 public:
 	ViscousHingeJoint(unsigned int uL,
@@ -290,7 +291,7 @@ public:
 			const Mat3x3& tilde_R2h,
 			flag fOut);
 
-	~ViscousHingeJoint(void);
+	virtual ~ViscousHingeJoint(void);
 
 	virtual inline void* pGet(void) const {
 		return (void*)this;
@@ -370,6 +371,52 @@ public:
 };
 
 /* ViscousHingeJoint - end */
+
+
+/* ViscousHingeJointInv - begin */
+
+class ViscousHingeJointInv : virtual public Elem, public ViscousHingeJoint {
+protected:
+#if 0
+	void AssMats(FullSubMatrixHandler& WMA,
+			FullSubMatrixHandler& WMB,
+			doublereal dCoef);
+#endif
+	virtual void AssVec(SubVectorHandler& WorkVec);
+
+public:
+	ViscousHingeJointInv(unsigned int uL,
+			const DofOwner* pDO,
+			const ConstitutiveLaw3D* pCL,
+			const StructNode* pN1,
+			const StructNode* pN2,
+			const Mat3x3& tilde_R1h,
+			const Mat3x3& tilde_R2h,
+			flag fOut);
+
+	virtual ~ViscousHingeJointInv(void);
+
+	virtual inline void* pGet(void) const {
+		return (void*)this;
+	};
+
+#ifdef MBDYN_X_WORKAROUND_GCC_3_2
+	virtual void SetValue(DataManager *pDM,
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints *ph = 0)
+	{
+		DeformableHingeJoint::SetValue(pDM, X, XP, ph);
+	};
+
+	virtual Hint *
+	ParseHint(DataManager *pDM, const char *s) const
+	{
+		return DeformableHingeJoint::ParseHint(pDM, s);
+	};
+#endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
+};
+
+/* ViscousHingeJointInv - end */
 
 
 /* ViscoElasticHingeJoint - begin */

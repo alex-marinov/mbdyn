@@ -60,7 +60,9 @@ main(int argn, const char* const argv[])
 				<< std::endl;
 	 		exit(EXIT_SUCCESS);
       		}
-   	}   
+   	}
+
+	std::cout.precision(16);
 
    	static doublereal d[3];
    	while (true) {

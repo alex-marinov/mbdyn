@@ -1554,18 +1554,12 @@ ReadJoint(DataManager* pDM,
 				break;
 
 			case INVARIANTDEFORMABLEHINGE:
-				silent_cerr("\"invariant deformable hinge\" "
-					"at line " << HP.GetLineData()
-					<< " not implemented yet" << std::endl);
-				throw ErrGeneric();
-#if 0
 				SAFENEWWITHCONSTRUCTOR(pEl,
 					ViscousHingeJointInv,
 					ViscousHingeJointInv(uLabel, pDO, pCL,
 						pNode1, pNode2,
 						R1, R2, fOut));
 				sJointLogName = "deformablehinge";
-#endif
 				break;
 
 			case DEFORMABLEDISPHINGE:

@@ -725,6 +725,15 @@ ViscousHingeJoint::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(3 + iCnt, iNode2FirstMomIndex + iCnt);
 	}
 
+	AssVec(WorkVec);
+
+	return WorkVec;
+}
+
+/* assemblaggio residuo */
+void
+ViscousHingeJoint::AssVec(SubVectorHandler& WorkVec)
+{
 	Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
 
 	if (bFirstRes) {
@@ -738,16 +747,10 @@ ViscousHingeJoint::AssRes(SubVectorHandler& WorkVec,
 		ConstitutiveLaw3DOwner::Update(Zero3, tilde_Omega);
 	}
 
-#ifndef MBDYN_DEFORMABLE_INVARIANT
 	Vec3 M(R1h*ConstitutiveLaw3DOwner::GetF());
-#else /* MBDYN_DEFORMABLE_INVARIANT */
-	Vec3 M(R1h*(RotManip::Rot(RotManip::VecRot(R1h.Transpose()*pNode2->GetRCurr()*tilde_R2h)/2.)*GetF()));
-#endif /* MBDYN_DEFORMABLE_INVARIANT */
 
 	WorkVec.Add(1, M);
 	WorkVec.Sub(4, M);
-
-	return WorkVec;
 }
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
@@ -846,6 +849,53 @@ ViscousHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 }
 
 /* ViscousHingeJoint - end */
+
+
+/* ViscousHingeJointInv - begin */
+
+ViscousHingeJointInv::ViscousHingeJointInv(unsigned int uL,
+		const DofOwner* pDO,
+		const ConstitutiveLaw3D* pCL,
+		const StructNode* pN1,
+		const StructNode* pN2,
+		const Mat3x3& tilde_R1h,
+		const Mat3x3& tilde_R2h,
+		flag fOut)
+: Elem(uL, fOut),
+ViscousHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, fOut)
+{
+	NO_OP;
+}
+
+ViscousHingeJointInv::~ViscousHingeJointInv(void)
+{
+	NO_OP;
+}
+
+/* assemblaggio residuo */
+void
+ViscousHingeJointInv::AssVec(SubVectorHandler& WorkVec)
+{
+	Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
+
+	if (bFirstRes) {
+		bFirstRes = false;
+
+	} else {
+		Mat3x3 R1hT(R1h.Transpose());
+
+		tilde_Omega = R1hT*(pNode2->GetWCurr() - pNode1->GetWCurr());
+
+		ConstitutiveLaw3DOwner::Update(Zero3, tilde_Omega);
+	}
+
+	Vec3 M(R1h*(RotManip::Rot(RotManip::VecRot(R1h.Transpose()*pNode2->GetRCurr()*tilde_R2h)/2.)*GetF()));
+
+	WorkVec.Add(1, M);
+	WorkVec.Sub(4, M);
+}
+
+/* ViscousHingeJointInv - end */
 
 
 /* ViscoElasticHingeJoint - begin */
