@@ -488,34 +488,34 @@ the initial value of the highest order derivatives at $t=t_0$
 before any iteration starts.
 For simplicity, think of an explicit Ordinary Differential Equation
 (ODE) problem like
-\begin{displaymath}
+\begin{equation}
   \dot{y} = f(y, t)
-\end{displaymath}
+\end{equation}
 with the initial value of $t(0) = t_0$ and $y(0) = y_0$; 
 then, the computation of $\dot{y}(0)$ is trivial.  
 Now, the actual problem is Differential Algebraic (DAE) and implicit, 
 i.e. something like
-\begin{displaymath}
+\begin{equation}
   F(\dot{y}, y, t) = 0
-\end{displaymath}
+\end{equation}
 (actually, it's a bit more complicated, since it's index 3), 
 and we still need to compute $\dot{y}(0)$ 
 (and the algebraic variables as well, 
 which in the above representation are hidden in the $\dot{y}$).
 During the regular solution phase (i.e. the Newton iteration) 
 we solve a problem of the form
-\begin{displaymath}
+\begin{equation}
   F/_{\dot{y}} \Delta \dot{y} + F_{/y} \Delta y = - F
-\end{displaymath}
+\end{equation}
 and, according to the integration formula that we're using,
-\begin{displaymath}
+\begin{equation}
   \Delta y = \texttt{dCoef} * \Delta \dot{y}
-\end{displaymath}
+\end{equation}
 where \texttt{dCoef} is essentially the time step times some number that is specific to the integration formula; it's 1/2 for Crank-Nicholson, it's 2/3 for BDF and so on.
 So the real iteration is
-\begin{displaymath}
+\begin{equation}
   ( F_{/\dot{y}} + \texttt{dCoef} F_{/y} ) \Delta \dot{y} = - F
-\end{displaymath}
+\end{equation}
 
 To avoid the need to implement a dedicated routine to compute 
 the initial value of $\dot{y}$, we iterate over the above reported problem, 
@@ -523,9 +523,10 @@ ideally with a time step of $0$, which means that $F_{/y}$ is not considered.
 However, since the problem is differential algebraic, 
 matrix $F_{/\dot{y}}$ is structurally singular, so the time step 
 must be different from $0$, but small enough to let the correction
-\begin{displaymath}
-  \Delta y = \texttt{dCoef} * \Delta \dot{y}
-\end{displaymath}
+\begin{equation}
+	\Delta y = \texttt{dCoef} * \Delta \dot{y}
+	\label{eq:dcoef}
+\end{equation}
 be negligible with respect to $\Delta \dot{y}$.  
 To conclude, the ``derivatives coefficient'' defined in the input file 
 is this ``\texttt{dCoef}'', 
@@ -541,7 +542,7 @@ really strange is going on).\\
 \noindent
 If the initial derivatives phase requires
 more than one iteration  
-this may mean that he 
+this may mean that
 the system is impulsively loaded  with inappropriate 
 initial values of states; 
 In this case, it is possible to increase the number of iterations, e.g.:
@@ -589,9 +590,9 @@ with every linked \texttt{ExpandableRowVector} taken in account.
 
 \section{Algebraic Constraints}
 Consider a holonomic constraint equation of the form
-\begin{equation*}
+\begin{equation}
 	\T{\Phi}\plbr{\T{q}, t} = 0 
-\end{equation*}
+\end{equation}
 Its time derivative and perturbation yields
 \begin{eqnarray*}
 	\delta\frac{\llk{d}}{\llk{d}t}\plbr{\T{\mu}^T\T{\Phi}} & = &
@@ -701,158 +702,237 @@ in the initial assembly and, occasionally, in specific constraints.
 
 \subsection{Distance Joint}
 
-\subsubsection{Distance Joint Without Offsets}
+\subsubsection{Distance Joint (Without Offsets)}
 Definitions
-\begin{displaymath}
-	u = \frac{1}{d}\plbr{x_2 - x_1}
-\end{displaymath}
+\begin{equation}
+	\T{d} = \T{x}_2 - \T{x}_1
+\end{equation}
+\begin{equation}
+	d = \sqrt{\T{d}^T \T{d}}
+\end{equation}
+\begin{equation}
+	\T{u} = \frac{\T{d}}{d}
+\end{equation}
 Limitations
-\begin{displaymath}
+\begin{equation}
 	d > 0
-\end{displaymath}
+\end{equation}
 Constraint Equation
-\begin{displaymath}
-	d \sqrt{u^T u} = d
-\end{displaymath}
+\begin{equation}
+	d \sqrt{\T{u}^T \T{u}} = d
+\end{equation}
 Forces
-\begin{eqnarray*}
-	F_1 & = & \alpha u \\
-	F_2 & = & -\alpha u
-\end{eqnarray*}
+\begin{eqnarray}
+	\T{F}_1 & = & \alpha \T{u} \\
+	\T{F}_2 & = & -\alpha \T{u}
+\end{eqnarray}
 Linearization
-\begin{displaymath}
+\begin{equation}
 	\sqbr{\matr{ccc}{
-		\frac{\alpha}{d}I & -\frac{\alpha}{d}I & -u \\
-		-\frac{\alpha}{d}I & \frac{\alpha}{d}I & u \\
-		-u^T & u^T & 0
+		\cfrac{\alpha}{d}\T{I} & -\cfrac{\alpha}{d}\T{I} & -\T{u} \\
+		-\cfrac{\alpha}{d}\T{I} & \cfrac{\alpha}{d}\T{I} & \T{u} \\
+		\\
+		-\T{u}^T & \T{u}^T & 0
 	}}\cubr{\cvvect{
-		\delta{x_1} \\
-		\delta{x_2} \\
-		\delta{\alpha}
+		\delta\T{x}_1 \\
+		\delta\T{x}_2 \\
+		\delta\alpha
 	}} = \cubr{\cvvect{
-		\alpha u \\
-		- \alpha u \\
-		d\plbr{1 - \sqrt{u^T u}}
+		\alpha \T{u} \\
+		\\
+		- \alpha \T{u} \\
+		\\
+		d\plbr{1 - \sqrt{\T{u}^T \T{u}}}
 	}}
-\end{displaymath}
+\end{equation}
 Constraint Equation Derivative
-\begin{displaymath}
-	d u^T \dot{u} = 0
-\end{displaymath}
+\begin{equation}
+	d \T{u}^T \dot{\T{u}} = 0
+\end{equation}
 Force Derivatives
-\begin{eqnarray*}
-	\dot{F}_1 & = & \alpha \dot{u} + \dot{\alpha} u \\
-	\dot{F}_2 & = & -\alpha \dot{u} - \dot{\alpha} u
-\end{eqnarray*}
+\begin{eqnarray}
+	\dot{\T{F}}_1 & = & \alpha \dot{\T{u}} + \dot{\alpha} \T{u} \\
+	\dot{\T{F}}_2 & = & -\alpha \dot{\T{u}} - \dot{\alpha} \T{u}
+\end{eqnarray}
+where
+\begin{equation}
+	\dot{\T{u}} = \frac{\dot{\T{x}}_2 - \dot{\T{x}}_1}{d} - \T{u} \frac{\dot{d}}{d}
+\end{equation}
 Linearization
-\begin{displaymath}
+\begin{equation}
         \sqbr{\matr{cccccc}{
-		\frac{\dot{\alpha}}{d}I & \frac{\alpha}{d}I &
-			-\frac{\dot{\alpha}}{d}I & -\frac{\alpha}{d}I &
-			-\dot{u} & -u \\
-		-\frac{\dot{\alpha}}{d}I & -\frac{\alpha}{d}I &
-			\frac{\dot{\alpha}}{d}I & \frac{\alpha}{d}I &
-			\dot{u} & u \\
-		-\dot{u}^T & -u^T & \dot{u}^T & u^T & 0 & 0
+		\cfrac{\dot{\alpha}}{d}\T{I} & \cfrac{\alpha}{d}\T{I} &
+			-\cfrac{\dot{\alpha}}{d}\T{I} & -\cfrac{\alpha}{d}\T{I} &
+			-\dot{\T{u}} & -\T{u} \\
+		-\cfrac{\dot{\alpha}}{d}\T{I} & -\cfrac{\alpha}{d}\T{I} &
+			\cfrac{\dot{\alpha}}{d}\T{I} & \cfrac{\alpha}{d}\T{I} &
+			\dot{\T{u}} & \T{u} \\
+		\\
+		-\dot{\T{u}}^T & -\T{u}^T & \dot{\T{u}}^T & \T{u}^T & \T{0} & \T{0}
 	}}\cubr{\cvvect{
-		\delta{x_1} \\
-		\delta{\dot{x}_1} \\
-		\delta{x_2} \\
-		\delta{\dot{x}_2} \\
-		\delta{\alpha} \\
-		\delta{\dot{\alpha}}
+		\delta\T{x}_1 \\
+		\delta\dot{\T{x}}_1 \\
+		\delta\T{x}_2 \\
+		\delta\dot{\T{x}}_2 \\
+		\delta\alpha \\
+		\delta\dot{\alpha}
 	}} = \cubr{\cvvect{
-		\alpha \dot{u} + \dot{\alpha} u \\
-		-\alpha \dot{u} - \dot{\alpha} u \\
-		d u^T \dot{u}
+		\alpha \dot{\T{u}} + \dot{\alpha} \T{u} \\
+		\\
+		-\alpha \dot{\T{u}} - \dot{\alpha} \T{u} \\
+		\\
+		d \T{u}^T \dot{\T{u}}
 	}}
-\end{displaymath}
+\end{equation}
 
 
 
 
 \subsubsection{Distance Joint With Offsets}
 Definitions:
-\begin{displaymath}
-	u = \frac{1}{d}\plbr{x_2 + f_2 - x_1 - f_1}
-\end{displaymath}
+\begin{equation}
+	\T{d} = \T{x}_2 + \T{f}_2 - \T{x}_1 - \T{f}_1
+\end{equation}
+\begin{equation}
+	d = \sqrt{\T{d}^T \T{d}}
+\end{equation}
+\begin{equation}
+	\T{u} = \frac{\T{d}}{d}
+\end{equation}
 Limitations:
-\begin{displaymath}
+\begin{equation}
 	d > 0
-\end{displaymath}
+\end{equation}
 Constraint equation 
-\begin{displaymath}
-	d \sqrt{u^T u} = d
-\end{displaymath}
+\begin{equation}
+	d \sqrt{\T{u}^T \T{u}} = d
+\end{equation}
 Forces:
-\begin{eqnarray*}
-	F_1 & = & \alpha u \\
-	M_1 & = & \alpha f_1 \times u \\
-	F_2 & = & -\alpha u \\
-	M_2 & = & -\alpha f_2 \times u
-\end{eqnarray*}
+\begin{eqnarray}
+	\T{F}_1 & = & \alpha \T{u} \\
+	\T{M}_1 & = & \alpha \T{f}_1 \times \T{u} \\
+	\T{F}_2 & = & -\alpha \T{u} \\
+	\T{M}_2 & = & -\alpha \T{f}_2 \times \T{u}
+\end{eqnarray}
 Linearization:
-\begin{displaymath}
+\begin{equation}
 	\sqbr{\matr{ccccc}{
-		\frac{\alpha}{d}I & -\frac{\alpha}{d}f_1\times{} &
-			-\frac{\alpha}{d}I & \frac{\alpha}{d}f_2\times{} & -u \\
-		\frac{\alpha}{d}f_1\times{} & 
-			-\frac{\alpha}{d}\plbr{f_1 + u}\times{f_1\times{}} &
-			-\frac{\alpha}{d}f_1\times{} & 
-			\frac{\alpha}{d}f_1\times{f_2\times{}} & 
-			-f_1\times{u} \\
-		-\frac{\alpha}{d}I & \frac{\alpha}{d}f_1\times{} &
-			\frac{\alpha}{d}I & -\frac{\alpha}{d}f_2\times{} & u \\
-		-\frac{\alpha}{d}f_2\times{} &
-			\frac{\alpha}{d}f_2\times{f_1\times{}} &
-			\frac{\alpha}{d}f_2\times{} &
-			- \frac{\alpha}{d}\plbr{f_2 - u}\times{f_2\times{}} &
-			f_2\times{u} \\
-		-u^T & - \plbr{f_1\times{u}}^T & 
-			u^T & \plbr{f_2\times{u}}^T & 0
+		\cfrac{\alpha}{d}\T{I} & -\cfrac{\alpha}{d}\T{f}_1\times{} &
+			-\cfrac{\alpha}{d}\T{I} & \cfrac{\alpha}{d}\T{f}_2\times{} & -\T{u} \\
+		\cfrac{\alpha}{d}\T{f}_1\times{} & 
+			-\cfrac{\alpha}{d}\plbr{\T{f}_1 + \T{d}}\times\T{f}_1\times{} &
+			-\cfrac{\alpha}{d}\T{f}_1\times{} & 
+			\cfrac{\alpha}{d}\T{f}_1\times\T{f}_2\times{} & 
+			-\T{f}_1\times\T{u} \\
+		-\cfrac{\alpha}{d}\T{I} & \cfrac{\alpha}{d}\T{f}_1\times{} &
+			\cfrac{\alpha}{d}\T{I} & -\cfrac{\alpha}{d}\T{f}_2\times{} & \T{u} \\
+		-\cfrac{\alpha}{d}\T{f}_2\times{} &
+			\cfrac{\alpha}{d}\T{f}_2\times\T{f}_1\times{} &
+			\cfrac{\alpha}{d}\T{f}_2\times{} &
+			- \cfrac{\alpha}{d}\plbr{\T{f}_2 - \T{d}}\times{\T{f}_2\times{}} &
+			\T{f}_2\times\T{u} \\
+		\\
+		-\T{u}^T & - \plbr{\T{f}_1\times\T{u}}^T & 
+			\T{u}^T & \plbr{\T{f}_2\times\T{u}}^T & 0
 	}}\cubr{\cvvect{
-		\delta{x_1} \\
-		\delta{g_1} \\
-		\delta{x_2} \\
-		\delta{g_2} \\
-		\delta{\alpha}
+		\delta\T{x}_1 \\
+		\delta\T{g}_1 \\
+		\delta\T{x}_2 \\
+		\delta\T{g}_2 \\
+		\delta\alpha
 	}}
-\end{displaymath}
-\begin{displaymath}
+\end{equation}
+\begin{equation}
 	\mbox{\hspace{100mm}} = \cubr{\cvvect{
-		\alpha u \\
-		\alpha f_1\times{u} \\
-		-\alpha u \\
-		-\alpha f_2\times{u} \\
-		d\plbr{1 - \sqrt{u^T u}}
+		\alpha \T{u} \\
+		\alpha \T{f}_1\times\T{u} \\
+		-\alpha \T{u} \\
+		-\alpha \T{f}_2\times\T{u} \\
+		d\plbr{1 - \sqrt{\T{u}^T \T{u}}}
 	}}
-\end{displaymath}
+\end{equation}
 Constraint Equation Derivative
-\begin{displaymath}
-	d u^T\dot{u} = 0
-\end{displaymath}
+\begin{equation}
+	d \T{u}^T\dot{\T{u}} = 0
+\end{equation}
 Forces:
+\begin{eqnarray}
+	\dot{\T{F}}_1 & = &  \alpha \dot{\T{u}} + \dot{\alpha} \T{u} \\
+	\dot{\T{M}}_1 & = & \alpha \plbr{\T{\omega}_1\times\T{f}_1} \times \T{u} 
+		+ \alpha \T{f}_1 \times \dot{\T{u}}
+		+ \dot{\alpha} \T{f}_1 \times \T{u} \\
+	\dot{\T{F}}_2 & = & -\alpha \dot{\T{u}} - \dot{\alpha} \T{u} \\
+	\dot{\T{M}}_2 & = & -\alpha \plbr{\T{\omega}_2 \times\T{f}_2} \times \T{u}
+		- \alpha \T{f}_2 \times \dot{\T{u}}
+		- \dot{\alpha} \T{f}_2 \times \T{u}
+\end{eqnarray}
+Linearization: TODO.
+
+
+
+
+
+\subsection{Spherical hinge (SphericalHingeJoint)}
+This joint constrains the positions of two points, 
+that may be rigidly offset from two nodes, to be coincident.
+
+Joint data
+\begin{equation}
+\tilde{\T{f}}_1, \tilde{\T{f}}_2
+\end{equation}
+where:
+
+\noindent
+\begin{tabular}{ll}
+$\tilde{\T{f}}_1$, $\tilde{\T{f}}_2$ & offset of connection point from nodes 1, 2 in node reference; \\
+\end{tabular}
+
+\noindent
+Constraint equations (normalized\footnote{When purely algebraic
+constraints are considered, to improve the scaling of the matrix,
+the constraint equation can be divided by \texttt{dCoef},
+the coefficient related to the integration method illustrated 
+in Equation~(\ref{eq:dcoef}).
+%See \ref{sec:}.
+} by \texttt{dCoef})
+\begin{equation}
+	\plbr{\T{x}_2 + \T{f}_2} - \plbr{\T{x}_1 + \T{f}_1} = \T{0}
+\end{equation}
+where:
+
+\noindent
+\begin{tabular}{ll}
+$\T{x}_1$, $\T{x}_2$ & position of nodes 1, 2; \\
+$\T{R}_1$, $\T{R}_2$ & orientation of nodes 1, 2.\\
+$\T{f}_1 = \T{R}_1 \tilde{\T{f}}_1$, $\T{f}_2 = \T{R}_2 \tilde{\T{f}}_2$ & offset of connection point from nodes 1, 2 in global frame
+\end{tabular}
+
+\noindent
+Residual vector:
 \begin{eqnarray*}
-	\dot{F}_1 & = &  \alpha \dot{u} + \dot{\alpha} u \\
-	\dot{M}_1 & = & \alpha \plbr{\omega_1\times{f_1}} \times u 
-		+ \alpha f_1 \times \dot{u}
-		+ \dot{\alpha} f_1 \times u \\
-	\dot{F}_2 & = & -\alpha \dot{u} - \dot{\alpha} u \\
-	\dot{M}_2 & = & -\alpha \plbr{\omega_2 \times{f_2}} \times u
-		- \alpha f_2 \times \dot{u}
-		- \dot{\alpha} f_2 \times u
+	\mathrm{node1\ momentum}:\ 1-3& -= & \T F \\
+	\mathrm{node1\ angular\ momentum}:\ 4-6& -= & 
+		(\T R_1\cdot \T d_1) \times \T F \\
+	\mathrm{node2\ momentum}:\ 7-9& += & \T Fi \\
+	\mathrm{node2\ angular\ momentum}:\ 10-12& += & 
+		(\T R_2\cdot \T d_2) \times \T F \\
+	\mathrm{constraint}:\ 13-15& = &  ((\T x_1+\T R_1\cdot \T d_1) - 
+			(\T x_2+\T R_1\cdot \T d_2))/\texttt{dCoef}
 \end{eqnarray*}
-Linearization:
+where:
 
-
+\noindent
+\begin{tabular}{ll}
+$\T{F}$ & constraint reaction force.
+\end{tabular}
 
 
 
 \subsection{Revolute hinge (PlaneHingeJoint)}
 Joint data
-\begin{displaymath}
+\begin{equation}
 \T d_1, \T d_2, \T R_{h1}, \T R_{h2}
-\end{displaymath}
+\end{equation}
 where:\\
 $\T d_1$, $\T d_2$: offset of nodes 1,2 in node reference;\\
 $\T R_{h1}$, $\T R_{h2}$: joint relative orientation wrt. nodes 1,2 (FIXME).\\
@@ -1082,20 +1162,20 @@ Definitions:
 	\T{\theta} & = & \llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{rel}}}
 \end{eqnarray*}
 Limitations:
-\begin{displaymath}
+\begin{equation}
 	\nrbr{\T{\theta}} < \pi
-\end{displaymath}
+\end{equation}
 Constraint equation 
-\begin{displaymath}
+\begin{equation}
 	\T{\theta} - \T{\theta}_0 = \T{0}
-\end{displaymath}
+\end{equation}
 Couples:
 \begin{eqnarray*}
 	\T{M}_1 & = & -\T{R}_1 \T{\alpha} \\
 	\T{M}_2 & = & \T{R}_1 \T{\alpha}
 \end{eqnarray*}
 Linearization:
-\begin{displaymath}
+\begin{equation}
 	\sqbr{\matr{ccc}{
 		\plbr{\T{R}_1 \T{\alpha}}\times{} & 0 & -\T{R}_1 \\
 		-\plbr{\T{R}_1 \T{\alpha}}\times{} & 0 & \T{R}_1 \\
@@ -1110,7 +1190,7 @@ Linearization:
 		-\T{R}_1 \T{\alpha} \\
 		\T{\theta}_0 - \T{\theta}
 	}}
-\end{displaymath}
+\end{equation}
 The linearization of the reaction moments contribution 
 to the moment equilibrium equations of the nodes is straightforward.
 The linearization of the constraint equation is a bit more complicated.
@@ -1162,38 +1242,38 @@ because $\T{\theta}$ in general is a finite rotation.
 \subsubsection{Future Development}
 The desired relative orientation can be expressed by means of a vector 
 $\T{\theta}_0$; the corresponding orientation matrix is
-\begin{displaymath}
+\begin{equation}
 	\T{R}_0 = \exp\plbr{\T{\theta}_0}
-\end{displaymath}
+\end{equation}
 this operation can always be performed with no ambiguity.
 The equality
-\begin{displaymath}
+\begin{equation}
 	\T{\theta} - \T{\theta}_0 = \T{0}
-\end{displaymath}
+\end{equation}
 is equivalent to
-\begin{displaymath}
+\begin{equation}
 	\llk{ax}\plbr{\exp^{-1}\plbr{\T{R}_{rel} \T{R}_0^T}} = \T{0}
-\end{displaymath}
+\end{equation}
 
 \noindent
 In general, the difference between the desired rotation
 $\T{\theta}_0$ and the current relative orientation between
 nodes 1 and 2,
-\begin{displaymath}
+\begin{equation}
 	\T{\theta} = \llk{ax}\plbr{\exp^{-1}\plbr{
 		\T{R}_{1h}^T \T{R}_1^T \T{R}_2 \T{R}_{2h}
 	}}
-\end{displaymath}
+\end{equation}
 through the previous redefinition can be expressed as
-\begin{displaymath}
+\begin{equation}
 	\T{\theta}^{\delta} = \llk{ax}\plbr{\exp^{-1}\plbr{
 		\T{R}_{1h}^T \T{R}_1^T \T{R}_2 \T{R}_{2h} \T{R}_0^T
 	}}
-\end{displaymath}
+\end{equation}
 and is equivalent to
-\begin{displaymath}
+\begin{equation}
 	\T{\theta}^{\delta} = \T{\theta} - \T{\theta}_0
-\end{displaymath}
+\end{equation}
 when $\T{\theta}^{\delta}=\T{0}$.
 Each component of $\T{\theta}^{\delta}$ can be selectively set
 to zero to enforce a constraint on that degree of freedom.
@@ -1221,9 +1301,9 @@ The linearization of the constraint equations is relatively
 straightforward. 
 We need to compute the perturbation of $\T{\theta}^{\delta}$, i.e.,
 after defining
-\begin{displaymath}
+\begin{equation}
 	\T{R}^{\delta} = \T{R}_{1h}^T \T{R}_1^T \T{R}_2 \T{R}_{2h} \T{R}_0^T
-\end{displaymath}
+\end{equation}
 we obtain
 \begin{eqnarray*}
 	\T{\theta}^{\delta}_{\delta}
@@ -1242,9 +1322,9 @@ the corresponding columns of matrix $\bar{\T{R}}$.
 \noindent
 The relative angular velocity is defined, in analogy with 
 the differentiation of $\T{\theta}^{\delta}$, as
-\begin{displaymath}
+\begin{equation}
 	\T{\omega}^{\delta} = \bar{\T{R}}^T\plbr{\T{\omega}_2 - \T{\omega}_1}
-\end{displaymath}
+\end{equation}
 whose differentiation yields
 \begin{eqnarray*}
 	\delta\T{\omega}^{\delta}
@@ -1313,7 +1393,7 @@ The Jacobian matrix and the residual that results from the linearization
 of the constraint equations and of the couples, considering
 the simplifications related to the updated-updated approach,
 are summarized below:
-\begin{displaymath}
+\begin{equation}
 	\sqbr{\matr{ccc}{
 	\plbr{\bar{\T{R}}\T{\alpha}}\times{} & & - \bar{\T{R}} \\
 	- \plbr{\bar{\T{R}}\T{\alpha}}\times{} & & \bar{\T{R}} \\
@@ -1324,8 +1404,8 @@ are summarized below:
 		\delta\T{g}_2 \\
 		\delta\T{\alpha} \\
 	}}
-\end{displaymath}
-\begin{displaymath}
+\end{equation}
+\begin{equation}
 	\mbox{} + \sqbr{\matr{cc}{
 	\plbr{\bar{\T{R}}\T{\beta}}\times{} 
 		+ \bar{\T{R}}\T{\beta}_{/\T{\theta}}\bar{\T{R}}^T &
@@ -1338,8 +1418,8 @@ are summarized below:
 		\delta\T{g}_1 \\
 		\delta\T{g}_2 \\
 	}}
-\end{displaymath}
-\begin{displaymath}
+\end{equation}
+\begin{equation}
  	\mbox{} + \sqbr{\matr{cccc}{
 		- \bar{\T{R}}\T{\beta}_{/\T{\omega}}\bar{\T{R}}^T\T{\omega}_2\times{} &
 		\bar{\T{R}}\T{\beta}_{/\T{\omega}}\bar{\T{R}}^T &
@@ -1356,14 +1436,14 @@ are summarized below:
 		\delta\T{g}_2 \\
 		\delta\T{\dot{g}}_2 \\
 	}}
-\end{displaymath}
-\begin{displaymath}
+\end{equation}
+\begin{equation}
  	\mbox{} = \cubr{\cvvect{
 		\bar{\T{R}} \T{\alpha} + \bar{\T{R}} \T{\beta} \\
 		- \bar{\T{R}} \T{\alpha} - \bar{\T{R}} \T{\beta} \\
 		- \T{\theta}^{\delta}
 	}}
-\end{displaymath}
+\end{equation}
 
 
 \subsubsection{Summary}
@@ -1472,7 +1552,7 @@ where $\T{\lambda}$ is the reaction force in the absolute reference frame.
 
 The contribution of forces and moments and of the constraint equation 
 to the jacobian matrix is
-\begin{equation*}
+\begin{equation}
 	\sqbr{\matr{ccc}{
 		\T{0} &
 			\T{0} &
@@ -1488,7 +1568,7 @@ to the jacobian matrix is
 		\T{\theta}_{\delta} \\
 		\delta\T{\lambda}
 	}}
-\end{equation*}
+\end{equation}
 
 
 
@@ -1597,7 +1677,7 @@ Linearization: by defining
 		\cos\vartheta \T{e}_1 - \sin\vartheta \T{e}_3
 \end{eqnarray*}
 the linearization becomes
-\begin{equation*}
+\begin{equation}
 	\sqbr{\matr{ccccc}{
 		-\plbr{\T{R}_a \T{\lambda}}\times{} & \T{0} & \T{R}_a & \T{0} & \T{0} \\
 		\plbr{\T{R}_a \T{\lambda}}\times{} & \T{0} & -\T{R}_a & \T{0} & \T{0} \\
@@ -1618,8 +1698,8 @@ the linearization becomes
 		\delta\vartheta \\
 		\delta\varphi
 	}}
-\end{equation*}
-\begin{equation*}
+\end{equation}
+\begin{equation}
 	\mbox{} = \cubr{\cvvect{
 		-\T{R}_a \T{\lambda} \\
 		\T{R}_a \T{\lambda} \\
@@ -1627,7 +1707,7 @@ the linearization becomes
 		-\T{w}_{\vartheta}^T \T{\lambda} \\
 		-\T{w}_{\varphi}^T \T{\lambda}
 	}}
-\end{equation*}
+\end{equation}
 
 
 
@@ -1646,9 +1726,9 @@ a line attached to another point:
 where $\T{e}_{1hi}$ is the orientation of axis $i$ in the reference
 of the joint with respect to node 1, i.e.\ the $i$-th column of matrix
 $\T{R}_1 \tilde{\T{R}}_{1h}$
-\begin{equation*}
+\begin{equation}
 	\T{e}_{jhi} = \plbr{\T{R}_j \tilde{\T{R}}_{jh}}\sqbr{i}
-\end{equation*}
+\end{equation}
 $\T{x}_j$ is the position of node $j$
 and $\T{f}_j$ is the offset of the joint with respect node $j$,
 both in the absolute coordinate system; the offset is constant
@@ -1678,9 +1758,9 @@ about the same axis.
 
 
 The rotation $\theta$ is formulated as
-\begin{equation*}
+\begin{equation}
 	\theta = \T{e}_{1hz}^T \llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_1^T \T{R}_2}}
-\end{equation*}
+\end{equation}
 To overcome the limitation $\shbr{\theta}<\pi/2$, an incremental
 approach is used; since the revolute constraint guarantees that
 the rotation will always occur with respect to axis $z$ of node 1,
@@ -1696,9 +1776,9 @@ remains limited.
 
 The virtual perturbation of Equation~(\ref{eq:SCREW-constraint-incremental})
 yields
-\begin{equation*}
+\begin{equation}
 	\delta\theta = \T{e}_{1hz}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
-\end{equation*}
+\end{equation}
 so the virtual perturbation of Equation~(\ref{eq:SCREW-constraint})
 \begin{align*}
 	\frac{p}{2 \pi} \T{e}_{1hz}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
@@ -1726,18 +1806,18 @@ of reaction force along the screw axis.
 In other words, node 1 is the screw and node 2 is the bolt;
 neglecting the offset, the force along the screw axis is related
 to the couple about the same axis by the relationship
-\begin{equation*}
+\begin{equation}
 	C = - \frac{p}{2\pi} F
-\end{equation*}
+\end{equation}
 which results from a power balance
-\begin{equation*}
+\begin{equation}
 	C \omega_r + F v_r = 0
-\end{equation*}
+\end{equation}
 in terms of relative linear ($v_r$) and angular ($\omega_r$) velocity,
 with the kinematic relationship
-\begin{equation*} 
+\begin{equation} 
 	v_r = \frac{p}{2\pi} \omega_r
-\end{equation*}
+\end{equation}
 
 A foreseen improvement consists in adding friction based on empirical
 formulas for screws.
@@ -1907,10 +1987,10 @@ on their relative orientation and angular velocity through a 3D constitutive law
 
 \noindent
 The relative orientation is computed in analogy with the Drive Hinge joint
-\begin{equation*}
+\begin{equation}
 	\T{\theta} =
 	\llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{1h}^T \T{R}_{2h}}}
-\end{equation*}
+\end{equation}
 Since the relative orientation $\T{R}_{1h}^T \T{R}_{2h}$ is a rotation 
 about an axis parallel to $\T{\theta}$,
 $\T{R}_{1h}^T \T{R}_{2h}\T{\theta}=\T{\theta}$.
@@ -1932,17 +2012,17 @@ to the global frame is
 	& = & \T{R}_2 \tilde{\T{R}}^T
 \end{eqnarray*}
 The derivative of $\tilde{\T{R}}$ is
-\begin{equation*}
+\begin{equation}
 	\dot{\tilde{\T{R}}} = \frac{1}{2}\plbr{\T{\omega}_2 - \T{\omega}_1}\times\tilde{\T{R}}
-\end{equation*}
+\end{equation}
 and the derivative of $\hat{\T{R}}$ is
-\begin{equation*}
+\begin{equation}
 	\dot{\hat{\T{R}}} = \frac{1}{2}\plbr{\T{\omega}_1 + \T{\omega}_2}\times\hat{\T{R}}
-\end{equation*}
+\end{equation}
 The perturbation of $\tilde{\T{R}}$ is
-\begin{equation*}
+\begin{equation}
 	\delta\tilde{\T{R}} = \tilde{\T{\theta}}_{\delta}\times\tilde{\T{R}}
-\end{equation*}
+\end{equation}
 where
 \begin{eqnarray*}
 	\tilde{\T{\theta}}_{\delta} & = & \frac{1}{2}\T{\Gamma}\plbr{\tilde{\T{\theta}}}
@@ -1973,29 +2053,29 @@ The perturbation of $\dot{\hat{\T{R}}}$ is
 	+ \frac{1}{2}\plbr{\T{\omega}_2 + \T{\omega}_1}\times\delta\hat{\T{R}}
 \end{eqnarray*}
 The relative angular velocity is
-\begin{equation*}
+\begin{equation}
 	\T{\omega} = \hat{\T{R}}^T \plbr{\T{\omega}_2 - \T{\omega}_1}
-\end{equation*}
+\end{equation}
 The linearization of the angular velocity yields
-\begin{equation*}
+\begin{equation}
 	\delta\T{\omega} \cong \T{R}_{1h}^T \plbr{
 		\delta\dot{\T{g}}_2
 		- \delta\dot{\T{g}}_1
 		- \T{\omega}_2 \times \delta\T{g}_2
 		+ \T{\omega}_2 \times \delta\T{g}_1
 	}
-\end{equation*}
+\end{equation}
 The moment is
-\begin{equation*}
+\begin{equation}
 	\T{M}_i = \plbr{ -1 }^{\plbr{i-1}} \T{R}_{1h} \tilde{\T{M}}\plbr{\T{\theta}, \T{\omega}}
-\end{equation*}
+\end{equation}
 Its linearization yields
-\begin{equation*}
+\begin{equation}
 	\delta\T{M}_i \cong \plbr{ -1 }^{\plbr{i-1}} \T{R}_{1h} \plbr{
 		\tilde{\T{M}}_{/\T{\theta}} \T{\theta}_{\delta}
 		+ \tilde{\T{M}}_{/\T{\omega}} \delta\T{\omega}
 	} - \T{M}_i \times \delta\T{g}_1
-\end{equation*}
+\end{equation}
 The complete linearized problem is
 \begin{eqnarray*}
 	\sqbr{\matr{cc}{
@@ -2038,11 +2118,11 @@ through a 3D constitutive law.
 
 \noindent
 The relative position is expressed in a reference frame attached to node 1:
-\begin{equation*}
+\begin{equation}
 	\tilde{\T{d}} = \T{R}_{1h}^T\plbr{
 		\T{x}_2 + \T{f}_2 - \T{x}_1 - \T{f}_1
 	}
-\end{equation*}
+\end{equation}
 The relative velocity is
 \begin{eqnarray*}
 	\dot{\tilde{\T{d}}} & = & \T{R}_{1h}^T\plbr{
@@ -2400,24 +2480,24 @@ the flow definitions require the derivative of the pressure,
 while the hydraulic nodes are defined as scalar algebraic.
 
 The force is defined as
-\begin{displaymath}
+\begin{equation}
 	\T{F} = \plbr{A_{h1} p_{h1} - A_{h2} p_{h2}}
 		\plbr{\T{R}_{s1} \T{\tilde{v}}}
-\end{displaymath}
+\end{equation}
 The distance between the structural nodes, along the actuator axis, is
-\begin{displaymath}
+\begin{equation}
 	l = \plbr{\T{R}_{s1} \T{\tilde{v}}}^T \plbr{
 		\T{x}_{s2} + \T{f}_{s2} - \T{x}_{s1} - \T{f}_{s1}
 	}
-\end{displaymath}
+\end{equation}
 The relative velocity of the structural nodes, along the actuator axis, is
-\begin{displaymath}
+\begin{equation}
 	\dot{l} = \plbr{\T{R}_{s1} \T{\tilde{v}}}^T \plbr{
 		\dot{\T{x}}_{s2} - \dot{\T{x}}_{s1} 
 		+ \T{\omega}_{s1}\times\plbr{\T{x}_{s2} - \T{x}_{s1}}
 		+ \plbr{\T{\omega}_{s2} - \T{\omega}_{s1}}\times\T{f}_{s2}
 	}
-\end{displaymath}
+\end{equation}
 The flow at the two hydraulic nodes is
 \begin{eqnarray*}
 	q_{h1} & = & A_{h1} \plbr{
@@ -2455,36 +2535,36 @@ one-dimensional flow:
 \end{eqnarray}
 When a rigid pipe is considered, the total derivative $D/Dt$ of the test
 mass $dm=\rho{Adx}$ of Equation~(\ref{eq:MASS}) yields 
-\begin{displaymath} 
+\begin{equation} 
     \frac{D}{Dt}\plbr{dm} \ = \ 
     \frac{\partial}{\partial{t}}\plbr{dm}
     + v \frac{\partial}{\partial{x}}\plbr{dm} ,
-\end{displaymath}
+\end{equation}
 which results in
-\begin{displaymath}
+\begin{equation}
     q_{/x} + A\rho_{/t} \ = \ 0 ,
-\end{displaymath}
+\end{equation}
 where $q=\rho{Av}$ is the mass flux.
 Consider now the momentum equation~(\ref{eq:MOMENTUM}); the total derivative
 of the momentum $dQ=vdm$ yields
-\begin{displaymath}
+\begin{equation}
     \frac{D}{Dt}\plbr{dQ} \ = \ \plbr{q_{/t} + \plbr{qv}_{/x}}dx ,
-\end{displaymath}
+\end{equation}
 while the pressure gradient and the viscous contributions can be isolated
 from the force per unit length on the right hand side:
-\begin{displaymath}
+\begin{equation}
     df \ = \ - Adp + f_v dx + df^* ,
-\end{displaymath}
+\end{equation}
 so, by neglecting the deformability of the pipe and the extra forces $df^*$
 acting on the fluid, the momentum balance equation yields
-\begin{displaymath}
+\begin{equation}
     q_{/t} + \plbr{qv + Ap}_{/x} \ = \ f_v ,
-\end{displaymath}
+\end{equation}
 which can be reduced to the pressure and flux unknowns simply by recalling
 the definition of the flux:
-\begin{displaymath}
+\begin{equation}
     q_{/t} + \plbr{\frac{q^2}{\rho{A}} + Ap}_{/x} \ = \ f_v .
-\end{displaymath}
+\end{equation}
 A flexible pipe has been considered as well; the formulation is not reported
 for simplicity, because such a level of detail is required only for very
 specialized problems, and a first approximation can be obtained by altering
