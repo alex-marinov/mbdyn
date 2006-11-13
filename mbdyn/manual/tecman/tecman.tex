@@ -1982,11 +1982,22 @@ the linearization of the force becomes
 
 
 \subsection{Deformable Hinge}
-The deformable hinge applies an internal moment to two nodes that may depend
-on their relative orientation and angular velocity through a 3D constitutive law.
+The deformable hinge applies to two nodes an internal moment that may depend
+on their relative orientation and angular velocity by means 
+of a 3D constitutive law.
+Two variants of this joint are presented:
+\begin{itemize}
+\item the one historically implemented in MBDyn considers the constitutive law
+and the resulting moment attached to node 1;
+\item the other one, called ``invariant'', defines an intermediate
+orientation that is halfway between that of the two nodes, and considers
+the constitutive law and the resulting moment attached to that intermediate
+orientation; as a consequence, the resulting internal moment does not depend
+on the node sequence even when anisotropic constitutive laws are considered.
+\end{itemize}
 
-\noindent
-The relative orientation is computed in analogy with the Drive Hinge joint
+The relative orientation is computed in analogy with the \texttt{drive hinge}
+joint (DriveHingeJoint).
 \begin{equation}
 	\T{\theta} =
 	\llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{1h}^T \T{R}_{2h}}}
@@ -1995,30 +2006,31 @@ Since the relative orientation $\T{R}_{1h}^T \T{R}_{2h}$ is a rotation
 about an axis parallel to $\T{\theta}$,
 $\T{R}_{1h}^T \T{R}_{2h}\T{\theta}=\T{\theta}$.
 The same applies for any relative orientation tensor built from a rotation
-vector parallel to $\T{\theta}$; in detail, the rotation
+vector $\alpha\T{\theta}$ parallel to $\T{\theta}$, whatever value 
+the scalar $\alpha$ assumes; in detail, the rotation
 $\tilde{\T{\theta}}=\T{\theta}/2$
 will be used to define an intermediate reference frame for the joint,
 whose orientation with respect to node 1 is
-\begin{eqnarray*}
+\begin{eqnarray}
 	\tilde{\T{R}} & = & \llk{exp}\plbr{\frac{1}{2}\llk{exp}^{-1}\plbr{\T{R}_{1h}^T \T{R}_{2h}}} \\
 		& = & \llk{exp}\plbr{\tilde{\T{\theta}}\times{}}
-\end{eqnarray*}
+\end{eqnarray}
 The orientation of the intermediate reference frame with respect 
-to node 2 is $\tilde{\T{R}}^T$.
+to node 2 is defined by $-\tilde{\T{\theta}}$, i.e.\ $\tilde{\T{R}}^T$.
 The orientation of the intermediate frame with respect
-to the global frame is
-\begin{eqnarray*}
+to the global frame is thus
+\begin{eqnarray}
 	\hat{\T{R}} & = & \T{R}_1 \tilde{\T{R}} \\
 	& = & \T{R}_2 \tilde{\T{R}}^T
-\end{eqnarray*}
-The derivative of $\tilde{\T{R}}$ is
-\begin{equation}
-	\dot{\tilde{\T{R}}} = \frac{1}{2}\plbr{\T{\omega}_2 - \T{\omega}_1}\times\tilde{\T{R}}
-\end{equation}
-and the derivative of $\hat{\T{R}}$ is
-\begin{equation}
-	\dot{\hat{\T{R}}} = \frac{1}{2}\plbr{\T{\omega}_1 + \T{\omega}_2}\times\hat{\T{R}}
-\end{equation}
+\end{eqnarray}
+%%% The derivative of $\tilde{\T{R}}$ is
+%%% \begin{equation}
+%%% 	\dot{\tilde{\T{R}}} = \frac{1}{2}\plbr{\T{\omega}_2 - \T{\omega}_1}\times\tilde{\T{R}}
+%%% \end{equation}
+%%% and the derivative of $\hat{\T{R}}$ is
+%%% \begin{equation}
+%%% 	\dot{\hat{\T{R}}} = \frac{1}{2}\plbr{\T{\omega}_1 + \T{\omega}_2}\times\hat{\T{R}}
+%%% \end{equation}
 The perturbation of $\tilde{\T{R}}$ is
 \begin{equation}
 	\delta\tilde{\T{R}} = \tilde{\T{\theta}}_{\delta}\times\tilde{\T{R}}
