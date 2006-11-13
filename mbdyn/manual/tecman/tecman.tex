@@ -1987,29 +1987,147 @@ on their relative orientation and angular velocity by means
 of a 3D constitutive law.
 Two variants of this joint are presented:
 \begin{itemize}
-\item the one historically implemented in MBDyn considers the constitutive law
-and the resulting moment attached to node 1;
+\item the one historically implemented in MBDyn, called ``attached'',
+considers the constitutive law and the resulting moment attached to node 1;
 \item the other one, called ``invariant'', defines an intermediate
 orientation that is halfway between that of the two nodes, and considers
 the constitutive law and the resulting moment attached to that intermediate
 orientation; as a consequence, the resulting internal moment does not depend
 on the node sequence even when anisotropic constitutive laws are considered.
 \end{itemize}
-
 The relative orientation is computed in analogy with the \texttt{drive hinge}
 joint (DriveHingeJoint).
 \begin{equation}
 	\T{\theta} =
 	\llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{1h}^T \T{R}_{2h}}}
 \end{equation}
+where $\T{R}_{1h}$, $\T{R}_{2h}$ are the matrices that express
+the orientation of each side of the hinge in the global reference frame,
+defined as
+\begin{align}
+	\T{R}_{1h} &= \T{R}_{1} \tilde{\T{R}}_{1h} \\
+	\T{R}_{2h} &= \T{R}_{2} \tilde{\T{R}}_{2h}
+\end{align}
+and $\tilde{\T{R}}_{1h}$, $\tilde{\T{R}}_{2h}$ are the matrices
+that express the orientation of each side of the hinge with respect
+to the corresponding node.
+The perturbation of $\T{R}_{1h}$, $\T{R}_{2h}$ yields
+\begin{align}
+	\delta \T{R}_{1h} &= \T{\theta}_{1\delta} \times \T{R}_{1} \tilde{\T{R}}_{1h}
+		= \T{\theta}_{1\delta} \times \T{R}_{1h} \\
+	\delta \T{R}_{2h} &= \T{\theta}_{2\delta} \times \T{R}_{2} \tilde{\T{R}}_{2h}
+		= \T{\theta}_{2\delta} \times \T{R}_{2h}
+\end{align}
+since matrices $\tilde{\T{R}}_{1h}$, $\tilde{\T{R}}_{2h}$ are constant.
+The perturbation of $\T{\theta}$ yields
+\begin{equation}
+	\T{\theta}_{\delta} = \T{R}_{1h}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
+\end{equation}
+which, according to the updated-updated approach, becomes
+\begin{equation}
+	\T{\theta}_{\delta} \cong \T{R}_{1h}^T\plbr{\delta\T{g}_2 - \delta\T{g}_1}
+\end{equation}
+
 Since the relative orientation $\T{R}_{1h}^T \T{R}_{2h}$ is a rotation 
-about an axis parallel to $\T{\theta}$,
-$\T{R}_{1h}^T \T{R}_{2h}\T{\theta}=\T{\theta}$.
+about an axis parallel to $\T{\theta}$, the orientation of $\T{\theta}$
+does not change when it is referred to any intermediate orientation
+between $\T{I}$ and $\T{R}_{1h}^T \T{R}_{2h}$, namely
+\begin{equation}
+	\T{R}_{1h}^T \T{R}_{2h}\T{\theta} = \T{\theta} .
+\end{equation}
 The same applies for any relative orientation tensor built from a rotation
 vector $\alpha\T{\theta}$ parallel to $\T{\theta}$, whatever value 
-the scalar $\alpha$ assumes; in detail, the rotation
-$\tilde{\T{\theta}}=\T{\theta}/2$
-will be used to define an intermediate reference frame for the joint,
+the scalar $\alpha$ assumes.
+
+
+
+\subsubsection{Attached Deformable Hinge}
+The constitutive law is defined attached to the reference frame of node 1;
+the value of the relative rotation vector, $\T{\theta}$, does not vary,
+according to what stated earlier.
+The relative angular velocity results from the time derivative
+of $\T{\theta}$
+\begin{equation}
+	\T{\omega} = \T{R}_{1h}^T\plbr{\T{\omega}_2 - \T{\omega}_1} ;
+\end{equation}
+in fact, the time derivative of the relative orientation yields
+\begin{align}
+	\T{\omega} \times{}
+	&= \frac{\mathrm{d}}{\mathrm{d}t}\plbr{\T{R}_{1h}^T \T{R}_{2h}}\plbr{\T{R}_{1h}^T \T{R}_{2h}}^T \\
+	&= \plbr{\dot{\T{R}}_{1h}^T \T{R}_{2h} + \T{R}_{1h}^T \dot{\T{R}}_{2h}} \T{R}_{2h}^T \T{R}_{1h} \\
+	&= \T{R}_{1h}^T \T{\omega}_1 \times{}^T \T{R}_{1h} + \T{R}_{1h}^T \T{\omega}_2 \times \T{R}_{1h} \\
+	&= \T{R}_{1h}^T \plbr{\T{\omega}_2 - \T{\omega}_1} \times \T{R}_{1h}
+\end{align}
+Its perturbation, according to the updated-updated approach, yields
+\begin{align}
+	\delta\T{\omega} &= \T{R}_{1h}^T\plbr{
+		\plbr{\T{\omega}_2 - \T{\omega}_1} \times \T{\theta}_{1\delta}
+		+ \delta\T{\omega}_2
+		- \delta\T{\omega}_1
+	} \\
+	&\cong \T{R}_{1h}^T\plbr{
+		\plbr{\T{\omega}_2 - \T{\omega}_1} \times \delta\T{g}_1
+		+ \delta\dot{\T{g}}_2 - \T{\omega}_2 \times \delta\T{g}_2
+		- \delta\dot{\T{g}}_1 + \T{\omega}_1 \times \delta\T{g}_1
+	} \\
+	&= \T{R}_{1h}^T\plbr{
+		\delta\dot{\T{g}}_2
+		- \delta\dot{\T{g}}_1
+		- \T{\omega}_2 \times \plbr{\delta\T{g}_2 - \delta\T{g}_1}
+	}
+\end{align}
+The internal moment $\tilde{\T{M}}$ is computed as function
+of the relative orientation and velocity
+\begin{equation}
+	\tilde{\T{M}} = \tilde{\T{M}}\plbr{\T{\theta}, \T{\omega}}
+\end{equation}
+It is then applied to each node after pre-multiplication by $\T{R}_{1h}$
+\begin{equation}
+	\T{M}_i = \plbr{ -1 }^{\plbr{i-1}} \T{R}_{1h} \tilde{\T{M}}\plbr{\T{\theta}, \T{\omega}}
+\end{equation}
+Its linearization yields
+\begin{equation}
+	\delta\T{M}_i \cong \plbr{ -1 }^{\plbr{i-1}} \T{R}_{1h} \plbr{
+		\tilde{\T{M}}_{/\T{\theta}} \T{\theta}_{\delta}
+		+ \tilde{\T{M}}_{/\T{\omega}} \delta\T{\omega}
+	} - \T{M}_i \times \delta\T{g}_1
+\end{equation}
+The complete linearized problem is
+\begin{eqnarray*}
+	\sqbr{\matr{cc}{
+		\T{M}_{/\T{\omega}} & - \T{M}_{/\T{\omega}} \\
+		- \T{M}_{/\T{\omega}} & \T{M}_{/\T{\omega}}
+	}}\cubr{\cvvect{
+		\delta\dot{\T{g}}_1 \\
+		\delta\dot{\T{g}}_2
+	}} & & \\
+	\mbox{} + \sqbr{\matr{cc}{
+		\T{M}_{/\T{\theta}} - \T{M}_{/\T{\omega}} \T{\omega}_2\times{} + \T{M}\times{} & 
+			- \T{M}_{/\T{\theta}} + \T{M}_{/\T{\omega}} \T{\omega}_2\times{} \\
+		- \T{M}_{/\T{\theta}} + \T{M}_{/\T{\omega}} \T{\omega}_2\times{} - \T{M}\times{} & 
+			\T{M}_{/\T{\theta}} - \T{M}_{/\T{\omega}} \T{\omega}_2\times{}
+	}}\cubr{\cvvect{
+		\delta\T{g}_1 \\
+		\delta\T{g}_2
+	}} & = & \cubr{\cvvect{
+		\T{M} \\
+		- \T{M}
+	}}
+\end{eqnarray*}
+where
+\begin{eqnarray*}
+	\T{M}_{/\T{\omega}} & = & \T{R}_{1h} \tilde{\T{M}}_{/\T{\omega}} \T{R}_{1h}^T \\
+	\T{M}_{/\T{\theta}} & = & \T{R}_{1h} \tilde{\T{M}}_{/\T{\theta}} \T{R}_{1h}^T
+\end{eqnarray*}
+
+
+
+
+
+
+\subsubsection{Invariant Deformable Hinge}
+The rotation $\tilde{\T{\theta}}=\T{\theta}/2$
+is used to define an intermediate reference frame for the joint,
 whose orientation with respect to node 1 is
 \begin{eqnarray}
 	\tilde{\T{R}} & = & \llk{exp}\plbr{\frac{1}{2}\llk{exp}^{-1}\plbr{\T{R}_{1h}^T \T{R}_{2h}}} \\
@@ -2020,17 +2138,21 @@ to node 2 is defined by $-\tilde{\T{\theta}}$, i.e.\ $\tilde{\T{R}}^T$.
 The orientation of the intermediate frame with respect
 to the global frame is thus
 \begin{eqnarray}
-	\hat{\T{R}} & = & \T{R}_1 \tilde{\T{R}} \\
-	& = & \T{R}_2 \tilde{\T{R}}^T
+	\hat{\T{R}} & = & \T{R}_{1h} \tilde{\T{R}} \\
+	& = & \T{R}_{2h} \tilde{\T{R}}^T
 \end{eqnarray}
-%%% The derivative of $\tilde{\T{R}}$ is
-%%% \begin{equation}
-%%% 	\dot{\tilde{\T{R}}} = \frac{1}{2}\plbr{\T{\omega}_2 - \T{\omega}_1}\times\tilde{\T{R}}
-%%% \end{equation}
-%%% and the derivative of $\hat{\T{R}}$ is
-%%% \begin{equation}
-%%% 	\dot{\hat{\T{R}}} = \frac{1}{2}\plbr{\T{\omega}_1 + \T{\omega}_2}\times\hat{\T{R}}
-%%% \end{equation}
+%%%
+\begin{comment}
+The derivative of $\tilde{\T{R}}$ is
+\begin{equation}
+	\dot{\tilde{\T{R}}} = \frac{1}{2}\plbr{\T{\omega}_2 - \T{\omega}_1}\times\tilde{\T{R}}
+\end{equation}
+and the derivative of $\hat{\T{R}}$ is
+\begin{equation}
+	\dot{\hat{\T{R}}} = \frac{1}{2}\plbr{\T{\omega}_1 + \T{\omega}_2}\times\hat{\T{R}}
+\end{equation}
+\end{comment}
+%%%
 The perturbation of $\tilde{\T{R}}$ is
 \begin{equation}
 	\delta\tilde{\T{R}} = \tilde{\T{\theta}}_{\delta}\times\tilde{\T{R}}
@@ -2038,10 +2160,12 @@ The perturbation of $\tilde{\T{R}}$ is
 where
 \begin{eqnarray*}
 	\tilde{\T{\theta}}_{\delta} & = & \frac{1}{2}\T{\Gamma}\plbr{\tilde{\T{\theta}}}
-		\T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_1^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \\
+		\T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \\
 	& \cong & \frac{1}{2}\T{\Gamma}\plbr{\tilde{\T{\theta}}}
-		\T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_1^T\plbr{\delta\T{g}_2 - \delta\T{g}_1}
+		\T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T\plbr{\delta\T{g}_2 - \delta\T{g}_1}
 \end{eqnarray*}
+%%%
+\begin{comment}
 The perturbation of $\dot{\tilde{\T{R}}}$ is
 \begin{eqnarray*}
 	\delta\dot{\tilde{\T{R}}}
@@ -2064,30 +2188,29 @@ The perturbation of $\dot{\hat{\T{R}}}$ is
 	}\times\hat{\T{R}}
 	+ \frac{1}{2}\plbr{\T{\omega}_2 + \T{\omega}_1}\times\delta\hat{\T{R}}
 \end{eqnarray*}
-The relative angular velocity is
+\end{comment}
+%%%
+The relative angular velocity is \textbf{(FIXME: ?)}
 \begin{equation}
 	\T{\omega} = \hat{\T{R}}^T \plbr{\T{\omega}_2 - \T{\omega}_1}
 \end{equation}
 The linearization of the angular velocity yields
 \begin{equation}
-	\delta\T{\omega} \cong \T{R}_{1h}^T \plbr{
-		\delta\dot{\T{g}}_2
-		- \delta\dot{\T{g}}_1
-		- \T{\omega}_2 \times \delta\T{g}_2
-		+ \T{\omega}_2 \times \delta\T{g}_1
-	}
+	\delta\T{\omega} = \textbf{FIXME}
 \end{equation}
 The moment is
 \begin{equation}
-	\T{M}_i = \plbr{ -1 }^{\plbr{i-1}} \T{R}_{1h} \tilde{\T{M}}\plbr{\T{\theta}, \T{\omega}}
+	\T{M}_i = \plbr{ -1 }^{\plbr{i-1}} \hat{\T{R}} \tilde{\T{M}}\plbr{\T{\theta}, \T{\omega}}
 \end{equation}
 Its linearization yields
-\begin{equation}
-	\delta\T{M}_i \cong \plbr{ -1 }^{\plbr{i-1}} \T{R}_{1h} \plbr{
+\begin{align}
+	\delta\T{M}_i
+	&= \plbr{-1}^{\plbr{i-1}} \hat{\T{R}} \plbr{
 		\tilde{\T{M}}_{/\T{\theta}} \T{\theta}_{\delta}
 		+ \tilde{\T{M}}_{/\T{\omega}} \delta\T{\omega}
-	} - \T{M}_i \times \delta\T{g}_1
-\end{equation}
+	} - \T{M}_i \times \plbr{\T{\theta}_{1\delta} + \T{R}_{1h} \tilde{\T{\theta}}_{\delta}} \\
+	&\cong \textbf{FIXME}
+\end{align}
 The complete linearized problem is
 \begin{eqnarray*}
 	\sqbr{\matr{cc}{

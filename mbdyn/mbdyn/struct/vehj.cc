@@ -872,24 +872,52 @@ ViscousHingeJointInv::~ViscousHingeJointInv(void)
 	NO_OP;
 }
 
+void
+ViscousHingeJoint::AfterPredict(VectorHandler& /* X */ ,
+		VectorHandler& /* XP */ )
+{
+	/* Calcola le deformazioni, aggiorna il legame costitutivo
+	 * e crea la MDE */
+
+	/* Recupera i dati */
+	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
+	Mat3x3 R2h(pNode2->GetRRef()*tilde_R2h);
+	Vec3 tilde_Theta(RotManip::VecRot(R1h.Transpose()*R2h)/2.);
+	Mat3x3 hat_R(R1h*RotManip::Rot(tilde_Theta));
+	Mat3x3 hat_RT(hat_R.Transpose());
+
+	/* Aggiorna il legame costitutivo */
+	tilde_Omega = hat_RT*(pNode2->GetWRef() - pNode1->GetWRef());
+	ConstitutiveLaw3DOwner::Update(Zero3, tilde_Omega);
+
+	/* Chiede la matrice tangente di riferimento e la porta
+	 * nel sistema globale */
+	/* FIXME: Jacobian matrix not implemented yet */
+	MDEPrime = R1h*GetFDEPrime()*R1hT;
+
+	bFirstRes = true;
+}
+
 /* assemblaggio residuo */
 void
 ViscousHingeJointInv::AssVec(SubVectorHandler& WorkVec)
 {
 	Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
+	Mat3x3 R2h(pNode2->GetRCurr()*tilde_R2h);
+	Vec3 tilde_Theta(RotManip::VecRot(R1h.Transpose()*R2h)/2.);
+	Mat3x3 hat_R(R1h*RotManip::Rot(tilde_Theta));
 
 	if (bFirstRes) {
 		bFirstRes = false;
 
 	} else {
-		Mat3x3 R1hT(R1h.Transpose());
+		Mat3x3 hat_RT(hat_R.Transpose());
 
-		tilde_Omega = R1hT*(pNode2->GetWCurr() - pNode1->GetWCurr());
-
+		tilde_Omega = hat_RT*(pNode2->GetWCurr() - pNode1->GetWCurr());
 		ConstitutiveLaw3DOwner::Update(Zero3, tilde_Omega);
 	}
 
-	Vec3 M(R1h*(RotManip::Rot(RotManip::VecRot(R1h.Transpose()*pNode2->GetRCurr()*tilde_R2h)/2.)*GetF()));
+	Vec3 M(hat_R*GetF());
 
 	WorkVec.Add(1, M);
 	WorkVec.Sub(4, M);

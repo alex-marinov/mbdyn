@@ -400,6 +400,9 @@ public:
 		return (void*)this;
 	};
 
+	/* Aggiorna le deformazioni ecc. */
+	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
 	virtual void SetValue(DataManager *pDM,
 			VectorHandler& X, VectorHandler& XP,
