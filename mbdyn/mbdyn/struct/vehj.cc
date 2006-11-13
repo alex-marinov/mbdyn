@@ -873,7 +873,7 @@ ViscousHingeJointInv::~ViscousHingeJointInv(void)
 }
 
 void
-ViscousHingeJoint::AfterPredict(VectorHandler& /* X */ ,
+ViscousHingeJointInv::AfterPredict(VectorHandler& /* X */ ,
 		VectorHandler& /* XP */ )
 {
 	/* Calcola le deformazioni, aggiorna il legame costitutivo
@@ -893,7 +893,7 @@ ViscousHingeJoint::AfterPredict(VectorHandler& /* X */ ,
 	/* Chiede la matrice tangente di riferimento e la porta
 	 * nel sistema globale */
 	/* FIXME: Jacobian matrix not implemented yet */
-	MDEPrime = R1h*GetFDEPrime()*R1hT;
+	MDEPrime = R1h*GetFDEPrime()*R1h.Transpose();
 
 	bFirstRes = true;
 }
