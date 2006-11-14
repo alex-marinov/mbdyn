@@ -123,8 +123,8 @@ public:
 
 class ElasticHingeJoint : virtual public Elem, public DeformableHingeJoint {
 protected:
-	Vec3 tilde_ThetaRef;
-	Vec3 tilde_ThetaCurr;
+	Vec3 ThetaRef;
+	Vec3 ThetaCurr;
 
 	Mat3x3 MDE;
 
@@ -272,7 +272,7 @@ public:
 
 class ViscousHingeJoint : virtual public Elem, public DeformableHingeJoint {
 protected:
-	Vec3 tilde_Omega;
+	Vec3 Omega;
 
 	Mat3x3 MDEPrime;
 
@@ -427,10 +427,10 @@ public:
 class ViscoElasticHingeJoint
 : virtual public Elem, public DeformableHingeJoint {
 protected:
-	Vec3 tilde_ThetaRef;
-	Vec3 tilde_ThetaCurr;
+	Vec3 ThetaRef;
+	Vec3 ThetaCurr;
 
-	Vec3 tilde_Omega;
+	Vec3 Omega;
 
 	Mat3x3 MDE;
 	Mat3x3 MDEPrime;
