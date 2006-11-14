@@ -2124,9 +2124,6 @@ where
 
 
 
-
-
-
 \subsubsection{Invariant Deformable Hinge}
 The rotation $\tilde{\T{\theta}}=\T{\theta}/2$
 is used to define an intermediate reference frame for the joint,
@@ -2160,6 +2157,25 @@ The perturbation of $\tilde{\T{R}}$ is
 	\delta\tilde{\T{R}} = \tilde{\T{\theta}}_{\delta}\times\tilde{\T{R}}
 \end{equation}
 where
+\begin{equation}
+	\delta\tilde{\T{\theta}} = \frac{1}{2} \delta \T{\theta}
+\end{equation}
+and thus
+\begin{equation}
+	\tilde{\T{\theta}}_{\delta} = \T{\Gamma}\plbr{\tilde{\T{\theta}}} \frac{1}{2} \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{\theta}_{\delta} 
+\end{equation}
+Another interesting result is obtained by considering that
+\begin{align}
+	\T{\theta}_{\delta} \times{}
+	&= \delta\plbr{\tilde{\T{R}}\tilde{\T{R}}} \plbr{\tilde{\T{R}}\tilde{\T{R}}}^T \\
+	&= \tilde{\T{\theta}}_{\delta} \times{} + \tilde{\T{R}} \tilde{\T{\theta}}_{\delta} \times \tilde{\T{R}}
+\end{align}
+and thus
+\begin{equation}
+	\T{\theta}_{\delta} = \plbr{\T{I} + \tilde{\T{R}}} \tilde{\T{\theta}}_{\delta}
+\end{equation}
+%%%
+\begin{comment}
 \begin{align}
 	\tilde{\T{\theta}}_{\delta}
 	&= \frac{1}{2} \T{\theta}_{\delta} \\
@@ -2174,8 +2190,6 @@ while the perturbation of $\hat{\T{R}}$ yields
 		+ \frac{1}{2}\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \times \hat{\T{R}} \\
 	&= \frac{1}{2}\plbr{\T{\theta}_{2\delta} + \T{\theta}_{1\delta}} \times \hat{\T{R}}
 \end{align}
-%%%
-\begin{comment}
 \begin{eqnarray*}
 	\tilde{\T{\theta}}_{\delta} & = & \frac{1}{2}\T{\Gamma}\plbr{\tilde{\T{\theta}}}
 		\T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \\
@@ -2204,9 +2218,6 @@ The perturbation of $\dot{\hat{\T{R}}}$ is
 	}\times\hat{\T{R}}
 	+ \frac{1}{2}\plbr{\T{\omega}_2 + \T{\omega}_1}\times\delta\hat{\T{R}}
 \end{eqnarray*}
-\end{comment}
-%%%
-
 The relative rotation that represents the straining of the hinge,
 in the material frame, is actually $\tilde{\T{R}}^T\T{\theta}$,
 which, by definition, is equivalent to $\T{\theta}$; its perturbation
@@ -2221,8 +2232,30 @@ yields
 		\T{I} + \frac{1}{2} \plbr{\T{R}_{1h} \T{\theta}} \times{}
 	} \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
 \end{align}
+\end{comment}
+%%%
 
 The relative angular velocity is
+\begin{equation}
+	\T{\omega} = \hat{\T{R}}^T \plbr{\T{\omega}_2 - \T{\omega}_1}
+\end{equation}
+The linearization of the angular velocity yields
+\begin{align}
+	\delta\T{\omega}
+	&= \hat{\T{R}}^T \plbr{
+		\plbr{\T{\omega}_2 - \T{\omega}_1} \times \plbr{\T{\theta}_{1\delta} + \T{R}_1 \tilde{\T{\theta}}_{\delta}}
+		+ \delta\T{\omega}_2 - \delta\T{\omega}_1
+	} \\
+	&= \hat{\T{R}}^T \plbr{\T{\omega}_2 - \T{\omega}_1} \times 
+			\T{R}_1\plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_1^T \T{\theta}_{2\delta} \\
+	& \mbox{\hspace{12pt}} - \hat{\T{R}}^T \plbr{\T{\omega}_2 - \T{\omega}_1} \times
+			\plbr{\T{R}_1\plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_1^T - \T{I}} \T{\theta}_{1\delta} \\
+	& \mbox{\hspace{12pt}} + \hat{\T{R}}^T \plbr{
+		\delta\T{\omega}_2 - \delta\T{\omega}_1
+	}
+\end{align}
+%%%
+\begin{comment}
 \begin{equation}
 	\T{\omega} = \hat{\T{R}}^T \plbr{
 		\T{I} + \frac{1}{2} \plbr{\T{R}_{1h} \T{\theta}} \times{}
@@ -2233,6 +2266,8 @@ The linearization of the angular velocity yields
 	\delta\T{\omega}
 	&= \textbf{FIXME}
 \end{align}
+\end{comment}
+%%%
 The moment is
 \begin{equation}
 	\T{M}_i = \plbr{-1}^i \hat{\T{R}} \tilde{\T{M}}\plbr{\T{\theta}, \T{\omega}}
