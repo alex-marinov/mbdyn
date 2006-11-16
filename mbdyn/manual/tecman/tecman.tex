@@ -2245,16 +2245,16 @@ of Equation~(\ref{eq:inv-deformable-hinge-omega-rel}) yields
 \begin{align}
 	\delta\T{\omega}
 	&= \hat{\T{R}}^T \plbr{
-		\plbr{\T{\omega}_2 - \T{\omega}_1} \times \plbr{\T{\theta}_{1\delta} + \T{R}_1 \tilde{\T{\theta}}_{\delta}}
+		\plbr{\T{\omega}_2 - \T{\omega}_1} \times \plbr{\T{\theta}_{1\delta} + \T{R}_{1h} \tilde{\T{\theta}}_{\delta}}
 		+ \delta\T{\omega}_2 - \delta\T{\omega}_1
 	} \\
 	&= \hat{\T{R}}^T \plbr{
 		\delta\T{\omega}_2 - \delta\T{\omega}_1
 	} \nonumber \\
 	& \mbox{\hspace{10pt}} + \hat{\T{R}}^T \plbr{\T{\omega}_2 - \T{\omega}_1} \times 
-			\T{R}_1\plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_1^T \T{\theta}_{2\delta} \nonumber \\
+			\T{R}_{1h}\plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_{1h}^T \T{\theta}_{2\delta} \nonumber \\
 	& \mbox{\hspace{10pt}} + \hat{\T{R}}^T \plbr{\T{\omega}_2 - \T{\omega}_1} \times
-			\plbr{\T{I} - \T{R}_1\plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_1^T} \T{\theta}_{1\delta} \\
+			\plbr{\T{I} - \T{R}_{1h}\plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_{1h}^T} \T{\theta}_{1\delta} \\
 	&= \hat{\T{R}}^T \plbr{
 		\delta\T{\omega}_2 - \delta\T{\omega}_1
 	} \nonumber \\
