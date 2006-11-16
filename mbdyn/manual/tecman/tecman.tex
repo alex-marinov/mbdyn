@@ -2090,7 +2090,7 @@ It is then applied to each node after pre-multiplication by $\T{R}_{1h}$
 Its linearization yields
 \begin{equation}
 	\delta\T{M}_i \cong \plbr{-1}^i \T{R}_{1h} \plbr{
-		\tilde{\T{M}}_{/\T{\theta}} \T{\theta}_{\delta}
+		\tilde{\T{M}}_{/\T{\theta}} \delta \T{\theta}
 		+ \tilde{\T{M}}_{/\T{\omega}} \delta\T{\omega}
 	} - \T{M}_i \times \delta\T{g}_1
 \end{equation}
@@ -2118,8 +2118,8 @@ The complete linearized problem is
 \end{eqnarray*}
 where
 \begin{eqnarray*}
-	\T{M}_{/\T{\omega}} & = & \T{R}_{1h} \tilde{\T{M}}_{/\T{\omega}} \T{R}_{1h}^T \\
-	\T{M}_{/\T{\theta}} & = & \T{R}_{1h} \tilde{\T{M}}_{/\T{\theta}} \T{R}_{1h}^T
+	\T{M}_{/\T{\theta}} & = & \T{R}_{1h} \tilde{\T{M}}_{/\T{\theta}} \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T \\
+	\T{M}_{/\T{\omega}} & = & \T{R}_{1h} \tilde{\T{M}}_{/\T{\omega}} \T{R}_{1h}^T
 \end{eqnarray*}
 
 
@@ -2302,9 +2302,9 @@ The moment is
 Its linearization uses the perturbation of the relative rotation angle
 in the intermediate reference frame,
 \begin{align}
-	\overline{\T{\theta}}_{\delta}
-	&= \tilde{\T{R}}^T \T{\theta}_{\delta} \\
-	&= \hat{\T{R}}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
+	\delta\overline{\T{\theta}}
+	&= \tilde{\T{R}}^T \delta\T{\theta} \\
+	&= \tilde{\T{R}}^T\T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
 \end{align}
 and the perturbation of the relative angular velocity
 of Equation~(\ref{eq:inv-deformable-hinge-omega-rel-delta}),
@@ -2345,12 +2345,64 @@ The complete linearized problem is \textbf{(FIXME!)}
 \end{eqnarray*}
 where
 \begin{eqnarray*}
-	\T{M}_{/\T{\omega}} & = & \hat{\T{R}} \tilde{\T{M}}_{/\T{\omega}} \hat{\T{R}}^T \\
-	\T{M}_{/\T{\theta}} & = & \hat{\T{R}} \tilde{\T{M}}_{/\T{\theta}} \hat{\T{R}}^T
+	\T{M}_{/\T{\theta}} & = & \hat{\T{R}} \tilde{\T{M}}_{/\T{\theta}} \tilde{\T{R}}^T \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T \\
+	\T{M}_{/\T{\omega}} & = & \hat{\T{R}} \tilde{\T{M}}_{/\T{\omega}} \hat{\T{R}}^T
 \end{eqnarray*}
 
 
 
+\subsubsection{Note on attached vs.\ variant deformable hinge}
+The moment applied by the attached formulation to node 1,
+in the global reference frame, is
+\begin{equation}
+	\T{M} = \T{R}_{1h} \T{K} \T{\theta} ,
+\end{equation}
+while the moment applied by the invariant formulation to node 1,
+in the global reference frame, is
+\begin{align}
+	\T{M} &= \hat{\T{R}} \tilde{\T{K}} \T{\theta} \\
+	&= \T{R}_{1h} \tilde{\T{R}} \tilde{\T{K}} \tilde{\T{R}}^T \T{\theta} ,
+\end{align}
+since $\tilde{\T{R}}^T \T{\theta}=\T{\theta}$.
+
+This means that whatever formula is used for the constitutive matrix
+in the invariant case, it is equivalent to using an attached formula 
+with a constitutive matrix
+\begin{equation}
+	\T{K} = \tilde{\T{R}} \tilde{\T{K}} \tilde{\T{R}}^T ;
+\end{equation}
+Similar considerations apply to the viscous portion of the constitutive law.
+This transformation should be kept in mind when determining the properties
+of the deformable component.
+In fact, exchanging the locations where the constitutive law is evaluated
+implies a transformation of the constitutive matrix; in case a linear elastic
+constitutive law, i.e.\ with a constant $\tilde{\T{K}}$ matrix, is used
+for the invariant formula, which appears a natural solution for simple 
+elastic hinges, it is equivalent to a nonlinear elastic constitutive
+law when considering the attached formulation.
+
+A ``natural'' solution, for a geometrically and materially symmetrical
+component, behaves the same when the order of the nodes is swapped.
+This corresponds to the ``invariant'' formula for the deformable hinge.
+However, typical experiments to determine the mechanical behavior
+of a component would rather consist in straining it while measuring
+the resulting loads at one or both ends, not in the intermediate
+location where the constitutive law would be naturally applied.
+
+As a consequence, a ``natural'' procedure for the determination
+of the constitutive law would consist in determining the $\T{K}$
+matrix first; then, assuming the moment can be expressed in the form
+\begin{equation}
+	\T{R}_{1h}^T \T{M} = \T{K}\plbr{\T{\theta}} \T{\theta} ,
+\end{equation}
+matrix $\tilde{\T{R}}$ would be computed
+from the measured relative rotation of the extremities of the component,
+$\tilde{\T{\theta}}=\T{\theta}/2$,
+and matrix $\tilde{\T{K}}$ would be computed as
+\begin{equation}
+	\tilde{\T{K}} = \tilde{\T{R}}^T \T{K} \tilde{\T{R}}
+\end{equation}
+to yield the invariant constitutive law.
 
 
 
