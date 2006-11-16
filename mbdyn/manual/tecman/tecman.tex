@@ -2168,7 +2168,7 @@ Another interesting result is obtained by considering that
 \begin{align}
 	\T{\theta}_{\delta} \times{}
 	&= \delta\plbr{\tilde{\T{R}}\tilde{\T{R}}} \plbr{\tilde{\T{R}}\tilde{\T{R}}}^T \\
-	&= \tilde{\T{\theta}}_{\delta} \times{} + \tilde{\T{R}} \tilde{\T{\theta}}_{\delta} \times \tilde{\T{R}}
+	&= \tilde{\T{\theta}}_{\delta} \times{} + \tilde{\T{R}} \tilde{\T{\theta}}_{\delta} \times \tilde{\T{R}}^T
 \end{align}
 and thus
 \begin{equation}
@@ -2235,24 +2235,51 @@ yields
 \end{comment}
 %%%
 
-The relative angular velocity is
+The relative angular velocity, in the intermediate reference frame, is
 \begin{equation}
 	\T{\omega} = \hat{\T{R}}^T \plbr{\T{\omega}_2 - \T{\omega}_1}
+	\label{eq:inv-deformable-hinge-omega-rel}
 \end{equation}
-The linearization of the angular velocity yields
+The linearization of the angular velocity 
+of Equation~(\ref{eq:inv-deformable-hinge-omega-rel}) yields
 \begin{align}
 	\delta\T{\omega}
 	&= \hat{\T{R}}^T \plbr{
 		\plbr{\T{\omega}_2 - \T{\omega}_1} \times \plbr{\T{\theta}_{1\delta} + \T{R}_1 \tilde{\T{\theta}}_{\delta}}
 		+ \delta\T{\omega}_2 - \delta\T{\omega}_1
 	} \\
-	&= \hat{\T{R}}^T \plbr{\T{\omega}_2 - \T{\omega}_1} \times 
-			\T{R}_1\plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_1^T \T{\theta}_{2\delta} \\
-	& \mbox{\hspace{12pt}} - \hat{\T{R}}^T \plbr{\T{\omega}_2 - \T{\omega}_1} \times
-			\plbr{\T{R}_1\plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_1^T - \T{I}} \T{\theta}_{1\delta} \\
-	& \mbox{\hspace{12pt}} + \hat{\T{R}}^T \plbr{
+	&= \hat{\T{R}}^T \plbr{
 		\delta\T{\omega}_2 - \delta\T{\omega}_1
+	} \nonumber \\
+	& \mbox{\hspace{10pt}} + \hat{\T{R}}^T \plbr{\T{\omega}_2 - \T{\omega}_1} \times 
+			\T{R}_1\plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_1^T \T{\theta}_{2\delta} \nonumber \\
+	& \mbox{\hspace{10pt}} + \hat{\T{R}}^T \plbr{\T{\omega}_2 - \T{\omega}_1} \times
+			\plbr{\T{I} - \T{R}_1\plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_1^T} \T{\theta}_{1\delta} \\
+	&= \hat{\T{R}}^T \plbr{
+		\delta\T{\omega}_2 - \delta\T{\omega}_1
+	} \nonumber \\
+	& \mbox{\hspace{10pt}} + \hat{\T{R}}^T \plbr{\T{\omega}_2 - \T{\omega}_1} \times 
+			\hat{\T{R}}\plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T \T{\theta}_{2\delta} \nonumber \\
+	& \mbox{\hspace{10pt}} + \hat{\T{R}}^T \plbr{\T{\omega}_2 - \T{\omega}_1} \times
+			\hat{\T{R}}\plbr{\T{I} - \plbr{\T{I} + \tilde{\T{R}}}^{-1}} \hat{\T{R}}^T \T{\theta}_{1\delta} \\
+	&= \hat{\T{R}}^T \plbr{
+		\delta\T{\omega}_2 - \delta\T{\omega}_1
+	} \nonumber \\
+	& \mbox{\hspace{10pt}} + \T{\omega} \times \plbr{
+		\plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T \T{\theta}_{2\delta}
+		+ \plbr{\T{I} - \plbr{\T{I} + \tilde{\T{R}}}^{-1}} \hat{\T{R}}^T \T{\theta}_{1\delta}
 	}
+	\label{eq:inv-deformable-hinge-omega-rel-delta}
+\end{align}
+since
+\begin{equation}
+	\tilde{\T{R}}\plbr{\T{I} + \tilde{\T{R}}} \tilde{\T{R}}^T = \plbr{\T{I} + \tilde{\T{R}}}
+\end{equation}
+and thus
+\begin{align}
+	\plbr{\T{I} + \tilde{\T{R}}}^{-1}
+	&= \tilde{\T{R}}^{-T} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \tilde{\T{R}}^{-1} \\
+	&= \tilde{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \tilde{\T{R}}^T
 \end{align}
 %%%
 \begin{comment}
@@ -2272,14 +2299,27 @@ The moment is
 \begin{equation}
 	\T{M}_i = \plbr{-1}^i \hat{\T{R}} \tilde{\T{M}}\plbr{\T{\theta}, \T{\omega}}
 \end{equation}
-Its linearization yields
+Its linearization uses the perturbation of the relative rotation angle
+in the intermediate reference frame,
+\begin{align}
+	\overline{\T{\theta}}_{\delta}
+	&= \tilde{\T{R}}^T \T{\theta}_{\delta} \\
+	&= \hat{\T{R}}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
+\end{align}
+and the perturbation of the relative angular velocity
+of Equation~(\ref{eq:inv-deformable-hinge-omega-rel-delta}),
+and yields
 \begin{align}
 	\delta\T{M}_i
 	&= \plbr{-1}^i \hat{\T{R}} \plbr{
-		\tilde{\T{M}}_{/\T{\theta}} \T{\theta}_{\delta}
+		\tilde{\T{M}}_{/\T{\theta}} \overline{\T{\theta}}_{\delta}
 		+ \tilde{\T{M}}_{/\T{\omega}} \delta\T{\omega}
-	} - \T{M}_i \times \cfrac{1}{2}\plbr{\T{\theta}_{1\delta} + \T{\theta}_{2\delta}} \\
-	&\cong \textbf{FIXME}
+	} \nonumber \\
+	& \mbox{\hspace{10pt}} - \T{M}_i \times \hat{\T{R}} \plbr{
+		\plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T \T{\theta}_{2\delta}
+		+ \plbr{\T{I} - \plbr{\T{I} + \tilde{\T{R}}}^{-1}} \hat{\T{R}}^T \T{\theta}_{1\delta}
+	} \\
+	&= \textbf{FIXME}
 \end{align}
 The complete linearized problem is \textbf{(FIXME!)}
 \begin{eqnarray*}
