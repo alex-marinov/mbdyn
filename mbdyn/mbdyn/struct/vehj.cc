@@ -1119,6 +1119,15 @@ ViscoElasticHingeJoint::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(3 + iCnt, iNode2FirstMomIndex + iCnt);
 	}
 
+	AssVec(WorkVec);
+
+	return WorkVec;
+}
+
+/* assemblaggio residuo */
+void
+ViscoElasticHingeJoint::AssVec(SubVectorHandler& WorkVec)
+{
 	Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
 
 	if (bFirstRes) {
@@ -1142,8 +1151,6 @@ ViscoElasticHingeJoint::AssRes(SubVectorHandler& WorkVec,
 
 	WorkVec.Add(1, M);
 	WorkVec.Sub(4, M);
-
-	return WorkVec;
 }
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
@@ -1242,6 +1249,94 @@ ViscoElasticHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	WorkVec.Sub(4, F);
 
 	return WorkVec;
+}
+
+/* ViscoElasticHingeJoint - end */
+
+/* ViscoElasticHingeJointInv - begin */
+
+ViscoElasticHingeJointInv::ViscoElasticHingeJointInv(unsigned int uL,
+		const DofOwner* pDO,
+		const ConstitutiveLaw3D* pCL,
+		const StructNode* pN1,
+		const StructNode* pN2,
+		const Mat3x3& tilde_R1h,
+		const Mat3x3& tilde_R2h,
+		flag fOut)
+: Elem(uL, fOut),
+ViscoElasticHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, fOut)
+{
+	NO_OP;
+}
+
+ViscoElasticHingeJointInv::~ViscoElasticHingeJointInv(void)
+{
+	NO_OP;
+}
+
+void
+ViscoElasticHingeJointInv::AfterPredict(VectorHandler& /* X */ ,
+		VectorHandler& /* XP */ )
+{
+	/* Calcola le deformazioni, aggiorna il legame costitutivo
+	 * e crea la MDE */
+
+	/* Recupera i dati */
+	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
+	Mat3x3 R2h(pNode2->GetRRef()*tilde_R2h);
+	ThetaCurr = ThetaRef = RotManip::VecRot(R1h.Transpose()*R2h);
+	Vec3 tilde_Theta(ThetaRef/2.);
+	Mat3x3 hat_R(R1h*RotManip::Rot(tilde_Theta));
+	Mat3x3 hat_RT(hat_R.Transpose());
+
+	/* Aggiorna il legame costitutivo */
+	Omega = hat_RT*(pNode2->GetWRef() - pNode1->GetWRef());
+	ConstitutiveLaw3DOwner::Update(ThetaRef, Omega);
+
+	/* Chiede la matrice tangente di riferimento e la porta
+	 * nel sistema globale */
+	/* FIXME: Jacobian matrix not implemented yet */
+
+	/* Calcola l'inversa di Gamma di ThetaRef */
+	Mat3x3 GammaRefm1 = RotManip::DRot_I(ThetaRef);
+
+	/* Chiede la matrice tangente di riferimento e la porta
+	 * nel sistema globale */
+	Mat3x3 R1hT(R1h.Transpose());
+	MDE = R1h*ConstitutiveLaw3DOwner::GetFDE()*GammaRefm1*R1hT;
+	MDEPrime = R1h*GetFDEPrime()*R1hT;
+
+	bFirstRes = true;
+}
+
+/* assemblaggio residuo */
+void
+ViscoElasticHingeJointInv::AssVec(SubVectorHandler& WorkVec)
+{
+	Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
+	Mat3x3 R2h(pNode2->GetRCurr()*tilde_R2h);
+	Mat3x3 hat_R;
+
+	if (bFirstRes) {
+		bFirstRes = false;
+		hat_R = R1h*RotManip::Rot(ThetaCurr/2.);
+
+	} else {
+		ThetaCurr = RotManip::VecRot(R1h.Transpose()*R2h);
+
+		Vec3 tilde_Theta(ThetaCurr/2.);
+		hat_R = R1h*RotManip::Rot(tilde_Theta);
+		Mat3x3 hat_RT(hat_R.Transpose());
+
+		Omega = hat_RT*(pNode2->GetWCurr() - pNode1->GetWCurr());
+
+		ConstitutiveLaw3DOwner::Update(ThetaCurr, Omega);
+	}
+
+	Vec3 M(hat_R*GetF());
+
+	WorkVec.Add(1, M);
+	WorkVec.Sub(4, M);
 }
 
 /* ViscoElasticHingeJoint - end */

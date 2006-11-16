@@ -438,6 +438,7 @@ protected:
 	void AssMats(FullSubMatrixHandler& WMA,
 			FullSubMatrixHandler& WMB,
 			doublereal dCoef);
+	virtual void AssVec(SubVectorHandler& WorkVec);
 
 public:
 	ViscoElasticHingeJoint(unsigned int uL,
@@ -528,6 +529,40 @@ public:
 };
 
 /* ViscoElasticHingeJoint - end */
+
+/* ViscoElasticHingeJointInv - begin */
+
+class ViscoElasticHingeJointInv
+: virtual public Elem, public ViscoElasticHingeJoint {
+protected:
+#if 0
+	void AssMats(FullSubMatrixHandler& WMA,
+			FullSubMatrixHandler& WMB,
+			doublereal dCoef);
+#endif
+	virtual void AssVec(SubVectorHandler& WorkVec);
+
+public:
+	ViscoElasticHingeJointInv(unsigned int uL,
+			const DofOwner* pDO,
+			const ConstitutiveLaw3D* pCL,
+			const StructNode* pN1,
+			const StructNode* pN2,
+			const Mat3x3& tilde_R1h,
+			const Mat3x3& tilde_R2h,
+			flag fOut);
+
+	~ViscoElasticHingeJointInv(void);
+
+	virtual inline void* pGet(void) const {
+		return (void*)this;
+	};
+
+	/* Aggiorna le deformazioni ecc. */
+	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+};
+
+/* ViscoElasticHingeJointInv - end */
 
 #endif /* VEHJ_H */
 
