@@ -2304,7 +2304,7 @@ in the intermediate reference frame,
 \begin{align}
 	\delta\overline{\T{\theta}}
 	&= \tilde{\T{R}}^T \delta\T{\theta} \\
-	&= \tilde{\T{R}}^T\T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
+	&= \tilde{\T{R}}^T\T{\Gamma}\plbr{\T{\theta}}^{-1} \tilde{\T{R}} \hat{\T{R}}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
 \end{align}
 and the perturbation of the relative angular velocity
 of Equation~(\ref{eq:inv-deformable-hinge-omega-rel-delta}),
@@ -2312,7 +2312,7 @@ and yields
 \begin{align}
 	\delta\T{M}_i
 	&= \plbr{-1}^i \hat{\T{R}} \plbr{
-		\tilde{\T{M}}_{/\T{\theta}} \overline{\T{\theta}}_{\delta}
+		\tilde{\T{M}}_{/\T{\theta}} \delta\overline{\T{\theta}}
 		+ \tilde{\T{M}}_{/\T{\omega}} \delta\T{\omega}
 	} \nonumber \\
 	& \mbox{\hspace{10pt}} - \T{M}_i \times \hat{\T{R}} \plbr{
@@ -2345,7 +2345,7 @@ The complete linearized problem is \textbf{(FIXME!)}
 \end{eqnarray*}
 where
 \begin{eqnarray*}
-	\T{M}_{/\T{\theta}} & = & \hat{\T{R}} \tilde{\T{M}}_{/\T{\theta}} \tilde{\T{R}}^T \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T \\
+	\T{M}_{/\T{\theta}} & = & \hat{\T{R}} \tilde{\T{M}}_{/\T{\theta}} \tilde{\T{R}}^T \T{\Gamma}\plbr{\T{\theta}}^{-1} \tilde{\T{R}} \hat{\T{R}}^T \\
 	\T{M}_{/\T{\omega}} & = & \hat{\T{R}} \tilde{\T{M}}_{/\T{\omega}} \hat{\T{R}}^T
 \end{eqnarray*}
 
