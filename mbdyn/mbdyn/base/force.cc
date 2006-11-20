@@ -219,10 +219,12 @@ Elem* ReadForce(DataManager* pDM,
    
 	const char* sKeyWords[] = {
 #if defined(USE_STRUCT_NODES)
-		"conservative",
+		"conservative",			// deprecated
+		"absolute",
 		"follower",
 
-		"conservative" "internal",
+		"conservative" "internal",	// deprecated
+		"absolute" "internal",
 		"follower" "internal",
 
 		"external" "structural",
@@ -241,10 +243,12 @@ Elem* ReadForce(DataManager* pDM,
 		UNKNOWN = -1,
 
 #if defined(USE_STRUCT_NODES)
-		CONSERVATIVE,
+		CONSERVATIVE,			// deprecated
+		ABSOLUTE,
 		FOLLOWER,
 	
-		CONSERVATIVEINTERNAL,
+		CONSERVATIVEINTERNAL,		// deprecated
+		ABSOLUTEINTERNAL,
 		FOLLOWERINTERNAL,
 
 		EXTERNALSTRUCTURAL,
@@ -271,8 +275,10 @@ Elem* ReadForce(DataManager* pDM,
 
 	switch (CurrType) {
 	case CONSERVATIVE:
+	case ABSOLUTE:
 	case FOLLOWER:
 	case CONSERVATIVEINTERNAL:
+	case ABSOLUTEINTERNAL:
 	case FOLLOWERINTERNAL:
 		break;
 
@@ -319,8 +325,10 @@ Elem* ReadForce(DataManager* pDM,
 		break;
 
 	case CONSERVATIVE:
+	case ABSOLUTE:
 	case FOLLOWER:
 	case CONSERVATIVEINTERNAL:
+	case ABSOLUTEINTERNAL:
 	case FOLLOWERINTERNAL: {
 		/* nodo collegato */
 		StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
@@ -330,9 +338,34 @@ Elem* ReadForce(DataManager* pDM,
 		ReferenceFrame RF(pNode);
 		Vec3 Dir(HP.GetVecRel(RF));
 
-		/* Se la forza e' conservativa, viene passata nel sistema globale */
-		if (CurrType == CONSERVATIVE || CurrType == CONSERVATIVEINTERNAL) {
+		switch (CurrType) {
+		case CONSERVATIVE:
+			silent_cout("deprecated \"conservative\" "
+				"at line " << HP.GetLineData() << ";"
+				"use \"absolute\" instead" << std::endl);
+			break;
+
+		case CONSERVATIVEINTERNAL:
+			silent_cout("deprecated \"conservative internal\" "
+				"at line " << HP.GetLineData() << ";"
+				"use \"absolute internal\" instead" << std::endl);
+			break;
+
+		default:
+			break;
+		}
+
+		/* Se la forza e' assoluta, viene passata nel sistema globale */
+		switch (CurrType) {
+		case CONSERVATIVE:
+		case CONSERVATIVEINTERNAL:
+		case ABSOLUTE:
+		case ABSOLUTEINTERNAL:
 			Dir = RNode*Dir;
+			break;
+
+		default:
+			break;
 		}      	           
  
 		/* Normalizza la direzione */
@@ -355,7 +388,10 @@ Elem* ReadForce(DataManager* pDM,
 
 		StructNode *pNode2 = NULL;
 		Vec3 Arm2(0.);
-		if (CurrType == CONSERVATIVEINTERNAL || CurrType == FOLLOWERINTERNAL) {
+		switch (CurrType) {
+		case CONSERVATIVEINTERNAL:
+		case ABSOLUTEINTERNAL:
+		case FOLLOWERINTERNAL:
 			/* nodo collegato */
 			pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
@@ -366,15 +402,31 @@ Elem* ReadForce(DataManager* pDM,
 					DEBUGCOUT("Distance is supplied" << std::endl);
 				}
 			}
+			break;
+
+		default:
+			break;
 		}
  
 #ifdef DEBUG
-		if (CurrType == CONSERVATIVE || CurrType == CONSERVATIVEINTERNAL) {      
+		switch (CurrType) {
+		case CONSERVATIVE:
+		case CONSERVATIVEINTERNAL:
+		case ABSOLUTE:
+		case ABSOLUTEINTERNAL:
 			std::cout << "Global reference frame direction: " << std::endl
 				<< Dir << std::endl;
-		} else if (CurrType == FOLLOWER || CurrType == FOLLOWERINTERNAL) {      
+			break;
+
+		case FOLLOWER:
+		case FOLLOWERINTERNAL:
 			std::cout << "Node reference frame direction: " << std::endl
 				<< Dir << std::endl;
+			break;
+
+		default:
+			ASSERT(0);
+			break;
 		}
  
 		if (!fCouple) {      
@@ -390,12 +442,14 @@ Elem* ReadForce(DataManager* pDM,
 		if (fCouple == 0) {
 			switch (CurrType) {
 			case CONSERVATIVE:
+			case ABSOLUTE:
 				SAFENEWWITHCONSTRUCTOR(pEl, 
 					ConservativeForce,
 					ConservativeForce(uLabel, pNode, pDC, Dir, Arm, fOut));
 				break;
 
 			case CONSERVATIVEINTERNAL:
+			case ABSOLUTEINTERNAL:
 				SAFENEWWITHCONSTRUCTOR(pEl, 
 					ConservativeInternalForce,
 					ConservativeInternalForce(uLabel, pNode, pNode2, pDC, Dir, Arm, Arm2, fOut));
@@ -420,12 +474,14 @@ Elem* ReadForce(DataManager* pDM,
 		} else if (fCouple == 1) {
 			switch (CurrType) {
 			case  CONSERVATIVE:
+			case  ABSOLUTE:
 				SAFENEWWITHCONSTRUCTOR(pEl, 
 					ConservativeCouple,
 					ConservativeCouple(uLabel, pNode, pDC, Dir, fOut));
 				break;
 
 			case CONSERVATIVEINTERNAL:
+			case ABSOLUTEINTERNAL:
 				SAFENEWWITHCONSTRUCTOR(pEl, 
 					ConservativeInternalCouple,
 					ConservativeInternalCouple(uLabel, pNode, pNode2, pDC, Dir, fOut));

@@ -1907,7 +1907,7 @@ The syntax of the \kw{force} element is:
   <normal_arglist> ::= <force_type> , <force_arglist>
 \end{verbatim}
 where \kw{force\_type} can be \kw{abstract} for an abstract force, or 
-\kw{conservative} or \kw{follower} for a structural force.
+\kw{absolute} or \kw{follower} for a structural force.
 The latter types also apply to the \kw{couple} element,
 which can be structural only.
 It is discussed in this section because of its input syntax commonality 
@@ -1956,7 +1956,7 @@ The format is:
 
 \subsection{Structural force}
 \begin{verbatim}
-    <force_type> ::= { conservative | follower } 
+    <force_type> ::= { absolute | follower } 
     <force_arglist> ::= <node> , 
                         (Vec3) <relative_direction> ,
                         (Vec3) <relative_arm> ,
@@ -1965,7 +1965,7 @@ The format is:
 
 \subsection{Structural internal force}
 \begin{verbatim}
-    <force_type> ::= { conservative | follower } internal
+    <force_type> ::= { absolute | follower } internal
     <force_arglist> ::= <node1> , 
                         (Vec3) <relative_direction> ,
                         (Vec3) <relative_arm1> ,
@@ -1987,7 +1987,7 @@ The format is:
 Example:
 \begin{verbatim}
     # constant structural force
-    force: 1, conservative,
+    force: 1, absolute,
         0.,0.,1., null,
         const, 100.;
 \end{verbatim}
@@ -1995,7 +1995,7 @@ Example:
 
 \subsection{Structural couple}
 \begin{verbatim}
-    <force_type> ::= { conservative | follower } 
+    <force_type> ::= { absolute | follower } 
     <force_arglist> ::= <node> ,
                         (Vec3) <relative_direction> ,  
                         (drive_caller) <couple_magnitude>
@@ -2003,7 +2003,7 @@ Example:
 
 \subsection{Structural internal couple}
 \begin{verbatim}
-    <force_type> ::= { conservative | follower } internal
+    <force_type> ::= { absolute | follower } internal
     <force_arglist> ::= <node1> ,
                         (Vec3) <relative_direction> ,  
                         <node2> ,
