@@ -1539,6 +1539,10 @@ ReadJoint(DataManager* pDM,
 				sJointLogName = "deformabledisplacementjoint";
 #endif
 				break;
+			default:
+				ASSERTMSG(0, "You shouldn't have reached this point");
+				throw DataManager::ErrGeneric();
+				break;
 			}
 			break;
 
@@ -1585,6 +1589,10 @@ ReadJoint(DataManager* pDM,
 						f1, f2, R1, R2, fOut));
 				sJointLogName = "deformabledisplacementjoint";
 #endif
+				break;
+			default:
+				ASSERTMSG(0, "You shouldn't have reached this point");
+				throw DataManager::ErrGeneric();
 				break;
 			}
 			break;
@@ -1634,6 +1642,10 @@ ReadJoint(DataManager* pDM,
 						f1, f2, R1, R2, fOut));
 				sJointLogName = "deformabledisplacementjoint";
 #endif
+				break;
+			default:
+				ASSERTMSG(0, "You shouldn't have reached this point");
+				throw DataManager::ErrGeneric();
 				break;
 			}
 			break;
@@ -1718,6 +1730,10 @@ ReadJoint(DataManager* pDM,
 						pNode1, pNode2,
 						f1, f2, R1, R2, fOut));
 #endif
+				break;
+			default:
+				ASSERTMSG(0, "You shouldn't have reached this point");
+				throw DataManager::ErrGeneric();
 				break;
 			}
 
