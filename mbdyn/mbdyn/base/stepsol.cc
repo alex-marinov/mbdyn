@@ -184,7 +184,12 @@ ImplicitStepIntegrator::EvalProd(doublereal Tau, const VectorHandler& f0,
 #ifdef  USE_EXTERNAL
         External::SendFreeze();
 #endif /* USE_EXTERNAL */
-	Residual(&z);
+	/* deal with throwing elements: do not honor their requests while perfoming matrix free update */
+	try {
+		Residual(&z);
+	}
+	catch (DataManager::ChangedEquationStructure) {
+	}
 	XTau.ScalarMul(XTau, -1.);
 
 	/* riporta tutto nelle condizioni inziali */
