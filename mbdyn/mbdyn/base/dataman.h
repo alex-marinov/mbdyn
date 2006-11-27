@@ -305,7 +305,8 @@ protected:
 			VariableSubMatrixHandler& WorkMatB);
 	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef,
 			VecIter<Elem *> &Iter,
-			SubVectorHandler& WorkVec);
+			SubVectorHandler& WorkVec)
+		throw(ChangedEquationStructure);
 
 public:
 	/* stampa i risultati */

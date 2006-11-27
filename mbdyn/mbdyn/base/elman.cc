@@ -399,6 +399,7 @@ void
 DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
 		VecIter<Elem *> &Iter,
 		SubVectorHandler& WorkVec)
+	throw(ChangedEquationStructure)
 {
 	DEBUGCOUT("Entering AssRes()" << std::endl);
 
