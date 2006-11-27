@@ -1901,6 +1901,10 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, int CurrType)
 				pedantic_cout("starting stream motion element" << std::endl);
 				pE = ReadSocketStreamMotionElem(this, HP, uLabel);
 				break;
+			default:
+				silent_cerr("You shouldn't be here: " __FILE__ << ":" << __LINE__ << std::endl);
+				throw DataManager::ErrGeneric();
+				break;
 			}
 		}
 		if (pE != 0) {
