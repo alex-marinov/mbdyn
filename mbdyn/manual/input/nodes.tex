@@ -176,8 +176,22 @@ The rows contain: \vspace{2mm} \\
 	\hline
 \end{tabular}\vspace{2mm}\\
 All the quantities are expressed in the global frame, except for
-the dummy \kw{relative frame} node, whose quantities are of course
-in the relative frame.
+the dummy \kw{relative frame} node type, whose quantities are,
+by definition, in the relative frame.
+
+\emph{Note: actually, the angles denoted as ``Euler angles'' 
+are the three angles that describe a rotation made of a sequence
+of three steps: first, a rotation about global axis 1,
+followed by a rotation about axis 2 of the frame resulting from
+the previous rotation, concluded by a rotation about axis 3
+of the frame resulting from the two previous rotations.
+To consistently transform this set of parameters into some other
+representation, see the tools
+\kw{eu2rot(1)}, \kw{rot2eup(1)}, \kw{rot2phi(1)}.
+The functions that compute the relationship between an orientation
+matrix and the set of three angles and vice versa are
+\kw{MatR2EulerAngles()} and \kw{EulerAngles2MatR()}, in \kw{matvec3.h}.
+}
 
 \noindent
 The second output file refers only to dynamic nodes, and contains their
@@ -209,7 +223,7 @@ The rows contain: \vspace{2mm} \\
         [ , "derivative" , <derivative_initial_value> ]
 \end{verbatim}
 \emph{Note: the keywords \kw{value} and \kw{derivative}
-have been introduced recently; \kw{value}is not mandatory,
+have been introduced recently; \kw{value} is not mandatory,
 resulting in a warning while \kw{derivative} is required.
 The same applies to the \kw{abstract node} 
 and to the \kw{hydraulic node}; the latter is an algebraic
