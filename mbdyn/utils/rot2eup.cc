@@ -45,7 +45,7 @@ int main(int argn, const char* const argv[])
 	  || !strcasecmp(argv[1], "--help")) {
 	 std::cerr << std::endl << "usage: " << argv[0] << std::endl << std::endl
 	   << "    reads a rotation matrix (row-oriented) from stdin;" << std::endl
-	   << "    writes the Euler angles (in degs) on standard output" << std::endl << std::endl
+	   << "    writes the Euler parameters on standard output" << std::endl << std::endl
 	   << "part of MBDyn package (Copyright (C) Pierangelo Masarati, 1996)" << std::endl << std::endl;
 	 exit(EXIT_SUCCESS);
       }
