@@ -1,3 +1,4 @@
+/* Copyright 2006 Marco Morandini */
 /* 
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
@@ -908,6 +909,8 @@ main(int argc, char* argv[])
         	silent_cerr("An error occurred during the execution of MBDyn;"
 	    		" aborting ... " << std::endl);
         	rc = EXIT_FAILURE;
+		MB_EXIT(rc);
+		throw;
     	}
 
 #ifdef USE_RTAI
