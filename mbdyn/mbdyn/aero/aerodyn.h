@@ -190,6 +190,11 @@ public:
 	virtual int GetNumConnectedNodes(void) const {
 		return 0;
 	};
+
+	/* Dati privati */
+	virtual unsigned int iGetNumPrivData(void) const;
+	virtual unsigned int iGetPrivDataIdx(const char *s) const;
+	virtual doublereal dGetPrivData(unsigned int i) const;
 };
 
 class DataManager;

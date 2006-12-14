@@ -251,6 +251,54 @@ AirProperties::GetVelocity(const Vec3& X, Vec3& V) const
 	V = GetVelocity(X);
 }
 
+/* Dati privati */
+unsigned int
+AirProperties::iGetNumPrivData(void) const
+{
+	/* 3 components + module */
+	return 4;
+}
+
+unsigned int
+AirProperties::iGetPrivDataIdx(const char *s) const
+{
+	ASSERT(s != NULL);
+	
+	if (strcasecmp(s, "vxinf") == 0) {
+		return 1;
+
+	} else if (strcasecmp(s, "vyinf") == 0) {
+		return 2;
+
+	} else if (strcasecmp(s, "vzinf") == 0) {
+		return 3;
+
+	} else if (strcasecmp(s, "vinf") == 0) {
+		return 4;
+	}
+
+	return 0;
+}
+
+doublereal
+AirProperties::dGetPrivData(unsigned int i) const
+{
+	switch (i) {
+	case 1:
+	case 2:
+	case 3:
+		return Velocity(i);
+
+	case 4:
+		return Velocity.Norm();
+
+	default:
+		silent_cerr("AirProperties(" << GetLabel() << "): "
+			"illegal property " << i << std::endl);
+		throw ErrGeneric();
+	}
+}
+
 /* AirProperties - end */
 
 
