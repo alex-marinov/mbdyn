@@ -341,13 +341,13 @@ Elem* ReadForce(DataManager* pDM,
 		switch (CurrType) {
 		case CONSERVATIVE:
 			silent_cout("deprecated \"conservative\" "
-				"at line " << HP.GetLineData() << ";"
+				"at line " << HP.GetLineData() << "; "
 				"use \"absolute\" instead" << std::endl);
 			break;
 
 		case CONSERVATIVEINTERNAL:
 			silent_cout("deprecated \"conservative internal\" "
-				"at line " << HP.GetLineData() << ";"
+				"at line " << HP.GetLineData() << "; "
 				"use \"absolute internal\" instead" << std::endl);
 			break;
 
