@@ -59,6 +59,7 @@ MBDyn 1.X-Devel
 		  (noted by Jerome Merel)
 		- fixed minor memory issue in fixed step file driver
 		- added invariant deformable hinge joint (needs work)
+		- added column check to file drive
 
 MBDyn 1.2.6
 	Enhancements:
