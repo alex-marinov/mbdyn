@@ -2063,6 +2063,13 @@ FileDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	integer id = 1;
 	if (HP.IsArg()) {
 		id = HP.GetInt(id);
+		if (id < 1 || id > pDrv->iGetNumDrives()) {
+			silent_cerr("line " << HP.GetLineData()
+				<< ": invalid column number " << id
+				<< " (must be between 1 and " 
+				<< pDrv->iGetNumDrives() << ")" << std::endl);
+			throw ErrGeneric();
+		}
 	}
 
 	doublereal da = 1.;
