@@ -4,7 +4,7 @@
 %	A	data (n. of frames x n. of outputs)
 %	ns	desired POMs (ns(1): POM, ns(2): identification)
 %	dt	time lag between two frames (optional, defaults to 1.0)
-%       uu      input signals (n. of frames x n. of inputs; MATLAB only) 
+%	uu      input signals (n. of frames x n. of inputs; MATLAB only) 
 %	dec	decimation factor
 %	ord	model order (default 1)
 %	thr	threshold for discarding signals
@@ -21,7 +21,7 @@
 %	X	physical eigenvectors
 %	H	transition matrix
 %	BB	expanded POMs
-%       fm      figure of merit: evaluates the relative quality of POMs
+%	fm      figure of merit: evaluates the relative quality of POMs
 %
 function [S, Aout, B, mn, scl, ee, vv, X, H, BB, fm] = pod(A, ns, dt, uu, dec, ord, thr, wgt)
 
