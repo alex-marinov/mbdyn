@@ -1869,7 +1869,70 @@ DofDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
-struct ElementDCR : public DriveCallerRead {
+struct SimulationEntityDCR : public DriveCallerRead {
+protected:
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP,
+		SimulationEntity *pSE, char *msg);
+};
+
+DriveCaller *
+SimulationEntityDCR::Read(const DataManager* pDM,
+	MBDynParser& HP, SimulationEntity *pSE, char *msg)
+{
+	const DriveHandler* pDrvHdl = pDM->pGetDrvHdl();
+	DriveCaller *pDC = 0;
+
+	unsigned int iMaxIndex = pSE->iGetNumPrivData();
+	unsigned int iIndex = 0;
+	const char *sIndexName = 0;
+	if (HP.IsKeyWord("string")) {
+		const char *s = HP.GetStringWithDelims();
+		iIndex = pSE->iGetPrivDataIdx(s);
+		SAFESTRDUP(sIndexName, s);
+
+	} else if (HP.IsKeyWord("index")) {
+		iIndex = HP.GetInt();
+
+	} else if (iMaxIndex == 1) {
+		iIndex = 1;
+
+	} else {
+		silent_cerr("need a private data index for " << msg
+			<< "at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric();
+	}
+
+	if (iIndex < 1 || iIndex > iMaxIndex) {
+		silent_cerr("illegal index " << iIndex << " for " << msg
+			<< "at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric();
+	}
+
+#ifdef USE_MPI
+	/* FIXME: todo ... */
+	if (MPI::Is_initialized() && MBDynComm.Get_size() > 1) {
+		silent_cerr("warning: add explicit connection entry for " << msg
+			<< " at line " << HP.GetLineData() << std::endl);
+	}
+#endif /* USE_MPI */
+
+	/* Chiamata ricorsiva a leggere il drive supplementare */
+	DriveCaller* pTmp = 0;
+	pTmp = HP.GetDriveCaller();
+
+	/* allocazione e creazione */
+	SAFENEWWITHCONSTRUCTOR(pDC,
+		PrivDriveCaller,
+		PrivDriveCaller(pDrvHdl, pTmp, pSE, iIndex, sIndexName));
+	if (sIndexName) {
+		SAFEDELETEARR(sIndexName);
+	}
+
+	return pDC;
+}
+
+struct ElementDCR : public SimulationEntityDCR {
 	DriveCaller *
 	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
 };
@@ -1887,9 +1950,6 @@ ElementDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 		throw DataManager::ErrGeneric();
 	}
 
-	const DriveHandler* pDrvHdl = pDM->pGetDrvHdl();
-	DriveCaller *pDC = 0;
-
 	unsigned uLabel = HP.GetInt();
 	KeyTable Kel(HP, psReadElemsElems);
 	int k = HP.IsKeyWord();
@@ -1900,66 +1960,58 @@ ElementDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 			<< std::endl);
 		throw ErrGeneric();
 	}
+
+	char msg[BUFSIZ];
+	snprintf(msg, sizeof(msg), "%s(%lu)", psElemNames[Elem::Type(k)], uLabel);
 	Elem *pElem = (Elem*)pDM->pFindElem(Elem::Type(k), uLabel);
-	if (pElem ==  0) {
-		silent_cerr("unable to find " << psElemNames[Elem::Type(k)]
-			<< "(" << uLabel << ") at line "
+	if (pElem == 0) {
+		silent_cerr("unable to find " << msg << " at line "
 			<< HP.GetLineData() << std::endl);
 		throw ErrGeneric();
 	}
-	unsigned int iMaxIndex = pElem->iGetNumPrivData();
-	unsigned int iIndex = 0;
-	const char *sIndexName = 0;
-	if (HP.IsKeyWord("string")) {
-		const char *s = HP.GetStringWithDelims();
-		iIndex = pElem->iGetPrivDataIdx(s);
-		SAFESTRDUP(sIndexName, s);
 
-	} else if (HP.IsKeyWord("index")) {
-		iIndex = HP.GetInt();
+	return SimulationEntityDCR::Read(pDM, HP, pElem, msg);
+}
 
-	} else if (iMaxIndex == 1) {
-		iIndex = 1;
+struct NodeDCR : public SimulationEntityDCR {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
 
-	} else {
-		silent_cerr("need a private data index for "
-			<< psElemNames[pElem->GetElemType()]
-			<< "(" << pElem->GetLabel() << ") "
-			"at line " << HP.GetLineData() << std::endl);
+DriveCaller *
+NodeDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+{
+	NeedDM(pDM, HP, bDeferred, "node");
+
+	/* driver legato ai dati privati di un nodo */
+	if (pDM == 0) {
+		silent_cerr("sorry, since the driver is not owned by a DataManager" << std::endl
+			<< "no node dependent drivers are allowed;" << std::endl
+			<< "aborting ..." << std::endl);
+		throw DataManager::ErrGeneric();
+	}
+
+	unsigned uLabel = HP.GetInt();
+	KeyTable Kel(HP, psReadNodesNodes);
+	int k = HP.IsKeyWord();
+	if (k == -1) {
+		const char *s = HP.GetString();
+		silent_cerr("unknown node type \"" << s
+			<< "\" at line " << HP.GetLineData()
+			<< std::endl);
 		throw ErrGeneric();
 	}
 
-	if (iIndex < 1 || iIndex > iMaxIndex) {
-		silent_cerr("illegal index " << iIndex << " for "
-			<< psElemNames[pElem->GetElemType()]
-			<< "(" << pElem->GetLabel() << ") "
-			"at line " << HP.GetLineData() << std::endl);
+	char msg[BUFSIZ];
+	snprintf(msg, sizeof(msg), "%s(%lu)", psNodeNames[Node::Type(k)], uLabel);
+	Node *pNode = (Node*)pDM->pFindNode(Node::Type(k), uLabel);
+	if (pNode == 0) {
+		silent_cerr("unable to find " << msg << " at line "
+			<< HP.GetLineData() << std::endl);
 		throw ErrGeneric();
 	}
 
-#ifdef USE_MPI
-	/* FIXME: todo ... */
-	if (MPI::Is_initialized() && MBDynComm.Get_size() > 1) {
-		silent_cerr("warning: add explicit connection entry for "
-			<< psElemNames[pElem->GetElemType()]
-			<< "(" << pElem->GetLabel() << ") element drive"
-			" at line " << HP.GetLineData() << std::endl);
-	}
-#endif /* USE_MPI */
-
-	/* Chiamata ricorsiva a leggere il drive supplementare */
-	DriveCaller* pTmp = 0;
-	pTmp = HP.GetDriveCaller();
-
-	/* allocazione e creazione */
-	SAFENEWWITHCONSTRUCTOR(pDC,
-		PrivDriveCaller,
-		PrivDriveCaller(pDrvHdl, pTmp, pElem, iIndex, sIndexName));
-	if (sIndexName) {
-		SAFEDELETEARR(sIndexName);
-	}
-
-	return pDC;
+	return SimulationEntityDCR::Read(pDM, HP, pNode, msg);
 }
 
 struct DriveDCR : public DriveCallerRead {
@@ -2118,6 +2170,7 @@ InitDriveData(void)
 	SetDriveData("file", new FileDCR);
 	SetDriveData("string", new StringDCR);
 	SetDriveData("dof", new DofDCR);
+	SetDriveData("node", new NodeDCR);
 	SetDriveData("element", new ElementDCR);
 	SetDriveData("drive", new DriveDCR);
 	SetDriveData("array", new ArrayDCR);

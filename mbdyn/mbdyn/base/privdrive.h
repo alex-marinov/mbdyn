@@ -42,18 +42,18 @@
 #define PRIVDRIVE_H
 
 #include "drive.h"
-#include "elem.h"
+#include "simentity.h"
 
 class PrivDriveCaller : public DriveCaller, public DriveOwner
 {
 protected:
-	Elem *pElem;
+	SimulationEntity *pSE;
 	unsigned int iIndex;
 	const char *sIndexName;
    
 public:
 	PrivDriveCaller(const DriveHandler* pDH, const DriveCaller* pDC,
-			Elem *p, unsigned int i, const char *s);
+			SimulationEntity *p, unsigned int i, const char *s);
 	virtual ~PrivDriveCaller(void);
 
 	/* Copia */
@@ -76,7 +76,7 @@ PrivDriveCaller::dGet(const doublereal& dVar) const
 inline doublereal
 PrivDriveCaller::dGet(void) const
 {
-	return pGetDriveCaller()->dGet(pElem->dGetPrivData(iIndex));
+	return pGetDriveCaller()->dGet(pSE->dGetPrivData(iIndex));
 }
 
 #endif /* PRIVDRIVE_H */

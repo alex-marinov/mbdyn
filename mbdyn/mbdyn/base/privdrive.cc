@@ -35,12 +35,14 @@
 #endif /* HAVE_CONFIG_H */
 
 #include "privdrive.h"
+#include "elem.h"
+#include "node.h"
 
 
 PrivDriveCaller::PrivDriveCaller(const DriveHandler* pDH, 
 		const DriveCaller* pDC,
-		Elem *p, unsigned int i, const char *s)
-: DriveCaller(pDH), DriveOwner(pDC), pElem(p), iIndex(i), sIndexName(0)
+		SimulationEntity *p, unsigned int i, const char *s)
+: DriveCaller(pDH), DriveOwner(pDC), pSE(p), iIndex(i), sIndexName(0)
 {
 	if (s) {
 		SAFESTRDUP(sIndexName, s);
@@ -64,7 +66,7 @@ PrivDriveCaller::pCopy(void) const
 			PrivDriveCaller,
 			PrivDriveCaller(pDrvHdl,
 				pGetDriveCaller()->pCopy(),
-				pElem, iIndex, sIndexName));
+				pSE, iIndex, sIndexName));
    
 	return pDC;
 }
@@ -74,15 +76,31 @@ PrivDriveCaller::pCopy(void) const
 std::ostream&
 PrivDriveCaller::Restart(std::ostream& out) const
 {
-	out << " element, " 
-		<< pElem->GetLabel() << ", "
-		<< psReadElemsElems[pElem->GetElemType()] << ", ";
+	Elem *pElem = dynamic_cast<Elem *>(pSE);
+	Node *pNode = dynamic_cast<Node *>(pSE);
+
+	if (pElem != 0) {
+		out << " element, " 
+			<< pElem->GetLabel() << ", "
+			<< psReadElemsElems[pElem->GetElemType()] << ", ";
+
+	} else if (pNode != 0) {
+		out << " node, " 
+			<< pNode->GetLabel() << ", "
+			<< psReadNodesNodes[pNode->GetNodeType()] << ", ";
+
+	} else {
+		throw ErrGeneric();
+	}
+
 	if (sIndexName) {
 		out << "name, " << sIndexName;
 	} else if (pElem->iGetNumPrivData() > 1) {
 		out << "index, " << iIndex;
 	}
+
 	out << ", ";
+
 	return DriveOwner::pGetDriveCaller()->Restart(out);
 }
 

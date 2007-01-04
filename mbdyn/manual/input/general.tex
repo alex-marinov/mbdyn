@@ -1428,6 +1428,42 @@ a \kw{string} drive which depends on variable $x$; this, in turn,
 is defined as a \kw{dof} plugin, which causes its evaluation
 in terms of the selected degree of freedom of the node at each invocation.
 
+\subsection{Node drive}\label{sec:DRIVE-NODE}
+\begin{verbatim}
+    <drive_caller> ::= node ,
+        <label> ,
+        <type> ,
+        [ { string, "<name>" | index , <index> } , ]
+        (drive_caller) <func_drive>
+\end{verbatim}
+a reference to the private data of a node is read.
+This is made of: the node's \kw{label}, the node's \kw{type}
+and a specification of which private data is being referred;
+the \kw{index} can be directly given, prepended by the keyword
+\kw{index}, or the symbolic name can be used, prepended by 
+the keyword \kw{string}.
+If that node allows only one private data, the specification 
+can be omitted.
+Then a recursive call to a drive data is read. 
+The driver returns the value of the \kw{func\_drive} 
+\htmlref{\kw{drive}}{sec:DRIVE} using the value of the 
+node's private data as input instead of the time. 
+This can be used as a sort of explicit feedback, to implement fancy
+springs (where a force is driven through a function by the rotation
+of a joint) or an active control system; e.g.:
+\begin{verbatim}
+    node, 1000, structural, string, "X[3]",
+        linear, 0., 1.
+\end{verbatim}
+uses the value of the displacement in direction $z$ of a structural node
+as is (that is, in a linear expression with null constant coefficient 
+and unit linear coefficient, while
+\begin{verbatim}
+    node, 1000, structural, index, 3,
+        string, "2.*exp(-100.*Var)"
+\end{verbatim}
+uses the same value, addressed in an alternative manner, in computing
+a string expression.
 
 \subsection{Element drive}\label{sec:DRIVE-ELEMENT}
 \begin{verbatim}
@@ -1442,7 +1478,7 @@ This is made of: the element's \kw{label}, the element's \kw{type}
 and a specification of which private data is being referred;
 the \kw{index} can be directly given, prepended by the keyword
 \kw{index}, or the symbolic name can be used, prepended by 
-the keyword \kw{index}.
+the keyword \kw{string}.
 If that element allows only one private data, the specification 
 can be omitted.
 Then a recursive call to a drive data is read. 
@@ -1453,7 +1489,7 @@ This can be used as a sort of explicit feedback, to implement fancy
 springs (where a force is driven through a function by the rotation
 of a joint) or an active control system; e.g.:
 \begin{verbatim}
-    element, 1000, joint, name, "rz",
+    element, 1000, joint, string, "rz",
         linear, 0., 1.
 \end{verbatim}
 uses the value of the rotation about axis $z$ of a revolute hinge
