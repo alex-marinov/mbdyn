@@ -239,6 +239,52 @@ ScalarDifferentialNode::Restart(std::ostream& out) const
 		<< ", derivative, " << dXP << ";" << std::endl;
 }
 
+unsigned int
+ScalarDifferentialNode::iGetNumPrivData(void) const
+{
+	return 2;
+}
+
+unsigned int
+ScalarDifferentialNode::iGetPrivDataIdx(const char *s) const
+{
+	ASSERT(s != 0);
+
+	/*
+	 *	"x"	=>	1
+	 *	"xP"	=>	2
+	 */
+
+	if (s[0] != 'x') {
+		return 0;
+	}
+
+	if (s[1] == '\0') {
+		return 1;
+	}
+
+	if (s[1] == 'P' && s[2] == '\0') {
+		return 2;
+	}
+
+	return 0;
+}
+
+doublereal
+ScalarDifferentialNode::dGetPrivData(unsigned int i) const
+{
+	switch (i) {
+	case 1:
+		return dX;
+
+	case 2:
+		return dXP;
+
+	}
+
+	throw ErrGeneric();
+}
+
 /* ScalarDifferentialNode - end */
 
 
@@ -362,6 +408,22 @@ ScalarAlgebraicNode::Restart(std::ostream& out) const
 	}
 
 	return out << ", value, " << dX << ";" << std::endl;
+}
+
+unsigned int
+ScalarAlgebraicNode::iGetPrivDataIdx(const char *s) const
+{
+	ASSERT(s != 0);
+
+	/*
+	 *	"x"	=>	1
+	 */
+
+	if (s[0] == 'x' && s[1] == '\0') {
+		return 1;
+	}
+
+	return 0;
 }
 
 /* ScalarAlgebraicNode - end */

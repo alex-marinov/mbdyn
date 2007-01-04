@@ -335,6 +335,26 @@ public:
 
 	/* restart */
 	std::ostream& Restart(std::ostream& out) const;
+
+	/*
+	 * Metodi per l'estrazione di dati "privati".
+	 * Si suppone che l'estrattore li sappia interpretare.
+	 * Come default non ci sono dati privati estraibili
+	 */
+	virtual unsigned int iGetNumPrivData(void) const;
+
+	/*
+	 * Maps a string (possibly with substrings) to a private data;
+	 * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0 
+	 * in case of unrecognized data; error must be handled by caller
+	 */
+	virtual unsigned int iGetPrivDataIdx(const char *s) const;
+
+	/*
+	 * Returns the current value of a private data
+	 * with 0 < i <= iGetNumPrivData()
+	 */
+	virtual doublereal dGetPrivData(unsigned int i) const;
 };
 
 inline const doublereal&
@@ -431,6 +451,13 @@ public:
 
 	/* restart */
 	std::ostream& Restart(std::ostream& out) const;
+
+	/*
+	 * Maps a string (possibly with substrings) to a private data;
+	 * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0 
+	 * in case of unrecognized data; error must be handled by caller
+	 */
+	virtual unsigned int iGetPrivDataIdx(const char *s) const;
 };
 
 inline const doublereal&

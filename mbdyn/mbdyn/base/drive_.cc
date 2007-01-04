@@ -1869,6 +1869,9 @@ DofDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
+/*
+ * shared by "node" and "element" private data drives
+ */
 struct SimulationEntityDCR : public DriveCallerRead {
 protected:
 	DriveCaller *
@@ -1944,7 +1947,7 @@ ElementDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 
 	/* driver legato ai dati privati di un elemento */
 	if (pDM == 0) {
-		silent_cerr("sorry, since the driver is not owned by a DataManager" << std::endl
+		silent_cerr("since the driver is not owned by a DataManager" << std::endl
 			<< "no element dependent drivers are allowed;" << std::endl
 			<< "aborting ..." << std::endl);
 		throw DataManager::ErrGeneric();
@@ -1961,8 +1964,10 @@ ElementDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 		throw ErrGeneric();
 	}
 
+	/* Type(Label) */
 	char msg[BUFSIZ];
 	snprintf(msg, sizeof(msg), "%s(%lu)", psElemNames[Elem::Type(k)], uLabel);
+
 	Elem *pElem = (Elem*)pDM->pFindElem(Elem::Type(k), uLabel);
 	if (pElem == 0) {
 		silent_cerr("unable to find " << msg << " at line "
@@ -1985,7 +1990,7 @@ NodeDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 
 	/* driver legato ai dati privati di un nodo */
 	if (pDM == 0) {
-		silent_cerr("sorry, since the driver is not owned by a DataManager" << std::endl
+		silent_cerr("since the driver is not owned by a DataManager" << std::endl
 			<< "no node dependent drivers are allowed;" << std::endl
 			<< "aborting ..." << std::endl);
 		throw DataManager::ErrGeneric();
@@ -2002,8 +2007,10 @@ NodeDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 		throw ErrGeneric();
 	}
 
+	/* Type(Label) */
 	char msg[BUFSIZ];
 	snprintf(msg, sizeof(msg), "%s(%lu)", psNodeNames[Node::Type(k)], uLabel);
+
 	Node *pNode = (Node*)pDM->pFindNode(Node::Type(k), uLabel);
 	if (pNode == 0) {
 		silent_cerr("unable to find " << msg << " at line "
