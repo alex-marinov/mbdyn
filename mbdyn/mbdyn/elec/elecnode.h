@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2006
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -37,10 +37,10 @@
 
 /* Nodo astratto, consente l'accesso ad un grado di liberta' messo in comune
  * e privo di significato fisico proprio. Gli elementi di tipo ElectricBulk
- * usano i nodi elettrici. Numerosi elementi elettrici elementari sono 
- * associati a nodi elettrici (impedenze, amplificatori, generatori di 
- * tensione e di corrente, ecc.). Altri elementi, di tipo Electric, possono 
- * essere associati sia a nodi elettrici (tipicamente a coppie di nodi, in 
+ * usano i nodi elettrici. Numerosi elementi elettrici elementari sono
+ * associati a nodi elettrici (impedenze, amplificatori, generatori di
+ * tensione e di corrente, ecc.). Altri elementi, di tipo Electric, possono
+ * essere associati sia a nodi elettrici (tipicamente a coppie di nodi, in
  * quanto usano differenze di tensione), oppure a nodi astratti,
  * ovvero oggetti che consentono un riferimento esplicito a Dof messi in
  * comune che non hanno un significato fisico preciso */
@@ -49,30 +49,21 @@
 const int iAbstractNodeDofNumber = 1;
 
 class AbstractNode : public ScalarDifferentialNode {
- public:   
-   /* Costruttore definitivo (da mettere a punto) */
-   AbstractNode(unsigned int uL, const DofOwner* pDO,
-		doublereal dx, doublereal dxp, flag fOut)
-     : ScalarDifferentialNode(uL, pDO, dx, dxp, fOut) { 
-	NO_OP; 
-     };
-   
-   /* Distruttore (per ora e' banale) */
-   virtual ~AbstractNode(void) {
-      NO_OP;
-   };
-   
-   /* Tipo di nodo */
-   virtual Node::Type GetNodeType(void) const {
-      return Node::ABSTRACT;
-   };
-   
-   /* Output del nodo */
-   virtual void Output(OutputHandler& OH) const;
-   
-   virtual void AfterPredict(VectorHandler& X, VectorHandler& XP) {
-      Update(X, XP);
-   };
+public:
+	/* Costruttore definitivo (da mettere a punto) */
+	AbstractNode(unsigned int uL, const DofOwner* pDO,
+		doublereal dx, doublereal dxp, flag fOut);
+
+	/* Distruttore (per ora e' banale) */
+	virtual ~AbstractNode(void);
+
+	/* Tipo di nodo */
+	virtual Node::Type GetNodeType(void) const;
+
+	/* Output del nodo */
+	virtual void Output(OutputHandler& OH) const;
+
+	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 };
 
 /* AbstractNode - end */
@@ -81,8 +72,8 @@ class AbstractNode : public ScalarDifferentialNode {
 /* ElectricNode - begin */
 
 /* Nodo elettrico, descrive fisicamente un nodo di una rete elettrica.
- * Viene usato con gli elementi ElectricBulk. Numerosi elementi elettrici 
- * elementari sono associati a questi nodi (impedenze, amplificatori, 
+ * Viene usato con gli elementi ElectricBulk. Numerosi elementi elettrici
+ * elementari sono associati a questi nodi (impedenze, amplificatori,
  * generatori di tensione e di corrente, ecc.). Altri elementi, di tipo
  * Electric, possono essere associati sia a nodi elettrici (tipicamente a
  * coppie, in quanto usano differenze di tensione), oppure a nodi astratti,
@@ -93,23 +84,16 @@ class AbstractNode : public ScalarDifferentialNode {
 const int iElectricNodeDofNumber = iAbstractNodeDofNumber;
 
 class ElectricNode : public AbstractNode {
- public:
-   /* Costruttore */
-   ElectricNode(unsigned int uL, const DofOwner* pDO, 
-		doublereal dx, doublereal dxp, flag fOut)
-     : AbstractNode(uL, pDO, dx, dxp, fOut) { 
-	NO_OP; 
-     };
-   
-   /* Distruttore (per ora e' banale) */
-   virtual ~ElectricNode(void) { 
-      NO_OP; 
-   };
+public:
+	/* Costruttore */
+	ElectricNode(unsigned int uL, const DofOwner* pDO,
+		doublereal dx, doublereal dxp, flag fOut);
 
-   /* Tipo di nodo */
-   virtual Node::Type GetNodeType(void) const { 
-      return Node::ELECTRIC;
-   };
+	/* Distruttore (per ora e' banale) */
+	virtual ~ElectricNode(void);
+
+	/* Tipo di nodo */
+	virtual Node::Type GetNodeType(void) const;
 };
 
 /* ElectricNode - end */

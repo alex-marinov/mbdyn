@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2006
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -40,17 +40,71 @@
 
 /* AbstractNode - begin */
 
-/* Output del nodo */
-void AbstractNode::Output(OutputHandler& OH) const
+/* Costruttore definitivo (da mettere a punto) */
+AbstractNode::AbstractNode(unsigned int uL,
+	const DofOwner* pDO,
+	doublereal dx,
+	doublereal dxp,
+	flag fOut)
+: ScalarDifferentialNode(uL, pDO, dx, dxp, fOut)
 {
-   ScalarDifferentialNode::Output(OH.Abstract());
+	NO_OP;
+}
+
+/* Distruttore (per ora e' banale) */
+AbstractNode::~AbstractNode(void)
+{
+	NO_OP;
+}
+
+/* Tipo di nodo */
+Node::Type
+AbstractNode::GetNodeType(void) const
+{
+	return Node::ABSTRACT;
+}
+
+/* Output del nodo */
+void
+AbstractNode::Output(OutputHandler& OH) const
+{
+	ScalarDifferentialNode::Output(OH.Abstract());
+}
+
+void
+AbstractNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
+{
+	Update(X, XP);
 }
 
 /* AbstractNode - end */
 
 
-
 /* ElectricNode - begin */
+
+/* Costruttore */
+ElectricNode::ElectricNode(unsigned int uL,
+	const DofOwner* pDO,
+	doublereal dx,
+	doublereal dxp,
+	flag fOut)
+: AbstractNode(uL, pDO, dx, dxp, fOut)
+{
+	NO_OP;
+}
+
+  /* Distruttore (per ora e' banale) */
+ElectricNode::~ElectricNode(void)
+{
+	NO_OP;
+}
+
+/* Tipo di nodo */
+Node::Type
+ElectricNode::GetNodeType(void) const
+{
+	return Node::ELECTRIC;
+}
 
 /* ElectricNode - end */
 
