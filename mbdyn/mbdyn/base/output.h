@@ -44,12 +44,17 @@
 #include <solman.h>
 #include <filename.h>
 
+#ifdef USE_NETCDF
+#include <netcdfcpp.h>  
+#endif /* USE_NETCDF */
+
 /* OutputHandler - begin */
 
 class OutputHandler : public FileName {
 public:
 	enum OutFiles {
 		UNKNOWN			= -1,
+		FIRSTFILE		= 0,
 		OUTPUT			= 0,	//  0
 		STRNODES,
 		ELECTRIC,
@@ -76,27 +81,64 @@ public:
 		PARAMETERS,
 		EXTERNALS,
 		MODAL,				// 25
+		NETCDF,
 
-		LASTFILE			// 26
+		LASTFILE			// 27
+	};
+
+private:
+	long currentStep;
+
+public:
+	inline void SetCurrentStep(long Step) {
+		currentStep = Step;
+	};
+	inline void IncCurrentStep(void) {
+		currentStep++;
+	};
+       	inline long GetCurrentStep(void) const {
+		return currentStep;
 	};
 
 private:
 
 	// flag values
 	enum {
-		OUTPUT_NONE			= 0x0U,
-		OUTPUT_USE_DEFAULT_PRECISION	= 0x1U,
-		OUTPUT_USE_SCIENTIFIC		= 0x2U,
+		OUTPUT_NONE			= 0x00U,
+		OUTPUT_USE_DEFAULT_PRECISION	= 0x01U,
+		OUTPUT_USE_SCIENTIFIC		= 0x02U,
+
+		OUTPUT_MAY_USE_TEXT		= 0x10U,
+		OUTPUT_USE_TEXT			= 0x20U,
+		OUTPUT_MAY_USE_NETCDF		= 0x40U,
+		OUTPUT_USE_NETCDF		= 0x80U,
 
 		LAST
 	};
 
 	/* Aggiungere qui i files che si desidera avere a disposizione */
 	struct {
-		std::ofstream* pof;
+		std::ofstream*	pof;
 		unsigned	flags;
 	} OutData[LASTFILE];
+		
+	// NetCDF dimensions and global attributes related to the binary file
+	enum {
+		DIM_TIME = 0,
+		DIM_V1,
+		DIM_V2,
+		DIM_V3,
+		DIM_V4,
+		DIM_V5,
+		DIM_V6,
+		DIM_LAST
+	};
+#ifdef USE_NETCDF
+	NcDim	*Dim[DIM_LAST];
+	NcFile  *pBinFile;   /* ! one ! binary NetCDF data file */
+#endif /* USE_NETCDF */
 
+	/* handlers to streams */
 	std::ofstream ofOutput;      		/*  0 */
 	std::ofstream ofStrNodes;
 	std::ofstream ofElectric;
@@ -133,6 +175,9 @@ private:
 	bool UseDefaultPrecision(int out) const;
 	bool UseScientific(int out) const;
 
+	bool UseText(int out) const;
+	bool UseNetCDF(int out) const;
+
 	// Pseudo-constructor
 	void OutputHandler_int(void);
 
@@ -151,6 +196,16 @@ public:
 	bool IsOpen(const OutputHandler::OutFiles out) const;
 	bool UseDefaultPrecision(const OutputHandler::OutFiles out) const;
 	bool UseScientific(const OutputHandler::OutFiles out) const;
+
+	void SetText(const OutputHandler::OutFiles out);
+	void ClearText(void);
+	void ClearText(const OutputHandler::OutFiles out);
+	bool UseText(const OutputHandler::OutFiles out) const;
+
+	void SetNetCDF(const OutputHandler::OutFiles out);
+	void ClearNetCDF(void);
+	void ClearNetCDF(const OutputHandler::OutFiles out);
+	bool UseNetCDF(const OutputHandler::OutFiles out) const;
 
 	bool Close(const OutputHandler::OutFiles out);
 
@@ -196,9 +251,70 @@ public:
 	inline int iP(void) const;
 
 	void SetWidth(int iNewWidth);
-
 	void SetPrecision(int iNewPrecision);
-};
+
+#ifdef USE_NETCDF
+	inline NcFile* pGetBinFile(void) const;
+
+	inline const NcDim* DimTime(void) const;
+	inline const NcDim* DimV1(void) const;
+	inline const NcDim* DimV2(void) const;
+	inline const NcDim* DimV3(void) const;
+	inline const NcDim* DimV4(void) const;
+	inline const NcDim* DimV5(void) const;
+	inline const NcDim* DimV6(void) const;
+#endif /* USE_NETCDF */
+}; /* End class OutputHandler */
+
+#ifdef USE_NETCDF
+inline NcFile *
+OutputHandler::pGetBinFile(void) const
+{
+	return pBinFile;
+}
+
+inline const NcDim *
+OutputHandler::DimTime(void) const
+{
+	return Dim[DIM_TIME];
+}
+
+inline const NcDim *
+OutputHandler::DimV1(void) const
+{
+	return Dim[DIM_V1];
+}
+
+inline const NcDim *
+OutputHandler::DimV2(void) const
+{
+	return Dim[DIM_V2];
+}
+
+inline const NcDim *
+OutputHandler::DimV3(void) const
+{
+	return Dim[DIM_V3];
+}
+
+inline const NcDim *
+OutputHandler::DimV4(void) const
+{
+	return Dim[DIM_V4];
+}
+
+inline const NcDim *
+OutputHandler::DimV5(void) const
+{
+	return Dim[DIM_V5];
+}
+
+inline const NcDim *
+OutputHandler::DimV6(void) const
+{
+	return Dim[DIM_V6];
+}
+#endif /* USE_NETCDF */
 
 inline std::ostream&
 OutputHandler::Get(const OutputHandler::OutFiles f)
@@ -426,6 +542,8 @@ protected:
 public:
 	ToBeOutput(flag fOut = fDefaultOut);
 	virtual ~ToBeOutput(void);
+
+	virtual void OutputPrepare(OutputHandler &OH);
 
 	/* Regular output */
 	virtual void Output(OutputHandler& OH) const;

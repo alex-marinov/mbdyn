@@ -88,6 +88,7 @@ public:
    		return 0;
 	};
    
+	virtual void OutputPrepare(OutputHandler& OH);
 	virtual void Output(OutputHandler& OH) const;
 
 	virtual void SetOutputFlag(flag f);

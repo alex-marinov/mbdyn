@@ -545,14 +545,14 @@ Solver::Run(void)
 
    	if (eAbortAfter == AFTER_INPUT) {
       		/* Esce */
-		pDM->Output(true);
+		pDM->Output(0, dTime, 0., true);
       		Out << "End of Input; no simulation or assembly is required."
 			<< std::endl;
       		return;
 
    	} else if (eAbortAfter == AFTER_ASSEMBLY) {
       		/* Fa l'output dell'assemblaggio iniziale e poi esce */
-      		pDM->Output(true);
+      		pDM->Output(0, dTime, 0., true);
       		Out << "End of Initial Assembly; no simulation is required."
 			<< std::endl;
       		return;
@@ -775,6 +775,12 @@ Solver::Run(void)
 
 	pDM->SetValue(*pX, *pXPrime);
 
+
+	/*
+	 * Prepare output
+	 */
+	pDM->OutputPrepare();
+
    	/*
 	 * Dialoga con il DataManager per dargli il tempo iniziale
 	 * e per farsi inizializzare i vettori di soluzione e derivata
@@ -873,7 +879,7 @@ Solver::Run(void)
 		silent_cerr("Initial derivatives calculation " << iStIter
 			<< " does not converge; aborting..." << std::endl
 			<< "(hint: try playing with the \"derivatives coefficient\" value)" << std::endl);
-	 	pDM->Output(true);
+	 	pDM->Output(0, dTime, 0., true);
 	 	throw ErrMaxIterations();
 
 	}
@@ -923,7 +929,7 @@ Solver::Run(void)
 		 */
 		
 
-      		pDM->Output(true);
+      		pDM->Output(0, dTime, 0., true);
       		Out << "End of derivatives; no simulation is required."
 			<< std::endl;
       		return;
@@ -932,14 +938,14 @@ Solver::Run(void)
       		/*
 		 * Fa l'output della soluzione delle derivate iniziali ed esce
 		 */
-      		pDM->Output(true);
+      		pDM->Output(0, dTime, 0., true);
       		Out << "Interrupted during derivatives computation." << std::endl;
       		throw ErrInterrupted();
 #endif /* HAVE_SIGNAL */
    	}
 
 	/* Dati comuni a passi fittizi e normali */
-   	integer iStep = 1;
+   	long lStep = 1;                      
    	doublereal dCurrTimeStep = 0.;
 
    	if (iFictitiousStepsNumber > 0) {
@@ -981,7 +987,7 @@ Solver::Run(void)
 				<< " cannot be reduced further;"
 				<< std::endl
 				<< "aborting ..." << std::endl);
-	 		pDM->Output(true);
+	 		pDM->Output(0, dTime, dCurrTimeStep, true);
 	 		throw ErrMaxIterations();
 		}
 		catch (NonlinearSolver::ErrSimulationDiverged) {
@@ -1017,7 +1023,7 @@ Solver::Run(void)
 			 * ed esce
 			 */
 #ifdef DEBUG_FICTITIOUS
-	   		pDM->Output(true);
+	   		pDM->Output(0, dTime, dCurrTimeStep, true);
 #endif /* DEBUG_FICTITIOUS */
 	 		Out << "Interrupted during first dummy step." << std::endl;
 	 		throw ErrInterrupted();
@@ -1025,7 +1031,7 @@ Solver::Run(void)
 #endif /* HAVE_SIGNAL */
 
 #ifdef DEBUG_FICTITIOUS
-      		pDM->Output(true);
+      		pDM->Output(0, dTime, dCurrTimeStep, true);
 #endif /* DEBUG_FICTITIOUS */
 
        		/* Passi fittizi successivi */
@@ -1063,7 +1069,7 @@ Solver::Run(void)
 					<< " cannot be reduced further;"
 					<< std::endl
 					<< "aborting ..." << std::endl);
-	 			pDM->Output(true);
+	 			pDM->Output(0, dTime, dCurrTimeStep, true);
 	 			throw ErrMaxIterations();
 			}
 
@@ -1089,7 +1095,7 @@ Solver::Run(void)
 
 #ifdef DEBUG
 	 		if (DEBUG_LEVEL(MYDEBUG_FSTEPS)) {
-	    			Out << "Step " << iStep
+	    			Out << "Step " << lStep
 					<< " time " << dTime+dCurrTimeStep
 					<< " step " << dCurrTimeStep
 					<< " iterations " << iStIter
@@ -1098,7 +1104,7 @@ Solver::Run(void)
 #endif /* DEBUG */
 
 	 		DEBUGLCOUT(MYDEBUG_FSTEPS, "Substep " << iSubStep
-				   << " of step " << iStep
+				   << " of step " << lStep
 				   << " has been successfully completed "
 				   "in " << iStIter << " iterations"
 				   << std::endl);
@@ -1107,7 +1113,7 @@ Solver::Run(void)
 	 		if (!::mbdyn_keep_going) {
 				/* */
 #ifdef DEBUG_FICTITIOUS
-	    			pDM->Output();
+	    			pDM->Output(0, dTime, dCurrTimeStep);
 #endif /* DEBUG_FICTITIOUS */
 	    			Out << "Interrupted during dummy steps."
 					<< std::endl;
@@ -1135,8 +1141,7 @@ Solver::Run(void)
    	} /* Fine dei passi fittizi */
 
    	/* Output delle "condizioni iniziali" */
-   	pDM->Output();
-
+   	pDM->Output(0, dTime, dCurrTimeStep);
 
         if (outputMsg()) {
   	 	Out
@@ -1174,9 +1179,9 @@ Solver::Run(void)
 	pNLS->SetExternal(External::REGULAR);
 #endif /* USE_EXTERNAL */
 
-   	iStep = 1; /* Resetto di nuovo iStep */
+   	lStep = 1; /* Resetto di nuovo lStep */
 
-   	DEBUGCOUT("Step " << iStep << " has been successfully completed "
+   	DEBUGCOUT("Step " << lStep << " has been successfully completed "
 			"in " << iStIter << " iterations" << std::endl);
 
 
@@ -1219,13 +1224,13 @@ IfFirstStepIsToBeRepeated:
 	    	silent_cerr("Maximum iterations number "
 			<< pRegularSteps->GetIntegratorMaxIters()
 			<< " has been reached during"
-			" first step (time="
-			<< dTime << ");" << std::endl
+			" first step (time=" << dTime << ");"
+			<< std::endl
 			<< "time step dt=" << dCurrTimeStep
 			<< " cannot be reduced further;"
 			<< std::endl
 			<< "aborting ..." << std::endl);
-	    	pDM->Output(true);
+	    	pDM->Output(0, dTime, dCurrTimeStep, true);
 
 		throw Solver::ErrMaxIterations();
       	}
@@ -1246,8 +1251,8 @@ IfFirstStepIsToBeRepeated:
 
 	SAFEDELETE(pFirstRegularStep);
 	pFirstRegularStep = 0;
-
-   	pDM->Output();
+	
+   	pDM->Output(lStep, dTime + dCurrTimeStep, dCurrTimeStep);
 
 #ifdef HAVE_SIGNAL
    	if (!::mbdyn_keep_going) {
@@ -1259,7 +1264,7 @@ IfFirstStepIsToBeRepeated:
 
 	if (outputMsg()) {
       		Out
-			<< "Step " << iStep
+			<< "Step " << lStep
 			<< " " << dTime+dCurrTimeStep
 			<< " " << dCurrTimeStep
 			<< " " << iStIter
@@ -1470,7 +1475,7 @@ IfFirstStepIsToBeRepeated:
 #endif /* USE_RTAI */
 			silent_cout("End of simulation at time "
 				<< dTime << " after "
-				<< iStep << " steps;" << std::endl
+				<< lStep << " steps;" << std::endl
 				<< "output in file \"" << sOutputFileName << "\"" << std::endl
 				<< "total iterations: " << iTotIter << std::endl
 				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
@@ -1493,7 +1498,7 @@ IfFirstStepIsToBeRepeated:
 			silent_cout("Simulation is stopped by RTAI task" << std::endl
 				<< "Simulation ended at time "
 				<< dTime << " after "
-				<< iStep << " steps;" << std::endl
+				<< lStep << " steps;" << std::endl
 				<< "total iterations: " << iTotIter << std::endl
 				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
 				<< "total error: " << dTotErr << std::endl);
@@ -1520,7 +1525,7 @@ IfFirstStepIsToBeRepeated:
 	 		silent_cout("Interrupted!" << std::endl
 	   			<< "Simulation ended at time "
 				<< dTime << " after "
-				<< iStep << " steps;" << std::endl
+				<< lStep << " steps;" << std::endl
 				<< "total iterations: " << iTotIter << std::endl
 				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
 				<< "total error: " << dTotErr << std::endl);
@@ -1528,7 +1533,7 @@ IfFirstStepIsToBeRepeated:
 #endif /* HAVE_SIGNAL */
       		}
 
-      		iStep++;
+      		lStep++;
       		pDM->BeforePredict(*pX, *pXPrime, *qX[0], *qXPrime[0]);
 
 		Flip();
@@ -1594,7 +1599,7 @@ IfStepIsToBeRepeated:
 						CurrStep);
 				DEBUGCOUT("Changing time step"
 					" during step "
-					<< iStep << " after "
+					<< lStep << " after "
 					<< iStIter << " iterations"
 					<< std::endl);
 				goto IfStepIsToBeRepeated;
@@ -1602,7 +1607,7 @@ IfStepIsToBeRepeated:
 				silent_cerr("Max iterations number "
 					<< pRegularSteps->GetIntegratorMaxIters()
 					<< " has been reached during"
-					" step " << iStep << ';'
+					" step " << lStep << ';'
 					<< std::endl
 					<< "time step dt="
 					<< dCurrTimeStep
@@ -1622,7 +1627,7 @@ IfStepIsToBeRepeated:
 				<< iStIter << " iterations, before "
 				"reaching max iteration number "
 				<< pRegularSteps->GetIntegratorMaxIters()
-				<< " during step " << iStep << ';'
+				<< " during step " << lStep << ';'
 				<< std::endl
 				<< "time step dt="
 				<< dCurrTimeStep
@@ -1640,11 +1645,11 @@ IfStepIsToBeRepeated:
 
 	      	dTotErr += dTest;
       		iTotIter += iStIter;
-
-      		pDM->Output();
+      		
+      		pDM->Output(lStep, dTime + dCurrTimeStep, dCurrTimeStep);
 
 		if (outputMsg()) {
-      			Out << "Step " << iStep
+      			Out << "Step " << lStep
 				<< " " << dTime+dCurrTimeStep
 				<< " " << dCurrTimeStep
 				<< " " << iStIter
@@ -1654,7 +1659,7 @@ IfStepIsToBeRepeated:
 				<< std::endl;
 		}
 
-     	 	DEBUGCOUT("Step " << iStep
+     	 	DEBUGCOUT("Step " << lStep
 			<< " has been successfully completed "
 			"in " << iStIter << " iterations" << std::endl);
 
@@ -1698,8 +1703,8 @@ IfStepIsToBeRepeated:
       		dCurrTimeStep =
 			NewTimeStep(dCurrTimeStep, iStIter, CurrStep);
 		DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
-   	}
-}
+   	} // while (true)  END OF ENDLESS-LOOP
+}  // Solver::Run()
 
 /* Distruttore */
 Solver::~Solver(void)

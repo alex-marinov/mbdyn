@@ -31,6 +31,9 @@
 #ifndef MBDYN_H
 #define MBDYN_H
 
+    //  #include <iostream>  required for  std::cout , std::cerr , std::endl
+    //  BUT conflicts for  *.c  files
+
 /* Global typedefs (unused yet) */
 typedef double mbReal;
 typedef int mbInt;
@@ -143,6 +146,8 @@ static const long int MYDEBUG_JAC                 = 0x00080000;
 /* visible to all */
 extern void *mbdyn_rtai_task;
 #endif /* USE_RTAI */
+
+#define	STRLENOF(s)	(sizeof(s) - 1)
 
 #endif /* MBDYN_H */
 

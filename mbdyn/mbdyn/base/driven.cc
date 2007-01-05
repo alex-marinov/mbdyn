@@ -76,6 +76,13 @@ DrivenElem::~DrivenElem(void)
 }
 
 void
+DrivenElem::OutputPrepare(OutputHandler& OH)
+{
+	ASSERT(pElem != NULL);
+	pElem->OutputPrepare(OH);
+}
+
+void
 DrivenElem::Output(OutputHandler& OH) const
 {
 	ASSERT(pElem != NULL);

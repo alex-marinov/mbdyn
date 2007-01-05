@@ -425,6 +425,18 @@ DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
 }
 
 void
+DataManager::ElemOutputPrepare(OutputHandler& OH)
+{
+	Elem* pTmpEl = NULL;
+
+	if (ElemIter.bGetFirst(pTmpEl)) {
+		do {
+			pTmpEl->OutputPrepare(OH);
+		} while (ElemIter.bGetNext(pTmpEl));
+	}
+}
+
+void
 DataManager::ElemOutput(OutputHandler& OH) const
 {
 	Elem* pTmpEl = NULL;

@@ -639,7 +639,7 @@ main(int argc, char* argv[])
 					<< std::endl);
 	        		throw ErrGeneric();
 	    		}
-        	}
+        	} // while (true)  end of endless loop 
 
 		if (iSleepTime > -1) {
 			sleep(iSleepTime);
@@ -806,7 +806,7 @@ main(int argc, char* argv[])
 	        		silent_cerr("You shouldn't be here!"
 						<< std::endl);
 	        		throw ErrGeneric();
-	    		}
+	    		}  // switch (CurrInputFormat)
 	    
 			clock_t ct = 0;
 
@@ -893,10 +893,11 @@ main(int argc, char* argv[])
 	    		}
 #endif /* HAVE_GETOPT */
 #endif /* MBDYN_X_MAIL_MESSAGE */
-        	}
+        	} // while (last == 0)
 
 		throw NoErr();
-
+          
+          // try end
     	} catch (NoErr) {     
         	silent_cout("MBDyn terminated normally" << std::endl);
         	rc = EXIT_SUCCESS;
@@ -921,7 +922,7 @@ main(int argc, char* argv[])
 #endif /* USE_RTAI */
    
     	MB_EXIT(rc);
-}
+} // main() end
 
 
 Solver* 
@@ -1168,7 +1169,7 @@ endofcycle:
 	}
     
     	return pSolv;
-}
+} // RunMBDyn
 
 #ifdef MBDYN_X_MAIL_MESSAGE
 /*

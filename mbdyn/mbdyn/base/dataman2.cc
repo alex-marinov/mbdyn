@@ -103,20 +103,20 @@ DataManager::dGetInitialPositionStiffness(void) const
 }
 
 const doublereal&
-DataManager::dGetInitialVelocityStiffness(void) const 
+DataManager::dGetInitialVelocityStiffness(void) const
 {
 	return dInitialVelocityStiffness;
 }
-   
-flag
-DataManager::fDoesOmegaRotate(void) const
+
+bool
+DataManager::bDoesOmegaRotate(void) const
 {
-	return fOmegaRotates;
+	return bOmegaRotates;
 }
 
 void
 DataManager::IncElemCount(Elem::Type type)
-{  
+{
 	/* FIXME: assert the data structure has not been allocated yet */
 	ElemData[type].iExpectedNum++;
 }
@@ -601,7 +601,7 @@ DataManager::InitialJointAssembly(void)
 			Vec3 wPrev((*ppTmpNode)->GetWPrev());
 			Vec3 wCurr((*ppTmpNode)->GetWCurr());
 
-			if ((*ppTmpNode)->fOmegaRotates()) {
+			if ((*ppTmpNode)->bOmegaRotates()) {
 				/* con questa la velocita' angolare e' solidale
 				 * con il nodo */
 				TmpVec = RDelta*wPrev-wCurr;
@@ -658,7 +658,7 @@ DataManager::InitialJointAssembly(void)
 		if (dTest <= dInitialAssemblyTol) {
 			DEBUGLCOUT(MYDEBUG_ASSEMBLY, "Initial assembly "
 					"performed successfully in "
-					<< iNumIter << " iterations" 
+					<< iNumIter << " iterations"
 					<< std::endl);
 			goto endofcycle;
 		}
@@ -694,7 +694,7 @@ DataManager::InitialJointAssembly(void)
 				pMatHdl->PutCoef(iTmp, iTmp, dVelStiff);
 			}
 
-			if ((*ppTmpNode)->fOmegaRotates()) {
+			if ((*ppTmpNode)->bOmegaRotates()) {
 				/* con questi la velocita' angolare e' solidale con il nodo */
 
 				/* Velocita' angolare - termine di rotazione: R_Delta*w0/\ */
@@ -748,7 +748,7 @@ DataManager::InitialJointAssembly(void)
 			*pSolHdl *= dEpsilon;
 		}
 		X += *pSolHdl;
-		
+
 		/* Correggo i nodi */
 		for (StructNode** ppTmpNode = ppFirstNode;
 				ppTmpNode < ppFirstNode+iNumNodes; ppTmpNode++) {
@@ -819,7 +819,7 @@ DataManager::DofOwnerSet(void)
 		DofOwner::Type DT = ElemData[iCnt].DofOwnerType;
 		if (DT != DofOwner::UNKNOWN) {
 			DEBUGLCOUT(MYDEBUG_INIT, "Elem type " << iCnt
-					<< " (" << psElemNames[iCnt] << ")" 
+					<< " (" << psElemNames[iCnt] << ")"
 					<< std::endl);
 
 			for (ElemMapType::const_iterator p = ElemData[iCnt].ElemMap.begin();
@@ -861,10 +861,10 @@ DataManager::SetValue(VectorHandler& X, VectorHandler& XP)
 		std::ifstream fp(solArrFileName);
 #ifdef HAVE_ISOPEN
    		if (!fp.is_open()) {
-			silent_cerr("DataManager::SetValue(): " 
+			silent_cerr("DataManager::SetValue(): "
 				"Cannot open file \"" << solArrFileName << "\""
 				<< std::endl);
-			throw ErrGeneric();	
+			throw ErrGeneric();
 		}
 #endif /* HAVE_ISOPEN */
 #if 0
@@ -876,22 +876,22 @@ DataManager::SetValue(VectorHandler& X, VectorHandler& XP)
 		}
 		count--;
 		if (count != (X.iGetSize()+XP.iGetSize())*sizeof(double)) {
-			silent_cerr("DataManager::SetValue(): " 
+			silent_cerr("DataManager::SetValue(): "
 				"File(" << solArrFileName << ") too short!" << std::endl);
-			throw ErrGeneric();				
+			throw ErrGeneric();
 		}
 #endif
 		fp.read((char*)X.pdGetVec() , X.iGetSize()*sizeof(double));
 		if (fp.gcount() != std::streamsize(X.iGetSize()*sizeof(double))) {
-			silent_cerr("DataManager::SetValue(): " 
+			silent_cerr("DataManager::SetValue(): "
 				"File(" << solArrFileName << ") too short!"
 				<< std::endl);
-			throw ErrGeneric();				
+			throw ErrGeneric();
 		}
 		fp.read((char*)XP.pdGetVec() , XP.iGetSize()*sizeof(double));
 		if (fp.gcount() != std::streamsize(XP.iGetSize()*sizeof(double))) {
-			silent_cerr("DataManager::SetValue(): " 
-				"File(" << solArrFileName << ") too short!" 
+			silent_cerr("DataManager::SetValue(): "
+				"File(" << solArrFileName << ") too short!"
 				<< std::endl);
 			throw ErrGeneric();
 		}
@@ -903,7 +903,74 @@ DataManager::SetValue(VectorHandler& X, VectorHandler& XP)
 
 /* Output dati */
 void
-DataManager::Output(bool force) const
+DataManager::OutputPrepare(void)
+{
+#ifdef USE_NETCDF
+	/* Set up NetCDF stuff if required */
+	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
+		OutHdl.Open(OutputHandler::NETCDF);
+		ASSERT(OutHdl.IsOpen(OutputHandler::NETCDF));
+
+		/* get a pointer to binary NetCDF file  -->  pDM->OutHdl.BinFile */
+		NcFile *pBinFile = OutHdl.pGetBinFile();
+
+		/* Add general NetCDF (output) variables to the BinFile object and
+		 * save the NcVar* pointer returned from add_var as handle
+		 * for later write accesses. Define also variable attributes*/
+		Var_Step = pBinFile->add_var("step", ncLong, OutHdl.DimTime());
+		if (Var_Step == 0) {
+			throw ErrGeneric();
+		}
+
+		if (!Var_Step->add_att("units", "-")) {
+			throw ErrGeneric();
+		}
+
+		if (!Var_Step->add_att("description", "time step index")) {
+			throw ErrGeneric();
+		}
+
+		Var_Time = pBinFile->add_var("time", ncDouble, OutHdl.DimTime());
+		if (Var_Time == 0) {
+			throw ErrGeneric();
+		}
+
+		if (!Var_Time->add_att("units", "sec")) {
+			throw ErrGeneric();
+		}
+
+		if (!Var_Time->add_att("description", "simulation time")) {
+			throw ErrGeneric();
+		}
+
+		Var_TimeStep = pBinFile->add_var("time_step", ncDouble, OutHdl.DimTime());
+		if (Var_TimeStep == 0) {
+			throw ErrGeneric();
+		}
+
+		if (!Var_TimeStep->add_att("units", "sec")) {
+			throw ErrGeneric();
+		}
+
+		if (!Var_TimeStep->add_att("description", "integration time step")) {
+			throw ErrGeneric();
+		}
+	}
+#endif /* USE_NETCDF */
+
+	/* Dati dei nodi */
+	NodeOutputPrepare(OutHdl);
+
+	/* Dati degli elementi */
+	ElemOutputPrepare(OutHdl);
+}
+
+/* Output dati */
+void
+DataManager::Output(long lStep,
+	const doublereal& dTime,
+	const doublereal& dTimeStep,
+	bool force) const
 {
 	/* Nota: il casting di OutHdl e' necessario in quanto la funzione propria
 	 * <void DataManager::Output(void) const> e' dichiarata, appunto, <const>.
@@ -925,11 +992,25 @@ DataManager::Output(bool force) const
 		return;
 	}
 
+	/*
+	 * Write general simulation data to binary NetCDF file
+	 *   the current time step index
+	 *   the current simulatin time
+	 *   the current integration time step
+	 */
+#ifdef USE_NETCDF
+	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
+		Var_Step->put_rec(&lStep, OutHdl.GetCurrentStep());
+		Var_Time->put_rec(&dTime, OutHdl.GetCurrentStep());
+		Var_TimeStep->put_rec(&dTimeStep, OutHdl.GetCurrentStep());
+	}
+#endif /* USE_NETCDF */
+
 	/* Dati dei nodi */
-	NodeOutput((OutputHandler&)OutHdl);
+	NodeOutput(OutHdl);
 
 	/* Dati degli elementi */
-	ElemOutput((OutputHandler&)OutHdl);
+	ElemOutput(OutHdl);
 
 #if defined(USE_ADAMS) || defined(USE_MOTIONVIEW)
 	iOutputBlock++;
@@ -948,6 +1029,13 @@ DataManager::Output(bool force) const
 		MotionViewResOutput(iOutputBlock, "DYNAMIC", "MBDyn");
 	}
 #endif /* USE_MOTIONVIEW */
+
+	OutHdl.IncCurrentStep();
+#ifdef USE_NETCDF
+	if (bNetCDFsync) {
+		OutHdl.pGetBinFile()->sync();
+	}
+#endif /* USE_NETCDF */
 }
 
 /* Output dati */
@@ -986,7 +1074,7 @@ DataManager::Output_f06(std::ostream& f06, const VectorHandler& X) const
 
 /* Output dati f06 */
 void
-DataManager::Output_f06(std::ostream& f06, const VectorHandler& Xr, 
+DataManager::Output_f06(std::ostream& f06, const VectorHandler& Xr,
 		const VectorHandler& Xi) const
 {
 	/* Dati dei nodi */
@@ -1008,8 +1096,8 @@ DataManager::Output_OpenDX(std::ostream& dx, const VectorHandler& Xr, const Vect
 
 void
 DataManager::BeforePredict(VectorHandler& X, VectorHandler& XP,
-		VectorHandler& XPrev,
-		VectorHandler& XPPrev) const
+	VectorHandler& XPrev,
+	VectorHandler& XPPrev) const
 {
 	Node** ppLastNode = ppNodes+iTotNodes;
 	for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
@@ -1033,7 +1121,7 @@ DataManager::AfterPredict(void) const
 	for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
 		ASSERT(*ppTmp != NULL);
 		(*ppTmp)->AfterPredict(*(VectorHandler*)pXCurr,
-				       *(VectorHandler*)pXPrimeCurr);
+			*(VectorHandler*)pXPrimeCurr);
 	}
 
 	/* Versione con iteratore: */
@@ -1041,7 +1129,7 @@ DataManager::AfterPredict(void) const
 	if (ElemIter.bGetFirst(pEl)) {
 		do {
 			pEl->AfterPredict(*(VectorHandler*)pXCurr,
-					*(VectorHandler*)pXPrimeCurr);
+				*(VectorHandler*)pXPrimeCurr);
 		} while (ElemIter.bGetNext(pEl));
 	}
 }
@@ -1071,7 +1159,7 @@ DataManager::AfterConvergence(void) const
 	for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
 		ASSERT(*ppTmp != NULL);
 		(*ppTmp)->AfterConvergence(*(VectorHandler*)pXCurr,
-					   *(VectorHandler*)pXPrimeCurr);
+			*(VectorHandler*)pXPrimeCurr);
 	}
 
 	/* Versione con iteratore: */
@@ -1079,7 +1167,7 @@ DataManager::AfterConvergence(void) const
 	if (ElemIter.bGetFirst(pEl)) {
 		do {
 			pEl->AfterConvergence(*(VectorHandler*)pXCurr,
-					*(VectorHandler*)pXPrimeCurr);
+				*(VectorHandler*)pXPrimeCurr);
 		} while (ElemIter.bGetNext(pEl));
 	}
 
@@ -1106,14 +1194,14 @@ DataManager::AfterConvergence(void) const
 	case TIMES: {
 		ASSERT(pTime != NULL);
 
-		doublereal dT = pTime->GetVal().GetReal() 
-				+ pSolver->GetDInitialTimeStep()/100.;
+		doublereal dT = pTime->GetVal().GetReal()
+			+ pSolver->GetDInitialTimeStep()/100.;
 		if (iCurrRestartTime == iNumRestartTimes) {
 			break;
 		}
-		
+
 		ASSERT(iCurrRestartTime < iNumRestartTimes);
-		
+
 		if (dT >= pdRestartTimes[iCurrRestartTime]) {
 			iCurrRestartTime++;
 			((DataManager*)this)->MakeRestart();

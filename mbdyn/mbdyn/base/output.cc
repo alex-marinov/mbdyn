@@ -72,6 +72,7 @@ const char* psExt[] = {
 	".prm",
 	".ext",
 	".mod",		// 25
+	".nc",
 	NULL
 };
 
@@ -96,83 +97,116 @@ iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision), nCurrRestartFile(0
 void
 OutputHandler::OutputHandler_int(void)
 {
-	OutData[OUTPUT].flags = OUTPUT_NONE;
+	OutData[OUTPUT].flags = 0
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[OUTPUT].pof = &ofOutput;
 
-	OutData[STRNODES].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC;
+	OutData[STRNODES].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT
+		| OUTPUT_MAY_USE_NETCDF;
 	OutData[STRNODES].pof = &ofStrNodes;
 
-	OutData[ELECTRIC].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC;
+	OutData[ELECTRIC].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[ELECTRIC].pof= &ofElectric;
 
-	OutData[ABSTRACT].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC;
+	OutData[ABSTRACT].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[ABSTRACT].pof = &ofAbstract;
 
-	OutData[INERTIA].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC;
+	OutData[INERTIA].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[INERTIA].pof = &ofInertia;
 
-	OutData[JOINTS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC;
+	OutData[JOINTS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[JOINTS].pof = &ofJoints;
 
-	OutData[FORCES].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC;
+	OutData[FORCES].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[FORCES].pof = &ofForces;
 
-	OutData[BEAMS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC;
+	OutData[BEAMS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[BEAMS].pof = &ofBeams;
 
-	OutData[ROTORS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC;
+	OutData[ROTORS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[ROTORS].pof = &ofRotors;
 
-	OutData[RESTART].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC;
+	OutData[RESTART].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[RESTART].pof = &ofRestart;
 
-	OutData[RESTARTXSOL].flags = OUTPUT_NONE;
+	OutData[RESTARTXSOL].flags = 0
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[RESTARTXSOL].pof = &ofRestartXSol;
 
-	OutData[AERODYNAMIC].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC;
+	OutData[AERODYNAMIC].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[AERODYNAMIC].pof = &ofAerodynamic;
 
-	OutData[HYDRAULIC].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC;
+	OutData[HYDRAULIC].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[HYDRAULIC].pof = &ofHydraulic;
 
-	OutData[PRESNODES].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC;
+	OutData[PRESNODES].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[PRESNODES].pof = &ofPresNodes;
 
-	OutData[LOADABLE].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC;
+	OutData[LOADABLE].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[LOADABLE].pof = &ofLoadable;
 
-	OutData[GENELS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC;
+	OutData[GENELS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[GENELS].pof = &ofGenels;
 
-	OutData[PARTITION].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC;
+	OutData[PARTITION].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[PARTITION].pof = &ofPartition;
 
-	OutData[ADAMSRES].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC;
+	OutData[ADAMSRES].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[ADAMSRES].pof = &ofAdamsRes;
 
-	OutData[ADAMSCMD].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC;
+	OutData[ADAMSCMD].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[ADAMSCMD].pof = &ofAdamsCmd;
 
-	OutData[AEROMODALS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC;
+	OutData[AEROMODALS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[AEROMODALS].pof = &ofAeroModals;
 
-	OutData[REFERENCEFRAMES].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC;
+	OutData[REFERENCEFRAMES].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[REFERENCEFRAMES].pof = &ofReferenceFrames;
 
-	OutData[LOG].flags = OUTPUT_NONE;
+	OutData[LOG].flags = 0
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[LOG].pof = &ofLog;
 
-	OutData[AIRPROPS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC;
+	OutData[AIRPROPS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[AIRPROPS].pof = &ofAirProps;
 
-	OutData[PARAMETERS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC;
+	OutData[PARAMETERS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[PARAMETERS].pof = &ofParameters;
 
-	OutData[EXTERNALS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC;
+	OutData[EXTERNALS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[EXTERNALS].pof = &ofExternals;
 
-	OutData[MODAL].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC;
+	OutData[MODAL].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[MODAL].pof = &ofModal;
+
+	OutData[NETCDF].flags = 0
+		| OUTPUT_MAY_USE_NETCDF;
+	OutData[NETCDF].pof = 0;
+
+	currentStep = 0;
 }
 
 /* Inizializzazione */
@@ -180,6 +214,14 @@ void
 OutputHandler::Init(const char* sFName, int iExtNum)
 {
 	FileName::iInit(sFName, iExtNum);
+
+#ifdef USE_NETCDF
+	/* NetCDF file */
+	for (int i = 0; i < DIM_LAST; i++) {
+		Dim[i] = 0;
+	}
+#endif /* USE_NETCDF */
+
 	OutputOpen();
 	LogOpen();
 }
@@ -189,7 +231,15 @@ OutputHandler::~OutputHandler(void)
 {
 	for (int iCnt = 0; iCnt < LASTFILE; iCnt++) {
 		if (IsOpen(iCnt)) {
-			OutData[iCnt].pof->close();
+#ifdef USE_NETCDF
+			if (iCnt == NETCDF) {
+				delete pBinFile;
+
+			} else
+#endif /* USE_NETCDF */
+			{
+				OutData[iCnt].pof->close();
+			}
 		}
 	}
 }
@@ -199,23 +249,77 @@ bool
 OutputHandler::Open(const OutputHandler::OutFiles out)
 {
 	if (!IsOpen(out)) {
-		// Apre lo stream
-		OutData[out].pof->open(_sPutExt((char*)(psExt[out])));
+#ifdef USE_NETCDF
+		if (out == NETCDF) {
+			pBinFile = new NcFile(_sPutExt((char*)(psExt[NETCDF])), NcFile::Replace);
+			pBinFile->set_fill(NcFile::Fill);
+	
+         		if (!pBinFile->is_valid()) {
+				silent_cerr("NetCDF file is invalid" << std::endl);
+				throw ErrFile();
+			}
 
-		if (!(*OutData[out].pof)) {
-			silent_cerr("Unable to open file \"" << _sPutExt((char*)(psExt[out]))
-				<< "\"" << std::endl);
-			throw ErrFile();
+			static const char *DimName[] = {
+				"time",		// THE UNLIMITED DIMENSION
+				"vec1",
+				"vec2",
+				"vec3",
+				"vec4",
+				"vec5",
+				"vec6",
+			};
+
+			// Let's define some dimensions which could be useful	       	     
+			Dim[DIM_TIME] = pBinFile->add_dim("time");
+			if (!Dim[DIM_TIME]) {
+				silent_cerr("Unable to create NetCDF "
+					"\"time\" dimension"
+					<< std::endl);
+				throw ErrFile();
+			}
+
+			for (int i = 1; i < DIM_LAST; i++) {
+				Dim[i] = pBinFile->add_dim(DimName[i], i);
+				if (!Dim[i]) {
+					silent_cerr("Unable to create NetCDF "
+						"\"" << DimName[i] << "\" dimension"
+						<< std::endl);
+					throw ErrFile();
+				}
+			}
+
+			/* TODO: add
+			 *	- version
+			 *	- model name
+			 *	- title
+			 *	- description
+			 *	- timestamp
+			 * from netcdf's configuration parameters
+			 */
+
+		} else
+#endif /* USE_NETCDF */
+		{
+			// Apre lo stream
+			OutData[out].pof->open(_sPutExt((char*)(psExt[out])));
+
+			if (!(*OutData[out].pof)) {
+				silent_cerr("Unable to open file \"" << _sPutExt((char*)(psExt[out]))
+					<< "\"" << std::endl);
+				throw ErrFile();
+			}
 		}
 
-		// Setta la formattazione dei campi
-		if (UseDefaultPrecision(out)) {
-			OutData[out].pof->precision(iCurrPrecision);
-		}
+		if (UseText(out)) {
+			// Setta la formattazione dei campi
+			if (UseDefaultPrecision(out)) {
+				OutData[out].pof->precision(iCurrPrecision);
+			}
 
-		// Setta la notazione
-		if (UseScientific(out)) {
-			OutData[out].pof->setf(std::ios::scientific);
+			// Setta la notazione
+			if (UseScientific(out)) {
+				OutData[out].pof->setf(std::ios::scientific);
+			}
 		}
 
 		return true;
@@ -236,7 +340,13 @@ OutputHandler::IsOpen(int out) const
 bool
 OutputHandler::IsOpen(const OutputHandler::OutFiles out) const
 {
-	return OutData[out].pof->is_open();
+#ifdef USE_NETCDF
+	if (out == NETCDF) {
+		return pBinFile == 0 ? false : pBinFile->is_valid();
+	}
+#endif /* USE_NETCDF */
+
+	return OutData[out].pof == 0 ? false : OutData[out].pof->is_open();
 }
 
 bool
@@ -270,14 +380,112 @@ OutputHandler::UseDefaultPrecision(const OutputHandler::OutFiles out) const
 }
 
 bool
+OutputHandler::UseText(int out) const
+{
+	ASSERT(out > OutputHandler::UNKNOWN);
+	ASSERT(out < OutputHandler::LASTFILE);
+
+	return UseText(OutputHandler::OutFiles(out));
+}
+
+void
+OutputHandler::SetText(const OutputHandler::OutFiles out)
+{
+	if (!(OutData[out].flags & OUTPUT_MAY_USE_TEXT)) {
+		throw ErrGeneric();
+	}
+
+	OutData[out].flags |= OUTPUT_USE_TEXT;
+}
+
+void
+OutputHandler::ClearText(void)
+{
+	for (int out = FIRSTFILE; out < LASTFILE; out++) {
+		if (OutData[out].flags & OUTPUT_MAY_USE_TEXT) {
+			OutData[out].flags &= ~OUTPUT_USE_TEXT;
+		}
+	}
+}
+
+void
+OutputHandler::ClearText(const OutputHandler::OutFiles out)
+{
+	if (!(OutData[out].flags & OUTPUT_MAY_USE_TEXT)) {
+		throw ErrGeneric();
+	}
+
+	OutData[out].flags &= ~OUTPUT_USE_TEXT;
+}
+
+bool
+OutputHandler::UseText(const OutputHandler::OutFiles out) const
+{
+	return (OutData[out].flags & OUTPUT_USE_TEXT);
+}
+
+bool
+OutputHandler::UseNetCDF(int out) const
+{
+	ASSERT(out > OutputHandler::UNKNOWN);
+	ASSERT(out < OutputHandler::LASTFILE);
+
+	return UseNetCDF(OutputHandler::OutFiles(out));
+}
+
+void
+OutputHandler::SetNetCDF(const OutputHandler::OutFiles out)
+{
+	if (!(OutData[out].flags & OUTPUT_MAY_USE_NETCDF)) {
+		throw ErrGeneric();
+	}
+
+	OutData[out].flags |= OUTPUT_USE_NETCDF;
+}
+
+void
+OutputHandler::ClearNetCDF(void)
+{
+	for (int out = FIRSTFILE; out < LASTFILE; out++) {
+		if (OutData[out].flags & OUTPUT_MAY_USE_NETCDF) {
+			OutData[out].flags &= ~OUTPUT_USE_NETCDF;
+		}
+	}
+}
+
+void
+OutputHandler::ClearNetCDF(const OutputHandler::OutFiles out)
+{
+	if (!(OutData[out].flags & OUTPUT_MAY_USE_NETCDF)) {
+		throw ErrGeneric();
+	}
+
+	OutData[out].flags &= ~OUTPUT_USE_NETCDF;
+}
+
+bool
+OutputHandler::UseNetCDF(const OutputHandler::OutFiles out) const
+{
+	return (OutData[out].flags & OUTPUT_USE_NETCDF);
+}
+
+bool
 OutputHandler::Close(const OutputHandler::OutFiles out)
 {
 	if (!IsOpen(out)) {
 		return false;
 	}
 
-	// Chiude lo stream
-	OutData[out].pof->close();
+#ifdef USE_NETCDF
+	if (out == NETCDF) {
+		pBinFile->close();
+
+	} else
+#endif /* USE_NETCDF */
+	{
+		// Chiude lo stream
+		OutData[out].pof->close();
+	}
 
 	return true;
 }
@@ -430,6 +638,12 @@ ToBeOutput::ToBeOutput(flag fOut)
 }
 
 ToBeOutput::~ToBeOutput(void)
+{
+	NO_OP;
+}
+
+void
+ToBeOutput::OutputPrepare(OutputHandler &OH)
 {
 	NO_OP;
 }

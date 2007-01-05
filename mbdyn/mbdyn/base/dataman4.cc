@@ -362,7 +362,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					<< std::endl);
 				throw DataManager::ErrGeneric();
 			}
-			}
+			} /* end switch (KeyWords(HP.GetWord()))  */
 
 			/* Elements list */
 			while (HP.IsArg()) {
@@ -396,7 +396,7 @@ DataManager::ReadElems(MBDynParser& HP)
 						pE->SetOutputFlag(flag(1));
 					}
 				}
-			}
+			} /* end while (HP.IsArg()) */
 
 		} else if (CurrDesc == INERTIA) {
 			unsigned int uIn = (unsigned int)HP.GetInt();
@@ -549,7 +549,7 @@ DataManager::ReadElems(MBDynParser& HP)
 							<< std::endl);
 					}
 				}
-			}
+			}  /* end while (HP.IsArg()) */ 
 
 			Vec3 Xcg(0.);
 			Mat3x3 Jcg(J);
@@ -689,7 +689,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					<< " does not support bind" << std::endl);
 			default:
 				throw ErrGeneric();
-			}
+			} /* end switch (KeyWords(HP.GetWord())) */
 
 			Elem* pEl = (Elem*)pFindElem(t, uL);
 			if (pEl == 0) {
@@ -772,8 +772,9 @@ DataManager::ReadElems(MBDynParser& HP)
 			AutomaticStructElem* pAuto = (AutomaticStructElem*)pEl->pGet();
 			pAuto->Init(q, g, qp, gp);
 
+        /*  <<<<  D E F A U L T  >>>>  :  Read one element and create it */ 
 		/* default: leggo un elemento e lo creo */
-		} else {
+		} else {              			
 			/* puntatore all'elemento */
 			Elem* pE = 0;
 
@@ -989,7 +990,8 @@ DataManager::ReadElems(MBDynParser& HP)
 						default:
 							DEBUGCERR("warning, this element can't be driven" << std::endl);
 							break;
-						}
+							
+						}  /*switch (CurrDriven) */
 
 						if (ppE == NULL) {
 							silent_cerr("Error: element " << uLabel
@@ -1025,7 +1027,7 @@ DataManager::ReadElems(MBDynParser& HP)
 						}
 
 						pE = *ppE;
-					}
+					}  /*  if (CurrDriven == EXISTING) {..} else {..}  */
 
 					SimulationEntity::Hints *pHints = 0;
 					if (!hints.empty()) {
@@ -1053,8 +1055,9 @@ DataManager::ReadElems(MBDynParser& HP)
 					pE = *ppE = pEl;
 
 					break;
-				}
+				}  /* end case DRIVEN: */
 
+                /*  <<<<  N O R M A L   E L E M E N T S  >>>>>  */
 				/* Normal element */
 				case FORCE:
 #ifdef USE_STRUCT_NODES
@@ -1119,7 +1122,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					}
 
 					break;
-				}
+				}  /* end case 'Normal elements'*/
 
 				/* in caso di tipo sconosciuto */
 				case UNKNOWNKEYWORD: {
@@ -1138,9 +1141,10 @@ DataManager::ReadElems(MBDynParser& HP)
 
 					throw DataManager::ErrGeneric();
 				}
-				}
-			}
-			}
+				}  /* end switch (CurrDesc) 'in base al tipo'  */
+				
+			}  /* end case default: 'Elemento generico' */
+			}  /* end switch (CurrDesc) 'Elemento generico' */
 
 			/* verifica dell'allocazione */
 			ASSERT(pE != 0);
@@ -1163,8 +1167,11 @@ DataManager::ReadElems(MBDynParser& HP)
 
 			/* decrementa il totale degli elementi mancanti */
 			iMissingElems--;
-		}
-	}
+			
+		}  /* end <<<<  D E F A U L T  >>>>  :  Read one element and create it */ 
+		   /* end default: leggo un elemento e lo creo */
+		 
+	}  /* while ((CurrDesc = KeyWords(HP.GetDescription())) != END) */
 
 	if (KeyWords(HP.GetWord()) != ELEMENTS) {
 		DEBUGCERR("");
@@ -1238,7 +1245,7 @@ DataManager::ReadElems(MBDynParser& HP)
 			}
 		}
 
-	} else {
+	} else { /* '' */
 		/* Esegue un controllo per vedere se esistono elementi aerodinamici
 		 * ma non sono definite le proprieta' dell'aria, nel qual caso
 		 * il calcolo deve essere arrestato */
@@ -1292,7 +1299,7 @@ DataManager::ReadElems(MBDynParser& HP)
 	}
 	
 	DEBUGLCOUT(MYDEBUG_INPUT, "End of elements data" << std::endl);
-} /* End of DataManager::ReadElems() */
+} /*  End of DataManager::ReadElems()  */
 
 Elem**
 DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, int CurrType)

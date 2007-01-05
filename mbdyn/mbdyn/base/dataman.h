@@ -38,6 +38,9 @@
 #include <map>
 #include <string>
 
+#include <netcdfcpp.h>
+//#include "../../../libraries/netcdf-3.6.4-b4/cxx/netcdfcpp.h"  //
+
 #include "myassert.h"
 #include "mynewmem.h"
 #include "except.h"
@@ -81,7 +84,7 @@ private:
 	/* from input file, or auto-detected */
 	unsigned int nThreads;
 #endif /* USE_MULTITHREAD */
-	
+
 	/* Handler vari */
 	MathParser& MathPar;      /* Received from MultiStepIntegrator */
 	Solver* pSolver;
@@ -103,12 +106,12 @@ protected:
 private:
 	/* Parametri usati durante l'assemblaggio iniziale */
 #if defined(USE_STRUCT_NODES)
-	flag fInitialJointAssemblyToBeDone;
-	flag fSkipInitialJointAssembly;
-	flag fOutputFrames;
+	bool bInitialJointAssemblyToBeDone;
+	bool bSkipInitialJointAssembly;
+	bool bOutputFrames;
 	doublereal dInitialPositionStiffness;
 	doublereal dInitialVelocityStiffness;
-	flag fOmegaRotates;
+	bool bOmegaRotates;
 	doublereal dInitialAssemblyTol;
 	integer iMaxInitialIterations;
 	doublereal dEpsilon;
@@ -143,13 +146,13 @@ protected:
 	doublereal *pdRestartTimes;
 	integer iNumRestartTimes;
 	mutable integer iCurrRestartTime;
-	
+
 	mutable integer iCurrRestartIter;
 	mutable doublereal dLastRestartTime;
-	
+
 	bool saveXSol;
 	char * solArrFileName;
-	
+
 	/* raw output stuff */
 	DriveCaller *pOutputMeter;
 	mutable integer iOutputCount;
@@ -158,15 +161,26 @@ protected:
 public:
 	enum ResType {
 		RES_NONE	= 0x00,
-		RES_NATIVE	= 0x01,
-		RES_ADAMS	= 0x02,
-		RES_MOTIONVIEW	= 0x04
+		RES_TEXT	= 0x01,
+		RES_NETCDF	= 0x02,
+		RES_ADAMS	= 0x04,
+		RES_MOTIONVIEW	= 0x08
 	};
 
 	bool bOutput(ResType t) const;
 
 protected:
 	int ResMode;
+
+	/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+	/* NetCDF stuff */
+	bool bNetCDFsync;
+#ifdef USE_NETCDF
+	NcVar *Var_Step;
+	NcVar *Var_Time;
+	NcVar *Var_TimeStep;
+#endif /* USE_NETCDF */
+	/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #if defined(USE_ADAMS) || defined(USE_MOTIONVIEW)
 	mutable integer iOutputBlock;
@@ -186,7 +200,7 @@ protected:
 
 private:
 	/* chiamate dal costruttore per leggere i relativi articoli */
-	void ReadControl(MBDynParser& HP, const char* sOutputFileName, 
+	void ReadControl(MBDynParser& HP, const char* sOutputFileName,
 				const char* sInputFileName);
 	void ReadNodes(MBDynParser& HP);
 	void ReadDrivers(MBDynParser& HP);
@@ -200,7 +214,7 @@ public:
 
 	const doublereal& dGetInitialPositionStiffness(void) const;
 	const doublereal& dGetInitialVelocityStiffness(void) const;
-	flag fDoesOmegaRotate(void) const;
+	bool bDoesOmegaRotate(void) const;
 
 	void IncElemCount(Elem::Type type);
 
@@ -235,12 +249,12 @@ private:
 public:
 	/* costruttore - legge i dati e costruisce le relative strutture */
 	DataManager(MBDynParser& HP,
-			unsigned OF,
-			Solver* pS,
-			doublereal dInitialTime,
-			const char* sOutputFileName,
-			const char* sInputFileName,
-			bool bAbortAfterInput);
+		unsigned OF,
+		Solver* pS,
+		doublereal dInitialTime,
+		const char* sOutputFileName,
+		const char* sInputFileName,
+		bool bAbortAfterInput);
 
 	/* distruttore */
 	virtual ~DataManager(void);
@@ -280,6 +294,9 @@ public:
 	std::ostream& GetOutFile(void) { return OutHdl.Output(); };
 	std::ostream& GetLogFile(void) { return OutHdl.Log(); };
 
+	/* required for binary NetCDF output access */
+	const OutputHandler* pGetOutHdl(void) const { return &OutHdl; };
+
 	/* Restituisce il DriveHandler */
 	const DriveHandler* pGetDrvHdl(void) const { return &DrvHdl; };
 	MathParser& GetMathParser(void) const { return MathPar; };
@@ -309,23 +326,16 @@ protected:
 		throw(ChangedEquationStructure);
 
 public:
+	virtual void OutputPrepare(void);
+
 	/* stampa i risultati */
-	virtual void Output(bool force = false) const;
+	virtual void Output(long lStep,
+		const doublereal& dTime,
+		const doublereal& dTimeStep,
+		bool force = false) const;
 	virtual void Output(const VectorHandler& X,
 			const VectorHandler& XP) const;
-#if 0
-	virtual void Output_pch(std::ostream& pch) const;
-	virtual void Output_f06(std::ostream& f06,
-			const VectorHandler& X) const;
-	virtual void Output_f06(std::ostream& f06, const VectorHandler& Xr,
-			const VectorHandler& Xi) const;
-#endif
-#if 0
-	virtual void Output_OpenDX(std::ostream& dx, const VectorHandler& Xr,
-			const VectorHandler& Xi) const;
-#endif
 
-	/* Aggiungere qui le funzioni che aprono i singoli stream */
 	void OutputOpen(const OutputHandler::OutFiles out);
 
 #ifdef USE_ADAMS
@@ -509,6 +519,7 @@ public:
 	/* Funzioni di routine */
 
 	/* Scrive i risultati */
+	void ElemOutputPrepare(OutputHandler& OH);
 	void ElemOutput(OutputHandler& OH) const;
 	void ElemOutput(OutputHandler& OH,
 			const VectorHandler& X, const VectorHandler& XP) const;
@@ -569,6 +580,7 @@ public:
 	void NodeDataInit(void);
 
 	/* scrive i dati dei nodi */
+	void NodeOutputPrepare(OutputHandler& OH);
 	void NodeOutput(OutputHandler& OH) const;
 	void NodeOutput(OutputHandler& OH,
 			const VectorHandler& X, const VectorHandler& XP) const;
