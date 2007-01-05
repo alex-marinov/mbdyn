@@ -265,6 +265,26 @@ public:
 		VectorHandler& XPrev,
 		VectorHandler& XPPrev) const;
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+
+	/*
+	 * Metodi per l'estrazione di dati "privati".
+	 * Si suppone che l'estrattore li sappia interpretare.
+	 * Come default non ci sono dati privati estraibili
+	 */
+	virtual unsigned int iGetNumPrivData(void) const;
+
+	/*
+	 * Maps a string (possibly with substrings) to a private data;
+	 * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0 
+	 * in case of unrecognized data; error must be handled by caller
+	 */
+	virtual unsigned int iGetPrivDataIdx(const char *s) const;
+
+	/*
+	 * Returns the current value of a private data
+	 * with 0 < i <= iGetNumPrivData()
+	 */
+	virtual doublereal dGetPrivData(unsigned int i) const;
 }; /* End class StructNode */
 
 /* Ritorna il numero di dofs usato nell'assemblaggio iniziale */
@@ -516,6 +536,26 @@ public:
 
 	virtual void ComputeAccelerations(bool b);
 	virtual void SetOutputFlag(flag f = flag(1));
+
+	/*
+	 * Metodi per l'estrazione di dati "privati".
+	 * Si suppone che l'estrattore li sappia interpretare.
+	 * Come default non ci sono dati privati estraibili
+	 */
+	virtual unsigned int iGetNumPrivData(void) const;
+
+	/*
+	 * Maps a string (possibly with substrings) to a private data;
+	 * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0 
+	 * in case of unrecognized data; error must be handled by caller
+	 */
+	virtual unsigned int iGetPrivDataIdx(const char *s) const;
+
+	/*
+	 * Returns the current value of a private data
+	 * with 0 < i <= iGetNumPrivData()
+	 */
+	virtual doublereal dGetPrivData(unsigned int i) const;
 };
 
 inline void

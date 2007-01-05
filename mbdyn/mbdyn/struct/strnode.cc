@@ -29,14 +29,17 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <mynewmem.h>
-#include <strnode.h>
-#include <body.h>
-#include <autostr.h>
-#include <dataman.h>
+#include "mynewmem.h"
+#include "strnode.h"
+#include "body.h"
+#include "autostr.h"
+#include "dataman.h"
+
+#include "matvecexp.h"
+#include "Rot.hh"
 
 /*
  * StructNodeOutput - begin
@@ -996,6 +999,147 @@ StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 	WRef = WCurr;
 }
 
+/*
+ * Metodi per l'estrazione di dati "privati".
+ * Si suppone che l'estrattore li sappia interpretare.
+ * Come default non ci sono dati privati estraibili
+ */
+unsigned int
+StructNode::iGetNumPrivData(void) const
+{
+	return 12	// dofs
+		+ 3	// Euler angles
+		+ 4;	// Euler parameters
+}
+
+/*
+ * Maps a string (possibly with substrings) to a private data;
+ * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0 
+ * in case of unrecognized data; error must be handled by caller
+ */
+unsigned int
+StructNode::iGetPrivDataIdx(const char *s) const
+{
+	long	idx;
+	char	*next;
+
+	char	*brk = strchr(s, '[' /*]*/ );
+	if (brk == 0) {
+		return 0;
+	}
+
+	size_t	len = brk - s;;
+	brk++;
+
+	idx = strtol(brk, &next, 10);
+	if (next == brk || strcmp(next, /*[*/ "]") != 0) {
+		return 0;
+	}
+
+	/*
+		X		 0 + idx	idx = {1,3}
+		Phi		 3 + idx	idx = {1,3}
+		XP		 6 + idx	idx = {1,3}
+		Omega		 9 + idx	idx = {1,3}
+		E		12 + idx	idx = {0,3}
+		PE		16 + idx	idx = {1,3}
+		-------------------------------------------
+		XPP		19 + idx	idx = {1,3}
+		OmegaP		22 + idx	idx = {1,3}
+	 */
+
+	if (strncasecmp(s, "PE", len) == 0) {
+		if (idx < 0 || idx > 3) {
+			return 0;
+		}
+
+		return 16 + idx;
+	}
+
+	if (idx < 1 || idx > 3) {
+		return 0;
+	}
+
+	if (strncasecmp(s, "X", len) == 0) {
+		return 0 + idx;
+	}
+
+	if (strncasecmp(s, "Phi", len) == 0) {
+		return 3 + idx;
+	}
+
+	if (strncasecmp(s, "XP", len) == 0) {
+		return 6 + idx;
+	}
+
+	if (strncasecmp(s, "Omega", len) == 0) {
+		return 9 + idx;
+	}
+
+	if (strncasecmp(s, "E", len) == 0) {
+		return 12 + idx;
+	}
+
+	return 0;
+}
+
+/*
+ * Returns the current value of a private data
+ * with 0 < i <= iGetNumPrivData()
+ */
+doublereal
+StructNode::dGetPrivData(unsigned int i) const
+{
+	switch (i) {
+	case 1:
+	case 2:
+	case 3:
+		return XCurr(i);
+
+	case 4:
+	case 5:
+	case 6: {
+		/* TODO */
+		Vec3 Phi(RotManip::VecRot(RCurr));
+		return Phi(i - 3);
+	}
+
+	case 7:
+	case 8:
+	case 9:
+		return VCurr(i - 6);
+
+	case 10:
+	case 11:
+	case 12:
+		return WCurr(i - 9);
+
+	case 13:
+	case 14:
+	case 15: {
+		/* TODO */
+		Vec3 Phi(MatR2EulerAngles(RCurr));
+		return Phi(i - 12);
+	}
+
+	case 16:
+	case 17:
+	case 18:
+	case 19: {
+		/* TODO */
+		Vec3 e;
+		doublereal e0;
+		MatR2EulerParams(RCurr, e0, e);
+		if (i == 16) {
+			return e0;
+		}
+		return e(i - 16);
+	}
+	}
+
+	throw ErrGeneric();
+}
+
 /* StructNode - end */
 
 
@@ -1340,6 +1484,92 @@ DynamicStructNode::SetDofValue(const doublereal& dValue,
 	}
 }
 
+/*
+ * Metodi per l'estrazione di dati "privati".
+ * Si suppone che l'estrattore li sappia interpretare.
+ * Come default non ci sono dati privati estraibili
+ */
+unsigned int
+DynamicStructNode::iGetNumPrivData(void) const
+{
+	return StructNode::iGetNumPrivData()
+		+ bComputeAccelerations ? 6 : 0;
+}
+
+/*
+ * Maps a string (possibly with substrings) to a private data;
+ * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0 
+ * in case of unrecognized data; error must be handled by caller
+ */
+unsigned int
+DynamicStructNode::iGetPrivDataIdx(const char *s) const
+{
+	if (bComputeAccelerations) {
+		long	idx;
+		char	*next;
+
+		char	*brk = strchr(s, '[' /*]*/ );
+		if (brk == 0) {
+			return 0;
+		}
+
+		size_t	len = brk - s;;
+		brk++;
+
+		idx = strtol(brk, &next, 10);
+		if (next == brk || strcmp(next, /*[*/ "]") != 0) {
+			return 0;
+		}
+
+		/*
+			X		 0 + idx	idx = {1,3}
+			Phi		 3 + idx	idx = {1,3}
+			XP		 6 + idx	idx = {1,3}
+			Omega		 9 + idx	idx = {1,3}
+			E		12 + idx	idx = {0,3}
+			PE		16 + idx	idx = {1,3}
+			-------------------------------------------
+			XPP		19 + idx	idx = {1,3}
+			OmegaP		22 + idx	idx = {1,3}
+		 */
+
+		if (idx >= 1 && idx <= 3) {
+			if (strncasecmp(s, "XPP", len) == 0) {
+				return 19 + idx;
+			}
+	
+			if (strncasecmp(s, "OmegaP", len) == 0) {
+				return 22 + idx;
+			}
+		}
+	}
+
+	return StructNode::iGetPrivDataIdx(s);
+}
+
+/*
+ * Returns the current value of a private data
+ * with 0 < i <= iGetNumPrivData()
+ */
+doublereal
+DynamicStructNode::dGetPrivData(unsigned int i) const
+{
+	if (bComputeAccelerations) {
+		switch (i) {
+		case 20:
+		case 21:
+		case 22:
+			return XPPCurr(i);
+
+		case 23:
+		case 24:
+		case 25:
+			return WPCurr(i);
+		}
+	}
+
+	return StructNode::dGetPrivData(i);
+}
 
 /* DynamicStructNode - end */
 
