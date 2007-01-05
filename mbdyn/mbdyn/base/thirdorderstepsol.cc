@@ -2,7 +2,7 @@
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2006
+ * Copyright (C) 1996-2007
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -30,7 +30,7 @@
  
  /* 
   *
-  * Copyright (C) 2006
+  * Copyright (C) 2007
   * Marco Morandini	<morandini@aero.polimi.it>
   *
   * third order integrator; brain-damaged code, mainly due to some
