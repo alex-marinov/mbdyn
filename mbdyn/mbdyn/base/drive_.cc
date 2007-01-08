@@ -1966,7 +1966,7 @@ ElementDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 
 	/* Type(Label) */
 	char msg[BUFSIZ];
-	snprintf(msg, sizeof(msg), "%s(%lu)", psElemNames[Elem::Type(k)], uLabel);
+	snprintf(msg, sizeof(msg), "%s(%u)", psElemNames[Elem::Type(k)], uLabel);
 
 	Elem *pElem = (Elem*)pDM->pFindElem(Elem::Type(k), uLabel);
 	if (pElem == 0) {
@@ -2009,7 +2009,7 @@ NodeDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 
 	/* Type(Label) */
 	char msg[BUFSIZ];
-	snprintf(msg, sizeof(msg), "%s(%lu)", psNodeNames[Node::Type(k)], uLabel);
+	snprintf(msg, sizeof(msg), "%s(%u)", psNodeNames[Node::Type(k)], uLabel);
 
 	Node *pNode = (Node*)pDM->pFindNode(Node::Type(k), uLabel);
 	if (pNode == 0) {
