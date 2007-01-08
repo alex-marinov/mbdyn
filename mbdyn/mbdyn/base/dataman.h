@@ -38,9 +38,6 @@
 #include <map>
 #include <string>
 
-#include <netcdfcpp.h>
-//#include "../../../libraries/netcdf-3.6.4-b4/cxx/netcdfcpp.h"  //
-
 #include "myassert.h"
 #include "mynewmem.h"
 #include "except.h"
