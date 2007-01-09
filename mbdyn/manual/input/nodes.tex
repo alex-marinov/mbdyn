@@ -219,8 +219,8 @@ The rows contain: \vspace{2mm} \\
 
 \section{Electric Node}
 \begin{verbatim}
-    <arglist> ::= "value" , <initial_value> 
-        [ , "derivative" , <derivative_initial_value> ]
+    <arglist> ::= value , <initial_value> 
+        [ , derivative , <derivative_initial_value> ]
 \end{verbatim}
 \emph{Note: the keywords \kw{value} and \kw{derivative}
 have been introduced recently; \kw{value} is not mandatory,
@@ -236,8 +236,8 @@ node, so only \kw{value} is allowed.
 
 \section{Abstract Node}
 \begin{verbatim}
-    <arglist> ::= "value" , <initial_value>
-        [ , "derivative" , <derivative_initial_value> ]
+    <arglist> ::= value , <initial_value>
+        [ , derivative , <derivative_initial_value> ]
 \end{verbatim}
 {\em
     Note: abstract and electric nodes are derived from the same class, the
@@ -260,7 +260,7 @@ The format of each row is
 
 \section{Hydraulic Node}
 \begin{verbatim}
-    <arglist> ::= "value" , <initial_value>
+    <arglist> ::= value , <initial_value>
 \end{verbatim}
 
 
