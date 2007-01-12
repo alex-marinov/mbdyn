@@ -35,28 +35,59 @@
 #include "dataman.h"
 
 class PrivPlugIn : public MathParser::PlugIn {
+	friend std::ostream& operator << (std::ostream& out, const PrivPlugIn& p);
+
 protected:
-	Elem *pElem;
+	SimulationEntity *pSE;
 	unsigned int iIndex;
 	const char *sIndexName;
 	DataManager *pDM;
 
 public:
 	PrivPlugIn(MathParser& mp, DataManager *pDM);
-	~PrivPlugIn(void);
-	const char *sName(void) const;
+	virtual ~PrivPlugIn(void);
+	virtual const char *sName(void) const = 0;
 	int Read(int argc, char *argv[]);
 	TypedValue::Type GetType(void) const;
 	TypedValue GetVal(void) const;
 
-private:
+protected:
 	unsigned int ReadLabel(const char* s);
-	void ReadElem(unsigned int uLabel, const char *s);
+	virtual void ReadSE(unsigned int uLabel, const char *s) = 0;
 	void ReadIndex(unsigned int iMaxIndex, const char *s);
+	virtual std::ostream& Err(std::ostream& out) const = 0;
 };
 
+class NodePrivPlugIn : public PrivPlugIn {
+public:
+	NodePrivPlugIn(MathParser& mp, DataManager *pDM);
+	virtual ~NodePrivPlugIn(void);
+	const char *sName(void) const;
+
+protected:
+	virtual void ReadSE(unsigned int uLabel, const char *s);
+	virtual std::ostream& Err(std::ostream& out) const;
+};
+
+class ElemPrivPlugIn : public PrivPlugIn {
+public:
+	ElemPrivPlugIn(MathParser& mp, DataManager *pDM);
+	virtual ~ElemPrivPlugIn(void);
+	const char *sName(void) const;
+
+protected:
+	virtual void ReadSE(unsigned int uLabel, const char *s);
+	virtual std::ostream& Err(std::ostream& out) const;
+};
+
+extern std::ostream& 
+operator << (std::ostream& out, const PrivPlugIn& p);
+
 extern MathParser::PlugIn *
-priv_plugin(MathParser& mp, void *arg);
+node_priv_plugin(MathParser& mp, void *arg);
+
+extern MathParser::PlugIn *
+elem_priv_plugin(MathParser& mp, void *arg);
 
 #endif /* PRIVPGIN_H */
 

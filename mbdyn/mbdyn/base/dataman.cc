@@ -187,8 +187,11 @@ SocketUsersTimeout(0)
 	/* registra il plugin per i dofs */
 	HP.GetMathParser().RegisterPlugIn("dof", dof_plugin, this);
 
+	/* registra il plugin per i dati privati dei nodi */
+	HP.GetMathParser().RegisterPlugIn("node", node_priv_plugin, this);
+
 	/* registra il plugin per i dati privati degli elementi */
-	HP.GetMathParser().RegisterPlugIn("element", priv_plugin, this);
+	HP.GetMathParser().RegisterPlugIn("element", elem_priv_plugin, this);
 
 #ifdef USE_TCL
 	/* registra il plugin per il tcl */

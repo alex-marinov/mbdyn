@@ -36,11 +36,11 @@
 #include <privpgin.h>
 
 PrivPlugIn::PrivPlugIn(MathParser& mp, DataManager *pDM)
-: MathParser::PlugIn(mp), pElem(0), iIndex(0), sIndexName(0), pDM(pDM)
+: MathParser::PlugIn(mp), pSE(0), iIndex(0), sIndexName(0), pDM(pDM)
 {
-	ASSERT(pDM != NULL);
+	ASSERT(pDM != 0);
 }
-	
+
 PrivPlugIn::~PrivPlugIn(void) 
 {
 	if (sIndexName) {
@@ -48,18 +48,12 @@ PrivPlugIn::~PrivPlugIn(void)
 	}
 }
 
-const char *
-PrivPlugIn::sName(void) const 
-{
-	return "element";
-}
-
 int 
 PrivPlugIn::Read(int argc, char *argv[])
 {
 	unsigned int uLabel;
 
-	if (argc < 1 || argv[0] == NULL) {
+	if (argc < 1 || argv[0] == 0) {
 		silent_cerr("PrivPlugIn::Read(): "
 			"illegal number of parameters " << argc
 			<< std::endl);
@@ -67,20 +61,18 @@ PrivPlugIn::Read(int argc, char *argv[])
 	}
 	uLabel = ReadLabel(argv[0]);
 
-	if (argc < 2 || argv[1] == NULL) {
-		silent_cerr("PrivPlugIn::Read(" << argv[0] 
-			<< "): illegal number of parameters " << argc
+	if (argc < 2 || argv[1] == 0) {
+		silent_cerr("PrivPlugIn::Read(" << argv[0] << "): "
+			<< "illegal number of parameters " << argc
 			<< std::endl);
 		throw ErrGeneric();
 	}
-	ReadElem(uLabel, argv[1]);
+	ReadSE(uLabel, argv[1]);
 
-	unsigned int iMaxIndex = pElem->iGetNumPrivData();
+	unsigned int iMaxIndex = pSE->iGetNumPrivData();
 	switch (iMaxIndex) {
 	case 0:
-		silent_cerr(psElemNames[pElem->GetElemType()]
-				<< "(" << pElem->GetLabel() << ") "
-				"allows no private data" << std::endl);
+		silent_cerr(*this << "allows no private data" << std::endl);
 		throw ErrGeneric();
 
 	case 1:
@@ -91,6 +83,12 @@ PrivPlugIn::Read(int argc, char *argv[])
 		/* continue to next case */
 
 	default:
+		if (argc > 3) {
+			silent_cerr("PrivPlugIn::Read(" << argv[0] << "): "
+				<< "illegal number of parameters " << argc
+				<< std::endl);
+			throw ErrGeneric();
+		}
 		ReadIndex(iMaxIndex, argv[2]);
 		break;
 	}
@@ -107,14 +105,14 @@ PrivPlugIn::GetType(void) const
 TypedValue 
 PrivPlugIn::GetVal(void) const 
 {
-	return TypedValue(pElem->dGetPrivData(iIndex));
+	return TypedValue(pSE->dGetPrivData(iIndex));
 }
 
 unsigned int 
 PrivPlugIn::ReadLabel(const char* s) 
 {
 	unsigned int rc;
-	char *stmp = NULL;
+	char *stmp = 0;
 
 	/*
 	 * deve essere terminato da ';' per essere letto da math parser :(
@@ -136,10 +134,116 @@ PrivPlugIn::ReadLabel(const char* s)
 }
 
 void
-PrivPlugIn::ReadElem(unsigned int uLabel, const char *ss) 
+PrivPlugIn::ReadIndex(unsigned int iMaxIndex, const char *s) 
+{
+	const char	*name = 0;
+
+	if (strncasecmp(s, "name=", STRLENOF("name=")) == 0) {
+		name = &s[STRLENOF("name=")];
+		iIndex = pSE->iGetPrivDataIdx(name);
+
+	} else {
+		if (strncasecmp(s, "index=", STRLENOF("index=")) == 0) {
+			s = &s[STRLENOF("index=")];
+		}
+		iIndex = ReadLabel(s);
+	}
+
+	if (iIndex == 0 || iIndex > iMaxIndex) {
+		silent_cerr("illegal index " << iIndex << " for "
+			<< *this << std::endl);
+		throw ErrGeneric();
+	}
+
+	if (name != 0) {
+		SAFESTRDUP(sIndexName, name);
+	}
+}
+
+NodePrivPlugIn::NodePrivPlugIn(MathParser& mp, DataManager *pDM)
+: PrivPlugIn(mp, pDM)
+{
+	NO_OP;
+}
+
+NodePrivPlugIn::~NodePrivPlugIn(void) 
+{
+	NO_OP;
+}
+
+const char *
+NodePrivPlugIn::sName(void) const 
+{
+	return "node";
+}
+
+void
+NodePrivPlugIn::ReadSE(unsigned int uLabel, const char *ss) 
 {
 	unsigned int i;
-	char *s = NULL;
+	char *s = 0;
+
+	/* eat spaces */
+	SAFESTRDUP(s, ss);
+	for (i = 0; s[i]; i++) {
+		if (isspace(s[i])) {
+			memmove(&s[i], &s[i + 1], strlen(&s[i]));
+		}
+	}
+	
+	for (i = 0; i < Node::LASTNODETYPE; i++) {
+		if (strcasecmp(s, psReadNodesNodes[i]) == 0) {
+			break;
+		}
+	}
+
+	SAFEDELETEARR(s);
+	
+	if (i == Node::LASTNODETYPE) {
+		silent_cerr("unknown node type '" << ss << "'" << std::endl);
+		throw ErrGeneric();
+	}
+
+	if ((pSE = (SimulationEntity *)pDM->pFindNode(Node::Type(i), uLabel)) == 0) {
+		silent_cerr(*this << " not defined" << std::endl);
+		throw ErrGeneric();
+	}
+}
+
+std::ostream&
+NodePrivPlugIn::Err(std::ostream& out) const
+{
+	Node *pNode = dynamic_cast<Node *>(pSE);
+	if (pSE == 0) {
+		throw ErrGeneric();
+	}
+
+	return out << psNodeNames[pNode->GetNodeType()]
+		<< "(" << pNode->GetLabel() << ")";
+}
+
+ElemPrivPlugIn::ElemPrivPlugIn(MathParser& mp, DataManager *pDM)
+: PrivPlugIn(mp, pDM)
+{
+	NO_OP;
+}
+
+ElemPrivPlugIn::~ElemPrivPlugIn(void) 
+{
+	NO_OP;
+}
+
+const char *
+ElemPrivPlugIn::sName(void) const 
+{
+	return "element";
+}
+
+void
+ElemPrivPlugIn::ReadSE(unsigned int uLabel, const char *ss) 
+{
+	unsigned int i;
+	char *s = 0;
 
 	/* eat spaces */
 	SAFESTRDUP(s, ss);
@@ -158,49 +262,49 @@ PrivPlugIn::ReadElem(unsigned int uLabel, const char *ss)
 	SAFEDELETEARR(s);
 	
 	if (i == Elem::LASTELEMTYPE) {
-		silent_cerr("unknown element type '" << ss << "'" << std::endl);
+		silent_cerr("unknown element type \"" << ss << "\"" << std::endl);
 		throw ErrGeneric();
 	}
 
-	if ((pElem = (Elem *)pDM->pFindElem(Elem::Type(i), uLabel)) == NULL) {
-		silent_cerr(psElemNames[Elem::Type(i)] 
-			<< "(" << uLabel << ") not defined" << std::endl);
+	if ((pSE = (SimulationEntity *)pDM->pFindElem(Elem::Type(i), uLabel)) == 0) {
+		silent_cerr(*this << " not defined" << std::endl);
 		throw ErrGeneric();
 	}
 }
 
-void
-PrivPlugIn::ReadIndex(unsigned int iMaxIndex, const char *s) 
+std::ostream&
+ElemPrivPlugIn::Err(std::ostream& out) const
 {
-	bool bIsName(false);
-
-	if (strncasecmp(s, "name=", sizeof("name=") - 1) == 0) {
-		iIndex = pElem->iGetPrivDataIdx(s + sizeof("name=") - 1);
-		bIsName = true;
-
-	} else {
-		iIndex = ReadLabel(s);
-	}
-
-	if (iIndex == 0 || iIndex > iMaxIndex) {
-		silent_cerr("illegal index " << iIndex << " for "
-			<< psElemNames[pElem->GetElemType()]
-			<< "(" << pElem->GetLabel() << ")"
-			<< std::endl);
+	Elem *pElem = dynamic_cast<Elem *>(pSE);
+	if (pSE == 0) {
 		throw ErrGeneric();
 	}
 
-	if (bIsName) {
-		SAFESTRDUP(sIndexName, s + sizeof("name=") - 1);
-	}
+	return out << psElemNames[pElem->GetElemType()]
+		<< "(" << pElem->GetLabel() << ")";
+}
+
+std::ostream& 
+operator << (std::ostream& out, const PrivPlugIn& p)
+{
+	return out << p.Err(out);
 }
 
 MathParser::PlugIn *
-priv_plugin(MathParser& mp, void *arg)
+node_priv_plugin(MathParser& mp, void *arg)
 {
-	MathParser::PlugIn *p = NULL;
-	SAFENEWWITHCONSTRUCTOR(p, PrivPlugIn,
-			PrivPlugIn(mp, (DataManager *)arg));
+	MathParser::PlugIn *p = 0;
+	SAFENEWWITHCONSTRUCTOR(p, NodePrivPlugIn,
+			NodePrivPlugIn(mp, (DataManager *)arg));
+	return p;
+}
+
+MathParser::PlugIn *
+elem_priv_plugin(MathParser& mp, void *arg)
+{
+	MathParser::PlugIn *p = 0;
+	SAFENEWWITHCONSTRUCTOR(p, ElemPrivPlugIn,
+			ElemPrivPlugIn(mp, (DataManager *)arg));
 	return p;
 }
 
