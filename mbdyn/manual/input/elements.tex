@@ -1529,8 +1529,8 @@ on developers' needs.
 It is advisable that a mechanism for elements to publish 
 what parameters they can make available be devised and implemented.
 
-Example: the parameter node \kw{angle} is bound to the rotation
-of a revolute hinge.
+Example: the parameter node \kw{angle} is bound to the rotation of a 
+\hyperref{\kw{revolute hinge}}{\kw{revolute hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:REVOLUTE_HINGE}.
 \begin{verbatim}
     # ... integrator
     begin: control data;
@@ -1567,7 +1567,7 @@ of a revolute hinge.
         # ... other elements
     end: elements;
 \end{verbatim}
-Note that the same element data, i.e.\ the revolute joint 
+Note that the same element data, i.e.\ the revolute hinge
 relative rotation angle, is used to drive a couple in two different
 ways; the latter, by means of the 
 \hyperref{\kw{element} drive}{\kw{element} drive (see Section~}{)}{sec:DRIVE-ELEMENT}
@@ -2536,8 +2536,10 @@ The following data is available:
 \end{enumerate}
 
 \subsection{Axial rotation}
-This joint is equivalent to a revolute hinge, but the angular velocity
-about axis 3 is imposed by means of the driver.
+\label{sec:EL:STRUCT:JOINT:AXIAL_ROTATION}
+This joint is equivalent to a
+\hyperref{\kw{revolute hinge}}{\kw{revolute hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:REVOLUTE_HINGE},
+but the angular velocity about axis 3 is imposed by means of the driver.
 \begin{verbatim}
     <joint_type> ::= axial rotation
     <joint_arglist> ::= 
@@ -2652,9 +2654,12 @@ for regular joints.
                    <shape_function> ,
         (drive caller) <normal force>
 \end{verbatim}
-\emph{Note: a \kw{revolute hinge} between the same two nodes 
-must be defined as well, such that the only allowed relative kinematics 
-between the two nodes are a rotation about relative axis 3.}
+\emph{Note: a
+\hyperref{\kw{revolute hinge}}{\kw{revolute hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:REVOLUTE_HINGE}
+between the same two nodes must be defined as well, such that
+the only allowed relative kinematics between the two nodes are
+a rotation about relative axis 3.
+}
 
 \paragraph{Private Data}
 The following data is available:
@@ -2698,7 +2703,9 @@ The following data is available:
 
 
 \subsection{Coincidence}
-not implemented yet, use a \kw{spherical hinge} and a \kw{prismatic} 
+not implemented yet, use a
+\hyperref{\kw{spherical hinge}}{\kw{spherical hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:SPHERICAL_HINGE}
+and a \kw{prismatic} 
 instead.
 
 \subsection{Deformable displacement hinge}
@@ -2838,7 +2845,8 @@ See the
 \noindent
 Note: this joint only applies internal moments; no forces
 and no constraints to displacements are applied.
-Usually, it is best used in conjunction with a spherical hinge,
+Usually, it is best used in conjunction with a
+\hyperref{\kw{spherical hinge}}{\kw{spherical hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:SPHERICAL_HINGE},
 or any kind of joint that constrains the relative displacement
 of the nodes as appropriate.
 
@@ -3088,13 +3096,17 @@ of the reference in which the enforced orientation is expressed is reset;
 
 \subsection{Gimbal hinge}
 This joint has not been implemented yet; use a \kw{gimbal rotation}
-and a \kw{spherical hinge} to emulate.
+and a
+\hyperref{\kw{spherical hinge}}{\kw{spherical hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:SPHERICAL_HINGE}
+to emulate.
 
 \subsection{Gimbal rotation}\label{sec:EL:JOINT:GIMBALROTATION}
 A constant velocity joint without position constraints;
-this joint, in conjunction with a \kw{spherical hinge} joint, 
-should be used to implement an ideal tiltrotor gimbal
-instead of a \kw{universal rotation}.
+this joint, in conjunction with a
+\hyperref{\kw{spherical hinge}}{\kw{spherical hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:SPHERICAL_HINGE}
+joint, should be used to implement an ideal tiltrotor gimbal
+instead of a
+\hyperref{\kw{universal rotation}}{\kw{universal rotation} (see Section~}{)}{sec:EL:STRUCT:JOINT:UNIVERSAL_ROTATION}.
 See the technical manual for details.
 \begin{verbatim}
     <joint_type> ::= gimbal rotation
@@ -3461,7 +3473,9 @@ and to rotate about the common relative axis 3.
             (OrientationMatrix) <relative_orientation_matrix_2> ]
 \end{verbatim}
 \emph{Note: this element is temporarily disabled;
-combine an \kw{in plane} and a \kw{revolute rotation} joint instead.}
+combine an \kw{in plane} and a
+\hyperref{\kw{revolute rotation}}{\kw{revolute rotation} (see Section~}{)}{sec:EL:STRUCT:JOINT:REVOLUTE_ROTATION}
+joint instead.}
 
 \subsection{Plane displacement pin}
 This joint allows a node to move in the relative 1--2 plane 
@@ -3479,17 +3493,22 @@ See also Section~\ref{sec:EL:STRUCT:JOINT:PLANE_DISPLACEMENT}.
             (OrientationMatrix) <absolute_pin_orientation_matrix> ]
 \end{verbatim}
 \emph{Note: this element is temporarily disabled;
-combine an \kw{in plane} and a \kw{revolute rotation} joint instead,
-using a grounded node.}
+combine an \kw{in plane} and a
+\hyperref{\kw{revolute rotation}}{\kw{revolute rotation} (see Section~}{)}{sec:EL:STRUCT:JOINT:REVOLUTE_ROTATION}
+joint instead, using a grounded node.}
 
 
 \subsection{Plane hinge}
-This joint has been renamed \kw{revolute hinge}; the old name has been
-deprecated and may not be supported in future versions.
+This joint has been renamed
+\hyperref{\kw{revolute hinge}}{\kw{revolute hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:REVOLUTE_HINGE};
+the old name has been deprecated and its support may be discontinued
+in future versions.
 
 \subsection{Plane pin}
-This joint has been renamed \kw{revolute pin}; the old name has been
-deprecated and may not be supported in future versions.
+This joint has been renamed
+\hyperref{\kw{revolute pin}}{\kw{revolute pin} (see Section~}{)}{sec:EL:STRUCT:JOINT:REVOLUTE_PIN};
+the old name has been deprecated and its support may be discontinued
+in future versions.
 
 \subsection{Prismatic}
 This joints constraints the relative orientation of two nodes, so that
@@ -3517,6 +3536,7 @@ with respect to node 2 is reset;
 \end{itemize}
 
 \subsection{Revolute hinge}
+\label{sec:EL:STRUCT:JOINT:REVOLUTE_HINGE}
 This joint only allows the relative rotation of two nodes about
 a given axis, which is axis 3 in the reference systems defined 
 by the two \kw{hinge} statements.
@@ -3535,6 +3555,14 @@ by the two \kw{hinge} statements.
                    <friction_model> , 
                    <shape_function> ]
 \end{verbatim}
+
+\emph{Note: this element can be thought of as the combination of a 
+\hyperref{\kw{spherical hinge}}{\kw{spherical hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:SPHERICAL_HINGE},
+that constrains the three components of the relative position
+of the nodes, and of a
+\hyperref{\kw{revolute rotation}}{\kw{revolute rotation} (see Section~}{)}{sec:EL:STRUCT:JOINT:REVOLUTE_ROTATION},
+that constrains the relative orientation of the nodes so that only rotation
+about a common axis is allowed.}
 
 \subsubsection{Rationale}
 The rationale for having two statements to indicate the position
@@ -3592,6 +3620,7 @@ if any.
 
 
 \subsection{Revolute pin}
+\label{sec:EL:STRUCT:JOINT:REVOLUTE_PIN}
 This joint only allows the absolute rotation of a node about
 a given axis, which is axis 3 in the reference systems defined 
 by the two \kw{hinge} statements.
@@ -3607,7 +3636,9 @@ by the two \kw{hinge} statements.
         [ , initial theta , <initial_theta> ]
 \end{verbatim}
 {\em
-    Note: this is equivalent to a revolute hinge when one node is grounded.
+Note: this is equivalent to a
+\hyperref{\kw{revolute hinge}}{\kw{revolute hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:REVOLUTE_HINGE}
+when one node is grounded.
 }
 
 \paragraph{Private Data}
@@ -3642,6 +3673,7 @@ with respect to the absolute frame is reset;
 
 
 \subsection{Revolute rotation}
+\label{sec:EL:STRUCT:JOINT:REVOLUTE_ROTATION}
 This joint allows the relative rotation of two nodes about
 a given axis, which is axis 3 in the reference systems defined 
 by the two \kw{hinge} statements.
@@ -3767,6 +3799,7 @@ Analogous to the \kw{rod} joint with the optional arg \kw{offset};
 see Section~\ref{sec:EL:STRUCT:JOINT:ROD} for details.
 
 \subsection{Spherical hinge}
+\label{sec:EL:STRUCT:JOINT:SPHERICAL_HINGE}
 This joint constrains the relative position of two nodes;
 the relative orientation is not constrained.
 \begin{verbatim}
@@ -3801,12 +3834,15 @@ the relative orientation is not constrained.
                                  (Vec3) <absolute_pin_position>
 \end{verbatim}
 {\em
-    Note: this is equivalent to a spherical hinge when one node is grounded.
-    An alternative way to model a grounded spherical hinge requires the use
-    of a static, clamped node.
+	Note: this is equivalent to a
+	\hyperref{\kw{spherical hinge}}{\kw{spherical hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:SPHERICAL_HINGE}
+	when one node is grounded.
+	An alternative way to model a grounded spherical hinge requires
+	the use of a static, clamped node.
 }
 
 \subsection{Universal hinge}
+\label{sec:EL:STRUCT:JOINT:UNIVERSAL_HINGE}
 This joint implements a ``Cardano'' joint, which is made of a sequence
 of two revolute hinges orthogonal to each other, one about relative axis 2
 and one about relative axis 3 of the reference systems
@@ -3831,9 +3867,11 @@ a constant velocity about axis 1 of one node results in an oscillating
 velocity about axis 1 for the other node.
 The constant velocity joint is implemented by the \kw{gimbal joint}
 (Section~\ref{sec:EL:JOINT:GIMBALROTATION}), which essentially consists
-of a sequence of two \kw{universal joints} with the hinges
-in reversed order, assembled in a manner that the deflection
-is split half and half between the two universal joints.
+of a sequence of two
+\hyperref{\kw{universal hinge}}{\kw{universal hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:UNIVERSAL_HINGE}
+joints with the hinges in reversed order, assembled
+in a manner that the deflection is split half and half
+between the two joints.
 
 \subsection{Universal pin}
 This joint implements a ``Cardano'' joint between a node and the ground.
@@ -3849,11 +3887,13 @@ See above for details about the formulation.
         [ , hinge , 
             (OrientationMatrix) <absolute_pin_orientation_matrix> ]
 \end{verbatim}
-{\em
-    Note: this is equivalent to a universal hinge when one node is grounded.
+\emph{Note: this is equivalent to a
+\hyperref{\kw{universal hinge}}{\kw{universal hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:UNIVERSAL_HINGE}
+when one node is grounded.
 }
 
 \subsection{Universal rotation}
+\label{sec:EL:STRUCT:JOINT:UNIVERSAL_ROTATION}
 This joint implements a ``Cardano'' joint, which is made of a sequence
 of two revolute hinges orthogonal to each other.
 The relative position is not constrained.
@@ -4443,7 +4483,10 @@ Example: a pin constraint between two rigid bodies is released:
 \end{verbatim}
 
 \noindent
-Example: an \kw{axial rotation} joint is replaced by a \kw{revolute hinge}
+Example: an
+\hyperref{\kw{axial rotation}}{\kw{axial rotation} (see Section~}{)}{sec:EL:STRUCT:JOINT:AXIAL_ROTATION}
+joint is replaced by a
+\hyperref{\kw{revolute hinge}}{\kw{revolute hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:REVOLUTE_HINGE}
 when the desired spin velocity, measured as the angular velocity
 of the second node (assuming, for instance, that the first one is fixed),
 is reached.
