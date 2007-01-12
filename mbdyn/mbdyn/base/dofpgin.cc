@@ -69,8 +69,8 @@ DofPlugIn::Read(int argc, char *argv[])
 	uLabel = ReadLabel(argv[0]);
 
 	if (argc < 2 || argv[1] == NULL) {
-		silent_cerr("DofPlugIn::Read(" << argv[0] 
-			<< "): illegal number of parameters " << argc
+		silent_cerr("DofPlugIn::Read(" << argv[0] << "): "
+			"illegal number of parameters " << argc
 			<< std::endl);
 		throw ErrGeneric();
 	}
@@ -87,9 +87,9 @@ DofPlugIn::Read(int argc, char *argv[])
 		iParams++;
 
 		if (argc < 3 || argv[2] == NULL) {
-			silent_cerr("DofPlugIn::Read(" << argv[0]
-				<< "," << argv[1] 
-				<< "): illegal number of parameters " << argc 
+			silent_cerr("DofPlugIn::Read(" << argv[0] << ","
+				<< argv[1] << "): "
+				"illegal number of parameters " << argc 
 				<< std::endl);
 			throw ErrGeneric();
 		}
@@ -100,19 +100,19 @@ DofPlugIn::Read(int argc, char *argv[])
 		iParams += 2;
 
 		if (argc < 3 || argv[2] == NULL) {
-			silent_cerr("DofPlugIn::Read(" << argv[0]
-				<< "," << argv[1] 
-				<< "): illegal number of parameters " << argc 
+			silent_cerr("DofPlugIn::Read(" << argv[0] << ","
+				<< argv[1] << "): "
+				"illegal number of parameters " << argc 
 				<< std::endl);
 			throw ErrGeneric();
 		}
 		unsigned int iIndex = ReadIndex(pNode, iMaxIndex, argv[2]);
 
 		if (argc < 4 || argv[3] == NULL) {
-			silent_cerr("DofPlugIn::Read(" << argv[0]
-				<< "," << argv[1] 
-				<< "," << argv[2] 
-				<< "): illegal number of parameters " << argc 
+			silent_cerr("DofPlugIn::Read(" << argv[0] << ","
+				<< argv[1] << ","
+				<< argv[2] << "): "
+				"illegal number of parameters " << argc 
 				<< std::endl);
 			throw ErrGeneric();
 		}
@@ -123,10 +123,9 @@ DofPlugIn::Read(int argc, char *argv[])
 		/* Chi dealloca questa memoria? ci vorrebbe l'handle */
 		SAFENEWWITHCONSTRUCTOR(pNode, Node2Scalar, Node2Scalar(nd));
 		pedantic_cerr(psNodeNames[pNode->GetNodeType()] 
-				<< "(" << pNode->GetLabel() 
-				<< "): possibly allocating a NodeDof "
-		 		"that nobody will delete until handles "
-				"will be used" << std::endl);
+				<< "(" << pNode->GetLabel() << "): "
+				"possibly allocating a NodeDof "
+		 		"that nobody will delete" << std::endl);
 		break;
 	}
 	}
@@ -160,7 +159,7 @@ DofPlugIn::Read(int argc, char *argv[])
 			v++;
 
 			/* prende il valore al passo precedente */
-			if (strncasecmp(p, "prev", sizeof("prev") - 1) == 0) {
+			if (strncasecmp(p, "prev", STRLENOF("prev")) == 0) {
 				if (strcasecmp(v, "true") == 0) {
 					bPrev = true;
 				} else if (strcasecmp(v, "false") == 0) {
@@ -269,8 +268,8 @@ DofPlugIn::ReadDofOrder(Node *pNode, unsigned int iIndex, const char *s)
 		if (pNode->GetDofType(iIndex-1) != DofOrder::DIFFERENTIAL) {
 			silent_cerr("cannot take differential value of "
 				<< psNodeNames[pNode->GetNodeType()] 
-				<< "(" << pNode->GetLabel() << ")[" 
-				<< iIndex << "]" << std::endl);
+				<< "(" << pNode->GetLabel() << ")"
+				"[" << iIndex << "]" << std::endl);
 			throw ErrGeneric();
 		}
 		return 1;

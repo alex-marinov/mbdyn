@@ -301,6 +301,7 @@ can be reassigned.
 \end{table}
 
 \subsection{Namespaces}
+\label{sec:GENERAL:NAMESPACE}
 The math parser uses the notion of \emph{namespace} to separate
 functions.
 The functions listed in Table~\ref{tab:MATHP-FUNCTIONS}
@@ -354,6 +355,93 @@ defined in Table~\ref{tab:MODEL-NS-FUNCS}.
 	\end{tabular}
 	\end{center}
 \end{table}
+
+
+\subsection{Plugin Variables}
+\label{sec:GENERAL:PLUGIN}
+Plugin variables, or plugins, as the name states, are pluggable extensions
+to the math parser that allow to register mechanisms to bind a variable
+to some means to dynamically generate its value.
+As a consequence, any time a variable declared as part of a plugin
+is used, its value is dynamically evaluated executing the related code.
+
+There are built-in plugins that allow to link variables to the value
+of degrees of freedom and to special parameters computed by nodes
+and elements.
+
+The syntax of a plugin consists in specially defining a variable
+so that it gets registered to the appropriate code:
+\begin{verbatim}
+    set: OSQBR <plugin> , <var> [ , <arg1> [ , ... ] ] CSQBR ;
+\end{verbatim}
+where \kw{OSQBR} and \kw{CSQBR} stand for ``open'' and ``close''
+square brackets, respectively, which shouldn't be confused with those
+that indicate optional parameters.
+
+In the following, the built-in plugins\footnote{Built-in and plug-in
+may sound contradictory, and in fact they are.  However, consider
+that the mathematical parser is essentially independent of MBDyn
+(in fact, it has been turned into a command-line calculator
+in \kw{cl(1)}), so, form this point of view, built-in plug-ins
+are used to plug MBDyn information into an independent, lower-level
+piece of code.} are illustrated.
+For details on nodes, elements, their properties and the information
+they can expose, see the related sections.
+
+\subsubsection{Dof plugin}
+The \kw{dof} plugin allows to link a variable to a specific degree of freedom
+of a node, or to its derivative, whenever defined.
+The syntax is
+\begin{verbatim}
+    <plugin> ::= dof
+    <args>   ::= <label> , <type> [ , <index> ] , { algebraic | differential }
+\end{verbatim}
+where
+\kw{label} is the label of the node,
+\kw{type} is the node type,
+\kw{index} is the index of the degree of freedom that is requested,
+if the node has more than one, while
+\kw{algebraic} and \kw{differential} refer to the value of the dof
+and of its derivative, respectively.
+The derivative can be requested only for those degrees of freedom
+that have one.
+
+\emph{Note: this plugin is now obsoleted by the \kw{node} plugin,
+which allows to access more significant information about nodes,
+including the value of the degrees of freedom.}
+
+\subsubsection{Node plugin}
+The \kw{node} plugin allows to link a variable to any data a node
+can expose, including the values of their degrees of freedom.
+The syntax is
+\begin{verbatim}
+    <plugin> ::= node
+    <args>   ::= <label> , <type>
+        [ , { [ index= ] <index> | name= <name> } ]
+\end{verbatim}
+where
+\kw{label} is the label of the node,
+\kw{type} is the node type,
+and the mutually exclusive \kw{index} and \kw{name} represent the index
+of the datum that is requested, where \kw{name} represents a user-friendly
+representation of the actual index.
+
+\subsubsection{Element plugin}
+The \kw{element} plugin allows to link a variable to any data an element
+can expose, including the values of their degrees of freedom.
+The syntax is
+\begin{verbatim}
+    <plugin> ::= element
+    <args>   ::= <label> , <type>
+        [ , { [ index= ] <index> | name= <name> } ]
+\end{verbatim}
+where
+\kw{label} is the label of the element,
+\kw{type} is the element type,
+and the mutually exclusive \kw{index} and \kw{name} represent the index
+of the datum that is requested, where \kw{name} represents a user-friendly
+representation of the actual index.
+
 
 
 \section{Higher Level Structures}
