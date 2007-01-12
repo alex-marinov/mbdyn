@@ -91,19 +91,19 @@ main(int argc, char *argv[])
 	}
 
 	(void)mbdyn_make_salt(salt, sizeof(salt), salt_format);
-	salt[sizeof(salt) - 1] = '\0';
+	salt[STRLENOF(salt)] = '\0';
 
 	if (asserted_cred) {
-		if (strncmp(asserted_cred, "{CRYPT}", sizeof("{CRYPT}") - 1) == 0) {
-			asserted_cred += sizeof("{CRYPT}") - 1;
+		if (strncmp(asserted_cred, "{CRYPT}", STRLENOF("{CRYPT}")) == 0) {
+			asserted_cred += STRLENOF("{CRYPT}");
 		} else {
 			memcpy(asserted_cred_buf, asserted_cred, sizeof(asserted_cred_buf));
-			asserted_cred_buf[sizeof(asserted_cred_buf) - 1] = '\0';
+			asserted_cred_buf[STRLENOF(asserted_cred_buf)] = '\0';
 
 			asserted_cred = crypt(asserted_cred_buf, salt);
 
 			memcpy(asserted_cred_buf, asserted_cred, sizeof(asserted_cred_buf));
-			asserted_cred[sizeof(asserted_cred_buf) - 1] = '\0';
+			asserted_cred[STRLENOF(asserted_cred_buf)] = '\0';
 			asserted_cred = asserted_cred_buf;
 		}
 		asserted_cred_len = strlen(asserted_cred);
@@ -117,7 +117,7 @@ main(int argc, char *argv[])
 		char	*c;
 
 		memcpy(cred, argv[0], sizeof(cred));
-		cred[sizeof(cred) - 1] = '\0';
+		cred[STRLENOF(cred)] = '\0';
 
 		if (asserted_cred) {
 			c = crypt(cred, asserted_cred);

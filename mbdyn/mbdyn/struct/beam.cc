@@ -246,10 +246,10 @@ Beam::iGetPrivDataIdx(const char *s) const
 
 	unsigned int idx = 0;
 
-	if (strncmp(s, "pI", sizeof("pI") - 1) != 0) {
+	if (strncmp(s, "pI", STRLENOF("pI")) != 0) {
 		return 0;
 	}
-	s += sizeof("pI") - 1;
+	s += STRLENOF("pI");
 	
 	if (s[0] == 'I') {
 		idx += 12;

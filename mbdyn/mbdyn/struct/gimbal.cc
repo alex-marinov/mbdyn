@@ -358,9 +358,9 @@ GimbalRotationJoint::iGetNumPrivData(void) const
 unsigned int
 GimbalRotationJoint::iGetPrivDataIdx(const char *s) const
 {
-	if (strncmp(s, "lambda[", sizeof("lambda[") - 1) == 0) {
-		s += sizeof("lambda[") - 1;
-		if (s[1] != ']') {
+	if (strncmp(s, "lambda[" /*]*/ , STRLENOF("lambda[" /*]*/ )) == 0) {
+		s += STRLENOF("lambda[" /*]*/ );
+		if (strcmp(&s[1], /*[*/ "]") != 0) {
 			return 0;
 		}
 

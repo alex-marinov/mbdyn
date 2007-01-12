@@ -284,10 +284,10 @@ AutomaticStructElem::iGetPrivDataIdx(const char *s) const
 	 * gammaP[3]
 	 */
 	unsigned int idx = 0;
-	if (strncmp(s, "beta", sizeof("beta") - 1) == 0) {
-		s += sizeof("beta") - 1;
-	} else if (strncmp(s, "gamma", sizeof("gamma") - 1) == 0) {
-		s += sizeof("gamma") - 1;
+	if (strncmp(s, "beta", STRLENOF("beta")) == 0) {
+		s += STRLENOF("beta");
+	} else if (strncmp(s, "gamma", STRLENOF("gamma")) == 0) {
+		s += STRLENOF("gamma");
 		idx += 3;
 	} else {
 		return 0;

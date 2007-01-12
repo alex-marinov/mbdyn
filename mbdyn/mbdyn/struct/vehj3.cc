@@ -148,11 +148,11 @@ DeformableJoint::SetValue(DataManager *pDM,
 Hint *
 DeformableJoint::ParseHint(DataManager *pDM, const char *s) const
 {
-	if (strncasecmp(s, "offset{" /* } */ , sizeof("offset{" /* } */ ) - 1) == 0)
+	if (strncasecmp(s, "offset{" /*}*/ , STRLENOF("offset{" /*}*/ )) == 0)
 	{
-		s += sizeof("offset{" /* } */ ) - 1;
+		s += STRLENOF("offset{" /*}*/ );
 
-		if (strcmp(&s[1], /* { */ "}") != 0) {
+		if (strcmp(&s[1], /*{*/ "}") != 0) {
 			return 0;
 		}
 
@@ -164,10 +164,10 @@ DeformableJoint::ParseHint(DataManager *pDM, const char *s) const
 			return new Joint::OffsetHint<2>;
 		}
 
-	} else if (strncasecmp(s, "hinge{" /* } */, sizeof("hinge{" /* } */) - 1) == 0) {
-		s += sizeof("hinge{" /* } */) - 1;
+	} else if (strncasecmp(s, "hinge{" /*}*/, STRLENOF("hinge{" /*}*/)) == 0) {
+		s += STRLENOF("hinge{" /*}*/);
 
-		if (strcmp(&s[1], /* { */ "}") != 0) {
+		if (strcmp(&s[1], /*{*/ "}") != 0) {
 			return 0;
 		}
 
@@ -222,9 +222,9 @@ DeformableJoint::iGetPrivDataIdx(const char *s) const
 
 	default:
 	{
-		size_t l = sizeof("constitutiveLaw.") - 1;
+		size_t l = STRLENOF("constitutiveLaw.");
 		if (strncmp(s, "constitutiveLaw.", l) == 0) {
-			return 18 + ConstitutiveLaw6DOwner::iGetPrivDataIdx(s + l);
+			return 18 + ConstitutiveLaw6DOwner::iGetPrivDataIdx(&s[l]);
 		}
 		return 0;
 	}

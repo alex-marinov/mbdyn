@@ -81,7 +81,7 @@ dT0(t0), dDT(dt), iNumSteps(is), bPadZeroes(pz), pd(NULL), pvd(NULL)
 
 		do {
 			in.getline(buf, sizeof(buf));
-		} while (strlen(buf) == sizeof(buf) - 1 && buf[sizeof(buf) - 1] != '\n');
+		} while (strlen(buf) == STRLENOF(buf) && buf[STRLENOF(buf)] != '\n');
 	}
 
 	if (c != '#') {

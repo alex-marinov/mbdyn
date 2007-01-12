@@ -62,7 +62,7 @@ DofPlugIn::Read(int argc, char *argv[])
 
 	if (argc < 1 || argv[0] == NULL) {
 		silent_cerr("DofPlugIn::Read(): "
-			"illegal number of parameters " << argc
+			"illegal number of parameters #" << argc
 			<< std::endl);
 		throw ErrGeneric();
 	}
@@ -122,10 +122,10 @@ DofPlugIn::Read(int argc, char *argv[])
 		pNode = NULL;
 		/* Chi dealloca questa memoria? ci vorrebbe l'handle */
 		SAFENEWWITHCONSTRUCTOR(pNode, Node2Scalar, Node2Scalar(nd));
-		pedantic_cerr(psNodeNames[pNode->GetNodeType()] 
-				<< "(" << pNode->GetLabel() << "): "
-				"possibly allocating a NodeDof "
-		 		"that nobody will delete" << std::endl);
+		pedantic_cerr(psNodeNames[pNode->GetNodeType()]
+			<< "(" << pNode->GetLabel() << "): "
+			"possibly allocating a NodeDof "
+		 	"that nobody will delete" << std::endl);
 		break;
 	}
 	}

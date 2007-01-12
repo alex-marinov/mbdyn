@@ -321,7 +321,7 @@ main(int argc, char *argv[])
 				silent_cerr("-h already set to \"" << header << "\"" << std::endl);
 			}
 			memcpy(header, optarg, sizeof(header));
-			header[sizeof(header) - 1] = '\0';
+			header[STRLENOF(header)] = '\0';
 			break;
 
 		case 'm':

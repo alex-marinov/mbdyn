@@ -437,9 +437,9 @@ Solver::Run(void)
 
 		char* sNewOutName = NULL;
 		int iOutLen = strlen(sOutputFileName)
-			+ sizeof(".") - 1
+			+ STRLENOF(".")
 			+ iRankLength
-			+ sizeof("\0") - 1;
+			+ 1;
 
 		SAFENEWARR(sNewOutName, char, iOutLen);
 		snprintf(sNewOutName, iOutLen, "%s.%.*d",
@@ -652,12 +652,13 @@ Solver::Run(void)
 
 		if (sOutputFileName == NULL) {
 			SAFESTRDUP(PODFileName, "MBDyn.POD");
+
 		} else {
 			size_t l = strlen(sOutputFileName);
-			SAFENEWARR(PODFileName, char, l+sizeof(".POD"));
+			SAFENEWARR(PODFileName, char, l + STRLENOF(".POD") + 1);
 
 			memcpy(PODFileName, sOutputFileName, l);
-			memcpy(PODFileName+l, ".POD", sizeof(".POD"));
+			memcpy(PODFileName+l, ".POD", STRLENOF(".POD") + 1);
 		}
 
 		PodOut.open(PODFileName);
@@ -1415,11 +1416,11 @@ IfFirstStepIsToBeRepeated:
 
 				} else {
 					size_t	len = strlen(origpath);
-					char newpath[sizeof(".:" BINPATH ":") + len];
+					char newpath[STRLENOF(".:" BINPATH ":") + len + 1];
 
 					/* prepend ".:BINPATH:" to original path */
-					memcpy(newpath, ".:" BINPATH ":", sizeof(".:" BINPATH ":"));
-					memcpy(&newpath[sizeof(".:" BINPATH ":") - 1], origpath, len + 1);
+					memcpy(newpath, ".:" BINPATH ":", STRLENOF(".:" BINPATH ":") + 1);
+					memcpy(&newpath[STRLENOF(".:" BINPATH ":")], origpath, len + 1);
 					setenv("PATH", newpath, 1);
 				}
 

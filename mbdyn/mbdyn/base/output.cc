@@ -503,10 +503,10 @@ OutputHandler::RestartOpen(bool openResXSol)
 		char *resExt = NULL;
 		int n = nCurrRestartFile > 0 ?
 			(int)log10(nCurrRestartFile) + 1 : 1;
-		int lenExt = sizeof(".") - 1
+		int lenExt = STRLENOF(".")
 			+ n
-			+ sizeof(".rst") - 1
-			+ sizeof("\0") - 1;
+			+ STRLENOF(".rst")
+			+ 1;
 
 		SAFENEWARR(resExt, char, lenExt);
 		snprintf(resExt, lenExt, ".%.*d.rst", n, nCurrRestartFile);
@@ -536,9 +536,9 @@ OutputHandler::RestartOpen(bool openResXSol)
 			char *resXSolExt = NULL;
 			int n = nCurrRestartFile > 0 ?
 				(int)log10(nCurrRestartFile) + 1 : 1;
-			int lenXSolExt = sizeof(".") - 1
+			int lenXSolExt = STRLENOF(".")
 				+ n
-				+ sizeof(".rst.X") - 1
+				+ STRLENOF(".rst.X")
 				+ 1;
 
 			SAFENEWARR(resXSolExt, char, lenXSolExt);

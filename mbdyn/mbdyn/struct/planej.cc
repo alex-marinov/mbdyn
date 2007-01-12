@@ -66,10 +66,10 @@ Sh_c(sh), fc(f), preF(pref), r(rr)
 {
 	NO_OP;
 	char * fname = NULL;
-	int n = (uL > 0 ? 1+(int)log10(uL):1);
-	int len = sizeof("hinge")-1+n+sizeof(".out");
+	int n = (uL > 0 ? 1 + (int)log10(uL) : 1);
+	int len = STRLENOF("hinge") + n + STRLENOF(".out") + 1;
 	SAFENEWARR(fname, char, len);
-	snprintf(fname,len,"hinge%.*d.out",n,uL);
+	snprintf(fname, len, "hinge%.*d.out", n, uL);
 	SAFEDELETEARR(fname);
 }
 
@@ -228,11 +228,11 @@ PlaneHingeJoint::SetValue(DataManager *pDM,
 Hint *
 PlaneHingeJoint::ParseHint(DataManager *pDM, const char *s) const
 {
-	if (strncasecmp(s, "offset{" /* } */ , sizeof("offset{" /* } */ ) - 1) == 0)
+	if (strncasecmp(s, "offset{" /*}*/ , STRLENOF("offset{" /*}*/ )) == 0)
 	{
-		s += sizeof("offset{" /* } */ ) - 1;
+		s += STRLENOF("offset{" /*}*/ );
 
-		if (strcmp(&s[1], /* { */ "}") != 0) {
+		if (strcmp(&s[1], /*{*/ "}") != 0) {
 			return 0;
 		}
 
@@ -244,8 +244,8 @@ PlaneHingeJoint::ParseHint(DataManager *pDM, const char *s) const
 			return new Joint::OffsetHint<2>;
 		}
 
-	} else if (strncasecmp(s, "hinge{" /* } */, sizeof("hinge{" /* } */) - 1) == 0) {
-		s += sizeof("hinge{" /* } */) - 1;
+	} else if (strncasecmp(s, "hinge{" /*}*/, STRLENOF("hinge{" /*}*/)) == 0) {
+		s += STRLENOF("hinge{" /*}*/);
 
 		if (strcmp(&s[1], /* { */ "}") != 0) {
 			return 0;
@@ -1321,10 +1321,10 @@ PlaneRotationJoint::SetValue(DataManager *pDM,
 Hint *
 PlaneRotationJoint::ParseHint(DataManager *pDM, const char *s) const
 {
-	if (strncasecmp(s, "hinge{" /* } */, sizeof("hinge{" /* } */) - 1) == 0) {
-		s += sizeof("hinge{" /* } */) - 1;
+	if (strncasecmp(s, "hinge{" /*}*/, STRLENOF("hinge{" /*}*/)) == 0) {
+		s += STRLENOF("hinge{" /*}*/);
 
-		if (strcmp(&s[1], /* { */ "}") != 0) {
+		if (strcmp(&s[1], /*{*/ "}") != 0) {
 			return 0;
 		}
 
@@ -2162,10 +2162,10 @@ AxialRotationJoint::SetValue(DataManager *pDM,
 Hint *
 AxialRotationJoint::ParseHint(DataManager *pDM, const char *s) const
 {
-	if (strncasecmp(s, "offset{" /* } */, sizeof("offset{" /* } */) - 1) == 0) {
-		s += sizeof("offset{" /* } */) - 1;
+	if (strncasecmp(s, "offset{" /*}*/, STRLENOF("offset{" /*}*/)) == 0) {
+		s += STRLENOF("offset{" /*}*/);
 
-		if (strcmp(&s[1], /* { */ "}") != 0) {
+		if (strcmp(&s[1], /*{*/ "}") != 0) {
 			return 0;
 		}
 
@@ -2177,10 +2177,10 @@ AxialRotationJoint::ParseHint(DataManager *pDM, const char *s) const
 			return new Joint::OffsetHint<2>;
 		}
 
-	} else if (strncasecmp(s, "hinge{" /* } */, sizeof("hinge{" /* } */) - 1) == 0) {
-		s += sizeof("hinge{" /* } */) - 1;
+	} else if (strncasecmp(s, "hinge{" /*}*/, STRLENOF("hinge{" /*}*/)) == 0) {
+		s += STRLENOF("hinge{" /*}*/);
 
-		if (strcmp(&s[1], /* { */ "}") != 0) {
+		if (strcmp(&s[1], /*{*/ "}") != 0) {
 			return 0;
 		}
 
@@ -3236,8 +3236,8 @@ PlanePinJoint::SetValue(DataManager *pDM,
 Hint *
 PlanePinJoint::ParseHint(DataManager *pDM, const char *s) const
 {
-	if (strncasecmp(s, "offset{" /* } */, sizeof("offset{" /* } */) - 1) == 0) {
-		s += sizeof("offset{" /* } */) - 1;
+	if (strncasecmp(s, "offset{" /*}*/, STRLENOF("offset{" /*}*/)) == 0) {
+		s += STRLENOF("offset{" /*}*/);
 
 		if (strcmp(&s[1], /* { */ "}") != 0) {
 			return 0;
@@ -3251,10 +3251,10 @@ PlanePinJoint::ParseHint(DataManager *pDM, const char *s) const
 			return new Joint::OffsetHint<0>;
 		}
 
-	} else if (strncasecmp(s, "hinge{" /* } */, sizeof("hinge{" /* } */) - 1) == 0) {
-		s += sizeof("hinge{" /* } */) - 1;
+	} else if (strncasecmp(s, "hinge{" /*}*/, STRLENOF("hinge{" /*}*/)) == 0) {
+		s += STRLENOF("hinge{" /*}*/);
 
-		if (strcmp(&s[1], /* { */ "}") != 0) {
+		if (strcmp(&s[1], /*{*/ "}") != 0) {
 			return 0;
 		}
 

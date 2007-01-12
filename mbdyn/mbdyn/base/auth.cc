@@ -69,12 +69,12 @@ PasswordAuth::PasswordAuth(const char *u, const char *c, const char *salt_format
 	ASSERT(c != NULL);
 
 	strncpy(User, u, sizeof(User));
-	User[sizeof(User) - 1] = '\0';
+	User[STRLENOF(User)] = '\0';
 
 	char salt[33];
 	char *tmp = 0;
-	if (strncmp(c, "{CRYPT}", sizeof("{CRYPT}") - 1) == 0) {
-		tmp = c + sizeof("{CRYPT}") - 1;
+	if (strncmp(c, "{CRYPT}", STRLENOF("{CRYPT}")) == 0) {
+		tmp = &c[STRLENOF("{CRYPT}")];
 
 		if (strlen(tmp) >= sizeof(Cred)) {
 			silent_cerr("unable to handle credentials (too long)"
@@ -91,7 +91,7 @@ PasswordAuth::PasswordAuth(const char *u, const char *c, const char *salt_format
 	}
 
 	strncpy(Cred, tmp, sizeof(Cred));
-	Cred[sizeof(Cred) - 1] = '\0';
+	Cred[STRLENOF(Cred)] = '\0';
 }
 
 AuthMethod::AuthRes

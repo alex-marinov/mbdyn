@@ -436,9 +436,10 @@ main(int argc, char *argv[])
 		case 'p':
 			dpivot = atof(optarg);
 			break;
+
 		case 'P':
 		{
-			if (strncasecmp(optarg, "colamd", sizeof("colamd") - 1) == 0) {
+			if (strncasecmp(optarg, "colamd", STRLENOF("colamd")) == 0) {
 				if ((strcasecmp(solver, "umfpack") != 0) && 
 					(strcasecmp(solver, "naive") != 0) &&
 					(strcasecmp(solver, "superlu") != 0)
@@ -448,7 +449,7 @@ main(int argc, char *argv[])
 					exit(1);
 				}
 				preord = COLAMD_PREORD;
-			} else if (strncasecmp(optarg, "mmdata", sizeof("mmdata") - 1) == 0) {
+			} else if (strncasecmp(optarg, "mmdata", STRLENOF("mmdata")) == 0) {
 				if (strcasecmp(solver, "superlu") != 0) {
 					std::cerr << "mmdata preordering meaningful only for superlu solver" << std::endl;
 					exit(1);
@@ -464,14 +465,14 @@ main(int argc, char *argv[])
 
 		case 'O':
 		{
-			if (strncasecmp(optarg, "blocksize=", sizeof("blocksize=") - 1) == 0) {
+			if (strncasecmp(optarg, "blocksize=", STRLENOF("blocksize=")) == 0) {
 				char	*next;
 
 				if (strcasecmp(solver, "umfpack") != 0) {
 					std::cerr << "blocksize only meaningful for umfpack solver" << std::endl;
 				}
 
-				optarg += sizeof("blocksize=") - 1;
+				optarg += STRLENOF("blocksize=");
 				block_size = (int)strtol(optarg, &next, 10);
 				if (next[0] != '\0') {
 					std::cerr << "unable to parse blocksize value" << std::endl;

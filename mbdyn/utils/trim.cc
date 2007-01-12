@@ -202,12 +202,12 @@ IO::Parse(int argc, char *argv[])
 
 		switch (opt) {
 		case 'H':
-			if (strncasecmp(optarg, "measures:", sizeof("measures:") - 1) == 0) {
-				optarg += sizeof("measures:") - 1;
+			if (strncasecmp(optarg, "measures:", STRLENOF("measures:")) == 0) {
+				optarg += STRLENOF("measures:");
 				s2s = &s2s_measures;
 
-			} else if (strncasecmp(optarg, "controls:", sizeof("controls:") - 1) == 0) {
-				optarg += sizeof("controls:") - 1;
+			} else if (strncasecmp(optarg, "controls:", STRLENOF("controls:")) == 0) {
+				optarg += STRLENOF("controls:");
 				s2s = &s2s_controls;
 
 			} else {
@@ -215,12 +215,12 @@ IO::Parse(int argc, char *argv[])
 				throw;
 			}
 
-			if (strncasecmp(optarg, "inet:", sizeof("inet:") - 1) == 0) {
-				optarg += sizeof("inet:") - 1;
+			if (strncasecmp(optarg, "inet:", STRLENOF("inet:")) == 0) {
+				optarg += STRLENOF("inet:");
 				s2s->host = optarg;
 
-			} else if (strncasecmp(optarg, "path:", sizeof("path:") - 1) == 0) {
-				optarg += sizeof("path:") - 1;
+			} else if (strncasecmp(optarg, "path:", STRLENOF("path:")) == 0) {
+				optarg += STRLENOF("path:");
 				s2s->path = optarg;
 
 			} else if (strcasecmp(optarg, "stdin") == 0) {

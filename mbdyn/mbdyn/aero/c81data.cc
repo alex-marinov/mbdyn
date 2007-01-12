@@ -239,7 +239,7 @@ read_c81_data(std::istream& in, c81_data* data)
    
    	/* header */
    	in.getline(buf, sizeof(buf));
-	if (strncasecmp(buf, "# FREE FORMAT", sizeof("# FREE FORMAT") - 1) == 0) {
+	if (strncasecmp(buf, "# FREE FORMAT", STRLENOF("# FREE FORMAT")) == 0) {
 		return read_c81_data_free_format(in, data);
 	}
 
@@ -519,7 +519,7 @@ read_fc511_data(std::istream& in, c81_data* data)
    	in.getline(buf, sizeof(buf));
 
 	memcpy(data->header, buf, sizeof(data->header));
-	data->header[sizeof(data->header) - 1] = '\0';
+	data->header[STRLENOF(data->header)] = '\0';
 
 	char	*p;
 
@@ -581,7 +581,7 @@ read_c81_data_free_format(std::istream& in, c81_data* data)
    
    	/* header */
    	in.getline(buf, sizeof(buf));
-	if (strncasecmp(buf, "# FREE FORMAT", sizeof("# FREE FORMAT") - 1) == 0) {
+	if (strncasecmp(buf, "# FREE FORMAT", STRLENOF("# FREE FORMAT")) == 0) {
    		in.getline(buf, sizeof(buf));
 	}
 
@@ -590,7 +590,7 @@ read_c81_data_free_format(std::istream& in, c81_data* data)
 		return -1;
 	}
 
-	size_t	len = sizeof(data->header) - 1;
+	size_t	len = STRLENOF(data->header);
 	if (size_t(p - buf) < len) {
 		len = size_t(p - buf);
 	}

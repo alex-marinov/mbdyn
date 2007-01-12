@@ -58,16 +58,16 @@ mbdyn_make_salt(char *salt, size_t saltlen, const char *salt_format)
 	fin = fopen("/dev/urandom");
 #endif /* HAVE_DEV_RANDOM || HAVE_DEV_URANDOM */
 
-	fread(buf, sizeof(buf) - 1, 1, fin);
-	buf[sizeof(buf) - 1] = '\0';
+	fread(buf, STRLENOF(buf), 1, fin);
+	buf[STRLENOF(buf)] = '\0';
 	fclose(fin);
 
-	for (unsigned int i = 0; i < sizeof(buf) - 1; i++) {
-		buf[i] = salt_charset[buf[i] % (sizeof(salt_charset) - 1)];
+	for (unsigned int i = 0; i < STRLENOF(buf); i++) {
+		buf[i] = salt_charset[buf[i] % STRLENOF(salt_charset)];
 	}
 #else
-	for (unsigned int i = 0; i < sizeof(buf) - 1; i++) {
-		buf[i] = salt_charset[rand() % (sizeof(salt_charset) - 1)];
+	for (unsigned int i = 0; i < STRLENOF(buf); i++) {
+		buf[i] = salt_charset[rand() % STRLENOF(salt_charset)];
 	}
 #endif
 

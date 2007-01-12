@@ -115,8 +115,8 @@ public:
 	virtual Hint *
 	ParseHint(DataManager *pDM, const char *s) const
 	{
-		if (strncasecmp(s, "prestress{" /* } */ , sizeof("prestress{" /* } */ ) - 1) == 0) {
-			s += sizeof("prestress{") - 1;
+		if (strncasecmp(s, "prestress{" /*}*/ , STRLENOF("prestress{" /*}*/ )) == 0) {
+			s += STRLENOF("prestress{" /*}*/ );
 		
 			size_t	len = strlen(s);
 
@@ -130,8 +130,8 @@ public:
 
 			return new TplVecHint<T>(sStr);
 
-		} else if (strncasecmp(s, "prestrain{" /* } */ , sizeof("prestrain{" /* } */ ) - 1) == 0) {
-			s += sizeof("prestrain{") - 1;
+		} else if (strncasecmp(s, "prestrain{" /*}*/ , STRLENOF("prestrain{" /*}*/ )) == 0) {
+			s += STRLENOF("prestrain{" /*}*/ );
 		
 			size_t	len = strlen(s);
 

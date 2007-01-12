@@ -145,11 +145,11 @@ DriveDisplacementJoint::SetValue(DataManager *pDM,
 Hint *
 DriveDisplacementJoint::ParseHint(DataManager *pDM, const char *s) const
 {
-	if (strncasecmp(s, "offset{" /* } */ , sizeof("offset{" /* } */ ) - 1) == 0)
+	if (strncasecmp(s, "offset{" /*}*/ , STRLENOF("offset{" /*}*/ )) == 0)
 	{
-		s += sizeof("offset{" /* } */ ) - 1;
+		s += STRLENOF("offset{" /*}*/ );
 
-		if (strcmp(&s[1], /* { */ "}") != 0) {
+		if (strcmp(&s[1], /*{*/ "}") != 0) {
 			return 0;
 		}
 

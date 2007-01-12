@@ -170,8 +170,7 @@ main(int argc, char *argv[])
 						  int nc = 0;
 
 						  while (1) {
-
-							  nc = read(STDIN_FILENO, &buf[cnt], sizeof(buf)-cnt-1);
+							  nc = read(STDIN_FILENO, &buf[cnt], STRLENOF(buf)-cnt);
 							  if (nc == -1 && errno != EAGAIN) {
 								  break;
 
@@ -187,7 +186,7 @@ main(int argc, char *argv[])
 							  break;
 						  }
 
-						  buf[sizeof(buf)-1] = '\0';
+						  buf[STRLENOF(buf)] = '\0';
 						  nc = atoi(buf);
 						  if (nc > 0) {
 							  sleeptime = nc;

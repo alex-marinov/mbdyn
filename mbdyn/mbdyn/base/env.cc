@@ -46,7 +46,7 @@
 extern char **environ;
 
 static const char MBDYNPREFIX[] = "MBDYN";
-static const int MBDYNPREFIXLEN = sizeof(MBDYNPREFIX) - 1;
+static const int MBDYNPREFIXLEN = STRLENOF(MBDYNPREFIX);
 
 extern void GetEnviron(MathParser& MP);
 
@@ -97,10 +97,10 @@ GetEnviron(MathParser& MP)
 	 		*v = '\0';
 	 		v++;
 	 
-	 		if (strncmp(p+sizeof("MBDYN")-1, "VARS", sizeof("VARS")-1) == 0) {
+	 		if (strncmp(&p[STRLENOF("MBDYN")], "VARS", STRLENOF("VARS")) == 0) {
 				NO_OP;
 
-			} else if (strncmp(p+sizeof("MBDYN")-1, "_real_", sizeof("_real_")-1) == 0) {
+			} else if (strncmp(&p[STRLENOF("MBDYN")], "_real_", STRLENOF("_real_")) == 0) {
 	    			n = p+11;
 				char *endptr = NULL;
 	    			d = strtod(v, &endptr);
@@ -124,7 +124,7 @@ GetEnviron(MathParser& MP)
 	       				}
 	    			}
 	    
-	 		} else if (strncmp(p+sizeof("MBDYN")-1, "_integer_", sizeof("_integer_")-1) == 0) {
+	 		} else if (strncmp(&p[STRLENOF("MBDYN")], "_integer_", STRLENOF("_integer_")) == 0) {
 	    			n = p+14;
 #ifdef HAVE_STRTOL
 				char *endptr = NULL;

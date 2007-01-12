@@ -150,11 +150,11 @@ DriveHingeJoint::SetValue(DataManager *pDM,
 Hint *
 DriveHingeJoint::ParseHint(DataManager *pDM, const char *s) const
 {
-	if (strncasecmp(s, "hinge{" /* } */ , sizeof("hinge{" /* } */ ) - 1) == 0)
+	if (strncasecmp(s, "hinge{" /*}*/ , STRLENOF("hinge{" /*}*/ )) == 0)
 	{
-		s += sizeof("hinge{" /* } */ ) - 1;
+		s += STRLENOF("hinge{" /*}*/ );
 
-		if (strcmp(&s[1], /* { */ "}") != 0) {
+		if (strcmp(&s[1], /*{*/ "}") != 0) {
 			return 0;
 		}
 

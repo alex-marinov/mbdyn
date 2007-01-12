@@ -132,10 +132,10 @@ DeformableHingeJoint::SetValue(DataManager *pDM,
 Hint *
 DeformableHingeJoint::ParseHint(DataManager *pDM, const char *s) const
 {
-	if (strncasecmp(s, "hinge{" /* } */, sizeof("hinge{" /* } */) - 1) == 0) {
-		s += sizeof("hinge{" /* } */) - 1;
+	if (strncasecmp(s, "hinge{" /*}*/, STRLENOF("hinge{" /*}*/)) == 0) {
+		s += STRLENOF("hinge{" /*}*/);
 
-		if (strcmp(&s[1], /* { */ "}") != 0) {
+		if (strcmp(&s[1], /*{*/ "}") != 0) {
 			return 0;
 		}
 
@@ -178,9 +178,9 @@ DeformableHingeJoint::iGetPrivDataIdx(const char *s) const
 
 	default:
 	{
-		size_t l = sizeof("constitutiveLaw.") - 1;
+		size_t l = STRLENOF("constitutiveLaw.");
 		if (strncmp(s, "constitutiveLaw.", l) == 0) {
-			return 9 + ConstitutiveLaw3DOwner::iGetPrivDataIdx(s + l);
+			return 9 + ConstitutiveLaw3DOwner::iGetPrivDataIdx(&s[l]);
 		}
 		return 0;
 	}

@@ -557,12 +557,12 @@ main(int argc, char* argv[])
 				if (optarg) {
 					char	*s = optarg;
 
-					if (strncasecmp(s, "rank=", sizeof("rank=") - 1) == 0) {
+					if (strncasecmp(s, "rank=", STRLENOF("rank=")) == 0) {
 #ifdef USE_MPI
 						char	*next;
 						long	r;
 						
-						s += sizeof("rank=") - 1;
+						s += STRLENOF("rank=");
 						r = strtol(s, &next, 10);
 						if (next[0] != '\0') {
 							if (next[0] != ',') {

@@ -37,8 +37,8 @@
 Hint *
 ParseHint(DataManager *pDM, const char *s)
 {
-	if (strncasecmp(s, "drive{", sizeof("drive{") - 1) == 0) {
-		s += sizeof("drive{") - 1;
+	if (strncasecmp(s, "drive{", STRLENOF("drive{")) == 0) {
+		s += STRLENOF("drive{");
 		
 		size_t	len = strlen(s);
 
@@ -52,8 +52,8 @@ ParseHint(DataManager *pDM, const char *s)
 
 		return new DriveHint(sDriveStr);
 
-	} else if (strncasecmp(s, "drive3{", sizeof("drive3{") - 1) == 0) {
-		s += sizeof("drive3{") - 1;
+	} else if (strncasecmp(s, "drive3{", STRLENOF("drive3{")) == 0) {
+		s += STRLENOF("drive3{");
 		
 		size_t	len = strlen(s);
 
@@ -67,8 +67,8 @@ ParseHint(DataManager *pDM, const char *s)
 
 		return new TplDriveHint<Vec3>(sDriveStr);
 
-	} else if (strncasecmp(s, "drive6{", sizeof("drive6{") - 1) == 0) {
-		s += sizeof("drive6{") - 1;
+	} else if (strncasecmp(s, "drive6{", STRLENOF("drive6{")) == 0) {
+		s += STRLENOF("drive6{");
 		
 		size_t	len = strlen(s);
 
