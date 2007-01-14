@@ -71,45 +71,45 @@ Felice Felippone, as an undergraduate student, implemented the modal body
 
 Lamberto Puggelli, another undergrad, implemented the hydraulic library
 
-Giuseppe Quaranta (Beppe), as an undergrad, did a very good job in 
+Giuseppe Quaranta, (Beppe), as an undergrad, did a very good job in 
 	parallelizing the code adding a Schur domain decomposition solver
 	and incorporating Metis as a partitioning tool, all under the
-	MPI umbrella.
+	MPI umbrella.  While Ph.D. student, he worked on the integration
+	with sophisticated aerodynamics, including wake modeling and CFD,
+	on matrix-free nonlinear solvers, periodic stability analysis
+	by means of transient response analysis and system identification,
+	and more.  Now, as a Ph.D., he is a stable member of the team.
 
 Leonardo Cassan, undergrad, worked at the ADAMS2MBDyn project,
 	a translator form ADAMS/View models in adm format into MBDyn
 	raw input files.  You can find what's available in contrib/a2m
 	(not working yet, sorry).
 
-Future development:
-
-Marco Morandini, Ph.D., is working on sophisticated flexible bodies
-	(beams, at present, but also plates and shells in the future),
+Marco Morandini, Ph.D., worked on sophisticated flexible bodies (beams),
 	on visualization issues, friction modeling for all joints,
-	third-order solver, and more.
-
-Giuseppe Quaranta, currently a Ph.D. student, will work on the integration
-	with sophisticated aerodynamics, including wake modeling and CFD,
-	on matrix-free nonlinear solvers, periodic stability analysis
-	by means of transient response analysis and system identification,
-	and more.
+	third-order solver, and more.  He's currently working at
+	automatic differentiation within the ANTASME project.
+	He is a stable member of the team.
 
 Stefania Gualdi, Ph.D., is working on tire and landing gear analysis
 	and (semi-)active control.
 
-Michele Attolico, currently a Ph.D. student, integrated RTAI 
+Michele Attolico, while Ph.D. student, integrated RTAI 
 	to allow hard and user-space real-time simulations, and
-	is now working on real-time applications and improvements.
+	worked on real-time applications and improvements.
 
-Matteo Martegani, currently a Graduate student, is developing 
+Matteo Martegani, while graduate student, worked on
 	the remote real-time simulation with RTAI and RTNET
 	(http://www.aero.polimi.it/~mbdyn/mbdyn-rt/).
+
+Patrick Rix, as an independent user, is contributing to the NetCDF
+	output.
 
 Other undergrads might have had a role in the F77 version of the code, 
 that I'm not aware of.
 
 Paolo Mantegazza is the project leader,
-and Pierangelo Masarati (me!) is the main developer.
+and Pierangelo Masarati (me!) is the main developer and the maintainer.
 
 Pierangelo Masarati.
 

@@ -27,6 +27,11 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+/*
+ * ACKNOWLEDGEMENTS:
+ * Support for output with NetCDF is based on a contribution
+ * by Patrick Rix <patrick.rix@online.de>
+ */
 
 /* gestore dell'output */
 
