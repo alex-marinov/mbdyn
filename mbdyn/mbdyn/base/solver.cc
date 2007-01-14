@@ -3532,7 +3532,12 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		/* costruzione dello step solver fictitious */
 		switch (FictitiousType) {
 		case INT_CRANKNICHOLSON:
-  			pFictitiousSteps = pFirstFictitiousStep;
+			SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
+					CrankNicholsonIntegrator,
+					CrankNicholsonIntegrator(dFictitiousStepsTolerance,
+						0.,
+						iFictitiousStepsMaxIterations,
+						bModResTest));
 			break;
 	
 		case INT_MS2:
@@ -3602,7 +3607,12 @@ EndOfCycle: /* esce dal ciclo di lettura */
 	/* costruzione dello step solver per i passi normali */
 	switch (RegularType) {
 	case INT_CRANKNICHOLSON:
-		pRegularSteps = pFirstRegularStep;
+		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+			CrankNicholsonIntegrator,
+			CrankNicholsonIntegrator(dTol,
+				dSolutionTol,
+				iMaxIterations,
+				bModResTest));
 		break;
 
 	case INT_MS2:
