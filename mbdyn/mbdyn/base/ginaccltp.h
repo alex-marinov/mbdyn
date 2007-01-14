@@ -620,7 +620,7 @@ GiNaCViscoElasticConstitutiveLaw<doublereal, doublereal>::pCopy(void) const
 	ostrstream		expr;
 #endif /* HAVE_STRSTREAM_H */
 
-	epsPrime << gEps;
+	eps << gEps;
 	epsPrime << gEpsPrime;
 	expr << gExpr;
 
