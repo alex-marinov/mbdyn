@@ -36,15 +36,25 @@
 
 #ifdef HAVE_GINAC
 
-#include "symcltp.h"
-#include <ginac/ginac.h>
 #include <typeinfo>
+
+#include <ginac/ginac.h>
+
+#include "symcltp.h"
 
 /* GiNaCElasticConstitutiveLaw - begin */
 
 template <class T, class Tder>
 class GiNaCElasticConstitutiveLaw 
 : public SymbolicElasticConstitutiveLaw<T, Tder> {
+private:
+	unsigned dim;
+
+	std::vector<GiNaC::symbol *> gEps;		/* parameter symbols */
+
+	std::vector<GiNaC::ex> gExpr;			/* expressions */
+	std::vector<std::vector<GiNaC::ex> > gExprDEps;	/* derivatives */
+
 public:
 	GiNaCElasticConstitutiveLaw(
 		const TplDriveCaller<T>* pDC,
@@ -73,42 +83,153 @@ GiNaCElasticConstitutiveLaw<T, Tder>::GiNaCElasticConstitutiveLaw(
 	std::vector<std::string>& epsilon,
 	std::vector<std::string>& expression)
 : SymbolicElasticConstitutiveLaw<T, Tder>(pDC, PStress, epsilon, expression)
-{ 
-	throw (typename ConstitutiveLaw<T, Tder>::ErrNotAvailable(std::cerr,
-		"GiNaCElasticConstitutiveLaw() is not defined "
-		"for the requested dimensionality")); 
-}
+{
+	if (typeid(T) == typeid(Vec3)) {
+		dim = 3;
+
+	} else if (typeid(T) == typeid(Vec3)) {
+		dim = 6;
+
+	} else {
+		throw (typename ConstitutiveLaw<T, Tder>::ErrNotAvailable(std::cerr,
+			"GiNaCElasticConstitutiveLaw() is not defined "
+			"for the requested dimensionality")); 
+	}
+
+	gEps.resize(dim);
+	gExpr.resize(dim);
+
+	gExprDEps.resize(dim);
+	for (unsigned row = 0; row < dim; row++) {
+		gExprDEps[row].resize(dim);
+	}
+
+	ConstitutiveLaw<T, Tder>::FDE = 0.;
+
+	GiNaC::lst l; 
+
+	for (unsigned row = 0; row < dim; row++) {
+		gEps[row] = new GiNaC::symbol(epsilon[row]);
+		l.append(*gEps[row]);
+	}
+
+	for (unsigned row = 0; row < dim; row++) {
+		try {
+			gExpr[row] = GiNaC::ex(expression[row], l);
+
+		} catch (std::exception e) {
+			silent_cerr("expression #" << row << " parsing "
+				"failed: " << e.what() << std::endl);
+			throw e;
+		}
+
+		for (unsigned col = 0; col < dim; col++) {
+			try {
+				gExprDEps[row][col] = gExpr[row].diff(*gEps[col]);
+
+			} catch (std::exception e) {
+				silent_cerr("expression #" << row << " differentiation "
+					"wrt/ Eps #" << col << "failed: "
+					<< e.what() << std::endl);
+				throw e;
+			}
+		}
+	}
+}	
  
 template <class T, class Tder>
 GiNaCElasticConstitutiveLaw<T, Tder>::~GiNaCElasticConstitutiveLaw(void)
 {
-	NO_OP;
+	for (unsigned row = 0; row < dim; row++) {
+		delete gEps[row];
+	}
 };
 
 template <class T, class Tder> ConstitutiveLaw<T, Tder>* 
 GiNaCElasticConstitutiveLaw<T, Tder>::pCopy(void) const
 {
-	return 0;
+	ConstitutiveLaw<T, Tder>* pCL = 0;
+
+	std::vector<std::string> epsilon(dim);
+	std::vector<std::string> expression(dim);
+
+	for (unsigned row = 0; row < dim; row++) {
+#if defined(HAVE_SSTREAM)
+		std::ostringstream	eps;
+		std::ostringstream	expr;
+#else /* HAVE_STRSTREAM_H */
+		ostrstream		eps;
+		ostrstream		expr;
+#endif /* HAVE_STRSTREAM_H */
+
+		eps << *gEps[row];
+		expr << gExpr[row];
+
+		epsilon[row] = eps.str();
+		expression[row] = expr.str();
+	}
+
+	typedef GiNaCElasticConstitutiveLaw<T, Tder> cl;
+	SAFENEWWITHCONSTRUCTOR(pCL, 
+		cl, 
+		cl(ElasticConstitutiveLaw<T, Tder>::pGetDriveCaller()->pCopy(), 
+			ElasticConstitutiveLaw<T, Tder>::PreStress,
+			epsilon, expression));
+      
+	return pCL;
 }
 
 template <class T, class Tder> std::ostream& 
 GiNaCElasticConstitutiveLaw<T, Tder>::Restart(std::ostream& out) const
 {
-  	return out;
+	out << "symbolic elastic, epsilon";
+	for (unsigned row = 0; row < dim; row++) {
+		out << ", \"" << *gEps[row] << "\"";
+	}
+	out << "\", expression";
+	for (unsigned row = 0; row < dim; row++) {
+		out << ", \"" << gExpr[row] << "\"";
+	}
+
+  	return ElasticConstitutiveLaw<T, Tder>::Restart_int(out);
 }
 
 template <class T, class Tder> void
 GiNaCElasticConstitutiveLaw<T, Tder>::Update(const T& Eps, 
-		const T& /* EpsPrime */ )
+	const T& /* EpsPrime */ )
 {
-	NO_OP;
+	GiNaC::lst l;
+
+	ElasticConstitutiveLaw<T, Tder>::Epsilon = Eps;
+
+	T e = Eps - ElasticConstitutiveLaw<T, Tder>::Get();
+
+	for (unsigned row = 0; row < dim; row++) {
+		l.append(*gEps[row] == e(row + 1));
+	}
+
+	ConstitutiveLaw<T, Tder>::F = ElasticConstitutiveLaw<T, Tder>::PreStress;
+
+	for (unsigned row = 0; row < dim; row++) {
+		GiNaC::ex f_expr = gExpr[row].subs(l);
+
+		ConstitutiveLaw<T, Tder>::F(row + 1)
+			+= GiNaC::ex_to<GiNaC::numeric>(f_expr).to_double();
+
+		for (unsigned col = 0; col < dim; col++) {
+			GiNaC::ex f_derEps = gExprDEps[row][col].subs(l);
+
+			ConstitutiveLaw<T, Tder>::FDE(row + 1, col + 1)
+				= GiNaC::ex_to<GiNaC::numeric>(f_derEps).to_double();
+		}
+	}
 }
 
 template <class T, class Tder> void 
 GiNaCElasticConstitutiveLaw<T, Tder>::IncrementalUpdate(const T& DeltaEps, 
 		const T& /* EpsPrime */ )
 {
-	NO_OP;
+	Update(ElasticConstitutiveLaw<T, Tder>::Epsilon + DeltaEps);
 }
 
 /* specialize for scalar constitutive law */
@@ -120,7 +241,7 @@ private:
 	GiNaC::symbol gEps;		/* parameter symbol */
 
 	GiNaC::ex gExpr;		/* expression */
-	GiNaC::ex gDerEps;		/* derivative */
+	GiNaC::ex gExprDEps;		/* derivative */
 
 public:
 	GiNaCElasticConstitutiveLaw(
@@ -152,13 +273,15 @@ gEps(epsilon[0])
 
 	try {
 		gExpr = GiNaC::ex(expression[0], l);
+
 	} catch (std::exception e) {
 		silent_cerr("expression parsing failed: " << e.what() << std::endl);
 		throw e;
 	}
 
 	try {
-		gDerEps = gExpr.diff(gEps);
+		gExprDEps = gExpr.diff(gEps);
+
 	} catch (std::exception e) {
 		silent_cerr("expression differentiation wrt/ Eps failed: " << e.what() << std::endl);
 		throw e;
@@ -167,7 +290,7 @@ gEps(epsilon[0])
 	silent_cout("\tGiNaCElasticConstitutiveLaw:" << std::endl
 		<< "\t\tEps:              \"" << gEps << "\"" << std::endl
 		<< "\t\tConstitutive law: \"" << gExpr << "\"" << std::endl
-		<< "\t\tDer/Eps:          \"" << gDerEps << "\"" << std::endl);
+		<< "\t\tDer/Eps:          \"" << gExprDEps << "\"" << std::endl);
 }
  
 GiNaCElasticConstitutiveLaw<doublereal, doublereal>::~GiNaCElasticConstitutiveLaw(void)
@@ -233,7 +356,7 @@ GiNaCElasticConstitutiveLaw<doublereal, doublereal>::Update(const doublereal& Ep
 		ElasticConstitutiveLaw<doublereal, doublereal>::PreStress
 		+ GiNaC::ex_to<GiNaC::numeric>(f_expr).to_double();
 
-	GiNaC::ex f_derEps = gDerEps.subs(l);
+	GiNaC::ex f_derEps = gExprDEps.subs(l);
 	ConstitutiveLaw<doublereal, doublereal>::FDE = GiNaC::ex_to<GiNaC::numeric>(f_derEps).to_double();
 }
 
@@ -252,6 +375,14 @@ GiNaCElasticConstitutiveLaw<doublereal, doublereal>::IncrementalUpdate(
 template <class T, class Tder>
 class GiNaCViscousConstitutiveLaw 
 : public SymbolicViscousConstitutiveLaw<T, Tder> {
+private:
+	unsigned dim;
+
+	std::vector<GiNaC::symbol *> gEpsPrime;			/* parameter symbols */
+
+	std::vector<GiNaC::ex> gExpr;				/* expressions */
+	std::vector<std::vector<GiNaC::ex> > gExprDEpsPrime;	/* derivatives */
+
 public:
 	GiNaCViscousConstitutiveLaw(
 		const TplDriveCaller<T>* pDC,
@@ -281,41 +412,149 @@ GiNaCViscousConstitutiveLaw<T, Tder>::GiNaCViscousConstitutiveLaw(
 	std::vector<std::string>& expression)
 : SymbolicViscousConstitutiveLaw<T, Tder>(pDC, PStress, epsilonPrime, expression)
 { 
-	throw (typename ConstitutiveLaw<T, Tder>::ErrNotAvailable(std::cerr,
-		"GiNaCElasticConstitutiveLaw() is not defined "
-		"for the requested dimensionality")); 
-}
- 
+	if (typeid(T) == typeid(Vec3)) {
+		dim = 3;
+
+	} else if (typeid(T) == typeid(Vec3)) {
+		dim = 6;
+
+	} else {
+		throw (typename ConstitutiveLaw<T, Tder>::ErrNotAvailable(std::cerr,
+			"GiNaCViscousConstitutiveLaw() is not defined "
+			"for the requested dimensionality")); 
+	}
+
+	gEpsPrime.resize(dim);
+	gExpr.resize(dim);
+
+	gExprDEpsPrime.resize(dim);
+	for (unsigned row = 0; row < dim; row++) {
+		gExprDEpsPrime[row].resize(dim);
+	}
+
+	ConstitutiveLaw<T, Tder>::FDE = 0.;
+	ConstitutiveLaw<T, Tder>::FDEPrime = 0.;
+
+	GiNaC::lst l; 
+
+	for (unsigned row = 0; row < dim; row++) {
+		gEpsPrime[row] = new GiNaC::symbol(epsilonPrime[row]);
+		l.append(*gEpsPrime[row]);
+	}
+
+	for (unsigned row = 0; row < dim; row++) {
+		try {
+			gExpr[row] = GiNaC::ex(expression[row], l);
+
+		} catch (std::exception e) {
+			silent_cerr("expression #" << row << " parsing "
+				"failed: " << e.what() << std::endl);
+			throw e;
+		}
+
+		for (unsigned col = 0; col < dim; col++) {
+			try {
+				gExprDEpsPrime[row][col] = gExpr[row].diff(*gEpsPrime[col]);
+
+			} catch (std::exception e) {
+				silent_cerr("expression #" << row << " differentiation "
+					"wrt/ EpsPrime #" << col << " failed: " << e.what()
+					<< std::endl);
+				throw e;
+			}
+		}
+	}
+};
+
 template <class T, class Tder>
 GiNaCViscousConstitutiveLaw<T, Tder>::~GiNaCViscousConstitutiveLaw(void)
 {
-	NO_OP;
-};
+	for (unsigned row = 0; row < dim; row++) {
+		delete gEpsPrime[row];
+	}
+}
 
 template <class T, class Tder> ConstitutiveLaw<T, Tder>* 
 GiNaCViscousConstitutiveLaw<T, Tder>::pCopy(void) const
 {
-	return 0;
+	ConstitutiveLaw<T, Tder>* pCL = 0;
+
+	std::vector<std::string> epsilonPrime(dim);
+	std::vector<std::string> expression(dim);
+
+	for (unsigned row = 0; row < dim; row++) {
+#if defined(HAVE_SSTREAM)
+		std::ostringstream	epsPrime;
+		std::ostringstream	expr;
+#else /* HAVE_STRSTREAM_H */
+		ostrstream		epsPrime;
+		ostrstream		expr;
+#endif /* HAVE_STRSTREAM_H */
+
+		epsPrime << *gEpsPrime[row];
+		expr << gExpr[row];
+
+		epsilonPrime[row] = epsPrime.str();
+		expression[row] = expr.str();
+	}
+
+	typedef GiNaCViscousConstitutiveLaw<T, Tder> cl;
+	SAFENEWWITHCONSTRUCTOR(pCL, 
+		cl, 
+		cl(ElasticConstitutiveLaw<T, Tder>::pGetDriveCaller()->pCopy(), 
+			ElasticConstitutiveLaw<T, Tder>::PreStress,
+			epsilonPrime, expression));
+      
+	return pCL;
 }
 
 template <class T, class Tder> std::ostream& 
 GiNaCViscousConstitutiveLaw<T, Tder>::Restart(std::ostream& out) const
 {
-  	return out;
+	out << "symbolic viscous, epsilonPrime";
+	for (unsigned row = 0; row < dim; row++) {
+		out << ", \"" << *gEpsPrime[row] << "\"";
+	}
+	out << "\", expression";
+	for (unsigned row = 0; row < dim; row++) {
+		out << ", \"" << gExpr[row] << "\"";
+	}
+
+  	return ElasticConstitutiveLaw<T, Tder>::Restart_int(out);
 }
 
 template <class T, class Tder> void
 GiNaCViscousConstitutiveLaw<T, Tder>::Update(const T& Eps, 
-		const T& /* EpsPrime */ )
+	const T& EpsPrime)
 {
-	NO_OP;
+	GiNaC::lst l;
+
+	ConstitutiveLaw<T, Tder>::EpsilonPrime = EpsPrime;
+
+	for (unsigned row = 0; row < dim; row++) {
+		l.append(*gEpsPrime[row] == EpsPrime(row + 1));
+	}
+
+	for (unsigned row = 0; row < dim; row++) {
+		GiNaC::ex f_expr = gExpr[row].subs(l);
+
+		ConstitutiveLaw<T, Tder>::F(row + 1)
+			= GiNaC::ex_to<GiNaC::numeric>(f_expr).to_double();
+
+		for (unsigned col = 0; col < dim; col++) {
+			GiNaC::ex f_derEpsPrime = gExprDEpsPrime[row][col].subs(l);
+
+			ConstitutiveLaw<T, Tder>::FDEPrime(row + 1, col + 1)
+				= GiNaC::ex_to<GiNaC::numeric>(f_derEpsPrime).to_double();
+		}
+	}
 }
 
 template <class T, class Tder> void 
 GiNaCViscousConstitutiveLaw<T, Tder>::IncrementalUpdate(const T& DeltaEps, 
-		const T& /* EpsPrime */ )
+	const T& EpsPrime)
 {
-	NO_OP;
+	Update(DeltaEps, EpsPrime);
 }
 
 /* specialize for scalar constitutive law */
@@ -327,7 +566,7 @@ private:
 	GiNaC::symbol gEpsPrime;	/* parameter derivative symbol */
 
 	GiNaC::ex gExpr;		/* expression */
-	GiNaC::ex gDerEpsPrime;		/* derivative */
+	GiNaC::ex gExprDEpsPrime;		/* derivative */
 
 public:
 	GiNaCViscousConstitutiveLaw(
@@ -365,7 +604,7 @@ gEpsPrime(epsilonPrime[0])
 	}
 
 	try {
-		gDerEpsPrime = gExpr.diff(gEpsPrime);
+		gExprDEpsPrime = gExpr.diff(gEpsPrime);
 	} catch (std::exception e) {
 		silent_cerr("expression differentiation wrt/ EpsPrime failed: " << e.what() << std::endl);
 		throw e;
@@ -374,7 +613,7 @@ gEpsPrime(epsilonPrime[0])
 	silent_cout("\tGiNaCViscousConstitutiveLaw:" << std::endl
 		<< "\t\tEpsPrime:         \"" << gEpsPrime << "\"" << std::endl
 		<< "\t\tConstitutive law: \"" << gExpr << "\"" << std::endl
-		<< "\t\tDer/EpsPrime:     \"" << gDerEpsPrime << "\"" << std::endl);
+		<< "\t\tDer/EpsPrime:     \"" << gExprDEpsPrime << "\"" << std::endl);
 }
  
 GiNaCViscousConstitutiveLaw<doublereal, doublereal>::~GiNaCViscousConstitutiveLaw(void)
@@ -440,7 +679,7 @@ GiNaCViscousConstitutiveLaw<doublereal, doublereal>::Update(
 		ElasticConstitutiveLaw<doublereal, doublereal>::PreStress
 		+ GiNaC::ex_to<GiNaC::numeric>(f_expr).to_double();
 
-	GiNaC::ex f_derEpsPrime = gDerEpsPrime.subs(l);
+	GiNaC::ex f_derEpsPrime = gExprDEpsPrime.subs(l);
 	ConstitutiveLaw<doublereal, doublereal>::FDEPrime = GiNaC::ex_to<GiNaC::numeric>(f_derEpsPrime).to_double();
 }
 
@@ -458,6 +697,16 @@ GiNaCViscousConstitutiveLaw<doublereal, doublereal>::IncrementalUpdate(const dou
 template <class T, class Tder>
 class GiNaCViscoElasticConstitutiveLaw 
 : public SymbolicViscoElasticConstitutiveLaw<T, Tder> {
+private:
+	unsigned dim;
+
+	std::vector<GiNaC::symbol *> gEps;			/* parameter symbols */
+	std::vector<GiNaC::symbol *> gEpsPrime;			/* parameter symbols */
+
+	std::vector<GiNaC::ex> gExpr;				/* expressions */
+	std::vector<std::vector<GiNaC::ex> > gExprDEps;		/* derivatives */
+	std::vector<std::vector<GiNaC::ex> > gExprDEpsPrime;	/* derivatives */
+
 public:
 	GiNaCViscoElasticConstitutiveLaw(
 		const TplDriveCaller<T>* pDC,
@@ -489,41 +738,185 @@ GiNaCViscoElasticConstitutiveLaw<T, Tder>::GiNaCViscoElasticConstitutiveLaw(
 	std::vector<std::string>& expression)
 : SymbolicViscoElasticConstitutiveLaw<T, Tder>(pDC, PStress, epsilon, epsilonPrime, expression)
 { 
-	throw (typename ConstitutiveLaw<T, Tder>::ErrNotAvailable(std::cerr,
-		"GiNaCElasticConstitutiveLaw() is not defined "
-		"for the requested dimensionality")); 
+	if (typeid(T) == typeid(Vec3)) {
+		dim = 3;
+
+	} else if (typeid(T) == typeid(Vec3)) {
+		dim = 6;
+
+	} else {
+		throw (typename ConstitutiveLaw<T, Tder>::ErrNotAvailable(std::cerr,
+			"GiNaCViscoElasticConstitutiveLaw() is not defined "
+			"for the requested dimensionality")); 
+	}
+
+	gEps.resize(dim);
+	gEpsPrime.resize(dim);
+	gExpr.resize(dim);
+
+	gExprDEps.resize(dim);
+	gExprDEpsPrime.resize(dim);
+	for (unsigned row = 0; row < dim; row++) {
+		gExprDEps[row].resize(dim);
+		gExprDEpsPrime[row].resize(dim);
+	}
+
+	ConstitutiveLaw<T, Tder>::FDE = 0.;
+	ConstitutiveLaw<T, Tder>::FDEPrime = 0.;
+
+	GiNaC::lst l; 
+
+	for (unsigned row = 0; row < dim; row++) {
+		gEps[row] = new GiNaC::symbol(epsilon[row]);
+		l.append(*gEps[row]);
+		gEpsPrime[row] = new GiNaC::symbol(epsilonPrime[row]);
+		l.append(*gEpsPrime[row]);
+	}
+
+	for (unsigned row = 0; row < dim; row++) {
+		try {
+			gExpr[row] = GiNaC::ex(expression[row], l);
+
+		} catch (std::exception e) {
+			silent_cerr("expression #" << row << " parsing "
+				"failed: " << e.what() << std::endl);
+			throw e;
+		}
+
+		for (unsigned col = 0; col < dim; col++) {
+			try {
+				gExprDEps[row][col] = gExpr[row].diff(*gEps[col]);
+
+			} catch (std::exception e) {
+				silent_cerr("expression #" << row << " differentiation "
+					"wrt/ Eps #" << col << "failed: "
+					<< e.what() << std::endl);
+				throw e;
+			}
+
+			try {
+				gExprDEpsPrime[row][col] = gExpr[row].diff(*gEpsPrime[col]);
+
+			} catch (std::exception e) {
+				silent_cerr("expression #" << row << " differentiation "
+					"wrt/ EpsPrime #" << col << "failed: "
+					<< e.what() << std::endl);
+				throw e;
+			}
+		}
+	}
 }
  
 template <class T, class Tder>
 GiNaCViscoElasticConstitutiveLaw<T, Tder>::~GiNaCViscoElasticConstitutiveLaw(void)
 {
-	NO_OP;
+	for (unsigned row = 0; row < dim; row++) {
+		delete gEps[row];
+		delete gEpsPrime[row];
+	}
 };
 
 template <class T, class Tder> ConstitutiveLaw<T, Tder>* 
 GiNaCViscoElasticConstitutiveLaw<T, Tder>::pCopy(void) const
 {
-	return 0;
+	ConstitutiveLaw<T, Tder>* pCL = 0;
+
+	std::vector<std::string> epsilon(dim);
+	std::vector<std::string> epsilonPrime(dim);
+	std::vector<std::string> expression(dim);
+
+	for (unsigned row = 0; row < dim; row++) {
+#if defined(HAVE_SSTREAM)
+		std::ostringstream	eps;
+		std::ostringstream	epsPrime;
+		std::ostringstream	expr;
+#else /* HAVE_STRSTREAM_H */
+		ostrstream		eps;
+		ostrstream		epsPrime;
+		ostrstream		expr;
+#endif /* HAVE_STRSTREAM_H */
+
+		eps << *gEps[row];
+		epsPrime << *gEpsPrime[row];
+		expr << gExpr[row];
+
+		epsilon[row] = eps.str();
+		epsilonPrime[row] = epsPrime.str();
+		expression[row] = expr.str();
+	}
+
+	typedef GiNaCViscoElasticConstitutiveLaw<T, Tder> cl;
+	SAFENEWWITHCONSTRUCTOR(pCL, 
+		cl, 
+		cl(ElasticConstitutiveLaw<T, Tder>::pGetDriveCaller()->pCopy(), 
+			ElasticConstitutiveLaw<T, Tder>::PreStress,
+			epsilon, epsilonPrime, expression));
+      
+	return pCL;
 }
 
 template <class T, class Tder> std::ostream& 
 GiNaCViscoElasticConstitutiveLaw<T, Tder>::Restart(std::ostream& out) const
 {
-  	return out;
+	out << "symbolic viscoelastic, epsilon";
+	for (unsigned row = 0; row < dim; row++) {
+		out << ", \"" << *gEps[row] << "\"";
+	}
+	out << "\", epsilon prime";
+	for (unsigned row = 0; row < dim; row++) {
+		out << ", \"" << *gEpsPrime[row] << "\"";
+	}
+	out << "\", expression";
+	for (unsigned row = 0; row < dim; row++) {
+		out << ", \"" << gExpr[row] << "\"";
+	}
+
+  	return ElasticConstitutiveLaw<T, Tder>::Restart_int(out);
 }
 
 template <class T, class Tder> void
 GiNaCViscoElasticConstitutiveLaw<T, Tder>::Update(const T& Eps, 
-		const T& /* EpsPrime */ )
+	const T& EpsPrime)
 {
-	NO_OP;
+	GiNaC::lst l;
+
+	ElasticConstitutiveLaw<T, Tder>::Epsilon = Eps;
+	ConstitutiveLaw<T, Tder>::EpsilonPrime = EpsPrime;
+
+	T e = Eps - ElasticConstitutiveLaw<T, Tder>::Get();
+
+	for (unsigned row = 0; row < dim; row++) {
+		l.append(*gEps[row] == e(row + 1));
+		l.append(*gEpsPrime[row] == EpsPrime(row + 1));
+	}
+
+	ConstitutiveLaw<T, Tder>::F = ElasticConstitutiveLaw<T, Tder>::PreStress;
+
+	for (unsigned row = 0; row < dim; row++) {
+		GiNaC::ex f_expr = gExpr[row].subs(l);
+
+		ConstitutiveLaw<T, Tder>::F(row + 1)
+			+= GiNaC::ex_to<GiNaC::numeric>(f_expr).to_double();
+
+		for (unsigned col = 0; col < dim; col++) {
+			GiNaC::ex f_derEps = gExprDEps[row][col].subs(l);
+
+			ConstitutiveLaw<T, Tder>::FDE(row + 1, col + 1)
+				= GiNaC::ex_to<GiNaC::numeric>(f_derEps).to_double();
+
+			GiNaC::ex f_derEpsPrime = gExprDEpsPrime[row][col].subs(l);
+
+			ConstitutiveLaw<T, Tder>::FDEPrime(row + 1, col + 1)
+				= GiNaC::ex_to<GiNaC::numeric>(f_derEpsPrime).to_double();
+		}
+	}
 }
 
 template <class T, class Tder> void 
 GiNaCViscoElasticConstitutiveLaw<T, Tder>::IncrementalUpdate(const T& DeltaEps, 
-		const T& EpsPrime )
+	const T& EpsPrime )
 {
-	NO_OP;
+	Update(ElasticConstitutiveLaw<T, Tder>::Epsilon + DeltaEps, EpsPrime);
 }
 
 /* specialize for scalar constitutive law */
@@ -536,8 +929,8 @@ private:
 	GiNaC::symbol gEpsPrime;	/* parameter derivative symbol */
 
 	GiNaC::ex gExpr;		/* expression */
-	GiNaC::ex gDerEps;		/* derivative */
-	GiNaC::ex gDerEpsPrime;		/* derivative */
+	GiNaC::ex gExprDEps;		/* derivative */
+	GiNaC::ex gExprDEpsPrime;		/* derivative */
 
 public:
 	GiNaCViscoElasticConstitutiveLaw(
@@ -579,14 +972,14 @@ gEps(epsilon[0]), gEpsPrime(epsilonPrime[0])
 	}
 
 	try {
-		gDerEps = gExpr.diff(gEps);
+		gExprDEps = gExpr.diff(gEps);
 	} catch (std::exception e) {
 		silent_cerr("expression differentiation wrt/ Eps failed: " << e.what() << std::endl);
 		throw e;
 	}
 
 	try {
-		gDerEpsPrime = gExpr.diff(gEpsPrime);
+		gExprDEpsPrime = gExpr.diff(gEpsPrime);
 	} catch (std::exception e) {
 		silent_cerr("expression differentiation wrt/ EpsPrime failed: " << e.what() << std::endl);
 		throw e;
@@ -596,8 +989,8 @@ gEps(epsilon[0]), gEpsPrime(epsilonPrime[0])
 		<< "\t\tEps:              \"" << gEps << "\"" << std::endl
 		<< "\t\tEpsPrime:         \"" << gEpsPrime << "\"" << std::endl
 		<< "\t\tConstitutive law: \"" << gExpr << "\"" << std::endl
-		<< "\t\tDer/Eps:          \"" << gDerEps << "\"" << std::endl
-		<< "\t\tDer/EpsPrime:     \"" << gDerEpsPrime << "\"" << std::endl);
+		<< "\t\tDer/Eps:          \"" << gExprDEps << "\"" << std::endl
+		<< "\t\tDer/EpsPrime:     \"" << gExprDEpsPrime << "\"" << std::endl);
 }
  
 GiNaCViscoElasticConstitutiveLaw<doublereal, doublereal>::~GiNaCViscoElasticConstitutiveLaw(void)
@@ -675,10 +1068,10 @@ GiNaCViscoElasticConstitutiveLaw<doublereal, doublereal>::Update(
 		ElasticConstitutiveLaw<doublereal, doublereal>::PreStress
 		+ GiNaC::ex_to<GiNaC::numeric>(f_expr).to_double();
 
-	GiNaC::ex f_derEps = gDerEps.subs(l);
+	GiNaC::ex f_derEps = gExprDEps.subs(l);
 	ConstitutiveLaw<doublereal, doublereal>::FDE = GiNaC::ex_to<GiNaC::numeric>(f_derEps).to_double();
 
-	GiNaC::ex f_derEpsPrime = gDerEpsPrime.subs(l);
+	GiNaC::ex f_derEpsPrime = gExprDEpsPrime.subs(l);
 	ConstitutiveLaw<doublereal, doublereal>::FDEPrime = GiNaC::ex_to<GiNaC::numeric>(f_derEpsPrime).to_double();
 }
 

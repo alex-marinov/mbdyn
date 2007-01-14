@@ -466,20 +466,39 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType) {
 		ConstitutiveLaw<T, Tder>* pCL = 0;
 
-		std::vector<std::string> epsilon;
+		unsigned dim;
+		if (typeid(T) == typeid(Vec3)) {
+			dim = 3;
+
+		} else if (typeid(T) == typeid(Vec6)) {
+			dim = 6;
+
+		} else {
+			silent_cerr("Invalid dimensionality "
+				"for symbolic constitutive law "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		std::vector<std::string> epsilon(dim);
 		if (CLType & ConstLawType::ELASTIC) {
 			if (!HP.IsKeyWord("epsilon")) {
 				silent_cerr("keyword \"epsilon\" expected at line " << HP.GetLineData() << std::endl);
 				throw DataManager::ErrGeneric();
 			}
 
-			const char *tmp = HP.GetStringWithDelims();
+			for (unsigned row = 0; row < dim; row++) {
+				const char *tmp = HP.GetStringWithDelims();
 
-			if (tmp == 0) {
-				silent_cerr("unable to get \"epsilon\" symbol at line " << HP.GetLineData() << std::endl);
-				throw DataManager::ErrGeneric();
+				if (tmp == 0) {
+					silent_cerr("unable to get \"epsilon\" "
+						"symbol #" << row << " "
+						"at line " << HP.GetLineData() << std::endl);
+					throw DataManager::ErrGeneric();
+				}
+				epsilon[row] = tmp;
 			}
-			epsilon.push_back(tmp);
 		}
 
 		std::vector<std::string> epsilonPrime;
@@ -489,13 +508,17 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 				throw DataManager::ErrGeneric();
 			}
 
-			const char *tmp = HP.GetStringWithDelims();
+			for (unsigned row = 0; row < dim; row++) {
+				const char *tmp = HP.GetStringWithDelims();
 
-			if (tmp == 0) {
-				silent_cerr("unable to get \"epsilonPrime\" symbol at line " << HP.GetLineData() << std::endl);
-				throw DataManager::ErrGeneric();
+				if (tmp == 0) {
+					silent_cerr("unable to get \"epsilonPrime\" "
+						"symbol #" << row << " "
+						"at line " << HP.GetLineData() << std::endl);
+					throw DataManager::ErrGeneric();
+				}
+				epsilonPrime[row] = tmp;
 			}
-			epsilonPrime.push_back(tmp);
 		}
 
 		if (!HP.IsKeyWord("expression")) {
@@ -503,13 +526,18 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 			throw DataManager::ErrGeneric();
 		}
 
-		const char *tmp = HP.GetStringWithDelims();
-		if (tmp == 0) {
-			silent_cerr("unable to get \"expression\" at line " << HP.GetLineData() << std::endl);
-			throw DataManager::ErrGeneric();
+		std::vector<std::string> expression(dim);
+		for (unsigned row = 0; row < dim; row++) {
+			const char *tmp = HP.GetStringWithDelims();
+			if (tmp == 0) {
+				silent_cerr("unable to get \"expression\" "
+					"#" << row << " "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw DataManager::ErrGeneric();
+			}
+			expression[row] = tmp;
 		}
-		std::vector<std::string> expression;
-		expression.push_back(tmp);
 
 		/* Prestress and prestrain */
 		T PreStress(0.);
@@ -1087,9 +1115,20 @@ InitCL(void)
 
 	/* symbolic (elastic, viscous, viscoelastic) */
 	SetCL1D("symbolic", new SymbolicCLR<doublereal, doublereal>);
+	SetCL3D("symbolic", new SymbolicCLR<Vec3, Mat3x3>);
+	SetCL6D("symbolic", new SymbolicCLR<Vec6, Mat6x6>);
+
 	SetCL1D("symbolic" "elastic", new SymbolicElasticCLR<doublereal, doublereal>);
+	SetCL3D("symbolic" "elastic", new SymbolicElasticCLR<Vec3, Mat3x3>);
+	SetCL6D("symbolic" "elastic", new SymbolicElasticCLR<Vec6, Mat6x6>);
+
 	SetCL1D("symbolic" "viscous", new SymbolicViscousCLR<doublereal, doublereal>);
+	SetCL3D("symbolic" "viscous", new SymbolicViscousCLR<Vec3, Mat3x3>);
+	SetCL6D("symbolic" "viscous", new SymbolicViscousCLR<Vec6, Mat6x6>);
+
 	SetCL1D("symbolic" "viscoelastic", new SymbolicViscoElasticCLR<doublereal, doublereal>);
+	SetCL3D("symbolic" "viscoelastic", new SymbolicViscoElasticCLR<Vec3, Mat3x3>);
+	SetCL6D("symbolic" "viscoelastic", new SymbolicViscoElasticCLR<Vec6, Mat6x6>);
 
 	/* linear viscous */
 	SetCL1D("linear" "viscous", new LinearViscousCLR<doublereal, doublereal>);
