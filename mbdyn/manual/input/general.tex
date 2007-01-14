@@ -1912,6 +1912,9 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
 	turbulent viscoelastic						& x &   &   \\
 	linear viscoelastic generic bi-stop				& x & x & x \\
 	shock absorber							& x &   &   \\
+	symbolic elastic						& x &   &   \\
+	symbolic viscous						& x &   &   \\
+	symbolic viscoelastic						& x &   &   \\
 	\hline
     \end{tabular}
 \end{table}
@@ -2340,6 +2343,52 @@ viscous force	& \kw{Fv} \\
 \hline
 \end{tabular}
 \end{table}
+
+\subsection{symbolic elastic}\label{sec:CL-SYMBOLIC-ELASTIC}
+The family of \kw{symbolic} constitutive laws implementation 
+is based on GiNaC 
+(\htmladdnormallink{\kw{http://www.ginac.de/}}{http://www.ginac.de/}),
+a free software package for symbolic algebra manipulation.
+It is essentially used to automatically differentiate
+the user-supplied expression that describes the relationship
+between the output and the input.
+
+Currently, only the scalar dimensionality is implemented;
+the syntax is
+\begin{verbatim}
+    <specific_const_law> ::= symbolic elastic ,
+        epsilon , " <epsilon> " ,
+        expression , " <expression> "
+\end{verbatim}
+where \kw{epsilon} is the symbol describing the input
+parameter as it will be used in \kw{expression}.
+
+\subsection{symbolic viscous}\label{sec:CL-SYMBOLIC-VISCOUS}
+Currently, only the scalar dimensionality is implemented;
+the syntax is
+\begin{verbatim}
+    <specific_const_law> ::= symbolic viscous ,
+        epsilon prime , " <epsilon_prime> " ,
+        expression , " <expression> "
+\end{verbatim}
+where \kw{epsilon\_prime} is the symbol describing the derivative
+of the input parameter as it will be used in \kw{expression}.
+
+
+\subsection{symbolic viscoelastic}\label{sec:CL-SYMBOLIC-VISCOELASTIC}
+Currently, only the scalar dimensionality is implemented;
+the syntax is
+\begin{verbatim}
+    <specific_const_law> ::= symbolic viscoelastic,
+        epsilon , " <epsilon> " ,
+        epsilon prime , " <epsilon_prime> " ,
+        expression , " <expression> "
+\end{verbatim}
+where \k{epsilon} and \kw{epsilon\_prime} are the symbols describing 
+the input parameter and its derivative as they will be used
+in \kw{expression}.
+
+
 
 
 \section{Hydraulic fluid}\label{sec:HYDRAULIC-FLUID-DATA}

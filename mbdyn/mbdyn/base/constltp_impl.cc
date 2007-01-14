@@ -466,8 +466,7 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType) {
 		ConstitutiveLaw<T, Tder>* pCL = 0;
 
-		const char *epsilon = 0;
-		const char *epsilonPrime = 0;
+		std::vector<std::string> epsilon;
 		if (CLType & ConstLawType::ELASTIC) {
 			if (!HP.IsKeyWord("epsilon")) {
 				silent_cerr("keyword \"epsilon\" expected at line " << HP.GetLineData() << std::endl);
@@ -480,9 +479,10 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 				silent_cerr("unable to get \"epsilon\" symbol at line " << HP.GetLineData() << std::endl);
 				throw DataManager::ErrGeneric();
 			}
-			SAFESTRDUP(epsilon, tmp);
+			epsilon.push_back(tmp);
 		}
 
+		std::vector<std::string> epsilonPrime;
 		if (CLType & ConstLawType::VISCOUS) {
 			if (!HP.IsKeyWord("epsilon" "prime")) {
 				silent_cerr("keyword \"epsilon prime\" expected at line " << HP.GetLineData() << std::endl);
@@ -495,7 +495,7 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 				silent_cerr("unable to get \"epsilonPrime\" symbol at line " << HP.GetLineData() << std::endl);
 				throw DataManager::ErrGeneric();
 			}
-			SAFESTRDUP(epsilonPrime, tmp);
+			epsilonPrime.push_back(tmp);
 		}
 
 		if (!HP.IsKeyWord("expression")) {
@@ -508,13 +508,8 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 			silent_cerr("unable to get \"expression\" at line " << HP.GetLineData() << std::endl);
 			throw DataManager::ErrGeneric();
 		}
-		const char *expression = 0;
-		SAFESTRDUP(expression, tmp);
-
-		const char **symbols = 0;
-		if (HP.IsKeyWord("symbols")) {
-			/* FIXME! */
-		}
+		std::vector<std::string> expression;
+		expression.push_back(tmp);
 
 		/* Prestress and prestrain */
 		T PreStress(0.);
@@ -524,29 +519,29 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 
 		switch (CLType) {
 		case ConstLawType::ELASTIC: {
-			typedef SymbolicElasticIsotropicConstitutiveLaw<T, Tder> L;
+			typedef GiNaCElasticConstitutiveLaw<T, Tder> L;
 			SAFENEWWITHCONSTRUCTOR(pCL, L,
 					L(pTplDC, PreStress,
 						epsilon,
-						expression, symbols));
+						expression));
 			break;
 		}
 
 		case ConstLawType::VISCOUS: {
-			typedef SymbolicViscousIsotropicConstitutiveLaw<T, Tder> L;
+			typedef GiNaCViscousConstitutiveLaw<T, Tder> L;
 			SAFENEWWITHCONSTRUCTOR(pCL, L,
 					L(pTplDC, PreStress,
 						epsilonPrime,
-						expression, symbols));
+						expression));
 			break;
 		}
 
 		case ConstLawType::VISCOELASTIC: {
-			typedef SymbolicViscoElasticIsotropicConstitutiveLaw<T, Tder> L;
+			typedef GiNaCViscoElasticConstitutiveLaw<T, Tder> L;
 			SAFENEWWITHCONSTRUCTOR(pCL, L,
 					L(pTplDC, PreStress,
 						epsilon, epsilonPrime,
-						expression, symbols));
+						expression));
 			break;
 		}
 
@@ -1069,8 +1064,10 @@ InitCL(void)
 	SetCL6D("linear" "elastic" "generic", new LinearElasticGenericCLR<Vec6, Mat6x6>);
 
 	/* linear (visco)elastic generic axial torsion coupling*/
-	SetCL6D("linear" "elastic" "generic" "axial" "torsion" "coupling", new LinearElasticGenericAxialTorsionCouplingCLR<Vec6, Mat6x6>);
-	SetCL6D("linear" "viscoelastic" "generic" "axial" "torsion" "coupling", new LinearViscoElasticGenericAxialTorsionCouplingCLR<Vec6, Mat6x6>);
+	SetCL6D("linear" "elastic" "generic" "axial" "torsion" "coupling",
+		new LinearElasticGenericAxialTorsionCouplingCLR<Vec6, Mat6x6>);
+	SetCL6D("linear" "viscoelastic" "generic" "axial" "torsion" "coupling",
+		new LinearViscoElasticGenericAxialTorsionCouplingCLR<Vec6, Mat6x6>);
 
 	/* log elastic */
 	SetCL1D("log" "elastic", new LogElasticCLR<doublereal, doublereal>);
@@ -1089,10 +1086,10 @@ InitCL(void)
 	SetCL3D("contact" "elastic", new ContactElasticCLR<Vec3, Mat3x3>);
 
 	/* symbolic (elastic, viscous, viscoelastic) */
-	SetCL1D("symbolic" "isotropic", new SymbolicCLR<doublereal, doublereal>);
-	SetCL1D("symbolic" "elastic" "isotropic", new SymbolicElasticCLR<doublereal, doublereal>);		/* deprecated */
-	SetCL1D("symbolic" "viscous" "isotropic", new SymbolicViscousCLR<doublereal, doublereal>);		/* deprecated */
-	SetCL1D("symbolic" "viscoelastic" "isotropic", new SymbolicViscoElasticCLR<doublereal, doublereal>);	/* deprecated */
+	SetCL1D("symbolic", new SymbolicCLR<doublereal, doublereal>);
+	SetCL1D("symbolic" "elastic", new SymbolicElasticCLR<doublereal, doublereal>);
+	SetCL1D("symbolic" "viscous", new SymbolicViscousCLR<doublereal, doublereal>);
+	SetCL1D("symbolic" "viscoelastic", new SymbolicViscoElasticCLR<doublereal, doublereal>);
 
 	/* linear viscous */
 	SetCL1D("linear" "viscous", new LinearViscousCLR<doublereal, doublereal>);

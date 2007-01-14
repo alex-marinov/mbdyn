@@ -55,7 +55,7 @@ public:
 	/* copia */
 	virtual TplDriveCaller<T>* pCopy(void) const {
 		typedef SingleTplDriveCaller<T> dc;
-		TplDriveCaller<T>* pDC = NULL;
+		TplDriveCaller<T>* pDC = 0;
 
 		SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(pGetDriveCaller()->pCopy(), t));
 
@@ -110,7 +110,7 @@ public:
 
 	/* copia */
 	virtual TplDriveCaller<doublereal>* pCopy(void) const {
-		TplDriveCaller<doublereal>* pDC = NULL;
+		TplDriveCaller<doublereal>* pDC = 0;
 
 		typedef SingleTplDriveCaller<doublereal> dc;
 		SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(pGetDriveCaller()->pCopy()));
@@ -167,7 +167,7 @@ public:
 	ArrayTplDriveCaller(unsigned short int i, DrivesArray<T>* pDA)
 	: pDrivesArray(pDA), iNumDrives(i) {
 		ASSERT(i > 0);
-		ASSERT(pDA != NULL);
+		ASSERT(pDA != 0);
 	};
 
 	~ArrayTplDriveCaller(void) {
@@ -180,7 +180,7 @@ public:
 	/* copia */
 	virtual TplDriveCaller<T>* pCopy(void) const {
 		typedef DrivesArray<T> da;
-		da* pDA = NULL;
+		da* pDA = 0;
 
 		SAFENEWARR(pDA, da, iNumDrives);
 
@@ -190,7 +190,7 @@ public:
 		}
 
 		typedef ArrayTplDriveCaller<T> dc;
-		TplDriveCaller<T>* pDC = NULL;
+		TplDriveCaller<T>* pDC = 0;
 
 		SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(iNumDrives, pDA));
 
@@ -249,72 +249,72 @@ public:
 
 template<>
 class ArrayTplDriveCaller<doublereal> : public TplDriveCaller<doublereal> {
- protected:
-   DrivesArray<doublereal>* pDrivesArray;
-   unsigned short int iNumDrives;
+protected:
+	DrivesArray<doublereal>* pDrivesArray;
+	unsigned short int iNumDrives;
 
- public:
-   ArrayTplDriveCaller(unsigned short int i,
-		       DrivesArray<doublereal>* pDA)
-     : pDrivesArray(pDA), iNumDrives(i) {
-	ASSERT(i > 0);
-	ASSERT(pDA != NULL);
-     };
+public:
+	ArrayTplDriveCaller(unsigned short int i,
+		DrivesArray<doublereal>* pDA)
+	: pDrivesArray(pDA), iNumDrives(i) {
+		ASSERT(i > 0);
+		ASSERT(pDA != 0);
+	};
 
-   ~ArrayTplDriveCaller(void) {
-      for (int i = 0; i < iNumDrives; i++) {
-	 SAFEDELETE(pDrivesArray[i].pDriveCaller);
-      }
-      SAFEDELETEARR(pDrivesArray);
-   };
+	virtual ~ArrayTplDriveCaller(void) {
+		for (int i = 0; i < iNumDrives; i++) {
+			SAFEDELETE(pDrivesArray[i].pDriveCaller);
+		}
+		SAFEDELETEARR(pDrivesArray);
+	};
 
-   /* copia */
-   virtual TplDriveCaller<doublereal>* pCopy(void) const {
-      typedef DrivesArray<doublereal> da;
-      da* pDA = NULL;
+	/* copia */
+	virtual TplDriveCaller<doublereal>* pCopy(void) const {
+		typedef DrivesArray<doublereal> da;
+		da* pDA = 0;
 
-      SAFENEWARR(pDA, da, iNumDrives);
+		SAFENEWARR(pDA, da, iNumDrives);
 
-      for (int i = 0; i < iNumDrives; i++) {
-	 pDA[i].pDriveCaller = pDrivesArray[i].pDriveCaller->pCopy();
-	 pDA[i].t = pDrivesArray[i].t;
-      }
+		for (int i = 0; i < iNumDrives; i++) {
+			pDA[i].pDriveCaller = pDrivesArray[i].pDriveCaller->pCopy();
+			pDA[i].t = pDrivesArray[i].t;
+		}
 
-      typedef ArrayTplDriveCaller<doublereal> dc;
-      TplDriveCaller<doublereal>* pDC = NULL;
+		typedef ArrayTplDriveCaller<doublereal> dc;
+		TplDriveCaller<doublereal>* pDC = 0;
 
-      SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(iNumDrives, pDA));
+		SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(iNumDrives, pDA));
 
-      return pDC;
-   };
+		return pDC;
+	};
 
-   /* Scrive il contributo del DriveCaller al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const {
-      out << "array, " << iNumDrives;
-      for (int i = 0; i < iNumDrives; i++) {
-         out << ", ", pDrivesArray[i].pDriveCaller->Restart(out);
-      }
-      return out;
-   };
+	/* Scrive il contributo del DriveCaller al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const {
+		out << "array, " << iNumDrives;
+		for (int i = 0; i < iNumDrives; i++) {
+			out << ", ", pDrivesArray[i].pDriveCaller->Restart(out);
+		}
+		return out;
+	};
 
-   virtual std::ostream& Restart_int(std::ostream& out) const {
-      for (int i = 0; i < iNumDrives; i++) {
-         out << ", ", pDrivesArray[i].pDriveCaller->Restart(out);
-      }
-      return out;
-   };
+	virtual std::ostream& Restart_int(std::ostream& out) const {
+		for (int i = 0; i < iNumDrives; i++) {
+			out << ", ", pDrivesArray[i].pDriveCaller->Restart(out);
+		}
+		return out;
+	};
 
-   inline doublereal Get(void) const {
-      doublereal v = 0.;
-      for (int i = 0; i < iNumDrives; i++) {
-	 v += pDrivesArray[i].pDriveCaller->dGet();
-      }
-      return v;
-   };
+	inline doublereal Get(void) const {
+		doublereal v = 0.;
+		for (int i = 0; i < iNumDrives; i++) {
+			v += pDrivesArray[i].pDriveCaller->dGet();
+		}
+		return v;
+	};
 
-   inline int getNDrives(void) const {
-      return iNumDrives;
-   };
+	inline int getNDrives(void) const {
+		return iNumDrives;
+	};
 };
 
 /* Nota: di questa classe non viene scritta esplicitamente la versione
@@ -335,111 +335,107 @@ template <class T> T GetT(MBDynParser& HP, const T& t)
 /* enum delle parole chiave */
 template <class T>
 class ReadTplDriveKeyWords {
- public:
-   enum KeyWords {
-      UNKNOWNTPLDRIVE = -1,
-	SINGLE = 0,
-	ARRAY,
-	LASTKEYWORD
-   };
+public:
+	enum KeyWords {
+		UNKNOWNTPLDRIVE = -1,
+		SINGLE = 0,
+		ARRAY,
+		LASTKEYWORD
+	};
 };
 
 
 template <class T>
 TplDriveCaller<T>* ReadTplDrive(const DataManager* pDM,
-				MBDynParser& HP,
-				const T& t)
+	MBDynParser& HP,
+	const T& t)
 {
-   DEBUGCOUT("Entering ReadTplDrive" << std::endl);
+	DEBUGCOUT("Entering ReadTplDrive" << std::endl);
 
-   const char* sKeyWords[] = {
-      "single",
-	"array",
-      NULL
-   };
+	const char* sKeyWords[] = {
+		"single",
+		"array",
+		0
+	};
 
-   /* tabella delle parole chiave */
-   KeyTable K(HP, sKeyWords);
+	/* tabella delle parole chiave */
+	KeyTable K(HP, sKeyWords);
 
-   TplDriveCaller<T>* pTplDC = NULL;
+	TplDriveCaller<T>* pTplDC = 0;
 
-   /* Nota: siccome capita che non ci sia la deformazione imposta,
-    * faccio chiedere se e' desiderata */
-   if (!HP.IsArg()) {
-      DriveCaller* pDC = NULL;
-      SAFENEW(pDC, NullDriveCaller);
+	/* Nota: siccome capita che non ci sia la deformazione imposta,
+	 * faccio chiedere se e' desiderata */
+	if (!HP.IsArg()) {
+		DriveCaller* pDC = 0;
+		SAFENEW(pDC, NullDriveCaller);
 
-      T t(0.);
-      SAFENEWWITHCONSTRUCTOR(pTplDC,
-			     SingleTplDriveCaller<T>,
-			     SingleTplDriveCaller<T>(pDC, t));
+		T t(0.);
+		SAFENEWWITHCONSTRUCTOR(pTplDC,
+			SingleTplDriveCaller<T>,
+			SingleTplDriveCaller<T>(pDC, t));
 
-   } else { /* c'e' la deformazione */
-      int CurrKeyWord = HP.IsKeyWord();
+	} else { /* c'e' la deformazione */
+		int CurrKeyWord = HP.IsKeyWord();
 
-      /* valore di default (pericoloso!) */
-      if (CurrKeyWord == ReadTplDriveKeyWords<T>::UNKNOWNTPLDRIVE) {
-	 CurrKeyWord = ReadTplDriveKeyWords<T>::SINGLE;
-      }
+		/* valore di default (pericoloso!) */
+		if (CurrKeyWord == ReadTplDriveKeyWords<T>::UNKNOWNTPLDRIVE) {
+			CurrKeyWord = ReadTplDriveKeyWords<T>::SINGLE;
+		}
 
 restart:
+		switch (CurrKeyWord) {
+		case ReadTplDriveKeyWords<T>::SINGLE: {
+			T t(0.);
 
-      switch (CurrKeyWord) {
-       case ReadTplDriveKeyWords<T>::SINGLE: {
-	  T t(0.);
+			t = GetT(HP, t);
 
-	  t = GetT(HP, t);
+			DriveCaller* pDC = HP.GetDriveCaller();
 
-	  DriveCaller* pDC = HP.GetDriveCaller();
+			SAFENEWWITHCONSTRUCTOR(pTplDC,
+				SingleTplDriveCaller<T>,
+				SingleTplDriveCaller<T>(pDC, t));
+			} break;
 
-	  SAFENEWWITHCONSTRUCTOR(pTplDC,
-				 SingleTplDriveCaller<T>,
-				 SingleTplDriveCaller<T>(pDC, t));
+		case ReadTplDriveKeyWords<T>::ARRAY: {
+			unsigned short int iNumDr = HP.GetInt();
+			if (iNumDr == 0) {
+				silent_cerr("At least one drive is required "
+					"in array template drive" << std::endl);
+				throw ErrGeneric();
 
-	  break;
-       }
-
-       case ReadTplDriveKeyWords<T>::ARRAY: {
-	  unsigned short int iNumDr = HP.GetInt();
-	  if (iNumDr == 0) {
-	     silent_cerr("At least one drive is required "
-		     "in array template drive" << std::endl);
-	     throw ErrGeneric();
-	  } else if (iNumDr == 1) {
-	     CurrKeyWord = ReadTplDriveKeyWords<T>::SINGLE;
-	     goto restart;
-	  } /* else */
+			} else if (iNumDr == 1) {
+				CurrKeyWord = ReadTplDriveKeyWords<T>::SINGLE;
+				goto restart;
+			} /* else */
 
 
-	  DrivesArray<T>* pDA = NULL;
-	  SAFENEWARR(pDA, DrivesArray<T>, iNumDr);
+			DrivesArray<T>* pDA = 0;
+			SAFENEWARR(pDA, DrivesArray<T>, iNumDr);
 
-	  for (unsigned short int i = 0; i < iNumDr; i++) {
-	     T t(0.);
-	     pDA[i].t = GetT(HP, t);
-	     pDA[i].pDriveCaller = HP.GetDriveCaller();
-	  }
+			for (unsigned short int i = 0; i < iNumDr; i++) {
+				T t(0.);
+				pDA[i].t = GetT(HP, t);
+				pDA[i].pDriveCaller = HP.GetDriveCaller();
+			}
 
-	  SAFENEWWITHCONSTRUCTOR(pTplDC,
-				 ArrayTplDriveCaller<T>,
-				 ArrayTplDriveCaller<T>(iNumDr, pDA));
+			SAFENEWWITHCONSTRUCTOR(pTplDC,
+				ArrayTplDriveCaller<T>,
+				ArrayTplDriveCaller<T>(iNumDr, pDA));
 
-	  break;
-       }
+			} break;
 
-       default: {
-	  silent_cerr("Unknown template drive type" << std::endl);
-	  throw ErrGeneric();
-       }
-      }
-   }
+		default:
+			silent_cerr("Unknown template drive type" << std::endl);
+			throw ErrGeneric();
+		}
+	}
 
-   if (pTplDC == NULL) {
-      silent_cerr("Error in allocation of template drive" << std::endl);
-      throw ErrMemory();
-   }
+	if (pTplDC == 0) {
+		silent_cerr("Error in allocation of template drive" << std::endl);
+		throw ErrMemory();
+	}
 
-   return pTplDC;
+	return pTplDC;
 }
 
 #endif /* TPLDRIVE__H */

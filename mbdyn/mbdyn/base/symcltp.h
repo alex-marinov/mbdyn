@@ -36,213 +36,127 @@
 
 #include <constltp.h>
 
-/* SymbolicElasticIsotropicConstitutiveLaw - begin */
+/* SymbolicElasticConstitutiveLaw - begin */
 
 template <class T, class Tder>
-class SymbolicElasticIsotropicConstitutiveLaw 
+class SymbolicElasticConstitutiveLaw 
 : public ElasticConstitutiveLaw<T, Tder> {
 public:
-	SymbolicElasticIsotropicConstitutiveLaw(const TplDriveCaller<T>* pDC,
-			const T& PStress, const char *epsilon,
-			const char *expression, const char *const *symbols);
-     	virtual ~SymbolicElasticIsotropicConstitutiveLaw(void);
-     	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const;
-	virtual std::ostream& Restart(std::ostream& out) const;
-	virtual void Update(const T& Eps, const T& /* EpsPrime */ = 0.);
-	virtual void IncrementalUpdate(const T& DeltaEps, 
-			const T& /* EpsPrime */ = 0.);
+	SymbolicElasticConstitutiveLaw(
+		const TplDriveCaller<T>* pDC,
+		const T& PStress,
+		std::vector<std::string>& epsilon,
+		std::vector<std::string>& expression);
+     	virtual ~SymbolicElasticConstitutiveLaw(void);
 };
 
-typedef SymbolicElasticIsotropicConstitutiveLaw<doublereal, doublereal> 
-	SymbolicElasticIsotropicConstitutiveLaw1D;
-typedef SymbolicElasticIsotropicConstitutiveLaw<Vec3, Mat3x3>
-	SymbolicElasticIsotropicConstitutiveLaw3D;
-typedef SymbolicElasticIsotropicConstitutiveLaw<Vec6, Mat6x6> 
-	SymbolicElasticIsotropicConstitutiveLaw6D;
+typedef SymbolicElasticConstitutiveLaw<doublereal, doublereal> 
+	SymbolicElasticConstitutiveLaw1D;
+typedef SymbolicElasticConstitutiveLaw<Vec3, Mat3x3>
+	SymbolicElasticConstitutiveLaw3D;
+typedef SymbolicElasticConstitutiveLaw<Vec6, Mat6x6> 
+	SymbolicElasticConstitutiveLaw6D;
 
 template <class T, class Tder>
-SymbolicElasticIsotropicConstitutiveLaw<T, Tder>::SymbolicElasticIsotropicConstitutiveLaw(
-		const TplDriveCaller<T>* pDC, const T& PStress, 
-		const char *epsilon, const char *expression, 
-		const char *const *symbols = NULL)
+SymbolicElasticConstitutiveLaw<T, Tder>::SymbolicElasticConstitutiveLaw(
+	const TplDriveCaller<T>* pDC,
+	const T& PStress,
+	std::vector<std::string>& epsilon,
+	std::vector<std::string>& expression)
 : ElasticConstitutiveLaw<T, Tder>(pDC, PStress)
-{ 
-	throw (typename ConstitutiveLaw<T, Tder>::ErrNotAvailable(std::cerr, "symbolic constitutive law "
-				"is allowed only for scalar")); 
-}
- 
-template <class T, class Tder>
-SymbolicElasticIsotropicConstitutiveLaw<T, Tder>::~SymbolicElasticIsotropicConstitutiveLaw(void)
-{
-	NO_OP;
-};
-
-template <class T, class Tder> ConstitutiveLaw<T, Tder>* 
-SymbolicElasticIsotropicConstitutiveLaw<T, Tder>::pCopy(void) const
-{
-	return NULL;
-}
-
-template <class T, class Tder> std::ostream& 
-SymbolicElasticIsotropicConstitutiveLaw<T, Tder>::Restart(std::ostream& out) const
-{
-  	return out;
-}
-
-template <class T, class Tder> void
-SymbolicElasticIsotropicConstitutiveLaw<T, Tder>::Update(const T& Eps, 
-		const T& /* EpsPrime */ )
 {
 	NO_OP;
 }
-
-template <class T, class Tder> void 
-SymbolicElasticIsotropicConstitutiveLaw<T, Tder>::IncrementalUpdate(const T& DeltaEps, 
-		const T& /* EpsPrime */ )
-{
-	NO_OP;
-}
-
-/* SymbolicElasticIsotropicConstitutiveLaw - end */
-
-/* SymbolicViscousIsotropicConstitutiveLaw - begin */
 
 template <class T, class Tder>
-class SymbolicViscousIsotropicConstitutiveLaw 
+SymbolicElasticConstitutiveLaw<T, Tder>::~SymbolicElasticConstitutiveLaw(void)
+{
+	NO_OP;
+}
+
+/* SymbolicElasticConstitutiveLaw - end */
+
+/* SymbolicViscousConstitutiveLaw - begin */
+
+template <class T, class Tder>
+class SymbolicViscousConstitutiveLaw 
 : public ElasticConstitutiveLaw<T, Tder> {
 public:
-	SymbolicViscousIsotropicConstitutiveLaw(const TplDriveCaller<T>* pDC,
-			const T& PStress, const char *epsilon,
-			const char *expression, const char *const *symbols);
-     	virtual ~SymbolicViscousIsotropicConstitutiveLaw(void);
-     	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const;
-	virtual std::ostream& Restart(std::ostream& out) const;
-	virtual void Update(const T& Eps, const T& /* EpsPrime */ = 0.);
-	virtual void IncrementalUpdate(const T& DeltaEps, 
-			const T& /* EpsPrime */ = 0.);
+	SymbolicViscousConstitutiveLaw(
+		const TplDriveCaller<T>* pDC,
+		const T& PStress,
+		std::vector<std::string>& epsilonPrime,
+		std::vector<std::string>& expression);
+     	virtual ~SymbolicViscousConstitutiveLaw(void);
 };
 
-typedef SymbolicViscousIsotropicConstitutiveLaw<doublereal, doublereal> 
-	SymbolicViscousIsotropicConstitutiveLaw1D;
-typedef SymbolicViscousIsotropicConstitutiveLaw<Vec3, Mat3x3>
-	SymbolicViscousIsotropicConstitutiveLaw3D;
-typedef SymbolicViscousIsotropicConstitutiveLaw<Vec6, Mat6x6> 
-	SymbolicViscousIsotropicConstitutiveLaw6D;
+typedef SymbolicViscousConstitutiveLaw<doublereal, doublereal> 
+	SymbolicViscousConstitutiveLaw1D;
+typedef SymbolicViscousConstitutiveLaw<Vec3, Mat3x3>
+	SymbolicViscousConstitutiveLaw3D;
+typedef SymbolicViscousConstitutiveLaw<Vec6, Mat6x6> 
+	SymbolicViscousConstitutiveLaw6D;
 
 template <class T, class Tder>
-SymbolicViscousIsotropicConstitutiveLaw<T, Tder>::SymbolicViscousIsotropicConstitutiveLaw(
-		const TplDriveCaller<T>* pDC, const T& PStress, 
-		const char *epsilon, const char *expression, 
-		const char *const *symbols = NULL)
+SymbolicViscousConstitutiveLaw<T, Tder>::SymbolicViscousConstitutiveLaw(
+	const TplDriveCaller<T>* pDC,
+	const T& PStress,
+	std::vector<std::string>& epsilonPrime,
+	std::vector<std::string>& expression)
 : ElasticConstitutiveLaw<T, Tder>(pDC, PStress)
-{ 
-	throw (typename ConstitutiveLaw<T, Tder>::ErrNotAvailable(std::cerr, "symbolic constitutive law "
-				"is allowed only for scalar")); 
-}
- 
-template <class T, class Tder>
-SymbolicViscousIsotropicConstitutiveLaw<T, Tder>::~SymbolicViscousIsotropicConstitutiveLaw(void)
-{
-	NO_OP;
-};
-
-template <class T, class Tder> ConstitutiveLaw<T, Tder>* 
-SymbolicViscousIsotropicConstitutiveLaw<T, Tder>::pCopy(void) const
-{
-	return NULL;
-}
-
-template <class T, class Tder> std::ostream& 
-SymbolicViscousIsotropicConstitutiveLaw<T, Tder>::Restart(std::ostream& out) const
-{
-  	return out;
-}
-
-template <class T, class Tder> void
-SymbolicViscousIsotropicConstitutiveLaw<T, Tder>::Update(const T& Eps, 
-		const T& /* EpsPrime */ )
 {
 	NO_OP;
 }
-
-template <class T, class Tder> void 
-SymbolicViscousIsotropicConstitutiveLaw<T, Tder>::IncrementalUpdate(const T& DeltaEps, 
-		const T& /* EpsPrime */ )
-{
-	NO_OP;
-}
-
-/* SymbolicViscousIsotropicConstitutiveLaw - end */
-
-/* SymbolicViscoElasticIsotropicConstitutiveLaw - begin */
 
 template <class T, class Tder>
-class SymbolicViscoElasticIsotropicConstitutiveLaw 
+SymbolicViscousConstitutiveLaw<T, Tder>::~SymbolicViscousConstitutiveLaw(void)
+{
+	NO_OP;
+}
+
+/* SymbolicViscousConstitutiveLaw - end */
+
+/* SymbolicViscoElasticConstitutiveLaw - begin */
+
+template <class T, class Tder>
+class SymbolicViscoElasticConstitutiveLaw 
 : public ElasticConstitutiveLaw<T, Tder> {
 public:
-	SymbolicViscoElasticIsotropicConstitutiveLaw(const TplDriveCaller<T>* pDC,
-			const T& PStress,
-			const char *epsilon, const char *epsilonPrime,
-			const char *expression, const char *const *symbols);
-     	virtual ~SymbolicViscoElasticIsotropicConstitutiveLaw(void);
-     	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const;
-	virtual std::ostream& Restart(std::ostream& out) const;
-	virtual void Update(const T& Eps, const T& /* EpsPrime */ = 0.);
-	virtual void IncrementalUpdate(const T& DeltaEps, 
-			const T& /* EpsPrime */ = 0.);
+	SymbolicViscoElasticConstitutiveLaw(
+		const TplDriveCaller<T>* pDC,
+		const T& PStress,
+		std::vector<std::string>& epsilon,
+		std::vector<std::string>& epsilonPrime,
+		std::vector<std::string>& expression);
+     	virtual ~SymbolicViscoElasticConstitutiveLaw(void);
 };
 
-typedef SymbolicViscoElasticIsotropicConstitutiveLaw<doublereal, doublereal> 
-	SymbolicViscoElasticIsotropicConstitutiveLaw1D;
-typedef SymbolicViscoElasticIsotropicConstitutiveLaw<Vec3, Mat3x3>
-	SymbolicViscoElasticIsotropicConstitutiveLaw3D;
-typedef SymbolicViscoElasticIsotropicConstitutiveLaw<Vec6, Mat6x6> 
-	SymbolicViscoElasticIsotropicConstitutiveLaw6D;
+typedef SymbolicViscoElasticConstitutiveLaw<doublereal, doublereal> 
+	SymbolicViscoElasticConstitutiveLaw1D;
+typedef SymbolicViscoElasticConstitutiveLaw<Vec3, Mat3x3>
+	SymbolicViscoElasticConstitutiveLaw3D;
+typedef SymbolicViscoElasticConstitutiveLaw<Vec6, Mat6x6> 
+	SymbolicViscoElasticConstitutiveLaw6D;
 
 template <class T, class Tder>
-SymbolicViscoElasticIsotropicConstitutiveLaw<T, Tder>::SymbolicViscoElasticIsotropicConstitutiveLaw(
-		const TplDriveCaller<T>* pDC, const T& PStress, 
-		const char *epsilon,  const char *epsilonPrime,
-		const char *expression, const char *const *symbols = NULL)
+SymbolicViscoElasticConstitutiveLaw<T, Tder>::SymbolicViscoElasticConstitutiveLaw(
+	const TplDriveCaller<T>* pDC,
+	const T& PStress,
+	std::vector<std::string>& epsilon,
+	std::vector<std::string>& epsilonPrime,
+	std::vector<std::string>& expression)
 : ElasticConstitutiveLaw<T, Tder>(pDC, PStress)
-{ 
-	throw (typename ConstitutiveLaw<T, Tder>::ErrNotAvailable(std::cerr, "symbolic constitutive law "
-				"is allowed only for scalar")); 
+{
+	NO_OP;
 }
- 
+
 template <class T, class Tder>
-SymbolicViscoElasticIsotropicConstitutiveLaw<T, Tder>::~SymbolicViscoElasticIsotropicConstitutiveLaw(void)
-{
-	NO_OP;
-};
-
-template <class T, class Tder> ConstitutiveLaw<T, Tder>* 
-SymbolicViscoElasticIsotropicConstitutiveLaw<T, Tder>::pCopy(void) const
-{
-	return NULL;
-}
-
-template <class T, class Tder> std::ostream& 
-SymbolicViscoElasticIsotropicConstitutiveLaw<T, Tder>::Restart(std::ostream& out) const
-{
-  	return out;
-}
-
-template <class T, class Tder> void
-SymbolicViscoElasticIsotropicConstitutiveLaw<T, Tder>::Update(const T& Eps, 
-		const T& /* EpsPrime */ )
+SymbolicViscoElasticConstitutiveLaw<T, Tder>::~SymbolicViscoElasticConstitutiveLaw(void)
 {
 	NO_OP;
 }
 
-template <class T, class Tder> void 
-SymbolicViscoElasticIsotropicConstitutiveLaw<T, Tder>::IncrementalUpdate(const T& DeltaEps, 
-		const T& EpsPrime )
-{
-	NO_OP;
-}
-
-/* SymbolicViscoElasticIsotropicConstitutiveLaw - end */
+/* SymbolicViscoElasticConstitutiveLaw - end */
 
 #endif /* SYMCLTP_H */
 
