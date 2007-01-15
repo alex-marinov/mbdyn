@@ -35,8 +35,6 @@
 #define DRVDISP_H
 
 #include "joint.h"
-#include "constltp.h"
-
 
 /* DriveDisplacementJoint - begin */
 
