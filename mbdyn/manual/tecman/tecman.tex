@@ -1493,7 +1493,7 @@ The perturbation of the constraint equation yields
 		+ \T{d}\times\T{\theta}_{a\delta}
 \end{equation}
 where $\T{d}=\T{R}_a\plbr{\tilde{\T{f}}_a + \tilde{\T{v}}}$.
-The contributions of the constraint to the equilibrium equations is
+The contribution of the constraint to the equilibrium equations is
 \begin{equation}
 	\cubr{\cvvect{
 		\T{F}_a \\
@@ -1539,7 +1539,7 @@ The perturbation of the constraint equation yields
 	\delta\T{\Phi} = 
 	\delta\T{x} - \T{f}\times \T{\theta}_{\delta}
 \end{equation}
-The contributions of the constraint to the equilibrium equations is
+The contribution of the constraint to the equilibrium equations is
 \begin{equation}
 	\cubr{\cvvect{
 		\T{F} \\
@@ -1570,6 +1570,85 @@ to the jacobian matrix is
 		\delta\T{\lambda}
 	}}
 \end{equation}
+
+
+
+\subsection{Imposed Displacement}
+The imposed displacement joint is similar to the Drive Displacement,
+but the relative displacement is imposed only in one direction,
+relative to node $a$:
+\begin{equation}
+	\Phi = \T{e}_a^T \plbr{\T{x}_b + \T{f}_b - \T{x}_a - \T{f}_a} - v = 0 ,
+\end{equation}
+or, based on the initial assumptions,
+\begin{equation}
+	\Phi = \T{e}_a^T \plbr{\T{x}_b + \T{f}_b - \T{x}_a}
+		- \plbr{\tilde{\T{e}}_a^T \tilde{\T{f}}_a + v} = 0 ,
+\end{equation}
+or
+\begin{equation}
+	\Phi = \T{e}_a^T \T{d}
+		- \plbr{\tilde{\T{e}}_a^T \tilde{\T{f}}_a + v} = 0 ,
+\end{equation}
+where $\T{d}=\T{x}_b + \T{f}_b - \T{x}_a$ 
+and $\tilde{\T{e}}_a$ is constant in the reference frame of node $a$.
+The perturbation of the constraint equation yields
+\begin{equation}
+	\delta\Phi = 
+		\T{e}_a^T \plbr{\delta\T{x}_b
+		- \T{f}_b\times\T{\theta}_{b\delta}
+		- \delta\T{x}_a
+		} + \plbr{\T{e}_a \times \plbr{
+			\T{x}_b + \T{f}_b - \T{x}_a
+		}}^T \T{\theta}_{a\delta} ,
+\end{equation}
+or
+\begin{equation}
+	\delta\Phi = 
+		\T{e}_a^T \plbr{\delta\T{x}_b
+		- \T{f}_b\times\T{\theta}_{b\delta}
+		- \delta\T{x}_a
+		} + \plbr{\T{e}_a \times \T{d}}^T \T{\theta}_{a\delta} .
+\end{equation}
+The contribution of the constraint to the equilibrium equations is
+\begin{equation}
+	\cubr{\cvvect{
+		\T{F}_a \\
+		\T{C}_a \\
+		\T{F}_b \\
+		\T{C}_b
+	}} = \cubr{\cvvect{
+		- \T{e}_a \lambda \\
+		- \T{d} \times \T{e}_a \lambda \\
+		\T{e}_a \lambda \\
+		\T{f}_b \times \T{e}_a \lambda
+	}}
+\end{equation}
+where $\lambda$ is the reaction force (a scalar).
+
+The contribution of forces and moments and of the constraint equation 
+to the jacobian matrix is
+\begin{equation}
+	\sqbr{\matr{ccccc}{
+		\T{0} & \lambda \T{e}_a \times{} & \T{0} & \T{0} & - \T{e}_a \\
+		\lambda \T{e}_a \times{} & \lambda \T{d}\times\T{e}_a\times{} & 
+			- \lambda \T{e}_a \times{} & \lambda \T{e}_a \times \T{f}_b\times{} &
+			- \T{d}\times\T{e}_a \\
+		\T{0} & - \lambda \T{e}_a \times{} & \T{0} & \T{0} & \T{e}_a \\
+		\T{0} & \lambda \T{f}_b \times \T{e}_a \times{} &
+			\T{0} & \lambda \T{e}_a\times\T{f}_b\times{} & \T{f}_b\times\T{e}_a \\
+		- \T{e}_a^T & \plbr{\T{e}_a \times \T{d}}^T &
+			\T{e}_a^T & \plbr{\T{f}_b\times{e}_a}^T & \T{0}
+	}}\cubr{\cvvect{
+		\delta\T{x}_a \\
+		\T{\theta}_{a\delta} \\
+		\delta\T{x}_b \\
+		\T{\theta}_{b\delta} \\
+		\delta\lambda
+	}}
+\end{equation}
+
+
 
 
 
