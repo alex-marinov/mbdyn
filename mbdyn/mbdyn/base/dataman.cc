@@ -132,9 +132,9 @@ solArrFileName(NULL),
 pOutputMeter(0),
 iOutputCount(0),
 ResMode(RES_TEXT),
+#ifdef USE_NETCDF
 /* NetCDF stuff */
 bNetCDFsync(false),
-#ifdef USE_NETCDF
 Var_Step(0),
 Var_Time(0),
 Var_TimeStep(0),

@@ -366,8 +366,8 @@ StructNode::OutputPrepare(OutputHandler &OH)
 			char buf[BUFSIZ];
 
 			/*
-			 * TODO: add a variable "node.struct.label"
-			 * with generic info and no data
+			 * TODO: add a variable "node.struct.<label>"
+			 * with generic info (static, dynamic, ...) and no data
 			 */
 
 			int l = snprintf(buf, sizeof(buf), "node.struct.%lu.", GetLabel());

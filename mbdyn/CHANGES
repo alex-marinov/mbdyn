@@ -30,7 +30,7 @@ MBDyn 1.X-Devel
 		- added scalar function-based drive caller
 		- added support for user-defined scalar functions
 		- added scalar function-based constitutive laws
-		- improved double viscoelastic constitutive
+		- improved double viscoelastic constitutive law
 		- added support for streamed output for EasyAnim
 		- added extrapolation to fixed step file driver
 		- added "air properties" private data

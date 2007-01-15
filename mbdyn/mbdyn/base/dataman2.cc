@@ -917,7 +917,7 @@ DataManager::OutputPrepare(void)
 		/* Add general NetCDF (output) variables to the BinFile object and
 		 * save the NcVar* pointer returned from add_var as handle
 		 * for later write accesses. Define also variable attributes*/
-		Var_Step = pBinFile->add_var("step", ncLong, OutHdl.DimTime());
+		Var_Step = pBinFile->add_var("run.step", ncLong, OutHdl.DimTime());
 		if (Var_Step == 0) {
 			throw ErrGeneric();
 		}
@@ -930,7 +930,7 @@ DataManager::OutputPrepare(void)
 			throw ErrGeneric();
 		}
 
-		Var_Time = pBinFile->add_var("time", ncDouble, OutHdl.DimTime());
+		Var_Time = pBinFile->add_var("run.time", ncDouble, OutHdl.DimTime());
 		if (Var_Time == 0) {
 			throw ErrGeneric();
 		}
@@ -943,7 +943,7 @@ DataManager::OutputPrepare(void)
 			throw ErrGeneric();
 		}
 
-		Var_TimeStep = pBinFile->add_var("time_step", ncDouble, OutHdl.DimTime());
+		Var_TimeStep = pBinFile->add_var("run.timestep", ncDouble, OutHdl.DimTime());
 		if (Var_TimeStep == 0) {
 			throw ErrGeneric();
 		}

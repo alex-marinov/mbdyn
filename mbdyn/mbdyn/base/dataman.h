@@ -169,15 +169,15 @@ public:
 protected:
 	int ResMode;
 
+#ifdef USE_NETCDF
 	/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 	/* NetCDF stuff */
 	bool bNetCDFsync;
-#ifdef USE_NETCDF
 	NcVar *Var_Step;
 	NcVar *Var_Time;
 	NcVar *Var_TimeStep;
-#endif /* USE_NETCDF */
 	/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+#endif /* USE_NETCDF */
 
 #if defined(USE_ADAMS) || defined(USE_MOTIONVIEW)
 	mutable integer iOutputBlock;
