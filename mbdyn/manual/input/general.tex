@@ -417,7 +417,7 @@ The syntax is
 \begin{verbatim}
     <plugin> ::= node
     <args>   ::= <label> , <type>
-        [ , { [ index= ] <index> | name= <name> } ]
+        [ , { [ index= ] <index> | string= <name> } ]
 \end{verbatim}
 where
 \kw{label} is the label of the node,
@@ -433,7 +433,7 @@ The syntax is
 \begin{verbatim}
     <plugin> ::= element
     <args>   ::= <label> , <type>
-        [ , { [ index= ] <index> | name= <name> } ]
+        [ , { [ index= ] <index> | string= <name> } ]
 \end{verbatim}
 where
 \kw{label} is the label of the element,
@@ -1593,7 +1593,7 @@ a string expression.
 \noindent
 The same effect can be obtained using the \kw{element} plugin as follows:
 \begin{verbatim}
-    set: [element,x,1000,joint,name=rz];
+    set: [element,x,1000,joint,string=rz];
     # ...
     couple: 1, conservative, 1, 0.,0.,1.,
         string, "2.*exp(-100.*x)";

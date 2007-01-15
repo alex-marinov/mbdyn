@@ -138,9 +138,17 @@ PrivPlugIn::ReadIndex(unsigned int iMaxIndex, const char *s)
 {
 	const char	*name = 0;
 
-	if (strncasecmp(s, "name=", STRLENOF("name=")) == 0) {
+	if (strncasecmp(s, "string=", STRLENOF("string=")) == 0) {
+		name = &s[STRLENOF("string=")];
+		iIndex = pSE->iGetPrivDataIdx(name);
+
+	} else if (strncasecmp(s, "name=", STRLENOF("name=")) == 0) {
 		name = &s[STRLENOF("name=")];
 		iIndex = pSE->iGetPrivDataIdx(name);
+
+		silent_cerr("PrivPlugIn: "
+			"\"name=" << name << "\" is deprecated; "
+			"use \"string=" << name << "\" instead" << std::endl);
 
 	} else {
 		if (strncasecmp(s, "index=", STRLENOF("index=")) == 0) {
