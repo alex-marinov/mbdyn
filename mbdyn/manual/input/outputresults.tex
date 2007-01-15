@@ -34,21 +34,25 @@ as a post-processing, starting from raw MBDyn output files.
 This is true, for instance, for EasyAnim (see
 \htmladdnormallink{\texttt{http://mecara.fpms.ac.be/EasyDyn/}}{http://mecara.fpms.ac.be/EasyDyn/}
 for details).
+
 In previous versions of MBDyn, the \kw{output results} statement
 allowed to generate output compatible with MSC.ADAMS; provisions 
 for Altair Motion View has been under preparation for long time,
 but it has never been truly supported.
 Anyone interested in that interface should contact MBDyn developers.
+
+\noindent
 The \kw{output results} statement is now deprecated;
 support for all visualization tools will be reworked
-in form of postprocessing of MBDyn's raw output.
+in form of postprocessing of MBDyn's raw output, either in textual
+or binary form. %%% NetCDF
 
 \noindent
 Some post-processing preparation instructions are available
 for those packages that require special handling and thus
-are builtin.
+are built-in.
 
-
+\begin{comment} % there's no need to advertize this
 \section{MSC.ADAMS}
 Support for MSC.ADAMS in form of \kw{.res} file output 
 in ASCII form must be enabled at configure time, by using 
@@ -98,13 +102,14 @@ facility of ADAMS/View.
 
 \emph{NOTE: this feature will be trimmed out of MBDyn and moved
 to an external, post-processing script.}
+\end{comment} % there's no need to advertize this
 
 
 
 \section{EasyAnim}
 MBDyn exploits a special version of EasyAnim, based on 1.3 sources
 and patched by MBDyn developers; the patch is known to work under UN*X
-(Linux, essentially); it has not been tested with Windows, except with
+(GNU/Linux, essentially); it has not been tested with Windows, except with
 \kw{cygwin}.
 It is available from the MBDyn web site, and it has submitted to EasyAnim
 developers for evaluation.
@@ -191,6 +196,7 @@ and then invoke the interface script as
 
 
 
+\begin{comment} % there's no need to advertize this
 \section{Altair MotionView}
 Support for Altair's MotionView must be enabled at configure time, 
 by using the directive \kw{--enable-motionview};
@@ -203,4 +209,4 @@ It is activated by the directive
 \end{verbatim}
 No special parameters are available at the moment; 
 this interface is under development.
-
+\end{comment} % there's no need to advertize this
