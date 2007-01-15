@@ -2021,7 +2021,7 @@ ReadRotor(DataManager* pDM,
 		 * when the difference in inflow velocity between two 
 		 * iterations is less than tolerance in module, the
 		 * cycle breaks */
-		doublereal dTolerance = DBL_MAX;
+		doublereal dTolerance = std::numeric_limits<double>::max();
 		if (HP.IsKeyWord("tolerance")) {
 			dTolerance = HP.GetReal();
 			if (dTolerance <= 0.) {

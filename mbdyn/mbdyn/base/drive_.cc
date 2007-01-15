@@ -1279,7 +1279,7 @@ RampDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	doublereal dInitialTime = HP.GetReal();
 	DEBUGCOUT("Initial time: " << dInitialTime << std::endl);
 
-	doublereal dFinalTime = DBL_MAX;
+	doublereal dFinalTime = std::numeric_limits<double>::max();
 	if (!HP.IsKeyWord("forever")) {
 		dFinalTime = HP.GetReal();
 	}
@@ -1344,7 +1344,7 @@ DoubleRampDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	doublereal dDescendingSlope = HP.GetReal(-1.);
 	DEBUGCOUT("Descending Slope Value: " << dDescendingSlope << std::endl);
 
-	doublereal dDescendingInitialTime = DBL_MAX;
+	doublereal dDescendingInitialTime = std::numeric_limits<double>::max();
 	if (!HP.IsKeyWord("forever")) {
 		dDescendingInitialTime = HP.GetReal();
 	}
@@ -1570,7 +1570,7 @@ FrequencySweepDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	doublereal dInitialValue = HP.GetReal();
 	DEBUGCOUT("Initial value: " << dInitialValue << std::endl);
 
-	doublereal dFinalTime = DBL_MAX;
+	doublereal dFinalTime = std::numeric_limits<double>::max();
 	if (!HP.IsKeyWord("forever")) {
 		dFinalTime = HP.GetReal();
 	}
@@ -1651,7 +1651,7 @@ RandomDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	doublereal dInitialTime = HP.GetReal();
 	DEBUGCOUT("Initial time: " << dInitialTime << std::endl);
 
-	doublereal dFinalTime = DBL_MAX;
+	doublereal dFinalTime = std::numeric_limits<double>::max();
 	if (!HP.IsKeyWord("forever")) {
 		dFinalTime = HP.GetReal();
 	}
@@ -1711,7 +1711,7 @@ MeterDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	doublereal dInitialTime = HP.GetReal();
 	DEBUGCOUT("Initial time: " << dInitialTime << std::endl);
 
-	doublereal dFinalTime = DBL_MAX;
+	doublereal dFinalTime = std::numeric_limits<double>::max();
 	if (!HP.IsKeyWord("forever")) {
 		dFinalTime = HP.GetReal();
 	}

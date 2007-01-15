@@ -803,8 +803,8 @@ Solver::Run(void)
 	integer iTotIter = 0;
 	integer iStIter = 0;
 	doublereal dTotErr = 0.;
-	doublereal dTest = DBL_MAX;
-	doublereal dSolTest = DBL_MAX;
+	doublereal dTest = std::numeric_limits<double>::max();
+	doublereal dSolTest = std::numeric_limits<double>::max();
 	bool bSolConv = false;
 	/* calcolo delle derivate */
 	DEBUGLCOUT(MYDEBUG_DERIVATIVES, "derivatives solution step"
