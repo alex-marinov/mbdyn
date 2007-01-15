@@ -547,29 +547,47 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 
 		switch (CLType) {
 		case ConstLawType::ELASTIC: {
+#ifdef HAVE_GINAC
 			typedef GiNaCElasticConstitutiveLaw<T, Tder> L;
 			SAFENEWWITHCONSTRUCTOR(pCL, L,
 					L(pTplDC, PreStress,
 						epsilon,
 						expression));
+#else /* ! HAVE_GINAC */
+			silent_cerr("symbolic constitutive law not supported "
+				"at line " << HP.GetLineData() << std::endl);
+			throw DataManager::ErrGeneric();
+#endif /* ! HAVE_GINAC */
 			break;
 		}
 
 		case ConstLawType::VISCOUS: {
+#ifdef HAVE_GINAC
 			typedef GiNaCViscousConstitutiveLaw<T, Tder> L;
 			SAFENEWWITHCONSTRUCTOR(pCL, L,
 					L(pTplDC, PreStress,
 						epsilonPrime,
 						expression));
+#else /* ! HAVE_GINAC */
+			silent_cerr("symbolic constitutive law not supported "
+				"at line " << HP.GetLineData() << std::endl);
+			throw DataManager::ErrGeneric();
+#endif /* ! HAVE_GINAC */
 			break;
 		}
 
 		case ConstLawType::VISCOELASTIC: {
+#ifdef HAVE_GINAC
 			typedef GiNaCViscoElasticConstitutiveLaw<T, Tder> L;
 			SAFENEWWITHCONSTRUCTOR(pCL, L,
 					L(pTplDC, PreStress,
 						epsilon, epsilonPrime,
 						expression));
+#else /* ! HAVE_GINAC */
+			silent_cerr("symbolic constitutive law not supported "
+				"at line " << HP.GetLineData() << std::endl);
+			throw DataManager::ErrGeneric();
+#endif /* ! HAVE_GINAC */
 			break;
 		}
 
