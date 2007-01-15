@@ -808,7 +808,11 @@ EndOfUse:
 			}
 			SAFENEWWITHCONSTRUCTOR(pOutputMeter,
 				MeterDriveCaller,
-				MeterDriveCaller(&DrvHdl, -DBL_MAX, DBL_MAX, iFreq));
+				MeterDriveCaller(&DrvHdl, 
+					std::numeric_limits<double>::min(),
+					std::numeric_limits<double>::max(), 
+					iFreq)
+				);
 		} break;
 
 		case OUTPUTMETER:
