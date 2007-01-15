@@ -166,6 +166,7 @@ ReadJoint(DataManager* pDM,
 		"prismatic",
 		"drive" "hinge",
 		"drive" "displacement",
+		"drive" "displacement" "pin",
 		"kinematic",
 		"beam" "slider",
 		"brake",
@@ -215,6 +216,7 @@ ReadJoint(DataManager* pDM,
 		PRISMATIC,
 		DRIVEHINGE,
 		DRIVEDISPLACEMENT,
+		DRIVEDISPLACEMENTPIN,
 		KINEMATIC,
 		BEAMSLIDER,
 		BRAKE,
@@ -2023,6 +2025,53 @@ ReadJoint(DataManager* pDM,
 			DriveDisplacementJoint,
 			DriveDisplacementJoint(uLabel, pDO, pDC,
 				pNode1, pNode2, f1, f2, fOut));
+		} break;
+
+	case DRIVEDISPLACEMENTPIN:
+		{
+		/* nodo collegato */
+		StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+		ReferenceFrame RF(pNode);
+
+		Vec3 f(0.);
+		if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+			NO_OP;
+		} else {
+			pedantic_cerr("Joint(" << uLabel << "): "
+				"missing keyword \"position\" at line "
+				<< HP.GetLineData() << std::endl);
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+			f = HP.GetPosRel(ReferenceFrame(pNode));
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+
+		/* Stessa cosa per il terreno */
+		Vec3 x(0.);
+		if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+			NO_OP;
+		} else {
+			pedantic_cerr("Joint(" << uLabel << "): "
+				"missing keyword \"position\" at line "
+				<< HP.GetLineData() << std::endl);
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+			x = HP.GetPosAbs(AbsRefFrame);
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+
+		TplDriveCaller<Vec3>* pDC = ReadTplDrive(pDM, HP, Vec3(0.));
+
+		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			DriveDisplacementPinJoint,
+			DriveDisplacementPinJoint(uLabel, pDO, pDC,
+				pNode, f, x, fOut));
 		} break;
 
 	case KINEMATIC:

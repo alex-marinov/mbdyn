@@ -15,7 +15,7 @@ MBDyn 1.X-Devel
 		- added "ad hoc" (Radau IIA) third-order integrator
 		- automated installation of share data in $prefix/share
 		- reworked support for EasyAnim
-		- added drive displacement joint
+		- added drive displacement and drive displacement pin joints
 		- added cubic elastic and viscoelastic constitutive laws
 		- added capability to run static analyses with gravity
 		  and reference centrifugal forces

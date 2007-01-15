@@ -2812,7 +2812,8 @@ from the node 1 offset and the node 2 position
 
 
 
-\subsection{Deformable hinge}\label{sec:EL:JOINT:DEFORMABLEHINGE}
+\subsection{Deformable hinge}
+\label{sec:EL:JOINT:DEFORMABLEHINGE}
 This joint implements a configuration dependent moment that is exchanged
 between two nodes.
 The moment may depend, by way of a generic 3D constitutive law, 
@@ -3034,6 +3035,7 @@ See the \kw{distance} joint element.
 
 
 \subsection{Drive displacement}
+\label{sec:EL:JOINT:DRIVEDISPLACEMENT}
 This joint imposes the relative position between two points 
 optionally offset from two structural nodes,
 in the form of a vector that expresses the direction of the displacement
@@ -3041,8 +3043,8 @@ in the reference frame of node 1, whose amplitude is defined by a drive.
 \begin{verbatim}
     <joint_type> ::= drive displacement
     <joint_arglist> ::= 
-        <node_1> , (Ve3) <offset_1> ,
-        <node_2> , (Ve3) <offset_2> ,
+        <node_1> , (Vec3) <offset_1> ,
+        <node_2> , (Vec3) <offset_2> ,
         (Vec3_tpl_drive_caller) <relative_position>
 \end{verbatim}
 
@@ -3060,7 +3062,40 @@ When wrapped by a \kw{driven} element, it honors the following hints:
 \item unrecognized hints are passed through to the \kw{Vec3} drive.
 \end{itemize}
 
+
+
+\subsection{Drive displacement pin}
+\label{sec:EL:JOINT:DRIVEDISPLACEMENTPIN}
+This joint imposes the absolute position of a point optionally offset
+from a structural node, in the form of a vector that expresses 
+the direction of the displacement in the absolute reference frame,
+whose amplitude is defined by a drive.
+\begin{verbatim}
+    <joint_type> ::= drive displacement pin
+    <joint_arglist> ::= 
+        <node> , (Vec3) <node_offset> ,
+        (Vec3) <offset> ,
+        (Vec3_tpl_drive_caller) <position>
+\end{verbatim}
+
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"x"} imposed displacement component along absolute axis 1
+\item \kw{"y"} imposed displacement component along absolute axis 2
+\item \kw{"z"} imposed displacement component along absolute axis 3
+\end{enumerate}
+
+\paragraph{Hints}
+When wrapped by a \kw{driven} element, it honors the following hints:
+\begin{itemize}
+\item unrecognized hints are passed through to the \kw{Vec3} drive.
+\end{itemize}
+
+
+
 \subsection{Drive hinge}
+\label{sec:EL:JOINT:DRIVEHINGE}
 This joint imposes the relative orientation between two nodes,
 in the form of a rotation about an axis whose amplitude is defined
 by a drive.

@@ -212,6 +212,8 @@ const char* psJointNames[] = {
    "Angular Acceleration",
    "Prismatic",
    "Drive Hinge",
+   "Drive Displacement",
+   "Drive Displacement Pin",
    "Imposed Kinematics",
    "Beam Slider",
    "Brake",
