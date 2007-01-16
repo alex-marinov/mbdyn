@@ -250,7 +250,7 @@ DriveDisplacementJoint::iGetPrivDataIdx(const char *s) const
 	case 'f':
 		idx += 3;
 		/* fallthru */
-	case 'p':
+	case 'd':
 		break;
 
 	default:
@@ -804,7 +804,7 @@ DriveDisplacementPinJoint::iGetPrivDataIdx(const char *s) const
 	case 'f':
 		idx += 3;
 		/* fallthru */
-	case 'p':
+	case 'd':
 		break;
 
 	default:

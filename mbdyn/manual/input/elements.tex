@@ -3051,9 +3051,12 @@ in the reference frame of node 1, whose amplitude is defined by a drive.
 \paragraph{Private Data}
 The following data is available:
 \begin{enumerate}
-\item \kw{"x"} imposed displacement component along node 1 axis 1
-\item \kw{"y"} imposed displacement component along node 1 axis 2
-\item \kw{"z"} imposed displacement component along node 1 axis 3
+\item \kw{"dx"} imposed displacement component along node 1 axis 1
+\item \kw{"dy"} imposed displacement component along node 1 axis 2
+\item \kw{"dz"} imposed displacement component along node 1 axis 3
+\item \kw{"fx"} reaction force component along node 1 axis 1
+\item \kw{"fy"} reaction force component along node 1 axis 2
+\item \kw{"fz"} reaction force component along node 1 axis 3
 \end{enumerate}
 
 \paragraph{Hints}
@@ -3087,9 +3090,12 @@ whose amplitude is defined by a drive.
 \paragraph{Private Data}
 The following data is available:
 \begin{enumerate}
-\item \kw{"x"} imposed displacement component along absolute axis 1
-\item \kw{"y"} imposed displacement component along absolute axis 2
-\item \kw{"z"} imposed displacement component along absolute axis 3
+\item \kw{"dx"} imposed displacement component along absolute axis 1
+\item \kw{"dy"} imposed displacement component along absolute axis 2
+\item \kw{"dz"} imposed displacement component along absolute axis 3
+\item \kw{"fx"} reaction force component along absolute axis 1
+\item \kw{"fy"} reaction force component along absolute axis 2
+\item \kw{"fz"} reaction force component along absolute axis 3
 \end{enumerate}
 
 \paragraph{Hints}
@@ -3212,7 +3218,9 @@ The amplitude of the displacement is defined by a drive.
 \paragraph{Private Data}
 The following data is available:
 \begin{enumerate}
-\item \kw{"x"} imposed displacement component along \kw{direction},
+\item \kw{"d"} imposed displacement along \kw{direction},
+in node 1 reference frame;
+\item \kw{"f"} reaction force along \kw{direction},
 in node 1 reference frame.
 \end{enumerate}
 
@@ -3248,7 +3256,10 @@ The amplitude of the displacement is defined by a drive.
 \paragraph{Private Data}
 The following data is available:
 \begin{enumerate}
-\item \kw{"x"} imposed displacement component along \kw{direction}.
+\item \kw{"x"} imposed displacement along \kw{direction},
+in the absolute reference frame;
+\item \kw{"f"} reaction force along \kw{direction},
+in the absolute reference frame.
 \end{enumerate}
 
 \paragraph{Hints}
