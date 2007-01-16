@@ -40,6 +40,8 @@ MBDyn 1.X-Devel
 		  (thanks to Patrick Rix)
 		- added node priv data plugin to math parser
 		- added 3D and 6D support for GiNaC-based symbolic const. law
+		- added invariant deformable hinge joint (needs work)
+		- added imposed displacement joint (and pin)
 	Backward compatibility issues:
 		- per-element output removed from modal joints
 		- spherical hinge output now refers to node 1 instead of 2
@@ -65,7 +67,6 @@ MBDyn 1.X-Devel
 		- fixed Jacobian matrix of deformable displacement joint
 		  (noted by Jerome Merel)
 		- fixed minor memory issue in fixed step file driver
-		- added invariant deformable hinge joint (needs work)
 		- added column check to file drive
 
 MBDyn 1.2.6

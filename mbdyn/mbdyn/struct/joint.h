@@ -84,6 +84,8 @@ class Joint
       DRIVEHINGE,
       DRIVEDISP,
       DRIVEDISPPIN,
+      IMPOSEDDISP,
+      IMPOSEDDISPPIN,
       IMPOSEDKINEMATICS,
       BEAMSLIDER,
       BRAKE,

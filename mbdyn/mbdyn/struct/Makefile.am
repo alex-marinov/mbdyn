@@ -38,6 +38,8 @@ hbeam.cc \
 hbeam.h \
 hbeam_interp.cc \
 hbeam_interp.h \
+impdisp.cc \
+impdisp.h \
 inline.cc \
 inline.h \
 inplanej.cc \

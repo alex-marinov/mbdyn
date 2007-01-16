@@ -35,28 +35,29 @@
 #endif /* HAVE_CONFIG_H */
 
 #include "dataman.h"
-#include "drvdisp.h"
+#include "impdisp.h"
 #include "hint_impl.h"
 
-/* DriveDisplacementJoint - begin */
+/* ImposedDisplacementJoint - begin */
 
 /* Costruttore non banale */
-DriveDisplacementJoint::DriveDisplacementJoint(unsigned int uL,			      
-				 const DofOwner* pDO, 
-				 const TplDriveCaller<Vec3>* pDC,
-				 const StructNode* pN1, 
-				 const StructNode* pN2,
-				 const Vec3& f1,
-				 const Vec3& f2,
-				 flag fOut)
+ImposedDisplacementJoint::ImposedDisplacementJoint(unsigned int uL,			      
+	const DofOwner* pDO, 
+	const DriveCaller* pDC,
+	const StructNode* pN1, 
+	const StructNode* pN2,
+	const Vec3& f1,
+	const Vec3& f2,
+	const Vec3& e1,
+	flag fOut)
 : Elem(uL, fOut), 
 Joint(uL, pDO, fOut), 
-TplDriveOwner<Vec3>(pDC),
-pNode1(pN1), pNode2(pN2), f1(f1), f2(f2), 
-R1Ref(Eye3),
-RRef(Eye3),
+DriveOwner(pDC),
+pNode1(pN1), pNode2(pN2), f1(f1), f2(f2), e1(e1),
+exf1(e1*f1),
 f2Ref(0.),
 dRef(0.),
+e1Ref(0.),
 F(0.)
 {
 	ASSERT(pNode1 != NULL);
@@ -67,7 +68,7 @@ F(0.)
 
    
 /* Distruttore */
-DriveDisplacementJoint::~DriveDisplacementJoint(void)
+ImposedDisplacementJoint::~ImposedDisplacementJoint(void)
 {
 	NO_OP;
 }
@@ -75,32 +76,34 @@ DriveDisplacementJoint::~DriveDisplacementJoint(void)
 
 /* Contributo al file di restart */
 std::ostream&
-DriveDisplacementJoint::Restart(std::ostream& out) const
+ImposedDisplacementJoint::Restart(std::ostream& out) const
 {
-	Joint::Restart(out) << ", drive displacement, "
-		<< pNode1->GetLabel() << ", reference, node, ",
-		f1.Write(out, ", ") << ", "
-		<< pNode2->GetLabel() << ", reference, node, ",
-		f2.Write(out, ", ") << ", ",
+	Joint::Restart(out) << ", imposed displacement, "
+		<< pNode1->GetLabel() << ", "
+		"reference, node, ", f1.Write(out, ", ") << ", "
+		<< pNode2->GetLabel() << ", "
+		"reference, node, ", f2.Write(out, ", ") << ", "
+		"reference, node, ", e1.Write(out, ", ") << ", ",
 		pGetDriveCaller()->Restart(out) << ';' << std::endl;
 	return out;
 }
 
 
 void
-DriveDisplacementJoint::Output(OutputHandler& OH) const
+ImposedDisplacementJoint::Output(OutputHandler& OH) const
 {   
 	if (fToBeOutput()) {
 		Vec3 d(pNode2->GetXCurr() + pNode2->GetRCurr()*f2
 			- pNode1->GetXCurr() - pNode1->GetRCurr()*f1);
-		Joint::Output(OH.Joints(), "DriveDisplacementJoint", GetLabel(),
-				pNode1->GetRCurr().Transpose()*F, Zero3, F, Zero3)
+		Vec3 FTmp(e1*F);
+		Joint::Output(OH.Joints(), "ImposedDisplacementJoint", GetLabel(),
+				FTmp, Zero3, pNode1->GetRCurr().Transpose()*FTmp, Zero3)
 			<< " " << d << std::endl;
 	}
 }
 
 void
-DriveDisplacementJoint::SetValue(DataManager *pDM,
+ImposedDisplacementJoint::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph)
 {
@@ -121,21 +124,21 @@ DriveDisplacementJoint::SetValue(DataManager *pDM,
 				continue;
 			}
 
-			TplDriveHint<Vec3> *pdh = dynamic_cast<TplDriveHint<Vec3> *>((*ph)[i]);
+			DriveHint *pdh = dynamic_cast<DriveHint *>((*ph)[i]);
 
 			if (pdh) {
-				pedantic_cout("DriveDisplacementJoint(" << uLabel << "): "
-					"creating drive from hint[" << i << "]..." << std::endl);
+				pedantic_cout("ImposedDisplacementJoint(" << uLabel << "): "
+					"creating drive from hint[" << i << "]" << std::endl);
 
-				TplDriveCaller<Vec3> *pDC = pdh->pCreateDrive(pDM);
+				DriveCaller *pDC = pdh->pCreateDrive(pDM);
 				if (pDC == 0) {
-					silent_cerr("DriveDisplacementJoint(" << uLabel << "): "
+					silent_cerr("ImposedDisplacementJoint(" << uLabel << "): "
 						"unable to create drive "
-						"after hint #" << i << std::endl);
+						"after hint[" << i << "]" << std::endl);
 					throw ErrGeneric();
 				}
 				
-				TplDriveOwner<Vec3>::Set(pDC);
+				DriveOwner::Set(pDC);
 				continue;
 			}
 		}
@@ -143,7 +146,7 @@ DriveDisplacementJoint::SetValue(DataManager *pDM,
 }
 
 Hint *
-DriveDisplacementJoint::ParseHint(DataManager *pDM, const char *s) const
+ImposedDisplacementJoint::ParseHint(DataManager *pDM, const char *s) const
 {
 	if (strncasecmp(s, "offset{" /*}*/ , STRLENOF("offset{" /*}*/ )) == 0)
 	{
@@ -167,54 +170,54 @@ DriveDisplacementJoint::ParseHint(DataManager *pDM, const char *s) const
 }
 
 std::ostream&
-DriveDisplacementJoint::DescribeDof(std::ostream& out,
+ImposedDisplacementJoint::DescribeDof(std::ostream& out,
 		char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
 	if (i >= 0) {
-		silent_cerr("DriveDisplacementJoint(" << GetLabel() << "): "
+		silent_cerr("ImposedDisplacementJoint(" << GetLabel() << "): "
 			"DescribeDof(" << i << ") "
 			"not implemented yet" << std::endl);
 		throw ErrGeneric();
 	}
 
 	out
-		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
-			"reaction forces [fx,fy,fz]" << std::endl;
+		<< prefix << iIndex + 1 << ": "
+			"reaction force" << std::endl;
 
 	if (bInitial) {
-		iIndex += 3;
+		iIndex += 1;
 		out
-			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
-				"reaction force derivatives [fPx,fPy,fPz]" << std::endl;
+			<< prefix << iIndex + 1 << ": "
+				"reaction force derivative" << std::endl;
 	}
 
 	return out;
 }
 
 std::ostream&
-DriveDisplacementJoint::DescribeEq(std::ostream& out,
+ImposedDisplacementJoint::DescribeEq(std::ostream& out,
 		char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
 	if (i >= 0) {
-		silent_cerr("DriveDisplacementJoint(" << GetLabel() << "): "
+		silent_cerr("ImposedDisplacementJoint(" << GetLabel() << "): "
 			"DescribeEq(" << i << ") "
 			"not implemented yet" << std::endl);
 		throw ErrGeneric();
 	}
 
 	out
-		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
-			"position constraints [px1=px2,py1=py2,pz1=pz2]" << std::endl;
+		<< prefix << iIndex + 1 << ": "
+			"position constraint" << std::endl;
 
 	if (bInitial) {
-		iIndex += 3;
+		iIndex += 1;
 		out
-			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
-				"velocity constraints [vx1=vx2,vy1=vy2,vz1=vz2]" << std::endl;
+			<< prefix << iIndex + 1 << ": "
+				"velocity constraint" << std::endl;
 	}
 
 	return out;
@@ -223,13 +226,13 @@ DriveDisplacementJoint::DescribeEq(std::ostream& out,
    
 /* Dati privati (aggiungere magari le reazioni vincolari) */
 unsigned int
-DriveDisplacementJoint::iGetNumPrivData(void) const
+ImposedDisplacementJoint::iGetNumPrivData(void) const
 {
-	return 3;
+	return 1;
 };
 
 unsigned int
-DriveDisplacementJoint::iGetPrivDataIdx(const char *s) const
+ImposedDisplacementJoint::iGetPrivDataIdx(const char *s) const
 {
 	ASSERT(s != NULL);
 	ASSERT(s[0] != '\0');
@@ -241,30 +244,26 @@ DriveDisplacementJoint::iGetPrivDataIdx(const char *s) const
 	switch (s[1]) {
 	case 'x':
 		return 1;
-	case 'y':
-		return 2;
-	case 'z':
-		return 3;
 	}
 
 	return 0;
 }
 
 doublereal
-DriveDisplacementJoint::dGetPrivData(unsigned int i) const
+ImposedDisplacementJoint::dGetPrivData(unsigned int i) const
 {
-	ASSERT(i >= 1 && i <= 3);
-	return Get().dGet(i);
+	ASSERT(i >= 1 && i <= 1);
+	return dGet();
 }
 
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler& 
-DriveDisplacementJoint::AssJac(VariableSubMatrixHandler& WorkMat,
-		doublereal dCoef, 
-		const VectorHandler& /* XCurr */ ,
-		const VectorHandler& /* XPrimeCurr */ )
+ImposedDisplacementJoint::AssJac(VariableSubMatrixHandler& WorkMat,
+	doublereal dCoef, 
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ )
 {
-	DEBUGCOUT("Entering DriveDisplacementJoint::AssJac()" << std::endl);
+	DEBUGCOUT("Entering ImposedDisplacementJoint::AssJac()" << std::endl);
 
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
@@ -288,10 +287,8 @@ DriveDisplacementJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
 		WM.PutColIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
 	}
-	for (int iCnt = 1; iCnt <= 3; iCnt++) {
-		WM.PutRowIndex(12 + iCnt, iFirstReactionIndex + iCnt);
-		WM.PutColIndex(12 + iCnt, iFirstReactionIndex + iCnt);
-	}
+	WM.PutRowIndex(12 + 1, iFirstReactionIndex + 1);
+	WM.PutColIndex(12 + 1, iFirstReactionIndex + 1);
    
 	AssMat(WM, dCoef);
 
@@ -300,61 +297,91 @@ DriveDisplacementJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
 
 void
-DriveDisplacementJoint::AfterPredict(VectorHandler& /* X */ ,
+ImposedDisplacementJoint::AfterPredict(VectorHandler& /* X */ ,
 		VectorHandler& /* XP */ )
 {
 	/* Recupera i dati */
 	f2Ref = pNode2->GetRRef()*f2;
-	dRef = pNode1->GetRRef()*(f1 + Get());
+	dRef = pNode2->GetXCurr() + f2Ref - pNode1->GetXCurr();
+	e1Ref = pNode1->GetRRef()*e1;
 }
 
 
 void
-DriveDisplacementJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)   
+ImposedDisplacementJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)   
 {
+	Vec3 dxe1(dRef.Cross(e1Ref));
+	Vec3 f2xe1(f2Ref.Cross(e1Ref));
+	
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {
+		doublereal d = e1Ref(iCnt);
+
 		/* node 1 force */
-		WM.DecCoef(iCnt, 12 + iCnt, 1.);
+		WM.DecCoef(iCnt, 12 + 1, d);
 		/* node 2 force */
-		WM.IncCoef(6 + iCnt, 12 + iCnt, 1.);
+		WM.IncCoef(6 + iCnt, 12 + 1, d);
 
 		/* node 1 constraint */
-		WM.DecCoef(12 + iCnt, iCnt, 1.);
+		WM.DecCoef(12 + 1, iCnt, d);
 		/* node 2 constraint */
-		WM.IncCoef(12 + iCnt, 6 + iCnt, 1.);
+		WM.IncCoef(12 + 1, 6 + iCnt, d);
+
+		d = dxe1(iCnt);
+
+		/* node 1 moment */
+		WM.DecCoef(3 + iCnt, 12 + 1, d);
+
+		/* node 1 constraint */
+		WM.DecCoef(12 + 1, 3 + iCnt, d);
+
+		d = f2xe1(iCnt);
+
+		/* node 2 moment */
+		WM.IncCoef(9 + iCnt, 12 + 1, d);
+
+		/* node 2 constraint */
+		WM.IncCoef(12 + 1, 9 + iCnt, d);
 	}
 
-	Mat3x3 MTmp(dRef);
+	Vec3 FTmp(e1Ref*(F*dCoef));
+	Mat3x3 MTmp(FTmp);
+
+	/* node 1 force */
+	WM.Add(1, 3 + 1, MTmp);
+
+	/* node 2 force */
+	WM.Sub(6 + 1, 3 + 1, MTmp);
 
 	/* node 1 moment */
-	WM.Sub(3 + 1, 12 + 1, MTmp);
-	/* node 1 constraint */
-	WM.Add(12 + 1, 3 + 1, MTmp);
+	WM.Sub(3 + 1, 1, MTmp);
+	WM.Add(3 + 1, 6 + 1, MTmp);
 
-	MTmp = Mat3x3(f2Ref);
-	/* node 2 moment */
-	WM.Add(9 + 1, 12 + 1, MTmp);
-	/* node 2 constraint */
-	WM.Sub(12 + 1, 9 + 1, MTmp);
+	MTmp = Mat3x3(dRef, FTmp);
 
-	MTmp = Mat3x3(F, dRef*dCoef);
 	/* node 1 moment */
-	WM.Sub(3 + 1, 3 + 1, MTmp);
-	
-	MTmp = Mat3x3(F, f2Ref*dCoef);
+	WM.Add(3 + 1, 3 + 1, MTmp);
+
+	MTmp = Mat3x3(f2Ref, FTmp);
+
 	/* node 2 moment */
+	WM.Sub(9 + 1, 3 + 1, MTmp);
+
+	MTmp = Mat3x3(FTmp, f2Ref);
+
+	/* node 2 moment */
+	WM.Sub(3 + 1, 9 + 1, MTmp);
 	WM.Add(9 + 1, 9 + 1, MTmp);
 }
 
 
 /* assemblaggio residuo */
 SubVectorHandler& 
-DriveDisplacementJoint::AssRes(SubVectorHandler& WorkVec,
-		doublereal dCoef,
-		const VectorHandler& XCurr,
-		const VectorHandler& /* XPrimeCurr */ )
+ImposedDisplacementJoint::AssRes(SubVectorHandler& WorkVec,
+	doublereal dCoef,
+	const VectorHandler& XCurr,
+	const VectorHandler& /* XPrimeCurr */ )
 {
-	DEBUGCOUT("Entering DriveDisplacementJoint::AssRes()" << std::endl);   
+	DEBUGCOUT("Entering ImposedDisplacementJoint::AssRes()" << std::endl);   
 
 	/* Dimensiona e resetta la matrice di lavoro */
 	integer iNumRows = 0;
@@ -373,11 +400,9 @@ DriveDisplacementJoint::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
 	}
 
-	for (int iCnt = 1; iCnt <= 3; iCnt++) {
-		WorkVec.PutRowIndex(12 + iCnt, iFirstReactionIndex + iCnt);
-	}
+	WorkVec.PutRowIndex(12 + 1, iFirstReactionIndex + 1);
 
-	F = Vec3(XCurr, iFirstReactionIndex + 1);
+	F = XCurr(iFirstReactionIndex + 1);
 
 	AssVec(WorkVec, dCoef);
 
@@ -386,31 +411,37 @@ DriveDisplacementJoint::AssRes(SubVectorHandler& WorkVec,
 
 
 void
-DriveDisplacementJoint::AssVec(SubVectorHandler& WorkVec, doublereal dCoef)
+ImposedDisplacementJoint::AssVec(SubVectorHandler& WorkVec, doublereal dCoef)
 {   
 	Mat3x3 R1(pNode1->GetRCurr());
 
-	Vec3 f2Tmp = pNode2->GetRCurr()*f2;
-	Vec3 d = pNode1->GetRCurr()*(f1 + Get());
+	Vec3 f2Tmp(pNode2->GetRCurr()*f2);
+	Vec3 dTmp(pNode2->GetXCurr() + f2Tmp - pNode1->GetXCurr());
+	Vec3 e1Tmp(pNode1->GetRCurr()*e1);
 
-	WorkVec.Add(1, F);
-	WorkVec.Add(3 + 1, d.Cross(F));
-	WorkVec.Sub(6 + 1, F);
-	WorkVec.Sub(9 + 1, f2Tmp.Cross(F));
+	Vec3 FTmp(e1Tmp*F);
+
+	WorkVec.Add(1, FTmp);
+	WorkVec.Add(3 + 1, dTmp.Cross(FTmp));
+	WorkVec.Sub(6 + 1, FTmp);
+	WorkVec.Sub(9 + 1, f2Tmp.Cross(FTmp));
 	
 	if (dCoef != 0.) {
-		WorkVec.Sub(12 + 1, (pNode2->GetXCurr() + f2Tmp - pNode1->GetXCurr() - d)/dCoef);
+		WorkVec.DecCoef(12 + 1, (e1Tmp*dTmp - (exf1 + dGet()))/dCoef);
 	}
 }
 
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
 VariableSubMatrixHandler& 
-DriveDisplacementJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+ImposedDisplacementJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		const VectorHandler& XCurr)
 {
-	DEBUGCOUT("Entering DriveDisplacementJoint::InitialAssJac()" << std::endl);
+	DEBUGCOUT("Entering ImposedDisplacementJoint::InitialAssJac()" << std::endl);
 
+	WorkMat.SetNullMatrix();
+
+#if 0
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
 	/* Dimensiona e resetta la matrice di lavoro */
@@ -509,6 +540,7 @@ DriveDisplacementJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	MTmp = Mat3x3(pNode2->GetWRef(), f2Ref);
 	/* node 2 constraint derivative */
 	WM.Add(27 + 1, 15 + 1, MTmp);
+#endif
 
 	return WorkMat;
 }
@@ -516,11 +548,14 @@ DriveDisplacementJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 					   
 /* Contributo al residuo durante l'assemblaggio iniziale */   
 SubVectorHandler& 
-DriveDisplacementJoint::InitialAssRes(SubVectorHandler& WorkVec,
+ImposedDisplacementJoint::InitialAssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& XCurr)
 {
-	DEBUGCOUT("Entering DriveDisplacementJoint::InitialAssRes()" << std::endl);   
+	DEBUGCOUT("Entering ImposedDisplacementJoint::InitialAssRes()" << std::endl);   
 
+	WorkVec.ResizeReset(0);
+
+#if 0
 	/* Dimensiona e resetta la matrice di lavoro */
 	integer iNumRows = 0;
 	integer iNumCols = 0;
@@ -544,11 +579,11 @@ DriveDisplacementJoint::InitialAssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(24 + iCnt, iFirstReactionIndex + iCnt);
 	}
 
-	F = Vec3(XCurr, iFirstReactionIndex + 1);
-	Vec3 FPrime = Vec3(XCurr, iReactionPrimeIndex + 1);
+	F = XCurr(iFirstReactionIndex + 1);
+	doublereal FPrime = XCurr(iReactionPrimeIndex + 1);
 
-	dRef = pNode1->GetRCurr()*(f1 + Get());
 	f2Ref = pNode2->GetRCurr()*f2;
+	dRef = pNode2->GetXCurr() + f2Ref - pNode1->GetXCurr();
 
 	WorkVec.Add(1, F);
 	WorkVec.Add(3 + 1, dRef.Cross(F));
@@ -563,26 +598,28 @@ DriveDisplacementJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	WorkVec.Add(24 + 1, pNode1->GetXCurr() + dRef - pNode2->GetXCurr() - f2Ref);
 	WorkVec.Add(27 + 1, pNode1->GetVCurr() + pNode1->GetWCurr().Cross(dRef)
 			- pNode2->GetVCurr() + pNode2->GetWCurr().Cross(f2Ref));
+#endif
 
 	return WorkVec;
 }
 					   
-/* DriveDisplacementJoint - end */
+/* ImposedDisplacementJoint - end */
 
-/* DriveDisplacementPinJoint - begin */
+/* ImposedDisplacementPinJoint - begin */
 
 /* Costruttore non banale */
-DriveDisplacementPinJoint::DriveDisplacementPinJoint(unsigned int uL,			      
-				 const DofOwner* pDO, 
-				 const TplDriveCaller<Vec3>* pDC,
-				 const StructNode* pN,
-				 const Vec3& f,
-				 const Vec3& x,
-				 flag fOut)
+ImposedDisplacementPinJoint::ImposedDisplacementPinJoint(unsigned int uL,			      
+	const DofOwner* pDO, 
+	const DriveCaller* pDC,
+	const StructNode* pN,
+	const Vec3& f,
+	const Vec3& x,
+	const Vec3& e,
+	flag fOut)
 : Elem(uL, fOut), 
 Joint(uL, pDO, fOut), 
-TplDriveOwner<Vec3>(pDC),
-pNode(pN), f(f), x(x),
+DriveOwner(pDC),
+pNode(pN), f(f), x(x), e(e),
 fRef(0.),
 dRef(0.),
 F(0.)
@@ -593,7 +630,7 @@ F(0.)
 
    
 /* Distruttore */
-DriveDisplacementPinJoint::~DriveDisplacementPinJoint(void)
+ImposedDisplacementPinJoint::~ImposedDisplacementPinJoint(void)
 {
 	NO_OP;
 }
@@ -601,30 +638,32 @@ DriveDisplacementPinJoint::~DriveDisplacementPinJoint(void)
 
 /* Contributo al file di restart */
 std::ostream&
-DriveDisplacementPinJoint::Restart(std::ostream& out) const
+ImposedDisplacementPinJoint::Restart(std::ostream& out) const
 {
-	Joint::Restart(out) << ", drive displacement pin, "
-		<< pNode->GetLabel() << ", reference, node, ",
-		f.Write(out, ", ") << ", ",
+	Joint::Restart(out) << ", imposed displacement pin, "
+		<< pNode->GetLabel() << ", "
+		"reference, node, ", f.Write(out, ", ") << ", ",
 		x.Write(out, ", ") << ", ",
+		e.Write(out, ", ") << ", ",
 		pGetDriveCaller()->Restart(out) << ';' << std::endl;
 	return out;
 }
 
 
 void
-DriveDisplacementPinJoint::Output(OutputHandler& OH) const
+ImposedDisplacementPinJoint::Output(OutputHandler& OH) const
 {   
 	if (fToBeOutput()) {
 		Vec3 d(pNode->GetXCurr() + pNode->GetRCurr()*f - x);
-		Joint::Output(OH.Joints(), "DriveDisplacementPinJoint", GetLabel(),
-				F, Zero3, F, Zero3)
+		Vec3 FTmp(e*F);
+		Joint::Output(OH.Joints(), "ImposedDisplacementPinJoint", GetLabel(),
+				FTmp, Zero3, FTmp, Zero3)
 			<< " " << d << std::endl;
 	}
 }
 
 void
-DriveDisplacementPinJoint::SetValue(DataManager *pDM,
+ImposedDisplacementPinJoint::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph)
 {
@@ -645,21 +684,21 @@ DriveDisplacementPinJoint::SetValue(DataManager *pDM,
 				continue;
 			}
 
-			TplDriveHint<Vec3> *pdh = dynamic_cast<TplDriveHint<Vec3> *>((*ph)[i]);
+			DriveHint *pdh = dynamic_cast<DriveHint *>((*ph)[i]);
 
 			if (pdh) {
-				pedantic_cout("DriveDisplacementPinJoint(" << uLabel << "): "
-					"creating drive from hint[" << i << "]..." << std::endl);
+				pedantic_cout("ImposedDisplacementPinJoint(" << uLabel << "): "
+					"creating drive from hint[" << i << "]" << std::endl);
 
-				TplDriveCaller<Vec3> *pDC = pdh->pCreateDrive(pDM);
+				DriveCaller *pDC = pdh->pCreateDrive(pDM);
 				if (pDC == 0) {
-					silent_cerr("DriveDisplacementPinJoint(" << uLabel << "): "
+					silent_cerr("ImposedDisplacementPinJoint(" << uLabel << "): "
 						"unable to create drive "
-						"after hint #" << i << std::endl);
+						"after hint[" << i << "]" << std::endl);
 					throw ErrGeneric();
 				}
 				
-				TplDriveOwner<Vec3>::Set(pDC);
+				DriveOwner::Set(pDC);
 				continue;
 			}
 		}
@@ -667,7 +706,7 @@ DriveDisplacementPinJoint::SetValue(DataManager *pDM,
 }
 
 Hint *
-DriveDisplacementPinJoint::ParseHint(DataManager *pDM, const char *s) const
+ImposedDisplacementPinJoint::ParseHint(DataManager *pDM, const char *s) const
 {
 	if (strncasecmp(s, "offset{" /*}*/ , STRLENOF("offset{" /*}*/ )) == 0)
 	{
@@ -691,54 +730,54 @@ DriveDisplacementPinJoint::ParseHint(DataManager *pDM, const char *s) const
 }
 
 std::ostream&
-DriveDisplacementPinJoint::DescribeDof(std::ostream& out,
+ImposedDisplacementPinJoint::DescribeDof(std::ostream& out,
 		char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
 	if (i >= 0) {
-		silent_cerr("DriveDisplacementPinJoint(" << GetLabel() << "): "
+		silent_cerr("ImposedDisplacementPinJoint(" << GetLabel() << "): "
 			"DescribeDof(" << i << ") "
 			"not implemented yet" << std::endl);
 		throw ErrGeneric();
 	}
 
 	out
-		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
-			"reaction forces [fx,fy,fz]" << std::endl;
+		<< prefix << iIndex + 1 << ": "
+			"reaction force" << std::endl;
 
 	if (bInitial) {
-		iIndex += 3;
+		iIndex += 1;
 		out
-			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
-				"reaction force derivatives [fPx,fPy,fPz]" << std::endl;
+			<< prefix << iIndex + 1 << ": "
+				"reaction force derivative" << std::endl;
 	}
 
 	return out;
 }
 
 std::ostream&
-DriveDisplacementPinJoint::DescribeEq(std::ostream& out,
+ImposedDisplacementPinJoint::DescribeEq(std::ostream& out,
 		char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
 	if (i >= 0) {
-		silent_cerr("DriveDisplacementPinJoint(" << GetLabel() << "): "
+		silent_cerr("ImposedDisplacementPinJoint(" << GetLabel() << "): "
 			"DescribeEq(" << i << ") "
 			"not implemented yet" << std::endl);
 		throw ErrGeneric();
 	}
 
 	out
-		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
-			"position constraints [px1=px2,py1=py2,pz1=pz2]" << std::endl;
+		<< prefix << iIndex + 1 << ": "
+			"position constraint" << std::endl;
 
 	if (bInitial) {
-		iIndex += 3;
+		iIndex += 1;
 		out
-			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
-				"velocity constraints [vx1=vx2,vy1=vy2,vz1=vz2]" << std::endl;
+			<< prefix << iIndex + 1 << ": "
+				"velocity constraint" << std::endl;
 	}
 
 	return out;
@@ -747,13 +786,13 @@ DriveDisplacementPinJoint::DescribeEq(std::ostream& out,
    
 /* Dati privati (aggiungere magari le reazioni vincolari) */
 unsigned int
-DriveDisplacementPinJoint::iGetNumPrivData(void) const
+ImposedDisplacementPinJoint::iGetNumPrivData(void) const
 {
-	return 3;
+	return 1;
 };
 
 unsigned int
-DriveDisplacementPinJoint::iGetPrivDataIdx(const char *s) const
+ImposedDisplacementPinJoint::iGetPrivDataIdx(const char *s) const
 {
 	ASSERT(s != NULL);
 	ASSERT(s[0] != '\0');
@@ -765,30 +804,26 @@ DriveDisplacementPinJoint::iGetPrivDataIdx(const char *s) const
 	switch (s[1]) {
 	case 'x':
 		return 1;
-	case 'y':
-		return 2;
-	case 'z':
-		return 3;
 	}
 
 	return 0;
 }
 
 doublereal
-DriveDisplacementPinJoint::dGetPrivData(unsigned int i) const
+ImposedDisplacementPinJoint::dGetPrivData(unsigned int i) const
 {
-	ASSERT(i >= 1 && i <= 3);
-	return Get().dGet(i);
+	ASSERT(i >= 1 && i <= 1);
+	return dGet();
 }
 
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler& 
-DriveDisplacementPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
-		doublereal dCoef, 
-		const VectorHandler& /* XCurr */ ,
-		const VectorHandler& /* XPrimeCurr */ )
+ImposedDisplacementPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
+	doublereal dCoef, 
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ )
 {
-	DEBUGCOUT("Entering DriveDisplacementPinJoint::AssJac()" << std::endl);
+	DEBUGCOUT("Entering ImposedDisplacementPinJoint::AssJac()" << std::endl);
 
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
@@ -808,10 +843,8 @@ DriveDisplacementPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.PutRowIndex(iCnt, iNodeFirstMomIndex + iCnt);
 		WM.PutColIndex(iCnt, iNodeFirstPosIndex + iCnt);	
 	}
-	for (int iCnt = 1; iCnt <= 3; iCnt++) {
-		WM.PutRowIndex(6 + iCnt, iFirstReactionIndex + iCnt);
-		WM.PutColIndex(6 + iCnt, iFirstReactionIndex + iCnt);
-	}
+	WM.PutRowIndex(6 + 1, iFirstReactionIndex + 1);
+	WM.PutColIndex(6 + 1, iFirstReactionIndex + 1);
    
 	AssMat(WM, dCoef);
 
@@ -820,35 +853,39 @@ DriveDisplacementPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
 
 void
-DriveDisplacementPinJoint::AfterPredict(VectorHandler& /* X */ ,
-		VectorHandler& /* XP */ )
+ImposedDisplacementPinJoint::AfterPredict(VectorHandler& /* X */ ,
+	VectorHandler& /* XP */ )
 {
 	/* Recupera i dati */
 	fRef = pNode->GetRRef()*f;
-	dRef = Get();
+	dRef = pNode->GetXCurr() + fRef - x;
 }
 
 
 void
-DriveDisplacementPinJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)   
+ImposedDisplacementPinJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)   
 {
+	Vec3 fxe(fRef.Cross(e));
+
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {
+		doublereal d = e(iCnt);
+
 		/* node force */
-		WM.IncCoef(iCnt, 6 + iCnt, 1.);
+		WM.IncCoef(iCnt, 6 + 1, d);
 
 		/* node constraint */
-		WM.IncCoef(6 + iCnt, iCnt, 1.);
+		WM.IncCoef(6 + 1, iCnt, d);
+
+		d = fxe(iCnt);
+
+		/* node moment */
+		WM.IncCoef(3 + iCnt, 6 + 1, d);
+
+		/* node constraint */
+		WM.IncCoef(6 + 1, 3 + iCnt, d);
 	}
 
-	Mat3x3 MTmp(fRef);
-
-	/* node moment */
-	WM.Add(3 + 1, 6 + 1, MTmp);
-
-	/* node constraint */
-	WM.Sub(6 + 1, 3 + 1, MTmp);
-
-	MTmp = Mat3x3(F, fRef*dCoef);
+	Mat3x3 MTmp((e*F), fRef);
 
 	/* node moment */
 	WM.Add(3 + 1, 3 + 1, MTmp);
@@ -857,12 +894,12 @@ DriveDisplacementPinJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 
 /* assemblaggio residuo */
 SubVectorHandler& 
-DriveDisplacementPinJoint::AssRes(SubVectorHandler& WorkVec,
-		doublereal dCoef,
-		const VectorHandler& XCurr,
-		const VectorHandler& /* XPrimeCurr */ )
+ImposedDisplacementPinJoint::AssRes(SubVectorHandler& WorkVec,
+	doublereal dCoef,
+	const VectorHandler& XCurr,
+	const VectorHandler& /* XPrimeCurr */ )
 {
-	DEBUGCOUT("Entering DriveDisplacementPinJoint::AssRes()" << std::endl);   
+	DEBUGCOUT("Entering ImposedDisplacementPinJoint::AssRes()" << std::endl);   
 
 	/* Dimensiona e resetta la matrice di lavoro */
 	integer iNumRows = 0;
@@ -879,11 +916,9 @@ DriveDisplacementPinJoint::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(iCnt, iNodeFirstMomIndex + iCnt);
 	}
 
-	for (int iCnt = 1; iCnt <= 3; iCnt++) {
-		WorkVec.PutRowIndex(6 + iCnt, iFirstReactionIndex + iCnt);
-	}
+	WorkVec.PutRowIndex(6 + 1, iFirstReactionIndex + 1);
 
-	F = Vec3(XCurr, iFirstReactionIndex + 1);
+	F = XCurr(iFirstReactionIndex + 1);
 
 	AssVec(WorkVec, dCoef);
 
@@ -892,27 +927,32 @@ DriveDisplacementPinJoint::AssRes(SubVectorHandler& WorkVec,
 
 
 void
-DriveDisplacementPinJoint::AssVec(SubVectorHandler& WorkVec, doublereal dCoef)
+ImposedDisplacementPinJoint::AssVec(SubVectorHandler& WorkVec, doublereal dCoef)
 {   
 	Vec3 fTmp = pNode->GetRCurr()*f;
-	Vec3 d = Get();
+	Vec3 d = pNode->GetXCurr() + fTmp - x;
 
-	WorkVec.Sub(1, F);
-	WorkVec.Sub(3 + 1, fTmp.Cross(F));
+	Vec3 FTmp(e*F);
+
+	WorkVec.Sub(1, FTmp);
+	WorkVec.Sub(3 + 1, fTmp.Cross(FTmp));
 	
 	if (dCoef != 0.) {
-		WorkVec.Sub(6 + 1, (pNode->GetXCurr() + fTmp - x - d)/dCoef);
+		WorkVec.Sub(6 + 1, (e*d - dGet())/dCoef);
 	}
 }
 
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
 VariableSubMatrixHandler& 
-DriveDisplacementPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+ImposedDisplacementPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		const VectorHandler& XCurr)
 {
-	DEBUGCOUT("Entering DriveDisplacementPinJoint::InitialAssJac()" << std::endl);
+	DEBUGCOUT("Entering ImposedDisplacementPinJoint::InitialAssJac()" << std::endl);
 
+	WorkMat.SetNullMatrix();
+
+#if 0
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
 	/* Dimensiona e resetta la matrice di lavoro */
@@ -976,6 +1016,7 @@ DriveDisplacementPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	MTmp = Mat3x3(pNode->GetWRef(), fRef);
 	/* node 2 constraint derivative */
 	WM.Add(15 + 1, 3 + 1, MTmp);
+#endif
 
 	return WorkMat;
 }
@@ -983,11 +1024,14 @@ DriveDisplacementPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 					   
 /* Contributo al residuo durante l'assemblaggio iniziale */   
 SubVectorHandler& 
-DriveDisplacementPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
+ImposedDisplacementPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& XCurr)
 {
-	DEBUGCOUT("Entering DriveDisplacementPinJoint::InitialAssRes()" << std::endl);   
+	DEBUGCOUT("Entering ImposedDisplacementPinJoint::InitialAssRes()" << std::endl);   
 
+	WorkVec.ResizeReset(0);
+
+#if 0
 	/* Dimensiona e resetta la matrice di lavoro */
 	integer iNumRows = 0;
 	integer iNumCols = 0;
@@ -1020,8 +1064,9 @@ DriveDisplacementPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 
 	WorkVec.Add(12 + 1, dRef - pNode->GetXCurr() - fRef);
 	WorkVec.Add(15 + 1, pNode->GetWCurr().Cross(fRef) - pNode->GetVCurr());
+#endif
 
 	return WorkVec;
 }
 					   
-/* DriveDisplacementPinJoint - end */
+/* ImposedDisplacementPinJoint - end */

@@ -322,7 +322,7 @@ public:
 	/* Ottiene la derivata del DoF. Vedi GetX() */
 	virtual inline const doublereal& dGetXPrime(void) const;
 
-	/* Consente di settare il valore iniziale nel vettore della soluzione*/
+	/* Consente di settare il valore iniziale nel vettore della soluzione */
 	virtual void SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph = 0);
@@ -438,7 +438,7 @@ public:
 	/* Non definito per nodi algebrici */
 	virtual inline const doublereal& dGetXPrime(void) const;
 
-	/* Consente di settare il valore iniziale nel vettore della soluzione*/
+	/* Consente di settare il valore iniziale nel vettore della soluzione */
 	virtual void SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph = 0);

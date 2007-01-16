@@ -1752,13 +1752,13 @@ to the jacobian matrix is
 \begin{equation}
 	\sqbr{\matr{ccccc}{
 		\T{0} & \lambda \T{e}_a \times{} & \T{0} & \T{0} & - \T{e}_a \\
-		\lambda \T{e}_a \times{} & \lambda \T{d}\times\T{e}_a\times{} & 
-			- \lambda \T{e}_a \times{} & \lambda \T{e}_a \times \T{f}_b\times{} &
+		- \lambda \T{e}_a \times{} & \lambda \T{d}\times\T{e}_a\times{} & 
+			\lambda \T{e}_a \times{} & - \lambda \T{e}_a \times \T{f}_b\times{} &
 			- \T{d}\times\T{e}_a \\
 		\T{0} & - \lambda \T{e}_a \times{} & \T{0} & \T{0} & \T{e}_a \\
-		\T{0} & \lambda \T{f}_b \times \T{e}_a \times{} &
+		\T{0} & - \lambda \T{f}_b \times \T{e}_a \times{} &
 			\T{0} & \lambda \T{e}_a\times\T{f}_b\times{} & \T{f}_b\times\T{e}_a \\
-		- \T{e}_a^T & \plbr{\T{e}_a \times \T{d}}^T &
+		- \T{e}_a^T & - \plbr{\T{d} \times \T{e}_a}^T &
 			\T{e}_a^T & \plbr{\T{f}_b\times{e}_a}^T & \T{0}
 	}}\cubr{\cvvect{
 		\delta\T{x}_a \\
