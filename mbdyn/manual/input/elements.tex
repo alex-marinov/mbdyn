@@ -3059,6 +3059,12 @@ The following data is available:
 \paragraph{Hints}
 When wrapped by a \kw{driven} element, it honors the following hints:
 \begin{itemize}
+\item \kw{offset\{1\}} the offset of the joint
+with respect to node 1 is reset by pointing 
+to the drive displacement point;
+\item \kw{offset\{2\}} the offset of the joint
+with respect to node 2 is reset by pointing 
+to the drive displacement point;
 \item unrecognized hints are passed through to the \kw{Vec3} drive.
 \end{itemize}
 
@@ -3089,6 +3095,12 @@ The following data is available:
 \paragraph{Hints}
 When wrapped by a \kw{driven} element, it honors the following hints:
 \begin{itemize}
+\item \kw{offset\{1\}} the offset of the joint
+with respect to the node is reset by pointing 
+to the driven displacement point;
+\item \kw{offset\{0\}} the offset of the joint
+with respect to the absolute reference frame is reset by pointing
+to the driven displacement point;
 \item unrecognized hints are passed through to the \kw{Vec3} drive.
 \end{itemize}
 
@@ -3179,6 +3191,78 @@ The following data is available:
 \item \kw{"theta"} relative angle $\vartheta$
 \item \kw{"phi"} relative angle $\varphi$
 \end{enumerate}
+
+
+
+\subsection{Imposed displacement}
+\label{sec:EL:JOINT:IMPOSEDDISPLACEMENT}
+This joint imposes the relative position between two points,
+optionally offset from two structural nodes,
+along a given direction that is rigidly attached to the first node.
+The amplitude of the displacement is defined by a drive.
+\begin{verbatim}
+    <joint_type> ::= imposed displacement
+    <joint_arglist> ::= 
+        <node_1> , (Vec3) <offset_1> ,
+        <node_2> , (Vec3) <offset_2> ,
+        (Vec3) <direction> ,
+        (drive_caller) <relative_position>
+\end{verbatim}
+
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"x"} imposed displacement component along \kw{direction},
+in node 1 reference frame.
+\end{enumerate}
+
+\paragraph{Hints}
+When wrapped by a \kw{driven} element, it honors the following hints:
+\begin{itemize}
+\item \kw{offset\{1\}} the offset of the joint
+with respect to node 1 is reset by pointing exactly
+to the imposed displacement point;
+\item \kw{offset\{2\}} the offset of the joint
+with respect to node 2 is reset by pointing exactly
+to the imposed displacement point;
+\item unrecognized hints are passed through to the drive.
+\end{itemize}
+
+
+
+\subsection{Imposed displacement pin}
+\label{sec:EL:JOINT:IMPOSEDDISPLACEMENTPIN}
+This joint imposes the absolute displacement of a point optionally offset
+from a structural node, along a direction defined
+in the absolute reference frame.
+The amplitude of the displacement is defined by a drive.
+\begin{verbatim}
+    <joint_type> ::= imposed displacement pin
+    <joint_arglist> ::= 
+        <node> , (Vec3) <node_offset> ,
+        (Vec3) <offset> ,
+        (Vec3) <direction> ,
+        (drive_caller) <position>
+\end{verbatim}
+
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"x"} imposed displacement component along \kw{direction}.
+\end{enumerate}
+
+\paragraph{Hints}
+When wrapped by a \kw{driven} element, it honors the following hints:
+\begin{itemize}
+\item \kw{offset\{1\}} the offset of the joint
+with respect to the node is reset by pointing exactly
+to the imposed displacement point;
+\item \kw{offset\{0\}} the offset of the joint
+with respect to the absolute reference frame is reset by pointing exactly
+to the imposed displacement point;
+\item unrecognized hints are passed through to the \kw{Vec3} drive.
+\end{itemize}
+
 
 
 
