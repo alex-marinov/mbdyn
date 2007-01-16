@@ -71,12 +71,6 @@ AbstractNode::Output(OutputHandler& OH) const
 	ScalarDifferentialNode::Output(OH.Abstract());
 }
 
-void
-AbstractNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
-{
-	Update(X, XP);
-}
-
 /* AbstractNode - end */
 
 

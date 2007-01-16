@@ -946,13 +946,10 @@ ImposedDisplacementPinJoint::AssVec(SubVectorHandler& WorkVec, doublereal dCoef)
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
 VariableSubMatrixHandler& 
 ImposedDisplacementPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
-		const VectorHandler& XCurr)
+	const VectorHandler& XCurr)
 {
 	DEBUGCOUT("Entering ImposedDisplacementPinJoint::InitialAssJac()" << std::endl);
 
-	WorkMat.SetNullMatrix();
-
-#if 0
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
 	/* Dimensiona e resetta la matrice di lavoro */
@@ -965,7 +962,7 @@ ImposedDisplacementPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	integer iNodeFirstPosIndex = pNode->iGetFirstPositionIndex();
 	integer iFirstReactionIndex = iGetFirstIndex();
 	integer iNodeFirstVelIndex = iNodeFirstPosIndex + 6;
-	integer iReactionPrimeIndex = iFirstReactionIndex + 3;   
+	integer iFirstReactionPrimeIndex = iFirstReactionIndex + 1;   
 
 	/* Setta gli indici della matrice */
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
@@ -973,50 +970,59 @@ ImposedDisplacementPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		WM.PutColIndex(iCnt, iNodeFirstPosIndex + iCnt);
 		WM.PutRowIndex(6 + iCnt, iNodeFirstVelIndex + iCnt);
 		WM.PutColIndex(6 + iCnt, iNodeFirstVelIndex + iCnt);
-		WM.PutRowIndex(12 + iCnt, iFirstReactionIndex + iCnt);
-		WM.PutColIndex(12 + iCnt, iFirstReactionIndex + iCnt);
 	}
+	WM.PutRowIndex(12 + 1, iFirstReactionIndex + 1);
+	WM.PutColIndex(12 + 2, iFirstReactionPrimeIndex + 1);
 
-	Vec3 FPrime = Vec3(XCurr, iReactionPrimeIndex + 1);
+	doublereal FPrime = XCurr(iFirstReactionPrimeIndex + 1);
+
+	Vec3 fxe(fRef.Cross(e));
+	Vec3 fxomegaxe(fRef.Cross(pNode->GetWRef().Cross(e)));
 
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {
-		/* node 2 force */
-		WM.IncCoef(iCnt, 12 + iCnt, 1.);
+		doublereal d = e(iCnt);
 
-		/* node 2 force derivative */
-		WM.IncCoef(6 + iCnt, 15 + iCnt, 1.);
+		/* node force */
+		WM.IncCoef(iCnt, 12 + 1, d);
 
-		/* node 2 constraint */
-		WM.IncCoef(12 + iCnt, iCnt, 1.);
+		/* node force derivative */
+		WM.IncCoef(6 + iCnt, 12 + 2, d);
 
-		/* node 2 constraint derivative */
-		WM.IncCoef(15 + iCnt, 6 + iCnt, 1.);
+		/* node constraint */
+		WM.IncCoef(12 + 1, iCnt, d);
+
+		/* node constraint derivative */
+		WM.IncCoef(12 + 2, 6 + iCnt, d);
+
+		d = fxe(iCnt);
+
+		/* node couple */
+		WM.IncCoef(3 + iCnt, 12 + 1, d);
+
+		/* node couple derivative */
+		WM.IncCoef(9 + iCnt, 12 + 2, d);
+
+		/* node constraint */
+		WM.IncCoef(12 + 1, 3 + iCnt, d);
+
+		/* node constraint derivative */
+		WM.IncCoef(12 + 2, 9 + iCnt, d);
+
+		d = fxomegaxe(iCnt);
+
+		/* node constraint derivative */
+		WM.DecCoef(12 + 2, 3 + iCnt, d);
 	}
 
-	Mat3x3 MTmp(dRef);
+	Mat3x3 MTmp(e, fRef*F);
 
-	MTmp = Mat3x3(fRef);
-	/* node 2 moment */
-	WM.Add(3 + 1, 12 + 1, MTmp);
-	/* node 2 moment derivatives */
-	WM.Add(9 + 1, 15 + 1, MTmp);
-	/* node 2 constraint */
-	WM.Sub(12 + 1, 3 + 1, MTmp);
-	/* node 2 constraint derivative */
-	WM.Sub(15 + 1, 9 + 1, MTmp);
-
-	MTmp = Mat3x3(F, fRef);
-	/* node 2 moment */
+	/* node moment */
 	WM.Add(3 + 1, 3 + 1, MTmp);
 
-	MTmp = Mat3x3(FPrime, fRef);
-	/* node 2 moment derivative */
-	WM.Add(9 + 1, 9 + 1, MTmp);
+	MTmp = Mat3x3(e, fRef*FPrime);
 
-	MTmp = Mat3x3(pNode->GetWRef(), fRef);
-	/* node 2 constraint derivative */
-	WM.Add(15 + 1, 3 + 1, MTmp);
-#endif
+	/* node moment derivative */
+	WM.Add(9 + 1, 3 + 1, MTmp);
 
 	return WorkMat;
 }
@@ -1025,13 +1031,10 @@ ImposedDisplacementPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 /* Contributo al residuo durante l'assemblaggio iniziale */   
 SubVectorHandler& 
 ImposedDisplacementPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
-		const VectorHandler& XCurr)
+	const VectorHandler& XCurr)
 {
 	DEBUGCOUT("Entering ImposedDisplacementPinJoint::InitialAssRes()" << std::endl);   
 
-	WorkVec.ResizeReset(0);
-
-#if 0
 	/* Dimensiona e resetta la matrice di lavoro */
 	integer iNumRows = 0;
 	integer iNumCols = 0;
@@ -1042,29 +1045,37 @@ ImposedDisplacementPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	integer iNodeFirstPosIndex = pNode->iGetFirstPositionIndex();
 	integer iFirstReactionIndex = iGetFirstIndex();
 	integer iNodeFirstVelIndex = iNodeFirstPosIndex + 6;
-	integer iReactionPrimeIndex = iFirstReactionIndex + 3;
+	integer iFirstReactionPrimeIndex = iFirstReactionIndex + 1;
 
 	/* Setta gli indici del vettore */
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iNodeFirstPosIndex + iCnt);
 		WorkVec.PutRowIndex(6 + iCnt, iNodeFirstVelIndex + iCnt);
-		WorkVec.PutRowIndex(12 + iCnt, iFirstReactionIndex + iCnt);
 	}
+	WorkVec.PutRowIndex(12 + 1, iFirstReactionIndex + 1);
+	WorkVec.PutRowIndex(12 + 2, iFirstReactionPrimeIndex + 1);
 
-	F = Vec3(XCurr, iFirstReactionIndex + 1);
-	Vec3 FPrime = Vec3(XCurr, iReactionPrimeIndex + 1);
+	F = XCurr(iFirstReactionIndex + 1);
+	doublereal FPrime = XCurr(iFirstReactionPrimeIndex + 1);
 
-	dRef = Get();
 	fRef = pNode->GetRCurr()*f;
+	dRef = pNode->GetXCurr() + fRef - x;
 
-	WorkVec.Sub(1, F);
-	WorkVec.Sub(3 + 1, f.Cross(F));
-	WorkVec.Sub(6 + 1, FPrime);
-	WorkVec.Sub(9 + 1, f.Cross(FPrime));
+	Vec3 FTmp = e*F;
+	Vec3 FPrimeTmp = e*FPrime;
 
-	WorkVec.Add(12 + 1, dRef - pNode->GetXCurr() - fRef);
-	WorkVec.Add(15 + 1, pNode->GetWCurr().Cross(fRef) - pNode->GetVCurr());
-#endif
+	WorkVec.Sub(1, FTmp);
+	WorkVec.Sub(3 + 1, fRef.Cross(FTmp));
+	WorkVec.Sub(6 + 1, FPrimeTmp);
+	WorkVec.Sub(9 + 1, fRef.Cross(FPrimeTmp));
+
+	WorkVec.Sub(12 + 1, e*dRef - dGet());
+
+	doublereal d = e*(pNode->GetVCurr() + pNode->GetWCurr().Cross(fRef));
+	if (bIsDifferentiable()) {
+		d -= dGetP();
+	}
+	WorkVec.Sub(12 + 2, d);
 
 	return WorkVec;
 }

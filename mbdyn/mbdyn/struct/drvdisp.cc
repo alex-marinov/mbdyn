@@ -425,7 +425,7 @@ DriveDisplacementJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	integer iFirstReactionIndex = iGetFirstIndex();
 	integer iNode1FirstVelIndex = iNode1FirstPosIndex + 6;
 	integer iNode2FirstVelIndex = iNode2FirstPosIndex + 6;   
-	integer iReactionPrimeIndex = iFirstReactionIndex + 3;   
+	integer iFirstReactionPrimeIndex = iFirstReactionIndex + 3;   
 
 	/* Setta gli indici della matrice */
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
@@ -441,7 +441,7 @@ DriveDisplacementJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		WM.PutColIndex(24 + iCnt, iFirstReactionIndex + iCnt);
 	}
 
-	Vec3 FPrime = Vec3(XCurr, iReactionPrimeIndex + 1);
+	Vec3 FPrime = Vec3(XCurr, iFirstReactionPrimeIndex + 1);
 
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {
 		/* node 1 force */
@@ -556,9 +556,9 @@ DriveDisplacementJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	WorkVec.Add(9 + 1, dRef.Cross(FPrime));
 
 	WorkVec.Sub(12 + 1, F);
-	WorkVec.Sub(15 + 1, f2.Cross(F));
+	WorkVec.Sub(15 + 1, f2Ref.Cross(F));
 	WorkVec.Sub(18 + 1, FPrime);
-	WorkVec.Sub(21 + 1, f2.Cross(FPrime));
+	WorkVec.Sub(21 + 1, f2Ref.Cross(FPrime));
 
 	WorkVec.Add(24 + 1, pNode1->GetXCurr() + dRef - pNode2->GetXCurr() - f2Ref);
 	WorkVec.Add(27 + 1, pNode1->GetVCurr() + pNode1->GetWCurr().Cross(dRef)
@@ -998,7 +998,7 @@ DriveDisplacementPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	integer iNodeFirstPosIndex = pNode->iGetFirstPositionIndex();
 	integer iFirstReactionIndex = iGetFirstIndex();
 	integer iNodeFirstVelIndex = iNodeFirstPosIndex + 6;
-	integer iReactionPrimeIndex = iFirstReactionIndex + 3;
+	integer iFirstReactionPrimeIndex = iFirstReactionIndex + 3;
 
 	/* Setta gli indici del vettore */
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
@@ -1008,15 +1008,15 @@ DriveDisplacementPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	}
 
 	F = Vec3(XCurr, iFirstReactionIndex + 1);
-	Vec3 FPrime = Vec3(XCurr, iReactionPrimeIndex + 1);
+	Vec3 FPrime = Vec3(XCurr, iFirstReactionPrimeIndex + 1);
 
 	dRef = Get();
 	fRef = pNode->GetRCurr()*f;
 
 	WorkVec.Sub(1, F);
-	WorkVec.Sub(3 + 1, f.Cross(F));
+	WorkVec.Sub(3 + 1, fRef.Cross(F));
 	WorkVec.Sub(6 + 1, FPrime);
-	WorkVec.Sub(9 + 1, f.Cross(FPrime));
+	WorkVec.Sub(9 + 1, fRef.Cross(FPrime));
 
 	WorkVec.Add(12 + 1, dRef - pNode->GetXCurr() - fRef);
 	WorkVec.Add(15 + 1, pNode->GetWCurr().Cross(fRef) - pNode->GetVCurr());

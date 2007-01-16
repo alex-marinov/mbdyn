@@ -62,8 +62,6 @@ public:
 
 	/* Output del nodo */
 	virtual void Output(OutputHandler& OH) const;
-
-	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 };
 
 /* AbstractNode - end */

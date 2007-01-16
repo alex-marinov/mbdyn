@@ -99,6 +99,12 @@ ScalarNode::iGetNumDof(void) const
 	return 1;
 }
 
+void
+ScalarNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
+{
+	Update(X, XP);
+}
+
 /* ScalarNode - end */
 
 

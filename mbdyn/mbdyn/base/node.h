@@ -240,6 +240,8 @@ public:
 	 * Definito solo per nodi differenziali
 	 */
 	virtual const doublereal& dGetXPrime(void) const = 0;
+
+	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 };
 
 /* ScalarNode - end */

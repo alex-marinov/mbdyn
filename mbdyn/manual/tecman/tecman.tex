@@ -1803,7 +1803,7 @@ The constraint equation is
 \end{equation}
 or
 \begin{equation}
-	\Phi = \T{e}^T \T{d} -  v = 0 ,
+	\Phi = \T{e}^T \T{d} - v = 0 ,
 \end{equation}
 where $\T{d}=\T{x} + \T{f} - \T{x}_0$.
 The perturbation of the constraint equation yields
@@ -1838,6 +1838,38 @@ to the jacobian matrix is
 		\delta\lambda
 	}}
 \end{equation}
+
+The constraint derivative is
+\begin{equation}
+	\dot{\Phi} = \T{e}^T \plbr{\dot{\T{x}} + \T{\omega}\times\T{f}} - \dot{v} = 0 ,
+\end{equation}
+or
+\begin{equation}
+	\dot{\Phi} = \T{e}^T \dot{\T{d}} - \dot{v} = 0 ,
+\end{equation}
+Its linearization yields
+\begin{equation}
+	\sqbr{\matr{cccccc}{
+		\T{0} & \T{0} & \T{0} & \T{0} & \T{e} & \T{0} \\
+		\T{0} & \lambda \T{e}\times\T{f}\times{} & 
+			\T{0} & \T{0} & \T{f}\times\T{e} & \T{0} \\
+		\T{0} & \T{0} & \T{0} & \T{0} & \T{0} & \T{e} \\
+		\T{0} & \mu \T{e}\times\T{f}\times{} & 
+			\T{0} & \T{0} & \T{0} & \T{f}\times\T{e} \\
+		\T{e}^T & \plbr{\T{f}\times{e}}^T & 
+			\T{0} & \T{0} & \T{0} & \T{0} \\
+		\T{0} & - \plbr{\T{f}\times\T{\omega}\times\T{e}}^T &
+			\T{e}^T & \plbr{\T{f}\times\T{e}}^T & \T{0} & \T{0}
+	}}\cubr{\cvvect{
+		\delta\T{x} \\
+		\T{\theta}_{\delta} \\
+		\delta\dot{\T{x}} \\
+		\delta\T{\omega} \\
+		\delta\lambda \\
+		\delta\mu
+	}}
+\end{equation}
+
 
 
 
