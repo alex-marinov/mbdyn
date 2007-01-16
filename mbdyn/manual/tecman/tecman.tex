@@ -709,8 +709,18 @@ in the initial assembly and, occasionally, in specific constraints.
 
 \subsection{Distance Joint}
 
-\subsubsection{Distance Joint (Without Offsets)}
-Definitions
+\subsubsection{Distance Joint}
+The DistanceJoint (without offset) imposes the distance between two nodes.
+
+\paragraph{Files} \
+It is implemented in files
+
+\begin{tabular}{l}
+\texttt{mbdyn/struct/distance.h} \\
+\texttt{mbdyn/struct/distance.cc}
+\end{tabular}
+
+\paragraph{Definitions} \
 \begin{equation}
 	\T{d} = \T{x}_2 - \T{x}_1
 \end{equation}
@@ -720,20 +730,24 @@ Definitions
 \begin{equation}
 	\T{u} = \frac{\T{d}}{d}
 \end{equation}
-Limitations
+
+\paragraph{Limitations} \
 \begin{equation}
 	d > 0
 \end{equation}
-Constraint Equation
+
+\paragraph{Constraint Equation} \
 \begin{equation}
 	d \sqrt{\T{u}^T \T{u}} = d
 \end{equation}
-Forces
+
+\paragraph{Forces} \
 \begin{eqnarray}
 	\T{F}_1 & = & \alpha \T{u} \\
 	\T{F}_2 & = & -\alpha \T{u}
 \end{eqnarray}
-Linearization
+
+\paragraph{Linearization} \
 \begin{equation}
 	\sqbr{\matr{ccc}{
 		\cfrac{\alpha}{d}\T{I} & -\cfrac{\alpha}{d}\T{I} & -\T{u} \\
@@ -752,11 +766,13 @@ Linearization
 		d\plbr{1 - \sqrt{\T{u}^T \T{u}}}
 	}}
 \end{equation}
-Constraint Equation Derivative
+
+\paragraph{Constraint Equation Derivative} \
 \begin{equation}
 	d \T{u}^T \dot{\T{u}} = 0
 \end{equation}
-Force Derivatives
+
+\paragraph{Force Derivatives} \
 \begin{eqnarray}
 	\dot{\T{F}}_1 & = & \alpha \dot{\T{u}} + \dot{\alpha} \T{u} \\
 	\dot{\T{F}}_2 & = & -\alpha \dot{\T{u}} - \dot{\alpha} \T{u}
@@ -765,7 +781,8 @@ where
 \begin{equation}
 	\dot{\T{u}} = \frac{\dot{\T{x}}_2 - \dot{\T{x}}_1}{d} - \T{u} \frac{\dot{d}}{d}
 \end{equation}
-Linearization
+
+\paragraph{Linearization} \
 \begin{equation}
         \sqbr{\matr{cccccc}{
 		\cfrac{\dot{\alpha}}{d}\T{I} & \cfrac{\alpha}{d}\T{I} &
@@ -796,7 +813,18 @@ Linearization
 
 
 \subsubsection{Distance Joint With Offsets}
-Definitions:
+The DistanceJointWithOffset imposes the distance between two points
+that rigidly offset from the respective nodes.
+
+\paragraph{Files} \
+It is implemented in files
+
+\begin{tabular}{l}
+\texttt{mbdyn/struct/distance.h} \\
+\texttt{mbdyn/struct/distance.cc}
+\end{tabular}
+
+\paragraph{Definitions} \
 \begin{equation}
 	\T{d} = \T{x}_2 + \T{f}_2 - \T{x}_1 - \T{f}_1
 \end{equation}
@@ -879,13 +907,24 @@ Linearization: TODO.
 
 
 
-\subsection{Spherical hinge (SphericalHingeJoint)}
-This joint constrains the positions of two points, 
-that may be rigidly offset from two nodes, to be coincident.
+\subsection{Spherical hinge}
+The spherical hinge joint (SphericalHingeJoint) constrains the positions
+of two points, that may be rigidly offset from two nodes, to be coincident.
 
-Joint data
+\paragraph{Variants} \
+There exists a pinned version (SphericalPinJoint, TODO).
+
+\paragraph{Files} \
+It is implemented in files
+
+\begin{tabular}{l}
+\texttt{mbdyn/struct/spherj.h} \\
+\texttt{mbdyn/struct/spherj.cc}
+\end{tabular}
+
+\paragraph{Joint data}
 \begin{equation}
-\tilde{\T{f}}_1, \tilde{\T{f}}_2
+	\tilde{\T{f}}_1, \tilde{\T{f}}_2
 \end{equation}
 where:
 
@@ -935,8 +974,28 @@ $\T{F}$ & constraint reaction force.
 
 
 
-\subsection{Revolute hinge (PlaneHingeJoint)}
-Joint data
+\subsection{Revolute hinge}
+The revolute hinge joint (PlaneHingeJoint) constrains the positions 
+of two points, that may be rigidly offset from two nodes, 
+to be coincident.
+It also constrains their orientations to keep the respective axis 3 
+parallel.
+
+\paragraph{Variants} \
+There exist a pinned version (RevolutePinJoint, TODO),
+a version that does not constrain the position (RevoluteRotationJoint),
+and a version which imposes the relative angular velocity about axis 3
+(AxialRotationJoint).
+
+\paragraph{Files} \
+It is implemented in files
+
+\begin{tabular}{l}
+\texttt{mbdyn/struct/planej.h} \\
+\texttt{mbdyn/struct/planej.cc}
+\end{tabular}
+
+\paragraph{Joint data}
 \begin{equation}
 \T d_1, \T d_2, \T R_{h1}, \T R_{h2}
 \end{equation}
@@ -1157,13 +1216,23 @@ $
 
 
 \subsection{Drive Hinge}
-This joint forces two nodes to assume a relative orientation
+This joint (DriveHingeJoint) forces two nodes to assume a relative orientation
 given by a rotation vector $\T{\theta}$, whose direction with respect
 to node 1 represents the rotation axis, and whose amplitude represents 
 the magnitude of the rotation.
 
-\noindent
-Definitions:
+\paragraph{Variants} \
+There exist no variants, although a pinned version may be of use (TODO).
+
+\paragraph{Files} \
+It is implemented in files
+
+\begin{tabular}{l}
+\texttt{mbdyn/struct/drvhinge.h} \\
+\texttt{mbdyn/struct/drvhinge.cc}
+\end{tabular}
+
+\paragraph{Definitions}
 \begin{eqnarray*}
 	\T{R}_{rel} & = & \T{R}_1^T \T{R}_2 \\
 	\T{\theta} & = & \llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{rel}}}
@@ -1478,11 +1547,27 @@ always in place, and activate/deactivate them based on some trigger.
 
 
 \subsection{Drive Displacement}
-This joint constrains the relative position of a point optionally offset 
-from node $b$ with respect to a point optionally offset from node $a$, 
-so that their relative position matches a value that is imposed in node $a$ 
-reference frame; the imposed vector may depend on time and other states
-during the simulation:
+\label{sec:DriveDisplacementJoint}
+This joint (DriveDisplacementJoint) constrains the relative position
+of a point optionally offset from node $b$ with respect to a point
+optionally offset from node $a$, so that their relative position matches
+a value that is imposed in node $a$ reference frame; the imposed vector
+may depend on time and other states during the simulation.
+
+\paragraph{Variants} \
+There exists a pinned version (DriveDisplacementPinJoint),
+discussed in Section~\ref{sec:DriveDisplacementPinJoint}.
+
+\paragraph{Files} \
+It is implemented in files
+
+\begin{tabular}{l}
+\texttt{mbdyn/struct/drvdisp.h} \\
+\texttt{mbdyn/struct/drvdisp.cc}
+\end{tabular}
+
+\paragraph{Constraint Equation} \
+The constraint equation is
 \begin{equation}
 	\T{\Phi} = \T{x}_b + \T{f}_b - \T{x}_a - \T{f}_a - \T{v} = \T{0}
 \end{equation}
@@ -1535,11 +1620,14 @@ to the jacobian matrix is
 \end{equation}
 
 \subsection{Drive Displacement Pin}
-A variant of the ``drive displacement'' joint is its ``pinned'' version,
-a joint that imposes the absolute position $\T{v}$ of a point
+\label{sec:DriveDisplacementPinJoint}
+This joint (DriveDisplacementPinJoint) is the ``pinned'' variant 
+of the drive displacement joint (DriveDisplacementJoint) discussed
+in Section~\ref{sec:DriveDisplacementJoint}.
+It imposes the absolute position $\T{v}$ of a point
 optionally connected to a node by a rigid offset $\T{f}$:
 \begin{equation}
-		\T{\Phi} = \T{x} + \T{f} - \T{v} = \T{0}
+	\T{\Phi} = \T{x} + \T{f} - \T{v} = \T{0}
 \end{equation}
 The perturbation of the constraint equation yields
 \begin{equation}
@@ -1581,9 +1669,27 @@ to the jacobian matrix is
 
 
 \subsection{Imposed Displacement}
-The imposed displacement joint is similar to the Drive Displacement,
-but the relative displacement is imposed only in one direction,
-relative to node $a$:
+\label{sec:ImposedDisplacementJoint}
+The imposed displacement joint (ImposedDisplacementJoint) 
+is similar to the drive displacement joint (DriveDisplacementPinJoint),
+discussed in Section~\ref{sec:DriveDisplacementPinJoint},
+but the relative displacement $v$, a scalar possibly dependent on the time
+and on other states of the problem, is imposed only in direction 
+$\tilde{\T{e}}_a$, relative to node $a$.
+
+\paragraph{Variants} \
+There exists a pinned version (DriveDisplacementPinJoint),
+discussed in Section~\ref{sec:DriveDisplacementPinJoint}.
+
+\paragraph{Files} \
+It is implemented in files
+
+\begin{tabular}{l}
+\texttt{mbdyn/struct/drvdisp.h} \\
+\texttt{mbdyn/struct/drvdisp.cc}
+\end{tabular}
+
+\paragraph{Constraint equation}
 \begin{equation}
 	\Phi = \T{e}_a^T \plbr{\T{x}_b + \T{f}_b - \T{x}_a - \T{f}_a} - v = 0 ,
 \end{equation}
@@ -1659,6 +1765,62 @@ to the jacobian matrix is
 
 
 
+\subsection{Imposed Displacement Pin}
+\label{sec:ImposedDisplacementPinJoint}
+The imposed displacement pin joint (ImposedDisplacementPinJoint) 
+is the ``pinned'' variant of the imposed displacement joint
+(ImposedDisplacementJoint) discussed
+in Section~\ref{sec:ImposedDisplacementJoint}.
+
+The direction $\T{e}$ now is referred to the absolute frame,
+so it does no longer depend on the state of the problem.
+
+The constraint equation is
+\begin{equation}
+	\Phi = \T{e}^T \plbr{\T{x} + \T{f}} - v = 0 ,
+\end{equation}
+or
+\begin{equation}
+	\Phi = \T{e}^T \T{d} -  v = 0 ,
+\end{equation}
+where $\T{d}=\T{x} + \T{f}$.
+The perturbation of the constraint equation yields
+\begin{equation}
+	\delta\Phi = 
+		\T{e}^T \plbr{\delta\T{x}_b
+		- \T{f}_b\times\T{\theta}_{b\delta}
+		} .
+\end{equation}
+The contribution of the constraint to the equilibrium equations is
+\begin{equation}
+	\cubr{\cvvect{
+		\T{F} \\
+		\T{C}
+	}} = \cubr{\cvvect{
+		\T{e} \lambda \\
+		\T{f} \times \T{e} \lambda
+	}}
+\end{equation}
+where $\lambda$ is the reaction force (a scalar).
+
+The contribution of forces and moments and of the constraint equation 
+to the jacobian matrix is
+\begin{equation}
+	\sqbr{\matr{ccc}{
+		\T{0} & \T{0} & \T{e} \\
+		\T{0} & \lambda \T{e}\times\T{f}\times{} & \T{f}\times\T{e} \\
+		\T{e}^T & \plbr{\T{f}\times{e}}^T & \T{0}
+	}}\cubr{\cvvect{
+		\delta\T{x} \\
+		\T{\theta}_{\delta} \\
+		\delta\lambda
+	}}
+\end{equation}
+
+
+
+
+
 
 
 
@@ -1667,6 +1829,7 @@ to the jacobian matrix is
 
 
 \subsection{Gimbal}
+\label{sec:GimbalRotationJoint}
 This element implements an ideal gimbal joint.
 A gimbal is a joint that allows the rotation between two nodes
 about two orthogonal axes.
@@ -1675,6 +1838,19 @@ of the relative angle between the two nodes.
 It is essentially equivalent to two Cardano joints (universal joints)
 each of which accounts for half of the relative orientation.
 
+\paragraph{Variants} \
+This joint is only defined in the variant that constrains the relative
+rotation between two nodes.
+
+\paragraph{Files} \
+It is implemented in files
+
+\begin{tabular}{l}
+\texttt{mbdyn/struct/gimbal.h} \\
+\texttt{mbdyn/struct/gimbal.cc}
+\end{tabular}
+
+\paragraph{Definitions} \
 The relative orientation is made of three steps, described by
 \begin{eqnarray*}
 	\T{R}_{rel}
@@ -1683,9 +1859,7 @@ The relative orientation is made of three steps, described by
 		\llk{exp}\plbr{\varphi \T{e}_1 \times{}}
 		\llk{exp}\plbr{\vartheta \T{e}_2 \times{}}
 \end{eqnarray*}
-
-\noindent
-Definitions:
+where
 \begin{eqnarray}
 	\llk{exp}\plbr{\vartheta \T{e}_2 \times{}} & = &
 		\T{I} + \sin\vartheta \T{e}_2\times{}
@@ -1696,7 +1870,7 @@ Definitions:
 			+ \plbr{1 - \cos\varphi}\T{e}_1\times\T{e}_1\times{}
 		\label{eq:GIMBAL-EXP-PHI}
 \end{eqnarray}
-where $\T{e}_i$ is the unit vector in the $i$-th direction.
+and $\T{e}_i$ is the unit vector in the $i$-th direction.
 
 \noindent
 Constraint equation
