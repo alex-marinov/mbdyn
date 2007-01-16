@@ -93,7 +93,7 @@ DriveDisplacementJoint::Output(OutputHandler& OH) const
 	if (fToBeOutput()) {
 		Vec3 d(pNode2->GetXCurr() + pNode2->GetRCurr()*f2
 			- pNode1->GetXCurr() - pNode1->GetRCurr()*f1);
-		Joint::Output(OH.Joints(), "DriveHinge", GetLabel(),
+		Joint::Output(OH.Joints(), "DriveDisplacementJoint", GetLabel(),
 				pNode1->GetRCurr().Transpose()*F, Zero3, F, Zero3)
 			<< " " << d << std::endl;
 	}
@@ -621,7 +621,7 @@ DriveDisplacementPinJoint::Output(OutputHandler& OH) const
 {   
 	if (fToBeOutput()) {
 		Vec3 d(pNode->GetXCurr() + pNode->GetRCurr()*f - x);
-		Joint::Output(OH.Joints(), "DriveHinge", GetLabel(),
+		Joint::Output(OH.Joints(), "DriveDisplacementPinJoint", GetLabel(),
 				F, Zero3, F, Zero3)
 			<< " " << d << std::endl;
 	}
@@ -844,16 +844,17 @@ DriveDisplacementPinJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 		WM.IncCoef(6 + iCnt, iCnt, 1.);
 	}
 
-	Mat3x3 MTmp(dRef);
+	Mat3x3 MTmp(fRef);
 
-	MTmp = Mat3x3(fRef);
-	/* node 2 moment */
+	/* node moment */
 	WM.Add(3 + 1, 6 + 1, MTmp);
-	/* node 2 constraint */
+
+	/* node constraint */
 	WM.Sub(6 + 1, 3 + 1, MTmp);
 
 	MTmp = Mat3x3(F, fRef*dCoef);
-	/* node 2 moment */
+
+	/* node moment */
 	WM.Add(3 + 1, 3 + 1, MTmp);
 }
 
