@@ -113,10 +113,16 @@ ImposedDisplacementJoint::SetValue(DataManager *pDM,
 
 			if (pjh) {
 				if (dynamic_cast<Joint::OffsetHint<1> *>(pjh)) {
-					/* TODO */
+					Mat3x3 R1t(pNode1->GetRCurr().Transpose());
+					Vec3 fTmp2(pNode2->GetRCurr()*f2);
+   
+					f1 = R1t*(pNode2->GetXCurr() + fTmp2 - pNode1->GetXCurr()) - e1*dGet();
 
 				} else if (dynamic_cast<Joint::OffsetHint<2> *>(pjh)) {
-					/* TODO */
+					Mat3x3 R2t(pNode2->GetRCurr().Transpose());
+					Vec3 fTmp1(pNode1->GetRCurr()*f1);
+   
+					f2 = R2t*(pNode1->GetXCurr() + fTmp1 - pNode2->GetXCurr()) + e1*dGet();
 
 				} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
 					/* TODO */
@@ -228,7 +234,7 @@ ImposedDisplacementJoint::DescribeEq(std::ostream& out,
 unsigned int
 ImposedDisplacementJoint::iGetNumPrivData(void) const
 {
-	return 1;
+	return 2;
 };
 
 unsigned int
@@ -237,13 +243,16 @@ ImposedDisplacementJoint::iGetPrivDataIdx(const char *s) const
 	ASSERT(s != NULL);
 	ASSERT(s[0] != '\0');
 
-	if (s[0] != 'p' || s[2] != '\0') {
+	if (s[1] != '\0') {
 		return 0;
 	}
 
-	switch (s[1]) {
-	case 'x':
+	switch (s[0]) {
+	case 'd':
 		return 1;
+
+	case 'f':
+		return 2;
 	}
 
 	return 0;
@@ -252,8 +261,17 @@ ImposedDisplacementJoint::iGetPrivDataIdx(const char *s) const
 doublereal
 ImposedDisplacementJoint::dGetPrivData(unsigned int i) const
 {
-	ASSERT(i >= 1 && i <= 1);
-	return dGet();
+	ASSERT(i >= 1 && i <= 2);
+
+	switch (i) {
+	case 1:
+		return dGet();
+
+	case 2:
+		return F;
+	}
+
+	throw ErrGeneric();
 }
 
 /* assemblaggio jacobiano */
@@ -673,10 +691,14 @@ ImposedDisplacementPinJoint::SetValue(DataManager *pDM,
 
 			if (pjh) {
 				if (dynamic_cast<Joint::OffsetHint<1> *>(pjh)) {
-					/* TODO */
+					Mat3x3 Rt(pNode->GetRCurr().Transpose());
+   
+					f = Rt*(x + e*dGet() - pNode->GetXCurr());
 
 				} else if (dynamic_cast<Joint::OffsetHint<0> *>(pjh)) {
-					/* TODO */
+					Vec3 fTmp(pNode->GetRCurr()*f);
+
+					x = pNode->GetXCurr() + fTmp - e*dGet();
 
 				} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
 					/* TODO */
@@ -788,7 +810,7 @@ ImposedDisplacementPinJoint::DescribeEq(std::ostream& out,
 unsigned int
 ImposedDisplacementPinJoint::iGetNumPrivData(void) const
 {
-	return 1;
+	return 2;
 };
 
 unsigned int
@@ -797,13 +819,16 @@ ImposedDisplacementPinJoint::iGetPrivDataIdx(const char *s) const
 	ASSERT(s != NULL);
 	ASSERT(s[0] != '\0');
 
-	if (s[0] != 'p' || s[2] != '\0') {
+	if (s[1] != '\0') {
 		return 0;
 	}
 
-	switch (s[1]) {
-	case 'x':
+	switch (s[0]) {
+	case 'd':
 		return 1;
+
+	case 'f':
+		return 2;
 	}
 
 	return 0;
@@ -812,8 +837,17 @@ ImposedDisplacementPinJoint::iGetPrivDataIdx(const char *s) const
 doublereal
 ImposedDisplacementPinJoint::dGetPrivData(unsigned int i) const
 {
-	ASSERT(i >= 1 && i <= 1);
-	return dGet();
+	ASSERT(i >= 1 && i <= 2);
+
+	switch (i) {
+	case 1:
+		return dGet();
+
+	case 2:
+		return F;
+	}
+
+	throw ErrGeneric();
 }
 
 /* assemblaggio jacobiano */

@@ -110,10 +110,16 @@ DriveDisplacementJoint::SetValue(DataManager *pDM,
 
 			if (pjh) {
 				if (dynamic_cast<Joint::OffsetHint<1> *>(pjh)) {
-					/* TODO */
+					Mat3x3 R1t(pNode1->GetRCurr().Transpose());
+					Vec3 fTmp2(pNode2->GetRCurr()*f2);
+   
+					f1 = R1t*(pNode2->GetXCurr() + fTmp2 - pNode1->GetXCurr() - Get());
 
 				} else if (dynamic_cast<Joint::OffsetHint<2> *>(pjh)) {
-					/* TODO */
+					Mat3x3 R2t(pNode2->GetRCurr().Transpose());
+					Vec3 fTmp1(pNode1->GetRCurr()*f1);
+   
+					f2 = R2t*(pNode1->GetXCurr() + fTmp1 - pNode2->GetXCurr() + Get());
 
 				} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
 					/* TODO */
@@ -225,7 +231,7 @@ DriveDisplacementJoint::DescribeEq(std::ostream& out,
 unsigned int
 DriveDisplacementJoint::iGetNumPrivData(void) const
 {
-	return 3;
+	return 6;
 };
 
 unsigned int
@@ -234,17 +240,30 @@ DriveDisplacementJoint::iGetPrivDataIdx(const char *s) const
 	ASSERT(s != NULL);
 	ASSERT(s[0] != '\0');
 
-	if (s[0] != 'p' || s[2] != '\0') {
+	if (s[2] != '\0') {
+		return 0;
+	}
+
+	unsigned int idx = 0;
+
+	switch (s[0]) {
+	case 'f':
+		idx += 3;
+		/* fallthru */
+	case 'p':
+		break;
+
+	default:
 		return 0;
 	}
 
 	switch (s[1]) {
 	case 'x':
-		return 1;
+		return idx + 1;
 	case 'y':
-		return 2;
+		return idx + 2;
 	case 'z':
-		return 3;
+		return idx + 3;
 	}
 
 	return 0;
@@ -253,8 +272,21 @@ DriveDisplacementJoint::iGetPrivDataIdx(const char *s) const
 doublereal
 DriveDisplacementJoint::dGetPrivData(unsigned int i) const
 {
-	ASSERT(i >= 1 && i <= 3);
-	return Get().dGet(i);
+	ASSERT(i >= 1 && i <= 6);
+
+	switch (i) {
+	case 1:
+	case 2:
+	case 3:
+		return Get().dGet(i);
+
+	case 4:
+	case 5:
+	case 6:
+		return F(i - 3);
+	}
+
+	throw ErrGeneric();
 }
 
 /* assemblaggio jacobiano */
@@ -634,10 +666,14 @@ DriveDisplacementPinJoint::SetValue(DataManager *pDM,
 
 			if (pjh) {
 				if (dynamic_cast<Joint::OffsetHint<1> *>(pjh)) {
-					/* TODO */
+					Mat3x3 Rt(pNode->GetRCurr().Transpose());
+   
+					f = Rt*(x + Get() - pNode->GetXCurr());
 
 				} else if (dynamic_cast<Joint::OffsetHint<0> *>(pjh)) {
-					/* TODO */
+					Vec3 fTmp(pNode->GetRCurr()*f);
+   
+					x = pNode->GetXCurr() + fTmp - Get();
 
 				} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
 					/* TODO */
@@ -749,7 +785,7 @@ DriveDisplacementPinJoint::DescribeEq(std::ostream& out,
 unsigned int
 DriveDisplacementPinJoint::iGetNumPrivData(void) const
 {
-	return 3;
+	return 6;
 };
 
 unsigned int
@@ -758,17 +794,30 @@ DriveDisplacementPinJoint::iGetPrivDataIdx(const char *s) const
 	ASSERT(s != NULL);
 	ASSERT(s[0] != '\0');
 
-	if (s[0] != 'p' || s[2] != '\0') {
+	if (s[2] != '\0') {
+		return 0;
+	}
+
+	unsigned int idx = 0;
+
+	switch (s[0]) {
+	case 'f':
+		idx += 3;
+		/* fallthru */
+	case 'p':
+		break;
+
+	default:
 		return 0;
 	}
 
 	switch (s[1]) {
 	case 'x':
-		return 1;
+		return idx + 1;
 	case 'y':
-		return 2;
+		return idx + 2;
 	case 'z':
-		return 3;
+		return idx + 3;
 	}
 
 	return 0;
@@ -777,8 +826,21 @@ DriveDisplacementPinJoint::iGetPrivDataIdx(const char *s) const
 doublereal
 DriveDisplacementPinJoint::dGetPrivData(unsigned int i) const
 {
-	ASSERT(i >= 1 && i <= 3);
-	return Get().dGet(i);
+	ASSERT(i >= 1 && i <= 6);
+
+	switch (i) {
+	case 1:
+	case 2:
+	case 3:
+		return Get().dGet(i);
+
+	case 4:
+	case 5:
+	case 6:
+		return F(i - 3);
+	}
+
+	throw ErrGeneric();
 }
 
 /* assemblaggio jacobiano */
