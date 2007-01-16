@@ -1635,7 +1635,7 @@ in Section~\ref{sec:DriveDisplacementJoint}.
 It imposes the absolute position $\T{v}$ of a point
 optionally connected to a node by a rigid offset $\T{f}$:
 \begin{equation}
-	\T{\Phi} = \T{x} + \T{f} - \T{v} = \T{0}
+	\T{\Phi} = \T{x} + \T{f} - \T{x}_0 - \T{v} = \T{0}
 \end{equation}
 The perturbation of the constraint equation yields
 \begin{equation}
@@ -1693,8 +1693,8 @@ discussed in Section~\ref{sec:ImposedDisplacementPinJoint}.
 It is implemented in files
 
 \begin{tabular}{l}
-\texttt{mbdyn/struct/drvdisp.h} \\
-\texttt{mbdyn/struct/drvdisp.cc}
+\texttt{mbdyn/struct/impdisp.h} \\
+\texttt{mbdyn/struct/impdisp.cc}
 \end{tabular}
 
 \paragraph{Constraint equation}
@@ -1780,18 +1780,32 @@ is the ``pinned'' variant of the imposed displacement joint
 (ImposedDisplacementJoint) discussed
 in Section~\ref{sec:ImposedDisplacementJoint}.
 
-The direction $\T{e}$ now is referred to the absolute frame,
+In this case, the direction $\T{e}$ is referred to the absolute frame,
 so it does no longer depend on the state of the problem.
+
+\paragraph{Variants} \
+There exists a version that imposes the relative displacement of two nodes
+along a direction that is fixed with respect to one of them 
+(ImposedDisplacementJoint),
+discussed in Section~\ref{sec:ImposedDisplacementJoint}.
+
+\paragraph{Files} \
+It is implemented in files
+
+\begin{tabular}{l}
+\texttt{mbdyn/struct/impdisp.h} \\
+\texttt{mbdyn/struct/impdisp.cc}
+\end{tabular}
 
 The constraint equation is
 \begin{equation}
-	\Phi = \T{e}^T \plbr{\T{x} + \T{f}} - v = 0 ,
+	\Phi = \T{e}^T \plbr{\T{x} + \T{f} - \T{x}_0} - v = 0 ,
 \end{equation}
 or
 \begin{equation}
 	\Phi = \T{e}^T \T{d} -  v = 0 ,
 \end{equation}
-where $\T{d}=\T{x} + \T{f}$.
+where $\T{d}=\T{x} + \T{f} - \T{x}_0$.
 The perturbation of the constraint equation yields
 \begin{equation}
 	\delta\Phi = 
