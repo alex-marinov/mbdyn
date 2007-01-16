@@ -708,9 +708,13 @@ The latter is typically used throughout MBDyn, while the former is used
 in the initial assembly and, occasionally, in specific constraints.
 
 \subsection{Distance Joint}
+\label{sec:DistanceJoint}
+The distance joint (DistanceJoint) imposes the distance between two nodes,
+which may depend on time and other states of the problem.
 
-\subsubsection{Distance Joint}
-The DistanceJoint (without offset) imposes the distance between two nodes.
+\paragraph{Variants} \
+There is a variant with offsets (DistanceJointWithOffset),
+discussed in Section~\ref{sec:DistanceJointWithOffset}.
 
 \paragraph{Files} \
 It is implemented in files
@@ -812,9 +816,13 @@ where
 
 
 
-\subsubsection{Distance Joint With Offsets}
-The DistanceJointWithOffset imposes the distance between two points
+\subsection{Distance Joint With Offsets}
+\label{sec:DistanceJointWithOffset}
+The distance joint with offset (DistanceJointWithOffset) 
+imposes the distance between two points
 that rigidly offset from the respective nodes.
+It is a variant of the distance joint (DistanceJoint)
+discussed in Section~\ref{sec:DistanceJoint}.
 
 \paragraph{Files} \
 It is implemented in files
@@ -1678,8 +1686,8 @@ and on other states of the problem, is imposed only in direction
 $\tilde{\T{e}}_a$, relative to node $a$.
 
 \paragraph{Variants} \
-There exists a pinned version (DriveDisplacementPinJoint),
-discussed in Section~\ref{sec:DriveDisplacementPinJoint}.
+There exists a pinned version (ImposedDisplacementPinJoint),
+discussed in Section~\ref{sec:ImposedDisplacementPinJoint}.
 
 \paragraph{Files} \
 It is implemented in files
