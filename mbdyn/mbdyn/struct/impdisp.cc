@@ -1003,7 +1003,7 @@ ImposedDisplacementPinJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 		WM.IncCoef(6 + 1, 3 + iCnt, d);
 	}
 
-	Mat3x3 MTmp((e*F), fRef);
+	Mat3x3 MTmp(e*(F*dCoef), fRef);
 
 	/* node moment */
 	WM.Add(3 + 1, 3 + 1, MTmp);
