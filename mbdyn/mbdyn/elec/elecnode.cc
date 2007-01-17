@@ -38,6 +38,8 @@
 #include <elecnode.h>
 #include <solman.h>
 
+#if 0 /* TBZ */
+
 /* AbstractNode - begin */
 
 /* Costruttore definitivo (da mettere a punto) */
@@ -73,6 +75,8 @@ AbstractNode::Output(OutputHandler& OH) const
 
 /* AbstractNode - end */
 
+#endif /* TBZ */
+
 
 /* ElectricNode - begin */
 
@@ -82,7 +86,7 @@ ElectricNode::ElectricNode(unsigned int uL,
 	doublereal dx,
 	doublereal dxp,
 	flag fOut)
-: AbstractNode(uL, pDO, dx, dxp, fOut)
+: ScalarDifferentialNode(uL, pDO, dx, dxp, fOut)
 {
 	NO_OP;
 }

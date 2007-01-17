@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2007
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -44,12 +44,12 @@
 /* SwashPlate - begin */
 
 SwashPlate::SwashPlate(unsigned int uL, const DofOwner* pDO,
-		const AbstractNode* pCollIn, // const DriveCaller* pColl, 
-		const AbstractNode* pLongIn, // const DriveCaller* pLong, 
-		const AbstractNode* pLatIn,  // const DriveCaller* pLat,
-		const AbstractNode* pN1,
-		const AbstractNode* pN2,
-		const AbstractNode* pN3,
+		const ScalarDifferentialNode* pCollIn, // const DriveCaller* pColl,
+		const ScalarDifferentialNode* pLongIn, // const DriveCaller* pLong,
+		const ScalarDifferentialNode* pLatIn,  // const DriveCaller* pLat,
+		const ScalarDifferentialNode* pN1,
+		const ScalarDifferentialNode* pN2,
+		const ScalarDifferentialNode* pN3,
 		doublereal dDynCoef,
 		doublereal dCyclFact,
 		doublereal dCollFact,
@@ -60,17 +60,17 @@ SwashPlate::SwashPlate(unsigned int uL, const DofOwner* pDO,
 		doublereal dFMin,
 		doublereal dFMax,
 		flag fLL,
-		doublereal dLMin,	      
+		doublereal dLMin,
 		doublereal dLMax,
 		flag fOut)
-: Elem(uL, fOut), 
+: Elem(uL, fOut),
 Genel(uL, pDO, fOut),
 pCollectiveIn(pCollIn),   // Collective(pColl),
 pLongitudinalIn(pLongIn), // Longitudinal(pLong),
 pLateralIn(pLatIn),       // Lateral(pLat),
 pNode1(pN1), pNode2(pN2), pNode3(pN3),
-dDynamicCoef(dDynCoef), 
-dCyclicFactor(dCyclFact), 
+dDynamicCoef(dDynCoef),
+dCyclicFactor(dCyclFact),
 dCollectiveFactor(dCollFact),
 fCollLimits(fCL), dCollMax(dCMax), dCollMin(dCMin),
 fForeAftLimits(fFL), dForeAftMax(dFMax), dForeAftMin(dFMin),
@@ -92,7 +92,7 @@ fLatLimits(fLL), dLatMax(dLMax), dLatMin(dLMin)
 
 	ASSERT(dCyclicFactor != 0.);
 	ASSERT(dCollectiveFactor != 0.);
-	ASSERT(dDynamicCoef >= 0.);   
+	ASSERT(dDynamicCoef >= 0.);
 }
 
 
@@ -116,7 +116,7 @@ SwashPlate::Restart(std::ostream& out) const
 	// Longitudinal.pGetDriveCaller()->Restart(out) << ", ";
 	if (fForeAftLimits) {
 		out << "limits, " << dForeAftMin << ", " << dForeAftMax << ", ";
-	}   
+	}
 	out << pLateralIn->GetLabel() << ", ";
 	// Lateral.pGetDriveCaller()->Restart(out) << ", ";
 	if (fLatLimits) {
@@ -132,9 +132,9 @@ SwashPlate::Restart(std::ostream& out) const
 }
 
 /* assemblaggio jacobiano */
-VariableSubMatrixHandler& 
+VariableSubMatrixHandler&
 SwashPlate::AssJac(VariableSubMatrixHandler& WorkMat,
-		doublereal dCoef, 
+		doublereal dCoef,
 		const VectorHandler& /* XCurr */ ,
 		const VectorHandler& /* XPrimeCurr */ )
 {
@@ -163,7 +163,7 @@ SwashPlate::AssJac(VariableSubMatrixHandler& WorkMat,
 	WM.PutItem(6, iNode3FirstIndex, iNode3FirstIndex, d);
 
 	d = dCollectiveFactor;
-	
+
 	WM.PutItem(7, iNode1FirstIndex, iCollFirstIndex, -d);
 	WM.PutItem(8, iNode2FirstIndex, iCollFirstIndex, -d);
 	WM.PutItem(9, iNode3FirstIndex, iCollFirstIndex, -d);
@@ -187,10 +187,10 @@ SwashPlate::AssJac(VariableSubMatrixHandler& WorkMat,
 
 
 /* assemblaggio residuo */
-SubVectorHandler& 
+SubVectorHandler&
 SwashPlate::AssRes(SubVectorHandler& WorkVec,
 		doublereal /* dCoef */ ,
-		const VectorHandler& XCurr, 
+		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUT("Entering SwashPlate::AssRes()" << std::endl);

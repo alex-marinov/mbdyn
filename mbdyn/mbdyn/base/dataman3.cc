@@ -1658,10 +1658,11 @@ DataManager::ReadNodes(MBDynParser& HP)
 
 			/* nodi astratti */
 			case ABSTRACT: {
-#if defined(USE_ELECTRIC_NODES)
 				silent_cout("Reading "
 					<< psNodeNames[Node::ABSTRACT] << "(" << uLabel << ")"
 					<< std::endl);
+
+				bool bAlgebraic(false);
 
 				/*
 				 * verifica che non siano gia' stati letti tutti
@@ -1674,10 +1675,26 @@ DataManager::ReadNodes(MBDynParser& HP)
 					throw DataManager::ErrGeneric();
 				}
 
+				if (HP.IsKeyWord("algebraic")) {
+					bAlgebraic = true;
+
+				} else if (!HP.IsKeyWord("differential")) {
+					pedantic_cout("unspecified "
+						<< psNodeNames[Node::ABSTRACT] << "(" << uLabel << ") "
+						"at line " << HP.GetLineData() << "; "
+						"assuming \"differential\"" << std::endl);
+				}
+
 				/* lettura dei dati specifici */
 				doublereal dx(0.);
 				doublereal dxp(0.);
-				ReadScalarDifferentialNode(HP, uLabel, Node::ABSTRACT, dx, dxp);
+
+				if (bAlgebraic) {
+					ReadScalarAlgebraicNode(HP, uLabel, Node::ABSTRACT, dx);
+
+				} else {
+					ReadScalarDifferentialNode(HP, uLabel, Node::ABSTRACT, dx, dxp);
+				}
 				doublereal dScale = dReadScale(HP, DofOwner::ABSTRACTNODE);
 				flag fOut = fReadOutput(HP, Node::ABSTRACT);
 
@@ -1688,15 +1705,17 @@ DataManager::ReadNodes(MBDynParser& HP)
 				DofOwner* pDO = DofData[DofOwner::ABSTRACTNODE].pFirstDofOwner + i;
 				pDO->SetScale(dScale);
 
-				SAFENEWWITHCONSTRUCTOR(*ppN,
-					AbstractNode,
-					AbstractNode(uLabel, pDO, dx, dxp, fOut));
+				if (bAlgebraic) {
+					SAFENEWWITHCONSTRUCTOR(*ppN,
+						ScalarAlgebraicNode,
+						ScalarAlgebraicNode(uLabel, pDO, dx, fOut));
 
-#else /* USE_ELECTRIC_NODES */
-				silent_cerr("you're not allowed to use abstract nodes"
-					<< std::endl);
-				throw ErrGeneric();
-#endif /* USE_ELECTRIC_NODES */
+				} else {
+					SAFENEWWITHCONSTRUCTOR(*ppN,
+						ScalarDifferentialNode,
+						ScalarDifferentialNode(uLabel, pDO, dx, dxp, fOut));
+				}
+
 			} break;
 
 			/* parametri */

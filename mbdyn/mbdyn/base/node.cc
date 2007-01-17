@@ -125,6 +125,15 @@ ScalarDifferentialNode::~ScalarDifferentialNode(void)
 	NO_OP;
 }
 
+/* Tipo di nodo */
+Node::Type
+ScalarDifferentialNode::GetNodeType(void) const
+{
+	/* Should be Node::SCALAR; keep using Node::ABSTRACT
+	 * for backward compatibility */
+	return Node::ABSTRACT;
+}
+
 /* esegue operazioni sui dof di proprieta' dell'elemento
  * in particolare ritorna il tipo di Dof in base all'indice i. Di default
  * i Dof dei nodi sono assunti differenziali */
@@ -310,6 +319,14 @@ ScalarAlgebraicNode::~ScalarAlgebraicNode(void)
 	NO_OP;
 }
 
+/* Tipo di nodo */
+Node::Type
+ScalarAlgebraicNode::GetNodeType(void) const
+{
+	/* Should be Node::SCALAR; keep using Node::ABSTRACT
+	 * for backward compatibility */
+	return Node::ABSTRACT;
+}
 
 /* esegue operazioni sui dof di proprieta' dell'elemento
  * in particolare ritorna il tipo di Dof in base all'indice i. Di default

@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2007
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -40,17 +40,17 @@
 /* SwashPlate - begin */
 
 class SwashPlate : virtual public Elem, public Genel {
-protected:   
-	const AbstractNode* pCollectiveIn;
+protected:
+	const ScalarDifferentialNode* pCollectiveIn;
 	// DriveOwner Collective;
-	const AbstractNode* pLongitudinalIn;
+	const ScalarDifferentialNode* pLongitudinalIn;
 	// DriveOwner Longitudinal;
-	const AbstractNode* pLateralIn;
+	const ScalarDifferentialNode* pLateralIn;
 	// DriveOwner Lateral;
 
-	const AbstractNode* pNode1;
-	const AbstractNode* pNode2;
-	const AbstractNode* pNode3;
+	const ScalarDifferentialNode* pNode1;
+	const ScalarDifferentialNode* pNode2;
+	const ScalarDifferentialNode* pNode3;
 
 	doublereal dDynamicCoef;
 	doublereal dCyclicFactor;
@@ -70,12 +70,12 @@ protected:
 
 public:
 	SwashPlate(unsigned int uL, const DofOwner* pDO,
-		const AbstractNode* pCollIn, // const DriveCaller* pColl, 
-		const AbstractNode* pLongIn, // const DriveCaller* pLong, 
-		const AbstractNode* pLatIn,  // const DriveCaller* pLat,
-		const AbstractNode* pN1,
-		const AbstractNode* pN2,
-		const AbstractNode* pN3,
+		const ScalarDifferentialNode* pCollIn, // const DriveCaller* pColl,
+		const ScalarDifferentialNode* pLongIn, // const DriveCaller* pLong,
+		const ScalarDifferentialNode* pLatIn,  // const DriveCaller* pLat,
+		const ScalarDifferentialNode* pN1,
+		const ScalarDifferentialNode* pN2,
+		const ScalarDifferentialNode* pN3,
 		doublereal dDynCoef,
 		doublereal dCyclFact,
 		doublereal dCollFact,
@@ -86,12 +86,12 @@ public:
 		doublereal dFMin,
 		doublereal dFMax,
 		flag fLL,
-		doublereal dLMin,	      
+		doublereal dLMin,
 		doublereal dLMax,
 		flag fOut);
 
 	virtual ~SwashPlate(void);
-	virtual inline void* pGet(void) const { 
+	virtual inline void* pGet(void) const {
 		return (void*)this;
 	};
 
@@ -99,8 +99,8 @@ public:
 	virtual std::ostream& Restart(std::ostream& out) const;
 
 	/* Tipo di Genel */
-	virtual Genel::Type GetGenelType(void) const { 
-		return Genel::SWASHPLATE; 
+	virtual Genel::Type GetGenelType(void) const {
+		return Genel::SWASHPLATE;
 	};
 
 	/* Dimensioni del workspace */
@@ -110,22 +110,22 @@ public:
 	};
 
 	/* assemblaggio jacobiano */
-	virtual VariableSubMatrixHandler& 
+	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
-		doublereal dCoef, 
+		doublereal dCoef,
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
 	/* assemblaggio residuo */
-	virtual SubVectorHandler& 
+	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
 		doublereal dCoef,
-		const VectorHandler& XCurr, 
+		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
 	virtual void SetInitialValue(VectorHandler& X) const;
 
-	/* *******PER IL SOLUTORE PARALLELO******** */        
+	/* *******PER IL SOLUTORE PARALLELO******** */
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
 	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {

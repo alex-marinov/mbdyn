@@ -72,7 +72,10 @@ public:
 	enum Type {
 		UNKNOWN = -1,
 
+		/* Should be Node::SCALAR; keep using Node::ABSTRACT
+		 * for backward compatibility */
 		ABSTRACT = 0,
+
 		STRUCTURAL,
 		ELECTRIC,
 		PARAMETER,
@@ -280,6 +283,9 @@ public:
 
 	/* Metodi di servizio */
 
+	/* Tipo di nodo */
+	virtual Node::Type GetNodeType(void) const;
+
 	/*
 	 * Esegue operazioni sui DoF di proprieta' dell'elemento.
 	 * In particolare ritorna il tipo di DoF in base all'indice i.
@@ -395,6 +401,9 @@ public:
 	virtual ~ScalarAlgebraicNode(void);
 
 	/* Metodi di servizio */
+
+	/* Tipo di nodo */
+	virtual Node::Type GetNodeType(void) const;
 
 	/*
 	 * Esegue operazioni sui DoF di proprieta' dell'elemento.

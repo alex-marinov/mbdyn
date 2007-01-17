@@ -33,6 +33,11 @@
 
 #include "node.h"
 
+/* Numero di dof del tipo di nodo - usato anche dal DofManager (?) */
+const int iAbstractNodeDofNumber = 1;
+
+#if 0 /* TBZ */
+
 /* AbstractNode - begin */
 
 /* Nodo astratto, consente l'accesso ad un grado di liberta' messo in comune
@@ -44,9 +49,6 @@
  * quanto usano differenze di tensione), oppure a nodi astratti,
  * ovvero oggetti che consentono un riferimento esplicito a Dof messi in
  * comune che non hanno un significato fisico preciso */
-
-/* Numero di dof del tipo di nodo - usato anche dal DofManager (?) */
-const int iAbstractNodeDofNumber = 1;
 
 class AbstractNode : public ScalarDifferentialNode {
 public:
@@ -66,6 +68,7 @@ public:
 
 /* AbstractNode - end */
 
+#endif /* TBZ */
 
 /* ElectricNode - begin */
 
@@ -81,7 +84,7 @@ public:
 /* Numero di dof del tipo di nodo - usato anche dal DofManager (?) */
 const int iElectricNodeDofNumber = iAbstractNodeDofNumber;
 
-class ElectricNode : public AbstractNode {
+class ElectricNode : public ScalarDifferentialNode {
 public:
 	/* Costruttore */
 	ElectricNode(unsigned int uL, const DofOwner* pDO,

@@ -236,14 +236,15 @@ node, so only \kw{value} is allowed.
 
 \section{Abstract Node}
 \begin{verbatim}
-    <arglist> ::= value , <initial_value>
+    <arglist> ::= { algebraic | differential } ,
+        value , <initial_value>
         [ , derivative , <derivative_initial_value> ]
 \end{verbatim}
-{\em
-    Note: abstract and electric nodes are derived from the same class, the
-    scalar differential node. Many \kw{genel} and \kw{electric} elements 
-    can be connected to both of them since they directly use the ancestor
-    class. 
+\emph{
+	Note: abstract nodes are ancestors of all scalar node types.
+	Many \kw{genel} and \kw{electric} elements can be connected
+	to \kw{abstract} nodes as well, since they directly use
+	the ancestor class. 
 }
 
 \subsection{Output}
@@ -253,7 +254,7 @@ The format of each row is
 \begin{itemize}
     \item the label of the node
     \item the value of the node
-    \item the value of the node derivative
+    \item the value of the node derivative, when \kw{differential}
 \end{itemize}
 
 

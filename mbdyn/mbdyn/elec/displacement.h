@@ -40,62 +40,66 @@
 /* DispMeasure - begin */
 
 class DispMeasure : virtual public Elem, public Electric {
- private:
-   const StructNode* pStrNode1;
-   const StructNode* pStrNode2;
-   mutable const AbstractNode* pAbsNode;
-   Vec3 f1;
-   Vec3 f2;
+private:
+	const StructNode* pStrNode1;
+	const StructNode* pStrNode2;
+	mutable const ScalarDifferentialNode* pAbsNode;
+	Vec3 f1;
+	Vec3 f2;
    
- public:
-   DispMeasure(unsigned int uL, const DofOwner* pD,
-	       const StructNode* pS1, const StructNode* pS2, 
-	       const AbstractNode* pA,
-	       const Vec3& Tmpf1, const Vec3& Tmpf2,
-	       flag fOut);
-   ~DispMeasure(void);
-   virtual inline void* pGet(void) const;
+public:
+	DispMeasure(unsigned int uL, const DofOwner* pD,
+		const StructNode* pS1, const StructNode* pS2, 
+		const ScalarDifferentialNode* pA,
+		const Vec3& Tmpf1, const Vec3& Tmpf2,
+		flag fOut);
+	~DispMeasure(void);
+	virtual inline void* pGet(void) const;
 
-   virtual Electric::Type GetElectricType(void) const {
-      return Electric::DISPLACEMENT;
-   };
+	virtual Electric::Type GetElectricType(void) const {
+		return Electric::DISPLACEMENT;
+	};
    
-   /* Contributo al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const;
+	/* Contributo al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
    
-   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
       
-   VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat,
-				    doublereal dCoef,
-				    const VectorHandler& XCurr, 
-				    const VectorHandler& XPrimeCurr);
-   SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
-			    doublereal dCoef,
-			    const VectorHandler& XCurr, 
-			    const VectorHandler& XPrimeCurr);
+	VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr);
+	SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr);
    
-   /* Setta i valori iniziali delle variabili (e fa altre cose)
-    * prima di iniziare l'integrazione */
-   virtual void SetValue(DataManager *pDM,
-		   VectorHandler& X, VectorHandler& XP,
-		   SimulationEntity::Hints *ph = 0);
+	/* Setta i valori iniziali delle variabili (e fa altre cose)
+	 * prima di iniziare l'integrazione */
+	virtual void SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0);
    
-   /* *******PER IL SOLUTORE PARALLELO******** */        
-   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-      utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
-     connectedNodes.resize(3);
-     connectedNodes[0] = pStrNode1;
-     connectedNodes[1] = pStrNode2;
-     connectedNodes[2] = pAbsNode;
-   };
-   /* ************************************************ */
+	/* *******PER IL SOLUTORE PARALLELO******** */        
+	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
+	virtual void
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes)
+	{
+		connectedNodes.resize(3);
+		connectedNodes[0] = pStrNode1;
+		connectedNodes[1] = pStrNode2;
+		connectedNodes[2] = pAbsNode;
+	};
+	/* ************************************************ */
 };
 
-
-inline void* DispMeasure::pGet(void) const 
+inline void *
+DispMeasure::pGet(void) const 
 {
-   return (void*)this;
+	return (void *)this;
 }
    
 /* DispMeasure - end */
