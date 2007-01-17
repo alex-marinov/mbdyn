@@ -1797,7 +1797,9 @@ DataManager::ReadNodes(MBDynParser& HP)
 							SD.pNode, pDC, dSP, fOut));
 
 				/* strain gage */
-				} else if (HP.IsKeyWord("strain" "gage")) {
+				} else if (HP.IsKeyWord("strain" "gage")	/* deprecated */
+					|| HP.IsKeyWord("beam" "strain" "gage"))
+				{
 					DEBUGLCOUT(MYDEBUG_INPUT,
 						psNodeNames[Node::PARAMETER] << "(" << uLabel << ") "
 						"is a strain gage" << std::endl);
