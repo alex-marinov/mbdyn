@@ -270,7 +270,7 @@ The format of each row is
 \begin{verbatim}
     <arglist> ::= { <initial_value>
                   | element 
-                  | straingage , y , z }
+                  | beam strain gage , y , z }
 \end{verbatim}
 The parameter node is derived from the class scalar algebraic node, but it
 is used in a rather peculiar way: it doesn't own any degree of freedom,
@@ -284,11 +284,14 @@ force.
 When the argument list starts with the keyword \kw{element}, the parameter
 node expects to be bound to an element, and to access bulk element data 
 (see Section~\ref{sec:EL:BIND}).
-When the argument list starts with the keyword \kw{straingage}, followed by
-the coordinates of a point on the section of a beam, the \kw{parameter}
-node expects to be bound to a beam element, and to access the measure of
-the axial strain at point \kw{x}, \kw{y} in the section plane as a
-combination of section strains and curvatures.
+When the argument list starts with the keyword \kw{beam strain gage},
+followed by the coordinates of a point on the section of a beam,
+the \kw{parameter} node expects to be bound to a \kw{beam} element,
+and to access the measure of the axial strain at point \kw{x}, \kw{y}
+in the section plane as a combination of section strains and curvatures.
+
+\emph{Note: measuring strains by means of derivatives of interpolated
+positions and orientations may lead to inaccurate results.}
 
 
 
