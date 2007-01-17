@@ -6,6 +6,13 @@ Copyright (C) 1996-2007
 Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
+*** Wed Jan 17 14:40:16 CET 2007 Pierangelo Masarati <masarati@aero.polimi.it>
+ - Eliminated AbstractNode (replaced by ScalarDifferentialNode; abstract nodes
+   can now be ScalarAlgebraicNode as well).
+
+*** Wed Jan 17 14:40:16 CET 2007 Pierangelo Masarati <masarati@aero.polimi.it>
+ - Added ImposedDisplacementJoint and ImposedDisplacementPinJoint
+
 *** Thu Jan  4 23:59:59 CEST 2007 Pierangelo Masarati <masarati@aero.polimi.it>
  - Import experimental NetCDF support by Patrick Rix <patrick.rix@online.de>
 
