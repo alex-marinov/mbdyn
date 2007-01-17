@@ -1769,7 +1769,31 @@ to the jacobian matrix is
 	}}
 \end{equation}
 
-
+The constraint derivative is
+\begin{equation}
+	\dot{\Phi} = \T{e}_a^T\plbr{
+		\dot{\T{x}}_b
+		+ \T{\omega}_b \times \T{f}_b
+		- \dot{\T{x}}_a
+	} + \T{d}^T \plbr{\T{\omega}_a \times \T{e}_a} - \dot{v} = 0 ,
+\end{equation}
+or
+\begin{equation}
+	\dot{\Phi} = \T{e}_a^T \dot{\T{d}}
+	+ \T{d}^T \plbr{\T{\omega}_a \times \T{e}_a} - \dot{v} = 0 ,
+\end{equation}
+with $\dot{\T{d}}=\dot{\T{x}}_b+\T{\omega}_b\times\T{f}_b-\dot{\T{x}}_a$.
+Its linearization yields
+\begin{align}
+	\delta\dot{\Phi} &= \T{e}_a^T \delta\dot{\T{x}}_b
+	- \T{e}_a^T \delta\dot{\T{x}}_a
+	+ \plbr{\T{f}_b \times \T{e}_a}^T \delta\T{\omega}_b
+	- \plbr{\T{d} \times \T{e}_a}^T \delta\T{\omega}_a \nonumber \\
+	& + \plbr{\T{\omega}_a \times \T{e}_a}^T \delta\T{x}_b
+	- \plbr{\T{\omega}_a \times \T{e}_a}^T \delta\T{x}_a \nonumber \\
+	& + \plbr{\T{f}_b \times \T{e}_a \times \plbr{\T{\omega}_b - \T{\omega}_a}}^T \T{\theta}_{b\delta}
+	+ \plbr{\T{e}_a \times \plbr{\dot{\T{d}} - \T{\omega}_a \times \T{d}}}^T \T{\theta}_{a\delta}
+\end{align}
 
 
 

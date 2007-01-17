@@ -49,7 +49,7 @@ protected:
 	mutable Vec3 f2;
 
 	Vec3 e1;
-	doublereal exf1;
+	doublereal e1xf1;
 
 	Vec3 f2Ref;
 	Vec3 dRef;

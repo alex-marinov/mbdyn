@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2007
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -41,20 +41,20 @@
 /* ImposedDisplacementJoint - begin */
 
 /* Costruttore non banale */
-ImposedDisplacementJoint::ImposedDisplacementJoint(unsigned int uL,			      
-	const DofOwner* pDO, 
+ImposedDisplacementJoint::ImposedDisplacementJoint(unsigned int uL,
+	const DofOwner* pDO,
 	const DriveCaller* pDC,
-	const StructNode* pN1, 
+	const StructNode* pN1,
 	const StructNode* pN2,
 	const Vec3& f1,
 	const Vec3& f2,
 	const Vec3& e1,
 	flag fOut)
-: Elem(uL, fOut), 
-Joint(uL, pDO, fOut), 
+: Elem(uL, fOut),
+Joint(uL, pDO, fOut),
 DriveOwner(pDC),
 pNode1(pN1), pNode2(pN2), f1(f1), f2(f2), e1(e1),
-exf1(e1*f1),
+e1xf1(e1*f1),
 f2Ref(0.),
 dRef(0.),
 e1Ref(0.),
@@ -66,7 +66,7 @@ F(0.)
 	ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
 }
 
-   
+
 /* Distruttore */
 ImposedDisplacementJoint::~ImposedDisplacementJoint(void)
 {
@@ -91,7 +91,7 @@ ImposedDisplacementJoint::Restart(std::ostream& out) const
 
 void
 ImposedDisplacementJoint::Output(OutputHandler& OH) const
-{   
+{
 	if (fToBeOutput()) {
 		Vec3 d(pNode2->GetXCurr() + pNode2->GetRCurr()*f2
 			- pNode1->GetXCurr() - pNode1->GetRCurr()*f1);
@@ -115,13 +115,13 @@ ImposedDisplacementJoint::SetValue(DataManager *pDM,
 				if (dynamic_cast<Joint::OffsetHint<1> *>(pjh)) {
 					Mat3x3 R1t(pNode1->GetRCurr().Transpose());
 					Vec3 fTmp2(pNode2->GetRCurr()*f2);
-   
+
 					f1 = R1t*(pNode2->GetXCurr() + fTmp2 - pNode1->GetXCurr()) - e1*dGet();
 
 				} else if (dynamic_cast<Joint::OffsetHint<2> *>(pjh)) {
 					Mat3x3 R2t(pNode2->GetRCurr().Transpose());
 					Vec3 fTmp1(pNode1->GetRCurr()*f1);
-   
+
 					f2 = R2t*(pNode1->GetXCurr() + fTmp1 - pNode2->GetXCurr()) + e1*dGet();
 
 				} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
@@ -143,7 +143,7 @@ ImposedDisplacementJoint::SetValue(DataManager *pDM,
 						"after hint[" << i << "]" << std::endl);
 					throw ErrGeneric();
 				}
-				
+
 				DriveOwner::Set(pDC);
 				continue;
 			}
@@ -229,7 +229,7 @@ ImposedDisplacementJoint::DescribeEq(std::ostream& out,
 	return out;
 
 }
-   
+
 /* Dati privati (aggiungere magari le reazioni vincolari) */
 unsigned int
 ImposedDisplacementJoint::iGetNumPrivData(void) const
@@ -275,9 +275,9 @@ ImposedDisplacementJoint::dGetPrivData(unsigned int i) const
 }
 
 /* assemblaggio jacobiano */
-VariableSubMatrixHandler& 
+VariableSubMatrixHandler&
 ImposedDisplacementJoint::AssJac(VariableSubMatrixHandler& WorkMat,
-	doublereal dCoef, 
+	doublereal dCoef,
 	const VectorHandler& /* XCurr */ ,
 	const VectorHandler& /* XPrimeCurr */ )
 {
@@ -301,13 +301,13 @@ ImposedDisplacementJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	/* Setta gli indici della matrice */
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WM.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
-		WM.PutColIndex(iCnt, iNode1FirstPosIndex + iCnt);	
+		WM.PutColIndex(iCnt, iNode1FirstPosIndex + iCnt);
 		WM.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
 		WM.PutColIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
 	}
 	WM.PutRowIndex(12 + 1, iFirstReactionIndex + 1);
 	WM.PutColIndex(12 + 1, iFirstReactionIndex + 1);
-   
+
 	AssMat(WM, dCoef);
 
 	return WorkMat;
@@ -326,11 +326,11 @@ ImposedDisplacementJoint::AfterPredict(VectorHandler& /* X */ ,
 
 
 void
-ImposedDisplacementJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)   
+ImposedDisplacementJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 {
 	Vec3 dxe1(dRef.Cross(e1Ref));
 	Vec3 f2xe1(f2Ref.Cross(e1Ref));
-	
+
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {
 		doublereal d = e1Ref(iCnt);
 
@@ -393,13 +393,13 @@ ImposedDisplacementJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 
 
 /* assemblaggio residuo */
-SubVectorHandler& 
+SubVectorHandler&
 ImposedDisplacementJoint::AssRes(SubVectorHandler& WorkVec,
 	doublereal dCoef,
 	const VectorHandler& XCurr,
 	const VectorHandler& /* XPrimeCurr */ )
 {
-	DEBUGCOUT("Entering ImposedDisplacementJoint::AssRes()" << std::endl);   
+	DEBUGCOUT("Entering ImposedDisplacementJoint::AssRes()" << std::endl);
 
 	/* Dimensiona e resetta la matrice di lavoro */
 	integer iNumRows = 0;
@@ -430,7 +430,7 @@ ImposedDisplacementJoint::AssRes(SubVectorHandler& WorkVec,
 
 void
 ImposedDisplacementJoint::AssVec(SubVectorHandler& WorkVec, doublereal dCoef)
-{   
+{
 	Mat3x3 R1(pNode1->GetRCurr());
 
 	Vec3 f2Tmp(pNode2->GetRCurr()*f2);
@@ -443,23 +443,20 @@ ImposedDisplacementJoint::AssVec(SubVectorHandler& WorkVec, doublereal dCoef)
 	WorkVec.Add(3 + 1, dTmp.Cross(FTmp));
 	WorkVec.Sub(6 + 1, FTmp);
 	WorkVec.Sub(9 + 1, f2Tmp.Cross(FTmp));
-	
+
 	if (dCoef != 0.) {
-		WorkVec.DecCoef(12 + 1, (e1Tmp*dTmp - (exf1 + dGet()))/dCoef);
+		WorkVec.DecCoef(12 + 1, (e1Tmp*dTmp - (e1xf1 + dGet()))/dCoef);
 	}
 }
 
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-VariableSubMatrixHandler& 
+VariableSubMatrixHandler&
 ImposedDisplacementJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		const VectorHandler& XCurr)
 {
 	DEBUGCOUT("Entering ImposedDisplacementJoint::InitialAssJac()" << std::endl);
 
-	WorkMat.SetNullMatrix();
-
-#if 0
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
 	/* Dimensiona e resetta la matrice di lavoro */
@@ -473,8 +470,8 @@ ImposedDisplacementJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
 	integer iFirstReactionIndex = iGetFirstIndex();
 	integer iNode1FirstVelIndex = iNode1FirstPosIndex + 6;
-	integer iNode2FirstVelIndex = iNode2FirstPosIndex + 6;   
-	integer iReactionPrimeIndex = iFirstReactionIndex + 3;   
+	integer iNode2FirstVelIndex = iNode2FirstPosIndex + 6;
+	integer iFirstReactionPrimeIndex = iFirstReactionIndex + 1;
 
 	/* Setta gli indici della matrice */
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
@@ -486,94 +483,170 @@ ImposedDisplacementJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		WM.PutColIndex(12 + iCnt, iNode2FirstPosIndex + iCnt);
 		WM.PutRowIndex(18 + iCnt, iNode2FirstVelIndex + iCnt);
 		WM.PutColIndex(18 + iCnt, iNode2FirstVelIndex + iCnt);
-		WM.PutRowIndex(24 + iCnt, iFirstReactionIndex + iCnt);
-		WM.PutColIndex(24 + iCnt, iFirstReactionIndex + iCnt);
 	}
 
-	Vec3 FPrime = Vec3(XCurr, iReactionPrimeIndex + 1);
+	WM.PutRowIndex(24 + 1, iFirstReactionIndex + 1);
+	WM.PutColIndex(24 + 1, iFirstReactionIndex + 1);
+	WM.PutRowIndex(24 + 2, iFirstReactionPrimeIndex + 1);
+	WM.PutColIndex(24 + 2, iFirstReactionPrimeIndex + 1);
+
+	doublereal FPrime = XCurr(iFirstReactionPrimeIndex + 1);
+
+	Vec3 dxe1(dRef.Cross(e1Ref));
+	Vec3 f2xe1(f2Ref.Cross(e1Ref));
+	Vec3 w1xe1(pNode1->GetWCurr().Cross(e1Ref));
+	Vec3 dPrime(pNode2->GetVCurr()
+		+ pNode2->GetWCurr().Cross(f2Ref)
+		- pNode1->GetVCurr());
+	Vec3 t1(e1Ref.Cross(dPrime - pNode1->GetWCurr().Cross(dRef)));
+	Vec3 t2(f2Ref.Cross(e1Ref.Cross(pNode2->GetWCurr() - pNode1->GetWCurr())));
 
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {
+		doublereal d = e1Ref(iCnt);
+
 		/* node 1 force */
-		WM.DecCoef(iCnt, 24 + iCnt, 1.);
+		WM.DecCoef(iCnt, 24 + 1, d);
 		/* node 2 force */
-		WM.IncCoef(12 + iCnt, 24 + iCnt, 1.);
+		WM.IncCoef(12 + iCnt, 24 + 1, d);
 
 		/* node 1 force derivative */
-		WM.DecCoef(6 + iCnt, 27 + iCnt, 1.);
+		WM.DecCoef(6 + iCnt, 24 + 2, d);
 		/* node 2 force derivative */
-		WM.IncCoef(18 + iCnt, 27 + iCnt, 1.);
+		WM.IncCoef(18 + iCnt, 24 + 2, d);
 
 		/* node 1 constraint */
-		WM.DecCoef(24 + iCnt, iCnt, 1.);
+		WM.DecCoef(24 + 1, iCnt, d);
 		/* node 2 constraint */
-		WM.IncCoef(24 + iCnt, 12 + iCnt, 1.);
+		WM.IncCoef(24 + 1, 12 + iCnt, d);
 
 		/* node 1 constraint derivative */
-		WM.DecCoef(27 + iCnt, 6 + iCnt, 1.);
+		WM.DecCoef(24 + 2, 6 + iCnt, d);
 		/* node 2 constraint derivative */
-		WM.IncCoef(27 + iCnt, 18 + iCnt, 1.);
+		WM.IncCoef(24 + 2, 18 + iCnt, d);
+
+		d = dxe1(iCnt);
+
+		/* node 1 moment */
+		WM.DecCoef(3 + iCnt, 24 + 1, d);
+
+		/* node 1 moment derivative */
+		WM.DecCoef(9 + iCnt, 24 + 2, d);
+
+		/* node 1 constraint */
+		WM.DecCoef(24 + 1, 3 + iCnt, d);
+
+		/* node 1 constraint derivative */
+		WM.DecCoef(24 + 2, 9 + iCnt, d);
+
+		d = f2xe1(iCnt);
+
+		/* node 2 moment */
+		WM.DecCoef(15 + iCnt, 24 + 1, d);
+
+		/* node 2 moment derivative */
+		WM.DecCoef(21 + iCnt, 24 + 2, d);
+
+		/* node 2 constraint */
+		WM.DecCoef(24 + 1, 15 + iCnt, d);
+
+		/* node 2 constraint derivative */
+		WM.DecCoef(24 + 2, 21 + iCnt, d);
+
+		d = w1xe1(iCnt);
+
+		/* node 1 constraint derivative */
+		WM.DecCoef(24 + 2, iCnt, d);
+
+		/* node 2 constraint derivative */
+		WM.IncCoef(24 + 2, 12 + iCnt, d);
+
+		d = t1(iCnt);
+
+		/* node 1 constraint derivative */
+		WM.IncCoef(24 + 2, 3 + iCnt, d);
+
+		d = t2(iCnt);
+
+		/* node 2 constraint derivative */
+		WM.IncCoef(24 + 2, 9 + iCnt, d);
 	}
 
-	Mat3x3 MTmp(dRef);
+	Vec3 FTmp(e1Ref*F);
+	Vec3 FPrimeTmp(e1Ref*FPrime);
+
+	Mat3x3 MTmp(FTmp);
+
+	/* node 1 force */
+	WM.Add(1, 3 + 1, MTmp);
+
+	/* node 2 force */
+	WM.Sub(12 + 1, 3 + 1, MTmp);
 
 	/* node 1 moment */
-	WM.Sub(3 + 1, 24 + 1, MTmp);
-	/* node 1 moment derivative */
-	WM.Sub(9 + 1, 27 + 1, MTmp);
-	/* node 1 constraint */
-	WM.Add(24 + 1, 3 + 1, MTmp);
-	/* node 1 constraint derivative */
-	WM.Add(27 + 1, 9 + 1, MTmp);
+	WM.Sub(3 + 1, 1, MTmp);
+	WM.Add(3 + 1, 12 + 1, MTmp);
 
-	MTmp = Mat3x3(f2Ref);
-	/* node 2 moment */
-	WM.Add(15 + 1, 24 + 1, MTmp);
-	/* node 2 moment derivatives */
-	WM.Add(21 + 1, 27 + 1, MTmp);
-	/* node 2 constraint */
-	WM.Sub(24 + 1, 15 + 1, MTmp);
-	/* node 2 constraint derivative */
-	WM.Sub(27 + 1, 21 + 1, MTmp);
+	MTmp = Mat3x3(FTmp, f2Ref);
 
-	MTmp = Mat3x3(F, dRef);
 	/* node 1 moment */
-	WM.Sub(3 + 1, 3 + 1, MTmp);
-	
-	MTmp = Mat3x3(FPrime, dRef);
-	/* node 1 moment derivative */
-	WM.Sub(9 + 1, 9 + 1, MTmp);
-	
-	MTmp = Mat3x3(F, f2Ref);
+	WM.Sub(3 + 1, 15 + 1, MTmp);
+
 	/* node 2 moment */
 	WM.Add(15 + 1, 15 + 1, MTmp);
 
-	MTmp = Mat3x3(FPrime, f2Ref);
+	MTmp = Mat3x3(dRef, FTmp);
+
+	/* node 1 moment */
+	WM.Add(3 + 1, 3 + 1, MTmp);
+
+	MTmp = Mat3x3(f2Ref, FTmp);
+
+	/* node 1 moment */
+	WM.Sub(15 + 1, 3 + 1, MTmp);
+
+
+
+	MTmp = Mat3x3(FPrimeTmp);
+
+	/* node 1 force derivative */
+	WM.Add(6 + 1, 3 + 1, MTmp);
+
+	/* node 2 force derivative */
+	WM.Sub(18 + 1, 3 + 1, MTmp);
+
+	/* node 1 moment derivative */
+	WM.Sub(9 + 1, 1, MTmp);
+	WM.Add(9 + 1, 12 + 1, MTmp);
+
+	MTmp = Mat3x3(FPrimeTmp, f2Ref);
+
+	/* node 1 moment derivative */
+	WM.Sub(9 + 1, 15 + 1, MTmp);
+
 	/* node 2 moment derivative */
-	WM.Add(21 + 1, 21 + 1, MTmp);
+	WM.Add(21 + 1, 15 + 1, MTmp);
 
-	MTmp = Mat3x3(pNode1->GetWRef(), dRef);
-	/* node 2 constraint derivative */
-	WM.Sub(27 + 1, 3 + 1, MTmp);
+	MTmp = Mat3x3(dRef, FPrimeTmp);
 
-	MTmp = Mat3x3(pNode2->GetWRef(), f2Ref);
-	/* node 2 constraint derivative */
-	WM.Add(27 + 1, 15 + 1, MTmp);
-#endif
+	/* node 1 moment derivative */
+	WM.Add(9 + 1, 3 + 1, MTmp);
+
+	MTmp = Mat3x3(f2Ref, FPrimeTmp);
+
+	/* node 1 moment derivative */
+	WM.Sub(21 + 1, 3 + 1, MTmp);
 
 	return WorkMat;
 }
 
-					   
-/* Contributo al residuo durante l'assemblaggio iniziale */   
-SubVectorHandler& 
+
+/* Contributo al residuo durante l'assemblaggio iniziale */
+SubVectorHandler&
 ImposedDisplacementJoint::InitialAssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& XCurr)
 {
-	DEBUGCOUT("Entering ImposedDisplacementJoint::InitialAssRes()" << std::endl);   
+	DEBUGCOUT("Entering ImposedDisplacementJoint::InitialAssRes()" << std::endl);
 
-	WorkVec.ResizeReset(0);
-
-#if 0
 	/* Dimensiona e resetta la matrice di lavoro */
 	integer iNumRows = 0;
 	integer iNumCols = 0;
@@ -586,7 +659,7 @@ ImposedDisplacementJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	integer iFirstReactionIndex = iGetFirstIndex();
 	integer iNode1FirstVelIndex = iNode1FirstPosIndex + 6;
 	integer iNode2FirstVelIndex = iNode2FirstPosIndex + 6;
-	integer iReactionPrimeIndex = iFirstReactionIndex + 3;
+	integer iFirstReactionPrimeIndex = iFirstReactionIndex + 1;
 
 	/* Setta gli indici del vettore */
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
@@ -594,48 +667,59 @@ ImposedDisplacementJoint::InitialAssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(6 + iCnt, iNode1FirstVelIndex + iCnt);
 		WorkVec.PutRowIndex(12 + iCnt, iNode2FirstPosIndex + iCnt);
 		WorkVec.PutRowIndex(18 + iCnt, iNode2FirstVelIndex + iCnt);
-		WorkVec.PutRowIndex(24 + iCnt, iFirstReactionIndex + iCnt);
 	}
+	WorkVec.PutRowIndex(24 + 1, iFirstReactionIndex + 1);
+	WorkVec.PutRowIndex(24 + 2, iFirstReactionPrimeIndex + 1);
 
 	F = XCurr(iFirstReactionIndex + 1);
-	doublereal FPrime = XCurr(iReactionPrimeIndex + 1);
+	doublereal FPrime = XCurr(iFirstReactionPrimeIndex + 1);
 
 	f2Ref = pNode2->GetRCurr()*f2;
 	dRef = pNode2->GetXCurr() + f2Ref - pNode1->GetXCurr();
+	e1Ref = pNode1->GetRCurr()*e1;
 
-	WorkVec.Add(1, F);
-	WorkVec.Add(3 + 1, dRef.Cross(F));
-	WorkVec.Add(6 + 1, FPrime);
-	WorkVec.Add(9 + 1, dRef.Cross(FPrime));
+	Vec3 FTmp(e1Ref*F);
+	Vec3 FPrimeTmp(e1Ref*FPrime);
 
-	WorkVec.Sub(12 + 1, F);
-	WorkVec.Sub(15 + 1, f2.Cross(F));
-	WorkVec.Sub(18 + 1, FPrime);
-	WorkVec.Sub(21 + 1, f2.Cross(FPrime));
+	WorkVec.Add(1, FTmp);
+	WorkVec.Add(3 + 1, dRef.Cross(FTmp));
+	WorkVec.Add(6 + 1, FPrimeTmp);
+	WorkVec.Add(9 + 1, dRef.Cross(FPrimeTmp));
 
-	WorkVec.Add(24 + 1, pNode1->GetXCurr() + dRef - pNode2->GetXCurr() - f2Ref);
-	WorkVec.Add(27 + 1, pNode1->GetVCurr() + pNode1->GetWCurr().Cross(dRef)
-			- pNode2->GetVCurr() + pNode2->GetWCurr().Cross(f2Ref));
-#endif
+	WorkVec.Sub(12 + 1, FTmp);
+	WorkVec.Sub(15 + 1, f2Ref.Cross(FTmp));
+	WorkVec.Sub(18 + 1, FPrimeTmp);
+	WorkVec.Sub(21 + 1, f2Ref.Cross(FPrimeTmp));
+
+	WorkVec.Sub(24 + 1, e1Ref*dRef - e1xf1 - dGet());
+
+	Vec3 dPrimeTmp(pNode2->GetVCurr()
+		+ pNode2->GetWCurr().Cross(f2Ref)
+		- pNode1->GetVCurr());
+	doublereal d = e1Ref*dPrimeTmp + dRef*(pNode1->GetWCurr().Cross(e1Ref));
+	if (bIsDifferentiable()) {
+		d -= dGetP();
+	}
+	WorkVec.Sub(24 + 2, d);
 
 	return WorkVec;
 }
-					   
+
 /* ImposedDisplacementJoint - end */
 
 /* ImposedDisplacementPinJoint - begin */
 
 /* Costruttore non banale */
-ImposedDisplacementPinJoint::ImposedDisplacementPinJoint(unsigned int uL,			      
-	const DofOwner* pDO, 
+ImposedDisplacementPinJoint::ImposedDisplacementPinJoint(unsigned int uL,
+	const DofOwner* pDO,
 	const DriveCaller* pDC,
 	const StructNode* pN,
 	const Vec3& f,
 	const Vec3& x,
 	const Vec3& e,
 	flag fOut)
-: Elem(uL, fOut), 
-Joint(uL, pDO, fOut), 
+: Elem(uL, fOut),
+Joint(uL, pDO, fOut),
 DriveOwner(pDC),
 pNode(pN), f(f), x(x), e(e),
 fRef(0.),
@@ -646,7 +730,7 @@ F(0.)
 	ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);
 }
 
-   
+
 /* Distruttore */
 ImposedDisplacementPinJoint::~ImposedDisplacementPinJoint(void)
 {
@@ -670,7 +754,7 @@ ImposedDisplacementPinJoint::Restart(std::ostream& out) const
 
 void
 ImposedDisplacementPinJoint::Output(OutputHandler& OH) const
-{   
+{
 	if (fToBeOutput()) {
 		Vec3 d(pNode->GetXCurr() + pNode->GetRCurr()*f - x);
 		Vec3 FTmp(e*F);
@@ -692,7 +776,7 @@ ImposedDisplacementPinJoint::SetValue(DataManager *pDM,
 			if (pjh) {
 				if (dynamic_cast<Joint::OffsetHint<1> *>(pjh)) {
 					Mat3x3 Rt(pNode->GetRCurr().Transpose());
-   
+
 					f = Rt*(x + e*dGet() - pNode->GetXCurr());
 
 				} else if (dynamic_cast<Joint::OffsetHint<0> *>(pjh)) {
@@ -719,7 +803,7 @@ ImposedDisplacementPinJoint::SetValue(DataManager *pDM,
 						"after hint[" << i << "]" << std::endl);
 					throw ErrGeneric();
 				}
-				
+
 				DriveOwner::Set(pDC);
 				continue;
 			}
@@ -805,7 +889,7 @@ ImposedDisplacementPinJoint::DescribeEq(std::ostream& out,
 	return out;
 
 }
-   
+
 /* Dati privati (aggiungere magari le reazioni vincolari) */
 unsigned int
 ImposedDisplacementPinJoint::iGetNumPrivData(void) const
@@ -851,9 +935,9 @@ ImposedDisplacementPinJoint::dGetPrivData(unsigned int i) const
 }
 
 /* assemblaggio jacobiano */
-VariableSubMatrixHandler& 
+VariableSubMatrixHandler&
 ImposedDisplacementPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
-	doublereal dCoef, 
+	doublereal dCoef,
 	const VectorHandler& /* XCurr */ ,
 	const VectorHandler& /* XPrimeCurr */ )
 {
@@ -875,11 +959,11 @@ ImposedDisplacementPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	/* Setta gli indici della matrice */
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WM.PutRowIndex(iCnt, iNodeFirstMomIndex + iCnt);
-		WM.PutColIndex(iCnt, iNodeFirstPosIndex + iCnt);	
+		WM.PutColIndex(iCnt, iNodeFirstPosIndex + iCnt);
 	}
 	WM.PutRowIndex(6 + 1, iFirstReactionIndex + 1);
 	WM.PutColIndex(6 + 1, iFirstReactionIndex + 1);
-   
+
 	AssMat(WM, dCoef);
 
 	return WorkMat;
@@ -897,7 +981,7 @@ ImposedDisplacementPinJoint::AfterPredict(VectorHandler& /* X */ ,
 
 
 void
-ImposedDisplacementPinJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)   
+ImposedDisplacementPinJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 {
 	Vec3 fxe(fRef.Cross(e));
 
@@ -927,13 +1011,13 @@ ImposedDisplacementPinJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 
 
 /* assemblaggio residuo */
-SubVectorHandler& 
+SubVectorHandler&
 ImposedDisplacementPinJoint::AssRes(SubVectorHandler& WorkVec,
 	doublereal dCoef,
 	const VectorHandler& XCurr,
 	const VectorHandler& /* XPrimeCurr */ )
 {
-	DEBUGCOUT("Entering ImposedDisplacementPinJoint::AssRes()" << std::endl);   
+	DEBUGCOUT("Entering ImposedDisplacementPinJoint::AssRes()" << std::endl);
 
 	/* Dimensiona e resetta la matrice di lavoro */
 	integer iNumRows = 0;
@@ -962,7 +1046,7 @@ ImposedDisplacementPinJoint::AssRes(SubVectorHandler& WorkVec,
 
 void
 ImposedDisplacementPinJoint::AssVec(SubVectorHandler& WorkVec, doublereal dCoef)
-{   
+{
 	Vec3 fTmp = pNode->GetRCurr()*f;
 	Vec3 d = pNode->GetXCurr() + fTmp - x;
 
@@ -970,7 +1054,7 @@ ImposedDisplacementPinJoint::AssVec(SubVectorHandler& WorkVec, doublereal dCoef)
 
 	WorkVec.Sub(1, FTmp);
 	WorkVec.Sub(3 + 1, fTmp.Cross(FTmp));
-	
+
 	if (dCoef != 0.) {
 		WorkVec.Sub(6 + 1, (e*d - dGet())/dCoef);
 	}
@@ -978,7 +1062,7 @@ ImposedDisplacementPinJoint::AssVec(SubVectorHandler& WorkVec, doublereal dCoef)
 
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-VariableSubMatrixHandler& 
+VariableSubMatrixHandler&
 ImposedDisplacementPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	const VectorHandler& XCurr)
 {
@@ -996,7 +1080,7 @@ ImposedDisplacementPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	integer iNodeFirstPosIndex = pNode->iGetFirstPositionIndex();
 	integer iFirstReactionIndex = iGetFirstIndex();
 	integer iNodeFirstVelIndex = iNodeFirstPosIndex + 6;
-	integer iFirstReactionPrimeIndex = iFirstReactionIndex + 1;   
+	integer iFirstReactionPrimeIndex = iFirstReactionIndex + 1;
 
 	/* Setta gli indici della matrice */
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
@@ -1006,6 +1090,8 @@ ImposedDisplacementPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		WM.PutColIndex(6 + iCnt, iNodeFirstVelIndex + iCnt);
 	}
 	WM.PutRowIndex(12 + 1, iFirstReactionIndex + 1);
+	WM.PutColIndex(12 + 1, iFirstReactionIndex + 1);
+	WM.PutRowIndex(12 + 2, iFirstReactionPrimeIndex + 1);
 	WM.PutColIndex(12 + 2, iFirstReactionPrimeIndex + 1);
 
 	doublereal FPrime = XCurr(iFirstReactionPrimeIndex + 1);
@@ -1061,13 +1147,13 @@ ImposedDisplacementPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	return WorkMat;
 }
 
-					   
-/* Contributo al residuo durante l'assemblaggio iniziale */   
-SubVectorHandler& 
+
+/* Contributo al residuo durante l'assemblaggio iniziale */
+SubVectorHandler&
 ImposedDisplacementPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr)
 {
-	DEBUGCOUT("Entering ImposedDisplacementPinJoint::InitialAssRes()" << std::endl);   
+	DEBUGCOUT("Entering ImposedDisplacementPinJoint::InitialAssRes()" << std::endl);
 
 	/* Dimensiona e resetta la matrice di lavoro */
 	integer iNumRows = 0;
@@ -1113,5 +1199,5 @@ ImposedDisplacementPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 
 	return WorkVec;
 }
-					   
+
 /* ImposedDisplacementPinJoint - end */
