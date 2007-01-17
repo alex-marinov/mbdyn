@@ -31,46 +31,44 @@
 /* joint */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <Rot.hh>
-#include <strings.h>
+#include "Rot.hh"
+#include "strings.h"
 
-#include <joint.h>
-#include <dataman.h>
-#include <loadable.h>
+#include "joint.h"
+#include "dataman.h"
+#include "loadable.h"
 
-#include <tpldrive.h>
-#include <tpldrive_.h>
+#include "tpldrive.h"
+#include "tpldrive_.h"
 
-#include <distance.h>
-
-#include <drvhinge.h>
-#include <drvdisp.h>
-#include <drvj.h>      /* Vincoli di velocita' imposta */
-#include <accj.h>      /* Vincoli di accelerazione imposta */
-#include <genj.h>
-#include <inplanej.h>  /* Vincoli di giacitura nel piano */
-#include <inline.h>
-#include <planej.h>
-/* No longer supported
-#include <planedj.h>
- */
-#include <prismj.h>    /* Vincolo prismatico */
-#include <rodj.h>      /* Aste elastiche */
-#include <spherj.h>
-#include <univj.h>
-#include <vehj.h>      /* Giunti deformabili */
-#include <vehj2.h>     /* "" */
-#include <vehj3.h>     /* "" */
-#include <kinj.h>
-#include <beamslider.h>
+#include "accj.h"      /* Vincoli di accelerazione imposta */
+#include "beamslider.h"
 #include "brake.h"
+#include "distance.h"
+#include "drvdisp.h"
+#include "drvhinge.h"
+#include "drvj.h"      /* Vincoli di velocita' imposta */
+#include "genj.h"
 #include "gimbal.h"
-
-/* Temporary ?!? */
-#include <modal.h>
+#include "impdisp.h"
+#include "inplanej.h"  /* Vincoli di giacitura nel piano */
+#include "inline.h"
+#include "kinj.h"
+#include "modal.h"
+#if 0 /* No longer supported */
+#include "planedj.h"
+#endif
+#include "planej.h"
+#include "prismj.h"    /* Vincolo prismatico */
+#include "rodj.h"      /* Aste elastiche */
+#include "spherj.h"
+#include "univj.h"
+#include "vehj.h"      /* Giunti deformabili */
+#include "vehj2.h"     /* "" */
+#include "vehj3.h"     /* "" */
 
 #define MBDYN_X_COMPATIBLE_INPUT
 
@@ -167,6 +165,8 @@ ReadJoint(DataManager* pDM,
 		"drive" "hinge",
 		"drive" "displacement",
 		"drive" "displacement" "pin",
+		"imposed" "displacement",
+		"imposed" "displacement" "pin",
 		"kinematic",
 		"beam" "slider",
 		"brake",
@@ -217,6 +217,8 @@ ReadJoint(DataManager* pDM,
 		DRIVEHINGE,
 		DRIVEDISPLACEMENT,
 		DRIVEDISPLACEMENTPIN,
+		IMPOSEDDISPLACEMENT,
+		IMPOSEDDISPLACEMENTPIN,
 		KINEMATIC,
 		BEAMSLIDER,
 		BRAKE,
@@ -2072,6 +2074,108 @@ ReadJoint(DataManager* pDM,
 			DriveDisplacementPinJoint,
 			DriveDisplacementPinJoint(uLabel, pDO, pDC,
 				pNode, f, x, fOut));
+		} break;
+
+	case IMPOSEDDISPLACEMENT:
+		{
+		/* nodo collegato 1 */
+		StructNode* pNode1 = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		ReferenceFrame RF(pNode1);
+
+		Vec3 f1(0.);
+		if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+			NO_OP;
+		} else {
+			pedantic_cerr("Joint(" << uLabel << "): "
+				"missing keyword \"position\" at line "
+				<< HP.GetLineData() << std::endl);
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+			f1 = HP.GetPosRel(ReferenceFrame(pNode1));
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+
+		/* nodo collegato 2 */
+		StructNode* pNode2 = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		RF = ReferenceFrame(pNode2);
+
+		/* Stessa cosa per il nodo 2 */
+		Vec3 f2(0.);
+		if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+			NO_OP;
+		} else {
+			pedantic_cerr("Joint(" << uLabel << "): "
+				"missing keyword \"position\" at line "
+				<< HP.GetLineData() << std::endl);
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+			f2 = HP.GetPosRel(ReferenceFrame(pNode2));
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+
+		Vec3 e1 = HP.GetVecRel(ReferenceFrame(pNode1));
+
+		DriveCaller* pDC = ReadDriveData(pDM, HP, false);
+
+		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			ImposedDisplacementJoint,
+			ImposedDisplacementJoint(uLabel, pDO, pDC,
+				pNode1, pNode2, f1, f2, e1, fOut));
+		} break;
+
+	case IMPOSEDDISPLACEMENTPIN:
+		{
+		/* nodo collegato */
+		StructNode* pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		ReferenceFrame RF(pNode);
+
+		Vec3 f(0.);
+		if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+			NO_OP;
+		} else {
+			pedantic_cerr("Joint(" << uLabel << "): "
+				"missing keyword \"position\" at line "
+				<< HP.GetLineData() << std::endl);
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+			f = HP.GetPosRel(ReferenceFrame(pNode));
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+
+		/* Stessa cosa per il terreno */
+		Vec3 x(0.);
+		if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+			NO_OP;
+		} else {
+			pedantic_cerr("Joint(" << uLabel << "): "
+				"missing keyword \"position\" at line "
+				<< HP.GetLineData() << std::endl);
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+			x = HP.GetPosAbs(AbsRefFrame);
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+
+		Vec3 e = HP.GetVecAbs(AbsRefFrame);
+
+		DriveCaller* pDC = ReadDriveData(pDM, HP, false);
+
+		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			ImposedDisplacementPinJoint,
+			ImposedDisplacementPinJoint(uLabel, pDO, pDC,
+				pNode, f, x, e, fOut));
 		} break;
 
 	case KINEMATIC:
