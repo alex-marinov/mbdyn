@@ -33,10 +33,11 @@ In fact, this manual assumes that the user already knows what statement
 is required to solve a given problem or to model a given system, so that
 all it is missing is the details about the syntax.
 This is typically not true, especially for inexperienced users, whose
-main problem is to understand how to solve a problem or model a system.
-Of course an input manual is not the right place to start, but, better
-than nothing, this section is trying to fill this gap allow to approach
-the manual ``the other way round''.
+main problem consists in understanding how to solve a problem,
+or model a system.
+Of course an input manual is not the right document to start with but,
+better than nothing, this section is trying to fill this gap,
+allowing to approach the manual ``the other way round''.
 
 If one's question is listed below, then it's likely that the answer 
 will point to reading the right sections of the manual.
@@ -130,7 +131,6 @@ Example:
     end: elements;
 \end{verbatim}
 
-
 To reduce output in time, one can use the \kw{output meter} statement
 (Section~\ref{sec:CONTROLDATA:OUTPUTMETER}).
 It consists in a drive that causes output to be produced only when 
@@ -156,4 +156,6 @@ the related definition must appear:
 \end{verbatim}
 i.e.\ the sixth component of the derivative state of node 1000,
 the angular velocity about axis 3, is assigned to the variable \kw{Omega}.
+Any time \kw{Omega} is evaluated in a string expression, its value
+gets updated.
 

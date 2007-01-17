@@ -2510,7 +2510,7 @@ about a given axis.
                         (drive_caller) <acceleration>
 \end{verbatim}
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
 \item \kw{"M"} constraint reaction moment along joint direction
@@ -2529,7 +2529,7 @@ about a given axis.
                         (drive_caller) <velocity>
 \end{verbatim}
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
 \item \kw{"w"} imposed angular velocity about joint direction
@@ -2556,7 +2556,7 @@ but the angular velocity about axis 3 is imposed by means of the driver.
     axis 3 with imposed angular velocity.
 }
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
 \item \kw{"rz"} relative rotation angle about revolute axis
@@ -2569,7 +2569,7 @@ The following data is available:
 \item \kw{"Mz"} constraint reaction moment about node 1 local direction 3
 \end{enumerate}
 
-\paragraph{Hints}
+\subsubsection{Hints}
 When wrapped by a \kw{driven} element, it honors the following hints:
 \begin{itemize}
 \item \kw{hinge\{1\}} the relative orientation of the joint
@@ -2661,7 +2661,7 @@ the only allowed relative kinematics between the two nodes are
 a rotation about relative axis 3.
 }
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
 \item \kw{"rz"} relative rotation angle about brake axis
@@ -2688,7 +2688,7 @@ in the usual way for these entities} \\
 \emph{Note: the default value for \kw{position} and \kw{orientation}
 are the position and the orientation of the clamped node.}
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
 \item \kw{"Fx"} constraint reaction force in global direction 1
@@ -2749,7 +2749,7 @@ See the
 
 
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
 \item \kw{"dx"} relative displacement in node 1 local direction 1
@@ -2768,7 +2768,7 @@ They are accessed by prefixing the name of the data with the string
 \kw{"constitutiveLaw."}; see the specific constitutive law
 description of the available data in Section~\ref{sec:CONSTITUTIVE-LAWS}.
 
-\paragraph{Hints}
+\subsubsection{Hints}
 When wrapped by a \kw{driven} element, the \kw{deformable displacement joint}
 honors the following hints:
 \begin{itemize}
@@ -2851,7 +2851,7 @@ Usually, it is best used in conjunction with a
 or any kind of joint that constrains the relative displacement
 of the nodes as appropriate.
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
 \item \kw{"rx"} relative rotation vector component in node 1 local direction 1
@@ -2870,7 +2870,7 @@ They are accessed by prefixing the name of the data with the string
 \kw{"constitutiveLaw."}; see the specific constitutive law
 description of the available data in Section~\ref{sec:CONSTITUTIVE-LAWS}.
 
-\paragraph{Hints}
+\subsubsection{Hints}
 When wrapped by a \kw{driven} element, the \kw{deformable hinge}
 joint honors the following hints:
 \begin{itemize}
@@ -2940,7 +2940,7 @@ in combining a \kw{deformable hinge} and a \kw{deformable displacement joint}.
 constitutive laws, the use with viscous and viscoelastic laws 
 is untested yet, and thus it is disabled.}
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
 \item \kw{"dx"} relative displacement in node 1 local direction 1
@@ -2968,7 +2968,7 @@ They are accessed by prefixing the name of the data with the string
 \kw{"constitutiveLaw."}; see the specific constitutive law
 description of the available data in Section~\ref{sec:CONSTITUTIVE-LAWS}.
 
-\paragraph{Hints}
+\subsubsection{Hints}
 When wrapped by a \kw{driven} element, the \kw{deformable joint}
 honors the same hints of the \kw{deformable displacement joint}.
 
@@ -3003,20 +3003,20 @@ If no offset is given, the points are coincident with the node themselves.
     if defined, the distance between the offsets is considered. 
 }
 
-\paragraph{Output}
+\subsubsection{Output}
 The extra output is:
 \begin{itemize}
     \item the three components of the imposed distance in the global frame
     \item the norm of the imposed distance
 \end{itemize}
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
 \item \kw{"d"} enforced distance
 \end{enumerate}
 
-\paragraph{Hints}
+\subsubsection{Hints}
 When wrapped by a \kw{driven} element, it honors the following hints:
 \begin{itemize}
 \item unrecognized hints are passed through to the distance drive.
@@ -3029,7 +3029,7 @@ This element has been deprecated in favor of the \kw{distance}
 joint element, which now supports offsets.
 It may be dropped in future releases.
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 See the \kw{distance} joint element.
 
 
@@ -3048,7 +3048,7 @@ in the reference frame of node 1, whose amplitude is defined by a drive.
         (Vec3_tpl_drive_caller) <relative_position>
 \end{verbatim}
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
 \item \kw{"dx"} imposed displacement component along node 1 axis 1
@@ -3059,7 +3059,7 @@ The following data is available:
 \item \kw{"fz"} reaction force component along node 1 axis 3
 \end{enumerate}
 
-\paragraph{Hints}
+\subsubsection{Hints}
 When wrapped by a \kw{driven} element, it honors the following hints:
 \begin{itemize}
 \item \kw{offset\{1\}} the offset of the joint
@@ -3087,7 +3087,7 @@ whose amplitude is defined by a drive.
         (Vec3_tpl_drive_caller) <position>
 \end{verbatim}
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
 \item \kw{"dx"} imposed displacement component along absolute axis 1
@@ -3098,7 +3098,7 @@ The following data is available:
 \item \kw{"fz"} reaction force component along absolute axis 3
 \end{enumerate}
 
-\paragraph{Hints}
+\subsubsection{Hints}
 When wrapped by a \kw{driven} element, it honors the following hints:
 \begin{itemize}
 \item \kw{offset\{1\}} the offset of the joint
@@ -3129,7 +3129,7 @@ by a drive.
 \emph{Note: this element is eXperimental; now it is more reliable, 
 but it is limited to $\nrbr{\tt <hinge\_orientation>} < \pi$}.
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
 \item \kw{"rx"} imposed relative rotation about node 1 hinge axis 1
@@ -3137,7 +3137,7 @@ The following data is available:
 \item \kw{"rz"} imposed relative rotation about node 1 hinge axis 3
 \end{enumerate}
 
-\paragraph{Hints}
+\subsubsection{Hints}
 When wrapped by a \kw{driven} element, it honors the following hints:
 \begin{itemize}
 \item \kw{hinge\{1\}} the orientation with respect to node 1
@@ -3188,7 +3188,7 @@ as private data of the element under the names \kw{lambda[1-3]},
 For a description of the formulation and of the angles describe above,
 see the Technical Manual.
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
 \item \kw{"lambda[1]"} constraint reaction moment about node 1 local axis 1
@@ -3215,7 +3215,7 @@ The amplitude of the displacement is defined by a drive.
         (drive_caller) <relative_position>
 \end{verbatim}
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
 \item \kw{"d"} imposed displacement along \kw{direction},
@@ -3224,7 +3224,7 @@ in node 1 reference frame;
 in node 1 reference frame.
 \end{enumerate}
 
-\paragraph{Hints}
+\subsubsection{Hints}
 When wrapped by a \kw{driven} element, it honors the following hints:
 \begin{itemize}
 \item \kw{offset\{1\}} the offset of the joint
@@ -3253,7 +3253,7 @@ The amplitude of the displacement is defined by a drive.
         (drive_caller) <position>
 \end{verbatim}
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
 \item \kw{"x"} imposed displacement along \kw{direction},
@@ -3262,7 +3262,7 @@ in the absolute reference frame;
 in the absolute reference frame.
 \end{enumerate}
 
-\paragraph{Hints}
+\subsubsection{Hints}
 When wrapped by a \kw{driven} element, it honors the following hints:
 \begin{itemize}
 \item \kw{offset\{1\}} the offset of the joint
@@ -3378,7 +3378,7 @@ along a given axis.
                         (drive_caller) <acceleration>
 \end{verbatim}
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
 \item \kw{"F"} constraint reaction force along joint direction
@@ -3394,7 +3394,7 @@ along a given axis.
                         (drive_caller) <velocity>
 \end{verbatim}
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
 \item \kw{"v"} imposed velocity along joint direction
@@ -3554,7 +3554,7 @@ for \kw{proportional damping} (same for all modes) or the list
 of values provided for \kw{diag damping} (for each mode).
 For example, a factor of 0.01 means 1\% damping.
 
-\paragraph{Output}
+\subsubsection{Output}
 Up to MBDyn 1.2.6 output occurred in a specific file that needed
 to be mandatorily given as the last argument to each modal element
 definition.
@@ -3569,7 +3569,7 @@ separated by a dot (e.g. \kw{label.mode})
 \item the value of the second derivative of the modal unknown
 \end{itemize}
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 The following data is available, for each mode:
 \begin{enumerate}
 \item \kw{"q[<i>]"} mode \kw{<i>} value
@@ -3656,7 +3656,7 @@ the joint initial orientation.
         [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,    
 \end{verbatim}
 
-\paragraph{Hints}
+\subsubsection{Hints}
 When wrapped by a \kw{driven} element, it honors the following hints:
 \begin{itemize}
 \item \kw{hinge\{1\}} the relative orientation of the joint
@@ -3718,7 +3718,7 @@ If friction is present:
 \item subsequent columns: any friction model specific data.
 \end{itemize}
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
 \item \kw{"rz"} relative rotation angle about revolute axis
@@ -3731,7 +3731,7 @@ The following data is available:
 \item \kw{"Mz"} constraint reaction moment about node 1 local direction 3
 \end{enumerate}
 
-\paragraph{Hints}
+\subsubsection{Hints}
 When wrapped by a \kw{driven} element, it honors the following hints:
 \begin{itemize}
 \item \kw{hinge\{1\}} the relative orientation of the joint
@@ -3771,7 +3771,7 @@ Note: this is equivalent to a
 when one node is grounded.
 }
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
 \item \kw{"rz"} relative rotation angle about revolute axis
@@ -3784,7 +3784,7 @@ The following data is available:
 \item \kw{"Mz"} constraint reaction moment about node 1 local direction 3
 \end{enumerate}
 
-\paragraph{Hints}
+\subsubsection{Hints}
 When wrapped by a \kw{driven} element, it honors the following hints:
 \begin{itemize}
 \item \kw{hinge\{1\}} the relative orientation of the joint
@@ -3819,12 +3819,12 @@ The relative position is not constrained.
             (OrientationMatrix) <relative_orientation_matrix_2> ]
 \end{verbatim}
 
-\paragraph{Rationale}
+\subsubsection{Rationale}
 A revolute joint without position constraints; this joint, in conjunction
 with an \kw{inline} joint, should be used to constrain, for example,
 the two nodes of a hydraulic actuator.
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
 \item \kw{"rz"} relative rotation angle about revolute axis
@@ -3834,7 +3834,7 @@ The following data is available:
 \item \kw{"Mz"} constraint reaction moment about node 1 local direction 3
 \end{enumerate}
 
-\paragraph{Hints}
+\subsubsection{Hints}
 When wrapped by a \kw{driven} element, it honors the following hints:
 \begin{itemize}
 \item \kw{hinge\{1\}} the relative orientation of the joint
@@ -3880,7 +3880,7 @@ to the more general \kw{rod with offset};
 see also \kw{rod with offset}
 in Section~\ref{sec:EL:STRUCT:JOINT:ROD_WITH_OFFSET}.
 
-\paragraph{Output}
+\subsubsection{Output}
 The output occurs in the \kw{.jnt} file, which contains:
 \begin{itemize}
 \item the label
@@ -3899,7 +3899,7 @@ reference frame (always zero)
 \item optional data appended by the constitutive law
 \end{itemize}
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
 \item \kw{"F"} constraint force between the two nodes/connection points
@@ -3946,7 +3946,7 @@ Note: the orientation matrix, set by means of the \kw{hinge} keyword,
 is used for output purposes only. 
 A default identity matrix is assumed.
 
-\paragraph{Hints}
+\subsubsection{Hints}
 When wrapped by a \kw{driven} element, it honors the following hints:
 \begin{itemize}
 \item \kw{offset\{1\}} the offset of the joint
@@ -4317,7 +4317,7 @@ of the communication with the controller process.
 \emph{Note: the real-time variant of this element has not been implemented
 yet.}
 
-\paragraph{Non real-time simulation}
+\subsubsection{Non real-time simulation}
 During non real-time simulations, streams operate in blocking mode.
 The meaning of the parameters is:
 \begin{itemize}
@@ -4341,7 +4341,7 @@ and \kw{host} keywords are given, a socket is opened by default
 in the internet namespace with the default IP and port; the \kw{create}
 keyword is mandatory.
 
-\paragraph{Real-time simulation}
+\subsubsection{Real-time simulation}
 During real-time simulations, streams wrap non-blocking RTAI mailboxes.
 The meaning of the parameters is:
 \begin{itemize}
@@ -4496,7 +4496,7 @@ corresponding to average, fore-aft and lateral inflow,
 can be explicitly initialized by means of the optional 
 entry \kw{initial value}.
 
-\paragraph{Output}
+\subsubsection{Output}
 The following output is available for all rotor elements:
 \begin{enumerate}
 \item element label
@@ -4528,7 +4528,7 @@ The \kw{dynamic inflow} model adds the columns
 \item cosine inflow state (longitudinal)
 \end{enumerate}
 
-\paragraph{Private Data}
+\subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
 \item \kw{"Tx"} rotor force in \kw{x} direction (longitudinal force)
@@ -4651,6 +4651,7 @@ to the \kw{axial rotation} joint.
             hinge, 1, 1.,0.,0., 3, 0.,0.,1.;
 \end{verbatim}
 
+\subsubsection{Hint}
 The \kw{hint} feature consists in allowing the setup of elements
 to be computed when they are activated rather than at startup.
 For example, a joint that is activated after some simulation time
