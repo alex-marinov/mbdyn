@@ -14,7 +14,7 @@ http://www.aero.polimi.it
 1.1.1
 	- There's a library cross-dependency that's not appropriately 
 	  handled by recent versions of libtool (e.g. 1.4.1).
-	  libbase.a must be linked twice (at lòeast on Linux with gcc 3.1)
+	  libbase.a must be linked twice (at least on GNU/Linux with gcc 3.1)
 	  but recent libtools detect the duplicate linking and remove
 	  the first occurrence.  It has been temporarily fixed by 
 	  deceiving libtool with a simple trick, but it is likely

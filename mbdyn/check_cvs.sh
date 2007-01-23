@@ -1,4 +1,5 @@
 #!/bin/sh
+# $Header$
 
 cvs -z3 status -v 2>/dev/null | \
 awk '
