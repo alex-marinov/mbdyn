@@ -79,7 +79,12 @@ const char* psExt[] = {
 /* Costruttore senza inizializzazione */
 OutputHandler::OutputHandler(void)
 : FileName(NULL),
-iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision), nCurrRestartFile(0)
+#ifdef USE_NETCDF
+pBinFile(0),
+#endif /* USE_NETCDF */
+iCurrWidth(iDefaultWidth),
+iCurrPrecision(iDefaultPrecision),
+nCurrRestartFile(0)
 {
 	OutputHandler_int();
 }
@@ -87,7 +92,12 @@ iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision), nCurrRestartFile(0
 /* Costruttore con inizializzazione */
 OutputHandler::OutputHandler(const char* sFName, int iExtNum)
 : FileName(sFName, iExtNum),
-iCurrWidth(iDefaultWidth), iCurrPrecision(iDefaultPrecision), nCurrRestartFile(0)
+#ifdef USE_NETCDF
+pBinFile(0),
+#endif /* USE_NETCDF */
+iCurrWidth(iDefaultWidth),
+iCurrPrecision(iDefaultPrecision),
+nCurrRestartFile(0)
 {
 	OutputHandler_int();
 	Init(sFName, iExtNum);
