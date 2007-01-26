@@ -1242,8 +1242,8 @@ It is implemented in files
 
 \paragraph{Definitions}
 \begin{eqnarray*}
-	\T{R}_{rel} & = & \T{R}_1^T \T{R}_2 \\
-	\T{\theta} & = & \llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{rel}}}
+	\T{R}_{\text{rel}} & = & \T{R}_1^T \T{R}_2 \\
+	\T{\theta} & = & \llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{\text{rel}}}}
 \end{eqnarray*}
 Limitations:
 \begin{equation}
@@ -1283,7 +1283,7 @@ yields
 \begin{eqnarray*}
 	\delta\T{\theta}
 		& = & \T{\Gamma}\plbr{\T{\theta}}^{-1} 
-			\llk{ax}\plbr{\delta\T{R}_{rel} \T{R}_{rel}^T} \\
+			\llk{ax}\plbr{\delta\T{R}_{\text{rel}} \T{R}_{\text{rel}}^T} \\
 		& = & \T{\Gamma}\plbr{\T{\theta}}^{-1} \llk{ax}\plbr{
 			\delta\T{R}_1^T \T{R}_1
 			+ \T{R}_1^T \delta\T{R}_2 \T{R}_2^T \T{R}_1
@@ -1333,10 +1333,20 @@ this operation can always be performed with no ambiguity.
 The equality
 \begin{equation}
 	\T{\theta} - \T{\theta}_0 = \T{0}
+	\label{eq:DRIVE-HINGE-future-theta}
 \end{equation}
+implies that
+\begin{equation}
+	\T{R}_{\text{\text{rel}}} = \T{R}_0 ;
+\end{equation}
+this can be rewritten as
+\begin{equation}
+	\T{R}_{\text{\text{rel}}} \T{R}_0^T = \T{I}
+\end{equation}
+and thus Eq.~(\ref{eq:DRIVE-HINGE-future-theta})
 is equivalent to
 \begin{equation}
-	\llk{ax}\plbr{\exp^{-1}\plbr{\T{R}_{rel} \T{R}_0^T}} = \T{0}
+	\llk{ax}\plbr{\exp^{-1}\plbr{\T{R}_{\text{rel}} \T{R}_0^T}} = \T{0}
 \end{equation}
 
 \noindent
@@ -1931,7 +1941,7 @@ It is implemented in files
 \paragraph{Definitions} \
 The relative orientation is made of three steps, described by
 \begin{eqnarray*}
-	\T{R}_{rel}
+	\T{R}_{\text{rel}}
 	& = & \T{R}_a^T \T{R}_b \\
 	& = & \llk{exp}\plbr{\vartheta \T{e}_2 \times{}}
 		\llk{exp}\plbr{\varphi \T{e}_1 \times{}}
@@ -1953,7 +1963,7 @@ and $\T{e}_i$ is the unit vector in the $i$-th direction.
 \noindent
 Constraint equation
 \begin{equation}
-	\llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{rel}}}
+	\llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{\text{rel}}}}
 	- \llk{ax}\plbr{\llk{exp}^{-1}\plbr{
 		\llk{exp}\plbr{\T{e}_2 \vartheta \times{}}
 		\llk{exp}\plbr{\T{e}_1 \varphi \times{}}
@@ -1964,7 +1974,7 @@ Constraint equation
 Lagrange multipliers approach:
 \begin{eqnarray*}
 	0 & = & \delta\plbr{\T{\lambda}^T\plbr{
-	\llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{rel}}}
+	\llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{\text{rel}}}}
 	- \llk{ax}\plbr{\llk{exp}^{-1}\plbr{
 		\llk{exp}\plbr{\T{e}_2 \vartheta \times{}}
 		\llk{exp}\plbr{\T{e}_1 \varphi \times{}}
@@ -1972,7 +1982,7 @@ Lagrange multipliers approach:
 	}}
 	}} \\
 	& = & \delta\T{\lambda}^T \plbr{
-	\llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{rel}}}
+	\llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{\text{rel}}}}
 	- \llk{ax}\plbr{\llk{exp}^{-1}\plbr{
 		\llk{exp}\plbr{\T{e}_2 \vartheta \times{}}
 		\llk{exp}\plbr{\T{e}_1 \varphi \times{}}
