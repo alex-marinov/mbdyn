@@ -375,6 +375,29 @@ configurations of MBDyn as performed by the developers.
 Feel free to contribute your own if you had to do any unusual
 configuring to meet special needs.
 
+\section{Modules}
+To enable run-time loading of modules, a powerful means to extend
+MBDyn functionalities, one needs to:
+\begin{itemize}
+\item install, and let MBDyn detect, the ltdl library, an ancillary
+library of libtool that handles platform-independent run-time loading
+of software modules;
+\item enable run-time loading of modules, by configuring with
+\kw{--enable-runtime-loading};
+\item when using gcc, it is recommended to add \kw{-rdynamic} to
+the \kw{LDFLAGS} environment variable; this is required to use
+in modules functions and objects that provided by MBDyn;
+\item if developing a custom module, it must be placed in a subdirectory
+of the directory \kw{modules/}, named \kw{module-name/}.
+The module should be contained in one file, with the same name
+of the directory plus the language-specific extension; this should be
+\kw{module-name.c} for C, \kw{module-name.cc} for C++ or \kw{module-name.f}
+for fortran 77.
+\item module compilation must be enabled by configuring with
+\kw{--enable-module=list}, providing a list of the module names 
+(without the leading \kw{module-}).
+\end{itemize}
+
 \section{Schur Solver}
 This section describes how the Schur parallel solver available
 within the MBDyn package has been successfully compiled and executed
