@@ -375,28 +375,49 @@ configurations of MBDyn as performed by the developers.
 Feel free to contribute your own if you had to do any unusual
 configuring to meet special needs.
 
-\section{Modules}
+\section{Run-Time Modules}
 To enable run-time loading of modules, a powerful means to extend
-MBDyn functionalities, one needs to:
+MBDyn functionality, one needs to:
 \begin{itemize}
 \item install, and let MBDyn detect, the ltdl library, an ancillary
 library of libtool that handles platform-independent run-time loading
 of software modules;
-\item enable run-time loading of modules, by configuring with
-\kw{--enable-runtime-loading};
+\item enable run-time loading of modules; this requires to configure
+MBDyn with \kw{{-}{-}enable-runtime-loading};
 \item when using gcc, it is recommended to add \kw{-rdynamic} to
-the \kw{LDFLAGS} environment variable; this is required to use
-in modules functions and objects that provided by MBDyn;
-\item if developing a custom module, it must be placed in a subdirectory
+the \kw{LDFLAGS} environment variable; this is required to make
+functions and objects provided by MBDyn available in the modules;
+\item when developing a custom module, it must be placed in a subdirectory
 of the directory \kw{modules/}, named \kw{module-name/}.
 The module should be contained in one file, with the same name
 of the directory plus the language-specific extension; this should be
-\kw{module-name.c} for C, \kw{module-name.cc} for C++ or \kw{module-name.f}
-for fortran 77.
-\item module compilation must be enabled by configuring with
-\kw{--enable-module=list}, providing a list of the module names 
-(without the leading \kw{module-}).
+	\begin{itemize}
+	\item C: \kw{module-name.c};
+	\item C++: \kw{module-name.cc};
+	\item Fortran 77: \kw{module-name.f}.
 \end{itemize}
+\item the building of each module must be explicitly enabled; 
+this requires to configure with \kw{{-}{-}with-module=list}, 
+providing a list of the module names (without the leading \kw{module-}).
+\end{itemize}
+For example, to enable run-time loading and to build the \kw{wheel2} module,
+use
+\begin{verbatim}
+    $ ./configure --enable-runtime-loading --with-module=wheel2
+\end{verbatim}
+Occasionally, one may want to statically build some well-known modules
+into MBDyn, specifically those that implement new elements.
+This requires to configure with \kw{{-}{-}with-static-modules}.
+After that, the user-defined elements are available as joints.
+Currently, only the \kw{wheel2} module can be statically built
+into MBDyn; this feature will require some reworking.
+
+Run-time loading of dynamic modules is known to work on any flavor
+of GNU/Linux on X86/X86\_64 and on Windows using Cygwin, when compiled 
+with gcc.
+It may work on other architectures and with other compilers, but it has
+not been tested by, nor reported to, the Developers.
+
 
 \section{Schur Solver}
 This section describes how the Schur parallel solver available
@@ -427,7 +448,7 @@ Software requirements:
 \item untar the package in a temporary directory
 \item configure the package with
 \begin{verbatim}
-$ ./configure -rsh=ssh --disable-f77 --prefix=/usr/local/mpich
+    $ ./configure -rsh=ssh --disable-f77 --prefix=/usr/local/mpich
 \end{verbatim}
 \item \kw{make} the package
 \item \kw{make install}
