@@ -12,7 +12,7 @@ export LTCXXCOMPILE = @LIBTOOL@ --mode=compile @CXX@ @DEFS@ \
 	$(AM_CPPFLAGS) @CPPFLAGS@ $(AM_CXXFLAGS) @CXXFLAGS@
 CXXLD = @CXX@
 export CXXLINK = @LIBTOOL@ --mode=link $(CXXLD) $(AM_CXXFLAGS) \
-	@CXXFLAGS@ @LDFLAGS@ -shared -lg2c
+	@CXXFLAGS@ @LDFLAGS@ -shared @F2C_LIBS@
 export LTCOMPILE = @LIBTOOL@ --mode=compile @CC@ @DEFS@ \
 	-I. -I@srcdir@ -I../../include \
 	-I../../libraries/libmbutil -I../../libraries/libmbmath \
