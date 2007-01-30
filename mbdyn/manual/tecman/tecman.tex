@@ -41,6 +41,7 @@
 \input{stdmacro}
 %poor man's bold symbol
 \newcommand{\T}[1]{\boldsymbol{#1}}
+\newcommand{\TT}[1]{\boldsymbol{#1}}
 
 \begin{document}
 
@@ -386,13 +387,13 @@ Of course the increment of the parameter is
 $\Delta \T g=\texttt{dCoef}\Delta \dot{\T g}$.
 The increment of angular velocity is 
 $\Delta \T \omega = \T G\Delta \dot{\T g}+ \Delta \T G \dot{\T g}-
-\T \omega_{ref}\times \T G \Delta \T g$,
+\T \omega_{\mathrm{ref}}\times \T G \Delta \T g$,
 where $\T G(\T g)$ is the tensor relating $\T g_\delta$ to $\delta \T g$,
-and $\T \omega_{ref}$ is the nodal reference angular velocity (Wref).
+and $\T \omega_{\mathrm{ref}}$ is the nodal reference angular velocity (Wref).
 We assume $\T G = \T I$ and $\Delta \T G = \T 0$,
-so that $\Delta \T \omega = \Delta \dot{\T g}-\T \omega_{ref}\times\Delta \T g$
+so that $\Delta \T \omega = \Delta \dot{\T g}-\T \omega_{\mathrm{ref}}\times\Delta \T g$
 and so $\Delta \T \omega = \Delta \dot{\T g}-
-\T \omega_{ref}\times\Delta \dot{\T g} * \texttt{dCoef}$.
+\T \omega_{\mathrm{ref}}\times\Delta \dot{\T g} * \texttt{dCoef}$.
 
 
 \chapter{Solution Phases}
@@ -2396,10 +2397,11 @@ which, according to the updated-updated approach, becomes
 	\T{\theta}_{\delta} \cong \T{R}_{1h}^T\plbr{\delta\T{g}_2 - \delta\T{g}_1}
 \end{equation}
 
-The relative angular velocity results from the time derivative
-of $\T{\theta}$
+The relative angular velocity stems from the time derivative
+of $\TT{R}_{1h}^T\TT{R}_{2h}$
 \begin{equation}
 	\T{\omega} = \T{R}_{1h}^T\plbr{\T{\omega}_2 - \T{\omega}_1} ;
+	\label{eq:deformable-hinge-attached-omega}
 \end{equation}
 in fact, the time derivative of the relative orientation yields
 \begin{align}
@@ -2474,6 +2476,7 @@ where
 
 
 \subsubsection{Invariant Deformable Hinge}
+\label{sec:deformable-hinge-invariant}
 The rotation $\tilde{\T{\theta}}=\T{\theta}/2$
 is used to define an intermediate reference frame for the joint,
 whose orientation with respect to node 1 is
@@ -2587,8 +2590,11 @@ yields
 The relative angular velocity, in the intermediate reference frame, is
 \begin{equation}
 	\T{\omega} = \hat{\T{R}}^T \plbr{\T{\omega}_2 - \T{\omega}_1}
-	\label{eq:inv-deformable-hinge-omega-rel}
+	\label{eq:inv-deformable-hinge-omega-rel} ,
 \end{equation}
+which corresponds to that of the attached case,
+Eq.~(\ref{eq:deformable-hinge-attached-omega}),
+projected in the material frame by $\tilde{\TT{R}}^T$.
 The linearization of the angular velocity 
 of Equation~(\ref{eq:inv-deformable-hinge-omega-rel}) yields
 \begin{align}
@@ -2617,6 +2623,13 @@ of Equation~(\ref{eq:inv-deformable-hinge-omega-rel}) yields
 	& \mbox{\hspace{10pt}} + \T{\omega} \times \plbr{
 		\plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T \T{\theta}_{2\delta}
 		+ \plbr{\T{I} - \plbr{\T{I} + \tilde{\T{R}}}^{-1}} \hat{\T{R}}^T \T{\theta}_{1\delta}
+	} \\
+	&= \hat{\T{R}}^T \plbr{
+		\delta\T{\omega}_2 - \delta\T{\omega}_1
+	} \nonumber \\
+	& \mbox{\hspace{10pt}} + \T{\omega} \times \plbr{
+		\plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T \T{\theta}_{2\delta}
+		+ \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\T{R}}^T \T{\theta}_{1\delta}
 	}
 	\label{eq:inv-deformable-hinge-omega-rel-delta}
 \end{align}
@@ -2628,22 +2641,22 @@ and thus
 \begin{align}
 	\plbr{\T{I} + \tilde{\T{R}}}^{-1}
 	&= \tilde{\T{R}}^{-T} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \tilde{\T{R}}^{-1} \\
-	&= \tilde{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \tilde{\T{R}}^T
+	&= \tilde{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \tilde{\T{R}}^T ,
 \end{align}
-%%%
-\begin{comment}
+while
 \begin{equation}
-	\T{\omega} = \hat{\T{R}}^T \plbr{
-		\T{I} + \frac{1}{2} \plbr{\T{R}_{1h} \T{\theta}} \times{}
-	} \plbr{\T{\omega}_2 - \T{\omega}_1}
+	\T{I} - \plbr{\T{I} + \tilde{\T{R}}}^{-1} = \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} .
 \end{equation}
-The linearization of the angular velocity yields
-\begin{align}
-	\delta\T{\omega}
-	&= \textbf{FIXME}
-\end{align}
-\end{comment}
-%%%
+This can be easily proved by considering that
+\begin{equation}
+	\plbr{\T{I} + \tilde{\T{R}}}^{-1} = \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \tilde{\T{R}}^T
+\end{equation}
+and, as a consequence,
+\begin{equation}
+	\T{I} = \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \plbr{\T{I} + \tilde{\T{R}}^T}
+\end{equation}
+which reduces again to the identity matrix.
+
 The moment is
 \begin{equation}
 	\T{M}_i = \plbr{-1}^i \hat{\T{R}} \tilde{\T{M}}\plbr{\T{\theta}, \T{\omega}}
@@ -2679,30 +2692,10 @@ and yields
 		\plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T \T{\theta}_{2\delta}
 	\nonumber \\
 	& \mbox{\hspace{10pt}} - \T{M}_i \times \hat{\T{R}} 
-		\plbr{\T{I} - \plbr{\T{I} + \tilde{\T{R}}}^{-1}} \hat{\T{R}}^T \T{\theta}_{1\delta}
-	\\
-	&= \textbf{FIXME}
+		\plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\T{R}}^T \T{\theta}_{1\delta}
 \end{align}
-
-\emph{The same result is obtained by perturbing 
-$\hat{\T{R}}$ in the form $\hat{\T{R}}=\T{R}_{2h}\tilde{\T{R}}^T$; 
-without going into excessive detail, it results 
-in an expression analogous to the above, except that the terms
-that multiply $\T{\theta}_{2\delta}$ and $\T{\theta}_{1\delta}$
-require
-\begin{equation}
-	\T{I} - \plbr{\T{I} + \tilde{\T{R}}}^{-1} = \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} .
-\end{equation}
-This can be easily proved by considering that
-\begin{equation}
-	\plbr{\T{I} + \tilde{\T{R}}}^{-1} = \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \tilde{\T{R}}^T
-\end{equation}
-and, as a consequence,
-\begin{equation}
-	\T{I} = \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \plbr{\T{I} + \tilde{\T{R}}^T}
-\end{equation}
-which reduces again to the identity matrix.}
-
+The same result is obtained by perturbing 
+$\hat{\T{R}}$ in the form $\hat{\T{R}}=\T{R}_{2h}\tilde{\T{R}}^T$.
 
 
 The complete linearized problem is
@@ -2737,7 +2730,7 @@ The complete linearized problem is
 			\T{M}_{/\T{\omega}} \plbr{\T{\omega}_2 - \T{\omega}_1} \times{}
 			- \T{M}\times{}
 		} \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T
-	}} \T{\theta}_{2\delta} & & \\
+	}} \T{\theta}_{2\delta} 
 	& = & \cubr{\cvvect{
 		\T{M} \\
 		- \T{M}
@@ -2751,7 +2744,7 @@ where
 
 
 
-\subsubsection{Note on attached vs.\ variant deformable hinge}
+\subsubsection{Note on attached vs.\ invariant deformable hinge}
 The moment applied by the attached formulation to node 1,
 in the global reference frame, is
 \begin{equation}
@@ -2817,40 +2810,44 @@ As for the \texttt{deformable hinge}, the constitutive law of this joint
 may be either attached to one node or defined in an intermediate
 reference frame that accounts for the relative orientation of the two nodes,
 so that the order in which the nodes are defined becomes irrelevant.
-In the following, the ``attached'' case is discussed; the ``invariant''
-form is under development.
 
-The relative position is expressed in a reference frame attached to node 1:
+The relative position in the absolute reference frame, $\T{d}$, is
 \begin{equation}
-	\tilde{\T{d}} = \T{R}_{1h}^T\plbr{
-		\T{x}_2 + \T{f}_2 - \T{x}_1 - \T{f}_1
-	}
+	\T{d} = \T{x}_2 + \T{f}_2 - \T{x}_1 - \T{f}_1 .
 \end{equation}
 The relative velocity is
-\begin{eqnarray*}
-	\dot{\tilde{\T{d}}} & = & \T{R}_{1h}^T\plbr{
-		\dot{\T{x}}_2 + \T{\omega}_2\times\T{f}_2
-		- \dot{\T{x}}_1 - \T{\omega}_1\times\T{f}_1
-	} + \tilde{\T{d}}\times\T{R}_{1h}^T \T{\omega}_1 \\
-	& = & \T{R}_{1h}^T\plbr{
-		\dot{\T{x}}_2
-		+ \T{\omega}_2\times\T{f}_2
-		- \dot{\T{x}}_1
-		- \T{\omega}_1\times\plbr{
-			\T{x}_2
-			+ \T{f}_2
-			- \T{x}_1
-		}
-	} \\
-	& = & \T{R}_{1h}^T\plbr{
+\begin{equation}
+	\dot{\T{d}} = \dot{\T{x}}_2 + \T{\omega}_2 \times \T{f}_2
+		- \dot{\T{x}}_1 - \T{\omega}_1 \times \T{f}_1 .
+\end{equation}
+
+\subsubsection{Attached Deformable Displacement Joint}
+The ``attached'' form of the deformable displacement joint
+is obtained by projecting the relative position $\T{d}$
+in a reference frame attached to node 1:
+\begin{equation}
+	\tilde{\T{d}} = \T{R}_{1h}^T \T{d}
+\end{equation}
+The relative velocity is
+\begin{equation}
+	\dot{\tilde{\T{d}}} = \T{R}_{1h}^T\plbr{
+		\dot{\T{d}} - \T{\omega}_1 \times \T{d}
+	} ,
+\end{equation}
+but it can be replaced by
+\begin{equation}
+	\dot{\tilde{\T{d}}} = \T{R}_{1h}^T\plbr{
 		\dot{\T{d}}_1 - \T{\omega}_1 \times \T{d}_1
-	}
-\end{eqnarray*}
+	} ,
+\end{equation}
 where
 \begin{eqnarray*}
 	\T{d}_1 & = & \T{x}_2 + \T{f}_2 - \T{x}_1 \\
-	\dot{\T{d}}_1 & = & \dot{\T{x}}_2 + \T{\omega}_2 \times \T{f}_2 - \dot{\T{x}}_1
+	\dot{\T{d}}_1 & = & \dot{\T{x}}_2 + \T{\omega}_2 \times \T{f}_2 - \dot{\T{x}}_1 ,
 \end{eqnarray*}
+since the relative velocity associated to the rotation of $\T{f}_1$,
+the offset of the reference point attached to node 1,
+is zero by definition.
 The linearization of the distance yields
 \begin{eqnarray*}
 	\delta{\tilde{\T{d}}} & \cong & \T{R}_{1h}^T\plbr{
@@ -3026,6 +3023,85 @@ where
 	\T{F}_{/\tilde{\dot{\T{d}}}} & = & \T{R}_{1h} \tilde{\T{F}}_{/\tilde{\dot{\T{d}}}} \T{R}_{1h}^T \\
 	\T{F}_{/\tilde{\T{d}}} & = & \T{R}_{1h} \tilde{\T{F}}_{/\tilde{\T{d}}} \T{R}_{1h}^T
 \end{eqnarray*}
+
+
+
+\subsubsection{Invariant Deformable Displacement Joint}
+The invariant form of the \texttt{deformable displacement} joint
+assumes that the constitutive properties of the component,
+that explicitly depend only on the relative position 
+of the nodes, is defined in a reference frame that is intermediate
+between those of node 1 and 2, much like the invariant form
+of the \texttt{deformable hinge} joint.
+
+The distance between the two reference points, expressed
+in the global reference frame, is pulled back in the 
+intermediate material reference frame by the transpose
+of matrix $\hat{\TT{R}}$
+\begin{equation}
+	\hat{\T{d}} = \hat{\TT{R}}^T \T{d}
+\end{equation}
+The relative velocity is
+\begin{align}
+	\dot{\hat{\T{d}}}
+	&= \dot{\hat{\TT{R}}}^T \T{d} + \hat{\TT{R}}^T \dot{\T{d}}
+		\nonumber \\
+	&= \hat{\TT{R}}^T \plbr{
+		\dot{\T{d}} - \hat{\T{\omega}} \times \T{d}
+	}
+\end{align}
+where
+\begin{equation}
+	\hat{\T{\omega}}
+	= \hat{\TT{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\TT{R}}^T \T{\omega}_2
+	- \hat{\TT{R}} \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\TT{R}}^T \T{\omega}_1 ;
+	\label{eq:deformable-displacement-invariant-hat-omega}
+\end{equation}
+for a discussion of the properties of the entities
+that appear in Eq.~(\ref{eq:deformable-displacement-invariant-hat-omega})
+see Section~\ref{sec:deformable-hinge-invariant}.
+
+The perturbation of the relative position yields
+\begin{equation}
+	\delta\hat{\T{d}} = \hat{\TT{R}}^T \plbr{
+		\delta\T{d} + \T{d} \times \hat{\T{\theta}}_{\delta}
+	}
+\end{equation}
+where
+\begin{align}
+	\delta\T{d}
+	&= \delta\T{x}_2 - \T{f}_2 \times \T{\theta}_{2\delta}
+		- \delta\T{x} - \T{f}_1 \times \T{\theta}_{1\delta} \\
+	\hat{\T{\theta}}_{\delta}
+	&= \hat{\TT{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\TT{R}}^T \T{\theta}_{2\delta}
+	- \hat{\TT{R}} \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\TT{R}}^T \T{\theta}_{1\delta} .
+\end{align}
+
+The perturbation of the relative velocity yields
+\begin{equation}
+	\delta\dot{\hat{\T{d}}} = \hat{\TT{R}}^T \plbr{
+		\delta\dot{\T{d}}
+		+ \T{d} \times \delta\hat{\T{\omega}}
+		- \hat{\T{\omega}} \times \delta\T{d}
+		+ \plbr{\dot{\T{d}} - \hat{\T{\omega}} \times \T{d}} \times \hat{\T{\theta}}_{\delta}
+	}
+\end{equation}
+where
+\begin{align}
+	\delta\dot{\T{d}}
+	&= \delta\dot{\T{x}}_2
+		- \T{f}_2 \times \delta\T{\omega}_{2}
+		- \T{\omega}_{2} \times \T{f}_2 \times \T{\theta}_{2\delta}
+			\nonumber \\
+		& \quad - \delta\dot{\T{x}}
+		+ \T{f}_1 \times \delta\T{\omega}_{1}
+		+ \T{\omega}_{1} \times \T{f}_1 \times \T{\theta}_{1\delta} \\
+	\delta\hat{\T{\omega}} &=
+\end{align}
+
+
+
+
 
 
 
