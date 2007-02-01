@@ -1358,6 +1358,7 @@ nodes 1 and 2,
 	\T{\theta} = \llk{ax}\plbr{\exp^{-1}\plbr{
 		\T{R}_{1h}^T \T{R}_1^T \T{R}_2 \T{R}_{2h}
 	}}
+	\label{eq:DRIVE-HINGE-future-thetadelta}
 \end{equation}
 through the previous redefinition can be expressed as
 \begin{equation}
@@ -1392,14 +1393,102 @@ $\T{\theta}_0$, so an anelastic (or imposed) rotation can be easily
 applied to the spring, resulting in an imposed rotation with stiffness.
 
 \noindent
+Subsequent differentiation of Eq.~(\ref{eq:DRIVE-HINGE-future-thetadelta}) enables to impose relatives angular velocities. The following definition of $\T{R}^{\delta}$:
+\begin{equation*}
+	\T{R}^{\delta} = \T{R}_{1h}^T \T{R}_1^T \T{R}_2 \T{R}_{2h} \T{R}_0^T
+\end{equation*}
+implies:
+\begin{equation*}
+	\T{\theta}^{\delta} = \llk{ax}\plbr{\exp^{-1}\plbr{
+		\T{R}^{\delta}}}
+\end{equation*}
+By definition, $\T{\dot{R}}^{\delta}$ is:
+\begin{equation*}
+\T{\dot{R}}^{\delta} = \T{\omega}_{\delta}\times\T{R}^{\delta}
+\end{equation*}
+so:
+\begin{equation*}
+\T{\omega}^{\delta}\times = \T{\dot{R}}^{\delta}\T{R}^{\delta T}
+\end{equation*}
+and:
+\begin{equation}
+\T{\omega}^{\delta} = \llk{ax}\plbr{\T{\dot{R}}^{\delta}\T{R}^{\delta T}}
+\label{eq:DRIVE-HINGE-future-omegadelta}
+\end{equation}
+We need to get $\T{\dot{R}}^{\delta}$, that is:
+\begin{equation*}
+\T{\dot{R}}^{\delta} = 	\T{R}_1^T \T{\omega}_1\times^T \T{R}_2 \T{R}_0^T + 
+			\T{R}_1^T \T{\omega}_2\times \T{R}_2 \T{R}_0^T +
+			\T{R}_1^T \T{R}_2 \T{R}_0^T \T{\omega}_0\times^T
+\end{equation*}
+where relative (constant) orientation matrices $\T{R}_{1h}$ and $\T{R}_{2h}$ have been omitted for clarity of notations. Since they are constant, there's no need to differentiate them. Now:
+\begin{eqnarray*}
+\T{\dot{R}}^{\delta}\T{R}^{\delta T} &=& 	
+	\T{R}_1^T \T{\omega}_1\times^T \T{R}_2 \T{R}_0^T \T{R}_0\T{R}_2^T \T{R}_1 + 
+	\T{R}_1^T \T{\omega}_2\times \T{R}_2 \T{R}_0^T \T{R}_0\T{R}_2^T \T{R}_1\\
+	&& + \T{R}_1^T \T{R}_2 \T{R}_0^T \T{\omega}_0\times^T \T{R}_0\T{R}_2^T \T{R}_1
+\end{eqnarray*}
+that, after simplifications, becomes:
+\begin{eqnarray*}
+\T{\dot{R}}^{\delta}\T{R}^{\delta T}  	
+		&=&	\T{R}_1^T \T{\omega}_1\times^T \T{R}_1 + 
+			\T{R}_1^T \T{\omega}_2\times   \T{R}_1 +
+			\T{R}^{\delta} \T{\omega}_0\times^T \T{R}^{\delta T}
+		\\
+		&=&	\T{R}_1^T \plbr{\T{\omega}_2-\T{\omega}_1}\times \T{R}_1 + 
+			\T{R}^{\delta T} \T{\omega}_0\times^T \T{R}^{\delta T}
+\end{eqnarray*}
+From the definition of $\T{\omega}^{\delta}$ (Eq.~(\ref{eq:DRIVE-HINGE-future-omegadelta})), we have:
+\begin{eqnarray}
+\nonumber \T{\omega}^{\delta} 
+	&=& 	\llk{ax}\plbr{\T{\omega}^{\delta}\times} = 		\llk{ax}\plbr{\T{\dot{R}}^{\delta}\T{R}^{\delta T}}\\
+	&=&	\T{R}_1^T\plbr{\T{\omega}_2 - \T{\omega}_1} - \T{R}^{\delta}\T{\omega}_0
+	\label{eq:DRIVE-HINGE-future-omegadelta2}
+\end{eqnarray} 
+Again, each component of $\T{\omega}^{\delta}$ can be selectively set
+to zero to enforce a velocity constraint on the corresponding degree of freedom.
+A desired relative angular velocity between nodes $1$ and $2$ with respect to an axis parallel to $\T{\omega}_0$ (!!!!!!!!!!! CHECK THIS !!!!!!!!!!!!!) and of magnitude $\Vert\T{\omega}_0\Vert$ can be imposed
+by means of the components of the imposed vector $\T{\omega}_0$.
+
+\noindent
+Subsequent differentiation with respect to time of Eq.~(\ref{eq:DRIVE-HINGE-future-omegadelta2}) leads to the definition of the relative angular acceleration:
+\begin{eqnarray*}
+\T{\dot{\omega}}^{\delta} 
+	&=&
+	\dfrac{d}{dt}\plbr{\T{R}_1^T\plbr{\T{\omega}_2-
+	\T{\omega}_1-\T{R}_2\T{R}_0^T\T{\omega}_0}}\\
+	&=&
+	\T{R}_1^T\T{\omega}_1\times^T\plbr{\T{\omega}_2-\T{\omega}_1} -
+	\T{R}_1^T\T{\omega_1}\times^T\T{R}_2\T{R}_0^T\T{\omega}_0\\ 
+	&&+\T{R}_1^T\plbr{\T{\dot{\omega}}_2-\T{\dot{\omega}}_1} -
+	\T{R}_1^T\T{\omega_2}\times\T{R}_2\T{R}_0^T\T{\omega}_0\\
+	&&-\T{R}_1^T\T{R}_2\T{R}_0^T\T{\omega}_0\times^T\T{\omega}_0 -
+	\T{R}_1^T\T{R}_2\T{R}_0\T{\dot{\omega}}_0 \\
+	&=&
+	-\T{R}_1^T\T{\omega}_1\times\T{\omega}_2
+	-\T{R}_1^T\plbr{\T{\omega}_2-\T{\omega}_1}\times\T{R}_2\T{R}_0^T\T{\omega}_0
+	+\T{R}_1^T\plbr{\T{\dot{\omega}}_2-\T{\dot{\omega}}_1}
+	-\T{R}^{\delta}\T{\dot{\omega}}_0	
+\end{eqnarray*}
+and, in analogy with orientation and angular velocity, a relative angular acceleration can be imposed between nodes $1$ and $2$ by means of the vector $\T{\dot{\omega}}_0$. Note that, in this case, also vector $\T{\omega}_0$ must be known.
+
+\noindent
 The linearization of the constraint equations is relatively 
 straightforward. 
-We need to compute the perturbation of $\T{\theta}^{\delta}$, i.e.,
-after defining
-\begin{equation}
+We need to compute the perturbation of $\T{\theta}^{\delta}$.
+Recalling the definition of $\T{R}^{\delta}$:
+\begin{equation*}
 	\T{R}^{\delta} = \T{R}_{1h}^T \T{R}_1^T \T{R}_2 \T{R}_{2h} \T{R}_0^T
-\end{equation}
-we obtain
+\end{equation*}
+we have:
+\begin{equation*}
+	\T{\theta}^{\delta} = \llk{ax}\plbr{\exp^{-1}\plbr{\T{R}^{\delta}}}
+\end{equation*}
+and, in analogy with the definition of the angular velocity:
+\begin{equation*}
+	\delta \T{R}^{\delta} = \delta \T{\theta}^{\delta} \times \T{R}^{\delta}
+\end{equation*}
+and:
 \begin{eqnarray*}
 	\T{\theta}^{\delta}_{\delta}
 	& = & \llk{ax}\plbr{\delta\T{R}^{\delta} \T{R}^{\delta T}} \\
@@ -1408,7 +1497,7 @@ we obtain
 		\T{R}_1 \T{R}_{1h}} \\
 	& = & \bar{\T{R}}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
 \end{eqnarray*}
-where $\bar{\T{R}}=\T{R}_1 \T{R}_{1h}$.
+where $\bar{\T{R}}=\T{R}_1 \T{R}_{1h}$ and $\T{\theta}^{\delta}_{\delta} = {\delta}\T{\theta}^{\delta}$.
 Note that, since the constraint equations are defined by setting 
 to zero any components of the vector $\T{\theta}^{\delta}$, the
 related Jacobian matrix contribution is obtained by selecting 
@@ -1416,10 +1505,10 @@ the corresponding columns of matrix $\bar{\T{R}}$.
 
 \noindent
 The relative angular velocity is defined, in analogy with 
-the differentiation of $\T{\theta}^{\delta}$, as
-\begin{equation}
-	\T{\omega}^{\delta} = \bar{\T{R}}^T\plbr{\T{\omega}_2 - \T{\omega}_1}
-\end{equation}
+the differentiation of $\T{\theta}^{\delta}$, as (Eq.~(\ref{eq:DRIVE-HINGE-future-omegadelta2}))
+\begin{equation*}
+\T{\omega}^{\delta} = \bar{\T{R}}^T\plbr{\T{\omega}_2 - \T{\omega}_1} - \T{R}^{\delta}\T{\omega}_0
+\end{equation*}
 whose differentiation yields
 \begin{eqnarray*}
 	\delta\T{\omega}^{\delta}
