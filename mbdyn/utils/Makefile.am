@@ -3,7 +3,6 @@ include $(top_srcdir)/build/top.mk
 
 # Build mbdyn utils
 bin_PROGRAMS = \
-2vec2phi \
 autopilot \
 c81merge \
 c81test \
@@ -47,7 +46,6 @@ MYLIBS = \
 @TCL_LIBS@ \
 @LIBS@
 
-2vec2phi_SOURCES = 2vec2phi.cc
 autopilot_SOURCES = autopilot.c
 c81merge_SOURCES = c81merge.cc
 c81test_SOURCES = c81test.cc
@@ -73,7 +71,6 @@ stream2socket_SOURCES = stream2socket.cc s2s.cc s2s.h
 trim_SOURCES = trim.cc s2s.cc s2s.h
 vec2rot_SOURCES = vec2rot.cc
 
-2vec2phi_LDADD = $(MYLIBS) @SECURITY_LIBS@
 autopilot_LDADD = $(MYLIBS) @SECURITY_LIBS@
 # need to fool libtool in getting libbase linked twice ;)
 # hope this is not fixed for a while...
