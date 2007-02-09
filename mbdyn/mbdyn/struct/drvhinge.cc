@@ -230,7 +230,7 @@ DriveHingeJoint::DescribeEq(std::ostream& out,
 unsigned int
 DriveHingeJoint::iGetNumPrivData(void) const
 {
-	return 3;
+	return 6;
 };
 
 unsigned int
@@ -239,17 +239,30 @@ DriveHingeJoint::iGetPrivDataIdx(const char *s) const
 	ASSERT(s != NULL);
 	ASSERT(s[0] != '\0');
 
-	if (s[0] != 'r' || s[2] != '\0') {
+	unsigned int idx = 0;
+
+	switch (s[0]) {
+	case 'M':
+		idx += 3;
+		/* fallthru */
+	case 'r':
+		break;
+
+	default:
+		return 0;
+	}
+
+	if (s[1] == '\0' || s[2] != '\0') {
 		return 0;
 	}
 
 	switch (s[1]) {
 	case 'x':
-		return 1;
+		return idx + 1;
 	case 'y':
-		return 2;
+		return idx + 2;
 	case 'z':
-		return 3;
+		return idx + 3;
 	}
 
 	return 0;
@@ -258,8 +271,23 @@ DriveHingeJoint::iGetPrivDataIdx(const char *s) const
 doublereal
 DriveHingeJoint::dGetPrivData(unsigned int i) const
 {
-	ASSERT(i >= 1 && i <= 3);
-	return Get().dGet(i);
+	ASSERT(i >= 1 && i <= 6);
+
+	switch (i) {
+	case 1:
+	case 2:
+	case 3:
+		return Get().dGet(i);
+
+	case 4:
+	case 5:
+	case 6:
+		return M(i - 3);
+
+	default:
+		ASSERT(0);
+		throw ErrGeneric();
+	}
 }
 
 /* assemblaggio jacobiano */
