@@ -306,8 +306,9 @@ The format of each row is
 \section{Parameter Node}
 \begin{verbatim}
     <arglist> ::= { <initial_value>
-                  | element 
-                  | beam strain gage , y , z }
+        | element 
+        | sample and hold, (node_dof) <signal> , <sample_time>
+        | beam strain gage , y , z }
 \end{verbatim}
 The parameter node is derived from the class scalar algebraic node, but it
 is used in a rather peculiar way: it doesn't own any degree of freedom,
@@ -318,9 +319,21 @@ Thanks to the availability of the \kw{parameter} node, these elements
 do not need be reformulated with a grounded node, while the parameter
 node value can be changed during the solution by means of a proper driving 
 force.
+
+\paragraph{Element}
 When the argument list starts with the keyword \kw{element}, the parameter
 node expects to be bound to an element, and to access bulk element data 
 (see Section~\ref{sec:EL:BIND}).
+
+\paragraph{Sample and Hold}
+When the argument list starts with the keyword \kw{sample and hold},
+followed by a \kw{NodeDof} and a sample time,
+the parameter node contains the value of the input signal, namely
+the value of the node, for the duration of the \kw{sample\_time}.
+This may be useful to preserve the value of some signal across
+time steps.
+
+\paragraph{Beam Strain Gage}
 When the argument list starts with the keyword \kw{beam strain gage},
 followed by the coordinates of a point on the section of a beam,
 the \kw{parameter} node expects to be bound to a \kw{beam} element,
