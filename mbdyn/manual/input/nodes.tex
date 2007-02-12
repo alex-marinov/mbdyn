@@ -155,7 +155,8 @@ The following dummy types are available:
 
 \end{itemize}
 
-\subsection{Output}\label{sec:NODE:STRUCTURAL:OUTPUT}
+\paragraph{Output}
+\label{sec:NODE:STRUCTURAL:OUTPUT}
 Structural nodes generate two kinds of output files. 
 The first refers to the kinematics of the node; its extension is \kw{.mov},
 and for each time step it contains one row for each node whose output is
@@ -215,6 +216,42 @@ The rows contain: \vspace{2mm} \\
     	11--13	& the three components of the derivative of the momentum moment \\
 	\hline
 \end{tabular}\vspace{2mm}\\
+
+\paragraph{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"X[1]"} position in global direction 1
+\item \kw{"X[2]"} position in global direction 2
+\item \kw{"X[3]"} position in global direction 3
+\item \kw{"Phi[1]"} orientation vector in global direction 1
+\item \kw{"Phi[2]"} orientation vector in global direction 2
+\item \kw{"Phi[3]"} orientation vector in global direction 3
+\item \kw{"XP[1]"} velocity in global direction 1
+\item \kw{"XP[2]"} velocity in global direction 2
+\item \kw{"XP[3]"} velocity in global direction 3
+\item \kw{"Omega[1]"} angular velocity in global direction 1
+\item \kw{"Omega[2]"} angular velocity in global direction 2
+\item \kw{"Omega[3]"} angular velocity in global direction 3
+\item \kw{"E[1]"} Cardan angle 1 (about global direction 1)
+\item \kw{"E[2]"} Cardan angle 2 (about global direction 2)
+\item \kw{"E[3]"} Cardan angle 3 (about global direction 3)
+\item \kw{"PE[0]"} Euler parameter 0
+\item \kw{"PE[1]"} Euler parameter 1
+\item \kw{"PE[2]"} Euler parameter 2
+\item \kw{"PE[3]"} Euler parameter 3
+\item \kw{"XPP[1]"} acceleration in global direction 1 (dynamic nodes only)
+\item \kw{"XPP[2]"} acceleration in global direction 2 (dynamic nodes only)
+\item \kw{"XPP[3]"} acceleration in global direction 3 (dynamic nodes only)
+\item \kw{"OmegaP[1]"} angular acceleration in global direction 1 (dynamic nodes only)
+\item \kw{"OmegaP[2]"} angular acceleration in global direction 2 (dynamic nodes only)
+\item \kw{"OmegaP[3]"} angular acceleration in global direction 3 (dynamic nodes only)
+\end{enumerate}
+Note: Euler parameters actually do not take into account 
+the whole orientation of a node, since they are post-processed
+from the orientation matrix.
+As a consequence, they only parametrize the minimum norm orientation
+that yields the current orientation matrix of the node.
+The same applies to the orientation vector $\varphi$.
 
 
 \section{Electric Node}
