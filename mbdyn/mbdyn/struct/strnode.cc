@@ -1041,8 +1041,8 @@ StructNode::iGetPrivDataIdx(const char *s) const
 		Phi		 3 + idx	idx = {1,3}
 		XP		 6 + idx	idx = {1,3}
 		Omega		 9 + idx	idx = {1,3}
-		E		12 + idx	idx = {0,3}
-		PE		16 + idx	idx = {1,3}
+		E		12 + idx	idx = {1,3}
+		PE		16 + idx	idx = {0,3}
 		-------------------------------------------
 		XPP		19 + idx	idx = {1,3}
 		OmegaP		22 + idx	idx = {1,3}
