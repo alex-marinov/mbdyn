@@ -55,7 +55,7 @@ while test "x$1" != "x" ; do
 	case $1 in
 	-f)
 		shift
-		if test "x$1" == "x" ; then
+		if test "x$1" = "x" ; then
 			echo "usage:  mbdyn2easyanim.sh -f <awkfile> <filename>"	
 			exit 1
 		fi
@@ -64,7 +64,7 @@ while test "x$1" != "x" ; do
 
 	-l)
 		shift
-		if test "x$1" == "x" ; then
+		if test "x$1" = "x" ; then
 			echo "usage:  mbdyn2easyanim.sh -l <(extra)logfile> <filename>"	
 			exit 1
 		fi
@@ -77,7 +77,7 @@ while test "x$1" != "x" ; do
 
 	-v)
 		shift
-		if test "x$1" == "x" ; then
+		if test "x$1" = "x" ; then
 			echo "usage:  mbdyn2easyanim.sh -v <name=value> <filename>"	
 			exit 1
 		fi
