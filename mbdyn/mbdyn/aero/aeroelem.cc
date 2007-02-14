@@ -31,18 +31,19 @@
 /* Elementi aerodinamici */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <aeroelem.h>
-#include <aerodata.h>
-#include <dataman.h>
-#include <shapefnc.h>
-#include <drive_.h>
+#include "aeroelem.h"
+#include "aerodata.h"
+#include "dataman.h"
+#include "shapefnc.h"
+#include "drive_.h"
+#include "Rot.hh"
 
 extern "C" {
-#include <aerodc81.h>
-#include <c81data.h>
+#include "aerodc81.h"
+#include "c81data.h"
 }
 
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
@@ -839,19 +840,24 @@ ReadAerodynamicBody(DataManager* pDM,
 		throw DataManager::ErrGeneric();
 	}
 
-	Vec3 Ra1 = Ra.GetVec(1);
 	Vec3 Ra3 = Ra.GetVec(3);
 	doublereal dCm1 = pChord->dGet(-1.);
 	doublereal dPm1 = pForce->dGet(-1.);
+	doublereal dTm1 = pTwist->dGet(-1.);
+	Vec3 Ram1 = (Ra*RotManip::Rot(Vec3(0., 0., dTm1))).GetVec(1);
+
 	doublereal dCp1 = pChord->dGet(1.);
 	doublereal dPp1 = pForce->dGet(1.);
+	doublereal dTp1 = pTwist->dGet(1.);
+	Vec3 Rap1 = (Ra*RotManip::Rot(Vec3(0., 0., dTp1))).GetVec(1);
+
 	std::ostream& out = pDM->GetLogFile();
 	out << "aero0: " << uLabel
 		<< " " << pNode->GetLabel()
-		<< " ", (f - Ra3*(dSpan/2.) + Ra1*(dPm1 - dCm1*3./4.)).Write(out, " ")
-		<< " ", (f - Ra3*(dSpan/2.) + Ra1*(dPm1 + dCm1/4.)).Write(out, " ")
-		<< " ", (f + Ra3*(dSpan/2.) + Ra1*(dPp1 - dCp1*3./4.)).Write(out, " ")
-		<< " ", (f + Ra3*(dSpan/2.) + Ra1*(dPp1 + dCp1/4.)).Write(out, " ")
+		<< " ", (f - Ra3*(dSpan/2.) + Ram1*(dPm1 - dCm1*3./4.)).Write(out, " ")
+		<< " ", (f - Ra3*(dSpan/2.) + Ram1*(dPm1 + dCm1/4.)).Write(out, " ")
+		<< " ", (f + Ra3*(dSpan/2.) + Rap1*(dPp1 - dCp1*3./4.)).Write(out, " ")
+		<< " ", (f + Ra3*(dSpan/2.) + Rap1*(dPp1 + dCp1/4.)).Write(out, " ")
 		<< std::endl;
 
 	return pEl;
