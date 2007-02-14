@@ -370,8 +370,9 @@ StructNode::OutputPrepare(OutputHandler &OH)
 			 * with generic info (static, dynamic, ...) and no data
 			 */
 
-			int l = snprintf(buf, sizeof(buf), "node.struct.%lu.", GetLabel());
-			if (l < 0 || l >= sizeof(buf) - STRLENOF("Omega")) {
+			int l = snprintf(buf, sizeof(buf), "node.struct.%lu.",
+				(unsigned long)GetLabel());
+			if (l < 0 || l >= int(sizeof(buf) - STRLENOF("Omega"))) {
 				throw ErrGeneric();
 			}
 
@@ -1295,8 +1296,9 @@ DynamicStructNode::OutputPrepare(OutputHandler &OH)
 			 * with generic info and no data
 			 */
 
-			int l = snprintf(buf, sizeof(buf), "node.struct.%lu.", GetLabel());
-			if (l < 0 || l >= sizeof(buf) - STRLENOF("OmegaP")) {
+			int l = snprintf(buf, sizeof(buf), "node.struct.%lu.",
+				(unsigned long)GetLabel());
+			if (l < 0 || l >= int(sizeof(buf) - STRLENOF("OmegaP"))) {
 				throw ErrGeneric();
 			}
 
