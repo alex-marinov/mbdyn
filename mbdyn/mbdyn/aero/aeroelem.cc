@@ -39,7 +39,6 @@
 #include "dataman.h"
 #include "shapefnc.h"
 #include "drive_.h"
-#include "Rot.hh"
 
 extern "C" {
 #include "aerodc81.h"
@@ -844,12 +843,12 @@ ReadAerodynamicBody(DataManager* pDM,
 	doublereal dCm1 = pChord->dGet(-1.);
 	doublereal dPm1 = pForce->dGet(-1.);
 	doublereal dTm1 = pTwist->dGet(-1.);
-	Vec3 Ram1 = (Ra*RotManip::Rot(Vec3(0., 0., dTm1))).GetVec(1);
+	Vec3 Ram1 = Ra*Vec3(std::cos(dTm1), std::sin(dTm1), 0.);
 
 	doublereal dCp1 = pChord->dGet(1.);
 	doublereal dPp1 = pForce->dGet(1.);
 	doublereal dTp1 = pTwist->dGet(1.);
-	Vec3 Rap1 = (Ra*RotManip::Rot(Vec3(0., 0., dTp1))).GetVec(1);
+	Vec3 Rap1 = Ra*Vec3(std::cos(dTp1), std::sin(dTp1), 0.);
 
 	std::ostream& out = pDM->GetLogFile();
 	out << "aero0: " << uLabel
