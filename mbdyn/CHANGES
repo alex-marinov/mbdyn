@@ -69,6 +69,7 @@ MBDyn 1.X-Devel
 		  (noted by Jerome Merel)
 		- fixed minor memory issue in fixed step file driver
 		- added column check to file drive
+		- fixed beam3 "from nodes" orientation input
 
 MBDyn 1.2.6
 	Enhancements:

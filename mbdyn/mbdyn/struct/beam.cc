@@ -1933,10 +1933,10 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
       Vec3 g1(gparam(RT*(R1*Rn1)));
       Vec3 g3(gparam(RT*(R3*Rn3)));
       if (f_I) {
-	 R_I = R2*Mat3x3(Beam::InterpState(g1, 0., g3, Beam::S_I));
+	 R_I = R2*Mat3x3(MatR, Beam::InterpState(g1, 0., g3, Beam::S_I));
       }
       if (fII) {
-	 R_I = R2*Mat3x3(Beam::InterpState(g1, 0., g3, Beam::SII));
+	 RII = R2*Mat3x3(MatR, Beam::InterpState(g1, 0., g3, Beam::SII));
       }	
    }
 
