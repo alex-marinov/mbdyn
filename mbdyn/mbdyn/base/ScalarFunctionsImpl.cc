@@ -283,9 +283,11 @@ LogScalarFunction::LogScalarFunction(
 	const doublereal& ml,
 	const doublereal& b,
 	const doublereal& c)
-: mul_input(ml), mul_const(ml/log(b)), base(b), coef(c)
+: mul_input(ml), mul_const(ml), base(b), coef(c)
 {
-	NO_OP;
+	if (b != 1.) {
+		mul_const /= log(b);
+	}
 }
 
 LogScalarFunction::~LogScalarFunction()
@@ -367,6 +369,87 @@ struct LogSFR: public ScalarFunctionRead {
 
 		doublereal m = HP.GetReal();
 		return new LogScalarFunction(m, b, c);
+	};
+};
+
+// ExpScalarFunction
+ExpScalarFunction::ExpScalarFunction(
+	const doublereal& ml,
+	const doublereal& b,
+	const doublereal& c)
+: mul(ml), base(b), coef_input(c), coef_const(c)
+{
+	if (base != 1.) {
+		coef_const *= log(b);
+	}
+}
+
+ExpScalarFunction::~ExpScalarFunction()
+{
+	NO_OP;
+}
+
+doublereal
+ExpScalarFunction::operator()(const doublereal x) const
+{
+	return exp(coef_const*x)*mul;
+}
+
+doublereal
+ExpScalarFunction::ComputeDiff(const doublereal x, const integer order) const
+{
+	ASSERTMSGBREAK(order >= 0, "Error in ExpScalarFunction::ComputeDiff, order<0");
+
+	/*
+	 *
+
+ d^i                                                                mul_const
+ ---  ( mul * log( coef * x ) ) = - ( -1 ) ^ i * ( i - 1 )! * ---------
+ dx^i                                                                  x^i
+
+	 *
+	 */
+
+	doublereal d = 1.;
+	for (int i = 0; i < order; i++) {
+		d *= coef_input;
+	}
+
+	return d * this->operator()(x);
+}
+
+// ScalarFunction parsing functional object
+struct ExpSFR: public ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const {
+		doublereal b = 1.;
+		if (HP.IsKeyWord("base")) {
+			b = HP.GetReal();
+			if (b <= 0.) {
+				silent_cerr("ExpSFR: "
+					"invalid base " << b
+					<< " at line "
+					<< HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric();
+			}
+		}
+
+		doublereal c = 1.;
+		if (HP.IsKeyWord("coefficient")) {
+			c = HP.GetReal();
+			if (c == 0.) {
+				silent_cerr("ExpSFR: "
+					"invalid coefficient " << c
+					<< " at line "
+					<< HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric();
+			}
+		}
+
+		doublereal m = HP.GetReal();
+		return new ExpScalarFunction(m, b, c);
 	};
 };
 
@@ -1181,6 +1264,7 @@ InitSF(void)
 	SetSF("linear", new LinearSFR);
 	SetSF("pow", new PowSFR);
 	SetSF("log", new LogSFR);
+	SetSF("exp", new ExpSFR);
 	SetSF("sum", new SumSFR);
 	SetSF("sub", new SubSFR);
 	SetSF("mul", new MulSFR);

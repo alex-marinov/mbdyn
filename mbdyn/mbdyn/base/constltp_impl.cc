@@ -157,6 +157,7 @@ ReadCL6D(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType)
 	return func->second->Read(pDM, HP, CLType);
 }
 
+#if 0 /* moved to constltp_impl.h */
 /* helpers */
 template <class T>
 void
@@ -185,6 +186,7 @@ GetPreStrain(const DataManager* pDM, MBDynParser& HP, T& PreStrain)
    			SingleTplDriveCaller<T>(pDC, t));
 	return pTplDC;
 }
+#endif /* 0 */
 
 /* specific functional object(s) */
 template <class T, class Tder>
@@ -409,6 +411,11 @@ struct IsotropicHardeningCLR : public ConstitutiveLawRead<T, Tder> {
 			throw DataManager::ErrGeneric();
 		}
 
+		doublereal dS0 = 0.;
+		if (HP.IsKeyWord("linear" "stiffness")) {
+			dS0 = HP.GetReal();
+		}
+
 		/* Prestress and prestrain */
 		T PreStress(0.);
 		GetPreStress(HP, PreStress);
@@ -416,7 +423,7 @@ struct IsotropicHardeningCLR : public ConstitutiveLawRead<T, Tder> {
 		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
 
 		typedef IsotropicHardeningConstitutiveLaw<T, Tder> L;
-		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, dS, dE));
+		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, dS, dS0, dE));
 
 		return pCL;
 	};

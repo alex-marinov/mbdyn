@@ -91,13 +91,27 @@ public:
 class LogScalarFunction : public DifferentiableScalarFunction {
 private:
 	const doublereal mul_input;
-	const doublereal mul_const;
+	doublereal mul_const;
 	const doublereal base;
 	const doublereal coef;
 
 public:
 	LogScalarFunction(const doublereal& ml, const doublereal& b, const doublereal& c);
 	virtual ~LogScalarFunction(void);
+	virtual doublereal operator()(const doublereal x) const;
+	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
+};
+
+class ExpScalarFunction : public DifferentiableScalarFunction {
+private:
+	const doublereal mul;
+	const doublereal base;
+	const doublereal coef_input;
+	doublereal coef_const;
+
+public:
+	ExpScalarFunction(const doublereal& ml, const doublereal& b, const doublereal& c);
+	virtual ~ExpScalarFunction(void);
 	virtual doublereal operator()(const doublereal x) const;
 	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
 };

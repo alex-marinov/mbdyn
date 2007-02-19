@@ -840,22 +840,29 @@ class IsotropicHardeningConstitutiveLaw
 private:
 	doublereal dStiffness;
 	doublereal dAlpha;
+	doublereal dBeta;
+
 	/* Legge costitutiva:
 	 *
-	 *          k*Alpha*x^3
-	 *    f = ---------------
-	 *         (1+Alpha*x^2)
+	 *            Beta + Alpha*x^2
+	 *    f = k * ---------------- * x
+	 *              1 + Alpha*x^2
 	 */
 
 public:
 	IsotropicHardeningConstitutiveLaw(const TplDriveCaller<T>* pDC,
 			const T& PStress,
 			doublereal dStiff,
+			doublereal dStiff0,
 			doublereal dEpsHard)
 	: ElasticConstitutiveLaw<T, Tder>(pDC, PStress),
-		dStiffness(dStiff), dAlpha(0.) {
+	dStiffness(dStiff), dAlpha(0.), dBeta(0.)
+	{
 		ASSERT(dEpsHard > DBL_EPSILON);
+		ASSERT(dStiff > DBL_EPSILON);
+
 		dAlpha = 3./(dEpsHard*dEpsHard);
+		dBeta = dStiff0/dStiff;
 	};
 
 	virtual ~IsotropicHardeningConstitutiveLaw(void) {
@@ -871,29 +878,33 @@ public:
 				cl(ElasticConstitutiveLaw<T, Tder>::pGetDriveCaller()->pCopy(),
 					ElasticConstitutiveLaw<T, Tder>::PreStress,
 					dStiffness,
-					dAlpha));
+					dBeta*dStiffness,
+					sqrt(3./dAlpha)));
 
 		return pCL;
 	};
 
 	virtual std::ostream& Restart(std::ostream& out) const {
-		out << "isoropic hardening elastic, " << dStiffness << ", "
+		out << "isotropic hardening elastic, " << dStiffness << ", "
 			<< sqrt(3./dAlpha);
+		if (dBeta != 0.) {
+			out << ", linear stiffness, " << dBeta*dStiffness;
+		}
 		return ElasticConstitutiveLaw<T, Tder>::Restart_int(out);
 	};
 
 	virtual void Update(const T& Eps, const T& /* EpsPrime */ = 0.) {
 		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
-		T x = ConstitutiveLaw<T, Tder>::Epsilon-ElasticConstitutiveLaw<T, Tder>::Get();
+		T x = ConstitutiveLaw<T, Tder>::Epsilon - ElasticConstitutiveLaw<T, Tder>::Get();
 		doublereal dx2 = x*x;
-		doublereal dDen = 1.+dAlpha*dx2;
+		doublereal dDen = 1. + dAlpha*dx2;
 		ConstitutiveLaw<T, Tder>::F = ElasticConstitutiveLaw<T, Tder>::PreStress
-			+ x*(dStiffness*dAlpha*dx2/dDen);
-		ConstitutiveLaw<T, Tder>::FDE = dStiffness*dAlpha*(3. + dAlpha*dx2)*dx2/(dDen*dDen);
+			+ x*(dStiffness*(dBeta + dAlpha*dx2)/dDen);
+		ConstitutiveLaw<T, Tder>::FDE = dStiffness*(dBeta + (3. - dBeta + dAlpha*dx2)*dAlpha*dx2)/(dDen*dDen);
 	};
 
 	virtual void IncrementalUpdate(const T& DeltaEps, const T& /* EpsPrime */ = 0.) {
-		Update(ConstitutiveLaw<T, Tder>::Epsilon+DeltaEps);
+		Update(ConstitutiveLaw<T, Tder>::Epsilon + DeltaEps);
 	};
 };
 
@@ -2126,5 +2137,34 @@ typedef LinearViscoElasticBiStopConstitutiveLaw<Vec3, Mat3x3> LinearViscoElastic
 typedef LinearViscoElasticBiStopConstitutiveLaw<Vec6, Mat6x6> LinearViscoElasticBiStopConstitutiveLaw6D;
 
 /* LinearViscoElasticBiStopConstitutiveLaw - end */
+
+/* helpers */
+template <class T>
+void
+GetPreStress(MBDynParser& HP, T& PreStress)
+{
+	if (HP.IsKeyWord("prestress")) {
+		PreStress = HP.Get(PreStress);
+	}
+}
+
+template <class T>
+TplDriveCaller<T>*
+GetPreStrain(const DataManager* pDM, MBDynParser& HP, T& PreStrain)
+{
+	if (HP.IsKeyWord("prestrain")) {
+		return ReadTplDrive(pDM, HP, PreStrain);
+
+	}
+
+	DriveCaller* pDC = NULL;
+	SAFENEW(pDC, NullDriveCaller);
+	T t(0.);
+	TplDriveCaller<T>* pTplDC = NULL;
+	SAFENEWWITHCONSTRUCTOR(pTplDC,
+   			SingleTplDriveCaller<T>,
+   			SingleTplDriveCaller<T>(pDC, t));
+	return pTplDC;
+}
 
 #endif /* CONSTLTP__H */
