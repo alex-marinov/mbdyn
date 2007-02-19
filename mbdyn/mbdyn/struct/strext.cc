@@ -286,7 +286,7 @@ ExtForce::AssRes(SubVectorHandler& WorkVec,
 		}
 
 		WorkVec.Add(i*6 + 1, F[i]);
-		WorkVec.Add(i*6 + 4, M[i]);
+		WorkVec.Add(i*6 + 4, M[i] + (Nodes[i]->GetRCurr()*Offsets[i]).Cross(F[i]));
 	}
 
 	return WorkVec;
