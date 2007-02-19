@@ -265,7 +265,7 @@ isvan == 0 && /structural node:/ {
 	}
 }
 
-isvan == 0 && /sphericalhinge:/ && show["hinge"] {
+isvan == 0 && (/sphericalhinge:/ || /revolutehinge/ || /universalhinge/) && show["hinge"] {
 	if (!exclude["joint", $2]) {
 		j_hinge_label[j_hinge_num] = $2;
 		j_hinge[$2] = j_hinge_num;
@@ -1012,7 +1012,7 @@ isvan == 0 && /^###/ {
 
 	printf("# node properties\n") >> volfile;
 	for (i = 0; i < nodeprop_num; i++) {
-		printf("prop %s %d %f\n", nodeprop[i, "name"], nodeprop[i, "color"], nodeprop[i, "radius"]) >> volfile;
+		printf("prop %s %s %f\n", nodeprop[i, "name"], nodeprop[i, "color"], nodeprop[i, "radius"]) >> volfile;
 	}
 
 	printf("# nodes\n") >> volfile;
@@ -1024,7 +1024,7 @@ isvan == 0 && /^###/ {
 
 	printf("# edge properties\n") >> volfile;
 	for (i = 0; i < edgeprop_num; i++) {
-		printf("prop %s %d %f\n", edgeprop[i, "name"], edgeprop[i, "color"], edgeprop[i, "radius"]) >> volfile;
+		printf("prop %s %s %f\n", edgeprop[i, "name"], edgeprop[i, "color"], edgeprop[i, "radius"]) >> volfile;
 	}
 
 	printf("# edges\n") >> volfile;
@@ -1035,7 +1035,7 @@ isvan == 0 && /^###/ {
 
 	printf("# side properties\n") >> volfile;
 	for (i = 0; i < sideprop_num; i++) {
-		printf("prop %s %d\n", sideprop[i, "name"], sideprop[i, "color"]) >> volfile;
+		printf("prop %s %s\n", sideprop[i, "name"], sideprop[i, "color"]) >> volfile;
 	}
 
 	printf("# sides\n") >> volfile;
