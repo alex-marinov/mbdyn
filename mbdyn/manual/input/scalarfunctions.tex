@@ -32,7 +32,8 @@ derived from \kw{ScalarFunction}, and allows to compute the derivatives of
 the function as well. Currently implemented scalar functions are
 \begin{itemize}
 \item \kw{const}: $f(x)=c$
-\item \kw{log}: $f(x)=m\textrm{log}(x)$
+\item \kw{exp}: $f(x)=m\cdot b^{c\cdot{x}}$
+\item \kw{log}: $f(x)=m\cdot\textrm{log}_b(c\cdot{x})$
 \item \kw{pow}: $f(x)=x^p$
 \item \kw{linear}: linear interpolation between the two points $(x_1,y_1)$
 and $(x_1,y_1)$
@@ -70,14 +71,27 @@ are as follows:
 Note: if the \kw{scalar\_func\_type} is omitted,
 a \kw{const} scalar function is assumed.
 
-\subsubsection{Log Scalar Function}
+\subsubsection{Exp Scalar Function}
 \begin{verbatim}
-    <scalar_func_type> ::= log
-    <scalar_func_args> ::= [ { base , <base> } , ]
+    <scalar_func_type> ::= exp
+    <scalar_func_args> ::=
+        [ { base , <base> } , ]
         [ { coefficient , <coef> } , ]
         <multiplier_coef>
 \end{verbatim}
-Note: the optional base and the optional coefficient
+Note: the optional \kw{base} must be positive (defaults to $e$, Neper's number).
+
+\subsubsection{Log Scalar Function}
+\begin{verbatim}
+    <scalar_func_type> ::= log
+    <scalar_func_args> ::=
+        [ { base , <base> } , ]
+        [ { coefficient , <coef> } , ]
+        <multiplier_coef>
+\end{verbatim}
+Note: the optional \kw{base} (defaults to $e$, Neper's number,
+resulting in natural logarithms)
+and the optional \kw{coefficient}
 must be positive.
 The argument must be positive as well, otherwise an exception is thrown.
 

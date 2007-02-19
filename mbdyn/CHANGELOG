@@ -43,6 +43,7 @@ MBDyn 1.X-Devel
 		- added invariant deformable hinge joint (needs work)
 		- added imposed displacement joint (and pin)
 		- added reaction moments to drive hinge private data
+		- added "exp" scalar function
 	Backward compatibility issues:
 		- per-element output removed from modal joints
 		- spherical hinge output now refers to node 1 instead of 2
@@ -70,6 +71,7 @@ MBDyn 1.X-Devel
 		- fixed minor memory issue in fixed step file driver
 		- added column check to file drive
 		- fixed beam3 "from nodes" orientation input
+		- fixed "log" scalar function ("base" needed to be explicit)
 
 MBDyn 1.2.6
 	Enhancements:

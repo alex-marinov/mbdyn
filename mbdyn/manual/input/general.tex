@@ -2058,19 +2058,24 @@ used.
     <specific_const_law> ::= isotropic hardening elastic ,
         (scalar) <stiffness> ,
         (scalar) <reference_strain>
+        [ , linear stiffness , <linear_stiffness> ]
 \end{verbatim}
 this constitutive law is defined as follows:
 \begin{displaymath}
     f \ = \ \kw{stiffness} \ \frac{
-        \alpha\shbr{\T{\varepsilon}}^2
+        \beta + \alpha\shbr{\T{\varepsilon}}^2
     }{
-        1+\alpha\shbr{\T{\varepsilon}}^2
+        1 + \alpha\shbr{\T{\varepsilon}}^2
     }\varepsilon
 \end{displaymath}
-where $ \alpha=3/\shbr{\kw{reference\_strain}}^2 $. The resulting
-constitutive law, in the scalar case, is somewhat soft when
-$ \varepsilon $ is smaller than \kw{reference\_strain}, while it grows to
-quasi-linear for higher $ \varepsilon$s
+where $\alpha=3/\shbr{\kw{reference\_strain}}^2$,
+and $\beta=\kw{linear\_stiffness}/\kw{stiffness}$.
+The resulting constitutive law, in the scalar case,
+is somewhat soft/hard when $\beta$ is lower/greater than 1
+and $\shbr{\varepsilon}$ is smaller than \kw{reference\_strain},
+approaching \kw{linear\_stiffness} when $\varepsilon\rightarrow{0}$,
+while it grows to quasi-linear for larger $\shbr{\varepsilon}$, 
+with slope $\kw{stiffness}$.
 
 \subsection{Scalar function elastic, scalar function elastic isotropic}
 This constitutive law is based on a 
