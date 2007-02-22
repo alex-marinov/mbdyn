@@ -574,7 +574,7 @@ DataManager::ReadElems(MBDynParser& HP)
 
 			if (bLog) {
 				OutHdl.Log()
-					<< "inertia " << uIn
+					<< "inertia: " << uIn
 					<< " (" << ( sName ? sName : "unnamed" ) << ")"
 					<< std::endl
 					<< "    mass:        " << dM << std::endl
@@ -585,7 +585,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					<< "    Jcg:         " << RT*Jcg*R << std::endl;
 			}
 			if (bOut) {
-				silent_cout("inertia " << uIn
+				silent_cout("inertia: " << uIn
 					<< " (" << ( sName ? sName : "unnamed" ) << ")"
 					<< std::endl
 					<< "    mass:        " << dM << std::endl
