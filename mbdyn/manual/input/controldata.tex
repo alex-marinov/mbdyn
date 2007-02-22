@@ -198,6 +198,7 @@ can be overridden for every entity both when it is created or later in
 each entity module.
 
 \subsubsection{Output Frequency}
+\label{sec:CONTROLDATA:OUTPUTFREQUENCY}
 This statement is intended for producing partial output.
 \begin{verbatim}
     <card> ::= output frequency: <steps> ;
@@ -207,7 +208,8 @@ every \kw{<steps>} time steps, starting from the initial time.
 A more general functionality is now provided by the \kw{output meter}
 statement (Section~\ref{sec:CONTROLDATA:OUTPUTMETER}).
 
-\subsubsection{Output Meter}\label{sec:CONTROLDATA:OUTPUTMETER}
+\subsubsection{Output Meter}
+\label{sec:CONTROLDATA:OUTPUTMETER}
 A drive that causes output to be generated when different from zero,
 while no output is created when equal to zero.  It is useful to reduce 
 the size of the output file during analysis phases that are not of interest.

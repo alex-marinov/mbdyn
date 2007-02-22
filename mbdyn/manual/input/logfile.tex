@@ -1,0 +1,337 @@
+% MBDyn (C) is a multibody analysis code.
+% http://www.mbdyn.org
+%
+% Copyright (C) 1996-2007
+%
+% Pierangelo Masarati  <masarati@aero.polimi.it>
+%
+% Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+% via La Masa, 34 - 20156 Milano, Italy
+% http://www.aero.polimi.it
+%
+% Changing this copyright notice is forbidden.
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation (version 2 of the License).
+% 
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+\chapter{Log File Format}
+\label{sec:APP:LOGFILE}
+
+MBDyn by default writes a file with \kw{.log} extension that contains
+generic, one time info about the analysis and the model.
+
+This file is experimental, since it is mainly intended to be used
+by external software, like post-processing tools, to extract 
+or somehow infer information about the model, without the complexity
+of parsing the entire input.
+
+It is used, for example, by the script \kw{mbdyn2easyanim.sh}, along
+with the corresponding \kw{.mov} output file, to generate model files
+for \kw{EasyAnimm}, as illustrated
+in Section~\ref{sec:APP:OUTPUTRESULTS:EASYANIM}.
+
+\section{Generic Format}
+The format is typically made of a keyword, starting in the first column,
+made of alphanumeric chars (may include spaces, though), 
+terminated by a colon, and possibly followed by arbitrary, 
+context-dependent data.
+Data may span multiple rows, where a continuation row is marked 
+by a blank in the first column.
+
+\section{Model Description Entries}
+Some of the keywords mark model entities, described in the following.
+
+\subsection{aero0}
+The \kw{aerodynamic body}.
+\begin{verbatim}
+aero0: <label> <node_label>
+    (Vec3)<trail_left> (Vec3)<lead_left>
+    (Vec3)<trail_right> (Vec3)<lead_right>
+\end{verbatim}
+The points are expressed as 3D vectors, whose origin and orientation
+is expressed in the reference frame of the node.
+All data is in on one line, without continuation.
+
+\subsection{aero2}
+The two-node \kw{aerodynamic beam}.
+\begin{verbatim}
+aero2: <label>
+    <node1_label>
+    (Vec3)<trail_left> (Vec3)<lead_left>
+    <node2_label>
+    (Vec3)<trail_right> (Vec3)<lead_right>
+\end{verbatim}
+The points are expressed as 3D vectors, whose origin and orientation
+is expressed in the reference frame of the respective nodes.
+All data is in on one line, without continuation.
+
+\subsection{aero3}
+The three-node \kw{aerodynamic beam}.
+\begin{verbatim}
+aero3: <label>
+    <node1_label>
+    (Vec3)<trail_left> (Vec3)<lead_left>
+    <node2_label>
+    (Vec3)<trail_center> (Vec3)<lead_center>
+    <node3_label>
+    (Vec3)<trail_right> (Vec3)<lead_right>
+\end{verbatim}
+The points are expressed as 3D vectors, whose origin and orientation
+is expressed in the reference frame of the respective nodes.
+All data is in on one line, without continuation.
+
+\subsection{beam2}
+The two-node \kw{beam}.
+\begin{verbatim}
+beam2: <label>
+    <node1_label> (Vec3)<offset1>
+    <node2_label> (Vec3)<offset2>
+\end{verbatim}
+The beam \kw{label} is followed by the label and the offset of each node.
+All data is in on one line, without continuation.
+
+\subsection{beam3}
+The three-node \kw{beam}.
+\begin{verbatim}
+beam3: <label>
+    <node1_label> (Vec3)<offset1>
+    <node2_label> (Vec3)<offset2>
+    <node3_label> (Vec3)<offset3>
+\end{verbatim}
+The beam \kw{label} is followed by the label and the offset of each node.
+All data is in on one line, without continuation.
+
+\subsection{clamp}
+The \kw{clamp} joint
+\begin{verbatim}
+clamp: <label>
+    <node_label> (Vec3)<position> (Mat3x3)<orientation>
+    <node_label> (Vec3)<position> (Mat3x3)<orientation>
+\end{verbatim}
+The format is quite obscure; the \kw{position} and the \kw{orientation}
+are repeated twice.
+Moreover, the \kw{position} is always a vector of zeros,
+and the \kw{orientation} is the identity matrix.
+Basically, the location of the clamp is assumed to be that of the node.
+All data is in on one line, without continuation.
+
+\subsection{deformable joints}
+The \kw{deformable hinge}, the \kw{deformable displacement joint}
+and the \kw{deformable joint}, including the \kw{invariant}
+versions, where defined
+\begin{verbatim}
+<joint_name>: <label>
+    <node1_label> (Vec3)<position1> (Mat3x3)<orientation1>
+    <node2_label> (Vec3)<position2> (Mat3x3)<orientation2>
+\end{verbatim}
+The \kw{position} vectors indicates the location of the joint
+in the reference frame of the respective node,
+while the matrix \kw{orientation} indicates the orientation of the joint
+in the reference frame of the respective node.
+All data is in on one line, without continuation.
+
+\subsection{distance}
+The \kw{distance} joint
+\begin{verbatim}
+distance: <label>
+    <node1_label> (Vec3)<offset1>
+    <node2_label> (Vec3)<offset2>
+\end{verbatim}
+The \kw{label} of the joint, followed by the label of each node
+and the offset of the respective joint extremity,
+in the reference frame of the node.
+All data is in on one line, without continuation.
+Both \kw{distance} and \kw{distance with offset} joints are logged
+like this.
+
+\subsection{inline}
+The \kw{inline} joint
+\begin{verbatim}
+inline: <label>
+    <node1_label> (Vec3)<position1> (Mat3x3)<orientation1>
+    <node2_label> (Vec3)<position2> (Mat3x3)<orientation2>
+\end{verbatim}
+The \kw{label} of the joint, followed by the label of the node
+that carries the reference line, the reference point \kw{position1}
+on the line and the orientation \kw{orientation1} of the line,
+such that axis 3 is aligned with the line.
+The second node label and the position of the point on the plane
+follow; \kw{orientation2} is the identity matrix.
+All data is in on one line, without continuation.
+
+\subsection{inplane}
+The \kw{inplane} joint
+\begin{verbatim}
+inplane: <label>
+    <node1_label> (Vec3)<position1> (Mat3x3)<orientation1>
+    <node2_label> (Vec3)<position2> (Mat3x3)<orientation2>
+\end{verbatim}
+The \kw{label} of the joint, followed by the label of the node
+that carries the reference plane, the reference point \kw{position1}
+on the plane and the orientation \kw{orientation1} of the plane,
+such that axis 3 is normal to the plane.
+The second node label and the position of the point on the plane
+follow; \kw{orientation2} is the identity matrix.
+All data is in on one line, without continuation.
+
+\subsection{prismatic}
+The \kw{prismatic} joint
+\begin{verbatim}
+prismatic: <label>
+    <node1_label> (Vec3)<position1> (Mat3x3)<orientation1>
+    <node2_label> (Vec3)<position2> (Mat3x3)<orientation2>
+\end{verbatim}
+The \kw{position} vectors are zero,
+while the \kw{orientation} matrices indicate the orientation 
+of the joint in the reference frame of the respective nodes.
+All data is in on one line, without continuation.
+
+\subsection{revolute hinge}
+The \kw{revolute hinge} joint
+\begin{verbatim}
+revolutehinge: <label>
+    <node1_label> (Vec3)<position1> (Mat3x3)<orientation1>
+    <node2_label> (Vec3)<position2> (Mat3x3)<orientation2>
+\end{verbatim}
+The \kw{position} vectors indicates the location of the joint
+in the reference frame of the respective node,
+while the matrix \kw{orientation} indicates the orientation of the joint
+in the reference frame of the respective node.
+All data is in on one line, without continuation.
+
+\subsection{rod}
+The \kw{rod} joint
+\begin{verbatim}
+rod: <label>
+    <node1_label> (Vec3)<offset1>
+    <node2_label> (Vec3)<offset2>
+\end{verbatim}
+The \kw{label} of the joint, followed by the label of each node
+and the offset of the respective joint extremity,
+in the reference frame of the node.
+All data is in on one line, without continuation.
+Both \kw{rod} and \kw{rod with offset} joints are logged
+like this.
+
+\subsection{spherical hinge}
+The \kw{spherical hinge} joint
+\begin{verbatim}
+sphericalhinge: <label>
+    <node1_label> (Vec3)<position1> (Mat3x3)<orientation1>
+    <node2_label> (Vec3)<position2> (Mat3x3)<orientation2>
+\end{verbatim}
+The \kw{position} vectors indicates the location of the joint
+in the reference frame of the respective node,
+while the matrix \kw{orientation} indicates the orientation of the joint
+in the reference frame of the respective node.
+All data is in on one line, without continuation.
+
+\subsection{spherical pin}
+The \kw{spherical pin} joint
+\begin{verbatim}
+sphericalpin: <label>
+    <node_label> (Vec3)<position> (Mat3x3)<orientation>
+    <node_label> (Vec3)<position> (Mat3x3)<orientation>
+\end{verbatim}
+The format is quite obscure; the \kw{position} and the \kw{orientation}
+are repeated twice.
+The vector \kw{position} indicates the location of the joint,
+while the matrix \kw{orientation} is the identity matrix.
+All data is in on one line, without continuation.
+
+\subsection{structural node}
+The \kw{structural node}
+\begin{verbatim}
+structural node: <label> (Vec3)<X> (Vec3)<cardan_angles>
+\end{verbatim}
+The \kw{label} of the node, the position \kw{X}
+and the \kw{cardan\_angles} that express the orientation
+are given.
+
+\subsection{universal hinge}
+The \kw{universal hinge} joint
+\begin{verbatim}
+universalhinge: <label>
+    <node1_label> (Vec3)<position1> (Mat3x3)<orientation1>
+    <node2_label> (Vec3)<position2> (Mat3x3)<orientation2>
+\end{verbatim}
+The \kw{position} vectors indicates the location of the joint
+in the reference frame of the respective node,
+while the matrix \kw{orientation} indicates the orientation of the joint
+in the reference frame of the respective node.
+All data is in on one line, without continuation.
+
+\subsection{universal pin}
+The \kw{universal pin} joint
+\begin{verbatim}
+universalpin: <label>
+    <node_label> (Vec3)<position> (Mat3x3)<orientation>
+    <node_label> (Vec3)<relative_position> (Mat3x3)<relative_orientation>
+\end{verbatim}
+The \kw{position} vector and the \kw{orientation} matrix indicate 
+the location and the orientation of the joint in the global reference frame, 
+while the \kw{relative\_position} vector
+and the \kw{relative\_orientation} matrix indicate
+the location and the orientation of the joint
+in the reference frame of the node.
+All data is in on one line, without continuation.
+
+\subsection{universal rotation}
+The \kw{universal rotation} joint
+\begin{verbatim}
+universalrotation: <label>
+    <node1_label> (Vec3)<position1> (Mat3x3)<orientation1>
+    <node2_label> (Vec3)<position2> (Mat3x3)<orientation2>
+\end{verbatim}
+The \kw{position} vectors are zero,
+while the matrix \kw{orientation} indicates the orientation of the joint
+in the reference frame of the respective node.
+All data is in on one line, without continuation.
+
+
+\section{Analysis Description Entries}
+Some of the keywords mark analysis entities, described in the following.
+
+\subsection{inertia}
+An aggregate inertia.
+\begin{verbatim}
+inertia: <label> (<name>)
+    mass:        <mass>
+    Xcg:         (Vec3)<xcg>
+    Xcg-X:       (Vec3)<relative_xcg>
+    R^T*(Xcg-X): (Vec3)<relative_orientation_xcg>
+    J:           (Mat3x3)<inertia_matrix>
+    Jcg:         (Mat3x3)<relative_cg_inertia_matrix>
+\end{verbatim}
+
+\subsection{output frequency}
+An indication of how often output occurs with respect to time steps.
+\begin{verbatim}
+output frequency: <how_often>
+\end{verbatim}
+where \kw{how\_often} can be:
+\begin{itemize}
+\item \kw{custom} if the output is specially crafted by the
+\kw{output meter} statement (Section~\ref{sec:CONTROLDATA:OUTPUTMETER});
+\item a positive integer if the output occurs every \kw{how\_often}
+time steps, as dictated by the \kw{output frequency} statement
+(Section~\ref{sec:CONTROLDATA:OUTPUTFREQUENCY}).
+\end{itemize}
+
+\subsection{struct node dofs}
+The list of structural nodes (excluding dummy nodes).
+\begin{verbatim}
+struct node dofs: <label> [...]
+\end{verbatim}
+
