@@ -143,6 +143,10 @@ public:
 	InitialAssRes(SubVectorHandler& WorkVec,
 			const VectorHandler& XCurr);
    
+	virtual void SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0);
+
 	/* Dati privati */
 	virtual unsigned int iGetNumPrivData(void) const;
 	virtual unsigned int iGetPrivDataIdx(const char *s) const;
@@ -257,6 +261,10 @@ public:
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec,
 			const VectorHandler& XCurr);
+
+	virtual void SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0);
 
 	/* Adams output stuff */
 	virtual void

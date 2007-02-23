@@ -31,12 +31,14 @@
 /* Vincoli generali */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #ifdef MBDYN_X_DISTANCE_JOINT
 
-#include <distance.h>
+#include "distance.h"
+#include "hint.h"
+#include "hint_impl.h"
 
 /* DistanceJoint - begin */
 
@@ -64,6 +66,56 @@ DistanceJoint::Abort(void)
 	silent_cerr("DistanceJoint(" << GetLabel() << "): distance is null"
 		<< std::endl);
 	throw ErrGeneric();
+}
+
+void
+DistanceJoint::SetValue(DataManager *pDM,
+	VectorHandler& X, VectorHandler& /* XP */ ,
+	SimulationEntity::Hints *ph)
+{
+	if (ph) {
+		for (unsigned i = 0; i < ph->size(); i++) {
+			DriveHint *pdh = dynamic_cast<DriveHint *>((*ph)[i]);
+
+			if (pdh) {
+				pedantic_cout("DistanceJoint(" << uLabel << "): "
+					"creating drive from hint[" << i << "]..." << std::endl);
+
+				DriveCaller *pDC = pdh->pCreateDrive(pDM);
+				if (pDC == 0) {
+					silent_cerr("DistanceJoint(" << uLabel << "): "
+						"unable to create drive after hint "
+						"#" << i << std::endl);
+					throw ErrGeneric();
+				}
+
+				DriveOwner::Set(pDC);
+				continue;
+			}
+		}
+	}
+	
+	doublereal dDistance = pGetDriveCaller()->dGet();
+   
+	/* Setta a 1 dAlpha, che e' indipendente dalle altre variabili
+	 * in caso di distanza nulla */
+	if (fabs(dDistance) <= DBL_EPSILON) {	
+		Abort();
+	}
+
+	/* Scrive la direzione della distanza. Se e' stata ottenuta con 
+	 * l'assemblaggio iniziale bene, se no' la calcola */
+	Vec = pNode2->GetXCurr() - pNode1->GetXCurr();
+	doublereal d = Vec.Dot();
+	if (d <= DBL_EPSILON) {
+    		silent_cerr("DistanceJoint(" << uLabel << ") "
+			"linked to nodes " << pNode1->GetLabel()
+			<< " and " << pNode2->GetLabel() << ": "
+			"nodes are coincident;" << std::endl
+	  		<< "initial joint assembly is recommended"
+			<< std::endl);
+		throw ErrGeneric();
+	}
 }
 
 /* Dati privati */
@@ -420,6 +472,54 @@ DistanceJointWithOffset::Restart(std::ostream& out) const
 		<< ", reference, node, ",
 		f2.Write(out, ", ") << ", ";
 		return pGetDriveCaller()->Restart(out) << ';' << std::endl;
+}
+
+void
+DistanceJointWithOffset::SetValue(DataManager *pDM,
+	VectorHandler& X, VectorHandler& /* XP */ ,
+	SimulationEntity::Hints *ph)
+{
+	if (ph) {
+		for (unsigned i = 0; i < ph->size(); i++) {
+			pedantic_cout("DistanceJointWithOffset(" << uLabel << "): "
+				"creating drive from hint..." << std::endl);
+
+			DriveHint *pdh = dynamic_cast<DriveHint *>((*ph)[i]);
+
+			if (pdh) {
+				DriveCaller *pDC = pdh->pCreateDrive(pDM);
+				if (pDC == 0) {
+					silent_cerr("DistanceJointWithOffset(" << uLabel << "): "
+						"unable to create drive after hint "
+						"#" << i << std::endl);
+					throw ErrGeneric();
+				}
+
+				DriveOwner::Set(pDC);
+				continue;
+			}
+		}
+	}
+	
+	doublereal dDistance = pGetDriveCaller()->dGet();
+
+	/* Setta a 1 dAlpha, che e' indipendente dalle altre variabili
+	 * in caso di distanza nulla */
+	if (fabs(dDistance) <= DBL_EPSILON) {	
+		Abort();
+	}
+
+	 Vec= pNode2->GetXCurr() + pNode2->GetRCurr()*f2
+		- pNode1->GetXCurr() - pNode1->GetRCurr()*f1;
+	doublereal d = Vec.Dot();
+	if (d <= DBL_EPSILON) {
+		silent_cerr("DistanceJoint(" << GetLabel() << ") "
+			"linked to nodes " << pNode1->GetLabel()
+			<< " and " << pNode2->GetLabel() << ": "
+			"nodes are coincident;" << std::endl
+			<< "this is no longer supported" << std::endl);
+		throw ErrGeneric();
+	}
 }
 
 /* Assemblaggio matrici */
