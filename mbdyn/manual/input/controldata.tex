@@ -244,6 +244,35 @@ of output that MBDyn can provide.
 Most of them are produced in form of postprocessing, based on the default
 raw output.
 
+Right now, the \kw{output results} statement is only used to enable
+the experimental support for NetCDF output, which eventually
+will replace the current textual output:
+\begin{verbatim}
+    <card> ::= output results : netcdf ;
+\end{verbatim}
+
+\subsubsection{Default Orientation}
+This statement is used to select the default format for orientation output.
+For historical reasons, MBDyn always used the 123 form of Euler angles
+(also known as Cardano angles).
+This statement allows to enable different formats:
+\begin{verbatim}
+    <card> ::= default orientation :
+        { euler123 | orientation vector | orientation matrix } ;
+\end{verbatim}
+where
+\begin{itemize}
+\item \kw{euler123} is the historical representation by means 
+	of three angles that represent three consecutive rotations
+	about axes 1, 2 and 3 respectively, always applied to the axis
+	as it results from the previous rotation;
+\item \kw{orientation vector} is the vector whose direction indicates
+	the axis of the rotation that produces the orientation,
+	and whose modulus indicates the magnitude of that rotation;
+\item \kw{orientation matrix} indicates the orientation matrix itself.
+\end{itemize}
+The default remains \kw{euler123}.
+
 \subsubsection{Model}
 \begin{verbatim}
     <card> ::= model : static ;
