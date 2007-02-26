@@ -129,6 +129,7 @@ DataManager::ReadControl(MBDynParser& HP,
 		"output" "meter",
 		"output" "results",
 		"default" "output",
+		"default" "orientation",
 		"all",
 		"none",
 		"reference" "frames",
@@ -206,6 +207,7 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		OUTPUTRESULTS,
 		DEFAULTOUTPUT,
+		DEFAULTORIENTATION,
 		ALL,
 		NONE,
 		REFERENCEFRAMES,
@@ -1056,6 +1058,10 @@ EndOfUse:
 					break;
 				}
 			}
+			break;
+
+		case DEFAULTORIENTATION:
+			od = ReadOrientationDescription(HP);
 			break;
 
 		case DEFAULTSCALE:
