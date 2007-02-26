@@ -363,7 +363,8 @@ StructNode::OutputPrepare(OutputHandler &OH)
 		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
-			/* get a pointer to binary NetCDF file  -->  pDM->OutHdl.BinFile */
+			/* get a pointer to binary NetCDF file
+			 * -->  pDM->OutHdl.BinFile */
 			NcFile *pBinFile = OH.pGetBinFile();
 			char buf[BUFSIZ];
 
@@ -517,6 +518,20 @@ StructNode::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
 			Var_X->put_rec(XCurr.pGetVec(), OH.GetCurrentStep());
+			switch (od) {
+			case EULER_123:
+			case ORIENTATION_VECTOR:
+				Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
+				break;
+
+			case ORIENTATION_MATRIX:
+				Var_Phi->put_rec(RCurr.pGetMat(), OH.GetCurrentStep());
+				break;
+
+			default:
+				/* impossible */
+				break;
+			}
 			Var_XP->put_rec(VCurr.pGetVec(), OH.GetCurrentStep());
 			Var_Omega->put_rec(WCurr.pGetVec(), OH.GetCurrentStep());
 		}
