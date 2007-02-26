@@ -1,3 +1,4 @@
+$ $Header$
 $ Alters for MSC/NASTRAN v 70.7
 $ ALTERS for SOL 103 MODAL ANALYSIS
 $

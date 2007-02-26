@@ -1,4 +1,5 @@
 #!/bin/sh
+# $Header$
 
 OLD=2006
 NEW=`expr $OLD + 1`

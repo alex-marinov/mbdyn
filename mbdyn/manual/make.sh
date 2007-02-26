@@ -1,4 +1,5 @@
 #!/bin/sh
+# $Header$
 
 VERSIONFILE=../build/version
 

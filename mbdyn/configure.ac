@@ -1,3 +1,4 @@
+dnl $Header$
 dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl MBDyn (C) is a multibody analysis code.

@@ -22,7 +22,9 @@
 %	H	transition matrix
 %	BB	expanded POMs
 %	fm      figure of merit: evaluates the relative quality of POMs
-%
+
+% $Header$
+
 function [S, Aout, B, mn, scl, ee, vv, X, H, BB, fm] = pod(A, ns, dt, uu, dec, ord, thr, wgt)
 
 % MBDyn (C) is a multibody analysis code. 

@@ -1,3 +1,4 @@
+C $Header$
 C**********************     UPDLDL_ADD       ***********************
 
       subroutine uldlad(ldl, nrdldl, n, x, z, nrdz, nz, y)

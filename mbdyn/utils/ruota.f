@@ -1,3 +1,4 @@
+C $Header$
 C MBDyn (C) is a multibody analysis code.
 C http://www.mbdyn.org
 C

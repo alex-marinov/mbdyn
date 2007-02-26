@@ -1,3 +1,4 @@
+/* $Header$ */
 /* A simple interface to the Chaco graph partioning library.  It does
  * some small conversions so that it is easy to substitute for Metis.
  *

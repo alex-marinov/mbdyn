@@ -1,3 +1,4 @@
+dnl $Header$
 dnl MBDyn (C) is a multibody analysis code.
 dnl http://www.mbdyn.org
 dnl

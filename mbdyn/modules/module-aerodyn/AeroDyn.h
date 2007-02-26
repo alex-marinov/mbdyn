@@ -1,3 +1,4 @@
+/* $Header$ */
 /* 
  * Copyright (C) 2003
  *

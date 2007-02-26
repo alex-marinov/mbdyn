@@ -1,4 +1,5 @@
 # MBDyn (C) is a multibody analysis code. 
+# $Header$
 # http://www.mbdyn.org
 # 
 # Copyright (C) 1996-2007

@@ -1,4 +1,5 @@
 #!/bin/sh
+# $Header$
 
 RCSITE=etc/rcsite
 echo "Sourcing $RCSITE:"

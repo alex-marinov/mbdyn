@@ -1,3 +1,4 @@
+/* $Header$ */
 /*
  * This library comes with MBDyn (C), a multibody analysis code.
  * http://www.mbdyn.org

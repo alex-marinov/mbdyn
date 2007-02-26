@@ -1,4 +1,5 @@
 include $(top_srcdir)/build/top.mk
+## $Header$
 ## Process this file with automake to produce Makefile.in
 
 # Build static libraries in subdirs

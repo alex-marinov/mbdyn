@@ -13,7 +13,9 @@
 %	W		data (array if ndof is not defined, else a matrix
 %			nstep x ndofs)
 %	cnt		number of values read
-%
+
+% $Header$
+
 function [W, cnt] = pod_read(filename)
 
 % MBDyn (C) is a multibody analysis code. 

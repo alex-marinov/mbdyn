@@ -1,3 +1,4 @@
+/* $Header$ */
 /* 
  * HmFe (C) is a FEM analysis code. 
  *
