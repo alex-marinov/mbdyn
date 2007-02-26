@@ -863,6 +863,7 @@ build_static_modules=no
 case "$ol_with_static_modules" in
 	no)
 		if test "$have_runtime_loading" != "yes" ; then
+			dnl ?!? check
 			AC_MSG_ERROR([modules cannot be built as dynamic because no runtime loading capability is available])
 		fi
 		;;
