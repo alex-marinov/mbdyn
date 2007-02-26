@@ -792,3 +792,16 @@ DataManager::InsertSym(const char* const s, const Int& v, int redefine)
 	return MathPar.InsertSym(s, v, redefine);
 }
 
+/* default orientation description */
+void
+DataManager::SetOrientationDescription(OrientationDescription od)
+{
+	this->od = od;
+}
+
+OrientationDescription
+DataManager::GetOrientationDescription(void) const
+{
+	return this->od;
+}
+

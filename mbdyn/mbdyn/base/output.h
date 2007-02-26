@@ -137,6 +137,9 @@ private:
 		DIM_V4,
 		DIM_V5,
 		DIM_V6,
+		DIM_V7,
+		DIM_V8,
+		DIM_V9,
 		DIM_LAST
 	};
 #ifdef USE_NETCDF
@@ -269,6 +272,9 @@ public:
 	inline const NcDim* DimV4(void) const;
 	inline const NcDim* DimV5(void) const;
 	inline const NcDim* DimV6(void) const;
+	inline const NcDim* DimV7(void) const;
+	inline const NcDim* DimV8(void) const;
+	inline const NcDim* DimV9(void) const;
 #endif /* USE_NETCDF */
 }; /* End class OutputHandler */
 
@@ -319,6 +325,24 @@ inline const NcDim *
 OutputHandler::DimV6(void) const
 {
 	return Dim[DIM_V6];
+}
+
+inline const NcDim *
+OutputHandler::DimV7(void) const
+{
+	return Dim[DIM_V7];
+}
+
+inline const NcDim *
+OutputHandler::DimV8(void) const
+{
+	return Dim[DIM_V8];
+}
+
+inline const NcDim *
+OutputHandler::DimV9(void) const
+{
+	return Dim[DIM_V9];
 }
 #endif /* USE_NETCDF */
 

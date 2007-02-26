@@ -179,6 +179,7 @@ protected:
 	NcVar *Var_TimeStep;
 	/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 #endif /* USE_NETCDF */
+	OrientationDescription od;
 
 #if defined(USE_ADAMS) || defined(USE_MOTIONVIEW)
 	mutable integer iOutputBlock;
@@ -294,6 +295,10 @@ public:
 
 	/* required for binary NetCDF output access */
 	const OutputHandler* pGetOutHdl(void) const { return &OutHdl; };
+
+	/* default orientation description */
+	void SetOrientationDescription(OrientationDescription);
+	OrientationDescription GetOrientationDescription(void) const;
 
 	/* Restituisce il DriveHandler */
 	const DriveHandler* pGetDrvHdl(void) const { return &DrvHdl; };
@@ -680,6 +685,9 @@ public:
 
 extern ScalarDof
 ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder);
+
+extern OrientationDescription
+ReadOrientationDescription(MBDynParser& HP);
 
 #if (defined(USE_STRUCT_NODES) && defined(USE_AERODYNAMIC_ELEMS))
 extern Shape* ReadShape(MBDynParser& HP);

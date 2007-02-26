@@ -133,6 +133,8 @@ protected:
 		*Var_Omega;
 #endif /* USE_NETCDF */
 
+	OrientationDescription od;
+
 	/* Rigidezze fittizie usate nell'assemblaggio dei vincoli */
 	doublereal dPositionStiffness;
 	doublereal dVelocityStiffness;
@@ -150,6 +152,7 @@ public:
 		doublereal dPosStiff,
 		doublereal dVelStiff,
 		bool bOmRot,
+		OrientationDescription od,
 		flag fOut);
 
 	/* Distruttore (per ora e' banale) */
@@ -474,6 +477,7 @@ public:
 		doublereal dPosStiff,
 		doublereal dVelStiff,
 		bool bOmRot,
+		OrientationDescription od,
 		flag fOut);
 
 	/* Distruttore (per ora e' banale) */
@@ -624,6 +628,7 @@ public:
 		doublereal dPosStiff,
 		doublereal dVelStiff,
 		bool bOmRot,
+		OrientationDescription od,
 		flag fOut);
 
 	/* Distruttore (per ora e' banale) */
@@ -676,6 +681,7 @@ public:
 		doublereal dPosStiff,
 		doublereal dVelStiff,
 		bool bOmRot,
+		OrientationDescription od,
 		flag fOut);
 
 	/* Distruttore (per ora e' banale) */
@@ -764,7 +770,8 @@ public:
 	/* Costruttore definitivo */
 	DummyStructNode(unsigned int uL,
 		const DofOwner* pDO,
-		const StructNode* pNode);
+		const StructNode* pNode,
+		OrientationDescription od);
 
 	/* Distruttore (per ora e' banale) */
 	virtual ~DummyStructNode(void);
@@ -871,7 +878,8 @@ public:
 		const DofOwner* pDO,
 		const StructNode* pNode,
 		const Vec3& f,
-		const Mat3x3& R);
+		const Mat3x3& R,
+		OrientationDescription od);
 
 	/* Distruttore (per ora e' banale) */
 	virtual ~OffsetDummyStructNode(void);
@@ -904,7 +912,8 @@ public:
 		const StructNode* pNode,
 		const StructNode* pNodeRef,
 		const Vec3& fh,
-		const Mat3x3& Rh);
+		const Mat3x3& Rh,
+		OrientationDescription od);
 
 	/* Distruttore (per ora e' banale) */
 	virtual ~RelFrameDummyStructNode(void);

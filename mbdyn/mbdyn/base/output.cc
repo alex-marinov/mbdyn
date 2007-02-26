@@ -278,6 +278,10 @@ OutputHandler::Open(const OutputHandler::OutFiles out)
 				"vec4",
 				"vec5",
 				"vec6",
+				"vec7",
+				"vec8",
+				"vec9",
+				NULL
 			};
 
 			// Let's define some dimensions which could be useful	       	     
@@ -293,8 +297,8 @@ OutputHandler::Open(const OutputHandler::OutFiles out)
 				Dim[i] = pBinFile->add_dim(DimName[i], i);
 				if (!Dim[i]) {
 					silent_cerr("Unable to create NetCDF "
-						"\"" << DimName[i] << "\" dimension"
-						<< std::endl);
+						"\"" << DimName[i] << "\" "
+						"dimension" << std::endl);
 					throw ErrFile();
 				}
 			}

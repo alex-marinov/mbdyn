@@ -915,10 +915,11 @@ DataManager::OutputPrepare(void)
 		/* get a pointer to binary NetCDF file  -->  pDM->OutHdl.BinFile */
 		NcFile *pBinFile = OutHdl.pGetBinFile();
 
-		/* Add general NetCDF (output) variables to the BinFile object and
-		 * save the NcVar* pointer returned from add_var as handle
-		 * for later write accesses. Define also variable attributes*/
-		Var_Step = pBinFile->add_var("run.step", ncLong, OutHdl.DimTime());
+		/* Add general NetCDF (output) variables to the BinFile object
+		 * and save the NcVar* pointer returned from add_var as handle
+		 * for later write accesses. Define also variable attributes */
+		Var_Step = pBinFile->add_var("run.step", ncLong,
+			OutHdl.DimTime(), OutHdl.DimV1());
 		if (Var_Step == 0) {
 			throw ErrGeneric();
 		}
@@ -931,12 +932,14 @@ DataManager::OutputPrepare(void)
 			throw ErrGeneric();
 		}
 
-		Var_Time = pBinFile->add_var("run.time", ncDouble, OutHdl.DimTime());
+		Var_Time = pBinFile->add_var("run.time", ncDouble,
+			OutHdl.DimTime(), OutHdl.DimV1());
 		if (Var_Time == 0) {
 			throw ErrGeneric();
 		}
 
-		if (!Var_Time->add_att("units", "sec")) {
+		/* FIXME: needs to be configurable? */
+		if (!Var_Time->add_att("units", "s")) {
 			throw ErrGeneric();
 		}
 
@@ -944,12 +947,14 @@ DataManager::OutputPrepare(void)
 			throw ErrGeneric();
 		}
 
-		Var_TimeStep = pBinFile->add_var("run.timestep", ncDouble, OutHdl.DimTime());
+		Var_TimeStep = pBinFile->add_var("run.timestep", ncDouble,
+			OutHdl.DimTime(), OutHdl.DimV1());
 		if (Var_TimeStep == 0) {
 			throw ErrGeneric();
 		}
 
-		if (!Var_TimeStep->add_att("units", "sec")) {
+		/* FIXME: needs to be configurable? */
+		if (!Var_TimeStep->add_att("units", "s")) {
 			throw ErrGeneric();
 		}
 

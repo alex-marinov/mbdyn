@@ -106,6 +106,7 @@ StructNode::StructNode(unsigned int uL,
 	doublereal dPosStiff,
 	doublereal dVelStiff,
 	bool bOmRot,
+	OrientationDescription od,
 	flag fOut)
 : Node(uL, pDO, fOut),
 RPrev(R0),
@@ -129,13 +130,13 @@ Var_Phi(0),
 Var_XP(0),
 Var_Omega(0),
 #endif /* USE_NETCDF */
+od(od),
 dPositionStiffness(dPosStiff),
 dVelocityStiffness(dVelStiff),
 bOmegaRot(bOmRot)
 {
 	NO_OP;
 }
-
 
 /* Distruttore (per ora e' banale) */
 StructNode::~StructNode(void)
@@ -377,72 +378,114 @@ StructNode::OutputPrepare(OutputHandler &OH)
 				throw ErrGeneric();
 			}
 
-			/* the var type will be added to the node var */
-#if 0
-			switch (CurrType) {
-			case STATIC:
-				strcat(strcpy(VarName,"node.struct.stat."),uLabel_str);
-				break;
-			case DYNAMIC:
-				strcat(strcpy(VarName,"node.struct.dyn."),uLabel_str);
-				break;
-			case MODAL:
-				strcat(strcpy(VarName,"node.struct.modal."),uLabel_str);
-				break;
-			default:
-				break;
-			}
-#endif
-
-			/* Add NetCDF (output) variables to the BinFile object and
-			 * save the NcVar* pointer returned from add_var as handle
-			 * for later write accesses. Define also variable attributes*/
+			/* Add NetCDF (output) variables to the BinFile object
+			 * and save the NcVar* pointer returned from add_var
+			 * as handle for later write accesses.
+			 * Define also variable attributes */
 
 			strcpy(&buf[l], "X");
-			Var_X = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
+			Var_X = pBinFile->add_var(buf, ncDouble,
+				OH.DimTime(), OH.DimV3());
 			if (Var_X == 0) {
 				throw ErrGeneric();
 			}
 			if (!Var_X->add_att("units", "m")) {
 				throw ErrGeneric();
 			}
-			if (!Var_X->add_att("description", "global position vector (X, Y, Z)")) {
+			if (!Var_X->add_att("description",
+				"global position vector (X, Y, Z)"))
+			{
 				throw ErrGeneric();
 			}
 
-			strcpy(&buf[l], "Phi");
-			Var_Phi = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
-			if (Var_Phi == 0) {
-				throw ErrGeneric();
-			}
-			if (!Var_Phi->add_att("units", "radian")) {
-				throw ErrGeneric();
-			}
-			if (!Var_Phi->add_att("description", "global orientation vector (phi_X, phi_Y, phi_Z) Euler angles")) {
+			switch (od) {
+			case ORIENTATION_MATRIX:
+				strcpy(&buf[l], "R");
+				Var_Phi = pBinFile->add_var(buf, ncDouble,
+					OH.DimTime(), OH.DimV9());
+				if (Var_Phi == 0) {
+					throw ErrGeneric();
+				}
+				if (!Var_Phi->add_att("units", "-")) {
+					throw ErrGeneric();
+				}
+				if (!Var_Phi->add_att("description",
+					"global orientation matrix "
+					"(R11, R21, R31, "
+					"R12, R22, R32, R13, R23, R33)" ))
+				{
+					throw ErrGeneric();
+				}
+				break;
+
+			case ORIENTATION_VECTOR:
+				strcpy(&buf[l], "Phi");
+				Var_Phi = pBinFile->add_var(buf, ncDouble,
+					OH.DimTime(), OH.DimV3());
+				if (Var_Phi == 0) {
+					throw ErrGeneric();
+				}
+				if (!Var_Phi->add_att("units", "radian")) {
+					throw ErrGeneric();
+				}
+				if (!Var_Phi->add_att("description",
+					"global orientation vector "
+					"(Phi_X, Phi_Y, Phi_Z)"))
+				{
+					throw ErrGeneric();
+				}
+				break;
+
+			case EULER_123:
+				strcpy(&buf[l], "E");
+				Var_Phi = pBinFile->add_var(buf, ncDouble,
+					OH.DimTime(), OH.DimV3());
+				if (Var_Phi == 0) {
+					throw ErrGeneric();
+				}
+				if (!Var_Phi->add_att("units", "radian")) {
+					throw ErrGeneric();
+				}
+				if (!Var_Phi->add_att("description",
+					"global orientation Euler angles (123) "
+					"(E_X, E_Y, E_Z)"))
+				{
+					throw ErrGeneric();
+				}
+				break;
+
+			default:
 				throw ErrGeneric();
 			}
 
 			strcpy(&buf[l], "XP");
-			Var_XP = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
+			Var_XP = pBinFile->add_var(buf, ncDouble,
+				OH.DimTime(), OH.DimV3());
 			if (Var_XP == 0) {
 				throw ErrGeneric();
 			}
 			if (!Var_XP->add_att("units", "m/s")) {
 				throw ErrGeneric();
 			}
-			if (!Var_XP->add_att("description", "global velocity vector (v_X, v_Y, v_Z)")) {
+			if (!Var_XP->add_att("description",
+				"global velocity vector (v_X, v_Y, v_Z)"))
+			{
 				throw ErrGeneric();
 			}
 
 			strcpy(&buf[l], "Omega");
-			Var_Omega = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
+			Var_Omega = pBinFile->add_var(buf, ncDouble,
+				OH.DimTime(), OH.DimV3());
 			if (Var_Omega == 0) {
 				throw ErrGeneric();
 			}
 			if (!Var_Omega->add_att("units", "radian/s")) {
 				throw ErrGeneric();
 			}
-			if (!Var_Omega->add_att("description", "global angular velocity vector (omega_X, omega_Y, omega_Z)")) {
+			if (!Var_Omega->add_att("description",
+				"global angular velocity vector "
+				"(omega_X, omega_Y, omega_Z)"))
+			{
 				throw ErrGeneric();
 			}
 
@@ -456,12 +499,24 @@ void
 StructNode::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		Vec3 E(MatR2EulerAngles(RCurr));
+		Vec3 E;
+		switch (od) {
+		case EULER_123:
+			E = MatR2EulerAngles(RCurr);
+			break;
+
+		case ORIENTATION_VECTOR:
+			E = RotManip::VecRot(RCurr);
+			break;
+
+		default:
+			/* impossible */
+			break;
+		}
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
 			Var_X->put_rec(XCurr.pGetVec(), OH.GetCurrentStep());
-			Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
 			Var_XP->put_rec(VCurr.pGetVec(), OH.GetCurrentStep());
 			Var_Omega->put_rec(WCurr.pGetVec(), OH.GetCurrentStep());
 		}
@@ -469,8 +524,24 @@ StructNode::Output(OutputHandler& OH) const
 
 		if (OH.UseText(OutputHandler::STRNODES)) {
 			OH.StrNodes() << std::setw(8) << GetLabel()
-				<< " " << XCurr << " " << E*dRaDegr
-				<< " " << VCurr << " " << WCurr << std::endl;
+				<< " " << XCurr
+				<< " ";
+			switch (od) {
+			case EULER_123:
+			case ORIENTATION_VECTOR:
+				OH.StrNodes() << E*dRaDegr;
+				break;
+
+			case ORIENTATION_MATRIX:
+				OH.StrNodes() << RCurr;
+				break;
+
+			default:
+				/* impossible */
+				break;
+			}
+			OH.StrNodes() << " " << VCurr
+				<< " " << WCurr << std::endl;
 		}
 	}
 }
@@ -1157,8 +1228,10 @@ DynamicStructNode::DynamicStructNode(unsigned int uL,
 	doublereal dPosStiff,
 	doublereal dVelStiff,
 	bool bOmRot,
+	OrientationDescription od,
 	flag fOut)
-: StructNode(uL, pDO, X0, R0, V0, W0, pRN, dPosStiff, dVelStiff, bOmRot, fOut),
+: StructNode(uL, pDO, X0, R0, V0, W0, pRN, dPosStiff, dVelStiff, bOmRot,
+	od, fOut),
 bComputeAccelerations((fOut & 2) ? true : false),
 pAutoStr(0),
 #ifdef USE_NETCDF
@@ -1285,7 +1358,9 @@ DynamicStructNode::OutputPrepare(OutputHandler &OH)
 
 	if (fToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::STRNODES) && bComputeAccelerations) {
+		if (OH.UseNetCDF(OutputHandler::STRNODES)
+			&& bComputeAccelerations)
+		{
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
 			/* get a pointer to binary NetCDF file  -->  pDM->OutHdl.BinFile */
@@ -1340,12 +1415,38 @@ void
 DynamicStructNode::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		Vec3 E(MatR2EulerAngles(RCurr));
+		Vec3 E;
+		switch (od) {
+		case EULER_123:
+			E = MatR2EulerAngles(RCurr);
+			break;
+
+		case ORIENTATION_VECTOR:
+			E = RotManip::VecRot(RCurr);
+			break;
+
+		default:
+			/* impossible */
+			break;
+		}
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
 			Var_X->put_rec(XCurr.pGetVec(), OH.GetCurrentStep());
-			Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
+			switch (od) {
+			case EULER_123:
+			case ORIENTATION_VECTOR:
+				Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
+				break;
+
+			case ORIENTATION_MATRIX:
+				Var_Phi->put_rec(RCurr.pGetMat(), OH.GetCurrentStep());
+				break;
+
+			default:
+				/* impossible */
+				break;
+			}
 			Var_XP->put_rec(VCurr.pGetVec(), OH.GetCurrentStep());
 			Var_Omega->put_rec(WCurr.pGetVec(), OH.GetCurrentStep());
 
@@ -1360,8 +1461,22 @@ DynamicStructNode::Output(OutputHandler& OH) const
 			std::ostream& out = OH.StrNodes();
 			out
 				<< std::setw(8) << GetLabel()
-				<< " " << XCurr << " " << (E*dRaDegr)
-				<< " " << VCurr << " " << WCurr;
+				<< " " << XCurr << " ";
+			switch (od) {
+			case EULER_123:
+			case ORIENTATION_VECTOR:
+				OH.StrNodes() << E*dRaDegr;
+				break;
+
+			case ORIENTATION_MATRIX:
+				OH.StrNodes() << RCurr;
+				break;
+
+			default:
+				/* impossible */
+				break;
+			}
+			OH.StrNodes() << " " << VCurr << " " << WCurr;
 
 			if (bComputeAccelerations) {
 				out
@@ -1590,8 +1705,10 @@ StaticStructNode::StaticStructNode(unsigned int uL,
 	doublereal dPosStiff,
 	doublereal dVelStiff,
 	bool bOmRot,
+	OrientationDescription od,
 	flag fOut)
-: StructNode(uL, pDO, X0, R0, V0, W0, pRN, dPosStiff, dVelStiff, bOmRot, fOut)
+: StructNode(uL, pDO, X0, R0, V0, W0, pRN, dPosStiff, dVelStiff, bOmRot,
+	od, fOut)
 {
 	NO_OP;
 }
@@ -1625,9 +1742,10 @@ ModalNode::ModalNode(unsigned int uL,
 	doublereal dPosStiff,
 	doublereal dVelStiff,
 	bool bOmRot,
+	OrientationDescription od,
 	flag fOut)
 : DynamicStructNode(uL, pDO, X0, R0, V0, W0, 0,
-	dPosStiff, dVelStiff, bOmRot, fOut)
+	dPosStiff, dVelStiff, bOmRot, od, fOut)
 {
 	/* XPP and WP are unknowns in ModalNode */
 	ComputeAccelerations(false);
@@ -1721,8 +1839,9 @@ ModalNode::Update(const VectorHandler& X, const VectorHandler& XP)
 /* Costruttore definitivo */
 DummyStructNode::DummyStructNode(unsigned int uL,
 	const DofOwner* pDO,
-	const StructNode* pN)
-: StructNode(uL, pDO, 0., 0., 0., 0., 0, 0., 0., 0, flag(1)), pNode(pN)
+	const StructNode* pN,
+	OrientationDescription od)
+: StructNode(uL, pDO, 0., 0., 0., 0., 0, 0., 0., 0, od, flag(1)), pNode(pN)
 {
 	ASSERT(pNode != NULL);
 }
@@ -1842,8 +1961,9 @@ OffsetDummyStructNode::OffsetDummyStructNode(unsigned int uL,
 	const DofOwner* pDO,
 	const StructNode* pN,
 	const Vec3& f,
-	const Mat3x3& R)
-: DummyStructNode(uL, pDO, pN), f(f), R(R)
+	const Mat3x3& R,
+	OrientationDescription od)
+: DummyStructNode(uL, pDO, pN, od), f(f), R(R)
 {
 	/* forzo la ricostruzione del nodo strutturale sottostante */
 	Update_int();
@@ -1896,8 +2016,12 @@ RelFrameDummyStructNode::RelFrameDummyStructNode(unsigned int uL,
 	const StructNode* pN,
 	const StructNode* pNR,
 	const Vec3& fh,
-	const Mat3x3& Rh)
-: DummyStructNode(uL, pDO, pN), pNodeRef(pNR), RhT(Rh.Transpose()), fhT(RhT*fh)
+	const Mat3x3& Rh,
+	OrientationDescription od)
+: DummyStructNode(uL, pDO, pN, od),
+pNodeRef(pNR),
+RhT(Rh.Transpose()),
+fhT(RhT*fh)
 {
 	ASSERT(pNodeRef != NULL);
 
@@ -1972,6 +2096,21 @@ RelFrameDummyStructNode::Update(const VectorHandler& /* X */ ,
 
 /* Legge un nodo strutturale */
 
+OrientationDescription
+ReadNodeOrientationDescription(DataManager *pDM, MBDynParser& HP,
+	OrientationDescription dod = UNKNOWN_ORIENTATION_DESCRIPTION)
+{
+	if (HP.IsKeyWord("orientation" "description")) {
+		dod = ReadOrientationDescription(HP);
+
+	} else if (dod == UNKNOWN_ORIENTATION_DESCRIPTION && pDM != 0) {
+		/* get a sane default */
+		dod = pDM->GetOrientationDescription();
+	}
+
+	return dod;
+}
+
 Node*
 ReadStructNode(DataManager* pDM,
 	MBDynParser& HP,
@@ -2038,6 +2177,7 @@ ReadStructNode(DataManager* pDM,
 #endif /* DEBUG */
 
 	StructNode* pNd = NULL;
+	OrientationDescription od = UNKNOWN_ORIENTATION_DESCRIPTION;
 	KeyWords DummyType = UNKNOWN;
 	if (CurrType == DUMMY) {
 		StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
@@ -2049,9 +2189,12 @@ ReadStructNode(DataManager* pDM,
 			Vec3 f(HP.GetPosRel(RF));
 			Mat3x3 R(HP.GetRotRel(RF));
 
+			od = ReadNodeOrientationDescription(pDM, HP);
+
 			SAFENEWWITHCONSTRUCTOR(pNd,
 				OffsetDummyStructNode,
-				OffsetDummyStructNode(uLabel, pDO, pNode, f, R));
+				OffsetDummyStructNode(uLabel, pDO, pNode,
+					f, R, od));
 		} break;
 
 		case RELATIVEFRAME: {
@@ -2069,10 +2212,12 @@ ReadStructNode(DataManager* pDM,
 				Rh = HP.GetRotRel(RF);
 			}
 
+			od = ReadNodeOrientationDescription(pDM, HP);
+
 			SAFENEWWITHCONSTRUCTOR(pNd,
 				RelFrameDummyStructNode,
 				RelFrameDummyStructNode(uLabel, pDO,
-					pNode, pNodeRef, fh, Rh));
+					pNode, pNodeRef, fh, Rh, od));
 		} break;
 
 		default:
@@ -2171,6 +2316,9 @@ ReadStructNode(DataManager* pDM,
 		}
 
 		pDO->SetScale(pDM->dReadScale(HP, DofOwner::STRUCTURALNODE));
+
+		od = ReadNodeOrientationDescription(pDM, HP);
+
 		flag fOut = pDM->fReadOutput(HP, Node::STRUCTURAL);
 		if (CurrType == DYNAMIC && HP.IsArg() && HP.IsKeyWord("accelerations")) {
 			fOut |= 2;
@@ -2196,7 +2344,7 @@ ReadStructNode(DataManager* pDM,
 					XPrime0, Omega0,
 					pRefNode,
 					dPosStiff, dVelStiff,
-					bOmRot, fOut));
+					bOmRot, od, fOut));
 
 		} else if (CurrType == DYNAMIC) {
 			SAFENEWWITHCONSTRUCTOR(pNd, DynamicStructNode,
@@ -2205,7 +2353,7 @@ ReadStructNode(DataManager* pDM,
 					XPrime0, Omega0,
 					pRefNode,
 					dPosStiff, dVelStiff,
-					bOmRot, fOut));
+					bOmRot, od, fOut));
 
 			/* Incrementa il numero di elementi automatici dei nodi dinamici */
 			pDM->IncElemCount(Elem::AUTOMATICSTRUCTURAL);
@@ -2216,7 +2364,7 @@ ReadStructNode(DataManager* pDM,
 					X0, R0,
 					XPrime0, Omega0,
 					dPosStiff, dVelStiff,
-					bOmRot, fOut));
+					bOmRot, od, fOut));
 		}
 	}
 
@@ -2234,8 +2382,29 @@ ReadStructNode(DataManager* pDM,
 		std::ostream& out = pDM->GetLogFile();
 		out << "structural node: " << uLabel
 			<< " ", pNd->GetXCurr().Write(out, " ")
-			<< " ", (MatR2EulerAngles(pNd->GetRCurr())*dRaDegr).Write(out, " ")
-			<< std::endl;
+			<< " ";
+		switch (od) {
+		case EULER_123:
+			out << "euler123 ",
+				(MatR2EulerAngles(pNd->GetRCurr())*dRaDegr).Write(out, " ");
+			break;
+
+		case ORIENTATION_VECTOR:
+			out << "phi ",
+				RotManip::VecRot(pNd->GetRCurr()).Write(out, "" );
+			break;
+
+		case ORIENTATION_MATRIX:
+			out << "mat ",
+				pNd->GetRCurr().Write(out, "" );
+			break;
+
+		default:
+			/* impossible */
+			break;
+		}
+
+		out << std::endl;
 		break;
 	}
 

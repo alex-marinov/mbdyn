@@ -1237,6 +1237,15 @@ extern std::ostream& Write(std::ostream& out,
 		      const char* s = " ", 
 		      const char* s2 = NULL);
 
+/* known orientation descriptions */
+enum OrientationDescription {
+	UNKNOWN_ORIENTATION_DESCRIPTION	= -1,
+	EULER_123			= 0,
+	ORIENTATION_VECTOR,
+	ORIENTATION_MATRIX,
+
+	LAST_ORIENTATION_DESCRIPTION
+};
 
 /*
  Calcola i parametri di Rodriguez g a partire dalla matrice di rotazione R.

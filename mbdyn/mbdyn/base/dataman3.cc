@@ -2433,5 +2433,28 @@ ReadShape(MBDynParser& HP)
 	return pS;
 } /* ReadShape */
 
+OrientationDescription
+ReadOrientationDescription(MBDynParser& HP)
+{
+	OrientationDescription dod = UNKNOWN_ORIENTATION_DESCRIPTION;
+
+	if (HP.IsKeyWord("euler" "123")) {
+		dod = EULER_123;
+
+	} else if (HP.IsKeyWord("orientation" "vector")) {
+		dod = ORIENTATION_VECTOR;
+
+	} else if (HP.IsKeyWord("orientation" "matrix")) {
+		dod = ORIENTATION_MATRIX;
+
+	} else {
+		silent_cerr("Unknown orientation description "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric();
+	}
+
+	return dod;
+}
+
 #endif /* STRUCT && AERODYNAMIC */
 
