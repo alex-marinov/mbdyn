@@ -403,7 +403,7 @@ StructNode::OutputPrepare(OutputHandler &OH)
 			case ORIENTATION_MATRIX:
 				strcpy(&buf[l], "R");
 				Var_Phi = pBinFile->add_var(buf, ncDouble,
-					OH.DimTime(), OH.DimV9());
+					OH.DimTime(), OH.DimV3(), OH.DimV3());
 				if (Var_Phi == 0) {
 					throw ErrGeneric();
 				}
