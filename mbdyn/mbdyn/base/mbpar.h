@@ -203,6 +203,10 @@ protected:
 
 	DataManager *pDM;
 
+private:
+	/* not allowed */
+	MBDynParser(const MBDynParser&);
+
 public:
 	MBDynParser(MathParser& MP, InputStream& streamIn,
 			const char *initial_file);
