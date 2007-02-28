@@ -4,6 +4,8 @@ include $(top_srcdir)/build/top.mk
 
 # Build mbdyn utils
 bin_PROGRAMS = \
+ann_sim \
+ann_tr \
 autopilot \
 c81merge \
 c81test \
@@ -37,6 +39,7 @@ MYLIBS = \
 ../libraries/libmbwrap/libmbwrap.la \
 @Y12_LIBS@ \
 ../libraries/libcolamd/libcolamd.la \
+../libraries/libann/libann.la \
 ../libraries/libmbmath/libmbmath.la \
 ../libraries/libmbutil/libmbutil.la \
 @HARWELL_LIBS@ \
@@ -47,6 +50,8 @@ MYLIBS = \
 @TCL_LIBS@ \
 @LIBS@
 
+ann_sim_SOURCES = ann_sim.c
+ann_tr_SOURCES = ann_tr.c
 autopilot_SOURCES = autopilot.c
 c81merge_SOURCES = c81merge.cc
 c81test_SOURCES = c81test.cc
@@ -72,6 +77,8 @@ stream2socket_SOURCES = stream2socket.cc s2s.cc s2s.h
 trim_SOURCES = trim.cc s2s.cc s2s.h
 vec2rot_SOURCES = vec2rot.cc
 
+ann_sim_LDADD = $(MYLIBS)
+ann_tr_LDADD = $(MYLIBS)
 autopilot_LDADD = $(MYLIBS) @SECURITY_LIBS@
 # need to fool libtool in getting libbase linked twice ;)
 # hope this is not fixed for a while...
