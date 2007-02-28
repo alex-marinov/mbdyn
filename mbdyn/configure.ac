@@ -2213,6 +2213,7 @@ AC_OUTPUT([ \
 	./libraries/libmbwrap/Makefile:libraries/libmbwrap/Makefile.in
 	./libraries/liby12/Makefile:libraries/liby12/Makefile.in
 	./libraries/libcolamd/Makefile:libraries/libcolamd/Makefile.in
+	./libraries/libann/Makefile:libraries/libann/Makefile.in
 	./libraries/libnaive/Makefile:libraries/libnaive/Makefile.in
 	./libraries/libobjs/Makefile:libraries/libobjs/Makefile.in
 	./mbdyn/Makefile:mbdyn/Makefile.in
