@@ -34,6 +34,15 @@
  * Mattia Mattaboni	<mattaboni@aero.polimi.it>
  */
 
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
+
+#include <malloc.h>
+#include <stdio.h>
+
+#include "ann.h"
+
 int ANN_sim( ANN *net, double *input, double *output ){
 
 	int i, j, k;

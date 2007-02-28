@@ -5,7 +5,9 @@ include $(top_srcdir)/build/top.mk
 # Build libann.a library
 lib_LTLIBRARIES = libann.la
 
-libann_la_SOURCES = pippo.c
+libann_la_SOURCES = \
+ann.c \
+ann.h
 
 libann_la_LIBADD = @LIBS@
 libann_la_LDFLAGS =
