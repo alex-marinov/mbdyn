@@ -170,6 +170,12 @@ typedef struct ANN {
 	double *yD;	/* output */
 } ANN;
 
+/* diagnostics */
+typedef enum {
+	ANN_OK = 0,
+	ANN_NO_MEMORY
+} ann_res_t;
+
 /* FUNCTIONS' PROTOTYPES:    */
 
 void ANN_Strcat(char *, char *, char *);
