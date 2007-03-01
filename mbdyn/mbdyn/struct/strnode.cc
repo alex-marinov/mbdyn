@@ -503,11 +503,14 @@ StructNode::Output(OutputHandler& OH) const
 		Vec3 E;
 		switch (od) {
 		case EULER_123:
-			E = MatR2EulerAngles(RCurr);
+			E = MatR2EulerAngles(RCurr)*dRaDegr;
 			break;
 
 		case ORIENTATION_VECTOR:
 			E = RotManip::VecRot(RCurr);
+			break;
+
+		case ORIENTATION_MATRIX:
 			break;
 
 		default:
@@ -544,7 +547,7 @@ StructNode::Output(OutputHandler& OH) const
 			switch (od) {
 			case EULER_123:
 			case ORIENTATION_VECTOR:
-				OH.StrNodes() << E*dRaDegr;
+				OH.StrNodes() << E;
 				break;
 
 			case ORIENTATION_MATRIX:
@@ -1433,11 +1436,14 @@ DynamicStructNode::Output(OutputHandler& OH) const
 		Vec3 E;
 		switch (od) {
 		case EULER_123:
-			E = MatR2EulerAngles(RCurr);
+			E = MatR2EulerAngles(RCurr)*dRaDegr;
 			break;
 
 		case ORIENTATION_VECTOR:
 			E = RotManip::VecRot(RCurr);
+			break;
+
+		case ORIENTATION_MATRIX:
 			break;
 
 		default:
@@ -1480,7 +1486,7 @@ DynamicStructNode::Output(OutputHandler& OH) const
 			switch (od) {
 			case EULER_123:
 			case ORIENTATION_VECTOR:
-				OH.StrNodes() << E*dRaDegr;
+				OH.StrNodes() << E;
 				break;
 
 			case ORIENTATION_MATRIX:
