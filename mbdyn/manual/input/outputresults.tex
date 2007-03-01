@@ -214,3 +214,50 @@ It is activated by the directive
 No special parameters are available at the moment; 
 this interface is under development.
 \end{comment} % there's no need to advertize this
+
+\section{Output Manipulation}
+This section notes how output can be manipulated in useful manners.
+
+\subsection{Output in a Relative Reference Frame}
+In many cases it may be useful to represent the output 
+of \kw{structural nodes} in a reference frame relative to one node.
+For example, to investigate the deformation of a helicopter rotor,
+it may be useful to refer the motion of the blades
+to the reference frame of the rotor hub, so that the reference 
+rotation of the rotor is separated from the local straining.
+
+For this purpose, MBDyn provides an \kw{awk(1)} script that
+extracts the desired information from the \kw{.mov} file.
+
+The script is \kw{\$SRC/var/abs2rel.awk}
+and is usually installed in \kw{\$PREFIX/share/awk}.
+It requires the specification of the reference node label;
+it also allows to specify the input and output formats 
+of the orientations, under the assumption that rotations
+of all nodes are generated with the same format.
+
+To invoke the script run
+\begin{verbatim}
+$ awk -f abs2rel.awk -vRefNode=label \
+        -vInputMode=imode -vOutputMode=omode \
+        infile.mov > outfile.mov
+\end{verbatim}
+where \kw{imode} and \kw{omode} can be:
+\begin{itemize}
+\item \kw{euler123} for the Euler-like angles, in degrees,
+	according to the 123 sequence;
+\item \kw{vector} for the orientation vector, in radians;
+\item \kw{matrix} for the orientation matrix.
+\end{itemize}
+
+This script basically computes the configuration of each node
+as function of that of the reference one, namely
+\begin{align}
+	x_n' &= R_0^T\plbr{x_n - x_0} \\
+	R_n' &= R_0^T R_n \\
+	v_n' &= R_0^T\plbr{v_n - v_0 - \omega_0\times\plbr{x_n - x_0}} \\
+	\omega_n' &= R_0^T\plbr{\omega_n - \omega_0}
+\end{align}
+where subscript $0$ refers to the reference node,
+subscript $n$ refers to the generic $n$-th node,
+and the prime refers to the relative values.
