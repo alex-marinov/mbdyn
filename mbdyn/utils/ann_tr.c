@@ -58,26 +58,119 @@ int PRINTSTEP;
 int GR_CHECK;
 double dw;
 
+/* activation interface */
+typedef int (*w_init_f)(void **);
+typedef int (*w_destroy_f)(void *);
+typedef int (*w_read_f)(void *, FILE *fd, unsigned flags);
+typedef int (*w_write_f)(void *, FILE *fd, unsigned flags);
+#define	W_F_NONE	(0x00U)
+#define	W_F_TEXT	(0x01U)
+#define	W_F_BIN		(0x02U)
+typedef int (*w_eval_f)(void *, double, int, double *);
+
+/* tanh activation function */
+typedef struct w_tanh_t {
+	double alpha;
+	double beta;
+} w_tanh_t;
+
+static int
+w_tanh_init(void **privp)
+{
+	*privp = malloc(sizeof(w_tanh_t));
+
+	return (*privp == NULL);
+}
+
+static int
+w_tanh_destroy(void *priv)
+{
+#if 0
+	w_tanh_t	*data = (w_tanh_t *)priv;
+#endif
+
+	free(priv);
+
+	return 0;
+}
+
+static int
+w_tanh_read(void *priv, FILE *fh, unsigned flags)
+{
+	w_tanh_t	*data = (w_tanh_t *)priv;
+
+	fscanf(fh, "%lf", &data->alpha);
+	fscanf(fh, "%lf", &data->beta);
+
+	return 0;
+}
+
+static int
+w_tanh_write(void *priv, FILE *fh, unsigned flags)
+{
+	w_tanh_t	*data = (w_tanh_t *)priv;
+
+	if (flags & W_F_BIN) {
+		fprintf(fh, "%e %e",
+			data->alpha, data->beta);
+
+	} else if (flags & W_F_TEXT) {
+		fprintf(fh, "tanh alpha=%e beta=%e\n",
+			data->alpha, data->beta);
+	}
+
+	return 0;
+}
+
+static int
+w_tanh_eval(void *priv, double in, int order, double *outp)
+{
+	w_tanh_t	*data = (w_tanh_t *)priv;
+	double		y;
+
+	switch (order) {
+	case 0:
+		y = data->alpha*tanh(data->beta*in);
+		break;
+
+	case 1:
+		y = tanh(data->beta*in);
+		y = 1 - data->alpha*data->beta*(1. - y*y);
+		break;
+
+	default:
+		return 1;
+	}
+
+	*outp = y;
+
+	return 0;
+}
 
 /* Artificial Multi-Layer Feedforward Neural Network */
-typedef struct ANN{
-	int N_input;     /* network input number*/
-	int N_output;    /* network (visible)output number*/
-	int N_layer;     /* network layer number*/
-	int *N_neuron;   /* neuron number*/
-	double alpha;    /* activation function coefficient*/
-	double beta;     /* activation function coefficient*/
-	double eta;      /* learning rate*/
-	double rho;      /* momentum term*/
-	int r;           /* number of time delay*/
-	double ***W;     /* network synaptic weights*/
-	double ***dW;    /* error gradient*/
-	double **v;      /* neurons' internal activity*/
-	double *****dy;  /* output network gradient*/
-	double *yD;
-	}ANN;
+typedef struct ANN {
+	w_init_f	w_init;
+	w_destroy_f	w_destroy;
+	w_read_f	w_read;
+	w_write_f	w_write;
+	w_eval_f	w_eval;
+	void		*w_priv;
 
-/*FUNCTIONS' PROTOTYPES:    */
+	int N_input;    /* network input number*/
+	int N_output;   /* network (visible) output number*/
+	int N_layer;    /* network layer number*/
+	int *N_neuron;  /* neuron number*/
+	double eta;     /* learning rate*/
+	double rho;     /* momentum term*/
+	int r;          /* number of time delay*/
+	double ***W;    /* network synaptic weights*/
+	double ***dW;   /* error gradient*/
+	double **v;     /* neurons' internal activity*/
+	double *****dy; /* output network gradient*/
+	double *yD;	/* output */
+} ANN;
+
+/* FUNCTIONS' PROTOTYPES:    */
 
 void ANN_Strcat(char *, char *, char *);
 int ANN_FileName();
@@ -100,7 +193,7 @@ int ANN_save( ANN * );
 
 /* MAIN FUNCTION:    */
 int main( int argc , char **argv ){
-	ANN net;
+	ANN net = { 0 };
 	int i,j,k,p,q;
 	double **INPUT, **NN_OUTPUT, **DES_OUTPUT;
 	int N_sample;
@@ -459,8 +552,22 @@ int ANN_Initialize( ANN *net ){
 	net->N_neuron[0] = net->N_input + ( net->r * net->N_neuron[net->N_layer+1] );
 
 
-	fscanf(fp,"%lf",&(net->alpha));
-	fscanf(fp,"%lf",&(net->beta));
+	/* add switch */
+	/* use tanh */
+	net->w_init = w_tanh_init;
+	net->w_destroy = w_tanh_destroy;
+	net->w_read = w_tanh_read;
+	net->w_write = w_tanh_write;
+	net->w_eval = w_tanh_eval;
+	/* end of switch */
+
+	net->w_priv = NULL;
+	if (net->w_init(&net->w_priv) != 0) {
+		/* error */
+	}
+
+	net->w_read(net->w_priv, fp, W_F_NONE);
+
 	fscanf(fp,"%lf",&(net->eta));
 	fscanf(fp,"%lf",&(net->rho));
 
@@ -744,9 +851,11 @@ void ANN_print( ANN *net ){
 	printf("\nLearning rate: %lf ",net->eta);
 	printf("\nMomentum term: %lf ",net->rho);
 
-	
+#if 0
 	printf("\nActivation function, alpha: %lf ",net->alpha);
 	printf("\nActivation fuction, beta: %lf ",net->beta);
+#endif
+	net->w_write(net->w_priv, stdout, W_F_TEXT);
 
 
 	for( i=0;i<net->N_layer+1;i++ ){
@@ -1866,8 +1975,11 @@ int ANN_save( ANN * net){
 	for( i=0;i<net->N_layer+1;i++ ){
 		fprintf(fp,"%d ",net->N_neuron[i+1]);
 	}
+#if 0
 	fprintf(fp,"\n\n%1.20lf",net->alpha);
 	fprintf(fp,"\n%lf",net->beta);
+#endif
+	net->w_write(net->w_priv, fp, W_F_BIN);
 	fprintf(fp,"\n\n%1.20lf",net->eta);
 	fprintf(fp,"\n%lf\n\n",net->rho);
 
@@ -1886,20 +1998,26 @@ int ANN_save( ANN * net){
 	return(1);
 }
 
-double ANN_InternalFunction( double v , ANN * net ){
-
+double
+ANN_InternalFunction( double v , ANN * net )
+{
 	double y;
 
-	y = net->alpha*tanh(net->beta*v);
+	if (net->w_eval(net->w_priv, v, 0, &y) != 0) {
+		/* error */
+	}
 
-	return(y);
+	return y;
 }
 
-double ANN_InternalFunctionDer( double v , ANN * net ){
-
+double
+ANN_InternalFunctionDer( double v , ANN * net )
+{
 	double y;
 
-	y = net->alpha*net->beta*( 1 - tanh(net->beta*v)*tanh(net->beta*v));
+	if (net->w_eval(net->w_priv, v, 1, &y) != 0) {
+		/* error */
+	}
 
-	return(y);
+	return y;
 }
