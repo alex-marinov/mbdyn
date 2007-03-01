@@ -28,8 +28,16 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # Author:	Pierangelo Masarati	<masarati@aero.polimi.it>
-# 
-# R matrix
+#
+# Use:		awk -f abs2rel.awk -v<option>=<value> [...] <file>.mov
+#
+# options:
+#		name		value
+#		RefNode		label of reference node (required)
+#		InputMode	{euler123|vector|matrix} (default: euler123)
+#		OutputMode	{euler123|vector|matrix} (default: euler123)
+
+# R matrix from Euler 123 angles
 function euler2R(Alpha, Beta, Gamma, R,   dCosAlpha, dSinAlpha, dCosBeta, dSinBeta, dCosGamma, dSinGamma) {
 	dCosAlpha = cos(Alpha*AngleScale);
 	dSinAlpha = sin(Alpha*AngleScale);
@@ -41,15 +49,57 @@ function euler2R(Alpha, Beta, Gamma, R,   dCosAlpha, dSinAlpha, dCosBeta, dSinBe
 	R[1, 1] = dCosBeta*dCosGamma;
 	R[2, 1] = dCosAlpha*dSinGamma+dSinAlpha*dSinBeta*dCosGamma;
 	R[3, 1] = dSinAlpha*dSinGamma-dCosAlpha*dSinBeta*dCosGamma;
+
 	R[1, 2] = -dCosBeta*dSinGamma;
 	R[2, 2] = dCosAlpha*dCosGamma-dSinAlpha*dSinBeta*dSinGamma;
 	R[3, 2] = dSinAlpha*dCosGamma+dCosAlpha*dSinBeta*dSinGamma;
+
 	R[1, 3] = dSinBeta;
 	R[2, 3] = -dSinAlpha*dCosBeta;
 	R[3, 3] = dCosAlpha*dCosBeta;
 }
 
-# Euler params
+# R matrix from orientation vector
+function vec2R(Phi1, Phi2, Phi3, R,   dPhi, dCosPhi, dSinPhi)
+{
+	dPhi = sqrt(Phi1*Phi1 + Phi2*Phi2 + Phi3*Phi3);
+
+	dCosPhi = cos(dPhi);
+	dSinPhi = sin(dPhi);
+
+	if (dPhi > 1.e-15) {
+		Phi1 /= dPhi;
+		Phi2 /= dPhi;
+		Phi3 /= dPhi;
+
+		R[1, 1] = 1. - (1. - dCosPhi)*(Phi2*Phi2 + Phi3*Phi3);
+		R[1, 2] = -dSinPhi*Phi3 + (1. - dCosPhi)*Phi1*Phi2;
+		R[1, 3] = dSinPhi*Phi2 + (1. - dCosPhi)*Phi1*Phi3;
+
+		R[2, 1] = dSinPhi*Phi3 + (1. - dCosPhi)*Phi2*Phi1;
+		R[2, 2] = 1. - (1. - dCosPhi)*(Phi3*Phi3 + Phi1*Phi1);
+		R[2, 3] = -dSinPhi*Phi1 + (1. - dCosPhi)*Phi2*Phi3;
+
+		R[3, 1] = -dSinPhi*Phi2 + (1. - dCosPhi)*Phi3*Phi1;
+		R[3, 2] = dSinPhi*Phi1 + (1. - dCosPhi)*Phi3*Phi2;
+		R[3, 3] = 1. - (1. - dCosPhi)*(Phi1*Phi1 + Phi2*Phi2);
+
+	} else {
+		R[1, 1] = 1.;
+		R[1, 2] = 0.;
+		R[1, 3] = 0.;
+
+		R[2, 1] = 0.;
+		R[2, 2] = 1.;
+		R[2, 3] = 0.;
+
+		R[3, 1] = 0.;
+		R[3, 2] = 0.;
+		R[3, 3] = 1.;
+	}
+}
+
+# Matrix R to Euler 123 params
 function R2euler(R, e,   dAlpha, dCosAlpha, dSinAlpha)
 {
 	dAlpha = atan2(-R[2, 3], R[3, 3]);
@@ -60,6 +110,26 @@ function R2euler(R, e,   dAlpha, dCosAlpha, dSinAlpha)
 	e[2] = atan2(R[1, 3], dCosAlpha*R[3, 3] - dSinAlpha*R[2, 3])/AngleScale;
 	e[3] = atan2(dCosAlpha*R[2, 1]+dSinAlpha*R[3, 1],
 		dCosAlpha*R[2, 2]+dSinAlpha*R[3, 2])/AngleScale;
+}
+
+# Matrix R to orientation vector
+function R2vec(R, Phi,   dPhi, dCosPhi, dSinPhi)
+{
+	dCosPhi = (R[1, 1] + R[2, 2] + R[3, 3] - 1.)/2.;
+
+	Phi[1] = (R[3, 2] - R[2, 3])/2.;
+	Phi[2] = (R[1, 3] - R[3, 1])/2.;
+	Phi[3] = (R[2, 1] - R[1, 2])/2.;
+
+	dSinPhi = sqrt(Phi[1]*Phi[1] + Phi[2]*Phi[2] + Phi[3]*Phi[3]);
+
+	dPhi = atan2(dSinPhi, dCosPhi);
+
+	if (dSinPhi > 1.e-15) {
+		Phi[1] *= dPhi/dSinPhi;
+		Phi[2] *= dPhi/dSinPhi;
+		Phi[3] *= dPhi/dSinPhi;
+	}
 }
 
 # ...
@@ -130,9 +200,11 @@ function prepare(X, R, V, W)
 	RR[1, 1] = R[1, 1];
 	RR[2, 1] = R[2, 1];
 	RR[3, 1] = R[3, 1];
+
 	RR[1, 2] = R[1, 2];
 	RR[2, 2] = R[2, 2];
 	RR[3, 2] = R[3, 2];
+
 	RR[1, 3] = R[1, 3];
 	RR[2, 3] = R[2, 3];
 	RR[3, 3] = R[3, 3];
@@ -165,11 +237,34 @@ function output() {
 		mat3T_mul_vec3(R0, Xr, X);
 
 		# orientation
-		euler2R(The[node, 1], The[node, 2], The[node, 3], Rn);
+		if (imode == 0) {
+			euler2R(The[node, 1], The[node, 2], The[node, 3], Rn);
+
+		} else if (imode == 1) {
+			vec2R(The[node, 1], The[node, 2], The[node, 3], Rn);
+
+		} else if (imode == 2) {
+			Rn[1, 1] = The[node, 1];
+			Rn[1, 2] = The[node, 2];
+			Rn[1, 3] = The[node, 3];
+
+			Rn[2, 1] = The[node, 4];
+			Rn[2, 2] = The[node, 5];
+			Rn[2, 3] = The[node, 6];
+
+			Rn[3, 1] = The[node, 7];
+			Rn[3, 2] = The[node, 8];
+			Rn[3, 3] = The[node, 9];
+		}
 
 		mat3T_mul_mat3(R0, Rn, R);
 
-		R2euler(R, e);
+		if (omode == 0) {
+			R2euler(R, e);
+
+		} else if (omode == 1) {
+			R2vec(R, e);
+		}
 
 		# Velocity
 		Wn[1] = Ome[node, 1];
@@ -191,9 +286,16 @@ function output() {
 
 		mat3T_mul_vec3(R0, Wtmp, W);
 
-		printf("%8d %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e\n",
-			label[node],
-			X[1], X[2], X[3], e[1], e[2], e[3],
+		printf("%8d %13.6e %13.6e %13.6e", label[node], X[1], X[2], X[3]);
+		if (omode == 2) {
+			printf(" %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e",
+				R[1, 1], R[1, 2], R[1, 3],
+				R[2, 1], R[2, 2], R[2, 3],
+				R[3, 1], R[3, 2], R[3, 3]);
+		} else {
+			printf(" %13.6e %13.6e %13.6e", e[1], e[2], e[3]);
+		}
+		printf(" %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e\n",
 			V[1], V[2], V[3], W[1], W[2], W[3]);
 	}
 }
@@ -205,6 +307,34 @@ BEGIN {
 	# SkipSteps = 0;
 	step = 0;
 	node = 0;
+
+	if (InputMode == "euler123") {
+		imode = 0;
+
+	} else if (InputMode == "vector") {
+		imode = 1;
+
+	} else if (InputMode == "matrix") {
+		imode = 2;
+
+	} else if (InputMode != 0) {
+		printf("Unknown InputMode=%s\n", InputMode);
+		exit;
+	}
+
+	if (OutputMode == "euler123") {
+		omode = 0;
+
+	} else if (OutputMode == "vector") {
+		omode = 1;
+
+	} else if (OutputMode == "matrix") {
+		omode = 2;
+
+	} else if (OutputMode != 0) {
+		printf("Unknown OutputMode=%s\n", OutputMode);
+		exit;
+	}
 
 	deg2rad = 0.017453293;
 	rad2deg = 57.29578;
@@ -241,13 +371,36 @@ BEGIN {
 		X0[1] = $2;
 		X0[2] = $3;
 		X0[3] = $4;
-		euler2R($5, $6, $7, R0);
-		V0[1] = $8;
-		V0[2] = $9;
-		V0[3] = $10;
-		W0[1] = $11;
-		W0[2] = $12;
-		W0[3] = $13;
+		if (imode == 0) {
+			euler2R($5, $6, $7, R0);
+			offset = 7;
+
+		} else if (imode == 1) {
+			vec2R($5, $6, $7, R0);
+			offset = 7;
+
+		} else if (imode == 2) {
+			R0[1, 1] = $5;
+			R0[1, 2] = $6;
+			R0[1, 3] = $7;
+
+			R0[2, 1] = $8;
+			R0[2, 2] = $9;
+			R0[2, 3] = $10;
+
+			R0[3, 1] = $11;
+			R0[3, 2] = $12;
+			R0[3, 3] = $13;
+
+			offset = 13;
+		}
+		V0[1] = $(offset + 1);
+		V0[2] = $(offset + 2);
+		V0[3] = $(offset + 3);
+
+		W0[1] = $(offset + 4);
+		W0[2] = $(offset + 5);
+		W0[3] = $(offset + 6);
 
 		prepare(X0, R0, V0, W0);
 	}
@@ -264,17 +417,36 @@ BEGIN {
 	Pos[node, 2] = $3;
 	Pos[node, 3] = $4;
 
-	The[node, 1] = $5;
-	The[node, 2] = $6;
-	The[node, 3] = $7;
+	if (imode == 0 || imode == 1) {
+		The[node, 1] = $5;
+		The[node, 2] = $6;
+		The[node, 3] = $7;
 
-	Vel[node, 1] = $8;
-	Vel[node, 2] = $9;
-	Vel[node, 3] = $10;
+		offset = 7;
 
-	Ome[node, 1] = $11;
-	Ome[node, 2] = $12;
-	Ome[node, 3] = $13;
+	} else if (imode == 2) {
+		The[node, 1] = $5;
+		The[node, 2] = $6;
+		The[node, 3] = $7;
+
+		The[node, 4] = $8;
+		The[node, 5] = $9;
+		The[node, 6] = $10;
+
+		The[node, 7] = $11;
+		The[node, 8] = $12;
+		The[node, 9] = $13;
+
+		offset = 13;
+	}
+
+	Vel[node, 1] = $(offset+1);
+	Vel[node, 2] = $(offset+2);
+	Vel[node, 3] = $(offset+3);
+
+	Ome[node, 1] = $(offset+4);
+	Ome[node, 2] = $(offset+5);
+	Ome[node, 3] = $(offset+6);
 
 	node++;
 }
