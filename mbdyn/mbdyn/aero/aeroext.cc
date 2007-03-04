@@ -618,10 +618,10 @@ ReadAerodynamicExternalModal(DataManager* pDM, MBDynParser& HP, unsigned int uLa
 	
       	/* giunto modale collegato */		     
    	Elem* pM = pDM->ReadElem(HP, Elem::JOINT);
-   	Modal* pModalJoint = (Modal*)pM->pGet();
-   	if (pModalJoint->GetJointType() != Joint::MODAL) {
-      		std::cerr << "Joint " << pModalJoint->GetLabel()
-	      		<< " is required to be a modal joint" << std::endl;
+   	Modal* pModalJoint = dynamic_cast<Modal *>(pM);
+   	if (pModalJoint == 0 || pModalJoint->GetJointType() != Joint::MODAL) {
+      		std::cerr << "Joint(" << pM->GetLabel() << ") "
+	      		" must be a ModalJoint" << std::endl;
       		throw DataManager::ErrGeneric();
    	}
 	int comm = 0;

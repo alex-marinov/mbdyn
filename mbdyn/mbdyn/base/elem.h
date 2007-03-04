@@ -190,15 +190,6 @@ public:
 	virtual inline int GetNumConnectedNodes(void) const;
 	virtual inline void GetConnectedNodes(std::vector<const Node *>& connectedNodes);
 
-	/* Funzioni di casting sicuro verso elementi derivati */
-	virtual void* pGet(void) const = 0;
-   
-	virtual Elem* pGetElem(void) const;
-	virtual ElemWithDofs* pGetElemWithDofs(void) const;
-	virtual ElemGravityOwner* pGetElemGravityOwner(void) const;
-	virtual AerodynamicElem* pGetAerodynamicElem(void) const;
-	virtual InitialAssemblyElem* pGetInitialAssemblyElem(void) const;
-
 	/* Adams output stuff */
 	virtual inline unsigned int iGetNumDummyParts(void) const;
 	virtual inline void GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& R) const;
@@ -255,6 +246,25 @@ Elem::WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int 
 /* Elem - end */
 
 
+/* Functional object that reads elements */
+
+/* ElemRead - begin */
+
+struct ElemRead {
+	virtual ~ElemRead( void ) { NO_OP; };
+	virtual Elem *Read(const DataManager* pDM, MBDynParser& HP) = 0;
+};
+
+/* ElemRead - end */
+
+/* register an ElemRead object */
+extern bool
+SetElem(const char *name, ElemRead *rf);
+
+/* create/destroy */
+extern void InitElem(void);
+extern void DestroyElem(void);
+
 /* Classe derivata da elem, relativa ad elementi che possiedono gradi di
  * liberta' propri */
 
@@ -266,9 +276,6 @@ public:
 		const DofOwner* pDO, flag fOut);
 
 	virtual ~ElemWithDofs(void);
-
-	/* Consente di effettuare un casting sicuro da Elem* a ElemWithDofs* */
-	virtual ElemWithDofs* pGetElemWithDofs(void) const;
 };
 
 /* ElemWithDofs - end */
@@ -317,9 +324,6 @@ class InitialAssemblyElem
 public:
 	InitialAssemblyElem(unsigned int uL, flag fOut);
 	virtual ~InitialAssemblyElem(void);
-
-	/* Consente di effettuare un casting sicuro da Elem* a InitialAssemblyElem* */
-	virtual InitialAssemblyElem* pGetInitialAssemblyElem(void) const;
 };
 
 /* InitialAssemblyElem - end */

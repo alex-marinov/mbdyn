@@ -33,33 +33,34 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <elem.h>
+#include "dataman.h"
+#include "elem.h"
+#include "gravity.h"
+#include "aerodyn.h"
 
 /* Elem - begin */
 
 Elem::Elem(unsigned int uL, flag fOut)
 : WithLabel(uL), ToBeOutput(fOut)
 {
-   ASSERTMSG(uL > 0, "Null label shouldn't be used");
+	ASSERTMSG(uL > 0, "Null label shouldn't be used");
 }
-
 
 Elem::~Elem(void) 
 {
-   NO_OP;
+	NO_OP;
 }
-
 
 /* assemblaggio matrici per autovalori */
-void Elem::AssMats(VariableSubMatrixHandler& /* WorkMatA */ ,
-		  VariableSubMatrixHandler& /* WorkMatB */ ,
-		  const VectorHandler& /* XCurr */ ,
-		  const VectorHandler& /* XPrimeCurr */ ) 
+void
+Elem::AssMats(VariableSubMatrixHandler& /* WorkMatA */ ,
+	VariableSubMatrixHandler& /* WorkMatB */ ,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ ) 
 {
-   silent_cerr(psElemNames[GetElemType()] << "(" << GetLabel()
-	   << "): AssMats() not implemented yet" << std::endl);
+	silent_cerr(psElemNames[GetElemType()] << "(" << GetLabel() << "): "
+		"AssMats() not implemented yet" << std::endl);
 }
-
 
 unsigned int 
 Elem::iGetNumDof(void) const
@@ -82,64 +83,52 @@ Elem::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
 DofOrder::Order 
 Elem::GetDofType(unsigned int) const
 {
-	silent_cerr(psElemNames[GetElemType()] << "(" << GetLabel()
-		<< "): GetDofType() is undefined because element "
+	silent_cerr(psElemNames[GetElemType()] << "(" << GetLabel() << "): "
+		"GetDofType() is undefined because element "
 		"has no degrees of freedom" << std::endl);
 	throw ErrGeneric();
 }
 
-
-Elem* Elem::pGetElem(void) const
-{
-   return (Elem*)this; 
-}
-
-ElemWithDofs* Elem::pGetElemWithDofs(void) const
-{
-   return NULL;
-}
-
-
-ElemGravityOwner* Elem::pGetElemGravityOwner(void) const
-{
-   return NULL;
-}
-
-
-AerodynamicElem* Elem::pGetAerodynamicElem(void) const
-{
-   return NULL;
-}
-
-
-InitialAssemblyElem* Elem::pGetInitialAssemblyElem(void) const
-{
-   return NULL;
-}
-
 /* Elem - end */
 
+/* database of registered element types */
+typedef std::map<std::string, ElemRead *, ltstrcase> ElemFuncMapType;
+static ElemFuncMapType ElemFuncMap;
+
+/* element parsing checkers */
+struct ElemWordSetType : public HighParser::WordSet {
+	/*
+	 * returns true if the string "s" is recognized as an element type
+	 * hijacks the database of registered element types for consistency
+	 */
+	bool IsWord(const std::string& s) const {
+		return ElemFuncMap.find(std::string(s)) != ElemFuncMap.end();
+	};
+};
+
+static ElemWordSetType ElemWordSet;
+
+/* element type registration functions: call to register one */
+bool
+SetElem(const char *name, ElemRead *rf)
+{
+	pedantic_cout("registering element \"" << name << "\""
+		<< std::endl );
+	return ElemFuncMap.insert(ElemFuncMapType::value_type(name, rf)).second;
+}
 
 /* ElemWithDofs - begin */
 
 ElemWithDofs::ElemWithDofs(unsigned int uL,
-			   const DofOwner* pDO, flag fOut)
+	const DofOwner* pDO, flag fOut)
 : Elem(uL, fOut), DofOwnerOwner((DofOwner*)pDO)
 {
-   NO_OP;
+	NO_OP;
 }
-
 
 ElemWithDofs::~ElemWithDofs(void)
 {
-   NO_OP;
-}
-
-
-/* Consente di effettuare un casting sicuro da Elem* a ElemWithDofs* */
-ElemWithDofs* ElemWithDofs::pGetElemWithDofs(void) const
-{
-   return (ElemWithDofs*)this; 
+	NO_OP;
 }
 
 /* ElemWithDofs - end */
@@ -149,13 +138,13 @@ ElemWithDofs* ElemWithDofs::pGetElemWithDofs(void) const
 
 SubjectToInitialAssembly::SubjectToInitialAssembly(void) 
 {
-   NO_OP;
+	NO_OP;
 }
 
 
 SubjectToInitialAssembly::~SubjectToInitialAssembly(void)
 {
-   NO_OP;
+	NO_OP;
 }
 
 /* SubjectToInitialAssembly - end */
@@ -163,24 +152,15 @@ SubjectToInitialAssembly::~SubjectToInitialAssembly(void)
 
 /* InitialAssemblyElem - begin */
 
-InitialAssemblyElem::InitialAssemblyElem(unsigned int uL, 
-	flag fOut)
+InitialAssemblyElem::InitialAssemblyElem(unsigned int uL, flag fOut)
 : Elem(uL, fOut)
 { 
-   NO_OP;
+	NO_OP;
 }
-
 
 InitialAssemblyElem::~InitialAssemblyElem(void)
 {
-   NO_OP;
+	NO_OP;
 }
 
-
-/* Consente di effettuare un casting sicuro da Elem* a InitialAssemblyElem* */
-InitialAssemblyElem* InitialAssemblyElem::pGetInitialAssemblyElem(void) const
-{
-   return (InitialAssemblyElem*)this; 
-}
-   
 /* InitialAssemblyElem - end */

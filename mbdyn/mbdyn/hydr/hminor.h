@@ -62,10 +62,6 @@ class Minor_loss : virtual public Elem, public HydraulicElem {
    
    ~Minor_loss(void);
    
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-   
    /* Tipo di elemento idraulico (usato solo per debug ecc.) */
    virtual HydraulicElem::Type GetHydraulicType(void) const;
 
@@ -131,10 +127,6 @@ public:
 
 	~ThreeWayMinorLoss(void);
 
-	virtual inline void* pGet(void) const { 
-		return (void*)this;
-	};
-   
 	/* Tipo di elemento idraulico (usato solo per debug ecc.) */
 	virtual HydraulicElem::Type GetHydraulicType(void) const;
 
@@ -201,10 +193,6 @@ class Orifice : virtual public Elem, public HydraulicElem {
 	   doublereal A_diaf, doublereal A_pipe, doublereal ReCR, flag fOut);
    
    ~Orifice(void);
-   
-   virtual inline void* pGet(void) const {
-      return (void*)this;
-   };
    
    /* Tipo di elemento idraulico (usato solo per debug ecc.) */
    virtual HydraulicElem::Type GetHydraulicType(void) const;

@@ -233,7 +233,8 @@ DrivenElem::AssJac(VariableSubMatrixHandler& WorkMat,
 		SparseSubMatrixHandler& WM = WorkMat.SetSparse();
 		WM.ResizeReset(iNumDofs, 0);
 
-		integer iFirstIndex = pElem->pGetElemWithDofs()->iGetFirstIndex();
+		/* NOTE: must not fail, since iNumDofs != 0 */
+		integer iFirstIndex = dynamic_cast<ElemWithDofs *>(pElem)->iGetFirstIndex();
   		
   		for (unsigned int iCnt = 1; iCnt <= iNumDofs; iCnt++) {
 			WM.PutItem(iCnt, iFirstIndex+iCnt,
@@ -265,7 +266,8 @@ DrivenElem::AssMats(VariableSubMatrixHandler& WorkMatA,
 		SparseSubMatrixHandler& WM = WorkMatB.SetSparse();
 		WM.ResizeReset(iNumDofs, 0);
 
-		integer iFirstIndex = pElem->pGetElemWithDofs()->iGetFirstIndex();
+		/* NOTE: must not fail, since iNumDofs != 0 */
+		integer iFirstIndex = dynamic_cast<ElemWithDofs *>(pElem)->iGetFirstIndex();
   		
   		for (unsigned int iCnt = 1; iCnt <= iNumDofs; iCnt++) {
 			WM.PutItem(iCnt, iFirstIndex+iCnt,
@@ -292,7 +294,8 @@ DrivenElem::AssRes(SubVectorHandler& WorkVec,
 	} else {
 		WorkVec.ResizeReset(iNumDofs);
 
-		integer iFirstIndex = pElem->pGetElemWithDofs()->iGetFirstIndex();
+		/* NOTE: must not fail, since iNumDofs != 0 */
+		integer iFirstIndex = dynamic_cast<ElemWithDofs *>(pElem)->iGetFirstIndex();
 
 		for (unsigned int iCnt = 1; iCnt <= iNumDofs; iCnt++) {
 			WorkVec.PutRowIndex(iCnt, iFirstIndex+iCnt);

@@ -56,8 +56,6 @@ class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
    
    ~DistanceJoint(void);
    
-   virtual inline void* pGet(void) const { return (void*)this; };
-
    /* Tipo di Joint */
    virtual Joint::Type GetJointType(void) const { 
       return Joint::DISTANCE; 
@@ -166,8 +164,6 @@ virtual public Elem, public Joint, public DriveOwner {
    
    ~DistanceJointWithOffset(void);
    
-   virtual inline void* pGet(void) const { return (void*)this; };
-
    /* Tipo di Joint */
    virtual Joint::Type GetJointType(void) const { 
       return Joint::DISTANCEWITHOFFSET; 
@@ -277,8 +273,6 @@ class ClampJoint : virtual public Elem, public Joint {
    /* Distruttore + o - banale */
    virtual ~ClampJoint(void);
    
-   virtual inline void* pGet(void) const { return (void*)this; };
-
    /* Tipo di Joint */
    virtual Joint::Type GetJointType(void) const { 
       return Joint::CLAMP; 

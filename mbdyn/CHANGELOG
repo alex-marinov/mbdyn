@@ -77,6 +77,7 @@ MBDyn 1.X-Devel
 		  (noted by Marco Mantegazza and Fabio Veroni)
 		- fixed beam3 "from nodes" orientation input
 		- fixed "log" scalar function ("base" needed to be explicit)
+		- fixed use of uninitialized values in model parsing
 
 MBDyn 1.2.6
 	Enhancements:

@@ -94,10 +94,6 @@ class  Accumulator : virtual public Elem, public HydraulicElem {
 
    ~Accumulator(void);
    
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-   
    /* Tipo di elemento idraulico (usato solo per debug ecc.) */
    virtual HydraulicElem::Type GetHydraulicType(void) const;
 
@@ -167,10 +163,6 @@ class Tank : virtual public Elem, public HydraulicElem {
 	doublereal c_s, flag fOut);
    
    ~Tank(void);
-   
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
    
    /* Tipo di elemento idraulico (usato solo per debug ecc.) */
    virtual HydraulicElem::Type GetHydraulicType(void) const;

@@ -154,10 +154,6 @@ public:
 
 	~ElasticDispJoint(void);
 
-	virtual inline void* pGet(void) const {
-		return (void*)this;
-	};
-
 	/* Tipo di DeformableDispHinge */
 	virtual ConstLawType::Type GetConstLawType(void) const {
 		return ConstLawType::ELASTIC;
@@ -259,10 +255,6 @@ public:
 			flag fOut);
 
 	~ViscousDispJoint(void);
-
-	virtual inline void* pGet(void) const {
-		return (void*)this;
-	};
 
 	/* Tipo di DeformableDispHinge */
 	virtual ConstLawType::Type GetConstLawType(void) const {
@@ -366,8 +358,6 @@ public:
 			flag fOut);
 
 	~ViscoElasticDispJoint(void);
-
-	virtual inline void* pGet(void) const { return (void*)this; };
 
 	/* Tipo di DeformableDispHinge */
 	virtual ConstLawType::Type GetConstLawType(void) const {

@@ -933,8 +933,8 @@ typedef std::map<std::string, DriveCallerRead *, ltstrcase> DrvFuncMapType;
 static DrvFuncMapType DrvFuncMap;
 
 struct DriveWordSetType : public HighParser::WordSet {
-	bool IsWord(const char *s) const {
-		return DrvFuncMap.find(std::string(s)) != DrvFuncMap.end();
+	bool IsWord(const std::string& s) const {
+		return DrvFuncMap.find(s) != DrvFuncMap.end();
 	};
 };
 static DriveWordSetType DriveWordSet;

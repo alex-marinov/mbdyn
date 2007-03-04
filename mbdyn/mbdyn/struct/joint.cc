@@ -55,6 +55,7 @@
 #include "genj.h"
 #include "gimbal.h"
 #include "impdisp.h"
+#include "imporj.h"
 #include "inplanej.h"  /* Vincoli di giacitura nel piano */
 #include "inline.h"
 #include "kinj.h"
@@ -168,6 +169,7 @@ ReadJoint(DataManager* pDM,
 		"drive" "displacement" "pin",
 		"imposed" "displacement",
 		"imposed" "displacement" "pin",
+		"imposed" "orientation",
 		"kinematic",
 		"beam" "slider",
 		"brake",
@@ -220,6 +222,7 @@ ReadJoint(DataManager* pDM,
 		DRIVEDISPLACEMENTPIN,
 		IMPOSEDDISPLACEMENT,
 		IMPOSEDDISPLACEMENTPIN,
+		IMPOSEDORIENTATION,
 		KINEMATIC,
 		BEAMSLIDER,
 		BRAKE,
@@ -2179,6 +2182,76 @@ ReadJoint(DataManager* pDM,
 				pNode, f, x, e, fOut));
 		} break;
 
+	case IMPOSEDORIENTATION:
+		{
+		/* nodo collegato 1 */
+		StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+		ReferenceFrame RF(pNode1);
+
+		Mat3x3 R1h(Eye3);
+		if (HP.IsKeyWord("orientation")) {
+			DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+			R1h = HP.GetRotRel(RF);
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+		} else if (HP.IsKeyWord("hinge")) {
+			pedantic_cerr("Joint(" << uLabel << "): "
+				"keyword \"hinge\" at line " << HP.GetLineData()
+				<< " is deprecated; use \"orientation\" instead"
+				<< std::endl);
+			DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+			R1h = HP.GetRotRel(RF);
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+		}
+
+
+		/* nodo collegato 2 */
+		StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+		RF = ReferenceFrame(pNode2);
+
+		/* Stessa cosa per il nodo 2 */
+
+		Mat3x3 R2h(Eye3);
+		if (HP.IsKeyWord("orientation")) {
+			DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+			R2h = HP.GetRotRel(RF);
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+		} else if (HP.IsKeyWord("hinge")) {
+			pedantic_cerr("Joint(" << uLabel << "): "
+				"keyword \"hinge\" at line " << HP.GetLineData()
+				<< " is deprecated; use \"orientation\" instead"
+				<< std::endl);
+			DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+			R2h = HP.GetRotRel(RF);
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+		}
+
+		bool bActive[3];
+		for (unsigned i = 0; i < 3; i++) {
+			if (HP.IsKeyWord("inactive")) {
+				bActive[i] = false;
+
+			} else if (HP.IsKeyWord("active")) {
+				bActive[i] = true;
+
+			} else {
+				silent_cerr("ImposedOrientation(" << uLabel << "): "
+					"invalid status for component #" << i + 1
+					<< " at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric();
+			}
+		}
+
+		TplDriveCaller<Vec3>* pDC = ReadTplDrive(pDM, HP, Vec3(0.));
+
+		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			ImposedOrientationJoint,
+			ImposedOrientationJoint(uLabel, pDO, bActive, pDC,
+				pNode1, pNode2, R1h, R2h, fOut));
+
+		} break;
+
 	case KINEMATIC:
 		{
 		/* nodo collegato */
@@ -2244,15 +2317,20 @@ ReadJoint(DataManager* pDM,
 			/* trave di appoggio */
 			unsigned int uBeam = HP.GetInt();
 
-			Beam* pBeam;
 			Elem* p = (Elem*)(pDM->pFindElem(Elem::BEAM, uBeam));
 			if (p == NULL) {
 				silent_cerr(" at line " << HP.GetLineData()
-					<< ": Beam(" << uBeam << ") "
+					<< ": Beam3(" << uBeam << ") "
 					"not defined" << std::endl);
 				throw DataManager::ErrGeneric();
 			}
-			pBeam = (Beam*)p->pGet();
+			Beam *pBeam = dynamic_cast<Beam *>(p);
+			if (pBeam == 0) {
+				silent_cerr(" at line " << HP.GetLineData()
+					<< ": Beam(" << uBeam << ") "
+					"is not a Beam3" << std::endl);
+				throw DataManager::ErrGeneric();
+			}
 
 			/* Nodo 1: */
 
@@ -2418,7 +2496,7 @@ ReadJoint(DataManager* pDM,
 		LoadableElem *pLE = NULL;
 		SAFENEWWITHCONSTRUCTOR(pLE, LoadableElem,
 			LoadableElem(uLabel, pDO, c, pDM, HP));
-		pEl = (Joint *)pLE->pGet();
+		pEl = dynamic_cast<Joint *>(pLE);
 		pDM->OutputOpen(OutputHandler::LOADABLE);
 		} break;
 	}

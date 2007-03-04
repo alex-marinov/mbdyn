@@ -70,10 +70,6 @@ class ContactJoint : virtual public Elem, public Joint {
       NO_OP;
    };
    
-   virtual inline void* pGet(void) const { 
-      return (void*)this; 
-   };
-
    /* Tipo di Joint */
    virtual Joint::Type GetJointType(void) const { 
       return Joint::INPLANECONTACT;

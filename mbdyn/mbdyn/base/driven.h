@@ -56,39 +56,6 @@ public:
 			const Elem* pE, SimulationEntity::Hints *ph = 0);
 	~DrivenElem(void);
 
-	inline void* pGet(void) const {
-		ASSERT(pElem != NULL);
-		return pElem->pGet();
-	};
- 
-	virtual Elem* pGetElem(void) const {
-		ASSERT(pElem != NULL);
-		return pElem->pGetElem();
-	};
- 
-	virtual ElemWithDofs* pGetElemWithDofs(void) const { 
-		ASSERT(pElem != NULL);
-		return pElem->pGetElemWithDofs();
-	};
-
-	virtual ElemGravityOwner* pGetElemGravityOwner(void) const { 
-		ASSERT(pElem != NULL);
-		return pElem->pGetElemGravityOwner();
-	};
-
-	virtual AerodynamicElem* pGetAerodynamicElem(void) const { 
-		ASSERT(pElem != NULL);
-		return pElem->pGetAerodynamicElem();
-	};
-
-	virtual InitialAssemblyElem* pGetInitialAssemblyElem(void) const { 
-		ASSERT(pElem != NULL);
-		if (dGet() != 0.) {
-			return pElem->pGetInitialAssemblyElem();
-		}
-   		return 0;
-	};
-   
 	virtual void OutputPrepare(OutputHandler& OH);
 	virtual void Output(OutputHandler& OH) const;
 
@@ -98,7 +65,7 @@ public:
 	virtual void SetInitialValue(VectorHandler& X) const {
 		ASSERT(pElem != NULL);
 		if (dGet() != 0.) {
-			ElemWithDofs*	pEwD = pGetElemWithDofs();
+			ElemWithDofs*	pEwD = dynamic_cast<ElemWithDofs *>(pElem);
 			if (pEwD) {
 				pEwD->SetInitialValue(X);
 			}

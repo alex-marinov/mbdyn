@@ -57,10 +57,6 @@ class GenelClamp : virtual public Elem, public Genel, public DriveOwner {
       NO_OP;
    };
    
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-   
    virtual unsigned int iGetNumDof(void) const { 
       return 1;
    };   
@@ -193,10 +189,6 @@ class GenelDistance : virtual public Elem, public Genel, public DriveOwner {
    
    virtual ~GenelDistance(void) { 
       NO_OP;
-   };
-   
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
    };
    
    virtual unsigned int iGetNumDof(void) const { 
@@ -361,10 +353,6 @@ class GenelSpring
       NO_OP;
    };
    
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };   
-   
    /* Scrive il contributo dell'elemento al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const {
       return out; 
@@ -490,10 +478,6 @@ class GenelSpringSupport
       NO_OP;
    };
    
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };   
-   
    /* Scrive il contributo dell'elemento al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const {
       return out; 
@@ -594,10 +578,6 @@ class GenelCrossSpringSupport
    virtual ~GenelCrossSpringSupport(void) { 
       NO_OP;
    };
-   
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };   
    
    /* Scrive il contributo dell'elemento al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const {
@@ -702,10 +682,6 @@ class GenelCrossSpringDamperSupport
       NO_OP;
    };
    
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };   
-   
    /* Scrive il contributo dell'elemento al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const {
       return out; 
@@ -807,10 +783,6 @@ class GenelSpringDamperSupport
       NO_OP;
    };
    
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };   
-   
    /* Scrive il contributo dell'elemento al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const {
       return out; 
@@ -905,10 +877,6 @@ class GenelMass : virtual public Elem, public Genel, public DriveOwner {
    
    virtual ~GenelMass(void) { 
       NO_OP;
-   };
-   
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
    };
    
    virtual unsigned int iGetNumDof(void) const { 

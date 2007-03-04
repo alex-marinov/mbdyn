@@ -79,10 +79,6 @@ public:
 		return DRIVEDISP;
 	};
 
-	virtual inline void* pGet(void) const { 
-		return (void*)this;
-	};
-
 	/* Contributo al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
@@ -211,10 +207,6 @@ public:
 	/* Tipo di joint */
 	virtual Joint::Type GetJointType(void) const {
 		return DRIVEDISPPIN;
-	};
-
-	virtual inline void* pGet(void) const { 
-		return (void*)this;
 	};
 
 	/* Contributo al file di restart */

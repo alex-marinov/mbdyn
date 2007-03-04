@@ -137,10 +137,6 @@ class AerodynamicModal : virtual public Elem, public AerodynamicElem,
    
    ~AerodynamicModal(void);
    
-   inline void* pGet(void) const { 
-      return (void*)this;
-   };
-   
    /* Scrive il contributo dell'elemento al file di restart */
    std::ostream& Restart(std::ostream& out) const;
    

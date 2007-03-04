@@ -224,7 +224,7 @@ Elem* ReadGenel(DataManager* pDM,
     case ROTORTRIM: {
 #ifdef USE_AERODYNAMIC_ELEMS
        unsigned int uL = HP.GetInt();
-       Rotor* pRot = (Rotor*)(((Elem*)pDM->pFindElem(Elem::ROTOR, uL))->pGet());
+       Rotor* pRot = dynamic_cast<Rotor *>(pDM->pFindElem(Elem::ROTOR, uL));
        if (pRot == NULL) {
 	  silent_cerr("line " << HP.GetLineData() << ": can't find rotor "
 	    << uL << std::endl);

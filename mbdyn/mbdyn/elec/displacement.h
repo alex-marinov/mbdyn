@@ -55,7 +55,6 @@ public:
 		const Vec3& Tmpf1, const Vec3& Tmpf2,
 		flag fOut);
 	~DispMeasure(void);
-	virtual inline void* pGet(void) const;
 
 	virtual Electric::Type GetElectricType(void) const {
 		return Electric::DISPLACEMENT;
@@ -97,12 +96,6 @@ public:
 	/* ************************************************ */
 };
 
-inline void *
-DispMeasure::pGet(void) const 
-{
-	return (void *)this;
-}
-   
 /* DispMeasure - end */
 
 #endif /* USE_ELECTRIC_NODES && USE_STRUCT_NODES */

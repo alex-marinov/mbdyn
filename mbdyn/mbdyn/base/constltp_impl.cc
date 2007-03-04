@@ -57,19 +57,19 @@ static CL6DFuncMapType CL6DFuncMap;
 
 /* constitutive law parsing checkers */
 struct CL1DWordSetType : public HighParser::WordSet {
-	bool IsWord(const char *s) const {
+	bool IsWord(const std::string& s) const {
 		return CL1DFuncMap.find(std::string(s)) != CL1DFuncMap.end();
 	};
 };
 
 struct CL3DWordSetType : public HighParser::WordSet {
-	bool IsWord(const char *s) const {
+	bool IsWord(const std::string& s) const {
 		return CL3DFuncMap.find(std::string(s)) != CL3DFuncMap.end();
 	};
 };
 
 struct CL6DWordSetType : public HighParser::WordSet {
-	bool IsWord(const char *s) const {
+	bool IsWord(const std::string& s) const {
 		return CL6DFuncMap.find(std::string(s)) != CL6DFuncMap.end();
 	};
 };

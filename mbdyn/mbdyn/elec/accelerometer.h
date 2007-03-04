@@ -57,7 +57,6 @@ public:
 		doublereal dC, doublereal dK,
 		flag fOut);
 	~Accelerometer(void);
-	virtual inline void* pGet(void) const;
 
 	virtual Electric::Type GetElectricType(void) const {
 		return Electric::ACCELEROMETER;
@@ -99,13 +98,6 @@ public:
 	};
 	/* ************************************************ */
 };
-
-
-inline void *
-Accelerometer::pGet(void) const
-{
-	return (void *)this;
-}
 
 /* Accelerometer - end */
 
@@ -125,7 +117,6 @@ public:
 		const Vec3& TmpDir, const Vec3& Tmpf,
 		flag fOut);
 	~TraslAccel(void);
-	virtual inline void* pGet(void) const;
 
 	virtual Electric::Type GetElectricType(void) const {
 		return Electric::ACCELEROMETER;
@@ -167,12 +158,6 @@ public:
 	};
 	/* ************************************************ */
 };
-
-inline void *
-TraslAccel::pGet(void) const
-{
-	return (void *)this;
-}
 
 /* TraslAccel - end */
 
@@ -191,7 +176,6 @@ public:
 		const Vec3& TmpDir,
 		flag fOut);
 	~RotAccel(void);
-	virtual inline void* pGet(void) const;
 
 	virtual Electric::Type GetElectricType(void) const {
 		return Electric::ACCELEROMETER;
@@ -233,13 +217,6 @@ public:
 	};
 	/* ************************************************ */
 };
-
-
-inline void *
-RotAccel::pGet(void) const
-{
-	return (void *)this;
-}
 
 /* RotAccel - end */
 

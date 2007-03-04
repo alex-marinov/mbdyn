@@ -346,7 +346,6 @@ class NoRotor : virtual public Elem, public Rotor {
 	   doublereal dR, 
 	   flag fOut);
    virtual ~NoRotor(void);
-   virtual inline void* pGet(void) const { return (void*)this; };
    
    /* assemblaggio residuo */
    virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
@@ -398,7 +397,6 @@ class UniformRotor : virtual public Elem, public Rotor {
 		doublereal dCFF,
 		flag fOut);
    virtual ~UniformRotor(void);
-   virtual inline void* pGet(void) const { return (void*)this; };
    
    /* assemblaggio residuo */
    virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
@@ -448,7 +446,6 @@ class GlauertRotor : virtual public Elem, public Rotor {
 		doublereal dCFF,
 		flag fOut);
    virtual ~GlauertRotor(void);
-   virtual inline void* pGet(void) const { return (void*)this; };
    
    /* assemblaggio residuo */
    virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
@@ -498,7 +495,6 @@ class ManglerRotor : virtual public Elem, public Rotor {
 		doublereal dCFF,
 		flag fOut);
    virtual ~ManglerRotor(void);
-   virtual inline void* pGet(void) const { return (void*)this; };
    
    /* assemblaggio residuo */
    virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
@@ -575,7 +571,6 @@ class DynamicInflowRotor : virtual public Elem, public Rotor {
 		      doublereal dVCosineTmp,
 		      flag fOut);
    virtual ~DynamicInflowRotor(void);
-   virtual inline void* pGet(void) const { return (void*)this; };
 
    /* ritorna il numero di Dofs per gli elementi che sono anche DofOwners */
    virtual unsigned int iGetNumDof(void) const { 

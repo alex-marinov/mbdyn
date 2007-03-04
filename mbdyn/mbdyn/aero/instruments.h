@@ -67,10 +67,6 @@ public:
 			const Mat3x3 &R, flag fOut);
 	virtual ~AircraftInstruments(void);
 	
-	virtual inline void* pGet(void) const { 
-		return (void*)this;
-	};
-	
 	/* Scrive il contributo dell'elemento al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 	

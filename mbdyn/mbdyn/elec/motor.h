@@ -72,8 +72,6 @@ public:
 			flag fOut);
 	virtual ~Motor(void);
 
-	virtual inline void* pGet(void) const;
-
 	virtual Electric::Type GetElectricType(void) const {
 		return Electric::MOTOR;
 	};
@@ -109,12 +107,6 @@ public:
 	};
 	/* ************************************************ */
 };
-
-inline void*
-Motor::pGet(void) const
-{
-	return (void *)this;
-}
 
 #endif /* MOTOR_H */
 

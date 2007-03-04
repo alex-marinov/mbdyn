@@ -59,8 +59,6 @@ class LinearAccelerationJoint
    /* Distruttore */
    ~LinearAccelerationJoint(void);
    
-   virtual inline void* pGet(void) const;
-   
    /* Tipo di Joint */
    virtual Joint::Type GetJointType(void) const;
 
@@ -114,12 +112,6 @@ class LinearAccelerationJoint
    /* ************************************************ */   
 };
 
-
-inline void* LinearAccelerationJoint::pGet(void) const
-{
-   return (void*)this;
-}
-
 /* LinearAccelerationJoint - end */
 
 
@@ -143,8 +135,6 @@ class AngularAccelerationJoint
    
    /* Distruttore */
    ~AngularAccelerationJoint(void);
-   
-   virtual inline void* pGet(void) const;
    
    /* Tipo di Joint */
    virtual Joint::Type GetJointType(void) const;
@@ -199,12 +189,6 @@ class AngularAccelerationJoint
    };
    /* ************************************************ */   
 };
-
-
-inline void* AngularAccelerationJoint::pGet(void) const
-{
-   return (void*)this;
-}
 
 /* AngularAccelerationJoint - end */
 

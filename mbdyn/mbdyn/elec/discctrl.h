@@ -283,11 +283,6 @@ class DiscreteControlElem : virtual public Elem, public Electric {
 		       flag fOut);
    virtual ~DiscreteControlElem(void);
 
-   /* Funzioni di casting sicuro verso elementi derivati */
-   virtual inline void* pGet(void) const {
-      return (void*)this;
-   };
-
    virtual Electric::Type GetElectricType(void) const {
       return Electric::DISCRETECONTROL;
    };

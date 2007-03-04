@@ -59,7 +59,6 @@ class GenelFilter : public Genel {
 	       doublereal* p, doublereal* tau,	     
 	       flag fOutput);
    virtual ~GenelFilter(void);
-   virtual inline void* pGet(void) const;
    
    virtual unsigned int iGetNumDof(void) const;   
    virtual DofOrder::Order GetDofType(unsigned int i) const;
@@ -96,12 +95,6 @@ class GenelFilter : public Genel {
    /* ************************************************ */
 };
 
-
-inline void* GenelFilter::pGet(void) const
-{
-   return (void*)this;
-}
-
 /* GenelFilter - end */
 #endif 
 
@@ -131,7 +124,6 @@ class GenelFilterEq : public Genel {
 		 doublereal* pa, doublereal* pb,
 		 flag fSt, flag fOutput);
    virtual ~GenelFilterEq(void);
-   virtual inline void* pGet(void) const;
    
    virtual unsigned int iGetNumDof(void) const;   
    virtual DofOrder::Order GetDofType(unsigned int i) const;
@@ -178,12 +170,6 @@ class GenelFilterEq : public Genel {
 
 };
 
-
-inline void* GenelFilterEq::pGet(void) const
-{
-   return (void*)this;
-}
-
 /* GenelFilterEq - end */
 
 
@@ -213,10 +199,6 @@ class GenelStateSpaceSISO : public Genel {
 		       flag fOutput);
    
    virtual ~GenelStateSpaceSISO(void);
-   
-   virtual inline void* pGet(void) const {
-      return (void*)this;
-   };
    
    virtual unsigned int iGetNumDof(void) const;
    
@@ -294,10 +276,6 @@ class GenelStateSpaceMIMO : public Genel {
 		       flag fOutput);
    
    virtual ~GenelStateSpaceMIMO(void);
-   
-   virtual inline void* pGet(void) const {
-      return (void*)this;
-   };
    
    virtual unsigned int iGetNumDof(void) const;
    

@@ -126,10 +126,6 @@ public:
 			const DriveCaller* pDC, flag fOut);
 	virtual ~AerodynamicBody(void);
 	
-	virtual inline void* pGet(void) const { 
-		return (void*)this;
-	};
-	
 	/* Scrive il contributo dell'elemento al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 	
@@ -302,10 +298,6 @@ public:
 			const DriveCaller* pDC, flag fOut);
 	virtual ~AerodynamicBeam(void);
 	
-	virtual inline void* pGet(void) const {
-		return (void*)this;
-	};
-	
 	/* Scrive il contributo dell'elemento al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 	
@@ -471,10 +463,6 @@ public:
 			integer iN, AeroData* a,
 			const DriveCaller* pDC, flag fOut);
 	virtual ~AerodynamicBeam2(void);
-	
-	virtual inline void* pGet(void) const {
-		return (void*)this;
-	};
 	
 	/* Scrive il contributo dell'elemento al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;

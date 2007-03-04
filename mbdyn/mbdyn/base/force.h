@@ -138,10 +138,6 @@ class AbstractForce : virtual public Elem, public Force {
       NO_OP;
    };
    
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-         
    /* Tipo di forza */
    virtual Force::Type GetForceType(void) const { 
       return Force::ABSTRACTFORCE;
@@ -202,10 +198,6 @@ class AbstractInternalForce : virtual public Elem, public Force {
       NO_OP;
    };
    
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-         
    /* Tipo di forza */
    virtual Force::Type GetForceType(void) const { 
       return Force::ABSTRACTINTERNALFORCE;

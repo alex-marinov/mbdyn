@@ -267,11 +267,6 @@ public:
 	/* Tipo di elemento aerodinamico */
 	virtual AerodynamicElem::Type GetAerodynamicElemType(void) const = 0;
 
-	/* Consente di effettuare un casting sicuro da Elem* a AerodynamicElem* */
-	virtual AerodynamicElem* pGetAerodynamicElem(void) const {
-		return (AerodynamicElem *)this;
-	};
-
 	virtual bool NeedsAirProperties(void) const;
 	virtual const Rotor *pGetRotor(void) const;
 };

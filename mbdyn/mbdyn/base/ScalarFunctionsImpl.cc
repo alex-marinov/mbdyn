@@ -845,7 +845,7 @@ typedef std::map<std::string, const ScalarFunctionRead *, ltstrcase> SFReadType;
 static SFReadType SFRead;
 
 struct SFWordSetType : public HighParser::WordSet {
-	bool IsWord(const char *s) const {
+	bool IsWord(const std::string& s) const {
 		return SFRead.find(std::string(s)) != SFRead.end();
 	};
 };

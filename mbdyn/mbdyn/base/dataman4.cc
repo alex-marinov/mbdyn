@@ -494,8 +494,7 @@ DataManager::ReadElems(MBDynParser& HP)
 
 						if (Body_labels.find(uL) == BL_end) {
 							Body_labels.insert(uL);
-							ElemGravityOwner *pEl =
-								(ElemGravityOwner *)i->second->pGetElemGravityOwner();
+							ElemGravityOwner *pEl = dynamic_cast<ElemGravityOwner *>(i->second);
 
 							dM += pEl->dGetM();
 							S += pEl->GetS();
@@ -524,18 +523,15 @@ DataManager::ReadElems(MBDynParser& HP)
 						}
 
 						Body_labels.insert(uL);
-						ElemGravityOwner *pEl =
-							(ElemGravityOwner *)ppTmpEl[0]->pGetElemGravityOwner();
+						ElemGravityOwner *pEl = dynamic_cast<ElemGravityOwner *>(ppTmpEl[0]);
 						ASSERT(pEl != 0);
 
 						/* FIXME: temporary... */
 						if (Type == Elem::JOINT) {
 							Joint *pJ = dynamic_cast<Joint *>(pEl);
-							if (pJ->GetJointType() != Joint::MODAL) {
-								silent_cerr("warning, Joint("
-									<< uL << ") "
-									"is not modal"
-									<< std::endl);
+							if (pJ == 0 || pJ->GetJointType() != Joint::MODAL) {
+								silent_cerr("warning, Joint(" << uL << ") "
+									"is not modal" << std::endl);
 							}
 						}
 
@@ -746,7 +742,7 @@ DataManager::ReadElems(MBDynParser& HP)
 		 * eventualmente si puo' fare altrimenti */
 		} else if (CurrDesc == AUTOMATICSTRUCTURAL) {
 			unsigned int uLabel = HP.GetInt();
-			Elem* pEl = (Elem*)pFindElem(Elem::AUTOMATICSTRUCTURAL, uLabel);
+			Elem* pEl = pFindElem(Elem::AUTOMATICSTRUCTURAL, uLabel);
 			if (pEl == 0) {
 				silent_cerr("line " << HP.GetLineData()
 					<< ": unable to find automatic structural element "
@@ -770,7 +766,13 @@ DataManager::ReadElems(MBDynParser& HP)
 				<< "Qp = " << qp << std::endl
 				<< "Gp = " << gp << std::endl);
 
-			AutomaticStructElem* pAuto = (AutomaticStructElem*)pEl->pGet();
+			AutomaticStructElem* pAuto = dynamic_cast<AutomaticStructElem *>(pEl);
+			if (pAuto == 0) {
+				silent_cerr("line " << HP.GetLineData()
+					<< ": Elem(" << uLabel << ") is not AutomaticStructural"
+					<< std::endl);
+				throw ErrGeneric();
+			}
 			pAuto->Init(q, g, qp, gp);
 
         /*  <<<<  D E F A U L T  >>>>  :  Read one element and create it */ 
@@ -1209,7 +1211,8 @@ DataManager::ReadElems(MBDynParser& HP)
 	/* Linka gli elementi che generano forze d'inerzia all'elemento
 	 * accelerazione di gravita' */
 	if (!ElemData[Elem::GRAVITY].ElemMap.empty()) {
-		Gravity* pGrav = (Gravity*)(ElemData[Elem::GRAVITY].ElemMap.begin()->second)->pGet();
+		Gravity* pGrav = dynamic_cast<Gravity *>(ElemData[Elem::GRAVITY].ElemMap.begin()->second);
+		ASSERT(pGrav != 0);
 
 		for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
 			if (ElemData[iCnt].bGeneratesInertiaForces()
@@ -1219,8 +1222,8 @@ DataManager::ReadElems(MBDynParser& HP)
 					p != ElemData[iCnt].ElemMap.end();
 					p++)
 				{
-					ASSERT(p->second->pGetElemGravityOwner() != 0);
-					p->second->pGetElemGravityOwner()->PutGravity(pGrav);
+					ASSERT(dynamic_cast<ElemGravityOwner *>(p->second) != 0);
+					dynamic_cast<ElemGravityOwner *>(p->second)->PutGravity(pGrav);
 				}
 			}
 		}
@@ -1230,7 +1233,8 @@ DataManager::ReadElems(MBDynParser& HP)
 	/* Linka gli elementi che usano le proprieta' dell'aria all'elemento
 	 * proprieta' dell'aria */
 	if (!ElemData[Elem::AIRPROPERTIES].ElemMap.empty()) {
-		AirProperties* pProp = (AirProperties*)(ElemData[Elem::AIRPROPERTIES].ElemMap.begin()->second)->pGet();
+		AirProperties* pProp = dynamic_cast<AirProperties *>(ElemData[Elem::AIRPROPERTIES].ElemMap.begin()->second);
+		ASSERT(pProp != 0);
 
 		for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
 			if (ElemData[iCnt].bUsesAirProperties()
@@ -1240,8 +1244,8 @@ DataManager::ReadElems(MBDynParser& HP)
 					p != ElemData[iCnt].ElemMap.end();
 					p++)
 				{
-					ASSERT(p->second->pGetAerodynamicElem() != 0);
-					p->second->pGetAerodynamicElem()->PutAirProperties(pProp);
+					ASSERT(dynamic_cast<AerodynamicElem *>(p->second) != 0);
+					dynamic_cast<AerodynamicElem *>(p->second)->PutAirProperties(pProp);
 				}
 			}
 		}
@@ -1260,7 +1264,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					p != ElemData[iCnt].ElemMap.end();
 					p++)
 				{
-					if (p->second->pGetAerodynamicElem()->NeedsAirProperties()) {
+					if (dynamic_cast<AerodynamicElem *>(p->second)->NeedsAirProperties()) {
 						if (bStop == 0) {
 							silent_cerr("The following aerodynamic elements "
 								"are defined: " << std::endl);

@@ -59,10 +59,6 @@ class SphericalHingeJoint : virtual public Elem, public Joint {
    
    ~SphericalHingeJoint(void);
 
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-   
    /* Tipo di Joint */
    virtual Joint::Type GetJointType(void) const { 
       return Joint::SPHERICALHINGE; 
@@ -163,10 +159,6 @@ class PinJoint : virtual public Elem, public Joint {
    
    ~PinJoint(void);
 
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-   
    /* Tipo di Joint */
    virtual Joint::Type GetJointType(void) const {
       return Joint::PIN; 

@@ -73,10 +73,6 @@ class Control_valve : virtual public Elem, public HydraulicElem, public DriveOwn
    
    ~Control_valve(void);
    
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-   
    /* Tipo di elemento idraulico (usato solo per debug ecc.) */
    virtual HydraulicElem::Type GetHydraulicType(void) const;
 
@@ -184,10 +180,6 @@ public:
 
 	~Control_valve2(void);
 	
-	virtual inline void* pGet(void) const { 
-		return (void*)this;
-	};
-
 	/* Tipo di elemento idraulico (usato solo per debug ecc.) */
 	virtual HydraulicElem::Type GetHydraulicType(void) const;
 	
@@ -284,10 +276,6 @@ class Dynamic_control_valve : virtual public Elem, public HydraulicElem, public 
 			 doublereal cs, doublereal cv, doublereal ca, flag fOut);
    
    ~Dynamic_control_valve(void);
-   
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
    
    /* Tipo di elemento idraulico (usato solo per debug ecc.) */
    virtual HydraulicElem::Type GetHydraulicType(void) const;
@@ -393,10 +381,6 @@ class Pressure_flow_control_valve : virtual public Elem, public HydraulicElem, p
    
    ~Pressure_flow_control_valve(void);
    
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-   
    /* Tipo di elemento idraulico (usato solo per debug ecc.) */
    virtual HydraulicElem::Type GetHydraulicType(void) const;
 
@@ -485,10 +469,6 @@ class Pressure_valve : virtual public Elem, public HydraulicElem {
    
    ~Pressure_valve(void);
   
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-   
    /* Tipo di elemento idraulico (usato solo per debug ecc.) */
    virtual HydraulicElem::Type GetHydraulicType(void) const;
 
@@ -576,10 +556,6 @@ class  Flow_valve : virtual public Elem, public HydraulicElem {
 	      doublereal cs, doublereal cv, doublereal ca,  flag fOut);
    
    ~Flow_valve(void);
-   
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
    
    /* Tipo di elemento idraulico (usato solo per debug ecc.) */
    virtual HydraulicElem::Type GetHydraulicType(void) const;

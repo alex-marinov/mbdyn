@@ -72,10 +72,6 @@ class Gravity : public Elem, public TplDriveOwner<Vec3> {
    
    virtual ~Gravity(void);
    
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-   
    /* Scrive il contributo dell'elemento al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
    
@@ -176,11 +172,6 @@ class ElemGravityOwner : virtual public Elem, public GravityOwner {
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& XP,
 		   SimulationEntity::Hints *ph = 0) = 0;
-
-   /* Consente di effettuare un casting sicuro da Elem* a ElemGravityOwner* */
-   virtual ElemGravityOwner* pGetElemGravityOwner(void) const { 
-      return (ElemGravityOwner*)this; 
-   };
 
    /*
     * massa

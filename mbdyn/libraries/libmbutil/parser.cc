@@ -775,7 +775,7 @@ HighParser::IsWord(const HighParser::WordSet& ws)
 		return 0;
 	}
 
-	if (ws.IsWord(sStringBuf)) {
+	if (ws.IsWord(std::string(sStringBuf))) {
 		NextToken(sFuncName);
 		return sStringBuf;
 	}

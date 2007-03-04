@@ -66,10 +66,6 @@ public:
 
 	virtual ~ExtForce(void);
 
-	virtual inline void* pGet(void) const { 
-		return (void*)this;
-	};
-     
 	/* Tipo di forza */
 	virtual Force::Type GetForceType(void) const { 
 		return Force::EXTERNALFORCE; 

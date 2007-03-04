@@ -1110,7 +1110,7 @@ SchurDataManager::CreatePartition(void)
 			i != ElemData[Elem::AERODYNAMIC].ElemMap.end();
 			i++)
 		{
-			const AerodynamicElem *pAero = i->second->pGetAerodynamicElem();
+			const AerodynamicElem *pAero = dynamic_cast<AerodynamicElem *>(i->second);
 			ASSERT(pAero != NULL);
 			const Rotor *pRotor = pAero->pGetRotor();
 
@@ -1162,7 +1162,8 @@ SchurDataManager::CreatePartition(void)
 #if 0
 			RotorComm[i] = MPI::COMM_WORLD.Split(color, key);
 #endif
-			Rotor *r = (Rotor *)Elems[pRotPos[i]]->pGet();
+			Rotor *r = dynamic_cast<Rotor *>(Elems[pRotPos[i]]);
+			ASSERT(r != 0);
 			r->InitializeRotorComm(pRotorComm + i);
 		}
 
@@ -1327,7 +1328,7 @@ SchurDataManager::CreatePartition(void)
 		TmpDofNum = ppMyElems[i]->iGetNumDof();
 		if (TmpDofNum != 0) {
 			if (i != pPosIntElems[i2Count]) {
-				ElemWithDofs* pWithDofs = ppMyElems[i]->pGetElemWithDofs();
+				ElemWithDofs* pWithDofs = dynamic_cast<ElemWithDofs *>(ppMyElems[i]);
 				integer First = (pWithDofs)->iGetFirstIndex();
 
 				pLocalDofs[iCount] = First + 1;
@@ -1382,7 +1383,7 @@ SchurDataManager::CreatePartition(void)
 	/* Interfaccia degli elementi locali */
 	for (int i = 0; i < iNumIntElems; i++) {
 		TmpDofNum = ppMyIntElems[i]->iGetNumDof();
-		ElemWithDofs* pWithDofs = (ppMyIntElems[i])->pGetElemWithDofs();
+		ElemWithDofs* pWithDofs = dynamic_cast<ElemWithDofs *>(ppMyIntElems[i]);
 		integer First = (pWithDofs)->iGetFirstIndex();
 		pLocalIntDofs[iCount] = (First + 1);
 		iCount++;

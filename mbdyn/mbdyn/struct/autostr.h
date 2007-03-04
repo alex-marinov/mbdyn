@@ -69,10 +69,6 @@ class AutomaticStructElem : virtual public Elem {
       NO_OP;
    };
    
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-   
    /* inizializza i dati */
    void Init(const Vec3& b, const Vec3& g, const Vec3& bp, const Vec3& gp);
 

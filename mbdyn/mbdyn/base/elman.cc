@@ -37,6 +37,8 @@
 
 #include "dataman.h"
 #include "search.h"
+#include "gravity.h"
+#include "aerodyn.h"
 
 /* DataManager - begin */
 
@@ -46,6 +48,7 @@ DataManager::ElemManager(void)
 {
 	/* Reset della struttura ElemData */
 	for (int i = 0; i < Elem::LASTELEMTYPE; i++) {
+		ElemData[i].iExpectedNum = 0;
 		ElemData[i].DofOwnerType = DofOwner::UNKNOWN;
 		ElemData[i].uFlags = 0U;
 		ElemData[i].DefaultOut(::fDefaultOut == 1); /* Da "output.h" */
@@ -503,7 +506,7 @@ DataManager::ElemOutput_f06( std::ostream& f06, const VectorHandler& Xr,
 
 
 /* cerca un elemento qualsiasi */
-void *
+Elem *
 DataManager::pFindElem(Elem::Type Typ, unsigned int uL) const
 {
 	ASSERT(uL > 0);
@@ -513,7 +516,7 @@ DataManager::pFindElem(Elem::Type Typ, unsigned int uL) const
 		return 0;
 	}
 
-	return p->second->pGetElem();
+	return p->second;
 }
 
 
@@ -532,7 +535,7 @@ DataManager::ppFindElem(Elem::Type Typ, unsigned int uL) const
 }
 
 /* cerca un elemento qualsiasi */
-void *
+Elem *
 DataManager::pFindElem(Elem::Type Typ, unsigned int uL,
 		unsigned int iDeriv) const
 {
@@ -548,31 +551,30 @@ DataManager::pFindElem(Elem::Type Typ, unsigned int uL,
 }
 
 /* Usata dalle due funzioni precedenti */
-void *
+Elem *
 DataManager::pChooseElem(Elem* p, unsigned int iDeriv) const
 {
 	ASSERT(p != NULL);
 
 	switch (iDeriv) {
 	case ELEM:
-		ASSERT(p->pGetElem() != NULL);
-		return p->pGetElem();
+		return p;
 
 	case DOFOWNER:
-		ASSERT(p->pGetElemWithDofs() != NULL);
-		return p->pGetElemWithDofs();
+		ASSERT(dynamic_cast<ElemWithDofs *>(p) != NULL);
+		return p;
 
 	case GRAVITYOWNER:
-		ASSERT(p->pGetElemGravityOwner() != NULL);
-		return p->pGetElemGravityOwner();
+		ASSERT(dynamic_cast<ElemGravityOwner *>(p) != NULL);
+		return p;
 
 	case AIRPROPOWNER:
-		ASSERT(p->pGetAerodynamicElem() != NULL);
-		return p->pGetAerodynamicElem();
+		ASSERT(dynamic_cast<AerodynamicElem *>(p) != NULL);
+		return p;
 
 	case INITIALASSEMBLY:
-		ASSERT(p->pGetInitialAssemblyElem() != NULL);
-		return p->pGetInitialAssemblyElem();
+		ASSERT(dynamic_cast<InitialAssemblyElem *>(p) != NULL);
+		return p;
 	}
 
 	/* default */
@@ -580,7 +582,7 @@ DataManager::pChooseElem(Elem* p, unsigned int iDeriv) const
 }
 
 /* cerca un drive qualsiasi */
-void *
+Drive *
 DataManager::pFindDrive(Drive::Type Typ, unsigned int uL) const
 {
 	ASSERT(DriveData[Typ].ppFirstDrive != NULL);
@@ -588,10 +590,6 @@ DataManager::pFindDrive(Drive::Type Typ, unsigned int uL) const
 	ASSERT(uL > 0);
 
 	Drive* p = pLabelSearch(DriveData[Typ].ppFirstDrive, DriveData[Typ].iNum, uL);
-
-	if (p == NULL) {
-		return NULL;
-	}
 
 	return p;
 }
@@ -639,13 +637,10 @@ InitialAssemblyIterator::GetFirst(void) const
 	pCurr = (*pElemData)[FirstType].ElemMap.begin();
 
 	/* La variabile temporanea e' necessaria per il debug. */
-	InitialAssemblyElem* p;
-	for (p = pCurr->second->pGetInitialAssemblyElem();
-		p == 0;
-		p = GetNext())
-	{
+	InitialAssemblyElem* p = dynamic_cast<InitialAssemblyElem *>(pCurr->second);
+	for ( ; p == 0; p = GetNext()) {
 #ifdef DEBUG
-		if (p == NULL) {
+		if (p == 0) {
 			silent_cerr(psElemNames[pCurr->second->GetElemType()]
 				<< "(" << pCurr->second->GetLabel() << ")"
 				" is not subject to initial assembly" << std::endl);
@@ -678,7 +673,7 @@ InitialAssemblyIterator::GetNext(void) const
 		}
 
 		/* La variabile temporanea e' necessaria per il debug. */
-		p = pCurr->second->pGetInitialAssemblyElem();
+		p = dynamic_cast<InitialAssemblyElem *>(pCurr->second);
 
 #ifdef DEBUG
 		if (p == 0) {

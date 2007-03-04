@@ -73,10 +73,6 @@ public:
 		return GIMBAL;
 	};
 
-	virtual inline void* pGet(void) const { 
-		return (void*)this;
-	};
-
 	/* Contributo al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 

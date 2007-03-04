@@ -69,10 +69,6 @@ class Pipe : virtual public Elem, public HydraulicElem {
    
    ~Pipe(void);
    
-   virtual inline void* pGet(void) const {
-      return (void*)this;
-   };
-   
    /* Tipo di elemento idraulico (usato solo per debug ecc.) */
    virtual HydraulicElem::Type GetHydraulicType(void) const;
 
@@ -156,10 +152,6 @@ class Dynamic_pipe : virtual public Elem, public HydraulicElem {
 	flag transition, doublereal q0, flag fOut);
    
    ~Dynamic_pipe(void);
-   
-   virtual inline void* pGet(void) const {
-      return (void*)this;
-   };
    
    /* Tipo di elemento idraulico (usato solo per debug ecc.) */
    virtual HydraulicElem::Type GetHydraulicType(void) const;
@@ -250,10 +242,6 @@ class DynamicPipe : virtual public Elem, public HydraulicElem {
 	       flag transition, doublereal q0, flag fOut);
    
    ~DynamicPipe(void);
-   
-   virtual inline void* pGet(void) const {
-      return (void*)this;
-   };
    
    /* Tipo di elemento idraulico (usato solo per debug ecc.) */
    virtual HydraulicElem::Type GetHydraulicType(void) const;

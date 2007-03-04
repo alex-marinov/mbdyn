@@ -75,10 +75,6 @@ public:
 
 	virtual ~RotorTrim(void);
 	
-	virtual inline void* pGet(void) const { 
-		return (void*)this;
-	};
-	
 	virtual unsigned int iGetNumDof(void) const;
 	
 	/* Scrive il contributo dell'elemento al file di restart */

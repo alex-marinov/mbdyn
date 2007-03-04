@@ -89,10 +89,6 @@ public:
 	/* Distruttore */
 	virtual ~Rod(void);
 
-	virtual inline void* pGet(void) const { 
-		return (void*)this;
-	};
-
 	/* Tipo di Joint */
 	virtual Joint::Type GetJointType(void) const {
 		return Joint::ROD; 
@@ -214,10 +210,6 @@ public:
 	/* Distruttore */
 	virtual ~ViscoElasticRod(void);
 
-	virtual inline void* pGet(void) const { 
-		return (void*)this;
-	};
-
 	virtual void
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 
@@ -288,10 +280,6 @@ public:
  
 	/* Distruttore */
 	virtual ~RodWithOffset(void);
-
-	virtual inline void* pGet(void) const { 
-		return (void*)this;
-	};
 
 	/* Contributo al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;

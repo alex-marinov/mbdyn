@@ -115,10 +115,6 @@ class BasicAirProperties
    
    virtual ~BasicAirProperties(void);
 
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-   
    /* Scrive il contributo dell'elemento al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
    
@@ -168,10 +164,6 @@ class StdAirProperties
    
    virtual ~StdAirProperties(void);
 
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-   
    /* Scrive il contributo dell'elemento al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
    

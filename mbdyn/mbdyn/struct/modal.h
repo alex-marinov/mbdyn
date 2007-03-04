@@ -184,8 +184,6 @@ public:
 	/* Distruttore */
 	~Modal(void);
    
-	virtual inline void* pGet(void) const;
-
 	/* Tipo di Joint */
 	virtual Joint::Type GetJointType(void) const;
 
@@ -286,11 +284,6 @@ public:
 	};
 	/* ************************************************ */
 };
-
-inline void* Modal::pGet(void) const
-{
-	return (void*)this;
-}
 
 /* Modal - end */
 

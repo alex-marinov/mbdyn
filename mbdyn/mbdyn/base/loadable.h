@@ -278,7 +278,6 @@ public:
 			const LoadableCalls *c,
 			DataManager* pDM, MBDynParser& HP);
    	~LoadableElem(void); 
-   	virtual inline void* pGet(void) const;
    
    	inline void* pGetData(void) const;
    
@@ -358,12 +357,6 @@ public:
 	std::ostream& WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const;
 #endif /* USE_ADAMS */
 };
-
-inline void* 
-LoadableElem::pGet(void) const 
-{ 
-   	return (void*)this; 
-}
 
 inline void* 
 LoadableElem::pGetData(void) const

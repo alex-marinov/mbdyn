@@ -283,7 +283,7 @@ DataManager::DofOwnerInit(void)
 
 			/* chiede all'elemento quanti dof possiede */
 			if ((iNumDof = pEl->iGetNumDof()) > 0) {
-				ElemWithDofs* pElWD = (ElemWithDofs*)pEl->pGetElemWithDofs();
+				ElemWithDofs* pElWD = dynamic_cast<ElemWithDofs *>(pEl);
 				ASSERT(pElWD != NULL);
 
 				/* si fa passare il DofOwner */
@@ -416,11 +416,11 @@ DataManager::InitialJointAssembly(void)
 					p != ElemData[iCnt1].ElemMap.end();
 					p++)
 				{
-					InitialAssemblyElem *pEl = p->second->pGetInitialAssemblyElem();
+					InitialAssemblyElem *pEl = dynamic_cast<InitialAssemblyElem *>(p->second);
 					if (pEl == 0) {
 						continue;
 					}
-					ElemWithDofs *pDOEl = p->second->pGetElemWithDofs();
+					ElemWithDofs *pDOEl = dynamic_cast<ElemWithDofs *>(p->second);
 					if (pDOEl == 0) {
 						continue;	/* ?!? */
 					}
@@ -432,7 +432,7 @@ DataManager::InitialJointAssembly(void)
 						if (pds) {
 							unsigned int nd = iNumDofs;
 							integer fd = iIndex;
-							ElemWithDofs* pElWD = (ElemWithDofs*)p->second->pGetElemWithDofs();
+							ElemWithDofs* pElWD = dynamic_cast<ElemWithDofs *>(p->second);
 
 							silent_cout(psElemNames[pEl->GetElemType()]
 								<< "(" << pEl->GetLabel()
@@ -551,8 +551,8 @@ DataManager::InitialJointAssembly(void)
 				p != ElemData[iCnt1].ElemMap.end();
 				p++)
 			{
-				ASSERT(p->second->pGetElemWithDofs() != 0);
-				p->second->pGetElemWithDofs()->SetInitialValue(X);
+				ASSERT(dynamic_cast<ElemWithDofs *>(p->second) != 0);
+				dynamic_cast<ElemWithDofs *>(p->second)->SetInitialValue(X);
 			}
 		}
 	}
@@ -827,8 +827,8 @@ DataManager::DofOwnerSet(void)
 				p != ElemData[iCnt].ElemMap.end();
 				p++)
 			{
-				ASSERT(p->second->pGetElemWithDofs() != 0);
-				ElemWithDofs* pTmp = p->second->pGetElemWithDofs();
+				ASSERT(dynamic_cast<ElemWithDofs *>(p->second) != 0);
+				ElemWithDofs* pTmp = dynamic_cast<ElemWithDofs *>(p->second);
 
 				DEBUGLCOUT(MYDEBUG_INIT, "    " << psElemNames[pTmp->GetElemType()]
 						<< "(" << pTmp->GetLabel() << ")" << std::endl);

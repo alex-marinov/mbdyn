@@ -246,7 +246,7 @@ public:
 
 	struct WordSet {
 		virtual ~WordSet(void) { NO_OP; };
-		virtual bool IsWord(const char *s) const = 0;
+		virtual bool IsWord(const std::string &s) const = 0;
 	};
    
 	enum {

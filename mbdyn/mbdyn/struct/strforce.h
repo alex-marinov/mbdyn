@@ -84,10 +84,6 @@ class ConservativeForce : virtual public Elem, public StructuralForce {
       NO_OP;
    };
    
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-     
    /* Tipo di forza */
    virtual Force::Type GetForceType(void) const { 
       return Force::CONSERVATIVEFORCE; 
@@ -149,8 +145,6 @@ class FollowerForce : virtual public Elem, public StructuralForce {
       NO_OP;
    };
    
-   virtual inline void* pGet(void) const { return (void*)this; };
-     
    /* Tipo di forza */
    virtual Force::Type GetForceType(void) const {
       return Force::FOLLOWERFORCE; 
@@ -210,8 +204,6 @@ class ConservativeCouple : virtual public Elem, public StructuralForce {
       NO_OP;
    };
    
-   virtual inline void* pGet(void) const { return (void*)this; };
-     
    /* Tipo di forza */
    virtual Force::Type GetForceType(void) const {
       return Force::CONSERVATIVECOUPLE; 
@@ -261,8 +253,6 @@ class FollowerCouple : virtual public Elem, public StructuralForce {
       NO_OP;
    };
    
-   virtual inline void* pGet(void) const { return (void*)this; };
-
    /* Tipo di forza */
    virtual Force::Type GetForceType(void) const {
       return Force::FOLLOWERCOUPLE; 
@@ -358,10 +348,6 @@ class ConservativeInternalForce : virtual public Elem, public StructuralInternal
       NO_OP;
    };
    
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-     
    /* Tipo di forza */
    virtual Force::Type GetForceType(void) const { 
       return Force::CONSERVATIVEINTERNALFORCE; 
@@ -426,8 +412,6 @@ class FollowerInternalForce : virtual public Elem, public StructuralInternalForc
       NO_OP;
    };
    
-   virtual inline void* pGet(void) const { return (void*)this; };
-     
    /* Tipo di forza */
    virtual Force::Type GetForceType(void) const {
       return Force::FOLLOWERINTERNALFORCE; 
@@ -487,8 +471,6 @@ class ConservativeInternalCouple : virtual public Elem, public StructuralInterna
       NO_OP;
    };
    
-   virtual inline void* pGet(void) const { return (void*)this; };
-     
    /* Tipo di forza */
    virtual Force::Type GetForceType(void) const {
       return Force::CONSERVATIVEINTERNALCOUPLE; 
@@ -538,8 +520,6 @@ class FollowerInternalCouple : virtual public Elem, public StructuralInternalFor
       NO_OP;
    };
    
-   virtual inline void* pGet(void) const { return (void*)this; };
-
    /* Tipo di forza */
    virtual Force::Type GetForceType(void) const {
       return Force::FOLLOWERINTERNALCOUPLE; 

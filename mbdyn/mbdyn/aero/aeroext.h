@@ -104,10 +104,6 @@ public:
    	Elem::Type GetElemType(void) const 
 	{ return Elem::AERODYNAMIC;};  
 	
-	void* pGet(void) const { 
-      		return (void*)this;
-   	};
-
 	   /* Contributo al file di restart */
    	virtual std::ostream& Restart(std::ostream& out) const 
 	{ return out << std::endl; };
@@ -242,10 +238,6 @@ public:
 		*piNumCols = 0;
 	};
 	
-	void* pGet(void) const { 
-      		return (void*)this;
-   	};
-
 	   /* Contributo al file di restart */
    	virtual std::ostream& Restart(std::ostream& out) const 
 	{ return out << std::endl; };

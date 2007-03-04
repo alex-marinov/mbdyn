@@ -85,10 +85,6 @@ class Actuator : virtual public Elem, public HydraulicElem {
    
    ~Actuator(void);
   
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-   
    /* Tipo di elemento idraulico (usato solo per debug ecc.) */
    virtual HydraulicElem::Type GetHydraulicType(void) const;
 

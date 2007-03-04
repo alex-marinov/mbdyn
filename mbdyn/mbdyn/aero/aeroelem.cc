@@ -119,7 +119,7 @@ M(0.)
    	ASSERT(aerodata != NULL);
 
 #ifdef DEBUG
-   	if(pRotor != NULL) {
+   	if (pRotor != NULL) {
       		ASSERT(pRotor->GetElemType() == Elem::ROTOR);
    	}
 #endif /* DEBUG */
@@ -778,7 +778,7 @@ ReadAerodynamicBody(DataManager* pDM,
    	unsigned int uNode = pNode->GetLabel();
 
 	/* Eventuale rotore */
-	Rotor* pRotor = NULL;
+	Rotor* pRotor = 0;
 	if (HP.IsKeyWord("rotor")) {
 		uNode = (unsigned int)HP.GetInt();
 		DEBUGLCOUT(MYDEBUG_INPUT,
@@ -790,13 +790,14 @@ ReadAerodynamicBody(DataManager* pDM,
 		 * prima dell'elemento aerodinamico
 		 */
 		 Elem* p = (Elem*)(pDM->pFindElem(Elem::ROTOR, uNode));
-		 if (p  == NULL) {
+		 if (p == 0) {
 		 	silent_cerr("Rotor(" << uNode << ") not defined "
-					"at line " << HP.GetLineData()
-					<< std::endl);
+				"at line " << HP.GetLineData()
+				<< std::endl);
 			throw DataManager::ErrGeneric();
 		}
-		pRotor = (Rotor*)p->pGet();
+		pRotor = dynamic_cast<Rotor *>(p);
+		ASSERT(pRotor != 0);
 	}
 
 	ReferenceFrame RF(pNode);
@@ -924,7 +925,7 @@ pvdOuta(NULL)
 	ASSERT(pNode3->GetNodeType() == Node::STRUCTURAL);
 
 #ifdef DEBUG
-	if(pRotor != NULL) {
+	if (pRotor != NULL) {
 		ASSERT(pRotor->GetElemType() == Elem::ROTOR);
 	}
 #endif /* DEBUG */
@@ -1373,18 +1374,24 @@ ReadAerodynamicBeam(DataManager* pDM,
 	DEBUGLCOUT(MYDEBUG_INPUT, "Linked to beam: " << uBeam << std::endl);
 
 	/* verifica di esistenza della trave */
-	Beam* pBeam;
-	Elem* p = (Elem*)(pDM->pFindElem(Elem::BEAM, uBeam));
-	if (p == NULL) {
-		silent_cerr("Beam(" << uBeam << ") not defined "
+	Elem* p = pDM->pFindElem(Elem::BEAM, uBeam);
+	if (p == 0) {
+		silent_cerr("Beam3(" << uBeam << ") not defined "
 				"at line " << HP.GetLineData()
 				<< std::endl);
 		throw DataManager::ErrGeneric();
 	}
-	pBeam = (Beam*)p->pGet();
+	Beam *pBeam = dynamic_cast<Beam *>(p);
+	if (pBeam == 0) {
+		silent_cerr("Beam(" << uBeam << ") is not a Beam3 "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+		throw DataManager::ErrGeneric();
+	}
+	ASSERT(pBeam != 0);
 
 	/* Eventuale rotore */
-	Rotor* pRotor = NULL;
+	Rotor* pRotor = 0;
 	if (HP.IsKeyWord("rotor")) {
 		unsigned int uRotor = (unsigned int)HP.GetInt();
 		DEBUGLCOUT(MYDEBUG_INPUT,
@@ -1395,14 +1402,15 @@ ReadAerodynamicBeam(DataManager* pDM,
 		 * NOTA: ovviamente il rotore deve essere definito
 		 * prima dell'elemento aerodinamico
 		 */
-		Elem* p = (Elem*)(pDM->pFindElem(Elem::ROTOR, uRotor));
+		Elem* p = pDM->pFindElem(Elem::ROTOR, uRotor);
 		if (p == NULL) {
 			silent_cerr("Rotor(" << uRotor << ") not defined "
 					"at line " << HP.GetLineData()
 					<< std::endl);
 			throw DataManager::ErrGeneric();
 		}
-		pRotor = (Rotor*)p->pGet();
+		pRotor = dynamic_cast<Rotor *>(p);
+		ASSERT(pRotor != 0);
 	}
 
 	/* Nodo 1: */
@@ -1570,7 +1578,7 @@ pvdOuta(NULL)
 	ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
 
 #ifdef DEBUG
-	if(pRotor != NULL) {
+	if (pRotor != NULL) {
 		ASSERT(pRotor->GetElemType() == Elem::ROTOR);
 	}
 #endif /* DEBUG */
@@ -1997,18 +2005,23 @@ ReadAerodynamicBeam2(
 	DEBUGLCOUT(MYDEBUG_INPUT, "Linked to beam: " << uBeam << std::endl);
 
 	/* verifica di esistenza della trave */
-	Beam2* pBeam;
-	Elem* p = (Elem *)pDM->pFindElem(Elem::BEAM, uBeam);
-	if (p == NULL) {
-		silent_cerr("Beam(" << uBeam << ") not defined "
+	Elem *p = pDM->pFindElem(Elem::BEAM, uBeam);
+	if (p == 0) {
+		silent_cerr("Beam2(" << uBeam << ") not defined "
 				"at line " << HP.GetLineData()
 				<< std::endl);
 		throw DataManager::ErrGeneric();
 	}
-	pBeam = (Beam2 *)p->pGet();
+	Beam2* pBeam = dynamic_cast<Beam2 *>(p);
+	if (pBeam == 0) {
+		silent_cerr("Beam(" << uBeam << ") is not a Beam2 "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+		throw DataManager::ErrGeneric();
+	}
 
 	/* Eventuale rotore */
-	Rotor* pRotor = NULL;
+	Rotor *pRotor = 0;
 	if (HP.IsKeyWord("rotor")) {
 		unsigned int uRotor = (unsigned int)HP.GetInt();
 		DEBUGLCOUT(MYDEBUG_INPUT,
@@ -2026,7 +2039,8 @@ ReadAerodynamicBeam2(
 					<< std::endl);
 			throw DataManager::ErrGeneric();
 		}
-		pRotor = (Rotor*)p->pGet();
+		pRotor = dynamic_cast<Rotor *>(p);
+		ASSERT(pRotor != 0);
 	}
 
 	/* Nodo 1: */

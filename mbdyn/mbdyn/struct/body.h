@@ -71,10 +71,6 @@ public:
 
 	virtual ~Body(void);
  
-	virtual inline void* pGet(void) const { 
-		return (void*)this;
-	};
-
 	/* massa totale */
 	doublereal dGetM(void) const {
 		return dMass;
@@ -115,10 +111,6 @@ public:
 
 	virtual ~DynamicBody(void);
  
-	virtual inline void* pGet(void) const { 
-		return (void*)this;
-	};
-
 	/* Scrive il contributo dell'elemento al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
  
@@ -204,10 +196,6 @@ public:
 
 	virtual ~StaticBody(void);
  
-	virtual inline void* pGet(void) const { 
-		return (void*)this;
-	};
-
 	/* Scrive il contributo dell'elemento al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
  

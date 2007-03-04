@@ -72,8 +72,6 @@ class InPlaneJoint : virtual public Elem, public Joint {
       return INPLANE;
    };
 
-   virtual inline void* pGet(void) const { return (void*)this; };
-
    /* Contributo al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
 
@@ -179,8 +177,6 @@ class InPlaneWithOffsetJoint : virtual public Elem, public Joint {
    virtual Joint::Type GetJointType(void) const {
       return INPLANE;
    };
-
-   virtual inline void* pGet(void) const { return (void*)this; };
 
    /* Contributo al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;

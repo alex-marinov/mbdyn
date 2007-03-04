@@ -144,10 +144,6 @@ public:
 
 	virtual ~ElasticHingeJoint(void);
 
-	virtual inline void* pGet(void) const {
-		return (void*)this;
-	};
-
 	virtual void
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 
@@ -246,10 +242,6 @@ public:
 
 	virtual ~ElasticHingeJointInv(void);
 
-	virtual inline void* pGet(void) const {
-		return (void*)this;
-	};
-
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
 	virtual void SetValue(DataManager *pDM,
 			VectorHandler& X, VectorHandler& XP,
@@ -293,10 +285,6 @@ public:
 			flag fOut);
 
 	virtual ~ViscousHingeJoint(void);
-
-	virtual inline void* pGet(void) const {
-		return (void*)this;
-	};
 
 	virtual void
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
@@ -397,10 +385,6 @@ public:
 
 	virtual ~ViscousHingeJointInv(void);
 
-	virtual inline void* pGet(void) const {
-		return (void*)this;
-	};
-
 	/* Aggiorna le deformazioni ecc. */
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
@@ -452,10 +436,6 @@ public:
 			flag fOut);
 
 	~ViscoElasticHingeJoint(void);
-
-	virtual inline void* pGet(void) const {
-		return (void*)this;
-	};
 
 	virtual void
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
@@ -554,10 +534,6 @@ public:
 			flag fOut);
 
 	~ViscoElasticHingeJointInv(void);
-
-	virtual inline void* pGet(void) const {
-		return (void*)this;
-	};
 
 	/* Aggiorna le deformazioni ecc. */
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);

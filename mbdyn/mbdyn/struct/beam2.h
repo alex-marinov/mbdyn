@@ -179,10 +179,6 @@ class Beam2
     /* Distruttore banale */
     virtual ~Beam2(void);
    
-    virtual inline void* pGet(void) const { 
-        return (void*)this;
-    };
-
     /* Tipo di trave */
     virtual Beam::Type GetBeamType(void) const {
         return Beam::ELASTIC; 
@@ -369,10 +365,6 @@ class ViscoElasticBeam2 : virtual public Elem, public Beam2 {
         NO_OP;
     };
 
-    virtual inline void* pGet(void) const { 
-        return (void*)this;
-    };
-   
     /* Tipo di trave */
     virtual Beam::Type GetBeamType(void) const {
         return Beam::VISCOELASTIC; 

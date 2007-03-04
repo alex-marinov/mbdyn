@@ -611,9 +611,9 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
 
    /* giunto modale collegato */		     
    Elem* pM = pDM->ReadElem(HP, Elem::JOINT);
-   Modal* pModalJoint = (Modal*)pM->pGet();
-   if (pModalJoint->GetJointType() != Joint::MODAL) {
-      silent_cerr("Joint " << pModalJoint->GetLabel()
+   Modal* pModalJoint = dynamic_cast<Modal*>(pM);
+   if (pModalJoint == 0 || pModalJoint->GetJointType() != Joint::MODAL) {
+      silent_cerr("Joint " << pM->GetLabel()
 	      << " is required to be a modal joint" << std::endl);
       throw DataManager::ErrGeneric();
    }

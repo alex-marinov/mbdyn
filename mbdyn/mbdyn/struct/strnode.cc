@@ -2118,9 +2118,10 @@ RelFrameDummyStructNode::Update(const VectorHandler& /* X */ ,
 /* Legge un nodo strutturale */
 
 OrientationDescription
-ReadNodeOrientationDescription(DataManager *pDM, MBDynParser& HP,
-	OrientationDescription dod = UNKNOWN_ORIENTATION_DESCRIPTION)
+ReadNodeOrientationDescription(DataManager *pDM, MBDynParser& HP)
 {
+	OrientationDescription dod = UNKNOWN_ORIENTATION_DESCRIPTION;
+
 	if (HP.IsKeyWord("orientation" "description")) {
 		dod = ReadOrientationDescription(HP);
 

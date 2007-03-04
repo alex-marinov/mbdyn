@@ -76,8 +76,6 @@ public:
 			
    	virtual ~SocketStreamElem(void);
 
-	virtual inline void* pGet(void) const;
-
 	virtual std::ostream& Restart(std::ostream& out) const;
 	virtual Elem::Type GetElemType(void) const;
 	virtual void WorkSpaceDim(integer* piRows, integer* piCols) const;
@@ -94,12 +92,6 @@ public:
 	virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP);
 };
-
-inline void*
-SocketStreamElem::pGet(void) const
-{ 
-	return (void *)this;
-}
 
 class DataManager;
 class MBDynParser;

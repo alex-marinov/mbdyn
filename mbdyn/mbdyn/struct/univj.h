@@ -64,10 +64,6 @@ class UniversalHingeJoint : virtual public Elem, public Joint {
    /* Distruttore */
    ~UniversalHingeJoint(void);
 
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-   
    /* Contributo al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
 
@@ -165,10 +161,6 @@ class UniversalRotationJoint : virtual public Elem, public Joint {
    /* Distruttore */
    ~UniversalRotationJoint(void);
 
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-   
    /* Contributo al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
 
@@ -261,10 +253,6 @@ class UniversalPinJoint : virtual public Elem, public Joint {
    
    ~UniversalPinJoint(void);
 
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-   
    /* Tipo di Joint */
    virtual Joint::Type GetJointType(void) const { 
       return Joint::UNIVERSALPIN; 

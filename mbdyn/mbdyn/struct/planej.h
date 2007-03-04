@@ -87,10 +87,6 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
    /* Distruttore */
    ~PlaneHingeJoint(void);
 
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-
    virtual void ReadInitialState(MBDynParser& HP);
    
    /* Contributo al file di restart */
@@ -212,10 +208,6 @@ class PlaneRotationJoint : virtual public Elem, public Joint {
    
    /* Distruttore */
    ~PlaneRotationJoint(void);
-
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
 
    /* Contributo al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
@@ -360,10 +352,6 @@ public Joint, public DriveOwner {
    /* Distruttore */
    ~AxialRotationJoint(void);
    
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-
    /* Tipo di Joint */
    virtual Joint::Type GetJointType(void) const { 
       return Joint::AXIALROTATION; 
@@ -496,10 +484,6 @@ class PlanePinJoint : virtual public Elem, public Joint {
    
    ~PlanePinJoint(void);
 
-   virtual inline void* pGet(void) const { 
-      return (void*)this;
-   };
-   
    /* Tipo di Joint */
    virtual Joint::Type GetJointType(void) const { 
       return Joint::PIN; 
