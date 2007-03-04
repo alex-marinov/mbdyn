@@ -43,6 +43,7 @@
 %poor man's bold symbol
 \newcommand{\T}[1]{\boldsymbol{#1}}
 \newcommand{\TT}[1]{\boldsymbol{#1}}
+\newcommand{\equu}{\overset{\mathrm{uu}}{=}}
 
 \begin{document}
 
@@ -1309,8 +1310,10 @@ yields
 			\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
 		}
 \end{eqnarray*}
-according to the updated-updated simplifications,
-$\T{\theta}_{i\delta}\cong\delta\T{g}_i$, thus resulting in
+according to the updated-updated\footnote{In the following, 
+the operator $\equu$ will be used to indicate the updated-updated
+approximation.} simplifications,
+$\T{\theta}_{i\delta}\equu\delta\T{g}_i$, thus resulting in
 \begin{equation}
 	\T{\theta}_{\delta} = \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_1^T \plbr{
 		\delta\T{g}_2 - \delta\T{g}_1
@@ -1331,7 +1334,16 @@ $\T{\theta}_0$; the corresponding orientation matrix is
 \begin{equation}
 	\T{R}_0 = \exp\plbr{\T{\theta}_0\times{}}
 \end{equation}
-this operation can always be performed with no ambiguity.
+this operation can always be performed with no ambiguity,
+regardless of the amplitude of $\T{\theta}$.
+However, the same does not hold true for the inverse operation,
+namely
+\begin{equation}
+	\T{\theta}_0 = \mathrm{ax}\plbr{\exp^{-1}\plbr{\T{R}_0}}
+\end{equation}
+can only yield $\T{\theta}_0$ with the indetermination corresponding
+to an arbitrary amount of entire revolutions.
+
 The equality
 \begin{equation}
 	\T{\theta} - \T{\theta}_0 = \T{0}
@@ -1519,20 +1531,20 @@ whose differentiation yields
 		+ \plbr{\T{\omega}_2 - \T{\omega}_1}\times
 			\T{\theta}_{1\delta}
 	} \\
-	& \cong & \bar{\T{R}}^T \plbr{
+	& \equu & \bar{\T{R}}^T \plbr{
 		\delta\dot{\T{g}}_2
 		- \delta\dot{\T{g}}_1
 		- \T{\omega}_2\times\plbr{\delta\T{g}_2 - \delta\T{g}_1}
 	}
 \end{eqnarray*}
 where the simplifications of the updated-updated approach 
-have been considered, as indicated by the $\cong$ operator.
+have been considered, as indicated by the $\equu$ operator.
 
 \noindent
 The couples applied by the constraint equations are
 \begin{eqnarray*}
-	\T{C}_1 & = & \bar{\T{R}} \T{\alpha} \\
-	\T{C}_2 & = & - \bar{\T{R}} \T{\alpha}
+	\T{C}_1 & = & - \bar{\T{R}} \T{\alpha} \\
+	\T{C}_2 & = & \bar{\T{R}} \T{\alpha}
 \end{eqnarray*}
 where $\T{\alpha}$ are the reaction unknowns, which correspond 
 to the physical moments in the relative reference frame.
@@ -1544,8 +1556,8 @@ component that is left free results in no reaction couple.
 If rotational springs or dampers are defined, the corresponding
 couples have the same form, i.e.\
 \begin{eqnarray*}
-	\T{C}_1 & = & \bar{\T{R}} \T{\beta} \\
-	\T{C}_2 & = & - \bar{\T{R}} \T{\beta}
+	\T{C}_1 & = & - \bar{\T{R}} \T{\beta} \\
+	\T{C}_2 & = & \bar{\T{R}} \T{\beta}
 \end{eqnarray*}
 now $\T{\beta}=\T{\beta}\plbr{\T{\theta}^{\delta},\T{\omega}^{\delta}}$ 
 is a relative orientation dependent couple, and no constraint equation
@@ -1556,21 +1568,21 @@ to the kinematic constraints:
 \begin{eqnarray*}
 	\delta\T{C}_1 & = &
 	\plbr{\bar{\T{R}} \T{\alpha}}\times\T{\theta}_{1\delta}
-	+ \bar{\T{R}} \delta\T{\alpha} \\
+	- \bar{\T{R}} \delta\T{\alpha} \\
 	\delta\T{C}_2 & = &
 	- \plbr{\bar{\T{R}} \T{\alpha}}\times\T{\theta}_{1\delta}
-	- \bar{\T{R}} \delta\T{\alpha}
+	+ \bar{\T{R}} \delta\T{\alpha}
 \end{eqnarray*}
 and with respect to the spring and damper constraints:
 \begin{eqnarray*}
 	\delta\T{C}_1 & = &
 	\plbr{\bar{\T{R}} \T{\beta}}\times\T{\theta}_{1\delta}
-	+ \bar{\T{R}}\T{\beta}_{/\T{\theta}} \T{\theta}^{\delta}_{\delta}
-	+ \bar{\T{R}}\T{\beta}_{/\T{\omega}} \delta\T{\omega}^{\delta} \\
+	- \bar{\T{R}}\T{\beta}_{/\T{\theta}} \T{\theta}^{\delta}_{\delta}
+	- \bar{\T{R}}\T{\beta}_{/\T{\omega}} \delta\T{\omega}^{\delta} \\
 	\delta\T{C}_2 & = &
 	- \plbr{\bar{\T{R}} \T{\beta}}\times\T{\theta}_{1\delta}
-	- \bar{\T{R}}\T{\beta}_{/\T{\theta}} \T{\theta}^{\delta}_{\delta}
-	- \bar{\T{R}}\T{\beta}_{/\T{\omega}} \delta\T{\omega}^{\delta}
+	+ \bar{\T{R}}\T{\beta}_{/\T{\theta}} \T{\theta}^{\delta}_{\delta}
+	+ \bar{\T{R}}\T{\beta}_{/\T{\omega}} \delta\T{\omega}^{\delta}
 \end{eqnarray*}
 
 \noindent
@@ -1580,8 +1592,8 @@ the simplifications related to the updated-updated approach,
 are summarized below:
 \begin{equation}
 	\sqbr{\matr{ccc}{
-	\plbr{\bar{\T{R}}\T{\alpha}}\times{} & & - \bar{\T{R}} \\
-	- \plbr{\bar{\T{R}}\T{\alpha}}\times{} & & \bar{\T{R}} \\
+	\plbr{\bar{\T{R}}\T{\alpha}}\times{} & \T{0} & - \bar{\T{R}} \\
+	- \plbr{\bar{\T{R}}\T{\alpha}}\times{} & \T{0} & \bar{\T{R}} \\
 	- \bar{\T{R}} & \bar{\T{R}} & 0
 	% FIXME: ??? - \bar{\T{R}}^T & \bar{\T{R}}^T & 0
 	}}\cubr{\cvvect{
@@ -2381,8 +2393,8 @@ with
 \end{align}
 according to the updated-updated approach,
 \begin{align}
-	\T{\theta}_{i\delta} &\cong \delta\T{g}_i \\
-	\delta\T{\omega}_i &\cong \delta\dot{\T{g}}_i - \T{\omega}\times\delta\T{g}_i
+	\T{\theta}_{i\delta} &\equu \delta\T{g}_i \\
+	\delta\T{\omega}_i &\equu \delta\dot{\T{g}}_i - \T{\omega}\times\delta\T{g}_i
 \end{align}
 recalling that
 \begin{equation}
@@ -2484,7 +2496,7 @@ The perturbation of $\T{\theta}$ yields
 \end{equation}
 which, according to the updated-updated approach, becomes
 \begin{equation}
-	\T{\theta}_{\delta} \cong \T{R}_{1h}^T\plbr{\delta\T{g}_2 - \delta\T{g}_1}
+	\T{\theta}_{\delta} \equu \T{R}_{1h}^T\plbr{\delta\T{g}_2 - \delta\T{g}_1}
 \end{equation}
 
 The relative angular velocity stems from the time derivative
@@ -2508,7 +2520,7 @@ Its perturbation, according to the updated-updated approach, yields
 		+ \delta\T{\omega}_2
 		- \delta\T{\omega}_1
 	} \\
-	&\cong \T{R}_{1h}^T\plbr{
+	&\equu \T{R}_{1h}^T\plbr{
 		\plbr{\T{\omega}_2 - \T{\omega}_1} \times \delta\T{g}_1
 		+ \delta\dot{\T{g}}_2 - \T{\omega}_2 \times \delta\T{g}_2
 		- \delta\dot{\T{g}}_1 + \T{\omega}_1 \times \delta\T{g}_1
@@ -2622,7 +2634,7 @@ and thus
 	\tilde{\T{\theta}}_{\delta}
 	&= \frac{1}{2} \T{\theta}_{\delta} \\
 	&= \frac{1}{2} \T{R}_{1h}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \\
-	&\cong \frac{1}{2} \T{R}_{1h}^T \plbr{\delta\T{g}_2 - \delta\T{g}_1}
+	&\equu \frac{1}{2} \T{R}_{1h}^T \plbr{\delta\T{g}_2 - \delta\T{g}_1}
 \end{align}
 while the perturbation of $\hat{\T{R}}$ yields
 \begin{align}
@@ -2635,7 +2647,7 @@ while the perturbation of $\hat{\T{R}}$ yields
 \begin{eqnarray*}
 	\tilde{\T{\theta}}_{\delta} & = & \frac{1}{2}\T{\Gamma}\plbr{\tilde{\T{\theta}}}
 		\T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \\
-	& \cong & \frac{1}{2}\T{\Gamma}\plbr{\tilde{\T{\theta}}}
+	& \equu & \frac{1}{2}\T{\Gamma}\plbr{\tilde{\T{\theta}}}
 		\T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T\plbr{\delta\T{g}_2 - \delta\T{g}_1}
 \end{eqnarray*}
 The perturbation of $\dot{\tilde{\T{R}}}$ is
@@ -2643,7 +2655,7 @@ The perturbation of $\dot{\tilde{\T{R}}}$ is
 	\delta\dot{\tilde{\T{R}}}
 	& = & \frac{1}{2}\plbr{\delta\T{\omega}_2 - \delta\T{\omega}_1}\times\tilde{\T{R}}
 	+ \frac{1}{2}\plbr{\T{\omega}_2 - \T{\omega}_1}\times\delta\tilde{\T{R}} \\
-	& \cong & \frac{1}{2}\plbr{
+	& \equu & \frac{1}{2}\plbr{
 		\delta\dot{\T{g}}_2 - \T{\omega}_2\times\delta\T{g}_2
 		- \delta\dot{\T{g}}_1 + \T{\omega}_1\times\delta\T{g}_1
 	}\times\tilde{\T{R}}
@@ -2654,7 +2666,7 @@ The perturbation of $\dot{\hat{\T{R}}}$ is
 	\delta\dot{\hat{\T{R}}}
 	& = & \frac{1}{2}\plbr{\delta\T{\omega}_2 + \delta\T{\omega}_1}\times\hat{\T{R}}
 	+ \frac{1}{2}\plbr{\T{\omega}_2 + \T{\omega}_1}\times\delta\hat{\T{R}} \\
-	& \cong & \frac{1}{2}\plbr{
+	& \equu & \frac{1}{2}\plbr{
 		\delta\dot{\T{g}}_2 - \T{\omega}_2\times\delta\T{g}_2
 		+ \delta\dot{\T{g}}_1 - \T{\omega}_1\times\delta\T{g}_1
 	}\times\hat{\T{R}}
@@ -2940,11 +2952,11 @@ the offset of the reference point attached to node 1,
 is zero by definition.
 The linearization of the distance yields
 \begin{eqnarray*}
-	\delta{\tilde{\T{d}}} & \cong & \T{R}_{1h}^T\plbr{
+	\delta{\tilde{\T{d}}} & \equu & \T{R}_{1h}^T\plbr{
 		\delta{\T{x}}_2 - \T{f}_2\times\delta\T{g}_2
 		- \delta{\T{x}}_1 + \T{f}_1\times\delta\T{g}_1
 	} + \tilde{\T{d}}\times\T{R}_{1h}^T \delta\T{g}_1 \\
-	& \cong & \T{R}_{1h}^T\plbr{
+	& = & \T{R}_{1h}^T\plbr{
 		\delta{\T{x}}_2
 		- \T{f}_2\times\delta\T{g}_2
 		- \delta{\T{x}}_1
@@ -2963,7 +2975,7 @@ The linearization of the distance yields
 \end{eqnarray*}
 while the linearization of the relative velocity yields
 \begin{eqnarray*}
-	\delta\dot{\tilde{\T{d}}} & \cong & \T{R}_{1h}^T\lplbr{
+	\delta\dot{\tilde{\T{d}}} & \equu & \T{R}_{1h}^T\lplbr{
 		\delta\dot{\T{x}}_2
 		- \T{f}_2\times\delta\dot{\T{g}}_2
 		- \delta\dot{\T{x}}_1
