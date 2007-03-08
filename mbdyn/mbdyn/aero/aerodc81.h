@@ -36,6 +36,24 @@
 extern "C" {
 #endif /* __cplusplus */
 
+enum {
+	OUTA_ALPHA	= 1,
+	OUTA_GAMMA	= 2,
+	OUTA_MACH	= 3,
+	OUTA_CL		= 4,
+	OUTA_CD		= 5,
+	OUTA_CM		= 6,
+
+	OUTA_ALF1	= 8,
+	OUTA_ALF2	= 9,
+	OUTA_DAN	= 10,
+	OUTA_DAM	= 11,
+	OUTA_DCN	= 12,
+	OUTA_DCM	= 13,
+
+	OUTA_LAST	= 20
+};
+
 /* 
  * dati in formato c81;
  * le array mX contengono gli NMX numeri di mach;

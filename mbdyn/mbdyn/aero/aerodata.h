@@ -90,8 +90,6 @@ public:
 		LAST
 	};
 	
-	enum { ALF1 = 8, ALF2 = 9 };
-
 protected:
    	UnsteadyModel unsteadyflag;
    	doublereal VAM[6];

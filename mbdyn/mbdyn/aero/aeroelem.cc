@@ -314,12 +314,13 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
 	int iPnt = 0;
    	do {
       		doublereal dCsi = PW.dGetPnt();
-      		Vec3 Xr(Rn*(f+Ra3*(dHalfSpan*dCsi)));
-      		Vec3 Vr(Vn+Wn.Cross(Xr));
+      		Vec3 Xr(Rn*(f + Ra3*(dHalfSpan*dCsi)));
+		Vec3 Xnr = Xn + Xr;
+      		Vec3 Vr(Vn + Wn.Cross(Xr));
 
       		/* Contributo di velocita' del vento */
       		Vec3 VTmp(0.);
-      		if (fGetAirVelocity(VTmp, Xr+Xn)) {
+      		if (fGetAirVelocity(VTmp, Xnr)) {
 	 		Vr -= VTmp;
       		}
 
@@ -328,11 +329,11 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
 		 * aggiunge alla velocita' la velocita' indotta
 		 */
       		if (pRotor != NULL) {
-	 		Vr += pRotor->GetInducedVelocity(Xr+Xn);
+	 		Vr += pRotor->GetInducedVelocity(Xnr);
       		}
 
       		/* Copia i dati nel vettore di lavoro dVAM */
-      		doublereal dTw = Twist.dGet(dCsi)+dGet();
+      		doublereal dTw = Twist.dGet(dCsi) + dGet();
       		aerodata->SetSectionData(dCsi,
 				         Chord.dGet(dCsi),
 			       		 ForcePoint.dGet(dCsi),
@@ -345,13 +346,16 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
 		 * lo uso per correggere la matrice di rotazione
 		 * dal sistema aerodinamico a quello globale
 		 */
-      		doublereal dCosT = cos(dTw);
-		doublereal dSinT = sin(dTw);
-		/* Assumo lo svergolamento positivo a cabrare */
-		Mat3x3 RTw( dCosT, dSinT, 0.,
-			   -dSinT, dCosT, 0.,
-			    0.,    0.,    1.);
-      		Mat3x3 RRloc(RR*RTw);
+      		Mat3x3 RRloc(RR);
+		if (dTw != 0.) {
+      			doublereal dCosT = cos(dTw);
+			doublereal dSinT = sin(dTw);
+			/* Assumo lo svergolamento positivo a cabrare */
+			Mat3x3 RTw( dCosT, dSinT, 0.,
+				   -dSinT, dCosT, 0.,
+				    0.,    0.,    1.);
+      			RRloc = RR*RTw;
+		}
 		Mat3x3 RRlocT(RRloc.Transpose());
 
 		/*
@@ -369,7 +373,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
 #endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 
       		Tmp = RRlocT*Wn;
-      		Tmp.PutTo(dW+3);
+      		Tmp.PutTo(&dW[3]);
 
       		/* Funzione di calcolo delle forze aerodinamiche */
       		aerodata->GetForces(iPnt, dW, dTng, *pvd);
@@ -456,8 +460,8 @@ AerodynamicBody::Output(OutputHandler& OH) const
 	 		for (int j = 1; j <= 6; j++) {
 	    			out << " " << pvdOuta[i][j];
 	 		}
-			out << " " << pvdOuta[i][AeroData::ALF1]
-				<< " " << pvdOuta[i][AeroData::ALF2];
+			out << " " << pvdOuta[i][OUTA_ALF1]
+				<< " " << pvdOuta[i][OUTA_ALF2];
 #endif /* AEROD_OUTPUT == AEROD_OUT_STD */
       		}
 #endif /* AEROD_OUTPUT != AEROD_OUT_NODE */
@@ -1347,8 +1351,8 @@ AerodynamicBeam::Output(OutputHandler& OH ) const
 			for (int j = 1; j <= 6; j++) {
 				out << " " << pvdOuta[i][j];
 			}
-			out << " " << pvdOuta[i][AeroData::ALF1]
-				<< " " << pvdOuta[i][AeroData::ALF2];
+			out << " " << pvdOuta[i][OUTA_ALF1]
+				<< " " << pvdOuta[i][OUTA_ALF2];
 #endif /* AEROD_OUTPUT == AEROD_OUT_STD */
 		}
 #endif /* AEROD_OUTPUT != AEROD_OUT_NODE */
