@@ -194,9 +194,36 @@ By default, no timeout is used, so \kw{select} waits forever.
         | rigid bodies
         | rotors }
 \end{verbatim}
-Here the default output flag for a type of node or element can be set. It
-can be overridden for every entity both when it is created or later in
-each entity module.
+Here the default output flag for a type of node or element can be set.
+It can be overridden for each entity either when it is created or later,
+for entity aggregates, in each entity module, by means of the \kw{output}
+directive for 
+\hyperref{\kw{nodes}}{\kw{nodes} (see Section~}{)}{sec:NODE:MISC:OUTPUT}
+and 
+\hyperref{\kw{elements}}{\kw{elements} (see Section~}{)}{sec:EL:MISC:OUTPUT}.
+Special values are:
+\begin{itemize}
+\item \kw{all} enables output of all entities;
+\item \kw{none} disables output of all entities;
+\item \kw{reference frames} by default, reference frames are not output;
+when enabled, a special file \kw{.rfm} is generated, which contains
+all the reference frames defined, using the syntax of the \kw{.mov} file.
+\item \kw{accelerations} enables output of linear and angular accelerations
+for dynamic structural nodes, which are disabled by default.
+\end{itemize}
+Since values are additive, except for \kw{none}, to select 
+only specific entities use \kw{none} first, followed by a list
+of the entities whose output should be activated.
+
+Example:
+\begin{verbatim}
+    begin: control data;
+        # ...
+        # disable all except structural nodes
+        default output: none, structural nodes;
+        # ...
+    end: control data;
+\end{verbatim}
 
 \subsubsection{Output Frequency}
 \label{sec:CONTROLDATA:OUTPUTFREQUENCY}

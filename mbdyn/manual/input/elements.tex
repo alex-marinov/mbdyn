@@ -4743,8 +4743,9 @@ statement essentially ineffective;
 
 
 \subsection{Output}\label{sec:EL:MISC:OUTPUT}
-There is an extra card that is used to modify the output behavior of 
-elements, analogous to that of the nodes:
+This card does not instantiate any \kw{element}; it rather enables
+output of selected elements, and it is analogous to that of the
+\hyperref{\kw{nodes}}{\kw{nodes} (see Section~}{)}{sec:NODE:MISC:OUTPUT}:
 \begin{verbatim}
     <card> ::= output : <elem_type> , <elem_list> ;
     <elem_list> ::= { <elem_label>  [ , <elem_list> ]
