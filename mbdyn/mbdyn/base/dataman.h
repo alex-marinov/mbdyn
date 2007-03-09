@@ -107,6 +107,7 @@ private:
 	bool bInitialJointAssemblyToBeDone;
 	bool bSkipInitialJointAssembly;
 	bool bOutputFrames;
+	bool bOutputAccels;
 	doublereal dInitialPositionStiffness;
 	doublereal dInitialVelocityStiffness;
 	bool bOmegaRotates;
@@ -210,6 +211,8 @@ public:
 	flag fReadOutput(MBDynParser& HP, enum Node::Type t);
 
 	doublereal dReadScale(MBDynParser& HP, enum DofOwner::Type t);
+
+	bool bOutputAccelerations(void) const;
 
 	const doublereal& dGetInitialPositionStiffness(void) const;
 	const doublereal& dGetInitialVelocityStiffness(void) const;

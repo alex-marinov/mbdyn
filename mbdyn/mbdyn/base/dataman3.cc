@@ -129,11 +129,12 @@ DataManager::ReadControl(MBDynParser& HP,
 		"output" "meter",
 		"output" "results",
 		"default" "output",
-		"default" "orientation",
-		"all",
-		"none",
-		"reference" "frames",
+			"all",
+			"none",
+			"reference" "frames",
+			"accelerations",
 
+		"default" "orientation",
 		"default" "scale",
 
 		"read" "solution" "array",
@@ -207,11 +208,12 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		OUTPUTRESULTS,
 		DEFAULTOUTPUT,
-		DEFAULTORIENTATION,
 		ALL,
 		NONE,
 		REFERENCEFRAMES,
+		ACCELERATIONS,
 
+		DEFAULTORIENTATION,
 		DEFAULTSCALE,
 
 		READSOLUTIONARRAY,
@@ -948,6 +950,10 @@ EndOfUse:
 #if defined(USE_STRUCT_NODES)
 				case REFERENCEFRAMES:
 					bOutputFrames = true;
+					break;
+
+				case ACCELERATIONS:
+					bOutputAccels = true;
 					break;
 #endif /* USE_STRUCT_NODES */
 

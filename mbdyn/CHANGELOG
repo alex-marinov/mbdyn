@@ -48,6 +48,7 @@ MBDyn 1.X-Devel
 		- added "exp" scalar function
 		- added configurable orientation output
 		- added support for new orientation output to abs2rel.awk
+		- added support for "accelerations" in "default output"
 	Backward compatibility issues:
 		- per-element output removed from modal joints
 		- spherical hinge output now refers to node 1 instead of 2

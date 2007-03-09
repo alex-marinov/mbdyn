@@ -425,7 +425,6 @@ DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
 	if (ChangedEqStructure) {
 		throw ChangedEquationStructure();
 	}
-
 }
 
 void

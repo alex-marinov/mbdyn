@@ -106,6 +106,7 @@ pXCurr(NULL), pXPrimeCurr(NULL),
 bInitialJointAssemblyToBeDone(bDefaultInitialJointAssemblyToBeMade),
 bSkipInitialJointAssembly(bDefaultSkipInitialJointAssembly),
 bOutputFrames(false),
+bOutputAccels(false),
 dInitialPositionStiffness(dDefaultInitialStiffness),
 dInitialVelocityStiffness(dDefaultInitialStiffness),
 bOmegaRotates(bDefaultOmegaRotates),
@@ -803,5 +804,11 @@ OrientationDescription
 DataManager::GetOrientationDescription(void) const
 {
 	return this->od;
+}
+
+bool
+DataManager::bOutputAccelerations(void) const
+{
+	return bOutputAccels;
 }
 
