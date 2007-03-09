@@ -3033,11 +3033,11 @@ The force and the moment are
 \end{eqnarray*}
 Their linearization yields
 \begin{eqnarray*}
-	\delta\T{F}_i & = & \plbr{ -1 }^i \T{R}_{1h} \plbr{
+	\delta\T{F}_i & \equu & \plbr{ -1 }^i \T{R}_{1h} \plbr{
 		\tilde{\T{F}}_{/\tilde{\T{d}}} \delta{\tilde{\T{d}}}
 		+ \tilde{\T{F}}_{/\dot{\tilde{\T{d}}}} \delta\dot{\tilde{\T{d}}}
 	} - \T{F}_i \times \delta\T{g}_1 \\
-	\delta\T{M}_i & = & \T{f}_i \times \delta\T{F}_i + \T{F}_i \times \T{f}_i \times \delta\T{g}_i
+	\delta\T{M}_i & \equu & \T{f}_i \times \delta\T{F}_i + \T{F}_i \times \T{f}_i \times \delta\T{g}_i
 \end{eqnarray*}
 The complete linearized problem is
 \begin{eqnarray*}
@@ -3316,10 +3316,10 @@ becomes
 	\plbr{\cvvect{
 		\plbr{
 			\hat{\T{I}} \T{\omega}_2 \times{}
-			+ \hat{\T{I}}^T \T{\omega}_1 \times{}
+			- \hat{\T{I}}^T \T{\omega}_1 \times{}
 		} \hat{\T{I}} \\
 		- \plbr{
-			\hat{\T{I}} \T{\omega}_2 - \hat{\T{I}} \T{\omega}_1
+			\hat{\T{I}} \T{\omega}_2 - \hat{\T{I}}^T \T{\omega}_1
 		} \times \hat{\T{I}} \\
 		+ \hat{\T{I}} \plbr{
 			\hat{\T{I}}^T \plbr{
@@ -3331,10 +3331,10 @@ becomes
 	+ \plbr{\cvvect{
 		\plbr{
 			\hat{\T{I}} \T{\omega}_2 \times{}
-			+ \hat{\T{I}}^T \T{\omega}_1 \times{}
+			- \hat{\T{I}}^T \T{\omega}_1 \times{}
 		} \hat{\T{I}}^T \\
 		- \plbr{
-			\hat{\T{I}} \T{\omega}_2 - \hat{\T{I}} \T{\omega}_1
+			\hat{\T{I}} \T{\omega}_2 - \hat{\T{I}}^T \T{\omega}_1
 		} \times \hat{\T{I}}^T \\
 		- \hat{\T{I}} \plbr{
 			\hat{\T{I}}^T \plbr{
