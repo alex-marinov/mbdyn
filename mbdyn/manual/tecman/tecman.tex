@@ -2752,6 +2752,7 @@ while
 This can be easily proved by considering that
 \begin{equation}
 	\plbr{\T{I} + \tilde{\T{R}}}^{-1} = \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \tilde{\T{R}}^T
+	\label{eq:inv-deformable-hinge-I-tilde}
 \end{equation}
 and, as a consequence,
 \begin{equation}
@@ -3201,8 +3202,148 @@ where
 		& \quad - \delta\dot{\T{x}}
 		+ \T{f}_1 \times \delta\T{\omega}_{1}
 		+ \T{\omega}_{1} \times \T{f}_1 \times \T{\theta}_{1\delta} \\
-	\delta\hat{\T{\omega}} &=
 \end{align}
+The computation of $\delta\hat{\T{\omega}}$ is a bit trickier.
+Consider first
+\begin{align}
+	\delta\plbr{\T{I} + \tilde{\T{R}}}^{-1}
+		&= - \plbr{\T{I} + \tilde{\T{R}}}^{-1}
+			\tilde{\T{\theta}}_{\delta} \times \tilde{\T{R}}
+			\plbr{\T{I} + \tilde{\T{R}}}^{-1} \\
+		&= - \plbr{\T{I} + \tilde{\T{R}}}^{-1}
+			\tilde{\T{\theta}}_{\delta} \times
+			\plbr{\T{I} + \tilde{\T{R}}^T}^{-1}
+\end{align}
+while
+\begin{align}
+	\delta\plbr{\T{I} + \tilde{\T{R}}^T}^{-1}
+		&= - \plbr{\T{I} + \tilde{\T{R}}^T}^{-1}
+			\tilde{\T{R}}^T \tilde{\T{\theta}}_{\delta} \times^T
+			\plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \\
+		&= \plbr{\T{I} + \tilde{\T{R}}}^{-1}
+			\tilde{\T{\theta}}_{\delta} \times
+			\plbr{\T{I} + \tilde{\T{R}}^T}^{-1}
+\end{align}
+where, in both cases, Equation~(\ref{eq:inv-deformable-hinge-I-tilde})
+has been considered.
+
+Define now matrix
+\begin{equation}
+	\hat{\T{I}} =
+		\hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T ;
+\end{equation}
+its perturbation becomes
+\begin{align}
+	\delta\hat{\T{I}}
+	&= \delta\hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T
+	\nonumber \\
+	& \mbox{\hspace{12pt}}
+	+ \hat{\T{R}} \delta\plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T
+	\nonumber \\
+	& \mbox{\hspace{12pt}}
+	+ \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \delta\hat{\T{R}}^T \\
+	&= \plbr{
+		\T{\theta}_{1\delta} \times \hat{\T{R}}
+		+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta} \times \tilde{\T{R}}
+	} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T
+	\nonumber \\
+	& \mbox{\hspace{12pt}}
+	- \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1}
+		\tilde{\T{\theta}}_{\delta} \times
+		\plbr{\T{I} + \tilde{\T{R}}^T}^{-1}
+		\hat{\T{R}}^T
+	\nonumber \\
+	& \mbox{\hspace{12pt}}
+	+ \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \plbr{
+		\hat{\T{R}}^T \T{\theta}_{1\delta} \times^T
+		+ \tilde{\T{R}}^T \tilde{\T{\theta}}_{\delta} \times^T \T{R}_{1h}^T
+	} \\
+	&= \plbr{
+		\T{\theta}_{1\delta}
+		+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta}
+	} \times \hat{\T{I}}
+	- \hat{\T{I}} \plbr{\hat{\T{R}} \tilde{\T{\theta}}_{\delta}} \times \hat{\T{I}}^T
+	- \hat{\T{I}} \plbr{
+		\T{\theta}_{1\delta}
+		+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta}
+	}\times{}
+\end{align}
+But
+\begin{align}
+	\T{R}_{1h} \tilde{\T{\theta}}_{\delta}
+	&= \T{R}_{1h} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_{1h}^T \plbr{
+		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
+	} \\
+	&= \hat{\T{I}} \plbr{
+		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
+	} 
+\end{align}
+and
+\begin{align}
+	\hat{\T{R}} \tilde{\T{\theta}}_{\delta}
+	&= \T{R}_{1h} \tilde{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_{1h}^T \plbr{
+		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
+	} \\
+	&= \hat{\T{I}}^T \plbr{
+		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
+	} 
+\end{align}
+so
+\begin{align}
+	\T{\theta}_{1\delta}
+	+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta}
+	&= \T{\theta}_{1\delta} + \hat{\T{I}} \plbr{
+		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
+	} \\
+	&= \hat{\T{I}} \T{\theta}_{2\delta}
+	+ \hat{\T{I}}^T \T{\theta}_{1\delta}
+\end{align}
+
+
+The perturbation of $\hat{\T{\omega}}$,
+Equation~(\ref{eq:deformable-displacement-invariant-hat-omega}), then, 
+becomes
+\begin{align}
+	\delta\hat{\T{\omega}} &= 
+	\delta\plbr{
+		\hat{\T{I}} \T{\omega}_2
+		- \hat{\T{I}}^T \T{\omega}_1
+	} \\
+	&= \hat{\T{I}} \delta\T{\omega}_2
+		- \hat{\T{I}}^T \delta\T{\omega}_1
+	\nonumber \\
+	&\mbox{\hspace{12pt}}
+	\plbr{\cvvect{
+		\plbr{
+			\hat{\T{I}} \T{\omega}_2 \times{}
+			+ \hat{\T{I}}^T \T{\omega}_1 \times{}
+		} \hat{\T{I}} \\
+		- \plbr{
+			\hat{\T{I}} \T{\omega}_2 - \hat{\T{I}} \T{\omega}_1
+		} \times \hat{\T{I}} \\
+		+ \hat{\T{I}} \plbr{
+			\hat{\T{I}}^T \plbr{
+				\T{\omega}_2 + \T{\omega}_1
+			}
+		}\times \hat{\T{I}}^T
+	}} \T{\theta}_{2\delta} \nonumber \\
+	&\mbox{\hspace{12pt}}
+	+ \plbr{\cvvect{
+		\plbr{
+			\hat{\T{I}} \T{\omega}_2 \times{}
+			+ \hat{\T{I}}^T \T{\omega}_1 \times{}
+		} \hat{\T{I}}^T \\
+		- \plbr{
+			\hat{\T{I}} \T{\omega}_2 - \hat{\T{I}} \T{\omega}_1
+		} \times \hat{\T{I}}^T \\
+		- \hat{\T{I}} \plbr{
+			\hat{\T{I}}^T \plbr{
+				\T{\omega}_2 + \T{\omega}_1
+			}
+		}\times \hat{\T{I}}^T
+	}} \T{\theta}_{1\delta}
+\end{align}
+
 
 
 
