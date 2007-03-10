@@ -3260,7 +3260,7 @@ Define now matrix
 	\hat{\T{I}} =
 		\hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T ;
 \end{equation}
-its perturbation becomes
+its perturbation yields
 \begin{align}
 	\delta\hat{\T{I}}
 	&= \delta\hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T
@@ -3302,6 +3302,9 @@ But
 	&= \T{R}_{1h} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_{1h}^T \plbr{
 		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
 	} \\
+	&= \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T \plbr{
+		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
+	} \\
 	&= \hat{\T{I}} \plbr{
 		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
 	} 
@@ -3309,7 +3312,10 @@ But
 and
 \begin{align}
 	\hat{\T{R}} \tilde{\T{\theta}}_{\delta}
-	&= \T{R}_{1h} \tilde{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_{1h}^T \plbr{
+	&= \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_{1h}^T \plbr{
+		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
+	} \\
+	&= \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\T{R}}^T \plbr{
 		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
 	} \\
 	&= \hat{\T{I}}^T \plbr{
@@ -3326,8 +3332,6 @@ so
 	&= \hat{\T{I}} \T{\theta}_{2\delta}
 	+ \hat{\T{I}}^T \T{\theta}_{1\delta}
 \end{align}
-
-
 The perturbation of $\hat{\T{\omega}}$,
 Equation~(\ref{eq:deformable-displacement-invariant-hat-omega}), then, 
 becomes
@@ -3369,7 +3373,18 @@ becomes
 				\T{\omega}_2 + \T{\omega}_1
 			}
 		}\times \hat{\T{I}}^T
-	}} \T{\theta}_{1\delta}
+	}} \T{\theta}_{1\delta} \\
+	&= \hat{\T{I}} \delta\T{\omega}_2
+		- \hat{\T{I}}^T \delta\T{\omega}_1
+	+ \hat{\T{I}}_2 \T{\theta}_{2\delta}
+	+ \hat{\T{I}}_1 \T{\theta}_{1\delta} \\
+	&\equu
+	\hat{\T{I}} \delta\dot{\T{g}}_2
+		- \hat{\T{I}}^T \delta\dot{\T{g}}_1
+	+ \plbr{\hat{\T{I}}_2 - \hat{\T{I}} \T{\omega}_2\times{}}
+		\delta\T{g}_2
+	+ \plbr{\hat{\T{I}}_1 + \hat{\T{I}}^T \T{\omega}_1\times{}}
+		\delta\T{g}_1
 \end{align}
 
 
