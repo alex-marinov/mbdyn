@@ -2298,14 +2298,26 @@ of the joint with respect to node $i$ in the global frame, and
 $\T{x}_i+\T{f}_i$ is the position of the joint with respect 
 to the global frame.
 
+Equilibrium equations are obtained by means of the Virtual Work
+Principle (VWP).
+While the unknown orientation parameters depend on the parametrization 
+in use, and typically are Gibbs-Rodriguez parameters according 
+to the updated-updated approach, equilibrium is written in terms
+of the equations conjugated to perturbations of orientation,
+namely:
+\begin{equation}
+	\delta\mathcal{L} = \sum \delta\T{x}_i^T \T{F}_i
+	+ \T{\theta}_{i\delta} \T{M}_i = 0
+\end{equation}
+
 \subsection{Rod With Offsets}
 Distance vector between pin points
 \begin{equation}
-	\T{v} = \T{x}_2 + \T{f}_2 - \T{x}_1 - \T{f}_1
+	\T{l} = \T{x}_2 + \T{f}_2 - \T{x}_1 - \T{f}_1
 \end{equation}
 scalar distance
 \begin{equation}
-	l = \sqrt{\T{v}^T \T{v}}
+	l = \sqrt{\T{l}^T \T{l}}
 \end{equation}
 strain
 \begin{equation}
@@ -2317,17 +2329,28 @@ strain rate
 \end{equation}
 where
 \begin{align}
-	\dot{l} &= \frac{1}{l} \T{v}^T \dot{\T{v}} \\
-	\dot{\T{v}} &= \dot{\T{x}}_2 + \T{\omega}_2 \times \T{f}_2
+	\dot{l} &= \frac{1}{l} \T{l}^T \dot{\T{l}} \\
+	\dot{\T{l}} &= \dot{\T{x}}_2 + \T{\omega}_2 \times \T{f}_2
 		- \dot{\T{x}}_1 - \T{\omega}_1 \times \T{f}_1
 \end{align}
 scalar force
 \begin{equation}
 	f = f\plbr{\varepsilon, \dot{\varepsilon}}
 \end{equation}
+nodal forces and moments result from the VWP according to
+\begin{align}
+	\delta \mathcal{L} &= \delta l^T f \\
+	&= \delta\T{l}^T \frac{\T{l}}{l} f \\
+	&= \plbr{
+		\delta\T{x}_2
+		- \T{f}_2 \times \T{\theta}_{2\delta}
+		- \delta\T{x}_1
+		+ \T{f}_1 \times \T{\theta}_{1\delta}
+	}^T \frac{\T{l}}{l} f
+\end{align}
 force vector
 \begin{equation}
-	\T{F} = \frac{\T{v}}{l} f
+	\T{F} = \frac{\T{l}}{l} f
 \end{equation}
 nodal forces and moments
 \begin{align}
@@ -2345,7 +2368,7 @@ equation linearization
 \end{align}
 force linearization
 \begin{equation}
-	\delta\T{F} = \frac{f}{l}\plbr{\T{I} - \frac{\T{v}\T{v}^T}{l^2}} \delta\T{v} + \frac{\T{v}}{l} \delta{f}
+	\delta\T{F} = \frac{f}{l}\plbr{\T{I} - \frac{\T{l}\T{l}^T}{l^2}} \delta\T{l} + \frac{\T{l}}{l} \delta{f}
 \end{equation}
 scalar force linearization
 \begin{equation}
@@ -2358,8 +2381,8 @@ strain linearization
 \end{equation}
 where
 \begin{align}
-	\delta{l} &= \frac{1}{l}\T{v}^T \delta\T{v} \\
-	\delta\T{v} &= \delta\T{x}_2 - \T{f}_2 \times \T{\theta}_{2\delta}
+	\delta{l} &= \frac{1}{l}\T{l}^T \delta\T{l} \\
+	\delta\T{l} &= \delta\T{x}_2 - \T{f}_2 \times \T{\theta}_{2\delta}
 		- \delta\T{x}_1 + \T{f}_1 \times \T{\theta}_{1\delta}
 \end{align}
 strain rate linearization
@@ -2368,9 +2391,9 @@ strain rate linearization
 \end{equation}
 where
 \begin{align}
-	\delta\dot{l} &= \frac{\T{v}^T}{l} \delta\dot{\T{v}}
-		+ \frac{\dot{\T{v}}^T}{l}\plbr{\T{I} - \frac{\T{v}\T{v}^T}{l^2}} \delta\T{v} \\
-	\delta\dot{\T{v}} &= \delta\dot{\T{x}}_2
+	\delta\dot{l} &= \frac{\T{l}^T}{l} \delta\dot{\T{l}}
+		+ \frac{\dot{\T{l}}^T}{l}\plbr{\T{I} - \frac{\T{l}\T{l}^T}{l^2}} \delta\T{l} \\
+	\delta\dot{\T{l}} &= \delta\dot{\T{x}}_2
 		- \T{f}_2 \times \delta\T{\omega}_2 - \T{\omega}_2 \times \T{f}_2 \times \T{\theta}_{2\delta}
 		\nonumber \\
 		& \mbox{} - \delta\dot{\T{x}}_1
@@ -2378,18 +2401,18 @@ where
 \end{align}
 to summarize:
 \begin{equation}
-	\delta\T{F} = \T{K}_{\T{v}} \delta\T{v} + \T{K}_{\dot{\T{v}}} \delta\dot{\T{v}}
+	\delta\T{F} = \T{K}_{\T{l}} \delta\T{l} + \T{K}_{\dot{\T{l}}} \delta\dot{\T{l}}
 \end{equation}
 with
 \begin{align}
-	\T{K}_{\T{v}} &= \frac{f}{l} \T{I}
+	\T{K}_{\T{l}} &= \frac{f}{l} \T{I}
 		+ \plbr{
 			\frac{1}{l^2 l_0} \frac{\partial{f}}{\partial\varepsilon}
 			- \frac{\dot{\varepsilon}}{l^3} \frac{\partial{f}}{\partial\dot{\varepsilon}}
 			- \frac{f}{l^3}
-		}\T{v}\T{v}^T
-		+ \frac{1}{l^2 l_0} \frac{\partial{f}}{\partial\dot{\varepsilon}} \T{v}\dot{\T{v}}^T \\
-	\T{K}_{\dot{\T{v}}} &= \frac{1}{l^2 l_0} \frac{\partial{f}}{\partial\dot{\varepsilon}} \T{v}\T{v}^T
+		}\T{l}\T{l}^T
+		+ \frac{1}{l^2 l_0} \frac{\partial{f}}{\partial\dot{\varepsilon}} \T{l}\dot{\T{l}}^T \\
+	\T{K}_{\dot{\T{l}}} &= \frac{1}{l^2 l_0} \frac{\partial{f}}{\partial\dot{\varepsilon}} \T{l}\T{l}^T
 \end{align}
 according to the updated-updated approach,
 \begin{align}
@@ -2402,18 +2425,18 @@ recalling that
 \end{equation}
 the linearization of the force becomes
 \begin{align}
-	\delta\T{F} &= \plbr{c\T{K}_{\T{v}} + \T{K}_{\dot{\T{v}}}} \delta\dot{\T{x}}_2
+	\delta\T{F} &= \plbr{c\T{K}_{\T{l}} + \T{K}_{\dot{\T{l}}}} \delta\dot{\T{x}}_2
 		\nonumber \\
 		& + \plbr{
-			- \plbr{c\T{K}_{\T{v}} + \T{K}_{\dot{\T{v}}}} \T{f}_2\times{}
-			+ c \T{K}_{\dot{\T{v}}} \plbr{\T{f}_2 \times \T{\omega}_2}\times{}
+			- \plbr{c\T{K}_{\T{l}} + \T{K}_{\dot{\T{l}}}} \T{f}_2\times{}
+			+ c \T{K}_{\dot{\T{l}}} \plbr{\T{f}_2 \times \T{\omega}_2}\times{}
 		} \delta\dot{\T{g}}_2
 		\nonumber \\
-		& - \plbr{c\T{K}_{\T{v}} + \T{K}_{\dot{\T{v}}}} \delta\dot{\T{x}}_1
+		& - \plbr{c\T{K}_{\T{l}} + \T{K}_{\dot{\T{l}}}} \delta\dot{\T{x}}_1
 		\nonumber \\
 		& - \plbr{
-			- \plbr{c\T{K}_{\T{v}} + \T{K}_{\dot{\T{v}}}} \T{f}_1\times{}
-			+ c \T{K}_{\dot{\T{v}}} \plbr{\T{f}_1 \times \T{\omega}_1}\times{}
+			- \plbr{c\T{K}_{\T{l}} + \T{K}_{\dot{\T{l}}}} \T{f}_1\times{}
+			+ c \T{K}_{\dot{\T{l}}} \plbr{\T{f}_1 \times \T{\omega}_1}\times{}
 		} \delta\dot{\T{g}}_1
 \end{align}
 
@@ -2529,16 +2552,24 @@ Its perturbation, according to the updated-updated approach, yields
 		\delta\dot{\T{g}}_2
 		- \delta\dot{\T{g}}_1
 		- \T{\omega}_2 \times \plbr{\delta\T{g}_2 - \delta\T{g}_1}
-	}
+	} .
 \end{align}
 The internal moment $\tilde{\T{M}}$ is computed as function
 of the relative orientation and velocity
 \begin{equation}
-	\tilde{\T{M}} = \tilde{\T{M}}\plbr{\T{\theta}, \T{\omega}}
+	\tilde{\T{M}} = \tilde{\T{M}}\plbr{\T{\theta}, \T{\omega}} .
 \end{equation}
-It is then applied to each node after pre-multiplication by $\T{R}_{1h}$
+The nodal moments result from the VWP as
+\begin{align}
+	\delta\mathcal{L} &= \T{\theta}_{\delta}^T \tilde{\T{M}} \\
+	&= \plbr{
+		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
+	}^T \T{R}_{1h} \tilde{\T{M}} ,
+\end{align}
+which states that the internal moment is applied to each node 
+after pre-multiplication by $\T{R}_{1h}$
 \begin{equation}
-	\T{M}_i = \plbr{-1}^i \T{R}_{1h} \tilde{\T{M}}\plbr{\T{\theta}, \T{\omega}}
+	\T{M}_i = \plbr{-1}^i \T{R}_{1h} \tilde{\T{M}}\plbr{\T{\theta}, \T{\omega}} .
 \end{equation}
 Its linearization yields
 \begin{equation}
@@ -3053,18 +3084,33 @@ while the linearization of the relative velocity yields
 		} \delta\T{g}_1
 	}}
 \end{eqnarray*}
-The force and the moment are
-\begin{eqnarray*}
-	\T{F}_i & = & \plbr{ -1 }^i \T{R}_{1h} \tilde{\T{F}}\plbr{\tilde{\T{d}}, \dot{\tilde{\T{d}}}} \\
-	\T{M}_i & = & \T{f}_i \times \T{F}_i
-\end{eqnarray*}
+The nodal forces and moments result from the VWP
+\begin{align}
+	\delta\mathcal{L} &= \delta \tilde{\T{d}}^T \tilde{\T{F}} \\
+	&= \plbr{
+		\delta{\T{x}}_2
+		- \T{f}_2\times\T{\theta}_{2\delta}
+		- \delta{\T{x}}_1
+		+ \T{d}_1\times\T{\theta}_{1\delta}
+	}^T \T{R}_{1h} \tilde{\T{F}} ,
+\end{align}
+which corresponds to
+\begin{align}
+	\T{F}_i &= \plbr{ -1 }^i \T{R}_{1h} \tilde{\T{F}}\plbr{\tilde{\T{d}}, \dot{\tilde{\T{d}}}} \\
+	\T{M}_i &= \T{b}_i \times \T{F}_i
+\end{align}
+with
+\begin{align}
+	\T{b}_1 &= \T{d}_1 \\
+	\T{b}_2 &= \T{f}_2 .
+\end{align}
 Their linearization yields
 \begin{eqnarray*}
 	\delta\T{F}_i & = & \plbr{ -1 }^i \T{R}_{1h} \plbr{
 		\tilde{\T{F}}_{/\tilde{\T{d}}} \delta{\tilde{\T{d}}}
 		+ \tilde{\T{F}}_{/\dot{\tilde{\T{d}}}} \delta\dot{\tilde{\T{d}}}
 	} - \T{F}_i \times \T{\theta}_{1\delta} \\
-	\delta\T{M}_i & = & \T{f}_i \times \delta\T{F}_i + \T{F}_i \times \T{f}_i \times \T{\theta}_{i\delta}
+	\delta\T{M}_i & = & \T{b}_i \times \delta\T{F}_i + \T{F}_i \times \T{b}_i \times \T{\theta}_{i\delta}
 \end{eqnarray*}
 The complete linearized problem, after applying the updated-updated 
 approximation, is
@@ -3072,10 +3118,10 @@ approximation, is
 	\sqbr{\matr{cccc}{
 		\T{F}_{/\dot{\tilde{\T{d}}}} & -\T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{} &
 			- \T{F}_{/\dot{\tilde{\T{d}}}} & \T{F}_{/\dot{\tilde{\T{d}}}} \T{f}_2\times{} \\
-		\T{f}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}} &
-			- \T{f}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{} &
-			- \T{f}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}} &
-			\T{f}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}} \T{f}_2\times{} \\
+		\T{d}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}} &
+			- \T{d}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{} &
+			- \T{d}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}} &
+			\T{d}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}} \T{f}_2\times{} \\
 		- \T{F}_{/\dot{\tilde{\T{d}}}} & \T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{} &
 			\T{F}_{/\dot{\tilde{\T{d}}}} & - \T{F}_{/\dot{\tilde{\T{d}}}} \T{f}_2\times{} \\
 		- \T{f}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}} &
@@ -3090,12 +3136,12 @@ approximation, is
 	}} & & \\
 	\mbox{} + \sqbr{\cvvect{
 		\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
-		\T{f}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}} \\
+		\T{d}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}} \\
 		- \T{F}_{/\tilde{\T{d}}} + \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
 		- \T{f}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}}
 	}} \delta\T{x}_1 + \sqbr{\cvvect{
 		- \T{F}_{/\tilde{\T{d}}} + \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
-		- \T{f}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}} \\
+		- \T{d}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}} \\
 		\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
 		\T{f}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}}
 	}} \delta\T{x}_2 & & \\
@@ -3104,11 +3150,11 @@ approximation, is
 		- \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
 			\dot{\T{d}}_1 \times{} - \T{\omega}_1 \times \T{d}_1\times{}
 		} + \T{F}\times \\
-		- \T{f}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} \T{d}_1 \times{}
+		- \T{d}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} \T{d}_1 \times{}
 			+ \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
 				\dot{\T{d}}_1 \times{} - \T{\omega}_1 \times \T{d}_1\times{}
 			}
-		} + \plbr{\T{f}_1 \times \T{F}}\times{} \\
+		} + \plbr{\T{d}_1 \times \T{F}}\times{} \\
 		\T{F}_{/\tilde{\T{d}}} \T{d}_1 \times{}
 		+ \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
 			\dot{\T{d}}_1 \times{} - \T{\omega}_1 \times \T{d}_1\times{}
@@ -3126,7 +3172,7 @@ approximation, is
 			\plbr{\T{\omega}_2 \times \T{f}_2}\times{}
 			- \T{\omega}_1 \times \T{f}_2\times{}
 		} \\
-		\T{f}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} \T{f}_2 \times{}
+		\T{d}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} \T{f}_2 \times{}
 			+ \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
 				\plbr{\T{\omega}_2 \times \T{f}_2}\times{}
 				- \T{\omega}_1 \times \T{f}_2\times{}
@@ -3147,7 +3193,7 @@ approximation, is
 	& = & \\
 	\cubr{\cvvect{
 		\T{F} \\
-		\T{f}_1 \times \T{F} \\
+		\T{d}_1 \times \T{F} \\
 		- \T{F} \\
 		- \T{f}_2 \times \T{F}
 	}} & &
@@ -3205,7 +3251,7 @@ where
 \begin{align}
 	\delta\T{d}
 	&= \delta\T{x}_2 - \T{f}_2 \times \T{\theta}_{2\delta}
-		- \delta\T{x} - \T{f}_1 \times \T{\theta}_{1\delta} \\
+		- \delta\T{x}_1 + \T{f}_1 \times \T{\theta}_{1\delta} \\
 	\hat{\T{\theta}}_{\delta}
 	&= \hat{\TT{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\TT{R}}^T \T{\theta}_{2\delta}
 	+ \hat{\TT{R}} \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\TT{R}}^T \T{\theta}_{1\delta} .
@@ -3330,7 +3376,28 @@ so
 		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
 	} \\
 	&= \hat{\T{I}} \T{\theta}_{2\delta}
-	+ \hat{\T{I}}^T \T{\theta}_{1\delta}
+	+ \hat{\T{I}}^T \T{\theta}_{1\delta} ,
+\end{align}
+and
+\begin{align}
+	\delta\hat{\T{I}} &= \plbr{
+		\hat{\T{I}} \T{\theta}_{2\delta}
+		+ \hat{\T{I}}^T \T{\theta}_{1\delta}
+	} \times \hat{\T{I}}
+	\nonumber \\
+	& \mbox{\hspace{12pt}}
+	- \hat{\T{I}} \plbr{
+		\hat{\T{I}}^T \plbr{
+			\T{\theta}_{2\delta}
+			- \T{\theta}_{1\delta}
+		}
+	} \times \hat{\T{I}}^T
+	\nonumber \\
+	& \mbox{\hspace{12pt}}
+	- \hat{\T{I}} \plbr{
+		\hat{\T{I}} \T{\theta}_{2\delta}
+		+ \hat{\T{I}}^T \T{\theta}_{1\delta}
+	}\times{}
 \end{align}
 The perturbation of $\hat{\T{\omega}}$,
 Equation~(\ref{eq:deformable-displacement-invariant-hat-omega}), then, 
@@ -3339,23 +3406,23 @@ becomes
 	\delta\hat{\T{\omega}} &= 
 	\delta\plbr{
 		\hat{\T{I}} \T{\omega}_2
-		- \hat{\T{I}}^T \T{\omega}_1
+		+ \hat{\T{I}}^T \T{\omega}_1
 	} \\
 	&= \hat{\T{I}} \delta\T{\omega}_2
-		- \hat{\T{I}}^T \delta\T{\omega}_1
+		+ \hat{\T{I}}^T \delta\T{\omega}_1
 	\nonumber \\
 	&\mbox{\hspace{12pt}}
 	\plbr{\cvvect{
 		\plbr{
 			\hat{\T{I}} \T{\omega}_2 \times{}
-			- \hat{\T{I}}^T \T{\omega}_1 \times{}
+			+ \hat{\T{I}}^T \T{\omega}_1 \times{}
 		} \hat{\T{I}} \\
 		- \plbr{
-			\hat{\T{I}} \T{\omega}_2 - \hat{\T{I}}^T \T{\omega}_1
+			\hat{\T{I}} \T{\omega}_2 + \hat{\T{I}}^T \T{\omega}_1
 		} \times \hat{\T{I}} \\
 		+ \hat{\T{I}} \plbr{
 			\hat{\T{I}}^T \plbr{
-				\T{\omega}_2 + \T{\omega}_1
+				\T{\omega}_2 - \T{\omega}_1
 			}
 		}\times \hat{\T{I}}^T
 	}} \T{\theta}_{2\delta} \nonumber \\
@@ -3363,29 +3430,102 @@ becomes
 	+ \plbr{\cvvect{
 		\plbr{
 			\hat{\T{I}} \T{\omega}_2 \times{}
-			- \hat{\T{I}}^T \T{\omega}_1 \times{}
+			+ \hat{\T{I}}^T \T{\omega}_1 \times{}
 		} \hat{\T{I}}^T \\
 		- \plbr{
-			\hat{\T{I}} \T{\omega}_2 - \hat{\T{I}}^T \T{\omega}_1
+			\hat{\T{I}} \T{\omega}_2 + \hat{\T{I}}^T \T{\omega}_1
 		} \times \hat{\T{I}}^T \\
 		- \hat{\T{I}} \plbr{
 			\hat{\T{I}}^T \plbr{
-				\T{\omega}_2 + \T{\omega}_1
+				\T{\omega}_2 - \T{\omega}_1
 			}
 		}\times \hat{\T{I}}^T
 	}} \T{\theta}_{1\delta} \\
 	&= \hat{\T{I}} \delta\T{\omega}_2
-		- \hat{\T{I}}^T \delta\T{\omega}_1
+		+ \hat{\T{I}}^T \delta\T{\omega}_1
 	+ \hat{\T{I}}_2 \T{\theta}_{2\delta}
 	+ \hat{\T{I}}_1 \T{\theta}_{1\delta} \\
 	&\equu
 	\hat{\T{I}} \delta\dot{\T{g}}_2
-		- \hat{\T{I}}^T \delta\dot{\T{g}}_1
+		+ \hat{\T{I}}^T \delta\dot{\T{g}}_1
 	+ \plbr{\hat{\T{I}}_2 - \hat{\T{I}} \T{\omega}_2\times{}}
 		\delta\T{g}_2
-	+ \plbr{\hat{\T{I}}_1 + \hat{\T{I}}^T \T{\omega}_1\times{}}
+	+ \plbr{\hat{\T{I}}_1 - \hat{\T{I}}^T \T{\omega}_1\times{}}
 		\delta\T{g}_1
 \end{align}
+The force and the moment result from the VWP
+\begin{align}
+	\delta\mathcal{L} &= \delta \hat{\T{d}}^T \tilde{\T{F}} \\
+	&= \plbr{
+		\delta\T{d}
+		+ \T{d} \times \hat{\T{\theta}}_{\delta}
+	}^T \hat{\T{R}} \tilde{\T{F}} \\
+	&= \plbr{
+		\delta\T{x}_2
+		+ \plbr{
+			\hat{\T{I}}
+			- \T{f}_2\times{}
+		} \T{\theta}_{2\delta}
+		- \delta\T{x}_1
+		+ \plbr{
+			\hat{\T{I}}^T
+			+ \T{f}_1\times{}
+		} \T{\theta}_{1\delta}
+	}^T \hat{\T{R}} \tilde{\T{F}}
+\end{align}
+and,
+after defining
+\begin{equation}
+	\T{F} = \hat{\T{R}}
+		\tilde{\T{F}}\plbr{\hat{\T{d}}, \dot{\hat{\T{d}}}} ,
+\end{equation}
+ are
+\begin{align}
+	\T{F}_1 &= - \T{F} \\
+	\T{M}_1 &= \plbr{
+		\hat{\T{I}}
+		- \T{f}_1 \times{}
+	} \T{F} \\
+	\T{F}_2 &= \T{F} \\
+	\T{M}_2 &= \plbr{
+		\hat{\T{I}}^T
+		+ \T{f}_2 \times{}
+	} \T{F} .
+\end{align}
+Their linearization, after defining
+\begin{equation}
+	\delta\T{F} = \hat{\T{R}} \plbr{
+		\tilde{\T{F}}_{/\hat{\T{d}}} \delta{\hat{\T{d}}}
+		+ \tilde{\T{F}}_{/\dot{\hat{\T{d}}}} \delta\dot{\hat{\T{d}}}
+	} - \T{F} \times \hat{\T{\theta}}_{\delta} ,
+\end{equation}
+yields
+\begin{align}
+	\delta\T{F}_1 &= - \delta\T{F} \\
+	\delta\T{M}_1 &= \plbr{
+		\hat{\T{I}}
+		- \T{f}_1 \times{}
+	} \delta\T{F}
+	+ \delta\hat{\T{I}} \T{F} - \T{F} \times \T{f}_1 \times \T{\theta}_{1\delta} \\
+	\delta\T{F}_2 &= \delta\T{F} \\
+	\delta\T{M}_2 &= \plbr{
+		\hat{\T{I}}^T
+		+ \T{f}_2 \times{}
+	} \delta\T{F}
+	+ \delta\hat{\T{I}}^T \T{F} + \T{F} \times \T{f}_2 \times \T{\theta}_{2\delta}
+\end{align}
+After setting
+\begin{align}
+	\T{F}_{/\hat{\T{d}}} &=
+		\hat{\T{R}} \tilde{\T{F}}_{/\hat{\T{d}}} \hat{\T{R}}^T \\
+	\T{F}_{/\dot{\hat{\T{d}}}} &=
+		\hat{\T{R}} \tilde{\T{F}}_{/\dot{\hat{\T{d}}}} \hat{\T{R}}^T
+	,
+\end{align}
+the complete linearized problem, considering the updated-updated 
+approximation, is
+\textbf{FIXME: TODO}
+
 
 
 
