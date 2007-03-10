@@ -2760,9 +2760,11 @@ and, as a consequence,
 \end{equation}
 which reduces again to the identity matrix.
 
+
+
 The moment is
 \begin{equation}
-	\T{M}_i = \plbr{-1}^i \hat{\T{R}} \tilde{\T{M}}\plbr{\T{\theta}, \T{\omega}}
+	\T{M}_i = \plbr{-1}^i \hat{\T{R}} \tilde{\T{M}}\plbr{\T{\theta}, \T{\omega}} .
 \end{equation}
 Its linearization uses the perturbation of the relative rotation angle
 in the intermediate reference frame,
@@ -2780,11 +2782,38 @@ where the last substitution exploits
 		\tilde{\T{R}}^T \T{\Gamma}\plbr{\T{\theta}} \tilde{\T{R}}
 	}^{-1} \\
 	&= \T{\Gamma}\plbr{\tilde{\T{R}}^T \T{\theta}}^{-1} \\
-	&= \T{\Gamma}\plbr{\T{\theta}}^{-1}
+	&= \T{\Gamma}\plbr{\T{\theta}}^{-1} ,
 \end{align}
 and the perturbation of the relative angular velocity
-of Equation~(\ref{eq:inv-deformable-hinge-omega-rel-delta}),
-and yields
+of Equation~(\ref{eq:inv-deformable-hinge-omega-rel-delta}).
+The perturbation of matrix $\hat{\T{R}}$ yields
+\begin{align}
+	\delta\hat{\T{R}} \hat{\T{R}}^T
+	&= \hat{\T{\theta}}_{\delta} \times{} \\
+	&= \T{\theta}_{1\delta} \times{}
+	+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta}\times \T{R}_{1h}^T ,
+\end{align}
+so
+\begin{align}
+	\hat{\T{\theta}}_{\delta}
+	&= \T{\theta}_{1\delta}
+	+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta} \\
+	&= \T{\theta}_{1\delta}
+	+ \T{R}_{1h} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{\theta}_{\delta} \\
+	&= \T{\theta}_{1\delta}
+	+ \T{R}_{1h} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_{1h}^T\plbr{
+		\T{\theta}_{2\delta}
+		- \T{\theta}_{1\delta}
+	} \\
+	&= \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T
+		\T{\theta}_{2\delta}
+	+ \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\T{R}}^T
+		\T{\theta}_{1\delta} .
+\end{align}
+The same result is obtained by perturbing 
+$\hat{\T{R}}$ in the form $\hat{\T{R}}=\T{R}_{2h}\tilde{\T{R}}^T$.
+
+The perturbation of the moment then yields
 \begin{align}
 	\delta\T{M}_i
 	&= \plbr{-1}^i \hat{\T{R}} \plbr{
@@ -2795,10 +2824,8 @@ and yields
 		\plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T \T{\theta}_{2\delta}
 	\nonumber \\
 	& \mbox{\hspace{10pt}} - \T{M}_i \times \hat{\T{R}} 
-		\plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\T{R}}^T \T{\theta}_{1\delta}
+		\plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\T{R}}^T \T{\theta}_{1\delta} .
 \end{align}
-The same result is obtained by perturbing 
-$\hat{\T{R}}$ in the form $\hat{\T{R}}=\T{R}_{2h}\tilde{\T{R}}^T$.
 
 
 The complete linearized problem is
@@ -2837,12 +2864,12 @@ The complete linearized problem is
 	& = & \cubr{\cvvect{
 		\T{M} \\
 		- \T{M}
-	}}
+	}} ,
 \end{eqnarray*}
 where
 \begin{eqnarray*}
 	\T{M}_{/\T{\theta}} & = & \hat{\T{R}} \tilde{\T{M}}_{/\T{\theta}} \T{\Gamma}\plbr{\T{\theta}}^{-1} \hat{\T{R}}^T \\
-	\T{M}_{/\T{\omega}} & = & \hat{\T{R}} \tilde{\T{M}}_{/\T{\omega}} \hat{\T{R}}^T
+	\T{M}_{/\T{\omega}} & = & \hat{\T{R}} \tilde{\T{M}}_{/\T{\omega}} \hat{\T{R}}^T .
 \end{eqnarray*}
 
 
@@ -3033,13 +3060,14 @@ The force and the moment are
 \end{eqnarray*}
 Their linearization yields
 \begin{eqnarray*}
-	\delta\T{F}_i & \equu & \plbr{ -1 }^i \T{R}_{1h} \plbr{
+	\delta\T{F}_i & = & \plbr{ -1 }^i \T{R}_{1h} \plbr{
 		\tilde{\T{F}}_{/\tilde{\T{d}}} \delta{\tilde{\T{d}}}
 		+ \tilde{\T{F}}_{/\dot{\tilde{\T{d}}}} \delta\dot{\tilde{\T{d}}}
-	} - \T{F}_i \times \delta\T{g}_1 \\
-	\delta\T{M}_i & \equu & \T{f}_i \times \delta\T{F}_i + \T{F}_i \times \T{f}_i \times \delta\T{g}_i
+	} - \T{F}_i \times \T{\theta}_{1\delta} \\
+	\delta\T{M}_i & = & \T{f}_i \times \delta\T{F}_i + \T{F}_i \times \T{f}_i \times \T{\theta}_{i\delta}
 \end{eqnarray*}
-The complete linearized problem is
+The complete linearized problem, after applying the updated-updated 
+approximation, is
 \begin{eqnarray*}
 	\sqbr{\matr{cccc}{
 		\T{F}_{/\dot{\tilde{\T{d}}}} & -\T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{} &
