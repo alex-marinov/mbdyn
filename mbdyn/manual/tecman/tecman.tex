@@ -335,6 +335,157 @@ This means that nodes have a \texttt{CommWgts} equal to the number
 of dofs while elements have a weight equal to eventual internal dofs of it.
 
 
+\chapter{Orientation Handling}
+The orientation of structural nodes is handled by storing the orientation
+matrix of each node, and updating it during prediction and correction 
+by incremental orientations.
+
+The code uses Gibbs-Rodriguez parameters to account for incremental 
+rotations.
+These parameters allow very efficient implementation, since they
+only require few algebraic operations to obtain the orientation matrix
+and related entities.
+However, they require the absolute value of the orientation to be limited;
+this requirement is usually overcome by accuracy requirements,
+so it is not viewed as a strong limitation.
+
+One main advantage of this approach is that only three parameters
+are required to handle orientations.
+A main drawback of this approach is that it is quite difficult
+to keep track of how large a change in orientation occurred
+to a given node, since simply converting the orientation matrix 
+into any other representation of a finite rotation typically results
+in the minimal rotation that yields that matrix.
+
+MBDyn can output rotations in the following representations:
+\begin{itemize}
+\item Euler angles according to the 123 sequence;
+\item the orientation vector;
+\item the orientation matrix.
+\end{itemize}
+
+\section{Euler Angles}
+Consider an orientation expressed by matrix $\T{R}$.
+It can be expressed as the result of a precise sequence of rotations 
+about three distinct axes.
+The 123 sequence means that matrix $\T{R}$ is obtained as a sequence
+of three rotations: the first about axis 1; the second about axis 2
+as it results after the first rotation; the third about axis 3
+as it results after the second rotation, namely:
+\begin{equation}
+	\T{R}_1 = \sqbr{\matr{ccc}{
+		1 & 0 & 0 \\
+		0 & \cos\alpha & -\sin\alpha \\
+		0 & \sin\alpha & \cos\alpha
+	}} ,
+\end{equation}
+\begin{equation}
+	\T{R}_2 = \sqbr{\matr{ccc}{
+		\cos\beta & 0 & \sin\beta \\
+		0 & 1 & 0 \\
+		-\sin\beta & 0 & \cos\beta
+	}} ,
+\end{equation}
+\begin{equation}
+	\T{R}_3 = \sqbr{\matr{ccc}{
+		\cos\gamma & -\sin\gamma & 0 \\
+		\sin\gamma & \cos\gamma & 0 \\
+		0 & 0 & 1
+	}} ,
+\end{equation}
+piled up, must equal $\T{R}$:
+\begin{align}
+	\T{R} &= \T{R}_1 \T{R}_2 \T{R}_3 \\
+	&= \sqbr{\matr{ccc}{
+		\cos\beta \cos\gamma
+		& -\cos\beta \sin\gamma
+		& \sin\beta \\
+		\sin\alpha \sin\beta \cos\gamma + \cos\alpha \sin\gamma
+		& -\sin\alpha \sin\beta \sin\gamma + \cos\alpha \cos\gamma
+		& -\sin\alpha \cos\beta \\
+		-\cos\alpha \sin\beta \cos\gamma + \sin\alpha \sin\gamma
+		& \cos\alpha \sin\beta \sin\gamma + \sin\alpha \cos\gamma
+		& \cos\alpha \cos\beta
+	}} \nonumber .
+\end{align}
+The angles can then be computed by means of a simple, 
+partially recursive algorithm:
+\begin{align}
+	\alpha &= - \tan^{-1}\plbr{\cfrac{\T{R}_{23}}{\T{R}_{33}}} \\
+	\beta &= \tan^{-1}\plbr{\cfrac{\T{R}_{13}}{
+			\cos\alpha \T{R}_{33} - \sin\alpha \T{R}_{23}
+		}} \\
+	\gamma &= \tan^{-1}\plbr{\cfrac{
+		\cos\alpha \T{R}_{21} + \sin\alpha \T{R}_{31}
+	}{
+		\cos\alpha \T{R}_{22} + \sin\alpha \T{R}_{32}
+	}}
+\end{align}
+The use of the function \texttt{atan2(double dSin, double dCos)}
+eliminates the risk of divisions by zero or of excessive loss of precision.
+
+
+
+\section{Orientation Vector}
+An orientation matrix can be represented as a finite rotation about 
+an axis, in the form
+\begin{equation}
+	\T{R} = \T{I}
+	+ \sin\phi \ \T{n}\times{}
+	+ \plbr{1 - \cos\phi} \T{n}\times\T{n}\times{}
+\end{equation}
+where $\phi$ is the amplitude of the rotation and $\T{n}$ 
+is the unit vector that represents the rotation axis.
+
+Simple algebra manipulation shows that the trace of the orientation matrix
+corresponds to 
+\begin{align}
+	\mathrm{tr}\plbr{\T{R}}
+	&= \mathrm{tr}\plbr{\T{I}}
+	+ \plbr{1 - \cos\phi}\mathrm{tr}\plbr{\T{n}\times\T{n}\times{}} \\
+	&= 3 - 2 \plbr{1 - \cos\phi} ,
+\end{align}
+since
+\begin{equation}
+	\T{n}\times\T{n}\times{} = \T{n} \T{n}^T - \T{I} ,
+\end{equation}
+so
+\begin{equation}
+	\cos\phi = \frac{\mathrm{tr}\plbr{\T{R}} - 1}{2} .
+\end{equation}
+
+At the same time, the skew-symmetric portion of $\T{R}$ is
+\begin{equation}
+	\mathrm{skw}\plbr{\T{R}} = \sin\phi \ \T{n}\times{} ,
+\end{equation}
+so
+\begin{equation}
+	\mathrm{ax}\plbr{\mathrm{skw}\plbr{\T{R}}} = \sin\phi \ \T{n}
+\end{equation}
+which yields the amplitude of the rotation,
+\begin{equation}
+	\sin\phi
+	= \mathrm{norm}\plbr{\mathrm{ax}\plbr{\mathrm{skw}\plbr{\T{R}}}} ,
+\end{equation}
+and the direction of the rotation axis,
+\begin{equation}
+	\T{n} = \frac{1}{\sin\phi}\mathrm{ax}\plbr{\mathrm{skw}\plbr{\T{R}}} ,
+\end{equation}
+while $\phi$ can be computed from its sine and cosine as
+\begin{equation}
+	\phi = \tan^{-1}\plbr{\cfrac{\sin\phi}{\cos\phi}} .
+\end{equation}
+
+
+
+
+
+
+
+
+
+
+
 \chapter{Integration}
 
 \begin{itemize}
