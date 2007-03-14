@@ -244,7 +244,7 @@ ReadJoint(DataManager* pDM,
 	}
 #endif // DEBUG
 
-	Joint* pEl = NULL;
+	Elem* pEl = NULL;
 
 	switch (CurrKeyWord) {
 
@@ -2493,10 +2493,8 @@ ReadJoint(DataManager* pDM,
 			throw DataManager::ErrGeneric();
 		}
 
-		LoadableElem *pLE = NULL;
-		SAFENEWWITHCONSTRUCTOR(pLE, LoadableElem,
+		SAFENEWWITHCONSTRUCTOR(pEl, LoadableElem,
 			LoadableElem(uLabel, pDO, c, pDM, HP));
-		pEl = dynamic_cast<Joint *>(pLE);
 		pDM->OutputOpen(OutputHandler::LOADABLE);
 		} break;
 	}
