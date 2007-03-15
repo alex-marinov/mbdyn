@@ -91,7 +91,6 @@ ImposedOrientationJoint::DescribeDof(std::ostream& out,
 	out << ": ";
 
 	out << "reaction couple(s) [";
-	
 	for (unsigned int i = 0, cnt = 0; i < 3; i++) {
 		if (bActive[i]) {
 			cnt++;
@@ -312,7 +311,7 @@ ImposedOrientationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	Mat3x3 MTmp(M*dCoef);
 
 	WM.Add(1, 1, MTmp);
-	WM.Sub(4, 1, MTmp);
+	WM.Sub(3 + 1, 1, MTmp);
 
 	for (int iCnt = 0, iCurr = 0; iCnt < 3; iCnt++) {
 		if (bActive[iCnt]) {
@@ -361,7 +360,7 @@ ImposedOrientationJoint::AssRes(SubVectorHandler& WorkVec,
 	/* Indici dei nodi */
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
-		WorkVec.PutRowIndex(3+iCnt, iNode2FirstMomIndex + iCnt);
+		WorkVec.PutRowIndex(3 + iCnt, iNode2FirstMomIndex + iCnt);
 	}
 
 	/* Indici del vincolo */
