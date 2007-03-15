@@ -115,6 +115,7 @@ INCLUDES = \
 -I$(srcdir)/../libraries/libmbutil \
 -I$(srcdir)/../libraries/libmbmath \
 -I$(srcdir)/../libraries/libmbwrap \
+-I$(srcdir)/../libraries/libann \
 -I$(srcdir)/../mbdyn \
 -I$(srcdir)/../mbdyn/aero \
 -I$(srcdir)/../mbdyn/base

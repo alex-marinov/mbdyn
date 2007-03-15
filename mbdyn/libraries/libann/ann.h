@@ -34,6 +34,12 @@
  * Mattia Mattaboni	<mattaboni@aero.polimi.it>
  */
 
+#ifndef ANN_H
+#define ANN_H
+
+#include "ActivationFunction.h"
+#include "matrix.h"
+
 #define W_A_NONE        (0x00U)
 #define W_A_TEXT        (0x01U)
 #define W_A_BIN         (0x02U)
@@ -118,3 +124,5 @@ ann_res_t ANN_TotalError( matrix *, matrix *, double *);
 ann_res_t ANN_vector_matrix_ass( ANN_vector_matrix *, ANN_vector_matrix *, int* , int, double );
 
 void ANN_error( ann_res_t, char * );
+
+#endif /* ANN_H */

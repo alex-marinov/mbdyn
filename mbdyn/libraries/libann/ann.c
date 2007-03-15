@@ -1,3 +1,4 @@
+/* $Header$ */
 /* 
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
@@ -37,9 +38,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <ActivationFunction.h>
-#include <matrix.h>
-#include <ann.h>
+
+#include "ann.h"
 
 extern int TRAINING_MODE;
 

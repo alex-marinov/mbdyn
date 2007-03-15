@@ -32,19 +32,20 @@
 /* Legami costitutivi */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include "myassert.h"
 #include "mynewmem.h"
 #include "constltp_impl.h"
 
-#include <symcltp.h>
-#include <ginaccltp.h>
+#include "symcltp.h"
+#include "ginaccltp.h"
 #ifdef USE_GRAALLDAMPER
-#include <damper.h>
+#include "damper.h"
 #endif /* USE_GRAALLDAMPER */
-#include <shockabsorber.h>
+#include "shockabsorber.h"
+#include "constltp_ann.h"
 
 /* constitutive law containers */
 typedef std::map<std::string, ConstitutiveLawRead<doublereal, doublereal> *, ltstrcase> CL1DFuncMapType;
@@ -1218,6 +1219,10 @@ InitCL(void)
 
 	/* GRAALL damper */
 	SetCL1D("shock" "absorber", new ShockAbsorberCLR<doublereal, doublereal>);
+
+	/* Artificial Neural Network */
+	SetCL1D("ann" "elastic", new AnnElasticCLR<doublereal, doublereal>);
+	SetCL1D("ann" "viscoelastic", new AnnViscoElasticCLR<doublereal, doublereal>);
 
 	/* NOTE: add here initialization of new built-in constitutive laws;
 	 * alternative ways to register new custom constitutive laws are:

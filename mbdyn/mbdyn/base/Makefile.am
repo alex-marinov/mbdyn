@@ -14,6 +14,7 @@ bicg.h \
 bulk.cc \
 bulk.h \
 constltp.h \
+constltp_ann.h \
 constltp_impl.cc \
 constltp_impl.h \
 contactj.h \
@@ -152,6 +153,7 @@ INCLUDES = \
 -I$(srcdir)/../../libraries/libmbutil \
 -I$(srcdir)/../../libraries/libmbmath \
 -I$(srcdir)/../../libraries/libmbwrap \
+-I$(srcdir)/../../libraries/libann \
 -I$(srcdir)/../../mbdyn \
 -I$(srcdir)/../../mbdyn/base \
 -I$(srcdir)/../../mbdyn/struct \
