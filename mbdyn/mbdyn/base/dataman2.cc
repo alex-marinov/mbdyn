@@ -551,7 +551,13 @@ DataManager::InitialJointAssembly(void)
 				p != ElemData[iCnt1].ElemMap.end();
 				p++)
 			{
-				ASSERT(dynamic_cast<ElemWithDofs *>(p->second) != 0);
+#ifdef STATIC_MODULES
+				if (iCnt1 != Elem::JOINT
+					|| p->second->GetElemType() == Elem::LOADABLE)
+#endif /* STATIC_MODULES */
+				{
+					ASSERT(dynamic_cast<ElemWithDofs *>(p->second) != 0);
+				}
 				dynamic_cast<ElemWithDofs *>(p->second)->SetInitialValue(X);
 			}
 		}
@@ -626,7 +632,8 @@ DataManager::InitialJointAssembly(void)
 #ifdef DEBUG
 				DEBUG_LEVEL_MATCH(MYDEBUG_ASSEMBLY|MYDEBUG_RESIDUAL) ||
 #endif /* DEBUG */
-				outputRes()) {
+				outputRes())
+		{
 			/* Output del residuo */
 			silent_cout("Residual(" << iNumIter << "):" << std::endl);
 			for (int iTmpCnt = 1; iTmpCnt <= iInitialNumDofs; iTmpCnt++) {
@@ -735,7 +742,8 @@ DataManager::InitialJointAssembly(void)
 #ifdef DEBUG
 				DEBUG_LEVEL_MATCH(MYDEBUG_ASSEMBLY|MYDEBUG_RESIDUAL) ||
 #endif /* DEBUG */
-				outputSol()) {
+				outputSol())
+		{
 			/* Output della soluzione */
 			silent_cout("Solution (" << iNumIter << "):" << std::endl);
 			for (int iTmpCnt = 1; iTmpCnt <= iInitialNumDofs; iTmpCnt++) {
