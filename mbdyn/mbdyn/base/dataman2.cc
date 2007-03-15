@@ -33,16 +33,17 @@
  * continua qui perche' il file dataman.cc sta diventando lungo */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <ac/math.h>
+#include "ac/math.h"
 
-#include <dataman.h>
-#include <dataman_.h>
+#include "dataman.h"
+#include "dataman_.h"
 
-#include <gravity.h>
-#include <solver.h>
+#include "gravity.h"
+#include "solver.h"
+#include "driven.h"
 
 const LoadableCalls *
 DataManager::GetLoadableElemModule(std::string name) const
@@ -153,6 +154,28 @@ doublereal
 DataManager::dGetTime() const {
 	return pTime->GetVal().GetReal();
 } /* End of DataManager::dGetTime() */
+
+static ElemWithDofs *
+CastElemWithDofs(Elem *pEl)
+{
+	ASSERT(pEl != NULL);
+
+	ElemWithDofs *pEWD = dynamic_cast<ElemWithDofs *>(pEl);
+
+	if (pEWD == 0) {
+		DrivenElem *pDE = dynamic_cast<DrivenElem *>(pEl);
+		if (pDE == 0) {
+			silent_cerr("unable to cast "
+				<< psElemNames[pEl->GetElemType()]
+				<< "(" << pEl->GetLabel() << ") "
+				"to ElemWithDofs" << std::endl);
+			throw ErrGeneric();
+		}
+		pEWD = dynamic_cast<ElemWithDofs *>(pDE->pGetElem());
+	}
+
+	return pEWD;
+}
 
 /* Collega il DataManager ed il DriveHandler alla soluzione */
 void
@@ -283,36 +306,35 @@ DataManager::DofOwnerInit(void)
 
 			/* chiede all'elemento quanti dof possiede */
 			if ((iNumDof = pEl->iGetNumDof()) > 0) {
-				ElemWithDofs* pElWD = dynamic_cast<ElemWithDofs *>(pEl);
-				ASSERT(pElWD != NULL);
+				ElemWithDofs* pEWD = CastElemWithDofs(pEl);
 
 				/* si fa passare il DofOwner */
-				Dof* pDf = pDofs+pElWD->iGetFirstIndex();
+				Dof* pDf = pDofs + pEWD->iGetFirstIndex();
 
 #ifdef DEBUG
 				DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY,
 						psElemNames[pEl->GetElemType()]
-						<< "(" << pElWD->GetLabel()
-						<< "): first dof = "
-						<< pDf->iIndex+1 << std::endl);
+						<< "(" << pEWD->GetLabel() << "): "
+						"first dof = " << pDf->iIndex + 1
+						<< std::endl);
 #else /* !DEBUG */
 				if (pds) {
-					unsigned int nd = pElWD->iGetNumDof();
+					unsigned int nd = pEWD->iGetNumDof();
 					integer fd = pDf->iIndex;
 
-					std::cout << psElemNames[pElWD->GetElemType()]
-						<< "(" << pElWD->GetLabel()
-						<< "): " << nd << " " << fd + 1;
+					std::cout << psElemNames[pEWD->GetElemType()]
+						<< "(" << pEWD->GetLabel() << "): "
+						<< nd << " " << fd + 1;
 					if (nd > 1) {
 						std::cout << "->" << fd + nd;
 					}
 					std::cout << std::endl;
 					if (uPrintFlags & PRINT_DOFDESCRIPTION) {
-						pElWD->DescribeDof(std::cout,
+						pEWD->DescribeDof(std::cout,
 								"        ");
 					}
 					if (uPrintFlags & PRINT_EQDESCRIPTION) {
-						pElWD->DescribeEq(std::cout,
+						pEWD->DescribeEq(std::cout,
 								"        ");
 					}
 				}
@@ -322,8 +344,8 @@ DataManager::DofOwnerInit(void)
 				 * di che tipo e' e lo setta
 				 * nel DofOwner */
 				for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
-					pDf[iCnt].Order = pElWD->GetDofType(iCnt);
-					pDf[iCnt].EqOrder = pElWD->GetEqType(iCnt);
+					pDf[iCnt].Order = pEWD->GetDofType(iCnt);
+					pDf[iCnt].EqOrder = pEWD->GetEqType(iCnt);
 				}
 			}
 		} while (ElemIter.bGetNext(pEl));
@@ -432,7 +454,7 @@ DataManager::InitialJointAssembly(void)
 						if (pds) {
 							unsigned int nd = iNumDofs;
 							integer fd = iIndex;
-							ElemWithDofs* pElWD = dynamic_cast<ElemWithDofs *>(p->second);
+							ElemWithDofs* pEWD = CastElemWithDofs(p->second);
 
 							silent_cout(psElemNames[pEl->GetElemType()]
 								<< "(" << pEl->GetLabel()
@@ -442,11 +464,11 @@ DataManager::InitialJointAssembly(void)
 							}
 							silent_cout(std::endl);
 							if (uPrintFlags & PRINT_DOFDESCRIPTION) {
-								pElWD->DescribeDof(std::cout,
+								pEWD->DescribeDof(std::cout,
 										"        ", true);
 							}
 							if (uPrintFlags & PRINT_EQDESCRIPTION) {
-								pElWD->DescribeEq(std::cout,
+								pEWD->DescribeEq(std::cout,
 										"        ", true);
 							}
 						}
@@ -551,14 +573,8 @@ DataManager::InitialJointAssembly(void)
 				p != ElemData[iCnt1].ElemMap.end();
 				p++)
 			{
-#ifdef STATIC_MODULES
-				if (iCnt1 != Elem::JOINT
-					|| p->second->GetElemType() == Elem::LOADABLE)
-#endif /* STATIC_MODULES */
-				{
-					ASSERT(dynamic_cast<ElemWithDofs *>(p->second) != 0);
-				}
-				dynamic_cast<ElemWithDofs *>(p->second)->SetInitialValue(X);
+				ElemWithDofs *pEWD = CastElemWithDofs(p->second);
+				pEWD->SetInitialValue(X);
 			}
 		}
 	}
@@ -835,14 +851,13 @@ DataManager::DofOwnerSet(void)
 				p != ElemData[iCnt].ElemMap.end();
 				p++)
 			{
-				ASSERT(dynamic_cast<ElemWithDofs *>(p->second) != 0);
-				ElemWithDofs* pTmp = dynamic_cast<ElemWithDofs *>(p->second);
+				ElemWithDofs* pEWD = CastElemWithDofs(p->second);
 
-				DEBUGLCOUT(MYDEBUG_INIT, "    " << psElemNames[pTmp->GetElemType()]
-						<< "(" << pTmp->GetLabel() << ")" << std::endl);
+				DEBUGLCOUT(MYDEBUG_INIT, "    " << psElemNames[pEWD->GetElemType()]
+						<< "(" << pEWD->GetLabel() << ")" << std::endl);
 
-				DofOwner* pDO = (DofOwner*)pTmp->pGetDofOwner();
-				pDO->iNumDofs = pTmp->iGetNumDof();
+				DofOwner* pDO = (DofOwner*)pEWD->pGetDofOwner();
+				pDO->iNumDofs = pEWD->iGetNumDof();
 				DEBUGLCOUT(MYDEBUG_INIT, "    num dofs: " << pDO->iNumDofs << std::endl);
 			}
 		}

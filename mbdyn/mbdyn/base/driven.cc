@@ -76,6 +76,12 @@ DrivenElem::~DrivenElem(void)
 	}
 }
 
+Elem *
+DrivenElem::pGetElem(void) const
+{
+	return pElem;
+}
+
 void
 DrivenElem::OutputPrepare(OutputHandler& OH)
 {

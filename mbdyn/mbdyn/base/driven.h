@@ -56,6 +56,8 @@ public:
 			const Elem* pE, SimulationEntity::Hints *ph = 0);
 	~DrivenElem(void);
 
+	virtual Elem *pGetElem(void) const;
+
 	virtual void OutputPrepare(OutputHandler& OH);
 	virtual void Output(OutputHandler& OH) const;
 
