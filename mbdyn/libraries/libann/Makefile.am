@@ -6,8 +6,13 @@ include $(top_srcdir)/build/top.mk
 lib_LTLIBRARIES = libann.la
 
 libann_la_SOURCES = \
+ActivationFunction.c \
+ActivationFunction.h \
 ann.c \
-ann.h
+ann.h \
+matrix.c \
+matrix.h \
+scale_factor.c
 
 libann_la_LIBADD = @LIBS@
 libann_la_LDFLAGS =
