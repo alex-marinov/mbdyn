@@ -11,8 +11,7 @@ ActivationFunction.h \
 ann.c \
 ann.h \
 matrix.c \
-matrix.h \
-scale_factor.c
+matrix.h
 
 libann_la_LIBADD = @LIBS@
 libann_la_LDFLAGS =

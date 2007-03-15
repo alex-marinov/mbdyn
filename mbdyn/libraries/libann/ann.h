@@ -37,6 +37,10 @@
 #ifndef ANN_H
 #define ANN_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #include "ActivationFunction.h"
 #include "matrix.h"
 
@@ -53,6 +57,11 @@ typedef enum {
         ANN_MATRIX_ERROR,
 	ANN_GEN_ERROR
 } ann_res_t;
+
+typedef enum {
+	ANN_TM_BATCH,
+	ANN_TM_SEQUENTIAL
+} ann_training_mode_t;
 
 typedef matrix*  ANN_vector_matrix;
 typedef vector*  ANN_vector_vector;
@@ -105,7 +114,7 @@ typedef struct ANN {
 
 
 /* FUNCTIONS' PROTOTYPES  */
-ann_res_t ANN_init( ANN *, char * );
+ann_res_t ANN_init( ANN *, const char * );
 ann_res_t ANN_destroy( ANN * );
 ann_res_t ANN_write( ANN *, FILE *, unsigned );
 ann_res_t ANN_sim( ANN *, vector *, vector * );
@@ -118,11 +127,15 @@ ann_res_t ANN_vector_vector_init( ANN_vector_vector *, int *, int );
 ann_res_t ANN_dEdW( ANN *, vector *);
 ann_res_t ANN_dXdW( ANN *, int , int , int );
 ann_res_t ANN_WeightUpdate( ANN *, ANN_vector_matrix, double );
-ann_res_t ANN_TrainingEpoch( ANN *, matrix *, matrix *, matrix *, int);
+ann_res_t ANN_TrainingEpoch( ANN *, matrix *, matrix *, matrix *, int, ann_training_mode_t);
 ann_res_t ANN_reset( ANN * );
 ann_res_t ANN_TotalError( matrix *, matrix *, double *);
 ann_res_t ANN_vector_matrix_ass( ANN_vector_matrix *, ANN_vector_matrix *, int* , int, double );
 
 void ANN_error( ann_res_t, char * );
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* ANN_H */

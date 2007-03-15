@@ -38,7 +38,7 @@
 #include "ann.h"
 
 /* TRAINING PARAMETERS DEFAULT */
-int TRAINING_MODE = 1;
+ann_training_mode_t TRAINING_MODE = ANN_TM_BATCH;
 static float TOLL = 0.;
 static int MAXITER = 1000;
 static int PRINTSTEP = 1;
@@ -73,8 +73,8 @@ void print_usage( void ){
 		"  -v, --verbose\n"
 		"	verbose output\n"		
 		"  -m, --mode\n"
-		"	training mode: 1 = BATCH (dafault)\n"		
-		"	               2 = SEQUENTIAL\n"		
+		"	training mode: BATCH (default)\n"		
+		"	               SEQUENTIAL\n"		
 		"  -t, --toll\n"
 		"	tollerance ( default 0. )\n"		
 		"  -i, --maxiter\n"
@@ -82,7 +82,7 @@ void print_usage( void ){
 		"  -p, --print\n"
 		"	printing output step (default 1)\n"		
 		"  -s, --save\n"
-		"	saving ANN trained step (defualt 1)\n"		
+		"	saving ANN trained step (default 1)\n"		
 		"  -A, --ann_init\n"
 		"	filename of initialized neural network (default data/ann.dat)\n"		
 		"  -I, --input\n"
@@ -119,7 +119,16 @@ int main( int argc , char **argv ){
 				break;
 		case 'v':	verbose = 1;
 				break;
-		case 'm':	TRAINING_MODE = atoi( optarg );
+		case 'm':
+			if (strcasecmp(optarg, "batch") == 0) {
+				TRAINING_MODE = ANN_TM_BATCH;
+			} else if (strcasecmp(optarg, "sequential") == 0) {
+				TRAINING_MODE = ANN_TM_SEQUENTIAL;
+			} else {
+				fprintf(stderr, "unknown training mode \"%s\" {batch|sequential}\n", optarg);
+				return 1;
+			}
+			break;
 				break;
 		case 't':	TOLL = atof( optarg );
 				break;
@@ -151,7 +160,7 @@ int main( int argc , char **argv ){
                 fprintf( stdout, "Error in ANN initialization\n");
                 return 1;
         }
-	if( TRAINING_MODE == 1 ){    // ADAPTIVE LEARNING RATE
+	if( TRAINING_MODE == ANN_TM_BATCH ){    // ADAPTIVE LEARNING RATE
 		if( ANN_vector_matrix_init( &W1, net.N_neuron, net.N_layer )){
 			fprintf( stderr, "Initialization error\n" );
 			return 1;
@@ -196,7 +205,7 @@ int main( int argc , char **argv ){
 		Niter++;
 		err1 = err2;
 		
-		if( TRAINING_MODE == 1 ){
+		if( TRAINING_MODE == ANN_TM_BATCH ){
 			if( ANN_vector_matrix_ass( &W2, &W1, net.N_neuron, net.N_layer, 1. )){
 				fprintf( stderr, "Error in ....\n" );
 			}
@@ -206,7 +215,7 @@ int main( int argc , char **argv ){
 		}
 
 		ANN_reset( &net );
-                if( ANN_TrainingEpoch( &net , &INPUT , &DES_OUTPUT, &NN_OUTPUT, N_sample) ){
+                if( ANN_TrainingEpoch( &net , &INPUT , &DES_OUTPUT, &NN_OUTPUT, N_sample, TRAINING_MODE) ){
                         fprintf( stderr, "Error: ANN_TrainingEpoch@main ppp\n");
                         return 1;
                 }
@@ -219,7 +228,7 @@ int main( int argc , char **argv ){
 		/* per l'addestramento in modalità BATCH il tasso di apprendimento è
 		 * adattativo!!! */
 
-		if( TRAINING_MODE == 1 ){
+		if( TRAINING_MODE == ANN_TM_BATCH ){
 			CNT++;
 			while( err2 >= err1 ){
                                 CNT = 0;
@@ -231,7 +240,7 @@ int main( int argc , char **argv ){
 				ANN_vector_matrix_ass( &W1, &net.W, net.N_neuron, net.N_layer, 1. );
 
 				ANN_reset( &net );
-                		if( ANN_TrainingEpoch( &net , &INPUT , &DES_OUTPUT, &NN_OUTPUT, N_sample) ){
+                		if( ANN_TrainingEpoch( &net , &INPUT , &DES_OUTPUT, &NN_OUTPUT, N_sample, TRAINING_MODE) ){
 		                        fprintf( stderr, "Error: ANN_TrainingEpoch@main\n");
                 		        return 1;
                 		}

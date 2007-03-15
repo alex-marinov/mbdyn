@@ -30,6 +30,7 @@ $(GINACLIB_LIBS)\
 @Y12_LIBS@ \
 ../libraries/libcolamd/libcolamd.la \
 ../libraries/libnaive/libnaive.la \
+../libraries/libann/libann.la \
 @HARWELL_LIBS@ \
 @UMFPACK_LIBS@ \
 ../libraries/libobjs/libobjs.la \

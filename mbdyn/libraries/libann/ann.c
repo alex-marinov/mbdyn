@@ -41,12 +41,10 @@
 
 #include "ann.h"
 
-extern int TRAINING_MODE;
-
 /* Ininzializza ed alloca la memoria per la struttura dati
  * contenente le informazioni relative alla rete neurale */
 
-ann_res_t ANN_init( ANN *net, char * FileName){
+ann_res_t ANN_init( ANN *net, const char * FileName){
 
         int i,j;
         FILE *fh;
@@ -730,7 +728,7 @@ ann_res_t ANN_dEdW( ANN * net , vector *e ){
 
 /* funzione che esegue un epoca di addestramento in modalità BATCH o 
  * SEQUENTIAL */
-ann_res_t ANN_TrainingEpoch( ANN * net, matrix *INPUT, matrix *DES_OUTPUT, matrix *NN_OUTPUT, int N_sample  ){
+ann_res_t ANN_TrainingEpoch( ANN * net, matrix *INPUT, matrix *DES_OUTPUT, matrix *NN_OUTPUT, int N_sample, ann_training_mode_t mode ){
 
 	int i,t;
 
@@ -760,7 +758,7 @@ ann_res_t ANN_TrainingEpoch( ANN * net, matrix *INPUT, matrix *DES_OUTPUT, matri
 		/* addestramento in modalità BATCH: accumulo la derivata
 		 * e la applico solamente alla fine di un epoca di 
 		 * addestramento 		 */
-		if( TRAINING_MODE == 1 ){
+		if( mode == ANN_TM_BATCH ){
         		for( i=0;i<net->N_layer+1;i++ ){
 				if( matrix_sum( &net->dW[i], &net->dEdW[i], &net->dW[i], 1. ) ){
 					ANN_error( ANN_MATRIX_ERROR, "ANN_TrainingEpoch" );
@@ -770,14 +768,14 @@ ann_res_t ANN_TrainingEpoch( ANN * net, matrix *INPUT, matrix *DES_OUTPUT, matri
 		}
 		/* addestramento in modalità SEQUENTIAL: applico 
 		 * immediatamente la variazione dei pesi */
-		if( TRAINING_MODE == 2 ){
+		if( mode == ANN_TM_SEQUENTIAL ){
 			if( ANN_WeightUpdate( net, net->dEdW, 1. ) ){
 				ANN_error( ANN_GEN_ERROR, "ANN_TrainingEpoch" );
 				return ANN_GEN_ERROR;
 			}
 		}
 	}
-	if( TRAINING_MODE == 1 ){
+	if( mode == ANN_TM_BATCH ){
 		if( ANN_WeightUpdate( net, net->dW, 1. ) ){
 			ANN_error( ANN_GEN_ERROR, "ANN_trainingEpoch" );
 			return ANN_GEN_ERROR;

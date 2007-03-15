@@ -39,16 +39,34 @@
 template <class T, class Tder>
 class AnnElasticConstitutiveLaw
 : public ConstitutiveLaw<T, Tder> {
-private:
+protected:
+	ANN net;
+	std::string fname;
+
+	void AnnInit(void)
+	{
+		if (ANN_init(&net, fname.c_str()) != 0) {
+			throw ErrGeneric();
+		}
+	}
+
+	virtual void
+	AnnSanity(void)
+	{
+		/* add sanity checks */
+		NO_OP;
+	}
 
 public:
-	AnnElasticConstitutiveLaw(void)
+	AnnElasticConstitutiveLaw(const std::string& f)
+	: fname(f)
 	{
-		NO_OP;
-	};
+		AnnInit();
+		AnnSanity();
+	}
 
 	virtual ~AnnElasticConstitutiveLaw(void) {
-		NO_OP;
+		(void)ANN_destroy(&net);
 	};
 
 	ConstLawType::Type GetConstLawType(void) const {
@@ -59,12 +77,12 @@ public:
 		ConstitutiveLaw<T, Tder>* pCL = NULL;
 
 		typedef AnnElasticConstitutiveLaw<T, Tder> cl;
-		SAFENEWWITHCONSTRUCTOR(pCL, cl, cl());
+		SAFENEWWITHCONSTRUCTOR(pCL, cl, cl(fname));
 		return pCL;
 	};
 
 	virtual std::ostream& Restart(std::ostream& out) const {
-		return out << " /* ann not implemented yet */,";
+		return out << " ann elastic, \"" << fname << "\",";
 	};
 
 	virtual void Update(const T& Eps, const T& /* EpsPrime */  = 0.) {
@@ -83,11 +101,19 @@ public:
 
 template <class T, class Tder>
 class AnnViscoElasticConstitutiveLaw
-: public ConstitutiveLaw<T, Tder> {
-private:
+: public AnnElasticConstitutiveLaw<T, Tder> {
+protected:
+	/* overrides AnnElasticConstitutiveLaw::AnnSanity() */
+	virtual void
+	AnnSanity(void)
+	{
+		/* add sanity checks */
+		NO_OP;
+	}
 
 public:
-	AnnViscoElasticConstitutiveLaw(void)
+	AnnViscoElasticConstitutiveLaw(const std::string& f)
+	: AnnElasticConstitutiveLaw<T, Tder>(f)
 	{
 		NO_OP;
 	};
@@ -100,18 +126,6 @@ public:
 		return ConstLawType::VISCOELASTIC;
 	};
 
-	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
-		ConstitutiveLaw<T, Tder>* pCL = NULL;
-
-		typedef AnnViscoElasticConstitutiveLaw<T, Tder> cl;
-		SAFENEWWITHCONSTRUCTOR(pCL, cl, cl());
-		return pCL;
-	};
-
-	virtual std::ostream& Restart(std::ostream& out) const {
-		return out << " /* ann not implemented yet */,";
-	};
-
 	virtual void Update(const T& Eps, const T& EpsPrime = 0.) {
 		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
 		ConstitutiveLaw<T, Tder>::EpsilonPrime = EpsPrime;
@@ -120,10 +134,6 @@ public:
 
 		ConstitutiveLaw<T, Tder>::F = 0.;
 		ConstitutiveLaw<T, Tder>::FDE = 0.;
-	};
-
-	virtual void IncrementalUpdate(const T& DeltaEps, const T& EpsPrime = 0.) {
-		Update(ConstitutiveLaw<T, Tder>::Epsilon + DeltaEps, EpsPrime);
 	};
 };
 
@@ -136,8 +146,16 @@ struct AnnElasticCLR : public ConstitutiveLawRead<T, Tder> {
 
 		CLType = ConstLawType::VISCOELASTIC;
 
+		const char *s = HP.GetFileName();
+		if (s == 0) {
+			silent_cerr("AnnElasticCLR: "
+				"unable to get ann file name "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric();
+		}
+
 		typedef AnnElasticConstitutiveLaw<T, Tder> L;
-		SAFENEWWITHCONSTRUCTOR(pCL, L, L());
+		SAFENEWWITHCONSTRUCTOR(pCL, L, L(s));
 
 		return pCL;
 	};
@@ -151,8 +169,16 @@ struct AnnViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 
 		CLType = ConstLawType::VISCOELASTIC;
 
+		const char *s = HP.GetFileName();
+		if (s == 0) {
+			silent_cerr("AnnElasticCLR: "
+				"unable to get ann file name "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric();
+		}
+
 		typedef AnnViscoElasticConstitutiveLaw<T, Tder> L;
-		SAFENEWWITHCONSTRUCTOR(pCL, L, L());
+		SAFENEWWITHCONSTRUCTOR(pCL, L, L(s));
 
 		return pCL;
 	};

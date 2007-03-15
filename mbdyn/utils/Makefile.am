@@ -4,6 +4,7 @@ include $(top_srcdir)/build/top.mk
 
 # Build mbdyn utils
 bin_PROGRAMS = \
+ann_sf \
 ann_sim \
 ann_tr \
 autopilot \
@@ -50,6 +51,7 @@ MYLIBS = \
 @TCL_LIBS@ \
 @LIBS@
 
+ann_sf_SOURCES = ann_sf.c
 ann_sim_SOURCES = ann_sim.c
 ann_tr_SOURCES = ann_tr.c
 autopilot_SOURCES = autopilot.c
@@ -77,6 +79,7 @@ stream2socket_SOURCES = stream2socket.cc s2s.cc s2s.h
 trim_SOURCES = trim.cc s2s.cc s2s.h
 vec2rot_SOURCES = vec2rot.cc
 
+ann_sf_LDADD = $(MYLIBS)
 ann_sim_LDADD = $(MYLIBS)
 ann_tr_LDADD = $(MYLIBS)
 autopilot_LDADD = $(MYLIBS) @SECURITY_LIBS@
