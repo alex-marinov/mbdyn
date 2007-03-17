@@ -3370,11 +3370,11 @@ in the global reference frame, is pulled back in the
 intermediate material reference frame by the transpose
 of matrix $\hat{\TT{R}}$
 \begin{equation}
-	\hat{\T{d}} = \hat{\TT{R}}^T \T{d}
+	\tilde{\T{d}} = \hat{\TT{R}}^T \T{d}
 \end{equation}
 The relative velocity is
 \begin{align}
-	\dot{\hat{\T{d}}}
+	\dot{\tilde{\T{d}}}
 	&= \dot{\hat{\TT{R}}}^T \T{d} + \hat{\TT{R}}^T \dot{\T{d}}
 		\nonumber \\
 	&= \hat{\TT{R}}^T \plbr{
@@ -3394,7 +3394,7 @@ see Section~\ref{sec:deformable-hinge-invariant}.
 
 The perturbation of the relative position yields
 \begin{equation}
-	\delta\hat{\T{d}} = \hat{\TT{R}}^T \plbr{
+	\delta\tilde{\T{d}} = \hat{\TT{R}}^T \plbr{
 		\delta\T{d} + \T{d} \times \hat{\T{\theta}}_{\delta}
 	}
 \end{equation}
@@ -3410,7 +3410,7 @@ where
 
 The perturbation of the relative velocity yields
 \begin{equation}
-	\delta\dot{\hat{\T{d}}} = \hat{\TT{R}}^T \plbr{
+	\delta\dot{\tilde{\T{d}}} = \hat{\TT{R}}^T \plbr{
 		\delta\dot{\T{d}}
 		+ \T{d} \times \delta\hat{\T{\omega}}
 		- \hat{\T{\omega}} \times \delta\T{d}
@@ -3606,7 +3606,7 @@ becomes
 \end{align}
 The force and the moment result from the VWP
 \begin{align}
-	\delta\mathcal{L} &= \delta \hat{\T{d}}^T \tilde{\T{F}} \\
+	\delta\mathcal{L} &= \delta \tilde{\T{d}}^T \tilde{\T{F}} \\
 	&= \plbr{
 		\delta\T{d}
 		+ \T{d} \times \hat{\T{\theta}}_{\delta}
@@ -3628,7 +3628,7 @@ and,
 after defining
 \begin{equation}
 	\T{F} = \hat{\T{R}}
-		\tilde{\T{F}}\plbr{\hat{\T{d}}, \dot{\hat{\T{d}}}} ,
+		\tilde{\T{F}}\plbr{\tilde{\T{d}}, \dot{\tilde{\T{d}}}} ,
 \end{equation}
  are
 \begin{align}
@@ -3646,8 +3646,8 @@ after defining
 Their linearization, after defining
 \begin{equation}
 	\delta\T{F} = \hat{\T{R}} \plbr{
-		\tilde{\T{F}}_{/\hat{\T{d}}} \delta{\hat{\T{d}}}
-		+ \tilde{\T{F}}_{/\dot{\hat{\T{d}}}} \delta\dot{\hat{\T{d}}}
+		\tilde{\T{F}}_{/\tilde{\T{d}}} \delta{\tilde{\T{d}}}
+		+ \tilde{\T{F}}_{/\dot{\tilde{\T{d}}}} \delta\dot{\tilde{\T{d}}}
 	} - \T{F} \times \hat{\T{\theta}}_{\delta} ,
 \end{equation}
 yields
@@ -3667,10 +3667,10 @@ yields
 \end{align}
 After setting
 \begin{align}
-	\T{F}_{/\hat{\T{d}}} &=
-		\hat{\T{R}} \tilde{\T{F}}_{/\hat{\T{d}}} \hat{\T{R}}^T \\
-	\T{F}_{/\dot{\hat{\T{d}}}} &=
-		\hat{\T{R}} \tilde{\T{F}}_{/\dot{\hat{\T{d}}}} \hat{\T{R}}^T
+	\T{F}_{/\tilde{\T{d}}} &=
+		\hat{\T{R}} \tilde{\T{F}}_{/\tilde{\T{d}}} \hat{\T{R}}^T \\
+	\T{F}_{/\dot{\tilde{\T{d}}}} &=
+		\hat{\T{R}} \tilde{\T{F}}_{/\dot{\tilde{\T{d}}}} \hat{\T{R}}^T
 	,
 \end{align}
 the complete linearized problem, considering the updated-updated 
