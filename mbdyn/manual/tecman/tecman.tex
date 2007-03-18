@@ -3248,12 +3248,17 @@ The nodal forces and moments result from the VWP
 which corresponds to
 \begin{align}
 	\T{F}_i &= \plbr{ -1 }^i \T{R}_{1h} \tilde{\T{F}}\plbr{\tilde{\T{d}}, \dot{\tilde{\T{d}}}} \\
-	\T{M}_i &= \T{b}_i \times \T{F}_i
+	\T{M}_i &= \T{d}_i \times \T{F}_i
 \end{align}
-with
+where $\T{d}_1$ has already been defined, and
+\begin{equation}
+	\T{d}_2 = \T{f}_2 ;
+\end{equation}
+note that
 \begin{align}
-	\T{b}_1 &= \T{d}_1 \\
-	\T{b}_2 &= \T{f}_2 .
+	\T{\omega}_2\times\T{f}_2
+	&= \T{\omega}_2\times\T{d}_2 \\
+	&= \dot{\T{d}}_2 .
 \end{align}
 Their linearization yields
 \begin{eqnarray*}
@@ -3261,24 +3266,25 @@ Their linearization yields
 		\tilde{\T{F}}_{/\tilde{\T{d}}} \delta{\tilde{\T{d}}}
 		+ \tilde{\T{F}}_{/\dot{\tilde{\T{d}}}} \delta\dot{\tilde{\T{d}}}
 	} - \T{F}_i \times \T{\theta}_{1\delta} \\
-	\delta\T{M}_i & = & \T{b}_i \times \delta\T{F}_i + \T{F}_i \times \T{b}_i \times \T{\theta}_{i\delta}
+	\delta\T{M}_i & = & \T{d}_i \times \delta\T{F}_i
+	- \T{F}_i \times \delta \T{d}_i
 \end{eqnarray*}
 The complete linearized problem, after applying the updated-updated 
 approximation, is
 \begin{eqnarray*}
 	\sqbr{\matr{cccc}{
 		\T{F}_{/\dot{\tilde{\T{d}}}} & -\T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{} &
-			- \T{F}_{/\dot{\tilde{\T{d}}}} & \T{F}_{/\dot{\tilde{\T{d}}}} \T{f}_2\times{} \\
+			- \T{F}_{/\dot{\tilde{\T{d}}}} & \T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_2\times{} \\
 		\T{d}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}} &
 			- \T{d}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{} &
 			- \T{d}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}} &
-			\T{d}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}} \T{f}_2\times{} \\
+			\T{d}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_2\times{} \\
 		- \T{F}_{/\dot{\tilde{\T{d}}}} & \T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{} &
-			\T{F}_{/\dot{\tilde{\T{d}}}} & - \T{F}_{/\dot{\tilde{\T{d}}}} \T{f}_2\times{} \\
-		- \T{f}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}} &
-			\T{f}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{} &
-			\T{f}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}} &
-			- \T{f}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}} \T{f}_2\times{}
+			\T{F}_{/\dot{\tilde{\T{d}}}} & - \T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_2\times{} \\
+		- \T{d}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}} &
+			\T{d}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{} &
+			\T{d}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}} &
+			- \T{d}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_2\times{}
 	}} \cubr{\cvvect{
 		\delta\dot{\T{x}}_1 \\
 		\delta\dot{\T{g}}_1 \\
@@ -3287,14 +3293,17 @@ approximation, is
 	}} & & \\
 	\mbox{} + \sqbr{\cvvect{
 		\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
-		\T{d}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}} \\
+		\T{d}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}}
+			- \T{F}\times{} \\
 		- \T{F}_{/\tilde{\T{d}}} + \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
-		- \T{f}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}}
-	}} \delta\T{x}_1 + \sqbr{\cvvect{
+		- \T{d}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}}
+	}} \delta\T{x}_1 & & \\
+	\mbox{} + \sqbr{\cvvect{
 		- \T{F}_{/\tilde{\T{d}}} + \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
-		- \T{d}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}} \\
+		- \T{d}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}}
+			+ \T{F}\times{} \\
 		\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
-		\T{f}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}}
+		\T{d}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}}
 	}} \delta\T{x}_2 & & \\
 	\mbox{} + \sqbr{\cvvect{
 		- \T{F}_{/\tilde{\T{d}}} \T{d}_1 \times{}
@@ -3310,43 +3319,43 @@ approximation, is
 		+ \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
 			\dot{\T{d}}_1 \times{} - \T{\omega}_1 \times \T{d}_1\times{}
 		} - \T{F}\times \\
-		\T{f}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} \T{d}_1 \times{}
+		\T{d}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} \T{d}_1 \times{}
 			+ \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
 				\dot{\T{d}}_1 \times{} - \T{\omega}_1 \times \T{d}_1\times{}
 			}
 		}
-		 - \T{f}_2 \times \T{F}\times{}
+		 - \T{d}_2 \times \T{F}\times{}
 	}} \delta\T{g}_1 \\
 	\mbox{} + \sqbr{\cvvect{
-		\T{F}_{/\tilde{\T{d}}} \T{f}_2 \times{}
+		\T{F}_{/\tilde{\T{d}}} \T{d}_2 \times{}
 		+ \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
-			\plbr{\T{\omega}_2 \times \T{f}_2}\times{}
-			- \T{\omega}_1 \times \T{f}_2\times{}
+			\plbr{\T{\omega}_2 \times \T{d}_2}\times{}
+			- \T{\omega}_1 \times \T{d}_2\times{}
 		} \\
-		\T{d}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} \T{f}_2 \times{}
+		\T{d}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} \T{d}_2 \times{}
 			+ \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
-				\plbr{\T{\omega}_2 \times \T{f}_2}\times{}
-				- \T{\omega}_1 \times \T{f}_2\times{}
+				\plbr{\T{\omega}_2 \times \T{d}_2}\times{}
+				- \T{\omega}_1 \times \T{d}_2\times{}
 			}
 		} \\
-		- \T{F}_{/\tilde{\T{d}}} \T{f}_2 \times{}
+		- \T{F}_{/\tilde{\T{d}}} \T{d}_2 \times{}
 		- \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
-			\plbr{\T{\omega}_2 \times \T{f}_2}\times{}
-			- \T{\omega}_1 \times \T{f}_2\times{}
+			\plbr{\T{\omega}_2 \times \T{d}_2}\times{}
+			- \T{\omega}_1 \times \T{d}_2\times{}
 		} \\
-		- \T{f}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} \T{f}_2 \times{}
+		- \T{d}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} \T{d}_2 \times{}
 			+ \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
-				\plbr{\T{\omega}_2 \times \T{f}_2}\times{}
-				- \T{\omega}_1 \times \T{f}_2\times{}
+				\plbr{\T{\omega}_2 \times \T{d}_2}\times{}
+				- \T{\omega}_1 \times \T{d}_2\times{}
 			}
-		} + \T{F} \times \T{f}_2 \times{}
+		} + \T{F} \times \T{d}_2 \times{}
 	}} \delta\T{g}_2
 	& = & \\
 	\cubr{\cvvect{
 		\T{F} \\
 		\T{d}_1 \times \T{F} \\
 		- \T{F} \\
-		- \T{f}_2 \times \T{F}
+		- \T{d}_2 \times \T{F}
 	}} & &
 \end{eqnarray*}
 where 
