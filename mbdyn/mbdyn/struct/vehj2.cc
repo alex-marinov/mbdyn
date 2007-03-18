@@ -389,6 +389,9 @@ ElasticDispJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 	Vec3 d2(pNode2->GetRRef()*tilde_f2);
 	Vec3 d1(pNode2->GetXCurr() + d2 - pNode1->GetXCurr());
 
+	/* force */
+	Vec3 FTmp(F*dCoef);
+
 	/* F/d */
 	Mat3x3 DTmp(FDE*dCoef);
 
@@ -402,8 +405,6 @@ ElasticDispJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 	WM.Sub(1, 6 + 1, DTmp);
 	WM.Add(6 + 1, 6 + 1, DTmp);
 
-	Vec3 FTmp(F*dCoef);
-
 	/* delta g1 */
 	Mat3x3 MTmp(DTmp*Mat3x3(d1) - Mat3x3(FTmp));
 	WM.Sub(1, 4, MTmp);
@@ -416,13 +417,13 @@ ElasticDispJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 
 	/* Moment equation on node 1 */
 	/* d1 x F/d */
-	MTmp = Mat3x3(d1)*DTmp - Mat3x3(FTmp);
+	MTmp = Mat3x3(d1)*DTmp;
 
 	/* delta g1 */
-	WM.Sub(4, 4, MTmp*Mat3x3(d1) - Mat3x3(d1.Cross(FTmp)));
+	WM.Sub(4, 4, MTmp*Mat3x3(d1) - Mat3x3(d1, FTmp));
 
 	/* delta g2 */
-	WM.Add(4, 6 + 4, MTmp*Mat3x3(d2));
+	WM.Add(4, 6 + 4, MTmp*Mat3x3(d2) - Mat3x3(FTmp, d2));
 
 	/* d1 x F/d - F x */
 	MTmp -= Mat3x3(FTmp);
@@ -488,7 +489,7 @@ ElasticDispJoint::AssVec(SubVectorHandler& WorkVec)
 		bFirstRes = false;
 
 	} else {
-		tilde_d = R1h.Transpose()*d1;
+		tilde_d = R1h.Transpose()*d1 - tilde_f1;
 
 		ConstitutiveLaw3DOwner::Update(tilde_d);
 	}
@@ -695,6 +696,9 @@ ViscousDispJoint::AssMats(FullSubMatrixHandler& WMA,
 	Vec3 d2(pNode2->GetRCurr()*tilde_f2);
 	Vec3 d1(pNode2->GetXCurr() + d2 - pNode1->GetXCurr());
 
+	/* force */
+	Vec3 FTmp(F*dCoef);
+
 	/* F/dot{d} */
 	WMB.Add(1, 1, FDEPrime);
 	WMB.Sub(6 + 1, 1, FDEPrime);
@@ -718,8 +722,6 @@ ViscousDispJoint::AssMats(FullSubMatrixHandler& WMA,
 	WMA.Add(6 + 1, 1, CTmp);
 	WMA.Add(1, 6 + 1, CTmp);
 	WMA.Sub(6 + 1, 6 + 1, CTmp);
-
-	Vec3 FTmp(F*dCoef);
 
 	MTmp = Mat3x3(d1)*CTmp + Mat3x3(FTmp);
 
@@ -773,11 +775,14 @@ ViscousDispJoint::AssMats(FullSubMatrixHandler& WMA,
 	WMA.Add(1, 4, MTmp);
 	WMA.Sub(6 + 1, 4, MTmp);
 
-	WMA.Add(4, 4, Mat3x3(d1.Cross(FTmp)));
-	WMA.Sub(6 + 4, 4, Mat3x3(d2)*MTmp);
+	/* [ di x ] [ F x ] */
+	WMA.Add(4, 4, Mat3x3(d1, FTmp));
+	WMA.Sub(6 + 4, 4, Mat3x3(d2, FTmp));
 
-	/* [ F x ] [ fi x ] * dCoef */
-	WMA.Add(6 + 4, 6 + 4, Mat3x3(FTmp, d2));
+	/* [ F x ] [ d2 x ] * dCoef */
+	MTmp = Mat3x3(FTmp, d2);
+	WMA.Sub(4, 6 + 4, MTmp);
+	WMA.Add(6 + 4, 6 + 4, MTmp);
 }
 
 /* assemblaggio residuo */
@@ -1076,12 +1081,14 @@ ViscoElasticDispJoint::AssMats(FullSubMatrixHandler& WMA,
 		doublereal dCoef)
 {
 
-	Vec3 f1(pNode1->GetRRef()*tilde_f1);
-	Vec3 f2(pNode2->GetRRef()*tilde_f2);
-	Vec3 d1(pNode2->GetXCurr() + f2 - pNode1->GetXCurr());
-	Vec3 d1Prime(pNode2->GetVCurr() + pNode2->GetWCurr().Cross(f2)
+	Vec3 d2(pNode2->GetRRef()*tilde_f2);
+	Vec3 d1(pNode2->GetXCurr() + d2 - pNode1->GetXCurr());
+	Vec3 d1Prime(pNode2->GetVCurr() + pNode2->GetWCurr().Cross(d2)
 		- pNode1->GetVCurr());
- 
+
+	/* Force */ 
+	Vec3 FTmp(F*dCoef);
+
 	/* F/d */
 	Mat3x3 DTmp(FDE*dCoef);
 
@@ -1101,12 +1108,20 @@ ViscoElasticDispJoint::AssMats(FullSubMatrixHandler& WMA,
 	WMA.Add(6 + 1, 4, MTmp);
 
 	/* delta g2 */
-	MTmp = DTmp*Mat3x3(f2);
+	MTmp = DTmp*Mat3x3(d2);
 	WMA.Add(1, 6 + 4, MTmp);
 	WMA.Sub(6 + 1, 6 + 4, MTmp);
 
 	/* Moment equation on node 1 */
-	MTmp = Mat3x3(f1)*DTmp;
+	MTmp = Mat3x3(d1)*DTmp;
+
+	/* delta g1 */
+	WMA.Sub(4, 4, MTmp*Mat3x3(d1));
+
+	/* delta g2 */
+	WMA.Add(4, 6 + 4, MTmp*Mat3x3(d2));
+
+	MTmp -= Mat3x3(FTmp);
 
 	/* delta x1 */
 	WMA.Add(4, 1, MTmp);
@@ -1114,14 +1129,8 @@ ViscoElasticDispJoint::AssMats(FullSubMatrixHandler& WMA,
 	/* delta x2 */
 	WMA.Sub(4, 6 + 1, MTmp);
 
-	/* delta g1 */
-	WMA.Sub(4, 4, MTmp*Mat3x3(d1));
-
-	/* delta g2 */
-	WMA.Add(4, 6 + 4, MTmp*Mat3x3(f2));
-
 	/* Moment equation on node 2 */
-	MTmp = Mat3x3(f2)*DTmp;
+	MTmp = Mat3x3(d2)*DTmp;
 
 	/* delta x1 */
 	WMA.Sub(6 + 4, 1, MTmp);
@@ -1133,7 +1142,7 @@ ViscoElasticDispJoint::AssMats(FullSubMatrixHandler& WMA,
 	WMA.Add(6 + 4, 4, MTmp*Mat3x3(d1));
 
 	/* delta g2 */
-	WMA.Sub(6 + 4, 6 + 4, MTmp*Mat3x3(f2));
+	WMA.Sub(6 + 4, 6 + 4, MTmp*Mat3x3(d2));
 
 	/* F/dot{d} */
 	WMB.Add(1, 1, FDEPrime);
@@ -1141,12 +1150,12 @@ ViscoElasticDispJoint::AssMats(FullSubMatrixHandler& WMA,
 	WMB.Sub(1, 6 + 1, FDEPrime);
 	WMB.Add(6 + 1, 6 + 1, FDEPrime);
 
-	MTmp = Mat3x3(f1)*FDEPrime;
+	MTmp = Mat3x3(d1)*FDEPrime;
 
 	WMB.Add(4, 1, MTmp);
 	WMB.Sub(4, 6 + 1, MTmp);
 
-	MTmp = Mat3x3(f2)*FDEPrime;
+	MTmp = Mat3x3(d2)*FDEPrime;
 
 	WMB.Sub(6 + 4, 1, MTmp);
 	WMB.Add(6 + 4, 6 + 1, MTmp);
@@ -1159,63 +1168,59 @@ ViscoElasticDispJoint::AssMats(FullSubMatrixHandler& WMA,
 	WMA.Add(1, 6 + 1, CTmp);
 	WMA.Sub(6 + 1, 6 + 1, CTmp);
 
-	MTmp = Mat3x3(f1)*CTmp;
+	MTmp = Mat3x3(d1)*CTmp;
 
 	WMA.Sub(4, 1, MTmp);
 	WMA.Add(4, 6 + 1, MTmp);
 
-	MTmp = Mat3x3(f2)*CTmp;
+	MTmp = Mat3x3(d2)*CTmp;
 
 	WMA.Add(6 + 4, 1, MTmp);
 	WMA.Sub(6 + 4, 6 + 1, MTmp);
 
-	/* F/dot{d} * [ f2 x ] */
-	MTmp = FDEPrime*Mat3x3(f2);
+	/* F/dot{d} * [ d2 x ] */
+	MTmp = FDEPrime*Mat3x3(d2);
 
 	WMB.Add(1, 6 + 4, MTmp);
 	WMB.Sub(6 + 1, 6 + 4, MTmp);
 
-	WMB.Add(4, 6 + 4, Mat3x3(f1)*MTmp);
-	WMB.Sub(6 + 4, 6 + 4, Mat3x3(f2)*MTmp);
+	WMB.Add(4, 6 + 4, Mat3x3(d1)*MTmp);
+	WMB.Sub(6 + 4, 6 + 4, Mat3x3(d2)*MTmp);
 
-	/* F/dot{d} * [ (x2 + f2 - x) x ] */
+	/* F/dot{d} * [ (x2 + d2 - x) x ] */
 	MTmp = FDEPrime*Mat3x3(d1);
 
 	WMB.Sub(1, 4, MTmp);
 	WMB.Add(6 + 1, 4, MTmp);
 
-	WMB.Sub(4, 4, Mat3x3(f1)*MTmp);
-	WMB.Add(6 + 4, 4, Mat3x3(f2)*MTmp);
+	WMB.Sub(4, 4, Mat3x3(d1)*MTmp);
+	WMB.Add(6 + 4, 4, Mat3x3(d2)*MTmp);
 
-	/* F/dot{d} * ( [ ( w2 x f2 ) x ] - [ w1 x ] [ f2 x ] ) * dCoef */
-	MTmp = FDEPrime*(Mat3x3(pNode2->GetWCurr().Cross(f2*dCoef))
-		- Mat3x3(pNode1->GetWCurr(), f2*dCoef));
+	/* F/dot{d} * ( [ ( w2 x d2 ) x ] - [ w1 x ] [ d2 x ] ) * dCoef */
+	MTmp = FDEPrime*(Mat3x3(pNode2->GetWCurr().Cross(d2*dCoef))
+		- Mat3x3(pNode1->GetWCurr(), d2*dCoef));
 	WMA.Add(1, 6 + 4, MTmp);
 	WMA.Sub(6 + 1, 6 + 4, MTmp);
 
-	WMA.Add(4, 6 + 4, Mat3x3(f1)*MTmp);
-	WMA.Sub(6 + 4, 6 + 4, Mat3x3(f2)*MTmp);
+	WMA.Add(4, 6 + 4, Mat3x3(d1)*MTmp);
+	WMA.Sub(6 + 4, 6 + 4, Mat3x3(d2)*MTmp);
 
 	/* F/dot{d} * ( [ d1Prime x ] - [ w1 x ] [ d1 x ] ) * dCoef */
 	MTmp = FDEPrime*(Mat3x3(d1Prime*dCoef) - Mat3x3(pNode1->GetWCurr(), d1*dCoef));
 	WMA.Sub(1, 4, MTmp);
 	WMA.Add(6 + 1, 4, MTmp);
 
-	WMA.Sub(4, 6 + 4, Mat3x3(f1)*MTmp);
-	WMA.Add(6 + 4, 6 + 4, Mat3x3(f2)*MTmp);
+	WMA.Sub(4, 6 + 4, Mat3x3(d1)*MTmp);
+	WMA.Add(6 + 4, 6 + 4, Mat3x3(d2)*MTmp);
 
-	Vec3 FTmp(F*dCoef);
-
-	/* - [ F x ] * dCoef */
-	MTmp = Mat3x3(FTmp);
-	WMA.Add(1, 4, MTmp);
-	WMA.Sub(6 + 1, 4, MTmp);
-
-	WMA.Add(4, 4, Mat3x3(f1.Cross(FTmp)));
-	WMA.Sub(6 + 4, 4, Mat3x3(f2)*MTmp);
+	/* [ di x ] [ F x ] */
+	WMA.Add(4, 4, Mat3x3(d1, FTmp));
+	WMA.Sub(6 + 4, 4, Mat3x3(d2, FTmp));
 
 	/* [ F x ] [ fi x ] * dCoef */
-	WMA.Add(6 + 4, 6 + 4, Mat3x3(FTmp, f2));
+	MTmp = Mat3x3(FTmp, d2);
+	WMA.Sub(4, 6 + 4, MTmp);
+	WMA.Add(6 + 4, 6 + 4, MTmp);
 }
 
 /* assemblaggio residuo */
@@ -1250,19 +1255,18 @@ void
 ViscoElasticDispJoint::AssVec(SubVectorHandler& WorkVec)
 {
 	Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
-	Vec3 f1(pNode1->GetRCurr()*tilde_f1);
-	Vec3 f2(pNode2->GetRCurr()*tilde_f2);
+	Vec3 d2(pNode2->GetRCurr()*tilde_f2);
+	Vec3 d1(pNode2->GetXCurr() + d2 - pNode1->GetXCurr());
 
 	if (bFirstRes) {
 		bFirstRes = false;
 
 	} else {
 		Mat3x3 R1hT(R1h.Transpose());
-		Vec3 d1(pNode2->GetXCurr() + f2 - pNode1->GetXCurr());
-		Vec3 d1Prime(pNode2->GetVCurr() - f2.Cross(pNode2->GetWCurr())
+		Vec3 d1Prime(pNode2->GetVCurr() - d2.Cross(pNode2->GetWCurr())
 				- pNode1->GetVCurr());
 
-		tilde_d = R1hT*(d1 - f1);
+		tilde_d = R1hT*d1 - tilde_f1;
 		tilde_dPrime = R1hT*(d1Prime - d1.Cross(pNode1->GetWCurr()));
 
 		ConstitutiveLaw3DOwner::Update(tilde_d, tilde_dPrime);
@@ -1271,9 +1275,9 @@ ViscoElasticDispJoint::AssVec(SubVectorHandler& WorkVec)
 	Vec3 F(R1h*GetF());
 
 	WorkVec.Add(1, F);
-	WorkVec.Add(4, f1.Cross(F));
+	WorkVec.Add(4, d1.Cross(F));
 	WorkVec.Sub(6 + 1, F);
-	WorkVec.Sub(6 + 4, f2.Cross(F));
+	WorkVec.Sub(6 + 4, d2.Cross(F));
 }
 
 void
