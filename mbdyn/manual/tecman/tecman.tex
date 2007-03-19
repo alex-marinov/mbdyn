@@ -3299,13 +3299,6 @@ approximation, is
 		- \T{d}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}}
 	}} \delta\T{x}_1 & & \\
 	\mbox{} + \sqbr{\cvvect{
-		- \T{F}_{/\tilde{\T{d}}} + \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
-		- \T{d}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}}
-			+ \T{F}\times{} \\
-		\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
-		\T{d}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}}
-	}} \delta\T{x}_2 & & \\
-	\mbox{} + \sqbr{\cvvect{
 		- \T{F}_{/\tilde{\T{d}}} \T{d}_1 \times{}
 		- \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
 			\dot{\T{d}}_1 \times{} - \T{\omega}_1 \times \T{d}_1\times{}
@@ -3326,6 +3319,13 @@ approximation, is
 		}
 		 - \T{d}_2 \times \T{F}\times{}
 	}} \delta\T{g}_1 \\
+	\mbox{} + \sqbr{\cvvect{
+		- \T{F}_{/\tilde{\T{d}}} + \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
+		- \T{d}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}}
+			+ \T{F}\times{} \\
+		\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
+		\T{d}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}}
+	}} \delta\T{x}_2 & & \\
 	\mbox{} + \sqbr{\cvvect{
 		\T{F}_{/\tilde{\T{d}}} \T{d}_2 \times{}
 		+ \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
@@ -3642,14 +3642,14 @@ after defining
  are
 \begin{align}
 	\T{F}_1 &= - \T{F} \\
-	\T{M}_1 &= \plbr{
-		\hat{\T{I}}
-		- \T{f}_1 \times{}
+	\T{M}_1 &= - \plbr{
+		\T{f}_1 \times{}
+		+ \hat{\T{I}} \T{d}\times{}
 	} \T{F} \\
 	\T{F}_2 &= \T{F} \\
 	\T{M}_2 &= \plbr{
-		\hat{\T{I}}^T
-		+ \T{f}_2 \times{}
+		\T{f}_2 \times{}
+		- \hat{\T{I}}^T \T{d}\times{}
 	} \T{F} .
 \end{align}
 Their linearization, after defining
