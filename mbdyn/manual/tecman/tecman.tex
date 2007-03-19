@@ -2667,6 +2667,7 @@ according to what stated earlier.
 The perturbation of $\T{\theta}$ yields
 \begin{equation}
 	\T{\theta}_{\delta} = \T{R}_{1h}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
+	\label{eq:def-h-theta-delta}
 \end{equation}
 which, according to the updated-updated approach, becomes
 \begin{equation}
@@ -2773,21 +2774,11 @@ to node 2 is defined by $-\tilde{\T{\theta}}$, i.e.\ $\tilde{\T{R}}^T$.
 The orientation of the intermediate frame with respect
 to the global frame is thus
 \begin{eqnarray}
-	\hat{\T{R}} & = & \T{R}_{1h} \tilde{\T{R}} \\
+	\hat{\T{R}} & = & \T{R}_{1h} \tilde{\T{R}}
+		\label{eq:inv-def-h-hatR-1} \\
 	& = & \T{R}_{2h} \tilde{\T{R}}^T
+		\label{eq:inv-def-h-hatR-2}
 \end{eqnarray}
-%%%
-\begin{comment}
-The derivative of $\tilde{\T{R}}$ is
-\begin{equation}
-	\dot{\tilde{\T{R}}} = \frac{1}{2}\plbr{\T{\omega}_2 - \T{\omega}_1}\times\tilde{\T{R}}
-\end{equation}
-and the derivative of $\hat{\T{R}}$ is
-\begin{equation}
-	\dot{\hat{\T{R}}} = \frac{1}{2}\plbr{\T{\omega}_1 + \T{\omega}_2}\times\hat{\T{R}}
-\end{equation}
-\end{comment}
-%%%
 The perturbation of $\tilde{\T{R}}$ is
 \begin{equation}
 	\delta\tilde{\T{R}} = \tilde{\T{\theta}}_{\delta}\times\tilde{\T{R}}
@@ -2800,7 +2791,11 @@ and thus
 \begin{equation}
 	\tilde{\T{\theta}}_{\delta} = \T{\Gamma}\plbr{\tilde{\T{\theta}}} \frac{1}{2} \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{\theta}_{\delta} 
 \end{equation}
+
 Another interesting result is obtained by considering that
+the perturbation of the relative orientation matrix
+must be equal to the perturbation of the square 
+of the half-relative orientation, namely
 \begin{align}
 	\T{\theta}_{\delta} \times{}
 	&= \delta\plbr{\tilde{\T{R}}\tilde{\T{R}}} \plbr{\tilde{\T{R}}\tilde{\T{R}}}^T \\
@@ -2809,67 +2804,137 @@ Another interesting result is obtained by considering that
 and thus
 \begin{equation}
 	\T{\theta}_{\delta} = \plbr{\T{I} + \tilde{\T{R}}} \tilde{\T{\theta}}_{\delta}
+	\label{eq:inv-def-h-theta-delta-tilde}
 \end{equation}
-%%%
-\begin{comment}
+The matrix $\plbr{\T{I} + \tilde{\T{R}}}$ has very interesting properties.
+
+\paragraph{Property 1.} \
+\begin{equation}
+	\plbr{\T{I} + \tilde{\T{R}}} \tilde{\T{R}}^T = \plbr{\T{I} + \tilde{\T{R}}^T}
+	\label{eq:inv-def-h-property-1}
+\end{equation}
+
+\paragraph{Property 2.} \
+\begin{equation}
+	\tilde{\T{R}}^T \plbr{\T{I} + \tilde{\T{R}}} = \plbr{\T{I} + \tilde{\T{R}}^T}
+	\label{eq:inv-def-h-property-2}
+\end{equation}
+
+\paragraph{Property 3.} \
+\begin{equation}
+	\plbr{\T{I} + \tilde{\T{R}}^T} \tilde{\T{R}} = \plbr{\T{I} + \tilde{\T{R}}}
+	\label{eq:inv-def-h-property-3}
+\end{equation}
+
+\paragraph{Property 4.} \
+\begin{equation}
+	\tilde{\T{R}} \plbr{\T{I} + \tilde{\T{R}}^T} = \plbr{\T{I} + \tilde{\T{R}}}
+	\label{eq:inv-def-h-property-4}
+\end{equation}
+
+\paragraph{Property 5.} \
+As a consequence
+of Equations~(\ref{eq:inv-def-h-property-1}, \ref{eq:inv-def-h-property-4}),
+\begin{equation}
+	\tilde{\T{R}} \plbr{\T{I} + \tilde{\T{R}}} \tilde{\T{R}}^T = \plbr{\T{I} + \tilde{\T{R}}}
+	\label{eq:inv-def-h-property-5}
+\end{equation}
+which basically means that the trasformation $\plbr{\T{I} + \tilde{\T{R}}}$
+is coaxial with the rotation described by matrix $\tilde{\T{R}}$.
+A similar property exists for matrix $\plbr{\T{I} + \tilde{\T{R}}^T}$
+(e.g.\ by transposing Equation~(\ref{eq:inv-def-h-property-5})),
+while the following
+
+\paragraph{Property 6.} \
+\begin{equation}
+	\tilde{\T{R}}^T \plbr{\T{I} + \tilde{\T{R}}} \tilde{\T{R}} = \plbr{\T{I} + \tilde{\T{R}}}
+	\label{eq:inv-def-h-property-6}
+\end{equation}
+is true as a consequence
+of Equations~(\ref{eq:inv-def-h-property-2}, \ref{eq:inv-def-h-property-3}).
+
+\paragraph{Property 7.} \
+Another interesting property is
+\begin{equation}
+	\T{I} - \plbr{\T{I} + \tilde{\T{R}}}^{-1} = \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} .
+	\label{eq:inv-def-h-property-7}
+\end{equation}
+This can be easily proved by considering that,
+according to Equation~(\ref{eq:inv-def-h-property-4}),
+\begin{align}
+	\plbr{\T{I} + \tilde{\T{R}}}^{-1}
+	&= \plbr{\tilde{\T{R}}\plbr{\T{I} + \tilde{\T{R}}^T}}^{-1} \\
+	&= \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \tilde{\T{R}}^T ,
+\end{align}
+and, as a consequence,
+\begin{equation}
+	\T{I} = \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \plbr{\T{I} + \tilde{\T{R}}^T}
+\end{equation}
+which reduces again to the identity matrix.
+
+As a consequence
+of Equations~(\ref{eq:inv-def-h-property-1}--\ref{eq:inv-def-h-property-4}),
+\begin{equation}
+	\hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}} 
+	= \T{R}_{1h} \plbr{\T{I} + \tilde{\T{R}}^T}
+\end{equation}
+and
+\begin{equation}
+	\hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}^T}^{-1}
+	= \T{R}_{1h} \plbr{\T{I} + \tilde{\T{R}}}^{-1}
+\end{equation}
+and all other combinations.
+
+According to Equations~(\ref{eq:inv-def-h-theta-delta-tilde})
+and (\ref{eq:def-h-theta-delta}),
+the perturbation of the intermediate relative orientation yields
 \begin{align}
 	\tilde{\T{\theta}}_{\delta}
-	&= \frac{1}{2} \T{\theta}_{\delta} \\
-	&= \frac{1}{2} \T{R}_{1h}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \\
-	&\equu \frac{1}{2} \T{R}_{1h}^T \plbr{\delta\T{g}_2 - \delta\T{g}_1}
+	&= \plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{\theta}_{\delta} \\
+	&= \plbr{\T{I} + \tilde{\T{R}}}^{-1}
+		\T{R}_{1h}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \\
+	&= \plbr{\T{I} + \tilde{\T{R}}^T}^{-1}
+		\hat{\T{R}}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
 \end{align}
-while the perturbation of $\hat{\T{R}}$ yields
+
+The perturbation of $\hat{\T{R}}$, according 
+to Equations~(\ref{eq:inv-def-h-hatR-1}) and (\ref{eq:inv-def-h-hatR-2})
+respectively, yields
 \begin{align}
-	\delta\hat{\T{R}}
-	&= \delta\T{R}_{1h} \tilde{\T{R}} + \T{R}_{1h} \delta\tilde{\T{R}} \\
-	&= \T{\theta}_{1\delta} \times \hat{\T{R}}
-		+ \frac{1}{2}\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \times \hat{\T{R}} \\
-	&= \frac{1}{2}\plbr{\T{\theta}_{2\delta} + \T{\theta}_{1\delta}} \times \hat{\T{R}}
+	\delta\hat{\T{R}} \hat{\T{R}}^T
+	&= \T{\theta}_{1\delta} \times
+		+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta}\times \T{R}_{1h}^T \\
+	&= \T{\theta}_{2\delta} \times
+		- \hat{\T{R}} \tilde{\T{\theta}}_{\delta}\times \hat{\T{R}}^T ,
 \end{align}
-\begin{eqnarray*}
-	\tilde{\T{\theta}}_{\delta} & = & \frac{1}{2}\T{\Gamma}\plbr{\tilde{\T{\theta}}}
-		\T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \\
-	& \equu & \frac{1}{2}\T{\Gamma}\plbr{\tilde{\T{\theta}}}
-		\T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T\plbr{\delta\T{g}_2 - \delta\T{g}_1}
-\end{eqnarray*}
-The perturbation of $\dot{\tilde{\T{R}}}$ is
-\begin{eqnarray*}
-	\delta\dot{\tilde{\T{R}}}
-	& = & \frac{1}{2}\plbr{\delta\T{\omega}_2 - \delta\T{\omega}_1}\times\tilde{\T{R}}
-	+ \frac{1}{2}\plbr{\T{\omega}_2 - \T{\omega}_1}\times\delta\tilde{\T{R}} \\
-	& \equu & \frac{1}{2}\plbr{
-		\delta\dot{\T{g}}_2 - \T{\omega}_2\times\delta\T{g}_2
-		- \delta\dot{\T{g}}_1 + \T{\omega}_1\times\delta\T{g}_1
-	}\times\tilde{\T{R}}
-	+ \frac{1}{2}\plbr{\T{\omega}_2 - \T{\omega}_1}\times\delta\tilde{\T{R}}
-\end{eqnarray*}
-The perturbation of $\dot{\hat{\T{R}}}$ is
-\begin{eqnarray*}
-	\delta\dot{\hat{\T{R}}}
-	& = & \frac{1}{2}\plbr{\delta\T{\omega}_2 + \delta\T{\omega}_1}\times\hat{\T{R}}
-	+ \frac{1}{2}\plbr{\T{\omega}_2 + \T{\omega}_1}\times\delta\hat{\T{R}} \\
-	& \equu & \frac{1}{2}\plbr{
-		\delta\dot{\T{g}}_2 - \T{\omega}_2\times\delta\T{g}_2
-		+ \delta\dot{\T{g}}_1 - \T{\omega}_1\times\delta\T{g}_1
-	}\times\hat{\T{R}}
-	+ \frac{1}{2}\plbr{\T{\omega}_2 + \T{\omega}_1}\times\delta\hat{\T{R}}
-\end{eqnarray*}
-The relative rotation that represents the straining of the hinge,
-in the material frame, is actually $\tilde{\T{R}}^T\T{\theta}$,
-which, by definition, is equivalent to $\T{\theta}$; its perturbation
-yields
+so
 \begin{align}
-	\delta\plbr{\tilde{\T{R}}^T\T{\theta}}
-	&= \tilde{\T{R}}^T \plbr{
-		\T{\theta} \times \tilde{\T{\theta}}_{\delta}
-		+ \T{\theta}_{\delta}
-	} \\
-	&= \hat{\T{R}}^T \plbr{
-		\T{I} + \frac{1}{2} \plbr{\T{R}_{1h} \T{\theta}} \times{}
-	} \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
+	\hat{\T{\theta}}_{\delta}
+	&= \T{\theta}_{1\delta}
+		+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta}
+		&& \text{Eq.~(\ref{eq:inv-def-h-hatR-1})} \\
+	&= \T{\theta}_{1\delta}
+		+ \T{R}_{1h} \plbr{\T{I} + \tilde{\T{R}}}^{-1}
+		\T{R}_{1h}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \\
+	&= \T{\theta}_{1\delta}
+		+ \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1}
+		\hat{\T{R}}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \\
+	&= \T{\theta}_{2\delta}
+		- \hat{\T{R}} \tilde{\T{\theta}}_{\delta}
+		&& \text{Eq.~(\ref{eq:inv-def-h-hatR-2})} \\
+	&= \T{\theta}_{2\delta}
+		- \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1}
+		\T{R}_{1h}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \\
+	&= \T{\theta}_{2\delta}
+		- \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}^T}^{-1}
+		\hat{\T{R}}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
 \end{align}
-\end{comment}
-%%%
+
+
+
+
+
+
 
 The relative angular velocity, in the intermediate reference frame, is
 \begin{equation}
@@ -2927,20 +2992,7 @@ and thus
 	&= \tilde{\T{R}}^{-T} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \tilde{\T{R}}^{-1} \\
 	&= \tilde{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \tilde{\T{R}}^T ,
 \end{align}
-while
-\begin{equation}
-	\T{I} - \plbr{\T{I} + \tilde{\T{R}}}^{-1} = \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} .
-\end{equation}
-This can be easily proved by considering that
-\begin{equation}
-	\plbr{\T{I} + \tilde{\T{R}}}^{-1} = \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \tilde{\T{R}}^T
-	\label{eq:inv-deformable-hinge-I-tilde}
-\end{equation}
-and, as a consequence,
-\begin{equation}
-	\T{I} = \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \plbr{\T{I} + \tilde{\T{R}}^T}
-\end{equation}
-which reduces again to the identity matrix.
+where Equation~(\ref{eq:inv-def-h-property-7}) has been used.
 
 
 
