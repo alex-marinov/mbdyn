@@ -94,6 +94,20 @@ ScalarNode::~ScalarNode(void)
 	NO_OP;
 }
 
+/* default output: do nothing */
+std::ostream&
+ScalarNode::Output(std::ostream& out) const
+{
+	return out;
+}
+
+/* Scrive l'output come abstract */
+void
+ScalarNode::Output(OutputHandler& OH) const
+{
+	(void)Output(OH.Abstract());
+}
+
 unsigned int
 ScalarNode::iGetNumDof(void) const
 {

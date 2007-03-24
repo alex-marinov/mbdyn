@@ -202,6 +202,10 @@ public:
 /* ScalarNode - begin */
 
 class ScalarNode : public Node {
+protected:
+	/* scrive l'output */
+	virtual std::ostream& Output(std::ostream& out) const;
+
 public:
 	/* Costruttori */
 
@@ -212,6 +216,9 @@ public:
 	virtual ~ScalarNode(void);
 
 	/* Funzioni di servizio */
+
+	/* Scrive l'output come abstract */
+	virtual void Output(OutputHandler& OH) const;
 
 	/*
 	 * Ritorna il numero di DoFs ( == 1).
@@ -264,6 +271,9 @@ protected:
 	doublereal dXPrev;
 	/* Valore della derivata del DoF al passo precedente */
 	doublereal dXPPrev;
+
+	/* scrive l'output */
+	virtual std::ostream& Output(std::ostream& out) const;
 
 public:
 	/* Costruttori */
@@ -339,9 +349,6 @@ public:
 	/* Aggiorna i valori interni */
 	virtual void Update(const class VectorHandler&, const class VectorHandler&);
 
-	/* scrive l'output */
-	virtual std::ostream& Output(std::ostream& out) const;
-
 	/* restart */
 	std::ostream& Restart(std::ostream& out) const;
 
@@ -390,6 +397,9 @@ protected:
 
 	/* Valore del DoF al passo precedente */
 	doublereal dXPrev;
+
+	/* scrive l'output */
+	virtual std::ostream& Output(std::ostream& out) const;
 
 public:
 	/* Costruttori */
@@ -457,9 +467,6 @@ public:
 
 	/* Aggiorna i valori interni */
 	virtual void Update(const class VectorHandler&, const class VectorHandler&);
-
-	/* scrive l'output */
-	virtual std::ostream& Output(std::ostream& out) const;
 
 	/* restart */
 	std::ostream& Restart(std::ostream& out) const;
