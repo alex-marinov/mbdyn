@@ -2657,6 +2657,33 @@ The same applies for any relative orientation tensor built from a rotation
 vector $\alpha\T{\theta}$ parallel to $\T{\theta}$, whatever value 
 the scalar $\alpha$ assumes.
 
+The relative angular velocity is defined as the derivative
+of the relative orientation matrix
+\begin{align}
+	\T{\omega}\times{}
+	&= \frac{\mathrm{d}}{\mathrm{d}t} \plbr{
+		\T{R}_{1h}^T \T{R}_{2h}
+	} \plbr{
+		\T{R}_{1h}^T \T{R}_{2h}
+	}^T \\
+	&= \plbr{
+		\dot{\T{R}}_{1h}^T \T{R}_{2h}
+		+ \T{R}_{1h}^T \dot{\T{R}}_{2h}
+	} \T{R}_{2h}^T \T{R}_{1h} \\
+	&= \T{R}_{1h}^T \T{\omega}_1 \times^T \T{R}_{1h}
+	+ \T{R}_{1h}^T \T{\omega}_2 \times \T{R}_{1h} \\
+	&= \T{R}_{1h}^T \plbr{
+		\T{\omega}_2 - \T{\omega}_1
+	}\times \T{R}_{1h}
+\end{align}
+so
+\begin{equation}
+	\T{\omega} = \T{R}_{1h}^T \plbr{
+		\T{\omega}_2 - \T{\omega}_1
+	}
+	\label{eq:deformable-hinge-attached-omega}
+\end{equation}
+
 
 
 \subsubsection{Attached Deformable Hinge}
@@ -2674,6 +2701,7 @@ which, according to the updated-updated approach, becomes
 	\T{\theta}_{\delta} \equu \T{R}_{1h}^T\plbr{\delta\T{g}_2 - \delta\T{g}_1}
 \end{equation}
 
+\begin{comment}
 The relative angular velocity stems from the time derivative
 of $\TT{R}_{1h}^T\TT{R}_{2h}$
 \begin{equation}
@@ -2688,7 +2716,10 @@ in fact, the time derivative of the relative orientation yields
 	&= \T{R}_{1h}^T \T{\omega}_1 \times{}^T \T{R}_{1h} + \T{R}_{1h}^T \T{\omega}_2 \times \T{R}_{1h} \\
 	&= \T{R}_{1h}^T \plbr{\T{\omega}_2 - \T{\omega}_1} \times \T{R}_{1h}
 \end{align}
-Its perturbation, according to the updated-updated approach, yields
+\end{comment}
+The perturbation of the relative angular velocity
+of Equation~(\ref{eq:deformable-hinge-attached-omega}),
+according to the updated-updated approach, yields
 \begin{align}
 	\delta\T{\omega} &= \T{R}_{1h}^T\plbr{
 		\plbr{\T{\omega}_2 - \T{\omega}_1} \times \T{\theta}_{1\delta}
@@ -2885,6 +2916,105 @@ and
 \end{equation}
 and all other combinations.
 
+It is convenient to define
+\begin{equation}
+	\hat{\T{I}} =
+		\hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T ;
+\end{equation}
+its perturbation yields
+\begin{align}
+	\delta\hat{\T{I}}
+	&= \delta\hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T
+	\nonumber \\
+	& \mbox{\hspace{12pt}}
+	+ \hat{\T{R}} \ \delta\! \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T
+	\nonumber \\
+	& \mbox{\hspace{12pt}}
+	+ \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \delta\hat{\T{R}}^T \\
+	&= \plbr{
+		\T{\theta}_{1\delta} \times \hat{\T{R}}
+		+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta} \times \tilde{\T{R}}
+	} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T
+	\nonumber \\
+	& \mbox{\hspace{12pt}}
+	- \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1}
+		\tilde{\T{\theta}}_{\delta} \times
+		\plbr{\T{I} + \tilde{\T{R}}^T}^{-1}
+		\hat{\T{R}}^T
+	\nonumber \\
+	& \mbox{\hspace{12pt}}
+	+ \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \plbr{
+		\hat{\T{R}}^T \T{\theta}_{1\delta} \times^T
+		+ \tilde{\T{R}}^T \tilde{\T{\theta}}_{\delta} \times^T \T{R}_{1h}^T
+	} \\
+	&= \plbr{
+		\T{\theta}_{1\delta}
+		+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta}
+	} \times \hat{\T{I}}
+	- \hat{\T{I}} \plbr{\hat{\T{R}} \tilde{\T{\theta}}_{\delta}} \times \hat{\T{I}}^T
+	- \hat{\T{I}} \plbr{
+		\T{\theta}_{1\delta}
+		+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta}
+	}\times{}
+\end{align}
+But
+\begin{align}
+	\T{R}_{1h} \tilde{\T{\theta}}_{\delta}
+	&= \T{R}_{1h} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_{1h}^T \plbr{
+		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
+	} \\
+	&= \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T \plbr{
+		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
+	} \\
+	&= \hat{\T{I}} \plbr{
+		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
+	} 
+\end{align}
+and
+\begin{align}
+	\hat{\T{R}} \tilde{\T{\theta}}_{\delta}
+	&= \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_{1h}^T \plbr{
+		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
+	} \\
+	&= \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\T{R}}^T \plbr{
+		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
+	} \\
+	&= \hat{\T{I}}^T \plbr{
+		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
+	} 
+\end{align}
+so
+\begin{align}
+	\T{\theta}_{1\delta}
+	+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta}
+	&= \T{\theta}_{1\delta} + \hat{\T{I}} \plbr{
+		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
+	} \\
+	&= \hat{\T{I}} \T{\theta}_{2\delta}
+	+ \hat{\T{I}}^T \T{\theta}_{1\delta} ,
+\end{align}
+and
+\begin{align}
+	\delta\hat{\T{I}} &= \plbr{
+		\hat{\T{I}} \T{\theta}_{2\delta}
+		+ \hat{\T{I}}^T \T{\theta}_{1\delta}
+	} \times \hat{\T{I}}
+	\nonumber \\
+	& \mbox{\hspace{12pt}}
+	- \hat{\T{I}} \plbr{
+		\hat{\T{I}}^T \plbr{
+			\T{\theta}_{2\delta}
+			- \T{\theta}_{1\delta}
+		}
+	} \times \hat{\T{I}}^T
+	\nonumber \\
+	& \mbox{\hspace{12pt}}
+	- \hat{\T{I}} \plbr{
+		\hat{\T{I}} \T{\theta}_{2\delta}
+		+ \hat{\T{I}}^T \T{\theta}_{1\delta}
+	}\times{}
+\end{align}
+
 According to Equations~(\ref{eq:inv-def-h-theta-delta-tilde})
 and (\ref{eq:def-h-theta-delta}),
 the perturbation of the intermediate relative orientation yields
@@ -2927,27 +3057,56 @@ so
 		\T{R}_{1h}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \\
 	&= \T{\theta}_{2\delta}
 		- \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}^T}^{-1}
-		\hat{\T{R}}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
+		\hat{\T{R}}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \\
+	&= \hat{\T{I}} \T{\theta}_{2\delta}
+		+ \hat{\T{I}}^T \T{\theta}_{1\delta}
+\end{align}
+
+\paragraph{Relative Orientation.} \
+The relative orientation is
+\begin{align}
+	\overline{\T{\theta}}
+	&= \tilde{\T{R}}^T \T{\theta} \\
+	&= \T{\theta} ,
+\end{align}
+since $\tilde{\T{\theta}}$ is co-axial to $\T{\theta}$
+by definition.
+
+Its linearization uses the perturbation of the relative rotation angle
+in the intermediate reference frame,
+\begin{align}
+	\delta\overline{\T{\theta}}
+	&= \tilde{\T{R}}^T \delta\T{\theta} \\
+	&= \tilde{\T{R}}^T \T{\Gamma}\plbr{\T{\theta}}^{-1} \tilde{\T{R}} \hat{\T{R}}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \\
+	&= \T{\Gamma}\plbr{\T{\theta}}^{-1} \hat{\T{R}}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} ,
+\end{align}
+where the last substitution exploits
+\begin{align}
+	\tilde{\T{R}}^T \T{\Gamma}\plbr{\T{\theta}}^{-1} \tilde{\T{R}}
+	&= \tilde{\T{R}}^{-1} \T{\Gamma}\plbr{\T{\theta}}^{-1} \tilde{\T{R}}^{-T} \\
+	&= \plbr{
+		\tilde{\T{R}}^T \T{\Gamma}\plbr{\T{\theta}} \tilde{\T{R}}
+	}^{-1} \\
+	&= \T{\Gamma}\plbr{\tilde{\T{R}}^T \T{\theta}}^{-1} \\
+	&= \T{\Gamma}\plbr{\T{\theta}}^{-1} .
 \end{align}
 
 
-
-
-
-
-
-The relative angular velocity, in the intermediate reference frame, is
+\paragraph{Relative Angular Velocity.} \
+The relative angular velocity between the two nodes,
+in the intermediate reference frame $\hat{\T{R}}$, is
 \begin{equation}
-	\T{\omega} = \hat{\T{R}}^T \plbr{\T{\omega}_2 - \T{\omega}_1}
+	\overline{\T{\omega}} = \hat{\T{R}}^T \plbr{\T{\omega}_2 - \T{\omega}_1}
 	\label{eq:inv-deformable-hinge-omega-rel} ,
 \end{equation}
 which corresponds to that of the attached case,
 Eq.~(\ref{eq:deformable-hinge-attached-omega}),
-projected in the material frame by $\tilde{\TT{R}}^T$.
+but projected in the material frame by $\hat{\TT{R}}^T$
+instead of the reference frame of node 1, $\T{R}_{1h}$.
 The linearization of the angular velocity 
 of Equation~(\ref{eq:inv-deformable-hinge-omega-rel}) yields
 \begin{align}
-	\delta\T{\omega}
+	\delta\overline{\T{\omega}}
 	&= \hat{\T{R}}^T \plbr{
 		\plbr{\T{\omega}_2 - \T{\omega}_1} \times \plbr{\T{\theta}_{1\delta} + \T{R}_{1h} \tilde{\T{\theta}}_{\delta}}
 		+ \delta\T{\omega}_2 - \delta\T{\omega}_1
@@ -2969,14 +3128,14 @@ of Equation~(\ref{eq:inv-deformable-hinge-omega-rel}) yields
 	&= \hat{\T{R}}^T \plbr{
 		\delta\T{\omega}_2 - \delta\T{\omega}_1
 	} \nonumber \\
-	& \mbox{\hspace{10pt}} + \T{\omega} \times \plbr{
+	& \mbox{\hspace{10pt}} + \overline{\T{\omega}} \times \plbr{
 		\plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T \T{\theta}_{2\delta}
 		+ \plbr{\T{I} - \plbr{\T{I} + \tilde{\T{R}}}^{-1}} \hat{\T{R}}^T \T{\theta}_{1\delta}
 	} \\
 	&= \hat{\T{R}}^T \plbr{
 		\delta\T{\omega}_2 - \delta\T{\omega}_1
 	} \nonumber \\
-	& \mbox{\hspace{10pt}} + \T{\omega} \times \plbr{
+	& \mbox{\hspace{10pt}} + \overline{\T{\omega}} \times \plbr{
 		\plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T \T{\theta}_{2\delta}
 		+ \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\T{R}}^T \T{\theta}_{1\delta}
 	}
@@ -2995,64 +3154,124 @@ and thus
 where Equation~(\ref{eq:inv-def-h-property-7}) has been used.
 
 
-
-The moment is
+\paragraph{Intermediate Angular Velocity.} \
+Consider now
+\begin{align}
+	\hat{\T{\omega}}\times{}
+	&= \dot{\hat{\T{R}}} \hat{\T{R}}^T \\
+	&= \T{\omega}_{1} \times
+		+ \T{R}_{1h} \tilde{\T{\omega}}\times \T{R}_{1h}^T \\
+	&= \T{\omega}_{2} \times
+		- \hat{\T{R}} \tilde{\T{\omega}}\times \hat{\T{R}}^T ,
+\end{align}
+where $\tilde{\T{\omega}}$ is the angular velocity associated
+to the differentiation of matrix $\tilde{\T{R}}$ with respect to time:
 \begin{equation}
-	\T{M}_i = \plbr{-1}^i \hat{\T{R}} \tilde{\T{M}}\plbr{\T{\theta}, \T{\omega}} .
+	\tilde{\T{\omega}}
+	= \dot{\tilde{\T{R}}} \tilde{\T{R}}^T .
 \end{equation}
-Its linearization uses the perturbation of the relative rotation angle
-in the intermediate reference frame,
+A relationship between that derivative and the remaining angular velocities
+results from
 \begin{align}
-	\delta\overline{\T{\theta}}
-	&= \tilde{\T{R}}^T \delta\T{\theta} \\
-	&= \tilde{\T{R}}^T \T{\Gamma}\plbr{\T{\theta}}^{-1} \tilde{\T{R}} \hat{\T{R}}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \\
-	&= \T{\Gamma}\plbr{\T{\theta}}^{-1} \hat{\T{R}}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} ,
-\end{align}
-where the last substitution exploits
-\begin{align}
-	\tilde{\T{R}}^T \T{\Gamma}\plbr{\T{\theta}}^{-1} \tilde{\T{R}}
-	&= \tilde{\T{R}}^{-1} \T{\Gamma}\plbr{\T{\theta}}^{-1} \tilde{\T{R}}^{-T} \\
-	&= \plbr{
-		\tilde{\T{R}}^T \T{\Gamma}\plbr{\T{\theta}} \tilde{\T{R}}
-	}^{-1} \\
-	&= \T{\Gamma}\plbr{\tilde{\T{R}}^T \T{\theta}}^{-1} \\
-	&= \T{\Gamma}\plbr{\T{\theta}}^{-1} ,
-\end{align}
-and the perturbation of the relative angular velocity
-of Equation~(\ref{eq:inv-deformable-hinge-omega-rel-delta}).
-The perturbation of matrix $\hat{\T{R}}$ yields
-\begin{align}
-	\delta\hat{\T{R}} \hat{\T{R}}^T
-	&= \hat{\T{\theta}}_{\delta} \times{} \\
-	&= \T{\theta}_{1\delta} \times{}
-	+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta}\times \T{R}_{1h}^T ,
+	\T{\omega} \times{}
+	&= \frac{\mathrm{d}}{\mathrm{d}t}\plbr{
+		\tilde{\T{R}} \tilde{\T{R}}
+	} \plbr{
+		\tilde{\T{R}} \tilde{\T{R}}
+	}^T \\
+	&= \tilde{\T{\omega}} \times{}
+	+ \tilde{\T{R}} \tilde{\T{\omega}} \times \tilde{\T{R}}^T ,
 \end{align}
 so
+\begin{equation}
+	\T{\omega} = \plbr{\T{I} + \tilde{\T{R}}} \tilde{\T{\omega}} ;
+\end{equation}
+as a consequence,
+\begin{equation}
+	\tilde{\T{\omega}}
+	= \plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_{1h}^T \plbr{
+		\T{\omega}_2 - \T{\omega}_1
+	} .
+\end{equation}
+The absolute velocity of the intermediate orientation results in
 \begin{align}
-	\hat{\T{\theta}}_{\delta}
-	&= \T{\theta}_{1\delta}
-	+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta} \\
-	&= \T{\theta}_{1\delta}
-	+ \T{R}_{1h} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{\theta}_{\delta} \\
-	&= \T{\theta}_{1\delta}
-	+ \T{R}_{1h} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_{1h}^T\plbr{
-		\T{\theta}_{2\delta}
-		- \T{\theta}_{1\delta}
-	} \\
-	&= \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T
-		\T{\theta}_{2\delta}
-	+ \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\T{R}}^T
-		\T{\theta}_{1\delta} .
+	\hat{\T{\omega}}
+	&= \hat{\TT{I}} \T{\omega}_2
+	+ \hat{\TT{I}}^T \T{\omega}_1 ;
+	\label{eq:deformable-displacement-invariant-hat-omega}
 \end{align}
-The same result is obtained by perturbing 
-$\hat{\T{R}}$ in the form $\hat{\T{R}}=\T{R}_{2h}\tilde{\T{R}}^T$.
+its perturbation becomes
+\begin{align}
+	\delta\hat{\T{\omega}} &= 
+	\delta\plbr{
+		\hat{\T{I}} \T{\omega}_2
+		+ \hat{\T{I}}^T \T{\omega}_1
+	} \\
+	&= \hat{\T{I}} \delta\T{\omega}_2
+		+ \hat{\T{I}}^T \delta\T{\omega}_1
+	\nonumber \\
+	&\mbox{\hspace{12pt}}
+	\plbr{\cvvect{
+		\plbr{
+			\hat{\T{I}} \T{\omega}_2 \times{}
+			+ \hat{\T{I}}^T \T{\omega}_1 \times{}
+		} \hat{\T{I}} \\
+		- \plbr{
+			\hat{\T{I}} \T{\omega}_2 + \hat{\T{I}}^T \T{\omega}_1
+		} \times \hat{\T{I}} \\
+		+ \hat{\T{I}} \plbr{
+			\hat{\T{I}}^T \plbr{
+				\T{\omega}_2 - \T{\omega}_1
+			}
+		}\times \hat{\T{I}}^T
+	}} \T{\theta}_{2\delta} \nonumber \\
+	&\mbox{\hspace{12pt}}
+	+ \plbr{\cvvect{
+		\plbr{
+			\hat{\T{I}} \T{\omega}_2 \times{}
+			+ \hat{\T{I}}^T \T{\omega}_1 \times{}
+		} \hat{\T{I}}^T \\
+		- \plbr{
+			\hat{\T{I}} \T{\omega}_2 + \hat{\T{I}}^T \T{\omega}_1
+		} \times \hat{\T{I}}^T \\
+		- \hat{\T{I}} \plbr{
+			\hat{\T{I}}^T \plbr{
+				\T{\omega}_2 - \T{\omega}_1
+			}
+		}\times \hat{\T{I}}^T
+	}} \T{\theta}_{1\delta} \\
+	&= \hat{\T{I}} \delta\T{\omega}_2
+		+ \hat{\T{I}}^T \delta\T{\omega}_1
+	+ \hat{\T{I}}_2 \T{\theta}_{2\delta}
+	+ \hat{\T{I}}_1 \T{\theta}_{1\delta} \\
+	&\equu
+	\hat{\T{I}} \delta\dot{\T{g}}_2
+		+ \hat{\T{I}}^T \delta\dot{\T{g}}_1
+	+ \plbr{\hat{\T{I}}_2 - \hat{\T{I}} \T{\omega}_2\times{}}
+		\delta\T{g}_2
+	+ \plbr{\hat{\T{I}}_1 - \hat{\T{I}}^T \T{\omega}_1\times{}}
+		\delta\T{g}_1
+\end{align}
+
+
+
+
+The moment 
+\begin{equation}
+	\T{M}_i = \plbr{-1}^i \hat{\T{R}}
+		\tilde{\T{M}}\plbr{\overline{\T{\theta}}, \overline{\T{\omega}}} .
+\end{equation}
+depends on the relative orientation $\overline{\T{\theta}}$
+and angular velocity $\overline{\T{\omega}}$,
+illustrated by Equation~(\ref{eq:inv-deformable-hinge-omega-rel}),
+expressed in the intermediate reference frame.
 
 The perturbation of the moment then yields
 \begin{align}
 	\delta\T{M}_i
 	&= \plbr{-1}^i \hat{\T{R}} \plbr{
 		\tilde{\T{M}}_{/\T{\theta}} \delta\overline{\T{\theta}}
-		+ \tilde{\T{M}}_{/\T{\omega}} \delta\T{\omega}
+		+ \tilde{\T{M}}_{/\T{\omega}} \delta\overline{\T{\omega}}
 	} \nonumber \\
 	& \mbox{\hspace{10pt}} - \T{M}_i \times \hat{\T{R}}
 		\plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T \T{\theta}_{2\delta}
@@ -3076,24 +3295,24 @@ The complete linearized problem is
 		- \plbr{
 			\T{M}_{/\T{\omega}} \plbr{\T{\omega}_2 - \T{\omega}_1} \times{}
 			- \T{M}\times{}
-		} \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\T{R}}^T \\
+		} \hat{\T{I}}^T \\
 		- \T{M}_{/\T{\theta}}
 		- \plbr{
 			\T{M}_{/\T{\omega}} \plbr{\T{\omega}_2 - \T{\omega}_1} \times{}
 			- \T{M}\times{}
-		} \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T
+		} \hat{\T{I}}
 	}} \T{\theta}_{1\delta} & & \\
 	\mbox{} + \sqbr{\cvvect{
 		- \T{M}_{/\T{\theta}}
 		+ \plbr{
 			\T{M}_{/\T{\omega}} \plbr{\T{\omega}_2 - \T{\omega}_1} \times{}
 			- \T{M}\times{}
-		} \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\T{R}}^T \\
+		} \hat{\T{I}}^T \\
 		\T{M}_{/\T{\theta}}
 		+ \plbr{
 			\T{M}_{/\T{\omega}} \plbr{\T{\omega}_2 - \T{\omega}_1} \times{}
 			- \T{M}\times{}
-		} \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T
+		} \hat{\T{I}}
 	}} \T{\theta}_{2\delta} 
 	& = & \cubr{\cvvect{
 		\T{M} \\
@@ -3440,15 +3659,8 @@ The relative velocity is
 		\nonumber \\
 	&= \hat{\TT{R}}^T \plbr{
 		\dot{\T{d}} - \hat{\T{\omega}} \times \T{d}
-	}
+	} ;
 \end{align}
-where
-\begin{equation}
-	\hat{\T{\omega}}
-	= \hat{\TT{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\TT{R}}^T \T{\omega}_2
-	+ \hat{\TT{R}} \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\TT{R}}^T \T{\omega}_1 ;
-	\label{eq:deformable-displacement-invariant-hat-omega}
-\end{equation}
 for a discussion of the properties of the entities
 that appear in Eq.~(\ref{eq:deformable-displacement-invariant-hat-omega})
 see Section~\ref{sec:deformable-hinge-invariant}.
@@ -3465,8 +3677,7 @@ where
 	&= \delta\T{x}_2 - \T{f}_2 \times \T{\theta}_{2\delta}
 		- \delta\T{x}_1 + \T{f}_1 \times \T{\theta}_{1\delta} \\
 	\hat{\T{\theta}}_{\delta}
-	&= \hat{\TT{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\TT{R}}^T \T{\theta}_{2\delta}
-	+ \hat{\TT{R}} \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\TT{R}}^T \T{\theta}_{1\delta} .
+	&= \hat{\TT{I}} \T{\theta}_{2\delta} + \hat{\TT{I}}^T \T{\theta}_{1\delta} .
 \end{align}
 
 The perturbation of the relative velocity yields
@@ -3489,182 +3700,33 @@ where
 		+ \T{f}_1 \times \delta\T{\omega}_{1}
 		+ \T{\omega}_{1} \times \T{f}_1 \times \T{\theta}_{1\delta} \\
 \end{align}
-The computation of $\delta\hat{\T{\omega}}$ is a bit trickier.
-Consider first
-\begin{align}
-	\delta\plbr{\T{I} + \tilde{\T{R}}}^{-1}
-		&= - \plbr{\T{I} + \tilde{\T{R}}}^{-1}
-			\tilde{\T{\theta}}_{\delta} \times \tilde{\T{R}}
-			\plbr{\T{I} + \tilde{\T{R}}}^{-1} \\
-		&= - \plbr{\T{I} + \tilde{\T{R}}}^{-1}
-			\tilde{\T{\theta}}_{\delta} \times
-			\plbr{\T{I} + \tilde{\T{R}}^T}^{-1}
-\end{align}
-while
-\begin{align}
-	\delta\plbr{\T{I} + \tilde{\T{R}}^T}^{-1}
-		&= - \plbr{\T{I} + \tilde{\T{R}}^T}^{-1}
-			\tilde{\T{R}}^T \tilde{\T{\theta}}_{\delta} \times^T
-			\plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \\
-		&= \plbr{\T{I} + \tilde{\T{R}}}^{-1}
-			\tilde{\T{\theta}}_{\delta} \times
-			\plbr{\T{I} + \tilde{\T{R}}^T}^{-1}
-\end{align}
-where, in both cases, Equation~(\ref{eq:inv-deformable-hinge-I-tilde})
-has been considered.
+The computation of $\delta\hat{\T{\omega}}$ has been illustrated
+in Section~\ref{sec:deformable-hinge-invariant}.
 
-Define now matrix
-\begin{equation}
-	\hat{\T{I}} =
-		\hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T ;
-\end{equation}
-its perturbation yields
-\begin{align}
-	\delta\hat{\T{I}}
-	&= \delta\hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T
-	\nonumber \\
-	& \mbox{\hspace{12pt}}
-	+ \hat{\T{R}} \ \delta\! \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T
-	\nonumber \\
-	& \mbox{\hspace{12pt}}
-	+ \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \delta\hat{\T{R}}^T \\
-	&= \plbr{
-		\T{\theta}_{1\delta} \times \hat{\T{R}}
-		+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta} \times \tilde{\T{R}}
-	} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T
-	\nonumber \\
-	& \mbox{\hspace{12pt}}
-	- \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1}
-		\tilde{\T{\theta}}_{\delta} \times
-		\plbr{\T{I} + \tilde{\T{R}}^T}^{-1}
-		\hat{\T{R}}^T
-	\nonumber \\
-	& \mbox{\hspace{12pt}}
-	+ \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \plbr{
-		\hat{\T{R}}^T \T{\theta}_{1\delta} \times^T
-		+ \tilde{\T{R}}^T \tilde{\T{\theta}}_{\delta} \times^T \T{R}_{1h}^T
-	} \\
-	&= \plbr{
-		\T{\theta}_{1\delta}
-		+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta}
-	} \times \hat{\T{I}}
-	- \hat{\T{I}} \plbr{\hat{\T{R}} \tilde{\T{\theta}}_{\delta}} \times \hat{\T{I}}^T
-	- \hat{\T{I}} \plbr{
-		\T{\theta}_{1\delta}
-		+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta}
-	}\times{}
-\end{align}
-But
-\begin{align}
-	\T{R}_{1h} \tilde{\T{\theta}}_{\delta}
-	&= \T{R}_{1h} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_{1h}^T \plbr{
-		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
-	} \\
-	&= \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T \plbr{
-		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
-	} \\
-	&= \hat{\T{I}} \plbr{
-		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
-	} 
-\end{align}
-and
-\begin{align}
-	\hat{\T{R}} \tilde{\T{\theta}}_{\delta}
-	&= \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_{1h}^T \plbr{
-		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
-	} \\
-	&= \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\T{R}}^T \plbr{
-		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
-	} \\
-	&= \hat{\T{I}}^T \plbr{
-		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
-	} 
-\end{align}
-so
-\begin{align}
-	\T{\theta}_{1\delta}
-	+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta}
-	&= \T{\theta}_{1\delta} + \hat{\T{I}} \plbr{
-		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
-	} \\
-	&= \hat{\T{I}} \T{\theta}_{2\delta}
-	+ \hat{\T{I}}^T \T{\theta}_{1\delta} ,
-\end{align}
-and
-\begin{align}
-	\delta\hat{\T{I}} &= \plbr{
-		\hat{\T{I}} \T{\theta}_{2\delta}
-		+ \hat{\T{I}}^T \T{\theta}_{1\delta}
-	} \times \hat{\T{I}}
-	\nonumber \\
-	& \mbox{\hspace{12pt}}
-	- \hat{\T{I}} \plbr{
-		\hat{\T{I}}^T \plbr{
-			\T{\theta}_{2\delta}
-			- \T{\theta}_{1\delta}
-		}
-	} \times \hat{\T{I}}^T
-	\nonumber \\
-	& \mbox{\hspace{12pt}}
-	- \hat{\T{I}} \plbr{
-		\hat{\T{I}} \T{\theta}_{2\delta}
-		+ \hat{\T{I}}^T \T{\theta}_{1\delta}
-	}\times{}
-\end{align}
-The perturbation of $\hat{\T{\omega}}$,
-Equation~(\ref{eq:deformable-displacement-invariant-hat-omega}), then, 
-becomes
-\begin{align}
-	\delta\hat{\T{\omega}} &= 
-	\delta\plbr{
-		\hat{\T{I}} \T{\omega}_2
-		+ \hat{\T{I}}^T \T{\omega}_1
-	} \\
-	&= \hat{\T{I}} \delta\T{\omega}_2
-		+ \hat{\T{I}}^T \delta\T{\omega}_1
-	\nonumber \\
-	&\mbox{\hspace{12pt}}
-	\plbr{\cvvect{
-		\plbr{
-			\hat{\T{I}} \T{\omega}_2 \times{}
-			+ \hat{\T{I}}^T \T{\omega}_1 \times{}
-		} \hat{\T{I}} \\
-		- \plbr{
-			\hat{\T{I}} \T{\omega}_2 + \hat{\T{I}}^T \T{\omega}_1
-		} \times \hat{\T{I}} \\
-		+ \hat{\T{I}} \plbr{
-			\hat{\T{I}}^T \plbr{
-				\T{\omega}_2 - \T{\omega}_1
-			}
-		}\times \hat{\T{I}}^T
-	}} \T{\theta}_{2\delta} \nonumber \\
-	&\mbox{\hspace{12pt}}
-	+ \plbr{\cvvect{
-		\plbr{
-			\hat{\T{I}} \T{\omega}_2 \times{}
-			+ \hat{\T{I}}^T \T{\omega}_1 \times{}
-		} \hat{\T{I}}^T \\
-		- \plbr{
-			\hat{\T{I}} \T{\omega}_2 + \hat{\T{I}}^T \T{\omega}_1
-		} \times \hat{\T{I}}^T \\
-		- \hat{\T{I}} \plbr{
-			\hat{\T{I}}^T \plbr{
-				\T{\omega}_2 - \T{\omega}_1
-			}
-		}\times \hat{\T{I}}^T
-	}} \T{\theta}_{1\delta} \\
-	&= \hat{\T{I}} \delta\T{\omega}_2
-		+ \hat{\T{I}}^T \delta\T{\omega}_1
-	+ \hat{\T{I}}_2 \T{\theta}_{2\delta}
-	+ \hat{\T{I}}_1 \T{\theta}_{1\delta} \\
-	&\equu
-	\hat{\T{I}} \delta\dot{\T{g}}_2
-		+ \hat{\T{I}}^T \delta\dot{\T{g}}_1
-	+ \plbr{\hat{\T{I}}_2 - \hat{\T{I}} \T{\omega}_2\times{}}
-		\delta\T{g}_2
-	+ \plbr{\hat{\T{I}}_1 - \hat{\T{I}}^T \T{\omega}_1\times{}}
-		\delta\T{g}_1
-\end{align}
+%The computation of $\delta\hat{\T{\omega}}$ is a bit trickier.
+%Consider first
+%\begin{align}
+%	\delta\plbr{\T{I} + \tilde{\T{R}}}^{-1}
+%		&= - \plbr{\T{I} + \tilde{\T{R}}}^{-1}
+%			\tilde{\T{\theta}}_{\delta} \times \tilde{\T{R}}
+%			\plbr{\T{I} + \tilde{\T{R}}}^{-1} \\
+%		&= - \plbr{\T{I} + \tilde{\T{R}}}^{-1}
+%			\tilde{\T{\theta}}_{\delta} \times
+%			\plbr{\T{I} + \tilde{\T{R}}^T}^{-1}
+%\end{align}
+%while
+%\begin{align}
+%	\delta\plbr{\T{I} + \tilde{\T{R}}^T}^{-1}
+%		&= - \plbr{\T{I} + \tilde{\T{R}}^T}^{-1}
+%			\tilde{\T{R}}^T \tilde{\T{\theta}}_{\delta} \times^T
+%			\plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \\
+%		&= \plbr{\T{I} + \tilde{\T{R}}}^{-1}
+%			\tilde{\T{\theta}}_{\delta} \times
+%			\plbr{\T{I} + \tilde{\T{R}}^T}^{-1}
+%\end{align}
+%where, in both cases, Equation~(\ref{eq:inv-deformable-hinge-I-tilde})
+%has been considered.
+
 The force and the moment result from the VWP
 \begin{align}
 	\delta\mathcal{L} &= \delta \tilde{\T{d}}^T \tilde{\T{F}} \\
