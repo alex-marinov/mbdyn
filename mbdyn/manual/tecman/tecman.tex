@@ -2565,7 +2565,7 @@ with
 		+ \frac{1}{l^2 l_0} \frac{\partial{f}}{\partial\dot{\varepsilon}} \T{l}\dot{\T{l}}^T \\
 	\T{K}_{\dot{\T{l}}} &= \frac{1}{l^2 l_0} \frac{\partial{f}}{\partial\dot{\varepsilon}} \T{l}\T{l}^T
 \end{align}
-according to the updated-updated approach,
+according to the simplifications of the updated-updated approach,
 \begin{align}
 	\T{\theta}_{i\delta} &\equu \delta\T{g}_i \\
 	\delta\T{\omega}_i &\equu \delta\dot{\T{g}}_i - \T{\omega}\times\delta\T{g}_i
@@ -2696,7 +2696,7 @@ The perturbation of $\T{\theta}$ yields
 	\T{\theta}_{\delta} = \T{R}_{1h}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
 	\label{eq:def-h-theta-delta}
 \end{equation}
-which, according to the updated-updated approach, becomes
+which, according to the simplifications of the updated-updated approach, becomes
 \begin{equation}
 	\T{\theta}_{\delta} \equu \T{R}_{1h}^T\plbr{\delta\T{g}_2 - \delta\T{g}_1}
 \end{equation}
@@ -2719,7 +2719,7 @@ in fact, the time derivative of the relative orientation yields
 \end{comment}
 The perturbation of the relative angular velocity
 of Equation~(\ref{eq:deformable-hinge-attached-omega}),
-according to the updated-updated approach, yields
+according to the simplifications of the updated-updated approach, yields
 \begin{align}
 	\delta\T{\omega} &= \T{R}_{1h}^T\plbr{
 		\plbr{\T{\omega}_2 - \T{\omega}_1} \times \T{\theta}_{1\delta}
@@ -2762,33 +2762,78 @@ Its linearization yields
 	} - \T{M}_i \times \T{\theta}_{1\delta}
 \end{equation}
 The complete linearized problem is
-\begin{eqnarray*}
+\begin{align}
+	\sqbr{\matr{cc}{
+		\T{M}_{/\T{\omega}} & - \T{M}_{/\T{\omega}} \\
+		- \T{M}_{/\T{\omega}} & \T{M}_{/\T{\omega}}
+	}}\cubr{\cvvect{
+		\delta\T{\omega}_1 \\
+		\delta\T{\omega}_2
+	}} & \nonumber \\
+	+ \sqbr{\matr{cc}{
+		- \T{M}_{/\T{\omega}} \plbr{\T{\omega}_2 - \T{\omega}_1}\times{} & \T{0} \\
+		\T{M}_{/\T{\omega}} \plbr{\T{\omega}_2 - \T{\omega}_1}\times{} & \T{0}
+	}} \cubr{\cvvect{
+		\T{\theta}_{1\delta} \\
+		\T{\theta}_{2\delta}
+	}} & \nonumber \\
+	+ \sqbr{\matr{cc}{
+		\T{M}_{/\T{\theta}} & - \T{M}_{/\T{\theta}} \\
+		- \T{M}_{/\T{\theta}} & \T{M}_{/\T{\theta}}
+	}} \cubr{\cvvect{
+		\T{\theta}_{1\delta} \\
+		\T{\theta}_{2\delta}
+	}} & \nonumber \\
+	+ \sqbr{\matr{cc}{
+		\T{M}\times{} & \T{0} \\
+		- \T{M}\times{} & \T{0}
+	}} \cubr{\cvvect{
+		\T{\theta}_{1\delta} \\
+		\T{\theta}_{2\delta}
+	}} &= \cubr{\cvvect{
+		\T{M} \\
+		- \T{M}
+	}} ,
+\end{align}
+where
+\begin{align}
+	\T{M}_{/\T{\theta}} &= \T{R}_{1h} \tilde{\T{M}}_{/\T{\theta}} \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T \\
+	\T{M}_{/\T{\omega}} &= \T{R}_{1h} \tilde{\T{M}}_{/\T{\omega}} \T{R}_{1h}^T .
+\end{align}
+According to the simplifications of the updated-updated approach, the linearization becomes
+\begin{align}
 	\sqbr{\matr{cc}{
 		\T{M}_{/\T{\omega}} & - \T{M}_{/\T{\omega}} \\
 		- \T{M}_{/\T{\omega}} & \T{M}_{/\T{\omega}}
 	}}\cubr{\cvvect{
 		\delta\dot{\T{g}}_1 \\
 		\delta\dot{\T{g}}_2
-	}} & & \\
-	\mbox{} + \sqbr{\matr{cc}{
-		\T{M}_{/\T{\theta}} - \T{M}_{/\T{\omega}} \T{\omega}_2\times{} + \T{M}\times{} & 
-			- \T{M}_{/\T{\theta}} + \T{M}_{/\T{\omega}} \T{\omega}_2\times{} \\
-		- \T{M}_{/\T{\theta}} + \T{M}_{/\T{\omega}} \T{\omega}_2\times{} - \T{M}\times{} & 
-			\T{M}_{/\T{\theta}} - \T{M}_{/\T{\omega}} \T{\omega}_2\times{}
-	}}\cubr{\cvvect{
+	}} & \nonumber \\
+	+ \sqbr{\matr{cc}{
+		- \T{M}_{/\T{\omega}} \T{\omega}_2 \times{} & \T{M}_{/\T{\omega}} \T{\omega}_2 \times{} \\
+		\T{M}_{/\T{\omega}} \T{\omega}_2 \times{} & - \T{M}_{/\T{\omega}} \T{\omega}_2 \times{}
+	}} \cubr{\cvvect{
 		\delta\T{g}_1 \\
-		\delta\T{g}_2
-	}} & = & \cubr{\cvvect{
+		\delta\T{g}_2 
+	}} & \nonumber \\
+	+ \sqbr{\matr{cc}{
+		\T{M}_{/\T{\theta}} & - \T{M}_{/\T{\theta}} \\
+		- \T{M}_{/\T{\theta}} & \T{M}_{/\T{\theta}}
+	}} \cubr{\cvvect{
+		\delta\T{g}_1 \\
+		\delta\T{g}_2 
+	}} & \nonumber \\
+	+ \sqbr{\matr{cc}{
+		\T{M}\times{} & \T{0} \\
+		- \T{M}\times{} & \T{0}
+	}} \cubr{\cvvect{
+		\delta\T{g}_1 \\
+		\delta\T{g}_2 
+	}} &\equu \cubr{\cvvect{
 		\T{M} \\
 		- \T{M}
-	}}
-\end{eqnarray*}
-where
-\begin{eqnarray*}
-	\T{M}_{/\T{\theta}} & = & \T{R}_{1h} \tilde{\T{M}}_{/\T{\theta}} \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T \\
-	\T{M}_{/\T{\omega}} & = & \T{R}_{1h} \tilde{\T{M}}_{/\T{\omega}} \T{R}_{1h}^T
-\end{eqnarray*}
-
+	}} .
+\end{align}
 
 
 \subsubsection{Invariant Deformable Hinge}
@@ -3138,7 +3183,13 @@ of Equation~(\ref{eq:inv-deformable-hinge-omega-rel}) yields
 	& \mbox{\hspace{10pt}} + \overline{\T{\omega}} \times \plbr{
 		\plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T \T{\theta}_{2\delta}
 		+ \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\T{R}}^T \T{\theta}_{1\delta}
-	}
+	} \\
+	&= \hat{\T{R}}^T \plbr{
+		\delta\T{\omega}_2 - \delta\T{\omega}_1
+	+ \plbr{\T{\omega}_2 - \T{\omega}_1} \times \plbr{
+		\hat{\T{I}} \T{\theta}_{2\delta}
+		+ \hat{\T{I}}^T \T{\theta}_{1\delta}
+	}}
 	\label{eq:inv-deformable-hinge-omega-rel-delta}
 \end{align}
 since
@@ -3277,53 +3328,95 @@ The perturbation of the moment then yields
 		\plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T \T{\theta}_{2\delta}
 	\nonumber \\
 	& \mbox{\hspace{10pt}} - \T{M}_i \times \hat{\T{R}} 
-		\plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\T{R}}^T \T{\theta}_{1\delta} .
+		\plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\T{R}}^T \T{\theta}_{1\delta} \\
+	&= \plbr{-1}^i \hat{\T{R}} \plbr{
+		\tilde{\T{M}}_{/\T{\theta}} \delta\overline{\T{\theta}}
+		+ \tilde{\T{M}}_{/\T{\omega}} \delta\overline{\T{\omega}}
+	} - \T{M}_i \times \plbr{
+		\hat{\T{I}} \T{\theta}_{2\delta}
+		+ \hat{\T{I}}^T \T{\theta}_{1\delta}
+	} .
 \end{align}
 
 
 The complete linearized problem is
-\begin{eqnarray*}
+\begin{align}
 	\sqbr{\matr{cc}{
 		\T{M}_{/\T{\omega}} & - \T{M}_{/\T{\omega}} \\
 		- \T{M}_{/\T{\omega}} & \T{M}_{/\T{\omega}}
-	}}\cubr{\cvvect{
+	}} \cubr{\cvvect{
 		\delta\T{\omega}_1 \\
 		\delta\T{\omega}_2
-	}} & & \\
-	\mbox{} + \sqbr{\cvvect{
-		\T{M}_{/\T{\theta}}
-		- \plbr{
-			\T{M}_{/\T{\omega}} \plbr{\T{\omega}_2 - \T{\omega}_1} \times{}
-			- \T{M}\times{}
-		} \hat{\T{I}}^T \\
-		- \T{M}_{/\T{\theta}}
-		- \plbr{
-			\T{M}_{/\T{\omega}} \plbr{\T{\omega}_2 - \T{\omega}_1} \times{}
-			- \T{M}\times{}
-		} \hat{\T{I}}
-	}} \T{\theta}_{1\delta} & & \\
-	\mbox{} + \sqbr{\cvvect{
-		- \T{M}_{/\T{\theta}}
-		+ \plbr{
-			\T{M}_{/\T{\omega}} \plbr{\T{\omega}_2 - \T{\omega}_1} \times{}
-			- \T{M}\times{}
-		} \hat{\T{I}}^T \\
-		\T{M}_{/\T{\theta}}
-		+ \plbr{
-			\T{M}_{/\T{\omega}} \plbr{\T{\omega}_2 - \T{\omega}_1} \times{}
-			- \T{M}\times{}
-		} \hat{\T{I}}
-	}} \T{\theta}_{2\delta} 
-	& = & \cubr{\cvvect{
+	}} & \nonumber \\
+	+ \sqbr{\matr{cc}{
+		- \T{M}_{/\T{\omega}} \plbr{\T{\omega}_2 - \T{\omega}_1}\times \hat{\T{I}}^T
+			& - \T{M}_{/\T{\omega}} \plbr{\T{\omega}_2 - \T{\omega}_1}\times \hat{\T{I}}^T \\
+		\T{M}_{/\T{\omega}} \plbr{\T{\omega}_2 - \T{\omega}_1}\times \hat{\T{I}}
+			& \T{M}_{/\T{\omega}} \plbr{\T{\omega}_2 - \T{\omega}_1}\times \hat{\T{I}}
+	}} \cubr{\cvvect{
+		\T{\theta}_{1\delta} \\
+		\T{\theta}_{2\delta}
+	}} & \nonumber \\
+	+ \sqbr{\matr{cc}{
+		\T{M}_{/\T{\theta}} & - \T{M}_{/\T{\theta}} \\
+		- \T{M}_{/\T{\theta}} & \T{M}_{/\T{\theta}}
+	}} \cubr{\cvvect{
+		\T{\theta}_{1\delta} \\
+		\T{\theta}_{2\delta}
+	}} & \nonumber \\
+	+ \sqbr{\matr{cc}{
+		\T{M} \times \hat{\T{I}}^T & \T{M} \times \hat{\T{I}}^T \\
+		- \T{M} \times \hat{\T{I}} & - \T{M} \times \hat{\T{I}}
+	}} \cubr{\cvvect{
+		\T{\theta}_{1\delta} \\
+		\T{\theta}_{2\delta}
+	}} &= \cubr{\cvvect{
 		\T{M} \\
 		- \T{M}
-	}} ,
-\end{eqnarray*}
+	}}
+\end{align}
 where
-\begin{eqnarray*}
-	\T{M}_{/\T{\theta}} & = & \hat{\T{R}} \tilde{\T{M}}_{/\T{\theta}} \T{\Gamma}\plbr{\T{\theta}}^{-1} \hat{\T{R}}^T \\
-	\T{M}_{/\T{\omega}} & = & \hat{\T{R}} \tilde{\T{M}}_{/\T{\omega}} \hat{\T{R}}^T .
-\end{eqnarray*}
+\begin{align}
+	\T{M}_{/\T{\theta}} &= \hat{\T{R}} \tilde{\T{M}}_{/\T{\theta}} \T{\Gamma}\plbr{\T{\theta}}^{-1} \hat{\T{R}}^T \\
+	\T{M}_{/\T{\omega}} &= \hat{\T{R}} \tilde{\T{M}}_{/\T{\omega}} \hat{\T{R}}^T .
+\end{align}
+Accounting for the simplifications of the updated-updated approach, it becomes
+\begin{align}
+	\sqbr{\matr{cc}{
+		\T{M}_{/\T{\omega}} & - \T{M}_{/\T{\omega}} \\
+		- \T{M}_{/\T{\omega}} & \T{M}_{/\T{\omega}}
+	}} \cubr{\cvvect{
+		\delta\dot{\T{g}}_1 \\
+		\delta\dot{\T{g}}_2
+	}} & \nonumber \\
+	+ \sqbr{\matr{cc}{
+		- \T{M}_{/\T{\omega}} \plbr{\T{\omega}_2 \times \hat{\T{I}}^T + \T{\omega}_1\times \hat{\T{I}}}
+			& \T{M}_{/\T{\omega}} \plbr{\T{\omega}_2 \times \hat{\T{I}} + \T{\omega}_1\times \hat{\T{I}}^T} \\
+		\T{M}_{/\T{\omega}} \plbr{\T{\omega}_2\times \hat{\T{I}} + \T{\omega}_1\times \hat{\T{I}}^T}
+			& - \T{M}_{/\T{\omega}} \plbr{\T{\omega}_2 \times \hat{\T{I}}^T + \T{\omega}_1\times \hat{\T{I}}}
+	}} \cubr{\cvvect{
+		\delta\T{g}_1 \\
+		\delta\T{g}_2
+	}} & \nonumber \\
+	+ \sqbr{\matr{cc}{
+		\T{M}_{/\T{\theta}} & - \T{M}_{/\T{\theta}} \\
+		- \T{M}_{/\T{\theta}} & \T{M}_{/\T{\theta}}
+	}} \cubr{\cvvect{
+		\delta\T{g}_1 \\
+		\delta\T{g}_2
+	}} & \nonumber \\
+	+ \sqbr{\matr{cc}{
+		\T{M} \times \hat{\T{I}}^T & \T{M} \times \hat{\T{I}}^T \\
+		- \T{M} \times \hat{\T{I}} & - \T{M} \times \hat{\T{I}}
+	}} \cubr{\cvvect{
+		\delta\T{g}_1 \\
+		\delta\T{g}_2
+	}} &\equu \cubr{\cvvect{
+		\T{M} \\
+		- \T{M}
+	}}
+\end{align}
+
 
 
 
