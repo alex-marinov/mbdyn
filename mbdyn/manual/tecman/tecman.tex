@@ -3108,31 +3108,70 @@ so
 \end{align}
 
 \paragraph{Relative Orientation.} \
-The relative orientation is
-\begin{align}
-	\overline{\T{\theta}}
-	&= \tilde{\T{R}}^T \T{\theta} \\
-	&= \T{\theta} ,
-\end{align}
+The relative orientation is $\T{\theta}$; by definition, this does not depend
+on the reference frame that is considered, among those intermediate 
+between node 1 and 2, since it is coaxial to any rotation intermediate 
+between the orientations of the two nodes; in detail
+\begin{equation}
+	\tilde{\T{R}}^T \T{\theta} = \T{\theta} ,
+\end{equation}
 since $\tilde{\T{\theta}}$ is co-axial to $\T{\theta}$
 by definition.
 
-Its linearization uses the perturbation of the relative rotation angle
-in the intermediate reference frame,
+This implies that
+\begin{align}
+	\delta\T{\theta}
+	&= \delta\plbr{\tilde{\T{R}}^T \T{\theta}}
+	\nonumber \\
+	&= \tilde{\T{R}}^T \plbr{
+		\T{\theta} \times \tilde{\T{\theta}}_{\delta}
+		+ \delta\T{\theta}
+	}
+	\nonumber \\
+	&= \tilde{\T{R}}^T \plbr{
+		\T{\theta} \times \T{\Gamma}\plbr{\tilde{\T{\theta}}} \delta\tilde{\T{\theta}}
+		+ \delta\T{\theta}
+	}
+	\nonumber \\
+	&= \tilde{\T{R}}^T \plbr{
+		\tilde{\T{\theta}} \times \T{\Gamma}\plbr{\tilde{\T{\theta}}}
+		+ \T{I}
+	} \delta\T{\theta}
+	\nonumber \\
+	&= \delta\T{\theta} ,
+\end{align}
+since, by definition,
+\begin{equation}
+	\T{I} + \tilde{\T{\theta}} \times \T{\Gamma}\plbr{\tilde{\T{\theta}}} = \tilde{\T{R}} .
+\end{equation}
+
+The perturbation of the relative orientation $\T{\theta}$, 
+projected in the intermediate reference frame,
+\begin{equation}
+	\delta\overline{\T{\theta}} = \tilde{\T{R}}^T \delta\T{\theta} ,
+\end{equation}
+is used as measure of the straining of the joint, resulting in
 \begin{align}
 	\delta\overline{\T{\theta}}
-	&= \tilde{\T{R}}^T \delta\T{\theta} \\
-	&= \tilde{\T{R}}^T \T{\Gamma}\plbr{\T{\theta}}^{-1} \tilde{\T{R}} \hat{\T{R}}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \\
-	&= \T{\Gamma}\plbr{\T{\theta}}^{-1} \hat{\T{R}}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} ,
+	&= \tilde{\T{R}}^T \delta\T{\theta}
+	\nonumber \\
+	&= \tilde{\T{R}}^T \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
+	\nonumber \\
+	&= \tilde{\T{R}}^T \T{\Gamma}\plbr{\T{\theta}}^{-1} \tilde{\T{R}} \hat{\T{R}}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
+	\nonumber \\
+	&= \T{\Gamma}\plbr{\T{\theta}}^{-1} \hat{\T{R}}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
 \end{align}
-where the last substitution exploits
+where the last substitution exploits the property
 \begin{align}
 	\tilde{\T{R}}^T \T{\Gamma}\plbr{\T{\theta}}^{-1} \tilde{\T{R}}
-	&= \tilde{\T{R}}^{-1} \T{\Gamma}\plbr{\T{\theta}}^{-1} \tilde{\T{R}}^{-T} \\
+	&= \tilde{\T{R}}^{-1} \T{\Gamma}\plbr{\T{\theta}}^{-1} \tilde{\T{R}}^{-T} 
+	\nonumber \\
 	&= \plbr{
 		\tilde{\T{R}}^T \T{\Gamma}\plbr{\T{\theta}} \tilde{\T{R}}
-	}^{-1} \\
-	&= \T{\Gamma}\plbr{\tilde{\T{R}}^T \T{\theta}}^{-1} \\
+	}^{-1} 
+	\nonumber \\
+	&= \T{\Gamma}\plbr{\tilde{\T{R}}^T \T{\theta}}^{-1} 
+	\nonumber \\
 	&= \T{\Gamma}\plbr{\T{\theta}}^{-1} .
 \end{align}
 
@@ -3307,13 +3346,23 @@ its perturbation becomes
 
 
 
-The moment 
+The nodal moment results from the VWP, considering the perturbation 
+of the relative orientation $\overline{\T{\theta}}_{\delta}$,
+\begin{align}
+	\delta\mathcal{L}
+	& = \overline{\T{\theta}}_{\delta}^T \tilde{\T{M}} \\
+	&= \plbr{
+		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
+	}^T \hat{\T{R}} \tilde{\T{M}} ,
+\end{align}
+which corresponds to
 \begin{equation}
 	\T{M}_i = \plbr{-1}^i \hat{\T{R}}
 		\tilde{\T{M}}\plbr{\overline{\T{\theta}}, \overline{\T{\omega}}} .
 \end{equation}
-depends on the relative orientation $\overline{\T{\theta}}$
-and angular velocity $\overline{\T{\omega}}$,
+It depends on the relative orientation 
+$\overline{\T{\theta}}=\tilde{\T{R}}^T\T{\theta}=\T{\theta}$,
+and on the relative angular velocity $\overline{\T{\omega}}$,
 illustrated by Equation~(\ref{eq:inv-deformable-hinge-omega-rel}),
 expressed in the intermediate reference frame.
 
