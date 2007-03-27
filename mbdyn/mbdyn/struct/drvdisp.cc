@@ -509,6 +509,11 @@ DriveDisplacementJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	/* node 1 constraint derivative */
 	WM.Add(27 + 1, 9 + 1, MTmp);
 
+	/* in case the drive is differentiable... */
+	if (bIsDifferentiable()) {
+		WM.Add(27 + 1, 3 + 1, Mat3x3(pNode1->GetRCurr()*GetP()));
+	}
+
 	MTmp = Mat3x3(f2Ref);
 	/* node 2 moment */
 	WM.Add(15 + 1, 24 + 1, MTmp);
@@ -594,8 +599,14 @@ DriveDisplacementJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	WorkVec.Sub(21 + 1, f2Ref.Cross(FPrime));
 
 	WorkVec.Add(24 + 1, pNode1->GetXCurr() + dRef - pNode2->GetXCurr() - f2Ref);
-	WorkVec.Add(27 + 1, pNode1->GetVCurr() + pNode1->GetWCurr().Cross(dRef)
-			- pNode2->GetVCurr() + pNode2->GetWCurr().Cross(f2Ref));
+
+	/* in case the drive is differentiable... */
+	Vec3 PhiPrime = pNode1->GetVCurr() + pNode1->GetWCurr().Cross(dRef)
+			- pNode2->GetVCurr() + pNode2->GetWCurr().Cross(f2Ref);
+	if (bIsDifferentiable()) {
+		PhiPrime += pNode1->GetRCurr()*GetP();
+	}
+	WorkVec.Add(27 + 1, PhiPrime);
 
 	return WorkVec;
 }
