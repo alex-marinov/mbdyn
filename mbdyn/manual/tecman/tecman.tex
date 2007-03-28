@@ -747,6 +747,74 @@ is computed in such a way that
 \end{verbatim}
 with every linked \texttt{ExpandableRowVector} taken in account.
 
+
+
+\chapter{Nodes}
+
+\section{Structural Nodes}
+
+\subsection{Dummy Nodes}
+Dummy nodes are special structural nodes that do not directly 
+participate in the analysis.
+In fact, they do not provide degrees of freedom; they rather
+present information associated to other structural nodes 
+in a different manner, which is output in the \texttt{.mov}
+file much like if they were regular nodes.
+
+
+
+\paragraph{Offset Dummy Node}
+The \texttt{offset} dummy structural node outputs the configuration
+of a reference frame that is rigidly offset from a base node
+(subscript $b$) by $\T{f}_h$ and oriented by matrix $\T{R}_h$ according 
+to the transformation
+\begin{align}
+	\T{x} &= \T{x}_b + \T{R}_b \T{f}_h \\
+	\T{R} &= \T{R}_b \T{R}_h \\
+	\dot{\T{x}} &= \dot{\T{x}}_b + \T{\omega}_b \times \T{R}_b \T{f}_h \\
+	\T{\omega} &= \T{\omega}_b
+\end{align}
+
+
+\paragraph{Reference Frame Dummy Node}
+The \texttt{reference frame} dummy structural node
+outputs the configuration of the base node (subscript $b$)
+in the reference frame of a reference node (subscript $r$),
+optionally offset by $\T{f}_h$ and with an orientation relative 
+to $r$ provided by matrix $\T{R}_h$,
+according to the transformation
+\begin{align}
+	\overline{\T{x}} &= \T{R}_h^T \plbr{\T{R}_r^T \plbr{\T{x}_b - \T{x}_r} - \T{f}_h}\\
+	\overline{\T{R}} &= \T{R}_h^T \T{R}_r^T \T{R}_b \\
+	\overline{\dot{\T{x}}} &= \T{R}_h^T \T{R}_r^T \plbr{
+		\dot{\T{x}}_b
+		- \dot{\T{x}}_r
+		- \T{\omega}_r\times\plbr{\T{x}_b - \T{x}_r}
+	} \\
+	\overline{\T{\omega}} &= \T{R}_h^T \T{R}_r^T \plbr{\T{\omega}_b - \T{\omega}_r}
+\end{align}
+
+\paragraph{Pivot Reference Frame Dummy Node}
+The \texttt{pivot reference frame} dummy node is a variant
+of the \texttt{reference frame} dummy node that outputs
+the configuration of the base node, expressed in the reference
+frame of the reference node, as if it were attached to the pivot node
+(subscript $p$), optionally offset by $\T{f}_k$ and with
+an orientation relative to $p$ provided by matrix $\T{R}_k$,
+according to the transformation
+\begin{align}
+	\hat{\T{x}} &= \T{x}_p + \T{R}_p\plbr{\T{R}_k \overline{\T{x}} + \T{f}_k} \\
+	\hat{\T{R}} &= \T{R}_p \T{R}_k \overline{\T{R}} \\
+	\dot{\hat{\T{x}}} &= \dot{\T{x}}_p
+		+ \T{\omega}_p \times\T{R}_p \plbr{
+			\T{R}_k \overline{\T{x}} + \T{f}_k
+		} + \T{R}_p \T{R}_k \dot{\overline{\T{x}}} \\
+	\hat{\T{\omega}} &= \T{\omega}_p + \T{R}_p \T{R}_k \overline{\T{\omega}}
+\end{align}
+
+
+
+
 \chapter{Constraints}
 
 \section{Algebraic Constraints}
