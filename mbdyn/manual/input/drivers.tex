@@ -40,7 +40,11 @@ Every \kw{driver} card has the following format:
 At present only \kw{<driver\_type>} drivers of type \kw{file} are supported.
 
 \section{File Drivers}
-A comprehensive family of \kw{file} drivers is being planned;
+The \kw{file} drivers are defined by the statement
+\begin{verbatim}
+    file : <arglist> ;
+\end{verbatim}
+A comprehensive family of \kw{file} drivers is planned;
 their syntax is:
 \begin{verbatim}
     <arglist> ::= <label> , <normal_arglist>
