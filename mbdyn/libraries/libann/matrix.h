@@ -34,6 +34,9 @@
  * Mattia Mattaboni	<mattaboni@aero.polimi.it>
  */
 
+#ifndef ANN_MATRIX_H
+#define ANN_MATRIX_H
+
 #define W_M_NONE        (0x00U)
 #define W_M_TEXT        (0x01U)
 #define W_M_BIN         (0x02U)
@@ -87,5 +90,5 @@ double maximum( matrix *, int );
 double minimum( matrix *, int  );
 void matrix_error( mat_res_t, char * );
 
-
+#endif /* ANN_MATRIX_H */
 
