@@ -92,6 +92,7 @@ class Joint
       BEAMSLIDER,
       BRAKE,
       GIMBAL,
+      TOTALJOINT,
       
       MODAL,
       
