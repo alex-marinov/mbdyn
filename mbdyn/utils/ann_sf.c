@@ -39,20 +39,8 @@
 
 static int TRAINING_MODE = 1;
 
-#ifdef HAVE_GETOPT_LONG
-static struct option options[] = {
-        { "usage",      0, 0, 'u'  },
-        { "mode",       1, 0, 'm'  },
-        { "mean",    	1, 0, 'M'  },
-        { "variance",  	1, 0, 'V'  },
-        { "min",    	1, 0, 'N'  },
-        { "max",  	1, 0, 'X'  },
-        { "file",    	1, 0, 'f'  } 
-};
-#endif /* HAVE_GETOPT_LONG */
-
 void
-print_usage( void )
+print_usage(void)
 {
 	fprintf(stdout, "\nUSAGE OPTIONS:\n"
                 "  -u, --usage\n"
@@ -83,7 +71,7 @@ static float MAX = 1.;
 static char *filename = "data.dat";
 
 int
-main( int argc, char **argv )
+main(int argc, char *argv[])
 {
 	int opt;
         extern char *optarg;
@@ -94,25 +82,34 @@ main( int argc, char **argv )
         /* 0. Training options */
         do {
 #ifdef HAVE_GETOPT_LONG
-                opt = getopt_long(argc, argv, "uf:m:M:V:N:X:", options, NULL);
+		static struct option options[] = {
+			{ "usage",      0, 0, 'u'  },
+			{ "mode",       1, 0, 'm'  },
+			{ "mean",    	1, 0, 'M'  },
+			{ "variance",  	1, 0, 'V'  },
+			{ "min",    	1, 0, 'N'  },
+			{ "max",  	1, 0, 'X'  },
+			{ "file",    	1, 0, 'f'  } 
+		};
+		opt = getopt_long(argc, argv, "uf:m:M:V:N:X:", options, NULL);
 #else /* ! HAVE_GETOPT_LONG */
-		opt = getopt( argc, argv, "uf:m:M:V:N:X:");
+		opt = getopt(argc, argv, "uf:m:M:V:N:X:");
 #endif /* ! HAVE_GETOPT_LONG */
 
-                switch( opt ) {
+                switch (opt) {
                 case 'u':       print_usage();
                                 break; 
 		case 'f':       filename = optarg;
                                 break;
-                case 'm':       MODE = atoi( optarg );
+                case 'm':       MODE = atoi(optarg);
                                 break;
-                case 'M':       MEAN = atof( optarg );
+                case 'M':       MEAN = atof(optarg);
                                 break;
-                case 'V':       VARIANCE = atof( optarg );
+                case 'V':       VARIANCE = atof(optarg);
                                 break;
-                case 'N':       MIN = atof( optarg );
+                case 'N':       MIN = atof(optarg);
                                 break;
-                case 'X':       MAX = atof( optarg );
+                case 'X':       MAX = atof(optarg);
                                 break;
                 default:        break;
                 }
@@ -120,35 +117,35 @@ main( int argc, char **argv )
 	
         N_sample = 0;
 
-        if( ANN_DataRead( &MAT, &N_sample, filename ) ){
-                fprintf( stderr, "Error in Input data acquisition\n");
+        if (ANN_DataRead(&MAT, &N_sample, filename)) {
+                fprintf(stderr, "Error in Input data acquisition\n");
                 return 1; 
         }	
 
-	matrix_init( &SF, MAT.Ncolumn, 2 );
+	matrix_init(&SF, MAT.Ncolumn, 2);
 
 	switch (MODE) {
 	case 1:
-		for( i=0; i<MAT.Ncolumn; i++ ){
-			mean = mean_value( &MAT, i );
-			var = variance( &MAT, i );
-			SF.mat[i][0] = sqrt( VARIANCE/var );
+		for (i = 0; i < MAT.Ncolumn; i++) {
+			mean = mean_value(&MAT, i);
+			var = variance(&MAT, i);
+			SF.mat[i][0] = sqrt(VARIANCE/var);
 			SF.mat[i][1] = MEAN - SF.mat[i][0]*mean;
 		}
 		break;
 
 	case 2:
-		for( i=0; i<MAT.Ncolumn; i++ ){
-			min = minimum( &MAT, i );
-			max = maximum( &MAT, i );
-			printf("AAAA   %lf   %lf\n",min,max);
-			SF.mat[i][0] = (MAX-MIN)/(max-min);
+		for (i = 0; i < MAT.Ncolumn; i++) {
+			min = minimum(&MAT, i);
+			max = maximum(&MAT, i);
+			printf("AAAA   %lf   %lf\n", min, max);
+			SF.mat[i][0] = (MAX - MIN)/(max - min);
 			SF.mat[i][1] = (max*MIN-MAX*min)/(max-min);
 		}
 		break;
 	}
 
-	matrix_write( &SF, stdout, W_M_TEXT );
+	matrix_write(&SF, stdout, W_M_TEXT);
 	
 	return 0;
 }
