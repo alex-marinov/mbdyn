@@ -757,6 +757,7 @@ public:
 
 		OFFSET = 0,
 		RELATIVEFRAME,
+		RELATIVEFRAME2,
 
 		LASTTYPE
 	};
@@ -927,6 +928,38 @@ public:
 };
 
 /* RelFrameDummyStrNode - end */
+
+/* RelFrame2DummyStructNode - begin */
+
+class RelFrame2DummyStructNode : public RelFrameDummyStructNode {
+protected:
+	const StructNode* pNodeRef2;
+
+	void Update_int(void);
+
+public:
+	/* Costruttore definitivo */
+	RelFrame2DummyStructNode(unsigned int uL,
+		const DofOwner* pDO,
+		const StructNode* pNode,
+		const StructNode* pNodeRef,
+		const StructNode* pNodeRef2,
+		const Vec3& fh,
+		const Mat3x3& Rh,
+		OrientationDescription od);
+
+	/* Distruttore (per ora e' banale) */
+	virtual ~RelFrame2DummyStructNode(void);
+
+	/* tipo */
+	virtual DummyStructNode::Type GetDummyType(void) const;
+
+	/* Aggiorna dati in base alla soluzione */
+	virtual void Update(const VectorHandler& X,
+		const VectorHandler& XP);
+};
+
+/* RelFrame2DummyStrNode - end */
 
 class DataManager;
 class MBDynParser;

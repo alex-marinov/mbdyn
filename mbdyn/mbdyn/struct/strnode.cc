@@ -2115,6 +2115,90 @@ RelFrameDummyStructNode::Update(const VectorHandler& /* X */ ,
 /* RelFrameDummyStructNode - end */
 
 
+/* RelFrame2DummyStructNode - begin */
+
+/* Costruttore definitivo */
+RelFrame2DummyStructNode::RelFrame2DummyStructNode(unsigned int uL,
+	const DofOwner* pDO,
+	const StructNode* pN,
+	const StructNode* pNR,
+	const StructNode* pNR2,
+	const Vec3& fh,
+	const Mat3x3& Rh,
+	OrientationDescription od)
+: RelFrameDummyStructNode(uL, pDO, pN, pNR, fh, Rh, od),
+pNodeRef2(pNR2)
+{
+	ASSERT(pNodeRef2 != NULL);
+
+	/*
+	 * Note: Rh is transposed from the beginning because it is
+	 *       never used directly;
+	 *       fh is premultiplied by Rh.Transpose() for the same reason
+	 *
+	 * Formulas:
+	 *
+	 * R = RhT * RrT * Rn
+	 * X = RhT * RrT * (Xn - Xr)
+	 * W = RhT * RrT * (Wn - Wr)
+	 * V = RhT * RrT * (Vn - Vr - Wr x (Xn - Xr))
+	 *
+	 * by defining
+	 *
+	 * Rn = Rr * Rh * R
+	 * Xn = Xr + Rr * (fh + Rh * X)
+	 *
+	 * and differentiating with respect to time
+	 */
+
+	/* forzo la ricostruzione del nodo strutturale sottostante */
+	Update_int();
+}
+
+
+/* Distruttore (per ora e' banale) */
+RelFrame2DummyStructNode::~RelFrame2DummyStructNode(void)
+{
+	NO_OP;
+}
+
+
+/* update - interno */
+void
+RelFrame2DummyStructNode::Update_int(void)
+{
+	RelFrameDummyStructNode::Update_int();
+
+	WCurr = pNodeRef2->GetWCurr()
+		+ pNodeRef2->GetRCurr()*WCurr;
+	XCurr = pNodeRef2->GetRCurr()*XCurr;
+	VCurr = pNodeRef2->GetVCurr()
+		+ pNodeRef2->GetWCurr().Cross(XCurr)
+		+ pNodeRef2->GetRCurr()*VCurr;
+	RCurr = pNodeRef2->GetRCurr()*RCurr;
+	XCurr += pNodeRef2->GetXCurr();
+}
+
+
+/* Tipo di nodo dummy */
+DummyStructNode::Type
+RelFrame2DummyStructNode::GetDummyType(void) const
+{
+	return DummyStructNode::RELATIVEFRAME2;
+}
+
+
+/* Aggiorna dati in base alla soluzione */
+void
+RelFrame2DummyStructNode::Update(const VectorHandler& /* X */ ,
+	const VectorHandler& /* XP */ )
+{
+	Update_int();
+}
+
+/* RelFrameDummyStructNode - end */
+
+
 /* Legge un nodo strutturale */
 
 OrientationDescription
@@ -2149,7 +2233,7 @@ ReadStructNode(DataManager* pDM,
 		"dummy",
 
 		"offset",
-		"relativeframe",   /* temporary */
+		"relative" "frame",   /* temporary */
 		0
 	};
 
@@ -2234,12 +2318,25 @@ ReadStructNode(DataManager* pDM,
 				Rh = HP.GetRotRel(RF);
 			}
 
+			StructNode *pNodeRef2 = 0;
+			if (HP.IsKeyWord("reference" "node")) {
+				pNodeRef2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+			}
+
 			od = ReadNodeOrientationDescription(pDM, HP);
 
-			SAFENEWWITHCONSTRUCTOR(pNd,
-				RelFrameDummyStructNode,
-				RelFrameDummyStructNode(uLabel, pDO,
-					pNode, pNodeRef, fh, Rh, od));
+			if (pNodeRef2) {
+				SAFENEWWITHCONSTRUCTOR(pNd,
+					RelFrame2DummyStructNode,
+					RelFrame2DummyStructNode(uLabel, pDO,
+						pNode, pNodeRef, pNodeRef2, fh, Rh, od));
+
+			} else {
+				SAFENEWWITHCONSTRUCTOR(pNd,
+					RelFrameDummyStructNode,
+					RelFrameDummyStructNode(uLabel, pDO,
+						pNode, pNodeRef, fh, Rh, od));
+			}
 		} break;
 
 		default:
