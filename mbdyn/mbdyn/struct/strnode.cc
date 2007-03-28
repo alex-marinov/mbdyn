@@ -2115,19 +2115,21 @@ RelFrameDummyStructNode::Update(const VectorHandler& /* X */ ,
 /* RelFrameDummyStructNode - end */
 
 
-/* RelFrame2DummyStructNode - begin */
+/* PivotRelFrameDummyStructNode - begin */
 
 /* Costruttore definitivo */
-RelFrame2DummyStructNode::RelFrame2DummyStructNode(unsigned int uL,
+PivotRelFrameDummyStructNode::PivotRelFrameDummyStructNode(unsigned int uL,
 	const DofOwner* pDO,
 	const StructNode* pN,
 	const StructNode* pNR,
-	const StructNode* pNR2,
 	const Vec3& fh,
 	const Mat3x3& Rh,
+	const StructNode* pNR2,
+	const Vec3& fh2,
+	const Mat3x3& Rh2,
 	OrientationDescription od)
 : RelFrameDummyStructNode(uL, pDO, pN, pNR, fh, Rh, od),
-pNodeRef2(pNR2)
+pNodeRef2(pNR2), fh2(fh2), Rh2(Rh2)
 {
 	ASSERT(pNodeRef2 != NULL);
 
@@ -2157,7 +2159,7 @@ pNodeRef2(pNR2)
 
 
 /* Distruttore (per ora e' banale) */
-RelFrame2DummyStructNode::~RelFrame2DummyStructNode(void)
+PivotRelFrameDummyStructNode::~PivotRelFrameDummyStructNode(void)
 {
 	NO_OP;
 }
@@ -2165,32 +2167,33 @@ RelFrame2DummyStructNode::~RelFrame2DummyStructNode(void)
 
 /* update - interno */
 void
-RelFrame2DummyStructNode::Update_int(void)
+PivotRelFrameDummyStructNode::Update_int(void)
 {
 	RelFrameDummyStructNode::Update_int();
 
-	WCurr = pNodeRef2->GetWCurr()
-		+ pNodeRef2->GetRCurr()*WCurr;
-	XCurr = pNodeRef2->GetRCurr()*XCurr;
+	Mat3x3 R2(pNodeRef2->GetRCurr()*Rh2);
+
+	WCurr = pNodeRef2->GetWCurr() + R2*WCurr;
+	XCurr = pNodeRef2->GetRCurr()*(Rh2*XCurr + fh2);
 	VCurr = pNodeRef2->GetVCurr()
 		+ pNodeRef2->GetWCurr().Cross(XCurr)
-		+ pNodeRef2->GetRCurr()*VCurr;
-	RCurr = pNodeRef2->GetRCurr()*RCurr;
+		+ R2*VCurr;
+	RCurr = R2*RCurr;
 	XCurr += pNodeRef2->GetXCurr();
 }
 
 
 /* Tipo di nodo dummy */
 DummyStructNode::Type
-RelFrame2DummyStructNode::GetDummyType(void) const
+PivotRelFrameDummyStructNode::GetDummyType(void) const
 {
-	return DummyStructNode::RELATIVEFRAME2;
+	return DummyStructNode::PIVOTRELATIVEFRAME;
 }
 
 
 /* Aggiorna dati in base alla soluzione */
 void
-RelFrame2DummyStructNode::Update(const VectorHandler& /* X */ ,
+PivotRelFrameDummyStructNode::Update(const VectorHandler& /* X */ ,
 	const VectorHandler& /* XP */ )
 {
 	Update_int();
@@ -2319,17 +2322,28 @@ ReadStructNode(DataManager* pDM,
 			}
 
 			StructNode *pNodeRef2 = 0;
-			if (HP.IsKeyWord("reference" "node")) {
+			Vec3 fh2(Zero3);
+			Mat3x3 Rh2(Eye3);
+			if (HP.IsKeyWord("pivot" "node")) {
 				pNodeRef2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+
+				if (HP.IsKeyWord("position")) {
+					fh2 = HP.GetPosRel(RF);
+				}
+
+				if (HP.IsKeyWord("orientation")) {
+					Rh2 = HP.GetRotRel(RF);
+				}
 			}
 
 			od = ReadNodeOrientationDescription(pDM, HP);
 
 			if (pNodeRef2) {
 				SAFENEWWITHCONSTRUCTOR(pNd,
-					RelFrame2DummyStructNode,
-					RelFrame2DummyStructNode(uLabel, pDO,
-						pNode, pNodeRef, pNodeRef2, fh, Rh, od));
+					PivotRelFrameDummyStructNode,
+					PivotRelFrameDummyStructNode(uLabel, pDO,
+						pNode, pNodeRef, fh, Rh,
+						pNodeRef2, fh2, Rh2, od));
 
 			} else {
 				SAFENEWWITHCONSTRUCTOR(pNd,

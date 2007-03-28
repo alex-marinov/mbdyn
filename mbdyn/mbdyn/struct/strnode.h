@@ -757,7 +757,7 @@ public:
 
 		OFFSET = 0,
 		RELATIVEFRAME,
-		RELATIVEFRAME2,
+		PIVOTRELATIVEFRAME,
 
 		LASTTYPE
 	};
@@ -927,29 +927,33 @@ public:
 		const VectorHandler& XP);
 };
 
-/* RelFrameDummyStrNode - end */
+/* RelFrameDummyStructNode - end */
 
-/* RelFrame2DummyStructNode - begin */
+/* PivotRelFrameDummyStructNode - begin */
 
-class RelFrame2DummyStructNode : public RelFrameDummyStructNode {
+class PivotRelFrameDummyStructNode : public RelFrameDummyStructNode {
 protected:
 	const StructNode* pNodeRef2;
+	const Mat3x3 Rh2;
+	const Vec3 fh2;
 
 	void Update_int(void);
 
 public:
 	/* Costruttore definitivo */
-	RelFrame2DummyStructNode(unsigned int uL,
+	PivotRelFrameDummyStructNode(unsigned int uL,
 		const DofOwner* pDO,
 		const StructNode* pNode,
 		const StructNode* pNodeRef,
-		const StructNode* pNodeRef2,
 		const Vec3& fh,
 		const Mat3x3& Rh,
+		const StructNode* pNodeRef2,
+		const Vec3& fh2,
+		const Mat3x3& Rh2,
 		OrientationDescription od);
 
 	/* Distruttore (per ora e' banale) */
-	virtual ~RelFrame2DummyStructNode(void);
+	virtual ~PivotRelFrameDummyStructNode(void);
 
 	/* tipo */
 	virtual DummyStructNode::Type GetDummyType(void) const;
@@ -959,7 +963,7 @@ public:
 		const VectorHandler& XP);
 };
 
-/* RelFrame2DummyStrNode - end */
+/* PivotRelFrameDummyStructNode - end */
 
 class DataManager;
 class MBDynParser;
