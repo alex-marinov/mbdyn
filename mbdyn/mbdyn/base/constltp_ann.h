@@ -135,6 +135,7 @@ class AnnElasticConstitutiveLaw<doublereal, doublereal>
 : public ConstitutiveLaw<doublereal, doublereal> {
 protected:
 	ANN *net;
+	bool bUpdate;
 	std::string fname;
 
 	void AnnInit(void)
@@ -154,7 +155,7 @@ protected:
 
 public:
 	AnnElasticConstitutiveLaw(const std::string& f)
-	: fname(f)
+	: bUpdate(false), fname(f)
 	{
 		AnnInit();
 		AnnSanity();
@@ -171,6 +172,14 @@ public:
 		return ConstLawType::ELASTIC;
 	};
 
+	virtual void
+	AfterConvergence(const doublereal& Eps, const doublereal& EpsPrime = 0.)
+	{
+		bUpdate = true;
+		Update(Eps, EpsPrime);
+		bUpdate = false;
+	};
+   
 	virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const {
 		ConstitutiveLaw<doublereal, doublereal>* pCL = NULL;
 
@@ -194,10 +203,10 @@ public:
 
                	net->input.vec[0] = E;
 
-                if (ANN_sim(net, &net->input, &net->output, FEEDBACK_UPDATE)) {
+                if (ANN_sim(net, &net->input, &net->output, bUpdate ? FEEDBACK_UPDATE : FEEDBACK_NONE)) {
 			throw ErrGeneric();
                 }
-		ANN_jacobian_matrix( net, &net->jacobian );
+		ANN_jacobian_matrix(net, &net->jacobian);
 
 		ConstitutiveLaw<doublereal, doublereal>::F = net->output.vec[0];
 		ConstitutiveLaw<doublereal, doublereal>::FDE = net->jacobian.mat[0][0];

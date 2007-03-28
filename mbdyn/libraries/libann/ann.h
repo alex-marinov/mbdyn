@@ -44,12 +44,13 @@ extern "C" {
 #include "ActivationFunction.h"
 #include "matrix.h"
 
-#define W_A_NONE        (0x00U)
-#define W_A_TEXT        (0x01U)
-#define W_A_BIN         (0x02U)
+#define W_A_NONE        (0x0U)
+#define W_A_TEXT        (0x1U)
+#define W_A_BIN         (0x2U)
 
-#define NONE  		      (0x00U)
-#define FEEDBACK_UPDATE       (0x01U)
+#define FEEDBACK_NONE	(0x0U)
+#define FEEDBACK_UPDATE	(0x1U)
+
 /* diagnostics */
 typedef enum { 
         ANN_OK = 0,
