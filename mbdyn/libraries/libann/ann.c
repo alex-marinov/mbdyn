@@ -47,6 +47,7 @@
 ann_res_t ANN_init( ANN *net, const char * FileName){
 
         int i,j;
+	int ActFnc;
         FILE *fh;
 
         if ( !(fh = fopen( FileName, "r" ) ) ){
@@ -94,14 +95,28 @@ ann_res_t ANN_init( ANN *net, const char * FileName){
 		}
         }
         net->N_neuron[0] = net->N_input + ( net->r * net->N_neuron[net->N_layer+1] );
-        
-	/* add switch */
-        /* use tanh */
-        net->w_init = w_tanh_init;
-        net->w_destroy = w_tanh_destroy;
-        net->w_read = w_tanh_read;
-        net->w_write = w_tanh_write;
-        net->w_eval = w_tanh_eval;
+
+        fscanf( fh, "%d", &ActFnc); 
+	switch( ActFnc ){
+	case 1:		/* use tanh */
+        		net->w_init = w_tanh_init;
+		        net->w_destroy = w_tanh_destroy;
+		        net->w_read = w_tanh_read;
+		        net->w_write = w_tanh_write;
+		        net->w_eval = w_tanh_eval;	
+			break;
+	case 2:		/* use linear activation function */
+        		net->w_init = w_linear_init;
+		        net->w_destroy = w_linear_destroy;
+		        net->w_read = w_linear_read;
+		        net->w_write = w_linear_write;
+		        net->w_eval = w_linear_eval;	
+			break;
+	default:	
+			fprintf( stderr, "Unknown activation function\n" );
+			ANN_error( ANN_DATA_ERROR, "ANN_init" );
+			return ANN_DATA_ERROR;
+	}
         /* end of switch */
 
         net->w_priv = NULL;
@@ -126,6 +141,10 @@ ann_res_t ANN_init( ANN *net, const char * FileName){
         for( i=0; i<net->N_layer+1; i++ ){
 		matrix_read( &net->W[i], fh, W_M_BIN );
         }
+        if( matrix_init( &net->jacobian, net->N_input, net->N_output) ){
+		ANN_error( ANN_MATRIX_ERROR, "ANN_init" );
+                return ANN_MATRIX_ERROR;
+        }
         if( matrix_init( &net->input_scale, net->N_input, 2) ){
 		ANN_error( ANN_MATRIX_ERROR, "ANN_init" );
                 return ANN_MATRIX_ERROR;
@@ -143,11 +162,14 @@ ann_res_t ANN_init( ANN *net, const char * FileName){
 	ANN_vector_vector_init(&net->temp, net->N_neuron, net->N_layer);
 	ANN_vector_vector_init(&net->dydV, net->N_neuron, net->N_layer);
 	ANN_vector_vector_init(&net->dEdV, net->N_neuron, net->N_layer);
-
-        if( vector_init( &net->yD, net->r*net->N_neuron[net->N_layer+1] ) ){
-		ANN_error( ANN_MATRIX_ERROR, "ANN_init" );
-                return ANN_MATRIX_ERROR;
-        }
+	ANN_vector_vector_init(&net->dXdu, net->N_neuron, net->N_layer);
+	
+	if( net->r > 0 ){
+        	if( vector_init( &net->yD, net->r*net->N_neuron[net->N_layer+1] ) ){
+			ANN_error( ANN_MATRIX_ERROR, "ANN_init" );
+               		return ANN_MATRIX_ERROR;
+        	}
+ 	}
         if( vector_init( &net->input, net->N_input ) ){
 		ANN_error( ANN_MATRIX_ERROR, "ANN_init" );
                 return ANN_MATRIX_ERROR;
@@ -210,6 +232,10 @@ ann_res_t ANN_destroy( ANN * net ){
 		ANN_error( ANN_MATRIX_ERROR, "ANN_destry" );
 		return ANN_MATRIX_ERROR;
 	}
+        if( matrix_destroy( &net->jacobian ) ){
+		ANN_error( ANN_MATRIX_ERROR, "ANN_destry" );
+		return ANN_MATRIX_ERROR;
+	}
         if( matrix_destroy( &net->input_scale ) ){
 		ANN_error( ANN_MATRIX_ERROR, "ANN_destry" );
 		return ANN_MATRIX_ERROR;
@@ -250,6 +276,10 @@ ann_res_t ANN_destroy( ANN * net ){
 			ANN_error( ANN_MATRIX_ERROR, "ANN_destroy" );
 			return ANN_MATRIX_ERROR;
 		}
+                if( vector_destroy( &net->dXdu[i] ) ){
+			ANN_error( ANN_MATRIX_ERROR, "ANN_destroy" );
+			return ANN_MATRIX_ERROR;
+		}
                 if( vector_destroy( &net->temp[i] ) ){
 			ANN_error( ANN_MATRIX_ERROR, "ANN_destroy" );
 			return ANN_MATRIX_ERROR;
@@ -266,6 +296,7 @@ ann_res_t ANN_destroy( ANN * net ){
         free(net->v);
         free(net->Y_neuron);
         free(net->dXdW);
+        free(net->dXdu);
         free(net->temp);
         free(net->dydV);
         free(net->dEdV);
@@ -375,11 +406,11 @@ ann_res_t ANN_write( ANN *net, FILE * fh, unsigned flags ){
 			}
 			fprintf( fh, "\n\n" );
        		}
-	        if( matrix_write( &net->input_scale, fh, W_M_TEXT ) ){
+	        if( matrix_write( &net->input_scale, fh, W_M_BIN ) ){
 			ANN_error( ANN_MATRIX_ERROR, "ANN_write" );
 			return ANN_MATRIX_ERROR;
 		}
-	        if( matrix_write( &net->output_scale, fh, W_M_TEXT ) ){
+	        if( matrix_write( &net->output_scale, fh, W_M_BIN ) ){
 			ANN_error( ANN_MATRIX_ERROR, "ANN_write" );
 			return ANN_MATRIX_ERROR;
 		}
@@ -388,7 +419,7 @@ ann_res_t ANN_write( ANN *net, FILE * fh, unsigned flags ){
 }
 
 /* calcola l'uscita della rete noti gli ingressi */
-ann_res_t ANN_sim( ANN *net , vector *input , vector *output ){
+ann_res_t ANN_sim( ANN *net , vector *input , vector *output, unsigned flags ){
 
         int i,j;
 
@@ -419,18 +450,21 @@ ann_res_t ANN_sim( ANN *net , vector *input , vector *output ){
         }
 
         for( i=0;i<net->N_output;i++ ){
-                output->vec[i] = net->output_scale.mat[i][1] + net->Y_neuron[net->N_layer+1].vec[i]*net->output_scale.mat[i][0];
+                //output->vec[i] = net->output_scale.mat[i][1] + net->Y_neuron[net->N_layer+1].vec[i]*net->output_scale.mat[i][0];
+                output->vec[i] = (net->Y_neuron[net->N_layer+1].vec[i]-net->output_scale.mat[i][1])/net->output_scale.mat[i][0];
         }
 	
 	/* aggiorno il vettore delle uscite retroazionate */
-        for( i=0;i<(net->r-1)*(net->N_neuron[net->N_layer+1]);i++ ){
-                net->yD.vec[((net->r)*(net->N_neuron[net->N_layer+1]))-1-i] = net->yD.vec[((net->r-1)*(net->N_neuron[net->N_layer+1]))-1-i];
-        }
-        if( net->r != 0 ){
-                for( i=0;i<net->N_neuron[net->N_layer+1];i++ ){
-                        net->yD.vec[i] = net->Y_neuron[net->N_layer+1].vec[i];
-                }
-        }
+	if( flags & FEEDBACK_UPDATE ){
+	        for( i=0;i<(net->r-1)*(net->N_neuron[net->N_layer+1]);i++ ){
+        	        net->yD.vec[((net->r)*(net->N_neuron[net->N_layer+1]))-1-i] = net->yD.vec[((net->r-1)*(net->N_neuron[net->N_layer+1]))-1-i];
+        	}
+        	if( net->r != 0 ){
+               		for( i=0;i<net->N_neuron[net->N_layer+1];i++ ){
+                        	net->yD.vec[i] = net->Y_neuron[net->N_layer+1].vec[i];
+	                }
+       		}
+	}
 
         return ANN_OK;
 }
@@ -611,7 +645,6 @@ ann_res_t ANN_dEdW( ANN * net , vector *e ){
         double temp;
 
         /* Output gradient ( visible layer )*/
-
         for( k=0;k<net->N_neuron[net->N_layer];k++ ){
                 for( l=0;l<net->N_neuron[net->N_layer+1];l++ ){
                         if( ANN_dXdW( net , k , l , net->N_layer ) ){
@@ -635,7 +668,6 @@ ann_res_t ANN_dEdW( ANN * net , vector *e ){
         }
 
 	/* Output gradient (hidden layer) */
-
         for( q=0; q<net->N_neuron[net->N_layer+1]; q++ ){
                 for( i=0; i<(net->N_neuron[net->N_layer+1] ); i++ ){
                         net->dydV[net->N_layer+1].vec[i] = 0.;
@@ -666,12 +698,12 @@ ann_res_t ANN_dEdW( ANN * net , vector *e ){
                                         for( p=0;p<(net->N_neuron[net->N_layer-k-1]);p++ ){
                                                 temp += net->W[net->N_layer-k-1].mat[p][j]*net->dXdW[net->N_layer-k-1].vec[p];
                                         }
-                                        net->dydW[q][net->N_layer-1-k].mat[i][j] = net->dydV[net->N_layer+1-k].vec[j]*temp;
+                                        //net->dydW[q][net->N_layer-1-k].mat[i][j] = net->dydV[net->N_layer+1-k].vec[j]*temp;
+                                        net->dydW[q][net->N_layer-1-k].mat[i][j] = net->dydV[net->N_layer-k].vec[j]*temp;
                                 }
                         }
                 }
         }
-
 	/* calcolo la derivata dell'errore rispetto ai pesi degli
 	 * degli strati non visibili */
         for( i=0; i<(net->N_output); i++ ){
@@ -700,7 +732,8 @@ ann_res_t ANN_dEdW( ANN * net , vector *e ){
                                 for( p=0;p<(net->N_neuron[net->N_layer-k-1]);p++ ){
                                         temp += net->W[net->N_layer-k-1].mat[p][j]*net->dXdW[net->N_layer-k-1].vec[p];
                                 }
-                                net->dEdW[net->N_layer-1-k].mat[i][j] = net->rho*net->dEdW[net->N_layer-1-k].mat[i][j] - net->eta*net->dEdV[net->N_layer+1-k].vec[j]*temp;
+                                //net->dEdW[net->N_layer-1-k].mat[i][j] = net->rho*net->dEdW[net->N_layer-1-k].mat[i][j] - net->eta*net->dEdV[net->N_layer+1-k].vec[j]*temp;
+                                net->dEdW[net->N_layer-1-k].mat[i][j] = net->rho*net->dEdW[net->N_layer-1-k].mat[i][j] - net->eta*net->dEdV[net->N_layer-k].vec[j]*temp;
                         }
                 }
         }
@@ -715,10 +748,12 @@ ann_res_t ANN_dEdW( ANN * net , vector *e ){
 			}
 		}
         }
-	for( i=0; i<net->N_neuron[net->N_layer+1];i++ ){	
-		if( ANN_vector_matrix_ass( &net->dy[0][i], &net->dydW[i], net->N_neuron, net->N_layer, 1. ) ){
-			ANN_error( ANN_GEN_ERROR, "ANN_dEdW" );
-			return ANN_GEN_ERROR;
+	if( net->r != 0 ){
+		for( i=0; i<net->N_neuron[net->N_layer+1];i++ ){	
+			if( ANN_vector_matrix_ass( &net->dy[0][i], &net->dydW[i], net->N_neuron, net->N_layer, 1. ) ){
+				ANN_error( ANN_GEN_ERROR, "ANN_dEdW" );
+				return ANN_GEN_ERROR;
+			}
 		}
 	}
 
@@ -741,7 +776,7 @@ ann_res_t ANN_TrainingEpoch( ANN * net, matrix *INPUT, matrix *DES_OUTPUT, matri
 		}
 		/* simulo la rete per calcolare le uscite al passo t
 		 * e il corrispondente errore */
-		if( ANN_sim( net, &net->input, &net->output) ){
+		if( ANN_sim( net, &net->input, &net->output, FEEDBACK_UPDATE) ){
 			ANN_error( ANN_GEN_ERROR, "ANN_TrainigEpoch" );
 			return ANN_GEN_ERROR;
 		}
@@ -790,10 +825,12 @@ ann_res_t ANN_TrainingEpoch( ANN * net, matrix *INPUT, matrix *DES_OUTPUT, matri
 ann_res_t ANN_reset( ANN * net){
 
 	int i,j,k;
-
-	if( vector_null( &net->yD ) ){
-		ANN_error( ANN_MATRIX_ERROR, "ANN_reset" );
-		return ANN_MATRIX_ERROR;
+	
+	if( net->r != 0 ) {
+		if( vector_null( &net->yD ) ){
+			ANN_error( ANN_MATRIX_ERROR, "ANN_reset" );
+			return ANN_MATRIX_ERROR;
+		}
 	}
 	for( i=0; i<net->N_layer+1; i++ ){
 		if( matrix_null( &net->dW[i] ) ){
@@ -847,7 +884,9 @@ ann_res_t ANN_vector_matrix_ass( ANN_vector_matrix *vm1, ANN_vector_matrix *vm2,
 	for( i=0; i<N_layer+1; i++ ){
 		for( j=0; j<N_neuron[i]; j++ ){
 			for( k=0; k<N_neuron[i+1]; k++ ){
-				vm1[i]->mat[j][k] = K*vm2[i]->mat[j][k];
+				//vm1[i]->mat[j][k] = K*vm2[i]->mat[j][k];
+				((*vm1)[i]).mat[j][k] = K*((*vm2)[i]).mat[j][k];
+				//(&((*vm1)[i]))->mat[j][k] = K*(&((*vm2)[i]))->mat[j][k];
 			}
 		}
 	}
@@ -871,4 +910,33 @@ void ANN_error( ann_res_t error, char * string){
         default:                break;
         }
 }
+
+
+/* calcola la matrice delle derivate delle uscite rispetto alle
+ * derivate degli ingressi */
+
+ann_res_t ANN_jacobian_matrix( ANN *net, matrix *jacobian ){
+
+	unsigned i, j, k;
 	
+	for( i=0; i<net->N_input; i++ ){
+		vector_null( &net->dXdu[0] );
+                net->dXdu[0].vec[i] = 1.;
+		for( j=0; j<net->N_layer+1; j++ ){
+                	if( matrixT_vector_prod( &net->W[j], &net->dXdu[j] ,&net->temp[j+1] ) ){
+				ANN_error( ANN_MATRIX_ERROR, "ANN_dXdW" );
+				return ANN_MATRIX_ERROR;
+			}
+                	for( k=0; k<net->N_neuron[j+1];k++ ){
+                	 	net->dXdu[j+1].vec[k] = ANN_InternalFunctionDer(net->v[j+1].vec[k], net )*net->temp[j+1].vec[k];
+                	}
+		}
+		for( k=0; k<net->N_output; k++ ){
+			//jacobian->mat[i][k] = ( net->output_scale.mat[k][0] * net->input_scale.mat[i][0] )*net->dXdu[net->N_layer+1].vec[k];
+			jacobian->mat[i][k] = ( net->input_scale.mat[i][0] / net->output_scale.mat[k][0] )*net->dXdu[net->N_layer+1].vec[k];
+		}
+	}
+	return ANN_OK;
+}
+			
+

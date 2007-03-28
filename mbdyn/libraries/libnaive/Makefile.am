@@ -1,7 +1,8 @@
 include $(top_srcdir)/build/top.mk
+## $Header$
 ## Process this file with automake to produce Makefile.in
 
-# Build libcolamd.a library
+# Build libnaive.a library
 lib_LTLIBRARIES = libnaive.la
 
 libnaive_la_SOURCES = \

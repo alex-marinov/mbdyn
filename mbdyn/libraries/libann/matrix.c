@@ -310,11 +310,81 @@ void matrix_error( mat_res_t error, char * string){
 	}
 }
 
+/* genera una matrice random di numeri compresi tra min e max*/
 
+mat_res_t matrix_random( matrix *MAT, double min, double max ){
 
+	double y;
+	unsigned i,j;
 
+	for( i=0; i<MAT->Nrow; i++ ){
+		for( j=0; j<MAT->Ncolumn; j++ ){
+	        	y = rand();
+			y = y/RAND_MAX;
+			y = y*(max-min);
+        		y += min ;
+			MAT->mat[i][j] = y;
+		}
+	}
 
+	return MAT_OK;
+}
 
+/* calcola il valor medio della colonna "column" della matrice "MAT" */
+double mean_value( matrix *MAT, int column ){
 
+        int i;
+        double mean = 0.;
 
+        for( i=0; i<MAT->Nrow; i++ ){
+                mean += MAT->mat[i][column];
+        }
+        return( mean/MAT->Nrow );
+}
+
+/* calcola la varianza della colonna "column" della matrice "MAT" */
+double variance( matrix *MAT, int column ){
+
+        int i;
+        double mean, var = 0.;
+
+        mean = mean_value( MAT, column);
+        for( i=0; i<MAT->Nrow; i++ ){
+                var += (MAT->mat[i][column]-mean)*(MAT->mat[i][column]-mean);
+        }
+
+        return( var/MAT->Nrow );
+}
+
+/* calcola il valor massimo della colonna "column" della matrice "MAT" */
+double maximum( matrix *MAT, int column ){
+
+        int i;
+        double MAX;
+        
+        MAX = MAT->mat[0][column];
+        for( i=0; i<MAT->Nrow; i++ ){
+                if( MAT->mat[i][column] > MAX ){
+                        MAX = MAT->mat[i][column];
+                }
+        }
+
+        return MAX; 
+}
+
+/* calcola il valor minimo della colonna "column" della matrice "MAT" */
+double minimum( matrix *MAT, int column ){
+
+        int i;
+        double MIN;
+
+        MIN = MAT->mat[0][column];
+        for( i=0; i<MAT->Nrow; i++ ){
+                if( MAT->mat[i][column] < MIN ){
+                        MIN = MAT->mat[i][column];
+                }
+        }
+
+        return MIN; 
+}
 

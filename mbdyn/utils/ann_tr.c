@@ -29,6 +29,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/*
+ * Copyright (C) 2007
+ *
+ * Mattia Mattaboni	<mattaboni@aero.polimi.it>
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -201,10 +206,10 @@ int main( int argc , char **argv ){
 
 	Niter = 0;
 	err2 = 10000000000.;
+	CNT = 0;
 	do{	
 		Niter++;
 		err1 = err2;
-		
 		if( TRAINING_MODE == ANN_TM_BATCH ){
 			if( ANN_vector_matrix_ass( &W2, &W1, net.N_neuron, net.N_layer, 1. )){
 				fprintf( stderr, "Error in ....\n" );
@@ -213,8 +218,8 @@ int main( int argc , char **argv ){
 				fprintf( stderr, "Error in ....\n" );
 			}
 		}
-
 		ANN_reset( &net );
+		
                 if( ANN_TrainingEpoch( &net , &INPUT , &DES_OUTPUT, &NN_OUTPUT, N_sample, TRAINING_MODE) ){
                         fprintf( stderr, "Error: ANN_TrainingEpoch@main ppp\n");
                         return 1;
@@ -224,13 +229,11 @@ int main( int argc , char **argv ){
 		}
 		ANN_TotalError( &DES_OUTPUT, &NN_OUTPUT, &err2);
 
-
 		/* per l'addestramento in modalità BATCH il tasso di apprendimento è
 		 * adattativo!!! */
-
 		if( TRAINING_MODE == ANN_TM_BATCH ){
 			CNT++;
-			while( err2 >= err1 ){
+			while( err2 > err1 ){
                                 CNT = 0;
                                 net.eta = 0.5*net.eta;
 				if( verbose )	 fprintf( stdout, "Network's learning rate decreasing (eta = %lf)\n",net.eta);
@@ -252,6 +255,7 @@ int main( int argc , char **argv ){
                                 if( verbose )	fprintf( stdout, "Network's learning rate increasing (eta = %lf)\n",net.eta);
                                 CNT = 0;
                         }
+
 		}
                 if( !(Niter%PRINTSTEP) ){
                         fprintf( stdout, "TRAINING:    iter:%d       ",Niter);
@@ -284,16 +288,18 @@ int main( int argc , char **argv ){
 	matrix_destroy(&INPUT);
 	matrix_destroy(&DES_OUTPUT);
 	matrix_destroy(&NN_OUTPUT);
-	for( i=0; i<net.N_layer+1; i++ ){
-		matrix_destroy(&(W1[i]));
-		matrix_destroy(&(W2[i]));
-		matrix_destroy(&(dWnew[i]));
-		matrix_destroy(&(dWold[i]));
-	}
+	if( TRAINING_MODE == ANN_TM_BATCH ){
+		for( i=0; i<net.N_layer+1; i++ ){
+			matrix_destroy(&(W1[i]));
+			matrix_destroy(&(W2[i]));
+			matrix_destroy(&(dWnew[i]));
+			matrix_destroy(&(dWold[i]));
+		}
 	free(W1);
 	free(W2);
 	free(dWnew);
-	free(dWold);
+	free(dWold);	
+	}
 
         ANN_destroy( &net );
 	fprintf( stdout, "END.......\n");

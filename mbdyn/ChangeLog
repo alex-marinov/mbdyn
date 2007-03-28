@@ -17,6 +17,9 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
    supports Euler 123, orientation vector and orientation matrix in .mov/.nc;
    model-wide default and per-StructNode can be set
 
+*** Mon Feb 26 16:07:20 CET 2007 Mattia Mattaboni <mattaboni@aero.polimi.it>
+ - Added skeleton for Artificial Neural Network support.
+
 *** Wed Jan 17 14:40:16 CET 2007 Pierangelo Masarati <masarati@aero.polimi.it>
  - Eliminated AbstractNode (replaced by ScalarDifferentialNode; abstract nodes
    can now be ScalarAlgebraicNode as well).

@@ -79,6 +79,12 @@ mat_res_t vector_write( vector *, FILE *, unsigned );
 mat_res_t matrix_read( matrix *, FILE *, unsigned );
 mat_res_t vector_read( vector *, FILE *, unsigned );
 
+mat_res_t matrix_random( matrix *, double, double );
+
+double mean_value( matrix *, int );
+double variance( matrix *, int );
+double maximum( matrix *, int );
+double minimum( matrix *, int  );
 void matrix_error( mat_res_t, char * );
 
 

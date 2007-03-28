@@ -6,10 +6,10 @@ SUBDIRS = \
 libmbutil \
 libmbmath \
 libobjs \
-libann \
 liby12 \
 libcolamd \
 libnaive \
-libmbwrap
+libmbwrap \
+libann
 
 include $(top_srcdir)/build/bot.mk

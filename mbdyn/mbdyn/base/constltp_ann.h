@@ -86,12 +86,25 @@ public:
 	};
 
 	virtual void Update(const T& Eps, const T& /* EpsPrime */  = 0.) {
+
 		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
 
 		T E = ConstitutiveLaw<T, Tder>::Epsilon;
 
 		ConstitutiveLaw<T, Tder>::F = 0.;
 		ConstitutiveLaw<T, Tder>::FDE = 0.;
+
+                net.input.vec[0] = Eps;
+                if( ANN_sim( &net, &net.input, &net.output, FEEDBACK_UPDATE) ){
+			throw ErrGeneric();
+                        //fprintf( stderr, "Network simulation error\n" );
+                        //return 1;
+                }
+		ANN_jacobian_matrix( &net, &net.jacobian );
+	
+		ConstitutiveLaw<T, Tder>::F = net.output.vec[0];
+		ConstitutiveLaw<T, Tder>::FDE = net.jacobian.mat[0][0];
+
 	};
 
 	virtual void IncrementalUpdate(const T& DeltaEps, const T& /* EpsPrime */ = 0.) {
@@ -134,6 +147,18 @@ public:
 
 		ConstitutiveLaw<T, Tder>::F = 0.;
 		ConstitutiveLaw<T, Tder>::FDE = 0.;
+                
+		net.input.vec[0] = Eps;
+		net.input.vec[1] = EpsPrime;
+                if( ANN_sim( &net, &net.input, &net.output, FEEDBACK_UPDATE) ){
+			throw ErrGeneric();
+                        //fprintf( stderr, "Network simulation error\n" );
+                        //return 1;
+                }
+		ANN_jacobian_matrix( &net, &net.jacobian );
+	
+		ConstitutiveLaw<T, Tder>::F = net.output.vec[0];
+		ConstitutiveLaw<T, Tder>::FDE = net.jacobian.mat[0][0];
 	};
 };
 

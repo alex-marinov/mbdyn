@@ -56,3 +56,14 @@ int w_tanh_destroy(void *);
 int w_tanh_read(void * , FILE * , unsigned );
 int w_tanh_write(void * , FILE * , unsigned );
 int w_tanh_eval(void * , double, int, double *);
+
+typedef struct w_linear_t {
+        double m;
+        double q;
+} w_linear_t;
+
+int w_linear_init(void ** );
+int w_linear_destroy(void *);
+int w_linear_read(void * , FILE * , unsigned );
+int w_linear_write(void * , FILE * , unsigned );
+int w_linear_eval(void * , double, int, double *);

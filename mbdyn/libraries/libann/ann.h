@@ -48,6 +48,8 @@ extern "C" {
 #define W_A_TEXT        (0x01U)
 #define W_A_BIN         (0x02U)
 
+#define NONE  		      (0x00U)
+#define FEEDBACK_UPDATE       (0x01U)
 /* diagnostics */
 typedef enum { 
         ANN_OK = 0,
@@ -91,6 +93,9 @@ typedef struct ANN {
 	/* SYNAPTIC WEIGHTS */
         ANN_vector_matrix 	W;    		/* network synaptic weights*/
 
+	/* JCOBIAN MATRIX */
+	matrix			jacobian;
+
 	/* SCALE FACTORS */
 	matrix			input_scale;	/* input scale factors */
 	matrix			output_scale;	/* output scale factors */
@@ -106,7 +111,7 @@ typedef struct ANN {
 
 	/* PRIVATE TRAINING DATA */
 	ANN_vector_matrix	*dydW, dW;
-	ANN_vector_vector	dXdW, temp, dydV, dEdV;
+	ANN_vector_vector	dXdW, temp, dydV, dEdV, dXdu;
 	vector 			input, output, error;
 	
 	  
@@ -117,7 +122,7 @@ typedef struct ANN {
 ann_res_t ANN_init( ANN *, const char * );
 ann_res_t ANN_destroy( ANN * );
 ann_res_t ANN_write( ANN *, FILE *, unsigned );
-ann_res_t ANN_sim( ANN *, vector *, vector * );
+ann_res_t ANN_sim( ANN *, vector *, vector *, unsigned );
 ann_res_t ANN_DataRead( matrix *, int *, char * );
 ann_res_t ANN_DataWrite( matrix *, char * );
 double ANN_InternalFunction( double , ANN * );
@@ -131,6 +136,7 @@ ann_res_t ANN_TrainingEpoch( ANN *, matrix *, matrix *, matrix *, int, ann_train
 ann_res_t ANN_reset( ANN * );
 ann_res_t ANN_TotalError( matrix *, matrix *, double *);
 ann_res_t ANN_vector_matrix_ass( ANN_vector_matrix *, ANN_vector_matrix *, int* , int, double );
+ann_res_t ANN_jacobian_matrix( ANN *, matrix * );
 
 void ANN_error( ann_res_t, char * );
 

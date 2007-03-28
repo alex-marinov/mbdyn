@@ -29,6 +29,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/*
+ * Copyright (C) 2007
+ *
+ * Mattia Mattaboni	<mattaboni@aero.polimi.it>
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -37,7 +42,6 @@
 
 #include "ann.h"
 
-int TRAINING_MODE = 1;
 static char *ANNfile = "data/ann.dat";
 static char *INPUTfile = "data/Input.dat";
 static char *NN_OUTPUTfile = "data/NNOutput.dat";
@@ -75,7 +79,7 @@ int main( int argc , char **argv ){
 
         /* 0. Training options */
         do {
-                opt = getopt_long( argc, argv, "uA:I:T:", options, NULL  );
+                opt = getopt_long( argc, argv, "uA:I:T:N:", options, NULL  );
                 switch( opt ) {
                 case 'u':       print_usage();
                                 break;
@@ -116,7 +120,7 @@ int main( int argc , char **argv ){
                         net.input.vec[j] = INPUT.mat[i][j];
                 }
 		/* simulo la rete */
-                if( ANN_sim( &net, &net.input, &net.output) ){
+                if( ANN_sim( &net, &net.input, &net.output, FEEDBACK_UPDATE) ){
 			fprintf( stderr, "Network simulation error\n" );
                         return 1;
                 }

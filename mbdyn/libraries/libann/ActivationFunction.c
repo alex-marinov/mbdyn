@@ -79,8 +79,8 @@ w_tanh_write(void *priv, FILE *fh, unsigned flags)
         w_tanh_t        *data = (w_tanh_t *)priv;
 
         if (flags & W_F_BIN) {
-                fprintf(fh, "%e %e",
-                        data->alpha, data->beta);
+                fprintf(fh, "%d\n%e %e",
+                        1,data->alpha, data->beta);
 
         } else if (flags & W_F_TEXT) {
                 fprintf(fh, "tanh alpha=%e beta=%e\n",
@@ -104,6 +104,79 @@ w_tanh_eval(void *priv, double in, int order, double *outp)
         case 1:
                 y = tanh(data->beta*in);
                 y = data->alpha*data->beta*(1. - y*y);
+                break;
+
+        default:
+                return 1;
+        }
+
+        *outp = y;
+
+        return 0;
+}
+
+/* Linear Activation Function */
+int
+w_linear_init(void **privp)
+{
+        *privp = malloc(sizeof(w_linear_t));
+
+        return (*privp == NULL);
+}
+
+int
+w_linear_destroy(void *priv)
+{
+#if 0
+        w_tanh_t        *data = (w_tanh_t *)priv;
+#endif
+
+        free(priv);
+
+        return 0;
+}
+
+int
+w_linear_read(void *priv, FILE *fh, unsigned flags)
+{
+        w_linear_t        *data = (w_linear_t *)priv;
+
+        fscanf(fh, "%lf", &data->m);
+        fscanf(fh, "%lf", &data->q);
+
+        return 0;
+}
+
+int
+w_linear_write(void *priv, FILE *fh, unsigned flags)
+{
+        w_linear_t        *data = (w_linear_t *)priv;
+
+        if (flags & W_F_BIN) {
+                fprintf(fh, "%d\n%e %e",
+                        2,data->m, data->q);
+
+        } else if (flags & W_F_TEXT) {
+                fprintf(fh, "linear m=%e q=%e\n",
+                        data->m, data->q);
+        }
+
+        return 0;
+}
+
+int
+w_linear_eval(void *priv, double in, int order, double *outp)
+{
+        w_linear_t        *data = (w_linear_t *)priv;
+        double          y;
+
+        switch (order) {
+        case 0:
+                y = data->m*in + data->q;
+                break;
+
+        case 1:
+                y = data->m;
                 break;
 
         default:
