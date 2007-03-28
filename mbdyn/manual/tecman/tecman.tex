@@ -1891,6 +1891,111 @@ to the jacobian matrix is
 	}}
 \end{equation}
 
+The derivative of the constraint equation is
+\begin{equation}
+	\dot{\T{\Phi}} = 
+		\dot{\T{x}}_b
+		+ \T{\omega}_b \times \T{f}_b
+		- \dot{\T{x}}_a
+		- \T{\omega}_a \times \T{d}
+		- \dot{\T{d}}
+\end{equation}
+where $\dot{\T{d}}=\T{R}_a\dot{\tilde{\T{v}}}$; its perturbation yields
+\begin{equation}
+	\delta\dot{\T{\Phi}}
+	= \delta\dot{\T{x}}_b
+	+ \delta\T{\omega}_b \times \T{f}_b
+	+ \T{\omega}_b \times \T{\theta}_{b\delta} \times \T{f}_b
+	- \delta\dot{\T{x}}_a
+	- \delta\T{\omega}_a \times \T{d}
+	- \T{\omega}_a \times \T{\theta}_{a\delta} \times \T{d}
+	- \T{\theta}_{a\delta} \times \dot{\T{d}} .
+\end{equation}
+The contributions to the Jacobian matrix and residual 
+of the initial assembly are
+\begin{align}
+	\small
+	& \hspace{-20mm}\sqbr{\matr{ccccc}{
+		\T{0} & \T{0} & \T{0} & \T{0} & -\T{I} \\	% delta x_a
+		\T{0} & -\T{\lambda}\times\T{d}\times{}
+			- \T{\mu}\times\dot{\T{d}}\times
+			+ \plbr{\T{\omega}_a\times\T{\mu}}\times\T{d}\times{} &
+			\T{0} & \T{0} & -\T{d}\times{} \\	% theta_a delta
+		\T{0} & \T{0} & \T{0} & \T{0} & \T{I} \\	% delta x_b
+		\T{0} & \T{0} & \T{0} & 
+			\T{\lambda}\times\T{f}_b\times{}
+			- \plbr{\T{\omega}_b\times\T{\mu}}\times\T{f}_b\times{} &
+			\T{f}_b\times{} \\	% theta_b delta
+		-\T{I} & \T{d}\times{} & \T{I} & -\T{f}_b\times{} &
+			\T{0} \\				% delta lambda
+%
+	\hline
+		\T{0} & \T{0} & \T{0} & \T{0} & \T{0} \\	% delta dot x_a
+		\T{0} & -\T{\mu}\times\T{d}\times{} &
+			\T{0} & \T{0} & \T{0} \\		% delta omega_a
+		\T{0} & \T{0} & \T{0} & \T{0} & \T{0} \\	% delta dot x_b
+		\T{0} & \T{0} & \T{0} &
+			\T{\mu}\times\T{f}_b\times{} & \T{0} \\	% delta omega_b
+		\T{0} &
+			\dot{\T{d}}\times{}
+			+ \T{\omega}_a\times\T{d}\times{} &
+			\T{0} &
+			-\T{\omega}_b\times\T{f}_b\times{} &
+			\T{0}					% delta mu
+	}} \cubr{\cvvect{
+		\delta\T{x}_a \\
+		\T{\theta}_{a\delta} \\
+		\delta\T{x}_b \\
+		\T{\theta}_{b\delta} \\
+		\delta\T{\lambda}
+	}} \nonumber \\
+	&+ \sqbr{\matr{ccccc}{
+		\T{0} & \T{0} & \T{0} & \T{0} & \T{0} \\ 	% delta x_a
+		\T{0} & -\T{d}\times\T{\mu}\times{} &
+			\T{0} & \T{0} & 
+			- \dot{\T{d}}\times{}
+			+ \T{d}\times\T{\omega}_a\times{} \\	% theta_a delta
+		\T{0} & \T{0} & \T{0} & \T{0} & \T{0} \\	% delta x_b
+		\T{0} & \T{0} & \T{0} & \T{f}_b\times\T{\mu}\times{} &
+			-\T{f}_b\times\T{\omega}_b\times{} \\	% theta_b delta
+		\T{0} & \T{0} & \T{0} & \T{0} & \T{0} \\	% delta lambda
+%
+	\hline
+		\T{0} & \T{0} & \T{0} & \T{0} & -\T{I} \\	% delta dot x_a
+		\T{0} & \T{0} &
+			\T{0} & \T{0} & -\T{d}\times{} \\	% delta omega_a
+		\T{0} & \T{0} & \T{0} & \T{0} & \T{I} \\	% delta dot x_b
+		\T{0} & \T{0} & \T{0} & \T{0} &
+			\T{f}_b\times{} \\	% delta omega_b
+		-\T{I} & \T{d}\times{} & \T{I} & -\T{f}_b\times{} &
+			\T{0} 					% delta mu
+	}} \cubr{\cvvect{
+		\delta\dot{\T{x}}_a \\
+		\delta\T{\omega}_a \\
+		\delta\dot{\T{x}}_b \\
+		\delta\T{\omega}_b \\
+		\delta\T{\mu}
+	}} \nonumber \\
+	&= \cubr{\cvvect{
+		\T{\lambda} \\
+		\T{d}\times\T{\lambda}
+			- \T{d}\times\T{\omega}_a\times\T{\mu}
+			+ \dot{\T{d}}\times\T{\mu} \\
+		-\T{\lambda} \\
+		-\T{f}_b\times\T{\lambda}
+			+ \T{f}_b\times\T{\omega}_b\times\T{\mu} \\
+		\T{x}_a + \T{d} - \T{x}_b - \T{f}_b \\
+%
+		\hline
+		\T{\mu} \\
+		\T{d}\times\T{\mu} \\
+		-\T{\mu} \\
+		-\T{f}_b\times\T{\mu} \\
+		\dot{\T{x}}_a + \T{\omega}_a\times\T{d} + \dot{\T{d}}
+			- \dot{\T{x}}_b - \T{\omega}_b\times\T{f}_b
+	}}
+\end{align}
+
 \subsection{Drive Displacement Pin}
 \label{sec:DriveDisplacementPinJoint}
 This joint (DriveDisplacementPinJoint) is the ``pinned'' variant 
@@ -1938,6 +2043,66 @@ to the jacobian matrix is
 	}}
 \end{equation}
 
+The derivative of the constraint equation is
+\begin{equation}
+	\dot{\T{\Phi}}
+	= \dot{\T{x}}
+	+ \T{\omega}\times\T{f}
+	- \dot{\T{v}} ;
+\end{equation}
+its perturbation yields
+\begin{equation}
+	\delta\dot{\T{\Phi}}
+	= \delta\dot{\T{x}}
+	- \T{f}\times\delta\T{\omega}
+	- \T{\omega}\times\T{f}\times\T{\theta}_{\delta}
+\end{equation}
+The contributions to the Jacobian matrix and residual 
+of the initial assembly are
+\begin{align}
+	& \sqbr{\matr{ccc}{
+		\T{0} & \T{0} & \T{I} \\				% delta x
+		\T{0} & \T{\lambda}\times\T{f}\times{}
+			- \plbr{\T{\omega}\times\T{\mu}}\times\T{f}\times{} &
+			\T{f}\times{} \\				% theta delta
+		\T{I} & -\T{f}\times{} & \T{0} \\			% delta phi
+%
+	\hline
+		\T{0} & \T{0} & \T{0} \\				% delta dot x
+		\T{0} & \T{\mu}\times\T{f}\times{} & \T{0} \\		% delta omega
+		\T{0} & -\T{\omega}\times\T{f}\times{} & \T{0}		% delta dot phi
+	}} \cubr{\cvvect{
+		\delta\T{x} \\
+		\T{\theta}_{\delta} \\
+		\delta\T{\lambda}
+	}} \nonumber \\
+	& \sqbr{\matr{ccc}{
+		\T{0} & \T{0} & \T{0} \\				% delta x
+		\T{0} & \T{f}\times\T{\mu}\times{} &
+			-\T{f}\times\T{\omega}\times{} \\		% theta delta
+		\T{0} & \T{0} & \T{0} \\				% delta phi
+%
+	\hline
+		\T{0} & \T{0} & \T{I} \\				% delta dot x
+		\T{0} & \T{0} & \T{f}\times{} \\			% delta omega
+		\T{I} & -\T{f}\times{} & \T{0} 				% delta dot phi
+	}} \cubr{\cvvect{
+		\delta\dot{\T{x}} \\
+		\delta\T{\omega} \\
+		\delta\T{\mu}
+	}} %\nonumber \\
+	= \cubr{\cvvect{
+		- \T{\lambda} \\
+		- \T{f}\times\T{\lambda}
+			+ \T{f}\times\T{\omega}\times\T{\mu} \\
+		\T{x}_0 + \T{v} - \T{x} - \T{f} \\
+%
+	\hline
+		- \T{\mu} \\
+		- \T{f}\times\T{\mu} \\
+		\dot{\T{v}} - \dot{\T{x}} - \T{\omega}\times\T{f}
+	}}
+\end{align}
 
 
 \subsection{Imposed Displacement}
