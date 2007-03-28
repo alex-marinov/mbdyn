@@ -1093,7 +1093,13 @@ DriveDisplacementPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	WorkVec.Sub(9 + 1, fRef.Cross(FPrime));
 
 	WorkVec.Add(12 + 1, dRef - pNode->GetXCurr() - fRef);
-	WorkVec.Add(15 + 1, pNode->GetWCurr().Cross(fRef) - pNode->GetVCurr());
+
+	/* in case the drive is differentiable... */
+	Vec3 PhiPrime = pNode->GetVCurr() + pNode->GetWCurr().Cross(fRef);
+	if (bIsDifferentiable()) {
+		PhiPrime -= GetP();
+	}
+	WorkVec.Sub(15 + 1, PhiPrime);
 
 	return WorkVec;
 }
