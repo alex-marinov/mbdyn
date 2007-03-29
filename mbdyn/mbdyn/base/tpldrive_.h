@@ -36,6 +36,59 @@
 #include <tpldrive.h>
 #include <mbpar.h>
 
+/* ZeroTplDriveCaller - begin */
+
+template <class T>
+class ZeroTplDriveCaller : public TplDriveCaller<T> {
+public:
+	ZeroTplDriveCaller(void) {
+		NO_OP;
+	};
+
+	~ZeroTplDriveCaller(void) {
+		NO_OP;
+	};
+
+	/* copia */
+	virtual TplDriveCaller<T>* pCopy(void) const {
+		typedef ZeroTplDriveCaller<T> dc;
+		TplDriveCaller<T>* pDC = 0;
+
+		SAFENEW(pDC, dc);
+
+		return pDC;
+	};
+
+	/* Scrive il contributo del DriveCaller al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const {
+		out << "zero";
+	};
+
+	virtual std::ostream& Restart_int(std::ostream& out) const {
+		return out;
+	};
+
+	inline T Get(void) const {
+		return T(0.);
+	};
+
+	/* this is about drives that are differentiable */
+	inline bool bIsDifferentiable(void) const {
+		return true;
+	};
+
+	inline T GetP(void) const {
+		return T(0.);
+	};
+
+	inline int getNDrives(void) const {
+		return 0;
+	};
+};
+
+/* ZeroTplDriveCaller - end */
+
+
 /* SingleTplDriveCaller - begin */
 
 template <class T>
@@ -339,7 +392,8 @@ class ReadTplDriveKeyWords {
 public:
 	enum KeyWords {
 		UNKNOWNTPLDRIVE = -1,
-		SINGLE = 0,
+		ZERO = 0,
+		SINGLE,
 		ARRAY,
 		LASTKEYWORD
 	};
@@ -354,6 +408,7 @@ TplDriveCaller<T>* ReadTplDrive(const DataManager* pDM,
 	DEBUGCOUT("Entering ReadTplDrive" << std::endl);
 
 	const char* sKeyWords[] = {
+		"zero",
 		"single",
 		"array",
 		0
@@ -385,6 +440,10 @@ TplDriveCaller<T>* ReadTplDrive(const DataManager* pDM,
 
 restart:
 		switch (CurrKeyWord) {
+		case ReadTplDriveKeyWords<T>::ZERO:
+			SAFENEW(pTplDC, ZeroTplDriveCaller<T>);
+			break;
+
 		case ReadTplDriveKeyWords<T>::SINGLE: {
 			T t(0.);
 

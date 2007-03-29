@@ -67,6 +67,7 @@
 #include "prismj.h"    /* Vincolo prismatico */
 #include "rodj.h"      /* Aste elastiche */
 #include "spherj.h"
+#include "totalj.h"
 #include "univj.h"
 #include "vehj.h"      /* Giunti deformabili */
 #include "vehj2.h"     /* "" */
@@ -170,6 +171,7 @@ ReadJoint(DataManager* pDM,
 		"imposed" "displacement",
 		"imposed" "displacement" "pin",
 		"imposed" "orientation",
+		"total" "joint",
 		"kinematic",
 		"beam" "slider",
 		"brake",
@@ -223,6 +225,7 @@ ReadJoint(DataManager* pDM,
 		IMPOSEDDISPLACEMENT,
 		IMPOSEDDISPLACEMENTPIN,
 		IMPOSEDORIENTATION,
+		TOTALJOINT,
 		KINEMATIC,
 		BEAMSLIDER,
 		BRAKE,
@@ -2249,6 +2252,148 @@ ReadJoint(DataManager* pDM,
 			ImposedOrientationJoint,
 			ImposedOrientationJoint(uLabel, pDO, bActive, pDC,
 				pNode1, pNode2, R1h, R2h, fOut));
+
+		} break;
+
+	case TOTALJOINT:
+		{
+		/* nodo collegato 1 */
+		StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+		ReferenceFrame RF(pNode1);
+
+		Vec3 f1(0.);
+		if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+			NO_OP;
+		} else {
+			pedantic_cerr("Joint(" << uLabel << "): "
+				"missing keyword \"position\" at line "
+				<< HP.GetLineData() << std::endl);
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+			f1 = HP.GetPosRel(ReferenceFrame(pNode1));
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+
+		Mat3x3 R1h(Eye3);
+		if (HP.IsKeyWord("orientation")) {
+			DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+			R1h = HP.GetRotRel(RF);
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+		} else if (HP.IsKeyWord("hinge")) {
+			pedantic_cerr("Joint(" << uLabel << "): "
+				"keyword \"hinge\" at line " << HP.GetLineData()
+				<< " is deprecated; use \"orientation\" instead"
+				<< std::endl);
+			DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+			R1h = HP.GetRotRel(RF);
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+		}
+
+		Mat3x3 R1hr(Eye3);
+		if (HP.IsKeyWord("hinge" "orientation")) {
+			DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+			R1hr = HP.GetRotRel(RF);
+		}
+
+		/* nodo collegato 2 */
+		StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+		RF = ReferenceFrame(pNode2);
+
+		Vec3 f2(0.);
+		if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+			NO_OP;
+		} else {
+			pedantic_cerr("Joint(" << uLabel << "): "
+				"missing keyword \"position\" at line "
+				<< HP.GetLineData() << std::endl);
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+			f2 = HP.GetPosRel(ReferenceFrame(pNode2));
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+
+		Mat3x3 R2h(Eye3);
+		if (HP.IsKeyWord("orientation")) {
+			DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+			R2h = HP.GetRotRel(RF);
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+		} else if (HP.IsKeyWord("hinge")) {
+			pedantic_cerr("Joint(" << uLabel << "): "
+				"keyword \"hinge\" at line " << HP.GetLineData()
+				<< " is deprecated; use \"orientation\" instead"
+				<< std::endl);
+			DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+			R2h = HP.GetRotRel(RF);
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+		}
+
+		Mat3x3 R2hr(Eye3);
+		if (HP.IsKeyWord("hinge" "orientation")) {
+			DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+			R2hr = HP.GetRotRel(RF);
+		}
+
+		bool bXActive[3] = { false, false, false };
+		TplDriveCaller<Vec3>* pXDC = 0;
+		if (HP.IsKeyWord("position")) {
+			for (unsigned i = 0; i < 3; i++) {
+				if (HP.IsKeyWord("inactive")) {
+					bXActive[i] = false;
+
+				} else if (HP.IsKeyWord("active")) {
+					bXActive[i] = true;
+
+				} else {
+					silent_cerr("TotalJoint(" << uLabel << "): "
+						"invalid status for position component #" << i + 1
+						<< " at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric();
+				}
+			}
+
+			pXDC = ReadTplDrive(pDM, HP, Vec3(0.));
+
+		} else {
+			SAFENEW(pXDC, ZeroTplDriveCaller<Vec3>);
+		}
+
+		bool bTActive[3] = { false, false, false };
+		TplDriveCaller<Vec3>* pTDC = 0;
+		if (HP.IsKeyWord("orientation")) {
+			for (unsigned i = 0; i < 3; i++) {
+				if (HP.IsKeyWord("inactive")) {
+					bTActive[i] = false;
+
+				} else if (HP.IsKeyWord("active")) {
+					bTActive[i] = true;
+
+				} else {
+					silent_cerr("TotalJoint(" << uLabel << "): "
+						"invalid status for position component #" << i + 1
+						<< " at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric();
+				}
+			}
+
+			pTDC = ReadTplDrive(pDM, HP, Vec3(0.));
+
+		} else {
+			SAFENEW(pTDC, ZeroTplDriveCaller<Vec3>);
+		}
+
+		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			TotalJoint,
+			TotalJoint(uLabel, pDO,
+				bXActive, pXDC, bTActive, pTDC,
+				pNode1, f1, R1h, R1hr,
+				pNode2, f2, R2h, R2hr,
+				fOut));
 
 		} break;
 

@@ -43,11 +43,12 @@
 
 TotalJoint::TotalJoint(unsigned int uL, const DofOwner *pDO,
 	bool bPos[3],
-	bool bRot[3],
 	const TplDriveCaller<Vec3> *pDCPos,
+	bool bRot[3],
 	const TplDriveCaller<Vec3> *pDCRot,
-	const StructNode *pN1, const StructNode *pN2,
+	const StructNode *pN1,
 	const Vec3& f1Tmp, const Mat3x3& R1hTmp, const Mat3x3& R1hrTmp,
+	const StructNode *pN2,
 	const Vec3& f2Tmp, const Mat3x3& R2hTmp, const Mat3x3& R2hrTmp,
 	flag fOut)
 : Elem(uL, fOut),
