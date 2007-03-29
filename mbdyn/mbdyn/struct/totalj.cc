@@ -302,33 +302,48 @@ TotalJoint::SetValue(DataManager *pDM,
 					f2 = R2t*(pNode1->GetXCurr() + fTmp1 - pNode2->GetXCurr());
 	
 				} else if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
-					R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2h;
+					if (dynamic_cast<Joint::PositionHingeHint<1> *>(pjh)) {
+						R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2h;
+
+					} else if (dynamic_cast<Joint::OrientationHingeHint<1> *>(pjh)) {
+						R1hr = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2hr;
+					}
 	
 				} else if (dynamic_cast<Joint::HingeHint<2> *>(pjh)) {
-					R2h = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1h;
+					if (dynamic_cast<Joint::PositionHingeHint<2> *>(pjh)) {
+						R2h = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1h;
+
+					} else if (dynamic_cast<Joint::OrientationHingeHint<2> *>(pjh)) {
+						R2hr = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1hr;
+					}
+
+				} else if (dynamic_cast<Joint::JointDriveHint<Vec3> *>(pjh)) {
+					Joint::JointDriveHint<Vec3> *pjdh
+						= dynamic_cast<Joint::JointDriveHint<Vec3> *>(pjh);
+					pedantic_cout("TotalJoint(" << uLabel << "): "
+						"creating drive from hint[" << i << "]..." << std::endl);
+
+					TplDriveCaller<Vec3> *pDC = pjdh->pTDH->pCreateDrive(pDM);
+					if (pDC == 0) {
+						silent_cerr("TotalJoint(" << uLabel << "): "
+							"unable to create drive "
+							"after hint #" << i << std::endl);
+						throw ErrGeneric();
+					}
+
+					if (dynamic_cast<Joint::PositionDriveHint<Vec3> *>(pjdh)) {
+						XDrv.Set(pDC);
+						
+					} else if (dynamic_cast<Joint::OrientationDriveHint<Vec3> *>(pjdh)) {
+						ThetaDrv.Set(pDC);
+
+					} else {
+						delete pDC;
+					}
 	
 				} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
 					/* TODO */
 				}
-				continue;
-			}
-			
-			TplDriveHint<Vec3> *pdh = dynamic_cast<TplDriveHint<Vec3> *>((*ph)[i]);
-			
-			if (pdh) {
-				pedantic_cout("TotalJoint(" << uLabel << "): "
-					"creating drive from hint[" << i << "]..." << std::endl);
-
-				TplDriveCaller<Vec3> *pDC = pdh->pCreateDrive(pDM);
-				if (pDC == 0) {
-					silent_cerr("TotalJoint(" << uLabel << "): "
-						"unable to create drive "
-						"after hint #" << i << std::endl);
-					throw ErrGeneric();
-				}
-
-				/* FIXME: need to discriminate between XDrv and ThetaDrv */
-				XDrv.Set(pDC);
 				continue;
 			}
 		}
@@ -355,8 +370,8 @@ TotalJoint::ParseHint(DataManager *pDM, const char *s) const
 			return new Joint::OffsetHint<2>;
 		}
 
-	} else if (strncasecmp(s, "hinge{" /*}*/, STRLENOF("hinge{" /*}*/)) == 0) {
-		s += STRLENOF("hinge{" /*}*/);
+	} else if (strncasecmp(s, "position-hinge{" /*}*/, STRLENOF("position-hinge{" /*}*/)) == 0) {
+		s += STRLENOF("position-hinge{" /*}*/);
 
 		if (strcmp(&s[1], /*{*/ "}") != 0) {
 			return 0;
@@ -369,6 +384,45 @@ TotalJoint::ParseHint(DataManager *pDM, const char *s) const
 		case '2':
 			return new Joint::HingeHint<2>;
 		}
+
+	} else if (strncasecmp(s, "position-drive3{" /*}*/, STRLENOF("position-drive3{" /*}*/)) == 0) {
+		s += STRLENOF("position-");
+
+		Hint *pH = ::ParseHint(pDM, s);
+		if (pH) {
+			TplDriveHint<Vec3> *pTDH = dynamic_cast<TplDriveHint<Vec3> *>(pH);
+			if (pTDH) {
+				return new PositionDriveHint<Vec3>(pTDH);
+			}
+		}
+		return 0;
+
+	} else if (strncasecmp(s, "orientation-hinge{" /*}*/, STRLENOF("orientation-hinge{" /*}*/)) == 0) {
+		s += STRLENOF("orientation-hinge{" /*}*/);
+
+		if (strcmp(&s[1], /*{*/ "}") != 0) {
+			return 0;
+		}
+
+		switch (s[0]) {
+		case '1':
+			return new Joint::HingeHint<1>;
+
+		case '2':
+			return new Joint::HingeHint<2>;
+		}
+
+	} else if (strncasecmp(s, "orientation-drive3{" /*}*/, STRLENOF("orientation-drive3{" /*}*/)) == 0) {
+		s += STRLENOF("orientation-");
+
+		Hint *pH = ::ParseHint(pDM, s);
+		if (pH) {
+			TplDriveHint<Vec3> *pTDH = dynamic_cast<TplDriveHint<Vec3> *>(pH);
+			if (pTDH) {
+				return new OrientationDriveHint<Vec3>(pTDH);
+			}
+		}
+		return 0;
 	}
 
 	return 0;
@@ -379,6 +433,8 @@ TotalJoint::AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP)
 {
 #if 0
+	/* Note: angle unwrap might only be possible
+	 * in case of a single unconstrained axis */
 	Mat3x3 RTmp(((pNode1->GetRCurr()*R1h).Transpose()
 			*pNode1->GetRPrev()*R1h).Transpose()
 			*((pNode2->GetRCurr()*R2h).Transpose()

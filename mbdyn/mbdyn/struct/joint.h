@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2007
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,132 +31,160 @@
 
 /* vincoli, tipo: Elem::Type JOINT */
 
-
 #ifndef JOINT_H
 #define JOINT_H
 
 /* include per derivazione della classe */
 
-#include <ac/float.h>
+#include "ac/float.h"
 
-#include <strnode.h>
-#include <elem.h>
-#include <gravity.h>
+#include "strnode.h"
+#include "elem.h"
+#include "gravity.h"
+#include "hint_impl.h"
 
 extern const char* psJointNames[];
 
 
 /* Joint - begin */
 
-class Joint 
-: virtual public Elem, public ElemGravityOwner, 
+class Joint
+: virtual public Elem, public ElemGravityOwner,
 	public ElemWithDofs, public InitialAssemblyElem {
- public:
-   /* Tipi di Joint */
-   enum Type {
-      UNKNOWN = -1,
-      
-      DISTANCE = 0,
-      DISTANCEWITHOFFSET,
-      CLAMP,
-      SPHERICALHINGE,
-      PIN,
-      UNIVERSALHINGE,
-      UNIVERSALROTATION,
-      UNIVERSALPIN,
-      PLANEHINGE,
-      PLANEROTATION,
-      PLANEPIN,
-      AXIALROTATION,
-      PLANEDISP,
-      PLANEDISPPIN,
-      INPLANE,
-      INPLANECONTACT,
-      INLINE,
-      ROD,
-      DEFORMABLEHINGE,
-      DEFORMABLEDISPJOINT,
-      DEFORMABLEJOINT,
-      LINEARVELOCITY,
-      ANGULARVELOCITY,
-      LINEARACCELERATION,
-      ANGULARACCELERATION,
-      PRISMATIC,
-      DRIVEHINGE,
-      DRIVEDISP,
-      DRIVEDISPPIN,
-      IMPOSEDORIENTATION,
-      IMPOSEDDISP,
-      IMPOSEDDISPPIN,
-      IMPOSEDKINEMATICS,
-      BEAMSLIDER,
-      BRAKE,
-      GIMBAL,
-      TOTALJOINT,
-      
-      MODAL,
-      
-      LASTJOINTTYPE
-   };
+public:
+	/* Tipi di Joint */
+	enum Type {
+		UNKNOWN = -1,
 
- public:
-   struct JointHint : public Hint {
-	   virtual ~JointHint(void) {};
-   };
-   template <int i>
-   struct OffsetHint : public Joint::JointHint {};
-   template <int i>
-   struct HingeHint : public Joint::JointHint {};
-   struct ReactionsHint : public Joint::JointHint {};
-   struct ForcesHint : public Joint::JointHint {};
-   struct MomentsHint : public Joint::JointHint {};
-   
- public: 
-   class ErrGeneric {};
-   
- public:
-   Joint(unsigned int uL, const DofOwner* pD, flag fOut);
-   virtual ~Joint(void);
+		DISTANCE = 0,
+		DISTANCEWITHOFFSET,
+		CLAMP,
+		SPHERICALHINGE,
+		PIN,
+		UNIVERSALHINGE,
+		UNIVERSALROTATION,
+		UNIVERSALPIN,
+		PLANEHINGE,
+		PLANEROTATION,
+		PLANEPIN,
+		AXIALROTATION,
+		PLANEDISP,
+		PLANEDISPPIN,
+		INPLANE,
+		INPLANECONTACT,
+		INLINE,
+		ROD,
+		DEFORMABLEHINGE,
+		DEFORMABLEDISPJOINT,
+		DEFORMABLEJOINT,
+		LINEARVELOCITY,
+		ANGULARVELOCITY,
+		LINEARACCELERATION,
+		ANGULARACCELERATION,
+		PRISMATIC,
+		DRIVEHINGE,
+		DRIVEDISP,
+		DRIVEDISPPIN,
+		IMPOSEDORIENTATION,
+		IMPOSEDDISP,
+		IMPOSEDDISPPIN,
+		IMPOSEDKINEMATICS,
+		BEAMSLIDER,
+		BRAKE,
+		GIMBAL,
+		TOTALJOINT,
 
-   /* Derivate da Elem */
-   
-   /* Tipo dell'elemento (usato solo per debug ecc.) */
-   virtual Elem::Type GetElemType(void) const { 
-      return Elem::JOINT; 
-   };   
-   
-   /* Tipo di joint */
-   virtual Joint::Type GetJointType(void) const = 0;
+		MODAL,
 
-   /* Contributo al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const {
-      return out << "  joint: " << GetLabel();
-   };
-   
-   /* Output specifico dei vincoli */
-   std::ostream& Output(std::ostream& out, const char* sJointName,
-	           unsigned int uLabel, 
-		   const Vec3& FLocal, const Vec3& MLocal,
-		   const Vec3& FGlobal, const Vec3& MGlobal) const;
+		LASTJOINTTYPE
+	};
 
-   /* Derivate da ElemWith Dofs */
-   
-   /* Setta il valore iniziale delle proprie variabili */
-   virtual void SetInitialValue(VectorHandler& /* X */ ) const { 
-      NO_OP;
-   };
+public:
+	struct JointHint : public Hint {
+		virtual ~JointHint(void) {};
+	};
 
-   virtual void SetValue(DataManager *pDM,
-		   VectorHandler& /* X */ , VectorHandler& /* Xp */ ,
-		   SimulationEntity::Hints *ph = 0)
-   {
-      NO_OP;
-   };
+	template <int i>
+	struct OffsetHint : public Joint::JointHint {};
 
-   /* per la lettura dei dati dell'elemento modale */
+	template <int i>
+	struct HingeHint : public Joint::JointHint {};
+	template <int i>
+	struct PositionHingeHint : public Joint::HingeHint<i> {};
+	template <int i>
+	struct OrientationHingeHint : public Joint::HingeHint<i> {};
 
-   friend Joint* ReadModal(DataManager* pDM,MBDynParser& HP, const DofOwner* pD0, unsigned int uLabel, const StructNode* pModalNode);
+	template <class T>
+	struct JointDriveHint : public Joint::JointHint {
+		TplDriveHint<T> *pTDH;
+		JointDriveHint(TplDriveHint<T> *pTDH) : pTDH(pTDH) {};
+		~JointDriveHint(void) {
+			if (pTDH) {
+				delete pTDH;
+			}
+		};
+	};
+	template <class T>
+	struct PositionDriveHint : public Joint::JointDriveHint<T> {
+		PositionDriveHint(TplDriveHint<T> *pTDH) : Joint::JointDriveHint<T>(pTDH) {};
+	};
+	template <class T>
+	struct OrientationDriveHint : public Joint::JointDriveHint<T> {
+		OrientationDriveHint(TplDriveHint<T> *pTDH) : Joint::JointDriveHint<T>(pTDH) {};
+	};
 
+	struct ReactionsHint : public Joint::JointHint {};
+	struct ForcesHint : public Joint::ReactionsHint {};
+	struct MomentsHint : public Joint::ReactionsHint {};
+
+public:
+	class ErrGeneric {};
+
+public:
+	Joint(unsigned int uL, const DofOwner* pD, flag fOut);
+	virtual ~Joint(void);
+
+	/* Derivate da Elem */
+
+	/* Tipo dell'elemento (usato solo per debug ecc.) */
+	virtual Elem::Type GetElemType(void) const {
+		return Elem::JOINT;
+	};
+
+	/* Tipo di joint */
+	virtual Joint::Type GetJointType(void) const = 0;
+
+	/* Contributo al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const {
+		return out << "  joint: " << GetLabel();
+	};
+
+	/* Output specifico dei vincoli */
+	std::ostream&
+	Output(std::ostream& out, const char* sJointName,
+		unsigned int uLabel,
+		const Vec3& FLocal, const Vec3& MLocal,
+		const Vec3& FGlobal, const Vec3& MGlobal) const;
+
+	/* Derivate da ElemWith Dofs */
+
+	/* Setta il valore iniziale delle proprie variabili */
+	virtual void SetInitialValue(VectorHandler& /* X */ ) const {
+		NO_OP;
+	};
+
+	virtual void SetValue(DataManager *pDM,
+		VectorHandler& /* X */ , VectorHandler& /* Xp */ ,
+		SimulationEntity::Hints *ph = 0)
+	{
+		NO_OP;
+	};
+
+	/* per la lettura dei dati dell'elemento modale */
+
+	friend Joint *
+	ReadModal(DataManager* pDM,MBDynParser& HP, const DofOwner* pD0,
+		unsigned int uLabel, const StructNode* pModalNode);
 };
 
 /* Joint - end */
@@ -167,8 +195,8 @@ class DataManager;
 class MBDynParser;
 
 extern Elem* ReadJoint(DataManager* pDM,
-		       MBDynParser& HP,
-		       const DofOwner* pDO,
-		       unsigned int uLabel);
+	MBDynParser& HP,
+	const DofOwner* pDO,
+	unsigned int uLabel);
 
 #endif // JOINT_H
