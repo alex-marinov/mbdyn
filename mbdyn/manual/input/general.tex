@@ -1916,6 +1916,8 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
 	symbolic elastic						& x & x & x \\
 	symbolic viscous						& x & x & x \\
 	symbolic viscoelastic						& x & x & x \\
+	ann elastic							& x & x & x \\
+	ann viscoelastic						& x & x & x \\
 	\hline
     \end{tabular}
 \end{table}
@@ -2417,6 +2419,43 @@ in \kw{expression}.
 For constitutive laws with more than one dimension,
 a string for each \kw{epsilon}, one for each \kw{epsilon\_prime},
 and one for each \kw{expression} are expected.
+
+\subsection{ann elastic}\label{sec:CL-ANN-ELASTIC}
+The implementation  of the family of \kw{ann} constitutive laws
+is based on an Artifical Neural Network library that is embedded in MBDyn.
+
+The syntax is
+\begin{verbatim}
+    <specific_const_law> ::= ann elastic ,
+        " <file_name> "
+\end{verbatim}
+where the file \kw{file\_name} contains the parameters of the network.
+What is mainly significant to users is the need to scale inputs and outputs
+to match the amplitudes and possibly the offsets used in the training.
+For this purpose, the last two rows of the input files contain coefficients
+\begin{verbatim}
+    b1 b0
+    a1 a0
+\end{verbatim}
+which are used to scale the input $u$ and the output $y$ according
+to the transformation
+\begin{align}
+	\overline{u} &= b_1 u + b_0 \\
+	\overline{y} &= a_1 y + a_0
+\end{align}
+so that the actual output is
+\begin{equation}
+	y = \frac{f\plbr{b_1 u + b_0} - a_0}{a_1}
+\end{equation}
+
+\subsection{ann viscoelastic}\label{sec:CL-ANN-VISCOELASTIC}
+The syntax is
+\begin{verbatim}
+    <specific_const_law> ::= ann viscoelastic ,
+        " <file_name> "
+\end{verbatim}
+where the file \kw{file\_name} contains the parameters of the network.
+
 
 
 \section{Hydraulic fluid}\label{sec:HYDRAULIC-FLUID-DATA}
