@@ -69,6 +69,32 @@ protected:
 		NO_OP;
 	}
 
+	virtual void Update(const T& Eps, const T& EpsPrime, int feedback) {
+
+		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
+
+		T E = ConstitutiveLaw<T, Tder>::Epsilon;
+
+		ConstitutiveLaw<T, Tder>::F = 0.;
+		ConstitutiveLaw<T, Tder>::FDE = 0.;
+
+		for (unsigned r = 0; r < dim; r++) {
+                	net->input.vec[r] = E(r + 1);
+		}
+                if (ANN_sim(net, &net->input, &net->output, feedback)) {
+			throw ErrGeneric();
+                }
+		ANN_jacobian_matrix( net, &net->jacobian );
+
+		for (unsigned r = 0; r < dim; r++) {
+			ConstitutiveLaw<T, Tder>::F(r + 1) = net->output.vec[r];
+			for (unsigned c = 0; c < dim; c++) {
+				ConstitutiveLaw<T, Tder>::FDE(r + 1, c + 1) = net->jacobian.mat[r][c];
+			}
+		}
+	};
+
+
 public:
 	AnnElasticConstitutiveLaw(const std::string& f)
 	: fname(f)
@@ -88,6 +114,12 @@ public:
 		return ConstLawType::ELASTIC;
 	};
 
+	virtual void
+	AfterConvergence(const doublereal& Eps, const doublereal& EpsPrime = 0.)
+	{
+		Update(Eps, EpsPrime, ANN_FEEDBACK_UPDATE);
+	};
+
 	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
 		ConstitutiveLaw<T, Tder>* pCL = NULL;
 
@@ -100,29 +132,8 @@ public:
 		return out << " ann elastic, \"" << fname << "\",";
 	};
 
-	virtual void Update(const T& Eps, const T& /* EpsPrime */  = 0.) {
-
-		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
-
-		T E = ConstitutiveLaw<T, Tder>::Epsilon;
-
-		ConstitutiveLaw<T, Tder>::F = 0.;
-		ConstitutiveLaw<T, Tder>::FDE = 0.;
-
-		for (unsigned r = 0; r < dim; r++) {
-                	net->input.vec[r] = E(r + 1);
-		}
-                if (ANN_sim(net, &net->input, &net->output, FEEDBACK_UPDATE)) {
-			throw ErrGeneric();
-                }
-		ANN_jacobian_matrix( net, &net->jacobian );
-
-		for (unsigned r = 0; r < dim; r++) {
-			ConstitutiveLaw<T, Tder>::F(r + 1) = net->output.vec[r];
-			for (unsigned c = 0; c < dim; c++) {
-				ConstitutiveLaw<T, Tder>::FDE(r + 1, c + 1) = net->jacobian.mat[r][c];
-			}
-		}
+	virtual void Update(const T& Eps, const T& EpsPrime = 0.) {
+		Update(Eps, EpsPrime, ANN_FEEDBACK_NONE);
 	};
 
 	virtual void IncrementalUpdate(const T& DeltaEps, const T& /* EpsPrime */ = 0.) {
@@ -135,7 +146,6 @@ class AnnElasticConstitutiveLaw<doublereal, doublereal>
 : public ConstitutiveLaw<doublereal, doublereal> {
 protected:
 	ANN *net;
-	bool bUpdate;
 	std::string fname;
 
 	void AnnInit(void)
@@ -153,9 +163,29 @@ protected:
 		NO_OP;
 	}
 
+	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime, int feedback) {
+
+		ConstitutiveLaw<doublereal, doublereal>::Epsilon = Eps;
+
+		doublereal E = ConstitutiveLaw<doublereal, doublereal>::Epsilon;
+
+		ConstitutiveLaw<doublereal, doublereal>::F = 0.;
+		ConstitutiveLaw<doublereal, doublereal>::FDE = 0.;
+
+               	net->input.vec[0] = E;
+
+                if (ANN_sim(net, &net->input, &net->output, feedback)) {
+			throw ErrGeneric();
+                }
+		ANN_jacobian_matrix(net, &net->jacobian);
+
+		ConstitutiveLaw<doublereal, doublereal>::F = net->output.vec[0];
+		ConstitutiveLaw<doublereal, doublereal>::FDE = net->jacobian.mat[0][0];
+	};
+
 public:
 	AnnElasticConstitutiveLaw(const std::string& f)
-	: bUpdate(false), fname(f)
+	: fname(f)
 	{
 		AnnInit();
 		AnnSanity();
@@ -175,11 +205,9 @@ public:
 	virtual void
 	AfterConvergence(const doublereal& Eps, const doublereal& EpsPrime = 0.)
 	{
-		bUpdate = true;
-		Update(Eps, EpsPrime);
-		bUpdate = false;
+		Update(Eps, EpsPrime, ANN_FEEDBACK_UPDATE);
 	};
-   
+
 	virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const {
 		ConstitutiveLaw<doublereal, doublereal>* pCL = NULL;
 
@@ -192,24 +220,8 @@ public:
 		return out << " ann elastic, \"" << fname << "\",";
 	};
 
-	virtual void Update(const doublereal& Eps, const doublereal& /* EpsPrime */  = 0.) {
-
-		ConstitutiveLaw<doublereal, doublereal>::Epsilon = Eps;
-
-		doublereal E = ConstitutiveLaw<doublereal, doublereal>::Epsilon;
-
-		ConstitutiveLaw<doublereal, doublereal>::F = 0.;
-		ConstitutiveLaw<doublereal, doublereal>::FDE = 0.;
-
-               	net->input.vec[0] = E;
-
-                if (ANN_sim(net, &net->input, &net->output, bUpdate ? FEEDBACK_UPDATE : FEEDBACK_NONE)) {
-			throw ErrGeneric();
-                }
-		ANN_jacobian_matrix(net, &net->jacobian);
-
-		ConstitutiveLaw<doublereal, doublereal>::F = net->output.vec[0];
-		ConstitutiveLaw<doublereal, doublereal>::FDE = net->jacobian.mat[0][0];
+	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime = 0.) {
+		Update(Eps, EpsPrime, ANN_FEEDBACK_NONE);
 	};
 
 	virtual void IncrementalUpdate(const doublereal& DeltaEps, const doublereal& /* EpsPrime */ = 0.) {
@@ -229,22 +241,7 @@ protected:
 		NO_OP;
 	}
 
-public:
-	AnnViscoElasticConstitutiveLaw(const std::string& f)
-	: AnnElasticConstitutiveLaw<T, Tder>(f)
-	{
-		NO_OP;
-	};
-
-	virtual ~AnnViscoElasticConstitutiveLaw(void) {
-		NO_OP;
-	};
-
-	ConstLawType::Type GetConstLawType(void) const {
-		return ConstLawType::VISCOELASTIC;
-	};
-
-	virtual void Update(const T& Eps, const T& EpsPrime = 0.) {
+	virtual void Update(const T& Eps, const T& EpsPrime, int feedback) {
 		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
 		ConstitutiveLaw<T, Tder>::EpsilonPrime = EpsPrime;
 
@@ -260,7 +257,7 @@ public:
 			net->input.vec[r] = E(r + 1);
 			net->input.vec[AnnViscoElasticConstitutiveLaw<T, Tder>::dim + r] = EpsPrime(r + 1);
 		}
-                if (ANN_sim(net, &net->input, &net->output, FEEDBACK_UPDATE))
+                if (ANN_sim(net, &net->input, &net->output, feedback))
 		{
                         silent_cout("AnnViscoElasticConstitutiveLaw: Network simulation error" << std::endl);
 			throw ErrGeneric();
@@ -273,6 +270,21 @@ public:
 				ConstitutiveLaw<T, Tder>::FDE(r + 1, c + 1) = net->jacobian.mat[r][c];
 			}
 		}
+	};
+
+public:
+	AnnViscoElasticConstitutiveLaw(const std::string& f)
+	: AnnElasticConstitutiveLaw<T, Tder>(f)
+	{
+		NO_OP;
+	};
+
+	virtual ~AnnViscoElasticConstitutiveLaw(void) {
+		NO_OP;
+	};
+
+	ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::VISCOELASTIC;
 	};
 };
 
@@ -288,6 +300,26 @@ protected:
 		NO_OP;
 	}
 
+	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime, int feedback ) {
+		ConstitutiveLaw<doublereal, doublereal>::Epsilon = Eps;
+		ConstitutiveLaw<doublereal, doublereal>::EpsilonPrime = EpsPrime;
+
+		doublereal E = ConstitutiveLaw<doublereal, doublereal>::Epsilon;
+
+		ANN *net = AnnElasticConstitutiveLaw<doublereal, doublereal>::net;
+		net->input.vec[0] = E;
+		net->input.vec[1] = EpsPrime;
+                if (ANN_sim(net, &net->input, &net->output, feedback))
+		{
+                        silent_cout("AnnViscoElasticConstitutiveLaw: Network simulation error" << std::endl);
+			throw ErrGeneric();
+                }
+		ANN_jacobian_matrix(net, &net->jacobian );
+	
+		ConstitutiveLaw<doublereal, doublereal>::F = net->output.vec[0];
+		ConstitutiveLaw<doublereal, doublereal>::FDE = net->jacobian.mat[0][0];
+	};
+
 public:
 	AnnViscoElasticConstitutiveLaw(const std::string& f)
 	: AnnElasticConstitutiveLaw<doublereal, doublereal>(f)
@@ -301,26 +333,6 @@ public:
 
 	ConstLawType::Type GetConstLawType(void) const {
 		return ConstLawType::VISCOELASTIC;
-	};
-
-	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime = 0.) {
-		ConstitutiveLaw<doublereal, doublereal>::Epsilon = Eps;
-		ConstitutiveLaw<doublereal, doublereal>::EpsilonPrime = EpsPrime;
-
-		doublereal E = ConstitutiveLaw<doublereal, doublereal>::Epsilon;
-
-		ANN *net = AnnElasticConstitutiveLaw<doublereal, doublereal>::net;
-		net->input.vec[0] = E;
-		net->input.vec[1] = EpsPrime;
-                if (ANN_sim(net, &net->input, &net->output, FEEDBACK_UPDATE))
-		{
-                        silent_cout("AnnViscoElasticConstitutiveLaw: Network simulation error" << std::endl);
-			throw ErrGeneric();
-                }
-		ANN_jacobian_matrix(net, &net->jacobian );
-	
-		ConstitutiveLaw<doublereal, doublereal>::F = net->output.vec[0];
-		ConstitutiveLaw<doublereal, doublereal>::FDE = net->jacobian.mat[0][0];
 	};
 };
 

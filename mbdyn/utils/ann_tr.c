@@ -202,7 +202,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-        ANN_write(&net, stdout, W_A_TEXT);
+        ANN_write(&net, stdout, ANN_W_A_TEXT);
 	fprintf(stdout, "TRAINING....\n");
 
 	Niter = 0;
@@ -226,7 +226,7 @@ main(int argc, char *argv[])
                         return 1;
                 }
 		if (verbose) {
-		        ANN_write(&net, stdout, W_A_TEXT);
+		        ANN_write(&net, stdout, ANN_W_A_TEXT);
 		}
 		ANN_TotalError(&DES_OUTPUT, &NN_OUTPUT, &err2);
 
@@ -269,7 +269,7 @@ main(int argc, char *argv[])
                 if( !(Niter%SAVESTEP) ){
 			fh = fopen(SAVEfile, "w");
                         fprintf( stdout, "SAVING DATA...\n");
-                        if (ANN_write( &net, fh, W_A_BIN)) {
+                        if (ANN_write( &net, fh, ANN_W_A_BIN)) {
                                 fprintf(stderr, "Error in data saving\n");
                                 return 1;
                         }
@@ -281,7 +281,7 @@ main(int argc, char *argv[])
 
         fprintf(stdout, "SAVING DATA...\n");
 	fh = fopen(SAVEfile, "w");
-        if (ANN_write(&net, fh, W_A_BIN)) {
+        if (ANN_write(&net, fh, ANN_W_A_BIN)) {
                 fprintf(stderr, "Error: ANN_save@main\n");
                 return 1;
         }

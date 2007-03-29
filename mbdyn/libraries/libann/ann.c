@@ -339,7 +339,7 @@ ann_res_t ANN_write( ANN *net, FILE * fh, unsigned flags ){
 
         int i;
 
-	if( flags & W_A_TEXT ){
+	if( flags & ANN_W_A_TEXT ){
 		fprintf( fh, "ARTIFICIAL NEURAL NETWORK\n");
 		fprintf( fh, "Network topology\n");
 	        fprintf( fh, "-Input number: %d \n", net->N_input);
@@ -381,7 +381,7 @@ ann_res_t ANN_write( ANN *net, FILE * fh, unsigned flags ){
 			return ANN_MATRIX_ERROR;
 		}
 	}
-	if( flags & W_A_BIN ){
+	if( flags & ANN_W_A_BIN ){
 	        fprintf( fh, " %d \n", net->N_input);
        		fprintf( fh, " %d \n", net->N_output);
 	        fprintf( fh, " %d \n", net->N_layer);
@@ -455,7 +455,7 @@ ann_res_t ANN_sim( ANN *net , vector *input , vector *output, unsigned flags ){
         }
 	
 	/* aggiorno il vettore delle uscite retroazionate */
-	if( flags & FEEDBACK_UPDATE ){
+	if( flags & ANN_FEEDBACK_UPDATE ){
 	        for( i=0;i<(net->r-1)*(net->N_neuron[net->N_layer+1]);i++ ){
         	        net->yD.vec[((net->r)*(net->N_neuron[net->N_layer+1]))-1-i] = net->yD.vec[((net->r-1)*(net->N_neuron[net->N_layer+1]))-1-i];
         	}
@@ -776,7 +776,7 @@ ann_res_t ANN_TrainingEpoch( ANN * net, matrix *INPUT, matrix *DES_OUTPUT, matri
 		}
 		/* simulo la rete per calcolare le uscite al passo t
 		 * e il corrispondente errore */
-		if( ANN_sim( net, &net->input, &net->output, FEEDBACK_UPDATE) ){
+		if( ANN_sim( net, &net->input, &net->output, ANN_FEEDBACK_UPDATE) ){
 			ANN_error( ANN_GEN_ERROR, "ANN_TrainigEpoch" );
 			return ANN_GEN_ERROR;
 		}

@@ -118,7 +118,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-        ANN_write(&net, stdout, W_A_TEXT);
+        ANN_write(&net, stdout, ANN_W_A_TEXT);
 	fprintf(stdout, "SIMULATION....\n");
         for (i = 0; i < N_sample; i++) {
                 /* aggiorno il vettore degli ingressi */
@@ -126,7 +126,7 @@ main(int argc, char *argv[])
                         net.input.vec[j] = INPUT.mat[i][j];
                 }
 		/* simulo la rete */
-                if (ANN_sim(&net, &net.input, &net.output, FEEDBACK_UPDATE)) {
+                if (ANN_sim(&net, &net.input, &net.output, ANN_FEEDBACK_UPDATE)) {
 			fprintf(stderr, "Network simulation error\n");
                         return 1;
                 }
