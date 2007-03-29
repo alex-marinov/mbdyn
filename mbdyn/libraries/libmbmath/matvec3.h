@@ -806,6 +806,26 @@ class Mat3x3 {
       return Vec3(pdMat+3*--i);
    };
 
+   /*
+    Ottiene un sottovettore dalla matrice.
+    Nota: l'indice e' a base 1, in stile FORTRAN.
+    Alias di GetVec()
+    */
+   Vec3 GetCol(unsigned short int i) const {
+      ASSERT(i >= 1 && i <= 3);
+      return Vec3(pdMat + 3*--i);
+   };
+
+   /*
+    Ottiene un sottovettore dalla matrice.
+    Nota: l'indice e' a base 1, in stile FORTRAN.
+    */
+   Vec3 GetRow(unsigned short int i) const {
+      ASSERT(i >= 1 && i <= 3);
+      --i;
+      return Vec3(pdMat[i], pdMat[3 + i], pdMat[6 + i]);
+   };
+
    void PutVec(unsigned short int i, const Vec3& v) {
       ASSERT(i >= 1 && i <= 3);
 
