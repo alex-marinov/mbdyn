@@ -129,7 +129,7 @@ public:
 
 	void
 	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-		*piNumCols = *piNumRows = 6 + nConstraints ;
+		*piNumCols = *piNumRows = 12 + nConstraints ;
 	};
 
 	VariableSubMatrixHandler&
@@ -155,7 +155,7 @@ public:
 	};
 	virtual void
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-		*piNumCols = *piNumRows = 12 + 2*nConstraints;
+		*piNumCols = *piNumRows = 24 + 2*nConstraints;
 	};
 
 	/* Contributo allo jacobiano durante l'assemblaggio iniziale */

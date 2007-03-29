@@ -53,11 +53,11 @@ TotalJoint::TotalJoint(unsigned int uL, const DofOwner *pDO,
 	flag fOut)
 : Elem(uL, fOut),
 Joint(uL, pDO, fOut),
-XDrv(pDCPos),
-ThetaDrv(pDCRot),
 pNode1(pN1), pNode2(pN2),
 f1(f1Tmp), R1h(R1hTmp), R1hr(R1hrTmp),
 f2(f2Tmp), R2h(R2hTmp), R2hr(R2hrTmp),
+XDrv(pDCPos),
+ThetaDrv(pDCRot),
 nConstraints(0), nPosConstraints(0), nRotConstraints(0),
 M(0.), F(0.), Theta(0.)
 {
@@ -68,11 +68,11 @@ M(0.), F(0.), Theta(0.)
 		bPosActive[i] = bPos[i];
 		bRotActive[i] = bRot[i];
 		if (bPosActive[i]) {
-			iPosIncid[nPosConstraints] = i;
+			iPosIncid[nPosConstraints] = i + 1;
 			nPosConstraints++;
 		}
 		if (bRotActive[i]) {
-			iRotIncid[nRotConstraints] = i;
+			iRotIncid[nRotConstraints] = i + 1;
 			nRotConstraints++;
 		}
 	}
@@ -472,7 +472,7 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.PutColIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
 	}
 
-	for (unsigned int iCnt = 0; iCnt <= nConstraints; iCnt++) {
+	for (unsigned int iCnt = 1; iCnt <= nConstraints; iCnt++) {
 		WM.PutRowIndex(12 + iCnt, iFirstReactionIndex + iCnt);
 		WM.PutColIndex(12 + iCnt, iFirstReactionIndex + iCnt);
 	}
@@ -531,42 +531,42 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	Mat3x3 b1CrossT_R1(Mat3x3(-b1)*R1); // = [b1_X]^T * R1
 	Mat3x3 b2CrossT_R1(Mat3x3(-b2)*R1); // = [b2_X]^T * R1
 	
-	for (int iCnt = 0 ; iCnt < nPosConstraints; iCnt++) {
+	for (unsigned iCnt = 0 ; iCnt < nPosConstraints; iCnt++) {
 		Vec3 vR1(R1.GetVec(iPosIncid[iCnt]));
 		Vec3 vb1CrossT_R1(b1CrossT_R1.GetVec(iPosIncid[iCnt]));
 		Vec3 vb2CrossT_R1(b2CrossT_R1.GetVec(iPosIncid[iCnt]));
 		
 		/* Equilibrium, node 1 */
-      		WM.Add(1, 13 + iCnt, vR1);
-      		WM.Sub(4, 13 + iCnt, vb1CrossT_R1);
+      		WM.Sub(1, 12 + 1 + iCnt, vR1);
+      		WM.Sub(3 + 1, 12 + 1 + iCnt, vb1CrossT_R1);
 				
 		/* Constraint, node 1 */
-      		WM.SubT(13 + iCnt, 1, vR1);
-      		WM.AddT(13 + iCnt, 4, vb1CrossT_R1);
+      		WM.SubT(12 + 1 + iCnt, 1, vR1);
+      		WM.SubT(12 + 1 + iCnt, 3 + 1, vb1CrossT_R1);
 			
 		/* Equilibrium, node 2 */
-      		WM.Sub(7, 13 + iCnt, vR1);
-      		WM.Add(10, 13 + iCnt, vb2CrossT_R1);
+      		WM.Add(6 + 1, 12 + 1 + iCnt, vR1);
+      		WM.Add(9 + 1, 12 + 1 + iCnt, vb2CrossT_R1);
 				
 		/* Constraint, node 2 */
-      		WM.AddT(13 + iCnt, 7, vR1);
-      		WM.SubT(13 + iCnt, 10, vb2CrossT_R1);
+      		WM.AddT(12 + 1 + iCnt, 6 + 1, vR1);
+      		WM.AddT(12 + 1 + iCnt, 9 + 1, vb2CrossT_R1);
 	}
 	
-	for (int iCnt = 0 ; iCnt < nRotConstraints; iCnt++) {
+	for (unsigned iCnt = 0 ; iCnt < nRotConstraints; iCnt++) {
 		Vec3 vR1(R1r.GetVec(iRotIncid[iCnt]));
 		
 		/* Equilibrium, node 1 */
-      		WM.Add(4, 13 + nPosConstraints +  iCnt, vR1);
+      		WM.Sub(3 + 1, 12 + 1 + nPosConstraints +  iCnt, vR1);
 				
 		/* Constraint, node 1 */
-      		WM.SubT(13 + nPosConstraints + iCnt, 4, vR1);
+      		WM.SubT(12 + 1 + nPosConstraints + iCnt, 3 + 1, vR1);
 			
 		/* Equilibrium, node 2 */
-      		WM.Sub(10, 13 + nPosConstraints + iCnt, vR1);
+      		WM.Add(9 + 1, 12 + 1 + nPosConstraints + iCnt, vR1);
 				
 		/* Constraint, node 2 */
-      		WM.AddT(13 + nPosConstraints +  iCnt, 10, vR1);
+      		WM.AddT(12 + 1 + nPosConstraints +  iCnt, 9 + 1, vR1);
 	}
 	
 	return WorkMat;
@@ -604,18 +604,18 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	}
 
 	/* Get constraint reactions */
-	for (int iCnt = 0, iCurr = 0; iCnt < 3; iCnt++) {
+	for (int iCnt = 0, iPosCurr = 0, iRotCurr = 0; iCnt < 3; iCnt++) {
 		if (bPosActive[iCnt]) {
-			iCurr++;
-			F(iCnt + 1) = XCurr(iFirstReactionIndex + iCurr);
+			iPosCurr++;
+			F(iCnt + 1) = XCurr(iFirstReactionIndex + iPosCurr);
 
 		} else {
 			F(iCnt + 1) = 0.;
 		}
 
 		if (bRotActive[iCnt]) {
-			iCurr++;
-			M(iCnt + 1) = XCurr(iFirstReactionIndex + nPosConstraints + iCurr);
+			iRotCurr++;
+			M(iCnt + 1) = XCurr(iFirstReactionIndex + nPosConstraints + iRotCurr);
 
 		} else {
 			M(iCnt + 1) = 0.;
@@ -650,12 +650,12 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	if (dCoef != 0.) {
 		
 		/* Position constraint:  */
-		for (int iCnt = 0; iCnt < nPosConstraints; iCnt++) {
+		for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
 			WorkVec.PutCoef(12 + 1 + iCnt, -XDelta(iPosIncid[iCnt])/dCoef);
 		}
 		
 		/* Rotation constraints: */
-		for (int iCnt = 0; iCnt < nRotConstraints; iCnt++) {
+		for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
 			WorkVec.PutCoef(12 + 1 + nPosConstraints + iCnt, -ThetaDelta(iRotIncid[iCnt])/dCoef);
 		}
 	}

@@ -61,7 +61,7 @@ public:
 
 	/* Scrive il contributo del DriveCaller al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const {
-		out << "zero";
+		return out << "zero";
 	};
 
 	virtual std::ostream& Restart_int(std::ostream& out) const {
