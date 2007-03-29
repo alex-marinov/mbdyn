@@ -1687,12 +1687,17 @@ A particular \kw{DriveCaller} is the template drive caller. This is made
 of a constant entity that multiplies a conventional 
 \hyperref{\kw{drive}}{\kw{drive} (see Section~}{)}{sec:DRIVE} to give a drive
 entity of dimensionality different from that of a simple scalar \kw{drive}.
-there are two types of template drive callers, the \kw{single} template 
-drive caller and the \kw{array} template drive caller, 
-that is nothing but the sum of an array of \kw{single}
+
+There are three types of template drive callers:
+the \kw{zero} template drive caller, a shortcut for nothing;
+the \kw{single} template drive caller;
+and the \kw{array} template drive caller, 
+which is the result of adding a set of \kw{single}
 template drive callers. 
 They are entered as follows:
 \begin{verbatim}
+    <tpl_drive_caller> ::= zero
+
     <tpl_drive_caller> ::= single ,
         <entity> , <drive_caller> 
 
