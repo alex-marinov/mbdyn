@@ -41,9 +41,6 @@
 #include "matvecexp.h"
 #include "Rot.hh"
 
-/* define to use invariant residual */
-#undef MBDYN_DEFORMABLE_INVARIANT
-
 /* DeformableHingeJoint - begin */
 
 /* Costruttore non banale */
@@ -696,7 +693,7 @@ ViscousHingeJoint::AssMats(FullSubMatrixHandler& WMA,
 		doublereal dCoef)
 {
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
-	Vec3 W2(pNode1->GetWRef());
+	const Vec3& W2(pNode2->GetWRef());
 
 	WMB.Add(4, 4, MDEPrime);
 	WMB.Sub(1, 4, MDEPrime);
@@ -1080,7 +1077,7 @@ ViscoElasticHingeJoint::AssMats(FullSubMatrixHandler& WMA,
 		doublereal dCoef)
 {
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
-	Vec3 W2(pNode1->GetWRef());
+	const Vec3& W2(pNode2->GetWRef());
 
 	WMB.Add(1, 1, MDEPrime);
 	WMB.Sub(1, 4, MDEPrime);
@@ -1144,11 +1141,7 @@ ViscoElasticHingeJoint::AssVec(SubVectorHandler& WorkVec)
 		ConstitutiveLaw3DOwner::Update(ThetaCurr, Omega);
 	}
 
-#ifndef MBDYN_DEFORMABLE_INVARIANT
 	Vec3 M(R1h*ConstitutiveLaw3DOwner::GetF());
-#else /* MBDYN_DEFORMABLE_INVARIANT */
-	Vec3 M(R1h*(RotManip::Rot(ThetaCurr/2.)*GetF()));
-#endif /* MBDYN_DEFORMABLE_INVARIANT */
 
 	WorkVec.Add(1, M);
 	WorkVec.Sub(4, M);
