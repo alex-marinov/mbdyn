@@ -57,6 +57,18 @@ protected:
 
 	Vec3 F;
 
+	Mat3x3 FDE;
+	Mat3x3 FDEPrime;
+
+	void
+	AssMatF(FullSubMatrixHandler& WMA,
+		const Vec3& d1, const Vec3& d2, doublereal dCoef);
+	void
+	AssMatFDE(FullSubMatrixHandler& WMA,
+		const Vec3& d1, const Vec3& d2, doublereal dCoef);
+	void
+	AssMatFDEPrime(FullSubMatrixHandler& WMA, FullSubMatrixHandler& WMB,
+		const Vec3& d1, const Vec3& d2, doublereal dCoef);
 public:
 	/* Costruttore non banale */
 	DeformableDispJoint(unsigned int uL,
@@ -135,8 +147,6 @@ public:
 
 class ElasticDispJoint : virtual public Elem, public DeformableDispJoint {
 protected:
-	Mat3x3 FDE;
-
 	void AssMat(FullSubMatrixHandler& WM, doublereal dCoef);
 	void AssVec(SubVectorHandler& WorkVec);
 
@@ -235,8 +245,6 @@ public:
 
 class ViscousDispJoint : virtual public Elem, public DeformableDispJoint {
 protected:
-	Mat3x3 FDEPrime;
-
 	void AssMats(FullSubMatrixHandler& WMA,
 			FullSubMatrixHandler& WMB,
 			doublereal dCoef);
@@ -337,9 +345,6 @@ public:
 class ViscoElasticDispJoint
 : virtual public Elem, public DeformableDispJoint {
 protected:
-	Mat3x3 FDE;
-	Mat3x3 FDEPrime;
-
 	void AssMats(FullSubMatrixHandler& WorkMatA,
 			FullSubMatrixHandler& WorkMatB,
 			doublereal dCoef);

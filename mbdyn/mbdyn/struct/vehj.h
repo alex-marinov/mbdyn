@@ -52,6 +52,16 @@ protected:
 
 	bool bFirstRes;
 
+	Vec3 M;
+
+	Mat3x3 MDE;
+	Mat3x3 MDEPrime;
+
+	void AssMatM(FullSubMatrixHandler& WMA, doublereal dCoef);
+	void AssMatMDE(FullSubMatrixHandler& WMA, doublereal dCoef);
+	void AssMatMDEPrime(FullSubMatrixHandler& WMA,
+		FullSubMatrixHandler& WMB, doublereal dCoef);
+
 public:
 	/* Costruttore non banale */
 	DeformableHingeJoint(unsigned int uL,
@@ -126,8 +136,6 @@ class ElasticHingeJoint : virtual public Elem, public DeformableHingeJoint {
 protected:
 	Vec3 ThetaRef;
 	Vec3 ThetaCurr;
-
-	Mat3x3 MDE;
 
 	virtual void AssMat(FullSubMatrixHandler& WM, doublereal dCoef);
 	virtual void AssVec(SubVectorHandler& WorkVec);
@@ -266,8 +274,6 @@ public:
 class ViscousHingeJoint : virtual public Elem, public DeformableHingeJoint {
 protected:
 	Vec3 Omega;
-
-	Mat3x3 MDEPrime;
 
 	void AssMats(FullSubMatrixHandler& WMA,
 			FullSubMatrixHandler& WMB,
@@ -416,9 +422,6 @@ protected:
 	Vec3 ThetaCurr;
 
 	Vec3 Omega;
-
-	Mat3x3 MDE;
-	Mat3x3 MDEPrime;
 
 	void AssMats(FullSubMatrixHandler& WMA,
 			FullSubMatrixHandler& WMB,
