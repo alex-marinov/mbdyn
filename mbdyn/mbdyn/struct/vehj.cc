@@ -95,14 +95,12 @@ void
 DeformableHingeJoint::AssMatMDEPrime(FullSubMatrixHandler& WMA,
 	FullSubMatrixHandler& WMB, doublereal dCoef)
 {
-	const Vec3& W2(pNode2->GetWRef());
-
 	WMB.Add(1, 1, MDEPrime);
 	WMB.Sub(1, 4, MDEPrime);
 	WMB.Sub(4, 1, MDEPrime);
 	WMB.Add(4, 4, MDEPrime);
 
-	Mat3x3 MTmp(MDEPrime*Mat3x3(W2*dCoef));
+	Mat3x3 MTmp(MDEPrime*Mat3x3(pNode2->GetWCurr()*dCoef));
 	WMA.Sub(1, 1, MTmp);
 	WMA.Add(1, 4, MTmp);
 	WMA.Add(4, 1, MTmp);
