@@ -1545,9 +1545,32 @@ because $\T{\theta}$ in general is a finite rotation.
 %	\delta\T{\theta} = \T{\theta}_0 - \T{\theta}
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Total Joint}
+This joint (TotalJoint) forces two nodes to assume an imposed relative
+position and orientation. Both are specified in node 1 reference frame.
+It is composed of 6 equations, 3 for positions and 3 for orientation, 
+that can be selectively turned on or off to enforce a constraint on that DoF.
 
+\paragraph{Variants} \
+There exist no variants, although a pinned version is on the TODO list.
 
-\subsubsection{Future Development}
+\paragraph{Files} \
+It is implemented in files\\
+\begin{tabular}{l}
+\texttt{mbdyn/struct/totalj.h} \\
+\texttt{mbdyn/struct/totalj.cc}
+\end{tabular}
+\paragraph{Formulas}\
+The desired relative position is imposed by means of a vector $\T{\tilde{v}}$
+defined in node 1 reference frame. Constraints equations for positions are:
+
+\begin{equation}
+\T{R}^T_1(\T{x}_2 + \T{R}_2 \T{R}_{2h} \T{f}_2 - 
+\T{x}_1 - \T{R}_1 \T{R}_{1h} \T{f}_1)
+ = \tilde{\T{v}}
+\end{equation}
+
 The desired relative orientation can be expressed by means of a vector 
 $\T{\theta}_0$; the corresponding orientation matrix is
 \begin{equation}
@@ -1566,7 +1589,7 @@ to an arbitrary amount of entire revolutions.
 The equality
 \begin{equation}
 	\T{\theta} - \T{\theta}_0 = \T{0}
-	\label{eq:DRIVE-HINGE-future-theta}
+	\label{eq:TOTAL-JOINT-theta}
 \end{equation}
 implies that
 \begin{equation}
@@ -1576,7 +1599,7 @@ this can be rewritten as
 \begin{equation}
 	\T{R}_{\text{\text{rel}}} \T{R}_0^T = \T{I}
 \end{equation}
-and thus Eq.~(\ref{eq:DRIVE-HINGE-future-theta})
+and thus Eq.~(\ref{eq:TOTAL-JOINT-theta})
 is equivalent to
 \begin{equation}
 	\llk{ax}\plbr{\exp^{-1}\plbr{\T{R}_{\text{rel}} \T{R}_0^T}} = \T{0}
@@ -1588,14 +1611,14 @@ $\T{\theta}_0$ and the current relative orientation between
 nodes 1 and 2,
 \begin{equation}
 	\T{\theta} = \llk{ax}\plbr{\exp^{-1}\plbr{
-		\T{R}_{1h}^T \T{R}_1^T \T{R}_2 \T{R}_{2h}
+		\T{R}_{1hr}^T \T{R}_1^T \T{R}_2 \T{R}_{2hr}
 	}}
-	\label{eq:DRIVE-HINGE-future-thetadelta}
+	\label{eq:TOTAL-JOINT-thetadelta}
 \end{equation}
 through the previous redefinition can be expressed as
 \begin{equation}
 	\T{\theta}^{\delta} = \llk{ax}\plbr{\exp^{-1}\plbr{
-		\T{R}_{1h}^T \T{R}_1^T \T{R}_2 \T{R}_{2h} \T{R}_0^T
+		\T{R}_{1hr}^T \T{R}_1^T \T{R}_2 \T{R}_{2hr} \T{R}_0^T
 	}}
 \end{equation}
 and is equivalent to
@@ -1603,21 +1626,37 @@ and is equivalent to
 	\T{\theta}^{\delta} = \T{\theta} - \T{\theta}_0
 \end{equation}
 when $\T{\theta}^{\delta}=\T{0}$.
-Each component of $\T{\theta}^{\delta}$ can be selectively set
+
+In analogy with the definition of $\T{\theta}^{\delta}$, a vector
+$\T{x}^{\delta}$ can be used to express the constraint on positions DoF.
+The resulting constraint equations are:
+\begin{eqnarray}
+\T{x}^{\delta} & = &
+	\T{R}_1^T(\T{x}_2 + \T{R}_2 \T{R}_{2h} \T{f}_2 - 
+	\T{x}_1 - \T{R}_1 \T{R}_{1h} \T{f}_1) - \T{\tilde{v}}\\
+\T{\theta}^{\delta} & = & \llk{ax}\plbr{\exp^{-1}\plbr{
+		\T{R}_{1hr}^T \T{R}_1^T \T{R}_2 \T{R}_{2hr} \T{R}_0^T
+	}}
+\end{eqnarray}
+
+Each component of $\T{x}^{\delta}$ and $\T{\theta}^{\delta}$ can be selectively set
 to zero to enforce a constraint on that degree of freedom.
 The axis about which the constraint is applied can be arbitrarily 
 defined by appropriately setting the constant relative orientation
-matrix of each node, $\T{R}_{1h}$ and $\T{R}_{2h}$.
-An arbitrary amplitude of the rotation about that axis can be imposed
-by means of the components of the imposed vector $\T{\theta}_0$.
+matrix of each node, both for position ($\T{R}_{1h}$ and $\T{R}_{2h}$) 
+and for orientation ($\T{R}_{1hr}$ and $\T{R}_{2hr}$).
+For imposed rotations, an arbitrary amplitude of the rotation about 
+the constraint axis can be imposed by means of the components of the imposed 
+vector $\T{\theta}_0$. The same holds for positions, using $\tilde{\T{v}}$. 
 
 \noindent
-If any component of $\T{\theta}^{\delta}$ are left free, they are
-simply ignored, and the resulting constraint equations are dropped.
+If any component of $\T{x}^{\delta}$ or $\T{\theta}^{\delta}$ 
+are left free, they are simply ignored, and the resulting constraint 
+equations are dropped.
 Otherwise, they can be used to apply moments based on the 
-relative orientation of the nodes, e.g.\ rotational springs or 
-dampers.
-In this case, the singularity problem comes back: the norm
+relative position/orientation of the nodes, e.g.\ linear/rotational 
+springs or dampers.
+In this case, the singularity problem on rotations comes back: the norm
 of the relative orientation must not exceed $\pi$, i.e.\
 $\shbr{\T{\theta}^{\delta}}<\pi$.
 Note that the relative orientation is computed with respect to 
@@ -1625,7 +1664,140 @@ $\T{\theta}_0$, so an anelastic (or imposed) rotation can be easily
 applied to the spring, resulting in an imposed rotation with stiffness.
 
 \noindent
-Subsequent differentiation of Eq.~(\ref{eq:DRIVE-HINGE-future-thetadelta}) enables to impose relatives angular velocities. The following definition of $\T{R}^{\delta}$:
+\paragraph*{Linearization}\
+First, we need to compute the perturbation of $\T{x}^{\delta}$. 
+\begin{equation*}
+\delta \T{x}^{\delta} = 
+	\T{\bar{R}}_1^T\big(-\delta\T{x}_1 + \T{b1}\times\T{\theta}_{1\delta}
+	+ \delta\T{x}_2 - \T{b2}\times\T{\theta}_{2\delta} \big)
+\end{equation*}
+where:
+\begin{eqnarray*}
+\T{\bar{R}}_1 & = & \T{R}_1\T{R}_{1h}\\
+\T{b}_1 & = & \T{R}_1\T{R}_{1h}(\T{x}_2 + \T{R}_2\T{R}_{2h}\T{f}_2 - \T{x}_1) \\
+\T{b}_2 & = & \T{R}_2\T{R}_{2h}\T{f}_2 
+\end{eqnarray*}
+Note that, since the constraint equations are defined by setting 
+to zero any components of the vector $\T{x}^{\delta}$, the
+related Jacobian matrix contribution is obtained by selecting 
+the corresponding columns of matrix $\bar{\T{R}}_{1}$.
+
+Then, the perturbation of $\T{\theta}^{\delta}$.
+Recalling the definition of $\T{R}^{\delta}$:
+\begin{equation*}
+	\T{R}^{\delta} = \T{R}_{1h}^T \T{R}_1^T \T{R}_2 \T{R}_{2h} \T{R}_0^T
+\end{equation*}
+we have:
+\begin{equation*}
+	\T{\theta}^{\delta} = \llk{ax}\plbr{\exp^{-1}\plbr{\T{R}^{\delta}}}
+\end{equation*}
+that implies:
+\begin{equation*}
+	\delta \T{R}^{\delta} = \delta \T{\theta}^{\delta} \times \T{R}^{\delta}
+\end{equation*}
+and:
+\begin{eqnarray*}
+	\T{\theta}^{\delta}_{\delta}
+	& = & \llk{ax}\plbr{\delta\T{R}^{\delta} \T{R}^{\delta T}} \\
+	& = & \llk{ax}\plbr{\T{R}_{1hr}^T \T{R}_1^T
+		\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}\times{}
+		\T{R}_1 \T{R}_{1hr}} \\
+	& = & \bar{\T{R}}_{1r}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
+\end{eqnarray*}
+where $\bar{\T{R}}_{1r}=\T{R}_1 \T{R}_{1hr}$ and $\T{\theta}^{\delta}_{\delta} = {\delta}\T{\theta}^{\delta}$.
+Note that, since the constraint equations are defined by setting 
+to zero any components of the vector $\T{\theta}^{\delta}$, the
+related Jacobian matrix contribution is obtained by selecting 
+the corresponding columns of matrix $\bar{\T{R}}_{1r}$.
+
+\noindent
+The contribution to the equilibrium of the constraints reactions are:
+\begin{eqnarray*}
+	Node1\ Momentum & = & - \T{\bar{R}}_1 \T{\lambda}_F \\
+	Node1\ Angular\ Momentum\ & = & -\T{b}_1\times\T{\lambda}_F
+					-\T{\bar{R}}_{1r}\T{\lambda}_M\\
+	Node2\ Momentum & = &  \bar{\T{R}} \T{\lambda}_F \\
+	Node2\ Angular\ Momentum\ & = & \T{b}_2\times\T{\lambda}_F
+					+\T{\bar{R}}_{1r}\T{\lambda}_M
+\end{eqnarray*}
+where $\T{\lambda}_F$ are reaction forces related to position constraints
+and $\T{\lambda}_M$ are reaction couples related to orientation constraints.
+
+Due to the simplifications related to the updated-updated approach,
+the contribution of the constraint equations and of the equilibrium 
+to the Jacobian matrix is: 
+\begin{equation}
+\sqbr{\matr{cccccc}{
+%Line 1
+	\T{0} & 
+	\T{\bar{\lambda}}_F\times & 
+	\T{0} & 
+	\T{0} & 
+	-\T{\bar{R}}_1 &
+	\T{0}\\
+%Line 2
+	-\T{\bar{\lambda}}_F\times & 
+	\T{b}_1\times\T{\bar{\lambda}}_F\times +  \T{\bar{\lambda}}_M\times &
+	\T{\bar{\lambda}}_F\times & 
+	-\T{\bar{\lambda}}_F\times\T{b}_2\times & 
+	-\T{b}_1\times\T{\bar{R}}_1 &
+	-\T{\bar{R}}_{1r}\\
+%Line 3
+	\T{0} & 
+	-\T{\bar{\lambda}}_F\times &
+	\T{0} &
+	\T{0} &
+	\T{\bar{R}}_1 &
+	\T{0}\\
+%Line 4
+	\T{0} & 
+	-\T{b}_2 \times \T{\bar{\lambda}}_F \times - \T{\bar{\lambda}}_M\times &
+	\T{0} &
+	\T{\bar{\lambda}}_F\times\T{b}_2\times &
+	\T{b}_2\times\T{\bar{R}}_1 & 
+	\T{\bar{R}}_{1r}\\
+%Line 5
+	-\T{\bar{R}}_1^T &
+	\T{\bar{R}}_1^T\T{b}_1\times & 
+	\T{\bar{R}}_1^T &
+	-\T{\bar{R}}_1^T\T{b}_2\times & 
+	\T{0} &
+	\T{0} \\
+%Line 6
+	\T{0} &
+	-\T{\bar{R}}_{1r}^T &
+	\T{0} &
+	\T{\bar{R}}_{1r}^T &
+	\T{0} & 
+	\T{0} }}
+\end{equation}
+Where $\T{\bar{\lambda}}_F = \T{\bar{R}}_1\T{\lambda}_F$ and 
+$\T{\bar{\lambda}}_M = \T{\bar{R}}_{1r}\T{\lambda}_M$.
+
+\subsubsection{Summary}
+\begin{itemize}
+\item each component of the relative position/orientation can be subjected
+to separate conditions;
+\item a perfect constraint results from setting to zero the error
+on the relative position/orientation of that component;
+\item a deformable constraint results from freeing the error
+on the relative component, and adding a constitutive law
+based on that error and possibly on its derivative;
+in this case, the norm of the amplitude of the error on orientation 
+is limited to $\pi$;
+\item the reference relative orientation goes in matrix $\T{R}_0$
+by means of a vector $\T{\theta}_0$ which can be time dependent;
+there is no limitation on the amplitude of that rotation;
+\item friction can be added as well on those components
+that are left free (or constrained by springs);
+\item an interesting option is to leave all the constraint equations
+always in place, and activate/deactivate them based on some trigger.
+\end{itemize}
+ 
+\subsection{Future Development:}  
+\subsubsection{Angular Velocity/Accelerations}
+\noindent
+Subsequent differentiation of Eq.~(\ref{eq:TOTAL-JOINT-thetadelta}) enables to impose relatives angular velocities. The following definition of $\T{R}^{\delta}$:
 \begin{equation*}
 	\T{R}^{\delta} = \T{R}_{1h}^T \T{R}_1^T \T{R}_2 \T{R}_{2h} \T{R}_0^T
 \end{equation*}
@@ -1704,36 +1876,6 @@ Subsequent differentiation with respect to time of Eq.~(\ref{eq:DRIVE-HINGE-futu
 \end{eqnarray*}
 and, in analogy with orientation and angular velocity, a relative angular acceleration can be imposed between nodes $1$ and $2$ by means of the vector $\T{\dot{\omega}}_0$. Note that, in this case, also vector $\T{\omega}_0$ must be known.
 
-\noindent
-The linearization of the constraint equations is relatively 
-straightforward. 
-We need to compute the perturbation of $\T{\theta}^{\delta}$.
-Recalling the definition of $\T{R}^{\delta}$:
-\begin{equation*}
-	\T{R}^{\delta} = \T{R}_{1h}^T \T{R}_1^T \T{R}_2 \T{R}_{2h} \T{R}_0^T
-\end{equation*}
-we have:
-\begin{equation*}
-	\T{\theta}^{\delta} = \llk{ax}\plbr{\exp^{-1}\plbr{\T{R}^{\delta}}}
-\end{equation*}
-and, in analogy with the definition of the angular velocity:
-\begin{equation*}
-	\delta \T{R}^{\delta} = \delta \T{\theta}^{\delta} \times \T{R}^{\delta}
-\end{equation*}
-and:
-\begin{eqnarray*}
-	\T{\theta}^{\delta}_{\delta}
-	& = & \llk{ax}\plbr{\delta\T{R}^{\delta} \T{R}^{\delta T}} \\
-	& = & \llk{ax}\plbr{\T{R}_{1h}^T \T{R}_1^T
-		\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}\times{}
-		\T{R}_1 \T{R}_{1h}} \\
-	& = & \bar{\T{R}}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
-\end{eqnarray*}
-where $\bar{\T{R}}=\T{R}_1 \T{R}_{1h}$ and $\T{\theta}^{\delta}_{\delta} = {\delta}\T{\theta}^{\delta}$.
-Note that, since the constraint equations are defined by setting 
-to zero any components of the vector $\T{\theta}^{\delta}$, the
-related Jacobian matrix contribution is obtained by selecting 
-the corresponding columns of matrix $\bar{\T{R}}$.
 
 \noindent
 The relative angular velocity is defined, in analogy with 
@@ -1759,18 +1901,7 @@ whose differentiation yields
 where the simplifications of the updated-updated approach 
 have been considered, as indicated by the $\equu$ operator.
 
-\noindent
-The couples applied by the constraint equations are
-\begin{eqnarray*}
-	\T{C}_1 & = & - \bar{\T{R}} \T{\alpha} \\
-	\T{C}_2 & = & \bar{\T{R}} \T{\alpha}
-\end{eqnarray*}
-where $\T{\alpha}$ are the reaction unknowns, which correspond 
-to the physical moments in the relative reference frame.
-The matrix $\bar{\T{R}}$ reduces to the subset of its columns 
-that are related to the actual constrains; any relative orientation 
-component that is left free results in no reaction couple.
-
+\subsubsection{Rotational Springs and Dampers}
 \noindent
 If rotational springs or dampers are defined, the corresponding
 couples have the same form, i.e.\
@@ -1862,25 +1993,6 @@ are summarized below:
 \end{equation}
 
 
-\subsubsection{Summary}
-\begin{itemize}
-\item each component of the relative orientation can be subjected
-to separate conditions;
-\item the reference relative orientation goes in matrix $\T{R}_0$
-by means of a vector $\T{\theta}_0$ which can be time dependent;
-there is no limitation on the amplitude of that rotation;
-\item a perfect constraint results from setting to zero the error
-on the relative orientation of that component;
-\item a deformable constraint results from freeing the error
-on the relative component, and adding a constitutive law
-based on that error and possibly on its derivative;
-in this case, the norm of the amplitude of the error is limited
-to $\pi$;
-\item friction can be added as well on those components
-that are left free (or constrained by springs);
-\item an interesting option is to leave all the constraint equations
-always in place, and activate/deactivate them based on some trigger.
-\end{itemize}
 
 
 
@@ -3863,7 +3975,7 @@ while the linearization of the relative velocity yields
 	\mbox{} + \T{\omega}_1 \times \delta\T{x}_1
 		+ \plbr{
 			\dot{\T{d}} - \T{\omega}_1 \times \T{d}
-		} \times \T{\theta}_{1\delta}
+		} \T{\theta}_{1\delta}
 	}} \\
 	& \equu & \T{R}_{1h}^T\plbr{\cvvect{
 		\delta\dot{\T{x}}_2
@@ -3879,7 +3991,7 @@ while the linearization of the relative velocity yields
 		+ \plbr{
 			\dot{\T{d}}_1 \times{}
 			- \T{\omega}_1 \times \T{d}_1\times{}
-		} \times \delta\T{g}_1
+		} \delta\T{g}_1
 	}}
 \end{eqnarray*}
 The nodal forces and moments result from the VWP
@@ -3916,225 +4028,100 @@ Their linearization yields
 	\delta\T{M}_i & = & \T{d}_i \times \delta\T{F}_i
 	- \T{F}_i \times \delta \T{d}_i
 \end{eqnarray*}
-The complete linearized problem becomes
-\begin{align}
+The complete linearized problem, after applying the updated-updated 
+approximation, is
+\begin{eqnarray*}
 	\sqbr{\matr{cccc}{
-		\T{F}_{/\dot{\tilde{d}}} &
-		- \T{F}_{/\dot{\tilde{d}}} \T{d}_1 \times{} &
-		- \T{F}_{/\dot{\tilde{d}}} &
-		\T{F}_{/\dot{\tilde{d}}} \T{d}_2 \times{} \\
-%
-		\T{d}_1 \times \T{F}_{/\dot{\tilde{d}}} &
-		- \T{d}_1 \times \T{F}_{/\dot{\tilde{d}}} \T{d}_1 \times{} &
-		- \T{d}_1 \times \T{F}_{/\dot{\tilde{d}}} &
-		\T{d}_1 \times \T{F}_{/\dot{\tilde{d}}} \T{d}_2 \times{} \\
-%
-		- \T{F}_{/\dot{\tilde{d}}} &
-		\T{F}_{/\dot{\tilde{d}}} \T{d}_1 \times{} &
-		\T{F}_{/\dot{\tilde{d}}} &
-		- \T{F}_{/\dot{\tilde{d}}} \T{d}_2 \times{} \\
-%
-		- \T{d}_2 \times \T{F}_{/\dot{\tilde{d}}} &
-		\T{d}_2 \times \T{F}_{/\dot{\tilde{d}}} \T{d}_1 \times{} &
-		\T{d}_2 \times \T{F}_{/\dot{\tilde{d}}} &
-		- \T{d}_2 \times \T{F}_{/\dot{\tilde{d}}} \T{d}_2 \times{}
-	}} \cubr{\cvvect{
-		\delta\dot{\T{x}}_1 \\
-		\delta\T{\omega}_1 \\
-		\delta\dot{\T{x}}_2 \\
-		\delta\T{\omega}_2
-	}} \nonumber \\
-%
-	+ \sqbr{\matr{cc}{
-		- \T{F}_{/\dot{\tilde{d}}} \T{\omega}_1 \times{} &
-		- \T{F}_{/\dot{\tilde{d}}} \plbr{\dot{\T{d}}_1 - \T{\omega}_1 \times \T{d}_1} \times{} \\
-%
-		- \T{d}_1 \times \T{F}_{/\dot{\tilde{d}}} \T{\omega}_1 \times{} &
-		- \T{d}_1 \times \T{F}_{/\dot{\tilde{d}}} \plbr{\dot{\T{d}}_1 - \T{\omega}_1 \times \T{d}_1} \times{} \\
-%
-		\T{F}_{/\dot{\tilde{d}}} \T{\omega}_1 \times{} &
-		\T{F}_{/\dot{\tilde{d}}} \plbr{\dot{\T{d}}_1 - \T{\omega}_1 \times \T{d}_1} \times{} \\
-%
-		\T{d}_2 \times \T{F}_{/\dot{\tilde{d}}} \T{\omega}_1 \times{} &
-		\T{d}_2 \times \T{F}_{/\dot{\tilde{d}}} \plbr{\dot{\T{d}}_1 - \T{\omega}_1 \times \T{d}_1} \times{} \\
-	}} \cubr{\cvvect{
-		\delta\T{x}_1 \\
-		\T{\theta}_{1\delta}
-	}} \nonumber \\
-%
-	+ \sqbr{\matr{cc}{
-		\T{F}_{/\dot{\tilde{d}}} \T{\omega}_1 \times{} &
-		\T{F}_{/\dot{\tilde{d}}} \plbr{\T{\omega}_2 - \T{\omega}_1} \times \T{d}_2 \times{} \\
-%
-		\T{d}_1 \times \T{F}_{/\dot{\tilde{d}}} \T{\omega}_1 \times{} &
-		\T{d}_1 \times \T{F}_{/\dot{\tilde{d}}} \plbr{\T{\omega}_2 - \T{\omega}_1} \times \T{d}_2 \times{} \\
-%
-		- \T{F}_{/\dot{\tilde{d}}} \T{\omega}_1 \times{} &
-		- \T{F}_{/\dot{\tilde{d}}} \plbr{\T{\omega}_2 - \T{\omega}_1} \times \T{d}_2 \times{} \\
-%
-		- \T{d}_2 \times \T{F}_{/\dot{\tilde{d}}} \T{\omega}_1 \times{} &
-		- \T{d}_2 \times \T{F}_{/\dot{\tilde{d}}} \plbr{\T{\omega}_2 - \T{\omega}_1} \times \T{d}_2 \times{} \\
-	}} \cubr{\cvvect{
-		\delta\T{x}_2 \\
-		\T{\theta}_{2\delta}
-	}} \nonumber \\
-%
-	+ \sqbr{\matr{cccc}{
-		\T{F}_{/\T{d}} &
-		- \T{F}_{/\T{d}} \T{d}_1 \times{} &
-		- \T{F}_{/\T{d}} &
-		\T{F}_{/\T{d}} \T{d}_2 \times{} \\
-%
-		\T{d}_1 \times \T{F}_{/\T{d}} &
-		- \T{d}_1 \times \T{F}_{/\T{d}} \T{d}_1 \times{} &
-		- \T{d}_1 \times \T{F}_{/\T{d}} &
-		\T{d}_1 \times \T{F}_{/\T{d}} \T{d}_2 \times{} \\
-%
-		- \T{F}_{/\T{d}} &
-		\T{F}_{/\T{d}} \T{d}_1 \times{} &
-		\T{F}_{/\T{d}} &
-		- \T{F}_{/\T{d}} \T{d}_2 \times{} \\
-%
-		- \T{d}_2 \times \T{F}_{/\T{d}} &
-		\T{d}_2 \times \T{F}_{/\T{d}} \T{d}_1 \times{} &
-		\T{d}_2 \times \T{F}_{/\T{d}} &
-		- \T{d}_2 \times \T{F}_{/\T{d}} \T{d}_2 \times{}
-	}} \cubr{\cvvect{
-		\delta\T{x}_1 \\
-		\T{\theta}_{1\delta} \\
-		\delta\T{x}_2 \\
-		\T{\theta}_{2\delta}
-	}} \nonumber \\
-%
-	+ \sqbr{\matr{cccc}{
-		\T{0} & \T{F} \times{} & \T{0} & \T{0} \\
-		- \T{F} \times{} & \T{d}_1 \times \T{F} \times{} & \T{F} \times{} & - \T{F} \times \T{d}_2 \times{} \\
-		\T{0} & - \T{F} \times{} & \T{0} & \T{0} \\
-		\T{0} & - \T{d}_2 \times \T{F} \times{} & \T{0} & \T{F} \times \T{d}_2 \times{}
-	}} \cubr{\cvvect{
-		\delta\T{x}_1 \\
-		\T{\theta}_{1\delta} \\
-		\delta\T{x}_2 \\
-		\T{\theta}_{2\delta}
-	}} = \cubr{\cvvect{
-		\T{F} \\
-		\T{d}_1 \times \T{F} \\
-		- \T{F} \\
-		- \T{d}_2 \times \T{F}
-	}} ,
-\end{align}
-where 
-\begin{align}
-	\T{F}_{/\tilde{\dot{\T{d}}}} &= \T{R}_{1h} \tilde{\T{F}}_{/\tilde{\dot{\T{d}}}} \T{R}_{1h}^T \\
-	\T{F}_{/\tilde{\T{d}}} &= \T{R}_{1h} \tilde{\T{F}}_{/\tilde{\T{d}}} \T{R}_{1h}^T .
-\end{align}
-After applying the updated-updated approximation, it becomes
-\begin{align}
-	\sqbr{\matr{cccc}{
-		\T{F}_{/\dot{\tilde{d}}} &
-		- \T{F}_{/\dot{\tilde{d}}} \T{d}_1 \times{} &
-		- \T{F}_{/\dot{\tilde{d}}} &
-		\T{F}_{/\dot{\tilde{d}}} \T{d}_2 \times{} \\
-%
-		\T{d}_1 \times \T{F}_{/\dot{\tilde{d}}} &
-		- \T{d}_1 \times \T{F}_{/\dot{\tilde{d}}} \T{d}_1 \times{} &
-		- \T{d}_1 \times \T{F}_{/\dot{\tilde{d}}} &
-		\T{d}_1 \times \T{F}_{/\dot{\tilde{d}}} \T{d}_2 \times{} \\
-%
-		- \T{F}_{/\dot{\tilde{d}}} &
-		\T{F}_{/\dot{\tilde{d}}} \T{d}_1 \times{} &
-		\T{F}_{/\dot{\tilde{d}}} &
-		- \T{F}_{/\dot{\tilde{d}}} \T{d}_2 \times{} \\
-%
-		- \T{d}_2 \times \T{F}_{/\dot{\tilde{d}}} &
-		\T{d}_2 \times \T{F}_{/\dot{\tilde{d}}} \T{d}_1 \times{} &
-		\T{d}_2 \times \T{F}_{/\dot{\tilde{d}}} &
-		- \T{d}_2 \times \T{F}_{/\dot{\tilde{d}}} \T{d}_2 \times{}
+		\T{F}_{/\dot{\tilde{\T{d}}}} & -\T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{} &
+			- \T{F}_{/\dot{\tilde{\T{d}}}} & \T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_2\times{} \\
+		\T{d}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}} &
+			- \T{d}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{} &
+			- \T{d}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}} &
+			\T{d}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_2\times{} \\
+		- \T{F}_{/\dot{\tilde{\T{d}}}} & \T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{} &
+			\T{F}_{/\dot{\tilde{\T{d}}}} & - \T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_2\times{} \\
+		- \T{d}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}} &
+			\T{d}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{} &
+			\T{d}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}} &
+			- \T{d}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_2\times{}
 	}} \cubr{\cvvect{
 		\delta\dot{\T{x}}_1 \\
 		\delta\dot{\T{g}}_1 \\
 		\delta\dot{\T{x}}_2 \\
 		\delta\dot{\T{g}}_2
-	}} \nonumber \\
-%
-	+ \sqbr{\matr{cc}{
-		- \T{F}_{/\dot{\tilde{d}}} \T{\omega}_1 \times{} &
-		- \T{F}_{/\dot{\tilde{d}}} \plbr{\dot{\T{d}}_1 \times{} - \T{\omega}_1 \times \T{d}_1 \times{}} \\
-%
-		- \T{d}_1 \times \T{F}_{/\dot{\tilde{d}}} \T{\omega}_1 \times{} &
-		- \T{d}_1 \times \T{F}_{/\dot{\tilde{d}}} \plbr{\dot{\T{d}}_1 \times {} - \T{\omega}_1 \times \T{d}_1 \times{}} \\
-%
-		\T{F}_{/\dot{\tilde{d}}} \T{\omega}_1 \times{} &
-		\T{F}_{/\dot{\tilde{d}}} \plbr{\dot{\T{d}}_1 \times{} - \T{\omega}_1 \times \T{d}_1 \times{}} \\
-%
-		\T{d}_2 \times \T{F}_{/\dot{\tilde{d}}} \T{\omega}_1 \times{} &
-		\T{d}_2 \times \T{F}_{/\dot{\tilde{d}}} \plbr{\dot{\T{d}}_1 \times{} - \T{\omega}_1 \times \T{d}_1 \times{}} \\
-	}} \cubr{\cvvect{
-		\delta\T{x}_1 \\
-		\delta\T{g}_1
-	}} \nonumber \\
-%
-	+ \sqbr{\matr{cc}{
-		\T{F}_{/\dot{\tilde{d}}} \T{\omega}_1 \times{} &
-		\T{F}_{/\dot{\tilde{d}}} \plbr{\dot{\T{d}}_2 \times{} - \T{\omega}_1 \times \T{d}_2 \times{}} \\
-%
-		\T{d}_1 \times \T{F}_{/\dot{\tilde{d}}} \T{\omega}_1 \times{} &
-		\T{d}_1 \times \T{F}_{/\dot{\tilde{d}}} \plbr{\dot{\T{d}}_2 \times{} - \T{\omega}_1 \times \T{d}_2 \times{}} \\
-%
-		- \T{F}_{/\dot{\tilde{d}}} \T{\omega}_1 \times{} &
-		- \T{F}_{/\dot{\tilde{d}}} \plbr{\dot{\T{d}}_2 \times{} - \T{\omega}_1 \times \T{d}_2 \times{}} \\
-%
-		- \T{d}_2 \times \T{F}_{/\dot{\tilde{d}}} \T{\omega}_1 \times{} &
-		- \T{d}_2 \times \T{F}_{/\dot{\tilde{d}}} \plbr{\dot{\T{d}}_2 - \T{\omega}_1 \times \T{d}_2 \times{}} \\
-	}} \cubr{\cvvect{
-		\delta\T{x}_2 \\
-		\delta\T{g}_2
-	}} \nonumber \\
-%
-	+ \sqbr{\matr{cccc}{
-		\T{F}_{/\T{d}} &
-		- \T{F}_{/\T{d}} \T{d}_1 \times{} &
-		- \T{F}_{/\T{d}} &
-		\T{F}_{/\T{d}} \T{d}_2 \times{} \\
-%
-		\T{d}_1 \times \T{F}_{/\T{d}} &
-		- \T{d}_1 \times \T{F}_{/\T{d}} \T{d}_1 \times{} &
-		- \T{d}_1 \times \T{F}_{/\T{d}} &
-		\T{d}_1 \times \T{F}_{/\T{d}} \T{d}_2 \times{} \\
-%
-		- \T{F}_{/\T{d}} &
-		\T{F}_{/\T{d}} \T{d}_1 \times{} &
-		\T{F}_{/\T{d}} &
-		- \T{F}_{/\T{d}} \T{d}_2 \times{} \\
-%
-		- \T{d}_2 \times \T{F}_{/\T{d}} &
-		\T{d}_2 \times \T{F}_{/\T{d}} \T{d}_1 \times{} &
-		\T{d}_2 \times \T{F}_{/\T{d}} &
-		- \T{d}_2 \times \T{F}_{/\T{d}} \T{d}_2 \times{}
-	}} \cubr{\cvvect{
-		\delta\T{x}_1 \\
-		\delta\T{g}_1 \\
-		\delta\T{x}_2 \\
-		\delta\T{g}_2
-	}} \nonumber \\
-%
-	+ \sqbr{\matr{cccc}{
-		\T{0} & \T{F} \times{} & \T{0} & \T{0} \\
-		- \T{F} \times{} & \T{d}_1 \times \T{F} \times{} & \T{F} \times{} & - \T{F} \times \T{d}_2 \times{} \\
-		\T{0} & - \T{F} \times{} & \T{0} & \T{0} \\
-		\T{0} & - \T{d}_2 \times \T{F} \times{} & \T{0} & \T{F} \times \T{d}_2 \times{}
-	}} \cubr{\cvvect{
-		\delta\T{x}_1 \\
-		\delta\T{g}_1 \\
-		\delta\T{x}_2 \\
-		\delta\T{g}_2
-	}} \equu \cubr{\cvvect{
+	}} & & \\
+	\mbox{} + \sqbr{\cvvect{
+		\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
+		\T{d}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}}
+			- \T{F}\times{} \\
+		- \T{F}_{/\tilde{\T{d}}} + \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
+		- \T{d}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}}
+	}} \delta\T{x}_1 & & \\
+	\mbox{} + \sqbr{\cvvect{
+		- \T{F}_{/\tilde{\T{d}}} \T{d}_1 \times{}
+		- \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
+			\dot{\T{d}}_1 \times{} - \T{\omega}_1 \times \T{d}_1\times{}
+		} + \T{F}\times \\
+		- \T{d}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} \T{d}_1 \times{}
+			+ \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
+				\dot{\T{d}}_1 \times{} - \T{\omega}_1 \times \T{d}_1\times{}
+			}
+		} + \T{d}_1 \times \T{F} \times{} \\
+		\T{F}_{/\tilde{\T{d}}} \T{d}_1 \times{}
+		+ \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
+			\dot{\T{d}}_1 \times{} - \T{\omega}_1 \times \T{d}_1\times{}
+		} - \T{F}\times \\
+		\T{d}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} \T{d}_1 \times{}
+			+ \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
+				\dot{\T{d}}_1 \times{} - \T{\omega}_1 \times \T{d}_1\times{}
+			}
+		}
+		 - \T{d}_2 \times \T{F}\times{}
+	}} \delta\T{g}_1 \\
+	\mbox{} + \sqbr{\cvvect{
+		- \T{F}_{/\tilde{\T{d}}} + \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
+		- \T{d}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}}
+			+ \T{F}\times{} \\
+		\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
+		\T{d}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}}
+	}} \delta\T{x}_2 & & \\
+	\mbox{} + \sqbr{\cvvect{
+		\T{F}_{/\tilde{\T{d}}} \T{d}_2 \times{}
+		+ \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
+			\dot{\T{d}}_2\times{}
+			- \T{\omega}_1 \times \T{d}_2\times{}
+		} \\
+		\T{d}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} \T{d}_2 \times{}
+			+ \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
+				\dot{\T{d}}_2\times{}
+				- \T{\omega}_1 \times \T{d}_2\times{}
+			}
+		} - \T{F} \times \T{d}_2 \times{} \\
+		- \T{F}_{/\tilde{\T{d}}} \T{d}_2 \times{}
+		- \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
+			\dot{\T{d}}_2\times{}
+			- \T{\omega}_1 \times \T{d}_2\times{}
+		} \\
+		- \T{d}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} \T{d}_2 \times{}
+			+ \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
+				\dot{\T{d}}_2\times{}
+				- \T{\omega}_1 \times \T{d}_2\times{}
+			}
+		} + \T{F} \times \T{d}_2 \times{}
+	}} \delta\T{g}_2
+	& = & \\
+	\cubr{\cvvect{
 		\T{F} \\
 		\T{d}_1 \times \T{F} \\
 		- \T{F} \\
 		- \T{d}_2 \times \T{F}
-	}} .
-\end{align}
+	}} & &
+\end{eqnarray*}
+where 
+\begin{eqnarray*}
+	\T{F}_{/\tilde{\dot{\T{d}}}} & = & \T{R}_{1h} \tilde{\T{F}}_{/\tilde{\dot{\T{d}}}} \T{R}_{1h}^T \\
+	\T{F}_{/\tilde{\T{d}}} & = & \T{R}_{1h} \tilde{\T{F}}_{/\tilde{\T{d}}} \T{R}_{1h}^T
+\end{eqnarray*}
 
 
 
