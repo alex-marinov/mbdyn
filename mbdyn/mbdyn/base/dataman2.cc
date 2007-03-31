@@ -353,20 +353,24 @@ DataManager::DofOwnerInit(void)
 		} while (ElemIter.bGetNext(pEl));
 	}
 
-	/* per ogni elemento */
+	/* FIXME: this should rather go before initial assembly */
 	if (uPrintFlags & PRINT_EL_CONNECTION) {
+		/* per ogni elemento */
 		if (ElemIter.bGetFirst(pEl)) {
+			/* create node connection structure */
 			typedef std::set<const Elem *> elmap;
 			typedef std::map<const Node *, elmap *> nodemap;
 			std::vector<nodemap> connectedElems(Node::LASTNODETYPE);
 
+			/* element connections get populated directly by elements */
 			std::vector<const Node *> connectedNodes;
 
+			std::cout << "Element connections" << std::endl;
 			do {
 				pEl->GetConnectedNodes(connectedNodes);
 
 				std::cout << psElemNames[pEl->GetElemType()]
-					<< "(" << pEl->GetLabel() << "): connecting" << std::endl;
+					<< "(" << pEl->GetLabel() << ") connecting" << std::endl;
 				for (std::vector<const Node *>::const_iterator i = connectedNodes.begin();
 					i != connectedNodes.end();
 					i++)
@@ -383,13 +387,15 @@ DataManager::DofOwnerInit(void)
 				}
 			} while (ElemIter.bGetNext(pEl));
 
+
+			std::cout << "Node connections" << std::endl;
 			for (unsigned t = 0; t < Node::LASTNODETYPE; t++) {
 				for (nodemap::iterator n = connectedElems[t].begin();
 					n != connectedElems[t].end();
 					n++)
 				{
 					std::cout << psNodeNames[n->first->GetNodeType()]
-						<< "(" << n->first->GetLabel() << "): connected to" << std::endl;
+						<< "(" << n->first->GetLabel() << ") connected to" << std::endl;
 					for (elmap::const_iterator e = n->second->begin();
 						e != n->second->end();
 						e++)

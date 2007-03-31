@@ -255,6 +255,7 @@ DeformableHingeJoint::dGetPrivData(unsigned int i) const
 	case 2:
 	case 3:
 	{
+		/* NOTE: this is correct also in the invariant case */
 		Mat3x3 R1hT((pNode1->GetRCurr()*tilde_R1h).Transpose());
 		Mat3x3 R2h(pNode2->GetRCurr()*tilde_R2h);
 
@@ -267,6 +268,8 @@ DeformableHingeJoint::dGetPrivData(unsigned int i) const
 	case 5:
 	case 6:
 	{
+		/* FIXME: this is not correct in the invariant case;
+		 * should be hat_RT*Omega */
 		Mat3x3 R1hT((pNode1->GetRCurr()*tilde_R1h).Transpose());
 		Vec3 w = R1hT*(pNode2->GetWCurr() - pNode1->GetWCurr());
 
@@ -1170,9 +1173,13 @@ ViscoElasticHingeJoint::AssVec(SubVectorHandler& WorkVec)
 		Mat3x3 R1hT(R1h.Transpose());
 		Mat3x3 R2h(pNode2->GetRCurr()*tilde_R2h);
 
+		/* orientazione intermedia */
 		ThetaCurr = RotManip::VecRot(R1hT*R2h);
+
+		/* velocita' relativa nel riferimento intermedio */
 		Omega = R1hT*(pNode2->GetWCurr() - pNode1->GetWCurr());
 
+		/* aggiorna il legame costitutivo */
 		ConstitutiveLaw3DOwner::Update(ThetaCurr, Omega);
 	}
 
