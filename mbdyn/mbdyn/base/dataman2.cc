@@ -36,6 +36,8 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <set>
+
 #include "ac/math.h"
 
 #include "dataman.h"
@@ -199,7 +201,7 @@ DataManager::DofOwnerInit(void)
 #ifdef DEBUG
 			DEBUG_LEVEL_MATCH(MYDEBUG_INIT|MYDEBUG_ASSEMBLY) ||
 #endif /* DEBUG */
-			(!silent_output && (uPrintFlags & PRINT_DOFSTATS));
+			(!silent_output && (uPrintFlags & PRINT_DOF_STATS));
 
 	/* NOTE: further direct use of std::cout instead
 	 * of silent_cout() macro because silent_cout is
@@ -271,11 +273,11 @@ DataManager::DofOwnerInit(void)
 					std::cout << "->" << fd + nd;
 				}
 				std::cout << std::endl;
-				if (uPrintFlags & PRINT_DOFDESCRIPTION) {
+				if (uPrintFlags & PRINT_DOF_DESCRIPTION) {
 					(*ppNd)->DescribeDof(std::cout,
 							     "        ");
 				}
-				if (uPrintFlags & PRINT_EQDESCRIPTION) {
+				if (uPrintFlags & PRINT_EQ_DESCRIPTION) {
 					(*ppNd)->DescribeEq(std::cout,
 							     "        ");
 				}
@@ -329,11 +331,11 @@ DataManager::DofOwnerInit(void)
 						std::cout << "->" << fd + nd;
 					}
 					std::cout << std::endl;
-					if (uPrintFlags & PRINT_DOFDESCRIPTION) {
+					if (uPrintFlags & PRINT_DOF_DESCRIPTION) {
 						pEWD->DescribeDof(std::cout,
 								"        ");
 					}
-					if (uPrintFlags & PRINT_EQDESCRIPTION) {
+					if (uPrintFlags & PRINT_EQ_DESCRIPTION) {
 						pEWD->DescribeEq(std::cout,
 								"        ");
 					}
@@ -349,6 +351,59 @@ DataManager::DofOwnerInit(void)
 				}
 			}
 		} while (ElemIter.bGetNext(pEl));
+	}
+
+	/* per ogni elemento */
+	if (uPrintFlags & PRINT_EL_CONNECTION) {
+		if (ElemIter.bGetFirst(pEl)) {
+			typedef std::set<const Elem *> elmap;
+			typedef std::map<const Node *, elmap *> nodemap;
+			std::vector<nodemap> connectedElems(Node::LASTNODETYPE);
+
+			std::vector<const Node *> connectedNodes;
+
+			do {
+				pEl->GetConnectedNodes(connectedNodes);
+
+				std::cout << psElemNames[pEl->GetElemType()]
+					<< "(" << pEl->GetLabel() << "): connecting" << std::endl;
+				for (std::vector<const Node *>::const_iterator i = connectedNodes.begin();
+					i != connectedNodes.end();
+					i++)
+				{
+					std::cout << "        "
+						<< psNodeNames[(*i)->GetNodeType()]
+						<< "(" << (*i)->GetLabel() << ")" << std::endl;
+
+					nodemap::iterator n = connectedElems[(*i)->GetNodeType()].find(*i);
+					if (n == connectedElems[(*i)->GetNodeType()].end()) {
+						connectedElems[(*i)->GetNodeType()][*i] = new elmap;
+					}
+					connectedElems[(*i)->GetNodeType()][*i]->insert(pEl);
+				}
+			} while (ElemIter.bGetNext(pEl));
+
+			for (unsigned t = 0; t < Node::LASTNODETYPE; t++) {
+				for (nodemap::iterator n = connectedElems[t].begin();
+					n != connectedElems[t].end();
+					n++)
+				{
+					std::cout << psNodeNames[n->first->GetNodeType()]
+						<< "(" << n->first->GetLabel() << "): connected to" << std::endl;
+					for (elmap::const_iterator e = n->second->begin();
+						e != n->second->end();
+						e++)
+					{
+						std::cout << "        "
+							<< psElemNames[(*e)->GetElemType()]
+							<< "(" << (*e)->GetLabel() << ")" << std::endl;
+					}
+
+					delete n->second;
+					n->second = 0;
+				}
+			}
+		}
 	}
 } /* End of DataManager::DofOwnerInit() */
 
@@ -377,7 +432,7 @@ DataManager::InitialJointAssembly(void)
 #ifdef DEBUG
 			DEBUG_LEVEL_MATCH(MYDEBUG_INIT|MYDEBUG_ASSEMBLY) ||
 #endif /* DEBUG */
-			(!silent_output && (uPrintFlags & PRINT_DOFSTATS));
+			(!silent_output && (uPrintFlags & PRINT_DOF_STATS));
 
 	if (pds) {
 		silent_cout("Initial assembly dof stats" << std::endl);
@@ -403,11 +458,11 @@ DataManager::InitialJointAssembly(void)
 					std::cout << "->" << fd + nd;
 				}
 				std::cout << std::endl;
-				if (uPrintFlags & PRINT_DOFDESCRIPTION) {
+				if (uPrintFlags & PRINT_DOF_DESCRIPTION) {
 					(*ppNode)->DescribeDof(std::cout,
 							     "        ", true);
 				}
-				if (uPrintFlags & PRINT_EQDESCRIPTION) {
+				if (uPrintFlags & PRINT_EQ_DESCRIPTION) {
 					(*ppNode)->DescribeEq(std::cout,
 							     "        ", true);
 				}
@@ -463,11 +518,11 @@ DataManager::InitialJointAssembly(void)
 								silent_cout("->" << fd + nd);
 							}
 							silent_cout(std::endl);
-							if (uPrintFlags & PRINT_DOFDESCRIPTION) {
+							if (uPrintFlags & PRINT_DOF_DESCRIPTION) {
 								pEWD->DescribeDof(std::cout,
 										"        ", true);
 							}
-							if (uPrintFlags & PRINT_EQDESCRIPTION) {
+							if (uPrintFlags & PRINT_EQ_DESCRIPTION) {
 								pEWD->DescribeEq(std::cout,
 										"        ", true);
 							}

@@ -705,13 +705,16 @@ EndOfUse:
 		case PRINT:
 			while (HP.IsArg()) {
 				if (HP.IsKeyWord("dof" "stats")) {
-					uPrintFlags |= PRINT_DOFSTATS;
+					uPrintFlags |= PRINT_DOF_STATS;
 
 				} else if (HP.IsKeyWord("dof" "description")) {
-					uPrintFlags |= (PRINT_DOFSTATS | PRINT_DOFDESCRIPTION);
+					uPrintFlags |= (PRINT_DOF_STATS | PRINT_DOF_DESCRIPTION);
 
 				} else if (HP.IsKeyWord("equation" "description")) {
-					uPrintFlags |= (PRINT_DOFSTATS | PRINT_EQDESCRIPTION);
+					uPrintFlags |= (PRINT_DOF_STATS | PRINT_EQ_DESCRIPTION);
+
+				} else if (HP.IsKeyWord("element" "connection")) {
+					uPrintFlags |= PRINT_EL_CONNECTION;
 
 				} else if (HP.IsKeyWord("all")) {
 					uPrintFlags = ~PRINT_NONE;
