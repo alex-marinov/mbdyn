@@ -2108,6 +2108,9 @@ in the global reference frame is
 	\T{R}_{1hr} &= \T{R}_1 \tilde{\T{R}}_{1hr} \\
 	\T{R}_{2hr} &= \T{R}_2 \tilde{\T{R}}_{2hr} .
 \end{align}
+The relative position and orientation may refer to different
+local reference frames to increase the versatility of the element.
+
 It is essential to notice that the differentiation of the constraint
 orientation matrices does not affect the relative orientation between
 the constraint and each node, namely matrices $\tilde{\T{R}}_{1hr}$
@@ -2125,6 +2128,8 @@ and
 	\dot{\T{R}}_{1hr} &= \T{\omega}_1 \times \T{R}_{1hr} \\
 	\dot{\T{R}}_{2hr} &= \T{\omega}_2 \times \T{R}_{2hr} .
 \end{align}
+The same is true for the relative position orientation matrix,
+$\T{R}_{1h}$.
 
 
 \paragraph{Orientation Constraint.} \
@@ -2308,7 +2313,7 @@ to the Jacobian matrix is:
 \begin{align}
 	\small
 	&\hspace{-12mm}%
-	\sqbr{\matr{cccccc}{
+	\sqbr{\matr{cccc|cc}{
 %Line 1
 	\T{0} & 
 	\T{\lambda}_{\T{x}}\times{} & 
@@ -2338,6 +2343,7 @@ to the Jacobian matrix is:
 	\T{b}_2\times\T{R}_{1h} & 
 	\T{R}_{1hr} \\
 %Line 5
+	\hline
 	-\T{R}_{1h}^T &
 	\T{R}_{1h}^T\T{b}_1\times{} & 
 	\T{R}_{1h}^T &
@@ -2356,6 +2362,7 @@ to the Jacobian matrix is:
 		\T{\theta}_{1\delta} \\
 		\delta\T{x}_2 \\
 		\T{\theta}_{2\delta} \\
+		\hline
 		\delta\tilde{\T{\lambda}}_{\T{x}} \\
 		\delta\tilde{\T{\lambda}}_{\T{\theta}}
 	}} \nonumber \\
@@ -2364,10 +2371,14 @@ to the Jacobian matrix is:
 	\T{b}_1 \times \T{\lambda}_{\T{x}} + \T{\lambda}_{\T{\theta}} \\
 	- \T{\lambda}_{\T{x}} \\
 	- \T{b}_2 \times \T{\lambda}_{\T{x}} - \T{\lambda}_{\T{\theta}} \\
+	\hline
 	- \T{x}^{\delta} \\
 	- \T{\theta}^{\delta}
 	}} .
 \end{align}
+The updated-updated form is obtained by simply replacing
+$\T{\theta}_{1\delta}$ and $\T{\theta}_{2\delta}$
+with $\delta\T{g}_1$ and $\delta\T{g}_2$, respectively.
 
 \subsubsection{Summary}
 \begin{itemize}
