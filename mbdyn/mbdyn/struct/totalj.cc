@@ -1052,7 +1052,7 @@ TotalJoint::InitialAssRes(SubVectorHandler& WorkVec,
 unsigned int
 TotalJoint::iGetNumPrivData(void) const
 {
-	return nConstraints;
+	return 12;
 }
 
 unsigned int
@@ -1063,28 +1063,38 @@ TotalJoint::iGetPrivDataIdx(const char *s) const
 	unsigned int idx = 0;
 
 	switch (s[0]) {
-	case 'w':
-		idx++;
+	case 'd':
+		/* relative position */
+		break;
+
 	case 'r':
-		idx++;
-		if (s[1] == 'z') {
-			return idx;
-		}
+		/* relative orientation */
+		idx += 3;
+		break;
+
+	case 'F':
+		/* force */
+		idx += 6;
 		break;
 
 	case 'M':
-		idx += 2;
+		/* moment */
+		idx += 9;
+		break;
 
-		switch (s[1]) {
-		case 'x':
-			return idx + 1;
+	default:
+		return 0;
+	}
 
-		case 'y':
-			return idx + 2;
+	switch (s[1]) {
+	case 'x':
+		return idx + 1;
 
-		case 'z':
-			return idx + 3;
-		}
+	case 'y':
+		return idx + 2;
+
+	case 'z':
+		return idx + 3;
 	}
 
 	return 0;
@@ -1093,37 +1103,31 @@ TotalJoint::iGetPrivDataIdx(const char *s) const
 doublereal
 TotalJoint::dGetPrivData(unsigned int i) const
 {
-#if 0
-   ASSERT(i >= 1 && i <= iGetNumPrivData());
+	switch (i) {
+	case 1:
+	case 2:
+	case 3:
+		return XDrv.Get()(i);
 
-   switch (i) {
-    case 1: {
-       Mat3x3 RTmp(((pNode1->GetRCurr()*R1h).Transpose()
-			*pNode1->GetRPrev()*R1h).Transpose()
-			*((pNode2->GetRCurr()*R2h).Transpose()
-			*pNode2->GetRPrev()*R2h));
-       Vec3 v(MatR2EulerAngles(RTmp.Transpose()));
+	case 4:
+	case 5:
+	case 6:
+		return ThetaDrv.Get()(i - 3);
 
-       return dTheta + v(3);
-    }
+	case 7:
+	case 8:
+	case 9:
+		return F(i - 6);
 
-    case 2: {
-       Mat3x3 R2TmpT((pNode2->GetRCurr()*R2h).Transpose());
-       Vec3 v(R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()));
+	case 10:
+	case 11:
+	case 12:
+		return M(i - 9);
 
-       return v(3);
-    }
+	default:
+		ASSERT(0);
+	}
 
-    case 3:
-    case 4:
-    case 5:
-	    return M(i - 2);
-   }
-
-   silent_cerr("TotalJoint(" << GetLabel() << "): "
-	   "illegal private data " << i << std::endl);
-   throw ErrGeneric();
-#endif
 	return 0.;
 }
 
