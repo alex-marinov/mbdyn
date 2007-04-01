@@ -29,6 +29,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/* TotalJoint
+ * Authors: Alessandro Fumagalli, Pierangelo Masarati
+ * 
+ * */
 
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
@@ -492,17 +496,24 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	 * 			dropped
 	 *Jacobian Matrix:
 	 *       x1  	     g1       	   x2    	g2       	 F	      M	
-	 * Q1 |  0   	  -(R1*F)_X         0            0              -R1           0	 | | x1 |  
-	 * G1 |(R1*F)_X  -b1_X_(R1*F)_X  -(R1*F)_X   (R1*F)_X_b2_X    [b1_X]*R1       R1 | | g1 |  
-	 * Q2 |  0         (R1*F)_X         0    	 0   	         R1	      0  | | x2 | 
-	 * G2 |  0        b2_X_(R1*F)_X     0       -(R1*F)_X_b2_X   -[b2_X]*R1      -R1 | | g2 |
-	 * F  | -c*R1^T   c*R1^T*[b1_X]   c*R1^T    -c*R1^T*[b2_X]        0           0	 | | F  |if(bPos)  
-	 * M  |  0         -c*R1^T          0          c* R1^T            0   	      0	 | | M  |if(bRot)
+	 * Q1 |  0   	     F1X           0            0              -R1            0	 | | x1 |  
+	 * G1 |-(F1)X  (b1)X(F1)X+(M1)X  (F1)X     -(F1)X(b2)X       (b1)X(R1)      -R1r | | g1 |  
+	 * Q2 |  0          -F1X           0    	0   	         R1	      0  | | x2 | 
+	 * G2 |  0    -(b2)X(F1)X-(M1)X    0        (F1)X(b2)X       (b2)X(R1)       R1r | | g2 |
+	 * F  |-c*R1^T  c*R1^T*[(b1)X]   c*R1^T   -c*R1^T*[(b2)X]        0            0	 | | F  |if(bPos)  
+	 * M  |  0        -c*R1r^T         0         c* R1r^T            0   	      0	 | | M  |if(bRot)
 	 *           	                                               if(bPos)    if(bRot)
 	 *with: _ b1 = (x2 + R2*f2 - x1)
 	 *      _ b2 = (R2*f2)
+	 *      _ R1 = R1*R1h
+	 *      _ R2 = R2*R2h
+	 *      _ R1r = R1*R1hr
+	 *      _ F1 = R1*F
+	 *      _ M1 = R1*M
+	 *      _ X = "Cross" operator
 	 *
 	 *     */
+	
 	DEBUGCOUT("Entering TotalJoint::AssJac()" << std::endl);
 
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
@@ -542,8 +553,6 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	/* Moltiplica il momento e la forza per il coefficiente del metodo */
 	Vec3 FTmp(R1*(F*dCoef));
 	Vec3 MTmp(R1r*(M*dCoef));
-
-/* FIXME: Check Signs at Equilibrium Contributions */
 
 	/* Equilibrium: ((Phi/q)^T*Lambda)/q */
 
@@ -660,23 +669,15 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	}
 
 	/* Get constraint reactions */
-	for (int iCnt = 0, iPosCurr = 0, iRotCurr = 0; iCnt < 3; iCnt++) {
-		if (bPosActive[iCnt]) {
-			iPosCurr++;
-			F(iCnt + 1) = XCurr(iFirstReactionIndex + iPosCurr);
 
-		} else {
-			F(iCnt + 1) = 0.;
-		}
-
-		if (bRotActive[iCnt]) {
-			iRotCurr++;
-			M(iCnt + 1) = XCurr(iFirstReactionIndex + nPosConstraints + iRotCurr);
-
-		} else {
-			M(iCnt + 1) = 0.;
-		}	
+	for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
+			F(iPosIncid[iCnt]) = XCurr(iFirstReactionIndex + 1 + iCnt);
 	}
+	
+	for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
+			M(iRotIncid[iCnt]) = XCurr(iFirstReactionIndex + 1 + nPosConstraints + iCnt);
+	}
+
 
 	Vec3 b2(pNode2->GetRCurr()*f2);
 	Vec3 b1(pNode2->GetXCurr() + b2 - pNode1->GetXCurr());
