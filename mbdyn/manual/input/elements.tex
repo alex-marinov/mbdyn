@@ -2571,7 +2571,7 @@ The following data is available:
 \end{enumerate}
 
 \subsubsection{Hints}
-When wrapped by a \kw{driven} element, it honors the following hints:
+When wrapped by a \kw{driven} element, the following hints are honored:
 \begin{itemize}
 \item \kw{hinge\{1\}} the relative orientation of the joint
 with respect to node 1 is reset;
@@ -3018,7 +3018,7 @@ The following data is available:
 \end{enumerate}
 
 \subsubsection{Hints}
-When wrapped by a \kw{driven} element, it honors the following hints:
+When wrapped by a \kw{driven} element, the following hints are honored:
 \begin{itemize}
 \item unrecognized hints are passed through to the distance drive.
 \end{itemize}
@@ -3061,7 +3061,7 @@ The following data is available:
 \end{enumerate}
 
 \subsubsection{Hints}
-When wrapped by a \kw{driven} element, it honors the following hints:
+When wrapped by a \kw{driven} element, the following hints are honored:
 \begin{itemize}
 \item \kw{offset\{1\}} the offset of the joint
 with respect to node 1 is reset by pointing 
@@ -3100,7 +3100,7 @@ The following data is available:
 \end{enumerate}
 
 \subsubsection{Hints}
-When wrapped by a \kw{driven} element, it honors the following hints:
+When wrapped by a \kw{driven} element, the following hints are honored:
 \begin{itemize}
 \item \kw{offset\{1\}} the offset of the joint
 with respect to the node is reset by pointing 
@@ -3142,7 +3142,7 @@ The following data is available:
 \end{enumerate}
 
 \subsubsection{Hints}
-When wrapped by a \kw{driven} element, it honors the following hints:
+When wrapped by a \kw{driven} element, the following hints are honored:
 \begin{itemize}
 \item \kw{hinge\{1\}} the orientation with respect to node 1
 of the reference in which the enforced orientation is expressed is reset;
@@ -3229,7 +3229,7 @@ in node 1 reference frame.
 \end{enumerate}
 
 \subsubsection{Hints}
-When wrapped by a \kw{driven} element, it honors the following hints:
+When wrapped by a \kw{driven} element, the following hints are honored:
 \begin{itemize}
 \item \kw{offset\{1\}} the offset of the joint
 with respect to node 1 is reset by pointing exactly
@@ -3267,7 +3267,7 @@ in the absolute reference frame.
 \end{enumerate}
 
 \subsubsection{Hints}
-When wrapped by a \kw{driven} element, it honors the following hints:
+When wrapped by a \kw{driven} element, the following hints are honored:
 \begin{itemize}
 \item \kw{offset\{1\}} the offset of the joint
 with respect to the node is reset by pointing exactly
@@ -3661,7 +3661,7 @@ the joint initial orientation.
 \end{verbatim}
 
 \subsubsection{Hints}
-When wrapped by a \kw{driven} element, it honors the following hints:
+When wrapped by a \kw{driven} element, the following hints are honored:
 \begin{itemize}
 \item \kw{hinge\{1\}} the relative orientation of the joint
 with respect to node 1 is reset;
@@ -3736,7 +3736,7 @@ The following data is available:
 \end{enumerate}
 
 \subsubsection{Hints}
-When wrapped by a \kw{driven} element, it honors the following hints:
+When wrapped by a \kw{driven} element, the following hints are honored:
 \begin{itemize}
 \item \kw{hinge\{1\}} the relative orientation of the joint
 with respect to node 1 is reset;
@@ -3789,7 +3789,7 @@ The following data is available:
 \end{enumerate}
 
 \subsubsection{Hints}
-When wrapped by a \kw{driven} element, it honors the following hints:
+When wrapped by a \kw{driven} element, the following hints are honored:
 \begin{itemize}
 \item \kw{hinge\{1\}} the relative orientation of the joint
 with respect to the node is reset;
@@ -3839,7 +3839,7 @@ The following data is available:
 \end{enumerate}
 
 \subsubsection{Hints}
-When wrapped by a \kw{driven} element, it honors the following hints:
+When wrapped by a \kw{driven} element, the following hints are honored:
 \begin{itemize}
 \item \kw{hinge\{1\}} the relative orientation of the joint
 with respect to node 1 is reset;
@@ -3951,7 +3951,7 @@ is used for output purposes only.
 A default identity matrix is assumed.
 
 \subsubsection{Hints}
-When wrapped by a \kw{driven} element, it honors the following hints:
+When wrapped by a \kw{driven} element, the following hints are honored:
 \begin{itemize}
 \item \kw{offset\{1\}} the offset of the joint
 with respect to node 1 is reset;
@@ -3999,6 +3999,44 @@ Review: Pierangelo Masarati.}
             { active | inactive } ,
             (Vec3_tpl_drive_caller) <imposed_relative_rotation> ]
 \end{verbatim}
+
+\subsubsection{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"dx"} imposed relative position along node 1 position orientation axis 1
+\item \kw{"dy"} imposed relative position along node 1 position orientation axis 2
+\item \kw{"dz"} imposed relative position along node 1 position orientation axis 3
+\item \kw{"rx"} imposed relative orientation about node 1 rotation orientation axis 1
+\item \kw{"ry"} imposed relative orientation about node 1 rotation orientation axis 2
+\item \kw{"rz"} imposed relative orientation about node 1 rotation orientation axis 3
+\item \kw{"Fx"} reaction force about node 1 position orientation axis 1
+\item \kw{"Fy"} reaction force about node 1 position orientation axis 2
+\item \kw{"Fz"} reaction force about node 1 position orientation axis 3
+\item \kw{"Mx"} reaction moment about node 1 rotation orientation axis 1
+\item \kw{"My"} reaction moment about node 1 rotation orientation axis 2
+\item \kw{"Mz"} reaction moment about node 1 rotation orientation axis 3
+\end{enumerate}
+
+\subsubsection{Hints}
+When wrapped by a \kw{driven} element, the following hints are honored:
+\begin{itemize}
+\item \kw{offset\{1\}} the offset of the joint
+with respect to node 1 is reset;
+\item \kw{offset\{2\}} the offset of the joint
+with respect to node 2 is reset;
+\item \kw{position-hinge\{1\}} the relative orientation
+of the relative position constraint with respect to node 1 is reset;
+\item \kw{position-hinge\{2\}} the relative orientation 
+of the relative position constraint with respect to node 2 is reset;
+\item \kw{orientation-hinge\{1\}} the relative orientation
+of the relative orientation constraint with respect to node 1 is reset;
+\item \kw{orientation-hinge\{2\}} the relative orientation 
+of the relative orientation constraint with respect to node 2 is reset;
+\item \kw{position-drive3} resets the relative position drive;
+the hint is passed to the Vec3 drive hint parser.
+\item \kw{orientation-drive3} resets the relative orientation drive;
+the hint is passed to the Vec3 drive hint parser.
+\end{itemize}
 
 
 
