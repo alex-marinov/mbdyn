@@ -763,7 +763,7 @@ file much like if they were regular nodes.
 
 
 
-\paragraph{Offset Dummy Node}
+\paragraph{Offset Dummy Node.} \
 The \texttt{offset} dummy structural node outputs the configuration
 of a reference frame that is rigidly offset from a base node
 (subscript $b$) by $\T{f}_h$ and oriented by matrix $\T{R}_h$ according 
@@ -776,7 +776,7 @@ to the transformation
 \end{align}
 
 
-\paragraph{Reference Frame Dummy Node}
+\paragraph{Reference Frame Dummy Node.} \
 The \texttt{reference frame} dummy structural node
 outputs the configuration of the base node (subscript $b$)
 in the reference frame of a reference node (subscript $r$),
@@ -794,7 +794,7 @@ according to the transformation
 	\overline{\T{\omega}} &= \T{R}_h^T \T{R}_r^T \plbr{\T{\omega}_b - \T{\omega}_r}
 \end{align}
 
-\paragraph{Pivot Reference Frame Dummy Node}
+\paragraph{Pivot Reference Frame Dummy Node.} \
 The \texttt{pivot reference frame} dummy node is a variant
 of the \texttt{reference frame} dummy node that outputs
 the configuration of the base node, expressed in the reference
@@ -934,11 +934,11 @@ in the initial assembly and, occasionally, in specific constraints.
 The distance joint (DistanceJoint) imposes the distance between two nodes,
 which may depend on time and other states of the problem.
 
-\paragraph{Variants} \
+\paragraph{Variants.} \
 There is a variant with offsets (DistanceJointWithOffset),
 discussed in Section~\ref{sec:DistanceJointWithOffset}.
 
-\paragraph{Files} \
+\paragraph{Files.} \
 It is implemented in files
 
 \begin{tabular}{l}
@@ -946,7 +946,7 @@ It is implemented in files
 \texttt{mbdyn/struct/distance.cc}
 \end{tabular}
 
-\paragraph{Definitions} \
+\paragraph{Definitions.} \
 \begin{equation}
 	\T{d} = \T{x}_2 - \T{x}_1
 \end{equation}
@@ -957,23 +957,23 @@ It is implemented in files
 	\T{u} = \frac{\T{d}}{d}
 \end{equation}
 
-\paragraph{Limitations} \
+\paragraph{Limitations.} \
 \begin{equation}
 	d > 0
 \end{equation}
 
-\paragraph{Constraint Equation} \
+\paragraph{Constraint Equation.} \
 \begin{equation}
 	d \sqrt{\T{u}^T \T{u}} = d
 \end{equation}
 
-\paragraph{Forces} \
+\paragraph{Forces.} \
 \begin{eqnarray}
 	\T{F}_1 & = & \alpha \T{u} \\
 	\T{F}_2 & = & -\alpha \T{u}
 \end{eqnarray}
 
-\paragraph{Linearization} \
+\paragraph{Linearization.} \
 \begin{equation}
 	\sqbr{\matr{ccc}{
 		\cfrac{\alpha}{d}\T{I} & -\cfrac{\alpha}{d}\T{I} & -\T{u} \\
@@ -993,12 +993,12 @@ It is implemented in files
 	}}
 \end{equation}
 
-\paragraph{Constraint Equation Derivative} \
+\paragraph{Constraint Equation Derivative.} \
 \begin{equation}
 	d \T{u}^T \dot{\T{u}} = 0
 \end{equation}
 
-\paragraph{Force Derivatives} \
+\paragraph{Force Derivatives.} \
 \begin{eqnarray}
 	\dot{\T{F}}_1 & = & \alpha \dot{\T{u}} + \dot{\alpha} \T{u} \\
 	\dot{\T{F}}_2 & = & -\alpha \dot{\T{u}} - \dot{\alpha} \T{u}
@@ -1008,7 +1008,7 @@ where
 	\dot{\T{u}} = \frac{\dot{\T{x}}_2 - \dot{\T{x}}_1}{d} - \T{u} \frac{\dot{d}}{d}
 \end{equation}
 
-\paragraph{Linearization} \
+\paragraph{Linearization.} \
 \begin{equation}
         \sqbr{\matr{cccccc}{
 		\cfrac{\dot{\alpha}}{d}\T{I} & \cfrac{\alpha}{d}\T{I} &
@@ -1046,7 +1046,7 @@ that rigidly offset from the respective nodes.
 It is a variant of the distance joint (DistanceJoint)
 discussed in Section~\ref{sec:DistanceJoint}.
 
-\paragraph{Files} \
+\paragraph{Files.} \
 It is implemented in files
 
 \begin{tabular}{l}
@@ -1054,7 +1054,7 @@ It is implemented in files
 \texttt{mbdyn/struct/distance.cc}
 \end{tabular}
 
-\paragraph{Definitions} \
+\paragraph{Definitions.} \
 \begin{equation}
 	\T{d} = \T{x}_2 + \T{f}_2 - \T{x}_1 - \T{f}_1
 \end{equation}
@@ -1141,10 +1141,10 @@ Linearization: TODO(C).
 The spherical hinge joint (SphericalHingeJoint) constrains the positions
 of two points, that may be rigidly offset from two nodes, to be coincident.
 
-\paragraph{Variants} \
+\paragraph{Variants.} \
 There exists a pinned version (SphericalPinJoint, TODO(C)).
 
-\paragraph{Files} \
+\paragraph{Files.} \
 It is implemented in files
 
 \begin{tabular}{l}
@@ -1152,7 +1152,7 @@ It is implemented in files
 \texttt{mbdyn/struct/spherj.cc}
 \end{tabular}
 
-\paragraph{Joint data}
+\paragraph{Joint data.} \
 \begin{equation}
 	\tilde{\T{f}}_1, \tilde{\T{f}}_2
 \end{equation}
@@ -1211,13 +1211,13 @@ to be coincident.
 It also constrains their orientations to keep the respective axis 3 
 parallel.
 
-\paragraph{Variants} \
+\paragraph{Variants.} \
 There exist a pinned version (RevolutePinJoint, TODO(C)),
 a version that does not constrain the position (RevoluteRotationJoint),
 and a version which imposes the relative angular velocity about axis 3
 (AxialRotationJoint).
 
-\paragraph{Files} \
+\paragraph{Files.} \
 It is implemented in files
 
 \begin{tabular}{l}
@@ -1225,7 +1225,7 @@ It is implemented in files
 \texttt{mbdyn/struct/planej.cc}
 \end{tabular}
 
-\paragraph{Joint data}
+\paragraph{Joint data.} \
 \begin{equation}
 \T d_1, \T d_2, \T R_{h1}, \T R_{h2}
 \end{equation}
@@ -1451,10 +1451,10 @@ given by a rotation vector $\T{\theta}$, whose direction with respect
 to node 1 represents the rotation axis, and whose amplitude represents 
 the magnitude of the rotation.
 
-\paragraph{Variants} \
+\paragraph{Variants.} \
 There exist no variants, although a pinned version may be of use (TODO).
 
-\paragraph{Files} \
+\paragraph{Files.} \
 It is implemented in files
 
 \begin{tabular}{l}
@@ -1462,7 +1462,7 @@ It is implemented in files
 \texttt{mbdyn/struct/drvhinge.cc}
 \end{tabular}
 
-\paragraph{Definitions}
+\paragraph{Definitions.}
 \begin{eqnarray*}
 	\T{R}_{\text{rel}} & = & \T{R}_1^T \T{R}_2 \\
 	\T{\theta} & = & \llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{\text{rel}}}}
@@ -1548,43 +1548,86 @@ because $\T{\theta}$ in general is a finite rotation.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Total Joint}
 This joint (TotalJoint) forces two nodes to assume an imposed relative
-position and orientation. Both are specified in node 1 reference frame.
-It is composed of 6 equations, 3 for positions and 3 for orientation, 
+position and orientation about selected axes.
+Both imposed position and orientation are specified in the reference frame
+of node 1.
+The joint consists in 6 equations, 3 for positions and 3 for orientation, 
 that can be selectively turned on or off to enforce a constraint on that DoF.
 
-\paragraph{Variants} \
-There exist no variants, although a pinned version is on the TODO list.
+\paragraph{Variants.} \
+There exist no variants, although a pinned version is planned (TODO).
 
-\paragraph{Files} \
+\paragraph{Files.} \
 It is implemented in files\\
 \begin{tabular}{l}
 \texttt{mbdyn/struct/totalj.h} \\
 \texttt{mbdyn/struct/totalj.cc}
 \end{tabular}
-\paragraph{Formulas}\
-The desired relative position is imposed by means of a vector $\T{\tilde{v}}$
-defined in node 1 reference frame. Constraints equations for positions are:
 
+\paragraph{Definitions.} \
+The position of the nodes with respect to the global reference frame
+are $\T{x}_1$ and $\T{x}_2$.
+The orientations of the nodes with respect to the global reference frame
+are $\T{R}_1$ and $\T{R}_2$.
+An offset is allowed for the location of the points where 
+the relative position is constrained; the offsets $\tilde{\T{f}}_1$
+and $\tilde{\T{f}}_2$ are rigidly connected to the nodes,
+so in the global reference frame their expression is
+\begin{align}
+	\T{f}_1 &= \T{R}_1 \tilde{\T{f}}_1 \\
+	\T{f}_2 &= \T{R}_2 \tilde{\T{f}}_2 .
+\end{align}
+The position constraint may be expressed in a reference frame 
+that is rigidly connected to node 1, $\tilde{\T{R}}_{1h}$, whose orientation
+in the global reference frame is
 \begin{equation}
-\T{R}^T_1(\T{x}_2 + \T{R}_2 \T{R}_{2h} \T{f}_2 - 
-\T{x}_1 - \T{R}_1 \T{R}_{1h} \T{f}_1)
- = \tilde{\T{v}}
+	\T{R}_{1h} = \T{R}_1 \tilde{\T{R}}_{1h} .
 \end{equation}
+Similarly, the orientation constraint may be expressed in a reference
+frame that is rigidly connected to both nodes by matrices
+$\tilde{\T{R}}_{1hr}$ and $\tilde{\T{R}}_{2hr}$, whose orientation
+in the global reference frame is
+\begin{align}
+	\T{R}_{1hr} &= \T{R}_1 \tilde{\T{R}}_{1hr} \\
+	\T{R}_{2hr} &= \T{R}_2 \tilde{\T{R}}_{2hr} .
+\end{align}
+It is essential to notice that the differentiation of the constraint
+orientation matrices does not affect the relative orientation between
+the constraint and each node, namely matrices $\tilde{\T{R}}_{1hr}$
+and $\tilde{\T{R}}_{2hr}$, which are constant.
+As a consequence,
+\begin{align}
+	\delta\T{R}_{1hr} &= \T{\theta}_{1\delta}\times \T{R}_{1hr} \\
+	\delta\T{R}_{2hr} &= \T{\theta}_{2\delta}\times \T{R}_{2hr} ,
+\end{align}
+and
+\begin{align}
+	\dot{\T{R}}_{1hr} &= \T{\omega}_1 \times \T{R}_{1hr} \\
+	\dot{\T{R}}_{2hr} &= \T{\omega}_2 \times \T{R}_{2hr} .
+\end{align}
 
+
+\paragraph{Orientation Constraint.} \
+The relative orientation is
+\begin{align}
+	\T{R}_{\mathrm{rel}}
+	&= \T{R}_{1hr}^T \T{R}_{2hr} \nonumber \\
+	&= \tilde{\T{R}}_{1hr}^T \T{R}_1^T \T{R}_2 \tilde{\T{R}}_{2hr} .
+\end{align}
 The desired relative orientation can be expressed by means of a vector 
 $\T{\theta}_0$; the corresponding orientation matrix is
 \begin{equation}
 	\T{R}_0 = \exp\plbr{\T{\theta}_0\times{}}
 \end{equation}
 this operation can always be performed with no ambiguity,
-regardless of the amplitude of $\T{\theta}$.
-However, the same does not hold true for the inverse operation,
-namely
+regardless of the amplitude of $\T{\theta}_0$.
+However, the same is not true for the inverse operation, namely
 \begin{equation}
 	\T{\theta}_0 = \mathrm{ax}\plbr{\exp^{-1}\plbr{\T{R}_0}}
 \end{equation}
-can only yield $\T{\theta}_0$ with the indetermination corresponding
-to an arbitrary amount of entire revolutions.
+can only yield the minimal $\T{\theta}_0$ corresponding to $\T{R}_0$,
+with the indetermination corresponding to an arbitrary amount 
+of entire revolutions.
 
 The equality
 \begin{equation}
@@ -1593,11 +1636,11 @@ The equality
 \end{equation}
 implies that
 \begin{equation}
-	\T{R}_{\text{\text{rel}}} = \T{R}_0 ;
+	\T{R}_{\mathrm{rel}} = \T{R}_0 ;
 \end{equation}
 this can be rewritten as
 \begin{equation}
-	\T{R}_{\text{\text{rel}}} \T{R}_0^T = \T{I}
+	\T{R}_{\mathrm{rel}} \T{R}_0^T = \T{I}
 \end{equation}
 and thus Eq.~(\ref{eq:TOTAL-JOINT-theta})
 is equivalent to
@@ -1611,14 +1654,14 @@ $\T{\theta}_0$ and the current relative orientation between
 nodes 1 and 2,
 \begin{equation}
 	\T{\theta} = \llk{ax}\plbr{\exp^{-1}\plbr{
-		\T{R}_{1hr}^T \T{R}_1^T \T{R}_2 \T{R}_{2hr}
+		\T{R}_{1hr}^T \T{R}_{2hr}
 	}}
 	\label{eq:TOTAL-JOINT-thetadelta}
 \end{equation}
 through the previous redefinition can be expressed as
 \begin{equation}
 	\T{\theta}^{\delta} = \llk{ax}\plbr{\exp^{-1}\plbr{
-		\T{R}_{1hr}^T \T{R}_1^T \T{R}_2 \T{R}_{2hr} \T{R}_0^T
+		\T{R}_{1hr}^T \T{R}_{2hr} \T{R}_0^T
 	}}
 \end{equation}
 and is equivalent to
@@ -1627,171 +1670,205 @@ and is equivalent to
 \end{equation}
 when $\T{\theta}^{\delta}=\T{0}$.
 
+\paragraph{Position Constraint.} \
+The desired relative position is imposed by means of a vector $\T{\tilde{v}}$
+defined in the relative constraint reference frame of node 1.
+The constraint equations for the relative position are:
+\begin{equation}
+	\T{R}_{1h}^T\plbr{
+		\T{x}_2 + \T{f}_2 - \T{x}_1 - \T{f}_1
+	} = \tilde{\T{v}}
+\end{equation}
 In analogy with the definition of $\T{\theta}^{\delta}$, a vector
-$\T{x}^{\delta}$ can be used to express the constraint on positions DoF.
+$\T{x}^{\delta}$ can be used to express the constraint on positions DoF,
+\begin{equation}
+	\T{x}^{\delta} = \T{R}_{1h}^T\plbr{
+		\T{x}_2 + \T{f}_2 - \T{x}_1 - \T{f}_1
+	} - \tilde{\T{v}}
+\end{equation}
+
+\paragraph{Constraint Equations.} \
 The resulting constraint equations are:
-\begin{eqnarray}
-\T{x}^{\delta} & = &
-	\T{R}_1^T(\T{x}_2 + \T{R}_2 \T{R}_{2h} \T{f}_2 - 
-	\T{x}_1 - \T{R}_1 \T{R}_{1h} \T{f}_1) - \T{\tilde{v}}\\
-\T{\theta}^{\delta} & = & \llk{ax}\plbr{\exp^{-1}\plbr{
-		\T{R}_{1hr}^T \T{R}_1^T \T{R}_2 \T{R}_{2hr} \T{R}_0^T
-	}}
-\end{eqnarray}
-
-Each component of $\T{x}^{\delta}$ and $\T{\theta}^{\delta}$ can be selectively set
-to zero to enforce a constraint on that degree of freedom.
+\begin{align}
+	\T{x}^{\delta} &= \T{0} \\
+	\T{\theta}^{\delta} &= \T{0} .
+\end{align}
+Any component of $\T{x}^{\delta}$ and $\T{\theta}^{\delta}$
+can be selectively set to zero to enforce a constraint
+on that degree of freedom.
 The axis about which the constraint is applied can be arbitrarily 
-defined by appropriately setting the constant relative orientation
-matrix of each node, both for position ($\T{R}_{1h}$ and $\T{R}_{2h}$) 
-and for orientation ($\T{R}_{1hr}$ and $\T{R}_{2hr}$).
+defined with respect to the node orientation
+by appropriately setting the constant relative orientation
+matrix of each node, both for position ($\tilde{\T{R}}_{1h}$) 
+and for orientation ($\tilde{\T{R}}_{1hr}$ and $\tilde{\T{R}}_{2hr}$).
 For imposed rotations, an arbitrary amplitude of the rotation about 
-the constraint axis can be imposed by means of the components of the imposed 
-vector $\T{\theta}_0$. The same holds for positions, using $\tilde{\T{v}}$. 
+the constraint axis can be imposed by means of the components 
+of vector $\T{\theta}_0$.
+The same is true for positions, by means of $\tilde{\T{v}}$. 
 
-\noindent
-If any component of $\T{x}^{\delta}$ or $\T{\theta}^{\delta}$ 
-are left free, they are simply ignored, and the resulting constraint 
-equations are dropped.
-Otherwise, they can be used to apply moments based on the 
-relative position/orientation of the nodes, e.g.\ linear/rotational 
-springs or dampers.
-In this case, the singularity problem on rotations comes back: the norm
+Alternatively, equations related to any of the components
+of $\T{x}^{\delta}$ and $\T{\theta}^{\delta}$ can be omitted,
+thus omitting the constraint along or about the corresponding axis.
+The corresponding value of  $\T{x}^{\delta}$ and $\T{\theta}^{\delta}$ 
+could be used to apply moments based on the relative position/orientation 
+of the nodes, e.g.\ linear/rotational springs or dampers.
+In this case, the singularity problem on rotations is back: the norm
 of the relative orientation must not exceed $\pi$, i.e.\
 $\shbr{\T{\theta}^{\delta}}<\pi$.
 Note that the relative orientation is computed with respect to 
 $\T{\theta}_0$, so an anelastic (or imposed) rotation can be easily
 applied to the spring, resulting in an imposed rotation with stiffness.
 
-\noindent
-\paragraph*{Linearization}\
-First, we need to compute the perturbation of $\T{x}^{\delta}$. 
-\begin{equation*}
-\delta \T{x}^{\delta} = 
-	\T{\bar{R}}_1^T\big(-\delta\T{x}_1 + \T{b1}\times\T{\theta}_{1\delta}
-	+ \delta\T{x}_2 - \T{b2}\times\T{\theta}_{2\delta} \big)
-\end{equation*}
-where:
-\begin{eqnarray*}
-\T{\bar{R}}_1 & = & \T{R}_1\T{R}_{1h}\\
-\T{b}_1 & = & \T{R}_1\T{R}_{1h}(\T{x}_2 + \T{R}_2\T{R}_{2h}\T{f}_2 - \T{x}_1) \\
-\T{b}_2 & = & \T{R}_2\T{R}_{2h}\T{f}_2 
-\end{eqnarray*}
+\paragraph{Linearization.} \
+First, the perturbation of $\T{x}^{\delta}$,
+\begin{equation}
+	\delta \T{x}^{\delta} = 
+	\T{R}_{1h}^T\plbr{
+		\delta\T{x}_2 - \T{b}_2 \times \T{\theta}_{2\delta}
+		- \delta\T{x}_1 + \T{b}_1 \times \T{\theta}_{1\delta}
+	}
+\end{equation}
+is conputed, where
+\begin{align}
+	\T{b}_1 &= \T{x}_2 + \T{f}_2 - \T{x}_1 \\
+	\T{b}_2 &= \T{f}_2 .
+\end{align}
 Note that, since the constraint equations are defined by setting 
 to zero any components of the vector $\T{x}^{\delta}$, the
 related Jacobian matrix contribution is obtained by selecting 
-the corresponding columns of matrix $\bar{\T{R}}_{1}$.
+the corresponding columns of matrix $\T{R}_{1h}$.
 
-Then, the perturbation of $\T{\theta}^{\delta}$.
-Recalling the definition of $\T{R}^{\delta}$:
-\begin{equation*}
-	\T{R}^{\delta} = \T{R}_{1h}^T \T{R}_1^T \T{R}_2 \T{R}_{2h} \T{R}_0^T
-\end{equation*}
-we have:
-\begin{equation*}
-	\T{\theta}^{\delta} = \llk{ax}\plbr{\exp^{-1}\plbr{\T{R}^{\delta}}}
-\end{equation*}
-that implies:
-\begin{equation*}
-	\delta \T{R}^{\delta} = \delta \T{\theta}^{\delta} \times \T{R}^{\delta}
-\end{equation*}
-and:
-\begin{eqnarray*}
-	\T{\theta}^{\delta}_{\delta}
-	& = & \llk{ax}\plbr{\delta\T{R}^{\delta} \T{R}^{\delta T}} \\
-	& = & \llk{ax}\plbr{\T{R}_{1hr}^T \T{R}_1^T
-		\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}\times{}
-		\T{R}_1 \T{R}_{1hr}} \\
-	& = & \bar{\T{R}}_{1r}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
-\end{eqnarray*}
-where $\bar{\T{R}}_{1r}=\T{R}_1 \T{R}_{1hr}$ and $\T{\theta}^{\delta}_{\delta} = {\delta}\T{\theta}^{\delta}$.
+Then, the perturbation of $\T{\theta}^{\delta}$ is computed.
+after defining
+\begin{align}
+	\T{R}^{\delta}
+	&= \T{R}_{1hr}^T \T{R}_{2hr} \T{R}_0^T \\
+	&= \exp\plbr{\T{\theta}^{\delta}\times{}} ,
+\end{align}
+its perturbation yields
+\begin{align}
+	\T{\theta}^{\delta}_{\delta} \times{}
+	&= \delta\T{R}^{\delta} \T{R}^{\delta T} \\
+	&= \T{R}_{1hr}^T \plbr{
+		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
+	} \times \T{R}_{1hr} ,
+\end{align}
+which implies
+\begin{equation}
+	\T{\theta}^{\delta}_{\delta} = \T{R}_{1hr}^T \plbr{
+		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
+	} .
+\end{equation}
 Note that, since the constraint equations are defined by setting 
 to zero any components of the vector $\T{\theta}^{\delta}$, the
 related Jacobian matrix contribution is obtained by selecting 
-the corresponding columns of matrix $\bar{\T{R}}_{1r}$.
+the corresponding columns of matrix $\T{R}_{1hr}$.
 
-\noindent
-The contribution to the equilibrium of the constraints reactions are:
-\begin{eqnarray*}
-	Node1\ Momentum & = & - \T{\bar{R}}_1 \T{\lambda}_F \\
-	Node1\ Angular\ Momentum\ & = & -\T{b}_1\times\T{\lambda}_F
-					-\T{\bar{R}}_{1r}\T{\lambda}_M\\
-	Node2\ Momentum & = &  \bar{\T{R}} \T{\lambda}_F \\
-	Node2\ Angular\ Momentum\ & = & \T{b}_2\times\T{\lambda}_F
-					+\T{\bar{R}}_{1r}\T{\lambda}_M
-\end{eqnarray*}
-where $\T{\lambda}_F$ are reaction forces related to position constraints
-and $\T{\lambda}_M$ are reaction couples related to orientation constraints.
+
+After calling $\tilde{\T{\lambda}}_{\T{x}}$
+and $\tilde{\T{\lambda}}_{\T{\theta}}$ the Lagrange multipliers
+respectively related to the relative position and orientation
+constraints, and noticing that in the global reference frame
+they become
+\begin{align}
+	\T{\lambda}_{\T{x}} &= \T{R}_{1h} \tilde{\T{\lambda}}_{\T{x}} \\
+	\T{\lambda}_{\T{\theta}} &= \T{R}_{1hr} \tilde{\T{\lambda}}_{\T{\theta}} ,
+\end{align}
+the contribution of the constraint reactions to the equilibrium equations
+of the participating nodes is
+\begin{align}
+	\T{F}_1 &= - \T{\lambda}_{\T{x}} \\
+	\T{C}_1 &= - \T{b}_1 \times \T{\lambda}_{\T{x}} - \T{\lambda}_{\T{\theta}} \\
+	\T{F}_2 &= \T{\lambda}_{\T{x}} \\
+	\T{C}_2 &= \T{b}_2 \times \T{\lambda}_{\T{x}} + \T{\lambda}_{\T{\theta}} .
+\end{align}
 
 Due to the simplifications related to the updated-updated approach,
 the contribution of the constraint equations and of the equilibrium 
 to the Jacobian matrix is: 
-\begin{equation}
-\sqbr{\matr{cccccc}{
+\begin{align}
+	\small
+	&\hspace{-12mm}%
+	\sqbr{\matr{cccccc}{
 %Line 1
 	\T{0} & 
-	\T{\bar{\lambda}}_F\times & 
+	\T{\lambda}_{\T{x}}\times{} & 
 	\T{0} & 
 	\T{0} & 
-	-\T{\bar{R}}_1 &
-	\T{0}\\
+	-\T{R}_{1h} &
+	\T{0} \\
 %Line 2
-	-\T{\bar{\lambda}}_F\times & 
-	\T{b}_1\times\T{\bar{\lambda}}_F\times +  \T{\bar{\lambda}}_M\times &
-	\T{\bar{\lambda}}_F\times & 
-	-\T{\bar{\lambda}}_F\times\T{b}_2\times & 
-	-\T{b}_1\times\T{\bar{R}}_1 &
-	-\T{\bar{R}}_{1r}\\
+	-\T{\lambda}_{\T{x}}\times{} & 
+	\T{b}_1\times\T{\lambda}_{\T{x}}\times{} + \T{\lambda}_{\T{\theta}}\times{} &
+	\T{\lambda}_{\T{x}}\times{} & 
+	-\T{\lambda}_{\T{x}}\times\T{b}_2\times{} & 
+	-\T{b}_1\times\T{R}_{1h} &
+	-\T{R}_{1hr} \\
 %Line 3
 	\T{0} & 
-	-\T{\bar{\lambda}}_F\times &
+	-\T{\lambda}_{\T{x}}\times{} &
 	\T{0} &
 	\T{0} &
-	\T{\bar{R}}_1 &
-	\T{0}\\
+	\T{R}_{1h} &
+	\T{0} \\
 %Line 4
 	\T{0} & 
-	-\T{b}_2 \times \T{\bar{\lambda}}_F \times - \T{\bar{\lambda}}_M\times &
+	-\T{b}_2\times\T{\lambda}_{\T{x}}\times{} - \T{\lambda}_{\T{\theta}}\times{} &
 	\T{0} &
-	\T{\bar{\lambda}}_F\times\T{b}_2\times &
-	\T{b}_2\times\T{\bar{R}}_1 & 
-	\T{\bar{R}}_{1r}\\
+	\T{\lambda}_{\T{x}}\times\T{b}_2\times{} &
+	\T{b}_2\times\T{R}_{1h} & 
+	\T{R}_{1hr} \\
 %Line 5
-	-\T{\bar{R}}_1^T &
-	\T{\bar{R}}_1^T\T{b}_1\times & 
-	\T{\bar{R}}_1^T &
-	-\T{\bar{R}}_1^T\T{b}_2\times & 
+	-\T{R}_{1h}^T &
+	\T{R}_{1h}^T\T{b}_1\times{} & 
+	\T{R}_{1h}^T &
+	-\T{R}_{1h}^T\T{b}_2\times{} & 
 	\T{0} &
 	\T{0} \\
 %Line 6
 	\T{0} &
-	-\T{\bar{R}}_{1r}^T &
+	-\T{R}_{1hr}^T &
 	\T{0} &
-	\T{\bar{R}}_{1r}^T &
+	\T{R}_{1hr}^T &
 	\T{0} & 
-	\T{0} }}
-\end{equation}
-Where $\T{\bar{\lambda}}_F = \T{\bar{R}}_1\T{\lambda}_F$ and 
-$\T{\bar{\lambda}}_M = \T{\bar{R}}_{1r}\T{\lambda}_M$.
+	\T{0}
+	}} \cubr{\cvvect{
+		\delta\T{x}_1 \\
+		\T{\theta}_{1\delta} \\
+		\delta\T{x}_2 \\
+		\T{\theta}_{2\delta} \\
+		\delta\tilde{\T{\lambda}}_{\T{x}} \\
+		\delta\tilde{\T{\lambda}}_{\T{\theta}}
+	}} \nonumber \\
+	&= \cubr{\cvvect{
+	\T{\lambda}_{\T{x}} \\
+	\T{b}_1 \times \T{\lambda}_{\T{x}} + \T{\lambda}_{\T{\theta}} \\
+	- \T{\lambda}_{\T{x}} \\
+	- \T{b}_2 \times \T{\lambda}_{\T{x}} - \T{\lambda}_{\T{\theta}}
+	}} .
+\end{align}
 
 \subsubsection{Summary}
 \begin{itemize}
 \item each component of the relative position/orientation can be subjected
-to separate conditions;
-\item a perfect constraint results from setting to zero the error
-on the relative position/orientation of that component;
-\item a deformable constraint results from freeing the error
-on the relative component, and adding a constitutive law
-based on that error and possibly on its derivative;
-in this case, the norm of the amplitude of the error on orientation 
+to separate constraint conditions;
+\item an ideal constraint results from activating the constraint equation
+on that degree of freedom and setting to zero, or to any desired,
+time dependent value the relative position/orientation of that component;
+\item a deformable constraint results from deactivating the constraint
+equation on that degree of freedom, possibly adding a constitutive law
+based on that error and possibly on its derivative (currently, this requires
+a separate instance of a deformable element);
+in this case, the norm of the amplitude of the relative orientation 
 is limited to $\pi$;
-\item the reference relative orientation goes in matrix $\T{R}_0$
+\item the imposed relative orientation goes in matrix $\T{R}_0$
 by means of a vector $\T{\theta}_0$ which can be time dependent;
 there is no limitation on the amplitude of that rotation;
 \item friction can be added as well on those components
-that are left free (or constrained by springs);
-\item an interesting option is to leave all the constraint equations
-always in place, and activate/deactivate them based on some trigger.
+that are not constrained;
+\item an interesting option, left as a future development, consists
+in leaving all the constraint equations always in place,
+and activate/deactivate them based on some trigger.
 \end{itemize}
  
 \subsection{Future Development:}  
@@ -2006,11 +2083,11 @@ optionally offset from node $a$, so that their relative position matches
 a value that is imposed in node $a$ reference frame; the imposed vector
 may depend on time and other states during the simulation.
 
-\paragraph{Variants} \
+\paragraph{Variants.} \
 There exists a pinned version (DriveDisplacementPinJoint),
 discussed in Section~\ref{sec:DriveDisplacementPinJoint}.
 
-\paragraph{Files} \
+\paragraph{Files.} \
 It is implemented in files
 
 \begin{tabular}{l}
@@ -2018,7 +2095,7 @@ It is implemented in files
 \texttt{mbdyn/struct/drvdisp.cc}
 \end{tabular}
 
-\paragraph{Constraint Equation} \
+\paragraph{Constraint Equation.} \
 The constraint equation is
 \begin{equation}
 	\T{\Phi} = \T{x}_b + \T{f}_b - \T{x}_a - \T{f}_a - \T{v} = \T{0}
@@ -2294,11 +2371,11 @@ but the relative displacement $v$, a scalar possibly dependent on the time
 and on other states of the problem, is imposed only in direction 
 $\tilde{\T{e}}_a$, relative to node $a$.
 
-\paragraph{Variants} \
+\paragraph{Variants.} \
 There exists a pinned version (ImposedDisplacementPinJoint),
 discussed in Section~\ref{sec:ImposedDisplacementPinJoint}.
 
-\paragraph{Files} \
+\paragraph{Files.} \
 It is implemented in files
 
 \begin{tabular}{l}
@@ -2306,7 +2383,7 @@ It is implemented in files
 \texttt{mbdyn/struct/impdisp.cc}
 \end{tabular}
 
-\paragraph{Constraint equation}
+\paragraph{Constraint equation.}
 \begin{equation}
 	\Phi = \T{e}_a^T \plbr{\T{x}_b + \T{f}_b - \T{x}_a - \T{f}_a} - v = 0 ,
 \end{equation}
@@ -2416,13 +2493,13 @@ in Section~\ref{sec:ImposedDisplacementJoint}.
 In this case, the direction $\T{e}$ is referred to the absolute frame,
 so it does no longer depend on the state of the problem.
 
-\paragraph{Variants} \
+\paragraph{Variants.} \
 There exists a version that imposes the relative displacement of two nodes
 along a direction that is fixed with respect to one of them 
 (ImposedDisplacementJoint),
 discussed in Section~\ref{sec:ImposedDisplacementJoint}.
 
-\paragraph{Files} \
+\paragraph{Files.} \
 It is implemented in files
 
 \begin{tabular}{l}
@@ -2525,11 +2602,11 @@ of the relative angle between the two nodes.
 It is essentially equivalent to two Cardano joints (universal joints)
 each of which accounts for half of the relative orientation.
 
-\paragraph{Variants} \
+\paragraph{Variants.} \
 This joint is only defined in the variant that constrains the relative
 rotation between two nodes.
 
-\paragraph{Files} \
+\paragraph{Files.} \
 It is implemented in files
 
 \begin{tabular}{l}
@@ -2537,7 +2614,7 @@ It is implemented in files
 \texttt{mbdyn/struct/gimbal.cc}
 \end{tabular}
 
-\paragraph{Definitions} \
+\paragraph{Definitions.} \
 The relative orientation is made of three steps, described by
 \begin{eqnarray*}
 	\T{R}_{\text{rel}}
@@ -2750,7 +2827,7 @@ acting on the constrained nodes:
 where $\lambda$ is the Lagrange multiplier that here assumes the meaning
 of reaction force along the screw axis.
 
-\paragraph{Physics}
+\paragraph{Physics.}
 In other words, node 1 is the screw and node 2 is the bolt;
 neglecting the offset, the force along the screw axis is related
 to the couple about the same axis by the relationship
@@ -3819,31 +3896,37 @@ Accounting for the simplifications of the updated-updated approach, it becomes
 The moment applied by the attached formulation to node 1,
 in the global reference frame, is
 \begin{equation}
-	\T{M} = \T{R}_{1h} \T{K} \T{\theta} ,
+	\T{M}_a = \T{R}_{1h} \tilde{\T{M}}_a\plbr{\T{\theta}} ,
 \end{equation}
 while the moment applied by the invariant formulation to node 1,
 in the global reference frame, is
 \begin{align}
-	\T{M} &= \hat{\T{R}} \tilde{\T{K}} \T{\theta} \\
-	&= \T{R}_{1h} \tilde{\T{R}} \tilde{\T{K}} \tilde{\T{R}}^T \T{\theta} ,
+	\T{M}_i &= \hat{\T{R}} \tilde{\T{M}}_i\plbr{\T{\theta}} \\
+	&= \T{R}_{1h} \tilde{\T{R}} \tilde{\T{M}}_i\plbr{\tilde{\T{R}}^T \T{\theta}} ,
 \end{align}
 since $\tilde{\T{R}}^T \T{\theta}=\T{\theta}$.
-
-This means that whatever formula is used for the constitutive matrix
+This means that whatever formula is used for the constitutive law,
 in the invariant case, it is equivalent to using an attached formula 
-with a constitutive matrix
+with a constitutive law re-oriented by $\tilde{\T{R}}$,
 \begin{equation}
-	\T{K} = \tilde{\T{R}} \tilde{\T{K}} \tilde{\T{R}}^T ;
+	\tilde{\T{M}}_a\plbr{\T{\theta}}
+		= \tilde{\T{R}} \tilde{\T{M}}_i\plbr{\tilde{\T{R}}^T \T{\theta}} ;
 \end{equation}
 similar considerations apply to the viscous portion of the constitutive law.
 This transformation should be kept in mind when determining the properties
 of the deformable component.
 In fact, exchanging the locations where the constitutive law is evaluated
 implies a transformation of the constitutive matrix; in case a linear elastic
-constitutive law, i.e.\ with a constant $\tilde{\T{K}}$ matrix, is used
-for the invariant formula, which appears a natural solution for simple 
-elastic hinges, it is equivalent to a nonlinear elastic constitutive
-law when considering the attached formulation.
+constitutive law,
+\begin{equation}
+	\tilde{\T{M}}_i = \tilde{\T{K}}_i \T{\theta} ,
+\end{equation}
+with a constant (symmetric, positive definite) $\tilde{\T{K}}_i$ matrix,
+is used for the invariant formula, which appears to be a natural solution 
+for simple elastic hinges, it is equivalent to a nonlinear elastic 
+constitutive law when transposing it into the attached formulation.
+The two formulas are coincident, and independent from $\T{\theta}$,
+only in case of an isotropic spring, namely $\tilde{\T{K}}_i=k\T{I}$.
 
 A ``natural'' solution, for a geometrically and materially symmetrical
 component, behaves the same when the order of the nodes is swapped.
@@ -3852,19 +3935,22 @@ However, typical experiments to determine the mechanical behavior
 of a component would rather consist in straining it while measuring
 the resulting loads at one or both ends, not in the intermediate
 location where the constitutive law would be naturally applied.
-
 As a consequence, a ``natural'' procedure for the determination
-of the constitutive law would consist in determining the $\T{K}$
-matrix first; then, assuming the moment can be expressed in the form
+of the constitutive law would consist in determining 
+the $\T{M}_a\plbr{\T{\theta}}$ law first; 
+then, assuming the moment can be expressed in the form
 \begin{equation}
-	\T{R}_{1h}^T \T{M} = \T{K}\plbr{\T{\theta}} \T{\theta} ,
+	\T{R}_{1h}^T \T{M}_a\plbr{\T{\theta}}
+		= \tilde{\T{M}}_a\plbr{\T{\theta}} ,
 \end{equation}
 matrix $\tilde{\T{R}}$ would be computed
 from the measured relative rotation of the extremities of the component,
 $\tilde{\T{\theta}}=\T{\theta}/2$,
-and matrix $\tilde{\T{K}}$ would be computed as
+and the constitutive law $\tilde{\T{M}}_i\plbr{\T{\theta}}$ 
+would be computed as
 \begin{equation}
-	\tilde{\T{K}} = \tilde{\T{R}}^T \T{K} \tilde{\T{R}}
+	\tilde{\T{M}}_i\plbr{\tilde{\T{R}}^T \T{\theta}}
+		= \tilde{\T{R}}^T \tilde{\T{M}}_a\plbr{\T{\theta}}
 \end{equation}
 to yield the invariant constitutive law.
 
@@ -3876,6 +3962,24 @@ The deformable hinge applies an internal force to two nodes at a specified
 point that may be offset from the nodes; the force may depend on the relative
 position and velocity of the nodes at the point of application
 through a 3D constitutive law.
+
+The points whose relative displacement represents the measure 
+of the straining can be offset from the nodes by rigid offsets
+$\tilde{\T{f}}_1$ and $\tilde{\T{f}}_2$, which are defined
+in the reference frame of the respctive nodes.
+So the offsets in the global reference frame are
+\begin{align}
+	\T{f}_1 &= \T{R}_1 \tilde{\T{f}}_1 \\
+	\T{f}_2 &= \T{R}_2 \tilde{\T{f}}_2 .
+\end{align}
+The constitutive law is expressed in a reference frame that may be rotated
+from that of the node by rigid rotations $\tilde{\T{R}}_{1h}$
+and $\tilde{\T{R}}_{2h}$.
+So the orientations of the constitutive law in the global reference frame are
+\begin{align}
+	\T{R}_{1h} &= \T{R}_1 \tilde{\T{R}}_{1h} \\
+	\T{R}_{2h} &= \T{R}_2 \tilde{\T{R}}_{2h} .
+\end{align}
 
 As for the \texttt{deformable hinge}, the constitutive law of this joint
 may be either attached to one node or defined in an intermediate
