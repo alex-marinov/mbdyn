@@ -3405,10 +3405,10 @@ The following data is available:
 \end{enumerate}
 
 \subsection{Modal}\label{sec:EL:STRUCT:JOINT:MODAL}
-\emph{Note: under development \\
-    Author: Felice Felippone; \\
-    Initial review: Giuseppe Quaranta; \\
-    Current review: Pierangelo Masarati.}
+\emph{
+Original implementation: Felice Felippone; \\
+Initial review: Giuseppe Quaranta; \\
+Current review: Pierangelo Masarati.}
 
 This joint implements a component synthesis deformable body.
 Its interface with the multibody domain is represented by clamps
@@ -3974,6 +3974,33 @@ the relative orientation is not constrained.
 	An alternative way to model a grounded spherical hinge requires
 	the use of a static, clamped node.
 }
+
+\subsection{Total joint}
+\label{sec:EL:STRUCT:JOINT:TOTAL_JOINT}
+\emph{Original implementation: Alessandro Fumagalli; \\
+Review: Pierangelo Masarati.}
+\begin{verbatim}
+    <joint_type> ::= total joint
+    <joint_arglist> ::=
+        <node1> , [ position , ] (Vec3) <relative_offset>
+        [ , position orientation , (Mat3x3) <relative_position_orientation> ]
+        [ , rotation orientation , (Mat3x3) <relative_rotation_orientation> ]
+        , <node2> , [ position , ] (Vec3) <relative_offset>
+        [ , position orientation , (Mat3x3) <relative_position_orientation> ]
+        [ , rotation orientation , (Mat3x3) <relative_rotation_orientation> ]
+        [ , position constraint ,
+            { active | inactive } ,
+            { active | inactive } ,
+            { active | inactive } ,
+            (Vec3_tpl_drive_caller) <imposed_relative_position> ]
+        [ , orientation constraint ,
+            { active | inactive } ,
+            { active | inactive } ,
+            { active | inactive } ,
+            (Vec3_tpl_drive_caller) <imposed_relative_rotation> ]
+\end{verbatim}
+
+
 
 \subsection{Universal hinge}
 \label{sec:EL:STRUCT:JOINT:UNIVERSAL_HINGE}

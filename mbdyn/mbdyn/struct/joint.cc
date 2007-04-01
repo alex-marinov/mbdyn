@@ -2263,37 +2263,18 @@ ReadJoint(DataManager* pDM,
 
 		Vec3 f1(0.);
 		if (HP.IsKeyWord("position")) {
-#ifdef MBDYN_X_COMPATIBLE_INPUT
-			NO_OP;
-		} else {
-			pedantic_cerr("Joint(" << uLabel << "): "
-				"missing keyword \"position\" at line "
-				<< HP.GetLineData() << std::endl);
-		}
-#endif /* MBDYN_X_COMPATIBLE_INPUT */
 			f1 = HP.GetPosRel(ReferenceFrame(pNode1));
-#ifndef MBDYN_X_COMPATIBLE_INPUT
 		}
-#endif /* MBDYN_X_COMPATIBLE_INPUT */
 
 		Mat3x3 R1h(Eye3);
-		if (HP.IsKeyWord("orientation")) {
-			DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+		if (HP.IsKeyWord("position" "orientation")) {
+			DEBUGCOUT("Position orientation matrix is supplied" << std::endl);
 			R1h = HP.GetRotRel(RF);
-#ifdef MBDYN_X_COMPATIBLE_INPUT
-		} else if (HP.IsKeyWord("hinge")) {
-			pedantic_cerr("Joint(" << uLabel << "): "
-				"keyword \"hinge\" at line " << HP.GetLineData()
-				<< " is deprecated; use \"orientation\" instead"
-				<< std::endl);
-			DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
-			R1h = HP.GetRotRel(RF);
-#endif /* MBDYN_X_COMPATIBLE_INPUT */
 		}
 
 		Mat3x3 R1hr(Eye3);
-		if (HP.IsKeyWord("hinge" "orientation")) {
-			DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+		if (HP.IsKeyWord("rotation" "orientation")) {
+			DEBUGCOUT("Rotation orientation matrix is supplied" << std::endl);
 			R1hr = HP.GetRotRel(RF);
 		}
 
@@ -2303,43 +2284,24 @@ ReadJoint(DataManager* pDM,
 
 		Vec3 f2(0.);
 		if (HP.IsKeyWord("position")) {
-#ifdef MBDYN_X_COMPATIBLE_INPUT
-			NO_OP;
-		} else {
-			pedantic_cerr("Joint(" << uLabel << "): "
-				"missing keyword \"position\" at line "
-				<< HP.GetLineData() << std::endl);
-		}
-#endif /* MBDYN_X_COMPATIBLE_INPUT */
 			f2 = HP.GetPosRel(ReferenceFrame(pNode2));
-#ifndef MBDYN_X_COMPATIBLE_INPUT
 		}
-#endif /* MBDYN_X_COMPATIBLE_INPUT */
 
 		Mat3x3 R2h(Eye3);
-		if (HP.IsKeyWord("orientation")) {
-			DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+		if (HP.IsKeyWord("position" "orientation")) {
+			DEBUGCOUT("Position orientation matrix is supplied" << std::endl);
 			R2h = HP.GetRotRel(RF);
-#ifdef MBDYN_X_COMPATIBLE_INPUT
-		} else if (HP.IsKeyWord("hinge")) {
-			pedantic_cerr("Joint(" << uLabel << "): "
-				"keyword \"hinge\" at line " << HP.GetLineData()
-				<< " is deprecated; use \"orientation\" instead"
-				<< std::endl);
-			DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
-			R2h = HP.GetRotRel(RF);
-#endif /* MBDYN_X_COMPATIBLE_INPUT */
 		}
 
 		Mat3x3 R2hr(Eye3);
-		if (HP.IsKeyWord("hinge" "orientation")) {
-			DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
+		if (HP.IsKeyWord("rotation" "orientation")) {
+			DEBUGCOUT("Rotation orientation matrix is supplied" << std::endl);
 			R2hr = HP.GetRotRel(RF);
 		}
 
 		bool bXActive[3] = { false, false, false };
 		TplDriveCaller<Vec3>* pXDC = 0;
-		if (HP.IsKeyWord("position")) {
+		if (HP.IsKeyWord("position" "constraint")) {
 			for (unsigned i = 0; i < 3; i++) {
 				if (HP.IsKeyWord("inactive")) {
 					bXActive[i] = false;
@@ -2363,7 +2325,7 @@ ReadJoint(DataManager* pDM,
 
 		bool bTActive[3] = { false, false, false };
 		TplDriveCaller<Vec3>* pTDC = 0;
-		if (HP.IsKeyWord("orientation")) {
+		if (HP.IsKeyWord("orientation" "constraint")) {
 			for (unsigned i = 0; i < 3; i++) {
 				if (HP.IsKeyWord("inactive")) {
 					bTActive[i] = false;
