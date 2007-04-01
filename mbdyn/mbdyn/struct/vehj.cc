@@ -1279,10 +1279,10 @@ ViscoElasticHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 		ConstitutiveLaw3DOwner::Update(ThetaCurr, Omega);
 	}
 
-	Vec3 F(R1h*ConstitutiveLaw3DOwner::GetF());
+	M = R1h*ConstitutiveLaw3DOwner::GetF();
 
-	WorkVec.Add(1, F);
-	WorkVec.Sub(4, F);
+	WorkVec.Add(1, M);
+	WorkVec.Sub(4, M);
 
 	return WorkVec;
 }

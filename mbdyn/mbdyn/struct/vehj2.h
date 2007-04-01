@@ -49,6 +49,7 @@ protected:
 	mutable Vec3 tilde_f2;
 	mutable Mat3x3 tilde_R1h;
 	mutable Mat3x3 tilde_R2h;
+	mutable Vec3 tilde_R1hT_tilde_f1;
 
 	Vec3 tilde_d;
 	Vec3 tilde_dPrime;

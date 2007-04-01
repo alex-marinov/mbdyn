@@ -57,9 +57,12 @@ protected:
 	Mat3x3 MDE;
 	Mat3x3 MDEPrime;
 
-	void AssMatM(FullSubMatrixHandler& WMA, doublereal dCoef);
-	void AssMatMDE(FullSubMatrixHandler& WMA, doublereal dCoef);
-	void AssMatMDEPrime(FullSubMatrixHandler& WMA,
+	virtual void
+	AssMatM(FullSubMatrixHandler& WMA, doublereal dCoef);
+	virtual void
+	AssMatMDE(FullSubMatrixHandler& WMA, doublereal dCoef);
+	virtual void
+	AssMatMDEPrime(FullSubMatrixHandler& WMA,
 		FullSubMatrixHandler& WMB, doublereal dCoef);
 
 public:

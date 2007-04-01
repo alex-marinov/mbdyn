@@ -57,6 +57,7 @@ ConstitutiveLaw3DOwner(pCL),
 pNode1(pN1), pNode2(pN2),
 tilde_f1(tilde_f1), tilde_f2(tilde_f2),
 tilde_R1h(tilde_R1h), tilde_R2h(tilde_R2h),
+tilde_R1hT_tilde_f1(tilde_R1h.Transpose()*tilde_f1),
 tilde_d(0.), tilde_dPrime(0.),
 bFirstRes(true), F(0.)
 {
@@ -258,9 +259,9 @@ void
 DeformableDispJoint::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		Vec3 v(GetF());
 		Joint::Output(OH.Joints(), "DeformableDispJoint", GetLabel(),
-	    			v, Zero3, pNode1->GetRCurr()*v, Zero3) << std::endl;
+	    		GetF(), Zero3, pNode1->GetRCurr()*(tilde_R1h*GetF()), Zero3)
+			<< std::endl;
 	}
 }
 
@@ -275,16 +276,16 @@ DeformableDispJoint::SetValue(DataManager *pDM,
 
 			if (pjh) {
 				if (dynamic_cast<Joint::OffsetHint<1> *>(pjh)) {
-					Mat3x3 R1t(pNode1->GetRCurr().Transpose());
+					Mat3x3 R1T(pNode1->GetRCurr().Transpose());
 					Vec3 f2(pNode2->GetRCurr()*tilde_f2);
   	 
-					tilde_f1 = R1t*(pNode2->GetXCurr() + f2 - pNode1->GetXCurr());
+					tilde_f1 = R1T*(pNode2->GetXCurr() + f2 - pNode1->GetXCurr());
 	
 				} else if (dynamic_cast<Joint::OffsetHint<2> *>(pjh)) {
-					Mat3x3 R2t(pNode2->GetRCurr().Transpose());
+					Mat3x3 R2T(pNode2->GetRCurr().Transpose());
 					Vec3 f1(pNode1->GetRCurr()*tilde_f1);
   	 
-					tilde_f2 = R2t*(pNode1->GetXCurr() + f1 - pNode2->GetXCurr());
+					tilde_f2 = R2T*(pNode1->GetXCurr() + f1 - pNode2->GetXCurr());
 	
 				} else if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
 					tilde_R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*tilde_R2h;
@@ -413,10 +414,9 @@ DeformableDispJoint::dGetPrivData(unsigned int i) const
 	{
 		/* FIXME: allows simplifications by using only the column
 		 * and the components of tilde_R1h that is actually required */
-		Vec3 f1(pNode1->GetRCurr()*tilde_f1);
-		Vec3 f2(pNode2->GetRCurr()*tilde_f2);
-		Mat3x3 R1hT((pNode1->GetRCurr()*tilde_R1h).Transpose());
-		Vec3 tilde_d(R1hT*(pNode2->GetXCurr() + f2 - pNode1->GetXCurr() - f1));
+		Vec3 d2(pNode2->GetRCurr()*tilde_f2);
+		Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
+		Vec3 tilde_d(R1h.Transpose()*(pNode2->GetXCurr() + d2 - pNode1->GetXCurr()) - tilde_R1hT_tilde_f1);
 		return tilde_d(i);
 	}
 
@@ -424,11 +424,11 @@ DeformableDispJoint::dGetPrivData(unsigned int i) const
 	case 5:
 	case 6:
 	{
-		Vec3 f2(pNode2->GetRCurr()*tilde_f2);
-		Mat3x3 R1hT(pNode1->GetRCurr().Transpose());
-		Vec3 tilde_dPrime(R1hT*(pNode2->GetVCurr() - pNode1->GetVCurr()
-					+ (pNode2->GetXCurr() - pNode1->GetXCurr()).Cross(pNode1->GetWCurr())
-					- f2.Cross(pNode2->GetWCurr() - pNode1->GetWCurr())));
+		Vec3 d2(pNode2->GetRCurr()*tilde_f2);
+		Mat3x3 R1h(pNode1->GetRCurr());
+		Vec3 d1(pNode2->GetXCurr() + d2 - pNode1->GetXCurr());
+		Vec3 d1Prime(pNode2->GetVCurr() + pNode2->GetWCurr().Cross(d2) - pNode1->GetVCurr());
+		Vec3 tilde_dPrime(R1h.Transpose()*(d1Prime - pNode1->GetWCurr().Cross(d1)));
 
 		return tilde_dPrime(i - 3);
 	}
@@ -597,7 +597,7 @@ ElasticDispJoint::AssVec(SubVectorHandler& WorkVec)
 		bFirstRes = false;
 
 	} else {
-		tilde_d = R1h.Transpose()*d1 - tilde_f1;
+		tilde_d = R1h.Transpose()*d1 - tilde_R1hT_tilde_f1;
 
 		ConstitutiveLaw3DOwner::Update(tilde_d);
 	}
@@ -617,7 +617,8 @@ ElasticDispJoint::AfterPredict(VectorHandler& X, VectorHandler& XP)
 	Mat3x3 R1hT(R1h.Transpose());
 	Vec3 d2(pNode2->GetRCurr()*tilde_f2);
 
-	tilde_d = R1hT*(pNode2->GetXCurr() + d2 - pNode1->GetXCurr()) - tilde_f1;
+	tilde_d = R1hT*(pNode2->GetXCurr() + d2 - pNode1->GetXCurr())
+		- tilde_R1hT_tilde_f1;
 
 	ConstitutiveLaw3DOwner::Update(tilde_d);
 
@@ -1150,7 +1151,7 @@ ViscoElasticDispJoint::AssVec(SubVectorHandler& WorkVec)
 				+ pNode2->GetWCurr().Cross(d2)
 				- pNode1->GetVCurr());
 
-		tilde_d = R1hT*d1 - tilde_f1;
+		tilde_d = R1hT*d1 - tilde_R1hT_tilde_f1;
 		tilde_dPrime = R1hT*(d1Prime - pNode1->GetWCurr().Cross(d1));
 
 		ConstitutiveLaw3DOwner::Update(tilde_d, tilde_dPrime);
@@ -1175,7 +1176,7 @@ ViscoElasticDispJoint::AfterPredict(VectorHandler& X, VectorHandler& XP)
 		+ pNode2->GetWCurr().Cross(d2)
 		- pNode1->GetVCurr());
 	
-	tilde_d = R1hT*d1 - tilde_f1;
+	tilde_d = R1hT*d1 - tilde_R1hT_tilde_f1;
 	tilde_dPrime = R1hT*(d1Prime - pNode1->GetWCurr().Cross(d1));
 
 	ConstitutiveLaw3DOwner::Update(tilde_d, tilde_dPrime);
