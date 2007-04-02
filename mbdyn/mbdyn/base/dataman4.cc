@@ -1222,8 +1222,10 @@ DataManager::ReadElems(MBDynParser& HP)
 					p != ElemData[iCnt].ElemMap.end();
 					p++)
 				{
-					ASSERT(dynamic_cast<ElemGravityOwner *>(p->second) != 0);
-					dynamic_cast<ElemGravityOwner *>(p->second)->PutGravity(pGrav);
+					ElemGravityOwner *pGO = CastElemGravityOwner(p->second);
+
+					ASSERT(pGO != 0);
+					pGO->PutGravity(pGrav);
 				}
 			}
 		}
@@ -1244,8 +1246,10 @@ DataManager::ReadElems(MBDynParser& HP)
 					p != ElemData[iCnt].ElemMap.end();
 					p++)
 				{
-					ASSERT(dynamic_cast<AerodynamicElem *>(p->second) != 0);
-					dynamic_cast<AerodynamicElem *>(p->second)->PutAirProperties(pProp);
+					AerodynamicElem *pAE = CastAerodynamicElem(p->second);
+
+					ASSERT(pAE != 0);
+					pAE->PutAirProperties(pProp);
 				}
 			}
 		}

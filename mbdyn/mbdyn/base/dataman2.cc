@@ -44,6 +44,7 @@
 #include "dataman_.h"
 
 #include "gravity.h"
+#include "aerodyn.h"
 #include "solver.h"
 #include "driven.h"
 
@@ -157,8 +158,8 @@ DataManager::dGetTime() const {
 	return pTime->GetVal().GetReal();
 } /* End of DataManager::dGetTime() */
 
-static ElemWithDofs *
-CastElemWithDofs(Elem *pEl)
+ElemWithDofs *
+DataManager::CastElemWithDofs(Elem *pEl)
 {
 	ASSERT(pEl != NULL);
 
@@ -177,6 +178,50 @@ CastElemWithDofs(Elem *pEl)
 	}
 
 	return pEWD;
+}
+
+ElemGravityOwner *
+DataManager::CastElemGravityOwner(Elem *pEl)
+{
+	ASSERT(pEl != NULL);
+
+	ElemGravityOwner *pEGO = dynamic_cast<ElemGravityOwner *>(pEl);
+
+	if (pEGO == 0) {
+		DrivenElem *pDE = dynamic_cast<DrivenElem *>(pEl);
+		if (pDE == 0) {
+			silent_cerr("unable to cast "
+				<< psElemNames[pEl->GetElemType()]
+				<< "(" << pEl->GetLabel() << ") "
+				"to ElemGravityOwner" << std::endl);
+			throw ErrGeneric();
+		}
+		pEGO = dynamic_cast<ElemGravityOwner *>(pDE->pGetElem());
+	}
+
+	return pEGO;
+}
+
+AerodynamicElem *
+DataManager::CastAerodynamicElem(Elem *pEl)
+{
+	ASSERT(pEl != NULL);
+
+	AerodynamicElem *pAEL = dynamic_cast<AerodynamicElem *>(pEl);
+
+	if (pAEL == 0) {
+		DrivenElem *pDE = dynamic_cast<DrivenElem *>(pEl);
+		if (pDE == 0) {
+			silent_cerr("unable to cast "
+				<< psElemNames[pEl->GetElemType()]
+				<< "(" << pEl->GetLabel() << ") "
+				"to AerodynamicElem" << std::endl);
+			throw ErrGeneric();
+		}
+		pAEL = dynamic_cast<AerodynamicElem *>(pDE->pGetElem());
+	}
+
+	return pAEL;
 }
 
 /* Collega il DataManager ed il DriveHandler alla soluzione */

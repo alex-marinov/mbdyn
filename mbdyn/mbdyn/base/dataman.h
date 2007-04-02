@@ -207,6 +207,11 @@ private:
 	void ReadDrivers(MBDynParser& HP);
 	void ReadElems(MBDynParser& HP);
 
+	
+	AerodynamicElem *CastAerodynamicElem(Elem *pEl);
+	ElemGravityOwner *CastElemGravityOwner(Elem *pEl);
+	ElemWithDofs *CastElemWithDofs(Elem *pEl);
+
 public:
 	flag fReadOutput(MBDynParser& HP, enum Elem::Type t);
 	flag fReadOutput(MBDynParser& HP, enum Node::Type t);
