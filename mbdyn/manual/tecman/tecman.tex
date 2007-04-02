@@ -2272,7 +2272,9 @@ the corresponding columns of matrix $\T{R}_{1h}$.
 Then, the perturbation of $\T{\theta}^{\delta}$ results from
 \begin{align}
 	\T{\theta}^{\delta}_{\delta} \times{}
-	&= \delta\T{R}^{\delta} \T{R}^{\delta T} \\
+	&= \delta\T{R}^{\delta} \T{R}^{\delta T} \nonumber \\
+	&= \T{R}_{1hr}^T \T{\theta}_{1\delta}\times^T \T{R}_{1hr}
+	+ \T{R}_{1hr}^T \T{\theta}_{2\delta}\times \T{R}_{1hr} \nonumber \\
 	&= \T{R}_{1hr}^T \plbr{
 		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
 	} \times \T{R}_{1hr} ,
