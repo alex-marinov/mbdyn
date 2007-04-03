@@ -802,7 +802,7 @@ TotalJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	/* Setta gli indici delle reazioni */
-	for (int iCnt = 1; iCnt <=  nConstraints; iCnt++) {
+	for (unsigned int iCnt = 1; iCnt <=  nConstraints; iCnt++) {
 		WM.PutRowIndex(24 + iCnt, iFirstReactionIndex + iCnt);
 		WM.PutColIndex(24 + iCnt, iFirstReactionIndex + iCnt);
 		WM.PutRowIndex(24 + nConstraints + iCnt, iReactionPrimeIndex + iCnt);
@@ -1048,7 +1048,7 @@ TotalJoint::InitialAssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(18+iCnt, iNode2FirstVelIndex+iCnt);
 	}
 
-	for (int iCnt = 1; iCnt <= nConstraints; iCnt++)	{
+	for (unsigned int iCnt = 1; iCnt <= nConstraints; iCnt++)	{
 		WorkVec.PutRowIndex(24 + iCnt, iFirstReactionIndex+iCnt);
 		WorkVec.PutRowIndex(24 + nConstraints + iCnt, iReactionPrimeIndex+iCnt);
 	}
