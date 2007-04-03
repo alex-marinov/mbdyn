@@ -151,7 +151,7 @@ public:
 
 	virtual unsigned int
 	iGetInitialNumDof(void) const {
-		return 0; // 2*nConstraints;
+		return  2*nConstraints;
 	};
 	virtual void
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
