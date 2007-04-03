@@ -106,7 +106,7 @@ StructNode::StructNode(unsigned int uL,
 	doublereal dPosStiff,
 	doublereal dVelStiff,
 	bool bOmRot,
-	OrientationDescription od,
+	OrientationDescription ood,
 	flag fOut)
 : Node(uL, pDO, fOut),
 RPrev(R0),
@@ -130,7 +130,7 @@ Var_Phi(0),
 Var_XP(0),
 Var_Omega(0),
 #endif /* USE_NETCDF */
-od(od),
+od(ood),
 dPositionStiffness(dPosStiff),
 dVelocityStiffness(dVelStiff),
 bOmegaRot(bOmRot)
@@ -1246,10 +1246,10 @@ DynamicStructNode::DynamicStructNode(unsigned int uL,
 	doublereal dPosStiff,
 	doublereal dVelStiff,
 	bool bOmRot,
-	OrientationDescription od,
+	OrientationDescription ood,
 	flag fOut)
 : StructNode(uL, pDO, X0, R0, V0, W0, pRN, dPosStiff, dVelStiff, bOmRot,
-	od, fOut),
+	ood, fOut),
 bComputeAccelerations((fOut & 2) ? true : false),
 pAutoStr(0),
 #ifdef USE_NETCDF
@@ -1726,10 +1726,10 @@ StaticStructNode::StaticStructNode(unsigned int uL,
 	doublereal dPosStiff,
 	doublereal dVelStiff,
 	bool bOmRot,
-	OrientationDescription od,
+	OrientationDescription ood,
 	flag fOut)
 : StructNode(uL, pDO, X0, R0, V0, W0, pRN, dPosStiff, dVelStiff, bOmRot,
-	od, fOut)
+	ood, fOut)
 {
 	NO_OP;
 }
@@ -1763,10 +1763,10 @@ ModalNode::ModalNode(unsigned int uL,
 	doublereal dPosStiff,
 	doublereal dVelStiff,
 	bool bOmRot,
-	OrientationDescription od,
+	OrientationDescription ood,
 	flag fOut)
 : DynamicStructNode(uL, pDO, X0, R0, V0, W0, 0,
-	dPosStiff, dVelStiff, bOmRot, od, fOut)
+	dPosStiff, dVelStiff, bOmRot, ood, fOut)
 {
 	/* XPP and WP are unknowns in ModalNode */
 	ComputeAccelerations(false);
@@ -1861,8 +1861,8 @@ ModalNode::Update(const VectorHandler& X, const VectorHandler& XP)
 DummyStructNode::DummyStructNode(unsigned int uL,
 	const DofOwner* pDO,
 	const StructNode* pN,
-	OrientationDescription od)
-: StructNode(uL, pDO, 0., 0., 0., 0., 0, 0., 0., 0, od, flag(1)), pNode(pN)
+	OrientationDescription ood)
+: StructNode(uL, pDO, 0., 0., 0., 0., 0, 0., 0., 0, ood, flag(1)), pNode(pN)
 {
 	ASSERT(pNode != NULL);
 }
@@ -1983,8 +1983,8 @@ OffsetDummyStructNode::OffsetDummyStructNode(unsigned int uL,
 	const StructNode* pN,
 	const Vec3& f,
 	const Mat3x3& R,
-	OrientationDescription od)
-: DummyStructNode(uL, pDO, pN, od), f(f), R(R)
+	OrientationDescription ood)
+: DummyStructNode(uL, pDO, pN, ood), f(f), R(R)
 {
 	/* forzo la ricostruzione del nodo strutturale sottostante */
 	Update_int();
@@ -2038,8 +2038,8 @@ RelFrameDummyStructNode::RelFrameDummyStructNode(unsigned int uL,
 	const StructNode* pNR,
 	const Vec3& fh,
 	const Mat3x3& Rh,
-	OrientationDescription od)
-: DummyStructNode(uL, pDO, pN, od),
+	OrientationDescription ood)
+: DummyStructNode(uL, pDO, pN, ood),
 pNodeRef(pNR),
 RhT(Rh.Transpose()),
 fhT(RhT*fh)
@@ -2127,9 +2127,9 @@ PivotRelFrameDummyStructNode::PivotRelFrameDummyStructNode(unsigned int uL,
 	const StructNode* pNR2,
 	const Vec3& fh2,
 	const Mat3x3& Rh2,
-	OrientationDescription od)
-: RelFrameDummyStructNode(uL, pDO, pN, pNR, fh, Rh, od),
-pNodeRef2(pNR2), fh2(fh2), Rh2(Rh2)
+	OrientationDescription ood)
+: RelFrameDummyStructNode(uL, pDO, pN, pNR, fh, Rh, ood),
+pNodeRef2(pNR2), Rh2(Rh2), fh2(fh2)
 {
 	ASSERT(pNodeRef2 != NULL);
 
