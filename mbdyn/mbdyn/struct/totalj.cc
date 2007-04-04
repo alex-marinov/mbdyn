@@ -765,18 +765,18 @@ TotalJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	/* Equazioni: vedi joints.dvi */
 
 	/*	 equazioni ed incognite
-	 * F1					  Delta_x1	   
-	 * M1					  Delta_g1	 
-	 * FP1  				  Delta_xP1	
-	 * MP1  				  Delta_w1
-	 * F2					  Delta_x2	
-	 * M2					  Delta_g2
-	 * FP2  				  Delta_xP2	  
-	 * MP2  				  Delta_w2	 
-	 * vincolo spostamento  		  Delta_F	 
-	 * vincolo rotazione			  Delta_M	  
-	 * derivata vincolo spostamento 	  Delta_FP	  29+1 = 30
-	 * derivata vincolo rotazione		  Delta_MP	  32+1 = 33
+	 * F1					  Delta_x1	1	   
+	 * M1					  Delta_g1	3 + 1 
+	 * FP1  				  Delta_xP1	6 + 1
+	 * MP1  				  Delta_w1	9 + 1 
+	 * F2					  Delta_x2	12 + 1
+	 * M2					  Delta_g2	15 + 1
+	 * FP2  				  Delta_xP2	18 + 1  
+	 * MP2  				  Delta_w2	21 + 1 
+	 * vincolo spostamento  		  Delta_F	24 + 1 
+	 * vincolo rotazione			  Delta_M	24 + nPosConstraints  
+	 * derivata vincolo spostamento 	  Delta_FP	24 + nConstraints  
+	 * derivata vincolo rotazione		  Delta_MP	24 + nConstraints + nPosConstraints  
 	 */
 	
 	
@@ -808,7 +808,7 @@ TotalJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		WM.PutRowIndex(24 + nConstraints + iCnt, iReactionPrimeIndex + iCnt);
 		WM.PutColIndex(24 + nConstraints + iCnt, iReactionPrimeIndex + iCnt);
 	}
-
+	
 	/* Recupera i dati che servono */
 	Mat3x3 R1(pNode1->GetRRef()*R1h);
 	Mat3x3 R1r(pNode1->GetRRef()*R1hr);
@@ -819,8 +819,6 @@ TotalJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	Vec3 Omega1(pNode1->GetWCurr());
 	Vec3 Omega2(pNode2->GetWCurr());
 	
-	Mat3x3 Omega2Cross(Omega2);
-	Vec3 Omega2Crossb2(Omega2Cross*b2);
 	Vec3 b1Prime(pNode2->GetVCurr() + (Mat3x3(Omega2)*b2) - pNode1->GetVCurr());
 	
 	/* F ed M sono gia' state aggiornate da InitialAssRes;
@@ -841,177 +839,141 @@ TotalJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	Vec3 FPrimeTmp(R1 * FPrime);
 	Vec3 MPrimeTmp(R1r * MPrime);
 
-	/* Usate spesso, le metto via */
+	Mat3x3 Tmp;
+
+	/* [ F x ] */
+	Tmp = Mat3x3(FTmp);
+
+	/* Force, Node 1, Lines 1->3: */
+	WM.Add(1, 3 + 1, Tmp);	// * Delta_g1
+
+	/* Moment, Node 1, Lines 4->6: */
+	WM.Sub(3 + 1, 1, Tmp);	// * Delta_x1
+
+	WM.Add(3 + 1, 12 + 1, Tmp);	// * Delta_x2
+
+	/* Force, Node 2, Lines 13->15: */
+	WM.Sub(12 + 1, 3 + 1, Tmp);	// * Delta_g1
 	
-	Mat3x3 FCross(FTmp);
-	Mat3x3 MCross(MTmp);
+	/* [ FP x ] */
+	Tmp = Mat3x3(FPrimeTmp);
 
-	/* Force Equilibrium, node 1 */
+	/* d/dt(Force), Node 1, Lines 7->9: */
+	WM.Add(6 + 1, 9 + 1, Tmp);	// * Delta_W1
 
-	WM.Add(1, 3 + 1, FCross);	// * Delta_x1
+	/* d/dt(Moment), Node 1, Lines 10->12: */
+	WM.Sub(9 + 1, 6 + 1, Tmp);	// * Delta_x1P
 
-	/* Moment Equilibrium, node 1 */
+	WM.Add(9 + 1, 18 + 1 + 6, Tmp);	// * Delta_x2P
 
-	WM.Sub(3 + 1, 1, FCross);			// * Delta_x1
-	WM.Add(3 + 1, 3 + 1, Mat3x3(b1, FTmp) + MCross);// * Delta_g1
-	WM.Add(3 + 1, 12 + 1, FCross);		 	// * Delta_x2
-	WM.Sub(3 + 1, 15 + 1, Mat3x3(b2));		// * Delta_g2
+	/* d/dt(Force), Node 2, Lines 19->21: */
+	WM.Sub(18 + 1 , 9 + 1, Tmp);	// * Delta_W1
 	
-	/* d/dt(Force Equilibrium), node 1 */
+	/* [ F x ] [ b2 x ] */
+	Tmp = Mat3x3(FTmp, b2);
 
-	WM.Add(6 + 1, 3 + 1, Mat3x3(FPrimeTmp)+(Mat3x3(Omega1)*FCross));// * Delta_g1
-	WM.Add(6 + 1, 9 + 1, FCross);					// * Delta_W1
+	/* Moment, Node1, Lines 4->6: */
+	WM.Sub(3 + 1, 15 + 1, Tmp);	// * Delta_g2
 
-	/* d/dt(Moment Equilibrium), node 1*/
-
-	WM.Sub(9 + 1, 1, Mat3x3(FPrimeTmp) + Mat3x3(FTmp, Omega1));	// * Delta_x1
-	WM.Add(9 + 1, 3 + 1, 	Mat3x3(b1, FPrimeTmp)  
-				+ (Mat3x3(b1, Omega1) * FCross) 
-				+ Mat3x3(b1Prime, FTmp) 
-				+ Mat3x3(MPrimeTmp) 
-				+ Mat3x3(Omega1, MTmp)) ; 		// * Delta_g1
-	WM.Sub(9 + 1, 6 + 1, FCross);					// * Delta_xP1
-	WM.Add(9 + 1, 9 + 1, Mat3x3(b1, FTmp) + MCross);		// * Delta_W1
-	WM.Add(9 + 1, 12 + 1, Mat3x3(FPrimeTmp) + Mat3x3(FTmp, Omega1));// * Delta_x2
-	WM.Sub(9 + 1, 15 + 1, 	Mat3x3(FPrimeTmp, b2)  
-				+ Mat3x3(FTmp, Omega1)*Mat3x3(b2) 	/*FIXME:CheckSigns*/
-				+ Mat3x3(FTmp, Omega2)*Mat3x3(b2));	// * Delta_g2
-	WM.Add(9 + 1, 18 + 1, FCross);					// * Delta_XP2
-	WM.Sub(9 + 1, 21 + 1, Mat3x3(FTmp, b2));			// * Delta_W2
-
-	/* Force Equilibrium, Node 2 */
-
-	WM.Sub(12 + 1, 3 + 1, FCross);		// * Delta_g1
-
-	/* Moment Equilibrium, Node 2 */
+	/* Moment, Node2, Lines 16->18: */
+	WM.Add(15 + 1, 15 + 1, Tmp);	// * Delta_g2
 	
-	WM.Sub(15 + 1, 3 + 1, MCross + Mat3x3(b2, FTmp));	// * Delta_g1 
-	WM.Sub(15 + 1, 15 + 1, Mat3x3(FTmp, b2));		// * Delta_g2
+	/* [ FP x ] [ b2 x ] */
+	Tmp = Mat3x3(FPrimeTmp, b2);
 
-	/* d/dt(Force Equilibrium), Node2 */
+	/* d/dt(Moment), Node1, Lines 10->12: */
+	WM.Sub(9 + 1, 21 + 1, Tmp);	// * Delta_W2
 
-	WM.Sub(18 + 1, 3 + 1, Mat3x3(Omega1, FTmp) + Mat3x3(FPrimeTmp));// * Delta_g1
-	WM.Sub(18 + 1, 9 + 1, FCross);					// * Delta_W1
+	/* d/dt(Moment), Node2, Lines 22->24: */
+	WM.Add(21 + 1, 21 + 1, Tmp);	// * Delta_W2
 
-	/* d/dt(Moment Equilibrium), Node 2*/
+	/* [ b1 x ] [ F x ] + [ M x ] */
 
-	WM.Sub(21 + 1, 3 + 1, 	Mat3x3(Omega2, b2) * FCross +
-				Mat3x3(b2, Omega1) * FCross +
-				Mat3x3(b2, FPrimeTmp) +
-				Mat3x3(Omega1, MTmp) +
-				Mat3x3(MPrimeTmp)	);	// * Delta_g1
+	/* Moment, Node1, Lines 4->6: */
+	WM.Add(3 + 1, 3 + 1, Mat3x3(b1, FTmp) + Mat3x3(MTmp));	// *Delta_g1
+
+	/* d/dt(Moment), Node1, Lines 10->12: */
+	WM.Add(9 + 1, 9 + 1, Mat3x3(b1, FPrimeTmp) + Mat3x3(MPrimeTmp));// *Delta_W1
 	
-	WM.Sub(21 + 1, 9 + 1, Mat3x3(b2, FTmp) + MCross);	// * Delta_W1
+	/* [ b2 x ] [ F x ] + [ M x ] */
+
+	/* Moment, Node2, Lines 16->18: */
+	WM.Sub(15 + 1, 3 + 1, Mat3x3(b2, FTmp) + Mat3x3(MTmp));	// * Delta_g1
 	
-	WM.Add(21 + 1, 15 +1, 	-Mat3x3(Omega2, b2)*FCross + 
-				FCross*Mat3x3(Omega1, b1) +
-				Mat3x3(FPrimeTmp, b2) ); 	// * Delta_g2
-	
-	WM.Add(21 + 1, 21 + 1, Mat3x3(b2, FTmp));		// * Delta_W2
+	/* d/dt(Moment), Node2, Lines 22->24: */
+	WM.Sub(21 + 1, 9 + 1, Mat3x3(b2, FTmp) + Mat3x3(MTmp));	// * Delta_W1
 	
 	/* Constraints: Add only active rows/columns*/	
 	
 	/* Positions contribution:*/
 
-	/* Need lots of data...*/
 	Mat3x3 b1Cross_R1(Mat3x3(b1)*R1); // = [ b1 x ] * R1
 	Mat3x3 b2Cross_R1(Mat3x3(b2)*R1); // = [ b2 x ] * R1
-	Mat3x3 Omega1Cross_R1(Mat3x3(Omega1)*R1); // = W1 x R1 
-	Mat3x3 b1PCross_R1(Mat3x3(b1Prime)*R1);  // = b1Prime x R1
-	Mat3x3 b1Cross_Omega1Cross_R1(Mat3x3(b1,Omega1)*R1); // = b1 x W1 x R1
-	Mat3x3 Omega2Cross_b2Cross_R1(Mat3x3(Omega2,b2)*R1); //= -b2 x W2 x R1
-	Mat3x3 b2Cross_Omega1Cross_R1(Mat3x3(b2,Omega1)*R1); // = b2 x W1 x R1
 
 	for (unsigned iCnt = 0 ; iCnt < nPosConstraints; iCnt++) {
 		Vec3 vR1(R1.GetVec(iPosIncid[iCnt]));
 		Vec3 vb1Cross_R1(b1Cross_R1.GetVec(iPosIncid[iCnt]));
 		Vec3 vb2Cross_R1(b2Cross_R1.GetVec(iPosIncid[iCnt]));
-		Vec3 vOmega1Cross_R1(Omega1Cross_R1.GetVec(iPosIncid[iCnt])); 
-		Vec3 vb1PCross_R1(b1PCross_R1.GetVec(iPosIncid[iCnt]));
-		Vec3 vb1Cross_Omega1Cross_R1(b1Cross_Omega1Cross_R1.GetVec(iPosIncid[iCnt]));
-		Vec3 vOmega2Cross_b2Cross_R1(Omega2Cross_b2Cross_R1.GetVec(iPosIncid[iCnt]));
-		Vec3 vb2Cross_Omega1Cross_R1(b2Cross_Omega1Cross_R1.GetVec(iPosIncid[iCnt]));
-	
+
 		/* Equilibrium, node 1 */
-      		WM.Sub(1, 24 + 1 + iCnt, vR1);			// * Delta_F
+      		WM.Sub(1, 24 + 1 + iCnt, vR1);	// * Delta_F
       		WM.Sub(3 + 1, 24 + 1 + iCnt, vb1Cross_R1);	// * Delta_F
 
 		/* Constraint, node 1 */
-      		WM.SubT(24 + 1 + iCnt, 1, vR1);			// * Delta_x1
+      		WM.SubT(24 + 1 + iCnt, 1, vR1);	// * Delta_x1
       		WM.SubT(24 + 1 + iCnt, 3 + 1, vb1Cross_R1);	// * Delta_g1
 
-		/* d/dt( Equilibrium ), node 1 */
-      		WM.Sub(6 + 1, 24 + 1 + iCnt, vOmega1Cross_R1); 	// * Delta_F
-      		WM.Sub(9 + 1, 24 + 1 + iCnt, - vb1PCross_R1 + vb1Cross_Omega1Cross_R1);	// * Delta_F
-		WM.Sub(6 + 1, 24 + 1 + nConstraints + iCnt, vR1);	// * Delta_FP
-      		WM.Sub(9 + 1, 24 + 1 + nConstraints + iCnt, vb1Cross_R1); 	// * Delta_FP
-		
-		/* dt/dt( Constraint) , node 1 */
-		WM.SubT(24 + 1 + iCnt, 6 + 1, vOmega1Cross_R1);	// * Delta_v1
-      		WM.SubT(24 + 1 + iCnt, 9 + 1, - vb1PCross_R1 + vb1Cross_Omega1Cross_R1); // * Delta_W1 
-		WM.SubT(24 + 1 + nConstraints + iCnt, 6 + 1, vR1);	// * Delta_v1
+		/* d/dt(Equilibrium), node 1 */
+      		WM.Sub(6 + 1, 24 + 1 + nConstraints + iCnt, vR1);	// * Delta_FP
+      		WM.Sub(9 + 1, 24 + 1 + nConstraints + iCnt, vb1Cross_R1);	// * Delta_FP
+
+		/* d/dt(Constraint), node 1 */
+      		WM.SubT(24 + 1 + nConstraints + iCnt, 6 + 1, vR1);	// * Delta_xP1
       		WM.SubT(24 + 1 + nConstraints + iCnt, 9 + 1, vb1Cross_R1);	// * Delta_W1
 		
 		/* Equilibrium, node 2 */
-      		WM.Add(12 + 1, 24 + 1 + iCnt, vR1);
-      		WM.Add(15 + 1, 24 + 1 + iCnt, vb2Cross_R1);
+      		WM.Add(12 + 1, 24 + 1 + iCnt, vR1);	// * Delta_F
+      		WM.Add(15 + 1, 24 + 1 + iCnt, vb2Cross_R1);	// * Delta_F
 
 		/* Constraint, node 2 */
-      		WM.AddT(24 + 1 + iCnt, 12 + 1, vR1);
-      		WM.AddT(24 + 1 + iCnt, 15 + 1, vb2Cross_R1);
-		
-		/* d/dt( Equilibrium ), node 2 */
-      		WM.Add(18 + 1, 24 + 1 + iCnt, vOmega1Cross_R1); 	// * Delta_F
-      		WM.Add(21 + 1, 24 + 1 + iCnt, vOmega2Cross_b2Cross_R1 + vb2Cross_Omega1Cross_R1);	// * Delta_F
-		WM.Add(18 + 1, 24 + 1 + nConstraints + iCnt, vR1);	// * Delta_FP
-      		WM.Add(21 + 1, 24 + 1 + nConstraints + iCnt, vb2Cross_R1); 	// * Delta_FP
-		
-		/* dt/dt( Constraint) , node 2 */
-      		WM.AddT(24 + 1 + iCnt, 18 + 1, vOmega1Cross_R1); 	// * Delta_v2
-      		WM.AddT(24 + 1 + iCnt, 21 + 1, vOmega2Cross_b2Cross_R1 + vb2Cross_Omega1Cross_R1);	// * Delta_W2
-		WM.AddT(24 + 1 + nConstraints + iCnt, 18 + 1, vR1);	// * Delta_v2
-      		WM.AddT(24 + 1 + nConstraints + iCnt, 21 + 1, vb2Cross_R1); 	// * Delta_W2
-		
+      		WM.AddT(24 + 1 + iCnt, 12 + 1, vR1);	// * Delta_x2
+      		WM.AddT(24 + 1 + iCnt, 15 + 1, vb2Cross_R1);	// * Delta_g2
+	
+		/* d/dt(Equilibrium), node 2 */
+      		WM.Add(18 + 1, 24 + 1 + nConstraints + iCnt, vR1);	// * Delta_FP
+      		WM.Add(21 + 1, 24 + 1 + nConstraints + iCnt, vb2Cross_R1);	// * Delta_FP
+
+		/* d/dt(Constraint), node 2 */
+      		WM.AddT(24 + 1 + nConstraints +  iCnt, 18 + 1, vR1);	// * Delta_xP2
+      		WM.AddT(24 + 1 + nConstraints +  iCnt, 21 + 1, vb2Cross_R1);	// * Delta_W2
 	}
 
-	/* Rotation Contribution */
-	/* Needs few data...*/
+	for (unsigned iCnt = 0 ; iCnt < nRotConstraints; iCnt++) {
+		Vec3 vR1(R1r.GetVec(iRotIncid[iCnt]));
 
-	Mat3x3 Omega1Cross_R1r(Mat3x3(Omega1)*R1r); 	
-	
-	for(unsigned iCnt = 0 ; iCnt < nRotConstraints ; iCnt++)	{
-		
-		Vec3 vR1r(R1r.GetVec(iRotIncid[iCnt]));
-		Vec3 vOmega1Cross_R1r(Omega1Cross_R1r.GetVec(iRotIncid[iCnt]));
-		
-		/* Equilibrium, Node 1 */
-		WM.Sub(3 + 1, 24 + 1 + nPosConstraints, vR1r);
-		
-		/* Constraint, Node 1 */
-		WM.SubT(24 + 1 + nPosConstraints, 3 + 1, vR1r);
+		/* Equilibrium, node 1 */
+      		WM.Sub(3 + 1, 24 + 1 + nPosConstraints +  iCnt, vR1);	// * Delta_M
 
-		/* d/dt( Equlibrium ), Node 1 */
-		WM.Sub(9 + 1, 24 + 1 + nPosConstraints, vOmega1Cross_R1r);
-		WM.Sub(9 + 1, 24 + 1 + nConstraints + nPosConstraints, vR1r);
-		
-		/* d/dt( Constraint ), Node 1 */
-		WM.SubT(24 + 1 + nPosConstraints, 9 + 1, vOmega1Cross_R1r);
-		WM.SubT(24 + 1 + nConstraints + nPosConstraints, 9 + 1, vR1r);
+		/* Constraint, node 1 */
+      		WM.SubT(24 + 1 + nPosConstraints + iCnt, 3 + 1, vR1);	// * Delta_g1
 
-		/* Equilibrium, Node 2 */
-		WM.Add(15 + 1, 24 + 1 + nPosConstraints, vR1r);
-		
-		/* Constraint, Node 2 */
-		WM.AddT(24 + 1 + nPosConstraints, 15 + 1, vR1r);
+		/* d/dt(Equilibrium), node 1 */
+      		WM.Sub(9 + 1, 24 + 1 + nConstraints + nPosConstraints +  iCnt, vR1);	// * Delta_MP
 
-		/* d/dt( Equlibrium ), Node 2 */
-		WM.Add(21 + 1, 24 + 1 + nPosConstraints, vOmega1Cross_R1r);
-		WM.Add(21 + 1, 24 + 1 + nConstraints + nPosConstraints, vR1r);
-		
-		/* d/dt( Constraint ), Node 2 */
-		WM.AddT(24 + 1 + nPosConstraints, 21 + 1, vOmega1Cross_R1r);
-		WM.AddT(24 + 1 + nConstraints + nPosConstraints, 21 + 1, vR1r);
+		/* d/dt(Constraint), node 1 */
+      		WM.SubT(24 + 1 + nConstraints + nPosConstraints + iCnt, 9 + 1, vR1);	// * Delta_W1
 
+		/* Equilibrium, node 2 */
+      		WM.Add(15 + 1, 24 + 1 + nPosConstraints + iCnt, vR1);	// * Delta_M
+
+		/* Constraint, node 2 */
+      		WM.AddT(24 + 1 + nPosConstraints +  iCnt, 15 + 1, vR1);	// * Delta_g2
+
+		/* d/dt(Equilibrium), node 2 */
+      		WM.Add(21 + 1, 24 + 1 + nConstraints + nPosConstraints + iCnt, vR1);	// * Delta_MP
+
+		/* d/dt(Constraint), node 2 */
+      		WM.AddT(24 + 1 + nConstraints + nPosConstraints +  iCnt, 21 + 1, vR1);	// * Delta_W2
 	}
 
 return WorkMat;
@@ -1091,25 +1053,17 @@ TotalJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	WorkVec.Add(1, FTmp);
 	WorkVec.Add(3 + 1, b1.Cross(FTmp) + MTmp);
 
-	/* d/dt( Equilibrium ) , node 1 */
-	WorkVec.Add(6 + 1, R1 * FPrimeTmp + Omega1.Cross(FTmp));
-	WorkVec.Sub(9 + 1, 	-b1.Cross(FPrimeTmp) 
-				+ Mat3x3(b1,FTmp)*Omega1 
-				- b1Prime.Cross(FTmp) 
-				+ MTmp.Cross(Omega1) 
-				- MPrimeTmp);
+	/* d/dt(Equilibrium), node 1 */
+	WorkVec.Add(6 + 1, FPrimeTmp);
+	WorkVec.Add(9 + 1, b1.Cross(FPrimeTmp) + MPrimeTmp);
 
 	/* Equilibrium, node 2 */
 	WorkVec.Sub(12 + 1, FTmp);
 	WorkVec.Sub(15 + 1, b2.Cross(FTmp) + MTmp);
 
 	/* d/dt( Equilibrium ) , node 2 */
-	WorkVec.Sub(18 + 1, Omega1.Cross(FTmp) + FPrimeTmp);
-	WorkVec.Sub(21 + 1, 	Mat3x3(Omega2,b2)*FTmp 
-				- Mat3x3(b2,FTmp)*Omega1 
-				+ b2.Cross(FPrimeTmp) 
-				- MTmp.Cross(Omega1) 
-				+ MPrimeTmp);
+	WorkVec.Sub(18 + 1, FPrimeTmp);
+	WorkVec.Sub(21 + 1, b2.Cross(FPrimeTmp) + MPrimeTmp);
 
 	/* Constraint Equations */
 	
@@ -1131,23 +1085,20 @@ TotalJoint::InitialAssRes(SubVectorHandler& WorkVec,
 		ThetaDeltaPrime -= (RDelta * ThetaDrv.GetP());
 	}
 
-	/* Constraint equations are divided by dCoef */
 
-		/* Position constraint:  */
-		for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
-			WorkVec.PutCoef(24 + 1 + iCnt, -XDelta(iPosIncid[iCnt]));
-			WorkVec.PutCoef(24 + 1 + nConstraints + iCnt, -XDeltaPrime(iPosIncid[iCnt]));
-		}
+	/* Position constraint:  */
+	for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
+		WorkVec.PutCoef(24 + 1 + iCnt, -XDelta(iPosIncid[iCnt]));
+		WorkVec.PutCoef(24 + 1 + nConstraints + iCnt, -XDeltaPrime(iPosIncid[iCnt]));
+	}
 
-		/* Rotation constraints: */
-		for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
-			WorkVec.PutCoef(24 + 1 + nPosConstraints + iCnt, -ThetaDelta(iRotIncid[iCnt]));
-			WorkVec.PutCoef(24 + 1 + nPosConstraints + nConstraints +  iCnt, -ThetaDeltaPrime(iRotIncid[iCnt]));
-		}
-	
+	/* Rotation constraints: */
+	for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
+		WorkVec.PutCoef(24 + 1 + nPosConstraints + iCnt, -ThetaDelta(iRotIncid[iCnt]));
+		WorkVec.PutCoef(24 + 1 + nPosConstraints + nConstraints +  iCnt, -ThetaDeltaPrime(iRotIncid[iCnt]));
+	}
 
-
-	return WorkVec;
+return WorkVec;
 }
 
 
