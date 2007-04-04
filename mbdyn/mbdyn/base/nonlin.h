@@ -100,7 +100,7 @@ public:
 	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
 };
 
-class NonlinearSolverTestNone : public NonlinearSolverTest {
+class NonlinearSolverTestNone : virtual public NonlinearSolverTest {
 public:
 	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
 			const integer& iIndex) const;
@@ -110,7 +110,7 @@ public:
 			const VectorHandler& Vec, bool bResidual = false);
 };
 
-class NonlinearSolverTestNorm : public NonlinearSolverTest {
+class NonlinearSolverTestNorm : virtual public NonlinearSolverTest {
 public:
 	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
 			const integer& iIndex) const;
@@ -119,7 +119,7 @@ public:
 	virtual doublereal TestPost(const doublereal& dRes) const;
 };
 
-class NonlinearSolverTestMinMax : public NonlinearSolverTest {
+class NonlinearSolverTestMinMax : virtual public NonlinearSolverTest {
 public:
 	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
 			const integer& iIndex) const;
@@ -127,7 +127,7 @@ public:
 			const doublereal& dResNew) const;
 };
 
-class NonlinearSolverTestScale : public NonlinearSolverTest {
+class NonlinearSolverTestScale : virtual public NonlinearSolverTest {
 protected:
 	const VectorHandler* pScale; 
 	
@@ -138,8 +138,8 @@ public:
 	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
 };
 
-class NonlinearSolverTestScaleNorm : public NonlinearSolverTestScale,
-	public NonlinearSolverTestNorm {
+class NonlinearSolverTestScaleNorm : virtual public NonlinearSolverTestScale,
+	virtual public NonlinearSolverTestNorm {
 public:
 	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
 			const integer& iIndex) const;
@@ -148,8 +148,8 @@ public:
 	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
 };
 
-class NonlinearSolverTestScaleMinMax : public NonlinearSolverTestScale,
-	public NonlinearSolverTestMinMax {
+class NonlinearSolverTestScaleMinMax : virtual public NonlinearSolverTestScale,
+	virtual public NonlinearSolverTestMinMax {
 public:
 	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
 			const integer& iIndex) const;
