@@ -107,37 +107,37 @@ TotalJoint::DescribeDof(std::ostream& out,
 		out << prefix << iIndex + 1;
 		out << "->" << iIndex + nPosConstraints;
 		out << ": ";
-
-		out << "reaction force(s) [";
-
-		for (unsigned int i = 0, cnt = 0; i < 3; i++) {
-			if (bPosActive[i]) {
-				cnt++;
-				if (cnt > 1) {
-					out << ",";
-				}
-				out << "F" << idx2xyz[i];
-			}
-		}
-		out << "]" << std::endl;
 	}
+	out << "reaction force(s) [";
+
+	for (unsigned int i = 0, cnt = 0; i < 3; i++) {
+		if (bPosActive[i]) {
+			cnt++;
+			if (cnt > 1) {
+				out << ",";
+			}
+			out << "F" << idx2xyz[i];
+		}
+	}
+	out << "]" << std::endl;
+	
 
 	if (nRotConstraints > 1) {
 		out << prefix << iIndex + nPosConstraints;
 		out << "->" << iIndex + nConstraints ;
 		out << ": ";
+	}
+	out << "reaction couple(s) [";
 
-		out << "reaction couple(s) [";
-
-		for (unsigned int i = 0, cnt = 0; i < 3; i++) {
-			if (bRotActive[i]) {
-				cnt++;
-				if (cnt > 1) {
-					out << ",";
-				}
-				out << "m" << idx2xyz[i-3];
+	for (unsigned int i = 0, cnt = 0; i < 3; i++) {
+		if (bRotActive[i]) {
+			cnt++;
+			if (cnt > 1) {
+				out << ",";
 			}
+			out << "m" << idx2xyz[i-3];
 		}
+		
 		out << "]" << std::endl;
 	}
 
@@ -148,39 +148,38 @@ TotalJoint::DescribeDof(std::ostream& out,
 			out << prefix << iIndex + 1;
 			out << "->" << iIndex + nPosConstraints;
 			out << ": ";
-
-			out << "reaction force(s) derivative(s) [";
-
-			for (unsigned int i = 0, cnt = 0; i < 3; i++) {
-				if (bPosActive[i]) {
-					cnt++;
-					if (cnt > 1) {
-						out << ",";
-					}
-					out << "FP" << idx2xyz[i];
-				}
-			}
-			out << "]" << std::endl;
 		}
+		out << "reaction force(s) derivative(s) [";
+
+		for (unsigned int i = 0, cnt = 0; i < 3; i++) {
+			if (bPosActive[i]) {
+				cnt++;
+				if (cnt > 1) {
+					out << ",";
+				}
+				out << "FP" << idx2xyz[i];
+			}
+		}
+		out << "]" << std::endl;
+		
 
 		if (nRotConstraints > 1) {
 			out << prefix << iIndex + nPosConstraints;
 			out << "->" << iIndex + nConstraints;
 			out << ": ";
-
-			out << "reaction couple(s) derivative(s) [";
-
-			for (unsigned int i = 0, cnt = 0; i < 3; i++) {
-				if (bRotActive[i]) {
-					cnt++;
-					if (cnt > 1) {
-						out << ",";
-					}
-					out << "mP" << idx2xyz[i];
-				}
-			}
-			out << "]" << std::endl;
 		}
+		out << "reaction couple(s) derivative(s) [";
+
+		for (unsigned int i = 0, cnt = 0; i < 3; i++) {
+			if (bRotActive[i]) {
+				cnt++;
+				if (cnt > 1) {
+					out << ",";
+				}
+				out << "mP" << idx2xyz[i];
+			}
+		}
+		out << "]" << std::endl;
 	}
 	return out;
 }
@@ -202,39 +201,39 @@ TotalJoint::DescribeEq(std::ostream& out,
 		out << prefix << iIndex + 1;
 		out << "->" << iIndex + nPosConstraints;
 		out << ": ";
-
-		out << "position constraint(s) [";
-
-		for (unsigned int i = 0, cnt = 0; i < 3; i++) {
-			if (bPosActive[i]) {
-				cnt++;
-				if (cnt > 1) {
-					out << ",";
-				}
-				out << "P" << idx2xyz[i] << "1=P" << idx2xyz[i] << "2";
-			}
-		}
-		out << "]" << std::endl;
 	}
+	out << "position constraint(s) [";
+
+	for (unsigned int i = 0, cnt = 0; i < 3; i++) {
+		if (bPosActive[i]) {
+			cnt++;
+			if (cnt > 1) {
+				out << ",";
+			}
+			out << "P" << idx2xyz[i] << "1=P" << idx2xyz[i] << "2";
+		}
+	}
+		out << "]" << std::endl;
+
 
 	if (nRotConstraints > 1) {
-		out << prefix << iIndex + nPosConstraints;
+		out << prefix << iIndex + 1 + nPosConstraints;
 		out << "->" << iIndex + nConstraints ;
 		out << ": ";
-
-		out << "orientation constraint(s) [";
-
-		for (unsigned int i = 0, cnt = 0; i < 3; i++) {
-			if (bRotActive[i]) {
-				cnt++;
-				if (cnt > 1) {
-					out << ",";
-				}
-				out << "g" << idx2xyz[i] << "1=g" << idx2xyz[i] << "2";
-			}
-		}
-		out << "]" << std::endl;
 	}
+	out << "orientation constraint(s) [";
+
+	for (unsigned int i = 0, cnt = 0; i < 3; i++) {
+		if (bRotActive[i]) {
+			cnt++;
+			if (cnt > 1) {
+				out << ",";
+			}
+			out << "g" << idx2xyz[i] << "1=g" << idx2xyz[i] << "2";
+		}
+	}
+	out << "]" << std::endl;
+	
 
 	if (bInitial) {
 		iIndex += nConstraints;
@@ -243,45 +242,43 @@ TotalJoint::DescribeEq(std::ostream& out,
 			out << prefix << iIndex + 1;
 			out << "->" << iIndex + nPosConstraints;
 			out << ": ";
-
-			out << "velocity constraint(s) [";
-
-			for (unsigned int i = 0, cnt = 0; i < 3; i++) {
-				if (bPosActive[i]) {
-					cnt++;
-					if (cnt > 1) {
-						out << ",";
-					}
-					out << "v" << idx2xyz[i] << "1=v" << idx2xyz[i] << "2";
-				}
-			}
-			out << "]" << std::endl;
 		}
+		out << "velocity constraint(s) [";
+
+		for (unsigned int i = 0, cnt = 0; i < 3; i++) {
+			if (bPosActive[i]) {
+				cnt++;
+				if (cnt > 1) {
+					out << ",";
+				}
+				out << "v" << idx2xyz[i] << "1=v" << idx2xyz[i] << "2";
+			}
+		}
+		out << "]" << std::endl;
 
 		if (nRotConstraints > 1) {
-			out << prefix << iIndex + nPosConstraints;
+			out << prefix << iIndex + 1 + nPosConstraints;
 			out << "->" << iIndex + nConstraints ;
 			out << ": ";
-
-			out << "angular velocity constraint(s) [";
-
-			for (unsigned int i = 0, cnt = 0; i < 3; i++) {
-				if (bRotActive[i]) {
-					cnt++;
-					if (cnt > 1) {
-						out << ",";
-					}
-					out << "w" << idx2xyz[i] << "1=w" << idx2xyz[i] << "2";
-				}
-			}
-			out << "]" << std::endl;
 		}
+		out << "angular velocity constraint(s) [";
+
+		for (unsigned int i = 0, cnt = 0; i < 3; i++) {
+			if (bRotActive[i]) {
+				cnt++;
+				if (cnt > 1) {
+					out << ",";
+				}
+				out << "w" << idx2xyz[i] << "1=w" << idx2xyz[i] << "2";
+			}
+		}
+			out << "]" << std::endl;
+		
 	}
 
 	return out;
 }
 
-/*FIXME*/
 void
 TotalJoint::SetValue(DataManager *pDM,
 	VectorHandler& X, VectorHandler& XP,
