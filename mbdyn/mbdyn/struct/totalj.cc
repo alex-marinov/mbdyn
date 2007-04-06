@@ -202,8 +202,11 @@ TotalJoint::DescribeEq(std::ostream& out,
 		out << "->" << iIndex + nPosConstraints;
 		out << ": ";
 	}
-	out << "position constraint(s) [";
-
+	
+	if (nPosConstraints > 0) {
+		out << "position constraint(s) [";
+	}
+	
 	for (unsigned int i = 0, cnt = 0; i < 3; i++) {
 		if (bPosActive[i]) {
 			cnt++;
@@ -213,16 +216,20 @@ TotalJoint::DescribeEq(std::ostream& out,
 			out << "P" << idx2xyz[i] << "1=P" << idx2xyz[i] << "2";
 		}
 	}
+	
+	if (nPosConstraints > 0) {
 		out << "]" << std::endl;
-
+	}
 
 	if (nRotConstraints > 1) {
 		out << prefix << iIndex + 1 + nPosConstraints;
 		out << "->" << iIndex + nConstraints ;
 		out << ": ";
 	}
-	out << "orientation constraint(s) [";
-
+	if (nRotConstraints > 0) {
+		out << "orientation constraint(s) [";
+	}
+	
 	for (unsigned int i = 0, cnt = 0; i < 3; i++) {
 		if (bRotActive[i]) {
 			cnt++;
@@ -232,8 +239,9 @@ TotalJoint::DescribeEq(std::ostream& out,
 			out << "g" << idx2xyz[i] << "1=g" << idx2xyz[i] << "2";
 		}
 	}
-	out << "]" << std::endl;
-	
+	if (nRotConstraints > 0) {
+		out << "]" << std::endl;
+	}
 
 	if (bInitial) {
 		iIndex += nConstraints;
@@ -243,8 +251,11 @@ TotalJoint::DescribeEq(std::ostream& out,
 			out << "->" << iIndex + nPosConstraints;
 			out << ": ";
 		}
-		out << "velocity constraint(s) [";
-
+		
+		if (nPosConstraints > 0) {
+			out << "velocity constraint(s) [";
+		}
+		
 		for (unsigned int i = 0, cnt = 0; i < 3; i++) {
 			if (bPosActive[i]) {
 				cnt++;
@@ -254,15 +265,19 @@ TotalJoint::DescribeEq(std::ostream& out,
 				out << "v" << idx2xyz[i] << "1=v" << idx2xyz[i] << "2";
 			}
 		}
-		out << "]" << std::endl;
-
+		if (nPosConstraints > 0) {
+			out << "]" << std::endl;
+		}
+		
 		if (nRotConstraints > 1) {
 			out << prefix << iIndex + 1 + nPosConstraints;
 			out << "->" << iIndex + nConstraints ;
 			out << ": ";
 		}
-		out << "angular velocity constraint(s) [";
-
+		if (nRotConstraints > 0) {
+			out << "angular velocity constraint(s) [";
+		}
+		
 		for (unsigned int i = 0, cnt = 0; i < 3; i++) {
 			if (bRotActive[i]) {
 				cnt++;
@@ -272,8 +287,9 @@ TotalJoint::DescribeEq(std::ostream& out,
 				out << "w" << idx2xyz[i] << "1=w" << idx2xyz[i] << "2";
 			}
 		}
+		if (nRotConstraints > 0) {
 			out << "]" << std::endl;
-		
+		}	
 	}
 
 	return out;
