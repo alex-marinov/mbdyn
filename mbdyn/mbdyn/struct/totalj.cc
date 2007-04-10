@@ -834,8 +834,6 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.ResizeReset(iNumRows - 12);
 
 	/* Indici */
-	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
-	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
 	integer iFirstReactionIndex = iGetFirstIndex();
 
 	/* Indici del vincolo */
