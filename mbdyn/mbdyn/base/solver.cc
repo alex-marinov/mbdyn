@@ -93,7 +93,7 @@
 #endif /* HAVE_SYS_MMAN_H */
 #endif /* USE_RTAI */
 
-const char sDefaultOutputFileName[] = "MBDyn";
+static const char sDefaultOutputFileName[] = "MBDyn";
 
 #ifdef HAVE_SIGNAL
 static volatile sig_atomic_t mbdyn_keep_going = 1;
@@ -159,15 +159,18 @@ reserve_stack(unsigned long size)
 
 
 /* Parametri locali */
-const doublereal dDefaultDerivativesCoefficient = 1.e-6;
-const integer iDefaultFictitiousStepsNumber = 0;
-const doublereal dDefaultFictitiousStepsRatio = 1.e-3;
-const integer iDefaultIterationsBeforeAssembly = 2;
-const integer iDefaultIterativeSolversMaxSteps = 100;
-const integer iDefaultPreconditionerSteps = 20;
-const doublereal dDefaultTol = 1.e-6;
-const doublereal defaultIterativeEtaMax = 0.9;
-const doublereal defaultIterativeTau = 1.e-7;
+static const doublereal dDefaultDerivativesCoefficient = 1.e-6;
+static const integer iDefaultFictitiousStepsNumber = 0;
+static const doublereal dDefaultFictitiousStepsRatio = 1.e-3;
+static const integer iDefaultIterationsBeforeAssembly = 2;
+static const integer iDefaultIterativeSolversMaxSteps = 100;
+static const integer iDefaultPreconditionerSteps = 20;
+static const doublereal dDefaultTol = 1.e-6;
+static const doublereal defaultIterativeEtaMax = 0.9;
+static const doublereal defaultIterativeTau = 1.e-7;
+
+static const integer iDefaultMaxIterations = 1;
+static const doublereal dDefaultFictitiousStepsTolerance = dDefaultTol;
 
 /* Costruttore: esegue la simulazione */
 Solver::Solver(MBDynParser& HPar,
@@ -312,6 +315,9 @@ pNLS(NULL)
 		}
 	}
 #endif /* USE_MULTITHREAD */
+
+	StrategyFactor.iMinIters = 1;
+	StrategyFactor.iMaxIters = 0;
 }
 
 void
@@ -400,6 +406,9 @@ Solver::Run(void)
 			}
 
 			lOld = strlen(sOutputFileName);
+			if (sOutputFileName[lOld - 1] == '/') {
+				lOld--;
+			}
 			lNew = lOld + strlen(tmpIn) + 2;
 
 			SAFENEWARR(tmpOut, char, lNew);
@@ -1842,12 +1851,6 @@ Solver::NewTimeStep(doublereal dCurrTimeStep,
 
    	return dCurrTimeStep;
 }
-
-
-
-
-const integer iDefaultMaxIterations = 1;
-const doublereal dDefaultFictitiousStepsTolerance = dDefaultTol;
 
 /*scrive il contributo al file di restart*/
 std::ostream & 
