@@ -51,12 +51,12 @@ static void
 usage(int rc)
 {
 	std::cerr <<
-"usage: testc81 [<options>] <file> [<alpha (deg)> <mach>]\n"
+"usage: c81test [<options>] <file> [<alpha (deg)> <mach>]\n"
 "\n"
 "options:\n"
 "\t-a <alpha>\t"	"dump coefficients for incidence <alpha>\n"
 "\t-c\t\t"		"interpret <file> as traditional c81 format (default)\n"
-"\t-C <coef>\t"		"only dump coefficient <coef> (bust be cl, cd or cm)\n"
+"\t-C <coef>\t"		"only dump coefficient <coef> (must be cl, cd or cm)\n"
 "\t-d [<dump>]\t"	"dump contents (to optional file <dump>, if given)\n"
 "\t-f\t\t"		"interpret <file> as free format\n"
 "\t-m <mach>\t"		"dump coefficients for Mach number <mach>\n"
