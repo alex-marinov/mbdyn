@@ -483,3 +483,38 @@ Mat3x3 EulerAngles2MatR(const Vec3& v)
 		 -dSinAlpha*dCosBeta,
 		 dCosAlpha*dCosBeta);
 };
+
+Vec3
+Unwrap(const Vec3& vPrev, const Vec3& v)
+{
+	doublereal dTheta = v.Norm();
+	if (dTheta > 0.) {
+		doublereal dThetaPrev = vPrev.Norm();
+		if (dThetaPrev > DBL_EPSILON) {
+			bool b(false);
+
+			if (vPrev*v < 0) {
+				dTheta = -dTheta;
+			}
+
+			doublereal dThetaOld = dTheta;
+
+			while (dTheta - dThetaPrev > M_PI) {
+				dTheta -= 2.*M_PI;
+				b = true;
+			}
+
+			while (dThetaPrev - dTheta > M_PI) {
+				dTheta += 2.*M_PI;
+				b = true;
+			}
+
+			if (b) {
+				return v*(dTheta/dThetaOld);
+			}
+		}
+	}
+
+	return v;
+}
+

@@ -446,39 +446,10 @@ TotalJoint::ParseHint(DataManager *pDM, const char *s) const
 }
 
 void
-TotalJoint::AfterConvergence(const VectorHandler& X,
-		const VectorHandler& XP)
+TotalJoint::AfterConvergence(const VectorHandler& /* X */ ,
+		const VectorHandler& /* XP */ )
 {
-	doublereal dTheta = ThetaDelta.Norm();
-	if (dTheta > 0.) {
-		doublereal dThetaPrev = ThetaDeltaPrev.Norm();
-		if (dThetaPrev > DBL_EPSILON) {
-			bool b(false);
-
-			if (ThetaDeltaPrev*ThetaDelta < 0) {
-				dTheta = -dTheta;
-			}
-
-			doublereal dThetaOld = dTheta;
-
-			while (dTheta - dThetaPrev > M_PI) {
-				dTheta -= 2.*M_PI;
-				b = true;
-			}
-
-			while (dThetaPrev - dTheta > M_PI) {
-				dTheta += 2.*M_PI;
-				b = true;
-			}
-
-			if (b) {
-				ThetaDeltaPrev = ThetaDelta*(dTheta/dThetaOld);
-				return;
-			}
-		}
-	}
-
-	ThetaDeltaPrev = ThetaDelta;
+	ThetaDeltaPrev = Unwrap(ThetaDeltaPrev, ThetaDelta);
 }
 
 /* Contributo al file di restart */
@@ -1336,7 +1307,7 @@ return WorkVec;
 unsigned int
 TotalJoint::iGetNumPrivData(void) const
 {
-	return 12;
+	return 18;
 }
 
 unsigned int
@@ -1344,26 +1315,36 @@ TotalJoint::iGetPrivDataIdx(const char *s) const
 {
 	ASSERT(s != NULL);
 
-	unsigned int idx = 0;
+	unsigned int off = 0;
 
 	switch (s[0]) {
-	case 'd':
+	case 'p':
 		/* relative position */
 		break;
 
 	case 'r':
 		/* relative orientation */
-		idx += 3;
+		off += 3;
 		break;
 
 	case 'F':
 		/* force */
-		idx += 6;
+		off += 6;
 		break;
 
 	case 'M':
 		/* moment */
-		idx += 9;
+		off += 9;
+		break;
+
+	case 'd':
+		/* imposed relative position */
+		off += 12;
+		break;
+
+	case 't':
+		/* imposed relative orientation */
+		off += 15;
 		break;
 
 	default:
@@ -1372,13 +1353,13 @@ TotalJoint::iGetPrivDataIdx(const char *s) const
 
 	switch (s[1]) {
 	case 'x':
-		return idx + 1;
+		return off + 1;
 
 	case 'y':
-		return idx + 2;
+		return off + 2;
 
 	case 'z':
-		return idx + 3;
+		return off + 3;
 	}
 
 	return 0;
@@ -1390,13 +1371,19 @@ TotalJoint::dGetPrivData(unsigned int i) const
 	switch (i) {
 	case 1:
 	case 2:
-	case 3:
-		return XDrv.Get()(i);
+	case 3: {
+		Vec3 x(pNode1->GetRCurr().Transpose()*(
+			pNode2->GetXCurr() + pNode2->GetRCurr()*f2
+				- pNode2->GetXCurr()) - f1);
+			return R1h.GetVec(i)*x;
+		}
 
 	case 4:
 	case 5:
-	case 6:
-		return ThetaDrv.Get()(i - 3);
+	case 6: {
+		Vec3 Theta(Unwrap(ThetaDeltaPrev, ThetaDelta) + ThetaDrv.Get());
+		return Theta(i - 3);
+		}
 
 	case 7:
 	case 8:
@@ -1407,6 +1394,22 @@ TotalJoint::dGetPrivData(unsigned int i) const
 	case 11:
 	case 12:
 		return M(i - 9);
+
+	case 13:
+	case 14:
+	case 15:
+		if (!bPosActive[i - 13]) {
+			return 0.;
+		}
+		return XDrv.Get()(i - 12);
+
+	case 16:
+	case 17:
+	case 18:
+		if (!bRotActive[i - 16]) {
+			return 0.;
+		}
+		return ThetaDrv.Get()(i - 15);
 
 	default:
 		ASSERT(0);
