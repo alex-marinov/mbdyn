@@ -1818,8 +1818,12 @@ Solver::NewTimeStep(doublereal dCurrTimeStep,
 	  		iStepsAfterRaise++;
 
 			iWeightedPerformedIters = (10*iPerformedIters + 9*iWeightedPerformedIters)/10;
-
-	  		if (iPerformedIters <= StrategyFactor.iMinIters
+			
+			if (iPerformedIters > StrategyFactor.iMaxIters) {
+	     			iStepsAfterReduction = 0;
+				bLastChance = false;
+	     			return std::max(dCurrTimeStep*StrategyFactor.dReductionFactor, dMinimumTimeStep);
+			} else if (iPerformedIters <= StrategyFactor.iMinIters
 	      		    && iStepsAfterReduction > StrategyFactor.iStepsBeforeReduction
 			    && iStepsAfterRaise > StrategyFactor.iStepsBeforeRaise
 			    && dCurrTimeStep < dMaxTimeStep) {
@@ -2903,7 +2907,8 @@ Solver::ReadData(MBDynParser& HP)
 				 *     <steps before reduction> ,
 				 *     <raise factor> ,
 				 *     <steps before raise> ,
-				 *     <min iterations> ;
+				 *     <min iterations> ,
+				 *     <max iterations> ;
 				 */
 
 				StrategyFactor.dReductionFactor = HP.GetReal();
@@ -2964,6 +2969,20 @@ Solver::ReadData(MBDynParser& HP)
 					StrategyFactor.iMinIters = 1;
 				}
 
+				if (HP.IsArg()) {
+					StrategyFactor.iMaxIters = HP.GetInt();
+					if (StrategyFactor.iMaxIters <= 0) {
+						silent_cerr("warning, "
+							"illegal mmaximim number "
+							"of iterations at line "
+							<< HP.GetLineData()
+							<< "; default value will be "
+							"used"
+							<< std::endl);
+						StrategyFactor.iMaxIters = 0;
+					}
+				}
+
 				DEBUGLCOUT(MYDEBUG_INPUT,
 						"Time step control strategy: "
 						"Factor" << std::endl
@@ -2977,6 +2996,8 @@ Solver::ReadData(MBDynParser& HP)
 						<< StrategyFactor.iStepsBeforeRaise
 						<< "Min iterations: "
 						<< StrategyFactor.iMinIters
+						<< "Max iterations: "
+						<< StrategyFactor.iMaxIters
 						<< std::endl);
 				break;
 			}
@@ -3478,6 +3499,17 @@ Solver::ReadData(MBDynParser& HP)
 
 EndOfCycle: /* esce dal ciclo di lettura */
 
+	if (StrategyFactor.iMaxIters <= StrategyFactor.iMinIters) {
+		silent_cerr("warning, "
+			<< "strategy maximum number "
+			<< "of iterations "
+			<< "is <= minimum : " << StrategyFactor.iMaxIters << " <= "
+			<< StrategyFactor.iMinIters
+			<< "the maximum global iteration value " << iMaxIterations
+			<< "will be used"
+			<< std::endl);
+		StrategyFactor.iMaxIters = iMaxIterations;
+	}
 	if (dFinalTime < dInitialTime) {
 		eAbortAfter = AFTER_ASSEMBLY;
 	}

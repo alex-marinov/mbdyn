@@ -89,11 +89,18 @@ obviously the step is never changed;
                         <raise_factor> ,
                         <steps_before_raise> ,
                         <min_iterations>
+			[, max_iteration]
 \end{verbatim}
 the time step is reduced or raised of the proper factor not before a
 minimum number of time steps; it is reduced if more than 
-\kw{max\_iterations} are performed at a time step, it is raised if less
+\kw{max\_iterations} are performed at a time step, or it the current
+step do not converge; it is raised if less
 than \kw{min\_iterations} are performed at a time step;
+\kw{max\_iterations} defaults to the global \kw{max\_iterations}
+simulation value; however, it is better to set it to a lower value,
+leaving some spare iterations before bailing out the simulation; 
+the simulation bails out if two consecutive solution steps
+are performed without converging.
 \begin{verbatim}
     <strategy_data> ::= change , 
                         (drive_caller) <time_step_change>
