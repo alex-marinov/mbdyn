@@ -95,6 +95,7 @@ private:
       		integer iStepsBeforeReduction;
       		integer iStepsBeforeRaise;
       		integer iMinIters;
+      		integer iMaxIters;
    	} StrategyFactor;
 
    	/* Dati per strategia DRIVER_CHANGE */
