@@ -67,7 +67,8 @@ private:
 	
 	mutable Vec3 M;
 	mutable Vec3 F;
-	mutable Vec3 Theta;
+	mutable Vec3 ThetaDelta;
+	mutable Vec3 ThetaDeltaPrev;
 
 public:
 	/* Constructor */

@@ -63,7 +63,7 @@ f2(f2Tmp), R2h(R2hTmp), R2hr(R2hrTmp),
 XDrv(pDCPos),
 ThetaDrv(pDCRot),
 nConstraints(0), nPosConstraints(0), nRotConstraints(0),
-M(0.), F(0.), Theta(0.)
+M(0.), F(0.), ThetaDelta(0.), ThetaDeltaPrev(0.)
 {
 	/* Equations 1->3: Positions
 	 * Equations 3->6: Rotations */
@@ -449,35 +449,83 @@ void
 TotalJoint::AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP)
 {
-#if 0
-	/* Note: angle unwrap might only be possible
-	 * in case of a single unconstrained axis */
-	Mat3x3 RTmp(((pNode1->GetRCurr()*R1h).Transpose()
-			*pNode1->GetRPrev()*R1h).Transpose()
-			*((pNode2->GetRCurr()*R2h).Transpose()
-			*pNode2->GetRPrev()*R2h));
-	Vec3 v(MatR2EulerAngles(RTmp.Transpose()));
+	doublereal dTheta = ThetaDelta.Norm();
+	if (dTheta > 0.) {
+		doublereal dThetaPrev = ThetaDeltaPrev.Norm();
+		if (dThetaPrev > DBL_EPSILON) {
+			bool b(false);
 
-	dTheta += v.dGet(3);
-#endif
+			if (ThetaDeltaPrev*ThetaDelta < 0) {
+				dTheta = -dTheta;
+			}
+
+			doublereal dThetaOld = dTheta;
+
+			while (dTheta - dThetaPrev > M_PI) {
+				dTheta -= 2.*M_PI;
+				b = true;
+			}
+
+			while (dThetaPrev - dTheta > M_PI) {
+				dTheta += 2.*M_PI;
+				b = true;
+			}
+
+			if (b) {
+				ThetaDeltaPrev = ThetaDelta*(dTheta/dThetaOld);
+				return;
+			}
+		}
+	}
+
+	ThetaDeltaPrev = ThetaDelta;
 }
 
 /* Contributo al file di restart */
 std::ostream&
 TotalJoint::Restart(std::ostream& out) const
 {
-#if 0
-	Joint::Restart(out) << ", imposed orientation, "
-		<< pNode1->GetLabel() << ", hinge, reference, node, "
-			"1, ", (R1h.GetVec(1)).Write(out, ", ") << ", "
-			"2, ", (R1h.GetVec(2)).Write(out, ", ") << ", "
-		<< pNode2->GetLabel() << ", hinge, reference, node, "
-			"1, ", (R2h.GetVec(1)).Write(out, ", ") << ", "
-			"2, ", (R2h.GetVec(2)).Write(out, ", ") << ";"
-		<< std::endl;
-#endif
+	Joint::Restart(out) << ", total joint, "
+		<< pNode1->GetLabel() << ", "
+			<< "position, " << f1.Write(out, ", ") << ", "
+			<< "position orientation, "
+				"1 , ", R1h.GetVec(1).Write(out, ", ") << ", "
+				"2 , ", R1h.GetVec(2).Write(out, ", ") << ", "
+			<< "rotation orientation, "
+				"1 , ", R1hr.GetVec(1).Write(out, ", ") << ", "
+				"2 , ", R1hr.GetVec(2).Write(out, ", ") << ", "
+		<< pNode2->GetLabel() << ", "
+			<< "position, " << f2.Write(out, ", ") << ", "
+			<< "position orientation, "
+				"1 , ", R2h.GetVec(1).Write(out, ", ") << ", "
+				"2 , ", R2h.GetVec(2).Write(out, ", ") << ", "
+			<< "rotation orientation, "
+				"1 , ", R2hr.GetVec(1).Write(out, ", ") << ", "
+				"2 , ", R2hr.GetVec(2).Write(out, ", ");
 
-	return out;
+	if (bPosActive[0] || bPosActive[1] || bPosActive[2]) {
+		out << ", position constraint";
+		for (unsigned i = 0; i < 3; i++) {
+			if (bPosActive[i]) {
+				out << ", active";
+			} else {
+				out << ", inactive";
+			}
+		}
+	}
+
+	if (bRotActive[0] || bRotActive[1] || bRotActive[2]) {
+		out << ", orientation constraint";
+		for (unsigned i = 0; i < 3; i++) {
+			if (bRotActive[i]) {
+				out << ", active";
+			} else {
+				out << ", inactive";
+			}
+		}
+	}
+
+	return out << std::endl;
 }
 
 /* Assemblaggio jacobiano */
@@ -703,7 +751,7 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 
 	Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
 	Mat3x3 RDelta = R1r.Transpose()*R2r*R0T;
-	Vec3 ThetaDelta = RotManip::VecRot(RDelta);
+	ThetaDelta = RotManip::VecRot(RDelta);
 
 	Vec3 FTmp(R1*F);
 	Vec3 MTmp(R1r*M);
@@ -852,7 +900,7 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 
 	Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
 	Mat3x3 RDelta = R1r.Transpose()*R2r*R0T;
-	Vec3 ThetaDelta = RotManip::VecRot(RDelta);
+	ThetaDelta = RotManip::VecRot(RDelta);
 
 
 	switch (iOrder) {
@@ -924,7 +972,8 @@ TotalJoint::Output(OutputHandler& OH) const
 		Joint::Output(OH.Joints(), "ImposedOrientation", GetLabel(),
 			Zero3, M, Zero3, R2Tmp*M)
 			<< " " << MatR2EulerAngles(RTmp)*dRaDegr
-			<< " " << R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()) << std::endl;
+			<< " " << R2TmpT*(pNode2->GetWCurr() - pNode1->GetWCurr())
+			<< " " << ThetaDeltaPrev << std::endl;
 	}
 }
 
@@ -1260,11 +1309,11 @@ TotalJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	
 	Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
 	Mat3x3 RDelta = R1r.Transpose()*R2r*R0T;
-	Vec3 ThetaDelta = RotManip::VecRot(RDelta);
+	ThetaDelta = RotManip::VecRot(RDelta);
 	Vec3 ThetaDeltaPrime = R1r.Transpose()*(Omega2 - Omega1);
 
 	if(ThetaDrv.bIsDifferentiable())	{
-		ThetaDeltaPrime -= (RDelta * ThetaDrv.GetP());
+		ThetaDeltaPrime -= RDelta*ThetaDrv.GetP();
 	}
 
 
