@@ -733,13 +733,184 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+/* inverse dynamics Jacobian matrix assembly */
+VariableSubMatrixHandler&
+TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
+	const VectorHandler& /* XCurr */ )
+{
+	/*
+	 * identical to regular AssJac's lower-left block
+	 */
+	DEBUGCOUT("Entering TotalJoint::AssJac()" << std::endl);
+
+	if (iGetNumDof() == 12) {
+		WorkMat.SetNullMatrix();
+		return WorkMat;
+	}
+
+	/* Ridimensiona la sottomatrice in base alle esigenze */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+
+	FullSubMatrixHandler& WM = WorkMat.SetFull();
+
+	/* original - nodes, nodes */
+	WM.ResizeReset(iNumRows - 12, 12);
+
+	/* Recupera gli indici delle varie incognite */
+	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
+	integer iFirstReactionIndex = iGetFirstIndex();
+
+	/* Setta gli indici delle equazioni */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WM.PutColIndex(iCnt, iNode1FirstPosIndex + iCnt);
+		WM.PutColIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
+	}
+
+	for (unsigned int iCnt = 1; iCnt <= nConstraints; iCnt++) {
+		WM.PutRowIndex(iCnt, iFirstReactionIndex + iCnt);
+	}
+
+	/* Recupera i dati che servono */
+	Mat3x3 R1(pNode1->GetRRef()*R1h);
+	Mat3x3 R1r(pNode1->GetRRef()*R1hr);
+	Vec3 b2(pNode2->GetRCurr()*f2);
+	Vec3 b1(pNode2->GetXCurr() + b2 - pNode1->GetXCurr());
+
+	/* Equilibrium: ((Phi/q)^T*Lambda)/q */
+
+	Mat3x3 b1Cross_R1(Mat3x3(b1)*R1); // = [ b1 x ] * R1
+	Mat3x3 b2Cross_R1(Mat3x3(b2)*R1); // = [ b2 x ] * R1
+
+	for (unsigned iCnt = 0 ; iCnt < nPosConstraints; iCnt++) {
+		Vec3 vR1(R1.GetVec(iPosIncid[iCnt]));
+		Vec3 vb1Cross_R1(b1Cross_R1.GetVec(iPosIncid[iCnt]));
+		Vec3 vb2Cross_R1(b2Cross_R1.GetVec(iPosIncid[iCnt]));
+
+		/* Constraint, node 1 */
+      		WM.SubT(1 + iCnt, 1, vR1);
+      		WM.SubT(1 + iCnt, 3 + 1, vb1Cross_R1);
+
+		/* Constraint, node 2 */
+      		WM.AddT(1 + iCnt, 6 + 1, vR1);
+      		WM.AddT(1 + iCnt, 9 + 1, vb2Cross_R1);
+	}
+
+	for (unsigned iCnt = 0 ; iCnt < nRotConstraints; iCnt++) {
+		Vec3 vR1(R1r.GetVec(iRotIncid[iCnt]));
+
+		/* Constraint, node 1 */
+      		WM.SubT(1 + nPosConstraints + iCnt, 3 + 1, vR1);
+
+		/* Constraint, node 2 */
+      		WM.AddT(1 + nPosConstraints +  iCnt, 9 + 1, vR1);
+	}
+
+	return WorkMat;
+}
+
+/* Assemblaggio residuo */
+SubVectorHandler&
+TotalJoint::AssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& XCurr,
+	const VectorHandler& /* XPrimeCurr */ ,
+	int iOrder)
+{
+	DEBUGCOUT("Entering TotalJoint::AssRes(" << iOrder<< ")" << std::endl);
+
+	if (iGetNumDof() == 0) {
+		WorkVec.ResizeReset(0);
+		return WorkVec;
+	}
+
+	/* Dimensiona e resetta la matrice di lavoro */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+
+	/* original - node equations (6 * 2) */
+	WorkVec.ResizeReset(iNumRows - 12);
+
+	/* Indici */
+	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
+	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
+	integer iFirstReactionIndex = iGetFirstIndex();
+
+	/* Indici del vincolo */
+	for (unsigned int iCnt = 1; iCnt <= nConstraints; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iFirstReactionIndex + iCnt);
+	}
+
+	Vec3 b2(pNode2->GetRCurr()*f2);
+	Vec3 b1(pNode2->GetXCurr() + b2 - pNode1->GetXCurr());
+
+	Mat3x3 R1 = pNode1->GetRCurr()*R1h;
+	Mat3x3 R1r = pNode1->GetRCurr()*R1hr;
+	Mat3x3 R2r = pNode2->GetRCurr()*R2hr;
+
+	Vec3 XDelta = R1.Transpose()*b1 - f1 - XDrv.Get();
+
+	Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
+	Mat3x3 RDelta = R1r.Transpose()*R2r*R0T;
+	Vec3 ThetaDelta = RotManip::VecRot(RDelta);
+
+
+	switch (iOrder) {
+	case 0:
+		/*
+		 * identical to regular AssRes' lower block
+		 */
+
+		/* Position constraint derivative  */
+		for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
+			WorkVec.DecCoef(1 + iCnt, XDelta(iPosIncid[iCnt]));
+		}
+
+		/* Rotation constraint derivative */
+		for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
+			WorkVec.DecCoef(1 + nPosConstraints + iCnt, ThetaDelta(iRotIncid[iCnt]));
+		}
+
+		break;
+
+	case 1:
+		/*
+		 * first derivative of regular AssRes' lower block
+		 */
+
+		/* TODO */
+
+		break;
+
+	case 2:
+		/*
+		 * second derivative of regular AssRes' lower block
+		 */
+
+		/* TODO */
+
+		break;
+
+	default:
+		/*
+		 * higher-order derivatives make no sense right now
+		 */
+
+		ASSERT(0);
+		throw ErrGeneric();
+	}
+
+	return WorkVec;
+}
+
 DofOrder::Order
 TotalJoint::GetEqType(unsigned int i) const
 {
-#if 0
 	ASSERTMSGBREAK(i < iGetNumDof(),
 		"INDEX ERROR in TotalJoint::GetEqType");
-#endif
+
 	return DofOrder::ALGEBRAIC;
 }
 
