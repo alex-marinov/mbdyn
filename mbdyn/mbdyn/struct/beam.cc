@@ -78,14 +78,14 @@ Beam::Beam(unsigned int uL,
 : Elem(uL, fOut), 
 ElemGravityOwner(uL, fOut), 
 InitialAssemblyElem(uL, fOut),
-fConsistentInertia(0), 
+bConsistentInertia(false), 
 dMass_I(0.),
 S0_I(0.),
 J0_I(0.),
 dMassII(0.),
 S0II(0.),
 J0II(0.),
-fFirstRes(1)
+bFirstRes(true)
 {
     ASSERT(pN1 != NULL);
     ASSERT(pN1->GetNodeType() == Node::STRUCTURAL);
@@ -171,14 +171,14 @@ Beam::Beam(unsigned int uL,
 : Elem(uL, fOut), 
 ElemGravityOwner(uL, fOut), 
 InitialAssemblyElem(uL, fOut),
-fConsistentInertia(1),
+bConsistentInertia(true),
 dMass_I(dM_I),
 S0_I(s0_I),
 J0_I(j0_I),
 dMassII(dMII),
 S0II(s0II),
 J0II(j0II),
-fFirstRes(1)
+bFirstRes(true)
 {
     pNode[NODE1] = pN1;
     pNode[NODE2] = pN2;
@@ -641,8 +641,8 @@ void Beam::AssStiffnessVec(SubVectorHandler& WorkVec,
       xNod[i] = pNode[i]->GetXCurr();
    }   
    
-   if (fFirstRes) {
-      fFirstRes = flag(0); /* AfterPredict ha gia' calcolato tutto */
+   if (bFirstRes) {
+      bFirstRes = false; /* AfterPredict ha gia' calcolato tutto */
    } else {
       Vec3 gNod[NUMNODES];    
       Vec3 xTmp[NUMNODES];
@@ -722,7 +722,7 @@ VariableSubMatrixHandler& Beam::AssJac(VariableSubMatrixHandler& WorkMat,
    FullSubMatrixHandler& WM = WorkMat.SetFull();   
    
    /* Dimensiona la matrice, la azzera e pone gli indici corretti */
-   if(fConsistentInertia) {	
+   if(bConsistentInertia) {	
       WM.ResizeReset(36, 18);
    } else {
       WM.ResizeReset(18, 18);	
@@ -739,7 +739,7 @@ VariableSubMatrixHandler& Beam::AssJac(VariableSubMatrixHandler& WorkMat,
    
    AssStiffnessMat(WM, WM, dCoef, XCurr, XPrimeCurr);
    
-   if (fConsistentInertia) {	
+   if (bConsistentInertia) {	
       for (int iCnt = 1; iCnt <= 6; iCnt++) {
 	 WM.PutRowIndex(18+iCnt, iNode1FirstPosIndex+iCnt);
 	 WM.PutRowIndex(24+iCnt, iNode2FirstPosIndex+iCnt);
@@ -772,7 +772,7 @@ void Beam::AssMats(VariableSubMatrixHandler& WorkMatA,
    FullSubMatrixHandler& WMB = WorkMatB.SetFull();
    
    /* Dimensiona la matrice, la azzera e pone gli indici corretti */
-   if (fConsistentInertia) {    
+   if (bConsistentInertia) {    
       WMA.ResizeReset(36, 18);
       WMB.ResizeReset(36, 18);
    } else  {
@@ -791,7 +791,7 @@ void Beam::AssMats(VariableSubMatrixHandler& WorkMatA,
 
    AssStiffnessMat(WMA, WMA, 1., XCurr, XPrimeCurr);
    
-   if (fConsistentInertia) {	
+   if (bConsistentInertia) {	
       for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {
 	 WMB.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
 	 WMB.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
@@ -829,7 +829,7 @@ SubVectorHandler& Beam::AssRes(SubVectorHandler& WorkVec,
    integer iNode3FirstMomIndex = pNode[NODE3]->iGetFirstMomentumIndex();
 
    /* Dimensiona il vettore, lo azzera e pone gli indici corretti */
-   if (fConsistentInertia) {	
+   if (bConsistentInertia) {	
       WorkVec.ResizeReset(36);
    } else {	
       WorkVec.ResizeReset(18);
@@ -843,7 +843,7 @@ SubVectorHandler& Beam::AssRes(SubVectorHandler& WorkVec,
    
    AssStiffnessVec(WorkVec, dCoef, XCurr, XPrimeCurr);
 
-   if (fConsistentInertia) {	
+   if (bConsistentInertia) {	
       integer iNode1FirstPosIndex = pNode[NODE1]->iGetFirstPositionIndex();
       integer iNode2FirstPosIndex = pNode[NODE2]->iGetFirstPositionIndex();
       integer iNode3FirstPosIndex = pNode[NODE3]->iGetFirstPositionIndex();
@@ -878,7 +878,7 @@ void Beam::SetValue(DataManager *pDM,
        * (la deformazione e' gia' stata aggiornata dall'ultimo residuo) */
       DRef[iSez] = MultRMRt(pD[iSez]->GetFDE(), RRef[iSez]);      
    }
-   fFirstRes = flag(1);
+   bFirstRes = true;
 }
               
 
@@ -943,7 +943,7 @@ void Beam::AfterPredict(VectorHandler& /* X */ ,
       DRef[iSez] = MultRMRt(pD[iSez]->GetFDE(), RRef[iSez]);
    }
 
-   fFirstRes = flag(1);
+   bFirstRes = true;
 }
 
 
@@ -1482,8 +1482,8 @@ void ViscoElasticBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
       xNod[i] = pNode[i]->GetXCurr();
    }   
    
-   if (fFirstRes) {
-      fFirstRes = flag(0); /* AfterPredict ha gia' calcolato tutto */
+   if (bFirstRes) {
+      bFirstRes = false; /* AfterPredict ha gia' calcolato tutto */
    } else {
       Vec3 gNod[NUMNODES];    
       Vec3 xTmp[NUMNODES];
@@ -1600,7 +1600,7 @@ void ViscoElasticBeam::SetValue(DataManager *pDM,
        * (la deformazione e' gia' stata aggiornata dall'ultimo residuo) */
       (Mat6x6&)ERef[iSez] = MultRMRt(pD[iSez]->GetFDEPrime(), RRef[iSez]);
    }
-   ASSERT(fFirstRes == flag(1));
+   ASSERT(bFirstRes == true);
 }
               
 
@@ -1701,7 +1701,7 @@ void ViscoElasticBeam::AfterPredict(VectorHandler& /* X */ ,
       ERef[iSez] = MultRMRt(pD[iSez]->GetFDEPrime(), R[iSez]);
    }
    
-   fFirstRes = flag(1);
+   bFirstRes = true;
 }
 
 /* ViscoElasticBeam - end */
@@ -1778,9 +1778,9 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    
    /*     Matrice R */
    Mat3x3 R_I;
-   flag f_I(0);
+   bool b_I(false);
    if (HP.IsKeyWord("from" "nodes") || HP.IsKeyWord("node")) {	
-      f_I = flag(1);
+      b_I = true;
    } else {     
       R_I = HP.GetRotAbs(AbsRefFrame);
    }   
@@ -1816,16 +1816,16 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 
    /*     Matrice R */
    Mat3x3 RII;
-   flag fII(0);
+   bool bII(false);
    if (HP.IsKeyWord("same")) {
-      if (f_I) {	     
-	 fII = flag(1);
+      if (b_I) {	     
+	 bII = true;
       } else {	     
 	 RII = R_I;
       }	
    } else {
       if (HP.IsKeyWord("from" "nodes") || HP.IsKeyWord("node")) {
-	 fII = flag(1);
+	 bII = true;
       } else {	            
 	 RII = HP.GetRotAbs(AbsRefFrame);
       }	
@@ -1929,15 +1929,15 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    
    
    /* Se necessario, interpola i parametri di rotazione delle sezioni */
-   if (f_I || fII) {
+   if (b_I || bII) {
       Mat3x3 R(R2*Rn2);
       Mat3x3 RT(R.Transpose());
       Vec3 g1(gparam(RT*(R1*Rn1)));
       Vec3 g3(gparam(RT*(R3*Rn3)));
-      if (f_I) {
+      if (b_I) {
 	 R_I = R*Mat3x3(MatR, Beam::InterpState(g1, 0., g3, Beam::S_I));
       }
-      if (fII) {
+      if (bII) {
 	 RII = R*Mat3x3(MatR, Beam::InterpState(g1, 0., g3, Beam::SII));
       }	
    }

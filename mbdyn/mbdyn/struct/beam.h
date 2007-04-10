@@ -99,7 +99,7 @@ class Beam
     Mat6x6 DRef[NUMSEZ];
    
     /* Per forze d'inerzia consistenti: */
-    const flag fConsistentInertia;
+    const bool bConsistentInertia;
         
     const doublereal dMass_I;
     const Mat3x3 S0_I;
@@ -131,7 +131,7 @@ class Beam
     doublereal dsdxi[NUMSEZ];
    
     /* Is first res? */
-    flag fFirstRes;
+    bool bFirstRes;
          
     /* Funzioni di servizio */
     static Vec3 
@@ -241,7 +241,7 @@ class Beam
      * forze d'inerzia consistenti deve avere accesso alle righe di definizione
      * della quantita' di moto */
     virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-        if (fConsistentInertia) {	   
+        if (bConsistentInertia) {	   
 	    *piNumRows = 36;	     	     
         } else {	   
 	    *piNumRows = 18;

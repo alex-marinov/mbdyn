@@ -91,7 +91,7 @@ void PiezoActuatorBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
    /* Per la trattazione teorica, il riferimento e' il file ul-travi.tex 
     * (ora e' superato) */
    
-   if (fFirstRes) {
+   if (bFirstRes) {
       /* fFirstRes = flag(0);  AfterPredict ha gia' calcolato tutto */
    } else {    
       for (integer iCnt = 1; iCnt <= iNumElec; iCnt++) {
@@ -168,7 +168,7 @@ PiezoActuatorBeam::Restart(std::ostream& out) const
  *     * forze d'inerzia consistenti deve avere accesso alle righe di definizione
  *     * della quantita' di moto */
 void PiezoActuatorBeam::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-   if (fConsistentInertia) {
+   if (bConsistentInertia) {
       *piNumRows = 36;
    } else {
       *piNumRows = 18;
@@ -220,7 +220,7 @@ PiezoActuatorBeam::AssJac(VariableSubMatrixHandler& WorkMat,
    FullSubMatrixHandler& WM = WorkMat.SetFull();
 
    /* Dimensiona la matrice, la azzera e pone gli indici corretti */
-   if(fConsistentInertia) {
+   if(bConsistentInertia) {
       WM.ResizeReset(36, 18+iNumElec);
    } else {
       WM.ResizeReset(18, 18+iNumElec);
@@ -241,7 +241,7 @@ PiezoActuatorBeam::AssJac(VariableSubMatrixHandler& WorkMat,
    
    AssStiffnessMat(WM, WM, dCoef, XCurr, XPrimeCurr);
    
-   if (fConsistentInertia) {
+   if (bConsistentInertia) {
       for (int iCnt = 1; iCnt <= 6; iCnt++) {
 	 WM.PutRowIndex(18+iCnt, iNode1FirstPosIndex+iCnt);
 	 WM.PutRowIndex(24+iCnt, iNode2FirstPosIndex+iCnt);
@@ -329,7 +329,7 @@ void PiezoActuatorVEBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
    /* Per la trattazione teorica, il riferimento e' il file ul-travi.tex 
     * (ora e' superato) */
    
-   if (fFirstRes) {
+   if (bFirstRes) {
       /* fFirstRes = flag(0);  AfterPredict ha gia' calcolato tutto */
    } else {    
       for (integer iCnt = 1; iCnt <= iNumElec; iCnt++) {
@@ -411,7 +411,7 @@ PiezoActuatorVEBeam::Restart(std::ostream& out) const
  * della quantita' di moto */
 void
 PiezoActuatorVEBeam::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-   if (fConsistentInertia) {
+   if (bConsistentInertia) {
       *piNumRows = 36;
    } else {
       *piNumRows = 18;
@@ -463,7 +463,7 @@ PiezoActuatorVEBeam::AssJac(VariableSubMatrixHandler& WorkMat,
    FullSubMatrixHandler& WM = WorkMat.SetFull();
 
    /* Dimensiona la matrice, la azzera e pone gli indici corretti */
-   if(fConsistentInertia) {
+   if(bConsistentInertia) {
       WM.ResizeReset(36, 18+iNumElec);
    } else {
       WM.ResizeReset(18, 18+iNumElec);
@@ -484,7 +484,7 @@ PiezoActuatorVEBeam::AssJac(VariableSubMatrixHandler& WorkMat,
    
    AssStiffnessMat(WM, WM, dCoef, XCurr, XPrimeCurr);
    
-   if (fConsistentInertia) {
+   if (bConsistentInertia) {
       for (int iCnt = 1; iCnt <= 6; iCnt++) {
 	 WM.PutRowIndex(18+iCnt, iNode1FirstPosIndex+iCnt);
 	 WM.PutRowIndex(24+iCnt, iNode2FirstPosIndex+iCnt);
