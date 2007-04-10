@@ -817,7 +817,7 @@ DataManager::InitialJointAssembly(void)
 		}
 
 		/* Se ho raggiunto il numero massimo di iterazioni */
-		if (iNumIter > iMaxInitialIterations) {
+		if (iNumIter >= iMaxInitialIterations) {
 			silent_cerr("Initial assembly iterations "
 				"reached maximum number "
 				<< iMaxInitialIterations << "; aborting ..."
