@@ -315,12 +315,14 @@ OutputHandler::Open(const OutputHandler::OutFiles out)
 		} else
 #endif /* USE_NETCDF */
 		{
+			const char *fname = _sPutExt(psExt[out]);
+
 			// Apre lo stream
-			OutData[out].pof->open(_sPutExt((char*)(psExt[out])));
+			OutData[out].pof->open(fname);
 
 			if (!(*OutData[out].pof)) {
-				silent_cerr("Unable to open file \"" << _sPutExt((char*)(psExt[out]))
-					<< "\"" << std::endl);
+				silent_cerr("Unable to open file "
+					"\"" << fname << "\"" << std::endl);
 				throw ErrFile();
 			}
 		}

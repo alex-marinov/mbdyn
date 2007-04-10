@@ -278,7 +278,7 @@ SocketUsersTimeout(0)
 		throw DataManager::ErrGeneric();
 	}
 
-	ReadControl(HP, sOutputFileName, sInputFileName);
+	ReadControl(HP, sInputFileName);
 	try {
 		CurrDesc = KeyWords(HP.GetDescription());
 	} catch (EndOfFile) {

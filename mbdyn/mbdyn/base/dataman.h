@@ -201,8 +201,7 @@ protected:
 
 private:
 	/* chiamate dal costruttore per leggere i relativi articoli */
-	void ReadControl(MBDynParser& HP, const char* sOutputFileName,
-				const char* sInputFileName);
+	void ReadControl(MBDynParser& HP, const char* sInputFileName);
 	void ReadNodes(MBDynParser& HP);
 	void ReadDrivers(MBDynParser& HP);
 	void ReadElems(MBDynParser& HP);

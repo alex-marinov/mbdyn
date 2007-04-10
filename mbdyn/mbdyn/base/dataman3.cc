@@ -60,7 +60,6 @@ class NotAllowed {};
 
 void
 DataManager::ReadControl(MBDynParser& HP,
-	const char* sOutputFileName,
 	const char* sInputFileName)
 {
 	DEBUGCOUTFNAME("DataManager::ReadControl");
@@ -1219,9 +1218,6 @@ EndOfUse:
 			<< HP.GetLineData() << std::endl);
 		throw DataManager::ErrGeneric();
 	}
-
-	/* inizializza l'output handler */
-	OutHdl.Init(sOutputFileName, 0);
 
 	/* FIXME: from now on, NetCDF is enabled */
 	// OutHdl.ClearText();
