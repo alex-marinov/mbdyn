@@ -95,7 +95,7 @@ const char DIR_SEP = '/';
 class FileName {
  private:
    mutable char* sName;
-   char* sExt;
+   mutable char* sExt;
    mutable char* sRef;
    mutable unsigned int iMaxSize;
    mutable unsigned int iCurSize;

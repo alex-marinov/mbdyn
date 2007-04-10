@@ -35,6 +35,7 @@
 #include <ac/iostream>
 
 extern "C" {
+extern void destroy_c81_data(c81_data* data);
 extern c81_data* get_c81_data(long int jpro);
 extern int set_c81_data(long int jpro, c81_data* data);
 extern int read_c81_data(std::istream& in, c81_data* data);

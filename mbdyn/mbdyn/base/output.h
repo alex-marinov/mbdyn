@@ -197,7 +197,7 @@ public:
 
 	void Init(const char* sFName, int iExtNum = -1);
 
-	~OutputHandler(void);
+	virtual ~OutputHandler(void);
 
 	/* Aggiungere qui le funzioni che aprono i singoli stream */
 	bool Open(const OutputHandler::OutFiles out);

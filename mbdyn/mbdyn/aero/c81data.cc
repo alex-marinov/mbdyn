@@ -233,10 +233,26 @@ put_c81_mat(std::ostream& out, doublereal* m, int nrows, int ncols)
    	return 0;
 }
 
+void
+destroy_c81_data(c81_data* data)
+{
+	delete[] data->ml;
+	delete[] data->al;
+
+	delete[] data->md;
+	delete[] data->ad;
+
+	delete[] data->mm;
+	delete[] data->am;
+
+	delete[] data->stall;
+	delete[] data->mstall;
+}
+
 int
 read_c81_data(std::istream& in, c81_data* data)
 {
-   	char buf[128];	// 81 should suffice; let's make it 128
+   	char buf[BUFSIZ];	// 81 should suffice
    
    	/* header */
    	in.getline(buf, sizeof(buf));

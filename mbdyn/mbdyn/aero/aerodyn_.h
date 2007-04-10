@@ -106,7 +106,7 @@ public:
 class BasicAirProperties 
 : virtual public Elem, public AirProperties {
  protected:
-   DriveCaller *pAirDensity;
+   DriveOwner AirDensity;
    doublereal dSoundSpeed;
    
  public:

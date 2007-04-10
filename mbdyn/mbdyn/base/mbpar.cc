@@ -123,6 +123,7 @@ MBDynParser::~MBDynParser(void)
 
 #if defined(USE_AERODYNAMIC_ELEMS)
 	for (ADType::iterator i = AD.begin(); i != AD.end(); i++) {
+		destroy_c81_data(i->second);
 		SAFEDELETE(i->second);
 	}
 #endif /* USE_AERODYNAMIC_ELEMS */

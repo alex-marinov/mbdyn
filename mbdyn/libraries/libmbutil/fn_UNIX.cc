@@ -54,6 +54,7 @@ FileName::~FileName(void)
       		/* delete []sName; */
       		SAFEDELETEARR(sName);
    	} 
+
    	if (sExt != NULL) { 
       		/* delete []sExt; */
       		SAFEDELETEARR(sExt);
@@ -148,7 +149,9 @@ label2:
       		strcpy(sExt, sRef);
       		sRef[0] = '\0';
    	} else { 
-      		SAFENEWARR(sExt, char, 1);
+		if (sExt == 0) {
+      			SAFENEWARR(sExt, char, 1);
+		}
       		sExt[0] = '\0'; 
    	}
    
@@ -198,6 +201,6 @@ FileName::_sPutExt(const char *sEName)
 const char *const
 FileName::sGet(void) const
 { 
-   	return ((FileName *)this)->_sPutExt(NULL); 
+   	return ((FileName*)this)->_sPutExt(NULL); 
 }
 

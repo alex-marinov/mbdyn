@@ -168,7 +168,7 @@ protected:
  
 	/* Struttura e dati per la linked list di c81 data */
 #if defined(USE_AERODYNAMIC_ELEMS)   
-	typedef std::map<integer, const C81Data *> ADType;
+	typedef std::map<integer, C81Data *> ADType;
 	ADType AD;
 
 	void C81Data_int(void);

@@ -309,7 +309,7 @@ BasicAirProperties::BasicAirProperties(const TplDriveCaller<Vec3>* pDC,
 		DriveCaller *pRho, doublereal dSS, Gust *pG, flag fOut)
 : Elem(1, fOut),
 AirProperties(pDC, pG, fOut),
-pAirDensity(pRho),
+AirDensity(pRho),
 dSoundSpeed(dSS)
 {
 	NO_OP;
@@ -325,14 +325,14 @@ std::ostream&
 BasicAirProperties::Restart(std::ostream& out) const
 {
 	out << "  air properties: ",
-		pAirDensity->Restart(out) << ", " << dSoundSpeed << ", ";
+		AirDensity.pGetDriveCaller()->Restart(out) << ", " << dSoundSpeed << ", ";
 	return AirProperties::Restart(out);
 }
    
 doublereal
 BasicAirProperties::dGetAirDensity(const Vec3& /* X */ ) const
 {
-	return pAirDensity->dGet();
+	return AirDensity.dGet();
 }
    
 doublereal

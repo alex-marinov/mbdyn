@@ -2972,6 +2972,7 @@ Solver::ReadData(MBDynParser& HP)
 					StrategyFactor.iMinIters = 1;
 				}
 
+				StrategyFactor.iMaxIters = 0;
 				if (HP.IsArg()) {
 					StrategyFactor.iMaxIters = HP.GetInt();
 					if (StrategyFactor.iMaxIters <= 0) {
@@ -3502,17 +3503,27 @@ Solver::ReadData(MBDynParser& HP)
 
 EndOfCycle: /* esce dal ciclo di lettura */
 
-	if (StrategyFactor.iMaxIters <= StrategyFactor.iMinIters) {
-		silent_cerr("warning, "
-			<< "strategy maximum number "
-			<< "of iterations "
-			<< "is <= minimum : " << StrategyFactor.iMaxIters << " <= "
-			<< StrategyFactor.iMinIters
-			<< "the maximum global iteration value " << iMaxIterations
-			<< "will be used"
-			<< std::endl);
-		StrategyFactor.iMaxIters = iMaxIterations;
+   	switch (CurrStrategy) {
+    	case FACTOR:
+		if (StrategyFactor.iMaxIters <= StrategyFactor.iMinIters) {
+			silent_cerr("warning, "
+				<< "strategy maximum number "
+				<< "of iterations "
+				<< "is <= minimum: "
+				<< StrategyFactor.iMaxIters << " <= "
+				<< StrategyFactor.iMinIters << "; "
+				<< "the maximum global iteration value " 
+				<< iMaxIterations << " "
+				<< "will be used"
+				<< std::endl);
+			StrategyFactor.iMaxIters = iMaxIterations;
+		}
+		break;
+
+	default:
+		break;
 	}
+
 	if (dFinalTime < dInitialTime) {
 		eAbortAfter = AFTER_ASSEMBLY;
 	}
