@@ -1930,14 +1930,15 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    
    /* Se necessario, interpola i parametri di rotazione delle sezioni */
    if (f_I || fII) {
-      Mat3x3 RT((R2*Rn2).Transpose());
+      Mat3x3 R(R2*Rn2);
+      Mat3x3 RT(R.Transpose());
       Vec3 g1(gparam(RT*(R1*Rn1)));
       Vec3 g3(gparam(RT*(R3*Rn3)));
       if (f_I) {
-	 R_I = R2*Mat3x3(MatR, Beam::InterpState(g1, 0., g3, Beam::S_I));
+	 R_I = R*Mat3x3(MatR, Beam::InterpState(g1, 0., g3, Beam::S_I));
       }
       if (fII) {
-	 RII = R2*Mat3x3(MatR, Beam::InterpState(g1, 0., g3, Beam::SII));
+	 RII = R*Mat3x3(MatR, Beam::InterpState(g1, 0., g3, Beam::SII));
       }	
    }
 
