@@ -53,6 +53,8 @@ extern const char* psJointNames[];
 
 class InverseDynamicsElem {
 public:
+	virtual ~InverseDynamicsElem(void) { NO_OP; };
+
 	/* inverse dynamics Jacobian matrix assembly */
 	VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,

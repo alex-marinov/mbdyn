@@ -121,6 +121,10 @@ class Gravity : public Elem, public TplDriveOwner<Vec3> {
    virtual const Vec3& GetAcceleration(const Vec3& /* X */ ) const { 
        return Acc;
    };
+
+	virtual inline int GetNumConnectedNodes(void) const {
+		return 0;
+	};
 };
 
 /* Gravity - end */
