@@ -399,60 +399,73 @@ DataManager::DofOwnerInit(void)
 	}
 
 	/* FIXME: this should rather go before initial assembly */
-	if (uPrintFlags & PRINT_EL_CONNECTION) {
-		/* per ogni elemento */
-		if (ElemIter.bGetFirst(pEl)) {
-			/* create node connection structure */
-			typedef std::set<const Elem *> elmap;
-			typedef std::map<const Node *, elmap *> nodemap;
-			std::vector<nodemap> connectedElems(Node::LASTNODETYPE);
+	/* NOTE: we run code anyway, but only print if requested/allowed
+	 * for consistency checking purposes */
 
-			/* element connections get populated directly by elements */
-			std::vector<const Node *> connectedNodes;
+	/* per ogni elemento */
+	if (ElemIter.bGetFirst(pEl)) {
+		/* create node connection structure */
+		typedef std::set<const Elem *> elmap;
+		typedef std::map<const Node *, elmap *> nodemap;
+		std::vector<nodemap> connectedElems(Node::LASTNODETYPE);
 
-			std::cout << "Element connections" << std::endl;
-			do {
-				pEl->GetConnectedNodes(connectedNodes);
+		/* element connections get populated directly by elements */
+		std::vector<const Node *> connectedNodes;
 
-				std::cout << psElemNames[pEl->GetElemType()]
-					<< "(" << pEl->GetLabel() << ") connecting" << std::endl;
-				for (std::vector<const Node *>::const_iterator i = connectedNodes.begin();
-					i != connectedNodes.end();
-					i++)
-				{
-					std::cout << "        "
+		if (uPrintFlags & PRINT_EL_CONNECTION) {
+			silent_cout("Element connections" << std::endl);
+		}
+		do {
+			pEl->GetConnectedNodes(connectedNodes);
+
+			if (uPrintFlags & PRINT_EL_CONNECTION) {
+				silent_cout(psElemNames[pEl->GetElemType()]
+					<< "(" << pEl->GetLabel() << ") connecting" << std::endl);
+			}
+			for (std::vector<const Node *>::const_iterator i = connectedNodes.begin();
+				i != connectedNodes.end();
+				i++)
+			{
+				if (uPrintFlags & PRINT_EL_CONNECTION) {
+					silent_cout("        "
 						<< psNodeNames[(*i)->GetNodeType()]
-						<< "(" << (*i)->GetLabel() << ")" << std::endl;
-
-					nodemap::iterator n = connectedElems[(*i)->GetNodeType()].find(*i);
-					if (n == connectedElems[(*i)->GetNodeType()].end()) {
-						connectedElems[(*i)->GetNodeType()][*i] = new elmap;
-					}
-					connectedElems[(*i)->GetNodeType()][*i]->insert(pEl);
+						<< "(" << (*i)->GetLabel() << ")" << std::endl);
 				}
-			} while (ElemIter.bGetNext(pEl));
+
+				nodemap::iterator n = connectedElems[(*i)->GetNodeType()].find(*i);
+				if (n == connectedElems[(*i)->GetNodeType()].end()) {
+					connectedElems[(*i)->GetNodeType()][*i] = new elmap;
+				}
+				connectedElems[(*i)->GetNodeType()][*i]->insert(pEl);
+			}
+		} while (ElemIter.bGetNext(pEl));
 
 
-			std::cout << "Node connections" << std::endl;
-			for (unsigned t = 0; t < Node::LASTNODETYPE; t++) {
-				for (nodemap::iterator n = connectedElems[t].begin();
-					n != connectedElems[t].end();
-					n++)
+		if (uPrintFlags & PRINT_EL_CONNECTION) {
+			silent_cout("Node connections" << std::endl);
+		}
+		for (unsigned t = 0; t < Node::LASTNODETYPE; t++) {
+			for (nodemap::iterator n = connectedElems[t].begin();
+				n != connectedElems[t].end();
+				n++)
+			{
+				if (uPrintFlags & PRINT_EL_CONNECTION) {
+					silent_cout(psNodeNames[n->first->GetNodeType()]
+						<< "(" << n->first->GetLabel() << ") connected to" << std::endl);
+				}
+				for (elmap::const_iterator e = n->second->begin();
+					e != n->second->end();
+					e++)
 				{
-					std::cout << psNodeNames[n->first->GetNodeType()]
-						<< "(" << n->first->GetLabel() << ") connected to" << std::endl;
-					for (elmap::const_iterator e = n->second->begin();
-						e != n->second->end();
-						e++)
-					{
-						std::cout << "        "
+					if (uPrintFlags & PRINT_EL_CONNECTION) {
+						silent_cout("        "
 							<< psElemNames[(*e)->GetElemType()]
-							<< "(" << (*e)->GetLabel() << ")" << std::endl;
+							<< "(" << (*e)->GetLabel() << ")" << std::endl);
 					}
-
-					delete n->second;
-					n->second = 0;
 				}
+
+				delete n->second;
+				n->second = 0;
 			}
 		}
 	}
