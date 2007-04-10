@@ -492,9 +492,10 @@ DataManager::InitialJointAssembly(void)
 	integer iIndex = 0;    /* Indice dei gradi di liberta' */
 	unsigned int iNumDofs = 0;  /* numero di dof di un owner */
 	for (int iCnt = 1;
-			pTmp < DofData[DofOwner::STRUCTURALNODE].pFirstDofOwner+
-				DofData[DofOwner::STRUCTURALNODE].iNum;
-			iCnt++, pTmp++, ppNode++) {
+		pTmp < DofData[DofOwner::STRUCTURALNODE].pFirstDofOwner
+			+ DofData[DofOwner::STRUCTURALNODE].iNum;
+		iCnt++, pTmp++, ppNode++)
+	{
 		iNumDofs = pTmp->iNumDofs = (*ppNode)->iGetInitialNumDof();
 		if (iNumDofs > 0) {
 			pTmp->iFirstIndex = iIndex;
@@ -521,8 +522,9 @@ DataManager::InitialJointAssembly(void)
 			iIndex += iNumDofs;
 
 		} else {
-			pedantic_cerr(psNodeNames[(*ppNode)->GetNodeType()] << "(" << iCnt
-					<< ") has 0 dofs" << std::endl);
+			pedantic_cerr(psNodeNames[(*ppNode)->GetNodeType()]
+				<< "(" << iCnt << ") has 0 dofs"
+				<< std::endl);
 		}
 	}
 
@@ -546,12 +548,20 @@ DataManager::InitialJointAssembly(void)
 				{
 					InitialAssemblyElem *pEl = dynamic_cast<InitialAssemblyElem *>(p->second);
 					if (pEl == 0) {
+						/* Ignore elements
+						 * not subjected
+						 * to initial assembly */
 						continue;
 					}
+
 					ElemWithDofs *pDOEl = dynamic_cast<ElemWithDofs *>(p->second);
 					if (pDOEl == 0) {
-						continue;	/* ?!? */
+						/* Ignore elements subjected
+						 * to initial assembly
+						 * but without dofs */
+						continue;
 					}
+
 					pTmp = (DofOwner *)pDOEl->pGetDofOwner();
 					iNumDofs = pEl->iGetInitialNumDof();
 					pTmp->iNumDofs = iNumDofs;
