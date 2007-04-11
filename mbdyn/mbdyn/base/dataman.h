@@ -77,7 +77,7 @@ class Solver;
 class DataManager : public SolutionDataManager, public SolverDiagnostics,
 	public DataManagerErrors {
 
-private:
+protected:
 #ifdef USE_MULTITHREAD
 	/* from input file, or auto-detected */
 	unsigned int nThreads;
@@ -90,7 +90,6 @@ private:
 	/* loadable elements */
 	std::map<std::string, const LoadableCalls *> MapOfLoadableElemHandlers;
 
-protected:
 	DriveHandler DrvHdl;
 	mutable OutputHandler OutHdl;
 
@@ -101,7 +100,6 @@ protected:
 	const VectorHandler* pXCurr;
 	const VectorHandler* pXPrimeCurr;
 
-private:
 	/* Parametri usati durante l'assemblaggio iniziale */
 #if defined(USE_STRUCT_NODES)
 	bool bInitialJointAssemblyToBeDone;
@@ -199,7 +197,7 @@ protected:
 	/* nothing yet */
 #endif /* USE_MOTIONVIEW */
 
-private:
+protected:
 	/* chiamate dal costruttore per leggere i relativi articoli */
 	void ReadControl(MBDynParser& HP, const char* sInputFileName);
 	void ReadNodes(MBDynParser& HP);
@@ -245,7 +243,7 @@ public:
 		return 0;
 	};
 
-private:
+protected:
 	/* chiamate a funzioni di inizializzazione */
 #if defined(USE_STRUCT_NODES)
 	void InitialJointAssembly(void);
@@ -660,7 +658,7 @@ public:
 #endif /* 0 */
 
 	/* socket select stuff */
-private:
+protected:
 	std::map<int, UseSocket *> SocketUsers;
 	time_t SocketUsersTimeout;
 
