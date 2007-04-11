@@ -60,8 +60,55 @@ Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2),
 f1(f1Tmp), R1h(R1hTmp), R1hr(R1hrTmp),
 f2(f2Tmp), R2h(R2hTmp), R2hr(R2hrTmp),
+XDrv(pDCPos), VDrv(0), VPrimeDrv(0),
+ThetaDrv(pDCRot), WDrv(0), WPrimeDrv(0),
+nConstraints(0), nPosConstraints(0), nRotConstraints(0),
+M(0.), F(0.), ThetaDelta(0.), ThetaDeltaPrev(0.)
+{
+	/* Equations 1->3: Positions
+	 * Equations 3->6: Rotations */
+
+	for (unsigned int i = 0; i < 3; i++) {
+		bPosActive[i] = bPos[i];
+		bRotActive[i] = bRot[i];
+		if (bPosActive[i]) {
+			iPosIncid[nPosConstraints] = i + 1;
+			nPosConstraints++;
+		}
+		if (bRotActive[i]) {
+			iRotIncid[nRotConstraints] = i + 1;
+			nRotConstraints++;
+		}
+	}
+	nConstraints = nPosConstraints + nRotConstraints;
+}
+
+/*inverse dynamics constructor: add drivers for velocity and acceleration */
+TotalJoint::TotalJoint(unsigned int uL, const DofOwner *pDO,
+	bool bPos[3],
+	const TplDriveCaller<Vec3> *pDCPos,
+	const TplDriveCaller<Vec3> *pDCPosPrime,
+	const TplDriveCaller<Vec3> *pDCPosPrimePrime,
+	bool bRot[3],
+	const TplDriveCaller<Vec3> *pDCRot,
+	const TplDriveCaller<Vec3> *pDCRotPrime,
+	const TplDriveCaller<Vec3> *pDCRotPrimePrime,
+	const StructNode *pN1,
+	const Vec3& f1Tmp, const Mat3x3& R1hTmp, const Mat3x3& R1hrTmp,
+	const StructNode *pN2,
+	const Vec3& f2Tmp, const Mat3x3& R2hTmp, const Mat3x3& R2hrTmp,
+	flag fOut)
+: Elem(uL, fOut),
+Joint(uL, pDO, fOut),
+pNode1(pN1), pNode2(pN2),
+f1(f1Tmp), R1h(R1hTmp), R1hr(R1hrTmp),
+f2(f2Tmp), R2h(R2hTmp), R2hr(R2hrTmp),
 XDrv(pDCPos),
+VDrv(pDCPosPrime),
+VPrimeDrv(pDCPosPrimePrime),
 ThetaDrv(pDCRot),
+WDrv(pDCRotPrime),
+WPrimeDrv(pDCRotPrimePrime),
 nConstraints(0), nPosConstraints(0), nRotConstraints(0),
 M(0.), F(0.), ThetaDelta(0.), ThetaDeltaPrev(0.)
 {
@@ -798,8 +845,6 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	Vec3 b2(pNode2->GetRCurr()*f2);
 	Vec3 b1(pNode2->GetXCurr() + b2 - pNode1->GetXCurr());
 
-	/* Equilibrium: ((Phi/q)^T*Lambda)/q */
-
 	Mat3x3 b1Cross_R1(Mat3x3(b1)*R1); // = [ b1 x ] * R1
 	Mat3x3 b2Cross_R1(Mat3x3(b2)*R1); // = [ b2 x ] * R1
 
@@ -830,7 +875,7 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	return WorkMat;
 }
 
-/* Assemblaggio residuo */
+/* inverse dynamics residual assembly */
 SubVectorHandler&
 TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr,
@@ -860,56 +905,110 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(iCnt, iFirstReactionIndex + iCnt);
 	}
 
-	Vec3 b2(pNode2->GetRCurr()*f2);
-	Vec3 b1(pNode2->GetXCurr() + b2 - pNode1->GetXCurr());
-
-	Mat3x3 R1 = pNode1->GetRCurr()*R1h;
-	Mat3x3 R1r = pNode1->GetRCurr()*R1hr;
-	Mat3x3 R2r = pNode2->GetRCurr()*R2hr;
-
-	Vec3 XDelta = R1.Transpose()*b1 - f1 - XDrv.Get();
-
-	Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
-	Mat3x3 RDelta = R1r.Transpose()*R2r*R0T;
-	ThetaDelta = RotManip::VecRot(RDelta);
-
-
 	switch (iOrder) {
-	case 0:
+	case 0:	// Position - Orientation
 		/*
 		 * identical to regular AssRes' lower block
 		 */
-
-		/* Position constraint derivative  */
-		for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
-			WorkVec.DecCoef(1 + iCnt, XDelta(iPosIncid[iCnt]));
-		}
-
-		/* Rotation constraint derivative */
-		for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
-			WorkVec.DecCoef(1 + nPosConstraints + iCnt, ThetaDelta(iRotIncid[iCnt]));
-		}
-
+		{ /* need brackets to create a "block" */	
+			Vec3 b2(pNode2->GetRCurr()*f2);
+			Vec3 b1(pNode2->GetXCurr() + b2 - pNode1->GetXCurr());
+		
+			Mat3x3 R1 = pNode1->GetRCurr()*R1h;
+			Mat3x3 R1r = pNode1->GetRCurr()*R1hr;
+			Mat3x3 R2r = pNode2->GetRCurr()*R2hr;
+		
+			Vec3 XDelta = R1.Transpose()*b1 - f1 - XDrv.Get();
+		
+			Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
+			Mat3x3 RDelta = R1r.Transpose()*R2r*R0T;
+			Vec3 ThetaDelta = RotManip::VecRot(RDelta);
+		
+			/* Position constraint  */
+			for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
+				WorkVec.DecCoef(1 + iCnt, XDelta(iPosIncid[iCnt]));
+			}
+	
+			/* Rotation constraint  */
+			for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
+				WorkVec.DecCoef(1 + nPosConstraints + iCnt, ThetaDelta(iRotIncid[iCnt]));
+			}
+		}// end case 0:
 		break;
 
-	case 1:
+	case 1:	// Velocity
 		/*
 		 * first derivative of regular AssRes' lower block
 		 */
+		{ /* need brackets to create a "block" */
+			Vec3 Tmp = VDrv.Get(); 	
+			/* Position constraint derivative  */
+			for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
+				WorkVec.PutCoef(1 + iCnt, Tmp(iPosIncid[iCnt]));
+			}
 
-		/* TODO */
-
+			Mat3x3 R1r = pNode1->GetRCurr()*R1hr;
+			Mat3x3 R2r = pNode2->GetRCurr()*R2hr;
+		
+			Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
+			Mat3x3 RDelta = R1r.Transpose()*R2r*R0T;
+	
+			/*This name is only for clarity...*/
+			Vec3 WDelta = RDelta * WDrv.Get();
+	
+			/* Rotation constraint derivative */
+			for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
+				WorkVec.DecCoef(1 + nPosConstraints + iCnt, WDelta(iRotIncid[iCnt]));
+			}
+		} // end case 1:	
 		break;
 
-	case 2:
+	case 2:	// Acceleration
 		/*
 		 * second derivative of regular AssRes' lower block
 		 */
-
-		/* TODO */
-
+		{ /* need brackets to create a "block" */
+			Vec3 b2(pNode2->GetRCurr()*f2);
+			Vec3 b1(pNode2->GetXCurr() + b2 - pNode1->GetXCurr());
+		
+			Mat3x3 R1 = pNode1->GetRCurr()*R1h;
+			
+			Vec3 b1Prime(pNode2->GetVCurr() + Mat3x3(pNode2->GetWCurr())*b2 - pNode1->GetVCurr());  
+			Vec3 Tmp = 	-Mat3x3(b1)*pNode1->GetWCurr()
+					-b1Prime
+					-pNode2->GetVCurr()
+					+Mat3x3(b2)*pNode2->GetWCurr()
+					+pNode1->GetVCurr();
+			
+			Vec3 Tmp2 = Mat3x3(pNode1->GetWCurr())*Tmp;
+	
+			Tmp2 -= Mat3x3(pNode2->GetWCurr(), pNode2->GetWCurr())*b2;
+			Tmp = R1.Transpose()*Tmp2 - VPrimeDrv.Get();
+			
+			/* Position constraint second derivative  */
+			for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
+				WorkVec.DecCoef(1 + iCnt, Tmp(iPosIncid[iCnt]));
+			}
+	
+			Mat3x3 R1r = pNode1->GetRCurr()*R1hr;
+			Mat3x3 R2r = pNode2->GetRCurr()*R2hr;
+			Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
+			Mat3x3 RDelta = R1r.Transpose()*R2r*R0T;
+		
+			Tmp = R0T * WDrv.Get();
+			Tmp2 = R2r * Tmp;
+			Tmp = Mat3x3(pNode2->GetWCurr() - pNode1->GetWCurr()) * Tmp;
+			Tmp += Mat3x3(pNode1->GetWCurr())*pNode2->GetWCurr();
+			Tmp2 = R1r.Transpose()*Tmp;
+			Tmp2 += RDelta * WPrimeDrv.Get();
+			
+			/* Rotation constraint second derivative */
+			for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
+				WorkVec.PutCoef(1 + nPosConstraints + iCnt, Tmp2(iRotIncid[iCnt]));
+			}
+		} // end case 1:
 		break;
-
+	
 	default:
 		/*
 		 * higher-order derivatives make no sense right now

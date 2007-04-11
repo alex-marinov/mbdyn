@@ -54,9 +54,14 @@ private:
 	Mat3x3 R2hr;
 	bool bPosActive[3];
 	bool bRotActive[3];
-	// alternative: use six drives to activate/deactivate constraints
+	
 	TplDriveOwner<Vec3> XDrv;
+	TplDriveOwner<Vec3> VDrv;
+	TplDriveOwner<Vec3> VPrimeDrv;
+	
 	TplDriveOwner<Vec3> ThetaDrv;
+	TplDriveOwner<Vec3> WDrv;
+	TplDriveOwner<Vec3> WPrimeDrv;
 	
 	unsigned int nConstraints;
 	unsigned int nPosConstraints;
@@ -83,6 +88,21 @@ public:
 		const Vec3& f2Tmp, const Mat3x3& R2hTmp, const Mat3x3& R2hrTmp, 
 		flag fOut);
 
+	/* inverse dynamics constructor: add drives for velocity and acceleration*/
+	TotalJoint(unsigned int uL, const DofOwner *pDO,
+		bool bPos[3],
+		const TplDriveCaller<Vec3> *pDCPos,
+		const TplDriveCaller<Vec3> *pDCPosPrime,
+		const TplDriveCaller<Vec3> *pDCPosPrimePrime,
+		bool bRot[3],
+		const TplDriveCaller<Vec3> *pDCRot,
+		const TplDriveCaller<Vec3> *pDCRotPrime,
+		const TplDriveCaller<Vec3> *pDCRotPrimePrime,
+		const StructNode* pN1,
+		const Vec3& f1Tmp, const Mat3x3& R1hTmp, const Mat3x3& R1hrTmp, 
+		const StructNode* pN2,
+		const Vec3& f2Tmp, const Mat3x3& R2hTmp, const Mat3x3& R2hrTmp, 
+		flag fOut);
 	/* Destructor */
 	~TotalJoint(void);
 
