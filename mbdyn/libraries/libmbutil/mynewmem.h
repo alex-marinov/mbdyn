@@ -595,21 +595,21 @@ extern ostream& operator << (ostream& rout, const clMemMan& rm);
 
 #define SAFEDELETE_(pnt, memman) \
 	do { \
-		ASSERT(pnt); \
+		ASSERT((pnt) != 0); \
 		delete (pnt); \
 		(pnt) = NULL; \
 	} while (0)
 
 #define SAFEDELETEARR_(pnt, memman) \
 	do { \
-		ASSERT(pnt); \
+		ASSERT((pnt) != 0); \
 		delete[] (pnt); \
 		(pnt) = NULL; \
 	} while (0)
 
 #define SAFEDELETEANDFILLARR_(pnt, memman) \
 	do { \
-		ASSERT(pnt); \
+		ASSERT((pnt) != 0); \
 		delete[] (pnt); \
 		(pnt) = NULL; \
 	} while (0)      

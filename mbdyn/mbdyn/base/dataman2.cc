@@ -1331,6 +1331,9 @@ DataManager::AfterConvergence(void) const
 
 	/* Restart condizionato */
 	switch (RestartEvery) {
+	case NEVER:
+		break;
+
 	case ITERATIONS:
 		if (++iCurrRestartIter == iRestartIterations) {
 			iCurrRestartIter = 0;

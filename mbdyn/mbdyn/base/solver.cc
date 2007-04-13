@@ -1738,8 +1738,13 @@ Solver::~Solver(void)
 			}
 		}
 	}
-	SAFEDELETE(pX);
-	SAFEDELETE(pXPrime);
+
+	if (pX) {
+		SAFEDELETE(pX);
+	}
+	if (pXPrime) {
+		SAFEDELETE(pXPrime);
+	}
 
    	if (pdWorkSpace != NULL) {
       		SAFEDELETEARR(pdWorkSpace);

@@ -336,9 +336,9 @@ Solver::Flip(void)
 	/* copy from pX, pXPrime to qx[0], qxPrime[0] */
 	MyVectorHandler* x = qX[0];
 	MyVectorHandler* xp = qXPrime[0];
-	for (integer i=1; i<=iNumDofs; i++) {
-		x->PutCoef(i,pX->dGetCoef(i));
-		xp->PutCoef(i,pXPrime->dGetCoef(i));
+	for (integer i = 1; i <= iNumDofs; i++) {
+		x->PutCoef(i, pX->dGetCoef(i));
+		xp->PutCoef(i, pXPrime->dGetCoef(i));
 	}			
 }
 
