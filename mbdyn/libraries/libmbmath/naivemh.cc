@@ -48,7 +48,7 @@
 NaiveMatrixHandler::NaiveMatrixHandler(const integer n, 
 	NaiveMatrixHandler *const nmh)
 :  iSize(n), bOwnsMemory(true),
-ppdRows(0), ppiRows(0), ppiCols(0), piNzr(0), piNzc(0)
+ppdRows(0), ppiRows(0), ppiCols(0), ppnonzero(0), piNzr(0), piNzc(0)
 {
 	if (nmh) {
 		bOwnsMemory = false;
