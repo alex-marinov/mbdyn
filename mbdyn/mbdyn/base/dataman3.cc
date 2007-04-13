@@ -807,6 +807,10 @@ EndOfUse:
 		} break;
 
 		case OUTPUTFREQUENCY: {
+			if (pOutputMeter != 0) {
+				silent_cerr("Output meter/frequency already defined" << std::endl);
+				throw ErrGeneric();
+			}
 			integer iFreq = HP.GetInt();
 			if (iFreq < 1) {
 				silent_cerr("Illegal output frequency " << iFreq
@@ -824,7 +828,7 @@ EndOfUse:
 
 		case OUTPUTMETER:
 			if (pOutputMeter != 0) {
-				silent_cerr("Output meter already defined" << std::endl);
+				silent_cerr("Output meter/frequency already defined" << std::endl);
 				throw ErrGeneric();
 			}
 			pOutputMeter = ReadDriveData(this, HP, false);
