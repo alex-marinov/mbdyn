@@ -594,7 +594,6 @@ SchurVectorHandler::PutCoef(integer iRow, const doublereal& dCoef)
 {
 #ifdef DEBUG
 	IsValid();
-	}
 #endif /* DEBUG */
 
 	if (pGTL[iRow] > 0) {

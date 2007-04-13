@@ -82,10 +82,10 @@ public:
 	};
 
 	const doublereal& operator () (integer i_row, integer i_col) const {
-		ASSERTMSGBREAK(ix > 0 && ix <= NRows,
+		ASSERTMSGBREAK(i_row > 0 && i_row <= NRows,
 				"Error in CColMatrixHandler::operator(), "
 				"row index out of range");
-		ASSERTMSGBREAK(iy > 0 && iy <= NCols,
+		ASSERTMSGBREAK(i_col > 0 && i_col <= NCols,
 				"Error in CColMatrixHandler::operator(), "
 				"col index out of range");
 

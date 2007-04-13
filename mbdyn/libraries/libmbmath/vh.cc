@@ -213,8 +213,6 @@ VectorHandler::operator *= (const doublereal& d)
 {
 #ifdef DEBUG
 	IsValid();
-	VH.IsValid();
-	ASSERT(iGetSize() == VH.iGetSize());
 #endif /* DEBUG */
 
 	for (integer i = iGetSize(); i > 0; i--) {
@@ -582,11 +580,7 @@ MyVectorHandler::operator *= (const doublereal& d)
 {
 #ifdef DEBUG
 	IsValid();
-	VH.IsValid();
 #endif /* DEBUG */
-
-	ASSERT(VH.iGetSize() > 0);
-	ASSERT(iCurSize == VH.iGetSize());
 
 	for (integer i = iGetSize(); i > 0; i--) {
 		pdVecm1[i] *= d;

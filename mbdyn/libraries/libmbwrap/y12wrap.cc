@@ -590,7 +590,6 @@ Y12SparseSolutionManager::IsValid(void) const
    	ASSERT(defaultMemoryManager.fIsPointerToBlock(pLS));
 #endif /* DEBUG_MEMMANAGER */
    
-   	ASSERT(VH.IsValid());
    	ASSERT(pLS->IsValid());
 }
 #endif /* DEBUG */
