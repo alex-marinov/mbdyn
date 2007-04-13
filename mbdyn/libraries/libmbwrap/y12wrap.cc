@@ -585,12 +585,11 @@ void
 Y12SparseSolutionManager::IsValid(void) const
 {   
    	ASSERT(iMatSize > 0);
-   
+
 #ifdef DEBUG_MEMMANAGER
    	ASSERT(defaultMemoryManager.fIsPointerToBlock(pLS));
 #endif /* DEBUG_MEMMANAGER */
-   
-   	ASSERT(pLS->IsValid());
+   	pLS->IsValid();
 }
 #endif /* DEBUG */
 

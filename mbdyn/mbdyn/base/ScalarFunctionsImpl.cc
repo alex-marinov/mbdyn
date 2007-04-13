@@ -1127,7 +1127,7 @@ class ScalarFunctionOrthotropicCL
 : public ConstitutiveLaw<T, Tder> {
 private:
 	std::vector<const DifferentiableScalarFunction *> SF;
-	int n;
+	unsigned n;
 
 public:
 	ScalarFunctionOrthotropicCL(const std::vector<const DifferentiableScalarFunction *>& sf)
@@ -1145,7 +1145,7 @@ public:
 
 		ASSERT(sf.size() == n);
 		SF.resize(n);
-		for (int i = 0; i < n; i++) {
+		for (unsigned i = 0; i < n; i++) {
 			SF[i] = sf[i];
 		}
 	};
@@ -1172,7 +1172,7 @@ public:
 
 	virtual void Update(const T& Eps, const T& /* EpsPrime */  = 0.) {
 		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
-		for (int i = 1; i <= n; i++) {
+		for (unsigned i = 1; i <= n; i++) {
 			/* skip null scalar functions */
 			if (SF[i - 1] == 0) {
 				continue;

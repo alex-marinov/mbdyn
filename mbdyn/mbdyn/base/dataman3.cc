@@ -763,7 +763,7 @@ EndOfUse:
 					RestartEvery = TIME;
 					dRestartTime = HP.GetReal();
 					DEBUGLCOUT(MYDEBUG_INPUT,
-						"every " << pdRestartTime[0]
+						"every " << dRestartTime
 						<< " time units" << std::endl);
 				} else if (HP.IsKeyWord("times")) {
 					RestartEvery = TIMES;
