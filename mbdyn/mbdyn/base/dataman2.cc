@@ -797,7 +797,8 @@ DataManager::InitialJointAssembly(void)
 #ifdef DEBUG
 				DEBUG_LEVEL_MATCH(MYDEBUG_ASSEMBLY) ||
 #endif /* DEBUG */
-				outputIters()) {
+				outputIters())
+		{
 			silent_cout("Iteration(" << iNumIter << "), "
 				"Test=" << dTest
 				<< " (Tol=" << dInitialAssemblyTol << ")"

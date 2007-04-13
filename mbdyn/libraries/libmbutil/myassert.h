@@ -157,35 +157,35 @@ extern std::ostream& _Out(std::ostream& out, const char* file, const int line);
     } while (0)
 
 #define DEBUG_LEVEL(level) \
-    level & ::debug_level
+    ((level) & ::debug_level)
 
 #define DEBUG_LEVEL_MATCH(level) \
-      (level & ::debug_level) == level
+      (((level) & ::debug_level) == (level))
 
 #define DEBUGLCOUT(level, msg) \
     do { \
-        if (::debug_level & level) { \
+        if (::debug_level & (level)) { \
             DEBUGCOUT(msg); \
         } \
     } while (0)
 
 #define DEBUGLCERR(level, msg) \
     do { \
-        if (::debug_level & level) { \
+        if (::debug_level & (level)) { \
             DEBUGCERR(msg); \
         } \
     } while (0)
 
 #define DEBUGLMCOUT(level, msg) \
     do { \
-        if ((::debug_level & level) == level) { \
+        if ((::debug_level & (level)) == (level)) { \
             DEBUGCOUT(msg); \
         } \
     } while (0)
 
 #define DEBUGLMCERR(level, msg) \
     do { \
-        if ((::debug_level & level) == level) { \
+        if ((::debug_level & (level)) == (level)) { \
             DEBUGCERR(msg); \
         } \
     } while (0)

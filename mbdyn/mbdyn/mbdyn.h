@@ -86,12 +86,12 @@ enum {
 #define USE_INCLUDE_PARSER
 #endif /* defined(HAVE_GETCWD) && defined(HAVE_CHDIR) */
 
+/* Global macros */
+#ifdef __cplusplus
+
 /* Global variables */
 extern int fSilent;
 extern int fPedantic;
-
-/* Global macros */
-#ifdef __cplusplus
 
 #define silent_output \
 	(::fSilent > 0)
