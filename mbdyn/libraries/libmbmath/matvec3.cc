@@ -274,7 +274,7 @@ Vec3 gparam(const Mat3x3& m)
    /* test di singolarita' */
    doublereal d = 1.+m.Trace();
    
-   if (d == 0.) {
+   if (fabs(d) < DBL_EPSILON) {
       silent_cerr("gparam(): divide by zero,"
         " probably due to singularity in rotation parameters" << std::endl);
       throw ErrGeneric();
