@@ -552,7 +552,7 @@ DataManager::InitialJointAssembly(void)
 				ElemData[iCnt1].DofOwnerType;
 
 			if (CurrDofType != DofOwner::UNKNOWN) {
-				ASSERT(DofData[CurrDofType].iNum == ElemData[iCnt1].ElemMap.size());
+				ASSERT((unsigned)DofData[CurrDofType].iNum == ElemData[iCnt1].ElemMap.size());
 
 				/* Iterazione sugli Elem */
 				for (ElemMapType::const_iterator p = ElemData[iCnt1].ElemMap.begin();
@@ -667,17 +667,13 @@ DataManager::InitialJointAssembly(void)
 	 * e di eventuali paraametri extra */
 	SolutionManager* pSM = CurrSolver.GetSolutionManager(iInitialNumDofs);
 
-	/* Crea il vettore con lo stato del sistema durante l'assemblaggio */
-	doublereal* pdX = NULL;
-	SAFENEWARR(pdX, doublereal, iInitialNumDofs);
-
 #ifdef DEBUG_MEMMANAGER
 	DEBUGLCOUT(MYDEBUG_MEM|MYDEBUG_ASSEMBLY,
 			"After initialisation in InitialJointAssembly" << std::endl
 			<< defaultMemoryManager << std::endl);
 #endif /* DEBUG_MEMMANAGER */
 
-	MyVectorHandler X(iInitialNumDofs, pdX);
+	MyVectorHandler X(iInitialNumDofs);
 	X.Reset();
 
 	/* Linka il DriveHandler al vettore soluzione */
@@ -686,7 +682,8 @@ DataManager::InitialJointAssembly(void)
 	/* Setta i valori iniziali dei gradi di liberta' dei nodi strutturali
 	 * durante l'assemblaggio iniziale */
 	for (StructNode** ppTmpNode = ppFirstNode;
-			ppTmpNode < ppFirstNode+iNumNodes; ppTmpNode++) {
+		ppTmpNode < ppFirstNode+iNumNodes; ppTmpNode++)
+	{
 		(*ppTmpNode)->SetInitialValue(X);
 	}
 
@@ -911,12 +908,6 @@ DataManager::InitialJointAssembly(void)
 	}
 
 endofcycle:
-	/* Distrugge il vettore soluzione */
-	ASSERT(pdX != NULL);
-	if (pdX != NULL) {
-		SAFEDELETEARR(pdX);
-	}
-
 	/* Resetta e distrugge la struttura temporanea dei Dof */
 
 	/* Elementi: rimette a posto il numero di Dof propri dei vincoli */
