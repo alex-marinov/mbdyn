@@ -64,6 +64,7 @@
 
 class BasicIO {
 public:
+	virtual ~BasicIO(void) { NO_OP; };
 	virtual int ReadMeasures(s2s_t& s2s) = 0;
 	virtual int SendControls(s2s_t& s2s) = 0;
 };
