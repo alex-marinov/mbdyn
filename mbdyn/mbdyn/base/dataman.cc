@@ -141,6 +141,7 @@ Var_Step(0),
 Var_Time(0),
 Var_TimeStep(0),
 #endif /* USE_NETCDF */
+od(UNKNOWN_ORIENTATION_DESCRIPTION),
 #if defined(USE_ADAMS) || defined(USE_MOTIONVIEW)
 iOutputBlock(1),
 #endif /* defined(USE_ADAMS) || defined(USE_MOTIONVIEW) */
