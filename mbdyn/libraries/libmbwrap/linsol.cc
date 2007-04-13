@@ -399,6 +399,11 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 	const unsigned perm = (solverFlags & LinSol::SOLVER_FLAGS_PERM_MASK);
 	const bool mt = (solverFlags & LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT);
 
+	/* silence warning */
+	if (mt) {
+		NO_OP;
+	}
+
 	ASSERT((::solver[currSolver].s_flags & solverFlags) == solverFlags);
 
 	if (iLWS == 0) {
