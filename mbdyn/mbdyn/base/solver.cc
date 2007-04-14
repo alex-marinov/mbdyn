@@ -3789,416 +3789,473 @@ do_eig(const doublereal& b, const doublereal& re,
 void
 Solver::Eig(void)
 {
-   DEBUGCOUTFNAME("Solver::Eig");
+	DEBUGCOUTFNAME("Solver::Eig");
 
-   /*
-    * MatA, MatB: MatrixHandlers to eigenanalysis matrices
-    * MatL, MatR: MatrixHandlers to eigenvectors, if required
-    * AlphaR, AlphaI Beta: eigenvalues
-    * WorkVec:    Workspace
-    * iWorkSize:  Size of the workspace
-    */
+	/*
+	 * MatA, MatB: MatrixHandlers to eigenanalysis matrices
+	 * MatL, MatR: MatrixHandlers to eigenvectors, if required
+	 * AlphaR, AlphaI Beta: eigenvalues
+	 * WorkVec:    Workspace
+	 * iWorkSize:  Size of the workspace
+	 */
 
-   DEBUGCOUT("Solver::Eig(): performing eigenanalysis" << std::endl);
+	DEBUGCOUT("Solver::Eig(): performing eigenanalysis" << std::endl);
 
-   char sL[2] = "V";
-   char sR[2] = "V";
+	char sL[2] = "V";
+	char sR[2] = "V";
 
-   /* iNumDof is a member, set after dataman constr. */
-   integer iSize = iNumDofs;
-   /* Minimum workspace size. To be improved */
-   integer iWorkSize = 8*iNumDofs;
-   integer iInfo = 0;
+	/* iNumDof is a member, set after dataman constr. */
+	integer iSize = iNumDofs;
+	/* Minimum workspace size. To be improved */
+	integer iWorkSize = 8*iNumDofs;
+	integer iInfo = 0;
 
-   /* Workspaces */
-   /* 4 matrices iSize x iSize, 3 vectors iSize x 1, 1 vector iWorkSize x 1 */
-   doublereal* pd = NULL;
-   int iTmpSize = 4*(iSize*iSize)+3*iSize+iWorkSize;
-   SAFENEWARR(pd, doublereal, iTmpSize);
-   for (int iCnt = iTmpSize; iCnt-- > 0; ) {
-      pd[iCnt] = 0.;
-   }
+	/* Workspaces */
+	/* 4 matrices iSize x iSize, 3 vectors iSize x 1, 1 vector iWorkSize x 1 */
+	doublereal* pd = NULL;
+	int iTmpSize = 4*(iSize*iSize)+3*iSize+iWorkSize;
+	SAFENEWARR(pd, doublereal, iTmpSize);
+	for (int iCnt = iTmpSize; iCnt-- > 0; ) {
+		pd[iCnt] = 0.;
+	}
 
-   /* 4 pointer arrays iSize x 1 for the matrices */
-   doublereal** ppd = NULL;
-   SAFENEWARR(ppd, doublereal*, 4*iSize);
+	/* 4 pointer arrays iSize x 1 for the matrices */
+	doublereal** ppd = NULL;
+	SAFENEWARR(ppd, doublereal*, 4*iSize);
 
-   /* Data Handlers */
-   doublereal* pdTmp = pd;
-   doublereal** ppdTmp = ppd;
+	/* Data Handlers */
+	doublereal* pdTmp = pd;
+	doublereal** ppdTmp = ppd;
 
 #if 0
-   doublereal* pdA = pd;
-   doublereal* pdB = pdA+iSize*iSize;
-   doublereal* pdVL = pdB+iSize*iSize;
-   doublereal* pdVR = pdVL+iSize*iSize;
-   doublereal* pdAlphaR = pdVR+iSize*iSize;
-   doublereal* pdAlphaI = pdAlphaR+iSize;
-   doublereal* pdBeta = pdAlphaI+iSize;
-   doublereal* pdWork = pdBeta+iSize;
+	doublereal* pdA = pd;
+	doublereal* pdB = pdA+iSize*iSize;
+	doublereal* pdVL = pdB+iSize*iSize;
+	doublereal* pdVR = pdVL+iSize*iSize;
+	doublereal* pdAlphaR = pdVR+iSize*iSize;
+	doublereal* pdAlphaI = pdAlphaR+iSize;
+	doublereal* pdBeta = pdAlphaI+iSize;
+	doublereal* pdWork = pdBeta+iSize;
 #endif /* 0 */
 
-   FullMatrixHandler MatA(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);
-   MatA.Reset();
-   pdTmp += iSize*iSize;
-   ppdTmp += iSize;
+	FullMatrixHandler MatA(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);
+	MatA.Reset();
+	pdTmp += iSize*iSize;
+	ppdTmp += iSize;
 
-   FullMatrixHandler MatB(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);
-   MatB.Reset();
-   pdTmp += iSize*iSize;
-   ppdTmp += iSize;
+	FullMatrixHandler MatB(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);
+	MatB.Reset();
+	pdTmp += iSize*iSize;
+	ppdTmp += iSize;
 
-   FullMatrixHandler MatL(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);
-   pdTmp += iSize*iSize;
-   ppdTmp += iSize;
+	FullMatrixHandler MatL(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);
+	pdTmp += iSize*iSize;
+	ppdTmp += iSize;
 
-   FullMatrixHandler MatR(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);
-   pdTmp += iSize*iSize;
+	FullMatrixHandler MatR(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);
+	pdTmp += iSize*iSize;
 
-   MyVectorHandler AlphaR(iSize, pdTmp);
-   pdTmp += iSize;
+	MyVectorHandler AlphaR(iSize, pdTmp);
+	pdTmp += iSize;
 
-   MyVectorHandler AlphaI(iSize, pdTmp);
-   pdTmp += iSize;
+	MyVectorHandler AlphaI(iSize, pdTmp);
+	pdTmp += iSize;
 
-   MyVectorHandler Beta(iSize, pdTmp);
-   pdTmp += iSize;
+	MyVectorHandler Beta(iSize, pdTmp);
+	pdTmp += iSize;
 
-   MyVectorHandler WorkVec(iWorkSize, pdTmp);
+	MyVectorHandler WorkVec(iWorkSize, pdTmp);
 
-   /* Matrices Assembly (vedi eig.ps) */
-   doublereal h = dEigParam;
-   pDM->AssJac(MatA, -h/2.);
-   pDM->AssJac(MatB, h/2.);
+	/* Matrices Assembly (vedi eig.ps) */
+	doublereal h = dEigParam;
+	pDM->AssJac(MatA, -h/2.);
+	pDM->AssJac(MatB, h/2.);
 
 #ifdef DEBUG
-   DEBUGCOUT(std::endl << "Matrix A:" << std::endl << MatA << std::endl
-	     << "Matrix B:" << std::endl << MatB << std::endl);
+	DEBUGCOUT(std::endl
+		<< "Matrix A:" << std::endl << MatA << std::endl
+		<< "Matrix B:" << std::endl << MatB << std::endl);
 #endif /* DEBUG */
 
-   if (eEigenAnalysis == EIG_OUTPUTMATRICES) {
-      char *tmpFileName = NULL;
-      const char *srcFileName = NULL;
-      if (sOutputFileName == NULL) {
-	 srcFileName = sInputFileName;
-      } else {
-	 srcFileName = sOutputFileName;
-      }
+	if (eEigenAnalysis == EIG_OUTPUTMATRICES) {
+		char *tmpFileName = NULL;
+		const char *srcFileName = NULL;
+		if (sOutputFileName == NULL) {
+			srcFileName = sInputFileName;
+		} else {
+			srcFileName = sOutputFileName;
+		}
 
-      size_t l = strlen(srcFileName);
-      SAFENEWARR(tmpFileName, char, l+1+3+1);
-      strcpy(tmpFileName, srcFileName);
-      strcpy(tmpFileName+l, ".mat");
+		size_t l = strlen(srcFileName);
+		SAFENEWARR(tmpFileName, char, l+1+3+1);
+		strcpy(tmpFileName, srcFileName);
 
-      std::ofstream o(tmpFileName);
+#if 0
+		strcpy(tmpFileName+l, ".mat");
 
-      o << MatA << std::endl << MatB << std::endl;
+		std::ofstream o(tmpFileName);
 
-      o.close();
-      SAFEDELETEARR(tmpFileName);
-   }
+		o
+			<< MatA << std::endl
+			<< MatB << std::endl;
+		o.close();
+#endif
+
+		strcpy(tmpFileName+l, ".m");
+		std::ofstream o(tmpFileName);
+
+		o.setf(std::ios::right | std::ios::scientific);
+		o.precision(16);
+
+		/* coefficient */
+		o
+			<< "% coefficient" << std::endl
+			<< "dCoef = " << h/2. << ";" << std::endl;
+
+		/* first matrix */
+		o
+			<< "% F/xPrime + dCoef * F/x" << std::endl
+			<< "A1 = [";
+
+		for (integer r = 1; r <= iSize; r++) {
+			for (integer c = 1; c <= iSize; c++) {
+				o << std::setw(24) << MatA(r, c);
+			}
+
+			if (r == iSize) {
+				o << "];" << std::endl;
+
+			} else {
+				o << ";" << std::endl;
+			}
+		}
+
+		/* second matrix */
+		o
+			<< "% F/xPrime - dCoef * F/x" << std::endl
+			<< "A2 = [";
+
+		for (integer r = 1; r <= iSize; r++) {
+			for (integer c = 1; c <= iSize; c++) {
+				o << std::setw(24) << MatB(r, c);
+			}
+
+			if (r == iSize) {
+				o << "]";
+			}
+			o << ";" << std::endl;
+		}
+
+		o.close();
+
+		SAFEDELETEARR(tmpFileName);
+	}
 
 #ifdef DEBUG_MEMMANAGER
-   ASSERT(defaultMemoryManager.fIsValid(MatA.pdGetMat(),
-			   iSize*iSize*sizeof(doublereal)));
-   ASSERT(defaultMemoryManager.fIsValid(MatB.pdGetMat(),
-			   iSize*iSize*sizeof(doublereal)));
-   ASSERT(defaultMemoryManager.fIsValid(MatL.pdGetMat(),
-			   iSize*iSize*sizeof(doublereal)));
-   ASSERT(defaultMemoryManager.fIsValid(MatR.pdGetMat(),
-			   iSize*iSize*sizeof(doublereal)));
-   ASSERT(defaultMemoryManager.fIsValid(AlphaR.pdGetVec(),
-			   iSize*sizeof(doublereal)));
-   ASSERT(defaultMemoryManager.fIsValid(AlphaI.pdGetVec(),
-			   iSize*sizeof(doublereal)));
-   ASSERT(defaultMemoryManager.fIsValid(Beta.pdGetVec(),
-			   iSize*sizeof(doublereal)));
-   ASSERT(defaultMemoryManager.fIsValid(WorkVec.pdGetVec(),
-			   iWorkSize*sizeof(doublereal)));
+	ASSERT(defaultMemoryManager.fIsValid(MatA.pdGetMat(),
+		iSize*iSize*sizeof(doublereal)));
+	ASSERT(defaultMemoryManager.fIsValid(MatB.pdGetMat(),
+		iSize*iSize*sizeof(doublereal)));
+	ASSERT(defaultMemoryManager.fIsValid(MatL.pdGetMat(),
+		iSize*iSize*sizeof(doublereal)));
+	ASSERT(defaultMemoryManager.fIsValid(MatR.pdGetMat(),
+		iSize*iSize*sizeof(doublereal)));
+	ASSERT(defaultMemoryManager.fIsValid(AlphaR.pdGetVec(),
+		iSize*sizeof(doublereal)));
+	ASSERT(defaultMemoryManager.fIsValid(AlphaI.pdGetVec(),
+		iSize*sizeof(doublereal)));
+	ASSERT(defaultMemoryManager.fIsValid(Beta.pdGetVec(),
+		iSize*sizeof(doublereal)));
+	ASSERT(defaultMemoryManager.fIsValid(WorkVec.pdGetVec(),
+		iWorkSize*sizeof(doublereal)));
 #endif /* DEBUG_MEMMANAGER */
 
 
-   /* Eigenanalysis */
-   __FC_DECL__(dgegv)(sL,
-	  sR,
-	  &iSize,
-	  MatA.pdGetMat(),
-	  &iSize,
-	  MatB.pdGetMat(),
-	  &iSize,
-	  AlphaR.pdGetVec(),
-	  AlphaI.pdGetVec(),
-	  Beta.pdGetVec(),
-	  MatL.pdGetMat(),
-	  &iSize,
-	  MatR.pdGetMat(),
-	  &iSize,
-	  WorkVec.pdGetVec(),
-	  &iWorkSize,
-	  &iInfo);
+/* Eigenanalysis */
+	__FC_DECL__(dgegv)(sL,
+		sR,
+		&iSize,
+		MatA.pdGetMat(),
+		&iSize,
+		MatB.pdGetMat(),
+		&iSize,
+		AlphaR.pdGetVec(),
+		AlphaI.pdGetVec(),
+		Beta.pdGetVec(),
+		MatL.pdGetMat(),
+		&iSize,
+		MatR.pdGetMat(),
+		&iSize,
+		WorkVec.pdGetVec(),
+		&iWorkSize,
+		&iInfo);
 
-   std::ostream& Out = pDM->GetOutFile();
-   Out << "Info: " << iInfo << ", ";
+	std::ostream& Out = pDM->GetOutFile();
+	Out << "Info: " << iInfo << ", ";
 
-   const char* const sErrs[] = {
-      "DGGBAL",
-	"DGEQRF",
-	"DORMQR",
-	"DORGQR",
-	"DGGHRD",
-	"DHGEQZ (other than failed iteration)",
-	"DTGEVC",
-	"DGGBAK (computing VL)",
-	"DGGBAK (computing VR)",
-	"DLASCL (various calls)"
-   };
+	const char* const sErrs[] = {
+		"DGGBAL",
+		"DGEQRF",
+		"DORMQR",
+		"DORGQR",
+		"DGGHRD",
+		"DHGEQZ (other than failed iteration)",
+		"DTGEVC",
+		"DGGBAK (computing VL)",
+		"DGGBAK (computing VR)",
+		"DLASCL (various calls)"
+	};
 
-   if (iInfo == 0) {
-      /* = 0:  successful exit */
-      Out << "success" << std::endl;
+	if (iInfo == 0) {
+		/* = 0:  successful exit */
+		Out << "success" << std::endl;
 
-   } else if (iInfo < 0) {
-      char *th = "th";
+	} else if (iInfo < 0) {
+		char *th = "th";
 
-      /* Aaaaah, English! :) */
-      if (-iInfo/10 != 10) {
-         switch ((-iInfo+20)%10) {
-         case 1:
-	    th = "st";
-	    break;
-         case 2:
-	    th = "nd";
-	    break;
-	 case 3:
-	    th = "rd";
-	    break;
-	 }
-      }
-      /* < 0:  if INFO = -i, the i-th argument had an illegal value. */
-      Out << "the " << -iInfo << "-" << th
-	      << " argument had an illegal value" << std::endl;
+		/* Aaaaah, English! :) */
+		if (-iInfo/10 != 10) {
+			switch ((-iInfo + 20) % 10) {
+			case 1:
+				th = "st";
+				break;
+			case 2:
+				th = "nd";
+				break;
+			case 3:
+				th = "rd";
+				break;
+			}
+		}
 
-   } else if (iInfo > 0 && iInfo <= iSize) {
-      /* = 1,...,N:
-       * The QZ iteration failed.  No eigenvectors have been
-       * calculated, but ALPHAR(j), ALPHAI(j), and BETA(j)
-       * should be correct for j=INFO+1,...,N. */
-      Out << "the QZ iteration failed, but eigenvalues "
-	<< iInfo+1 << "->" << iSize << "should be correct" << std::endl;
+		/* < 0:  if INFO = -i, the i-th argument had an illegal value. */
+		Out << "the " << -iInfo << "-" << th
+			<< " argument had an illegal value" << std::endl;
 
-   } else if (iInfo > iSize) {
-      /* > N:  errors that usually indicate LAPACK problems:
-       * =N+1: error return from DGGBAL
-       * =N+2: error return from DGEQRF
-       * =N+3: error return from DORMQR
-       * =N+4: error return from DORGQR
-       * =N+5: error return from DGGHRD
-       * =N+6: error return from DHGEQZ (other than failed iteration)
-       * =N+7: error return from DTGEVC
-       * =N+8: error return from DGGBAK (computing VL)
-       * =N+9: error return from DGGBAK (computing VR)
-       * =N+10: error return from DLASCL (various calls) */
-      Out << "error return from " << sErrs[iInfo-iSize-1] << std::endl;
-   }
+	} else if (iInfo > 0 && iInfo <= iSize) {
+		/* = 1,...,N:
+		 * The QZ iteration failed.  No eigenvectors have been
+		 * calculated, but ALPHAR(j), ALPHAI(j), and BETA(j)
+		 * should be correct for j=INFO+1,...,N. */
+		Out << "the QZ iteration failed, but eigenvalues "
+			<< iInfo + 1 << "->" << iSize << "should be correct"
+			<< std::endl;
 
-   /* Output? */
-   Out << "Mode n. " "  " "    Real    " "   " "    Imag    " "  " "    " "   Damp %   " "  Freq Hz" << std::endl;
+	} else if (iInfo > iSize) {
+		/* > N:  errors that usually indicate LAPACK problems:
+		 * =N+1: error return from DGGBAL
+		 * =N+2: error return from DGEQRF
+		 * =N+3: error return from DORMQR
+		 * =N+4: error return from DORGQR
+		 * =N+5: error return from DGGHRD
+		 * =N+6: error return from DHGEQZ (other than failed iteration)
+		 * =N+7: error return from DTGEVC
+		 * =N+8: error return from DGGBAK (computing VL)
+		 * =N+9: error return from DGGBAK (computing VR)
+		 * =N+10: error return from DLASCL (various calls) */
+		Out << "error return from " << sErrs[iInfo-iSize-1] << std::endl;
+	}
 
-   for (int iCnt = 1; iCnt <= iSize; iCnt++) {
-      Out << std::setw(8) << iCnt << ": ";
+	/* Output? */
+	Out << "Mode n. " "  " "    Real    " "   " "    Imag    " "  " "    " "   Damp %   " "  Freq Hz" << std::endl;
 
-      doublereal b = Beta.dGetCoef(iCnt);
-      doublereal re = AlphaR.dGetCoef(iCnt);
-      doublereal im = AlphaI.dGetCoef(iCnt);
-      doublereal sigma;
-      doublereal omega;
-      doublereal csi;
-      doublereal freq;
+	for (int iCnt = 1; iCnt <= iSize; iCnt++) {
+		Out << std::setw(8) << iCnt << ": ";
 
-      int isPi = do_eig(b, re, im, h, sigma, omega, csi, freq);
+		doublereal b = Beta.dGetCoef(iCnt);
+		doublereal re = AlphaR.dGetCoef(iCnt);
+		doublereal im = AlphaI.dGetCoef(iCnt);
+		doublereal sigma;
+		doublereal omega;
+		doublereal csi;
+		doublereal freq;
 
-      if (isPi) {
-	      Out << std::setw(12) << 0. << " - " << "          PI j";
-      } else {
-	      Out << std::setw(12) << sigma << " + " << std::setw(12) << omega << " j";
-      }
+		int isPi = do_eig(b, re, im, h, sigma, omega, csi, freq);
 
-      if (fabs(csi) > 1.e-15) {
-	      Out << "    " << std::setw(12) << csi;
-      } else {
-	      Out << "    " << std::setw(12) << 0.;
-      }
+		if (isPi) {
+			Out << std::setw(12) << 0. << " - " << "          PI j";
+		} else {
+			Out << std::setw(12) << sigma << " + " << std::setw(12) << omega << " j";
+		}
 
-      if (isPi) {
-	      Out << "    " << "PI";
-      } else {
-	      Out << "    " << std::setw(12) << freq;
-      }
+		/* FIXME: why 1.e-15? */
+		if (fabs(csi) > 1.e-15) {
+			Out << "    " << std::setw(12) << csi;
+		} else {
+			Out << "    " << std::setw(12) << 0.;
+		}
 
-      Out << std::endl;
-   }
+		if (isPi) {
+			Out << "    " << "PI";
+		} else {
+			Out << "    " << std::setw(12) << freq;
+		}
+
+		Out << std::endl;
+	}
 
 #if 0
 #ifdef __HACK_NASTRAN_MODES__
-   /* EXPERIMENTAL */
-   std::ofstream f06, pch;
-   char datebuf[] = "11/14/95"; /* as in the example I used :) */
+	/* EXPERIMENTAL */
+	std::ofstream f06, pch;
+	char datebuf[] = "11/14/95"; /* as in the example I used :) */
 
 #if defined(HAVE_STRFTIME) && defined(HAVE_LOCALTIME) && defined(HAVE_TIME)
-   time_t currtime = time(NULL);
-   struct tm *currtm = localtime(&currtime);
-   if (currtm) {
+	time_t currtime = time(NULL);
+	struct tm *currtm = localtime(&currtime);
+	if (currtm) {
 #warning "Your compiler might complain about %y"
 #warning "in strftime() yielding only the last"
 #warning "two digits of the year; don't worry,"
 #warning "it's intended :)"
-   	strftime(datebuf, sizeof(datebuf)-1, "%m/%d/%y", currtm);
-   }
+		strftime(datebuf, sizeof(datebuf)-1, "%m/%d/%y", currtm);
+	}
 #endif /* HAVE_STRFTIME && HAVE_LOCALTIME && HAVE_TIME */
 
-   if (bOutputModes) {
-	   /* crea il file .pch */
-	   char *tmp = NULL;
+	if (bOutputModes) {
+		/* crea il file .pch */
+		char *tmp = NULL;
 
-	   SAFENEWARR(tmp, char, strlen(sOutputFileName ? sOutputFileName : sInputFileName) + sizeof(".bdf"));
-	   sprintf(tmp, "%s.bdf", sOutputFileName ? sOutputFileName : sInputFileName);
-	   pch.open(tmp);
+		SAFENEWARR(tmp, char, strlen(sOutputFileName ? sOutputFileName : sInputFileName) + sizeof(".bdf"));
+		sprintf(tmp, "%s.bdf", sOutputFileName ? sOutputFileName : sInputFileName);
+		pch.open(tmp);
 
-	   pch.setf(std::ios::showpoint);
-	   pch
-		   << "BEGIN BULK" << std::endl
-		   << "$.......2.......3.......4.......5.......6.......7.......8.......9.......0......." << std::endl;
-	   pch << "MAT1           1    1.E0    1.E0            1.E0" << std::endl;
-	   pDM->Output_pch(pch);
+		pch.setf(std::ios::showpoint);
+		pch
+			<< "BEGIN BULK" << std::endl
+			<< "$.......2.......3.......4.......5.......6.......7.......8.......9.......0......." << std::endl;
+		pch << "MAT1           1    1.E0    1.E0            1.E0" << std::endl;
+		pDM->Output_pch(pch);
 
-	   /* crea il file .f06 */
-	   sprintf(tmp, "%s.f06", sOutputFileName ? sOutputFileName : sInputFileName);
-	   f06.open(tmp);
-	   SAFEDELETEARR(tmp);
+		/* crea il file .f06 */
+		sprintf(tmp, "%s.f06", sOutputFileName ? sOutputFileName : sInputFileName);
+		f06.open(tmp);
+		SAFEDELETEARR(tmp);
 
-	   f06.setf(std::ios::showpoint);
-	   f06.setf(std::ios::scientific);
-   }
+		f06.setf(std::ios::showpoint);
+		f06.setf(std::ios::scientific);
+	}
 #endif /* __HACK_NASTRAN_MODES__ */
 
-   int iPage;
-   for (iPage = 1; iPage <= iSize; iPage++) {
+	int iPage;
+	for (iPage = 1; iPage <= iSize; iPage++) {
 
 #ifdef __HACK_NASTRAN_MODES__
-      /* EXPERIMENTAL */
-      bool doPlot = false;
-      if (bOutputModes) {
+		/* EXPERIMENTAL */
+		bool doPlot = false;
+		if (bOutputModes) {
 
-         doublereal b = Beta.dGetCoef(iPage);
-	 doublereal re = AlphaR.dGetCoef(iPage);
-	 doublereal im = AlphaI.dGetCoef(iPage);
-	 doublereal sigma;
-	 doublereal omega;
-	 doublereal csi;
-	 doublereal freq;
+			doublereal b = Beta.dGetCoef(iPage);
+			doublereal re = AlphaR.dGetCoef(iPage);
+			doublereal im = AlphaI.dGetCoef(iPage);
+			doublereal sigma;
+			doublereal omega;
+			doublereal csi;
+			doublereal freq;
 
-	 do_eig(b, re, im, h, sigma, omega, csi, freq);
+			do_eig(b, re, im, h, sigma, omega, csi, freq);
 
-	 if (freq >= dLowerFreq && freq <= dUpperFreq) {
-	    doPlot = true;
+			if (freq >= dLowerFreq && freq <= dUpperFreq) {
+				doPlot = true;
 
-	    f06
-	      << "                                                                                                 CSA/NASTRAN " << datebuf << "    PAGE   "
-	      << std::setw(4) << iPage << std::endl
-	      << "MBDyn modal analysis" << std::endl
-	      << std::endl
-	      << "    LABEL=DISPLACEMENTS, ";
+				f06
+					<< "                                                                                                 CSA/NASTRAN " << datebuf << "    PAGE   "
+					<< std::setw(4) << iPage << std::endl
+					<< "MBDyn modal analysis" << std::endl
+					<< std::endl
+					<< "    LABEL=DISPLACEMENTS, ";
 #ifdef HAVE_FMTFLAGS_IN_IOS
-	    std::ios::fmtflags iosfl = f06.setf(std::ios::left);
+				std::ios::fmtflags iosfl = f06.setf(std::ios::left);
 #else /* !HAVE_FMTFLAGS_IN_IOS */
-	    long iosfl = f06.setf(std::ios::left);
+				long iosfl = f06.setf(std::ios::left);
 #endif /* !HAVE_FMTFLAGS_IN_IOS */
-	    const char *comment = "(EXPERIMENTAL) MODAL ANALYSIS";
-	    int l = strlen(comment);
-	    f06 << std::setw(l+1) << comment;
-	    f06 << sigma << " " << (omega < 0. ? "-" : "+") << " " << fabs(omega) << " j (" << csi << ", "<< freq << std::setw(80-1-l) << ")";
-	    f06.flags(iosfl);
-	    f06 << "   SUBCASE " << iPage << std::endl
-	      << std::endl
-	      << "                                            D I S P L A C E M E N T  V E C T O R" << std::endl
-	      << std::endl
-	      << "     POINT ID.   TYPE          T1             T2             T3             R1             R2             R3" << std::endl;
-	 }
-      }
+				const char *comment = "(EXPERIMENTAL) MODAL ANALYSIS";
+				int l = strlen(comment);
+				f06 << std::setw(l+1) << comment;
+				f06 << sigma << " " << (omega < 0. ? "-" : "+") << " " << fabs(omega) << " j (" << csi << ", "<< freq << std::setw(80-1-l) << ")";
+				f06.flags(iosfl);
+				f06 << "   SUBCASE " << iPage << std::endl
+					<< std::endl
+					<< "                                            D I S P L A C E M E N T  V E C T O R" << std::endl
+					<< std::endl
+					<< "     POINT ID.   TYPE          T1             T2             T3             R1             R2             R3" << std::endl;
+			}
+		}
 #endif /* __HACK_NASTRAN_MODES__ */
 
-      doublereal cmplx = AlphaI.dGetCoef(iPage);
-      if (cmplx == 0.) {
-         Out << "Mode " << iPage << ":" << std::endl;
-         for (int jCnt = 1; jCnt <= iSize; jCnt++) {
-            Out << std::setw(12) << jCnt << ": "
-	      << std::setw(12) << MatR.dGetCoef(jCnt, iPage) << std::endl;
-	 }
+		doublereal cmplx = AlphaI.dGetCoef(iPage);
+		if (cmplx == 0.) {
+			Out << "Mode " << iPage << ":" << std::endl;
+			for (int jCnt = 1; jCnt <= iSize; jCnt++) {
+				Out << std::setw(12) << jCnt << ": "
+					<< std::setw(12) << MatR.dGetCoef(jCnt, iPage)
+					<< std::endl;
+			}
 
-	 if (bOutputModes) {
-	    /*
-	     * per ora sono uguali; in realta' XP e' X * lambda
-	     */
-	    MyVectorHandler X(iSize, MatR.pdGetMat()+iSize*(iPage-1));
-	    MyVectorHandler XP(iSize, MatR.pdGetMat()+iSize*(iPage-1));
-	    pDM->Output(X, XP);
+			if (bOutputModes) {
+				/*
+				 * per ora sono uguali; in realta' XP e' X * lambda
+				 */
+				MyVectorHandler X(iSize, MatR.pdGetMat()+iSize*(iPage-1));
+				MyVectorHandler XP(iSize, MatR.pdGetMat()+iSize*(iPage-1));
+				pDM->Output(X, XP);
 
 #ifdef __HACK_NASTRAN_MODES__
-	    /* EXPERIMENTAL */
-	    if (doPlot) {
-	       pDM->Output_f06(f06, X);
-	    }
+				/* EXPERIMENTAL */
+				if (doPlot) {
+					pDM->Output_f06(f06, X);
+				}
 #endif /* __HACK_NASTRAN_MODES__ */
-	 }
-      } else {
-	 if (cmplx > 0.) {
-            Out << "Modes " << iPage << ", " << iPage+1 << ":" << std::endl;
-	    for (int jCnt = 1; jCnt <= iSize; jCnt++) {
-	       doublereal im = MatR.dGetCoef(jCnt, iPage+1);
-	       Out << std::setw(12) << jCnt << ": "
-	         << std::setw(12) << MatR.dGetCoef(jCnt, iPage)
-	         << ( im >= 0. ? " + " : " - " )
-	         << std::setw(12) << fabs(im) << " * j " << std::endl;
-            }
-	 }
+			}
+		} else {
+			if (cmplx > 0.) {
+				Out << "Modes " << iPage << ", " << iPage+1 << ":" << std::endl;
+				for (int jCnt = 1; jCnt <= iSize; jCnt++) {
+					doublereal im = MatR.dGetCoef(jCnt, iPage+1);
+					Out << std::setw(12) << jCnt << ": "
+						<< std::setw(12) << MatR.dGetCoef(jCnt, iPage)
+						<< ( im >= 0. ? " + " : " - " )
+						<< std::setw(12) << fabs(im) << " * j "
+						<< std::endl;
+				}
+			}
 
-	 if (bOutputModes) {
-            /*
-	     * uso la parte immaginaria ...
-	     */
-	    int i = iPage - (cmplx > 0. ? 0 : 1);
-	    MyVectorHandler X(iSize, MatR.pdGetMat()+iSize*i);
-	    MyVectorHandler XP(iSize, MatR.pdGetMat()+iSize*i);
-	    pDM->Output(X, XP);
+			if (bOutputModes) {
+				/*
+				 * uso la parte immaginaria ...
+				 */
+				int i = iPage - (cmplx > 0. ? 0 : 1);
+				MyVectorHandler X(iSize, MatR.pdGetMat()+iSize*i);
+				MyVectorHandler XP(iSize, MatR.pdGetMat()+iSize*i);
+				pDM->Output(X, XP);
 
 #ifdef __HACK_NASTRAN_MODES__
-	    /* EXPERIMENTAL */
-	    if (doPlot) {
-	       pDM->Output_f06(f06, X);
-	    }
+				/* EXPERIMENTAL */
+				if (doPlot) {
+					pDM->Output_f06(f06, X);
+				}
 #endif /* __HACK_NASTRAN_MODES__ */
-	 }
-      }
-   }
+			}
+		}
+	}
 
 #ifdef __HACK_NASTRAN_MODES__
-   if (bOutputModes) {
-      pch
-	      << "ENDDATA" << std::endl;
-      f06
-	      << "                                                                                                 CSA/NASTRAN " << datebuf << "    PAGE   "
-	      << std::setw(4) << iPage << std::endl;
-      pch.close();
-      f06.close();
-   }
+	if (bOutputModes) {
+		pch
+			<< "ENDDATA" << std::endl;
+		f06
+			<< "                                                                                                 CSA/NASTRAN " << datebuf << "    PAGE   "
+			<< std::setw(4) << iPage << std::endl;
+		pch.close();
+		f06.close();
+	}
 #endif /* __HACK_NASTRAN_MODES__ */
 #endif
 
-   /* Non puo' arrivare qui se le due aree di lavoro non sono definite */
-   SAFEDELETEARR(pd);
-   SAFEDELETEARR(ppd);
+	/* Non puo' arrivare qui se le due aree di lavoro non sono definite */
+	SAFEDELETEARR(pd);
+	SAFEDELETEARR(ppd);
 }
-
 #endif /* __HACK_EIG__ */
 
 
