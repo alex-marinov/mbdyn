@@ -83,9 +83,9 @@ class Beam
     const StructNode* pNode[NUMNODES];
    
     /* Offset dei nodi */
-    Vec3 f[NUMNODES];
+    const Vec3 f[NUMNODES];
     Vec3 fRef[NUMNODES];
-    Mat3x3 RNode[NUMNODES];
+    const Mat3x3 RNode[NUMNODES];
    
     /* Matrice di rotazione delle sezioni - non sono const perche' vengono
      * aggiornate ad ogni iterazione */
@@ -193,6 +193,9 @@ class Beam
   
     /* Funzione interna di restart */
     virtual std::ostream& Restart_(std::ostream& out) const;
+
+    /* Inizializza i dati */
+    void Init(void);
    
   public:
     /* Costruttore normale */
@@ -398,6 +401,9 @@ class ViscoElasticBeam : virtual public Elem, public Beam {
                     doublereal dCoef,
 		    const VectorHandler& XCurr, 
 		    const VectorHandler& XPrimeCurr);
+   
+    /* Inizializza i dati */
+    void Init(void);
    
   public:
     /* Costruttore normale */

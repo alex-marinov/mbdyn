@@ -725,6 +725,10 @@ DataManager::InitialJointAssembly(void)
 		for (StructNode** ppTmpNode = ppFirstNode;
 			ppTmpNode < ppFirstNode+iNumNodes; ppTmpNode++)
 		{
+			if ((*ppTmpNode)->GetStructNodeType() == StructNode::DUMMY) {
+				continue;
+			}
+
 			integer iFirstIndex = ((*ppTmpNode)->pGetDofOwner())->iFirstIndex;
 
 			/* Nuova feature: ogni nodo ha la sua stiffness */
@@ -828,7 +832,12 @@ DataManager::InitialJointAssembly(void)
 
 		/* Contributo dei nodi */
 		for (StructNode** ppTmpNode = ppFirstNode;
-				ppTmpNode < ppFirstNode+iNumNodes; ppTmpNode++) {
+				ppTmpNode < ppFirstNode+iNumNodes; ppTmpNode++) 
+		{
+			if ((*ppTmpNode)->GetStructNodeType() == StructNode::DUMMY) {
+				continue;
+			}
+
 			integer iFirstIndex = ((*ppTmpNode)->pGetDofOwner())->iFirstIndex;
 
 			/* Nuova feature: ogni nodo ha la sua stiffness */

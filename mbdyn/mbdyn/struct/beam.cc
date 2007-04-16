@@ -98,12 +98,12 @@ bFirstRes(true)
     pNode[NODE2] = pN2;
     pNode[NODE3] = pN3;
     
-    f[NODE1] = F1;
-    f[NODE2] = F2;
-    f[NODE3] = F3;
-    RNode[NODE1] = R1;
-    RNode[NODE2] = R2;
-    RNode[NODE3] = R3;
+    const_cast<Vec3&>(f[NODE1]) = F1;
+    const_cast<Vec3&>(f[NODE2]) = F2;
+    const_cast<Vec3&>(f[NODE3]) = F3;
+    const_cast<Mat3x3&>(RNode[NODE1]) = R1;
+    const_cast<Mat3x3&>(RNode[NODE2]) = R2;
+    const_cast<Mat3x3&>(RNode[NODE3]) = R3;
     RRef[S_I] = R[S_I] = (Mat3x3&)r_I;
     RRef[SII] = R[SII] = (Mat3x3&)rII;
   
@@ -115,34 +115,8 @@ bFirstRes(true)
     SAFENEWWITHCONSTRUCTOR(pD[SII],
 			   ConstitutiveLaw6DOwner,
 			   ConstitutiveLaw6DOwner(pDII));
-   
-    Omega[S_I]     = Omega[SII]     = Vec3(0.); 
-    Az[S_I]        = Az[SII]        = Vec6(0.);
-    AzRef[S_I]     = AzRef[SII]     = Vec6(0.);
-    AzLoc[S_I]     = AzLoc[SII]     = Vec6(0.);
-    AzLocRef[S_I]  = AzLocRef[SII]  = Vec6(0.);
-    DefLoc[S_I]    = DefLoc[SII]    = Vec6(0.);
-    DefLocRef[S_I] = DefLocRef[SII] = Vec6(0.);
-    p[S_I]         = p[SII]         = Vec3(0.);
-    g[S_I]         = g[SII]         = Vec3(0.);
-    L0[S_I]        = L0[SII]        = Vec3(0.);
-    L[S_I]         = L[SII]         = Vec3(0.);
-    
-    DsDxi();
-   
-    Vec3 xTmp[NUMNODES];
-      
-    for (unsigned int i = 0; i < NUMNODES; i++) {      
-        xTmp[i] = pNode[i]->GetXCurr()+pNode[i]->GetRCurr()*f[i];
-    }      
-      
-    /* Aggiorna le grandezze della trave nei punti di valutazione */
-    for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {
-        p[iSez] = InterpState(xTmp[NODE1],
-	                      xTmp[NODE2],
-			      xTmp[NODE3],
-			      Beam::Section(iSez));
-    }
+
+    Init();   
 }
 
 
@@ -198,7 +172,13 @@ bFirstRes(true)
     SAFENEWWITHCONSTRUCTOR(pD[SII],
 			   ConstitutiveLaw6DOwner,
 			   ConstitutiveLaw6DOwner(pDII));
-   
+
+    Init();   
+}  
+
+void
+Beam::Init(void)
+{
     Omega[S_I]     = Omega[SII]     = Vec3(0.); 
     Az[S_I]        = Az[SII]        = Vec6(0.);
     AzRef[S_I]     = AzRef[SII]     = Vec6(0.);
@@ -210,10 +190,24 @@ bFirstRes(true)
     g[S_I]         = g[SII]         = Vec3(0.);
     L0[S_I]        = L0[SII]        = Vec3(0.);
     L[S_I]         = L[SII]         = Vec3(0.);
+    LRef[S_I]      = LRef[SII]      = Vec3(0.);
     
     DsDxi();
-}  
-
+ 
+    Vec3 xTmp[NUMNODES];
+      
+    for (unsigned int i = 0; i < NUMNODES; i++) {      
+        xTmp[i] = pNode[i]->GetXCurr()+pNode[i]->GetRCurr()*f[i];
+    }      
+      
+    /* Aggiorna le grandezze della trave nei punti di valutazione */
+    for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {
+        p[iSez] = InterpState(xTmp[NODE1],
+	                      xTmp[NODE2],
+			      xTmp[NODE3],
+			      Beam::Section(iSez));
+    }
+}
 
 Beam::~Beam(void) 
 {
@@ -563,10 +557,8 @@ void Beam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 				 Mat3x3(LRef[iSez]*(dN3[iSez][i]*dCoef)
 					-fTmp[i]*(dN3P[iSez][i]*dsdxi[iSez]*dCoef)),
 				 Mat3x3(dN3P[iSez][i]*dsdxi[iSez]*dCoef));
-	 
 	 /* Delta - azioni interne */
 	 AzTmp[iSez][i] = DRef[iSez]*AzTmp[iSez][i];
-	 
 	 /* Correggo per la rotazione da locale a globale */
 	 AzTmp[iSez][i].SubMat12(Mat3x3(AzRef[iSez].GetVec1()*(dN3[iSez][i]*dCoef)));
 	 AzTmp[iSez][i].SubMat22(Mat3x3(AzRef[iSez].GetVec2()*(dN3[iSez][i]*dCoef)));
@@ -1289,17 +1281,8 @@ ViscoElasticBeam::ViscoElasticBeam(
 		flag fOut
 ) : Elem(uL, fOut),
 Beam(uL, pN1, pN2, pN3, F1, F2, F3, R1, R2, R3, r_I, rII, pD_I, pDII, fOut)
-{   
-   LPrimeRef[S_I] = LPrime[S_I] = Vec3(0.);  
-   gPrime[S_I] = Vec3(0.);
-   LPrimeRef[SII] = LPrime[SII] = Vec3(0.); 
-   gPrime[SII] = Vec3(0.);
-   
-   DefPrimeLoc[S_I] = DefPrimeLocRef[S_I] = Vec6(0.);
-   DefPrimeLoc[SII] = DefPrimeLocRef[SII] = Vec6(0.);
-   
-   /* Nota: DsDxi() viene chiamata dal costruttore di Beam */
-   Beam::Omega0();
+{
+   Init();
 }
 
 
@@ -1327,17 +1310,29 @@ ViscoElasticBeam::ViscoElasticBeam(
 Beam(uL, pN1, pN2, pN3, F1, F2, F3, R1, R2, R3, r_I, rII, pD_I, pDII,
      dM_I, s0_I, j0_I, dMII, s0II, j0II, fOut)
 {
-   LPrimeRef[S_I] = LPrime[S_I] = Vec3(0.);  
-   gPrime[S_I] = Vec3(0.);
-   LPrimeRef[SII] = LPrime[SII] = Vec3(0.); 
-   gPrime[SII] = Vec3(0.);
+   Init();
+}
+
+void
+ViscoElasticBeam::Init(void)
+{
+   gPrime[S_I] = gPrime[SII] = Vec3(0.);
+
+   LPrime[S_I] = LPrime[SII] = Vec3(0.);  
+   LPrimeRef[S_I] = LPrimeRef[SII] = Vec3(0.); 
    
-   DefPrimeLoc[S_I] = DefPrimeLocRef[S_I] = Vec6(0.);
-   DefPrimeLoc[SII] = DefPrimeLocRef[SII] = Vec6(0.);
+   DefPrimeLoc[S_I] = DefPrimeLoc[SII] = Vec6(0.);
+   DefPrimeLocRef[S_I] = DefPrimeLocRef[SII] = Vec6(0.);
 
    /* Nota: DsDxi() viene chiamata dal costruttore di Beam */
    Beam::Omega0();
-}  
+
+   OmegaRef[S_I] = Omega[S_I];
+   OmegaRef[SII] = Omega[SII];
+
+   const_cast<Mat6x6&>(ERef[S_I]) = MultRMRt(pD[S_I]->GetFDEPrime(), RRef[S_I]);
+   const_cast<Mat6x6&>(ERef[SII]) = MultRMRt(pD[SII]->GetFDEPrime(), RRef[SII]);
+}
 
 
 /* Assembla la matrice */
@@ -1371,9 +1366,7 @@ void ViscoElasticBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 		    Mat3x3(LRef[iSez]*(dN3[iSez][i])
 			   -fTmp[i]*(dN3P[iSez][i]*dsdxi[iSez])),
 		    Mat3x3(dN3P[iSez][i]*dsdxi[iSez]));
-	 
 	 AzTmp[iSez][i] = DRef[iSez]*AzTmp[iSez][i]*dCoef;
-	 
 	 AzTmp[iSez][i] +=
 	   ERef[iSez]*Mat6x6(Mat3x3(OmegaRef[iSez]*(-dN3P[iSez][i]*dsdxi[iSez]*dCoef)),
 			     Zero3x3, 
@@ -1382,7 +1375,6 @@ void ViscoElasticBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 			     +Mat3x3(Omega[iSez], fTmp[i]*(dN3P[iSez][i]*dsdxi[iSez]*dCoef))
 			     +Mat3x3(fTmp[i].Cross(pNode[i]->GetWRef()*(dN3P[iSez][i]*dsdxi[iSez]*dCoef))),
 			     Mat3x3(OmegaRef[iSez]*(-dN3P[iSez][i]*dsdxi[iSez]*dCoef)));
-	 
 	 AzPrimeTmp[iSez][i] = ERef[iSez]*AzPrimeTmp[iSez][i];
 	 
 	 /* Correggo per la rotazione da locale a globale */

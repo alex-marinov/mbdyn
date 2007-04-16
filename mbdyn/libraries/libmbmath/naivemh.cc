@@ -87,11 +87,12 @@ ppdRows(0), ppiRows(0), ppiCols(0), ppnonzero(0), piNzr(0), piNzc(0)
 		SAFENEWARR(piNzr, integer, iSize);
 		SAFENEWARR(piNzc, integer, iSize);
 
-#ifdef HAVE_MEMSET_H
-		memset(ppnonzero, 0, sizeof(char)*iSize*iSize);
+#ifdef HAVE_MEMSET
+		memset(ppdRows[0], 0, sizeof(doublereal)*iSize*iSize);
+		memset(ppnonzero[0], 0, sizeof(char)*iSize*iSize);
 		memset(piNzr, 0, sizeof(integer)*iSize);
 		memset(piNzc, 0, sizeof(integer)*iSize);
-#else /* ! HAVE_MEMSET_H */
+#else /* ! HAVE_MEMSET */
 		for (integer row = 0; row < iSize; row++) {
 			for (integer col = 0; col < iSize; col++) {
 				ppnonzero[row][col] = 0;
@@ -99,7 +100,7 @@ ppdRows(0), ppiRows(0), ppiCols(0), ppnonzero(0), piNzr(0), piNzc(0)
 			piNzr[row] = 0;
 			piNzc[row] = 0;
 		}
-#endif /* ! HAVE_MEMSET_H */		
+#endif /* ! HAVE_MEMSET */		
 	}
 }
 
@@ -147,7 +148,7 @@ NaiveMatrixHandler::~NaiveMatrixHandler(void)
 void
 NaiveMatrixHandler::Reset(void)
 {
-#ifdef HAVE_MEMSET_H
+#ifdef HAVE_MEMSET
 #if 0
 	/* FIXME: if the matrix is dense, this should be better */
 	memset(ppnonzero[0], 0, sizeof(char)*iSize*iSize);
@@ -163,7 +164,7 @@ NaiveMatrixHandler::Reset(void)
 #endif
 	memset(piNzr, 0, sizeof(integer)*iSize);
 	memset(piNzc, 0, sizeof(integer)*iSize);
-#else /* ! HAVE_MEMSET_H */
+#else /* ! HAVE_MEMSET */
 	for (integer row = 0; row < iSize; row++) {
 		integer ncols = piNzc[row];
 		integer *piCols = ppiCols[row];
@@ -175,7 +176,7 @@ NaiveMatrixHandler::Reset(void)
 		piNzr[row] = 0;
 		piNzc[row] = 0;
 	}
-#endif /* ! HAVE_MEMSET_H */
+#endif /* ! HAVE_MEMSET */
 }
 
 /* Overload di += usato per l'assemblaggio delle matrici */

@@ -114,8 +114,8 @@ void DynamicForgettingFactor::Update(const doublereal* pErr) {
    /* calcola la media e la norma dell'errore */
    doublereal dM = 0.;
    doublereal dS = 0.;
-   for (integer i = iNumErr; i;) {
-      dS += pErr[--i]*pErr[i];
+   for (integer i = iNumErr; i--;) {
+      dS += pErr[i]*pErr[i];
       dM += pErr[i];
    }
    
