@@ -2041,6 +2041,7 @@ if test $ol_with_ginac != no ; then
 		AC_DEFINE(HAVE_GINAC,1,[define if GiNaC is available])
 		AC_MSG_RESULT([yes])
 	else 
+		AC_MSG_RESULT([no])
 		if test $ol_with_ginac != auto; then
 			AC_MSG_ERROR([GiNaC not available])
 		else
