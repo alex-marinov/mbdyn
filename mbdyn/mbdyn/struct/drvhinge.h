@@ -80,7 +80,7 @@ public:
 
 	/* Tipo di joint */
 	virtual Joint::Type GetJointType(void) const {
-		return INLINE;
+		return DRIVEHINGE;
 	};
 
 	/* Contributo al file di restart */
