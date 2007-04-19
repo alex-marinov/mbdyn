@@ -73,10 +73,10 @@ public:
 template <class T>
 class TplDriveOwner {
 protected:
-	TplDriveCaller<T>* pTplDriveCaller;
+	mutable TplDriveCaller<T>* pTplDriveCaller;
 
 public:
-	TplDriveOwner(const TplDriveCaller<T>* pDC = NULL)
+	TplDriveOwner(const TplDriveCaller<T>* pDC = 0)
 	: pTplDriveCaller((TplDriveCaller<T>*)pDC) {
 		NO_OP;
 	};
@@ -86,9 +86,11 @@ public:
 	};
 
 	void Set(const TplDriveCaller<T>* pDC) {
-		ASSERT(pDC != NULL);
-		ASSERT(pTplDriveCaller == NULL);
-		pTplDriveCaller = (TplDriveCaller<T>*)pDC;
+		ASSERT(pDC != 0);
+		if (pTplDriveCaller != 0) {
+			SAFEDELETE(pTplDriveCaller);
+		}
+		pTplDriveCaller = const_cast<TplDriveCaller<T>*>(pDC);
 	};
 
 	TplDriveCaller<T>* pGetDriveCaller(void) const {

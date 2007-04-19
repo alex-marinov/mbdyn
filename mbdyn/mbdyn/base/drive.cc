@@ -427,7 +427,7 @@ OneDriveCaller::Restart(std::ostream& out) const
 /* DriveOwner - begin */
 
 DriveOwner::DriveOwner(const DriveCaller* pDC)
-: pDriveCaller((DriveCaller*)pDC) 
+: pDriveCaller(const_cast<DriveCaller*>(pDC)) 
 {
 	NO_OP;
 }
@@ -446,10 +446,10 @@ DriveOwner::Set(const DriveCaller* pDC)
 {
 	ASSERT(pDC != NULL);
 	if (pDriveCaller != NULL) {
-		DEBUGCERR("warning: the original pointer to a drive caller is not null!" << std::endl);
+		DEBUGCOUT("warning: the original pointer to a drive caller is not null!" << std::endl);
 		SAFEDELETE(pDriveCaller);
 	}
-	pDriveCaller = (DriveCaller *)pDC;
+	pDriveCaller = const_cast<DriveCaller*>(pDC);
 }
 
 DriveCaller *
