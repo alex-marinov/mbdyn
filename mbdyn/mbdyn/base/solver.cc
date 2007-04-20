@@ -289,6 +289,8 @@ pNLS(NULL)
 		SAFESTRDUP(sOutputFileName, sOutFName);
 	}
 
+	StrategyFactor.iMinIters = 1;
+	StrategyFactor.iMaxIters = 0;
    	/* Legge i dati relativi al metodo di integrazione */
    	ReadData(HP);
 
@@ -316,8 +318,6 @@ pNLS(NULL)
 	}
 #endif /* USE_MULTITHREAD */
 
-	StrategyFactor.iMinIters = 1;
-	StrategyFactor.iMaxIters = 0;
 }
 
 void
@@ -2977,7 +2977,6 @@ Solver::ReadData(MBDynParser& HP)
 					StrategyFactor.iMinIters = 1;
 				}
 
-				StrategyFactor.iMaxIters = 0;
 				if (HP.IsArg()) {
 					StrategyFactor.iMaxIters = HP.GetInt();
 					if (StrategyFactor.iMaxIters <= 0) {
@@ -2988,7 +2987,6 @@ Solver::ReadData(MBDynParser& HP)
 							<< "; default value will be "
 							"used"
 							<< std::endl);
-						StrategyFactor.iMaxIters = 0;
 					}
 				}
 
