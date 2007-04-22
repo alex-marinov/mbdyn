@@ -38,16 +38,15 @@
   */
  
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
  
-#include <schurdataman.h> 
-#include <invdataman.h> 
-#include <external.h>
-#include <solver.h>
-#include <invsolver.h>
-#include <stepsol.h>
+#include "schurdataman.h" 
+#include "external.h"
+#include "solver.h"
+#include "invsolver.h"
+#include "stepsol.h"
 
 StepIntegrator::StepIntegrator(const integer MaxIt,
 		const doublereal dT,

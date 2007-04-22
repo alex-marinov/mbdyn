@@ -255,7 +255,7 @@ DynamicBody::AssMats(FullSubMatrixHandler& WMA,
 	WMB.Add(4, 1, SWedge);
 
 	WMB.Add(4, 4, J);
-	WMA.Add(4, 4, Mat3x3(V, Sc)-Mat3x3(J*(W*dCoef)));
+	WMA.Add(4, 4, Mat3x3(V, Sc) - Mat3x3(J*(W*dCoef)));
 }
 
 
@@ -663,6 +663,56 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.Add(1, W.Cross(W.Cross(STmp)));
 		WorkVec.Add(4, W.Cross(JTmp*W));
 	}
+
+	return WorkVec;
+}
+
+
+SubVectorHandler&
+StaticBody::AssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ ,
+	const VectorHandler& /* XPrimePrimeCurr */ ,
+	int iOrder)
+{
+	DEBUGCOUTFNAME("DynamicBody::AssRes");
+
+	ASSERT(iOrder == -1);
+
+	/* Se e' definita l'accelerazione di gravita', la aggiunge */
+	Vec3 GravityAcceleration;
+	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(),
+		GravityAcceleration);
+
+	WorkVec.ResizeReset(6);
+
+	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
+	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iFirstPositionIndex + iCnt);
+	}
+
+	const Mat3x3& R(pNode->GetRCurr());
+	Vec3 XgcTmp = R*Xgc;
+	Vec3 STmp = R*S0;
+	Mat3x3 JTmp = R*(J0*R.Transpose());
+
+	Vec3 Acceleration = pNode->GetXPPCurr()
+		+ pNode->GetWPCurr().Cross(XgcTmp)
+		+ pNode->GetWCurr().Cross(pNode->GetWCurr().Cross(XgcTmp));
+	if (g) {
+		Acceleration += GravityAcceleration;
+	}
+
+	WorkVec.Sub(1, Acceleration*dMass);
+
+	Vec3 M = JTmp*pNode->GetWPCurr()
+		+ S.Cross(pNode->GetXPPCurr())
+		+ S.Cross(pNode->GetWCurr().Cross(pNode->GetWCurr().Cross(XgcTmp)));
+	if (g) {
+		M += GravityAcceleration*dMass;
+	}
+
+	WorkVec.Sub(4, M);
 
 	return WorkVec;
 }

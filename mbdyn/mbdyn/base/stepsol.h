@@ -706,7 +706,11 @@ public:
  			MyVectorHandler*const pXPrime,
 			integer& EffIter,
 			doublereal& Err,
-			doublereal& SolErr){ NO_OP; } ;
+			doublereal& SolErr)
+	{
+		silent_cerr("InverseDynamicsStepSolver::Advance()");
+		throw ErrGeneric();
+	};
 	
 	/* Real Advancer*/
 	virtual doublereal
@@ -718,7 +722,7 @@ public:
  			MyVectorHandler*const pXPrimePrime,
 			integer& EffIter,
 			doublereal& Err,
-			doublereal& SolErr) ;
+			doublereal& SolErr);
  	
 	void Residual(VectorHandler* pRes) const ;
 

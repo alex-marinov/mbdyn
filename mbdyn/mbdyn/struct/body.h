@@ -221,6 +221,13 @@ public:
 		const VectorHandler& XCurr, 
 		const VectorHandler& XPrimeCurr);
  
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& /* XCurr */ ,
+		const VectorHandler& /* XPrimeCurr */ ,
+		const VectorHandler& /* XPrimePrimeCurr */ ,
+		int iOrder = -1);
+
 	/* Dimensione del workspace durante l'assemblaggio iniziale.
 	 * Occorre tener conto del numero di dof che l'elemento definisce
 	 * in questa fase e dei dof dei nodi che vengono utilizzati.

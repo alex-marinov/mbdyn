@@ -410,7 +410,7 @@ public:
 	/* Inverse Dynamics: */
 	virtual void Update(int iOrder) const;
 	
-	bool bSetStaticModel(bool b) {
+	void bSetStaticModel(bool b) {
 		bStaticModel = b;
 	};
 	bool bIsStaticModel(void) const {
@@ -418,7 +418,7 @@ public:
 	};
 
 	/* Inverse Dynamics: */
-	bool bSetInverseDynamics(bool b) {
+	void bSetInverseDynamics(bool b) {
 		bInverseDynamics = b;
 	};
 	bool bIsInverseDynamics(void) const {
