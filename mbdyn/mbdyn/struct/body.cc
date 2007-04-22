@@ -628,8 +628,8 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 	Vec3 Acceleration(0.);
 	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(), Acceleration);
 
-	/* TODO: reference */
-	Vec3 W(0.);
+	/* W is uninitialized because its use is conditioned by w */
+	Vec3 W;
 	bool w(pRefNode != 0);
 
 	if (!g && !w) {
