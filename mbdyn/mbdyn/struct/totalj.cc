@@ -816,6 +816,8 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	 * identical to regular AssJac's lower-left block
 	 */
 	DEBUGCOUT("Entering TotalJoint::AssJac()" << std::endl);
+/* FIXME: */
+printf("Entering TotalJoint::AssJac(), Constraint only\n");
 
 	if (iGetNumDof() == 12) {
 		WorkMat.SetNullMatrix();
@@ -887,11 +889,14 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 SubVectorHandler&
 TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr,
-	const VectorHandler& /* XPrimeCurr */ ,
+	const VectorHandler& XPrimeCurr,
+	const VectorHandler& /* XPrimePrimeCurr */,
 	int iOrder)
 {
 	DEBUGCOUT("Entering TotalJoint::AssRes(" << iOrder<< ")" << std::endl);
 
+/* FIXME: */
+printf("\n\nEntering TotalJoint::AssRes(), Constraint only, iOrder = %d\n\n",iOrder);
 	if (iGetNumDof() == 0) {
 		WorkVec.ResizeReset(0);
 		return WorkVec;
@@ -950,9 +955,10 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 		 */
 		{ /* need brackets to create a "block" */
 			Vec3 Tmp = XPDrv.Get(); 	
+			
 			/* Position constraint derivative  */
 			for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
-				WorkVec.PutCoef(1 + iCnt, Tmp(iPosIncid[iCnt]));
+				WorkVec.PutCoef(1 + iCnt, 0);//FIXME:Tmp(iPosIncid[iCnt]));
 			}
 
 			Mat3x3 R1r = pNode1->GetRCurr()*R1hr;

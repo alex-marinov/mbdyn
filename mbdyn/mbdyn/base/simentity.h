@@ -174,7 +174,10 @@ public:
 	 */
 	virtual void Update(const VectorHandler& XCurr, 
 		       const VectorHandler& XPrimeCurr);
-
+	
+	/* Inverse Dynamics:*/
+	virtual void Update(const VectorHandler& XCurr, 
+		       const int iOrder);
 	/*
 	 * Elaborazione stato interno dopo la convergenza
 	 */

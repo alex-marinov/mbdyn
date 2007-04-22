@@ -51,32 +51,12 @@ extern const char* psJointNames[];
  * will be moved to a higher level in the inheritance list
  */
 
-class InverseDynamicsElem {
-public:
-	virtual ~InverseDynamicsElem(void) { NO_OP; };
-
-	/* inverse dynamics Jacobian matrix assembly */
-	VariableSubMatrixHandler&
-	AssJac(VariableSubMatrixHandler& WorkMat,
-		const VectorHandler& XCurr);
-
-	/* inverse dynamics residual assembly */
-	virtual SubVectorHandler&
-	AssRes(SubVectorHandler& WorkVec,
-		const VectorHandler& XCurr, 
-		const VectorHandler& XPrimeCurr,
-		int iOrder);
-};
-
-/* InverseDynamicsElem - end */
-
-
 /* Joint - begin */
 
 class Joint
 : virtual public Elem, public ElemGravityOwner,
-	public ElemWithDofs, public InitialAssemblyElem,
-	public InverseDynamicsElem {
+	public ElemWithDofs, public InitialAssemblyElem
+{
 public:
 	/* Tipi di Joint */
 	enum Type {

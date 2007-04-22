@@ -62,6 +62,9 @@ gmres.h \
 hint.h \
 hint_impl.cc \
 hint_impl.h \
+invdataman.cc \
+invsolver.cc \
+invsolver.h \
 j2p.cc \
 j2p.h \
 loadable.cc \

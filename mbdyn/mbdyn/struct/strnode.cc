@@ -123,6 +123,10 @@ VCurr(V0),
 WPrev(W0),
 WRef(W0),
 WCurr(W0),
+XPPCurr(0.),
+WPCurr(0.),
+XPPPrev(0.),
+WPPrev(0.),
 pRefNode(pRN),
 #ifdef USE_NETCDF
 Var_X(0),
@@ -1250,16 +1254,12 @@ DynamicStructNode::DynamicStructNode(unsigned int uL,
 	flag fOut)
 : StructNode(uL, pDO, X0, R0, V0, W0, pRN, dPosStiff, dVelStiff, bOmRot,
 	ood, fOut),
-bComputeAccelerations((fOut & 2) ? true : false),
-pAutoStr(0),
 #ifdef USE_NETCDF
 Var_XPP(0),
 Var_OmegaP(0),
 #endif /* USE_NETCDF */
-XPPCurr(0.),
-WPCurr(0.),
-XPPPrev(0.),
-WPPrev(0.)
+bComputeAccelerations((fOut & 2) ? true : false),
+pAutoStr(0)
 {
 	NO_OP;
 }
@@ -1523,6 +1523,48 @@ DynamicStructNode::BeforePredict(VectorHandler& X,
 	StructNode::BeforePredict(X, XP, XPr, XPPr);
 }
 
+/* Inverse Dynamics: */
+void 
+DynamicStructNode::Update(VectorHandler& X, int iOrder)
+{
+
+	integer iFirstIndex = iGetFirstIndex();
+	switch(iOrder)	{
+		case 0:	{
+			XCurr = Vec3(X, iFirstIndex+1);
+			gCurr = Vec3(X, iFirstIndex+4);
+			Mat3x3 RDelta(MatR, gCurr);
+			RCurr = RDelta*RRef;
+			break;
+		}
+		
+		case 1:	{
+			VCurr = Vec3(X, iFirstIndex+1);
+			//gPCurr = Vec3(X, iFirstIndex+4);
+			//Mat3x3 RDelta(MatR, gCurr);
+			//WCurr = Mat3x3(MatG, gCurr)*gPCurr+RDelta*WRef;
+			WCurr = Vec3(X, iFirstIndex+1);
+			break;
+		}
+		case 2:	{
+			XPPCurr = Vec3(X, iFirstIndex+1);
+			WPCurr = Vec3(X, iFirstIndex+4);
+			break;
+		}
+		default:
+			NO_OP;
+	}
+
+
+#if 0
+	/* Questo e' meno efficiente anche se sembra piu' elegante.
+	 * Il problema e' che per scrivere il manipolatore in forma
+	 * elegante bisogna aggiungere alla matrice le informazioni
+	 * di memorizzazione della funzione di manipolazione.
+	 * Oppure occorre un operatore ternario */
+	RDelta = MatR << gCurr;
+#endif
+}
 /* Restituisce il valore del dof iDof;
  * se differenziale, iOrder puo' essere = 1 per la derivata */
 const doublereal&

@@ -101,7 +101,9 @@ pSolver(pS),
 DrvHdl(HP.GetMathParser()),
 OutHdl(sOutputFileName),        /* ..takes output filename as argument */
 pTime(NULL),
-pXCurr(NULL), pXPrimeCurr(NULL),
+pXCurr(NULL), pXPrimeCurr(NULL), 
+/* Inverse Dynamics: */
+pXPrimePrimeCurr(NULL),
 #if defined(USE_STRUCT_NODES)
 bInitialJointAssemblyToBeDone(bDefaultInitialJointAssemblyToBeMade),
 bSkipInitialJointAssembly(bDefaultSkipInitialJointAssembly),

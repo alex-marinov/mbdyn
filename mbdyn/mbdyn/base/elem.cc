@@ -62,6 +62,29 @@ Elem::AssMats(VariableSubMatrixHandler& /* WorkMatA */ ,
 		"AssMats() not implemented yet" << std::endl);
 }
 
+/* inverse dynamics Jacobian matrix assembly */
+VariableSubMatrixHandler&
+Elem::AssJac(VariableSubMatrixHandler& WorkMat,
+		const VectorHandler& XCurr) 
+{ 
+	silent_cerr(psElemNames[GetElemType()] << "(" << GetLabel() << "): "
+		"Elem::AssJac() for inverse dynamics not implemented yet" << std::endl);
+	return WorkMat;
+};
+
+/* inverse dynamics residual assembly */
+SubVectorHandler&
+Elem::AssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr,
+		const VectorHandler& XPrimePrimeCurr,
+		int iOrder) 
+{ 
+	silent_cerr(psElemNames[GetElemType()] << "(" << GetLabel() << "): "
+		"Elem::AssRes() for inverse dynamics not implemented yet" << std::endl);
+	return WorkVec;
+};
+	
 unsigned int 
 Elem::iGetNumDof(void) const
 {

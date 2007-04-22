@@ -43,8 +43,10 @@
 
  
 #include <schurdataman.h> 
+#include <invdataman.h> 
 #include <external.h>
 #include <solver.h>
+#include <invsolver.h>
 #include <stepsol.h>
 
 StepIntegrator::StepIntegrator(const integer MaxIt,
@@ -1206,3 +1208,298 @@ HopeSolver::dPredStateAlg(const doublereal& dXm1,
 
 /* Hope - end */
 
+/* Inverse Dynamics - Begin*/
+
+InverseDynamicsStepSolver::InverseDynamicsStepSolver(const integer MaxIt,
+		const doublereal dT,
+		const doublereal dSolutionTol,
+		const integer stp,
+		const integer sts,
+		const bool bmod_res_test)
+: StepIntegrator(MaxIt, dT, dSolutionTol, stp, sts),
+bEvalProdCalledFirstTime(true),
+pXCurr(0),
+pXPrimeCurr(0),
+pXPrimePrimeCurr(0),
+pLambdaCurr(0),
+bModResTest(bmod_res_test)
+{
+	NO_OP;
+}
+
+InverseDynamicsStepSolver::~InverseDynamicsStepSolver(void)
+{
+	NO_OP;
+}
+
+void
+InverseDynamicsStepSolver::EvalProd(doublereal Tau, const VectorHandler& f0,
+	const VectorHandler& w, VectorHandler& z) const
+{
+	/* matrix-free product                                     
+         *                                                      
+         * J(XCurr) * w = -||w|| * (Res(XCurr + sigma * Tau * w/||w||) - f0) / (sigma * Tau)
+         * 
+         */
+	if (bEvalProdCalledFirstTime) {
+		XTau.Resize(w.iGetSize());
+		SavedState.Resize(w.iGetSize());
+		SavedDerState.Resize(w.iGetSize());
+		bEvalProdCalledFirstTime = false;
+	}
+
+	SavedState = *pXCurr;
+	SavedDerState = *pXPrimeCurr;
+
+	/* if w = 0; J * w = 0 */ 
+	ASSERT(pDM != NULL);
+        
+	doublereal nw = w.Norm();
+        if (nw < DBL_EPSILON) {
+                z.Reset();
+                return;
+        }
+        doublereal sigma = pXCurr->InnerProd(w);
+        sigma /=  nw;
+        if (fabs(sigma) > DBL_EPSILON) {
+                doublereal xx = (fabs( sigma) <= 1.) ? 1. : fabs(sigma);
+                Tau = copysign(Tau*xx, sigma);
+        }
+        Tau /= nw;
+#ifdef DEBUG_ITERATIVE
+	std::cout << "Tau " << Tau << std::endl;
+#endif /* DEBUG_ITERATIVE */
+	
+	XTau.Reset();
+	z.Reset();
+        XTau.ScalarMul(w, Tau);
+	Update(&XTau);
+#ifdef  USE_EXTERNAL
+        External::SendFreeze();
+#endif /* USE_EXTERNAL */
+	/* deal with throwing elements: do not honor their requests while perfoming matrix free update */
+	try {
+		Residual(&z);
+	}
+	catch (DataManager::ChangedEquationStructure) {
+	}
+	XTau.ScalarMul(XTau, -1.);
+
+	/* riporta tutto nelle condizioni inziali */
+#if 0
+	Update(&XTau);
+#endif
+	*pXCurr = SavedState;
+	*pXPrimeCurr = SavedDerState;
+	pDM->Update();
+	z -= f0;
+	z.ScalarMul(z, -1./Tau);
+}
+
+/* scale factor for tests */
+doublereal
+InverseDynamicsStepSolver::TestScale(const NonlinearSolverTest *pTest) const
+{
+	if (bModResTest) {
+#ifdef USE_MPI
+#warning "InverseDynamicsStepSolver::TestScale() not available with Schur solution"
+#endif /* USE_MPI */
+
+		Dof CurrDof;
+		doublereal dXPr = 0.;
+
+		DofIterator.bGetFirst(CurrDof); 
+
+	   	for (int iCntp1 = 1; iCntp1 <= pXPrimeCurr->iGetSize(); 
+				iCntp1++, DofIterator.bGetNext(CurrDof))
+		{
+
+			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+				doublereal d = pXPrimeCurr->dGetCoef(iCntp1);
+				doublereal d2 = d*d;
+
+				doublereal ds = pTest->dScaleCoef(iCntp1);
+				doublereal ds2 = ds*ds;
+				d2 *= ds2;
+
+				dXPr += d2;
+			}
+			/* else if ALGEBRAIC: non aggiunge nulla */
+		}
+
+	   	return 1./(1. + dXPr);
+
+	} else {
+		return 1.;
+	}
+}
+
+void 
+InverseDynamicsStepSolver::SetOrder(int iOrd)
+{
+	iOrder = iOrd;
+}
+
+doublereal
+InverseDynamicsStepSolver::Advance(InverseSolver* pS, 
+		const doublereal TStep, 
+		const StepChange StType,
+		MyVectorHandler*const pX,
+ 		MyVectorHandler*const pXPrime,
+ 		MyVectorHandler*const pXPrimePrime,
+		integer& EffIter,
+		doublereal& Err,
+		doublereal& SolErr) 
+{
+	ASSERT(pDM != NULL);
+	pXCurr  = pX;
+	pXPrimeCurr  = pXPrime;
+	pXPrimePrimeCurr  = pXPrimePrime;
+	//pLambdaCurr = pLambda;
+	
+	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr, *pXPrimePrimeCurr);
+
+#ifdef DEBUG
+	integer iNumDofs = pDM->iGetNumDofs();
+	if (outputPred) {
+		std::cout << "Dof:      XCurr  ,    XPrev  ,   XPrev2  "
+			",   XPrime  ,   XPPrev  ,   XPPrev2" << std::endl;
+		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
+    			std::cout << std::setw(4) << iTmpCnt << ": ";
+			std::cout << std::setw(12) << pX->dGetCoef(iTmpCnt);
+			for (unsigned int ivec = 0; ivec < qX.size(); ivec++) {
+				std::cout << std::setw(12)
+					<< (qX[ivec])->dGetCoef(iTmpCnt);
+			} 
+			std::cout << std::setw(12) << pXPrime->dGetCoef(iTmpCnt);
+			for (unsigned int ivec = 0; ivec < qXPrime.size(); ivec++) {  
+				std::cout << std::setw(12)
+					<< (qXPrime[ivec])->dGetCoef(iTmpCnt);
+			} 
+			std::cout << std::endl;
+ 		}
+	}
+#endif /* DEBUG */
+
+	Err = 0.; 
+
+	/* Position */
+	SetOrder(0);
+	/* Setting iOrder = 0, the residual is called only 
+	 * for constraints, on positions */
+
+	pS->pGetNonlinearSolver()->Solve(this, pS, MaxIters, dTol,
+    			EffIter, Err, dSolTol, SolErr);
+	
+	SolutionManager *pSM = pS->pGetSolutionManager();
+	VectorHandler *pRes = pSM->pResHdl();
+	VectorHandler *pSol = pSM->pSolHdl();
+
+	/* Velocity */
+	SetOrder(1);
+
+	Residual(pRes);
+	pSM->Solve();
+
+	/* use velocity */
+	pSol;
+
+	/* Acceleration */
+	SetOrder(2);
+
+	Residual(pRes);
+	pSM->Solve();
+
+	/* use acceleration */
+	pSol;
+
+	/* Forces */
+	SetOrder(-1);
+	Residual(pRes);
+	pSM->SolveT();
+
+	/* use forces */
+	pSol;
+	
+	/* if it gets here, it surely converged */
+	pDM->AfterConvergence();
+
+	return Err;
+}
+
+void
+InverseDynamicsStepSolver::Residual(VectorHandler* pRes) const
+{
+	ASSERT(pDM != NULL);
+	switch (iOrder) {
+	case -1:
+		pDM->AssRes(*pRes);
+		break;
+
+	default:
+		pDM->AssConstrRes(*pRes, iOrder);
+		break;
+	}
+}
+
+void
+InverseDynamicsStepSolver::Jacobian(MatrixHandler* pJac) const
+{
+	ASSERT(pDM != NULL);
+	pDM->AssConstrJac(*pJac);
+}
+#if 0
+void
+InverseDynamicsStepSolver::UpdateDof(const int DCount,
+	const DofOrder::Order Order,
+	const VectorHandler* const pSol) const
+{
+	doublereal d = pSol->dGetCoef(DCount);
+	if (Order == DofOrder::DIFFERENTIAL) {
+		pXPrimeCurr->IncCoef(DCount, d);
+		
+		/* Nota: b0Differential e b0Algebraic 
+		 * possono essere distinti;
+		 * in ogni caso sono calcolati 
+		 * dalle funzioni di predizione
+		 * e sono dati globali */
+		pXCurr->IncCoef(DCount, db0Differential*d);
+
+	} else {
+		pXCurr->IncCoef(DCount, d);
+		pXPrimeCurr->IncCoef(DCount, db0Algebraic*d);
+	}
+}
+#endif	
+
+void
+InverseDynamicsStepSolver::Update(const VectorHandler* pSol) const
+{
+	DEBUGCOUTFNAME("InverseDynamicsStepSolver::Update");
+	ASSERT(pDM != NULL);
+	switch( iOrder ) {
+		case 0:	{
+		/* FIXME: ma è giusto così? */
+			*pXCurr += *pSol;
+			pDM->Update(iOrder);
+			break;
+		}
+		case 1: {
+			*pXPrimeCurr = *pSol;
+			pDM->Update(iOrder);
+			break;
+		}
+		case 2: {
+			*pXPrimePrimeCurr = *pSol;
+			pDM->Update(iOrder);
+			break;
+		}
+		default:{
+			ASSERT(0);
+			break;
+		}
+
+	}
+	//UpdateLoop(this, &InverseDynamicsStepSolver::UpdateDof, pSol);
+}
+/* Inverse Dynamics - End*/

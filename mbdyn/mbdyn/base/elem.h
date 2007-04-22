@@ -186,6 +186,19 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr) = 0;
 
+	/* inverse dynamics Jacobian matrix assembly */
+	virtual VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		const VectorHandler& XCurr);
+
+	/* inverse dynamics residual assembly */
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr,
+		const VectorHandler& XPrimePrimeCurr,
+		int iOrder = -1);
+	
 	/* returns the number of connected nodes */
 	virtual inline int GetNumConnectedNodes(void) const;
 	virtual inline void GetConnectedNodes(std::vector<const Node *>& connectedNodes);

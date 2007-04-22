@@ -68,6 +68,7 @@
 
 /* Needed for callback declaration; defined in <mbdyn/base/solver.h> */
 class Solver;
+class InverseSolver;
  
 class NonlinearSolverTest {
 public:

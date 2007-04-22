@@ -75,26 +75,6 @@
 
 #define MBDYN_X_COMPATIBLE_INPUT
 
-/* InverseDynamicsElem - begin */
-
-
-/* assemblaggio residuo */
-SubVectorHandler&
-InverseDynamicsElem::AssRes(SubVectorHandler& WorkVec,
-	const VectorHandler& XCurr, 
-	const VectorHandler& XPrimeCurr,
-	int iOrder)
-{
-	WorkVec.ResizeReset(0);
-
-	pedantic_cout("InverseDynamicsElem::AssRes: "
-		"Joint(" << dynamic_cast<Elem *>(this)->GetLabel() << ")" << std::endl);
-
-	return WorkVec;
-}
-
-/* InverseDynamicsElem - end */
-
 /* Joint - begin */
 
 Joint::Joint(unsigned int uL, const DofOwner* pDO,

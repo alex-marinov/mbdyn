@@ -99,6 +99,9 @@ protected:
 	/* Puntatori ai vettori soluzione durante il passo */
 	const VectorHandler* pXCurr;
 	const VectorHandler* pXPrimeCurr;
+	
+	/* Inverse Dynamics: */
+	const VectorHandler* pXPrimePrimeCurr;
 
 	/* Parametri usati durante l'assemblaggio iniziale */
 #if defined(USE_STRUCT_NODES)
@@ -289,6 +292,11 @@ public:
 	void LinkToSolution(const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 
+	/* Inverse Dynamics: */
+	void LinkToSolution(const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr,
+			const VectorHandler& XPrimePrimeCurr);
+	
 	/* Restituisce il numero di dof per la costruzione delle matrici ecc. */
 	integer iGetNumDofs(void) const { return iTotDofs; };
 
@@ -321,6 +329,17 @@ public:
 	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef)
 		throw(ChangedEquationStructure);
 
+	/* Inverse Dynamics: */
+	/* Constraints residual, switch iOrder*/
+	virtual void AssConstrRes(VectorHandler& ResHdl, int iOrder) 
+		throw(ChangedEquationStructure) ;
+
+	/* Elem residual, no constraints */
+	virtual void AssRes(VectorHandler &ResHdl)
+		throw(ChangedEquationStructure) { NO_OP; };
+	/* Constraint Jacobian matrix*/	
+	virtual void AssConstrJac(MatrixHandler& JacHdl);
+
 protected:
 	/* specialized functions, called by above general helpers */
 	virtual void AssJac(MatrixHandler& JacHdl, doublereal dCoef,
@@ -334,6 +353,16 @@ protected:
 			VecIter<Elem *> &Iter,
 			SubVectorHandler& WorkVec)
 		throw(ChangedEquationStructure);
+
+	/* Inverse Dynamics: */
+	void AssConstrJac(MatrixHandler& JacHdl,
+		VecIter<Elem *> &Iter,
+		VariableSubMatrixHandler& WorkMat);
+
+	void AssConstrRes(VectorHandler& ResHdl,
+		VecIter<Elem *> &Iter,
+		SubVectorHandler& WorkVec, int iOrder)
+	throw(ChangedEquationStructure);
 
 public:
 	virtual void OutputPrepare(void);
@@ -377,13 +406,18 @@ public:
 	virtual void AfterPredict(void) const;
 	virtual void Update(void) const;
 	virtual void AfterConvergence(void) const;
-
+	
+	/* Inverse Dynamics: */
+	virtual void Update(int iOrder) const;
+	
 	bool bSetStaticModel(bool b) {
 		bStaticModel = b;
 	};
 	bool bIsStaticModel(void) const {
 		return bStaticModel;
 	};
+
+	/* Inverse Dynamics: */
 	bool bSetInverseDynamics(bool b) {
 		bInverseDynamics = b;
 	};

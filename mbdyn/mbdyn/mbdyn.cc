@@ -109,6 +109,7 @@ void *mbdyn_rtai_task = NULL;
 #include <except.h>
 
 #include <solver.h>
+#include <invsolver.h>
 
 /* Note: DEBUG_* codes are declared in "mbdyn.h" */
 #ifdef DEBUG
@@ -962,10 +963,12 @@ RunMBDyn(MBDynParser& HP,
 		"end",
         	"data",
         	"integrator",
+		"inverse" "dynamics",
         	"multistep",
         	"rungekutta",
         	"parallel",
         	"schur",
+		"rigid",
 		NULL
     	};
 
@@ -977,10 +980,12 @@ RunMBDyn(MBDynParser& HP,
 		END,
         	DATA,
         	INTEGRATOR,
+		INVERSEDYNAMICS,
         	MULTISTEP,
         	RUNGEKUTTA,
         	PARALLEL,
         	SSCHUR,
+		RIGID,
         	LASTKEYWORD
     	};
    
@@ -1068,6 +1073,21 @@ RunMBDyn(MBDynParser& HP,
 	    		throw ErrGeneric();
 #endif /* !USE_MPI */
 
+        	case INVERSEDYNAMICS:
+            		switch (KeyWords(HP.GetWord())) {
+       	     		case RIGID:
+	        		CurrInt = RIGID;
+				break;
+			
+			default:
+	        		silent_cerr(std::endl 
+		    			<< "Unknown inverse dynamics solution at line " 
+	            			<< HP.GetLineData()
+					<< "; aborting ..." << std::endl);
+	        		throw ErrGeneric();
+            		}
+            		break;    
+
         	case END:
 	    		if (KeyWords(HP.GetWord()) != DATA) {
 	        		silent_cerr(std::endl 
@@ -1089,7 +1109,6 @@ RunMBDyn(MBDynParser& HP,
    
    	/* Uscita dal ciclo infinito */
 endofcycle:   
-
 
 #ifdef USE_MPI
 	/* using_mpi is detected from command line switch "-p"
@@ -1146,11 +1165,22 @@ endofcycle:
 #endif /* USE_MPI */
 
     	switch (CurrInt) {
-    	case MULTISTEP: 
+    	case MULTISTEP:
         	SAFENEWWITHCONSTRUCTOR(pSolv,
 				Solver,
 				Solver(HP, sInputFileName, 
 					sOutputFileName, bParallel));
+		try {
+    			/* Runs the simulation */
+    			pSolv->Run();
+	
+		} catch (...) {
+			if (pSolv) {
+				SAFEDELETE(pSolv);
+				pSolv = 0;
+			}
+			throw;
+		}
         	break;
  
     	case RUNGEKUTTA:
@@ -1163,12 +1193,29 @@ endofcycle:
         	silent_cerr("Sorry, implicit Runge-Kutta isn't supported yet;"
 	    		<< std::endl << "aborting ..." << std::endl);
         	throw ErrNotImplementedYet();
-
+    	case RIGID:
+        	SAFENEWWITHCONSTRUCTOR(pSolv,
+				InverseSolver,
+				InverseSolver(HP, sInputFileName, 
+					sOutputFileName, bParallel));
+		try {
+    			/* Runs the simulation */
+    			dynamic_cast<InverseSolver *>(pSolv)->Run();
+	
+		} catch (...) {
+			if (pSolv) {
+				SAFEDELETE(pSolv);
+				pSolv = 0;
+			}
+			throw;
+		}
+        	break;
+	
 	default:
         	silent_cerr("Unknown integrator; aborting ..." << std::endl);
         	throw ErrGeneric();   
     	}
-
+#if 0
 	try {
     		/* Runs the simulation */
     		pSolv->Run();
@@ -1180,7 +1227,7 @@ endofcycle:
 		}
 		throw;
 	}
-    
+#endif    
     	return pSolv;
 } // RunMBDyn
 

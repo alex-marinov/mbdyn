@@ -86,7 +86,6 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 		doublereal& dSolErr)
 {
 	ASSERT(pS != NULL);
-
 	SolutionManager *pSM = pS->pGetSolutionManager();
 	
 	iIterCnt = 0;
@@ -100,6 +99,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 		pRes = pSM->pResHdl();
 		pSol = pSM->pSolHdl();
 		Size = pRes->iGetSize();
+
 #ifdef 	USE_EXTERNAL 	
 		SendExternal();
 #endif /* USE_EXTERNAL */

@@ -324,7 +324,6 @@ void
 Solver::Run(void)
 {
    	DEBUGCOUTFNAME("Solver::Run");
-
 #ifdef USE_RTAI
 	if (bRT) {
 		/* Init RTAI; if init'ed, it will be shut down at exit */

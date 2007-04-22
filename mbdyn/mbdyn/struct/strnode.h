@@ -124,6 +124,11 @@ protected:
 	Vec3 WRef;            /* Velocita' angolare predetta al passo corrente */
 	mutable Vec3 WCurr;   /* Velocita' angolare corrente */
 
+	mutable Vec3 XPPCurr;   /* Accelerazione lineare  corrente */
+	mutable Vec3 WPCurr;    /* Accelerazione angolare corrente */
+	mutable Vec3 XPPPrev;   /* Accelerazione lineare  al passo prec. */
+	mutable Vec3 WPPrev;    /* Accelerazione angolare al passo prec. */
+	
 	const StructNode *pRefNode;	/* Reference node for relative prediction */
 
 #ifdef USE_NETCDF
@@ -225,6 +230,9 @@ public:
 	virtual inline const Vec3& GetWPrev(void) const;
 	virtual inline const Vec3& GetWRef(void) const;
 	virtual inline const Vec3& GetWCurr(void) const;
+
+	inline const Vec3& GetXPPCurr(void) const;
+	inline const Vec3& GetWPCurr(void) const;
 
 	virtual inline const doublereal& dGetPositionStiffness(void) const;
 	virtual inline const doublereal& dGetVelocityStiffness(void) const;
@@ -396,6 +404,18 @@ StructNode::GetWCurr(void) const
 	return WCurr;
 }
 
+inline const Vec3&
+StructNode::GetXPPCurr(void) const
+{
+	return XPPCurr;
+}
+
+inline const Vec3&
+StructNode::GetWPCurr(void) const
+{
+	return WPCurr;
+}
+
 inline const doublereal&
 StructNode::dGetPositionStiffness(void) const
 {
@@ -444,20 +464,15 @@ class DynamicStructNode : public StructNode {
 	friend class AutomaticStructElem;
 
 protected:
-	/* Acceleration and angular acceleration; DynamicStructNode uses them
-	 * only for output; ModalNode uses them to store actual unknowns */
-	bool bComputeAccelerations;
-	mutable AutomaticStructElem *pAutoStr;
-
 #ifdef USE_NETCDF
 	NcVar	*Var_XPP,
 		*Var_OmegaP;
 #endif /* USE_NETCDF */
 
-	mutable Vec3 XPPCurr;   /* Accelerazione lineare  corrente */
-	mutable Vec3 WPCurr;    /* Accelerazione angolare corrente */
-	mutable Vec3 XPPPrev;   /* Accelerazione lineare  corrente */
-	mutable Vec3 WPPrev;    /* Accelerazione angolare corrente */
+	/* Acceleration and angular acceleration; DynamicStructNode uses them
+	 * only for output; ModalNode uses them to store actual unknowns */
+	bool bComputeAccelerations;
+	mutable AutomaticStructElem *pAutoStr;
 
 	virtual inline void SetAutoStr(const AutomaticStructElem *p);
 
@@ -522,6 +537,11 @@ public:
 	virtual void BeforePredict(VectorHandler& X, VectorHandler& XP,
 		VectorHandler& XPrev,
 		VectorHandler& XPPrev) const;
+	
+	/* Inverse Dynamics: */
+	/* Do Update on node position, velocity or acceleration 
+	 * depending on iOrder */
+	virtual void Update(VectorHandler& X, int iOrder);
 
 	/* Restituisce il valore del dof iDof;
 	 * se differenziale, iOrder puo' essere = 1 per la derivata */
@@ -535,9 +555,6 @@ public:
 	 * se differenziale, iOrder puo' essere = 1 per la derivata */
 	virtual void SetDofValue(const doublereal& dValue,
 		unsigned int iDof, unsigned int iOrder = 0);
-
-	inline const Vec3& GetXPPCurr(void) const;
-	inline const Vec3& GetWPCurr(void) const;
 
 	virtual void ComputeAccelerations(bool b);
 	virtual void SetOutputFlag(flag f = flag(1));
@@ -567,18 +584,6 @@ inline void
 DynamicStructNode::SetAutoStr(const AutomaticStructElem *p)
 {
 	pAutoStr = (AutomaticStructElem *)p;
-}
-
-inline const Vec3&
-DynamicStructNode::GetXPPCurr(void) const
-{
-	return XPPCurr;
-}
-
-inline const Vec3&
-DynamicStructNode::GetWPCurr(void) const
-{
-	return WPCurr;
 }
 
 
@@ -713,9 +718,6 @@ public:
 	/* Aggiorna dati in base alla soluzione */
 	virtual void Update(const VectorHandler& X,
 		const VectorHandler& XP);
-
-	virtual inline const Vec3& GetXPPCurr(void) const;
-	virtual inline const Vec3& GetWPCurr(void) const;
 };
 
 
@@ -731,18 +733,6 @@ inline integer
 ModalNode::iGetFirstMomentumIndex(void) const
 {
 	return DofOwnerOwner::iGetFirstIndex()+6;
-}
-
-inline const Vec3&
-ModalNode::GetXPPCurr(void) const
-{
-	return XPPCurr;
-}
-
-inline const Vec3&
-ModalNode::GetWPCurr(void) const
-{
-	return WPCurr;
 }
 
 /* ModalNode - end */

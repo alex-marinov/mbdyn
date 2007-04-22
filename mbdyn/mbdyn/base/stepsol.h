@@ -76,6 +76,7 @@
 
 /* Needed for callback declaration; defined in <mbdyn/base/solver.h> */
 class Solver;
+class InverseSolver;
  
 class StepIntegrator
 {
@@ -651,5 +652,83 @@ protected:
 };
 
 /* Hope - end */
+
+/* InverseDynamics - Begin*/
+
+class InverseDynamicsStepSolver: 
+	public StepIntegrator,
+	public NonlinearProblem
+{
+   
+private:
+	/* needed by EvalProd */
+	mutable MyVectorHandler XTau;
+	mutable MyVectorHandler SavedState;
+/* FIXME: Need this? */
+	mutable MyVectorHandler SavedDerState;
+	mutable bool bEvalProdCalledFirstTime;
+
+	int iOrder;
+
+protected:
+	VectorHandler *pXCurr;
+	VectorHandler *pXPrimeCurr; 
+	VectorHandler *pXPrimePrimeCurr; 
+	VectorHandler *pLambdaCurr;
+	bool bModResTest;
+
+public:
+	InverseDynamicsStepSolver(const integer MaxIt,
+			const doublereal dT,
+			const doublereal dSolutionTol,
+			const integer stp,
+			const integer sts,
+			const bool bmod_res_test);
+
+	~InverseDynamicsStepSolver(void);
+
+	virtual void
+	EvalProd(doublereal Tau, const VectorHandler& f0,
+			const VectorHandler& w, VectorHandler& z) const;
+
+	/* scale factor for tests */
+	virtual doublereal TestScale(const NonlinearSolverTest *pTest) const;
+
+	/* Needed for compatibility with class StepIntegrator*/	
+	virtual doublereal
+	Advance(Solver* pS, 
+			const doublereal TStep, 
+			const doublereal dAlph, 
+			const StepChange StType,
+			std::deque<MyVectorHandler*>& qX,
+	 		std::deque<MyVectorHandler*>& qXPrime,
+			MyVectorHandler*const pX,
+ 			MyVectorHandler*const pXPrime,
+			integer& EffIter,
+			doublereal& Err,
+			doublereal& SolErr){ NO_OP; } ;
+	
+	/* Real Advancer*/
+	virtual doublereal
+	Advance(InverseSolver* pS, 
+			const doublereal TStep, 
+			const StepChange StType,
+			MyVectorHandler*const pX,
+ 			MyVectorHandler*const pXPrime,
+ 			MyVectorHandler*const pXPrimePrime,
+			integer& EffIter,
+			doublereal& Err,
+			doublereal& SolErr) ;
+ 	
+	void Residual(VectorHandler* pRes) const ;
+
+	void Jacobian(MatrixHandler* pJac) const ;
+	
+	void Update(const VectorHandler* pSol) const  ;
+	
+	void SetOrder(int iOrd);
+};
+
+/* InverseDynamics - End*/
 
 #endif /* STEPSOL_H */

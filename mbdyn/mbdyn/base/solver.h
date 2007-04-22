@@ -295,7 +295,7 @@ public:
 			    bool bParallel = false);
 
    	/* esegue la simulazione */
-   	void Run(void);
+   	virtual void Run(void);
 
    	/* distruttore: esegue tutti i distruttori e libera la memoria */
    	~Solver(void);
@@ -303,19 +303,19 @@ public:
 
 	/* EXPERIMENTAL */
 	/* FIXME: better const'ify? */
-	DataManager *pGetDataManager(void) const {
+	virtual DataManager *pGetDataManager(void) const {
 		return pDM;
 	};
-	SolutionManager *pGetSolutionManager(void) const {
+	virtual SolutionManager *pGetSolutionManager(void) const {
 		return pSM;
 	};
-	const LinSol& GetLinearSolver(void) const {
+	virtual const LinSol& GetLinearSolver(void) const {
 		return CurrLinearSolver;
 	};
-	NonlinearSolver *pGetNonlinearSolver(void) const {
+	virtual NonlinearSolver *pGetNonlinearSolver(void) const {
 		return pNLS;
 	};
-	doublereal GetDInitialTimeStep(void) const {
+	virtual doublereal GetDInitialTimeStep(void) const {
 		return dInitialTimeStep;
 	};
 	virtual clock_t GetCPUTime(void) const;

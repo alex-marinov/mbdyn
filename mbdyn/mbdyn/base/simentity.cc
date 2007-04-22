@@ -103,6 +103,14 @@ SimulationEntity::Update(const VectorHandler& /* XCurr */ ,
 	NO_OP;
 }
 
+/* Inverse Dynamics: */
+void
+SimulationEntity::Update(const VectorHandler& /* XCurr */ , 
+		const int /* iOrder */ )
+{
+	NO_OP;
+}
+
 void 
 SimulationEntity::AfterConvergence(const VectorHandler& /* X */ , 
 		const VectorHandler& /* XP */ )

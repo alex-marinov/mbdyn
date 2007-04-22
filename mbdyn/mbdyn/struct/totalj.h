@@ -29,7 +29,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* Imposed Orientation Joint */
 
 #ifndef TOTALJ_H
 #define TOTALJ_H
@@ -176,8 +175,9 @@ public:
 	SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& XCurr,
-		const VectorHandler& /* XPrimeCurr */ ,
-		int iOrder);
+		const VectorHandler&  XPrimeCurr,
+		const VectorHandler&  XPrimePrimeCurr,
+		int iOrder = -1);
 
 	DofOrder::Order GetEqType(unsigned int i) const;
 
@@ -220,8 +220,6 @@ public:
 	};
 	/* ************************************************ */
 };
-
-/* TotalJoint - end */
-
-#endif // TOTALJ_H
+#endif
+/* Total Joint - end*/
 

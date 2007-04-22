@@ -1542,6 +1542,30 @@ ClampJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    return WorkMat;
 }
 
+/* Inverse Dynamics */
+VariableSubMatrixHandler& 
+ClampJoint::AssJac(VariableSubMatrixHandler& WorkMat,
+		   const VectorHandler& /* XCurr */ )
+{
+	DEBUGCOUT("Entering ClampJoint::AssJac()" << std::endl);
+/* FIXME: */      
+   	printf("Entering ClampJoint::AssJac(), Constraint only\n");
+   
+  	SparseSubMatrixHandler& WM = WorkMat.SetSparse();
+   
+   	/* Dimensiona e resetta la matrice di lavoro */
+   	WM.ResizeReset(6, 1);
+   
+   	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
+   	integer iFirstReactionIndex = iGetFirstIndex();
+   
+   	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
+      		WM.PutItem(iCnt, iFirstReactionIndex+iCnt, 
+		iFirstPositionIndex+iCnt, 1.);    
+   	}
+        
+return WorkMat;
+}
 
 /* assemblaggio matrici per autovalori */
 void ClampJoint::AssMats(VariableSubMatrixHandler& WorkMatA,
@@ -1606,6 +1630,45 @@ SubVectorHandler& ClampJoint::AssRes(SubVectorHandler& WorkVec,
    }
    
    return WorkVec;
+}
+
+/* Inverse Dynamics: AssRes()*/
+SubVectorHandler& ClampJoint::AssRes(SubVectorHandler& WorkVec,
+				     const VectorHandler& XCurr, 
+				     const VectorHandler& /* XPrimeCurr */,
+				     const VectorHandler& /* XPrimePrimeCurr */,
+				     int iOrder)
+{
+   	DEBUGCOUT("Entering ClampJoint::AssRes()" << std::endl);
+
+/* FIXME: */      
+printf("Entering ClampJoint::AssRes(), Constraint only, iOrder = %d\n", iOrder);
+
+   	integer iNumRows;
+   	integer iNumCols;
+   	WorkSpaceDim(&iNumRows, &iNumCols);
+   	WorkVec.ResizeReset(iNumRows - 6);
+
+   	/* FIXME: Indici delle incognite */
+   	integer iFirstReactionIndex = iGetFirstIndex();
+   	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
+     	WorkVec.PutRowIndex(iCnt, iFirstReactionIndex+iCnt);
+   	}   
+ 
+/* The residual is != 0 only for position */
+   	if(iOrder == 0)	{
+
+   		/* Calcola posizione e parametri di rotazione */
+   		Vec3 x(pNode->GetXCurr());
+   		Mat3x3 R(pNode->GetRCurr());
+   		/* Nota: si sfrutta il fatto che g(R^T) = -g(R) per avere -g(R_Delta) */
+   		Vec3 g(gparam(RClamp*R.Transpose()));
+      		/* Residuo dell'equazione di vincolo */
+      		WorkVec.Add(1, XClamp-x);
+      		WorkVec.Add(3, g);   
+	}
+
+return WorkVec;
 }
 
 

@@ -311,8 +311,13 @@ class ClampJoint : virtual public Elem, public Joint {
    /* Assemblaggio matrice jacobiana */
    VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat,
 				    doublereal dCoef,
-				    const VectorHandler& XCurr, 
-				    const VectorHandler& XPrimeCurr);
+				    const VectorHandler& XCurr,
+				    const VectorHandler& XPrimeCurr); 
+
+   
+   /* Inverse Dynamics: AssJac() */
+   VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat,
+				    const VectorHandler& XCurr);
 
    /* assemblaggio matrici per autovalori */
    void AssMats(VariableSubMatrixHandler& WorkMatA,
@@ -326,6 +331,13 @@ class ClampJoint : virtual public Elem, public Joint {
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
    
+   /* Inverse Dynamics: AssRes */
+   SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+			    const VectorHandler& XCurr, 
+			    const VectorHandler& XPrimeCurr,
+			    const VectorHandler& XPrimePrimeCurr,
+			    int iOrder = -1);
+
    virtual void Output(OutputHandler& OH) const;
 
 
