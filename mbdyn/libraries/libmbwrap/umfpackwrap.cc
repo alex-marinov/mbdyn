@@ -128,6 +128,7 @@
 
 /* required factorization type (A * x = b) */
 #define SYS_VALUE 			UMFPACK_A
+#define SYS_VALUET 			UMFPACK_Aat
 
 #else /* !HAVE_UMFPACK4 */
 
@@ -147,6 +148,7 @@
 
 /* required factorization type (A * x = b) */
 #define SYS_VALUE 			"Ax=b"
+#define SYS_VALUET 			"Aatx=b"	/* TODO: check (or drop Umfpack < 4) */
 
 #endif /* HAVE_UMFPACK4 */
 
@@ -202,6 +204,18 @@ UmfpackSolver::Reset(void)
 void
 UmfpackSolver::Solve(void) const
 {
+	Solve(false);
+}
+
+void
+UmfpackSolver::SolveT(void) const
+{
+	Solve(true);
+}
+
+void
+UmfpackSolver::Solve(bool bTranspose) const
+{
 	if (bHasBeenReset) {
       		((UmfpackSolver *)this)->Factor();
       		bHasBeenReset = false;
@@ -218,7 +232,7 @@ UmfpackSolver::Solve(void) const
 #endif /* UMFPACK_REPORT */
 
 	Control[UMFPACK_IRSTEP] = 0;
-	status = UMFPACKWRAP_solve(SYS_VALUE,
+	status = UMFPACKWRAP_solve((bTranspose ? SYS_VALUET : SYS_VALUE),
 			App, Aip, Axp,
 			LinearSolver::pdSol, LinearSolver::pdRhs, 
 			Numeric, Control, Info);
@@ -370,12 +384,20 @@ UmfpackSparseSolutionManager::MakeCompressedColumnForm(void)
 	pLS->MakeCompactForm(A, Ax, Ai, Adummy, Ap);
 }
 
-/* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
+/* Risolve il sistema Fattorizzazione + Bacward Substitution */
 void
 UmfpackSparseSolutionManager::Solve(void)
 {
 	MakeCompressedColumnForm();
 	pLS->Solve();
+}
+
+/* Risolve il sistema (trasposto) Fattorizzazione + Bacward Substitution */
+void
+UmfpackSparseSolutionManager::SolveT(void)
+{
+	MakeCompressedColumnForm();
+	pLS->SolveT();
 }
 
 /* Rende disponibile l'handler per la matrice */

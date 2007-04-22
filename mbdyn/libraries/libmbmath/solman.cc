@@ -80,6 +80,13 @@ SolutionManager::MatrInitialize(void)
 }
 
 void
+SolutionManager::SolveT(void)
+{
+	silent_cerr("SolutionManager::SolveT() not supported" << std::endl);
+	throw ErrGeneric();
+}
+
+void
 SolutionManager::LinkToSolution(const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr) {
 	NO_OP;

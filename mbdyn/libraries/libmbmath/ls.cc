@@ -73,6 +73,13 @@ LinearSolver::Reset(void)
 }
 
 void
+LinearSolver::SolveT(void) const
+{
+	silent_cerr("LinearSolver::SolveT() not supported" << std::endl);
+	throw ErrGeneric();
+}
+
+void
 LinearSolver::SetSolutionManager(SolutionManager *psm)
 {
 	pSM = psm;

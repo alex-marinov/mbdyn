@@ -71,6 +71,7 @@ public:
 
 	virtual void Reset(void);
 	virtual void Solve(void) const = 0;
+	virtual void SolveT(void) const;
 
 	bool bReset(void) const { return bHasBeenReset; };
 	void SetSolutionManager(SolutionManager *pSM);

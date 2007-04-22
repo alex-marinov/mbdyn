@@ -52,6 +52,7 @@ MBDyn 1.X-Devel
 		- added SubMatrix helpers to add Vec3 straight and trasposed
 		- added TotalJoint (Alessandro Fumagalli)
 		- added model connectivity description
+		- added A' * x = b support in solution manager
 	Backward compatibility issues:
 		- per-element output removed from modal joints
 		- spherical hinge output now refers to node 1 instead of 2

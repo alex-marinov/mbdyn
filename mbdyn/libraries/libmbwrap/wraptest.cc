@@ -399,12 +399,13 @@ main(int argc, char *argv[])
 	double dpivot = -1.;
 	bool singular(false);
 	bool output_solution(false);
+	bool transpose(false);
 	int size = 3;
 	long long tf;
 	unsigned preord = COLAMD_PREORD;
 	
 	while (1) {
-		int opt = getopt(argc, argv, "cdf:m:oO:p:P:r::st:w:");
+		int opt = getopt(argc, argv, "cdf:m:oO:p:P:r::st:Tw:");
 
 		if (opt == EOF) {
 			break;
@@ -432,6 +433,10 @@ main(int argc, char *argv[])
 			if (nt < 1) {
 				nt = 1;
 			}
+			break;
+
+		case 'T':
+			transpose = true;
 			break;
 
 		case 'p':
@@ -809,7 +814,11 @@ main(int argc, char *argv[])
 		times(&tmsbuf);
 		ct = tmsbuf.tms_utime + tmsbuf.tms_cutime
 			+ tmsbuf.tms_stime + tmsbuf.tms_cstime;
-		pSM->Solve();
+		if (transpose) {
+			pSM->SolveT();
+		} else {
+			pSM->Solve();
+		}
 		tf = rd_CPU_ts() - tf;
 		end = clock();
 		times(&tmsbuf);
@@ -847,7 +856,11 @@ main(int argc, char *argv[])
 		times(&tmsbuf);
 		ct = tmsbuf.tms_utime + tmsbuf.tms_cutime
 			+ tmsbuf.tms_stime + tmsbuf.tms_cstime;
-		pSM->Solve();
+		if (transpose) {
+			pSM->SolveT();
+		} else {
+			pSM->Solve();
+		}
 		tf = rd_CPU_ts() - tf;
 		end = clock();
 		times(&tmsbuf);

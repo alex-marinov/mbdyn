@@ -121,6 +121,7 @@ public:
 
 	/* Risolve il sistema */
 	virtual void Solve(void) = 0;
+	virtual void SolveT(void);
 
 	/* Rende disponibile l'handler per la matrice */
 	virtual MatrixHandler* pMatHdl(void) const = 0;

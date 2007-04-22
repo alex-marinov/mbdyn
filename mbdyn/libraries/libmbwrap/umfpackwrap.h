@@ -101,6 +101,7 @@ private:
 	bool bPrepareSymbolic(void);
 	
 	void Factor(void);
+	void Solve(bool bTranspose) const;
 
 public:
 	UmfpackSolver(const integer &size, const doublereal &dPivot,
@@ -109,6 +110,7 @@ public:
 
 	void Reset(void);
 	void Solve(void) const;
+	void SolveT(void) const;
 
 	void MakeCompactForm(SparseMatrixHandler&,
 			std::vector<doublereal>& Ax,
@@ -157,6 +159,7 @@ public:
 	
 	/* Risolve il sistema Backward Substitution; fattorizza se necessario */
 	virtual void Solve(void);
+	virtual void SolveT(void);
 
 	/* Rende disponibile l'handler per la matrice */
 	virtual MatrixHandler* pMatHdl(void) const;
