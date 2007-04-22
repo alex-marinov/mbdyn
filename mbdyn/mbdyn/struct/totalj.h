@@ -56,12 +56,12 @@ private:
 	bool bRotActive[3];
 	
 	TplDriveOwner<Vec3> XDrv;
-	TplDriveOwner<Vec3> VDrv;
-	TplDriveOwner<Vec3> VPrimeDrv;
+	TplDriveOwner<Vec3> XPDrv;
+	TplDriveOwner<Vec3> XPPDrv;
 	
 	TplDriveOwner<Vec3> ThetaDrv;
-	TplDriveOwner<Vec3> WDrv;
-	TplDriveOwner<Vec3> WPrimeDrv;
+	TplDriveOwner<Vec3> OmegaDrv;
+	TplDriveOwner<Vec3> OmegaPDrv;
 	
 	unsigned int nConstraints;
 	unsigned int nPosConstraints;
@@ -74,6 +74,8 @@ private:
 	mutable Vec3 F;
 	mutable Vec3 ThetaDelta;
 	mutable Vec3 ThetaDeltaPrev;
+
+	void Init(bool bPos[3], bool bRot[3]);
 
 public:
 	/* Constructor */

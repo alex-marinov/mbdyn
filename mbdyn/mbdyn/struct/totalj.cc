@@ -60,27 +60,12 @@ Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2),
 f1(f1Tmp), R1h(R1hTmp), R1hr(R1hrTmp),
 f2(f2Tmp), R2h(R2hTmp), R2hr(R2hrTmp),
-XDrv(pDCPos), VDrv(0), VPrimeDrv(0),
-ThetaDrv(pDCRot), WDrv(0), WPrimeDrv(0),
+XDrv(pDCPos), XPDrv(0), XPPDrv(0),
+ThetaDrv(pDCRot), OmegaDrv(0), OmegaPDrv(0),
 nConstraints(0), nPosConstraints(0), nRotConstraints(0),
 M(0.), F(0.), ThetaDelta(0.), ThetaDeltaPrev(0.)
 {
-	/* Equations 1->3: Positions
-	 * Equations 3->6: Rotations */
-
-	for (unsigned int i = 0; i < 3; i++) {
-		bPosActive[i] = bPos[i];
-		bRotActive[i] = bRot[i];
-		if (bPosActive[i]) {
-			iPosIncid[nPosConstraints] = i + 1;
-			nPosConstraints++;
-		}
-		if (bRotActive[i]) {
-			iRotIncid[nRotConstraints] = i + 1;
-			nRotConstraints++;
-		}
-	}
-	nConstraints = nPosConstraints + nRotConstraints;
+	Init(bPos, bRot);
 }
 
 /*inverse dynamics constructor: add drivers for velocity and acceleration */
@@ -104,16 +89,32 @@ pNode1(pN1), pNode2(pN2),
 f1(f1Tmp), R1h(R1hTmp), R1hr(R1hrTmp),
 f2(f2Tmp), R2h(R2hTmp), R2hr(R2hrTmp),
 XDrv(pDCPos),
-VDrv(pDCPosPrime),
-VPrimeDrv(pDCPosPrimePrime),
+XPDrv(pDCPosPrime),
+XPPDrv(pDCPosPrimePrime),
 ThetaDrv(pDCRot),
-WDrv(pDCRotPrime),
-WPrimeDrv(pDCRotPrimePrime),
+OmegaDrv(pDCRotPrime),
+OmegaPDrv(pDCRotPrimePrime),
 nConstraints(0), nPosConstraints(0), nRotConstraints(0),
 M(0.), F(0.), ThetaDelta(0.), ThetaDeltaPrev(0.)
 {
+	ASSERT(pDCPosPrime != 0);
+	ASSERT(pDCPosPrimePrime != 0);
+	ASSERT(pDCRotPrime != 0);
+	ASSERT(pDCRotPrimePrime != 0);
+
+	Init(bPos, bRot);
+}
+
+TotalJoint::~TotalJoint(void)
+{
+	NO_OP;
+};
+
+void
+TotalJoint::Init(bool bPos[3], bool bRot[3])
+{
 	/* Equations 1->3: Positions
-	 * Equations 3->6: Rotations */
+	 * Equations 4->6: Rotations */
 
 	for (unsigned int i = 0; i < 3; i++) {
 		bPosActive[i] = bPos[i];
@@ -129,11 +130,6 @@ M(0.), F(0.), ThetaDelta(0.), ThetaDeltaPrev(0.)
 	}
 	nConstraints = nPosConstraints + nRotConstraints;
 }
-
-TotalJoint::~TotalJoint(void)
-{
-	NO_OP;
-};
 
 static const char idx2xyz[] = { 'x', 'y', 'z' };
 
@@ -398,8 +394,20 @@ TotalJoint::SetValue(DataManager *pDM,
 					if (dynamic_cast<Joint::PositionDriveHint<Vec3> *>(pjdh)) {
 						XDrv.Set(pDC);
 
+					} else if (dynamic_cast<Joint::VelocityDriveHint<Vec3> *>(pjdh)) {
+						XPDrv.Set(pDC);
+
+					} else if (dynamic_cast<Joint::AccelerationDriveHint<Vec3> *>(pjdh)) {
+						XPPDrv.Set(pDC);
+
 					} else if (dynamic_cast<Joint::OrientationDriveHint<Vec3> *>(pjdh)) {
 						ThetaDrv.Set(pDC);
+
+					} else if (dynamic_cast<Joint::AngularVelocityDriveHint<Vec3> *>(pjdh)) {
+						OmegaDrv.Set(pDC);
+
+					} else if (dynamic_cast<Joint::AngularAccelerationDriveHint<Vec3> *>(pjdh)) {
+						OmegaPDrv.Set(pDC);
 
 					} else {
 						delete pDC;
@@ -941,7 +949,7 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 		 * first derivative of regular AssRes' lower block
 		 */
 		{ /* need brackets to create a "block" */
-			Vec3 Tmp = VDrv.Get(); 	
+			Vec3 Tmp = XPDrv.Get(); 	
 			/* Position constraint derivative  */
 			for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
 				WorkVec.PutCoef(1 + iCnt, Tmp(iPosIncid[iCnt]));
@@ -954,7 +962,7 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 			Mat3x3 RDelta = R1r.Transpose()*R2r*R0T;
 	
 			/*This name is only for clarity...*/
-			Vec3 WDelta = RDelta * WDrv.Get();
+			Vec3 WDelta = RDelta * OmegaDrv.Get();
 	
 			/* Rotation constraint derivative */
 			for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
@@ -983,7 +991,7 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 			Vec3 Tmp2 = Mat3x3(pNode1->GetWCurr())*Tmp;
 	
 			Tmp2 -= Mat3x3(pNode2->GetWCurr(), pNode2->GetWCurr())*b2;
-			Tmp = R1.Transpose()*Tmp2 - VPrimeDrv.Get();
+			Tmp = R1.Transpose()*Tmp2 - XPPDrv.Get();
 			
 			/* Position constraint second derivative  */
 			for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
@@ -995,12 +1003,12 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 			Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
 			Mat3x3 RDelta = R1r.Transpose()*R2r*R0T;
 		
-			Tmp = R0T * WDrv.Get();
+			Tmp = R0T * OmegaDrv.Get();
 			Tmp2 = R2r * Tmp;
 			Tmp = Mat3x3(pNode2->GetWCurr() - pNode1->GetWCurr()) * Tmp;
 			Tmp += Mat3x3(pNode1->GetWCurr())*pNode2->GetWCurr();
 			Tmp2 = R1r.Transpose()*Tmp;
-			Tmp2 += RDelta * WPrimeDrv.Get();
+			Tmp2 += RDelta * OmegaPDrv.Get();
 			
 			/* Rotation constraint second derivative */
 			for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
