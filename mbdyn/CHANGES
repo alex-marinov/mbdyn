@@ -58,6 +58,7 @@ MBDyn 1.X-Devel
 		- spherical hinge output now refers to node 1 instead of 2
 		- "conservative" forces and couples renamed to "absolute"
 		- remove "isotropic" from "symbolic" constitutive laws
+		- remove '-m' switch (send email on completion)
 	Known issues:
 	Bug fixes:
 		- fixed orientation matrix input check and diagnostics

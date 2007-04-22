@@ -74,36 +74,19 @@
 #include <vector>
 #include "readlinsol.h"
 
-#if defined(HAVE_SIGNAL) && defined(HAVE_SIGNAL_H)
-#include <signal.h>
-#endif /* HAVE_SIGNAL && HAVE_SIGNAL_H */
+#include "solver_impl.h"
 
-#ifdef USE_MPI
-#include "mbcomm.h"
-#ifdef USE_EXTERNAL
-#include "external.h"
-#endif /* USE_EXTERNAL */
-#endif /* USE_MPI */
-
-
-#if defined(USE_RTAI)
-#include "mbrtai_utils.h"
-#if defined(HAVE_SYS_MMAN_H)
-#include <sys/mman.h>
-#endif /* HAVE_SYS_MMAN_H */
-#endif /* USE_RTAI */
-
-static const char sDefaultOutputFileName[] = "MBDyn";
+const char sDefaultOutputFileName[] = "MBDyn";
 
 #ifdef HAVE_SIGNAL
-static volatile sig_atomic_t mbdyn_keep_going = 1;
-static __sighandler_t mbdyn_sh_term = SIG_DFL;
-static __sighandler_t mbdyn_sh_int = SIG_DFL;
-static __sighandler_t mbdyn_sh_hup = SIG_DFL;
-static __sighandler_t mbdyn_sh_pipe = SIG_DFL;
+volatile sig_atomic_t mbdyn_keep_going = 1;
+__sighandler_t mbdyn_sh_term = SIG_DFL;
+__sighandler_t mbdyn_sh_int = SIG_DFL;
+__sighandler_t mbdyn_sh_hup = SIG_DFL;
+__sighandler_t mbdyn_sh_pipe = SIG_DFL;
 
-static void
-really_exit_handler(int signum)
+void
+mbdyn_really_exit_handler(int signum)
 {
    	::mbdyn_keep_going = 0;
    	switch (signum) {
@@ -127,17 +110,17 @@ really_exit_handler(int signum)
 	throw ErrInterrupted();
 }
 
-static void
-modify_final_time_handler(int signum)
+void
+mbdyn_modify_final_time_handler(int signum)
 {
    	::mbdyn_keep_going = 0;
-      	signal(signum, really_exit_handler);
+      	signal(signum, mbdyn_really_exit_handler);
 }
 #endif /* HAVE_SIGNAL */
 
 #ifdef USE_RTAI
-static int
-reserve_stack(unsigned long size)
+int
+mbdyn_reserve_stack(unsigned long size)
 {
 	int buf[size];
 
@@ -156,21 +139,6 @@ reserve_stack(unsigned long size)
 #endif /* !HAVE_MLOCKALL */
 }
 #endif /* USE_RTAI */
-
-
-/* Parametri locali */
-static const doublereal dDefaultDerivativesCoefficient = 1.e-6;
-static const integer iDefaultFictitiousStepsNumber = 0;
-static const doublereal dDefaultFictitiousStepsRatio = 1.e-3;
-static const integer iDefaultIterationsBeforeAssembly = 2;
-static const integer iDefaultIterativeSolversMaxSteps = 100;
-static const integer iDefaultPreconditionerSteps = 20;
-static const doublereal dDefaultTol = 1.e-6;
-static const doublereal defaultIterativeEtaMax = 0.9;
-static const doublereal defaultIterativeTau = 1.e-7;
-
-static const integer iDefaultMaxIterations = 1;
-static const doublereal dDefaultFictitiousStepsTolerance = dDefaultTol;
 
 /* Costruttore: esegue la simulazione */
 Solver::Solver(MBDynParser& HPar,
@@ -291,6 +259,13 @@ pNLS(NULL)
 
 	StrategyFactor.iMinIters = 1;
 	StrategyFactor.iMaxIters = 0;
+}
+
+void
+Solver::Run(void)
+{
+   	DEBUGCOUTFNAME("Solver::Run");
+
    	/* Legge i dati relativi al metodo di integrazione */
    	ReadData(HP);
 
@@ -318,12 +293,6 @@ pNLS(NULL)
 	}
 #endif /* USE_MULTITHREAD */
 
-}
-
-void
-Solver::Run(void)
-{
-   	DEBUGCOUTFNAME("Solver::Run");
 #ifdef USE_RTAI
 	if (bRT) {
 		/* Init RTAI; if init'ed, it will be shut down at exit */
@@ -824,22 +793,22 @@ Solver::Run(void)
 	 * FIXME: don't do this if compiling with USE_RTAI
 	 * Re FIXME: use sigaction() ...
 	 */
-	::mbdyn_sh_term = signal(SIGTERM, modify_final_time_handler);
+	::mbdyn_sh_term = signal(SIGTERM, mbdyn_modify_final_time_handler);
 	if (::mbdyn_sh_term == SIG_IGN) {
 		signal(SIGTERM, SIG_IGN);
 	}
 
-	::mbdyn_sh_int = signal(SIGINT, modify_final_time_handler);
+	::mbdyn_sh_int = signal(SIGINT, mbdyn_modify_final_time_handler);
 	if (::mbdyn_sh_int == SIG_IGN) {
 		signal(SIGINT, SIG_IGN);
 	}
 
-	::mbdyn_sh_hup = signal(SIGHUP, modify_final_time_handler);
+	::mbdyn_sh_hup = signal(SIGHUP, mbdyn_modify_final_time_handler);
 	if (::mbdyn_sh_hup == SIG_IGN) {
 		signal(SIGHUP, SIG_IGN);
 	}
 
-	::mbdyn_sh_pipe = signal(SIGPIPE, modify_final_time_handler);
+	::mbdyn_sh_pipe = signal(SIGPIPE, mbdyn_modify_final_time_handler);
 	if (::mbdyn_sh_pipe == SIG_IGN) {
 		signal(SIGHUP, SIG_IGN);
 	}
@@ -1861,7 +1830,7 @@ std::ostream &
 Solver::Restart(std::ostream& out,DataManager::eRestart type) const
 {
 	
-	out << "begin: multistep;" << std::endl;
+	out << "begin: initial value;" << std::endl;
 	switch(type) {
 	case DataManager::ATEND:
 		out << "  #  initial time: " << pDM->dGetTime() << ";"
@@ -1980,7 +1949,7 @@ Solver::Restart(std::ostream& out,DataManager::eRestart type) const
 	}
 	out << "  solver: ";
 	RestartLinSol(out, CurrLinearSolver);
-	out << "end: multistep;" << std::endl << std::endl;	
+	out << "end: initial value;" << std::endl << std::endl;	
 	return out;
 }
 
@@ -1993,7 +1962,8 @@ Solver::ReadData(MBDynParser& HP)
    	/* parole chiave */
    	const char* sKeyWords[] = {
       		"begin",
-		"multistep",
+		"initial" "value",
+		"multistep",		/* deprecated */
 		"end",
 
 		"initial" "time",
@@ -2098,6 +2068,7 @@ Solver::ReadData(MBDynParser& HP)
    	enum KeyWords {
       		UNKNOWN = -1,
 		BEGIN = 0,
+		INITIAL_VALUE,
 		MULTISTEP,
 		END,
 
@@ -2204,8 +2175,15 @@ Solver::ReadData(MBDynParser& HP)
       		throw ErrGeneric();
    	}
 
-   	if (KeyWords(HP.GetWord()) != MULTISTEP) {
-      		silent_cerr("Error: <begin: multistep;> expected at line "
+   	switch (KeyWords(HP.GetWord())) {
+	case MULTISTEP:
+		pedantic_cout("warning: \"begin: multistep\" is deprecated; "
+			"use \"begin: initial value;\" instead." << std::endl);
+	case INITIAL_VALUE:
+		break;
+
+	default:
+      		silent_cerr("Error: \"begin: initial value;\" expected at line "
 			<< HP.GetLineData() << "; aborting ..." << std::endl);
       		throw ErrGeneric();
    	}
@@ -2895,8 +2873,15 @@ Solver::ReadData(MBDynParser& HP)
 		}
 
 		case END:
-			if (KeyWords(HP.GetWord()) != MULTISTEP) {
-				silent_cerr("\"end: multistep;\" expected "
+			switch (KeyWords(HP.GetWord())) {
+			case MULTISTEP:
+				silent_cerr("\"end: multistep;\" is deprecated; "
+					"use \"end: initial value;\" instead." << std::endl);
+			case INITIAL_VALUE:
+				break;
+
+			default:
+				silent_cerr("\"end: initial value;\" expected "
 					"at line " << HP.GetLineData()
 					<< "; aborting ..." << std::endl);
 				throw ErrGeneric();

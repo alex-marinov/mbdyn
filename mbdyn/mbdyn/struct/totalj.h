@@ -74,36 +74,19 @@ private:
 	mutable Vec3 ThetaDelta;
 	mutable Vec3 ThetaDeltaPrev;
 
-	void Init(bool bPos[3], bool bRot[3]);
-
 public:
 	/* Constructor */
 	TotalJoint(unsigned int uL, const DofOwner *pDO,
 		bool bPos[3],
-		const TplDriveCaller<Vec3> *pDCPos,
+		TplDriveCaller<Vec3> *const pDCPos[3],
 		bool bRot[3],
-		const TplDriveCaller<Vec3> *pDCRot,
+		TplDriveCaller<Vec3> *const pDCRot[3],
 		const StructNode* pN1,
 		const Vec3& f1Tmp, const Mat3x3& R1hTmp, const Mat3x3& R1hrTmp, 
 		const StructNode* pN2,
 		const Vec3& f2Tmp, const Mat3x3& R2hTmp, const Mat3x3& R2hrTmp, 
 		flag fOut);
 
-	/* inverse dynamics constructor: add drives for velocity and acceleration*/
-	TotalJoint(unsigned int uL, const DofOwner *pDO,
-		bool bPos[3],
-		const TplDriveCaller<Vec3> *pDCPos,
-		const TplDriveCaller<Vec3> *pDCPosPrime,
-		const TplDriveCaller<Vec3> *pDCPosPrimePrime,
-		bool bRot[3],
-		const TplDriveCaller<Vec3> *pDCRot,
-		const TplDriveCaller<Vec3> *pDCRotPrime,
-		const TplDriveCaller<Vec3> *pDCRotPrimePrime,
-		const StructNode* pN1,
-		const Vec3& f1Tmp, const Mat3x3& R1hTmp, const Mat3x3& R1hrTmp, 
-		const StructNode* pN2,
-		const Vec3& f2Tmp, const Mat3x3& R2hTmp, const Mat3x3& R2hrTmp, 
-		flag fOut);
 	/* Destructor */
 	~TotalJoint(void);
 

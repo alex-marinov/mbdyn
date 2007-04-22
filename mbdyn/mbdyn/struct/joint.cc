@@ -2300,7 +2300,7 @@ ReadJoint(DataManager* pDM,
 		}
 
 		bool bXActive[3] = { false, false, false };
-		TplDriveCaller<Vec3>* pXDC = 0;
+		TplDriveCaller<Vec3>* pXDC[3] = {0, 0, 0};
 		if (HP.IsKeyWord("position" "constraint")) {
 			for (unsigned i = 0; i < 3; i++) {
 				if (HP.IsKeyWord("inactive")) {
@@ -2317,14 +2317,19 @@ ReadJoint(DataManager* pDM,
 				}
 			}
 
-			pXDC = ReadTplDrive(pDM, HP, Vec3(0.));
+			pXDC[0] = ReadTplDrive(pDM, HP, Vec3(0.));
+
+			if (pDM->bIsInverseDynamics()) {
+				pXDC[1] = ReadTplDrive(pDM, HP, Vec3(0.));
+				pXDC[2] = ReadTplDrive(pDM, HP, Vec3(0.));
+			}
 
 		} else {
-			SAFENEW(pXDC, ZeroTplDriveCaller<Vec3>);
+			SAFENEW(pXDC[0], ZeroTplDriveCaller<Vec3>);
 		}
 
 		bool bTActive[3] = { false, false, false };
-		TplDriveCaller<Vec3>* pTDC = 0;
+		TplDriveCaller<Vec3>* pTDC[3] = {0, 0, 0};
 		if (HP.IsKeyWord("orientation" "constraint")) {
 			for (unsigned i = 0; i < 3; i++) {
 				if (HP.IsKeyWord("inactive")) {
@@ -2341,10 +2346,15 @@ ReadJoint(DataManager* pDM,
 				}
 			}
 
-			pTDC = ReadTplDrive(pDM, HP, Vec3(0.));
+			pTDC[0] = ReadTplDrive(pDM, HP, Vec3(0.));
+
+			if (pDM->bIsInverseDynamics()) {
+				pTDC[1] = ReadTplDrive(pDM, HP, Vec3(0.));
+				pTDC[2] = ReadTplDrive(pDM, HP, Vec3(0.));
+			}
 
 		} else {
-			SAFENEW(pTDC, ZeroTplDriveCaller<Vec3>);
+			SAFENEW(pTDC[0], ZeroTplDriveCaller<Vec3>);
 		}
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
@@ -2352,11 +2362,11 @@ ReadJoint(DataManager* pDM,
 		SAFENEWWITHCONSTRUCTOR(pEl,
 			TotalJoint,
 			TotalJoint(uLabel, pDO,
-				bXActive, pXDC, bTActive, pTDC,
+				bXActive, pXDC,
+				bTActive, pTDC,
 				pNode1, f1, R1h, R1hr,
 				pNode2, f2, R2h, R2hr,
 				fOut));
-
 		} break;
 
 	case KINEMATIC:

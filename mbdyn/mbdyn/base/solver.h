@@ -73,7 +73,7 @@ public:
 	class ErrMaxIterations{};
 	class SimulationDiverged{};
 
-private:
+protected:
 #ifdef USE_MULTITHREAD
 	unsigned nThreads;
 #endif /* USE_MULTITHREAD */
@@ -294,11 +294,12 @@ public:
 			    const char* sOutputFileName,
 			    bool bParallel = false);
 
+   	/* distruttore: esegue tutti i distruttori e libera la memoria */
+   	virtual ~Solver(void);
+
    	/* esegue la simulazione */
    	virtual void Run(void);
 
-   	/* distruttore: esegue tutti i distruttori e libera la memoria */
-   	~Solver(void);
 	std::ostream & Restart(std::ostream& out, DataManager::eRestart type) const;
 
 	/* EXPERIMENTAL */

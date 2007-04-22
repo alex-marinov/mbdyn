@@ -26,35 +26,34 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-\chapter{Integrators}\label{sec:INTEGRATORS}
-This section is used to insert all the data related to the integrator that
-is to be used in the simulation. The section is included between the cards:
+\chapter{Problems}\label{sec:PROBLEMS}
+This section is used to insert all the data related to the problem that
+one needs MBDyn to solve in the simulation.
+The section data is included between the cards:
 \begin{verbatim}
-    begin : <integrator_name> ;
+    begin : <problem_name> ;
         ...
-    end : <integrator_name> ;
+    end : <problem_name> ;
 \end{verbatim}
 
 
 
 
 
-\section{Multi-Step Integrator}
-At present, the only available \kw{integrator\_name}
-is \kw{multistep}\footnote{
-At the beginning, the implementation of implicit Runge-Kutta
-integration schemes was planned; however, in the following,
-the integration scheme was formulated in a manner that yields
-the IRK schemes as a special case of the general multistep case
+\section{Initial-Value Problem}
+\label{sec:IVP}
+At present, the only available \kw{<problem\_name>}
+is \kw{initial value}, which solves initial value problems
+by means of generic integration schemes that can be casted
+in a broad family of multistep and, experimentally,
+Implicit Runge-Kutta-like schemes
 \cite{MASARATI-LANZ-MANTEGAZZA-2001}.
-As a consequence, an experimental implementation of IRK 
-and similar schemes has been cast in the multistep integrator.
-}
+
 The syntax of the module is:
 \begin{verbatim}
-    begin: multistep;
+    begin: initial value;
         ...
-    end: multistep;
+    end: initial value;
 \end{verbatim}
 At present, there are a number of cards that can be grouped as follows, 
 based on the integration phase they refer to.
@@ -191,10 +190,12 @@ The first is Crank-Nicholson:
     <method_data> ::= crank nicholson
 \end{verbatim}
 the second and the third are original 
-methods (the former is discussed in \cite{MASARATI-LANZ-MANTEGAZZA-2001}; 
-see also 
-\htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}mbdyn/publications.html}}{http://www.aero.polimi.it/~mbdyn/publications.html}), 
-that are unconditionally stable and can be tuned to give 
+methods; the former is discussed in \cite{MASARATI-LANZ-MANTEGAZZA-2001},
+see also
+\begin{quote}
+\htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}mbdyn/publications.html}}{http://www.aero.polimi.it/~mbdyn/publications.html}
+\end{quote} 
+Those methods are unconditionally stable and can be tuned to give 
 the desired algorithmic dissipation
 by setting the value of the asymptotic spectral radius.
 The radius can be set independently for the differential
@@ -316,6 +317,7 @@ Experimental, not available nor documented yet.
 Will likely be disabled.
 
 \subsubsection{Abort After}
+\label{sec:IVP:abort after}
 \begin{verbatim}
     <card> ::= abort after : { input 
                              | assembly 
@@ -674,6 +676,8 @@ and add the iterations output, use:
     output: none, iterations;
 \end{verbatim}
 
+
+
 \subsection{Special Data}
 \subsubsection{Real-Time Execution}\label{sec:REAL-TIME}
 \begin{verbatim}
@@ -726,4 +730,11 @@ The input is dealt with by the special RTAI file drivers described
 in Section~\ref{sec:RTAI_in}; the output by the special RTAI output
 element described in Section~\ref{sec:EL:BASE:RTAI_out}.
 
+\section{Other Problems}
+Other types of problems are either possible or being developed.
+Typically, static problems can be obtained in terms of a downgrading
+of the initial value problem, by eliminating time-dependent
+interactions and treating time as an ordering parameter.
 
+A special problem that is currently under development
+is \kw{inverse dynamics}.

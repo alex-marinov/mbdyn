@@ -47,9 +47,9 @@
 
 TotalJoint::TotalJoint(unsigned int uL, const DofOwner *pDO,
 	bool bPos[3],
-	const TplDriveCaller<Vec3> *pDCPos,
+	TplDriveCaller<Vec3> *const pDCPos[3],
 	bool bRot[3],
-	const TplDriveCaller<Vec3> *pDCRot,
+	TplDriveCaller<Vec3> *const pDCRot[3],
 	const StructNode *pN1,
 	const Vec3& f1Tmp, const Mat3x3& R1hTmp, const Mat3x3& R1hrTmp,
 	const StructNode *pN2,
@@ -60,58 +60,10 @@ Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2),
 f1(f1Tmp), R1h(R1hTmp), R1hr(R1hrTmp),
 f2(f2Tmp), R2h(R2hTmp), R2hr(R2hrTmp),
-XDrv(pDCPos), XPDrv(0), XPPDrv(0),
-ThetaDrv(pDCRot), OmegaDrv(0), OmegaPDrv(0),
+XDrv(pDCPos[0]), XPDrv(pDCPos[1]), XPPDrv(pDCPos[2]),
+ThetaDrv(pDCRot[0]), OmegaDrv(pDCRot[1]), OmegaPDrv(pDCRot[2]),
 nConstraints(0), nPosConstraints(0), nRotConstraints(0),
 M(0.), F(0.), ThetaDelta(0.), ThetaDeltaPrev(0.)
-{
-	Init(bPos, bRot);
-}
-
-/*inverse dynamics constructor: add drivers for velocity and acceleration */
-TotalJoint::TotalJoint(unsigned int uL, const DofOwner *pDO,
-	bool bPos[3],
-	const TplDriveCaller<Vec3> *pDCPos,
-	const TplDriveCaller<Vec3> *pDCPosPrime,
-	const TplDriveCaller<Vec3> *pDCPosPrimePrime,
-	bool bRot[3],
-	const TplDriveCaller<Vec3> *pDCRot,
-	const TplDriveCaller<Vec3> *pDCRotPrime,
-	const TplDriveCaller<Vec3> *pDCRotPrimePrime,
-	const StructNode *pN1,
-	const Vec3& f1Tmp, const Mat3x3& R1hTmp, const Mat3x3& R1hrTmp,
-	const StructNode *pN2,
-	const Vec3& f2Tmp, const Mat3x3& R2hTmp, const Mat3x3& R2hrTmp,
-	flag fOut)
-: Elem(uL, fOut),
-Joint(uL, pDO, fOut),
-pNode1(pN1), pNode2(pN2),
-f1(f1Tmp), R1h(R1hTmp), R1hr(R1hrTmp),
-f2(f2Tmp), R2h(R2hTmp), R2hr(R2hrTmp),
-XDrv(pDCPos),
-XPDrv(pDCPosPrime),
-XPPDrv(pDCPosPrimePrime),
-ThetaDrv(pDCRot),
-OmegaDrv(pDCRotPrime),
-OmegaPDrv(pDCRotPrimePrime),
-nConstraints(0), nPosConstraints(0), nRotConstraints(0),
-M(0.), F(0.), ThetaDelta(0.), ThetaDeltaPrev(0.)
-{
-	ASSERT(pDCPosPrime != 0);
-	ASSERT(pDCPosPrimePrime != 0);
-	ASSERT(pDCRotPrime != 0);
-	ASSERT(pDCRotPrimePrime != 0);
-
-	Init(bPos, bRot);
-}
-
-TotalJoint::~TotalJoint(void)
-{
-	NO_OP;
-};
-
-void
-TotalJoint::Init(bool bPos[3], bool bRot[3])
 {
 	/* Equations 1->3: Positions
 	 * Equations 4->6: Rotations */
@@ -130,6 +82,11 @@ TotalJoint::Init(bool bPos[3], bool bRot[3])
 	}
 	nConstraints = nPosConstraints + nRotConstraints;
 }
+
+TotalJoint::~TotalJoint(void)
+{
+	NO_OP;
+};
 
 static const char idx2xyz[] = { 'x', 'y', 'z' };
 

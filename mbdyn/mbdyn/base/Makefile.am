@@ -129,6 +129,7 @@ streamdrive.cc \
 streamdrive.h \
 solver.cc \
 solver.h \
+solver_impl.h \
 solverdiagnostics.cc \
 solverdiagnostics.h \
 stepsol.cc \

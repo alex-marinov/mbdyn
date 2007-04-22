@@ -67,186 +67,11 @@ class InverseSolver;
 #include "precond.h"
 
 class InverseSolver : public Solver {
-public:
-	class ErrGeneric {};
-	class ErrMaxIterations{};
-	class SimulationDiverged{};
-
-private:
-#ifdef USE_MULTITHREAD
-	unsigned nThreads;
-#endif /* USE_MULTITHREAD */
-
-   	enum Strategy {
-		NOCHANGE,
-		CHANGE,
-		FACTOR
-	} CurrStrategy;
-
-   	const char *sInputFileName;
-   	const char *sOutputFileName;
-   	MBDynParser& HP;
-	 
-   	/* Dati per strategia FACTOR */
-   	struct {
-      		doublereal dReductionFactor;
-      		doublereal dRaiseFactor;
-      		integer iStepsBeforeReduction;
-      		integer iStepsBeforeRaise;
-      		integer iMinIters;
-      		integer iMaxIters;
-   	} StrategyFactor;
-
-   	/* Dati per strategia DRIVER_CHANGE */
-	DriveCaller* pStrategyChangeDrive;
-
-#ifdef USE_RTAI
-	bool bRT;
-	bool bRTAllowNonRoot;
-	enum {
-		MBRTAI_UNKNOWN,
-		MBRTAI_WAITPERIOD,
-		MBRTAI_SEMAPHORE,
-		MBRTAI_LASTMODE
-	} RTMode;
-	bool bRTHard;
-	long long lRTPeriod;		/* if RTMode == MBRTAI_WAITPERIOD */
-	void *RTSemPtr_in;			/* if RTMode == MBRTAI_SEMAPHORE */
-	void *RTSemPtr_out;
-	unsigned long RTStackSize;
-	int RTCpuMap;
-#ifdef RTAI_LOG
-	bool bRTlog;
-	void *mbxlog;
-	char *LogProcName;
-#endif /*RTAI_LOG*/
-
-	bool RTWaitPeriod(void) const {
-		return (RTMode == MBRTAI_WAITPERIOD);
-	};
-
-	bool RTSemaphore(void) const {
-		return (RTMode == MBRTAI_SEMAPHORE);
-	};
-#endif /* USE_RTAI */
-
-   	/* Strutture di gestione dei dati */
-	integer iNumPreviousVectors;
-	integer iUnkStates;
-	doublereal* pdWorkSpace;
-	
-	MyVectorHandler* pX;                  /* queque vett. stati inc. */
-  	MyVectorHandler* pXPrime;             /* queque vett. stati d. inc. */ 
+protected:
 	MyVectorHandler* pXPrimePrime;
-
-   	/* Dati della simulazione */
-   	doublereal dTime;
-   	doublereal dInitialTime;
-   	doublereal dFinalTime;
-   	doublereal dRefTimeStep;
-   	doublereal dInitialTimeStep;
-   	doublereal dMinimumTimeStep;
-   	doublereal dMaxTimeStep;
-
-   	/* Dati dei passi fittizi di trimmaggio iniziale */
-   	integer iFictitiousStepsNumber;
-   	doublereal dFictitiousStepsRatio;
-   
-   	/* Flags vari */
-	enum AbortAfter {
-		AFTER_UNKNOWN,
-		AFTER_INPUT,
-		AFTER_ASSEMBLY,
-		AFTER_DERIVATIVES,
-		AFTER_DUMMY_STEPS
-	};
-	AbortAfter eAbortAfter;
-
-	/* Parametri per la variazione passo */
-   	integer iStepsAfterReduction;
-   	integer iStepsAfterRaise;
-	integer iWeightedPerformedIters;
-   	flag bLastChance;
-
-   	/* Parametri per il metodo */
-	enum StepIntegratorType {
-			INT_CRANKNICHOLSON,
-			INT_MS2,
-			INT_HOPE,
-			INT_THIRDORDER,
-			INT_IMPLICITEULER,
-			INV_DEFAULT,
-			INT_UNKNOWN
-	};
-	StepIntegratorType RegularType,  FictitiousType;
-	
-   	StepIntegrator* pRegularSteps;
-	
-	doublereal dDerivativesCoef;
-	
-	/* Type of linear solver */
-	LinSol CurrLinearSolver;
-
-	/* Parameters for convergence tests */
-	NonlinearSolverTest::Type ResTest;
-	NonlinearSolverTest::Type SolTest;
-	bool bScale;
-
-   	/* Parametri per solutore nonlineare */
-   	bool bTrueNewtonRaphson;
-   	bool bKeepJac;
-   	integer iIterationsBeforeAssembly;
-	NonlinearSolver::Type NonlinearSolverType;
-	MatrixFreeSolver::SolverType MFSolverType;
-	doublereal dIterTol;
-	Preconditioner::PrecondType PcType;
-	integer iPrecondSteps;
-	integer iIterativeMaxSteps;
-	doublereal dIterertiveEtaMax;
-	doublereal dIterertiveTau;
-	bool bHonorJacRequest;
-
-/* FOR PARALLEL SOLVERS */
-	bool bParallel;
-	SchurDataManager *pSDM;
-	LinSol CurrIntSolver;
-	integer iNumLocDofs;		/* Dimensioni problema locale */
-	integer iNumIntDofs;		/* Dimensioni interfaccia locale */
-	integer* pLocDofs;		/* Lista dof locali (stile FORTRAN) */
-	integer* pIntDofs;		/* Lista dei dofs di interfaccia */
-	Dof* pDofs;
-	SolutionManager *pLocalSM;
-/* end of FOR PARALLEL SOLVERS */
-
-	/* gestore dei dati */
-	DataManager* pDM;
-     	/* Dimensioni del problema; FIXME: serve ancora? */
-   	integer iNumDofs;
-
-	/* il solution manager v*/
-	SolutionManager *pSM;
-	NonlinearSolver* pNLS;
-	
-	/* corregge i puntatori per un nuovo passo */
-   	inline void Flip(void);
-
    	/* Lettura dati */
-   	void ReadData(MBDynParser& HP);
 
-   	/* Nuovo delta t */
-   	doublereal NewTimeStep(doublereal dCurrTimeStep, 
-			       integer iPerformedIters,
-			       StepIntegrator::StepChange Dmy 
-			       = StepIntegrator::NEWSTEP);
-	/* Alloca Solman */
-	SolutionManager *const AllocateSolman(integer iNLD, integer iLWS = 0);
-	/* Alloca SchurSolman */
-	SolutionManager *const AllocateSchurSolman(integer iStates);
-	/* Alloca Nonlinear Solver */
-	NonlinearSolver *const AllocateNonlinearSolver();
-	/* Alloca tutti i solman*/
-	void SetupSolmans(integer iStates, bool bCanBeParallel = false);
-   
+   	void ReadData(MBDynParser& HP);
 
 public:   
    	/* costruttore */
@@ -255,30 +80,13 @@ public:
 			    const char* sOutputFileName,
 			    bool bParallel = false);
 
-   	/* esegue la simulazione */
-   	void Run(void);
-
    	/* distruttore: esegue tutti i distruttori e libera la memoria */
-   	~InverseSolver(void);
-	std::ostream & Restart(std::ostream& out, DataManager::eRestart type) const;
+   	virtual ~InverseSolver(void);
 
-	/* EXPERIMENTAL */
-	/* FIXME: better const'ify? */
-	DataManager *pGetDataManager(void) const {
-		return pDM;
-	};
-	SolutionManager *pGetSolutionManager(void) const {
-		return pSM;
-	};
-	const LinSol& GetLinearSolver(void) const {
-		return CurrLinearSolver;
-	};
-	NonlinearSolver *pGetNonlinearSolver(void) const {
-		return pNLS;
-	};
-	doublereal GetDInitialTimeStep(void) const {
-		return dInitialTimeStep;
-	};
+   	/* esegue la simulazione */
+   	virtual void Run(void);
+
+	std::ostream& Restart(std::ostream& out, DataManager::eRestart type) const;
 };
 
 /* InverseSolver - end */

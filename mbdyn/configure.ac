@@ -1288,7 +1288,7 @@ if test "$ol_with_umfpack" != "no" ; then
 		dnl check for AMD
 		AC_MSG_CHECKING([for AMD library])
 		save_LIBS="$LIBS"
-		try_amd_LIBS="-lamd"
+		try_amd_LIBS="-lamd -lm"
 		LIBS="$try_amd_LIBS $LIBS"
 
 		AC_TRY_LINK([

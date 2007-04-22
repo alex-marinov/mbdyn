@@ -75,103 +75,7 @@
 #include <vector>
 #include "readlinsol.h"
 
-#if defined(HAVE_SIGNAL) && defined(HAVE_SIGNAL_H)
-#include <signal.h>
-#endif /* HAVE_SIGNAL && HAVE_SIGNAL_H */
-
-#ifdef USE_MPI
-#include "mbcomm.h"
-#ifdef USE_EXTERNAL
-#include "external.h"
-#endif /* USE_EXTERNAL */
-#endif /* USE_MPI */
-
-
-#if defined(USE_RTAI)
-#include "mbrtai_utils.h"
-#if defined(HAVE_SYS_MMAN_H)
-#include <sys/mman.h>
-#endif /* HAVE_SYS_MMAN_H */
-#endif /* USE_RTAI */
-
-static const char sDefaultOutputFileName[] = "MBDyn";
-
-#ifdef HAVE_SIGNAL
-static volatile sig_atomic_t mbdyn_keep_going = 1;
-static __sighandler_t mbdyn_sh_term = SIG_DFL;
-static __sighandler_t mbdyn_sh_int = SIG_DFL;
-static __sighandler_t mbdyn_sh_hup = SIG_DFL;
-static __sighandler_t mbdyn_sh_pipe = SIG_DFL;
-
-static void
-really_exit_handler(int signum)
-{
-   	::mbdyn_keep_going = 0;
-   	switch (signum) {
-    	case SIGTERM:
-      		signal(signum, ::mbdyn_sh_term);
-      		break;
-
-    	case SIGINT:
-      		signal(signum, ::mbdyn_sh_int);
-      		break;
-
-    	case SIGHUP:
-      		signal(signum, ::mbdyn_sh_hup);
-      		break;
-
-    	case SIGPIPE:
-      		signal(signum, ::mbdyn_sh_pipe);
-      		break;
-   	}
-
-	throw ErrInterrupted();
-}
-
-static void
-modify_final_time_handler(int signum)
-{
-   	::mbdyn_keep_going = 0;
-      	signal(signum, really_exit_handler);
-}
-#endif /* HAVE_SIGNAL */
-
-#ifdef USE_RTAI
-static int
-reserve_stack(unsigned long size)
-{
-	int buf[size];
-
-#ifdef HAVE_MEMSET
-	memset(buf, 0, size*sizeof(int));
-#else /* !HAVE_MEMSET */
-	for (unsigned long i = 0; i < size; i++) {
-		buf[i] = 0;
-	}
-#endif /* !HAVE_MEMSET */
-
-#ifdef HAVE_MLOCKALL
-	return mlockall(MCL_CURRENT | MCL_FUTURE);
-#else /* !HAVE_MLOCKALL */
-	return 0;
-#endif /* !HAVE_MLOCKALL */
-}
-#endif /* USE_RTAI */
-
-
-/* Parametri locali */
-static const doublereal dDefaultDerivativesCoefficient = 1.e-6;
-static const integer iDefaultFictitiousStepsNumber = 0;
-static const doublereal dDefaultFictitiousStepsRatio = 1.e-3;
-static const integer iDefaultIterationsBeforeAssembly = 2;
-static const integer iDefaultIterativeSolversMaxSteps = 100;
-static const integer iDefaultPreconditionerSteps = 20;
-static const doublereal dDefaultTol = 1.e-6;
-static const doublereal defaultIterativeEtaMax = 0.9;
-static const doublereal defaultIterativeTau = 1.e-7;
-
-static const integer iDefaultMaxIterations = 1;
-static const doublereal dDefaultFictitiousStepsTolerance = dDefaultTol;
+#include "solver_impl.h"
 
 /* Costruttore: esegue la simulazione */
 InverseSolver::InverseSolver(MBDynParser& HPar,
@@ -179,95 +83,15 @@ InverseSolver::InverseSolver(MBDynParser& HPar,
 		const char* sOutFName,
 		bool bPar)
 : Solver(HPar, sInFName, sOutFName, bPar),
-#ifdef USE_MULTITHREAD
-nThreads(0),
-#endif /* USE_MULTITHREAD */
-CurrStrategy(NOCHANGE),
-sInputFileName(NULL),
-sOutputFileName(NULL),
-HP(HPar),
-pStrategyChangeDrive(NULL),
-#ifdef USE_RTAI
-bRT(false),
-bRTAllowNonRoot(false),
-RTMode(MBRTAI_UNKNOWN),
-bRTHard(false),
-lRTPeriod(-1),
-#if 0
-RTSemPtr_in(NULL),
-RTSemPtr_out(NULL),
-#endif
-RTStackSize(1024),
-RTCpuMap(0xff),
-#ifdef RTAI_LOG
-bRTlog(false),
-mbxlog(NULL),
-LogProcName(NULL),
-#endif /* RTAI_LOG */
-#endif /* USE_RTAI */
-iNumPreviousVectors(2),
-iUnkStates(1),
-pdWorkSpace(NULL),
-pX(NULL),
-pXPrime(NULL),
-pXPrimePrime(NULL),
-dTime(0.),
-dInitialTime(0.),
-dFinalTime(0.),
-dRefTimeStep(0.),
-dInitialTimeStep(1.),
-dMinimumTimeStep(1.),
-dMaxTimeStep(1.),
-iFictitiousStepsNumber(iDefaultFictitiousStepsNumber),
-dFictitiousStepsRatio(dDefaultFictitiousStepsRatio),
-eAbortAfter(AFTER_UNKNOWN),
-iStepsAfterReduction(0),
-iStepsAfterRaise(0),
-iWeightedPerformedIters(0),
-bLastChance(false),
-RegularType(INT_UNKNOWN),
-FictitiousType(INT_UNKNOWN),
-pRegularSteps(0),
-dDerivativesCoef(dDefaultDerivativesCoefficient),
-ResTest(NonlinearSolverTest::NORM),
-SolTest(NonlinearSolverTest::NONE),
-bScale(false),
-bTrueNewtonRaphson(true),
-bKeepJac(false),
-iIterationsBeforeAssembly(0),
-NonlinearSolverType(NonlinearSolver::UNKNOWN),
-MFSolverType(MatrixFreeSolver::UNKNOWN),
-dIterTol(dDefaultTol),
-PcType(Preconditioner::FULLJACOBIANMATRIX),
-iPrecondSteps(iDefaultPreconditionerSteps),
-iIterativeMaxSteps(iDefaultPreconditionerSteps),
-dIterertiveEtaMax(defaultIterativeEtaMax),
-dIterertiveTau(defaultIterativeTau),
-bHonorJacRequest(false),
-/* for parallel solvers */
-bParallel(bPar),
-pSDM(NULL),
-iNumLocDofs(0),
-iNumIntDofs(0),
-pLocDofs(NULL),
-pIntDofs(NULL),
-pDofs(NULL),
-pLocalSM(NULL),
-/* end of parallel solvers */
-pDM(NULL),
-iNumDofs(0),
-pSM(NULL),
-pNLS(NULL)
+pXPrimePrime(NULL)
 {
 	DEBUGCOUTFNAME("InverseSolver::InverseSolver");
+}
 
-	ASSERT(sInFName != NULL);
-
-	SAFESTRDUP(sInputFileName, sInFName);
-
-	if (sOutFName != NULL) {
-		SAFESTRDUP(sOutputFileName, sOutFName);
-	}
+void
+InverseSolver::Run(void)
+{
+   	DEBUGCOUTFNAME("InverseSolver::Run");
 
    	/* Legge i dati relativi al metodo di integrazione */
    	ReadData(HP);
@@ -298,12 +122,6 @@ pNLS(NULL)
 
 	StrategyFactor.iMinIters = 1;
 	StrategyFactor.iMaxIters = 0;
-}
-
-void
-InverseSolver::Run(void)
-{
-   	DEBUGCOUTFNAME("InverseSolver::Run");
 
 #ifdef USE_RTAI
 	if (bRT) {
@@ -523,10 +341,10 @@ InverseSolver::Run(void)
 		}
 	}
 
-	{ // log of symbol table
-		std::ostream& out = pDM->GetLogFile();
-		out << HP.GetMathParser().GetSymbolTable();
-	}
+	// log of symbol table
+	std::ostream& out = pDM->GetLogFile();
+	out << HP.GetMathParser().GetSymbolTable();
+
 	HP.Close();
 
    	/* Si fa dare l'std::ostream al file di output per il log */
@@ -750,22 +568,22 @@ InverseSolver::Run(void)
 	 * FIXME: don't do this if compiling with USE_RTAI
 	 * Re FIXME: use sigaction() ...
 	 */
-	::mbdyn_sh_term = signal(SIGTERM, modify_final_time_handler);
+	::mbdyn_sh_term = signal(SIGTERM, mbdyn_modify_final_time_handler);
 	if (::mbdyn_sh_term == SIG_IGN) {
 		signal(SIGTERM, SIG_IGN);
 	}
 
-	::mbdyn_sh_int = signal(SIGINT, modify_final_time_handler);
+	::mbdyn_sh_int = signal(SIGINT, mbdyn_modify_final_time_handler);
 	if (::mbdyn_sh_int == SIG_IGN) {
 		signal(SIGINT, SIG_IGN);
 	}
 
-	::mbdyn_sh_hup = signal(SIGHUP, modify_final_time_handler);
+	::mbdyn_sh_hup = signal(SIGHUP, mbdyn_modify_final_time_handler);
 	if (::mbdyn_sh_hup == SIG_IGN) {
 		signal(SIGHUP, SIG_IGN);
 	}
 
-	::mbdyn_sh_pipe = signal(SIGPIPE, modify_final_time_handler);
+	::mbdyn_sh_pipe = signal(SIGPIPE, mbdyn_modify_final_time_handler);
 	if (::mbdyn_sh_pipe == SIG_IGN) {
 		signal(SIGHUP, SIG_IGN);
 	}
@@ -1259,80 +1077,12 @@ InverseSolver::~InverseSolver(void)
 	}
 }
 
-/* Nuovo delta t */
-doublereal
-InverseSolver::NewTimeStep(doublereal dCurrTimeStep,
-				 integer iPerformedIters,
-				 StepIntegrator::StepChange Why)
-{
-   	DEBUGCOUTFNAME("Solver::NewTimeStep");
-
-   	switch (CurrStrategy) {
-    	case NOCHANGE:
-       		return dCurrTimeStep;
-
-	case CHANGE:
-		return pStrategyChangeDrive->dGet(dTime);
-
-    	case FACTOR:
-       		if (Why == StepIntegrator::REPEATSTEP) {
-	  		if (dCurrTimeStep*StrategyFactor.dReductionFactor
-	      		    > dMinimumTimeStep) {
-	     			if (bLastChance == true) {
-					bLastChance = false;
-	     			}
-	     			iStepsAfterReduction = 0;
-	     			return dCurrTimeStep*StrategyFactor.dReductionFactor;
-	  		} else {
-	     			if (bLastChance == false) {
-					bLastChance = true;
-					return dMinimumTimeStep;
-	     			} else {
-					/*
-					 * Fuori viene intercettato
-					 * il valore illegale
-					 */
-					return dCurrTimeStep*StrategyFactor.dReductionFactor;
-	     			}
-	  		}
-       		}
-
-       		if (Why == StepIntegrator::NEWSTEP) {
-	  		iStepsAfterReduction++;
-	  		iStepsAfterRaise++;
-
-			iWeightedPerformedIters = (10*iPerformedIters + 9*iWeightedPerformedIters)/10;
-			
-			if (iPerformedIters > StrategyFactor.iMaxIters) {
-	     			iStepsAfterReduction = 0;
-				bLastChance = false;
-	     			return std::max(dCurrTimeStep*StrategyFactor.dReductionFactor, dMinimumTimeStep);
-			} else if (iPerformedIters <= StrategyFactor.iMinIters
-	      		    && iStepsAfterReduction > StrategyFactor.iStepsBeforeReduction
-			    && iStepsAfterRaise > StrategyFactor.iStepsBeforeRaise
-			    && dCurrTimeStep < dMaxTimeStep) {
-	     			iStepsAfterRaise = 0;
-				iWeightedPerformedIters = 0;
-	     			return dCurrTimeStep*StrategyFactor.dRaiseFactor;
-	  		}
-	  		return dCurrTimeStep;
-       		}
-       		break;
-
-    	default:
-       		silent_cerr("You shouldn't have reached this point!" << std::endl);
-       		throw Solver::ErrGeneric();
-   	}
-
-   	return dCurrTimeStep;
-}
-#if 0
-/*scrive il contributo al file di restart*/
+/* scrive il contributo al file di restart */
 std::ostream & 
 InverseSolver::Restart(std::ostream& out,DataManager::eRestart type) const
 {
-	
-	out << "begin: multistep;" << std::endl;
+#if 0
+	out << "begin: inverse dynamics;" << std::endl;
 	switch(type) {
 	case DataManager::ATEND:
 		out << "  #  initial time: " << pDM->dGetTime() << ";"
@@ -1354,36 +1104,6 @@ InverseSolver::Restart(std::ostream& out,DataManager::eRestart type) const
 		ASSERT(0);
 	}
 	
-	out << "  method: ";
-	switch(RegularType) {
-	case INT_CRANKNICHOLSON:
-		out << "Crank Nicholson; " << std::endl;
-		break;
-	case INT_MS2:
-		out << "ms, ";
-		pRhoRegular->Restart(out) << ", ";
-		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
-		break;
-	case INT_HOPE:
-		out << "hope, " << pRhoRegular->Restart(out) << ", "
-			<< pRhoAlgebraicRegular->Restart(out) << ";"
-			<< std::endl;
-		break;
-			
-	case INT_THIRDORDER:
-		out << "thirdorder, ";
-		if (!pRhoRegular)
-			out << "ad hoc;" << std::endl;
-			else
-			pRhoRegular->Restart(out) << ";" << std::endl;
-		break;
-	case INT_IMPLICITEULER:
-		out << "implicit euler;" << std::endl;
-		break;
-	default:
-		ASSERT(0);
-	}
-
 	out << "  max iterations: " << pRegularSteps->GetIntegratorMaxIters()
 		<< ";" << std::endl
 		<< "  tolerance: " << pRegularSteps->GetIntegratorDTol();
@@ -1452,9 +1172,10 @@ InverseSolver::Restart(std::ostream& out,DataManager::eRestart type) const
 	out << "  solver: ";
 	RestartLinSol(out, CurrLinearSolver);
 	out << "end: multistep;" << std::endl << std::endl;	
+#endif
 	return out;
 }
-#endif
+
 /* Dati dell'integratore */
 void
 InverseSolver::ReadData(MBDynParser& HP)
@@ -1824,30 +1545,6 @@ InverseSolver::ReadData(MBDynParser& HP)
 
 			break;
 		}
-
-       		case METHOD: {
-	  		if (bMethod) {
-	     			silent_cerr("error: multiple definition"
-					" of integration method at line "
-					<< HP.GetLineData() << std::endl);
-	     			throw ErrGeneric();
-	  		}
-	  		bMethod = true;
-
-	  		KeyWords KMethod = KeyWords(HP.GetWord());
-	  		switch (KMethod) {
-
-			case INVERSEDEFAULT:
-				RegularType = INV_DEFAULT;
-		  		break;
-				
-	   		default:
-	      			silent_cerr("Unknown integration method at line "
-					<< HP.GetLineData() << std::endl);
-				throw ErrGeneric();
-	  		}
-	  		break;
-       		}
 
 		case TOLERANCE: {
 			/*
@@ -2555,34 +2252,14 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		eAbortAfter = AFTER_DERIVATIVES;
 	}
 
-	/* Metodo di integrazione di default */
-	if (!bMethod) {
-		ASSERT(RegularType == INT_UNKNOWN);
-
-		/* FIXME: maybe we should use a better value
-		 * like 0.6; however, BDF should be conservative */
-
-	}
-
-	/* costruzione dello step solver per i passi normali */
-	switch (RegularType) {
-
-	case INV_DEFAULT:
-		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
-				InverseDynamicsStepSolver,
-				InverseDynamicsStepSolver(iMaxIterations,
-					dTol,
-					dSolutionTol,
-					0, /* Previous Steps to be used*/
-					1, /* Unknown States: FIXME: 2? 3?*/
-					bModResTest));
-		break;
-
-	default:
-		silent_cerr("Unknown integration method" << std::endl);
-		throw ErrGeneric();
-		break;
-	}
+	SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+		InverseDynamicsStepSolver,
+		InverseDynamicsStepSolver(iMaxIterations,
+			dTol,
+			dSolutionTol,
+			0, /* Previous Steps to be used */
+			1, /* Unknown States: FIXME: 2? 3? */
+			bModResTest));
 
 #ifdef USE_MULTITHREAD
 	if (bSolverThreads) {
@@ -2595,184 +2272,4 @@ EndOfCycle: /* esce dal ciclo di lettura */
 	}
 #endif /* USE_MULTITHREAD */
 }
-SolutionManager *const
-InverseSolver::AllocateSolman(integer iNLD, integer iLWS)
-{
-	SolutionManager *pCurrSM = CurrLinearSolver.GetSolutionManager(iNLD, iLWS);
-
-	/* special extra parameters if required */
-	switch (CurrLinearSolver.GetSolver()) {
-	case LinSol::UMFPACK_SOLVER:
-#if defined(USE_RTAI) && defined(HAVE_UMFPACK_TIC_DISABLE)
-		if (bRT) {
-			/* disable profiling, to avoid times() system call
-			 *
-			 * This fucntion has been introduced in Umfpack 4.1
-			 * by our patch at
-			 *
-			 * http://mbdyn.aero.polimi.it/~masarati/Download/\
-			 * 	mbdyn/umfpack-4.1-nosyscalls.patch
-			 *
-			 * but since Umfpack 4.3 is no longer required,
-			 * provided the library is compiled with -DNO_TIMER
-			 * to disable run-time syscalls to timing routines.
-			 */
-			umfpack_tic_disable();
-		}
-#endif /* USE_RTAI && HAVE_UMFPACK_TIC_DISABLE */
-		break;
-
-	default:
-		break;
-	}
-
-	return pCurrSM;
-};
-
-
-SolutionManager *const
-InverseSolver::AllocateSchurSolman(integer iStates)
-{
-	SolutionManager *pSSM(NULL);
-
-#ifdef USE_MPI
-	switch (CurrIntSolver.GetSolver()) {
-	case LinSol::LAPACK_SOLVER:
-	case LinSol::MESCHACH_SOLVER:
-	case LinSol::NAIVE_SOLVER:
-	case LinSol::UMFPACK_SOLVER:
-	case LinSol::Y12_SOLVER:
-		break;
-
-	default:
-		silent_cerr("apparently solver "
-				<< CurrIntSolver.GetSolverName()
-				<< " is not allowed as interface solver "
-				"for SchurSolutionManager" << std::endl);
-		throw ErrGeneric();
-	}
-
-	SAFENEWWITHCONSTRUCTOR(pSSM,
-			SchurSolutionManager,
-			SchurSolutionManager(iNumDofs, iStates, pLocDofs,
-				iNumLocDofs,
-				pIntDofs, iNumIntDofs,
-				pLocalSM, CurrIntSolver));
-
-#else /* !USE_MPI */
-	silent_cerr("Configure --with-mpi to enable Schur solver" << std::endl);
-	throw ErrGeneric();
-#endif /* !USE_MPI */
-
-	return pSSM;
-};
-
-NonlinearSolver *const
-InverseSolver::AllocateNonlinearSolver()
-{
-	NonlinearSolver *pNLS = NULL;
-
-	switch (NonlinearSolverType) {
-	case NonlinearSolver::MATRIXFREE:
-		switch (MFSolverType) {
-		case MatrixFreeSolver::BICGSTAB:
-			SAFENEWWITHCONSTRUCTOR(pNLS,
-					BiCGStab,
-					BiCGStab(PcType,
-						iPrecondSteps,
-						dIterTol,
-						iIterativeMaxSteps,
-						dIterertiveEtaMax,
-						dIterertiveTau,
-						bHonorJacRequest));
-			break;
-
-		default:
-			pedantic_cout("unknown matrix free solver type; "
-					"using default" << std::endl);
-			/* warning: should be unreachable */
-
-		case MatrixFreeSolver::GMRES:
-			SAFENEWWITHCONSTRUCTOR(pNLS,
-					Gmres,
-					Gmres(PcType,
-						iPrecondSteps,
-						dIterTol,
-						iIterativeMaxSteps,
-						dIterertiveEtaMax,
-						dIterertiveTau,
-						bHonorJacRequest));
-			break;
-		}
-		break;
-
-	default:
-		pedantic_cout("unknown nonlinear solver type; using default"
-				<< std::endl);
-
-	case NonlinearSolver::NEWTONRAPHSON:
-		SAFENEWWITHCONSTRUCTOR(pNLS,
-				NewtonRaphsonSolver,
-				NewtonRaphsonSolver(bTrueNewtonRaphson,
-					bKeepJac,
-					iIterationsBeforeAssembly,
-					bHonorJacRequest));
-		break;
-	}
-	return pNLS;
-}
-
-void
-InverseSolver::SetupSolmans(integer iStates, bool bCanBeParallel)
-{
-   	DEBUGLCOUT(MYDEBUG_MEM, "creating SolutionManager\n\tsize = "
-		   << iNumDofs*iUnkStates <<
-		   "\n\tnumdofs = " << iNumDofs
-		   << "\n\tnumstates = " << iStates << std::endl);
-
-	/* delete previous solmans */
-	if (pSM != 0) {
-		SAFEDELETE(pSM);
-		pSM = 0;
-	}
-	if (pLocalSM != 0) {
-		SAFEDELETE(pLocalSM);
-		pLocalSM = 0;
-	}
-
-	integer iWorkSpaceSize = CurrLinearSolver.iGetWorkSpaceSize();
-	integer iLWS = iWorkSpaceSize;
-	integer iNLD = iNumDofs*iStates;
-	if (bCanBeParallel && bParallel) {
-		/* FIXME BEPPE! */
-		iLWS = iWorkSpaceSize*iNumLocDofs/(iNumDofs*iNumDofs);
-		/* FIXME: GIUSTO QUESTO? */
-		iNLD = iNumLocDofs*iStates;
-	}
-
-	SolutionManager *pCurrSM = AllocateSolman(iNLD, iLWS);
-
-	/*
-	 * This is the LOCAL solver if instantiating a parallel
-	 * integrator; otherwise it is the MAIN solver
-	 */
-	if (bCanBeParallel && bParallel) {
-		pLocalSM = pCurrSM;
-
-		/* Crea il solutore di Schur globale */
-		pSM = AllocateSchurSolman(iStates);
-
-	} else {
-		pSM = pCurrSM;
-	}
-	/*
-	 * FIXME: at present there MUST be a pSM
-	 * (even for matrix-free nonlinear solvers)
-	 */
-	if (pSM == NULL) {
-		silent_cerr("No linear solver defined" << std::endl);
-		throw ErrGeneric();
-	}
-}
-
 

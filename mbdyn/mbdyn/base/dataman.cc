@@ -48,6 +48,7 @@ extern "C" {
 #endif /* HAVE_RUNTIME_LOADING && HAVE_LTDL_H */
 
 #include "solver.h"
+#include "invsolver.h"
 #include "constltp.h"
 #include "dataman_.h"
 /* add-ons for math parser */
@@ -100,10 +101,10 @@ MathPar(HP.GetMathParser()),
 pSolver(pS),
 DrvHdl(HP.GetMathParser()),
 OutHdl(sOutputFileName),        /* ..takes output filename as argument */
-pTime(NULL),
-pXCurr(NULL), pXPrimeCurr(NULL), 
+pTime(0),
+pXCurr(0), pXPrimeCurr(0), 
 /* Inverse Dynamics: */
-pXPrimePrimeCurr(NULL),
+pXPrimePrimeCurr(0),
 #if defined(USE_STRUCT_NODES)
 bInitialJointAssemblyToBeDone(bDefaultInitialJointAssemblyToBeMade),
 bSkipInitialJointAssembly(bDefaultSkipInitialJointAssembly),
@@ -117,12 +118,14 @@ iMaxInitialIterations(iDefaultMaxInitialIterations),
 dEpsilon(1.),
 CurrSolver(pS->GetLinearSolver()),
 bStaticModel(false),
+/* auto-detect if running inverse dynamics */
+bInverseDynamics(dynamic_cast<InverseSolver *>(pS) != 0),
 #endif /* USE_STRUCT_NODES */
 #if defined(HAVE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
 loadableElemInitialized(false),
 #endif /* HAVE_RUNTIME_LOADING && HAVE_LTDL_H */
 uPrintFlags(PRINT_NONE),		/* Morandini, 2003-11-17 */
-sSimulationTitle(NULL),
+sSimulationTitle(0),
 RestartEvery(NEVER),
 iRestartIterations(0),
 dRestartTime(0.),
@@ -132,7 +135,7 @@ iCurrRestartTime(0),
 iCurrRestartIter(0),
 dLastRestartTime(dInitialTime),
 saveXSol(false),
-solArrFileName(NULL),
+solArrFileName(0),
 pOutputMeter(0),
 iOutputCount(0),
 ResMode(RES_TEXT),
@@ -148,7 +151,7 @@ od(EULER_123),
 iOutputBlock(1),
 #endif /* defined(USE_ADAMS) || defined(USE_MOTIONVIEW) */
 #ifdef USE_ADAMS
-sAdamsModelName(NULL),
+sAdamsModelName(0),
 bAdamsVelocity(false),
 bAdamsAcceleration(false),
 iAdamsOutputNodes(0),
@@ -158,27 +161,27 @@ adamsNoab(0),
 
 /* ElemManager */
 ElemIter(),
-ppDrive(NULL),
+ppDrive(0),
 iTotDrive(0),
 iMaxWorkNumRows(0),
 iMaxWorkNumCols(0),
 iWorkIntSize(0),
 iWorkDoubleSize(0),
-pWorkMatA(NULL),
-pWorkMatB(NULL),
-pWorkMat(NULL),
-pWorkVec(NULL),
+pWorkMatA(0),
+pWorkMatB(0),
+pWorkMat(0),
+pWorkVec(0),
 
 /* NodeManager */
 NodeIter(),
 iTotNodes(0),
-ppNodes(NULL),
+ppNodes(0),
 
 /* DofManager */
 iTotDofOwners(0),
-pDofOwners(NULL),
+pDofOwners(0),
 iTotDofs(0),
-pDofs(NULL),
+pDofs(0),
 DofIter(),
 SocketUsersTimeout(0)
 {
@@ -200,7 +203,7 @@ SocketUsersTimeout(0)
 
 #ifdef USE_TCL
 	/* registra il plugin per il tcl */
-	HP.GetMathParser().RegisterPlugIn("tcl", tcl_plugin, NULL);
+	HP.GetMathParser().RegisterPlugIn("tcl", tcl_plugin, 0);
 #else /* !USE_TCL */
 	HP.GetMathParser().RegisterPlugIn("tcl", dummy_plugin,
 		(void *)"configure with --with-tcl to use tcl plugin");
@@ -211,8 +214,8 @@ SocketUsersTimeout(0)
 
 	/* Setta il tempo al valore iniziale */
 	pTime = (Var *)MathPar.GetSymbolTable().Get("Time");
-	ASSERT(pTime != NULL);
-	if (pTime == NULL) {
+	ASSERT(pTime != 0);
+	if (pTime == 0) {
 		DEBUGCERR("");
 		silent_cerr("error in setting Time symbol" << std::endl);
 
@@ -245,7 +248,7 @@ SocketUsersTimeout(0)
 		"elements",
 		"drivers",
 		"output",
-		NULL
+		0
 	};
 
 	/* enum delle parole chiave */
@@ -602,7 +605,7 @@ DataManager::~DataManager(void)
 	}
 #endif /* USE_MOTIONVIEW */
 
-	if (sSimulationTitle != NULL) {
+	if (sSimulationTitle != 0) {
 		SAFEDELETEARR(sSimulationTitle);
 	}
 
@@ -645,7 +648,7 @@ void DataManager::MakeRestart(void)
 	silent_cout("Making restart file ..." << std::endl);
 	OutHdl.RestartOpen(saveXSol);
 	/* Inizializzazione del file di restart */
-	time_t tCurrTime(time(NULL));
+	time_t tCurrTime(time(0));
 	OutHdl.Restart() << "# Restart file prepared by Mbdyn, "
 		<< ctime(&tCurrTime) << std::endl << std::endl;
 	/* Dati iniziali */
@@ -690,7 +693,7 @@ void DataManager::MakeRestart(void)
 		}
 	}
 
-	if (sSimulationTitle != NULL) {
+	if (sSimulationTitle != 0) {
 		OutHdl.Restart() << "  title: \""
 			<< sSimulationTitle << "\";" << std::endl;
 	}

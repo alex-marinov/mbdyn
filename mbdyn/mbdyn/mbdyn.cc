@@ -231,7 +231,7 @@ mbdyn_welcome(void)
 }
 
 /* Dati di getopt */
-static char sShortOpts[] = "a:d:f:hHlm:n:N::o:pPrRsS:tTwW:";
+static char sShortOpts[] = "a:d:f:hHln:N::o:pPrRsS:tTwW:";
 
 #ifdef HAVE_GETOPT_LONG
 static struct option LongOpts[] = {
@@ -241,7 +241,6 @@ static struct option LongOpts[] = {
 	{ "help",           no_argument,       NULL,           int('h') },
 	{ "show-table",     no_argument,       NULL,           int('H') },
 	{ "license",        no_argument,       NULL,           int('l') },
-	{ "mail",           required_argument, NULL,           int('m') },
 	{ "nice",           optional_argument, NULL,           int('n') },
 	{ "threads",	    required_argument, NULL,	       int('N') },
 	{ "output-file",    required_argument, NULL,           int('o') },
@@ -268,9 +267,6 @@ const char* sDefaultInputFileName = "MBDyn";
 
 
 Solver* RunMBDyn(MBDynParser&, const char* const, const char* const, bool);
-#ifdef MBDYN_X_MAIL_MESSAGE
-static void SendMessage(const char* const, const char* const, time_t, time_t);
-#endif /* MBDYN_X_MAIL_MESSAGE */
 
 #ifdef USE_MPI
 static int
@@ -399,10 +395,6 @@ main(int argc, char* argv[])
       
 #ifdef HAVE_GETOPT
         	/* Dati acquisibili da linea di comando */
-#ifdef MBDYN_X_MAIL_MESSAGE
-        	char* sMailToAddress = NULL;
-#endif /* MBDYN_X_MAIL_MESSAGE */
-      
         	int iIndexPtr = 0;
 
 #ifdef HAVE_NICE
@@ -426,17 +418,8 @@ main(int argc, char* argv[])
 	    		}
 	 
 	    		switch (iCurrOpt) {
-	    		case int('m'):
-#ifdef MBDYN_X_MAIL_MESSAGE
-	        		sMailToAddress = optarg;
-#else /* ! MBDYN_X_MAIL_MESSAGE */
-				silent_cerr("warning: option -m has been "
-					"disabled because of potential "
-					"vulnerabilities" << std::endl);
-#endif /* ! MBDYN_X_MAIL_MESSAGE */
-	        		break;
-
 			case int('N'):
+				/* TODO */
 				break;
 
 #ifdef HAVE_NICE
@@ -896,17 +879,6 @@ main(int argc, char* argv[])
 #endif /* USE_MPI */
 	    		silent_cout(std::endl);
 #endif /* HAVE_SYS_TIMES_H */
-
-#ifdef MBDYN_X_MAIL_MESSAGE
-#ifdef HAVE_GETOPT
-	    		/* E-mail all'utente */
-	    		if (sMailToAddress) {
-	        		SendMessage(sInputFileName, sMailToAddress,
-					    tSecs, tMils);
-				sMailToAddress = NULL;
-	    		}
-#endif /* HAVE_GETOPT */
-#endif /* MBDYN_X_MAIL_MESSAGE */
         	} // while (last == 0)
 
 		throw NoErr();
@@ -962,13 +934,17 @@ RunMBDyn(MBDynParser& HP,
         	"begin",
 		"end",
         	"data",
-        	"integrator",
-		"inverse" "dynamics",
-        	"multistep",
-        	"rungekutta",
-        	"parallel",
-        	"schur",
-		"rigid",
+
+		/* problem */
+		"problem",
+        	"integrator",			/* deprecated */
+
+			/* problem types */
+			"initial" "value",
+	 		"multistep",		/* deprecated */
+			"parallel" "initial" "value",
+			"inverse" "dynamics",
+
 		NULL
     	};
 
@@ -979,13 +955,16 @@ RunMBDyn(MBDynParser& HP,
         	BEGIN = 0,
 		END,
         	DATA,
-        	INTEGRATOR,
-		INVERSEDYNAMICS,
-        	MULTISTEP,
-        	RUNGEKUTTA,
-        	PARALLEL,
-        	SSCHUR,
-		RIGID,
+
+		PROBLEM,
+        	INTEGRATOR,			/* deprecated */
+
+			/* problem types */
+			INITIAL_VALUE,
+        		MULTISTEP,		/* deprecated */
+			PARALLEL_INITIAL_VALUE,
+			INVERSE_DYNAMICS,
+
         	LASTKEYWORD
     	};
    
@@ -1017,71 +996,46 @@ RunMBDyn(MBDynParser& HP,
         	throw ErrGeneric();
     	}
    
-    	KeyWords CurrInt = MULTISTEP;
+    	KeyWords CurrInt = INITIAL_VALUE;
    
     	/* Ciclo infinito */
     	while (true) {	
         	switch (KeyWords(HP.GetDescription())) {
-        	case INTEGRATOR:
+		case INTEGRATOR:
+			pedantic_cout("statement \"integrator\" is deprecated; "
+				"use \"problem\" instead." << std::endl);
+        	case PROBLEM:
             		switch (KeyWords(HP.GetWord())) {
-            		case RUNGEKUTTA:
-	        		CurrInt = RUNGEKUTTA;
-	        		break;
-		
             		case MULTISTEP:
-	        		CurrInt = MULTISTEP;
+				pedantic_cout("deprecated \"multistep\" problem; "
+					"use \"ivp\" instead" << std::endl);
+			case INITIAL_VALUE:
+	        		CurrInt = INITIAL_VALUE;
 	        		break;
-		
-            		case SSCHUR:
-				silent_cerr("warning: \"schur\" solver "
-					"is deprecated;" << std::endl);
+
+	        	case PARALLEL_INITIAL_VALUE:
+	        		CurrInt = PARALLEL_INITIAL_VALUE;
 #ifdef USE_MPI
-				silent_cerr("use \"parallel\" with "
-					"\"multistep\" solver instead"
-					<< std::endl);
-	        		CurrInt = MULTISTEP;
+				/* NOTE: use "parallel" in "data" block 
+				 * for models that should always be solved
+				 * in parallel; otherwise this directive
+				 * is superseded by the "-p" command-line
+				 * switch */
 				using_mpi = true;
+	    			break;
 #else /* !USE_MPI */
-				silent_cerr("compile with -DUSE_MPI "
-					"to enable parallel solution" 
-					<< std::endl);
-				throw ErrGeneric();
+            			silent_cerr("compile with -DUSE_MPI to enable "
+					"parallel solution" << std::endl);
+	    			throw ErrGeneric();
 #endif /* !USE_MPI */
-	        		break;
-		
+	
+			case INVERSE_DYNAMICS:
+	        		CurrInt = INVERSE_DYNAMICS;
+				break;
+
             		default:
 	        		silent_cerr(std::endl 
-		    			<< "Unknown integrator at line " 
-	            			<< HP.GetLineData()
-					<< "; aborting ..." << std::endl);
-	        		throw ErrGeneric();
-            		}
-            		break;    
-
-        	case PARALLEL:
-#ifdef USE_MPI
-			/* NOTE: use "parallel" in "data" block 
-			 * for models that should always be solved
-			 * in parallel; otherwise this directive
-			 * is superseded by the "-p" command-line
-			 * switch */
-			using_mpi = true;
-	    		break;
-#else /* !USE_MPI */
-            		silent_cerr("compile with -DUSE_MPI to enable "
-				"parallel solution" << std::endl);
-	    		throw ErrGeneric();
-#endif /* !USE_MPI */
-
-        	case INVERSEDYNAMICS:
-            		switch (KeyWords(HP.GetWord())) {
-       	     		case RIGID:
-	        		CurrInt = RIGID;
-				break;
-			
-			default:
-	        		silent_cerr(std::endl 
-		    			<< "Unknown inverse dynamics solution at line " 
+		    			<< "Unknown problem at line " 
 	            			<< HP.GetLineData()
 					<< "; aborting ..." << std::endl);
 	        		throw ErrGeneric();
@@ -1165,61 +1119,30 @@ endofcycle:
 #endif /* USE_MPI */
 
     	switch (CurrInt) {
-    	case MULTISTEP:
+    	case INITIAL_VALUE:
+    	case PARALLEL_INITIAL_VALUE:
         	SAFENEWWITHCONSTRUCTOR(pSolv,
 				Solver,
 				Solver(HP, sInputFileName, 
 					sOutputFileName, bParallel));
-		try {
-    			/* Runs the simulation */
-    			pSolv->Run();
-	
-		} catch (...) {
-			if (pSolv) {
-				SAFEDELETE(pSolv);
-				pSolv = 0;
-			}
-			throw;
-		}
-        	break;
- 
-    	case RUNGEKUTTA:
-		/* FIXME: this is rather obsolete, since our 
-		 * integration scheme incorporates implicit 
-		 * Runge-Kutta and multistep/single-lag methods
-		 * in one scheme; the "thirdorder" method
-		 * is actually an implicit Runge-Kutta with
-		 * tunable algorithmic dissipation */
-        	silent_cerr("Sorry, implicit Runge-Kutta isn't supported yet;"
-	    		<< std::endl << "aborting ..." << std::endl);
-        	throw ErrNotImplementedYet();
-    	case RIGID:
+		break;
+
+    	case INVERSE_DYNAMICS:
         	SAFENEWWITHCONSTRUCTOR(pSolv,
 				InverseSolver,
 				InverseSolver(HP, sInputFileName, 
 					sOutputFileName, bParallel));
-		try {
-    			/* Runs the simulation */
-    			dynamic_cast<InverseSolver *>(pSolv)->Run();
-	
-		} catch (...) {
-			if (pSolv) {
-				SAFEDELETE(pSolv);
-				pSolv = 0;
-			}
-			throw;
-		}
-        	break;
-	
+		break;
+
 	default:
         	silent_cerr("Unknown integrator; aborting ..." << std::endl);
         	throw ErrGeneric();   
-    	}
-#if 0
+	}
+
 	try {
     		/* Runs the simulation */
     		pSolv->Run();
-
+	
 	} catch (...) {
 		if (pSolv) {
 			SAFEDELETE(pSolv);
@@ -1227,48 +1150,7 @@ endofcycle:
 		}
 		throw;
 	}
-#endif    
+
     	return pSolv;
 } // RunMBDyn
-
-#ifdef MBDYN_X_MAIL_MESSAGE
-/*
- * Plenty of potential vulnerabilities; never enable
- */
-static void 
-SendMessage(const char* const sInputFileName,
-	    const char* const sMailToAddress,
-	    time_t tSecs,
-	    time_t tMils)
-{
-    	DEBUGCOUTFNAME("SendMessage");
-   
-    	/* Scrive il messaggio in un file temporaneo */
-	std::ofstream Msg("mbdyn.msg");
-    	Msg << "MBDyn terminated job ";
-    	if (sInputFileName != NULL) {
-        	Msg << "'" << sInputFileName << "' ";
-    	}
-#ifdef HAVE_SYS_TIMES_H
-    	Msg << "in " << tSecs << '.' << tMils << " seconds of CPU time";
-#endif /* HAVE_SYS_TIMES_H */
-    	Msg << '.' << std::endl;
-    	Msg.close();
-   
-    	/* Crea la linea di comando */
-    	char* sCmd = NULL;
-    	SAFENEWARR(sCmd, char, (29+strlen(sMailToAddress)+11+1));
-    	char* s = sCmd;
-    	strcpy(s, "/bin/mail -s 'mbdyn message' ");
-    	s = sCmd+strlen(sCmd);
-    	strcpy(s, sMailToAddress);
-    	s = sCmd+strlen(sCmd);
-    	strcpy(s, " <mbdyn.msg");
-    	system(sCmd);
-   
-    	/* Manda il messagio e cancella il file temporaneo */
-    	system("rm mbdyn.msg");
-    	SAFEDELETEARR(sCmd);
-}
-#endif /* MBDYN_X_MAIL_MESSAGE */
 
