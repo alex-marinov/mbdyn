@@ -324,6 +324,7 @@ usage(int err)
 		<< std::endl << "\t\t"
 		"[-s] "
 		"[-t <nthreads>] "
+		"[-T] "
 		"[-w <filename>] "
 		<< std::endl;
 	std::cerr << "  -c :  if possible, use compressed column matrix format" << std::endl;
@@ -346,6 +347,7 @@ usage(int err)
 	std::cerr << "\tand <sprfct> (prompts for values not provided)" << std::endl;
 	std::cerr << "  -s :  (singular) with the 3x3 matrix, do not set the element (3,3)" << std::endl;
 	std::cerr << "  -t :  with multithreaded solvers, use <nthreads> threads" << std::endl;
+	std::cerr << "  -T :  solve A^T x = b" << std::endl;
 	std::cerr << "  -w :  write the random matrix to <filename>" << std::endl;
 	exit(err);
 }
