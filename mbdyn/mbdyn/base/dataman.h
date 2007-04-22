@@ -115,6 +115,7 @@ protected:
 	LinSol CurrSolver;
 
 	bool bStaticModel;
+	bool bInverseDynamics;
 #endif /* USE_STRUCT_NODES */
 
 #if defined(HAVE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
@@ -377,8 +378,17 @@ public:
 	virtual void Update(void) const;
 	virtual void AfterConvergence(void) const;
 
+	bool bSetStaticModel(bool b) {
+		bStaticModel = b;
+	};
 	bool bIsStaticModel(void) const {
 		return bStaticModel;
+	};
+	bool bSetInverseDynamics(bool b) {
+		bInverseDynamics = b;
+	};
+	bool bIsInverseDynamics(void) const {
+		return bInverseDynamics;
 	};
 
 	/* da ElemManager */

@@ -728,7 +728,8 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	Node* pStrNode = pDM->ReadNode(HP, Node::STRUCTURAL);
 
 	/* may be determined by a special DataManager parameter... */
-	bool bStatic = pDM->bIsStaticModel();
+	bool bStaticModel = pDM->bIsStaticModel();
+	bool bInverseDynamics = pDM->bIsInverseDynamics();
 
 	integer iNumMasses = 1;
 	if (HP.IsKeyWord("condense")) {
@@ -841,10 +842,10 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		Node *pRN = pDM->ReadNode(HP, Node::STRUCTURAL);
 		pRefNode = dynamic_cast<StructNode *>(pRN);
 		ASSERT(pRefNode != 0);
-		bStatic = true;
+		bStaticModel = true;
 	}
 
-	if (bStatic) {
+	if (bStaticModel || bInverseDynamics) {
 		/* static */
 		pStaticNode = dynamic_cast<StaticStructNode*>(pStrNode);
 		if (pStaticNode == 0 || pStaticNode->GetStructNodeType() != StructNode::STATIC) {
@@ -870,7 +871,7 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 
 	/* Allocazione e costruzione */
 	Elem* pEl = NULL;
-	if (bStatic) {
+	if (bStaticModel || bInverseDynamics) {
 		/* static */
 		SAFENEWWITHCONSTRUCTOR(pEl, StaticBody, StaticBody(uLabel, pStaticNode, pRefNode, dm, Xgc, J, fOut));
 
