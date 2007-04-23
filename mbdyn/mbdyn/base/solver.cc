@@ -3509,12 +3509,12 @@ EndOfCycle: /* esce dal ciclo di lettura */
 
 	default:
 		if (dMinimumTimeStep != dDefaultMinimumTimeStep) {
-			silent_cerr("\"min time step\" only allowed with variable time step" <<std::endl);
+			silent_cerr("\"min time step\" only allowed with variable time step (ignored)." <<std::endl);
 		}
 		dMinimumTimeStep = dInitialTimeStep;
 
 		if (dMaxTimeStep != dDefaultMaxTimeStep) {
-			silent_cerr("\"max time step\" only allowed with variable time step" <<std::endl);
+			silent_cerr("\"max time step\" only allowed with variable time step (ignored)." <<std::endl);
 		}
 		dMaxTimeStep = dInitialTimeStep;
 
