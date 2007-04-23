@@ -73,6 +73,7 @@ class Beam2
      * aggiornate ad ogni iterazione */
     Mat3x3 R;
     Mat3x3 RRef;
+    Mat3x3 RPrev;
 
     /* Constitutive laws*/
     ConstitutiveLaw6DOwner* pD;
@@ -91,6 +92,7 @@ class Beam2
     Vec6 AzLocRef;
     Vec6 DefLoc;
     Vec6 DefLocRef;
+    Vec6 DefLocPrev;
 
     Vec3 p;   
     Vec3 g;   

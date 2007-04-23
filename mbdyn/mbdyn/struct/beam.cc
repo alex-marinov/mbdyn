@@ -163,8 +163,8 @@ bFirstRes(true)
     (Mat3x3&)RNode[NODE1] = R1;
     (Mat3x3&)RNode[NODE2] = R2;
     (Mat3x3&)RNode[NODE3] = R3;
-    RRef[S_I] = R[S_I] = (Mat3x3&)r_I;
-    RRef[SII] = R[SII] = (Mat3x3&)rII;
+    RPrev[S_I] = RRef[S_I] = R[S_I] = const_cast<Mat3x3&>(r_I);
+    RPrev[SII] = RRef[SII] = R[SII] = const_cast<Mat3x3&>(rII);
 
     SAFENEWWITHCONSTRUCTOR(pD[S_I], 
 			   ConstitutiveLaw6DOwner,
@@ -179,34 +179,37 @@ bFirstRes(true)
 void
 Beam::Init(void)
 {
-    Omega[S_I]     = Omega[SII]     = Vec3(0.); 
-    Az[S_I]        = Az[SII]        = Vec6(0.);
-    AzRef[S_I]     = AzRef[SII]     = Vec6(0.);
-    AzLoc[S_I]     = AzLoc[SII]     = Vec6(0.);
-    AzLocRef[S_I]  = AzLocRef[SII]  = Vec6(0.);
-    DefLoc[S_I]    = DefLoc[SII]    = Vec6(0.);
-    DefLocRef[S_I] = DefLocRef[SII] = Vec6(0.);
-    p[S_I]         = p[SII]         = Vec3(0.);
-    g[S_I]         = g[SII]         = Vec3(0.);
-    L0[S_I]        = L0[SII]        = Vec3(0.);
-    L[S_I]         = L[SII]         = Vec3(0.);
-    LRef[S_I]      = LRef[SII]      = Vec3(0.);
-    
-    DsDxi();
+	for (unsigned i = 0; i < NUMSEZ; i++) {
+		Omega[i] = Vec3(0.); 
+		Az[i] = Vec6(0.);
+		AzRef[i] = Vec6(0.);
+		AzLoc[i] = Vec6(0.);
+		AzLocRef[i] = Vec6(0.);
+		DefLoc[i] = Vec6(0.);
+		DefLocRef[i] = Vec6(0.);
+		DefLocPrev[i] = Vec6(0.);
+		p[i] = Vec3(0.);
+		g[i] = Vec3(0.);
+		L0[i] = Vec3(0.);
+		L[i] = Vec3(0.);
+		LRef[i] = Vec3(0.);
+	}
+
+	DsDxi();
  
-    Vec3 xTmp[NUMNODES];
+	Vec3 xTmp[NUMNODES];
+ 
+	for (unsigned int i = 0; i < NUMNODES; i++) {      
+		xTmp[i] = pNode[i]->GetXCurr()+pNode[i]->GetRCurr()*f[i];
+	}      
       
-    for (unsigned int i = 0; i < NUMNODES; i++) {      
-        xTmp[i] = pNode[i]->GetXCurr()+pNode[i]->GetRCurr()*f[i];
-    }      
-      
-    /* Aggiorna le grandezze della trave nei punti di valutazione */
-    for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {
-        p[iSez] = InterpState(xTmp[NODE1],
-	                      xTmp[NODE2],
-			      xTmp[NODE3],
-			      Beam::Section(iSez));
-    }
+	/* Aggiorna le grandezze della trave nei punti di valutazione */
+	for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {
+		p[iSez] = InterpState(xTmp[NODE1],
+			xTmp[NODE2],
+			xTmp[NODE3],
+			Beam::Section(iSez));
+	}
 }
 
 Beam::~Beam(void) 
@@ -524,8 +527,11 @@ std::ostream& Beam::Restart_(std::ostream& out) const
 void
 Beam::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
 {
-	pD[S_I]->AfterConvergence(DefLoc[S_I]);
-	pD[SII]->AfterConvergence(DefLoc[SII]);
+	for (unsigned i = 0; i < NUMSEZ; i++) {
+		RPrev[i] = R[i];
+		DefLocPrev[i] = DefLoc[i];
+		pD[i]->AfterConvergence(DefLoc[i]);
+	}
 }
 
 /* Assembla la matrice */
@@ -901,7 +907,7 @@ void Beam::AfterPredict(VectorHandler& /* X */ ,
       /* Matrici di rotazione */
       g[iSez] = InterpState(gNod[NODE1], gNod[NODE2], gNod[NODE3], Beam::Section(iSez));
       RDelta[iSez] = Mat3x3(MatR, g[iSez]);
-      R[iSez] = RRef[iSez] = RDelta[iSez]*R[iSez];
+      R[iSez] = RRef[iSez] = RDelta[iSez]*RPrev[iSez];
       
       /* Derivate della posizione */
       L[iSez] = LRef[iSez] 
@@ -917,7 +923,7 @@ void Beam::AfterPredict(VectorHandler& /* X */ ,
       /* Calcola le deformazioni nel sistema locale nei punti di valutazione */
       DefLoc[iSez] = DefLocRef[iSez]
 	= Vec6(RTmp*L[iSez] - L0[iSez],
-	       RTmp*(Mat3x3(MatG, g[iSez])*gGrad[iSez]) + DefLoc[iSez].GetVec2());
+	       RTmp*(Mat3x3(MatG, g[iSez])*gGrad[iSez]) + DefLocPrev[iSez].GetVec2());
       
       /* Calcola le azioni interne */
       pD[iSez]->Update(DefLoc[iSez]);
@@ -1633,7 +1639,7 @@ void ViscoElasticBeam::AfterPredict(VectorHandler& /* X */ ,
 			    gNod[NODE2], 
 			    gNod[NODE3], Beam::Section(iSez));
       RDelta[iSez] = Mat3x3(MatR, g[iSez]);
-      R[iSez] = RRef[iSez] = RDelta[iSez]*R[iSez];
+      R[iSez] = RRef[iSez] = RDelta[iSez]*RPrev[iSez];
       
       /* Velocita' angolare della sezione */	 
       gPrime[iSez] = InterpState(gPrimeNod[NODE1],
@@ -1668,7 +1674,7 @@ void ViscoElasticBeam::AfterPredict(VectorHandler& /* X */ ,
       /* Calcola le deformazioni nel sistema locale nei punti di valutazione */
       DefLoc[iSez] = DefLocRef[iSez] 
 	= Vec6(RTmp*L[iSez] - L0[iSez],
-	       RTmp*(Mat3x3(MatG, g[iSez])*gGrad[iSez]) + DefLoc[iSez].GetVec2());
+	       RTmp*(Mat3x3(MatG, g[iSez])*gGrad[iSez]) + DefLocPrev[iSez].GetVec2());
       
       /* Calcola le velocita' di deformazione nel sistema locale nei punti di valutazione */
       DefPrimeLoc[iSez] = DefPrimeLocRef[iSez] 

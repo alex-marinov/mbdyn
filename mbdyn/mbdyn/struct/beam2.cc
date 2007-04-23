@@ -350,6 +350,8 @@ Beam2::Restart_(std::ostream& out) const
 void
 Beam2::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
 {
+	RPrev = R;
+	DefLocPrev = DefLoc;
 	pD->AfterConvergence(DefLoc);
 }
 
@@ -629,7 +631,7 @@ Beam2::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ )
 	/* Matrici di rotazione */
 	g = InterpState(gNod[NODE1], gNod[NODE2]);
 	RDelta = Mat3x3(MatR, g);
-	R = RRef = RDelta*R;
+	R = RRef = RDelta*RPrev;
 	
 	/* Derivate della posizione */
 	L = LRef = InterpDeriv(xTmp[NODE1], xTmp[NODE2]);
@@ -645,7 +647,7 @@ Beam2::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ )
 	 * nei punti di valutazione
 	 */
 	DefLoc = DefLocRef = Vec6(RTmp*L-L0,
-			RTmp*(Mat3x3(MatG, g)*gGrad)+DefLoc.GetVec2());
+			RTmp*(Mat3x3(MatG, g)*gGrad)+DefLocPrev.GetVec2());
 	
 	/* Calcola le azioni interne */
 	pD->Update(DefLoc);
@@ -1235,7 +1237,7 @@ ViscoElasticBeam2::AfterPredict(VectorHandler& /* X */ ,
 	/* Matrici di rotazione */
 	g = InterpState(gNod[NODE1], gNod[NODE2]);
 	RDelta = Mat3x3(MatR, g);
-	R = RRef = RDelta*R;
+	R = RRef = RDelta*RPrev;
 	
 	/* Velocita' angolare della sezione */	 
 	gPrime = InterpState(gPrimeNod[NODE1], gPrimeNod[NODE2]);
@@ -1260,7 +1262,7 @@ ViscoElasticBeam2::AfterPredict(VectorHandler& /* X */ ,
 	 * Calcola le deformazioni nel sistema locale nel punto di valutazione
 	 */
 	DefLoc = DefLocRef = Vec6(RTmp*L-L0,
-			RTmp*(Mat3x3(MatG, g)*gGrad)+DefLoc.GetVec2());
+			RTmp*(Mat3x3(MatG, g)*gGrad)+DefLocPrev.GetVec2());
 	
 	/*
 	 * Calcola le velocita' di deformazione nel sistema locale

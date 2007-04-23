@@ -91,6 +91,7 @@ class Beam
      * aggiornate ad ogni iterazione */
     Mat3x3 R[NUMSEZ];
     Mat3x3 RRef[NUMSEZ];
+    Mat3x3 RPrev[NUMSEZ];
 
     /* Constitutive laws*/
     ConstitutiveLaw6DOwner* pD[NUMSEZ];
@@ -120,6 +121,7 @@ class Beam
     Vec6 AzLocRef[NUMSEZ];
     Vec6 DefLoc[NUMSEZ];
     Vec6 DefLocRef[NUMSEZ];
+    Vec6 DefLocPrev[NUMSEZ];
 
     Vec3 p[NUMSEZ];   
     Vec3 g[NUMSEZ];   
