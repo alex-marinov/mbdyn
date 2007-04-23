@@ -196,10 +196,10 @@ dInitialTime(0.),
 dFinalTime(0.),
 dRefTimeStep(0.),
 dInitialTimeStep(1.),
-dMinimumTimeStep(1.),
-dMaxTimeStep(1.),
-iFictitiousStepsNumber(iDefaultFictitiousStepsNumber),
-dFictitiousStepsRatio(dDefaultFictitiousStepsRatio),
+dMinimumTimeStep(::dDefaultMinimumTimeStep),
+dMaxTimeStep(::dDefaultMaxTimeStep),
+iFictitiousStepsNumber(::iDefaultFictitiousStepsNumber),
+dFictitiousStepsRatio(::dDefaultFictitiousStepsRatio),
 eAbortAfter(AFTER_UNKNOWN),
 iStepsAfterReduction(0),
 iStepsAfterRaise(0),
@@ -216,7 +216,7 @@ pRhoRegular(NULL),
 pRhoAlgebraicRegular(NULL),
 pRhoFictitious(NULL),
 pRhoAlgebraicFictitious(NULL),
-dDerivativesCoef(dDefaultDerivativesCoefficient),
+dDerivativesCoef(::dDefaultDerivativesCoefficient),
 ResTest(NonlinearSolverTest::NORM),
 SolTest(NonlinearSolverTest::NONE),
 bScale(false),
@@ -225,10 +225,10 @@ bKeepJac(false),
 iIterationsBeforeAssembly(0),
 NonlinearSolverType(NonlinearSolver::UNKNOWN),
 MFSolverType(MatrixFreeSolver::UNKNOWN),
-dIterTol(dDefaultTol),
+dIterTol(::dDefaultTol),
 PcType(Preconditioner::FULLJACOBIANMATRIX),
-iPrecondSteps(iDefaultPreconditionerSteps),
-iIterativeMaxSteps(iDefaultPreconditionerSteps),
+iPrecondSteps(::iDefaultPreconditionerSteps),
+iIterativeMaxSteps(::iDefaultPreconditionerSteps),
 dIterertiveEtaMax(defaultIterativeEtaMax),
 dIterertiveTau(defaultIterativeTau),
 bHonorJacRequest(false),
@@ -316,7 +316,7 @@ Solver::Run(void)
 			SAFESTRDUP(sOutputFileName, sInputFileName);
 
 		} else {
-			SAFESTRDUP(sOutputFileName, sDefaultOutputFileName);
+			SAFESTRDUP(sOutputFileName, ::sDefaultOutputFileName);
 		}
 		
 	} else {
@@ -370,7 +370,7 @@ Solver::Run(void)
 				}
 
 			} else {
-				tmpIn = sDefaultOutputFileName;
+				tmpIn = ::sDefaultOutputFileName;
 			}
 
 			lOld = strlen(sOutputFileName);
@@ -2195,19 +2195,19 @@ Solver::ReadData(MBDynParser& HP)
 	 *	StepIntegration e NonlinearSolver
 	 */
 
-	doublereal dTol = dDefaultTol;
+	doublereal dTol = ::dDefaultTol;
    	doublereal dSolutionTol = 0.;
-   	integer iMaxIterations = iDefaultMaxIterations;
+   	integer iMaxIterations = ::iDefaultMaxIterations;
 	bool bModResTest = false;
 
         /* Dati dei passi fittizi di trimmaggio iniziale */
-   	doublereal dFictitiousStepsTolerance = dDefaultFictitiousStepsTolerance;
-   	integer iFictitiousStepsMaxIterations = iDefaultMaxIterations;
+   	doublereal dFictitiousStepsTolerance = ::dDefaultFictitiousStepsTolerance;
+   	integer iFictitiousStepsMaxIterations = ::iDefaultMaxIterations;
 
    	/* Dati del passo iniziale di calcolo delle derivate */
 
-	doublereal dDerivativesTol = dDefaultTol;
-   	integer iDerivativesMaxIterations = iDefaultMaxIterations;
+	doublereal dDerivativesTol = ::dDefaultTol;
+   	integer iDerivativesMaxIterations = ::iDefaultMaxIterations;
 
 #ifdef USE_MULTITHREAD
 	bool bSolverThreads(false);
@@ -2297,11 +2297,11 @@ Solver::ReadData(MBDynParser& HP)
 	  		iFictitiousStepsNumber = HP.GetInt();
 			if (iFictitiousStepsNumber < 0) {
 				iFictitiousStepsNumber =
-					iDefaultFictitiousStepsNumber;
+					::iDefaultFictitiousStepsNumber;
 				silent_cerr("warning, negative dummy steps number"
 					" is illegal;" << std::endl
 					<< "resorting to default value "
-					<< iDefaultFictitiousStepsNumber
+					<< ::iDefaultFictitiousStepsNumber
 					<< std::endl);
 			} else if (iFictitiousStepsNumber == 1) {
 				silent_cerr("warning, a single dummy step"
@@ -2317,11 +2317,11 @@ Solver::ReadData(MBDynParser& HP)
 	  		dFictitiousStepsRatio = HP.GetReal();
 	  		if (dFictitiousStepsRatio < 0.) {
 	     			dFictitiousStepsRatio =
-					dDefaultFictitiousStepsRatio;
+					::dDefaultFictitiousStepsRatio;
 				silent_cerr("warning, negative dummy steps ratio"
 					" is illegal;" << std::endl
 					<< "resorting to default value "
-					<< dDefaultFictitiousStepsRatio
+					<< ::dDefaultFictitiousStepsRatio
 					<< std::endl);
 			}
 
@@ -2341,11 +2341,11 @@ Solver::ReadData(MBDynParser& HP)
 	  		dFictitiousStepsTolerance = HP.GetReal();
 	  		if (dFictitiousStepsTolerance <= 0.) {
 				dFictitiousStepsTolerance =
-					dDefaultFictitiousStepsTolerance;
+					::dDefaultFictitiousStepsTolerance;
 				silent_cerr("warning, negative dummy steps"
 					" tolerance is illegal;" << std::endl
 					<< "resorting to default value "
-					<< dDefaultFictitiousStepsTolerance
+					<< ::dDefaultFictitiousStepsTolerance
 					<< std::endl);
 	  		}
 			DEBUGLCOUT(MYDEBUG_INPUT,
@@ -2644,7 +2644,7 @@ Solver::ReadData(MBDynParser& HP)
 			} else {
 				dTol = HP.GetReal();
 				if (dTol < 0.) {
-					dTol = dDefaultTol;
+					dTol = ::dDefaultTol;
 					silent_cerr("warning, residual tolerance "
 						"< 0. is illegal; "
 						"using default value " << dTol
@@ -2745,7 +2745,7 @@ Solver::ReadData(MBDynParser& HP)
 		case DERIVATIVESTOLERANCE: {
 			dDerivativesTol = HP.GetReal();
 			if (dDerivativesTol <= 0.) {
-				dDerivativesTol = dDefaultTol;
+				dDerivativesTol = ::dDefaultTol;
 				silent_cerr("warning, derivatives "
 					"tolerance <= 0.0 is illegal; "
 					"using default value "
@@ -2762,7 +2762,7 @@ Solver::ReadData(MBDynParser& HP)
 		case MAXITERATIONS: {
 			iMaxIterations = HP.GetInt();
 			if (iMaxIterations < 1) {
-				iMaxIterations = iDefaultMaxIterations;
+				iMaxIterations = ::iDefaultMaxIterations;
 				silent_cerr("warning, max iterations "
 					"< 1 is illegal; using default value "
 					<< iMaxIterations
@@ -2790,7 +2790,7 @@ Solver::ReadData(MBDynParser& HP)
 		case DERIVATIVESMAXITERATIONS: {
 			iDerivativesMaxIterations = HP.GetInt();
 			if (iDerivativesMaxIterations < 1) {
-				iDerivativesMaxIterations = iDefaultMaxIterations;
+				iDerivativesMaxIterations = ::iDefaultMaxIterations;
 				silent_cerr("warning, derivatives "
 					"max iterations < 1 is illegal; "
 					"using default value "
@@ -2808,7 +2808,7 @@ Solver::ReadData(MBDynParser& HP)
 		case DUMMYSTEPSMAXITERATIONS: {
 			iFictitiousStepsMaxIterations = HP.GetInt();
 			if (iFictitiousStepsMaxIterations < 1) {
-				iFictitiousStepsMaxIterations = iDefaultMaxIterations;
+				iFictitiousStepsMaxIterations = ::iDefaultMaxIterations;
 				silent_cerr("warning, dummy steps "
 					"max iterations < 1 is illegal; "
 					"using default value "
@@ -2825,7 +2825,7 @@ Solver::ReadData(MBDynParser& HP)
 		case DERIVATIVESCOEFFICIENT: {
 			dDerivativesCoef = HP.GetReal();
 			if (dDerivativesCoef <= 0.) {
-				dDerivativesCoef = dDefaultDerivativesCoefficient;
+				dDerivativesCoef = ::dDefaultDerivativesCoefficient;
 				silent_cerr("warning, derivatives "
 					"coefficient <= 0. is illegal; "
 					"using default value "
@@ -2849,7 +2849,7 @@ Solver::ReadData(MBDynParser& HP)
 				if (HP.IsArg()) {
 					iIterationsBeforeAssembly = HP.GetInt();
 		  		} else {
-		       			iIterationsBeforeAssembly = iDefaultIterationsBeforeAssembly;
+		       			iIterationsBeforeAssembly = ::iDefaultIterationsBeforeAssembly;
 				}
 				DEBUGLCOUT(MYDEBUG_INPUT, "Modified "
 						"Newton-Raphson will be used; "
@@ -3508,6 +3508,16 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		break;
 
 	default:
+		if (dMinimumTimeStep != dDefaultMinimumTimeStep) {
+			silent_cerr("\"min time step\" only allowed with variable time step" <<std::endl);
+		}
+		dMinimumTimeStep = dInitialTimeStep;
+
+		if (dMaxTimeStep != dDefaultMaxTimeStep) {
+			silent_cerr("\"max time step\" only allowed with variable time step" <<std::endl);
+		}
+		dMaxTimeStep = dInitialTimeStep;
+
 		break;
 	}
 

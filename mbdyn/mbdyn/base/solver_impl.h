@@ -97,6 +97,8 @@ static const doublereal defaultIterativeEtaMax = 0.9;
 static const doublereal defaultIterativeTau = 1.e-7;
 
 static const integer iDefaultMaxIterations = 1;
+static const doublereal dDefaultMinimumTimeStep = -1.;
+static const doublereal dDefaultMaxTimeStep = -1.;
 static const doublereal dDefaultFictitiousStepsTolerance = dDefaultTol;
 
 #endif /* ! SOLVER_IMPL_H */

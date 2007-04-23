@@ -59,6 +59,7 @@ MBDyn 1.X-Devel
 		- "conservative" forces and couples renamed to "absolute"
 		- remove "isotropic" from "symbolic" constitutive laws
 		- remove '-m' switch (send email on completion)
+		- added detection of improper use of min/max time step
 	Known issues:
 	Bug fixes:
 		- fixed orientation matrix input check and diagnostics
@@ -87,6 +88,7 @@ MBDyn 1.X-Devel
 		- fixed scale/test inheritance issue (Marco Morandini)
 		- fixed one-time memory leaks (shutdown)
 		- fixed initial assembly max iteration count
+		- fixed variable time step retry in beam2/beam3
 
 MBDyn 1.2.6
 	Enhancements:
