@@ -2875,7 +2875,7 @@ Solver::ReadData(MBDynParser& HP)
 		case END:
 			switch (KeyWords(HP.GetWord())) {
 			case MULTISTEP:
-				silent_cerr("\"end: multistep;\" is deprecated; "
+				pedantic_cout("\"end: multistep;\" is deprecated; "
 					"use \"end: initial value;\" instead." << std::endl);
 			case INITIAL_VALUE:
 				break;
@@ -3183,7 +3183,8 @@ Solver::ReadData(MBDynParser& HP)
 					iIterationsBeforeAssembly = HP.GetInt();
 
 					if (HP.IsKeyWord("keep" "jacobian")) {
-						pedantic_cout("Use of deprecated \"keep jacobian\" at line " << HP.GetLineData() << std::endl);
+						pedantic_cout("Use of deprecated \"keep jacobian\" "
+							"at line " << HP.GetLineData() << std::endl);
 						bKeepJac = true;
 
 					} else if (HP.IsKeyWord("keep" "jacobian" "matrix")) {
