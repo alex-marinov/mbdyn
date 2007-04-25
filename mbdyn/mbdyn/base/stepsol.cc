@@ -667,7 +667,7 @@ Step2Integrator::Advance(Solver* pS,
 	
 	/* if it gets here, it surely converged */
 	pDM->AfterConvergence();
-
+	
 	return Err;
 }
 
@@ -1209,6 +1209,15 @@ HopeSolver::dPredStateAlg(const doublereal& dXm1,
 
 /* Inverse Dynamics - Begin*/
 
+/* 
+ *
+ * Copyright (C) 2007
+ * Alessandro Fumagalli
+ * 
+ * <alessandro.fumagalli@polimi.it>
+ *
+ */
+
 InverseDynamicsStepSolver::InverseDynamicsStepSolver(const integer MaxIt,
 		const doublereal dT,
 		const doublereal dSolutionTol,
@@ -1358,60 +1367,66 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 	
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr, *pXPrimePrimeCurr);
 
-#ifdef DEBUG
-	integer iNumDofs = pDM->iGetNumDofs();
-	if (outputPred) {
-		std::cout << "Dof:      XCurr  ,    XPrev  ,   XPrev2  "
-			",   XPrime  ,   XPPrev  ,   XPPrev2" << std::endl;
-		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
-    			std::cout << std::setw(4) << iTmpCnt << ": ";
-			std::cout << std::setw(12) << pX->dGetCoef(iTmpCnt);
-			for (unsigned int ivec = 0; ivec < qX.size(); ivec++) {
-				std::cout << std::setw(12)
-					<< (qX[ivec])->dGetCoef(iTmpCnt);
-			} 
-			std::cout << std::setw(12) << pXPrime->dGetCoef(iTmpCnt);
-			for (unsigned int ivec = 0; ivec < qXPrime.size(); ivec++) {  
-				std::cout << std::setw(12)
-					<< (qXPrime[ivec])->dGetCoef(iTmpCnt);
-			} 
-			std::cout << std::endl;
- 		}
-	}
-#endif /* DEBUG */
-
+	integer iLocalIter = EffIter;
 	Err = 0.; 
-
+	NonlinearSolver *pNLSolver = pS->pGetNonlinearSolver();
+	
 	/* Position */
 	SetOrder(0);
 	/* Setting iOrder = 0, the residual is called only 
 	 * for constraints, on positions */
-
-	pS->pGetNonlinearSolver()->Solve(this, pS, MaxIters, dTol,
+	pNLSolver->Solve(this, pS, MaxIters, dTol,
     			EffIter, Err, dSolTol, SolErr);
-	
+
 	SolutionManager *pSM = pS->pGetSolutionManager();
 	VectorHandler *pRes = pSM->pResHdl();
 	VectorHandler *pSol = pSM->pSolHdl();
 
 	/* Velocity */
 	SetOrder(1);
+	
+	doublereal VelErr = 0;
+	pRes->Reset();
+	/* there's no need to check changes in
+	 * equation structure... it is already
+	 * performed by NonlinearSolver->Solve()*/
 
 	Residual(pRes);
-	pSM->Solve();
+	VelErr = pNLSolver->MakeResTest(pS, *pRes) * TestScale(pNLSolver->pGetResTest());
+	if(VelErr > dTol)	{
+		if(EffIter == iLocalIter) {
+			pSM->MatrReset();
+			Jacobian(pSM->pMatHdl());
+			iLocalIter = EffIter;
+		}
+		pSM->Solve();
+	}
+
 
 	/* use velocity */
-	pSol;
+	Update(pSol);
 
 	/* Acceleration */
 	SetOrder(2);
 
+	doublereal AccErr = 0;
+	pRes->Reset();
 	Residual(pRes);
-	pSM->Solve();
+	AccErr = pNLSolver->MakeResTest(pS, *pRes) * TestScale(pNLSolver->pGetResTest());
+
+	if(AccErr > dTol)	{
+		if(EffIter == iLocalIter) {
+			pSM->MatrReset();
+			Jacobian(pSM->pMatHdl());
+			iLocalIter = EffIter;
+		}
+		pSM->Solve();
+	}
 
 	/* use acceleration */
-	pSol;
+	Update(pSol);
 
+#if 0
 	/* Forces */
 	SetOrder(-1);
 	Residual(pRes);
@@ -1419,9 +1434,9 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 
 	/* use forces */
 	pSol;
-	
+#endif	
 	/* if it gets here, it surely converged */
-	pDM->AfterConvergence();
+//	pDM->AfterConvergence();
 
 	return Err;
 }
@@ -1447,29 +1462,6 @@ InverseDynamicsStepSolver::Jacobian(MatrixHandler* pJac) const
 	ASSERT(pDM != NULL);
 	pDM->AssConstrJac(*pJac);
 }
-#if 0
-void
-InverseDynamicsStepSolver::UpdateDof(const int DCount,
-	const DofOrder::Order Order,
-	const VectorHandler* const pSol) const
-{
-	doublereal d = pSol->dGetCoef(DCount);
-	if (Order == DofOrder::DIFFERENTIAL) {
-		pXPrimeCurr->IncCoef(DCount, d);
-		
-		/* Nota: b0Differential e b0Algebraic 
-		 * possono essere distinti;
-		 * in ogni caso sono calcolati 
-		 * dalle funzioni di predizione
-		 * e sono dati globali */
-		pXCurr->IncCoef(DCount, db0Differential*d);
-
-	} else {
-		pXCurr->IncCoef(DCount, d);
-		pXPrimeCurr->IncCoef(DCount, db0Algebraic*d);
-	}
-}
-#endif	
 
 void
 InverseDynamicsStepSolver::Update(const VectorHandler* pSol) const
@@ -1478,7 +1470,6 @@ InverseDynamicsStepSolver::Update(const VectorHandler* pSol) const
 	ASSERT(pDM != NULL);
 	switch( iOrder ) {
 		case 0:	{
-		/* FIXME: ma è giusto così? */
 			*pXCurr += *pSol;
 			pDM->Update(iOrder);
 			break;

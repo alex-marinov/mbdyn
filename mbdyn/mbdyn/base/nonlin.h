@@ -191,7 +191,6 @@ protected:
 	External::ExtMessage ExtStepType;
 #endif /* USE_EXTERNAL */
 
-	virtual doublereal MakeResTest(Solver* pS, const VectorHandler& Vec);
 	virtual doublereal MakeSolTest(Solver* pS, const VectorHandler& Vec);
 
 public:
@@ -201,6 +200,8 @@ public:
 		
 	virtual ~NonlinearSolver(void);
 
+	virtual doublereal MakeResTest(Solver* pS, const VectorHandler& Vec);
+	
 	virtual void Solve(const NonlinearProblem *pNLP,
 			Solver *pS,
 			const integer iMaxIter,
@@ -211,7 +212,14 @@ public:
 			doublereal& dSolErr) = 0;
 
 	virtual integer TotalAssembledJacobian(void);
+
+	virtual NonlinearSolverTest* pGetResTest(void)	{
+		return pResTest;
+	}
 	
+	virtual NonlinearSolverTest* pGetSolTest(void)	{
+		return pSolTest;
+	}
 #ifdef USE_EXTERNAL
 	void SetExternal(const External::ExtMessage Ty);
 	

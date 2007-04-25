@@ -851,6 +851,48 @@ StructNode::InitialUpdate(const VectorHandler& X)
 	WCurr = Vec3(X, iFirstIndex+10);
 }
 
+/* Inverse Dynamics: */
+void 
+StructNode::Update(const VectorHandler& X, int iOrder)
+{
+
+	integer iFirstIndex = iGetFirstIndex();
+	switch(iOrder)	{
+		case 0:	{
+			XCurr = Vec3(X, iFirstIndex+1);
+			gCurr = Vec3(X, iFirstIndex+4);
+			Mat3x3 RDelta(MatR, gCurr);
+			RCurr = RDelta*RRef;
+			break;
+		}
+		
+		case 1:	{
+			VCurr = Vec3(X, iFirstIndex+1);
+			//gPCurr = Vec3(X, iFirstIndex+4);
+			//Mat3x3 RDelta(MatR, gCurr);
+			//WCurr = Mat3x3(MatG, gCurr)*gPCurr+RDelta*WRef;
+			WCurr = Vec3(X, iFirstIndex+4);
+			break;
+		}
+		case 2:	{
+			XPPCurr = Vec3(X, iFirstIndex+1);
+			WPCurr = Vec3(X, iFirstIndex+4);
+			break;
+		}
+		default:
+			NO_OP;
+	}
+
+
+#if 0
+	/* Questo e' meno efficiente anche se sembra piu' elegante.
+	 * Il problema e' che per scrivere il manipolatore in forma
+	 * elegante bisogna aggiungere alla matrice le informazioni
+	 * di memorizzazione della funzione di manipolazione.
+	 * Oppure occorre un operatore ternario */
+	RDelta = MatR << gCurr;
+#endif
+}
 
 /* Funzioni di inizializzazione, ereditate da DofOwnerOwner */
 void
@@ -1523,48 +1565,6 @@ DynamicStructNode::BeforePredict(VectorHandler& X,
 	StructNode::BeforePredict(X, XP, XPr, XPPr);
 }
 
-/* Inverse Dynamics: */
-void 
-DynamicStructNode::Update(VectorHandler& X, int iOrder)
-{
-
-	integer iFirstIndex = iGetFirstIndex();
-	switch(iOrder)	{
-		case 0:	{
-			XCurr = Vec3(X, iFirstIndex+1);
-			gCurr = Vec3(X, iFirstIndex+4);
-			Mat3x3 RDelta(MatR, gCurr);
-			RCurr = RDelta*RRef;
-			break;
-		}
-		
-		case 1:	{
-			VCurr = Vec3(X, iFirstIndex+1);
-			//gPCurr = Vec3(X, iFirstIndex+4);
-			//Mat3x3 RDelta(MatR, gCurr);
-			//WCurr = Mat3x3(MatG, gCurr)*gPCurr+RDelta*WRef;
-			WCurr = Vec3(X, iFirstIndex+1);
-			break;
-		}
-		case 2:	{
-			XPPCurr = Vec3(X, iFirstIndex+1);
-			WPCurr = Vec3(X, iFirstIndex+4);
-			break;
-		}
-		default:
-			NO_OP;
-	}
-
-
-#if 0
-	/* Questo e' meno efficiente anche se sembra piu' elegante.
-	 * Il problema e' che per scrivere il manipolatore in forma
-	 * elegante bisogna aggiungere alla matrice le informazioni
-	 * di memorizzazione della funzione di manipolazione.
-	 * Oppure occorre un operatore ternario */
-	RDelta = MatR << gCurr;
-#endif
-}
 /* Restituisce il valore del dof iDof;
  * se differenziale, iOrder puo' essere = 1 per la derivata */
 const doublereal&

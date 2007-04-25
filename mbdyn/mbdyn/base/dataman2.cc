@@ -994,6 +994,7 @@ DataManager::DofOwnerSet(void)
 	}
 } /* end of DofOwnerSet() */
 
+
 void
 DataManager::SetValue(VectorHandler& X, VectorHandler& XP)
 {

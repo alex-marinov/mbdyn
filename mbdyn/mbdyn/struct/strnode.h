@@ -265,6 +265,11 @@ public:
 	/* Aggiorna dati in base alla soluzione durante l'assemblaggio iniziale */
 	virtual void InitialUpdate(const VectorHandler& X);
 
+	/* Inverse Dynamics: */
+	/* Do Update on node position, velocity or acceleration 
+	 * depending on iOrder */
+	virtual void Update(const VectorHandler& X, int iOrder);
+
 	/* Funzioni di inizializzazione, ereditate da DofOwnerOwner */
 	virtual void SetInitialValue(VectorHandler& X) const;
 	virtual void SetValue(DataManager *pDM,
@@ -538,11 +543,6 @@ public:
 		VectorHandler& XPrev,
 		VectorHandler& XPPrev) const;
 	
-	/* Inverse Dynamics: */
-	/* Do Update on node position, velocity or acceleration 
-	 * depending on iOrder */
-	virtual void Update(VectorHandler& X, int iOrder);
-
 	/* Restituisce il valore del dof iDof;
 	 * se differenziale, iOrder puo' essere = 1 per la derivata */
 	virtual const doublereal& dGetDofValue(int iDof, int iOrder = 0) const;

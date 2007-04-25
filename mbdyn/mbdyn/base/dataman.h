@@ -255,6 +255,9 @@ protected:
 
 	void DofOwnerSet(void);
 	void DofOwnerInit(void);
+	
+	/* Inverse Dynamics: */
+	bool InverseDofOwnerSet(void);
 public:
 	/* costruttore - legge i dati e costruisce le relative strutture */
 	DataManager(MBDynParser& HP,
@@ -684,6 +687,9 @@ public:
 	void DofDataInit(void);
 	void DofInit(void);
 
+	/* Inverse Dynamics: */
+	void InverseDofInit(bool bIsSquare);
+
 	void SetScale(VectorHandler& XScale) const;
 
 #if 0
@@ -710,6 +716,9 @@ protected:
 
 public:
 	void RegisterSocketUser(UseSocket *pUS);
+	const VectorHandler* GetpXCurr(void) {
+		return pXCurr;
+	};
 };
 
 /* DataManager - end */

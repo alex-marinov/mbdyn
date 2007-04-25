@@ -160,7 +160,7 @@ DataManager::Update(int iOrder) const
 			Node** ppLastNode = ppNodes+iTotNodes;
 			for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
 				ASSERT(*ppTmp != NULL);
-				(*ppTmp)->Update(*pXCurr, iOrder);
+				dynamic_cast<StructNode *>(*ppTmp)->Update(*pXCurr, iOrder);
 			}
 			break;
 		}
@@ -168,7 +168,7 @@ DataManager::Update(int iOrder) const
 			Node** ppLastNode = ppNodes+iTotNodes;
 			for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
 				ASSERT(*ppTmp != NULL);
-				(*ppTmp)->Update(*pXPrimeCurr, iOrder);
+				dynamic_cast<StructNode *>(*ppTmp)->Update(*pXPrimeCurr, iOrder);
 			}
 			break;
 		}
@@ -176,7 +176,7 @@ DataManager::Update(int iOrder) const
 			Node** ppLastNode = ppNodes+iTotNodes;
 			for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
 				ASSERT(*ppTmp != NULL);
-				(*ppTmp)->Update(*pXPrimePrimeCurr, iOrder);
+				dynamic_cast<StructNode *>(*ppTmp)->Update(*pXPrimePrimeCurr, iOrder);
 			}
 			break;
 		}
@@ -194,4 +194,174 @@ DataManager::Update(int iOrder) const
 	}
 #endif
 }
+
+bool
+DataManager::InverseDofOwnerSet(void)
+{
+	DEBUGCOUTFNAME("DataManager::DofOwnerSet");
+	int iNodeTotNumDofs = 0;
+	int iJointTotNumDofs = 0;
+	
+	/* Setta i DofOwner dei nodi */
+	Node** ppTmpNode = ppNodes;
+	for (; ppTmpNode < ppNodes+iTotNodes; ppTmpNode++) {
+		DofOwner* pDO = (DofOwner*)(*ppTmpNode)->pGetDofOwner();
+		pDO->iNumDofs = (*ppTmpNode)->iGetNumDof();
+		iNodeTotNumDofs += pDO->iNumDofs;
+	}
+	
+	for (ElemMapType::iterator j = ElemData[Elem::JOINT].ElemMap.begin();
+                j != ElemData[Elem::JOINT].ElemMap.end(); j++)
+        {
+		ElemWithDofs* pEWD = CastElemWithDofs(j->second);
+		DofOwner* pDO = (DofOwner*)pEWD->pGetDofOwner();
+		iJointTotNumDofs += pEWD->iGetNumDof();
+
+        }
+	
+	/* Setta i DofOwner degli elementi (chi li possiede) */
+	for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
+		DofOwner::Type DT = ElemData[iCnt].DofOwnerType;
+		if (DT != DofOwner::UNKNOWN) {
+			DEBUGLCOUT(MYDEBUG_INIT, "Elem type " << iCnt
+					<< " (" << psElemNames[iCnt] << ")"
+					<< std::endl);
+
+			for (ElemMapType::const_iterator p = ElemData[iCnt].ElemMap.begin();
+				p != ElemData[iCnt].ElemMap.end();
+				p++)
+			{
+				ElemWithDofs* pEWD = CastElemWithDofs(p->second);
+
+				DEBUGLCOUT(MYDEBUG_INIT, "    " << psElemNames[pEWD->GetElemType()]
+						<< "(" << pEWD->GetLabel() << ")" << std::endl);
+
+				DofOwner* pDO = (DofOwner*)pEWD->pGetDofOwner();
+				pDO->iNumDofs = pEWD->iGetNumDof();
+				DEBUGLCOUT(MYDEBUG_INIT, "    num dofs: " << pDO->iNumDofs << std::endl);
+			}
+		}
+	}
+	
+	if(iNodeTotNumDofs == iJointTotNumDofs)	{
+		return true;
+	} else	{
+		return false;
+	}
+
+}
+
+
+void DataManager::InverseDofInit(bool bIsSquare)
+{  
+   	if( iTotDofOwners > 0) {	
+      
+      		/* Di ogni DofOwner setta il primo indice
+      		 * e calcola il numero totale di Dof:
+		 * poichè per il problema inverso non si 
+		 * possono aggiungere incognite diverse
+		 * da posizione (velocità e accelerazione)
+		 * dei nodi e reazioni vincolari, viene
+		 * controllato che gli elementi che aggiungono 
+		 * dof siano solo nodi e vincoli.
+		 * 
+		 * Per problemi mal posti (DoF nodi != Dof vincoli): 
+		 * iTotDofs = (DoF nodi) + (Dof vincoli), altrimenti
+		 * 
+		 * Per problemi ben posti:
+		 * iTotDofs = DoF nodi (= DoF vincoli)
+		 * */
+
+		
+      		/* Mette gli indici ai DofOwner dei nodi strutturali: */
+		StructNode **ppFirstNode = (StructNode**)NodeData[Node::STRUCTURAL].ppFirstNode;
+		StructNode **ppNode = ppFirstNode;
+		DofOwner* pTmp = DofData[DofOwner::STRUCTURALNODE].pFirstDofOwner;
+		
+      		integer iNodeIndex = 0;    /* contatore dei Dof dei nodi */
+      		integer iJointIndex = 0;    /* contatore dei Dof dei joint */
+
+      		integer iNumDofs = 0;  /* numero di dof di un owner */
+
+      		for(int iCnt = 1;  
+			pTmp < DofData[DofOwner::STRUCTURALNODE].pFirstDofOwner + 
+			DofData[DofOwner::STRUCTURALNODE].iNum; 
+			iCnt++, pTmp++, ppNode++) {
+			iNumDofs = pTmp->iNumDofs = (*ppNode)->iGetNumDof();
+			if(iNumDofs > 0) {
+				pTmp->iFirstIndex = iNodeIndex;
+				iNodeIndex += iNumDofs;
+		 	} else {
+		    		pTmp->iFirstIndex = -1;
+		    		DEBUGCERR("warning, item " << iCnt << " has 0 dofs" << std::endl);
+		 	}
+      		}
+		/* Gli indici dei nodi sono ok*/
+		
+		/* Se il problema è ben posto, gli indici delle equazioni di vincolo
+		 * hanno numerazione indipendente dai nodi. Altrimenti la numerazione 
+		 * è a partire dagli indici dei nodi (per fare spazio alla matrice 
+		 * peso nello jacobiano) */
+		if(bIsSquare)	{
+			iJointIndex = 0;
+		} else {
+			iJointIndex = iNodeIndex;
+		}
+		
+		for (ElemMapType::iterator j = ElemData[Elem::JOINT].ElemMap.begin();
+			j != ElemData[Elem::JOINT].ElemMap.end();
+			j++)
+		{
+			pTmp = (DofOwner *)(dynamic_cast<ElemWithDofs *>(j->second))->pGetDofOwner();
+			iNumDofs = pTmp->iNumDofs;
+			if(iNumDofs > 0) {
+				pTmp->iFirstIndex = iJointIndex;
+				iJointIndex += iNumDofs;
+		 	} else {
+		    		pTmp->iFirstIndex = -1;
+		    		DEBUGCERR("warning, item " << iCnt << " has 0 dofs" << std::endl);
+		 	}
+				
+		}
+		
+		if(bIsSquare)	{
+			iTotDofs = iNodeIndex;
+		} else {
+			iTotDofs = iJointIndex;
+		}
+
+	      	DEBUGLCOUT(MYDEBUG_INIT, "iTotDofs = " << iTotDofs << std::endl);
+   	} else {
+     	 	DEBUGCERR("");
+     	 	silent_cerr("no dof owners are defined" << std::endl);
+    	  
+      		throw DataManager::ErrGeneric();
+   	}	   	
+  	 
+  	 	
+  	/* Crea la struttura dinamica dei Dof */
+  	if(iTotDofs > 0) {
+
+  	    	SAFENEWARR(pDofs, Dof, iTotDofs);
+  	    
+  	    	/* Inizializza l'iteratore sui Dof */
+  	    	DofIter.Init(pDofs, iTotDofs);
+  	    
+  	   	 /* Inizializza la struttura dinamica dei Dof */
+		 
+		 /*FIXME:*/
+	   	 Dof* pTmp = pDofs;
+	   	 integer iIndex = pDofOwners[0].iFirstIndex;
+     			 while(pTmp < pDofs+iTotDofs) {
+				 pTmp->iIndex = iIndex++;
+				 pTmp->Order = DofOrder::DIFFERENTIAL;
+				 pTmp++;
+      			}		
+  	} else {
+		DEBUGCERR("");
+      		silent_cerr("no dofs are defined" << std::endl);
+     	 
+      		throw DataManager::ErrGeneric();
+   	}	   	
+}  
 

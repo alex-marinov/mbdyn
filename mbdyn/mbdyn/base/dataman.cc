@@ -507,7 +507,7 @@ SocketUsersTimeout(0)
 
 #if defined(USE_STRUCT_NODES)
 	if (bInitialJointAssemblyToBeDone) {
-		if (!bSkipInitialJointAssembly) {
+		if (!bSkipInitialJointAssembly && !bInverseDynamics) {
 			InitialJointAssembly();
 		} else {
 			silent_cout("Skipping initial joints assembly" << std::endl);
@@ -520,8 +520,14 @@ SocketUsersTimeout(0)
 
 	/* Costruzione dei dati dei Dof definitivi da usare nella simulazione */
 
+	bool bIsSquare;
+
 	/* Aggiornamento DofOwner degli elementi (e dei nodi) */
-	DofOwnerSet();
+	if(bInverseDynamics)	{
+		bIsSquare = InverseDofOwnerSet();
+	} else	{
+		DofOwnerSet();
+	}
 
 	/* Verifica dei dati di controllo */
 #ifdef DEBUG
@@ -542,10 +548,18 @@ SocketUsersTimeout(0)
 	 * Rimane da sistemare il vettore con gli indici "interni" ed il tipo */
 
 	/* Costruzione array DofOwner e Dof */
-	DofInit();
+	if(bInverseDynamics)	{
+		InverseDofInit(bIsSquare);
+	} else	{
+		DofInit();
+	}
 
 	/* Aggiornamento Dof di proprieta' degli elementi e dei nodi */
-	DofOwnerInit();
+//	if(bInverseDynamics)	{
+//		InverseDofOwnerInit();
+//	} else	{
+		DofOwnerInit();
+//	}
 
 	/* Creazione strutture di lavoro per assemblaggio e residuo */
 	ElemAssInit();

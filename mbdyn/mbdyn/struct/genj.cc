@@ -1548,8 +1548,6 @@ ClampJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		   const VectorHandler& /* XCurr */ )
 {
 	DEBUGCOUT("Entering ClampJoint::AssJac()" << std::endl);
-/* FIXME: */      
-   	printf("Entering ClampJoint::AssJac(), Constraint only\n");
    
   	SparseSubMatrixHandler& WM = WorkMat.SetSparse();
    
@@ -1558,8 +1556,8 @@ ClampJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    
    	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
    	integer iFirstReactionIndex = iGetFirstIndex();
-   
-   	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
+   	
+	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
       		WM.PutItem(iCnt, iFirstReactionIndex+iCnt, 
 		iFirstPositionIndex+iCnt, 1.);    
    	}
@@ -1640,9 +1638,6 @@ SubVectorHandler& ClampJoint::AssRes(SubVectorHandler& WorkVec,
 				     int iOrder)
 {
    	DEBUGCOUT("Entering ClampJoint::AssRes()" << std::endl);
-
-/* FIXME: */      
-printf("Entering ClampJoint::AssRes(), Constraint only, iOrder = %d\n", iOrder);
 
    	integer iNumRows;
    	integer iNumCols;

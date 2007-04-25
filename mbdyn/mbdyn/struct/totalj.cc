@@ -764,7 +764,7 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
-/* inverse dynamics Jacobian matrix assembly */
+/* Inverse Dynamics Jacobian matrix assembly */
 VariableSubMatrixHandler&
 TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	const VectorHandler& /* XCurr */ )
@@ -773,8 +773,6 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	 * identical to regular AssJac's lower-left block
 	 */
 	DEBUGCOUT("Entering TotalJoint::AssJac()" << std::endl);
-/* FIXME: */
-printf("Entering TotalJoint::AssJac(), Constraint only\n");
 
 	if (iGetNumDof() == 12) {
 		WorkMat.SetNullMatrix();
@@ -842,7 +840,7 @@ printf("Entering TotalJoint::AssJac(), Constraint only\n");
 	return WorkMat;
 }
 
-/* inverse dynamics residual assembly */
+/* Inverse Dynamics residual assembly */
 SubVectorHandler&
 TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr,
@@ -852,8 +850,6 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 {
 	DEBUGCOUT("Entering TotalJoint::AssRes(" << iOrder<< ")" << std::endl);
 
-/* FIXME: */
-printf("\n\nEntering TotalJoint::AssRes(), Constraint only, iOrder = %d\n\n",iOrder);
 	if (iGetNumDof() == 0) {
 		WorkVec.ResizeReset(0);
 		return WorkVec;
@@ -915,7 +911,7 @@ printf("\n\nEntering TotalJoint::AssRes(), Constraint only, iOrder = %d\n\n",iOr
 			
 			/* Position constraint derivative  */
 			for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
-				WorkVec.PutCoef(1 + iCnt, 0);//FIXME:Tmp(iPosIncid[iCnt]));
+				WorkVec.PutCoef(1 + iCnt, Tmp(iPosIncid[iCnt]));
 			}
 
 			Mat3x3 R1r = pNode1->GetRCurr()*R1hr;
@@ -929,7 +925,7 @@ printf("\n\nEntering TotalJoint::AssRes(), Constraint only, iOrder = %d\n\n",iOr
 	
 			/* Rotation constraint derivative */
 			for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
-				WorkVec.DecCoef(1 + nPosConstraints + iCnt, WDelta(iRotIncid[iCnt]));
+				WorkVec.PutCoef(1 + nPosConstraints + iCnt, WDelta(iRotIncid[iCnt]));
 			}
 		} // end case 1:	
 		break;
@@ -977,7 +973,7 @@ printf("\n\nEntering TotalJoint::AssRes(), Constraint only, iOrder = %d\n\n",iOr
 			for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
 				WorkVec.PutCoef(1 + nPosConstraints + iCnt, Tmp2(iRotIncid[iCnt]));
 			}
-		} // end case 1:
+		} // end case 2:
 		break;
 	
 	default:

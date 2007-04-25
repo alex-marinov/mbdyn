@@ -39,8 +39,8 @@
 
 /*
  *
- * Copyright (C) 2003-2007
- * Giuseppe Quaranta	<quaranta@aero.polimi.it>
+ * Copyright (C) 2007
+ * Alessandro Fumagalli <alessandro.fumagalli@polimi.it> 
  *
  */
 
@@ -642,8 +642,8 @@ InverseSolver::Run(void)
 	}
 
 	bSolConv = false;
-
-   	dRefTimeStep = dCurrTimeStep;
+   	dRefTimeStep = dInitialTimeStep;
+	dCurrTimeStep = dRefTimeStep;
    	dTime += dRefTimeStep;
 
    	dTotErr += dTest;
@@ -942,10 +942,10 @@ InverseSolver::Run(void)
 IfStepIsToBeRepeated:
 		try {
 
-			pDM->SetTime(dTime+dCurrTimeStep);
 			dTest = dynamic_cast<InverseDynamicsStepSolver *>(pRegularSteps)->Advance(this, dRefTimeStep,
 					CurrStep, pX, pXPrime, pXPrimePrime, 
 					iStIter, dTest, dSolTest);
+			pDM->SetTime(dTime+dCurrTimeStep);
 		}
 
 		catch (NonlinearSolver::NoConvergence) {
@@ -1025,7 +1025,7 @@ IfStepIsToBeRepeated:
       		dTime += dRefTimeStep;
 
 		bSolConv = false;
-
+		
       		/* Calcola il nuovo timestep */
       		dCurrTimeStep =
 			NewTimeStep(dCurrTimeStep, iStIter, CurrStep);
