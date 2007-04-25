@@ -60,7 +60,8 @@ ConstitutiveLaw6DOwner(pCL),
 pNode1(pN1), pNode2(pN2),
 tilde_f1(tilde_f1), tilde_f2(tilde_f2),
 tilde_R1h(tilde_R1h), tilde_R2h(tilde_R2h),
-tilde_k(0.), tilde_kPrime(0.), bFirstRes(true)
+tilde_k(0.), tilde_kPrime(0.),
+bFirstRes(false)
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode2 != NULL);

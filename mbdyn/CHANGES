@@ -89,6 +89,7 @@ MBDyn 1.X-Devel
 		- fixed one-time memory leaks (shutdown)
 		- fixed initial assembly max iteration count
 		- fixed variable time step retry in beam2/beam3
+		- fixed drive hinge initial assembly (noted by Patrick Rix)
 
 MBDyn 1.2.6
 	Enhancements:

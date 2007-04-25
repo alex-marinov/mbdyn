@@ -63,7 +63,7 @@ fout(fout.c_str()),
 bRemoveIn(bRemoveIn),
 bNoClobberOut(bNoClobberOut),
 bTightCoupling(bTightCoupling),
-bFirstRes(true),
+bFirstRes(false),
 iSleepTime(iSleepTime)
 {
 	ASSERT(nodes.size() == offsets.size());

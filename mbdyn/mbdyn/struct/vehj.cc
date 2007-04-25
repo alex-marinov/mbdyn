@@ -55,7 +55,11 @@ DeformableHingeJoint::DeformableHingeJoint(unsigned int uL,
 : Elem(uL, fOut),
 Joint(uL, pDO, fOut),
 ConstitutiveLaw3DOwner(pCL),
-pNode1(pN1), pNode2(pN2), tilde_R1h(tilde_R1h), tilde_R2h(tilde_R2h), bFirstRes(true)
+pNode1(pN1),
+pNode2(pN2),
+tilde_R1h(tilde_R1h),
+tilde_R2h(tilde_R2h),
+bFirstRes(false)
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode2 != NULL);

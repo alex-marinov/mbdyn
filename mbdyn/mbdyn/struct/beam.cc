@@ -85,7 +85,7 @@ J0_I(0.),
 dMassII(0.),
 S0II(0.),
 J0II(0.),
-bFirstRes(true)
+bFirstRes(false)
 {
     ASSERT(pN1 != NULL);
     ASSERT(pN1->GetNodeType() == Node::STRUCTURAL);
@@ -152,7 +152,7 @@ J0_I(j0_I),
 dMassII(dMII),
 S0II(s0II),
 J0II(j0II),
-bFirstRes(true)
+bFirstRes(false)
 {
     pNode[NODE1] = pN1;
     pNode[NODE2] = pN2;
