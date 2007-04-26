@@ -112,7 +112,7 @@ DataManager::AssConstrJac(MatrixHandler& JacHdl,
 	}
 }
 
-/* Assemblaggio del residuo */
+/* Constraint residual assembly: */
 void
 DataManager::AssConstrRes(VectorHandler& ResHdl, int iOrder) 
 	throw(ChangedEquationStructure)
@@ -139,6 +139,46 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 			ResHdl += j->second->AssRes(WorkVec, *pXCurr, 
 						*pXPrimeCurr, *pXPrimePrimeCurr, 
 						iOrder);
+		}
+		catch(Elem::ChangedEquationStructure) {
+			ResHdl += WorkVec;
+			ChangedEqStructure = true;
+		}
+	}
+
+	if (ChangedEqStructure) {
+		throw ChangedEquationStructure();
+	}
+}
+
+/* Equilibrium residual assembly, no constraints */
+void
+DataManager::AssRes(VectorHandler& ResHdl) 
+	throw(ChangedEquationStructure)
+{
+	DEBUGCOUT("Entering AssRes()" << std::endl);
+
+	AssRes(ResHdl, ElemIter, *pWorkVec);
+}
+
+void
+DataManager::AssRes(VectorHandler& ResHdl,
+		VecIter<Elem *> &Iter,
+		SubVectorHandler& WorkVec)
+	throw(ChangedEquationStructure)
+{
+	DEBUGCOUT("Entering AssRes()" << std::endl);
+
+	bool ChangedEqStructure(false);
+	
+	for (ElemMapType::iterator j = ElemData[Elem::BODY].ElemMap.begin();
+		j != ElemData[Elem::BODY].ElemMap.end();
+		j++)
+	{
+		try {
+			ResHdl += j->second->AssRes(WorkVec, *pXCurr, 
+						*pXPrimeCurr, *pXPrimePrimeCurr, 
+						-1);
 		}
 		catch(Elem::ChangedEquationStructure) {
 			ResHdl += WorkVec;

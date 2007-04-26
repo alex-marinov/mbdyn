@@ -220,7 +220,8 @@ public:
 		doublereal dCoef,
 		const VectorHandler& XCurr, 
 		const VectorHandler& XPrimeCurr);
- 
+	
+	/* Inverse Dynamics:*/
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& /* XCurr */ ,

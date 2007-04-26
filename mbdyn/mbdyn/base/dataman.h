@@ -333,13 +333,15 @@ public:
 		throw(ChangedEquationStructure);
 
 	/* Inverse Dynamics: */
+	
 	/* Constraints residual, switch iOrder*/
 	virtual void AssConstrRes(VectorHandler& ResHdl, int iOrder) 
 		throw(ChangedEquationStructure) ;
 
-	/* Elem residual, no constraints */
+	/* Elem residual, equilibrium with no constraints */
 	virtual void AssRes(VectorHandler &ResHdl)
-		throw(ChangedEquationStructure) { NO_OP; };
+		throw(ChangedEquationStructure);
+	
 	/* Constraint Jacobian matrix*/	
 	virtual void AssConstrJac(MatrixHandler& JacHdl);
 
@@ -365,6 +367,11 @@ protected:
 	void AssConstrRes(VectorHandler& ResHdl,
 		VecIter<Elem *> &Iter,
 		SubVectorHandler& WorkVec, int iOrder)
+	throw(ChangedEquationStructure);
+	
+	void AssRes(VectorHandler& ResHdl,
+		VecIter<Elem *> &Iter,
+		SubVectorHandler& WorkVec)
 	throw(ChangedEquationStructure);
 
 public:

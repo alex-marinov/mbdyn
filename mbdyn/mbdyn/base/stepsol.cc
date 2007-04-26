@@ -1426,15 +1426,23 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 	/* use acceleration */
 	Update(pSol);
 
-#if 0
+
 	/* Forces */
 	SetOrder(-1);
+	pRes->Reset();
 	Residual(pRes);
 	pSM->SolveT();
 
 	/* use forces */
-	pSol;
-#endif	
+/*FIXME:*/
+#if 0
+	printf("\n\nForces:\n");
+	for(int iCnt = 1; iCnt <= pSol->iGetSize(); iCnt++)	{
+		printf("Lambda(%d) = %g\n",iCnt, pSol->dGetCoef(iCnt));
+	}
+#endif
+/*ENDOF FIXME*/
+
 	/* if it gets here, it surely converged */
 //	pDM->AfterConvergence();
 
