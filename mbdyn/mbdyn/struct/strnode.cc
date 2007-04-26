@@ -203,9 +203,9 @@ StructNode::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) co
 				"position [Px,Py,Pz]" << std::endl
 			<< prefix << iIndex + 4 << "->" << iIndex + 6 << ": "
 				"orientation [gx,gy,gz]" << std::endl
-			<< prefix << iIndex + 1 << "->" << iIndex + 9 << ": "
+			<< prefix << iIndex + 7 << "->" << iIndex + 9 << ": "
 				"linear velocity [vx,vy,vz]" << std::endl
-			<< prefix << iIndex + 4 << "->" << iIndex + 12 << ": "
+			<< prefix << iIndex + 10 << "->" << iIndex + 12 << ": "
 				"angular velocity [wx,wy,wz]" << std::endl;
 	} else {
 		if (dynamic_cast<const DynamicStructNode*>(this) != 0
