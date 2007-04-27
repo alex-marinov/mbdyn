@@ -45,12 +45,6 @@
 
 extern const char* psJointNames[];
 
-/* InverseDynamicsElem - begin */
-
-/* NOTE: experiment about inverse dynamics; if appropriate,
- * will be moved to a higher level in the inheritance list
- */
-
 /* Joint - begin */
 
 class Joint
@@ -202,6 +196,9 @@ public:
 		NO_OP;
 	};
 
+	/* inverse dynamics update */
+	virtual void Update(const VectorHandler& XCurr, int iOrder = -1);
+	
 	/* per la lettura dei dati dell'elemento modale */
 
 	friend Joint *

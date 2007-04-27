@@ -117,6 +117,14 @@ Joint::Output(std::ostream& out, const char* /* sJointName */ ,
 		<< " " << FGlobal << " " << MGlobal;
 }
 
+/* Inverse Dynamics update */
+
+void Joint::Update(const VectorHandler& XCurr, int iOrder)
+{ 
+	silent_cerr(psElemNames[GetElemType()] << "(" << GetLabel() << "): "
+		"Elem::Update() for inverse dynamics not implemented yet" << std::endl);
+};
+
 /* Joint - end */
 
 

@@ -77,11 +77,13 @@ extern "C" {
 void 
 DataManager::LinkToSolution(const VectorHandler& XCurr,
                     const VectorHandler& XPrimeCurr,
-                    const VectorHandler& XPrimePrimeCurr)
+                    const VectorHandler& XPrimePrimeCurr,
+                    const VectorHandler& LambdaCurr)
 {
 	pXCurr = &XCurr;
 	pXPrimeCurr = &XPrimeCurr;
 	pXPrimePrimeCurr = &XPrimePrimeCurr;
+	pLambdaCurr = &LambdaCurr;
 //TODO: DrvHdl.LinkToSolution(XCurr, XPrimeCurr);
 }
 void
@@ -196,7 +198,7 @@ DataManager::Update(int iOrder) const
 {	
 	/* Nodes: */
 	switch(iOrder)	{
-		case 0:	{
+		case 0:	{	/* Update nodes positions */
 			Node** ppLastNode = ppNodes+iTotNodes;
 			for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
 				ASSERT(*ppTmp != NULL);
@@ -204,7 +206,7 @@ DataManager::Update(int iOrder) const
 			}
 			break;
 		}
-		case 1:	{
+		case 1:	{	/* Update nodes velocities*/
 			Node** ppLastNode = ppNodes+iTotNodes;
 			for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
 				ASSERT(*ppTmp != NULL);
@@ -212,7 +214,7 @@ DataManager::Update(int iOrder) const
 			}
 			break;
 		}
-		case 2:	{
+		case 2:	{	/* Update nodes accelerations*/
 			Node** ppLastNode = ppNodes+iTotNodes;
 			for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
 				ASSERT(*ppTmp != NULL);
@@ -220,8 +222,14 @@ DataManager::Update(int iOrder) const
 			}
 			break;
 		}
+		case -1:{	/* Update constraints reactions (for output only...)*/
+			for (ElemMapType::const_iterator j = ElemData[Elem::JOINT].ElemMap.begin();
+				j != ElemData[Elem::JOINT].ElemMap.end(); j++)	{
+				j->second->Update(*pLambdaCurr, iOrder);
+			}
+			break;
+		}
 		default:
-			NO_OP;
 			break;
 	}
 #if 0

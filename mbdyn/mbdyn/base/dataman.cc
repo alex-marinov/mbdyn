@@ -105,6 +105,7 @@ pTime(0),
 pXCurr(0), pXPrimeCurr(0), 
 /* Inverse Dynamics: */
 pXPrimePrimeCurr(0),
+pLambdaCurr(0),
 #if defined(USE_STRUCT_NODES)
 bInitialJointAssemblyToBeDone(bDefaultInitialJointAssemblyToBeMade),
 bSkipInitialJointAssembly(bDefaultSkipInitialJointAssembly),

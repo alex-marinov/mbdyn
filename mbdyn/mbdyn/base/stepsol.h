@@ -720,6 +720,7 @@ public:
 			MyVectorHandler*const pX,
  			MyVectorHandler*const pXPrime,
  			MyVectorHandler*const pXPrimePrime,
+ 			MyVectorHandler*const pLambda,
 			integer& EffIter,
 			doublereal& Err,
 			doublereal& SolErr);

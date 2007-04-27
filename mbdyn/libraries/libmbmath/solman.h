@@ -138,6 +138,7 @@ public:
    
    	/* sposta il puntatore al vettore della soluzione */
    	doublereal *pdSetSolVec(doublereal* pd);
+
 };
 
 /* SolutionManager - end */

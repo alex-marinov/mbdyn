@@ -162,6 +162,9 @@ public:
 		const VectorHandler&  XPrimePrimeCurr,
 		int iOrder = -1);
 
+	/* Inverse Dynamics update */
+	virtual void Update(const VectorHandler& XCurr, int iOrder = -1);
+	
 	DofOrder::Order GetEqType(unsigned int i) const;
 
 	void Output(OutputHandler& OH) const;

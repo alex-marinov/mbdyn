@@ -988,6 +988,23 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+/* Inverse Dynamics update */
+void 
+TotalJoint::Update(const VectorHandler& XCurr, int iOrder)
+{
+	integer iFirstReactionIndex = iGetFirstIndex();
+	
+	/* Get constraint reactions */
+
+	for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
+			F(iPosIncid[iCnt]) = XCurr(iFirstReactionIndex + 1 + iCnt);
+	}
+
+	for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
+			M(iRotIncid[iCnt]) = XCurr(iFirstReactionIndex + 1 + nPosConstraints + iCnt);
+	}
+};
+
 DofOrder::Order
 TotalJoint::GetEqType(unsigned int i) const
 {

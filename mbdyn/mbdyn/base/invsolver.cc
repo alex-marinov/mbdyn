@@ -83,7 +83,7 @@ InverseSolver::InverseSolver(MBDynParser& HPar,
 		const char* sOutFName,
 		bool bPar)
 : Solver(HPar, sInFName, sOutFName, bPar),
-pXPrimePrime(NULL)
+pXPrimePrime(NULL), pLambda(NULL)
 {
 	DEBUGCOUTFNAME("InverseSolver::InverseSolver");
 }
@@ -434,10 +434,14 @@ InverseSolver::Run(void)
 	SAFENEWWITHCONSTRUCTOR(pXPrimePrime,
 		       	MyVectorHandler,
 		       	MyVectorHandler(iUnkStates*iNumDofs));
+	SAFENEWWITHCONSTRUCTOR(pLambda,
+		       	MyVectorHandler,
+		       	MyVectorHandler(iUnkStates*iNumDofs));
 
 	pX->Reset();
 	pXPrime->Reset();
 	pXPrimePrime->Reset();
+	pLambda->Reset();
 
    	/*
 	 * Immediately link DataManager to current solution
@@ -446,7 +450,7 @@ InverseSolver::Run(void)
 	 * at the beginning of pX, pXPrime
 	 */
    	
-	pDM->LinkToSolution(*pX, *pXPrime, *pXPrimePrime);
+	pDM->LinkToSolution(*pX, *pXPrime, *pXPrimePrime, *pLambda);
 
 	/* a questo punto si costruisce il nonlinear solver */
 	pNLS = AllocateNonlinearSolver();
@@ -943,7 +947,7 @@ IfStepIsToBeRepeated:
 		try {
 
 			dTest = dynamic_cast<InverseDynamicsStepSolver *>(pRegularSteps)->Advance(this, dRefTimeStep,
-					CurrStep, pX, pXPrime, pXPrimePrime, 
+					CurrStep, pX, pXPrime, pXPrimePrime, pLambda, 
 					iStIter, dTest, dSolTest);
 			pDM->SetTime(dTime+dCurrTimeStep);
 		}
@@ -1049,6 +1053,7 @@ InverseSolver::~InverseSolver(void)
 	SAFEDELETE(pX);
 	SAFEDELETE(pXPrime);
 	SAFEDELETE(pXPrimePrime);
+	SAFEDELETE(pLambda);
 
    	if (pdWorkSpace != NULL) {
       		SAFEDELETEARR(pdWorkSpace);

@@ -102,6 +102,7 @@ protected:
 	
 	/* Inverse Dynamics: */
 	const VectorHandler* pXPrimePrimeCurr;
+	const VectorHandler* pLambdaCurr;
 
 	/* Parametri usati durante l'assemblaggio iniziale */
 #if defined(USE_STRUCT_NODES)
@@ -298,7 +299,8 @@ public:
 	/* Inverse Dynamics: */
 	void LinkToSolution(const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr,
-			const VectorHandler& XPrimePrimeCurr);
+			const VectorHandler& XPrimePrimeCurr,
+			const VectorHandler& LambdaCurr);
 	
 	/* Restituisce il numero di dof per la costruzione delle matrici ecc. */
 	integer iGetNumDofs(void) const { return iTotDofs; };

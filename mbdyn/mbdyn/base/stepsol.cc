@@ -1355,6 +1355,7 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 		MyVectorHandler*const pX,
  		MyVectorHandler*const pXPrime,
  		MyVectorHandler*const pXPrimePrime,
+ 		MyVectorHandler*const pLambda,
 		integer& EffIter,
 		doublereal& Err,
 		doublereal& SolErr) 
@@ -1363,9 +1364,9 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 	pXCurr  = pX;
 	pXPrimeCurr  = pXPrime;
 	pXPrimePrimeCurr  = pXPrimePrime;
-	//pLambdaCurr = pLambda;
+	pLambdaCurr = pLambda;
 	
-	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr, *pXPrimePrimeCurr);
+	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr, *pXPrimePrimeCurr, *pLambdaCurr);
 
 	integer iLocalIter = EffIter;
 	Err = 0.; 
@@ -1390,18 +1391,18 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 	/* there's no need to check changes in
 	 * equation structure... it is already
 	 * performed by NonlinearSolver->Solve()*/
-
 	Residual(pRes);
 	VelErr = pNLSolver->MakeResTest(pS, *pRes) * TestScale(pNLSolver->pGetResTest());
-	if(VelErr > dTol)	{
-		if(EffIter == iLocalIter) {
+	if(VelErr > dTol) {
+		if(true) {
 			pSM->MatrReset();
 			Jacobian(pSM->pMatHdl());
 			iLocalIter = EffIter;
+			/*FIXME:*/
+			//printf("\nJ assemblato da velocità\n");
 		}
 		pSM->Solve();
 	}
-
 
 	/* use velocity */
 	Update(pSol);
@@ -1414,11 +1415,13 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 	Residual(pRes);
 	AccErr = pNLSolver->MakeResTest(pS, *pRes) * TestScale(pNLSolver->pGetResTest());
 
-	if(AccErr > dTol)	{
-		if(EffIter == iLocalIter) {
+	if(AccErr > dTol) {
+		if(true) {
 			pSM->MatrReset();
 			Jacobian(pSM->pMatHdl());
 			iLocalIter = EffIter;
+			/*FIXME:*/
+			//printf("\nJ assemblato da accelerazione\n");
 		}
 		pSM->Solve();
 	}
@@ -1426,25 +1429,14 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 	/* use acceleration */
 	Update(pSol);
 
-
 	/* Forces */
 	SetOrder(-1);
 	pRes->Reset();
 	Residual(pRes);
 	pSM->SolveT();
-
+	
 	/* use forces */
-/*FIXME:*/
-#if 0
-	printf("\n\nForces:\n");
-	for(int iCnt = 1; iCnt <= pSol->iGetSize(); iCnt++)	{
-		printf("Lambda(%d) = %g\n",iCnt, pSol->dGetCoef(iCnt));
-	}
-#endif
-/*ENDOF FIXME*/
-
-	/* if it gets here, it surely converged */
-//	pDM->AfterConvergence();
+	Update(pSol);
 
 	return Err;
 }
@@ -1489,6 +1481,11 @@ InverseDynamicsStepSolver::Update(const VectorHandler* pSol) const
 		}
 		case 2: {
 			*pXPrimePrimeCurr = *pSol;
+			pDM->Update(iOrder);
+			break;
+		}
+		case -1:{
+			*pLambdaCurr = *pSol;
 			pDM->Update(iOrder);
 			break;
 		}

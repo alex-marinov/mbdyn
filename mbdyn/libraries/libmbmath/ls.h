@@ -85,6 +85,7 @@ public:
 			std::vector<integer>& Ar,
 			std::vector<integer>& Ac,
 			std::vector<integer>& Ap) const;
+	
 };
 
 /* LinearSolver - end */

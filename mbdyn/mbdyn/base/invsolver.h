@@ -69,6 +69,7 @@ class InverseSolver;
 class InverseSolver : public Solver {
 protected:
 	MyVectorHandler* pXPrimePrime;
+	MyVectorHandler* pLambda;
    	/* Lettura dati */
 
    	void ReadData(MBDynParser& HP);
