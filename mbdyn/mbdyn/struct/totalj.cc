@@ -123,7 +123,7 @@ TotalJoint::DescribeDof(std::ostream& out,
 	
 
 	if (nRotConstraints > 1) {
-		out << prefix << iIndex + nPosConstraints;
+		out << prefix << iIndex + nPosConstraints + 1;
 		out << "->" << iIndex + nConstraints ;
 		out << ": ";
 	}
@@ -135,11 +135,10 @@ TotalJoint::DescribeDof(std::ostream& out,
 			if (cnt > 1) {
 				out << ",";
 			}
-			out << "m" << idx2xyz[i-3];
+			out << "m" << idx2xyz[i];
 		}
-		
-		out << "]" << std::endl;
 	}
+	out << "]" << std::endl;
 
 	if (bInitial) {
 		iIndex += nConstraints;
@@ -164,7 +163,7 @@ TotalJoint::DescribeDof(std::ostream& out,
 		
 
 		if (nRotConstraints > 1) {
-			out << prefix << iIndex + nPosConstraints;
+			out << prefix << iIndex + nPosConstraints + 1;
 			out << "->" << iIndex + nConstraints;
 			out << ": ";
 		}
@@ -222,7 +221,7 @@ TotalJoint::DescribeEq(std::ostream& out,
 	}
 
 	if (nRotConstraints > 1) {
-		out << prefix << iIndex + 1 + nPosConstraints;
+		out << prefix << iIndex + nPosConstraints + 1;
 		out << "->" << iIndex + nConstraints ;
 		out << ": ";
 	}
@@ -270,7 +269,7 @@ TotalJoint::DescribeEq(std::ostream& out,
 		}
 		
 		if (nRotConstraints > 1) {
-			out << prefix << iIndex + 1 + nPosConstraints;
+			out << prefix << iIndex + nPosConstraints + 1;
 			out << "->" << iIndex + nConstraints ;
 			out << ": ";
 		}
