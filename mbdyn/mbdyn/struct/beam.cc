@@ -157,12 +157,12 @@ bFirstRes(false)
     pNode[NODE1] = pN1;
     pNode[NODE2] = pN2;
     pNode[NODE3] = pN3;
-    (Vec3&)f[NODE1] = F1;
-    (Vec3&)f[NODE2] = F2;
-    (Vec3&)f[NODE3] = F3;
-    (Mat3x3&)RNode[NODE1] = R1;
-    (Mat3x3&)RNode[NODE2] = R2;
-    (Mat3x3&)RNode[NODE3] = R3;
+    const_cast<Vec3&>(f[NODE1]) = F1;
+    const_cast<Vec3&>(f[NODE2]) = F2;
+    const_cast<Vec3&>(f[NODE3]) = F3;
+    const_cast<Mat3x3&>(RNode[NODE1]) = R1;
+    const_cast<Mat3x3&>(RNode[NODE2]) = R2;
+    const_cast<Mat3x3&>(RNode[NODE3]) = R3;
     RPrev[S_I] = RRef[S_I] = R[S_I] = const_cast<Mat3x3&>(r_I);
     RPrev[SII] = RRef[SII] = R[SII] = const_cast<Mat3x3&>(rII);
 
@@ -184,7 +184,6 @@ Beam::Init(void)
 		Az[i] = Vec6(0.);
 		AzRef[i] = Vec6(0.);
 		AzLoc[i] = Vec6(0.);
-		AzLocRef[i] = Vec6(0.);
 		DefLoc[i] = Vec6(0.);
 		DefLocRef[i] = Vec6(0.);
 		DefLocPrev[i] = Vec6(0.);
@@ -560,14 +559,14 @@ void Beam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 	 /* Delta - deformazioni */
 	 AzTmp[iSez][i] = Mat6x6(Mat3x3(dN3P[iSez][i]*dsdxi[iSez]*dCoef),
 				 Zero3x3,
-				 Mat3x3(LRef[iSez]*(dN3[iSez][i]*dCoef)
+				 Mat3x3(L[iSez]*(dN3[iSez][i]*dCoef)
 					-fTmp[i]*(dN3P[iSez][i]*dsdxi[iSez]*dCoef)),
 				 Mat3x3(dN3P[iSez][i]*dsdxi[iSez]*dCoef));
 	 /* Delta - azioni interne */
 	 AzTmp[iSez][i] = DRef[iSez]*AzTmp[iSez][i];
 	 /* Correggo per la rotazione da locale a globale */
-	 AzTmp[iSez][i].SubMat12(Mat3x3(AzRef[iSez].GetVec1()*(dN3[iSez][i]*dCoef)));
-	 AzTmp[iSez][i].SubMat22(Mat3x3(AzRef[iSez].GetVec2()*(dN3[iSez][i]*dCoef)));
+	 AzTmp[iSez][i].SubMat12(Mat3x3(Az[iSez].GetVec1()*(dN3[iSez][i]*dCoef)));
+	 AzTmp[iSez][i].SubMat22(Mat3x3(Az[iSez].GetVec2()*(dN3[iSez][i]*dCoef)));
       }
    } /* end ciclo sui punti di valutazione */
    
@@ -589,11 +588,11 @@ void Beam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 	 
 	 WMA.Sub(iRow1+3, 6*i+1,
 		 AzTmp[iSez][i].GetMat21()
-		 -Mat3x3(AzRef[iSez].GetVec1()*(dCoef*dN3[iSez][i]))
+		 -Mat3x3(Az[iSez].GetVec1()*(dCoef*dN3[iSez][i]))
 		 +Mat3x3(bTmp[0])*AzTmp[iSez][i].GetMat11());
 	 WMA.Sub(iRow1+3, 6*i+4, 
 		 AzTmp[iSez][i].GetMat22()
-		 -Mat3x3(AzRef[iSez].GetVec1()*(-dCoef*dN3[iSez][i]), fTmp[i])
+		 -Mat3x3(Az[iSez].GetVec1()*(-dCoef*dN3[iSez][i]), fTmp[i])
 		 +Mat3x3(bTmp[0])*AzTmp[iSez][i].GetMat12());
 	 
 	 /* Equazione in avanti: */
@@ -602,17 +601,17 @@ void Beam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 
 	 WMA.Add(iRow2+3, 6*i+1,
 		 AzTmp[iSez][i].GetMat21()
-		 -Mat3x3(AzRef[iSez].GetVec1()*(dCoef*dN3[iSez][i]))
+		 -Mat3x3(Az[iSez].GetVec1()*(dCoef*dN3[iSez][i]))
 		 +Mat3x3(bTmp[1])*AzTmp[iSez][i].GetMat11());
 	 WMA.Add(iRow2+3, 6*i+4, 
 		 AzTmp[iSez][i].GetMat22()
-		 +Mat3x3(AzRef[iSez].GetVec1()*(dCoef*dN3[iSez][i]), fTmp[i])
+		 +Mat3x3(Az[iSez].GetVec1()*(dCoef*dN3[iSez][i]), fTmp[i])
 		 +Mat3x3(bTmp[1])*AzTmp[iSez][i].GetMat12());
       }
       
       /* correzione alle equazioni */
-      WMA.Add(iRow1+3, 6*iSez+1, Mat3x3(AzRef[iSez].GetVec1()*(-dCoef)));
-      WMA.Add(iRow2+3, 6*iSez+7, Mat3x3(AzRef[iSez].GetVec1()*dCoef));
+      WMA.Add(iRow1+3, 6*iSez+1, Mat3x3(Az[iSez].GetVec1()*(-dCoef)));
+      WMA.Add(iRow2+3, 6*iSez+7, Mat3x3(Az[iSez].GetVec1()*dCoef));
       
    } /* end ciclo sui punti di valutazione */
 };
@@ -869,7 +868,6 @@ void Beam::SetValue(DataManager *pDM,
       RRef[iSez] = R[iSez];
       LRef[iSez] = L[iSez];
       DefLocRef[iSez] = DefLoc[iSez];
-      AzLocRef[iSez] = AzLoc[iSez];
       AzRef[iSez] = Az[iSez];
       
       /* Aggiorna il legame costitutivo di riferimento
@@ -932,8 +930,6 @@ void Beam::AfterPredict(VectorHandler& /* X */ ,
       /* corregge le azioni interne locali (piezo, ecc) */
       AddInternalForces(AzLoc[iSez], iSez);
 
-      AzLocRef[iSez] = AzLoc[iSez];
-      
       /* Porta le azioni interne nel sistema globale */
       Az[iSez] = AzRef[iSez] = MultRV(AzLoc[iSez], R[iSez]);
 
@@ -1340,6 +1336,16 @@ ViscoElasticBeam::Init(void)
    const_cast<Mat6x6&>(ERef[SII]) = MultRMRt(pD[SII]->GetFDEPrime(), RRef[SII]);
 }
 
+void
+ViscoElasticBeam::AfterConvergence(const VectorHandler& X,
+	const VectorHandler& XP)
+{
+	for (unsigned i = 0; i < NUMSEZ; i++) {
+		RPrev[i] = R[i];
+		DefLocPrev[i] = DefLoc[i];
+		pD[i]->AfterConvergence(DefLoc[i], DefPrimeLoc[i]);
+	}
+}
 
 /* Assembla la matrice */
 void ViscoElasticBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
@@ -1369,23 +1375,23 @@ void ViscoElasticBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 	 AzTmp[iSez][i] = AzPrimeTmp[iSez][i]
 	   = Mat6x6(Mat3x3(dN3P[iSez][i]*dsdxi[iSez]),
 		    Zero3x3,
-		    Mat3x3(LRef[iSez]*(dN3[iSez][i])
+		    Mat3x3(L[iSez]*(dN3[iSez][i])
 			   -fTmp[i]*(dN3P[iSez][i]*dsdxi[iSez])),
 		    Mat3x3(dN3P[iSez][i]*dsdxi[iSez]));
 	 AzTmp[iSez][i] = DRef[iSez]*AzTmp[iSez][i]*dCoef;
 	 AzTmp[iSez][i] +=
-	   ERef[iSez]*Mat6x6(Mat3x3(OmegaRef[iSez]*(-dN3P[iSez][i]*dsdxi[iSez]*dCoef)),
+	   ERef[iSez]*Mat6x6(Mat3x3(Omega[iSez]*(-dN3P[iSez][i]*dsdxi[iSez]*dCoef)),
 			     Zero3x3, 
-			     (Mat3x3(LPrimeRef[iSez])
-			      -Mat3x3(Omega[iSez],LRef[iSez]))*(dN3[iSez][i]*dCoef)
+			     (Mat3x3(LPrime[iSez])
+			      -Mat3x3(Omega[iSez],L[iSez]))*(dN3[iSez][i]*dCoef)
 			     +Mat3x3(Omega[iSez], fTmp[i]*(dN3P[iSez][i]*dsdxi[iSez]*dCoef))
-			     +Mat3x3(fTmp[i].Cross(pNode[i]->GetWRef()*(dN3P[iSez][i]*dsdxi[iSez]*dCoef))),
-			     Mat3x3(OmegaRef[iSez]*(-dN3P[iSez][i]*dsdxi[iSez]*dCoef)));
+			     +Mat3x3(fTmp[i].Cross(pNode[i]->GetWCurr()*(dN3P[iSez][i]*dsdxi[iSez]*dCoef))),
+			     Mat3x3(Omega[iSez]*(-dN3P[iSez][i]*dsdxi[iSez]*dCoef)));
 	 AzPrimeTmp[iSez][i] = ERef[iSez]*AzPrimeTmp[iSez][i];
 	 
 	 /* Correggo per la rotazione da locale a globale */
-	 AzTmp[iSez][i].SubMat12(Mat3x3(AzRef[iSez].GetVec1()*(dN3[iSez][i]*dCoef)));
-	 AzTmp[iSez][i].SubMat22(Mat3x3(AzRef[iSez].GetVec2()*(dN3[iSez][i]*dCoef)));
+	 AzTmp[iSez][i].SubMat12(Mat3x3(Az[iSez].GetVec1()*(dN3[iSez][i]*dCoef)));
+	 AzTmp[iSez][i].SubMat22(Mat3x3(Az[iSez].GetVec2()*(dN3[iSez][i]*dCoef)));
       }
    } /* end ciclo sui punti di valutazione */
    
@@ -1407,11 +1413,11 @@ void ViscoElasticBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 	 
 	 WMA.Sub(iRow1+3, 6*i+1,
 		 AzTmp[iSez][i].GetMat21()
-		 -Mat3x3(AzRef[iSez].GetVec1()*(dCoef*dN3[iSez][i]))
+		 -Mat3x3(Az[iSez].GetVec1()*(dCoef*dN3[iSez][i]))
 		 +Mat3x3(bTmp[0])*AzTmp[iSez][i].GetMat11());
 	 WMA.Sub(iRow1+3, 6*i+4, 
 		 AzTmp[iSez][i].GetMat22()
-		 -Mat3x3(AzRef[iSez].GetVec1()*(-dCoef*dN3[iSez][i]), fTmp[i])
+		 -Mat3x3(Az[iSez].GetVec1()*(-dCoef*dN3[iSez][i]), fTmp[i])
 		 +Mat3x3(bTmp[0])*AzTmp[iSez][i].GetMat12());
 	 
 	 /* Equazione in avanti: */
@@ -1420,11 +1426,11 @@ void ViscoElasticBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 
 	 WMA.Add(iRow2+3, 6*i+1,
 		 AzTmp[iSez][i].GetMat21()
-		 -Mat3x3(AzRef[iSez].GetVec1()*(dCoef*dN3[iSez][i]))
+		 -Mat3x3(Az[iSez].GetVec1()*(dCoef*dN3[iSez][i]))
 		 +Mat3x3(bTmp[1])*AzTmp[iSez][i].GetMat11());
 	 WMA.Add(iRow2+3, 6*i+4, 
 		 AzTmp[iSez][i].GetMat22()
-		 +Mat3x3(AzRef[iSez].GetVec1()*(dCoef*dN3[iSez][i]), fTmp[i])
+		 +Mat3x3(Az[iSez].GetVec1()*(dCoef*dN3[iSez][i]), fTmp[i])
 		 +Mat3x3(bTmp[1])*AzTmp[iSez][i].GetMat12());
 
       
@@ -1452,8 +1458,8 @@ void ViscoElasticBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
       }
       
       /* correzione alle equazioni */
-      WMA.Add(iRow1+3, 6*iSez+1, Mat3x3(AzRef[iSez].GetVec1()*(-dCoef)));
-      WMA.Add(iRow2+3, 6*iSez+7, Mat3x3(AzRef[iSez].GetVec1()*dCoef));
+      WMA.Add(iRow1+3, 6*iSez+1, Mat3x3(Az[iSez].GetVec1()*(-dCoef)));
+      WMA.Add(iRow2+3, 6*iSez+7, Mat3x3(Az[iSez].GetVec1()*dCoef));
       
    } /* end ciclo sui punti di valutazione */
 };
@@ -1590,13 +1596,13 @@ void ViscoElasticBeam::SetValue(DataManager *pDM,
    
    /* Aggiorna le grandezze della trave nei punti di valutazione */
    for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {
-      (Vec3&)OmegaRef[iSez] = Omega[iSez];
-      (Vec3&)LPrimeRef[iSez] = LPrime[iSez];
-      (Vec6&)DefPrimeLocRef[iSez] = DefPrimeLoc[iSez];
+      OmegaRef[iSez] = Omega[iSez];
+      LPrimeRef[iSez] = LPrime[iSez];
+      DefPrimeLocRef[iSez] = DefPrimeLoc[iSez];
       
       /* Aggiorna il legame costitutivo di riferimento
        * (la deformazione e' gia' stata aggiornata dall'ultimo residuo) */
-      (Mat6x6&)ERef[iSez] = MultRMRt(pD[iSez]->GetFDEPrime(), RRef[iSez]);
+      ERef[iSez] = MultRMRt(pD[iSez]->GetFDEPrime(), RRef[iSez]);
    }
    ASSERT(bFirstRes == true);
 }
@@ -1688,8 +1694,6 @@ void ViscoElasticBeam::AfterPredict(VectorHandler& /* X */ ,
       
       /* corregge le azioni interne locali (piezo, ecc) */
       AddInternalForces(AzLoc[iSez], iSez);
-      
-      AzLocRef[iSez] = AzLoc[iSez];
       
       /* Porta le azioni interne nel sistema globale */
       Az[iSez] = AzRef[iSez] = MultRV(AzLoc[iSez], R[iSez]);

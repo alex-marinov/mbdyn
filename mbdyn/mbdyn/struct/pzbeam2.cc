@@ -85,11 +85,12 @@ PiezoActuatorBeam2::AssStiffnessVec(SubVectorHandler& WorkVec,
 	 * (ora e' superato)
 	 */
 	
-	if (fFirstRes) {
+	if (bFirstRes) {
 		/*
 		 * AfterPredict ha gia' calcolato tutto;
-		 * fFirstRes viene resettato poi da Beam2::AssStiffnessVec
+		 * bFirstRes viene resettato poi da Beam2::AssStiffnessVec
 		 */
+
 	} else {    
 		for (integer iCnt = 1; iCnt <= iNumElec; iCnt++) {
 			V.Put(iCnt, pvElecDofs[iCnt-1]->dGetX());
@@ -303,12 +304,13 @@ PiezoActuatorVEBeam2::AssStiffnessVec(SubVectorHandler& WorkVec,
 	 * (ora e' superato)
 	 */
 	
-	if (fFirstRes) {
+	if (bFirstRes) {
 		/*
 		 * AfterPredict ha gia' calcolato tutto;
-		 * fFirstRes viene resettato da
+		 * bFirstRes viene resettato da
 		 * ViscoElasticBeam2::AssStiffnessVec
 		 */
+
 	} else {
 		for (integer iCnt = 1; iCnt <= iNumElec; iCnt++) {
 			V.Put(iCnt, pvElecDofs[iCnt-1]->dGetX());

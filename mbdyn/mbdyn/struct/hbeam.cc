@@ -104,7 +104,6 @@ fFirstRes(1)
 	Az = Vec6(0.);
 	AzRef = Vec6(0.);
 	AzLoc = Vec6(0.);
-	AzLocRef = Vec6(0.);
 	DefLoc = Vec6(0.);
 	DefLocRef = Vec6(0.);
 	p = Vec3(0.);
@@ -564,7 +563,6 @@ HBeam::SetValue(DataManager *pDM,
 	(Mat3x3&)RRef = R;
 	(Vec3&)LRef = L;
 	(Vec6&)DefLocRef = DefLoc;
-	(Vec6&)AzLocRef = AzLoc;
 	(Vec6&)AzRef = Az;
 	
 	/*
@@ -630,8 +628,6 @@ HBeam::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ )
 	
 	/* corregge le azioni interne locali (piezo, ecc) */
 	AddInternalForces(AzLoc);
-	
-	AzLocRef = AzLoc;
 	
 	/* Porta le azioni interne nel sistema globale */
 	Az = AzRef = MultRV(AzLoc, R);
@@ -1128,8 +1124,6 @@ ViscoElasticHBeam::AfterPredict(VectorHandler& /* X */ ,
 	
 	/* corregge le azioni interne locali (piezo, ecc) */
 	AddInternalForces(AzLoc);
-	
-	AzLocRef = AzLoc;
 	
 	/* Porta le azioni interne nel sistema globale */
 	Az = AzRef = MultRV(AzLoc, R);

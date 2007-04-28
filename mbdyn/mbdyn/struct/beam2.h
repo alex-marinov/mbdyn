@@ -89,7 +89,6 @@ class Beam2
     Vec6 Az;
     Vec6 AzRef;
     Vec6 AzLoc;
-    Vec6 AzLocRef;
     Vec6 DefLoc;
     Vec6 DefLocRef;
     Vec6 DefLocPrev;
@@ -104,7 +103,7 @@ class Beam2
     doublereal dsdxi;
    
     /* Is first res? */
-    flag fFirstRes;
+    bool bFirstRes;
          
     /* Funzioni di servizio */
     virtual Vec3 
@@ -380,6 +379,9 @@ class ViscoElasticBeam2 : virtual public Elem, public Beam2 {
     /* Prepara i parametri di riferimento dopo la predizione */
     virtual void 
     AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ );   
+   
+    virtual void
+    AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 };
 
 /* ViscoElasticBeam - end */

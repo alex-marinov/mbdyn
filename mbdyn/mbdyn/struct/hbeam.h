@@ -97,7 +97,6 @@ class HBeam
     Vec6 Az;
     Vec6 AzRef;
     Vec6 AzLoc;
-    Vec6 AzLocRef;
     Vec6 DefLoc;
     Vec6 DefLocRef;
 

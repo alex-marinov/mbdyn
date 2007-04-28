@@ -118,7 +118,6 @@ class Beam
     Vec6 Az[NUMSEZ];
     Vec6 AzRef[NUMSEZ];
     Vec6 AzLoc[NUMSEZ];
-    Vec6 AzLocRef[NUMSEZ];
     Vec6 DefLoc[NUMSEZ];
     Vec6 DefLocRef[NUMSEZ];
     Vec6 DefLocPrev[NUMSEZ];
@@ -466,6 +465,9 @@ class ViscoElasticBeam : virtual public Elem, public Beam {
     /* Prepara i parametri di riferimento dopo la predizione */
     virtual void 
     AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ );   
+
+    virtual void
+    AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 };
 
 /* ViscoElasticBeam - end */
