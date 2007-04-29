@@ -1689,14 +1689,14 @@ of a constant entity that multiplies a conventional
 entity of dimensionality different from that of a simple scalar \kw{drive}.
 
 There are three types of template drive callers:
-the \kw{zero} template drive caller, a shortcut for nothing;
+the \kw{null} template drive caller, a shortcut for nothing;
 the \kw{single} template drive caller;
 and the \kw{array} template drive caller, 
 which is the result of adding a set of \kw{single}
 template drive callers. 
 They are entered as follows:
 \begin{verbatim}
-    <tpl_drive_caller> ::= zero
+    <tpl_drive_caller> ::= null
 
     <tpl_drive_caller> ::= single ,
         <entity> , <drive_caller> 

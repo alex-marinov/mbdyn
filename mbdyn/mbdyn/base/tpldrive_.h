@@ -392,7 +392,8 @@ class ReadTplDriveKeyWords {
 public:
 	enum KeyWords {
 		UNKNOWNTPLDRIVE = -1,
-		ZERO = 0,
+		NULLTPLDRIVE = 0,
+			ZERO,		/* deprecated */
 		SINGLE,
 		ARRAY,
 		LASTKEYWORD
@@ -408,7 +409,8 @@ TplDriveCaller<T>* ReadTplDrive(const DataManager* pDM,
 	DEBUGCOUT("Entering ReadTplDrive" << std::endl);
 
 	const char* sKeyWords[] = {
-		"zero",
+		"null",
+			"zero",		/* deprecated */
 		"single",
 		"array",
 		0
@@ -441,6 +443,12 @@ TplDriveCaller<T>* ReadTplDrive(const DataManager* pDM,
 restart:
 		switch (CurrKeyWord) {
 		case ReadTplDriveKeyWords<T>::ZERO:
+			silent_cerr("\"zero\" is deprecated "
+				"for null template drive "
+				"at line " << HP.GetLineData() << ";"
+				" use \"null\" instead." << std::endl);
+			/* fallthru */
+		case ReadTplDriveKeyWords<T>::NULLTPLDRIVE:
 			SAFENEW(pTplDC, ZeroTplDriveCaller<T>);
 			break;
 
