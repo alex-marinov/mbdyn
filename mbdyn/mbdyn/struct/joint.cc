@@ -2318,6 +2318,19 @@ ReadJoint(DataManager* pDM,
 					bXActive[i] = true;
 
 				} else {
+					if (HP.IsArg()) {
+						int iActive = HP.GetInt();
+						switch (iActive) {
+						case 0:
+							bXActive[i] = false;
+							continue;
+
+						default:
+							bXActive[i] = true;
+							continue;
+						}
+					}
+
 					silent_cerr("TotalJoint(" << uLabel << "): "
 						"invalid status for position component #" << i + 1
 						<< " at line " << HP.GetLineData() << std::endl);
@@ -2347,6 +2360,19 @@ ReadJoint(DataManager* pDM,
 					bTActive[i] = true;
 
 				} else {
+					if (HP.IsArg()) {
+						int iActive = HP.GetInt();
+						switch (iActive) {
+						case 0:
+							bTActive[i] = false;
+							continue;
+
+						default:
+							bTActive[i] = true;
+							continue;
+						}
+					}
+
 					silent_cerr("TotalJoint(" << uLabel << "): "
 						"invalid status for position component #" << i + 1
 						<< " at line " << HP.GetLineData() << std::endl);
