@@ -101,7 +101,9 @@ private:
 	 * autovalori e per lo jacobiano */  
 	void AssMats(FullSubMatrixHandler& WorkMatA,
 		FullSubMatrixHandler& WorkMatB,
-		doublereal dCoef);
+		doublereal dCoef,
+		bool bGravity,
+		const Vec3& GravityAcceleration);
 
 public:
 	/* Costruttore definitivo (da mettere a punto) */
@@ -183,7 +185,7 @@ private:
  
 	/* Assembla le due matrici necessarie per il calcolo degli
 	 * autovalori e per lo jacobiano */  
-	void AssMats(FullSubMatrixHandler& WorkMatA,
+	bool AssMats(FullSubMatrixHandler& WorkMatA,
 		FullSubMatrixHandler& WorkMatB,
 		doublereal dCoef);
 

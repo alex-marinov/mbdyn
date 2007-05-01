@@ -156,8 +156,17 @@ DynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 	/* Casting di WorkMat */
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
+	Vec3 GravityAcceleration;
+	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(),
+		GravityAcceleration);
+
+	integer iNumRows = 6;
+	if (g) {
+		iNumRows = 12;
+	}
+
 	/* Dimensiona e resetta la matrice di lavoro */
-	WM.ResizeReset(6, 6);
+	WM.ResizeReset(iNumRows, 6);
 
 	/* Setta gli indici della matrice - le incognite sono ordinate come:
 	 *   - posizione (3)
@@ -169,11 +178,18 @@ DynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 	 * e' dato da iGetFirstPositionIndex()+i */
 	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
 	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-		WM.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);
-		WM.PutColIndex(iCnt, iFirstPositionIndex+iCnt);
+		WM.PutRowIndex(iCnt, iFirstPositionIndex + iCnt);
+		WM.PutColIndex(iCnt, iFirstPositionIndex + iCnt);
 	}
 
-	AssMats(WM, WM, dCoef);
+	if (g) {
+		integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
+		for (integer iCnt = 1; iCnt <= 6; iCnt++) {
+			WM.PutRowIndex(6 + iCnt, iFirstMomentumIndex + iCnt);
+		}
+	}
+
+	AssMats(WM, WM, dCoef, g, GravityAcceleration);
 
 	return WorkMat;
 }
@@ -191,8 +207,17 @@ DynamicBody::AssMats(VariableSubMatrixHandler& WorkMatA,
 	FullSubMatrixHandler& WMA = WorkMatA.SetFull();
 	FullSubMatrixHandler& WMB = WorkMatB.SetFull();
 
+	Vec3 GravityAcceleration;
+	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(),
+		GravityAcceleration);
+
+	integer iNumRows = 6;
+	if (g) {
+		iNumRows = 12;
+	}
+
 	/* Dimensiona e resetta la matrice di lavoro */
-	WMA.ResizeReset(6, 6);
+	WMA.ResizeReset(iNumRows, 6);
 	WMB.ResizeReset(6, 6);
 
 	/* Setta gli indici della matrice - le incognite sono ordinate come:
@@ -205,32 +230,35 @@ DynamicBody::AssMats(VariableSubMatrixHandler& WorkMatA,
 	 * e' dato da iGetFirstPositionIndex()+i */
 	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
 	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-		WMA.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);
-		WMA.PutColIndex(iCnt, iFirstPositionIndex+iCnt);
+		WMA.PutRowIndex(iCnt, iFirstPositionIndex + iCnt);
+		WMA.PutColIndex(iCnt, iFirstPositionIndex + iCnt);
 
-		WMB.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);
-		WMB.PutColIndex(iCnt, iFirstPositionIndex+iCnt);
+		WMB.PutRowIndex(iCnt, iFirstPositionIndex + iCnt);
+		WMB.PutColIndex(iCnt, iFirstPositionIndex + iCnt);
 	}
 
-	AssMats(WMA, WMB, 1.);
+	if (g) {
+		integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
+		for (integer iCnt = 1; iCnt <= 6; iCnt++) {
+			WMA.PutRowIndex(6 + iCnt, iFirstMomentumIndex + iCnt);
+		}
+	}
+
+	AssMats(WMA, WMB, 1., g, GravityAcceleration);
 }
 
 
 void
 DynamicBody::AssMats(FullSubMatrixHandler& WMA,
 	FullSubMatrixHandler& WMB,
-	doublereal dCoef)
+	doublereal dCoef,
+	bool bGravity,
+	const Vec3& GravityAcceleration)
 {
 	DEBUGCOUTFNAME("DynamicBody::AssMats");
 
 	const Vec3& V(pNode->GetVCurr());
 	const Vec3& W(pNode->GetWRef());
-
-#if 0
-	/* ci pensa AfterPredict() */
-	S = pNode->GetRRef()*S0;
-	J = pNode->GetRRef()*(J0*(pNode->GetRRef()).Transpose());
-#endif
 
 	Mat3x3 SWedge(S);			/* S /\ */
 	Vec3 Sc(S*dCoef);
@@ -244,18 +272,22 @@ DynamicBody::AssMats(FullSubMatrixHandler& WMA,
 	WMB.IncCoef(2, 2, dMass);
 	WMB.IncCoef(3, 3, dMass);
 
-	WMB.Sub(1, 4, SWedge);
-	WMA.Add(1, 4, Mat3x3(Sc.Cross(W)));
+	WMB.Sub(1, 3 + 1, SWedge);
+	WMA.Add(1, 3 + 1, Mat3x3(Sc.Cross(W)));
 
 	/*
 	 * momenta moment:
 	 *
 	 * S /\ DeltaV + J DeltagP + ( V /\ S /\ - ( J * W ) /\ ) Deltag
 	 */
-	WMB.Add(4, 1, SWedge);
+	WMB.Add(3 + 1, 1, SWedge);
 
-	WMB.Add(4, 4, J);
-	WMA.Add(4, 4, Mat3x3(V, Sc) - Mat3x3(J*(W*dCoef)));
+	WMB.Add(3 + 1, 3 + 1, J);
+	WMA.Add(3 + 1, 3 + 1, Mat3x3(V, Sc) - Mat3x3(J*(W*dCoef)));
+
+	if (bGravity) {
+		WMA.Sub(9 + 1, 3 + 1, Mat3x3(GravityAcceleration, Sc));
+	}
 }
 
 
@@ -269,7 +301,7 @@ DynamicBody::AssRes(SubVectorHandler& WorkVec,
 
 	/* Se e' definita l'accelerazione di gravita',
 	 * la aggiunge (solo al residuo) */
-	Vec3 GravityAcceleration(0.);
+	Vec3 GravityAcceleration;
 	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(),
 		GravityAcceleration);
 
@@ -297,13 +329,13 @@ DynamicBody::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.Sub(1, V*dMass + W.Cross(STmp));
 
 	/* Momento della quantita' di moto: R[2] = G - S /\ V - J * W */
-	WorkVec.Sub(4, JTmp*W + STmp.Cross(V));
+	WorkVec.Sub(3 + 1, JTmp*W + STmp.Cross(V));
 
 	if (g) {
-		WorkVec.Add(7, GravityAcceleration*dMass);
+		WorkVec.Add(6 + 1, GravityAcceleration*dMass);
 		/* FIXME: this should go into Jacobian matrix
 		 * as Gravity /\ S /\ Delta g */
-		WorkVec.Add(10, STmp.Cross(GravityAcceleration));
+		WorkVec.Add(9 + 1, STmp.Cross(GravityAcceleration));
 	}
 
 	dynamic_cast<const DynamicStructNode *>(pNode)->AddInertia(dMass, STmp, JTmp);
@@ -422,11 +454,11 @@ DynamicBody::InitialAssRes(SubVectorHandler& WorkVec,
 
 	/* Se e' definita l'accelerazione di gravita',
 	 * la aggiunge (solo al residuo) */
-	Vec3 GravityAcceleration(0.);
+	Vec3 GravityAcceleration;
 	if (GravityOwner::bGetGravity(X, GravityAcceleration)) {
 		WorkVec.Add(1, GravityAcceleration*dMass);
-		WorkVec.Add(4, STmp.Cross(GravityAcceleration));
-		WorkVec.Add(10, (W.Cross(STmp)).Cross(GravityAcceleration));
+		WorkVec.Add(3 + 1, STmp.Cross(GravityAcceleration));
+		WorkVec.Add(9 + 1, (W.Cross(STmp)).Cross(GravityAcceleration));
 	}
 
 	return WorkVec;
@@ -523,7 +555,9 @@ StaticBody::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.PutColIndex(iCnt, iFirstPositionIndex + iCnt);
 	}
 
-	AssMats(WM, WM, dCoef);
+	if (AssMats(WM, WM, dCoef)) {
+		WorkMat.SetNullMatrix();
+	}
 
 	return WorkMat;
 }
@@ -563,11 +597,14 @@ StaticBody::AssMats(VariableSubMatrixHandler& WorkMatA,
 		WMB.PutColIndex(iCnt, iFirstPositionIndex + iCnt);
 	}
 
-	AssMats(WMA, WMB, 1.);
+	if (AssMats(WMA, WMB, 1.)) {
+		WorkMatA.SetNullMatrix();
+		WorkMatB.SetNullMatrix();
+	}
 }
 
 
-void
+bool
 StaticBody::AssMats(FullSubMatrixHandler& WMA,
 	FullSubMatrixHandler& WMB,
 	doublereal dCoef)
@@ -585,12 +622,8 @@ StaticBody::AssMats(FullSubMatrixHandler& WMA,
 	bool w(pRefNode != 0);
 
 	if (!g && !w) {
-		/* FIXME: should be (0, 0), but this requires
-		 * setting WMA.SetNullMatrix().
-		 * Need to change API */
-		WMA.ResizeReset(1, 1);
-		WMB.ResizeReset(1, 1);
-		return;
+		/* Caller will set WMA & WMB to null matrix */
+		return true;
 	}
 
 	if (w) {
@@ -599,7 +632,7 @@ StaticBody::AssMats(FullSubMatrixHandler& WMA,
 	}
 
 	if (g || w) {
-		WMA.Add(4, 4, Mat3x3(Acceleration, S*dCoef));
+		WMA.Add(3 + 1, 3 + 1, Mat3x3(Acceleration, S*dCoef));
 	}
 
 	if (w) {
@@ -607,11 +640,14 @@ StaticBody::AssMats(FullSubMatrixHandler& WMA,
 		Mat3x3 Sc(S*dCoef);
 
 		WMA.Sub(1, 1, wcwc*(dMass*dCoef));
-		WMA.Sub(1, 4, wcwc*Sc);
+		WMA.Sub(1, 3 + 1, wcwc*Sc);
 
-		WMA.Sub(4, 1, Sc*wcwc);
-		WMA.Sub(4, 4, Mat3x3(W*dCoef, J*W) + Mat3x3(W)*J*Mat3x3(W*dCoef));
+		WMA.Sub(3 + 1, 1, Sc*wcwc);
+		WMA.Sub(3 + 1, 3 + 1,
+			Mat3x3(W*dCoef, J*W) + Mat3x3(W)*J*Mat3x3(W*dCoef));
 	}
+
+	return false;
 }
 
 
@@ -656,12 +692,12 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 
 	if (g || w) {
 		WorkVec.Add(1, Acceleration*dMass);
-		WorkVec.Add(4, STmp.Cross(Acceleration));
+		WorkVec.Add(3 + 1, STmp.Cross(Acceleration));
 	}
 
 	if (w) {
 		WorkVec.Add(1, W.Cross(W.Cross(STmp)));
-		WorkVec.Add(4, W.Cross(JTmp*W));
+		WorkVec.Add(3 + 1, W.Cross(JTmp*W));
 	}
 
 	return WorkVec;
