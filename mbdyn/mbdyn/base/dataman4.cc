@@ -518,7 +518,7 @@ DataManager::ReadElems(MBDynParser& HP)
 							silent_cerr("inertia " << uIn
 								<< " at line " << HP.GetLineData()
 								<< ": unable to find " << psElemNames[Type]
-								<< "( " << uL << ")" << std::endl);
+								<< "(" << uL << ")" << std::endl);
 							throw ErrGeneric();
 						}
 
