@@ -2064,6 +2064,7 @@ Its linearization yields
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Total Joint}
+\label{sec:TotalJoint}
 This joint (TotalJoint) forces two nodes to assume an imposed relative
 position and orientation about selected axes.
 Both imposed position and orientation are specified in the reference frame
@@ -2072,7 +2073,9 @@ The joint consists in 6 equations, 3 for positions and 3 for orientation,
 that can be selectively turned on or off to enforce a constraint on that DoF.
 
 \paragraph{Variants.} \
-There exist no variants, although a pinned version is planned (TODO).
+There exists a pinned version of this joint that imposes 
+the absolute position and orientation of a node (TotalPinJoint).
+It is discussed in Section~\ref{sec:TotalPinJoint}.
 
 \paragraph{Files.} \
 It is implemented in files\\
@@ -2155,26 +2158,26 @@ of entire revolutions.
 The equality
 \begin{equation}
 	\T{\theta} = \T{\theta}_0
-	\label{eq:TOTAL-JOINT-theta}
+	\label{eq:TOTAL-JOINT:theta}
 \end{equation}
 implies that
 \begin{equation}
 	\T{R}_{\mathrm{rel}} = \T{R}_0 .
-	\label{eq:TOTAL-JOINT-R_rel}
+	\label{eq:TOTAL-JOINT:R_rel}
 \end{equation}
-Equation~(\ref{eq:TOTAL-JOINT-R_rel}) can be rewritten as
+Equation~(\ref{eq:TOTAL-JOINT:R_rel}) can be rewritten as
 \begin{equation}
 	\T{R}_{\mathrm{rel}} \T{R}_0^T = \T{I} ,
 \end{equation}
-and thus Eq.~(\ref{eq:TOTAL-JOINT-theta}),
+and thus Eq.~(\ref{eq:TOTAL-JOINT:theta}),
 after defining
 \begin{equation}
 	\T{R}^{\delta} = \T{R}_{\text{rel}} \T{R}_0^T ,
+	\label{eq:TOTAL-JOINT:R^delta}
 \end{equation}
 is equivalent to
 \begin{equation}
 	\llk{ax}\plbr{\exp^{-1}\plbr{\T{R}^{\delta}}} = \T{0} .
-	\label{eq:TOTAL-JOINT-R^delta}
 \end{equation}
 
 \noindent
@@ -2185,13 +2188,13 @@ nodes 1 and 2,
 	\T{\theta} = \llk{ax}\plbr{\exp^{-1}\plbr{
 		\T{R}_{1hr}^T \T{R}_{2hr}
 	}}
-	\label{eq:TOTAL-JOINT-thetadelta}
 \end{equation}
 through the previous redefinition can be expressed as
 \begin{equation}
 	\T{\theta}^{\delta} = \llk{ax}\plbr{\exp^{-1}\plbr{
 		\T{R}_{1hr}^T \T{R}_{2hr} \T{R}_0^T
 	}}
+	\label{eq:TOTAL-JOINT:thetadelta}
 \end{equation}
 and is equivalent to
 \begin{equation}
@@ -2205,8 +2208,8 @@ defined in the relative position constraint reference frame of node 1.
 The relative position is represented by vector $\T{x}$, defined as
 \begin{equation}
 	\T{x} = \T{R}_{1h}^T\plbr{
-		\T{x}_2 + \T{f}_2 - \T{x}_1 - \T{f}_1 ;
-	}
+		\T{x}_2 + \T{f}_2 - \T{x}_1 - \T{f}_1
+	} ;
 \end{equation}
 the constraint equations for the relative position are:
 \begin{equation}
@@ -2221,8 +2224,10 @@ $\T{x}^{\delta}$ can be used to express the constraint on positions DoF,
 \paragraph{Constraint Equations.} \
 The resulting constraint equations are:
 \begin{align}
-	\T{x}^{\delta} &= \T{0} \\
+	\T{x}^{\delta} &= \T{0}
+	\label{TOTAL-JOINT:constraint-x} \\
 	\T{\theta}^{\delta} &= \T{0} .
+	\label{TOTAL-JOINT:constraint-theta}
 \end{align}
 Any component of $\T{x}^{\delta}$ and $\T{\theta}^{\delta}$
 can be selectively set to zero to enforce a constraint
@@ -2422,7 +2427,7 @@ which results in
 	\T{\omega}^{\delta} = \T{R}_{1hr}^T \plbr{
 		\T{\omega}_2 - \T{\omega}_1
 	} - \T{R}^{\delta} \T{\omega}_0 ,
-	\label{eq:TOTAL-JOINT-omegadelta}
+	\label{eq:TOTAL-JOINT:omegadelta}
 \end{equation}
 where $\T{\omega}_0$ is the derivative of the imposed orientation,
 \begin{equation}
@@ -2431,14 +2436,14 @@ where $\T{\omega}_0$ is the derivative of the imposed orientation,
 Note that if the angular velocity constraint 
 is the derivative of an orientation constraint, $\T{R}^{\delta}=\T{I}$,
 so, by setting $\T{\omega}^{\delta}=\T{0}$,
-Equation~(\ref{eq:TOTAL-JOINT-omegadelta}) becomes
+Equation~(\ref{eq:TOTAL-JOINT:omegadelta}) becomes
 \begin{equation}
 	\T{\omega}_0 = \T{R}_{1hr}^T \plbr{
 		\T{\omega}_2 - \T{\omega}_1
 	} .
-	\label{eq:TOTAL-JOINT-omega_0}
+	\label{eq:TOTAL-JOINT:omega_0}
 \end{equation}
-Otherwise, Equation~(\ref{eq:TOTAL-JOINT-omegadelta}) represents
+Otherwise, Equation~(\ref{eq:TOTAL-JOINT:omegadelta}) represents
 a non-holonomic constraint.
 
 Its perturbation results in
@@ -2486,13 +2491,13 @@ Further time differentiation of the constraint equation results in
 		- \T{\omega}_1 \times \T{\omega}_2
 	} - \T{\omega}^{\delta} \times \T{R}^{\delta} \T{\omega}_0
 	- \T{R}^{\delta} \dot{\T{\omega}}_0 .
-	\label{eq:TOTAL-JOINT-dotomegadelta}
+	\label{eq:TOTAL-JOINT:dotomegadelta}
 \end{equation}
 Similarly, if the angular acceleration constraint 
-is the derivative of an orientation constraint,
-then $\T{R}^{\delta}=\T{I}$, $\T{\omega}^{\delta}=\T{0}$
+is the derivative of an orientation or an angular velocity constraint,
+then $\T{R}^{\delta}=\T{I}$, $\T{\omega}^{\delta}=\T{0}$, respectively,
 and, by setting $\dot{\T{\omega}}^{\delta}=\T{0}$,
-Equation~(\ref{eq:TOTAL-JOINT-dotomegadelta}) becomes
+Equation~(\ref{eq:TOTAL-JOINT:dotomegadelta}) becomes
 \begin{equation}
 	\dot{\T{\omega}}_0 = \T{R}_{1hr}^T\plbr{
 		\dot{\T{\omega}}_2
@@ -2503,7 +2508,7 @@ Equation~(\ref{eq:TOTAL-JOINT-dotomegadelta}) becomes
 
 
 \begin{comment}
-Subsequent differentiation of Eq.~(\ref{eq:TOTAL-JOINT-thetadelta})
+Subsequent differentiation of Eq.~(\ref{eq:TOTAL-JOINT:thetadelta})
 allows to impose the relative angular velocity.
 The definition of $\T{R}^{\delta}$:
 \begin{equation*}
@@ -2700,6 +2705,237 @@ are summarized below:
 	}}
 \end{equation}
 \end{comment}
+
+
+
+
+
+
+\subsection{Total Pin Joint}
+\label{sec:TotalPinJoint}
+This joint (TotalPinJoint) forces a node to assume an imposed absolute
+position and orientation about selected axes.
+Both imposed position and orientation are specified 
+in the global reference frame, optionally re-oriented 
+by a constant orientation.
+The joint consists in 6 equations, 3 for positions and 3 for orientation, 
+that can be selectively turned on or off to enforce a constraint on that DoF.
+
+\paragraph{Variants.} \
+This joint is a variant of the TotalJoint,
+described in Section~\ref{sec:TotalJoint}.
+
+\paragraph{Files.} \
+It is implemented in files\\
+\begin{tabular}{l}
+\texttt{mbdyn/struct/totalj.h} \\
+\texttt{mbdyn/struct/totalj.cc}
+\end{tabular}
+
+\paragraph{Definitions.} \
+The position of the node with respect to the global reference frame
+is $\T{x}_n$, while the absolute position of the constraint is $\T{x}_c$.
+The orientations of the node with respect to the global reference frame
+is $\T{R}_n$.
+An offset is allowed for the location of the points where 
+the absolute position is constrained; the offset $\tilde{\T{f}}_n$
+is rigidly connected to the node, so in the global reference frame 
+its expression is
+\begin{equation}
+	\T{f}_n = \T{R}_n \tilde{\T{f}}_n
+\end{equation}
+The position constraint may be expressed in a reference frame,
+whose orientation in the global reference frame is $\T{R}_{ch}$.
+Later on, it will occasionally be convenient to express
+the absolute position of the constraint, $\T{x}_c$, 
+in the reference frame $\T{R}_{ch}$, namely
+\begin{equation}
+	\tilde{\T{x}}_{c} = \T{R}_{ch}^T \T{x}_c .
+\end{equation}
+Similarly, the orientation constraint may be expressed in a reference
+frame that is rigidly connected to the node by matrix
+$\tilde{\T{R}}_{nhr}$, whose orientation in the global reference frame is
+\begin{equation}
+	\T{R}_{nhr} = \T{R}_n \tilde{\T{R}}_{nhr} ,
+\end{equation}
+while the absolute orientation is described by the constant matrix
+$\T{R}_{chr}$.
+The absolute position and orientation may refer to different
+local reference frames to increase the versatility of the element.
+
+It is essential to notice that the differentiation of the constraint
+orientation matrices does not affect the relative orientation between
+the constraint and the node, namely matrix $\tilde{\T{R}}_{nhr}$,
+which is constant.
+As a consequence,
+\begin{align}
+	\delta\T{R}_{nhr}
+		&= \delta\T{R}_n \tilde{\T{R}}_{nhr} \nonumber \\
+		&= \T{\theta}_{n\delta} \times \T{R}_n \tilde{\T{R}}_{nhr}
+		\nonumber \\
+		&= \T{\theta}_{n\delta}\times \T{R}_{nhr} ,
+\end{align}
+and
+\begin{equation}
+	\dot{\T{R}}_{nhr} = \T{\omega}_n \times \T{R}_{nhr} .
+\end{equation}
+The same is true for the relative position orientation matrix,
+$\T{R}_{nh}$.
+
+
+\paragraph{Orientation Constraint.} \
+The relative orientation is
+\begin{equation}
+	\T{R}_{\mathrm{rel}} = \T{R}_{chr}^T \T{R}_{nhr}
+\end{equation}
+The desired relative orientation is expressed in analogy 
+with the TotalJoint.
+
+In general, the difference between the desired rotation
+$\T{\theta}_0$ and the current absolute orientation of the node,
+\begin{equation}
+	\T{\theta} = \llk{ax}\plbr{\exp^{-1}\plbr{
+		\T{R}_{chr}^T \T{R}_{nhr}
+	}}
+\end{equation}
+through the redefinition of Eq.~(\ref{eq:TOTAL-JOINT:R^delta}) 
+can be expressed as
+\begin{equation}
+	\T{\theta}^{\delta} = \llk{ax}\plbr{\exp^{-1}\plbr{
+		\T{R}_{chr}^T \T{R}_{nhr} \T{R}_0^T
+	}}
+	\label{eq:TOTAL-PIN-JOINT:thetadelta}
+\end{equation}
+and is equivalent to
+\begin{equation}
+	\T{\theta}^{\delta} = \T{\theta} - \T{\theta}_0
+\end{equation}
+when $\T{\theta}^{\delta}=\T{0}$.
+
+\paragraph{Position Constraint.} \
+The desired absolute position is imposed by means of a vector $\T{x}_0$
+defined in the absolute position constraint reference frame $\T{R}_{ch}$.
+The absolute position is represented by vector $\T{x}$, defined as
+\begin{align}
+	\T{x} &= \T{R}_{ch}^T\plbr{
+		\T{x}_n + \T{f}_n - \T{x}_c
+	} \nonumber \\
+	&= \T{R}_{ch}^T\plbr{
+		\T{x}_n + \T{f}_n
+	} - \tilde{\T{x}}_c ;
+\end{align}
+the constraint equations for the relative position are:
+\begin{equation}
+	\T{x} = \T{x}_0 .
+\end{equation}
+In analogy with the definition of $\T{\theta}^{\delta}$, a vector
+$\T{x}^{\delta}$ can be used to express the constraint on positions DoF,
+\begin{equation}
+	\T{x}^{\delta} = \T{x} - \T{x}_0 .
+\end{equation}
+
+\paragraph{Constraint Equations.} \
+The resulting constraint equations are identical
+to Eqs.~(\ref{TOTAL-JOINT:constraint-x}, \ref{TOTAL-JOINT:constraint-theta}),
+related to the TotalJoint, as illustrated
+at page~\pageref{TOTAL-JOINT:constraint-x};
+the same considerations apply.
+
+\paragraph{Linearization.} \
+First, the perturbation of $\T{x}^{\delta}$,
+\begin{equation}
+	\delta \T{x}^{\delta} = 
+	\T{R}_{ch}^T\plbr{
+		\delta\T{x}_n - \T{f}_n \times \T{\theta}_{n\delta}
+	}
+\end{equation}
+is conputed.
+Note that, since the constraint equations are defined by setting 
+to zero any components of the vector $\T{x}^{\delta}$, the
+related Jacobian matrix contribution is obtained by selecting 
+the corresponding columns of matrix $\T{R}_{ch}$.
+
+Then, the perturbation of $\T{\theta}^{\delta}$ results from
+\begin{align}
+	\T{\theta}^{\delta}_{\delta} \times{}
+	&= \delta\T{R}^{\delta} \T{R}^{\delta T} \nonumber \\
+	&= \T{R}_{chr}^T \T{\theta}_{n\delta} \times \T{R}_{1hr} ,
+\end{align}
+which implies
+\begin{equation}
+	\T{\theta}^{\delta}_{\delta} = \T{R}_{chr}^T \T{\theta}_{n\delta} .
+\end{equation}
+Note that, since the constraint equations are defined by setting 
+to zero any components of the vector $\T{\theta}^{\delta}$, the
+related Jacobian matrix contribution is obtained by selecting 
+the corresponding columns of matrix $\T{R}_{chr}$.
+
+
+After calling $\tilde{\T{\lambda}}_{\T{x}}$
+and $\tilde{\T{\lambda}}_{\T{\theta}}$ the Lagrange multipliers
+respectively related to the relative position and orientation
+constraints, and noticing that in the global reference frame
+they become
+\begin{align}
+	\T{\lambda}_{\T{x}} &= \T{R}_{ch} \tilde{\T{\lambda}}_{\T{x}} \\
+	\T{\lambda}_{\T{\theta}} &= \T{R}_{chr} \tilde{\T{\lambda}}_{\T{\theta}} ,
+\end{align}
+the contribution of the constraint reactions to the equilibrium equations
+of the participating nodes is
+\begin{align}
+	\T{F}_n &= \T{\lambda}_{\T{x}} \\
+	\T{C}_n &= \T{f}_n \times \T{\lambda}_{\T{x}} + \T{\lambda}_{\T{\theta}} .
+\end{align}
+
+Due to the simplifications related to the updated-updated approach,
+the contribution of the constraint equations and of the equilibrium 
+to the Jacobian matrix is: 
+\begin{equation}
+	\small
+	%\hspace{-12mm}%
+	\sqbr{\matr{cc|cc}{
+%Line 1
+	\T{0} &
+	\T{0} &
+	\T{R}_{ch} &
+	\T{0} \\
+%Line 2
+	\T{0} &
+	\T{\lambda}_{\T{x}}\times\T{f}_n\times{} &
+	\T{f}_n\times\T{R}_{ch} & 
+	\T{R}_{chr} \\
+%Line 3
+	\hline
+	\T{R}_{ch}^T &
+	-\T{R}_{ch}^T\T{f}_n\times{} & 
+	\T{0} &
+	\T{0} \\
+%Line 4
+	\T{0} &
+	\T{R}_{chr}^T &
+	\T{0} & 
+	\T{0}
+	}} \cubr{\cvvect{
+		\delta\T{x}_n \\
+		\T{\theta}_{n\delta} \\
+		\hline
+		\delta\tilde{\T{\lambda}}_{\T{x}} \\
+		\delta\tilde{\T{\lambda}}_{\T{\theta}}
+	}}
+	= \cubr{\cvvect{
+	- \T{\lambda}_{\T{x}} \\
+	- \T{f}_n \times \T{\lambda}_{\T{x}} - \T{\lambda}_{\T{\theta}} \\
+	\hline
+	- \T{x}^{\delta} \\
+	- \T{\theta}^{\delta}
+	}} .
+\end{equation}
+The updated-updated form is obtained by simply replacing
+$\T{\theta}_{n\delta}$ with $\delta\T{g}_n$.
+
+\subsubsection{Summary}
+The same considerations formulated for the TotalJoint apply.
+
 
 
 

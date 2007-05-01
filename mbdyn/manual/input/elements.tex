@@ -3979,6 +3979,13 @@ the relative orientation is not constrained.
 \label{sec:EL:STRUCT:JOINT:TOTAL_JOINT}
 \emph{Original implementation: Alessandro Fumagalli; \\
 Review: Pierangelo Masarati.}
+
+This element allows to arbitrarily constrain specific components
+of the relative position and orientation of two nodes.
+The value of the constrained components of the relative position
+and orientation can be imposed by means of drives.
+As such, this element allows to mimic the behavior of most
+ideal constraints that link two nodes.
 \begin{verbatim}
     <joint_type> ::= total joint
     <joint_arglist> ::=
@@ -4041,6 +4048,81 @@ of the relative orientation constraint with respect to node 2 is reset;
 \item \kw{position-drive3} resets the relative position drive;
 the hint is passed to the Vec3 drive hint parser.
 \item \kw{orientation-drive3} resets the relative orientation drive;
+the hint is passed to the Vec3 drive hint parser.
+\end{itemize}
+
+
+
+\subsection{Total pin joint}
+This element allows to arbitrarily constrain specific components
+of the absolute position and orientation of a node.
+The value of the constrained components of the absolute position
+and orientation can be imposed by means of drives.
+As such, this element allows to mimic the behavior of most
+ideal constraints that ground one node.
+\label{sec:EL:STRUCT:JOINT:TOTAL_PIN_JOINT}
+\begin{verbatim}
+    <joint_type> ::= total pin joint
+    <joint_arglist> ::=
+        <node> , [ position , ] (Vec3) <relative_offset>
+        [ , position orientation , (Mat3x3) <relative_position_orientation> ]
+        [ , rotation orientation , (Mat3x3) <relative_rotation_orientation> ]
+        , [ position , ] (Vec3) <absolute position>
+        [ , position orientation , (Mat3x3) <absolute_position_orientation> ]
+        [ , rotation orientation , (Mat3x3) <absolute_rotation_orientation> ]
+        [ , position constraint ,
+            { active | inactive } ,
+            { active | inactive } ,
+            { active | inactive } ,
+            (Vec3_tpl_drive_caller) <imposed_absolute_position> ]
+        [ , orientation constraint ,
+            { active | inactive } ,
+            { active | inactive } ,
+            { active | inactive } ,
+            (Vec3_tpl_drive_caller) <imposed_absolute_rotation> ]
+\end{verbatim}
+
+\subsubsection{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"px"} absolute position along absolute position orientation axis 1
+\item \kw{"py"} absolute position along absolute position orientation axis 2
+\item \kw{"pz"} absolute position along absolute position orientation axis 3
+\item \kw{"rx"} absolute orientation about absolute rotation orientation axis 1
+\item \kw{"ry"} absolute orientation about absolute rotation orientation axis 2
+\item \kw{"rz"} absolute orientation about absolute rotation orientation axis 3
+\item \kw{"Fx"} reaction force about absolute position orientation axis 1
+\item \kw{"Fy"} reaction force about absolute position orientation axis 2
+\item \kw{"Fz"} reaction force about absolute position orientation axis 3
+\item \kw{"Mx"} reaction moment about absolute rotation orientation axis 1
+\item \kw{"My"} reaction moment about absolute rotation orientation axis 2
+\item \kw{"Mz"} reaction moment about absolute rotation orientation axis 3
+\item \kw{"dx"} imposed absolute position along absolute position orientation axis 1
+\item \kw{"dy"} imposed absolute position along absolute position orientation axis 2
+\item \kw{"dz"} imposed absolute position along absolute position orientation axis 3
+\item \kw{"tx"} imposed absolute orientation about absolute rotation orientation axis 1
+\item \kw{"ty"} imposed absolute orientation about absolute rotation orientation axis 2
+\item \kw{"tz"} imposed absolute orientation about absolute rotation orientation axis 3
+\end{enumerate}
+
+\subsubsection{Hints}
+When wrapped by a \kw{driven} element, the following hints are honored:
+\begin{itemize}
+\item \kw{offset\{1\}} the offset of the joint
+with respect to the node is reset;
+\item \kw{offset\{0\}} the absolute position of the joint
+is reset;
+\item \kw{position-hinge\{1\}} the relative orientation
+of the absolute position constraint with respect to the node is reset;
+\item \kw{position-hinge\{0\}} the absolute orientation 
+of the absolute position constraint is reset;
+\item \kw{orientation-hinge\{1\}} the relative orientation
+of the absolute orientation constraint with respect to the node is reset;
+\item \kw{orientation-hinge\{0\}} the absolute orientation 
+of the absolute orientation constraint is reset;
+\item \kw{position-drive3} resets the absolute position drive;
+the hint is passed to the Vec3 drive hint parser.
+\item \kw{orientation-drive3} resets the absolute orientation drive;
 the hint is passed to the Vec3 drive hint parser.
 \end{itemize}
 

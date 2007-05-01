@@ -180,6 +180,7 @@ ReadJoint(DataManager* pDM,
 		"imposed" "displacement" "pin",
 		"imposed" "orientation",
 		"total" "joint",
+		"total" "pin" "joint",
 		"kinematic",
 		"beam" "slider",
 		"brake",
@@ -234,6 +235,7 @@ ReadJoint(DataManager* pDM,
 		IMPOSEDDISPLACEMENTPIN,
 		IMPOSEDORIENTATION,
 		TOTALJOINT,
+		TOTALPINJOINT,
 		KINEMATIC,
 		BEAMSLIDER,
 		BRAKE,
@@ -539,7 +541,7 @@ ReadJoint(DataManager* pDM,
 
 		/* currently unused */
 		if (HP.IsKeyWord("orientation")) {
-			(void)HP.GetRotRel(ReferenceFrame(pNode));
+			(void)HP.GetRotAbs(AbsRefFrame);
 		}
 
 
@@ -2400,6 +2402,142 @@ ReadJoint(DataManager* pDM,
 				bTActive, pTDC,
 				pNode1, f1, R1h, R1hr,
 				pNode2, f2, R2h, R2hr,
+				fOut));
+		} break;
+
+	case TOTALPINJOINT:
+		{
+		/* nodo collegato */
+		StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+		ReferenceFrame RF(pNode);
+
+		Vec3 fn(0.);
+		if (HP.IsKeyWord("position")) {
+			fn = HP.GetPosRel(RF);
+		}
+
+		Mat3x3 Rnh(Eye3);
+		if (HP.IsKeyWord("position" "orientation")) {
+			DEBUGCOUT("Position orientation matrix is supplied" << std::endl);
+			Rnh = HP.GetRotRel(RF);
+		}
+
+		Mat3x3 Rnhr(Eye3);
+		if (HP.IsKeyWord("rotation" "orientation")) {
+			DEBUGCOUT("Rotation orientation matrix is supplied" << std::endl);
+			Rnhr = HP.GetRotRel(RF);
+		}
+
+		Vec3 Xc(0.);
+		if (HP.IsKeyWord("position")) {
+			Xc = HP.GetPosAbs(AbsRefFrame);
+		}
+
+		Mat3x3 Rch(Eye3);
+		if (HP.IsKeyWord("position" "orientation")) {
+			DEBUGCOUT("Position orientation matrix is supplied" << std::endl);
+			Rch = HP.GetRotAbs(AbsRefFrame);
+		}
+
+		Mat3x3 Rchr(Eye3);
+		if (HP.IsKeyWord("rotation" "orientation")) {
+			DEBUGCOUT("Rotation orientation matrix is supplied" << std::endl);
+			Rchr = HP.GetRotAbs(AbsRefFrame);
+		}
+
+		bool bXActive[3] = { false, false, false };
+		TplDriveCaller<Vec3>* pXDC[3] = {0, 0, 0};
+		if (HP.IsKeyWord("position" "constraint")) {
+			for (unsigned i = 0; i < 3; i++) {
+				if (HP.IsKeyWord("inactive")) {
+					bXActive[i] = false;
+
+				} else if (HP.IsKeyWord("active")) {
+					bXActive[i] = true;
+
+				} else {
+					if (HP.IsArg()) {
+						int iActive = HP.GetInt();
+						switch (iActive) {
+						case 0:
+							bXActive[i] = false;
+							continue;
+
+						default:
+							bXActive[i] = true;
+							continue;
+						}
+					}
+
+					silent_cerr("TotalJoint(" << uLabel << "): "
+						"invalid status for position component #" << i + 1
+						<< " at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric();
+				}
+			}
+
+			pXDC[0] = ReadTplDrive(pDM, HP, Vec3(0.));
+
+			if (pDM->bIsInverseDynamics()) {
+				pXDC[1] = ReadTplDrive(pDM, HP, Vec3(0.));
+				pXDC[2] = ReadTplDrive(pDM, HP, Vec3(0.));
+			}
+
+		} else {
+			SAFENEW(pXDC[0], ZeroTplDriveCaller<Vec3>);
+		}
+
+		bool bTActive[3] = { false, false, false };
+		TplDriveCaller<Vec3>* pTDC[3] = {0, 0, 0};
+		if (HP.IsKeyWord("orientation" "constraint")) {
+			for (unsigned i = 0; i < 3; i++) {
+				if (HP.IsKeyWord("inactive")) {
+					bTActive[i] = false;
+
+				} else if (HP.IsKeyWord("active")) {
+					bTActive[i] = true;
+
+				} else {
+					if (HP.IsArg()) {
+						int iActive = HP.GetInt();
+						switch (iActive) {
+						case 0:
+							bTActive[i] = false;
+							continue;
+
+						default:
+							bTActive[i] = true;
+							continue;
+						}
+					}
+
+					silent_cerr("TotalJoint(" << uLabel << "): "
+						"invalid status for position component #" << i + 1
+						<< " at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric();
+				}
+			}
+
+			pTDC[0] = ReadTplDrive(pDM, HP, Vec3(0.));
+
+			if (pDM->bIsInverseDynamics()) {
+				pTDC[1] = ReadTplDrive(pDM, HP, Vec3(0.));
+				pTDC[2] = ReadTplDrive(pDM, HP, Vec3(0.));
+			}
+
+		} else {
+			SAFENEW(pTDC[0], ZeroTplDriveCaller<Vec3>);
+		}
+
+		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			TotalPinJoint,
+			TotalPinJoint(uLabel, pDO,
+				bXActive, pXDC,
+				bTActive, pTDC,
+				Xc, Rch, Rchr,
+				pNode, fn, Rnh, Rnhr,
 				fOut));
 		} break;
 

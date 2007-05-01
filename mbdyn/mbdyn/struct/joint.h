@@ -93,6 +93,7 @@ public:
 		BRAKE,
 		GIMBAL,
 		TOTALJOINT,
+		TOTALPINJOINT,
 
 		MODAL,
 
