@@ -803,8 +803,8 @@ DataManager::InitialJointAssembly(void)
 #endif /* DEBUG */
 				outputIters())
 		{
-			silent_cout("Iteration(" << iNumIter << "), "
-				"Test=" << dTest
+			silent_cout("Iteration(" << iNumIter << ") "
+				"" << dTest
 				<< " (Tol=" << dInitialAssemblyTol << ")"
 				<< std::endl);
 		}
