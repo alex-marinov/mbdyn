@@ -2403,6 +2403,16 @@ ReadJoint(DataManager* pDM,
 				pNode1, f1, R1h, R1hr,
 				pNode2, f2, R2h, R2hr,
 				fOut));
+
+		std::ostream& out = pDM->GetLogFile();
+		out << "totaljoint: " << uLabel
+			<< " " << pNode1->GetLabel()
+			<< " " << f1
+			<< " " << R1h
+			<< " " << pNode2->GetLabel()
+			<< " " << f2
+			<< " " << R2h
+			<< std::endl;
 		} break;
 
 	case TOTALPINJOINT:

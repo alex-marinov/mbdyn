@@ -92,9 +92,10 @@ BEGIN {
 
 	# safe defaults?
 	show["hinge"] = 0;
+	show["deformablejoint"] = show["hinge"];
+	show["totaljoint"] = show["hinge"];
 	show["distance"] = 1;
 	show["rod"] = 1;
-	show["deformablejoint"] = 0;
 	show["beam"] = 1;
 	show["aero"] = 1;
 
@@ -123,6 +124,10 @@ BEGIN {
 
 		if (showDeformableJoint) {
 			show["deformablejoint"] = 1;
+		}
+
+		if (showTotalJoint) {
+			show["totaljoint"] = 1;
 		}
 
 		if (noShowBeam) {
@@ -183,6 +188,11 @@ BEGIN {
 	nodeprop[nodeprop_num, "radius"] = 1.;
 	nodeprop_num++;
 
+	nodeprop[nodeprop_num, "name"] = "totaljoint_node";
+	nodeprop[nodeprop_num, "color"] = 2;
+	nodeprop[nodeprop_num, "radius"] = 1.5;
+	nodeprop_num++;
+
 	nodeprop[nodeprop_num, "name"] = "beam_node";
 	nodeprop[nodeprop_num, "color"] = 1;
 	nodeprop[nodeprop_num, "radius"] = 1.;
@@ -226,6 +236,16 @@ BEGIN {
 
 	edgeprop[edgeprop_num, "name"] = "deformablejoint_offset";
 	edgeprop[edgeprop_num, "color"] = 12;
+	edgeprop[edgeprop_num, "radius"] = .5;
+	edgeprop_num++;
+
+	edgeprop[edgeprop_num, "name"] = "totaljoint_edge";
+	edgeprop[edgeprop_num, "color"] = 1;
+	edgeprop[edgeprop_num, "radius"] = 1.;
+	edgeprop_num++;
+
+	edgeprop[edgeprop_num, "name"] = "totaljoint_offset";
+	edgeprop[edgeprop_num, "color"] = 10;
 	edgeprop[edgeprop_num, "radius"] = .5;
 	edgeprop_num++;
 
@@ -516,6 +536,71 @@ isvan == 0 && (/deformablejoint:/ || /deformabledisplacementjoint:/) && show["de
 		edge[edge_num, 1] = label1;
 		edge[edge_num, 2] = label2;
 		edge[edge_num, "prop"] = "deformablejoint_edge";
+		edge_num++;
+	}
+}
+
+isvan == 0 && /totaljoint:/ && show["totaljoint"] {
+	if (!exclude["joint", $2]) {
+		j_totaljoint_label[j_totaljoint_num] = $2;
+		j_totaljoint[$2] = j_totaljoint_num;
+		j_totaljoint[$2, 1] = $3;
+		j_totaljoint[$2, 1, 1] = $4;
+		j_totaljoint[$2, 1, 2] = $5;
+		j_totaljoint[$2, 1, 3] = $6;
+		j_totaljoint[$2, 2] = $16;
+		j_totaljoint[$2, 2, 1] = $17;
+		j_totaljoint[$2, 2, 2] = $18;
+		j_totaljoint[$2, 2, 3] = $19;
+		j_totaljoint_num++;
+	
+		label1 = j_totaljoint[$2, 1];
+		label2 = j_totaljoint[$2, 2];
+	
+		if (j_totaljoint[$2, 1, 1] != 0. || j_totaljoint[$2, 1, 2] != 0. || j_totaljoint[$2, 1, 3] != 0.) {
+			# create offset node and link
+			label = "totaljoint_" $2 "_point1";
+			node[node_num] = label;
+			node[node_num, "relative"] = j_totaljoint[$2, 1];
+			node[node_num, 1] = j_totaljoint[$2, 1, 1];
+			node[node_num, 2] = j_totaljoint[$2, 1, 2];
+			node[node_num, 3] = j_totaljoint[$2, 1, 3];
+			node[node_num, "prop"] = "totaljoint_node";
+			node_num++;
+			
+			edge[edge_num] = "totaljoint_" $2 "_offset1";
+			edge[edge_num, 1] = label1;
+			edge[edge_num, 2] = label;
+			edge[edge_num, "prop"] = "totaljoint_offset";
+			edge_num++;
+	
+			label1 = label;
+		}
+	
+		if (j_totaljoint[$2, 2, 1] != 0. || j_totaljoint[$2, 2, 2] != 0. || j_totaljoint[$2, 2, 3] != 0.) {
+			# create offset node and link
+			label = "totaljoint_" $2 "_point2";
+			node[node_num] = label;
+			node[node_num, "relative"] = j_totaljoint[$2, 2];
+			node[node_num, 1] = j_totaljoint[$2, 2, 1];
+			node[node_num, 2] = j_totaljoint[$2, 2, 2];
+			node[node_num, 3] = j_totaljoint[$2, 2, 3];
+			node[node_num, "prop"] = "totaljoint_node";
+			node_num++;
+			
+			edge[edge_num] = "totaljoint_" $2 "_offset2";
+			edge[edge_num, 1] = label2;
+			edge[edge_num, 2] = label;
+			edge[edge_num, "prop"] = "totaljoint_offset";
+			edge_num++;
+	
+			label2 = label;
+		}
+	
+		edge[edge_num] = "totaljoint_" $2;
+		edge[edge_num, 1] = label1;
+		edge[edge_num, 2] = label2;
+		edge[edge_num, "prop"] = "totaljoint_edge";
 		edge_num++;
 	}
 }
