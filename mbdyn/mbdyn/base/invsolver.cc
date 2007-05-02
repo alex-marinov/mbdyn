@@ -650,7 +650,6 @@ InverseSolver::Run(void)
 	dCurrTimeStep = dRefTimeStep;
    	dTime += dRefTimeStep;
 
-   	dTotErr += dTest;
    	iTotIter += iStIter;
 
 

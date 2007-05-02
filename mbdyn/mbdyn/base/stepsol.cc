@@ -1368,17 +1368,20 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 	
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr, *pXPrimePrimeCurr, *pLambdaCurr);
 
-	integer iLocalIter = EffIter;
+	integer iLocalIter = 0;
 	Err = 0.; 
 	NonlinearSolver *pNLSolver = pS->pGetNonlinearSolver();
 	
 	/* Position */
 	SetOrder(0);
+	
 	/* Setting iOrder = 0, the residual is called only 
 	 * for constraints, on positions */
 	pNLSolver->Solve(this, pS, MaxIters, dTol,
     			EffIter, Err, dSolTol, SolErr);
-
+	
+	pDM->AfterConvergence(iOrder);
+	
 	SolutionManager *pSM = pS->pGetSolutionManager();
 	VectorHandler *pRes = pSM->pResHdl();
 	VectorHandler *pSol = pSM->pSolHdl();
@@ -1394,18 +1397,17 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 	Residual(pRes);
 	VelErr = pNLSolver->MakeResTest(pS, *pRes) * TestScale(pNLSolver->pGetResTest());
 	if(VelErr > dTol) {
-		if(true) {
+		if(iLocalIter == EffIter) {
 			pSM->MatrReset();
 			Jacobian(pSM->pMatHdl());
 			iLocalIter = EffIter;
-			/*FIXME:*/
-			//printf("\nJ assemblato da velocità\n");
+			EffIter++;
 		}
 		pSM->Solve();
+		/* use velocity */
+		Update(pSol);
 	}
 
-	/* use velocity */
-	Update(pSol);
 
 	/* Acceleration */
 	SetOrder(2);
@@ -1416,28 +1418,35 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 	AccErr = pNLSolver->MakeResTest(pS, *pRes) * TestScale(pNLSolver->pGetResTest());
 
 	if(AccErr > dTol) {
-		if(true) {
+		if(iLocalIter == EffIter) {
 			pSM->MatrReset();
 			Jacobian(pSM->pMatHdl());
 			iLocalIter = EffIter;
-			/*FIXME:*/
-			//printf("\nJ assemblato da accelerazione\n");
+			EffIter++;
 		}
+		/* use acceleration */
+		Update(pSol);
 		pSM->Solve();
 	}
 
-	/* use acceleration */
-	Update(pSol);
 
 	/* Forces */
 	SetOrder(-1);
+	
+	doublereal ForceErr = 0;
 	pRes->Reset();
 	Residual(pRes);
-	pSM->SolveT();
+	ForceErr = pNLSolver->MakeResTest(pS, *pRes) * TestScale(pNLSolver->pGetResTest());
 	
-	/* use forces */
-	Update(pSol);
-
+	if(ForceErr > dTol) {
+		if(iLocalIter == EffIter) {
+			pSM->MatrReset();
+			Jacobian(pSM->pMatHdl());
+		}
+		pSM->SolveT();
+		Update(pSol);
+	}
+	
 	return Err;
 }
 

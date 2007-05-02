@@ -421,7 +421,8 @@ public:
 	
 	/* Inverse Dynamics: */
 	virtual void Update(int iOrder) const;
-	
+	virtual void AfterConvergence(int iOrder) const;
+
 	void bSetStaticModel(bool b) {
 		bStaticModel = b;
 	};

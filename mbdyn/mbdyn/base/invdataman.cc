@@ -243,6 +243,37 @@ DataManager::Update(int iOrder) const
 #endif
 }
 
+void
+DataManager::AfterConvergence(int iOrder) const
+{	
+	/* Nodes: */
+	switch(iOrder)	{
+		case 0:	{	/* Update nodes positions */
+			Node** ppLastNode = ppNodes+iTotNodes;
+			for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
+				ASSERT(*ppTmp != NULL);
+				dynamic_cast<StructNode *>(*ppTmp)->AfterConvergence(*(VectorHandler*)pXCurr, iOrder);
+			}
+			break;
+		}
+		case 1:	
+		case 2:	
+		case -1:
+			break;
+		default:
+			break;
+	}
+#if 0
+	/* Versione con iteratore: */
+	Elem* pEl = NULL;
+	if (ElemIter.bGetFirst(pEl)) {
+		do {
+			pEl->Update(*pXCurr, *pXPrimeCurr);
+		} while (ElemIter.bGetNext(pEl));
+	}
+#endif
+}
+
 bool
 DataManager::InverseDofOwnerSet(void)
 {
