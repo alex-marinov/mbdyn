@@ -282,6 +282,9 @@ public:
 		VectorHandler& XPrev,
 		VectorHandler& XPPrev) const;
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+	
+	/*Inverse Dynamics: reset orientation parameters*/
+	virtual void AfterConvergence(VectorHandler& X, int iOrder);
 
 	/*
 	 * Metodi per l'estrazione di dati "privati".

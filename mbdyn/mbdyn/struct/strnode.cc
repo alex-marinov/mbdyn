@@ -1136,6 +1136,47 @@ StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 	WRef = WCurr;
 }
 
+void
+StructNode::AfterConvergence(VectorHandler& X, int iOrder)
+{
+	integer iFirstIndex = iGetFirstIndex();
+	switch(iOrder)	 {
+		case 0:	{
+			/* Ottengo il g e lo impongo come gRef: in questo modo
+			 * le successive iterazioni cercano la soluzione perturbando 
+			 * questo*/
+			gRef = Vec3(X, iFirstIndex+4);
+			gCurr = Vec3(0.);
+			RRef = RCurr;
+#if 0
+			/* Resetto i parametri di rotazione e le derivate, g e gP */
+			X.Put(iFirstIndex+4, Vec3(0.));
+
+			/* Calcolo la matrice RDelta derivante dalla predizione */
+			Mat3x3 RDelta(MatR, gRef);
+
+			/* Calcolo la R corrente in base alla predizione */
+			RCurr = RDelta*RPrev;
+
+			/* Calcolo la Omega corrente in base alla predizione (gP "totale") */
+			gPRef = Vec3(XP, iFirstIndex+4);
+
+			/* Calcolo il nuovo Omega */
+			WCurr = Mat3x3(MatG, gRef)*gPRef;
+
+			XP.Put(iFirstIndex+4, Vec3(0.));
+#endif
+			break;
+		}
+		case 1:
+		case 2:
+		case -1:
+			break;
+		default:
+			break;
+	}
+}
+
 /*
  * Metodi per l'estrazione di dati "privati".
  * Si suppone che l'estrattore li sappia interpretare.

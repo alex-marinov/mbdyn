@@ -995,7 +995,7 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 
 /* Inverse Dynamics update */
 void 
-TotalJoint::Update(const VectorHandler& XCurr, int iOrder)
+TotalJoint::Update(const VectorHandler& XCurr, int /*iOrder*/)
 {
 	integer iFirstReactionIndex = iGetFirstIndex();
 	
@@ -1019,7 +1019,7 @@ TotalJoint::GetEqType(unsigned int i) const
 	return DofOrder::ALGEBRAIC;
 }
 
-/* Output (da mettere a punto) */
+/* Output (da mettere a punto), per ora solo reazioni */
 void
 TotalJoint::Output(OutputHandler& OH) const
 {

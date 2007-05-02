@@ -339,7 +339,7 @@ class ClampJoint : virtual public Elem, public Joint {
 			    int iOrder = -1);
 
    /* Inverse Dynamics update */
-   virtual void Update(const VectorHandler& XCurr, int iOrder = -1);
+   void Update(const VectorHandler& XCurr, int iOrder = -1);
    
    virtual void Output(OutputHandler& OH) const;
 
