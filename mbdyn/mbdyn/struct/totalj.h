@@ -71,6 +71,8 @@ private:
 	unsigned int iPosIncid[3];
 	unsigned int iRotIncid[3];
 	
+	Vec3 tilde_f1;
+
 	mutable Vec3 M;
 	mutable Vec3 F;
 	mutable Vec3 ThetaDelta;
