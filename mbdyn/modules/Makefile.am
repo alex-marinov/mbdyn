@@ -132,6 +132,15 @@ distclean:
 
 # Add distributed modules below
 EXTRA_DIST = Makefile.module Makefile.template \
+module-constlaw/module-constlaw.cc \
+module-constlaw/README \
+module-constlaw-f90/Makefile.inc \
+module-constlaw-f90/module-constlaw-f90.cc \
+module-constlaw-f90/README \
+module-constlaw-f90/usrsub.f90 \
+module-constlaw-f90/usrsub.h \
+module-drive/module-drive.cc \
+module-drive/README \
 module-template/module-template.cc \
 module-wheel2/module-wheel2.cc
 

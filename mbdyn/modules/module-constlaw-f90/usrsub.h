@@ -32,6 +32,8 @@
 #ifndef USRSUB_H
 #define USRSUB_H
 
+/* needs f2c.h or equivalent for Fortran types declaration */
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -82,4 +84,4 @@ extern integer us6aftc_(integer *size, doublereal *vec,
 }
 #endif /* __cplusplus */
 
-#endif // USRSUB_H
+#endif /* USRSUB_H */

@@ -54,6 +54,7 @@ MBDyn 1.X-Devel
 		- added model connectivity description
 		- added A' * x = b support in solution manager
 		- added TotalPinJoint
+		- added support for run-time modules in Fortran 90
 	Backward compatibility issues:
 		- per-element output removed from modal joints
 		- spherical hinge output now refers to node 1 instead of 2
