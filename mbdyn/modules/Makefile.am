@@ -63,12 +63,12 @@ all__:
 			export MBDYN_MODULE=$$i ; \
 			isrc=$(top_srcdir)/modules/$$i ; \
 			if test -d $$isrc ; then mkdir -p $$i ; fi ; \
-			for fsrc in $$isrc/*.{c,cc,f} ; do \
+			for fsrc in $$isrc/*.{c,cc,f,f90} ; do \
 				f=`basename $$fsrc` ; \
-				case $$f in \*.c|\*.cc|\*.f) ;; *) if test ! -f $$i/$$f ; then ln -sf ../$$isrc/$$f $$i/$$f ; fi ; ;; esac ; \
+				case $$f in \*.c|\*.cc|\*.f|\*.f90) ;; *) if test ! -f $$i/$$f ; then ln -sf ../$$isrc/$$f $$i/$$f ; fi ; ;; esac ; \
 			done ; \
 			cp $(top_srcdir)/modules/Makefile.module $$i/Makefile ; \
-			cd $$i && $(MAKE) ; \
+			cd $$i && $(MAKE) MBDYN_MODULE_SRCDIR=../$(top_srcdir)/modules/$$i ; \
 			cd .. ; \
 			rm -f $$i/Makefile ; \
 		done \
@@ -82,9 +82,9 @@ install:
 			export MBDYN_MODULE=$$i ; \
 			isrc=$(top_srcdir)/modules/$$i ; \
 			if test -d $$isrc ; then mkdir -p $$i ; fi ; \
-			for fsrc in $$isrc/*.{c,cc,f} ; do \
+			for fsrc in $$isrc/*.{c,cc,f,f90} ; do \
 				f=`basename $$fsrc` ; \
-				case $$f in \*.c|\*.cc|\*.f) ;; *) if test ! -f $$i/$$f ; then ln -sf ../$$isrc/$$f $$i/$$f ; fi ; ;; esac ; \
+				case $$f in \*.c|\*.cc|\*.f|\*.f90) ;; *) if test ! -f $$i/$$f ; then ln -sf ../$$isrc/$$f $$i/$$f ; fi ; ;; esac ; \
 			done ; \
 			cp $(top_srcdir)/modules/Makefile.module $$i/Makefile ; \
 			cd $$i && $(MAKE) install; \
@@ -100,9 +100,9 @@ clean:
 			export MBDYN_MODULE=$$i ; \
 			isrc=$(top_srcdir)/modules/$$i ; \
 			if test -d $$isrc ; then mkdir -p $$i ; fi ; \
-			for fsrc in $$isrc/*.{c,cc,f} ; do \
+			for fsrc in $$isrc/*.{c,cc,f,f90} ; do \
 				f=`basename $$fsrc` ; \
-				case $$f in \*.c|\*.cc|\*.f) ;; *) if test ! -f $$i/$$f ; then ln -sf ../$$isrc/$$f $$i/$$f ; fi ; ;; esac ; \
+				case $$f in \*.c|\*.cc|\*.f|\*.f90) ;; *) if test ! -f $$i/$$f ; then ln -sf ../$$isrc/$$f $$i/$$f ; fi ; ;; esac ; \
 			done ; \
 			cp $(top_srcdir)/modules/Makefile.module $$i/Makefile ; \
 			cd $$i && $(MAKE) clean ; \
@@ -118,9 +118,9 @@ distclean:
 			export MBDYN_MODULE=$$i ; \
 			isrc=$(top_srcdir)/modules/$$i ; \
 			if test -d $$isrc ; then mkdir -p $$i ; fi ; \
-			for fsrc in $$isrc/*.{c,cc,f} ; do \
+			for fsrc in $$isrc/*.{c,cc,f,f90} ; do \
 				f=`basename $$fsrc` ; \
-				case $$f in \*.c|\*.cc|\*.f) ;; *) if test ! -f $$i/$$f ; then ln -sf ../$$isrc/$$f $$i/$$f ; fi ; ;; esac ; \
+				case $$f in \*.c|\*.cc|\*.f|\*.f90) ;; *) if test ! -f $$i/$$f ; then ln -sf ../$$isrc/$$f $$i/$$f ; fi ; ;; esac ; \
 			done ; \
 			cp $(top_srcdir)/modules/Makefile.module $$i/Makefile ; \
 			cd $$i && $(MAKE) distclean ; \
@@ -130,7 +130,7 @@ distclean:
 	fi
 	rm -f Makefile libtool
 
-# Add dsitributed modules below
+# Add distributed modules below
 EXTRA_DIST = Makefile.module Makefile.template \
 module-template/module-template.cc \
 module-wheel2/module-wheel2.cc
