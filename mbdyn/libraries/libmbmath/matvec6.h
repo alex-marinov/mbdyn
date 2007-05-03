@@ -66,6 +66,11 @@ class Vec6 {
       v[0] = v1;
       v[1] = v2;
    };
+
+   Vec6(const doublereal *pd) {
+      v[0] = Vec3(pd);
+      v[1] = Vec3(&pd[3]);
+   };
    
    inline const Vec3& GetVec1(void) const {
       return v[0];
@@ -209,6 +214,16 @@ class Vec6 {
       unsigned short int j = (i-1)/3;
       v[j].Put(i-3*j, d);
    };
+   
+   /*
+    Scrive se stesso sull'array pd.
+    Si assume che l'array pd sia lungo almeno 6 
+    */
+   void PutTo(doublereal* pd) const {
+      ASSERT(pd != NULL);
+      v[0].PutTo(pd);
+      v[1].PutTo(&pd[3]);
+   };   
    
    std::ostream& Write(std::ostream& out, const char* sFill = " ") const;   
 };
