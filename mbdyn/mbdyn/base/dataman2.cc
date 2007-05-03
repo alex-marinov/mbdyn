@@ -416,9 +416,9 @@ DataManager::DofOwnerInit(void)
 			silent_cout("Element connections" << std::endl);
 		}
 		do {
-			if (pEl->GetNumConnectedNodes() > 0) {
-				pEl->GetConnectedNodes(connectedNodes);
+			pEl->GetConnectedNodes(connectedNodes);
 
+			if (connectedNodes.size() > 0) {
 				if (uPrintFlags & PRINT_EL_CONNECTION) {
 					silent_cout(psElemNames[pEl->GetElemType()]
 						<< "(" << pEl->GetLabel() << ") connecting" << std::endl);
@@ -446,6 +446,7 @@ DataManager::DofOwnerInit(void)
 						<< "(" << pEl->GetLabel() << ") not connected" << std::endl);
 				}
 			}
+
 		} while (ElemIter.bGetNext(pEl));
 
 

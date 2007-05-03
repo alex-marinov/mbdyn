@@ -217,17 +217,17 @@ public:
 inline int
 Elem::GetNumConnectedNodes(void) const
 {
-	silent_cerr(psElemNames[GetElemType()] << "(" << GetLabel() << ") "
-		"cannot be used in parallel environment" << std::endl);
-	return -1;
+	/* FIXME: need to make GetConnectedNodes() const! */
+	std::vector<const Node *> connectedNodes;
+	const_cast<Elem *>(this)->GetConnectedNodes(connectedNodes);
+
+	return connectedNodes.size();
 }
  
 inline void
 Elem::GetConnectedNodes(std::vector<const Node *>& connectedNodes)
 {
-	/* NOTE: this will cause an exception to be thrown */
-	(void)GetNumConnectedNodes();
-	throw ErrGeneric();
+	connectedNodes.resize(0);
 }
 
 /* Adams output stuff */

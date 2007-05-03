@@ -212,18 +212,13 @@ int_d_get_priv_data(const LoadableElem* /* pEl */ , unsigned int /* i */ )
 static int
 int_i_get_num_connected_nodes(const LoadableElem* pEl)
 {
-	silent_cerr(psElemNames[Elem::LOADABLE]
-		<< "(" << pEl->GetLabel() << ") "
-		"cannot be used in parallel environment" << std::endl);
-	return -1;
+	return 0;
 }
 
 static void
 int_get_connected_nodes(const LoadableElem* pEl, std::vector<const Node *>& connectedNodes)
 {
-	/* NOTE: this will cause an exception to be thrown */
-	(void)int_i_get_num_connected_nodes(pEl);
-	throw ErrGeneric();
+	connectedNodes.resize(0);
 }
 
 static void 
