@@ -293,7 +293,6 @@ DataManager::InverseDofOwnerSet(void)
                 j != ElemData[Elem::JOINT].ElemMap.end(); j++)
         {
 		ElemWithDofs* pEWD = CastElemWithDofs(j->second);
-		DofOwner* pDO = (DofOwner*)pEWD->pGetDofOwner();
 		iJointTotNumDofs += pEWD->iGetNumDof();
 
         }
@@ -363,9 +362,10 @@ void DataManager::InverseDofInit(bool bIsSquare)
       		integer iNumDofs = 0;  /* numero di dof di un owner */
 
       		for(int iCnt = 1;  
-			pTmp < DofData[DofOwner::STRUCTURALNODE].pFirstDofOwner + 
-			DofData[DofOwner::STRUCTURALNODE].iNum; 
-			iCnt++, pTmp++, ppNode++) {
+			pTmp < DofData[DofOwner::STRUCTURALNODE].pFirstDofOwner
+				+ DofData[DofOwner::STRUCTURALNODE].iNum; 
+			iCnt++, pTmp++, ppNode++)
+		{
 			iNumDofs = pTmp->iNumDofs = (*ppNode)->iGetNumDof();
 			if(iNumDofs > 0) {
 				pTmp->iFirstIndex = iNodeIndex;
@@ -398,7 +398,9 @@ void DataManager::InverseDofInit(bool bIsSquare)
 				iJointIndex += iNumDofs;
 		 	} else {
 		    		pTmp->iFirstIndex = -1;
-		    		DEBUGCERR("warning, item " << iCnt << " has 0 dofs" << std::endl);
+		    		DEBUGCERR("warning, "
+					"Joint(" << j->second->GetLabel() << ") "
+					"has 0 dofs" << std::endl);
 		 	}
 				
 		}
