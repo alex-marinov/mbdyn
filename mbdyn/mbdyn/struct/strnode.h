@@ -268,7 +268,7 @@ public:
 	/* Inverse Dynamics: */
 	/* Do Update on node position, velocity or acceleration 
 	 * depending on iOrder */
-	virtual void Update(const VectorHandler& X, int iOrder);
+	void Update(const VectorHandler& X, int iOrder);
 
 	/* Funzioni di inizializzazione, ereditate da DofOwnerOwner */
 	virtual void SetInitialValue(VectorHandler& X) const;

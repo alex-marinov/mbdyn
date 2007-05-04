@@ -96,6 +96,9 @@ InverseSolver::Run(void)
    	/* Legge i dati relativi al metodo di integrazione */
    	ReadData(HP);
 
+/*FIXME:*/	
+	bParallel = false;
+
 #if USE_RTAI
 	if (bRT) {
 		/* FIXME: if using RTAI, clear out output */

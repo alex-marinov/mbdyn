@@ -890,7 +890,7 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 			Mat3x3 R2r = pNode2->GetRCurr()*R2hr;
 		
 			Vec3 XDelta = R1.Transpose()*b1 - tilde_f1 - XDrv.Get();
-		
+
 			Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
 			Mat3x3 RDelta = R1r.Transpose()*R2r*R0T;
 			Vec3 ThetaDelta = RotManip::VecRot(RDelta);

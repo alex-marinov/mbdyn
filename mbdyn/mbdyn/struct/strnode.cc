@@ -1136,6 +1136,7 @@ StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 	WRef = WCurr;
 }
 
+/* Inverse Dynamics: */
 void
 StructNode::AfterConvergence(VectorHandler& X, int iOrder)
 {

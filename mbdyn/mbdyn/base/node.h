@@ -194,6 +194,7 @@ public:
 	virtual doublereal dGetPrivData(unsigned int i) const {
 		return dGetDofValue(i);
 	};
+	
 };
 
 /* Node - end */

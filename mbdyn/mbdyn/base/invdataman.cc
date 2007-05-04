@@ -195,14 +195,14 @@ DataManager::AssRes(VectorHandler& ResHdl,
 
 void
 DataManager::Update(int iOrder) const
-{	
+{
 	/* Nodes: */
 	switch(iOrder)	{
 		case 0:	{	/* Update nodes positions */
 			Node** ppLastNode = ppNodes+iTotNodes;
 			for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
 				ASSERT(*ppTmp != NULL);
-				dynamic_cast<StructNode *>(*ppTmp)->Update(*pXCurr, iOrder);
+				(*ppTmp)->Update(*pXCurr, iOrder);
 			}
 			break;
 		}
@@ -210,7 +210,7 @@ DataManager::Update(int iOrder) const
 			Node** ppLastNode = ppNodes+iTotNodes;
 			for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
 				ASSERT(*ppTmp != NULL);
-				dynamic_cast<StructNode *>(*ppTmp)->Update(*pXPrimeCurr, iOrder);
+				(*ppTmp)->Update(*pXPrimeCurr, iOrder);
 			}
 			break;
 		}
@@ -218,7 +218,7 @@ DataManager::Update(int iOrder) const
 			Node** ppLastNode = ppNodes+iTotNodes;
 			for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
 				ASSERT(*ppTmp != NULL);
-				dynamic_cast<StructNode *>(*ppTmp)->Update(*pXPrimePrimeCurr, iOrder);
+				(*ppTmp)->Update(*pXPrimePrimeCurr, iOrder);
 			}
 			break;
 		}
@@ -248,11 +248,13 @@ DataManager::AfterConvergence(int iOrder) const
 {	
 	/* Nodes: */
 	switch(iOrder)	{
-		case 0:	{	/* Update nodes positions */
+		case 0:	{
 			Node** ppLastNode = ppNodes+iTotNodes;
 			for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
 				ASSERT(*ppTmp != NULL);
-				dynamic_cast<StructNode *>(*ppTmp)->AfterConvergence(*(VectorHandler*)pXCurr, iOrder);
+				if(StructNode* pTmp = dynamic_cast<StructNode *>(*ppTmp)) {
+					pTmp->AfterConvergence(*(VectorHandler*)pXCurr, iOrder);
+				}
 			}
 			break;
 		}

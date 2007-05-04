@@ -1425,10 +1425,9 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 			EffIter++;
 		}
 		/* use acceleration */
-		Update(pSol);
 		pSM->Solve();
+		Update(pSol);
 	}
-
 
 	/* Forces */
 	SetOrder(-1);

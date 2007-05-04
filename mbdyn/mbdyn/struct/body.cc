@@ -712,7 +712,7 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 	int iOrder)
 {
 	DEBUGCOUTFNAME("DynamicBody::AssRes");
-
+	
 	ASSERT(iOrder == -1);
 
 	/* Se e' definita l'accelerazione di gravita', la aggiunge */
