@@ -400,7 +400,8 @@ MBDynParser::ConstitutiveLaw_int(void)
 	switch (dim) {
 	case 1:
 	{
-		ConstitutiveLaw1D *pCL = pDM->ReadConstLaw1D(*this, clt);
+		/* allow "reference" (copy cached constitutive law) */
+		ConstitutiveLaw1D *pCL = GetConstLaw1D(clt);
 		if (pCL == NULL) {
 			silent_cerr("unable to read constitutive law 1D " 
 					<< uLabel);
@@ -431,7 +432,8 @@ MBDynParser::ConstitutiveLaw_int(void)
 
 	case 3:
 	{
-		ConstitutiveLaw3D *pCL = pDM->ReadConstLaw3D(*this, clt);
+		/* allow "reference" (copy cached constitutive law) */
+		ConstitutiveLaw3D *pCL = GetConstLaw3D(clt);
 		if (pCL == NULL) {
 			silent_cerr("unable to read constitutive law 1D " 
 					<< uLabel);
@@ -462,7 +464,8 @@ MBDynParser::ConstitutiveLaw_int(void)
 
 	case 6:
 	{
-		ConstitutiveLaw6D *pCL = pDM->ReadConstLaw6D(*this, clt);
+		/* allow "reference" (copy cached constitutive law) */
+		ConstitutiveLaw6D *pCL = GetConstLaw6D(clt);
 		if (pCL == NULL) {
 			silent_cerr("unable to read constitutive law 6D " 
 					<< uLabel);
@@ -527,16 +530,8 @@ MBDynParser::DriveCaller_int(void)
 		bDeferred = true;
 	}
 
-	DriveCaller *pDC = 0;
-	try {
-		pDC = ReadDriveData(pDM, *this, bDeferred);
-	}
-	catch (DataManager::ErrNeedDataManager) {
-		silent_cerr("the \"drive caller\" statement must appear "
-				"inside or after the \"control data\" block"
-				<< std::endl);
-		throw DataManager::ErrNeedDataManager();
-	}
+	/* allow "reference" (copy cached drive) */
+	DriveCaller *pDC = GetDriveCaller(bDeferred);
 	if (pDC == NULL) {
 		silent_cerr("unable to read drive caller " << uLabel);
 		if (sName) {
