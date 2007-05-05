@@ -84,7 +84,8 @@ protected:
 #endif /* USE_MULTITHREAD */
 
 	/* Handler vari */
-	MathParser& MathPar;      /* Received from MultiStepIntegrator */
+	MBDynParser& MBPar;	/* Received from Solver */
+	MathParser& MathPar;	/* Received from Solver */
 	Solver* pSolver;
 
 	/* loadable elements */
@@ -323,6 +324,7 @@ public:
 	/* Restituisce il DriveHandler */
 	const DriveHandler* pGetDrvHdl(void) const { return &DrvHdl; };
 	MathParser& GetMathParser(void) const { return MathPar; };
+	MBDynParser& GetMBDynParser(void) const { return MBPar; };
 
 	/* Assembla lo jacobiano */
 	virtual void AssJac(MatrixHandler& JacHdl, doublereal dCoef);

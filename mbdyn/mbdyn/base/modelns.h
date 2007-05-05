@@ -35,15 +35,29 @@
 #include "mathp.h"
 #include "dataman.h"
 
-class ModelNameSpace: public MathParser::StaticNameSpace {
+class ModelNameSpace: public MathParser::NameSpace {
 protected:
 	DataManager *pDM;
+
+public:
+	typedef MathParser::MathArgPriv_t<DataManager *> MathArgDM;
+	typedef MathParser::MathArgPriv_t<const BasicScalarFunction *> MathArgSF;
+
+	typedef std::map<std::string, MathParser::MathFunc_t *> funcType;
+
+protected:
+	funcType func;
+
+	MathParser::MathFunc_t sf_func;
 
 public:
 	ModelNameSpace(DataManager *pdm);
 	~ModelNameSpace(void);
 
-	TypedValue EvalFunc(MathFunc_t *f, Real *d) const;
+	bool IsFunc(const char* const s) const;
+	MathParser::MathFunc_t* GetFunc(const char* const s) const;
+	TypedValue EvalFunc(MathParser::MathFunc_t *f,
+		const MathParser::MathArgs& args) const;
 };
 
 #endif /* MODELNS_H */

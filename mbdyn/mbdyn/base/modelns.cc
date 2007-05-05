@@ -77,12 +77,26 @@ IDX2str(IDX_t IDX)
  * Computes the position of a structural node
  */
 template <IDX_t IDX>
-static Real
-position(DataManager *pDM, Real n)
+static int
+position(const MathParser::MathArgs& args)
 {
-	unsigned uLabel = unsigned(n);
+	ASSERT(args.size() == 1 + 1 + 1);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_INT);
+	ASSERT(args[2]->Type() == MathParser::AT_PRIVATE);
 
-	StructNode *pNode = pDM->pFindStructNode(uLabel);
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t *>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgInt_t *arg1 = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
+	ASSERT(arg1 != 0);
+
+	ModelNameSpace::MathArgDM *dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[2]);
+	ASSERT(dm != 0);
+
+	unsigned uLabel = unsigned((*arg1)());
+
+	StructNode *pNode = (*dm)()->pFindStructNode(uLabel);
 	if (pNode == 0) {
 		silent_cerr("position" << IDX2str(IDX)
 				<< "(" << uLabel << "): "
@@ -93,27 +107,47 @@ position(DataManager *pDM, Real n)
 
 	switch (IDX) {
 	case NORM:
-		return pNode->GetXCurr().Norm();
+		*out = pNode->GetXCurr().Norm();
 
 	case SQUARE:
-		return pNode->GetXCurr().Dot();
+		*out = pNode->GetXCurr().Dot();
 
 	default:
-		return pNode->GetXCurr()(IDX);
+		*out = pNode->GetXCurr()(IDX);
 	}
+
+	return 0;
 }
 
 /*
  * Computes the distance between two structural nodes
  */
 template <IDX_t IDX>
-static Real
-distance(DataManager *pDM, Real n1, Real n2)
+static int
+distance(const MathParser::MathArgs& args)
 {
-	unsigned uLabel1 = unsigned(n1);
-	unsigned uLabel2 = unsigned(n2);
+	ASSERT(args.size() == 1 + 2);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_INT);
+	ASSERT(args[2]->Type() == MathParser::AT_INT);
+	ASSERT(args[3]->Type() == MathParser::AT_PRIVATE);
 
-	StructNode *pNode1 = pDM->pFindStructNode(uLabel1);
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t *>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgInt_t *arg1 = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
+	ASSERT(arg1 != 0);
+
+	MathParser::MathArgInt_t *arg2 = dynamic_cast<MathParser::MathArgInt_t *>(args[2]);
+	ASSERT(arg2 != 0);
+
+	ModelNameSpace::MathArgDM *dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[3]);
+	ASSERT(dm != 0);
+
+	unsigned uLabel1 = unsigned((*arg1)());
+	unsigned uLabel2 = unsigned((*arg2)());
+
+	StructNode *pNode1 = (*dm)()->pFindStructNode(uLabel1);
 	if (pNode1 == 0) {
 		silent_cerr("distance" << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
@@ -122,7 +156,7 @@ distance(DataManager *pDM, Real n1, Real n2)
 		throw ErrGeneric();
 	}
 
-	StructNode *pNode2 = pDM->pFindStructNode(uLabel2);
+	StructNode *pNode2 = (*dm)()->pFindStructNode(uLabel2);
 	if (pNode2 == 0) {
 		silent_cerr("distance" << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
@@ -135,27 +169,47 @@ distance(DataManager *pDM, Real n1, Real n2)
 
 	switch (IDX) {
 	case NORM:
-		return d.Norm();
+		*out = d.Norm();
 
 	case SQUARE:
-		return d.Dot();
+		*out = d.Dot();
 
 	default:
-		return d(IDX);
+		*out = d(IDX);
 	}
+
+	return 0;
 }
 
 /*
  * Computes the distance between two structural nodes
  */
 template <IDX_t IDX>
-static Real
-anglerel(DataManager *pDM, Real n1, Real n2)
+static int
+anglerel(const MathParser::MathArgs& args)
 {
-	unsigned uLabel1 = unsigned(n1);
-	unsigned uLabel2 = unsigned(n2);
+	ASSERT(args.size() == 1 + 2);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_INT);
+	ASSERT(args[2]->Type() == MathParser::AT_INT);
+	ASSERT(args[3]->Type() == MathParser::AT_PRIVATE);
 
-	StructNode *pNode1 = pDM->pFindStructNode(uLabel1);
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t *>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgInt_t *arg1 = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
+	ASSERT(arg1 != 0);
+
+	MathParser::MathArgInt_t *arg2 = dynamic_cast<MathParser::MathArgInt_t *>(args[2]);
+	ASSERT(arg2 != 0);
+
+	ModelNameSpace::MathArgDM *dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[3]);
+	ASSERT(dm != 0);
+
+	unsigned uLabel1 = unsigned((*arg1)());
+	unsigned uLabel2 = unsigned((*arg2)());
+
+	StructNode *pNode1 = (*dm)()->pFindStructNode(uLabel1);
 	if (pNode1 == 0) {
 		silent_cerr("angle" << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
@@ -164,7 +218,7 @@ anglerel(DataManager *pDM, Real n1, Real n2)
 		throw ErrGeneric();
 	}
 
-	StructNode *pNode2 = pDM->pFindStructNode(uLabel2);
+	StructNode *pNode2 = (*dm)()->pFindStructNode(uLabel2);
 	if (pNode2 == 0) {
 		silent_cerr("angle" << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
@@ -177,23 +231,39 @@ anglerel(DataManager *pDM, Real n1, Real n2)
 
 	switch (IDX) {
 	case NORM:
-		return phi.Norm();
+		*out = phi.Norm();
 
 	default:
-		return phi(IDX);
+		*out = phi(IDX);
 	}
+
+	return 0;
 }
 
 /*
  * Computes the velocity of a structural node
  */
 template <IDX_t IDX>
-static Real
-velocity(DataManager *pDM, Real n)
+static int
+velocity(const MathParser::MathArgs& args)
 {
-	unsigned uLabel = unsigned(n);
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_INT);
+	ASSERT(args[2]->Type() == MathParser::AT_PRIVATE);
 
-	StructNode *pNode = pDM->pFindStructNode(uLabel);
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t *>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgInt_t *arg1 = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
+	ASSERT(arg1 != 0);
+
+	ModelNameSpace::MathArgDM *dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[2]);
+	ASSERT(dm != 0);
+
+	unsigned uLabel = unsigned((*arg1)());
+
+	StructNode *pNode = (*dm)()->pFindStructNode(uLabel);
 	if (pNode == 0) {
 		silent_cerr("velocity" << IDX2str(IDX)
 				<< "(" << uLabel << "): "
@@ -204,27 +274,47 @@ velocity(DataManager *pDM, Real n)
 
 	switch (IDX) {
 	case NORM:
-		return pNode->GetVCurr().Norm();
+		*out = pNode->GetVCurr().Norm();
 
 	case SQUARE:
-		return pNode->GetVCurr().Dot();
+		*out = pNode->GetVCurr().Dot();
 
 	default:
-		return pNode->GetVCurr()(IDX);
+		*out = pNode->GetVCurr()(IDX);
 	}
+
+	return 0;
 }
 
 /*
  * Computes the relative velocity between two structural nodes
  */
 template <IDX_t IDX>
-static Real
-vrel(DataManager *pDM, Real n1, Real n2)
+static int
+vrel(const MathParser::MathArgs& args)
 {
-	unsigned uLabel1 = unsigned(n1);
-	unsigned uLabel2 = unsigned(n2);
+	ASSERT(args.size() == 1 + 2);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_INT);
+	ASSERT(args[2]->Type() == MathParser::AT_INT);
+	ASSERT(args[3]->Type() == MathParser::AT_PRIVATE);
 
-	StructNode *pNode1 = pDM->pFindStructNode(uLabel1);
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t *>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgInt_t *arg1 = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
+	ASSERT(arg1 != 0);
+
+	MathParser::MathArgInt_t *arg2 = dynamic_cast<MathParser::MathArgInt_t *>(args[2]);
+	ASSERT(arg2 != 0);
+
+	ModelNameSpace::MathArgDM *dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[3]);
+	ASSERT(dm != 0);
+
+	unsigned uLabel1 = unsigned((*arg1)());
+	unsigned uLabel2 = unsigned((*arg2)());
+
+	StructNode *pNode1 = (*dm)()->pFindStructNode(uLabel1);
 	if (pNode1 == 0) {
 		silent_cerr("vrel" << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
@@ -233,7 +323,7 @@ vrel(DataManager *pDM, Real n1, Real n2)
 		throw ErrGeneric();
 	}
 
-	StructNode *pNode2 = pDM->pFindStructNode(uLabel2);
+	StructNode *pNode2 = (*dm)()->pFindStructNode(uLabel2);
 	if (pNode2 == 0) {
 		silent_cerr("vrel" << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
@@ -246,73 +336,372 @@ vrel(DataManager *pDM, Real n1, Real n2)
 
 	switch (IDX) {
 	case NORM:
-		return d.Norm();
+		*out = d.Norm();
 
 	case SQUARE:
-		return d.Dot();
+		*out = d.Dot();
 
 	default:
-		return d(IDX);
+		*out = d(IDX);
 	}
+
+	return 0;
 }
 
-static MathFunc_t	ModelFunc[] = {
-	{ "position",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)position<NORM>) },	0,	"" },
-	{ "position2",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)position<SQUARE>) },	0,	"" },
-	{ "xposition",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)position<IDX1>) },	0,	"" },
-	{ "yposition",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)position<IDX2>) },	0,	"" },
-	{ "zposition",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)position<IDX3>) },	0,	"" },
+static int
+model_sf(const MathParser::MathArgs& args)
+{
+	ASSERT(args.size() == 1 + 1 + 1);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
+	ASSERT(args[2]->Type() == MathParser::AT_PRIVATE);
 
-	{ "distance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<NORM>) },	0,	"" },
-	{ "distance2",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<SQUARE>) },	0,	"" },
-	{ "xdistance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<IDX1>) },	0,	"" },
-	{ "ydistance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<IDX2>) },	0,	"" },
-	{ "zdistance",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)distance<IDX3>) },	0,	"" },
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
+	ASSERT(out != 0);
 
-	{ "anglerel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)anglerel<NORM>) },	0,	"" },
-	{ "xanglerel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)anglerel<IDX1>) },	0,	"" },
-	{ "yanglerel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)anglerel<IDX2>) },	0,	"" },
-	{ "zanglerel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)anglerel<IDX3>) },	0,	"" },
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
+	ASSERT(arg1 != 0);
 
-	{ "velocity",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)velocity<NORM>) },	0,	"" },
-	{ "velocity2",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)velocity<SQUARE>) },	0,	"" },
-	{ "xvelocity",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)velocity<IDX1>) },	0,	"" },
-	{ "yvelocity",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)velocity<IDX2>) },	0,	"" },
-	{ "zvelocity",	1,	{ (MathFunc_0args_t)((ModelFunc_1args_t)velocity<IDX3>) },	0,	"" },
+	ModelNameSpace::MathArgSF *sf = dynamic_cast<ModelNameSpace::MathArgSF*>(args[2]);
+	ASSERT(sf != 0);
 
-	{ "vrel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)vrel<NORM>) },		0,	"" },
-	{ "vrel2",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)vrel<SQUARE>) },	0,	"" },
-	{ "xvrel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)vrel<IDX1>) },		0,	"" },
-	{ "yvrel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)vrel<IDX2>) },		0,	"" },
-	{ "zvrel",	2,	{ (MathFunc_0args_t)((ModelFunc_2args_t)vrel<IDX3>) },		0,	"" },
+	*out = (*(*sf)())((*arg1)());
 
-     /* add more as needed */
-	{ 0,		0,	{ (MathFunc_0args_t)0 },		0,	0 }
-};
+	return 0;
+}
 
 ModelNameSpace::ModelNameSpace(DataManager *pdm)
-: MathParser::StaticNameSpace("model", ModelFunc), pDM(pdm)
+: MathParser::NameSpace("model"), pDM(pdm)
 {
-	NO_OP;
+	// scalar functions
+	sf_func.fname = "sf";
+	sf_func.args.resize(1 + 1 + 1);
+	sf_func.args[0] = new MathParser::MathArgReal_t;
+	sf_func.args[1] = new MathParser::MathArgReal_t;
+	sf_func.args[2] = new MathArgSF;
+	sf_func.f = model_sf;
+	sf_func.t = 0;
+
+	MathParser::MathFunc_t *f;
+
+	// position
+	f = new MathParser::MathFunc_t;
+	f->fname = "position";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathArgDM;
+	f->f = position<NORM>;
+	f->t = 0;
+
+	// position2
+	f = new MathParser::MathFunc_t;
+	f->fname = "position2";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathArgDM;
+	f->f = position<SQUARE>;
+	f->t = 0;
+
+	// xposition
+	f = new MathParser::MathFunc_t;
+	f->fname = "xposition";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathArgDM;
+	f->f = position<IDX1>;
+	f->t = 0;
+
+	// yposition
+	f = new MathParser::MathFunc_t;
+	f->fname = "yposition";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathArgDM;
+	f->f = position<IDX2>;
+	f->t = 0;
+
+	// zposition
+	f = new MathParser::MathFunc_t;
+	f->fname = "zposition";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathArgDM;
+	f->f = position<IDX3>;
+	f->t = 0;
+
+	// distance
+	f = new MathParser::MathFunc_t;
+	f->fname = "distance";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathParser::MathArgReal_t;
+	f->args[3] = new MathArgDM;
+	f->f = distance<NORM>;
+	f->t = 0;
+
+	// distance2
+	f = new MathParser::MathFunc_t;
+	f->fname = "distance2";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathParser::MathArgReal_t;
+	f->args[3] = new MathArgDM;
+	f->f = distance<SQUARE>;
+	f->t = 0;
+
+	// xdistance
+	f = new MathParser::MathFunc_t;
+	f->fname = "xdistance";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathParser::MathArgReal_t;
+	f->args[3] = new MathArgDM;
+	f->f = distance<IDX1>;
+	f->t = 0;
+
+	// ydistance
+	f = new MathParser::MathFunc_t;
+	f->fname = "ydistance";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathParser::MathArgReal_t;
+	f->args[3] = new MathArgDM;
+	f->f = distance<IDX2>;
+	f->t = 0;
+
+	// zdistance
+	f = new MathParser::MathFunc_t;
+	f->fname = "zdistance";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathParser::MathArgReal_t;
+	f->args[3] = new MathArgDM;
+	f->f = distance<IDX3>;
+	f->t = 0;
+
+	// anglerel
+	f = new MathParser::MathFunc_t;
+	f->fname = "anglerel";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathParser::MathArgReal_t;
+	f->args[3] = new MathArgDM;
+	f->f = distance<NORM>;
+	f->t = 0;
+
+	// xanglerel
+	f = new MathParser::MathFunc_t;
+	f->fname = "xanglerel";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathParser::MathArgReal_t;
+	f->args[3] = new MathArgDM;
+	f->f = distance<IDX1>;
+	f->t = 0;
+
+	// yanglerel
+	f = new MathParser::MathFunc_t;
+	f->fname = "yanglerel";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathParser::MathArgReal_t;
+	f->args[3] = new MathArgDM;
+	f->f = distance<IDX2>;
+	f->t = 0;
+
+	// zanglerel
+	f = new MathParser::MathFunc_t;
+	f->fname = "zanglerel";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathParser::MathArgReal_t;
+	f->args[3] = new MathArgDM;
+	f->f = distance<IDX3>;
+	f->t = 0;
+
+	// velocity
+	f = new MathParser::MathFunc_t;
+	f->fname = "velocity";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathArgDM;
+	f->f = velocity<NORM>;
+	f->t = 0;
+
+	// velocity2
+	f = new MathParser::MathFunc_t;
+	f->fname = "velocity2";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathArgDM;
+	f->f = velocity<SQUARE>;
+	f->t = 0;
+
+	// xvelocity
+	f = new MathParser::MathFunc_t;
+	f->fname = "xvelocity";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathArgDM;
+	f->f = velocity<IDX1>;
+	f->t = 0;
+
+	// yvelocity
+	f = new MathParser::MathFunc_t;
+	f->fname = "yvelocity";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathArgDM;
+	f->f = velocity<IDX2>;
+	f->t = 0;
+
+	// zvelocity
+	f = new MathParser::MathFunc_t;
+	f->fname = "zvelocity";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathArgDM;
+	f->f = velocity<IDX3>;
+	f->t = 0;
+
+	// vrel
+	f = new MathParser::MathFunc_t;
+	f->fname = "vrel";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathParser::MathArgReal_t;
+	f->args[3] = new MathArgDM;
+	f->f = vrel<NORM>;
+	f->t = 0;
+
+	// vrel2
+	f = new MathParser::MathFunc_t;
+	f->fname = "vrel2";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathParser::MathArgReal_t;
+	f->args[3] = new MathArgDM;
+	f->f = vrel<SQUARE>;
+	f->t = 0;
+
+	// xvrel
+	f = new MathParser::MathFunc_t;
+	f->fname = "xvrel";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathParser::MathArgReal_t;
+	f->args[3] = new MathArgDM;
+	f->f = vrel<IDX1>;
+	f->t = 0;
+
+	// yvrel
+	f = new MathParser::MathFunc_t;
+	f->fname = "yvrel";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathParser::MathArgReal_t;
+	f->args[3] = new MathArgDM;
+	f->f = vrel<IDX2>;
+	f->t = 0;
+
+	// zvrel
+	f = new MathParser::MathFunc_t;
+	f->fname = "zvrel";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgReal_t;
+	f->args[2] = new MathParser::MathArgReal_t;
+	f->args[3] = new MathArgDM;
+	f->f = vrel<IDX3>;
+	f->t = 0;
 }
 
 ModelNameSpace::~ModelNameSpace(void)
 {
-	NO_OP;
+	for (MathParser::MathArgs::iterator i = sf_func.args.begin();
+		i != sf_func.args.end();
+		i++)
+	{
+		delete *i;
+	}
+}
+
+bool
+ModelNameSpace::IsFunc(const char* const s) const
+{
+	return GetFunc(s) != 0;
+}
+
+MathParser::MathFunc_t*
+ModelNameSpace::GetFunc(const char* const s) const
+{
+	if (strncmp(s, "sf::", STRLENOF("sf::")) == 0) {
+		const BasicScalarFunction *sf = pDM->GetMBDynParser().GetScalarFunction(&s[STRLENOF("sf::")]);
+
+		if (sf == 0) {
+			throw ErrGeneric();
+		}
+
+		(*dynamic_cast<MathArgSF*>(sf_func.args[2]))() = sf;
+
+		return const_cast<MathParser::MathFunc_t*>(&sf_func);
+	}
+
+	funcType::const_iterator i = func.find(std::string(s));
+
+	if (i != func.end()) {
+		return i->second;
+	}
+
+	return 0;
 }
 
 TypedValue 
-ModelNameSpace::EvalFunc(MathFunc_t *f, Real *d) const
+ModelNameSpace::EvalFunc(MathParser::MathFunc_t *f, const MathParser::MathArgs& args) const
 {
-	switch (f->nargs) {
-	case 0:
-		return TypedValue((*((ModelFunc_0args_t)(f->f.f0)))(pDM));
+	for (unsigned i = 0; i != args.size(); i++) {
+		if (args[i]->Type() == MathParser::AT_PRIVATE) {
+			MathArgDM *dm = dynamic_cast<MathArgDM *>(args[i]);
+			if (dm) {
+				(*dm)() = pDM;
+			}
+		}
+	}
 
-	case 1:
-		return TypedValue((*((ModelFunc_1args_t)(f->f.f1)))(pDM, d[0]));
+	f->f(args);
 
-	case 2:
-		return TypedValue((*((ModelFunc_2args_t)(f->f.f2)))(pDM, d[0], d[1]));
+	switch (args[0]->Type()) {
+	case MathParser::AT_VOID:
+		return TypedValue(0);
+
+	case MathParser::AT_INT:
+		return TypedValue((*dynamic_cast<MathParser::MathArgInt_t*>(args[0]))());
+
+	case MathParser::AT_REAL:
+		return TypedValue((*dynamic_cast<MathParser::MathArgReal_t*>(args[0]))());
 
 	default:
 		throw ErrGeneric();

@@ -49,7 +49,7 @@ skip_again:;
 		}
 	}
 
-	if (cIn == ONE_LINE_REMARK) {
+	if (cIn == MathParser::ONE_LINE_REMARK) {
 		for (cIn = In.get(); cIn != '\n'; cIn = In.get()) {
 			if (cIn == '\\') {
 				cIn = In.get();

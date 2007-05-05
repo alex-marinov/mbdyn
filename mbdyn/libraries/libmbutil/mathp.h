@@ -38,6 +38,7 @@
 #include <ac/math.h>
 #include <time.h>
 #include <ac/iostream>
+#include <vector>
 #include <map>
 #include <string>
 
@@ -51,33 +52,101 @@
 
 #include <stack.h>
 
-typedef Real (*MathFunc_0args_t)(void);
-typedef Real (*MathFunc_1args_t)(Real);
-typedef Real (*MathFunc_2args_t)(Real, Real);
-typedef Int (*MathFuncTest_t)(Real *);
-
-/* struttura delle funzioni built-in */
-struct MathFunc_t {
-	const char* fname;		/* nome */
-	Int nargs;			/* numero di argomenti */
-	union {
-		MathFunc_0args_t	f0;
-		MathFunc_1args_t	f1;
-		MathFunc_2args_t	f2;
-		/* add more as needed */
-	} f;				/* puntatore a funzione */
-	MathFuncTest_t	t;		/* puntatore a funzione di test */
-	const char* errmsg;		/* messaggio di errore */
-};
-
-
-/* massimo numero di argomenti */
-const Int max_nargs = 2;		/* keep it updated */
-
-const char ONE_LINE_REMARK = '#';		/* carattere di inizio commento */
-
 class MathParser {
 public:
+	/* massimo numero di argomenti */
+	/* keep it updated */
+	static const Int max_nargs = 2;
+
+	enum ArgType {
+		AT_VOID,
+		AT_PRIVATE,
+		AT_INT,
+		AT_REAL,
+		AT_STRING
+	};
+
+	class MathArg_t {
+	public:
+		virtual ~MathArg_t(void) { NO_OP; };
+		virtual ArgType Type(void) const = 0;
+	};
+
+	class MathArgVoid_t : public MathArg_t {
+	public:
+		virtual ~MathArgVoid_t(void) { NO_OP; };
+		virtual ArgType Type(void) const { return AT_VOID; };
+	};
+
+	template <class T, ArgType TT = AT_PRIVATE>
+	class MathArgPriv_t : public MathArg_t {
+	protected:
+		T m_val;
+	public:
+		MathArgPriv_t(const T& val) : m_val(val) { NO_OP; };
+		MathArgPriv_t(void) { NO_OP; };
+		virtual ~MathArgPriv_t(void) { NO_OP; };
+		virtual ArgType Type(void) const { return TT; };
+		const T& operator()(void) const { return m_val; };
+		T& operator()(void) { return m_val; };
+	};
+
+	typedef MathArgPriv_t<Int, AT_INT> MathArgInt_t;
+	typedef MathArgPriv_t<Real, AT_REAL> MathArgReal_t;
+	typedef MathArgPriv_t<std::string, AT_STRING> MathArgString_t;
+
+#if 0
+	class MathArgInt_t : public MathArg_t {
+	protected:
+		Int m_val;
+	public:
+		MathArgInt_t(const Int& val = 0) : m_val(val) { NO_OP; };
+		virtual ~MathArgInt_t(void) { NO_OP; };
+		virtual ArgType Type(void) const { return AT_INT; };
+		const Int& operator()(void) const { return m_val; };
+		Int& operator()(void) { return m_val; };
+	};
+
+	struct MathArgReal_t : public MathArg_t {
+	protected:
+		Real m_val;
+	public:
+		MathArgReal_t(const Real& val = 0) : m_val(val) { NO_OP; };
+		virtual ~MathArgReal_t(void) { NO_OP; };
+		virtual ArgType Type(void) const { return AT_REAL; };
+		const Real& operator()(void) const { return m_val; };
+		Real& operator()(void) { return m_val; };
+	};
+
+	struct MathArgString_t : public MathArg_t {
+	protected:
+		std::string m_val;
+	public:
+		MathArgString_t(const std::string& val) : m_val(val) { NO_OP; };
+		MathArgString_t(void) { NO_OP; };
+		virtual ~MathArgString_t(void) { NO_OP; };
+		virtual ArgType Type(void) const { return AT_STRING; };
+		const std::string& operator()(void) const { return m_val; };
+		std::string& operator()(void) { return m_val; };
+	};
+#endif
+
+	typedef std::vector<MathArg_t*> MathArgs;
+	typedef int (*MathFunc_f)(const MathArgs& args);
+	typedef int (*MathFuncTest_f)(const MathArgs& args);
+
+	/* struttura delle funzioni built-in */
+	struct MathFunc_t {
+		std::string fname;		/* function name */
+		MathArgs args;			/* argomenti (0: out; 1->n: in) */
+		MathFunc_f f;			/* puntatore a funzione */
+		MathFuncTest_f t;		/* puntatore a funzione di test */
+		std::string errmsg;		/* messaggio di errore */
+	};
+
+	/* carattere di inizio commento */
+	static const char ONE_LINE_REMARK = '#';
+
 	/* Namespace */
 	class NameSpace {
 		const char	*name;
@@ -87,22 +156,23 @@ public:
 		virtual ~NameSpace(void);
 		virtual const char *sGetName(void) const;
 		virtual bool IsFunc(const char* const s) const = 0;
-		virtual MathFunc_t* GetFunc(const char* const s) const = 0;
-		virtual TypedValue EvalFunc(MathFunc_t *f, Real *d) const = 0;
+		virtual MathParser::MathFunc_t* GetFunc(const char* const s) const = 0;
+		virtual TypedValue EvalFunc(MathParser::MathFunc_t *f, const MathArgs& args) const = 0;
 	};
 
 	/* Static namespace */
 	class StaticNameSpace : public MathParser::NameSpace {
 	private:
-		MathFunc_t	*func;
+		typedef std::map<std::string, MathParser::MathFunc_t *> funcType;
+		funcType func;
 
 	public:
-		StaticNameSpace(const char *n, MathFunc_t f[]);
+		StaticNameSpace(void);
 		~StaticNameSpace(void);
 
 		bool IsFunc(const char* const s) const;
-		MathFunc_t* GetFunc(const char* const s) const;
-		virtual TypedValue EvalFunc(MathFunc_t *f, Real *d) const;
+		MathParser::MathFunc_t* GetFunc(const char* const s) const;
+		virtual TypedValue EvalFunc(MathParser::MathFunc_t *f, const MathArgs& args) const;
 	};
 
 	/* Prototipo dei plugin */
@@ -295,7 +365,7 @@ protected:
 	TypedValue power(void);
 
 	/* helper per expr, che valuta le funzioni built-in */
-	TypedValue evalfunc(MathParser::NameSpace *ns, MathFunc_t* f);
+	TypedValue evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f);
 
 	/* valuta le espressioni */
 	TypedValue expr(void);

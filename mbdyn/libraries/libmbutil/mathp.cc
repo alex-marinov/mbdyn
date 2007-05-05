@@ -38,259 +38,546 @@
 
 
 /* helper per le funzioni built-in */
-Int
-asin_t(Real* d)
+typedef double (*mp_f1_f)(double);
+typedef double (*mp_f2_f)(double, double);
+
+template <class Tin, class Tout, mp_f1_f F>
+static int
+mp_func_1(const MathParser::MathArgs& args)
 {
-	if (d[0] > 1. || d[0] < -1.) {
-		return 1;
-	}
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[0].Type() == MathParser::AT_REAL);
+	ASSERT(args[1].Type() == MathParser::AT_REAL);
+
+	Tout *out = dynamic_cast<Tout *>(args[0]);
+	ASSERT(out != 0);
+
+	Tin *arg1 = dynamic_cast<Tin *>(args[1]);
+	ASSERT(arg1 != 0);
+
+	*out = F((*arg1)());
+
 	return 0;
 }
 
-Int
-tan_t(Real* d)
+template <class Tin, class Tout, mp_f2_f F>
+static int
+mp_func_2(const MathParser::MathArgs& args)
 {
-	Real a = d[0] - int(d[0]/M_PI)*M_PI;
-	if (fabs(fabs(a)-M_PI_2) < DBL_EPSILON) {
-		return 1;
-	}
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[0].Type() == MathParser::AT_REAL);
+	ASSERT(args[1].Type() == MathParser::AT_REAL);
+	ASSERT(args[2].Type() == MathParser::AT_REAL);
+
+	Tout *out = dynamic_cast<Tout *>(args[0]);
+	ASSERT(out != 0);
+
+	Tin *arg1 = dynamic_cast<Tin *>(args[1]);
+	ASSERT(arg1 != 0);
+
+	Tin *arg2 = dynamic_cast<Tin *>(args[2]);
+	ASSERT(arg2 != 0);
+
+	*out = F((*arg1)(), (*arg2)());
+
 	return 0;
 }
 
-Int
-acosh_t(Real* d)
+static int
+mp_asin_t(const MathParser::MathArgs& args)
 {
-	if (d[0] < 0.) {
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[1].Type() == MathParser::AT_REAL);
+
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
+	ASSERT(arg1 != 0);
+
+	if ((*arg1)() > 1. || (*arg1)() < -1.) {
 		return 1;
 	}
+
 	return 0;
 }
 
-Int
-atanh_t(Real* d)
+static int
+mp_acos_t(const MathParser::MathArgs& args)
 {
-	if (d[0] >= 1. || d[0] <= -1.) {
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[1].Type() == MathParser::AT_REAL);
+
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
+	ASSERT(arg1 != 0);
+
+	if ((*arg1)() < 0.) {
 		return 1;
 	}
+
 	return 0;
 }
 
-Int
-log_t(Real* d)
+static int
+mp_tan_t(const MathParser::MathArgs& args)
 {
-	if (d[0] <= 0.) {
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[1].Type() == MathParser::AT_REAL);
+
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
+	ASSERT(arg1 != 0);
+
+	Real a = (*arg1)() - int((*arg1)()/M_PI)*M_PI;
+	if (fabs(fabs(a) - M_PI_2) < DBL_EPSILON) {
 		return 1;
 	}
+
 	return 0;
 }
 
-Real
-mp_rand(void)
+static int
+mp_acosh_t(const MathParser::MathArgs& args)
 {
-	return Real(rand());
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[1].Type() == MathParser::AT_REAL);
+
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
+	ASSERT(arg1 != 0);
+
+	if ((*arg1)() <= 1.) {
+		return 1;
+	}
+
+	return 0;
 }
 
-Real
-mp_rndm(void)
+static int
+mp_atanh_t(const MathParser::MathArgs& args)
 {
-	return -1. + 2.*(Real(rand())/Real(RAND_MAX));
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[1].Type() == MathParser::AT_REAL);
+
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
+	ASSERT(arg1 != 0);
+
+	if ((*arg1)() >= 1. || (*arg1)() <= -1.) {
+		return 1;
+	}
+
+	return 0;
 }
 
-Real
-mp_srnd(Real s)
+static int
+mp_log_t(const MathParser::MathArgs& args)
 {
-	srand((unsigned int)s);
-	return Real(0);
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[1].Type() == MathParser::AT_REAL);
+
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
+	ASSERT(arg1 != 0);
+
+	if ((*arg1)() <= 0.) {
+		return 1;
+	}
+
+	return 0;
 }
 
-Real
-mp_prnt(Real s)
+static int
+mp_rand(const MathParser::MathArgs& args)
 {
-	silent_cout(s << std::endl);
-	return s;
+	ASSERT(args.size() == 1 + 0);
+	ASSERT(args[0].Type() == MathParser::AT_INT);
+
+	MathParser::MathArgInt_t* out = dynamic_cast<MathParser::MathArgInt_t*>(args[0]);
+	ASSERT(out != 0);
+
+	*out = rand();
+
+	return 0;
 }
 
-Real
-mp_stop(Real s, Real v)
+static int
+mp_rndm(const MathParser::MathArgs& args)
 {
-	if (s != 0.) {
-		if (int(v) == 0) {
+	ASSERT(args.size() == 1 + 0);
+	ASSERT(args[0].Type() == MathParser::AT_REAL);
+
+	MathParser::MathArgReal_t* out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
+	ASSERT(out != 0);
+
+	*out = -1. + 2.*(Real(rand())/Real(RAND_MAX));
+
+	return 0;
+}
+
+static int
+mp_srnd(const MathParser::MathArgs& args)
+{
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[0].Type() == MathParser::AT_VOID);
+	ASSERT(args[1].Type() == MathParser::AT_INT);
+
+	MathParser::MathArgInt_t *arg1 = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
+	ASSERT(arg1 != 0);
+
+	srand((unsigned int)(*arg1)());
+
+	return 0;
+}
+
+static std::ostream&
+operator << (std::ostream& out, MathParser::MathArgVoid_t& v)
+{
+	return out;
+}
+
+static std::ostream&
+operator << (std::ostream& out, MathParser::MathArgInt_t& v)
+{
+	return out << v();
+}
+
+static std::ostream&
+operator << (std::ostream& out, MathParser::MathArgReal_t& v)
+{
+	return out << v();
+}
+
+static std::ostream&
+operator << (std::ostream& out, MathParser::MathArgString_t& v)
+{
+	return out << v();
+}
+
+static int
+mp_print(const MathParser::MathArgs& args)
+{
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[0].Type() == MathParser::AT_VOID);
+
+	silent_cout(args[1] << std::endl);
+
+	return 0;
+}
+
+static int
+mp_stop(const MathParser::MathArgs& args)
+{
+	ASSERT(args.size() == 1 + 2);
+	ASSERT(args[0].Type() == MathParser::AT_VOID);
+	ASSERT(args[1].Type() == MathParser::AT_INT);
+	ASSERT(args[1].Type() == MathParser::AT_INT);
+
+	MathParser::MathArgInt_t *s = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
+	ASSERT(s != 0);
+
+	MathParser::MathArgInt_t *v = dynamic_cast<MathParser::MathArgInt_t *>(args[2]);
+	ASSERT(v != 0);
+
+	if ((*s)() != 0) {
+		if ((*v)() == 0) {
 			silent_cout("mp_stop(SUCCESS)" << std::endl);
 			throw NoErr();
+
 		} else {
 			silent_cout("mp_stop(FAILURE)" << std::endl);
 			throw ErrGeneric();
 		}
 	}
-	return s;
+
+	return 0;
 }
 
-Real
-mp_ctg(Real s)
+static int
+mp_ctg(const MathParser::MathArgs& args)
 {
-	return 1./tan(s);
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[0].Type() == MathParser::AT_REAL);
+	ASSERT(args[1].Type() == MathParser::AT_REAL);
+
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t *>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
+	ASSERT(arg != 0);
+
+	*out = 1./tan((*arg1)());
+
+	return 0;
 }
 
-Int
-mp_ctg_t(Real* d)
+static int
+mp_ctg_t(const MathParser::MathArgs& args)
 {
-	Real a = d[0] - int(d[0]/M_PI)*M_PI;
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[1].Type() == MathParser::AT_REAL);
+
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
+	ASSERT(arg1 != 0);
+
+	Real a = (*arg1)() - int((*arg1)()/M_PI)*M_PI;
 	if (fabs(a) < DBL_EPSILON) {
 		return 1;
 	}
+
 	return 0;
 }
 
-Real
-mp_actg(Real s)
+static int
+mp_actg(const MathParser::MathArgs& args)
 {
-	return atan2(1., s);
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[0].Type() == MathParser::AT_REAL);
+	ASSERT(args[1].Type() == MathParser::AT_REAL);
+
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
+	ASSERT(arg1 != 0);
+
+	*out = atan2(1., (*arg1)());
+
+	return 0;
 }
 
-Real
-mp_actg2(Real s1, Real s2)
+static int
+mp_actg2(const MathParser::MathArgs& args)
 {
-	return atan2(s2, s1);
+	ASSERT(args.size() == 1 + 2);
+	ASSERT(args[0].Type() == MathParser::AT_REAL);
+	ASSERT(args[1].Type() == MathParser::AT_REAL);
+	ASSERT(args[2].Type() == MathParser::AT_REAL);
+
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
+	ASSERT(arg1 != 0);
+
+	MathParser::MathArgReal_t *arg2 = dynamic_cast<MathParser::MathArgReal_t*>(args[2]);
+	ASSERT(arg2 != 0);
+
+	*out = atan2((*arg2)(), (*arg1)());
+
+	return 0;
 }
 
-Real
-mp_ctgh(Real s)
+static int
+mp_ctgh(const MathParser::MathArgs& args)
 {
-	return 1./tanh(s);
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[0].Type() == MathParser::AT_REAL);
+	ASSERT(args[1].Type() == MathParser::AT_REAL);
+
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
+	ASSERT(arg1 != 0);
+
+	*out = 1./tanh((*arg1)());
+
+	return 0;
 }
 
-Int
-mp_ctgh_t(Real* d)
+static int
+mp_ctgh_t(const MathParser::MathArgs& args)
 {
-	if (fabs(d[0]) < DBL_EPSILON) {
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[1].Type() == MathParser::AT_REAL);
+
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
+	ASSERT(arg1 != 0);
+
+	if (fabs((*arg1)()) < DBL_EPSILON) {
 		return 1;
 	}
+
 	return 0;
 }
 
-Real
-mp_sign(Real s)
+static int
+mp_sign(const MathParser::MathArgs& args)
 {
-	return copysign(1., s);
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[0].Type() == MathParser::AT_REAL);
+	ASSERT(args[1].Type() == MathParser::AT_REAL);
+
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
+	ASSERT(arg1 != 0);
+
+	*out = copysign(1., (*arg1)());
+
+	return 0;
+}
+
+static int
+mp_max(const MathParser::MathArgs& args)
+{
+	ASSERT(args.size() == 1 + 2);
+	ASSERT(args[0].Type() == MathParser::AT_REAL);
+	ASSERT(args[1].Type() == MathParser::AT_REAL);
+	ASSERT(args[2].Type() == MathParser::AT_REAL);
+
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
+	ASSERT(arg1 != 0);
+
+	MathParser::MathArgReal_t *arg2 = dynamic_cast<MathParser::MathArgReal_t*>(args[2]);
+	ASSERT(arg2 != 0);
+
+	*out = std::max((*arg1)(), (*arg2)());
+
+	return 0;
+}
+
+static int
+mp_min(const MathParser::MathArgs& args)
+{
+	ASSERT(args.size() == 1 + 2);
+	ASSERT(args[0].Type() == MathParser::AT_REAL);
+	ASSERT(args[1].Type() == MathParser::AT_REAL);
+	ASSERT(args[2].Type() == MathParser::AT_REAL);
+
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
+	ASSERT(arg1 != 0);
+
+	MathParser::MathArgReal_t *arg2 = dynamic_cast<MathParser::MathArgReal_t*>(args[2]);
+	ASSERT(arg2 != 0);
+
+	*out = std::min((*arg1)(), (*arg2)());
+
+	return 0;
 }
 
 #ifdef __USE_XOPEN
-Real
-mp_actgh(Real s)
+static int
+mp_actgh(const MathParser::MathArgs& args)
 {
-	return atanh(1./s);
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[0].Type() == MathParser::AT_REAL);
+	ASSERT(args[1].Type() == MathParser::AT_REAL);
+
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
+	ASSERT(arg1 != 0);
+
+	*out = atanh(1./(*arg1)());
+
+	return 0;
 }
 #endif
 
-Real
-mp_step(Real s)
+static int
+mp_step(const MathParser::MathArgs& args)
 {
-	if (s > 0.) {
-		return 1.;
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[0].Type() == MathParser::AT_REAL);
+	ASSERT(args[1].Type() == MathParser::AT_REAL);
+
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
+	ASSERT(arg1 != 0);
+
+	if ((*arg1)() >= 0.) {
+		*out = 1.;
+
+	} else if ((*arg1)() == 0.) {
+		*out = .5;
+
+	} else {
+		*out = 0.;
 	}
-	return 0.;
+
+	return 0;
 }
 
-Real
-mp_ramp(Real s)
+static int
+mp_ramp(const MathParser::MathArgs& args)
 {
-	if (s > 0.) {
-		return s;
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[0].Type() == MathParser::AT_REAL);
+	ASSERT(args[1].Type() == MathParser::AT_REAL);
+
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
+	ASSERT(arg1 != 0);
+
+	if ((*arg1)() > 0.) {
+		*out = (*arg1)();
+
+	} else {
+		*out = 0.;
 	}
-	return 0.;
+
+	return 0;
 }
 
-Real
-mp_sramp(Real s, Real s_max)
+static int
+mp_sramp(const MathParser::MathArgs& args)
 {
-	if (s <= 0.) {
-		return 0.;
+	ASSERT(args.size() == 1 + 2);
+	ASSERT(args[0].Type() == MathParser::AT_REAL);
+	ASSERT(args[1].Type() == MathParser::AT_REAL);
+	ASSERT(args[2].Type() == MathParser::AT_REAL);
+
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
+	ASSERT(arg1 != 0);
+
+	MathParser::MathArgReal_t *arg2 = dynamic_cast<MathParser::MathArgReal_t*>(args[2]);
+	ASSERT(arg2 != 0);
+
+	if ((*arg1)() < 0.) {
+		*out = 0.;
+
+	} else if ((*arg1)() > (*arg2)()) {
+		*out = (*arg2)();
+
+	} else {
+		*out = (*arg1)();
 	}
-	if (s >= s_max) {
-		return s_max;
+
+	return 0;
+}
+
+static int
+mp_par(const MathParser::MathArgs& args)
+{
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[0].Type() == MathParser::AT_REAL);
+	ASSERT(args[1].Type() == MathParser::AT_REAL);
+
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
+	ASSERT(arg1 != 0);
+
+	if ((*arg1)() > 0.) {
+		*out = (*arg1)()*(*arg1)();
+
+	} else {
+		*out = 0.;
 	}
-	return s;
+
+	return 0;
 }
-
-Real
-mp_par(Real s)
-{
-	if (s > 0.) {
-		return s*s;
-	}
-	return 0.;
-}
-
-Real max_t (Real a, Real b)
-{
-	return std::max(a, b);
-}
-
-Real min_t (Real a, Real b)
-{
-	return std::min(a, b);
-}
-
-/* tabella statica delle funzioni built-in */
-static MathFunc_t FuncTable[] = {
-	{ "asin",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)asin) },		asin_t,		"" },
-	{ "acos",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)acos) },		asin_t,		"" },
-	{ "atan",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)atan) },		0,		"" },
-	{ "actan",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)mp_actg) },	0,		"" },
-	{ "atan2",	2,	{ (MathFunc_0args_t)((MathFunc_2args_t)atan2) },	0,		"" },
-	{ "actan2",	2,	{ (MathFunc_0args_t)((MathFunc_2args_t)mp_actg2) },	0,		"" },
-
-	{ "cos",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)cos) },		0,		"" },
-	{ "sin",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)sin) },		0,		"" },
-	{ "tan",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)tan) },		tan_t,		"" },
-	{ "ctan",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)mp_ctg) },	mp_ctg_t,	"" },
-
-	{ "cosh",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)cosh) },		0,		"" },
-	{ "sinh",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)sinh) },		0,		"" },
-	{ "tanh",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)tanh) },		0,		"" },
-	{ "ctanh",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)mp_ctgh) },	mp_ctgh_t,	"" },
-
-#ifdef __USE_XOPEN
-	{ "acosh",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)acosh) },	acosh_t,	"" },
-	{ "asinh",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)asinh) },	0,		"" },
-	{ "atanh",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)atanh) },	atanh_t,	"" },
-	{ "actanh",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)mp_actgh) },	0,		"" },
-#endif /* __USE_XOPEN */
-
-	{ "exp",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)exp) },		0,		"" },
-	{ "log",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)log) },		log_t,		"" },
-	{ "log10",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)log10) },	log_t,		"" },
-
-	{ "sqrt",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)sqrt) },		log_t,		"" },
-
-	{ "abs",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)fabs) },		0,		"" },
-	{ "sign",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)mp_sign) },	0,		"" },
-	{ "copysign",	2,	{ (MathFunc_0args_t)((MathFunc_2args_t)copysign) },	0,		"" },
-	{ "max",	2,	{ (MathFunc_0args_t)((MathFunc_2args_t)max_t) },	0,		"" },
-	{ "min",	2,	{ (MathFunc_0args_t)((MathFunc_2args_t)min_t) },	0,		"" },
-	{ "floor",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)floor) },	0,		"" },
-	{ "ceil",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)ceil) },		0,		"" },
-
-#ifdef __USE_XOPEN
-	{ "round",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)rint) },		0,		"" },
-#endif /* __USE_XOPEN */
-
-	{ "rand",	0,	{ (MathFunc_0args_t)((MathFunc_0args_t)mp_rand) },	0,		"" },
-	{ "random",	0,	{ (MathFunc_0args_t)((MathFunc_0args_t)mp_rndm) },	0,		"" },
-	{ "seed",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)mp_srnd) },	0,		"" },
-
-	{ "step",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)mp_step) },	0,		"" },
-	{ "ramp",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)mp_ramp) },	0,		"" },
-	{ "sramp",	2,	{ (MathFunc_0args_t)((MathFunc_2args_t)mp_sramp) },	0,		"" },
-	{ "par",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)mp_par) },	0,		"" },
-
-	{ "print",	1,	{ (MathFunc_0args_t)((MathFunc_1args_t)mp_prnt) },	0,		"" },
-	{ "stop",	2,	{ (MathFunc_0args_t)((MathFunc_2args_t)mp_stop) },	0,		"" },
-
-     /* add more as needed */
-	{ 0,		0,	{ (MathFunc_0args_t)0 },				0,		0 }
-};
-
 
 /* tipi delle variabili */
 struct TypeName_t {
@@ -967,10 +1254,645 @@ MathParser::NameSpace::sGetName(void) const
 	return name;
 }
 
-MathParser::StaticNameSpace::StaticNameSpace(const char *const n, MathFunc_t *f)
-: MathParser::NameSpace(n), func(f)
+MathParser::StaticNameSpace::StaticNameSpace()
+: MathParser::NameSpace("default")
 {
-	NO_OP;
+	MathFunc_t	*f;
+
+	// asin
+	f = new MathFunc_t;
+	f->fname = std::string("asin");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, asin>;
+	f->t = mp_asin_t;
+	f->errmsg = std::string("invalid arg to asin()");
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// acos
+	f = new MathFunc_t;
+	f->fname = std::string("acos");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, acos>;
+	f->t = mp_acos_t;
+	f->errmsg = std::string("invalid arg to acos()");
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// atan
+	f = new MathFunc_t;
+	f->fname = std::string("atan");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, atan>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// actan
+	f = new MathFunc_t;
+	f->fname = std::string("actan");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_actg;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// atan2
+	f = new MathFunc_t;
+	f->fname = std::string("atan2");
+	f->args.resize(1 + 2);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->args[2] = new MathArgReal_t;
+	f->f = mp_func_2<MathParser::MathArgReal_t, MathParser::MathArgReal_t, atan2>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// actan2
+	f = new MathFunc_t;
+	f->fname = std::string("actan2");
+	f->args.resize(1 + 2);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->args[2] = new MathArgReal_t;
+	f->f = mp_actg2;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// cos
+	f = new MathFunc_t;
+	f->fname = std::string("cos");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, cos>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// sin
+	f = new MathFunc_t;
+	f->fname = std::string("sin");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, sin>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// tan
+	f = new MathFunc_t;
+	f->fname = std::string("tan");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, tan>;
+	f->t = mp_tan_t;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// ctan
+	f = new MathFunc_t;
+	f->fname = std::string("ctan");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_ctg;
+	f->t = mp_ctg_t;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// cosh
+	f = new MathFunc_t;
+	f->fname = std::string("cosh");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, cosh>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// sinh
+	f = new MathFunc_t;
+	f->fname = std::string("sinh");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, sinh>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// tanh
+	f = new MathFunc_t;
+	f->fname = std::string("tanh");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, tanh>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// ctanh
+	f = new MathFunc_t;
+	f->fname = std::string("ctanh");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_ctgh;
+	f->t = mp_ctgh_t;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+#ifdef __USE_XOPEN
+	// acosh
+	f = new MathFunc_t;
+	f->fname = std::string("acosh");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, acosh>;
+	f->t = mp_acosh_t;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// asinh
+	f = new MathFunc_t;
+	f->fname = std::string("asinh");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, asinh>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// atanh
+	f = new MathFunc_t;
+	f->fname = std::string("atanh");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, atanh>;
+	f->t = mp_atanh_t;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// actanh
+	f = new MathFunc_t;
+	f->fname = std::string("actanh");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_actgh;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+#endif /* __USE_XOPEN */
+
+	// exp
+	f = new MathFunc_t;
+	f->fname = std::string("exp");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, exp>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// log
+	f = new MathFunc_t;
+	f->fname = std::string("log");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, log>;
+	f->t = mp_log_t;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// log10
+	f = new MathFunc_t;
+	f->fname = std::string("log10");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, log10>;
+	f->t = mp_log_t;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// sqrt
+	f = new MathFunc_t;
+	f->fname = std::string("sqrt");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, sqrt>;
+	f->t = mp_log_t;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// abs
+	f = new MathFunc_t;
+	f->fname = std::string("abs");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, fabs>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// sign
+	f = new MathFunc_t;
+	f->fname = std::string("sign");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_sign;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// copysign
+	f = new MathFunc_t;
+	f->fname = std::string("copysign");
+	f->args.resize(1 + 2);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->args[2] = new MathArgReal_t;
+	f->f = mp_func_2<MathParser::MathArgReal_t, MathParser::MathArgReal_t, copysign>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// max
+	f = new MathFunc_t;
+	f->fname = std::string("max");
+	f->args.resize(1 + 2);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->args[2] = new MathArgReal_t;
+	f->f = mp_max;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// min
+	f = new MathFunc_t;
+	f->fname = std::string("min");
+	f->args.resize(1 + 2);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->args[2] = new MathArgReal_t;
+	f->f = mp_min;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// floor
+	f = new MathFunc_t;
+	f->fname = std::string("floor");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, floor>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// ceil
+	f = new MathFunc_t;
+	f->fname = std::string("ceil");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, ceil>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+#ifdef __USE_XOPEN
+	// round
+	f = new MathFunc_t;
+	f->fname = std::string("round");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, rint>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+#endif /* __USE_XOPEN */
+
+	// rand
+	f = new MathFunc_t;
+	f->fname = std::string("rand");
+	f->args.resize(1 + 0);
+	f->args[0] = new MathArgInt_t;
+	f->f = mp_rand;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// random
+	f = new MathFunc_t;
+	f->fname = std::string("random");
+	f->args.resize(1 + 0);
+	f->args[0] = new MathArgReal_t;
+	f->f = mp_rndm;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// seed
+	f = new MathFunc_t;
+	f->fname = std::string("seed");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgVoid_t;
+	f->args[1] = new MathArgInt_t;
+	f->f = mp_srnd;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// step
+	f = new MathFunc_t;
+	f->fname = std::string("step");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_step;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// ramp
+	f = new MathFunc_t;
+	f->fname = std::string("ramp");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_ramp;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// sramp
+	f = new MathFunc_t;
+	f->fname = std::string("sramp");
+	f->args.resize(1 + 2);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->args[2] = new MathArgReal_t;
+	f->f = mp_sramp;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// sramp
+	f = new MathFunc_t;
+	f->fname = std::string("par");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_par;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// print
+	f = new MathFunc_t;
+	f->fname = std::string("print");
+	f->args.resize(1 + 1);
+	f->args[0] = new MathArgVoid_t;
+	f->args[1] = new MathArgReal_t;
+	f->f = mp_print;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// stop
+	f = new MathFunc_t;
+	f->fname = std::string("stop");
+	f->args.resize(1 + 2);
+	f->args[0] = new MathArgVoid_t;
+	f->args[1] = new MathArgInt_t;
+	f->args[2] = new MathArgInt_t;
+	f->f = mp_stop;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
 }
 
 MathParser::StaticNameSpace::~StaticNameSpace(void)
@@ -981,37 +1903,39 @@ MathParser::StaticNameSpace::~StaticNameSpace(void)
 bool
 MathParser::StaticNameSpace::IsFunc(const char* const s) const
 {
-	for (int i = 0; func[i].fname != NULL; i++) {
-		if (strcmp(s, func[i].fname) == 0) {
-			return true;
-		}
+	if (func.find(std::string(s)) != func.end()) {
+		return true;
 	}
+
 	return false;
 }
 
-MathFunc_t*
+MathParser::MathFunc_t*
 MathParser::StaticNameSpace::GetFunc(const char* const s) const
 {
-	for (int i = 0; func[i].fname != NULL; i++) {
-		if (strcmp(s, func[i].fname) == 0) {
-			return &func[i];
-		}
+	funcType::const_iterator i = func.find(std::string(s));
+
+	if (i != func.end()) {
+		return i->second;
 	}
-	return NULL;
+
+	return 0;
 }
 
 TypedValue
-MathParser::StaticNameSpace::EvalFunc(MathFunc_t *f, Real *d) const
+MathParser::StaticNameSpace::EvalFunc(MathParser::MathFunc_t *f, const MathArgs& args) const
 {
-	switch (f->nargs) {
-	case 0:
-		return TypedValue((*(f->f.f0))());
+	f->f(args);
 
-	case 1:
-		return TypedValue((*(f->f.f1))(d[0]));
+	switch (args[0]->Type()) {
+	case MathParser::AT_VOID:
+		return TypedValue(0);
 
-	case 2:
-		return TypedValue((*(f->f.f2))(d[0], d[1]));
+	case MathParser::AT_INT:
+		return TypedValue((*dynamic_cast<MathArgInt_t*>(args[0]))());
+
+	case MathParser::AT_REAL:
+		return TypedValue((*dynamic_cast<MathArgReal_t*>(args[0]))());
 
 	default:
 		throw ErrGeneric();
@@ -1181,7 +2105,10 @@ start_parsing:;
 	if (isalpha(c) || c == '_') {
 		int l = 0;
 		namebuf[l++] = char(c);
-		while ((c = in->get()), isalnum(c) || c == '_') {
+		while ((c = in->get()), isalnum(c)
+			|| c == '_'
+			|| ((currtoken == NAMESPACESEP) && c == ':'))
+		{
 			namebuf[l++] = char(c);
 			if (l ==  namebuflen) {
 				IncNameBuf();
@@ -1522,30 +2449,50 @@ MathParser::unary(void)
 }
 
 TypedValue
-MathParser::evalfunc(MathParser::NameSpace *ns, MathFunc_t* f)
+MathParser::evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f)
 {
-	Real d[max_nargs];
-	for (int i = 0; i < f->nargs; i++) {
-		d[i] = stmtlist().GetReal();
-		if (i != f->nargs - 1) {
-			if (currtoken != ARGSEP) {
-				throw ErrGeneric(this,
+	MathArgs args = f->args;
+
+	for (unsigned i = 1; i < args.size(); i++) {
+		switch (args[i]->Type()) {
+		case MathParser::AT_INT:
+			(*dynamic_cast<MathArgInt_t*>(args[i]))() = stmtlist().GetInt();
+			break;
+
+		case MathParser::AT_REAL:
+			(*dynamic_cast<MathArgReal_t*>(args[i]))() = stmtlist().GetReal();
+			break;
+
+		case MathParser::AT_PRIVATE:
+			/* ignore */
+			break;
+
+		default:
+			throw ErrGeneric();
+		}
+
+		if (i < args.size() - 1) {
+			if (args[i + 1]->Type() != AT_PRIVATE) {
+				if (currtoken != ARGSEP) {
+					throw ErrGeneric(this,
 						"argument separator expected");
+				}
+				GetToken();
 			}
-			GetToken();
+		}
+	}
+			
+	if (f->t != 0) {
+		if (f->t(args)) {
+			DEBUGCERR("error in function "
+				<< ns->sGetName() << "::" << f->fname 
+				<< " " "(msg: " << f->errmsg << ")"
+				<< " in evalfunc()" << std::endl);
+			throw ErrGeneric(this, f->fname.c_str(), ": error ", f->errmsg.c_str());
 		}
 	}
 
-	if (f->t != NULL) {
-		if ((*(f->t))(d)) {
-			DEBUGCERR("error in function " << f->fname << " "
-					"(msg: " << f->errmsg << ")"
-					<< " in evalfunc()" << std::endl);
-			throw ErrGeneric(this, f->fname, ": error ", f->errmsg);
-		}
-	}
-
-	return ns->EvalFunc(f, d);
+	return ns->EvalFunc(f, args);
 }
 
 TypedValue
@@ -1598,7 +2545,7 @@ MathParser::expr(void)
 				throw ErrGeneric(this, "user-defined functions not supported yet!");
 			}
 
-			MathFunc_t* f = currNameSpace->GetFunc(namebuf);
+			MathParser::MathFunc_t* f = currNameSpace->GetFunc(namebuf);
 			if (f == NULL) {
 				throw ErrGeneric(this, "function '", namebuf, "' not found");
 			}
@@ -1607,7 +2554,7 @@ MathParser::expr(void)
 			if (currtoken != CBR) {
 				throw ErrGeneric(this, "closing parenthesis "
 						"expected after function "
-						"\"", f->fname, "\" in expr()");
+						"\"", f->fname.c_str(), "\" in expr()");
 			}
 			GetToken();
 			return d;
@@ -1994,7 +2941,7 @@ powerstack()
 
 	SAFENEWARR(namebuf, char, namebuflen + 1);
 
-	defaultNameSpace = new StaticNameSpace("default", FuncTable);
+	defaultNameSpace = new StaticNameSpace();
 	if (RegisterNameSpace(defaultNameSpace)) {
 		throw ErrGeneric(this, "unable to register namespace "
 				"\"", defaultNameSpace->sGetName(), "\"");
@@ -2022,7 +2969,7 @@ powerstack()
 
 	SAFENEWARR(namebuf, char, namebuflen + 1);
 
-	defaultNameSpace = new StaticNameSpace("default", FuncTable);
+	defaultNameSpace = new StaticNameSpace();
 	if (RegisterNameSpace(defaultNameSpace)) {
 		throw ErrGeneric(this, "unable to register namespace "
 				"\"", defaultNameSpace->sGetName(), "\"");

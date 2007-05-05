@@ -97,6 +97,7 @@ SolverDiagnostics(OF),
 #ifdef USE_MULTITHREAD
 nThreads(0),
 #endif /* USE_MULTITHREAD */
+MBPar(HP),
 MathPar(HP.GetMathParser()),
 pSolver(pS),
 DrvHdl(HP.GetMathParser()),
