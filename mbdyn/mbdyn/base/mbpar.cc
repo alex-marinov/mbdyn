@@ -1263,6 +1263,17 @@ MBDynParser::GetConstLaw6D(ConstLawType::Type& clt)
 	return i->second->pCopy();
 }
 
+const DriveCaller *
+MBDynParser::GetDrive(unsigned uLabel) const
+{
+	DCType::const_iterator i = DC.find(uLabel);
+	if (i == DC.end()) {
+		return 0;
+	}
+
+	return i->second;
+}
+
 DriveCaller *
 MBDynParser::GetDriveCaller(bool bDeferred)
 {
@@ -1282,15 +1293,15 @@ MBDynParser::GetDriveCaller(bool bDeferred)
 	}
 
 	unsigned int uLabel = GetInt();
-	DCType::const_iterator i = DC.find(uLabel);
-	if (i == DC.end()) {
+	const DriveCaller *pDC = GetDrive(uLabel);
+	if (pDC == 0) {
 		silent_cerr("drive caller " << uLabel
-				<< " is undefined at line "
-				<< GetLineData() << std::endl);
+			<< " is undefined at line "
+			<< GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric();
 	}
 
-	return i->second->pCopy();
+	return pDC->pCopy();
 }
 
 const BasicScalarFunction *

@@ -284,7 +284,7 @@ can be reassigned.
 		\\
 		\kw{e} & Real & Neper's number \\
 		\kw{pi} & Real & $\pi$ \\
-		\kw{RAND\_MAX} & Integer & Maximum random integer \\
+		\kw{RAND\_MAX} & Int & Maximum random integer \\
 		\\
 		\kw{in2m} & Real & Inch to meter ratio (0.0254) \\
 		\kw{m2in} & Real & Meter to inch ratio (1.0/0.0254) \\
@@ -294,8 +294,8 @@ can be reassigned.
 		\kw{m2ft} & Real & Meter to foot ratio (1.0/0.3048) \\
 		\kw{lb2kg} & Real & Pound to kilogram ratio (0.4535) \\
 		\kw{kg2lb} & Real & Kilogram to pound ratio (1.0/0.4535) \\
-		\kw{deg2rad} & Real & Degree to radiant ratio ($\pi$/180) \\
-		\kw{rad2deg} & Real & Radiant to degree ratio (180/$\pi$) \\
+		\kw{deg2rad} & Real & Degree to radian ratio ($\pi$/180) \\
+		\kw{rad2deg} & Real & Radian to degree ratio (180/$\pi$) \\
 		\hline
 	\end{tabular}
 	\end{center}
@@ -320,9 +320,9 @@ defined in Table~\ref{tab:MODEL-NS-FUNCS}.
 
 \begin{table}
 	\begin{center}
-	\caption{Mathematical Functions in \kw{model} namespace}
+	\caption{Functions in \kw{model} namespace}
 	\label{tab:MODEL-NS-FUNCS}
-	\begin{tabular}{lll}
+	\begin{tabular}{llp{.6\textwidth}}
 		\hline
 		\multicolumn{1}{c}{\textbf{\emph{Name}}} &
 		\multicolumn{1}{c}{\textbf{\emph{Arg[s]}}} &
@@ -352,6 +352,12 @@ defined in Table~\ref{tab:MODEL-NS-FUNCS}.
 		\kw{xvrel} & Int, Int & $X$ component of relative velocity between structural nodes \\
 		\kw{yvrel} & Int, Int & $Y$ component of relative velocity between structural nodes \\
 		\kw{zvrel} & Int, Int & $Z$ component of relative velocity between structural nodes \\
+		\kw{drive} & Int, Real & evaluates the \htmlref{\kw{drive caller}}{sec:DRIVE-CALLER}
+					indicated by its label (the first argument)
+					for the input specified as second argument \\
+		\kw{sf::<name>} & Real & evaluates the \htmlref{\kw{scalar function}}{sec:SCALARFUNCS}
+					\kw{<name>} for the input specified as argument \\
+				
 		\hline
 	\end{tabular}
 	\end{center}
@@ -713,9 +719,9 @@ with \kw{MD} \emph{Mach} points and \kw{ND} angle of attack records;
 with \kw{MM} \emph{Mach} points and \kw{NM} angle of attack records.
 \end{itemize}
 
-\subsubsection{Alternate Format}
+\subsubsection{Alternative Format}
 An alternative format, required by some projects, can be used by supplying
-the optional switch \kw{fc511}; it is not documented.
+the optional switch \kw{fc511}; it is intentionally not documented.
 
 \subsubsection{Free Format}
 Finally, to allow higher precision whenever available, a native format,
@@ -1261,12 +1267,12 @@ Linear interpolation between pairs is used.
 \begin{verbatim}
     <drive_caller> ::= sine ,
         <initial_time> ,
-        <pulsation> ,
+        <angular_velocity> ,
         <amplitude> ,
         { [ - ] <number_of_cycles> | half | one | forever } , 
         <initial_value>
 \end{verbatim}
-where \kw{pulsation} is $2\pi/T$.
+where \kw{angular\_velocity} is $2\pi/T$.
 The value of \kw{number\_of\_cycles} determines the behavior of the drive. 
 If it is positive, \kw{number\_of\_cycles}$-1/2$ oscillations are performed. 
 If it is negative, the oscillations end after 
@@ -1284,17 +1290,17 @@ Special keywords can be used for \kw{number\_of\_cycles}:
 \begin{verbatim}
     <drive_caller> ::= cosine ,
         <initial_time> ,
-        <pulsation> ,
+        <angular_velocity> ,
         <amplitude> ,
         { [ - ] <number_of_cycles> | half | one | forever } , 
         <initial_value>
 \end{verbatim}
-where \kw{pulsation} is $2\pi/T$.
+where \kw{angular\_velocity} is $2\pi/T$.
 This drive actually computes a function of the type
 \begin{displaymath}
 	\mathtt{amplitude} * \plbr{
 		1 - \llk{cos}\plbr{
-			\mathtt{pulsation} * \plbr{
+			\mathtt{angular\_velocity} * \plbr{
 				t - \mathtt{initial\_time}
 			}
 		}
@@ -1313,14 +1319,14 @@ Special keywords can be used for \kw{number\_of\_cycles}:
 	\item \kw{half}, which means exactly half cycle is performed,
 	so the function stops at
 	\begin{displaymath}
-		t = \mathtt{initial\_time} + \frac{\pi}{\mathtt{pulsation}} ,
+		t = \mathtt{initial\_time} + \frac{\pi}{\mathtt{angular\_velocity}} ,
 	\end{displaymath}
 	with a value of
 	\begin{displaymath}
 		f = 2 * \mathtt{amplitude} + \mathtt{initial\_value} ,
 	\end{displaymath}
 	starting and ending with continuous derivative.
-	In this case, it may be convenient to indicate the \kw{pulsation}
+	In this case, it may be convenient to indicate the \kw{angular\_velocity}
 	as $\pi/\mathtt{duration}$, where \kw{duration} is the time
 	required to complete the half-wave.
 \end{itemize}
@@ -1331,7 +1337,7 @@ Special keywords can be used for \kw{number\_of\_cycles}:
 \begin{verbatim}
     <drive_caller> ::= fourier series ,
         <initial_time> ,
-        <pulsation> ,
+        <angular_velocity> ,
         <number_of_terms> ,
             a_0 ,
             a_1 , b_1 ,
@@ -1339,7 +1345,7 @@ Special keywords can be used for \kw{number\_of\_cycles}:
         { <number_of_cycles> | one | forever } , 
         <initial_value>
 \end{verbatim}
-This drive corresponds to a Fourier series of fundamental pulsation $\omega$,
+This drive corresponds to a Fourier series of fundamental angular velocity $\omega$,
 truncated after $n$ terms, over a given number of cycles $P$ and starting 
 at a given initial time $t_0$ as
 \begin{displaymath}
@@ -1368,13 +1374,13 @@ the \kw{number\_of\_terms} must be at least 1.
 \begin{verbatim}
     <drive_caller> ::= frequency sweep ,
         <initial_time> ,
-        <pulsation_drive> ,
+        <angular_velocity_drive> ,
         <amplitude_drive> ,
         <initial_value> ,
         { forever | <final_time> } ,
         <final_value>
 \end{verbatim}
-this drive recursively calls two other drives that supply the pulsation 
+this drive recursively calls two other drives that supply the angular velocity 
 and the amplitude of the oscillation. Any drive can be used.
 
 \subsection{Exponential drive}

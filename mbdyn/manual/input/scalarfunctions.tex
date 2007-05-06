@@ -76,8 +76,8 @@ a \kw{const} scalar function is assumed.
 \begin{verbatim}
     <scalar_func_type> ::= exp
     <scalar_func_args> ::=
-        [ { base , <base> } , ]
-        [ { coefficient , <coef> } , ]
+        [ base , <base> , ]
+        [ coefficient , <coef> , ]
         <multiplier_coef>
 \end{verbatim}
 Note: the optional \kw{base} must be positive (defaults to $e$, Neper's number).
@@ -86,8 +86,8 @@ Note: the optional \kw{base} must be positive (defaults to $e$, Neper's number).
 \begin{verbatim}
     <scalar_func_type> ::= log
     <scalar_func_args> ::=
-        [ { base , <base> } , ]
-        [ { coefficient , <coef> } , ]
+        [ base , <base> , ]
+        [ coefficient , <coef> , ]
         <multiplier_coef>
 \end{verbatim}
 Note: the optional \kw{base} (defaults to $e$, Neper's number,

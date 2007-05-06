@@ -59,8 +59,13 @@ public:
 	static const Int max_nargs = 2;
 
 	enum ArgType {
-		AT_VOID,
+		/* AT_PRIVATE means only who created that type
+		 * is supposed to deal with it (the default);
+		 * the MathParser only knows how to deal with
+		 * the remaining types */
 		AT_PRIVATE,
+
+		AT_VOID,
 		AT_INT,
 		AT_REAL,
 		AT_STRING
@@ -94,42 +99,6 @@ public:
 	typedef MathArgPriv_t<Int, AT_INT> MathArgInt_t;
 	typedef MathArgPriv_t<Real, AT_REAL> MathArgReal_t;
 	typedef MathArgPriv_t<std::string, AT_STRING> MathArgString_t;
-
-#if 0
-	class MathArgInt_t : public MathArg_t {
-	protected:
-		Int m_val;
-	public:
-		MathArgInt_t(const Int& val = 0) : m_val(val) { NO_OP; };
-		virtual ~MathArgInt_t(void) { NO_OP; };
-		virtual ArgType Type(void) const { return AT_INT; };
-		const Int& operator()(void) const { return m_val; };
-		Int& operator()(void) { return m_val; };
-	};
-
-	struct MathArgReal_t : public MathArg_t {
-	protected:
-		Real m_val;
-	public:
-		MathArgReal_t(const Real& val = 0) : m_val(val) { NO_OP; };
-		virtual ~MathArgReal_t(void) { NO_OP; };
-		virtual ArgType Type(void) const { return AT_REAL; };
-		const Real& operator()(void) const { return m_val; };
-		Real& operator()(void) { return m_val; };
-	};
-
-	struct MathArgString_t : public MathArg_t {
-	protected:
-		std::string m_val;
-	public:
-		MathArgString_t(const std::string& val) : m_val(val) { NO_OP; };
-		MathArgString_t(void) { NO_OP; };
-		virtual ~MathArgString_t(void) { NO_OP; };
-		virtual ArgType Type(void) const { return AT_STRING; };
-		const std::string& operator()(void) const { return m_val; };
-		std::string& operator()(void) { return m_val; };
-	};
-#endif
 
 	typedef std::vector<MathArg_t*> MathArgs;
 	typedef int (*MathFunc_f)(const MathArgs& args);

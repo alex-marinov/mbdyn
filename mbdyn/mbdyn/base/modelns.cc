@@ -108,12 +108,15 @@ position(const MathParser::MathArgs& args)
 	switch (IDX) {
 	case NORM:
 		*out = pNode->GetXCurr().Norm();
+		break;
 
 	case SQUARE:
 		*out = pNode->GetXCurr().Dot();
+		break;
 
 	default:
 		*out = pNode->GetXCurr()(IDX);
+		break;
 	}
 
 	return 0;
@@ -126,7 +129,7 @@ template <IDX_t IDX>
 static int
 distance(const MathParser::MathArgs& args)
 {
-	ASSERT(args.size() == 1 + 2);
+	ASSERT(args.size() == 1 + 2 + 1);
 	ASSERT(args[0]->Type() == MathParser::AT_REAL);
 	ASSERT(args[1]->Type() == MathParser::AT_INT);
 	ASSERT(args[2]->Type() == MathParser::AT_INT);
@@ -170,12 +173,15 @@ distance(const MathParser::MathArgs& args)
 	switch (IDX) {
 	case NORM:
 		*out = d.Norm();
+		break;
 
 	case SQUARE:
 		*out = d.Dot();
+		break;
 
 	default:
 		*out = d(IDX);
+		break;
 	}
 
 	return 0;
@@ -188,7 +194,7 @@ template <IDX_t IDX>
 static int
 anglerel(const MathParser::MathArgs& args)
 {
-	ASSERT(args.size() == 1 + 2);
+	ASSERT(args.size() == 1 + 2 + 1);
 	ASSERT(args[0]->Type() == MathParser::AT_REAL);
 	ASSERT(args[1]->Type() == MathParser::AT_INT);
 	ASSERT(args[2]->Type() == MathParser::AT_INT);
@@ -232,9 +238,11 @@ anglerel(const MathParser::MathArgs& args)
 	switch (IDX) {
 	case NORM:
 		*out = phi.Norm();
+		break;
 
 	default:
 		*out = phi(IDX);
+		break;
 	}
 
 	return 0;
@@ -247,7 +255,7 @@ template <IDX_t IDX>
 static int
 velocity(const MathParser::MathArgs& args)
 {
-	ASSERT(args.size() == 1 + 1);
+	ASSERT(args.size() == 1 + 1 + 1);
 	ASSERT(args[0]->Type() == MathParser::AT_REAL);
 	ASSERT(args[1]->Type() == MathParser::AT_INT);
 	ASSERT(args[2]->Type() == MathParser::AT_PRIVATE);
@@ -275,12 +283,15 @@ velocity(const MathParser::MathArgs& args)
 	switch (IDX) {
 	case NORM:
 		*out = pNode->GetVCurr().Norm();
+		break;
 
 	case SQUARE:
 		*out = pNode->GetVCurr().Dot();
+		break;
 
 	default:
 		*out = pNode->GetVCurr()(IDX);
+		break;
 	}
 
 	return 0;
@@ -293,7 +304,7 @@ template <IDX_t IDX>
 static int
 vrel(const MathParser::MathArgs& args)
 {
-	ASSERT(args.size() == 1 + 2);
+	ASSERT(args.size() == 1 + 2 + 1);
 	ASSERT(args[0]->Type() == MathParser::AT_REAL);
 	ASSERT(args[1]->Type() == MathParser::AT_INT);
 	ASSERT(args[2]->Type() == MathParser::AT_INT);
@@ -337,13 +348,53 @@ vrel(const MathParser::MathArgs& args)
 	switch (IDX) {
 	case NORM:
 		*out = d.Norm();
+		break;
 
 	case SQUARE:
 		*out = d.Dot();
+		break;
 
 	default:
 		*out = d(IDX);
+		break;
 	}
+
+	return 0;
+}
+
+/*
+ * Computes the position of a structural node
+ */
+static int
+drive(const MathParser::MathArgs& args)
+{
+	ASSERT(args.size() == 1 + 2 + 1);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_INT);
+	ASSERT(args[2]->Type() == MathParser::AT_REAL);
+	ASSERT(args[3]->Type() == MathParser::AT_PRIVATE);
+
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t *>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgInt_t *arg1 = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
+	ASSERT(arg1 != 0);
+
+	MathParser::MathArgReal_t *arg2 = dynamic_cast<MathParser::MathArgReal_t *>(args[2]);
+	ASSERT(arg2 != 0);
+
+	ModelNameSpace::MathArgDM *dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[3]);
+	ASSERT(dm != 0);
+
+	unsigned uLabel = unsigned((*arg1)());
+
+	const DriveCaller *pDC = (*dm)()->GetMBDynParser().GetDrive(uLabel);
+	if (pDC == 0) {
+		silent_cerr("model namespace: drive " << uLabel << " not available" << std::endl);
+		throw ErrGeneric();
+	}
+
+	*out = pDC->dGet((*arg2)());
 
 	return 0;
 }
@@ -373,6 +424,448 @@ model_sf(const MathParser::MathArgs& args)
 ModelNameSpace::ModelNameSpace(DataManager *pdm)
 : MathParser::NameSpace("model"), pDM(pdm)
 {
+	MathParser::MathFunc_t *f;
+
+	// position
+	f = new MathParser::MathFunc_t;
+	f->fname = "position";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathArgDM;
+	f->f = position<NORM>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// position2
+	f = new MathParser::MathFunc_t;
+	f->fname = "position2";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathArgDM;
+	f->f = position<SQUARE>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// xposition
+	f = new MathParser::MathFunc_t;
+	f->fname = "xposition";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathArgDM;
+	f->f = position<IDX1>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// yposition
+	f = new MathParser::MathFunc_t;
+	f->fname = "yposition";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathArgDM;
+	f->f = position<IDX2>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// zposition
+	f = new MathParser::MathFunc_t;
+	f->fname = "zposition";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathArgDM;
+	f->f = position<IDX3>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// distance
+	f = new MathParser::MathFunc_t;
+	f->fname = "distance";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgInt_t;
+	f->args[3] = new MathArgDM;
+	f->f = distance<NORM>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// distance2
+	f = new MathParser::MathFunc_t;
+	f->fname = "distance2";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgInt_t;
+	f->args[3] = new MathArgDM;
+	f->f = distance<SQUARE>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// xdistance
+	f = new MathParser::MathFunc_t;
+	f->fname = "xdistance";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgInt_t;
+	f->args[3] = new MathArgDM;
+	f->f = distance<IDX1>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// ydistance
+	f = new MathParser::MathFunc_t;
+	f->fname = "ydistance";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgInt_t;
+	f->args[3] = new MathArgDM;
+	f->f = distance<IDX2>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// zdistance
+	f = new MathParser::MathFunc_t;
+	f->fname = "zdistance";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgInt_t;
+	f->args[3] = new MathArgDM;
+	f->f = distance<IDX3>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// anglerel
+	f = new MathParser::MathFunc_t;
+	f->fname = "anglerel";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgInt_t;
+	f->args[3] = new MathArgDM;
+	f->f = distance<NORM>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// xanglerel
+	f = new MathParser::MathFunc_t;
+	f->fname = "xanglerel";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgInt_t;
+	f->args[3] = new MathArgDM;
+	f->f = distance<IDX1>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// yanglerel
+	f = new MathParser::MathFunc_t;
+	f->fname = "yanglerel";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgInt_t;
+	f->args[3] = new MathArgDM;
+	f->f = distance<IDX2>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// zanglerel
+	f = new MathParser::MathFunc_t;
+	f->fname = "zanglerel";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgInt_t;
+	f->args[3] = new MathArgDM;
+	f->f = distance<IDX3>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// velocity
+	f = new MathParser::MathFunc_t;
+	f->fname = "velocity";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathArgDM;
+	f->f = velocity<NORM>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// velocity2
+	f = new MathParser::MathFunc_t;
+	f->fname = "velocity2";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathArgDM;
+	f->f = velocity<SQUARE>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// xvelocity
+	f = new MathParser::MathFunc_t;
+	f->fname = "xvelocity";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathArgDM;
+	f->f = velocity<IDX1>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// yvelocity
+	f = new MathParser::MathFunc_t;
+	f->fname = "yvelocity";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathArgDM;
+	f->f = velocity<IDX2>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// zvelocity
+	f = new MathParser::MathFunc_t;
+	f->fname = "zvelocity";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathArgDM;
+	f->f = velocity<IDX3>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// vrel
+	f = new MathParser::MathFunc_t;
+	f->fname = "vrel";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgInt_t;
+	f->args[3] = new MathArgDM;
+	f->f = vrel<NORM>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// vrel2
+	f = new MathParser::MathFunc_t;
+	f->fname = "vrel2";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgInt_t;
+	f->args[3] = new MathArgDM;
+	f->f = vrel<SQUARE>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// xvrel
+	f = new MathParser::MathFunc_t;
+	f->fname = "xvrel";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgInt_t;
+	f->args[3] = new MathArgDM;
+	f->f = vrel<IDX1>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// yvrel
+	f = new MathParser::MathFunc_t;
+	f->fname = "yvrel";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgInt_t;
+	f->args[3] = new MathArgDM;
+	f->f = vrel<IDX2>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// zvrel
+	f = new MathParser::MathFunc_t;
+	f->fname = "zvrel";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgInt_t;
+	f->args[3] = new MathArgDM;
+	f->f = vrel<IDX3>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
+	// drive
+	f = new MathParser::MathFunc_t;
+	f->fname = "drive";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgReal_t;
+	f->args[3] = new MathArgDM;
+	f->f = drive;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric();
+	}
+
 	// scalar functions
 	sf_func.fname = "sf";
 	sf_func.args.resize(1 + 1 + 1);
@@ -381,266 +874,21 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 	sf_func.args[2] = new MathArgSF;
 	sf_func.f = model_sf;
 	sf_func.t = 0;
-
-	MathParser::MathFunc_t *f;
-
-	// position
-	f = new MathParser::MathFunc_t;
-	f->fname = "position";
-	f->args.resize(1 + 1 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathArgDM;
-	f->f = position<NORM>;
-	f->t = 0;
-
-	// position2
-	f = new MathParser::MathFunc_t;
-	f->fname = "position2";
-	f->args.resize(1 + 1 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathArgDM;
-	f->f = position<SQUARE>;
-	f->t = 0;
-
-	// xposition
-	f = new MathParser::MathFunc_t;
-	f->fname = "xposition";
-	f->args.resize(1 + 1 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathArgDM;
-	f->f = position<IDX1>;
-	f->t = 0;
-
-	// yposition
-	f = new MathParser::MathFunc_t;
-	f->fname = "yposition";
-	f->args.resize(1 + 1 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathArgDM;
-	f->f = position<IDX2>;
-	f->t = 0;
-
-	// zposition
-	f = new MathParser::MathFunc_t;
-	f->fname = "zposition";
-	f->args.resize(1 + 1 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathArgDM;
-	f->f = position<IDX3>;
-	f->t = 0;
-
-	// distance
-	f = new MathParser::MathFunc_t;
-	f->fname = "distance";
-	f->args.resize(1 + 2 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathParser::MathArgReal_t;
-	f->args[3] = new MathArgDM;
-	f->f = distance<NORM>;
-	f->t = 0;
-
-	// distance2
-	f = new MathParser::MathFunc_t;
-	f->fname = "distance2";
-	f->args.resize(1 + 2 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathParser::MathArgReal_t;
-	f->args[3] = new MathArgDM;
-	f->f = distance<SQUARE>;
-	f->t = 0;
-
-	// xdistance
-	f = new MathParser::MathFunc_t;
-	f->fname = "xdistance";
-	f->args.resize(1 + 2 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathParser::MathArgReal_t;
-	f->args[3] = new MathArgDM;
-	f->f = distance<IDX1>;
-	f->t = 0;
-
-	// ydistance
-	f = new MathParser::MathFunc_t;
-	f->fname = "ydistance";
-	f->args.resize(1 + 2 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathParser::MathArgReal_t;
-	f->args[3] = new MathArgDM;
-	f->f = distance<IDX2>;
-	f->t = 0;
-
-	// zdistance
-	f = new MathParser::MathFunc_t;
-	f->fname = "zdistance";
-	f->args.resize(1 + 2 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathParser::MathArgReal_t;
-	f->args[3] = new MathArgDM;
-	f->f = distance<IDX3>;
-	f->t = 0;
-
-	// anglerel
-	f = new MathParser::MathFunc_t;
-	f->fname = "anglerel";
-	f->args.resize(1 + 2 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathParser::MathArgReal_t;
-	f->args[3] = new MathArgDM;
-	f->f = distance<NORM>;
-	f->t = 0;
-
-	// xanglerel
-	f = new MathParser::MathFunc_t;
-	f->fname = "xanglerel";
-	f->args.resize(1 + 2 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathParser::MathArgReal_t;
-	f->args[3] = new MathArgDM;
-	f->f = distance<IDX1>;
-	f->t = 0;
-
-	// yanglerel
-	f = new MathParser::MathFunc_t;
-	f->fname = "yanglerel";
-	f->args.resize(1 + 2 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathParser::MathArgReal_t;
-	f->args[3] = new MathArgDM;
-	f->f = distance<IDX2>;
-	f->t = 0;
-
-	// zanglerel
-	f = new MathParser::MathFunc_t;
-	f->fname = "zanglerel";
-	f->args.resize(1 + 2 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathParser::MathArgReal_t;
-	f->args[3] = new MathArgDM;
-	f->f = distance<IDX3>;
-	f->t = 0;
-
-	// velocity
-	f = new MathParser::MathFunc_t;
-	f->fname = "velocity";
-	f->args.resize(1 + 1 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathArgDM;
-	f->f = velocity<NORM>;
-	f->t = 0;
-
-	// velocity2
-	f = new MathParser::MathFunc_t;
-	f->fname = "velocity2";
-	f->args.resize(1 + 1 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathArgDM;
-	f->f = velocity<SQUARE>;
-	f->t = 0;
-
-	// xvelocity
-	f = new MathParser::MathFunc_t;
-	f->fname = "xvelocity";
-	f->args.resize(1 + 1 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathArgDM;
-	f->f = velocity<IDX1>;
-	f->t = 0;
-
-	// yvelocity
-	f = new MathParser::MathFunc_t;
-	f->fname = "yvelocity";
-	f->args.resize(1 + 1 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathArgDM;
-	f->f = velocity<IDX2>;
-	f->t = 0;
-
-	// zvelocity
-	f = new MathParser::MathFunc_t;
-	f->fname = "zvelocity";
-	f->args.resize(1 + 1 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathArgDM;
-	f->f = velocity<IDX3>;
-	f->t = 0;
-
-	// vrel
-	f = new MathParser::MathFunc_t;
-	f->fname = "vrel";
-	f->args.resize(1 + 2 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathParser::MathArgReal_t;
-	f->args[3] = new MathArgDM;
-	f->f = vrel<NORM>;
-	f->t = 0;
-
-	// vrel2
-	f = new MathParser::MathFunc_t;
-	f->fname = "vrel2";
-	f->args.resize(1 + 2 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathParser::MathArgReal_t;
-	f->args[3] = new MathArgDM;
-	f->f = vrel<SQUARE>;
-	f->t = 0;
-
-	// xvrel
-	f = new MathParser::MathFunc_t;
-	f->fname = "xvrel";
-	f->args.resize(1 + 2 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathParser::MathArgReal_t;
-	f->args[3] = new MathArgDM;
-	f->f = vrel<IDX1>;
-	f->t = 0;
-
-	// yvrel
-	f = new MathParser::MathFunc_t;
-	f->fname = "yvrel";
-	f->args.resize(1 + 2 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathParser::MathArgReal_t;
-	f->args[3] = new MathArgDM;
-	f->f = vrel<IDX2>;
-	f->t = 0;
-
-	// zvrel
-	f = new MathParser::MathFunc_t;
-	f->fname = "zvrel";
-	f->args.resize(1 + 2 + 1);
-	f->args[0] = new MathParser::MathArgReal_t;
-	f->args[1] = new MathParser::MathArgReal_t;
-	f->args[2] = new MathParser::MathArgReal_t;
-	f->args[3] = new MathArgDM;
-	f->f = vrel<IDX3>;
-	f->t = 0;
 }
 
 ModelNameSpace::~ModelNameSpace(void)
 {
+	for (funcType::iterator f = func.begin(); f != func.end(); f++) {
+		for (MathParser::MathArgs::iterator i = f->second->args.begin();
+			i != f->second->args.end();
+			i++)
+		{
+			delete *i;
+		}
+
+		delete f->second;
+	}
+
 	for (MathParser::MathArgs::iterator i = sf_func.args.begin();
 		i != sf_func.args.end();
 		i++)

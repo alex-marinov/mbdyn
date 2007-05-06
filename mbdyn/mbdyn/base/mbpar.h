@@ -247,6 +247,7 @@ public:
 	ConstitutiveLaw3D* GetConstLaw3D(ConstLawType::Type& clt);
 	ConstitutiveLaw6D* GetConstLaw6D(ConstLawType::Type& clt);
 
+	const DriveCaller* GetDrive(unsigned uLabel) const;
 	DriveCaller* GetDriveCaller(bool bDeferred = false);
 
 	const BasicScalarFunction* GetScalarFunction(void);
