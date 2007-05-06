@@ -665,6 +665,8 @@ MBDynParser::ModuleLoad_int(void)
 		throw ErrGeneric();
 	}
 
+	silent_cout("module \"" << module_name << "\" loaded" << std::endl);
+
    	SAFEDELETEARR(module_name);
 #endif /* HAVE_RUNTIME_LOADING */
 }
