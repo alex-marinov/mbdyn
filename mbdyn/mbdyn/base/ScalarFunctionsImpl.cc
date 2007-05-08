@@ -536,7 +536,7 @@ struct CubicSplineSFR: public ScalarFunctionRead {
 			x_i[i] = HP.GetReal();
 			y_i[i] = HP.GetReal();
 		}
-		while (!HP.IsKeyWord("end")) {
+		while (HP.IsArg() && !HP.IsKeyWord("end")) {
 			int size = x_i.size();
 			x_i.resize(size+1);
 			y_i.resize(size+1);
@@ -623,7 +623,7 @@ struct MultiLinearSFR: public ScalarFunctionRead {
 			x_i[i] = HP.GetReal();
 			y_i[i] = HP.GetReal();
 		}
-		while (!HP.IsKeyWord("end")) {
+		while (HP.IsArg() && !HP.IsKeyWord("end")) {
 			int size = x_i.size();
 			x_i.resize(size+1);
 			y_i.resize(size+1);
@@ -731,15 +731,15 @@ struct ChebychevSFR: public ScalarFunctionRead {
 			
 		}
 		std::vector<doublereal> v;
-		while (!HP.IsKeyWord("end")) {
+		while (HP.IsArg() && !HP.IsKeyWord("end")) {
 			int size = v.size();
 			v.resize(size+1);
 			v[size] = HP.GetReal();
 		}
-		int order = v.size();
-		if (order <= 0) {
-			silent_cerr("Invalid Chebychev series order " << order
-				<< " at line" << HP.GetLineData() << std::endl);
+		unsigned order = v.size();
+		if (order == 0) {
+			silent_cerr("Need at least one Chebychev series coefficient "
+				<< "at line" << HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 		}
 		return new ChebychevScalarFunction(v, a, b);
