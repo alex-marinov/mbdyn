@@ -138,10 +138,11 @@ it can be omitted if the card ends with a semicolon.
 \subsubsection{Chebychev Scalar Function}
 \begin{verbatim}
     <scalar_func_type> ::= chebychev
-    <scalar_func_args> ::= % [ do not extrapolate , ]
+    <scalar_func_args> ::= 
         <lower_bound> , <upper_bound> ,
+        [ do not extrapolate , ]
         <coef_0> [ , <coef_1> [ ... ] ],
-	[end]
+        [end]
 \end{verbatim}
 Chebychev polynomials of the first kind are defined as
 \begin{equation}

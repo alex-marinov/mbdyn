@@ -638,10 +638,16 @@ struct MultiLinearSFR: public ScalarFunctionRead {
 // ChebychevScalarFunction
 ChebychevScalarFunction::ChebychevScalarFunction(
 	const std::vector<doublereal>& v,
-	const doublereal& a, const doublereal& b)
-: vCoef(v), da(a), db(b)
+	const doublereal& a, const doublereal& b, bool dne)
+: vCoef(v), da(a), dfa(0.), dfap(0.), db(b), dfb(0.), dfbp(0.),
+doNotExtrapolate(dne)
 {
-	NO_OP;
+	if (!doNotExtrapolate) {
+		const_cast<doublereal&>(dfa) = this->operator()(a);
+		const_cast<doublereal&>(dfap) = this->ComputeDiff(a);
+		const_cast<doublereal&>(dfb) = this->operator()(b);
+		const_cast<doublereal&>(dfbp) = this->ComputeDiff(b);
+	}
 }
 
 ChebychevScalarFunction::~ChebychevScalarFunction(void)
@@ -653,12 +659,24 @@ doublereal
 ChebychevScalarFunction::operator()(const doublereal x) const
 {
 	if (x < da) {
-		silent_cerr("Chebychev interpolation: x=" << x << " is out of range [" << da << "," << db << "]" << std::endl);
-		throw ErrGeneric();
+		if (doNotExtrapolate) {
+			silent_cerr("Chebychev interpolation: "
+				"x=" << x << " is out of range "
+				"[" << da << "," << db << "]" << std::endl);
+			throw ErrGeneric();
+		}
+
+		return dfa + dfap*(x - da);
 
 	} else if (x > db) {
-		silent_cerr("Chebychev interpolation: x=" << x << " is out of range [" << da << "," << db << "]" << std::endl);
-		throw ErrGeneric();
+		if (doNotExtrapolate) {
+			silent_cerr("Chebychev interpolation: "
+				"x=" << x << " is out of range "
+				"[" << da << "," << db << "]" << std::endl);
+			throw ErrGeneric();
+		}
+
+		return dfb + dfbp*(x - db);
 	}
 
 	doublereal xi = (2.*x - (da + db))/(db - da);
@@ -692,12 +710,24 @@ ChebychevScalarFunction::ComputeDiff(const doublereal x, const integer order) co
 	}
 
 	if (x < da) {
-		silent_cerr("Chebychev interpolation: x=" << x << " is out of range [" << da << "," << db << "]" << std::endl);
-		throw ErrGeneric();
+		if (doNotExtrapolate) {
+			silent_cerr("Chebychev interpolation: "
+				"x=" << x << " is out of range "
+				"[" << da << "," << db << "]" << std::endl);
+			throw ErrGeneric();
+		}
+
+		return dfap;
 
 	} else if (x > db) {
-		silent_cerr("Chebychev interpolation: x=" << x << " is out of range [" << da << "," << db << "]" << std::endl);
-		throw ErrGeneric();
+		if (doNotExtrapolate) {
+			silent_cerr("Chebychev interpolation: "
+				"x=" << x << " is out of range "
+				"[" << da << "," << db << "]" << std::endl);
+			throw ErrGeneric();
+		}
+
+		return dfbp;
 	}
 
 	doublereal xi = (2.*x - (da + db))/(db - da);
@@ -723,6 +753,10 @@ struct ChebychevSFR: public ScalarFunctionRead {
 	Read(DataManager* const pDM, MBDynParser& HP) const {
 		doublereal a = HP.GetReal();
 		doublereal b = HP.GetReal();
+		bool doNotExtrapolate(false);
+		if (HP.IsKeyWord("do" "not" "extrapolate")) {
+			doNotExtrapolate = true;
+		}
 		if (b <= a) {
 			silent_cerr("Upper limit of Chebychev series b=" << b
 				<< " must be larger than lower limit a=" << a
@@ -742,7 +776,7 @@ struct ChebychevSFR: public ScalarFunctionRead {
 				<< "at line" << HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 		}
-		return new ChebychevScalarFunction(v, a, b);
+		return new ChebychevScalarFunction(v, a, b, doNotExtrapolate);
 	};
 };
 

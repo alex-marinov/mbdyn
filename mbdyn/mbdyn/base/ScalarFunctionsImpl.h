@@ -151,10 +151,12 @@ public:
 class ChebychevScalarFunction : public DifferentiableScalarFunction {
 private:
 	std::vector<doublereal> vCoef;
-	const doublereal da, db;
+	const doublereal da, dfa, dfap, db, dfb, dfbp;
+	bool doNotExtrapolate;
 public:
 	ChebychevScalarFunction(const std::vector<doublereal>& v,
-		const doublereal& a, const doublereal& b);
+		const doublereal& a, const doublereal& b,
+		bool doNotExtrapolate = false);
 	virtual ~ChebychevScalarFunction(void);
 	virtual doublereal operator()(const doublereal x) const;
 	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
