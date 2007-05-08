@@ -2500,7 +2500,13 @@ end_of_comment:;
 		int l = 0;
 		while ((c = in->get()) != '"') {
 			if (c == '\\') {
-				continue;
+				c = in->get();
+				if (c == '\0') {
+					return (currtoken = UNKNOWNTOKEN);
+				}
+				if (c == EOF || in->eof()) {
+					return (currtoken = ENDOFFILE);
+				}
 			}
 			namebuf[l++] = char(c);
 			if (l == namebuflen) {
