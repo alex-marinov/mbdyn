@@ -461,7 +461,7 @@ ReadJoint(DataManager* pDM,
 		} else {
 			pedantic_cerr("Joint(" << uLabel << "): "
 				"missing keyword \"orientation\" at line "
-				<< HP.GetLineData());
+				<< HP.GetLineData() << std::endl);
 		}
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
 			if (!HP.IsKeyWord("node")) {
