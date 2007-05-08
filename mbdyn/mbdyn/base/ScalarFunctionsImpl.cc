@@ -635,6 +635,115 @@ struct MultiLinearSFR: public ScalarFunctionRead {
 	};
 };
 
+// ChebychevScalarFunction
+ChebychevScalarFunction::ChebychevScalarFunction(
+	const std::vector<doublereal>& v,
+	const doublereal& a, const doublereal& b)
+: vCoef(v), da(a), db(b)
+{
+	NO_OP;
+}
+
+ChebychevScalarFunction::~ChebychevScalarFunction(void)
+{
+	NO_OP;
+}
+
+doublereal
+ChebychevScalarFunction::operator()(const doublereal x) const
+{
+	if (x < da) {
+		silent_cerr("Chebychev interpolation: x=" << x << " is out of range [" << da << "," << db << "]" << std::endl);
+		throw ErrGeneric();
+
+	} else if (x > db) {
+		silent_cerr("Chebychev interpolation: x=" << x << " is out of range [" << da << "," << db << "]" << std::endl);
+		throw ErrGeneric();
+	}
+
+	doublereal xi = (2.*x - (da + db))/(db - da);
+	doublereal d[2] = { 1., xi };
+	doublereal val = vCoef[0] + vCoef[1]*xi;
+
+	for (unsigned i = 2; i < vCoef.size(); i++) {
+		doublereal Tx = 2.*xi*d[i%2] - d[1 - i%2];
+		val += vCoef[i]*Tx;
+		d[1 - i%2] = Tx;
+	}
+
+	return val;
+}
+
+doublereal
+ChebychevScalarFunction::ComputeDiff(const doublereal x, const integer order) const
+{
+	ASSERTMSGBREAK(order >=0, "Error in ChebychevScalarFunction::ComputeDiff, order<0");
+
+	switch (order) {
+	case 0: 
+		return operator()(x);
+
+	case 1:
+		break;
+
+	default:
+		silent_cerr("differentiation of order " << order << " not supported yet" << std::endl);
+		throw ErrGeneric();
+	}
+
+	if (x < da) {
+		silent_cerr("Chebychev interpolation: x=" << x << " is out of range [" << da << "," << db << "]" << std::endl);
+		throw ErrGeneric();
+
+	} else if (x > db) {
+		silent_cerr("Chebychev interpolation: x=" << x << " is out of range [" << da << "," << db << "]" << std::endl);
+		throw ErrGeneric();
+	}
+
+	doublereal xi = (2.*x - (da + db))/(db - da);
+	doublereal xip = 2./(db - da);
+	doublereal d[2] = { 1., xi };
+	doublereal dp[2] = { 0., 1. };
+	doublereal val = vCoef[1];
+
+	for (unsigned i = 2; i < vCoef.size(); i++) {
+		doublereal Tx = 2.*xi*d[i%2] - d[1 - i%2];
+		doublereal Txp = 2.*d[i%2] + 2.*xi*dp[i%2] - dp[1 - i%2];
+		val += vCoef[i]*Txp;
+		d[1 - i%2] = Tx;
+		dp[1 - i%2] = Txp;
+	}
+
+	return xip*val;
+}
+
+// ScalarFunction parsing functional object
+struct ChebychevSFR: public ScalarFunctionRead {
+	virtual const BasicScalarFunction *
+	Read(DataManager* const pDM, MBDynParser& HP) const {
+		doublereal a = HP.GetReal();
+		doublereal b = HP.GetReal();
+		if (b <= a) {
+			silent_cerr("Upper limit of Chebychev series b=" << b
+				<< " must be larger than lower limit a=" << a
+				<< " at line" << HP.GetLineData() << std::endl);
+			throw ErrGeneric();
+			
+		}
+		int order = HP.GetInt();
+		if (order <= 0) {
+			silent_cerr("Invalid Chebychev series order " << order
+				<< " at line" << HP.GetLineData() << std::endl);
+			throw ErrGeneric();
+		}
+		std::vector<doublereal> v(order);
+		for (int i = 0; i < order; i++) {
+			v[i] = HP.GetReal();
+		}
+		return new ChebychevScalarFunction(v, a, b);
+	};
+};
+
 // SumScalarFunction
 SumScalarFunction::SumScalarFunction(
 	const BasicScalarFunction*const b1,
@@ -1261,17 +1370,32 @@ InitSF(void)
 		return;
 	}
 
-	SetSF("const", new ConstSFR);
-	SetSF("linear", new LinearSFR);
-	SetSF("pow", new PowSFR);
-	SetSF("log", new LogSFR);
-	SetSF("exp", new ExpSFR);
-	SetSF("sum", new SumSFR);
-	SetSF("sub", new SubSFR);
-	SetSF("mul", new MulSFR);
-	SetSF("div", new DivSFR);
-	SetSF("cubic" "spline", new CubicSplineSFR);
-	SetSF("multilinear", new MultiLinearSFR);
+	bool b;
+
+	b = SetSF("const", new ConstSFR);
+	ASSERT(b);
+	b = SetSF("linear", new LinearSFR);
+	ASSERT(b);
+	b = SetSF("pow", new PowSFR);
+	ASSERT(b);
+	b = SetSF("log", new LogSFR);
+	ASSERT(b);
+	b = SetSF("exp", new ExpSFR);
+	ASSERT(b);
+	b = SetSF("sum", new SumSFR);
+	ASSERT(b);
+	b = SetSF("sub", new SubSFR);
+	ASSERT(b);
+	b = SetSF("mul", new MulSFR);
+	ASSERT(b);
+	b = SetSF("div", new DivSFR);
+	ASSERT(b);
+	b = SetSF("cubic" "spline", new CubicSplineSFR);
+	ASSERT(b);
+	b = SetSF("multilinear", new MultiLinearSFR);
+	ASSERT(b);
+	b = SetSF("chebychev", new ChebychevSFR);
+	ASSERT(b);
 
 	/* this is about initializing the scalar function drive */
 	ScalarFunctionDCR *rf = new ScalarFunctionDCR;

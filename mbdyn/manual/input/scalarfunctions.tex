@@ -42,6 +42,8 @@ and $(x_1,y_1)$
 set of points $\{(x_i,y_i), i\in[1,k\geq3]\}$
 \item \kw{multilinear}: multilinear interpolation between the 
 set of points $\{(x_i,y_i), i\in[1,k\geq2]\}$
+\item \kw{chebychev}: Chebychev interpolation between the 
+set of points $\{a,b)$
 \item \kw{sum}: $f(x)=f_1(x) + f_2(x)$
 \item \kw{sub}: $f(x)=f_1(x) - f_2(x)$
 \item \kw{mul}: $f(x)=f_1(x) \cdot f_2(x)$
@@ -129,6 +131,47 @@ The argument must be positive as well, otherwise an exception is thrown.
         [, ...]
     <point>            ::= <x>, <y>
 \end{verbatim}
+
+\subsubsection{Chebychev Scalar Function}
+\begin{verbatim}
+    <scalar_func_type> ::= chebychev
+    <scalar_func_args> ::= % [ do not extrapolate , ]
+        <lower_bound> , <upper_bound> ,
+        <order> , <coef_0> [ , <coef_1> [ ... ] ]
+\end{verbatim}
+Chebychev polynomials of the first kind are defined as
+\begin{equation}
+	T_n\plbr{\xi} = \cos\plbr{n \cos^{-1}\plbr{\xi}} ,
+\end{equation}
+with
+\begin{equation}
+	\xi = 2 \frac{x}{b - a} + \frac{b + a}{b - a} ,
+\end{equation}
+which corresponds to the series
+\begin{align}
+	T_0\plbr{\xi} &= 1 \\
+	T_1\plbr{\xi} &= x \\
+	\ldots \nonumber \\
+	T_n\plbr{\xi} &= 2 \xi T_{n-1}\plbr{\xi} - T_{n-2}\plbr{\xi} .
+\end{align}
+This scalar function implements the truncated series in the form
+\begin{equation}
+	f\plbr{x} = \sum_{k=0,n} a_k T_k\plbr{\xi} .
+\end{equation}
+The derivative of the series is obtained by considering
+\begin{align}
+	\frac{\mathrm{d}}{\mathrm{d}\xi}T_0\plbr{\xi} &= 0 \\
+	\frac{\mathrm{d}}{\mathrm{d}\xi}T_1\plbr{\xi} &= 1 \\
+	\ldots \nonumber \\
+	\frac{\mathrm{d}}{\mathrm{d}\xi}T_n\plbr{\xi} &= 
+		2 T_{n-1}\plbr{\xi} + 2 \xi \frac{\mathrm{d}}{\mathrm{d}\xi}T_{n-1}\plbr{\xi} - \frac{\mathrm{d}}{\mathrm{d}\xi}T_{n-2}\plbr{\xi} ,
+\end{align}
+so the first derivative of the scalar function is
+\begin{equation}
+	\frac{\mathrm{d}}{\mathrm{d}x}f\plbr{x} = \frac{\mathrm{d}\xi}{\mathrm{d}x} \sum_{k=1,n} a_k \frac{\mathrm{d}}{\mathrm{d}\xi} T_k\plbr{\xi} .
+\end{equation}
+
+
 
 \subsubsection{Sum Scalar Function}
 \begin{verbatim}

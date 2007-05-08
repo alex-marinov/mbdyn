@@ -148,6 +148,18 @@ public:
 	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
 };
 
+class ChebychevScalarFunction : public DifferentiableScalarFunction {
+private:
+	std::vector<doublereal> vCoef;
+	const doublereal da, db;
+public:
+	ChebychevScalarFunction(const std::vector<doublereal>& v,
+		const doublereal& a, const doublereal& b);
+	virtual ~ChebychevScalarFunction(void);
+	virtual doublereal operator()(const doublereal x) const;
+	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
+};
+
 class SumScalarFunction : public DifferentiableScalarFunction {
 private:
 	const DifferentiableScalarFunction *const a1;

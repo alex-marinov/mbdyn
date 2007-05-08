@@ -56,6 +56,7 @@ MBDyn 1.X-Devel
 		- added TotalPinJoint
 		- added support for run-time modules in Fortran 90
 		- added support for scalar functions in model namespace
+		- added Chebychev polynomials as scalar function
 	Backward compatibility issues:
 		- per-element output removed from modal joints
 		- spherical hinge output now refers to node 1 instead of 2
