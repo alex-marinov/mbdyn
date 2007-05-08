@@ -666,9 +666,9 @@ ChebychevScalarFunction::operator()(const doublereal x) const
 	doublereal val = vCoef[0] + vCoef[1]*xi;
 
 	for (unsigned i = 2; i < vCoef.size(); i++) {
-		doublereal Tx = 2.*xi*d[i%2] - d[1 - i%2];
+		doublereal Tx = 2.*xi*d[1 - i%2] - d[i%2];
 		val += vCoef[i]*Tx;
-		d[1 - i%2] = Tx;
+		d[i%2] = Tx;
 	}
 
 	return val;
@@ -707,11 +707,11 @@ ChebychevScalarFunction::ComputeDiff(const doublereal x, const integer order) co
 	doublereal val = vCoef[1];
 
 	for (unsigned i = 2; i < vCoef.size(); i++) {
-		doublereal Tx = 2.*xi*d[i%2] - d[1 - i%2];
-		doublereal Txp = 2.*d[i%2] + 2.*xi*dp[i%2] - dp[1 - i%2];
+		doublereal Tx = 2.*xi*d[1 - i%2] - d[i%2];
+		doublereal Txp = 2.*d[1 - i%2] + 2.*xi*dp[1 - i%2] - dp[i%2];
 		val += vCoef[i]*Txp;
-		d[1 - i%2] = Tx;
-		dp[1 - i%2] = Txp;
+		d[i%2] = Tx;
+		dp[i%2] = Txp;
 	}
 
 	return xip*val;
@@ -731,13 +731,13 @@ struct ChebychevSFR: public ScalarFunctionRead {
 			
 		}
 		int order = HP.GetInt();
-		if (order <= 0) {
+		if (order < 0) {
 			silent_cerr("Invalid Chebychev series order " << order
 				<< " at line" << HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 		}
-		std::vector<doublereal> v(order);
-		for (int i = 0; i < order; i++) {
+		std::vector<doublereal> v(order + 1);
+		for (int i = 0; i <= order; i++) {
 			v[i] = HP.GetReal();
 		}
 		return new ChebychevScalarFunction(v, a, b);

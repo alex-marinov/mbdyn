@@ -2747,11 +2747,39 @@ MathParser::evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f)
 	for (unsigned i = 1; i < args.size(); i++) {
 		switch (args[i]->Type()) {
 		case MathParser::AT_INT:
-			(*dynamic_cast<MathArgInt_t*>(args[i]))() = stmtlist().GetInt();
+			if (currtoken == CBR) {
+				if (!args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
+					throw ErrGeneric(this, "integer argument expected");
+				}
+				(*dynamic_cast<MathArgInt_t*>(args[i]))() = (*dynamic_cast<MathArgInt_t*>(f->args[i]))();
+
+			} else {
+				(*dynamic_cast<MathArgInt_t*>(args[i]))() = stmtlist().GetInt();
+			}
 			break;
 
 		case MathParser::AT_REAL:
-			(*dynamic_cast<MathArgReal_t*>(args[i]))() = stmtlist().GetReal();
+			if (currtoken == CBR) {
+				if (!args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
+					throw ErrGeneric(this, "real argument expected");
+				}
+				(*dynamic_cast<MathArgReal_t*>(args[i]))() = (*dynamic_cast<MathArgReal_t*>(f->args[i]))();
+
+			} else {
+				(*dynamic_cast<MathArgReal_t*>(args[i]))() = stmtlist().GetReal();
+			}
+			break;
+
+		case MathParser::AT_STRING:
+			if (currtoken == CBR) {
+				if (!args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
+					throw ErrGeneric(this, "string argument expected");
+				}
+				(*dynamic_cast<MathArgString_t*>(args[i]))() = (*dynamic_cast<MathArgString_t*>(f->args[i]))();
+
+			} else {
+				(*dynamic_cast<MathArgString_t*>(args[i]))() = stmtlist().GetString();
+			}
 			break;
 
 		case MathParser::AT_PRIVATE:
@@ -2764,11 +2792,22 @@ MathParser::evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f)
 
 		if (i < args.size() - 1) {
 			if (args[i + 1]->Type() != AT_PRIVATE) {
-				if (currtoken != ARGSEP) {
+				switch (currtoken) {
+				case CBR:
+					if (!args[i + 1]->IsFlag(MathParser::AF_OPTIONAL)) {
+						throw ErrGeneric(this,
+							"mandatory argument expected");
+					}
+					break;
+
+				case ARGSEP:
+					GetToken();
+					break;
+
+				default:
 					throw ErrGeneric(this,
 						"argument separator expected");
 				}
-				GetToken();
 			}
 		}
 	}

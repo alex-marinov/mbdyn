@@ -405,18 +405,39 @@ model_sf(const MathParser::MathArgs& args)
 	ASSERT(args.size() == 1 + 1 + 1);
 	ASSERT(args[0]->Type() == MathParser::AT_REAL);
 	ASSERT(args[1]->Type() == MathParser::AT_REAL);
-	ASSERT(args[2]->Type() == MathParser::AT_PRIVATE);
+	ASSERT(args[2]->Type() == MathParser::AT_INT);
+	ASSERT(args[3]->Type() == MathParser::AT_PRIVATE);
 
 	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
 	ASSERT(out != 0);
 
 	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
 	ASSERT(arg1 != 0);
+	doublereal v = (*arg1)();
 
-	ModelNameSpace::MathArgSF *sf = dynamic_cast<ModelNameSpace::MathArgSF*>(args[2]);
+	MathParser::MathArgInt_t *arg2 = dynamic_cast<MathParser::MathArgInt_t*>(args[2]);
+	ASSERT(arg2 != 0);
+	int order = (*arg2)();
+	ASSERT(order >= 0);
+
+	ModelNameSpace::MathArgSF *sf = dynamic_cast<ModelNameSpace::MathArgSF*>(args[3]);
 	ASSERT(sf != 0);
 
-	*out = (*(*sf)())((*arg1)());
+	if (order == 0) {
+		*out = (*(*sf)())(v);
+
+	} else {
+		const DifferentiableScalarFunction *dsf = dynamic_cast<const DifferentiableScalarFunction *>((*sf)());
+		if (dsf == 0) {
+			silent_cerr("model namespace scalar function: "
+				"order=" << order << " only allowed "
+				"with differentiable scalar functions"
+				<< std::endl);
+			throw ErrGeneric();
+		}
+
+		*out = dsf->ComputeDiff(v, order);
+	}
 
 	return 0;
 }
@@ -868,10 +889,11 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 
 	// scalar functions
 	sf_func.fname = "sf";
-	sf_func.args.resize(1 + 1 + 1);
+	sf_func.args.resize(1 + 1 + 2);
 	sf_func.args[0] = new MathParser::MathArgReal_t;
 	sf_func.args[1] = new MathParser::MathArgReal_t;
-	sf_func.args[2] = new MathArgSF;
+	sf_func.args[2] = new MathParser::MathArgInt_t(0, MathParser::AF_OPTIONAL);
+	sf_func.args[3] = new MathArgSF;
 	sf_func.f = model_sf;
 	sf_func.t = 0;
 }
@@ -913,7 +935,7 @@ ModelNameSpace::GetFunc(const char* const s) const
 			throw ErrGeneric();
 		}
 
-		(*dynamic_cast<MathArgSF*>(sf_func.args[2]))() = sf;
+		(*dynamic_cast<MathArgSF*>(sf_func.args[3]))() = sf;
 
 		return const_cast<MathParser::MathFunc_t*>(&sf_func);
 	}
