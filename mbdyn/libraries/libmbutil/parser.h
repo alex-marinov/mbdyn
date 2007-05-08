@@ -333,6 +333,10 @@ public:
 	virtual integer GetInt(int iDefval = 0);
 	/* legge un reale col mathpar */
 	virtual doublereal GetReal(const doublereal& dDefval = 0.0);
+	/* legge una string col mathpar */
+	virtual std::string GetString(const std::string& sDefVal);
+	/* legge una string col mathpar */
+	virtual TypedValue GetValue(const TypedValue& v);
 	/* legge una keyword */
 	virtual int GetWord(void);
 	/* legge una stringa */

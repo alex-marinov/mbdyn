@@ -224,25 +224,25 @@ mp_srnd(const MathParser::MathArgs& args)
 }
 
 static std::ostream&
-operator << (std::ostream& out, MathParser::MathArgVoid_t& v)
+operator << (std::ostream& out, const MathParser::MathArgVoid_t& v)
 {
 	return out;
 }
 
 static std::ostream&
-operator << (std::ostream& out, MathParser::MathArgInt_t& v)
+operator << (std::ostream& out, const MathParser::MathArgInt_t& v)
 {
 	return out << v();
 }
 
 static std::ostream&
-operator << (std::ostream& out, MathParser::MathArgReal_t& v)
+operator << (std::ostream& out, const MathParser::MathArgReal_t& v)
 {
 	return out << v();
 }
 
 static std::ostream&
-operator << (std::ostream& out, MathParser::MathArgString_t& v)
+operator << (std::ostream& out, const MathParser::MathArgString_t& v)
 {
 	return out << v();
 }
@@ -602,6 +602,7 @@ struct TypeName_t {
 static TypeName_t TypeNames[] = {
 	{ "integer",	TypedValue::VAR_INT },
 	{ "real",	TypedValue::VAR_REAL },
+	{ "string",	TypedValue::VAR_STRING },
 
 	{ NULL,		TypedValue::VAR_UNKNOWN }
 };
@@ -617,22 +618,39 @@ static typemodifiernames TypeModifierNames[] = {
 };
 
 
+TypedValue::TypedValue(void)
+: type(TypedValue::VAR_UNKNOWN), bConst(false)
+{
+	NO_OP;
+}
+
+TypedValue::~TypedValue(void)
+{
+	NO_OP;
+}
+
 TypedValue::TypedValue(const Int& i, bool isConst)
 : type(TypedValue::VAR_INT), bConst(isConst)
 {
 	v.i = i;
 }
 
-TypedValue::TypedValue(const bool& i, bool isConst)
+TypedValue::TypedValue(const bool& b, bool isConst)
 : type(TypedValue::VAR_INT), bConst(isConst)
 {
-	v.i = i;
+	v.i = b;
 }
 
 TypedValue::TypedValue(const Real& r, bool isConst)
 : type(TypedValue::VAR_REAL), bConst(isConst)
 {
 	v.r = r;
+}
+
+TypedValue::TypedValue(const std::string& s, bool isConst)
+: type(TypedValue::VAR_STRING), bConst(isConst), s(s)
+{
+	NO_OP;
 }
 
 TypedValue::TypedValue(const TypedValue::Type t, bool isConst)
@@ -642,9 +660,15 @@ TypedValue::TypedValue(const TypedValue::Type t, bool isConst)
 	case TypedValue::VAR_INT:
 		v.i = 0;
 		break;
+
 	case TypedValue::VAR_REAL:
 		v.r = 0.;
 		break;
+
+	case TypedValue::VAR_STRING:
+		s = "";
+		break;
+
 	default:
 		throw ErrUnknownType();
 	}
@@ -657,9 +681,19 @@ TypedValue::TypedValue(const TypedValue& var)
 	case TypedValue::VAR_INT:
 		v.i = var.v.i;
 		break;
+
 	case TypedValue::VAR_REAL:
 		v.r = var.v.r;
 		break;
+
+	case TypedValue::VAR_STRING:
+		s = var.s;
+		break;
+
+	case TypedValue::VAR_UNKNOWN:
+		/* allow initialization from unspecified type right now */
+		break;
+
 	default:
 		throw ErrUnknownType();
 	}
@@ -668,16 +702,63 @@ TypedValue::TypedValue(const TypedValue& var)
 const TypedValue&
 TypedValue::operator = (const TypedValue& var)
 {
-	switch ((type = var.type)) {
-	case TypedValue::VAR_INT:
-		Set(var.GetInt());
-		break;
-	case TypedValue::VAR_REAL:
-		Set(var.GetReal());
-		break;
-	default:
-		throw ErrUnknownType();
+	if (Const()) {
+		throw ErrConstraintViolation();
 	}
+
+	if (type == TypedValue::VAR_STRING) {
+		char buf[BUFSIZ];
+
+		switch (var.type) {
+		case TypedValue::VAR_INT:
+			snprintf(buf, sizeof(buf), "%ld", (long)var.GetInt());
+			Set(buf);
+			break;
+
+		case TypedValue::VAR_REAL:
+			snprintf(buf, sizeof(buf), "%e", (double)var.GetReal());
+			Set(buf);
+			break;
+
+		case TypedValue::VAR_STRING:
+			this->s = var.GetString();
+			break;
+
+		default:
+			throw ErrUnknownType();
+		}
+
+	} else {
+		switch (var.type) {
+		case TypedValue::VAR_INT:
+			type = var.type;
+			Set(var.GetInt());
+			break;
+
+		case TypedValue::VAR_REAL:
+			type = var.type;
+			Set(var.GetReal());
+			break;
+
+		case TypedValue::VAR_STRING:
+			if (type != TypedValue::VAR_UNKNOWN) {
+				throw ErrWrongType();
+			}
+			type = TypedValue::VAR_STRING;
+			s = var.s;
+			break;
+
+		case TypedValue::VAR_UNKNOWN:
+			if (type != TypedValue::VAR_UNKNOWN) {
+				throw ErrWrongType();
+			}
+			break;
+
+		default:
+			throw ErrUnknownType();
+		}
+	}
+
 	bConst = var.Const();
 	return *this;
 }
@@ -700,12 +781,16 @@ TypedValue::GetInt(void) const
 	switch (type) {
 	case TypedValue::VAR_INT:
 		return v.i;
+
 	case TypedValue::VAR_REAL:
 		return Int(v.r);
+
+	case TypedValue::VAR_STRING:
+		throw ErrWrongType();
+
 	default:
 		throw ErrUnknownType();
 	}
-	return 0;
 }
 
 Real
@@ -714,17 +799,41 @@ TypedValue::GetReal(void) const
 	switch (type) {
 	case TypedValue::VAR_INT:
 		return Real(v.i);
+
 	case TypedValue::VAR_REAL:
  		return v.r;
+
+	case TypedValue::VAR_STRING:
+		throw ErrWrongType();
+
 	default:
 		throw ErrUnknownType();
 	}
-	return 0.;
+}
+
+const std::string &
+TypedValue::GetString(void) const
+{
+	switch (type) {
+	case TypedValue::VAR_INT:
+	case TypedValue::VAR_REAL:
+		throw ErrWrongType();
+
+	case TypedValue::VAR_STRING:
+ 		return s;
+
+	default:
+		throw ErrUnknownType();
+	}
 }
 
 void
 TypedValue::SetType(TypedValue::Type t, bool isConst)
 {
+	if (Const()) {
+		throw ErrConstraintViolation();
+	}
+
 	type = t;
 	bConst = isConst;
 }
@@ -738,32 +847,75 @@ TypedValue::SetConst(bool isConst)
 const TypedValue&
 TypedValue::Set(const Int& i)
 {
+	if (Const()) {
+		throw ErrConstraintViolation();
+	}
+
 	switch (GetType()) {
 	case TypedValue::VAR_INT:
 		v.i = i;
 		break;
+
 	case TypedValue::VAR_REAL:
 		v.r = Real(i);
 		break;
+
+	case TypedValue::VAR_STRING:
+		throw ErrWrongType();
+
 	default:
 		throw ErrUnknownType();
 	}
+
 	return *this;
 }
 
 const TypedValue&
 TypedValue::Set(const Real& r)
 {
+	if (Const()) {
+		throw ErrConstraintViolation();
+	}
+
 	switch (GetType()) {
 	case TypedValue::VAR_INT:
 		v.i = Int(r);
 		break;
+
 	case TypedValue::VAR_REAL:
 		v.r = r;
 		break;
+
+	case TypedValue::VAR_STRING:
+		throw ErrWrongType();
+
 	default:
 		throw ErrUnknownType();
 	}
+
+	return *this;
+}
+
+const TypedValue&
+TypedValue::Set(const std::string& s)
+{
+	if (Const()) {
+		throw ErrConstraintViolation();
+	}
+
+	switch (GetType()) {
+	case TypedValue::VAR_INT:
+	case TypedValue::VAR_REAL:
+		throw ErrWrongType();
+
+	case TypedValue::VAR_STRING:
+		this->s = s;
+		break;
+
+	default:
+		throw ErrUnknownType();
+	}
+
 	return *this;
 }
 
@@ -818,11 +970,32 @@ TypedValue::operator != (const TypedValue& v) const
 TypedValue
 TypedValue::operator + (const TypedValue& v) const
 {
+	if (GetType() == TypedValue::VAR_STRING) {
+		char buf[BUFSIZ];
+
+		switch (v.GetType()) {
+		case TypedValue::VAR_INT:
+			snprintf(buf, sizeof(buf), "%ld", (long)v.GetInt());
+			return TypedValue(GetString() + buf);
+
+		case TypedValue::VAR_REAL:
+			snprintf(buf, sizeof(buf), "%e", (double)v.GetReal());
+			return TypedValue(GetString() + buf);
+
+		case TypedValue::VAR_STRING:
+			return TypedValue(GetString() + v.GetString());
+
+		default:
+			throw ErrWrongType();
+		}
+	}
+
 	if ((GetType() == TypedValue::VAR_INT)
 			&& (v.GetType() == TypedValue::VAR_INT))
 	{
 		return TypedValue(GetInt() + v.GetInt());
 	}
+
 	return TypedValue(GetReal() + v.GetReal());
 }
 
@@ -834,6 +1007,7 @@ TypedValue::operator - (const TypedValue& v) const
 	{
 		return TypedValue(GetInt() - v.GetInt());
 	}
+
 	return TypedValue(GetReal() - v.GetReal());
 }
 
@@ -845,6 +1019,7 @@ TypedValue::operator * (const TypedValue& v) const
 	{
 		return TypedValue(GetInt()*v.GetInt());
 	}
+
 	return TypedValue(GetReal()*v.GetReal());
 }
 
@@ -856,25 +1031,61 @@ TypedValue::operator / (const TypedValue& v) const
 	{
 		return TypedValue(GetInt()/v.GetInt());
 	}
+
 	return TypedValue(GetReal()/v.GetReal());
 }
 
 const TypedValue&
 TypedValue::operator += (const TypedValue& v)
 {
+	if (Const()) {
+		throw ErrConstraintViolation();
+	}
+
+	if (GetType() == TypedValue::VAR_STRING) {
+		char buf[BUFSIZ];
+
+		switch (v.GetType()) {
+		case TypedValue::VAR_INT:
+			snprintf(buf, sizeof(buf), "%ld", (long)v.GetInt());
+			this->s += buf;
+			break;
+
+		case TypedValue::VAR_REAL:
+			snprintf(buf, sizeof(buf), "%e", (double)v.GetReal());
+			this->s += buf;
+			break;
+
+		case TypedValue::VAR_STRING:
+			this->s += v.GetString();
+			break;
+
+		default:
+			throw ErrWrongType();
+		}
+
+		return *this;
+	}
+
 	if ((GetType() == TypedValue::VAR_INT)
 			&& (v.GetType() == TypedValue::VAR_INT))
 	{
 		return Set(GetInt() + v.GetInt());
 	}
+
 	Real d = GetReal() + v.GetReal();
 	type = TypedValue::VAR_REAL;
+
 	return Set(d);
 }
 
 const TypedValue&
 TypedValue::operator -= (const TypedValue& v)
 {
+	if (Const()) {
+		throw ErrConstraintViolation();
+	}
+
 	if ((GetType() == TypedValue::VAR_INT)
 			&& (v.GetType() == TypedValue::VAR_INT))
 	{
@@ -888,6 +1099,10 @@ TypedValue::operator -= (const TypedValue& v)
 const TypedValue&
 TypedValue::operator *= (const TypedValue& v)
 {
+	if (Const()) {
+		throw ErrConstraintViolation();
+	}
+
 	if ((GetType() == TypedValue::VAR_INT)
 			&& (v.GetType() == TypedValue::VAR_INT))
 	{
@@ -901,6 +1116,10 @@ TypedValue::operator *= (const TypedValue& v)
 const TypedValue&
 TypedValue::operator /= (const TypedValue& v)
 {
+	if (Const()) {
+		throw ErrConstraintViolation();
+	}
+
 	if ((GetType() == TypedValue::VAR_INT)
 			&& (v.GetType() == TypedValue::VAR_INT))
 	{
@@ -914,6 +1133,10 @@ TypedValue::operator /= (const TypedValue& v)
 bool
 operator ! (const TypedValue& v)
 {
+	if (v.GetType() == TypedValue::VAR_STRING) {
+		return v.GetString().empty();
+	}
+
 	return (!v.GetReal());
 }
 
@@ -923,11 +1146,17 @@ operator - (const TypedValue& v)
 	switch (v.GetType()) {
 	case TypedValue::VAR_INT:
 		return TypedValue(-v.GetInt());
+
 	case TypedValue::VAR_REAL:
 		return TypedValue(-v.GetReal());
+
+	case TypedValue::VAR_STRING:
+		throw TypedValue::ErrWrongType();
+
 	default:
 		throw TypedValue::ErrUnknownType();
 	}
+
 	return 0;
 }
 
@@ -943,11 +1172,17 @@ operator << (std::ostream& out, const TypedValue& v)
 	switch (v.GetType()) {
 	case TypedValue::VAR_INT:
 		return out << v.GetInt();
+
 	case TypedValue::VAR_REAL:
 		return out << v.GetReal();
+
+	case TypedValue::VAR_STRING:
+		return out << v.GetString();
+
 	default:
 		throw TypedValue::ErrUnknownType();
 	}
+
 	return out;
 }
 
@@ -991,13 +1226,19 @@ Var::Var(const char* const s, const TypedValue& v)
 	NO_OP;
 }
 
+Var::Var(const char* const s, const Int& v)
+: NamedValue(s), value(v)
+{
+	NO_OP;
+}
+
 Var::Var(const char* const s, const Real& v)
 : NamedValue(s), value(v)
 {
 	NO_OP;
 }
 
-Var::Var(const char* const s, const Int& v)
+Var::Var(const char* const s, const std::string& v)
 : NamedValue(s), value(v)
 {
 	NO_OP;
@@ -1033,13 +1274,19 @@ Var::GetVal(void) const
 }
 
 void
+Var::SetVal(const Int& v)
+{
+	value.Set(v);
+}
+
+void
 Var::SetVal(const Real& v)
 {
 	value.Set(v);
 }
 
 void
-Var::SetVal(const Int& v)
+Var::SetVal(const std::string& v)
 {
 	value.Set(v);
 }
@@ -1047,16 +1294,7 @@ Var::SetVal(const Int& v)
 void
 Var::SetVal(const TypedValue& v)
 {
-	switch (GetType()) {
-	case TypedValue::VAR_INT:
-		value.Set(v.GetInt());
-		break;
-	case TypedValue::VAR_REAL:
-		value.Set(v.GetReal());
-		break;
-	default:
-		throw TypedValue::ErrUnknownValue();
-	}
+	value = v;
 }
 
 void
@@ -1234,12 +1472,15 @@ MathParser::NewVar(const char* const s, TypedValue::Type t, const Real& d)
 	case TypedValue::VAR_INT:
 		SAFENEWWITHCONSTRUCTOR(v, Var, Var(s, Int(d)));
 		break;
+
 	case TypedValue::VAR_REAL:
 		SAFENEWWITHCONSTRUCTOR(v, Var, Var(s, d));
 		break;
+
 	default:
 		throw TypedValue::ErrUnknownType();
 	}
+
 	VarList* p = 0;
 	SAFENEW(p, VarList);
 	p->var = v;
@@ -1960,6 +2201,9 @@ MathParser::StaticNameSpace::EvalFunc(MathParser::MathFunc_t *f, const MathArgs&
 	case MathParser::AT_REAL:
 		return TypedValue((*dynamic_cast<MathArgReal_t*>(args[0]))());
 
+	case MathParser::AT_STRING:
+		return TypedValue((*dynamic_cast<MathArgString_t*>(args[0]))());
+
 	default:
 		throw ErrGeneric();
 	}
@@ -2108,6 +2352,7 @@ start_parsing:;
 #else /* !HAVE_STRTOL */
 			value.Set(Int(atoi(s)));
 #endif /* !HAVE_STRTOL */
+
 		} else {
 			value.SetType(TypedValue::VAR_REAL);
 #ifdef HAVE_STRTOD
@@ -2250,6 +2495,23 @@ end_of_comment:;
 			return (currtoken = UNKNOWNTOKEN);
 		}
 		return (currtoken = NAMESPACESEP);
+
+	case '"': {
+		int l = 0;
+		while ((c = in->get()) != '"') {
+			if (c == '\\') {
+				continue;
+			}
+			namebuf[l++] = char(c);
+			if (l == namebuflen) {
+				IncNameBuf();
+			}
+		}
+		namebuf[l] = '\0';
+		value.SetType(TypedValue::VAR_STRING);
+		value.Set(namebuf);
+		return (currtoken = NUM);
+		}
 
 	default:
 		return (currtoken = UNKNOWNTOKEN);
@@ -2647,14 +2909,22 @@ MathParser::stmt(void)
 
 				GetToken();
 				TypedValue d = logical();
+				/* set const'ness of newly gotten value */
+				if (isConst) {
+					d.SetConst();
+				}
 
 				/* cerco la variabile */
 				NamedValue* v = table.Get(varname);
 
 				if (v == NULL) {
-					/* Se non c'e' la inserisco */
-					v = table.Put(varname, TypedValue(type, isConst));
-					((Var *)v)->SetVal(d);
+					/* create new var with assigned type */
+					TypedValue newvar(type);
+					/* assign new var, so that it internally
+					 * takes care of casting, while it inherits
+					 * const'ness from d */
+					newvar = d;
+					v = table.Put(varname, newvar);
 
 				} else {
 					/* altrimenti, se la posso ridefinire, mi limito
@@ -2669,15 +2939,14 @@ MathParser::stmt(void)
 									"\"", v->GetName(), "\"");
 						}
 
-						if (v->IsVar()) {
-							((Var *)v)->SetVal(d);
-						
-						} else {
+						if (!v->IsVar()) {
 				   			throw MathParser::ErrGeneric(this,
-									"cannot redefine "
-									"non-var named value "
-									"\"", v->GetName(), "\"");
+								"cannot redefine "
+								"non-var named value "
+								"\"", v->GetName(), "\"");
 						}
+						dynamic_cast<Var *>(v)->SetVal(d);
+
 					} else {
 						/* altrimenti la reinserisco,
 						 * cosi' da provocare l'errore
@@ -2693,6 +2962,13 @@ MathParser::stmt(void)
 			} else if (currtoken == STMTSEP) {
 				NamedValue* v = table.Get(namebuf);
 				if (v == NULL || !redefine_vars) {
+					if (isConst) {
+						/* cannot insert a const var
+						 * with no value */
+			      			throw MathParser::ErrGeneric(this,
+		      						"cannot create const named value "
+								"\"", v->GetName(), "\" with no value");
+					}
 					/* se la var non esiste, la inserisco;
 					 * se invece esiste e non vale 
 					 * la ridefinizione, tento
@@ -2716,13 +2992,12 @@ MathParser::stmt(void)
 								"\"", v->GetName(), "\"");
 			 		}
 
-			 		if (v->IsVar()) {
-						((Var *)v)->SetVal(d);
-					} else {
+			 		if (!v->IsVar()) {
 						throw MathParser::ErrGeneric(this,
 								"cannot assign non-var named value "
 								"\"", v->GetName(), "\"");
 			 		}
+					dynamic_cast<Var *>(v)->SetVal(d);
 					return v->GetVal();
 
 				} else {
@@ -3122,32 +3397,52 @@ MathParser::GetLastStmt(const InputStream& strm, Real d, Token t)
 Real
 MathParser::Get(Real d)
 {
-	GetToken();
-	d = stmt().GetReal();
-	if (currtoken != STMTSEP && currtoken != ENDOFFILE) {
-		throw ErrGeneric(this, "statement separator expected");
-	}
-	return d;
+	TypedValue v(d);
+	v = Get(v);
+	return v.GetReal();
 }
 
 Real
 MathParser::Get(const InputStream& strm, Real d)
 {
+	TypedValue v(d);
+	v = Get(strm, v);
+	return v.GetReal();
+}
+
+TypedValue
+MathParser::Get(const TypedValue& /* v */ )
+{
+	GetToken();
+	TypedValue vv = stmt();
+	if (currtoken != STMTSEP && currtoken != ENDOFFILE) {
+		throw ErrGeneric(this, "statement separator expected");
+	}
+	return vv;
+}
+
+TypedValue
+MathParser::Get(const InputStream& strm, const TypedValue& v)
+{
 	const InputStream* p = in;
 	in = (InputStream*)&strm;
 	GetToken();
+	TypedValue vv = v;
 	if (currtoken != STMTSEP && currtoken != ARGSEP) {
-		d = stmt().GetReal();
+		vv = stmt();
 	}
 	if (currtoken == STMTSEP) {
 		in->putback(';');
+
 	} else if (currtoken == ARGSEP) {
 		in->putback(',');
+
 	} else {
 		throw ErrGeneric(this, "separator expected");
 	}
 	in = (InputStream*)p;
-	return d;
+
+	return vv;
 }
 
 void

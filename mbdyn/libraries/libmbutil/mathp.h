@@ -230,6 +230,7 @@ public:
 	
 		MP_INT = TypedValue::VAR_INT,
 		MP_REAL = TypedValue::VAR_REAL,	
+		MP_STRING = TypedValue::VAR_STRING,	
 	
 		NUM,		/* Numero */
 		NAME, 		/* Nome */
@@ -257,7 +258,7 @@ public:
 		ARGSEP,		/* ','	: Separatore di argomenti */
 		NAMESPACESEP,	/* '::'	: Separatore di namespace */
 		ASSIGN,		/* '='	: Assegnazione */
-		
+
 		LASTTOKEN	
 	};
    
@@ -366,6 +367,8 @@ public:
 	/* interpreta uno stmt e ne restitutisce il valore */
 	Real Get(Real d = 0.);
 	Real Get(const InputStream& strm, Real d = 0.);
+	TypedValue Get(const TypedValue& v);
+	TypedValue Get(const InputStream& strm, const TypedValue& v);
 
 	/* modalita' calcolatrice: elabora e stampa ogni stmt */
 	void GetForever(std::ostream& out, const char* const sep = "\n");

@@ -370,7 +370,8 @@ HighParser::Set_int(void)
      		throw HighParser::ErrColonExpected();
 	}
 
-	GetReal();
+	TypedValue v;
+	GetValue(v);
 }
 
 void
@@ -447,8 +448,8 @@ HighParser::Remark_int(void)
 	silent_cout("line " << GetLineData() << ": " << s);
 	while (IsArg()) {
 		/* eat it anyway ;) */
-		double d = GetReal();
-		silent_cout(", " << d);
+		TypedValue v;
+		silent_cout(", " << GetValue(v));
 	}
 
 	silent_cout(std::endl);
@@ -786,22 +787,22 @@ HighParser::IsWord(const HighParser::WordSet& ws)
 
 }
 
-integer
-HighParser::GetInt(int iDefval)
+TypedValue
+HighParser::GetValue(const TypedValue& vDefVal)
 {
-   const char sFuncName[] = "HighParser::GetInt()";
+   const char sFuncName[] = "HighParser::GetValue()";
 
    if (CurrToken != HighParser::ARG) {
 	silent_cerr("Parser error in "
-	<< sFuncName << ", integer arg expected at line "
+	<< sFuncName << ", arg expected at line "
 	<< GetLineData() << std::endl);
       throw HighParser::ErrIntegerExpected();
    }
 
-   integer iReturnValue;
+   TypedValue v(vDefVal);
 
    try {
-      iReturnValue = int(MathP.Get(*pIn, (doublereal)iDefval));
+      v = MathP.Get(*pIn, v);
    }
    catch (MathParser::ErrGeneric e) {
       silent_cerr(sFuncName << ": error return from MathParser at line "
@@ -810,34 +811,31 @@ HighParser::GetInt(int iDefval)
    }
 
    NextToken(sFuncName);
-   return iReturnValue;
+   return v;
 }
 
+integer
+HighParser::GetInt(int iDefVal)
+{
+	TypedValue v(iDefVal);
+	v = GetValue(v);
+	return v.GetInt();
+}
 
 doublereal
-HighParser::GetReal(const doublereal& dDefval)
+HighParser::GetReal(const doublereal& dDefVal)
 {
-   const char sFuncName[] = "HighParser::GetReal()";
+	TypedValue v(dDefVal);
+	v = GetValue(v);
+	return v.GetReal();
+}
 
-   if (CurrToken != HighParser::ARG) {
-      silent_cerr("Parser error in "
-	<< sFuncName << ", real arg expected at line "
-	<< GetLineData() << std::endl);
-      throw HighParser::ErrRealExpected();
-   }
-
-   doublereal dReturnValue;
-   try {
-      dReturnValue = doublereal(MathP.Get(*pIn, dDefval));
-   }
-   catch (MathParser::ErrGeneric e) {
-      silent_cerr(sFuncName << ": error return from MathParser at line "
-	      << GetLineData() << std::endl);
-      throw e;
-   }
-
-   NextToken(sFuncName);
-   return dReturnValue;
+std::string
+HighParser::GetString(const std::string& sDefVal)
+{
+	TypedValue v(sDefVal);
+	v = GetValue(v);
+	return v.GetString();
 }
 
 

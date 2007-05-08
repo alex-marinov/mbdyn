@@ -42,12 +42,14 @@ public:
 	class ErrUnknownType {};
 	class ErrWrongType {};
 	class ErrUnknownValue {};
+	class ErrConstraintViolation {};
 
 	enum Type {
 		VAR_UNKNOWN = -1,
 		
 		VAR_INT,
 		VAR_REAL,
+		VAR_STRING,
 
 		VAR_LAST
 	};
@@ -67,10 +69,14 @@ protected:
 		Int i;
 		Real r;
 	} v;
+	std::string s;
 
 public:
+	TypedValue(void);
+	~TypedValue(void);
 	TypedValue(const Int& i, bool isConst = false);
 	TypedValue(const Real& r, bool isConst = false);
+	TypedValue(const std::string& s, bool isConst = false);
 	TypedValue(const bool& r, bool isConst = false);
 	TypedValue(const TypedValue::Type t, bool isConst = false);
 	TypedValue(const TypedValue& var);
@@ -81,11 +87,13 @@ public:
 	bool Const(void) const;
 	Int GetInt(void) const;
 	Real GetReal(void) const;
+	const std::string& GetString(void) const;
 	
 	void SetType(TypedValue::Type t, bool isConst = false);
 	void SetConst(bool isConst = true);
 	const TypedValue& Set(const Int& i);
 	const TypedValue& Set(const Real& r);
+	const TypedValue& Set(const std::string& s);
 	
 	bool operator && (const TypedValue& v) const;
 	bool operator || (const TypedValue& v) const;
@@ -138,8 +146,9 @@ private:
 
 public:
 	Var(const char* const s, const TypedValue& v);
-	Var(const char* const s, const Real& v);
 	Var(const char* const s, const Int& v);
+	Var(const char* const s, const Real& v);
+	Var(const char* const s, const std::string& v);
 	~Var(void);
 
 	bool IsVar(void) const;
@@ -148,8 +157,9 @@ public:
 	bool Const(void) const;
 	TypedValue GetVal(void) const;
 	
-	void SetVal(const Real& v);
 	void SetVal(const Int& v);
+	void SetVal(const Real& v);
+	void SetVal(const std::string& v);
 	void SetVal(const TypedValue& v);
 };
 
