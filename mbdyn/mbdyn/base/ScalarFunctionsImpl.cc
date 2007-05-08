@@ -758,8 +758,9 @@ struct ChebychevSFR: public ScalarFunctionRead {
 			doNotExtrapolate = true;
 		}
 		if (b <= a) {
-			silent_cerr("Upper limit of Chebychev series b=" << b
-				<< " must be larger than lower limit a=" << a
+			silent_cerr("Upper interval bound "
+				"of Chebychev series b=" << b
+				<< " must be larger than lower bound a=" << a
 				<< " at line" << HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 			
