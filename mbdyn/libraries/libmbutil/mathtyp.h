@@ -84,6 +84,8 @@ public:
 	const TypedValue& operator = (const TypedValue& var);
 	
 	TypedValue::Type GetType(void) const;
+	const char *const GetTypeName(void) const;
+	static const char *const GetTypeName(TypedValue::Type t);
 	bool Const(void) const;
 	Int GetInt(void) const;
 	Real GetReal(void) const;
@@ -136,6 +138,7 @@ public:
 
 	const char *GetName(void) const;
 	virtual TypedValue::Type GetType(void) const = 0;
+	virtual const char *const GetTypeName(void) const;
 	virtual bool Const(void) const = 0;
 	virtual TypedValue GetVal(void) const = 0;
 };

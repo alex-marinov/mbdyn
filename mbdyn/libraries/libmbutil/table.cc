@@ -231,45 +231,17 @@ Table::Get(const char* const name) const
 std::ostream& 
 operator << (std::ostream& out, Table& T)
 {  
-   for (Int i = T.size; i-- > 0; ) {      
-      VarList* pn = T.v[i];
-      while (pn != NULL) {
-	 char *type = NULL;
+	for (Int i = T.size; i-- > 0; ) {      
+		VarList* pn = T.v[i];
+		while (pn != NULL) {
+			out
+				<< "  " << pn->var->GetTypeName()
+				<< " " << pn->var->GetName()
+				<< " = " << pn->var->GetVal() << std::endl;
+			pn = pn->next;  
+		}   
+	}
 
-	 switch (pn->var->GetType()) {
-	 case TypedValue::VAR_INT:
-	    type = "integer";
-	    break;
-
-	 case TypedValue::VAR_REAL:
-	    type = "real";
-	    break;
-
-	 default:
-	    throw ErrGeneric();
-	 }
-	    
-	 out << "  " << type << " " << pn->var->GetName() << " = ";
-
-	 switch (pn->var->GetType()) {
-	 case TypedValue::VAR_INT:
-	    out << pn->var->GetVal().GetInt();
-	    break;
-
-	 case TypedValue::VAR_REAL:
-	    out << pn->var->GetVal().GetReal();
-	    break;
-
-	 default:
-	    ASSERT(0);	/* impossible */
-	 }
-
-	 out << std::endl;
-	     
-	 pn = pn->next;  
-      }   
-   }
-
-   return out;
+	return out;
 }
 

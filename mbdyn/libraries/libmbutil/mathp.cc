@@ -769,6 +769,26 @@ TypedValue::GetType(void) const
 	return type;
 }
 
+const char *const
+TypedValue::GetTypeName(TypedValue::Type t)
+{
+	switch (t) {
+	case TypedValue::VAR_INT:
+	case TypedValue::VAR_REAL:
+	case TypedValue::VAR_STRING:
+		return TypeNames[t].name;
+
+	default:
+		throw ErrGeneric();
+	}
+}
+
+const char *const
+TypedValue::GetTypeName(void) const
+{
+	return GetTypeName(type);
+}
+
 bool
 TypedValue::Const(void) const
 {
@@ -1218,6 +1238,12 @@ NamedValue::GetName(void) const
 {
 	ASSERT(name != NULL);
 	return name;
+}
+
+const char *const
+NamedValue::GetTypeName(void) const
+{
+	return TypedValue::GetTypeName(GetType());
 }
 
 Var::Var(const char* const s, const TypedValue& v)
