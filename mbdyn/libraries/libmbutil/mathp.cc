@@ -2399,10 +2399,14 @@ start_parsing:;
 	if (isalpha(c) || c == '_') {
 		int l = 0;
 		namebuf[l++] = char(c);
-		while ((c = in->get()), isalnum(c)
-			|| c == '_'
-			|| ((currtoken == NAMESPACESEP) && c == ':'))
-		{
+		while ((c = in->get())) {
+			if (!(c == '_'
+				|| isalnum(c)
+				|| ((currtoken == NAMESPACESEP) && c == ':')))
+			{
+				break;
+			}
+
 			namebuf[l++] = char(c);
 			if (l ==  namebuflen) {
 				IncNameBuf();
@@ -2768,7 +2772,11 @@ MathParser::unary(void)
 TypedValue
 MathParser::evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f)
 {
-	MathArgs args = f->args;
+	MathArgs args(f->args.size());
+
+	for (unsigned i = 0; i < f->args.size(); i++) {
+		args[i] = f->args[i]->Copy();
+	}
 
 	for (unsigned i = 1; i < args.size(); i++) {
 		switch (args[i]->Type()) {
@@ -2778,6 +2786,7 @@ MathParser::evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f)
 					throw ErrGeneric(this, "integer argument expected");
 				}
 				(*dynamic_cast<MathArgInt_t*>(args[i]))() = (*dynamic_cast<MathArgInt_t*>(f->args[i]))();
+				args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
 
 			} else {
 				(*dynamic_cast<MathArgInt_t*>(args[i]))() = stmtlist().GetInt();
@@ -2790,6 +2799,7 @@ MathParser::evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f)
 					throw ErrGeneric(this, "real argument expected");
 				}
 				(*dynamic_cast<MathArgReal_t*>(args[i]))() = (*dynamic_cast<MathArgReal_t*>(f->args[i]))();
+				args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
 
 			} else {
 				(*dynamic_cast<MathArgReal_t*>(args[i]))() = stmtlist().GetReal();
@@ -2802,6 +2812,7 @@ MathParser::evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f)
 					throw ErrGeneric(this, "string argument expected");
 				}
 				(*dynamic_cast<MathArgString_t*>(args[i]))() = (*dynamic_cast<MathArgString_t*>(f->args[i]))();
+				args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
 
 			} else {
 				(*dynamic_cast<MathArgString_t*>(args[i]))() = stmtlist().GetString();
@@ -2837,7 +2848,7 @@ MathParser::evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f)
 			}
 		}
 	}
-			
+
 	if (f->t != 0) {
 		if (f->t(args)) {
 			DEBUGCERR("error in function "
@@ -2848,7 +2859,13 @@ MathParser::evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f)
 		}
 	}
 
-	return ns->EvalFunc(f, args);
+	TypedValue val = ns->EvalFunc(f, args);
+
+	for (unsigned i = 0; i < args.size(); i++) {
+		delete args[i];
+	}
+
+	return val;
 }
 
 TypedValue
@@ -3304,7 +3321,8 @@ namebuflen(default_namebuflen),
 value(Real(0)),
 varlist(NULL),
 tokenlist(NULL),
-powerstack()
+powerstack(),
+currtoken(UNKNOWNTOKEN)
 {
 	DEBUGCOUTFNAME("MathParser::MathParser");
 
@@ -3332,7 +3350,8 @@ namebuflen(default_namebuflen),
 value(Real(0)),
 varlist(NULL),
 tokenlist(NULL),
-powerstack()
+powerstack(),
+currtoken(UNKNOWNTOKEN)
 {
 	DEBUGCOUTFNAME("MathParser::MathParser");
 

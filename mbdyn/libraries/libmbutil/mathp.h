@@ -72,27 +72,32 @@ public:
 	};
 
 	enum ArgFlag {
-		AF_NONE		= 0x0U,
-		AF_OPTIONAL	= 0x1U
+		AF_NONE			= 0x0U,
+		AF_OPTIONAL		= 0x1U,
+		AF_OPTIONAL_NON_PRESENT	= 0x2U
 	};
 
 	class MathArg_t {
-		unsigned flags;
+	private:
+		unsigned m_flags;
+
 	public:
-		MathArg_t(const MathParser::ArgFlag& f = AF_NONE) : flags(f) {};
+		MathArg_t(unsigned f = AF_NONE) : m_flags(f) {};
 		virtual ~MathArg_t(void) { NO_OP; };
 
-		void SetFlag(const MathParser::ArgFlag& f) { flags |= unsigned(f); };
-		void ClearFlag(const MathParser::ArgFlag& f) { flags &= ~unsigned(f); };
-		bool IsFlag(const MathParser::ArgFlag f) const { return (flags & unsigned(f)) == unsigned(f); };
-		unsigned GetFlags(void) const { return flags; };
+		void SetFlag(const MathParser::ArgFlag& f) { m_flags |= unsigned(f); };
+		void ClearFlag(const MathParser::ArgFlag& f) { m_flags &= ~unsigned(f); };
+		bool IsFlag(const MathParser::ArgFlag f) const { return (m_flags & unsigned(f)) == unsigned(f); };
+		unsigned GetFlags(void) const { return m_flags; };
 		virtual ArgType Type(void) const = 0;
+		virtual MathArg_t *Copy(void) const = 0;
 	};
 
 	class MathArgVoid_t : public MathArg_t {
 	public:
 		virtual ~MathArgVoid_t(void) { NO_OP; };
 		virtual ArgType Type(void) const { return AT_VOID; };
+		virtual MathArg_t *Copy(void) const { return new MathArgVoid_t; };
 	};
 
 	template <class T, ArgType TT = AT_PRIVATE>
@@ -100,10 +105,12 @@ public:
 	protected:
 		T m_val;
 	public:
-		MathArgPriv_t(const T& val, const MathParser::ArgFlag& f = AF_NONE) : MathArg_t(f), m_val(val) { NO_OP; };
+		MathArgPriv_t(const T& val, unsigned f = AF_NONE) : MathArg_t(f), m_val(val) { NO_OP; };
 		MathArgPriv_t(void) { NO_OP; };
 		virtual ~MathArgPriv_t(void) { NO_OP; };
 		virtual ArgType Type(void) const { return TT; };
+		virtual MathArg_t *Copy(void) const { return new MathArgPriv_t<T, TT>(m_val, GetFlags()); };
+
 		const T& operator()(void) const { return m_val; };
 		T& operator()(void) { return m_val; };
 	};

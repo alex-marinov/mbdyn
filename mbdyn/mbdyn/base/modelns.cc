@@ -38,10 +38,6 @@
 #include <matvecexp.h>
 #include <Rot.hh>
 
-typedef Real (*ModelFunc_0args_t)(DataManager *);
-typedef Real (*ModelFunc_1args_t)(DataManager *, Real);
-typedef Real (*ModelFunc_2args_t)(DataManager *, Real, Real);
-
 enum IDX_t {
 	IDX1 = 1,
 	IDX2 = 2,
@@ -188,7 +184,7 @@ distance(const MathParser::MathArgs& args)
 }
 
 /*
- * Computes the distance between two structural nodes
+ * Computes the orientation between two structural nodes
  */
 template <IDX_t IDX>
 static int
@@ -363,7 +359,7 @@ vrel(const MathParser::MathArgs& args)
 }
 
 /*
- * Computes the position of a structural node
+ * Computes the value of a drive
  */
 static int
 drive(const MathParser::MathArgs& args)
@@ -399,6 +395,9 @@ drive(const MathParser::MathArgs& args)
 	return 0;
 }
 
+/*
+ * Computes the value of a scalar function
+ */
 static int
 model_sf(const MathParser::MathArgs& args)
 {
@@ -889,7 +888,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 
 	// scalar functions
 	sf_func.fname = "sf";
-	sf_func.args.resize(1 + 1 + 2);
+	sf_func.args.resize(1 + 2 + 1);
 	sf_func.args[0] = new MathParser::MathArgReal_t;
 	sf_func.args[1] = new MathParser::MathArgReal_t;
 	sf_func.args[2] = new MathParser::MathArgInt_t(0, MathParser::AF_OPTIONAL);
