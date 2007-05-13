@@ -135,6 +135,10 @@ public:
 	virtual void
 	AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP);
+	
+	virtual void
+	AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP, const VectorHandler& XPP);
 
 	void
 	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {

@@ -118,6 +118,15 @@ SimulationEntity::AfterConvergence(const VectorHandler& /* X */ ,
 	NO_OP;
 }
 
+/* Inverse Dynamics:*/
+void 
+SimulationEntity::AfterConvergence(const VectorHandler& /* X */,
+			const VectorHandler&  /* XP */,
+			const VectorHandler&  /* XPP */)
+{
+	NO_OP;
+}
+
 unsigned int
 SimulationEntity::iGetNumPrivData(void) const 
 {

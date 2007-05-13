@@ -91,6 +91,9 @@ public:
 			SimulationEntity::Hints *ph = 0);
 	virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP);
+	/* Inverse Dynamics */
+	virtual void AfterConvergence(const VectorHandler& X, 
+			const VectorHandler& XP, const VectorHandler& XPP);
 };
 
 class DataManager;

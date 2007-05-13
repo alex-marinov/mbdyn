@@ -208,6 +208,17 @@ DrivenElem::Update(const VectorHandler& XCurr, const VectorHandler& XPrimeCurr)
 		pElem->Update(XCurr, XPrimeCurr);
 	}
 }
+
+/* Inverse Dynamics: */
+void
+DrivenElem::Update(const VectorHandler& XCurr, int iOrder)
+{
+	ASSERT(pElem != NULL);
+	if (dGet() != 0.) {
+		pElem->Update(XCurr, iOrder);
+	}
+}
+ 
    
 void
 DrivenElem::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
@@ -215,6 +226,16 @@ DrivenElem::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
 	ASSERT(pElem != NULL);
 	if (dGet() != 0.) {
 		pElem->AfterConvergence(X, XP);
+	}
+}
+
+/* Inverse Dynamics: */
+void
+DrivenElem::AfterConvergence(const VectorHandler& X, const VectorHandler& XP, const VectorHandler& XPP)
+{
+	ASSERT(pElem != NULL);
+	if (dGet() != 0.) {
+		pElem->AfterConvergence(X, XP, XPP);
 	}
 }
 

@@ -78,6 +78,9 @@ public:
 
 	virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP);
+	/* Inverse Dynamics: */
+	virtual void AfterConvergence(const VectorHandler& X, 
+			const VectorHandler& XP);
 };
 
 class DataManager;

@@ -1225,14 +1225,21 @@ InverseDynamicsStepSolver::InverseDynamicsStepSolver(const integer MaxIt,
 		const integer sts,
 		const bool bmod_res_test)
 : StepIntegrator(MaxIt, dT, dSolutionTol, stp, sts),
+XTau(0),
+SavedState(0),
+SavedDerState(0),
 bEvalProdCalledFirstTime(true),
+iOrder(0),
+VelErr(0),
+AccErr(0),
+ForceErr(0),
 pXCurr(0),
 pXPrimeCurr(0),
 pXPrimePrimeCurr(0),
 pLambdaCurr(0),
 bModResTest(bmod_res_test)
-{
-	NO_OP;
+{	
+	return;
 }
 
 InverseDynamicsStepSolver::~InverseDynamicsStepSolver(void)
@@ -1368,19 +1375,17 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 	
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr, *pXPrimePrimeCurr, *pLambdaCurr);
 
-	integer iLocalIter = 0;
+	integer iLocalIter = EffIter;
 	Err = 0.; 
 	NonlinearSolver *pNLSolver = pS->pGetNonlinearSolver();
 	
 	/* Position */
 	SetOrder(0);
-	
+
 	/* Setting iOrder = 0, the residual is called only 
 	 * for constraints, on positions */
 	pNLSolver->Solve(this, pS, MaxIters, dTol,
     			EffIter, Err, dSolTol, SolErr);
-	
-	pDM->AfterConvergence(iOrder);
 	
 	SolutionManager *pSM = pS->pGetSolutionManager();
 	VectorHandler *pRes = pSM->pResHdl();
@@ -1389,18 +1394,17 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 	/* Velocity */
 	SetOrder(1);
 	
-	doublereal VelErr = 0;
+	VelErr = 0;
 	pRes->Reset();
 	/* there's no need to check changes in
 	 * equation structure... it is already
 	 * performed by NonlinearSolver->Solve()*/
 	Residual(pRes);
-	VelErr = pNLSolver->MakeResTest(pS, *pRes) * TestScale(pNLSolver->pGetResTest());
+	VelErr = pNLSolver->MakeResTest(pS, *pRes);
 	if(VelErr > dTol) {
 		if(iLocalIter == EffIter) {
 			pSM->MatrReset();
 			Jacobian(pSM->pMatHdl());
-			iLocalIter = EffIter;
 			EffIter++;
 		}
 		pSM->Solve();
@@ -1408,20 +1412,18 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 		Update(pSol);
 	}
 
-
 	/* Acceleration */
 	SetOrder(2);
 
-	doublereal AccErr = 0;
+	AccErr = 0;
 	pRes->Reset();
 	Residual(pRes);
-	AccErr = pNLSolver->MakeResTest(pS, *pRes) * TestScale(pNLSolver->pGetResTest());
+	AccErr = pNLSolver->MakeResTest(pS, *pRes);
 
 	if(AccErr > dTol) {
 		if(iLocalIter == EffIter) {
 			pSM->MatrReset();
 			Jacobian(pSM->pMatHdl());
-			iLocalIter = EffIter;
 			EffIter++;
 		}
 		/* use acceleration */
@@ -1432,10 +1434,11 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 	/* Forces */
 	SetOrder(-1);
 	
-	doublereal ForceErr = 0;
+	ForceErr = 0.;
 	pRes->Reset();
+	pSol->Reset();
 	Residual(pRes);
-	ForceErr = pNLSolver->MakeResTest(pS, *pRes) * TestScale(pNLSolver->pGetResTest());
+	ForceErr = pNLSolver->MakeResTest(pS, *pRes);
 	
 	if(ForceErr > dTol) {
 		if(iLocalIter == EffIter) {
@@ -1446,6 +1449,8 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 		Update(pSol);
 	}
 	
+	pDM->IDAfterConvergence();
+
 	return Err;
 }
 
@@ -1503,6 +1508,5 @@ InverseDynamicsStepSolver::Update(const VectorHandler* pSol) const
 		}
 
 	}
-	//UpdateLoop(this, &InverseDynamicsStepSolver::UpdateDof, pSol);
 }
 /* Inverse Dynamics - End*/

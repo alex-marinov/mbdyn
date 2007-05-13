@@ -531,6 +531,14 @@ ParameterNode::Update(const VectorHandler& /* XCurr */ ,
 	NO_OP;
 }
 
+/* Inverse Dynamics */
+void
+ParameterNode::Update(const VectorHandler& /* XCurr */ ,
+	const int iOrder)
+{
+	NO_OP;
+}
+
 void
 ParameterNode::AfterPredict(VectorHandler& /* X */ ,
 	VectorHandler& /* XP */ )

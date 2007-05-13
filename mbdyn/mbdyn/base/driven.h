@@ -134,10 +134,16 @@ public:
 	/* Aggiorna dati in base alla soluzione */
 	virtual void Update(const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
+   	
+	/* Inverse Dynamics: */
+	virtual void Update(const VectorHandler& XCurr, int iOrder);
    
 	virtual void AfterConvergence(const VectorHandler& X, 
      			const VectorHandler& XP);
-
+	/* Inverse Dynamics: */
+	virtual void AfterConvergence(const VectorHandler& X, 
+     			const VectorHandler& XP, const VectorHandler& XPP);
+	
 	/* assemblaggio jacobiano */
 	virtual VariableSubMatrixHandler& 
 	AssJac(VariableSubMatrixHandler& WorkMat,

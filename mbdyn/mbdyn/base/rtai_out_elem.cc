@@ -166,6 +166,13 @@ RTAIOutElem::AfterConvergence(const VectorHandler& X,
 	 
 }
 
+/* Inverse Dynamics */
+void
+RTAIOutElem::AfterConvergence(const VectorHandler& X, 
+		const VectorHandler& XP, const VectorHandler& XPP)
+{
+	((RTAIOutElem*)this)->AfterConvergence(X, XP);	
+}
 
 Elem *
 ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)

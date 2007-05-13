@@ -423,7 +423,7 @@ public:
 	
 	/* Inverse Dynamics: */
 	virtual void Update(int iOrder) const;
-	virtual void AfterConvergence(int iOrder) const;
+	virtual void IDAfterConvergence(void) const;
 
 	void bSetStaticModel(bool b) {
 		bStaticModel = b;

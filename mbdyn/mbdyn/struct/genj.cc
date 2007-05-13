@@ -1671,7 +1671,6 @@ void
 ClampJoint::Update(const VectorHandler& XCurr, int iOrder)
 {
 	integer iFirstReactionIndex = iGetFirstIndex();
-	
    	/* Aggiorna le reazioni vincolari */
    	F = Vec3(XCurr, iFirstReactionIndex+1);
    	M = Vec3(XCurr, iFirstReactionIndex+4);

@@ -522,7 +522,7 @@ SocketUsersTimeout(0)
 
 	/* Costruzione dei dati dei Dof definitivi da usare nella simulazione */
 
-	bool bIsSquare;
+	bool bIsSquare = false;
 
 	/* Aggiornamento DofOwner degli elementi (e dei nodi) */
 	if(bInverseDynamics)	{

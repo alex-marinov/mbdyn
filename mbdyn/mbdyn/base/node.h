@@ -544,6 +544,9 @@ public:
 	virtual void Update(const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
+	/* Inverse Dynamics */
+	virtual void Update(const VectorHandler& XCurr, const int iOrder);
+
 	/* Elaborazione dati dopo la predizione */
 	virtual void AfterPredict(VectorHandler& X,
 		VectorHandler& XP);

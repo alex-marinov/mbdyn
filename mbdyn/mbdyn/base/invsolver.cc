@@ -77,7 +77,6 @@
 
 #include "solver_impl.h"
 
-/* Costruttore: esegue la simulazione */
 InverseSolver::InverseSolver(MBDynParser& HPar,
 		const char* sInFName,
 		const char* sOutFName,
@@ -92,12 +91,11 @@ void
 InverseSolver::Run(void)
 {
    	DEBUGCOUTFNAME("InverseSolver::Run");
-
    	/* Legge i dati relativi al metodo di integrazione */
    	ReadData(HP);
 
 /*FIXME:*/	
-	bParallel = false;
+//	bParallel = false;
 
 #if USE_RTAI
 	if (bRT) {
@@ -123,9 +121,6 @@ InverseSolver::Run(void)
 	}
 #endif /* USE_MULTITHREAD */
 
-	StrategyFactor.iMinIters = 1;
-	StrategyFactor.iMaxIters = 0;
-
 #ifdef USE_RTAI
 	if (bRT) {
 		/* Init RTAI; if init'ed, it will be shut down at exit */
@@ -149,7 +144,7 @@ InverseSolver::Run(void)
 			SAFESTRDUP(sOutputFileName, sInputFileName);
 
 		} else {
-			SAFESTRDUP(sOutputFileName, sDefaultOutputFileName);
+			SAFESTRDUP(sOutputFileName, ::sDefaultOutputFileName);
 		}
 		
 	} else {
@@ -344,29 +339,14 @@ InverseSolver::Run(void)
 		}
 	}
 
-	// log of symbol table
-	std::ostream& out = pDM->GetLogFile();
-	out << HP.GetMathParser().GetSymbolTable();
-
+	{ // log of symbol table
+		std::ostream& out = pDM->GetLogFile();
+		out << HP.GetMathParser().GetSymbolTable();
+	}
 	HP.Close();
 
    	/* Si fa dare l'std::ostream al file di output per il log */
    	std::ostream& Out = pDM->GetOutFile();
-
-   	if (eAbortAfter == AFTER_INPUT) {
-      		/* Esce */
-		pDM->Output(0, dTime, 0., true);
-      		Out << "End of Input; no simulation or assembly is required."
-			<< std::endl;
-      		return;
-
-   	} else if (eAbortAfter == AFTER_ASSEMBLY) {
-      		/* Fa l'output dell'assemblaggio iniziale e poi esce */
-      		pDM->Output(0, dTime, 0., true);
-      		Out << "End of Initial Assembly; no simulation is required."
-			<< std::endl;
-      		return;
-   	}
 
 	/* Qui crea le partizioni: principale fra i processi, se parallelo  */
 #ifdef USE_MPI
@@ -374,7 +354,8 @@ InverseSolver::Run(void)
 		pSDM->CreatePartition();
 	}
 #endif /* USE_MPI */
-
+	const DriveHandler* pDH = pDM->pGetDrvHdl();
+	pRegularSteps->SetDriveHandler(pDH);
    	/* Costruisce i vettori della soluzione ai vari passi */
    	DEBUGLCOUT(MYDEBUG_MEM, "creating solution vectors" << std::endl);
 
@@ -402,12 +383,10 @@ InverseSolver::Run(void)
 	
 	/* sono i passi precedenti usati dall'integratore */
 	integer iRSteps = pRegularSteps->GetIntegratorNumPreviousStates();
-	/* numero di stati incogniti (1) perchè il vettore degli stati è posizione-velocità*/
 	integer iRUnkStates = pRegularSteps->GetIntegratorNumUnknownStates();
 
-	
 	/* FIXME: pdWorkspace?*/
-#if 0	
+#if 1	
 	/* allocate workspace for previous time steps */
 	SAFENEWARR(pdWorkSpace, doublereal,
 		2*(iNumPreviousVectors)*iNumDofs);
@@ -570,6 +549,8 @@ InverseSolver::Run(void)
 	doublereal dSolTest = std::numeric_limits<double>::max();
 	bool bSolConv = false;
 
+	dTest = 0.;
+	dSolTest = 0.;
 #ifdef HAVE_SIGNAL
 	/*
 	 * FIXME: don't do this if compiling with USE_RTAI
@@ -615,17 +596,24 @@ InverseSolver::Run(void)
 #ifdef USE_EXTERNAL
 	pNLS->SetExternal(External::EMPTY);
 #endif /* USE_EXTERNAL */
-   	/* Setup SolutionManager(s) */
 
-	/* Dati comuni a passi fittizi e normali */
-   	long lStep = 1;                      
+   	long lStep = 0;                      
    	doublereal dCurrTimeStep = 0.;
 
+#ifdef USE_EXTERNAL
+         /* comunica che gli ultimi dati inviati sono la condizione iniziale */
+                 External::SendInitial();
+#endif /* USE_EXTERNAL */
+
    	/* Output delle "condizioni iniziali" */
-   	pDM->Output(0, dTime, dCurrTimeStep);
+   	pDM->Output(lStep, dTime, dCurrTimeStep);
 
-	lStep = 1; /* Resetto di nuovo lStep */
+#ifdef USE_EXTERNAL
+        /* il prossimo passo e' un regular */
+	pNLS->SetExternal(External::REGULAR);
+#endif /* USE_EXTERNAL */
 
+   	lStep = 1; /* Resetto di nuovo lStep */
    	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
 
 #ifdef HAVE_SIGNAL
@@ -647,14 +635,10 @@ InverseSolver::Run(void)
 			<< " " << bSolConv
 			<< std::endl;
 	}
-
+	
 	bSolConv = false;
    	dRefTimeStep = dInitialTimeStep;
 	dCurrTimeStep = dRefTimeStep;
-   	dTime += dRefTimeStep;
-
-   	iTotIter += iStIter;
-
 
 #ifdef USE_RTAI
 
@@ -824,7 +808,6 @@ InverseSolver::Run(void)
 	int or_counter = 0;
 #endif /* USE_RTAI */
 
-    	/* Altri passi regolari */
 	ASSERT(pRegularSteps != NULL);
 	
 	/* Setup SolutionManager(s) */
@@ -947,11 +930,10 @@ InverseSolver::Run(void)
 
 IfStepIsToBeRepeated:
 		try {
-
+			pDM->SetTime(dTime+dCurrTimeStep);
 			dTest = dynamic_cast<InverseDynamicsStepSolver *>(pRegularSteps)->Advance(this, dRefTimeStep,
 					CurrStep, pX, pXPrime, pXPrimePrime, pLambda, 
 					iStIter, dTest, dSolTest);
-			pDM->SetTime(dTime+dCurrTimeStep);
 		}
 
 		catch (NonlinearSolver::NoConvergence) {
@@ -1010,7 +992,7 @@ IfStepIsToBeRepeated:
 	      	dTotErr += dTest;
       		iTotIter += iStIter;
       		
-      		pDM->Output(lStep, dTime + dCurrTimeStep, dCurrTimeStep);
+		pDM->Output(lStep, dTime + dCurrTimeStep, dCurrTimeStep);
 
 		if (outputMsg()) {
       			Out << "Step " << lStep
@@ -1037,7 +1019,7 @@ IfStepIsToBeRepeated:
 			NewTimeStep(dCurrTimeStep, iStIter, CurrStep);
 		DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
    	} // while (true)  END OF ENDLESS-LOOP
-}  // Solver::Run()
+}  // InverseSolver::Run()
 
 /* Distruttore */
 InverseSolver::~InverseSolver(void)
@@ -1362,19 +1344,19 @@ InverseSolver::ReadData(MBDynParser& HP)
 	 *	StepIntegration e NonlinearSolver
 	 */
 
-	doublereal dTol = dDefaultTol;
+	doublereal dTol = ::dDefaultTol;
    	doublereal dSolutionTol = 0.;
-   	integer iMaxIterations = iDefaultMaxIterations;
+   	integer iMaxIterations = ::iDefaultMaxIterations;
 	bool bModResTest = false;
 
         /* Dati dei passi fittizi di trimmaggio iniziale */
-   	doublereal dFictitiousStepsTolerance = dDefaultFictitiousStepsTolerance;
-   	integer iFictitiousStepsMaxIterations = iDefaultMaxIterations;
+   	doublereal dFictitiousStepsTolerance = ::dDefaultFictitiousStepsTolerance;
+   	integer iFictitiousStepsMaxIterations = ::iDefaultMaxIterations;
 
    	/* Dati del passo iniziale di calcolo delle derivate */
 
-	doublereal dDerivativesTol = dDefaultTol;
-   	integer iDerivativesMaxIterations = iDefaultMaxIterations;
+	doublereal dDerivativesTol = ::dDefaultTol;
+   	integer iDerivativesMaxIterations = ::iDefaultMaxIterations;
 
 #ifdef USE_MULTITHREAD
 	bool bSolverThreads(false);
@@ -1565,7 +1547,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 			} else {
 				dTol = HP.GetReal();
 				if (dTol < 0.) {
-					dTol = dDefaultTol;
+					dTol = ::dDefaultTol;
 					silent_cerr("warning, residual tolerance "
 						"< 0. is illegal; "
 						"using default value " << dTol
@@ -1666,7 +1648,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 		case MAXITERATIONS: {
 			iMaxIterations = HP.GetInt();
 			if (iMaxIterations < 1) {
-				iMaxIterations = iDefaultMaxIterations;
+				iMaxIterations = ::iDefaultMaxIterations;
 				silent_cerr("warning, max iterations "
 					"< 1 is illegal; using default value "
 					<< iMaxIterations
@@ -1678,7 +1660,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 			break;
 		}
 
-		case MODIFY_RES_TEST:	{
+		case MODIFY_RES_TEST:	
 			if (bParallel) {
 				silent_cerr("\"modify residual test\" "
 					"not supported by schur data manager "
@@ -1691,7 +1673,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 			}
 			break;
 
-		}
+		
 
 
 		case NEWTONRAPHSON: {
@@ -1706,7 +1688,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 				if (HP.IsArg()) {
 					iIterationsBeforeAssembly = HP.GetInt();
 		  		} else {
-		       			iIterationsBeforeAssembly = iDefaultIterationsBeforeAssembly;
+		       			iIterationsBeforeAssembly = ::iDefaultIterationsBeforeAssembly;
 				}
 				DEBUGLCOUT(MYDEBUG_INPUT, "Modified "
 						"Newton-Raphson will be used; "

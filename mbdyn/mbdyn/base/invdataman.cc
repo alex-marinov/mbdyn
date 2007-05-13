@@ -84,7 +84,7 @@ DataManager::LinkToSolution(const VectorHandler& XCurr,
 	pXPrimeCurr = &XPrimeCurr;
 	pXPrimePrimeCurr = &XPrimePrimeCurr;
 	pLambdaCurr = &LambdaCurr;
-//TODO: DrvHdl.LinkToSolution(XCurr, XPrimeCurr);
+	DrvHdl.LinkToSolution(XCurr, XPrimeCurr);
 }
 void
 DataManager::AssConstrJac(MatrixHandler& JacHdl)
@@ -244,27 +244,27 @@ DataManager::Update(int iOrder) const
 }
 
 void
-DataManager::AfterConvergence(int iOrder) const
+DataManager::IDAfterConvergence(void) const
 {	
 	/* Nodes: */
-	switch(iOrder)	{
-		case 0:	{
-			Node** ppLastNode = ppNodes+iTotNodes;
-			for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
-				ASSERT(*ppTmp != NULL);
-				if(StructNode* pTmp = dynamic_cast<StructNode *>(*ppTmp)) {
-					pTmp->AfterConvergence(*(VectorHandler*)pXCurr, iOrder);
-				}
-			}
-			break;
-		}
-		case 1:	
-		case 2:	
-		case -1:
-			break;
-		default:
-			break;
+	Node** ppLastNode = ppNodes+iTotNodes;
+	for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
+		ASSERT(*ppTmp != NULL);
+		(*ppTmp)->AfterConvergence(*(VectorHandler*)pXCurr, 
+					*(VectorHandler*)pXPrimeCurr, 
+					*(VectorHandler*)pXPrimePrimeCurr);
 	}
+
+	/* Versione con iteratore: */
+	Elem* pEl = NULL;
+	if (ElemIter.bGetFirst(pEl)) {
+		do {
+			pEl->AfterConvergence(*(VectorHandler*)pXCurr,
+				*(VectorHandler*)pXPrimeCurr, *(VectorHandler*)pXPrimePrimeCurr);
+		} while (ElemIter.bGetNext(pEl));
+	}
+
+	/* Restart condizionato */
 #if 0
 	/* Versione con iteratore: */
 	Elem* pEl = NULL;
@@ -377,6 +377,7 @@ void DataManager::InverseDofInit(bool bIsSquare)
 		    		DEBUGCERR("warning, item " << iCnt << " has 0 dofs" << std::endl);
 		 	}
       		}
+		
 		/* Gli indici dei nodi sono ok*/
 		
 		/* Se il problema è ben posto, gli indici delle equazioni di vincolo
@@ -393,17 +394,18 @@ void DataManager::InverseDofInit(bool bIsSquare)
 			j != ElemData[Elem::JOINT].ElemMap.end();
 			j++)
 		{
-			pTmp = (DofOwner *)(dynamic_cast<ElemWithDofs *>(j->second))->pGetDofOwner();
-			iNumDofs = pTmp->iNumDofs;
-			if(iNumDofs > 0) {
-				pTmp->iFirstIndex = iJointIndex;
-				iJointIndex += iNumDofs;
-		 	} else {
-		    		pTmp->iFirstIndex = -1;
-		    		DEBUGCERR("warning, "
-					"Joint(" << j->second->GetLabel() << ") "
-					"has 0 dofs" << std::endl);
-		 	}
+			if(pTmp = (DofOwner *)(dynamic_cast<ElemWithDofs *>(j->second))->pGetDofOwner()) {
+				iNumDofs = pTmp->iNumDofs;
+				if(iNumDofs > 0) {
+					pTmp->iFirstIndex = iJointIndex;
+					iJointIndex += iNumDofs;
+		 		} else {
+		    			pTmp->iFirstIndex = -1;
+		    			DEBUGCERR("warning, "
+						"Joint(" << j->second->GetLabel() << ") "
+						"has 0 dofs" << std::endl);
+		 		}
+			}
 				
 		}
 		
@@ -424,22 +426,37 @@ void DataManager::InverseDofInit(bool bIsSquare)
   	 	
   	/* Crea la struttura dinamica dei Dof */
   	if(iTotDofs > 0) {
-
-  	    	SAFENEWARR(pDofs, Dof, iTotDofs);
+		if(bIsSquare)	{
+  	    		SAFENEWARR(pDofs, Dof, 2*iTotDofs);
+  	      	    	/* Inizializza l'iteratore sui Dof */
+  	    		DofIter.Init(pDofs, 2*iTotDofs);
   	    
-  	    	/* Inizializza l'iteratore sui Dof */
-  	    	DofIter.Init(pDofs, iTotDofs);
-  	    
-  	   	 /* Inizializza la struttura dinamica dei Dof */
+  	   	 	/* Inizializza la struttura dinamica dei Dof */
 		 
-		 /*FIXME:*/
-	   	 Dof* pTmp = pDofs;
-	   	 integer iIndex = pDofOwners[0].iFirstIndex;
-     			 while(pTmp < pDofs+iTotDofs) {
-				 pTmp->iIndex = iIndex++;
-				 pTmp->Order = DofOrder::DIFFERENTIAL;
-				 pTmp++;
-      			}		
+		 	/*FIXME:*/
+	   	 	Dof* pTmp = pDofs;
+	   	 	integer iIndex = pDofOwners[0].iFirstIndex;
+     				 while(pTmp < pDofs+2*iTotDofs) {
+					 pTmp->iIndex = iIndex++;
+					 pTmp->Order = DofOrder::DIFFERENTIAL;
+					 pTmp++;
+      				}		
+		} else {
+			SAFENEWARR(pDofs, Dof, iTotDofs);/* Inizializza l'iteratore sui Dof */
+  	    		DofIter.Init(pDofs, iTotDofs);
+  	    
+  	   	 	/* Inizializza la struttura dinamica dei Dof */
+		 
+		 	/*FIXME:*/
+	   	 	Dof* pTmp = pDofs;
+	   	 	integer iIndex = pDofOwners[0].iFirstIndex;
+     				 while(pTmp < pDofs+iTotDofs) {
+					 pTmp->iIndex = iIndex++;
+					 pTmp->Order = DofOrder::DIFFERENTIAL;
+					 pTmp++;
+      				}
+		}
+	
   	} else {
 		DEBUGCERR("");
       		silent_cerr("no dofs are defined" << std::endl);

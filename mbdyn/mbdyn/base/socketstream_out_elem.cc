@@ -235,6 +235,13 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 	}
 }
 
+void
+SocketStreamElem::AfterConvergence(const VectorHandler& X, 
+		const VectorHandler& XP, const VectorHandler& XPP)
+{
+		((SocketStreamElem*)this)->AfterConvergence(X, XP);
+}
+
 Elem *
 ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 {

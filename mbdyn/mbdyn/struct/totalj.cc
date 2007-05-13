@@ -467,6 +467,13 @@ TotalJoint::AfterConvergence(const VectorHandler& /* X */ ,
 	ThetaDeltaPrev = Unwrap(ThetaDeltaPrev, ThetaDelta);
 }
 
+void
+TotalJoint::AfterConvergence(const VectorHandler& /* X */ ,
+		const VectorHandler& /* XP */, const VectorHandler& /* XP */)
+{
+	ThetaDeltaPrev = Unwrap(ThetaDeltaPrev, ThetaDelta);
+}
+
 /* Contributo al file di restart */
 std::ostream&
 TotalJoint::Restart(std::ostream& out) const
@@ -946,18 +953,17 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 			Mat3x3 R1 = pNode1->GetRCurr()*R1h;
 			
 			Vec3 b1Prime(pNode2->GetVCurr() + pNode2->GetWCurr().Cross(b2) - pNode1->GetVCurr());  
-			Vec3 Tmp = 	- b1.Cross(pNode1->GetWCurr())
-					- b1Prime
-					- pNode2->GetVCurr()
-					+ b2.Cross(pNode2->GetWCurr())
-					+ pNode1->GetVCurr();
 			
-			Vec3 Tmp2 = pNode1->GetWCurr().Cross(Tmp)
-				- pNode2->GetWCurr().Cross(pNode2->GetWCurr().Cross(b2));
-	
-			Tmp = R1.Transpose()*Tmp2 - XPPDrv.Get();
+			Vec3 Tmp2 = (- pNode1->GetWCurr().Cross(b1) + b1Prime).Cross(pNode1->GetWCurr());
+			Tmp2 +=  (
+				  pNode1->GetWCurr().Cross(- pNode2->GetVCurr() 
+							   + b2.Cross(pNode2->GetWCurr()) 
+							   + pNode1->GetVCurr())
+				  -pNode2->GetWCurr().Cross(b2.Cross(pNode2->GetWCurr()))
+				);
+			Vec3 Tmp = R1.Transpose()*Tmp2 - XPPDrv.Get();
 			
-			/* Position constraint second derivative  */
+		/* Position constraint second derivative  */
 			for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
 				WorkVec.DecCoef(1 + iCnt, Tmp(iPosIncid[iCnt]));
 			}

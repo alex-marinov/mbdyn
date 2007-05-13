@@ -1138,44 +1138,26 @@ StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 
 /* Inverse Dynamics: */
 void
-StructNode::AfterConvergence(VectorHandler& X, int iOrder)
+StructNode::AfterConvergence(const VectorHandler& X, 
+			const VectorHandler& XP, 
+			const VectorHandler& XPP)
 {
+
+/* Right now, AfterConvergence is performed only on position 
+ * to reset orientation parameters. XPrime and XPrimePrime are 
+ * left for compatibility with the virtual method in 
+ * class SimulationEntity */
+
 	integer iFirstIndex = iGetFirstIndex();
-	switch(iOrder)	 {
-		case 0:	{
-			/* Ottengo il g e lo impongo come gRef: in questo modo
-			 * le successive iterazioni cercano la soluzione perturbando 
-			 * questo*/
-			gRef = Vec3(X, iFirstIndex+4);
-			gCurr = Vec3(0.);
-			RRef = RCurr;
-#if 0
-			/* Resetto i parametri di rotazione e le derivate, g e gP */
-			X.Put(iFirstIndex+4, Vec3(0.));
-
-			/* Calcolo la matrice RDelta derivante dalla predizione */
-			Mat3x3 RDelta(MatR, gRef);
-
-			/* Calcolo la R corrente in base alla predizione */
-			RCurr = RDelta*RPrev;
-
-			/* Calcolo la Omega corrente in base alla predizione (gP "totale") */
-			gPRef = Vec3(XP, iFirstIndex+4);
-
-			/* Calcolo il nuovo Omega */
-			WCurr = Mat3x3(MatG, gRef)*gPRef;
-
-			XP.Put(iFirstIndex+4, Vec3(0.));
-#endif
-			break;
-		}
-		case 1:
-		case 2:
-		case -1:
-			break;
-		default:
-			break;
-	}
+	
+	
+	/* Orientation Parameters:
+	 * Get g and impose it as gRef: successive iterations 
+	 * use gRef as reference and the solution is a perturbation
+	 * from it */
+	gRef = Vec3(X, iFirstIndex+4);
+	gCurr = Vec3(0.);
+	RRef = RCurr;
 }
 
 /*
