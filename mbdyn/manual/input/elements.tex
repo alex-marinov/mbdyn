@@ -300,7 +300,8 @@ There is also an optional gust model which is totally undocumented;
 for further information, please contact the Author(s).
 
 The \kw{.fea} file includes the state space model in form 
-of matrices $A$, $B$, $C$, $D_0$, $D_1$ and $D_2$, according to the representation
+of matrices $\T{A}$, $\T{B}$, $\T{C}$, $\T{D}_0$, $\T{D}_1$ and $\T{D}_2$,
+according to the representation
 \begin{align*}
 	\dot{\T{x}} &= \T{A}\T{x} + \T{B}\T{q} \\	
 	\T{f} &= q\plbr{\T{C}\T{x} + \T{D}_0 \T{q} + \frac{2V_{\infty}}{c} \T{D}_1 \dot{\T{q}} + \plbr{\frac{2V_{\infty}}{c}}^2 \T{D}_2 \ddot{\T{q}}}
