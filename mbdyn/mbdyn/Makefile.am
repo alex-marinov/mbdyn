@@ -33,7 +33,6 @@ $(GINACLIB_LIBS)\
 ../libraries/libann/libann.la \
 @HARWELL_LIBS@ \
 @UMFPACK_LIBS@ \
-@KLU_LIBS@ \
 ../libraries/libobjs/libobjs.la \
 @MESCHACH_LIBS@ \
 @SUPERLU_LIBS@ \
