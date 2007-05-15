@@ -39,7 +39,7 @@ MYLIBS = \
 ../libraries/libobjs/libobjs.la \
 ../libraries/libmbwrap/libmbwrap.la \
 @Y12_LIBS@ \
-../libraries/libcolamd/libcolamd.la \
+../libraries/libcolamd/libmbdyncolamd.la \
 ../libraries/libann/libann.la \
 ../libraries/libmbmath/libmbmath.la \
 ../libraries/libmbutil/libmbutil.la \

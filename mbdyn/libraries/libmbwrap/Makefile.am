@@ -43,7 +43,7 @@ libmbwrap_la_LIBADD = \
 ../libmbmath/libmbmath.la \
 ../libmbutil/libmbutil.la \
 ../libobjs/libobjs.la \
-../libcolamd/libcolamd.la \
+../libcolamd/libmbdyncolamd.la \
 ../libnaive/libnaive.la \
 @UMFPACK_LIBS@ \
 @MESCHACH_LIBS@ \
@@ -70,7 +70,7 @@ wraptest_LDADD = \
 ../libmbmath/libmbmath.la \
 ../libmbutil/libmbutil.la \
 ../libobjs/libobjs.la \
-../libcolamd/libcolamd.la \
+../libcolamd/libmbdyncolamd.la \
 ../libnaive/libnaive.la \
 @UMFPACK_LIBS@ \
 @MESCHACH_LIBS@ \
@@ -92,7 +92,7 @@ cctest_LDADD = \
 ../libmbmath/libmbmath.la \
 ../libmbutil/libmbutil.la \
 ../libobjs/libobjs.la \
-../libcolamd/libcolamd.la \
+../libcolamd/libmbdyncolamd.la \
 ../libnaive/libnaive.la \
 @UMFPACK_LIBS@ \
 @MESCHACH_LIBS@ \

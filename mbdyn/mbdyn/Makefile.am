@@ -28,11 +28,12 @@ $(GINACLIB_LIBS)\
 ../libraries/libmbmath/libmbmath.la \
 ../libraries/libmbutil/libmbutil.la \
 @Y12_LIBS@ \
-../libraries/libcolamd/libcolamd.la \
+../libraries/libcolamd/libmbdyncolamd.la \
 ../libraries/libnaive/libnaive.la \
 ../libraries/libann/libann.la \
 @HARWELL_LIBS@ \
 @UMFPACK_LIBS@ \
+@KLU_LIBS@ \
 ../libraries/libobjs/libobjs.la \
 @MESCHACH_LIBS@ \
 @SUPERLU_LIBS@ \
