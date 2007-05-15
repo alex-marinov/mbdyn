@@ -283,13 +283,22 @@ This element is defined as follows:
         (Mat3x3)<orientation> ,
         <reference chord> ,
         <number of aerodynamic states> ,
+        [ rigid , ]
         <state space modal matrices file>
 \end{verbatim}
 With this formulation, anytime an aeromodal element is defined, 
 the user needs to declare the number of modal aerodynamic elements 
 in use in the \kw{control data} section.
 An \htmlref{\kw{air properties}}{sec:EL:AERO:AIRPORPERTIES}
-card definition is also required. 
+card definition is also required.
+
+The keyword \kw{rigid} indicates that the generalized aerodynamic forces
+provided by the model include global forces and moments associated 
+to the rigid body motion of the underlying modal element (FIXME: untested).
+
+There is also an optional gust model which is totally undocumented;
+for further information, please contact the Author(s).
+
 The \kw{.fea} file includes the state space model in form 
 of matrices $A$, $B$, $C$, $D_0$, $D_1$ and $D_2$, according to the representation
 \begin{align*}
