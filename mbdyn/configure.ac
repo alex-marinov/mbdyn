@@ -543,8 +543,9 @@ dnl
 AC_CHECK_FUNC(socket,[have_socket=yes],[have_socket=no])
 if test "$have_socket" = "yes" ; then
 	AC_DEFINE(HAVE_SOCKET,1,[define if socket() is available])
+	AC_DEFINE(USE_SOCKET,1,[define if socket() can be used])
 fi
-	
+
 if test "$ol_enable_socket_drives" != no ; then
 
 	if test $have_socket != no ; then
@@ -837,7 +838,7 @@ if test "$ol_enable_runtime_loading" != "no" ; then
 	fi
 	if test $have_runtime_loading = no ; then
 		AC_CHECK_HEADER(dlfcn.h,[have_dlfcn_h=yes],[have_dlfcn_h=no])
-		if test $have_dlfcn_h="yes" ; then
+		if test $have_dlfcn_h = "yes" ; then
 			AC_DEFINE(HAVE_DLFCN_H,1,[define if you have <dlfcn.h>])
 			AC_CHECK_LIB(dl, dlopen,[have_dlopen_in_ldl=yes],[have_dlopen_in_ldl=no], -ldl)
 			if test $have_dlopen_in_ldl = "yes" ; then
@@ -2077,11 +2078,13 @@ AC_CHECK_FUNCS([ \
 	putenv \
 	setenv \
 	signal \
+	sleep \
 	strftime \
 	strtod \
 	strtol \
 	strtoul \
 	time \
+	times \
 	unsetenv \
 ])
 

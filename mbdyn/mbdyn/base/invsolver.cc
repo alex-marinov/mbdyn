@@ -566,15 +566,20 @@ InverseSolver::Run(void)
 		signal(SIGINT, SIG_IGN);
 	}
 
+// not available with MinGW (!?!)
+#ifdef SIGHUP
 	::mbdyn_sh_hup = signal(SIGHUP, mbdyn_modify_final_time_handler);
 	if (::mbdyn_sh_hup == SIG_IGN) {
 		signal(SIGHUP, SIG_IGN);
 	}
+#endif // SIGHUP
 
+#ifdef SIGPIPE
 	::mbdyn_sh_pipe = signal(SIGPIPE, mbdyn_modify_final_time_handler);
 	if (::mbdyn_sh_pipe == SIG_IGN) {
-		signal(SIGHUP, SIG_IGN);
+		signal(SIGPIPE, SIG_IGN);
 	}
+#endif // SIGPIPE
 #endif /* HAVE_SIGNAL */
 
 	/* settaggio degli output Types */
@@ -755,6 +760,7 @@ InverseSolver::Run(void)
 					}
 				}
 
+#ifdef HAVE_SETENV
 				/* sets new path */
 				/* BINPATH is the ${bindir} variable
 				 * at configure time, defined in
@@ -773,6 +779,7 @@ InverseSolver::Run(void)
 					memcpy(&newpath[STRLENOF(".:" BINPATH ":")], origpath, len + 1);
 					setenv("PATH", newpath, 1);
 				}
+#endif // HAVE_SETENV
 
 				/* start logger */
 				if (execlp("logproc", "logproc", "MBDTSK",

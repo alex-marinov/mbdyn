@@ -161,6 +161,10 @@ iAdamsOutputParts(0),
 adamsNoab(0),
 #endif /* USE_ADAMS */
 
+#ifdef USE_SOCKET
+SocketUsersTimeout(0),
+#endif // USE_SOCKET
+
 /* ElemManager */
 ElemIter(),
 ppDrive(0),
@@ -184,8 +188,7 @@ iTotDofOwners(0),
 pDofOwners(0),
 iTotDofs(0),
 pDofs(0),
-DofIter(),
-SocketUsersTimeout(0)
+DofIter()
 {
 	DEBUGCOUTFNAME("DataManager::DataManager");
 
@@ -496,8 +499,10 @@ SocketUsersTimeout(0)
 		return;
 	}
 
+#ifdef USE_SOCKET
 	/* waits for all pending sockets to connect */
 	WaitSocketUsers();
+#endif // USE_SOCKET
 
 	/* Qui intercetto la struttura dei Dof prima che venga costruita e modifico
 	 * in modo che sia adatta all'assemblaggio dei vincoli; quindi la resetto

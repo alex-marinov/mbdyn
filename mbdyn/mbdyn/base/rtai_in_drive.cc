@@ -33,11 +33,11 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <netdb.h>
-
 #include <dataman.h>
 
 #ifdef USE_RTAI
+#include <netdb.h>
+
 #include <rtai_in_drive.h>
 #include <mbrtai_utils.h>
 

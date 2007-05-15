@@ -262,9 +262,9 @@ protected:
    	char* module_name;	/* Nome del modulo */
 #ifdef HAVE_LTDL_H
 	lt_dlhandle handle;
-#elif defined(HAVE_DLFCN_H)
+#else
    	void* handle;		/* Handle del modulo (usato per chiusura) */
-#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
+#endif
 	LoadableCalls *calls;	/* Simboli delle funzioni attese */
 	bool needsAirProperties;
 

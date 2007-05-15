@@ -33,6 +33,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include "dataman.h"
+
 #ifdef USE_SOCKET_DRIVES
 
 #include <stdio.h>
@@ -54,7 +56,6 @@
 #include <sys/un.h>
 #include <arpa/inet.h>
 
-#include "dataman.h"
 #include "sockdrv.h"
 #include "sock.h"
 

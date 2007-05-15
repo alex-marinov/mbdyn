@@ -52,6 +52,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#if defined(HAVE_SASL2) && defined(HAVE_THREADS) && (HAVE_SEMAPHORE_H)
+
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
@@ -64,8 +67,6 @@
 #include <sys/poll.h>
 #include <sys/socket.h>
 #include <ac/getopt.h>
-
-#if defined(HAVE_SASL2) && defined(HAVE_THREADS) && (HAVE_SEMAPHORE_H)
 
 #include <sasl/sasl.h>
 #include "mbsasl.h"

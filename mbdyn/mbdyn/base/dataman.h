@@ -65,7 +65,9 @@
 #include "solverdiagnostics.h"
 #include "linsol.h"
 
+#ifdef USE_SOCKET
 #include "usesock.h"
+#endif // USE_SOCKET
 
 struct LoadableCalls;
 class Solver;
@@ -440,6 +442,18 @@ public:
 		return bInverseDynamics;
 	};
 
+	/* socket select stuff */
+#ifdef USE_SOCKET
+protected:
+	std::map<int, UseSocket *> SocketUsers;
+	time_t SocketUsersTimeout;
+
+	void WaitSocketUsers(void);
+
+public:
+	void RegisterSocketUser(UseSocket *pUS);
+#endif // USE_SOCKET
+
 	/* da ElemManager */
 	friend class InitialAssemblyIterator;
 
@@ -719,15 +733,7 @@ public:
 	void OutManagerDestructor(void);
 #endif /* 0 */
 
-	/* socket select stuff */
-protected:
-	std::map<int, UseSocket *> SocketUsers;
-	time_t SocketUsersTimeout;
-
-	void WaitSocketUsers(void);
-
 public:
-	void RegisterSocketUser(UseSocket *pUS);
 	const VectorHandler* GetpXCurr(void) {
 		return pXCurr;
 	};

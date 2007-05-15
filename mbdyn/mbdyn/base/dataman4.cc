@@ -90,8 +90,10 @@
 #include <rtai_out_elem.h>
 #endif /* USE_RTAI */
 
+#ifdef USE_SOCKET
 #include <socketstream_out_elem.h>
 #include <socketstreammotionelem.h>
+#endif // USE_SOCKET
 
 static int iNumTypes[Elem::LASTELEMTYPE];
 
@@ -1909,13 +1911,33 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, int CurrType)
 			switch (KeyWords(CurrType)) {
 			case SOCKETSTREAM_OUTPUT:
 			case RTAI_OUTPUT:
+#ifdef USE_SOCKET
 				pedantic_cout("starting stream element" << std::endl);
 				pE = ReadSocketStreamElem(this, HP, uLabel);
+#else // ! USE_SOCKET
+				silent_cerr(psElemNames[Elem::SOCKETSTREAM_OUTPUT]
+					<< "(" << uLabel << ") "
+					" not allowed at line " << HP.GetLineData()
+					<< " because apparently the current "
+					"architecture does not support sockets"
+					<< std::endl);
+				throw ErrGeneric();
+#endif // ! USE_SOCKET
 				break;
 
 			case SOCKETSTREAM_MOTION_OUTPUT:
+#ifdef USE_SOCKET
 				pedantic_cout("starting stream motion element" << std::endl);
 				pE = ReadSocketStreamMotionElem(this, HP, uLabel);
+#else // ! USE_SOCKET
+				silent_cerr(psElemNames[Elem::SOCKETSTREAM_OUTPUT]
+					<< "(" << uLabel << ") "
+					" not allowed at line " << HP.GetLineData()
+					<< " because apparently the current "
+					"architecture does not support sockets"
+					<< std::endl);
+				throw ErrGeneric();
+#endif // ! USE_SOCKET
 				break;
 			default:
 				silent_cerr("You shouldn't be here: " __FILE__ << ":" << __LINE__ << std::endl);

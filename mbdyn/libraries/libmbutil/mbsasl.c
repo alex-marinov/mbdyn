@@ -50,6 +50,7 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#ifdef HAVE_SASL2
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -64,7 +65,6 @@
 #include <sys/poll.h>
 #include <sys/socket.h>
 
-#ifdef HAVE_SASL2
 #include <sasl/sasl.h>
 #include "mbsasl.h"
 

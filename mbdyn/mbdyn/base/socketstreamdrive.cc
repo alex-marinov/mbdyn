@@ -38,6 +38,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#ifdef USE_SOCKET
+
 #include <netdb.h>
 
 #include <dataman.h>
@@ -360,3 +362,4 @@ ReadSocketStreamDrive(DataManager* pDM,
 	return pDr;
 } /* End of ReadStreamDrive */
 
+#endif // USE_SOCKET

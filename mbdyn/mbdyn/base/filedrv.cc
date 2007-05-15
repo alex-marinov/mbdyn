@@ -42,7 +42,9 @@
 #include <fixedstep.h>
 #include <sockdrv.h>
 #include <streamdrive.h>
+#ifdef USE_SOCKET
 #include <socketstreamdrive.h>
+#endif // USE_SOCKET
 #include <rtai_in_drive.h>
 
 /* FileDrive - begin */
@@ -202,8 +204,16 @@ read_stream:;
 		} else 
 #endif /* USE_RTAI */		
 		{
+#ifdef USE_SOCKET
 			silent_cout("starting stream drive" << std::endl);
 			pDr = ReadSocketStreamDrive(pDM, HP, uLabel);
+#else // ! USE_SOCKET
+			silent_cerr("stream drive " << uLabel
+				<< " not allowed at line " << HP.GetLineData()
+				<< " because apparently the current architecture "
+				"does not support sockets" << std::endl);
+			throw ErrGeneric();
+#endif // ! USE_SOCKET
 		}
 		break;
 

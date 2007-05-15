@@ -257,6 +257,12 @@ public:
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
+	virtual void
+	AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
+	{
+		ElasticHingeJoint::AfterConvergence(X, XP);
+	};
+	
 	virtual void SetValue(DataManager *pDM,
 			VectorHandler& X, VectorHandler& XP,
 			SimulationEntity::Hints *ph = 0)
@@ -268,6 +274,16 @@ public:
 	ParseHint(DataManager *pDM, const char *s) const
 	{
 		return ElasticHingeJoint::ParseHint(pDM, s);
+	};
+
+	virtual unsigned int iGetNumPrivData(void) const {
+		return DeformableHingeJoint::iGetNumPrivData();
+	};
+	virtual unsigned int iGetPrivDataIdx(const char *s) const {
+		return DeformableHingeJoint::iGetPrivDataIdx(s);
+	};
+	virtual doublereal dGetPrivData(unsigned int i) const {
+		return DeformableHingeJoint::dGetPrivData(i);
 	};
 #endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
 };
@@ -401,6 +417,12 @@ public:
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
+	virtual void
+	AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
+	{
+		ViscousHingeJoint::AfterConvergence(X, XP);
+	};
+	
 	virtual void SetValue(DataManager *pDM,
 			VectorHandler& X, VectorHandler& XP,
 			SimulationEntity::Hints *ph = 0)
@@ -412,6 +434,16 @@ public:
 	ParseHint(DataManager *pDM, const char *s) const
 	{
 		return DeformableHingeJoint::ParseHint(pDM, s);
+	};
+
+	virtual unsigned int iGetNumPrivData(void) const {
+		return DeformableHingeJoint::iGetNumPrivData();
+	};
+	virtual unsigned int iGetPrivDataIdx(const char *s) const {
+		return DeformableHingeJoint::iGetPrivDataIdx(s);
+	};
+	virtual doublereal dGetPrivData(unsigned int i) const {
+		return DeformableHingeJoint::dGetPrivData(i);
 	};
 #endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
 };
@@ -548,6 +580,12 @@ public:
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
+	virtual void
+	AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
+	{
+		ViscoElasticHingeJoint::AfterConvergence(X, XP);
+	};
+	
 	virtual void SetValue(DataManager *pDM,
 			VectorHandler& X, VectorHandler& XP,
 			SimulationEntity::Hints *ph = 0)
@@ -559,6 +597,16 @@ public:
 	ParseHint(DataManager *pDM, const char *s) const
 	{
 		return DeformableHingeJoint::ParseHint(pDM, s);
+	};
+
+	virtual unsigned int iGetNumPrivData(void) const {
+		return DeformableHingeJoint::iGetNumPrivData();
+	};
+	virtual unsigned int iGetPrivDataIdx(const char *s) const {
+		return DeformableHingeJoint::iGetPrivDataIdx(s);
+	};
+	virtual doublereal dGetPrivData(unsigned int i) const {
+		return DeformableHingeJoint::dGetPrivData(i);
 	};
 #endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
 };

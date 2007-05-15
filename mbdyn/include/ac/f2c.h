@@ -35,7 +35,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#if 0 /* #if defined(HAVE_G2C_H) */
+#if defined(HAVE_G2C_H)
 #include <g2c.h>
 #define HAVE_FLAG_T
 	

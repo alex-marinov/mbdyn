@@ -37,6 +37,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#ifdef USE_SOCKET
+
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -445,3 +447,4 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	return pEl;
 }
 
+#endif // USE_SOCKET

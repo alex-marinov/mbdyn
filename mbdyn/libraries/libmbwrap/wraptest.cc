@@ -808,14 +808,18 @@ main(int argc, char *argv[])
 	SetupSystem(random, random_args, singular,
 			matrixfilename, filename, pM, pV);
 	
+#ifdef HAVE_TIMES
 	clock_t ct = 0;
 	struct tms tmsbuf;
+#endif // HAVE_TIMES
 	try {
 		start = clock();
 		tf = rd_CPU_ts();
+#ifdef HAVE_TIMES
 		times(&tmsbuf);
 		ct = tmsbuf.tms_utime + tmsbuf.tms_cutime
 			+ tmsbuf.tms_stime + tmsbuf.tms_cstime;
+#endif // HAVE_TIMES
 		if (transpose) {
 			pSM->SolveT();
 		} else {
@@ -823,9 +827,11 @@ main(int argc, char *argv[])
 		}
 		tf = rd_CPU_ts() - tf;
 		end = clock();
+#ifdef HAVE_TIMES
 		times(&tmsbuf);
 		ct = tmsbuf.tms_utime + tmsbuf.tms_cutime
 			+ tmsbuf.tms_stime + tmsbuf.tms_cstime - ct;
+#endif // HAVE_TIMES
 	} catch (...) {
 		exit(EXIT_FAILURE);
 	}
@@ -835,11 +841,12 @@ main(int argc, char *argv[])
 				<< std::endl;
 		}
 	}
-	//cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 	cpu_time_used = ((double) (end - start));
 	cpu_time_used = cpu_time_used / CLOCKS_PER_SEC;
 	std::cout << "Clock tics to solve: " << tf << std::endl;
+#ifdef HAVE_TIMES
 	std::cout << "Clock tics to solve: " << ct << std::endl;
+#endif // HAVE_TIMES
 	std::cout << "Time to solve: " << cpu_time_used << std::endl;
 	
 
@@ -855,9 +862,11 @@ main(int argc, char *argv[])
 	try {
 		start = clock();
 		tf = rd_CPU_ts();
+#ifdef HAVE_TIMES
 		times(&tmsbuf);
 		ct = tmsbuf.tms_utime + tmsbuf.tms_cutime
 			+ tmsbuf.tms_stime + tmsbuf.tms_cstime;
+#endif // HAVE_TIMES
 		if (transpose) {
 			pSM->SolveT();
 		} else {
@@ -865,9 +874,11 @@ main(int argc, char *argv[])
 		}
 		tf = rd_CPU_ts() - tf;
 		end = clock();
+#ifdef HAVE_TIMES
 		times(&tmsbuf);
 		ct = tmsbuf.tms_utime + tmsbuf.tms_cutime
 			+ tmsbuf.tms_stime + tmsbuf.tms_cstime - ct;
+#endif // HAVE_TIMES
 	} catch (...) {
 		exit(EXIT_FAILURE);
 	}
@@ -878,11 +889,12 @@ main(int argc, char *argv[])
 				<< std::endl;
 		}
 	}
-	//cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 	cpu_time_used = ((double) (end - start));
 	cpu_time_used = cpu_time_used / CLOCKS_PER_SEC;
 	std::cout << "Clock tics to solve: " << tf << std::endl;
+#ifdef HAVE_TIMES
 	std::cout << "Clock tics to solve: " << ct << std::endl;
+#endif // HAVE_TIMES
 	std::cout << "Time to solve: " << cpu_time_used << std::endl;
 	
 	return 0;

@@ -1174,6 +1174,7 @@ EndOfUse:
 
 		case SELECTTIMEOUT: {
 			int timeout = HP.GetInt();
+#ifdef USE_SOCKET
 			if (timeout <= 0) {
 				silent_cerr("illegal select timeout " << timeout
 					<< " at line " << HP.GetLineData()
@@ -1181,6 +1182,14 @@ EndOfUse:
 			} else {
 				SocketUsersTimeout = 60*timeout;
 			}
+#else // ! USE_SOCKET
+			silent_cerr("\"select timeout\" not allowed "
+				"at line " << HP.GetLineData()
+				<< " because the current architecture "
+				"apparently does not support sockets"
+				<< std::endl);
+			throw ErrGeneric();
+#endif // ! USE_SOCKET
 		} break;
 
 		case MODEL:

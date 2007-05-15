@@ -33,6 +33,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#ifdef USE_SOCKET
+
 #include <netdb.h>
 
 #include "myassert.h"
@@ -426,3 +428,4 @@ UseLocalSocket::GetSockaddr(void) const
 	return (struct sockaddr *)&addr;
 }
 
+#endif // USE_SOCKET

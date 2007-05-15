@@ -33,6 +33,7 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#ifdef USE_SOCKET
 #include "dataman.h"
 #include "dataman_.h"
 
@@ -143,3 +144,4 @@ do_timeout:;
 	}
 }
 
+#endif // USE_SOCKET

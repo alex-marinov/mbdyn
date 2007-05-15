@@ -34,7 +34,9 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <unistd.h>
+#ifdef HAVE_PWD_H
 #include <pwd.h>
+#endif // HAVE_PWD_H
 
 #include <dataman.h>
 #include <auth.h>

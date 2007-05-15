@@ -36,7 +36,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#ifdef HAVE_TASK2CPU
 #include <sys/ioctl.h>
+#endif // HAVE_TASK2CPU
 
 #include <ac/pthread.h>
 

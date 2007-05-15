@@ -98,13 +98,17 @@ mbdyn_really_exit_handler(int signum)
       		signal(signum, ::mbdyn_sh_int);
       		break;
 
+#ifdef SIGHUP
     	case SIGHUP:
       		signal(signum, ::mbdyn_sh_hup);
       		break;
+#endif // SIGHUP
 
+#ifdef SIGPIPE
     	case SIGPIPE:
       		signal(signum, ::mbdyn_sh_pipe);
       		break;
+#endif // SIGPIPE
    	}
 
 	throw ErrInterrupted();
@@ -803,15 +807,19 @@ Solver::Run(void)
 		signal(SIGINT, SIG_IGN);
 	}
 
+#ifdef SIGHUP
 	::mbdyn_sh_hup = signal(SIGHUP, mbdyn_modify_final_time_handler);
 	if (::mbdyn_sh_hup == SIG_IGN) {
 		signal(SIGHUP, SIG_IGN);
 	}
+#endif // SIGHUP
 
+#ifdef SIGPIPE
 	::mbdyn_sh_pipe = signal(SIGPIPE, mbdyn_modify_final_time_handler);
 	if (::mbdyn_sh_pipe == SIG_IGN) {
-		signal(SIGHUP, SIG_IGN);
+		signal(SIGPIPE, SIG_IGN);
 	}
+#endif // SIGPIPE
 #endif /* HAVE_SIGNAL */
 
 	/* settaggio degli output Types */
@@ -1383,6 +1391,7 @@ IfFirstStepIsToBeRepeated:
 					}
 				}
 
+#ifdef HAVE_SETENV
 				/* sets new path */
 				/* BINPATH is the ${bindir} variable
 				 * at configure time, defined in
@@ -1401,6 +1410,7 @@ IfFirstStepIsToBeRepeated:
 					memcpy(&newpath[STRLENOF(".:" BINPATH ":")], origpath, len + 1);
 					setenv("PATH", newpath, 1);
 				}
+#endif // HAVE_SETENV
 
 				/* start logger */
 				if (execlp("logproc", "logproc", "MBDTSK",

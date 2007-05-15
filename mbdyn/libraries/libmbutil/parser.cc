@@ -35,7 +35,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <parser.h>
+#include <stdlib.h>
+#include "parser.h"
 
 /* LowParser - begin */
 
@@ -377,6 +378,7 @@ HighParser::Set_int(void)
 void
 HighParser::SetEnv_int(void)
 {
+#ifdef HAVE_SETENV
      	if (FirstToken() == UNKNOWN) {
      		silent_cerr("Parser error in HighParser::SetEnv_int(), "
      			"colon expected at line "
@@ -431,6 +433,7 @@ HighParser::SetEnv_int(void)
 			throw ErrGeneric();
 		}
 	}
+#endif // HAVE_SETENV
 }
 
 void
