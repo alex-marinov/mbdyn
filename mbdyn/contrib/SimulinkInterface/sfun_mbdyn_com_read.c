@@ -555,7 +555,7 @@ mdlOutputs(SimStruct *S, int_T tid)
 				}
 				addr.sun_family = AF_UNIX;
 				strncpy(path, PATH_PARAM, sizeof(path));
-				path[STRLENOF(path)] = '\0';
+				path[sizeof(path)-1] = '\0';
 
 				/* imposta la socket come non bloccante */
 	        		flags = fcntl(sock, F_GETFL, 0);
