@@ -161,6 +161,7 @@ dnl ----------------------------------------------------------------
 dnl General "with" options
 OL_ARG_WITH(tcl,[  --with-tcl              with tcl interpreters],auto,[auto yes no])
 OL_ARG_WITH(libf2c,[  --with-libf2c[={f2c|g2c}] with f2c library],auto,[auto yes no g2c])
+OL_ARG_WITH(g2c,[  --with-g2c              with g2c header],auto,[auto yes no])
 OL_ARG_WITH(fs,[  --with-fs[={unix|dos}]  filesystem type],unix,[unix dos])
 OL_ARG_WITH(mpi,[  --with-mpi              with MPI support (=pmpi for profiling)],auto,[auto yes pmpi no])
 OL_ARG_ENABLE(debug_mpi,[  --enable-debug-mpi      enable MPI debugging], no)dnl
@@ -771,6 +772,12 @@ if test $ol_with_libf2c != no ; then
 			F2C_LIBS=$try_libf2c_LIBS
 			AC_MSG_RESULT([yes])
 			ol_link_libf2c=yes
+
+			if test $l = g2c -a $ol_with_g2c != no ; then
+				if test $ac_cv_header_g2c_h = yes ; then
+					AC_DEFINE(USE_G2C_H,1,[define to use g2c.h])
+				fi
+			fi
 			break
 		else
 			AC_MSG_RESULT([no])
