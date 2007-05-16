@@ -68,26 +68,19 @@ MBDyn 1.X-Devel
 	Known issues:
 	Bug fixes:
 		- fixed orientation matrix input check and diagnostics
-		- fixed Schur data manager output bug
 		- fixed misc one-time leaks
-		- fixed Jacobian matrix contribution of revolute pin
 		- fixed initialization of fixed step file drive
 		- fixed --enable-runtime-loading configuration
-		- fixed model::anglerel computation
 		- fixed output of drive hinge
 		- fixed offset dummy node orientation handling
 		  (noted by I. Wander)
 		- fixed misc errors in utils/*
 		- fixed corrupted binary FEM file leftover when parse fails
-		- fixed rod with offset bug when offset != 0
-		- fixed output of deformable hinge
 		- fixed bug in .log of deformable joint(s)
-		- fixed Jacobian matrix of deformable displacement joint
 		  (noted by Jerome Merel)
 		- fixed minor memory issue in fixed step file driver
 		- added column check to file drive
 		  (noted by Marco Mantegazza and Fabio Veroni)
-		- fixed beam3 "from nodes" orientation input
 		- fixed "log" scalar function ("base" needed to be explicit)
 		- fixed use of uninitialized values in model parsing
 		- fixed scale/test inheritance issue (Marco Morandini)
@@ -96,6 +89,18 @@ MBDyn 1.X-Devel
 		- fixed variable time step retry in beam2/beam3
 		- fixed drive hinge initial assembly (noted by Patrick Rix)
 		- fixed rigid body Jacobian matrix with gravity
+
+MBDyn 1.2.7-Engineering
+	Enhancements:
+	Bug fixes:
+		- fixed Schur data manager output bug
+		- fixed rod with offset bug when offset != 0
+		- fixed output of deformable hinge
+		- fixed Jacobian matrix of deformable displacement joint
+		- fixed Jacobian matrix contribution of revolute pin
+		- fixed beam3 "from nodes" orientation input
+		- fixed model::anglerel computation
+		- fixed test on minimum time step
 
 MBDyn 1.2.6
 	Enhancements:
