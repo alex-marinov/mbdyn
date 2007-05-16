@@ -48,7 +48,10 @@ MBDYN=../../mbdyn/mbdyn
 # Add further variable declarations
 # for example, if MBDyn is linked with a version of libstdc++ that differs
 # from the one distributed with matlab, put its location into LD_LIBRARY_PATH
+# in most cases:
 LD_LIBRARY_PATH=/usr/lib
+# in most cases on x86_64:
+#LD_LIBRARY_PATH=/usr/lib64
 
 #exec -a mbdyn "${MBDYN}" $@
 exec "${MBDYN}" $@
