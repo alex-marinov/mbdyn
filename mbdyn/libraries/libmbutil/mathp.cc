@@ -223,25 +223,25 @@ mp_srnd(const MathParser::MathArgs& args)
 	return 0;
 }
 
-static std::ostream&
+std::ostream&
 operator << (std::ostream& out, const MathParser::MathArgVoid_t& v)
 {
 	return out;
 }
 
-static std::ostream&
+std::ostream&
 operator << (std::ostream& out, const MathParser::MathArgInt_t& v)
 {
 	return out << v();
 }
 
-static std::ostream&
+std::ostream&
 operator << (std::ostream& out, const MathParser::MathArgReal_t& v)
 {
 	return out << v();
 }
 
-static std::ostream&
+std::ostream&
 operator << (std::ostream& out, const MathParser::MathArgString_t& v)
 {
 	return out << v();
@@ -254,15 +254,15 @@ mp_print(const MathParser::MathArgs& args)
 
 	switch (args[1]->Type()) {
 	case MathParser::AT_INT:
-		silent_cout((*dynamic_cast<MathParser::MathArgInt_t*>(args[1]))() << std::endl);
+		silent_cout((*dynamic_cast<MathParser::MathArgInt_t*>(args[1])) << std::endl);
 		break;
 
 	case MathParser::AT_REAL:
-		silent_cout((*dynamic_cast<MathParser::MathArgReal_t*>(args[1]))() << std::endl);
+		silent_cout((*dynamic_cast<MathParser::MathArgReal_t*>(args[1])) << std::endl);
 		break;
 
 	case MathParser::AT_STRING:
-		silent_cout((*dynamic_cast<MathParser::MathArgString_t*>(args[1]))() << std::endl);
+		silent_cout((*dynamic_cast<MathParser::MathArgString_t*>(args[1])) << std::endl);
 		break;
 
 	default:
@@ -3311,18 +3311,18 @@ MathParser::stmtlist(void)
 const int default_namebuflen = 127;
 
 MathParser::MathParser(const InputStream& strm, Table& t, int redefine_vars)
-: PlugIns(NULL),
+: PlugIns(0),
 table(t),
 redefine_vars(redefine_vars),
-in((InputStream*)&strm),
+in(const_cast<InputStream*>(&strm)),
 defaultNameSpace(0),
-namebuf(NULL),
+namebuf(0),
 namebuflen(default_namebuflen),
-value(Real(0)),
+value(),
+currtoken(UNKNOWNTOKEN),
 varlist(NULL),
 tokenlist(NULL),
-powerstack(),
-currtoken(UNKNOWNTOKEN)
+powerstack()
 {
 	DEBUGCOUTFNAME("MathParser::MathParser");
 
@@ -3340,18 +3340,18 @@ currtoken(UNKNOWNTOKEN)
 }
 
 MathParser::MathParser(Table& t, int redefine_vars)
-: PlugIns(NULL),
+: PlugIns(0),
 table(t),
 redefine_vars(redefine_vars),
-in(NULL),
+in(0),
 defaultNameSpace(0),
-namebuf(NULL),
+namebuf(0),
 namebuflen(default_namebuflen),
-value(Real(0)),
-varlist(NULL),
-tokenlist(NULL),
-powerstack(),
-currtoken(UNKNOWNTOKEN)
+value(),
+currtoken(UNKNOWNTOKEN),
+varlist(0),
+tokenlist(0),
+powerstack()
 {
 	DEBUGCOUTFNAME("MathParser::MathParser");
 

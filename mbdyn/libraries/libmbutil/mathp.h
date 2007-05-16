@@ -65,6 +65,7 @@ public:
 		 * the remaining types */
 		AT_PRIVATE,
 
+		AT_TYPE,
 		AT_VOID,
 		AT_INT,
 		AT_REAL,
@@ -114,6 +115,9 @@ public:
 		const T& operator()(void) const { return m_val; };
 		T& operator()(void) { return m_val; };
 	};
+
+	// not used right now; could be used for casting and so
+	typedef MathArgPriv_t<ArgType, AT_TYPE> MathArgType_t;
 
 	typedef MathArgPriv_t<Int, AT_INT> MathArgInt_t;
 	typedef MathArgPriv_t<Real, AT_REAL> MathArgReal_t;
@@ -400,6 +404,15 @@ public:
 
 	int RegisterNameSpace(NameSpace *ns);
 };
+
+extern std::ostream&
+operator << (std::ostream& out, const MathParser::MathArgVoid_t& v);
+extern std::ostream&
+operator << (std::ostream& out, const MathParser::MathArgInt_t& v);
+extern std::ostream&
+operator << (std::ostream& out, const MathParser::MathArgReal_t& v);
+extern std::ostream&
+operator << (std::ostream& out, const MathParser::MathArgString_t& v);
 
 #endif /* MATHP_H */
 
