@@ -105,7 +105,9 @@ begin: elements;
 		hinge, reference, 1, 1, 1.,0.,0., 3, 0.,1.,0.,
 		reference, 1, null,
 		hinge, reference, 1, 1, 1.,0.,0., 3, 0.,1.,0.;
+	# bind joint 1 revolute angle ("rz") to parameter node 1 
 	bind: 1, joint, 1, string, "rz";
+	# bind joint 1 revolute angular velocity ("wz") to parameter node 2 
 	bind: 1, joint, 2, string, "wz";
 	gravity: 0.,0.,-1., 9.81;
 
@@ -115,11 +117,16 @@ begin: elements;
 		# path, "../tmp/mbdyn.in.pendulum.sock",
 		port, 10011,
 		2,
-			1, parameter,
-                        2, parameter;
+			1, parameter,	# revolute angle
+                        2, parameter;	# revolute angular velocity
 
-	force: 1, follower, 1, -1.,0.,0., null,
-		dof, 1, parameter, file, 1, 1;
+	force: 1, follower,
+		1,			# applied to structural node 1
+			-1.,0.,0.,	# direction
+			null,		# arm
+		file,
+			1,		# read input from file 1
+			1;		# use channel 1
 end: elements;
 
 
