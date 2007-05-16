@@ -944,7 +944,7 @@ IfStepIsToBeRepeated:
 		}
 
 		catch (NonlinearSolver::NoConvergence) {
-			if (dCurrTimeStep > dMinimumTimeStep) {
+			if (dCurrTimeStep > dMinTimeStep) {
 				/* Riduce il passo */
 				CurrStep = StepIntegrator::REPEATSTEP;
 				dCurrTimeStep = NewTimeStep(dCurrTimeStep,
@@ -1414,19 +1414,19 @@ InverseSolver::ReadData(MBDynParser& HP)
 			break;
 
        		case MINTIMESTEP:
-	  		dMinimumTimeStep = HP.GetReal();
-	  		DEBUGLCOUT(MYDEBUG_INPUT, "Minimum time step is "
-				   << dMinimumTimeStep << std::endl);
+	  		dMinTimeStep = HP.GetReal();
+	  		DEBUGLCOUT(MYDEBUG_INPUT, "Min time step is "
+				   << dMinTimeStep << std::endl);
 
-	  		if (dMinimumTimeStep == 0.) {
+	  		if (dMinTimeStep == 0.) {
 	     			silent_cerr("warning, null minimum time step"
 					" is not allowed" << std::endl);
 	     			throw ErrGeneric();
-			} else if (dMinimumTimeStep < 0.) {
-				dMinimumTimeStep = -dMinimumTimeStep;
+			} else if (dMinTimeStep < 0.) {
+				dMinTimeStep = -dMinTimeStep;
 				silent_cerr("warning, negative minimum time step"
 					" is not allowed;" << std::endl
-					<< "its modulus " << dMinimumTimeStep
+					<< "its modulus " << dMinTimeStep
 					<< " will be considered" << std::endl);
 	  		}
 	  		break;

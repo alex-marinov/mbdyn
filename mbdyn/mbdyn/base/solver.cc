@@ -200,7 +200,7 @@ dInitialTime(0.),
 dFinalTime(0.),
 dRefTimeStep(0.),
 dInitialTimeStep(1.),
-dMinimumTimeStep(::dDefaultMinimumTimeStep),
+dMinTimeStep(::dDefaultMinTimeStep),
 dMaxTimeStep(::dDefaultMaxTimeStep),
 iFictitiousStepsNumber(::iDefaultFictitiousStepsNumber),
 dFictitiousStepsRatio(::dDefaultFictitiousStepsRatio),
@@ -1195,7 +1195,7 @@ IfFirstStepIsToBeRepeated:
 				iStIter, dTest, dSolTest);
 	}
 	catch (NonlinearSolver::NoConvergence) {
-		if (dCurrTimeStep > dMinimumTimeStep) {
+		if (dCurrTimeStep > dMinTimeStep) {
 			/* Riduce il passo */
 			CurrStep = StepIntegrator::REPEATSTEP;
 			dCurrTimeStep = NewTimeStep(dCurrTimeStep,
@@ -1580,7 +1580,7 @@ IfStepIsToBeRepeated:
 		}
 
 		catch (NonlinearSolver::NoConvergence) {
-			if (dCurrTimeStep > dMinimumTimeStep) {
+			if (dCurrTimeStep > dMinTimeStep) {
 				/* Riduce il passo */
 				CurrStep = StepIntegrator::REPEATSTEP;
 				dCurrTimeStep = NewTimeStep(dCurrTimeStep,
@@ -1785,16 +1785,18 @@ Solver::NewTimeStep(doublereal dCurrTimeStep,
     	case FACTOR:
        		if (Why == StepIntegrator::REPEATSTEP) {
 	  		if (dCurrTimeStep*StrategyFactor.dReductionFactor
-	      		    > dMinimumTimeStep) {
+	      			> dMinTimeStep)
+			{
 	     			if (bLastChance == true) {
 					bLastChance = false;
 	     			}
 	     			iStepsAfterReduction = 0;
 	     			return dCurrTimeStep*StrategyFactor.dReductionFactor;
+
 	  		} else {
 	     			if (bLastChance == false) {
 					bLastChance = true;
-					return dMinimumTimeStep;
+					return dMinTimeStep;
 	     			} else {
 					/*
 					 * Fuori viene intercettato
@@ -1814,11 +1816,13 @@ Solver::NewTimeStep(doublereal dCurrTimeStep,
 			if (iPerformedIters > StrategyFactor.iMaxIters) {
 	     			iStepsAfterReduction = 0;
 				bLastChance = false;
-	     			return std::max(dCurrTimeStep*StrategyFactor.dReductionFactor, dMinimumTimeStep);
+	     			return std::max(dCurrTimeStep*StrategyFactor.dReductionFactor, dMinTimeStep);
+
 			} else if (iPerformedIters <= StrategyFactor.iMinIters
-	      		    && iStepsAfterReduction > StrategyFactor.iStepsBeforeReduction
-			    && iStepsAfterRaise > StrategyFactor.iStepsBeforeRaise
-			    && dCurrTimeStep < dMaxTimeStep) {
+	      			&& iStepsAfterReduction > StrategyFactor.iStepsBeforeReduction
+				&& iStepsAfterRaise > StrategyFactor.iStepsBeforeRaise
+				&& dCurrTimeStep < dMaxTimeStep)
+			{
 	     			iStepsAfterRaise = 0;
 				iWeightedPerformedIters = 0;
 	     			return dCurrTimeStep*StrategyFactor.dRaiseFactor;
@@ -2268,37 +2272,39 @@ Solver::ReadData(MBDynParser& HP)
 			break;
 
        		case MINTIMESTEP:
-	  		dMinimumTimeStep = HP.GetReal();
-	  		DEBUGLCOUT(MYDEBUG_INPUT, "Minimum time step is "
-				   << dMinimumTimeStep << std::endl);
+	  		dMinTimeStep = HP.GetReal();
+	  		DEBUGLCOUT(MYDEBUG_INPUT, "Min time step is "
+				   << dMinTimeStep << std::endl);
 
-	  		if (dMinimumTimeStep == 0.) {
-	     			silent_cerr("warning, null minimum time step"
+	  		if (dMinTimeStep == 0.) {
+	     			silent_cerr("warning, null min time step"
 					" is not allowed" << std::endl);
 	     			throw ErrGeneric();
-			} else if (dMinimumTimeStep < 0.) {
-				dMinimumTimeStep = -dMinimumTimeStep;
-				silent_cerr("warning, negative minimum time step"
-					" is not allowed;" << std::endl
-					<< "its modulus " << dMinimumTimeStep
-					<< " will be considered" << std::endl);
+
+			} else if (dMinTimeStep < 0.) {
+				silent_cerr("negative min time step"
+					" is not allowed" << std::endl);
+				throw ErrGeneric();
 	  		}
 	  		break;
 
        		case MAXTIMESTEP:
-	  		dMaxTimeStep = HP.GetReal();
+			if (HP.IsKeyWord("unlimited")) {
+				dMaxTimeStep = 0.;
+			} else {
+	  			dMaxTimeStep = HP.GetReal();
+			}
 	  		DEBUGLCOUT(MYDEBUG_INPUT, "Max time step is "
 				   << dMaxTimeStep << std::endl);
 
 	  		if (dMaxTimeStep == 0.) {
 				silent_cout("no max time step limit will be"
 					" considered" << std::endl);
+
 			} else if (dMaxTimeStep < 0.) {
-				dMaxTimeStep = -dMaxTimeStep;
-				silent_cerr("warning, negative max time step"
-					" is not allowed;" << std::endl
-					<< "its modulus " << dMaxTimeStep
-					<< " will be considered" << std::endl);
+				silent_cerr("negative max time step"
+					" is not allowed" << std::endl);
+				throw ErrGeneric();
 	  		}
 	  		break;
 
@@ -2308,11 +2314,10 @@ Solver::ReadData(MBDynParser& HP)
 			if (iFictitiousStepsNumber < 0) {
 				iFictitiousStepsNumber =
 					::iDefaultFictitiousStepsNumber;
-				silent_cerr("warning, negative dummy steps number"
-					" is illegal;" << std::endl
-					<< "resorting to default value "
-					<< ::iDefaultFictitiousStepsNumber
-					<< std::endl);
+				silent_cerr("negative dummy steps number"
+					" is illegal" << std::endl);
+				throw ErrGeneric();
+
 			} else if (iFictitiousStepsNumber == 1) {
 				silent_cerr("warning, a single dummy step"
 					" may be useless" << std::endl);
@@ -2326,13 +2331,9 @@ Solver::ReadData(MBDynParser& HP)
        		case DUMMYSTEPSRATIO:
 	  		dFictitiousStepsRatio = HP.GetReal();
 	  		if (dFictitiousStepsRatio < 0.) {
-	     			dFictitiousStepsRatio =
-					::dDefaultFictitiousStepsRatio;
-				silent_cerr("warning, negative dummy steps ratio"
-					" is illegal;" << std::endl
-					<< "resorting to default value "
-					<< ::dDefaultFictitiousStepsRatio
-					<< std::endl);
+				silent_cerr("negative dummy steps ratio"
+					" is illegal" << std::endl);
+				throw ErrGeneric();
 			}
 
 	  		if (dFictitiousStepsRatio > 1.) {
@@ -2350,13 +2351,9 @@ Solver::ReadData(MBDynParser& HP)
        		case DUMMYSTEPSTOLERANCE:
 	  		dFictitiousStepsTolerance = HP.GetReal();
 	  		if (dFictitiousStepsTolerance <= 0.) {
-				dFictitiousStepsTolerance =
-					::dDefaultFictitiousStepsTolerance;
-				silent_cerr("warning, negative dummy steps"
-					" tolerance is illegal;" << std::endl
-					<< "resorting to default value "
-					<< ::dDefaultFictitiousStepsTolerance
-					<< std::endl);
+				silent_cerr("negative dummy steps"
+					" tolerance is illegal" << std::endl);
+				throw ErrGeneric();
 	  		}
 			DEBUGLCOUT(MYDEBUG_INPUT,
 				   "Fictitious steps tolerance: "
@@ -3519,10 +3516,10 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		break;
 
 	default:
-		if (dMinimumTimeStep != dDefaultMinimumTimeStep) {
+		if (dMinTimeStep != ::dDefaultMinTimeStep) {
 			silent_cerr("\"min time step\" only allowed with variable time step (ignored)." <<std::endl);
 		}
-		dMinimumTimeStep = dInitialTimeStep;
+		dMinTimeStep = dInitialTimeStep;
 
 		if (dMaxTimeStep != dDefaultMaxTimeStep) {
 			silent_cerr("\"max time step\" only allowed with variable time step (ignored)." <<std::endl);

@@ -177,7 +177,7 @@ protected:
    	doublereal dFinalTime;
    	doublereal dRefTimeStep;
    	doublereal dInitialTimeStep;
-   	doublereal dMinimumTimeStep;
+   	doublereal dMinTimeStep;
    	doublereal dMaxTimeStep;
 
    	/* Dati dei passi fittizi di trimmaggio iniziale */
