@@ -61,51 +61,42 @@ all__:
 		for i in $(MODULES_DIRS) ; do \
 			echo "Playing with $$i ..."; \
 			export MBDYN_MODULE=$$i ; \
-			isrc=$(top_srcdir)/modules/$$i ; \
+			isrc=$(srcdir)/$$i ; \
 			if test -d $$isrc ; then mkdir -p $$i ; fi ; \
 			for fsrc in $$isrc/*.{c,cc,f,f90} ; do \
 				f=`basename $$fsrc` ; \
-				case $$f in \*.c|\*.cc|\*.f|\*.f90) ;; *) if test ! -f $$i/$$f ; then ln -sf $$isrc/$$f $$i/$$f ; fi ; ;; esac ; \
+				case $$f in \*.c|\*.cc|\*.f|\*.f90) ;; *) if test ! -f $$i/$$f ; then ( cd $$i && ln -sf ../$$isrc/$$f $$f ) ; fi ; ;; esac ; \
 			done ; \
-			cp $(top_srcdir)/modules/Makefile.module $$i/Makefile ; \
-			cd $$i && $(MAKE) MBDYN_MODULE_SRCDIR=../$(top_srcdir)/modules/$$i ; \
-			cd .. ; \
+			cp $(srcdir)/Makefile.module $$i/Makefile ; \
+			( cd $$i && $(MAKE) MBDYN_MODULE_SRCDIR=../$$isrc ) ; \
 			rm -f $$i/Makefile ; \
 		done \
 	fi
 
-install:
+install: all__
 	$(mkinstalldirs) $(libexecdir)
 	-@if test x"$(MODULES_DIRS)" != x ; then \
 		for i in $(MODULES_DIRS) ; do \
 			echo "Installing $$i ..."; \
 			export MBDYN_MODULE=$$i ; \
-			isrc=$(top_srcdir)/modules/$$i ; \
+			isrc=$(srcdir)/$$i ; \
 			if test -d $$isrc ; then mkdir -p $$i ; fi ; \
 			for fsrc in $$isrc/*.{c,cc,f,f90} ; do \
 				f=`basename $$fsrc` ; \
-				case $$f in \*.c|\*.cc|\*.f|\*.f90) ;; *) if test ! -f $$i/$$f ; then ln -sf $$isrc/$$f $$i/$$f ; fi ; ;; esac ; \
+				case $$f in \*.c|\*.cc|\*.f|\*.f90) ;; *) if test ! -f $$i/$$f ; then ( cd $$i && ln -sf ../$$isrc/$$f $$f ) ; fi ; ;; esac ; \
 			done ; \
-			cp $(top_srcdir)/modules/Makefile.module $$i/Makefile ; \
-			cd $$i && $(MAKE) install; \
-			cd .. ; \
+			cp $(srcdir)/Makefile.module $$i/Makefile ; \
+			( cd $$i && $(MAKE) install ) ; \
 			rm -f $$i/Makefile ; \
 		done \
 	fi
 
-clean:
+clean clean-so:
 	-@if test x"$(MODULES_DIRS)" != x ; then \
 		for i in $(MODULES_DIRS) ; do \
 			echo "Cleaning $$i ..."; \
-			export MBDYN_MODULE=$$i ; \
-			isrc=$(top_srcdir)/modules/$$i ; \
-			if test -d $$isrc ; then mkdir -p $$i ; fi ; \
-			for fsrc in $$isrc/*.{c,cc,f,f90} ; do \
-				f=`basename $$fsrc` ; \
-				case $$f in \*.c|\*.cc|\*.f|\*.f90) ;; *) if test ! -f $$i/$$f ; then ln -sf $$isrc/$$f $$i/$$f ; fi ; ;; esac ; \
-			done ; \
-			cp $(top_srcdir)/modules/Makefile.module $$i/Makefile ; \
-			cd $$i && $(MAKE) clean ; \
+			cp $(srcdir)/Makefile.module $$i/Makefile ; \
+			cd $$i && $(MAKE) $@ ; \
 			cd .. ; \
 			rm -f $$i/Makefile ; \
 		done \
@@ -114,18 +105,8 @@ clean:
 distclean:
 	-@if test x"$(MODULES_DIRS)" != x ; then \
 		for i in $(MODULES_DIRS) ; do \
-			echo "Dist-cleaning $$i ..."; \
-			export MBDYN_MODULE=$$i ; \
-			isrc=$(top_srcdir)/modules/$$i ; \
-			if test -d $$isrc ; then mkdir -p $$i ; fi ; \
-			for fsrc in $$isrc/*.{c,cc,f,f90} ; do \
-				f=`basename $$fsrc` ; \
-				case $$f in \*.c|\*.cc|\*.f|\*.f90) ;; *) if test ! -f $$i/$$f ; then ln -sf $$isrc/$$f $$i/$$f ; fi ; ;; esac ; \
-			done ; \
-			cp $(top_srcdir)/modules/Makefile.module $$i/Makefile ; \
-			cd $$i && $(MAKE) distclean ; \
-			cd .. ; \
-			rm -f $$i/Makefile ; \
+			echo "Cleaning $$i ..."; \
+			rm -rf $$i ; \
 		done \
 	fi
 	rm -f Makefile libtool

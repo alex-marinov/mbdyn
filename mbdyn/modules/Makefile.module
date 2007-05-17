@@ -63,7 +63,7 @@ install: $(MBDYN_MODULE).so
 	fi
 
 clean:
-	-rm -f *.o core
+	-rm -f *.o *.lo core
 
 clean-so:
 	-rm -f *.so
