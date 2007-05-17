@@ -250,6 +250,40 @@ can locate them.
 
 \subsection{RTAI}
 
+\section{Build Environments}
+
+\subsection{GNU/Linux}
+The preferred build environment is GNU/Linux, using gcc, g++
+and either g77 or gfortran.
+
+\subsection{Windows: CygWin}
+MBDyn has been successfully compiled under CygWin.
+No special requirement is known.
+Special attention is required to build with some specific feature,
+significantly run-time loadable modules.
+
+\subsection{Windows: MSYS/MinGW}
+MBDyn has been successfully compiled under MSYS/MinGW.
+Special attention needs to be played to what version is used.
+
+Download packages from
+\htmladdnormallink{\kw{http://www.mingw.org/}}{http://www.mingw.org/}.
+
+Required packages (in order of installation):
+\begin{itemize}
+\item \kw{MinGW-3.1.0-1.exe} (install wizard)
+\item \kw{MSYS-1.0.10.exe} (install wizard; if not automagically done,
+edit file \kw{/etc/fstab} as indicated in MSYS' documentation)
+\item \kw{msysDTK-1.0.1.exe} (install wizard)
+\item \kw{gcc-core-3.4.2-20040916-1.tar.gz}
+	(archive; untar after changing directory into \kw{/mingw})
+\item \kw{gcc-g++-3.4.2-20040916-1.tar.gz}
+	(archive; untar after changing directory into \kw{/mingw})
+\item \kw{gcc-g77-3.4.2-20040916-1.tar.gz}
+	(archive; untar after changing directory into \kw{/mingw})
+\item \kw{msys-libtool-1.5.tar.bz2}
+	(archive; untar after changing directory into \kw{/})
+\end{itemize}
 
 
 
@@ -643,6 +677,18 @@ in \kw{contrib/SimulinkInterface}
 
 
 \chapter{Developers}
+
+\section{Prepare for Building}
+Developers need to prepare the build environment by running
+\begin{verbatim}
+    $ ./bootstrap.sh
+\end{verbatim}
+This need appropriate versions of the autotools:
+\begin{itemize}
+\item \kw{automake}: there seems to be no special version requirement;
+\item \kw{autoconf}: there seems to be no special version requirement;
+\item \kw{libtool}: needs to be at least version 1.5.
+\end{itemize}
 
 \bibliographystyle{unsrt}
 \bibliography{mybib}
