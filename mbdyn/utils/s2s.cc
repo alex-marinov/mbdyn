@@ -33,6 +33,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#ifdef USE_SOCKET
+
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -447,3 +449,4 @@ s2s_t::prepare(void)
 	signal(SIGPIPE, s2s_shutdown);
 }
 
+#endif // USE_SOCKET
