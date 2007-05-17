@@ -854,7 +854,7 @@ if test "$ol_enable_runtime_loading" != "no" ; then
 			fi
 		fi
 	fi
-	if test $have_runtime_loading=yes ; then
+	if test "$have_runtime_loading" = "yes" ; then
 		AC_DEFINE(HAVE_RUNTIME_LOADING,1,[define if you want to load runtime])
 	elif test "$ol_enable_runtime_loading" = "yes" ; then
 		AC_MSG_ERROR([no dynamic linking library detected])
