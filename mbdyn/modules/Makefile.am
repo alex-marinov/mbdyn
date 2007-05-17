@@ -65,7 +65,7 @@ all__:
 			if test -d $$isrc ; then mkdir -p $$i ; fi ; \
 			for fsrc in $$isrc/*.{c,cc,f,f90} ; do \
 				f=`basename $$fsrc` ; \
-				case $$f in \*.c|\*.cc|\*.f|\*.f90) ;; *) if test ! -f $$i/$$f ; then ln -sf ../$$isrc/$$f $$i/$$f ; fi ; ;; esac ; \
+				case $$f in \*.c|\*.cc|\*.f|\*.f90) ;; *) if test ! -f $$i/$$f ; then ln -sf $$isrc/$$f $$i/$$f ; fi ; ;; esac ; \
 			done ; \
 			cp $(top_srcdir)/modules/Makefile.module $$i/Makefile ; \
 			cd $$i && $(MAKE) MBDYN_MODULE_SRCDIR=../$(top_srcdir)/modules/$$i ; \
@@ -84,7 +84,7 @@ install:
 			if test -d $$isrc ; then mkdir -p $$i ; fi ; \
 			for fsrc in $$isrc/*.{c,cc,f,f90} ; do \
 				f=`basename $$fsrc` ; \
-				case $$f in \*.c|\*.cc|\*.f|\*.f90) ;; *) if test ! -f $$i/$$f ; then ln -sf ../$$isrc/$$f $$i/$$f ; fi ; ;; esac ; \
+				case $$f in \*.c|\*.cc|\*.f|\*.f90) ;; *) if test ! -f $$i/$$f ; then ln -sf $$isrc/$$f $$i/$$f ; fi ; ;; esac ; \
 			done ; \
 			cp $(top_srcdir)/modules/Makefile.module $$i/Makefile ; \
 			cd $$i && $(MAKE) install; \
@@ -102,7 +102,7 @@ clean:
 			if test -d $$isrc ; then mkdir -p $$i ; fi ; \
 			for fsrc in $$isrc/*.{c,cc,f,f90} ; do \
 				f=`basename $$fsrc` ; \
-				case $$f in \*.c|\*.cc|\*.f|\*.f90) ;; *) if test ! -f $$i/$$f ; then ln -sf ../$$isrc/$$f $$i/$$f ; fi ; ;; esac ; \
+				case $$f in \*.c|\*.cc|\*.f|\*.f90) ;; *) if test ! -f $$i/$$f ; then ln -sf $$isrc/$$f $$i/$$f ; fi ; ;; esac ; \
 			done ; \
 			cp $(top_srcdir)/modules/Makefile.module $$i/Makefile ; \
 			cd $$i && $(MAKE) clean ; \
@@ -120,7 +120,7 @@ distclean:
 			if test -d $$isrc ; then mkdir -p $$i ; fi ; \
 			for fsrc in $$isrc/*.{c,cc,f,f90} ; do \
 				f=`basename $$fsrc` ; \
-				case $$f in \*.c|\*.cc|\*.f|\*.f90) ;; *) if test ! -f $$i/$$f ; then ln -sf ../$$isrc/$$f $$i/$$f ; fi ; ;; esac ; \
+				case $$f in \*.c|\*.cc|\*.f|\*.f90) ;; *) if test ! -f $$i/$$f ; then ln -sf $$isrc/$$f $$i/$$f ; fi ; ;; esac ; \
 			done ; \
 			cp $(top_srcdir)/modules/Makefile.module $$i/Makefile ; \
 			cd $$i && $(MAKE) distclean ; \
