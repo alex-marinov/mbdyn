@@ -2120,6 +2120,23 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
+dnl Make sure we can use sleep with C++
+dnl
+if test "$ac_cv_func_sleep" = "yes" ; then
+	AC_LANG_CPLUSPLUS
+	AC_TRY_LINK([
+#include <unistd.h>
+       	],[
+        sleep(1);
+       	],[use_sleep=yes],[use_sleep=no])
+	if test "$use_sleep" = "yes" ; then
+		AC_DEFINE(USE_SLEEP,1,[define if sleep is usable with C++ (issue with MinGW)])
+	fi
+	AC_LANG_C
+fi
+
+dnl ----------------------------------------------------------------
+dnl
 dnl Checks whether cmath defines std::isfinite
 dnl
 AC_LANG_CPLUSPLUS

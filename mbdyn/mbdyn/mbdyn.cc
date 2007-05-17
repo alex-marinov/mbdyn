@@ -638,11 +638,11 @@ main(int argc, char* argv[])
 	    		}
         	} // while (true)  end of endless loop 
 
-#ifdef HAVE_SLEEP
+#ifdef USE_SLEEP
 		if (iSleepTime > -1) {
 			sleep(iSleepTime);
 		}
-#endif // HAVE_SLEEP
+#endif // USE_SLEEP
 		
         	/*
 		 * primo argomento utile (potenziale nome di file di ingresso)

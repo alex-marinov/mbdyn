@@ -173,13 +173,13 @@ ExtForce::Send(void)
 				}
 
 			} else {
-#ifdef HAVE_SLEEP
+#ifdef USE_SLEEP
 				silent_cout("ExtForce(" << GetLabel() << "): "
 					"output file \"" << fout.c_str() << "\" still present, "
 					"try #" << cnt << "; "
 					"sleeping " << iSleepTime << " s" << std::endl);
 				sleep(iSleepTime);
-#endif // HAVE_SLEEP
+#endif // USE_SLEEP
 			}
 		}
 	}
@@ -224,7 +224,7 @@ ExtForce::AssRes(SubVectorHandler& WorkVec,
 			done[i] = false;
 		}
 
-#ifdef HAVE_SLEEP
+#ifdef USE_SLEEP
 		for (int cnt = 0; !inf; cnt++) {
 			silent_cout("ExtForce(" << GetLabel() << "): "
 				"input file \"" << fin.c_str() << "\" missing, "
@@ -235,7 +235,7 @@ ExtForce::AssRes(SubVectorHandler& WorkVec,
 			inf.clear();
 			inf.open(fin.c_str());
 		}
-#endif // HAVE_SLEEP
+#endif // USE_SLEEP
 
 		WorkVec.ResizeReset(6*Nodes.size());
 
