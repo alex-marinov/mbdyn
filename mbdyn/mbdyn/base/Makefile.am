@@ -17,6 +17,10 @@ constltp.h \
 constltp_ann.h \
 constltp_impl.cc \
 constltp_impl.h \
+constltp_nlp.cc \
+constltp_nlp.h \
+constltp_nlsf.cc \
+constltp_nlsf.h \
 contactj.h \
 damper.f \
 damper.h \

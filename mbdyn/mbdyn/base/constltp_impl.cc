@@ -47,6 +47,10 @@
 #include "shockabsorber.h"
 #include "constltp_ann.h"
 
+/* constitutive laws sponsored by Hutchinson CdR */
+#include "constltp_nlp.h"
+#include "constltp_nlsf.h"
+
 /* constitutive law containers */
 typedef std::map<std::string, ConstitutiveLawRead<doublereal, doublereal> *, ltstrcase> CL1DFuncMapType;
 typedef std::map<std::string, ConstitutiveLawRead<Vec3, Mat3x3> *, ltstrcase> CL3DFuncMapType;
@@ -1223,6 +1227,10 @@ InitCL(void)
 	/* Artificial Neural Network */
 	SetCL1D("ann" "elastic", new AnnElasticCLR<doublereal, doublereal>);
 	SetCL1D("ann" "viscoelastic", new AnnViscoElasticCLR<doublereal, doublereal>);
+
+	/* constitutive laws sponsored by Hutchinson CdR */
+	NLP_init();
+	NLSF_init();
 
 	/* NOTE: add here initialization of new built-in constitutive laws;
 	 * alternative ways to register new custom constitutive laws are:
