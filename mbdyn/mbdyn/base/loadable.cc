@@ -335,10 +335,11 @@ LoadableElem::GetCalls(MBDynParser& HP)
 #endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
 
 	if (handle == NULL) {
+		const char *err = 0;
 #ifdef HAVE_LTDL_H
-		const char *err = lt_dlerror();
+		err = lt_dlerror();
 #elif defined(HAVE_DLFCN_H)
-		const char *err = dlerror();
+		err = dlerror();
 #endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
 
 		if (err == 0) {
@@ -368,11 +369,11 @@ LoadableElem::GetCalls(MBDynParser& HP)
 #endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
 	
    	if (tmpcalls == NULL) {
-      		const char* err =
+      		const char* err = 0;
 #ifdef HAVE_LTDL_H
-			lt_dlerror();
+		err = lt_dlerror();
 #elif defined(HAVE_DLFCN_H)
-			dlerror();
+		err = dlerror();
 #endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
       		if (err == NULL) {
 	 		silent_cerr("Loadable(" << uLabel 
