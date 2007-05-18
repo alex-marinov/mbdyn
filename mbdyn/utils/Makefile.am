@@ -19,7 +19,6 @@ eu2rot \
 femgen \
 intg \
 logproc \
-mbplot \
 posrel \
 rot2eu \
 rot2eup \
@@ -67,7 +66,6 @@ femgen_SOURCES = femgen.f
 intg_SOURCES = intg.cc
 playground_SOURCES = playground.cc
 logproc_SOURCES = logproc.c
-mbplot_SOURCES = mbplot.c
 posrel_SOURCES = posrel.cc
 rot2eup_SOURCES = rot2eup.cc
 rot2eu_SOURCES = rot2eu.cc
