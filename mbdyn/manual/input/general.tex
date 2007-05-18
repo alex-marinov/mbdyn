@@ -1659,6 +1659,10 @@ the final value of the array drive.
 
 
 \subsection{Hints}\label{sec:GENERAL:DRIVE:HINT}
+\emph{Hints have been sponsored
+by \htmladdnormallink{Hutchinson}{http://www.hutchinson.fr} CdR.}
+\bigskip
+
 In some cases, during the analysis, different entities can be reinitialized
 as a consequence of some event, typically triggered by the waking up 
 of a so-called \kw{driven} element (See Section~\ref{sec:EL:BASE:DRIVEN}).
@@ -2283,11 +2287,11 @@ input file with damper data.
 It will be documented as soon as it reaches an appreciable level of
 stability.
 See also the 
-\htmlref{\kw{shock absorber}}{sec:CL-SHOCK-ABSORBER}
+\htmlref{\kw{shock absorber}}{sec:CL:SHOCK-ABSORBER}
 constitutive law.
 
 
-\subsection{shock absorber}\label{sec:CL-SHOCK-ABSORBER}
+\subsection{shock absorber}\label{sec:CL:SHOCK-ABSORBER}
 This constitutive law implements a landing gear hydraulic shock absorber:
 \begin{verbatim}
     <specific_const_law> ::= shock absorber ,
@@ -2342,14 +2346,14 @@ of the strain rate; it is used to implement relief valves;
 \item ...
 \end{itemize}
 This constitutive law adds the entities described
-in Table~\ref{tab:CL-SHOCK-ABSORBER-OUTPUT} to the output of the
+in Table~\ref{tab:CL:SHOCK-ABSORBER-OUTPUT} to the output of the
 element it is used for.
 The table also indicates the names that can be used to reference
 the entities as element private data.
 
 \begin{table}
 \centering
-\caption{Shock absorber output data}\label{tab:CL-SHOCK-ABSORBER-OUTPUT}
+\caption{Shock absorber output data}\label{tab:CL:SHOCK-ABSORBER-OUTPUT}
 \begin{tabular}{ll}
 \hline
 \multicolumn{1}{c}{\textbf{\emph{entity}}} &
@@ -2363,7 +2367,7 @@ viscous force	& \kw{Fv} \\
 \end{tabular}
 \end{table}
 
-\subsection{symbolic elastic}\label{sec:CL-SYMBOLIC-ELASTIC}
+\subsection{symbolic elastic}\label{sec:CL:SYMBOLIC-ELASTIC}
 The implementation  of the family of \kw{symbolic} constitutive laws
 is based on GiNaC 
 (\htmladdnormallink{\kw{http://www.ginac.de/}}{http://www.ginac.de/}),
@@ -2398,10 +2402,10 @@ are expected.  For example:
             "1000.*eps3 + 5.*eps3^3 - 10.*eps1*eps2";
 \end{verbatim}
 
-\emph{Note: the symbols defined within the mathematical parser
+\emph{Note: right now, the symbols defined within the mathematical parser
 are not available within symbolic consitutive laws.}
 
-\subsection{symbolic viscous}\label{sec:CL-SYMBOLIC-VISCOUS}
+\subsection{symbolic viscous}\label{sec:CL:SYMBOLIC-VISCOUS}
 The syntax is
 \begin{verbatim}
     <specific_const_law> ::= symbolic viscous ,
@@ -2415,7 +2419,7 @@ For constitutive laws with more than one dimension,
 a string for each \kw{epsilon\_prime} and one for each \kw{expression}
 are expected.
 
-\subsection{symbolic viscoelastic}\label{sec:CL-SYMBOLIC-VISCOELASTIC}
+\subsection{symbolic viscoelastic}\label{sec:CL:SYMBOLIC-VISCOELASTIC}
 The syntax is
 \begin{verbatim}
     <specific_const_law> ::= symbolic viscoelastic,
@@ -2431,7 +2435,7 @@ For constitutive laws with more than one dimension,
 a string for each \kw{epsilon}, one for each \kw{epsilon\_prime},
 and one for each \kw{expression} are expected.
 
-\subsection{ann elastic}\label{sec:CL-ANN-ELASTIC}
+\subsection{ann elastic}\label{sec:CL:ANN-ELASTIC}
 The implementation  of the family of \kw{ann} constitutive laws
 is based on an Artifical Neural Network library that is embedded in MBDyn.
 
@@ -2459,13 +2463,242 @@ so that the actual output is
 	y = \frac{f\plbr{b_1 u + b_0} - a_0}{a_1}
 \end{equation}
 
-\subsection{ann viscoelastic}\label{sec:CL-ANN-VISCOELASTIC}
+\subsection{ann viscoelastic}\label{sec:CL:ANN-VISCOELASTIC}
 The syntax is
 \begin{verbatim}
     <specific_const_law> ::= ann viscoelastic ,
         " <file_name> "
 \end{verbatim}
 where the file \kw{file\_name} contains the parameters of the network.
+
+\subsection{nlsf viscoelastic}
+\emph{This constitutive law was sponsored
+by \htmladdnormallink{Hutchinson}{http://www.hutchinson.fr} CdR.}
+\bigskip
+
+For an $n$-dimensional constitutive law, it implements the formula
+\begin{equation}
+        f_i
+        = \sum_{j=1,n} k'_{0ij} \varepsilon_j
+        + f'_i\plbr{\varepsilon_i}
+        + \sum_{j=1,n} k''_{0ij} \dot{\varepsilon}_j
+        + f''_i\plbr{\dot{\varepsilon_i}}
+        \label{eq:nlsf-cl}
+\end{equation}
+where $f'_i$ and $f''_i$ are arbitrary instances
+of the \htmlref{\kw{scalar functions}}{sec:SCALARFUNCS} primitive,
+which includes piecewise linear and spline regularization
+of given data, while $k'_{0ij}$ and $k''_{0ij}$ are the constant
+coefficients of a linear viscoelastic model, that account
+for the cross-couplings between the stresses 
+and the strains and strain rates.
+
+\paragraph{Syntax.}
+\label{sec:CL:nlsf-syntax}
+The syntax is
+\begin{verbatim}
+    <specific_const_law> ::= nlsf viscoelastic ,
+        (derivative_of_entity) <kappa_0'> ,
+        { null | (scalar_function) <diag_force'> }
+        [ , ... ] ,
+        (derivative_of_entity) <kappa_0''> ,
+        { null | (scalar_function) <diag_force''> }
+        [ , ... ]
+\end{verbatim}
+The terms \texttt{kappa\_0'} and \verb1kappa_0''1 are indicated as
+``derivative of entity'' because in the generic case they are the result
+of a differential operator that computes the derivative of the force vector
+as function of the strain or strain rate vectors.
+So, for a 3D constitutive law, the force, the strain and the strain rate
+are $3\times 1$ vectors, while \texttt{kappa\_0'} and \verb1kappa_0''1
+are $3\times 3$ matrices.
+Matrix input, in MBDyn, requires to write the whole set of coefficients,
+row-wise; however, it can be described in many synthetic manners if
+matrices have some special properties, as typical linear constitutive laws do.
+
+For example, symmetric, diagonal and empty matrices have specific
+short forms; in the $3\times 3$ case they are
+\begin{verbatim}
+        # generic 3x3 matrix:
+        10., -2., -2.,
+        -2., 20., -8.,
+        -2., -8., 20.
+
+        # symmetric 3x3 matrix (same as above matrix):
+        sym,
+        10., -2., -2.,
+             20., -8.,
+                  20.
+
+        # diagonal 3x3 matrix (diagonal of above matrix):
+        diag,
+        10., 20., 20.
+
+        # empty 3x3 matrix:
+        null
+\end{verbatim}
+The terms \texttt{diag\_force'} and \verb1diag_force''1 refer
+to the names of the scalar functions that are defined for each component
+of the force vector.
+There must be as many terms as the dimensions of the constitutive law.
+These terms can either be \texttt{null}, if no non-linear contribution
+is defined for that component, or contain a string, enclosed in double quotes,
+which must refer to an already defined scalar function.
+The same scalar function can be used multiple times.
+
+
+\paragraph{Example.}
+A 1D and a 3D constitutive law using the same exponential scalar function:
+\begin{verbatim}
+    # define a scalar function
+    scalar function: "exponential", exp, coefficient, -2., 5.;
+
+    # define a 1D constitutive law
+    constitutive law: 1000, 1,
+        nlsf viscoelastic,
+            10.,
+                null,               # stiffness is just linear
+            0.,
+                "exponential";      # damping is exponential
+
+    # define a 3D constitutive law
+    constitutive law: 3000, 3,
+        nlsf viscoelastic,
+            sym,
+                10., -2., -2.,
+                     10., -2.,
+                          10.,
+                null,               # stiffness is just linear
+                null,               # stiffness is just linear
+                null,               # stiffness is just linear
+            null,
+                "exponential",      # damping is exponential...
+                null,               # ...but in direction 1 only!
+                null;
+\end{verbatim}
+The first constitutive law corresponds to
+\begin{equation}
+        f = 10.0 \cdot \varepsilon
+        + 5.0 \cdot \mathrm{e}^{-2 \dot{\varepsilon}}
+\end{equation}
+while the second one corresponds to
+\begin{equation}
+        \T{f} = \sqbr{\matr{ccc}{
+                10.0 & -2.0 & -2.0 \\
+                -2.0 & 10.0 & -2.0 \\
+                -2.0 & -2.0 & 10.0
+        }} \cubr{\cvvect{
+                \varepsilon_1 \\
+                \varepsilon_2 \\
+                \varepsilon_3
+        }} + \cubr{\cvvect{
+                5.0 \cdot \mathrm{e}^{-2 \dot{\varepsilon}_1} \\
+                0.0 \\
+                0.0
+        }}
+\end{equation}
+
+
+
+\subsection{nlp viscoelastic}
+\emph{This constitutive law was sponsored
+by \htmladdnormallink{Hutchinson}{http://www.hutchinson.fr} CdR.}
+\bigskip
+
+This constitutive law consists in the linear combination
+of nonlinear elastic and viscous effects whose coefficients
+are arbitrary nonlinear functions of the strain $\varepsilon$:
+\begin{equation}
+	f_i = \sum_{j=1,3} \plbr{
+		k'_{0ij} + \delta_{ij} k_i'\plbr{\varepsilon_i}
+	} \varepsilon_j
+	+ \sum_{j=1,3} \plbr{
+		k''_{0ij} + \delta_{ij} k''_i\plbr{\varepsilon_i}
+	} \dot{\varepsilon}_j ,
+	\label{eq:nlp-cl}
+\end{equation}
+where $\delta_{ij}$ is Kronecker's operator;
+$k'_i$ and $k''_i$ are implemented as arbitrary
+\htmlref{\kw{scalar functions}}{sec:SCALARFUNCS},
+which includes piecewise linear and spline regularization
+of given data.
+
+\paragraph{Syntax.}
+The syntax is
+\begin{verbatim}
+    <specific_const_law> ::= nlp viscoelastic ,
+        (derivative_of_entity) <kappa_0'> ,
+        { null | (scalar_function) <diag_stiffness> }
+        [ , ... ] ,
+        (derivative_of_entity) <kappa_0''> ,
+        { null | (scalar_function) <diag_damping> }
+        [ , ... ]
+\end{verbatim}
+
+\paragraph{Example.}
+A 1D and a 3D constitutive law using the same exponential scalar function:
+\begin{verbatim}
+    # define a scalar function
+    scalar function: "exponential", exp, coefficient, -2., 5.;
+
+    # define a 1D constitutive law
+    constitutive law: 1000, 1,
+        nlp viscoelastic,
+            10.,
+                null,               # stiffness is just linear
+            0.,
+                "exponential";      # damping slope is exp.
+
+    # define a 3D constitutive law
+    constitutive law: 3000, 3,
+        nlp viscoelastic,
+            diag,
+                10., -2., -2.,
+                     10., -2.,
+                          10.,
+                null,               # stiffness is just linear
+                null,               # stiffness is just linear
+                null,               # stiffness is just linear
+            null,
+                "exponential",      # damping slope is exp...
+                null,               # ...but in direction 1 only!
+                null;
+\end{verbatim}
+The first constitutive law corresponds to
+\begin{equation}
+        f = 10.0 \cdot \varepsilon
+        + 5.0 \cdot \mathrm{e}^{-2 \varepsilon} \cdot \dot{\varepsilon}
+\end{equation}
+while the second one corresponds to
+\begin{equation}
+        \T{f} = \sqbr{\matr{ccc}{
+                10.0 & -2.0 & -2.0 \\
+                -2.0 & 10.0 & -2.0 \\
+                -2.0 & -2.0 & 10.0
+        }} \cubr{\cvvect{
+                \varepsilon_1 \\
+                \varepsilon_2 \\
+                \varepsilon_3
+        }} + \sqbr{\matr{ccc}{
+                5.0 \cdot \mathrm{e}^{-2 \varepsilon_1} & 0.0 & 0.0 \\
+                0.0 & 0.0 & 0.0 \\
+                0.0 & 0.0 & 0.0
+        }} \cubr{\cvvect{
+                \dot{\varepsilon}_1 \\
+                \dot{\varepsilon}_2 \\
+                \dot{\varepsilon}_3
+        }}
+\end{equation}
+Note: although the syntax of this constitutive law
+and that of the \texttt{nlsf viscoelastic} one
+(Section~\ref{sec:CL:nlsf-syntax})
+is essentially identical, their behavior may be quite different,
+as indicated by Equations~(\ref{eq:nlsf-cl}) and~(\ref{eq:nlp-cl}).
+
+
+
+
+
 
 
 
