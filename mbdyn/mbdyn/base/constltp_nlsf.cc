@@ -361,7 +361,7 @@ struct NLSFViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		Tder FDEPrime0(0.);
 		FDEPrime0 = HP.Get(FDEPrime0);
 
-		std::vector<const BasicScalarFunction *> FDEPrimesc(dim);
+		std::vector<const DifferentiableScalarFunction *> FDEPrimesc(dim);
 		for (unsigned i = 0; i < dim; i++) {
 			if (HP.IsKeyWord("null")) {
 				FDEPrimesc[i] = 0;
@@ -388,8 +388,8 @@ struct NLSFViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		typedef NLSFViscoElasticConstitutiveLaw<T, Tder> L;
 		SAFENEWWITHCONSTRUCTOR(pCL, L,
 			L(pTplDC, PreStress,
-				FDE0, (const std::vector<const DifferentiableScalarFunction *>&)FDEsc,
-				FDEPrime0, (const std::vector<const DifferentiableScalarFunction *>&)FDEPrimesc));
+				FDE0, FDEsc,
+				FDEPrime0, FDEPrimesc));
 
 		return pCL;
 	};
