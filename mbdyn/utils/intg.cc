@@ -529,13 +529,8 @@ method_cubic(const char* module, integration_data* d,
 	MyVectorHandler Xz(size);
 	MyVectorHandler XPz(size);
 
-#if defined(USE_Y12)
+	// TODO: abstract from a specific solution manager?
 	Y12SparseSolutionManager sm(size, size*(size+1)+1, 1.);
-#elif defined(USE_HARWELL)
-	HarwellSparseSolutionManager sm(size, size*(size+1)+1, 1.);
-#elif defined(USE_MESCHACH)
-	MeschachSparseSolutionManager sm(size, size*(size+1)+1, 1.);
-#endif
 
 	MatrixHandler& Jac = *sm.pMatHdl();
 	VectorHandler& Res = *sm.pResHdl();

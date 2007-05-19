@@ -42,9 +42,6 @@
 #include "solman.h"
 #include "fullmh.h"
 #include "y12wrap.h"
-#include "harwrap.h"
-#include "mschwrap.h"
-#include "umfpackwrap.h"
 
 #include "dae-intg.h"
 
@@ -475,15 +472,8 @@ method_multistep(const char* module, integration_data* d,
 	FullMatrixHandler JP(pd+size*size, ppd+size, size*size, size, size);
    	MyVectorHandler R(size);
 
-#if defined(USE_UMFPACK)
-	UmfpackSparseSolutionManager sm(size);
-#elif defined(USE_Y12)
+	// TODO: abstract from a specific solution manager?
 	Y12SparseSolutionManager sm(size, 10*size*(size+1)+1, 1.);
-#elif defined(USE_HARWELL)
-   	HarwellSparseSolutionManager sm(size, size*(size+1)+1, 1.);
-#elif defined(USE_MESCHACH)
-	MeschachSparseSolutionManager sm(size, size*(size+1)+1, 1.);
-#endif
 
    	MatrixHandler* Jac = sm.pMatHdl();
    	VectorHandler* Res = sm.pResHdl();
@@ -665,15 +655,8 @@ method_cubic(const char* module, integration_data* d,
    	MyVectorHandler Xz(size);
    	MyVectorHandler XPz(size);
 
-#if defined(USE_UMFPACK)
-	UmfpackSparseSolutionManager sm(2*size);
-#elif defined(USE_Y12)
+	// TODO: abstract from a specific solution manager?
 	Y12SparseSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
-#elif defined(USE_HARWELL)
-   	HarwellSparseSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
-#elif defined(USE_MESCHACH)
-	MeschachSparseSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
-#endif
 
    	MatrixHandler* Jac = sm.pMatHdl();
    	VectorHandler* Res = sm.pResHdl();
@@ -944,15 +927,8 @@ method_radau_II(const char* module, integration_data* d,
    	MyVectorHandler Xz(size);
    	MyVectorHandler XPz(size);
 
-#if defined(USE_UMFPACK)
-	UmfpackSparseSolutionManager sm(2*size);
-#elif defined(USE_Y12)
+	// TODO: abstract from a specific solution manager?
 	Y12SparseSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
-#elif defined(USE_HARWELL)
-   	HarwellSparseSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
-#elif defined(USE_MESCHACH)
-	MeschachSparseSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
-#endif
 
    	MatrixHandler* Jac = sm.pMatHdl();
    	VectorHandler* Res = sm.pResHdl();
