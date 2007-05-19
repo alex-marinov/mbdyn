@@ -32,108 +32,132 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <ac/iostream>
-#include <ac/fstream>
 #include <math.h>
 
-#include <myassert.h>
-#include <solman.h>
-#include <harwrap.h>
+#include "ac/iostream"
+#include "ac/fstream"
+
+#include "myassert.h"
+#include "solman.h"
+
+#include "intg.h"
 
 struct private_data {
-   doublereal m;
-   doublereal c;
-   doublereal k;
-   doublereal alpha;
-   doublereal f;
-   doublereal omega;
-   doublereal x[2];
+	doublereal m;
+	doublereal c;
+	doublereal k;
+	doublereal alpha;
+	doublereal f;
+	doublereal omega;
+	doublereal x[2];
 };
 
-int read(void** pp, const char* user_defined)
+static int
+read(void** pp, const char* user_defined)
 {
-   *pp = (void*)new private_data;
-   private_data* pd = (private_data*)*pp;
+	private_data* pd = new private_data;
    
-   if (user_defined != NULL) {
-      std::ifstream in(user_defined);
-      if (!in) {
-	 std::cerr << "unable to open file \"" << user_defined << "\"" << std::endl;
-	 exit(EXIT_FAILURE);
-      }
-      in >> pd->m >> pd->c >> pd->k >> pd->alpha >> pd->f >> pd->omega
-	>> pd->x[0] >> pd->x[1];
-   } else {
-      pd->m = 1.;
-      pd->c = 1.e-2;
-      pd->k = 1.;
-      pd->alpha = 0.;
-      pd->f = 1.;
-      pd->omega = 1.;
-      pd->x[0] = 0.;
-      pd->x[1] = 0.;
-   }
+	if (user_defined != 0) {
+		std::ifstream in(user_defined);
+		if (!in) {
+			std::cerr << "unable to open file \"" << user_defined << "\"" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+
+		in >> pd->m >> pd->c >> pd->k >> pd->alpha >> pd->f >> pd->omega
+			>> pd->x[0] >> pd->x[1];
+	} else {
+		pd->m = 1.;
+		pd->c = 1.e-2;
+		pd->k = 1.;
+		pd->alpha = 0.;
+		pd->f = 1.;
+		pd->omega = 1.;
+		pd->x[0] = 0.;
+		pd->x[1] = 0.;
+	}
    
-   // std::cerr << "m=" << pd->m << ", c=" << pd->c << ", k=" << pd->k << std::endl
-   //   << "alpha=" << pd->alpha << ", f=" << pd->f << ", omega=" << pd->omega << std::endl
-   //   << "x={" << pd->x[0] << "," << pd->x[1] << "}" << std::endl;
+	*pp = (void*)pd;
+
+	return 0;
+}
+
+static int
+size(void* p)
+{
+	// private_data* pd = (private_data*)p;
+	return 2;
+}
+
+static int
+init(void* p, VectorHandler& X)
+{
+	private_data* pd = (private_data*)p;
+	X.Reset();
+	for (int i = 1; i <= size(p); i++) {      
+		X.PutCoef(i, pd->x[i-1]); /* posiz. iniziale */
+	}
+	return 0;
+}
+
+static int
+jac(void* p, MatrixHandler& J, const VectorHandler& X, const doublereal& t)
+{
+	private_data* pd = (private_data*)p;
+	doublereal x = X.dGetCoef(1);
+	J.PutCoef(1, 2, 1.);
+	J.PutCoef(2, 1, -(pd->k+3.*x*x*pd->alpha)/pd->m);
+	J.PutCoef(2, 2, -pd->c/pd->m);
+	return 0;
+}
+
+static int
+res(void* p, VectorHandler& R, const VectorHandler& X, const doublereal& t)
+{
+	private_data* pd = (private_data*)p;
+	doublereal x = X.dGetCoef(1);
+	doublereal v = X.dGetCoef(2);
+	R.PutCoef(1, v);
+	R.PutCoef(2, (pd->f*sin(pd->omega*t)-((pd->k+pd->alpha*x*x)*x+pd->c*v))/pd->m);
+	return 0;
+}
+
+static std::ostream&
+out(void* p, std::ostream& o, 
+	const VectorHandler& X, const VectorHandler& XP)
+{
+	private_data* pd = (private_data*)p;
+	doublereal x = X.dGetCoef(1);
+	doublereal v = X.dGetCoef(2);
    
-   return 0;
-}
-
-int size(void* p)
-{
-   // private_data* pd = (private_data*)p;
-   return 2;
-}
-
-int init(void* p, VectorHandler& X)
-{
-   private_data* pd = (private_data*)p;
-   X.Reset();
-   for (int i = 1; i <= size(p); i++) {      
-      X.PutCoef(i, pd->x[i-1]); /* posiz. iniziale */
-   }
-   return 0;
-}
-
-int jac(void* p, MatrixHandler& J, const VectorHandler& X, const doublereal& t)
-{
-   private_data* pd = (private_data*)p;
-   doublereal x = X.dGetCoef(1);
-   J.PutCoef(1, 2, 1.);
-   J.PutCoef(2, 1, -(pd->k+3.*x*x*pd->alpha)/pd->m);
-   J.PutCoef(2, 2, -pd->c/pd->m);
-   return 0;
-}
-
-int res(void* p, VectorHandler& R, const VectorHandler& X, const doublereal& t)
-{
-   private_data* pd = (private_data*)p;
-   doublereal x = X.dGetCoef(1);
-   doublereal v = X.dGetCoef(2);
-   R.PutCoef(1, v);
-   R.PutCoef(2, (pd->f*sin(pd->omega*t)-((pd->k+pd->alpha*x*x)*x+pd->c*v))/pd->m);
-   return 0;
-}
-
-std::ostream& out(void* p, std::ostream& o, 
-	     const VectorHandler& X, const VectorHandler& XP)
-{
-   private_data* pd = (private_data*)p;
-   doublereal x = X.dGetCoef(1);
-   doublereal v = X.dGetCoef(2);
-   
-   doublereal E = .5*(pd->m*v*v+(pd->k+.5*pd->alpha*x*x)*x*x);
+	doublereal E = .5*(pd->m*v*v+(pd->k+.5*pd->alpha*x*x)*x*x);
 		      
-   return o << X.dGetCoef(1) << " " << X.dGetCoef(2)
-     << " " << XP.dGetCoef(1) << " " << XP.dGetCoef(2) << " " << E;
+	return o << X.dGetCoef(1) << " " << X.dGetCoef(2)
+		<< " " << XP.dGetCoef(1) << " " << XP.dGetCoef(2) << " " << E;
 }
 
-int destroy(void** p)
+static int
+destroy(void** p)
 {
-   private_data* pd = (private_data*)(*p);
-   delete pd;
-   *p = NULL;
-   return 0;
+	private_data* pd = (private_data*)(*p);
+	delete pd;
+	*p = 0;
+	return 0;
 }
+
+static struct funcs funcs_handler = {
+	read,
+	0,
+	init,
+	size,
+	jac,
+	res,
+	out,
+	destroy
+};
+
+/* de-mangle name */
+extern "C" {
+void *ff = &funcs_handler;
+}
+

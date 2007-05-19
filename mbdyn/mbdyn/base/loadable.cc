@@ -280,7 +280,9 @@ ElemGravityOwner(uLabel, flag(0)),
 ElemWithDofs(uLabel, pDO, flag(0)),
 priv_data(NULL),
 module_name(NULL),
+#ifdef USE_RUNTIME_LOADING
 handle(NULL),
+#endif // USE_RUNTIME_LOADING
 calls(NULL),
 needsAirProperties(false)
 {
@@ -306,7 +308,9 @@ ElemGravityOwner(uLabel, flag(0)),
 ElemWithDofs(uLabel, pDO, flag(0)),
 priv_data(NULL),
 module_name(NULL),
+#ifdef USE_RUNTIME_LOADING
 handle(NULL),
+#endif // USE_RUNTIME_LOADING
 calls((LoadableCalls *)c),
 needsAirProperties(false)
 {
@@ -318,7 +322,7 @@ needsAirProperties(false)
 void
 LoadableElem::GetCalls(MBDynParser& HP)
 {
-#ifdef HAVE_RUNTIME_LOADING
+#ifdef USE_RUNTIME_LOADING
    	/* nome del modulo */
    	const char* s = HP.GetFileName();
 	if (s == NULL) {
@@ -328,20 +332,10 @@ LoadableElem::GetCalls(MBDynParser& HP)
 	}
 
    	SAFESTRDUP(module_name, s);
-#ifdef HAVE_LTDL_H
 	handle = lt_dlopenext(module_name);
-#elif defined(HAVE_DLFCN_H)
-   	handle = dlopen(module_name, RTLD_NOW /* RTLD_LAZY */ );
-#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
 
 	if (handle == NULL) {
-		const char *err = 0;
-#ifdef HAVE_LTDL_H
-		err = lt_dlerror();
-#elif defined(HAVE_DLFCN_H)
-		err = dlerror();
-#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
-
+		const char *err = lt_dlerror();
 		if (err == 0) {
 			err = "";
 		}
@@ -362,19 +356,10 @@ LoadableElem::GetCalls(MBDynParser& HP)
 	}
    	DEBUGCOUT("binding to data \"" << data_name
      		<< "\" (must be def'd!)" << std::endl);
-#ifdef HAVE_LTDL_H
 	tmpcalls = (LoadableCalls **)lt_dlsym(handle, data_name);
-#elif defined(HAVE_DLFCN_H)
-	tmpcalls = (LoadableCalls **)dlsym(handle, data_name);
-#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
 	
    	if (tmpcalls == NULL) {
-      		const char* err = 0;
-#ifdef HAVE_LTDL_H
-		err = lt_dlerror();
-#elif defined(HAVE_DLFCN_H)
-		err = dlerror();
-#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
+      		const char* err = lt_dlerror();
       		if (err == NULL) {
 	 		silent_cerr("Loadable(" << uLabel 
 	   			<< "): data \"" << data_name
@@ -392,11 +377,11 @@ LoadableElem::GetCalls(MBDynParser& HP)
    	}
 
 	calls = *tmpcalls;
-#else /* !HAVE_RUNTIME_LOADING */
+#else // !USE_RUNTIME_LOADING
 	silent_cerr("LoadableElem(" << GetLabel() << ") GetCalls: "
 		"should not be called when --disable-runtime-loading" << std::endl);
 	throw ErrGeneric();
-#endif /* !HAVE_RUNTIME_LOADING */
+#endif // ! USE_RUNTIME_LOADING
 }
 
 void
@@ -568,15 +553,15 @@ LoadableElem::~LoadableElem(void)
 	ASSERT(calls->destroy != NULL);
    	(*calls->destroy)(this);
    
-#if defined(HAVE_RUNTIME_LOADING) && !defined(HAVE_LTDL_H) && defined(HAVE_DLFCN_H)
+#ifdef USE_RUNTIME_LOADING
    	if (handle != NULL) {
-   		if (dlclose(handle) != 0) {
-			silent_cerr("unable to dlclose module \"" 
-				<< module_name << "\"" << std::endl);
+   		if (lt_dlclose(handle) != 0) {
+			silent_cerr("unable to close module "
+				"\"" << module_name << "\"" << std::endl);
 			throw ErrGeneric();
 		}
 	}
-#endif /* HAVE_RUNTIME_LOADING && !HAVE_LTDL_H && HAVE_DLFCN_H */
+#endif // USE_RUNTIME_LOADING
 	
    	SAFEDELETEARR(module_name);
 }

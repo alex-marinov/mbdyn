@@ -33,30 +33,30 @@
 
 #include <ac/iostream>
 
-typedef int (*pread_f)(void**, const char*);
-typedef std::ostream& (*phelp_f)(void *, std::ostream&);
-typedef int (*pinit_f)(void*, VectorHandler&, VectorHandler&);
-typedef int (*psize_f)(void*);
-typedef int (*pgrad_f)(void*, MatrixHandler&, MatrixHandler&, 
+typedef int (pread_f)(void**, const char*);
+typedef std::ostream& (phelp_f)(void *, std::ostream&);
+typedef int (pinit_f)(void*, VectorHandler&, VectorHandler&);
+typedef int (psize_f)(void*);
+typedef int (pgrad_f)(void*, MatrixHandler&, MatrixHandler&, 
 		const VectorHandler&, const VectorHandler&,
 		const doublereal&);
-typedef int (*pfunc_f)(void*, VectorHandler&,
+typedef int (pfunc_f)(void*, VectorHandler&,
 		const VectorHandler&, const VectorHandler&,
 		const doublereal&);
-typedef std::ostream& (*pout_f)(void*, std::ostream&,
+typedef std::ostream& (pout_f)(void*, std::ostream&,
 		const VectorHandler&, const VectorHandler&);
-typedef int (*pdestroy_f)(void**);
+typedef int (pdestroy_f)(void**);
 
 struct funcs {
-	pread_f read;
-	phelp_f help;
-	pinit_f init;
-	psize_f size;
-	pgrad_f grad;
-	pfunc_f func;
-	pout_f out;
-	pdestroy_f destroy;
+	pread_f *read;
+	phelp_f *help;
+	pinit_f *init;
+	psize_f *size;
+	pgrad_f *grad;
+	pfunc_f *func;
+	pout_f *out;
+	pdestroy_f *destroy;
 };
 
-#endif /* DAE_INTG_H */
+#endif // DAE_INTG_H
 

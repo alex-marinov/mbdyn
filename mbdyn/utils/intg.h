@@ -1,12 +1,11 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2007
  *
- * Pierangelo Masarati	<masarati@aero.polimi.it>
- * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ * Pierangelo Masarati  <masarati@aero.polimi.it>
  *
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  * via La Masa, 34 - 20156 Milano, Italy
@@ -29,41 +28,30 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#ifndef INTG_H
+#define INTG_H
 
-#if defined(USE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
-#include <ltdl.h>
-#endif // USE_RUNTIME_LOADING && HAVE_LTDL_H
+#include "ac/iostream"
 
-#include "dataman.h"
-#include "mbdefs.h"
+typedef int (pread_f)(void**, const char*);
+typedef std::ostream& (phelp_f)(void *, std::ostream&);
+typedef int (pinit_f)(void*, VectorHandler&);
+typedef int (psize_f)(void*);
+typedef int (pgrad_f)(void*, MatrixHandler&, const VectorHandler&, const doublereal&);
+typedef int (pfunc_f)(void*, VectorHandler&, const VectorHandler&, const doublereal&);
+typedef std::ostream& (pout_f)(void*, std::ostream&, const VectorHandler&, const VectorHandler&);
+typedef int (pdestroy_f)(void**);
 
-static bool done = false;
+struct funcs {
+	pread_f *read;
+	phelp_f *help;
+	pinit_f *init;
+	psize_f *size;
+	pgrad_f *grad;
+	pfunc_f *func;
+	pout_f *out;
+	pdestroy_f *destroy;
+};
 
-void
-module_initialize(void)
-{
-	if (::done) {
-		return;
-	}
-
-	::done = true;
-
-#ifdef USE_RUNTIME_LOADING
-	if (lt_dlinit()) {
-		silent_cerr("unable to initialize run-time loading" << std::endl);
-		throw ErrGeneric();
-	}
-
-	/*
-	 * NOTE: this macro is defined in mbdefs.h
-	 */
-	if (lt_dlsetsearchpath(MODULE_LOADPATH) != 0) {
-		silent_cerr("unable to initialize load path" << std::endl);
-		throw ErrGeneric();
-	}
-#endif // USE_RUNTIME_LOADING
-}
+#endif // INTG_H
 

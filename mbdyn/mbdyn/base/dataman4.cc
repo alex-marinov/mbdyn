@@ -1109,12 +1109,12 @@ DataManager::ReadElems(MBDynParser& HP)
 						SAFESTRDUP(sName, sTmp);
 					}
 
-#if defined(HAVE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
+#ifdef USE_RUNTIME_LOADING
 					if (CurrDesc == LOADABLE && !loadableElemInitialized) {
 						module_initialize();
 						loadableElemInitialized = true;
 					}
-#endif /* HAVE_RUNTIME_LOADING && HAVE_LTDL_H */
+#endif // USE_RUNTIME_LOADING
 
 					ppE = ReadOneElem(HP, uLabel, CurrDesc);
 

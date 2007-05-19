@@ -46,11 +46,9 @@
 #include "c81data.h"
 #endif /* USE_AERODYNAMIC_ELEMS */
 
-#ifdef HAVE_LTDL_H
+#if defined(USE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
 #include <ltdl.h>
-#elif defined(HAVE_DLFCN_H)
-#include <dlfcn.h>
-#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
+#endif // USE_RUNTIME_LOADING && HAVE_LTDL_H
 
 #include "dataman.h"
 #include "modules.h"
@@ -578,11 +576,12 @@ MBDynParser::ScalarFunction_int(void)
 void 
 MBDynParser::ModuleLoad_int(void)
 {
-#if !defined(HAVE_RUNTIME_LOADING)
+#ifndef USE_RUNTIME_LOADING
 	silent_cerr("ModuleLoad_int: dynamic modules not supported"
 			<< std::endl);
 	throw ErrGeneric();
-#else /* HAVE_RUNTIME_LOADING */
+
+#else // USE_RUNTIME_LOADING
 	if (FirstToken() == UNKNOWN) {
 		silent_cerr("Parser error in MBDynParser::ModuleLoad_int(), "
 			" colon expected at line "
@@ -603,19 +602,10 @@ MBDynParser::ModuleLoad_int(void)
 
 	module_initialize();
 
-#ifdef HAVE_LTDL_H
 	lt_dlhandle handle = lt_dlopenext(module_name);
-#elif defined(HAVE_DLFCN_H)
-   	void* handle = dlopen(module_name, RTLD_NOW /* RTLD_LAZY */ );
-#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
 
 	if (handle == NULL) {
-#ifdef HAVE_LTDL_H
       		const char* err = lt_dlerror();
-#elif defined(HAVE_DLFCN_H)
-      		const char* err = dlerror();
-#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
-
 		if (err == 0) {
 			err = "";
 		}
@@ -628,19 +618,9 @@ MBDynParser::ModuleLoad_int(void)
    	}
 
 	typedef int (*sym_t)(const char *, void *, void *);
-#ifdef HAVE_LTDL_H
 	sym_t sym = (sym_t)lt_dlsym(handle, "module_init");
-#elif defined(HAVE_DLFCN_H)
-	sym_t sym = (sym_t)dlsym(handle, "module_init");
-#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
-	
    	if (sym == NULL) {
-#ifdef HAVE_LTDL_H
       		const char* err = lt_dlerror();
-#elif defined(HAVE_DLFCN_H)
-      		const char* err = dlerror();
-#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
-
       		if (err == NULL) {
 			silent_cerr("ModuleLoad_int: module_init() "
 				"function not available "
@@ -668,7 +648,7 @@ MBDynParser::ModuleLoad_int(void)
 	silent_cout("module \"" << module_name << "\" loaded" << std::endl);
 
    	SAFEDELETEARR(module_name);
-#endif /* HAVE_RUNTIME_LOADING */
+#endif // USE_RUNTIME_LOADING
 }
 
 bool

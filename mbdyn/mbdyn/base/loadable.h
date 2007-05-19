@@ -49,6 +49,7 @@
 	((v & 0xFF000000U) >> 24) << '.' << ((v & 0x00FF0000U) >> 16) << '.' << (v & 0x0000FFFFU)
 /*
  * CHANGELOG:
+ * ????-??-??: 1.5.0 ???
  * 2005-10-11: 1.4.0 changed SetValue API (hints and so...)
  * ????-??-??: 1.3.0 ???
  * 2004-05-21: 1.2.0 added hooks for dummy part output calls
@@ -56,18 +57,16 @@
  * 2002-XX-XX: 1.0.0 added versioning system to detect structure conflicts
  */
 
-#ifdef HAVE_LTDL_H
+#ifdef USE_RUNTIME_LOADING
 #include <ltdl.h>
-#elif defined(HAVE_DLFCN_H)
-#include <dlfcn.h>
-#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
+#endif // USE_RUNTIME_LOADING
 
-#include <elem.h>
-#include <dataman.h>
+#include "elem.h"
+#include "dataman.h"
 #ifdef USE_STRUCT_NODES
-#include <gravity.h>
+#include "gravity.h"
 #ifdef USE_AERODYNAMIC_ELEMS
-#include <aerodyn.h>
+#include "aerodyn.h"
 #endif /* USE_AERODYNAMIC_ELEMS */
 #endif /* USE_STRUCT_NODES */
 
@@ -260,11 +259,9 @@ public ElemWithDofs {
 protected:
    	void* priv_data;	/* Dati privati passati alle funzioni */
    	char* module_name;	/* Nome del modulo */
-#ifdef HAVE_LTDL_H
+#ifdef USE_RUNTIME_LOADING
 	lt_dlhandle handle;
-#else
-   	void* handle;		/* Handle del modulo (usato per chiusura) */
-#endif
+#endif // USE_RUNTIME_LOADING
 	LoadableCalls *calls;	/* Simboli delle funzioni attese */
 	bool needsAirProperties;
 

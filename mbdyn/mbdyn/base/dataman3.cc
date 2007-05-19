@@ -38,9 +38,9 @@
 #include <unistd.h>
 #include "ac/float.h"
 
-#if defined(HAVE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
+#if defined(USE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
 #include <ltdl.h>
-#endif /* HAVE_RUNTIME_LOADING && HAVE_LTDL_H */
+#endif /* USE_RUNTIME_LOADING && HAVE_LTDL_H */
 
 #include "dataman.h"
 #include "dataman_.h"
@@ -430,9 +430,8 @@ DataManager::ReadControl(MBDynParser& HP,
 			DEBUGLCOUT(MYDEBUG_INPUT, "Loadable elements: " << iDmy << std::endl);
 		} break;
 
-#if defined(HAVE_RUNTIME_LOADING)
 		case LOADABLEPATH: {
-#if defined(HAVE_LTDL_H)
+#if defined(USE_RUNTIME_LOADING)
 			bool add(false);
 
 			if (!loadableElemInitialized) {
@@ -477,14 +476,13 @@ DataManager::ReadControl(MBDynParser& HP,
 				}
 			}
 
-#else /* HAVE_LTDL_H */
+#else // ! USE_RUNTIME_LOADING
 			silent_cerr("loadable path allowed "
 				"only in presence of libltdl (ignored)"
 				<< std::endl);
 				(void)HP.GetStringWithDelims();
-#endif /* HAVE_LTDL_H */
+#endif // ! USE_RUNTIME_LOADING
 		} break;
-#endif /* defined(HAVE_RUNTIME_LOADING) */
 
 		case EXTERNALELEMENTS: {
 #ifdef USE_EXTERNAL

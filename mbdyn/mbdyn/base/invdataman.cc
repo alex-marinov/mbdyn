@@ -41,17 +41,11 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include "dataman.h"
-#include "friction.h"
-
-extern "C" {
 #include <strings.h>
 #include <time.h>
-}
 
-#if defined(HAVE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
-#include <ltdl.h>
-#endif /* HAVE_RUNTIME_LOADING && HAVE_LTDL_H */
+#include "dataman.h"
+#include "friction.h"
 
 #include "solver.h"
 #include "invsolver.h"

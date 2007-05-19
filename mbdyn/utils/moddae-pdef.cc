@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -32,30 +32,31 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <ac/fstream>
-#include <ac/iostream>
 #include <math.h>
 
-#include <myassert.h>
-#include <solman.h>
+#include "ac/fstream"
+#include "ac/iostream"
+
+#include "myassert.h"
+#include "solman.h"
+
 #include "dae-intg.h"
 
 struct private_data {
-   doublereal m;
-   doublereal c;
-   doublereal k;
-   doublereal l;
-   doublereal g;
-   doublereal x[4];
-   doublereal xP[4];
+	doublereal m;
+	doublereal c;
+	doublereal k;
+	doublereal l;
+	doublereal g;
+	doublereal x[4];
+	doublereal xP[4];
 };
 
 static int
 read(void** pp, const char* user_defined)
 {
-	*pp = (void*)new private_data;
-	private_data* pd = (private_data*)*pp;
-   
+	private_data* pd = new private_data;
+
 	if (user_defined != NULL) {
 		std::ifstream in(user_defined);
 		if (!in) {
@@ -65,12 +66,13 @@ read(void** pp, const char* user_defined)
 		}
 		in >> pd->m >> pd->c >> pd->k >> pd->l >> pd->g
 			>> pd->x[0] >> pd->x[1] >> pd->x[2] >> pd->x[3];
+
 	} else {
 		pd->m = 1.;
 		pd->c = 0.;
-		pd->k = 1.;     
+		pd->k = 1.;
 		pd->l = 1.;
-		pd->g = 9.81;     
+		pd->g = 9.81;
 		pd->x[0] = 0.;
 		pd->x[1] = 0.;
 		pd->x[2] = 1.;
@@ -82,24 +84,25 @@ read(void** pp, const char* user_defined)
 	pd->xP[2] = -(2.*pd->x[2]*pd->x[3] + pd->g*sin(pd->x[0]))/pd->l;
 	pd->xP[3] = pd->l*pd->x[2]*pd->x[2] + pd->g*cos(pd->x[0])
 		- (pd->k*pd->x[1] + pd->c*pd->x[3])/pd->m;
-   
-	std::cerr << "m=" << pd->m << ", c=" << pd->c << ", k=" << pd->k 
+
+	std::cerr << "m=" << pd->m << ", c=" << pd->c << ", k=" << pd->k
 			<< std::endl
 		<< "l=" << pd->l << ", g=" << pd->g
 			<< std::endl
-		<< "x={" << pd->x[0] << "," << pd->x[1] << "," 
+		<< "x={" << pd->x[0] << "," << pd->x[1] << ","
 			<< pd->x[2] << "," << pd->x[3] << "}" << std::endl
-		<< "xP={" << pd->xP[0] << "," << pd->xP[1] << "," 
+		<< "xP={" << pd->xP[0] << "," << pd->xP[1] << ","
 			<< pd->xP[2] << "," << pd->xP[3] << "}" << std::endl;
-   
+
+	*pp = (void*)pd;
+
 	return 0;
 }
 
 static std::ostream&
 help(void *p, std::ostream& o)
 {
-	return o
-		<< "deformable pendulum" << std::endl;
+	return o << "deformable pendulum" << std::endl;
 }
 
 static int
@@ -126,7 +129,7 @@ init(void* p, VectorHandler& X, VectorHandler& XP)
 }
 
 static int
-grad(void* p, MatrixHandler& J, MatrixHandler& JP, 
+grad(void* p, MatrixHandler& J, MatrixHandler& JP,
 		const VectorHandler& X, const VectorHandler& XP,
 		const doublereal& t)
 {
@@ -214,7 +217,7 @@ out(void* p, std::ostream& o, const VectorHandler& X, const VectorHandler& XP)
 	doublereal yP = -w*ctheta+l*stheta*phi;
 
 	doublereal E = .5*m*(xP*xP+yP*yP)+m*g*y+.5*k*u*u;
-   
+
 	return o
 		<< theta	/*  3 */
 		<< " " << u	/*  4 */

@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -32,28 +32,21 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#if defined (HAVE_RUNTIME_LOADING) && (defined(HAVE_LTDL_H) || defined(HAVE_DLFCN_H))
+#ifdef USE_RUNTIME_LOADING
 
 #include <string.h>
-#ifdef HAVE_LTDL_H
 #include <ltdl.h>
-#elif defined(HAVE_DLFCN_H)
-#include <dlfcn.h>
-#else /* !HAVE_LTDL_H && !HAVE_DLFCN_H */
-#warning "no dynamic linking headers, sorry"
-#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
 
-#include <ac/getopt.h>
+#include "ac/getopt.h"
+#include "myassert.h"
+#include "solman.h"
+#include "fullmh.h"
+#include "y12wrap.h"
+#include "harwrap.h"
+#include "mschwrap.h"
+#include "umfpackwrap.h"
 
-#include <myassert.h>
-#include <solman.h>
-#include <fullmh.h>
-#include <y12wrap.h>
-#include <harwrap.h>
-#include <mschwrap.h>
-#include <umfpackwrap.h>
-
-#include <dae-intg.h>
+#include "dae-intg.h"
 
 enum method_t {
 	METHOD_UNKNOWN,
@@ -63,7 +56,7 @@ enum method_t {
 	METHOD_RADAU_II,
 	METHOD_CRANK_NICHOLSON
 };
-	
+
 struct integration_data {
    	doublereal ti;
    	doublereal tf;
@@ -87,7 +80,7 @@ static struct funcs *ff = NULL;
 static bool print_help = false;
 static void* p_data = NULL;
 
-int 
+int
 main(int argc, char *const argv[])
 {
    	struct s_method {
@@ -99,10 +92,10 @@ main(int argc, char *const argv[])
 		{ "cubic",             METHOD_CUBIC             },
 		{ "radau-II",	       METHOD_RADAU_II		},
 		{ "crank-nicholson",   METHOD_CRANK_NICHOLSON   },
-	
+
 		{ NULL,                METHOD_UNKNOWN           }
    	};
-   	method_t curr_method = METHOD_UNKNOWN;   
+   	method_t curr_method = METHOD_UNKNOWN;
    	char* module = "intg-default.so";
    	char* user_defined = NULL;
    	void* method_data = NULL;
@@ -110,7 +103,7 @@ main(int argc, char *const argv[])
 
    	/* opzioni */
    	const char optstring[] = "i:lm:t:T:n:r:u:hH";
-   	const struct option longopts[] = { 
+   	const struct option longopts[] = {
 		{ "integrator",     required_argument, NULL, int('i') },
 		{ "method-data",    required_argument, NULL, int('m') },
 		{ "timing",         required_argument, NULL, int('t') },
@@ -120,31 +113,31 @@ main(int argc, char *const argv[])
 		{ "user-defined",   required_argument, NULL, int('u') },
 		{ "help",           no_argument,       NULL, int('h') },
 		{ "print-help",     no_argument,       NULL, int('H') },
-	
-		{ NULL,             no_argument,       NULL, int(0)   }  
+
+		{ NULL,             no_argument,       NULL, int(0)   }
    	};
 
    	while (true) {
 		int curropt;
-		
+
 		curropt = getopt_long(argc, argv, optstring, longopts, NULL);
-		
+
 		if (curropt == EOF) {
 			break;
 		}
-		
+
       		switch(curropt) {
        		case int('?'):
-	  		/* 
+	  		/*
 			 * std::cerr << "unknown option -" << char(optopt) << std::endl;
 			 */
 	  		break;
-			
+
        		case int(':'):
-	  		std::cerr << "missing parameter for option -" 
+	  		std::cerr << "missing parameter for option -"
 				<< optopt << std::endl;
 	  		break;
-			
+
        		case int('h'):
 	  		std::cerr << "usage: int -[imtTnruh] [module]"
 				<< std::endl
@@ -165,7 +158,7 @@ main(int argc, char *const argv[])
 	    			<< std::endl
 	    			<< " -h,--help         : print this message "
 					"and exit" << std::endl
-				
+
 	    			<< " -H,--print-help   : print module's "
 					"help message" << std::endl;
 	  		exit(EXIT_SUCCESS);
@@ -184,7 +177,7 @@ main(int argc, char *const argv[])
 	     			p++;
 	  		}
 	  		if (p->s == NULL) {
-	     			std::cerr << "unknown integrator " 
+	     			std::cerr << "unknown integrator "
 					<< optarg << std::endl;
 	     			exit(EXIT_FAILURE);
 	  		}
@@ -196,7 +189,7 @@ main(int argc, char *const argv[])
 				std::cout << "    " << s_m[i].s << std::endl;
 			}
 	  		break;
-			
+
        		case int('m'):
 	  		method_data = get_method_data(curr_method, optarg);
 	  		break;
@@ -209,24 +202,24 @@ main(int argc, char *const argv[])
 	     			std::cerr << "syntax: ti:dt:tf" << std::endl;
 	     			exit(EXIT_FAILURE);
 	  		}
-			
+
 			next++;
 			d.dt = strtod(next, &next);
 			if (next[0] != ':') {
 	     			std::cerr << "syntax: ti:dt:tf" << std::endl;
 	     			exit(EXIT_FAILURE);
 	  		}
-			
+
 			next++;
 			d.tf = strtod(next, &next);
 			if (next[0] != '\0') {
 	     			std::cerr << "syntax: ti:dt:tf" << std::endl;
 	     			exit(EXIT_FAILURE);
 	  		}
-			
+
 	  		break;
        		}
-		
+
        		case int ('T'):
 	  		d.tol = strtod(optarg, NULL);
 	  		break;
@@ -242,37 +235,37 @@ main(int argc, char *const argv[])
        		case int('u'):
 	  		user_defined = optarg;
 	  		break;
-			
+
        		default:
 	  		/* std::cerr << "unknown option" << std::endl; */
 	  		break;
       		}
    	}
-   
+
    	if (optind >= argc) {
 		std::cerr << "need a module" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
-      	module = argv[optind];
+	module = argv[optind];
 
-   	open_module(module);
+	open_module(module);
 
 	if (::ff->size == 0) {
 		std::cerr << "no \"size\" func in module" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-		
+
 	if (::ff->func == 0) {
 		std::cerr << "no \"func\" func in module" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-		
+
 	if (::ff->grad == 0) {
 		std::cerr << "no \"grad\" func in module" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-		
+
    	if (::ff->read && ::ff->read(&p_data, user_defined)) {
 		std::cerr << "unable to read(" << user_defined << ") "
 			"data for module \"" << module << "\"" << std::endl;
@@ -287,7 +280,7 @@ main(int argc, char *const argv[])
 				"\"" << module << "\" (ignored)" << std::endl;
 		}
 	}
-   
+
    	int rc = 0;
    	switch (curr_method) {
     	case METHOD_MULTISTEP :
@@ -309,18 +302,16 @@ main(int argc, char *const argv[])
       		std::cerr << "you must select an integration method" << std::endl;
       		exit(EXIT_FAILURE);
    	}
-   
-#ifdef HAVE_LTDL_H
+
 	if (lt_dlexit()) {
 		std::cerr << "lt_dlexit() failed" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-#endif /* HAVE_LTDL_H */
-	
+
    	return 0;
 }
 
-static void* 
+static void*
 get_method_data(method_t curr_method, const char* optarg)
 {
    	switch (curr_method) {
@@ -337,7 +328,7 @@ get_method_data(method_t curr_method, const char* optarg)
 			return pi;
 
 		} else {
-      			std::cerr << "unknown data \"" << optarg << "\"" 
+      			std::cerr << "unknown data \"" << optarg << "\""
 				<< std::endl;
 			return NULL;
 		}
@@ -347,7 +338,7 @@ get_method_data(method_t curr_method, const char* optarg)
       		std::cerr << "not implemented yet" << std::endl;
       		exit(EXIT_FAILURE);
    	}
-   
+
    	return NULL;
 }
 
@@ -356,7 +347,6 @@ open_module(const char* module)
 {
    	const char* err = NULL;
 
-#ifdef HAVE_LTDL_H
 	lt_dlhandle handle;
 
 	if (lt_dlinit()) {
@@ -366,7 +356,7 @@ open_module(const char* module)
 
    	if ((handle = lt_dlopen(module)) == NULL) {
       		err = lt_dlerror();
-      		std::cerr << "lt_dlopen(\"" << module 
+      		std::cerr << "lt_dlopen(\"" << module
 			<< "\") returned \"" << err << "\"" << std::endl;
       		exit(EXIT_FAILURE);
    	}
@@ -378,25 +368,6 @@ open_module(const char* module)
 			<< std::endl;
       		exit(EXIT_FAILURE);
    	}
-
-#elif defined(HAVE_DLFCN_H)
-   	void* handle = NULL;
-
-   	if ((handle = dlopen(module, RTLD_NOW)) == NULL) {
-      		err = dlerror();
-      		std::cerr << "dlopen(\"" << module << "\") returned \"" << err
-			<< "\"" << std::endl;
-      		exit(EXIT_FAILURE);
-   	}
-   
-	struct funcs **pf = (struct funcs **)dlsym(handle, "ff");
-   	if (pf == NULL) {
-      		err = dlerror();
-      		std::cerr << "dlsym(\"ff\") returned \"" << err << "\""
-			<< std::endl;
-      		exit(EXIT_FAILURE);
-   	}
-#endif /* !HAVE_LTDL_H && HAVE_DLFCN_H */
 
 	::ff = *pf;
 	if (::ff == NULL) {
@@ -410,8 +381,8 @@ open_module(const char* module)
 
 static void
 flip(VectorHandler** ppX, VectorHandler** ppXP,
-     VectorHandler** ppXm1, VectorHandler** ppXPm1,
-     VectorHandler** ppXm2, VectorHandler** ppXPm2)
+	VectorHandler** ppXm1, VectorHandler** ppXPm1,
+	VectorHandler** ppXm2, VectorHandler** ppXPm2)
 {
    	VectorHandler* p = *ppXm2;
    	*ppXm2 = *ppXm1;
@@ -473,7 +444,7 @@ cn1p(const doublereal& xi)
 }
 
 static int
-method_multistep(const char* module, integration_data* d, 
+method_multistep(const char* module, integration_data* d,
 		 void* method_data, const char* user_defined)
 {
    	/* prepara le strutture dati per il calcolo */
@@ -484,7 +455,7 @@ method_multistep(const char* module, integration_data* d,
    	MyVectorHandler v3(size);
    	MyVectorHandler v4(size);
    	MyVectorHandler v5(size);
-   
+
    	VectorHandler* pX = &v0;
    	VectorHandler* pXP = &v1;
    	VectorHandler* pXm1 = &v2;
@@ -497,7 +468,7 @@ method_multistep(const char* module, integration_data* d,
    	pXPm1->Reset();
    	pXm2->Reset();
    	pXPm2->Reset();
-   
+
    	doublereal* pd = new doublereal[2 * size*size];
    	doublereal** ppd = new doublereal*[2 * size];
    	FullMatrixHandler J(pd, ppd, size*size, size, size);
@@ -513,19 +484,19 @@ method_multistep(const char* module, integration_data* d,
 #elif defined(USE_MESCHACH)
 	MeschachSparseSolutionManager sm(size, size*(size+1)+1, 1.);
 #endif
-   
+
    	MatrixHandler* Jac = sm.pMatHdl();
-   	VectorHandler* Res = sm.pResHdl();   
-   	VectorHandler* Sol = sm.pSolHdl();   
+   	VectorHandler* Res = sm.pResHdl();
+   	VectorHandler* Sol = sm.pSolHdl();
 
    	/* parametri di integrazione */
    	doublereal ti = d->ti;
    	doublereal dt = d->dt;
    	doublereal tf = d->tf;
-   
+
    	doublereal tol = d->tol;
    	int maxiter = d->maxiter;
-   
+
    	/* coefficienti del metodo */
    	doublereal rho = d->rho;
    	doublereal beta =
@@ -538,7 +509,7 @@ method_multistep(const char* module, integration_data* d,
    	doublereal b2 = .5*beta+delta;
 
    	doublereal t = ti;
-   
+
    	/* inizializza la soluzione */
 	if (::ff->init) {
    		::ff->init(p_data, *pX, *pXP);
@@ -549,18 +520,18 @@ method_multistep(const char* module, integration_data* d,
       		(*pXPm1)(k) = xp;
       		(*pXm1)(k) = x-dt*xp;
    	}
-   
+
    	/* output iniziale */
    	std::cout << ti << " " << 0. << " ";
 	if (::ff->out) {
    		::ff->out(p_data, std::cout, *pX, *pXP) << std::endl;
 	}
-   
+
    	flip(&pX, &pXP, &pXm1, &pXPm1, &pXm2, &pXPm2);
-   
+
    	while (t < tf) {
       		t += dt;
-		
+
       		/* predict */
       		for (int ir = size; ir > 0; ir--) {
 	 		doublereal xm1 = (*pXm1)(ir);
@@ -576,16 +547,16 @@ method_multistep(const char* module, integration_data* d,
 	 		(*pX)(ir) = x;
 	 		(*pXP)(ir) = xP;
       		}
-      
+
       		/* test */
       		int j = 0;
       		doublereal test;
       		doublereal coef = dt*b0;
       		do {
 			Jac = sm.pMatHdl();
-			Res = sm.pResHdl();   
-			Sol = sm.pSolHdl();   
-	 		
+			Res = sm.pResHdl();
+			Sol = sm.pSolHdl();
+
 			::ff->func(p_data, *Res, *pX, *pXP, t);
 
 	 		test = Res->Norm();
@@ -594,12 +565,12 @@ method_multistep(const char* module, integration_data* d,
 	    			break;
 	 		}
 	 		if (++j > maxiter) {
-	    			std::cerr << "current iteration " << j 
+	    			std::cerr << "current iteration " << j
 	      				<< " exceeds max iteration number "
 					<< maxiter << std::endl;
 	    			exit(EXIT_FAILURE);
 	 		}
-	 
+
 	 		/* correct */
 	 		sm.MatrReset();
 	 		J.Reset();
@@ -611,22 +582,22 @@ method_multistep(const char* module, integration_data* d,
 	    			}
 	 		}
 	 		sm.Solve();
-			
+
 	 		/* update */
 	 		for (int ir = size; ir > 0; ir--) {
-	    			doublereal dxP = (*Sol)(ir);	
+	    			doublereal dxP = (*Sol)(ir);
 	    			(*pXP)(ir) += dxP;
 	    			(*pX)(ir) += coef*dxP;
 	 		}
       		} while (true);
-      
+
       		/* output */
       		std::cout << t << " " << test << " ";
 		if (::ff->out) {
       			::ff->out(p_data, std::cout, *pX, *pXP) << std::endl;
 		}
-      
-      		flip(&pX, &pXP, &pXm1, &pXPm1, &pXm2, &pXPm2);            
+
+      		flip(&pX, &pXP, &pXm1, &pXPm1, &pXm2, &pXPm2);
 	}
 
 	if (::ff->destroy) {
@@ -640,17 +611,17 @@ method_multistep(const char* module, integration_data* d,
 }
 
 static int
-method_hope(const char* module, integration_data* d, 
+method_hope(const char* module, integration_data* d,
 	    void* method_data, const char* user_defined)
 {
    	std::cerr << __FUNCTION__ << "not implemented yet!" << std::endl;
    	exit(EXIT_FAILURE);
-   
+
    	return 0;
 }
 
 static int
-method_cubic(const char* module, integration_data* d, 
+method_cubic(const char* module, integration_data* d,
 	     void* method_data, const char* user_defined)
 {
 	bool linear = false;
@@ -669,7 +640,7 @@ method_cubic(const char* module, integration_data* d,
    	MyVectorHandler v3(size);
    	MyVectorHandler v4(size);
    	MyVectorHandler v5(size);
-   
+
    	VectorHandler* pX = &v0;
    	VectorHandler* pXP = &v1;
    	VectorHandler* pXm1 = &v2;
@@ -682,7 +653,7 @@ method_cubic(const char* module, integration_data* d,
    	pXPm1->Reset();
    	pXm2->Reset();
    	pXPm2->Reset();
-   
+
    	doublereal* pd = new doublereal[4*size*size];
    	doublereal** ppd = new doublereal*[4*size];
    	FullMatrixHandler Jz(pd, ppd, size*size, size, size);
@@ -693,7 +664,7 @@ method_cubic(const char* module, integration_data* d,
 			size*size, size, size);
    	MyVectorHandler Xz(size);
    	MyVectorHandler XPz(size);
-   
+
 #if defined(USE_UMFPACK)
 	UmfpackSparseSolutionManager sm(2*size);
 #elif defined(USE_Y12)
@@ -703,10 +674,10 @@ method_cubic(const char* module, integration_data* d,
 #elif defined(USE_MESCHACH)
 	MeschachSparseSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
 #endif
-   
+
    	MatrixHandler* Jac = sm.pMatHdl();
-   	VectorHandler* Res = sm.pResHdl();   
-   	VectorHandler* Sol = sm.pSolHdl();   
+   	VectorHandler* Res = sm.pResHdl();
+   	VectorHandler* Sol = sm.pSolHdl();
 
    	MyVectorHandler Resz(size, Res->pdGetVec() + size);
 
@@ -714,10 +685,10 @@ method_cubic(const char* module, integration_data* d,
    	doublereal ti = d->ti;
    	doublereal dt = d->dt;
    	doublereal tf = d->tf;
-   
+
    	doublereal tol = d->tol;
    	int maxiter = d->maxiter;
-   
+
    	/* coefficienti del metodo */
    	doublereal rho = d->rho;
    	doublereal z = -rho/(1.+rho);
@@ -731,7 +702,7 @@ method_cubic(const char* module, integration_data* d,
 	doublereal j00 = (2.*rho-1.)/(6.*rho)*dt;
 
    	doublereal t = ti;
-   
+
    	/* inizializza la soluzione */
 	if (::ff->init) {
    		::ff->init(p_data, *pX, *pXP);
@@ -743,22 +714,22 @@ method_cubic(const char* module, integration_data* d,
       		(*pXPm1)(k) = xp;
       		(*pXm1)(k) = x - dt*xp;
    	}
-   
+
    	/* output iniziale */
    	std::cout << ti << " " << 0. << " ";
 	if (::ff->out) {
    		::ff->out(p_data, std::cout, *pX, *pXP) << std::endl;
 	}
-   
+
    	flip(&pX, &pXP, &pXm1, &pXPm1, &pXm2, &pXPm2);
-   
+
    	while (t < tf) {
       		t += dt;
 
 		if (linear) {
 
 			std::cerr << "linear predictor" << std::endl;
-			
+
 	      		/* predict lineare */
 	      		for (int k = 1; k <= size; k++) {
 		 		doublereal xm1 = (*pXm1)(k);
@@ -767,13 +738,13 @@ method_cubic(const char* module, integration_data* d,
 		 		doublereal xPz = xPm1;
 		 		doublereal x = xm1 + dt*xP;
 		 		doublereal xz = xm1 + dt*(1.+z)*xP;
-	
+
 		 		(*pX)(k) = x;
 		 		(*pXP)(k) = xP;
 				Xz(k) = xz;
 				XPz(k) = xPz;
       			}
- 
+
 		} else {
 
       			/* predict cubico */
@@ -788,23 +759,23 @@ method_cubic(const char* module, integration_data* d,
 					+ cn0p(1. + z)*xPm1 + cn1p(1. + z)*xPm2;
 		 		doublereal x = xm1 + dt*(w1*xPm1 + wz*xPz + w0*xP);
 		 		doublereal xz = cm0(z)*x + cm1(z)*xm1 + dt*(cn0(z)*xP + cn1(z)*xPm1);
-	
+
 		 		(*pX)(k) = x;
 		 		(*pXP)(k) = xP;
 				Xz(k) = xz;
 				XPz(k) = xPz;
 			}
       		}
-      
-     
+
+
       		/* test */
       		int j = 0;
-      		doublereal test;      
+      		doublereal test;
       		do {
 
 			Jac = sm.pMatHdl();
-			Res = sm.pResHdl();   
-			Sol = sm.pSolHdl();   
+			Res = sm.pResHdl();
+			Sol = sm.pSolHdl();
 
 			Resz.Attach(size, Res->pdGetVec() + size);
 
@@ -819,12 +790,12 @@ method_cubic(const char* module, integration_data* d,
 	    			break;
 	 		}
 	 		if (++j > maxiter) {
-	    			std::cerr << "current iteration " << j 
+	    			std::cerr << "current iteration " << j
 	      				<< " exceeds max iteration number "
 					<< maxiter << std::endl;
 	    			exit(EXIT_FAILURE);
 	 		}
-	 
+
 	 		/* correct */
 	 		sm.MatrReset();
 	 		Jz.Reset();
@@ -850,7 +821,7 @@ method_cubic(const char* module, integration_data* d,
 			}
 
 	 		sm.Solve();
-	 
+
 	 		/* update */
 	 		for (int ir = size; ir > 0; ir--) {
 	    			doublereal dxP0 = (*Sol)(ir);
@@ -861,14 +832,14 @@ method_cubic(const char* module, integration_data* d,
 				Xz(ir) += dt*(cm0(z)*(wz*dxPz + w0*dxP0)+cn0(z)*dxP0);
 	 		}
      	 	} while (true);
-      
+
       		/* output */
       		std::cout << t << " " << test << " ";
 		if (::ff->out) {
       			::ff->out(p_data, std::cout, *pX, *pXP) << std::endl;
 		}
-      
-      		flip(&pX, &pXP, &pXm1, &pXPm1, &pXm2, &pXPm2);            
+
+      		flip(&pX, &pXP, &pXm1, &pXPm1, &pXm2, &pXPm2);
    	}
 
 	if (::ff->destroy) {
@@ -929,7 +900,7 @@ radau_II_cn1p(const doublereal& xi)
 }
 
 static int
-method_radau_II(const char* module, integration_data* d, 
+method_radau_II(const char* module, integration_data* d,
 	     void* method_data, const char* user_defined)
 {
 	bool linear = false;
@@ -948,7 +919,7 @@ method_radau_II(const char* module, integration_data* d,
    	MyVectorHandler v3(size);
    	MyVectorHandler v4(size);
    	MyVectorHandler v5(size);
-   
+
    	VectorHandler* pX = &v0;
    	VectorHandler* pXP = &v1;
    	VectorHandler* pXm1 = &v2;
@@ -961,7 +932,7 @@ method_radau_II(const char* module, integration_data* d,
    	pXPm1->Reset();
    	pXm2->Reset();
    	pXPm2->Reset();
-   
+
    	doublereal* pd = new doublereal[4*size*size];
    	doublereal** ppd = new doublereal*[4*size];
    	FullMatrixHandler Jz(pd, ppd, size*size, size, size);
@@ -972,7 +943,7 @@ method_radau_II(const char* module, integration_data* d,
 			size*size, size, size);
    	MyVectorHandler Xz(size);
    	MyVectorHandler XPz(size);
-   
+
 #if defined(USE_UMFPACK)
 	UmfpackSparseSolutionManager sm(2*size);
 #elif defined(USE_Y12)
@@ -982,10 +953,10 @@ method_radau_II(const char* module, integration_data* d,
 #elif defined(USE_MESCHACH)
 	MeschachSparseSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
 #endif
-   
+
    	MatrixHandler* Jac = sm.pMatHdl();
-   	VectorHandler* Res = sm.pResHdl();   
-   	VectorHandler* Sol = sm.pSolHdl();   
+   	VectorHandler* Res = sm.pResHdl();
+   	VectorHandler* Sol = sm.pSolHdl();
 
    	MyVectorHandler Resz(size, Res->pdGetVec() + size);
 
@@ -993,10 +964,10 @@ method_radau_II(const char* module, integration_data* d,
    	doublereal ti = d->ti;
    	doublereal dt = d->dt;
    	doublereal tf = d->tf;
-   
+
    	doublereal tol = d->tol;
    	int maxiter = d->maxiter;
-   
+
    	/* coefficienti del metodo */
    	doublereal z = -2./3.;
    	doublereal w1 = 0.;
@@ -1013,7 +984,7 @@ method_radau_II(const char* module, integration_data* d,
 	doublereal j00 = 1./4.*dt;
 
    	doublereal t = ti;
-   
+
    	/* inizializza la soluzione */
 	if (::ff->init) {
    		::ff->init(p_data, *pX, *pXP);
@@ -1025,22 +996,22 @@ method_radau_II(const char* module, integration_data* d,
       		(*pXPm1)(k) += xp;
       		(*pXm1)(k) += x - dt*xp;
    	}
-   
+
    	/* output iniziale */
    	std::cout << ti << " " << 0. << " ";
 	if (::ff->out) {
    		::ff->out(p_data, std::cout, *pX, *pXP) << std::endl;
 	}
-   
+
    	flip(&pX, &pXP, &pXm1, &pXPm1, &pXm2, &pXPm2);
-   
+
    	while (t < tf) {
       		t += dt;
 
 		if (linear) {
 
 			std::cerr << "linear predictor" << std::endl;
-			
+
 	      		/* predict lineare */
 	      		for (int k = 1; k <= size; k++) {
 		 		doublereal xm1 = (*pXm1)(k);
@@ -1049,13 +1020,13 @@ method_radau_II(const char* module, integration_data* d,
 		 		doublereal xPz = xPm1;
 		 		doublereal x = xm1 + dt*xP;
 		 		doublereal xz = xm1 + dt*(1.+z)*xP;
-	
+
 		 		(*pX)(k) = x;
 		 		(*pXP)(k) = xP;
 				Xz(k) = xz;
 				XPz(k) = xPz;
       			}
- 
+
 		} else {
 
       			/* predict cubico */
@@ -1070,23 +1041,23 @@ method_radau_II(const char* module, integration_data* d,
 					+ radau_II_cn0p(1. + z)*xPm1 + radau_II_cn1p(1. + z)*xPm2;
 		 		doublereal x = xm1 + dt*(w1*xPm1 + wz*xPz + w0*xP);
 		 		doublereal xz = m0*x + m1*xm1 + dt*(n0*xP + n1*xPm1);
-	
+
 		 		(*pX)(k) = x;
 		 		(*pXP)(k) = xP;
 				Xz(k) = xz;
 				XPz(k) = xPz;
 			}
       		}
-      
-     
+
+
       		/* test */
       		int j = 0;
-      		doublereal test;      
+      		doublereal test;
       		do {
 
 			Jac = sm.pMatHdl();
-			Res = sm.pResHdl();   
-			Sol = sm.pSolHdl();   
+			Res = sm.pResHdl();
+			Sol = sm.pSolHdl();
 
 			Resz.Attach(size, Res->pdGetVec() + size);
 
@@ -1101,12 +1072,12 @@ method_radau_II(const char* module, integration_data* d,
 	    			break;
 	 		}
 	 		if (++j > maxiter) {
-	    			std::cerr << "current iteration " << j 
+	    			std::cerr << "current iteration " << j
 	      				<< " exceeds max iteration number "
 					<< maxiter << std::endl;
 	    			exit(EXIT_FAILURE);
 	 		}
-	 
+
 	 		/* correct */
 	 		sm.MatrReset();
 	 		Jz.Reset();
@@ -1132,7 +1103,7 @@ method_radau_II(const char* module, integration_data* d,
 			}
 
 	 		sm.Solve();
-	 
+
 	 		/* update */
 	 		for (int ir = size; ir > 0; ir--) {
 	    			doublereal dxP0 = (*Sol)(ir);
@@ -1143,15 +1114,15 @@ method_radau_II(const char* module, integration_data* d,
 				Xz(ir) += dt*(m0*(wz*dxPz + w0*dxP0)+n0*dxP0);
 	 		}
      	 	} while (true);
-      
+
       		/* output */
       		std::cout << t << " " << test << " ";
 		if (::ff->out) {
       			::ff->out(p_data, std::cout, *pX, *pXP) << std::endl;
 		}
-      
-      		flip(&pX, &pXP, &pXm1, &pXPm1, &pXm2, &pXPm2);            
-	}	
+
+      		flip(&pX, &pXP, &pXm1, &pXPm1, &pXm2, &pXPm2);
+	}
 
 	if (::ff->destroy) {
    		::ff->destroy(&p_data);
@@ -1172,7 +1143,7 @@ method_cn(const char* module, integration_data* d,
    	return 0;
 }
 
-#else /* defined(HAVE_RUNTIME_LOADING) && (defined(HAVE_LTDL_H) || defined(HAVE_DLFCN_H)) */
+#else // ! USE_RUNTIME_LOADING
 
 #include <ac/iostream>
 #include <stdlib.h>
@@ -1184,5 +1155,5 @@ main(void)
    	exit(EXIT_FAILURE);
 }
 
-#endif /* defined(HAVE_RUNTIME_LOADING) && (defined(HAVE_LTDL_H) || defined(HAVE_DLFCN_H)) */
+#endif // ! USE_RUNTIME_LOADING
 

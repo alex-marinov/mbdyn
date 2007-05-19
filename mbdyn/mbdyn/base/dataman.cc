@@ -43,9 +43,9 @@ extern "C" {
 #include <time.h>
 }
 
-#if defined(HAVE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
+#if defined(USE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
 #include <ltdl.h>
-#endif /* HAVE_RUNTIME_LOADING && HAVE_LTDL_H */
+#endif // USE_RUNTIME_LOADING && HAVE_LTDL_H
 
 #include "solver.h"
 #include "invsolver.h"
@@ -123,9 +123,9 @@ bStaticModel(false),
 /* auto-detect if running inverse dynamics */
 bInverseDynamics(dynamic_cast<InverseSolver *>(pS) != 0),
 #endif /* USE_STRUCT_NODES */
-#if defined(HAVE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
+#if defined(USE_RUNTIME_LOADING)
 loadableElemInitialized(false),
-#endif /* HAVE_RUNTIME_LOADING && HAVE_LTDL_H */
+#endif // USE_RUNTIME_LOADING
 uPrintFlags(PRINT_NONE),		/* Morandini, 2003-11-17 */
 sSimulationTitle(0),
 RestartEvery(NEVER),
@@ -638,14 +638,14 @@ DataManager::~DataManager(void)
 	NodeManagerDestructor();
 	DofManagerDestructor();
 
-#if defined(HAVE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
+#if defined(USE_RUNTIME_LOADING)
 	if (loadableElemInitialized) {
 		if (lt_dlexit()) {
 			std::cerr << "lt_dlexit failed" << std::endl;
 			throw ErrGeneric();
 		}
 	}
-#endif /* HAVE_RUNTIME_LOADING && HAVE_LTDL_H */
+#endif // USE_RUNTIME_LOADING
 } /* End of DataManager::DataManager() */
 
 

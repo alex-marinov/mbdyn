@@ -125,9 +125,9 @@ protected:
 	bool bInverseDynamics;
 #endif /* USE_STRUCT_NODES */
 
-#if defined(HAVE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
+#ifdef USE_RUNTIME_LOADING
 	bool loadableElemInitialized;
-#endif /* HAVE_RUNTIME_LOADING && HAVE_LTDL_H */
+#endif // USE_RUNTIME_LOADING
 
 	enum PrintFlags {
 		PRINT_NONE		= 0x00U,
