@@ -51,7 +51,9 @@ MBDYN=../../mbdyn/mbdyn
 # in most cases:
 #LD_LIBRARY_PATH=/usr/lib
 # in most cases on x86_64:
-LD_LIBRARY_PATH=/usr/lib64
+#LD_LIBRARY_PATH=/usr/lib64
+# but, usually, it's enough to let the system do its job!
+LD_LIBRARY_PATH=
 
 #exec -a mbdyn "${MBDYN}" $@
 exec "${MBDYN}" $@
