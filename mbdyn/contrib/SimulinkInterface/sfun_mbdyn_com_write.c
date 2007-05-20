@@ -122,8 +122,6 @@ struct mbd_t {
 #include <sys/un.h>
 #include <sys/poll.h>
 
-#define DEFAULT_PORT	5500
-#define DEFAULT_HOST	"127.0.0.1"
 #define TIME_OUT	10000	/* milliseconds */
 
 #endif /* MATLAB_MEX_FILE */
