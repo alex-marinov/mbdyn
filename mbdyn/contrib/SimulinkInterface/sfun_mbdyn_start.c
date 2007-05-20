@@ -66,23 +66,23 @@
 
 #define N_OF_PARAM 7
 
-#define MBDYN_PATH_NAME_PARAM	ssGetSFcnParam(S,0)
+#define MBDYN_PATH_NAME_PARAM	ssGetSFcnParam(S, 0)
 #define MAX_MBDYN_PATH_NAME_DIM 256
-#define MBDYN_PATH_PARAM	ssGetSFcnParam(S,1)
+#define MBDYN_PATH_PARAM	ssGetSFcnParam(S, 1)
 #define MBDYN_PATH		((uint_T) mxGetPr(MBDYN_PATH_PARAM)[0])
 
-#define FILE_NAME_PARAM		ssGetSFcnParam(S,2)
+#define FILE_NAME_PARAM		ssGetSFcnParam(S, 2)
 #define MAX_FILE_NAME_DIM	256
 
-#define FILE_OUTPUT_PARAM	ssGetSFcnParam(S,3)
+#define FILE_OUTPUT_PARAM	ssGetSFcnParam(S, 3)
 #define MAX_FILE_OUTPUT_DIM	256
-#define OUTPUT_PARAM		ssGetSFcnParam(S,4)
+#define OUTPUT_PARAM		ssGetSFcnParam(S, 4)
 #define OUTPUT			((uint_T) mxGetPr(OUTPUT_PARAM)[0])
 
-#define VERBOSE_PARAM		ssGetSFcnParam(S,5)
+#define VERBOSE_PARAM		ssGetSFcnParam(S, 5)
 #define VERBOSE			((uint_T) mxGetPr(VERBOSE_PARAM)[0])
 
-#define PEDANTIC_PARAM		ssGetSFcnParam(S,6)
+#define PEDANTIC_PARAM		ssGetSFcnParam(S, 6)
 #define PEDANTIC		((uint_T) mxGetPr(PEDANTIC_PARAM)[0])
 
 
@@ -158,7 +158,7 @@ mdlStart(SimStruct *S)
 		char		verbose_option[] = "-ss";
 		char		pedantic_option[] = "-P";
 		struct stat	st;
-		static char_T	errMsg[256];
+		static char_T	errMsg[BUFSIZ];
 		int		executable = 1;
 
 		if (MBDYN_PATH) {
@@ -176,13 +176,14 @@ mdlStart(SimStruct *S)
 
 			if (msg == NULL) {
 				snprintf(errMsg, sizeof(errMsg),
-						"stat(%s) failed and "
-						"strerror(%d) too\n",
-						mbdyn_name, save_errno);
+					"stat(%s) failed and "
+					"strerror(%d) too\n",
+					mbdyn_name, save_errno);
+
 			} else {
 				snprintf(errMsg, sizeof(errMsg),
-						"stat(%s) failed: %d (%s)\n",
-						mbdyn_name, save_errno, msg);
+					"stat(%s) failed: %d (%s)\n",
+					mbdyn_name, save_errno, msg);
 			}
 			ssSetErrorStatus(S, errMsg);
 			fputs(errMsg, stderr);
@@ -206,8 +207,8 @@ mdlStart(SimStruct *S)
 		if (!executable) {
 			/* not executable */
 			snprintf(errMsg, sizeof(errMsg),
-					"program %s is not executable\n",
-					mbdyn_name);
+				"program %s is not executable\n",
+				mbdyn_name);
 			ssSetErrorStatus(S, errMsg);
 			fputs(errMsg, stderr);
 			exit(EXIT_FAILURE);
@@ -260,16 +261,16 @@ mdlStart(SimStruct *S)
 	{
 		char		*msg;
 		int		save_errno = errno;
-		static char_T	errMsg[256];
+		static char_T	errMsg[BUFSIZ];
 
 		msg = strerror(save_errno);
 		if (msg == NULL) {
 			snprintf(errMsg, sizeof(errMsg),
-					"fork() failed, and strerror too\n");
+				"fork() failed, and strerror too\n");
 		} else {
 			snprintf(errMsg, sizeof(errMsg),
-					"fork() failed: %d (%s)\n",
-					save_errno, msg);
+				"fork() failed: %d (%s)\n",
+				save_errno, msg);
 		}
 		ssSetErrorStatus(S, errMsg);
 		break;

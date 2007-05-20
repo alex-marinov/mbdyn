@@ -59,27 +59,23 @@
 #endif
 #include "simstruc.h"
 
-/* FIXME: to be defined */
+#define HOST_NAME_PARAM		ssGetSFcnParam(S, 0)
+#define MBD_NAME_PARAM		ssGetSFcnParam(S, 1)
+#define MBX_NAME_PARAM		ssGetSFcnParam(S, 2)
+#define MBX_N_CHN_PARAM		ssGetSFcnParam(S, 3)
+#define SAMPLE_TIME_PARAM	ssGetSFcnParam(S, 4)
+
+#define NET_PARAM		ssGetSFcnParam(S, 5)
+#define PORT_PARAM		ssGetSFcnParam(S, 6)
+#define PATH_PARAM		ssGetSFcnParam(S, 7)
+
 #define NUMBER_OF_PARAMS	(8)
-
-#define HOST_NAME_PARAM		ssGetSFcnParam(S,0)
-#define MBD_NAME_PARAM		ssGetSFcnParam(S,1)
-#define MBX_NAME_PARAM		ssGetSFcnParam(S,2)
-#define MBX_N_CHN_PARAM		ssGetSFcnParam(S,3)
-#define SAMPLE_TIME_PARAM	ssGetSFcnParam(S,4)
-
-/* socket stuff */
-#define NET_PARAM		ssGetSFcnParam(S,5)
-#define PORT_PARAM		ssGetSFcnParam(S,6)
-#define PATH_PARAM		(const char *)ssGetSFcnParam(S,7)
-
 
 #define WAIT_LOOP  (10000)
 
 #define MBX_N_CHN		((uint_T) mxGetPr(MBX_N_CHN_PARAM)[0])
 #define SAMPLE_TIME		((real_T) mxGetPr(SAMPLE_TIME_PARAM)[0])
 
-/*socket stuff*/
 #define NET			((uint_T) mxGetPr(NET_PARAM)[0])
 #define PORT			((uint_T) mxGetPr(PORT_PARAM)[0])
 
@@ -96,7 +92,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-
 #ifndef MATLAB_MEX_FILE
 
 #define KEEP_STATIC_INLINE
@@ -106,27 +101,22 @@
 #include <rtai_netrpc.h>
 #include "mbdyn_rtai.h"
 
-extern long int 	MbdynNode[];
-extern unsigned long	MbdynName[];
-extern bool		MbdynTaskActive[];
+extern long int 	MBDynNode[];
+extern unsigned long	MBDynName[];
+extern bool		MBDynTaskActive[];
 
-#if 0
-volatile int mbd_read_cnt = 0;
-#endif
-static char 	msg = 't';
-extern 	RT_TASK *rt_HostInterfaceTask;
-struct mbd_read_str{
-	void 	*comptr_in;
-	unsigned long 	node;
-	int 	port;
-	double	*buffer;
-#if 0
-	int	buffer_name;
-#endif
-	int	mbdtask_count;
-	int	err_count;
-	int 	step_count;
+static char		msg = 't';
+extern RT_TASK		*rt_HostInterfaceTask;
+struct mbd_t {
+	void		*comptr;
+	unsigned long	node;
+	int		port;
+	int		mbdtask_count;
+	int		err_count;
+	int		step_count;
+	double		*buffer;
 };
+
 #else
 
 #include <string.h>
@@ -135,11 +125,6 @@ struct mbd_read_str{
 #include <sys/un.h>
 #include <sys/poll.h>
 
-#define UNIX_PATH_MAX	108
-/* FIXME: to be defined */
-#define DEFAULT_PORT	5500
-#define SYSTEM_PORT	1000
-#define DEFAULT_HOST	"127.0.0.1"
 #define TIME_OUT	10000	/* milliseconds */
 
 #endif /* MATLAB_MEX_FILE */
@@ -149,22 +134,32 @@ struct mbd_read_str{
 static void
 mdlCheckParameters(SimStruct *S)
 {
-	static char_T errMsg[256];
+	static char_T errMsg[BUFSIZ];
+
 	if (mxGetNumberOfElements(MBX_N_CHN_PARAM) != 1) {
 		snprintf(errMsg, sizeof(errMsg),
-				"Channel parameter must be a scalar.\n");
+			"Channel parameter must be a scalar.\n");
 		ssSetErrorStatus(S, errMsg);
 	}
 
 	if (mxGetNumberOfElements(SAMPLE_TIME_PARAM) != 1) {
 		snprintf(errMsg, sizeof(errMsg),
-				"Sample time parameter must be a scalar\n");
+			"Sample time parameter must be a scalar\n");
 		ssSetErrorStatus(S, errMsg);
 	}
+
 	if (mxGetNumberOfElements(PORT_PARAM) != 1) {
 		snprintf(errMsg, sizeof(errMsg),
-				"Port parameter must be a scalar\n");
+			"Port parameter must be a scalar\n");
 		ssSetErrorStatus(S, errMsg);
+	}
+
+	if (NET) {
+		if (PORT == 0) {
+			snprintf(errMsg, sizeof(errMsg),
+				"Port must be defined\n");
+			ssSetErrorStatus(S, errMsg);
+		}
 	}
 }
 #endif /* MDL_CHECK_PARAMETERS && MATLAB_MEX_FILE */
@@ -181,6 +176,7 @@ mdlInitializeSizes(SimStruct *S)
 		if (ssGetErrorStatus(S) != NULL) {
 			return;
 		}
+
 	} else {
 		return;
 	}
@@ -198,9 +194,10 @@ mdlInitializeSizes(SimStruct *S)
 	ssSetNumContStates(S, 0);
 	ssSetNumDiscStates(S, 0);
 	ssSetNumSampleTimes(S, 1);
-	ssSetNumPWork(S,1);
+	ssSetNumPWork(S, 1);
+
 #ifdef MATLAB_MEX_FILE
-	ssSetNumIWork(S,2);
+	ssSetNumIWork(S, 2);
 #endif /* MATLAB_MEX_FILE */
 }
 
@@ -217,20 +214,15 @@ static void
 mdlStart(SimStruct *S)
 {
 #ifndef MATLAB_MEX_FILE
-	struct mbd_read_str *ptrstr = NULL;
+	struct mbd_t		*ptrstr = NULL;
+	static char_T		errMsg[BUFSIZ];
+	register int		i;
+	char			mbx_name[7], mbd_name[7];
+	struct in_addr		addr;
 
-	void	*mbdtask;
-#if 0
-	void	*comptr_in;
-#endif
-	static char_T errMsg[256];
-	register int i;
-	char mbx_name[7], mbd_name[7];
-
-	struct in_addr addr;
-	char host_name[MAXHOSTNAMELEN];
-
-	int timerflag = 0, count;
+	char			host_name[MAXHOSTNAMELEN];
+	void			*mbdtask = NULL;
+	int			timerflag = 0, count = 0;
 
 	mxGetString(MBD_NAME_PARAM, mbd_name, 7);
 	mxGetString(MBX_NAME_PARAM, mbx_name, 7);
@@ -239,59 +231,39 @@ mdlStart(SimStruct *S)
 	 * alloc struct
 	 ******************************************************************/
 
-#if 0
-	for (i = mbd_read_cnt; i < 999; i++) {
-		sprintf(myname, "com%d",i);
-		if (!rt_get_adr(nam2num(myname))) break;
-	}
-#endif
-	ptrstr = (struct mbd_read_str *)malloc(sizeof(struct mbd_read_str));
+	ptrstr = (struct mbd_t *)malloc(sizeof(struct mbd_t));
 	if (!ptrstr) {
 		snprintf(errMsg, sizeof(errMsg),
-				"\ncannot alloc memory for struct mbd_read_str\n");
+			"\ncannot alloc memory for struct mbd_t\n");
 		ssSetErrorStatus(S, errMsg);
 		printf("%s", errMsg);
 	}
 	ssGetPWork(S)[0] = ptrstr;
-#if 0
-	ssGetIWork(S)[0] = nam2num(myname);
-#endif
-
 
 	/******************************************************************
 	 * converting host_name into node
 	 ******************************************************************/
 	mxGetString(HOST_NAME_PARAM, host_name, sizeof(host_name));
 
-#if 0
-	printf("\nread requesting hard_port \n");
-#endif
 	inet_aton(host_name, &addr);
-
 	ptrstr->node = addr.s_addr;
-	if (ptrstr->node ) {
+	if (ptrstr->node) {
 		ptrstr->port = rt_request_hard_port(ptrstr->node);
 		if (!ptrstr->port) {
 			snprintf(errMsg, sizeof(errMsg),
-					"rt_request_hard_port(%s) failed\n",
-					ptrstr->node );
+				"rt_request_hard_port(%s) failed\n",
+				ptrstr->node );
 			ssSetErrorStatus(S, errMsg);
 			printf("%s", errMsg);
 			return;
 		}
-#if 0
-		printf("\nread() GOT hard_port %ld for %s\n",
-				ptrstr->port, ptrstr->node);
-#endif
-	} else{
+
+	} else {
 		ptrstr->port = 0;
 	}
 
 	/* start real-time timer */
 	if (!rt_is_hard_timer_running()) {
-#if 0
-		printf("start timer\n");
-#endif
 		rt_set_oneshot_mode();
 		start_rt_timer(0);
 		timerflag = 1;
@@ -302,30 +274,30 @@ mdlStart(SimStruct *S)
 	 ******************************************************************/
 	count = 0;
 	printf("\nread: nam2num(mbd_name) %x\n", nam2num(mbd_name));
-	while(count < MAX_MBDYN_TASK){
-		if (MbdynNode[count] == ptrstr->node
-				&& MbdynName[count] == nam2num(mbd_name))
+	while (count < MAX_MBDYN_TASK) {
+		if (MBDynNode[count] == ptrstr->node
+			&& MBDynName[count] == nam2num(mbd_name))
 		{
 			printf("\nread: RT_get MBDYN_task addy node: "
-					"%x, port %d\n",
-					ptrstr->node, ptrstr->port);
+				"%x, port %d\n",
+				ptrstr->node, ptrstr->port);
 			mbdtask = (void *)RT_get_adr(ptrstr->node,
-					ptrstr->port, mbd_name);
+				ptrstr->port, mbd_name);
 			printf("\nread: RT_GOT MBDYN_task addy!\n");
 			ptrstr->mbdtask_count = count;
 			break;
 		}
 
-		if (MbdynNode[count] == 1 && MbdynName[count] == 0xFFFFFFFF) {
+		if (MBDynNode[count] == 1 && MBDynName[count] == 0xFFFFFFFF) {
 			i = WAIT_LOOP;
 			printf("\nread: Connecting to MBDYN task\n");
 
 			while (!(mbdtask = (void *)RT_get_adr(ptrstr->node,
-							ptrstr->port,mbd_name)))
+				ptrstr->port,mbd_name)))
 			{
 				if (!i) {
 					snprintf(errMsg, sizeof(errMsg),
-							"\ncannot find MBDyn task\n");
+						"\ncannot find MBDyn task\n");
 					ssSetErrorStatus(S, errMsg);
 					printf("%s", errMsg);
 					return;
@@ -334,9 +306,9 @@ mdlStart(SimStruct *S)
 				i--;
 			}
 
-			MbdynNode[count] = ptrstr->node;
-			MbdynName[count] = nam2num(mbd_name);
-			MbdynTaskActive[count] = true;
+			MBDynNode[count] = ptrstr->node;
+			MBDynName[count] = nam2num(mbd_name);
+			MBDynTaskActive[count] = true;
 			ptrstr->mbdtask_count = count;
 			break;
 		}
@@ -345,7 +317,7 @@ mdlStart(SimStruct *S)
 	}
 
 	if (count == MAX_MBDYN_TASK) {
-		snprintf(errMsg, sizeof(errMsg), "\nToo many mbdyn_task\n");
+		snprintf(errMsg, sizeof(errMsg), "\nToo many MBDyn tasks\n");
 		ssSetErrorStatus(S, errMsg);
 		printf("%s", errMsg);
 		return;
@@ -357,18 +329,15 @@ mdlStart(SimStruct *S)
 
 	i = WAIT_LOOP;
 
-	while (!(ptrstr->comptr_in = (void *)RT_get_adr(ptrstr->node,
-					ptrstr->port, mbx_name)))
+	while (!(ptrstr->comptr = (void *)RT_get_adr(ptrstr->node,
+		ptrstr->port, mbx_name)))
 	{
 		if (!i) {
 			snprintf(errMsg, sizeof(errMsg),
-					"\ncannot find input mailbox %s\n",
-					mbx_name);
+				"\ncannot find input mailbox %s\n",
+				mbx_name);
 			ssSetErrorStatus(S, errMsg);
 			printf("%s", errMsg);
-#if 0
-			rt_send(rt_HostInterfaceTask, (int)msg);
-#endif
 			return;
 		}
 		rt_sleep(nano2count(1000000));
@@ -378,51 +347,33 @@ mdlStart(SimStruct *S)
 	/******************************************************************
 	 * alloc buffer memory
 	 ******************************************************************/
-#if 0
-	i = mbd_read_cnt;
-
-	for (i = mbd_read_cnt; i < 999; i++) {
-		sprintf(myname, "buf%d",i);
-		if (!rt_get_adr(nam2num(myname))) break;
-	}
-	mbd_read_cnt = i;
-#endif
-
 	ptrstr->buffer = malloc(sizeof(double)*MBX_N_CHN);
 	if (!ptrstr->buffer) {
 		snprintf(errMsg, sizeof(errMsg),
-				"\ncannot alloc buffer memory:\n");
+			"\ncannot alloc buffer memory:\n");
 		ssSetErrorStatus(S, errMsg);
 		printf("%s", errMsg);
 		return;
 	}
-#if 0
-	ptrstr->buffer_name = nam2num(myname);
-#endif
 
 	ptrstr->err_count = 0;
 	ptrstr->step_count = 0;
 
 	printf("\nsfun_mbdyn_com_read:\n\n");
-#if 0
-	printf("MbdynNode:%ld\n",MbdynNode[ptrstr->mbdtask_count]);
-	printf("MbdynName:%ld\n",MbdynName[ptrstr->mbdtask_count]);
-	printf("MbdynTaskActive:%d\n\n",MbdynTaskActive[ptrstr->mbdtask_count]);
-#endif
 	printf("Host name: %s\n", host_name);
 	printf("node: %lx\n", ptrstr->node);
 	printf("port: %d\n", ptrstr->port);
 	printf("mbdtask: %p\n", mbdtask);
 	printf("mbx name: %s\n", mbx_name);
-	printf("mbx: %p\n", ptrstr->comptr_in);
+	printf("mbx: %p\n", ptrstr->comptr);
 	printf("mbx channel: %d\n", MBX_N_CHN);
 	printf("NANO_SAMPLE_TIME: %ld\n", NANO_SAMPLE_TIME);
 
-	if (timerflag){
+	if (timerflag) {
 		stop_rt_timer();
 	}
 #else
-	/* inzilizza la socket */
+	/* inizializza la socket */
 	int sock = 0;
 	int conn = 0;
 	/* salva la socket */
@@ -437,7 +388,7 @@ static void
 mdlOutputs(SimStruct *S, int_T tid)
 {
 #ifndef MATLAB_MEX_FILE
-	struct mbd_read_str *ptrstr= (struct mbd_read_str *)ssGetPWork(S)[0];
+	struct mbd_t *ptrstr= (struct mbd_t *)ssGetPWork(S)[0];
 
 	register int	i;
 	double		y[MBX_N_CHN];
@@ -446,12 +397,13 @@ mdlOutputs(SimStruct *S, int_T tid)
 	/* to synchronize */
 	if (ptrstr->step_count < 2) {
 		flag = RT_mbx_receive_timed(ptrstr->node, ptrstr->port,
-			ptrstr->comptr_in, y,
+			ptrstr->comptr, y,
 			sizeof(double)*MBX_N_CHN, NANO_SAMPLE_TIME);
 		ptrstr->step_count++;
+
 	} else {
 		flag = RT_mbx_receive_if(ptrstr->node, ptrstr->port,
-			ptrstr->comptr_in, y,
+			ptrstr->comptr, y,
 			sizeof(double)*MBX_N_CHN);
 	}
 
@@ -459,13 +411,15 @@ mdlOutputs(SimStruct *S, int_T tid)
 		for (i = 0; i < MBX_N_CHN; i++) {
 			ssGetOutputPortRealSignal(S, i)[0] = (ptrstr->buffer)[i] = y[i];
 		}
+
  	} else if (flag == sizeof(double)*MBX_N_CHN) {
 		for (i = 0; i < MBX_N_CHN; i++) {
 			ssGetOutputPortRealSignal(S, i)[0] = (ptrstr->buffer)[i];
 		}
 		ptrstr->err_count++;
+
 	} else {
-		MbdynTaskActive[ptrstr->mbdtask_count] = false;
+		MBDynTaskActive[ptrstr->mbdtask_count] = false;
 		rt_send(rt_HostInterfaceTask, (int)msg);
 	}
 #else
@@ -473,34 +427,21 @@ mdlOutputs(SimStruct *S, int_T tid)
 	double		y[MBX_N_CHN];
 	int		sock = ssGetIWork(S)[0];
 	int		conn = ssGetIWork(S)[1];
-	static char_T	errMsg[256];
+	static char_T	errMsg[BUFSIZ];
+
 	if (conn == 0) {
 		if (sock == 0) {
 			if (NET) {
 				/* usa il protocollo tcp/ip */
 				struct sockaddr_in	addr;
-				char			host[MAXHOSTNAMELEN];
+				char			*host = NULL;
 				int			flags;
-				mxGetString(HOST_NAME_PARAM, host, sizeof(host));
 
 				/* crea una socket */
 				sock = socket(PF_INET, SOCK_STREAM, 0);
 				if (sock < 0) {
 					snprintf(errMsg, sizeof(errMsg),
-							"\ncannot create a INET socket\n");
-					ssSetErrorStatus(S, errMsg);
-					printf("%s", errMsg);
-					return;
-				}
-
-				addr.sin_family = AF_INET;
-				if (PORT == 0) {
-					addr.sin_port = htons(DEFAULT_PORT);
-				} else {
-					addr.sin_port = htons(PORT);
-				}
-				if (inet_aton(host, &(addr.sin_addr)) == 0) {
-					snprintf(errMsg, sizeof(errMsg), "\nunknow host\n");
+						"\nREAD sfunction: unable to create a INET socket\n");
 					ssSetErrorStatus(S, errMsg);
 					printf("%s", errMsg);
 					return;
@@ -510,29 +451,51 @@ mdlOutputs(SimStruct *S, int_T tid)
         			flags = fcntl(sock, F_GETFL, 0);
 				if (flags == -1) {
 					snprintf(errMsg, sizeof(errMsg),
-							"\nREAD sfunction: unable to get socket flags\n");
-					ssSetErrorStatus(S, errMsg);
-					printf("%s", errMsg);
-					return;
-				}
-				flags |= O_NONBLOCK;
-				if (fcntl(sock, F_SETFL, flags) == -1){
-					snprintf(errMsg, sizeof(errMsg),
-							"\nREAD sfunction: unable to set socket flags\n");
+						"\nREAD sfunction: unable to get socket flags\n");
 					ssSetErrorStatus(S, errMsg);
 					printf("%s", errMsg);
 					return;
 				}
 
+				flags |= O_NONBLOCK;
+				if (fcntl(sock, F_SETFL, flags) == -1) {
+					snprintf(errMsg, sizeof(errMsg),
+						"\nREAD sfunction: unable to set socket flags\n");
+					ssSetErrorStatus(S, errMsg);
+					printf("%s", errMsg);
+					return;
+				}
+
+				/* get host data */
+				host = mxArrayToString(HOST_NAME_PARAM);
+				if (host == NULL ) {
+					snprintf(errMsg, sizeof(errMsg),
+						"\nREAD sfunction: unable to get host parameter\n");
+					ssSetErrorStatus(S, errMsg);
+					printf("%s", errMsg);
+					return;
+				}
+
+				addr.sin_family = AF_INET;
+				addr.sin_port = htons(PORT);
+				if (inet_aton(host, &addr.sin_addr) == 0) {
+					snprintf(errMsg, sizeof(errMsg),
+						"\nREAD sfunction: unknown host '%s'\n", host);
+					ssSetErrorStatus(S, errMsg);
+					printf("%s", errMsg);
+					mxFree(host);
+					return;
+				}
+				mxFree(host);
 
 				/* connect */
-				if (connect(sock,(struct sockaddr *) &addr, sizeof(addr)) != -1) {
+				if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) != -1) {
 					conn = 1;
 					/* reimposta la socket come bloccante */
 					flags &= (~O_NONBLOCK);
 					if (fcntl(sock, F_SETFL, flags) == -1) {
 						snprintf(errMsg, sizeof(errMsg),
-								"\nREAD sfunction: unable to set socket flags\n");
+							"\nREAD sfunction: unable to set socket flags\n");
 						ssSetErrorStatus(S, errMsg);
 						printf("%s", errMsg);
 						return;
@@ -542,26 +505,25 @@ mdlOutputs(SimStruct *S, int_T tid)
 			} else {
 				/* usa le socket local */
 				struct sockaddr_un	addr;
-				char			path[UNIX_PATH_MAX];
+				char			*path = NULL;
 				int			flags;
+				size_t			len;
 
 				/* crea una socket */
 				sock = socket(PF_LOCAL, SOCK_STREAM, 0);
 				if (sock < 0) {
-					sprintf(errMsg, "\nCANNOT CREATE A LOCAL SOCKET\n");
+					snprintf(errMsg, sizeof(errMsg),
+						"\nREAD sfunction: unable to create a LOCAL socket\n");
 					ssSetErrorStatus(S, errMsg);
 					printf("%s", errMsg);
 					return;
 				}
-				addr.sun_family = AF_UNIX;
-				strncpy(path, PATH_PARAM, sizeof(path));
-				path[sizeof(path)-1] = '\0';
 
 				/* imposta la socket come non bloccante */
 	        		flags = fcntl(sock, F_GETFL, 0);
 	        		if (flags == -1) {
 					snprintf(errMsg, sizeof(errMsg),
-							"\nREAD sfunction: unable to get socket flags\n");
+						"\nREAD sfunction: unable to get socket flags\n");
 					ssSetErrorStatus(S, errMsg);
 					printf("%s", errMsg);
 					return;
@@ -569,28 +531,56 @@ mdlOutputs(SimStruct *S, int_T tid)
 				flags |= O_NONBLOCK;
 				if (fcntl(sock, F_SETFL, flags) == -1) {
 					snprintf(errMsg, sizeof(errMsg),
-							"\nREAD sfunction: unable to set socket flags\n");
+						"\nREAD sfunction: unable to set socket flags\n");
 					ssSetErrorStatus(S, errMsg);
 					printf("%s", errMsg);
 					return;
 				}
 
+				/* get path data */
+				path = mxArrayToString(PATH_PARAM);
+				if (path == NULL ) {
+					snprintf(errMsg, sizeof(errMsg),
+						"\nREAD sfunction: unable to get path parameter\n");
+					ssSetErrorStatus(S, errMsg);
+					printf("%s", errMsg);
+					return;
+				}
+
+				len = strlen(path);
+				if (len >= sizeof(addr.sun_path)) {
+					/* TODO: this could be worked around... */
+					snprintf(errMsg, sizeof(errMsg),
+						"\nREAD sfunction: path '%s' too long "
+						"(must be less than %u chars)\n",
+						path, sizeof(addr.sun_path));
+					ssSetErrorStatus(S, errMsg);
+					printf("%s", errMsg);
+					mxFree(host);
+					return;
+				}
+				strncpy(addr.sun_path, path, len);
+				addr.sun_path[len] = '\0';
+				mxFree(host);
+
 				/* connect */
-				if (connect(sock,(struct sockaddr *) &addr, sizeof(addr)) != -1) {
+				if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) == 0) {
 					conn = 1;
 					/* reimposta la socket come bloccante */
 					flags &= (~O_NONBLOCK);
 					if (fcntl(sock, F_SETFL, flags) == -1) {
 						snprintf(errMsg, sizeof(errMsg),
-								"\nREAD sfunction: unable to set socket flags\n");
+							"\nREAD sfunction: unable to set socket flags\n");
 						ssSetErrorStatus(S, errMsg);
 						printf("%s", errMsg);
 						return;
 					}
 				}
 			}
+
 			/* salva la socket */
 			ssGetIWork(S)[0] = (int_T)sock;
+
 		} else {
 			/* poll */
 			struct pollfd	ufds;
@@ -604,21 +594,21 @@ retry:;
 			switch (rc) {
 			case -1:
 				snprintf(errMsg, sizeof(errMsg),
-						"\nREAD sfunction: POLL error (-1)\n");
+					"\nREAD sfunction: POLL error (-1)\n");
 				ssSetErrorStatus(S, errMsg);
 				printf("%s", errMsg);
 				return;
 
 			case 0:
 				snprintf(errMsg, sizeof(errMsg),
-						"\nREAD sfunction: timeout connection reached\n");
+					"\nREAD sfunction: connection timeout reached\n");
 				ssSetErrorStatus(S, errMsg);
 				printf("%s", errMsg);
 				return;
 
 			default :
 			{
-				int flags;
+				int	flags;
 
 				if ((ufds.revents & POLLHUP) && ++retries < 200) {
 					usleep(10000);
@@ -627,12 +617,12 @@ retry:;
 
 				if (ufds.revents & (POLLERR | POLLHUP | POLLNVAL)) {
 					snprintf(errMsg, sizeof(errMsg),
-							"\nREAD sfunction: POLL error "
-							"(%d ERR=%d HUP=%d NVAL=%d)\n",
-							rc,
-							ufds.revents & POLLERR,
-							ufds.revents & POLLHUP,
-							ufds.revents & POLLNVAL);
+						"\nREAD sfunction: POLL error "
+						"(%d ERR=%d HUP=%d NVAL=%d)\n",
+						rc,
+						ufds.revents & POLLERR,
+						ufds.revents & POLLHUP,
+						ufds.revents & POLLNVAL);
 					ssSetErrorStatus(S, errMsg);
 					printf("%s", errMsg);
 					return;
@@ -643,7 +633,7 @@ retry:;
         			flags = fcntl(sock, F_GETFL, 0);
         			if (flags == -1) {
 					snprintf(errMsg, sizeof(errMsg),
-							"\nREAD sfunction: unable to get socket flags\n");
+						"\nREAD sfunction: unable to get socket flags\n");
 					ssSetErrorStatus(S, errMsg);
 					printf("%s", errMsg);
 					return;
@@ -651,7 +641,7 @@ retry:;
 				flags &= (~O_NONBLOCK);
 				if (fcntl(sock, F_SETFL, flags) == -1) {
 					snprintf(errMsg, sizeof(errMsg),
-							"\nREAD sfunction: unable to set socket flags\n");
+						"\nREAD sfunction: unable to set socket flags\n");
 					ssSetErrorStatus(S, errMsg);
 					printf("%s", errMsg);
 					return;
@@ -668,7 +658,7 @@ retry:;
 		/* legge dalla socket */
 		if (recv(sock, y, sizeof(double)*MBX_N_CHN, 0) == -1) {
 			snprintf(errMsg, sizeof(errMsg),
-					"\nCommunication closed by host\n");
+				"\nReadSfunction: Communication closed by host\n");
 			ssSetStopRequested(S, 1);
 			printf("%s", errMsg);
 			return;
@@ -678,30 +668,32 @@ retry:;
 			ssGetOutputPortRealSignal(S,i)[0] = y[i];
 		}
 	}
-#endif /*MATLAB_MEX_FILE*/
+#endif /* MATLAB_MEX_FILE */
 }
 
 static void
 mdlTerminate(SimStruct *S)
 {
 #ifndef MATLAB_MEX_FILE
-	struct 	mbd_read_str *ptrstr = (struct mbd_read_str *)ssGetPWork(S)[0];
+	struct 	mbd_t *ptrstr = (struct mbd_t *)ssGetPWork(S)[0];
 	void	*mbdtask;
 	char 	mbd_name[7];
+
 	printf("\nsfun_mbdyn_com_read, %s:\n", ssGetModelName(S));
 
 	if (ptrstr) {
-		printf("Number of communication error: %d\n\n", ptrstr->err_count);
+		printf("Number of communication errors: %d\n\n", ptrstr->err_count);
+
 		/****************************************************************
 		 * terminate mbdyn task
 		 ****************************************************************/
-		if (MbdynTaskActive[ptrstr->mbdtask_count]) {
+		if (MBDynTaskActive[ptrstr->mbdtask_count]) {
 			mxGetString(MBD_NAME_PARAM, mbd_name, 7);
 			mbdtask = (void *)RT_get_adr(ptrstr->node,
-					ptrstr->port, mbd_name);
+				ptrstr->port, mbd_name);
 			printf("MBDyn is stopped by read s-function\n");
 			RT_send_timed(ptrstr->node, ptrstr->port, mbdtask, 1, NANO_SAMPLE_TIME*2);
-			MbdynTaskActive[ptrstr->mbdtask_count] = false;
+			MBDynTaskActive[ptrstr->mbdtask_count] = false;
 		}
 
 		/****************************************************************
@@ -729,11 +721,11 @@ mdlTerminate(SimStruct *S)
 	int sock = ssGetIWork(S)[0];
 	double y[MBX_N_CHN];
 #ifdef VERBOSE
-	fprintf(stderr,"READ: closing socket...\n");
-	fprintf(stderr,"%d\n", recv(sock, y, sizeof(double)*MBX_N_CHN, 0));
+	fprintf(stderr, "READ: closing socket...\n");
+	fprintf(stderr, "%d\n", recv(sock, y, sizeof(double)*MBX_N_CHN, 0));
 #endif /* VERBOSE */
 	/* chiude la socket */
-	shutdown(sock,SHUT_RDWR);
+	shutdown(sock, SHUT_RDWR);
 #endif /* MATLAB_MEX_FILE */
 }
 
