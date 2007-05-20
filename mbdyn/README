@@ -33,8 +33,11 @@ developers:
 
 distribution:
 
+  - set build/version to the right number
   - follow the above instructions
   - run "./configure"
+  - add release date to NEWS
+  - add release notes to CHANGELOG
   - run "make dist"
 
 

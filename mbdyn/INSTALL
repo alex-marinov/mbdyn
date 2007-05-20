@@ -80,19 +80,8 @@ Known Problems (see also "BUGS" file)
 =====================================
 
    Some compilers are known to have problems in compiling MBDyn; its 
-development was mainly based on gcc 2.7.X, and later on gcc egcs-2.91.X
-(egcs-1.1.2 release).
-
-   It is known that later versions, significantly gcc 2.92.X and 2.95.X, 
-fail at compiling redefinition of enums in descendant classes.  It is 
-also known to fail at initializing const arrays with non-const values
-(e.g. "const double d = sqrt(2.);" is correctly initialized, but 
-"const double d[2] = { sqrt(2.); sqrt(3.) };" is not.
-
-   The same applies to some non-official versions like the so-called 
-2.96.X that ships with RedHat >= 7.0.
-
-   gcc 3.X (except 3.2 and 3.3) and 4.X work correctly.
+development started with gcc 2.7.X, and now we're at about 4.1.X.
+gcc 3.X (except 3.2 and 3.3) and 4.X work correctly.
 
    The parallel implementation used to need HSL (see 
    
@@ -112,7 +101,7 @@ duplicate link check (see the BUGS file for details).
 drop a mail to mbdyn-users@mbdyn.org in case you have problems compiling
 the package.
 
-   When compiling for CygWIN, there may be issues related to runtime
+   When compiling for CygWin, there may be issues related to runtime
 loading of modules.  There have been reports about incorrect detection
 of libltdl; a known fix consists in explicitly adding the actual libltdl
 object (usually /usr/lib/libltdl.a) to the LIBS enviroment variable:
