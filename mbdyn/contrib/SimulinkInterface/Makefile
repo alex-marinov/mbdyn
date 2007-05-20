@@ -27,14 +27,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+MEXBUILD = mex
+
 All: sfun_mbdyn_com_read.mexglx sfun_mbdyn_com_write.mexglx sfun_mbdyn_start.mexglx
 
 sfun_mbdyn_com_read.mexglx : sfun_mbdyn_com_read.c
-		mex sfun_mbdyn_com_read.c
+		$(MEXBUILD) sfun_mbdyn_com_read.c
 sfun_mbdyn_com_write.mexglx : sfun_mbdyn_com_write.c
-		mex sfun_mbdyn_com_write.c
+		$(MEXBUILD) sfun_mbdyn_com_write.c
 sfun_mbdyn_start.mexglx : sfun_mbdyn_start.c
-		mex sfun_mbdyn_start.c
+		$(MEXBUILD) sfun_mbdyn_start.c
 
 clean:
-		rm -f *.mexglx
+		rm -f *.mex*

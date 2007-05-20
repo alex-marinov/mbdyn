@@ -556,12 +556,12 @@ mdlOutputs(SimStruct *S, int_T tid)
 						path, sizeof(addr.sun_path));
 					ssSetErrorStatus(S, errMsg);
 					printf("%s", errMsg);
-					mxFree(host);
+					mxFree(path);
 					return;
 				}
 				strncpy(addr.sun_path, path, len);
 				addr.sun_path[len] = '\0';
-				mxFree(host);
+				mxFree(path);
 
 				/* connect */
 				if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) == 0) {
