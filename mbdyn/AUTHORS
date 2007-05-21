@@ -37,16 +37,16 @@ Prof. Paolo Mantegazza initiated the work on the F77 version of the code,
 
 Prof. Massimiliano Lanz worked on the initial, F77 version, called MBDin;
 	he had an important role in adding the flexible elements, both
-	beams and modal bodies. He also worked on the implementation
-	wake aerodynamics, based on the code NUVOLA.
+	beams and modal bodies. He also worked on the implementation of
+	free wake aerodynamics, based on the code NUVOLA.
 
 Prof. Gian Luca Ghiringhelli also worked on the F77 version, at the modal
-	bodies and at the piezoelectric beams.  He is working at present
+	bodies and the piezoelectric beams.  He is working at present
 	at the integration of landing gear stuff in the current version.
 	He also contributed in adding the hydraulic part of the code.
 
 Dr. Giampiero Bindolino had an important role in interfacing the initial
-	F77 version with wake aerodynamics.  He is also contributing
+	F77 version with free wake aerodynamics.  He is also contributing
 	his continuous support to the current version.
 
 
@@ -65,8 +65,8 @@ Pierangelo Masarati (me!) worked as an undergraduate student at developing
 	the control-related genels and at the piezoelectric beam elements.
 	Then, as a PhD student, I entirely reengineered the program, by
 	rewriting it in C++/C/F77, and added many control-related features.
-	Now, as a Staff Researcher, I'm maintaining the code and developing
-	new modules.
+	Now, as a Staff Researcher, I'm maintaining the code and leading
+	the development team.
 
 Felice Felippone, as an undergraduate student, implemented the modal body 
 	back in the new version of the code.
@@ -83,9 +83,9 @@ Giuseppe Quaranta, (Beppe), as an undergrad, did a very good job in
 	and more.  Now, as a Ph.D., he is a stable member of the team.
 
 Leonardo Cassan, undergrad, worked at the ADAMS2MBDyn project,
-	a translator form ADAMS/View models in adm format into MBDyn
-	raw input files.  You can find what's available in contrib/a2m
-	(not working yet, sorry).
+	a translator from ADAMS models in adm format into MBDyn raw input
+	files.  You can find what's available in contrib/a2m
+	(essentially abondoned).
 
 Marco Morandini, Ph.D., worked on sophisticated flexible bodies (beams),
 	on visualization issues, friction modeling for all joints,
@@ -93,7 +93,7 @@ Marco Morandini, Ph.D., worked on sophisticated flexible bodies (beams),
 	automatic differentiation within the ANTASME project.
 	He is a stable member of the team.
 
-Stefania Gualdi, Ph.D., is working on tire and landing gear analysis
+Stefania Gualdi, Ph.D., is working on tire and landing gear analysis,
 	and (semi-)active control.
 
 Michele Attolico, while Ph.D. student, integrated RTAI 
@@ -113,7 +113,7 @@ Alessandro Fumagalli, as Ph.D. student, is working on different
 Other undergrads might have had a role in the F77 version of the code, 
 that I'm not aware of.
 
-Paolo Mantegazza is the project leader,
+Paolo Mantegazza is the project emeritus leader ;),
 and Pierangelo Masarati (me!) is the main developer and the maintainer.
 
 Pierangelo Masarati.
