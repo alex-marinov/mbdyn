@@ -522,7 +522,7 @@ mdlOutputs(SimStruct *S, int_T tid)
 				size = (offsetof (struct sockaddr_un, sun_path) + len + 1);
 
 				/* connect */
-				if (connect(sock, (struct sockaddr *)&addr, sizeof (addr)) == 0) {
+				if (connect(sock, (struct sockaddr *)addrp, size) == 0) {
 					conn = 1;
 					/* reimposta la socket come bloccante */
 					flags &= (~O_NONBLOCK);
