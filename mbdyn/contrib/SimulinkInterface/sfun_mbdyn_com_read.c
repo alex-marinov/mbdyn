@@ -504,10 +504,10 @@ mdlOutputs(SimStruct *S, int_T tid)
 
 			} else {
 				/* usa le socket local */
-				struct sockaddr_un	addr;
+				struct sockaddr_un	*addrp;
 				char			*path = NULL;
 				int			flags;
-				size_t			len;
+				size_t			len, size;
 
 				/* crea una socket */
 				sock = socket(PF_LOCAL, SOCK_STREAM, 0);
@@ -548,23 +548,17 @@ mdlOutputs(SimStruct *S, int_T tid)
 				}
 
 				len = strlen(path);
-				if (len >= sizeof(addr.sun_path)) {
-					/* TODO: this could be worked around... */
-					snprintf(errMsg, sizeof(errMsg),
-						"\nREAD sfunction: path '%s' too long "
-						"(must be less than %u chars)\n",
-						path, sizeof(addr.sun_path));
-					ssSetErrorStatus(S, errMsg);
-					printf("%s", errMsg);
-					mxFree(path);
-					return;
-				}
-				strncpy(addr.sun_path, path, len);
-				addr.sun_path[len] = '\0';
+				addrp = malloc(sizeof(struct sockaddr_un) + len + 1);
+				addrp->sun_family = AF_LOCAL;
+				strncpy(addrp->sun_path, path, len);
 				mxFree(path);
 
+				addrp->sun_path[len] = '\0';
+				size = (offsetof (struct sockaddr_un, sun_path) + len + 1);
+
 				/* connect */
-				if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) == 0) {
+				if (connect(sock, (struct sockaddr *)addrp, size) == 0)
+				{
 					conn = 1;
 					/* reimposta la socket come bloccante */
 					flags &= (~O_NONBLOCK);
