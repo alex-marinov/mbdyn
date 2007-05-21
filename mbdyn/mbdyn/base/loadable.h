@@ -49,9 +49,9 @@
 	((v & 0xFF000000U) >> 24) << '.' << ((v & 0x00FF0000U) >> 16) << '.' << (v & 0x0000FFFFU)
 /*
  * CHANGELOG:
- * ????-??-??: 1.5.0 ???
+ * 2006-02-08: 1.5.0 changed connectivity API
  * 2005-10-11: 1.4.0 changed SetValue API (hints and so...)
- * ????-??-??: 1.3.0 ???
+ * 2004-06-13: 1.3.0 allow modules to be statically linked
  * 2004-05-21: 1.2.0 added hooks for dummy part output calls
  * 2003-02-25: 1.1.0 added hook for iGetPrivDataIdx()
  * 2002-XX-XX: 1.0.0 added versioning system to detect structure conflicts
