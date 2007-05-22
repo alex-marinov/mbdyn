@@ -80,7 +80,8 @@ public:
 			const VectorHandler& XP);
 	/* Inverse Dynamics: */
 	virtual void AfterConvergence(const VectorHandler& X, 
-			const VectorHandler& XP);
+			const VectorHandler& XP,
+			const VectorHandler& XPP);
 };
 
 class DataManager;
