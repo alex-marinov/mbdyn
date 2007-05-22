@@ -388,7 +388,8 @@ void DataManager::InverseDofInit(bool bIsSquare)
 			j != ElemData[Elem::JOINT].ElemMap.end();
 			j++)
 		{
-			if(pTmp = (DofOwner *)(dynamic_cast<ElemWithDofs *>(j->second))->pGetDofOwner()) {
+			pTmp = (DofOwner *)(dynamic_cast<ElemWithDofs *>(j->second))->pGetDofOwner();
+			if (pTmp) {
 				iNumDofs = pTmp->iNumDofs;
 				if(iNumDofs > 0) {
 					pTmp->iFirstIndex = iJointIndex;
@@ -403,7 +404,7 @@ void DataManager::InverseDofInit(bool bIsSquare)
 				
 		}
 		
-		if(bIsSquare)	{
+		if (bIsSquare)	{
 			iTotDofs = iNodeIndex;
 		} else {
 			iTotDofs = iJointIndex;
@@ -419,8 +420,8 @@ void DataManager::InverseDofInit(bool bIsSquare)
   	 
   	 	
   	/* Crea la struttura dinamica dei Dof */
-  	if(iTotDofs > 0) {
-		if(bIsSquare)	{
+  	if (iTotDofs > 0) {
+		if (bIsSquare)	{
   	    		SAFENEWARR(pDofs, Dof, 2*iTotDofs);
   	      	    	/* Inizializza l'iteratore sui Dof */
   	    		DofIter.Init(pDofs, 2*iTotDofs);

@@ -159,11 +159,7 @@ sOutputFileName(NULL),
 HP(HPar),
 pStrategyChangeDrive(NULL),
 #ifdef __HACK_EIG__
-eEigenAnalysis(EIG_NO),
-dEigParam(1.),
-bOutputModes(false),
-dUpperFreq(FLT_MAX),
-dLowerFreq(0.),
+EigAn(),
 #endif /* __HACK_EIG__ */
 #ifdef USE_RTAI
 bRT(false),
@@ -776,9 +772,12 @@ Solver::Run(void)
 	
 
 #ifdef __HACK_EIG__
-   	if (eEigenAnalysis != EIG_NO && OneEig.dTime <= dTime && !OneEig.bDone) {
+   	if (EigAn.bAnalysis
+		&& EigAn.OneAnalysis.dTime <= dTime
+		&& !EigAn.OneAnalysis.bDone)
+	{
 	 	Eig();
-	 	OneEig.bDone = true;
+	 	EigAn.OneAnalysis.bDone = true;
    	}
 #endif /* __HACK_EIG__ */
 
@@ -1270,9 +1269,12 @@ IfFirstStepIsToBeRepeated:
    	iTotIter += iStIter;
 
 #ifdef __HACK_EIG__
-   	if (eEigenAnalysis != EIG_NO && OneEig.dTime <= dTime && !OneEig.bDone) {
+   	if (EigAn.bAnalysis
+		&& EigAn.OneAnalysis.dTime <= dTime
+		&& !EigAn.OneAnalysis.bDone)
+	{
 	 	Eig();
-		OneEig.bDone = true;
+		EigAn.OneAnalysis.bDone = true;
       	}
 #endif /* __HACK_EIG__ */
 
@@ -1682,9 +1684,12 @@ IfStepIsToBeRepeated:
 #endif /*__HACK_POD__ */
 
 #ifdef __HACK_EIG__
-      		if (eEigenAnalysis != EIG_NO && OneEig.dTime <= dTime && !OneEig.bDone) {
+      		if (EigAn.bAnalysis
+			&& EigAn.OneAnalysis.dTime <= dTime
+			&& !EigAn.OneAnalysis.bDone)
+		{
 			Eig();
-			OneEig.bDone = true;
+			EigAn.OneAnalysis.bDone = true;
 		}
 #endif /* __HACK_EIG__ */
 
@@ -2046,8 +2051,7 @@ Solver::ReadData(MBDynParser& HP)
 			"change",
 
 		"pod",
-		"eigen" "analysis",
-		"output" "modes",
+		"eigen" "analysis",	/* EXPERIMENTAL; -D__HACK_EIG__=1 to enable */
 
 		/* DEPRECATED */
 		"solver",
@@ -2149,7 +2153,6 @@ Solver::ReadData(MBDynParser& HP)
 
 		POD,
 		EIGENANALYSIS,
-		OUTPUTMODES,
 
 		/* DEPRECATED */
 		SOLVER,	
@@ -3052,18 +3055,23 @@ Solver::ReadData(MBDynParser& HP)
 
 		case EIGENANALYSIS:
 #ifdef __HACK_EIG__
-			OneEig.dTime = HP.GetReal();
+			EigAn.OneAnalysis.dTime = HP.GetReal();
 			if (HP.IsKeyWord("parameter")) {
-				dEigParam = HP.GetReal();
+				EigAn.dParam = HP.GetReal();
 			}
-			OneEig.bDone = false;
-			eEigenAnalysis = EIG_YES;
+			EigAn.OneAnalysis.bDone = false;
+			EigAn.bAnalysis = true;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Eigenanalysis will be "
-					"performed at time " << OneEig.dTime
-					<< " (parameter: " << dEigParam << ")"
+					"performed at time " << EigAn.OneAnalysis.dTime
+					<< " (parameter: " << EigAn.dParam << ")"
 					<< std::endl);
-			if (HP.IsKeyWord("output" "matrices")) {
-				eEigenAnalysis = EIG_OUTPUTMATRICES;
+			while (HP.IsArg()) {
+				if (HP.IsKeyWord("output" "matrices")) {
+					EigAn.uFlags |= EigenAnalysis::EIG_OUTPUT_MATRICES;
+
+				} else if (HP.IsKeyWord("output" "eigenvectors")) {
+					EigAn.uFlags |= EigenAnalysis::EIG_OUTPUT_EIGENVECTORS;
+				}
 			}
 #else /* !__HACK_EIG__ */
 			HP.GetReal();
@@ -3071,65 +3079,19 @@ Solver::ReadData(MBDynParser& HP)
 				HP.GetReal();
 			}
 
-			if (HP.IsKeyWord("output" "matrices")) {
-				NO_OP;
+			while (HP.IsArg()) {
+				if (HP.IsKeyWord("output" "matrices")) {
+					NO_OP;
+
+				} else if (HP.IsKeyWord("output" "eigenvectors")) {
+					NO_OP;
+				}
 			}
 
 			silent_cerr(HP.GetLineData()
 				<< ": eigenanalysis not supported (ignored)"
 				<< std::endl);
 #endif /* !__HACK_EIG__ */
-			break;
-
-		case OUTPUTMODES:
-#ifndef __HACK_EIG__
-			silent_cerr("line " << HP.GetLineData()
-				<< ": warning, no eigenvalue support available"
-				<< std::endl);
-#endif /* !__HACK_EIG__ */
-			if (HP.IsKeyWord("yes") || HP.IsKeyWord("nastran")) {
-#ifdef __HACK_EIG__
-				bOutputModes = true;
-				if (HP.IsArg()) {
-					dUpperFreq = HP.GetReal();
-					if (dUpperFreq < 0.) {
-						silent_cerr("line "
-							<< HP.GetLineData()
-							<< ": illegal upper "
-							"frequency limit "
-							<< dUpperFreq
-							<< "; using "
-							<< -dUpperFreq
-							<< std::endl);
-						dUpperFreq = -dUpperFreq;
-					}
-
-					if (HP.IsArg()) {
-						dLowerFreq = HP.GetReal();
-						if (dLowerFreq > dUpperFreq) {
-							silent_cerr("line "
-								<< HP.GetLineData()
-								<< ": illegal lower "
-								"frequency limit "
-								<< dLowerFreq
-								<< " higher than upper "
-								"frequency limit; using "
-								<< 0. << std::endl);
-							dLowerFreq = 0.;
-						}
-					}
-				}
-#endif /* !__HACK_EIG__ */
-			} else if (HP.IsKeyWord("no")) {
-#ifdef __HACK_EIG__
-				bOutputModes = false;
-#endif /* !__HACK_EIG__ */
-			} else {
-				silent_cerr("line " << HP.GetLineData()
-					<< ": unknown mode output flag "
-					"(should be { yes | no })"
-					<< std::endl);
-			}
 			break;
 
 		case SOLVER:
@@ -3752,6 +3714,7 @@ do_eig(const doublereal& b, const doublereal& re,
 		doublereal d;
 		if (im != 0.) {
 			d = sqrt(re*re+im*im)/fabs(b);
+
 		} else {
 			d = fabs(re/b);
 		}
@@ -3764,18 +3727,21 @@ do_eig(const doublereal& b, const doublereal& re,
 			omega = HUGE_VAL;
 		}
 
-		d = sqrt(sigma*sigma+omega*omega);
+		d = sqrt(sigma*sigma + omega*omega);
 		if (d > 1.e-15 && fabs(sigma)/d > 1.e-15) {
-			csi = 100*sigma/d;
+			csi = -100*sigma/d;
+
 		} else {
 			csi = 0.;
 		}
 
 		if (isPi) {
 			freq = HUGE_VAL;
+
 		} else {
 			freq = omega/(2*M_PI);
 		}
+
 	} else {
 		sigma = 0.;
 		omega = 0.;
@@ -3813,7 +3779,7 @@ Solver::Eig(void)
 	/* Workspaces */
 	/* 4 matrices iSize x iSize, 3 vectors iSize x 1, 1 vector iWorkSize x 1 */
 	doublereal* pd = NULL;
-	int iTmpSize = 4*(iSize*iSize)+3*iSize+iWorkSize;
+	int iTmpSize = 4*(iSize*iSize) + 3*iSize + iWorkSize;
 	SAFENEWARR(pd, doublereal, iTmpSize);
 	for (int iCnt = iTmpSize; iCnt-- > 0; ) {
 		pd[iCnt] = 0.;
@@ -3826,17 +3792,6 @@ Solver::Eig(void)
 	/* Data Handlers */
 	doublereal* pdTmp = pd;
 	doublereal** ppdTmp = ppd;
-
-#if 0
-	doublereal* pdA = pd;
-	doublereal* pdB = pdA+iSize*iSize;
-	doublereal* pdVL = pdB+iSize*iSize;
-	doublereal* pdVR = pdVL+iSize*iSize;
-	doublereal* pdAlphaR = pdVR+iSize*iSize;
-	doublereal* pdAlphaI = pdAlphaR+iSize;
-	doublereal* pdBeta = pdAlphaI+iSize;
-	doublereal* pdWork = pdBeta+iSize;
-#endif /* 0 */
 
 	FullMatrixHandler MatA(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);
 	MatA.Reset();
@@ -3867,7 +3822,7 @@ Solver::Eig(void)
 	MyVectorHandler WorkVec(iWorkSize, pdTmp);
 
 	/* Matrices Assembly (vedi eig.ps) */
-	doublereal h = dEigParam;
+	doublereal h = EigAn.dParam;
 	pDM->AssJac(MatA, -h/2.);
 	pDM->AssJac(MatB, h/2.);
 
@@ -3877,32 +3832,25 @@ Solver::Eig(void)
 		<< "Matrix B:" << std::endl << MatB << std::endl);
 #endif /* DEBUG */
 
-	if (eEigenAnalysis == EIG_OUTPUTMATRICES) {
+	std::ofstream o;
+	if (EigAn.uFlags) {
 		char *tmpFileName = NULL;
 		const char *srcFileName = NULL;
 		if (sOutputFileName == NULL) {
 			srcFileName = sInputFileName;
+
 		} else {
 			srcFileName = sOutputFileName;
 		}
 
 		size_t l = strlen(srcFileName);
-		SAFENEWARR(tmpFileName, char, l+1+3+1);
+		SAFENEWARR(tmpFileName, char, l + STRLENOF(".m") + 1);
 		strcpy(tmpFileName, srcFileName);
 
-#if 0
-		strcpy(tmpFileName+l, ".mat");
+		strcpy(&tmpFileName[l], ".m");
+		o.open(tmpFileName);
 
-		std::ofstream o(tmpFileName);
-
-		o
-			<< MatA << std::endl
-			<< MatB << std::endl;
-		o.close();
-#endif
-
-		strcpy(tmpFileName+l, ".m");
-		std::ofstream o(tmpFileName);
+		SAFEDELETEARR(tmpFileName);
 
 		o.setf(std::ios::right | std::ios::scientific);
 		o.precision(16);
@@ -3911,7 +3859,9 @@ Solver::Eig(void)
 		o
 			<< "% coefficient" << std::endl
 			<< "dCoef = " << h/2. << ";" << std::endl;
+	}
 
+	if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_MATRICES) {
 		/* first matrix */
 		o
 			<< "% F/xPrime + dCoef * F/x" << std::endl
@@ -3945,10 +3895,6 @@ Solver::Eig(void)
 			}
 			o << ";" << std::endl;
 		}
-
-		o.close();
-
-		SAFEDELETEARR(tmpFileName);
 	}
 
 #ifdef DEBUG_MEMMANAGER
@@ -4062,9 +4008,9 @@ Solver::Eig(void)
 	for (int iCnt = 1; iCnt <= iSize; iCnt++) {
 		Out << std::setw(8) << iCnt << ": ";
 
-		doublereal b = Beta.dGetCoef(iCnt);
-		doublereal re = AlphaR.dGetCoef(iCnt);
-		doublereal im = AlphaI.dGetCoef(iCnt);
+		doublereal b = Beta(iCnt);
+		doublereal re = AlphaR(iCnt);
+		doublereal im = AlphaI(iCnt);
 		doublereal sigma;
 		doublereal omega;
 		doublereal csi;
@@ -4094,163 +4040,97 @@ Solver::Eig(void)
 		Out << std::endl;
 	}
 
-#if 0
-#ifdef __HACK_NASTRAN_MODES__
-	/* EXPERIMENTAL */
-	std::ofstream f06, pch;
-	char datebuf[] = "11/14/95"; /* as in the example I used :) */
+	if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_EIGENVECTORS) {
+		// alphar, alphai, beta
+		o
+			<< "% alphar, alphai, beta" << std::endl
+			<< "alpha = [";
 
-#if defined(HAVE_STRFTIME) && defined(HAVE_LOCALTIME) && defined(HAVE_TIME)
-	time_t currtime = time(NULL);
-	struct tm *currtm = localtime(&currtime);
-	if (currtm) {
-#warning "Your compiler might complain about %y"
-#warning "in strftime() yielding only the last"
-#warning "two digits of the year; don't worry,"
-#warning "it's intended :)"
-		strftime(datebuf, sizeof(datebuf)-1, "%m/%d/%y", currtm);
-	}
-#endif /* HAVE_STRFTIME && HAVE_LOCALTIME && HAVE_TIME */
+		for (integer r = 1; r <= iSize; r++) {
+			o
+				<< std::setw(24) << AlphaR(r)
+				<< std::setw(24) << AlphaI(r)
+				<< std::setw(24) << Beta(r)
+				<< ";" << std::endl;
+		}
+		o << "];" << std::endl;
 
-	if (bOutputModes) {
-		/* crea il file .pch */
-		char *tmp = NULL;
+		// VL
+		o
+			<< "% left eigenvectors" << std::endl
+			<< "VL = [" << std::endl;
+		for (integer r = 1; r <= iSize; r++) {
+			for (integer c = 1; c <= iSize; c++) {
+				if (AlphaI(c) != 0.) {
+					ASSERT(c < iSize);
 
-		SAFENEWARR(tmp, char, strlen(sOutputFileName ? sOutputFileName : sInputFileName) + sizeof(".bdf"));
-		sprintf(tmp, "%s.bdf", sOutputFileName ? sOutputFileName : sInputFileName);
-		pch.open(tmp);
+					doublereal re = MatL(r, c);
+					doublereal im = MatL(r, c + 1);
+					char signs[2] = { '+', '-' };
+					if (im < 0.) {
+						signs[0] = '-';
+						signs[1] = '+';
+						im = -im;
+					}
+					o
+						<< std::setw(24) << re << signs[0] << "j*" << std::setw(24) << im
+						<< std::setw(24) << re << signs[1] << "j*" << std::setw(24) << im;
+					c++;
 
-		pch.setf(std::ios::showpoint);
-		pch
-			<< "BEGIN BULK" << std::endl
-			<< "$.......2.......3.......4.......5.......6.......7.......8.......9.......0......." << std::endl;
-		pch << "MAT1           1    1.E0    1.E0            1.E0" << std::endl;
-		pDM->Output_pch(pch);
+				} else {
+					o
+						<< std::setw(24) << MatL(r, c);
+				}
+			}
 
-		/* crea il file .f06 */
-		sprintf(tmp, "%s.f06", sOutputFileName ? sOutputFileName : sInputFileName);
-		f06.open(tmp);
-		SAFEDELETEARR(tmp);
+			if (r < iSize) {
+				o << ";" << std::endl;
 
-		f06.setf(std::ios::showpoint);
-		f06.setf(std::ios::scientific);
-	}
-#endif /* __HACK_NASTRAN_MODES__ */
-
-	int iPage;
-	for (iPage = 1; iPage <= iSize; iPage++) {
-
-#ifdef __HACK_NASTRAN_MODES__
-		/* EXPERIMENTAL */
-		bool doPlot = false;
-		if (bOutputModes) {
-
-			doublereal b = Beta.dGetCoef(iPage);
-			doublereal re = AlphaR.dGetCoef(iPage);
-			doublereal im = AlphaI.dGetCoef(iPage);
-			doublereal sigma;
-			doublereal omega;
-			doublereal csi;
-			doublereal freq;
-
-			do_eig(b, re, im, h, sigma, omega, csi, freq);
-
-			if (freq >= dLowerFreq && freq <= dUpperFreq) {
-				doPlot = true;
-
-				f06
-					<< "                                                                                                 CSA/NASTRAN " << datebuf << "    PAGE   "
-					<< std::setw(4) << iPage << std::endl
-					<< "MBDyn modal analysis" << std::endl
-					<< std::endl
-					<< "    LABEL=DISPLACEMENTS, ";
-#ifdef HAVE_FMTFLAGS_IN_IOS
-				std::ios::fmtflags iosfl = f06.setf(std::ios::left);
-#else /* !HAVE_FMTFLAGS_IN_IOS */
-				long iosfl = f06.setf(std::ios::left);
-#endif /* !HAVE_FMTFLAGS_IN_IOS */
-				const char *comment = "(EXPERIMENTAL) MODAL ANALYSIS";
-				int l = strlen(comment);
-				f06 << std::setw(l+1) << comment;
-				f06 << sigma << " " << (omega < 0. ? "-" : "+") << " " << fabs(omega) << " j (" << csi << ", "<< freq << std::setw(80-1-l) << ")";
-				f06.flags(iosfl);
-				f06 << "   SUBCASE " << iPage << std::endl
-					<< std::endl
-					<< "                                            D I S P L A C E M E N T  V E C T O R" << std::endl
-					<< std::endl
-					<< "     POINT ID.   TYPE          T1             T2             T3             R1             R2             R3" << std::endl;
+			} else {
+				o << "];" << std::endl;
 			}
 		}
-#endif /* __HACK_NASTRAN_MODES__ */
 
-		doublereal cmplx = AlphaI.dGetCoef(iPage);
-		if (cmplx == 0.) {
-			Out << "Mode " << iPage << ":" << std::endl;
-			for (int jCnt = 1; jCnt <= iSize; jCnt++) {
-				Out << std::setw(12) << jCnt << ": "
-					<< std::setw(12) << MatR.dGetCoef(jCnt, iPage)
-					<< std::endl;
-			}
+		// VR
+		o
+			<< "% right eigenvectors" << std::endl
+			<< "VR = [" << std::endl;
+		for (integer r = 1; r <= iSize; r++) {
+			for (integer c = 1; c <= iSize; c++) {
+				if (AlphaI(c) != 0.) {
+					ASSERT(c < iSize);
 
-			if (bOutputModes) {
-				/*
-				 * per ora sono uguali; in realta' XP e' X * lambda
-				 */
-				MyVectorHandler X(iSize, MatR.pdGetMat()+iSize*(iPage-1));
-				MyVectorHandler XP(iSize, MatR.pdGetMat()+iSize*(iPage-1));
-				pDM->Output(X, XP);
+					doublereal re = MatR(r, c);
+					doublereal im = MatR(r, c + 1);
+					char signs[2] = { '+', '-' };
+					if (im < 0.) {
+						signs[0] = '-';
+						signs[1] = '+';
+						im = -im;
+					}
+					o
+						<< std::setw(24) << re << signs[0] << "j*" << std::setw(24) << im
+						<< std::setw(24) << re << signs[1] << "j*" << std::setw(24) << im;
+					c++;
 
-#ifdef __HACK_NASTRAN_MODES__
-				/* EXPERIMENTAL */
-				if (doPlot) {
-					pDM->Output_f06(f06, X);
-				}
-#endif /* __HACK_NASTRAN_MODES__ */
-			}
-		} else {
-			if (cmplx > 0.) {
-				Out << "Modes " << iPage << ", " << iPage+1 << ":" << std::endl;
-				for (int jCnt = 1; jCnt <= iSize; jCnt++) {
-					doublereal im = MatR.dGetCoef(jCnt, iPage+1);
-					Out << std::setw(12) << jCnt << ": "
-						<< std::setw(12) << MatR.dGetCoef(jCnt, iPage)
-						<< ( im >= 0. ? " + " : " - " )
-						<< std::setw(12) << fabs(im) << " * j "
-						<< std::endl;
+				} else {
+					o
+						<< std::setw(24) << MatR(r, c);
 				}
 			}
 
-			if (bOutputModes) {
-				/*
-				 * uso la parte immaginaria ...
-				 */
-				int i = iPage - (cmplx > 0. ? 0 : 1);
-				MyVectorHandler X(iSize, MatR.pdGetMat()+iSize*i);
-				MyVectorHandler XP(iSize, MatR.pdGetMat()+iSize*i);
-				pDM->Output(X, XP);
+			if (r < iSize) {
+				o << ";" << std::endl;
 
-#ifdef __HACK_NASTRAN_MODES__
-				/* EXPERIMENTAL */
-				if (doPlot) {
-					pDM->Output_f06(f06, X);
-				}
-#endif /* __HACK_NASTRAN_MODES__ */
+			} else {
+				o << "];" << std::endl;
 			}
 		}
 	}
 
-#ifdef __HACK_NASTRAN_MODES__
-	if (bOutputModes) {
-		pch
-			<< "ENDDATA" << std::endl;
-		f06
-			<< "                                                                                                 CSA/NASTRAN " << datebuf << "    PAGE   "
-			<< std::setw(4) << iPage << std::endl;
-		pch.close();
-		f06.close();
+	if (o) {
+		o.close();
 	}
-#endif /* __HACK_NASTRAN_MODES__ */
-#endif
 
 	/* Non puo' arrivare qui se le due aree di lavoro non sono definite */
 	SAFEDELETEARR(pd);

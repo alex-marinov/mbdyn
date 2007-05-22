@@ -103,19 +103,34 @@ protected:
  
 #ifdef __HACK_EIG__
    	/* Dati per esecuzione di eigenanalysis */
-	enum {
-		EIG_NO,
-		EIG_YES,
-		EIG_OUTPUTMATRICES
-	} eEigenAnalysis;
-   	struct {
-      		doublereal dTime;
-      		bool bDone;
-   	} OneEig;
-	doublereal dEigParam;
-	bool bOutputModes;
-	doublereal dUpperFreq;
-	doublereal dLowerFreq;
+	struct EigenAnalysis {
+		bool bAnalysis;
+		enum {
+			EIG_NONE			= 0x0U,
+			EIG_OUTPUT_MATRICES		= 0x1U,
+			EIG_OUTPUT_EIGENVECTORS		= 0x2U,
+			EIG_LAST
+		};
+		unsigned uFlags;
+   		struct {
+     	 		doublereal dTime;
+      			bool bDone;
+	   	} OneAnalysis;
+		doublereal dParam;
+		bool bOutputModes;
+		doublereal dUpperFreq;
+		doublereal dLowerFreq;
+		EigenAnalysis(void)
+			: bAnalysis(false),
+			uFlags(EIG_NONE),
+			dParam(1.),
+			bOutputModes(false),
+			dUpperFreq(FLT_MAX),
+			dLowerFreq(0.)
+		{
+			NO_OP;
+		};
+	} EigAn;
 	void Eig(void);
 #endif /* __HACK_EIG__ */
 
