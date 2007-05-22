@@ -1435,7 +1435,7 @@ IfFirstStepIsToBeRepeated:
 		}
 #endif /* RTAI_LOG */
 
-		reserve_stack(RTStackSize);
+		mbdyn_reserve_stack(RTStackSize);
 	}
 
 	int 	RTStpFlag = 0;
