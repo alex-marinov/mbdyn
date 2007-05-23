@@ -3869,7 +3869,7 @@ Solver::Eig(void)
 
 		for (integer r = 1; r <= iSize; r++) {
 			for (integer c = 1; c <= iSize; c++) {
-				o << std::setw(24) << MatA(r, c);
+				o << std::setw(24) << MatB(r, c);
 			}
 
 			if (r == iSize) {
@@ -3887,7 +3887,7 @@ Solver::Eig(void)
 
 		for (integer r = 1; r <= iSize; r++) {
 			for (integer c = 1; c <= iSize; c++) {
-				o << std::setw(24) << MatB(r, c);
+				o << std::setw(24) << MatA(r, c);
 			}
 
 			if (r == iSize) {
