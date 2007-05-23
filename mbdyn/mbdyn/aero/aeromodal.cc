@@ -289,9 +289,10 @@ SubVectorHandler& AerodynamicModal::AssRes(SubVectorHandler& WorkVec,
     	for (int iCnt = 1; iCnt <= RigidF; iCnt++) {
       		WorkVec.PutRowIndex(iCnt, iFirstIndex+RigidF+iCnt);
 	}
-   	Vec3 X0(pModalNode->GetXCurr());
-   	Vec3 V0(pModalNode->GetVCurr());
-   	Mat3x3 Rn(pModalNode->GetRCurr());
+   	const Vec3& X0(pModalNode->GetXCurr());
+   	const Vec3& V0(pModalNode->GetVCurr());
+   	const Vec3& W0(pModalNode->GetWCurr());
+   	const Mat3x3& Rn(pModalNode->GetRCurr());
    	Mat3x3 RR(Rn*Ra);
    	Mat3x3 RRT(RR.Transpose());
       	Mat3x3 R_i = RR*R0.Transpose();
@@ -302,10 +303,10 @@ SubVectorHandler& AerodynamicModal::AssRes(SubVectorHandler& WorkVec,
 		Phi_i = g*(2./d*atan(d/2.));
 	}     
 	Vec3 X_i  = RRT*X0 - P0;
-	Vec3 V_i  = RRT*V0;
-   	Vec3 W_i  = RRT*pModalNode->GetWCurr();
-   	Vec3 A_i  = RRT*(Vec3(XPrimeCurr, iFirstIndex+7));
-	Vec3 WP_i = RRT*(Vec3(XPrimeCurr, iFirstIndex+10));
+	Vec3 V_i  = RRT*(V0 + X0.Cross(W0));
+   	Vec3 W_i  = RRT*W0;
+   	Vec3 A_i  = RRT*(Vec3(XPrimeCurr, iFirstIndex + 6 + 1));
+	Vec3 WP_i = RRT*(Vec3(XPrimeCurr, iFirstIndex + 9 + 1));
 		
 	for (unsigned int  iCnt=1; iCnt<=3; iCnt++) {
      		pq->PutCoef(iCnt, X_i.dGet(iCnt));
