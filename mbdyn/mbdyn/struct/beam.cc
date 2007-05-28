@@ -406,13 +406,11 @@ Beam::DsDxi(void)
     ASSERT(pNode[NODE3]->GetNodeType() == Node::STRUCTURAL);     
    
     /* Calcola il ds/dxi e le deformazioni iniziali */
-    Vec3 xNod[NUMNODES];
     Mat3x3 RNod[NUMNODES];
     Vec3 xTmp[NUMNODES];
     for (unsigned int i = 0; i < NUMNODES; i++) {
-        xNod[i] = pNode[i]->GetXCurr();
         RNod[i] = pNode[i]->GetRCurr();
-        xTmp[i] = xNod[i]+RNod[i]*f[i];
+        xTmp[i] = pNode[i]->GetXCurr() + RNod[i]*f[i];
     }
 
     dsdxi[S_I] = 1.;
@@ -631,13 +629,6 @@ void Beam::AssStiffnessVec(SubVectorHandler& WorkVec,
    /* Per la trattazione teorica, il riferimento e' il file ul-travi.tex 
     * (ora e' superato) */
    
-   /* Recupera i dati dei nodi */
-   Vec3 xNod[NUMNODES];
-   
-   for (unsigned int i = 0; i < NUMNODES; i++) {
-      xNod[i] = pNode[i]->GetXCurr();
-   }   
-   
    if (bFirstRes) {
       bFirstRes = false; /* AfterPredict ha gia' calcolato tutto */
    } else {
@@ -646,7 +637,7 @@ void Beam::AssStiffnessVec(SubVectorHandler& WorkVec,
       
       for (unsigned int i = 0; i < NUMNODES; i++) {      
 	 gNod[i] = pNode[i]->GetgCurr();	 
-	 xTmp[i] = xNod[i]+pNode[i]->GetRCurr()*f[i];
+	 xTmp[i] = pNode[i]->GetXCurr() + pNode[i]->GetRCurr()*f[i];
       }      
       
       Mat3x3 RDelta[NUMSEZ];
@@ -689,14 +680,14 @@ void Beam::AssStiffnessVec(SubVectorHandler& WorkVec,
    }
    
    WorkVec.Add(1, Az[S_I].GetVec1());
-   WorkVec.Add(4, (p[S_I]-xNod[NODE1]).Cross(Az[S_I].GetVec1())
+   WorkVec.Add(4, (p[S_I] - pNode[NODE1]->GetXCurr()).Cross(Az[S_I].GetVec1())
 	          +Az[S_I].GetVec2());
    WorkVec.Add(7, Az[SII].GetVec1()-Az[S_I].GetVec1());
    WorkVec.Add(10, Az[SII].GetVec2()-Az[S_I].GetVec2()
-	           +(p[SII]-xNod[NODE2]).Cross(Az[SII].GetVec1())
-	           -(p[S_I]-xNod[NODE2]).Cross(Az[S_I].GetVec1()));
+	           +(p[SII] - pNode[NODE2]->GetXCurr()).Cross(Az[SII].GetVec1())
+	           -(p[S_I] - pNode[NODE2]->GetXCurr()).Cross(Az[S_I].GetVec1()));
    WorkVec.Sub(13, Az[SII].GetVec1());
-   WorkVec.Add(16, Az[SII].GetVec1().Cross(p[SII]-xNod[NODE3])
+   WorkVec.Add(16, Az[SII].GetVec1().Cross(p[SII] - pNode[NODE3]->GetXCurr())
 	           -Az[SII].GetVec2());   
 }
 
@@ -1479,13 +1470,6 @@ void ViscoElasticBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
    /* Per la trattazione teorica, il riferimento e' il file ul-travi.tex 
     * (ora e' superato) */
    
-   /* Recupera i dati dei nodi */
-   Vec3 xNod[NUMNODES];
-   
-   for (unsigned int i = 0; i < NUMNODES; i++) {
-      xNod[i] = pNode[i]->GetXCurr();
-   }   
-   
    if (bFirstRes) {
       bFirstRes = false; /* AfterPredict ha gia' calcolato tutto */
    } else {
@@ -1498,7 +1482,7 @@ void ViscoElasticBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
       for (unsigned int i = 0; i < NUMNODES; i++) {      
 	 gNod[i] = pNode[i]->GetgCurr();
 	 Vec3 fTmp = pNode[i]->GetRCurr()*f[i];
-	 xTmp[i] = xNod[i]+fTmp;
+	 xTmp[i] = pNode[i]->GetXCurr() + fTmp;
 	 gPrimeNod[i] = pNode[i]->GetgPCurr();
 	 xPrimeTmp[i] = pNode[i]->GetVCurr()+pNode[i]->GetWCurr().Cross(fTmp);
       }      
@@ -1575,14 +1559,14 @@ void ViscoElasticBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
    }
    
    WorkVec.Add(1, Az[S_I].GetVec1());
-   WorkVec.Add(4, (p[S_I] - xNod[NODE1]).Cross(Az[S_I].GetVec1())
+   WorkVec.Add(4, (p[S_I] - pNode[NODE1]->GetXCurr()).Cross(Az[S_I].GetVec1())
 	          + Az[S_I].GetVec2());
    WorkVec.Add(7, Az[SII].GetVec1() - Az[S_I].GetVec1());
    WorkVec.Add(10, Az[SII].GetVec2() - Az[S_I].GetVec2()
-	           + (p[SII] - xNod[NODE2]).Cross(Az[SII].GetVec1())
-	           - (p[S_I] - xNod[NODE2]).Cross(Az[S_I].GetVec1()));
+	           + (p[SII] - pNode[NODE2]->GetXCurr()).Cross(Az[SII].GetVec1())
+	           - (p[S_I] - pNode[NODE2]->GetXCurr()).Cross(Az[S_I].GetVec1()));
    WorkVec.Sub(13, Az[SII].GetVec1());
-   WorkVec.Add(16, Az[SII].GetVec1().Cross(p[SII] - xNod[NODE3])
+   WorkVec.Add(16, Az[SII].GetVec1().Cross(p[SII] - pNode[NODE3]->GetXCurr())
 	           - Az[SII].GetVec2());
 }
 
@@ -1720,7 +1704,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    /* Nodo 1 */
    StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
    
-   Mat3x3 R1(pNode1->GetRCurr());
+   const Mat3x3& R1(pNode1->GetRCurr());
    if (HP.IsKeyWord("position")) {
       /* just eat it! */
       NO_OP;
