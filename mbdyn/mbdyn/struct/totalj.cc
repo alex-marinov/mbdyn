@@ -1469,7 +1469,7 @@ TotalJoint::dGetPrivData(unsigned int i) const
 	case 3: {
 		Vec3 x(pNode1->GetRCurr().Transpose()*(
 			pNode2->GetXCurr() + pNode2->GetRCurr()*f2
-				- pNode2->GetXCurr()) - f1);
+				- pNode1->GetXCurr()) - f1);
 			return R1h.GetVec(i)*x;
 		}
 
