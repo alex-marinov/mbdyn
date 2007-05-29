@@ -97,11 +97,11 @@ iNumSteps(0)
 	Vec3 R3C((pCraft->GetRCurr()*RRot).GetVec(3));
 	Vec3 R3R((pRotor->GetRCurr()).GetVec(3));
 	if (R3C.Dot(R3R) < 1. - DBL_EPSILON) {
-		silent_cerr("warning, possible misalignment " << std::endl
-			<< "of rotor StructNode(" << pRotor->GetLabel() << ") "
-			"axis {" << R3R << "}" << std::endl
-			<< "and craft StructNode(" << pCraft->GetLabel() << ") "
-			"axis {" << R3C << "}" 
+		silent_cerr("warning, possible misalignment "
+			"of rotor StructNode(" << pRotor->GetLabel() << ") "
+			"axis {" << R3R << "} "
+			"and craft StructNode(" << pCraft->GetLabel() << ") "
+			"axis {" << R3C << "} " 
 			<< "for Rotor(" << GetLabel() << ")"
 			<< std::endl);
 	}
