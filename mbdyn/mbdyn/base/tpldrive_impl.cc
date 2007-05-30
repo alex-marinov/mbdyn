@@ -43,7 +43,7 @@
  * which includes "tpldrive.h" */
 
 template <class T>
-class ZeroTDCR : public TplDriveCallerRead<T> {
+class NullTDCR : public TplDriveCallerRead<T> {
 public:
 	virtual TplDriveCaller<T> *
 	Read(const DataManager* pDM, MBDynParser& HP) {
@@ -52,6 +52,19 @@ public:
 		SAFENEW(pTplDC, ZeroTplDriveCaller<T>);
 
 		return pTplDC;
+	};
+};
+
+template <class T>
+class ZeroTDCR : public NullTDCR<T> {
+public:
+	virtual TplDriveCaller<T> *
+	Read(const DataManager* pDM, MBDynParser& HP) {
+		silent_cerr("\"zero\" template drive caller "
+			"at line " << HP.GetLineData() << " is deprecated; "
+			"use \"null\" instead" << std::endl);
+
+		return NullTDCR<T>::Read(pDM, HP);
 	};
 };
 
@@ -111,7 +124,7 @@ public:
 	};
 
 	inline int getNDrives(void) const {
-		1;
+		return 1;
 	};
 };
 
@@ -672,15 +685,15 @@ InitTplDC(void)
 		return;
 	}
 
+	/* null */
+	SetDC1D("null", new NullTDCR<doublereal>);
+	SetDC3D("null", new NullTDCR<Vec3>);
+	SetDC6D("null", new NullTDCR<Vec6>);
+
 	/* zero (deprecated) */
 	SetDC1D("zero", new ZeroTDCR<doublereal>);
 	SetDC3D("zero", new ZeroTDCR<Vec3>);
 	SetDC6D("zero", new ZeroTDCR<Vec6>);
-
-	/* null */
-	SetDC1D("null", new ZeroTDCR<doublereal>);
-	SetDC3D("null", new ZeroTDCR<Vec3>);
-	SetDC6D("null", new ZeroTDCR<Vec6>);
 
 	/* single */
 	SetDC1D("single", new SingleTDCR<doublereal>);
