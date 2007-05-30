@@ -392,3 +392,98 @@ public:
 /* TotalPinJoint - end */
 
 #endif // TOTALJ_H
+
+
+
+/****************************************/
+/****************************************/
+/* 		TOTAL FORCE	  	*/
+/****************************************/
+/****************************************/
+
+#ifndef TOTALF_H
+#define TOTALF_H
+
+#include "force.h"
+#include "constltp.h"
+
+/* Total Force: begin */
+class TotalForce : virtual public Elem, public Force	{
+
+private:
+	const StructNode* pNode1;
+	const StructNode* pNode2;
+	Vec3 f1;
+	Mat3x3 R1h;
+	Mat3x3 R1hr;
+	Vec3 f2;
+	Mat3x3 R2h;
+	Mat3x3 R2hr;
+	bool bForceActive[3];
+	bool bCoupleActive[3];
+	
+	TplDriveOwner<Vec3> FDrv;
+	
+	TplDriveOwner<Vec3> MDrv;
+	
+	unsigned int nForces;
+	unsigned int nCouples;
+
+	unsigned int iForceIncid[3];
+	unsigned int iCoupleIncid[3];
+
+	
+	mutable Vec3 M;
+	mutable Vec3 F;
+
+public:
+	TotalForce(unsigned int uL, const DriveCaller *pDC,
+		bool bForce[3],
+		TplDriveCaller<Vec3> *const pDCForce,
+		bool bCouple[3],
+		TplDriveCaller<Vec3> *const pDCCouple,
+		const StructNode* pN1,
+		const Vec3& f1Tmp, const Mat3x3& R1hTmp, const Mat3x3& R1hrTmp, 
+		const StructNode* pN2,
+		const Vec3& f2Tmp, const Mat3x3& R2hTmp, const Mat3x3& R2hrTmp, 
+		flag fOut);
+	
+	~TotalForce(void) {
+		NO_OP;
+	};
+
+	/* Force Type */
+	virtual Force::Type GetForceType(void) const {
+		return Force::TOTALFORCE;
+	};
+
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+		*piNumRows = 12;
+		*piNumCols = 6;
+	};
+
+	VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat,
+					doublereal dCoef,
+					const VectorHandler& XCurr,
+					const VectorHandler& XPrimeCurr);
+	SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+				doublereal dCoef,
+				const VectorHandler& XCurr,
+				const VectorHandler& XPrimeCurr);
+
+	virtual void Output(OutputHandler& OH) const;
+
+	virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+			*piNumRows = 24;
+			*piNumCols = 12;
+	};
+	virtual VariableSubMatrixHandler& InitialAssJac(VariableSubMatrixHandler& WorkMat,
+							const VectorHandler& XCurr);
+	
+	virtual SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec, 
+						const VectorHandler& XCurr);
+};
+#endif //TOTALF_H
+/* Total Force: end*/

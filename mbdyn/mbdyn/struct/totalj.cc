@@ -2746,3 +2746,362 @@ TotalPinJoint::dGetPrivData(unsigned int i) const
 
 /* TotalPinJoint - end */
 
+/* TotalForce - begin */
+
+TotalForce::TotalForce(unsigned int uL, const DriveCaller *pDC,
+	bool bForce[3],
+	TplDriveCaller<Vec3> *const pDCForce,
+	bool bCouple[3],
+	TplDriveCaller<Vec3> *const pDCCouple,
+	const StructNode *pN1,
+	const Vec3& f1Tmp, const Mat3x3& R1hTmp, const Mat3x3& R1hrTmp,
+	const StructNode *pN2,
+	const Vec3& f2Tmp, const Mat3x3& R2hTmp, const Mat3x3& R2hrTmp,
+	flag fOut)
+: Elem(uL, fOut),
+Force(uL, pDC, fOut),
+pNode1(pN1), pNode2(pN2),
+f1(f1Tmp), R1h(R1hTmp), R1hr(R1hrTmp),
+f2(f2Tmp), R2h(R2hTmp), R2hr(R2hrTmp),
+FDrv(pDCForce), MDrv(pDCCouple),
+nForces(0), nCouples(0),
+M(0.), F(0.)
+{
+	/* Active-Inactive components: */ 
+
+	for (unsigned int i = 0; i < 3; i++) {
+		bForceActive[i] = bForce[i];
+		bCoupleActive[i] = bCouple[i];
+	
+		if (bForceActive[i]) {
+			iForceIncid[nForces] = i + 1;
+			nForces++;
+		}
+		if (bCoupleActive[i]) {
+			iCoupleIncid[nCouples] = i + 1;
+			nCouples++;
+		}
+	}
+}
+
+std::ostream&
+TotalForce::Restart(std::ostream& out) const
+{
+	/*   Force::Restart(out) << ", total, "
+	<< pNode1->GetLabel()
+	<< ", reference, node, ",
+	Dir.Write(out, ", ")
+	<< ", reference, node, ",
+	f1.Write(out, ", ") << ", "
+	<< pNode2->GetLabel()
+	<< ", reference, node, ",
+	f2.Write(out, ", ") << ", ";
+	*/
+	return pGetDriveCaller()->Restart(out) << ';'      
+	<< std::endl;
+}
+
+/* Assemblaggio jacobiano */
+VariableSubMatrixHandler&
+TotalForce::AssJac(VariableSubMatrixHandler& WorkMat,
+	doublereal dCoef,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ )
+{
+	DEBUGCOUT("Entering TotalForce::AssJac()" << std::endl);
+
+	FullSubMatrixHandler& WM = WorkMat.SetFull();
+
+	/* Ridimensiona la sottomatrice in base alle esigenze */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WM.ResizeReset(iNumRows, iNumCols);
+
+	/* Recupera gli indici delle varie incognite */
+	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
+	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
+	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
+
+	/* Setta gli indici delle equazioni */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WM.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
+		WM.PutColIndex(iCnt, iNode1FirstPosIndex + iCnt);
+		WM.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
+		WM.PutColIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
+	}
+
+	/* Recupera i dati che servono */
+	Mat3x3 R1(pNode1->GetRRef()*R1h);
+	Mat3x3 R1r(pNode1->GetRRef()*R1hr);
+	Vec3 b2(pNode2->GetRCurr()*f2);
+	Vec3 b1(pNode2->GetXCurr() + b2 - pNode1->GetXCurr());
+
+	/* Moltiplica il momento e la forza per il coefficiente del metodo */
+	Vec3 FTmp(R1*(F*dCoef));
+	Vec3 MTmp(R1r*(M*dCoef));
+
+	/* Equilibrium: ((Phi/q)^T*F)/q */
+
+	Mat3x3 Tmp;
+
+	/* [ F x ] */
+	Tmp = Mat3x3(FTmp);
+
+	/* Lines 1->3: */
+	WM.Add(1, 3 + 1, Tmp);
+
+	/* Lines 4->6: */
+	WM.Sub(3 + 1, 1, Tmp);
+
+	WM.Add(3 + 1, 6 + 1, Tmp);
+
+	/* Lines 7->9: */
+	WM.Sub(6 + 1, 3 + 1, Tmp);
+
+	/* [ F x ] [ b2 x ] */
+	Tmp = Mat3x3(FTmp, b2);
+
+	/* Lines 4->6: */
+	WM.Sub(3 + 1, 9 + 1, Tmp);
+
+	/* Lines 10->12: */
+	WM.Add(9 + 1, 9 + 1, Tmp);
+
+	/* [ b1 x ] [ F x ] + [ M x ] */
+
+	/* Lines 4->6: */
+	WM.Add(3 + 1, 3 + 1, Mat3x3(b1, FTmp) + Mat3x3(MTmp));
+
+	/* [ b2 x ] [ F x ] + [ M x ] */
+
+	/* Lines 10->12: */
+	WM.Sub(9 + 1, 3 + 1, Mat3x3(b2, FTmp) + Mat3x3(MTmp));
+
+	return WorkMat;
+}
+
+
+/* Assemblaggio residuo */
+SubVectorHandler&
+TotalForce::AssRes(SubVectorHandler& WorkVec,
+	doublereal dCoef,
+	const VectorHandler& XCurr,
+	const VectorHandler& /* XPrimeCurr */ )
+{
+	DEBUGCOUT("Entering TotalJoint::AssRes()" << std::endl);
+
+	/* Dimensiona e resetta la matrice di lavoro */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.ResizeReset(iNumRows);
+
+	/* Indici */
+	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
+	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
+
+	/* Indici dei nodi */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
+		WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex + iCnt);
+	}
+
+	/* Get Forces */
+	
+	Vec3 FTmp(FDrv.Get());
+	Vec3 MTmp(MDrv.Get());
+
+	for (unsigned iCnt = 0; iCnt < nForces; iCnt++) {
+		F(iForceIncid[iCnt]) = FTmp(iCnt + 1);
+	}
+
+	for (unsigned iCnt = 0; iCnt < nCouples; iCnt++) {
+		M(iCoupleIncid[iCnt]) = MTmp(iCnt + 1);
+	}
+
+	Vec3 b2(pNode2->GetRCurr()*f2);
+	Vec3 b1(pNode2->GetXCurr() + b2 - pNode1->GetXCurr());
+
+	Mat3x3 R1 = pNode1->GetRCurr()*R1h;
+	Mat3x3 R1r = pNode1->GetRCurr()*R1hr;
+	Mat3x3 R2r = pNode2->GetRCurr()*R2hr;
+
+	FTmp = R1*F;
+	MTmp = R1r*M;
+
+	/* Equilibrium, node 1 */
+	WorkVec.Add(1, FTmp);
+	WorkVec.Add(3 + 1, MTmp + b1.Cross(FTmp));
+
+	/* Equilibrium, node 2 */
+	WorkVec.Sub(6 + 1, FTmp);
+	WorkVec.Sub(9 + 1, MTmp + b2.Cross(FTmp));
+
+	return WorkVec;
+}
+
+VariableSubMatrixHandler&
+TotalForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+	const VectorHandler& XCurr)
+{
+
+	/* Per ora usa la matrice piena; eventualmente si puo'
+	 * passare a quella sparsa quando si ottimizza */
+	FullSubMatrixHandler& WM = WorkMat.SetFull();
+
+	/* Dimensiona e resetta la matrice di lavoro */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	InitialWorkSpaceDim(&iNumRows, &iNumCols);
+	WM.ResizeReset(iNumRows, iNumCols);
+
+	/* Indici */
+	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode1FirstVelIndex = iNode1FirstPosIndex + 6;
+	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
+	integer iNode2FirstVelIndex = iNode2FirstPosIndex + 6;
+
+
+	/* Setta gli indici dei nodi */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WM.PutRowIndex(iCnt, iNode1FirstPosIndex + iCnt);
+		WM.PutColIndex(iCnt, iNode1FirstPosIndex + iCnt);
+		WM.PutRowIndex(6 + iCnt, iNode1FirstVelIndex + iCnt);
+		WM.PutColIndex(6 + iCnt, iNode1FirstVelIndex + iCnt);
+		WM.PutRowIndex(12 + iCnt, iNode2FirstPosIndex + iCnt);
+		WM.PutColIndex(12 + iCnt, iNode2FirstPosIndex + iCnt);
+		WM.PutRowIndex(18 + iCnt, iNode2FirstVelIndex + iCnt);
+		WM.PutColIndex(18 + iCnt, iNode2FirstVelIndex + iCnt);
+	}
+
+	/* Recupera i dati che servono */
+	Mat3x3 R1(pNode1->GetRRef()*R1h);
+	Mat3x3 R1r(pNode1->GetRRef()*R1hr);
+	
+	Vec3 b2(pNode2->GetRCurr()*f2);
+	Vec3 b1(pNode2->GetXCurr() + b2 - pNode1->GetXCurr());
+	
+	Vec3 Omega1(pNode1->GetWCurr());
+	Vec3 Omega2(pNode2->GetWCurr());
+	
+	Vec3 b1Prime(pNode2->GetVCurr() + Omega2.Cross(b2) - pNode1->GetVCurr());
+	
+	Vec3 FTmp(R1 * F);
+	Vec3 MTmp(R1r * M);
+
+	Mat3x3 Tmp;
+
+	/* [ F x ] */
+	Tmp = Mat3x3(FTmp);
+
+	/* Force, Node 1, Lines 1->3: */
+	WM.Add(1, 3 + 1, Tmp);	// * Delta_g1
+
+	/* Moment, Node 1, Lines 4->6: */
+	WM.Sub(3 + 1, 1, Tmp);	// * Delta_x1
+
+	WM.Add(3 + 1, 12 + 1, Tmp);	// * Delta_x2
+
+	/* Force, Node 2, Lines 13->15: */
+	WM.Sub(12 + 1, 3 + 1, Tmp);	// * Delta_g1
+	
+	/* [ F x ] [ b2 x ] */
+	Tmp = Mat3x3(FTmp, b2);
+
+	/* Moment, Node1, Lines 4->6: */
+	WM.Sub(3 + 1, 15 + 1, Tmp);	// * Delta_g2
+
+	/* Moment, Node2, Lines 16->18: */
+	WM.Add(15 + 1, 15 + 1, Tmp);	// * Delta_g2
+	
+	/* [ b1 x ] [ F x ] + [ M x ] */
+
+	/* Moment, Node1, Lines 4->6: */
+	WM.Add(3 + 1, 3 + 1, Mat3x3(b1, FTmp) + Mat3x3(MTmp));	// *Delta_g1
+
+	/* [ b2 x ] [ F x ] + [ M x ] */
+
+	/* Moment, Node2, Lines 16->18: */
+	WM.Sub(15 + 1, 3 + 1, Mat3x3(b2, FTmp) + Mat3x3(MTmp));	// * Delta_g1
+	
+	/* d/dt(Moment), Node2, Lines 22->24: */
+	WM.Sub(21 + 1, 9 + 1, Mat3x3(b2, FTmp) + Mat3x3(MTmp));	// * Delta_W1
+	
+	return WorkMat;
+}
+
+
+/* Contributo al residuo durante l'assemblaggio iniziale */
+SubVectorHandler&
+TotalForce::InitialAssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& XCurr)
+{
+
+	DEBUGCOUT("Entering TotalJoint::InitialAssRes()" << std::endl);
+
+	/* Dimensiona e resetta la matrice di lavoro */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	InitialWorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.ResizeReset(iNumRows);
+
+	/* Indici */
+	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode1FirstVelIndex = iNode1FirstPosIndex + 6;
+	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
+	integer iNode2FirstVelIndex = iNode2FirstPosIndex + 6;
+
+	/* Setta gli indici */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
+		WorkVec.PutRowIndex(6 + iCnt, iNode1FirstVelIndex + iCnt);
+		WorkVec.PutRowIndex(12 + iCnt, iNode2FirstPosIndex + iCnt);
+		WorkVec.PutRowIndex(18 + iCnt, iNode2FirstVelIndex + iCnt);
+	}
+
+	/* Recupera i dati */
+	/* Recupera i dati che servono */
+	Mat3x3 R1(pNode1->GetRRef()*R1h);
+	Mat3x3 R1r(pNode1->GetRRef()*R1hr);
+	Mat3x3 R2r(pNode2->GetRCurr()*R2hr);
+	
+	Vec3 b2(pNode2->GetRCurr()*f2);
+	Vec3 b1(pNode2->GetXCurr() + b2 - pNode1->GetXCurr());
+	
+	Vec3 Omega1(pNode1->GetWCurr());
+	Vec3 Omega2(pNode2->GetWCurr());
+	
+	Mat3x3 Omega2Cross(Omega2);
+	Vec3 Omega2Crossb2(Omega2Cross*b2);
+	Vec3 b1Prime(pNode2->GetVCurr() + Omega2.Cross(b2) - pNode1->GetVCurr());
+	
+	/* Aggiorna F ed M, che restano anche per InitialAssJac */
+
+	Vec3 FTmp(FDrv.Get());
+	Vec3 MTmp(MDrv.Get());
+
+	for (unsigned iCnt = 0; iCnt < nForces; iCnt++) {
+		F(iForceIncid[iCnt]) = FTmp(iCnt + 1);
+	}
+
+	for (unsigned iCnt = 0; iCnt < nCouples; iCnt++) {
+		M(iCoupleIncid[iCnt]) = MTmp(iCnt + 1);
+	}
+
+	FTmp = R1 * F;
+	MTmp = R1r * M;
+
+	/* Equilibrium, node 1 */
+	WorkVec.Add(1, FTmp);
+	WorkVec.Add(3 + 1, b1.Cross(FTmp) + MTmp);
+
+	/* Equilibrium, node 2 */
+	WorkVec.Sub(12 + 1, FTmp);
+	WorkVec.Sub(15 + 1, b2.Cross(FTmp) + MTmp);
+
+return WorkVec;
+}
+
+
