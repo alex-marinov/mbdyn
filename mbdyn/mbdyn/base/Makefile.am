@@ -142,7 +142,8 @@ stepsol.hc \
 symcltp.h \
 tpldrive.cc \
 tpldrive.h \
-tpldrive_.h \
+tpldrive_impl.cc \
+tpldrive_impl.h \
 vec3drv.h \
 thirdorderstepsol.h \
 thirdorderstepsol.cc \

@@ -56,6 +56,7 @@
 #include "output.h"
 
 #include "drive.h"     /* Drive vari */
+#include "tpldrive.h"  /* Drive vari */
 
 /* da nodeman.h */
 #include "node.h"

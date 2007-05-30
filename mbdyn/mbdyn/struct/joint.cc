@@ -43,7 +43,6 @@
 #include "loadable.h"
 
 #include "tpldrive.h"
-#include "tpldrive_.h"
 
 #include "accj.h"      /* Vincoli di accelerazione imposta */
 #include "beamslider.h"
@@ -1984,7 +1983,7 @@ ReadJoint(DataManager* pDM,
 		}
 
 
-		TplDriveCaller<Vec3>* pDC = ReadTplDrive(pDM, HP, Vec3(0.));
+		TplDriveCaller<Vec3>* pDC = ReadDC3D(pDM, HP);
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
 
@@ -2036,7 +2035,7 @@ ReadJoint(DataManager* pDM,
 		}
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
 
-		TplDriveCaller<Vec3>* pDC = ReadTplDrive(pDM, HP, Vec3(0.));
+		TplDriveCaller<Vec3>* pDC = ReadDC3D(pDM, HP);
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
 
@@ -2083,7 +2082,7 @@ ReadJoint(DataManager* pDM,
 		}
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
 
-		TplDriveCaller<Vec3>* pDC = ReadTplDrive(pDM, HP, Vec3(0.));
+		TplDriveCaller<Vec3>* pDC = ReadDC3D(pDM, HP);
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
 
@@ -2254,7 +2253,7 @@ ReadJoint(DataManager* pDM,
 			}
 		}
 
-		TplDriveCaller<Vec3>* pDC = ReadTplDrive(pDM, HP, Vec3(0.));
+		TplDriveCaller<Vec3>* pDC = ReadDC3D(pDM, HP);
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
 
@@ -2340,11 +2339,11 @@ ReadJoint(DataManager* pDM,
 				}
 			}
 
-			pXDC[0] = ReadTplDrive(pDM, HP, Vec3(0.));
+			pXDC[0] = ReadDC3D(pDM, HP);
 
 			if (pDM->bIsInverseDynamics()) {
-				pXDC[1] = ReadTplDrive(pDM, HP, Vec3(0.));
-				pXDC[2] = ReadTplDrive(pDM, HP, Vec3(0.));
+				pXDC[1] = ReadDC3D(pDM, HP);
+				pXDC[2] = ReadDC3D(pDM, HP);
 			}
 
 		} else {
@@ -2382,11 +2381,11 @@ ReadJoint(DataManager* pDM,
 				}
 			}
 
-			pTDC[0] = ReadTplDrive(pDM, HP, Vec3(0.));
+			pTDC[0] = ReadDC3D(pDM, HP);
 
 			if (pDM->bIsInverseDynamics()) {
-				pTDC[1] = ReadTplDrive(pDM, HP, Vec3(0.));
-				pTDC[2] = ReadTplDrive(pDM, HP, Vec3(0.));
+				pTDC[1] = ReadDC3D(pDM, HP);
+				pTDC[2] = ReadDC3D(pDM, HP);
 			}
 
 		} else {
@@ -2486,11 +2485,11 @@ ReadJoint(DataManager* pDM,
 				}
 			}
 
-			pXDC[0] = ReadTplDrive(pDM, HP, Vec3(0.));
+			pXDC[0] = ReadDC3D(pDM, HP);
 
 			if (pDM->bIsInverseDynamics()) {
-				pXDC[1] = ReadTplDrive(pDM, HP, Vec3(0.));
-				pXDC[2] = ReadTplDrive(pDM, HP, Vec3(0.));
+				pXDC[1] = ReadDC3D(pDM, HP);
+				pXDC[2] = ReadDC3D(pDM, HP);
 			}
 
 		} else {
@@ -2528,11 +2527,11 @@ ReadJoint(DataManager* pDM,
 				}
 			}
 
-			pTDC[0] = ReadTplDrive(pDM, HP, Vec3(0.));
+			pTDC[0] = ReadDC3D(pDM, HP);
 
 			if (pDM->bIsInverseDynamics()) {
-				pTDC[1] = ReadTplDrive(pDM, HP, Vec3(0.));
-				pTDC[2] = ReadTplDrive(pDM, HP, Vec3(0.));
+				pTDC[1] = ReadDC3D(pDM, HP);
+				pTDC[2] = ReadDC3D(pDM, HP);
 			}
 
 		} else {

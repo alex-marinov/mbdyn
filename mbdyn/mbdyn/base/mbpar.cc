@@ -97,6 +97,7 @@ pDM(0)
 {
 	/* make sure this is init'ed */
 	InitDriveData();
+	InitTplDC();
 	InitCL();
 	InitSF();
 }   
@@ -104,6 +105,7 @@ pDM(0)
 MBDynParser::~MBDynParser(void)
 {   
 	DestroyDriveData();
+	DestroyTplDC();
 	DestroyCL();
 	DestroySF();
 

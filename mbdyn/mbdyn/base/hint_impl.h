@@ -35,7 +35,7 @@
 /* include del programma */
 #include "ac/sstream"
 #include "dataman.h"
-#include "tpldrive_.h"
+#include "tpldrive_impl.h"
 
 extern Hint *
 ParseHint(DataManager *pDM, const char *s);
@@ -144,7 +144,7 @@ TplDriveHint<T>::pCreateDrive(DataManager *pDM) const
 	HP.ExpectArg();
 	HP.SetDataManager(pDM);
 
-	return ReadTplDrive(pDM, HP, t);
+	return ReadTplDC(pDM, HP, t);
 }
 
 typedef TplDriveHint<Vec3> TplDriveHint3;

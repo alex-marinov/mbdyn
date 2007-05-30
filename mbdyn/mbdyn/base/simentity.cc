@@ -37,7 +37,7 @@
 
 #include "simentity.h"
 #include "dataman.h"
-#include "tpldrive_.h"
+#include "tpldrive.h"
 #include "hint_impl.h"
 
 /* SimulationEntity - begin */

@@ -82,7 +82,6 @@
 
 #include <drive.h>
 #include <tpldrive.h>
-#include <tpldrive_.h>
 
 #include <loadable.h>
 
@@ -804,7 +803,7 @@ DataManager::ReadElems(MBDynParser& HP)
 
 				uLabel = 1;
 
-				TplDriveCaller<Vec3>* pDC = ReadTplDrive(this, HP, Vec3(0.));
+				TplDriveCaller<Vec3>* pDC = ReadDC3D(this, HP);
 
 				flag fOut = fReadOutput(HP, Elem::GRAVITY);
 

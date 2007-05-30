@@ -40,6 +40,7 @@ extern "C" {
 }
 
 #include "ac/float.h"
+#include "tpldrive_impl.h"
 #include "constltp.h"
 #include "hint_impl.h"
 #include "elem.h"
@@ -2166,17 +2167,13 @@ TplDriveCaller<T>*
 GetPreStrain(const DataManager* pDM, MBDynParser& HP, T& PreStrain)
 {
 	if (HP.IsKeyWord("prestrain")) {
-		return ReadTplDrive(pDM, HP, PreStrain);
-
+		return ReadTplDC(pDM, HP, PreStrain);
 	}
 
-	DriveCaller* pDC = NULL;
-	SAFENEW(pDC, NullDriveCaller);
-	T t(0.);
-	TplDriveCaller<T>* pTplDC = NULL;
-	SAFENEWWITHCONSTRUCTOR(pTplDC,
-   			SingleTplDriveCaller<T>,
-   			SingleTplDriveCaller<T>(pDC, t));
+	TplDriveCaller<T> *pTplDC = 0;
+
+	SAFENEW(pTplDC, ZeroTplDriveCaller<T>);
+
 	return pTplDC;
 }
 

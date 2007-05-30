@@ -37,8 +37,6 @@
 #include "withlab.h"
 #include "simentity.h"
 #include "tpldrive.h"
-#include "matvec3.h"
-#include "matvec6.h"
 
 /* Tipi di cerniere deformabili */
 class ConstLawType {

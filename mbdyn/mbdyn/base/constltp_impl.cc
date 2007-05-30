@@ -163,37 +163,6 @@ ReadCL6D(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType)
 	return func->second->Read(pDM, HP, CLType);
 }
 
-#if 0 /* moved to constltp_impl.h */
-/* helpers */
-template <class T>
-void
-GetPreStress(MBDynParser& HP, T& PreStress)
-{
-	if (HP.IsKeyWord("prestress")) {
-		PreStress = HP.Get(PreStress);
-	}
-}
-
-template <class T>
-TplDriveCaller<T>*
-GetPreStrain(const DataManager* pDM, MBDynParser& HP, T& PreStrain)
-{
-	if (HP.IsKeyWord("prestrain")) {
-		return ReadTplDrive(pDM, HP, PreStrain);
-
-	}
-
-	DriveCaller* pDC = NULL;
-	SAFENEW(pDC, NullDriveCaller);
-	T t(0.);
-	TplDriveCaller<T>* pTplDC = NULL;
-	SAFENEWWITHCONSTRUCTOR(pTplDC,
-   			SingleTplDriveCaller<T>,
-   			SingleTplDriveCaller<T>(pDC, t));
-	return pTplDC;
-}
-#endif /* 0 */
-
 /* specific functional object(s) */
 template <class T, class Tder>
 struct LinearElasticCLR : public ConstitutiveLawRead<T, Tder> {

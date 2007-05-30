@@ -67,7 +67,7 @@
 #include <aerodyn_.h>
 #include <dataman.h>
 #include <drive_.h>
-#include <tpldrive_.h>
+#include <tpldrive.h>
 
 /*
  * Gust
@@ -508,7 +508,7 @@ ReadAirstreamData(DataManager *pDM, MBDynParser& HP,
 	ASSERT(pG == NULL);
 
 	/* Driver multiplo */
-     	pDC = ReadTplDrive(pDM, HP, Vec3(0.));
+     	pDC = ReadDC3D(pDM, HP);
 	if (HP.IsKeyWord("gust")) {
 		if (HP.IsKeyWord("front" "1d")) {
 			/* front direction */

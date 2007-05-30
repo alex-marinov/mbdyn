@@ -33,7 +33,8 @@
 #define TPLDRIVE_H
 
 #include "drive.h"
-
+#include "matvec3.h"
+#include "matvec6.h"
 
 /* TplDriveCaller - begin */
 
@@ -111,6 +112,34 @@ public:
 };
 
 /* TplDriveOwner - end */
+
+/* functions that read a constitutive law */
+extern TplDriveCaller<doublereal> *
+ReadDC1D(const DataManager* pDM, MBDynParser& HP);
+extern TplDriveCaller<Vec3> *
+ReadDC3D(const DataManager* pDM, MBDynParser& HP);
+extern TplDriveCaller<Vec6> *
+ReadDC6D(const DataManager* pDM, MBDynParser& HP);
+
+/* prototype of the template functional object: reads a constitutive law */
+template <class T>
+struct TplDriveCallerRead {
+	virtual ~TplDriveCallerRead<T>( void ) { NO_OP; };
+	virtual TplDriveCaller<T> *
+	Read(const DataManager* pDM, MBDynParser& HP) = 0;
+};
+
+/* constitutive law registration functions: call to register one */
+extern bool
+SetDC1D(const char *name, TplDriveCallerRead<doublereal> *rf);
+extern bool
+SetDC3D(const char *name, TplDriveCallerRead<Vec3> *rf);
+extern bool
+SetDC6D(const char *name, TplDriveCallerRead<Vec6> *rf);
+
+/* create/destroy */
+extern void InitTplDC(void);
+extern void DestroyTplDC(void);
 
 #endif /* TPLDRIVE_H */
 
