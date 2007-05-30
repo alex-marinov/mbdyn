@@ -2764,41 +2764,30 @@ pNode1(pN1), pNode2(pN2),
 f1(f1Tmp), R1h(R1hTmp), R1hr(R1hrTmp),
 f2(f2Tmp), R2h(R2hTmp), R2hr(R2hrTmp),
 FDrv(pDCForce), MDrv(pDCCouple),
-nForces(0), nCouples(0),
 M(0.), F(0.)
 {
-	/* Active-Inactive components: */ 
-
-	for (unsigned int i = 0; i < 3; i++) {
+	// NOTE: currently unused
+	for (unsigned i = 0; i < 3; i++) {
 		bForceActive[i] = bForce[i];
 		bCoupleActive[i] = bCouple[i];
-	
-		if (bForceActive[i]) {
-			iForceIncid[nForces] = i + 1;
-			nForces++;
-		}
-		if (bCoupleActive[i]) {
-			iCoupleIncid[nCouples] = i + 1;
-			nCouples++;
-		}
+	}
+}
+
+/* Output (da mettere a punto), per ora solo reazioni */
+void
+TotalForce::Output(OutputHandler& OH) const
+{
+	if (fToBeOutput()) {
+		OH.Forces() << std::setw(8) << GetLabel()
+			<< " " << F << " " << M << std::endl;
 	}
 }
 
 std::ostream&
 TotalForce::Restart(std::ostream& out) const
 {
-	/*   Force::Restart(out) << ", total, "
-	<< pNode1->GetLabel()
-	<< ", reference, node, ",
-	Dir.Write(out, ", ")
-	<< ", reference, node, ",
-	f1.Write(out, ", ") << ", "
-	<< pNode2->GetLabel()
-	<< ", reference, node, ",
-	f2.Write(out, ", ") << ", ";
-	*/
 	return pGetDriveCaller()->Restart(out) << ';'      
-	<< std::endl;
+		<< std::endl;
 }
 
 /* Assemblaggio jacobiano */
@@ -2910,16 +2899,8 @@ TotalForce::AssRes(SubVectorHandler& WorkVec,
 
 	/* Get Forces */
 	
-	Vec3 FTmp(FDrv.Get());
-	Vec3 MTmp(MDrv.Get());
-
-	for (unsigned iCnt = 0; iCnt < nForces; iCnt++) {
-		F(iForceIncid[iCnt]) = FTmp(iCnt + 1);
-	}
-
-	for (unsigned iCnt = 0; iCnt < nCouples; iCnt++) {
-		M(iCoupleIncid[iCnt]) = MTmp(iCnt + 1);
-	}
+	F = FDrv.Get();
+	M = MDrv.Get();
 
 	Vec3 b2(pNode2->GetRCurr()*f2);
 	Vec3 b1(pNode2->GetXCurr() + b2 - pNode1->GetXCurr());
@@ -2928,8 +2909,8 @@ TotalForce::AssRes(SubVectorHandler& WorkVec,
 	Mat3x3 R1r = pNode1->GetRCurr()*R1hr;
 	Mat3x3 R2r = pNode2->GetRCurr()*R2hr;
 
-	FTmp = R1*F;
-	MTmp = R1r*M;
+	Vec3 FTmp(R1*F);
+	Vec3 MTmp(R1r*M);
 
 	/* Equilibrium, node 1 */
 	WorkVec.Add(1, FTmp);
@@ -2988,8 +2969,8 @@ TotalForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	
 	Vec3 b1Prime(pNode2->GetVCurr() + Omega2.Cross(b2) - pNode1->GetVCurr());
 	
-	Vec3 FTmp(R1 * F);
-	Vec3 MTmp(R1r * M);
+	Vec3 FTmp(R1*F);
+	Vec3 MTmp(R1r*M);
 
 	Mat3x3 Tmp;
 
@@ -3079,19 +3060,11 @@ TotalForce::InitialAssRes(SubVectorHandler& WorkVec,
 	
 	/* Aggiorna F ed M, che restano anche per InitialAssJac */
 
-	Vec3 FTmp(FDrv.Get());
-	Vec3 MTmp(MDrv.Get());
+	F = FDrv.Get();
+	M = MDrv.Get();
 
-	for (unsigned iCnt = 0; iCnt < nForces; iCnt++) {
-		F(iForceIncid[iCnt]) = FTmp(iCnt + 1);
-	}
-
-	for (unsigned iCnt = 0; iCnt < nCouples; iCnt++) {
-		M(iCoupleIncid[iCnt]) = MTmp(iCnt + 1);
-	}
-
-	FTmp = R1 * F;
-	MTmp = R1r * M;
+	Vec3 FTmp(R1*F);
+	Vec3 MTmp(R1r*M);
 
 	/* Equilibrium, node 1 */
 	WorkVec.Add(1, FTmp);
@@ -3101,7 +3074,7 @@ TotalForce::InitialAssRes(SubVectorHandler& WorkVec,
 	WorkVec.Sub(12 + 1, FTmp);
 	WorkVec.Sub(15 + 1, b2.Cross(FTmp) + MTmp);
 
-return WorkVec;
+	return WorkVec;
 }
 
 

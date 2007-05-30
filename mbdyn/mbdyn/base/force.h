@@ -53,6 +53,7 @@ class Force
 	ABSTRACTFORCE = 0,
 	ABSTRACTINTERNALFORCE,
 
+	// in mbdyn/struct/strforce.{h,cc}
 	CONSERVATIVEFORCE,
 	FOLLOWERFORCE,
 	CONSERVATIVECOUPLE,
@@ -63,8 +64,11 @@ class Force
 	CONSERVATIVEINTERNALCOUPLE,
 	FOLLOWERINTERNALCOUPLE,
 	
+	// in mbdyn/struct/totalj.{h,cc}
 	TOTALFORCE,
+	TOTALINTERNALFORCE,
 
+	// in mbdyn/struct/strext.{h,cc}
 	EXTERNALFORCE,
 	
 	LASTFORCETYPE
