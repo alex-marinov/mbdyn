@@ -75,7 +75,7 @@ HBeam::HBeam(unsigned int uL,
 : Elem(uL, fOut), 
 ElemGravityOwner(uL, fOut), 
 InitialAssemblyElem(uL, fOut),
-fFirstRes(1)
+bFirstRes(true)
 {
 	/* Validazione dati */
 	ASSERT(pN1 != NULL);
@@ -240,7 +240,7 @@ HBeam::DsDxi(void)
 	for (unsigned int i = 0; i < NUMNODES; i++) {
 		RTmp[i] = pNode[i]->GetRCurr()*Rn[i];
 		fTmp[i] = pNode[i]->GetRCurr()*f[i];
-		yTmp[i] = pNode[i]->GetXCurr()+fTmp[i];
+		yTmp[i] = pNode[i]->GetXCurr() + fTmp[i];
 	}
 	
 	xi = 0.5;
@@ -365,15 +365,13 @@ HBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 	 */
    
 	/* Recupera i dati dei nodi */
-	Vec3 x[NUMNODES];
 	Vec3 yTmp[NUMNODES];
 	Vec3 fTmp[NUMNODES];
 	Mat3x3 RTmp[NUMNODES];
 	for (unsigned int i = 0; i < NUMNODES; i++) {
 		RTmp[i] = pNode[i]->GetRCurr()*Rn[i];
 		fTmp[i] = pNode[i]->GetRCurr()*f[i];
-		x[i] = pNode[i]->GetXCurr();
-		yTmp[i] = x[i]+fTmp[i];
+		yTmp[i] = pNode[i]->GetXCurr() + fTmp[i];
 	}   
 	ComputeFullInterpolation(yTmp, RTmp, fTmp,
 			xi, dxids,
@@ -404,37 +402,37 @@ HBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
    
 	Vec3 bTmp[2];
 	
-	bTmp[0] = p-pNode[NODE1]->GetXCurr();
-	bTmp[1] = p-pNode[NODE2]->GetXCurr();
+	bTmp[0] = p - pNode[NODE1]->GetXCurr();
+	bTmp[1] = p - pNode[NODE2]->GetXCurr();
    
 	for (unsigned int i = 0; i < NUMNODES; i++) {
 		/* Equazione all'indietro: */
-		WMA.Sub(1, 6*i+1, AzTmp[i].GetMat11());
-		WMA.Sub(1, 6*i+4, 
-				AzTmp[i].GetMat12()
-				-Mat3x3(AzRef.GetVec1()*dCoef)*pdP[i]);
+		WMA.Sub(1, 6*i + 1, AzTmp[i].GetMat11());
+		WMA.Sub(1, 6*i + 4, 
+			AzTmp[i].GetMat12()
+			- Mat3x3(AzRef.GetVec1()*dCoef)*pdP[i]);
 		
-		WMA.Sub(4, 6*i+1,
-				AzTmp[i].GetMat21()
-				-Mat3x3(AzRef.GetVec1()*dCoef)*pdp[i]
-				+Mat3x3(bTmp[0])*AzTmp[i].GetMat11());
-		WMA.Sub(4, 6*i+4, 
-				AzTmp[i].GetMat22()
-				+Mat3x3(bTmp[0])*AzTmp[i].GetMat12());
+		WMA.Sub(4, 6*i + 1,
+			AzTmp[i].GetMat21()
+			- Mat3x3(AzRef.GetVec1()*dCoef)*pdp[i]
+			+ Mat3x3(bTmp[0])*AzTmp[i].GetMat11());
+		WMA.Sub(4, 6*i + 4, 
+			AzTmp[i].GetMat22()
+			+ Mat3x3(bTmp[0])*AzTmp[i].GetMat12());
 		
 		/* Equazione in avanti: */
-		WMA.Add(7, 6*i+1, AzTmp[i].GetMat11());
-		WMA.Add(7, 6*i+4,
-				AzTmp[i].GetMat12()
-				-Mat3x3(AzRef.GetVec1()*dCoef)*pdP[i]);
+		WMA.Add(7, 6*i + 1, AzTmp[i].GetMat11());
+		WMA.Add(7, 6*i + 4,
+			AzTmp[i].GetMat12()
+			- Mat3x3(AzRef.GetVec1()*dCoef)*pdP[i]);
 		
-		WMA.Add(10, 6*i+1,
-				AzTmp[i].GetMat21()
-				-Mat3x3(AzRef.GetVec1()*dCoef)*pdp[i]
-				+Mat3x3(bTmp[1])*AzTmp[i].GetMat11());
-		WMA.Add(10, 6*i+4,
-				AzTmp[i].GetMat22()
-				+Mat3x3(bTmp[1])*AzTmp[i].GetMat12());
+		WMA.Add(10, 6*i + 1,
+			AzTmp[i].GetMat21()
+			- Mat3x3(AzRef.GetVec1()*dCoef)*pdp[i]
+			+ Mat3x3(bTmp[1])*AzTmp[i].GetMat11());
+		WMA.Add(10, 6*i + 4,
+			AzTmp[i].GetMat22()
+			+ Mat3x3(bTmp[1])*AzTmp[i].GetMat12());
 	}
 	
 	/* correzione alle equazioni */
@@ -458,15 +456,13 @@ HBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
 	 */
 	
 	/* Recupera i dati dei nodi */
-	Vec3 x[NUMNODES];
 	Vec3 yTmp[NUMNODES];
 	Vec3 fTmp[NUMNODES];
 	Mat3x3 RTmp[NUMNODES];
 	for (unsigned int i = 0; i < NUMNODES; i++) {
 		RTmp[i] = pNode[i]->GetRCurr()*Rn[i];
 		fTmp[i] = pNode[i]->GetRCurr()*f[i];
-		x[i] = pNode[i]->GetXCurr();
-		yTmp[i] = x[i]+fTmp[i];
+		yTmp[i] = pNode[i]->GetXCurr() + fTmp[i];
 	}   
 	
 	/* Interpolazione generica */
@@ -476,7 +472,7 @@ HBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
 			L, Rho);
 	
 	Mat3x3 RT(R.Transpose());
-	DefLoc = Vec6(RT*L-L0, RT*Rho-Rho0);
+	DefLoc = Vec6(RT*L - L0, RT*Rho - Rho0);
 
 	/* Calcola le azioni interne */
 	pD->Update(DefLoc);
@@ -489,9 +485,9 @@ HBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
 	Az = MultRV(AzLoc, R);
 	
 	WorkVec.Add(1, Az.GetVec1());
-	WorkVec.Add(4, (p-x[NODE1]).Cross(Az.GetVec1())+Az.GetVec2());
+	WorkVec.Add(4, (p - pNode[NODE1]->GetXCurr()).Cross(Az.GetVec1()) + Az.GetVec2());
 	WorkVec.Sub(7, Az.GetVec1());
-	WorkVec.Sub(10, Az.GetVec2()+(p-x[NODE2]).Cross(Az.GetVec1()));
+	WorkVec.Sub(10, Az.GetVec2() + (p - pNode[NODE2]->GetXCurr()).Cross(Az.GetVec1()));
 }
 
    
@@ -515,10 +511,10 @@ HBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 	WM.ResizeReset(12, 12);
 	
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-		WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-		WM.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
-		WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+		WM.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
+		WM.PutColIndex(iCnt, iNode1FirstPosIndex + iCnt);
+		WM.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
+		WM.PutColIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
 	}      
 	
 	AssStiffnessMat(WM, WM, dCoef, XCurr, XPrimeCurr);
@@ -543,8 +539,8 @@ HBeam::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.ResizeReset(12);
 
 	for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {
-		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-		WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
+		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
 	}      
 	
 	AssStiffnessVec(WorkVec, dCoef, XCurr, XPrimeCurr);
@@ -571,7 +567,7 @@ HBeam::SetValue(DataManager *pDM,
 	 */
 	(Mat6x6&)DRef = MultRMRt(pD->GetFDE(), RRef);      
 	
-	(flag&)fFirstRes = flag(1);
+	bFirstRes = true;
 }
               
 
@@ -635,7 +631,7 @@ HBeam::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ )
 	/* Aggiorna il legame costitutivo di riferimento */
 	DRef = MultRMRt(pD->GetFDE(), RRef);
 
-	fFirstRes = flag(1);
+	bFirstRes = true;
 #endif
 }
 
@@ -934,8 +930,9 @@ ViscoElasticHBeam::AssStiffnessVec(SubVectorHandler& WorkVec,
 		xNod[i] = pNode[i]->GetXCurr();
 	}
 	
-	if (fFirstRes) {
-		fFirstRes = flag(0); /* AfterPredict ha gia' calcolato tutto */
+	if (bFirstRes) {
+		bFirstRes = false; /* AfterPredict ha gia' calcolato tutto */
+
 	} else {
 		Vec3 gNod[NUMNODES];    
 		Vec3 xTmp[NUMNODES];
@@ -1042,7 +1039,7 @@ ViscoElasticHBeam::SetValue(DataManager *pDM,
 	 */
 	(Mat6x6&)ERef = MultRMRt(pD->GetFDEPrime(), RRef);
 	
-	ASSERT(fFirstRes == flag(1));
+	ASSERT(bFirstRes == true);
 }
               
 
@@ -1132,7 +1129,7 @@ ViscoElasticHBeam::AfterPredict(VectorHandler& /* X */ ,
 	DRef = MultRMRt(pD->GetFDE(), R);
 	ERef = MultRMRt(pD->GetFDEPrime(), R);
 	
-	fFirstRes = flag(1);
+	bFirstRes = true;
 }
 
 /* ViscoElasticBeam - end */

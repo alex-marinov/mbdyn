@@ -112,7 +112,7 @@ class HBeam
     doublereal dxids;
    
     /* Is first res? */
-    flag fFirstRes;
+    bool bFirstRes;
 
     /* Temporanei per interpolazione elicoidale */
     /* posiz. punto medio:		p */
