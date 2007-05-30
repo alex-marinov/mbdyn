@@ -1693,23 +1693,33 @@ the element is waken up:
 
 
 \subsection{Template drive}\label{sec:TPL-DRIVE}
-A particular \kw{DriveCaller} is the template drive caller. This is made
-of a constant entity that multiplies a conventional 
-\hyperref{\kw{drive}}{\kw{drive} (see Section~}{)}{sec:DRIVE} to give a drive
-entity of dimensionality different from that of a simple scalar \kw{drive}.
+A particular \kw{DriveCaller} is the template drive caller.
+It basically consists in a drive with a dimensionality other than scalar.
+Typically, it is made of a constant entity, with the desired dimensionality,
+that multiplies a conventional 
+\hyperref{\kw{drive}}{\kw{drive} (see Section~}{)}{sec:DRIVE}
+to give a drive entity of dimensionality different from that 
+of a simple scalar \kw{drive}.
 
-There are three types of template drive callers:
-the \kw{null} template drive caller, a shortcut for nothing;
-the \kw{single} template drive caller;
-and the \kw{array} template drive caller, 
-which is the result of adding a set of \kw{single}
-template drive callers. 
+There are four types of template drive callers:
+\begin{itemize}
+\item the \kw{null} template drive caller, a shortcut for nothing;
+\item the \kw{single} template drive caller;
+\item the \kw{component} template drive caller;
+\item the \kw{array} template drive caller,
+which linearly combines a set of template drive callers.
+\end{itemize}
 They are entered as follows:
 \begin{verbatim}
     <tpl_drive_caller> ::= null
 
     <tpl_drive_caller> ::= single ,
         <entity> , <drive_caller> 
+
+    <tpl_drive_caller> ::= component ,
+        <component_drive_caller> [ , ... ]
+
+    <component_drive_caller> ::= { inactive | <drive_caller> }
 
     <tpl_drive_caller> ::= array ,
         <num_template_drive_callers> ,
@@ -1720,9 +1730,16 @@ where \kw{entity} is a constant of the expected type (scalar, \kw{3 x 1}
 vector, \kw{6 x 1} vector are the types currently defined, but, since 
 a C++ template has been used, the implementation of other ones 
 is straightforward).
+
 In case of scalar values, the template reverts by default to a normal 
-drive caller, such that no overhead is added.
-At least 1 drive caller is expected. 
+drive caller, so no overhead is added.
+
+In the case of the \kw{component} template drive caller,
+as many drive callers as the dimensionality of the template drive caller
+are expected.
+
+At least 1 drive caller is expected if the case of the \kw{array}
+template drive caller. 
 If \kw{num\_template\_drive\_callers} is exactly 1, only a single
 template drive caller is actually constructed, thus avoiding the overhead 
 related to the handling of the drive caller array.    
