@@ -83,7 +83,9 @@ public:
 	};
 
 	virtual ~TplDriveOwner(void) {
-		SAFEDELETE(pTplDriveCaller);
+		if (pTplDriveCaller != 0) {
+			SAFEDELETE(pTplDriveCaller);
+		}
 	};
 
 	void Set(const TplDriveCaller<T>* pDC) {
