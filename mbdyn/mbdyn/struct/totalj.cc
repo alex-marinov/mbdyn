@@ -1402,7 +1402,7 @@ return WorkVec;
 unsigned int
 TotalJoint::iGetNumPrivData(void) const
 {
-	return 18;
+	return 21;
 }
 
 unsigned int
@@ -1440,6 +1440,11 @@ TotalJoint::iGetPrivDataIdx(const char *s) const
 	case 't':
 		/* imposed relative orientation */
 		off += 15;
+		break;
+	
+	case 'v':
+		/* relative linear velocity */
+		off += 18;
 		break;
 
 	default:
@@ -1505,6 +1510,22 @@ TotalJoint::dGetPrivData(unsigned int i) const
 			return 0.;
 		}
 		return ThetaDrv.Get()(i - 15);
+	case 19:
+	case 20:
+	case 21:
+		{
+		Vec3 v(	pNode1->GetRCurr().Transpose()*(
+			(pNode2->GetVCurr() + pNode2->GetWCurr()*(pNode2->GetRCurr()*f2)
+				- pNode1->GetVCurr()) + 
+			Mat3x3(pNode1->GetWCurr()).Transpose()* ( pNode2->GetXCurr() + 
+								pNode2->GetRCurr()*f2
+								- pNode1->GetXCurr() -f1) 
+							)
+		);
+		
+			return R1h.GetVec(i-18)*v;
+		}
+
 
 	default:
 		ASSERT(0);
