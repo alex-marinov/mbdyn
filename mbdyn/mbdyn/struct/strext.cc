@@ -58,7 +58,7 @@ ExtForce::ExtForce(unsigned int uL,
 	bool bTightCoupling,
 	flag fOut)
 : Elem(uL, fOut), 
-Force(uL, 0, fOut), 
+Force(uL, fOut), 
 fin(fin.c_str()),
 fout(fout.c_str()),
 bRemoveIn(bRemoveIn),

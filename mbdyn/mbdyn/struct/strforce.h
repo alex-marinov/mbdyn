@@ -40,7 +40,7 @@
 
 /* StructuralForce - begin */
 
-class StructuralForce : virtual public Elem, public Force {
+class StructuralForce : virtual public Elem, public Force, public DriveOwner {
  protected:
    const StructNode* pNode;
    const Vec3 Dir;
@@ -299,7 +299,7 @@ class FollowerCouple : virtual public Elem, public StructuralForce {
 
 /* StructuralInternalForce - begin */
 
-class StructuralInternalForce : virtual public Elem, public Force {
+class StructuralInternalForce : virtual public Elem, public Force, public DriveOwner {
  protected:
    const StructNode* pNode1;
    const StructNode* pNode2;
@@ -562,14 +562,6 @@ class FollowerInternalCouple : virtual public Elem, public StructuralInternalFor
 };
 
 /* FollowerInternalCouple - end */
-
-class DataManager;
-class MBDynParser;
-
-extern Elem* ReadForce(DataManager* pDM, 
-		       MBDynParser& HP, 
-		       unsigned int uLabel, 
-		       flag fCouple);
 
 #endif /* STRFORCE_H */
 

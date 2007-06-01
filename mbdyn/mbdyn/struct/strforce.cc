@@ -44,12 +44,13 @@
 
 /* Costruttore */
 StructuralForce::StructuralForce(unsigned int uL, 
-				 const StructNode* pN,
-				 const DriveCaller* pDC, 
-				 const Vec3& TmpDir,
-				 flag fOut)
+	const StructNode* pN,
+	const DriveCaller* pDC, 
+	const Vec3& TmpDir,
+	flag fOut)
 : Elem(uL, fOut), 
-Force(uL, pDC, fOut), 
+Force(uL, fOut), 
+DriveOwner(pDC),
 pNode(pN), Dir(TmpDir)
 { 
    ASSERT(pNode != NULL);
@@ -167,9 +168,11 @@ SubVectorHandler& ConservativeForce::AssRes(SubVectorHandler& WorkVec,
 void ConservativeForce::Output(OutputHandler& OH) const 
 {
    if (fToBeOutput()) {      
-      Force::Output(pNode->GetLabel(), OH.Forces())
+      OH.Forces() << GetLabel()
+        << " " << pNode->GetLabel()
+	<< " " << dGet()
 	<< " " << Dir*dGet()
-	  << " " << pNode->GetXCurr()+pNode->GetRCurr()*Arm << std::endl;
+	<< " " << pNode->GetXCurr() + pNode->GetRCurr()*Arm << std::endl;
    }
 }
 
@@ -361,9 +364,11 @@ SubVectorHandler& FollowerForce::AssRes(SubVectorHandler& WorkVec,
 void FollowerForce::Output(OutputHandler& OH) const 
 {   
    if (fToBeOutput()) {
-      Force::Output(pNode->GetLabel(), OH.Forces())
+      OH.Forces() << GetLabel()
+        << " " << pNode->GetLabel()
+	<< " " << dGet()
 	<< " " << pNode->GetRCurr()*(Dir*dGet())
-	  << " " << pNode->GetXCurr()+pNode->GetRCurr()*Arm << std::endl;
+	<< " " << pNode->GetXCurr() + pNode->GetRCurr()*Arm << std::endl;
    }
 }
 
@@ -512,7 +517,9 @@ SubVectorHandler& ConservativeCouple::AssRes(SubVectorHandler& WorkVec,
 void ConservativeCouple::Output(OutputHandler& OH) const 
 {   
    if (fToBeOutput()) {
-      Force::Output(pNode->GetLabel(), OH.Forces())
+      OH.Forces() << GetLabel()
+      	<< " " << pNode->GetLabel()
+	<< " " << dGet()
 	<< " " << Dir*dGet() << std::endl;
    }
 }
@@ -636,7 +643,9 @@ SubVectorHandler& FollowerCouple::AssRes(SubVectorHandler& WorkVec,
 void FollowerCouple::Output(OutputHandler& OH) const 
 {   
    if (fToBeOutput()) {
-      Force::Output(pNode->GetLabel(), OH.Forces())
+      OH.Forces() << GetLabel()
+      	<< " " << pNode->GetLabel()
+	<< " " << dGet()
 	<< " " << pNode->GetRCurr()*(Dir*dGet()) << std::endl;
    }
 }
@@ -723,7 +732,8 @@ StructuralInternalForce::StructuralInternalForce(unsigned int uL,
 		const DriveCaller* pDC, const Vec3& TmpDir,
 		flag fOut)
 : Elem(uL, fOut), 
-Force(uL, pDC, fOut), 
+Force(uL, fOut), 
+DriveOwner(pDC),
 pNode1(pN1), pNode2(pN2), Dir(TmpDir)
 { 
    ASSERT(pNode1 != NULL);
@@ -862,11 +872,13 @@ void
 ConservativeInternalForce::Output(OutputHandler& OH) const 
 {
    if (fToBeOutput()) {      
-      Force::Output(pNode1->GetLabel(), OH.Forces())
+      OH.Forces() << GetLabel()
+      	<< " " << pNode1->GetLabel()
+	<< " " << dGet()
 	<< " " << Dir*dGet()
-	  << " " << pNode1->GetXCurr()+pNode1->GetRCurr()*Arm1
-	  << " " << pNode2->GetXCurr()+pNode2->GetRCurr()*Arm1
-	  << std::endl;
+	<< " " << pNode1->GetXCurr() + pNode1->GetRCurr()*Arm1
+	<< " " << pNode2->GetXCurr() + pNode2->GetRCurr()*Arm1
+	<< std::endl;
    }
 }
 
@@ -1110,10 +1122,12 @@ FollowerInternalForce::AssRes(SubVectorHandler& WorkVec,
 void FollowerInternalForce::Output(OutputHandler& OH) const 
 {   
    if (fToBeOutput()) {
-      Force::Output(pNode1->GetLabel(), OH.Forces())
+      OH.Forces() << GetLabel()
+      	<< " " << pNode1->GetLabel()
+	<< " " << dGet()
 	<< " " << pNode1->GetRCurr()*(Dir*dGet())
-	<< " " << pNode1->GetXCurr()+pNode1->GetRCurr()*Arm1
-	<< " " << pNode2->GetXCurr()+pNode2->GetRCurr()*Arm2
+	<< " " << pNode1->GetXCurr() + pNode1->GetRCurr()*Arm1
+	<< " " << pNode2->GetXCurr() + pNode2->GetRCurr()*Arm2
 	<< std::endl;
    }
 }
@@ -1312,7 +1326,9 @@ void
 ConservativeInternalCouple::Output(OutputHandler& OH) const 
 {   
    if (fToBeOutput()) {
-      Force::Output(pNode1->GetLabel(), OH.Forces())
+      OH.Forces() << GetLabel()
+      	<< " " << pNode1->GetLabel()
+	<< " " << dGet()
 	<< " " << Dir*dGet() << std::endl;
    }
 }
@@ -1450,7 +1466,9 @@ void
 FollowerInternalCouple::Output(OutputHandler& OH) const 
 {   
    if (fToBeOutput()) {
-      Force::Output(pNode1->GetLabel(), OH.Forces())
+      OH.Forces() << GetLabel()
+      	<< " " << pNode1->GetLabel()
+	<< " " << dGet()
 	<< " " << pNode1->GetRCurr()*(Dir*dGet()) << std::endl;
    }
 }
