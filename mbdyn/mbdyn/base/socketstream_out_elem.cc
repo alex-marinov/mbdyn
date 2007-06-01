@@ -178,7 +178,7 @@ SocketStreamElem::SetValue(DataManager *pDM,
 {
 	if (bSendFirst) {
 #if 1
-		((SocketStreamElem*)this)->AfterConvergence(X, XP);
+		AfterConvergence(X, XP);
 #else
 		if (send(pUS->GetSock(), (void *)buf, size, send_flags) == -1) {
 			int save_errno = errno;
@@ -241,7 +241,7 @@ void
 SocketStreamElem::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP, const VectorHandler& XPP)
 {
-		((SocketStreamElem*)this)->AfterConvergence(X, XP);
+		AfterConvergence(X, XP);
 }
 
 Elem *
