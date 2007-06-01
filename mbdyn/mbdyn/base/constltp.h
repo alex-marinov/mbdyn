@@ -98,8 +98,10 @@ public:
 	virtual ConstLawType::Type GetConstLawType(void) const = 0;
 
 	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const = 0;
-	virtual std::ostream& Restart(std::ostream& out) const = 0;
-
+	virtual std::ostream& Restart(std::ostream& out) const {
+		return out;
+	};
+	
 	virtual void Update(const T& Eps, const T& EpsPrime = 0.) = 0;
 
 	/* DEPRECATED */
