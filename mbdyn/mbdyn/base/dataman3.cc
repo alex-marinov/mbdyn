@@ -504,9 +504,15 @@ DataManager::ReadControl(MBDynParser& HP,
 			DEBUGLCOUT(MYDEBUG_INPUT, "RTAI output elements: " << iDmy
 				<< std::endl);
 #ifndef USE_RTAI
-			silent_cerr("cannot use RTAI output elements "
-				"when not configured --with-rtai"
-				<< std::endl);
+			if (CurrDesc == RTAIOUTPUTELEMENTS) {
+				silent_cerr("cannot use "
+					"RTAI output elements "
+					"when not configured "
+					"--with-rtai; "
+					"using \"socket stream output\" "
+					"instead"
+					<< std::endl);
+			}
 #endif /* ! USE_RTAI */
 		} break;
 
