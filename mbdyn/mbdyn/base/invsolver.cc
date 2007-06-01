@@ -819,7 +819,11 @@ InverseSolver::Run(void)
 	
 	/* Setup SolutionManager(s) */
 	SetupSolmans(pRegularSteps->GetIntegratorNumUnknownStates(), true);
-      	
+
+	/* this is here to force AfterConvergence()
+	 * since we need to explicitly SetTime() to the next time step */
+	pDM->SetValue(*pX, *pXPrime);
+
 	while (true) {
 
 		StepIntegrator::StepChange CurrStep
