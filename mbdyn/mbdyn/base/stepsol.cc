@@ -1434,11 +1434,11 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 	/* Forces */
 	SetOrder(-1);
 	
-	ForceErr = 0.;
+	ForceErr = 1.;
 	pRes->Reset();
 	pSol->Reset();
 	Residual(pRes);
-	ForceErr = pNLSolver->MakeResTest(pS, *pRes);
+	//ForceErr = pNLSolver->MakeResTest(pS, *pRes);
 	
 	if(ForceErr > dTol) {
 		if(iLocalIter == EffIter) {
