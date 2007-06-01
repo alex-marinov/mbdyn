@@ -2748,10 +2748,8 @@ TotalPinJoint::dGetPrivData(unsigned int i) const
 
 /* TotalForce - begin */
 
-TotalForce::TotalForce(unsigned int uL, const DriveCaller *pDC,
-	bool bForce[3],
+TotalForce::TotalForce(unsigned int uL,
 	TplDriveCaller<Vec3> *const pDCForce,
-	bool bCouple[3],
 	TplDriveCaller<Vec3> *const pDCCouple,
 	const StructNode *pN1,
 	const Vec3& f1Tmp, const Mat3x3& R1hTmp, const Mat3x3& R1hrTmp,
@@ -2759,18 +2757,14 @@ TotalForce::TotalForce(unsigned int uL, const DriveCaller *pDC,
 	const Vec3& f2Tmp, const Mat3x3& R2hTmp, const Mat3x3& R2hrTmp,
 	flag fOut)
 : Elem(uL, fOut),
-Force(uL, pDC, fOut),
+Force(uL, fOut),
 pNode1(pN1), pNode2(pN2),
 f1(f1Tmp), R1h(R1hTmp), R1hr(R1hrTmp),
 f2(f2Tmp), R2h(R2hTmp), R2hr(R2hrTmp),
 FDrv(pDCForce), MDrv(pDCCouple),
 M(0.), F(0.)
 {
-	// NOTE: currently unused
-	for (unsigned i = 0; i < 3; i++) {
-		bForceActive[i] = bForce[i];
-		bCoupleActive[i] = bCouple[i];
-	}
+	NO_OP;
 }
 
 /* Output (da mettere a punto), per ora solo reazioni */
@@ -2786,8 +2780,19 @@ TotalForce::Output(OutputHandler& OH) const
 std::ostream&
 TotalForce::Restart(std::ostream& out) const
 {
-	return pGetDriveCaller()->Restart(out) << ';'      
+	Force::Restart(out) << ", total internal, " 
+		<< pNode1->GetLabel() << ", "
+		"position, ", f1.Write(out, ", ") << ", "
+		"force orientation, ", R1h.Write(out, ", ") << ", "
+		"moment orientation, ", R1hr.Write(out, ", ") << ", "
+		<< pNode2->GetLabel() << ", "
+		"position, ", f2.Write(out, ", ") << ", "
+		"force orientation, ", R2h.Write(out, ", ") << ", "
+		"moment orientation, ", R2hr.Write(out, ", ") << ", "
+		"force, ", FDrv.pGetDriveCaller()->Restart(out) << ", "
+		"moment , ", MDrv.pGetDriveCaller()->Restart(out) << ";"
 		<< std::endl;
+	return out;
 }
 
 /* Assemblaggio jacobiano */

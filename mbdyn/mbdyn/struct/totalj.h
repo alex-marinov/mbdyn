@@ -414,9 +414,6 @@ private:
 	Mat3x3 R2h;
 	Mat3x3 R2hr;
 
-	bool bForceActive[3];
-	bool bCoupleActive[3];
-	
 	TplDriveOwner<Vec3> FDrv;
 	
 	TplDriveOwner<Vec3> MDrv;
@@ -425,10 +422,8 @@ private:
 	mutable Vec3 F;
 
 public:
-	TotalForce(unsigned int uL, const DriveCaller *pDC,
-		bool bForce[3],
+	TotalForce(unsigned int uL,
 		TplDriveCaller<Vec3> *const pDCForce,
-		bool bCouple[3],
 		TplDriveCaller<Vec3> *const pDCCouple,
 		const StructNode* pN1,
 		const Vec3& f1Tmp, const Mat3x3& R1hTmp, const Mat3x3& R1hrTmp, 
