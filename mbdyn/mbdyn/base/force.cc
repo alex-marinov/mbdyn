@@ -32,33 +32,26 @@
 /* Forze */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <ac/float.h>
+#include "ac/float.h"
 
-#include <force.h>
+#include "force.h"
 #ifdef USE_STRUCT_NODES
-#include <strforce.h>
-#include <strext.h>
+#include "strforce.h"
+#include "strext.h"
+#include "totalj.h"
 #endif /* USE_STRUCT_NODES */
-#include <dataman.h>
+#include "dataman.h"
+#include "tpldrive_impl.h"
 
 /* Force - begin */
 
 std::ostream&
-Force::Output(unsigned int NodeLabel, std::ostream& out) const
-{
-   return out << std::setw(8) << GetLabel() << " "
-     << std::setw(8) << NodeLabel << " " 
-     << (pGetDriveCaller()->dGet());
-}
-
-
-std::ostream&
 Force::Restart(std::ostream& out) const
 {
-   return out << "  force: " << GetLabel();
+	return out << "  force: " << GetLabel();
 }
 
 /* Force - end */
@@ -69,12 +62,13 @@ Force::Restart(std::ostream& out) const
 /* Costruttore non banale */
 
 AbstractForce::AbstractForce(unsigned int uL, const Node* pN, 
-		const DriveCaller* pDC, flag fOut)
+	const DriveCaller* pDC, flag fOut)
 : Elem(uL, fOut),
-Force(uL, pDC, fOut),
+Force(uL, fOut),
+DriveOwner(pDC),
 pNode(pN)
 {
-   NO_OP;
+	NO_OP;
 }
 
 
@@ -82,52 +76,54 @@ pNode(pN)
 std::ostream&
 AbstractForce::Restart(std::ostream& out) const
 {
-   Force::Restart(out) << ", abstract, " 
-     << pNode->GetLabel() << ", " 
-     << psReadNodesNodes[pNode->GetNodeType()] << ", ";
-   return pGetDriveCaller()->Restart(out) << ';' << std::endl;     
+	Force::Restart(out) << ", abstract, " 
+		<< pNode->GetLabel() << ", " 
+		<< psReadNodesNodes[pNode->GetNodeType()] << ", ";
+	return pGetDriveCaller()->Restart(out) << ';' << std::endl;     
 }
 
 
 /* Assembla il residuo */
 SubVectorHandler&
 AbstractForce::AssRes(SubVectorHandler& WorkVec,
-		doublereal /* dCoef */ ,
-		const VectorHandler& /* XCurr */ ,
-		const VectorHandler& /* XPrimeCurr */ )
+	doublereal /* dCoef */ ,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering AbstractForce::AssRes()" << std::endl);
+	DEBUGCOUT("Entering AbstractForce::AssRes()" << std::endl);
 
-   WorkVec.ResizeReset(1);
+	WorkVec.ResizeReset(1);
 
-   /* Dati */   
-   doublereal dAmplitude = pGetDriveCaller()->dGet();
+	/* Dati */   
+	doublereal dAmplitude = pGetDriveCaller()->dGet();
    
-   /* Indici delle incognite del nodo */
-   integer iFirstIndex = pNode->iGetFirstRowIndex();
-   WorkVec.PutRowIndex(1, iFirstIndex+1);
+	/* Indici delle incognite del nodo */
+	integer iFirstIndex = pNode->iGetFirstRowIndex();
+	WorkVec.PutRowIndex(1, iFirstIndex+1);
 
-   WorkVec.PutCoef(1, dAmplitude);
+	WorkVec.PutCoef(1, dAmplitude);
 
-   return WorkVec;
+	return WorkVec;
 }
 
 void
 AbstractForce::Output(OutputHandler& OH) const 
 {
-   if (fToBeOutput()) {
-      Force::Output(pNode->GetLabel(), OH.Forces()) << std::endl;
-   }
+	if (fToBeOutput()) {
+		OH.Forces() << GetLabel()
+			<< " " << pNode->GetLabel()
+			<< " " << dGet() << std::endl;
+	}
 }
 
 /* Contributo al residuo durante l'assemblaggio iniziale */   
 SubVectorHandler& 
 AbstractForce::InitialAssRes(SubVectorHandler& WorkVec,
-		const VectorHandler& XCurr)
+	const VectorHandler& XCurr)
 {
-   DEBUGCOUT("Entering AbstractForce::InitialAssRes()" << std::endl);
+	DEBUGCOUT("Entering AbstractForce::InitialAssRes()" << std::endl);
 
-   return AssRes(WorkVec, 1., XCurr, XCurr);
+	return AssRes(WorkVec, 1., XCurr, XCurr);
 }
 
 /* AbstractForce - end */
@@ -138,13 +134,14 @@ AbstractForce::InitialAssRes(SubVectorHandler& WorkVec,
 /* Costruttore non banale */
 
 AbstractInternalForce::AbstractInternalForce(unsigned int uL,
-		const Node* pN1, const Node *pN2, 
-		const DriveCaller* pDC, flag fOut)
+	const Node* pN1, const Node *pN2, 
+	const DriveCaller* pDC, flag fOut)
 : Elem(uL, fOut),
-Force(uL, pDC, fOut),
+Force(uL, fOut),
+DriveOwner(pDC),
 pNode1(pN1), pNode2(pN2)
 {
-   NO_OP;
+	NO_OP;
 }
 
 
@@ -152,47 +149,49 @@ pNode1(pN1), pNode2(pN2)
 std::ostream&
 AbstractInternalForce::Restart(std::ostream& out) const
 {
-   Force::Restart(out) << ", abstract internal, " 
-     << pNode1->GetLabel() << ", " 
-     << psReadNodesNodes[pNode1->GetNodeType()] << ", "
-     << pNode1->GetLabel() << ", " 
-     << psReadNodesNodes[pNode1->GetNodeType()] << ", ";
-   return pGetDriveCaller()->Restart(out) << ';' << std::endl;     
+	Force::Restart(out) << ", abstract internal, " 
+		<< pNode1->GetLabel() << ", " 
+		<< psReadNodesNodes[pNode1->GetNodeType()] << ", "
+		<< pNode1->GetLabel() << ", " 
+		<< psReadNodesNodes[pNode1->GetNodeType()] << ", ";
+	return pGetDriveCaller()->Restart(out) << ';' << std::endl;     
 }
 
 
 /* Assembla il residuo */
 SubVectorHandler&
 AbstractInternalForce::AssRes(SubVectorHandler& WorkVec,
-		doublereal /* dCoef */ ,
-		const VectorHandler& /* XCurr */ ,
-		const VectorHandler& /* XPrimeCurr */ )
+	doublereal /* dCoef */ ,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering AbstractInternalForce::AssRes()" << std::endl);
+	DEBUGCOUT("Entering AbstractInternalForce::AssRes()" << std::endl);
 
-   WorkVec.ResizeReset(2);
+	WorkVec.ResizeReset(2);
 
-   /* Dati */   
-   doublereal dAmplitude = pGetDriveCaller()->dGet();
+	/* Dati */   
+	doublereal dAmplitude = pGetDriveCaller()->dGet();
    
-   /* Indici delle incognite del nodo */
-   integer iFirstIndex1 = pNode1->iGetFirstRowIndex();
-   integer iFirstIndex2 = pNode2->iGetFirstRowIndex();
-   WorkVec.PutRowIndex(1, iFirstIndex1+1);
-   WorkVec.PutRowIndex(2, iFirstIndex2+1);
+	/* Indici delle incognite del nodo */
+	integer iFirstIndex1 = pNode1->iGetFirstRowIndex();
+	integer iFirstIndex2 = pNode2->iGetFirstRowIndex();
+	WorkVec.PutRowIndex(1, iFirstIndex1+1);
+	WorkVec.PutRowIndex(2, iFirstIndex2+1);
 
-   WorkVec.PutCoef(1, dAmplitude);
-   WorkVec.PutCoef(2, -dAmplitude);
+	WorkVec.PutCoef(1, dAmplitude);
+	WorkVec.PutCoef(2, -dAmplitude);
 
-   return WorkVec;
+	return WorkVec;
 }
 
 void
 AbstractInternalForce::Output(OutputHandler& OH) const 
 {
-   if (fToBeOutput()) {
-      Force::Output(pNode1->GetLabel(), OH.Forces()) << std::endl;
-   }
+	if (fToBeOutput()) {
+		OH.Forces() << GetLabel()
+			<< " " << pNode1->GetLabel()
+			<< " " << dGet() << std::endl;
+	}
 }
 
 /* Contributo al residuo durante l'assemblaggio iniziale */   
@@ -200,9 +199,9 @@ SubVectorHandler&
 AbstractInternalForce::InitialAssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& XCurr)
 {
-   DEBUGCOUT("Entering AbstractInternalForce::InitialAssRes()" << std::endl);
+	DEBUGCOUT("Entering AbstractInternalForce::InitialAssRes()" << std::endl);
 
-   return AssRes(WorkVec, 1., XCurr, XCurr);
+	return AssRes(WorkVec, 1., XCurr, XCurr);
 }
 
 /* AbstractInternalForce - end */
@@ -211,9 +210,9 @@ AbstractInternalForce::InitialAssRes(SubVectorHandler& WorkVec,
 /* Legge una forza */
 
 Elem* ReadForce(DataManager* pDM, 
-		MBDynParser& HP, 
-		unsigned int uLabel, 
-		flag fCouple)
+	MBDynParser& HP, 
+	unsigned int uLabel, 
+	flag fCouple)
 {
 	const char sFuncName[] = "ReadForce()";
 	DEBUGCOUT("Entering " << sFuncName << std::endl);
@@ -227,6 +226,9 @@ Elem* ReadForce(DataManager* pDM,
 		"conservative" "internal",	// deprecated
 		"absolute" "internal",
 		"follower" "internal",
+
+		"total",
+		"total" "internal",
 
 		"external" "structural",
 #endif /* USE_STRUCT_NODES */
@@ -251,6 +253,9 @@ Elem* ReadForce(DataManager* pDM,
 		CONSERVATIVEINTERNAL,		// deprecated
 		ABSOLUTEINTERNAL,
 		FOLLOWERINTERNAL,
+
+		TOTAL,
+		TOTALINTERNAL,
 
 		EXTERNALSTRUCTURAL,
 #endif /* USE_STRUCT_NODES */
@@ -281,6 +286,10 @@ Elem* ReadForce(DataManager* pDM,
 	case CONSERVATIVEINTERNAL:
 	case ABSOLUTEINTERNAL:
 	case FOLLOWERINTERNAL:
+#if 0	/* not implemented yet */
+	case TOTAL:
+#endif
+	case TOTALINTERNAL:
 		break;
 
 	default:
@@ -504,6 +513,86 @@ Elem* ReadForce(DataManager* pDM,
 				ASSERT(0);
 			}
 		}
+		} break;
+
+#if 0	/* not implemented yet */
+	case TOTAL:
+#endif
+	case TOTALINTERNAL: {
+		/* nodo collegato 1 */
+		StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+		ReferenceFrame RF(pNode1);
+
+		Vec3 f1(0.);
+		if (HP.IsKeyWord("position")) {
+			f1 = HP.GetPosRel(ReferenceFrame(pNode1));
+		}
+
+		Mat3x3 R1h(Eye3);
+		if (HP.IsKeyWord("force" "orientation")) {
+			DEBUGCOUT("Force orientation matrix is supplied" << std::endl);
+			R1h = HP.GetRotRel(RF);
+		}
+
+		Mat3x3 R1hr(Eye3);
+		if (HP.IsKeyWord("moment" "orientation")) {
+			DEBUGCOUT("Moment orientation matrix is supplied" << std::endl);
+			R1hr = HP.GetRotRel(RF);
+		}
+
+		/* nodo collegato 2 */
+		StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+		RF = ReferenceFrame(pNode2);
+
+		Vec3 f2(0.);
+		if (HP.IsKeyWord("position")) {
+			f2 = HP.GetPosRel(ReferenceFrame(pNode2));
+		}
+
+		Mat3x3 R2h(Eye3);
+		if (HP.IsKeyWord("force" "orientation")) {
+			DEBUGCOUT("Force orientation matrix is supplied" << std::endl);
+			R2h = HP.GetRotRel(RF);
+		}
+
+		Mat3x3 R2hr(Eye3);
+		if (HP.IsKeyWord("moment" "orientation")) {
+			DEBUGCOUT("Moment orientation matrix is supplied" << std::endl);
+			R2hr = HP.GetRotRel(RF);
+		}
+
+		TplDriveCaller<Vec3>* pFDC = 0;
+		if (HP.IsKeyWord("force")) {
+			if (!HP.IsKeyWord("null")) {
+				pFDC = ReadDC3D(pDM, HP);
+			}
+		}
+
+		if (pFDC == 0) {
+			SAFENEW(pFDC, ZeroTplDriveCaller<Vec3>);
+		}
+
+		TplDriveCaller<Vec3>* pMDC = 0;
+		if (HP.IsKeyWord("moment")) {
+			if (!HP.IsKeyWord("null")) {
+				pMDC = ReadDC3D(pDM, HP);
+			}
+		}
+
+		if (pMDC == 0) {
+			SAFENEW(pMDC, ZeroTplDriveCaller<Vec3>);
+		}
+
+		flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			TotalForce,
+			TotalForce(uLabel,
+				pFDC,
+				pMDC,
+				pNode1, f1, R1h, R1hr,
+				pNode2, f2, R2h, R2hr,
+				fOut));
 		} break;
 #endif /* USE_STRUCT_NODES */
 

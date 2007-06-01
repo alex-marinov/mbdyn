@@ -45,85 +45,82 @@ extern const char* psForceNames[];
 /* Force - begin */
 
 class Force 
-: virtual public Elem, public InitialAssemblyElem, public DriveOwner {
- public:
-   /* Tipi di Force */
-   enum Type {
-      UNKNOWN = -1,
-	ABSTRACTFORCE = 0,
-	ABSTRACTINTERNALFORCE,
+: virtual public Elem, public InitialAssemblyElem {
+public:
+	/* Tipi di Force */
+	enum Type {
+		UNKNOWN = -1,
+		ABSTRACTFORCE = 0,
+		ABSTRACTINTERNALFORCE,
 
-	// in mbdyn/struct/strforce.{h,cc}
-	CONSERVATIVEFORCE,
-	FOLLOWERFORCE,
-	CONSERVATIVECOUPLE,
-	FOLLOWERCOUPLE,
+		// in mbdyn/struct/strforce.{h,cc}
+		CONSERVATIVEFORCE,
+		FOLLOWERFORCE,
+		CONSERVATIVECOUPLE,
+		FOLLOWERCOUPLE,
 	
-	CONSERVATIVEINTERNALFORCE,
-	FOLLOWERINTERNALFORCE,
-	CONSERVATIVEINTERNALCOUPLE,
-	FOLLOWERINTERNALCOUPLE,
+		CONSERVATIVEINTERNALFORCE,
+		FOLLOWERINTERNALFORCE,
+		CONSERVATIVEINTERNALCOUPLE,
+		FOLLOWERINTERNALCOUPLE,
 	
-	// in mbdyn/struct/totalj.{h,cc}
-	TOTALFORCE,
-	TOTALINTERNALFORCE,
+		// in mbdyn/struct/totalj.{h,cc}
+		TOTALFORCE,
+		TOTALINTERNALFORCE,
 
-	// in mbdyn/struct/strext.{h,cc}
-	EXTERNALFORCE,
+		// in mbdyn/struct/strext.{h,cc}
+		EXTERNALFORCE,
 	
-	LASTFORCETYPE
-   };
+		LASTFORCETYPE
+	};
 
- public:
-   /* Costruttore banale */
-   Force(unsigned int uL,
-	 const DriveCaller* pDC, flag fOut)
-     : Elem(uL, fOut), 
-     InitialAssemblyElem(uL, fOut), 
-     DriveOwner(pDC) { 
-	NO_OP; 
-     };
+public:
+	/* Costruttore banale */
+	Force(unsigned int uL, flag fOut)
+	: Elem(uL, fOut), 
+	InitialAssemblyElem(uL, fOut)
+	{ 
+		NO_OP; 
+	};
       
-   virtual ~Force(void) { 
-      NO_OP; 
-   };
+	virtual ~Force(void) { 
+		NO_OP; 
+	};
          
-   /* Tipo dell'elemento (usato per debug ecc.) */
-   virtual Elem::Type GetElemType(void) const { 
-      return Elem::FORCE; 
-   };   
+	/* Tipo dell'elemento (usato per debug ecc.) */
+	virtual Elem::Type GetElemType(void) const { 
+		return Elem::FORCE; 
+	};   
    
-   /* Tipo di forza */
-   virtual Force::Type GetForceType(void) const = 0;
+	/* Tipo di forza */
+	virtual Force::Type GetForceType(void) const = 0;
    
-   virtual VariableSubMatrixHandler& 
-     AssJac(VariableSubMatrixHandler& WorkMat,
-	    doublereal /* dCoef */ ,
-	    const VectorHandler& /* XCurr */ , 
-	    const VectorHandler& /* XPrimeCurr */ ) {
-	DEBUGCOUT("Entering Force::AssJac()" << std::endl);
+	virtual VariableSubMatrixHandler& 
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		doublereal /* dCoef */ ,
+		const VectorHandler& /* XCurr */ , 
+		const VectorHandler& /* XPrimeCurr */ )
+	{
+		DEBUGCOUT("Entering Force::AssJac()" << std::endl);
 	
-	WorkMat.SetNullMatrix();
-	return WorkMat;
-     };
+		WorkMat.SetNullMatrix();
+		return WorkMat;
+	};
 
-   /* Output comune a tutti i tipi di forza;
-    * scrive su file il valore del drive (temporaneo) */
-   std::ostream& Output(unsigned int NodeLabel, std::ostream& out) const;
-   
-   virtual std::ostream& Restart(std::ostream& out) const;
+	virtual std::ostream& Restart(std::ostream& out) const;
 
-   virtual unsigned int iGetInitialNumDof(void) const { 
-      return 0;
-   };
+	virtual unsigned int iGetInitialNumDof(void) const { 
+		return 0;
+	};
 
-   /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-   virtual VariableSubMatrixHandler& 
-     InitialAssJac(VariableSubMatrixHandler& WorkMat,
-		   const VectorHandler& /* XCurr */ ) {
-	WorkMat.SetNullMatrix();
-	return WorkMat;
-     };
+	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+	virtual VariableSubMatrixHandler& 
+	InitialAssJac(VariableSubMatrixHandler& WorkMat,
+		const VectorHandler& /* XCurr */ )
+	{
+		WorkMat.SetNullMatrix();
+		return WorkMat;
+	};
 };
 
 /* Force - end */
@@ -131,58 +128,60 @@ class Force
 
 /* AbstractForce - begin */
 
-class AbstractForce : virtual public Elem, public Force {
- protected:
-   const Node* pNode;
+class AbstractForce : virtual public Elem, public Force, public DriveOwner {
+protected:
+	const Node* pNode;
    
- public:
-   /* Costruttore banale */
-   AbstractForce(unsigned int uL, const Node* pN, 
-		 const DriveCaller* pDC, flag fOut);
+public:
+	/* Costruttore banale */
+	AbstractForce(unsigned int uL, const Node* pN, 
+		const DriveCaller* pDC, flag fOut);
       
-   virtual ~AbstractForce(void) { 
-      NO_OP;
-   };
+	virtual ~AbstractForce(void) { 
+		NO_OP;
+	};
    
-   /* Tipo di forza */
-   virtual Force::Type GetForceType(void) const { 
-      return Force::ABSTRACTFORCE;
-   };
+	/* Tipo di forza */
+	virtual Force::Type GetForceType(void) const { 
+		return Force::ABSTRACTFORCE;
+	};
 
-   /* Contributo al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const;
+	/* Contributo al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
 
-   void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-      *piNumRows = 1; 
-      *piNumCols = 1; 
-   };
+	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+		*piNumRows = 1; 
+		*piNumCols = 1; 
+	};
 
-   /* Contributo al residuo */
-   SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
-			    doublereal dCoef,
-			    const VectorHandler& XCurr, 
-			    const VectorHandler& XPrimeCurr);
+	/* Contributo al residuo */
+	SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr);
 
-   virtual void Output(OutputHandler& OH) const;
+	virtual void Output(OutputHandler& OH) const;
    
-   virtual void InitialWorkSpaceDim(integer* piNumRows, 
-				    integer* piNumCols) const {
-      *piNumRows = 1;
-      *piNumCols = 1;
-   };
+	virtual void
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+	{
+		*piNumRows = 1;
+		*piNumCols = 1;
+	};
 
-   /* Contributo al residuo nell'assemblaggio iniziale */
-   SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
-				   const VectorHandler& XCurr);
+	/* Contributo al residuo nell'assemblaggio iniziale */
+	SubVectorHandler&
+	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
 
-   /* *******PER IL SOLUTORE PARALLELO******** */        
-   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-      utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
-     connectedNodes.resize(1);
-     connectedNodes[0] = pNode;
-   };
-   /* ************************************************ */
+	/* *******PER IL SOLUTORE PARALLELO******** */        
+	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
+	virtual void
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+		connectedNodes.resize(1);
+		connectedNodes[0] = pNode;
+	};
+	/* ************************************************ */
 };
 
 /* AbstractForce - end */
@@ -190,60 +189,63 @@ class AbstractForce : virtual public Elem, public Force {
 
 /* AbstractInternalForce - begin */
 
-class AbstractInternalForce : virtual public Elem, public Force {
- protected:
-   const Node* pNode1;
-   const Node* pNode2;
+class AbstractInternalForce : virtual public Elem, public Force, public DriveOwner {
+protected:
+	const Node* pNode1;
+	const Node* pNode2;
    
- public:
-   /* Costruttore banale */
-   AbstractInternalForce(unsigned int uL, const Node* pN1, const Node* pN2, 
-		 const DriveCaller* pDC, flag fOut);
+public:
+	/* Costruttore banale */
+	AbstractInternalForce(unsigned int uL, const Node* pN1, const Node* pN2, 
+		const DriveCaller* pDC, flag fOut);
       
-   virtual ~AbstractInternalForce(void) { 
-      NO_OP;
-   };
+	virtual ~AbstractInternalForce(void) { 
+		NO_OP;
+	};
    
-   /* Tipo di forza */
-   virtual Force::Type GetForceType(void) const { 
-      return Force::ABSTRACTINTERNALFORCE;
-   };
+	/* Tipo di forza */
+	virtual Force::Type GetForceType(void) const { 
+		return Force::ABSTRACTINTERNALFORCE;
+	};
 
-   /* Contributo al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const;
+	/* Contributo al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
 
-   void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-      *piNumRows = 2; 
-      *piNumCols = 2; 
-   };
+	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+		*piNumRows = 2; 
+		*piNumCols = 2; 
+	};
 
-   /* Contributo al residuo */
-   SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
-			    doublereal dCoef,
-			    const VectorHandler& XCurr, 
-			    const VectorHandler& XPrimeCurr);
+	/* Contributo al residuo */
+	SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr);
 
-   virtual void Output(OutputHandler& OH) const;
+	virtual void Output(OutputHandler& OH) const;
    
-   virtual void InitialWorkSpaceDim(integer* piNumRows, 
-				    integer* piNumCols) const {
-      *piNumRows = 2;
-      *piNumCols = 2;
-   };
+	virtual void
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+	{
+		*piNumRows = 2;
+		*piNumCols = 2;
+	};
 
-   /* Contributo al residuo nell'assemblaggio iniziale */
-   SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
-				   const VectorHandler& XCurr);
+	/* Contributo al residuo nell'assemblaggio iniziale */
+	SubVectorHandler&
+	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
 
-   /* *******PER IL SOLUTORE PARALLELO******** */        
-   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-      utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
-     connectedNodes.resize(2);
-     connectedNodes[0] = pNode1;
-     connectedNodes[1] = pNode2;
-   };
-   /* ************************************************ */
+	/* *******PER IL SOLUTORE PARALLELO******** */        
+	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
+	virtual void
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+		connectedNodes.resize(2);
+		connectedNodes[0] = pNode1;
+		connectedNodes[1] = pNode2;
+	};
+	/* ************************************************ */
 };
 
 /* AbstractInternalForce - end */
