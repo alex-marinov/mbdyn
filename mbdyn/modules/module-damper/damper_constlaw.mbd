@@ -1,0 +1,142 @@
+begin: data;
+	integrator: multistep;
+end: data;
+
+begin: multistep;
+	initial time: 0.;
+	final time: 246725E-3;
+	time step: 1e-3;
+
+	method: ms, .6;
+	
+	linear solver: naive, colamd, pivot factor, 1.E-8;
+	nonlinear solver: newton raphson, modified, 4;
+	max iterations: 100;
+
+	#output: iterations;
+	#abort after: assembly;
+	#output: jacobian;
+end: multistep;
+
+begin: control data;
+	structural nodes: 2;
+	joints: 3
+		+1;
+	file drivers: 2;
+	rigid bodies: 1;
+	#forces: 1;
+end: control data;
+
+begin: nodes;
+	structural: 1, static,
+		-10., 0., 0.,
+		eye,
+		null,
+		null;
+	structural: 2, dynamic,
+		0.-8.7930154447233740e-03, 0., 0.,
+		eye,
+		null,
+		null;
+end: nodes;
+
+# Hint: make a symlink to the appropriate file...
+# module load: "./module-constlaw.so";
+# ... or get it where it's supposed to be...
+# module load: "../../../modules/module-constlaw.so";
+# ... or rely on default path for installed modules
+module load: "module-damper";
+
+begin: drivers;
+file: 1, fixed step, 
+	246725, 3, 0., 1.E-3, 
+	"./ATP1s.dat";
+
+file: 2, fixed step, 
+	246725, 3, 0., 1.E-3, 
+	#"./ATP1f.dat";
+	#con forza iniziale nulla
+	"./ATP1f_null.dat";
+
+end: drivers;
+
+begin: elements;
+	joint: 1, clamp, 1, node, node;
+	joint: 2, prismatic,
+		1,
+		2;
+	joint: 3, imposed displacement pin,
+		2, null, null, 1., 0., 0.,
+		file, 1, 2;
+	joint: 4, rod,
+		1, 2, 
+			10.-8.7930154447233740e-03,
+#			linear elastic, 1
+			damper,
+   scale_eps, 10.-8.7930154447233740e-03,
+   scale_f, 10.,
+   
+   1.0000000000000000e+00,
+   2.0000000000000000e+00,
+   2.0000000000000000e+00,
+   2.0000000000000000e+00,
+   2.0000000000000000e+00,
+   1.0000000000000000e+02,
+   1.0000000000000000e+02,
+   2.0000000000000000e+00,
+   2.0000000000000000e+00,
+   2.0000000000000000e+00,
+   2.0000000000000000e+00,
+   2.0000000000000000e+00,
+   2.0000000000000000e+00,
+   2.0000000000000000e+00,
+   2.0000000000000000e+00,
+   2.0000000000000000e+00,
+   8.0000000000000000e+00,
+   8.0000000000000000e+00,
+   1.6000000000000000e+01,
+   2.0000000000000000e+00,
+   2.0000000000000000e+00,
+   2.0000000000000000e+00,
+   2.0000000000000000e+00,
+   0.0000000000000000e+00,   2.0000000000000000e+00,
+   0.0000000000000000e+00,   2.0000000000000000e+00,
+   0.0000000000000000e+00,   1.0000000000000000e+02,
+   0.0000000000000000e+00,   1.0000000000000000e+02,
+   0.0000000000000000e+00,   2.0000000000000000e+00,
+   0.0000000000000000e+00,   2.0000000000000000e+00,
+   0.0000000000000000e+00,   1.0000000000000000e+02,
+   0.0000000000000000e+00,   1.0000000000000000e+02,
+
+   3.9325593496034493e+01,
+   4.1574166173916943e+01,
+   7.6161175247953480e+01,
+   4.6841847998945902e+01,
+   3.5636537662492159e+01,
+   1.7200151651226797e+01,
+   3.8312802337793102e+01,
+   2.6735415322924272e+01,
+   1.3059591630265446e+01,
+   3.7537997038842938e+01,
+   8.2051470935472413e+00,
+   8.6781014235895796e+01,
+   1.0001648049803634e-02,
+   1.0001648049803634e-02,
+   1.0001648049803634e-02,
+   1.0001648049803634e-02,
+   7.4116131033836252e+00,
+   9.9983179417674709e-03,
+   3.1577815073527045e+01,
+   1.8675569367101783e+00
+
+;
+
+
+
+	body: 2, 2,
+		.1,
+		null,
+		eye;
+#	force: 1, absolute, 2, 1.,0.,0., null, file, 1, 2;
+end: elements;
+
