@@ -1,0 +1,3 @@
+## $Header$
+MODULE_DEPENDENCIES=
+MODULE_LINK=-lgsl

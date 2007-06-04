@@ -45,7 +45,7 @@ end: nodes;
 # ... or get it where it's supposed to be...
 # module load: "../../../modules/module-constlaw.so";
 # ... or rely on default path for installed modules
-module load: "module-damper";
+module load: "./module-damper.so";
 
 begin: drivers;
 file: 1, fixed step, 
