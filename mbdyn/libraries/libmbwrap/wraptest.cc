@@ -302,8 +302,29 @@ void SetupSystem(
 
 static inline unsigned long long rd_CPU_ts(void)
 {
+	// See <http://www-unix.mcs.anl.gov/~kazutomo/rdtsc.html>
 	unsigned long long time;
+#if defined(__i386__)
 	__asm__ __volatile__( "rdtsc" : "=A" (time));
+#elif defined(__x86_64__)
+	unsigned hi, lo;
+	__asm__ __volatile__ ("rdtsc" : "=a"(lo), "=d"(hi));
+	time = ( (unsigned long long)lo)|( ((unsigned long long)hi)<<32 );
+#elif defined(__powerpc__)
+	unsigned long int upper, lower, tmp;
+	__asm__ volatile(
+		"0:                  \n"
+		"\tmftbu   %0           \n"
+		"\tmftb    %1           \n"
+		"\tmftbu   %2           \n"
+		"\tcmpw    %2,%0        \n"
+		"\tbne     0b         \n"
+		: "=r"(upper),"=r"(lower),"=r"(tmp)
+	);
+	time = upper;
+	time = result<<32;
+	time = result|lower;
+#endif
 	return time;
 }
 

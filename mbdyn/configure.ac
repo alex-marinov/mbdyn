@@ -2058,6 +2058,8 @@ AC_CHECK_FUNCS([ \
 	atoi \
 	atol \
 	chdir \
+	copysign \
+	finite \
 	getcwd \
 	get_ncpus \
 	get_nprocs \
