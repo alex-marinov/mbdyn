@@ -276,11 +276,13 @@ public:
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
 	virtual void
 	GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
-		connectedNodes.resize(NStrNodes + 1);
+		connectedNodes.resize(NStrNodes + (pModalNode ? 1 : 0));
 		for (unsigned int j = 0; j < NStrNodes; j++) {
 			connectedNodes[j] = pInterfaceNodes[j];
 		}
-		connectedNodes[NStrNodes] = pModalNode;
+		if (pModalNode) {
+			connectedNodes[NStrNodes] = pModalNode;
+		}
 	};
 	/* ************************************************ */
 };
