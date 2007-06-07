@@ -107,7 +107,7 @@ int main( int argc, char **argv ){
 	matrix INPUT, OUTPUT, SF_INPUT, SF_OUTPUT , MAT;
 	double mean, var, min, max;
 	int N_input, N_output, N_layer, r, N_sample;
-	int *N_neuron;
+	int *N_neuron = NULL;
 	double doub;
 	int in;
 	unsigned i;
@@ -141,7 +141,7 @@ int main( int argc, char **argv ){
                                 break;
                 default:        break;
                 }
-        }while( opt >= 0  );
+        } while (opt >= 0);
 
 	/* initialize random seed: */
   	srand ( time(NULL) );
@@ -185,8 +185,9 @@ int main( int argc, char **argv ){
 
         fprintf( fh, "%d\n", r );
 
-	if( !(N_neuron = (int *)malloc( (N_layer+2) * sizeof(int) ) ) ){
-                        return 1;
+	N_neuron = (int *)malloc( (N_layer+2) * sizeof(int) );
+	if (N_neuron) {
+		return 1;
         }
         N_neuron[0] = 0;
 
