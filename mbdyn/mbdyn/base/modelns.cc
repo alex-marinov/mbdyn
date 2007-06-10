@@ -629,7 +629,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
 	f->args[3] = new MathArgDM;
-	f->f = distance<NORM>;
+	f->f = anglerel<NORM>;
 	f->t = 0;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
@@ -647,7 +647,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
 	f->args[3] = new MathArgDM;
-	f->f = distance<IDX1>;
+	f->f = anglerel<IDX1>;
 	f->t = 0;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
@@ -665,7 +665,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
 	f->args[3] = new MathArgDM;
-	f->f = distance<IDX2>;
+	f->f = anglerel<IDX2>;
 	f->t = 0;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
@@ -683,7 +683,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
 	f->args[3] = new MathArgDM;
-	f->f = distance<IDX3>;
+	f->f = anglerel<IDX3>;
 	f->t = 0;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
