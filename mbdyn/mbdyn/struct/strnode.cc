@@ -1014,7 +1014,7 @@ StructNode::BeforePredict(VectorHandler& X,
 	/* Calcolo g al passo precedente attraverso la matrice RDelta riferita
 	 * a tutto il passo. Siccome RDelta e' calcolata all'indietro,
 	 * i parametri sono gia' con il segno corretto */
-	Vec3 gPrev = gparam(RDelta);
+	Vec3 gPrev = MatR2gparam(RDelta);
 	XPr.Put(iFirstPos+4, gPrev);
 
 	/* Calcolo gP al passo precedente attraverso la definizione
@@ -1113,7 +1113,7 @@ StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 		 * che danno una predizione pari alla variazione
 		 * di R0 piu' l'incremento relativo, e le derivate
 		 * dei parametri corrispondenti */
-		gRef = gparam(R0*RDelta*(pRefNode->GetRPrev()).Transpose());
+		gRef = MatR2gparam(R0*RDelta*(pRefNode->GetRPrev()).Transpose());
 		gPRef = Mat3x3(MatGm1, gRef)*WCurr;
 
 		/* to be safe, the correct values are put back
@@ -1927,8 +1927,9 @@ ModalNode::Update(const VectorHandler& X, const VectorHandler& XP)
 DummyStructNode::DummyStructNode(unsigned int uL,
 	const DofOwner* pDO,
 	const StructNode* pN,
-	OrientationDescription ood)
-: StructNode(uL, pDO, 0., 0., 0., 0., 0, 0., 0., 0, ood, flag(1)), pNode(pN)
+	OrientationDescription ood,
+	flag fOut)
+: StructNode(uL, pDO, 0., 0., 0., 0., 0, 0., 0., 0, ood, fOut), pNode(pN)
 {
 	ASSERT(pNode != NULL);
 }
@@ -2049,8 +2050,9 @@ OffsetDummyStructNode::OffsetDummyStructNode(unsigned int uL,
 	const StructNode* pN,
 	const Vec3& f,
 	const Mat3x3& R,
-	OrientationDescription ood)
-: DummyStructNode(uL, pDO, pN, ood), f(f), R(R)
+	OrientationDescription ood,
+	flag fOut)
+: DummyStructNode(uL, pDO, pN, ood, fOut), f(f), R(R)
 {
 	/* forzo la ricostruzione del nodo strutturale sottostante */
 	Update_int();
@@ -2104,8 +2106,9 @@ RelFrameDummyStructNode::RelFrameDummyStructNode(unsigned int uL,
 	const StructNode* pNR,
 	const Vec3& fh,
 	const Mat3x3& Rh,
-	OrientationDescription ood)
-: DummyStructNode(uL, pDO, pN, ood),
+	OrientationDescription ood,
+	flag fOut)
+: DummyStructNode(uL, pDO, pN, ood, fOut),
 pNodeRef(pNR),
 RhT(Rh.Transpose()),
 fhT(RhT*fh)
@@ -2193,8 +2196,9 @@ PivotRelFrameDummyStructNode::PivotRelFrameDummyStructNode(unsigned int uL,
 	const StructNode* pNR2,
 	const Vec3& fh2,
 	const Mat3x3& Rh2,
-	OrientationDescription ood)
-: RelFrameDummyStructNode(uL, pDO, pN, pNR, fh, Rh, ood),
+	OrientationDescription ood,
+	flag fOut)
+: RelFrameDummyStructNode(uL, pDO, pN, pNR, fh, Rh, ood, fOut),
 pNodeRef2(pNR2), Rh2(Rh2), fh2(fh2)
 {
 	ASSERT(pNodeRef2 != NULL);
@@ -2366,10 +2370,11 @@ ReadStructNode(DataManager* pDM,
 
 			od = ReadNodeOrientationDescription(pDM, HP);
 
+			flag fOut = pDM->fReadOutput(HP, Node::STRUCTURAL);
 			SAFENEWWITHCONSTRUCTOR(pNd,
 				OffsetDummyStructNode,
 				OffsetDummyStructNode(uLabel, pDO, pNode,
-					f, R, od));
+					f, R, od, fOut));
 		} break;
 
 		case RELATIVEFRAME: {
@@ -2403,19 +2408,20 @@ ReadStructNode(DataManager* pDM,
 			}
 
 			od = ReadNodeOrientationDescription(pDM, HP);
+			flag fOut = pDM->fReadOutput(HP, Node::STRUCTURAL);
 
 			if (pNodeRef2) {
 				SAFENEWWITHCONSTRUCTOR(pNd,
 					PivotRelFrameDummyStructNode,
 					PivotRelFrameDummyStructNode(uLabel, pDO,
 						pNode, pNodeRef, fh, Rh,
-						pNodeRef2, fh2, Rh2, od));
+						pNodeRef2, fh2, Rh2, od, fOut));
 
 			} else {
 				SAFENEWWITHCONSTRUCTOR(pNd,
 					RelFrameDummyStructNode,
 					RelFrameDummyStructNode(uLabel, pDO,
-						pNode, pNodeRef, fh, Rh, od));
+						pNode, pNodeRef, fh, Rh, od, fOut));
 			}
 		} break;
 

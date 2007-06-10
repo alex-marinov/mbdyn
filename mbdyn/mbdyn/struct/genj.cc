@@ -1613,7 +1613,7 @@ SubVectorHandler& ClampJoint::AssRes(SubVectorHandler& WorkVec,
    Vec3 x(pNode->GetXCurr());
    Mat3x3 R(pNode->GetRCurr());
    /* Nota: si sfrutta il fatto che g(R^T) = -g(R) per avere -g(R_Delta) */
-   Vec3 g(gparam(RClamp*R.Transpose()));
+   Vec3 g(MatR2gparam(RClamp*R.Transpose()));
    
 
    /* Residuo della riga di equilibrio */
@@ -1657,7 +1657,7 @@ SubVectorHandler& ClampJoint::AssRes(SubVectorHandler& WorkVec,
    		Vec3 x(pNode->GetXCurr());
    		Mat3x3 R(pNode->GetRCurr());
    		/* Nota: si sfrutta il fatto che g(R^T) = -g(R) per avere -g(R_Delta) */
-   		Vec3 g(gparam(RClamp*R.Transpose()));
+   		Vec3 g(MatR2gparam(RClamp*R.Transpose()));
       		/* Residuo dell'equazione di vincolo */
       		WorkVec.Add(1, XClamp-x);
       		WorkVec.Add(3, g);   
@@ -1775,7 +1775,7 @@ ClampJoint::InitialAssRes(SubVectorHandler& WorkVec,
    /* Parametri di rotazione; 
     * si sfrutta il fatto che g(R_Delta^T) = -g(R_Delta) */
    Mat3x3 R(pNode->GetRCurr());
-   WorkVec.Put(16, gparam(RClamp*R.Transpose()));
+   WorkVec.Put(16, MatR2gparam(RClamp*R.Transpose()));
    
    /* Velocita' */
    WorkVec.Put(19, -pNode->GetVCurr());

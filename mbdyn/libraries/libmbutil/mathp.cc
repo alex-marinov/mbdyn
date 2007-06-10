@@ -2318,6 +2318,9 @@ start_parsing:;
 
 	if (c == ONE_LINE_REMARK) {
 		for (c = in->get(); c != '\n'; c = in->get()) {
+			/* a trailing '\' continues the one-line remark
+			 * on the following line
+			 * FIXME: are we sure we want this? */
 			if (c == '\\') {
 				c = in->get();
 				if (c == '\r') {

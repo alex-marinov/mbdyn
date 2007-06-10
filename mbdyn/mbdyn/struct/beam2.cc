@@ -304,7 +304,7 @@ Beam2::Omega0(void)
 	 * Calcolo i parametri di rotazione della rotazione relativa
 	 * tra inizio e fine e li dimezzo nell'ipotesi che siano limitati
 	 */
-	Vec3 gTmp(gparam(RNod[NODE2].Transpose()*RNod[NODE1]));
+	Vec3 gTmp(MatR2gparam(RNod[NODE2].Transpose()*RNod[NODE1]));
 	
 	/*
 	 * Le derivate dei parametri di rotazione si ricavano da omega
@@ -1423,7 +1423,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	/* Se necessario, interpola i parametri di rotazione delle sezioni */
 	if (f) {
 		Mat3x3 RR2 = R2*Rn2;
-		Vec3 g(gparam(RR2.Transpose()*(R1*Rn1))*.5);
+		Vec3 g(MatR2gparam(RR2.Transpose()*(R1*Rn1))*.5);
 		R = RR2*Mat3x3(MatR, g);
 	}
 	

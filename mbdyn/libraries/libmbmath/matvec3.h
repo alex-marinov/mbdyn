@@ -35,12 +35,12 @@
 #ifndef MATVEC3_H
 #define MATVEC3_H
 
-#include <ac/iostream>
-#include <ac/f2c.h>
+#include "ac/iostream"
+#include "ac/f2c.h"
 
-#include <myassert.h>
-#include <except.h>
-#include <solman.h>
+#include "myassert.h"
+#include "except.h"
+#include "solman.h"
 
 enum {
    V1 = 0,
@@ -1272,7 +1272,7 @@ enum OrientationDescription {
  Nota: i parametri devono essere definiti, ovvero R non deve rappresentare 
  una rotazione a cui corrispondono parametri singolari.
  */
-extern Vec3 gparam(const Mat3x3& R);
+extern Vec3 MatR2gparam(const Mat3x3& R);
    
 /*
  Calcola la matrice di rotazione a partire da due vettori sghembi. 

@@ -470,8 +470,8 @@ Beam::Omega0(void)
     /* Calcolo i parametri di rotazione dei nodi di estremo rispetto a quello 
      * centrale, nell'ipotesi (realistica) che siano limitati */
     Mat3x3 RTmp(RNod[NODE2].Transpose());
-    Vec3 g1(gparam(RTmp*RNod[NODE1]));
-    Vec3 g3(gparam(RTmp*RNod[NODE3]));
+    Vec3 g1(MatR2gparam(RTmp*RNod[NODE1]));
+    Vec3 g3(MatR2gparam(RTmp*RNod[NODE3]));
    
     /* Calcolo le derivate dei parametri di rotazione ai nodi di estremo; in
      * quello centrale si assume che sia uguale alla velocita' di rotazione */
@@ -1918,8 +1918,8 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    if (b_I || bII) {
       Mat3x3 R(R2*Rn2);
       Mat3x3 RT(R.Transpose());
-      Vec3 g1(gparam(RT*(R1*Rn1)));
-      Vec3 g3(gparam(RT*(R3*Rn3)));
+      Vec3 g1(MatR2gparam(RT*(R1*Rn1)));
+      Vec3 g3(MatR2gparam(RT*(R3*Rn3)));
       if (b_I) {
 	 R_I = R*Mat3x3(MatR, Beam::InterpState(g1, 0., g3, Beam::S_I));
       }

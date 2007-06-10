@@ -42,47 +42,44 @@
 /* InputStream - begin */
 
 class InputStream {
-   friend InputStream& operator >> (InputStream& in, int& i);
-   friend InputStream& operator >> (InputStream& in, long int& i);
-   friend InputStream& operator >> (InputStream& in, short int& i);
-   friend InputStream& operator >> (InputStream& in, unsigned int& i);
-   friend InputStream& operator >> (InputStream& in, unsigned long int& i);
-   friend InputStream& operator >> (InputStream& in, unsigned short int& i);
-   friend InputStream& operator >> (InputStream& in, char& i);
-   friend InputStream& operator >> (InputStream& in, float& i);
-   friend InputStream& operator >> (InputStream& in, double& i);
-#if 0
-   friend InputStream& operator >> (InputStream& in, long double& i);
-#endif
+	friend InputStream& operator >> (InputStream& in, int& i);
+	friend InputStream& operator >> (InputStream& in, long int& i);
+	friend InputStream& operator >> (InputStream& in, short int& i);
+	friend InputStream& operator >> (InputStream& in, unsigned int& i);
+	friend InputStream& operator >> (InputStream& in, unsigned long int& i);
+	friend InputStream& operator >> (InputStream& in, unsigned short int& i);
+	friend InputStream& operator >> (InputStream& in, char& i);
+	friend InputStream& operator >> (InputStream& in, float& i);
+	friend InputStream& operator >> (InputStream& in, double& i);
 
- private:
-   std::istream& iStrm;
-   unsigned long uLineNumber;      
+private:
+	std::istream& iStrm;
+	unsigned long uLineNumber;      
    
- public:
-   /* Costruttore - inizializza il filtro con un reference ad un istream */
-   InputStream(std::istream& in);
+public:
+	/* Costruttore - inizializza il filtro con un reference ad un istream */
+	InputStream(std::istream& in);
    
-   /* Distruttore banale */
-   ~InputStream(void);
+	/* Distruttore banale */
+	~InputStream(void);
    
-   /* Legge un carattere; se e' un fine-riga, aggiorna il contatore */
-   inline char get(void);
+	/* Legge un carattere; se e' un fine-riga, aggiorna il contatore */
+	inline char get(void);
    
-   /* Legge un carattere; se e' un fine-riga, aggiorna il contatore */
-   inline std::istream& get(char& ch);
+	/* Legge un carattere; se e' un fine-riga, aggiorna il contatore */
+	inline std::istream& get(char& ch);
    
-   /* Esegue il putback di un carattere */
-   inline InputStream& putback(char ch);
+	/* Esegue il putback di un carattere */
+	inline InputStream& putback(char ch);
    
-   /* Restituisce il valore del contatore */
-   inline unsigned long int GetLineNumber(void) const;
+	/* Restituisce il valore del contatore */
+	inline unsigned long int GetLineNumber(void) const;
    
-   /* eof */
-   inline bool eof(void) const;
+	/* eof */
+	inline bool eof(void) const;
    
-   /* Restituisce l'istream */
-   inline std::istream& GetStream(void) const;
+	/* Restituisce l'istream */
+	inline std::istream& GetStream(void) const;
 };
 
 /* Overload dell'operatore di lettura */
@@ -95,54 +92,59 @@ extern InputStream& operator >> (InputStream& in, unsigned short int& i);
 extern InputStream& operator >> (InputStream& in, char& i);
 extern InputStream& operator >> (InputStream& in, float& i);
 extern InputStream& operator >> (InputStream& in, double& i);
-#if 0
-extern InputStream& operator >> (InputStream& in, long double& i);
-#endif
-
 
 /* Legge un carattere; se e' un fine-riga, aggiorna il contatore */
-inline char InputStream::get(void)
+inline char
+InputStream::get(void)
 {
-   char ch = iStrm.get();
-   if(ch == '\n')
-     uLineNumber++;
-   return ch;
+	char ch = iStrm.get();
+	if (ch == '\n') {
+		uLineNumber++;
+	}
+	return ch;
 }
    
 /* Legge un carattere; se e' un fine-riga, aggiorna il contatore */
-inline std::istream& InputStream::get(char& ch) 
+inline std::istream&
+InputStream::get(char& ch) 
 {
-   std::istream& i = iStrm.get(ch);
-   if(ch == '\n')
-     uLineNumber++;
-   return i;
+	std::istream& i = iStrm.get(ch);
+	if (ch == '\n') {
+		uLineNumber++;
+	}
+	return i;
 }
 
 /* Esegue il putback di un carattere */
-inline InputStream& InputStream::putback(char ch)
+inline InputStream&
+InputStream::putback(char ch)
 {
-   iStrm.putback(ch);
-   if(ch == '\n')
-     uLineNumber--;
-   return *this;
+	iStrm.putback(ch);
+	if (ch == '\n') {
+		uLineNumber--;
+	}
+	return *this;
 }
 
 /* Restituisce il valore del contatore */
-inline unsigned long int InputStream::GetLineNumber(void) const 
+inline unsigned long int
+InputStream::GetLineNumber(void) const 
 {
-   return uLineNumber;
+	return uLineNumber;
 }
 
 /* eof */
-inline bool InputStream::eof(void) const
+inline bool
+InputStream::eof(void) const
 {
-   return iStrm.eof();
+	return iStrm.eof();
 }
 
 /* Restituisce l'istream */
-inline std::istream& InputStream::GetStream(void) const
+inline std::istream&
+InputStream::GetStream(void) const
 {
-   return iStrm;
+	return iStrm;
 }
 
 /* InputStream - end */

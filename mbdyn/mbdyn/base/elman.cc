@@ -332,8 +332,17 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
 	Elem* pTmpEl = NULL;
 	if (Iter.bGetFirst(pTmpEl)) {
 		do {
-			JacHdl += pTmpEl->AssJac(WorkMat, dCoef,
-					*pXCurr, *pXPrimeCurr);
+			try {
+				JacHdl += pTmpEl->AssJac(WorkMat, dCoef,
+						*pXCurr, *pXPrimeCurr);
+			}
+			catch (ErrDivideByZero) {
+				silent_cerr("AssJac: divide by zero "
+					"in " << psElemNames[pTmpEl->GetElemType()]
+					<< "(" << pTmpEl->GetLabel() << ")"
+					<< std::endl);
+				throw ErrDivideByZero();
+			}
 
 		} while (Iter.bGetNext(pTmpEl));
 	}
@@ -418,6 +427,13 @@ DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
 			catch(Elem::ChangedEquationStructure) {
 				ResHdl += WorkVec;
 				ChangedEqStructure = true;
+			}
+			catch (ErrDivideByZero) {
+				silent_cerr("AssRes: divide by zero "
+					"in " << psElemNames[pTmpEl->GetElemType()]
+					<< "(" << pTmpEl->GetLabel() << ")"
+					<< std::endl);
+				throw ErrDivideByZero();
 			}
 
 		} while (Iter.bGetNext(pTmpEl));

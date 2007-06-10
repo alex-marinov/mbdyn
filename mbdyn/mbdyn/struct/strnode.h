@@ -767,7 +767,8 @@ public:
 	DummyStructNode(unsigned int uL,
 		const DofOwner* pDO,
 		const StructNode* pNode,
-		OrientationDescription ood);
+		OrientationDescription ood,
+		flag fOut);
 
 	/* Distruttore (per ora e' banale) */
 	virtual ~DummyStructNode(void);
@@ -875,7 +876,8 @@ public:
 		const StructNode* pNode,
 		const Vec3& f,
 		const Mat3x3& R,
-		OrientationDescription ood);
+		OrientationDescription ood,
+		flag fOut);
 
 	/* Distruttore (per ora e' banale) */
 	virtual ~OffsetDummyStructNode(void);
@@ -909,7 +911,8 @@ public:
 		const StructNode* pNodeRef,
 		const Vec3& fh,
 		const Mat3x3& Rh,
-		OrientationDescription ood);
+		OrientationDescription ood,
+		flag fOut);
 
 	/* Distruttore (per ora e' banale) */
 	virtual ~RelFrameDummyStructNode(void);
@@ -945,7 +948,8 @@ public:
 		const StructNode* pNodeRef2,
 		const Vec3& fh2,
 		const Mat3x3& Rh2,
-		OrientationDescription ood);
+		OrientationDescription ood,
+		flag fOut);
 
 	/* Distruttore (per ora e' banale) */
 	virtual ~PivotRelFrameDummyStructNode(void);

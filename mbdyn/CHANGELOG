@@ -61,6 +61,7 @@ MBDyn 1.X-Devel
 		- misc. cleanup to allow building with MinGW
 		- added nonlinear constitutive laws based on scalar functions
 		  (sponsored by Hutchinson CdR; acks to Dr. Daniel Benoualid)
+		- added "pivot" dummy node (suggested by Nicola Turini)
 	Backward compatibility issues:
 		- per-element output removed from modal joints
 		- spherical hinge output now refers to node 1 instead of 2
@@ -93,6 +94,8 @@ MBDyn 1.X-Devel
 		- fixed drive hinge initial assembly (noted by Patrick Rix)
 		- fixed rigid body Jacobian matrix with gravity
 		- fixed build with PowerPC (thanks to Torsten Sadowski)
+		- fixed dummy nodes output selection (noted by Nicola Turini)
+		- fixed Vec6/Mat6x6 passing by reference
 
 MBDyn 1.2.7-Engineering
 	Enhancements:

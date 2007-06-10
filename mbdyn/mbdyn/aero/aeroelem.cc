@@ -1141,8 +1141,8 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 	 * Paramteri di rotazione dai nodi 1 e 3 al nodo 2 (nell'ipotesi
 	 * che tale trasformazione non dia luogo ad una singolarita')
 	 */
-	Vec3 g1(gparam(RR2T*RR1));
-	Vec3 g3(gparam(RR2T*RR3));
+	Vec3 g1(MatR2gparam(RR2T*RR1));
+	Vec3 g3(MatR2gparam(RR2T*RR3));
 
 	/*
 	 * Se l'elemento e' collegato ad un rotore,
@@ -1774,7 +1774,7 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 	 * Parametri di rotazione dai nodi 1 e 2 al punto medio (nell'ipotesi
 	 * che tale trasformazione non dia luogo ad una singolarita')
 	 */
-	Vec3 g1 = gparam(RR2T*RR1)/2.;
+	Vec3 g1 = MatR2gparam(RR2T*RR1)/2.;
 	Vec3 g2 = -g1;
 
 	/* matrice di rotazione del punto medio */

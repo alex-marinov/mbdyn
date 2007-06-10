@@ -269,18 +269,19 @@ Write(std::ostream& out, const doublereal& d, const char*)
 
 /* calcolo dei parametri di rotazione a partire dalla matrice R */
 
-Vec3 gparam(const Mat3x3& m)
+Vec3
+MatR2gparam(const Mat3x3& m)
 {
-   /* test di singolarita' */
-   doublereal d = 1.+m.Trace();
+	/* test di singolarita' */
+	doublereal d = 1. + m.Trace();
    
-   if (fabs(d) < DBL_EPSILON) {
-      silent_cerr("gparam(): divide by zero,"
-        " probably due to singularity in rotation parameters" << std::endl);
-      throw ErrGeneric();
-   }
+	if (fabs(d) < DBL_EPSILON) {
+		silent_cerr("MatR2gparam(): divide by zero, "
+		"probably due to singularity in rotation parameters" << std::endl);
+		throw ErrDivideByZero();
+	}
    
-   return m.Ax()*(4./d);
+	return m.Ax()*(4./d);
 }
 
 
