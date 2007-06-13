@@ -62,6 +62,7 @@ MBDyn 1.X-Devel
 		- added nonlinear constitutive laws based on scalar functions
 		  (sponsored by Hutchinson CdR; acks to Dr. Daniel Benoualid)
 		- added "pivot" dummy node (suggested by Nicola Turini)
+		- added support for private data in driven elements
 	Backward compatibility issues:
 		- per-element output removed from modal joints
 		- spherical hinge output now refers to node 1 instead of 2

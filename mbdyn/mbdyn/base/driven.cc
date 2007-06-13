@@ -332,6 +332,43 @@ DrivenElem::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+/*
+ * Metodi per l'estrazione di dati "privati".
+ * Si suppone che l'estrattore li sappia interpretare.
+ * Come default non ci sono dati privati estraibili
+ */
+unsigned int
+DrivenElem::iGetNumPrivData(void) const
+{
+	return pElem->iGetNumPrivData();
+}
+
+/*
+ * Maps a string (possibly with substrings) to a private data;
+ * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0 
+ * in case of unrecognized data; error must be handled by caller
+ */
+unsigned int
+DrivenElem::iGetPrivDataIdx(const char *s) const
+{
+	return pElem->iGetPrivDataIdx(s);
+}
+
+/*
+ * Returns the current value of a private data
+ * with 0 < i <= iGetNumPrivData()
+ */
+doublereal
+DrivenElem::dGetPrivData(unsigned int i) const
+{
+	if (dGet() != 0.) {
+		return pElem->dGetPrivData(i);
+	}
+
+	/* safe default */
+	return 0.;
+}
+
 /* *******PER IL SOLUTORE PARALLELO******** *
  * Fornisce il tipo e la label dei nodi che sono connessi all'elemento
  * utile per l'assemblaggio della matrice di connessione fra i dofs
