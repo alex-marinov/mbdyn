@@ -135,7 +135,8 @@ public:
 	virtual void
 	AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP);
-	
+
+	/* Inverse Dynamics: */
 	virtual void
 	AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP, const VectorHandler& XPP);
@@ -157,12 +158,12 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
-	/* inverse dynamics Jacobian matrix assembly */
+	/* Inverse Dynamics Jacobian matrix assembly */
 	VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
 		const VectorHandler& XCurr);
 
-	/* inverse dynamics residual assembly */
+	/* Inverse Dynamics residual assembly */
 	SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& XCurr,
@@ -312,6 +313,10 @@ public:
 	virtual void
 	AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP);
+	
+	virtual void
+	AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP, const VectorHandler& XPP);
 
 	void
 	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
@@ -330,7 +335,7 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
-#if 0
+
 	/* inverse dynamics Jacobian matrix assembly */
 	VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
@@ -346,7 +351,7 @@ public:
 
 	/* Inverse Dynamics update */
 	virtual void Update(const VectorHandler& XCurr, int iOrder = -1);
-#endif
+
 	
 	DofOrder::Order GetEqType(unsigned int i) const;
 
