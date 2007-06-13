@@ -1545,11 +1545,13 @@ ReadJoint(DataManager* pDM,
 				break;
 
 			case INVARIANTDEFORMABLEDISPJOINT:
+#if 0
 				silent_cerr("\"invariant deformable displacement joint\" "
 					"at line " << HP.GetLineData()
 					<< " not implemented yet" << std::endl);
 				throw ErrGeneric();
-#if 0
+#endif
+#if 1
 				SAFENEWWITHCONSTRUCTOR(pEl,
 					ElasticDispJointInv,
 					ElasticDispJointInv(uLabel, pDO, pCL,

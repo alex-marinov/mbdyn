@@ -242,6 +242,104 @@ public:
 /* ElasticDispJoint - end */
 
 
+/* ElasticDispJointInv - begin */
+
+class ElasticDispJointInv : virtual public Elem, public DeformableDispJoint {
+protected:
+	void AssMat(FullSubMatrixHandler& WM, doublereal dCoef);
+	void AssVec(SubVectorHandler& WorkVec);
+
+public:
+	ElasticDispJointInv(unsigned int uL,
+			const DofOwner* pDO,
+			const ConstitutiveLaw3D* pCL,
+			const StructNode* pN1,
+			const StructNode* pN2,
+			const Vec3& tilde_f1,
+			const Vec3& tilde_f2,
+			const Mat3x3& tilde_R1,
+			const Mat3x3& tilde_R2,
+			flag fOut);
+
+	~ElasticDispJointInv(void);
+
+	/* Tipo di DeformableDispHinge */
+	virtual ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::ELASTIC;
+	};
+
+	virtual void
+	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
+
+	/* Aggiorna le deformazioni ecc. */
+	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+
+	/* assemblaggio jacobiano */
+	virtual VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+			doublereal dCoef,
+			const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr);
+
+	/* assemblaggio jacobiano */
+	virtual void
+	AssMats(VariableSubMatrixHandler& WorkMatA,
+			VariableSubMatrixHandler& WorkMatB,
+			const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr);
+
+	/* assemblaggio residuo */
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+			doublereal dCoef,
+			const VectorHandler& XCurr,
+			const VectorHandler& XPrimeCurr);
+
+	virtual void
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+		*piNumRows = 12;
+		*piNumCols = 12;
+	};
+
+	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+	virtual VariableSubMatrixHandler&
+	InitialAssJac(VariableSubMatrixHandler& WorkMat,
+			const VectorHandler& XCurr);
+
+	/* Contributo al residuo durante l'assemblaggio iniziale */
+	virtual SubVectorHandler&
+	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
+
+#ifdef MBDYN_X_WORKAROUND_GCC_3_2
+	virtual void SetValue(DataManager *pDM,
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints *ph = 0)
+	{
+		DeformableDispJoint::SetValue(pDM, X, XP, ph);
+	};
+
+	virtual Hint *
+	ParseHint(DataManager *pDM, const char *s) const
+	{
+		return DeformableDispJoint::ParseHint(pDM, s);
+	};
+	virtual unsigned int iGetNumPrivData(void) const {
+		return DeformableDispJoint::iGetNumPrivData();
+	};
+	virtual unsigned int iGetPrivDataIdx(const char *s) const {
+		return DeformableDispJoint::iGetPrivDataIdx(s);
+	};
+	virtual doublereal dGetPrivData(unsigned int i) const {
+		return dGetPrivData(i);
+	};
+#endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
+
+
+};
+
+/* ElasticDispJointInv - end */
+
+
 /* ViscousDispJoint - begin */
 
 class ViscousDispJoint : virtual public Elem, public DeformableDispJoint {
