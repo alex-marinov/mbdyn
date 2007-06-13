@@ -35,8 +35,6 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#if defined(USE_ELECTRIC_NODES) && defined(USE_STRUCT_NODES)
-
 #include <strnode.h>
 #include <elecnode.h>
 #include <accelerometer.h>
@@ -540,6 +538,4 @@ RotAccel::SetValue(DataManager *pDM,
 }
 
 /* RotAccel - end */
-
-#endif /* USE_ELECTRIC_NODES && USE_STRUCT_NODES */
 

@@ -155,7 +155,6 @@ Elem* ReadHydraulicElem(DataManager* pDM,
    switch (CurrKeyWord) {
       
     case ACTUATOR: {
-#if defined(USE_STRUCT_NODES)
        /* lettura dei dati specifici */
        /* due nodi idraulici e due nodi strutturali */
        
@@ -246,11 +245,6 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        break;
     }	
-      
-#else /* defined(USE_STRUCT_NODES) */
-      silent_cerr("you are not allowed to use actuators" << std::endl);
-      throw ErrGeneric();
-#endif /* defined(USE_STRUCT_NODES) */
       
     case MINOR_LOSS: {
        

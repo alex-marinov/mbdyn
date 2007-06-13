@@ -32,14 +32,12 @@
 /* Swash plate */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifdef USE_ELECTRIC_NODES
+#include "ac/math.h"
 
-#include <ac/math.h>
-
-#include <swashpl.h>
+#include "swashpl.h"
 
 
 /* SwashPlate - begin */
@@ -265,6 +263,4 @@ SwashPlate::SetInitialValue(VectorHandler& /* X */ ) const
 }
 
 /* SwashPlate - end */
-
-#endif /* USE_ELECTRIC_NODES */
 

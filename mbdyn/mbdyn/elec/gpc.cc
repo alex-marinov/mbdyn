@@ -32,16 +32,14 @@
 /* funzioni di base per le operazioni con le matrici */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifdef USE_ELECTRIC_NODES
+#include "ac/math.h"
 
-#include <ac/math.h>
-
-#include <myassert.h>
-#include <mynewmem.h>
-#include <gpc.h>
+#include "myassert.h"
+#include "mynewmem.h"
+#include "gpc.h"
 
 /* gpc utility functions - begin */
 
@@ -1306,8 +1304,6 @@ GPC::DesignControl(const doublereal* pdTheta,
 
 /* GPC - end */
 
-#endif /* USE_ELECTRIC_NODES */
-
 /*
  * Test of matrix computation 
  */
@@ -1316,7 +1312,6 @@ GPC::DesignControl(const doublereal* pdTheta,
 
 int main(void)
 {
-#ifdef USE_ELECTRIC_NODES
 #ifdef USE_DBC
    const integer nout = 2;
    const integer nin = 2;
@@ -1437,9 +1432,6 @@ int main(void)
 #else /* !USE_DBC */
    silent_cerr("cannot use GPC/Deadbeat" << std::endl);
 #endif /* !USE_DBC */
-#else /* !USE_ELECTRIC_NODES */
-   silent_cerr("configure with --with-elec to enable electric stuff" << std::endl);
-#endif /* !USE_ELECTRIC_NODES */
    return 0;
 }
 

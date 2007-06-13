@@ -1363,7 +1363,6 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 			<< "First point matrix D22: " << std::endl << D22 << std::endl);
 #endif /* DEBUG */
 	
-#if defined(USE_ELECTRIC_NODES)
 	flag fPiezo(0);
 	Mat3xN PiezoMat[2];
 	integer iNumElec = 0;
@@ -1415,7 +1414,6 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 				<< PiezoMat[0][0] << PiezoMat[1][0]);
 #endif /* 0 */
 	}
-#endif /* defined(USE_ELECTRIC_NODES) */
 
 	flag fOut = pDM->fReadOutput(HP, Elem::BEAM);       
 	
@@ -1438,9 +1436,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	Elem* pEl = NULL;
 	
 	if (CLType == ConstLawType::ELASTIC) {
-#if defined(USE_ELECTRIC_NODES)
 		if (fPiezo == 0) {	 
-#endif /* defined(USE_ELECTRIC_NODES) */
 			SAFENEWWITHCONSTRUCTOR(pEl,
 					Beam2,
 					Beam2(uLabel,
@@ -1450,7 +1446,6 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						R,
 						pD,
 						fOut));
-#if defined(USE_ELECTRIC_NODES)
 		} else {	 
 			SAFENEWWITHCONSTRUCTOR(pEl,
 					PiezoActuatorBeam2,
@@ -1465,12 +1460,9 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						PiezoMat[0], PiezoMat[1],
 						fOut));
 		}
-#endif /* defined(USE_ELECTRIC_NODES) */
 		
 	} else /* At least one is VISCOUS or VISCOELASTIC */ {
-#if defined(USE_ELECTRIC_NODES)      
 		if (fPiezo == 0) {	 
-#endif /* defined(USE_ELECTRIC_NODES) */
 			SAFENEWWITHCONSTRUCTOR(pEl, 
 					ViscoElasticBeam2,
 					ViscoElasticBeam2(uLabel,
@@ -1480,7 +1472,6 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						R,
 						pD,
 						fOut));
-#if defined(USE_ELECTRIC_NODES)
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pEl,
 					PiezoActuatorVEBeam2,
@@ -1495,7 +1486,6 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						PiezoMat[0], PiezoMat[1],
 						fOut));
 		}
-#endif /* defined(USE_ELECTRIC_NODES) */
 	}
 	
 	/* Se non c'e' il punto e virgola finale */

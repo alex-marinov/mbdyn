@@ -35,12 +35,10 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifdef USE_ELECTRIC_NODES
-
-#include <discctrl.h>
+#include "discctrl.h"
 
 /* DiscreteControlARXProcess_Debug - begin */
 
@@ -787,6 +785,4 @@ DiscreteControlElem::AssRes(SubVectorHandler& WorkVec,
 }
 
 /* DiscreteControlElem - end */
-
-#endif /* USE_ELECTRIC_NODES */
 

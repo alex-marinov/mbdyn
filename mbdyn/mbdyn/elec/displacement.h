@@ -34,8 +34,6 @@
 #ifndef DISPLACEMENT_H
 #define DISPLACEMENT_H
 
-#if defined(USE_ELECTRIC_NODES) && defined(USE_STRUCT_NODES)
-
 #include "elec.h"
 
 /* DispMeasure - begin */
@@ -97,8 +95,6 @@ public:
 };
 
 /* DispMeasure - end */
-
-#endif /* USE_ELECTRIC_NODES && USE_STRUCT_NODES */
 
 #endif /* DISPLACEMENT_H */
 

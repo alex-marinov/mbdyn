@@ -32,8 +32,6 @@
 #ifndef ACCELEROMETER_H
 #define ACCELEROMETER_H
 
-#if defined(USE_ELECTRIC_NODES) && defined(USE_STRUCT_NODES)
-
 #include "elec.h"
 
 /* Accelerometer - begin */
@@ -219,8 +217,6 @@ public:
 };
 
 /* RotAccel - end */
-
-#endif /* USE_ELECTRIC_NODES && USE_STRUCT_NODES */
 
 #endif /* ACCELEROMETER_H */
 

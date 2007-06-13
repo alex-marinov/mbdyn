@@ -38,11 +38,9 @@
 #include "ac/float.h"
 
 #include "force.h"
-#ifdef USE_STRUCT_NODES
 #include "strforce.h"
 #include "strext.h"
 #include "totalj.h"
-#endif /* USE_STRUCT_NODES */
 #include "dataman.h"
 #include "tpldrive_impl.h"
 
@@ -218,7 +216,6 @@ Elem* ReadForce(DataManager* pDM,
 	DEBUGCOUT("Entering " << sFuncName << std::endl);
    
 	const char* sKeyWords[] = {
-#if defined(USE_STRUCT_NODES)
 		"conservative",			// deprecated
 		"absolute",
 		"follower",
@@ -231,12 +228,9 @@ Elem* ReadForce(DataManager* pDM,
 		"total" "internal",
 
 		"external" "structural",
-#endif /* USE_STRUCT_NODES */
 
-#if defined(USE_ELECTRIC_NODES)
 		"abstract",
 		"abstract" "internal",
-#endif /* USE_ELECTRIC_NODES */
 
 		NULL
 	};
@@ -245,7 +239,6 @@ Elem* ReadForce(DataManager* pDM,
 	enum KeyWords {
 		UNKNOWN = -1,
 
-#if defined(USE_STRUCT_NODES)
 		CONSERVATIVE,			// deprecated
 		ABSOLUTE,
 		FOLLOWER,
@@ -258,12 +251,9 @@ Elem* ReadForce(DataManager* pDM,
 		TOTALINTERNAL,
 
 		EXTERNALSTRUCTURAL,
-#endif /* USE_STRUCT_NODES */
 
-#if defined(USE_ELECTRIC_NODES)
 		ABSTRACT,
 		ABSTRACTINTERNAL,
-#endif /* USE_ELECTRIC_NODES */
 
 		LASTKEYWORD 
 	};
@@ -302,7 +292,6 @@ Elem* ReadForce(DataManager* pDM,
 	Elem* pEl = NULL;
 
 	switch (CurrType) {
-#if defined(USE_ELECTRIC_NODES)
 	case ABSTRACT: {
 		/* tabella delle parole chiave */
 		KeyTable KDof(HP, psReadNodesNodes);
@@ -327,9 +316,7 @@ Elem* ReadForce(DataManager* pDM,
 			AbstractInternalForce,
 			AbstractInternalForce(uLabel, SD1.pNode, SD2.pNode, pDC, fOut));
 		} break;
-#endif /* USE_ELECTRIC_NODES */
 
-#if defined(USE_STRUCT_NODES)
 	case EXTERNALSTRUCTURAL:
 		pEl = ReadExtForce(pDM, HP, uLabel);
 		break;
@@ -594,7 +581,6 @@ Elem* ReadForce(DataManager* pDM,
 				pNode2, f2, R2h, R2hr,
 				fOut));
 		} break;
-#endif /* USE_STRUCT_NODES */
 
 	default:
 		ASSERT(0);

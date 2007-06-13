@@ -32,8 +32,6 @@
 #ifndef INSTRUMENTS_H
 #define INSTRUMENTS_H
 
-#ifdef USE_AERODYNAMIC_ELEMS
-
 /* Elementi aerodinamici stazionari */
 
 #include "aerodyn.h"
@@ -130,8 +128,6 @@ class MBDynParser;
 
 extern Elem *
 ReadAircraftInstruments(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
-
-#endif /* USE_AERODYNAMIC_ELEMS */
 
 #endif /* INSTRUMENTS_H */
 

@@ -1854,7 +1854,6 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	      << "Second point matrix D22: " << std::endl << D22 << std::endl);
 #endif               
 
-#if defined(USE_ELECTRIC_NODES)
    flag fPiezo(0);
    Mat3xN PiezoMat[2][2];
    integer iNumElec = 0;
@@ -1908,8 +1907,6 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
       DEBUGLCOUT(MYDEBUG_INPUT, "Piezo matrix II:" << std::endl << PiezoMat[0][1] << PiezoMat[1][1]);
        */
    }
-#endif /* defined(USE_ELECTRIC_NODES) */
-   
    
    flag fOut = pDM->fReadOutput(HP, Elem::BEAM);       
    
@@ -1943,9 +1940,7 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    if ((CLType_I == ConstLawType::ELASTIC) 
        && (CLTypeII == ConstLawType::ELASTIC)) {
 
-#if defined(USE_ELECTRIC_NODES)      
       if (fPiezo == 0) {	 
-#endif /* defined(USE_ELECTRIC_NODES) */
 	 SAFENEWWITHCONSTRUCTOR(pEl,
 				Beam,
 				Beam(uLabel,
@@ -1955,7 +1950,6 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 				     R_I, RII,
 				     pD_I, pDII,
 				     fOut));
-#if defined(USE_ELECTRIC_NODES)
       } else {	 
 	 SAFENEWWITHCONSTRUCTOR(pEl,
 				PiezoActuatorBeam,
@@ -1971,13 +1965,10 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						  PiezoMat[0][1], PiezoMat[1][1],
 						  fOut));
       }
-#endif /* defined(USE_ELECTRIC_NODES) */
       
      
    } else /* At least one is VISCOUS or VISCOELASTIC */ {
-#if defined(USE_ELECTRIC_NODES)      
       if (fPiezo == 0) {	 
-#endif /* defined(USE_ELECTRIC_NODES) */
 	 SAFENEWWITHCONSTRUCTOR(pEl, 
 				ViscoElasticBeam,
 				ViscoElasticBeam(uLabel,
@@ -1987,7 +1978,6 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						 R_I, RII,
 						 pD_I, pDII,
 						 fOut));
-#if defined(USE_ELECTRIC_NODES)
       } else {	 
 	 SAFENEWWITHCONSTRUCTOR(pEl,
 				PiezoActuatorVEBeam,
@@ -2003,7 +1993,6 @@ Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						    PiezoMat[0][1], PiezoMat[1][1],
 						    fOut));
       }
-#endif /* defined(USE_ELECTRIC_NODES) */
    }
    
    /* Costruttore normale

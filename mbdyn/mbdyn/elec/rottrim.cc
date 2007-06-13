@@ -33,9 +33,6 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifdef USE_ELECTRIC_NODES
-#ifdef USE_AERODYNAMIC_ELEMS
-
 #include "genel.h"
 #include "drive.h"
 #include "dataman.h"
@@ -229,7 +226,4 @@ RotorTrim::AssRes(SubVectorHandler& WorkVec,
 
 	return WorkVec;
 }
-
-#endif /* USE_AERODYNAMIC_ELEMS */
-#endif /* USE_ELECTRIC_NODES */
 

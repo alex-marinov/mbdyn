@@ -1222,7 +1222,6 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 #endif /* DEBUG */
 
 #ifdef PIEZO_BEAM
-#if defined(USE_ELECTRIC_NODES)
 	flag fPiezo(0);
 	Mat3xN PiezoMat[2];
 	integer iNumElec = 0;
@@ -1274,7 +1273,6 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 				<< PiezoMat[0][0] << PiezoMat[1][0]);
 #endif /* 0 */
 	}
-#endif /* defined(USE_ELECTRIC_NODES) */
 #endif /* PIEZO_BEAM */
 
 	flag fOut = pDM->fReadOutput(HP, Elem::BEAM);       
@@ -1283,9 +1281,7 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	
 	if (CLType == ConstLawType::ELASTIC) {
 #ifdef PIEZO_BEAM
-#if defined(USE_ELECTRIC_NODES)
 		if (fPiezo == 0) {	 
-#endif /* defined(USE_ELECTRIC_NODES) */
 #endif /* PIEZO_BEAM */
 			SAFENEWWITHCONSTRUCTOR(pEl,
 					HBeam,
@@ -1296,7 +1292,6 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						pD,
 						fOut));
 #ifdef PIEZO_BEAM
-#if defined(USE_ELECTRIC_NODES)
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pEl,
 					PiezoActuatorHBeam,
@@ -1310,15 +1305,12 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						PiezoMat[0], PiezoMat[1],
 						fOut));
 		}
-#endif /* defined(USE_ELECTRIC_NODES) */
 #endif /* PIEZO_BEAM */
 		
 	} else /* At least one is VISCOUS or VISCOELASTIC */ {
 #ifdef VISCOELASTIC_BEAM      
 #ifdef PIEZO_BEAM
-#if defined(USE_ELECTRIC_NODES)      
 		if (fPiezo == 0) {	 
-#endif /* defined(USE_ELECTRIC_NODES) */
 #endif /* PIEZO_BEAM */
 			SAFENEWWITHCONSTRUCTOR(pEl, 
 					ViscoElasticHBeam,
@@ -1329,7 +1321,6 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						pD,
 						fOut));
 #ifdef PIEZO_BEAM
-#if defined(USE_ELECTRIC_NODES)
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pEl,
 					PiezoActuatorVEHBeam,
@@ -1343,7 +1334,6 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						PiezoMat[0], PiezoMat[1],
 						fOut));
 		}
-#endif /* defined(USE_ELECTRIC_NODES) */
 #endif /* PIEZO_BEAM */
 
 #else /* VISCOELASTIC_BEAM */

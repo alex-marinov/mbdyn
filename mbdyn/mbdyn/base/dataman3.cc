@@ -234,42 +234,26 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		/* Numero di nodi strutturali attesi */
 		case STRUCTURALNODES: {
-#if defined(USE_STRUCT_NODES)
 			int iDmy = HP.GetInt();
 			NodeData[Node::STRUCTURAL].iNum = iDmy;
 			DofData[DofOwner::STRUCTURALNODE].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Structural nodes: " << iDmy << std::endl);
-#else /* USE_STRUCT_NODES */
-			silent_cerr("you're not allowed to use structural nodes"
-				<< std::endl);
-			throw ErrGeneric();
-#endif /* USE_STRUCT_NODES */
 		} break;
 
 		/* Numero di nodi elettrici attesi */
 		case ELECTRICNODES: {
-#if defined(USE_ELECTRIC_NODES)
 			int iDmy = HP.GetInt();
 			NodeData[Node::ELECTRIC].iNum = iDmy;
 			DofData[DofOwner::ELECTRICNODE].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Electric nodes: " << iDmy << std::endl);
-#else /* USE_ELECTRIC_NODES */
-			silent_cerr("you're not allowed to use electric nodes" << std::endl);
-			throw ErrGeneric();
-#endif /* USE_ELECTRIC_NODES */
 		} break;
 
 		/* Numero di nodi astratti attesi */
 		case ABSTRACTNODES: {
-#if defined(USE_ELECTRIC_NODES)
 			int iDmy = HP.GetInt();
 			NodeData[Node::ABSTRACT].iNum = iDmy;
 			DofData[DofOwner::ABSTRACTNODE].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Abstract nodes: " << iDmy << std::endl);
-#else /* USE_ELECTRIC_NODES */
-			silent_cerr("you're not allowed to use abstract nodes" << std::endl);
-			throw ErrGeneric();
-#endif /* USE_ELECTRIC_NODES */
 		} break;
 
 		/* Numero di nodi astratti attesi */
@@ -281,21 +265,15 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		/* Numero di nodi idraulici attesi */
 		case HYDRAULICNODES: {
-#if defined(USE_HYDRAULIC_NODES)
 			int iDmy = HP.GetInt();
 			NodeData[Node::HYDRAULIC].iNum = iDmy;
 			DofData[DofOwner::HYDRAULICNODE].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Hydraulic nodes: " << iDmy << std::endl);
-#else /* defined(USE_HYDRAULIC_NODES) */
-			silent_cerr("you're not allowed to use hydraulic nodes" << std::endl);
-			throw ErrGeneric();
-#endif /* defined(USE_HYDRAULIC_NODES) */
 		} break;
 
 		/******** Elements *********/
 
 		/* Numero di corpi rigidi attesi */
-#if defined(USE_STRUCT_NODES)
 		case AUTOMATICSTRUCTURAL: {
 			int iDmy = HP.GetInt();
 #ifdef DEBUG
@@ -347,7 +325,6 @@ DataManager::ReadControl(MBDynParser& HP,
 			}
 		} break;
 
-#if defined(USE_AERODYNAMIC_ELEMS)
 		/* Elementi aerodinamici: proprieta' dell'aria */
 		case AIRPROPERTIES: {
 			if (ElemData[Elem::AIRPROPERTIES].iExpectedNum > 0) {
@@ -379,8 +356,6 @@ DataManager::ReadControl(MBDynParser& HP,
 			ElemData[Elem::AERODYNAMIC].iExpectedNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Aerodynamic Elements: " << iDmy << std::endl);
 		} break;
-#endif /* USE_AERODYNAMIC_ELEMS */
-#endif /* USE_STRUCT_NODES */
 
 		/* Numero di forze e coppie attese */
 		case FORCES: {
@@ -389,7 +364,6 @@ DataManager::ReadControl(MBDynParser& HP,
 			DEBUGLCOUT(MYDEBUG_INPUT, "Forces: " << iDmy << std::endl);
 		} break;
 
-#if defined(USE_ELECTRIC_NODES)
 		/* Numero di vincoli attesi */
 		case GENELS: {
 			int iDmy = HP.GetInt();
@@ -405,7 +379,6 @@ DataManager::ReadControl(MBDynParser& HP,
 			DofData[DofOwner::ELECTRIC].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Electric elements: " << iDmy << std::endl);
 		} break;
-#endif /* USE_ELECTRIC_NODES */
 
 		/* Numero di elementi idraulici attesi */
 		case HYDRAULICELEMENTS: {
@@ -525,7 +498,6 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		/********* Miscellaneous *********/
 
-#if defined(USE_STRUCT_NODES)
 		/* Spegne il flag di assemblaggio iniziale;
 		 * di default viene eseguito solo se sono definiti vincoli */
 		case SKIPINITIALJOINTASSEMBLY: {
@@ -576,7 +548,6 @@ DataManager::ReadControl(MBDynParser& HP,
 						<< std::endl);
 					break;
 
-#if defined(USE_AERODYNAMIC_ELEMS)
 				case AERODYNAMICELEMENTS:
 					ElemData[Elem::AERODYNAMIC].ToBeUsedInAssembly(true);
 					DEBUGLCOUT(MYDEBUG_INPUT,
@@ -589,7 +560,6 @@ DataManager::ReadControl(MBDynParser& HP,
 					}
 
 					break;
-#endif /* USE_AERODYNAMIC_ELEMS */
 
 				case LOADABLEELEMENTS:
 					ElemData[Elem::LOADABLE].ToBeUsedInAssembly(true);
@@ -693,7 +663,6 @@ EndOfUse:
 			DEBUGLCOUT(MYDEBUG_INPUT, "Max initial iterations: "
 				<< iMaxInitialIterations << std::endl);
 			break;
-#endif /* USE_STRUCT_NODES */
 
 		case EPSILON:
 			dEpsilon = HP.GetReal();
@@ -957,7 +926,6 @@ EndOfUse:
 					}
 					break;
 
-#if defined(USE_STRUCT_NODES)
 				case REFERENCEFRAMES:
 					bOutputFrames = true;
 					break;
@@ -965,15 +933,11 @@ EndOfUse:
 				case ACCELERATIONS:
 					bOutputAccels = true;
 					break;
-#endif /* USE_STRUCT_NODES */
 
-#if defined(USE_STRUCT_NODES)
 				case STRUCTURALNODES:
 					NodeData[Node::STRUCTURAL].DefaultOut(true);
 					break;
-#endif /* USE_STRUCT_NODES */
 
-#if defined(USE_ELECTRIC_NODES)
 				case ELECTRICNODES:
 					NodeData[Node::ELECTRIC].DefaultOut(true);
 					break;
@@ -981,15 +945,11 @@ EndOfUse:
 				case ABSTRACTNODES:
 					NodeData[Node::ABSTRACT].DefaultOut(true);
 					break;
-#endif /* USE_ELECTRIC_NODES */
 
-#if defined(USE_HYDRAULIC_NODES)
 				case HYDRAULICNODES:
 					NodeData[Node::HYDRAULIC].DefaultOut(true);
 					break;
-#endif /* USE_HYDRAULIC_NODES */
 
-#if defined(USE_STRUCT_NODES)
 				case GRAVITY:
 					ElemData[Elem::GRAVITY].DefaultOut(true);
 					break;
@@ -1010,7 +970,6 @@ EndOfUse:
 					ElemData[Elem::PLATE].DefaultOut(true);
 					break;
 
-#if defined(USE_AERODYNAMIC_ELEMS)
 				case AIRPROPERTIES:
 					ElemData[Elem::AIRPROPERTIES].DefaultOut(true);
 					break;
@@ -1026,14 +985,11 @@ EndOfUse:
 				case AERODYNAMICELEMENTS:
 					ElemData[Elem::AERODYNAMIC].DefaultOut(true);
 					break;
-#endif /* USE_AERODYNAMIC_ELEMS */
-#endif /* USE_STRUCT_NODES */
 
 				case FORCES:
 					ElemData[Elem::FORCE].DefaultOut(true);
 					break;
 
-#if defined(USE_ELECTRIC_NODES)
 				case GENELS:
 					ElemData[Elem::GENEL].DefaultOut(true);
 					break;
@@ -1045,13 +1001,10 @@ EndOfUse:
 				case ELECTRICELEMENTS:
 					ElemData[Elem::ELECTRIC].DefaultOut(true);
 					break;
-#endif /* USE_ELECTRIC_NODES */
 
-#if defined(USE_HYDRAULIC)
 				case HYDRAULICELEMENTS:
 					ElemData[Elem::HYDRAULIC].DefaultOut(true);
 					break;
-#endif /* USE_HYDRAULIC */
 				case LOADABLEELEMENTS:
 					ElemData[Elem::LOADABLE].DefaultOut(true);
 					break;
@@ -1092,13 +1045,10 @@ EndOfUse:
 					}
 					break;
 
-#if defined(USE_STRUCT_NODES)
 				case STRUCTURALNODES:
 					DofData[DofOwner::STRUCTURALNODE].dDefScale = dScale;
 					break;
-#endif /* USE_STRUCT_NODES */
 
-#if defined(USE_ELECTRIC_NODES)
 				case ELECTRICNODES:
 					DofData[DofOwner::ELECTRICNODE].dDefScale = dScale;
 					break;
@@ -1106,20 +1056,15 @@ EndOfUse:
 				case ABSTRACTNODES:
 					DofData[DofOwner::ABSTRACTNODE].dDefScale = dScale;
 					break;
-#endif /* USE_ELECTRIC_NODES */
 
-#if defined(USE_HYDRAULIC_NODES)
 				case HYDRAULICNODES:
 					DofData[DofOwner::HYDRAULICNODE].dDefScale = dScale;
 					break;
-#endif /* USE_HYDRAULIC_NODES */
 
-#if defined(USE_STRUCT_NODES)
 				case JOINTS:
 					DofData[DofOwner::JOINT].dDefScale = dScale;
 					break;
 
-#if defined(USE_AERODYNAMIC_ELEMS)
 				case ROTORS:
 					DofData[DofOwner::ROTOR].dDefScale = dScale;
 					break;
@@ -1127,10 +1072,7 @@ EndOfUse:
 				case AEROMODALS:
 					DofData[DofOwner::AEROMODAL].dDefScale = dScale;
 					break;
-#endif /* USE_AERODYNAMIC_ELEMS */
-#endif /* USE_STRUCT_NODES */
 
-#if defined(USE_ELECTRIC_NODES)
 				case GENELS:
 					DofData[DofOwner::GENEL].dDefScale = dScale;
 					break;
@@ -1142,13 +1084,10 @@ EndOfUse:
 				case ELECTRICELEMENTS:
 					DofData[DofOwner::ELECTRIC].dDefScale = dScale;
 					break;
-#endif /* USE_ELECTRIC_NODES */
 
-#if defined(USE_HYDRAULIC_NODES)
 				case HYDRAULICELEMENTS:
 					DofData[DofOwner::HYDRAULIC].dDefScale = dScale;
 					break;
-#endif /* USE_HYDRAULIC */
 
 				case LOADABLEELEMENTS:
 					DofData[DofOwner::LOADABLE].dDefScale = dScale;
@@ -1446,39 +1385,21 @@ DataManager::ReadNodes(MBDynParser& HP)
 			switch (KeyWords(HP.GetWord())) {
 
 			case STRUCTURAL:
-#if defined(USE_STRUCT_NODES)
 				DEBUGLCOUT(MYDEBUG_INPUT, "structural" << std::endl);
 				Typ = Node::STRUCTURAL;
 				if (HP.IsKeyWord("accelerations")) {
 					fOutput |= 2;
 				}
-#else /* USE_STRUCT_NODES */
-				silent_cerr("you're not allowed to use structural nodes"
-					<< std::endl);
-				throw ErrGeneric();
-#endif /* USE_STRUCT_NODES */
 				break;
 
 			case ELECTRIC:
-#if defined(USE_ELECTRIC_NODES)
 				DEBUGLCOUT(MYDEBUG_INPUT, "electric" << std::endl);
 				Typ = Node::ELECTRIC;
-#else /* USE_ELECTRIC_NODES */
-				silent_cerr("you're not allowed to use electric nodes"
-					<< std::endl);
-				throw ErrGeneric();
-#endif /* USE_ELECTRIC_NODES */
 				break;
 
 			case ABSTRACT:
-#if defined(USE_ELECTRIC_NODES)
 				DEBUGLCOUT(MYDEBUG_INPUT, "abstract" << std::endl);
 				Typ = Node::ABSTRACT;
-#else /* USE_ELECTRIC_NODES */
-				silent_cerr("you're not allowed to use abstract nodes"
-					<< std::endl);
-				throw ErrGeneric();
-#endif /* USE_ELECTRIC_NODES */
 				break;
 
 			case PARAMETER:
@@ -1487,14 +1408,8 @@ DataManager::ReadNodes(MBDynParser& HP)
 				break;
 
 			case HYDRAULIC:
-#if defined (USE_HYDRAULIC_NODES)
 				DEBUGLCOUT(MYDEBUG_INPUT, "hydraulic" << std::endl);
 				Typ = Node::HYDRAULIC;
-#else /* defined (USE_HYDRAULIC_NODES) */
-				silent_cerr("you're not allowed to use hydraulic nodes"
-					<< std::endl);
-				throw ErrGeneric();
-#endif /* defined (USE_HYDRAULIC_NODES) */
 				break;
 
 			default:
@@ -1597,7 +1512,6 @@ DataManager::ReadNodes(MBDynParser& HP)
 
 			/* Nodi strutturali */
 			case STRUCTURAL: {
-#if defined(USE_STRUCT_NODES)
 				silent_cout("Reading "
 					<< psNodeNames[Node::STRUCTURAL] << "(" << uLabel << ")"
 					<< std::endl);
@@ -1634,16 +1548,10 @@ DataManager::ReadNodes(MBDynParser& HP)
 				DofOwner* pDO = DofData[DofOwner::STRUCTURALNODE].pFirstDofOwner + i;
 
 				*ppN = ReadStructNode(this, HP, pDO, uLabel);
-#else /* USE_STRUCT_NODES */
-				silent_cerr("you're not allowed to use structural nodes"
-					<< std::endl);
-				throw ErrGeneric();
-#endif /* USE_STRUCT_NODES */
 			} break;
 
 			/* nodi elettrici */
 			case ELECTRIC: {
-#if defined(USE_ELECTRIC_NODES)
 				silent_cout("Reading "
 					<< psNodeNames[Node::ELECTRIC] << "(" << uLabel << ")"
 					<< std::endl);
@@ -1678,11 +1586,6 @@ DataManager::ReadNodes(MBDynParser& HP)
 					ElectricNode,
 					ElectricNode(uLabel, pDO, dx, dxp, fOut));
 
-#else /* USE_ELECTRIC_NODES */
-				silent_cerr("you're not allowed to use electric nodes"
-					<< std::endl);
-				throw ErrGeneric();
-#endif /* USE_ELECTRIC_NODES */
 			} break;
 
 			/* nodi astratti */
@@ -1875,7 +1778,6 @@ DataManager::ReadNodes(MBDynParser& HP)
 
 				break;
 
-#if defined(USE_HYDRAULIC_NODES)
 			/* nodi idraulici */
 			case HYDRAULIC: {
 				silent_cout("Reading "
@@ -1911,7 +1813,6 @@ DataManager::ReadNodes(MBDynParser& HP)
 					PressureNode(uLabel, pDO, dx, fOut));
 
 			} break;
-#endif /* USE_HYDRAULIC_NODES */
 
 
 			/* aggiungere eventuali nuovi tipi di nodo */
@@ -2310,7 +2211,6 @@ ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder)
 /* Legge una shape1D;
  * NOTA: il proprietario del puntatore alla Shape la deve distruggere */
 
-#if (defined(USE_STRUCT_NODES) && defined(USE_AERODYNAMIC_ELEMS))
 Shape*
 ReadShape(MBDynParser& HP)
 {
@@ -2483,6 +2383,4 @@ ReadOrientationDescription(MBDynParser& HP)
 
 	return dod;
 }
-
-#endif /* STRUCT && AERODYNAMIC */
 

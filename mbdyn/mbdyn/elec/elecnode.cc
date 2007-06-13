@@ -30,54 +30,12 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifdef USE_ELECTRIC_NODES
-
-#include <mynewmem.h>
-#include <elecnode.h>
-#include <solman.h>
-
-#if 0 /* TBZ */
-
-/* AbstractNode - begin */
-
-/* Costruttore definitivo (da mettere a punto) */
-AbstractNode::AbstractNode(unsigned int uL,
-	const DofOwner* pDO,
-	doublereal dx,
-	doublereal dxp,
-	flag fOut)
-: ScalarDifferentialNode(uL, pDO, dx, dxp, fOut)
-{
-	NO_OP;
-}
-
-/* Distruttore (per ora e' banale) */
-AbstractNode::~AbstractNode(void)
-{
-	NO_OP;
-}
-
-/* Tipo di nodo */
-Node::Type
-AbstractNode::GetNodeType(void) const
-{
-	return Node::ABSTRACT;
-}
-
-/* Output del nodo */
-void
-AbstractNode::Output(OutputHandler& OH) const
-{
-	ScalarDifferentialNode::Output(OH.Abstract());
-}
-
-/* AbstractNode - end */
-
-#endif /* TBZ */
-
+#include "mynewmem.h"
+#include "elecnode.h"
+#include "solman.h"
 
 /* ElectricNode - begin */
 
@@ -106,6 +64,4 @@ ElectricNode::GetNodeType(void) const
 }
 
 /* ElectricNode - end */
-
-#endif /* USE_ELECTRIC_NODES */
 

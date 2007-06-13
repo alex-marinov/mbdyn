@@ -482,7 +482,6 @@ DataManager::DofOwnerInit(void)
 
 /* Inizializzazione della struttura dei dof
  * per l'assemblaggio iniziale dei vincoli */
-#if defined(USE_STRUCT_NODES)
 void
 DataManager::InitialJointAssembly(void)
 {
@@ -962,7 +961,6 @@ endofcycle:
 
 	SAFEDELETE(pSM);
 } /* End of InitialJointAssembly */
-#endif /* USE_STRUCT_NODES */
 
 /* Aggiorna i DofOwner con il numero di dofs dell'elemento */
 

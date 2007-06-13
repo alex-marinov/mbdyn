@@ -37,14 +37,10 @@
 
 #include "mbpar.h"
 
-#if defined(USE_HYDRAULIC_NODES)
 #include "hfluid.h"
-#endif /* USE_HYDRAULIC_NODES */
 
-#if defined(USE_AERODYNAMIC_ELEMS)
 #include "aerodc81.h"
 #include "c81data.h"
-#endif /* USE_AERODYNAMIC_ELEMS */
 
 #if defined(USE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
 #include <ltdl.h>
@@ -109,24 +105,18 @@ MBDynParser::~MBDynParser(void)
 	DestroyCL();
 	DestroySF();
 
-#if defined(USE_STRUCT_NODES)
 	for (RFType::iterator i = RF.begin(); i != RF.end(); i++) {
 		SAFEDELETE(i->second);
 	}
-#endif /* USE_STRUCT_NODES */
 
-#if defined(USE_HYDRAULIC_NODES)
 	for (HFType::iterator i = HF.begin(); i != HF.end(); i++) {
 		SAFEDELETE(i->second);
 	}
-#endif /* USE_HYDRAULIC_NODES */
 
-#if defined(USE_AERODYNAMIC_ELEMS)
 	for (ADType::iterator i = AD.begin(); i != AD.end(); i++) {
 		destroy_c81_data(i->second);
 		SAFEDELETE(i->second);
 	}
-#endif /* USE_AERODYNAMIC_ELEMS */
 
 	for (C1DType::iterator i = C1D.begin(); i != C1D.end(); i++) {
 		SAFEDELETE(i->second);
@@ -163,7 +153,6 @@ MBDynParser::SetDataManager(DataManager *pdm)
 	}
 }
 
-#if defined(USE_STRUCT_NODES)
 const ReferenceFrame AbsRefFrame(0, 
 				 Vec3(0.), 
 				 Mat3x3(1., 0., 0., 
@@ -247,9 +236,7 @@ MBDynParser::Reference_int(void)
 		SAFEDELETEARR(sName);
 	}
 }
-#endif /* USE_STRUCT_NODES */
 
-#if defined(USE_HYDRAULIC_NODES)
 void 
 MBDynParser::HydraulicFluid_int(void)
 {
@@ -288,9 +275,7 @@ MBDynParser::HydraulicFluid_int(void)
 		SAFEDELETEARR(sName);
 	}
 }
-#endif /* USE_HYDRAULIC_NODES */
 
-#if defined(USE_AERODYNAMIC_ELEMS)
 void 
 MBDynParser::C81Data_int(void)
 {
@@ -367,7 +352,6 @@ MBDynParser::C81Data_int(void)
 		SAFEDELETEARR(sName);
 	}
 }
-#endif /* USE_AERODYNAMIC_ELEMS */
 
 void 
 MBDynParser::ConstitutiveLaw_int(void)
@@ -658,30 +642,18 @@ MBDynParser::GetDescription_int(const char *s)
 {
 	/* Se trova un sistema di riferimento, lo gestisce direttamente */
 	if (!strcmp(s, "reference")) {
-#if defined(USE_STRUCT_NODES)      
 		Reference_int();
 		return true;
-#else /* USE_STRUCT_NODES */
-		throw MBDynParser::ErrGeneric();
-#endif /* USE_STRUCT_NODES */
 
 	/* Se trova un fluido idraulico, lo gestisce direttamente */
 	} else if (!strcmp(s, "hydraulic" "fluid")) {
-#if defined(USE_HYDRAULIC_NODES)
 		HydraulicFluid_int();
 		return true;
-#else /* USE_HYDRAULIC_NODES */
-		throw MBDynParser::ErrGeneric();
-#endif /* USE_HYDRAULIC_NODES */
 
 	/* Se trova dati aerodinamici c81, li gestisce direttamente */
 	} else if (!strcmp(s, "c81" "data")) {
-#if defined(USE_AERODYNAMIC_ELEMS)
 		C81Data_int();
 		return true;
-#else /* USE_AERODYNAMIC_ELEMS */
-		throw MBDynParser::ErrGeneric();
-#endif /* USE_AERODYNAMIC_ELEMS */
 
 	/* Reads a constitutive law */
 	} else if (!strcmp(s, "constitutive" "law")) {
@@ -720,7 +692,6 @@ MBDynParser::GetDescription_int(const char *s)
 	return IncludeParser::GetDescription_int(s);
 }
 
-#if defined(USE_STRUCT_NODES)
 MBDynParser::Frame 
 MBDynParser::GetRef(ReferenceFrame& rf)
 {
@@ -1112,9 +1083,7 @@ MBDynParser::GetRotAbs(const ReferenceFrame& rf)
 		throw MBDynParser::ErrGeneric();
 	}
 }
-#endif /* USE_STRUCT_NODES */
 
-#if defined(USE_HYDRAULIC_NODES)
 HydraulicFluid* 
 MBDynParser::GetHydraulicFluid(void)
 {
@@ -1142,9 +1111,7 @@ MBDynParser::GetHydraulicFluid(void)
 
 	return i->second->pCopy();
 }
-#endif /* USE_HYDRAULIC_NODES */
 
-#if defined(USE_AERODYNAMIC_ELEMS)
 const c81_data* 
 MBDynParser::GetC81Data(integer profile)
 {
@@ -1164,7 +1131,6 @@ MBDynParser::GetC81Data(integer profile)
 
 	return i->second;
 }
-#endif /* USE_AERODYNAMIC_ELEM */
 
 ConstitutiveLaw1D *
 MBDynParser::GetConstLaw1D(ConstLawType::Type& clt)

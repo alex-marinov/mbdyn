@@ -46,7 +46,6 @@
 #include <dataman_.h>
 
 /* Elementi */
-#ifdef USE_STRUCT_NODES
 #include <autostr.h>   /* Elementi automatici associati ai nodi dinamici */
 #include <gravity.h>   /* Elemento accelerazione di gravita' */
 #include <body.h>
@@ -54,7 +53,6 @@
 #include "beam.h"
 #include "beam2.h"
 #include "hbeam.h"
-#ifdef USE_AERODYNAMIC_ELEMS
 #include <aerodyn.h>   /* Classe di base degli elementi aerodinamici */
 #include "rotor.h"
 #include "aeroelem.h"
@@ -63,21 +61,13 @@
 #ifdef USE_EXTERNAL
 #include <aeroext.h>
 #endif /* USE_EXTERNAL */
-#endif /* USE_AERODYNAMIC_ELEMS */
-#endif /* USE_STRUCT_NODES */
 
 #include <driven.h>    /* driven elements */
 #include "genel.h"
 #include <j2p.h>       /* bind di elementi a nodi parametrici */
 
-#ifdef USE_HYDRAULIC_NODES
 #include "preselem.h"
-#endif /* USE_HYDRAULIC_NODES */
-
-#ifdef USE_ELECTRIC_NODES
 #include "elec.h"
-#endif /* USE_ELECTRIC_NODES */
-
 #include "bulk.h"
 
 #include <drive.h>
@@ -214,7 +204,6 @@ DataManager::ReadElems(MBDynParser& HP)
 	int iMissingElems = Elems.size();
 	DEBUGLCOUT(MYDEBUG_INPUT, "Expected elements: " << iMissingElems << std::endl);
 
-#ifdef USE_STRUCT_NODES
 	/* Aggiunta degli elementi strutturali automatici legati ai nodi dinamici */
 	if (ElemData[Elem::AUTOMATICSTRUCTURAL].iExpectedNum > 0) {
 		StructNode** ppTmpNod = (StructNode**)NodeData[Node::STRUCTURAL].ppFirstNode;
@@ -238,7 +227,6 @@ DataManager::ReadElems(MBDynParser& HP)
 			}
 		}
 	}
-#endif /* USE_STRUCT_NODES */
 
 	KeyWords CurrDesc;
 	while ((CurrDesc = KeyWords(HP.GetDescription())) != END) {
@@ -246,7 +234,6 @@ DataManager::ReadElems(MBDynParser& HP)
 			DEBUGLCOUT(MYDEBUG_INPUT, "Elements to be output: ");
 			Elem::Type Typ;
 			switch (KeyWords(HP.GetWord())) {
-#ifdef USE_STRUCT_NODES
 			case BODY: {
 				DEBUGLCOUT(MYDEBUG_INPUT, "bodies" << std::endl);
 				Typ = Elem::BODY;
@@ -274,7 +261,6 @@ DataManager::ReadElems(MBDynParser& HP)
 				break;
 			}
 
-#ifdef USE_AERODYNAMIC_ELEMS
 			case ROTOR: {
 				DEBUGLCOUT(MYDEBUG_INPUT, "rotors" << std::endl);
 				Typ = Elem::ROTOR;
@@ -305,19 +291,14 @@ DataManager::ReadElems(MBDynParser& HP)
 				Typ = Elem::AERODYNAMIC;
 				break;
 			}
-#endif /* USE_AERODYNAMIC_ELEMS */
-#endif /* USE_STRUCT_NODES */
 
 			case FORCE:
-#ifdef USE_STRUCT_NODES
 			case COUPLE:
-#endif /* USE_STRUCT_NODES */
 			{
 				DEBUGLCOUT(MYDEBUG_INPUT, "forces" << std::endl);
 				Typ = Elem::FORCE;
 				break;
 				}
-#ifdef USE_ELECTRIC_NODES
 
 			case GENEL: {
 				DEBUGLCOUT(MYDEBUG_INPUT, "genels" << std::endl);
@@ -330,15 +311,12 @@ DataManager::ReadElems(MBDynParser& HP)
 				Typ = Elem::ELECTRIC;
 				break;
 			}
-#endif /* USE_ELECTRIC_NODES */
 
-#ifdef USE_HYDRAULIC_NODES
 			case HYDRAULIC: {
 				DEBUGLCOUT(MYDEBUG_INPUT, "hydraulic elements" << std::endl);
 				Typ = Elem::HYDRAULIC;
 				break;
 			}
-#endif /* USE_HYDRAULIC_NODES */
 
 			case BULK: {
 				DEBUGLCOUT(MYDEBUG_INPUT, "bulk" << std::endl);
@@ -410,7 +388,6 @@ DataManager::ReadElems(MBDynParser& HP)
 				SAFESTRDUP(sName, sTmp);
 			}
 
-#ifdef USE_STRUCT_NODES
 			Vec3 x(Zero3);
 			if (HP.IsKeyWord("position")) {
 				x = HP.GetPosAbs(AbsRefFrame);
@@ -597,15 +574,6 @@ DataManager::ReadElems(MBDynParser& HP)
 				SAFEDELETEARR(sName);
 			}
 
-#else /* !USE_STRUCT_NODES */
-			silent_cerr("inertia " << uIn << " at line " << HP.GetLineData()
-				<< " available only if structural nodes are enabled"
-				<< std::endl);
-#if 0	/* not critical ... */
-			throw ErrGeneric();
-#endif
-#endif /* !USE_STRUCT_NODES */
-
 		} else if (CurrDesc == BIND) {
 			/* Label dell'elemento */
 			unsigned int uL = HP.GetInt();
@@ -787,7 +755,6 @@ DataManager::ReadElems(MBDynParser& HP)
 			/* Qui vengono elencati gli elementi unici, che non richiedono label
 			 * (per ora: accelerazione di gravita' e proprieta' dell'aria */
 
-#ifdef USE_STRUCT_NODES
 			/* Accelerazione di gravita' */
 			case GRAVITY: {
 				silent_cout("Reading gravity acceleration" << std::endl);
@@ -814,7 +781,6 @@ DataManager::ReadElems(MBDynParser& HP)
 				break;
 			}
 
-#ifdef USE_AERODYNAMIC_ELEMS
 			/* Elementi aerodinamici: proprieta' dell'aria */
 			case AIRPROPERTIES: {
 				silent_cout("Reading air properties" << std::endl);
@@ -837,8 +803,6 @@ DataManager::ReadElems(MBDynParser& HP)
 
 				break;
 			}
-#endif /* USE_AERODYNAMIC_ELEMS */
-#endif /* USE_STRUCT_NODES */
 
 			/* Elemento generico: legge la label e fa un nuovo switch */
 			default: {
@@ -870,7 +834,6 @@ DataManager::ReadElems(MBDynParser& HP)
 #ifdef DEBUG
 					switch (CurrDriven) {
 					case FORCE:
-#ifdef USE_STRUCT_NODES
 					case BODY:
 					case JOINT:
 					case COUPLE:
@@ -878,22 +841,19 @@ DataManager::ReadElems(MBDynParser& HP)
 					case BEAM3:			/* same as BEAM */
 					case BEAM2:
 					case HBEAM:
-#ifdef USE_AERODYNAMIC_ELEMS
+
 					case ROTOR:
 					case AERODYNAMICBODY:
 					case AERODYNAMICBEAM:
 					case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
 					case AERODYNAMICBEAM2:
 					case AIRCRAFTINSTRUMENTS:
-#endif /* USE_AERODYNAMIC_ELEMS */
-#endif /* USE_STRUCT_NODES */
-#ifdef USE_ELECTRIC_NODES
+
 					case GENEL:
 					case ELECTRIC:
-#endif /* USE_ELECTRIC_NODES */
-#ifdef USE_HYDRAULIC_NODES
+
 					case HYDRAULIC:
-#endif /* USE_HYDRAULIC_NODES */
+
 					case BULK:
 					case LOADABLE:
 					case EXISTING:
@@ -932,7 +892,6 @@ DataManager::ReadElems(MBDynParser& HP)
 							ppE = ppFindElem(Elem::FORCE, uLabel);
 							break;
 
-#ifdef USE_STRUCT_NODES
 						case BODY:
 							ppE = ppFindElem(Elem::BODY, uLabel);
 							break;
@@ -952,7 +911,6 @@ DataManager::ReadElems(MBDynParser& HP)
 							ppE = ppFindElem(Elem::BEAM, uLabel);
 							break;
 
-#ifdef USE_AERODYNAMIC_ELEMS
 						case ROTOR:
 							ppE = ppFindElem(Elem::ROTOR, uLabel);
 							break;
@@ -965,9 +923,6 @@ DataManager::ReadElems(MBDynParser& HP)
 							ppE = ppFindElem(Elem::AERODYNAMIC, uLabel);
 							break;
 
-#endif /* USE_AERODYNAMIC_ELEMS */
-#endif /* USE_STRUCT_NODES */
-#ifdef USE_ELECTRIC_NODES
 						case GENEL:
 							ppE = ppFindElem(Elem::GENEL, uLabel);
 							break;
@@ -976,13 +931,10 @@ DataManager::ReadElems(MBDynParser& HP)
 							ppE = ppFindElem(Elem::ELECTRIC, uLabel);
 							break;
 
-#endif /* USE_ELECTRIC_NODES */
-#ifdef USE_HYDRAULIC_NODES
 						case HYDRAULIC:
 							ppE = ppFindElem(Elem::HYDRAULIC, uLabel);
 							break;
 
-#endif /* USE_HYDRAULIC_NODES */
 						case BULK:
 							ppE = ppFindElem(Elem::BULK, uLabel);
 							break;
@@ -1064,7 +1016,7 @@ DataManager::ReadElems(MBDynParser& HP)
                 /*  <<<<  N O R M A L   E L E M E N T S  >>>>>  */
 				/* Normal element */
 				case FORCE:
-#ifdef USE_STRUCT_NODES
+
 				case BODY:
 				case JOINT:
 				case COUPLE:
@@ -1072,7 +1024,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				case BEAM3:		/* same as BEAM */
 				case BEAM2:
 				case HBEAM:
-#ifdef USE_AERODYNAMIC_ELEMS
+
 				case ROTOR:
 				case AERODYNAMICBODY:
 				case AERODYNAMICBEAM:
@@ -1084,15 +1036,12 @@ DataManager::ReadElems(MBDynParser& HP)
 				case AERODYNAMICEXTERNALMODAL:
 #endif /* USE_EXTERNAL */
 				case AEROMODAL:
-#endif /* USE_AERODYNAMIC_ELEMS */
-#endif /* USE_STRUCT_NODES */
-#ifdef USE_ELECTRIC_NODES
+
 				case GENEL:
 				case ELECTRIC:
-#endif /* USE_ELECTRIC_NODES */
-#ifdef USE_HYDRAULIC_NODES
+
 				case HYDRAULIC:
-#endif /* USE_HYDRAULIC_NODES */
+
 				case BULK:
 				case LOADABLE:
 				case RTAI_OUTPUT:
@@ -1208,7 +1157,6 @@ DataManager::ReadElems(MBDynParser& HP)
 		throw DataManager::ErrGeneric();
 	}
 
-#ifdef USE_STRUCT_NODES
 	/* Linka gli elementi che generano forze d'inerzia all'elemento
 	 * accelerazione di gravita' */
 	if (!ElemData[Elem::GRAVITY].ElemMap.empty()) {
@@ -1232,7 +1180,6 @@ DataManager::ReadElems(MBDynParser& HP)
 		}
 	}
 
-#ifdef USE_AERODYNAMIC_ELEMS
 	/* Linka gli elementi che usano le proprieta' dell'aria all'elemento
 	 * proprieta' dell'aria */
 	if (!ElemData[Elem::AIRPROPERTIES].ElemMap.empty()) {
@@ -1290,8 +1237,6 @@ DataManager::ReadElems(MBDynParser& HP)
 			throw DataManager::ErrGeneric();
 		}
 	}
-#endif /* USE_AERODYNAMIC_ELEMS */
-#endif /* USE_STRUCT_NODES */
 
 	/* count & initialize element array */
 	unsigned iNumElems = 0;
@@ -1320,9 +1265,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, int CurrType)
 	switch (KeyWords(CurrType)) {
 	/* forza */
 	case FORCE:
-#ifdef USE_STRUCT_NODES
 	case COUPLE:
-#endif /* USE_STRUCT_NODES */
 	{
 		int iForceType;
 		if (KeyWords(CurrType) == FORCE) {
@@ -1362,7 +1305,6 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, int CurrType)
 		break;
 	}
 
-#ifdef USE_STRUCT_NODES
 	case BODY: {
 		silent_cout("Reading rigid body " << uLabel << std::endl);
 
@@ -1484,7 +1426,6 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, int CurrType)
 		break;
 	}
 
-#ifdef USE_AERODYNAMIC_ELEMS
 	/* Elementi aerodinamici: rotori */
 	case ROTOR: {
 		silent_cout("Reading rotor " << uLabel << std::endl);
@@ -1665,10 +1606,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, int CurrType)
 
 		break;
 	}
-#endif /* USE_AERODYNAMIC_ELEMS */
-#endif /* USE_STRUCT_NODES */
 
-#ifdef USE_ELECTRIC_NODES
 	/* genel */
 	case GENEL: {
 		silent_cout("Reading genel " << uLabel << std::endl);
@@ -1705,7 +1643,6 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, int CurrType)
 		break;
 	}
 
-#ifdef USE_HYDRAULIC_NODES
 	/* elementi idraulici */
 	case HYDRAULIC: {
 		silent_cout("Reading hydraulic element " << uLabel << std::endl);
@@ -1744,7 +1681,6 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, int CurrType)
 
 		break;
 	}
-#endif /* USE_HYDRAULIC_NODES */
 
 	/* elementi elettrici */
 	case ELECTRIC: {
@@ -1784,7 +1720,6 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, int CurrType)
 
 		break;
 	}
-#endif /* USE_ELECTRIC_NODES */
 
 	/* elementi bulk */
 	case BULK: {

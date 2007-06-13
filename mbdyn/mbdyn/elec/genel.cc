@@ -32,18 +32,14 @@
 /* Genel */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifdef USE_ELECTRIC_NODES
-
-#include <genel_.h>
-#include <genfilt.h>
-#include <swashpl.h>
-#ifdef USE_AERODYNAMIC_ELEMS
-#include <rottrim.h>
-#endif /* USE_AERODYNAMIC_ELEMS */
-#include <dataman.h>
+#include "genel_.h"
+#include "genfilt.h"
+#include "swashpl.h"
+#include "rottrim.h"
+#include "dataman.h"
 
 /* genel - begin */
 
@@ -222,7 +218,6 @@ Elem* ReadGenel(DataManager* pDM,
 
 
     case ROTORTRIM: {
-#ifdef USE_AERODYNAMIC_ELEMS
        unsigned int uL = HP.GetInt();
        Rotor* pRot = dynamic_cast<Rotor *>(pDM->pFindElem(Elem::ROTOR, uL));
        if (pRot == NULL) {
@@ -301,12 +296,6 @@ Elem* ReadGenel(DataManager* pDM,
 					dGamma, dP,
 					dTau0, dTau1, dKappa0, dKappa1,
 					pTrigger, fOut));
-
-#else /* !USE_AERODYNAMIC_ELEMS */
-       silent_cerr("can't use a rotor trim element without rotors" << std::endl);
-       throw ErrGeneric();
-#endif /* !USE_AERODYNAMIC_ELEMS */
-
        break;
     }
 
@@ -910,6 +899,4 @@ Elem* ReadGenel(DataManager* pDM,
 
    return pEl;
 } /* ReadGenel() */
-
-#endif /* USE_ELECTRIC_NODES */
 

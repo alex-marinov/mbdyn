@@ -35,8 +35,6 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#if defined(USE_ELECTRIC_NODES) && defined(USE_STRUCT_NODES)
-
 #include <strnode.h>
 #include <elecnode.h>
 #include <displacement.h>
@@ -171,5 +169,3 @@ DispMeasure::SetValue(DataManager *pDM,
 }
 
 /* DispMeasure - end */
-
-#endif /* USE_ELECTRIC_NODES && USE_STRUCT_NODES */

@@ -164,7 +164,6 @@ DataManager::pFindNode(Node::Type Typ, unsigned int uL) const
 }
 
 /* cerca un nodo strutturale*/
-#if defined(USE_STRUCT_NODES)
 StructNode*
 DataManager::pFindStructNode(unsigned int uL) const
 {
@@ -174,10 +173,8 @@ DataManager::pFindStructNode(unsigned int uL) const
 
 	return (StructNode*)pLabelSearch(NodeData[Node::STRUCTURAL].ppFirstNode, NodeData[Node::STRUCTURAL].iNum, uL);
 }
-#endif // USE_STRUCT_NODES
 
 /* cerca un nodo elettrico */
-#if defined(USE_ELECTRIC_NODES)
 ElectricNode*
 DataManager::pFindElectricNode(unsigned int uL) const
 {
@@ -187,6 +184,5 @@ DataManager::pFindElectricNode(unsigned int uL) const
 
 	return (ElectricNode*)pLabelSearch(NodeData[Node::ELECTRIC].ppFirstNode, NodeData[Node::ELECTRIC].iNum, uL);
 }
-#endif // USE_ELECTRIC_NODES
 
 /* DataManager - end */

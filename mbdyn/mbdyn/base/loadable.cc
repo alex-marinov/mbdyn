@@ -270,13 +270,9 @@ LoadableElem::LoadableElem(unsigned int uLabel,
 			   DataManager* pDM, 
 			   MBDynParser& HP)
 : Elem(uLabel, flag(0)),
-#ifdef USE_STRUCT_NODES
 InitialAssemblyElem(uLabel, flag(0)),
-#ifdef USE_AERODYNAMIC_ELEMS
 AerodynamicElem(uLabel, flag(0)),
-#endif /* USE_AERODYNAMIC_ELEMS */
 ElemGravityOwner(uLabel, flag(0)),
-#endif /* USE_STRUCT_NODES */
 ElemWithDofs(uLabel, pDO, flag(0)),
 priv_data(NULL),
 module_name(NULL),
@@ -298,13 +294,9 @@ LoadableElem::LoadableElem(unsigned int uLabel,
 			   DataManager* pDM, 
 			   MBDynParser& HP)
 : Elem(uLabel, flag(0)),
-#ifdef USE_STRUCT_NODES
 InitialAssemblyElem(uLabel, flag(0)),
-#ifdef USE_AERODYNAMIC_ELEMS
 AerodynamicElem(uLabel, flag(0)),
-#endif /* USE_AERODYNAMIC_ELEMS */
 ElemGravityOwner(uLabel, flag(0)),
-#endif /* USE_STRUCT_NODES */
 ElemWithDofs(uLabel, pDO, flag(0)),
 priv_data(NULL),
 module_name(NULL),
@@ -681,7 +673,6 @@ LoadableElem::AfterConvergence(const VectorHandler& X,
    	(*calls->after_convergence)(this, X, XP);
 }
 
-#ifdef USE_STRUCT_NODES
 unsigned int 
 LoadableElem::iGetInitialNumDof(void) const
 {
@@ -718,7 +709,6 @@ LoadableElem::SetInitialValue(VectorHandler& X) const
    	ASSERT(calls->set_initial_value != NULL);
    	(*calls->set_initial_value)(this, X);
 }
-#endif /* USE_STRUCT_NODES */
 
 void 
 LoadableElem::SetValue(DataManager *pDM,

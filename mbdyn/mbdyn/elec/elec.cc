@@ -35,8 +35,6 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifdef USE_ELECTRIC_NODES
-
 #include <elec.h>
 #include <elecnode.h>
 #include <drive.h>
@@ -216,8 +214,6 @@ Elem* ReadElectric(DataManager* pDM,
       /*  */
 
     case ACCELEROMETER: {
-#if defined(USE_STRUCT_NODES)
-
        int f = 0;
        if (HP.IsKeyWord("translational")) {
 	  f = 1;
@@ -338,16 +334,9 @@ Elem* ReadElectric(DataManager* pDM,
        }
 
        break;
-
-#else /* USE_STRUCT_NODES */
-       silent_cerr("you're not allowed to use accelerometer elements" << std::endl);
-       throw ErrGeneric();
-#endif /* USE_STRUCT_NODES */
     }
 
     case DISPLACEMENT: {
-#if defined(USE_STRUCT_NODES)
-
        /* nodo strutturale collegato 1 */
        StructNode* pStrNode1 = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 
@@ -371,16 +360,9 @@ Elem* ReadElectric(DataManager* pDM,
 					  pStrNode1, pStrNode2, pAbsNode,
 					  Tmpf1, Tmpf2, fOut));
        break;
-
-#else /* USE_STRUCT_NODES */
-       silent_cerr("you're not allowed to use displacement measure elements" << std::endl);
-       throw ErrGeneric();
-#endif /* USE_STRUCT_NODES */
     }
 
     case MOTOR: {
-#if defined(USE_STRUCT_NODES)
-
        /* nodo strutturale collegato 1 */
        StructNode* pStrNode1 = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 
@@ -411,11 +393,6 @@ Elem* ReadElectric(DataManager* pDM,
 	       		       pStrNode1, pStrNode2, pVoltage1, pVoltage2,
 			       TmpDir, dG, dl, dr, fOut));
        break;
-
-#else /* USE_STRUCT_NODES */
-       silent_cerr("you're not allowed to use electric motors" << std::endl);
-       throw ErrGeneric();
-#endif /* USE_STRUCT_NODES */
     }
 
       /*  */
@@ -756,6 +733,4 @@ Elem* ReadElectric(DataManager* pDM,
 
    return pEl;
 } /* ReadElectric() */
-
-#endif /* USE_ELECTRIC_NODES */
 

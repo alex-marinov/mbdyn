@@ -107,7 +107,6 @@ pXCurr(0), pXPrimeCurr(0),
 /* Inverse Dynamics: */
 pXPrimePrimeCurr(0),
 pLambdaCurr(0),
-#if defined(USE_STRUCT_NODES)
 bInitialJointAssemblyToBeDone(bDefaultInitialJointAssemblyToBeMade),
 bSkipInitialJointAssembly(bDefaultSkipInitialJointAssembly),
 bOutputFrames(false),
@@ -122,7 +121,6 @@ CurrSolver(pS->GetLinearSolver()),
 bStaticModel(false),
 /* auto-detect if running inverse dynamics */
 bInverseDynamics(dynamic_cast<InverseSolver *>(pS) != 0),
-#endif /* USE_STRUCT_NODES */
 #if defined(USE_RUNTIME_LOADING)
 loadableElemInitialized(false),
 #endif // USE_RUNTIME_LOADING
@@ -415,18 +413,14 @@ DofIter()
 		silent_cerr("warning, no elements are defined" << std::endl);
 	}
 
-#ifdef USE_STRUCT_NODES
 	if (bOutputFrames) {
 		OutHdl.Open(OutputHandler::REFERENCEFRAMES);
 		HP.OutputFrames(OutHdl.ReferenceFrames());
 	}
 
-#ifdef USE_AERODYNAMIC_ELEMS
 	if (!ElemData[Elem::AIRPROPERTIES].ElemMap.empty()) {
 		OutHdl.Open(OutputHandler::AIRPROPS);
 	}
-#endif /* USE_AERODYNAMIC_ELEMS */
-#endif /* USE_STRUCT_NODES */
 
 	/* fine lettura elementi */
 
@@ -512,7 +506,6 @@ DofIter()
 	 * che conosce gli aspetti fisici del problema
 	 */
 
-#if defined(USE_STRUCT_NODES)
 	if (bInitialJointAssemblyToBeDone) {
 		if (!bSkipInitialJointAssembly && !bInverseDynamics) {
 			InitialJointAssembly();
@@ -523,7 +516,6 @@ DofIter()
 		silent_cout("No initial assembly is required since no joints are defined"
 			<< std::endl);
 	}
-#endif /* USE_STRUCT_NODES */
 
 	/* Costruzione dei dati dei Dof definitivi da usare nella simulazione */
 
@@ -719,7 +711,6 @@ void DataManager::MakeRestart(void)
 			<< sSimulationTitle << "\";" << std::endl;
 	}
 
-#if defined(USE_STRUCT_NODES)
 	OutHdl.Restart() << std::endl
 		<< "# comment this line if the model is to be modified!" << std::endl
 		<< "  skip initial joint assembly;" << std::endl
@@ -730,7 +721,6 @@ void DataManager::MakeRestart(void)
 		<< "  # initial tolerance: " << dInitialAssemblyTol << ';' << std::endl
 		<< "  # max initial iterations: " << iMaxInitialIterations
 		<< ';' << std::endl;
-#endif // USE_STRUCT_NODES
 	OutHdl.Restart() << "# uncomment this line if restart file is to be made again"
 		<< std::endl
 		<< "  # make restart file;" << std::endl

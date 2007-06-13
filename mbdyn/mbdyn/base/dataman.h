@@ -109,7 +109,6 @@ protected:
 	const VectorHandler* pLambdaCurr;
 
 	/* Parametri usati durante l'assemblaggio iniziale */
-#if defined(USE_STRUCT_NODES)
 	bool bInitialJointAssemblyToBeDone;
 	bool bSkipInitialJointAssembly;
 	bool bOutputFrames;
@@ -124,7 +123,6 @@ protected:
 
 	bool bStaticModel;
 	bool bInverseDynamics;
-#endif /* USE_STRUCT_NODES */
 
 #ifdef USE_RUNTIME_LOADING
 	bool loadableElemInitialized;
@@ -254,9 +252,7 @@ public:
 
 protected:
 	/* chiamate a funzioni di inizializzazione */
-#if defined(USE_STRUCT_NODES)
 	void InitialJointAssembly(void);
-#endif /* USE_STRUCT_NODES */
 
 	void DofOwnerSet(void);
 	void DofOwnerInit(void);
@@ -647,13 +643,9 @@ public:
 	Node** ppFindNode(Node::Type Typ, unsigned int uL) const;
 	/* ricerca di nodi */
 	Node* pFindNode(Node::Type Typ, unsigned int uL) const;
-#if defined(USE_STRUCT_NODES)
 	StructNode* pFindStructNode(unsigned int uL) const;
-#endif // USE_STRUCT_NODES
 
-#if defined(USE_ELECTRIC_NODES)
 	ElectricNode* pFindElectricNode(unsigned int uL) const;
-#endif // USE_ELECTRIC_NODES
 
 protected:
 	flag fGetDefaultOutputFlag(const Node::Type& t) const;
@@ -771,9 +763,7 @@ ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder);
 extern OrientationDescription
 ReadOrientationDescription(MBDynParser& HP);
 
-#if (defined(USE_STRUCT_NODES) && defined(USE_AERODYNAMIC_ELEMS))
 extern Shape* ReadShape(MBDynParser& HP);
-#endif /* STRUCT && AERODYNAMIC */
 
 #endif /* DATAMAN_H */
 

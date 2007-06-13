@@ -29,23 +29,22 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>
+#include "mbconfig.h"
 #endif /* HAVE_CONFIG_H */
 
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <ac/iostream>
-#include <ac/fstream>
-#include <ac/getopt.h>
+#include "ac/iostream"
+#include "ac/fstream"
+#include "ac/getopt.h"
 
-#include <myassert.h>
-#include <mynewmem.h>
+#include "myassert.h"
+#include "mynewmem.h"
 
-#if defined(USE_AERODYNAMIC_ELEMS)
-#include <aerodata.h>
-#include <aerodc81.h>
-#include <c81data.h>
+#include "aerodata.h"
+#include "aerodc81.h"
+#include "c81data.h"
 
 static void
 merge_vecs(int n, doublereal *v1, doublereal w1, doublereal *v2, doublereal w2, doublereal *v)
@@ -274,7 +273,6 @@ merge_c81_data_both(c81_data *data_from, doublereal wfrom, c81_data *data_to, do
 {
 	return -1;
 }
-#endif /* USE_AERODYNAMIC_ELEMS */
 
 /*
  * uso: 
@@ -282,10 +280,6 @@ merge_c81_data_both(c81_data *data_from, doublereal wfrom, c81_data *data_to, do
 int
 main(int argc, char *argv[])
 {
-#if !defined(USE_AERODYNAMIC_ELEMS)
-	std::cerr << "compile with --with-aero to enable aerodynamic stuff" 
-		<< std::endl;
-#else /* USE_AERODYNAMIC_ELEMS */
 	c81_data	data_from,
 			data_to,
 			data;
@@ -550,7 +544,5 @@ main(int argc, char *argv[])
 		silent_cerr("output failed" << std::endl);
 	}
 	
-#endif /* USE_AERODYNAMIC_ELEMS */
-
 	return rc;
 }

@@ -29,23 +29,21 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>
+#include "mbconfig.h"
 #endif /* HAVE_CONFIG_H */
 
 #include <stdlib.h>
 
-#include <ac/iostream>
-#include <ac/fstream>
-#include <ac/getopt.h>
+#include "ac/iostream"
+#include "ac/fstream"
+#include "ac/getopt.h"
 
-#include <myassert.h>
-#include <mynewmem.h>
+#include "myassert.h"
+#include "mynewmem.h"
 
-#if defined(USE_AERODYNAMIC_ELEMS)
-#include <aerodata.h>
-#include <aerodc81.h>
-#include <c81data.h>
-#endif /* USE_AERODYNAMIC_ELEMS */
+#include "aerodata.h"
+#include "aerodc81.h"
+#include "c81data.h"
 
 static void
 usage(int rc)
@@ -72,7 +70,6 @@ usage(int rc)
 int
 main(int argc, char *argv[])
 {
-#if defined(USE_AERODYNAMIC_ELEMS)
 	char		mode = 'c';
 	char		*dump_fname = NULL;
 	bool		dump(false);
@@ -323,11 +320,6 @@ main(int argc, char *argv[])
 		std::cerr << "don't know what to do..." << std::endl;
 		usage(EXIT_FAILURE);
 	}
-
-#else /* !USE_AERODYNAMIC_ELEMS */
-	std::cerr << "compile with --with-aero to enable aerodynamic stuff" 
-		<< std::endl;
-#endif /* !USE_AERODYNAMIC_ELEMS */
 
 	return 0;
 }

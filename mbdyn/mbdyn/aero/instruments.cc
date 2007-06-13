@@ -33,8 +33,6 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifdef USE_AERODYNAMIC_ELEMS
-
 /* Aircraft Instruments */
 
 #include <dataman.h>
@@ -256,6 +254,4 @@ ReadAircraftInstruments(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 
 	return pEl;
 }
-
-#endif /* USE_AERODYNAMIC_ELEMS */
 

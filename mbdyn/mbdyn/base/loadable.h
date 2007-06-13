@@ -63,12 +63,8 @@
 
 #include "elem.h"
 #include "dataman.h"
-#ifdef USE_STRUCT_NODES
 #include "gravity.h"
-#ifdef USE_AERODYNAMIC_ELEMS
 #include "aerodyn.h"
-#endif /* USE_AERODYNAMIC_ELEMS */
-#endif /* USE_STRUCT_NODES */
 
 /*
  * Dynamically loadable element
@@ -248,13 +244,9 @@ struct LoadableCalls {
 
 class LoadableElem
 : virtual public Elem,
-#ifdef USE_STRUCT_NODES
 public InitialAssemblyElem,
-#ifdef USE_AERODYNAMIC_ELEMS
 public AerodynamicElem,
-#endif /* USE_AERODYNAMIC_ELEMS */
 public ElemGravityOwner,
-#endif /* USE_STRUCT_NODES */
 public ElemWithDofs {
 protected:
    	void* priv_data;	/* Dati privati passati alle funzioni */
@@ -314,7 +306,6 @@ public:
    	virtual void AfterConvergence(const VectorHandler& X,
 			const VectorHandler& XP);   
 
-#ifdef USE_STRUCT_NODES
    	virtual unsigned int iGetInitialNumDof(void) const;
    	virtual void 
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
@@ -324,7 +315,6 @@ public:
    	SubVectorHandler& 
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
    	virtual void SetInitialValue(VectorHandler& X) const;   
-#endif /* USE_STRUCT_NODES */
 
    	virtual void SetValue(DataManager *pDM,
 			VectorHandler& X, VectorHandler& XP,

@@ -30,14 +30,12 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifdef USE_ELECTRIC_NODES
-
-#include <genfilt.h>
+#include "genfilt.h"
 #ifdef USE_Y12
-#include <y12wrap.h>
+#include "y12wrap.h"
 #undef catch
 #endif /* USE_Y12 */
 
@@ -752,6 +750,4 @@ GenelStateSpaceMIMO::Output(OutputHandler& OH) const
 }
 
 /* GenelStateSpaceMIMO - end */
-
-#endif /* USE_ELECTRIC_NODES */
 

@@ -102,23 +102,18 @@
 #ifndef MBPAR_H
 #define MBPAR_H
 
-#include <parsinc.h>
+#include "parsinc.h"
 
 /* Per reference frame */
-#if defined(USE_STRUCT_NODES)
-#include <reffrm.h>
+#include "reffrm.h"
 /* Riferimento assoluto */
 extern const ReferenceFrame AbsRefFrame;
-#endif /* defined(USE_STRUCT_NODES) */
 
 /* Per nodi idraulici */
-#if defined(USE_HYDRAULIC_NODES)
-#include <hfluid.h>
-#endif /* defined(USE_HYDRAULIC_NODES) */
+#include "hfluid.h"
 
-#if defined(USE_AERODYNAMIC_ELEMS)
-#include <aerodata.h>
-#endif /* USE_AERODYNAMIC_ELEMS */
+/* Aerodynamic data */
+#include "aerodata.h"
 
 #include "constltp.h"
 #include "ScalarFunctions.h"
@@ -149,30 +144,24 @@ public:
    
 protected:      
 	/* Struttura e dati per la linked list di reference frames */
-#if defined(USE_STRUCT_NODES)   
 	typedef std::map<unsigned, const ReferenceFrame *> RFType;
 	RFType RF;
 	
 	Frame GetRef(ReferenceFrame& rf);
 	
 	void Reference_int(void);
-#endif /* USE_STRUCT_NODES */
  
 	/* Struttura e dati per la linked list di hydraulic fluids */
-#if defined(USE_HYDRAULIC_NODES)   
 	typedef std::map<unsigned, const HydraulicFluid *> HFType;
 	HFType HF;
 	
 	void HydraulicFluid_int(void);
-#endif /* USE_HYDRAULIC_NODES */
  
 	/* Struttura e dati per la linked list di c81 data */
-#if defined(USE_AERODYNAMIC_ELEMS)   
 	typedef std::map<integer, C81Data *> ADType;
 	ADType AD;
 
 	void C81Data_int(void);
-#endif /* USE_AERODYNAMIC_ELEMS */
 
 	typedef std::map<unsigned, const ConstitutiveLaw1D *> C1DType;
 	typedef std::map<unsigned, const ConstitutiveLaw3D *> C3DType;
@@ -218,7 +207,6 @@ public:
 	 * Lettura di posizioni, vettori e matrici di rotazione
 	 * relative ed assolute rispetto ad un riferimento
 	 */
-#if defined(USE_STRUCT_NODES)
 	Vec3 GetPosRel(const ReferenceFrame& rf);
 	Vec3 GetPosAbs(const ReferenceFrame& rf);
 	Vec3 GetVelRel(const ReferenceFrame& rf, const Vec3& x);
@@ -233,15 +221,10 @@ public:
 	Mat3x3 GetRotAbs(const ReferenceFrame& rf);
 
 	void OutputFrames(std::ostream& out) const;
-#endif /* USE_STRUCT_NODES */
    
-#if defined(USE_HYDRAULIC_NODES)
 	HydraulicFluid* GetHydraulicFluid(void);
-#endif /* USE_HYDRAULIC_NODES */
 
-#if defined(USE_AERODYNAMIC_ELEMS)
 	const c81_data* GetC81Data(integer profile);
-#endif /* USE_AERODYNAMIC_ELEMS */
 
 	ConstitutiveLaw1D* GetConstLaw1D(ConstLawType::Type& clt);
 	ConstitutiveLaw3D* GetConstLaw3D(ConstLawType::Type& clt);
