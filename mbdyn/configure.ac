@@ -392,15 +392,6 @@ AC_DEFINE(USE_UNDERSCORE,1,[append underscore to fortran calls])
 
 dnl ----------------------------------------------------------------
 dnl
-dnl define packages (will be made configurable)
-dnl
-dnl AC_DEFINE(USE_STRUCT_NODES,1,[use structural nodes])
-dnl AC_DEFINE(USE_AERODYNAMIC_ELEMS,1,[use aerodynamic elements (requires USE_STRUCT_NODES)])
-dnl AC_DEFINE(USE_ELECTRIC_NODES,1,[use electric nodes])
-dnl AC_DEFINE(USE_HYDRAULIC_NODES,1,[use hydraulic nodes])
-
-dnl ----------------------------------------------------------------
-dnl
 dnl Check for DEBUG
 dnl
 if test "$ol_enable_debug_mpi" != no ; then
@@ -668,28 +659,6 @@ elif test $ol_with_aero_output = node ; then
 	AC_DEFINE(AEROD_OUTPUT,2,[set to 0,1,2 for std,gauss,node])
 else
 	AC_DEFINE(AEROD_OUTPUT,0,[set to 0,1,2 for std,gauss,node])
-fi
-
-
-dnl ----------------------------------------------------------------
-dnl
-dnl Check for packages
-dnl
-if test $ol_with_struct = yes ; then
-        AC_DEFINE(USE_STRUCT_NODES,1,[set to 1 to use structural stuff])
-fi
-if test $ol_with_elec = yes ; then
-	AC_DEFINE(USE_ELECTRIC_NODES,1,[set to 1 to use electric stuff])
-fi
-if test $ol_with_hydr = yes ; then
-        AC_DEFINE(USE_HYDRAULIC_NODES,1,[set to 1 to use hydraulic stuff])
-fi
-if test $ol_with_aero = yes ; then
-	if test $ol_with_struct != yes ; then
-		AC_MSG_WARN([Need --with-struct to enable aerodynamic stuff])
-	else
-        	AC_DEFINE(USE_AERODYNAMIC_ELEMS,1,[set to 1 to use electric stuff])
-	fi
 fi
 
 dnl ----------------------------------------------------------------
