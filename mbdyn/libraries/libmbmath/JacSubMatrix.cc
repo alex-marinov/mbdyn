@@ -79,7 +79,7 @@ void ExpandableRowVector::Add(doublereal xx, integer i){
 	x[i-1] += xx;
 };
 void ExpandableRowVector::Sub(doublereal xx, integer i){
-	x[i-1] += xx;
+	x[i-1] -= xx;
 };
 void ExpandableRowVector::Add(SubVectorHandler& WorkVec, const doublereal c) const {
 	for (std::vector<doublereal>::size_type i=0; i<x.size(); i++) {
