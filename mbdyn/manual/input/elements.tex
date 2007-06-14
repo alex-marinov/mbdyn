@@ -219,14 +219,43 @@ the interpolated data to the aerodynamic element.
 Aerodynamic elements, both bodies and beams, write their output with file
 extension \kw{.aer}; for each time step the required elements are output.
 Three different formats are available; the format can be selected only at
-compile time, and it must be the same for all the elements. 
+compile time, so it must be the same for all the elements. 
 
 \noindent
-\emph{Note: eventually it will freeze; if all the output formats will be
-maintained, they will be made selectable at run-time.}
+\emph{Note: eventually the format will freeze; if all the output formats
+are be maintained, they will be made selectable at run-time,
+on a per-element basis.}
 
 \noindent
 In any case the label of the element is output first.
+
+\subsubsection{Coefficients at Gauss points}
+The output consists in a set of 8 numbers for each block,
+that describe data at each Gauss integration point;
+multiple blocks for a single element are written on the same line.
+The format is:
+\begin{itemize}
+    \item the incidence angle at that station, in degrees 
+	(namely, the angle between the component of the airfoil velocity,
+	evaluated at the velocity measurement point, that in the airfoil
+	plane and a reference line on the airfoil)
+    \item the local yaw angle, in degrees
+	(namely, the angle whose tangent is the ratio
+	between the axial and the inplane components of the airfoil
+	velocity)
+    \item the local Mach number
+    \item the local lift coefficient
+    \item the local drag coefficient
+    \item the local aerodynamic moment coefficient
+    \item a private number
+    \item another private number
+\end{itemize}
+When an \kw{aerodynamic beam} is considered, the output 
+is repeated for each portion of the beam; so, for example,
+a two-node beam is split in two portions, so the output
+contains $2\times \kw{<integration\_points>}$ data blocks,
+while a three-node beam is split in three portions,
+so the output contains $3\times \kw{<integration\_points>}$ data blocks.
 
 \subsubsection{Node}
 The format is:
@@ -236,7 +265,7 @@ The format is:
     \item the three components of the couple applied to the node
 \end{itemize}
 When an \kw{aerodynamic beam} is considered, the output is repeated 
-for each node the element is attached to.
+on the same line for each node the element is connected to.
 
 \subsubsection{Forces at Gauss points}
 The output refers to each Gauss integration point; the format is:
@@ -247,20 +276,7 @@ The output refers to each Gauss integration point; the format is:
     \item and the aerodynamic moment per unit length
 \end{itemize}
 When an \kw{aerodynamic beam} is considered, the output 
-is repeated for each portion of beam.
-
-\subsubsection{Coefficients at Gauss points}
-The output refers to each Gauss integration point; the format is:
-\begin{itemize}
-    \item the local incidence
-    \item the local yaw angle
-    \item the local Mach number
-    \item the lift,
-    \item the drag,
-    \item and the aerodynamic moment coefficient
-\end{itemize}
-When an \kw{aerodynamic beam} is considered, the output 
-is repeated for each portion of the beam.
+is repeated on the same line for each portion of beam.
 
 
 
