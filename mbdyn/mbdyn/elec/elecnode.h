@@ -34,9 +34,6 @@
 
 #include "node.h"
 
-/* Numero di dof del tipo di nodo - usato anche dal DofManager (?) */
-const int iAbstractNodeDofNumber = 1;
-
 #if 0 /* TBZ */
 
 /* AbstractNode - begin */
@@ -83,7 +80,6 @@ public:
  * comune che non hanno un significato fisico preciso */
 
 /* Numero di dof del tipo di nodo - usato anche dal DofManager (?) */
-const int iElectricNodeDofNumber = iAbstractNodeDofNumber;
 
 class ElectricNode : public ScalarDifferentialNode {
 public:
