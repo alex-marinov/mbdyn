@@ -97,6 +97,7 @@ MBDyn 1.X-Devel
 		- fixed build with PowerPC (thanks to Torsten Sadowski)
 		- fixed dummy nodes output selection (noted by Nicola Turini)
 		- fixed Vec6/Mat6x6 passing by reference
+		- fixed sign in ExpandableRowVector::Sub()
 
 MBDyn 1.2.7-Engineering
 	Enhancements:
