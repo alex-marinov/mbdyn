@@ -34,7 +34,7 @@
 
 #ifdef USE_MESCHACH
 
-#include <ac/iostream>
+#include <iostream>
 
 #include <solman.h>
 #include <submat.h>

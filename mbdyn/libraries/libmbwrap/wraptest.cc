@@ -43,8 +43,8 @@ extern "C" {
 #endif /* HAVE_SYS_TIMES_H */
 }
 
-#include <ac/iostream>
-#include <ac/fstream>
+#include <iostream>
+#include <fstream>
 
 #include <solman.h>
 #include <spmapmh.h>

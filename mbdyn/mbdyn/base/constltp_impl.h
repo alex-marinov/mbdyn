@@ -39,7 +39,7 @@ extern "C" {
 #include <math.h>
 }
 
-#include "ac/float.h"
+#include <cfloat>
 #include "tpldrive_impl.h"
 #include "constltp.h"
 #include "hint_impl.h"

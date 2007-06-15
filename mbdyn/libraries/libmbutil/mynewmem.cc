@@ -46,8 +46,8 @@
 #ifdef DEBUG
 
 #include <string.h>
-#include <ac/iostream>
-#include <ac/iomanip>
+#include <iostream>
+#include <iomanip>
 
 #include <myassert.h>
 #include <mynewmem.h>

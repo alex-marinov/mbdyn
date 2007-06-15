@@ -52,8 +52,8 @@
 
 #include "dofown.h"
 #include "output.h"
-#include "ac/float.h"
-#include "ac/math.h"
+#include <cfloat>
+#include <cmath>
 
 NewtonRaphsonSolver::NewtonRaphsonSolver(const bool bTNR,
 		const bool bKJ, 

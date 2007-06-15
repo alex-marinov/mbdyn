@@ -41,8 +41,8 @@
 #ifndef VH_H
 #define VH_H
 
-#include "ac/math.h"
-#include "ac/iostream"
+#include <cmath>
+#include <iostream>
 #include "ac/f2c.h"
 
 /* per il debugging */

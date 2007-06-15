@@ -33,7 +33,7 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <ac/sstream>
+#include <sstream>
 #include <privpgin.h>
 
 PrivPlugIn::PrivPlugIn(MathParser& mp, DataManager *pDM)
@@ -122,11 +122,7 @@ PrivPlugIn::ReadLabel(const char* s)
 	SAFENEWARR(stmp, char, l);
 	strcpy(stmp, s);
 	strcat(stmp, ";");
-#if defined(HAVE_SSTREAM)
 	std::istringstream in(stmp);
-#else /* HAVE_STRSTREAM_H */
-	istrstream in(stmp);
-#endif /* HAVE_STRSTREAM_H */
 	InputStream In(in);
 	rc = (unsigned int)mp.Get(In);
 	SAFEDELETEARR(stmp);

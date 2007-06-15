@@ -102,7 +102,7 @@
 #ifndef PARSINC_H
 #define PARSINC_H
 
-#include <ac/fstream>
+#include <fstream>
 
 #include <parser.h>
 #include <llstack.h>

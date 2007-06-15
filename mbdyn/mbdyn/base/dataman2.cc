@@ -38,7 +38,7 @@
 
 #include <set>
 
-#include "ac/math.h"
+#include <cmath>
 
 #include "dataman.h"
 #include "dataman_.h"
@@ -799,7 +799,7 @@ DataManager::InitialJointAssembly(void)
 		/* Eseguo il test di convergenza; se e' positivo, esco */
 		/* FIXME: why /(1.+X.Dot()) ??? */
 		doublereal dTest = pResHdl->Dot()/(1.+X.Dot());
-		if (!isfinite(dTest)) {
+		if (!std::isfinite(dTest)) {
 			silent_cerr("Assembly diverged; aborting ..." << std::endl);
 			throw DataManager::ErrAssemblyDiverged();
 		}

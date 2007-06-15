@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ac/f2c.h>
-#include <ac/math.h>
+#include <math.h>
 #include <aerodc81.h>
 
 /*

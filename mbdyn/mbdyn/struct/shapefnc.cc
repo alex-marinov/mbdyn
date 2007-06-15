@@ -33,7 +33,7 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <ac/float.h>
+#include <cfloat>
 
 #include <matvec3.h>
 #include <shapefnc.h>

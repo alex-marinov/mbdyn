@@ -34,8 +34,8 @@
 
 #include <stdlib.h>
 #include <unistd.h>
-#include "ac/iostream"
-#include "ac/iomanip"
+#include <iostream>
+#include <iomanip>
 #include <ac/getopt.h>
 
 #include "solman.h"

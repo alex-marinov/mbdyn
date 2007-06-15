@@ -35,7 +35,7 @@
 #define ROTOR_H
 
 extern "C" {
-#include <ac/float.h>
+#include <cfloat>
 }
 #include "ac/pthread.h"
 

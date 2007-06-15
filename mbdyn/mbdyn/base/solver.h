@@ -50,8 +50,8 @@
 #define RTAI_LOG
 
 #include <unistd.h>
-#include "ac/float.h"
-#include "ac/math.h"
+#include <cfloat>
+#include <cmath>
 
 class Solver;
 #include "myassert.h"

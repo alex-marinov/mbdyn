@@ -328,9 +328,7 @@ dnl Checks for header files.
 dnl
 AC_STDC_HEADERS
 AC_CHECK_HEADERS(arpa/inet.h)
-AC_CHECK_HEADERS(float.h)
 AC_CHECK_HEADERS(getopt.h)
-AC_CHECK_HEADERS(math.h)
 AC_CHECK_HEADERS(netdb.h)
 AC_CHECK_HEADERS(netinet/in.h)
 AC_CHECK_HEADERS(pwd.h)
@@ -357,12 +355,6 @@ dnl
 dnl Checks for C++ header files (takes care of ANSI/pre-ANSI naming)
 dnl
 AC_LANG_CPLUSPLUS
-AC_CHECK_HEADERS(iostream)
-AC_CHECK_HEADERS(iostream.h)
-AC_CHECK_HEADERS(iomanip)
-AC_CHECK_HEADERS(iomanip.h)
-AC_CHECK_HEADERS(fstream)
-AC_CHECK_HEADERS(fstream.h)
 
 AC_CHECK_HEADERS(exception)
 AC_CHECK_HEADERS(stdexcept)
@@ -685,26 +677,6 @@ if test $ol_with_tcl != no ; then
 		fi
 	fi
 fi
-
-dnl ----------------------------------------------------------------
-dnl
-dnl Checks for sstream
-dnl
-AC_LANG_CPLUSPLUS
-AC_CHECK_HEADERS(sstream,[have_sstream=yes],[have_sstream=no])
-AC_CHECK_HEADERS(strstream.h,[have_strstream=yes],[have_strstream=no])
-AC_MSG_CHECKING([whether the system uses sstream or strstream.h])
-if test $have_sstream != no ; then
-	AC_MSG_RESULT([sstream])
-else
-	if test $have_strstream != no ; then
-		AC_MSG_RESULT([strstream.h])
-		AC_MSG_WARN([strstream.h is deprecated])
-	else
-		AC_MSG_ERROR([No sstream or strstream.h found])
-	fi
-fi
-AC_LANG_C
 
 dnl ----------------------------------------------------------------
 dnl

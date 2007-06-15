@@ -34,7 +34,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <stdlib.h>
-#include "ac/iostream"
+#include <iostream>
 #include <ac/getopt.h>
 
 #ifdef USE_MULTITHREAD

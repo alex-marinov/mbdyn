@@ -33,7 +33,7 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <ac/sstream>
+#include <sstream>
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -65,11 +65,7 @@ GetEnviron(MathParser& MP)
    
    	if (e != NULL) {
       		DEBUGCOUT("GetEnv: reading variable <" << e << ">" << std::endl);
-#if defined(HAVE_SSTREAM)
 		std::istringstream in(e);
-#else /* HAVE_STRSTREAM_H */
-      		istrstream in(e);
-#endif /* HAVE_STRSTREAM_H */
       		InputStream In(in);	 
       		MP.GetLastStmt(In);
       		DEBUGCOUT("GetEnv: variable <" << e << "> read" << std::endl);

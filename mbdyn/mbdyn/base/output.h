@@ -41,9 +41,9 @@
 
 /* se #define DEBUG_COUT l'output avviene su cout anziche' nei files */
 
-#include <ac/iostream>
-#include <ac/iomanip>
-#include <ac/fstream>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
 
 #include <myassert.h>
 #include <except.h>

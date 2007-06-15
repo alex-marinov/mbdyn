@@ -35,7 +35,7 @@
 #define DRIVE__H
 
 /* include generali */
-#include <ac/sstream>
+#include <sstream>
 
 /* include per il debug */
 #include <myassert.h>
@@ -85,22 +85,14 @@ StringDriveCaller::dGet(const doublereal& dVar) const
 	 * Tuttavia si ritiene che la modifica non sia troppo onerosa */
 
 	do {
-#if defined(HAVE_SSTREAM)
 		std::istringstream in(sEvalStr);
-#else /* HAVE_STRSTREAM_H */
-		istrstream in(sEvalStr);
-#endif /* HAVE_STRSTREAM_H */
 		InputStream In(in);
 		silent_cout("StringDriveCaller::dGet(): "
 			<< DriveCaller::pDrvHdl->dGet(In) << std::endl);
 	} while (0);
 #endif /* DEBUG */
 
-#if defined(HAVE_SSTREAM)
 	std::istringstream in(sEvalStr);
-#else /* HAVE_STRSTREAM_H */
-	istrstream in(sEvalStr);
-#endif /* HAVE_STRSTREAM_H */
 	InputStream In(in);
 
 	return DriveCaller::pDrvHdl->dGet(In);
@@ -109,11 +101,7 @@ StringDriveCaller::dGet(const doublereal& dVar) const
 inline doublereal
 StringDriveCaller::dGet(void) const
 {
-#if defined(HAVE_SSTREAM)
 	std::istringstream in(sEvalStr);
-#else /* HAVE_STRSTREAM_H */
-	istrstream in(sEvalStr);
-#endif /* HAVE_STRSTREAM_H */
 	InputStream In(in);
 
 	return DriveCaller::pDrvHdl->dGet(In);

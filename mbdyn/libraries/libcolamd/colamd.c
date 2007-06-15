@@ -42,13 +42,12 @@
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 
-#include "ac/math.h"
 #include "ac/f2c.h"
 
 #else /* !HAVE_CONFIG_H */
 /* to ease compilation outside of MBDyn...
  * replace long and double with the preferred types */
-#include "math.h"
+#include <math.h>
 typedef long int integer;
 typedef double doublereal;
 #endif /* !HAVE_CONFIG_H */

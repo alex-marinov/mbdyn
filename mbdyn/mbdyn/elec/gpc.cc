@@ -35,7 +35,7 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include "ac/math.h"
+#include <cmath>
 
 #include "myassert.h"
 #include "mynewmem.h"

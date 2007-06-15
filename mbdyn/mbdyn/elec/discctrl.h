@@ -37,8 +37,8 @@
 #ifndef DISCCTRL_H
 #define DISCCTRL_H
 
-#include <ac/iostream>
-#include <ac/fstream>
+#include <iostream>
+#include <fstream>
 
 #include <elec.h>
 #include <veciter.h>

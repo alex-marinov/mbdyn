@@ -37,7 +37,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <string.h>
-#include <ac/math.h>
+#include <cmath>
 
 #include <myassert.h>
 #include <mynewmem.h>

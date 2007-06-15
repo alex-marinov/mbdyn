@@ -69,7 +69,7 @@
 
 #ifdef USE_LAPACK
 
-#include "ac/iostream"
+#include <iostream>
 #include <vector>
 
 #include "myassert.h"

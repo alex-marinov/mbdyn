@@ -46,7 +46,7 @@
 #ifdef USE_SUPERLU
 #ifndef USE_SUPERLU_MT /* SUPERLU and SUPERLU_MT are incompatible */
 
-#include "ac/iostream"
+#include <iostream>
 #include "ac/pthread.h"
 #include <vector>
 

@@ -69,7 +69,7 @@
 
 #ifdef USE_WSMP
 
-#include "ac/iostream"
+#include <iostream>
 #include <vector>
 
 #include "myassert.h"

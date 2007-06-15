@@ -41,8 +41,8 @@
 #ifndef LS_H
 #define LS_H
 
-#include "ac/math.h"
-#include "ac/iostream"
+#include <cmath>
+#include <iostream>
 #include "ac/f2c.h"
 
 #include <vector>

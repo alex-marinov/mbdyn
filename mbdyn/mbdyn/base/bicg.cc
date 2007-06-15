@@ -51,7 +51,7 @@
 #include <dofown.h>
 #include <unistd.h>
 #include <output.h>
-#include <ac/math.h>
+#include <cmath>
 
 BiCGStab::BiCGStab(const Preconditioner::PrecondType PType, 
 		const integer iPStep,
@@ -186,7 +186,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 		if (dErr < Tol) {
 	 		return;
       		}
-      		if (!isfinite(dErr)) {
+      		if (!std::isfinite(dErr)) {
 			throw ErrSimulationDiverged();
 		}
 		if (iIterCnt > iMaxIter) {

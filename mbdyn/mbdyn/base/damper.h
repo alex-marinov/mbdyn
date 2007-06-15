@@ -41,7 +41,7 @@
 #ifndef DAMPER_H
 #define DAMPER_H
 
-#include <ac/fstream>
+#include <fstream>
 #include <constltp.h>
 
 /* GRAALLDamperConstitutiveLaw - begin */

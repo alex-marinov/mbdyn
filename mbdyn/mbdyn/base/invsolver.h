@@ -48,8 +48,8 @@
 #define RTAI_LOG
 
 #include <unistd.h>
-#include "ac/float.h"
-#include "ac/math.h"
+#include <cfloat>
+#include <cmath>
 
 class InverseSolver;
 #include "myassert.h"

@@ -35,9 +35,9 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-#include <ac/math.h>
+#include <cmath>
 #include <time.h>
-#include <ac/iostream>
+#include <iostream>
 #include <vector>
 #include <map>
 #include <string>

@@ -36,7 +36,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <unistd.h>
-#include "ac/float.h"
+#include <cfloat>
 
 #if defined(USE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
 #include <ltdl.h>

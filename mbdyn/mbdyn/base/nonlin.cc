@@ -199,7 +199,7 @@ doublereal
 NonlinearSolverTestNorm::TestPost(const doublereal& dRes) const
 {
 	/* va qui perche' non posso fare sqrt() su !isfinite() */
-	if (!isfinite(dRes)) {      
+	if (!std::isfinite(dRes)) {      
 		throw NonlinearSolver::ErrSimulationDiverged();
 	}
 

@@ -58,8 +58,8 @@
 #define STEPSOL_H
 
 #include <unistd.h>
-#include <ac/float.h>
-#include <ac/math.h>
+#include <cfloat>
+#include <cmath>
 
 
 /* per il debugging */

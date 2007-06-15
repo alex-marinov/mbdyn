@@ -69,7 +69,7 @@
 
 #ifdef USE_TAUCS
 
-#include "ac/iostream"
+#include <iostream>
 #include <vector>
 
 /*

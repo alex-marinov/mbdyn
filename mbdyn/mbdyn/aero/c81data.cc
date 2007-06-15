@@ -36,11 +36,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <ac/iostream>
-#include <ac/sstream>
-#include <ac/iomanip>
+#include <iostream>
+#include <sstream>
+#include <iomanip>
 #include <ac/f2c.h>
-#include <ac/math.h>
+#include <cmath>
 
 extern "C" {
 #include <aerodc81.h>

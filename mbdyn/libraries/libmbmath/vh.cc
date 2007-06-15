@@ -37,8 +37,8 @@
 
 #include <string.h>	/* for memset() */
 
-#include "ac/iostream"
-#include "ac/iomanip"
+#include <iostream>
+#include <iomanip>
 
 #include "matvec3.h"
 #include "submat.h"

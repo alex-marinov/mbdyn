@@ -36,7 +36,7 @@
 
 /* include per derivazione della classe */
 
-#include "ac/float.h"
+#include <cfloat>
 
 #include "strnode.h"
 #include "elem.h"

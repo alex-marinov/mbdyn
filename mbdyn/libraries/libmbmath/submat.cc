@@ -36,7 +36,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <string.h>	/* for memset() */
-#include <ac/iomanip>
+#include <iomanip>
 
 #include <submat.h>
 

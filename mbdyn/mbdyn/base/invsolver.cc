@@ -59,8 +59,8 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-#include "ac/float.h"
-#include "ac/math.h"
+#include <cfloat>
+#include <cmath>
 #include "ac/sys_sysinfo.h"
 
 #include "invsolver.h"

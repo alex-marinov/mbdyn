@@ -118,11 +118,7 @@ DriveHint::~DriveHint(void)
 DriveCaller *
 DriveHint::pCreateDrive(DataManager *pDM) const
 {
-#if defined(HAVE_SSTREAM)
 	std::istringstream in(sHint);
-#else /* HAVE_STRSTREAM_H */
-	istrstream in(sHint);
-#endif /* HAVE_STRSTREAM_H */
 	InputStream In(in);
 
 	MBDynParser HP(pDM->GetMathParser(), In, "DriveHint::pCreateDrive");

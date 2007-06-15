@@ -32,8 +32,8 @@
 #ifndef FORGFACT_H
 #define FORGFACT_H
 
-#include <ac/float.h>
-#include <ac/math.h>
+#include <cfloat>
+#include <cmath>
 #include <ac/f2c.h>
 
 #include <myassert.h>

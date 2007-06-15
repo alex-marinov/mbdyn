@@ -51,7 +51,7 @@
 #include <dofown.h>
 #include <unistd.h>
 #include <output.h>
-#include <ac/math.h>
+#include <cmath>
 
 Gmres::Gmres(const Preconditioner::PrecondType PType, 
 		const integer iPStep,
@@ -226,7 +226,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 		if (dErr < Tol) {
 	 		return;
       		}
-      		if (!isfinite(dErr)) {
+      		if (!std::isfinite(dErr)) {
 			throw ErrSimulationDiverged();
 		}
 		if (iIterCnt > iMaxIter) {

@@ -44,7 +44,7 @@
 #include <external.h>
 #include <nonlinpb.h>
 #include <solman.h>  
-#include <ac/float.h>
+#include <cfloat>
 #include <vector>
 
 /*

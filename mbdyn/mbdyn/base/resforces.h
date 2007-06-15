@@ -32,8 +32,8 @@
 #ifndef RESFORCES_H
 #define RESFORCES_H
 
-#include <ac/float.h>
-#include <ac/iostream>
+#include <cfloat>
+#include <iostream>
 
 #include <set>
 #include <strnode.h>

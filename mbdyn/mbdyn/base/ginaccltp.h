@@ -155,13 +155,8 @@ GiNaCElasticConstitutiveLaw<T, Tder>::pCopy(void) const
 	std::vector<std::string> expression(dim);
 
 	for (unsigned row = 0; row < dim; row++) {
-#if defined(HAVE_SSTREAM)
 		std::ostringstream	eps;
 		std::ostringstream	expr;
-#else /* HAVE_STRSTREAM_H */
-		ostrstream		eps;
-		ostrstream		expr;
-#endif /* HAVE_STRSTREAM_H */
 
 		eps << *gEps[row];
 		expr << gExpr[row];

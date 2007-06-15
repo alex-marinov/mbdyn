@@ -34,7 +34,7 @@
 #ifndef JOINT__H
 #define JOINT__H
 
-#include <ac/float.h>
+#include <cfloat>
 
 #include <strnode.h>
 #include <joint.h>

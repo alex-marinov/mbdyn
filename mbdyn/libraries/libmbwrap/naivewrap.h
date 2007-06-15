@@ -37,7 +37,7 @@
 #ifndef NaiveSolutionManager_hh
 #define NaiveSolutionManager_hh
 
-#include "ac/iostream"
+#include <iostream>
 #include <vector>
 
 #include "myassert.h"

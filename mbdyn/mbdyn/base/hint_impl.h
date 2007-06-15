@@ -33,7 +33,7 @@
 #define HINT_IMPL_H
 
 /* include del programma */
-#include "ac/sstream"
+#include <sstream>
 #include "dataman.h"
 #include "tpldrive_impl.h"
 
@@ -86,11 +86,7 @@ template <class T>
 T
 TplVecHint<T>::pCreateVec(DataManager *pDM) const
 {
-#if defined(HAVE_SSTREAM)
 	std::istringstream in(sHint);
-#else /* HAVE_STRSTREAM_H */
-	istrstream in(sHint);
-#endif /* HAVE_STRSTREAM_H */
 	InputStream In(in);
 
 	MBDynParser HP(pDM->GetMathParser(), In, "TplVecHint::pCreateVec");
@@ -133,11 +129,7 @@ template <class T>
 TplDriveCaller<T> *
 TplDriveHint<T>::pCreateDrive(DataManager *pDM) const
 {
-#if defined(HAVE_SSTREAM)
 	std::istringstream in(sHint);
-#else /* HAVE_STRSTREAM_H */
-	istrstream in(sHint);
-#endif /* HAVE_STRSTREAM_H */
 	InputStream In(in);
 
 	MBDynParser HP(pDM->GetMathParser(), In, "TplDriveHint::pCreateDrive");

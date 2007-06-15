@@ -102,8 +102,8 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include <ac/iostream>
-#include <ac/fstream>
+#include <iostream>
+#include <fstream>
 #include <ac/f2c.h>
 
 #include <string.h>
