@@ -45,7 +45,7 @@ Leonardo Cassan		<lcassan@tiscalinet.it>
 // FUNZIONI NECESSARIE ALLA CORRETTA VISUALIZZAZIONE DELL'OUTPUT
 
 #include <defs.h>
-#include <iostream.h>
+#include <iostream>
 
 ostream& operator << (ostream& out, const Joint&);
 ostream& operator << (ostream& out, const Friction&) ;

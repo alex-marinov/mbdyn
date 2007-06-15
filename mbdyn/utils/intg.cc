@@ -39,7 +39,7 @@
 #include <ltdl.h>
 
 #include "ac/getopt.h"
-#include "ac/iostream"
+#include <iostream>
 
 #include "myassert.h"
 #include "solman.h"
@@ -674,7 +674,7 @@ method_cn(const char* module, integration_data* d,
 
 #else // ! USE_RUNTIME_LOADING
 
-#include "ac/iostream"
+#include <iostream>
 #include <stdlib.h>
 
 int

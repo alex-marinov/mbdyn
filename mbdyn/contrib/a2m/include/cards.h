@@ -48,7 +48,7 @@ Leonardo Cassan		<lcassan@tiscalinet.it>
 #include <errrec.h>
 #include <mbdyn.h>
 #include <mathem.h>
-#include <iostream.h>
+#include <iostream>
 #include <stdio.h>
 #include <output.h>
 

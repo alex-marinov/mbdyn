@@ -45,7 +45,7 @@ Leonardo Cassan		<lcassan@tiscalinet.it>
 // HEADER CONTENENTE LE FUNZIONI DI TRADUZIONE
 
 #include <fstream.h>
-#include <iostream.h>
+#include <iostream>
 
 void Translate (ofstream& out);
 

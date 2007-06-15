@@ -32,8 +32,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <ac/iostream>
-#include <ac/sstream>
+#include <iostream>
+#include <sstream>
 
 #include <input.h>
 #include <mathp.h>

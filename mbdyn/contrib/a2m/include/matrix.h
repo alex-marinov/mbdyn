@@ -47,7 +47,7 @@ Leonardo Cassan		<lcassan@tiscalinet.it>
 // Valore 0: Indirizzamento codice, primo elemento = 0;
 
 #include <stdio.h>
-#include <iostream.h>
+#include <iostream>
 #include <defs.h>
 
 // Modello di classe vettore

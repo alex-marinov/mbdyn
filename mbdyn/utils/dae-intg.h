@@ -31,7 +31,7 @@
 #ifndef DAE_INTG_H
 #define DAE_INTG_H
 
-#include <ac/iostream>
+#include <iostream>
 
 typedef int (pread_f)(void**, const char*);
 typedef std::ostream& (phelp_f)(void *, std::ostream&);

@@ -41,7 +41,7 @@ Leonardo Cassan		<lcassan@tiscalinet.it>
 
 
 #include <debug.h>
-#include <iostream.h>
+#include <iostream>
 
 void DEBUGCOUT (const char *s) 
 {

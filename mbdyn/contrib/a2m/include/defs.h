@@ -43,7 +43,7 @@ Leonardo Cassan		<lcassan@tiscalinet.it>
 #ifndef DEFS_H
 #define DEFS_H
 
-#include <iostream.h>
+#include <iostream>
 #include <map.h>
 #include <string.h>
 

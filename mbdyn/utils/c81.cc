@@ -33,9 +33,9 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <stdlib.h>
-#include <ac/iostream>
-#include <ac/iomanip>
-#include <ac/fstream>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
 #include <ac/getopt.h>
 
 extern "C" {

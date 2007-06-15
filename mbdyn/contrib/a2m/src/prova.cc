@@ -43,7 +43,7 @@ Leonardo Cassan		<lcassan@tiscalinet.it>
 
 
 #include <matrix.h>
-#include <iostream.h>
+#include <iostream>
 #include <math.h>
 
 Vec3 a(1,0,0),b(50,50,0);

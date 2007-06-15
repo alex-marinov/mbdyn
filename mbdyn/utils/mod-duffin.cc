@@ -34,8 +34,8 @@
 
 #include <math.h>
 
-#include "ac/iostream"
-#include "ac/fstream"
+#include <iostream>
+#include <fstream>
 
 #include "myassert.h"
 #include "solman.h"
