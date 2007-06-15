@@ -34,7 +34,7 @@
 #include <mbconfig.h> 		/* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <ac/iostream>
+#include <iostream>
 #include <ac/f2c.h>
 
 #include <dataman.h>

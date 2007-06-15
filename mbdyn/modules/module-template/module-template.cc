@@ -32,8 +32,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <ac/iostream>
-#include <ac/float.h>
+#include <iostream>
+#include <cfloat>
 
 #include <dataman.h>
 #include "loadable.h"

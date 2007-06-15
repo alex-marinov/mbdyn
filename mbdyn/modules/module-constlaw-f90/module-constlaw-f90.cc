@@ -33,8 +33,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include "ac/math.h"
-#include "ac/float.h"
+#include <cmath>
+#include <cfloat>
 
 #include "dataman.h"
 #include "constltp.h"

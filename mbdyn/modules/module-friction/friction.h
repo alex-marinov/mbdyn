@@ -32,7 +32,7 @@
 #ifndef FRICTION_H
 #define FRICTION_H
 
-#include "ac/float.h"
+#include <cfloat>
 
 doublereal 
 norm(const doublereal &v)
