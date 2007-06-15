@@ -37,7 +37,6 @@
 #include "elem.h"
 #include "drive.h"
 #include "strnode.h"
-#include "elecnode.h"
 
 extern const char* psForceNames[];
 
