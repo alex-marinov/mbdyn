@@ -75,11 +75,7 @@ main(int argc, const char* const argv[])
 
 	if (argc > 1) {
 	 	for (int i = 1; i < argc; i++) {
-#if defined(HAVE_SSTREAM)
 			std::istringstream in(argv[i]);
-#else /* HAVE_STRSTREAM_H */ 
-	    		istrstream in(argv[i]);
-#endif /* HAVE_STRSTREAM_H */
 	    		InputStream In(in);
 #ifdef USE_TABLE
 	    		MathParser mp(In, t);

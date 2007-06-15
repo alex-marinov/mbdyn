@@ -299,13 +299,8 @@ GiNaCElasticConstitutiveLaw<doublereal, doublereal>::pCopy(void) const
 {
 	ConstitutiveLaw<doublereal, doublereal>* pCL = 0;
 
-#if defined(HAVE_SSTREAM)
 	std::ostringstream	eps;
 	std::ostringstream	expr;
-#else /* HAVE_STRSTREAM_H */
-	ostrstream		eps;
-	ostrstream		expr;
-#endif /* HAVE_STRSTREAM_H */
 
 	eps << gEps;
 	expr << gExpr;
@@ -479,13 +474,8 @@ GiNaCViscousConstitutiveLaw<T, Tder>::pCopy(void) const
 	std::vector<std::string> expression(dim);
 
 	for (unsigned row = 0; row < dim; row++) {
-#if defined(HAVE_SSTREAM)
 		std::ostringstream	epsPrime;
 		std::ostringstream	expr;
-#else /* HAVE_STRSTREAM_H */
-		ostrstream		epsPrime;
-		ostrstream		expr;
-#endif /* HAVE_STRSTREAM_H */
 
 		epsPrime << *gEpsPrime[row];
 		expr << gExpr[row];
@@ -622,13 +612,8 @@ GiNaCViscousConstitutiveLaw<doublereal, doublereal>::pCopy(void) const
 {
 	ConstitutiveLaw<doublereal, doublereal>* pCL = 0;
 
-#if defined(HAVE_SSTREAM)
 	std::ostringstream	epsPrime;
 	std::ostringstream	expr;
-#else /* HAVE_STRSTREAM_H */
-	ostrstream		epsPrime;
-	ostrstream		expr;
-#endif /* HAVE_STRSTREAM_H */
 
 	epsPrime << gEpsPrime;
 	expr << gExpr;
@@ -822,15 +807,9 @@ GiNaCViscoElasticConstitutiveLaw<T, Tder>::pCopy(void) const
 	std::vector<std::string> expression(dim);
 
 	for (unsigned row = 0; row < dim; row++) {
-#if defined(HAVE_SSTREAM)
 		std::ostringstream	eps;
 		std::ostringstream	epsPrime;
 		std::ostringstream	expr;
-#else /* HAVE_STRSTREAM_H */
-		ostrstream		eps;
-		ostrstream		epsPrime;
-		ostrstream		expr;
-#endif /* HAVE_STRSTREAM_H */
 
 		eps << *gEps[row];
 		epsPrime << *gEpsPrime[row];
@@ -999,15 +978,9 @@ GiNaCViscoElasticConstitutiveLaw<doublereal, doublereal>::pCopy(void) const
 {
 	ConstitutiveLaw<doublereal, doublereal>* pCL = 0;
 
-#if defined(HAVE_SSTREAM)
 	std::ostringstream	eps;
 	std::ostringstream	epsPrime;
 	std::ostringstream	expr;
-#else /* HAVE_STRSTREAM_H */
-	ostrstream		eps;
-	ostrstream		epsPrime;
-	ostrstream		expr;
-#endif /* HAVE_STRSTREAM_H */
 
 	eps << gEps;
 	epsPrime << gEpsPrime;
