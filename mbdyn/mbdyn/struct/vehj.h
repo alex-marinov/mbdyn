@@ -61,12 +61,22 @@ protected:
 	Mat3x3	hat_I;
 	Mat3x3	hat_IT;
 
+	/* Jacobian matrix helpers */
 	virtual void
 	AssMatM(FullSubMatrixHandler& WMA, doublereal dCoef);
+
+	virtual void
+	AssMatMInv(FullSubMatrixHandler& WMA, doublereal dCoef);
+
 	virtual void
 	AssMatMDE(FullSubMatrixHandler& WMA, doublereal dCoef);
+
 	virtual void
 	AssMatMDEPrime(FullSubMatrixHandler& WMA,
+		FullSubMatrixHandler& WMB, doublereal dCoef);
+
+	virtual void
+	AssMatMDEPrimeInv(FullSubMatrixHandler& WMA,
 		FullSubMatrixHandler& WMB, doublereal dCoef);
 
 public:
