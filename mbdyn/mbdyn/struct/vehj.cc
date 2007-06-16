@@ -83,6 +83,7 @@ DeformableHingeJoint::AssMatM(FullSubMatrixHandler& WMA,
 	WMA.Add(1, 1, MTmp);
 	WMA.Sub(4, 1, MTmp);
 }
+
 void
 DeformableHingeJoint::AssMatMDE(FullSubMatrixHandler& WMA,
 	doublereal dCoef)
@@ -577,15 +578,12 @@ ElasticHingeJointInv::AfterPredict(VectorHandler& /* X */ ,
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
 	Mat3x3 R2h(pNode2->GetRRef()*tilde_R2h);
 	ThetaCurr = ThetaRef = RotManip::VecRot(R1h.Transpose()*R2h);
-	Mat3x3 hat_R(R1h*RotManip::Rot(ThetaRef/2.));
+	Mat3x3 tilde_R(RotManip::Rot(ThetaRef/2.));
+	Mat3x3 hat_R(R1h*tilde_R);
 	Mat3x3 hat_RT(hat_R.Transpose());
 
 	/* Aggiorna il legame costitutivo */
 	ConstitutiveLaw3DOwner::Update(ThetaRef);
-
-	/* Chiede la matrice tangente di riferimento e la porta
-	 * nel sistema globale */
-	/* FIXME: Jacobian matrix not implemented yet */
 
 	/* Calcola l'inversa di Gamma di ThetaRef */
 	Mat3x3 GammaRefm1 = RotManip::DRot_I(ThetaRef);
@@ -594,30 +592,48 @@ ElasticHingeJointInv::AfterPredict(VectorHandler& /* X */ ,
 	 * nel sistema globale */
 	MDE = hat_R*ConstitutiveLaw3DOwner::GetFDE()*GammaRefm1*hat_RT;
 
+	hat_I = hat_R*(Eye3 + tilde_R).Inv()*hat_RT;
+	hat_IT = hat_I.Transpose();
+
 	bFirstRes = true;
+}
+
+void
+ElasticHingeJointInv::AssMatM(FullSubMatrixHandler& WMA, doublereal dCoef)
+{
+	/* M was updated by AssRes;
+	 * hat_I and hat_IT were updated by AfterPredict */
+	Mat3x3 MCross(Mat3x3(M*dCoef));
+	Mat3x3 MTmp(MCross*hat_IT);
+
+	WMA.Add(1, 1, MTmp);
+	WMA.Sub(4, 1, MTmp);
+
+	MTmp = MCross*hat_I;
+
+	WMA.Add(1, 4, MTmp);
+	WMA.Sub(4, 4, MTmp);
 }
 
 void
 ElasticHingeJointInv::AssVec(SubVectorHandler& WorkVec)
 {
 	Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
-	Mat3x3 hat_R;
 
 	if (bFirstRes) {
+		/* ThetaCurr and the constitutive laws were updated
+		 * by AfterPredict */
 		bFirstRes = false;
-		hat_R = R1h*RotManip::Rot(ThetaCurr/2.);
 
 	} else {
 		Mat3x3 R2h(pNode2->GetRCurr()*tilde_R2h);
 		ThetaCurr = RotManip::VecRot(R1h.Transpose()*R2h);
 
-		/* orientazione intermedia */
-		hat_R = R1h*RotManip::Rot(ThetaCurr/2.);
-
 		/* aggiorna il legame costitutivo */
 		ConstitutiveLaw3DOwner::Update(ThetaCurr);
 	}
 
+	Mat3x3 hat_R(R1h*RotManip::Rot(ThetaCurr/2.));
 	M = hat_R*GetF();
 
 	WorkVec.Add(1, M);
@@ -942,7 +958,8 @@ ViscousHingeJointInv::AfterPredict(VectorHandler& /* X */ ,
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
 	Mat3x3 R2h(pNode2->GetRRef()*tilde_R2h);
 	Vec3 tilde_Theta(RotManip::VecRot(R1h.Transpose()*R2h)/2.);
-	Mat3x3 hat_R(R1h*RotManip::Rot(tilde_Theta));
+	Mat3x3 tilde_R(RotManip::Rot(tilde_Theta));
+	Mat3x3 hat_R(R1h*tilde_R);
 	Mat3x3 hat_RT(hat_R.Transpose());
 
 	/* Aggiorna il legame costitutivo */
@@ -954,7 +971,43 @@ ViscousHingeJointInv::AfterPredict(VectorHandler& /* X */ ,
 	/* FIXME: Jacobian matrix not implemented yet */
 	MDEPrime = hat_R*GetFDEPrime()*hat_RT;
 
+	hat_I = hat_R*(Eye3 + tilde_R).Inv()*hat_RT;
+	hat_IT = hat_I.Transpose();
+
 	bFirstRes = true;
+}
+
+void
+ViscousHingeJointInv::AssMatM(FullSubMatrixHandler& WMA, doublereal dCoef)
+{
+	/* M was updated by AssRes;
+	 * hat_I and hat_IT were updated by AfterPredict */
+	Mat3x3 MCross(Mat3x3(M*dCoef));
+	Mat3x3 MTmp(MCross*hat_IT);
+
+	WMA.Add(1, 1, MTmp);
+	WMA.Sub(4, 1, MTmp);
+
+	MTmp = MCross*hat_I;
+
+	WMA.Add(1, 4, MTmp);
+	WMA.Sub(4, 4, MTmp);
+}
+
+void
+ViscousHingeJointInv::AssMatMDEPrime(FullSubMatrixHandler& WMA,
+	FullSubMatrixHandler& WMB, doublereal dCoef)
+{
+	WMB.Add(1, 1, MDEPrime);
+	WMB.Sub(1, 4, MDEPrime);
+	WMB.Sub(4, 1, MDEPrime);
+	WMB.Add(4, 4, MDEPrime);
+
+	Mat3x3 MTmp(MDEPrime*(Mat3x3(pNode2->GetWCurr()*dCoef)*hat_IT + Mat3x3(pNode1->GetWCurr()*dCoef)*hat_I));
+	WMA.Sub(1, 1, MTmp);
+	WMA.Add(1, 4, MTmp);
+	WMA.Add(4, 1, MTmp);
+	WMA.Sub(4, 4, MTmp);
 }
 
 /* assemblaggio residuo */
@@ -1325,7 +1378,8 @@ ViscoElasticHingeJointInv::AfterPredict(VectorHandler& /* X */ ,
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
 	Mat3x3 R2h(pNode2->GetRRef()*tilde_R2h);
 	ThetaCurr = ThetaRef = RotManip::VecRot(R1h.Transpose()*R2h);
-	Mat3x3 hat_R(R1h*RotManip::Rot(ThetaRef/2.));
+	Mat3x3 tilde_R(RotManip::Rot(ThetaRef/2.));
+	Mat3x3 hat_R(R1h*tilde_R);
 	Mat3x3 hat_RT(hat_R.Transpose());
 
 	/* velocita' relativa nel sistema intermedio */
@@ -1346,7 +1400,45 @@ ViscoElasticHingeJointInv::AfterPredict(VectorHandler& /* X */ ,
 	MDE = hat_R*ConstitutiveLaw3DOwner::GetFDE()*GammaRefm1*hat_RT;
 	MDEPrime = hat_R*ConstitutiveLaw3DOwner::GetFDEPrime()*hat_RT;
 
+	hat_I = hat_R*(Eye3 + tilde_R).Inv()*hat_RT;
+	hat_IT = hat_I.Transpose();
+
 	bFirstRes = true;
+}
+
+/* NOTE: duplicate of ElasticHingeJointInv and ViscousHingeJointInv */
+void
+ViscoElasticHingeJointInv::AssMatM(FullSubMatrixHandler& WMA, doublereal dCoef)
+{
+	/* M was updated by AssRes;
+	 * hat_I and hat_IT were updated by AfterPredict */
+	Mat3x3 MCross(Mat3x3(M*dCoef));
+	Mat3x3 MTmp(MCross*hat_IT);
+
+	WMA.Add(1, 1, MTmp);
+	WMA.Sub(4, 1, MTmp);
+
+	MTmp = MCross*hat_I;
+
+	WMA.Add(1, 4, MTmp);
+	WMA.Sub(4, 4, MTmp);
+}
+
+/* NOTE: duplicate of ViscousHingeJointInv */
+void
+ViscoElasticHingeJointInv::AssMatMDEPrime(FullSubMatrixHandler& WMA,
+	FullSubMatrixHandler& WMB, doublereal dCoef)
+{
+	WMB.Add(1, 1, MDEPrime);
+	WMB.Sub(1, 4, MDEPrime);
+	WMB.Sub(4, 1, MDEPrime);
+	WMB.Add(4, 4, MDEPrime);
+
+	Mat3x3 MTmp(MDEPrime*(Mat3x3(pNode2->GetWCurr()*dCoef)*hat_IT + Mat3x3(pNode1->GetWCurr()*dCoef)*hat_I));
+	WMA.Sub(1, 1, MTmp);
+	WMA.Add(1, 4, MTmp);
+	WMA.Add(4, 1, MTmp);
+	WMA.Sub(4, 4, MTmp);
 }
 
 /* assemblaggio residuo */

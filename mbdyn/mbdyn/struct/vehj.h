@@ -57,6 +57,10 @@ protected:
 	Mat3x3 MDE;
 	Mat3x3 MDEPrime;
 
+	/* for invariant stuff */
+	Mat3x3	hat_I;
+	Mat3x3	hat_IT;
+
 	virtual void
 	AssMatM(FullSubMatrixHandler& WMA, doublereal dCoef);
 	virtual void
@@ -235,10 +239,12 @@ public:
 
 class ElasticHingeJointInv : virtual public Elem, public ElasticHingeJoint {
 protected:
-#if 0
-	// next step?
-	void AssMat(FullSubMatrixHandler& WM, doublereal dCoef);
-#endif
+	virtual void
+	AssMatM(FullSubMatrixHandler& WMA, doublereal dCoef);
+
+	/* AssMatMDE is OK as MDE is updated fine by AfterPredict();
+	 * AssMatMDEPrime is not needed */
+
 	virtual void AssVec(SubVectorHandler& WorkVec);
 
 public:
@@ -297,7 +303,7 @@ class ViscousHingeJoint : virtual public Elem, public DeformableHingeJoint {
 protected:
 	Vec3 Omega;
 
-	void AssMats(FullSubMatrixHandler& WMA,
+	virtual void AssMats(FullSubMatrixHandler& WMA,
 			FullSubMatrixHandler& WMB,
 			doublereal dCoef);
 	virtual void AssVec(SubVectorHandler& WorkVec);
@@ -394,11 +400,13 @@ public:
 
 class ViscousHingeJointInv : virtual public Elem, public ViscousHingeJoint {
 protected:
-#if 0
-	void AssMats(FullSubMatrixHandler& WMA,
-			FullSubMatrixHandler& WMB,
-			doublereal dCoef);
-#endif
+	/* AssMatMDEPrime is not needed */
+	virtual void
+	AssMatM(FullSubMatrixHandler& WMA, doublereal dCoef);
+	virtual void
+	AssMatMDEPrime(FullSubMatrixHandler& WMA,
+		FullSubMatrixHandler& WMB, doublereal dCoef);
+
 	virtual void AssVec(SubVectorHandler& WorkVec);
 
 public:
@@ -461,7 +469,7 @@ protected:
 
 	Vec3 Omega;
 
-	void AssMats(FullSubMatrixHandler& WMA,
+	virtual void AssMats(FullSubMatrixHandler& WMA,
 			FullSubMatrixHandler& WMB,
 			doublereal dCoef);
 	virtual void AssVec(SubVectorHandler& WorkVec);
@@ -557,11 +565,13 @@ public:
 class ViscoElasticHingeJointInv
 : virtual public Elem, public ViscoElasticHingeJoint {
 protected:
-#if 0
-	void AssMats(FullSubMatrixHandler& WMA,
-			FullSubMatrixHandler& WMB,
-			doublereal dCoef);
-#endif
+	/* AssMatMDEPrime is not needed */
+	virtual void
+	AssMatM(FullSubMatrixHandler& WMA, doublereal dCoef);
+	virtual void
+	AssMatMDEPrime(FullSubMatrixHandler& WMA,
+		FullSubMatrixHandler& WMB, doublereal dCoef);
+
 	virtual void AssVec(SubVectorHandler& WorkVec);
 
 public:
