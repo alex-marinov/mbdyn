@@ -65,17 +65,17 @@ protected:
 	virtual void
 	AssMatM(FullSubMatrixHandler& WMA, doublereal dCoef);
 
-	virtual void
+	void
 	AssMatMInv(FullSubMatrixHandler& WMA, doublereal dCoef);
 
-	virtual void
+	void
 	AssMatMDE(FullSubMatrixHandler& WMA, doublereal dCoef);
 
 	virtual void
 	AssMatMDEPrime(FullSubMatrixHandler& WMA,
 		FullSubMatrixHandler& WMB, doublereal dCoef);
 
-	virtual void
+	void
 	AssMatMDEPrimeInv(FullSubMatrixHandler& WMA,
 		FullSubMatrixHandler& WMB, doublereal dCoef);
 

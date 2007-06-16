@@ -79,6 +79,7 @@ void
 DeformableHingeJoint::AssMatM(FullSubMatrixHandler& WMA,
 	doublereal dCoef)
 {
+	/* M was updated by AssRes */
 	Mat3x3 MTmp(M*dCoef);
 
 	WMA.Add(1, 1, MTmp);
@@ -91,13 +92,13 @@ DeformableHingeJoint::AssMatMInv(FullSubMatrixHandler& WMA, doublereal dCoef)
 {
 	/* M was updated by AssRes;
 	 * hat_I and hat_IT were updated by AfterPredict */
-	Mat3x3 MCross(Mat3x3(M*dCoef));
-	Mat3x3 MTmp(MCross*hat_IT);
+	Vec3 MCoef(M*dCoef);
+	Mat3x3 MTmp(MCoef.Cross(hat_IT));
 
 	WMA.Add(1, 1, MTmp);
 	WMA.Sub(4, 1, MTmp);
 
-	MTmp = MCross*hat_I;
+	MTmp = MCoef.Cross(hat_I);
 
 	WMA.Add(1, 4, MTmp);
 	WMA.Sub(4, 4, MTmp);
@@ -138,14 +139,15 @@ void
 DeformableHingeJoint::AssMatMDEPrimeInv(FullSubMatrixHandler& WMA,
 	FullSubMatrixHandler& WMB, doublereal dCoef)
 {
+	/* hat_I and hat_IT were updated by AfterPredict */
 	WMB.Add(1, 1, MDEPrime);
 	WMB.Sub(1, 4, MDEPrime);
 	WMB.Sub(4, 1, MDEPrime);
 	WMB.Add(4, 4, MDEPrime);
 
-	Mat3x3 MTmp(MDEPrime*(
-		Mat3x3(pNode2->GetWCurr()*dCoef)*hat_IT
-		+ Mat3x3(pNode1->GetWCurr()*dCoef)*hat_I));
+	Vec3 W1(pNode1->GetWCurr()*dCoef);
+	Vec3 W2(pNode2->GetWCurr()*dCoef);
+	Mat3x3 MTmp(MDEPrime*(W2.Cross(hat_IT) + W1.Cross(hat_I)));
 	WMA.Sub(1, 1, MTmp);
 	WMA.Add(1, 4, MTmp);
 	WMA.Add(4, 1, MTmp);
