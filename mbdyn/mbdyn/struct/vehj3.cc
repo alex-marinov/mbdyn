@@ -226,7 +226,10 @@ DeformableJoint::iGetPrivDataIdx(const char *s) const
 	{
 		size_t l = STRLENOF("constitutiveLaw.");
 		if (strncmp(s, "constitutiveLaw.", l) == 0) {
-			return 18 + ConstitutiveLaw6DOwner::iGetPrivDataIdx(&s[l]);
+			idx = ConstitutiveLaw6DOwner::iGetPrivDataIdx(&s[l]);
+			if (idx > 0) {
+				return 18 + idx;
+			}
 		}
 		return 0;
 	}

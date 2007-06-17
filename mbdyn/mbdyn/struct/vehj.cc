@@ -158,6 +158,7 @@ DeformableHingeJoint::AssMatMDEPrimeInv(FullSubMatrixHandler& WMA,
 std::ostream&
 DeformableHingeJoint::Restart(std::ostream& out) const
 {
+	/* FIXME: does not work for invariant hinge */
 	Joint::Restart(out) << ", deformable hinge, "
 		<< pNode1->GetLabel() << ", hinge, reference, node, 1, ",
 		(tilde_R1h.GetVec(1)).Write(out, ", ")
@@ -172,13 +173,31 @@ void
 DeformableHingeJoint::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		Mat3x3 R1 = pNode1->GetRCurr()*tilde_R1h;
-		Mat3x3 R2 = pNode2->GetRCurr()*tilde_R2h;
+		Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
+		Mat3x3 R2h(pNode2->GetRCurr()*tilde_R2h);
 
-		Vec3 d(MatR2EulerAngles(R1.Transpose()*R2)*dRaDegr);
+		Vec3 d(MatR2EulerAngles(R1h.Transpose()*R2h)*dRaDegr);
 		Vec3 v(GetF());
 		Joint::Output(OH.Joints(), "DeformableHinge", GetLabel(),
-			Zero3, v, Zero3, R1*v)
+			Zero3, v, Zero3, R1h*v)
+			<< " " << d << std::endl;
+	}
+}
+
+void
+DeformableHingeJoint::OutputInv(OutputHandler& OH) const
+{
+	if (fToBeOutput()) {
+		Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
+		Mat3x3 R2h(pNode2->GetRCurr()*tilde_R2h);
+		Mat3x3 R(R1h.Transpose()*R2h);
+		Mat3x3 hat_R(R1h*RotManip::Rot(RotManip::VecRot(R)/2.));
+
+		Vec3 d(MatR2EulerAngles(R)*dRaDegr);
+		Vec3 v(GetF());
+
+		Joint::Output(OH.Joints(), "DeformableHinge", GetLabel(),
+			Zero3, v, Zero3, hat_R*v)
 			<< " " << d << std::endl;
 	}
 }
@@ -261,9 +280,12 @@ DeformableHingeJoint::iGetPrivDataIdx(const char *s) const
 
 	default:
 	{
-		size_t l = STRLENOF("constitutiveLaw.");
+		const size_t l = STRLENOF("constitutiveLaw.");
 		if (strncmp(s, "constitutiveLaw.", l) == 0) {
-			return 9 + ConstitutiveLaw3DOwner::iGetPrivDataIdx(&s[l]);
+			idx = ConstitutiveLaw3DOwner::iGetPrivDataIdx(&s[l]);
+			if (idx > 0) {
+				return 9 + idx;
+			}
 		}
 		return 0;
 	}
@@ -273,12 +295,15 @@ DeformableHingeJoint::iGetPrivDataIdx(const char *s) const
 	case 'x':
 		idx += 1;
 		break;
+
 	case 'y':
 		idx += 2;
 		break;
+
 	case 'z':
 		idx += 3;
 		break;
+
 	default:
 		return 0;
 	}
@@ -303,10 +328,10 @@ DeformableHingeJoint::dGetPrivData(unsigned int i) const
 	case 3:
 	{
 		/* NOTE: this is correct also in the invariant case */
-		Mat3x3 R1hT((pNode1->GetRCurr()*tilde_R1h).Transpose());
+		Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
 		Mat3x3 R2h(pNode2->GetRCurr()*tilde_R2h);
 
-		Vec3 v(RotManip::VecRot(R1hT*R2h));
+		Vec3 v(RotManip::VecRot(R1h.Transpose()*R2h));
 
 		return v(i);
 	}
@@ -315,10 +340,8 @@ DeformableHingeJoint::dGetPrivData(unsigned int i) const
 	case 5:
 	case 6:
 	{
-		/* FIXME: this is not correct in the invariant case;
-		 * should be hat_RT*Omega */
-		Mat3x3 R1hT((pNode1->GetRCurr()*tilde_R1h).Transpose());
-		Vec3 w = R1hT*(pNode2->GetWCurr() - pNode1->GetWCurr());
+		Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
+		Vec3 w(R1h.Transpose()*(pNode2->GetWCurr() - pNode1->GetWCurr()));
 
 		return w(i - 3);
 	}
@@ -330,6 +353,32 @@ DeformableHingeJoint::dGetPrivData(unsigned int i) const
 
 	default:
 		return ConstitutiveLaw3DOwner::dGetPrivData(i - 9);
+	}
+}
+
+doublereal
+DeformableHingeJoint::dGetPrivDataInv(unsigned int i) const
+{
+	ASSERT(i > 0);
+
+	ASSERT(i <= iGetNumPrivData());
+
+	switch (i) {
+	case 4:
+	case 5:
+	case 6:
+	{
+		Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
+		Mat3x3 R2h(pNode2->GetRCurr()*tilde_R2h);
+		Mat3x3 hat_R(R1h*RotManip::Rot(RotManip::VecRot(R1h.Transpose()*R2h)/2.));
+		Vec3 w(hat_R.Transpose()*(pNode2->GetWCurr() - pNode1->GetWCurr()));
+
+		return w(i - 3);
+	}
+
+	default:
+		/* fall back to regular one */
+		return DeformableHingeJoint::dGetPrivData(i);
 	}
 }
 
@@ -355,8 +404,9 @@ ThetaRef(0.)
 	 * e la porta nel sistema globale
 	 */
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
+	Mat3x3 R1hT(R1h.Transpose());
 	Mat3x3 R2h(pNode2->GetRRef()*tilde_R2h);
-	ThetaCurr = ThetaRef = RotManip::VecRot(R1h.Transpose()*R2h);
+	ThetaCurr = ThetaRef = RotManip::VecRot(R1hT*R2h);
 
 	/* Aggiorna il legame costitutivo */
 	ConstitutiveLaw3DOwner::Update(ThetaRef);
@@ -364,7 +414,7 @@ ThetaRef(0.)
 	/* Calcola l'inversa di Gamma di ThetaRef */
 	Mat3x3 GammaRefm1 = RotManip::DRot_I(ThetaRef);
 
-	MDE = R1h*GetFDE()*GammaRefm1*R1h.Transpose();
+	MDE = R1h*GetFDE()*GammaRefm1*R1hT;
 }
 
 ElasticHingeJoint::~ElasticHingeJoint(void)
@@ -459,8 +509,8 @@ ElasticHingeJoint::AfterPredict(VectorHandler& /* X */ ,
 
 	/* Recupera i dati */
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
-	Mat3x3 R2h(pNode2->GetRRef()*tilde_R2h);
 	Mat3x3 R1hT(R1h.Transpose());
+	Mat3x3 R2h(pNode2->GetRRef()*tilde_R2h);
 
 	/* Calcola la deformazione corrente nel sistema locale (nodo a) */
 	ThetaCurr = ThetaRef = RotManip::VecRot(R1hT*R2h);
@@ -612,23 +662,24 @@ ElasticHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, fOut)
 {
 	/* Recupera i dati */
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
+	Mat3x3 R1hT(R1h.Transpose());
 	Mat3x3 R2h(pNode2->GetRRef()*tilde_R2h);
-	ThetaCurr = ThetaRef = RotManip::VecRot(R1h.Transpose()*R2h);
-	Mat3x3 tilde_R(RotManip::Rot(ThetaRef/2.));
-	Mat3x3 hat_R(R1h*tilde_R);
-	Mat3x3 hat_RT(hat_R.Transpose());
+	ThetaCurr = ThetaRef = RotManip::VecRot(R1hT*R2h);
 
 	/* Aggiorna il legame costitutivo */
 	ConstitutiveLaw3DOwner::Update(ThetaRef);
+
+	Mat3x3 tilde_R(RotManip::Rot(ThetaRef/2.));
+	Mat3x3 hat_R(R1h*tilde_R);
 
 	/* Calcola l'inversa di Gamma di ThetaRef */
 	Mat3x3 GammaRefm1 = RotManip::DRot_I(ThetaRef);
 
 	/* Chiede la matrice tangente di riferimento e la porta
 	 * nel sistema globale */
-	MDE = hat_R*ConstitutiveLaw3DOwner::GetFDE()*GammaRefm1*hat_RT;
+	MDE = hat_R*ConstitutiveLaw3DOwner::GetFDE()*GammaRefm1*R1hT;
 
-	hat_I = hat_R*(Eye3 + tilde_R).Inv()*hat_RT;
+	hat_I = hat_R*(Eye3 + tilde_R).Inv()*hat_R.Transpose();
 	hat_IT = hat_I.Transpose();
 }
 
@@ -646,25 +697,26 @@ ElasticHingeJointInv::AfterPredict(VectorHandler& /* X */ ,
 
 	/* Recupera i dati */
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
+	Mat3x3 R1hT(R1h.Transpose());
 	Mat3x3 R2h(pNode2->GetRRef()*tilde_R2h);
-	ThetaCurr = ThetaRef = RotManip::VecRot(R1h.Transpose()*R2h);
-	Mat3x3 tilde_R(RotManip::Rot(ThetaRef/2.));
-	Mat3x3 hat_R(R1h*tilde_R);
-	Mat3x3 hat_RT(hat_R.Transpose());
+	ThetaCurr = ThetaRef = RotManip::VecRot(R1hT*R2h);
 
 	/* Aggiorna il legame costitutivo */
 	ConstitutiveLaw3DOwner::Update(ThetaRef);
 
 	bFirstRes = true;
 
+	Mat3x3 tilde_R(RotManip::Rot(ThetaRef/2.));
+	Mat3x3 hat_R(R1h*tilde_R);
+
 	/* Calcola l'inversa di Gamma di ThetaRef */
 	Mat3x3 GammaRefm1 = RotManip::DRot_I(ThetaRef);
 
 	/* Chiede la matrice tangente di riferimento e la porta
 	 * nel sistema globale */
-	MDE = hat_R*ConstitutiveLaw3DOwner::GetFDE()*GammaRefm1*hat_RT;
+	MDE = hat_R*ConstitutiveLaw3DOwner::GetFDE()*GammaRefm1*R1hT;
 
-	hat_I = hat_R*(Eye3 + tilde_R).Inv()*hat_RT;
+	hat_I = hat_R*(Eye3 + tilde_R).Inv()*hat_R.Transpose();
 	hat_IT = hat_I.Transpose();
 }
 
@@ -697,6 +749,18 @@ ElasticHingeJointInv::AssVec(SubVectorHandler& WorkVec)
 
 	WorkVec.Add(1, M);
 	WorkVec.Sub(4, M);
+}
+
+void
+ElasticHingeJointInv::Output(OutputHandler& OH) const
+{
+	DeformableHingeJoint::OutputInv(OH);
+}
+
+doublereal
+ElasticHingeJointInv::dGetPrivData(unsigned int i) const
+{
+	return DeformableHingeJoint::dGetPrivDataInv(i);
 }
 
 /* ElasticHingeJointInv - end */
@@ -1077,6 +1141,18 @@ ViscousHingeJointInv::AssVec(SubVectorHandler& WorkVec)
 	WorkVec.Sub(4, M);
 }
 
+void
+ViscousHingeJointInv::Output(OutputHandler& OH) const
+{
+	DeformableHingeJoint::OutputInv(OH);
+}
+
+doublereal
+ViscousHingeJointInv::dGetPrivData(unsigned int i) const
+{
+	return DeformableHingeJoint::dGetPrivDataInv(i);
+}
+
 /* ViscousHingeJointInv - end */
 
 
@@ -1417,8 +1493,9 @@ ViscoElasticHingeJointInv::AfterPredict(VectorHandler& /* X */ ,
 
 	/* Recupera i dati */
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
+	Mat3x3 R1hT(R1h.Transpose());
 	Mat3x3 R2h(pNode2->GetRRef()*tilde_R2h);
-	ThetaCurr = ThetaRef = RotManip::VecRot(R1h.Transpose()*R2h);
+	ThetaCurr = ThetaRef = RotManip::VecRot(R1hT*R2h);
 	Mat3x3 tilde_R(RotManip::Rot(ThetaRef/2.));
 	Mat3x3 hat_R(R1h*tilde_R);
 	Mat3x3 hat_RT(hat_R.Transpose());
@@ -1439,7 +1516,7 @@ ViscoElasticHingeJointInv::AfterPredict(VectorHandler& /* X */ ,
 
 	/* Chiede la matrice tangente di riferimento e la porta
 	 * nel sistema globale */
-	MDE = hat_R*ConstitutiveLaw3DOwner::GetFDE()*GammaRefm1*hat_RT;
+	MDE = hat_R*ConstitutiveLaw3DOwner::GetFDE()*GammaRefm1*R1hT;
 	MDEPrime = hat_R*ConstitutiveLaw3DOwner::GetFDEPrime()*hat_RT;
 
 	hat_I = hat_R*(Eye3 + tilde_R).Inv()*hat_RT;
@@ -1478,10 +1555,9 @@ ViscoElasticHingeJointInv::AssVec(SubVectorHandler& WorkVec)
 
 		/* orientazione intermedia */
 		hat_R = R1h*RotManip::Rot(ThetaCurr/2.);
-		Mat3x3 hat_RT(hat_R.Transpose());
 
 		/* velocita' relativa nell'orientazione intermedia */
-		Omega = hat_RT*(pNode2->GetWCurr() - pNode1->GetWCurr());
+		Omega = hat_R.Transpose()*(pNode2->GetWCurr() - pNode1->GetWCurr());
 
 		/* aggiorna il legame costitutivo */
 		ConstitutiveLaw3DOwner::Update(ThetaCurr, Omega);
@@ -1491,6 +1567,18 @@ ViscoElasticHingeJointInv::AssVec(SubVectorHandler& WorkVec)
 
 	WorkVec.Add(1, M);
 	WorkVec.Sub(4, M);
+}
+
+void
+ViscoElasticHingeJointInv::Output(OutputHandler& OH) const
+{
+	DeformableHingeJoint::OutputInv(OH);
+}
+
+doublereal
+ViscoElasticHingeJointInv::dGetPrivData(unsigned int i) const
+{
+	return DeformableHingeJoint::dGetPrivDataInv(i);
 }
 
 /* ViscoElasticHingeJointInv - end */

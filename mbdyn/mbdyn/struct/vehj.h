@@ -79,6 +79,13 @@ protected:
 	AssMatMDEPrimeInv(FullSubMatrixHandler& WMA,
 		FullSubMatrixHandler& WMB, doublereal dCoef);
 
+	/* output helper */
+	void OutputInv(OutputHandler& OH) const;
+
+	/* priv data helper */
+	doublereal
+	dGetPrivDataInv(unsigned int i) const;
+
 public:
 	/* Costruttore non banale */
 	DeformableHingeJoint(unsigned int uL,
@@ -272,6 +279,10 @@ public:
 	/* Aggiorna le deformazioni ecc. */
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
+	virtual void Output(OutputHandler& OH) const;
+
+	virtual doublereal dGetPrivData(unsigned int i) const;
+
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
 	virtual void
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
@@ -433,6 +444,10 @@ public:
 
 	/* Aggiorna le deformazioni ecc. */
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+
+	virtual void Output(OutputHandler& OH) const;
+
+	virtual doublereal dGetPrivData(unsigned int i) const;
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
 	virtual void
@@ -598,6 +613,10 @@ public:
 
 	/* Aggiorna le deformazioni ecc. */
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+
+	virtual void Output(OutputHandler& OH) const;
+
+	virtual doublereal dGetPrivData(unsigned int i) const;
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
 	virtual void
