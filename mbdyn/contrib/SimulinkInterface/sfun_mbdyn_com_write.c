@@ -1,9 +1,8 @@
-/* $Header$ */
 /*
  * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2007
+ * Copyright (C) 1996-2005
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -100,6 +99,12 @@
 #include <rtai_mbx.h>
 #include <rtai_netrpc.h>
 #include "mbdyn_rtai.h"
+
+bool          MBDynTaskActive[MAX_MBDYN_TASK]={false};
+long int 	MBDynNode[MAX_MBDYN_TASK]={1};
+unsigned long MBDynName[MAX_MBDYN_TASK]={0xFFFFFFFF};
+
+RT_TASK *rt_HostInterfaceTask;
 
 extern long int 	MBDynNode[];
 extern unsigned long	MBDynName[];
@@ -376,8 +381,8 @@ mdlOutputs(SimStruct *S, int_T tid)
 	struct mbd_t	*ptrstr = (struct mbd_t *)ssGetPWork(S)[0];
 
 	for (i = 0; i < MBX_N_CHN; i++) {
-		y[i] = *(ssGetInputPortRealSignalPtrs(S,i)[0]);
-		ssGetOutputPortRealSignal(S,i)[0] = y[i];
+		y[i] = ssGetInputPortRealSignal(S, i)[0];
+		ssGetOutputPortRealSignal(S, i)[0] = y[i];
 	}
 
 	if (RT_mbx_send_if(ptrstr->node, ptrstr->port, ptrstr->comptr, y,
