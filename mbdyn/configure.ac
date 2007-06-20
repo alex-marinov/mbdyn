@@ -199,13 +199,6 @@ OL_ARG_WITH(pam,[
        misc security libraries:
   --with-pam              with PAM support],auto,[auto yes no])
 OL_ARG_WITH(sasl2,[  --with-sasl2            with Cyrus SASL2 support],auto,[auto yes no])
-OL_ARG_WITH(struct,[
-       supported features:
-  --with-struct           with structural elements],yes,[yes no])
-OL_ARG_WITH(elec,[  --with-elec             with electric stuff],yes,[yes no])
-OL_ARG_WITH(aero,[  --with-aero             with aerodynamic stuff],yes,[yes no])
-OL_ARG_WITH(aero_output,[  --with-aero-output={std,gauss,node}  aerodynamic output mode],auto,[auto std gauss node])
-OL_ARG_WITH(hydr,[  --with-hydr             with hydraulic stuff],yes,[yes no])
 
 dnl module with's
 AC_ARG_WITH(module,[
