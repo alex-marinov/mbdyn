@@ -112,14 +112,19 @@ SetCL6D(const char *name, ConstitutiveLawRead<Vec6, Mat6x6> *rf)
 ConstitutiveLaw<doublereal, doublereal> *
 ReadCL1D(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType)
 {
-	const char *s = HP.IsWord(CL1DWordSet);
-	if (s == 0) {
-		s = "const";
+	const char *s, *sOrig = HP.IsWord(CL1DWordSet);
+	if (sOrig == 0) {
+		s = "linear" "elastic";
+		sOrig = "";
+
+	} else {
+		s = sOrig;
 	}
 
 	CL1DFuncMapType::iterator func = CL1DFuncMap.find(std::string(s));
 	if (func == CL1DFuncMap.end()) {
-		silent_cerr("unknown constitutive law 1D type \"" << s << "\" "
+		silent_cerr("unknown constitutive law 1D type "
+			"\"" << sOrig << "\" "
 			"at line " << HP.GetLineData() << std::endl);
 		throw DataManager::ErrGeneric();
 	}
@@ -130,14 +135,19 @@ ReadCL1D(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType)
 ConstitutiveLaw<Vec3, Mat3x3> *
 ReadCL3D(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType)
 {
-	const char *s = HP.IsWord(CL3DWordSet);
-	if (s == 0) {
-		s = "const";
+	const char *s, *sOrig = HP.IsWord(CL3DWordSet);
+	if (sOrig == 0) {
+		s = "linear" "elastic";
+		sOrig = "";
+
+	} else {
+		s = sOrig;
 	}
 
 	CL3DFuncMapType::iterator func = CL3DFuncMap.find(std::string(s));
 	if (func == CL3DFuncMap.end()) {
-		silent_cerr("unknown constitutive law 3D type \"" << s << "\" "
+		silent_cerr("unknown constitutive law 3D type "
+			"\"" << sOrig << "\" "
 			"at line " << HP.GetLineData() << std::endl);
 		throw DataManager::ErrGeneric();
 	}
@@ -148,14 +158,19 @@ ReadCL3D(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType)
 ConstitutiveLaw<Vec6, Mat6x6> *
 ReadCL6D(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType)
 {
-	const char *s = HP.IsWord(CL6DWordSet);
-	if (s == 0) {
-		s = "const";
+	const char *s, *sOrig = HP.IsWord(CL6DWordSet);
+	if (sOrig == 0) {
+		s = "linear" "elastic";
+		sOrig = "";
+
+	} else {
+		s = sOrig;
 	}
 
 	CL6DFuncMapType::iterator func = CL6DFuncMap.find(std::string(s));
 	if (func == CL6DFuncMap.end()) {
-		silent_cerr("unknown constitutive law 6D type \"" << s << "\" "
+		silent_cerr("unknown constitutive law 6D type "
+			"\"" << sOrig << "\" "
 			"at line " << HP.GetLineData() << std::endl);
 		throw DataManager::ErrGeneric();
 	}
