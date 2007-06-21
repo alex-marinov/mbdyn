@@ -394,7 +394,7 @@ DataManager::ReadControl(MBDynParser& HP,
 			DEBUGLCOUT(MYDEBUG_INPUT, "Electric elements: " << iDmy << std::endl);
 		} break;
 
-		/* Numero di elementi elettrici attesi */
+		/* Numero di elementi termici attesi */
 		case THERMALELEMENTS: {
 			int iDmy = HP.GetInt();
 			ElemData[Elem::THERMAL].iExpectedNum = iDmy;
@@ -1080,11 +1080,11 @@ EndOfUse:
 					break;
 
 				case ELECTRICNODES:
-					DofData[DofOwner::THERMALNODE].dDefScale = dScale;
+					DofData[DofOwner::ELECTRICNODE].dDefScale = dScale;
 					break;
 
 				case THERMALNODES:
-					DofData[DofOwner::ELECTRICNODE].dDefScale = dScale;
+					DofData[DofOwner::THERMALNODE].dDefScale = dScale;
 					break;
 
 				case ABSTRACTNODES:
@@ -1665,8 +1665,8 @@ DataManager::ReadNodes(MBDynParser& HP)
 				pDO->SetScale(dScale);
 
 				SAFENEWWITHCONSTRUCTOR(*ppN,
-					ElectricNode,
-					ElectricNode(uLabel, pDO, dx, dxp, fOut));
+					ThermalNode,
+					ThermalNode(uLabel, pDO, dx, dxp, fOut));
 
 			} break;
 

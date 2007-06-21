@@ -1744,6 +1744,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, int CurrType)
 		break;
 	}
 
+	/* elementi termici */
 	case THERMAL: {
 		silent_cout("Reading thermal element " << uLabel << std::endl);
 
@@ -1751,7 +1752,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, int CurrType)
 			DEBUGCERR("");
 			silent_cerr("line " << HP.GetLineData()
 				<< ": thermal element " << uLabel
-				<< " exceeds electric elements number" << std::endl);
+				<< " exceeds thermal elements number" << std::endl);
 
 			throw DataManager::ErrGeneric();
 		}
