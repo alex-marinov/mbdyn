@@ -6,16 +6,10 @@ include $(top_srcdir)/build/top.mk
 EXTRA_DIST = \
 f2c-int.h \
 f2c.h \
-float.h \
-fstream \
 getopt.h \
-iomanip \
-iostream \
 lapack.h \
-math.h \
 pthread.h \
 spinlock.h \
-sstream \
 sys_sysinfo.h
 
 include $(top_srcdir)/build/bot.mk
