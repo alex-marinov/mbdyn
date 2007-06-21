@@ -57,6 +57,7 @@ DataManager::NodeManager(void)
 	NodeData[Node::ABSTRACT].OutFile = OutputHandler::ABSTRACT;
 	NodeData[Node::STRUCTURAL].OutFile = OutputHandler::STRNODES;
 	NodeData[Node::ELECTRIC].OutFile = OutputHandler::ELECTRIC;
+   NodeData[Node::THERMAL].OutFile = OutputHandler::THERMALNODES;   
 	NodeData[Node::HYDRAULIC].OutFile = OutputHandler::PRESNODES;
 	NodeData[Node::PARAMETER].OutFile = OutputHandler::PARAMETERS;
 }

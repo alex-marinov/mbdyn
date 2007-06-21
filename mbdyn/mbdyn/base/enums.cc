@@ -53,6 +53,8 @@ const char* psElemNames[] = {
    
    "Electric Bulk",
    "Electric",
+
+   "Thermal",
    
    "Hydraulic",
    
@@ -88,6 +90,8 @@ const char* psReadElemsElems[] = {
    
    "electric" "bulk",
    "electric",
+
+   "thermal",
    
    "hydraulic",
    
@@ -126,6 +130,8 @@ const char* psReadControlElems[] = {
    
    "electric" "bulk" "elements",
    "electric" "elements",
+
+   "thermal" "elements",
    
    "hydraulic" "elements",
    
@@ -162,6 +168,8 @@ const char *psAdamsElemCode[] = {
    
    "ELBK",
    "ELEC",
+
+   "THER",
    
    "HYDR",
    
@@ -391,6 +399,7 @@ const char* psNodeNames[] = {
    "Abstract",     
    "Structural",   
    "Electric",   
+   "Thermal",   
    "Parameter",   
    "Hydraulic",
    
@@ -405,6 +414,7 @@ const char* psReadControlNodes[] = {
    "abstract" "nodes",
    "structural" "nodes",   
    "electric" "nodes",   
+   "thermal" "nodes",   
    "parameter" "nodes",   
    "hydraulic" "nodes",
    
@@ -415,6 +425,7 @@ const char* psReadNodesNodes[] = {
    "abstract",
    "structural",   
    "electric",   
+   "thermal",   
    "parameter",   
    "hydraulic",
    
@@ -438,6 +449,7 @@ const char* psStructNodeNames[] = {
 const char* psDofOwnerNames[] = {
    "Structural Node",
    "Electric Node",
+   "Thermal Node",
    "Abstract Node",
    "Hydraulic Node",
    

@@ -54,6 +54,8 @@
 #include "j2p.h"
 #include "sah.h"
 
+#include "thermalnode.h"
+
 class NotAllowed {};
 
 /* Legge i dati di controllo */
@@ -74,6 +76,7 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		psReadControlNodes[Node::STRUCTURAL],
 		psReadControlNodes[Node::ELECTRIC],
+		psReadControlNodes[Node::THERMAL],
 		psReadControlNodes[Node::ABSTRACT],
 		psReadControlNodes[Node::PARAMETER],
 		psReadControlNodes[Node::HYDRAULIC],
@@ -92,6 +95,7 @@ DataManager::ReadControl(MBDynParser& HP,
 		psReadControlElems[Elem::GENEL],
 		psReadControlElems[Elem::ELECTRICBULK],
 		psReadControlElems[Elem::ELECTRIC],
+		psReadControlElems[Elem::THERMAL],
 		psReadControlElems[Elem::HYDRAULIC],
 		psReadControlElems[Elem::BULK],
 		psReadControlElems[Elem::LOADABLE],
@@ -152,6 +156,7 @@ DataManager::ReadControl(MBDynParser& HP,
 		CONTROLDATA,
 		STRUCTURALNODES,
 		ELECTRICNODES,
+		THERMALNODES,
 		ABSTRACTNODES,
 		PARAMETERNODES,
 		HYDRAULICNODES,
@@ -170,6 +175,7 @@ DataManager::ReadControl(MBDynParser& HP,
 		GENELS,
 		ELECTRICBULKELEMENTS,
 		ELECTRICELEMENTS,
+		THERMALELEMENTS,
 		HYDRAULICELEMENTS,
 		BULKELEMENTS,
 		LOADABLEELEMENTS,
@@ -246,6 +252,14 @@ DataManager::ReadControl(MBDynParser& HP,
 			NodeData[Node::ELECTRIC].iNum = iDmy;
 			DofData[DofOwner::ELECTRICNODE].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Electric nodes: " << iDmy << std::endl);
+		} break;
+
+		/* Numero di nodi termici attesi */
+		case THERMALNODES: {
+			int iDmy = HP.GetInt();
+			NodeData[Node::THERMAL].iNum = iDmy;
+			DofData[DofOwner::THERMALNODE].iNum = iDmy;
+			DEBUGLCOUT(MYDEBUG_INPUT, "Thermal nodes: " << iDmy << std::endl);
 		} break;
 
 		/* Numero di nodi astratti attesi */
@@ -378,6 +392,14 @@ DataManager::ReadControl(MBDynParser& HP,
 			ElemData[Elem::ELECTRIC].iExpectedNum = iDmy;
 			DofData[DofOwner::ELECTRIC].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Electric elements: " << iDmy << std::endl);
+		} break;
+
+		/* Numero di elementi elettrici attesi */
+		case THERMALELEMENTS: {
+			int iDmy = HP.GetInt();
+			ElemData[Elem::THERMAL].iExpectedNum = iDmy;
+			DofData[DofOwner::THERMAL].iNum = iDmy;
+			DEBUGLCOUT(MYDEBUG_INPUT, "Thermal elements: " << iDmy << std::endl);
 		} break;
 
 		/* Numero di elementi idraulici attesi */
@@ -942,6 +964,10 @@ EndOfUse:
 					NodeData[Node::ELECTRIC].DefaultOut(true);
 					break;
 
+				case THERMALNODES:
+					NodeData[Node::THERMAL].DefaultOut(true);
+					break;
+
 				case ABSTRACTNODES:
 					NodeData[Node::ABSTRACT].DefaultOut(true);
 					break;
@@ -1002,6 +1028,10 @@ EndOfUse:
 					ElemData[Elem::ELECTRIC].DefaultOut(true);
 					break;
 
+				case THERMALELEMENTS:
+					ElemData[Elem::THERMAL].DefaultOut(true);
+					break;
+
 				case HYDRAULICELEMENTS:
 					ElemData[Elem::HYDRAULIC].DefaultOut(true);
 					break;
@@ -1050,6 +1080,10 @@ EndOfUse:
 					break;
 
 				case ELECTRICNODES:
+					DofData[DofOwner::THERMALNODE].dDefScale = dScale;
+					break;
+
+				case THERMALNODES:
 					DofData[DofOwner::ELECTRICNODE].dDefScale = dScale;
 					break;
 
@@ -1083,6 +1117,10 @@ EndOfUse:
 
 				case ELECTRICELEMENTS:
 					DofData[DofOwner::ELECTRIC].dDefScale = dScale;
+					break;
+
+				case THERMALELEMENTS:
+					DofData[DofOwner::THERMAL].dDefScale = dScale;
 					break;
 
 				case HYDRAULICELEMENTS:
@@ -1337,6 +1375,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 
 		psReadNodesNodes[Node::STRUCTURAL],
 		psReadNodesNodes[Node::ELECTRIC],
+		psReadNodesNodes[Node::THERMAL],
 		psReadNodesNodes[Node::ABSTRACT],
 		psReadNodesNodes[Node::PARAMETER],
 		psReadNodesNodes[Node::HYDRAULIC],
@@ -1354,6 +1393,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 
 		STRUCTURAL,
 		ELECTRIC,
+		THERMAL,
 		ABSTRACT,
 		PARAMETER,
 		HYDRAULIC,
@@ -1395,6 +1435,11 @@ DataManager::ReadNodes(MBDynParser& HP)
 			case ELECTRIC:
 				DEBUGLCOUT(MYDEBUG_INPUT, "electric" << std::endl);
 				Typ = Node::ELECTRIC;
+				break;
+
+			case THERMAL:
+				DEBUGLCOUT(MYDEBUG_INPUT, "thermal" << std::endl);
+				Typ = Node::THERMAL;
 				break;
 
 			case ABSTRACT:
@@ -1580,6 +1625,43 @@ DataManager::ReadNodes(MBDynParser& HP)
 					- iNumTypes[Node::ELECTRIC] - 1;
 				ppN = NodeData[Node::ELECTRIC].ppFirstNode + i;
 				DofOwner* pDO = DofData[DofOwner::ELECTRICNODE].pFirstDofOwner + i;
+				pDO->SetScale(dScale);
+
+				SAFENEWWITHCONSTRUCTOR(*ppN,
+					ElectricNode,
+					ElectricNode(uLabel, pDO, dx, dxp, fOut));
+
+			} break;
+
+			case THERMAL: {
+				silent_cout("Reading "
+					<< psNodeNames[Node::THERMAL] << "(" << uLabel << ")"
+					<< std::endl);
+
+				/*
+				 * verifica che non siano gia' stati letti tutti
+				 * quelli previsti
+				 */
+				if (iNumTypes[Node::THERMAL]-- <= 0) {
+					silent_cerr("line " << HP.GetLineData() << ": "
+						<< psNodeNames[Node::THERMAL] << "(" << uLabel << ") "
+						"exceeds declared number" << std::endl);
+					throw DataManager::ErrGeneric();
+				}
+
+				/* Initial values */
+				doublereal dx(0.);
+				doublereal dxp(0.);
+
+				ReadScalarDifferentialNode(HP, uLabel, Node::THERMAL, dx, dxp);
+				doublereal dScale = dReadScale(HP, DofOwner::THERMALNODE);
+				flag fOut = fReadOutput(HP, Node::THERMAL);
+
+				/* allocazione e creazione */
+				int i = NodeData[Node::THERMAL].iNum
+					- iNumTypes[Node::THERMAL] - 1;
+				ppN = NodeData[Node::THERMAL].ppFirstNode + i;
+				DofOwner* pDO = DofData[DofOwner::THERMALNODE].pFirstDofOwner + i;
 				pDO->SetScale(dScale);
 
 				SAFENEWWITHCONSTRUCTOR(*ppN,

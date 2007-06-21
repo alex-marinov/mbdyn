@@ -32,7 +32,7 @@
 /* Lettura elementi */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include "mbdefs.h"
@@ -42,46 +42,47 @@
 #include <vector>
 #include <set>
 
-#include <dataman.h>
-#include <dataman_.h>
+#include "dataman.h"
+#include "dataman_.h"
 
 /* Elementi */
-#include <autostr.h>   /* Elementi automatici associati ai nodi dinamici */
-#include <gravity.h>   /* Elemento accelerazione di gravita' */
-#include <body.h>
+#include "autostr.h"   /* Elementi automatici associati ai nodi dinamici */
+#include "gravity.h"   /* Elemento accelerazione di gravita' */
+#include "body.h"
 #include "force.h"
 #include "beam.h"
 #include "beam2.h"
 #include "hbeam.h"
-#include <aerodyn.h>   /* Classe di base degli elementi aerodinamici */
+#include "aerodyn.h"   /* Classe di base degli elementi aerodinamici */
 #include "rotor.h"
 #include "aeroelem.h"
 #include "aeromodal.h"
-#include <instruments.h>
+#include "instruments.h"
 #ifdef USE_EXTERNAL
-#include <aeroext.h>
+#include "aeroext.h"
 #endif /* USE_EXTERNAL */
 
-#include <driven.h>    /* driven elements */
+#include "driven.h"    /* driven elements */
 #include "genel.h"
-#include <j2p.h>       /* bind di elementi a nodi parametrici */
+#include "j2p.h"       /* bind di elementi a nodi parametrici */
 
 #include "preselem.h"
 #include "elec.h"
+#include "therm.h"
 #include "bulk.h"
 
-#include <drive.h>
-#include <tpldrive.h>
+#include "drive.h"
+#include "tpldrive.h"
 
-#include <loadable.h>
+#include "loadable.h"
 
 #ifdef USE_RTAI
-#include <rtai_out_elem.h>
+#include "rtai_out_elem.h"
 #endif /* USE_RTAI */
 
 #ifdef USE_SOCKET
-#include <socketstream_out_elem.h>
-#include <socketstreammotionelem.h>
+#include "socketstream_out_elem.h"
+#include "socketstreammotionelem.h"
 #endif // USE_SOCKET
 
 static int iNumTypes[Elem::LASTELEMTYPE];
@@ -117,6 +118,8 @@ enum KeyWords {
 
 	GENEL,
 	ELECTRIC,
+
+	THERMAL,
 
 	HYDRAULIC,
 
@@ -173,6 +176,8 @@ DataManager::ReadElems(MBDynParser& HP)
 
 		"genel",
 		"electric",
+
+		"thermal",
 
 		"hydraulic",
 
@@ -309,6 +314,12 @@ DataManager::ReadElems(MBDynParser& HP)
 			case ELECTRIC: {
 				DEBUGLCOUT(MYDEBUG_INPUT, "electric" << std::endl);
 				Typ = Elem::ELECTRIC;
+				break;
+			}
+
+			case THERMAL: {
+				DEBUGLCOUT(MYDEBUG_INPUT, "thermal" << std::endl);
+				Typ = Elem::THERMAL;
 				break;
 			}
 
@@ -636,6 +647,10 @@ DataManager::ReadElems(MBDynParser& HP)
 				t = Elem::ELECTRIC;
 				break;
 
+			case THERMAL:
+				t = Elem::THERMAL;
+				break;
+
 			case HYDRAULIC:
 				t = Elem::HYDRAULIC;
 				break;
@@ -852,6 +867,8 @@ DataManager::ReadElems(MBDynParser& HP)
 					case GENEL:
 					case ELECTRIC:
 
+					case THERMAL:
+
 					case HYDRAULIC:
 
 					case BULK:
@@ -929,6 +946,10 @@ DataManager::ReadElems(MBDynParser& HP)
 
 						case ELECTRIC:
 							ppE = ppFindElem(Elem::ELECTRIC, uLabel);
+							break;
+
+						case THERMAL:
+							ppE = ppFindElem(Elem::THERMAL, uLabel);
 							break;
 
 						case HYDRAULIC:
@@ -1039,6 +1060,8 @@ DataManager::ReadElems(MBDynParser& HP)
 
 				case GENEL:
 				case ELECTRIC:
+
+				case THERMAL:
 
 				case HYDRAULIC:
 
@@ -1716,6 +1739,44 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, int CurrType)
 		}
 
 		/* attenzione: gli elementi elettrici aggiungono DofOwner
+		 * e quindi devono completare la relativa struttura */
+
+		break;
+	}
+
+	case THERMAL: {
+		silent_cout("Reading thermal element " << uLabel << std::endl);
+
+		if (iNumTypes[Elem::THERMAL]-- <= 0) {
+			DEBUGCERR("");
+			silent_cerr("line " << HP.GetLineData()
+				<< ": thermal element " << uLabel
+				<< " exceeds electric elements number" << std::endl);
+
+			throw DataManager::ErrGeneric();
+		}
+
+		/* verifica che non sia gia' definito */
+		if (pFindElem(Elem::THERMAL, uLabel) != NULL) {
+			DEBUGCERR("");
+			silent_cerr("line " << HP.GetLineData()
+				<< ": thermal element " << uLabel
+				<< " already defined" << std::endl);
+
+			throw DataManager::ErrGeneric();
+		}
+
+		/* allocazione e creazione */
+		int i = ElemData[Elem::THERMAL].iExpectedNum
+			- iNumTypes[Elem::THERMAL] - 1;
+		DofOwner* pDO = DofData[DofOwner::THERMAL].pFirstDofOwner + i;
+
+		pE = ReadThermal(this, HP, pDO, uLabel);
+		if (pE != 0) {
+			ppE = &ElemData[Elem::THERMAL].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
+		}
+
+		/* attenzione: gli elementi termici aggiungono DofOwner
 		 * e quindi devono completare la relativa struttura */
 
 		break;

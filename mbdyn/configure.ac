@@ -2176,6 +2176,7 @@ AC_OUTPUT([ \
 	./mbdyn/base/Makefile:mbdyn/base/Makefile.in
 	./mbdyn/aero/Makefile:mbdyn/aero/Makefile.in
 	./mbdyn/elec/Makefile:mbdyn/elec/Makefile.in
+	./mbdyn/thermo/Makefile:mbdyn/thermo/Makefile.in
 	./mbdyn/hydr/Makefile:mbdyn/hydr/Makefile.in
 	./mbdyn/struct/Makefile:mbdyn/struct/Makefile.in
 	./modules/Makefile:modules/Makefile.in

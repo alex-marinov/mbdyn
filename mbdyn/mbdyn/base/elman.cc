@@ -58,6 +58,7 @@ DataManager::ElemManager(void)
 	/* Add dof type */
 	ElemData[Elem::JOINT].DofOwnerType = DofOwner::JOINT;
 	ElemData[Elem::ELECTRIC].DofOwnerType = DofOwner::ELECTRIC;
+	ElemData[Elem::THERMAL].DofOwnerType = DofOwner::THERMAL;
 	ElemData[Elem::ELECTRICBULK].DofOwnerType = DofOwner::ELECTRICBULK;
 	ElemData[Elem::GENEL].DofOwnerType = DofOwner::GENEL;
 	ElemData[Elem::ROTOR].DofOwnerType = DofOwner::ROTOR;
@@ -77,6 +78,7 @@ DataManager::ElemManager(void)
 	ElemData[Elem::LOADABLE].OutFile = OutputHandler::LOADABLE;
 	ElemData[Elem::GENEL].OutFile = OutputHandler::GENELS;
 	ElemData[Elem::EXTERNAL].OutFile = OutputHandler::EXTERNALS;
+	ElemData[Elem::THERMAL].OutFile = OutputHandler::THERMALELEMENTS;
 
 	/* Inheritance scheme */
 	ElemData[Elem::AUTOMATICSTRUCTURAL].iDerivation = ELEM;
@@ -92,6 +94,7 @@ DataManager::ElemManager(void)
 	ElemData[Elem::AEROMODAL].iDerivation = ELEM | DOFOWNER | AIRPROPOWNER;
 	ElemData[Elem::AERODYNAMIC].iDerivation = ELEM | AIRPROPOWNER |INITIALASSEMBLY;
 	ElemData[Elem::ELECTRIC].iDerivation = ELEM | DOFOWNER;
+	ElemData[Elem::THERMAL].iDerivation = ELEM | DOFOWNER;
 	ElemData[Elem::ELECTRICBULK].iDerivation = ELEM | DOFOWNER;
 	ElemData[Elem::BULK].iDerivation = ELEM;
 	ElemData[Elem::LOADABLE].iDerivation = ELEM | GRAVITYOWNER | INITIALASSEMBLY | DOFOWNER;

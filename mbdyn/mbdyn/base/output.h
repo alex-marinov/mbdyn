@@ -88,8 +88,10 @@ public:
 		EXTERNALS,
 		MODAL,				// 25
 		NETCDF,
+		THERMALNODES,
+		THERMALELEMENTS,
 
-		LASTFILE			// 27
+		LASTFILE			// 29
 	};
 
 private:
@@ -174,6 +176,9 @@ private:
 	std::ofstream ofParameters;
 	std::ofstream ofExternals;
 	std::ofstream ofModal;
+	std::ofstream ofThermal;
+	std::ofstream ofThermalNodes;
+	std::ofstream ofThermalElements;
 
 	int iCurrWidth;
 	int iCurrPrecision;
@@ -232,6 +237,7 @@ public:
 	inline std::ostream& Output(void) const;
 	inline std::ostream& StrNodes(void) const;
 	inline std::ostream& Electric(void) const;
+	inline std::ostream& Thermal(void) const;
 	inline std::ostream& Abstract(void) const;
 	inline std::ostream& Inertia(void) const;
 	inline std::ostream& Joints(void) const;
@@ -377,6 +383,13 @@ OutputHandler::Electric(void) const
 {
 	ASSERT(IsOpen(ELECTRIC));
 	return (std::ostream&)ofElectric;
+}
+
+inline std::ostream&
+OutputHandler::Thermal(void) const
+{
+	ASSERT(IsOpen(THERMAL));
+	return (std::ostream&)ofThermal;
 }
 
 inline std::ostream&

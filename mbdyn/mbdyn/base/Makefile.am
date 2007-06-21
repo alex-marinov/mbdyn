@@ -168,6 +168,7 @@ INCLUDES = \
 -I$(srcdir)/../../mbdyn/struct \
 -I$(srcdir)/../../mbdyn/aero \
 -I$(srcdir)/../../mbdyn/elec \
+-I../../mbdyn/thermo \
 -I$(srcdir)/../../mbdyn/hydr \
 $(GINACLIB_CPPFLAGS)
 

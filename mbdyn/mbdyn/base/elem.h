@@ -102,6 +102,8 @@ public:
 
 		ELECTRICBULK,
 		ELECTRIC,
+	
+	THERMAL,
 
 		HYDRAULIC,
 	

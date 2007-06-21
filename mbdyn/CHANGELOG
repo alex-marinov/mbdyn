@@ -11,6 +11,7 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 MBDyn 1.X-Devel
 	Enhancements:
+		- added simple thermo framework (Marco Morandini)
 		- added (experimental) third order step solver
 		  (by Marco Morandini)
 		- added TAUCS linear solver (experimental) (by Marco Morandini)

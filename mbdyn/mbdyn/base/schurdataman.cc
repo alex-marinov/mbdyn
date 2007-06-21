@@ -227,6 +227,7 @@ iTotalExpConnections(0)
 		"aerodynamic" "element",
 		"electric" "bulk",
 		"electric",
+		"thermal",
 		"genel",
 		"hydraulic",
 		"bulk",
@@ -261,6 +262,7 @@ iTotalExpConnections(0)
 		AERODYNAMICELEMENT,
 		ELECTRICBULK,
 		ELECTRIC,
+		THERMAL,
 		GENEL,
 		HYDRAULIC,
 		BULK,
@@ -469,6 +471,10 @@ iTotalExpConnections(0)
 							CurrElType = Elem::ELECTRIC;
 							break;
 
+						case THERMAL:
+							CurrElType = Elem::THERMAL;
+							break;
+
 						case GENEL:
 							CurrElType = Elem::GENEL;
 							break;
@@ -533,6 +539,10 @@ iTotalExpConnections(0)
 
 						case ELECTRIC:
 							CurrNdType = Node::ELECTRIC;
+							break;
+
+						case THERMAL:
+							CurrNdType = Node::THERMAL;
 							break;
 
 						case PARAMETER:
@@ -1279,6 +1289,7 @@ SchurDataManager::CreatePartition(void)
 			case Elem::HYDRAULIC:
 			case Elem::GENEL:
 			case Elem::ELECTRIC:
+			case Elem::THERMAL:
 				break;
 
 			default:

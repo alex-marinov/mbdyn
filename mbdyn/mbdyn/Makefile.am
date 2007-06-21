@@ -4,7 +4,7 @@ include $(top_srcdir)/build/top.mk
 
 # Build static libraries in subdirs
 ##SUBDIRS = @XSUBDIRS@
-SUBDIRS = base struct aero elec hydr
+SUBDIRS = base struct aero elec hydr thermo
 
 # Build mbdyn executable
 bin_PROGRAMS = mbdyn
@@ -22,6 +22,7 @@ aero/libaero.la \
 ../libraries/libmbwrap/libmbwrap.la \
 struct/libstruct.la \
 elec/libelec.la \
+thermo/libthermo.la \
 hydr/libhydr.la \
 base/libbase.la  \
 $(GINACLIB_LIBS)\
@@ -59,6 +60,7 @@ INCLUDES = \
 -I$(srcdir)/../libraries/libmbwrap \
 -I$(srcdir)/../mbdyn/base \
 -I$(srcdir)/../mbdyn/struct \
+-I../mbdyn/thermo \
 -I$(srcdir)/../mbdyn/aero \
 -I$(srcdir)/../mbdyn/elec \
 -I$(srcdir)/../mbdyn/hydr \

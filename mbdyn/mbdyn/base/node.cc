@@ -730,6 +730,7 @@ ScalarDof::RestartScalarDofCaller(std::ostream& out) const
 
 	case Node::ABSTRACT:
 	case Node::ELECTRIC:
+	case Node::THERMAL:
 	case Node::HYDRAULIC:
 		out << "# RestartScalarDofCaller: warning, not implemented yet";
 		break;
