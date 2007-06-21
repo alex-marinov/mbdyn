@@ -19,16 +19,18 @@ libthermo_la_LIBADD = @LIBS@
 libthermo_la_LDFLAGS = -static
 
 INCLUDES = \
--I../../libraries/libmbutil \
--I../../libraries/libmbmath \
--I../../libraries/libmbwrap \
--I../../libraries/libcppad \
--I../../mbdyn \
--I../../mbdyn/base \
--I../../mbdyn/struct \
--I../../mbdyn/aero \
--I../../mbdyn/elec \
--I../../mbdyn/thermo \
--I../../mbdyn/hydr
+-I../../include \
+-I$(srcdir)/../../include \
+-I$(srcdir)/../../libraries/libmbutil \
+-I$(srcdir)/../../libraries/libmbmath \
+-I$(srcdir)/../../libraries/libmbwrap \
+-I$(srcdir)/../../libraries/libcppad \
+-I$(srcdir)/../../mbdyn \
+-I$(srcdir)/../../mbdyn/base \
+-I$(srcdir)/../../mbdyn/struct \
+-I$(srcdir)/../../mbdyn/aero \
+-I$(srcdir)/../../mbdyn/elec \
+-I$(srcdir)/../../mbdyn/hydr \
+-I$(srcdir)/../../mbdyn/thermo
 
 include $(top_srcdir)/build/bot.mk
