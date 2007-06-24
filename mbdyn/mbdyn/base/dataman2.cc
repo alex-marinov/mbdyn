@@ -778,7 +778,13 @@ DataManager::InitialJointAssembly(void)
 		/* Elementi (con iteratore): */
 		pEl = IAIter.GetFirst();
 		while (pEl != NULL) {
-			*pResHdl += pEl->InitialAssRes(WorkVec, X);
+			try {
+				*pResHdl += pEl->InitialAssRes(WorkVec, X);
+			}
+			catch (Elem::ChangedEquationStructure) {
+				// do nothing: Jacobian matrix
+				// is always recomputed anyway...
+			}
 			pEl = IAIter.GetNext();
 		}
 
