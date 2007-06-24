@@ -965,8 +965,6 @@ RodWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
 	const Mat3x3& R2(pNode2->GetRRef());
 	Vec3 f1Tmp(R1*f1);
 	Vec3 f2Tmp(R2*f2);
-	const Vec3& x1(pNode1->GetXCurr());
-	const Vec3& x2(pNode2->GetXCurr());
 
 	const Vec3& v1(pNode1->GetVCurr());
 	const Vec3& v2(pNode2->GetVCurr());
@@ -1310,8 +1308,6 @@ RodWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	const Mat3x3& R2(pNode2->GetRRef());
 	Vec3 f1Tmp(R1*f1);
 	Vec3 f2Tmp(R2*f2);
-	const Vec3& x1(pNode1->GetXCurr());
-	const Vec3& x2(pNode2->GetXCurr());
 
 	const Vec3& v1(pNode1->GetVCurr());
 	const Vec3& v2(pNode2->GetVCurr());
