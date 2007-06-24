@@ -141,7 +141,7 @@ void
 Rod::AssVec(SubVectorHandler& WorkVec)
 {
 	/* v = x2-x1 */
-	v = pNode2->GetXCurr()-pNode1->GetXCurr();
+	v = pNode2->GetXCurr() - pNode1->GetXCurr();
 	doublereal dCross = v.Dot();
 
 	/* Verifica che la distanza non sia nulla */
@@ -156,8 +156,8 @@ Rod::AssVec(SubVectorHandler& WorkVec)
 	dElle = sqrt(dCross);
 	dEpsilon = dElle/dL0 - 1.;
 
-	Vec3 vPrime(pNode2->GetVCurr()-pNode1->GetVCurr());
-	dEpsilonPrime = (v.Dot(vPrime))/(dElle*dL0);
+	Vec3 vPrime(pNode2->GetVCurr() - pNode1->GetVCurr());
+	dEpsilonPrime = v.Dot(vPrime)/(dElle*dL0);
 
 	/* Ampiezza della forza */
 	bool ChangeJac(false);
@@ -961,17 +961,17 @@ RodWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.PutColIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
 	}
 
-	Mat3x3 R1(pNode1->GetRRef());
-	Mat3x3 R2(pNode2->GetRRef());
+	const Mat3x3& R1(pNode1->GetRRef());
+	const Mat3x3& R2(pNode2->GetRRef());
 	Vec3 f1Tmp(R1*f1);
 	Vec3 f2Tmp(R2*f2);
-	Vec3 x1(pNode1->GetXCurr());
-	Vec3 x2(pNode2->GetXCurr());
+	const Vec3& x1(pNode1->GetXCurr());
+	const Vec3& x2(pNode2->GetXCurr());
 
-	Vec3 v1(pNode1->GetVCurr());
-	Vec3 v2(pNode2->GetVCurr());
-	Vec3 Omega1(pNode1->GetWRef());
-	Vec3 Omega2(pNode2->GetWRef());
+	const Vec3& v1(pNode1->GetVCurr());
+	const Vec3& v2(pNode2->GetVCurr());
+	const Vec3& Omega1(pNode1->GetWRef());
+	const Vec3& Omega2(pNode2->GetWRef());
 
 	/* Velocita' di deformazione */
 	Vec3 vPrime(v2 + Omega2.Cross(f2Tmp) - v1 - Omega1.Cross(f1Tmp));
@@ -1086,17 +1086,17 @@ RodWithOffset::AssVec(SubVectorHandler& WorkVec)
 	DEBUGCOUT("RodWithOffset::AssVec()" << std::endl);
 
 	/* Dati */
-	Mat3x3 R1(pNode1->GetRCurr());
-	Mat3x3 R2(pNode2->GetRCurr());
+	const Mat3x3& R1(pNode1->GetRCurr());
+	const Mat3x3& R2(pNode2->GetRCurr());
 	Vec3 f1Tmp(R1*f1);
 	Vec3 f2Tmp(R2*f2);
-	Vec3 x1(pNode1->GetXCurr());
-	Vec3 x2(pNode2->GetXCurr());
+	const Vec3& x1(pNode1->GetXCurr());
+	const Vec3& x2(pNode2->GetXCurr());
 
-	Vec3 v1(pNode1->GetVCurr());
-	Vec3 v2(pNode2->GetVCurr());
-	Vec3 Omega1(pNode1->GetWCurr());
-	Vec3 Omega2(pNode2->GetWCurr());
+	const Vec3& v1(pNode1->GetVCurr());
+	const Vec3& v2(pNode2->GetVCurr());
+	const Vec3& Omega1(pNode1->GetWCurr());
+	const Vec3& Omega2(pNode2->GetWCurr());
 
 	/* v = x2-x1 */
 	v = x2 + f2Tmp - x1 - f1Tmp;
@@ -1306,17 +1306,17 @@ RodWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		WM.PutColIndex(18 + iCnt, iNode2FirstVelIndex + iCnt);
 	}
 
-	Mat3x3 R1(pNode1->GetRRef());
-	Mat3x3 R2(pNode2->GetRRef());
+	const Mat3x3& R1(pNode1->GetRRef());
+	const Mat3x3& R2(pNode2->GetRRef());
 	Vec3 f1Tmp(R1*f1);
 	Vec3 f2Tmp(R2*f2);
-	Vec3 x1(pNode1->GetXCurr());
-	Vec3 x2(pNode2->GetXCurr());
+	const Vec3& x1(pNode1->GetXCurr());
+	const Vec3& x2(pNode2->GetXCurr());
 
-	Vec3 v1(pNode1->GetVCurr());
-	Vec3 v2(pNode2->GetVCurr());
-	Vec3 Omega1(pNode1->GetWRef());
-	Vec3 Omega2(pNode2->GetWRef());
+	const Vec3& v1(pNode1->GetVCurr());
+	const Vec3& v2(pNode2->GetVCurr());
+	const Vec3& Omega1(pNode1->GetWRef());
+	const Vec3& Omega2(pNode2->GetWRef());
 
 	/* Velocita' di deformazione */
 	Vec3 vPrime(v2 + Omega2.Cross(f2Tmp) - v1 - Omega1.Cross(f1Tmp));
