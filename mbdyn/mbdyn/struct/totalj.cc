@@ -2867,7 +2867,7 @@ TotalForce::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr,
 	const VectorHandler& /* XPrimeCurr */ )
 {
-	DEBUGCOUT("Entering TotalJoint::AssRes()" << std::endl);
+	DEBUGCOUT("Entering TotalForce::AssRes()" << std::endl);
 
 	/* Dimensiona e resetta la matrice di lavoro */
 	integer iNumRows = 0;
@@ -3008,7 +3008,7 @@ TotalForce::InitialAssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr)
 {
 
-	DEBUGCOUT("Entering TotalJoint::InitialAssRes()" << std::endl);
+	DEBUGCOUT("Entering TotalForce::InitialAssRes()" << std::endl);
 
 	/* Dimensiona e resetta la matrice di lavoro */
 	integer iNumRows = 0;
