@@ -176,7 +176,6 @@ private:
 	std::ofstream ofParameters;
 	std::ofstream ofExternals;
 	std::ofstream ofModal;
-	std::ofstream ofThermal;
 	std::ofstream ofThermalNodes;
 	std::ofstream ofThermalElements;
 
@@ -237,7 +236,6 @@ public:
 	inline std::ostream& Output(void) const;
 	inline std::ostream& StrNodes(void) const;
 	inline std::ostream& Electric(void) const;
-	inline std::ostream& Thermal(void) const;
 	inline std::ostream& Abstract(void) const;
 	inline std::ostream& Inertia(void) const;
 	inline std::ostream& Joints(void) const;
@@ -261,6 +259,8 @@ public:
 	inline std::ostream& Parameters(void) const;
 	inline std::ostream& Externals(void) const;
 	inline std::ostream& Modal(void) const;
+	inline std::ostream& ThermalNodes(void) const;
+	inline std::ostream& ThermalElements(void) const;
 
 	inline int iW(void) const;
 	inline int iP(void) const;
@@ -386,10 +386,17 @@ OutputHandler::Electric(void) const
 }
 
 inline std::ostream&
-OutputHandler::Thermal(void) const
+OutputHandler::ThermalNodes(void) const
 {
-	ASSERT(IsOpen(THERMAL));
-	return (std::ostream&)ofThermal;
+	ASSERT(IsOpen(THERMALNODES));
+	return (std::ostream&)ofThermalNodes;
+}
+
+inline std::ostream&
+OutputHandler::ThermalElements(void) const
+{
+	ASSERT(IsOpen(THERMALELEMENTS));
+	return (std::ostream&)ofThermalElements;
 }
 
 inline std::ostream&
