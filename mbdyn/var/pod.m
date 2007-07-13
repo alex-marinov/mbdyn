@@ -111,7 +111,7 @@ end
 % detrend and normalize
 mn = mean(A);
 A = A - ones(r, 1)*mn;
-if (length(wgt) == 4 && wgt == 'norm'),
+if (strcmp(wgt, 'norm')),
 	scl = std(A);
 	le = find(scl <= thr);
 	nle = length(le);
