@@ -110,8 +110,13 @@ fi
 MOVFILE=yes
 if test "x${FILENAME}.mov" = "x" ; then
 	echo "warning: missing mov file \"${FILENAME}.mov\""
-	MOVFILE=no
-	touch "${FILENAME}.mov"
+	NOMOVFILE=1
+	MOVFILE=`mktemp` 
+	awk '/^structural node:/ {print $3, $4,$5,$6, $8,$9,$10}' \
+		"${FILENAME}.log" > "${MOVFILE}"
+else
+	NOMOVFILE=0
+	MOVFILE="${FILENAME}.mov"
 fi
 
 # Make sure files do not exist
@@ -119,11 +124,11 @@ rm -f "${FILENAME}.vol" "${FILENAME}.van"
 
 # Generate files
 echo "####" | \
-	cat "${FILENAME}.log" $EXTRALOGFILES - "${FILENAME}.mov" | \
+	cat "${FILENAME}.log" $EXTRALOGFILES - "${MOVFILE}" | \
 	awk ${SOURCES} -vfile="${FILENAME}"
 RC=$?
-if test $MOVFILE = no ; then
-	rm -f "${FILENAME}.mov"
+if test $NOMOVFILE = 1 ; then
+	rm -f "${MOVFILE}"
 fi
 
 if test $RC != 0 ; then
