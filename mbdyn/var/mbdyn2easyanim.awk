@@ -168,6 +168,11 @@ BEGIN {
 	sideprop_num = 0;
 
 	# node props
+	nodeprop[nodeprop_num, "name"] = "hide";
+	nodeprop[nodeprop_num, "color"] = 0;
+	nodeprop[nodeprop_num, "radius"] = 0;
+	nodeprop_num++;
+
 	nodeprop[nodeprop_num, "name"] = "hinge_node";
 	nodeprop[nodeprop_num, "color"] = 2;
 	nodeprop[nodeprop_num, "radius"] = 1.5;
