@@ -58,6 +58,7 @@
 #include "aeroelem.h"
 #include "aeromodal.h"
 #include "instruments.h"
+#include "genfm.h"
 #ifdef USE_EXTERNAL
 #include "aeroext.h"
 #endif /* USE_EXTERNAL */
@@ -113,6 +114,7 @@ enum KeyWords {
 	AERODYNAMICEXTERNALMODAL,
 	AEROMODAL,
 	AIRCRAFTINSTRUMENTS,
+	GENERICAERODYNAMICFORCE,
 
 	FORCE,
 
@@ -171,6 +173,7 @@ DataManager::ReadElems(MBDynParser& HP)
 		"aerodynamic" "external" "modal",
 		"aero" "modal",
 		"aircraft" "instruments",
+		"generic" "aerodynamic" "force",
 
 		"force",
 
@@ -291,7 +294,8 @@ DataManager::ReadElems(MBDynParser& HP)
 			case AERODYNAMICBEAM:
 			case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
 			case AERODYNAMICBEAM2:
-			case AIRCRAFTINSTRUMENTS: {
+			case AIRCRAFTINSTRUMENTS:
+			case GENERICAERODYNAMICFORCE: {
 				DEBUGLCOUT(MYDEBUG_INPUT, "aerodynamic" << std::endl);
 				Typ = Elem::AERODYNAMIC;
 				break;
@@ -636,6 +640,7 @@ DataManager::ReadElems(MBDynParser& HP)
 			case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
 			case AERODYNAMICBEAM2:
 			case AIRCRAFTINSTRUMENTS:
+			case GENERICAERODYNAMICFORCE:
 				t = Elem::AERODYNAMIC;
 				break;
 
@@ -863,6 +868,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
 					case AERODYNAMICBEAM2:
 					case AIRCRAFTINSTRUMENTS:
+					case GENERICAERODYNAMICFORCE:
 
 					case GENEL:
 					case ELECTRIC:
@@ -937,6 +943,7 @@ DataManager::ReadElems(MBDynParser& HP)
 						case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
 						case AERODYNAMICBEAM2:
 						case AIRCRAFTINSTRUMENTS:
+						case GENERICAERODYNAMICFORCE:
 							ppE = ppFindElem(Elem::AERODYNAMIC, uLabel);
 							break;
 
@@ -1052,6 +1059,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
 				case AERODYNAMICBEAM2:
 				case AIRCRAFTINSTRUMENTS:
+				case GENERICAERODYNAMICFORCE:
 #ifdef USE_EXTERNAL
 				case AERODYNAMICEXTERNAL:
 				case AERODYNAMICEXTERNALMODAL:
@@ -1578,7 +1586,8 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, int CurrType)
 	case AERODYNAMICBEAM:
 	case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
 	case AERODYNAMICBEAM2:
-	case AIRCRAFTINSTRUMENTS: {
+	case AIRCRAFTINSTRUMENTS:
+	case GENERICAERODYNAMICFORCE: {
 		silent_cout("Reading aerodynamic element " << uLabel << std::endl);
 
 		if (iNumTypes[Elem::AERODYNAMIC]-- <= 0) {
@@ -1617,6 +1626,10 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, int CurrType)
 
 		case AIRCRAFTINSTRUMENTS:
 			pE = ReadAircraftInstruments(this, HP, uLabel);
+			break;
+
+		case GENERICAERODYNAMICFORCE:
+			pE = ReadGenericAerodynamicForce(this, HP, uLabel);
 			break;
 
 		default:

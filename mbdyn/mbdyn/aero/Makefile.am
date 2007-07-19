@@ -22,6 +22,8 @@ aeromodal.cc \
 aeromodal.h \
 c81data.cc \
 c81data.h \
+genfm.cc \
+genfm.h \
 instruments.cc \
 instruments.h \
 rotor.cc \
