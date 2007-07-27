@@ -66,6 +66,7 @@
 #include "prismj.h"    /* Vincolo prismatico */
 #include "rodj.h"      /* Aste elastiche */
 #include "spherj.h"
+#include "totalequation.h"
 #include "totalj.h"
 #include "univj.h"
 #include "vehj.h"      /* Giunti deformabili */
@@ -178,6 +179,8 @@ ReadJoint(DataManager* pDM,
 		"imposed" "displacement",
 		"imposed" "displacement" "pin",
 		"imposed" "orientation",
+	"total" "equation",
+	"total" "internal" "reaction",
 		"total" "joint",
 		"total" "pin" "joint",
 		"kinematic",
@@ -233,6 +236,8 @@ ReadJoint(DataManager* pDM,
 		IMPOSEDDISPLACEMENT,
 		IMPOSEDDISPLACEMENTPIN,
 		IMPOSEDORIENTATION,
+	TOTALEQUATION,
+	TOTALINTERNALREACTION,
 		TOTALJOINT,
 		TOTALPINJOINT,
 		KINEMATIC,
@@ -2264,6 +2269,297 @@ ReadJoint(DataManager* pDM,
 			ImposedOrientationJoint(uLabel, pDO, bActive, pDC,
 				pNode1, pNode2, R1h, R2h, fOut));
 
+		} break;
+
+	case TOTALEQUATION:
+		{
+		/* nodo collegato 1 */
+		StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+		ReferenceFrame RF(pNode1);
+
+		Vec3 f1(0.);
+		if (HP.IsKeyWord("position")) {
+			f1 = HP.GetPosRel(ReferenceFrame(pNode1));
+		}
+
+		Mat3x3 R1h(Eye3);
+		if (HP.IsKeyWord("position" "orientation")) {
+			DEBUGCOUT("Position orientation matrix is supplied" << std::endl);
+			R1h = HP.GetRotRel(RF);
+		}
+
+		Mat3x3 R1hr(Eye3);
+		if (HP.IsKeyWord("rotation" "orientation")) {
+			DEBUGCOUT("Rotation orientation matrix is supplied" << std::endl);
+			R1hr = HP.GetRotRel(RF);
+		}
+
+		/* nodo collegato 2 */
+		StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+		RF = ReferenceFrame(pNode2);
+
+		Vec3 f2(0.);
+		if (HP.IsKeyWord("position")) {
+			f2 = HP.GetPosRel(ReferenceFrame(pNode2));
+		}
+
+		Mat3x3 R2h(Eye3);
+		if (HP.IsKeyWord("position" "orientation")) {
+			DEBUGCOUT("Position orientation matrix is supplied" << std::endl);
+			R2h = HP.GetRotRel(RF);
+		}
+
+		Mat3x3 R2hr(Eye3);
+		if (HP.IsKeyWord("rotation" "orientation")) {
+			DEBUGCOUT("Rotation orientation matrix is supplied" << std::endl);
+			R2hr = HP.GetRotRel(RF);
+		}
+
+		bool bXActive[3] = { false, false, false };
+		TplDriveCaller<Vec3>* pXDC[3] = {0, 0, 0};
+		if (HP.IsKeyWord("position" "constraint")) {
+			for (unsigned i = 0; i < 3; i++) {
+				if (HP.IsKeyWord("inactive")) {
+					bXActive[i] = false;
+
+				} else if (HP.IsKeyWord("active")) {
+					bXActive[i] = true;
+
+				} else {
+					if (HP.IsArg()) {
+						int iActive = HP.GetInt();
+						switch (iActive) {
+						case 0:
+							bXActive[i] = false;
+							continue;
+
+						default:
+							bXActive[i] = true;
+							continue;
+						}
+					}
+
+					silent_cerr("TotalEquation(" << uLabel << "): "
+						"invalid status for position component #" << i + 1
+						<< " at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric();
+				}
+			}
+
+			pXDC[0] = ReadDC3D(pDM, HP);
+
+		} else {
+			SAFENEW(pXDC[0], ZeroTplDriveCaller<Vec3>);
+		}
+
+		bool bTActive[3] = { false, false, false };
+		TplDriveCaller<Vec3>* pTDC[3] = {0, 0, 0};
+		if (HP.IsKeyWord("orientation" "constraint")) {
+			for (unsigned i = 0; i < 3; i++) {
+				if (HP.IsKeyWord("inactive")) {
+					bTActive[i] = false;
+
+				} else if (HP.IsKeyWord("active")) {
+					bTActive[i] = true;
+
+				} else {
+					if (HP.IsArg()) {
+						int iActive = HP.GetInt();
+						switch (iActive) {
+						case 0:
+							bTActive[i] = false;
+							continue;
+
+						default:
+							bTActive[i] = true;
+							continue;
+						}
+					}
+
+					silent_cerr("TotalEquation(" << uLabel << "): "
+						"invalid status for position component #" << i + 1
+						<< " at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric();
+				}
+			}
+
+			pTDC[0] = ReadDC3D(pDM, HP);
+
+		} else {
+			SAFENEW(pTDC[0], ZeroTplDriveCaller<Vec3>);
+		}
+
+		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			TotalEquation,
+			TotalEquation(uLabel, pDO,
+				bXActive, pXDC,
+				bTActive, pTDC,
+				pNode1, f1, R1h, R1hr,
+				pNode2, f2, R2h, R2hr,
+				fOut));
+
+		std::ostream& out = pDM->GetLogFile();
+		out << "totaljoint: " << uLabel
+			<< " " << pNode1->GetLabel()
+			<< " " << f1
+			<< " " << R1h
+			<< " " << pNode2->GetLabel()
+			<< " " << f2
+			<< " " << R2h
+			<< std::endl;
+		} break;
+
+	case TOTALINTERNALREACTION:
+		{
+		/* nodo collegato 1 */
+		StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+		ReferenceFrame RF(pNode1);
+
+		Vec3 f1(0.);
+		if (HP.IsKeyWord("position")) {
+			f1 = HP.GetPosRel(ReferenceFrame(pNode1));
+		}
+
+		Mat3x3 R1h(Eye3);
+		if (HP.IsKeyWord("position" "orientation")) {
+			DEBUGCOUT("Position orientation matrix is supplied" << std::endl);
+			R1h = HP.GetRotRel(RF);
+		}
+
+		Mat3x3 R1hr(Eye3);
+		if (HP.IsKeyWord("rotation" "orientation")) {
+			DEBUGCOUT("Rotation orientation matrix is supplied" << std::endl);
+			R1hr = HP.GetRotRel(RF);
+		}
+
+		/* nodo collegato 2 */
+		StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+		RF = ReferenceFrame(pNode2);
+
+		Vec3 f2(0.);
+		if (HP.IsKeyWord("position")) {
+			f2 = HP.GetPosRel(ReferenceFrame(pNode2));
+		}
+
+		Mat3x3 R2h(Eye3);
+		if (HP.IsKeyWord("position" "orientation")) {
+			DEBUGCOUT("Position orientation matrix is supplied" << std::endl);
+			R2h = HP.GetRotRel(RF);
+		}
+
+		Mat3x3 R2hr(Eye3);
+		if (HP.IsKeyWord("rotation" "orientation")) {
+			DEBUGCOUT("Rotation orientation matrix is supplied" << std::endl);
+			R2hr = HP.GetRotRel(RF);
+		}
+
+		bool bXActive[3] = { false, false, false };
+		if (HP.IsKeyWord("position" "constraint")) {
+			for (unsigned i = 0; i < 3; i++) {
+				if (HP.IsKeyWord("inactive")) {
+					bXActive[i] = false;
+
+				} else if (HP.IsKeyWord("active")) {
+					bXActive[i] = true;
+
+				} else {
+					if (HP.IsArg()) {
+						int iActive = HP.GetInt();
+						switch (iActive) {
+						case 0:
+							bXActive[i] = false;
+							continue;
+
+						default:
+							bXActive[i] = true;
+							continue;
+						}
+					}
+
+					silent_cerr("TotalReaction(" << uLabel << "): "
+						"invalid status for position component #" << i + 1
+						<< " at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric();
+				}
+			}
+		}
+
+		bool bTActive[3] = { false, false, false };
+		if (HP.IsKeyWord("orientation" "constraint")) {
+			for (unsigned i = 0; i < 3; i++) {
+				if (HP.IsKeyWord("inactive")) {
+					bTActive[i] = false;
+
+				} else if (HP.IsKeyWord("active")) {
+					bTActive[i] = true;
+
+				} else {
+					if (HP.IsArg()) {
+						int iActive = HP.GetInt();
+						switch (iActive) {
+						case 0:
+							bTActive[i] = false;
+							continue;
+
+						default:
+							bTActive[i] = true;
+							continue;
+						}
+					}
+
+					silent_cerr("TotalReaction(" << uLabel << "): "
+						"invalid status for position component #" << i + 1
+						<< " at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric();
+				}
+			}
+
+		}
+		
+		TotalEquation * tot_eq_pt = 0;
+		if (HP.IsKeyWord("total" "equation")) {
+			unsigned int tot_eq_j_label = HP.GetInt();
+			Elem* el_pt = pDM->pFindElem(Elem::JOINT, tot_eq_j_label);
+			tot_eq_pt = dynamic_cast<TotalEquation*>(el_pt);
+			if (tot_eq_pt == 0) {
+				silent_cerr("Fatal error, TotalEquation joint " <<
+					tot_eq_j_label << " needed by TotalReaction joint " <<
+					uLabel << " at line " << HP.GetLineData() << 
+					" is not defined before the TotalReaction joint"
+					<< std::endl);
+				throw ErrGeneric();
+			}
+		} else {
+			silent_cerr("Fatal error, Total Reaction joint " <<
+				uLabel << " needs a reference to a corresponding" 
+				" TotalEquation joint at line " << HP.GetLineData() << 
+				std::endl);
+		}
+
+
+		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			TotalReaction,
+			TotalReaction(uLabel, pDO,
+				bXActive, 
+				bTActive, 
+				pNode1, f1, R1h, R1hr,
+				pNode2, f2, R2h, R2hr,
+				tot_eq_pt,
+				fOut));
+
+		std::ostream& out = pDM->GetLogFile();
+		out << "totaljoint: " << uLabel
+			<< " " << pNode1->GetLabel()
+			<< " " << f1
+			<< " " << R1h
+			<< " " << pNode2->GetLabel()
+			<< " " << f2
+			<< " " << R2h
+			<< std::endl;
 		} break;
 
 	case TOTALJOINT:

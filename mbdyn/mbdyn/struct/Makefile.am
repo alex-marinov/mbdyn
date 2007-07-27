@@ -80,6 +80,8 @@ strforce.cc \
 strforce.h \
 strnode.cc \
 strnode.h \
+totalequation.cc \
+totalequation.h \
 totalj.cc \
 totalj.h \
 univj.cc \
