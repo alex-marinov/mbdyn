@@ -1162,7 +1162,7 @@ TotalJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	/* d/dt(Moment), Node 1, Lines 10->12: */
 	WM.Sub(9 + 1, 6 + 1, Tmp);	// * Delta_x1P
 
-	WM.Add(9 + 1, 18 + 1 + 6, Tmp);	// * Delta_x2P
+	WM.Add(9 + 1, 18 + 1, Tmp);	// * Delta_x2P
 
 	/* d/dt(Force), Node 2, Lines 19->21: */
 	WM.Sub(18 + 1 , 9 + 1, Tmp);	// * Delta_W1
