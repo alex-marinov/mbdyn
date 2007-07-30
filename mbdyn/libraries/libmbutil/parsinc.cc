@@ -345,7 +345,7 @@ expand_environment(const char *in)
 	struct {
 		unsigned	start;
 		unsigned	end;
-		char		*value;
+		const char	*value;
 		unsigned	length;
 	} 		subst[MAXSUBST];
 	unsigned	cnt = 0, c;

@@ -73,7 +73,7 @@ static const char idx2xyz[] = { 'x', 'y', 'z' };
 
 std::ostream&
 ImposedOrientationJoint::DescribeDof(std::ostream& out,
-	char *prefix, bool bInitial, int i) const
+	const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -130,7 +130,7 @@ ImposedOrientationJoint::DescribeDof(std::ostream& out,
 
 std::ostream&
 ImposedOrientationJoint::DescribeEq(std::ostream& out,
-	char *prefix, bool bInitial, int i) const
+	const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 

@@ -95,7 +95,7 @@ TotalJoint::~TotalJoint(void)
 
 std::ostream&
 TotalJoint::DescribeDof(std::ostream& out,
-	char *prefix, bool bInitial, int i) const
+	const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -188,7 +188,7 @@ TotalJoint::DescribeDof(std::ostream& out,
 
 std::ostream&
 TotalJoint::DescribeEq(std::ostream& out,
-	char *prefix, bool bInitial, int i) const
+	const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -1583,7 +1583,7 @@ TotalPinJoint::~TotalPinJoint(void)
 
 std::ostream&
 TotalPinJoint::DescribeDof(std::ostream& out,
-	char *prefix, bool bInitial, int i) const
+	const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -1676,7 +1676,7 @@ TotalPinJoint::DescribeDof(std::ostream& out,
 
 std::ostream&
 TotalPinJoint::DescribeEq(std::ostream& out,
-	char *prefix, bool bInitial, int i) const
+	const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 

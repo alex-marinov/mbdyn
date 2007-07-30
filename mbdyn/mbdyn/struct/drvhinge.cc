@@ -174,7 +174,7 @@ DriveHingeJoint::ParseHint(DataManager *pDM, const char *s) const
 
 std::ostream&
 DriveHingeJoint::DescribeDof(std::ostream& out,
-		char *prefix, bool bInitial, int i) const
+		const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -201,7 +201,7 @@ DriveHingeJoint::DescribeDof(std::ostream& out,
 
 std::ostream&
 DriveHingeJoint::DescribeEq(std::ostream& out,
-		char *prefix, bool bInitial, int i) const
+		const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 

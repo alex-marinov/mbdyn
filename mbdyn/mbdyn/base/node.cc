@@ -54,13 +54,13 @@ Node::~Node(void)
 }
 
 std::ostream&
-Node::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
+Node::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	return out;
 }
 
 std::ostream&
-Node::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+Node::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	return out;
 }

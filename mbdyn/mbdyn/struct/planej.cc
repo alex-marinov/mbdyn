@@ -82,7 +82,7 @@ PlaneHingeJoint::~PlaneHingeJoint(void)
 };
 
 std::ostream&
-PlaneHingeJoint::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
+PlaneHingeJoint::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -125,7 +125,7 @@ PlaneHingeJoint::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int
 }
 
 std::ostream&
-PlaneHingeJoint::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+PlaneHingeJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -1237,7 +1237,7 @@ PlaneRotationJoint::~PlaneRotationJoint(void)
 
 
 std::ostream&
-PlaneRotationJoint::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
+PlaneRotationJoint::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -1263,7 +1263,7 @@ PlaneRotationJoint::DescribeDof(std::ostream& out, char *prefix, bool bInitial, 
 }
 
 std::ostream&
-PlaneRotationJoint::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+PlaneRotationJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -2016,7 +2016,7 @@ AxialRotationJoint::~AxialRotationJoint(void)
 
 
 std::ostream&
-AxialRotationJoint::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
+AxialRotationJoint::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -2059,7 +2059,7 @@ AxialRotationJoint::DescribeDof(std::ostream& out, char *prefix, bool bInitial, 
 }
 
 std::ostream&
-AxialRotationJoint::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+AxialRotationJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -3132,7 +3132,7 @@ PlanePinJoint::~PlanePinJoint(void)
 
 
 std::ostream&
-PlanePinJoint::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
+PlanePinJoint::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -3162,7 +3162,7 @@ PlanePinJoint::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i
 }
 
 std::ostream&
-PlanePinJoint::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+PlanePinJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 

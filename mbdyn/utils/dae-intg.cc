@@ -93,7 +93,7 @@ main(int argc, char *const argv[])
 		{ NULL,                METHOD_UNKNOWN           }
    	};
    	method_t curr_method = METHOD_UNKNOWN;
-   	char* module = "intg-default.so";
+   	const char* module = "intg-default.so";
    	char* user_defined = NULL;
    	void* method_data = NULL;
    	integration_data d = { 0., 1., 1.e-3, 1.e-6, 10 };

@@ -150,7 +150,7 @@ StreamBasicIO::ReadMeasures(s2s_t& s2s)
 int
 StreamBasicIO::SendControls(s2s_t& s2s)
 {
-	static char	*sep = " ";
+	static const char	*sep = " ";
 
 	for (int i = 0; i < s2s.nChannels - 1; i++) {
 		std::cout << s2s.dbuf[i] << sep;

@@ -1394,7 +1394,7 @@ ClampJoint::~ClampJoint(void)
 
 
 std::ostream&
-ClampJoint::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
+ClampJoint::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -1424,7 +1424,7 @@ ClampJoint::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) c
 }
 
 std::ostream&
-ClampJoint::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+ClampJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 

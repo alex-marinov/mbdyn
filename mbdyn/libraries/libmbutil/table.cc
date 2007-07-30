@@ -52,7 +52,7 @@ enum {
 #define GCC_BUG 0
 
 struct tmp_sym {
-   char* name;
+   const char* name;
 #if GCC_BUG != 1
    TypedValue val;
 #else /* GCC_BUG == 1 */

@@ -48,13 +48,13 @@ struct s2s_t {
 	int	sock;
 	int	nChannels;
 	char	*path;
-	char	*host;
+	const char	*host;
 	int	port;
 	char	buf[S2S_BUFSIZE];
 	std::vector<double>	dbuf;
 	bool	create;
 	bool	stream2socket;
-	char	*progname;
+	const char	*progname;
 
 	s2s_t(void);
 	~s2s_t(void);

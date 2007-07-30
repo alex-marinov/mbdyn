@@ -56,7 +56,7 @@ GetEnviron(MathParser& MP)
 {
    	/* cerca la variabile MBDYNVARS */
    	char* p = NULL;
-   	char* s = "VARS";
+   	const char* s = "VARS";
 	int l = MBDYNPREFIXLEN + strlen(s) + 1;
    	SAFENEWARR(p, char, l);
    	sprintf(p, "%s%s", MBDYNPREFIX, s);

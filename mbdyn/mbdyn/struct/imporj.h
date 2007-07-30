@@ -82,12 +82,12 @@ public:
 
 	virtual std::ostream&
 	DescribeDof(std::ostream& out,
-		char *prefix = "",
+		const char *prefix = "",
 		bool bInitial = false, int i = -1) const;
 
 	virtual std::ostream&
 	DescribeEq(std::ostream& out,
-		char *prefix = "",
+		const char *prefix = "",
 		bool bInitial = false, int i = -1) const;
 
 	DofOrder::Order

@@ -100,11 +100,11 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
    virtual unsigned int iGetNumDof(void) const;
 
    virtual std::ostream& DescribeDof(std::ostream& out,
-		   char *prefix = "",
+		   const char *prefix = "",
 		   bool bInitial = false, int i = -1) const;
    
    virtual std::ostream& DescribeEq(std::ostream& out,
-		   char *prefix = "",
+		   const char *prefix = "",
 		   bool bInitial = false, int i = -1) const;
    
    DofOrder::Order GetDofType(unsigned int i) const;
@@ -222,11 +222,11 @@ class PlaneRotationJoint : virtual public Elem, public Joint {
    };
 
    virtual std::ostream& DescribeDof(std::ostream& out,
-		   char *prefix = "",
+		   const char *prefix = "",
 		   bool bInitial = false, int i = -1) const;
    
    virtual std::ostream& DescribeEq(std::ostream& out,
-		   char *prefix = "",
+		   const char *prefix = "",
 		   bool bInitial = false, int i = -1) const;
    
    DofOrder::Order GetDofType(unsigned int i) const {
@@ -369,11 +369,11 @@ public Joint, public DriveOwner {
    };
 
    virtual std::ostream& DescribeDof(std::ostream& out,
-		   char *prefix = "",
+		   const char *prefix = "",
 		   bool bInitial = false, int i = -1) const;
    
    virtual std::ostream& DescribeEq(std::ostream& out,
-		   char *prefix = "",
+		   const char *prefix = "",
 		   bool bInitial = false, int i = -1) const;
    
    DofOrder::Order GetDofType(unsigned int i) const {
@@ -500,11 +500,11 @@ class PlanePinJoint : virtual public Elem, public Joint {
    };
 
    virtual std::ostream& DescribeDof(std::ostream& out,
-		   char *prefix = "",
+		   const char *prefix = "",
 		   bool bInitial = false, int i = -1) const;
    
    virtual std::ostream& DescribeEq(std::ostream& out,
-		   char *prefix = "",
+		   const char *prefix = "",
 		   bool bInitial = false, int i = -1) const;
    
    virtual DofOrder::Order GetDofType(unsigned int i) const {

@@ -175,7 +175,7 @@ DriveDisplacementJoint::ParseHint(DataManager *pDM, const char *s) const
 
 std::ostream&
 DriveDisplacementJoint::DescribeDof(std::ostream& out,
-		char *prefix, bool bInitial, int i) const
+		const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -202,7 +202,7 @@ DriveDisplacementJoint::DescribeDof(std::ostream& out,
 
 std::ostream&
 DriveDisplacementJoint::DescribeEq(std::ostream& out,
-		char *prefix, bool bInitial, int i) const
+		const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -740,7 +740,7 @@ DriveDisplacementPinJoint::ParseHint(DataManager *pDM, const char *s) const
 
 std::ostream&
 DriveDisplacementPinJoint::DescribeDof(std::ostream& out,
-		char *prefix, bool bInitial, int i) const
+		const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -767,7 +767,7 @@ DriveDisplacementPinJoint::DescribeDof(std::ostream& out,
 
 std::ostream&
 DriveDisplacementPinJoint::DescribeEq(std::ostream& out,
-		char *prefix, bool bInitial, int i) const
+		const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 

@@ -99,14 +99,14 @@ public:
 	 * Describe the degrees of freedom
 	 */
 	virtual std::ostream& DescribeDof(std::ostream& out,
-			char *prefix = "",
+			const char *prefix = "",
 			bool bInitial = false, int i = -1) const = 0;
 
 	/*
 	 * Describe the degrees of freedom
 	 */
 	virtual std::ostream& DescribeEq(std::ostream& out,
-			char *prefix = "",
+			const char *prefix = "",
 			bool bInitial = false, int i = -1) const = 0;
 	 
 	/*

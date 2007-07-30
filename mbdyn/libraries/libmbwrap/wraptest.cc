@@ -62,7 +62,7 @@ extern "C" {
 #include <parnaivewrap.h>
 #include <wsmpwrap.h>
 
-char *solvers[] = {
+const char *solvers[] = {
 #if defined(USE_Y12)
 		"y12",
 #endif
@@ -383,7 +383,7 @@ int
 main(int argc, char *argv[])
 {
 	SolutionManager *pSM = NULL;
-	char *solver =
+	const char *solver =
 #if defined(USE_UMFPACK)
 		"umfpack"
 #elif defined(USE_Y12)

@@ -156,7 +156,7 @@ StructNode::GetNodeType(void) const
 }
 
 std::ostream&
-StructNode::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
+StructNode::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -186,7 +186,7 @@ StructNode::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) c
 }
 
 std::ostream&
-StructNode::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+StructNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -1346,7 +1346,7 @@ DynamicStructNode::GetStructNodeType(void) const
 }
 
 std::ostream&
-DynamicStructNode::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
+DynamicStructNode::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -1364,7 +1364,7 @@ DynamicStructNode::DescribeDof(std::ostream& out, char *prefix, bool bInitial, i
 }
 
 std::ostream&
-DynamicStructNode::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+DynamicStructNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	if (i >= 0) {
 		silent_cerr("StructNode(" << GetLabel() << "): "
@@ -1863,7 +1863,7 @@ ModalNode::iGetFirstRowIndex(void) const
 }
 
 std::ostream&
-ModalNode::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
+ModalNode::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	StructNode::DescribeDof(out, prefix, bInitial, i);
 
@@ -1881,7 +1881,7 @@ ModalNode::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) co
 }
 
 std::ostream&
-ModalNode::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+ModalNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	if (i >= 0) {
 		silent_cerr("StructNode(" << GetLabel() << "): "

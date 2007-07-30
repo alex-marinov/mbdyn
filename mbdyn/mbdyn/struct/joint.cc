@@ -1515,7 +1515,7 @@ ReadJoint(DataManager* pDM,
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
 
-		char *sJointLogName = 0;
+		const char *sJointLogName = 0;
 
 		switch (CLType) {
 		case ConstLawType::ELASTIC:

@@ -92,13 +92,13 @@ Elem::iGetNumDof(void) const
 }
 
 std::ostream&
-Elem::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
+Elem::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	return out;
 }
 
 std::ostream&
-Elem::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+Elem::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	return out;
 }

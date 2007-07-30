@@ -281,7 +281,7 @@ Modal::iGetNumDof(void) const
 }
 
 std::ostream&
-Modal::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
+Modal::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	integer iModalIndex = iGetFirstIndex();
 
@@ -318,7 +318,7 @@ Modal::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
 }
 
 std::ostream&
-Modal::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+Modal::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	integer iModalIndex = iGetFirstIndex();
 
@@ -2494,7 +2494,7 @@ ReadModal(DataManager* pDM,
 			int n = HP.GetInt();
 
 			if (n <= 0) {
-				char *th = NULL;
+				const char *th = NULL;
 
 				switch ((iCnt + 1)%10) {
 				case 1:

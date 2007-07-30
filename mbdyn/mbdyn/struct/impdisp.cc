@@ -178,7 +178,7 @@ ImposedDisplacementJoint::ParseHint(DataManager *pDM, const char *s) const
 
 std::ostream&
 ImposedDisplacementJoint::DescribeDof(std::ostream& out,
-		char *prefix, bool bInitial, int i) const
+		const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -205,7 +205,7 @@ ImposedDisplacementJoint::DescribeDof(std::ostream& out,
 
 std::ostream&
 ImposedDisplacementJoint::DescribeEq(std::ostream& out,
-		char *prefix, bool bInitial, int i) const
+		const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -838,7 +838,7 @@ ImposedDisplacementPinJoint::ParseHint(DataManager *pDM, const char *s) const
 
 std::ostream&
 ImposedDisplacementPinJoint::DescribeDof(std::ostream& out,
-		char *prefix, bool bInitial, int i) const
+		const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
@@ -865,7 +865,7 @@ ImposedDisplacementPinJoint::DescribeDof(std::ostream& out,
 
 std::ostream&
 ImposedDisplacementPinJoint::DescribeEq(std::ostream& out,
-		char *prefix, bool bInitial, int i) const
+		const char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 

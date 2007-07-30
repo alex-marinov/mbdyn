@@ -170,12 +170,12 @@ public:
 	virtual std::ostream& Restart(std::ostream& out) const;
 
 	virtual std::ostream& DescribeDof(std::ostream& out,
-		char *prefix = "",
+		   const char *prefix = "",
 		bool bInitial = false,
 		int i = -1) const;
 
 	virtual std::ostream& DescribeEq(std::ostream& out,
-		char *prefix = "",
+		   const char *prefix = "",
 		bool bInitial = false,
 		int i = -1) const;
 
@@ -515,12 +515,12 @@ public:
 	virtual inline unsigned int iGetNumDof(void) const;
 
 	virtual std::ostream& DescribeDof(std::ostream& out,
-		char *prefix = "",
+		   const char *prefix = "",
 		bool bInitial = false,
 		int i = -1) const;
 
 	virtual std::ostream& DescribeEq(std::ostream& out,
-		char *prefix = "",
+		   const char *prefix = "",
 		bool bInitial = false,
 		int i = -1) const;
 
@@ -704,12 +704,12 @@ public:
 	virtual inline unsigned int iGetNumDof(void) const;
 
 	virtual std::ostream& DescribeDof(std::ostream& out,
-		char *prefix = "",
+		   const char *prefix = "",
 		bool bInitial = false,
 		int i = -1) const;
 
 	virtual std::ostream& DescribeEq(std::ostream& out,
-		char *prefix = "",
+		   const char *prefix = "",
 		bool bInitial = false,
 		int i = -1) const;
 

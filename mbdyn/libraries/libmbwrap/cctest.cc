@@ -49,7 +49,7 @@
 #include "parsuperluwrap.h"
 #include "superluwrap.h"
 
-char *solvers[] = {
+const char *solvers[] = {
 #ifdef USE_UMFPACK
 	"umfpack",
 #endif /* USE_UMFPACK */

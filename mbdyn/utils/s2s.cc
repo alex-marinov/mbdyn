@@ -92,13 +92,13 @@ s2s_t::~s2s_t(void)
 void
 s2s_t::usage(int rc)
 {
-	char	*C = "",
-		*F = "",
-		*h = "",
-		*n = "",
-		*p = "",
-		*P = "",
-		*s = "";
+	const char	*C = "",
+			*F = "",
+			*h = "",
+			*n = "",
+			*p = "",
+			*P = "",
+			*s = "";
 	
 	C = "    -C\t\t\t"		"create socket (default: connect to existing)\n";
 	h = "    -h <host>\t\t"		"host name (for INET sockets; default: \"localhost\")\n";
@@ -225,7 +225,7 @@ s2s_t::parse(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	char	*optstring;
+	const char	*optstring;
 	if (this->stream2socket) {
 		optstring = "Ch:n:p:P:s";
 

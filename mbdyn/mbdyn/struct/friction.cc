@@ -90,14 +90,14 @@ unsigned int ModLugreFriction::iGetNumDof(void) const {
 };
 
 std::ostream&
-ModLugreFriction::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
+ModLugreFriction::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	out << prefix << "[" << 1 << "]: ModLugreFriction state" << std::endl;
 	return out;
 }
 
 std::ostream&
-ModLugreFriction::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+ModLugreFriction::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	out << prefix << "[" << 1 << "]: ModLugreFriction equation" << std::endl;
 	return out;
@@ -286,14 +286,14 @@ unsigned int DiscreteCoulombFriction::iGetNumDof(void) const {
 };
 
 std::ostream&
-DiscreteCoulombFriction::DescribeDof(std::ostream& out, char *prefix, bool bInitial, int i) const
+DiscreteCoulombFriction::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	out << prefix << "[" << 1 << "]: DiscreteCoulombFriction state" << std::endl;
 	return out;
 }
 
 std::ostream&
-DiscreteCoulombFriction::DescribeEq(std::ostream& out, char *prefix, bool bInitial, int i) const
+DiscreteCoulombFriction::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
 {
 	out << prefix << "[" << 1 << "]: DiscreteCoulombFriction equation" << std::endl;
 	return out;
