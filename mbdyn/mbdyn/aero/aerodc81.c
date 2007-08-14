@@ -30,14 +30,15 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <ac/f2c.h>
-#include <math.h>
-#include <aerodc81.h>
+#include "stdio.h"
+#include "stdlib.h"
+#include "ac/f2c.h"
+#include "math.h"
+#include "aerodc81.h"
+#include "bisec.h"
 
 /*
 cC*************************          AEROD          *********************
@@ -72,7 +73,6 @@ C DM*W da' la velocita' nel punto a 3/4 della corda
 
 extern c81_data *get_c81_data(int jpro);
 
-static int bisec(doublereal* v, doublereal val, int lb, int ub);
 static int
 get_coef(int nm, doublereal* m, int na, doublereal* a,
 		doublereal alpha, doublereal mach,
@@ -619,48 +619,6 @@ c81_aerod2_u(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA,
 }
 
 /*
- * algoritmo di bisezione per ricerca efficiente degli angoli
- *
- * v:	array dei valori
- * val:	valore da cercare
- * lb:	indice inferiore
- * ub:	indice superiore
- *
- * restituisce l'indice corrispondente al valore di v
- * che approssima per eccesso val;
- * se val > v[ub] restituisce ub + 1;
- * se val < v[lb] restituisce lb.
- * quindi v[ret - 1] <= val <= v[ret]
- *
- * Nota: ovviamente si presuppone che i valori di v siano ordinati in modo
- * crescente e strettamente monotono, ovvero v[i] < v[i + 1].
- */
-static int 
-bisec(doublereal* v, doublereal val, int lb, int ub)
-{
-	if (val < v[lb]) {
-		return lb;
-	}
-	
-	if (val > v[ub]) {
-		return ub + 1;
-	}
-	
-	while (ub > lb + 1) {
-		int b = (lb + ub)/2;
-		if (v[b] > val) {
-			ub = b;
-		} else if (v[b] < val) {
-			lb = b;
-		} else {
-			return b;
-		}
-	}
-   
-   	return lb;
-}
-
-/*
  * trova un coefficiente dato l'angolo ed il numero di Mach
  *
  * il numero di Mach mach viene cercato nell'array m di lunghezza nm
@@ -690,7 +648,7 @@ get_coef(int nm, doublereal* m, int na, doublereal* a, doublereal alpha, doubler
 	 * im e' l'indice di m in cui si trova l'approssimazione per eccesso 
 	 * di mach
 	 */
-	im = bisec(m, mach, 0, nm - 1);
+	im = bisec_d(m, mach, 0, nm - 1);
 	if (im != nm) {
 		im++;
 	}
@@ -700,13 +658,13 @@ get_coef(int nm, doublereal* m, int na, doublereal* a, doublereal alpha, doubler
 	 * l'approssimazione per eccesso di alpha
 	 */
 	if (c0 != NULL) {
-		ia0 = bisec(a, 0., 0, na - 1);
+		ia0 = bisec_d(a, 0., 0, na - 1);
 		if (ia0 != na) {
 			ia0++;
 		}
 	}
 
-	ia = bisec(a, alpha, 0, na - 1);
+	ia = bisec_d(a, alpha, 0, na - 1);
 	if (ia != na) {
 		ia++;
 	}
@@ -772,7 +730,7 @@ get_dcla(int nm, doublereal* m, doublereal* s, doublereal mach)
 	 * im e' l'indice di m in cui si trova l'approssimazione per eccesso
 	 * di mach
 	 */
-	im = bisec(m, mach, 0, nm - 1);
+	im = bisec_d(m, mach, 0, nm - 1);
 	if (im != nm) {
 		im++;
 	}
@@ -799,7 +757,7 @@ get_stall(int nm, doublereal* m, doublereal* s, doublereal mach,
 	 * im e' l'indice di m in cui si trova l'approssimazione per eccesso
 	 * di mach
 	 */
-	im = bisec(m, mach, 0, nm - 1);
+	im = bisec_d(m, mach, 0, nm - 1);
 	if (im != nm) {
 		im++;
 	}
