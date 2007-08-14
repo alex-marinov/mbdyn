@@ -52,6 +52,13 @@ struct GenericAerodynamicData {
 
 	struct GenericAerodynamicCoef {
 		doublereal	dCoef[6];
+
+		GenericAerodynamicCoef(void);
+		GenericAerodynamicCoef(const GenericAerodynamicCoef& c);
+		GenericAerodynamicCoef operator + (const GenericAerodynamicCoef& c) const;
+		GenericAerodynamicCoef operator - (const GenericAerodynamicCoef& c) const;
+		GenericAerodynamicCoef operator * (const doublereal& d) const;
+		GenericAerodynamicCoef operator / (const doublereal& d) const;
 	};
 
 	std::vector<std::vector<GenericAerodynamicCoef> > Data;
@@ -76,6 +83,8 @@ protected:
 	/* force and moment */
 	Vec3 F;
 	Vec3 M;
+
+	doublereal dAlpha, dBeta;
 
 	/* aerodynamic data */
 	GenericAerodynamicData *pData;

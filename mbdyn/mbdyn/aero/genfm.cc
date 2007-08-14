@@ -33,9 +33,10 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include "dataman.h"
 #include "aeroelem.h"
 #include "genfm.h"
-#include "dataman.h"
+#include "bisec.h"
 
 /* GenericAerodynamicForce - begin */
 
@@ -69,9 +70,10 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 
 	Vec3 V(R.Transpose()*Vca);
 
-	/* TODO: check sign */
-	doublereal dAlpha = atan2(V(3), V(1));
-	doublereal dBeta = atan2(V(2), V(1));
+	/* FIXME: according to source, the rotation sequence
+	 * is alpha, then beta */
+	dAlpha = atan2(V(3), V(1));
+	dBeta = -atan2(V(2), V(1));
 
 	doublereal rho, c, p, T;
 	GetAirProps(Xca, rho, c, p, T);	/* p, T no used yet */
@@ -93,27 +95,91 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 			M = Vec3(&pData->Data[0][0].dCoef[3])*dScaleMoment;
 
 		} else if (dBeta >= pData->Beta[nBeta]) {
+			F = Vec3(&pData->Data[nBeta][0].dCoef[0])*dScaleForce;
+			M = Vec3(&pData->Data[nBeta][0].dCoef[3])*dScaleMoment;
 
 		} else {
+			int iBeta = bisec<doublereal>(&pData->Beta[0], dBeta, 0, nBeta);
 
+			ASSERT(iBeta > 0);
+
+			doublereal ddBeta = pData->Beta[iBeta] - pData->Beta[iBeta - 1];
+			doublereal d1Beta = (pData->Beta[iBeta] - dBeta)/ddBeta;
+			doublereal d2Beta = (dBeta - pData->Beta[iBeta - 1])/ddBeta;
+
+			GenericAerodynamicData::GenericAerodynamicCoef c
+				= pData->Data[iBeta - 1][0]*d1Beta + pData->Data[iBeta][0]*d2Beta;
+
+			F = Vec3(&c.dCoef[0])*dScaleForce;
+			M = Vec3(&c.dCoef[3])*dScaleMoment;
 		}
 
 	} else if (dAlpha >= pData->Alpha[nAlpha]) {
 		if (dBeta <= pData->Beta[0]) {
+			F = Vec3(&pData->Data[0][nAlpha].dCoef[0])*dScaleForce;
+			M = Vec3(&pData->Data[0][nAlpha].dCoef[3])*dScaleMoment;
 
 		} else if (dBeta >= pData->Beta[nBeta]) {
+			F = Vec3(&pData->Data[nBeta][nAlpha].dCoef[0])*dScaleForce;
+			M = Vec3(&pData->Data[nBeta][nAlpha].dCoef[3])*dScaleMoment;
 
 		} else {
+			int iBeta = bisec<doublereal>(&pData->Beta[0], dBeta, 0, nBeta);
 
+			ASSERT(iBeta > 0);
+
+			doublereal ddBeta = pData->Beta[iBeta] - pData->Beta[iBeta - 1];
+			doublereal d1Beta = (pData->Beta[iBeta] - dBeta)/ddBeta;
+			doublereal d2Beta = (dBeta - pData->Beta[iBeta - 1])/ddBeta;
+
+			GenericAerodynamicData::GenericAerodynamicCoef c
+				= pData->Data[iBeta - 1][nAlpha]*d1Beta + pData->Data[iBeta][nAlpha]*d2Beta;
+
+			F = Vec3(&c.dCoef[0])*dScaleForce;
+			M = Vec3(&c.dCoef[3])*dScaleMoment;
 		}
 
 	} else {
+		int iAlpha = bisec<doublereal>(&pData->Alpha[0], dAlpha, 0, nAlpha);
+
+		ASSERT(iAlpha > 0);
+
+		doublereal ddAlpha = pData->Alpha[iAlpha] - pData->Alpha[iAlpha - 1];
+		doublereal d1Alpha = (pData->Alpha[iAlpha] - dAlpha)/ddAlpha;
+		doublereal d2Alpha = (dAlpha - pData->Alpha[iAlpha - 1])/ddAlpha;
+
 		if (dBeta <= pData->Beta[0]) {
+			GenericAerodynamicData::GenericAerodynamicCoef c
+				= pData->Data[0][iAlpha - 1]*d1Alpha + pData->Data[0][iAlpha]*d2Alpha;
+
+			F = Vec3(&c.dCoef[0])*dScaleForce;
+			M = Vec3(&c.dCoef[3])*dScaleMoment;
 
 		} else if (dBeta >= pData->Beta[nBeta]) {
+			GenericAerodynamicData::GenericAerodynamicCoef c
+				= pData->Data[nBeta][iAlpha - 1]*d1Alpha + pData->Data[nBeta][iAlpha]*d2Alpha;
+
+			F = Vec3(&c.dCoef[0])*dScaleForce;
+			M = Vec3(&c.dCoef[3])*dScaleMoment;
 
 		} else {
+			int iBeta = bisec<doublereal>(&pData->Beta[0], dBeta, 0, nBeta);
 
+			ASSERT(iBeta > 0);
+
+			doublereal ddBeta = pData->Beta[iBeta] - pData->Beta[iBeta - 1];
+			doublereal d1Beta = (pData->Beta[iBeta] - dBeta)/ddBeta;
+			doublereal d2Beta = (dBeta - pData->Beta[iBeta - 1])/ddBeta;
+
+			GenericAerodynamicData::GenericAerodynamicCoef c1
+				= pData->Data[iBeta - 1][iAlpha - 1]*d1Alpha + pData->Data[iBeta - 1][iAlpha]*d2Alpha;
+			GenericAerodynamicData::GenericAerodynamicCoef c2
+				= pData->Data[iBeta][iAlpha - 1]*d1Alpha + pData->Data[iBeta][iAlpha]*d2Alpha;
+			
+			GenericAerodynamicData::GenericAerodynamicCoef c = c1*d1Beta + c2*d2Beta;
+
+			F = Vec3(&c.dCoef[0])*dScaleForce;
+			M = Vec3(&c.dCoef[3])*dScaleMoment;
 		}
 	}
 
@@ -146,7 +212,7 @@ pData(pD)
 GenericAerodynamicForce::~GenericAerodynamicForce(void)
 {
 	if (pData != 0) {
-		delete[] pData;
+		delete pData;
 	}
 }
 
@@ -186,6 +252,8 @@ GenericAerodynamicForce::Output(OutputHandler& OH) const
 	if (fToBeOutput()) {
       		OH.Aerodynamic()
 			<< std::setw(8) << GetLabel()
+			<< " " << dAlpha*180./M_PI
+			<< " " << dBeta*180./M_PI
 			<< " " << F << " " << M << std::endl;
 	}
 }
@@ -206,6 +274,89 @@ ReadGenericAerodynamicForce(DataManager* pDM,
 /* GenericAerodynamicForce - end */
 
 /* GenericAerodynamicData - begin */
+
+/* GenericAerodynamicData::GenericAerodynamicCoef - begin */
+
+GenericAerodynamicData::GenericAerodynamicCoef::GenericAerodynamicCoef(void)
+{
+	NO_OP;
+}
+
+GenericAerodynamicData::GenericAerodynamicCoef::GenericAerodynamicCoef(
+	const GenericAerodynamicData::GenericAerodynamicCoef& c)
+{
+	dCoef[0] = c.dCoef[0];
+	dCoef[1] = c.dCoef[1];
+	dCoef[2] = c.dCoef[2];
+	dCoef[3] = c.dCoef[3];
+	dCoef[4] = c.dCoef[4];
+	dCoef[5] = c.dCoef[5];
+}
+
+GenericAerodynamicData::GenericAerodynamicCoef
+GenericAerodynamicData::GenericAerodynamicCoef::operator + (
+	const GenericAerodynamicData::GenericAerodynamicCoef& c) const
+{
+	GenericAerodynamicData::GenericAerodynamicCoef retval;
+
+	retval.dCoef[0] = dCoef[0] + c.dCoef[0];
+	retval.dCoef[1] = dCoef[1] + c.dCoef[1];
+	retval.dCoef[2] = dCoef[2] + c.dCoef[2];
+	retval.dCoef[3] = dCoef[3] + c.dCoef[3];
+	retval.dCoef[4] = dCoef[4] + c.dCoef[4];
+	retval.dCoef[5] = dCoef[5] + c.dCoef[5];
+
+	return retval;
+}
+
+GenericAerodynamicData::GenericAerodynamicCoef
+GenericAerodynamicData::GenericAerodynamicCoef::operator - (
+	const GenericAerodynamicData::GenericAerodynamicCoef& c) const
+{
+	GenericAerodynamicData::GenericAerodynamicCoef retval;
+
+	retval.dCoef[0] = dCoef[0] - c.dCoef[0];
+	retval.dCoef[1] = dCoef[1] - c.dCoef[1];
+	retval.dCoef[2] = dCoef[2] - c.dCoef[2];
+	retval.dCoef[3] = dCoef[3] - c.dCoef[3];
+	retval.dCoef[4] = dCoef[4] - c.dCoef[4];
+	retval.dCoef[5] = dCoef[5] - c.dCoef[5];
+
+	return retval;
+}
+
+GenericAerodynamicData::GenericAerodynamicCoef
+GenericAerodynamicData::GenericAerodynamicCoef::operator * (const doublereal& d) const
+{
+	GenericAerodynamicData::GenericAerodynamicCoef retval;
+
+	retval.dCoef[0] = dCoef[0]*d;
+	retval.dCoef[1] = dCoef[1]*d;
+	retval.dCoef[2] = dCoef[2]*d;
+	retval.dCoef[3] = dCoef[3]*d;
+	retval.dCoef[4] = dCoef[4]*d;
+	retval.dCoef[5] = dCoef[5]*d;
+
+	return retval;
+}
+
+GenericAerodynamicData::GenericAerodynamicCoef
+GenericAerodynamicData::GenericAerodynamicCoef::operator / (const doublereal& d) const
+{
+	GenericAerodynamicData::GenericAerodynamicCoef retval;
+
+	retval.dCoef[0] = dCoef[0]/d;
+	retval.dCoef[1] = dCoef[1]/d;
+	retval.dCoef[2] = dCoef[2]/d;
+	retval.dCoef[3] = dCoef[3]/d;
+	retval.dCoef[4] = dCoef[4]/d;
+	retval.dCoef[5] = dCoef[5]/d;
+
+	return retval;
+}
+
+/* GenericAerodynamicData::GenericAerodynamicCoef - end */
+
 
 static GenericAerodynamicData *
 ReadGenericAerodynamicData(const std::string& fname)
@@ -396,7 +547,7 @@ ReadGenericAerodynamicForce(DataManager* pDM,
 			dRefSurface, dRefLength,
 			pData, fOut));
 
-	return 0;
+	return pEl;
 }
 
 /* GenericAerodynamicData - end */
