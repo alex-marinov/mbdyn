@@ -43,24 +43,24 @@
  * ub:	indice superiore
  *
  * restituisce l'indice corrispondente al valore di v
- * che approssima per eccesso val;
- * se val > v[ub] restituisce ub + 1;
- * se val < v[lb] restituisce lb.
- * quindi v[ret - 1] <= val <= v[ret]
+ * che approssima per difetto val;
+ * se val > v[ub] restituisce ub;
+ * se val < v[lb] restituisce lb - 1.
+ * quindi v[ret] <= val <= v[ret + 1]
  *
  * Nota: ovviamente si presuppone che i valori di v siano ordinati in modo
  * crescente e strettamente monotono, ovvero v[i] < v[i + 1].
  */
 template <class T>
 int 
-bisec(T *v, T val, int lb, int ub)
+bisec(const T *const v, const T& val, int lb, int ub)
 {
 	if (val < v[lb]) {
-		return lb;
+		return lb - 1;
 	}
 	
 	if (val > v[ub]) {
-		return ub + 1;
+		return ub;
 	}
 	
 	while (ub > lb + 1) {
