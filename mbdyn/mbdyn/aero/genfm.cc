@@ -101,14 +101,15 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 		} else {
 			int iBeta = bisec<doublereal>(&pData->Beta[0], dBeta, 0, nBeta);
 
-			ASSERT(iBeta > 0);
+			ASSERT(iBeta >= 0);
+			ASSERT(iBeta < nBeta);
 
-			doublereal ddBeta = pData->Beta[iBeta] - pData->Beta[iBeta - 1];
-			doublereal d1Beta = (pData->Beta[iBeta] - dBeta)/ddBeta;
-			doublereal d2Beta = (dBeta - pData->Beta[iBeta - 1])/ddBeta;
+			doublereal ddBeta = pData->Beta[iBeta + 1] - pData->Beta[iBeta];
+			doublereal d1Beta = (pData->Beta[iBeta + 1] - dBeta)/ddBeta;
+			doublereal d2Beta = (dBeta - pData->Beta[iBeta])/ddBeta;
 
 			GenericAerodynamicData::GenericAerodynamicCoef c
-				= pData->Data[iBeta - 1][0]*d1Beta + pData->Data[iBeta][0]*d2Beta;
+				= pData->Data[iBeta][0]*d1Beta + pData->Data[iBeta + 1][0]*d2Beta;
 
 			F = Vec3(&c.dCoef[0])*dScaleForce;
 			M = Vec3(&c.dCoef[3])*dScaleMoment;
@@ -126,14 +127,15 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 		} else {
 			int iBeta = bisec<doublereal>(&pData->Beta[0], dBeta, 0, nBeta);
 
-			ASSERT(iBeta > 0);
+			ASSERT(iBeta >= 0);
+			ASSERT(iBeta < nBeta);
 
-			doublereal ddBeta = pData->Beta[iBeta] - pData->Beta[iBeta - 1];
-			doublereal d1Beta = (pData->Beta[iBeta] - dBeta)/ddBeta;
-			doublereal d2Beta = (dBeta - pData->Beta[iBeta - 1])/ddBeta;
+			doublereal ddBeta = pData->Beta[iBeta + 1] - pData->Beta[iBeta];
+			doublereal d1Beta = (pData->Beta[iBeta + 1] - dBeta)/ddBeta;
+			doublereal d2Beta = (dBeta - pData->Beta[iBeta])/ddBeta;
 
 			GenericAerodynamicData::GenericAerodynamicCoef c
-				= pData->Data[iBeta - 1][nAlpha]*d1Beta + pData->Data[iBeta][nAlpha]*d2Beta;
+				= pData->Data[iBeta][nAlpha]*d1Beta + pData->Data[iBeta + 1][nAlpha]*d2Beta;
 
 			F = Vec3(&c.dCoef[0])*dScaleForce;
 			M = Vec3(&c.dCoef[3])*dScaleMoment;
@@ -142,22 +144,23 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 	} else {
 		int iAlpha = bisec<doublereal>(&pData->Alpha[0], dAlpha, 0, nAlpha);
 
-		ASSERT(iAlpha > 0);
+		ASSERT(iAlpha >= 0);
+		ASSERT(iAlpha < nAlpha);
 
-		doublereal ddAlpha = pData->Alpha[iAlpha] - pData->Alpha[iAlpha - 1];
-		doublereal d1Alpha = (pData->Alpha[iAlpha] - dAlpha)/ddAlpha;
-		doublereal d2Alpha = (dAlpha - pData->Alpha[iAlpha - 1])/ddAlpha;
+		doublereal ddAlpha = pData->Alpha[iAlpha + 1] - pData->Alpha[iAlpha];
+		doublereal d1Alpha = (pData->Alpha[iAlpha + 1] - dAlpha)/ddAlpha;
+		doublereal d2Alpha = (dAlpha - pData->Alpha[iAlpha])/ddAlpha;
 
 		if (dBeta <= pData->Beta[0]) {
 			GenericAerodynamicData::GenericAerodynamicCoef c
-				= pData->Data[0][iAlpha - 1]*d1Alpha + pData->Data[0][iAlpha]*d2Alpha;
+				= pData->Data[0][iAlpha]*d1Alpha + pData->Data[0][iAlpha + 1]*d2Alpha;
 
 			F = Vec3(&c.dCoef[0])*dScaleForce;
 			M = Vec3(&c.dCoef[3])*dScaleMoment;
 
 		} else if (dBeta >= pData->Beta[nBeta]) {
 			GenericAerodynamicData::GenericAerodynamicCoef c
-				= pData->Data[nBeta][iAlpha - 1]*d1Alpha + pData->Data[nBeta][iAlpha]*d2Alpha;
+				= pData->Data[nBeta][iAlpha]*d1Alpha + pData->Data[nBeta][iAlpha + 1]*d2Alpha;
 
 			F = Vec3(&c.dCoef[0])*dScaleForce;
 			M = Vec3(&c.dCoef[3])*dScaleMoment;
@@ -165,16 +168,17 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 		} else {
 			int iBeta = bisec<doublereal>(&pData->Beta[0], dBeta, 0, nBeta);
 
-			ASSERT(iBeta > 0);
+			ASSERT(iBeta >= 0);
+			ASSERT(iBeta < nBeta);
 
-			doublereal ddBeta = pData->Beta[iBeta] - pData->Beta[iBeta - 1];
-			doublereal d1Beta = (pData->Beta[iBeta] - dBeta)/ddBeta;
-			doublereal d2Beta = (dBeta - pData->Beta[iBeta - 1])/ddBeta;
+			doublereal ddBeta = pData->Beta[iBeta + 1] - pData->Beta[iBeta];
+			doublereal d1Beta = (pData->Beta[iBeta + 1] - dBeta)/ddBeta;
+			doublereal d2Beta = (dBeta - pData->Beta[iBeta])/ddBeta;
 
 			GenericAerodynamicData::GenericAerodynamicCoef c1
-				= pData->Data[iBeta - 1][iAlpha - 1]*d1Alpha + pData->Data[iBeta - 1][iAlpha]*d2Alpha;
+				= pData->Data[iBeta][iAlpha]*d1Alpha + pData->Data[iBeta][iAlpha + 1]*d2Alpha;
 			GenericAerodynamicData::GenericAerodynamicCoef c2
-				= pData->Data[iBeta][iAlpha - 1]*d1Alpha + pData->Data[iBeta][iAlpha]*d2Alpha;
+				= pData->Data[iBeta + 1][iAlpha]*d1Alpha + pData->Data[iBeta + 1][iAlpha + 1]*d2Alpha;
 			
 			GenericAerodynamicData::GenericAerodynamicCoef c = c1*d1Beta + c2*d2Beta;
 
@@ -183,10 +187,8 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 		}
 	}
 
-	for (int iCnt = 1; iCnt <= 3; iCnt++) {
-		WorkVec.Add(iCnt, F(iCnt));
-		WorkVec.Add(3 + iCnt, M(iCnt));
-	}
+	WorkVec.Add(1, F);
+	WorkVec.Add(4, M);
 }
 
 GenericAerodynamicForce::GenericAerodynamicForce(unsigned int uLabel,
@@ -495,11 +497,35 @@ ReadGenericAerodynamicData(const std::string& fname)
 	/* deg => radian */
 	for (int iAlpha = 0; iAlpha < nAlpha; iAlpha++) {
 		pData->Alpha[iAlpha] *= M_PI/180.;
+
+		if (iAlpha == 0) {
+			continue;
+		}
+
+		if ( pData->Alpha[iAlpha] <= pData->Alpha[iAlpha - 1]) {
+			silent_cerr("ReadGenericAerodynamicData: "
+				"strict ordering violated between "
+				"Alpha #" << iAlpha - 1 << " and "
+				"Alpha #" << iAlpha << std::endl);
+			throw ErrGeneric();
+		}
 	}
 
 	/* deg => radian */
 	for (int iBeta = 0; iBeta < nBeta; iBeta++) {
 		pData->Beta[iBeta] *= M_PI/180.;
+
+		if (iBeta == 0) {
+			continue;
+		}
+
+		if ( pData->Beta[iBeta] <= pData->Beta[iBeta - 1]) {
+			silent_cerr("ReadGenericAerodynamicData: "
+				"strict ordering violated between "
+				"Beta #" << iBeta - 1 << " and "
+				"Beta #" << iBeta << std::endl);
+			throw ErrGeneric();
+		}
 	}
 
 	return pData;
