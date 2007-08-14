@@ -399,7 +399,7 @@ z2(z2_)
    
 StdAirProperties::~StdAirProperties(void)
 {
-	NO_OP;
+	delete RhoRef;
 }
 
 /* Scrive il contributo dell'elemento al file di restart */
