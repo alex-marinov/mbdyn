@@ -454,8 +454,8 @@ AerodynamicBody::Output(OutputHandler& OH) const
 #else /* AEROD_OUTPUT != AEROD_OUT_NODE */
       		for (int i = 0; i < GDI.iGetNum(); i++) {
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-	 		out << " " << pOutput[i]->alpha
-				<< " " << pOutput[i]->f;
+	 		out << " " << pOutput[i].alpha
+				<< " " << pOutput[i].f;
 #elif AEROD_OUTPUT == AEROD_OUT_STD
 	 		for (int j = 1; j <= 6; j++) {
 	    			out << " " << pvdOuta[i][j];
@@ -1345,8 +1345,8 @@ AerodynamicBeam::Output(OutputHandler& OH ) const
 #else /* AEROD_OUTPUT != AEROD_OUT_NODE */
 		for (int i = 0; i < 3*GDI.iGetNum(); i++) {
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-			out << " " << pOutput[i]->alpha
-				<< " " << pOutput[i]->f;
+			out << " " << pOutput[i].alpha
+				<< " " << pOutput[i].f;
 #elif AEROD_OUTPUT == AEROD_OUT_STD
 			for (int j = 1; j <= 6; j++) {
 				out << " " << pvdOuta[i][j];
@@ -1976,8 +1976,8 @@ AerodynamicBeam2::Output(OutputHandler& OH ) const
 #else /* AEROD_OUTPUT != AEROD_OUT_NODE */
 		for (int i = 0; i < 2*GDI.iGetNum(); i++) {
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-			out << " " << pOutput[i]->alpha
-				<< " " << pOutput[i]->f;
+			out << " " << pOutput[i].alpha
+				<< " " << pOutput[i].f;
 #elif AEROD_OUTPUT == AEROD_OUT_STD
 			for (int j = 1; j <= 6; j++) {
 				out << " " << pvdOuta[i][j];
