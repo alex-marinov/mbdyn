@@ -148,6 +148,10 @@ static const long int MYDEBUG_JAC                 = 0x00080000;
 extern void *mbdyn_rtai_task;
 #endif /* USE_RTAI */
 
+#ifndef LINE_MAX
+#define LINE_MAX        (2000)
+#endif /* LINE_MAX */
+
 #define	STRLENOF(s)	(sizeof(s) - 1)
 
 #endif /* MBDYN_H */
