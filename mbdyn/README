@@ -20,14 +20,10 @@ developers:
   - run "sh ./bootstrap.sh" to generate ancillary files.
     May need some tailoring.  A system with working autoconf, 
     automake and libtool is required; I'm currently using 
-    autoconf 2.13, automake 1.4, libtool 1.3.4.
+    autoconf 2.59, automake 1.9.6, libtool 1.5.18
   - tar the tree and move to the target system; this way, all
     the ancillary files will be available even if the target 
     system does not have those tools.
-
-  NOTE: at least on my system I could not use the syntax
-  AC_CONFIG_HEADER(include/mbconfig.h:pre:include/mbconfig.h.in:post)
-  so I'm using acconfig.h
 
 
 
