@@ -32,6 +32,8 @@
 #ifndef MATHTYP_H
 #define MATHTYP_H
 
+#include <string>
+
 /* definizione dei tipi */
 typedef double Real;
 typedef int Int;
