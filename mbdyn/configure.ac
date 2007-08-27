@@ -638,6 +638,7 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Check for aerodynamic output flags
 dnl
+ol_with_aero_output="gauss"
 if test $ol_with_aero_output = gauss ; then
 	AC_DEFINE(AEROD_OUTPUT,1,[set to 0,1,2 for std,gauss,node])
 elif test $ol_with_aero_output = node ; then
@@ -1952,9 +1953,8 @@ dnl
 if test $ol_link_lapack != no -o $ol_link_meschach != no ; then
 	AC_DEFINE(USE_DBC,1,[define if you want to use GPC/DeadBeat control])
 else
-	if test $ol_with_elec != no ; then
-		AC_MSG_WARN([GPC/Deadbeat not allowed])
-	fi
+	dnl Required for GPC/Deadbeat (should be able to work it 'round...)
+	AC_MSG_WARN([GPC/Deadbeat not allowed])
 fi
 
 dnl ----------------------------------------------------------------
