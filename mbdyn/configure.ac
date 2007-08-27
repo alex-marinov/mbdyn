@@ -638,7 +638,7 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Check for aerodynamic output flags
 dnl
-ol_with_aero_output="gauss"
+ol_with_aero_output="std"
 if test $ol_with_aero_output = gauss ; then
 	AC_DEFINE(AEROD_OUTPUT,1,[set to 0,1,2 for std,gauss,node])
 elif test $ol_with_aero_output = node ; then
