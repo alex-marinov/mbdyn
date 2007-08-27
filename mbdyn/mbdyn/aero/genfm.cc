@@ -90,13 +90,25 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 
 	/* TODO: search for Alpha, Beta */
 	if (dAlpha <= pData->Alpha[0]) {
+		/* smooth out coefficients if Alpha does not span -180 => 180 */
+		doublereal dAlphaX = (dAlpha - pData->Alpha[0])/(-M_PI - pData->Alpha[0]);
+		doublereal dSmoothAlpha = (std::cos(M_PI*dAlphaX) + 1)/2.;
+
 		if (dBeta <= pData->Beta[0]) {
-			F = Vec3(&pData->Data[0][0].dCoef[0])*dScaleForce;
-			M = Vec3(&pData->Data[0][0].dCoef[3])*dScaleMoment;
+			/* smooth out coefficients if Beta does not span -180 => 180 */
+			doublereal dBetaX = (dBeta - pData->Beta[0])/(-M_PI - pData->Beta[0]);
+			doublereal dSmoothBeta = (std::cos(M_PI*dBetaX) + 1)/2.;
+
+			F = Vec3(&pData->Data[0][0].dCoef[0])*(dScaleForce*dSmoothAlpha*dSmoothBeta);
+			M = Vec3(&pData->Data[0][0].dCoef[3])*(dScaleMoment*dSmoothAlpha*dSmoothBeta);
 
 		} else if (dBeta >= pData->Beta[nBeta]) {
-			F = Vec3(&pData->Data[nBeta][0].dCoef[0])*dScaleForce;
-			M = Vec3(&pData->Data[nBeta][0].dCoef[3])*dScaleMoment;
+			/* smooth out coefficients if Beta does not span -180 => 180 */
+			doublereal dBetaX = (dBeta - pData->Beta[nBeta])/(M_PI - pData->Beta[nBeta]);
+			doublereal dSmoothBeta = (std::cos(M_PI*dBetaX) + 1)/2.;
+
+			F = Vec3(&pData->Data[nBeta][0].dCoef[0])*(dScaleForce*dSmoothAlpha*dSmoothBeta);
+			M = Vec3(&pData->Data[nBeta][0].dCoef[3])*(dScaleMoment*dSmoothAlpha*dSmoothBeta);
 
 		} else {
 			int iBeta = bisec<doublereal>(&pData->Beta[0], dBeta, 0, nBeta);
@@ -111,18 +123,30 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 			GenericAerodynamicData::GenericAerodynamicCoef c
 				= pData->Data[iBeta][0]*d1Beta + pData->Data[iBeta + 1][0]*d2Beta;
 
-			F = Vec3(&c.dCoef[0])*dScaleForce;
-			M = Vec3(&c.dCoef[3])*dScaleMoment;
+			F = Vec3(&c.dCoef[0])*(dScaleForce*dSmoothAlpha);
+			M = Vec3(&c.dCoef[3])*(dScaleMoment*dSmoothAlpha);
 		}
 
 	} else if (dAlpha >= pData->Alpha[nAlpha]) {
+		/* smooth out coefficients if Alpha does not span -180 => 180 */
+		doublereal dAlphaX = (dAlpha - pData->Alpha[nAlpha])/(-M_PI - pData->Alpha[nAlpha]);
+		doublereal dSmoothAlpha = (std::cos(M_PI*dAlphaX) + 1)/2.;
+
 		if (dBeta <= pData->Beta[0]) {
-			F = Vec3(&pData->Data[0][nAlpha].dCoef[0])*dScaleForce;
-			M = Vec3(&pData->Data[0][nAlpha].dCoef[3])*dScaleMoment;
+			/* smooth out coefficients if Beta does not span -180 => 180 */
+			doublereal dBetaX = (dBeta - pData->Beta[0])/(-M_PI - pData->Beta[0]);
+			doublereal dSmoothBeta = (std::cos(M_PI*dBetaX) + 1)/2.;
+
+			F = Vec3(&pData->Data[0][nAlpha].dCoef[0])*(dScaleForce*dSmoothAlpha*dSmoothBeta);
+			M = Vec3(&pData->Data[0][nAlpha].dCoef[3])*(dScaleMoment*dSmoothAlpha*dSmoothBeta);
 
 		} else if (dBeta >= pData->Beta[nBeta]) {
-			F = Vec3(&pData->Data[nBeta][nAlpha].dCoef[0])*dScaleForce;
-			M = Vec3(&pData->Data[nBeta][nAlpha].dCoef[3])*dScaleMoment;
+			/* smooth out coefficients if Beta does not span -180 => 180 */
+			doublereal dBetaX = (dBeta - pData->Beta[nBeta])/(M_PI - pData->Beta[nBeta]);
+			doublereal dSmoothBeta = (std::cos(M_PI*dBetaX) + 1)/2.;
+
+			F = Vec3(&pData->Data[nBeta][nAlpha].dCoef[0])*(dScaleForce*dSmoothAlpha*dSmoothBeta);
+			M = Vec3(&pData->Data[nBeta][nAlpha].dCoef[3])*(dScaleMoment*dSmoothAlpha*dSmoothBeta);
 
 		} else {
 			int iBeta = bisec<doublereal>(&pData->Beta[0], dBeta, 0, nBeta);
@@ -137,8 +161,8 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 			GenericAerodynamicData::GenericAerodynamicCoef c
 				= pData->Data[iBeta][nAlpha]*d1Beta + pData->Data[iBeta + 1][nAlpha]*d2Beta;
 
-			F = Vec3(&c.dCoef[0])*dScaleForce;
-			M = Vec3(&c.dCoef[3])*dScaleMoment;
+			F = Vec3(&c.dCoef[0])*(dScaleForce*dSmoothAlpha);
+			M = Vec3(&c.dCoef[3])*(dScaleMoment*dSmoothAlpha);
 		}
 
 	} else {
@@ -152,18 +176,26 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 		doublereal d2Alpha = (dAlpha - pData->Alpha[iAlpha])/ddAlpha;
 
 		if (dBeta <= pData->Beta[0]) {
+			/* smooth out coefficients if Beta does not span -180 => 180 */
+			doublereal dBetaX = (dBeta - pData->Beta[0])/(-M_PI - pData->Beta[0]);
+			doublereal dSmoothBeta = (std::cos(M_PI*dBetaX) + 1)/2.;
+
 			GenericAerodynamicData::GenericAerodynamicCoef c
 				= pData->Data[0][iAlpha]*d1Alpha + pData->Data[0][iAlpha + 1]*d2Alpha;
 
-			F = Vec3(&c.dCoef[0])*dScaleForce;
-			M = Vec3(&c.dCoef[3])*dScaleMoment;
+			F = Vec3(&c.dCoef[0])*(dScaleForce*dSmoothBeta);
+			M = Vec3(&c.dCoef[3])*(dScaleMoment*dSmoothBeta);
 
 		} else if (dBeta >= pData->Beta[nBeta]) {
+			/* smooth out coefficients if Beta does not span -180 => 180 */
+			doublereal dBetaX = (dBeta - pData->Beta[nBeta])/(M_PI - pData->Beta[nBeta]);
+			doublereal dSmoothBeta = (std::cos(M_PI*dBetaX) + 1)/2.;
+
 			GenericAerodynamicData::GenericAerodynamicCoef c
 				= pData->Data[nBeta][iAlpha]*d1Alpha + pData->Data[nBeta][iAlpha + 1]*d2Alpha;
 
-			F = Vec3(&c.dCoef[0])*dScaleForce;
-			M = Vec3(&c.dCoef[3])*dScaleMoment;
+			F = Vec3(&c.dCoef[0])*(dScaleForce*dSmoothBeta);
+			M = Vec3(&c.dCoef[3])*(dScaleMoment*dSmoothBeta);
 
 		} else {
 			int iBeta = bisec<doublereal>(&pData->Beta[0], dBeta, 0, nBeta);

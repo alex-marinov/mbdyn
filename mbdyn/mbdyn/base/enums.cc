@@ -460,6 +460,7 @@ const char* psDofOwnerNames[] = {
    "Unsteady Aerodynamic Element",
    "Electric Bulk Element",
    "Electric Element",
+   "Thermal Element",
    "Hydraulic Element",
    "Loadable Element",
    
