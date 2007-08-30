@@ -130,18 +130,24 @@ extern int fPedantic;
 #endif /* __cplusplus */
 
 /* Debug levels (from 0x0001 to 0x0080 are reserved) */
-static const long int MYDEBUG_INPUT               = 0x00000100;
-static const long int MYDEBUG_ASSEMBLY            = 0x00000200;
-static const long int MYDEBUG_DERIVATIVES         = 0x00000400;
-static const long int MYDEBUG_FSTEPS              = 0x00000800;
-static const long int MYDEBUG_MEM                 = 0x00001000;
-static const long int MYDEBUG_MPI                 = 0x00002000;
-static const long int MYDEBUG_PRED                = 0x00004000;
-static const long int MYDEBUG_RESIDUAL            = 0x00008000;
-static const long int MYDEBUG_SOL                 = 0x00010000;
-static const long int MYDEBUG_INIT                = 0x00020000;
-static const long int MYDEBUG_OUTPUT              = 0x00040000;
-static const long int MYDEBUG_JAC                 = 0x00080000;
+enum {
+	MYDEBUG_RESERVED_MASK	= 0x000000FFU,
+
+	MYDEBUG_INPUT		= 0x00000100U,
+	MYDEBUG_ASSEMBLY	= 0x00000200U,
+	MYDEBUG_DERIVATIVES	= 0x00000400U,
+	MYDEBUG_FSTEPS		= 0x00000800U,
+	MYDEBUG_MEM		= 0x00001000U,
+	MYDEBUG_MPI		= 0x00002000U,
+	MYDEBUG_PRED		= 0x00004000U,
+	MYDEBUG_RESIDUAL	= 0x00008000U,
+	MYDEBUG_SOL		= 0x00010000U,
+	MYDEBUG_INIT		= 0x00020000U,
+	MYDEBUG_OUTPUT		= 0x00040000U,
+	MYDEBUG_JAC		= 0x00080000U,
+
+	MYDEBUG_MASK		= ((~0) & (~MYDEBUG_RESERVED_MASK))
+};
 
 #ifdef USE_RTAI
 /* visible to all */
