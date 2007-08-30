@@ -3,7 +3,7 @@
 set -x
 aclocal 
 libtoolize --automake --force --copy
-automake --foreign --add-missing --copy --force-missing
 autoheader
+automake --foreign --add-missing --copy --force-missing
 autoconf
 
