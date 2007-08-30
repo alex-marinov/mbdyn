@@ -678,7 +678,14 @@ dnl Check for f2c libraries
 dnl
 ol_link_libf2c=no
 if test $ol_with_libf2c != no ; then
-	AC_CHECK_HEADERS(g2c.h f2c.h)
+	AC_CHECK_HEADER(g2c.h, [
+	AC_COMPILE_IFELSE([
+#include <g2c.h>
+integer i;
+doublereal d;
+	],[have_g2c_h=yes],[have_g2c_h=no])
+	],[have_g2c_h=no])
+	AC_CHECK_HEADER(f2c.h)
 
 	AC_MSG_CHECKING([for f2c library])
 	AC_MSG_RESULT([])
@@ -709,7 +716,7 @@ if test $ol_with_libf2c != no ; then
 			ol_link_libf2c=yes
 
 			if test $l = g2c -a $ol_with_g2c != no ; then
-				if test $ac_cv_header_g2c_h = yes ; then
+				if test $have_g2c_h = yes ; then
 					AC_DEFINE(USE_G2C_H,1,[define to use g2c.h])
 				fi
 			fi
