@@ -9,19 +9,13 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
-MBDyn 1.X-Devel
-	Enhancements:
-		- added (experimental) third order step solver
-		  (by Marco Morandini)
-		- added "ad hoc" (Radau IIA) third-order integrator
-	Backward compatibility issues:
-	Known issues:
-	Bug fixes:
-
 MBDyn 1.3.0-Alpha
 	Enhancements:
 		- added simple thermo framework (Marco Morandini)
+		- added (experimental) third order step solver
+		  (by Marco Morandini)
 		- added TAUCS linear solver (experimental) (by Marco Morandini)
+		- added "ad hoc" (Radau IIA) third-order integrator
 		- automated installation of share data in $prefix/share
 		- reworked support for EasyAnim
 		- added drive displacement and drive displacement pin joints
