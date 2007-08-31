@@ -2,7 +2,7 @@
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2006
+ * Copyright (C) 2007
  *
  * Marco Morandini	<morandini@aero.polimi.it>
  * Pierangelo Masarati	<masarati@aero.polimi.it>
@@ -366,11 +366,7 @@ public:
 
 		delete[] pa.v_max[0];
 		delete[] pa.v_max;
-		delete[] pa.npti_ks;
-		delete[] pa.npti_kv;
-		delete[] pa.npti_cs;
-		delete[] pa.npti_cv;
-		
+
 		for (int i=0; i<pa.n_elementi; i++) {
 			if (pa.npti_ks[i] > 1) {
 				gsl_interp_free(pa.ik_s[i]);
@@ -385,6 +381,10 @@ public:
 				gsl_interp_free(pa.ic_v[i]);
 			}
 		}
+		delete[] pa.npti_ks;
+		delete[] pa.npti_kv;
+		delete[] pa.npti_cs;
+		delete[] pa.npti_cv;
 		delete[] pa.ik_s;
 		delete[] pa.ik_v;
 		delete[] pa.ic_s;
