@@ -224,7 +224,15 @@ IncludeParser::Include_int()
 			free(buf);
 		}
 #endif /* DEBUG */
-		silent_cerr("Invalid file <" << sfname << '>' << std::endl);
+
+		/* restore */
+		pf = pf_old;
+		pIn = pIn_old;
+		sCurrPath = sOldPath;
+		sCurrFile = sOldFile;
+   
+		silent_cerr("Invalid file <" << sfname << "> "
+			"at line " << GetLineData() << std::endl);
       		throw ErrFile();
    	}
    
