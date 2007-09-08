@@ -35,14 +35,13 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#if defined(HAVE_UNISTD_H)
 #include <unistd.h>
-#endif /* HAVE_UNISTD_H */
-#if defined(HAVE_PWD_H)
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <pwd.h>
-#endif /* HAVE_PWD_H */
+#include <errno.h>
 
-#include <parsinc.h>
+#include "parsinc.h"
 
 const int PATHBUFSIZE = 1024;
 
@@ -204,12 +203,41 @@ IncludeParser::Include_int()
       		throw HighParser::ErrColonExpected();
    	}
    
+   	const char* sfname = GetFileName();
+
+	if (sfname != 0) {
+		struct stat	s;
+
+		if (stat(sfname, &s)) {
+			int save_errno = errno;
+
+			silent_cerr("Cannot stat file <" << sfname << "> "
+				"at line " << GetLineData() << ": "
+				<< save_errno 
+				<< " (" << strerror(save_errno) << ")" 
+				<< std::endl);
+      			throw ErrFile();
+		}
+
+		if (!S_ISREG(s.st_mode)) {
+			silent_cerr("File <" << sfname << "> "
+				"at line " << GetLineData() << ": "
+				"not a regular file?" << std::endl);
+      			throw ErrFile();
+		}
+
+		if (!(s.st_mode & S_IRUSR)) {
+			silent_cerr("File <" << sfname << "> "
+				"at line " << GetLineData() << ": "
+				"no read permissions?" << std::endl);
+      			throw ErrFile();
+		}
+	}
+
 	std::ifstream *pf_old = pf;
 	InputStream *pIn_old = pIn;
 	char *sOldPath = sCurrPath;
 	char *sOldFile = sCurrFile;
-   
-   	const char* sfname = GetFileName();
 
    	pf = NULL;
    	pIn = NULL;
