@@ -4618,15 +4618,15 @@ used to correct the nominal induced velocity, according to the formula
 %\end{eqnarray*}
 \begin{eqnarray*}
 	U_{effective} & = &
-	\plbr{1 - \mathtt{<memory\_factor>}} 
+	\plbr{1 - \mathtt{memory\_factor}} 
 		U_{nominal} \\
-	& & \mbox{} + \mathtt{<memory\_factor>} \ U_{previous}
+	& & \mbox{} + \mathtt{memory\_factor} \ U_{previous}
 \end{eqnarray*}
 with
 \begin{displaymath}
 	U_{nominal} = \frac{T}{2 \rho A V_{tip} \sqrt{
-		\cfrac{\lambda^2}{\mathtt{<hover\_correction\_factor>}^4}
-		+ \cfrac{\mu^2}{\mathtt{<ff\_correction\_factor>}^2}
+		\cfrac{\lambda^2}{\mathtt{hover\_correction\_factor}^4}
+		+ \cfrac{\mu^2}{\mathtt{ff\_correction\_factor}^2}
 	}}
 \end{displaymath}
 The \kw{memory\_factor} parameter is used to
