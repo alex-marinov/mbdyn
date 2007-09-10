@@ -454,7 +454,8 @@ HighParser::Remark_int(void)
 	while (IsArg()) {
 		/* eat it anyway ;) */
 		TypedValue v;
-		silent_cout(", " << GetValue(v));
+		GetValue(v);
+		silent_cout(", " << v);
 	}
 
 	silent_cout(std::endl);
