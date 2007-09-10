@@ -452,9 +452,8 @@ HighParser::Remark_int(void)
 	const char *s = GetStringWithDelims();
 	silent_cout("line " << GetLineData() << ": " << s);
 	while (IsArg()) {
-		/* eat it anyway ;) */
 		TypedValue v;
-		GetValue(v);
+		v = GetValue(v);
 		silent_cout(", " << v);
 	}
 
