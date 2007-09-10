@@ -44,27 +44,63 @@ Every element card has the following format:
 \end{verbatim}
 where \kw{elem\_type} is one of the following:
 \begin{itemize}
-\item \kw{aerodynamic beam}
-\item \kw{aerodynamic body}
-\item \kw{air properties}
+\item structural elements:
+\begin{itemize}
 \item \kw{automatic structural}
 \item \kw{beam}
-\item \kw{bind}
 \item \kw{body}
-\item \kw{bulk}
 \item \kw{couple}
+\item \kw{gravity}
+\item \kw{joint}
+\end{itemize}
+
+\item aerodynamic elements:
+\begin{itemize}
+\item \kw{aerodynamic beam2}
+\item \kw{aerodynamic beam3}
+\item \kw{aerodynamic body}
+\item \kw{aeromodal}
+\item \kw{aircraft instruments}
+\item \kw{air properties}
+\item \kw{rotor}
+\end{itemize}
+
+\item electric elements:
+\begin{itemize}
 \item \kw{electric}
+\end{itemize}
+
+\item hydraulic elements:
+\begin{itemize}
+\item \kw{hydraulic}
+\end{itemize}
+
+\item thermal elements:
+\begin{itemize}
+\item TODO \ldots
+\end{itemize}
+
+\item output elements:
+\begin{itemize}
+\item \kw{RTAI output}
+\item \kw{stream output}
+\item \kw{stream motion output}
+\end{itemize}
+
+\item generic elements:
+\begin{itemize}
+\item \kw{bind}
+\item \kw{bulk}
 \item \kw{force}
 \item \kw{genel}
-\item \kw{gravity}
-\item \kw{hydraulic}
-\item \kw{joint}
 \item \kw{loadable}
-\item \kw{rotor}
-\item \kw{RTAI output}
-\item \kw{Miscellaneous}
 \end{itemize}
-in case of elements that can be instantiated only once, like
+
+\item \kw{miscellaneous element cards}
+\end{itemize}
+
+
+In case of elements that can be instantiated only once, like
 the \kw{gravity} or the \kw{air properties} elements, the \kw{arglist}
 doesn't contain any label; otherwise, a label is expected first, to allow 
 for checks on duplicated elements, namely: 
