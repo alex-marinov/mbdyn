@@ -421,21 +421,21 @@ ReadGenericAerodynamicData(const std::string& fname)
 	in.getline(buf, sizeof(buf));
 
 	if (!in) {
-		silent_cerr("ReadGenericAerodynamicData: "
+		silent_cerr("ReadGenericAerodynamicData(" << fname << "): "
 			"unable to read size of data matrix "
 			"from file \"" << fname << "\"" << std::endl);
 		throw ErrGeneric();
 	}
 
 	if (nAlpha <= 0) {
-		silent_cerr("ReadGenericAerodynamicData: "
+		silent_cerr("ReadGenericAerodynamicData(" << fname << "): "
 			"invalid number of incidence angles " << nAlpha << " "
 			"from file \"" << fname << "\"" << std::endl);
 		throw ErrGeneric();
 	}
 
 	if (nBeta <= 0) {
-		silent_cerr("ReadGenericAerodynamicData: "
+		silent_cerr("ReadGenericAerodynamicData(" << fname << "): "
 			"invalid number of sideslip angles " << nBeta << " "
 			"from file \"" << fname << "\"" << std::endl);
 		throw ErrGeneric();
@@ -449,7 +449,7 @@ ReadGenericAerodynamicData(const std::string& fname)
 	in.putback(c);
 
 	if (!in) {
-		silent_cerr("ReadGenericAerodynamicData: "
+		silent_cerr("ReadGenericAerodynamicData(" << fname << "): "
 			"unable to get to data "
 			"in file \"" << fname << "\"" << std::endl);
 		throw ErrGeneric();
@@ -477,7 +477,8 @@ ReadGenericAerodynamicData(const std::string& fname)
 				pData->Alpha[iAlpha] = dCoef;
 
 			} else if (dCoef != pData->Alpha[iAlpha]) {
-				silent_cerr("ReadGenericAerodynamicData: "
+				silent_cerr("ReadGenericAerodynamicData"
+					"(" << fname << "): "
 					"inconsistent data, "
 					"Alpha[" << iAlpha << "]"
 						"=" << dCoef << " "
@@ -495,7 +496,8 @@ ReadGenericAerodynamicData(const std::string& fname)
 				pData->Beta[iBeta] = dCoef;
 
 			} else if (dCoef != pData->Beta[iBeta]) {
-				silent_cerr("ReadGenericAerodynamicData: "
+				silent_cerr("ReadGenericAerodynamicData"
+					"(" << fname << "): "
 					"inconsistent data, "
 					"Beta[" << iBeta << "]"
 						"=" << dCoef << " "
@@ -514,14 +516,17 @@ ReadGenericAerodynamicData(const std::string& fname)
 			}
 
 			/* discard to end of line */
-			in.getline(buf, sizeof(buf));
+			if (iAlpha < nAlpha - 1 && iBeta < nBeta - 1) {
+				in.getline(buf, sizeof(buf));
 
-			if (!in) {
-				silent_cerr("ReadGenericAerodynamicData: "
-					"unable to read data past "
-					"iAlpha=" << iAlpha << ", "
-					"iBeta=" << iBeta << std::endl);
-				throw ErrGeneric();
+				if (!in) {
+					silent_cerr("ReadGenericAerodynamicData"
+						"(" << fname << "): "
+						"unable to read data past "
+						"iAlpha=" << iAlpha << ", "
+						"iBeta=" << iBeta << std::endl);
+					throw ErrGeneric();
+				}
 			}
 		}
 	}
@@ -535,7 +540,8 @@ ReadGenericAerodynamicData(const std::string& fname)
 		}
 
 		if ( pData->Alpha[iAlpha] <= pData->Alpha[iAlpha - 1]) {
-			silent_cerr("ReadGenericAerodynamicData: "
+			silent_cerr("ReadGenericAerodynamicData"
+				"(" << fname << "): "
 				"strict ordering violated between "
 				"Alpha #" << iAlpha - 1 << " and "
 				"Alpha #" << iAlpha << std::endl);
@@ -552,7 +558,8 @@ ReadGenericAerodynamicData(const std::string& fname)
 		}
 
 		if ( pData->Beta[iBeta] <= pData->Beta[iBeta - 1]) {
-			silent_cerr("ReadGenericAerodynamicData: "
+			silent_cerr("ReadGenericAerodynamicData"
+				"(" << fname << "): "
 				"strict ordering violated between "
 				"Beta #" << iBeta - 1 << " and "
 				"Beta #" << iBeta << std::endl);
