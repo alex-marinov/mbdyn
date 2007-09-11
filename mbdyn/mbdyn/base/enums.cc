@@ -102,7 +102,7 @@ const char* psReadElemsElems[] = {
 
    "air" "properties",
    "aeromodal",
-   "aerodynamic Element",
+   "aerodynamic" "element",
    
    "genel",
 
