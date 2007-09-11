@@ -1903,13 +1903,13 @@ SimulationEntityDCR::Read(const DataManager* pDM,
 
 	} else {
 		silent_cerr("need a private data index for " << msg
-			<< "at line " << HP.GetLineData() << std::endl);
+			<< " at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric();
 	}
 
 	if (iIndex < 1 || iIndex > iMaxIndex) {
 		silent_cerr("illegal index " << iIndex << " for " << msg
-			<< "at line " << HP.GetLineData() << std::endl);
+			<< " at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric();
 	}
 
