@@ -2376,9 +2376,10 @@ This element models a scalar (SISO) state space filter of the form
 	y = \T{C}\T{x}+Du
     }
 \end{displaymath}
-where $ \T{A} $ is a matrix \kw{state\_order}$\times$\kw{state\_order},
-$ \T{B} $ is a vector \kw{state\_order}$\times$1,
-$ \T{C} $ is a vector 1$\times$\kw{state\_order},
+where
+$ \T{A} $ is a matrix $ \mathtt{state\_order} \times \mathtt{state\_order} $,
+$ \T{B} $ is a vector $ \mathtt{state\_order} \times 1 $,
+$ \T{C} $ is a vector $1 \times \mathtt{state\_order} $,
 and $ D $ is scalar, if any.
 The matrices are read row-oriented.
 
@@ -2400,10 +2401,12 @@ This element models a vector (MISO) state space filter of the form
 	\T{y} = \T{C}\T{x}+\T{D}\T{u}
     }
 \end{displaymath}
-where $ \T{A} $ is a matrix \kw{state\_order}$\times$\kw{state\_order},
-$ \T{B} $ is a matrix \kw{state\_order}$\times$\kw{num\_inputs},
-$ \T{C} $ is a matrix \kw{num\_outputs}$\times$\kw{state\_order},
-and $ \T{D} $ is scalar \kw{num\_outputs}$\times$\kw{num\_inputs}.
+where
+$ \T{A} $ is a matrix $ \mathtt{state\_order} \times \mathtt{state\_order} $,
+$ \T{B} $ is a matrix $ \mathtt{state\_order} \times \mathtt{num\_inputs} $,
+$ \T{C} $ is a matrix $ \mathtt{num\_outputs} \times \mathtt{state\_order} $,
+and
+$ \T{D} $ is a matrix $ \mathtt{num\_outputs} \times \mathtt{num\_inputs} $.
 The matrices are read row-oriented.
 
 
