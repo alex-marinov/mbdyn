@@ -799,6 +799,54 @@ CosineDriveCaller::dGetP(const doublereal& dVar) const
 /* CosineDriveCaller - end */
 
 
+/* TanhDriveCaller - begin */
+
+class TanhDriveCaller : public DriveCaller {
+private:
+	doublereal dStart;
+	doublereal dA;
+	doublereal dB;
+	doublereal dInitialValue;
+
+public:
+	TanhDriveCaller(const DriveHandler* pDH,
+		doublereal ds, doublereal da, doublereal db, doublereal di);
+	~TanhDriveCaller(void);
+
+	/* Copia */
+	virtual DriveCaller* pCopy(void) const;
+
+	/* Scrive il contributo del DriveCaller al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	inline doublereal dGet(const doublereal& dVar) const;
+
+	/* this is about drives that are differentiable */
+	virtual bool bIsDifferentiable(void) const;
+	virtual doublereal dGetP(const doublereal& dVar) const;
+};
+
+inline doublereal
+TanhDriveCaller::dGet(const doublereal& dVar) const
+{
+	return dInitialValue + dA*std::tanh(dB*(dVar - dStart));
+}
+
+inline bool
+TanhDriveCaller::bIsDifferentiable(void) const
+{
+	return true;
+}
+
+inline doublereal 
+TanhDriveCaller::dGetP(const doublereal& dVar) const
+{
+	return dA*dB*(1. - std::tanh(dB*(dVar - dStart)));
+}
+
+/* TanhDriveCaller - end */
+
+
 /* FourierSeriesDriveCaller - begin */
 
 class FourierSeriesDriveCaller : public DriveCaller {

@@ -620,6 +620,46 @@ CosineDriveCaller::Restart(std::ostream& out) const
 /* CosineDriveCaller - end */
 
 
+/* TanhDriveCaller - begin */
+
+TanhDriveCaller::TanhDriveCaller(const DriveHandler* pDH,
+	doublereal ds, doublereal da,
+	doublereal db, doublereal di)
+: DriveCaller(pDH),
+dStart(ds), dA(da), dB(db), dInitialValue(di)
+{
+	NO_OP;
+}
+
+TanhDriveCaller::~TanhDriveCaller(void)
+{
+	NO_OP;
+}
+
+/* Copia */
+DriveCaller* TanhDriveCaller::pCopy(void) const
+{
+	DriveCaller* pDC = 0;
+	SAFENEWWITHCONSTRUCTOR(pDC,
+		TanhDriveCaller,
+		TanhDriveCaller(pDrvHdl, dStart, dA, dB, dInitialValue));
+	return pDC;
+}
+
+/* Scrive il contributo del DriveCaller al file di restart */
+std::ostream&
+TanhDriveCaller::Restart(std::ostream& out) const
+{
+	return out
+		<< " tanh, " << dStart
+		<< ", " << dA
+		<< ", " << dB
+		<< ", " << dInitialValue;
+}
+
+/* TanhDriveCaller - end */
+
+
 /* FreqSweepDriveCaller - begin */
 
 FreqSweepDriveCaller::FreqSweepDriveCaller(const DriveHandler* pDH,
@@ -1389,7 +1429,7 @@ DoubleRampDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 
 struct SineCosineDCR {
 protected:
-	virtual ~SineCosineDCR( void ) { NO_OP; };
+	virtual ~SineCosineDCR(void) { NO_OP; };
 	virtual DriveCaller *
 	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred, bool bSine);
 };
@@ -1470,6 +1510,43 @@ CosineDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	NeedDM(pDM, HP, bDeferred, "cosine");
 
 	return SineCosineDCR::Read(pDM, HP, bDeferred, false);
+}
+
+struct TanhDCR : public DriveCallerRead {
+	virtual DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+TanhDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+{
+	NeedDM(pDM, HP, bDeferred, "tanh");
+
+	const DriveHandler* pDrvHdl = 0;
+	if (pDM != 0) {
+		pDrvHdl = pDM->pGetDrvHdl();
+	}
+
+	DriveCaller *pDC = 0;
+
+	/* Seno e coseno (limitati, illimitati, saturati) */
+	doublereal dStart = HP.GetReal();
+	DEBUGCOUT("Initial time: " << dStart << std::endl);
+
+	doublereal dA = HP.GetReal(1.);
+	DEBUGCOUT("Amplitude: " << dA << std::endl);
+
+	doublereal dB = HP.GetReal();
+	DEBUGCOUT("Slope: " << dB << std::endl);
+
+	doublereal dInitialValue = HP.GetReal();
+	DEBUGCOUT("InitialValue: " << dInitialValue << std::endl);
+
+	SAFENEWWITHCONSTRUCTOR(pDC,
+		TanhDriveCaller,
+		TanhDriveCaller(pDrvHdl, dStart, dA, dB, dInitialValue));
+
+	return pDC;
 }
 
 struct FourierSeriesDCR : public DriveCallerRead {
@@ -2169,6 +2246,7 @@ InitDriveData(void)
 	SetDriveData("double" "ramp", new DoubleRampDCR);
 	SetDriveData("sine", new SineDCR);
 	SetDriveData("cosine", new CosineDCR);
+	SetDriveData("tanh", new TanhDCR);
 	SetDriveData("fourier" "series", new FourierSeriesDCR);
 	SetDriveData("frequency" "sweep", new FrequencySweepDCR);
 	SetDriveData("exponential", new ExponentialDCR);

@@ -1370,6 +1370,26 @@ Special keywords can be used for \kw{number\_of\_cycles}:
 
 %%% TODO: add a plot that exemplifies the three cases
 
+\subsection{Tanh drive}
+\begin{verbatim}
+    <drive_caller> ::= tanh,
+        <initial_time> ,
+        <amplitude> ,
+        <slope> ,
+        <initial_value>
+\end{verbatim}
+This drive computes a function of the type
+\begin{displaymath}
+	\mathtt{amplitude} *\llk{tanh}\plbr{
+			\mathtt{slope} * \plbr{
+				t - \mathtt{initial\_time}
+			}
+		} + \mathtt{initial\_value} .
+\end{displaymath}
+It is differentiable.
+
+%%% TODO: add a plot that exemplifies the three cases
+
 \subsection{Fourier series drive}
 \begin{verbatim}
     <drive_caller> ::= fourier series ,
