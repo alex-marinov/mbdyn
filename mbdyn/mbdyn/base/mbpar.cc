@@ -419,7 +419,7 @@ MBDynParser::ConstitutiveLaw_int(void)
 		/* allow "reference" (copy cached constitutive law) */
 		ConstitutiveLaw3D *pCL = GetConstLaw3D(clt);
 		if (pCL == NULL) {
-			silent_cerr("unable to read constitutive law 1D " 
+			silent_cerr("unable to read constitutive law 3D " 
 					<< uLabel);
 			if (sName) {
 				silent_cerr(" (" << sName << ")");
@@ -1203,7 +1203,7 @@ MBDynParser::GetConstLaw6D(ConstLawType::Type& clt)
 	unsigned int uLabel = GetInt();
 	C6DType::const_iterator i = C6D.find(uLabel);
 	if (i == C6D.end()) {
-		silent_cerr("constitutive law 3D " << uLabel
+		silent_cerr("constitutive law 6D " << uLabel
 				<< " is undefined at line "
 				<< GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric();

@@ -114,6 +114,7 @@ ReadCL1D(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType)
 {
 	const char *s, *sOrig = HP.IsWord(CL1DWordSet);
 	if (sOrig == 0) {
+		/* default to linear elastic? */
 		s = "linear" "elastic";
 		sOrig = "";
 
@@ -137,8 +138,14 @@ ReadCL3D(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType)
 {
 	const char *s, *sOrig = HP.IsWord(CL3DWordSet);
 	if (sOrig == 0) {
+#if 0
 		s = "linear" "elastic";
 		sOrig = "";
+#else
+		silent_cerr("unknown constitutive law 3D type "
+			"at line " << HP.GetLineData() << std::endl);
+		throw DataManager::ErrGeneric();
+#endif
 
 	} else {
 		s = sOrig;
@@ -160,8 +167,14 @@ ReadCL6D(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType)
 {
 	const char *s, *sOrig = HP.IsWord(CL6DWordSet);
 	if (sOrig == 0) {
+#if 0
 		s = "linear" "elastic";
 		sOrig = "";
+#else
+		silent_cerr("unknown constitutive law 6D type "
+			"at line " << HP.GetLineData() << std::endl);
+		throw DataManager::ErrGeneric();
+#endif
 
 	} else {
 		s = sOrig;
