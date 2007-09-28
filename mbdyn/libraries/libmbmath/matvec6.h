@@ -518,6 +518,20 @@ class Mat6x6 {
 		    m[1][0]*x.GetMat12()+m[1][1]*x.GetMat22());
    };  
    
+   bool operator == (const Mat6x6& x) const {
+      return m[0][0] == x.GetMat11()
+		&& m[1][0] == x.GetMat21()
+		&& m[0][1] == x.GetMat12()
+		&& m[1][1] == x.GetMat22();
+   };
+   
+   bool operator != (const Mat6x6& x) const {
+      return m[0][0] != x.GetMat11()
+		|| m[1][0] != x.GetMat21()
+		|| m[0][1] != x.GetMat12()
+		|| m[1][1] != x.GetMat22();
+   };
+   
    Mat6x6 Transpose(void) {
       return Mat6x6(m[0][0].Transpose(),
 		    m[0][1].Transpose(),
