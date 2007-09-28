@@ -12,6 +12,8 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 MBDyn 1.X-Devel
 	Enhancements:
 		- added "tanh" drive caller
+		- allow elastic/viscous variants of nlsf/nlp const. laws
+		  (noted by Rudi Jaeger)
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:

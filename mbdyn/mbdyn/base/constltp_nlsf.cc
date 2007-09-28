@@ -48,6 +48,7 @@ template <class T, class Tder>
 class NLSFViscoElasticConstitutiveLaw
 : public ElasticConstitutiveLaw<T, Tder> {
 private:
+	ConstLawType::Type CLType;
 	Tder FDE0;
 	Tder FDEPrime0;
 	std::vector<const DifferentiableScalarFunction *> FDEsc;
@@ -56,11 +57,13 @@ private:
 public:
 	NLSFViscoElasticConstitutiveLaw(const TplDriveCaller<T>* pDC,
 		const T& PStress,
+		const ConstLawType::Type &cltype,
 		const Tder& fde0,
 		const std::vector<const DifferentiableScalarFunction *>& fdesc,
 		const Tder& fdeprime0,
 		const std::vector<const DifferentiableScalarFunction *>& fdeprimesc)
 	: ElasticConstitutiveLaw<T, Tder>(pDC, PStress),
+	CLType(cltype),
 	FDE0(fde0), FDEPrime0(fdeprime0),
 	FDEsc(fdesc), FDEPrimesc(fdeprimesc)
 	{
@@ -73,7 +76,7 @@ public:
 	};
 
 	ConstLawType::Type GetConstLawType(void) const {
-		return ConstLawType::VISCOELASTIC;
+		return CLType;
 	};
 
 	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
@@ -83,7 +86,7 @@ public:
 		SAFENEWWITHCONSTRUCTOR(pCL, cl,
 			cl(ElasticConstitutiveLaw<T, Tder>::pGetDriveCaller()->pCopy(),
 				ElasticConstitutiveLaw<T, Tder>::PreStress,
-				FDE0, FDEsc, FDEPrime0, FDEPrimesc));
+				CLType, FDE0, FDEsc, FDEPrime0, FDEPrimesc));
 		return pCL;
 	};
 
@@ -129,10 +132,15 @@ public:
 		T E = ElasticConstitutiveLaw<T, Tder>::Epsilon
 			- ElasticConstitutiveLaw<T, Tder>::Get();
 
-		ConstitutiveLaw<T, Tder>::F = ElasticConstitutiveLaw<T, Tder>::PreStress
-			+ FDE0*E + FDEPrime0*EpsPrime;
-		ConstitutiveLaw<T, Tder>::FDE = FDE0;
-		ConstitutiveLaw<T, Tder>::FDEPrime = FDEPrime0;
+		ConstitutiveLaw<T, Tder>::F = ElasticConstitutiveLaw<T, Tder>::PreStress;
+		if (CLType & ConstLawType::ELASTIC) {
+			ConstitutiveLaw<T, Tder>::F += FDE0*E;
+			ConstitutiveLaw<T, Tder>::FDE = FDE0;
+		}
+		if (CLType & ConstLawType::VISCOUS) {
+			ConstitutiveLaw<T, Tder>::F += FDEPrime0*EpsPrime;
+			ConstitutiveLaw<T, Tder>::FDEPrime = FDEPrime0;
+		}
 
 		for (unsigned i = 0; i < FDEsc.size(); i++) {
 
@@ -147,27 +155,23 @@ public:
 			 * f/epsPrime = f0'' + f''/epsPrime
 			 */
 
-			doublereal dEps = E(i + 1);
-			doublereal dEpsPrime = EpsPrime(i + 1);
+			doublereal f = 0.;
 
-			doublereal df1 = 0.;
-			doublereal df1DE = 0.;
-			doublereal df2 = 0.;
-			doublereal df2DEPrime = 0.;
-
-			if (FDEsc[i]) {
-				df1 = (*FDEsc[i])(dEps);
-				df1DE = FDEsc[i]->ComputeDiff(dEps);
+			if ((CLType & ConstLawType::ELASTIC) && FDEsc[i]) {
+				doublereal dEps = E(i + 1);
+				f += (*FDEsc[i])(dEps);
+				doublereal df1DE = FDEsc[i]->ComputeDiff(dEps);
+				ConstitutiveLaw<T, Tder>::FDE(i + 1, i + 1) += df1DE;
 			}
 
-			if (FDEPrimesc[i]) {
-				df2 = (*FDEPrimesc[i])(dEpsPrime);
-				df2DEPrime = FDEPrimesc[i]->ComputeDiff(dEpsPrime);
+			if ((CLType & ConstLawType::ELASTIC) && FDEPrimesc[i]) {
+				doublereal dEpsPrime = EpsPrime(i + 1);
+				f += (*FDEPrimesc[i])(dEpsPrime);
+				doublereal df2DEPrime = FDEPrimesc[i]->ComputeDiff(dEpsPrime);
+				ConstitutiveLaw<T, Tder>::FDEPrime(i + 1, i + 1) += df2DEPrime;
 			}
 
-			ConstitutiveLaw<T, Tder>::F(i + 1) += df1 + df2;
-			ConstitutiveLaw<T, Tder>::FDE(i + 1, i + 1) += df1DE;
-			ConstitutiveLaw<T, Tder>::FDEPrime(i + 1, i + 1) += df2DEPrime;
+			ConstitutiveLaw<T, Tder>::F(i + 1) += f;
 		}
 	};
 
@@ -180,6 +184,7 @@ template <>
 class NLSFViscoElasticConstitutiveLaw<doublereal, doublereal>
 : public ElasticConstitutiveLaw<doublereal, doublereal> {
 private:
+	ConstLawType::Type CLType;
 	doublereal FDE0;
 	doublereal FDEPrime0;
 	std::vector<const DifferentiableScalarFunction *> FDEsc;
@@ -188,11 +193,13 @@ private:
 public:
 	NLSFViscoElasticConstitutiveLaw(const TplDriveCaller<doublereal>* pDC,
 		const doublereal& PStress,
+		const ConstLawType::Type& cltype,
 		const doublereal& fde0,
 		const std::vector<const DifferentiableScalarFunction *>& fdesc,
 		const doublereal& fdeprime0,
 		const std::vector<const DifferentiableScalarFunction *>& fdeprimesc)
 	: ElasticConstitutiveLaw<doublereal, doublereal>(pDC, PStress),
+	CLType(cltype),
 	FDE0(fde0), FDEPrime0(fdeprime0),
 	FDEsc(fdesc), FDEPrimesc(fdeprimesc)
 	{
@@ -205,7 +212,7 @@ public:
 	};
 
 	ConstLawType::Type GetConstLawType(void) const {
-		return ConstLawType::VISCOELASTIC;
+		return CLType;
 	};
 
 	virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const {
@@ -215,7 +222,7 @@ public:
 		SAFENEWWITHCONSTRUCTOR(pCL, cl,
 			cl(ElasticConstitutiveLaw<doublereal, doublereal>::pGetDriveCaller()->pCopy(),
 				ElasticConstitutiveLaw<doublereal, doublereal>::PreStress,
-				FDE0, FDEsc, FDEPrime0, FDEPrimesc));
+				CLType, FDE0, FDEsc, FDEPrime0, FDEPrimesc));
 		return pCL;
 	};
 
@@ -262,10 +269,15 @@ public:
 			- ElasticConstitutiveLaw<doublereal, doublereal>::Get();
 		doublereal dEpsPrime = EpsPrime;
 
-		ConstitutiveLaw<doublereal, doublereal>::F = ElasticConstitutiveLaw<doublereal, doublereal>::PreStress
-			+ FDE0*dEps + FDEPrime0*dEpsPrime;
-		ConstitutiveLaw<doublereal, doublereal>::FDE = FDE0;
-		ConstitutiveLaw<doublereal, doublereal>::FDEPrime = FDEPrime0;
+		ConstitutiveLaw<doublereal, doublereal>::F = ElasticConstitutiveLaw<doublereal, doublereal>::PreStress;
+		if (CLType & ConstLawType::ELASTIC) {
+			ConstitutiveLaw<doublereal, doublereal>::F += FDE0*dEps;
+			ConstitutiveLaw<doublereal, doublereal>::FDE = FDE0;
+		}
+		if (CLType & ConstLawType::VISCOUS) {
+			ConstitutiveLaw<doublereal, doublereal>::F += FDEPrime0*dEpsPrime;
+			ConstitutiveLaw<doublereal, doublereal>::FDEPrime = FDEPrime0;
+		}
 
 		/*
 		 * each diagonal coefficient is:
@@ -278,24 +290,21 @@ public:
 		 * f/epsPrime = f''
 		 */
 
-		doublereal df1 = 0.;
-		doublereal df1DE = 0.;
-		doublereal df2 = 0.;
-		doublereal df2DEPrime = 0.;
+		doublereal f = 0.;
 
-		if (FDEsc[0]) {
-			df1 = (*FDEsc[0])(dEps);
-			df1DE = FDEsc[0]->ComputeDiff(dEps);
+		if ((CLType & ConstLawType::ELASTIC) && FDEsc[0]) {
+			f += (*FDEsc[0])(dEps);
+			doublereal df1DE = FDEsc[0]->ComputeDiff(dEps);
+			ConstitutiveLaw<doublereal, doublereal>::FDE += df1DE;
 		}
 
-		if (FDEPrimesc[0]) {
-			df2 = (*FDEPrimesc[0])(dEpsPrime);
-			df2DEPrime = FDEPrimesc[0]->ComputeDiff(dEpsPrime);
+		if ((CLType & ConstLawType::VISCOUS) && FDEPrimesc[0]) {
+			f += (*FDEPrimesc[0])(dEpsPrime);
+			doublereal df2DEPrime = FDEPrimesc[0]->ComputeDiff(dEpsPrime);
+			ConstitutiveLaw<doublereal, doublereal>::FDEPrime += df2DEPrime;
 		}
 
-		ConstitutiveLaw<doublereal, doublereal>::F += df1 + df2;
-		ConstitutiveLaw<doublereal, doublereal>::FDE += df1DE;
-		ConstitutiveLaw<doublereal, doublereal>::FDEPrime += df2DEPrime;
+		ConstitutiveLaw<doublereal, doublereal>::F += f;
 	};
 
 	virtual void IncrementalUpdate(const doublereal& DeltaEps, const doublereal& EpsPrime = 0.) {
@@ -314,8 +323,6 @@ struct NLSFViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType)
 	{
 		ConstitutiveLaw<T, Tder>* pCL = 0;
-
-		CLType = ConstLawType::VISCOELASTIC;
 
 		unsigned dim;
 		if (typeid(T) == typeid(doublereal)) {
@@ -339,6 +346,7 @@ struct NLSFViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		Tder FDE0(0.);
 		FDE0 = HP.Get(FDE0);
 
+		bool bElastic(FDE0 != Tder(0.));
 		std::vector<const DifferentiableScalarFunction *> FDEsc(dim);
 		for (unsigned i = 0; i < dim; i++) {
 			if (HP.IsKeyWord("null")) {
@@ -354,6 +362,7 @@ struct NLSFViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 						"must be differentiable" << std::endl);
 					throw ErrGeneric();
 				}
+				bElastic = true;
 			}
 		}
 
@@ -361,6 +370,7 @@ struct NLSFViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		Tder FDEPrime0(0.);
 		FDEPrime0 = HP.Get(FDEPrime0);
 
+		bool bViscous(FDEPrime0 != Tder(0.));
 		std::vector<const DifferentiableScalarFunction *> FDEPrimesc(dim);
 		for (unsigned i = 0; i < dim; i++) {
 			if (HP.IsKeyWord("null")) {
@@ -376,6 +386,7 @@ struct NLSFViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 						"must be differentiable" << std::endl);
 					throw ErrGeneric();
 				}
+				bViscous = true;
 			}
 		}
 
@@ -385,9 +396,21 @@ struct NLSFViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		T PreStrain(0.);
 		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
 
+		if (bElastic && bViscous) {
+			CLType = ConstLawType::VISCOELASTIC;
+		} else if (bElastic) {
+			CLType = ConstLawType::ELASTIC;
+		} else if (bViscous) {
+			CLType = ConstLawType::VISCOUS;
+		} else {
+			/* needs to be at least elastic... */
+			CLType = ConstLawType::ELASTIC;
+		}
+
 		typedef NLSFViscoElasticConstitutiveLaw<T, Tder> L;
 		SAFENEWWITHCONSTRUCTOR(pCL, L,
 			L(pTplDC, PreStress,
+				CLType,
 				FDE0, FDEsc,
 				FDEPrime0, FDEPrimesc));
 
