@@ -677,7 +677,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				throw ErrGeneric();
 			} /* end switch (KeyWords(HP.GetWord())) */
 
-			Elem* pEl = (Elem*)pFindElem(t, uL);
+			Elem* pEl = dynamic_cast<Elem*>(pFindElem(t, uL));
 			if (pEl == 0) {
 				silent_cerr("can't find " << psElemNames[t] << " (" << uL << ") "
 					"at line " << HP.GetLineData() << std::endl);
@@ -687,7 +687,7 @@ DataManager::ReadElems(MBDynParser& HP)
 			/* Label del nodo parameter */
 			uL = HP.GetInt();
 
-			Elem2Param* pNd = (Elem2Param*)pFindNode(Node::PARAMETER, uL);
+			Elem2Param* pNd = dynamic_cast<Elem2Param*>(pFindNode(Node::PARAMETER, uL));
 			if (pNd == 0) {
 				silent_cerr("can't find parameter node (" << uL << ") "
 					"at line " << HP.GetLineData() << std::endl);
