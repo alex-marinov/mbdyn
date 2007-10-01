@@ -2445,8 +2445,20 @@ Equation~(\ref{eq:TOTAL-JOINT:omegadelta}) becomes
 \end{equation}
 Otherwise, Equation~(\ref{eq:TOTAL-JOINT:omegadelta}) represents
 a non-holonomic constraint.
+In this case, $\T{R}^{\delta}$ is again the identity matrix, although
+resulting from an unknown $\T{R}_0$, which is the result of integrating
+the dynamics of the problem with the non-holonomic constraint represented
+by Equation~(\ref{eq:TOTAL-JOINT:omega_0}).
+In fact,
+\begin{equation}
+	\T{R}_0 = \T{R}_{1hr}^T \T{R}_{2hr}
+\end{equation}
+is the definition of the relative orientation resulting from 
+imposing the constraint of Equation~(\ref{eq:TOTAL-JOINT:omega_0}).
 
-Its perturbation results in
+
+
+The perturbation of Equation~(\ref{eq:TOTAL-JOINT:omega_0}) results in
 \begin{align}
 	\delta\T{\omega}^{\delta}
 	&= \T{R}_{1hr}^T \plbr{
