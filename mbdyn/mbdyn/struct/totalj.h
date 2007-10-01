@@ -56,6 +56,9 @@ private:
 	bool bPosActive[3];
 	bool bRotActive[3];
 	
+	bool bVelActive[3];
+	bool bAgvActive[3];	/* Agv stands for AnGular Velocity */
+	
 	TplDriveOwner<Vec3> XDrv;
 	TplDriveOwner<Vec3> XPDrv;
 	TplDriveOwner<Vec3> XPPDrv;
@@ -67,9 +70,18 @@ private:
 	unsigned int nConstraints;
 	unsigned int nPosConstraints;
 	unsigned int nRotConstraints;
+	unsigned int nVelConstraints;
+	unsigned int nAgvConstraints;
 	
 	unsigned int iPosIncid[3];
 	unsigned int iRotIncid[3];
+	unsigned int iVelIncid[3];
+	unsigned int iAgvIncid[3];
+	
+	unsigned int iPosEqIndex[3];
+	unsigned int iRotEqIndex[3];
+	unsigned int iVelEqIndex[3];
+	unsigned int iAgvEqIndex[3];
 	
 	Vec3 tilde_f1;
 
@@ -81,9 +93,9 @@ private:
 public:
 	/* Constructor */
 	TotalJoint(unsigned int uL, const DofOwner *pDO,
-		bool bPos[3],
+		bool bPos[3], bool bVel[3],
 		TplDriveCaller<Vec3> *const pDCPos[3],
-		bool bRot[3],
+		bool bRot[3], bool bAgv[3],
 		TplDriveCaller<Vec3> *const pDCRot[3],
 		const StructNode* pN1,
 		const Vec3& f1Tmp, const Mat3x3& R1hTmp, const Mat3x3& R1hrTmp, 

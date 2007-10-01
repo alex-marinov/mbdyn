@@ -179,8 +179,8 @@ ReadJoint(DataManager* pDM,
 		"imposed" "displacement",
 		"imposed" "displacement" "pin",
 		"imposed" "orientation",
-	"total" "equation",
-	"total" "internal" "reaction",
+		"total" "equation",
+		"total" "internal" "reaction",
 		"total" "joint",
 		"total" "pin" "joint",
 		"kinematic",
@@ -236,8 +236,8 @@ ReadJoint(DataManager* pDM,
 		IMPOSEDDISPLACEMENT,
 		IMPOSEDDISPLACEMENTPIN,
 		IMPOSEDORIENTATION,
-	TOTALEQUATION,
-	TOTALINTERNALREACTION,
+		TOTALEQUATION,
+		TOTALINTERNALREACTION,
 		TOTALJOINT,
 		TOTALPINJOINT,
 		KINEMATIC,
@@ -2607,14 +2607,21 @@ ReadJoint(DataManager* pDM,
 		}
 
 		bool bXActive[3] = { false, false, false };
+		bool bVActive[3] = { false, false, false };
 		TplDriveCaller<Vec3>* pXDC[3] = {0, 0, 0};
 		if (HP.IsKeyWord("position" "constraint")) {
 			for (unsigned i = 0; i < 3; i++) {
 				if (HP.IsKeyWord("inactive")) {
 					bXActive[i] = false;
+					bVActive[i] = false;
 
-				} else if (HP.IsKeyWord("active")) {
+				} else if (HP.IsKeyWord("position") || HP.IsKeyWord("active")) {
 					bXActive[i] = true;
+					bVActive[i] = false;
+
+				} else if (HP.IsKeyWord("velocity")) {
+					bVActive[i] = true;
+					bXActive[i] = false;
 
 				} else {
 					if (HP.IsArg()) {
@@ -2622,10 +2629,12 @@ ReadJoint(DataManager* pDM,
 						switch (iActive) {
 						case 0:
 							bXActive[i] = false;
+							bVActive[i] = false;
 							continue;
 
 						default:
 							bXActive[i] = true;
+							bVActive[i] = true;
 							continue;
 						}
 					}
@@ -2649,14 +2658,21 @@ ReadJoint(DataManager* pDM,
 		}
 
 		bool bTActive[3] = { false, false, false };
+		bool bWActive[3] = { false, false, false };
 		TplDriveCaller<Vec3>* pTDC[3] = {0, 0, 0};
 		if (HP.IsKeyWord("orientation" "constraint")) {
 			for (unsigned i = 0; i < 3; i++) {
 				if (HP.IsKeyWord("inactive")) {
 					bTActive[i] = false;
+					bWActive[i] = false;
 
-				} else if (HP.IsKeyWord("active")) {
+				} else if (HP.IsKeyWord("rotation") || HP.IsKeyWord("active")) {
 					bTActive[i] = true;
+					bWActive[i] = false;
+				
+				} else if (HP.IsKeyWord("angular" "velocity")) {
+					bTActive[i] = false;
+					bWActive[i] = true;
 
 				} else {
 					if (HP.IsArg()) {
@@ -2664,10 +2680,12 @@ ReadJoint(DataManager* pDM,
 						switch (iActive) {
 						case 0:
 							bTActive[i] = false;
+							bWActive[i] = false;
 							continue;
 
 						default:
 							bTActive[i] = true;
+							bWActive[i] = true;
 							continue;
 						}
 					}
@@ -2695,8 +2713,8 @@ ReadJoint(DataManager* pDM,
 		SAFENEWWITHCONSTRUCTOR(pEl,
 			TotalJoint,
 			TotalJoint(uLabel, pDO,
-				bXActive, pXDC,
-				bTActive, pTDC,
+				bXActive, bVActive, pXDC,
+				bTActive, bWActive, pTDC,
 				pNode1, f1, R1h, R1hr,
 				pNode2, f2, R2h, R2hr,
 				fOut));

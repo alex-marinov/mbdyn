@@ -50,9 +50,9 @@ static const char idx2xyz[] = { 'x', 'y', 'z' };
 /* TotalJoint - begin */
 
 TotalJoint::TotalJoint(unsigned int uL, const DofOwner *pDO,
-	bool bPos[3],
+	bool bPos[3], bool bVel[3],
 	TplDriveCaller<Vec3> *const pDCPos[3],
-	bool bRot[3],
+	bool bRot[3], bool bAgv[3],	/* Agv stands for AnGular Velocity */
 	TplDriveCaller<Vec3> *const pDCRot[3],
 	const StructNode *pN1,
 	const Vec3& f1Tmp, const Mat3x3& R1hTmp, const Mat3x3& R1hrTmp,
@@ -67,25 +67,55 @@ f2(f2Tmp), R2h(R2hTmp), R2hr(R2hrTmp),
 XDrv(pDCPos[0]), XPDrv(pDCPos[1]), XPPDrv(pDCPos[2]),
 ThetaDrv(pDCRot[0]), OmegaDrv(pDCRot[1]), OmegaPDrv(pDCRot[2]),
 nConstraints(0), nPosConstraints(0), nRotConstraints(0),
+nVelConstraints(0), nAgvConstraints(0),
 tilde_f1(R1h.Transpose()*f1),
 M(0.), F(0.), ThetaDelta(0.), ThetaDeltaPrev(0.)
 {
 	/* Equations 1->3: Positions
 	 * Equations 4->6: Rotations */
+	
+	unsigned int index = 0;
 
 	for (unsigned int i = 0; i < 3; i++) {
 		bPosActive[i] = bPos[i];
-		bRotActive[i] = bRot[i];
+		bVelActive[i] = bVel[i];
+		
 		if (bPosActive[i]) {
 			iPosIncid[nPosConstraints] = i + 1;
+			iPosEqIndex[nPosConstraints] = index;
 			nPosConstraints++;
+			index++;
 		}
+		
+		if (bVelActive[i]) {
+			iVelIncid[nVelConstraints] = i + 1;
+			iVelEqIndex[nVelConstraints] = index;
+			nVelConstraints++;
+			index++;
+		}
+	}	
+	
+	index = 0;
+	for (unsigned int i = 0; i < 3; i++) {
+		bRotActive[i] = bRot[i];
+		bAgvActive[i] = bAgv[i];
+		
 		if (bRotActive[i]) {
 			iRotIncid[nRotConstraints] = i + 1;
+			iRotEqIndex[nRotConstraints] = nPosConstraints + nVelConstraints + index;
 			nRotConstraints++;
+			index++;
+		}
+		
+		if (bAgvActive[i]) {
+			iAgvIncid[nVelConstraints] = i + 1;
+			iAgvEqIndex[nAgvConstraints] = nPosConstraints + nVelConstraints + index;
+			nAgvConstraints++;
+			index++;
 		}
 	}
-	nConstraints = nPosConstraints + nRotConstraints;
+	nConstraints = nPosConstraints + nRotConstraints + nVelConstraints + nAgvConstraints;
+
 }
 
 TotalJoint::~TotalJoint(void)
@@ -93,6 +123,7 @@ TotalJoint::~TotalJoint(void)
 	NO_OP;
 };
 
+/* FIXME: velocity stuffs not implemented yet */
 std::ostream&
 TotalJoint::DescribeDof(std::ostream& out,
 	const char *prefix, bool bInitial, int i) const
@@ -106,15 +137,15 @@ TotalJoint::DescribeDof(std::ostream& out,
 		throw ErrGeneric();
 	}
 
-	if (nPosConstraints > 1) {
+	if (nPosConstraints > 1 || nVelConstraints > 1) {
 		out << prefix << iIndex + 1;
-		out << "->" << iIndex + nPosConstraints;
+		out << "->" << iIndex + nPosConstraints + nVelConstraints;
 		out << ": ";
 	}
 	out << "reaction force(s) [";
 
 	for (unsigned int i = 0, cnt = 0; i < 3; i++) {
-		if (bPosActive[i]) {
+		if (bPosActive[i] || bVelActive[i]) {
 			cnt++;
 			if (cnt > 1) {
 				out << ",";
@@ -125,15 +156,15 @@ TotalJoint::DescribeDof(std::ostream& out,
 	out << "]" << std::endl;
 	
 
-	if (nRotConstraints > 1) {
-		out << prefix << iIndex + nPosConstraints + 1;
+	if (nRotConstraints > 1 || nAgvConstraints > 1) {
+		out << prefix << iIndex + nPosConstraints + nVelConstraints + 1;
 		out << "->" << iIndex + nConstraints ;
 		out << ": ";
 	}
 	out << "reaction couple(s) [";
 
 	for (unsigned int i = 0, cnt = 0; i < 3; i++) {
-		if (bRotActive[i]) {
+		if (bRotActive[i] || bAgvActive[i]) {
 			cnt++;
 			if (cnt > 1) {
 				out << ",";
@@ -186,6 +217,7 @@ TotalJoint::DescribeDof(std::ostream& out,
 	return out;
 }
 
+/* FIXME: velocity stuffs not implemnted yet */
 std::ostream&
 TotalJoint::DescribeEq(std::ostream& out,
 	const char *prefix, bool bInitial, int i) const
@@ -199,14 +231,14 @@ TotalJoint::DescribeEq(std::ostream& out,
 		throw ErrGeneric();
 	}
 
-	if (nPosConstraints > 1) {
+	if (nPosConstraints > 1 || nVelConstraints > 1) {
 		out << prefix << iIndex + 1;
 		out << "->" << iIndex + nPosConstraints;
 		out << ": ";
 	}
 	
-	if (nPosConstraints > 0) {
-		out << "position constraint(s) [";
+	if (nPosConstraints > 0 || nVelConstraints > 0) {
+		out << "position/velocity constraint(s) [";
 	}
 	
 	for (unsigned int i = 0, cnt = 0; i < 3; i++) {
@@ -217,19 +249,26 @@ TotalJoint::DescribeEq(std::ostream& out,
 			}
 			out << "P" << idx2xyz[i] << "1=P" << idx2xyz[i] << "2";
 		}
+		if (bVelActive[i]) {
+			cnt++;
+			if (cnt > 1) {
+				out << ",";
+			}
+			out << "V" << idx2xyz[i] << "1=V" << idx2xyz[i] << "2";
+		}
 	}
 	
-	if (nPosConstraints > 0) {
+	if (nPosConstraints > 0 || nVelConstraints > 0) {
 		out << "]" << std::endl;
 	}
 
-	if (nRotConstraints > 1) {
-		out << prefix << iIndex + nPosConstraints + 1;
+	if (nRotConstraints > 1 || nVelConstraints > 1) {
+		out << prefix << iIndex + nPosConstraints + nVelConstraints + 1;
 		out << "->" << iIndex + nConstraints ;
 		out << ": ";
 	}
-	if (nRotConstraints > 0) {
-		out << "orientation constraint(s) [";
+	if (nRotConstraints > 0 || nAgvConstraints > 0) {
+		out << "orientation/angular velocity constraint(s) [";
 	}
 	
 	for (unsigned int i = 0, cnt = 0; i < 3; i++) {
@@ -240,8 +279,15 @@ TotalJoint::DescribeEq(std::ostream& out,
 			}
 			out << "g" << idx2xyz[i] << "1=g" << idx2xyz[i] << "2";
 		}
+		if (bAgvActive[i]) {
+			cnt++;
+			if (cnt > 1) {
+				out << ",";
+			}
+			out << "W" << idx2xyz[i] << "1=W" << idx2xyz[i] << "2";
+		}
 	}
-	if (nRotConstraints > 0) {
+	if (nRotConstraints > 0 || nAgvConstraints > 0) {
 		out << "]" << std::endl;
 	}
 
@@ -475,6 +521,7 @@ TotalJoint::AfterConvergence(const VectorHandler& /* X */ ,
 }
 
 /* Contributo al file di restart */
+/* FIXME: velocity stuffs not implemented yet */
 std::ostream&
 TotalJoint::Restart(std::ostream& out) const
 {
@@ -529,45 +576,9 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	const VectorHandler& /* XPrimeCurr */ )
 {
 	/*
-	 * Constraint Equations:
-	 * Position: 	R1^T(x2 + R2*f2 -x1 - R1*f1) - d = x^delta
-	 * 		==> d(Vec3) = imposed displacement in node 1 local R.F.
-	 * 		==> x^delta is used to activate/deactivate the constraint
-	 * 			equation along the corresponding direction. If each
-	 * 			component is set to 0, all relative displacement
-	 * 			are forbidden (or imposed by the drive). If a component
-	 * 			of x^delta is left free, the corrsponding equation is
-	 * 			dropped
-	 *
-	 * Orientation:	Theta - Theta0 = ax(exp^-1(R1^T * R2 * R0^T)) = Theta^delta
-	 * 		==> Theta = ax(exp^-1(R1^T * R2)) = Relative orientation in node1 R.F.
-	 * 		==> Theta0 = Imposed relative orientation = ax(exp^-1(R0))
-	 * 		==> Theta^delta is used to activate/deactivate the constraint
-	 * 			equation along the corresponding direction. If each
-	 * 			component is set to 0, all relative rotation
-	 * 			are forbidden (or imposed by the drive). If a component
-	 * 			of Theta^delta is left free, the corrsponding equation is
-	 * 			dropped
-	 *Jacobian Matrix:
-	 *       x1  	     g1       	   x2    	g2       	 F	      M
-	 * Q1 |  0   	     F1X           0            0              -R1            0	 | | x1 |
-	 * G1 |-(F1)X  (b1)X(F1)X+(M1)X  (F1)X     -(F1)X(b2)X       (b1)X(R1)      -R1r | | g1 |
-	 * Q2 |  0          -F1X           0    	0   	         R1	      0  | | x2 |
-	 * G2 |  0    -(b2)X(F1)X-(M1)X    0        (F1)X(b2)X       (b2)X(R1)       R1r | | g2 |
-	 * F  |-c*R1^T  c*R1^T*[(b1)X]   c*R1^T   -c*R1^T*[(b2)X]        0            0	 | | F  |if(bPos)
-	 * M  |  0        -c*R1r^T         0         c* R1r^T            0   	      0	 | | M  |if(bRot)
-	 *           	                                               if(bPos)    if(bRot)
-	 *with: _ b1 = (x2 + R2*f2 - x1)
-	 *      _ b2 = (R2*f2)
-	 *      _ R1 = R1*R1h
-	 *      _ R2 = R2*R2h
-	 *      _ R1r = R1*R1hr
-	 *      _ F1 = R1*F
-	 *      _ M1 = R1*M
-	 *      _ X = "Cross" operator
-	 *
-	 *     */
-
+	 See tecman.pdf for details
+	 */
+	 
 	DEBUGCOUT("Entering TotalJoint::AssJac()" << std::endl);
 
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
@@ -604,9 +615,17 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	Vec3 b2(pNode2->GetRCurr()*f2);
 	Vec3 b1(pNode2->GetXCurr() + b2 - pNode1->GetXCurr());
 
-	/* Moltiplica il momento e la forza per il coefficiente del metodo */
-	Vec3 FTmp(R1*(F*dCoef));
-	Vec3 MTmp(R1r*(M*dCoef));
+	/* Moltiplica il momento e la forza per il coefficiente del metodo
+	 * SOLO se il vincolo è in posizione */
+	
+	Vec3 FTmp(R1*F);
+	Vec3 MTmp(R1r*M);
+	for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++)	{
+		FTmp(iPosIncid[iCnt]) *= dCoef;
+	}
+	for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++)	{
+		MTmp(iRotIncid[iCnt]) *= dCoef;
+	}
 
 	/* Equilibrium: ((Phi/q)^T*Lambda)/q */
 
@@ -656,36 +675,105 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		Vec3 vb2Cross_R1(b2Cross_R1.GetVec(iPosIncid[iCnt]));
 
 		/* Equilibrium, node 1 */
-      		WM.Sub(1, 12 + 1 + iCnt, vR1);
-      		WM.Sub(3 + 1, 12 + 1 + iCnt, vb1Cross_R1);
+      		WM.Sub(1, 12 + 1 + iPosEqIndex[iCnt], vR1);
+      		WM.Sub(3 + 1, 12 + 1 + iPosEqIndex[iCnt], vb1Cross_R1);
 
 		/* Constraint, node 1 */
-      		WM.SubT(12 + 1 + iCnt, 1, vR1);
-      		WM.SubT(12 + 1 + iCnt, 3 + 1, vb1Cross_R1);
+      		WM.SubT(12 + 1 + iPosEqIndex[iCnt], 1, vR1);
+      		WM.SubT(12 + 1 + iPosEqIndex[iCnt], 3 + 1, vb1Cross_R1);
 
 		/* Equilibrium, node 2 */
-      		WM.Add(6 + 1, 12 + 1 + iCnt, vR1);
-      		WM.Add(9 + 1, 12 + 1 + iCnt, vb2Cross_R1);
+      		WM.Add(6 + 1, 12 + 1 + iPosEqIndex[iCnt], vR1);
+      		WM.Add(9 + 1, 12 + 1 + iPosEqIndex[iCnt], vb2Cross_R1);
 
 		/* Constraint, node 2 */
-      		WM.AddT(12 + 1 + iCnt, 6 + 1, vR1);
-      		WM.AddT(12 + 1 + iCnt, 9 + 1, vb2Cross_R1);
+      		WM.AddT(12 + 1 + iPosEqIndex[iCnt], 6 + 1, vR1);
+      		WM.AddT(12 + 1 + iPosEqIndex[iCnt], 9 + 1, vb2Cross_R1);
 	}
-
+	
 	for (unsigned iCnt = 0 ; iCnt < nRotConstraints; iCnt++) {
 		Vec3 vR1(R1r.GetVec(iRotIncid[iCnt]));
 
 		/* Equilibrium, node 1 */
-      		WM.Sub(3 + 1, 12 + 1 + nPosConstraints +  iCnt, vR1);
+      		WM.Sub(3 + 1, 12 + 1 + iRotEqIndex[iCnt], vR1);
 
 		/* Constraint, node 1 */
-      		WM.SubT(12 + 1 + nPosConstraints + iCnt, 3 + 1, vR1);
+      		WM.SubT(12 + 1 + iRotEqIndex[iCnt], 3 + 1, vR1);
 
 		/* Equilibrium, node 2 */
-      		WM.Add(9 + 1, 12 + 1 + nPosConstraints + iCnt, vR1);
+      		WM.Add(9 + 1, 12 + 1 + iRotEqIndex[iCnt], vR1);
 
 		/* Constraint, node 2 */
-      		WM.AddT(12 + 1 + nPosConstraints +  iCnt, 9 + 1, vR1);
+      		WM.AddT(12 + 1 + iRotEqIndex[iCnt], 9 + 1, vR1);
+	}
+
+	if (nVelConstraints > 0) {
+		Mat3x3 Omega1Cross_R1(Mat3x3(pNode1->GetWCurr()) * R1);
+		Mat3x3 	Tmp12 =	(
+				- Mat3x3(pNode1->GetWCurr()) * Mat3x3(b1)
+				+ Mat3x3(b2) * Mat3x3(pNode1->GetWCurr())
+				- Mat3x3(pNode2->GetVCurr())
+				- Mat3x3(pNode2->GetWCurr()) * Mat3x3(b2)
+				+ Mat3x3(pNode1->GetVCurr())
+				) * R1;
+		Mat3x3 Tmp22(Mat3x3(pNode2->GetWCurr()) * Mat3x3(b2));
+
+		for (unsigned iCnt = 0 ; iCnt < nVelConstraints; iCnt++) {
+			Vec3 vR1(R1.GetVec(iVelIncid[iCnt]));
+			Vec3 vb1Cross_R1(b1Cross_R1.GetVec(iVelIncid[iCnt]));
+			Vec3 vb2Cross_R1(b2Cross_R1.GetVec(iVelIncid[iCnt]));
+			
+			Vec3 vOmega1Cross_R1(Omega1Cross_R1.GetVec(iVelIncid[iCnt]));
+			Vec3 vTmp12(Tmp12.GetVec(iVelIncid[iCnt]));	
+			Vec3 vTmp22(Tmp22.GetVec(iVelIncid[iCnt]));	
+			/* Equilibrium, node 1 */
+			/* The same as in position constraint*/
+      			WM.Sub(1, 12 + 1 + iVelEqIndex[iCnt], vR1);				// delta_F
+      			WM.Sub(3 + 1, 12 + 1 + iVelEqIndex[iCnt], vb1Cross_R1);		// delta_M
+	
+			/* Constraint, node 1 */
+			/* The same as in position constraint*/
+      			WM.SubT(12 + 1 + iVelEqIndex[iCnt], 1, vR1);				// delta_v1
+      			WM.SubT(12 + 1 + iVelEqIndex[iCnt], 3 + 1, vb1Cross_R1);		// delta_W1
+			/* New contributions, related to delta_x1 and delta_g1 */
+     			WM.SubT(12 + 1 + iVelEqIndex[iCnt], 1, vOmega1Cross_R1 * dCoef);	// delta_x1
+     			WM.AddT(12 + 1 + iVelEqIndex[iCnt], 3 + 1, vTmp12 * dCoef);		// delta_g1
+			
+			/* Equilibrium, node 2 */
+			/* The same as in position constraint*/
+      			WM.Add(6 + 1, 12 + 1 + iVelEqIndex[iCnt], vR1);			// delta_F
+      			WM.Add(9 + 1, 12 + 1 + iVelEqIndex[iCnt], vb2Cross_R1);		// delta_M
+	
+			/* Constraint, node 2 */
+			/* The same as in position constraint*/
+      			WM.AddT(12 + 1 + iVelEqIndex[iCnt], 6 + 1, vR1);			// delta_v2
+      			WM.AddT(12 + 1 + iVelEqIndex[iCnt], 9 + 1, vb2Cross_R1);		// delta_W2
+			/* New contributions, related to delta_x1 and delta_g1 */
+     			WM.AddT(12 + 1 + iVelEqIndex[iCnt], 6 + 1, vOmega1Cross_R1 * dCoef);	// delta_x2
+     			WM.AddT(12 + 1 + iVelEqIndex[iCnt], 9 + 1, vTmp22 * dCoef);		// delta_g2
+		}
+	}
+	
+	if(nAgvConstraints > 0)	{
+		Mat3x3 DeltaWCross_R1(Mat3x3(pNode1->GetWCurr() - pNode2->GetWCurr()) * R1r);
+		for (unsigned iCnt = 0 ; iCnt < nAgvConstraints; iCnt++) {
+			Vec3 vR1(R1r.GetVec(iAgvIncid[iCnt]));
+			Vec3 vDeltaWCross_R1(DeltaWCross_R1.GetVec(iAgvIncid[iCnt]));
+
+			/* Equilibrium, node 1 */
+      			WM.Sub(3 + 1, 12 + 1 + iAgvEqIndex[iCnt], vR1);	// delta_M
+	
+			/* Constraint, node 1 */
+      			WM.SubT(12 + 1 + iAgvEqIndex[iCnt], 3 + 1, vR1);	// delta_W1
+			/* New contribution, related to delta_g1 */
+      			WM.SubT(12 + 1 + iAgvEqIndex[iCnt], 3 + 1, vDeltaWCross_R1 * dCoef);	// delta_g1
+			
+			/* Equilibrium, node 2 */
+      			WM.Add(9 + 1, 12 + 1 + iAgvEqIndex[iCnt], vR1);	// delta_M
+	
+			/* Constraint, node 2 */
+      			WM.AddT(12 + 1 + iAgvEqIndex[iCnt], 9 + 1, vR1);// delta_W2
+		}
 	}
 
 	return WorkMat;
@@ -725,13 +813,20 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	/* Get constraint reactions */
 
 	for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
-		F(iPosIncid[iCnt]) = XCurr(iFirstReactionIndex + 1 + iCnt);
+		F(iPosIncid[iCnt]) = XCurr(iFirstReactionIndex + 1 + iPosEqIndex[iCnt]);
 	}
 
 	for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
-		M(iRotIncid[iCnt]) = XCurr(iFirstReactionIndex + 1 + nPosConstraints + iCnt);
+		M(iRotIncid[iCnt]) = XCurr(iFirstReactionIndex + 1 + iRotEqIndex[iCnt]);
 	}
 
+	for (unsigned iCnt = 0; iCnt < nVelConstraints; iCnt++) {
+		F(iVelIncid[iCnt]) = XCurr(iFirstReactionIndex + 1 + iVelEqIndex[iCnt]);
+	}
+
+	for (unsigned iCnt = 0; iCnt < nAgvConstraints; iCnt++) {
+		M(iAgvIncid[iCnt]) = XCurr(iFirstReactionIndex + 1 + iAgvEqIndex[iCnt]);
+	}
 
 	Vec3 b2(pNode2->GetRCurr()*f2);
 	Vec3 b1(pNode2->GetXCurr() + b2 - pNode1->GetXCurr());
@@ -741,10 +836,19 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	Mat3x3 R2r = pNode2->GetRCurr()*R2hr;
 
 	Vec3 XDelta = R1.Transpose()*b1 - tilde_f1 - XDrv.Get();
-
+	Vec3 VDelta = R1.Transpose()*(
+			Mat3x3(b1)*pNode1->GetWCurr()
+			+ pNode2->GetVCurr()
+			- Mat3x3(b2)*pNode2->GetWCurr()
+			- pNode1->GetVCurr()
+			) 
+			- XDrv.Get(); 	
+			
 	Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
 	Mat3x3 RDelta = R1r.Transpose()*R2r*R0T;
 	ThetaDelta = RotManip::VecRot(RDelta);
+	
+	Vec3 WDelta = R1r.Transpose() * (pNode2->GetWCurr() - pNode1->GetWCurr()) - ThetaDrv.Get();
 
 	Vec3 FTmp(R1*F);
 	Vec3 MTmp(R1r*M);
@@ -757,20 +861,34 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.Sub(6 + 1, FTmp);
 	WorkVec.Sub(9 + 1, MTmp + b2.Cross(FTmp));
 
-	/* Constraint equations are divided by dCoef */
+	/* Constraint equations are divided by dCoef
+	 * ONLY if the constraint is on position */
 	if (dCoef != 0.) {
 
 		/* Position constraint:  */
 		for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
-			WorkVec.PutCoef(12 + 1 + iCnt,
+			WorkVec.PutCoef(12 + 1 + iPosEqIndex[iCnt],
 				-(XDelta(iPosIncid[iCnt])/dCoef));
 		}
 
 		/* Rotation constraints: */
 		for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
-			WorkVec.PutCoef(12 + 1 + nPosConstraints + iCnt,
+			WorkVec.PutCoef(12 + 1 + iRotEqIndex[iCnt],
 				-(ThetaDelta(iRotIncid[iCnt])/dCoef));
 		}
+
+		/* Linear Velocity Constraint */
+		for (unsigned iCnt = 0; iCnt < nVelConstraints; iCnt++) {
+			WorkVec.PutCoef(12 + 1 + iVelEqIndex[iCnt],
+				-(VDelta(iVelIncid[iCnt])));
+		}
+		
+		/* Angular Velocity Constraint */
+		for (unsigned iCnt = 0; iCnt < nAgvConstraints; iCnt++) {
+			WorkVec.PutCoef(12 + 1 + iAgvEqIndex[iCnt],
+				-(WDelta(iAgvIncid[iCnt])));
+		}
+
 	}
 
 	return WorkVec;
