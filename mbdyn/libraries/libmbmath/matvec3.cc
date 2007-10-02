@@ -48,7 +48,8 @@ const Vec3 Zero3(0., 0., 0.);
 
 /* Vec3 - begin */
 
-Mat3x3 Vec3::Tens(const Vec3& v) const
+Mat3x3
+Vec3::Tens(const Vec3& v) const
 {
    return Mat3x3(pdVec[V1]*v.pdVec[V1],
 		 pdVec[V2]*v.pdVec[V1],
@@ -62,13 +63,15 @@ Mat3x3 Vec3::Tens(const Vec3& v) const
 }
 
 /* Prodotto "tensore".  Restituisce se stesso per se stesso */
-Mat3x3 Vec3::Tens(void) const
+Mat3x3
+Vec3::Tens(void) const
 {
 	return Tens(*this);
 }     
 
 /* Prodotto vettore per matrice */
-Mat3x3 Vec3::Cross(const Mat3x3& m) const {
+Mat3x3
+Vec3::Cross(const Mat3x3& m) const {
    return Mat3x3(pdVec[V2]*m.pdMat[M31]-pdVec[V3]*m.pdMat[M21],
 		 pdVec[V3]*m.pdMat[M11]-pdVec[V1]*m.pdMat[M31],
 		 pdVec[V1]*m.pdMat[M21]-pdVec[V2]*m.pdMat[M11],
@@ -85,7 +88,8 @@ Mat3x3 Vec3::Cross(const Mat3x3& m) const {
 /* Mat3x3 - begin */
 
 /* inversione */
-doublereal Mat3x3::dDet(void) const
+doublereal
+Mat3x3::dDet(void) const
 {
    doublereal* p = (doublereal*)pdMat;
 
@@ -95,7 +99,8 @@ doublereal Mat3x3::dDet(void) const
 }
    
 /* inversione */
-Mat3x3 Mat3x3::Inv(const doublereal &d) const
+Mat3x3
+Mat3x3::Inv(const doublereal &d) const
 {
    ASSERT(fabs(d) > DBL_EPSILON);
 
@@ -113,7 +118,8 @@ Mat3x3 Mat3x3::Inv(const doublereal &d) const
 }
 
 /* inversione */
-Mat3x3 Mat3x3::Inv(void) const
+Mat3x3
+Mat3x3::Inv(void) const
 {
    doublereal d = dDet();
    if (fabs(d) < DBL_EPSILON) {
@@ -126,7 +132,8 @@ Mat3x3 Mat3x3::Inv(void) const
 
 
 /* soluzione */
-Vec3 Mat3x3::Inv(const doublereal& d, const Vec3& v) const
+Vec3
+Mat3x3::Inv(const doublereal& d, const Vec3& v) const
 {
    doublereal* p = (doublereal*)pdMat;
    doublereal* pv = v.pGetVec();
@@ -145,7 +152,8 @@ Vec3 Mat3x3::Inv(const doublereal& d, const Vec3& v) const
 }
 
 /* soluzione */
-Vec3 Mat3x3::Inv(const Vec3& v) const
+Vec3
+Mat3x3::Inv(const Vec3& v) const
 {
    doublereal d = dDet();
    
@@ -517,5 +525,26 @@ Unwrap(const Vec3& vPrev, const Vec3& v)
 	}
 
 	return v;
+}
+
+template <>
+bool
+IsNull(const doublereal& d)
+{
+	return d == 0.;
+}
+ 
+template <>
+bool
+IsExactlySame(const doublereal& d1, const doublereal& d2)
+{
+	return d1 == d2;
+}
+
+template <>
+bool
+IsSame(const doublereal& d1, const doublereal& d2, const doublereal& dTol)
+{
+	return fabs(d1 - d2) <= dTol;
 }
 

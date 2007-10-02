@@ -2070,11 +2070,11 @@ OffsetDummyStructNode::~OffsetDummyStructNode(void)
 void
 OffsetDummyStructNode::Update_int(void)
 {
-	RCurr = pNode->GetRCurr();
-	XCurr = pNode->GetXCurr() + RCurr*f;
+	Vec3 fCurr(pNode->GetRCurr()*f);
+	XCurr = pNode->GetXCurr() + fCurr;
+	RCurr = pNode->GetRCurr()*R;
 	WCurr = pNode->GetWCurr();
-	VCurr = pNode->GetVCurr() + WCurr.Cross(RCurr*f);
-	RCurr = RCurr*R;
+	VCurr = pNode->GetVCurr() + WCurr.Cross(fCurr);
 }
 
 
@@ -2153,11 +2153,11 @@ RelFrameDummyStructNode::Update_int(void)
 {
 	Mat3x3 RrT(pNodeRef->GetRCurr().Transpose());
 	Mat3x3 RT(RhT*RrT);
-	Vec3 XRel(pNode->GetXCurr()-pNodeRef->GetXCurr());
+	Vec3 XRel(pNode->GetXCurr() - pNodeRef->GetXCurr());
 
 	RCurr = RT*pNode->GetRCurr();
 	XCurr = RT*XRel - fhT;
-	WCurr = RT*(pNode->GetWCurr()-pNodeRef->GetWCurr());
+	WCurr = RT*(pNode->GetWCurr() - pNodeRef->GetWCurr());
 
 	VCurr = RT*(pNode->GetVCurr()
 		- pNodeRef->GetVCurr()

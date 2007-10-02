@@ -2968,7 +2968,8 @@ ReadJoint(DataManager* pDM,
 					f1 = bc[i-1]->Getf(3);
 				} else {
 					f1 = HP.GetPosRel(RF);
-					if (f1 != bc[i-1]->Getf(3)) {
+					/* FIXME: allow tolerance? */
+					if (!f1.IsExactlySame(bc[i-1]->Getf(3))) {
 						silent_cerr("line " << HP.GetLineData() << ": "
 							"Beam(" << pBeam->GetLabel() << ").f1 "
 							"and Beam(" << bc[i-1]->pGetBeam()->GetLabel() << ").f3 "
@@ -2983,7 +2984,8 @@ ReadJoint(DataManager* pDM,
 						R1 = bc[i-1]->GetR(3);
 					} else {
 						R1 = HP.GetRotRel(RF);
-						if (R1 != bc[i-1]->GetR(3)) {
+						/* FIXME: allow tolerance? */
+						if (!R1.IsExactlySame(bc[i-1]->GetR(3))) {
 							silent_cerr("line " << HP.GetLineData() << ": "
 								"Beam(" << pBeam->GetLabel() << ").R1 "
 								"and Beam(" << bc[i-1]->pGetBeam()->GetLabel() << ").R3 "

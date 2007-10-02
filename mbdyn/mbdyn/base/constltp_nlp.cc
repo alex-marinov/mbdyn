@@ -357,7 +357,7 @@ struct NLPViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		Tder FDE0(0.);
 		FDE0 = HP.Get(FDE0);
 
-		bool bElastic(FDE0 != Tder(0.));
+		bool bElastic(!IsNull<Tder>(FDE0));
 		std::vector<const DifferentiableScalarFunction *> FDEsc(dim);
 		for (unsigned i = 0; i < dim; i++) {
 			if (HP.IsKeyWord("null")) {
@@ -381,7 +381,7 @@ struct NLPViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		Tder FDEPrime0(0.);
 		FDEPrime0 = HP.Get(FDEPrime0);
 
-		bool bViscous(FDEPrime0 != Tder(0.));
+		bool bViscous(!IsNull<Tder>(FDEPrime0));
 		std::vector<const DifferentiableScalarFunction *> FDEPrimesc(dim);
 		for (unsigned i = 0; i < dim; i++) {
 			if (HP.IsKeyWord("null")) {

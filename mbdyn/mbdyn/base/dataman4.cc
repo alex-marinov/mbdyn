@@ -557,7 +557,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				Jcg += Mat3x3(S, Xcg);
 			}
 
-			if (x != Zero3) {
+			if (!x.IsNull()) {
 				Vec3 Dx = Xcg - x;
 				J += Mat3x3(x, x*dM) + Mat3x3(Dx, x*dM) + Mat3x3(x, Dx*dM);
 			}

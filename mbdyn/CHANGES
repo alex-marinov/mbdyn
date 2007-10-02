@@ -14,6 +14,7 @@ MBDyn 1.X-Devel
 		- added "tanh" drive caller
 		- allow elastic/viscous variants of nlsf/nlp const. laws
 		  (noted by Rudi Jaeger)
+		- rework logical operators on math data structures
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:

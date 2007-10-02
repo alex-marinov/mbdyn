@@ -415,25 +415,28 @@ class Vec3 {
       pdVec[V3] /= d;
       return *this;
    };   
-   
-   /*
-    Operatore booleano di uguaglianza tra vettori.
-    */
-      bool operator == (const Vec3& v) const {
-	 return (pdVec[V1] == v.pdVec[V1] 
-		 && pdVec[V2] == v.pdVec[V2] 
-		 && pdVec[V3] == v.pdVec[V3]);
-      };
 
-   /*
-    Operatore booleano di disuguaglianza tra vettori.
-    */
-      bool operator != (const Vec3& v) const {
-	 return (pdVec[V1] != v.pdVec[V1] 
-		 || pdVec[V2] != v.pdVec[V2] 
-		 || pdVec[V3] != v.pdVec[V3]);
-      };
+   bool IsNull(void) const {
+      return (pdVec[V1] == 0. && pdVec[V2] == 0. && pdVec[V3] == 0.);
+   };
      
+   bool IsExactlySame(const Vec3& v) const {
+      return (pdVec[V1] == v.pdVec[V1]
+           && pdVec[V2] == v.pdVec[V2]
+           && pdVec[V3] == v.pdVec[V3]);
+   };
+ 
+   bool IsSame(const Vec3& v, const doublereal& dTol) const {
+      doublereal d2 = 0.;
+
+      for (int i = 0; i < 3; i++) {
+         doublereal d = pdVec[i] - v.pdVec[i];
+         d2 += d*d;
+      }
+
+      return sqrt(d2) <= dTol;
+   };
+ 
    /*Input/Output */
       
    /*
@@ -1131,34 +1134,35 @@ class Mat3x3 {
 		  pdMat[M31]*v.pdVec[V1]+pdMat[M32]*v.pdVec[V2]+pdMat[M33]*v.pdVec[V3]);
    };
 
-   /*
-    */
-    bool operator == (const Mat3x3& m) const {
-      return pdMat[M11] == m.pdMat[M11]
-	      && pdMat[M12] == m.pdMat[M12]
-	      && pdMat[M13] == m.pdMat[M13]
-	      && pdMat[M21] == m.pdMat[M21]
-	      && pdMat[M22] == m.pdMat[M22]
-	      && pdMat[M23] == m.pdMat[M23]
-	      && pdMat[M31] == m.pdMat[M31]
-	      && pdMat[M32] == m.pdMat[M32]
-	      && pdMat[M33] == m.pdMat[M33];
+   bool IsNull(void) const {
+      return (pdMat[M11] == 0. && pdMat[M12] == 0. && pdMat[M13] == 0.
+           && pdMat[M21] == 0. && pdMat[M22] == 0. && pdMat[M23] == 0.
+           && pdMat[M31] == 0. && pdMat[M32] == 0. && pdMat[M33] == 0.);
    };
-   
-   /*
-    */
-    bool operator != (const Mat3x3& m) const {
-      return pdMat[M11] != m.pdMat[M11]
-	      || pdMat[M12] != m.pdMat[M12]
-	      || pdMat[M13] != m.pdMat[M13]
-	      || pdMat[M21] != m.pdMat[M21]
-	      || pdMat[M22] != m.pdMat[M22]
-	      || pdMat[M23] != m.pdMat[M23]
-	      || pdMat[M31] != m.pdMat[M31]
-	      || pdMat[M32] != m.pdMat[M32]
-	      || pdMat[M33] != m.pdMat[M33];
+     
+   bool IsExactlySame(const Mat3x3& m) const {
+      return (pdMat[M11] == m.pdMat[M11]
+           && pdMat[M12] == m.pdMat[M12]
+           && pdMat[M13] == m.pdMat[M13]
+           && pdMat[M21] == m.pdMat[M21]
+           && pdMat[M22] == m.pdMat[M22]
+           && pdMat[M23] == m.pdMat[M23]
+           && pdMat[M31] == m.pdMat[M31]
+           && pdMat[M32] == m.pdMat[M32]
+           && pdMat[M33] == m.pdMat[M33]);
    };
-   
+ 
+   bool IsSame(const Mat3x3& m, const doublereal& dTol) const {
+      doublereal d2 = 0.;
+
+      for (int i = 0; i < 9; i++) {
+         doublereal d = pdMat[i] - m.pdMat[i];
+         d2 += d*d;
+      }
+
+      return sqrt(d2) <= dTol;
+   };
+ 
    /*
     Prodotto matrice per matrice.
     Restituisce il prodotto di se stessa per m in un temporaneo.
@@ -1424,6 +1428,40 @@ extern _MatG_Manip MatG;
  Manipolatore per inversa della matrice G 
  */
 extern _MatGm1_Manip MatGm1;
+
+/* test */
+template <class T>
+bool
+IsNull(const T& t)
+{
+	return t.IsNull();
+}
+
+template <class T>
+bool
+IsExactlySame(const T& t1, const T& t2)
+{
+	return t1.IsExactlySame(t2);
+}
+
+template <class T>
+bool
+IsSame(const T& t1, const T& t2, const doublereal& dTol)
+{
+	return t1.IsSame(t2, dTol);
+}
+
+template <>
+bool
+IsNull(const doublereal& d);
+ 
+template <>
+bool
+IsExactlySame(const doublereal& d1, const doublereal& d2);
+
+template <>
+bool
+IsSame(const doublereal& d1, const doublereal& d2, const doublereal& dTol);
 
 #endif /* MATVEC3_H */
 

@@ -517,21 +517,28 @@ class Mat6x6 {
 		    m[0][0]*x.GetMat12()+m[0][1]*x.GetMat22(),
 		    m[1][0]*x.GetMat12()+m[1][1]*x.GetMat22());
    };  
-   
-   bool operator == (const Mat6x6& x) const {
-      return m[0][0] == x.GetMat11()
-		&& m[1][0] == x.GetMat21()
-		&& m[0][1] == x.GetMat12()
-		&& m[1][1] == x.GetMat22();
+
+   bool IsNull(void) const {
+      return (m[0][0].IsNull()
+           && m[0][1].IsNull()
+           && m[1][0].IsNull()
+           && m[1][1].IsNull());
    };
-   
-   bool operator != (const Mat6x6& x) const {
-      return m[0][0] != x.GetMat11()
-		|| m[1][0] != x.GetMat21()
-		|| m[0][1] != x.GetMat12()
-		|| m[1][1] != x.GetMat22();
+     
+   bool IsExactlySame(const Mat6x6& x) const {
+      return (m[0][0].IsExactlySame(x.GetMat11())
+           && m[0][1].IsExactlySame(x.GetMat12())
+           && m[1][0].IsExactlySame(x.GetMat21())
+           && m[1][1].IsExactlySame(x.GetMat22()));
    };
-   
+ 
+   bool IsSame(const Mat6x6& x, const doublereal& dTol) const {
+      return (m[0][0].IsSame(x.GetMat11(), dTol)
+           && m[0][1].IsSame(x.GetMat12(), dTol)
+           && m[1][0].IsSame(x.GetMat21(), dTol)
+           && m[1][1].IsSame(x.GetMat22(), dTol));
+   };
+
    Mat6x6 Transpose(void) {
       return Mat6x6(m[0][0].Transpose(),
 		    m[0][1].Transpose(),
