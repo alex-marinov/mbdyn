@@ -68,7 +68,6 @@ main(int argn, const char* const argv[])
    	}
 
 	std::cout.precision(16);
-printf("argn = %d\n",argn);
 
    	static doublereal d[3];
    	if ( argn > 2)	{
