@@ -17,6 +17,7 @@ dae-intg \
 deriv \
 env \
 eu2rot \
+eu2phi \
 femgen \
 intg \
 logproc \
@@ -64,6 +65,7 @@ dae_intg_SOURCES = dae-intg.cc dae-intg.h
 deriv_SOURCES = deriv.c
 env_SOURCES = env.c
 eu2rot_SOURCES = eu2rot.cc
+eu2phi_SOURCES = eu2phi.cc
 femgen_SOURCES = femgen.f
 intg_SOURCES = intg.cc intg.h
 playground_SOURCES = playground.cc
@@ -98,6 +100,7 @@ crypt_LDADD = $(MYLIBS) @SECURITY_LIBS@
 cl_LDADD = $(MYLIBS)
 dae_intg_LDADD = $(MYLIBS)
 eu2rot_LDADD = $(MYLIBS)
+eu2phi_LDADD = $(MYLIBS)
 intg_LDADD = $(MYLIBS)
 playground_LDADD = $(MYLIBS)
 posrel_LDADD = $(MYLIBS)
