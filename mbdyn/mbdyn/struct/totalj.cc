@@ -233,7 +233,7 @@ TotalJoint::DescribeEq(std::ostream& out,
 
 	if (nPosConstraints > 1 || nVelConstraints > 1) {
 		out << prefix << iIndex + 1;
-		out << "->" << iIndex + nPosConstraints;
+		out << "->" << iIndex + nPosConstraints + nVelConstraints;
 		out << ": ";
 	}
 	
@@ -248,8 +248,7 @@ TotalJoint::DescribeEq(std::ostream& out,
 				out << ",";
 			}
 			out << "P" << idx2xyz[i] << "1=P" << idx2xyz[i] << "2";
-		}
-		if (bVelActive[i]) {
+		} else if (bVelActive[i]) {
 			cnt++;
 			if (cnt > 1) {
 				out << ",";
@@ -262,7 +261,7 @@ TotalJoint::DescribeEq(std::ostream& out,
 		out << "]" << std::endl;
 	}
 
-	if (nRotConstraints > 1 || nVelConstraints > 1) {
+	if (nRotConstraints > 1 || nAgvConstraints > 1) {
 		out << prefix << iIndex + nPosConstraints + nVelConstraints + 1;
 		out << "->" << iIndex + nConstraints ;
 		out << ": ";
@@ -279,7 +278,7 @@ TotalJoint::DescribeEq(std::ostream& out,
 			}
 			out << "g" << idx2xyz[i] << "1=g" << idx2xyz[i] << "2";
 		}
-		if (bAgvActive[i]) {
+		else if (bAgvActive[i]) {
 			cnt++;
 			if (cnt > 1) {
 				out << ",";
