@@ -108,7 +108,7 @@ M(0.), F(0.), ThetaDelta(0.), ThetaDeltaPrev(0.)
 		}
 		
 		if (bAgvActive[i]) {
-			iAgvIncid[nVelConstraints] = i + 1;
+			iAgvIncid[nAgvConstraints] = i + 1;
 			iAgvEqIndex[nAgvConstraints] = nPosConstraints + nVelConstraints + index;
 			nAgvConstraints++;
 			index++;
