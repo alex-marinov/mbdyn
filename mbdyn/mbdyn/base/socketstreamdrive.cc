@@ -305,7 +305,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 
 	/* we want to block until the whole chunk is received */
 	int flags = 0;
-#ifdef MSG_WAITAL
+#ifdef MSG_WAITALL
 	flags |= MSG_WAITALL;
 #endif /* MSG_WAITALL */
 	while (HP.IsArg()) {
