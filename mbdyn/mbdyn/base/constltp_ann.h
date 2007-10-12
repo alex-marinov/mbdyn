@@ -87,9 +87,9 @@ protected:
 		ANN_jacobian_matrix( net, &net->jacobian );
 
 		for (unsigned r = 0; r < dim; r++) {
-			ConstitutiveLaw<T, Tder>::F(r + 1) = net->output.vec[r];
+			ConstitutiveLaw<T, Tder>::F(r + 1) = -net->output.vec[r];
 			for (unsigned c = 0; c < dim; c++) {
-				ConstitutiveLaw<T, Tder>::FDE(r + 1, c + 1) = net->jacobian.mat[r][c];
+				ConstitutiveLaw<T, Tder>::FDE(r + 1, c + 1) = -net->jacobian.mat[r][c];
 			}
 		}
 	};
@@ -179,8 +179,8 @@ protected:
                 }
 		ANN_jacobian_matrix(net, &net->jacobian);
 
-		ConstitutiveLaw<doublereal, doublereal>::F = net->output.vec[0];
-		ConstitutiveLaw<doublereal, doublereal>::FDE = net->jacobian.mat[0][0];
+		ConstitutiveLaw<doublereal, doublereal>::F = -net->output.vec[0];
+		ConstitutiveLaw<doublereal, doublereal>::FDE = -net->jacobian.mat[0][0];
 	};
 
 public:
@@ -265,9 +265,9 @@ protected:
 		ANN_jacobian_matrix(net, &net->jacobian );
 
 		for (unsigned r = 0; r < AnnViscoElasticConstitutiveLaw<T, Tder>::dim; r++) {
-			ConstitutiveLaw<T, Tder>::F(r + 1) = net->output.vec[r];
+			ConstitutiveLaw<T, Tder>::F(r + 1) = -net->output.vec[r];
 			for (unsigned c = 0; c < AnnViscoElasticConstitutiveLaw<T, Tder>::dim; c++) {
-				ConstitutiveLaw<T, Tder>::FDE(r + 1, c + 1) = net->jacobian.mat[r][c];
+				ConstitutiveLaw<T, Tder>::FDE(r + 1, c + 1) = -net->jacobian.mat[r][c];
 			}
 		}
 	};
@@ -316,8 +316,8 @@ protected:
                 }
 		ANN_jacobian_matrix(net, &net->jacobian );
 	
-		ConstitutiveLaw<doublereal, doublereal>::F = net->output.vec[0];
-		ConstitutiveLaw<doublereal, doublereal>::FDE = net->jacobian.mat[0][0];
+		ConstitutiveLaw<doublereal, doublereal>::F = -net->output.vec[0];
+		ConstitutiveLaw<doublereal, doublereal>::FDE = -net->jacobian.mat[0][0];
 	};
 
 public:
