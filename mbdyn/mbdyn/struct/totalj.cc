@@ -358,14 +358,14 @@ TotalJoint::SetValue(DataManager *pDM,
 					Vec3 fTmp2(pNode2->GetRCurr()*f2);
 
 					f1 = R1T*(pNode2->GetXCurr() + fTmp2 - pNode1->GetXCurr());
-					tilde_f1 = R1h.Transpose()*f1;
-					
+					tilde_f1 = R1h.Transpose()*f1 - XDrv.Get();
 
 				} else if (dynamic_cast<Joint::OffsetHint<2> *>(pjh)) {
 					Mat3x3 R2T(pNode2->GetRCurr().Transpose());
+					Mat3x3 R1(pNode1->GetRCurr()*R1h);
 					Vec3 fTmp1(pNode1->GetRCurr()*f1);
 
-					f2 = R2T*(pNode1->GetXCurr() + fTmp1 - pNode2->GetXCurr());
+					f2 = R2T*(pNode1->GetXCurr() + fTmp1 - pNode2->GetXCurr() + R1*XDrv.Get());
 
 				} else if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
 					if (dynamic_cast<Joint::PositionHingeHint<1> *>(pjh)) {
@@ -1519,7 +1519,7 @@ return WorkVec;
 unsigned int
 TotalJoint::iGetNumPrivData(void) const
 {
-	return 21;
+	return 24;
 }
 
 unsigned int
@@ -1563,6 +1563,12 @@ TotalJoint::iGetPrivDataIdx(const char *s) const
 		/* relative linear velocity */
 		off += 18;
 		break;
+
+	case 'W':
+		/* relative angular velocity */
+		off += 21;
+		break;
+
 
 	default:
 		return 0;
@@ -1642,6 +1648,16 @@ TotalJoint::dGetPrivData(unsigned int i) const
 		
 			return R1h.GetVec(i-18)*v;
 		}
+	case 22:
+	case 23:
+	case 24:
+		{
+		Vec3 W(pNode1->GetRCurr().Transpose() * (pNode2->GetWCurr() - pNode1->GetWCurr()))
+		;
+		
+			return R1hr.GetVec(i-21)*W;
+		}
+
 
 
 	default:
