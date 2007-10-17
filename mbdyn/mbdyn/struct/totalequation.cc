@@ -1403,46 +1403,46 @@ TotalReaction::AssJac(VariableSubMatrixHandler& WorkMat,
 	Vec3 b2(pNode2->GetRCurr()*f2);
 	Vec3 b1(pNode2->GetXCurr() + b2 - pNode1->GetXCurr());
 
-// 	/* Moltiplica il momento e la forza per il coefficiente del metodo */
-// 	Vec3 FTmp(R1*(F*dCoef));
-// 	Vec3 MTmp(R1r*(M*dCoef));
-// 
-// 	/* Equilibrium: ((Phi/q)^T*Lambda)/q */
-// 
-// 	Mat3x3 Tmp;
-// 
-// 	/* [ F x ] */
-// 	Tmp = Mat3x3(FTmp);
-// 
-// 	/* Lines 1->3: */
-// 	WM.Add(1, 3 + 1, Tmp);
-// 
-// 	/* Lines 4->6: */
-// 	WM.Sub(3 + 1, 1, Tmp);
-// 
-// 	WM.Add(3 + 1, 6 + 1, Tmp);
-// 
-// 	/* Lines 7->9: */
-// 	WM.Sub(6 + 1, 3 + 1, Tmp);
-// 
-// 	/* [ F x ] [ b2 x ] */
-// 	Tmp = Mat3x3(FTmp, b2);
-// 
-// 	/* Lines 4->6: */
-// 	WM.Sub(3 + 1, 9 + 1, Tmp);
-// 
-// 	/* Lines 10->12: */
-// 	WM.Add(9 + 1, 9 + 1, Tmp);
-// 
-// 	/* [ b1 x ] [ F x ] + [ M x ] */
-// 
-// 	/* Lines 4->6: */
-// 	WM.Add(3 + 1, 3 + 1, Mat3x3(b1, FTmp) + Mat3x3(MTmp));
-// 
-// 	/* [ b2 x ] [ F x ] + [ M x ] */
-// 
-// 	/* Lines 10->12: */
-// 	WM.Sub(9 + 1, 3 + 1, Mat3x3(b2, FTmp) + Mat3x3(MTmp));
+ 	/* Moltiplica il momento e la forza per il coefficiente del metodo */
+ 	Vec3 FTmp(R1*(F*dCoef));
+ 	Vec3 MTmp(R1r*(M*dCoef));
+ 
+ 	/* Equilibrium: ((Phi/q)^T*Lambda)/q */
+ 
+ 	Mat3x3 Tmp;
+ 
+ 	/* [ F x ] */
+ 	Tmp = Mat3x3(FTmp);
+ 
+ 	/* Lines 1->3: */
+ 	WM.Add(1, 3 + 1, Tmp);
+ 
+ 	/* Lines 4->6: */
+ 	WM.Sub(3 + 1, 1, Tmp);
+ 
+ 	WM.Add(3 + 1, 6 + 1, Tmp);
+ 
+ 	/* Lines 7->9: */
+ 	WM.Sub(6 + 1, 3 + 1, Tmp);
+ 
+ 	/* [ F x ] [ b2 x ] */
+ 	Tmp = Mat3x3(FTmp, b2);
+ 
+ 	/* Lines 4->6: */
+ 	WM.Sub(3 + 1, 9 + 1, Tmp);
+ 
+ 	/* Lines 10->12: */
+ 	WM.Add(9 + 1, 9 + 1, Tmp);
+ 
+ 	/* [ b1 x ] [ F x ] + [ M x ] */
+ 
+ 	/* Lines 4->6: */
+ 	WM.Add(3 + 1, 3 + 1, Mat3x3(b1, FTmp) + Mat3x3(MTmp));
+ 
+ 	/* [ b2 x ] [ F x ] + [ M x ] */
+ 
+ 	/* Lines 10->12: */
+ 	WM.Sub(9 + 1, 3 + 1, Mat3x3(b2, FTmp) + Mat3x3(MTmp));
 
 /* Phi/q and (Phi/q)^T */
 
