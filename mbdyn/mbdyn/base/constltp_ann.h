@@ -262,7 +262,7 @@ protected:
                         silent_cout("AnnViscoElasticConstitutiveLaw: Network simulation error" << std::endl);
 			throw ErrGeneric();
                 }
-		ANN_jacobian_matrix(net, &net->jacobian );
+		ANN_jacobian_matrix(net, &net->jacobian);
 
 		for (unsigned r = 0; r < AnnViscoElasticConstitutiveLaw<T, Tder>::dim; r++) {
 			ConstitutiveLaw<T, Tder>::F(r + 1) = -net->output.vec[r];
