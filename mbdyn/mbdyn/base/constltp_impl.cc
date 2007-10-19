@@ -477,7 +477,10 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 		ConstitutiveLaw<T, Tder>* pCL = 0;
 
 		unsigned dim;
-		if (typeid(T) == typeid(Vec3)) {
+		if (typeid(T) == typeid(doublereal)) {
+			dim = 1;
+
+		} else if (typeid(T) == typeid(Vec3)) {
 			dim = 3;
 
 		} else if (typeid(T) == typeid(Vec6)) {
@@ -517,6 +520,8 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 				silent_cerr("keyword \"epsilon prime\" expected at line " << HP.GetLineData() << std::endl);
 				throw DataManager::ErrGeneric();
 			}
+
+			epsilonPrime.resize(dim);
 
 			for (unsigned row = 0; row < dim; row++) {
 				const char *tmp = HP.GetStringWithDelims();
