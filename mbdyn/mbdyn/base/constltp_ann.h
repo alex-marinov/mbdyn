@@ -110,7 +110,7 @@ public:
 		}
 	};
 
-	ConstLawType::Type GetConstLawType(void) const {
+	virtual ConstLawType::Type GetConstLawType(void) const {
 		return ConstLawType::ELASTIC;
 	};
 
@@ -198,7 +198,7 @@ public:
 		}
 	};
 
-	ConstLawType::Type GetConstLawType(void) const {
+	virtual ConstLawType::Type GetConstLawType(void) const {
 		return ConstLawType::ELASTIC;
 	};
 
@@ -286,6 +286,14 @@ public:
 	ConstLawType::Type GetConstLawType(void) const {
 		return ConstLawType::VISCOELASTIC;
 	};
+
+	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
+		ConstitutiveLaw<T, Tder>* pCL = NULL;
+
+		typedef AnnViscoElasticConstitutiveLaw<T, Tder> cl;
+		SAFENEWWITHCONSTRUCTOR(pCL, cl, cl(cl::fname));
+		return pCL;
+	};
 };
 
 template <>
@@ -334,6 +342,14 @@ public:
 	ConstLawType::Type GetConstLawType(void) const {
 		return ConstLawType::VISCOELASTIC;
 	};
+
+	virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const {
+		ConstitutiveLaw<doublereal, doublereal>* pCL = NULL;
+
+		typedef AnnViscoElasticConstitutiveLaw<doublereal, doublereal> cl;
+		SAFENEWWITHCONSTRUCTOR(pCL, cl, cl(cl::fname));
+		return pCL;
+	};
 };
 
 /* specific functional object(s) */
@@ -343,7 +359,7 @@ struct AnnElasticCLR : public ConstitutiveLawRead<T, Tder> {
 	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType) {
 		ConstitutiveLaw<T, Tder>* pCL = 0;
 
-		CLType = ConstLawType::VISCOELASTIC;
+		CLType = ConstLawType::ELASTIC;
 
 		const char *s = HP.GetFileName();
 		if (s == 0) {
@@ -370,7 +386,7 @@ struct AnnViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 
 		const char *s = HP.GetFileName();
 		if (s == 0) {
-			silent_cerr("AnnElasticCLR: "
+			silent_cerr("AnnViscoElasticCLR: "
 				"unable to get ann file name "
 				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric();
