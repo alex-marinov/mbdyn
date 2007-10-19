@@ -494,12 +494,14 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 			throw DataManager::ErrGeneric();
 		}
 
-		std::vector<std::string> epsilon(dim);
+		std::vector<std::string> epsilon;
 		if (CLType & ConstLawType::ELASTIC) {
 			if (!HP.IsKeyWord("epsilon")) {
 				silent_cerr("keyword \"epsilon\" expected at line " << HP.GetLineData() << std::endl);
 				throw DataManager::ErrGeneric();
 			}
+
+			epsilon.resize(dim);
 
 			for (unsigned row = 0; row < dim; row++) {
 				const char *tmp = HP.GetStringWithDelims();
