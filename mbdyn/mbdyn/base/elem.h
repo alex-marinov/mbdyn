@@ -103,7 +103,7 @@ public:
 		ELECTRICBULK,
 		ELECTRIC,
 	
-	THERMAL,
+		THERMAL,
 
 		HYDRAULIC,
 	

@@ -136,7 +136,7 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 						*pXPrimeCurr, *pXPrimePrimeCurr, 
 						iOrder);
 		}
-		catch(Elem::ChangedEquationStructure) {
+		catch (Elem::ChangedEquationStructure) {
 			ResHdl += WorkVec;
 			ChangedEqStructure = true;
 		}
@@ -165,20 +165,30 @@ DataManager::AssRes(VectorHandler& ResHdl,
 {
 	DEBUGCOUT("Entering AssRes()" << std::endl);
 
+	const Elem::Type ElemType[] = {
+		Elem::BODY,
+		Elem::BEAM,
+
+		Elem::LASTELEMTYPE
+	};
+
+
 	bool ChangedEqStructure(false);
 	
-	for (ElemMapType::iterator j = ElemData[Elem::BODY].ElemMap.begin();
-		j != ElemData[Elem::BODY].ElemMap.end();
-		j++)
-	{
-		try {
-			ResHdl += j->second->AssRes(WorkVec, *pXCurr, 
-						*pXPrimeCurr, *pXPrimePrimeCurr, 
-						-1);
-		}
-		catch(Elem::ChangedEquationStructure) {
-			ResHdl += WorkVec;
-			ChangedEqStructure = true;
+	for (int et = 0; ElemType[et] != Elem::LASTELEMTYPE; et++) {
+		for (ElemMapType::iterator j = ElemData[et].ElemMap.begin();
+			j != ElemData[et].ElemMap.end();
+			j++)
+		{
+			try {
+				ResHdl += j->second->AssRes(WorkVec, *pXCurr, 
+							*pXPrimeCurr, *pXPrimePrimeCurr, 
+							-1);
+			}
+			catch (Elem::ChangedEquationStructure) {
+				ResHdl += WorkVec;
+				ChangedEqStructure = true;
+			}
 		}
 	}
 
