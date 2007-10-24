@@ -24,6 +24,7 @@ MBDyn 1.X-Devel
 		- fix ann viscoelastic constitutive law
 		- fix symbolic viscoelastic/symbolic 1D constitutive law
 		  (noted by Mattia Mattaboni)
+		- reset ANN structure (noted by Mattia Mattaboni)
 
 MBDyn 1.3.1-Alpha
 	Enhancements:
