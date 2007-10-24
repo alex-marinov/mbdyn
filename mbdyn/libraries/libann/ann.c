@@ -50,6 +50,8 @@ ann_res_t ANN_init( ANN *net, const char * FileName){
 	int ActFnc;
         FILE *fh;
 
+	memset( net, 0, sizeof( ANN ) );
+
         if ( !(fh = fopen( FileName, "r" ) ) ){
 		fprintf( stderr, "Input file doesn't exist.\n" );
 		ANN_error( ANN_NO_FILE, "ANN_init" );
