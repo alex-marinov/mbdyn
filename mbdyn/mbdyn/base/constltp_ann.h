@@ -40,6 +40,7 @@ template <class T, class Tder>
 class AnnElasticConstitutiveLaw
 : public ConstitutiveLaw<T, Tder> {
 protected:
+	bool bUnit;
 	unsigned dim;
 	ANN *net;
 	std::string fname;
@@ -96,8 +97,8 @@ protected:
 
 
 public:
-	AnnElasticConstitutiveLaw(const std::string& f)
-	: fname(f)
+	AnnElasticConstitutiveLaw(const std::string& f, bool b = false)
+	: bUnit(b), fname(f)
 	{
 		AnnInit();
 		AnnSanity();
@@ -115,7 +116,7 @@ public:
 	};
 
 	virtual void
-	AfterConvergence(const doublereal& Eps, const doublereal& EpsPrime = 0.)
+	AfterConvergence(const T& Eps, const T& EpsPrime = 0.)
 	{
 		Update(Eps, EpsPrime, ANN_FEEDBACK_UPDATE);
 	};
@@ -145,6 +146,7 @@ template <>
 class AnnElasticConstitutiveLaw<doublereal, doublereal>
 : public ConstitutiveLaw<doublereal, doublereal> {
 protected:
+	bool bUnit;
 	ANN *net;
 	std::string fname;
 
@@ -173,6 +175,13 @@ protected:
 		ConstitutiveLaw<doublereal, doublereal>::FDE = 0.;
 
                	net->input.vec[0] = E;
+		if (net->N_input == 2) {
+			if (bUnit) {
+				net->input.vec[1] = 1.;
+			} else {
+				net->input.vec[1] = 0.;
+			}
+		}
 
                 if (ANN_sim(net, &net->input, &net->output, feedback)) {
 			throw ErrGeneric();
@@ -184,8 +193,8 @@ protected:
 	};
 
 public:
-	AnnElasticConstitutiveLaw(const std::string& f)
-	: fname(f)
+	AnnElasticConstitutiveLaw(const std::string& f, bool b = false)
+	: bUnit(b), fname(f)
 	{
 		AnnInit();
 		AnnSanity();
@@ -273,8 +282,8 @@ protected:
 	};
 
 public:
-	AnnViscoElasticConstitutiveLaw(const std::string& f)
-	: AnnElasticConstitutiveLaw<T, Tder>(f)
+	AnnViscoElasticConstitutiveLaw(const std::string& f, bool b = false)
+	: AnnElasticConstitutiveLaw<T, Tder>(f, b)
 	{
 		NO_OP;
 	};
@@ -317,6 +326,13 @@ protected:
 		ANN *net = AnnElasticConstitutiveLaw<doublereal, doublereal>::net;
 		net->input.vec[0] = E;
 		net->input.vec[1] = EpsPrime;
+		if (net->N_input == 3) {
+			if (bUnit) {
+				net->input.vec[2] = 1.;
+			} else {
+				net->input.vec[2] = 0.;
+			}
+		}
                 if (ANN_sim(net, &net->input, &net->output, feedback))
 		{
                         silent_cout("AnnViscoElasticConstitutiveLaw: Network simulation error" << std::endl);
@@ -329,8 +345,8 @@ protected:
 	};
 
 public:
-	AnnViscoElasticConstitutiveLaw(const std::string& f)
-	: AnnElasticConstitutiveLaw<doublereal, doublereal>(f)
+	AnnViscoElasticConstitutiveLaw(const std::string& f, bool b = false)
+	: AnnElasticConstitutiveLaw<doublereal, doublereal>(f, b)
 	{
 		NO_OP;
 	};
@@ -361,6 +377,17 @@ struct AnnElasticCLR : public ConstitutiveLawRead<T, Tder> {
 
 		CLType = ConstLawType::ELASTIC;
 
+		bool bUnit(false);
+		if (HP.IsKeyWord("unit" "input")) {
+			if (HP.IsKeyWord("yes")) {
+				bUnit = true;
+			} else if (HP.IsKeyWord("no")) {
+				bUnit = false;
+			} else {
+				bUnit = (HP.GetInt() != 0);
+			}
+		}
+
 		const char *s = HP.GetFileName();
 		if (s == 0) {
 			silent_cerr("AnnElasticCLR: "
@@ -370,7 +397,7 @@ struct AnnElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		}
 
 		typedef AnnElasticConstitutiveLaw<T, Tder> L;
-		SAFENEWWITHCONSTRUCTOR(pCL, L, L(s));
+		SAFENEWWITHCONSTRUCTOR(pCL, L, L(s, bUnit));
 
 		return pCL;
 	};
@@ -384,6 +411,17 @@ struct AnnViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 
 		CLType = ConstLawType::VISCOELASTIC;
 
+		bool bUnit(false);
+		if (HP.IsKeyWord("unit" "input")) {
+			if (HP.IsKeyWord("yes")) {
+				bUnit = true;
+			} else if (HP.IsKeyWord("no")) {
+				bUnit = false;
+			} else {
+				bUnit = (HP.GetInt() != 0);
+			}
+		}
+
 		const char *s = HP.GetFileName();
 		if (s == 0) {
 			silent_cerr("AnnViscoElasticCLR: "
@@ -393,7 +431,7 @@ struct AnnViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		}
 
 		typedef AnnViscoElasticConstitutiveLaw<T, Tder> L;
-		SAFENEWWITHCONSTRUCTOR(pCL, L, L(s));
+		SAFENEWWITHCONSTRUCTOR(pCL, L, L(s, bUnit));
 
 		return pCL;
 	};
