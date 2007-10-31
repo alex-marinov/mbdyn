@@ -172,10 +172,10 @@ Y12Solver::Factor(void)
 		pic = &iCol[0];
 
 #ifdef HAVE_MEMMOVE
-		memmove(pir, piRow, sizeof(doublereal)*iCurSize);
-		memmove(pic, piCol, sizeof(doublereal)*iCurSize);
+		memmove(pir, piRow, sizeof(integer)*iNonZeroes);
+		memmove(pic, piCol, sizeof(integer)*iNonZeroes);
 #else /* ! HAVE_MEMMOVE */
-		for (unsigned i = iCurSize; i-- > 0; ) {
+		for (unsigned i = 0; i < iNonZeroes; i++) {
 			pir[i] = piRow[i];
 			pic[i] = piCol[i];
 		}
@@ -276,13 +276,13 @@ Y12Solver::MakeCompactForm(SparseMatrixHandler& mh,
 
 	/* iCurSize should be between 3 and 5 times iNonZeroes ... */
 	if (iCurSize > 5*iNonZeroes) {
-		iCurSize = 4*iNonZeroes;
+		iCurSize = 5*iNonZeroes;
 		
 	} else if (iCurSize < 3*iNonZeroes) {
-		if (iMaxSize < 4*iNonZeroes) {
+		if (iMaxSize < 5*iNonZeroes) {
 			iCurSize = iMaxSize;
 		} else {
-			iCurSize = 4*iNonZeroes;
+			iCurSize = 5*iNonZeroes;
 		}
 	}
 }
