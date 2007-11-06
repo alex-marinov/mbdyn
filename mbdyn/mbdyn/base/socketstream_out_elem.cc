@@ -62,21 +62,21 @@
 
 /* SocketStreamElem - begin */
 
-SocketStreamElem::SocketStreamElem(unsigned int uL, unsigned int nch,
-		ScalarDof *& pn,
+SocketStreamElem::SocketStreamElem(unsigned int uL,
+		std::vector<ScalarValue *>& pn,
 		unsigned int oe,
 		DataManager *pDM,
 		const char *h, const char *m, unsigned short int p, bool c,
 		int flags, bool bSF)
 : Elem(uL, flag(0)),
-NumChannels(nch), pNodes(pn), size(-1), buf(0),
+Values(pn), size(-1), buf(0),
 OutputEvery(oe), OutputCounter(0), 
 pUS(0), name(m), send_flags(flags), bSendFirst(bSF)
 {
 	ASSERT(OutputEvery > 0);
 
 	/* FIXME: size depends on the type of the output signals */
-	size = sizeof(doublereal)*nch;
+	size = sizeof(doublereal)*Values.size();
 	SAFENEWARR(buf, char, size);
 	memset(buf, 0, size);
 
@@ -88,21 +88,21 @@ pUS(0), name(m), send_flags(flags), bSendFirst(bSF)
 	}
 }
 
-SocketStreamElem::SocketStreamElem(unsigned int uL, unsigned int nch,
-		ScalarDof *& pn,
+SocketStreamElem::SocketStreamElem(unsigned int uL,
+		std::vector<ScalarValue *>& pn,
 		unsigned int oe,
 		DataManager *pDM,
 		const char *m, const char* const p, bool c,
 		int flags, bool bSF)
 : Elem(uL, flag(0)),
-NumChannels(nch), pNodes(pn), size(-1), buf(0),
+Values(pn), size(-1), buf(0),
 OutputEvery(oe), OutputCounter(0), 
 pUS(0), name(m), send_flags(flags), bSendFirst(bSF)
 {
 	ASSERT(OutputEvery > 0);
 
 	/* FIXME: size depends on the type of the output signals */
-	size = sizeof(doublereal)*nch;
+	size = sizeof(doublereal)*Values.size();
 	SAFENEWARR(buf, char, size);
 	memset(buf, 0, size);
 	
@@ -134,10 +134,10 @@ SocketStreamElem::Restart(std::ostream& out) const
 	if (!bSendFirst) {
 		out << ", no send first";
 	}
-	out << ", " << NumChannels;
-	for(unsigned i = 0; i < NumChannels; i++) {
+	out << ", " << Values.size();
+	for (unsigned i = 0; i < Values.size(); i++) {
 		out << ", " ;
-		pNodes[i].RestartScalarDofCaller(out);
+		//Values[i].RestartScalarDofCaller(out);
 	}
 	return out << ";" << std::endl;
 }	
@@ -215,9 +215,9 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 	OutputCounter = 0;
 
 	char *curbuf = buf;
-	for (unsigned int i = 0; i < NumChannels; i++) {
+	for (std::vector<ScalarValue *>::iterator i = Values.begin(); i != Values.end(); i++) {
 		/* assign value somewhere into mailbox buffer */
-		doublereal v = pNodes[i].dGetValue();
+		doublereal v = (*i)->dGetValue();
 
 		doublereal *dbuf = (doublereal *)curbuf;
 		dbuf[0] = v;
@@ -333,7 +333,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	}
 
 	if (HP.IsKeyWord("host")) {
-		if (path != 0){
+		if (path != 0) {
 			silent_cerr("cannot specify an allowed host "
 					"for a local socket in "
 				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
@@ -355,7 +355,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 
 		SAFESTRDUP(host, h);
 
-	} else if (!path && !create){
+	} else if (!path && !create) {
 		/* INET sockets (!path) must be created if host is missing */
 		silent_cerr("host undefined for "
 			<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
@@ -410,10 +410,16 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		throw ErrGeneric();
 	}
 
-	ScalarDof *pNodes = 0;
-	SAFENEWARR(pNodes, ScalarDof, nch);
+	std::vector<ScalarValue *> Values(nch);
 	for (int i = 0; i < nch; i++) {
-		pNodes[i] = ReadScalarDof(pDM, HP, 1);
+		if (HP.IsKeyWord("drive")) {
+			Values[i] = new ScalarDriveValue(ReadDriveData(pDM, HP, false));
+		} else {
+			if (HP.IsKeyWord("node" "dof")) {
+				NO_OP; // skip
+			}
+			Values[i] = new ScalarDofValue(ReadScalarDof(pDM, HP, 1));
+		}
 	}
 
    	(void)pDM->fReadOutput(HP, Elem::LOADABLE); 
@@ -425,19 +431,19 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		throw ErrGeneric();
 	}
       
-      /* costruzione del nodo */
+	/* costruzione del nodo */
 	Elem *pEl = 0;
 
-	if (path == 0){
+	if (path == 0) {
 		SAFENEWWITHCONSTRUCTOR(pEl, SocketStreamElem,
-				SocketStreamElem(uLabel, nch, pNodes,
+				SocketStreamElem(uLabel, Values,
 					OutputEvery,
 					pDM,
 					host, name, port, create, flags,
 					bSendFirst));
 	} else {
 		SAFENEWWITHCONSTRUCTOR(pEl, SocketStreamElem,
-				SocketStreamElem(uLabel, nch, pNodes,
+				SocketStreamElem(uLabel, Values,
 					OutputEvery,
 					pDM,
 					name, path, create, flags,

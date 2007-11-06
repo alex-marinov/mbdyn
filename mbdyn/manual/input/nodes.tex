@@ -230,18 +230,28 @@ The rows contain: \vspace{2mm} \\
 \paragraph{Private Data}
 The following data is available:
 \begin{enumerate}
+\item[] (all structural nodes)
 \item \kw{"X[1]"} position in global direction 1
 \item \kw{"X[2]"} position in global direction 2
 \item \kw{"X[3]"} position in global direction 3
+\item \kw{"x[1]"} position in direction 1, in the reference frame of the node
+\item \kw{"x[2]"} position in direction 2, in the reference frame of the node
+\item \kw{"x[3]"} position in direction 3, in the reference frame of the node
 \item \kw{"Phi[1]"} orientation vector in global direction 1
 \item \kw{"Phi[2]"} orientation vector in global direction 2
 \item \kw{"Phi[3]"} orientation vector in global direction 3
 \item \kw{"XP[1]"} velocity in global direction 1
 \item \kw{"XP[2]"} velocity in global direction 2
 \item \kw{"XP[3]"} velocity in global direction 3
+\item \kw{"xP[1]"} velocity in direction 1, in the reference frame of the node
+\item \kw{"xP[2]"} velocity in direction 2, in the reference frame of the node
+\item \kw{"xP[3]"} velocity in direction 3, in the reference frame of the node
 \item \kw{"Omega[1]"} angular velocity in global direction 1
 \item \kw{"Omega[2]"} angular velocity in global direction 2
 \item \kw{"Omega[3]"} angular velocity in global direction 3
+\item \kw{"omega[1]"} angular velocity in direction 1, in the reference frame of the node
+\item \kw{"omega[2]"} angular velocity in direction 2, in the reference frame of the node
+\item \kw{"omega[3]"} angular velocity in direction 3, in the reference frame of the node
 \item \kw{"E[1]"} Cardan angle 1 (about global direction 1)
 \item \kw{"E[2]"} Cardan angle 2 (about global direction 2)
 \item \kw{"E[3]"} Cardan angle 3 (about global direction 3)
@@ -249,12 +259,19 @@ The following data is available:
 \item \kw{"PE[1]"} Euler parameter 1
 \item \kw{"PE[2]"} Euler parameter 2
 \item \kw{"PE[3]"} Euler parameter 3
-\item \kw{"XPP[1]"} acceleration in global direction 1 (dynamic nodes only)
-\item \kw{"XPP[2]"} acceleration in global direction 2 (dynamic nodes only)
-\item \kw{"XPP[3]"} acceleration in global direction 3 (dynamic nodes only)
-\item \kw{"OmegaP[1]"} angular acceleration in global direction 1 (dynamic nodes only)
-\item \kw{"OmegaP[2]"} angular acceleration in global direction 2 (dynamic nodes only)
-\item \kw{"OmegaP[3]"} angular acceleration in global direction 3 (dynamic nodes only)
+\item[] (dynamic nodes only)
+\item \kw{"XPP[1]"} acceleration in global direction 1
+\item \kw{"XPP[2]"} acceleration in global direction 2
+\item \kw{"XPP[3]"} acceleration in global direction 3
+\item \kw{"xPP[1]"} acceleration in direction 1, in the reference frame of the node
+\item \kw{"xPP[2]"} acceleration in direction 2, in the reference frame of the node
+\item \kw{"xPP[3]"} acceleration in direction 3, in the reference frame of the node
+\item \kw{"OmegaP[1]"} angular acceleration in global direction 1
+\item \kw{"OmegaP[2]"} angular acceleration in global direction 2
+\item \kw{"OmegaP[3]"} angular acceleration in global direction 3
+\item \kw{"omegaP[1]"} angular acceleration in direction 1, in the reference frame of the node
+\item \kw{"omegaP[2]"} angular acceleration in direction 2, in the reference frame of the node
+\item \kw{"omegaP[3]"} angular acceleration in direction 3, in the reference frame of the node
 \end{enumerate}
 Note: Euler parameters actually do not take into account 
 the whole orientation of a node, since they are post-processed

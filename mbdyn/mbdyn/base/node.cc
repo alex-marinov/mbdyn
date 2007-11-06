@@ -684,6 +684,12 @@ ScalarDof::ScalarDof(void)
 	NO_OP;
 }
 
+ScalarDof::ScalarDof(const ScalarDof& sd)
+: pNode(sd.pNode), iOrder(sd.iOrder), iIndex(sd.iIndex)
+{
+	NO_OP;
+}
+
 ScalarDof::ScalarDof(ScalarNode* p, int iO, int iI)
 : pNode(p), iOrder(iO), iIndex(iI)
 {
@@ -695,13 +701,13 @@ ScalarDof::~ScalarDof(void)
 	NO_OP;
 }
 
-doublereal
+const doublereal &
 ScalarDof::dGetValue(void) const
 {
 	return pNode->dGetDofValue(1, iOrder);
 }
 
-doublereal
+const doublereal &
 ScalarDof::dGetValuePrev(void) const
 {
 	return pNode->dGetDofValuePrev(1, iOrder);

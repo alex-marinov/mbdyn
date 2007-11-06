@@ -41,12 +41,43 @@
 #include <elem.h>
 #include <node.h>
 
+/* ScalarValue - begin */
+
+class ScalarValue {
+public:
+	virtual ~ScalarValue(void) {};
+	virtual doublereal dGetValue(void) const = 0;
+};
+
+class ScalarDofValue : public ScalarValue, public ScalarDof {
+public:
+	ScalarDofValue(const ScalarDof& sd)
+	: ScalarDof(sd) {};
+	doublereal dGetValue(void) const {
+		return ScalarDof::dGetValue();
+	};
+};
+
+class ScalarDriveValue : public ScalarValue {
+protected:
+	const DriveCaller *pDC;
+
+public:
+	ScalarDriveValue(const DriveCaller *pdc)
+	: pDC(pdc) {};
+	~ScalarDriveValue(void) { if (pDC) delete pDC; };
+	doublereal dGetValue(void) const {
+		return pDC->dGet();
+	};
+};
+
+/* ScalarValue - end */
+
 /* SocketStreamElem - begin */
 
 class SocketStreamElem : virtual public Elem {
 protected:
-	unsigned int NumChannels;
-   	ScalarDof* pNodes;
+	std::vector<ScalarValue *> Values;
 
 	/* Stream buffer */
 	int size;
@@ -63,12 +94,12 @@ protected:
 	bool bSendFirst;
 	
 public:
-   	SocketStreamElem(unsigned int uL, unsigned int nmb, ScalarDof *& pn,
+   	SocketStreamElem(unsigned int uL, std::vector<ScalarValue *>& pn,
 			unsigned int oe,
 			DataManager *pDM,
 			const char *h, const char *m, unsigned short int p,
 			bool c, int flags, bool bSendFirst);
-   	SocketStreamElem(unsigned int uL, unsigned int nmb, ScalarDof *& pn,
+   	SocketStreamElem(unsigned int uL, std::vector<ScalarValue *>& pn,
 			unsigned int oe,
 			DataManager *pDM,
 			const char *m, const char* const Path,

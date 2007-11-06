@@ -1168,7 +1168,13 @@ StructNode::AfterConvergence(const VectorHandler& X,
 unsigned int
 StructNode::iGetNumPrivData(void) const
 {
-	return 12	// dofs
+	return 3	// X
+		+ 3	// x (R^T * X)
+		+ 3	// Phi
+		+ 3	// XP
+		+ 3	// xP (R^T * XP)
+		+ 3	// Omega
+		+ 3	// omega (R^T * Omega)
 		+ 3	// Euler angles
 		+ 4;	// Euler parameters
 }
@@ -1199,14 +1205,19 @@ StructNode::iGetPrivDataIdx(const char *s) const
 
 	/*
 		X		 0 + idx	idx = {1,3}
-		Phi		 3 + idx	idx = {1,3}
-		XP		 6 + idx	idx = {1,3}
-		Omega		 9 + idx	idx = {1,3}
-		E		12 + idx	idx = {1,3}
-		PE		16 + idx	idx = {0,3}
+		x		 3 + idx	idx = {1,3}
+		Phi		 6 + idx	idx = {1,3}
+		XP		 9 + idx	idx = {1,3}
+		x		12 + idx	idx = {1,3}
+		Omega		15 + idx	idx = {1,3}
+		omega		18 + idx	idx = {1,3}
+		E		21 + idx	idx = {1,3}
+		PE		24 + idx	idx = {0,3}
 		-------------------------------------------
-		XPP		19 + idx	idx = {1,3}
-		OmegaP		22 + idx	idx = {1,3}
+		XPP		28 + idx	idx = {1,3}
+		xPP		31 + idx	idx = {1,3}
+		OmegaP		34 + idx	idx = {1,3}
+		omegaP		37 + idx	idx = {1,3}
 	 */
 
 	if (strncasecmp(s, "PE", len) == 0) {
@@ -1225,20 +1236,32 @@ StructNode::iGetPrivDataIdx(const char *s) const
 		return 0 + idx;
 	}
 
-	if (strncasecmp(s, "Phi", len) == 0) {
+	if (strncasecmp(s, "x", len) == 0) {
 		return 3 + idx;
 	}
 
-	if (strncasecmp(s, "XP", len) == 0) {
+	if (strncasecmp(s, "Phi", len) == 0) {
 		return 6 + idx;
 	}
 
-	if (strncasecmp(s, "Omega", len) == 0) {
+	if (strncasecmp(s, "XP", len) == 0) {
 		return 9 + idx;
 	}
 
-	if (strncasecmp(s, "E", len) == 0) {
+	if (strncasecmp(s, "xP", len) == 0) {
 		return 12 + idx;
+	}
+
+	if (strncasecmp(s, "Omega", len) == 0) {
+		return 15 + idx;
+	}
+
+	if (strncasecmp(s, "omega", len) == 0) {
+		return 18 + idx;
+	}
+
+	if (strncasecmp(s, "E", len) == 0) {
+		return 21 + idx;
 	}
 
 	return 0;
@@ -1259,42 +1282,56 @@ StructNode::dGetPrivData(unsigned int i) const
 
 	case 4:
 	case 5:
-	case 6: {
-		/* TODO */
-		Vec3 Phi(RotManip::VecRot(RCurr));
-		return Phi(i - 3);
-	}
+	case 6:
+		return RCurr.GetVec(i - 3)*XCurr;
 
 	case 7:
 	case 8:
-	case 9:
-		return VCurr(i - 6);
+	case 9: {
+		/* TODO */
+		Vec3 Phi(RotManip::VecRot(RCurr));
+		return Phi(i - 6);
+	}
 
 	case 10:
 	case 11:
 	case 12:
-		return WCurr(i - 9);
+		return VCurr(i - 9);
 
 	case 13:
 	case 14:
-	case 15: {
-		/* TODO */
-		Vec3 Phi(MatR2EulerAngles(RCurr));
-		return Phi(i - 12);
-	}
+	case 15:
+		return RCurr.GetVec(i - 12)*VCurr;
 
 	case 16:
 	case 17:
 	case 18:
-	case 19: {
+		return WCurr(i - 15);
+
+	case 19:
+	case 20:
+	case 21:
+		return RCurr.GetVec(i - 18)*WCurr;
+
+	case 22:
+	case 23:
+	case 24: {
+		Vec3 Phi(MatR2EulerAngles(RCurr));
+		return Phi(i - 21);
+	}
+
+	case 25:
+	case 26:
+	case 27:
+	case 28: {
 		/* TODO */
 		Vec3 e;
 		doublereal e0;
 		MatR2EulerParams(RCurr, e0, e);
-		if (i == 16) {
+		if (i == 25) {
 			return e0;
 		}
-		return e(i - 16);
+		return e(i - 25);
 	}
 	}
 
@@ -1697,8 +1734,15 @@ DynamicStructNode::SetDofValue(const doublereal& dValue,
 unsigned int
 DynamicStructNode::iGetNumPrivData(void) const
 {
-	return StructNode::iGetNumPrivData()
-		+ bComputeAccelerations ? 6 : 0;
+	unsigned int i = StructNode::iGetNumPrivData();
+	if (bComputeAccelerations) {
+		i +=
+			3	// XPP
+			+ 3	// xPP
+			+ 3	// OmegaP
+			+ 3;	// omegaP
+	}
+	return i;
 }
 
 /*
@@ -1726,25 +1770,38 @@ DynamicStructNode::iGetPrivDataIdx(const char *s) const
 			return 0;
 		}
 
-		/*
-			X		 0 + idx	idx = {1,3}
-			Phi		 3 + idx	idx = {1,3}
-			XP		 6 + idx	idx = {1,3}
-			Omega		 9 + idx	idx = {1,3}
-			E		12 + idx	idx = {0,3}
-			PE		16 + idx	idx = {1,3}
-			-------------------------------------------
-			XPP		19 + idx	idx = {1,3}
-			OmegaP		22 + idx	idx = {1,3}
-		 */
+	/*
+		X		 0 + idx	idx = {1,3}
+		x		 3 + idx	idx = {1,3}
+		Phi		 6 + idx	idx = {1,3}
+		XP		 9 + idx	idx = {1,3}
+		x		12 + idx	idx = {1,3}
+		Omega		15 + idx	idx = {1,3}
+		omega		18 + idx	idx = {1,3}
+		E		21 + idx	idx = {1,3}
+		PE		24 + idx	idx = {0,3}
+		-------------------------------------------
+		XPP		28 + idx	idx = {1,3}
+		xPP		31 + idx	idx = {1,3}
+		OmegaP		34 + idx	idx = {1,3}
+		omegaP		37 + idx	idx = {1,3}
+	 */
 
 		if (idx >= 1 && idx <= 3) {
 			if (strncasecmp(s, "XPP", len) == 0) {
-				return 19 + idx;
+				return 28 + idx;
+			}
+	
+			if (strncasecmp(s, "xPP", len) == 0) {
+				return 31 + idx;
 			}
 	
 			if (strncasecmp(s, "OmegaP", len) == 0) {
-				return 22 + idx;
+				return 34 + idx;
+			}
+	
+			if (strncasecmp(s, "omegaP", len) == 0) {
+				return 37 + idx;
 			}
 		}
 	}
@@ -1761,15 +1818,25 @@ DynamicStructNode::dGetPrivData(unsigned int i) const
 {
 	if (bComputeAccelerations) {
 		switch (i) {
-		case 20:
-		case 21:
-		case 22:
-			return XPPCurr(i);
+		case 29:
+		case 30:
+		case 31:
+			return XPPCurr(i - 28);
 
-		case 23:
-		case 24:
-		case 25:
-			return WPCurr(i);
+		case 32:
+		case 33:
+		case 34:
+			return RCurr.GetVec(i - 31)*XPPCurr;
+
+		case 35:
+		case 36:
+		case 37:
+			return WPCurr(i - 34);
+
+		case 38:
+		case 39:
+		case 40:
+			return RCurr.GetVec(i - 37)*WPCurr;
 		}
 	}
 

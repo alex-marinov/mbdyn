@@ -4434,8 +4434,11 @@ The syntax is:
         create , { yes | no } ,
         [ host , " <host_name> " , ]
         <channel_number> ,
-            (node_dof) <output_dof>
+            <value>
             [ , ... ]
+    <value> ::=
+        { [ nodedof , ] (node_dof) <output_dof>
+            | drive , (DriveCaller) <drive_data> }
 \end{verbatim}
 where
 \begin{itemize}
@@ -4448,9 +4451,11 @@ the mailbox resides; note that if this field is given, \kw{create} must
 be set to \kw{no} and the mailbox must be already defined
 on the remote host;
 \item the number of channels \kw{<channel\_number>} that are written
-determines how many \kw{node\_dof} entries must be read.
-They must be valid scalar dof entries, which can be connected
-in many ways to nodal degrees of freedom or to element private data.
+determines how many \kw{value} entries must be read.
+In case of \kw{node\_dof}, they must be valid scalar dof entries,
+which can be connected in many ways to nodal degrees of freedom;
+in case of \kw{drive\_data}, they can be arbitrary functions,
+including node or element private data.
 \end{itemize}
 
 \emph{Note: at present, these elements require that the simulation
@@ -4480,7 +4485,7 @@ The syntax is:
             [ host , " <host_name> " , ] } ]
         [ { no signal | no send first | non blocking } , [ ... ] ]
         <channel_number> ,
-            (node_dof) <output_dof>
+            <value>
             [ , ... ]
 \end{verbatim}
 The stream output allows MBDyn to send streamed outputs 
@@ -4512,7 +4517,7 @@ The syntax is:
             [ port , <port_number> , ]
             [ host , " <host_name> " , ] } ]
         [ { no signal | no send first | non blocking } , [ ... ] ]
-        <node_label>
+        <struct_node_label>
             [ , ... ]
 \end{verbatim}
 As opposed to the \kw{stream output}, which is intended for generic
@@ -4583,9 +4588,8 @@ if none is given, a local mailbox is assumed;
 \end{itemize}
 
 The number of channels \kw{<channel\_number>} that are written
-determines how many \kw{node\_dof} entries must be read.
-They must be valid scalar dof entries, which can be connected
-in many ways to nodal degrees of freedom or to element private data.
+determines how many \kw{value} entries must be read.
+See Section~\ref{sec:EL:BASE:RTAI_out} for a detailed description.
 
 
 

@@ -702,6 +702,7 @@ struct ScalarDof {
 
 	/* Costruttore di default */
 	ScalarDof(void);
+	ScalarDof(const ScalarDof& sd);
 	/* Costruttore */
 	ScalarDof(ScalarNode* p, int iO, int iI);
 	/* Distruttore */
@@ -710,10 +711,10 @@ struct ScalarDof {
 	/* Funzioni che operano sui valori del DoF */
 
 	/* Ottiene il valore del DoF */
-	doublereal dGetValue(void) const;
+	const doublereal & dGetValue(void) const;
 
 	/* Ottiene il valore del DoF al passo precedente */
-	doublereal dGetValuePrev(void) const;
+	const doublereal & dGetValuePrev(void) const;
 
 	/* Scrive nel file di Restart il contributo per la chiamata allo ScalarDof */
 	std::ostream& RestartScalarDofCaller(std::ostream& out) const ;
