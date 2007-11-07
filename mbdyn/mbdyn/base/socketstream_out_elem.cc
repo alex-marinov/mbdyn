@@ -123,6 +123,10 @@ SocketStreamElem::~SocketStreamElem(void)
 	if (buf != 0) {
 		SAFEDELETEARR(buf);
 	}
+
+	for (std::vector<ScalarValue *>::iterator i = Values.begin(); i != Values.end(); i++) {
+		delete *i;
+	}
 }
 
 std::ostream&
