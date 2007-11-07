@@ -176,8 +176,8 @@ DataManager::AssRes(VectorHandler& ResHdl,
 	bool ChangedEqStructure(false);
 	
 	for (int et = 0; ElemType[et] != Elem::LASTELEMTYPE; et++) {
-		for (ElemMapType::iterator j = ElemData[et].ElemMap.begin();
-			j != ElemData[et].ElemMap.end();
+		for (ElemMapType::iterator j = ElemData[ElemType[et]].ElemMap.begin();
+			j != ElemData[ElemType[et]].ElemMap.end();
 			j++)
 		{
 			try {
