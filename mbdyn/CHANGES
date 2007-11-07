@@ -362,7 +362,7 @@ MBDyn 1.2-Beta.1
 		- added 'element' plugins to allow direct access to element 
 		  private data from math parser (companion of 'dof' plugin)
 		- added 'element' drive to allow direct access to element
-		  private data from math parser (companion of 'dof' drive)
+		  private data (companion of 'dof' drive)
 		- added multithreaded assembly (experimental)
 		- compact column form and multithread assembly works also
 		  with Y12
