@@ -15,6 +15,9 @@ MBDyn 1.X-Devel
 		- allow elastic/viscous variants of nlsf/nlp const. laws
 		  (suggested by Rudi Jaeger)
 		- rework logical operators on math data structures
+		- add relative private data to structural nodes
+		- allow using drives as output values in streams
+		  (noted by Rudi Jaeger)
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
