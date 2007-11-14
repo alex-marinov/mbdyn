@@ -2962,12 +2962,16 @@ A gimbal is a joint that allows the rotation between two nodes
 about two orthogonal axes.
 The angular velocity about the remaining axis is preserved regardless
 of the relative angle between the two nodes.
-It is essentially equivalent to two Cardano joints (universal joints)
+It is essentially equivalent to two Cardano joints\footnote{Or
+``universal joints''; this is also known as a double Hooke joint.}
 each of which accounts for half of the relative orientation.
 
 \paragraph{Variants.} \
 This joint is only defined in the variant that constrains the relative
 rotation between two nodes.
+It may need to be combined with another joint that constrains
+the (relative) position of the related nodes,
+and with a deformable hinge to provide some stiffness or damping.
 
 \paragraph{Files.} \
 It is implemented in files
@@ -2978,7 +2982,8 @@ It is implemented in files
 \end{tabular}
 
 \paragraph{Definitions.} \
-The relative orientation is made of three steps, described by
+The relative orientation between the nodes is made of three steps,
+described by
 \begin{eqnarray*}
 	\T{R}_{\text{rel}}
 	& = & \T{R}_a^T \T{R}_b \\
@@ -2999,14 +3004,19 @@ where
 \end{eqnarray}
 and $\T{e}_i$ is the unit vector in the $i$-th direction.
 
+This represents a sequence of mutually orthogonal rotations,
+symmetrical with respect to the mid of the central rotation,
+and thus consisting in a sequence of two Cardano joints
+in the ``W'' arrangement, which is homokinetic.
+
 \noindent
 Constraint equation
 \begin{equation}
 	\llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{\text{rel}}}}
 	- \llk{ax}\plbr{\llk{exp}^{-1}\plbr{
-		\llk{exp}\plbr{\T{e}_2 \vartheta \times{}}
-		\llk{exp}\plbr{\T{e}_1 \varphi \times{}}
-		\llk{exp}\plbr{\T{e}_2 \vartheta \times{}}
+		\llk{exp}\plbr{\vartheta \T{e}_2 \times{}}
+		\llk{exp}\plbr{\varphi \T{e}_1 \times{}}
+		\llk{exp}\plbr{\vartheta \T{e}_2 \times{}}
 	}} = \T{0}.
 	\label{eq:GIMBAL-CONSTRAINT}
 \end{equation}
@@ -3015,21 +3025,21 @@ Lagrange multipliers approach:
 	0 & = & \delta\plbr{\T{\lambda}^T\plbr{
 	\llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{\text{rel}}}}
 	- \llk{ax}\plbr{\llk{exp}^{-1}\plbr{
-		\llk{exp}\plbr{\T{e}_2 \vartheta \times{}}
-		\llk{exp}\plbr{\T{e}_1 \varphi \times{}}
-		\llk{exp}\plbr{\T{e}_2 \vartheta \times{}}
+		\llk{exp}\plbr{\vartheta \T{e}_2 \times{}}
+		\llk{exp}\plbr{\varphi \T{e}_1 \times{}}
+		\llk{exp}\plbr{\vartheta \T{e}_2 \times{}}
 	}}
 	}} \\
 	& = & \delta\T{\lambda}^T \plbr{
 	\llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{\text{rel}}}}
 	- \llk{ax}\plbr{\llk{exp}^{-1}\plbr{
-		\llk{exp}\plbr{\T{e}_2 \vartheta \times{}}
-		\llk{exp}\plbr{\T{e}_1 \varphi \times{}}
-		\llk{exp}\plbr{\T{e}_2 \vartheta \times{}}
+		\llk{exp}\plbr{\vartheta \T{e}_2 \times{}}
+		\llk{exp}\plbr{\varphi \T{e}_1 \times{}}
+		\llk{exp}\plbr{\vartheta \T{e}_2 \times{}}
 	}}
 	} \\
-	& & \mbox{} + \delta\T{g}_b^T \T{R}_a \T{\lambda}
-	- \delta\T{g}_a^T \T{R}_a \T{\lambda} \\
+	& & \mbox{} + \T{\theta}_{b\delta}^T \T{R}_a \T{\lambda}
+	- \T{\theta}_{a\delta}^T \T{R}_a \T{\lambda} \\
 	& & \mbox{} + \delta\vartheta \T{e}_2^T \plbr{
 		\T{I} + \llk{exp}\plbr{\varphi \T{e}_1 \times{}}^T
 			\llk{exp}\plbr{\vartheta \T{e}_2 \times{}}^T
@@ -3080,8 +3090,8 @@ the linearization becomes
 		\T{0} & \T{0} & \T{w}_{\varphi}^T &
 			-\plbr{\sin\vartheta\T{e}_1 + \cos\vartheta\T{e}_3}^T \T{\lambda} & 0
 	}} \cubr{\cvvect{
-		\delta\T{g}_a \\
-		\delta\T{g}_b \\
+		\T{\theta}_{a\delta} \\
+		\T{\theta}_{b\delta} \\
 		\delta\T{\lambda} \\
 		\delta\vartheta \\
 		\delta\varphi
