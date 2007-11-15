@@ -1969,6 +1969,13 @@ SimulationEntityDCR::Read(const DataManager* pDM,
 	if (HP.IsKeyWord("string")) {
 		const char *s = HP.GetStringWithDelims();
 		iIndex = pSE->iGetPrivDataIdx(s);
+		if (iIndex == 0) {
+			silent_cerr("illegal string \"" << s << "\""
+				" for " << msg
+				<< " at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric();
+		}
 		SAFESTRDUP(sIndexName, s);
 
 	} else if (HP.IsKeyWord("index")) {
