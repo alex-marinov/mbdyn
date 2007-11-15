@@ -1964,7 +1964,6 @@ SimulationEntityDCR::Read(const DataManager* pDM,
 	const DriveHandler* pDrvHdl = pDM->pGetDrvHdl();
 	DriveCaller *pDC = 0;
 
-	unsigned int iMaxIndex = pSE->iGetNumPrivData();
 	unsigned int iIndex = 0;
 	const char *sIndexName = 0;
 	if (HP.IsKeyWord("string")) {
@@ -1975,7 +1974,7 @@ SimulationEntityDCR::Read(const DataManager* pDM,
 	} else if (HP.IsKeyWord("index")) {
 		iIndex = HP.GetInt();
 
-	} else if (iMaxIndex == 1) {
+	} else if (pSE->iGetNumPrivData() == 1) {
 		iIndex = 1;
 
 	} else {
@@ -1984,7 +1983,7 @@ SimulationEntityDCR::Read(const DataManager* pDM,
 		throw ErrGeneric();
 	}
 
-	if (iIndex < 1 || iIndex > iMaxIndex) {
+	if (iIndex < 1 || iIndex > pSE->iGetNumPrivData()) {
 		silent_cerr("illegal index " << iIndex << " for " << msg
 			<< " at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric();

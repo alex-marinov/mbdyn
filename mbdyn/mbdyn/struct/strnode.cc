@@ -1362,6 +1362,7 @@ Var_XPP(0),
 Var_OmegaP(0),
 #endif /* USE_NETCDF */
 bComputeAccelerations((fOut & 2) ? true : false),
+bOutputAccelerations(bComputeAccelerations),
 pAutoStr(0)
 {
 	NO_OP;
@@ -1480,7 +1481,7 @@ DynamicStructNode::OutputPrepare(OutputHandler &OH)
 	if (fToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::STRNODES)
-			&& bComputeAccelerations)
+			&& bOutputAccelerations)
 		{
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
@@ -1574,7 +1575,7 @@ DynamicStructNode::Output(OutputHandler& OH) const
 			Var_XP->put_rec(VCurr.pGetVec(), OH.GetCurrentStep());
 			Var_Omega->put_rec(WCurr.pGetVec(), OH.GetCurrentStep());
 
-			if (bComputeAccelerations) {
+			if (bOutputAccelerations) {
 				Var_XPP->put_rec(XPPCurr.pGetVec(), OH.GetCurrentStep());
 				Var_OmegaP->put_rec(WPCurr.pGetVec(), OH.GetCurrentStep());
 			}
@@ -1602,7 +1603,7 @@ DynamicStructNode::Output(OutputHandler& OH) const
 			}
 			OH.StrNodes() << " " << VCurr << " " << WCurr;
 
-			if (bComputeAccelerations) {
+			if (bOutputAccelerations) {
 				out
 					<< " " << XPPCurr
 					<< " " << WPCurr;
@@ -1735,6 +1736,7 @@ unsigned int
 DynamicStructNode::iGetNumPrivData(void) const
 {
 	unsigned int i = StructNode::iGetNumPrivData();
+
 	if (bComputeAccelerations) {
 		i +=
 			3	// XPP
@@ -1742,6 +1744,7 @@ DynamicStructNode::iGetNumPrivData(void) const
 			+ 3	// OmegaP
 			+ 3;	// omegaP
 	}
+
 	return i;
 }
 
@@ -1753,22 +1756,21 @@ DynamicStructNode::iGetNumPrivData(void) const
 unsigned int
 DynamicStructNode::iGetPrivDataIdx(const char *s) const
 {
-	if (bComputeAccelerations) {
-		long	idx;
-		char	*next;
+	long	idx;
+	char	*next;
 
-		char	*brk = strchr(s, '[' /*]*/ );
-		if (brk == 0) {
-			return 0;
-		}
+	char	*brk = strchr(s, '[' /*]*/ );
+	if (brk == 0) {
+		return 0;
+	}
 
-		size_t	len = brk - s;;
-		brk++;
+	size_t	len = brk - s;;
+	brk++;
 
-		idx = strtol(brk, &next, 10);
-		if (next == brk || strcmp(next, /*[*/ "]") != 0) {
-			return 0;
-		}
+	idx = strtol(brk, &next, 10);
+	if (next == brk || strcmp(next, /*[*/ "]") != 0) {
+		return 0;
+	}
 
 	/*
 		X		 0 + idx	idx = {1,3}
@@ -1787,22 +1789,25 @@ DynamicStructNode::iGetPrivDataIdx(const char *s) const
 		omegaP		37 + idx	idx = {1,3}
 	 */
 
-		if (idx >= 1 && idx <= 3) {
-			if (strncasecmp(s, "XPP", len) == 0) {
-				return 28 + idx;
-			}
+	if (idx >= 1 && idx <= 3) {
+		if (strncasecmp(s, "XPP", len) == 0) {
+			bComputeAccelerations = true;
+			return 28 + idx;
+		}
 	
-			if (strncasecmp(s, "xPP", len) == 0) {
-				return 31 + idx;
-			}
+		if (strncasecmp(s, "xPP", len) == 0) {
+			bComputeAccelerations = true;
+			return 31 + idx;
+		}
 	
-			if (strncasecmp(s, "OmegaP", len) == 0) {
-				return 34 + idx;
-			}
+		if (strncasecmp(s, "OmegaP", len) == 0) {
+			bComputeAccelerations = true;
+			return 34 + idx;
+		}
 	
-			if (strncasecmp(s, "omegaP", len) == 0) {
-				return 37 + idx;
-			}
+		if (strncasecmp(s, "omegaP", len) == 0) {
+			bComputeAccelerations = true;
+			return 37 + idx;
 		}
 	}
 

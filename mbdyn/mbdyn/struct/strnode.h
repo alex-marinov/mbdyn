@@ -481,7 +481,8 @@ protected:
 
 	/* Acceleration and angular acceleration; DynamicStructNode uses them
 	 * only for output; ModalNode uses them to store actual unknowns */
-	bool bComputeAccelerations;
+	mutable bool bComputeAccelerations;
+	bool bOutputAccelerations;
 	mutable AutomaticStructElem *pAutoStr;
 
 	virtual inline void SetAutoStr(const AutomaticStructElem *p);

@@ -100,17 +100,19 @@ They are optional, but they must be supplied all together if at least
 one is to be input. \\
 The \kw{omega\_rotates} flag can take values \kw{yes} or \kw{no};
 a numerical value of 0 (no) or 1 (yes) is supported for backwards
-compatibility, but its use is deprecated. \\
-The \kw{dynamic} node type allows the optional output keyword
-\kw{accelerations} after the standard node output paramters
-to enable the computation of the linear and angular accelerations
-of the node.  Since this is a postprocessing, it is not required
-by the regular analysis, so it should be enabled only when strictly
-required.  Also note that accelerations may be inaccurate.
-%FIXME: elaborate on this.
+compatibility, but its use is deprecated.
 
-If the \kw{static} model type is used, all dynamic structural nodes
-are actually treated as static.
+Only the \kw{dynamic} node type allows the optional output keyword
+\kw{accelerations} after the standard node output parameters,
+to enable the output of the linear and angular accelerations of the node.
+Since this is a postprocessing, it is not required by the regular analysis,
+so it should be enabled only when strictly required.
+Also note that accelerations may be inaccurate, since they are reconstructed
+from the momentum and the momenta moment derivatives through the inertia
+associated to the node.
+
+If the \kw{static} model type is used in the control data block,
+all dynamic structural nodes are actually treated as static.
 This is a shortcut to ease running static analyses without the need
 to modify each node of a dynamic model.
 
@@ -273,12 +275,19 @@ The following data is available:
 \item \kw{"omegaP[2]"} angular acceleration in direction 2, in the reference frame of the node
 \item \kw{"omegaP[3]"} angular acceleration in direction 3, in the reference frame of the node
 \end{enumerate}
+
 Note: Euler parameters actually do not take into account 
 the whole orientation of a node, since they are post-processed
 from the orientation matrix.
 As a consequence, they only parametrize the minimum norm orientation
 that yields the current orientation matrix of the node.
 The same applies to the orientation vector $\varphi$.
+
+Note: if accelerations are requested using the \kw{string} form,
+their computation is enabled even if it was not explicitly enabled
+when the node was instantiated.
+However, if the \kw{index} form is used, their computation must have
+already been explicitly enabled.
 
 
 \section{Electric Node}

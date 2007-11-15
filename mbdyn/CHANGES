@@ -28,6 +28,8 @@ MBDyn 1.X-Devel
 		- fix symbolic viscoelastic/symbolic 1D constitutive law
 		  (noted by Mattia Mattaboni)
 		- reset ANN structure (noted by Mattia Mattaboni)
+		- allow accelerations in dynamic node's private data
+		  even if not explicitly enabled (noted by Rudi Jaeger)
 
 MBDyn 1.3.1-Alpha
 	Enhancements:
