@@ -85,6 +85,7 @@ DataManager::ReadControl(MBDynParser& HP,
 		psReadControlElems[Elem::GRAVITY],
 		psReadControlElems[Elem::BODY],
 		psReadControlElems[Elem::JOINT],
+		psReadControlElems[Elem::JOINT_REGULARIZATION],
 		psReadControlElems[Elem::BEAM],
 		psReadControlElems[Elem::PLATE],
 		psReadControlElems[Elem::AIRPROPERTIES],
@@ -165,6 +166,7 @@ DataManager::ReadControl(MBDynParser& HP,
 		GRAVITY,
 		RIGIDBODIES,
 		JOINTS,
+			JOINT_REGULARIZATIONS,
 		BEAMS,
 		PLATES,
 		AIRPROPERTIES,
@@ -324,6 +326,16 @@ DataManager::ReadControl(MBDynParser& HP,
 			ElemData[Elem::JOINT].iExpectedNum = iDmy;
 			DofData[DofOwner::JOINT].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Joints: " << iDmy << std::endl);
+			if (iDmy > 0 ) {
+				bInitialJointAssemblyToBeDone = true;
+			}
+		} break;
+
+		/* Numero di regolarizzazion vincoli attesi */
+		case JOINT_REGULARIZATIONS: {
+			int iDmy = HP.GetInt();
+			ElemData[Elem::JOINT_REGULARIZATION].iExpectedNum = iDmy;
+			DEBUGLCOUT(MYDEBUG_INPUT, "Joint regularizations: " << iDmy << std::endl);
 			if (iDmy > 0 ) {
 				bInitialJointAssemblyToBeDone = true;
 			}

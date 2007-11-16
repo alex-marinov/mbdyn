@@ -95,6 +95,7 @@ public:
 		GRAVITY,
 		BODY,
 		JOINT,
+			JOINT_REGULARIZATION,
 		BEAM,
 		PLATE,
 

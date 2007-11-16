@@ -18,6 +18,8 @@ MBDyn 1.X-Devel
 		- add relative private data to structural nodes
 		- allow using drives as output values in streams
 		  (noted by Rudi Jaeger)
+		- add framework for joint regularization
+		  (suggested by Alessandro Fumagalli)
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:

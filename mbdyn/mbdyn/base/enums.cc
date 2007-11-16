@@ -46,6 +46,7 @@ const char* psElemNames[] = {
    "Gravity",
    "Rigid Body",
    "Joint",
+	"Joint Regularization",
    "Beam",
    "Plate",
    
@@ -83,6 +84,7 @@ const char* psReadElemsElems[] = {
    "gravity",
    "rigid" "body",
    "joint",
+	"joint" "regularization",
    "beam",
    "plate",
    
@@ -123,6 +125,7 @@ const char* psReadControlElems[] = {
    "gravity",
    "rigid" "bodies",
    "joints",
+	"joint" "regularizations",
    "beams",
    "plates",
    

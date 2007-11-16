@@ -51,6 +51,8 @@ inplcntj.h \
 joint.cc \
 joint.h \
 joint_.h \
+jointreg.cc \
+jointreg.h \
 kin.cc \
 kin.h \
 kinj.cc \

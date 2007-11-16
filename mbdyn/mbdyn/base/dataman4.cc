@@ -49,6 +49,8 @@
 #include "autostr.h"   /* Elementi automatici associati ai nodi dinamici */
 #include "gravity.h"   /* Elemento accelerazione di gravita' */
 #include "body.h"
+#include "joint.h"
+#include "jointreg.h"
 #include "force.h"
 #include "beam.h"
 #include "beam2.h"
@@ -98,6 +100,7 @@ enum KeyWords {
 	BODY,
 	AUTOMATICSTRUCTURAL,
 	JOINT,
+	JOINT_REGULARIZATION,
 	COUPLE,
 	BEAM3,
 	BEAM,		/* same as BEAM3 */
@@ -157,6 +160,7 @@ DataManager::ReadElems(MBDynParser& HP)
 		"body",
 		"automatic" "structural",
 		"joint",
+			"joint" "regularization",
 		"couple",
 		"beam3",
 		"beam",
@@ -856,6 +860,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					case FORCE:
 					case BODY:
 					case JOINT:
+					case JOINT_REGULARIZATION:
 					case COUPLE:
 					case BEAM:
 					case BEAM3:			/* same as BEAM */
@@ -921,6 +926,10 @@ DataManager::ReadElems(MBDynParser& HP)
 
 						case JOINT:
 							ppE = ppFindElem(Elem::JOINT, uLabel);
+							break;
+
+						case JOINT_REGULARIZATION:
+							ppE = ppFindElem(Elem::JOINT_REGULARIZATION, uLabel);
 							break;
 
 						case COUPLE:
@@ -1047,6 +1056,7 @@ DataManager::ReadElems(MBDynParser& HP)
 
 				case BODY:
 				case JOINT:
+				case JOINT_REGULARIZATION:
 				case COUPLE:
 				case BEAM:
 				case BEAM3:		/* same as BEAM */
@@ -1398,6 +1408,43 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, int CurrType)
 		pE = ReadJoint(this, HP, pDO, uLabel);
 		if (pE != 0) {
 			ppE = &ElemData[Elem::JOINT].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
+		}
+
+		/* attenzione: i Joint aggiungono DofOwner e quindi devono
+		 * completare la relativa struttura */
+		break;
+	}
+
+	/* regolarizzazione vincoli */
+	case JOINT_REGULARIZATION: {
+		silent_cout("Reading joint regularization " << uLabel << std::endl);
+
+		if (iNumTypes[Elem::JOINT_REGULARIZATION]-- <= 0) {
+			DEBUGCERR("");
+			silent_cerr("line " << HP.GetLineData()
+				<< ": " << psElemNames[Elem::JOINT_REGULARIZATION]
+				<< "(" << uLabel << ")"
+				" exceeds " << psElemNames[Elem::JOINT_REGULARIZATION]
+				<< " elements number" << std::endl);
+
+			throw DataManager::ErrGeneric();
+		}
+
+		/* verifica che non sia gia' definito */
+		if (pFindElem(Elem::JOINT_REGULARIZATION, uLabel) != NULL) {
+			DEBUGCERR("");
+			silent_cerr("line " << HP.GetLineData()
+				<< ": " << psElemNames[Elem::JOINT_REGULARIZATION]
+				<< "(" << uLabel << ")"
+				<< " already defined" << std::endl);
+
+			throw DataManager::ErrGeneric();
+		}
+
+		/* allocazione e creazione */
+		pE = ReadJointRegularization(this, HP, uLabel);
+		if (pE != 0) {
+			ppE = &ElemData[Elem::JOINT_REGULARIZATION].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
 		}
 
 		/* attenzione: i Joint aggiungono DofOwner e quindi devono
