@@ -1018,15 +1018,15 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 			Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
 			Mat3x3 RDelta = R1r.Transpose()*R2r*R0T;
 			Vec3 ThetaDelta = RotManip::VecRot(RDelta);
-		
+	
 			/* Position constraint  */
 			for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
-				WorkVec.DecCoef(1 + iCnt, XDelta(iPosIncid[iCnt]));
+				WorkVec.DecCoef(1 + iPosEqIndex[iCnt], XDelta(iPosIncid[iCnt]));
 			}
 	
 			/* Rotation constraint  */
 			for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
-				WorkVec.DecCoef(1 + nPosConstraints + iCnt, ThetaDelta(iRotIncid[iCnt]));
+				WorkVec.DecCoef(1 + iRotEqIndex[iCnt], ThetaDelta(iRotIncid[iCnt]));
 			}
 		}// end case 0:
 		break;
@@ -1040,7 +1040,7 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 			
 			/* Position constraint derivative  */
 			for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
-				WorkVec.PutCoef(1 + iCnt, Tmp(iPosIncid[iCnt]));
+				WorkVec.PutCoef(1 + iPosEqIndex[iCnt], Tmp(iPosIncid[iCnt]));
 			}
 
 			Mat3x3 R1r = pNode1->GetRCurr()*R1hr;
@@ -1054,7 +1054,7 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	
 			/* Rotation constraint derivative */
 			for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
-				WorkVec.PutCoef(1 + nPosConstraints + iCnt, WDelta(iRotIncid[iCnt]));
+				WorkVec.PutCoef(1 + iRotEqIndex[iCnt], WDelta(iRotIncid[iCnt]));
 			}
 		} // end case 1:	
 		break;
@@ -1082,7 +1082,7 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 			
 		/* Position constraint second derivative  */
 			for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
-				WorkVec.DecCoef(1 + iCnt, Tmp(iPosIncid[iCnt]));
+				WorkVec.DecCoef(1 + iPosEqIndex[iCnt], Tmp(iPosIncid[iCnt]));
 			}
 	
 			Mat3x3 R1r = pNode1->GetRCurr()*R1hr;
@@ -1096,10 +1096,10 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 			Tmp += Mat3x3(pNode1->GetWCurr())*pNode2->GetWCurr();
 			Tmp2 = R1r.Transpose()*Tmp;
 			Tmp2 += RDelta * OmegaPDrv.Get();
-			
+
 			/* Rotation constraint second derivative */
 			for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
-				WorkVec.PutCoef(1 + nPosConstraints + iCnt, Tmp2(iRotIncid[iCnt]));
+				WorkVec.PutCoef(1 + iRotEqIndex[iCnt], Tmp2(iRotIncid[iCnt]));
 			}
 		} // end case 2:
 		break;
@@ -1123,13 +1123,11 @@ TotalJoint::Update(const VectorHandler& XCurr, int /*iOrder*/)
 	integer iFirstReactionIndex = iGetFirstIndex();
 	
 	/* Get constraint reactions */
-
 	for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
-			F(iPosIncid[iCnt]) = XCurr(iFirstReactionIndex + 1 + iCnt);
+		F(iPosIncid[iCnt]) = XCurr(iFirstReactionIndex + 1 + iPosEqIndex[iCnt]);
 	}
-
 	for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
-			M(iRotIncid[iCnt]) = XCurr(iFirstReactionIndex + 1 + nPosConstraints + iCnt);
+		M(iRotIncid[iCnt]) = XCurr(iFirstReactionIndex + 1 + iRotEqIndex[iCnt]);
 	}
 };
 
