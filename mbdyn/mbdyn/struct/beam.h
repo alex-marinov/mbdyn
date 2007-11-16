@@ -239,6 +239,11 @@ class Beam
     virtual void
     AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 
+    /* Inverse Dynamics */
+    virtual void
+    AfterConvergence(const VectorHandler& X, const VectorHandler& XP, 
+    		const VectorHandler& XPP);
+    
     /* funzioni proprie */
    
     /* Dimensioni del workspace; sono 36 righe perche' se genera anche le 
@@ -270,6 +275,15 @@ class Beam
 	   const VectorHandler& XCurr, 
 	   const VectorHandler& XPrimeCurr);
    
+   /* Inverse Dynamics: */
+    virtual SubVectorHandler& 
+    AssRes(SubVectorHandler& WorkVec,
+	   const VectorHandler&  XCurr , 
+	   const VectorHandler&  XPrimeCurr ,
+	   const VectorHandler&  XPrimePrimeCurr ,
+	   int iOrder = -1);
+   
+
     /* assemblaggio jacobiano */
     virtual VariableSubMatrixHandler&
     AssJac(VariableSubMatrixHandler& WorkMat,
@@ -468,6 +482,11 @@ class ViscoElasticBeam : virtual public Elem, public Beam {
 
     virtual void
     AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
+    
+    /* Inverse Dynamics */
+    virtual void
+    AfterConvergence(const VectorHandler& X, const VectorHandler& XP, 
+    		const VectorHandler& XPP);
 };
 
 /* ViscoElasticBeam - end */

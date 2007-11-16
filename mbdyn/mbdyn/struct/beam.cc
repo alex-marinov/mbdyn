@@ -537,6 +537,13 @@ Beam::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
 	}
 }
 
+/* Inverse Dynamics: */
+void
+Beam::AfterConvergence(const VectorHandler& X, const VectorHandler& XP, const VectorHandler& XPP)
+{
+	AfterConvergence(X, XP);
+}
+
 /* Assembla la matrice */
 void
 Beam::AssStiffnessMat(FullSubMatrixHandler& WMA,
@@ -854,6 +861,34 @@ Beam::AssRes(SubVectorHandler& WorkVec,
 
 		AssInertiaVec(WorkVec, dCoef, XCurr, XPrimeCurr);
 	}
+
+	return WorkVec;
+}
+
+/* Inverse Dynamics residual assembly */
+SubVectorHandler&
+Beam::AssRes(SubVectorHandler& WorkVec,
+	const VectorHandler&  XCurr ,
+	const VectorHandler&  XPrimeCurr ,
+	const VectorHandler&  XPrimePrimeCurr ,
+	int iOrder)
+{
+	DEBUGCOUTFNAME("Beam::AssRes => AssStiffnessVec");
+
+	integer iNode1FirstMomIndex = pNode[NODE1]->iGetFirstPositionIndex();
+	integer iNode2FirstMomIndex = pNode[NODE2]->iGetFirstPositionIndex();
+	integer iNode3FirstMomIndex = pNode[NODE3]->iGetFirstPositionIndex();
+
+	/* Dimensiona il vettore, lo azzera e pone gli indici corretti */
+	WorkVec.ResizeReset(18);
+
+	for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
+		WorkVec.PutRowIndex(12 + iCnt, iNode3FirstMomIndex + iCnt);
+	}
+
+	AssStiffnessVec(WorkVec, 1., XCurr, XPrimeCurr);
 
 	return WorkVec;
 }
@@ -1353,6 +1388,14 @@ ViscoElasticBeam::AfterConvergence(const VectorHandler& X,
 		DefLocPrev[i] = DefLoc[i];
 		pD[i]->AfterConvergence(DefLoc[i], DefPrimeLoc[i]);
 	}
+}
+
+/* Inverse Dynamics */
+void
+ViscoElasticBeam::AfterConvergence(const VectorHandler& X,
+	const VectorHandler& XP, const VectorHandler& XPP)
+{
+	AfterConvergence(X, XP);
 }
 
 /* Assembla la matrice */
