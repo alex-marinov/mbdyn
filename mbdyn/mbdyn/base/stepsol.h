@@ -669,9 +669,6 @@ private:
 	mutable bool bEvalProdCalledFirstTime;
 
 	int iOrder;
-	doublereal VelErr;
-	doublereal AccErr;
-	doublereal ForceErr;
 
 protected:
 	VectorHandler *pXCurr;

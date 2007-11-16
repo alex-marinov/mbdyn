@@ -1230,9 +1230,6 @@ SavedState(0),
 SavedDerState(0),
 bEvalProdCalledFirstTime(true),
 iOrder(0),
-VelErr(0),
-AccErr(0),
-ForceErr(0),
 pXCurr(0),
 pXPrimeCurr(0),
 pXPrimePrimeCurr(0),
@@ -1394,60 +1391,51 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 	/* Velocity */
 	SetOrder(1);
 	
-	VelErr = 0;
 	pRes->Reset();
+	pSol->Reset();
 	/* there's no need to check changes in
 	 * equation structure... it is already
 	 * performed by NonlinearSolver->Solve()*/
 	Residual(pRes);
-	VelErr = pNLSolver->MakeResTest(pS, *pRes);
-	if(VelErr > dTol) {
-		if(iLocalIter == EffIter) {
-			pSM->MatrReset();
-			Jacobian(pSM->pMatHdl());
-			EffIter++;
-		}
-		pSM->Solve();
-		/* use velocity */
-		Update(pSol);
+	if(iLocalIter == EffIter) {
+		pSM->MatrReset();
+		Jacobian(pSM->pMatHdl());
+		EffIter++;
 	}
+	pSM->Solve();
+	/* use velocity */
+	Update(pSol);
 
 	/* Acceleration */
 	SetOrder(2);
 
-	AccErr = 0;
 	pRes->Reset();
+	pSol->Reset();
 	Residual(pRes);
-	AccErr = pNLSolver->MakeResTest(pS, *pRes);
 
-	if(AccErr > dTol) {
-		if(iLocalIter == EffIter) {
-			pSM->MatrReset();
-			Jacobian(pSM->pMatHdl());
-			EffIter++;
-		}
-		/* use acceleration */
-		pSM->Solve();
-		Update(pSol);
+	if(iLocalIter == EffIter) {
+		pSM->MatrReset();
+		Jacobian(pSM->pMatHdl());
+		EffIter++;
 	}
+	/* use acceleration */
+	pSM->Solve();
+	Update(pSol);
 
 	/* Forces */
 	SetOrder(-1);
 	
-	ForceErr = 1.;
 	pRes->Reset();
 	pSol->Reset();
 	Residual(pRes);
-	//ForceErr = pNLSolver->MakeResTest(pS, *pRes);
 	
-	if(ForceErr > dTol) {
-		if(iLocalIter == EffIter) {
-			pSM->MatrReset();
-			Jacobian(pSM->pMatHdl());
-		}
-		pSM->SolveT();
-		Update(pSol);
+	if(iLocalIter == EffIter) {
+		pSM->MatrReset();
+		Jacobian(pSM->pMatHdl());
+		EffIter++;
 	}
+	pSM->SolveT();
+	Update(pSol);
 	
 	pDM->IDAfterConvergence();
 
