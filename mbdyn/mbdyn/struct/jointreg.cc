@@ -142,14 +142,31 @@ void
 TikhonovRegularization::InitialWorkSpaceDim(integer* piNumRows,
 	integer* piNumCols) const
 {
-	*piNumRows = *piNumCols = 0;
+	*piNumRows = *piNumCols = pJ->iGetInitialNumDof();
 }
 
 VariableSubMatrixHandler& 
 TikhonovRegularization::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	const VectorHandler& XCurr)
-{
-	WorkMat.SetNullMatrix();
+{	
+	SparseSubMatrixHandler& WM = WorkMat.SetSparse();
+
+	integer iFirstIndex = pJ->iGetFirstIndex();
+	unsigned iNumDofs = pJ->iGetInitialNumDof();
+
+	WM.ResizeReset(iNumDofs, 0);
+	unsigned tmp = 1;
+
+	
+	for (unsigned iCnt = 1; iCnt <= iNumDofs; iCnt++) {
+		if(tmp == 2)	{
+			tmp = 1;
+		}
+		WM.PutItem(iCnt, iFirstIndex + iCnt, iFirstIndex + iCnt,
+			- dC[tmp - 1]);
+	}
+
+
 
 	return WorkMat;
 }
@@ -157,8 +174,24 @@ TikhonovRegularization::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 SubVectorHandler& 
 TikhonovRegularization::InitialAssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr)
-{
-	WorkVec.ResizeReset(0);
+{	
+	
+	integer iFirstIndex = pJ->iGetFirstIndex();
+	unsigned iInitialNumDofs = pJ->iGetInitialNumDof();
+	unsigned iNumDofs = pJ->iGetNumDof();
+
+	WorkVec.ResizeReset(iInitialNumDofs);
+	unsigned tmp = 1;
+
+	for (unsigned iCnt = 1; iCnt <= iInitialNumDofs; iCnt++) {
+		if(tmp == 2)	{
+			tmp = 1;
+		}
+		WorkVec.PutItem(iCnt, iFirstIndex + iCnt,
+			dC[tmp - 1]*XCurr(iFirstIndex + iCnt));
+			tmp++;
+	}
+
 
 	return WorkVec;
 }
@@ -244,7 +277,6 @@ DynamicRegularization::AssJac(VariableSubMatrixHandler& WorkMat,
 	unsigned iNumDofs = pJ->iGetNumDof();
 
 	WM.ResizeReset(iNumDofs, 0);
-
 	for (unsigned iCnt = 1; iCnt <= iNumDofs; iCnt++) {
 		WM.PutItem(iCnt, iFirstIndex + iCnt, iFirstIndex + iCnt,
 			- dC[iCnt - 1]/dCoef);
@@ -258,14 +290,28 @@ void
 DynamicRegularization::InitialWorkSpaceDim(integer* piNumRows,
 	integer* piNumCols) const
 {
-	*piNumRows = *piNumCols = 0;
+	*piNumRows = *piNumCols = pJ->iGetInitialNumDof();
 }
 
 VariableSubMatrixHandler& 
 DynamicRegularization::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	const VectorHandler& XCurr)
-{
-	WorkMat.SetNullMatrix();
+{	
+	SparseSubMatrixHandler& WM = WorkMat.SetSparse();
+
+	integer iFirstIndex = pJ->iGetFirstIndex();
+	unsigned iNumDofs = pJ->iGetInitialNumDof();
+
+	WM.ResizeReset(iNumDofs, 0);
+	unsigned tmp = 1;
+	
+	for (unsigned iCnt = 1; iCnt <= iNumDofs; iCnt++) {
+		if(tmp == 2)	{
+			tmp = 1;
+		}
+		WM.PutItem(iCnt, iFirstIndex + iCnt, iFirstIndex + iCnt,
+			- dC[tmp - 1]);
+	}
 
 	return WorkMat;
 }
@@ -274,7 +320,31 @@ SubVectorHandler&
 DynamicRegularization::InitialAssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr)
 {
-	WorkVec.ResizeReset(0);
+	integer iFirstIndex = pJ->iGetFirstIndex();
+	unsigned iNumDofs = pJ->iGetInitialNumDof();
+
+	WorkVec.ResizeReset(iNumDofs);
+
+	std::vector<doublereal> dInitialLambda(iNumDofs);
+
+	for (std::vector<doublereal>::iterator i = dInitialLambda.begin();
+		i != dInitialLambda.end(); i++ )
+	{
+		*i = 0.;
+	}
+
+
+	unsigned tmp = 1;
+
+	for (unsigned iCnt = 1; iCnt <= iNumDofs; iCnt++) {
+		unsigned iCntm1 = iCnt - 1;
+		if(tmp == 2)	{
+			tmp = 1;
+		}
+		WorkVec.PutItem(iCnt, iFirstIndex + iCnt,
+			dC[tmp-1]*dInitialLambda[iCntm1]);
+		dInitialLambda[iCntm1] = XCurr(iFirstIndex + iCnt);
+	}
 
 	return WorkVec;
 }
