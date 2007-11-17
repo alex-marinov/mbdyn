@@ -151,13 +151,23 @@ GimbalRotationJoint::AfterPredict(VectorHandler& /* X */ ,
 void
 GimbalRotationJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 {
-	Mat3x3 Ra(pNode1->GetRRef()*R1h);
+	Mat3x3 Ra(pNode1->GetRCurr()*R1h);
+	Mat3x3 Rb(pNode2->GetRCurr()*R2h);
 	Mat3x3 RaT(Ra.Transpose());
+
+	Mat3x3 R_ab(RaT*Rb);
 
 	doublereal dCosTheta = cos(dTheta);
 	doublereal dSinTheta = sin(dTheta);
 	doublereal dCosPhi = cos(dPhi);
 	doublereal dSinPhi = sin(dPhi);
+
+	Vec3 w_theta(dSinTheta*dSinPhi, 1. + dCosPhi, -dCosTheta*dSinPhi);
+	Vec3 w_phi(dCosTheta, 0., dSinTheta);
+
+	Vec3 w_theta_theta(dCosTheta*dSinPhi, 0., dSinTheta*dSinPhi);
+	Vec3 w_theta_phi(dSinTheta*dCosPhi, -dSinPhi, -dCosTheta*dCosPhi);
+	Vec3 w_phi_theta(-dSinTheta, 0., dCosTheta);
 
 	/* coppie */
 	/* termini in Delta lambda */
@@ -165,7 +175,8 @@ GimbalRotationJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 	WM.Sub(3 + 1, 6 + 1, Ra);
 
 	/* termini in Delta g_a */
-	Mat3x3 MTmp(Ra*(M*dCoef));
+	Vec3 Lambda(Ra*M);
+	Mat3x3 MTmp(Lambda*dCoef);
 	WM.Sub(1, 1, MTmp);
 	WM.Add(3 + 1, 1, MTmp);
 
@@ -176,33 +187,55 @@ GimbalRotationJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 	WM.Sub(6 + 1, 3 + 1, MTmp);
 
 	/* termini in Delta theta */
-	WM.IncCoef(6 + 1, 9 + 1, dSinTheta*dSinPhi);
-	WM.IncCoef(6 + 2, 9 + 1, 1. + dCosPhi);
-	WM.IncCoef(6 + 3, 9 + 1, dCosTheta*dSinPhi);
+	Vec3 VTmp(R_ab*w_theta);
+	WM.IncCoef(6 + 1, 9 + 1, VTmp(1));
+	WM.IncCoef(6 + 2, 9 + 1, VTmp(2));
+	WM.IncCoef(6 + 3, 9 + 1, VTmp(3));
+
+	WM.IncCoef(9 + 1, 6 + 1, VTmp(1));
+	WM.IncCoef(9 + 1, 6 + 2, VTmp(2));
+	WM.IncCoef(9 + 1, 6 + 3, VTmp(3));
 
 	/* termini in Delta phi */
-	WM.IncCoef(6 + 1, 9 + 2, dCosTheta);
-	WM.DecCoef(6 + 3, 9 + 2, dSinTheta);
+	VTmp = Vec3(R_ab*w_phi);
+	WM.IncCoef(6 + 1, 9 + 2, VTmp(1));
+	WM.IncCoef(6 + 2, 9 + 2, VTmp(2));
+	WM.IncCoef(6 + 3, 9 + 2, VTmp(3));
+
+	WM.IncCoef(9 + 2, 6 + 1, VTmp(1));
+	WM.IncCoef(9 + 2, 6 + 2, VTmp(2));
+	WM.IncCoef(9 + 2, 6 + 3, VTmp(3));
 
 	/* equazione in theta */
-	/* termini in Delta lambda */
-	WM.IncCoef(9 + 1, 6 + 1, dSinTheta*dSinPhi);
-	WM.IncCoef(9 + 1, 6 + 2, 1. + dCosPhi);
-	WM.IncCoef(9 + 1, 6 + 3, dCosTheta*dSinPhi);
+	/* termini in Delta g_a, Delta g_b */
+	VTmp = (Rb*w_theta).Cross(Lambda*dCoef);
+	WM.DecCoef(9 + 1, 1, VTmp(1));
+	WM.DecCoef(9 + 1, 2, VTmp(2));
+	WM.DecCoef(9 + 1, 3, VTmp(3));
+
+	WM.IncCoef(9 + 1, 3 + 1, VTmp(1));
+	WM.IncCoef(9 + 1, 3 + 2, VTmp(2));
+	WM.IncCoef(9 + 1, 3 + 3, VTmp(3));
 
 	/* termine in Delta theta */
-	WM.IncCoef(9 + 1, 9 + 1, dSinPhi*(dCosTheta*M(1) - dSinTheta*M(3)));
+	WM.IncCoef(9 + 1, 9 + 1, (Rb*w_theta_theta)*Lambda);
 
 	/* termine in Delta phi */
-	WM.IncCoef(9 + 1, 9 + 2, dCosPhi*(dSinTheta*M(1) + dCosTheta*M(3)) - dSinPhi*M(2));
+	WM.IncCoef(9 + 1, 9 + 2, (Rb*w_theta_phi)*Lambda);
 
 	/* equazione in phi */
-	/* termini in Delta lambda */
-	WM.IncCoef(9 + 2, 6 + 1, dCosTheta);
-	WM.DecCoef(9 + 2, 6 + 3, dSinTheta);
+	/* termini in Delta g_a, Delta g_b */
+	VTmp = (Rb*w_phi).Cross(Lambda*dCoef);
+	WM.DecCoef(9 + 2, 1, VTmp(1));
+	WM.DecCoef(9 + 2, 2, VTmp(2));
+	WM.DecCoef(9 + 2, 3, VTmp(3));
+
+	WM.IncCoef(9 + 2, 3 + 1, VTmp(1));
+	WM.IncCoef(9 + 2, 3 + 2, VTmp(2));
+	WM.IncCoef(9 + 2, 3 + 3, VTmp(3));
 
 	/* termine in Delta theta */
-	WM.DecCoef(9 + 2, 9 + 1, dSinTheta*M(1) + dCosTheta*M(3));
+	WM.IncCoef(9 + 2, 9 + 1, (Rb*w_phi_theta)*Lambda);
 }
 
 
@@ -262,13 +295,19 @@ GimbalRotationJoint::AssVec(SubVectorHandler& WorkVec, doublereal dCoef)
 
 	Vec3 MTmp(Ra*M);
 
+	Mat3x3 R_rel(ExpTheta*ExpPhi*ExpTheta);
+	Mat3x3 R_ab(Ra.Transpose()*Rb);
+
 	WorkVec.Sub(1, MTmp);
 	WorkVec.Add(3 + 1, MTmp);
 
-	WorkVec.Add(6 + 1, RotManip::VecRot(Ra.Transpose()*Rb) - RotManip::VecRot(ExpTheta*ExpPhi*ExpTheta));
+	WorkVec.Add(6 + 1, RotManip::VecRot(R_ab*R_rel.Transpose()));
 
-	WorkVec.DecCoef(9 + 1, dSinTheta*dSinPhi*M(1) + (1. + dCosPhi)*M(2) + dCosTheta*dSinPhi*M(3));
-	WorkVec.DecCoef(9 + 2, dCosTheta*M(1) - dSinTheta*M(3));
+	Vec3 w_theta(dSinTheta*dSinPhi, 1. + dCosPhi, -dCosTheta*dSinPhi);
+	Vec3 w_phi(dCosTheta, 0., dSinTheta);
+
+	WorkVec.DecCoef(9 + 1, (R_ab*w_theta)*M);
+	WorkVec.DecCoef(9 + 2, (R_ab*w_phi)*M);
 }
 
 

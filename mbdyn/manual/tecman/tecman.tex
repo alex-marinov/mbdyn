@@ -2984,13 +2984,16 @@ It is implemented in files
 \paragraph{Definitions.} \
 The relative orientation between the nodes is made of three steps,
 described by
-\begin{eqnarray*}
+\begin{align}
 	\T{R}_{\text{rel}}
-	& = & \T{R}_a^T \T{R}_b \\
-	& = & \llk{exp}\plbr{\vartheta \T{e}_2 \times{}}
+	&= \T{R}_a^T \T{R}_b & & ( = \T{R}_{ab} )
+	\label{eq:gimbal:R_a_b} \\
+	&= \llk{exp}\plbr{\vartheta \T{e}_2 \times{}}
 		\llk{exp}\plbr{\varphi \T{e}_1 \times{}}
 		\llk{exp}\plbr{\vartheta \T{e}_2 \times{}}
-\end{eqnarray*}
+	& & ( = \T{R}\plbr{\vartheta, \varphi} )
+	\label{eq:gimbal:R_theta_phi}
+\end{align}
 where
 \begin{eqnarray}
 	\llk{exp}\plbr{\vartheta \T{e}_2 \times{}} & = &
@@ -3002,13 +3005,14 @@ where
 			+ \plbr{1 - \cos\varphi}\T{e}_1\times\T{e}_1\times{}
 		\label{eq:GIMBAL-EXP-PHI}
 \end{eqnarray}
-and $\T{e}_i$ is the unit vector in the $i$-th direction.
+and $\T{e}_i$ are the unit vectors in directions $i=1,2,3$.
 
 This represents a sequence of mutually orthogonal rotations,
 symmetrical with respect to the mid of the central rotation,
 and thus consisting in a sequence of two Cardano joints
 in the ``W'' arrangement, which is homokinetic.
 
+\begin{comment}
 \noindent
 Constraint equation
 \begin{equation}
@@ -3106,7 +3110,181 @@ the linearization becomes
 		-\T{w}_{\varphi}^T \T{\lambda}
 	}}
 \end{equation}
+\end{comment}
 
+\noindent
+The constraint equation is obtained by equating the relative orientation
+matrices of Equations~(\ref{eq:gimbal:R_a_b}, \ref{eq:gimbal:R_theta_phi}):
+\begin{equation}
+	\T{R}_{ab} = \T{R}\plbr{\vartheta, \varphi} ,
+\end{equation}
+or, which is equivalent,
+\begin{equation}
+	\T{R}_{ab} \T{R}\plbr{\vartheta, \varphi}^T = \T{I} .
+	\label{eq:gimbal:eq-mat}
+\end{equation}
+As a consequence, the orientation vector
+\begin{equation}
+	\T{\theta} = \llk{ax}\plbr{\llk{exp}^{-1}\plbr{
+		\T{R}_{ab} \T{R}\plbr{\vartheta, \varphi}^T
+	}} ,
+\end{equation}
+corresponding to the orientation matrix at the left-hand side
+of Equation~(\ref{eq:gimbal:eq-mat}),
+must vanish:
+\begin{equation}
+	\T{\theta} = \T{0} .
+	\label{eq:GIMBAL-CONSTRAINT}
+\end{equation}
+Lagrange multipliers approach:
+\begin{align}
+	0 &= \delta\plbr{\T{\lambda}^T \T{\theta}} \nonumber \\
+	&= \delta\T{\lambda}^T \T{\theta} + \delta\T{\theta}^T \T{\lambda} ,
+	\label{eq:gimbal:lagrange}
+\end{align}
+where
+\begin{equation}
+	\delta\T{\theta}
+	= \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{\theta}_{\delta} .
+\end{equation}
+Note, that by definition $\T{\theta}$ must be zero,
+so $\T{\Gamma}\plbr{\T{\theta}}\cong\T{I}$.
+Without any simplification, Equation~(\ref{eq:gimbal:lagrange}) results in
+\begin{align}
+	0 &= \delta\plbr{\T{\lambda}^T \T{\theta}} \\
+	&= \delta\T{\lambda}^T \T{\theta}
+	+ \T{\theta}_{\delta}^T \T{\Gamma}\plbr{\T{\theta}}^{-T}\T{\lambda} .
+\end{align}
+To eliminate the $\T{\Gamma}\plbr{\T{\theta}}^{-T}$ term,
+the multipliers can be redefined as 
+\begin{equation}
+	\hat{\T{\lambda}} = \T{\Gamma}\plbr{\T{\theta}}^{-T} \T{\lambda} .
+\end{equation}
+The perturbation $\T{\theta}_{\delta}$ results from
+\begin{align}
+	\T{\theta}_{\delta}\times{}
+	&= \delta \llk{exp}\plbr{\T{\theta}\times{}}
+		\llk{exp}\plbr{\T{\theta}\times{}}^T \\
+	&= \delta \plbr{
+		\T{R}_a^T
+		\T{R}_b
+		\llk{exp}\plbr{\vartheta \T{e}_2\times{}}^T
+		\llk{exp}\plbr{\varphi \T{e}_1\times{}}^T
+		\llk{exp}\plbr{\vartheta \T{e}_2\times{}}^T
+	} \cdot \nonumber \\
+	&\mbox{\hspace{10mm}} \plbr{
+		\T{R}_a^T
+		\T{R}_b
+		\llk{exp}\plbr{\vartheta \T{e}_2\times{}}^T
+		\llk{exp}\plbr{\varphi \T{e}_1\times{}}^T
+		\llk{exp}\plbr{\vartheta \T{e}_2\times{}}^T
+	}^T \\
+	&= \T{R}_a^T
+	\plbr{\T{\theta}_{b\delta} - \T{\theta}_{a\delta}}\times{} \T{R}_a
+	\nonumber \\
+	& \mbox{} -
+	\delta\vartheta \T{R}_a^T \T{R}_b \plbr{
+		\plbr{
+			\T{I}
+			+ \llk{exp}\plbr{\vartheta \T{e}_2\times{}}^T
+			\llk{exp}\plbr{\varphi \T{e}_1\times{}}^T
+		} \T{e}_2
+	}\times \T{R}_b^T \T{R}_a
+	\nonumber \\
+	& \mbox{} -
+	\delta\varphi \T{R}_a^T \T{R}_b \plbr{
+		\llk{exp}\plbr{\vartheta \T{e}_2\times{}}^T \T{e}_1
+	} \times \T{R}_b^T \T{R}_a
+\end{align}
+which yields
+\begin{align}
+	\T{\theta}_{\delta}
+	&= \T{R}_a^T \plbr{\T{\theta}_{b\delta} - \T{\theta}_{a\delta}}
+	- \T{R}_a^T \T{R}_b \plbr{
+		\delta\vartheta \T{w}_{\vartheta}
+		+ \delta\varphi \T{w}_{\varphi}
+	}
+\end{align}
+with
+\begin{align}
+	\T{w}_{\vartheta}
+	&= \plbr{
+		\T{I}
+		+ \llk{exp}\plbr{\vartheta \T{e}_2\times{}}^T
+		\llk{exp}\plbr{\varphi \T{e}_1\times{}}^T
+	} \T{e}_2
+	\nonumber \\
+	&= \sin\varphi \sin\vartheta \T{e}_1
+	+ \plbr{1 + \cos\varphi} \T{e}_2
+	- \sin\varphi \cos\vartheta \T{e}_3 \\
+	\T{w}_{\varphi}
+	&= \llk{exp}\plbr{\vartheta \T{e}_2\times{}}^T \T{e}_1
+	\nonumber \\
+	&= \cos\vartheta \T{e}_1 + \sin\vartheta \T{e}_3 .
+\end{align}
+
+Linearization
+\begin{align}
+	& \sqbr{\matr{ccc}{
+		-\plbr{\T{R}_a \hat{\T{\lambda}}}\times{} & \T{0} & \T{R}_a \\
+%
+		\plbr{\T{R}_a \hat{\T{\lambda}}}\times{} & \T{0} & -\T{R}_a \\
+%
+		\T{R}_a^T & -\T{R}_a^T & \T{0} \\
+%
+		- \plbr{\plbr{\T{R}_b \T{w}_{\vartheta}}\times\plbr{\T{R}_a \hat{\T{\lambda}}}}^T
+			& \plbr{\plbr{\T{R}_b \T{w}_{\vartheta}}\times\plbr{\T{R}_a \hat{\T{\lambda}}}}^T
+			& \plbr{\T{R}_a^T \T{R}_b \T{w}_{\vartheta}}^T \\
+%
+		- \plbr{\plbr{\T{R}_b \T{w}_{\varphi}}\times\plbr{\T{R}_a \hat{\T{\lambda}}}}^T
+			& \plbr{\plbr{\T{R}_b \T{w}_{\varphi}}\times\plbr{\T{R}_a \hat{\T{\lambda}}}}^T
+			& \plbr{\T{R}_a^T \T{R}_b \T{w}_{\varphi}}^T
+	}} \cubr{\cvvect{
+		\T{\theta}_{a\Delta} \\
+		\T{\theta}_{b\Delta} \\
+		\Delta\hat{\T{\lambda}} \\
+	}} \nonumber \\
+%%%
+	& \sqbr{\matr{cc}{
+		\T{0} & \T{0} \\
+%
+		\T{0} & \T{0} \\
+%
+		\T{R}_a^T \T{R}_b \T{w}_{\vartheta}
+			& \T{R}_a^T \T{R}_b \T{w}_{\varphi} \\
+%
+		\plbr{\T{R}_a^T \T{R}_b \T{w}_{\vartheta/\vartheta}}^T \hat{\T{\lambda}}
+		& \plbr{\T{R}_a^T \T{R}_b \T{w}_{\vartheta/\varphi}}^T \hat{\T{\lambda}} \\
+%
+		\plbr{\T{R}_a^T \T{R}_b \T{w}_{\varphi/\vartheta}}^T \hat{\T{\lambda}}
+		& \plbr{\T{R}_a^T \T{R}_b \T{w}_{\varphi/\varphi}}^T \hat{\T{\lambda}}
+	}} \cubr{\cvvect{
+		\Delta\vartheta \\
+		\Delta\varphi
+	}} \nonumber \\
+%%%
+	&= \cubr{\cvvect{
+		-\T{R}_a \hat{\T{\lambda}} \\
+		\T{R}_a \hat{\T{\lambda}} \\
+		\T{\theta} \\
+		- \plbr{\T{R}_a^T \T{R}_b \T{w}_{\vartheta}}^T \hat{\T{\lambda}} \\
+		- \plbr{\T{R}_a^T \T{R}_b \T{w}_{\varphi}}^T \hat{\T{\lambda}}
+	}}
+\end{align}
+where
+\begin{align}
+	\T{w}_{\vartheta/\vartheta}
+	&= \sin\varphi \cos\vartheta \T{e}_1
+	+ \sin\varphi \sin\vartheta \T{e}_3 \\
+	\T{w}_{\vartheta/\varphi}
+	&= \cos\varphi \sin\vartheta \T{e}_1
+	- \sin\varphi \T{e}_2
+	- \cos\varphi \cos\vartheta \T{e}_3 \\
+	\T{w}_{\varphi/\vartheta}
+	&= - \sin\vartheta \T{e}_1 + \cos\vartheta \T{e}_3 \\
+	\T{w}_{\varphi/\varphi}
+	&= \T{0} .
+\end{align}
 
 
 
