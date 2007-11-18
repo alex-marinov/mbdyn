@@ -107,6 +107,7 @@ DataManager::ElemManager(void)
 
 	/* Types that are used by default in initial assembly */
 	ElemData[Elem::JOINT].ToBeUsedInAssembly(true);
+	ElemData[Elem::JOINT_REGULARIZATION].ToBeUsedInAssembly(true);
 	ElemData[Elem::BEAM].ToBeUsedInAssembly(true);
 
 	/* Aggiungere qui se un tipo genera forze d'inerzia e quindi
