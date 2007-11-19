@@ -74,9 +74,9 @@ DataManager::LinkToSolution(const VectorHandler& XCurr,
                     const VectorHandler& XPrimePrimeCurr,
                     const VectorHandler& LambdaCurr)
 {
-	pXCurr = &XCurr;
-	pXPrimeCurr = &XPrimeCurr;
-	pXPrimePrimeCurr = &XPrimePrimeCurr;
+	pXCurr = const_cast<VectorHandler*>(&XCurr);
+	pXPrimeCurr = const_cast<VectorHandler*>(&XPrimeCurr);
+	pXPrimePrimeCurr = const_cast<VectorHandler*>(&XPrimePrimeCurr);
 	pLambdaCurr = &LambdaCurr;
 	DrvHdl.LinkToSolution(XCurr, XPrimeCurr);
 }

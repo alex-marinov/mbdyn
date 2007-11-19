@@ -101,8 +101,8 @@ protected:
 	Var* pTime;
 
 	/* Puntatori ai vettori soluzione durante il passo */
-	const VectorHandler* pXCurr;
-	const VectorHandler* pXPrimeCurr;
+	mutable VectorHandler* pXCurr;
+	mutable VectorHandler* pXPrimeCurr;
 	
 	/* Inverse Dynamics: */
 	const VectorHandler* pXPrimePrimeCurr;

@@ -229,8 +229,8 @@ void
 DataManager::LinkToSolution(const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr)
 {
-	pXCurr = &XCurr;
-	pXPrimeCurr = &XPrimeCurr;
+	pXCurr = const_cast<VectorHandler*>(&XCurr);
+	pXPrimeCurr = const_cast<VectorHandler*>(&XPrimeCurr);
 	DrvHdl.LinkToSolution(XCurr, XPrimeCurr);
 }
 
@@ -1293,16 +1293,14 @@ DataManager::AfterPredict(void) const
 	Node** ppLastNode = ppNodes+iTotNodes;
 	for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
 		ASSERT(*ppTmp != NULL);
-		(*ppTmp)->AfterPredict(*(VectorHandler*)pXCurr,
-			*(VectorHandler*)pXPrimeCurr);
+		(*ppTmp)->AfterPredict(*pXCurr, *pXPrimeCurr);
 	}
 
 	/* Versione con iteratore: */
 	Elem* pEl = NULL;
 	if (ElemIter.bGetFirst(pEl)) {
 		do {
-			pEl->AfterPredict(*(VectorHandler*)pXCurr,
-				*(VectorHandler*)pXPrimeCurr);
+			pEl->AfterPredict(*pXCurr, *pXPrimeCurr);
 		} while (ElemIter.bGetNext(pEl));
 	}
 }
@@ -1331,16 +1329,16 @@ DataManager::AfterConvergence(void) const
 	Node** ppLastNode = ppNodes+iTotNodes;
 	for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
 		ASSERT(*ppTmp != NULL);
-		(*ppTmp)->AfterConvergence(*(VectorHandler*)pXCurr,
-			*(VectorHandler*)pXPrimeCurr);
+		(*ppTmp)->AfterConvergence(*pXCurr,
+			*pXPrimeCurr);
 	}
 
 	/* Versione con iteratore: */
 	Elem* pEl = NULL;
 	if (ElemIter.bGetFirst(pEl)) {
 		do {
-			pEl->AfterConvergence(*(VectorHandler*)pXCurr,
-				*(VectorHandler*)pXPrimeCurr);
+			pEl->AfterConvergence(*pXCurr,
+				*pXPrimeCurr);
 		} while (ElemIter.bGetNext(pEl));
 	}
 
