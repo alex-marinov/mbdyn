@@ -52,6 +52,7 @@ where \kw{elem\_type} is one of the following:
 \item \kw{couple}
 \item \kw{gravity}
 \item \kw{joint}
+\item \kw{joint regularization}
 \end{itemize}
 
 \item aerodynamic elements:
@@ -328,8 +329,8 @@ but it also includes some data representing unsteady aerodynamics
 in the time domain trough the residualization matrices.
 This element is defined as follows:
 \begin{verbatim}
-    <joint_type> ::= aeromodal
-    <joint_arglist> ::= <label> , 
+    <element_type> ::= aeromodal
+    <element_arglist> ::= <label> , 
         <modal node> ,  
         <reference modal joint> ,
         (Mat3x3)<orientation> ,
@@ -4266,6 +4267,66 @@ The relative position is not constrained.
     Note: this joint forces the relative direction 3 of node 1 to be always 
     normal to the relative direction 2 of node 2.
 }
+
+\section{Joint Regularization}
+The \kw{joint regularization} element is used to modify
+algebraic constraint equations in order to improve ill-conditioned
+problems.
+\begin{verbatim}
+    <card> ::= <element_type> : <label> , <type> [ , <data> ] ;
+    <element_type> ::= joint regularization
+    <type> ::= { tikhonov | dynamic }
+    <data> ::= { <coef> | list , <coef_1> [ , ... ] }
+\end{verbatim}
+An element is instantiated, which requires
+an underlying algebraic constraint ( a \kw{joint} element)
+with the same label to exist.
+In that case, the algebraic constraint equations are modified
+in order to regularize the problem.
+
+\subsection{Tikhonov}
+The \kw{tikhonov} regularization consists in modifying
+a constraint, resulting in an algebraic equation $\T{\Phi}\plbr{\T{x}, t}$
+and Lagrangian multipliers $\T{\lambda}$, namely
+\begin{align}
+	\T{\Phi}_{/\T{x}}^T \Delta\T{\lambda}
+		&= \T{F} - \T{\Phi}_{/\T{x}}^T \T{\lambda} \\
+	\T{\Phi}_{/\T{x}} \Delta\T{x} &= - \T{\Phi}\plbr{\T{x}, t}
+\end{align}
+so that the multipliers are added to the constraint equations,
+weighed by the coefficient \kw{<coef>} (or by the list of coefficients
+\kw{<coef\_i>}, in case they differ):
+\begin{align}
+	\T{\Phi}_{/\T{x}}^T \Delta\T{\lambda}
+	&= \T{F} - \T{\Phi}_{/\T{x}}^T \T{\lambda} \\
+	\T{\Phi}_{/\T{x}} \Delta\T{x}
+	- \mathtt{<coef>} \cdot \Delta\T{\lambda}
+	&= - \T{\Phi}\plbr{\T{x}, t} + \mathtt{<coef>} \cdot \T{\lambda}
+\end{align}
+The Tikhonov regularization allows the constraint to be violated
+by an amount that depends on the multipliers.
+
+\subsection{Dynamic}
+The \kw{dynamic} regularization differs from that of Tikhonov
+by the fact that the multiplers are intended as dynamical quantities
+whose value varies, during the Newton-like iterations occurring
+for the solution of the nonlinear problem, according to a pseudo-time.
+As a consequence, the matrix condition is improved, but the equations,
+at convergence, are not modified.
+
+The equations become
+\begin{align}
+	\T{\Phi}_{/\T{x}}^T \Delta\T{\lambda}
+	&= \T{F} - \T{\Phi}_{/\T{x}}^T \T{\lambda} \\
+	\T{\Phi}_{/\T{x}} \Delta\T{x}
+	- \mathtt{<coef>} \cdot \Delta \T{\lambda}
+	&= - \T{\Phi}\plbr{\T{x}, t} + \mathtt{<coef>} \cdot \Delta\T{\lambda}
+\end{align}
+so at convergence, when $\Delta\T{x}$ and $\Delta\T{\lambda}$ vanish,
+the constraint equation is unmodified.
+The pseudo-dynamics of the multiplier is added to the constraint equation
+by using the $\Delta\T{\lambda}$ at the previous iteration
+in the right hand-side of the above equation.
 
 
 \section{Loadable Element}\label{sec:EL:BASE:LOADABLE}
