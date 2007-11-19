@@ -4283,21 +4283,27 @@ an underlying algebraic constraint ( a \kw{joint} element)
 with the same label to exist.
 In that case, the algebraic constraint equations are modified
 in order to regularize the problem.
+The \kw{joint} that is to be regularized must exist,
+and it must have internal states.
+If the keyword \kw{list} is used, the coefficients for each internal state
+is expected; the number of coefficients is determined by the joint.
 
 \subsection{Tikhonov}
 The \kw{tikhonov} regularization consists in modifying
-a constraint, resulting in an algebraic equation $\T{\Phi}\plbr{\T{x}, t}$
-and Lagrangian multipliers $\T{\lambda}$, namely
+a constraint, expressed by an algebraic equation $\T{\Phi}\plbr{\T{x}, t}$
+and the corresponding Lagrangian multipliers $\T{\lambda}$, namely
 \begin{align}
-	\T{\Phi}_{/\T{x}}^T \Delta\T{\lambda}
+	\plbr{\T{\Phi}_{/\T{x}}^T \T{\lambda}}_{/\T{x}} \Delta\T{x}
+	+ \T{\Phi}_{/\T{x}}^T \Delta\T{\lambda}
 		&= \T{F} - \T{\Phi}_{/\T{x}}^T \T{\lambda} \\
 	\T{\Phi}_{/\T{x}} \Delta\T{x} &= - \T{\Phi}\plbr{\T{x}, t}
 \end{align}
-so that the multipliers are added to the constraint equations,
+by adding the multipliers to the constraint equation,
 weighed by the coefficient \kw{<coef>} (or by the list of coefficients
-\kw{<coef\_i>}, in case they differ):
+\kw{<coef\_i>}, in case different coefficients are given):
 \begin{align}
-	\T{\Phi}_{/\T{x}}^T \Delta\T{\lambda}
+	\plbr{\T{\Phi}_{/\T{x}}^T \T{\lambda}}_{/\T{x}} \Delta\T{x}
+	+ \T{\Phi}_{/\T{x}}^T \Delta\T{\lambda}
 	&= \T{F} - \T{\Phi}_{/\T{x}}^T \T{\lambda} \\
 	\T{\Phi}_{/\T{x}} \Delta\T{x}
 	- \mathtt{<coef>} \cdot \Delta\T{\lambda}
@@ -4305,6 +4311,9 @@ weighed by the coefficient \kw{<coef>} (or by the list of coefficients
 \end{align}
 The Tikhonov regularization allows the constraint to be violated
 by an amount that depends on the multipliers.
+In this sense, the coefficient \kw{<coef>} should be considered
+sort of a compliance: the larger the coefficient,
+the larger the constraint violation.
 
 \subsection{Dynamic}
 The \kw{dynamic} regularization differs from that of Tikhonov
@@ -4316,7 +4325,8 @@ at convergence, are not modified.
 
 The equations become
 \begin{align}
-	\T{\Phi}_{/\T{x}}^T \Delta\T{\lambda}
+	\plbr{\T{\Phi}_{/\T{x}}^T \T{\lambda}}_{/\T{x}} \Delta\T{x}
+	+ \T{\Phi}_{/\T{x}}^T \Delta\T{\lambda}
 	&= \T{F} - \T{\Phi}_{/\T{x}}^T \T{\lambda} \\
 	\T{\Phi}_{/\T{x}} \Delta\T{x}
 	- \mathtt{<coef>} \cdot \Delta \T{\lambda}
