@@ -171,7 +171,8 @@ or model debugging purposes.}
         [ { local , " <socket_name> " , |
             [ port , <port_number> , ]
             [ host , " <host_name> " , ] } ]
-	[ no signal , ]
+        [ no signal , ]
+        [ timeout , <timeout> , ]
         <columns_number> ;
 \end{verbatim}
 The \kw{stream} drive allows MBDyn to receive streamed inputs 
@@ -192,8 +193,9 @@ of the communication with the controller process.
 During non real-time simulations, streams operate in blocking mode.
 The meaning of the parameters is:
 \begin{itemize}
-\item \kw{<name>} indicates the name the stream
-will be known as; it is mostly useless, and is limited to 6 characters;
+\item \kw{<name>} indicates the name the stream will be known as;
+it is mostly useless, and is limited to 6 characters,
+since it is only allowed for compatibility with RTAI's mailboxes;
 \item the instruction \kw{create} determines whether the socket will be
 created or looked for by MBDyn;
 \item the keyword \kw{local} indicates that a socket 
@@ -206,6 +208,12 @@ the host that is allowed to connect to the socket; it defaults
 to any host (\kw{0.0.0.0}); if \kw{create} is set to \kw{no},
 \kw{<host\_name>} indicates what host to connect to; the default 
 is localhost (\kw{127.0.0.1}); the default port is \kw{5500};
+\item the keyword \kw{no signal} disables raising a \kw{SIGPIPE}
+in case the stream is read after it was closed by the peer;
+\item the keyword \kw{timeout} allows to set a timeout
+for each read operation; the timeout is expressed in seconds
+as a floating point number, with a theoretical micro-second resolution
+(the actual resolution is left to the OS).
 \end{itemize}
 If no socket type is specified, i.e.\ none of the \kw{local}, \kw{port} 
 and \kw{host} keywords are given, a socket is opened by default 
