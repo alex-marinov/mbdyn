@@ -31,8 +31,7 @@
 
 /*
  * Michele Attolico <attolico@aero.polimi.it>
-*/
-
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
@@ -40,24 +39,21 @@
 
 #ifdef USE_SOCKET
 
-#include <netdb.h>
-
-#include <dataman.h>
-#include <filedrv.h>
-#include <streamdrive.h>
+#include "dataman.h"
+#include "filedrv.h"
+#include "streamdrive.h"
 #include "sock.h"
+#include "socketstreamdrive.h"
 
-#include <socketstreamdrive.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <sys/un.h>
 #include <arpa/inet.h>
 
@@ -69,12 +65,14 @@ SocketStreamDrive::SocketStreamDrive(unsigned int uL,
 		const char* const sFileName,
 		integer nd, unsigned int ie, bool c,
 		unsigned short int p,
-		const char* const h, int flags)
+		const char* const h, int flags,
+		const struct timeval& st)
 : StreamDrive(uL, pDM->pGetDrvHdl(), sFileName, nd, c),
-InputEvery(ie), InputCounter(0), pUS(0), recv_flags(flags)
+InputEvery(ie), InputCounter(0), pUS(0), recv_flags(flags),
+SocketTimeout(st)
 {
 	ASSERT(InputEvery > 0);
-
+	
 	SAFENEWWITHCONSTRUCTOR(pUS, UseInetSocket, UseInetSocket(h, p, c));
 	if (c) {
 		pDM->RegisterSocketUser(pUS);
@@ -87,9 +85,11 @@ SocketStreamDrive::SocketStreamDrive(unsigned int uL,
 		DataManager* pDM,
 		const char* const sFileName,
 		integer nd, unsigned int ie, bool c,
-		const char* const p, int flags)
+		const char* const p, int flags,
+		const struct timeval& st)
 : StreamDrive(uL, pDM->pGetDrvHdl(), sFileName, nd, c),
-InputEvery(ie), InputCounter(0), pUS(0), recv_flags(flags)
+InputEvery(ie), InputCounter(0), pUS(0), recv_flags(flags),
+SocketTimeout(st)
 {
 	ASSERT(InputEvery > 0);
 
@@ -127,9 +127,17 @@ SocketStreamDrive::Restart(std::ostream& out) const
 void
 SocketStreamDrive::ServePending(const doublereal& t)
 {
-	/* by now, an abandoned drive is not read any more;
-	 * should we retry or what? */
+	silent_cout("SocketStreamDrive(" << sFileName << "): "
+		"ServePending; timeout="
+		<< SocketTimeout.tv_sec << "s "
+		<< SocketTimeout.tv_usec << "ns"
+		<< std::endl);
+	
+	// by now, an abandoned drive is not read any more;
+	// should we retry or what?
 	if (pUS->Abandoned()) {
+		silent_cout("SocketStreamDrive(" << sFileName << "): "
+			"abandoned"  << std::endl);
 		return;
 	}
 
@@ -141,13 +149,67 @@ SocketStreamDrive::ServePending(const doublereal& t)
 		return;
 	}
 	InputCounter = 0;
+	
+	int sock_nr = pUS->GetSock();
+	int rc = -1;
+	// Use socket timeout if set in input file; Default: 0
+	if (SocketTimeout.tv_sec || SocketTimeout.tv_usec) {
+		// Use Select() on the socket for automatic shutdown if
+		// socket clients fail.
+		fd_set readfds;
+		silent_cout("SocketStreamDrive(" << sFileName << "): "
+			"socket=" << sock_nr << std::endl);
+
+		// Clear the set
+		FD_ZERO(&readfds);
+
+		// Add descriptors to the set
+		FD_SET(sock_nr, &readfds);
+
+		// Copy timeout because select(2) may overwrite it
+		struct timeval tv = SocketTimeout;
+
+		// Call select
+		rc = select(sock_nr+1, &readfds, NULL, NULL, &tv);
+		switch (rc) {
+		case -1: {
+			int save_errno = errno;
+			char *err_msg = strerror(save_errno);
+
+			silent_cout("SocketStreamDrive"
+				"(" << sFileName << "): select failed"
+				<< " (" << save_errno << ": " 
+				<< err_msg << ")" << std::endl);
+			throw ErrGeneric();
+			}
+
+		case 0:
+			silent_cout("SocketStreamDrive"
+				"(" << sFileName << "): select timed out"
+				<< std::endl);
+			throw ErrGeneric();
+
+		default:
+			if (!FD_ISSET(sock_nr, &readfds)) {
+				silent_cout("SocketStreamDrive"
+					"(" << sFileName << "): "
+					"socket " << sock_nr << " reset"
+					<< std::endl);
+				throw ErrGeneric();
+			}
+		}
+	}
+
+	// Read data
+	rc = recv(sock_nr, buf, size, MSG_WAITALL);
 
 	/* FIXME: no receive at first step? */
-	switch (recv(pUS->GetSock(), buf, size, recv_flags)) {
+	switch (rc) {
 	case 0:
 do_abandon:;
 		silent_cout("SocketStreamDrive(" << sFileName << "): "
-				<< "communication closed by host" << std::endl);
+			<< "communication closed by host; abandoning..."
+			<< std::endl);
 		pUS->Abandon();
 		break;
 
@@ -162,20 +224,20 @@ do_abandon:;
 
 		char *err_msg = strerror(save_errno);
 
-		silent_cout("SocketStreamDrive(" << sFileName << ") "
-				<< "failed (" << save_errno << ": " 
-				<< err_msg << ")" << std::endl);
+		silent_cout("SocketStreamDrive(" << sFileName << ") failed "
+				"(" << save_errno << ": " << err_msg << ")"
+				<< std::endl);
 		throw ErrGeneric();
-	}
+		}
 
 	default: {	
-		doublereal *rbuf = (doublereal *)buf;
-
+		doublereal *rbuf = (doublereal *)buf - 1;
+		
 		for (int i = 1; i <= iNumDrives; i++) {
-			pdVal[i] = rbuf[i-1];
+			pdVal[i] = rbuf[i];
 		}
-		break;
-	}
+
+		} break;
 	}
 }
 
@@ -194,14 +256,13 @@ ReadSocketStreamDrive(DataManager* pDM,
 	const char *host = 0;
 	const char *path = 0;
 
-
 	if (HP.IsKeyWord("name") || HP.IsKeyWord("stream" "drive" "name")) {
 		const char *m = HP.GetStringWithDelims();
 		if (m == 0) {
-			silent_cerr("unable to read stream drive name "
-				"for SocketStreamDrive(" << uLabel 
-				<< ") at line "
-				<< HP.GetLineData() << std::endl);
+			silent_cerr("SocketStreamDrive(" << uLabel << "): "
+				"unable to read stream drive name "
+				"at line " << HP.GetLineData()
+				<< std::endl);
 			throw ErrGeneric();
 
 		} 
@@ -209,9 +270,10 @@ ReadSocketStreamDrive(DataManager* pDM,
 		SAFESTRDUP(name, m);
 
 	} else {
-		silent_cerr("missing stream drive name "
-			"for SocketStreamDrive(" << uLabel
-			<< ") at line " << HP.GetLineData() << std::endl);
+		silent_cerr("SocketStreamDrive(" << uLabel << "):"
+			"missing stream drive name "
+			"at line " << HP.GetLineData()
+			<< std::endl);
 		throw ErrGeneric();
 	}
 
@@ -221,9 +283,11 @@ ReadSocketStreamDrive(DataManager* pDM,
 		} else if (HP.IsKeyWord("no")) {
 			create = false;
 		} else {
-			silent_cerr("\"create\" must be \"yes\" or \"no\" "
-				"for stream drive \"" << name << "\" "
-				"at line " << HP.GetLineData() << std::endl);
+			silent_cerr("SocketStreamDrive"
+				"(" << uLabel << ", \"" << name << "\"): "
+				"\"create\" must be either \"yes\" or \"no\" "
+				"at line " << HP.GetLineData()
+				<< std::endl);
 			throw ErrGeneric();
 		}
 	}
@@ -232,10 +296,11 @@ ReadSocketStreamDrive(DataManager* pDM,
 		const char *m = HP.GetFileName();
 		
 		if (m == 0) {
-			silent_cerr("unable to read local path for "
-				<< "SocketStreamDrive("
-			 	<< uLabel << ") at line "
-				<< HP.GetLineData() << std::endl);
+			silent_cerr("SocketStreamDrive"
+				"(" << uLabel << ", \"" << name << "\"): "
+				"unable to read local path"
+				"at line " << HP.GetLineData()
+				<< std::endl);
 			throw ErrGeneric();
 		}
 		
@@ -244,23 +309,25 @@ ReadSocketStreamDrive(DataManager* pDM,
 	
 	if (HP.IsKeyWord("port")) {
 		if (path != 0) {
-			silent_cerr("cannot specify a port "
-					"for a local socket in "
-				<< "SocketStreamDrive("
-			 	<< uLabel << ") at line "
-				<< HP.GetLineData() << std::endl);
+			silent_cerr("SocketStreamDrive"
+				"(" << uLabel << ", \"" << name << "\"): "
+				"cannot specify port "
+				"for a local socket "
+				"at line " << HP.GetLineData()
+				<< std::endl);
 			throw ErrGeneric();		
 		}
 		int p = HP.GetInt();
 		/* Da sistemare da qui */
 #ifdef IPPORT_USERRESERVED
 		if (p <= IPPORT_USERRESERVED) {
-			silent_cerr("SocketStreamDrive(" << uLabel << "): "
-					"cannot listen on port " << port
-					<< ": less than IPPORT_USERRESERVED=" 
-					<< IPPORT_USERRESERVED
-					<< " at line " << HP.GetLineData()
-					<< std::endl);
+			silent_cerr("SocketStreamDrive"
+				"(" << uLabel << ", \"" << name << "\"): "
+				"cannot listen on reserved port "
+				<< port << ": less than "
+				"IPPORT_USERRESERVED=" << IPPORT_USERRESERVED
+				<< " at line " << HP.GetLineData()
+				<< std::endl);
 			throw ErrGeneric();
 		}
 		/* if #undef'd, don't bother checking;
@@ -272,11 +339,11 @@ ReadSocketStreamDrive(DataManager* pDM,
 	
 	if (HP.IsKeyWord("host")) {
 		if (path != 0) {
-			silent_cerr("cannot specify an allowed host "
-					"for a local socket in "
-				<< "SocketStreamDrive("
-			 	<< uLabel << ") at line "
-				<< HP.GetLineData() << std::endl);
+			silent_cerr("SocketStreamDrive"
+				"(" << uLabel << ", \"" << name << "\"): "
+				"cannot specify host for a local socket "
+				"at line " << HP.GetLineData()
+				<< std::endl);
 			throw ErrGeneric();		
 		}
 
@@ -284,40 +351,51 @@ ReadSocketStreamDrive(DataManager* pDM,
 		
 		h = HP.GetStringWithDelims();
 		if (h == 0) {
-			silent_cerr("unable to read host for "
-				<< "SocketStreamDrive("
-			 	<< uLabel << ") at line "
-				<< HP.GetLineData() << std::endl);
+			silent_cerr("SocketStreamDrive"
+				"(" << uLabel << ", \"" << name << "\"): "
+				"unable to read host "
+				"at line " << HP.GetLineData()
+				<< std::endl);
 			throw ErrGeneric();
 		}
 
 		SAFESTRDUP(host, h);
 
 	} else if (!path && !create) {
-		silent_cerr("host undefined for "
-				<< "SocketStreamDrive("
-			 	<< uLabel << ") at line "
-			<< HP.GetLineData() << std::endl);
-		silent_cerr("using default host: "
-			<< DEFAULT_HOST << std::endl);
+		silent_cerr("SocketStreamDrive"
+			"(" << uLabel << ", \"" << name << "\"): "
+			"host undefined, "
+			"using default \"" << DEFAULT_HOST "\" "
+			"at line " << HP.GetLineData()
+			<< std::endl);
 		SAFESTRDUP(host, DEFAULT_HOST);
 	}
 
-	/* we want to block until the whole chunk is received */
+	// we want to block until the whole chunk is received
 	int flags = 0;
 #ifdef MSG_WAITALL
 	flags |= MSG_WAITALL;
-#endif /* MSG_WAITALL */
+#endif // MSG_WAITALL
+
 	while (HP.IsArg()) {
 		if (HP.IsKeyWord("no" "signal")) {
+#ifdef MSG_NOSIGNAL
 			flags |= MSG_NOSIGNAL;
+#else // ! MSG_NOSIGNAL
+			silent_cout("SocketStreamDrive"
+				"(" << uLabel << ", \"" << name << "\"): "
+				"MSG_NOSIGNAL not defined (ignored)"
+				<< std::endl);
+#endif // ! MSG_NOSIGNAL
 
+		// not honored by recv(2)
+		} else
 #if 0
-		/* not honored by recv() */
-		} else if (HP.IsKeyWord("non" "blocking")) {
+		if (HP.IsKeyWord("non" "blocking")) {
 			flags |= MSG_DONTWAIT;
+		} else
 #endif
-		} else {
+		{
 			break;
 		}
 	}
@@ -326,37 +404,60 @@ ReadSocketStreamDrive(DataManager* pDM,
 	if (HP.IsKeyWord("input" "every")) {
 		int i = HP.GetInt();
 		if (i <= 0) {
-			silent_cerr("invalid input every value " << i
-					<< " at line " << HP.GetLineData()
-					<< std::endl);
+			silent_cerr("SocketStreamDrive"
+				"(" << uLabel << ", \"" << name << "\"): "
+				"invalid \"input every\" value " << i
+				<< " at line " << HP.GetLineData()
+				<< std::endl);
 			throw ErrGeneric();
 		}
 		InputEvery = (unsigned int)i;
 	}
 
+	struct timeval SocketTimeout;
+	if (HP.IsKeyWord("timeout")) {
+		doublereal st = HP.GetReal();
+		if (st < 0) {
+			silent_cerr("SocketStreamDrive"
+				"(" << uLabel << ", \"" << name << "\"): "
+				"invalid socket timeout value " << st
+				<< " at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric();
+		}
+		SocketTimeout.tv_sec = long(st);
+		SocketTimeout.tv_usec = long((st - SocketTimeout.tv_sec)*1000000);
+	}
+
+	pedantic_cout("SocketStreamDrive"
+		"(" << uLabel << ", \"" << name << "\"): "
+		"timeout: " << SocketTimeout.tv_sec << "s "
+		<< SocketTimeout.tv_usec << "ns" << std::endl);
+
 	int idrives = HP.GetInt();
 	if (idrives <= 0) {
-		silent_cerr("illegal number of channels for "
-				<< "SocketStreamDrive("
-			 	<< uLabel << ") at line "
+		silent_cerr("SocketStreamDrive"
+			"(" << uLabel << ", \"" << name << "\"): "
+			"illegal number of channels " << idrives
+			<< "at line " << HP.GetLineData()
 			<< std::endl);
 		throw ErrGeneric();
 	}
-
+	
 	Drive* pDr = 0;
 	if (path == 0) {
 		SAFENEWWITHCONSTRUCTOR(pDr, SocketStreamDrive,
 				SocketStreamDrive(uLabel, 
 				pDM,
 				name, idrives, InputEvery, create, port, host,
-				flags));
+				flags, SocketTimeout));
 
 	} else {
 		SAFENEWWITHCONSTRUCTOR(pDr, SocketStreamDrive,
 				SocketStreamDrive(uLabel, 
 				pDM,
 				name, idrives, InputEvery, create, path,
-				flags));
+				flags, SocketTimeout));
 	}
 
 	return pDr;

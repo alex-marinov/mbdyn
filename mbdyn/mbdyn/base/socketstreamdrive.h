@@ -52,20 +52,23 @@ protected:
 	UseSocket *pUS;
 
 	int recv_flags;
-
+	
+	struct timeval SocketTimeout;
 public:
 	SocketStreamDrive(unsigned int uL,
 		DataManager* pDM,
 		const char* const sFileName,
 		integer nd, unsigned int ie, bool c,
 		unsigned short int p,
-		const char* const h, int flags);
+		const char* const h, int flags,
+		const struct timeval& st);
 
 	SocketStreamDrive(unsigned int uL,
 		DataManager* pDM,
 		const char* const sFileName,
 		integer nd, unsigned int ie, bool c,
-		const char* const Path, int flags);
+		const char* const Path, int flags,
+		const struct timeval& st);
 				
 	virtual ~SocketStreamDrive(void);
 

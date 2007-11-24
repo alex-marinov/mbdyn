@@ -1010,7 +1010,7 @@ RunMBDyn(MBDynParser& HP,
             		switch (KeyWords(HP.GetWord())) {
             		case MULTISTEP:
 				pedantic_cout("deprecated \"multistep\" problem; "
-					"use \"ivp\" instead" << std::endl);
+					"use \"initial value\" instead" << std::endl);
 			case INITIAL_VALUE:
 	        		CurrInt = INITIAL_VALUE;
 	        		break;

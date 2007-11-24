@@ -35,8 +35,6 @@
 
 #ifdef USE_SOCKET
 
-#include <netdb.h>
-
 #include "myassert.h"
 #include "mynewmem.h"
 
@@ -53,6 +51,7 @@
 #include <errno.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <time.h>
 
 #include "usesock.h"
 #include "sock.h"
@@ -73,8 +72,34 @@ socklen(0)
 UseSocket::~UseSocket(void)
 {
 	if (sock != -1) {
-		shutdown(sock, SHUT_RDWR);
-		close(sock);
+		int status;
+
+		status = shutdown(sock, SHUT_RDWR);
+		
+		time_t t = time(NULL);
+		pedantic_cout("UseSocket::~UseSocket: shutdown: "
+			"socket=" << sock
+			<< " status=" << status
+			<< " time=" << asctime(localtime(&t))
+			<< std::endl);
+
+		if (status < 0) {
+			int save_errno = errno;
+			char *msg = strerror(save_errno);
+
+			silent_cerr("UseSocket::~UseSocket: shutdown error "
+				"(" << save_errno << ": " << msg << ")"
+				<< std::endl);
+		}
+
+		status = close(sock);
+		t = time(NULL);
+
+		pedantic_cout("UseSocket::~UseSocket: close: "
+			"socket=" << sock
+			<< " status=" << status
+			<< " time=" << asctime(localtime(&t))
+			<< std::endl);
 	}
 }
 
@@ -105,14 +130,14 @@ UseSocket::PostConnect(void)
 	struct linger lin;
 	lin.l_onoff = 1;
 	lin.l_linger = 0;
-		
+	
 	if (setsockopt(GetSock(), SOL_SOCKET, SO_LINGER, &lin, sizeof(lin))) {
 		int save_errno = errno;
 		char *msg = strerror(save_errno);
 
-      		silent_cerr("UseSocket(): setsockopt() failed "
-				"(" << save_errno << ": " << msg << ")"
-				<< std::endl);
+      		silent_cerr("UseSocket::PostConnect: setsockopt() failed "
+			"(" << save_errno << ": " << msg << ")"
+			<< std::endl);
       		throw ErrGeneric();
 	}
 }
@@ -120,20 +145,24 @@ UseSocket::PostConnect(void)
 void
 UseSocket::Connect(void)
 {
+	// FIXME: retry strategy should be configurable
 	int	count = 1000;
 	int	timeout = 100000;
-
+	
 	for ( ; count > 0; count--) {
 		if (connect(sock, GetSockaddr(), GetSocklen()) < 0) {
-			if (errno == ECONNREFUSED) {
+			int save_errno = errno;
+			if (save_errno == ECONNREFUSED) {
 				/* Socket does not exist yet; retry */
 				usleep(timeout);
 				continue;
 			}
 
 			/* Connect failed */
-			silent_cerr("UseSocket(): connect() failed "
-					<< std::endl);
+			char *msg = strerror(save_errno);
+			silent_cerr("UseSocket::Connect: connect() failed "
+				"(" << save_errno << ": " << msg << ")"
+				<< std::endl);
 			throw ErrGeneric();
 		}
 
@@ -143,8 +172,8 @@ UseSocket::Connect(void)
 		return;
 	}
 
-	silent_cerr("UseSocket(): connection timeout reached "
-			<< std::endl);
+	silent_cerr("UseSocket(): connection timed out"
+		<< std::endl);
 	throw ErrGeneric();
 }
 
@@ -205,6 +234,9 @@ port(p)
 	if (create) {
 		struct sockaddr_in	addr_name;
 		int			save_errno;
+		
+		/*Set everything to zero*/
+		memset(&addr_name, 0, sizeof(addr_name));
 
    		sock = mbdyn_make_inet_socket(&addr_name, host, port, 1, 
 				&save_errno);

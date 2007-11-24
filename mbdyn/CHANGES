@@ -20,6 +20,7 @@ MBDyn 1.X-Devel
 		  (noted by Rudi Jaeger)
 		- add framework for joint regularization
 		  (suggested by Alessandro Fumagalli)
+		- add select timeout to stream drives (patch by Rudi Jaeger)
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:

@@ -58,6 +58,7 @@ mbdyn_make_inet_socket(struct sockaddr_in *name, const char *hostname,
 		unsigned short int port, int dobind, int *perrno)
 {
    	int			sock = -1;
+	int			rc = -1;
 
 #ifdef HAVE_SOCKET
 	socklen_t		size;
@@ -78,6 +79,7 @@ mbdyn_make_inet_socket(struct sockaddr_in *name, const char *hostname,
    	/* Give the socket a name. */
    	name->sin_family = AF_INET;
    	name->sin_port = htons(port);
+	
 	if (hostname) {
 		struct hostent	*hostinfo;
 
@@ -93,12 +95,15 @@ mbdyn_make_inet_socket(struct sockaddr_in *name, const char *hostname,
 	}
 
 	size = sizeof(struct sockaddr_in);
-	if (dobind && bind(sock, (struct sockaddr *) name, size) < 0)
-	{
-		if (perrno) {
-			*perrno = errno;
+	
+	if (dobind) {
+		rc = bind(sock, (struct sockaddr *) name, size);
+		if (rc < 0) {
+			if (perrno) {
+				*perrno = errno;
+			}
+			return -2;
 		}
-		return -2;
    	}
 #endif /* HAVE_SOCKET */
 
