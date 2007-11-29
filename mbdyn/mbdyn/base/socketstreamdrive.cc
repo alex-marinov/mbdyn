@@ -33,6 +33,18 @@
  * Michele Attolico <attolico@aero.polimi.it>
  */
 
+/*
+ * (Portions)
+ *
+ * AUTHOR: Dr. Rudolf Jaeger <rudijaeger@yahoo.com>
+ * Copyright (C) 2007 all rights reserved.
+ *
+ * The copyright of this patch is trasferred
+ * to Pierangelo Masarati and Paolo Mantegazza
+ * for use in the software MBDyn as described 
+ * in the GNU Public License version 2.1
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
