@@ -53,6 +53,9 @@ private:
 	std::vector<integer *> pindices;
 	std::vector<integer> indices;
 
+	// don't allow copy constructor!
+	DirCColMatrixHandler(const DirCColMatrixHandler&);
+
 public:
 	DirCColMatrixHandler(std::vector<doublereal>& x,
 			const std::vector<integer>& i,

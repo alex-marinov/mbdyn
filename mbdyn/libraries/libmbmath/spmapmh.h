@@ -79,7 +79,7 @@ private:
 	mutable std::vector<row_cont_type> col_indices;
 
 	// don't allow copy constructor!
-	SpMapMatrixHandler(const SpMapMatrixHandler& );
+	SpMapMatrixHandler(const SpMapMatrixHandler&);
 
 #ifdef DEBUG
 	void IsValid(void) const {
