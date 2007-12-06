@@ -43,6 +43,10 @@ class FullMatrixHandler : public MatrixHandler {
 	friend class FullSubMatrixHandler;
 	friend class SparseSubMatrixHandler;
 
+private:
+	// don't allow copy constructor!
+	FullMatrixHandler(const FullMatrixHandler&);
+
 protected:
 	bool bOwnsMemory;
 
