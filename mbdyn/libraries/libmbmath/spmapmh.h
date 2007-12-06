@@ -78,6 +78,9 @@ private:
 	typedef std::map<integer, doublereal> row_cont_type;
 	mutable std::vector<row_cont_type> col_indices;
 
+	// don't allow copy constructor!
+	SpMapMatrixHandler(const SpMapMatrixHandler& );
+
 #ifdef DEBUG
 	void IsValid(void) const {
 		NO_OP;
