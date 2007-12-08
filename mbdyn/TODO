@@ -160,6 +160,8 @@ D. Code:
 		  a node with the clamp constraint plus a regular joint)
 	  this allows to add arbitrary elements connected to the modal element
 	- use getopt(3) in utils/
+	- add package-wide support for WinSocks in communication entities,
+	  including SimulinkInterface (using MSYS/MinGW)
 
 
 
