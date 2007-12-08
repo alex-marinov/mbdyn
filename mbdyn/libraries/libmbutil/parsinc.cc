@@ -38,7 +38,9 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#ifdef HAVE_PWD_H
 #include <pwd.h>
+#endif /* HAVE_PWD_H */
 #include <errno.h>
 
 #include "parsinc.h"
