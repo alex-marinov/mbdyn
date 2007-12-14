@@ -60,15 +60,10 @@ AutomaticStructElem::ComputeAccelerations(Vec3& XPP, Vec3& WP) const
 	/* FIXME: we export the test because we don't want Inv() to fail
 	 * or issue error messages */
 	Mat3x3 Jcg = J + Mat3x3(Xcg, S);
-	doublereal dDet = Jcg.dDet();
 	const Vec3& W = pNode->GetWCurr();
 	Vec3 WS = W.Cross(S);
 	Vec3 WWS = W.Cross(WS);
-	if (fabs(dDet) > DBL_EPSILON) {
-		WP = Jcg.Inv(dDet, GP - Xcg.Cross(BP - WWS) - W.Cross(G));
-	} else {
-		WP = Zero3;
-	}
+	WP = Jcg.LDLSolve(GP - Xcg.Cross(BP - WWS) - W.Cross(G));
 	XPP = (BP - WP.Cross(S) - WWS)/m;
 }
  

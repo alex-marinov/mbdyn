@@ -133,7 +133,7 @@ Mat3x3::Inv(void) const
 
 /* soluzione */
 Vec3
-Mat3x3::Inv(const doublereal& d, const Vec3& v) const
+Mat3x3::Solve(const doublereal& d, const Vec3& v) const
 {
    doublereal* p = (doublereal*)pdMat;
    doublereal* pv = v.pGetVec();
@@ -153,7 +153,7 @@ Mat3x3::Inv(const doublereal& d, const Vec3& v) const
 
 /* soluzione */
 Vec3
-Mat3x3::Inv(const Vec3& v) const
+Mat3x3::Solve(const Vec3& v) const
 {
    doublereal d = dDet();
    
@@ -162,7 +162,60 @@ Mat3x3::Inv(const Vec3& v) const
       throw ErrGeneric();
    }
 
-   return Inv(d, v);
+   return Solve(d, v);
+}
+
+Vec3
+Mat3x3::LDLSolve(const Vec3& v) const
+{
+	doublereal d1 = 0., d2 = 0., d3 = 0., l21 = 0., l31 = 0., l32 = 0.;
+
+	d1 = pdMat[M11];
+	ASSERT(d1 >= 0.);
+	if (d1 > DBL_EPSILON) {
+		l21 = (pdMat[M21] + pdMat[M12])/(2.*d1);
+		l31 = (pdMat[M31] + pdMat[M13])/(2.*d1);
+	}
+
+	d2 = pdMat[M22] - l21*l21*d1;
+	ASSERT(d2 >= 0.);
+	if (d2 > DBL_EPSILON) {
+		l32 = (pdMat[M32] + pdMat[M23])/(2.*d2);
+	}
+
+	d3 = pdMat[M33] - l31*l31*d1 - l32*l32*d2;
+
+	// L * D * L^T * x = v
+	// L^T * x = y
+	// D * y = z
+	// L * z = v
+
+	// z = L^-1 * v
+	doublereal z3 = v(3);
+	doublereal z2 = v(2) - l32*z3;
+	doublereal z1 = v(1) - l21*z2 - l31*z3;
+
+	// y = D^-1 * z
+	if (d1 > DBL_EPSILON) {
+		z1 /= d1;
+	} else {
+		z1 = 0.;
+	}
+
+	if (d2 > DBL_EPSILON) {
+		z2 /= d2;
+	} else {
+		z2 = 0.;
+	}
+
+	if (d3 > DBL_EPSILON) {
+		z3 /= d3;
+	} else {
+		z3 = 0.;
+	}
+
+	// x = L^-T * y
+	return Vec3(z1, z2 - l21*z1, z3 - l31*z1 - l32*z2);
 }
 
 /* Mat3x3 - end */

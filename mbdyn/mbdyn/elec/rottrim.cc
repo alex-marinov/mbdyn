@@ -218,7 +218,7 @@ RotorTrim::AssRes(SubVectorHandler& WorkVec,
 	Vec3 v(pvDrives[0].dGet() - dTraction,
 		pvDrives[1].dGet() - dRollMoment,
 		pvDrives[2].dGet() - dPitchMoment);
-	v = m.Inv(v);
+	v = m.Solve(v);
 
 	WorkVec.PutCoef(1, v(1)*dKappa0 - dX1 - dTau0*dX1Prime);
 	WorkVec.PutCoef(2, v(2)*dKappa1 - dX2 - dTau1*dX2Prime);

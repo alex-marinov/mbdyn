@@ -868,9 +868,11 @@ class Mat3x3 {
     Soluzione.
     Restituisce l'inversa di se stessa per v in un temporaneo.
     */
-   Vec3 Inv(const Vec3& v) const;      
-   Vec3 Inv(const doublereal& d, const Vec3& v) const;      
+   Vec3 Solve(const Vec3& v) const;      
+   Vec3 Solve(const doublereal& d, const Vec3& v) const;      
    
+   Vec3 LDLSolve(const Vec3& v) const;      
+
    /*Operazioni su arrays di reali */
       
    /*
