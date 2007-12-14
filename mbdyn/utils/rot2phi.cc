@@ -53,6 +53,8 @@ int main(int argn, const char* const argv[])
       }
    }   
 
+	std::cout.precision(16);
+
    static doublereal d[9];
    while (true) {
       std::cin >> d[M11];
