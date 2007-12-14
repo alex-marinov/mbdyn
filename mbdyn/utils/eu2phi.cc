@@ -53,13 +53,13 @@ main(int argn, const char* const argv[])
 	  	    || !strcasecmp(argv[1], "-h") 
 		    || !strcasecmp(argv[1], "--help")) {
 	 		std::cerr << std::endl 
-				<< "usage: " << argv[0] << std::endl 
+				<< "usage: " << argv[0] << "[-v]" << std::endl 
 				<< std::endl
 	   			<< "    reads the Euler angles (in degs)"
 				" from stdin;" << std::endl
 	   			<< " writes the rotation vector {magniture (in degs), direction} on standard output" 
 				<< std::endl
-				<< "-v: write the rotation vector (in rads) instead of mgnitude, direction"
+				<< " -v: write the rotation vector (in rads) instead of magnitude, direction"
 				<< std::endl
 				<< std::endl
 	   			<< "part of MBDyn package (Copyright (C)"
@@ -78,24 +78,22 @@ main(int argn, const char* const argv[])
 	std::cout.precision(16);
 
    	static doublereal d[3];
-   	if ( argn > 2)	{
-      		std::cin >> d[0];
-      		if (std::cin) {
-	 		std::cin >> d[1] >> d[2];
+	std::cin >> d[0];
+	if (std::cin) {
+		std::cin >> d[1] >> d[2];
 
-			Mat3x3 R(EulerAngles2MatR(Vec3(d)/(180./M_PI)));
+		Mat3x3 R(EulerAngles2MatR(Vec3(d)/(180./M_PI)));
+		Vec3 phi(RotManip::VecRot(R));
 
-			Vec3 phi(RotManip::VecRot(R));
-			if (v) {
-				std::cout << v << std::endl;
-			} else {
-				doublereal D = phi.Norm();
-				if (D != 0.) {
-			 		std::cout << D*180./M_PI << " " << phi/D << std::endl;
-		 		} else {
-		    			std::cout << 0. << " " << 0. << " " << 0. << " " << 0. << std::endl;
-		 		}
-			}
+		if (v) {
+			std::cout << phi << std::endl;
+		} else {
+			doublereal D = phi.Norm();
+			if (D != 0.) {
+		 		std::cout << D*180./M_PI << " " << phi/D << std::endl;
+	 		} else {
+	    			std::cout << 0. << " " << 0. << " " << 0. << " " << 0. << std::endl;
+	 		}
 		}
 	}
    
