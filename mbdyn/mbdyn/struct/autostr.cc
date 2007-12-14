@@ -63,17 +63,13 @@ AutomaticStructElem::ComputeAccelerations(Vec3& XPP, Vec3& WP) const
 	doublereal dDet = Jcg.dDet();
 	const Vec3& W = pNode->GetWCurr();
 	Vec3 WS = W.Cross(S);
+	Vec3 WWS = W.Cross(WS);
 	if (fabs(dDet) > DBL_EPSILON) {
-		const Vec3& XP = pNode->GetVCurr();
-
-		WP = Jcg.Inv(dDet, GP - Xcg.Cross(BP)
-			- W.Cross(J*W)
-			+ XP.Cross(WS)
-			+ Xcg.Cross(W.Cross(WS)));
+		WP = Jcg.Inv(dDet, GP - Xcg.Cross(BP - WWS) - W.Cross(G));
 	} else {
 		WP = Zero3;
 	}
-	XPP = (BP - WP.Cross(S) - W.Cross(WS))/m;
+	XPP = (BP - WP.Cross(S) - WWS)/m;
 }
  
 void
