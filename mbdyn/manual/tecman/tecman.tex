@@ -26,7 +26,7 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-\documentclass[10pt,dvips,fleqn]{report}
+\documentclass[10pt,dvips,fleqn,subeqn]{report}
 
 %\usepackage[pdftex]{graphicx}
 \usepackage[T1]{fontenc}
@@ -43,7 +43,7 @@
 %poor man's bold symbol
 \newcommand{\T}[1]{\boldsymbol{#1}}
 \newcommand{\TT}[1]{\boldsymbol{#1}}
-\newcommand{\equu}{\overset{\mathrm{uu}}{=}}
+\newcommand{\equu}{\overset{\text{uu}}{=}}
 
 \begin{document}
 
@@ -752,6 +752,62 @@ with every linked \texttt{ExpandableRowVector} taken in account.
 \chapter{Nodes}
 
 \section{Structural Nodes}
+Structural nodes provide the kinematics unknowns
+and the corresponding equilibrium equations.
+
+\subsection{Dynamic Structural Nodes}
+The dynamic structural node also provides momentum and momenta moment
+unknowns, and the equations that represent their definition
+in terms of the inertia properties and the node's kinematics:
+\begin{subequations}
+\label{eq:body:momenta}
+\begin{align}
+	\T{\beta} &= m \dot{\T{x}} + \T{\omega} \times \T{S}
+	\label{eq:body:momentum} \\
+	\T{\gamma} &= \T{S} \times \dot{\T{x}} + \TT{J} \T{\omega}
+	\label{eq:body:momenta-moment} .
+\end{align}
+\end{subequations}
+
+\subsubsection{Accelerations}
+Since momentum and momenta moments are considered as unknowns
+that account for inertia, linear and angular accelerations
+are not directly available from the simulation.
+They are computed, on demand, as postprocessing from the derivatives
+of the definitions of the momentum and the momenta moment.
+
+The differentiation of Equations~(\ref{eq:body:momenta}) yields
+\begin{subequations}
+\begin{align}
+	\dot{\T{\beta}} &= m \ddot{\T{x}} + \dot{\T{\omega}} \times \T{S}
+		+ \T{\omega} \times \T{\omega} \times \T{S} \\
+	\dot{\T{\gamma}} &= \T{\omega}\times \T{S} \times \dot{\T{x}}
+		+ \T{S} \times \ddot{\T{x}}
+		+ \T{\omega} \times \TT{J} \T{\omega}
+		+ \TT{J} \dot{\T{\omega}} \nonumber \\
+	&= \T{\omega}\times \T{\gamma}
+		+ \T{S} \times \ddot{\T{x}}
+		+ \TT{J} \dot{\T{\omega}} .
+\end{align}
+\end{subequations}
+As a consequence, the linear and angular accelerations are computed as
+\begin{align}
+	\dot{\T{\omega}}
+	&= \plbr{\T{J} + \T{S} \times \cfrac{\T{S}}{m} \times{}}^{-1}\plbr{
+		\dot{\T{\gamma}} - \T{\omega} \times \T{\gamma}
+		- \cfrac{\T{S}}{m} \plbr{
+			\dot{\T{\beta}}
+			- \T{\omega} \times \T{\omega} \times \T{S}
+		}
+	} \\
+	\ddot{\T{x}}
+	&= \cfrac{\dot{\T{\beta}}}{m}
+	- \dot{\T{\omega}} \times \cfrac{\T{S}}{m}
+	- \T{\omega} \times \T{\omega} \times \cfrac{\T{S}}{m} .
+\end{align}
+
+
+\subsection{Static Structural Nodes}
 
 \subsection{Dummy Nodes}
 Dummy nodes are special structural nodes that do not directly 
