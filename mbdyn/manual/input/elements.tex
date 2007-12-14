@@ -2021,19 +2021,45 @@ The format is:
 \subsection{Structural force}
 \begin{verbatim}
     <force_type> ::= { absolute | follower } 
-    <force_arglist> ::= <node> , 
+    <force_arglist> ::= <node_label> , 
                         (Vec3) <relative_direction> ,
                         (Vec3) <relative_arm> ,
                         (drive_caller) <force_magnitude>
 \end{verbatim}
+The vector \kw{relative\_direction} defines the direction of the force;
+the code normalizes it to a unit vector whatever value is provided.
+The vector \kw{relative\_arm} defines the offset with respect
+to the node of the point where the force is applied.
+The drive \kw{force\_magnitude} defines the magnitude of the force
+as a function of time.
+
+The force applied to the node \kw{node\_label} is thus
+\begin{itemize}
+\item \kw{absolute} force element:
+\begin{equation}
+	\T{F}
+	= \mathtt{relative\_direction} * \mathtt{force\_magnitude} ;
+\end{equation}
+
+\item \kw{follower} force element:
+\begin{equation}
+	\T{F}
+	= \TT{R} \ \mathtt{relative\_direction} * \mathtt{force\_magnitude} ;
+\end{equation}
+\end{itemize}
+$\TT{R}$ is the orientation matrix of the node \kw{node\_label}.
+In both cases, the moment applied to the node \kw{node\_label} is
+\begin{equation}
+	\T{M} = \plbr{\TT{R} \ \mathtt{relative\_arm}} \times \T{F} .
+\end{equation}
 
 \subsection{Structural internal force}
 \begin{verbatim}
     <force_type> ::= { absolute | follower } internal
-    <force_arglist> ::= <node1> , 
+    <force_arglist> ::= <node1_label> , 
                         (Vec3) <relative_direction> ,
                         (Vec3) <relative_arm1> ,
-                        <node2> ,
+                        <node2_label> ,
                         (Vec3) <relative_arm2> ,
                         (drive_caller) <force_magnitude>
 \end{verbatim}
@@ -2060,7 +2086,7 @@ Example:
 \subsection{Structural couple}
 \begin{verbatim}
     <force_type> ::= { absolute | follower } 
-    <force_arglist> ::= <node> ,
+    <force_arglist> ::= <node_label> ,
                         (Vec3) <relative_direction> ,  
                         (drive_caller) <couple_magnitude>
 \end{verbatim}
@@ -2068,9 +2094,9 @@ Example:
 \subsection{Structural internal couple}
 \begin{verbatim}
     <force_type> ::= { absolute | follower } internal
-    <force_arglist> ::= <node1> ,
+    <force_arglist> ::= <node1_label> ,
                         (Vec3) <relative_direction> ,  
-                        <node2> ,
+                        <node2_label> ,
                         (drive_caller) <couple_magnitude>
 \end{verbatim}
 i.e., as opposed to forces, the arm is not required. 
