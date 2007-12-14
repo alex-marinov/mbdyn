@@ -78,22 +78,26 @@ main(int argn, const char* const argv[])
 	std::cout.precision(16);
 
    	static doublereal d[3];
-	std::cin >> d[0];
-	if (std::cin) {
-		std::cin >> d[1] >> d[2];
+	while (true) {
+		std::cin >> d[0];
+		if (std::cin) {
+			std::cin >> d[1] >> d[2];
 
-		Mat3x3 R(EulerAngles2MatR(Vec3(d)/(180./M_PI)));
-		Vec3 phi(RotManip::VecRot(R));
+			Mat3x3 R(EulerAngles2MatR(Vec3(d)/(180./M_PI)));
+			Vec3 phi(RotManip::VecRot(R));
 
-		if (v) {
-			std::cout << phi << std::endl;
+			if (v) {
+				std::cout << phi << std::endl;
+			} else {
+				doublereal D = phi.Norm();
+				if (D != 0.) {
+			 		std::cout << D*180./M_PI << " " << phi/D << std::endl;
+		 		} else {
+		    			std::cout << 0. << " " << 0. << " " << 0. << " " << 0. << std::endl;
+		 		}
+			}
 		} else {
-			doublereal D = phi.Norm();
-			if (D != 0.) {
-		 		std::cout << D*180./M_PI << " " << phi/D << std::endl;
-	 		} else {
-	    			std::cout << 0. << " " << 0. << " " << 0. << " " << 0. << std::endl;
-	 		}
+			break;
 		}
 	}
    
