@@ -808,6 +808,11 @@ As a consequence, the linear and angular accelerations are computed as
 
 
 \subsection{Static Structural Nodes}
+Static structural nodes represent a degeneration of the dynamic ones,
+when the inertia is structurally null.
+In that case, no momentum nor momenta moment definition equations
+are instantiated, and their derivatives are always null.
+As a consequence, static nodes only instantiate their equilibrium equations.
 
 \subsection{Dummy Nodes}
 Dummy nodes are special structural nodes that do not directly 
