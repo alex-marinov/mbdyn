@@ -37,6 +37,7 @@ MBDyn 1.X-Devel
 		- fix gimbal formulation (noted by Marco Morandini,
 		  thanks to CppAd)
 		- fix accelerations output (noted by Michele Frumusa)
+		- matrix handlers: copy constructor must be private
 
 MBDyn 1.3.1-Alpha
 	Enhancements:
