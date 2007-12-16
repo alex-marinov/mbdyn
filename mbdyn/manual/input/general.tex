@@ -1982,31 +1982,34 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
 	\multicolumn{1}{c}{\textbf{\emph{3D}}} &
 	\multicolumn{1}{c}{\textbf{\emph{6D}}} \\ 
 	\hline
-	linear elastic, linear elastic isotropic			& x & x & x \\
-	linear elastic generic						& x & x & x \\
-	linear elastic generic axial torsion coupling			&   &   & x \\
-	cubic elastic generic						& x & x &   \\
-	log elastic							& x &   &   \\
-	linear elastic generic bi-stop					& x & x & x \\
-	double linear elastic						& x & x &   \\
-	isotropic hardening elastic					& x & x & x \\
-	scalar function elastic, scalar function elastic isotropic	& x & x & x \\
-	scalar function elastic orthotropic				& x & x & x \\
-	linear viscous, linear viscous isotropic			& x & x & x \\
-	linear viscous generic						& x & x & x \\
-	linear viscoelastic, linear viscoelastic isotropic		& x & x & x \\
-	linear viscoelastic generic					& x & x & x \\
-	linear viscoelastic generic axial torsion coupling		&   &   & x \\
-	cubic viscoelastic generic					& x & x &   \\
-	double linear viscoelastic					& x & x &   \\
-	turbulent viscoelastic						& x &   &   \\
-	linear viscoelastic generic bi-stop				& x & x & x \\
-	shock absorber							& x &   &   \\
-	symbolic elastic						& x & x & x \\
-	symbolic viscous						& x & x & x \\
-	symbolic viscoelastic						& x & x & x \\
-	ann elastic							& x & x & x \\
-	ann viscoelastic						& x & x & x \\
+	linear elastic, linear elastic isotropic			& $\surd$ & $\surd$ & $\surd$ \\
+	linear elastic generic						& $\surd$ & $\surd$ & $\surd$ \\
+	linear elastic generic axial torsion coupling			&         &         & $\surd$ \\
+	cubic elastic generic						& $\surd$ & $\surd$ &         \\
+	log elastic							& $\surd$ &         &         \\
+	linear elastic generic bi-stop					& $\surd$ & $\surd$ & $\surd$ \\
+	double linear elastic						& $\surd$ & $\surd$ &         \\
+	isotropic hardening elastic					& $\surd$ & $\surd$ & $\surd$ \\
+	scalar function elastic, scalar function elastic isotropic	& $\surd$ & $\surd$ & $\surd$ \\
+	scalar function elastic orthotropic				& $\surd$ & $\surd$ & $\surd$ \\
+	linear viscous, linear viscous isotropic			& $\surd$ & $\surd$ & $\surd$ \\
+	linear viscous generic						& $\surd$ & $\surd$ & $\surd$ \\
+	linear viscoelastic, linear viscoelastic isotropic		& $\surd$ & $\surd$ & $\surd$ \\
+	linear viscoelastic generic					& $\surd$ & $\surd$ & $\surd$ \\
+	linear viscoelastic generic axial torsion coupling		&         &         & $\surd$ \\
+	cubic viscoelastic generic					& $\surd$ & $\surd$ &         \\
+	double linear viscoelastic					& $\surd$ & $\surd$ &         \\
+	turbulent viscoelastic						& $\surd$ &         &         \\
+	linear viscoelastic generic bi-stop				& $\surd$ & $\surd$ & $\surd$ \\
+	shock absorber							& $\surd$ &         &         \\
+	symbolic elastic						& $\surd$ & $\surd$ & $\surd$ \\
+	symbolic viscous						& $\surd$ & $\surd$ & $\surd$ \\
+	symbolic viscoelastic						& $\surd$ & $\surd$ & $\surd$ \\
+	ann elastic							& $\surd$ & $\surd$ & $\surd$ \\
+	ann viscoelastic						& $\surd$ & $\surd$ & $\surd$ \\
+	nlsf viscoelastic						& $\surd$ & $\surd$ & $\surd$ \\
+	nlp viscoelastic						& $\surd$ & $\surd$ & $\surd$ \\
+	invariant angular (wrapper)					&         & $\surd$ &         \\
 	\hline
     \end{tabular}
 \end{table}
@@ -2770,8 +2773,25 @@ is essentially identical, their behavior may be quite different,
 as indicated by Equations~(\ref{eq:nlsf-cl}) and~(\ref{eq:nlp-cl}).
 
 
-
-
+\subsection{invariant angular}
+This is not exactly a constitutive law, but rather a wrapper
+for constitutive laws used within the ``attached'' variant
+of the \htmlref{\kw{deformable hinge}}{sec:EL:JOINT:DEFORMABLEHINGE} joint.
+As such, it can only be used with the 3D dimensionality,
+and it basically allows to refer an ancillary 3D constitutive law
+to an orientation that is intermediate with respect to the orientations
+of the two connected nodes.
+\begin{verbatim}
+    <specific_const_law> ::= invariant angular ,
+        <xi> , <ancillary_const_law>
+\end{verbatim}
+\kw{xi} is the fraction of relative orientation the ancillary
+constitutive law will be referred to, with respect
+to the first node of the joint.
+Its value should be comprised between 0 (attached to the first node)
+and 1 (attached to the second node); a value of 1/2 yields
+the \htmlref{\kw{invariant deformable hinge}}{sec:EL:JOINT:INVDEFORMABLEHINGE}
+joint, but any value is allowed.
 
 
 

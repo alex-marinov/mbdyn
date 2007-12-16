@@ -652,5 +652,15 @@ public:
 
 /* ViscoElasticHingeJointInv - end */
 
+
+/* InvAngularCLR - begin */
+
+struct InvAngularCLR : public ConstitutiveLawRead<Vec3, Mat3x3> {
+	virtual ConstitutiveLaw<Vec3, Mat3x3> *
+	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType);
+};
+
+/* InvAngularCLR - end */
+
 #endif /* VEHJ_H */
 

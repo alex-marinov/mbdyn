@@ -51,6 +51,9 @@
 #include "constltp_nlp.h"
 #include "constltp_nlsf.h"
 
+/* used by invariant constitutive law... */
+#include "vehj.h"
+
 /* constitutive law containers */
 typedef std::map<std::string, ConstitutiveLawRead<doublereal, doublereal> *, ltstrcase> CL1DFuncMapType;
 typedef std::map<std::string, ConstitutiveLawRead<Vec3, Mat3x3> *, ltstrcase> CL3DFuncMapType;
@@ -1235,6 +1238,9 @@ InitCL(void)
 	/* constitutive laws sponsored by Hutchinson CdR */
 	NLP_init();
 	NLSF_init();
+
+	/* invariant constitutive law */
+	SetCL3D("invariant" "angular", new InvAngularCLR);
 
 	/* NOTE: add here initialization of new built-in constitutive laws;
 	 * alternative ways to register new custom constitutive laws are:

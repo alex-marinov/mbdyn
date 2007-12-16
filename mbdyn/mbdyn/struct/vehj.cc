@@ -1583,3 +1583,125 @@ ViscoElasticHingeJointInv::dGetPrivData(unsigned int i) const
 
 /* ViscoElasticHingeJointInv - end */
 
+
+/* InvAngularConstitutiveLaw - begin */
+
+class InvAngularConstitutiveLaw
+: public ConstitutiveLaw<Vec3, Mat3x3> {
+private:
+	doublereal dXi;
+	ConstitutiveLaw<Vec3, Mat3x3> *pCL;
+
+public:
+	InvAngularConstitutiveLaw(const doublereal& dxi,
+		ConstitutiveLaw<Vec3, Mat3x3> *pcl);
+	virtual ~InvAngularConstitutiveLaw(void);
+
+	ConstLawType::Type GetConstLawType(void) const;
+
+	virtual ConstitutiveLaw<Vec3, Mat3x3>* pCopy(void) const;
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	virtual void Update(const Vec3& Eps, const Vec3& /* EpsPrime */  = 0.);
+	virtual void IncrementalUpdate(const Vec3& DeltaEps, const Vec3& /* EpsPrime */ = 0.);
+};
+
+
+InvAngularConstitutiveLaw::InvAngularConstitutiveLaw(const doublereal& dxi,
+	ConstitutiveLaw<Vec3, Mat3x3> *pcl)
+: dXi(dxi), pCL(pcl)
+{
+	NO_OP;
+}
+
+InvAngularConstitutiveLaw::~InvAngularConstitutiveLaw(void)
+{
+	if (pCL) {
+		delete pCL;
+	}
+}
+
+ConstLawType::Type
+InvAngularConstitutiveLaw::GetConstLawType(void) const
+{
+	return ConstLawType::Type(ConstLawType::ELASTIC | pCL->GetConstLawType());
+}
+
+ConstitutiveLaw<Vec3, Mat3x3>*
+InvAngularConstitutiveLaw::pCopy(void) const
+{
+	ConstitutiveLaw<Vec3, Mat3x3>* pcl = NULL;
+
+	typedef InvAngularConstitutiveLaw cl;
+	SAFENEWWITHCONSTRUCTOR(pcl, cl, cl(dXi, pCL->pCopy()));
+	return pcl;
+}
+
+std::ostream&
+InvAngularConstitutiveLaw::Restart(std::ostream& out) const
+{
+	out << "invariant, " << dXi << ", ";
+	return pCL->Restart(out);
+}
+
+void
+InvAngularConstitutiveLaw::Update(const Vec3& Eps, const Vec3& EpsPrime)
+{
+	pCL->Update(Eps, EpsPrime);
+
+	ConstitutiveLaw<Vec3, Mat3x3>::Epsilon = Eps;
+
+	// Theta_xi = Theta * xi
+	Vec3 Tx(Eps*dXi);
+
+	// R_xi = exp(xi*Theta x)
+	Mat3x3 Rx(RotManip::Rot(Tx));
+
+	// F = R_xi * K * Theta
+	ConstitutiveLaw<Vec3, Mat3x3>::F =  Rx*pCL->GetF();
+
+	// Gamma_xi
+	Mat3x3 Gx(RotManip::DRot(Tx));
+
+	// re-orientation of moment
+	ConstitutiveLaw<Vec3, Mat3x3>::FDE = Mat3x3(-ConstitutiveLaw<Vec3, Mat3x3>::F)*Gx;
+
+	// stiffness, if any
+	if (pCL->GetConstLawType() & ConstLawType::ELASTIC) {
+		ConstitutiveLaw<Vec3, Mat3x3>::FDE += Rx*pCL->GetFDE();
+	}
+
+	// viscosity, if any
+	if (pCL->GetConstLawType() & ConstLawType::VISCOUS) {
+		ConstitutiveLaw<Vec3, Mat3x3>::FDEPrime = Rx*pCL->GetFDEPrime();
+	}
+}
+
+void
+InvAngularConstitutiveLaw::IncrementalUpdate(const Vec3& DeltaEps, const Vec3& EpsPrime)
+{
+	Update(ConstitutiveLaw<Vec3, Mat3x3>::Epsilon + DeltaEps, EpsPrime);
+}
+
+/* InvAngularConstitutiveLaw - end */
+
+
+/* InvAngularCLR - begin */
+
+ConstitutiveLaw<Vec3, Mat3x3> *
+InvAngularCLR::Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType)
+{
+	ConstitutiveLaw<Vec3, Mat3x3>* pCL = 0;
+
+	doublereal dXi = HP.GetReal();
+
+	ConstitutiveLaw<Vec3, Mat3x3>* pCL2 = pDM->ReadConstLaw3D(HP, CLType);
+	CLType = ConstLawType::Type(ConstLawType::ELASTIC | CLType);
+
+	typedef InvAngularConstitutiveLaw L;
+	SAFENEWWITHCONSTRUCTOR(pCL, L, L(dXi, pCL2));
+
+	return pCL;
+}
+
+/* InvAngularCLR - end */

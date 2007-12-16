@@ -2106,7 +2106,7 @@ DataManager::ReadDrivers(MBDynParser& HP)
 
 /* Legge un legame costitutivo monodimensionale */
 ConstitutiveLaw1D*
-DataManager::ReadConstLaw1D(MBDynParser& HP, ConstLawType::Type& T)
+DataManager::ReadConstLaw1D(MBDynParser& HP, ConstLawType::Type& T) const
 {
 	return ReadCL1D(this, HP, T);
 }
@@ -2114,7 +2114,7 @@ DataManager::ReadConstLaw1D(MBDynParser& HP, ConstLawType::Type& T)
 
 /* Legge un legame costitutivo tridimensionale */
 ConstitutiveLaw3D*
-DataManager::ReadConstLaw3D(MBDynParser& HP, ConstLawType::Type& T)
+DataManager::ReadConstLaw3D(MBDynParser& HP, ConstLawType::Type& T) const
 {
 	return ReadCL3D(this, HP, T);
 }
@@ -2122,7 +2122,7 @@ DataManager::ReadConstLaw3D(MBDynParser& HP, ConstLawType::Type& T)
 
 /* Legge un legame costitutivo esadimensionale */
 ConstitutiveLaw6D*
-DataManager::ReadConstLaw6D(MBDynParser& HP, ConstLawType::Type& T)
+DataManager::ReadConstLaw6D(MBDynParser& HP, ConstLawType::Type& T) const
 {
 	return ReadCL6D(this, HP, T);
 }

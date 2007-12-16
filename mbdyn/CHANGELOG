@@ -21,6 +21,7 @@ MBDyn 1.X-Devel
 		- add framework for joint regularization
 		  (suggested by Alessandro Fumagalli)
 		- add select timeout to stream drives (patch by Rudi Jaeger)
+		- add invariant angular constitutive law wrapper
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
