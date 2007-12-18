@@ -54,6 +54,9 @@
 /* used by invariant constitutive law... */
 #include "vehj.h"
 
+/* ... */
+#include "tdclw.h"
+
 /* constitutive law containers */
 typedef std::map<std::string, ConstitutiveLawRead<doublereal, doublereal> *, ltstrcase> CL1DFuncMapType;
 typedef std::map<std::string, ConstitutiveLawRead<Vec3, Mat3x3> *, ltstrcase> CL3DFuncMapType;
@@ -1241,6 +1244,9 @@ InitCL(void)
 
 	/* invariant constitutive law */
 	SetCL3D("invariant" "angular", new InvAngularCLR);
+
+	/* ... */
+	TDCLW_init();
 
 	/* NOTE: add here initialization of new built-in constitutive laws;
 	 * alternative ways to register new custom constitutive laws are:

@@ -82,6 +82,8 @@ strforce.cc \
 strforce.h \
 strnode.cc \
 strnode.h \
+tdclw.cc \
+tdclw.h \
 totalequation.cc \
 totalequation.h \
 totalj.cc \

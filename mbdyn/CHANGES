@@ -22,6 +22,7 @@ MBDyn 1.X-Devel
 		  (suggested by Alessandro Fumagalli)
 		- add select timeout to stream drives (patch by Rudi Jaeger)
 		- add invariant angular constitutive law wrapper
+		- add temperature and training dependent const. law wrapper
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
