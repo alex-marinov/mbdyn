@@ -372,16 +372,48 @@ StructNode::OutputPrepare(OutputHandler &OH)
 			NcFile *pBinFile = OH.pGetBinFile();
 			char buf[BUFSIZ];
 
-			/*
-			 * TODO: add a variable "node.struct.<label>"
-			 * with generic info (static, dynamic, ...) and no data
-			 */
-
-			int l = snprintf(buf, sizeof(buf), "node.struct.%lu.",
+			int l = snprintf(buf, sizeof(buf), "node.struct.%lu",
 				(unsigned long)GetLabel());
-			if (l < 0 || l >= int(sizeof(buf) - STRLENOF("Omega"))) {
+			// NOTE: "Omega" is the longest var name
+			if (l < 0 || l >= int(sizeof(buf) - STRLENOF(".Omega"))) {
 				throw ErrGeneric();
 			}
+
+			// Struct node type
+			static NcDim *DimType = 0;
+			if (DimType == 0) {
+				DimType = pBinFile->add_dim("struct_type_dim", 8);
+			}
+
+			NcVar *Var_Type = pBinFile->add_var(buf, ncChar,
+				DimType);
+			char *type = 0;
+			switch (GetStructNodeType()) {
+			case STATIC:
+				type = "static";
+				break;
+
+			case DYNAMIC:
+				type = "dynamic";
+				break;
+
+			case MODAL:
+				type = "modal";
+				break;
+
+			case DUMMY:
+				type = "dummy";
+				break;
+
+			default:
+				type = "unknown";
+				break;
+			}
+
+			Var_Type->put(type, strlen(type));
+
+			// add var name separator
+			buf[l++] = '.';
 
 			/* Add NetCDF (output) variables to the BinFile object
 			 * and save the NcVar* pointer returned from add_var

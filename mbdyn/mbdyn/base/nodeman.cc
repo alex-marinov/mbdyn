@@ -119,6 +119,28 @@ DataManager::NodeDataInit(void)
 void
 DataManager::NodeOutputPrepare(OutputHandler& OH)
 {
+#ifdef USE_NETCDF
+	if (OH.UseNetCDF(OutputHandler::STRNODES)) {
+		ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+
+		// Structural nodes
+		integer iNumNodes = NodeData[Node::STRUCTURAL].iNum;
+		Node** ppFirstNode = NodeData[Node::STRUCTURAL].ppFirstNode;
+
+		NcFile *pBinFile = OH.pGetBinFile();
+		NcDim *DimLabels = 
+			pBinFile->add_dim("struct_node_labels_dim", iNumNodes);
+		NcVar *VarLabels = pBinFile->add_var("node.struct", ncInt,
+			DimLabels);
+
+		for (unsigned i = 0; i < unsigned(iNumNodes); i++) {
+			VarLabels->set_cur(i);
+			const long l = ppFirstNode[i]->GetLabel();
+			VarLabels->put(&l, 1);
+		}
+	}
+#endif // USE_NETCDF
+
 	Node** ppTmpNode = ppNodes;
 	for (; ppTmpNode < ppNodes + iTotNodes; ppTmpNode++) {
 		(*ppTmpNode)->OutputPrepare(OH);

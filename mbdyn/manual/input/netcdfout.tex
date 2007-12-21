@@ -27,5 +27,37 @@
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 \chapter{NetCDF Output Format}
+NetCDF is a format to efficiently store and retrieve data to and from
+a database on file in a portable, platform-independent manner.
+Further details can be found at
+\begin{quote}
+\htmladdnormallink{\kw{http://www.unidata.ucar.edu/software/netcdf/}}{http://www.unidata.ucar.edu/software/netcdf/}
+\end{quote}
+and in \cite{NETCDF-UM}.
+The link reported above also describes some of the common tools
+that can be used to read and manipulate the contents of the database.
 
+The output in NetCDF format consists in a single binary file
+written by the NetCDF library and intended to be read by tools
+exploiting the library itself.
+This document does not describe the details of NetCDF low-level format,
+since this is not intended to be accessed directly by MBDyn users.
+Interested readers can consult the specific documentation \cite{NETCDF-UM}.
 
+Following the convention of NetCDF data, each datum is defined
+by a variable, whose name indicates the type of datum and the entity
+that generated it, organized in a tree-like fashion.
+
+For example, the vector containing the three components 
+of the position of a structural node is
+\begin{verbatim}
+    node.struct.<label>.X
+\end{verbatim}
+Each variable usually has few attributes: the units and a description.
+
+Each level contains some datum that is intended to make the contents
+of the output database as self-explanatory as possible.
+For example, the level \kw{node} contains an array whose values
+are the strings indicating the node types available;
+each level \kw{node.<type>} contains the labels of the available nodes
+for that type, and so on.
