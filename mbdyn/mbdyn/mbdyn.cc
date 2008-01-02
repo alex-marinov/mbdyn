@@ -235,13 +235,11 @@ static char sShortOpts[] = "a:d:f:hHln:N::o:pPrRsS:tTwW:";
 
 #ifdef HAVE_GETOPT_LONG
 static struct option LongOpts[] = {
-	{ "adams-file",     required_argument, NULL,           int('a') },
 	{ "debug",          required_argument, NULL,           int('d') },
 	{ "input-file",     required_argument, NULL,           int('f') },
 	{ "help",           no_argument,       NULL,           int('h') },
 	{ "show-table",     no_argument,       NULL,           int('H') },
 	{ "license",        no_argument,       NULL,           int('l') },
-	{ "nice",           optional_argument, NULL,           int('n') },
 	{ "threads",	    required_argument, NULL,	       int('N') },
 	{ "output-file",    required_argument, NULL,           int('o') },
 	{ "parallel",	    no_argument,       NULL,           int('p') },
@@ -422,28 +420,6 @@ main(int argc, char* argv[])
 				/* TODO */
 				break;
 
-#ifdef HAVE_NICE
-			case int('n'):
-				if (optarg != 0) {
-#ifdef HAVE_STRTOL
-					char *eptr = NULL;
-					niceIncr = strtol(optarg, &eptr, 10);
-					if (eptr != NULL && eptr[0] != '\0') {
-		    				silent_cerr("Unable to "
-							"parse nice level <" 
-							<< optarg << ">"
-							<< std::endl);
-		    				throw ErrGeneric();
-					}
-#else /* !HAVE_STRTOL */
-					niceIncr = atoi(optarg);
-#endif /* !HAVE_STRTOL */
-				} else {
-					niceIncr = 10;
-				}
-				break;
-#endif /* HAVE_NICE */
-	    
 	    		case int('f'):
 	        		CurrInputFormat = MBDYN;
 	        		CurrInputSource = FILE_OPT;
@@ -466,23 +442,6 @@ main(int argc, char* argv[])
 	        		}
 	        		pIn = (std::istream*)&FileStreamIn;
 	        		break;
-	    
-	    		case int('a'):
-#ifdef USE_ADAMS_PP
-	        		CurrInputFormat = ADAMS;
-	        		CurrInputSource = FILE_OPT;
-	        		sInputFileName = optarg;
-	     
-	        		silent_cerr("ADAMS input not implemented yet,"
-		    			" cannot open file '"
-					<< sInputFileName << "'" << std::endl);
-				throw ErrGeneric();
-	        		break;
-#else /* !USE_ADAMS_PP */
-	        		silent_cerr("Illegal option -a" << std::endl);
-	        		throw ErrGeneric();
-				break;
-#endif /* !USE_ADAMS_PP */
 	    
 	    		case int('o'):
 	        		sOutputFileName = optarg;
