@@ -36,13 +36,12 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <stdlib.h>
-#include <string.h>
+#include <string>
 #include <iostream>
 
-#include <matvec3.h>
-#include <matvecexp.h>
-#include <Rot.hh>
-
+#include "matvec3.h"
+#include "matvecexp.h"
+#include "Rot.hh"
 
 int 
 main(int argn, const char* const argv[])
