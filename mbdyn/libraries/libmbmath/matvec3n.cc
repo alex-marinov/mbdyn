@@ -333,7 +333,7 @@ void Mat3xN::Resize(integer ns)
 }
 
 
-void Mat3xN::Reset(const doublereal d)
+void Mat3xN::Reset(const doublereal& d)
 {
 #ifdef DEBUG
    IsValid();

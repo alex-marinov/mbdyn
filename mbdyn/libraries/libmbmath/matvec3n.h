@@ -237,7 +237,7 @@ class Mat3xN {
    ~Mat3xN(void);
    
    void Resize(integer ns);
-   void Reset(const doublereal d = 0.);
+   void Reset(const doublereal& d = 0.);
    
    inline integer iGetNumCols(void) const;
    
