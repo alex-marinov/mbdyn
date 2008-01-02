@@ -504,6 +504,8 @@ protected:
 		unsigned int iNum;		// numero di elementi del tipo
 #endif
 		unsigned int iExpectedNum;	// numero di elementi del tipo
+		char *Desc;
+		char *ShortDesc;
 
 		DofOwner::Type DofOwnerType;	// Tipo di DofOwner
 		unsigned int iDerivation;	// Tabella delle derivazioni
@@ -622,6 +624,8 @@ protected:
 		Node** ppFirstNode;
 		unsigned int iNum;
 		unsigned uFlags;		// flags
+		char *Desc;
+		char *ShortDesc;
 
 		/* helpers */
 		void DefaultOut(bool b) { if (b) { uFlags |= DEFAULTOUT; } else { uFlags &= ~DEFAULTOUT; } };

@@ -1230,6 +1230,8 @@ EndOfUse:
 	if (bOutput(RES_NETCDF)) {
 		OutHdl.SetNetCDF(OutputHandler::NETCDF);
 		OutHdl.SetNetCDF(OutputHandler::STRNODES);
+		OutHdl.SetNetCDF(OutputHandler::INERTIA);
+		OutHdl.SetNetCDF(OutputHandler::JOINTS);
 	}
 
 	integer iOutputFrequency = 0;

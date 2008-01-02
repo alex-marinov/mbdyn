@@ -227,15 +227,127 @@ AutomaticStructElem::AssRes(SubVectorHandler& WorkVec,
 }
 
 
-void 
+void
+AutomaticStructElem::OutputPrepare(OutputHandler &OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::INERTIA)) {
+			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+
+			/* get a pointer to binary NetCDF file
+			 * -->  pDM->OutHdl.BinFile */
+			NcFile *pBinFile = OH.pGetBinFile();
+			char buf[BUFSIZ];
+
+			// NOTE: we hijack the structural nodes namespace
+			int l = snprintf(buf, sizeof(buf), "node.struct.%lu.",
+				(unsigned long)GetLabel());
+			// NOTE: "BP" is the longest var name
+			if (l < 0 || l >= int(sizeof(buf) - STRLENOF("BP"))) {
+				throw ErrGeneric();
+			}
+
+			/* Add NetCDF (output) variables to the BinFile object
+			 * and save the NcVar* pointer returned from add_var
+			 * as handle for later write accesses.
+			 * Define also variable attributes */
+
+			strcpy(&buf[l], "B");
+			Var_B = pBinFile->add_var(buf, ncDouble,
+				OH.DimTime(), OH.DimV3());
+			if (Var_B == 0) {
+				throw ErrGeneric();
+			}
+			if (!Var_B->add_att("units", "kg*m/s")) {
+				throw ErrGeneric();
+			}
+			if (!Var_B->add_att("description",
+				"momentum (X, Y, Z)"))
+			{
+				throw ErrGeneric();
+			}
+
+			strcpy(&buf[l], "G");
+			Var_G = pBinFile->add_var(buf, ncDouble,
+				OH.DimTime(), OH.DimV3());
+			if (Var_G == 0) {
+				throw ErrGeneric();
+			}
+			if (!Var_G->add_att("units", "kg*m^2/s")) {
+				throw ErrGeneric();
+			}
+			if (!Var_G->add_att("description",
+				"momenta moment (X, Y, Z)"))
+			{
+				throw ErrGeneric();
+			}
+
+			strcpy(&buf[l], "BP");
+			Var_BP = pBinFile->add_var(buf, ncDouble,
+				OH.DimTime(), OH.DimV3());
+			if (Var_BP == 0) {
+				throw ErrGeneric();
+			}
+			if (!Var_BP->add_att("units", "kg*m/s^2")) {
+				throw ErrGeneric();
+			}
+			if (!Var_BP->add_att("description",
+				"momentum derivative (X, Y, Z)"))
+			{
+				throw ErrGeneric();
+			}
+
+			strcpy(&buf[l], "GP");
+			Var_GP = pBinFile->add_var(buf, ncDouble,
+				OH.DimTime(), OH.DimV3());
+			if (Var_GP == 0) {
+				throw ErrGeneric();
+			}
+			if (!Var_GP->add_att("units", "kg*m^2/s^2")) {
+				throw ErrGeneric();
+			}
+			if (!Var_GP->add_att("description",
+				"momenta moment derivative (X, Y, Z)"))
+			{
+				throw ErrGeneric();
+			}
+		}
+#endif // USE_NETCDF
+	}
+}
+
+void
 AutomaticStructElem::Output(OutputHandler& OH) const
 {
-   ASSERT(pNode != NULL);
-   if(pNode->fToBeOutput()) {
-      OH.Inertia() << std::setw(8) << GetLabel() << " " 
-	<< B << " " << G << " " << BP << " " << GP << std::endl;
-   }
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::INERTIA)) {
+			Var_B->put_rec(B.pGetVec(), OH.GetCurrentStep());
+			Var_G->put_rec(G.pGetVec(), OH.GetCurrentStep());
+			Var_BP->put_rec(BP.pGetVec(), OH.GetCurrentStep());
+			Var_GP->put_rec(GP.pGetVec(), OH.GetCurrentStep());
+		}
+#endif /* USE_NETCDF */
+
+		if (OH.UseText(OutputHandler::INERTIA)) {
+			OH.Inertia() << std::setw(8) << GetLabel()
+				<< " " << B
+				<< " " << G
+				<< " " << BP
+				<< " " << GP
+				<< std::endl;
+		}
+	}
 }
+
+
+
+
+
+
+
+
 
 
 /* Setta i valori iniziali delle variabili (e fa altre cose) 

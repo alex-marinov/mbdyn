@@ -68,17 +68,52 @@ DataManager::ElemManager(void)
 
 	/* Add file type */
 	ElemData[Elem::AUTOMATICSTRUCTURAL].OutFile = OutputHandler::INERTIA;
+	ElemData[Elem::AUTOMATICSTRUCTURAL].Desc = "AutomaticStructural";
+	ElemData[Elem::AUTOMATICSTRUCTURAL].ShortDesc = "autostruct";
+
 	ElemData[Elem::JOINT].OutFile = OutputHandler::JOINTS;
+	ElemData[Elem::JOINT].Desc = "Joint";
+	ElemData[Elem::JOINT].ShortDesc = "joint";
+
 	ElemData[Elem::FORCE].OutFile = OutputHandler::FORCES;
+	ElemData[Elem::FORCE].Desc = "Force";
+	ElemData[Elem::FORCE].ShortDesc = "force";
+
 	ElemData[Elem::BEAM].OutFile = OutputHandler::BEAMS;
+	ElemData[Elem::BEAM].Desc = "Beam";
+	ElemData[Elem::BEAM].ShortDesc = "beam";
+
 	ElemData[Elem::ROTOR].OutFile = OutputHandler::ROTORS;
+	ElemData[Elem::ROTOR].Desc = "Rotor";
+	ElemData[Elem::ROTOR].ShortDesc = "rotor";
+
 	ElemData[Elem::AEROMODAL].OutFile = OutputHandler::AEROMODALS;
+	ElemData[Elem::AEROMODAL].Desc = "AerodynamicModal";
+	ElemData[Elem::AEROMODAL].ShortDesc = "aeromodal";
+
 	ElemData[Elem::AERODYNAMIC].OutFile = OutputHandler::AERODYNAMIC;
+	ElemData[Elem::AERODYNAMIC].Desc = "Aerodynamic";
+	ElemData[Elem::AERODYNAMIC].ShortDesc = "aero";
+
 	ElemData[Elem::HYDRAULIC].OutFile = OutputHandler::HYDRAULIC;
+	ElemData[Elem::HYDRAULIC].Desc = "Hydraulic";
+	ElemData[Elem::HYDRAULIC].ShortDesc = "hydr";
+
 	ElemData[Elem::LOADABLE].OutFile = OutputHandler::LOADABLE;
+	ElemData[Elem::LOADABLE].Desc = "Loadable";
+	ElemData[Elem::LOADABLE].ShortDesc = "loadable";
+
 	ElemData[Elem::GENEL].OutFile = OutputHandler::GENELS;
+	ElemData[Elem::GENEL].Desc = "Genel";
+	ElemData[Elem::GENEL].ShortDesc = "genel";
+
 	ElemData[Elem::EXTERNAL].OutFile = OutputHandler::EXTERNALS;
+	ElemData[Elem::EXTERNAL].Desc = "External";
+	ElemData[Elem::EXTERNAL].ShortDesc = "ext";
+
 	ElemData[Elem::THERMAL].OutFile = OutputHandler::THERMALELEMENTS;
+	ElemData[Elem::THERMAL].Desc = "Thermal";
+	ElemData[Elem::THERMAL].ShortDesc = "thermal";
 
 	/* Inheritance scheme */
 	ElemData[Elem::AUTOMATICSTRUCTURAL].iDerivation = ELEM;
@@ -450,8 +485,52 @@ DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
 void
 DataManager::ElemOutputPrepare(OutputHandler& OH)
 {
-	Elem* pTmpEl = NULL;
+#ifdef USE_NETCDF
+	for (unsigned et = 0; et < Elem::LASTELEMTYPE; et++) {
+		if (ElemData[et].ElemMap.size() && OH.UseNetCDF(ElemData[et].OutFile)) {
+			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
+			integer iNumElems = ElemData[et].ElemMap.size();
+
+			NcFile *pBinFile = OH.pGetBinFile();
+
+			char buf[BUFSIZ];
+			int l;
+
+			ASSERT(ElemData[et].Desc != 0);
+			ASSERT(ElemData[et].ShortDesc != 0);
+
+			l = snprintf(buf, sizeof(buf), "%s_elem_labels_dim", ElemData[et].ShortDesc);
+			if (l <= 0 || l >= int(sizeof(buf))) {
+				throw ErrGeneric();
+			}
+			NcDim *DimLabels = pBinFile->add_dim(buf, iNumElems);
+
+			l = snprintf(buf, sizeof(buf), "elem.%s", ElemData[et].ShortDesc);
+			if (l <= 0 || l >= int(sizeof(buf))) {
+				throw ErrGeneric();
+			}
+			NcVar *VarLabels = pBinFile->add_var(buf, ncInt, DimLabels);
+
+			l = snprintf(buf, sizeof(buf), "%s elements labels", ElemData[et].Desc);
+			if (l <= 0 || l >= int(sizeof(buf))) {
+				throw ErrGeneric();
+			}
+			if (!VarLabels->add_att("description", buf)) {
+				throw ErrGeneric();
+			}
+
+			ElemMapType::const_iterator p = ElemData[et].ElemMap.begin();
+			for (unsigned i = 0; i < unsigned(iNumElems); i++, p++) {
+				VarLabels->set_cur(i);
+				const long l = p->second->GetLabel();
+				VarLabels->put(&l, 1);
+			}
+		}
+	}
+#endif // USE_NETCDF
+
+	Elem* pTmpEl = NULL;
 	if (ElemIter.bGetFirst(pTmpEl)) {
 		do {
 			pTmpEl->OutputPrepare(OH);

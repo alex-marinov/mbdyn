@@ -55,11 +55,28 @@ DataManager::NodeManager(void)
 
 	/* Se un tipo scrive su un file di output, aggiungere qui il tipo di file */
 	NodeData[Node::ABSTRACT].OutFile = OutputHandler::ABSTRACT;
+	NodeData[Node::ABSTRACT].Desc = "Abstract";
+	NodeData[Node::ABSTRACT].ShortDesc = "abstr";
+
 	NodeData[Node::STRUCTURAL].OutFile = OutputHandler::STRNODES;
+	NodeData[Node::STRUCTURAL].Desc = "Structural";
+	NodeData[Node::STRUCTURAL].ShortDesc = "struct";
+
 	NodeData[Node::ELECTRIC].OutFile = OutputHandler::ELECTRIC;
-   NodeData[Node::THERMAL].OutFile = OutputHandler::THERMALNODES;   
+	NodeData[Node::ELECTRIC].Desc = "Electric";
+	NodeData[Node::ELECTRIC].ShortDesc = "elec";
+
+	NodeData[Node::THERMAL].OutFile = OutputHandler::THERMALNODES;   
+	NodeData[Node::THERMAL].Desc = "Thermal";
+	NodeData[Node::THERMAL].ShortDesc = "thermal";
+
 	NodeData[Node::HYDRAULIC].OutFile = OutputHandler::PRESNODES;
+	NodeData[Node::HYDRAULIC].Desc = "Pressure";
+	NodeData[Node::HYDRAULIC].ShortDesc = "pres";
+
 	NodeData[Node::PARAMETER].OutFile = OutputHandler::PARAMETERS;
+	NodeData[Node::PARAMETER].Desc = "Parameter";
+	NodeData[Node::PARAMETER].ShortDesc = "param";
 }
 
 void
@@ -120,6 +137,46 @@ void
 DataManager::NodeOutputPrepare(OutputHandler& OH)
 {
 #ifdef USE_NETCDF
+	for (unsigned nt = 0; nt < Node::LASTNODETYPE; nt++) {
+		if (NodeData[nt].iNum && OH.UseNetCDF(NodeData[nt].OutFile)) {
+			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+
+			integer iNumNodes = NodeData[nt].iNum;
+			Node** ppFirstNode = NodeData[nt].ppFirstNode;
+
+			NcFile *pBinFile = OH.pGetBinFile();
+
+			char buf[BUFSIZ];
+			int l = snprintf(buf, sizeof(buf), "%s_node_labels_dim", NodeData[nt].ShortDesc);
+			if (l <= 0 || l >= int(sizeof(buf))) {
+				throw ErrGeneric();
+			}
+			NcDim *DimLabels = 
+				pBinFile->add_dim(buf, iNumNodes);
+
+			l = snprintf(buf, sizeof(buf), "node.%s", NodeData[nt].ShortDesc);
+			if (l <= 0 || l >= int(sizeof(buf))) {
+				throw ErrGeneric();
+			}
+			NcVar *VarLabels = pBinFile->add_var(buf, ncInt, DimLabels);
+
+			l = snprintf(buf, sizeof(buf), "%s nodes labels", NodeData[nt].Desc);
+			if (l <= 0 || l >= int(sizeof(buf))) {
+				throw ErrGeneric();
+			}
+			if (!VarLabels->add_att("description", buf)) {
+				throw ErrGeneric();
+			}
+
+			for (unsigned i = 0; i < unsigned(iNumNodes); i++) {
+				VarLabels->set_cur(i);
+				const long l = ppFirstNode[i]->GetLabel();
+				VarLabels->put(&l, 1);
+			}
+		}
+	}
+
+#if 0
 	if (OH.UseNetCDF(OutputHandler::STRNODES)) {
 		ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
@@ -132,6 +189,9 @@ DataManager::NodeOutputPrepare(OutputHandler& OH)
 			pBinFile->add_dim("struct_node_labels_dim", iNumNodes);
 		NcVar *VarLabels = pBinFile->add_var("node.struct", ncInt,
 			DimLabels);
+		if (!VarLabels->add_att("description", "Structural nodes labels")) {
+			throw ErrGeneric();
+		}
 
 		for (unsigned i = 0; i < unsigned(iNumNodes); i++) {
 			VarLabels->set_cur(i);
@@ -139,6 +199,7 @@ DataManager::NodeOutputPrepare(OutputHandler& OH)
 			VarLabels->put(&l, 1);
 		}
 	}
+#endif
 #endif // USE_NETCDF
 
 	Node** ppTmpNode = ppNodes;
