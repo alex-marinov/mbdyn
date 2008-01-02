@@ -78,7 +78,9 @@ mp_func_2(const MathParser::MathArgs& args)
 	Tin *arg2 = dynamic_cast<Tin *>(args[2]);
 	ASSERT(arg2 != 0);
 
-	*out = F((*arg1)(), (*arg2)());
+	Real a1 = (*arg1)();
+	Real a2 = (*arg2)();
+	*out = F(a1, a2);
 
 	return 0;
 }
@@ -92,7 +94,8 @@ mp_asin_t(const MathParser::MathArgs& args)
 	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
 	ASSERT(arg1 != 0);
 
-	if ((*arg1)() > 1. || (*arg1)() < -1.) {
+	Real a1 = (*arg1)();
+	if (a1 > 1. || a1 < -1.) {
 		return 1;
 	}
 
@@ -124,7 +127,9 @@ mp_tan_t(const MathParser::MathArgs& args)
 	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
 	ASSERT(arg1 != 0);
 
-	Real a = (*arg1)() - int((*arg1)()/M_PI)*M_PI;
+	Real a1 = (*arg1)();
+	Real a = a1;
+	a -= int(a1/M_PI)*M_PI;
 	if (fabs(fabs(a) - M_PI_2) < DBL_EPSILON) {
 		return 1;
 	}
@@ -157,7 +162,8 @@ mp_atanh_t(const MathParser::MathArgs& args)
 	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
 	ASSERT(arg1 != 0);
 
-	if ((*arg1)() >= 1. || (*arg1)() <= -1.) {
+	Real a1 = (*arg1)();
+	if (a1 >= 1. || a1 <= -1.) {
 		return 1;
 	}
 
@@ -224,9 +230,15 @@ mp_srnd(const MathParser::MathArgs& args)
 }
 
 std::ostream&
-operator << (std::ostream& out, const MathParser::MathArgVoid_t& v)
+operator << (std::ostream& out, const MathParser::MathArgVoid_t& /* v */ )
 {
 	return out;
+}
+
+std::ostream&
+operator << (std::ostream& out, const MathParser::MathArgBool_t& v)
+{
+	return out << v();
 }
 
 std::ostream&
@@ -253,6 +265,10 @@ mp_print(const MathParser::MathArgs& args)
 	ASSERT(args.size() == 1 + 1);
 
 	switch (args[1]->Type()) {
+	case MathParser::AT_BOOL:
+		silent_cout((*dynamic_cast<MathParser::MathArgBool_t*>(args[1])) << std::endl);
+		break;
+
 	case MathParser::AT_INT:
 		silent_cout((*dynamic_cast<MathParser::MathArgInt_t*>(args[1])) << std::endl);
 		break;
@@ -327,7 +343,9 @@ mp_ctg_t(const MathParser::MathArgs& args)
 	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
 	ASSERT(arg1 != 0);
 
-	Real a = (*arg1)() - int((*arg1)()/M_PI)*M_PI;
+	Real a1 = (*arg1)();
+	Real a = a1;
+	a -= int(a1/M_PI)*M_PI;
 	if (fabs(a) < DBL_EPSILON) {
 		return 1;
 	}
@@ -370,7 +388,10 @@ mp_actg2(const MathParser::MathArgs& args)
 	MathParser::MathArgReal_t *arg2 = dynamic_cast<MathParser::MathArgReal_t*>(args[2]);
 	ASSERT(arg2 != 0);
 
-	*out = atan2((*arg2)(), (*arg1)());
+	Real a1 = (*arg1)();
+	Real a2 = (*arg2)();
+
+	*out = atan2(a2, a1);
 
 	return 0;
 }
@@ -416,13 +437,18 @@ mp_sign(const MathParser::MathArgs& args)
 	ASSERT(args[0]->Type() == MathParser::AT_REAL);
 	ASSERT(args[1]->Type() == MathParser::AT_REAL);
 
-	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
+	MathParser::MathArgInt_t *out = dynamic_cast<MathParser::MathArgInt_t*>(args[0]);
 	ASSERT(out != 0);
 
 	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
 	ASSERT(arg1 != 0);
 
-	*out = copysign(1., (*arg1)());
+	Real a1 = (*arg1)();
+	if (a1 == 0.) {
+		*out = 0;
+	} else {
+		*out = Int(copysign(1., a1));
+	}
 
 	return 0;
 }
@@ -444,7 +470,9 @@ mp_max(const MathParser::MathArgs& args)
 	MathParser::MathArgReal_t *arg2 = dynamic_cast<MathParser::MathArgReal_t*>(args[2]);
 	ASSERT(arg2 != 0);
 
-	*out = std::max((*arg1)(), (*arg2)());
+	Real a1 = (*arg1)();
+	Real a2 = (*arg2)();
+	*out = std::max(a1, a2);
 
 	return 0;
 }
@@ -466,7 +494,9 @@ mp_min(const MathParser::MathArgs& args)
 	MathParser::MathArgReal_t *arg2 = dynamic_cast<MathParser::MathArgReal_t*>(args[2]);
 	ASSERT(arg2 != 0);
 
-	*out = std::min((*arg1)(), (*arg2)());
+	Real a1 = (*arg1)();
+	Real a2 = (*arg2)();
+	*out = std::min(a1, a2);
 
 	return 0;
 }
@@ -504,14 +534,15 @@ mp_step(const MathParser::MathArgs& args)
 	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
 	ASSERT(arg1 != 0);
 
-	if ((*arg1)() >= 0.) {
+	Real a1 = (*arg1)();
+	if (a1 > 0.) {
 		*out = 1.;
 
-	} else if ((*arg1)() == 0.) {
-		*out = .5;
+	} else if (a1 < 0.) {
+		*out = 0.;
 
 	} else {
-		*out = 0.;
+		*out = .5;
 	}
 
 	return 0;
@@ -530,8 +561,9 @@ mp_ramp(const MathParser::MathArgs& args)
 	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
 	ASSERT(arg1 != 0);
 
-	if ((*arg1)() > 0.) {
-		*out = (*arg1)();
+	Real a1 = (*arg1)();
+	if (a1 > 0.) {
+		*out = a1;
 
 	} else {
 		*out = 0.;
@@ -557,14 +589,16 @@ mp_sramp(const MathParser::MathArgs& args)
 	MathParser::MathArgReal_t *arg2 = dynamic_cast<MathParser::MathArgReal_t*>(args[2]);
 	ASSERT(arg2 != 0);
 
-	if ((*arg1)() < 0.) {
+	Real a1 = (*arg1)();
+	Real a2 = (*arg2)();
+	if (a1 < 0.) {
 		*out = 0.;
 
-	} else if ((*arg1)() > (*arg2)()) {
-		*out = (*arg2)();
+	} else if (a1 > a2) {
+		*out = a2;
 
 	} else {
-		*out = (*arg1)();
+		*out = a1;
 	}
 
 	return 0;
@@ -583,8 +617,9 @@ mp_par(const MathParser::MathArgs& args)
 	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
 	ASSERT(arg1 != 0);
 
-	if ((*arg1)() > 0.) {
-		*out = (*arg1)()*(*arg1)();
+	Real a1 = (*arg1)();
+	if (a1 > 0.) {
+		*out = a1*a1;
 
 	} else {
 		*out = 0.;
@@ -600,6 +635,7 @@ struct TypeName_t {
 };
 
 static TypeName_t TypeNames[] = {
+	{ "bool",	TypedValue::VAR_BOOL },
 	{ "integer",	TypedValue::VAR_INT },
 	{ "real",	TypedValue::VAR_REAL },
 	{ "string",	TypedValue::VAR_STRING },
@@ -629,16 +665,16 @@ TypedValue::~TypedValue(void)
 	NO_OP;
 }
 
+TypedValue::TypedValue(const bool& b, bool isConst)
+: type(TypedValue::VAR_BOOL), bConst(isConst)
+{
+	v.i = b;
+}
+
 TypedValue::TypedValue(const Int& i, bool isConst)
 : type(TypedValue::VAR_INT), bConst(isConst)
 {
 	v.i = i;
-}
-
-TypedValue::TypedValue(const bool& b, bool isConst)
-: type(TypedValue::VAR_INT), bConst(isConst)
-{
-	v.i = b;
 }
 
 TypedValue::TypedValue(const Real& r, bool isConst)
@@ -657,6 +693,7 @@ TypedValue::TypedValue(const TypedValue::Type t, bool isConst)
 : type(t), bConst(isConst)
 {
 	switch (type) {
+	case TypedValue::VAR_BOOL:
 	case TypedValue::VAR_INT:
 		v.i = 0;
 		break;
@@ -678,6 +715,9 @@ TypedValue::TypedValue(const TypedValue& var)
 : type(var.type), bConst(var.bConst)
 {
 	switch (type) {
+	case TypedValue::VAR_BOOL:
+		ASSERT(var.v.i == 0 || var.v.i == 1);
+		// fallthru
 	case TypedValue::VAR_INT:
 		v.i = var.v.i;
 		break;
@@ -710,14 +750,15 @@ TypedValue::operator = (const TypedValue& var)
 		char buf[BUFSIZ];
 
 		switch (var.type) {
+		case TypedValue::VAR_BOOL:
 		case TypedValue::VAR_INT:
 			snprintf(buf, sizeof(buf), "%ld", (long)var.GetInt());
-			Set(buf);
+			Set(std::string(buf));
 			break;
 
 		case TypedValue::VAR_REAL:
 			snprintf(buf, sizeof(buf), "%e", (double)var.GetReal());
-			Set(buf);
+			Set(std::string(buf));
 			break;
 
 		case TypedValue::VAR_STRING:
@@ -730,6 +771,11 @@ TypedValue::operator = (const TypedValue& var)
 
 	} else {
 		switch (var.type) {
+		case TypedValue::VAR_BOOL:
+			type = var.type;
+			Set(var.GetBool());
+			break;
+
 		case TypedValue::VAR_INT:
 			type = var.type;
 			Set(var.GetInt());
@@ -773,6 +819,7 @@ const char *const
 TypedValue::GetTypeName(TypedValue::Type t)
 {
 	switch (t) {
+	case TypedValue::VAR_BOOL:
 	case TypedValue::VAR_INT:
 	case TypedValue::VAR_REAL:
 	case TypedValue::VAR_STRING:
@@ -795,10 +842,32 @@ TypedValue::Const(void) const
 	return bConst;
 }
 
+bool
+TypedValue::GetBool(void) const
+{
+	switch (type) {
+	case TypedValue::VAR_BOOL:
+		return v.i;
+
+	case TypedValue::VAR_INT:
+		return v.i ? 1 : 0;
+
+	case TypedValue::VAR_REAL:
+		return v.r ? 1 : 0;
+
+	case TypedValue::VAR_STRING:
+		throw ErrWrongType();
+
+	default:
+		throw ErrUnknownType();
+	}
+}
+
 Int
 TypedValue::GetInt(void) const
 {
 	switch (type) {
+	case TypedValue::VAR_BOOL:
 	case TypedValue::VAR_INT:
 		return v.i;
 
@@ -817,6 +886,7 @@ Real
 TypedValue::GetReal(void) const
 {
 	switch (type) {
+	case TypedValue::VAR_BOOL:
 	case TypedValue::VAR_INT:
 		return Real(v.i);
 
@@ -835,6 +905,7 @@ const std::string &
 TypedValue::GetString(void) const
 {
 	switch (type) {
+	case TypedValue::VAR_BOOL:
 	case TypedValue::VAR_INT:
 	case TypedValue::VAR_REAL:
 		throw ErrWrongType();
@@ -865,6 +936,33 @@ TypedValue::SetConst(bool isConst)
 }
 
 const TypedValue&
+TypedValue::Set(const bool& b)
+{
+	if (Const()) {
+		throw ErrConstraintViolation();
+	}
+
+	switch (GetType()) {
+	case TypedValue::VAR_BOOL:
+	case TypedValue::VAR_INT:
+		v.i = b ? 1 : 0;
+		break;
+
+	case TypedValue::VAR_REAL:
+		v.r = b ? 1. : 0.;
+		break;
+
+	case TypedValue::VAR_STRING:
+		throw ErrWrongType();
+
+	default:
+		throw ErrUnknownType();
+	}
+
+	return *this;
+}
+
+const TypedValue&
 TypedValue::Set(const Int& i)
 {
 	if (Const()) {
@@ -872,6 +970,10 @@ TypedValue::Set(const Int& i)
 	}
 
 	switch (GetType()) {
+	case TypedValue::VAR_BOOL:
+		v.i = i ? 1 : 0;
+		break;
+
 	case TypedValue::VAR_INT:
 		v.i = i;
 		break;
@@ -898,6 +1000,10 @@ TypedValue::Set(const Real& r)
 	}
 
 	switch (GetType()) {
+	case TypedValue::VAR_BOOL:
+		v.i = r ? 1 : 0;
+		break;
+
 	case TypedValue::VAR_INT:
 		v.i = Int(r);
 		break;
@@ -924,6 +1030,7 @@ TypedValue::Set(const std::string& s)
 	}
 
 	switch (GetType()) {
+	case TypedValue::VAR_BOOL:
 	case TypedValue::VAR_INT:
 	case TypedValue::VAR_REAL:
 		throw ErrWrongType();
@@ -994,6 +1101,7 @@ TypedValue::operator + (const TypedValue& v) const
 		char buf[BUFSIZ];
 
 		switch (v.GetType()) {
+		case TypedValue::VAR_BOOL:
 		case TypedValue::VAR_INT:
 			snprintf(buf, sizeof(buf), "%ld", (long)v.GetInt());
 			return TypedValue(GetString() + buf);
@@ -1010,9 +1118,10 @@ TypedValue::operator + (const TypedValue& v) const
 		}
 	}
 
-	if ((GetType() == TypedValue::VAR_INT)
-			&& (v.GetType() == TypedValue::VAR_INT))
+	if ((GetType() == TypedValue::VAR_BOOL || GetType() == TypedValue::VAR_INT)
+			&& (v.GetType() == TypedValue::VAR_BOOL || v.GetType() == TypedValue::VAR_INT))
 	{
+		// bool is implicitly cast to Int
 		return TypedValue(GetInt() + v.GetInt());
 	}
 
@@ -1022,9 +1131,10 @@ TypedValue::operator + (const TypedValue& v) const
 TypedValue
 TypedValue::operator - (const TypedValue& v) const
 {
-	if ((GetType() == TypedValue::VAR_INT)
-			&& (v.GetType() == TypedValue::VAR_INT))
+	if ((GetType() == TypedValue::VAR_BOOL || GetType() == TypedValue::VAR_INT)
+			&& (v.GetType() == TypedValue::VAR_BOOL || v.GetType() == TypedValue::VAR_INT))
 	{
+		// bool is implicitly cast to Int
 		return TypedValue(GetInt() - v.GetInt());
 	}
 
@@ -1034,9 +1144,10 @@ TypedValue::operator - (const TypedValue& v) const
 TypedValue
 TypedValue::operator * (const TypedValue& v) const
 {
-	if ((GetType() == TypedValue::VAR_INT)
-			&& (v.GetType() == TypedValue::VAR_INT))
+	if ((GetType() == TypedValue::VAR_BOOL || GetType() == TypedValue::VAR_INT)
+			&& (v.GetType() == TypedValue::VAR_BOOL || v.GetType() == TypedValue::VAR_INT))
 	{
+		// bool is implicitly cast to Int
 		return TypedValue(GetInt()*v.GetInt());
 	}
 
@@ -1046,9 +1157,10 @@ TypedValue::operator * (const TypedValue& v) const
 TypedValue
 TypedValue::operator / (const TypedValue& v) const
 {
-	if ((GetType() == TypedValue::VAR_INT)
-			&& (v.GetType() == TypedValue::VAR_INT))
+	if ((GetType() == TypedValue::VAR_BOOL || GetType() == TypedValue::VAR_INT)
+			&& (v.GetType() == TypedValue::VAR_BOOL || v.GetType() == TypedValue::VAR_INT))
 	{
+		// bool is implicitly cast to Int
 		return TypedValue(GetInt()/v.GetInt());
 	}
 
@@ -1066,6 +1178,7 @@ TypedValue::operator += (const TypedValue& v)
 		char buf[BUFSIZ];
 
 		switch (v.GetType()) {
+		case TypedValue::VAR_BOOL:
 		case TypedValue::VAR_INT:
 			snprintf(buf, sizeof(buf), "%ld", (long)v.GetInt());
 			this->s += buf;
@@ -1087,9 +1200,10 @@ TypedValue::operator += (const TypedValue& v)
 		return *this;
 	}
 
-	if ((GetType() == TypedValue::VAR_INT)
-			&& (v.GetType() == TypedValue::VAR_INT))
+	if ((GetType() == TypedValue::VAR_BOOL || GetType() == TypedValue::VAR_INT)
+			&& (v.GetType() == TypedValue::VAR_BOOL || v.GetType() == TypedValue::VAR_INT))
 	{
+		// bool is implicitly cast to Int
 		return Set(GetInt() + v.GetInt());
 	}
 
@@ -1106,9 +1220,10 @@ TypedValue::operator -= (const TypedValue& v)
 		throw ErrConstraintViolation();
 	}
 
-	if ((GetType() == TypedValue::VAR_INT)
-			&& (v.GetType() == TypedValue::VAR_INT))
+	if ((GetType() == TypedValue::VAR_BOOL || GetType() == TypedValue::VAR_INT)
+			&& (v.GetType() == TypedValue::VAR_BOOL || v.GetType() == TypedValue::VAR_INT))
 	{
+		// bool is implicitly cast to Int
 		return Set(GetInt() - v.GetInt());
 	}
 	Real d = GetReal() - v.GetReal();
@@ -1123,9 +1238,10 @@ TypedValue::operator *= (const TypedValue& v)
 		throw ErrConstraintViolation();
 	}
 
-	if ((GetType() == TypedValue::VAR_INT)
-			&& (v.GetType() == TypedValue::VAR_INT))
+	if ((GetType() == TypedValue::VAR_BOOL || GetType() == TypedValue::VAR_INT)
+			&& (v.GetType() == TypedValue::VAR_BOOL || v.GetType() == TypedValue::VAR_INT))
 	{
+		// bool is implicitly cast to Int
 		return Set(GetInt()*v.GetInt());
 	}
 	Real d = GetReal()*v.GetReal();
@@ -1140,9 +1256,10 @@ TypedValue::operator /= (const TypedValue& v)
 		throw ErrConstraintViolation();
 	}
 
-	if ((GetType() == TypedValue::VAR_INT)
-			&& (v.GetType() == TypedValue::VAR_INT))
+	if ((GetType() == TypedValue::VAR_BOOL || GetType() == TypedValue::VAR_INT)
+			&& (v.GetType() == TypedValue::VAR_BOOL || v.GetType() == TypedValue::VAR_INT))
 	{
+		// bool is implicitly cast to Int
 		return Set(GetInt()/v.GetInt());
 	}
 	Real d = GetReal()/v.GetReal();
@@ -1164,6 +1281,8 @@ TypedValue
 operator - (const TypedValue& v)
 {
 	switch (v.GetType()) {
+	case TypedValue::VAR_BOOL:
+		// bool is implicitly cast to Int
 	case TypedValue::VAR_INT:
 		return TypedValue(-v.GetInt());
 
@@ -1190,6 +1309,7 @@ std::ostream&
 operator << (std::ostream& out, const TypedValue& v)
 {
 	switch (v.GetType()) {
+	case TypedValue::VAR_BOOL:
 	case TypedValue::VAR_INT:
 		return out << v.GetInt();
 
@@ -1252,6 +1372,12 @@ Var::Var(const char* const s, const TypedValue& v)
 	NO_OP;
 }
 
+Var::Var(const char* const s, const bool& v)
+: NamedValue(s), value(v)
+{
+	NO_OP;
+}
+
 Var::Var(const char* const s, const Int& v)
 : NamedValue(s), value(v)
 {
@@ -1297,6 +1423,12 @@ TypedValue
 Var::GetVal(void) const
 {
 	return value;
+}
+
+void
+Var::SetVal(const bool& v)
+{
+	value.Set(v);
 }
 
 void
@@ -1918,7 +2050,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 	f = new MathFunc_t;
 	f->fname = std::string("sign");
 	f->args.resize(1 + 1);
-	f->args[0] = new MathArgReal_t;
+	f->args[0] = new MathArgInt_t;
 	f->args[1] = new MathArgReal_t;
 	f->f = mp_sign;
 	f->t = 0;
@@ -2221,6 +2353,9 @@ MathParser::StaticNameSpace::EvalFunc(MathParser::MathFunc_t *f, const MathArgs&
 	case MathParser::AT_VOID:
 		return TypedValue(0);
 
+	case MathParser::AT_BOOL:
+		return TypedValue((*dynamic_cast<MathArgBool_t*>(args[0]))());
+
 	case MathParser::AT_INT:
 		return TypedValue((*dynamic_cast<MathArgInt_t*>(args[0]))());
 
@@ -2340,13 +2475,13 @@ start_parsing:;
 
 		/* FIXME: need to check for overflow */
 
-		s[i++] = c;
+		s[i++] = char(c);
 
 		if (c == '.') {
 			f = true;
 		}
 		while ((c = in->get()) == '.' || isdigit(c)) {
-			s[i++] = c;
+			s[i++] = char(c);
 			if (c == '.') {
 				if (f) {
 					return (currtoken = UNKNOWNTOKEN);
@@ -2359,20 +2494,20 @@ start_parsing:;
 			f = true;
 			s[i++] = 'e';
 			if ((c = in->get()) == '-' || c == '+') {
-				s[i++] = c;
+				s[i++] = char(c);
 				c = in->get();
 			}
 			if (isdigit(c)) {
-				s[i++] = c;
+				s[i++] = char(c);
 			} else {
 			       	return (currtoken = UNKNOWNTOKEN);
 			}
 			while (isdigit((c = in->get()))) {
-				s[i++] = c;
+				s[i++] = char(c);
 			}
 		}
 		s[i] = '\0';
-		in->putback(c);
+		in->putback(char(c));
 		char *endptr = NULL;
 		if (!f) {
 			value.SetType(TypedValue::VAR_INT);
@@ -2416,7 +2551,7 @@ start_parsing:;
 			}
 		}
 		namebuf[l] = '\0';
-		in->putback(c);
+		in->putback(char(c));
 		return (currtoken = NAME);
 	}
 
@@ -2449,7 +2584,7 @@ end_of_comment:;
 			}
 
 		} else {
-			in->putback(c);
+			in->putback(char(c));
 			return (currtoken = DIV);
 		}
 
@@ -2463,28 +2598,28 @@ end_of_comment:;
 		if ((c = in->get()), c == '=') {
 			return (currtoken = GE);
 		}
-		in->putback(c);
+		in->putback(char(c));
 		return (currtoken = GT);
 
 	case '=':
 		if ((c = in->get()), c == '=') {
 			return (currtoken = EQ);
 		}
-		in->putback(c);
+		in->putback(char(c));
 		return (currtoken = ASSIGN);
 
 	case '<':
 		if ((c = in->get()), c == '=') {
 			return (currtoken = LE);
 		}
-		in->putback(c);
+		in->putback(char(c));
 		return (currtoken = LT);
 
 	case '!':
 		if ((c = in->get()), c == '=') {
 			return (currtoken = NE);
 		}
-		in->putback(c);
+		in->putback(char(c));
 		return (currtoken = NOT);
 
 	case '&':
@@ -2548,7 +2683,7 @@ end_of_comment:;
 		}
 		namebuf[l] = '\0';
 		value.SetType(TypedValue::VAR_STRING);
-		value.Set(namebuf);
+		value.Set(std::string(namebuf));
 		return (currtoken = NUM);
 		}
 

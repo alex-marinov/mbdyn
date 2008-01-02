@@ -67,6 +67,7 @@ public:
 
 		AT_TYPE,
 		AT_VOID,
+		AT_BOOL,
 		AT_INT,
 		AT_REAL,
 		AT_STRING
@@ -119,6 +120,7 @@ public:
 	// not used right now; could be used for casting and so
 	typedef MathArgPriv_t<ArgType, AT_TYPE> MathArgType_t;
 
+	typedef MathArgPriv_t<bool, AT_BOOL> MathArgBool_t;
 	typedef MathArgPriv_t<Int, AT_INT> MathArgInt_t;
 	typedef MathArgPriv_t<Real, AT_REAL> MathArgReal_t;
 	typedef MathArgPriv_t<std::string, AT_STRING> MathArgString_t;
@@ -407,6 +409,8 @@ public:
 
 extern std::ostream&
 operator << (std::ostream& out, const MathParser::MathArgVoid_t& v);
+extern std::ostream&
+operator << (std::ostream& out, const MathParser::MathArgBool_t& v);
 extern std::ostream&
 operator << (std::ostream& out, const MathParser::MathArgInt_t& v);
 extern std::ostream&

@@ -49,6 +49,7 @@ public:
 	enum Type {
 		VAR_UNKNOWN = -1,
 		
+		VAR_BOOL,
 		VAR_INT,
 		VAR_REAL,
 		VAR_STRING,
@@ -76,10 +77,10 @@ protected:
 public:
 	TypedValue(void);
 	~TypedValue(void);
+	TypedValue(const bool& b, bool isConst = false);
 	TypedValue(const Int& i, bool isConst = false);
 	TypedValue(const Real& r, bool isConst = false);
 	TypedValue(const std::string& s, bool isConst = false);
-	TypedValue(const bool& r, bool isConst = false);
 	TypedValue(const TypedValue::Type t, bool isConst = false);
 	TypedValue(const TypedValue& var);
 	
@@ -89,12 +90,14 @@ public:
 	const char *const GetTypeName(void) const;
 	static const char *const GetTypeName(TypedValue::Type t);
 	bool Const(void) const;
+	bool GetBool(void) const;
 	Int GetInt(void) const;
 	Real GetReal(void) const;
 	const std::string& GetString(void) const;
 	
 	void SetType(TypedValue::Type t, bool isConst = false);
 	void SetConst(bool isConst = true);
+	const TypedValue& Set(const bool& b);
 	const TypedValue& Set(const Int& i);
 	const TypedValue& Set(const Real& r);
 	const TypedValue& Set(const std::string& s);
@@ -151,6 +154,7 @@ private:
 
 public:
 	Var(const char* const s, const TypedValue& v);
+	Var(const char* const s, const bool& b);
 	Var(const char* const s, const Int& v);
 	Var(const char* const s, const Real& v);
 	Var(const char* const s, const std::string& v);
@@ -162,6 +166,7 @@ public:
 	bool Const(void) const;
 	TypedValue GetVal(void) const;
 	
+	void SetVal(const bool& b);
 	void SetVal(const Int& v);
 	void SetVal(const Real& v);
 	void SetVal(const std::string& v);
