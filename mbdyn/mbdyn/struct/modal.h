@@ -240,12 +240,12 @@ public:
 	 * altri elementi (ad es. agli elementi aerodinamici modali)
 	 */
 
-	Mat3xN* pGetPHIt(void) {
-		return pModeShapest;
+	const Mat3xN& pGetPHIt(void) {
+		return *pModeShapest;
 	};
 
-	Mat3xN* pGetPHIr(void) {
-		return pModeShapesr;
+	const Mat3xN& pGetPHIr(void) {
+		return *pModeShapesr;
 	};
 
 	Mat3xN* GetCurrFemNodesPosition(void);
@@ -253,6 +253,14 @@ public:
 
 	integer uGetNModes(void) {
 		return NModes;
+	};
+
+	const VecN& GetA(void) const {
+		return a;
+	};
+
+	const VecN& GetB(void) const {
+		return b;
 	};
 
 	integer uGetNFemNodes(void) {

@@ -584,8 +584,8 @@ AerodynamicExternalModal::AssRes(SubVectorHandler& WorkVec,
 			M[2] +=  pdBufferVel->dGetCoef(iNode*(ModalNodes)*3+3);
 		}
 		for (int iMode=0; iMode < NModes; iMode++) {
-			WorkVec.Add(iMode+1, RT*F*((pModal->pGetPHIt())->GetVec(iMode*ModalNodes+iNode+1)));
-			if (MomFlag) WorkVec.Add(iMode+1, RT*M*((pModal->pGetPHIr())->GetVec(iMode*ModalNodes+iNode+1)));
+			WorkVec.Add(iMode+1, RT*F*(pModal->pGetPHIt().GetVec(iMode*ModalNodes+iNode+1)));
+			if (MomFlag) WorkVec.Add(iMode+1, RT*M*(pModal->pGetPHIr().GetVec(iMode*ModalNodes+iNode+1)));
 		}	
 	}
 	if (fToBeOutput()) {
