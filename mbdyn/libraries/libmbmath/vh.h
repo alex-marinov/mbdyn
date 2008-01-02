@@ -157,6 +157,9 @@ protected:
 
 	doublereal* pdVecm1;
 
+private:
+	MyVectorHandler(const MyVectorHandler&);
+
 public:
 	MyVectorHandler(integer iSize = 0, doublereal* pdTmpVec = NULL);
 

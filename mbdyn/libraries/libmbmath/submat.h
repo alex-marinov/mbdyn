@@ -175,6 +175,9 @@ protected:
 	/* Puntatore al vettore di incidenza delle colonne */
 	integer* piColm1;
 
+private:
+	FullSubMatrixHandler(const FullSubMatrixHandler&);
+
 public:
 
 	/* Costruttori */
@@ -694,7 +697,8 @@ private:
 	/* Puntatore all'array dei coefficienti */
 	doublereal* pdMatm1;
 
-protected:
+private:
+	SparseSubMatrixHandler(const SparseSubMatrixHandler&);
 
 public:
 	/* Costruttori */
@@ -1022,6 +1026,8 @@ private:
 	 */
 	enum { NULLMATRIX, FULL, SPARSE } eStatus;
 
+	VariableSubMatrixHandler(const VariableSubMatrixHandler&);
+
 public:
 	/* Costruttori */
 
@@ -1276,6 +1282,9 @@ protected:
 	 * dato che gli indici sono a base 1, in stile FORTRAN
 	 */
 	integer* piRowm1;
+
+private:
+	MySubVectorHandler(const MySubVectorHandler&);
 
 public:
 	/* Costruttori */
