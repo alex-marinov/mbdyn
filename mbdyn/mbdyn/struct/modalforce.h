@@ -46,6 +46,9 @@ protected:
 	Modal *pModal;
 	std::vector<int> modeList;
 	std::vector<DriveCaller *> f;
+	const Mat3xN *Mt;
+	const Mat3xN *Mr;
+	Vec3 F, M;
 
 public:
 	/* Costruttore */
@@ -53,6 +56,8 @@ public:
 		Modal *pmodal,
 		std::vector<int>& modeList,
 		std::vector<DriveCaller *>& f,
+		const Mat3xN *Mt,
+		const Mat3xN *Mr,
 		flag fOut);
 
 	virtual ~ModalForce(void);
@@ -63,7 +68,7 @@ public:
 	};
  
 	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-		*piNumRows = modeList.size();
+		*piNumRows = (pModal->pGetModalNode() ? 6 : 0) + modeList.size();
 		*piNumCols = 1;
 	};
 

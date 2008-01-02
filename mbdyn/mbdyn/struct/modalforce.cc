@@ -45,12 +45,18 @@ ModalForce::ModalForce(unsigned int uL,
 	Modal *pmodal,
 	std::vector<int>& modeList,
 	std::vector<DriveCaller *>& f,
+	const Mat3xN *mt,
+	const Mat3xN *mr,
 	flag fOut)
 : Elem(uL, fOut), 
 Force(uL, fOut), 
 pModal(pmodal),
 modeList(modeList),
-f(f)
+f(f),
+Mt(mt),
+Mr(mr),
+F(0.),
+M(0.)
 {
 	ASSERT(pModal != 0);
 }
@@ -61,6 +67,14 @@ ModalForce::~ModalForce(void)
 		for (unsigned i = 0; i < f.size(); i++) {
 			delete f[i];
 		}
+	}
+
+	if (Mt) {
+		delete Mt;
+	}
+
+	if (Mr) {
+		delete Mr;
 	}
 }
 
@@ -74,9 +88,36 @@ ModalForce::AssRes(SubVectorHandler& WorkVec,
 	WorkSpaceDim(&iR, &iC);
 	WorkVec.ResizeReset(iR);
 
+	integer iIdx = 1;
+	const StructNode *pNode = pModal->pGetModalNode();
+	integer iFirstIndex = 0;
+	if (pNode) {
+		iFirstIndex = pNode->iGetFirstMomentumIndex();
+
+		for (integer iCnt = 1; iCnt <= 6; iCnt++) {
+			WorkVec.PutRowIndex(iCnt, iFirstIndex + iCnt);
+		}
+
+		F = Zero3;
+		M = Zero3;
+
+		iIdx += 6;
+
+	}
+
 	integer iModalIndex = pModal->iGetModalIndex() + pModal->uGetNModes();
 	for (unsigned iMode = 0; iMode < modeList.size(); iMode++) {
-		WorkVec.PutItem(1 + iMode, iModalIndex + modeList[iMode], f[iMode]->dGet());
+		doublereal d = f[iMode]->dGet();
+		WorkVec.PutItem(1 + iMode, iModalIndex + modeList[iMode], d);
+		if (pNode) {
+			F += Mt->GetVec(iMode + 1)*d;
+			M += Mr->GetVec(iMode + 1)*d;
+		}
+	}
+
+	if (pNode) {
+		WorkVec.Put(1, pNode->GetRCurr()*F);
+		WorkVec.Put(4, pNode->GetRCurr()*M);
 	}
 
 	return WorkVec;
@@ -89,6 +130,11 @@ ModalForce::Output(OutputHandler& OH) const
 		std::ostream& out = OH.Forces();
 
 		out << GetLabel();
+
+		if (pModal->pGetModalNode()) {
+			out << " " << F << " " << M;
+		}
+
 		for (std::vector<DriveCaller *>::const_iterator i = f.begin(); i != f.end(); i++) {
 			out << " " << (*i)->dGet();
 		}
@@ -152,6 +198,13 @@ ReadModalForce(DataManager* pDM,
 	}
 
 	std::vector<DriveCaller *> f(modeList.size());
+	Mat3xN *Mt = 0;
+	Mat3xN *Mr = 0;
+	const StructNode *pNode = pModal->pGetModalNode();
+	if (pNode) {
+		Mt = new Mat3xN(modeList.size(), 0.);
+		Mr = new Mat3xN(modeList.size(), 0.);
+	}
 	for (unsigned i = 0; i < f.size(); i++) {
 		f[i] = ReadDriveData(pDM, HP, false);
 		if (f[i] == 0) {
@@ -160,12 +213,22 @@ ReadModalForce(DataManager* pDM,
 				<< " at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 		}
+
+		if (pNode && HP.IsKeyWord("resultant")) {
+			for (unsigned r = 1; r <= 3; r++) {
+				(*Mt)(r, i + 1) = HP.GetReal();
+			}
+
+			for (unsigned r = 1; r <= 3; r++) {
+				(*Mr)(r, i + 1) = HP.GetReal();
+			}
+		}
 	}
 
 	flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
 	Elem *pEl = 0;
 	SAFENEWWITHCONSTRUCTOR(pEl, ModalForce,
-		ModalForce(uLabel, pModal, modeList, f, fOut));
+		ModalForce(uLabel, pModal, modeList, f, Mt, Mr, fOut));
 
 	return pEl;
 }
