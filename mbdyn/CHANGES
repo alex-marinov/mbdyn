@@ -23,7 +23,14 @@ MBDyn 1.X-Devel
 		- add select timeout to stream drives (patch by Rudi Jaeger)
 		- add invariant angular constitutive law wrapper
 		- add temperature and training dependent const. law wrapper
+		- add modal force
+		- add external modal force (file-based)
+		- add boolean type to math parser
+		- better handling of boolean expressions
+		- NetCDF output of inertia
+		- NetCDF listing of node/element labels
 	Backward compatibility issues:
+		- removed (useless) '-a' and '-n' options
 	Known issues:
 	Bug fixes:
 		- fix "remark" in combination with -s
@@ -39,6 +46,8 @@ MBDyn 1.X-Devel
 		  thanks to CppAd)
 		- fix accelerations output (noted by Michele Frumusa)
 		- matrix handlers: copy constructor must be private
+		- fix issue with external force (file-based)
+		- fix sign(0) (= 0) in math parser
 
 MBDyn 1.3.1-Alpha
 	Enhancements:
