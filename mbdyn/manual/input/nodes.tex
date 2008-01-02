@@ -71,14 +71,17 @@ to describe the rigid reference motion of a \kw{modal} joint.
 See Section~\ref{sec:EL:STRUCT:JOINT:MODAL} for further details.
 \begin{verbatim}
     <arglist> ::= { static | dynamic | modal } ,
-            (Vec3)              <absolute_position> ,
-            (OrientationMatrix) <absolute_orientation_matrix> ,
-            (Vec3)              <absolute_velocity> ,
-            (Vec3)              <absolute_angular_velocity>
-            [ , assembly
-              , (scalar) <position_initial_stiffness>
-              , (scalar) <velocity_initial_stiffness>
-              , (flag)   <omega_rotates?> ]
+        (Vec3)              <absolute_position> ,
+        (OrientationMatrix) <absolute_orientation_matrix> ,
+            [ orientation description , <orientation_description> , ]
+        (Vec3)              <absolute_velocity> ,
+        (Vec3)              <absolute_angular_velocity>
+        [ , assembly
+          , (scalar) <position_initial_stiffness>
+          , (scalar) <velocity_initial_stiffness>
+          , (flag)   <omega_rotates?> ]
+    <orientation_description> ::=
+        { euler 123 | orientation vector | orientation matrix }
 \end{verbatim}
 The \kw{omega\_rotates} parameter determines whether 
 the initial angular velocity should follow or not the node 
@@ -126,8 +129,9 @@ The following dummy types are available:
     \begin{verbatim}
     <type> ::= offset
     <dummy_node_data> ::=
-            (Vec3)              <relative_offset> ,
-            (OrientationMatrix) <relative_orientation_matrix>
+        (Vec3)              <relative_offset> ,
+        (OrientationMatrix) <relative_orientation_matrix>
+            [ orientation description , <orientation_description> , ]
     \end{verbatim}
     It outputs the configuration of a point offset from the base node.
             
@@ -135,11 +139,12 @@ The following dummy types are available:
     \begin{verbatim}
     <type> ::= relative frame
     <dummy_node_data> ::= <reference_node>
-            [ , position , <reference_offset> ]
-            [ , orientation , <reference_orientation_matrix> ]
-            [ , pivot node , <pivot_node>
-                    [ position , <pivot_offset> ]
-                    [ orientation , <pivot_orientation_matrix> ] ]
+        [ , position , <reference_offset> ]
+        [ , orientation , <reference_orientation_matrix> ]
+            [ orientation description , <orientation_description> , ]
+        [ , pivot node , <pivot_node>
+            [ position , <pivot_offset> ]
+            [ orientation , <pivot_orientation_matrix> ] ]
     \end{verbatim}
     It outputs the configuration of the base node in the frame defined
     by the \kw{reference\_node}, optionally offset 

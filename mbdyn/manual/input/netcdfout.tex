@@ -44,6 +44,15 @@ This document does not describe the details of NetCDF low-level format,
 since this is not intended to be accessed directly by MBDyn users.
 Interested readers can consult the specific documentation \cite{NETCDF-UM}.
 
+The output in NetCDF format is a work-in-progress, so it may be sujected
+to changes during the development of MBDyn.
+This chapter is intended to document its current status,
+so it may be incomplete, and occasionally outdated as well.
+
+
+
+\section{NetCDF Output}
+
 Following the convention of NetCDF data, each datum is defined
 by a variable, whose name indicates the type of datum and the entity
 that generated it, organized in a tree-like fashion.
@@ -53,7 +62,11 @@ of the position of a structural node is
 \begin{verbatim}
     node.struct.<label>.X
 \end{verbatim}
-Each variable usually has few attributes: the units and a description.
+Each variable usually has few attributes:
+\begin{itemize}
+\item a \kw{description} is usually given;
+\item the \kw{units} are specified, unless variables are non-dimensional.
+\end{itemize}
 
 Each level contains some datum that is intended to make the contents
 of the output database as self-explanatory as possible.
@@ -61,3 +74,136 @@ For example, the level \kw{node} contains an array whose values
 are the strings indicating the node types available;
 each level \kw{node.<type>} contains the labels of the available nodes
 for that type, and so on.
+
+
+
+\subsection{Base Level}
+Currently, the following basic levels are available:
+\begin{itemize}
+\item \kw{node} for nodes;
+\item \kw{elem} for elements.
+\end{itemize}
+
+
+
+\subsection{Node Level}
+There is no variable with the name of the node level.
+This level contains as many sublevels as the node types
+that are present in the model.
+Each node type consists in a variable that contains an array
+with the labels (integers) of the nodes defined for that type.
+A variable named \kw{node.<type>.<label>} may be present (it is,
+for example, for structural nodes); however, useful data is usually
+contained in specific variables, whose names describe the contents.
+
+Currently supported node types are:
+\begin{itemize}
+\item Structural nodes, indicated as \kw{struct}.
+\end{itemize}
+
+
+
+\subsubsection{Structural Node}
+The following variables are defined.
+\begin{itemize}
+\item \kw{node.struct.<label>} is actually empty;
+it contains the type of the structural node in the \kw{type} attribute;
+
+\item \kw{node.struct.<label>.X} contains the position of the node,
+in the appropriate reference frame;
+
+\item \kw{node.struct.<label>.R} contains the orientation matrix of the node,
+in the appropriate reference frame;
+
+\item \kw{node.struct.<label>.Phi} contains the orientation vector
+describing the orientation of the node, in the appropriate reference frame;
+
+\item \kw{node.struct.<label>.E} contains the Euler angles
+describing the orientation of the node, in the appropriate reference frame;
+
+\item \kw{node.struct.<label>.XP} contains the velocity
+of the node, in the appropriate reference frame;
+
+\item \kw{node.struct.<label>.Omega} contains the angular velocity
+of the node, in the appropriate reference frame.
+\end{itemize}
+Note that only one of \kw{R}, \kw{Phi}, or \kw{E} are present,
+depending on the requested description of the orientation of the node
+(see
+\hyperref{\kw{structural node}}{\kw{structural node}, Section~}{}{sec:NODE:STRUCTURAL},
+and
+\hyperref{\kw{default orientation}}{\kw{default orientation}, Section~}{}{sec:CONTROLDATA:DEFAULTORIENTATION}).
+
+The \kw{dynamic} and \kw{modal} node types, if requested, can output
+extra variables.
+\begin{itemize}
+\item \kw{node.struct.<label>.XPP} contains the acceleration of the node,
+in the appropriate reference frame;
+
+\item \kw{node.struct.<label>.OmegaP} contains the angular acceleration
+of the node, in the appropriate reference frame.
+\end{itemize}
+
+If requested, the inertia associated to \kw{dynamic} nodes is output
+within the namespace of the node, although actually handled
+by the corresponding \kw{automatic structural} element.
+As a consequence, extra variables can appear in the output
+of \kw{dynamic} nodes.
+\begin{itemize}
+\item \kw{node.struct.<label>.B} contains the momentum of the inertia
+associated to the node, in the appropriate reference frame;
+
+\item \kw{node.struct.<label>.G} contains the momenta moment of the inertia
+associated to the node, in the appropriate reference frame;
+
+\item \kw{node.struct.<label>.BP} contains the derivative of the momentum
+of the inertia associated to the node, in the appropriate reference frame;
+
+\item \kw{node.struct.<label>.GP} contains the derivative of momenta moment
+of the inertia associated to the node, in the appropriate reference frame.
+\end{itemize}
+
+
+\subsection{Element Level}
+There is no variable with the name of the element level.
+This level contains as many sublevels as the element types
+that are present in the model.
+Each element type consists in a variable that contains an array
+with the labels (integers) of the elements defined for that type.
+A variable named \kw{elem.<type>.<label>} may be present; however,
+useful data is usually contained in specific variables,
+whose names describe the contents.
+
+Currently supported element types are:
+\begin{itemize}
+\item Automatic structural elements, indicated as \kw{autostruct}.
+\end{itemize}
+
+
+
+\subsubsection{Automatic Structural}
+No variables are explicitly defined for the automatic structural
+element; on the contrary, their specific data, if requested,
+is appended to the corresponding dynamic structural node.
+
+
+
+
+\section{Accessing the Database}
+The database can be accessed using any of the tools listed at the web site
+\begin{quote}
+\htmladdnormallink{\kw{http://www.unidata.ucar.edu/software/netcdf/software.html}}{http://www.unidata.ucar.edu/software/netcdf/software.html}
+\end{quote}
+(yes, including MBDyn itself\ldots)
+
+
+
+\subsection{Octave}
+The \kw{octcdf} package, available from
+\begin{quote}
+\htmladdnormallink{\kw{http://ocgmod1.marine.usf.edu/}}{http://ocgmod1.marine.usf.edu/},
+\end{quote}
+provides a clean interface to using NetCDF databases from within
+the popular math environment Octave.
+Results from MBDyn can be easily handled once the data structure is known.
+
