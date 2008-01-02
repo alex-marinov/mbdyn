@@ -52,8 +52,10 @@ elem.h \
 elman.cc \
 enums.cc \
 env.cc \
-external.h \
 external.cc \
+external.h \
+extforce.cc \
+extforce.h \
 filedrv.cc \
 filedrv.h \
 fixedstep.cc \

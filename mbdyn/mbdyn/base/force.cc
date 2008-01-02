@@ -40,6 +40,8 @@
 #include "force.h"
 #include "strforce.h"
 #include "strext.h"
+#include "modalforce.h"
+#include "modalext.h"
 #include "totalj.h"
 #include "dataman.h"
 #include "tpldrive_impl.h"
@@ -229,6 +231,9 @@ Elem* ReadForce(DataManager* pDM,
 
 		"external" "structural",
 
+		"modal",
+		"external" "modal",
+
 		"abstract",
 		"abstract" "internal",
 
@@ -251,6 +256,9 @@ Elem* ReadForce(DataManager* pDM,
 		TOTALINTERNAL,
 
 		EXTERNALSTRUCTURAL,
+
+		MODALFORCE,
+		EXTERNALMODAL,
 
 		ABSTRACT,
 		ABSTRACTINTERNAL,
@@ -318,7 +326,15 @@ Elem* ReadForce(DataManager* pDM,
 		} break;
 
 	case EXTERNALSTRUCTURAL:
-		pEl = ReadExtForce(pDM, HP, uLabel);
+		pEl = ReadStructExtForce(pDM, HP, uLabel);
+		break;
+
+	case MODALFORCE:
+		pEl = ReadModalForce(pDM, HP, uLabel);
+		break;
+
+	case EXTERNALMODAL:
+		pEl = ReadModalExtForce(pDM, HP, uLabel);
 		break;
 
 	case CONSERVATIVE:

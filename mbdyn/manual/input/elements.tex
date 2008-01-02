@@ -2120,24 +2120,52 @@ that contains both the direction and the amplitude. This will be done in the
 future. 
 }
 
+\subsection{Modal}
+This element allows to define a set of generalized forces
+acting on the equations related to the generalized variables
+of a \htmlref{\kw{modal}}{sec:EL:STRUCT:JOINT:MODAL} joint element.
+\begin{verbatim}
+    <force_type> ::= modal
+    <force_arglist> ::=
+        <modal_label> ,
+            [ list , <number_of_modes> , <mode1> [ , ... ] , ]
+        (DriveCaller)<force1> [ , ... ]
+\end{verbatim}
+It requires the label of the modal joint it is connected to,
+\kw{modal\_label}.
+If the optional keyword \kw{list} is given, the number of excited modes
+\kw{number\_of\_modes} and the list of the excited mode indices
+is expected, otherwise it assumes all modes of the \kw{modal\_label}
+modal joint will be excited.
+A list of
+\hyperref{\kw{drive callers}}{\kw{drive callers} (see Section~}{)}{sec:DRIVE}.
+that provide the excitation value for each mode is required last.
+If the keyword \kw{list} was given, the drive callers
+must be \kw{number\_of\_modes}, otherwise they must be as many
+as the modes of the excited modal joint element.
+
+
 \subsection{External structural}
 This element allows to communicate with an external software that computes
-forces applied in a pool of nodes and may depend on the kinematics of those
+forces applied to a pool of nodes and may depend on the kinematics of those
 nodes.
-Communication occurs by means of regulr files; a socket-based extension
+Communication occurs by means of regular files; a socket-based extension
 may appear in the future.
 \begin{verbatim}
     <force_type> ::= external structural
-    <force_arglist> ::= " <input_file_name> " , [ unlink , ]
+    <force_arglist> ::=
+        " <input_file_name> " , [ unlink , ]
         " <output_file_name> " , [ no clobber , ]
         [ sleep time , <sleep_time> , ]
+        [ coupling , { loose | tight | <coupling_steps> } , ]
+        [ precision , { default | <digits> } , ]
         <num_nodes> ,
             <node_label> [ , offset , (Vec3) <offset> ]
             [ , ... ]
 \end{verbatim}
 
 \kw{input\_file\_name} is the name of the file MBDyn expects to find
-with the values of the forces in textual form, formatted as follows:
+with the values of the forces in textual form, each line formatted as follows:
 \begin{itemize}
 \item a label
 \item three components of force in the global frame
@@ -2150,8 +2178,9 @@ The option \kw{unlink} indicates that MBDyn is supposed to unlink
 the file as soon as it is ready to read another one.
 
 \kw{output\_file\_name} is the name of the file MBDyn creates
-to communicate the kinematics of the pool of nodes to the external software,
-in textual form, formatted as follows:
+each time it intends to communicate the kinematics of the pool of nodes
+to the external software.
+The file is written in textual form, each line formatted as follows:
 \begin{itemize}
 \item a label
 \item the position in the global frame
@@ -2168,6 +2197,84 @@ until the external software removed the file before generating a new one.
 The optional parameter \kw{sleep\_time} determines how long MBDyn
 is supposed to sleep while waiting for a new input file to appear
 or for an old output file to disappear.
+
+The optional parameter \kw{coupling} determines whether the coupling
+will be \kw{loose} (communicate each time step, the default) or
+\kw{tight} (communicate each iteration); if \kw{coupling\_steps} is provided,
+the communication occurs every \kw{coupling\_steps}.
+
+The optional parameter \kw{precision} determines the precision
+used in writing the output file; the default is 16 digits.
+
+
+\subsection{External modal}
+This element allows to communicate with an external software that computes
+forces applied to a 
+\htmlref{\kw{modal}}{sec:EL:STRUCT:JOINT:MODAL} joint element,
+and may depend on the values of the corresponding generalized variables.
+Communication occurs by means of regular files; a socket-based extension
+may appear in the future.
+\begin{verbatim}
+    <force_type> ::= external modal
+    <force_arglist> ::=
+        " <input_file_name> " , [ unlink , ]
+        " <output_file_name> " , [ no clobber , ]
+        [ sleep time , <sleep_time> , ]
+        [ coupling , { loose | tight | <coupling_steps> } , ]
+        [ precision , { default | <digits> } , ]
+        <modal_label>
+\end{verbatim}
+
+\kw{input\_file\_name} is the name of the file MBDyn expects to find
+with the values of the forces in textual form.
+The first line contains
+\begin{itemize}
+\item the label of the \kw{modal} node the \kw{modal} joint element
+	is connected to, or 0 if the element is grounded;
+\item three components of force in the \kw{modal} node reference frame;
+\item three components of moment in the \kw{modal} node reference frame.
+\end{itemize}
+If the \kw{modal} joint element is grounded, the force and moment
+are ignored.
+Each of the following lines contains the value of the generalized force
+for each of the modes.
+The option \kw{unlink} indicates that MBDyn is supposed to unlink
+the file as soon as it is ready to read another one.
+
+\kw{output\_file\_name} is the name of the file MBDyn creates
+each time it intends to communicate the kinematics of the \kw{modal}
+joint element to the external software.
+The file is written in textual form.
+The first line contains
+\begin{itemize}
+\item the label of the \kw{modal} node the \kw{modal} joint element
+	is connected to, or 0 if the element is grounded;
+\item the position in the global frame;
+\item the orientation matrix in the global frame;
+\item the velocity with respect to the global frame;
+\item the angular velocity with respect to the global frame.
+\end{itemize}
+If the \kw{modal} joint element is grounded, all the data corresponds
+to that of the origin of the global reference frame.
+Each of the following lines contains the value of the generalized variable
+and of its first derivative for each of the modes.
+The option \kw{no clobber} indicates that MBDyn is supposed to wait
+until the external software removed the file before generating a new one.
+
+The optional parameter \kw{sleep\_time} determines how long MBDyn
+is supposed to sleep while waiting for a new input file to appear
+or for an old output file to disappear.
+
+The optional parameter \kw{coupling} determines whether the coupling
+will be \kw{loose} (communicate each time step, the default) or
+\kw{tight} (communicate each iteration); if \kw{coupling\_steps} is provided,
+the communication occurs every \kw{coupling\_steps}.
+
+The optional parameter \kw{precision} determines the precision
+used in writing the output file; the default is 16 digits.
+
+\kw{modal\_label} is the label of the \kw{modal} joint element
+the generalized external force element is connected to.
 
 
 
@@ -2188,85 +2295,8 @@ actually generate output.
 
 \noindent
 At present, the \textsc{Genel} class contains very basic general elements
-and some special rotorcraft elements.
+and some elements specifically developed fo rotorcraft analysis.
 The latter could be moved to a more specific class in future releases.
-
-\subsection{Special Rotorcraft \textsc{Genel} Elements}
-The special \textsc{Genel} elements include the \kw{swashplate}
-and the \kw{rotor trim}.
-
-\subsubsection{Swashplate}
-The \kw{swashplate} \textsc{Genel} is used to transform the controls 
-of a rotor, in terms of collective and fore/aft and lateral cyclic pitch, 
-into the elongations of the actuators that actually move the swash plate.
-The syntax of the \kw{swashplate} is:
-\begin{verbatim}
-    <genel_type> ::= swash plate
-    <genel_arglist> ::=
-        <collective_abstract_node> 
-        [ , limits , <min_collective> , <max_collective> ] ,
-        <fore/aft_abstract_node> 
-        [ , limits , <min_fore/aft> , <max_fore/aft> ] ,
-        <lateral_abstract_node> 
-        [ , limits , <min_lateral> , <max_lateral> ] ,
-        <actuator_1_abstract_node> ,
-        <actuator_2_abstract_node> ,
-        <actuator_3_abstract_node> 
-        [ , <dynamic_coef> , <cyclic_factor> , <collective_factor> ]
-\end{verbatim}
-The first three abstract nodes will contain the input values 
-of collective, fore/aft and cyclic pitch
-(they can be actuated by means of abstract forces),
-and the limits on the ``angles'' can be easily set. 
-The last three nodes will contain the values of the stroke of the actuators.
-The first actuator should be put at the azimuthal position 
-that makes the current blade assume the fore/aft pitch,
-so that its pitch link is $\llk{atan}\plbr{1/\omega_{\beta}}$
-before the front direction.
-The other actuators should follow, 120\degr apart in clockwise direction.
-The limits on the actuators will simply force the value of the control
-inputs to remain in the boundaries regardless of the input values.
-The last three optional parameters are a dynamic coefficient that is used to
-add some dynamics to the actuators' stroke, namely the input variables are
-applied a sort of \kw{spring stiffness} \kw{bulk} element, while the
-actuators' strokes are applied a transfer function of the first order, namely
-$ \alpha\dot{x}+x=f $, where $ \alpha=\kw{dynamic\_coef} $ and $ f $ is
-the desired stroke, so the smaller is $ \alpha $, the more the behavior is
-static.
-The \kw{cyclic\_factor} and the \kw{collective\_factor} parameters are
-used to scale the inputs from angles in the desired units to strokes, that
-usually are dimensional parameters. The actual strokes are made of the
-collective contribution multiplied by \kw{collective\_factor}, and the
-cyclic contribution multiplied by \kw{collective\_factor} times 
-\kw{cyclic\_factor}.
-
-\subsubsection{Rotor Trim}
-The syntax of the \kw{rotor trim} is
-\begin{verbatim}
-    <genel_type> ::= rotor trim
-    <genel_arglist> ::= <rotor_label> ,
-        <thrust_node_label> ,
-        <longitudinal_moment_node_label> ,
-        <lateral_moment_node_label> ,
-        (drive_caller) <desired_thrust_coefficient> ,
-        (drive_caller) <desired_longitudinal_moment_coefficient> ,
-        (drive_caller) <desired_lateral_moment_coefficient> ,
-        <rotor_lock_number> ,
-        <rotor_nondimensional_flap_frequency> ,
-        <thrust_time_constant> , <moments_time_constant> ,
-	<thrust_gain> , <moments_gain>
-	[ , trigger , (drive_caller) <trigger> ]
-\end{verbatim}
-The \kw{rotor trim} is experimental; it allows to set the controls 
-of a generic helicopter, in conjunction with the \kw{swashplate}
-element, to asymptotically obtain the desired level of thrust and
-moment coefficients.
-The corresponding behavior in terms of trim values (flapping angles
-and shaft angle) has not been implemented yet.
-For details, see \cite{PETERS-TRIM90}.
-
-
-
 
 \subsection{General Purpose Elements}
    
@@ -2435,6 +2465,88 @@ $ \T{C} $ is a matrix $ \mathtt{num\_outputs} \times \mathtt{state\_order} $,
 and
 $ \T{D} $ is a matrix $ \mathtt{num\_outputs} \times \mathtt{num\_inputs} $.
 The matrices are read row-oriented.
+
+
+\subsection{Special Rotorcraft \textsc{Genel} Elements}
+The \textsc{Genel} elements specifically developed for use
+in rotorcraft analysis currently include:
+\begin{itemize}
+\item the \kw{swashplate};
+\item the \kw{rotor trim}.
+\end{itemize}
+
+\subsubsection{Swashplate}
+The \kw{swashplate} \textsc{Genel} is used to transform the controls 
+of a rotor, in terms of collective and fore/aft and lateral cyclic pitch, 
+into the elongations of the actuators that actually move the swash plate.
+The syntax of the \kw{swashplate} is:
+\begin{verbatim}
+    <genel_type> ::= swash plate
+    <genel_arglist> ::=
+        <collective_abstract_node> 
+        [ , limits , <min_collective> , <max_collective> ] ,
+        <fore/aft_abstract_node> 
+        [ , limits , <min_fore/aft> , <max_fore/aft> ] ,
+        <lateral_abstract_node> 
+        [ , limits , <min_lateral> , <max_lateral> ] ,
+        <actuator_1_abstract_node> ,
+        <actuator_2_abstract_node> ,
+        <actuator_3_abstract_node> 
+        [ , <dynamic_coef> , <cyclic_factor> , <collective_factor> ]
+\end{verbatim}
+The first three abstract nodes will contain the input values 
+of collective, fore/aft and cyclic pitch
+(they can be actuated by means of abstract forces),
+and the limits on the ``angles'' can be easily set. 
+The last three nodes will contain the values of the stroke of the actuators.
+The first actuator should be put at the azimuthal position 
+that makes the current blade assume the fore/aft pitch,
+so that its pitch link is $\llk{atan}\plbr{1/\omega_{\beta}}$
+before the front direction.
+The other actuators should follow, 120\degr apart in clockwise direction.
+The limits on the actuators will simply force the value of the control
+inputs to remain in the boundaries regardless of the input values.
+The last three optional parameters are a dynamic coefficient that is used to
+add some dynamics to the actuators' stroke, namely the input variables are
+applied a sort of \kw{spring stiffness} \kw{bulk} element, while the
+actuators' strokes are applied a transfer function of the first order, namely
+$ \alpha\dot{x}+x=f $, where $ \alpha=\kw{dynamic\_coef} $ and $ f $ is
+the desired stroke, so the smaller is $ \alpha $, the more the behavior is
+static.
+The \kw{cyclic\_factor} and the \kw{collective\_factor} parameters are
+used to scale the inputs from angles in the desired units to strokes, that
+usually are dimensional parameters. The actual strokes are made of the
+collective contribution multiplied by \kw{collective\_factor}, and the
+cyclic contribution multiplied by \kw{collective\_factor} times 
+\kw{cyclic\_factor}.
+
+\subsubsection{Rotor Trim}
+The syntax of the \kw{rotor trim} is
+\begin{verbatim}
+    <genel_type> ::= rotor trim
+    <genel_arglist> ::= <rotor_label> ,
+        <thrust_node_label> ,
+        <longitudinal_moment_node_label> ,
+        <lateral_moment_node_label> ,
+        (drive_caller) <desired_thrust_coefficient> ,
+        (drive_caller) <desired_longitudinal_moment_coefficient> ,
+        (drive_caller) <desired_lateral_moment_coefficient> ,
+        <rotor_lock_number> ,
+        <rotor_nondimensional_flap_frequency> ,
+        <thrust_time_constant> , <moments_time_constant> ,
+	<thrust_gain> , <moments_gain>
+	[ , trigger , (drive_caller) <trigger> ]
+\end{verbatim}
+The \kw{rotor trim} is experimental; it allows to set the controls 
+of a generic helicopter, in conjunction with the \kw{swashplate}
+element, to asymptotically obtain the desired level of thrust and
+moment coefficients.
+The corresponding behavior in terms of trim values (flapping angles
+and shaft angle) has not been implemented yet.
+For details, see \cite{PETERS-TRIM90}.
+
+
+
 
 
 

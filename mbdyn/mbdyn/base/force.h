@@ -68,7 +68,13 @@ public:
 		TOTALINTERNALFORCE,
 
 		// in mbdyn/struct/strext.{h,cc}
-		EXTERNALFORCE,
+		EXTERNALSTRUCTURAL,
+	
+		// in mbdyn/struct/modalforce.{h,cc}
+		MODALFORCE,
+	
+		// in mbdyn/struct/modalext.{h,cc}
+		EXTERNALMODAL,
 	
 		LASTFORCETYPE
 	};

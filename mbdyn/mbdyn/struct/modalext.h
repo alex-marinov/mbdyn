@@ -31,30 +31,29 @@
 
 /* Forza */
 
-#ifndef STREXT_H
-#define STREXT_H
+#ifndef MODALEXT_H
+#define MODALEXT_H
 
 #include <vector>
 #include <string>
 #include "extforce.h"
+#include "modal.h"
 
-/* StructExtForce - begin */
+/* ModalExt - begin */
 
-class StructExtForce : virtual public Elem, public ExtForce {
+class ModalExt : virtual public Elem, public ExtForce {
 protected:
-	std::vector<StructNode *> Nodes;
-	std::vector<Vec3> Offsets, F, M;
-	StructNode *pRefNode;
-	Vec3 RefOffset;
+	Modal *pModal;
+	Vec3 F, M;
+	std::vector<doublereal> f;
 
 	void Send(std::ostream& out);
 	void Recv(std::istream& in);
    
 public:
 	/* Costruttore */
-	StructExtForce(unsigned int uL,
-		std::vector<StructNode *>& Nodes,
-		std::vector<Vec3>& Offsets,
+	ModalExt(unsigned int uL,
+		Modal *pmodal,
 	        std::string& fin,
 		bool bRemoveIn,
 	        std::string& fout,
@@ -64,15 +63,15 @@ public:
 		int iPrecision,
 		flag fOut);
 
-	virtual ~StructExtForce(void);
+	virtual ~ModalExt(void);
 
 	/* Tipo di forza */
 	virtual Force::Type GetForceType(void) const { 
-		return Force::EXTERNALSTRUCTURAL; 
+		return Force::EXTERNALMODAL; 
 	};
  
 	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-		*piNumRows = 6*Nodes.size();
+		*piNumRows = (pModal->pGetModalNode() ? 6 : 0) + pModal->uGetNModes();
 		*piNumCols = 1;
 	};
 
@@ -86,24 +85,27 @@ public:
 	/* *******PER IL SOLUTORE PARALLELO******** */        
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
-	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes)
+	virtual void
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes)
 	{
-		connectedNodes.resize(Nodes.size());
-		for (unsigned int i = 0; i < Nodes.size(); i++) {
-			connectedNodes[i] = Nodes[i];
+		if (pModal->pGetModalNode()) {
+			connectedNodes.resize(1);
+			connectedNodes[0] = pModal->pGetModalNode();
+		} else {
+			connectedNodes.resize(0);
 		}
 	};
 	/* ************************************************ */
 };
 
-/* StructExtForce - end */
+/* ModalExt - end */
 
 class DataManager;
 class MBDynParser;
 
-extern Elem* ReadStructExtForce(DataManager* pDM, 
-		       MBDynParser& HP, 
-		       unsigned int uLabel);
+extern Elem* ReadModalExtForce(DataManager* pDM, 
+       MBDynParser& HP, 
+       unsigned int uLabel);
 
-#endif /* STREXT_H */
+#endif /* MODALEXT_H */
 

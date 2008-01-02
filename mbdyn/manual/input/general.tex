@@ -172,9 +172,9 @@ can be reassigned.
 	(from higher to lower precedence)}\label{tab:MATHP-OPERATORS}
 	\begin{tabular}{lll}
 		\hline
-		\multicolumn{1}{c}{\textbf{\emph{Operator}}} & 
-		\multicolumn{1}{c}{\textbf{\emph{Type}}} &
-		\multicolumn{1}{c}{\textbf{\emph{Description}}} \\
+		\multicolumn{1}{c}{\textbf{Operator}} & 
+		\multicolumn{1}{c}{\textbf{Type}} &
+		\multicolumn{1}{c}{\textbf{Description}} \\
 		\hline
 		\kw{\^} & Binary, right & Power \\
 		\kw{+} & Unary, left & Plus sign \\
@@ -192,63 +192,65 @@ can be reassigned.
 		\kw{!} & Unary, right & NOT \\
 		\kw{\&\&} & Binary, left & AND \\
 		\kw{||} & Binary, left & OR \\
-		\kw{{~}|} & Binary, left & XOR (exclusive OR) \\
+		\kw{\~{}|} & Binary, left & XOR (exclusive OR) \\
 		\kw{=} & Binary, right & Assignment \\
 		\hline
 	\end{tabular}
 	\end{center}
 	\footnotesize
 	Note: ``left'' and ``right'' refer to the associativity
-	of the operators
+	of the operators. \\
+	Note: the \kw{String} type only supports the binary ``+'' operator.
 \end{table}
 
 \begin{table}
 	\begin{center}
 	\caption{Built-in mathematical functions 
 		in math parser}\label{tab:MATHP-FUNCTIONS}
-	\begin{tabular}{lll}
+	\begin{tabular}{llll}
 		\hline
-		\multicolumn{1}{c}{\textbf{\emph{Name}}} &
-		\multicolumn{1}{c}{\textbf{\emph{Arg[s]}}} &
-		\multicolumn{1}{c}{\textbf{\emph{Description}}} \\
+		\multicolumn{1}{c}{\textbf{Name}} &
+		\multicolumn{1}{c}{\textbf{Returns}} &
+		\multicolumn{1}{c}{\textbf{Arg[s]}} &
+		\multicolumn{1}{c}{\textbf{Description}} \\
 		\hline
-		\kw{asin} & Real & Arc sine \\
-		\kw{acos} & Real & Arc cosine \\
-		\kw{atan} & Real & Arc tangent \\
-		\kw{actan} & Real & Arc co-tangent \\
-		\kw{atan2} & Real, Real & Arc tangent 2 (robust) \\
-		\kw{actan2} & Real, Real & Arc co-tangent 2 (robust) \\
-		\kw{cos} & Real & Cosine \\
-		\kw{sin} & Real & Sine \\
-		\kw{tan} & Real & Tangent \\
-		\kw{ctan} & Real & Co-tangent \\
-		\kw{cosh} & Real & Hyperbolic cosine \\
-		\kw{sinh} & Real & Hyperbolic sine \\
-		\kw{tanh} & Real & Hyperbolic tangent \\
-		\kw{ctanh} & Real & Hyperbolic co-tangent \\
-		\kw{acosh} & Real & Hyperbolic arc cosine \\
-		\kw{asinh} & Real & Hyperbolic arc sine \\
-		\kw{atanh} & Real & Hyperbolic arc tangent \\
-		\kw{actanh} & Real & Hyperbolic arc co-tangent \\
-		\kw{exp} & Real & Exponential \\
-		\kw{log} & Real & Natural logarithm \\
-		\kw{log10} & Real & Base 10 logarithm \\
-		\kw{sqrt} & Real & Square root \\
-		\kw{abs} & Real & Absolute value \\
-		\kw{sign} & Real & Sign \\
-		\kw{copysign} & Real, Real & First arg with sign of second \\
-		\kw{floor} & Real & Closest integer from below \\
-		\kw{ceil} & Real & Closest integer from above \\
-		\kw{round} & Real & Closest integer \\
-		\kw{rand} & & random integer 
+		\kw{asin}	& Real		& Real		& Arc sine \\
+		\kw{acos}	& Real		& Real		& Arc cosine \\
+		\kw{atan}	& Real		& Real		& Arc tangent \\
+		\kw{actan}	& Real		& Real		& Arc co-tangent \\
+		\kw{atan2}	& Real		& Real, Real	& (Robust) arc tangent \\
+		\kw{actan2}	& Real		& Real, Real	& (Robust) arc co-tangent \\
+		\kw{cos}	& Real		& Real		& Cosine \\
+		\kw{sin}	& Real		& Real		& Sine \\
+		\kw{tan}	& Real		& Real		& Tangent \\
+		\kw{ctan}	& Real		& Real		& Co-tangent \\
+		\kw{cosh}	& Real		& Real		& Hyperbolic cosine \\
+		\kw{sinh}	& Real		& Real		& Hyperbolic sine \\
+		\kw{tanh}	& Real		& Real		& Hyperbolic tangent \\
+		\kw{ctanh}	& Real		& Real		& Hyperbolic co-tangent \\
+		\kw{acosh}	& Real		& Real		& Hyperbolic arc cosine \\
+		\kw{asinh}	& Real		& Real		& Hyperbolic arc sine \\
+		\kw{atanh}	& Real		& Real		& Hyperbolic arc tangent \\
+		\kw{actanh}	& Real		& Real		& Hyperbolic arc co-tangent \\
+		\kw{exp}	& Real		& Real		& Exponential \\
+		\kw{log}	& Real		& Real		& Natural logarithm \\
+		\kw{log10}	& Real		& Real		& Base 10 logarithm \\
+		\kw{sqrt}	& Real		& Real		& Square root \\
+		\kw{abs}	& Real		& Real		& Absolute value \\
+		\kw{sign}	& Real		& Real		& Sign \\
+		\kw{copysign}	& Real		& Real, Real	& First arg with sign of second \\
+		\kw{floor}	& Integer	& Real		& Closest integer from below \\
+		\kw{ceil}	& Integer	& Real		& Closest integer from above \\
+		\kw{round}	& Integer	& Real		& Closest integer \\
+		\kw{rand}	& Integer	& Void		& random integer 
 			$\sqbr{0,\mathrm{RAND\_MAX}}$ \\
-		\kw{random} & & random real $\sqbr{-1.0,1.0}$ \\
-		\kw{seed} & Integer & Seeds the random number generator \\
-		\kw{step} & Real & Step function \\
-		\kw{ramp} & Real & Ramp function \\
-		\kw{sramp} & Real, Real & Saturated ramp function \\
-		\kw{par} & Real & Parabolic function \\
-		\kw{print} & Real & Prints a value to standard output \\
+		\kw{random}	& Real		& Void		& random real $\sqbr{-1.0,1.0}$ \\
+		\kw{seed}	& Void		& Integer	& Seeds the random number generator \\
+		\kw{step}	& Real		& Real		& Step function \\
+		\kw{ramp}	& Real		& Real		& Ramp function \\
+		\kw{sramp}	& Real		& Real, Real	& Saturated ramp function \\
+		\kw{par}	& Real		& Real		& Parabolic function \\
+		\kw{print}	& Void		& Real		& Prints a value to standard output \\
 		\hline
 	\end{tabular}
 	\end{center}
@@ -259,12 +261,16 @@ can be reassigned.
 	\caption{Built-in types in math parser}\label{tab:MATHP-TYPES}
 	\begin{tabular}{ll}
 		\hline
-		\multicolumn{1}{c}{\textbf{\emph{Name}}} &
-		\multicolumn{1}{c}{\textbf{\emph{Description}}} \\
+		\multicolumn{1}{c}{\textbf{Name}} &
+		\multicolumn{1}{c}{\textbf{Description}} \\
 		\hline
-		\kw{Real} & Real number \\
-		\kw{Integer} & Integer number (promoted to \kw{Real} 
+		\kw{Bool} & Boolean number (promoted to \kw{Integer}, \kw{Real},
+			or \kw{String} (0 or 1), whenever required) \\
+		\kw{Integer} & Integer number (promoted to \kw{Real}, or \kw{String},
 			whenever required) \\
+		\kw{Real} & Real number (promoted to \kw{String}
+			whenever required) \\
+		\kw{String} & Text string \\
 		\hline
 	\end{tabular}
 	\end{center}
@@ -275,16 +281,16 @@ can be reassigned.
 	\caption{Predefined variables in math parser}\label{tab:MATHP-VARS}
 	\begin{tabular}{lll}
 		\hline
-		\multicolumn{1}{c}{\textbf{\emph{Name}}} &
-		\multicolumn{1}{c}{\textbf{\emph{Type}}} &
-		\multicolumn{1}{c}{\textbf{\emph{Value}}} \\
+		\multicolumn{1}{c}{\textbf{Name}} &
+		\multicolumn{1}{c}{\textbf{Type}} &
+		\multicolumn{1}{c}{\textbf{Value}} \\
 		\hline
 		\kw{Time} & Real & Current simulation time \\
 		\kw{Var} & Real & Set by dof driver with DOF value \\
 		\\
 		\kw{e} & Real & Neper's number \\
 		\kw{pi} & Real & $\pi$ \\
-		\kw{RAND\_MAX} & Int & Maximum random integer \\
+		\kw{RAND\_MAX} & Integer & Maximum random integer \\
 		\\
 		\kw{in2m} & Real & Inch to meter ratio (0.0254) \\
 		\kw{m2in} & Real & Meter to inch ratio (1.0/0.0254) \\
@@ -322,42 +328,48 @@ defined in Table~\ref{tab:MODEL-NS-FUNCS}.
 	\begin{center}
 	\caption{Functions in \kw{model} namespace}
 	\label{tab:MODEL-NS-FUNCS}
-	\begin{tabular}{llp{.6\textwidth}}
+	\begin{tabular}{lllp{.6\textwidth}}
 		\hline
-		\multicolumn{1}{c}{\textbf{\emph{Name}}} &
-		\multicolumn{1}{c}{\textbf{\emph{Arg[s]}}} &
-		\multicolumn{1}{c}{\textbf{\emph{Description}}} \\
+		\multicolumn{1}{c}{\textbf{Name}} &
+		\multicolumn{1}{c}{\textbf{Ret.}} &
+		\multicolumn{1}{c}{\textbf{Arg[s]}} &
+		\multicolumn{1}{c}{\textbf{Description}} \\
 		\hline
-		\kw{position} & Int & norm of structural node position \\
-		\kw{position2} & Int & square norm of structural node position \\
-		\kw{xposition} & Int & $X$ component of structural node position \\
-		\kw{yposition} & Int & $Y$ component of structural node position \\
-		\kw{zposition} & Int & $Z$ component of structural node position \\
-		\kw{distance} & Int, Int & distance between structural nodes \\
-		\kw{distance2} & Int, Int & square distance between structural nodes \\
-		\kw{xdistance} & Int, Int & $X$ component of distance between structural nodes \\
-		\kw{ydistance} & Int, Int & $Y$ component of distance between structural nodes \\
-		\kw{zdistance} & Int, Int & $Z$ component of distance between structural nodes \\
-		\kw{anglerel} & Int, Int & angle between structural nodes (norm of angular vector) \\
-		\kw{xanglerel} & Int, Int & $X$ component of angular vector between structural nodes \\
-		\kw{yanglerel} & Int, Int & $Y$ component of angular vector between structural nodes \\
-		\kw{zanglerel} & Int, Int & $Z$ component of angular vector between structural nodes \\
-		\kw{velocity} & Int & norm of structural node velocity \\
-		\kw{velocity2} & Int & square norm of structural node velocity \\
-		\kw{xvelocity} & Int & $X$ component of structural node velocity \\
-		\kw{yvelocity} & Int & $Y$ component of structural node velocity \\
-		\kw{zvelocity} & Int & $Z$ component of structural node velocity \\
-		\kw{vrel} & Int, Int & norm of relative velocity between structural nodes \\
-		\kw{vrel2} & Int, Int & square norm of relative velocity between structural nodes \\
-		\kw{xvrel} & Int, Int & $X$ component of relative velocity between structural nodes \\
-		\kw{yvrel} & Int, Int & $Y$ component of relative velocity between structural nodes \\
-		\kw{zvrel} & Int, Int & $Z$ component of relative velocity between structural nodes \\
-		\kw{drive} & Int, Real & evaluates the \htmlref{\kw{drive caller}}{sec:DRIVE-CALLER}
-					indicated by its label (the first argument)
-					for the input specified as second argument \\
-		\kw{sf::<name>} & Real & evaluates the \htmlref{\kw{scalar function}}{sec:SCALARFUNCS}
-					\kw{<name>} for the input specified as argument \\
-				
+		\kw{position}	& Real	& Integer		& norm of structural node position \\
+		\kw{position2}	& Real	& Integer		& square norm of structural node position \\
+		\kw{xposition}	& Real	& Integer		& $X$ component of structural node position \\
+		\kw{yposition}	& Real	& Integer		& $Y$ component of structural node position \\
+		\kw{zposition}	& Real	& Integer		& $Z$ component of structural node position \\
+		\kw{distance}	& Real	& Integer, Integer	& distance between structural nodes \\
+		\kw{distance2}	& Real	& Integer, Integer	& square distance between structural nodes \\
+		\kw{xdistance}	& Real	& Integer, Integer	& $X$ component of distance between structural nodes \\
+		\kw{ydistance}	& Real	& Integer, Integer	& $Y$ component of distance between structural nodes \\
+		\kw{zdistance}	& Real	& Integer, Integer	& $Z$ component of distance between structural nodes \\
+		\kw{anglerel}	& Real	& Integer, Integer	& angle between structural nodes (norm of angular vector) \\
+		\kw{xanglerel}	& Real	& Integer, Integer	& $X$ component of angular vector between structural nodes \\
+		\kw{yanglerel}	& Real	& Integer, Integer	& $Y$ component of angular vector between structural nodes \\
+		\kw{zanglerel}	& Real	& Integer, Integer	& $Z$ component of angular vector between structural nodes \\
+		\kw{velocity}	& Real	& Integer		& norm of structural node velocity \\
+		\kw{velocity2}	& Real	& Integer		& square norm of structural node velocity \\
+		\kw{xvelocity}	& Real	& Integer		& $X$ component of structural node velocity \\
+		\kw{yvelocity}	& Real	& Integer		& $Y$ component of structural node velocity \\
+		\kw{zvelocity}	& Real	& Integer		& $Z$ component of structural node velocity \\
+		\kw{vrel}	& Real	& Integer, Integer	& norm of relative velocity between structural nodes \\
+		\kw{vrel2}	& Real	& Integer, Integer	&
+				square norm of relative velocity between structural nodes \\
+		\kw{xvrel}	& Real	& Integer, Integer	&
+				$X$ component of relative velocity between structural nodes \\
+		\kw{yvrel}	& Real	& Integer, Integer	&
+				$Y$ component of relative velocity between structural nodes \\
+		\kw{zvrel}	& Real	& Integer, Integer	&
+				$Z$ component of relative velocity between structural nodes \\
+		\kw{drive}	& Real	& Integer, Real		&
+				evaluates the \htmlref{\kw{drive caller}}{sec:DRIVE-CALLER}
+				indicated by its label (the first argument)
+				for the input specified as second argument \\
+		\kw{sf::<name>}	& Real	& Real			&
+				evaluates the \htmlref{\kw{scalar function}}{sec:SCALARFUNCS}
+				\kw{<name>} for the input specified as argument \\
 		\hline
 	\end{tabular}
 	\end{center}
@@ -379,7 +391,8 @@ and elements.
 The syntax of a plugin consists in specially defining a variable
 so that it gets registered to the appropriate code:
 \begin{verbatim}
-    set: OSQBR <plugin> , <var> [ , <arg1> [ , ... ] ] CSQBR ;
+    set: OSQBR <plugin> , <var> [ , <arglist> ] CSQBR ;
+    <arglist> ::= <arg1> [ , ... ]
 \end{verbatim}
 where \kw{OSQBR} and \kw{CSQBR} stand for ``open'' and ``close''
 square brackets, respectively, which shouldn't be confused with those
@@ -389,13 +402,17 @@ In the following, the built-in plugins\footnote{Built-in and plug-in
 may sound contradictory, and in fact they are.  However, consider
 that the mathematical parser is essentially independent of MBDyn
 (in fact, it has been turned into a command-line calculator
-in \kw{cl(1)}), so, form this point of view, built-in plug-ins
+in \kw{cl(1)}), so, from this point of view, built-in plug-ins
 are used to plug MBDyn information into an independent, lower-level
 piece of code.} are illustrated.
 For details on nodes, elements, their properties and the information
 they can expose, see the related sections.
 
 \subsubsection{Dof plugin}
+\emph{Note: this plugin is now obsoleted by the \kw{node} plugin,
+which allows to access more significant information about nodes,
+including the value of the degrees of freedom.}
+
 The \kw{dof} plugin allows to link a variable to a specific degree of freedom
 of a node, or to its derivative, whenever defined.
 The syntax is
@@ -412,10 +429,6 @@ if the node has more than one, while
 and of its derivative, respectively.
 The derivative can be requested only for those degrees of freedom
 that have one.
-
-\emph{Note: this plugin is now obsoleted by the \kw{node} plugin,
-which allows to access more significant information about nodes,
-including the value of the degrees of freedom.}
 
 \subsubsection{Node plugin}
 The \kw{node} plugin allows to link a variable to any data a node
@@ -542,11 +555,11 @@ The following rescales an arbitrary vector
 \end{enumerate}
 For example, the identity matrix can be defined as:
 \begin{verbatim}
-    matr, 1.,0.,0., 0.,1.,0., 0.,0.,1.
-    1.,0.,0., 0.,1.,0., 0.,0.,1.
-    sym, 1.,0.,0., 1.,0., 1.
-    diag, 1.,1.,1.
-    eye
+    matr, 1.,0.,0.,  0.,1.,0.,  0.,0.,1.
+    1.,0.,0.,  0.,1.,0.,  0.,0.,1.        # ``matr'' omitted
+    sym, 1.,0.,0.,  1.,0.,  1.            # upper triangular part
+    diag, 1.,1.,1.                        # diagonal
+    eye                                   # a la matlab
 \end{verbatim}
 \subsection{\kw{3 x 3} orientation matrices}
 \begin{enumerate}
@@ -560,19 +573,19 @@ For example, the identity matrix can be defined as:
     1, (real alpha=pi/6.; cos(alpha)), sin(alpha), 0.,
         3, 0.,0.,1.
     \end{verbatim}
-    the first example represents the identity matrix i.e.\ no rotation 
+    the first example represents the identity matrix, i.e.\ no rotation 
     occurs with respect to the global reference frame: direction 1
-    in the local frame is parallel to \kw{1.,0.,0.} which represents
+    in the local frame is parallel to \kw{1.,0.,0.}, which represents
     direction 1 in the global frame, while direction 2 in the local frame
-    is parallel to \kw{0.,1.,0.} which represents direction 2
+    is parallel to \kw{0.,1.,0.}, which represents direction 2
     in the global frame.
 
     \noindent
-    The second example describes a rotation of $ \pi/6 $ rad.\ about
+    The second example describes a rotation of $ \pi/6 $ radian about
     global direction 3: direction 1 in the local frame results from 
     composing \kw{cos(pi/6.)} in global direction 1 and \kw{sin(pi/6.)}
     in global direction 2, while direction 3 in the local frame remains
-    parallel to \kw{0.,0.,1.} which represents direction 3 in the global
+    parallel to \kw{0.,0.,1.}, which represents direction 3 in the global
     frame.
     \item a variant of the above, which may be useful when only one
     direction really matters, is illustrated in the example below:
@@ -581,7 +594,7 @@ For example, the identity matrix can be defined as:
     \end{verbatim}
     The keyword \kw{guess} tells the parser to generate a random vector
     that is orthogonal to the given one, which is used as the direction
-    indicated by the index.
+    indicated by the index (2 in the example).
     The vector is computed based on a very simple algorithm: it contains
     \begin{itemize}
         \item 1.0 corresponding to the index with smallest module,
@@ -926,8 +939,8 @@ So, depending on the caller, the entry can be in the following forms:
 \begin{verbatim}
         <reference_type> ::= { global | node | local }
 \end{verbatim}
-\item \kw{reference , <reference\_number> , <entity>}: \\
-	the data is in \kw{reference reference\_number} reference frame. 
+\item \kw{reference , <reference\_label> , <entity>}: \\
+	the data is in \kw{reference\_label} reference frame. 
 	This reference frame must be already defined. 
 \end{enumerate}
 Examples:
@@ -959,16 +972,18 @@ Notes:
     \item when processing a velocity or an angular velocity, the resulting
     value always accounts for the velocity and angular velocity of the frame
     the entry is referred to. 
-    As an example, if a node is defined on a reference frame $\T{R}_R$
-    that has non-null angular velocity $ \T{\Omega}_R $, and its position 
-    $ \T{x}_{input} $ is not in the origin $ \T{X}_R $ of the reference frame
+
+    As an example, if a node is defined in a reference frame $\T{R}_R$
+    that has non-null angular velocity $ \T{\Omega}_R $, and the position 
+    $ \T{x}_{\text{input}} $ of the node is not coincident
+    with the origin $ \T{X}_R $ of the reference frame
     it is attached to, its global velocity and angular velocity result
     as the composition of the input values and of those of the reference 
     frame:
     \begin{eqnarray*}    
-        \T{w} & = & \T{R}_R \T{\omega}_{input} + \T{\Omega}_R \\
-	\T{v} & = & \T{R}_R \T{v}_{input} + \T{V}_R
-		+\T{\Omega}_R\times\plbr{\T{R}_R \T{x}_{input}}
+        \T{w} & = & \T{R}_R \T{\omega}_{\text{input}} + \T{\Omega}_R \\
+	\T{v} & = & \T{R}_R \T{v}_{\text{input}} + \T{V}_R
+		+\T{\Omega}_R\times\plbr{\T{R}_R \T{x}_{\text{input}}}
     \end{eqnarray*}
     This, for instance, eases the input of all the parts of a complex system
     that is moving as a rigid body, by defining a reference frame with the
@@ -984,7 +999,7 @@ Notes:
         null,
         eye,
         null,
-        null;			 
+        null;
     \end{verbatim}
     which represents a redefinition of the global system.
     A more verbose, and self-explanatory definition would be:
@@ -1035,22 +1050,21 @@ The \kw{print symbol table} directive:
 \end{verbatim}
 allows to print to standard output the contents of the parser's symbol
 table at any stage of the input phase.
-This may be useful for debugging purposes.
+This may be useful for model debugging purposes.
 
 
 
 \subsection{Remark}
 The \kw{remark} directive:
 \begin{verbatim}
-    <card> ::= remark : " <remark_string >
+    <card> ::= remark : " <remark_string > "
         [ , <math_expression> [ , ... ] ] ;
 \end{verbatim}
 This directive simply prints to stdout the string \kw{remark\_string} and
-optionally evaluates any subsequent expression \kw{math\_expression}
+optionally evaluates and prints any subsequent expression \kw{math\_expression}
 according to the \kw{set} directive.
 It is used to allow rough input debugging, where the file name and line 
-is logged, followed by a message, possibly followed by the evaluation 
-of expressions. 
+is logged, followed by a message and by the evaluation of any expression. 
 Example:
 a file ``remarks'', containing only the statements
 \begin{verbatim}
@@ -1081,7 +1095,6 @@ There is absolutely no warranty for MBDyn.  Use "mbdyn --warranty"
 for details.
 
 reading from file "remarks"
-registering namespace "default"
 line 1, file <remarks>: square root of 2, 1.41421
 line 8, file <remarks>: Stiffness properties, 1e+06, 1e+06, 1000, 1000
 MBDyn terminated normally
@@ -1146,17 +1159,18 @@ The label and the type of the node are used to track the pointer to the
 desired node. 
 If the node is not scalar, the \kw{dof\_number} field is required
 to address the appropriate degree of freedom.
-Finally, the order of the degree of freedom is checked, if required.
+Finally, the order of the degree of freedom is read, if required.
 It must be one of \kw{algebraic} or \kw{differential}.
 If the \kw{dof\_number} degree of freedom is differential, both
 of them can be addressed, while in case of an algebraic node there is no
 choice, only the \kw{algebraic} order can be addressed and thus this field
 is not required.
-The \kw{dof\_number} must range between 1 and the number of \emph{dof}s that
+The \kw{dof\_number} must be between 1 and the number of \emph{dof}s that
 belong to the node.
-When the node is used to address an equation (abstract forces, 
-discrete control elements), the distinction between \kw{algebraic} 
-and \kw{differential} is meaningless, and thus this filed is not required.
+When the node degree of freedom is used to address an equation
+(abstract forces, discrete control elements),
+the distinction between \kw{algebraic} and \kw{differential} is meaningless,
+and thus this field is not required.
 
 
 
@@ -1977,10 +1991,10 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
     \caption{Constitutive laws dimensionality}\label{tab:CONST-LAW-DIM}
     \begin{tabular}{l|c|c|c} 
         \hline
-        \multicolumn{1}{c}{\textbf{\emph{Constitutive Law}}} &
-	\multicolumn{1}{c}{\textbf{\emph{1D}}} &
-	\multicolumn{1}{c}{\textbf{\emph{3D}}} &
-	\multicolumn{1}{c}{\textbf{\emph{6D}}} \\ 
+        \multicolumn{1}{c}{\textbf{Constitutive Law}} &
+	\multicolumn{1}{c}{\textbf{1D}} &
+	\multicolumn{1}{c}{\textbf{3D}} &
+	\multicolumn{1}{c}{\textbf{6D}} \\ 
 	\hline
 	linear elastic, linear elastic isotropic			& $\surd$ & $\surd$ & $\surd$ \\
 	linear elastic generic						& $\surd$ & $\surd$ & $\surd$ \\
@@ -2433,8 +2447,8 @@ the entities as element private data.
 \caption{Shock absorber output data}\label{tab:CL:SHOCK-ABSORBER-OUTPUT}
 \begin{tabular}{ll}
 \hline
-\multicolumn{1}{c}{\textbf{\emph{entity}}} &
-\multicolumn{1}{c}{\textbf{\emph{name}}} \\
+\multicolumn{1}{c}{\textbf{entity}} &
+\multicolumn{1}{c}{\textbf{name}} \\
 \hline
 gas pressure	& \kw{p} \\
 metering area	& \kw{A} \\

@@ -382,7 +382,9 @@ StructNode::OutputPrepare(OutputHandler &OH)
 			// Struct node type
 			static NcDim *DimType = 0;
 			if (DimType == 0) {
-				DimType = pBinFile->add_dim("struct_type_dim", 8);
+				// largest
+				DimType = pBinFile->add_dim("struct_type_dim",
+					STRLENOF("dynamic") + 1);
 			}
 
 			NcVar *Var_Type = pBinFile->add_var(buf, ncChar,
@@ -526,9 +528,9 @@ StructNode::OutputPrepare(OutputHandler &OH)
 				throw ErrGeneric();
 			}
 
-		} /* if( pOutHdl->StrNodes_UseBinaryNetCDF() ) */
-#endif /* USE_NETCDF */
-	} /* if( pNd->fToBeOutput() ) */
+		}
+#endif // USE_NETCDF
+	}
 }
 
 /* Output del nodo strutturale (da mettere a punto) */
@@ -1517,24 +1519,20 @@ DynamicStructNode::OutputPrepare(OutputHandler &OH)
 		{
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
-			/* get a pointer to binary NetCDF file  -->  pDM->OutHdl.BinFile */
+			// get a pointer to binary NetCDF file  -->  pDM->OutHdl.BinFile
 			NcFile *pBinFile = OH.pGetBinFile();
 			char buf[BUFSIZ];
 
-			/*
-			 * TODO: add a variable "node.struct.label"
-			 * with generic info and no data
-			 */
-
+			// NOTE: keep in sync with StructNode::OutputPrepare
 			int l = snprintf(buf, sizeof(buf), "node.struct.%lu.",
 				(unsigned long)GetLabel());
 			if (l < 0 || l >= int(sizeof(buf) - STRLENOF("OmegaP"))) {
 				throw ErrGeneric();
 			}
 
-			/* Add NetCDF (output) variables to the BinFile object and
-			 * save the NcVar* pointer returned from add_var as handle
-			 * for later write accesses. Define also variable attributes*/
+			// Add NetCDF (output) variables to the BinFile object and
+			// save the NcVar* pointer returned from add_var as handle
+			// for later write accesses. Define also variable attributes
 
 			strcpy(&buf[l], "XPP");
 			Var_XPP = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
@@ -1559,9 +1557,9 @@ DynamicStructNode::OutputPrepare(OutputHandler &OH)
 			if (!Var_OmegaP->add_att("description", "global angular acceleration vector (omegaP_X, omegaP_Y, omegaP_Z)")) {
 				throw ErrGeneric();
 			}
-		} /* if( pOutHdl->StrNodes_UseBinaryNetCDF() ) */
-#endif /* USE_NETCDF */
-	} /* if( pNd->fToBeOutput() ) */
+		}
+#endif // USE_NETCDF
+	}
 }
 
 /* Output del nodo strutturale (da mettere a punto) */

@@ -31,48 +31,39 @@
 
 /* Forza */
 
-#ifndef STREXT_H
-#define STREXT_H
+#ifndef MODALFORCE_H
+#define MODALFORCE_H
 
 #include <vector>
 #include <string>
 #include "extforce.h"
+#include "modal.h"
 
-/* StructExtForce - begin */
+/* ModalForce - begin */
 
-class StructExtForce : virtual public Elem, public ExtForce {
+class ModalForce : virtual public Elem, public Force {
 protected:
-	std::vector<StructNode *> Nodes;
-	std::vector<Vec3> Offsets, F, M;
-	StructNode *pRefNode;
-	Vec3 RefOffset;
+	Modal *pModal;
+	std::vector<int> modeList;
+	std::vector<DriveCaller *> f;
 
-	void Send(std::ostream& out);
-	void Recv(std::istream& in);
-   
 public:
 	/* Costruttore */
-	StructExtForce(unsigned int uL,
-		std::vector<StructNode *>& Nodes,
-		std::vector<Vec3>& Offsets,
-	        std::string& fin,
-		bool bRemoveIn,
-	        std::string& fout,
-		bool bNoClobberOut,
-		int iSleepTime,
-		int iCoupling,
-		int iPrecision,
+	ModalForce(unsigned int uL,
+		Modal *pmodal,
+		std::vector<int>& modeList,
+		std::vector<DriveCaller *>& f,
 		flag fOut);
 
-	virtual ~StructExtForce(void);
+	virtual ~ModalForce(void);
 
 	/* Tipo di forza */
 	virtual Force::Type GetForceType(void) const { 
-		return Force::EXTERNALSTRUCTURAL; 
+		return Force::MODALFORCE; 
 	};
  
 	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-		*piNumRows = 6*Nodes.size();
+		*piNumRows = modeList.size();
 		*piNumCols = 1;
 	};
 
@@ -83,27 +74,53 @@ public:
 
 	virtual void Output(OutputHandler& OH) const;
 
+	virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+		*piNumRows = 0; 
+		*piNumCols = 0; 
+	};
+   
+	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+	virtual VariableSubMatrixHandler& 
+	InitialAssJac(VariableSubMatrixHandler& WorkMat,
+		const VectorHandler& XCurr)
+	{
+		WorkMat.SetNullMatrix();
+		return WorkMat;
+	};
+
+	/* Contributo al residuo durante l'assemblaggio iniziale */   
+	virtual SubVectorHandler& 
+	InitialAssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& XCurr)
+	{
+		WorkVec.ResizeReset(0);
+		return WorkVec;
+	};
+
 	/* *******PER IL SOLUTORE PARALLELO******** */        
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
-	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes)
+	virtual void
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes)
 	{
-		connectedNodes.resize(Nodes.size());
-		for (unsigned int i = 0; i < Nodes.size(); i++) {
-			connectedNodes[i] = Nodes[i];
+		if (pModal->pGetModalNode()) {
+			connectedNodes.resize(1);
+			connectedNodes[0] = pModal->pGetModalNode();
+		} else {
+			connectedNodes.resize(0);
 		}
 	};
 	/* ************************************************ */
 };
 
-/* StructExtForce - end */
+/* ModalForce - end */
 
 class DataManager;
 class MBDynParser;
 
-extern Elem* ReadStructExtForce(DataManager* pDM, 
-		       MBDynParser& HP, 
-		       unsigned int uLabel);
+extern Elem* ReadModalForce(DataManager* pDM, 
+       MBDynParser& HP, 
+       unsigned int uLabel);
 
-#endif /* STREXT_H */
+#endif /* MODALFORCE_H */
 

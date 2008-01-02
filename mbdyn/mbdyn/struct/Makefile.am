@@ -59,6 +59,10 @@ kinj.cc \
 kinj.h \
 modal.cc \
 modal.h \
+modalext.cc \
+modalext.h \
+modalforce.cc \
+modalforce.h \
 module-wheel2.cc \
 planej.cc \
 planej.h \
