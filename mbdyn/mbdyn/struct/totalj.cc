@@ -2322,7 +2322,6 @@ TotalPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
 	/* Recupera gli indici delle varie incognite */
 	integer iNodeFirstPosIndex = pNode->iGetFirstPositionIndex();
-	integer iNodeFirstMomIndex = pNode->iGetFirstMomentumIndex();
 	integer iFirstReactionIndex = iGetFirstIndex();
 
 	/* Setta gli indici delle equazioni */
