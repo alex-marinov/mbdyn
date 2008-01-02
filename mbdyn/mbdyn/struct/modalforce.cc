@@ -108,7 +108,7 @@ ModalForce::AssRes(SubVectorHandler& WorkVec,
 	integer iModalIndex = pModal->iGetModalIndex() + pModal->uGetNModes();
 	for (unsigned iMode = 0; iMode < modeList.size(); iMode++) {
 		doublereal d = f[iMode]->dGet();
-		WorkVec.PutItem(1 + iMode, iModalIndex + modeList[iMode], d);
+		WorkVec.PutItem(iIdx + iMode, iModalIndex + modeList[iMode], d);
 		if (pNode) {
 			F += Mt->GetVec(iMode + 1)*d;
 			M += Mr->GetVec(iMode + 1)*d;
