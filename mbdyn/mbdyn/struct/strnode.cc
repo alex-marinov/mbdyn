@@ -379,16 +379,7 @@ StructNode::OutputPrepare(OutputHandler &OH)
 				throw ErrGeneric();
 			}
 
-			// Struct node type
-			static NcDim *DimType = 0;
-			if (DimType == 0) {
-				// largest
-				DimType = pBinFile->add_dim("struct_type_dim",
-					STRLENOF("dynamic") + 1);
-			}
-
-			NcVar *Var_Type = pBinFile->add_var(buf, ncChar,
-				DimType);
+			NcVar *Var_Type = pBinFile->add_var(buf, ncChar, OH.DimV1());
 			char *type = 0;
 			switch (GetStructNodeType()) {
 			case STATIC:
@@ -413,6 +404,9 @@ StructNode::OutputPrepare(OutputHandler &OH)
 			}
 
 			Var_Type->put(type, strlen(type));
+			if (!Var_Type->add_att("type", type)) {
+				throw ErrGeneric();
+			}
 
 			// add var name separator
 			buf[l++] = '.';
@@ -2494,6 +2488,8 @@ ReadStructNode(DataManager* pDM,
 				Rh = HP.GetRotRel(RF);
 			}
 
+			od = ReadNodeOrientationDescription(pDM, HP);
+
 			StructNode *pNodeRef2 = 0;
 			Vec3 fh2(Zero3);
 			Mat3x3 Rh2(Eye3);
@@ -2509,7 +2505,6 @@ ReadStructNode(DataManager* pDM,
 				}
 			}
 
-			od = ReadNodeOrientationDescription(pDM, HP);
 			flag fOut = pDM->fReadOutput(HP, Node::STRUCTURAL);
 
 			if (pNodeRef2) {
