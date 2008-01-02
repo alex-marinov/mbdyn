@@ -1155,20 +1155,32 @@ is read as follows:
         [ , <dof_number> ]
         [ , { algebraic | differential } ]
 \end{verbatim}
-The label and the type of the node are used to track the pointer to the
-desired node. 
-If the node is not scalar, the \kw{dof\_number} field is required
-to address the appropriate degree of freedom.
+The label (\kw{node\_label}) and the type (\kw{node\_type})
+of the node are used to track the pointer to the desired node. 
+
+If \kw{node\_type} refers to a non-scalar node type,
+the \kw{dof\_number} field is required to indicate the requested
+degree of freedom.
+
 Finally, the order of the degree of freedom is read, if required.
 It must be one of \kw{algebraic} or \kw{differential}.
 If the \kw{dof\_number} degree of freedom is differential, both
-of them can be addressed, while in case of an algebraic node there is no
-choice, only the \kw{algebraic} order can be addressed and thus this field
+orders can be addressed, while in case of a node referring
+to an algebraic degree of freedom there is no choice,
+only the \kw{algebraic} order can be addressed and thus this field
 is not required.
+
 The \kw{dof\_number} must be between 1 and the number of \emph{dof}s that
 belong to the node.
-When the node degree of freedom is used to address an equation
-(abstract forces, discrete control elements),
+Not all numbers might be valid for specific nodes; for example,
+\kw{dof\_number} values 4, 5, and 6 are not valid for a
+\hyperref{\kw{structural node}}{\kw{structural node}, Section~}{}{sec:NODE:STRUCTURAL}, when the order is \kw{algebraic}.
+
+When the node degree of freedom input syntax is used to address
+an equation (as in
+\hyperref{\kw{abstract} force elements}{\kw{abstract} force elements, Section~}{}{sec:EL:FORCE:ABSTRACT},
+or in
+\hyperref{\kw{discrete control} elements}{\kw{discrete control} elements, Section~}{}{sec:EL:DISCCTRL}),
 the distinction between \kw{algebraic} and \kw{differential} is meaningless,
 and thus this field is not required.
 
@@ -1231,7 +1243,7 @@ Always 1; the \kw{arglist} is empty.
 \begin{verbatim}
     <drive_caller> ::= [ const , ] <const_coef>                    
 \end{verbatim}
-The keyword \kw{const} can be omitted thus highlighting the real nature
+The keyword \kw{const} can be omitted, thus highlighting the real nature
 of this driver, that is completely equivalent to a constant, static real
 value.
 
@@ -1247,6 +1259,11 @@ Yields the current time; the arglist is empty.
         <const_coef> ,
         <slope_coef>
 \end{verbatim}
+The function
+\begin{align}
+	f\plbr{t} &= \mathtt{const\_coef} \nonumber \\
+		&+ \mathtt{slope\_coef} * t
+\end{align}
 
 \subsection{Parabolic drive}
 \begin{verbatim}
@@ -1255,6 +1272,12 @@ Yields the current time; the arglist is empty.
         <linear_coef> , 
         <parabolic_coef>
 \end{verbatim}
+The function
+\begin{align}
+	f\plbr{t} &= \mathtt{const\_coef} \nonumber \\
+		&+ \mathtt{linear\_coef} * t \nonumber \\
+		&+ \mathtt{parabolic\_coef} * t^2
+\end{align}
 
 \subsection{Cubic drive}
 \begin{verbatim}
@@ -1264,6 +1287,13 @@ Yields the current time; the arglist is empty.
         <parabolic_coef>, 
         <cubic_coef>
 \end{verbatim}
+The function
+\begin{align}
+	f\plbr{t} &= \mathtt{const\_coef} \nonumber \\
+		&+ \mathtt{linear\_coef} * t \nonumber \\
+		&+ \mathtt{parabolic\_coef} * t^2 \nonumber \\
+		&+ \mathtt{cubic\_coef} * t^3
+\end{align}
 
 \subsection{Step drive}
 \begin{verbatim}
@@ -1272,6 +1302,17 @@ Yields the current time; the arglist is empty.
         <step_value> ,
         <initial_value>
 \end{verbatim}    
+The function
+\begin{align}
+	f\plbr{t} &= \mathtt{initial\_value} \nonumber \\
+	&+ \lcubr{\matr{ll}{
+		0 
+			& t < \mathtt{initial\_time} \\
+		\\
+		\mathtt{step\_value}
+			& \mathtt{initial\_time} \le t
+	}}
+\end{align}
 
 \subsection{Double step drive}
 \begin{verbatim}
@@ -1281,6 +1322,20 @@ Yields the current time; the arglist is empty.
         <step_value> , 
         <initial_value>
 \end{verbatim}
+The function
+\begin{align}
+	f\plbr{t} &= \mathtt{initial\_value} \nonumber \\
+	&+ \lcubr{\matr{ll}{
+		0
+			& t < \mathtt{initial\_time} \\
+		\\
+		\mathtt{step\_value}
+			& \mathtt{initial\_time} \le t \le \mathtt{final\_value} \\
+		\\
+		0 
+			& \mathtt{final\_time} < t
+	}}
+\end{align}
 
 \subsection{Ramp drive}
 \begin{verbatim}
@@ -1290,18 +1345,61 @@ Yields the current time; the arglist is empty.
         { forever | <final_time> } ,
         <initial_value>
 \end{verbatim}
-  
+The function
+\begin{align}
+	f\plbr{t} &= \mathtt{initial\_value} \nonumber \\
+	&+ \lcubr{\matr{ll}{
+		0
+			& t < \mathtt{initial\_time} \\
+		\\
+		\mathtt{slope} * \plbr{t - \mathtt{initial\_time}}
+			& \mathtt{initial\_time} \le t \le \mathtt{final\_value} \\
+		\\
+		\mathtt{slope} * \plbr{\mathtt{final\_time} - \mathtt{initial\_time}}
+			& \mathtt{final\_time} < t
+	}}
+\end{align}
+
 \subsection{Double ramp drive}
 \begin{verbatim}
     <drive_caller> ::= double ramp ,
-        <asc_slope> , 
-        <asc_initial_time> , 
-        <asc_final_time> , 
-        <desc_slope> , 
-        <desc_initial_time> , 
-        { forever | <desc_final_time> } , 
+        <a_slope> , 
+        <a_initial_time> , 
+        <a_final_time> , 
+        <d_slope> , 
+        <d_initial_time> , 
+        { forever | <d_final_time> } , 
         <initial_value>
 \end{verbatim}
+The function
+\begin{align}
+	\mathtt{f\_a} &= \mathtt{a\_slope} * \plbr{\mathtt{a\_final\_time} - \mathtt{a\_initial\_time}}
+		\nonumber \\
+	\mathtt{f\_d} &= \mathtt{d\_slope} * \plbr{\mathtt{d\_final\_time} - \mathtt{d\_initial\_time}}
+		\nonumber \\
+	f\plbr{t} &= \mathtt{initial\_value} \\
+	&+ \lcubr{\matr{ll}{
+		0
+			& t < \mathtt{a\_initial\_time} \\
+		\\
+		\multicolumn{2}{l}{
+		\mathtt{a\_slope} * \plbr{t - \mathtt{a\_initial\_time}}
+		} \\
+			& \mathtt{a\_initial\_time} \le t \le \mathtt{a\_final\_value} \\
+		\\
+		\mathtt{f\_a}
+			& \mathtt{a\_final\_time} < t < \mathtt{d\_initial\_time} \\
+		\\
+		\multicolumn{2}{l}{
+		\mathtt{f\_a}
+		+ \mathtt{d\_slope} * \plbr{t - \mathtt{d\_initial\_time}}
+		} \\
+			& \mathtt{d\_initial\_time} \le t \le \mathtt{d\_final\_value} \\
+		\\
+		\mathtt{f\_a} + \mathtt{f\_d}
+			& \mathtt{d\_final\_time} < t
+	}} \nonumber
+\end{align}
 
 \subsection{Piecewise linear drive}
 \begin{verbatim}
@@ -1332,9 +1430,26 @@ tangent.
 Special keywords can be used for \kw{number\_of\_cycles}:
 \begin{itemize}
 	\item \kw{forever}, which means the oscillation never stops;
-	\item \kw{one}, which means exactly one cycle is performed;
-	\item \kw{half}, which means exactly half cycle is performed,
-	so the function stops at \kw{amplitude} + \kw{initial\_value}.
+	\item \kw{one}, which means exactly half period is performed;
+	\item \kw{half}, which means exactly a quarter of period is performed,
+	so the function stops at
+\begin{align}
+	f\plbr{t} &= \mathtt{initial\_value} \\
+	&+ \lcubr{\matr{ll}{
+		0 & t < \mathtt{initial\_time} \\
+		\\
+		\multicolumn{2}{l}{
+		\mathtt{amplitude} * \sin\plbr{\mathtt{angular\_velocity} * \plbr{
+			t - \mathtt{initial\_time}
+		}}
+		} \\
+			& \mathtt{initial\_time} \le t
+				\le \mathtt{initial\_time} + \cfrac{\pi}{2 * \mathtt{angular\_velocity}} \\
+		\\
+		\mathtt{amplitude}
+			& \mathtt{initial\_time} + \cfrac{\pi}{2 * \mathtt{angular\_velocity}} \le t
+	}} \nonumber .
+\end{align}
 \end{itemize}
 
 \subsection{Cosine drive}
@@ -1544,7 +1659,7 @@ generates a cosine modulated by an exponential.
 \noindent
 \emph{Note: currently, the expression is parsed each time it is evaluated;
 this is not very efficient.
-A future version should result in building a tree-like form of the
+A future version should build a tree-like form of the
 parsed expression, where non-symbolic branches are evaluated once for all,
 to speed up evaluation.}
 
