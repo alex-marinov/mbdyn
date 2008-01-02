@@ -80,14 +80,26 @@ for that type, and so on.
 \subsection{Base Level}
 Currently, the following basic levels are available:
 \begin{itemize}
-\item \kw{node} for nodes;
-\item \kw{elem} for elements.
+\item \kw{run}, for general simulation-related data;
+\item \kw{node}, for nodes;
+\item \kw{elem}, for elements.
+\end{itemize}
+
+
+
+\subsection{Run Level}
+There is no variable \kw{run}, with the name of the run level.
+This level contains general, simulation-related data:
+\begin{itemize}
+\item \kw{run.step}, the step number;
+\item \kw{run.time}, the value of the time;
+\item \kw{run.timestep}, the value of the timestep.
 \end{itemize}
 
 
 
 \subsection{Node Level}
-There is no variable with the name of the node level.
+There is no variable \kw{node}, with the name of the node level.
 This level contains as many sublevels as the node types
 that are present in the model.
 Each node type consists in a variable that contains an array
@@ -165,7 +177,7 @@ of the inertia associated to the node, in the appropriate reference frame.
 
 
 \subsection{Element Level}
-There is no variable with the name of the element level.
+There is no variable \kw{elem}, with the name of the element level.
 This level contains as many sublevels as the element types
 that are present in the model.
 Each element type consists in a variable that contains an array
@@ -206,4 +218,21 @@ The \kw{octcdf} package, available from
 provides a clean interface to using NetCDF databases from within
 the popular math environment Octave.
 Results from MBDyn can be easily handled once the data structure is known.
+
+To access the database, a handler needs to be obtained by calling
+\begin{verbatim}
+    octave:1> nc = netcdf('mbdyn_output.nc', 'r');
+\end{verbatim}
+Variable descriptions are accessed as
+\begin{verbatim}
+    octave:2> nc{'node.struct.1000.X'}
+\end{verbatim}
+Their values are accessed as
+\begin{verbatim}
+    octave:3> nc{'node.struct.1000.X'}(10, 3)
+\end{verbatim}
+So, for example, the $z$ position of node 1000 can be plot with 
+\begin{verbatim}
+    octave:4> plot(nc{'run.time'}(:), nc{'node.struct.1000.X'}(:,3))
+\end{verbatim}
 
