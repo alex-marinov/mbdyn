@@ -157,7 +157,6 @@ user@host:~>
 \caption{Predefined variables in math parser}
 \end{figure}
 
-\noindent
 The variable \kw{Time} is declared, defined and initialized\footnote{
     A variable is \kw{declared} when its name enters the namespace;
     it is \kw{defined} when it can be referenced;
@@ -165,7 +164,6 @@ The variable \kw{Time} is declared, defined and initialized\footnote{
 } from the beginning of the control data section, and during the solution 
 phase it is assigned the value of the current time. 
 
-\noindent
 Table~\ref{tab:MATHP-OPERATORS} shows the supported mathematical 
 operators, while Table~\ref{tab:MATHP-FUNCTIONS} shows the built-in
 mathematical functions.
@@ -588,7 +586,6 @@ For example, the identity matrix can be defined as:
     is parallel to \kw{0.,1.,0.}, which represents direction 2
     in the global frame.
 
-    \noindent
     The second example describes a rotation of $ \pi/6 $ radian about
     global direction 3: direction 1 in the local frame results from 
     composing \kw{cos(pi/6.)} in global direction 1 and \kw{sin(pi/6.)}
@@ -1216,7 +1213,6 @@ the value of the \kw{dof drive} is represented by the
 value of the subordinate \kw{drive} when evaluated as a function
 of that specific degree of freedom at the desired time.
 
-\noindent
 The family of the \kw{DriveCaller} object is very large, 
 and should require a dedicated chapter.
 The type of the \kw{DriveCaller} is declared as follows:
@@ -1261,7 +1257,7 @@ value.
 \end{verbatim}
 Yields the current time; the arglist is empty.
   
-\subsection{Linear drive}
+\subsection{Linear drive}\label{sec:DRIVES:LINEAR}
 \begin{verbatim}
     <drive_caller> ::= linear ,
         <const_coef> ,
@@ -1617,7 +1613,6 @@ where it assumes unit value.
 the first optional entry, preceded by the keyword \kw{steps}, sets the
 number of steps between spikes.
 
-\noindent
 Example:
 \begin{verbatim}
     ..., meter, 0., forever, steps, 10, ...
@@ -1660,11 +1655,10 @@ in case the drive is called with an explicit argument as, for instance,
 in the \hyperref{dof drive}{dof drive (see Section~}{)}{sec:DRIVE-DOF};
 e.g.:
 \begin{verbatim}
-    string, "e^(-Time)*cos(2.*pi*Time)"
+    ..., string, "e^(-Time)*cos(2.*pi*Time)" ...
 \end{verbatim}
 generates a cosine modulated by an exponential.
 
-\noindent
 \emph{Note: currently, the expression is parsed each time it is evaluated;
 this is not very efficient.
 A future version should build a tree-like form of the
@@ -1688,15 +1682,15 @@ This can be used as a sort of explicit feedback, to implement fancy
 springs (where a force is driven through a function by the displacement
 of the node it is applied to) or an active control system; e.g.:
 \begin{verbatim}
-    dof, 1000, structural, 3, algebraic, 
-        linear, 0., 1.
+    ..., dof, 1000, structural, 3, algebraic, 
+        linear, 0., 1. ...
 \end{verbatim}
 uses the value of the third component (z) of structural node 1000 
 as is (that is, in a linear expression with null constant coefficient 
 and unit linear coefficient, while
 \begin{verbatim}
-    dof, 1000, abstract, differential, 
-        string, "2.*exp(-100.*Var)"
+    ..., dof, 1000, abstract, differential, 
+        string, "2.*exp(-100.*Var)" ...
 \end{verbatim}
 uses the value of the derivative of abstract node 1000 in computing 
 a string expression.
@@ -1704,13 +1698,11 @@ Refer to the description of a
 \hyperref{\kw{node\_dof}}{\kw{node\_dof} (see Section~}{)}{sec:NODEDOF}
 entry for further details.
 
-\noindent
 The same effect can be obtained using the \kw{dof} plugin as follows:
 \begin{verbatim}
     set: [dof,x,1000,structural,1,algebraic];
     # ...
-    couple: 1, conservative, 1, 0.,0.,1.,
-        string, "2.*exp(-100.*x)";
+        ..., string, "2.*exp(-100.*x)" ...
 \end{verbatim}
 which applies a couple whose amplitude is computed by evaluating
 a \kw{string} drive which depends on variable $x$; this, in turn,
@@ -1741,15 +1733,18 @@ This can be used as a sort of explicit feedback, to implement fancy
 springs (where a force is driven through a function by the rotation
 of a joint) or an active control system; e.g.:
 \begin{verbatim}
-    node, 1000, structural, string, "X[3]",
-        linear, 0., 1.
+    ..., node, 1000, structural, string, "X[3]",
+        linear, 0., 1. ...
 \end{verbatim}
-uses the value of the displacement in direction $z$ of a structural node
+uses the value of the displacement in direction $z$ (3) of a
+\hyperref{\kw{structural node}}{\kw{structural node}, Section~}{}{sec:NODE:STRUCTURAL:PRIV},
 as is (that is, in a linear expression with null constant coefficient 
-and unit linear coefficient, while
+and unit linear coefficient, see the 
+\hyperref{\kw{linear} drive}{\kw{linear} drive, Section~}{}{sec:DRIVES:LINEAR}),
+while
 \begin{verbatim}
-    node, 1000, structural, index, 3,
-        string, "2.*exp(-100.*Var)"
+    ..., node, 1000, structural, index, 3,
+        string, "2.*exp(-100.*Var)" ...
 \end{verbatim}
 uses the same value, addressed in an alternative manner, in computing
 a string expression.
@@ -1791,7 +1786,6 @@ and unit linear coefficient, while
 uses the same value, addressed in an alternative manner, in computing
 a string expression.
 
-\noindent
 The same effect can be obtained using the \kw{element} plugin as follows:
 \begin{verbatim}
     set: [element,x,1000,joint,string=rz];
@@ -1820,7 +1814,6 @@ Note that the very same thing occurs, for instance, in the
 or of the element's private datum, respectively, are fed 
 into the given drive.
 
-\noindent
 Example:
 \begin{verbatim}
     force: 1, abstract,
@@ -1938,7 +1931,6 @@ If \kw{num\_template\_drive\_callers} is exactly 1, only a single
 template drive caller is actually constructed, thus avoiding the overhead 
 related to the handling of the drive caller array.    
 
-\noindent
 Also the \kw{template drive} can be re-parsed; in this case, the syntax
 of the \kw{hint} is:
 \begin{verbatim}
@@ -2087,7 +2079,6 @@ use 1D constitutive laws to express an arbitrary dependence
 of some value on a scalar state of the system.
 Table~\ref{tab:CONST-LAW-DIM} shows the availability of each constitutive law.
 
-\noindent
 Usually, constitutive laws can be directly defined when required,
 according to the definition of an element.
 However, the special card described in Section~\ref{sec:CONSTITUTIVE-LAW}
@@ -2151,7 +2142,6 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
     \end{tabular}
 \end{table}
 
-\noindent 
 The constitutive laws are entered as follows:
 \begin{verbatim}
     <constitutive_law_definition> ::= <specific_const_law>
@@ -3052,7 +3042,6 @@ a portable way to exploit filesystem access permissions is to put
 the socket in a dedicated directory, and use the permissions
 of the directory to control access to the socket.
 
-\noindent
 Available methods are:
 \subsection{No authentication}
 \begin{verbatim}
@@ -3097,7 +3086,6 @@ package, try for instance
 \htmladdnormallink{\kw{http://www.kernel.org/pub/linux/libs/pam/\ }}\
 for details.
 
-\noindent
 An example is provided with the package, in  \kw{/etc/pam.d/mbdyn}:
 \begin{verbatim}
     ### use either of the following:
