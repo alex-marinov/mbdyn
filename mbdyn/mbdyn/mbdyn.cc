@@ -3,7 +3,7 @@
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2007
+ * Copyright (C) 1996-2008
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -28,7 +28,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-/* Copyright 2007 Marco Morandini */
+/* Copyright 2008 Marco Morandini */
 
 /* Driver del programma */
 
@@ -211,7 +211,7 @@ mbdyn_welcome(void)
 		<< "compiled on " << __DATE__
 			<< " at " << __TIME__ << std::endl
 		<< std::endl
-		<< "Copyright 1996-2007 (C) Paolo Mantegazza "
+		<< "Copyright 1996-2008 (C) Paolo Mantegazza "
 			"and Pierangelo Masarati," << std::endl
 		<< "Dipartimento di Ingegneria Aerospaziale "
 			"<http://www.aero.polimi.it/>" << std::endl

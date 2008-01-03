@@ -3,7 +3,7 @@
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2007
+ * Copyright (C) 1996-2008
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -31,7 +31,7 @@
  
  /* 
   *
-  * Copyright (C) 2007
+  * Copyright (C) 2008
   * Alessandro Fumagalli	<alessandro.fumagalli@polimi.it>
   *
   * Handler of inverse dynamics problem:
