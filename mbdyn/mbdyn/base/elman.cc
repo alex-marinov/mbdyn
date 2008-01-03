@@ -530,7 +530,7 @@ DataManager::ElemOutputPrepare(OutputHandler& OH)
 	}
 #endif // USE_NETCDF
 
-	Elem* pTmpEl = NULL;
+	Elem* pTmpEl = 0;
 	if (ElemIter.bGetFirst(pTmpEl)) {
 		do {
 			pTmpEl->OutputPrepare(OH);
