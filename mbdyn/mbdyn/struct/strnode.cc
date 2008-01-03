@@ -403,7 +403,6 @@ StructNode::OutputPrepare(OutputHandler &OH)
 				break;
 			}
 
-			Var_Type->put(type, strlen(type));
 			if (!Var_Type->add_att("type", type)) {
 				throw ErrGeneric();
 			}
