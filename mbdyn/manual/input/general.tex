@@ -1472,13 +1472,13 @@ Special keywords can be used for \kw{number\_of\_cycles}:
 where \kw{angular\_velocity} is $2\pi/T$.
 This drive actually computes a function of the type
 \begin{displaymath}
-	\mathtt{amplitude} * \plbr{
+	f\plbr{t} = \mathtt{initial\_value} + \mathtt{amplitude} * \plbr{
 		1 - \llk{cos}\plbr{
 			\mathtt{angular\_velocity} * \plbr{
 				t - \mathtt{initial\_time}
 			}
 		}
-	} + \mathtt{initial\_value} .
+	} .
 \end{displaymath}
 The value of \kw{number\_of\_cycles} determines the behavior of the
 drive. 
@@ -1517,11 +1517,11 @@ Special keywords can be used for \kw{number\_of\_cycles}:
 \end{verbatim}
 This drive computes a function of the type
 \begin{displaymath}
-	\mathtt{amplitude} *\llk{tanh}\plbr{
+	f\plbr{t} = \mathtt{initial\_value} + \mathtt{amplitude} *\llk{tanh}\plbr{
 			\mathtt{slope} * \plbr{
 				t - \mathtt{initial\_time}
 			}
-		} + \mathtt{initial\_value} .
+		} .
 \end{displaymath}
 It is differentiable.
 
