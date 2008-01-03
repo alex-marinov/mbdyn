@@ -99,9 +99,10 @@ The block sequence is:
     end: elements;
 \end{verbatim}
 The \kw{drivers} block is optional.
+
 The Schur solver allows an extra block after that of the elements:
 \begin{verbatim}
-    # note: optional
+    # note: optional; only allowed when Schur solver is used
     begin: parallel;
         # parallel data
     end: parallel;
