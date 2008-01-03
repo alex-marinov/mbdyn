@@ -248,7 +248,7 @@ AerodynamicExternal::AssRes(SubVectorHandler& WorkVec,
 	for (int i=0; i < NodeN; i++) {
 		integer iFirstIndex = ppNode[i]->iGetFirstMomentumIndex();
    		for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      			WorkVec.PutRowIndex(i*6+iCnt, iFirstIndex+iCnt);
+      			WorkVec.PutRowIndex(i*6 + iCnt, iFirstIndex + iCnt);
    		}
 	}
 		
@@ -550,18 +550,22 @@ AerodynamicExternalModal::AssRes(SubVectorHandler& WorkVec,
 	       			const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUTFNAME("AerodynamicExternalModal::AssRes");
-	if(!SentFlag) Send(XCurr, XPrimeCurr);
+	if (!SentFlag) {
+		Send(XCurr, XPrimeCurr);
+	}
    	integer NModes = pModal->uGetNModes();
 	WorkVec.ResizeReset(NModes);
 
 	
-	integer iFirstIndex = pModal->iGetFirstIndex();
-	for (int iCnt=0; iCnt < NModes; iCnt++) {
-      		WorkVec.PutRowIndex(iCnt, iFirstIndex+NModes+iCnt);
+	integer iFirstIndex = pModal->iGetFirstIndex() + NModes;
+	for (int iCnt = 0; iCnt < NModes; iCnt++) {
+      		WorkVec.PutRowIndex(iCnt, iFirstIndex + iCnt);
 	}
 		
-	pInterfComm->Recv(pdBuffer->pdGetVec(), 3*ModalNodes, MPI::DOUBLE, 0,(this->GetLabel())*10+4);
-	if (MomFlag) pInterfComm->Recv(pdBufferVel->pdGetVec(), 3*ModalNodes, MPI::DOUBLE, 0,(this->GetLabel())*10+5);
+	pInterfComm->Recv(pdBuffer->pdGetVec(), 3*ModalNodes, MPI::DOUBLE, 0, GetLabel()*10 + 4);
+	if (MomFlag) {
+		pInterfComm->Recv(pdBufferVel->pdGetVec(), 3*ModalNodes, MPI::DOUBLE, 0, GetLabel()*10 + 5);
+	}
 	
 	/* calcola le forze su ciascun nodo 
 	 * le forze e i momenti sono espressi nel sistema di riferimento global 
@@ -571,26 +575,30 @@ AerodynamicExternalModal::AssRes(SubVectorHandler& WorkVec,
 		
 	Vec3 F(0.);
 	Vec3 M(0.);
-	Mat3x3 R((pModal->pGetModalNode())->GetRCurr());
-	Mat3x3 RT = R.Transpose();
+	Mat3x3 RT(pModal->pGetModalNode()->GetRCurr().Transpose());
 
-	for (int iNode=0; iNode < ModalNodes; iNode++) {
-		F[0] +=  pdBuffer->dGetCoef(iNode*(ModalNodes)*3+1);
-		F[1] +=  pdBuffer->dGetCoef(iNode*(ModalNodes)*3+2);
-		F[2] +=  pdBuffer->dGetCoef(iNode*(ModalNodes)*3+3);
+#warning "FIXME: review"
+	for (int iNode = 0; iNode < ModalNodes; iNode++) {
+		F[0] +=  pdBuffer->dGetCoef(iNode*ModalNodes*3 + 1);
+		F[1] +=  pdBuffer->dGetCoef(iNode*ModalNodes*3 + 2);
+		F[2] +=  pdBuffer->dGetCoef(iNode*ModalNodes*3 + 3);
 		if (MomFlag) {
-			M[0] +=  pdBufferVel->dGetCoef(iNode*(ModalNodes)*3+1);
-			M[1] +=  pdBufferVel->dGetCoef(iNode*(ModalNodes)*3+2);
-			M[2] +=  pdBufferVel->dGetCoef(iNode*(ModalNodes)*3+3);
+			M[0] +=  pdBufferVel->dGetCoef(iNode*ModalNodes*3 + 1);
+			M[1] +=  pdBufferVel->dGetCoef(iNode*ModalNodes*3 + 2);
+			M[2] +=  pdBufferVel->dGetCoef(iNode*ModalNodes*3 + 3);
 		}
-		for (int iMode=0; iMode < NModes; iMode++) {
-			WorkVec.Add(iMode+1, RT*F*(pModal->pGetPHIt().GetVec(iMode*ModalNodes+iNode+1)));
-			if (MomFlag) WorkVec.Add(iMode+1, RT*M*(pModal->pGetPHIr().GetVec(iMode*ModalNodes+iNode+1)));
+		for (int iMode = 0; iMode < NModes; iMode++) {
+			WorkVec.Add(iMode + 1, RT*F*(pModal->pGetPHIt().GetVec(iMode*ModalNodes + iNode + 1)));
+			if (MomFlag) {
+				WorkVec.Add(iMode + 1, RT*M*(pModal->pGetPHIr().GetVec(iMode*ModalNodes + iNode + 1)));
+			}
 		}	
 	}
+
 	if (fToBeOutput()) {
 		*pForce = WorkVec;
 	}
+
 	SentFlag = false; 
 	return WorkVec;			
 }
@@ -603,7 +611,7 @@ AerodynamicExternalModal::Output(OutputHandler& OH) const
 		std::ostream& out = OH.Externals()
                         << std::setw(8) << -1*GetLabel();
 		int size = pForce->iGetSize();
-		for (int i=0; i < size; i++) {
+		for (int i = 0; i < size; i++) {
 			out << std::setw(8) 
 				<< " " << pForce->dGetCoef(i+1) << std::endl;
 		}
