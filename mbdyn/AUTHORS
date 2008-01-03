@@ -110,6 +110,9 @@ Patrick Rix, as an independent user, is contributing to the NetCDF
 Alessandro Fumagalli, as Ph.D. student, is working on different 
 	formulation and implementation aspects related to robotics.
 
+Luca Cavagna, as Ph.D. student, is working at interfacing MBDyn
+	with external CFD solvers (FOI's EDGE right now)
+
 Other undergrads might have had a role in the F77 version of the code, 
 that I'm not aware of.
 
