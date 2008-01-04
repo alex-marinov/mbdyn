@@ -40,7 +40,7 @@ extern "C" {
 #include "ac/pthread.h"
 
 #ifdef USE_MPI
-#include <mpi++.h>
+#include "ac/mpi.h"
 #endif /* USE_MPI */
 
 #include <aerodyn.h>

@@ -33,7 +33,7 @@
 #define MBCOMM_H
 
 #ifdef USE_MPI
-#include <mpi++.h>
+#include "ac/mpi.h"
 extern MPI::Intracomm MBDynComm;
 #endif /* USE_MPI */
 

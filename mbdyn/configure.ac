@@ -1711,32 +1711,45 @@ dnl
 ol_link_mpi=no
 if test $ol_with_mpi != no ; then
 	dnl OL_ADD_DIRS(mpi)
-	AC_CHECK_HEADER(mpi.h)
+	AC_CHECK_HEADERS(mpi.h)
 	AC_LANG_CPLUSPLUS
-	AC_CHECK_HEADER(mpi++.h)
+	AC_CHECK_HEADERS(mpi++.h)
+	AC_CHECK_HEADERS(mpicxx.h)
 	AC_LANG_C
+
+	have_mpi_cxx_header=no
+	if test $ac_cv_header_mpipp_h = yes ; then
+		dnl mpich
+		have_mpi_cxx_header=yes
+		mpi_cxx_header="mpi++.h"
+		if test "$ol_with_mpi" = "pmpi" ; then
+        		try_mpi_LIBS="-lpmpich++ -lmpich -lpmpich -lnsl"
+		else
+        		try_mpi_LIBS="-lmpich++ -lmpich -lnsl"
+		fi
+	elif test $ac_cv_header_mpicxx_h = yes ; then
+		dnl openmpi
+		have_mpi_cxx_header=yes
+		mpi_cxx_header="mpicxx.h"
+		try_mpi_LIBS="-lmpi -lmpi_cxx"
+	fi
 	
-	if test $ac_cv_header_mpi_h = yes -a $ac_cv_header_mpipp_h = yes ; then
+	if test $ac_cv_header_mpi_h = yes -a $have_mpi_cxx_header = yes ; then
 		AC_MSG_CHECKING([for mpi libraries])
 		AC_LANG_CPLUSPLUS
 		try_mpi_LIBS=
 		save_LIBS=$LIBS
  		AC_TRY_LINK([
-#include <mpi++.h>
+#include <$mpi_cxx_header>
 		],[
  	int argc = 0;
  	char **argv = 0;
  	MPI::Init(argc, argv);
  		],[have_mpi=yes],[have_mpi=no])
                 if test $have_mpi = no ; then
-			if test "$ol_with_mpi" = "pmpi" ; then
-        			try_mpi_LIBS="-lpmpich++ -lmpich -lpmpich -lnsl"
-			else
-        			try_mpi_LIBS="-lmpich++ -lmpich -lnsl"
-			fi
 		        LIBS="$LIBS $try_mpi_LIBS"
 		        AC_TRY_LINK([
-#include <mpi++.h>
+#include <mpi_cxx_header>
 			],[
 	int argc = 0;
 	char **argv = 0;

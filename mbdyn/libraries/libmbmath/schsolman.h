@@ -44,7 +44,7 @@
 #include "except.h"
 #include "solman.h"
 #ifdef USE_MPI
-#include <mpi++.h>
+#include "ac/mpi.h"
 #endif /* USE_MPI */
 #include "schurmh.h"
 

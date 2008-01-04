@@ -37,8 +37,8 @@
 #define AEROEXT_H
 
 #ifdef USE_EXTERNAL
-#include"aerodyn.h"
-#include<mpi++.h>
+#include "aerodyn.h"
+#include "ac/mpi.h"
 
 #include "myassert.h"
 #include "except.h"

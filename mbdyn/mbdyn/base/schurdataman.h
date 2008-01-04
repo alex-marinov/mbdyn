@@ -51,7 +51,7 @@
 #include <mbpar.h>
 
 #ifdef USE_MPI
-#include <mpi++.h>
+#include "ac/mpi.h"
 #endif /* USE_MPI */
 class Solver;
 
