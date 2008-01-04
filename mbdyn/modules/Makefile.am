@@ -122,7 +122,12 @@ module-constlaw-f90/usrsub.f90 \
 module-constlaw-f90/usrsub.h \
 module-drive/module-drive.cc \
 module-drive/README \
+module-scalarfunc/module-scalarfunc.cc \
+module-scalarfunc/README \
 module-template/module-template.cc \
-module-wheel2/module-wheel2.cc
+module-wheel2/module-wheel2.cc \
+module-udunits/Makefile.inc \
+module-udunits/module-udunits.cc \
+module-udunits/README
 
 include $(top_srcdir)/build/bot.mk
