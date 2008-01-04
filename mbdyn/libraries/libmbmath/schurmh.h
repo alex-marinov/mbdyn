@@ -68,12 +68,12 @@ protected:
 	 * per permetterne la distizione */
 	integer* pGTL;
 
-	bool extpdE;
+	bool bExtpdE;
 
 public:
  	SchurMatrixHandler(int LocSize, int IntSize,
    			MatrixHandler* pBM,
-   			integer* pGlobToLoc, doublereal* pdEv = NULL);
+   			integer* pGlobToLoc, doublereal* pdEv = 0);
 
 	virtual ~SchurMatrixHandler(void);
 
@@ -504,6 +504,7 @@ private:
 	integer LSize, ISize;
 	VectorHandler* pLV;
 	VectorHandler* pIV;
+	bool bExtpIV;
 	integer* pGTL;
 
 public:

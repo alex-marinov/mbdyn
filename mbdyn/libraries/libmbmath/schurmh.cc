@@ -86,15 +86,15 @@ SchurMatrixHandler::SchurMatrixHandler(int LocSize, int IntSize,
 : LSize(LocSize),
 ISize(IntSize),
 pB(pBM),
-pE(NULL),
-pdE(NULL),
-pF(NULL),
-pC(NULL),
-pdC(NULL),
+pE(0),
+pdE(0),
+pF(0),
+pC(0),
+pdC(0),
 pGTL(pGlobToLoc),
-extpdE(pdEv == NULL ? true : false)
+bExtpdE(pdEv != 0 ? true : false)
 {
-	if (extpdE) {
+	if (!bExtpdE) {
 		SAFENEWARR(pdE, doublereal, LSize*ISize);
 		pdEv = pdE;
 	}
@@ -117,21 +117,19 @@ extpdE(pdEv == NULL ? true : false)
 
 SchurMatrixHandler::~SchurMatrixHandler(void)
 {
-	if (pE != NULL) {
+	if (pE != 0) {
 		SAFEDELETE(pE);
 	}
-	if (pC != NULL) {
+	if (pC != 0) {
 		SAFEDELETE(pC);
 	}
-	if (pF != NULL) {
+	if (pF != 0) {
 		SAFEDELETE(pF);
 	}
-	if (extpdE) {
-		if (pdE != NULL) {
-			SAFEDELETEARR(pdE);
-		}
+	if (!bExtpdE && pdE != 0) {
+		SAFEDELETEARR(pdE);
 	}
-	if (pdC != NULL) {
+	if (pdC != 0) {
 		SAFEDELETEARR(pdC);
 	}
 }
@@ -143,11 +141,11 @@ SchurMatrixHandler::IsValid(void) const
 {
 	ASSERT(LSize >0);
 	ASSERT(ISize >0);
-	ASSERT(pB != NULL);
-	ASSERT(pE != NULL);
-	ASSERT(pF != NULL);
-	ASSERT(pC != NULL);
-	ASSERT(pGTL != NULL);
+	ASSERT(pB != 0);
+	ASSERT(pE != 0);
+	ASSERT(pF != 0);
+	ASSERT(pC != 0);
+	ASSERT(pGTL != 0);
 }
 #endif /* DEBUG */
 
@@ -168,7 +166,8 @@ SchurVectorHandler::SchurVectorHandler(int LocSize, int IntSize,
 : LSize(LocSize),
 ISize(IntSize),
 pLV(pLocVec),
-pIV(NULL),
+pIV(0),
+bExtpIV(false),
 pGTL(pGlobToLoc)
 {
 	SAFENEWWITHCONSTRUCTOR(pIV,
@@ -183,6 +182,7 @@ SchurVectorHandler::SchurVectorHandler(int LocSize, int IntSize,
 ISize(IntSize),
 pLV(pLocV),
 pIV(pIntV),
+bExtpIV(pIntV != 0 ? true : false),
 pGTL(pGlobToLoc)
 {
 	NO_OP;
@@ -191,7 +191,7 @@ pGTL(pGlobToLoc)
 
 SchurVectorHandler::~SchurVectorHandler(void)
 {
-	if (pIV != NULL) {
+	if (!bExtpIV && pIV != 0) {
 		SAFEDELETE(pIV);
 	}
 }
@@ -213,9 +213,9 @@ SchurVectorHandler::IsValid(void) const
 SchurMatrixHandlerUm::SchurMatrixHandlerUm(int LocSize, int IntSize,
 		MatrixHandler* pBM,
 		integer* pGlobToLoc)
-: SchurMatrixHandler(LocSize, IntSize, pBM, pGlobToLoc, NULL),
-pdEs(NULL),
-pEs(NULL),
+: SchurMatrixHandler(LocSize, IntSize, pBM, pGlobToLoc, 0),
+pdEs(0),
+pEs(0),
 Eflag(1)
 {
 	SAFENEWARR(pdEs, doublereal, LSize*(ISize + 1));
@@ -228,11 +228,11 @@ Eflag(1)
 
 SchurMatrixHandlerUm::~SchurMatrixHandlerUm(void)
 {
-	if (pE != NULL) {
+	if (pE != 0) {
 		SAFEDELETE(pE);
 	}
 
-	if (pdEs != NULL) {
+	if (pdEs != 0) {
 		SAFEDELETEARR(pdEs);
 	}
 
