@@ -40,10 +40,9 @@ module_aerodyn_t *module_aerodyn = NULL;
 /* default funcs */
 static void *
 read(
-		LoadableElem* pEl,
+		LoadableElem *pEl,
 		DataManager* pDM,
-		MBDynParser& HP,
-		const DriveHandler* pDH
+		MBDynParser& HP
 )
 {
 	DEBUGCOUTFNAME("read");
@@ -253,7 +252,7 @@ i_get_num_connected_nodes(const LoadableElem* pEl)
 
 static void
 get_connected_nodes(const LoadableElem* pEl, 
-		int& NumNodes, Node::Type* NdTyp, unsigned int* NdLabels)
+		std::vector<const Node *>& connectedNodes)
 {
 	DEBUGCOUTFNAME("get_connected_nodes");
 
@@ -264,7 +263,7 @@ get_connected_nodes(const LoadableElem* pEl,
 	/*
 	 * set args according to element connections
 	 */
-	NumNodes = i_get_num_connected_nodes(pEl);
+	connectedNodes.resize(i_get_num_connected_nodes(pEl));
 }
 
 static struct

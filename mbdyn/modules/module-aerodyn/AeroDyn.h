@@ -23,7 +23,21 @@
 #ifndef AERO_DYN_H
 #define AERO_DYN_H
 
-/* 
+/*
+ * NOTE to gfortran users:
+ *
+ * - get AeroDyn 12.58
+ * - apply patch aerodyn-12.58-mbdyn.patch
+ * - run
+	gfortran -O -c *.f90
+	ar ru libAeroDyn.a *.o
+ * - place libAeroDyn.a where the linker can find it,
+ *   or tweak Makefile.inc as appropriate
+ */
+
+/*
+ * NOTE to icc users:
+ *
  * compile f90 files with
 
 	ifc -r8
