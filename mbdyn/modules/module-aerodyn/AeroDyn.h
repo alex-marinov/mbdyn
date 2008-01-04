@@ -94,35 +94,44 @@ typedef long int F_INTEGER;
 /*
  * AeroDyn initialization; must be called as early as possible.
  */
-int __FC_DECL__(adinputgate)(void);
+extern int
+__FC_DECL__(ad_inputgate)(F_CHAR *input_file);
+extern int
+__FC_DECL__(adinputgate)(void);
 
 /*
  * Returns the force and moment for a given element.
  */
-int __FC_DECL__(aerofrcintrface)(F_LOGICAL *FirstLoop, F_INTEGER *JElem,
+extern int
+__FC_DECL__(aerofrcintrface)(F_LOGICAL *FirstLoop, F_INTEGER *JElem,
 		F_REAL *DFN, F_REAL *DFT, F_REAL *PMA);
 
 /*
  * Rotor parameters - called once per time step.
  */
-int __FC_DECL__(getrotorparams)(F_REAL *Omega, F_REAL *gamma, F_REAL *VHUB,
+extern int
+__FC_DECL__(getrotorparams)(F_REAL *Omega, F_REAL *gamma, F_REAL *VHUB,
 		F_REAL *tau);
 
 /*
  * Blade parameters - called once for each blade at each time step.
  */
-int __FC_DECL__(getbladeparams)(F_REAL *psi);
+extern int
+__FC_DECL__(getbladeparams)(F_REAL *psi);
 
 /*
  * Element parameters - called once for each element at each time step.
  */
-int __FC_DECL__(getelemparams)(F_INTEGER *MulTabLoc, F_REAL *phi,
+extern int
+__FC_DECL__(getelemparams)(F_INTEGER *MulTabLoc, F_REAL *phi,
 		F_REAL *radius,
 		F_REAL *XGRND, F_REAL *YGRND, F_REAL *ZGRND);
+
 /*
  * Compute VT, VN{W,E} based on VX, VY, VZ of the wind.
  */
-int __FC_DECL__(getvnvt)(F_REAL *VX, F_REAL *VY, F_REAL *VZ,
+extern int
+__FC_DECL__(getvnvt)(F_REAL *VX, F_REAL *VY, F_REAL *VZ,
 		F_REAL *VT, F_REAL *VNW, F_REAL *VNE);
 
 /*
@@ -131,13 +140,21 @@ int __FC_DECL__(getvnvt)(F_REAL *VX, F_REAL *VY, F_REAL *VZ,
  * FIXME: the "msg" and "level" arrays should be reset by the caller
  * before writing the message, otherwise they're not '\0' terminated
  */
-int __FC_DECL__(usrmes)(F_LOGICAL *Logical, F_CHAR msg[],
+extern int
+__FC_DECL__(usrmes)(F_LOGICAL *Logical, F_CHAR msg[],
 		F_INTEGER *code, F_CHAR level[]);
 
 /*
  * self explanatory :)
  */
-int __FC_DECL__(abort)(void);
+extern int
+__FC_DECL__(ad_abort)(void);
+
+/*
+ * MBDyn stuff initialization
+ */
+extern int
+__FC_DECL__(mbdyn_init)(F_CHAR *Version, F_INTEGER *nblades);
 
 #ifdef __cplusplus
 }

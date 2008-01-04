@@ -35,6 +35,76 @@
 #include "loadable.h"
 #include "module-aerodyn.h"
 
+// Called by AeroDyn
+
+/*
+ * Rotor parameters - called once per time step.
+ */
+int
+__FC_DECL__(getrotorparams)(
+	F_REAL *Omega,
+	F_REAL *gamma,
+	F_REAL *VHUB,
+	F_REAL *tau)
+{
+	return 0;
+}
+
+/*
+ * Blade parameters - called once for each blade at each time step.
+ */
+int
+__FC_DECL__(getbladeparams)(F_REAL *psi)
+{
+	return 0;
+}
+
+/*
+ * Element parameters - called once for each element at each time step.
+ */
+int
+__FC_DECL__(getelemparams)(
+	F_INTEGER *MulTabLoc,
+	F_REAL *phi,
+	F_REAL *radius,
+	F_REAL *XGRND,
+	F_REAL *YGRND,
+	F_REAL *ZGRND)
+{
+	return 0;
+}
+
+/*
+ * Compute VT, VN{W,E} based on VX, VY, VZ of the wind.
+ */
+int
+__FC_DECL__(getvnvt)(
+	F_REAL *VX,
+	F_REAL *VY,
+	F_REAL *VZ,
+	F_REAL *VT,
+	F_REAL *VNW,
+	F_REAL *VNE)
+{
+	return 0;
+}
+
+/*
+ * Write an error message to the appropriate stream
+ *
+ * FIXME: the "msg" and "level" arrays should be reset by the caller
+ * before writing the message, otherwise they're not '\0' terminated
+ */
+int
+__FC_DECL__(usrmes)(
+	F_LOGICAL *Logical,
+	F_CHAR msg[],
+	F_INTEGER *code,
+	F_CHAR level[])
+{
+	return 0;
+}
+
 module_aerodyn_t *module_aerodyn = NULL;
 
 /* default funcs */
@@ -64,7 +134,13 @@ read(
 	 */
 	if (HP.IsKeyWord("help")) {
 		/* NOTE: add help message */
-		silent_cout("Module: AeroDyn" << std::endl);
+		silent_cout(
+"Module: AeroDyn" << std::endl
+<< std::endl
+<< "This is the MBDyn interface to AeroDyn, the aerodynamic routines" << std::endl
+<< "developed by NREL <http://ww.nrel.gov/> to model the aerodynamic" << std::endl
+<< "forces acting on wind turbines" << std::endl
+);
 	}
 
 	/* hub node */
@@ -86,7 +162,56 @@ read(
 	 *
 	 * FIXME: does it return an error code?
 	 */
-	__FC_DECL__(adinputgate)();
+	char Version[26];
+	snprintf(Version, sizeof(Version), "(%s)", VERSION);
+	for (unsigned i = strlen(Version); i < sizeof(Version); i++) {
+		Version[i] = ' ';
+	}
+
+	// number of blades
+	F_INTEGER NBlades = HP.GetInt();
+	if (NBlades <= 0) {
+		silent_cerr("Aerodyn(" << pEl->GetLabel() << "): "
+			"invalid number of blades " << NBlades
+			<< " at line " << HP.GetLineData()
+			<< std::endl);
+		throw ErrGeneric();
+	}
+
+	__FC_DECL__(mbdyn_init)(Version, &NBlades);
+
+#if 0
+	// does not work as expected...
+	const char *tmp = HP.GetStringWithDelims();
+	if (tmp == 0) {
+		silent_cerr("unable to get input file "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric();
+	}
+
+	char input_file[80];
+	if (strlen(tmp) >= sizeof(input_file)) {
+		silent_cerr("Aerodyn(" << pEl->GetLabel() << "): "
+			"file name \"" << tmp << "\" too long "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric();
+	}
+
+	strncpy(input_file, tmp, sizeof(input_file));
+	for (unsigned i = strlen(input_file); i < sizeof(input_file); i++) {
+		input_file[i] = ' ';
+	}
+	int rc = __FC_DECL__(ad_inputgate)(input_file);
+#else
+	// the input file name must be "aerodyn.ipt"
+	int rc = __FC_DECL__(adinputgate)();
+#endif
+	if (rc != 0) {
+		silent_cerr("Aerodyn(" << pEl->GetLabel() << "): "
+			"initialization failed "
+			"(err=" << rc << ")" << std::endl);
+		throw ErrGeneric();
+	}
 
 	::module_aerodyn = p;
 
@@ -268,7 +393,7 @@ get_connected_nodes(const LoadableElem* pEl,
 
 static struct
 LoadableCalls lc = {
-	LOADABLE_VERSION_SET(1, 2, 0),
+	LOADABLE_VERSION_SET(1, 5, 0),
 
 	"AeroDyn",
 	"1.1",

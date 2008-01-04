@@ -1,5 +1,5 @@
 ## $Header$
-MODULE_DEPENDENCIES=
-# FIXME: needed to link objects compiled with Intel ifc
-#MODULE_LINK=-L /opt/intel/ia32/lib/ -lF90 -lIEPCF90 -lintrins -L. -lAeroDyn
+MODULE_DEPENDENCIES=mbdyn_ad.f90
 MODULE_LINK=-L. -lAeroDyn
+# FIXME: needed to link objects compiled with Intel ifc
+#MODULE_LINK=-L/opt/intel/ia32/lib/ -lF90 -lIEPCF90 -lintrins $(MODULE_LINK)
