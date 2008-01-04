@@ -73,7 +73,7 @@ SchurMatrixHandler::SetBMat(MatrixHandler* pBM)
 	pB = pBM;
 }
 
-/* Restituisce il puntatore alla alla matrice C
+/* Restituisce il puntatore alla matrice C
  * che e' un vettore doublereal contenente le righe in successione */
 doublereal*
 SchurMatrixHandler::GetCMat(void)
@@ -94,7 +94,7 @@ pdC(NULL),
 pGTL(pGlobToLoc),
 extpdE(pdEv == NULL ? true : false)
 {
-	if (pdEv == NULL) {
+	if (extpdE) {
 		SAFENEWARR(pdE, doublereal, LSize*ISize);
 		pdEv = pdE;
 	}
@@ -231,9 +231,12 @@ SchurMatrixHandlerUm::~SchurMatrixHandlerUm(void)
 	if (pE != NULL) {
 		SAFEDELETE(pE);
 	}
+
 	if (pdEs != NULL) {
 		SAFEDELETEARR(pdEs);
 	}
+
+	pdE = 0;
 }
 
 /* SchurMatrixHandlerUm - End */
