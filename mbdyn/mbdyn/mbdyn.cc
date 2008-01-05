@@ -298,6 +298,12 @@ parse_args(int argc, char *argv[], bool &using_mpi,
 }
 #endif /* USE_MPI */
 
+#ifdef HAVE_GETPID
+static pid_t pid;
+#else // ! HAVE_GETPID
+static int pid;
+#endif // ! 
+
 int
 main(int argc, char* argv[])
 {
@@ -312,6 +318,10 @@ main(int argc, char* argv[])
 		*ProcessorName = ProcessorName_;
 	int	parallel_fSilent = 0,
 		parallel_fPedantic = 0;
+
+#ifdef HAVE_GETPID
+	::pid = getpid();
+#endif // HAVE_GETPID
 
     	/* 
 	 * FIXME: this is a hack to detect whether mbdyn has been
@@ -394,10 +404,6 @@ main(int argc, char* argv[])
 #ifdef HAVE_GETOPT
         	/* Dati acquisibili da linea di comando */
         	int iIndexPtr = 0;
-
-#ifdef HAVE_NICE
-		int niceIncr = 0;
-#endif /* HAVE_NICE */
 
 		int iSleepTime = -1;
 
@@ -597,12 +603,6 @@ main(int argc, char* argv[])
 	    		}
         	} // while (true)  end of endless loop 
 
-#ifdef USE_SLEEP
-		if (iSleepTime > -1) {
-			sleep(iSleepTime);
-		}
-#endif // USE_SLEEP
-		
         	/*
 		 * primo argomento utile (potenziale nome di file di ingresso)
 		 */
@@ -611,7 +611,7 @@ main(int argc, char* argv[])
 		mbdyn_welcome();
 #ifdef USE_MPI
 		if (using_mpi) {
-        		silent_cerr("Process " << MyRank 
+        		silent_cerr("PID=" << pid << " Process #" << MyRank 
 	    			<< " (" << MyRank + 1 << " of " << WorldSize
             			<< ") is alive on " << ProcessorName
 				<< std::endl);
@@ -635,16 +635,12 @@ main(int argc, char* argv[])
 	    		throw NoErr();
         	}
 
-#ifdef HAVE_NICE
-		if (niceIncr != 0) {
-			silent_cout("setting nice(" << niceIncr << ")" 
-					<< std::endl);
-			if (nice(niceIncr)) {
-				silent_cerr("nice(" << niceIncr 
-					<< ") failed; ignored" << std::endl);
-			}
+#ifdef USE_SLEEP
+		if (iSleepTime > -1) {
+			silent_cerr("sleeping " << iSleepTime << "s" << std::endl);
+			sleep(iSleepTime);
 		}
-#endif /* HAVE_NICE */
+#endif // USE_SLEEP
 
         	/* risolve l'input */
         	if (CurrInputSource == FILE_UNKNOWN) {

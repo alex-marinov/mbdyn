@@ -93,23 +93,35 @@ NaiveSolver::Solve(void) const
 void
 NaiveSolver::Factor(void)
 {
-	int		rc;
-
-	rc = naivfct(A->ppdRows, iSize,
+	integer rc = naivfct(A->ppdRows, iSize,
 			A->piNzr, A->ppiRows, 
 			A->piNzc, A->ppiCols,
 			A->ppnonzero, 
 			&piv[0], dMinPiv);
 
-	if (rc) {
-		if (rc & ENULCOL) {
-			silent_cerr("NaiveSolver: ENULCOL("
-					<< (rc & ~ENULCOL) << ")" << std::endl);
-		} else if (rc & ENOPIV) {
-			silent_cerr("NaiveSolver: ENOPIV("
-					<< (rc & ~ENOPIV) << ")" << std::endl);
-		} else {
-			silent_cerr("NaiveSolver: (" << rc << ")" << std::endl);
+	integer err = (rc & NAIVE_MASK);
+	if (err ) {
+		integer idx = (rc & NAIVE_MAX);
+		switch (err) {
+		case NAIVE_ENULCOL:
+			silent_cerr("NaiveSolver: ENULCOL(" << idx << ")"
+				<< std::endl);
+			break;
+	
+		case NAIVE_ENOPIV:
+			silent_cerr("NaiveSolver: ENOPIV(" << idx << ")"
+				<< std::endl);
+			break;
+	
+		case NAIVE_ERANGE:
+			silent_cerr("NaiveSolver: ERANGE"
+				<< std::endl);
+			break;
+
+		default:
+			silent_cerr("NaiveSolver: (" << rc << ")"
+				<< std::endl);
+			break;
 		}
 
 		throw ErrGeneric();

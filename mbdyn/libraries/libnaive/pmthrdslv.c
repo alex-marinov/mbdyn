@@ -69,7 +69,8 @@ typedef double  doublereal;
 #define MINPIV   1.0e-8
 
 
-int pnaivfct(doublereal** a,
+integer
+pnaivfct(doublereal** a,
 	integer neq,
 	integer *nzr, integer** ri,
 	integer *nzc, integer** ci,
@@ -211,7 +212,8 @@ int pnaivfct(doublereal** a,
 	return 0;
 }
 
-void pnaivslv(doublereal** a,
+void
+pnaivslv(doublereal** a,
 		integer neq,
 		integer *nzc,
 		integer** ci, 
@@ -297,7 +299,8 @@ void pnaivslv(doublereal** a,
 	return;
 }
 
-void naivesad(doublereal** a,
+void
+naivesad(doublereal** a,
 	integer** ri,
 	integer *nzr,
 	integer** ci,
@@ -336,7 +339,8 @@ void naivesad(doublereal** a,
 	}
 }
 
-void naivepsad(doublereal** ga,
+void
+naivepsad(doublereal** ga,
 	integer** gri,
 	integer *gnzr,
 	integer** gci,

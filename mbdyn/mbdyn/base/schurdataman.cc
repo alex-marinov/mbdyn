@@ -1645,15 +1645,18 @@ SchurDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef) throw(ChangedE
 	} catch (ChangedEquationStructure) {
 		Elem *pEl = NULL;
 
-		silent_cerr("Jacobian reassembly requested by ");
 		if (MyElemIter.bGetCurr(pEl) == true) {
-			silent_cerr(psElemNames[pEl->GetElemType()]
-				<< "(" << pEl->GetLabel() << ")");
+			silent_cerr("Jacobian reassembly requested by "
+				<< psElemNames[pEl->GetElemType()]
+				<< "(" << pEl->GetLabel() << "); "
+				"currently unsupported by Schur data manager."
+				<< std::endl);
 
 		} else {
-			silent_cerr("an element");
+			silent_cerr("Jacobian reassembly requested "
+				"by an element; currently unsupported "
+				"by Schur data manager." << std::endl);
 		}
-		silent_cerr("; currently unsupported by Schur data manager." << std::endl);
 
 		throw ErrGeneric();
 	}
@@ -1846,14 +1849,6 @@ SchurDataManager::Output(bool force) const
 	if ((!force) && !pOutputMeter->dGet()) {
 		return;
 	}
-
-#if 0
-	/* Dati intestazione */
-	OutHdl.Output()
-		<< "Time: "
-		<< std::setw(16) << std::setprecision(8)
-		<< DrvHdl.dGetTime() << std::endl;
-#endif
 
 	/* Nodi */
 	for (int i = 0; i < iNumLocNodes; i++) {

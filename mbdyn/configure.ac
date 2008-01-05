@@ -2016,20 +2016,20 @@ AC_CHECK_FUNCS([ \
 	chdir \
 	copysign \
 	finite \
-	getcwd \
 	get_ncpus \
 	get_nprocs \
 	get_nprocs_conf \
+	getcwd \
 	gethostbyname \
 	gethostbyname2 \
 	getopt \
 	getopt_long \
+	getpid \
 	inet_aton \
 	localtime \
 	memset \
 	memmove \
 	mlockall \
-	nice \
 	pstat_getdynamic \
 	pstat_getprocessor \
 	putenv \

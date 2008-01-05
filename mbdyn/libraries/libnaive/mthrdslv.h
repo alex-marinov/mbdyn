@@ -67,14 +67,18 @@ enum {
 #define  PIVMETH  SPRSPIV
 /* #define  PIVMETH  FULLPIV */
 
-#define ENULCOL  0x10000000
-#define ENOPIV   0x20000000
+#define	NAIVE_MASK	(0xF0000000U)
+#define NAIVE_MAX	(~NAIVE_MASK)
+
+#define NAIVE_ENULCOL	(0x10000000U)
+#define NAIVE_ENOPIV	(0x20000000U)
+#define NAIVE_ERANGE	(0x40000000U)
 
 typedef integer** IMAT;
 typedef doublereal** RMAT;
 typedef char** NZMAT;
 
-extern int naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
+extern integer naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 		integer *nzc, IMAT ci, NZMAT nz, 
 		integer *piv, doublereal minpiv);
 

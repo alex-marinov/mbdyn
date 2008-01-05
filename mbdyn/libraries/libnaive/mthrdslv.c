@@ -72,7 +72,7 @@ typedef double doublereal;
 
 #define MINPIV   1.0e-8
 
-int
+integer
 naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 		integer *nzc, IMAT ci, NZMAT nz, 
 		integer *piv, doublereal minpiv)
@@ -84,6 +84,10 @@ naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 	doublereal den, mul, mulpiv, fapvr, fari;
 	doublereal *par, *papvr;
 
+	if (neq > NAIVE_MAX) {
+		return NAIVE_ERANGE;
+	}
+
 	if (!minpiv) {
 		minpiv = MINPIV;
 	}
@@ -91,7 +95,7 @@ naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 		todo[pvr] = 1;
 	}
 	for (i = 0; i < neq; i++) {
-		if (!nzr[i]) { return ENULCOL + i; }
+		if (!nzr[i]) { return NAIVE_ENULCOL + i; }
 		nc = neq + 1;	
 		nr = nzr[i];
 		mul = 0.0;
@@ -134,7 +138,7 @@ naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 				}
 			}
 		}
-		if (nc == neq + 1) { return ENOPIV + i; }
+		if (nc == neq + 1) { return NAIVE_ENOPIV + i; }
 
 		piv[i] = pvr;
 		todo[pvr] = 0;
@@ -174,6 +178,10 @@ naivslv(RMAT a, integer neq, integer *nzc, IMAT ci,
 	integer *pci;
 	doublereal s;
 	doublereal *par;
+
+	if (neq > NAIVE_MAX) {
+		return NAIVE_ERANGE;
+	}
 
 	fwd[0] = rhs[piv[0]];
 	for (i = 1; i < neq; i++) {
