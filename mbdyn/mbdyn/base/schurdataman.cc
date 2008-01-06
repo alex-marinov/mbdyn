@@ -1448,7 +1448,7 @@ SchurDataManager::CreatePartition(void)
 void
 SchurDataManager::OutputPartition(void)
 {
-	silent_cout("Making partition file ...");
+	silent_cout("Making partition file...");
 
 	/* Inizializzazione */
 	OutHdl.PartitionOpen();
@@ -1477,26 +1477,29 @@ SchurDataManager::OutputPartition(void)
 		ASSERT(0);
 	}
 	OutHdl.Partition()
-		<< std::endl
-		<< std::endl
 		<< std::endl;
 
 	/* Dati */
 	OutHdl.Partition()
-		<< "# Control data useful to verify the partition "
+		<< std::endl
+		<< std::endl
+		<< "# Control data to verify the partition "
 		<< std::endl
 		<< std::endl
 		<< "Total number of processes: " << DataCommSize << ";" << std::endl
 		<< "Process #: " << MyRank << ";" << std::endl
 		<< "Total number of Nodes: " << iTotNodes << ";"  << std::endl
 		<< "Total number of Elements: " << Elems.size() << ";"  << std::endl
-		<< "Total number of Dofs: " << iTotDofs << ";"  << std::endl
+		<< "Total number of Dofs: " << iTotDofs << ";"  << std::endl;
+
+	OutHdl.Partition()
 		<< std::endl
-		<< std::endl;
+		<< std::endl
+		<< "Local Dofs number: " << iNumLocDofs << std::endl;
 
-	OutHdl.Partition() << "Local Dofs number: " << iNumLocDofs << std::endl;
-
-	OutHdl.Partition() << "Local Nodes: " << iNumLocNodes << std::endl;
+	OutHdl.Partition()
+		<< std::endl
+		<< "Local Nodes: " << iNumLocNodes << std::endl;
 	for (int i = 0; i < iNumLocNodes; i++) {
 		ASSERT(ppMyNodes[i] != NULL);
 		OutHdl.Partition()
@@ -1510,8 +1513,7 @@ SchurDataManager::OutputPartition(void)
 	OutHdl.Partition()
 		<< std::endl
 		<< std::endl
-		<< "Local Elements: "<< iNumLocElems << std::endl
-		<< std::endl;
+		<< "Local Elements: "<< iNumLocElems << std::endl;
 	for (int i = 0; i < iNumLocElems; i++) {
 		ASSERT(ppMyElems[i] != NULL);
 		OutHdl.Partition()
@@ -1525,8 +1527,7 @@ SchurDataManager::OutputPartition(void)
 	OutHdl.Partition()
 		<< std::endl
 		<< std::endl
-		<< "Interface Dofs number: " << iNumIntDofs << std::endl;
-	OutHdl.Partition()
+		<< "Interface Dofs number: " << iNumIntDofs << std::endl
 		<< std::endl
 		<< "Interface Nodes: " << iNumIntNodes << std::endl;
 	for (int i = 0; i < iNumIntNodes; i++) {
@@ -1543,8 +1544,7 @@ SchurDataManager::OutputPartition(void)
 		<< std::endl
 		<< std::endl
 		<< "Elements whose internal dofs are interface dofs: "
-		<< iNumIntElems << std::endl
-		<< std::endl;
+		<< iNumIntElems << std::endl;
 	for (int i = 0; i < iNumIntElems; i++) {
 		OutHdl.Partition()
 			<< "Element Type: "
@@ -1557,36 +1557,34 @@ SchurDataManager::OutputPartition(void)
 #ifdef DEBUG
 	OutHdl.Partition()
 		<< std::endl
+		<< std::endl
 		<< "Local Dofs List:" << std::endl;
 
-	int j = 0;
 	for (int i = 0; i < iNumLocDofs; i++) {
 		OutHdl.Partition() << pLocalDofs[i] << " ";
-		j++;
-		if (j > 10) {
+		if (!(iNumLocDofs%10)) {
 			OutHdl.Partition() << std::endl;
-			j = 0;
 		}
 	}
-	OutHdl.Partition()
-		<< std::endl;
+	if (iNumLocDofs%10) {
+		OutHdl.Partition()
+			<< std::endl;
+	}
 
 	OutHdl.Partition()
 		<< std::endl
+		<< std::endl
 		<< "Local Interface Dofs List:" <<std::endl;
-	j = 0;
 	for (int i = 0; i < iNumIntDofs; i++) {
 		OutHdl.Partition() << pLocalIntDofs[i] << " ";
-		j++;
-		if (j > 10) {
+		if (!(i%10)) {
 			OutHdl.Partition() << std::endl;
-			j = 0;
 		}
 	}
 	OutHdl.Partition() << std::endl;
 #endif /* DEBUG */
 
-	silent_cout("done" << std::endl);
+	silent_cout("... partition file done" << std::endl);
 }
 
 /* compatta il vettore delle adiacenze */
