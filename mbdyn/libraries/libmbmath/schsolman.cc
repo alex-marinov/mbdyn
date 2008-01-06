@@ -700,7 +700,7 @@ SchurSolutionManager::AssSchur(void)
 	
 			/* NOTE: this is required to allow the innermost loop
 			 * on k to be between pDispl[i] and pDispl[i + 1];
-			 * as a * consequence, pbmd must be decreased
+			 * as a consequence, pbmd must be decreased
 			 * by pDispl[i] at each i.
 			 * Note that, in general, pDispl[i + 1] - pDispl[i]
 			 * is equal to pRecvDim[i] */
