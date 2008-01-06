@@ -1184,7 +1184,7 @@ Solver::Run(void)
 			= StepIntegrator::NEWSTEP;
 
 	/* Setup SolutionManager(s) */
-	SetupSolmans(pFirstRegularStep->GetIntegratorNumUnknownStates());
+	SetupSolmans(pFirstRegularStep->GetIntegratorNumUnknownStates(), true);
 IfFirstStepIsToBeRepeated:
 	try {
 		pDM->SetTime(dTime+dCurrTimeStep);
