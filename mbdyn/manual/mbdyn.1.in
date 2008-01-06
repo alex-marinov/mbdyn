@@ -19,9 +19,6 @@ input\-file]
 .BR \-l
 ]
 [\c
-.BR \-n
-[nice\-level]]
-[\c
 .BR \-o
 output\-file\-prefix]
 [\c
@@ -36,6 +33,9 @@ output\-file\-prefix]
 [\c
 .BR \-r
 ]
+[\c
+.BR \-S
+sleep\-time]
 [\c
 .BR \-s
 ]
@@ -76,16 +76,12 @@ Displays usage information.
 .B \-l, \-\-license
 Show licensing info.
 .TP
-.B \-n, \-\-nice \ [<nice\-level>]
-Renice process (to level \fInice\-level\fP, if given).
-Defined on architectures that support the 
-.BR nice (2) 
-system call.
-.TP
 .B \-o, \-\-output\-file \ <output\-file\-prefix>
 Write results to files with prefix \fIoutput\-file\-prefix\fP 
-(extensions are content-dependent); default is \fI<input\-file>\fP, if any,
+(extensions are content-dependent); default is \fIinput\-file\fP, if any,
 or "\fIMBDyn\fP".
+If \fIoutput\-file\-prefix\fP is a directory, the output file
+will have the name of the input file, but it will be placed in that directory.
 .TP
 .B \-P, \-\-pedantic
 Issue pedantic warnings (more occurrences raise the level).
@@ -99,6 +95,12 @@ Do not allow symbols in the mathematical parser to be redefined.
 .B \-r, \-\-redefine
 Allow symbols in the mathematical parser to be redefined; useful 
 in conjunction with \fI\-t\fP.
+.TP
+.B \-S, \-\-sleep [rank=<r>,]<sleep\-time>
+Sleep \fIsleep\-time\fP seconds before starting the simulation.
+When running in parallel, if \fIsleep\-time\fP is prefixed
+by \fIrank=<r>\fP, only the process with rank \fIr\fP
+(0 to number of processes - 1) will sleep.
 .TP
 .B \-s, \-\-silent
 Reduce verbosity (more occurrences reduce the verbosity level further).
@@ -114,7 +116,7 @@ files on the command line).  It may require \fI\-r\fP to allow
 redefinition of symbols.
 .TP
 .B \-W, \-\-working\-dir <new\-working\-dir>
-Use \fI<new\-working\-dir>\fP as working directory instead
+Use \fInew\-working\-dir\fP as working directory instead
 of the current
 .TP
 .B \-w, \-\-warranty
