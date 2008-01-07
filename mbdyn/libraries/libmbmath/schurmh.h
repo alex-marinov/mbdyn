@@ -65,7 +65,7 @@ protected:
  	/* Tabella di conversione Global to Local
 	 * creata da SchurSolutionManager
 	 * i nodi di interfaccia hanno indice negativo
-	 * per permetterne la distizione */
+	 * per permetterne la distinzione */
 	integer* pGTL;
 
 	bool bExtpdE;
