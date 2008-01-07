@@ -259,8 +259,16 @@ public:
 		return a;
 	};
 
+	const VecN& GetAP(void) const {
+		return aPrime;
+	};
+
 	const VecN& GetB(void) const {
 		return b;
+	};
+
+	const VecN& GetBP(void) const {
+		return bPrime;
 	};
 
 	integer uGetNFemNodes(void) {

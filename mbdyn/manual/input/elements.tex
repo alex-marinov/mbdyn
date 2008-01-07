@@ -2129,7 +2129,9 @@ of a \htmlref{\kw{modal}}{sec:EL:STRUCT:JOINT:MODAL} joint element.
     <force_arglist> ::=
         <modal_label> ,
             [ list , <number_of_modes> , <mode1> [ , ... ] , ]
-        (DriveCaller)<force1> [ , ... ]
+        (DriveCaller)<force1>
+            [ , resultant , (Vec3)<f> , (Vec3)<m> ]
+        [ , ... ]
 \end{verbatim}
 It requires the label of the modal joint it is connected to,
 \kw{modal\_label}.
@@ -2143,6 +2145,12 @@ that provide the excitation value for each mode is required last.
 If the keyword \kw{list} was given, the drive callers
 must be \kw{number\_of\_modes}, otherwise they must be as many
 as the modes of the excited modal joint element.
+
+If the \kw{modal} joint element is connected to a modal node
+instead of being clamped to the ground, the optional keyword \kw{resultant}
+is allowed for each mode drive caller.
+The keyword \kw{resultant} is followed by two $3\times 1$ vectors
+containing the resultant force and moment associated to the related mode.
 
 
 \subsection{External structural}
@@ -2210,8 +2218,8 @@ or for an old output file to disappear.
 
 The optional parameter \kw{coupling} determines whether the coupling
 will be \kw{loose} (communicate each time step, the default) or
-\kw{tight} (communicate each iteration); if \kw{coupling\_steps} is provided,
-the communication occurs every \kw{coupling\_steps}.
+\kw{tight} (communicate each iteration); otherwise, if \kw{coupling\_steps}
+is provided, the communication occurs every \kw{coupling\_steps}.
 
 The optional parameter \kw{precision} determines the precision
 used in writing the output file; the default is 16 digits.
@@ -2235,6 +2243,7 @@ may appear in the future.
         [ coupling , { loose | tight | <coupling_steps> } , ]
         [ precision , { default | <digits> } , ]
         <modal_label>
+        [ , accelerations ]
 \end{verbatim}
 
 \kw{input\_file\_name} is the name of the file MBDyn expects to find
@@ -2266,10 +2275,24 @@ The first line contains
 \item the velocity with respect to the global frame;
 \item the angular velocity with respect to the global frame.
 \end{itemize}
+If the optional keyword \kw{accelerations} is present,
+at the end of each line the following optional fields will appear:
+\begin{itemize}
+\item the acceleration with respect to the global frame;
+\item the angular acceleration with respect to the global frame.
+\end{itemize}
 If the \kw{modal} joint element is grounded, all the data corresponds
 to that of the origin of the global reference frame.
-Each of the following lines contains the value of the generalized variable
-and of its first derivative for each of the modes.
+Each of the following lines contains, for each mode:
+\begin{itemize}
+\item the value of the generalized variable;
+\item the value of the first derivative of the generalized variable.
+\end{itemize}
+If the optional keyword \kw{accelerations} is present,
+at the end of each line the following optional field will appear:
+\begin{itemize}
+\item the value of the second derivative of the generalized variable.
+\end{itemize}
 The option \kw{no clobber} indicates that MBDyn is supposed to wait
 until the external software removed the file before generating a new one.
 
@@ -2279,8 +2302,8 @@ or for an old output file to disappear.
 
 The optional parameter \kw{coupling} determines whether the coupling
 will be \kw{loose} (communicate each time step, the default) or
-\kw{tight} (communicate each iteration); if \kw{coupling\_steps} is provided,
-the communication occurs every \kw{coupling\_steps}.
+\kw{tight} (communicate each iteration); otherwise, if \kw{coupling\_steps}
+is provided, the communication occurs every \kw{coupling\_steps}.
 
 The optional parameter \kw{precision} determines the precision
 used in writing the output file; the default is 16 digits.

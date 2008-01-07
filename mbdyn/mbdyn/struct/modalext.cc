@@ -43,6 +43,7 @@
 /* Costruttore */
 ModalExt::ModalExt(unsigned int uL,
 	Modal *pmodal,
+	bool bOutputAccelerations,
 	std::string& fin,
 	bool bRemoveIn,
         std::string& fout,
@@ -55,7 +56,8 @@ ModalExt::ModalExt(unsigned int uL,
 ExtForce(uL, fin, bRemoveIn, fout, bNoClobberOut, iSleepTime, iCoupling, iPrecision, fOut), 
 pModal(pmodal),
 F(0.),
-M(0.)
+M(0.),
+bOutputAccelerations(bOutputAccelerations)
 {
 	ASSERT(pModal != 0);
 	f.resize(pModal->uGetNModes());
@@ -79,22 +81,37 @@ ModalExt::Send(std::ostream& outf)
 			<< " " << pNode->GetXCurr()
 			<< " " << pNode->GetRCurr()
 			<< " " << RT*pNode->GetVCurr()
-			<< " " << RT*pNode->GetWCurr()
-			<< std::endl;
+			<< " " << RT*pNode->GetWCurr();
+		if (bOutputAccelerations) {
+			outf
+				<< " " << pNode->GetXPPCurr()
+				<< " " << pNode->GetWPCurr();
+		}
+		outf << std::endl;
 
 	} else {
 		outf << 0
 			<< " " << Zero3
 			<< " " << Zero3x3
 			<< " " << Zero3
-			<< " " << Zero3
-			<< std::endl;
+			<< " " << Zero3;
+		if (bOutputAccelerations) {
+			outf
+				<< " " << Zero3
+				<< " " << Zero3;
+		}
+		outf << std::endl;
 	}
 
 	const VecN& a = pModal->GetA();
 	const VecN& b = pModal->GetB();
+	const VecN& bP = pModal->GetBP();
 	for (integer i = 1; i < pModal->uGetNModes(); i++) {
-		outf << a(i) << " " << b(i) << std::endl;
+		outf << a(i) << " " << b(i);
+		if (bOutputAccelerations) {
+			outf << " " << bP(i);
+		}
+		outf << std::endl;
 	}
 }
 
@@ -196,10 +213,16 @@ ReadModalExtForce(DataManager* pDM,
 		throw ErrGeneric();
 	}
 
+	bool bOutputAccelerations(false);
+	if (HP.IsKeyWord("accelerations")) {
+		bOutputAccelerations = true;
+	}
+
 	flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
 	Elem *pEl = 0;
 	SAFENEWWITHCONSTRUCTOR(pEl, ModalExt,
-		ModalExt(uLabel, pModal, fin, bUnlinkIn, fout, bNoClobberOut,
+		ModalExt(uLabel, pModal, bOutputAccelerations,
+			fin, bUnlinkIn, fout, bNoClobberOut,
 			iSleepTime, iCoupling, iPrecision, fOut));
 
 	return pEl;

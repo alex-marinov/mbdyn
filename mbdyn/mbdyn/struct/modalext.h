@@ -47,6 +47,8 @@ protected:
 	Vec3 F, M;
 	std::vector<doublereal> f;
 
+	bool bOutputAccelerations;
+
 	void Send(std::ostream& out);
 	void Recv(std::istream& in);
    
@@ -54,6 +56,7 @@ public:
 	/* Costruttore */
 	ModalExt(unsigned int uL,
 		Modal *pmodal,
+		bool bOutputAccelerations,
 	        std::string& fin,
 		bool bRemoveIn,
 	        std::string& fout,
