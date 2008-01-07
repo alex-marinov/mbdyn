@@ -67,9 +67,11 @@ bOutputAccelerations(bOutputAccelerations)
 	F.resize(nodes.size());
 	M.resize(nodes.size());
 
-	for (unsigned int i = 0; i < nodes.size(); i++) {
+	for (unsigned i = 0; i < nodes.size(); i++) {
 		Nodes[i] = nodes[i];
 		Offsets[i] = offsets[i];
+		F[i] = Zero3;
+		M[i] = Zero3;
 	}
 
 	if (bUnsorted) {
@@ -112,7 +114,7 @@ StructExtForce::Send(std::ostream& outf)
 		Vec3 xRef = pRefNode->GetXCurr() + fRef;
 		Mat3x3 RRefT = pRefNode->GetRCurr().Transpose();
 
-		for (unsigned int i = 0; i < Nodes.size(); i++) {
+		for (unsigned i = 0; i < Nodes.size(); i++) {
 			Vec3 f = Nodes[i]->GetRCurr()*Offsets[i];
 			Vec3 x = Nodes[i]->GetXCurr() + f;
 			Vec3 v = Nodes[i]->GetVCurr() + Nodes[i]->GetWCurr().Cross(f);
@@ -129,7 +131,7 @@ StructExtForce::Send(std::ostream& outf)
 #endif
 
 	} else {
-		for (unsigned int i = 0; i < Nodes.size(); i++) {
+		for (unsigned i = 0; i < Nodes.size(); i++) {
 			const Mat3x3& R = Nodes[i]->GetRCurr();
 			Vec3 f = R*Offsets[i];
 			Vec3 x = Nodes[i]->GetXCurr() + f;
@@ -160,7 +162,7 @@ StructExtForce::Recv(std::istream& inf)
 	if (bUnsorted) {
 		done.resize(Nodes.size());
 
-		for (unsigned int i = 0; i < Nodes.size(); i++) {
+		for (unsigned i = 0; i < Nodes.size(); i++) {
 			done[i] = false;
 		}
 
@@ -212,7 +214,7 @@ StructExtForce::Recv(std::istream& inf)
 				"invalid node number " << cnt
 				<< std::endl);
 
-			for (unsigned int i = 0; i < Nodes.size(); i++) {
+			for (unsigned i = 0; i < Nodes.size(); i++) {
 				if (!done[i]) {
 					silent_cerr("StructExtForce"
 						"(" << GetLabel() << "): "
@@ -267,7 +269,7 @@ StructExtForce::AssRes(SubVectorHandler& WorkVec,
 		// manipulate
 
 	} else {
-		for (unsigned int i = 0; i < Nodes.size(); i++) {
+		for (unsigned i = 0; i < Nodes.size(); i++) {
 			integer iFirstIndex = Nodes[i]->iGetFirstMomentumIndex();
 			for (int r = 1; r <= 6; r++) {
 				WorkVec.PutRowIndex(i*6 + r, iFirstIndex + r);
@@ -286,7 +288,7 @@ StructExtForce::Output(OutputHandler& OH) const
 {
 	std::ostream& out = OH.Forces();
 
-	for (unsigned int i = 0; i < Nodes.size(); i++) {
+	for (unsigned i = 0; i < Nodes.size(); i++) {
 		out << GetLabel() << "." << Nodes[i]->GetLabel()
 			<< " " << F[i]
 			<< " " << M[i]
