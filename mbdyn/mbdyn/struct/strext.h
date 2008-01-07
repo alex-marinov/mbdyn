@@ -47,6 +47,11 @@ protected:
 	StructNode *pRefNode;
 	Vec3 RefOffset;
 
+	bool bUnsorted;
+	std::vector<bool> done;
+
+	bool bOutputAccelerations;
+
 	void Send(std::ostream& out);
 	void Recv(std::istream& in);
    
@@ -55,6 +60,8 @@ public:
 	StructExtForce(unsigned int uL,
 		std::vector<StructNode *>& Nodes,
 		std::vector<Vec3>& Offsets,
+		bool bUnsorted,
+		bool bOutputAccelerations,
 	        std::string& fin,
 		bool bRemoveIn,
 	        std::string& fout,

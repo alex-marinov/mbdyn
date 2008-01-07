@@ -44,6 +44,8 @@
 StructExtForce::StructExtForce(unsigned int uL,
 	std::vector<StructNode *>& nodes,
 	std::vector<Vec3>& offsets,
+	bool bUnsorted,
+	bool bOutputAccelerations,
 	std::string& fin,
 	bool bRemoveIn,
         std::string& fout,
@@ -55,7 +57,9 @@ StructExtForce::StructExtForce(unsigned int uL,
 : Elem(uL, fOut), 
 ExtForce(uL, fin, bRemoveIn, fout, bNoClobberOut, iSleepTime, iCoupling, iPrecision, fOut), 
 pRefNode(0),
-RefOffset(0.)
+RefOffset(0.),
+bUnsorted(bUnsorted),
+bOutputAccelerations(bOutputAccelerations)
 {
 	ASSERT(nodes.size() == offsets.size());
 	Nodes.resize(nodes.size());
@@ -66,6 +70,26 @@ RefOffset(0.)
 	for (unsigned int i = 0; i < nodes.size(); i++) {
 		Nodes[i] = nodes[i];
 		Offsets[i] = offsets[i];
+	}
+
+	if (bUnsorted) {
+		done.resize(nodes.size());
+	}
+
+	if (bOutputAccelerations) {
+		for (unsigned i = 0; i < nodes.size(); i++) {
+			DynamicStructNode *pDSN = dynamic_cast<DynamicStructNode *>(Nodes[i]);
+			if (pDSN == 0) {
+				silent_cerr("StructExtForce"
+					"(" << GetLabel() << "): "
+					"StructNode(" << Nodes[i]->GetLabel() << ") "
+					"is not dynamic"
+					<< std::endl);
+				throw ErrGeneric();
+			}
+
+			pDSN->ComputeAccelerations(true);
+		}
 	}
 }
 
@@ -82,6 +106,7 @@ void
 StructExtForce::Send(std::ostream& outf)
 {
 	if (pRefNode) {
+#if 0
 		// TODO
 		Vec3 fRef = pRefNode->GetRCurr()*RefOffset;
 		Vec3 xRef = pRefNode->GetXCurr() + fRef;
@@ -101,18 +126,30 @@ StructExtForce::Send(std::ostream& outf)
 				<< " " << Nodes[i]->GetWCurr()
 				<< std::endl;
 		}
+#endif
 
 	} else {
 		for (unsigned int i = 0; i < Nodes.size(); i++) {
-			Vec3 f = Nodes[i]->GetRCurr()*Offsets[i];
+			const Mat3x3& R = Nodes[i]->GetRCurr();
+			Vec3 f = R*Offsets[i];
 			Vec3 x = Nodes[i]->GetXCurr() + f;
-			Vec3 v = Nodes[i]->GetVCurr() + Nodes[i]->GetWCurr().Cross(f);
+			const Vec3& w = Nodes[i]->GetWCurr();
+			Vec3 wCrossf = w.Cross(f);
+			Vec3 v = Nodes[i]->GetVCurr() + wCrossf;
 			outf << Nodes[i]->GetLabel()
 				<< " " << x
-				<< " " << Nodes[i]->GetRCurr()
+				<< " " << R
 				<< " " << v
-				<< " " << Nodes[i]->GetWCurr()
-				<< std::endl;
+				<< " " << w;
+			if (bOutputAccelerations) {
+				const Vec3& wp = Nodes[i]->GetWPCurr();
+				Vec3 a = Nodes[i]->GetXPPCurr() + w.Cross(wCrossf) + wp.Cross(f);
+
+				outf
+					<< " " << a
+					<< " " << wp;
+			}
+			outf << std::endl;
 		}
 	}
 }
@@ -120,50 +157,98 @@ StructExtForce::Send(std::ostream& outf)
 void
 StructExtForce::Recv(std::istream& inf)
 {
-	std::vector<bool> done(Nodes.size());
+	if (bUnsorted) {
+		done.resize(Nodes.size());
 
-	for (unsigned int i = 0; i < Nodes.size(); i++) {
-		done[i] = false;
-	}
-
-	for (int cnt = 0; inf; cnt++) {
-		/* assume unsigned int label */
-		unsigned l, i;
-		doublereal f[3], m[3];
-
-		inf >> l >> f[0] >> f[1] >> f[2] >> m[0] >> m[1] >> m[2];
-
-		if (!inf) {
-			break;
+		for (unsigned int i = 0; i < Nodes.size(); i++) {
+			done[i] = false;
 		}
 
-		for (i = 0; i < Nodes.size(); i++) {
-			if (Nodes[i]->GetLabel() == l) {
+		unsigned cnt;
+		for (cnt = 0; inf; cnt++) {
+			/* assume unsigned int label */
+			unsigned l, i;
+			doublereal f[3], m[3];
+
+			inf >> l
+				>> f[0] >> f[1] >> f[2]
+				>> m[0] >> m[1] >> m[2];
+
+			if (!inf) {
 				break;
 			}
+
+			for (i = 0; i < Nodes.size(); i++) {
+				if (Nodes[i]->GetLabel() == l) {
+					break;
+				}
+			}
+
+			if (i == Nodes.size()) {
+				silent_cerr("StructExtForce"
+					"(" << GetLabel() << "): "
+					"unknown label " << l
+					<< " as " << cnt << "-th node"
+					<< std::endl);
+				throw ErrGeneric();
+			}
+
+			if (done[i]) {
+				silent_cerr("StructExtForce"
+					"(" << GetLabel() << "): "
+					"label " << l << " already done"
+					<< std::endl);
+				throw ErrGeneric();
+			}
+
+			done[i] = true;
+
+			F[i] = Vec3(f);
+			M[i] = Vec3(m);
 		}
 
-		if (i == Nodes.size()) {
-			silent_cerr("StructExtForce(" << GetLabel() << "): unknown label " << l << " as " << cnt << "-th node" << std::endl);
-			throw ErrGeneric();
-		}
-
-		if (done[i]) {
-			silent_cerr("StructExtForce(" << GetLabel() << "): label " << l << " already done" << std::endl);
-			throw ErrGeneric();
-		}
-
-		done[i] = true;
-		F[i] = Vec3(f);
-		M[i] = Vec3(m);
-	}
-
-	for (unsigned int i = 0; i < Nodes.size(); i++) {
-		if (!done[i]) {
+		if (cnt != Nodes.size()) {
 			silent_cerr("StructExtForce(" << GetLabel() << "): "
-				"node " << Nodes[i]->GetLabel()
-				<< " not done" << std::endl);
+				"invalid node number " << cnt
+				<< std::endl);
+
+			for (unsigned int i = 0; i < Nodes.size(); i++) {
+				if (!done[i]) {
+					silent_cerr("StructExtForce"
+						"(" << GetLabel() << "): "
+						"node " << Nodes[i]->GetLabel()
+						<< " not done" << std::endl);
+					throw ErrGeneric();
+				}
+			}
+
 			throw ErrGeneric();
+		}
+
+	} else {
+		for (unsigned i = 0; i < Nodes.size(); i++) {
+			/* assume unsigned int label */
+			unsigned l;
+			doublereal f[3], m[3];
+
+			inf >> l
+				>> f[0] >> f[1] >> f[2]
+				>> m[0] >> m[1] >> m[2];
+
+			if (!inf) {
+				break;
+			}
+
+			if (Nodes[i]->GetLabel() != l) {
+				silent_cerr("StructExtForce"
+					"(" << GetLabel() << "): "
+					"invalid " << i << "-th label " << l
+					<< std::endl);
+				throw ErrGeneric();
+			}
+
+			F[i] = Vec3(f);
+			M[i] = Vec3(m);
 		}
 	}
 }
@@ -224,6 +309,16 @@ ReadStructExtForce(DataManager* pDM,
 	
 	ReadExtForce(pDM, HP, uLabel, fin, bUnlinkIn, fout, bNoClobberOut, iSleepTime, iCoupling, iPrecision);
 
+	bool bUnsorted(false);
+	if (HP.IsKeyWord("unsorted")) {
+		bUnsorted = true;
+	}
+
+	bool bOutputAccelerations(false);
+	if (HP.IsKeyWord("accelerations")) {
+		bOutputAccelerations = true;
+	}
+
 	int n = HP.GetInt();
 	if (n <= 0) {
 		silent_cerr("StructExtForce(" << uLabel << "): illegal node number " << n <<
@@ -249,7 +344,9 @@ ReadStructExtForce(DataManager* pDM,
 	flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
 	Elem *pEl = 0;
 	SAFENEWWITHCONSTRUCTOR(pEl, StructExtForce,
-		StructExtForce(uLabel, Nodes, Offsets, fin, bUnlinkIn, fout, bNoClobberOut,
+		StructExtForce(uLabel, Nodes, Offsets,
+			bUnsorted, bOutputAccelerations,
+			fin, bUnlinkIn, fout, bNoClobberOut,
 			iSleepTime, iCoupling, iPrecision, fOut));
 
 	return pEl;

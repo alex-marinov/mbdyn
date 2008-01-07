@@ -2159,6 +2159,8 @@ may appear in the future.
         [ sleep time , <sleep_time> , ]
         [ coupling , { loose | tight | <coupling_steps> } , ]
         [ precision , { default | <digits> } , ]
+        [ , unsorted ]
+        [ , accelerations ]
         <num_nodes> ,
             <node_label> [ , offset , (Vec3) <offset> ]
             [ , ... ]
@@ -2174,19 +2176,27 @@ with the values of the forces in textual form, each line formatted as follows:
 The label indicates what node the force and the moment apply to; 
 each force is applied in a point that may be optionally offset 
 from the corresponding node location according to \kw{offset}.
-The option \kw{unlink} indicates that MBDyn is supposed to unlink
-the file as soon as it is ready to read another one.
+The optional keyword \kw{unsorted} tells the forces might be
+read in arbitrary order, so they need to be recognized by the label.
+The optional keyword \kw{unlink} indicates that MBDyn is supposed
+to unlink the file as soon as it is ready to read another one.
 
 \kw{output\_file\_name} is the name of the file MBDyn creates
 each time it intends to communicate the kinematics of the pool of nodes
 to the external software.
 The file is written in textual form, each line formatted as follows:
 \begin{itemize}
-\item a label
-\item the position in the global frame
-\item the orientation matrix in the global frame
-\item the velocity with respect to the global frame
-\item the angular velocity with respect to the global frame
+\item a label;
+\item the position in the global frame;
+\item the orientation matrix in the global frame;
+\item the velocity with respect to the global frame;
+\item the angular velocity with respect to the global frame.
+\end{itemize}
+If the optional keyword \kw{accelerations} is present,
+at the end of each line the following optional fields will appear:
+\begin{itemize}
+\item the acceleration with respect to the global frame;
+\item the angular acceleration with respect to the global frame.
 \end{itemize}
 The label indicates what node the kinematics is related to;
 the position and the velocity refer to a point that may be optionally
@@ -2205,6 +2215,8 @@ the communication occurs every \kw{coupling\_steps}.
 
 The optional parameter \kw{precision} determines the precision
 used in writing the output file; the default is 16 digits.
+
+
 
 
 \subsection{External modal}
