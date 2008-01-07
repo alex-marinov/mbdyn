@@ -504,8 +504,8 @@ protected:
 		unsigned int iNum;		// numero di elementi del tipo
 #endif
 		unsigned int iExpectedNum;	// numero di elementi del tipo
-		char *Desc;
-		char *ShortDesc;
+		const char *Desc;
+		const char *ShortDesc;
 
 		DofOwner::Type DofOwnerType;	// Tipo di DofOwner
 		unsigned int iDerivation;	// Tabella delle derivazioni
