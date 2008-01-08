@@ -111,7 +111,7 @@ public:
 	virtual Elem::Type GetElemType(void) const;
 	virtual void WorkSpaceDim(integer* piRows, integer* piCols) const;
 	virtual SubVectorHandler&
-	AssRes(SubVectorHandler& WrokVec, doublereal dCoef,
+	AssRes(SubVectorHandler& WorkVec, doublereal dCoef,
 			const VectorHandler& X, const VectorHandler& XP);
 	virtual VariableSubMatrixHandler& 
 	AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
@@ -133,7 +133,7 @@ class MBDynParser;
 extern Elem *
 ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel);
 
-/* SocketSteamElem - end */
+/* SocketStreamElem - end */
 
 #endif /* SOCKETSTREAM_OUT_ELEM_H */
 

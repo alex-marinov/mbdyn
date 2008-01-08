@@ -38,9 +38,8 @@
 
 #include "nestedelem.h"
 
-NestedElem::NestedElem(DataManager *pdm, const Elem* pE)
+NestedElem::NestedElem(const Elem* pE)
 : Elem(pE->GetLabel(), pE->fToBeOutput()),
-pDM(pdm),
 pElem(const_cast<Elem *>(pE))
 {
 	ASSERT(pDC != NULL);

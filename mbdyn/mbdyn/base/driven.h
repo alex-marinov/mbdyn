@@ -47,6 +47,7 @@
 class DrivenElem : virtual public Elem,
 	public NestedElem, protected DriveOwner {
 protected: 
+	DataManager *pDM;
 	SimulationEntity::Hints *pHints;
 	bool bActive;
  

@@ -86,6 +86,8 @@ strforce.cc \
 strforce.h \
 strnode.cc \
 strnode.h \
+stroutput.cc \
+stroutput.h \
 tdclw.cc \
 tdclw.h \
 totalequation.cc \

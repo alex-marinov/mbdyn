@@ -88,6 +88,8 @@
 #include "socketstreammotionelem.h"
 #endif // USE_SOCKET
 
+#include "stroutput.h"
+
 static int iNumTypes[Elem::LASTELEMTYPE];
 
 /* enum delle parole chiave */
@@ -135,6 +137,7 @@ enum KeyWords {
 	SOCKETSTREAM_OUTPUT,
 	SOCKETSTREAM_MOTION_OUTPUT,
 	RTAI_OUTPUT,
+	STRUCTOUTPUT,
 
 	INERTIA,
 
@@ -195,6 +198,7 @@ DataManager::ReadElems(MBDynParser& HP)
 		"stream" "output",
 		"stream" "motion" "output",
 		"RTAI" "output",
+		"structural" "output",
 
 		"inertia",
 
@@ -675,6 +679,7 @@ DataManager::ReadElems(MBDynParser& HP)
 			case RTAI_OUTPUT:
 			case SOCKETSTREAM_OUTPUT:
 			case SOCKETSTREAM_MOTION_OUTPUT:
+			case STRUCTOUTPUT:
 				silent_cerr(psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 					<< " does not support bind" << std::endl);
 			default:
@@ -891,6 +896,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					case RTAI_OUTPUT:
 					case SOCKETSTREAM_OUTPUT:
 					case SOCKETSTREAM_MOTION_OUTPUT:
+					case STRUCTOUTPUT:
 						silent_cerr(psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 							<< " cannot be driven" << std::endl);
 						throw ErrGeneric();
@@ -1088,6 +1094,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				case RTAI_OUTPUT:
 				case SOCKETSTREAM_OUTPUT:
 				case SOCKETSTREAM_MOTION_OUTPUT:
+				case STRUCTOUTPUT:
 				{
 					Elem **ppE = 0;
 
@@ -1919,7 +1926,8 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, int CurrType)
 		/* fall thru... */
 
 	case SOCKETSTREAM_OUTPUT:
-	case SOCKETSTREAM_MOTION_OUTPUT: {
+	case SOCKETSTREAM_MOTION_OUTPUT:
+	case STRUCTOUTPUT: {
 		silent_cout("Reading stream output element " << uLabel
 			<< std::endl);
 
@@ -1953,6 +1961,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, int CurrType)
 				break;
 
 			case SOCKETSTREAM_MOTION_OUTPUT:
+			case STRUCTOUTPUT:
 			default:
 				silent_cerr("line " << HP.GetLineData()
 					<< ": stream motion element " << uLabel
@@ -1995,6 +2004,11 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, int CurrType)
 				throw ErrGeneric();
 #endif // ! USE_SOCKET
 				break;
+
+			case STRUCTOUTPUT:
+				pE = ReadStructOutput(this, HP, uLabel);
+				break;
+
 			default:
 				silent_cerr("You shouldn't be here: " __FILE__ << ":" << __LINE__ << std::endl);
 				throw DataManager::ErrGeneric();

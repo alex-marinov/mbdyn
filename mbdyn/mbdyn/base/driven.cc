@@ -46,8 +46,9 @@ DrivenElem::DrivenElem(DataManager *pdm,
 		const DriveCaller* pDC, const Elem* pE,
 		SimulationEntity::Hints *ph)
 : Elem(pE->GetLabel(), pE->fToBeOutput()),
-NestedElem(pdm, pE),
+NestedElem(pE),
 DriveOwner(pDC),
+pDM(pdm),
 pHints(ph),
 bActive(false)
 {

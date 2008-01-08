@@ -41,11 +41,10 @@
 
 class NestedElem : virtual public Elem {
 protected: 
-	DataManager *pDM;
 	Elem* pElem;
  
 public:
-	NestedElem(DataManager *pDM, const Elem* pE);
+	NestedElem(const Elem* pE);
 	~NestedElem(void);
 
 	virtual Elem *pGetElem(void) const;

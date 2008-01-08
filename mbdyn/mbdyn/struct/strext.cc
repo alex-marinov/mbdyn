@@ -132,25 +132,38 @@ StructExtForce::Send(std::ostream& outf)
 
 	} else {
 		for (unsigned i = 0; i < Nodes.size(); i++) {
+			/*
+				p = x + f
+				R = R
+				v = xp + w cross f
+				w = w
+				a = xpp + wp cross f + w cross w cross f
+				wp = wp
+			 */
+
+			// Optimization of the above formulas
 			const Mat3x3& R = Nodes[i]->GetRCurr();
 			Vec3 f = R*Offsets[i];
 			Vec3 x = Nodes[i]->GetXCurr() + f;
 			const Vec3& w = Nodes[i]->GetWCurr();
 			Vec3 wCrossf = w.Cross(f);
 			Vec3 v = Nodes[i]->GetVCurr() + wCrossf;
+
 			outf << Nodes[i]->GetLabel()
 				<< " " << x
 				<< " " << R
 				<< " " << v
 				<< " " << w;
+
 			if (bOutputAccelerations) {
 				const Vec3& wp = Nodes[i]->GetWPCurr();
-				Vec3 a = Nodes[i]->GetXPPCurr() + w.Cross(wCrossf) + wp.Cross(f);
+				Vec3 a = Nodes[i]->GetXPPCurr() + wp.Cross(f) + w.Cross(wCrossf);
 
 				outf
 					<< " " << a
 					<< " " << wp;
 			}
+
 			outf << std::endl;
 		}
 	}
@@ -332,7 +345,7 @@ ReadStructExtForce(DataManager* pDM,
 	std::vector<Vec3> Offsets(n);
 
 	for (int i = 0; i < n; i++ ) {
-		Nodes[i] = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+		Nodes[i] = dynamic_cast<StructNode*>(pDM->ReadNode(HP, Node::STRUCTURAL));
 		
 		ReferenceFrame RF(Nodes[i]);
 
