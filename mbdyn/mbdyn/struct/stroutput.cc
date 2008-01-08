@@ -57,7 +57,7 @@ StructOutput::~StructOutput(void)
 void
 StructOutputCollect::AfterConvergence(const VectorHandler& X, 
 	const VectorHandler& XP,
-	std::vector<Geometry>& data)
+	GeometryData& data)
 {
 }
 
@@ -84,7 +84,7 @@ StructOutputCollect::SetValue(DataManager *pDM,
 	SimulationEntity::Hints *ph)
 {
 	// Finto!
-	std::vector<Geometry> data;
+	GeometryData data;
 	AfterConvergence(X, XP, data);
 }
 
@@ -101,7 +101,7 @@ ReadStructOutputCollect(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 void
 StructOutputInterp::AfterConvergence(const VectorHandler& X, 
 	const VectorHandler& XP,
-	std::vector<Geometry>& data)
+	GeometryData& data)
 {
 }
 
@@ -135,7 +135,7 @@ ReadStructOutputInterp(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 void
 StructOutputWrite::AfterConvergence(const VectorHandler& X, 
 	const VectorHandler& XP,
-	std::vector<Geometry>& data)
+	GeometryData& data)
 {
 }
 
@@ -169,7 +169,7 @@ ReadStructOutputWrite(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 void
 StructOutputWriteNASTRAN::AfterConvergence(const VectorHandler& X, 
 	const VectorHandler& XP,
-	std::vector<Geometry>& data)
+	GeometryData& data)
 {
 }
 

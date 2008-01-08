@@ -37,12 +37,23 @@
 
 /* Geometry */
 struct Geometry {
+	unsigned uLabel;
+
 	Vec3 X;
 	Mat3x3 R;
 	Vec3 V;
 	Vec3 W;
+
 	Vec3 XPP;
 	Vec3 WP;
+
+	Vec3 F;
+	Vec3 M;
+};
+
+struct GeometryData {
+	unsigned uFlags;
+	std::vector<Geometry> data;
 };
 
 /* StructOutput - begin */
@@ -51,7 +62,7 @@ class StructOutput : virtual public Elem, public NestedElem {
 protected:
 	virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP,
-			std::vector<Geometry>& data) = 0;
+			GeometryData& data) = 0;
 
 public:
    	StructOutput(const Elem *pE);
@@ -68,7 +79,7 @@ protected:
 	// Copiare da strext.cc:Send()
 	virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP,
-			std::vector<Geometry>& data);
+			GeometryData& data);
 
 public:
    	StructOutputCollect(const Elem *pE);
@@ -91,7 +102,7 @@ protected:
 	// Copiare da strext.cc:Send()
 	virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP,
-			std::vector<Geometry>& data);
+			GeometryData& data);
 
 public:
    	StructOutputInterp(const Elem *pE);
@@ -110,7 +121,7 @@ protected:
 	// Scrive su file "nativo"
 	virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP,
-			std::vector<Geometry>& data);
+			GeometryData& data);
 
 public:
    	StructOutputWrite(const Elem *pE);
@@ -129,7 +140,7 @@ protected:
 	// Scrive su file bulk NASTRAN
 	virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP,
-			std::vector<Geometry>& data);
+			GeometryData& data);
 
 public:
    	StructOutputWriteNASTRAN(const Elem *pE);
