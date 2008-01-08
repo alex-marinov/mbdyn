@@ -14,6 +14,7 @@ MBDyn 1.3-Devel
 		- add OpenMPI support
 		- allow accelerations in external force output
 		- allow accelerations in external modal force output
+		- add support for nested elements
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:

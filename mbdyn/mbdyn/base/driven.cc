@@ -46,14 +46,12 @@ DrivenElem::DrivenElem(DataManager *pdm,
 		const DriveCaller* pDC, const Elem* pE,
 		SimulationEntity::Hints *ph)
 : Elem(pE->GetLabel(), pE->fToBeOutput()),
+NestedElem(pdm, pE),
 DriveOwner(pDC),
-pDM(pdm),
-pElem((Elem *)pE),
 pHints(ph),
 bActive(false)
 {
 	ASSERT(pDC != NULL);
-	ASSERT(pE != NULL);
 
 	bActive = (pDC->dGet() != 0.);
 }
@@ -62,10 +60,6 @@ bActive(false)
 DrivenElem::~DrivenElem(void)
 {
 	ASSERT(pElem != 0);
-
-  	if (pElem != 0) {
-		SAFEDELETE(pElem);
-	}
 
 	if (pHints != 0) {
 		for (unsigned i = 0; i < pHints->size(); i++) {
@@ -76,19 +70,6 @@ DrivenElem::~DrivenElem(void)
 	}
 }
 
-Elem *
-DrivenElem::pGetElem(void) const
-{
-	return pElem;
-}
-
-void
-DrivenElem::OutputPrepare(OutputHandler& OH)
-{
-	ASSERT(pElem != NULL);
-	pElem->OutputPrepare(OH);
-}
-
 void
 DrivenElem::Output(OutputHandler& OH) const
 {
@@ -96,13 +77,6 @@ DrivenElem::Output(OutputHandler& OH) const
 	if (dGet() != 0.) {
 		pElem->Output(OH);
 	}	 
-}
-
-void
-DrivenElem::SetOutputFlag(flag f)
-{
-	ASSERT(pElem != NULL);
-	pElem->SetOutputFlag(f);
 }
 
 /* Scrive il contributo dell'elemento al file di restart */
@@ -127,30 +101,6 @@ DrivenElem::Restart(std::ostream& out) const
 	pElem->Restart(out);
 
 	return out;
-}
-
-/* ritorna il numero di Dofs per gli elementi che sono anche DofOwners */
-unsigned int
-DrivenElem::iGetNumDof(void) const
-{ 
-	ASSERT(pElem != NULL);
-	return pElem->iGetNumDof();
-}
-
-/* esegue operazioni sui dof di proprieta' dell'elemento */
-DofOrder::Order
-DrivenElem::GetDofType(unsigned int i) const
-{
-	ASSERT(pElem != NULL);
-	return pElem->GetDofType(i);
-}
-
-/* Dimensioni del workspace */
-void
-DrivenElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
-{
-	ASSERT(pElem != NULL);
-	pElem->WorkSpaceDim(piNumRows, piNumCols);
 }
 
 /*
@@ -196,6 +146,18 @@ DrivenElem::SetValue(DataManager *pdm,
 
 	if (dGet() != 0.) {
 		pElem->SetValue(pdm, X, XP, ph);
+	}
+}
+
+void
+DrivenElem::SetInitialValue(VectorHandler& X) const
+{
+	ASSERT(pElem != NULL);
+	if (dGet() != 0.) {
+		ElemWithDofs*	pEwD = dynamic_cast<ElemWithDofs *>(pElem);
+		if (pEwD) {
+			pEwD->SetInitialValue(X);
+		}
 	}
 }
 
@@ -268,6 +230,7 @@ DrivenElem::AssJac(VariableSubMatrixHandler& WorkMat,
 	   				iFirstIndex+iCnt, 1.);
  		}
 	}
+
 	return WorkMat;
 }
  
@@ -329,29 +292,8 @@ DrivenElem::AssRes(SubVectorHandler& WorkVec,
 			WorkVec.PutCoef(iCnt, -XCurr.dGetCoef(iFirstIndex+iCnt));
 		}
 	}
+
 	return WorkVec;
-}
-
-/*
- * Metodi per l'estrazione di dati "privati".
- * Si suppone che l'estrattore li sappia interpretare.
- * Come default non ci sono dati privati estraibili
- */
-unsigned int
-DrivenElem::iGetNumPrivData(void) const
-{
-	return pElem->iGetNumPrivData();
-}
-
-/*
- * Maps a string (possibly with substrings) to a private data;
- * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0 
- * in case of unrecognized data; error must be handled by caller
- */
-unsigned int
-DrivenElem::iGetPrivDataIdx(const char *s) const
-{
-	return pElem->iGetPrivDataIdx(s);
 }
 
 /*
@@ -367,23 +309,5 @@ DrivenElem::dGetPrivData(unsigned int i) const
 
 	/* safe default */
 	return 0.;
-}
-
-/* *******PER IL SOLUTORE PARALLELO******** *
- * Fornisce il tipo e la label dei nodi che sono connessi all'elemento
- * utile per l'assemblaggio della matrice di connessione fra i dofs
- */
-int
-DrivenElem::GetNumConnectedNodes(void) const
-{
-	ASSERT(pElem != NULL);
-	return pElem->GetNumConnectedNodes();
-}
-
-void
-DrivenElem::GetConnectedNodes(std::vector<const Node *>& connectedNodes)
-{
-	ASSERT(pElem != NULL);
-	pElem->GetConnectedNodes(connectedNodes);
 }
 

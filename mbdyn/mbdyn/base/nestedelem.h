@@ -29,33 +29,31 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* Driven elements:
- * elements that are used depending on the (boolean) value
- * of a driver. Example: a driven joint is assembled only 
- * if the driver is true, otherwise there is no joint and
- * the reaction unknowns are set to zero
+/* Nested elements
  */
 
-#ifndef DRIVEN_H
-#define DRIVEN_H
+#ifndef NESTEDELEM_H
+#define NESTEDELEM_H
 
-#include "nestedelem.h"
-#include "drive.h"
+#include "elem.h"
 
 #include "except.h"
 
-class DrivenElem : virtual public Elem,
-	public NestedElem, protected DriveOwner {
+class NestedElem : virtual public Elem {
 protected: 
-	SimulationEntity::Hints *pHints;
-	bool bActive;
+	DataManager *pDM;
+	Elem* pElem;
  
 public:
-	DrivenElem(DataManager *pDM, const DriveCaller* pDC,
-			const Elem* pE, SimulationEntity::Hints *ph = 0);
-	~DrivenElem(void);
+	NestedElem(DataManager *pDM, const Elem* pE);
+	~NestedElem(void);
 
+	virtual Elem *pGetElem(void) const;
+
+	virtual void OutputPrepare(OutputHandler& OH);
 	virtual void Output(OutputHandler& OH) const;
+
+	virtual void SetOutputFlag(flag f);
 
 	/* Setta il valore iniziale delle proprie variabili */
 	virtual void SetInitialValue(VectorHandler& X) const;
@@ -64,11 +62,43 @@ public:
 			VectorHandler& X, VectorHandler& XP,
 			SimulationEntity::Hints *ph = 0);
 
-	/* Scrive il contributo dell'elemento al file di restart */
-	virtual std::ostream& Restart(std::ostream& out) const;
+	/* Tipo dell'elemento (usato solo per debug ecc.) */
+	virtual Elem::Type GetElemType(void) const;
 
+	/* funzioni di servizio */
+
+	/*
+	 * Il metodo iGetNumDof() serve a ritornare il numero di gradi
+	 * di liberta' propri che l'elemento definisce. Non e' virtuale
+	 * in quanto serve a ritornare 0 per gli elementi che non possiedono
+	 * gradi di liberta'.
+	 * Viene usato nella costruzione dei DofOwner e quindi deve essere 
+	 * indipendente da essi. In genere non comporta overhead in quanto
+	 * il numero di dof aggiunti da un tipo e' una costante e non
+	 * richede dati propri.
+	 * Il metodo pGetDofOwner() ritorna il puntatore al DofOwner
+	 * dell'oggetto.
+	 * E' usato da tutti quelli che agiscono direttamente sui DofOwner.
+	 * Non e' virtuale in quanto ritorna NULL per tutti i tipi che non hanno
+	 * dof propri.
+	 * Il metodo GetDofType() ritorna, per ogni dof dell'elemento, l'ordine.
+	 * E' usato per completare i singoli Dof relativi all'elemento.
+	 */
+   
+	/*
+	 * ritorna il numero di Dofs per gli elementi che sono
+	 * anche DofOwners
+	 */
+	virtual unsigned int iGetNumDof(void) const;
+ 
+	/* esegue operazioni sui dof di proprieta' dell'elemento */
+	virtual DofOrder::Order GetDofType(unsigned int i) const;
+   
 	/* funzioni proprie */
  
+	/* Dimensioni del workspace */
+	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+
 	/*
 	 * Elaborazione vettori e dati prima e dopo la predizione
 	 * per MultiStepIntegrator */
@@ -111,11 +141,32 @@ public:
 			const VectorHandler& XPrimeCurr);
 
 	/*
+	 * Metodi per l'estrazione di dati "privati".
+	 * Si suppone che l'estrattore li sappia interpretare.
+	 * Come default non ci sono dati privati estraibili
+	 */
+	virtual unsigned int iGetNumPrivData(void) const;
+
+	/*
+	 * Maps a string (possibly with substrings) to a private data;
+	 * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0 
+	 * in case of unrecognized data; error must be handled by caller
+	 */
+	virtual unsigned int iGetPrivDataIdx(const char *s) const;
+
+	/*
 	 * Returns the current value of a private data
 	 * with 0 < i <= iGetNumPrivData()
 	 */
 	virtual doublereal dGetPrivData(unsigned int i) const;
+
+	/* *******PER IL SOLUTORE PARALLELO********
+	 * Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	 * utile per l'assemblaggio della matrice di connessione fra i dofs
+	 */
+	virtual int GetNumConnectedNodes(void) const;
+	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes);
 };
 
-#endif /* DRIVEN_H */
+#endif // NESTEDELEM_H
 

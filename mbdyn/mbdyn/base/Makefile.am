@@ -88,6 +88,8 @@ modules.h \
 motionview_res.cc \
 mtdataman.cc \
 mtdataman.h \
+nestedelem.cc \
+nestedelem.h \
 node.cc \
 node.h \
 nodeman.cc \
