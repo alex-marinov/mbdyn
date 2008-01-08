@@ -624,8 +624,8 @@ protected:
 		Node** ppFirstNode;
 		unsigned int iNum;
 		unsigned uFlags;		// flags
-		char *Desc;
-		char *ShortDesc;
+		const char *Desc;
+		const char *ShortDesc;
 
 		/* helpers */
 		void DefaultOut(bool b) { if (b) { uFlags |= DEFAULTOUT; } else { uFlags &= ~DEFAULTOUT; } };
