@@ -42,7 +42,6 @@ NestedElem::NestedElem(const Elem* pE)
 : Elem(pE->GetLabel(), pE->fToBeOutput()),
 pElem(const_cast<Elem *>(pE))
 {
-	ASSERT(pDC != NULL);
 	ASSERT(pE != NULL);
 }
 

@@ -39,42 +39,102 @@
 struct Geometry {
 	unsigned uLabel;
 
+	// kimenatics
 	Vec3 X;
 	Mat3x3 R;
 	Vec3 V;
 	Vec3 W;
 
+	// optional kinematics
 	Vec3 XPP;
 	Vec3 WP;
 
+	// optional forces
 	Vec3 F;
 	Vec3 M;
 };
 
 struct GeometryData {
+	enum Flags {
+		X			= 0x01U,
+		R			= 0x02U,
+		V			= 0x04U,
+		W			= 0x08U,
+
+		XPP			= 0x10U,
+		WP			= 0x20U,
+
+		ACCELERATIONS_MASK	= (XPP | WP ),
+
+		F			= 0x40U,
+		M			= 0x80U,
+
+		FORCES_MASK		= (F | M)
+	};
 	unsigned uFlags;
+
 	std::vector<Geometry> data;
 };
 
-/* StructOutput - begin */
+/* StructOutputManip - begin */
 
-class StructOutput : virtual public Elem, public NestedElem {
-protected:
+class StructOutputManip {
+public:
+   	StructOutputManip(void);
+
+	virtual ~StructOutputManip(void);
+
 	virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP,
 			GeometryData& data) = 0;
+};
 
+/* StructOutputManip - end */
+
+/* StructOutputEnd - begin */
+
+class StructOutputEnd : virtual public Elem, public StructOutputManip {
+public:
+   	StructOutputEnd(unsigned uLabel, flag fOut);
+
+	virtual ~StructOutputEnd(void);
+};
+
+/* StructOutputEnd - end */
+
+/* StructOutputStart - begin */
+
+class StructOutputStart : virtual public Elem, public NestedElem {
+public:
+   	StructOutputStart(const Elem *pE);
+
+	virtual ~StructOutputStart(void);
+
+	virtual void AfterConvergence(const VectorHandler& X, 
+			const VectorHandler& XP,
+			GeometryData& data);
+};
+
+/* StructOutputStart - end */
+
+/* StructOutput - begin */
+
+class StructOutput : virtual public Elem, public NestedElem, public StructOutputManip {
 public:
    	StructOutput(const Elem *pE);
 
 	virtual ~StructOutput(void);
+
+	virtual void AfterConvergence(const VectorHandler& X, 
+			const VectorHandler& XP,
+			GeometryData& data);
 };
 
 /* StructOutput - end */
 
 /* StructOutputCollect - begin */
 
-class StructOutputCollect : virtual public Elem, public StructOutput {
+class StructOutputCollect : virtual public Elem, public StructOutputStart {
 protected:
 	// Copiare da strext.cc:Send()
 	virtual void AfterConvergence(const VectorHandler& X, 
@@ -99,7 +159,6 @@ public:
 
 class StructOutputInterp : virtual public Elem, public StructOutput {
 protected:
-	// Copiare da strext.cc:Send()
 	virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP,
 			GeometryData& data);
@@ -116,7 +175,7 @@ public:
 
 /* StructOutputWrite - begin */
 
-class StructOutputWrite : virtual public Elem, public StructOutput {
+class StructOutputWrite : virtual public Elem, public StructOutputEnd {
 protected:
 	// Scrive su file "nativo"
 	virtual void AfterConvergence(const VectorHandler& X, 
@@ -135,7 +194,7 @@ public:
 
 /* StructOutputWriteNASTRAN - begin */
 
-class StructOutputWriteNASTRAN : virtual public Elem, public StructOutput {
+class StructOutputWriteNASTRAN : virtual public Elem, public StructOutputEnd {
 protected:
 	// Scrive su file bulk NASTRAN
 	virtual void AfterConvergence(const VectorHandler& X, 

@@ -36,18 +36,79 @@
 #include "dataman.h"
 #include "stroutput.h"
 
-/* StructOutput - begin */
+/* StructOutputManip - begin */
 
-StructOutput::StructOutput(const Elem *pE)
-: Elem(pE->GetLabel(), 1),
+StructOutputManip::StructOutputManip(void)
+{
+	NO_OP;
+}
+
+StructOutputManip::~StructOutputManip(void)
+{
+	NO_OP;
+}
+
+/* StructOutputManip - end */
+
+/* StructOutputEnd - begin */
+
+StructOutputEnd::StructOutputEnd(unsigned uLabel, flag fOut)
+: Elem(uLabel, fOut)
+{
+	NO_OP;
+}
+
+StructOutputEnd::~StructOutputEnd(void)
+{
+	NO_OP;
+}
+
+/* StructOutputEnd - end */
+
+/* StructOutputStart - begin */
+
+void
+StructOutputStart::AfterConvergence(const VectorHandler& X, 
+	const VectorHandler& XP,
+	GeometryData& data)
+{
+	dynamic_cast<StructOutputManip *>(pElem)->AfterConvergence(X, XP, data);
+}
+
+StructOutputStart::StructOutputStart(const Elem *pE)
+: Elem(pE->GetLabel(), pE->fToBeOutput()),
 NestedElem(pE)
 {
+	NO_OP;
+}
 
+StructOutputStart::~StructOutputStart(void)
+{
+	NO_OP;
+}
+
+/* StructOutput - end */
+
+/* StructOutput - begin */
+
+void
+StructOutput::AfterConvergence(const VectorHandler& X, 
+	const VectorHandler& XP,
+	GeometryData& data)
+{
+	dynamic_cast<StructOutputManip *>(pElem)->AfterConvergence(X, XP, data);
+}
+
+StructOutput::StructOutput(const Elem *pE)
+: Elem(pE->GetLabel(), pE->fToBeOutput()),
+NestedElem(pE)
+{
+	NO_OP;
 }
 
 StructOutput::~StructOutput(void)
 {
-
+	NO_OP;
 }
 
 /* StructOutput - end */
@@ -59,16 +120,55 @@ StructOutputCollect::AfterConvergence(const VectorHandler& X,
 	const VectorHandler& XP,
 	GeometryData& data)
 {
+#if 0
+	if (pRefNode) {
+		// TODO
+		//
+		//	~p = RRef^T * (x - xRef)
+		//	~R = RRef^T * R
+		//	~v = RRef^T * (v - vRef)	(RRef^T * v ?)
+		//	~w = RRef^T * (w - wRef)	(RRef^T * w ?)
+
+	} else {
+		data.data.resize(Nodes.size());
+		
+		for (unsigned i = 0; i < Nodes.size(); i++) {
+			if (data.uFlags & GeometryData::X) {
+				data.data[i].X = Nodes[i]->GetXCurr();
+			}
+			if (data.uFlags & GeometryData::R) {
+				data.data[i].R = Nodes[i]->GetRCurr();
+			}
+			if (data.uFlags & GeometryData::V) {
+				data.data[i].V = Nodes[i]->GetVCurr();
+			}
+			if (data.uFlags & GeometryData::W) {
+				data.data[i].W = Nodes[i]->GetWCurr();
+			}
+
+			if (data.uFlags & GeometryData::XPP) {
+				data.data[i].XPP = Nodes[i]->GetXPPCurr();
+			}
+			if (data.uFlags & GeometryData::WP) {
+				data.data[i].WP = Nodes[i]->GetWPCurr();
+			}
+		}
+	}
+#endif
+
+	StructOutputStart::AfterConvergence(X, XP, data);
 }
 
 StructOutputCollect::StructOutputCollect(const Elem *pE)
-: Elem(pE->GetLabel(), 1),
-StructOutput(pE)
+: Elem(pE->GetLabel(), pE->fToBeOutput()),
+StructOutputStart(pE)
 {
+	NO_OP;
 }
 
 StructOutputCollect::~StructOutputCollect(void)
 {
+	NO_OP;
 }
 
 std::ostream&
@@ -103,16 +203,19 @@ StructOutputInterp::AfterConvergence(const VectorHandler& X,
 	const VectorHandler& XP,
 	GeometryData& data)
 {
+	StructOutput::AfterConvergence(X, XP, data);
 }
 
 StructOutputInterp::StructOutputInterp(const Elem *pE)
-: Elem(pE->GetLabel(), 1),
+: Elem(pE->GetLabel(), pE->fToBeOutput()),
 StructOutput(pE)
 {
+	NO_OP;
 }
 
 StructOutputInterp::~StructOutputInterp(void)
 {
+	NO_OP;
 }
 
 std::ostream&
@@ -137,16 +240,19 @@ StructOutputWrite::AfterConvergence(const VectorHandler& X,
 	const VectorHandler& XP,
 	GeometryData& data)
 {
+	NO_OP;
 }
 
 StructOutputWrite::StructOutputWrite(const Elem *pE)
-: Elem(pE->GetLabel(), 1),
-StructOutput(pE)
+: Elem(pE->GetLabel(), pE->fToBeOutput()),
+StructOutputEnd(pE->GetLabel(), pE->fToBeOutput())
 {
+	NO_OP;
 }
 
 StructOutputWrite::~StructOutputWrite(void)
 {
+	NO_OP;
 }
 
 std::ostream&
@@ -171,16 +277,19 @@ StructOutputWriteNASTRAN::AfterConvergence(const VectorHandler& X,
 	const VectorHandler& XP,
 	GeometryData& data)
 {
+	NO_OP;
 }
 
 StructOutputWriteNASTRAN::StructOutputWriteNASTRAN(const Elem *pE)
-: Elem(pE->GetLabel(), 1),
-StructOutput(pE)
+: Elem(pE->GetLabel(), pE->fToBeOutput()),
+StructOutputEnd(pE->GetLabel(), pE->fToBeOutput())
 {
+	NO_OP;
 }
 
 StructOutputWriteNASTRAN::~StructOutputWriteNASTRAN(void)
 {
+	NO_OP;
 }
 
 std::ostream&
