@@ -463,13 +463,19 @@ CubicSplineScalarFunction::CubicSplineScalarFunction(
 {
 	Y_i = y_i;
 	X_i = x_i;
-	ASSERTMSGBREAK(Y_i.size() == X_i.size(), "CubicSplineScalarFunction error, Y_i.size() != X_i.size()");
+	ASSERTMSGBREAK(Y_i.size() == X_i.size(),
+		"CubicSplineScalarFunction error, Y_i.size() != X_i.size()");
 	std::vector<doublereal>::iterator xi, xe;
 	xi = X_i.begin();
 	xe = X_i.end() - 1;
-	for (; xi != xe; xi++) {
+	for (unsigned i = 0; xi != xe; xi++, i++) {
 		if (*xi >= *(xi + 1)) {
-			silent_cerr("CubicSplineScalarFunction error, X_i is not ordered" << std::endl);
+			silent_cerr("CubicSplineScalarFunction error, "
+				"X is not ordered: "
+				"X[" << i << "]=" << *xi
+				<< " is not less than "
+				"X[" << i + 1 << "]=" << *(xi + 1)
+				<< std::endl);
 			throw ErrGeneric();
 		}
 	}
@@ -557,13 +563,19 @@ MultiLinearScalarFunction::MultiLinearScalarFunction(
 {
 	Y_i = y_i;
 	X_i = x_i;
-	ASSERTMSGBREAK(X_i.size() == Y_i.size(), "MultiLinearScalarFunction error, Y_i.size() != X_i.size()");
+	ASSERTMSGBREAK(X_i.size() == Y_i.size(),
+		"MultiLinearScalarFunction error, Y_i.size() != X_i.size()");
 	std::vector<doublereal>::iterator xi, xe;
 	xi = X_i.begin();
 	xe = X_i.end()-1;
-	for (; xi != xe; xi++) {
-		if (*xi >= *(xi+1)) {
-			silent_cerr("MultiLinearScalarFunction error, X_i is not ordered" << std::endl);
+	for (unsigned i = 0; xi != xe; xi++, i++) {
+		if (*xi >= *(xi + 1)) {
+			silent_cerr("MultiLinearScalarFunction error, "
+				"X is not ordered: "
+				"X[" << i << "]=" << *xi
+				<< " is not less than "
+				"X[" << i + 1 << "]=" << *(xi + 1)
+				<< std::endl);
 			throw ErrGeneric();
 		}
 	}
@@ -1017,7 +1029,14 @@ ParseScalarFunction(MBDynParser& HP, DataManager* const pDM)
 			throw DataManager::ErrGeneric();
 		}
 
-		sf = func->second->Read(pDM, HP);
+		try {
+			sf = func->second->Read(pDM, HP);
+		} catch (...) {
+			silent_cerr("Unable to parse "
+				"ScalarFunction(\"" << func_name << "\") "
+				"at line " << HP.GetLineData() << std::endl);
+			throw;
+		}
 		if (!HP.SetScalarFunction(func_name, sf)) {
 			silent_cerr("scalar function \"" << func_name << "\" "
 				"already defined at line " << HP.GetLineData() << std::endl);
