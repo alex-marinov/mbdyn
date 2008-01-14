@@ -131,13 +131,17 @@ public:
 class StructOutputCollect : virtual public Elem, public StructOutputStart {
 protected:
 	std::vector<const StructNode *> Nodes;
+	const StructNode *pRefNode;
 	GeometryData data;
 
 	// Copiare da strext.cc:Send()
 	virtual void Manipulate_int(void);
 
 public:
-   	StructOutputCollect(const Elem *pE);
+   	StructOutputCollect(const Elem *pE,
+		unsigned uFlags,
+		const StructNode *pRefNode,
+		const std::vector<const StructNode *>& nodes);
 
 	virtual ~StructOutputCollect(void);
 

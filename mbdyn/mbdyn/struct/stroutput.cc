@@ -128,10 +128,6 @@ StructOutputCollect::Manipulate_int(void)
 	{
 		data.data.resize(Nodes.size());
 		
-		for (unsigned i = 0; i < Nodes.size(); i++) {
-			data.data[i].uLabel = Nodes[i]->GetLabel();
-		}
-
 		if (data.uFlags & GeometryData::X) {
 			for (unsigned i = 0; i < Nodes.size(); i++) {
 				data.data[i].X = Nodes[i]->GetXCurr();
@@ -168,11 +164,23 @@ StructOutputCollect::Manipulate_int(void)
 	StructOutputStart::Manipulate(data);
 }
 
-StructOutputCollect::StructOutputCollect(const Elem *pE)
+StructOutputCollect::StructOutputCollect(const Elem *pE,
+	unsigned uFlags,
+	const StructNode *pRefNode,
+	const std::vector<const StructNode *>& nodes)
 : Elem(pE->GetLabel(), pE->fToBeOutput()),
-StructOutputStart(pE)
+StructOutputStart(pE),
+Nodes(nodes),
+pRefNode(pRefNode)
 {
-	NO_OP;
+	// Initialize communication structure
+	data.uFlags = uFlags;
+	data.data.resize(Nodes.size());
+
+	// Initialize labels
+	for (unsigned i = 0; i < Nodes.size(); i++) {
+		data.data[i].uLabel = Nodes[i]->GetLabel();
+	}
 }
 
 StructOutputCollect::~StructOutputCollect(void)
@@ -203,9 +211,35 @@ StructOutputCollect::AfterConvergence(const VectorHandler& X,
 }
 
 static Elem *
-ReadStructOutputCollect(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
+ReadStructOutputCollect(DataManager *pDM, MBDynParser& HP, const Elem *pNestedElem)
 {
-	return 0;
+	unsigned uFlags = 0;
+
+	uFlags = GeometryData::X;
+
+	const StructNode *pRefNode = 0;
+	if (HP.IsKeyWord("reference" "node")) {
+		pRefNode = dynamic_cast<const StructNode*>(pDM->ReadNode(HP, Node::STRUCTURAL));
+	}
+
+	int n = HP.GetInt();
+	if (n <= 0) {
+		silent_cerr("StructOutputCollect(" << pNestedElem->GetLabel() << "): "
+			"illegal node number " << n
+			<< " at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric();
+	}
+
+	std::vector<const StructNode *> Nodes(n);
+	for (int i = 0; i < n; i++ ) {
+		Nodes[i] = dynamic_cast<StructNode*>(pDM->ReadNode(HP, Node::STRUCTURAL));
+	}
+
+	Elem *pEl = 0;
+	SAFENEWWITHCONSTRUCTOR(pEl, StructOutputCollect,
+		StructOutputCollect(pNestedElem, uFlags, pRefNode, Nodes));
+
+	return pEl;
 }
 
 /* StructOutputCollect - end */
@@ -241,7 +275,7 @@ StructOutputInterp::Restart(std::ostream& out) const
 }
 
 static Elem *
-ReadStructOutputInterp(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
+ReadStructOutputInterp(DataManager *pDM, MBDynParser& HP, const Elem *pNestedElem)
 {
 	return 0;
 }
@@ -321,22 +355,41 @@ ReadStructOutputWriteNASTRAN(DataManager *pDM, MBDynParser& HP, unsigned int uLa
 Elem *
 ReadStructOutput(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 {
-	if (HP.IsKeyWord("collect")) {
-		return ReadStructOutputCollect(pDM, HP, uLabel);
+	Elem *pEl = 0;
 
-	} else if (HP.IsKeyWord("interpolate")) {
-		return ReadStructOutputInterp(pDM, HP, uLabel);
-
-	} else if (HP.IsKeyWord("write")) {
-		return ReadStructOutputWrite(pDM, HP, uLabel);
+	// End
+	if (HP.IsKeyWord("write")) {
+		pEl = ReadStructOutputWrite(pDM, HP, uLabel);
 
 	} else if (HP.IsKeyWord("write" "NASTRAN")) {
-		return ReadStructOutputWriteNASTRAN(pDM, HP, uLabel);
+		pEl = ReadStructOutputWriteNASTRAN(pDM, HP, uLabel);
 	}
 
-	silent_cerr("StructOutput(" << uLabel << "): "
-		"unknown type at line " << HP.GetLineData() << std::endl);
+	// Add other end types here...
 
-	return 0;
+	while (HP.IsArg()) {
+		// Manip
+		if (HP.IsKeyWord("interpolate")) {
+			pEl = ReadStructOutputInterp(pDM, HP, pEl);
+
+		// Add other manip types here...
+
+		// Start
+		} else if (HP.IsKeyWord("collect")) {
+			pEl = ReadStructOutputCollect(pDM, HP, pEl);
+			break;
+
+		// Add other start types here...
+
+		// Default
+		} else  {
+			silent_cerr("StructOutput(" << uLabel << "): "
+				"unknown type at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric();
+		}
+	}
+
+	return pEl;
 }
 
