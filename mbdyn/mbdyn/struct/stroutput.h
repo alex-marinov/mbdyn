@@ -130,8 +130,11 @@ public:
 
 class StructOutputCollect : virtual public Elem, public StructOutputStart {
 protected:
+	std::vector<const StructNode *> Nodes;
+	GeometryData data;
+
 	// Copiare da strext.cc:Send()
-	virtual void Manipulate(const GeometryData& data);
+	virtual void Manipulate_int(void);
 
 public:
    	StructOutputCollect(const Elem *pE);
@@ -143,6 +146,9 @@ public:
 	virtual void SetValue(DataManager *pDM,
 			VectorHandler& X, VectorHandler& XP,
 			SimulationEntity::Hints *ph = 0);
+
+	virtual void AfterConvergence(const VectorHandler& X, 
+			const VectorHandler& XP);
 };
 
 /* StructOutputCollect - end */

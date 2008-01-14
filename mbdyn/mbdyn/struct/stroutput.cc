@@ -112,7 +112,7 @@ StructOutput::~StructOutput(void)
 /* StructOutputCollect - begin */
 
 void
-StructOutputCollect::Manipulate(const GeometryData& data)
+StructOutputCollect::Manipulate_int(void)
 {
 #if 0
 	if (pRefNode) {
@@ -123,7 +123,9 @@ StructOutputCollect::Manipulate(const GeometryData& data)
 		//	~v = RRef^T * (v - vRef)	(RRef^T * v ?)
 		//	~w = RRef^T * (w - wRef)	(RRef^T * w ?)
 
-	} else {
+	} else
+#endif
+	{
 		data.data.resize(Nodes.size());
 		
 		for (unsigned i = 0; i < Nodes.size(); i++) {
@@ -162,7 +164,6 @@ StructOutputCollect::Manipulate(const GeometryData& data)
 			}
 		}
 	}
-#endif
 
 	StructOutputStart::Manipulate(data);
 }
@@ -191,10 +192,14 @@ StructOutputCollect::SetValue(DataManager *pDM,
 	VectorHandler& X, VectorHandler& XP,
 	SimulationEntity::Hints *ph)
 {
-	// Finto!
-	GeometryData data;
+	Manipulate_int();
+}
 
-	Manipulate(data);
+void
+StructOutputCollect::AfterConvergence(const VectorHandler& X, 
+		const VectorHandler& XP)
+{
+	Manipulate_int();
 }
 
 static Elem *
