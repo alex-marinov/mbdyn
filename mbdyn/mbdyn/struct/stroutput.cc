@@ -68,11 +68,9 @@ StructOutputEnd::~StructOutputEnd(void)
 /* StructOutputStart - begin */
 
 void
-StructOutputStart::AfterConvergence(const VectorHandler& X, 
-	const VectorHandler& XP,
-	GeometryData& data)
+StructOutputStart::Manipulate(const GeometryData& data)
 {
-	dynamic_cast<StructOutputManip *>(pElem)->AfterConvergence(X, XP, data);
+	dynamic_cast<StructOutputManip *>(pElem)->Manipulate(data);
 }
 
 StructOutputStart::StructOutputStart(const Elem *pE)
@@ -92,11 +90,9 @@ StructOutputStart::~StructOutputStart(void)
 /* StructOutput - begin */
 
 void
-StructOutput::AfterConvergence(const VectorHandler& X, 
-	const VectorHandler& XP,
-	GeometryData& data)
+StructOutput::Manipulate(const GeometryData& data)
 {
-	dynamic_cast<StructOutputManip *>(pElem)->AfterConvergence(X, XP, data);
+	dynamic_cast<StructOutputManip *>(pElem)->Manipulate(data);
 }
 
 StructOutput::StructOutput(const Elem *pE)
@@ -116,9 +112,7 @@ StructOutput::~StructOutput(void)
 /* StructOutputCollect - begin */
 
 void
-StructOutputCollect::AfterConvergence(const VectorHandler& X, 
-	const VectorHandler& XP,
-	GeometryData& data)
+StructOutputCollect::Manipulate(const GeometryData& data)
 {
 #if 0
 	if (pRefNode) {
@@ -133,30 +127,44 @@ StructOutputCollect::AfterConvergence(const VectorHandler& X,
 		data.data.resize(Nodes.size());
 		
 		for (unsigned i = 0; i < Nodes.size(); i++) {
-			if (data.uFlags & GeometryData::X) {
+			data.data[i].uLabel = Nodes[i]->GetLabel();
+		}
+
+		if (data.uFlags & GeometryData::X) {
+			for (unsigned i = 0; i < Nodes.size(); i++) {
 				data.data[i].X = Nodes[i]->GetXCurr();
 			}
-			if (data.uFlags & GeometryData::R) {
+		}
+		if (data.uFlags & GeometryData::R) {
+			for (unsigned i = 0; i < Nodes.size(); i++) {
 				data.data[i].R = Nodes[i]->GetRCurr();
 			}
-			if (data.uFlags & GeometryData::V) {
+		}
+		if (data.uFlags & GeometryData::V) {
+			for (unsigned i = 0; i < Nodes.size(); i++) {
 				data.data[i].V = Nodes[i]->GetVCurr();
 			}
-			if (data.uFlags & GeometryData::W) {
+		}
+		if (data.uFlags & GeometryData::W) {
+			for (unsigned i = 0; i < Nodes.size(); i++) {
 				data.data[i].W = Nodes[i]->GetWCurr();
 			}
+		}
 
-			if (data.uFlags & GeometryData::XPP) {
+		if (data.uFlags & GeometryData::XPP) {
+			for (unsigned i = 0; i < Nodes.size(); i++) {
 				data.data[i].XPP = Nodes[i]->GetXPPCurr();
 			}
-			if (data.uFlags & GeometryData::WP) {
+		}
+		if (data.uFlags & GeometryData::WP) {
+			for (unsigned i = 0; i < Nodes.size(); i++) {
 				data.data[i].WP = Nodes[i]->GetWPCurr();
 			}
 		}
 	}
 #endif
 
-	StructOutputStart::AfterConvergence(X, XP, data);
+	StructOutputStart::Manipulate(data);
 }
 
 StructOutputCollect::StructOutputCollect(const Elem *pE)
@@ -185,7 +193,8 @@ StructOutputCollect::SetValue(DataManager *pDM,
 {
 	// Finto!
 	GeometryData data;
-	AfterConvergence(X, XP, data);
+
+	Manipulate(data);
 }
 
 static Elem *
@@ -199,11 +208,12 @@ ReadStructOutputCollect(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 /* StructOutputInterp - begin */
 
 void
-StructOutputInterp::AfterConvergence(const VectorHandler& X, 
-	const VectorHandler& XP,
-	GeometryData& data)
+StructOutputInterp::Manipulate(const GeometryData& orig_data)
 {
-	StructOutput::AfterConvergence(X, XP, data);
+	// add interpolation
+	GeometryData data;
+
+	StructOutput::Manipulate(data);
 }
 
 StructOutputInterp::StructOutputInterp(const Elem *pE)
@@ -236,9 +246,7 @@ ReadStructOutputInterp(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 /* StructOutputWrite - begin */
 
 void
-StructOutputWrite::AfterConvergence(const VectorHandler& X, 
-	const VectorHandler& XP,
-	GeometryData& data)
+StructOutputWrite::Manipulate(const GeometryData& data)
 {
 	NO_OP;
 }
@@ -273,9 +281,7 @@ ReadStructOutputWrite(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 /* StructOutputWriteNASTRAN - begin */
 
 void
-StructOutputWriteNASTRAN::AfterConvergence(const VectorHandler& X, 
-	const VectorHandler& XP,
-	GeometryData& data)
+StructOutputWriteNASTRAN::Manipulate(const GeometryData& data)
 {
 	NO_OP;
 }

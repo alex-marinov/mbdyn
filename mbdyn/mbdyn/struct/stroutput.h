@@ -84,9 +84,7 @@ public:
 
 	virtual ~StructOutputManip(void);
 
-	virtual void AfterConvergence(const VectorHandler& X, 
-			const VectorHandler& XP,
-			GeometryData& data) = 0;
+	virtual void Manipulate(const GeometryData& data) = 0;
 };
 
 /* StructOutputManip - end */
@@ -110,9 +108,7 @@ public:
 
 	virtual ~StructOutputStart(void);
 
-	virtual void AfterConvergence(const VectorHandler& X, 
-			const VectorHandler& XP,
-			GeometryData& data);
+	virtual void Manipulate(const GeometryData& data);
 };
 
 /* StructOutputStart - end */
@@ -125,9 +121,7 @@ public:
 
 	virtual ~StructOutput(void);
 
-	virtual void AfterConvergence(const VectorHandler& X, 
-			const VectorHandler& XP,
-			GeometryData& data);
+	virtual void Manipulate(const GeometryData& data);
 };
 
 /* StructOutput - end */
@@ -137,9 +131,7 @@ public:
 class StructOutputCollect : virtual public Elem, public StructOutputStart {
 protected:
 	// Copiare da strext.cc:Send()
-	virtual void AfterConvergence(const VectorHandler& X, 
-			const VectorHandler& XP,
-			GeometryData& data);
+	virtual void Manipulate(const GeometryData& data);
 
 public:
    	StructOutputCollect(const Elem *pE);
@@ -159,9 +151,7 @@ public:
 
 class StructOutputInterp : virtual public Elem, public StructOutput {
 protected:
-	virtual void AfterConvergence(const VectorHandler& X, 
-			const VectorHandler& XP,
-			GeometryData& data);
+	virtual void Manipulate(const GeometryData& data);
 
 public:
    	StructOutputInterp(const Elem *pE);
@@ -178,9 +168,7 @@ public:
 class StructOutputWrite : virtual public Elem, public StructOutputEnd {
 protected:
 	// Scrive su file "nativo"
-	virtual void AfterConvergence(const VectorHandler& X, 
-			const VectorHandler& XP,
-			GeometryData& data);
+	virtual void Manipulate(const GeometryData& data);
 
 public:
    	StructOutputWrite(const Elem *pE);
@@ -197,9 +185,7 @@ public:
 class StructOutputWriteNASTRAN : virtual public Elem, public StructOutputEnd {
 protected:
 	// Scrive su file bulk NASTRAN
-	virtual void AfterConvergence(const VectorHandler& X, 
-			const VectorHandler& XP,
-			GeometryData& data);
+	virtual void Manipulate(const GeometryData& data);
 
 public:
    	StructOutputWriteNASTRAN(const Elem *pE);
