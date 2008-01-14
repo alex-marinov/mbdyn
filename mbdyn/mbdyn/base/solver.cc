@@ -3759,7 +3759,7 @@ Solver::Eig(void)
 
 	/*
 	 * MatA, MatB: MatrixHandlers to eigenanalysis matrices
-	 * MatL, MatR: MatrixHandlers to eigenvectors, if required
+	 * MatVL, MatVR: MatrixHandlers to eigenvectors, if required
 	 * AlphaR, AlphaI Beta: eigenvalues
 	 * WorkVec:    Workspace
 	 * iWorkSize:  Size of the workspace
@@ -3803,11 +3803,11 @@ Solver::Eig(void)
 	pdTmp += iSize*iSize;
 	ppdTmp += iSize;
 
-	FullMatrixHandler MatL(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);
+	FullMatrixHandler MatVL(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);
 	pdTmp += iSize*iSize;
 	ppdTmp += iSize;
 
-	FullMatrixHandler MatR(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);
+	FullMatrixHandler MatVR(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);
 	pdTmp += iSize*iSize;
 
 	MyVectorHandler AlphaR(iSize, pdTmp);
@@ -3865,7 +3865,7 @@ Solver::Eig(void)
 		/* first matrix */
 		o
 			<< "% F/xPrime + dCoef * F/x" << std::endl
-			<< "A1 = [";
+			<< "Aplus = [";
 
 		for (integer r = 1; r <= iSize; r++) {
 			for (integer c = 1; c <= iSize; c++) {
@@ -3883,7 +3883,7 @@ Solver::Eig(void)
 		/* second matrix */
 		o
 			<< "% F/xPrime - dCoef * F/x" << std::endl
-			<< "A2 = [";
+			<< "Aminus = [";
 
 		for (integer r = 1; r <= iSize; r++) {
 			for (integer c = 1; c <= iSize; c++) {
@@ -3902,9 +3902,9 @@ Solver::Eig(void)
 		iSize*iSize*sizeof(doublereal)));
 	ASSERT(defaultMemoryManager.fIsValid(MatB.pdGetMat(),
 		iSize*iSize*sizeof(doublereal)));
-	ASSERT(defaultMemoryManager.fIsValid(MatL.pdGetMat(),
+	ASSERT(defaultMemoryManager.fIsValid(MatVL.pdGetMat(),
 		iSize*iSize*sizeof(doublereal)));
-	ASSERT(defaultMemoryManager.fIsValid(MatR.pdGetMat(),
+	ASSERT(defaultMemoryManager.fIsValid(MatVR.pdGetMat(),
 		iSize*iSize*sizeof(doublereal)));
 	ASSERT(defaultMemoryManager.fIsValid(AlphaR.pdGetVec(),
 		iSize*sizeof(doublereal)));
@@ -3928,9 +3928,9 @@ Solver::Eig(void)
 		AlphaR.pdGetVec(),
 		AlphaI.pdGetVec(),
 		Beta.pdGetVec(),
-		MatL.pdGetMat(),
+		MatVL.pdGetMat(),
 		&iSize,
-		MatR.pdGetMat(),
+		MatVR.pdGetMat(),
 		&iSize,
 		WorkVec.pdGetVec(),
 		&iWorkSize,
@@ -4041,6 +4041,9 @@ Solver::Eig(void)
 	}
 
 	if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_EIGENVECTORS) {
+		static const char signs[] = { '-', '+' };
+		int isign;
+
 		// alphar, alphai, beta
 		o
 			<< "% alphar, alphai, beta" << std::endl
@@ -4063,23 +4066,25 @@ Solver::Eig(void)
 			for (integer c = 1; c <= iSize; c++) {
 				if (AlphaI(c) != 0.) {
 					ASSERT(c < iSize);
+					ASSERT(AlphaI(c) > 0.);
 
-					doublereal re = MatL(r, c);
-					doublereal im = MatL(r, c + 1);
-					char signs[2] = { '+', '-' };
-					if (im < 0.) {
-						signs[0] = '-';
-						signs[1] = '+';
+					doublereal re = MatVL(r, c);
+					doublereal im = MatVL(r, c + 1);
+					if (im < 0 ) {
+						isign = 0;
 						im = -im;
+
+					} else {
+						isign = 1;
 					}
 					o
-						<< std::setw(24) << re << signs[0] << "j*" << std::setw(24) << im
-						<< std::setw(24) << re << signs[1] << "j*" << std::setw(24) << im;
+						<< std::setw(24) << re << signs[isign] << "i*" << std::setw(24) << im
+						<< std::setw(24) << re << signs[1-isign] << "i*" << std::setw(24) << im;
 					c++;
 
 				} else {
 					o
-						<< std::setw(24) << MatL(r, c);
+						<< std::setw(24) << MatVL(r, c);
 				}
 			}
 
@@ -4099,23 +4104,25 @@ Solver::Eig(void)
 			for (integer c = 1; c <= iSize; c++) {
 				if (AlphaI(c) != 0.) {
 					ASSERT(c < iSize);
+					ASSERT(AlphaI(c) > 0.);
 
-					doublereal re = MatR(r, c);
-					doublereal im = MatR(r, c + 1);
-					char signs[2] = { '+', '-' };
-					if (im < 0.) {
-						signs[0] = '-';
-						signs[1] = '+';
+					doublereal re = MatVR(r, c);
+					doublereal im = MatVR(r, c + 1);
+					if (im < 0 ) {
+						isign = 0;
 						im = -im;
+
+					} else {
+						isign = 1;
 					}
 					o
-						<< std::setw(24) << re << signs[0] << "j*" << std::setw(24) << im
-						<< std::setw(24) << re << signs[1] << "j*" << std::setw(24) << im;
+						<< std::setw(24) << re << signs[isign] << "i*" << std::setw(24) << im
+						<< std::setw(24) << re << signs[1-isign] << "i*" << std::setw(24) << im;
 					c++;
 
 				} else {
 					o
-						<< std::setw(24) << MatR(r, c);
+						<< std::setw(24) << MatVR(r, c);
 				}
 			}
 
