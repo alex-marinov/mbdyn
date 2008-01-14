@@ -135,7 +135,6 @@ Modal::Modal(unsigned int uL,
 		MatNxN *pGenDamp,
 		unsigned int *IdFemNodes, /* label nodi FEM */
 		unsigned int *intFEMNodes,/* label nodi FEM d'interfaccia */
-		unsigned int *intMBNodes, /* label nodi MB d'interfaccia */
 		Mat3xN *pN,               /* posizione dei nodi FEM */
 		Mat3xN *pOffsetfemNodes,
 		Mat3xN *pOffsetmbNodes,
@@ -175,7 +174,6 @@ pModalStiff(pGenStiff),
 pModalDamp(pGenDamp),
 IdFemNodes(IdFemNodes),
 IntFEMNodes(intFEMNodes),
-IntMBNodes(intMBNodes),
 pXYZFemNodes(pN),
 pOffsetFEMNodes(pOffsetfemNodes),
 pOffsetMBNodes(pOffsetmbNodes),
@@ -255,6 +253,48 @@ Modal::~Modal(void)
 	if (pR2 != NULL) {
 		SAFEDELETEARR(pR2);
 	}
+	if (IntFEMNodes) {
+		SAFEDELETEARR(IntFEMNodes);
+	}
+	if (pInterfaceNodes) {
+		SAFEDELETEARR(pInterfaceNodes);
+	}
+	if (pXYZFemNodes) {
+		SAFEDELETE(pXYZFemNodes);
+	}
+	if (pModalMass) {
+		SAFEDELETE(pModalMass);
+	}
+	if (pModalStiff) {
+		SAFEDELETE(pModalStiff);
+	}
+	if (pModalDamp) {
+		SAFEDELETE(pModalDamp);
+	}
+	if (pModeShapest) {
+		SAFEDELETE(pModeShapest);
+	}
+	if (pModeShapesr) {
+		SAFEDELETE(pModeShapesr);
+	}
+	if (IdFemNodes) {
+		SAFEDELETEARR(IdFemNodes);
+	}
+	if (pOffsetFEMNodes) {
+		SAFEDELETE(pOffsetFEMNodes);
+	}
+	if (pOffsetMBNodes) {
+		SAFEDELETE(pOffsetMBNodes);
+	}
+	if (pRotMBNodes) {
+		SAFEDELETE(pRotMBNodes);
+	}
+	if (pPHIt) {
+		SAFEDELETE(pPHIt);
+	}
+	if (pPHIr) {
+		SAFEDELETE(pPHIr);
+	}
 
 	/* FIXME: destroy all the other data ... */
 }
@@ -301,16 +341,20 @@ Modal::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) 
 	for (unsigned iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++, iModalIndex += 6) {
 		out
 			<< prefix << iModalIndex + 1 << "->" << iModalIndex + 3 << ": "
-				"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") reaction forces [Fx,Fy,Fz]" << std::endl
+				"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") "
+				"reaction forces [Fx,Fy,Fz]" << std::endl
 			<< prefix << iModalIndex + 4 << "->" << iModalIndex + 6 << ": "
-				"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") reaction couples [mx,my,mz]" << std::endl;
+				"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") "
+				"reaction couples [mx,my,mz]" << std::endl;
 		if (bInitial) {
 			iModalIndex += 6;
 			out
 				<< prefix << iModalIndex + 1 << "->" << iModalIndex + 3 << ": "
-					"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") reaction force derivatives [FPx,FPy,FPz]" << std::endl
+					"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") "
+					"reaction force derivatives [FPx,FPy,FPz]" << std::endl
 				<< prefix << iModalIndex + 4 << "->" << iModalIndex + 6 << ": "
-					"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") reaction couple derivatives [mPx,mPy,mPz]" << std::endl;
+					"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") "
+					"reaction couple derivatives [mPx,mPy,mPz]" << std::endl;
 		}
 	}
 
@@ -338,16 +382,20 @@ Modal::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) c
 	for (unsigned iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++, iModalIndex += 6) {
 		out
 			<< prefix << iModalIndex + 1 << "->" << iModalIndex + 3 << ": "
-				"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") position constraints [Px=PxN,Py=PyN,Pz=PzN]" << std::endl
+				"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") "
+				"position constraints [Px=PxN,Py=PyN,Pz=PzN]" << std::endl
 			<< prefix << iModalIndex + 4 << "->" << iModalIndex + 6 << ": "
-				"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") orientation constraints [gx=gxN,gy=gyN,gz=gzN]" << std::endl;
+				"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") "
+				"orientation constraints [gx=gxN,gy=gyN,gz=gzN]" << std::endl;
 		if (bInitial) {
 			iModalIndex += 6;
 			out
 				<< prefix << iModalIndex + 1 << "->" << iModalIndex + 3 << ": "
-					"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") velocity constraints [vx=vxN,vy=vyN,vz=vzN]" << std::endl
+					"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") "
+					"velocity constraints [vx=vxN,vy=vyN,vz=vzN]" << std::endl
 				<< prefix << iModalIndex + 4 << "->" << iModalIndex + 6 << ": "
-					"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") angular velocity constraints [wx=wxN,wy=wyN,wz=wzN]" << std::endl;
+					"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") "
+					"angular velocity constraints [wx=wxN,wy=wyN,wz=wzN]" << std::endl;
 		}
 	}
 
@@ -3745,7 +3793,6 @@ ReadModal(DataManager* pDM,
 	const StructNode** pInterfaceNodes = NULL;
 	/* array contenente le label dei nodi d'interfaccia */
 	unsigned int *IntFEMNodes = NULL;
-	unsigned int *IntMBNodes = NULL;
 	/* array contenente le forme modali dei nodi d'interfaccia */
 	Mat3xN* pPHItStrNode = NULL;
 	Mat3xN* pPHIrStrNode = NULL;
@@ -3808,7 +3855,6 @@ ReadModal(DataManager* pDM,
 
 	SAFENEWARR(pInterfaceNodes, const StructNode*, NStrNodes);
 	SAFENEWARR(IntFEMNodes, unsigned int, NStrNodes);
-	SAFENEWARR(IntMBNodes, unsigned int, NStrNodes);
 
 	for (unsigned int iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
 		/* nodo collegato 1 (è il nodo FEM) */
@@ -3885,7 +3931,6 @@ ReadModal(DataManager* pDM,
 		/* salva le label dei nodi vincolati nell'array IntNodes;
 		 * puo' servire per il restart? */
 		IntFEMNodes[iStrNode - 1] = uNode1;
-		IntMBNodes[iStrNode - 1] = uNode2;
 
 		Vec3 xMB(pInterfaceNodes[iStrNode - 1]->GetXCurr());
 		pedantic_cout("Interface node " << iStrNode << ":" << std::endl
@@ -4183,7 +4228,6 @@ ReadModal(DataManager* pDM,
 				pGenDamp,
 				IdFemNodes,
 				IntFEMNodes,
-				IntMBNodes,
 				pXYZFemNodes,
 				pOffsetFEMNodes,
 				pOffsetMBNodes,
@@ -4209,6 +4253,9 @@ ReadModal(DataManager* pDM,
 	if (fOut) {
 		pDM->OutputOpen(OutputHandler::MODAL);
 	}
+
+	SAFEDELETE(a);
+	SAFEDELETE(aP);
 
 	return pEl;
 }

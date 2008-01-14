@@ -84,7 +84,6 @@ protected:
 	MatNxN *pModalDamp;
 	unsigned int* IdFemNodes;
 	unsigned int* IntFEMNodes;
-	unsigned int* IntMBNodes;
 	Mat3xN *pXYZFemNodes;
 	Mat3xN *pOffsetFEMNodes;   
 	Mat3xN *pOffsetMBNodes;   
@@ -158,7 +157,6 @@ public:
 			MatNxN *pGenDamp,
 			unsigned int* IdFemNodes,
 			unsigned int* IntFEMNodes,
-			unsigned int* IntMBNodes,
 			Mat3xN *pN,
 			Mat3xN *pOffsetfemNodes,
 			Mat3xN *pOffsetmbNodes,
