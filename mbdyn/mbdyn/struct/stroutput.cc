@@ -379,20 +379,50 @@ ReadStructOutputCollect(DataManager *pDM, MBDynParser& HP, const Elem *pNestedEl
 
 /* StructOutputCollect - end */
 
-/* StructOutputInterp - begin */
+/* StructOutputInterpBase - begin */
 
 void
-StructOutputInterp::Manipulate(const GeometryData& orig_data)
+StructOutputInterpBase::InterpInit(void)
 {
-	// add interpolation
-	GeometryData data;
+	// gather interpolation data
+	InterpInit_int();
+
+	// initialize interpolation data
+}
+
+void
+StructOutputInterpBase::Manipulate(const GeometryData& orig_data)
+{
+	// do the interpolation at each call
 
 	StructOutput::Manipulate(data);
 }
 
-StructOutputInterp::StructOutputInterp(const Elem *pE)
+StructOutputInterpBase::StructOutputInterpBase(const Elem *pE)
 : Elem(pE->GetLabel(), pE->fToBeOutput()),
 StructOutput(pE)
+{
+	NO_OP;
+}
+
+StructOutputInterpBase::~StructOutputInterpBase(void)
+{
+	NO_OP;
+}
+
+/* StructOutputInterpBase - end */
+
+/* StructOutputInterp - begin */
+
+void
+StructOutputInterp::InterpInit_int(void)
+{
+	NO_OP;
+}
+
+StructOutputInterp::StructOutputInterp(const Elem *pE)
+: Elem(pE->GetLabel(), pE->fToBeOutput()),
+StructOutputInterpBase(pE)
 {
 	NO_OP;
 }
@@ -409,10 +439,46 @@ StructOutputInterp::Restart(std::ostream& out) const
 		"not implemented yet!" << std::endl;
 }
 
+/* StructOutputInterp - end */
+
+/* StructOutputInterpOP2 - begin */
+
+void
+StructOutputInterpOP2::InterpInit_int(void)
+{
+	// read op2 file
+	NO_OP;
+}
+
+StructOutputInterpOP2::StructOutputInterpOP2(const Elem *pE)
+: Elem(pE->GetLabel(), pE->fToBeOutput()),
+StructOutputInterpBase(pE)
+{
+	NO_OP;
+}
+
+StructOutputInterpOP2::~StructOutputInterpOP2(void)
+{
+	NO_OP;
+}
+
+std::ostream&
+StructOutputInterpOP2::Restart(std::ostream& out) const
+{
+	return out << "# StructOutputInterpOP2(" << GetLabel() << "): "
+		"not implemented yet!" << std::endl;
+}
+
 static Elem *
 ReadStructOutputInterp(DataManager *pDM, MBDynParser& HP, const Elem *pNestedElem)
 {
-	return 0;
+	// collect parameters and pass to constructor
+
+	Elem *pEl = 0;
+	SAFENEWWITHCONSTRUCTOR(pEl, StructOutputInterpOP2,
+		StructOutputInterpOP2(pNestedElem));
+
+	return pEl;
 }
 
 /* StructOutputInterp - end */
@@ -443,6 +509,7 @@ StructOutputWriteBase::~StructOutputWriteBase(void)
 void
 StructOutputWrite::Manipulate(const GeometryData& data)
 {
+	// open file
 	std::ofstream outf(outfilename.c_str());
 	if (!outf) {
 		silent_cerr("StructOutputWrite(" << GetLabel() << "): "
@@ -456,6 +523,42 @@ StructOutputWrite::Manipulate(const GeometryData& data)
 	}
 	outf.setf(std::ios::scientific);
 
+	// header
+	outf << "# Label";
+	if (data.uFlags & GeometryData::X) {
+		outf << " X(3)";
+	}
+	
+	if (data.uFlags & GeometryData::R) {
+		outf << " R(3,3)";
+	}
+	
+	if (data.uFlags & GeometryData::V) {
+		outf << " V(3)";
+	}
+	
+	if (data.uFlags & GeometryData::W) {
+		outf << " W(3)";
+	}
+	
+	if (data.uFlags & GeometryData::XPP) {
+		outf << " XPP(3)";
+	}
+	
+	if (data.uFlags & GeometryData::WP) {
+		outf << " WP(3)";
+	}
+	
+	if (data.uFlags & GeometryData::F) {
+		outf << " F(3)";
+	}
+	
+	if (data.uFlags & GeometryData::M) {
+		outf << " M(3)";
+	}
+	outf << std::endl;
+
+	// data
 	for (std::vector<Geometry>::const_iterator i = data.data.begin();
 		i != data.data.end(); i++)
 	{
@@ -555,7 +658,10 @@ ReadStructOutputWrite(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		}
 	}
 
+#if 0
 	flag fOut = pDM->fReadOutput(HP, Elem::SOCKETSTREAM_OUTPUT);
+#endif
+	flag fOut(1);
 
 	Elem *pEl = 0;
 	SAFENEWWITHCONSTRUCTOR(pEl, StructOutputWrite,
@@ -617,6 +723,14 @@ ReadStructOutput(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		pEl = ReadStructOutputWriteNASTRAN(pDM, HP, uLabel);
 	}
 
+	if (dynamic_cast<StructOutputEnd *>(pEl) == 0) {
+		silent_cerr("StructOutput(" << uLabel << "): "
+			"first element must be \"end\"-typed "
+			"at line " << HP.GetLineData()
+			<< std::endl);
+		throw ErrGeneric();
+	}
+
 	// Add other end types here...
 
 	while (HP.IsArg()) {
@@ -626,12 +740,11 @@ ReadStructOutput(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 
 		// Add other manip types here...
 
-		// Put start types here, ended by a "break;"
+		// Put start types here
 		} else if (HP.IsKeyWord("collect")) {
 			pEl = ReadStructOutputCollect(pDM, HP, pEl);
-			break;
 
-		// Add other start types here, ended by a "break;"...
+		// Add other start types here...
 
 		// Default
 		} else  {
@@ -639,6 +752,10 @@ ReadStructOutput(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 				"unknown type at line " << HP.GetLineData()
 				<< std::endl);
 			throw ErrGeneric();
+		}
+
+		if (dynamic_cast<StructOutputStart *>(pEl) != 0) {
+			break;
 		}
 	}
 

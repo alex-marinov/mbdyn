@@ -209,16 +209,50 @@ public:
 
 /* StructOutputCollectRelative - end */
 
+/* StructOutputInterpBase - begin */
+
+class StructOutputInterpBase : virtual public Elem, public StructOutput {
+protected:
+	GeometryData data;
+
+	virtual void InterpInit(void);
+	virtual void InterpInit_int(void) = 0;
+	virtual void Manipulate(const GeometryData& data);
+
+public:
+   	StructOutputInterpBase(const Elem *pE);
+
+	virtual ~StructOutputInterpBase(void);
+};
+
+/* StructOutputInterpBase - end */
+
 /* StructOutputInterp - begin */
 
-class StructOutputInterp : virtual public Elem, public StructOutput {
+class StructOutputInterp : virtual public Elem, public StructOutputInterpBase {
 protected:
-	virtual void Manipulate(const GeometryData& data);
+	virtual void InterpInit_int(void);
 
 public:
    	StructOutputInterp(const Elem *pE);
 
 	virtual ~StructOutputInterp(void);
+
+	virtual std::ostream& Restart(std::ostream& out) const;
+};
+
+/* StructOutputInterp - end */
+
+/* StructOutputInterpOP2 - begin */
+
+class StructOutputInterpOP2 : virtual public Elem, public StructOutputInterpBase {
+protected:
+	virtual void InterpInit_int(void);
+
+public:
+   	StructOutputInterpOP2(const Elem *pE);
+
+	virtual ~StructOutputInterpOP2(void);
 
 	virtual std::ostream& Restart(std::ostream& out) const;
 };
