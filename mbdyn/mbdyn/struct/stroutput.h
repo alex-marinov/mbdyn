@@ -96,6 +96,21 @@ public:
    	StructOutputEnd(unsigned uLabel, flag fOut);
 
 	virtual ~StructOutputEnd(void);
+
+	virtual Elem::Type GetElemType(void) const;
+	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr);
+
+	virtual VariableSubMatrixHandler& 
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		doublereal dCoef, 
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
 };
 
 /* StructOutputEnd - end */
@@ -126,26 +141,22 @@ public:
 
 /* StructOutput - end */
 
-/* StructOutputCollect - begin */
+/* StructOutputCollectBase - begin */
 
-class StructOutputCollect : virtual public Elem, public StructOutputStart {
+class StructOutputCollectBase : virtual public Elem, public StructOutputStart {
 protected:
 	std::vector<const StructNode *> Nodes;
-	const StructNode *pRefNode;
 	GeometryData data;
 
 	// Copiare da strext.cc:Send()
-	virtual void Manipulate_int(void);
+	virtual void Manipulate_int(void) = 0;
 
 public:
-   	StructOutputCollect(const Elem *pE,
+   	StructOutputCollectBase(const Elem *pE,
 		unsigned uFlags,
-		const StructNode *pRefNode,
 		const std::vector<const StructNode *>& nodes);
 
-	virtual ~StructOutputCollect(void);
-
-	virtual std::ostream& Restart(std::ostream& out) const;
+	virtual ~StructOutputCollectBase(void);
 
 	virtual void SetValue(DataManager *pDM,
 			VectorHandler& X, VectorHandler& XP,
@@ -155,7 +166,48 @@ public:
 			const VectorHandler& XP);
 };
 
+/* StructOutputCollectBase - end */
+
+/* StructOutputCollect - begin */
+
+class StructOutputCollect : virtual public Elem, public StructOutputCollectBase {
+protected:
+	// Copiare da strext.cc:Send()
+	virtual void Manipulate_int(void);
+
+public:
+   	StructOutputCollect(const Elem *pE,
+		unsigned uFlags,
+		const std::vector<const StructNode *>& nodes);
+
+	virtual ~StructOutputCollect(void);
+
+	virtual std::ostream& Restart(std::ostream& out) const;
+};
+
 /* StructOutputCollect - end */
+
+/* StructOutputCollectRelative - begin */
+
+class StructOutputCollectRelative : virtual public Elem, public StructOutputCollectBase {
+protected:
+	const StructNode *pRefNode;
+
+	// Copiare da strext.cc:Send()
+	virtual void Manipulate_int(void);
+
+public:
+   	StructOutputCollectRelative(const Elem *pE,
+		unsigned uFlags,
+		const StructNode *pRefNode,
+		const std::vector<const StructNode *>& nodes);
+
+	virtual ~StructOutputCollectRelative(void);
+
+	virtual std::ostream& Restart(std::ostream& out) const;
+};
+
+/* StructOutputCollectRelative - end */
 
 /* StructOutputInterp - begin */
 
@@ -173,15 +225,39 @@ public:
 
 /* StructOutputInterp - end */
 
+/* StructOutputWriteBase - begin */
+
+class StructOutputWriteBase : virtual public Elem, public StructOutputEnd {
+protected:
+	const std::string outfilename;
+	bool bNoClobberOut;
+
+public:
+   	StructOutputWriteBase(unsigned uLabel,
+		const std::string& outfilename,
+		bool bNoClobberOut,
+		flag fOut);
+
+	virtual ~StructOutputWriteBase(void);
+};
+
+/* StructOutputWriteBase - end */
+
 /* StructOutputWrite - begin */
 
-class StructOutputWrite : virtual public Elem, public StructOutputEnd {
+class StructOutputWrite : virtual public Elem, public StructOutputWriteBase {
 protected:
+	int iPrecision;
+
 	// Scrive su file "nativo"
 	virtual void Manipulate(const GeometryData& data);
 
 public:
-   	StructOutputWrite(const Elem *pE);
+   	StructOutputWrite(unsigned uLabel,
+		const std::string& outfilename,
+		bool bNoClobberOut,
+		int iPrecision,
+		flag fOut);
 
 	virtual ~StructOutputWrite(void);
 
@@ -192,13 +268,17 @@ public:
 
 /* StructOutputWriteNASTRAN - begin */
 
-class StructOutputWriteNASTRAN : virtual public Elem, public StructOutputEnd {
+class StructOutputWriteNASTRAN : virtual public Elem, public StructOutputWriteBase {
 protected:
+
 	// Scrive su file bulk NASTRAN
 	virtual void Manipulate(const GeometryData& data);
 
 public:
-   	StructOutputWriteNASTRAN(const Elem *pE);
+   	StructOutputWriteNASTRAN(unsigned uLabel,
+		const std::string& outfilename,
+		bool bNoClobberOut,
+		flag fOut);
 
 	virtual ~StructOutputWriteNASTRAN(void);
 

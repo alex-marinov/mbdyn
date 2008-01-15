@@ -890,13 +890,14 @@ DataManager::ReadElems(MBDynParser& HP)
 					case BULK:
 					case LOADABLE:
 					case EXISTING:
+
+					case STRUCTOUTPUT:
 						DEBUGLCOUT(MYDEBUG_INPUT, "OK, this element can be driven" << std::endl);
 						break;
 
 					case RTAI_OUTPUT:
 					case SOCKETSTREAM_OUTPUT:
 					case SOCKETSTREAM_MOTION_OUTPUT:
-					case STRUCTOUTPUT:
 						silent_cerr(psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 							<< " cannot be driven" << std::endl);
 						throw ErrGeneric();
@@ -986,6 +987,10 @@ DataManager::ReadElems(MBDynParser& HP)
 							ppE = ppFindElem(Elem::LOADABLE, uLabel);
 							break;
 
+						case STRUCTOUTPUT:
+							ppE = ppFindElem(Elem::SOCKETSTREAM_OUTPUT, uLabel);
+							break;
+
 						default:
 							DEBUGCERR("warning, this element can't be driven" << std::endl);
 							break;
@@ -1009,8 +1014,10 @@ DataManager::ReadElems(MBDynParser& HP)
 						unsigned int uDummy = (unsigned int)HP.GetInt();
 						if (uDummy != uLabel) {
 							silent_cerr("Error: the element label "
-								"must be the same of the driving element"
-								<< std::endl);
+								"(" << uDummy << ") "
+								"must be the same of the driving element "
+								"(" << uLabel << ") at line "
+								<< HP.GetLineData() << std::endl);
 
 							throw DataManager::ErrGeneric();
 						}
@@ -1114,7 +1121,7 @@ DataManager::ReadElems(MBDynParser& HP)
 
 					ppE = ReadOneElem(HP, uLabel, CurrDesc);
 
-					if (ppE != 0 ) {
+					if (ppE != 0) {
 						pE = *ppE;
 						if (sName != 0) {
 							pE->PutName(sName);

@@ -63,6 +63,41 @@ StructOutputEnd::~StructOutputEnd(void)
 	NO_OP;
 }
 
+Elem::Type
+StructOutputEnd::GetElemType(void) const
+{
+	return Elem::SOCKETSTREAM_OUTPUT;
+}
+
+void
+StructOutputEnd::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+{
+	*piNumRows = 0;
+	*piNumCols = 0;
+}
+
+SubVectorHandler&
+StructOutputEnd::AssRes(SubVectorHandler& WorkVec,
+	doublereal dCoef,
+	const VectorHandler& XCurr, 
+	const VectorHandler& XPrimeCurr)
+{
+	WorkVec.ResizeReset(0);
+
+	return WorkVec;
+}
+
+VariableSubMatrixHandler& 
+StructOutputEnd::AssJac(VariableSubMatrixHandler& WorkMat,
+	doublereal dCoef, 
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr)
+{
+	WorkMat.SetNullMatrix();
+
+	return WorkMat;
+}
+
 /* StructOutputEnd - end */
 
 /* StructOutputStart - begin */
@@ -111,67 +146,12 @@ StructOutput::~StructOutput(void)
 
 /* StructOutputCollect - begin */
 
-void
-StructOutputCollect::Manipulate_int(void)
-{
-#if 0
-	if (pRefNode) {
-		// TODO
-		//
-		//	~p = RRef^T * (x - xRef)
-		//	~R = RRef^T * R
-		//	~v = RRef^T * (v - vRef)	(RRef^T * v ?)
-		//	~w = RRef^T * (w - wRef)	(RRef^T * w ?)
-
-	} else
-#endif
-	{
-		data.data.resize(Nodes.size());
-		
-		if (data.uFlags & GeometryData::X) {
-			for (unsigned i = 0; i < Nodes.size(); i++) {
-				data.data[i].X = Nodes[i]->GetXCurr();
-			}
-		}
-		if (data.uFlags & GeometryData::R) {
-			for (unsigned i = 0; i < Nodes.size(); i++) {
-				data.data[i].R = Nodes[i]->GetRCurr();
-			}
-		}
-		if (data.uFlags & GeometryData::V) {
-			for (unsigned i = 0; i < Nodes.size(); i++) {
-				data.data[i].V = Nodes[i]->GetVCurr();
-			}
-		}
-		if (data.uFlags & GeometryData::W) {
-			for (unsigned i = 0; i < Nodes.size(); i++) {
-				data.data[i].W = Nodes[i]->GetWCurr();
-			}
-		}
-
-		if (data.uFlags & GeometryData::XPP) {
-			for (unsigned i = 0; i < Nodes.size(); i++) {
-				data.data[i].XPP = Nodes[i]->GetXPPCurr();
-			}
-		}
-		if (data.uFlags & GeometryData::WP) {
-			for (unsigned i = 0; i < Nodes.size(); i++) {
-				data.data[i].WP = Nodes[i]->GetWPCurr();
-			}
-		}
-	}
-
-	StructOutputStart::Manipulate(data);
-}
-
-StructOutputCollect::StructOutputCollect(const Elem *pE,
+StructOutputCollectBase::StructOutputCollectBase(const Elem *pE,
 	unsigned uFlags,
-	const StructNode *pRefNode,
 	const std::vector<const StructNode *>& nodes)
 : Elem(pE->GetLabel(), pE->fToBeOutput()),
 StructOutputStart(pE),
-Nodes(nodes),
-pRefNode(pRefNode)
+Nodes(nodes)
 {
 	// Initialize communication structure
 	data.uFlags = uFlags;
@@ -181,6 +161,79 @@ pRefNode(pRefNode)
 	for (unsigned i = 0; i < Nodes.size(); i++) {
 		data.data[i].uLabel = Nodes[i]->GetLabel();
 	}
+}
+
+StructOutputCollectBase::~StructOutputCollectBase(void)
+{
+	NO_OP;
+}
+
+void
+StructOutputCollectBase::SetValue(DataManager *pDM,
+	VectorHandler& X, VectorHandler& XP,
+	SimulationEntity::Hints *ph)
+{
+	Manipulate_int();
+}
+
+void
+StructOutputCollectBase::AfterConvergence(const VectorHandler& X, 
+		const VectorHandler& XP)
+{
+	Manipulate_int();
+}
+
+void
+StructOutputCollect::Manipulate_int(void)
+{
+	ASSERT(data.data.size() == Nodes.size());
+		
+	if (data.uFlags & GeometryData::X) {
+		for (unsigned i = 0; i < Nodes.size(); i++) {
+			data.data[i].X = Nodes[i]->GetXCurr();
+		}
+	}
+
+	if (data.uFlags & GeometryData::R) {
+		for (unsigned i = 0; i < Nodes.size(); i++) {
+			data.data[i].R = Nodes[i]->GetRCurr();
+		}
+	}
+
+	if (data.uFlags & GeometryData::V) {
+		for (unsigned i = 0; i < Nodes.size(); i++) {
+			data.data[i].V = Nodes[i]->GetVCurr();
+		}
+	}
+
+	if (data.uFlags & GeometryData::W) {
+		for (unsigned i = 0; i < Nodes.size(); i++) {
+			data.data[i].W = Nodes[i]->GetWCurr();
+		}
+	}
+
+	if (data.uFlags & GeometryData::XPP) {
+		for (unsigned i = 0; i < Nodes.size(); i++) {
+			data.data[i].XPP = Nodes[i]->GetXPPCurr();
+		}
+	}
+
+	if (data.uFlags & GeometryData::WP) {
+		for (unsigned i = 0; i < Nodes.size(); i++) {
+			data.data[i].WP = Nodes[i]->GetWPCurr();
+		}
+	}
+
+	StructOutputStart::Manipulate(data);
+}
+
+StructOutputCollect::StructOutputCollect(const Elem *pE,
+	unsigned uFlags,
+	const std::vector<const StructNode *>& nodes)
+: Elem(pE->GetLabel(), pE->fToBeOutput()),
+StructOutputCollectBase(pE, uFlags, nodes)
+{
+	NO_OP;
 }
 
 StructOutputCollect::~StructOutputCollect(void)
@@ -196,18 +249,94 @@ StructOutputCollect::Restart(std::ostream& out) const
 }
 
 void
-StructOutputCollect::SetValue(DataManager *pDM,
-	VectorHandler& X, VectorHandler& XP,
-	SimulationEntity::Hints *ph)
+StructOutputCollectRelative::Manipulate_int(void)
 {
-	Manipulate_int();
+	ASSERT(data.data.size() == Nodes.size());
+
+	// Note: "Relative" in the sense that everything is oriented
+	// according to the orientation of the frame of the reference node,
+	// and positions are also relative to the position of the reference
+	// node in that frame
+	//
+	//	~p   = RRef^T * (x - xRef)
+	//	~R   = RRef^T * R
+	//	~v   = RRef^T * v
+	//	~w   = RRef^T * w
+	//	~xpp = RRef^T * xpp
+	//	~wp  = RRef^T * wp
+
+	// If the really relative kinematics are needed, implement this:
+	//
+	//	~p   = RRef^T * (x - xRef)
+	//	~R   = RRef^T * R
+	//	~v   = RRef^T * (v - vRef)
+	//	~w   = RRef^T * (w - wRef)
+	//	~xpp = RRef^T * (xpp - xppRef)
+	//	~wp  = RRef^T * (wp - wpRef)
+
+	const Vec3& XRef = pRefNode->GetXCurr();
+	Mat3x3 RRefT = pRefNode->GetRCurr().Transpose();
+
+	if (data.uFlags & GeometryData::X) {
+		for (unsigned i = 0; i < Nodes.size(); i++) {
+			data.data[i].X = RRefT*(Nodes[i]->GetXCurr() - XRef);
+		}
+	}
+
+	if (data.uFlags & GeometryData::R) {
+		for (unsigned i = 0; i < Nodes.size(); i++) {
+			data.data[i].R = RRefT*Nodes[i]->GetRCurr();
+		}
+	}
+
+	if (data.uFlags & GeometryData::V) {
+		for (unsigned i = 0; i < Nodes.size(); i++) {
+			data.data[i].V = RRefT*Nodes[i]->GetVCurr();
+		}
+	}
+
+	if (data.uFlags & GeometryData::W) {
+		for (unsigned i = 0; i < Nodes.size(); i++) {
+			data.data[i].W = RRefT*Nodes[i]->GetWCurr();
+		}
+	}
+
+	if (data.uFlags & GeometryData::XPP) {
+		for (unsigned i = 0; i < Nodes.size(); i++) {
+			data.data[i].XPP = RRefT*Nodes[i]->GetXPPCurr();
+		}
+	}
+
+	if (data.uFlags & GeometryData::WP) {
+		for (unsigned i = 0; i < Nodes.size(); i++) {
+			data.data[i].WP = RRefT*Nodes[i]->GetWPCurr();
+		}
+	}
+
+	StructOutputStart::Manipulate(data);
 }
 
-void
-StructOutputCollect::AfterConvergence(const VectorHandler& X, 
-		const VectorHandler& XP)
+StructOutputCollectRelative::StructOutputCollectRelative(const Elem *pE,
+	unsigned uFlags,
+	const StructNode *pRefNode,
+	const std::vector<const StructNode *>& nodes)
+: Elem(pE->GetLabel(), pE->fToBeOutput()),
+StructOutputCollectBase(pE, uFlags, nodes),
+pRefNode(pRefNode)
 {
-	Manipulate_int();
+	NO_OP;
+}
+
+StructOutputCollectRelative::~StructOutputCollectRelative(void)
+{
+	NO_OP;
+}
+
+std::ostream&
+StructOutputCollectRelative::Restart(std::ostream& out) const
+{
+	return out << "# StructOutputCollectRelative(" << GetLabel() << "): "
+		"not implemented yet!" << std::endl;
 }
 
 static Elem *
@@ -236,8 +365,14 @@ ReadStructOutputCollect(DataManager *pDM, MBDynParser& HP, const Elem *pNestedEl
 	}
 
 	Elem *pEl = 0;
-	SAFENEWWITHCONSTRUCTOR(pEl, StructOutputCollect,
-		StructOutputCollect(pNestedElem, uFlags, pRefNode, Nodes));
+	if (pRefNode == 0) {
+		SAFENEWWITHCONSTRUCTOR(pEl, StructOutputCollect,
+			StructOutputCollect(pNestedElem, uFlags, Nodes));
+
+	} else {
+		SAFENEWWITHCONSTRUCTOR(pEl, StructOutputCollectRelative,
+			StructOutputCollectRelative(pNestedElem, uFlags, pRefNode, Nodes));
+	}
 
 	return pEl;
 }
@@ -284,15 +419,92 @@ ReadStructOutputInterp(DataManager *pDM, MBDynParser& HP, const Elem *pNestedEle
 
 /* StructOutputWrite - begin */
 
-void
-StructOutputWrite::Manipulate(const GeometryData& data)
+StructOutputWriteBase::StructOutputWriteBase(unsigned uLabel,
+	const std::string& outfilename,
+	bool bNoClobberOut,
+	flag fOut)
+: Elem(uLabel, fOut),
+StructOutputEnd(uLabel, fOut),
+outfilename(outfilename),
+bNoClobberOut(bNoClobberOut)
 {
 	NO_OP;
 }
 
-StructOutputWrite::StructOutputWrite(const Elem *pE)
-: Elem(pE->GetLabel(), pE->fToBeOutput()),
-StructOutputEnd(pE->GetLabel(), pE->fToBeOutput())
+StructOutputWriteBase::~StructOutputWriteBase(void)
+{
+	NO_OP;
+}
+
+/* StructOutputWriteBase - end */
+
+/* StructOutputWrite - begin */
+
+void
+StructOutputWrite::Manipulate(const GeometryData& data)
+{
+	std::ofstream outf(outfilename.c_str());
+	if (!outf) {
+		silent_cerr("StructOutputWrite(" << GetLabel() << "): "
+			"unable to open output file \"" << outfilename << "\""
+			<< std::endl);
+		throw ErrGeneric();
+	}
+
+	if (iPrecision) {
+		outf.precision(iPrecision);
+	}
+	outf.setf(std::ios::scientific);
+
+	for (std::vector<Geometry>::const_iterator i = data.data.begin();
+		i != data.data.end(); i++)
+	{
+		outf << i->uLabel;
+
+		if (data.uFlags & GeometryData::X) {
+			outf << " " << i->X;
+		}
+
+		if (data.uFlags & GeometryData::R) {
+			outf << " " << i->R;
+		}
+
+		if (data.uFlags & GeometryData::V) {
+			outf << " " << i->V;
+		}
+
+		if (data.uFlags & GeometryData::W) {
+			outf << " " << i->W;
+		}
+
+		if (data.uFlags & GeometryData::XPP) {
+			outf << " " << i->XPP;
+		}
+
+		if (data.uFlags & GeometryData::WP) {
+			outf << " " << i->WP;
+		}
+
+		if (data.uFlags & GeometryData::F) {
+			outf << " " << i->F;
+		}
+
+		if (data.uFlags & GeometryData::M) {
+			outf << " " << i->M;
+		}
+
+		outf << std::endl;
+	}
+}
+
+StructOutputWrite::StructOutputWrite(unsigned uLabel,
+	const std::string& outfilename,
+	bool bNoClobberOut,
+	int iPrecision,
+	flag fOut)
+: Elem(uLabel, fOut),
+StructOutputWriteBase(uLabel, outfilename, bNoClobberOut, fOut),
+iPrecision(iPrecision)
 {
 	NO_OP;
 }
@@ -312,7 +524,44 @@ StructOutputWrite::Restart(std::ostream& out) const
 static Elem *
 ReadStructOutputWrite(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 {
-	return 0;
+	const char *s = HP.GetFileName();
+	if (s == 0) {
+		silent_cerr("StructOutputWrite(" << uLabel << "): "
+			"unable to read output file name "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric();
+	}
+
+	std::string outfilename(s);
+
+	bool bNoClobberOut = false;
+	if (HP.IsKeyWord("no" "clobber")) {
+		bNoClobberOut = true;
+	}
+
+	int iPrecision = 0;
+	if (HP.IsKeyWord("precision")) {
+		if (!HP.IsKeyWord("default")) {
+			iPrecision = HP.GetInt();
+		}
+
+		if (iPrecision < 0) {
+			silent_cerr("ExtForce(" << uLabel << "): "
+				"invalid precision value "
+				"\"" << iPrecision << "\""
+				" at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric();
+		}
+	}
+
+	flag fOut = pDM->fReadOutput(HP, Elem::SOCKETSTREAM_OUTPUT);
+
+	Elem *pEl = 0;
+	SAFENEWWITHCONSTRUCTOR(pEl, StructOutputWrite,
+		StructOutputWrite(uLabel, outfilename, bNoClobberOut, iPrecision, fOut));
+
+	return pEl;
 }
 
 /* StructOutputWrite - end */
@@ -325,9 +574,12 @@ StructOutputWriteNASTRAN::Manipulate(const GeometryData& data)
 	NO_OP;
 }
 
-StructOutputWriteNASTRAN::StructOutputWriteNASTRAN(const Elem *pE)
-: Elem(pE->GetLabel(), pE->fToBeOutput()),
-StructOutputEnd(pE->GetLabel(), pE->fToBeOutput())
+StructOutputWriteNASTRAN::StructOutputWriteNASTRAN(unsigned uLabel,
+	const std::string& outfilename,
+	bool bNoClobberOut,
+	flag fOut)
+: Elem(uLabel, fOut),
+StructOutputWriteBase(uLabel, outfilename, bNoClobberOut, fOut)
 {
 	NO_OP;
 }
@@ -357,7 +609,7 @@ ReadStructOutput(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 {
 	Elem *pEl = 0;
 
-	// End
+	// Put end types here
 	if (HP.IsKeyWord("write")) {
 		pEl = ReadStructOutputWrite(pDM, HP, uLabel);
 
@@ -368,18 +620,18 @@ ReadStructOutput(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	// Add other end types here...
 
 	while (HP.IsArg()) {
-		// Manip
+		// Put manip types here
 		if (HP.IsKeyWord("interpolate")) {
 			pEl = ReadStructOutputInterp(pDM, HP, pEl);
 
 		// Add other manip types here...
 
-		// Start
+		// Put start types here, ended by a "break;"
 		} else if (HP.IsKeyWord("collect")) {
 			pEl = ReadStructOutputCollect(pDM, HP, pEl);
 			break;
 
-		// Add other start types here...
+		// Add other start types here, ended by a "break;"...
 
 		// Default
 		} else  {
