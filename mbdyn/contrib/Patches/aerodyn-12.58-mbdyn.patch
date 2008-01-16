@@ -1,3 +1,34 @@
+This patch is provided by Pierangelo Masarati <masarati@aero.polimi.it>
+to allow building AeroDyn as a library with gfortran (tested with 4.1.2)
+for linking with MBDyn's module-aerodyn.
+
+It is provided AS IS, WITHOUT ANY EXPLICIT OR IMPLIED WARRANTY.
+
+This patch is released under the same terms and conditions of AeroDyn
+
+    --- o --- o --- o ---
+
+To build AeroDyn as a library suitable for linking with MBDyn's
+module-aerodyn:
+
+- download AeroDyn version 12.58 (used to be available from
+  <http://wind.nrel.gov/designcodes/simulators/aerodyn/>)
+- apply the patch aerodyn-12.58-mbdyn.patch, available in the folder
+  contrib/Patches/ of MBDyn's source tree
+- execute
+
+        gfortran -O -c *.f90
+        ar ru libAeroDyn.a *.o
+
+- copy libAeroDyn.a where it can be found by the linker, or directly
+  in folder modules/module-aerodyn/ of MBDyn's source tree
+
+    --- o --- o --- o ---
+
+Please report bugs or issues related to integration and use with MBDyn
+through the mailing list <mbdyn-users@mbdyn.org> (need to subscribe first;
+instructions at <https://www.mbdyn.org/mailman/listinfo/mbdyn-users>)
+
 Index: AeroSubs.f90
 ===================================================================
 RCS file: /var/cvs/mbdyn/NREL/AeroDyn/AD_v1258/Source/AeroSubs.f90,v
