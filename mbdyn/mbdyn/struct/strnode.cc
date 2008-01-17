@@ -209,7 +209,8 @@ StructNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int
 				"angular velocity [wx,wy,wz]" << std::endl;
 	} else {
 		if (dynamic_cast<const DynamicStructNode*>(this) != 0
-				|| dynamic_cast<const ModalNode*>(this) != 0) {
+				|| dynamic_cast<const ModalNode*>(this) != 0)
+		{
 			iIndex += 6;
 		}
 
