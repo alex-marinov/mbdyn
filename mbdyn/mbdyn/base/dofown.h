@@ -60,6 +60,8 @@ struct Dof {
    integer iIndex;
    DofOrder::Order Order;
    DofOrder::Order EqOrder;
+   std::string Description;
+   std::string EqDescription;
 };
 
 

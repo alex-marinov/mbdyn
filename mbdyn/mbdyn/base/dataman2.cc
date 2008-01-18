@@ -321,10 +321,26 @@ DataManager::DofOwnerInit(void)
 				if (uPrintFlags & PRINT_DOF_DESCRIPTION) {
 					(*ppNd)->DescribeDof(std::cout,
 							     "        ");
+
+					// By now, just collect type and label of dof owner
+					std::ostringstream os;
+					os << psNodeNames[(*ppNd)->GetNodeType()]
+						<< "(" << (*ppNd)->GetLabel() << ")";
+					for (unsigned iCnt = 0; iCnt < iNumDof; iCnt++) {
+						pDf[iCnt].Description = os.str();
+					}
 				}
 				if (uPrintFlags & PRINT_EQ_DESCRIPTION) {
 					(*ppNd)->DescribeEq(std::cout,
 							     "        ");
+
+					// By now, just collect type and label of equation owner
+					std::ostringstream os;
+					os << psNodeNames[(*ppNd)->GetNodeType()]
+						<< "(" << (*ppNd)->GetLabel() << ")";
+					for (unsigned iCnt = 0; iCnt < iNumDof; iCnt++) {
+						pDf[iCnt].EqDescription = os.str();
+					}
 				}
 			}
 #endif /* !DEBUG */
@@ -379,10 +395,26 @@ DataManager::DofOwnerInit(void)
 					if (uPrintFlags & PRINT_DOF_DESCRIPTION) {
 						pEWD->DescribeDof(std::cout,
 								"        ");
+
+						// By now, just collect type and label of dof owner
+						std::ostringstream os;
+						os << psNodeNames[pEWD->GetElemType()]
+							<< "(" << pEWD->GetLabel() << ")";
+						for (unsigned iCnt = 0; iCnt < iNumDof; iCnt++) {
+							pDf[iCnt].Description = os.str();
+						}
 					}
 					if (uPrintFlags & PRINT_EQ_DESCRIPTION) {
 						pEWD->DescribeEq(std::cout,
 								"        ");
+
+						// By now, just collect type and label of equation owner
+						std::ostringstream os;
+						os << psNodeNames[pEWD->GetElemType()]
+							<< "(" << pEWD->GetLabel() << ")";
+						for (unsigned iCnt = 0; iCnt < iNumDof; iCnt++) {
+							pDf[iCnt].EqDescription = os.str();
+						}
 					}
 				}
 #endif /* !DEBUG */
