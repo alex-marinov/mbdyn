@@ -3687,8 +3687,16 @@ must be replaced by \kw{modal}.
 \noindent
 If no rigid body dynamics is required, e.g.\ if the modal element
 is clamped, the \kw{clamped} option can be used, which allows
-to set the optional \kw{absolute\_position} 
-and \kw{absolute\_orientation}; they default to zero and identity.
+to set the optional \kw{absolute\_position}
+and \kw{absolute\_orientation}.
+The former is the location, in the multibody
+global reference system, of the origin of the FEM reference system.
+The latter is the orientation,
+in the multibody global reference frame,
+of the axes of the FEM reference system.
+They default to zero and identity, which means
+that the global multibody reference frame
+and the FEM reference system are coincident.
 
 \noindent
 The mode count in \kw{mode\_number} is not required to match
@@ -3731,8 +3739,9 @@ in Appendix~\ref{sec:APP:EL:STRUCT:JOINT:MODAL:NASTRAN}.
 It is strongly recommended that constrained modal analysis
 be used for otherwise free bodies, with the statically 
 determined constraint consisting of clamping the FEM node 
-that will coincide with \kw{reference\_modal\_node}, and using
-the \kw{origin node} to make that point the origin of the FEM frame.
+that will coincide with the node indicated as \kw{reference\_modal\_node},
+and using the \kw{origin node} to make that point the origin
+of the FEM frame.
 
 \noindent
 \textbf{Note about reference frames:} the coincidence constraint between 
@@ -3757,7 +3766,7 @@ One trick is to build models incrementally.
 %\item place the corresponding multibody node exactly in the position
 %	indicated by the FEM model output.
 %\end{itemize}
-Offsets and relative orientations between FEM and multibody nodes 
+Offsets between FEM and multibody nodes 
 should be avoided unless strictly required.
 
 \noindent
@@ -3790,9 +3799,9 @@ structural damping can be provided by specifying any of the
 In the last two cases, a damping factor is required.
 The corresponding damping for the $i$-th mode is computed as
 \begin{displaymath}
-	c_i = \mathrm{factor}_i 2 \sqrt{k_i m_i}
+	c_i = \mathtt{factor}_i \, 2 \sqrt{k_i m_i}
 \end{displaymath}
-where $\mathrm{factor}_i$ is the value provided
+where $\mathtt{factor}_i$ is the value provided
 for \kw{proportional damping} (same for all modes) or the list 
 of values provided for \kw{diag damping} (for each mode).
 For example, a factor of 0.01 means 1\% damping.
