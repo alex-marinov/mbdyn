@@ -524,7 +524,10 @@ StructOutputWrite::Manipulate(const GeometryData& data)
 	outf.setf(std::ios::scientific);
 
 	// header
-	outf << "# Label";
+	outf
+		<< "# StructOutputWrite(" << GetLabel() << ")" << std::endl
+		<< "# Label";
+
 	if (data.uFlags & GeometryData::X) {
 		outf << " X(3)";
 	}
