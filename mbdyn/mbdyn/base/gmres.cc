@@ -193,14 +193,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 		}
 		
       		if (outputRes()) {
-	 		silent_cout("Residual(" << iIterCnt << "):"
-				<< std::endl);
-	 		for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
-	    			silent_cout("Eq  " << std::setw(8)
-					<< iTmpCnt << ": " 
-					<< pRes->dGetCoef(iTmpCnt)
-					<< std::endl);
-			}
+			pS->PrintResidual(*pRes, iIterCnt);
       		}
 
 		dErr = MakeResTest(pS, *pRes)*pNLP->TestScale(pResTest);
@@ -231,14 +224,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 		}
 		if (iIterCnt > iMaxIter) {
 			if (outputBailout()) {
-	 			silent_cout("Residual(" << iIterCnt << "):"
-					<< std::endl);
-	 			for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
-	    				silent_cout("Eq  " << std::setw(8)
-						<< iTmpCnt << ": " 
-						<< pRes->dGetCoef(iTmpCnt)
-						<< std::endl);
-				}
+				pS->PrintResidual(*pRes, iIterCnt);
 			}
 			throw NoConvergence();
 		}
@@ -482,13 +468,8 @@ rebuild_matrix:;
 		std::cerr << "eta " << eta << std::endl;
 #endif /* DEBUG_ITERATIVE */
 		
-		if (outputSol()) {      
-	 		silent_cout("Solution:" << std::endl);
-	 		for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
-	    			silent_cout("Dof "
-					<< std::setw(8) << iTmpCnt << ": "
-					<< dx.dGetCoef(iTmpCnt) << std::endl);
-			}
+		if (outputSol()) {
+			pS->PrintSolution(dx, iIterCnt);
 		}		
 		
       		pNLP->Update(&dx);

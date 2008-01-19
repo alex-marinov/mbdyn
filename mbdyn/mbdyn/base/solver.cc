@@ -4332,3 +4332,14 @@ Solver::GetCPUTime(void) const
 	return pDM->GetCPUTime();
 }
 
+void
+Solver::PrintResidual(const VectorHandler& Res, integer iIterCnt) const
+{
+	pDM->PrintResidual(Res, iIterCnt);
+}
+
+void
+Solver::PrintSolution(const VectorHandler& Sol, integer iIterCnt) const
+{
+	pDM->PrintSolution(Sol, iIterCnt);
+}

@@ -734,6 +734,10 @@ public:
 	const VectorHandler* GetpXCurr(void) {
 		return pXCurr;
 	};
+
+public:
+	virtual void PrintResidual(const VectorHandler& Res, integer iIterCnt) const;
+	virtual void PrintSolution(const VectorHandler& Sol, integer iIterCnt) const;
 };
 
 /* DataManager - end */

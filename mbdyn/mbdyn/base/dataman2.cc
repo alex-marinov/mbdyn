@@ -321,35 +321,28 @@ DataManager::DofOwnerInit(void)
 				if (uPrintFlags & PRINT_DOF_DESCRIPTION) {
 					(*ppNd)->DescribeDof(std::cout,
 							     "        ");
-
-					// By now, just collect type and label of dof owner
-					std::ostringstream os;
-					os << psNodeNames[(*ppNd)->GetNodeType()]
-						<< "(" << (*ppNd)->GetLabel() << ")";
-					for (unsigned iCnt = 0; iCnt < iNumDof; iCnt++) {
-						pDf[iCnt].Description = os.str();
-					}
 				}
+
 				if (uPrintFlags & PRINT_EQ_DESCRIPTION) {
 					(*ppNd)->DescribeEq(std::cout,
 							     "        ");
-
-					// By now, just collect type and label of equation owner
-					std::ostringstream os;
-					os << psNodeNames[(*ppNd)->GetNodeType()]
-						<< "(" << (*ppNd)->GetLabel() << ")";
-					for (unsigned iCnt = 0; iCnt < iNumDof; iCnt++) {
-						pDf[iCnt].EqDescription = os.str();
-					}
 				}
 			}
 #endif /* !DEBUG */
+
+			// By now, just collect type and label of dof owner
+			std::ostringstream os;
+			os << psNodeNames[(*ppNd)->GetNodeType()]
+				<< "(" << (*ppNd)->GetLabel() << ")";
 
 			/* per ogni Dof, chiede al nodo di che tipo e' e lo
 			 * setta nel DofOwner */
 			for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
 				pDf[iCnt].Order = (*ppNd)->GetDofType(iCnt);
 				pDf[iCnt].EqOrder = (*ppNd)->GetEqType(iCnt);
+
+				pDf[iCnt].Description = os.str();
+				pDf[iCnt].EqDescription = os.str();
 			}
 		}
 		ppNd++;
@@ -395,29 +388,20 @@ DataManager::DofOwnerInit(void)
 					if (uPrintFlags & PRINT_DOF_DESCRIPTION) {
 						pEWD->DescribeDof(std::cout,
 								"        ");
-
-						// By now, just collect type and label of dof owner
-						std::ostringstream os;
-						os << psNodeNames[pEWD->GetElemType()]
-							<< "(" << pEWD->GetLabel() << ")";
-						for (unsigned iCnt = 0; iCnt < iNumDof; iCnt++) {
-							pDf[iCnt].Description = os.str();
-						}
 					}
+
 					if (uPrintFlags & PRINT_EQ_DESCRIPTION) {
 						pEWD->DescribeEq(std::cout,
 								"        ");
-
-						// By now, just collect type and label of equation owner
-						std::ostringstream os;
-						os << psNodeNames[pEWD->GetElemType()]
-							<< "(" << pEWD->GetLabel() << ")";
-						for (unsigned iCnt = 0; iCnt < iNumDof; iCnt++) {
-							pDf[iCnt].EqDescription = os.str();
-						}
 					}
 				}
 #endif /* !DEBUG */
+
+
+				// By now, just collect type and label of dof owner
+				std::ostringstream os;
+				os << psNodeNames[pEWD->GetElemType()]
+					<< "(" << pEWD->GetLabel() << ")";
 
 				/* per ogni Dof, chiede all'elemento
 				 * di che tipo e' e lo setta
@@ -425,6 +409,9 @@ DataManager::DofOwnerInit(void)
 				for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
 					pDf[iCnt].Order = pEWD->GetDofType(iCnt);
 					pDf[iCnt].EqOrder = pEWD->GetEqType(iCnt);
+
+					pDf[iCnt].Description = os.str();
+					pDf[iCnt].EqDescription = os.str();
 				}
 			}
 		} while (ElemIter.bGetNext(pEl));
@@ -542,7 +529,78 @@ DataManager::InitialJointAssembly(void)
 		silent_cout("Initial assembly dof stats" << std::endl);
 	}
 
+	/* Numero totale di Dof durante l'assemblaggio iniziale */
+	integer iInitialNumDofs = 0;
+	for (int iCnt = 0; iCnt < iNumNodes; iCnt++) {
+		iInitialNumDofs += ppFirstNode[iCnt]->iGetInitialNumDof();
+	}
+
+	/* Elementi: mette gli indici agli eventuali DofOwner */
+	for (int iCnt1 = 0; iCnt1 < Elem::LASTELEMTYPE; iCnt1++) {
+		/* Per ogni tipo di elemento */
+		if (ElemData[iCnt1].bToBeUsedInAssembly() && !ElemData[iCnt1].ElemMap.empty()) {
+			/* Se deve essere usato nell'assemblaggio e ne sono definiti */
+
+			/* Tipo di dof dell'elemento corrente */
+			DofOwner::Type CurrDofType =
+				ElemData[iCnt1].DofOwnerType;
+
+			if (CurrDofType != DofOwner::UNKNOWN) {
+				ASSERT((unsigned)DofData[CurrDofType].iNum == ElemData[iCnt1].ElemMap.size());
+
+				/* Iterazione sugli Elem */
+				for (ElemMapType::const_iterator p = ElemData[iCnt1].ElemMap.begin();
+					p != ElemData[iCnt1].ElemMap.end();
+					p++)
+				{
+					InitialAssemblyElem *pEl = dynamic_cast<InitialAssemblyElem *>(p->second);
+					if (pEl == 0) {
+						/* Ignore elements
+						 * not subjected
+						 * to initial assembly */
+						continue;
+					}
+
+					ElemWithDofs *pDOEl = dynamic_cast<ElemWithDofs *>(p->second);
+					if (pDOEl == 0) {
+						/* Ignore elements subjected
+						 * to initial assembly
+						 * but without dofs */
+						continue;
+					}
+
+					iInitialNumDofs += pEl->iGetInitialNumDof();
+				}
+			}
+		}
+	}
+
+	/*
+	 * Alla fine, i DofOwner di nodi e joint contengono gli indici giusti per
+	 * l'assemblaggio iniziale. Corrispondono a:
+	 * - per ogni nodo:
+	 *   - posizione x
+	 *   - parametri di rotazione g
+	 *   - velocita' xP
+	 *   - velocita' angolare omega
+	 * - per ogni joint:
+	 *   - se vincolo in posizione, reazione e sua derivata
+	 *   - se vincolo in velocita', reazione.
+	 * - per vincoli misti si hanno reazioni ed eventualmente loro derivate
+	 *   in base al tipo
+	 */
+
+	/* Creazione e costruzione array Dof */
+	SAFENEWARR(pDofs, Dof, iInitialNumDofs);
+
 	integer iIndex = 0;    /* Indice dei gradi di liberta' */
+	for (Dof* pTmpDof = pDofs; pTmpDof < pDofs + iInitialNumDofs; pTmpDof++) {
+		pTmpDof->iIndex = iIndex++;
+	}
+
+	/* mette a posto i dof */
+	
+	iIndex = 0;
 	unsigned int iNumDofs = 0;  /* numero di dof di un owner */
 	for (int iCnt = 1;
 		pTmp < DofData[DofOwner::STRUCTURALNODE].pFirstDofOwner
@@ -567,11 +625,22 @@ DataManager::InitialJointAssembly(void)
 					(*ppNode)->DescribeDof(std::cout,
 							     "        ", true);
 				}
+
 				if (uPrintFlags & PRINT_EQ_DESCRIPTION) {
 					(*ppNode)->DescribeEq(std::cout,
 							     "        ", true);
 				}
 			}
+
+			// By now, just collect type and label of dof owner
+			std::ostringstream os;
+			os << psNodeNames[(*ppNode)->GetNodeType()]
+				<< "(" << (*ppNode)->GetLabel() << ")";
+			for (unsigned iCnt = 0; iCnt < iNumDofs; iCnt++) {
+				pDofs[iIndex + iCnt].Description = os.str();
+				pDofs[iIndex + iCnt].EqDescription = os.str();
+			}
+
 			iIndex += iNumDofs;
 
 		} else {
@@ -636,11 +705,22 @@ DataManager::InitialJointAssembly(void)
 								pEWD->DescribeDof(std::cout,
 										"        ", true);
 							}
+
 							if (uPrintFlags & PRINT_EQ_DESCRIPTION) {
 								pEWD->DescribeEq(std::cout,
 										"        ", true);
 							}
 						}
+
+						// By now, just collect type and label of dof owner
+						std::ostringstream os;
+						os << psElemNames[pEl->GetElemType()]
+							<< "(" << pEl->GetLabel() << ")";
+						for (unsigned iCnt = 0; iCnt < iNumDofs; iCnt++) {
+							pDofs[iIndex + iCnt].Description = os.str();
+							pDofs[iIndex + iCnt].EqDescription = os.str();
+						}
+
 						iIndex += iNumDofs;
 
 					} else {
@@ -653,8 +733,7 @@ DataManager::InitialJointAssembly(void)
 		}
 	}
 
-	/* Numero totale di Dof durante l'assemblaggio iniziale */
-	integer iInitialNumDofs = iIndex;
+	ASSERT(iIndex == iInitialNumDofs);
 
 	/* Trova le massime dimensioni del workspace
 	 * per l'assemblaggio iniziale */
@@ -675,29 +754,6 @@ DataManager::InitialJointAssembly(void)
 			iMaxCols = iCurrCols;
 		}
 		pEl = IAIter.GetNext();
-	}
-
-	/*
-	 * Alla fine, i DofOwner di nodi e joint contengono gli indici giusti per
-	 * l'assemblaggio iniziale. Corrispondono a:
-	 * - per ogni nodo:
-	 *   - posizione x
-	 *   - parametri di rotazione g
-	 *   - velocita' xP
-	 *   - velocita' angolare omega
-	 * - per ogni joint:
-	 *   - se vincolo in posizione, reazione e sua derivata
-	 *   - se vincolo in velocita', reazione.
-	 * - per vincoli misti si hanno reazioni ed eventualmente loro derivate
-	 *   in base al tipo
-	 */
-
-	/* Creazione e costruzione array Dof */
-	SAFENEWARR(pDofs, Dof, iInitialNumDofs);
-
-	iIndex = 0;
-	for (Dof* pTmpDof = pDofs; pTmpDof < pDofs + iInitialNumDofs; pTmpDof++) {
-		pTmpDof->iIndex = iIndex++;
 	}
 
 	/* Ciclo di iterazioni fino a convergenza */
@@ -827,11 +883,7 @@ DataManager::InitialJointAssembly(void)
 				outputRes())
 		{
 			/* Output del residuo */
-			silent_cout("Residual(" << iNumIter << "):" << std::endl);
-			for (int iTmpCnt = 1; iTmpCnt <= iInitialNumDofs; iTmpCnt++) {
-				silent_cout("Eq  " << std::setw(8) << iTmpCnt << ": "
-					<< pResHdl->dGetCoef(iTmpCnt) << std::endl);
-			}
+			PrintResidual(*pResHdl, iNumIter);
 		}
 
 		/* Eseguo il test di convergenza; se e' positivo, esco */
@@ -943,11 +995,7 @@ DataManager::InitialJointAssembly(void)
 				outputSol())
 		{
 			/* Output della soluzione */
-			silent_cout("Solution (" << iNumIter << "):" << std::endl);
-			for (int iTmpCnt = 1; iTmpCnt <= iInitialNumDofs; iTmpCnt++) {
-				silent_cout("Dof " << std::setw(8) << iTmpCnt << ": "
-					<< pSolHdl->dGetCoef(iTmpCnt) << std::endl);
-			}
+			PrintSolution(*pSolHdl, iNumIter);
 		}
 
 		/* Aggiorno la soluzione */
@@ -1441,6 +1489,36 @@ DataManager::DerivativesUpdate(void) const
 		do {
 			pEl->Update(*pXCurr, *pXPrimeCurr);
 		} while (ElemIter.bGetNext(pEl));
+	}
+}
+
+void
+DataManager::PrintResidual(const VectorHandler& Res, integer iIterCnt) const
+{
+ 	silent_cout("Residual(" << iIterCnt << "):"
+		<< std::endl);
+	integer iSize = Res.iGetSize();
+ 	for (int iTmpCnt = 1; iTmpCnt <= iSize; iTmpCnt++) {
+    		silent_cout("Eq  " << std::setw(8)
+			<< iTmpCnt << ": " 
+			<< std::setw(20) << Res.dGetCoef(iTmpCnt)
+			<< " " << pDofs[iTmpCnt-1].EqDescription
+			<< std::endl);
+	}
+}
+
+void
+DataManager::PrintSolution(const VectorHandler& Sol, integer iIterCnt) const
+{
+ 	silent_cout("Solution(" << iIterCnt << "):"
+		<< std::endl);
+	integer iSize = Sol.iGetSize();
+ 	for (integer iTmpCnt = 1; iTmpCnt <= iSize; iTmpCnt++) {
+    		silent_cout("Dof " << std::setw(8)
+			<< iTmpCnt << ": " 
+			<< std::setw(20) << Sol.dGetCoef(iTmpCnt)
+			<< " " << pDofs[iTmpCnt-1].Description
+			<< std::endl);
 	}
 }
 

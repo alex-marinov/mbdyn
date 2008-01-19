@@ -335,6 +335,9 @@ public:
 		return dInitialTimeStep;
 	};
 	virtual clock_t GetCPUTime(void) const;
+
+	virtual void PrintResidual(const VectorHandler& Res, integer iIterCnt) const;
+	virtual void PrintSolution(const VectorHandler& Sol, integer iIterCnt) const;
 };
 
 inline void
