@@ -470,13 +470,13 @@ representation of the actual index.
 
 
 
-\section{Higher Level Structures}
-Every time a higher level structure is expected, it can be
+\section{Higher-Order Math Structures}
+Every time a higher-order mathematical structure is expected, it can be
 preceded by a keyword that influences how the structure is read.
 All of the available structures support the keyword \kw{null}
 which causes the structure to be initialized with zeros.
 When a non-null value is input, it can be followed by the keyword
-\kw{scale} and by a scale factor; the scale factor can be any
+\kw{scale} with a scale factor; the scale factor can be any
 mathematical expression.
 This is useful to rescale structure values by reassigning the value 
 of the scale factor.
@@ -564,6 +564,23 @@ For example, the identity matrix can be defined as:
     matr, 1.,0.,0.,  0.,1.,0.,  0.,0.,1.
     1.,0.,0.,  0.,1.,0.,  0.,0.,1.        # ``matr'' omitted
     sym, 1.,0.,0.,  1.,0.,  1.            # upper triangular part
+    diag, 1.,1.,1.                        # diagonal
+    eye                                   # a la matlab
+\end{verbatim}
+Although not required, for better readability it is recommended to format
+the above data as
+\begin{verbatim}
+    matr,
+        1.,0.,0.,
+        0.,1.,0.,
+        0.,0.,1.
+    1.,0.,0.,
+    0.,1.,0.,
+    0.,0.,1.                              # ``matr'' omitted
+    sym,
+        1.,0.,0.,
+           1.,0.,
+              1.                          # upper triangular part
     diag, 1.,1.,1.                        # diagonal
     eye                                   # a la matlab
 \end{verbatim}
@@ -2135,8 +2152,13 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
 	symbolic viscoelastic						& $\surd$ & $\surd$ & $\surd$ \\
 	ann elastic							& $\surd$ & $\surd$ & $\surd$ \\
 	ann viscoelastic						& $\surd$ & $\surd$ & $\surd$ \\
+	nlsf elastic							& $\surd$ & $\surd$ & $\surd$ \\
+	nlsf viscous							& $\surd$ & $\surd$ & $\surd$ \\
 	nlsf viscoelastic						& $\surd$ & $\surd$ & $\surd$ \\
+	nlp elastic							& $\surd$ & $\surd$ & $\surd$ \\
+	nlp viscous							& $\surd$ & $\surd$ & $\surd$ \\
 	nlp viscoelastic						& $\surd$ & $\surd$ & $\surd$ \\
+	\hline
 	invariant angular (wrapper)					&         & $\surd$ &         \\
 	\hline
     \end{tabular}
@@ -2697,6 +2719,10 @@ coefficients of a linear viscoelastic model, that account
 for the cross-couplings between the stresses 
 and the strains and strain rates.
 
+Elastic and viscous variants are defined.
+They differ from the viscoelastic one by only allowing
+the specific fraction of the input data.
+
 \paragraph{Syntax.}
 \label{sec:CL:nlsf-syntax}
 The syntax is
@@ -2705,6 +2731,16 @@ The syntax is
         (derivative_of_entity) <kappa_0'> ,
         { null | (scalar_function) <diag_force'> }
         [ , ... ] ,
+        (derivative_of_entity) <kappa_0''> ,
+        { null | (scalar_function) <diag_force''> }
+        [ , ... ]
+
+    <specific_const_law> ::= nlsf elastic ,
+        (derivative_of_entity) <kappa_0'> ,
+        { null | (scalar_function) <diag_force'> }
+        [ , ... ]
+
+    <specific_const_law> ::= nlsf viscous ,
         (derivative_of_entity) <kappa_0''> ,
         { null | (scalar_function) <diag_force''> }
         [ , ... ]
@@ -2827,6 +2863,10 @@ $k'_i$ and $k''_i$ are implemented as arbitrary
 which includes piecewise linear and spline regularization
 of given data.
 
+Elastic and viscous variants are defined.
+They differ from the viscoelastic one by only allowing
+the specific fraction of the input data.
+
 \paragraph{Syntax.}
 The syntax is
 \begin{verbatim}
@@ -2834,6 +2874,16 @@ The syntax is
         (derivative_of_entity) <kappa_0'> ,
         { null | (scalar_function) <diag_stiffness> }
         [ , ... ] ,
+        (derivative_of_entity) <kappa_0''> ,
+        { null | (scalar_function) <diag_damping> }
+        [ , ... ]
+
+    <specific_const_law> ::= nlp elastic ,
+        (derivative_of_entity) <kappa_0'> ,
+        { null | (scalar_function) <diag_stiffness> }
+        [ , ... ]
+
+    <specific_const_law> ::= nlp viscous ,
         (derivative_of_entity) <kappa_0''> ,
         { null | (scalar_function) <diag_damping> }
         [ , ... ]

@@ -317,7 +317,7 @@ typedef NLSFViscoElasticConstitutiveLaw<Vec3, Mat3x3> NLSFViscoElasticConstituti
 typedef NLSFViscoElasticConstitutiveLaw<Vec6, Mat6x6> NLSFViscoElasticConstitutiveLaw6D;
 
 /* specific functional object(s) */
-template <class T, class Tder>
+template <class T, class Tder, ConstLawType::Type Typ>
 struct NLSFViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 	virtual ConstitutiveLaw<T, Tder> *
 	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType)
@@ -344,49 +344,59 @@ struct NLSFViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 
 		/* stiffness */
 		Tder FDE0(0.);
-		FDE0 = HP.Get(FDE0);
-
-		bool bElastic(!IsNull<Tder>(FDE0));
+		bool bElastic(false);
 		std::vector<const DifferentiableScalarFunction *> FDEsc(dim);
 		for (unsigned i = 0; i < dim; i++) {
-			if (HP.IsKeyWord("null")) {
-				FDEsc[i] = 0;
+			FDEsc[i] = 0;
+		}
 
-			} else {
-				const BasicScalarFunction *const sc = ParseScalarFunction(HP, (DataManager *const)pDM);
-				FDEsc[i] = dynamic_cast<const DifferentiableScalarFunction *>(sc);
-				if (FDEsc[i] == 0) {
-					silent_cerr("NLSFViscoElasticCLR: "
-						"stiffness scalar function #" << i << " "
-						"at line " << HP.GetLineData() << " "
-						"must be differentiable" << std::endl);
-					throw ErrGeneric();
+		if (Typ & ConstLawType::ELASTIC) {
+			FDE0 = HP.Get(FDE0);
+
+			bElastic = !IsNull<Tder>(FDE0);
+			for (unsigned i = 0; i < dim; i++) {
+				if (!HP.IsKeyWord("null")) {
+					const BasicScalarFunction *const sc
+						= ParseScalarFunction(HP, (DataManager *const)pDM);
+					FDEsc[i] = dynamic_cast<const DifferentiableScalarFunction *>(sc);
+					if (FDEsc[i] == 0) {
+						silent_cerr("NLSFViscoElasticCLR: "
+							"stiffness scalar function #" << i << " "
+							"at line " << HP.GetLineData() << " "
+							"must be differentiable" << std::endl);
+						throw ErrGeneric();
+					}
+					bElastic = true;
 				}
-				bElastic = true;
 			}
 		}
 
 		/* damping */
 		Tder FDEPrime0(0.);
-		FDEPrime0 = HP.Get(FDEPrime0);
-
-		bool bViscous(!IsNull<Tder>(FDEPrime0));
+		bool bViscous(false);
 		std::vector<const DifferentiableScalarFunction *> FDEPrimesc(dim);
 		for (unsigned i = 0; i < dim; i++) {
-			if (HP.IsKeyWord("null")) {
-				FDEPrimesc[i] = 0;
+			FDEPrimesc[i] = 0;
+		}
 
-			} else {
-				const BasicScalarFunction *const sc = ParseScalarFunction(HP, (DataManager *const)pDM);
-				FDEPrimesc[i] = dynamic_cast<const DifferentiableScalarFunction *>(sc);
-				if (FDEPrimesc[i] == 0) {
-					silent_cerr("NLSFViscoElasticCLR: "
-						"damping scalar function #" << i << " "
-						"at line " << HP.GetLineData() << " "
-						"must be differentiable" << std::endl);
-					throw ErrGeneric();
+		if (Typ & ConstLawType::VISCOUS) {
+			FDEPrime0 = HP.Get(FDEPrime0);
+
+			bViscous = !IsNull<Tder>(FDEPrime0);
+			for (unsigned i = 0; i < dim; i++) {
+				if (!HP.IsKeyWord("null")) {
+					const BasicScalarFunction *const sc
+						= ParseScalarFunction(HP, (DataManager *const)pDM);
+					FDEPrimesc[i] = dynamic_cast<const DifferentiableScalarFunction *>(sc);
+					if (FDEPrimesc[i] == 0) {
+						silent_cerr("NLSFViscoElasticCLR: "
+							"damping scalar function #" << i << " "
+							"at line " << HP.GetLineData() << " "
+							"must be differentiable" << std::endl);
+						throw ErrGeneric();
+					}
+					bViscous = true;
 				}
-				bViscous = true;
 			}
 		}
 
@@ -421,8 +431,9 @@ struct NLSFViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 int
 NLSF_init(void)
 {
+	// 1D viscoelastic
 	ConstitutiveLawRead<doublereal, doublereal> *rf1D
-		= new NLSFViscoElasticCLR<doublereal, doublereal>;
+		= new NLSFViscoElasticCLR<doublereal, doublereal, ConstLawType::VISCOELASTIC>;
 	if (!SetCL1D("nlsf" "viscoelastic", rf1D)) {
 		delete rf1D;
 
@@ -432,7 +443,31 @@ NLSF_init(void)
 		return -1;
 	}
 
-	ConstitutiveLawRead<Vec3, Mat3x3> *rf3D = new NLSFViscoElasticCLR<Vec3, Mat3x3>;
+	// 1D elastic
+	rf1D = new NLSFViscoElasticCLR<doublereal, doublereal, ConstLawType::ELASTIC>;
+	if (!SetCL1D("nlsf" "elastic", rf1D)) {
+		delete rf1D;
+
+		silent_cerr("NLSFElasticConstitutiveLaw1D: "
+			"init failed" << std::endl);
+
+		return -1;
+	}
+
+	// 1D viscous
+	rf1D = new NLSFViscoElasticCLR<doublereal, doublereal, ConstLawType::VISCOUS>;
+	if (!SetCL1D("nlsf" "viscous", rf1D)) {
+		delete rf1D;
+
+		silent_cerr("NLSFViscousConstitutiveLaw1D: "
+			"init failed" << std::endl);
+
+		return -1;
+	}
+
+	// 3D viscoelastic
+	ConstitutiveLawRead<Vec3, Mat3x3> *rf3D
+		= new NLSFViscoElasticCLR<Vec3, Mat3x3, ConstLawType::VISCOELASTIC>;
 	if (!SetCL3D("nlsf" "viscoelastic", rf3D)) {
 		delete rf3D;
 
@@ -442,11 +477,57 @@ NLSF_init(void)
 		return -1;
 	}
 
-	ConstitutiveLawRead<Vec6, Mat6x6> *rf6D = new NLSFViscoElasticCLR<Vec6, Mat6x6>;
+	// 3D elastic
+	rf3D = new NLSFViscoElasticCLR<Vec3, Mat3x3, ConstLawType::ELASTIC>;
+	if (!SetCL3D("nlsf" "elastic", rf3D)) {
+		delete rf3D;
+
+		silent_cerr("NLSFElasticConstitutiveLaw3D: "
+			"init failed" << std::endl);
+
+		return -1;
+	}
+
+	// 3D viscous
+	rf3D = new NLSFViscoElasticCLR<Vec3, Mat3x3, ConstLawType::VISCOUS>;
+	if (!SetCL3D("nlsf" "viscous", rf3D)) {
+		delete rf3D;
+
+		silent_cerr("NLSFViscousConstitutiveLaw3D: "
+			"init failed" << std::endl);
+
+		return -1;
+	}
+
+	// 6D viscoelastic
+	ConstitutiveLawRead<Vec6, Mat6x6> *rf6D
+		= new NLSFViscoElasticCLR<Vec6, Mat6x6, ConstLawType::VISCOELASTIC>;
 	if (!SetCL6D("nlsf" "viscoelastic", rf6D)) {
 		delete rf6D;
 
 		silent_cerr("NLSFViscoElasticConstitutiveLaw6D: "
+			"init failed" << std::endl);
+
+		return -1;
+	}
+
+	// 6D elastic
+	rf6D = new NLSFViscoElasticCLR<Vec6, Mat6x6, ConstLawType::ELASTIC>;
+	if (!SetCL6D("nlsf" "elastic", rf6D)) {
+		delete rf6D;
+
+		silent_cerr("NLSFElasticConstitutiveLaw6D: "
+			"init failed" << std::endl);
+
+		return -1;
+	}
+
+	// 6D viscous
+	rf6D = new NLSFViscoElasticCLR<Vec6, Mat6x6, ConstLawType::VISCOUS>;
+	if (!SetCL6D("nlsf" "viscous", rf6D)) {
+		delete rf6D;
+
+		silent_cerr("NLSFViscousConstitutiveLaw6D: "
 			"init failed" << std::endl);
 
 		return -1;
