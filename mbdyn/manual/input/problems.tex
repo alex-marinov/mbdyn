@@ -36,14 +36,31 @@ The section data is included between the cards:
     end : <problem_name> ;
 \end{verbatim}
 
+Implemented problems are:
+\begin{itemize}
+\item \kw{initial value}, the time integration of mechanical
+and multidisciplinary problems formulated
+as Differential-Algenraic Equations (DAE).
+It can be downgraded to the solution of static and kinemtic problems,
+by selecting purely static or kinematic contributions
+to the governing equations, thus giving time the role
+of an ordinal parameter.
+
+\item \kw{inverse dynamics}, the computation of the generalized forces
+required to make a generic system perform a given trajectory.
+This problem currently under development, so it is not deiscussed
+in detail.
+
+\end{itemize}
+
 
 
 
 
 \section{Initial-Value Problem}
 \label{sec:IVP}
-At present, the only available \kw{<problem\_name>}
-is \kw{initial value}, which solves initial value problems
+At present, the main problem is \kw{initial value},
+which solves initial value problems
 by means of generic integration schemes that can be casted
 in a broad family of multistep and, experimentally,
 Implicit Runge-Kutta-like schemes

@@ -27,7 +27,8 @@
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 \chapter{Frequently Asked Questions}\label{sec:FAQ}
-This section contains answers to frequently asked questions.
+This section contains answers to frequently asked questions
+related to input and output formatting, and execution control.
 It is an attempt to fill the knowledge gap between the user's needs
 and the description of each input statement.
 In fact, this manual assumes that the user already knows what statement
@@ -94,7 +95,7 @@ so, at the end of an entity's card just put
 \end{verbatim}
 
 \item \textbf{entity by entity, deferred:}
-all entitites allow to re-enable output after they have
+all entities allow to re-enable output after they have
 been instantiated by using the \kw{output} statement
 (nodes: Section~\ref{sec:NODE:MISC:OUTPUT};
 elements: Section~\ref{sec:EL:MISC:OUTPUT}).
@@ -183,4 +184,80 @@ i.e.\ the sixth component of the derivative state of node 1000,
 the angular velocity about axis 3, is assigned to the variable \kw{Omega}.
 Any time \kw{Omega} is evaluated in a string expression, its value
 gets updated.
+
+
+
+\section{Execution Debugging}
+\subsection{How can I find out why the iterative solution
+of a nonlinear problem does not converge?}
+
+One needs to:
+\begin{enumerate}
+\item find out the equations whose residual does not converge to zero.
+The residual is printed using the statement
+\begin{verbatim}
+    output: residual;
+\end{verbatim}
+in the problem control block described in Chapter~\ref{sec:PROBLEMS}.
+Each coefficient is preceded by its number
+and followed by a brief description of which node/element instantiated
+the equation and what its purpose is, if available;
+for example, the output
+\begin{verbatim}
+Eq     1:        0 ModalStructNode(1): linear velocity definition vx
+Eq     2:        0 ModalStructNode(1): linear velocity definition vy
+Eq     3:        0 ModalStructNode(1): linear velocity definition vz
+Eq     4:        0 ModalStructNode(1): angular velocity definition wx
+Eq     5:        0 ModalStructNode(1): angular velocity definition wy
+Eq     6:        0 ModalStructNode(1): angular velocity definition wz
+Eq     7:        0 ModalStructNode(1): force equilibrium Fx
+Eq     8:        0 ModalStructNode(1): force equilibrium Fy
+Eq     9:        0 ModalStructNode(1): force equilibrium Fz
+Eq    10:        0 ModalStructNode(1): moment equilibrium Mx
+Eq    11:        0 ModalStructNode(1): moment equilibrium My
+Eq    12:        0 ModalStructNode(1): moment equilibrium Mz
+\end{verbatim}
+corresponds to a residual whose first 12 equations refer to a modal node
+labeled ``1'' (and the residual is exactly zero);
+
+\item find out who instantiated the offending equation or equations.
+If this is not already indicated in the previously mentioned description,
+one should look the offending equation index in the output originated
+by adding the statement
+\begin{verbatim}
+    print: equation description;
+\end{verbatim}
+in the \kw{control data} block, as described
+in Section~\ref{sec:CONTROLDATA:PRINT}.
+In the above example, it would generate
+\begin{verbatim}
+Structural(1): 12 1->12
+        1->3: linear velocity definition [vx,vy,vz]
+        4->6: angular velocity definition [wx,wy,wz]
+        7->9: force equilibrium [Fx,Fy,Fz]
+        10->12: moment equilibrium [Mx,My,Mz]
+\end{verbatim}
+
+\item find out who could contribute to that equation or equations.
+
+If the equation was instantiated by a node,
+one should look at the elements connected to that node.
+This information is obtained by adding the statement
+\begin{verbatim}
+    print: element connection;
+\end{verbatim}
+in the \kw{control data} block, as described
+in Section~\ref{sec:CONTROLDATA:PRINT}.
+In the above example, it would generate
+\begin{verbatim}
+Structural(1) connected to
+        Joint(1)
+        Joint(2)
+\end{verbatim}
+so one should try to find out which of those elements is generating
+the offending contribution to that equation.
+
+If the equation was instantiated by an element, usually the element
+itself is the sole contributor to that equation.
+\end{enumerate}
 
