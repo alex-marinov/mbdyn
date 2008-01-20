@@ -537,9 +537,15 @@ StructNode::OutputPrepare(OutputHandler &OH)
 			if (Var_X == 0) {
 				throw ErrGeneric();
 			}
+
 			if (!Var_X->add_att("units", "m")) {
 				throw ErrGeneric();
 			}
+
+			if (!Var_X->add_att("type", "Vec3")) {
+				throw ErrGeneric();
+			}
+
 			if (!Var_X->add_att("description",
 				"global position vector (X, Y, Z)"))
 			{
@@ -554,9 +560,15 @@ StructNode::OutputPrepare(OutputHandler &OH)
 				if (Var_Phi == 0) {
 					throw ErrGeneric();
 				}
+
 				if (!Var_Phi->add_att("units", "-")) {
 					throw ErrGeneric();
 				}
+
+				if (!Var_Phi->add_att("type", "Mat3x3")) {
+					throw ErrGeneric();
+				}
+
 				if (!Var_Phi->add_att("description",
 					"global orientation matrix "
 					"(R11, R21, R31, "
@@ -573,9 +585,15 @@ StructNode::OutputPrepare(OutputHandler &OH)
 				if (Var_Phi == 0) {
 					throw ErrGeneric();
 				}
+
 				if (!Var_Phi->add_att("units", "radian")) {
 					throw ErrGeneric();
 				}
+
+				if (!Var_Phi->add_att("type", "Vec3")) {
+					throw ErrGeneric();
+				}
+
 				if (!Var_Phi->add_att("description",
 					"global orientation vector "
 					"(Phi_X, Phi_Y, Phi_Z)"))
@@ -591,9 +609,15 @@ StructNode::OutputPrepare(OutputHandler &OH)
 				if (Var_Phi == 0) {
 					throw ErrGeneric();
 				}
+
 				if (!Var_Phi->add_att("units", "radian")) {
 					throw ErrGeneric();
 				}
+
+				if (!Var_Phi->add_att("type", "Vec3")) {
+					throw ErrGeneric();
+				}
+
 				if (!Var_Phi->add_att("description",
 					"global orientation Euler angles (123) "
 					"(E_X, E_Y, E_Z)"))
@@ -612,9 +636,15 @@ StructNode::OutputPrepare(OutputHandler &OH)
 			if (Var_XP == 0) {
 				throw ErrGeneric();
 			}
+
 			if (!Var_XP->add_att("units", "m/s")) {
 				throw ErrGeneric();
 			}
+
+			if (!Var_XP->add_att("type", "Vec3")) {
+				throw ErrGeneric();
+			}
+
 			if (!Var_XP->add_att("description",
 				"global velocity vector (v_X, v_Y, v_Z)"))
 			{
@@ -627,9 +657,15 @@ StructNode::OutputPrepare(OutputHandler &OH)
 			if (Var_Omega == 0) {
 				throw ErrGeneric();
 			}
+
 			if (!Var_Omega->add_att("units", "radian/s")) {
 				throw ErrGeneric();
 			}
+
+			if (!Var_Omega->add_att("type", "Vec3")) {
+				throw ErrGeneric();
+			}
+
 			if (!Var_Omega->add_att("description",
 				"global angular velocity vector "
 				"(omega_X, omega_Y, omega_Z)"))
@@ -1730,9 +1766,15 @@ DynamicStructNode::OutputPrepare(OutputHandler &OH)
 			if (Var_XPP == 0) {
 				throw ErrGeneric();
 			}
-			if (!Var_XPP->add_att("units", "m/s2")) {
+
+			if (!Var_XPP->add_att("units", "m/s^2")) {
 				throw ErrGeneric();
 			}
+
+			if (!Var_XPP->add_att("type", "Vec3")) {
+				throw ErrGeneric();
+			}
+
 			if (!Var_XPP->add_att("description", "global acceleration vector (a_X, a_Y, a_Z)")) {
 				throw ErrGeneric();
 			}
@@ -1742,10 +1784,19 @@ DynamicStructNode::OutputPrepare(OutputHandler &OH)
 			if (Var_OmegaP == 0) {
 				throw ErrGeneric();
 			}
-			if (!Var_OmegaP->add_att("units", "radian/s2")) {
+
+			if (!Var_OmegaP->add_att("units", "radian/s^2")) {
 				throw ErrGeneric();
 			}
-			if (!Var_OmegaP->add_att("description", "global angular acceleration vector (omegaP_X, omegaP_Y, omegaP_Z)")) {
+
+			if (!Var_OmegaP->add_att("type", "Vec3")) {
+				throw ErrGeneric();
+			}
+
+			if (!Var_OmegaP->add_att("description",
+				"global angular acceleration vector "
+				"(omegaP_X, omegaP_Y, omegaP_Z)"))
+			{
 				throw ErrGeneric();
 			}
 		}

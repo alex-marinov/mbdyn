@@ -48,6 +48,7 @@ D. Code:
 	- implement "smart" structural nodes, so that static/dynamic
 		is detected
 	- implement optional binary/ascii output (use NetCDF; partially DONE)
+	- abstract NetCDF use for aggregate data (e.g. Vec3)
 
 	Medium Projects:
 	- recover existing soft restart (Michele Attolico worked at it)

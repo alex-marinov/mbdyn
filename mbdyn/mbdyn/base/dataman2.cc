@@ -1326,6 +1326,10 @@ DataManager::OutputPrepare(void)
 			throw ErrGeneric();
 		}
 
+		if (!Var_Step->add_att("type", "integer")) {
+			throw ErrGeneric();
+		}
+
 		if (!Var_Step->add_att("description", "time step index")) {
 			throw ErrGeneric();
 		}
@@ -1341,6 +1345,10 @@ DataManager::OutputPrepare(void)
 			throw ErrGeneric();
 		}
 
+		if (!Var_Time->add_att("type", "doublereal")) {
+			throw ErrGeneric();
+		}
+
 		if (!Var_Time->add_att("description", "simulation time")) {
 			throw ErrGeneric();
 		}
@@ -1353,6 +1361,10 @@ DataManager::OutputPrepare(void)
 
 		/* FIXME: needs to be configurable? */
 		if (!Var_TimeStep->add_att("units", "s")) {
+			throw ErrGeneric();
+		}
+
+		if (!Var_TimeStep->add_att("type", "doublereal")) {
 			throw ErrGeneric();
 		}
 

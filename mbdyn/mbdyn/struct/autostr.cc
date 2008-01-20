@@ -259,9 +259,15 @@ AutomaticStructElem::OutputPrepare(OutputHandler &OH)
 			if (Var_B == 0) {
 				throw ErrGeneric();
 			}
-			if (!Var_B->add_att("units", "kg*m/s")) {
+
+			if (!Var_B->add_att("units", "kg m/s")) {
 				throw ErrGeneric();
 			}
+
+			if (!Var_B->add_att("type", "Vec3")) {
+				throw ErrGeneric();
+			}
+
 			if (!Var_B->add_att("description",
 				"momentum (X, Y, Z)"))
 			{
@@ -274,9 +280,15 @@ AutomaticStructElem::OutputPrepare(OutputHandler &OH)
 			if (Var_G == 0) {
 				throw ErrGeneric();
 			}
-			if (!Var_G->add_att("units", "kg*m^2/s")) {
+
+			if (!Var_G->add_att("units", "kg m^2/s")) {
 				throw ErrGeneric();
 			}
+
+			if (!Var_G->add_att("type", "Vec3")) {
+				throw ErrGeneric();
+			}
+
 			if (!Var_G->add_att("description",
 				"momenta moment (X, Y, Z)"))
 			{
@@ -289,9 +301,15 @@ AutomaticStructElem::OutputPrepare(OutputHandler &OH)
 			if (Var_BP == 0) {
 				throw ErrGeneric();
 			}
-			if (!Var_BP->add_att("units", "kg*m/s^2")) {
+
+			if (!Var_BP->add_att("units", "kg m/s^2")) {
 				throw ErrGeneric();
 			}
+
+			if (!Var_BP->add_att("type", "Vec3")) {
+				throw ErrGeneric();
+			}
+
 			if (!Var_BP->add_att("description",
 				"momentum derivative (X, Y, Z)"))
 			{
@@ -304,9 +322,15 @@ AutomaticStructElem::OutputPrepare(OutputHandler &OH)
 			if (Var_GP == 0) {
 				throw ErrGeneric();
 			}
-			if (!Var_GP->add_att("units", "kg*m^2/s^2")) {
+
+			if (!Var_GP->add_att("units", "kg m^2/s^2")) {
 				throw ErrGeneric();
 			}
+
+			if (!Var_GP->add_att("type", "Vec3")) {
+				throw ErrGeneric();
+			}
+
 			if (!Var_GP->add_att("description",
 				"momenta moment derivative (X, Y, Z)"))
 			{
