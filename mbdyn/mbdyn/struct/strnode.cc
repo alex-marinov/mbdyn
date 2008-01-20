@@ -191,6 +191,12 @@ static const char *eq[] = {
 	"force equilibrium F",
 	"moment equilibrium M"
 };
+static const char *modal_eq[] = {
+	"linear velocity definition v",
+	"angular velocity definition w",
+	"force equilibrium F",
+	"moment equilibrium M"
+};
 static const char *initial_dof[] = {
 	"position P",
 	"incremental rotation parameter g",
@@ -2174,6 +2180,9 @@ ModalNode::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) con
 		StructNode::DescribeDof(desc, bInitial, i);
 
 		if (bInitial || (i >= 0 && i < 6)) {
+			for (i = 0; i < desc.size(); i++) {
+				desc[i] = "Modal" + desc[i];
+			}
 			return;
 		}
 	}
@@ -2186,10 +2195,14 @@ ModalNode::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) con
 	}
 	
 	std::ostringstream os;
-	os << "StructNode(" << GetLabel() << ")";
+	os << "ModalStructNode(" << GetLabel() << ")";
 
 	if (i == -1) {
 		std::string name = os.str();
+
+		for (i = 0; i < 6; i++) {
+			desc[i] = "Modal" + desc[i];
+		}
 
 		for (i = 6; i < 12; i++) {
 			os.str(name);
@@ -2238,6 +2251,9 @@ ModalNode::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) cons
 		StructNode::DescribeEq(desc, bInitial, new_i);
 
 		if (bInitial || (i >= 6 && i < 12)) {
+			for (i = 0; i < desc.size(); i++) {
+				desc[i] = "Modal" + desc[i];
+			}
 			return;
 		}
 	}
@@ -2245,7 +2261,7 @@ ModalNode::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) cons
 	if (i == -1) {
 		desc.resize(12);
 		for (int j = 0; j < 6; j++) {
-			desc[6 + j] = desc[j];
+			desc[6 + j] = "Modal" + desc[j];
 		}
 
 	} else {
@@ -2253,7 +2269,12 @@ ModalNode::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) cons
 	}
 	
 	std::ostringstream os;
-	os << "StructNode(" << GetLabel() << ")";
+	os << "ModalStructNode(" << GetLabel() << ")";
+
+	const char **xeq = modal_eq;
+	if (bInitial) {
+		xeq = initial_eq;
+	}
 
 	if (i == -1) {
 		std::string name = os.str();
@@ -2261,7 +2282,7 @@ ModalNode::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) cons
 		for (i = 0; i < 6; i++) {
 			os.str(name);
 			os.seekp(0, std::ios_base::end);
-			os << ": " << initial_eq[i/3] << xyz[i%3];
+			os << ": " << xeq[i/3] << xyz[i%3];
 			desc[i] = os.str();
 		}
 
@@ -2270,7 +2291,7 @@ ModalNode::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) cons
 			throw ErrGeneric();
 		}
 
-		os << ": " << initial_eq[i/3] << xyz[i%3];
+		os << ": " << xeq[i/3] << xyz[i%3];
 		desc[0] = os.str();
 	}
 }
