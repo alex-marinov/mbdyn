@@ -131,14 +131,29 @@ public:
 
 	virtual std::ostream& DescribeDof(std::ostream& out,
 			const char *prefix = "",
-			bool bInitial = false, int i = -1) const {
+			bool bInitial = false) const
+	{
 		return out;
+	};
+	virtual void DescribeDof(std::vector<std::string>& desc,
+			bool bInitial = false, int i = -1) const
+	{
+		ASSERT(i <= 0);
+		desc.resize(0);
 	};
 
 	virtual std::ostream& DescribeEq(std::ostream& out,
 			const char *prefix = "",
-			bool bInitial = false, int i = -1) const {
+			bool bInitial = false) const
+	{
 		return out;
+	};
+
+	virtual void DescribeEq(std::vector<std::string>& desc,
+			bool bInitial = false, int i = -1) const
+	{
+		ASSERT(i <= 0);
+		desc.resize(0);
 	};
 
 	virtual DofOrder::Order GetDofType(unsigned int i) const {
@@ -217,14 +232,30 @@ public:
 
 	virtual std::ostream& DescribeDof(std::ostream& out,
 			const char *prefix = "",
-			bool bInitial = false, int i = -1) const {
+			bool bInitial = false) const
+	{
 		return out;
+	};
+
+	virtual void DescribeDof(std::vector<std::string>& desc,
+			bool bInitial = false, int i = -1) const
+	{
+		ASSERT(i <= 0);
+		desc.resize(0);
 	};
 
 	virtual std::ostream& DescribeEq(std::ostream& out,
 			const char *prefix = "",
-			bool bInitial = false, int i = -1) const {
+			bool bInitial = false) const
+	{
 		return out;
+	};
+
+	virtual void DescribeEq(std::vector<std::string>& desc,
+			bool bInitial = false, int i = -1) const
+	{
+		ASSERT(i <= 0);
+		desc.resize(0);
 	};
 
 	virtual DofOrder::Order GetDofType(unsigned int i) const {

@@ -178,16 +178,9 @@ ImposedDisplacementJoint::ParseHint(DataManager *pDM, const char *s) const
 
 std::ostream&
 ImposedDisplacementJoint::DescribeDof(std::ostream& out,
-		const char *prefix, bool bInitial, int i) const
+	const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("ImposedDisplacementJoint(" << GetLabel() << "): "
-			"DescribeDof(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out
 		<< prefix << iIndex + 1 << ": "
@@ -203,18 +196,57 @@ ImposedDisplacementJoint::DescribeDof(std::ostream& out,
 	return out;
 }
 
+static const char *dof[] = {
+	"reaction force f",
+	"reaction force derivative fP"
+};
+static const char *eq[] = {
+	"position constraint P",
+	"position constraint derivative v"
+};
+
+void
+ImposedDisplacementJoint::DescribeDof(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	int nself = 1;
+	
+	if (i == -1) {
+		if (bInitial) {
+			nself *= 2;
+		}
+	}
+	desc.resize(nself);
+
+	std::ostringstream os;
+	os << "ImposedDisplacementJoint(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name(os.str());
+
+		for (int i = 0; i < nself; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": " << dof[i];
+			desc[i] = os.str();
+		}
+
+	} else {
+		if (i < 0 || i >= nself) {
+			// error
+			throw ErrGeneric();
+		}
+
+		os << ": " << dof[i];
+		desc[0] = os.str();
+	}
+}
+
 std::ostream&
 ImposedDisplacementJoint::DescribeEq(std::ostream& out,
-		const char *prefix, bool bInitial, int i) const
+	const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("ImposedDisplacementJoint(" << GetLabel() << "): "
-			"DescribeEq(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out
 		<< prefix << iIndex + 1 << ": "
@@ -229,6 +261,43 @@ ImposedDisplacementJoint::DescribeEq(std::ostream& out,
 
 	return out;
 
+}
+
+void
+ImposedDisplacementJoint::DescribeEq(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	int nself = 1;
+	
+	if (i == -1) {
+		if (bInitial) {
+			nself *= 2;
+		}
+	}
+	desc.resize(nself);
+
+	std::ostringstream os;
+	os << "ImposedDisplacementJoint(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name(os.str());
+
+		for (int i = 0; i < nself; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": " << eq[i];
+			desc[i] = os.str();
+		}
+
+	} else {
+		if (i < 0 || i >= nself) {
+			// error
+			throw ErrGeneric();
+		}
+
+		os << ": " << eq[i];
+		desc[0] = os.str();
+	}
 }
 
 /* Dati privati (aggiungere magari le reazioni vincolari) */
@@ -838,16 +907,9 @@ ImposedDisplacementPinJoint::ParseHint(DataManager *pDM, const char *s) const
 
 std::ostream&
 ImposedDisplacementPinJoint::DescribeDof(std::ostream& out,
-		const char *prefix, bool bInitial, int i) const
+	const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("ImposedDisplacementPinJoint(" << GetLabel() << "): "
-			"DescribeDof(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out
 		<< prefix << iIndex + 1 << ": "
@@ -863,18 +925,48 @@ ImposedDisplacementPinJoint::DescribeDof(std::ostream& out,
 	return out;
 }
 
+void
+ImposedDisplacementPinJoint::DescribeDof(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	int nself = 1;
+	
+	if (i == -1) {
+		if (bInitial) {
+			nself *= 2;
+		}
+	}
+	desc.resize(nself);
+
+	std::ostringstream os;
+	os << "ImposedDisplacementPinJoint(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name(os.str());
+
+		for (int i = 0; i < nself; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": " << dof[i];
+			desc[i] = os.str();
+		}
+
+	} else {
+		if (i < 0 || i >= nself) {
+			// error
+			throw ErrGeneric();
+		}
+
+		os << ": " << dof[i];
+		desc[0] = os.str();
+	}
+}
+
 std::ostream&
 ImposedDisplacementPinJoint::DescribeEq(std::ostream& out,
-		const char *prefix, bool bInitial, int i) const
+		const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("ImposedDisplacementPinJoint(" << GetLabel() << "): "
-			"DescribeEq(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out
 		<< prefix << iIndex + 1 << ": "
@@ -889,6 +981,43 @@ ImposedDisplacementPinJoint::DescribeEq(std::ostream& out,
 
 	return out;
 
+}
+
+void
+ImposedDisplacementPinJoint::DescribeEq(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	int nself = 1;
+	
+	if (i == -1) {
+		if (bInitial) {
+			nself *= 2;
+		}
+	}
+	desc.resize(nself);
+
+	std::ostringstream os;
+	os << "ImposedDisplacementPinJoint(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name(os.str());
+
+		for (int i = 0; i < nself; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": " << eq[i];
+			desc[i] = os.str();
+		}
+
+	} else {
+		if (i < 0 || i >= nself) {
+			// error
+			throw ErrGeneric();
+		}
+
+		os << ": " << eq[i];
+		desc[0] = os.str();
+	}
 }
 
 /* Dati privati (aggiungere magari le reazioni vincolari) */

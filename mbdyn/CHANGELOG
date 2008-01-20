@@ -17,11 +17,13 @@ MBDyn 1.3-Devel
 		- add support for nested elements
 		- add elastic and viscous variants of nlsf/nlp const. laws
 		- add dof/equation description to solution/residual output
+		- add dof description to linear solver diagnostics
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
 		- fix Schur matrix/vector handlers destructors
 		- fix solver first step with Schur data manager
+		- fix array allocation when --enable-debug
 
 MBDyn 1.3.2-Beta
 	Enhancements:

@@ -54,15 +54,29 @@ Node::~Node(void)
 }
 
 std::ostream&
-Node::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
+Node::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
 {
 	return out;
 }
 
+void
+Node::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	ASSERT(i <= 0);
+	desc.resize(0);
+}
+
 std::ostream&
-Node::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
+Node::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
 {
 	return out;
+}
+
+void
+Node::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	ASSERT(i <= 0);
+	desc.resize(0);
 }
 
 /* Ritorna gli indici di riga e colonna. Tipicamente sono gli stessi */

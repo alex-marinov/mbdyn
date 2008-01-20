@@ -100,6 +100,8 @@ public:
 	 */
 	virtual std::ostream& DescribeDof(std::ostream& out,
 			const char *prefix = "",
+			bool bInitial = false) const = 0;
+	virtual void DescribeDof(std::vector<std::string>& desc,
 			bool bInitial = false, int i = -1) const = 0;
 
 	/*
@@ -107,6 +109,8 @@ public:
 	 */
 	virtual std::ostream& DescribeEq(std::ostream& out,
 			const char *prefix = "",
+			bool bInitial = false) const = 0;
+	virtual void DescribeEq(std::vector<std::string>& desc,
 			bool bInitial = false, int i = -1) const = 0;
 	 
 	/*

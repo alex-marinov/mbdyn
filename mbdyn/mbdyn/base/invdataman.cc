@@ -432,7 +432,7 @@ void DataManager::InverseDofInit(bool bIsSquare)
   	/* Crea la struttura dinamica dei Dof */
   	if (iTotDofs > 0) {
 		if (bIsSquare)	{
-  	    		SAFENEWARR(pDofs, Dof, 2*iTotDofs);
+  	    		SAFENEWARRNOFILL(pDofs, Dof, 2*iTotDofs);
   	      	    	/* Inizializza l'iteratore sui Dof */
   	    		DofIter.Init(pDofs, 2*iTotDofs);
   	    
@@ -447,7 +447,7 @@ void DataManager::InverseDofInit(bool bIsSquare)
 					 pTmp++;
       				}		
 		} else {
-			SAFENEWARR(pDofs, Dof, iTotDofs);/* Inizializza l'iteratore sui Dof */
+			SAFENEWARRNOFILL(pDofs, Dof, iTotDofs);/* Inizializza l'iteratore sui Dof */
   	    		DofIter.Init(pDofs, iTotDofs);
   	    
   	   	 	/* Inizializza la struttura dinamica dei Dof */

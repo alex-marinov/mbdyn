@@ -92,15 +92,29 @@ Elem::iGetNumDof(void) const
 }
 
 std::ostream&
-Elem::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
+Elem::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
 {
 	return out;
 }
 
+void
+Elem::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	ASSERT(i <= 0);
+	desc.resize(0);
+}
+
 std::ostream&
-Elem::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
+Elem::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
 {
 	return out;
+}
+
+void
+Elem::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	ASSERT(i <= 0);
+	desc.resize(0);
 }
 
 DofOrder::Order 

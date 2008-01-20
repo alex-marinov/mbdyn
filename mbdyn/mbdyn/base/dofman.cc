@@ -90,7 +90,7 @@ void DataManager::DofDataInit(void)
 	
    /* Crea la struttura dinamica dei DofOwner */
    if (iTotDofOwners > 0) {	     
-      SAFENEWARR(pDofOwners, DofOwner, iTotDofOwners);
+      SAFENEWARRNOFILL(pDofOwners, DofOwner, iTotDofOwners);
       
       /* Resetta la struttura dinamica dei DofOwner */
       for (int iCnt = 0; iCnt < iTotDofOwners; iCnt++) {
@@ -155,7 +155,7 @@ void DataManager::DofInit(void)
    	
    /* Crea la struttura dinamica dei Dof */
    if(iTotDofs > 0) {	
-      SAFENEWARR(pDofs, Dof, iTotDofs);
+      SAFENEWARRNOFILL(pDofs, Dof, iTotDofs);
       
       /* Inizializza l'iteratore sui Dof */
       DofIter.Init(pDofs, iTotDofs);

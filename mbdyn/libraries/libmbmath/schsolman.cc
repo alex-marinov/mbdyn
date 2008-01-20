@@ -42,6 +42,8 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <iomanip>
+
 #ifdef USE_MPI
 #include "solman.h"
 #include "parser.h"
@@ -246,7 +248,7 @@ bNewMatrix(false)
 
 #ifdef DEBUG
 	if (MyRank == 0) {
-		silent_cout("Interface Dofs " <<std::endl);
+		silent_cout("Interface Dofs " << std::endl);
 		for (int i = 0; i < iSchurIntDim; i++) {
 			silent_cout(pSchurDofs[i] << "  ");
 		}
@@ -849,12 +851,12 @@ SchurSolutionManager::InitializeComm(void)
 	}
 
 	if (MyRank == 0){
-		SAFENEWARR(pGSReq, MPI::Request, SolvCommSize);
-		SAFENEWARR(pGRReq, MPI::Request, SolvCommSize);
+		SAFENEWARRNOFILL(pGSReq, MPI::Request, SolvCommSize);
+		SAFENEWARRNOFILL(pGRReq, MPI::Request, SolvCommSize);
 
 	} else {
-		SAFENEWARR(pGSReq, MPI::Request, 1);
-		SAFENEWARR(pGRReq, MPI::Request, 1);
+		SAFENEWARRNOFILL(pGSReq, MPI::Request, 1);
+		SAFENEWARRNOFILL(pGRReq, MPI::Request, 1);
 	}
 }
 

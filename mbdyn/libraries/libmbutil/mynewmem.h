@@ -344,6 +344,19 @@ const char cDebugFree  = 'F';
 		_Safenewfill((void*)pnt, sizeof(item)*(sz), cDebugAlloc); \
 	} while (0)
 
+/* questa e' sicura anche se e' stato eseguito un costruttore */
+#define SAFENEWARRNOFILL_(pnt, item, sz, memman) \
+	do { \
+		ASSERT(!(pnt)); \
+		ASSERT(sizeof(item)); \
+		ASSERT(sz); \
+		(pnt) = new item[sz]; \
+		if (!(pnt)) { \
+			_Safenew(__FILE__, __LINE__, 1); \
+		} \
+		(memman).add((void*)(pnt), sizeof(item)*(sz), 1); \
+	} while (0)
+
 #define SAFESTRDUP_(pnt, src, memman) \
 	do { \
 		ASSERT(!(pnt)); \
@@ -578,6 +591,18 @@ extern ostream& operator << (ostream& rout, const clMemMan& rm);
 		_Safenewfill(pnt, sizeof(item)*(sz), cDebugAlloc); \
 	} while (0) 
 
+/* questa e' sicura anche se e' stato eseguito un costruttore */
+#define SAFENEWARRNOFILL_(pnt, item, sz, memman) \
+	do { \
+		ASSERT(!(pnt)); \
+		ASSERT(sizeof(item)); \
+		ASSERT(sz); \
+		(pnt) = new item[sz]; \
+		if (!(pnt)) { \
+			_Safenew(__FILE__, __LINE__, 1); \
+		} \
+	} while (0) 
+
 #define SAFESTRDUP_(pnt, src, memman) \
 	do { \
 		ASSERT(!(pnt)); \
@@ -629,6 +654,9 @@ extern ostream& operator << (ostream& rout, const clMemMan& rm);
 #define SAFENEWARR_(pnt, item, sz, memman) \
 	(pnt) = new item[sz]
 
+#define SAFENEWARRNOFILL_(pnt, item, sz, memman) \
+	(pnt) = new item[sz]
+
 #define SAFESTRDUP_(pnt, src, memman) \
 	do { \
 		unsigned int l = strlen((src))+1; \
@@ -666,6 +694,9 @@ extern ostream& operator << (ostream& rout, const clMemMan& rm);
 
 #define SAFENEWARR(pnt, item, sz) \
 	SAFENEWARR_(pnt, item, sz, defaultMemoryManager)
+
+#define SAFENEWARRNOFILL(pnt, item, sz) \
+	SAFENEWARRNOFILL_(pnt, item, sz, defaultMemoryManager)
 
 #define SAFESTRDUP(pnt, src) \
 	SAFESTRDUP_(pnt, src, defaultMemoryManager)

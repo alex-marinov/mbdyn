@@ -92,6 +92,7 @@ NaiveSolver::Solve(void) const
 
 void
 NaiveSolver::Factor(void)
+throw(LinearSolver::ErrFactor)
 {
 	integer rc = naivfct(A->ppdRows, iSize,
 			A->piNzr, A->ppiRows, 
@@ -100,18 +101,18 @@ NaiveSolver::Factor(void)
 			&piv[0], dMinPiv);
 
 	integer err = (rc & NAIVE_MASK);
-	if (err ) {
+	if (err) {
 		integer idx = (rc & NAIVE_MAX);
 		switch (err) {
 		case NAIVE_ENULCOL:
 			silent_cerr("NaiveSolver: ENULCOL(" << idx << ")"
 				<< std::endl);
-			break;
+			throw LinearSolver::ErrNullColumn(idx);
 	
 		case NAIVE_ENOPIV:
 			silent_cerr("NaiveSolver: ENOPIV(" << idx << ")"
 				<< std::endl);
-			break;
+			throw LinearSolver::ErrNoPivot(idx);
 	
 		case NAIVE_ERANGE:
 			silent_cerr("NaiveSolver: ERANGE"

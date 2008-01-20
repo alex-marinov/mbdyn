@@ -1065,8 +1065,8 @@ SchurDataManager::CreatePartition(void)
 	MPI::Request* pRReq = NULL;
 	MPI::Request* pSReq = NULL;
 	
-	SAFENEWARR(pRReq, MPI::Request, DataCommSize);
-	SAFENEWARR(pSReq, MPI::Request, DataCommSize);
+	SAFENEWARRNOFILL(pRReq, MPI::Request, DataCommSize);
+	SAFENEWARRNOFILL(pSReq, MPI::Request, DataCommSize);
 	for (int i = 0; i < DataCommSize; i++) {
 		pRReq[i] = MPI::REQUEST_NULL;
 		pSReq[i] = MPI::REQUEST_NULL;
@@ -1149,7 +1149,7 @@ SchurDataManager::CreatePartition(void)
 		}
 
 		/* Costruisco  i communicators per i rotori */
-		SAFENEWARR(pRotorComm, MPI::Intracomm, iNumRt);
+		SAFENEWARRNOFILL(pRotorComm, MPI::Intracomm, iNumRt);
 		
 		int color, key;
 		for (int i = 0; i < iNumRt; i++) {
@@ -1315,7 +1315,7 @@ SchurDataManager::CreatePartition(void)
 
 	/* determina la liste dei dofs locali ed adiacenti suddivisa per processi,
 	 * secondo la struttura Adjacency */
-	SAFENEWARR(pLocalDofs, integer ,iNumLocDofs);
+	SAFENEWARR(pLocalDofs, integer, iNumLocDofs);
 
 	iCount = 0;
 	for (int i = 0; i < iNumLocNodes; i++) {
@@ -1365,14 +1365,14 @@ SchurDataManager::CreatePartition(void)
 
 	iCount = 0;
 	i2Count = 0;
-	for (int i = 1; i < iNumIntNodes + 1; i++) {
+	for (int i = 1; i <= iNumIntNodes; i++) {
 		if (ppNodes[InterfNodes.pAdjncy[i]]->iGetNumDof() != 0) {
 			integer First = ppNodes[InterfNodes.pAdjncy[i]]->iGetFirstIndex();
 
-			pLocalIntDofs[iCount] = (First + 1);
+			pLocalIntDofs[iCount] = First + 1;
 			iCount++;
 			if (pParAmgProcs[InterfNodes.pAdjncy[i]] == MyRank) {
-				pMyIntDofs[i2Count] = (First + 1);
+				pMyIntDofs[i2Count] = First + 1;
 				i2Count++;
 			}
 
@@ -1396,10 +1396,10 @@ SchurDataManager::CreatePartition(void)
 		TmpDofNum = ppMyIntElems[i]->iGetNumDof();
 		ElemWithDofs* pWithDofs = dynamic_cast<ElemWithDofs *>(ppMyIntElems[i]);
 		integer First = (pWithDofs)->iGetFirstIndex();
-		pLocalIntDofs[iCount] = (First + 1);
+		pLocalIntDofs[iCount] = First + 1;
 		iCount++;
 		for (int j = 1; j < TmpDofNum; j++) {
-			pLocalIntDofs[iCount] = (First  + 1 + j);
+			pLocalIntDofs[iCount] = First  + 1 + j;
 			iCount++;
 		}
 	}
@@ -1415,7 +1415,7 @@ SchurDataManager::CreatePartition(void)
 	}
 
 	if ( InterfNodes.pXadj != NULL) {
-		SAFEDELETEARR( InterfNodes.pXadj);
+		SAFEDELETEARR(InterfNodes.pXadj);
 	}
 
 	if ( InterfNodes.pAdjncy != NULL) {

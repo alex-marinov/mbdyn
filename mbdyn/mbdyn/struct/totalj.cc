@@ -123,19 +123,12 @@ TotalJoint::~TotalJoint(void)
 	NO_OP;
 };
 
-/* FIXME: velocity stuffs not implemented yet */
+/* FIXME: velocity stuff not implemented yet */
 std::ostream&
 TotalJoint::DescribeDof(std::ostream& out,
-	const char *prefix, bool bInitial, int i) const
+	const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("TotalJoint(" << GetLabel() << "): "
-			"DescribeDof(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	if (nPosConstraints > 1 || nVelConstraints > 1) {
 		out << prefix << iIndex + 1;
@@ -217,19 +210,47 @@ TotalJoint::DescribeDof(std::ostream& out,
 	return out;
 }
 
-/* FIXME: velocity stuffs not implemnted yet */
+void
+TotalJoint::DescribeDof(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	// FIXME: todo
+	int ndof = 1;
+	if (i == -1) {
+		if (bInitial) {
+			ndof = iGetNumDof();
+
+		} else {
+			ndof = iGetInitialNumDof();
+		}
+	}
+	desc.resize(ndof);
+
+	std::ostringstream os;
+	os << "TotalJoint(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name(os.str());
+
+		for (i = 0; i < ndof; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": dof(" << i + 1 << ")";
+			desc[i] = os.str();
+		}
+
+	} else {
+		os << ": dof(" << i + 1 << ")";
+		desc[0] = os.str();
+	}
+}
+
+/* FIXME: velocity stuff not implemented yet */
 std::ostream&
 TotalJoint::DescribeEq(std::ostream& out,
-	const char *prefix, bool bInitial, int i) const
+	const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("TotalJoint(" << GetLabel() << "): "
-			"DescribeEq(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	if (nPosConstraints > 1 || nVelConstraints > 1) {
 		out << prefix << iIndex + 1;
@@ -340,6 +361,41 @@ TotalJoint::DescribeEq(std::ostream& out,
 	}
 
 	return out;
+}
+
+void
+TotalJoint::DescribeEq(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	// FIXME: todo
+	int ndof = 1;
+	if (i == -1) {
+		if (bInitial) {
+			ndof = iGetNumDof();
+
+		} else {
+			ndof = iGetInitialNumDof();
+		}
+	}
+	desc.resize(ndof);
+
+	std::ostringstream os;
+	os << "TotalJoint(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name(os.str());
+
+		for (i = 0; i < ndof; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": equation(" << i + 1 << ")";
+			desc[i] = os.str();
+		}
+
+	} else {
+		os << ": equation(" << i + 1 << ")";
+		desc[0] = os.str();
+	}
 }
 
 void
@@ -1714,16 +1770,9 @@ TotalPinJoint::~TotalPinJoint(void)
 
 std::ostream&
 TotalPinJoint::DescribeDof(std::ostream& out,
-	const char *prefix, bool bInitial, int i) const
+	const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("TotalPinJoint(" << GetLabel() << "): "
-			"DescribeDof(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	if (nPosConstraints > 1) {
 		out << prefix << iIndex + 1;
@@ -1805,18 +1854,46 @@ TotalPinJoint::DescribeDof(std::ostream& out,
 	return out;
 }
 
+void
+TotalPinJoint::DescribeDof(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	// FIXME: todo
+	int ndof = 1;
+	if (i == -1) {
+		if (bInitial) {
+			ndof = iGetNumDof();
+
+		} else {
+			ndof = iGetInitialNumDof();
+		}
+	}
+	desc.resize(ndof);
+
+	std::ostringstream os;
+	os << "TotalPinJoint(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name(os.str());
+
+		for (i = 0; i < ndof; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": dof(" << i + 1 << ")";
+			desc[i] = os.str();
+		}
+
+	} else {
+		os << ": dof(" << i + 1 << ")";
+		desc[0] = os.str();
+	}
+}
+
 std::ostream&
 TotalPinJoint::DescribeEq(std::ostream& out,
-	const char *prefix, bool bInitial, int i) const
+	const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("TotalPinJoint(" << GetLabel() << "): "
-			"DescribeEq(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	if (nPosConstraints > 1) {
 		out << prefix << iIndex + 1;
@@ -1914,6 +1991,41 @@ TotalPinJoint::DescribeEq(std::ostream& out,
 	}
 
 	return out;
+}
+
+void
+TotalPinJoint::DescribeEq(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	// FIXME: todo
+	int ndof = 1;
+	if (i == -1) {
+		if (bInitial) {
+			ndof = iGetNumDof();
+
+		} else {
+			ndof = iGetInitialNumDof();
+		}
+	}
+	desc.resize(ndof);
+
+	std::ostringstream os;
+	os << "TotalPinJoint(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name(os.str());
+
+		for (i = 0; i < ndof; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": equation(" << i + 1 << ")";
+			desc[i] = os.str();
+		}
+
+	} else {
+		os << ": equation(" << i + 1 << ")";
+		desc[0] = os.str();
+	}
 }
 
 void

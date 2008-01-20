@@ -174,16 +174,9 @@ DriveHingeJoint::ParseHint(DataManager *pDM, const char *s) const
 
 std::ostream&
 DriveHingeJoint::DescribeDof(std::ostream& out,
-		const char *prefix, bool bInitial, int i) const
+	const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("DriveHingeJoint(" << GetLabel() << "): "
-			"DescribeDof(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out
 		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
@@ -199,18 +192,49 @@ DriveHingeJoint::DescribeDof(std::ostream& out,
 	return out;
 }
 
+static const char xyz[] = "xyz";
+static const char *dof[] = { "reaction couple m", "reaction couple derivative mP" };
+static const char *eq[] = { "orientation constraint g", "orientation constraint derivative w" };
+
+void
+DriveHingeJoint::DescribeDof(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	int iend = 1;
+	if (i == -1) {
+		if (bInitial) {
+			iend = 6;
+
+		} else {
+			iend = 3;
+		}
+	}
+	desc.resize(iend);
+
+	std::ostringstream os;
+	os << "DriveHingeJoint(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name = os.str();
+		for (i = 0; i < iend; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": " << dof[i/3] << xyz[i%3];
+
+			desc[i] = os.str();
+		}
+
+	} else {
+		os << ": " << dof[i/3] << xyz[i%3];
+		desc[0] = os.str();
+	}
+}
+
 std::ostream&
 DriveHingeJoint::DescribeEq(std::ostream& out,
-		const char *prefix, bool bInitial, int i) const
+	const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("DriveHingeJoint(" << GetLabel() << "): "
-			"DescribeEq(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out
 		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
@@ -225,6 +249,40 @@ DriveHingeJoint::DescribeEq(std::ostream& out,
 
 	return out;
 
+}
+
+void
+DriveHingeJoint::DescribeEq(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	int iend = 1;
+	if (i == -1) {
+		if (bInitial) {
+			iend = 6;
+
+		} else {
+			iend = 3;
+		}
+	}
+	desc.resize(iend);
+
+	std::ostringstream os;
+	os << "DriveHingeJoint(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name = os.str();
+		for (i = 0; i < iend; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": " << eq[i/3] << xyz[i%3];
+
+			desc[i] = os.str();
+		}
+
+	} else {
+		os << ": " << eq[i/3] << xyz[i%3];
+		desc[0] = os.str();
+	}
 }
 
 /* Dati privati (aggiungere magari le reazioni vincolari) */

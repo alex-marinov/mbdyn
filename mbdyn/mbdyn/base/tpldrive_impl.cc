@@ -381,7 +381,7 @@ public:
 		typedef DrivesArray<T> da;
 		da* pDA = 0;
 
-		SAFENEWARR(pDA, da, iNumDrives);
+		SAFENEWARRNOFILL(pDA, da, iNumDrives);
 
 		for (int i = 0; i < iNumDrives; i++) {
 			pDA[i].pDriveCaller = pDrivesArray[i].pDriveCaller->pCopy();
@@ -472,7 +472,7 @@ public:
 		typedef DrivesArray<doublereal> da;
 		da* pDA = 0;
 
-		SAFENEWARR(pDA, da, iNumDrives);
+		SAFENEWARRNOFILL(pDA, da, iNumDrives);
 
 		for (int i = 0; i < iNumDrives; i++) {
 			pDA[i].pDriveCaller = pDrivesArray[i].pDriveCaller->pCopy();
@@ -537,7 +537,7 @@ public:
 
 
 		DrivesArray<T>* pDA = 0;
-		SAFENEWARR(pDA, DrivesArray<T>, iNumDr);
+		SAFENEWARRNOFILL(pDA, DrivesArray<T>, iNumDr);
 
 		for (unsigned short int i = 0; i < iNumDr; i++) {
 			T t(0.);

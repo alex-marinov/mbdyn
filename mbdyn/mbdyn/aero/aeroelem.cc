@@ -53,7 +53,7 @@ Aero_output_alloc(unsigned int iNumPoints)
    	DEBUGCOUTFNAME("Aero_output_alloc");
 	ASSERT(iNumPoints > 0);
    	Aero_output* p = NULL;
-   	SAFENEWARR(p, Aero_output, iNumPoints);
+   	SAFENEWARRNOFILL(p, Aero_output, iNumPoints);
    	return p;
 }
 

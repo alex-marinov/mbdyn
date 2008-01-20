@@ -64,7 +64,7 @@ Gmres::Gmres(const Preconditioner::PrecondType PType,
 v(NULL),
 s(MaxLinIt + 1), cs(MaxLinIt + 1), sn(MaxLinIt + 1)
 {
-	SAFENEWARR(v, MyVectorHandler, MaxLinIt + 1); 
+	SAFENEWARRNOFILL(v, MyVectorHandler, MaxLinIt + 1); 
 }
 	
 Gmres::~Gmres(void)

@@ -738,6 +738,9 @@ public:
 public:
 	virtual void PrintResidual(const VectorHandler& Res, integer iIterCnt) const;
 	virtual void PrintSolution(const VectorHandler& Sol, integer iIterCnt) const;
+
+	virtual const std::string& GetDofDescription(int i) const;
+	virtual const std::string& GetEqDescription(int i) const;
 };
 
 /* DataManager - end */

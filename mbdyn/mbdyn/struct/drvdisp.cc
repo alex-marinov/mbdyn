@@ -175,16 +175,9 @@ DriveDisplacementJoint::ParseHint(DataManager *pDM, const char *s) const
 
 std::ostream&
 DriveDisplacementJoint::DescribeDof(std::ostream& out,
-		const char *prefix, bool bInitial, int i) const
+		const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("DriveDisplacementJoint(" << GetLabel() << "): "
-			"DescribeDof(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out
 		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
@@ -200,18 +193,49 @@ DriveDisplacementJoint::DescribeDof(std::ostream& out,
 	return out;
 }
 
+static const char xyz[] = "xyz";
+static const char *dof[] = { "reaction force f", "reaction force derivative fP" };
+static const char *eq[] = { "displacement constraint P", "displacement constraint derivative v" };
+
+void
+DriveDisplacementJoint::DescribeDof(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	int iend = 1;
+	if (i == -1) {
+		if (bInitial) {
+			iend = 6;
+
+		} else {
+			iend = 3;
+		}
+	}
+	desc.resize(iend);
+
+	std::ostringstream os;
+	os << "DriveDisplacementJoint(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name = os.str();
+		for (i = 0; i < iend; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": " << dof[i/3] << xyz[i%3];
+
+			desc[i] = os.str();
+		}
+
+	} else {
+		os << ": " << dof[i/3] << xyz[i%3];
+		desc[0] = os.str();
+	}
+}
+
 std::ostream&
 DriveDisplacementJoint::DescribeEq(std::ostream& out,
-		const char *prefix, bool bInitial, int i) const
+		const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("DriveDisplacementJoint(" << GetLabel() << "): "
-			"DescribeEq(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out
 		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
@@ -228,6 +252,40 @@ DriveDisplacementJoint::DescribeEq(std::ostream& out,
 
 }
    
+void
+DriveDisplacementJoint::DescribeEq(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	int iend = 1;
+	if (i == -1) {
+		if (bInitial) {
+			iend = 6;
+
+		} else {
+			iend = 3;
+		}
+	}
+	desc.resize(iend);
+
+	std::ostringstream os;
+	os << "DriveDisplacementJoint(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name = os.str();
+		for (i = 0; i < iend; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": " << eq[i/3] << xyz[i%3];
+
+			desc[i] = os.str();
+		}
+
+	} else {
+		os << ": " << eq[i/3] << xyz[i%3];
+		desc[0] = os.str();
+	}
+}
+
 /* Dati privati (aggiungere magari le reazioni vincolari) */
 unsigned int
 DriveDisplacementJoint::iGetNumPrivData(void) const
@@ -740,16 +798,9 @@ DriveDisplacementPinJoint::ParseHint(DataManager *pDM, const char *s) const
 
 std::ostream&
 DriveDisplacementPinJoint::DescribeDof(std::ostream& out,
-		const char *prefix, bool bInitial, int i) const
+		const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("DriveDisplacementPinJoint(" << GetLabel() << "): "
-			"DescribeDof(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out
 		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
@@ -765,18 +816,45 @@ DriveDisplacementPinJoint::DescribeDof(std::ostream& out,
 	return out;
 }
 
+void
+DriveDisplacementPinJoint::DescribeDof(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	int iend = 1;
+	if (i == -1) {
+		if (bInitial) {
+			iend = 6;
+
+		} else {
+			iend = 3;
+		}
+	}
+	desc.resize(iend);
+
+	std::ostringstream os;
+	os << "DriveDisplacementPinJoint(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name = os.str();
+		for (i = 0; i < iend; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": " << dof[i/3] << xyz[i%3];
+
+			desc[i] = os.str();
+		}
+
+	} else {
+		os << ": " << dof[i/3] << xyz[i%3];
+		desc[0] = os.str();
+	}
+}
+
 std::ostream&
 DriveDisplacementPinJoint::DescribeEq(std::ostream& out,
-		const char *prefix, bool bInitial, int i) const
+		const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("DriveDisplacementPinJoint(" << GetLabel() << "): "
-			"DescribeEq(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out
 		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
@@ -793,6 +871,40 @@ DriveDisplacementPinJoint::DescribeEq(std::ostream& out,
 
 }
    
+void
+DriveDisplacementPinJoint::DescribeEq(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	int iend = 1;
+	if (i == -1) {
+		if (bInitial) {
+			iend = 6;
+
+		} else {
+			iend = 3;
+		}
+	}
+	desc.resize(iend);
+
+	std::ostringstream os;
+	os << "DriveDisplacementPinJoint(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name = os.str();
+		for (i = 0; i < iend; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": " << eq[i/3] << xyz[i%3];
+
+			desc[i] = os.str();
+		}
+
+	} else {
+		os << ": " << eq[i/3] << xyz[i%3];
+		desc[0] = os.str();
+	}
+}
+
 /* Dati privati (aggiungere magari le reazioni vincolari) */
 unsigned int
 DriveDisplacementPinJoint::iGetNumPrivData(void) const

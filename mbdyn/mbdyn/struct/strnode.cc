@@ -156,16 +156,9 @@ StructNode::GetNodeType(void) const
 }
 
 std::ostream&
-StructNode::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
+StructNode::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("StructNode(" << GetLabel() << "): "
-			"DescribeDof(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out
 		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
@@ -185,17 +178,76 @@ StructNode::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, in
 	return out;
 }
 
+static const char xyz[] = "xyz";
+static const char *dof[] = {
+	"position P",
+	"incremental rotation parameter g",
+	"momentum B",
+	"momenta moment G"
+};
+static const char *eq[] = {
+	"momentum definition B",
+	"momenta moment definition G",
+	"force equilibrium F",
+	"moment equilibrium M"
+};
+static const char *initial_dof[] = {
+	"position P",
+	"incremental rotation parameter g",
+	"velocity v",
+	"angular velocity w"
+};
+static const char *initial_eq[] = {
+	"position constraint P",
+	"orientation constraint g",
+	"position constraint derivative v",
+	"orientation constraint derivative w"
+};
+
+void
+StructNode::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	if (i == -1) {
+		if (bInitial) {
+			desc.resize(12);
+
+		} else {
+			desc.resize(6);
+		}
+
+	} else {
+		desc.resize(1);
+	}
+
+	std::ostringstream os;
+	os << "StructNode(" << GetLabel() << ")";
+
+	// always uses initial_dof[] becuase dof[]
+	// and initial_dof[] are the same up to 6
+	int iend = bInitial ? 12 : 6;
+	if (i == -1) {
+		std::string name = os.str();
+
+		for (i = 0; i < iend; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": " << initial_dof[i/3] << xyz[i%3];
+			desc[i] = os.str();
+		}
+
+	} else {
+		if (i < 0 || i >= iend) {
+			throw ErrGeneric();
+		}
+		os << ": " << initial_dof[i/3] << xyz[i%3];
+		desc[0] = os.str();
+	}
+}
+
 std::ostream&
-StructNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
+StructNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("StructNode(" << GetLabel() << "): "
-			"DescribeEq(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	if (bInitial) {
 		out
@@ -222,6 +274,63 @@ StructNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int
 	}
 
 	return out;
+}
+
+void
+StructNode::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	if (i == -1) {
+		if (bInitial) {
+			desc.resize(12);
+
+		} else {
+			desc.resize(6);
+		}
+
+	} else {
+		desc.resize(1);
+	}
+
+	std::ostringstream os;
+	os << "StructNode(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name(os.str());
+
+		if (bInitial) {
+			for (i = 0; i < 12; i++) {
+				os.str(name);
+				os.seekp(0, std::ios_base::end);
+				os << ": " << initial_eq[i/3] << xyz[i%3];
+				desc[i] = os.str();
+			}
+
+		} else {
+			for (i = 0; i < 6; i++) {
+				os.str(name);
+				os.seekp(0, std::ios_base::end);
+				os << ": " << eq[2 + i/3] << xyz[i%3];
+				desc[i] = os.str();
+			}
+		}
+
+	} else {
+		if (bInitial) {
+			if (i < 0 || i >= 12) {
+				throw ErrGeneric();
+			}
+
+			os << ": " << initial_eq[i/3] << xyz[i%3];
+
+		} else {
+			if (i < 0 || i >= 6) {
+				throw ErrGeneric();
+			}
+
+			os << ": " << eq[2 + i/3] << xyz[i%3];
+		}
+		desc[0] = os.str();
+	}
 }
 
 /* Contributo del nodo strutturale al file di restart */
@@ -1412,11 +1521,11 @@ DynamicStructNode::GetStructNodeType(void) const
 }
 
 std::ostream&
-DynamicStructNode::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
+DynamicStructNode::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
 
-	StructNode::DescribeDof(out, prefix, bInitial, i);
+	StructNode::DescribeDof(out, prefix, bInitial);
 
 	if (bInitial == false) {
 		out
@@ -1429,16 +1538,50 @@ DynamicStructNode::DescribeDof(std::ostream& out, const char *prefix, bool bInit
 	return out;
 }
 
-std::ostream&
-DynamicStructNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
+void
+DynamicStructNode::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) const
 {
-	if (i >= 0) {
-		silent_cerr("StructNode(" << GetLabel() << "): "
-			"DescribeEq(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
+	if (bInitial || i == -1 || (i >= 0 && i < 6)) {
+		StructNode::DescribeDof(desc, bInitial, i);
+
+		if (bInitial || (i >= 0 && i < 6)) {
+			return;
+		}
 	}
 
+	if (i == -1) {
+		desc.resize(12);
+
+	} else {
+		desc.resize(1);
+	}
+	
+	std::ostringstream os;
+	os << "StructNode(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name = os.str();
+
+		for (i = 6; i < 12; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": " << dof[i/3] << xyz[i%3];
+			desc[i] = os.str();
+		}
+
+	} else {
+		if (i < 6 || i >= 12) {
+			throw ErrGeneric();
+		}
+
+		os << ": " << dof[i/3] << xyz[i%3];
+		desc[0] = os.str();
+	}
+}
+
+std::ostream&
+DynamicStructNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
 	if (bInitial == false) {
 		integer iIndex = iGetFirstIndex();
 
@@ -1449,9 +1592,57 @@ DynamicStructNode::DescribeEq(std::ostream& out, const char *prefix, bool bIniti
 				"momenta moment definition [Gx,Gy,Gz]" << std::endl;
 	}
 
-	StructNode::DescribeEq(out, prefix, bInitial, i);
+	StructNode::DescribeEq(out, prefix, bInitial);
 
 	return out;
+}
+
+void
+DynamicStructNode::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	if (bInitial || i == -1 || (i >= 6 && i < 12)) {
+		int new_i = i;
+		if (!bInitial && i != -1) {
+			new_i = i - 6;
+		}
+		StructNode::DescribeEq(desc, bInitial, new_i);
+
+		if (bInitial || (i >= 6 && i < 12)) {
+			return;
+		}
+	}
+
+	if (i == -1) {
+		desc.resize(12);
+		for (int j = 0; j < 6; j++) {
+			desc[6 + j] = desc[j];
+		}
+
+	} else {
+		desc.resize(1);
+	}
+	
+	std::ostringstream os;
+	os << "StructNode(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name(os.str());
+
+		for (i = 0; i < 6; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": " << eq[i/3] << xyz[i%3];
+			desc[i] = os.str();
+		}
+
+	} else {
+		if (i < 0 || i >= 6) {
+			throw ErrGeneric();
+		}
+
+		os << ": " << eq[i/3] << xyz[i%3];
+		desc[0] = os.str();
+	}
 }
 
 /* Usato dalle forze astratte, dai bulk ecc., per assemblare le forze
@@ -1959,9 +2150,9 @@ ModalNode::iGetFirstRowIndex(void) const
 }
 
 std::ostream&
-ModalNode::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
+ModalNode::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
 {
-	StructNode::DescribeDof(out, prefix, bInitial, i);
+	StructNode::DescribeDof(out, prefix, bInitial);
 
 	if (bInitial == false) {
 		integer iIndex = iGetFirstIndex();
@@ -1976,29 +2167,112 @@ ModalNode::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int
 	return out;
 }
 
-std::ostream&
-ModalNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
+void
+ModalNode::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) const
 {
-	if (i >= 0) {
-		silent_cerr("StructNode(" << GetLabel() << "): "
-			"DescribeEq(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
+	if (bInitial || i == -1 || (i >= 0 && i < 6)) {
+		StructNode::DescribeDof(desc, bInitial, i);
+
+		if (bInitial || (i >= 0 && i < 6)) {
+			return;
+		}
 	}
 
+	if (i == -1) {
+		desc.resize(12);
+
+	} else {
+		desc.resize(1);
+	}
+	
+	std::ostringstream os;
+	os << "StructNode(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name = os.str();
+
+		for (i = 6; i < 12; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": " << initial_dof[i/3] << xyz[i%3];
+			desc[i] = os.str();
+		}
+
+	} else {
+		if (i < 6 || i >= 12) {
+			throw ErrGeneric();
+		}
+
+		os << ": " << initial_dof[i/3] << xyz[i%3];
+		desc[0] = os.str();
+	}
+	
+}
+
+std::ostream&
+ModalNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
 	if (bInitial == false) {
 		integer iIndex = iGetFirstIndex();
 
 		out
 			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
-				"linear velocity definition [Bx,By,Bz]" << std::endl
+				"linear velocity definition [vx,vy,vz]" << std::endl
 			<< prefix << iIndex + 4 << "->" << iIndex + 6 << ": "
-				"angular velocity definition [Gx,Gy,Gz]" << std::endl;
+				"angular velocity definition [wx,wy,wz]" << std::endl;
 	}
 
-	StructNode::DescribeEq(out, prefix, bInitial, i);
+	StructNode::DescribeEq(out, prefix, bInitial);
 
 	return out;
+}
+
+void
+ModalNode::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	if (bInitial || i == -1 || (i >= 6 && i < 12)) {
+		int new_i = i;
+		if (!bInitial && i != -1) {
+			new_i = i - 6;
+		}
+		StructNode::DescribeEq(desc, bInitial, new_i);
+
+		if (bInitial || (i >= 6 && i < 12)) {
+			return;
+		}
+	}
+
+	if (i == -1) {
+		desc.resize(12);
+		for (int j = 0; j < 6; j++) {
+			desc[6 + j] = desc[j];
+		}
+
+	} else {
+		desc.resize(1);
+	}
+	
+	std::ostringstream os;
+	os << "StructNode(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name = os.str();
+
+		for (i = 0; i < 6; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": " << initial_eq[i/3] << xyz[i%3];
+			desc[i] = os.str();
+		}
+
+	} else {
+		if (i < 0 || i >= 6) {
+			throw ErrGeneric();
+		}
+
+		os << ": " << initial_eq[i/3] << xyz[i%3];
+		desc[0] = os.str();
+	}
 }
 
 /* Aggiorna dati in base alla soluzione */

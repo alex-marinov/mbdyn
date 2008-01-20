@@ -105,7 +105,7 @@ thread_data(0)
 	pthread_mutex_init(&thread_mutex, NULL);
 	pthread_cond_init(&thread_cond, NULL);
 
-	SAFENEWARR(thread_data, thread_data_t, nThreads);
+	SAFENEWARRNOFILL(thread_data, thread_data_t, nThreads);
 
 	for (unsigned t = 0; t < nThreads; t++) {
 		thread_data[t].pSLUS = this;

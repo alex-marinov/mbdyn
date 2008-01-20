@@ -216,12 +216,12 @@ pM(NULL)
 {
 	ASSERT(pModalNode->GetStructNodeType() == StructNode::MODAL);
 
-	SAFENEWARR(pd1tot, Vec3, NStrNodes);
-	SAFENEWARR(pd2, Vec3, NStrNodes);
-	SAFENEWARR(pR1tot, Mat3x3, NStrNodes);
-	SAFENEWARR(pR2, Mat3x3, NStrNodes);
-	SAFENEWARR(pF, Vec3, NStrNodes);
-	SAFENEWARR(pM, Vec3, NStrNodes);
+	SAFENEWARRNOFILL(pd1tot, Vec3, NStrNodes);
+	SAFENEWARRNOFILL(pd2, Vec3, NStrNodes);
+	SAFENEWARRNOFILL(pR1tot, Mat3x3, NStrNodes);
+	SAFENEWARRNOFILL(pR2, Mat3x3, NStrNodes);
+	SAFENEWARRNOFILL(pF, Vec3, NStrNodes);
+	SAFENEWARRNOFILL(pM, Vec3, NStrNodes);
 
 	for (unsigned int i = 0; i < NStrNodes; i++) {
 		pd1tot[i] = Zero3;
@@ -321,16 +321,9 @@ Modal::iGetNumDof(void) const
 }
 
 std::ostream&
-Modal::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
+Modal::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
 {
 	integer iModalIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("Modal(" << GetLabel() << "): "
-			"DescribeDof(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out 
 		<< prefix << iModalIndex + 1 << "->" << iModalIndex + NModes
@@ -345,7 +338,7 @@ Modal::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) 
 				"reaction forces [Fx,Fy,Fz]" << std::endl
 			<< prefix << iModalIndex + 4 << "->" << iModalIndex + 6 << ": "
 				"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") "
-				"reaction couples [mx,my,mz]" << std::endl;
+				"reaction couples [Mx,My,Mz]" << std::endl;
 		if (bInitial) {
 			iModalIndex += 6;
 			out
@@ -354,24 +347,102 @@ Modal::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) 
 					"reaction force derivatives [FPx,FPy,FPz]" << std::endl
 				<< prefix << iModalIndex + 4 << "->" << iModalIndex + 6 << ": "
 					"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") "
-					"reaction couple derivatives [mPx,mPy,mPz]" << std::endl;
+					"reaction couple derivatives [MPx,MPy,MPz]" << std::endl;
 		}
 	}
 
 	return out;
 }
 
+static const char xyz[] = "xyz";
+static const char *mdof[] = {
+	"modal displacement q",
+	"modal velocity qP"
+};
+static const char *rdof[] = {
+	"reaction force F",
+	"reaction couple M",
+	"reaction force derivative FP",
+	"reaction couple derivative MP"
+};
+static const char *meq[] = {
+	"modal velocity definition q",
+	"modal equilibrium equation f"
+};
+static const char *req[] = {
+	"position constraint P",
+	"orientation constraint g",
+	"velocity constraint v",
+	"angular velocity constraint w"
+};
+
+void
+Modal::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	int iend = 1;
+	if (i == -1) {
+		iend = 2*NModes + 6*NStrNodes;
+		if (bInitial) {
+			iend += 6*NStrNodes;
+		}
+	}
+	desc.resize(iend);
+
+	unsigned modulo = 6;
+	if (bInitial) {
+		modulo = 12;
+	}
+
+	std::ostringstream os;
+	os << "Modal(" << GetLabel() << ")";
+
+	if (i < -1 ) {
+		// error
+		throw ErrGeneric();
+
+	} else if (i == -1) {
+		std::string name(os.str());
+
+		for (unsigned i = 0; i < 2*NModes; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": " << mdof[i/NModes] << "(" << i%NModes + 1 << ")";
+			desc[i] = os.str();
+		}
+
+		for (unsigned i = 0; i < modulo*NStrNodes; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": StructNode(" << pInterfaceNodes[i/modulo]->GetLabel() << ") "
+				<< rdof[(i/3)%(modulo/3)] << xyz[i%3];
+			desc[2*NModes + i] = os.str();
+		}
+
+	} else {
+		if (unsigned(i) < 2*NModes) {
+			// modes
+			os << ": " << mdof[i/NModes] << "(" << i%NModes + 1 << ")";
+
+		} else {
+			// reactions
+			i -= 2*NModes;
+
+			if (unsigned(i) >= modulo*NStrNodes) {
+				// error
+				throw ErrGeneric();
+			}
+
+			os << ": StructNode(" << pInterfaceNodes[i/modulo]->GetLabel() << ") "
+				<< rdof[(i/3)%(modulo/3)] << xyz[i%3];
+		}
+		desc[0] = os.str();
+	}
+}
+
 std::ostream&
-Modal::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
+Modal::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
 {
 	integer iModalIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("Modal(" << GetLabel() << "): "
-			"DescribeEq(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out 
 		<< prefix << iModalIndex + 1 << "->" << iModalIndex + NModes
@@ -400,6 +471,69 @@ Modal::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) c
 	}
 
 	return out;
+}
+
+void
+Modal::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	int iend = 1;
+	if (i == -1) {
+		iend = 2*NModes + 6*NStrNodes;
+		if (bInitial) {
+			iend += 6*NStrNodes;
+		}
+	}
+	desc.resize(iend);
+
+	unsigned modulo = 6;
+	if (bInitial) {
+		modulo = 12;
+	}
+
+	std::ostringstream os;
+	os << "Modal(" << GetLabel() << ")";
+
+	if (i < -1 ) {
+		// error
+		throw ErrGeneric();
+
+	} else if (i == -1) {
+		std::string name(os.str());
+
+		for (unsigned i = 0; i < 2*NModes; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": " << meq[i/NModes] << "(" << i%NModes + 1 << ")";
+			desc[i] = os.str();
+		}
+
+		for (unsigned i = 0; i < modulo*NStrNodes; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": StructNode(" << pInterfaceNodes[i/modulo]->GetLabel() << ") "
+				<< req[(i/3)%(modulo/3)] << xyz[i%3];
+			desc[2*NModes + i] = os.str();
+		}
+
+	} else {
+		if (unsigned(i) < 2*NModes) {
+			// modes
+			os << ": " << meq[i/NModes] << "(" << i%NModes + 1 << ")";
+
+		} else {
+			// reactions
+			i -= 2*NModes;
+
+			if (unsigned(i) >= modulo*NStrNodes) {
+				// error
+				throw ErrGeneric();
+			}
+
+			os << ": StructNode(" << pInterfaceNodes[i/modulo]->GetLabel() << ") "
+				<< req[(i/3)%(modulo/3)] << xyz[i%3];
+		}
+		desc[0] = os.str();
+	}
 }
 
 DofOrder::Order

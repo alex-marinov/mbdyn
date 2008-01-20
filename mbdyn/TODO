@@ -29,6 +29,8 @@ B. Package:
 C. Libraries:
 
 	- make the libraries installable
+	- abstract libraries in a rational manner, to reduce/eliminate
+	  cross-dependencies
 
 
 
@@ -38,37 +40,37 @@ D. Code:
 	- implement binary, or hard, restart
 	- add MATLAB/Octave/Scilab and Simulink/Scicos hooks.
 		Large project: turn mbdyn into a module for Simulink/Scicos
-		(see contrib/SimulinkInterface/; need an implicit
-		extension).
+		(see contrib/SimulinkInterface/; need an implicit extension).
 	- remove node/element type listing from "control data" block;
 	  use STL containers to keep track of model components
+	  (partially DONE for elements)
 	- implement contacts with non-flat surfaces
 	- implement "smart" structural nodes, so that static/dynamic
 		is detected
-	- implement optional binary/ascii output (based on netcdf?)
+	- implement optional binary/ascii output (use NetCDF; partially DONE)
 
 	Medium Projects:
 	- recover existing soft restart (Michele Attolico worked at it)
 	- add MATLAB/Octave and Simulink hooks (Michele Attolico worked
 		at it; see contrib/SimulinkInterface).
-		``matlab'' element that feeds matlab with data structures 
-		containing variables and executes matlab code.
-	- develop a trim control as an external command that drives
-		a simulation.
+	- add a "shell" element that executes external programs,
+	  and allow exploitation for entities like elements, drives,
+	  constitutive laws and so
+	- develop a trim control as external command that drives simulations.
 	- improve friction and add it to all joints (Marco Morandini is
 		working at it; suggestion: try a transition force from stick
 		to slip that is higher than slip force)
 	- add Arnoldi-like eigenvalue extraction module (Giuseppe Quaranta
 		is working at it; see var/pod*.m)
-	- review output to allow selective ascii/binary output
+	- review output to allow selective ascii/binary output (see NetCDF)
 	- replace MyLList and LLStack with STL containers
 	- add friction to contacts
-	- rework modal element to be static/dynamic
+	- rework modal element to be static/dynamic (DONE)
 	- rework modal element to use momentum and momenta moment instead
 		of linear and angular velocities (so the "modal" node
 		is no longer required)
 	- rework revolute joints to allow normal force to be computed
-		as a combination of contraint reactions (constraint location)
+		as a combination of constraint reactions (constraint location)
 	- implement modal element binary data using netcdf:
 		.fem:
 			femgen > ascii
@@ -86,7 +88,7 @@ D. Code:
 		with pressure/temperature dependencies.
 	- improve symbolic constitutive law (based on GiNaC)
 	- move exception handling towards <stdexcept>
-	- review/improve user-configurable statistics output (partially done;
+	- review/improve user-configurable statistics output (partially DONE;
 		see "output:" statement in integrator data block)
 	- add Matlab-compatible sparse matrix generation for sparse
 	  matrix eigenvalue analysis (eigs)
@@ -97,7 +99,7 @@ D. Code:
 	- add rot2any/any2rot utilities
 	- try to rewrite hydraulic nodes as scalar differential (?)
 	- add joints like:
-		- 2-node clamp (spherical + prismatic in one joint)
+		- 2-node clamp (spherical + prismatic; DONE: total)
 		- universal without displacement constraints (DONE)
 		- inplane and inline between a node and the ground
 	- allow to define modules as separate entities which are later
@@ -126,18 +128,18 @@ D. Code:
 			bank=atan2(e2(3),e2(2));
 		+:	turn=Omega(3);
 			slip=?
-		(partially done: the "aircraft instruments" element provides
+		(partially DONE: the "aircraft instruments" element provides
 		measures as private data, and as output to .aer files).
 	- allow the FEM data filename as command-line arg in utils/femgen
 	- add orthogonality test when reading orientation matrix
 	- append constitutive law output, if any, to elements' output
 	  (DONE infrastructure, shock absorber and rods)
 	- merge tool to generate ADAMS/View .cmd models from raw output
-		(Gian Luca Ghiringhelli is working at it)
+		(Gian Luca Ghiringhelli is working at it; OBSOLETE)
 	- add piecewise linear or other simple generic elastic constitutive
-		laws (Aakash Dalwani is working at it)
-	- allow runtime load of constitutive laws
-	- allow runtime load of drive callers
+		laws (DONE: scalar function-based CL)
+	- allow runtime load of constitutive laws (DONE)
+	- allow runtime load of drive callers (DONE)
 	- generate a binary form of the .fem data for the modal element
 		that can be loaded instead of the text version according
 		to time stamps, to speed-up large models input (DONE)
@@ -155,9 +157,10 @@ D. Code:
 	- turn the modal joint into sets of elements:
 		- modal database: FEM model
 		- modal dynamics as a "deformable body"
-		- modal clamp contraint (as now, but separate from dynamics)
+		- modal clamp constraint (as now, but separate from dynamics)
 		- specialized modal constraints (as opposed to clamping
 		  a node with the clamp constraint plus a regular joint)
+		- modal force (DONE)
 	  this allows to add arbitrary elements connected to the modal element
 	- use getopt(3) in utils/
 	- add package-wide support for WinSocks in communication entities,
@@ -176,8 +179,7 @@ E. Bugs/missing features:
           allow the use of node sets to reduce the amount of FEM nodes 
 	  that are passed to the model element (e.g. no nodes without
 	  inertia that do not participate in the interface)
-	- clarify how to increase the size of models utils/femgen can
-	  handle
+	- clarify how to increase the size of models utils/femgen can handle
 	- introduce references for hints
 
 
@@ -185,11 +187,11 @@ E. Bugs/missing features:
 F. Documentation:
 
 	- document the utilities in a separate man page (utils & scripts)
-	- update and audit the input manual (PARTLY DONE)
-	- document output (PARTLY DONE)
-	- document element private data names (PARTLY DONE)
+	- update and audit the input manual (partially DONE)
+	- document output (partially DONE)
+	- document element private data names (partially DONE)
 	- document piezo beam
 	- tutorial for piezo beam (DONE)
-	- clarify (with demos) the functionality of the modal element
+	- clarify (with demos) the functionality of the modal element (DONE)
 	- document electric elements and sensors
 

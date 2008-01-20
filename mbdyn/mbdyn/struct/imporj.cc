@@ -69,20 +69,13 @@ ImposedOrientationJoint::~ImposedOrientationJoint(void)
 	NO_OP;
 };
 
-static const char idx2xyz[] = { 'x', 'y', 'z' };
+static const char xyz[] = "xyz";
 
 std::ostream&
 ImposedOrientationJoint::DescribeDof(std::ostream& out,
-	const char *prefix, bool bInitial, int i) const
+	const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("ImposedOrientationJoint(" << GetLabel() << "): "
-			"DescribeDof(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out << prefix << iIndex + 1;
 	if (nConstraints > 1) {
@@ -97,7 +90,7 @@ ImposedOrientationJoint::DescribeDof(std::ostream& out,
 			if (cnt > 1) {
 				out << ",";
 			}
-			out << "m" << idx2xyz[i];
+			out << "m" << xyz[i];
 		}
 	}
 	out << "]" << std::endl;
@@ -119,7 +112,7 @@ ImposedOrientationJoint::DescribeDof(std::ostream& out,
 				if (cnt > 1) {
 					out << ",";
 				}
-				out << "mP" << idx2xyz[i];
+				out << "mP" << xyz[i];
 			}
 		}
 		out << "]" << std::endl;
@@ -128,18 +121,72 @@ ImposedOrientationJoint::DescribeDof(std::ostream& out,
 	return out;
 }
 
+static const char *dof[] = {
+	"reaction couple m",
+	"reaction couple derivative mP"
+};
+static const char *eq[] = {
+	"orientation constraint g",
+	"orientation constraint derivative w"
+};
+
+void
+ImposedOrientationJoint::DescribeDof(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	int nself = 1;
+	
+	if (i == -1) {
+		nself = nConstraints;
+		if (bInitial) {
+			nself *= 2;
+		}
+	}
+	desc.resize(nself);
+
+	unsigned iend = 3;
+	if (bInitial) {
+		iend *= 2;
+	}
+
+	std::ostringstream os;
+	os << "ImposedOrientationJoint(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name(os.str());
+
+		int n = 0;
+		for (unsigned i = 0; i < iend; i++) {
+			if (bActive[i%3]) {
+				os.str(name);
+				os.seekp(0, std::ios_base::end);
+				os << ": " << dof[i/3] << xyz[i%3];
+				desc[n] = os.str();
+				if (++n == nself) {
+					break;
+				}
+			}
+		}
+
+	} else {
+		int n = 0;
+		for (unsigned j = 0; j < iend; j++) {
+			if (bActive[j%3]) {
+				if (n == i) {
+					os << ": " << dof[i/3] << xyz[i%3];
+					desc[0] = os.str();
+					break;
+				}
+			}
+		}
+	}
+}
+
 std::ostream&
 ImposedOrientationJoint::DescribeEq(std::ostream& out,
-	const char *prefix, bool bInitial, int i) const
+	const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("ImposedOrientationJoint(" << GetLabel() << "): "
-			"DescribeEq(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out << prefix << iIndex + 1;
 	if (nConstraints > 1) {
@@ -155,7 +202,7 @@ ImposedOrientationJoint::DescribeEq(std::ostream& out,
 			if (cnt > 1) {
 				out << ",";
 			}
-			out << "g" << idx2xyz[i] << "1=g" << idx2xyz[i] << "2";
+			out << "g" << xyz[i] << "1=g" << xyz[i] << "2";
 		}
 	}
 	out << "]" << std::endl;
@@ -177,13 +224,65 @@ ImposedOrientationJoint::DescribeEq(std::ostream& out,
 				if (cnt > 1) {
 					out << ",";
 				}
-				out << "w" << idx2xyz[i] << "1=w" << idx2xyz[i] << "2";
+				out << "w" << xyz[i] << "1=w" << xyz[i] << "2";
 			}
 		}
 		out << "]" << std::endl;
 	}
 
 	return out;
+}
+
+void
+ImposedOrientationJoint::DescribeEq(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	int nself = 1;
+	
+	if (i == -1) {
+		nself = nConstraints;
+		if (bInitial) {
+			nself *= 2;
+		}
+	}
+	desc.resize(nself);
+
+	unsigned iend = 3;
+	if (bInitial) {
+		iend *= 2;
+	}
+
+	std::ostringstream os;
+	os << "ImposedOrientationJoint(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name(os.str());
+
+		int n = 0;
+		for (unsigned i = 0; i < iend; i++) {
+			if (bActive[i%3]) {
+				os.str(name);
+				os.seekp(0, std::ios_base::end);
+				os << ": " << eq[i/3] << xyz[i%3];
+				desc[n] = os.str();
+				if (++n == nself) {
+					break;
+				}
+			}
+		}
+
+	} else {
+		int n = 0;
+		for (unsigned j = 0; j < iend; j++) {
+			if (bActive[j%3]) {
+				if (n == i) {
+					os << ": " << eq[i/3] << xyz[i%3];
+					desc[0] = os.str();
+					break;
+				}
+			}
+		}
+	}
 }
 
 void

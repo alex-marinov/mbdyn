@@ -160,12 +160,22 @@ public:
 			SimulationEntity::Hints *ph = 0,
 			const unsigned int solution_startdof = 0);
 	unsigned int iGetNumDof(void) const;
-	virtual std::ostream& DescribeDof(std::ostream& out,
-			const char *prefix = "",
-			bool bInitial = false, int i = -1) const;
-	virtual std::ostream& DescribeEq(std::ostream& out,
-			const char *prefix = "",
-			bool bInitial = false, int i = -1) const;
+	virtual std::ostream&
+	DescribeDof(std::ostream& out,
+		const char *prefix = "",
+		bool bInitial = false) const;
+	virtual void
+	DescribeDof(std::vector<std::string>& desc,
+		bool bInitial = false,
+		int i = -1) const;
+	virtual std::ostream&
+	DescribeEq(std::ostream& out,
+		const char *prefix = "",
+		bool bInitial = false) const;
+	virtual void
+	DescribeEq(std::vector<std::string>& desc,
+		bool bInitial = false,
+		int i = -1) const;
 	DofOrder::Order GetDofType(unsigned int i) const;
 	DofOrder::Order GetEqType (unsigned int i) const;
 	doublereal fc(void) const;
@@ -232,12 +242,22 @@ public:
 			SimulationEntity::Hints *ph = 0,
 			const unsigned int solution_startdof = 0);
 	unsigned int iGetNumDof(void) const;
-	virtual std::ostream& DescribeDof(std::ostream& out,
-			const char *prefix = "",
-			bool bInitial = false, int i = -1) const;
-	virtual std::ostream& DescribeEq(std::ostream& out,
-			const char *prefix = "",
-			bool bInitial = false, int i = -1) const;
+	virtual std::ostream&
+	DescribeDof(std::ostream& out,
+		const char *prefix = "",
+		bool bInitial = false) const;
+	virtual void
+	DescribeDof(std::vector<std::string>& desc,
+		bool bInitial = false,
+		int i = -1) const;
+	virtual std::ostream&
+	DescribeEq(std::ostream& out,
+		const char *prefix = "",
+		bool bInitial = false) const;
+	virtual void
+	DescribeEq(std::vector<std::string>& desc,
+		bool bInitial = false,
+		int i = -1) const;
 	DofOrder::Order GetDofType(unsigned int i) const;
 	DofOrder::Order GetEqType (unsigned int i) const;
 	doublereal fc(void) const;

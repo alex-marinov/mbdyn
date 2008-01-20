@@ -24,6 +24,9 @@ http://www.aero.polimi.it
 	  figure out a clean way to avoid the double linking.
 	  Everything works fine with libtool 1.3.4.
 
+1.3.2
+	- Schur solver seems to have issues in the interface solver,
+	  related to the number of partitions
 
 HEAD
 	- y12/cc interaction (throws ErrRebuildMatrix)

@@ -292,7 +292,7 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	}
 
 	ScalarDof *pNodes = NULL;
-	SAFENEWARR(pNodes, ScalarDof, nch);
+	SAFENEWARRNOFILL(pNodes, ScalarDof, nch);
 	for (int i = 0; i < nch; i++) {
 		pNodes[i] = ReadScalarDof(pDM, HP, 1);
 	}

@@ -118,12 +118,16 @@ public:
 	 * Describe the degrees of freedom
 	 */
 	virtual std::ostream& DescribeDof(std::ostream& out,
-		   const char *prefix = "",
+		const char *prefix = "",
+		bool bInitial = false) const;
+	virtual void DescribeDof(std::vector<std::string>& desc,
 		bool bInitial = false,
 		int i = -1) const;
 
 	virtual std::ostream& DescribeEq(std::ostream& out,
-		   const char *prefix = "",
+		const char *prefix = "",
+		bool bInitial = false) const;
+	virtual void DescribeEq(std::vector<std::string>& desc,
 		bool bInitial = false,
 		int i = -1) const;
 

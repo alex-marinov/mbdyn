@@ -55,6 +55,18 @@
 /* LinearSolver - begin */
 
 class LinearSolver {
+public:
+	struct ErrFactor : public ErrGeneric {
+		integer iCol;
+		ErrFactor(integer i) : iCol(i) { NO_OP; };
+	};
+	struct ErrNoPivot : public ErrFactor {
+		ErrNoPivot(integer i) : ErrFactor(i) { NO_OP; };
+	};
+	struct ErrNullColumn : public ErrFactor {
+		ErrNullColumn(integer i) : ErrFactor(i) { NO_OP; };
+	};
+
 protected:
 	SolutionManager *pSM;
 	mutable bool bHasBeenReset;

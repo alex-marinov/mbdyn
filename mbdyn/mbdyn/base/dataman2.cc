@@ -47,6 +47,7 @@
 #include "aerodyn.h"
 #include "solver.h"
 #include "driven.h"
+#include "ls.h"
 
 const LoadableCalls *
 DataManager::GetLoadableElemModule(std::string name) const
@@ -298,15 +299,16 @@ DataManager::DofOwnerInit(void)
 		/* chiede al nodo quanti dof possiede */
 		if ((iNumDof = (*ppNd)->iGetNumDof()) > 0) {
 			/* si fa passare il primo Dof */
-			Dof* pDf = pDofs+(*ppNd)->iGetFirstIndex();
+			Dof* pDf = pDofs + (*ppNd)->iGetFirstIndex();
 
 #ifdef DEBUG
 			DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY,
 					psNodeNames[(*ppNd)->GetNodeType()]
-					<< "(" << (*ppNd)->GetLabel()
-					<< "): first dof = " << pDf->iIndex+1
+					<< "(" << (*ppNd)->GetLabel() << "): "
+					"first dof = " << pDf->iIndex+1
 					<< std::endl);
-#else /* !DEBUG */
+#endif /* DEBUG */
+
 			if (pds) {
 				unsigned int nd = (*ppNd)->iGetNumDof();
 				integer fd = pDf->iIndex;
@@ -328,21 +330,54 @@ DataManager::DofOwnerInit(void)
 							     "        ");
 				}
 			}
-#endif /* !DEBUG */
-
-			// By now, just collect type and label of dof owner
-			std::ostringstream os;
-			os << psNodeNames[(*ppNd)->GetNodeType()]
-				<< "(" << (*ppNd)->GetLabel() << ")";
 
 			/* per ogni Dof, chiede al nodo di che tipo e' e lo
 			 * setta nel DofOwner */
+			std::vector<std::string> DofDesc;
+			(*ppNd)->DescribeDof(DofDesc);
+			if (DofDesc.size() == iNumDof) {
+				for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
+					pDf[iCnt].Description = DofDesc[iCnt];
+				}
+
+			} else {
+				std::ostringstream os;
+				os << psNodeNames[(*ppNd)->GetNodeType()]
+					<< "(" << (*ppNd)->GetLabel() << ")";
+				std::string name(os.str());
+
+				for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
+					os.str(name);
+					os.seekp(0, std::ios_base::end);
+					os << ": dof(" << iCnt + 1 << ")";
+					pDf[iCnt].Description = os.str();
+				}
+			}
+
+			std::vector<std::string> EqDesc;
+			(*ppNd)->DescribeEq(EqDesc);
+			if (EqDesc.size() == iNumDof) {
+				for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
+					pDf[iCnt].EqDescription = EqDesc[iCnt];
+				}
+
+			} else {
+				std::ostringstream os;
+				os << psNodeNames[(*ppNd)->GetNodeType()]
+					<< "(" << (*ppNd)->GetLabel() << ")";
+				std::string name(os.str());
+
+				for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
+					os.str(name);
+					os.seekp(0, std::ios_base::end);
+					os << ": equation(" << iCnt + 1 << ")";
+					pDf[iCnt].EqDescription = os.str();
+				}
+			}
+
 			for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
 				pDf[iCnt].Order = (*ppNd)->GetDofType(iCnt);
 				pDf[iCnt].EqOrder = (*ppNd)->GetEqType(iCnt);
-
-				pDf[iCnt].Description = os.str();
-				pDf[iCnt].EqDescription = os.str();
 			}
 		}
 		ppNd++;
@@ -373,7 +408,8 @@ DataManager::DofOwnerInit(void)
 						<< "(" << pEWD->GetLabel() << "): "
 						"first dof = " << pDf->iIndex + 1
 						<< std::endl);
-#else /* !DEBUG */
+#endif /* DEBUG */
+
 				if (pds) {
 					unsigned int nd = pEWD->iGetNumDof();
 					integer fd = pDf->iIndex;
@@ -395,23 +431,56 @@ DataManager::DofOwnerInit(void)
 								"        ");
 					}
 				}
-#endif /* !DEBUG */
 
-
-				// By now, just collect type and label of dof owner
-				std::ostringstream os;
-				os << psNodeNames[pEWD->GetElemType()]
-					<< "(" << pEWD->GetLabel() << ")";
 
 				/* per ogni Dof, chiede all'elemento
 				 * di che tipo e' e lo setta
 				 * nel DofOwner */
+				std::vector<std::string> DofDesc;
+				pEWD->DescribeDof(DofDesc);
+				if (DofDesc.size() == iNumDof) {
+					for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
+						pDf[iCnt].Description = DofDesc[iCnt];
+					}
+
+				} else {
+					std::ostringstream os;
+					os << psElemNames[pEWD->GetElemType()]
+						<< "(" << pEWD->GetLabel() << ")";
+					std::string name(os.str());
+
+					for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
+						os.str(name);
+						os.seekp(0, std::ios_base::end);
+						os << ": dof(" << iCnt + 1 << ")";
+						pDf[iCnt].Description = os.str();
+					}
+				}
+
+				std::vector<std::string> EqDesc;
+				pEWD->DescribeEq(EqDesc);
+				if (EqDesc.size() == iNumDof) {
+					for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
+						pDf[iCnt].EqDescription = EqDesc[iCnt];
+					}
+
+				} else {
+					std::ostringstream os;
+					os << psElemNames[pEWD->GetElemType()]
+						<< "(" << pEWD->GetLabel() << ")";
+					std::string name(os.str());
+
+					for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
+						os.str(name);
+						os.seekp(0, std::ios_base::end);
+						os << ": equation(" << iCnt + 1 << ")";
+						pDf[iCnt].EqDescription = os.str();
+					}
+				}
+
 				for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
 					pDf[iCnt].Order = pEWD->GetDofType(iCnt);
 					pDf[iCnt].EqOrder = pEWD->GetEqType(iCnt);
-
-					pDf[iCnt].Description = os.str();
-					pDf[iCnt].EqDescription = os.str();
 				}
 			}
 		} while (ElemIter.bGetNext(pEl));
@@ -591,23 +660,26 @@ DataManager::InitialJointAssembly(void)
 	 */
 
 	/* Creazione e costruzione array Dof */
-	SAFENEWARR(pDofs, Dof, iInitialNumDofs);
+	SAFENEWARRNOFILL(pDofs, Dof, iInitialNumDofs);
 
-	integer iIndex = 0;    /* Indice dei gradi di liberta' */
-	for (Dof* pTmpDof = pDofs; pTmpDof < pDofs + iInitialNumDofs; pTmpDof++) {
-		pTmpDof->iIndex = iIndex++;
+	// just to make sure nothing strange occurs...
+	iTotDofs = iInitialNumDofs;
+
+	integer iIndex;    /* Indice dei gradi di liberta' */
+	for (iIndex = 0; iIndex < iInitialNumDofs; iIndex++) {
+		pDofs[iIndex].iIndex = iIndex;
 	}
 
 	/* mette a posto i dof */
 	
 	iIndex = 0;
-	unsigned int iNumDofs = 0;  /* numero di dof di un owner */
 	for (int iCnt = 1;
 		pTmp < DofData[DofOwner::STRUCTURALNODE].pFirstDofOwner
 			+ DofData[DofOwner::STRUCTURALNODE].iNum;
 		iCnt++, pTmp++, ppNode++)
 	{
-		iNumDofs = pTmp->iNumDofs = (*ppNode)->iGetInitialNumDof();
+		// numero di dof di un owner
+		unsigned int iNumDofs = pTmp->iNumDofs = (*ppNode)->iGetInitialNumDof();
 		if (iNumDofs > 0) {
 			pTmp->iFirstIndex = iIndex;
 			if (pds) {
@@ -632,13 +704,46 @@ DataManager::InitialJointAssembly(void)
 				}
 			}
 
-			// By now, just collect type and label of dof owner
-			std::ostringstream os;
-			os << psNodeNames[(*ppNode)->GetNodeType()]
-				<< "(" << (*ppNode)->GetLabel() << ")";
-			for (unsigned iCnt = 0; iCnt < iNumDofs; iCnt++) {
-				pDofs[iIndex + iCnt].Description = os.str();
-				pDofs[iIndex + iCnt].EqDescription = os.str();
+			std::vector<std::string> DofDesc;
+			(*ppNode)->DescribeDof(DofDesc, true);
+			if (DofDesc.size() == iNumDofs) {
+				for (unsigned iCnt = 0; iCnt < iNumDofs; iCnt++) {
+					pDofs[iIndex + iCnt].Description = DofDesc[iCnt];
+				}
+
+			} else {
+				std::ostringstream os;
+				os << psNodeNames[(*ppNode)->GetNodeType()]
+					<< "(" << (*ppNode)->GetLabel() << ")";
+				std::string name(os.str());
+
+				for (unsigned int iCnt = 0; iCnt < iNumDofs; iCnt++) {
+					os.str(name);
+					os.seekp(0, std::ios_base::end);
+					os << ": dof(" << iCnt + 1 << ")";
+					pDofs[iIndex + iCnt].Description = os.str();
+				}
+			}
+
+			std::vector<std::string> EqDesc;
+			(*ppNode)->DescribeEq(EqDesc, true);
+			if (EqDesc.size() == iNumDofs) {
+				for (unsigned iCnt = 0; iCnt < iNumDofs; iCnt++) {
+					pDofs[iIndex + iCnt].EqDescription = EqDesc[iCnt];
+				}
+
+			} else {
+				std::ostringstream os;
+				os << psNodeNames[(*ppNode)->GetNodeType()]
+					<< "(" << (*ppNode)->GetLabel() << ")";
+				std::string name(os.str());
+
+				for (unsigned int iCnt = 0; iCnt < iNumDofs; iCnt++) {
+					os.str(name);
+					os.seekp(0, std::ios_base::end);
+					os << ": equation(" << iCnt + 1 << ")";
+					pDofs[iIndex + iCnt].EqDescription = os.str();
+				}
 			}
 
 			iIndex += iNumDofs;
@@ -685,7 +790,8 @@ DataManager::InitialJointAssembly(void)
 					}
 
 					pTmp = (DofOwner *)pDOEl->pGetDofOwner();
-					iNumDofs = pEl->iGetInitialNumDof();
+					// numero di dof di un owner
+					unsigned int iNumDofs = pEl->iGetInitialNumDof();
 					pTmp->iNumDofs = iNumDofs;
 					if (iNumDofs > 0) {
 						pTmp->iFirstIndex = iIndex;
@@ -712,13 +818,46 @@ DataManager::InitialJointAssembly(void)
 							}
 						}
 
-						// By now, just collect type and label of dof owner
-						std::ostringstream os;
-						os << psElemNames[pEl->GetElemType()]
-							<< "(" << pEl->GetLabel() << ")";
-						for (unsigned iCnt = 0; iCnt < iNumDofs; iCnt++) {
-							pDofs[iIndex + iCnt].Description = os.str();
-							pDofs[iIndex + iCnt].EqDescription = os.str();
+						std::vector<std::string> DofDesc;
+						pEl->DescribeDof(DofDesc, true);
+						if (DofDesc.size() == iNumDofs) {
+							for (unsigned iCnt = 0; iCnt < iNumDofs; iCnt++) {
+								pDofs[iIndex + iCnt].Description = DofDesc[iCnt];
+							}
+
+						} else {
+							std::ostringstream os;
+							os << psElemNames[pEl->GetElemType()]
+								<< "(" << pEl->GetLabel() << ")";
+							std::string name(os.str());
+
+							for (unsigned int iCnt = 0; iCnt < iNumDofs; iCnt++) {
+								os.str(name);
+								os.seekp(0, std::ios_base::end);
+								os << ": dof(" << iCnt + 1 << ")";
+								pDofs[iIndex + iCnt].Description = os.str();
+							}
+						}
+
+						std::vector<std::string> EqDesc;
+						pEl->DescribeEq(EqDesc, true);
+						if (EqDesc.size() == iNumDofs) {
+							for (unsigned iCnt = 0; iCnt < iNumDofs; iCnt++) {
+								pDofs[iIndex + iCnt].EqDescription = EqDesc[iCnt];
+							}
+
+						} else {
+							std::ostringstream os;
+							os << psElemNames[pEl->GetElemType()]
+								<< "(" << pEl->GetLabel() << ")";
+							std::string name(os.str());
+
+							for (unsigned int iCnt = 0; iCnt < iNumDofs; iCnt++) {
+								os.str(name);
+								os.seekp(0, std::ios_base::end);
+								os << ": equation(" << iCnt + 1 << ")";
+								pDofs[iIndex + iCnt].EqDescription = os.str();
+							}
 						}
 
 						iIndex += iNumDofs;
@@ -986,7 +1125,16 @@ DataManager::InitialJointAssembly(void)
 		}
 
 		/* Fattorizza e risolve con jacobiano e residuo appena calcolati */
-		pSM->Solve();
+		try {
+			pSM->Solve();
+		}
+		catch (LinearSolver::ErrFactor err) {
+			silent_cerr("Initial assembly failed because no pivot element "
+				"could be found for column " << err.iCol
+				<< " (" << GetDofDescription(err.iCol) << "); "
+				"aborting..." << std::endl);
+			throw ErrGeneric();
+		}
 
 		if (
 #ifdef DEBUG
@@ -1042,8 +1190,11 @@ endofcycle:
 	/* Dealloca il vettore dei Dof */
 	ASSERT(pDofs != NULL);
 	if (pDofs != NULL) {
-		SAFEDELETEARR((Dof*&)pDofs);
+		SAFEDELETEARR(pDofs);
 	}
+
+	// restore
+	iTotDofs = 0;
 
 	SAFEDELETE(pSM);
 } /* End of InitialJointAssembly */
@@ -1520,6 +1671,20 @@ DataManager::PrintSolution(const VectorHandler& Sol, integer iIterCnt) const
 			<< " " << pDofs[iTmpCnt-1].Description
 			<< std::endl);
 	}
+}
+
+const std::string&
+DataManager::GetDofDescription(int i) const
+{
+	ASSERT(i > 0 && i <= iTotDofs);
+	return pDofs[i - 1].Description;
+}
+
+const std::string&
+DataManager::GetEqDescription(int i) const
+{
+	ASSERT(i > 0 && i <= iTotDofs);
+	return pDofs[i - 1].EqDescription;
 }
 
 /* DataManager - end */

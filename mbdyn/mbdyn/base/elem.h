@@ -141,9 +141,13 @@ public:
 	/* inherited from SimulationEntity */
 	virtual unsigned int iGetNumDof(void) const;
 	virtual std::ostream& DescribeDof(std::ostream& out,
-		const char *prefix = "", bool bInitial = false, int i = -1) const;
+		const char *prefix = "", bool bInitial = false) const;
+	virtual void DescribeDof(std::vector<std::string>& desc,
+		bool bInitial = false, int i = -1) const;
 	virtual std::ostream& DescribeEq(std::ostream& out,
-		const char *prefix = "", bool bInitial = false, int i = -1) const;
+		const char *prefix = "", bool bInitial = false) const;
+	virtual void DescribeEq(std::vector<std::string>& desc,
+		bool bInitial = false, int i = -1) const;
 	virtual DofOrder::Order GetDofType(unsigned int) const;
 
 	/* funzioni di servizio */

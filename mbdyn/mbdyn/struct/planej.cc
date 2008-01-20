@@ -82,16 +82,9 @@ PlaneHingeJoint::~PlaneHingeJoint(void)
 };
 
 std::ostream&
-PlaneHingeJoint::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
+PlaneHingeJoint::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("PlaneHingeJoint(" << GetLabel() << "): "
-			"DescribeDof(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out
 		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
@@ -117,24 +110,120 @@ PlaneHingeJoint::DescribeDof(std::ostream& out, const char *prefix, bool bInitia
 				out << "->" << iIndex + iFCDofs;
 			}
 			out << ": friction dof(s)" << std::endl
-				<< "        ", fc->DescribeDof(out, prefix, bInitial, i);
+				<< "        ", fc->DescribeDof(out, prefix, bInitial);
 		}
 	}
 
 	return out;
 }
 
+static const char xyz[] = "xyz";
+
+void
+PlaneHingeJoint::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	std::ostringstream os;
+	os << "PlaneHingeJoint(" << GetLabel() << ")";
+
+	unsigned short nself = NumSelfDof;
+	if (bInitial) {
+		nself *= 2;
+	}
+	if (fc && (i == -1 || i >= nself)) {
+		fc->DescribeDof(desc, bInitial, i - nself);
+		if (i != -1) {
+			desc[0] = os.str() + ": " + desc[0];
+			return;
+		}
+	}
+
+	if (i == -1) {
+		// move fc desc to the end
+		unsigned short nfc = 0;
+		if (fc) {
+			nfc = desc.size();
+		}
+		desc.resize(nfc + nself);
+		for (unsigned i = nfc; i-- > 0; ) {
+			desc[nself + nfc] = os.str() + ": " + desc[nfc];
+		}
+
+		std::string name = os.str();
+
+		for (unsigned i = 0; i < 3; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": reaction force f" << xyz[i];
+			desc[i] = os.str();
+		}
+
+		for (unsigned i = 0; i < 2; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": reaction couple m" << xyz[i];
+			desc[3 + i] = os.str();
+		}
+
+		if (bInitial) {
+			for (unsigned i = 0; i < 3; i++) {
+				os.str(name);
+				os.seekp(0, std::ios_base::end);
+				os << ": reaction force derivative fP" << xyz[i];
+				desc[5 + i] = os.str();
+			}
+	
+			for (unsigned i = 0; i < 2; i++) {
+				os.str(name);
+				os.seekp(0, std::ios_base::end);
+				os << ": reaction couple derivative mP" << xyz[i];
+				desc[8 + i] = os.str();
+			}
+		}
+
+	} else {
+		if (i < -1) {
+			// error
+			throw ErrGeneric();
+		}
+
+		if (i >= nself) {
+			// error
+			throw ErrGeneric();
+		}
+
+		desc.resize(1);
+
+		switch (i) {
+		case 0:
+		case 1:
+		case 2:
+			os << ": reaction force f" << xyz[i];
+			break;
+
+		case 3:
+		case 4:
+			os << ": reaction couple m" << xyz[i - 3];
+			break;
+
+		case 5:
+		case 6:
+		case 7:
+			os << ": reaction force derivative fP" << xyz[i - 5];
+			break;
+
+		case 8:
+		case 9:
+			os << ": reaction couple derivative mP" << xyz[i - 8];
+			break;
+		}
+		desc[0] = os.str();
+	}
+}
+
 std::ostream&
-PlaneHingeJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
+PlaneHingeJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("PlaneHingeJoint(" << GetLabel() << "): "
-			"DescribeEq(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out
 		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
@@ -160,11 +249,112 @@ PlaneHingeJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial
 				out << "->" << iIndex + iFCDofs;
 			}
 			out << ": friction equation(s)" << std::endl
-				<< "        ", fc->DescribeEq(out, prefix, bInitial, i);
+				<< "        ", fc->DescribeEq(out, prefix, bInitial);
 		}
 	}
 
 	return out;
+}
+
+void
+PlaneHingeJoint::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	std::ostringstream os;
+	os << "PlaneHingeJoint(" << GetLabel() << ")";
+
+	unsigned short nself = NumSelfDof;
+	if (bInitial) {
+		nself *= 2;
+	}
+	if (fc && (i == -1 || i >= nself)) {
+		fc->DescribeEq(desc, bInitial, i - nself);
+		if (i != -1) {
+			desc[0] = os.str() + ": " + desc[0];
+			return;
+		}
+	}
+
+	if (i == -1) {
+		// move fc desc to the end
+		unsigned short nfc = 0;
+		if (fc) {
+			nfc = desc.size();
+		}
+		desc.resize(nfc + nself);
+		for (unsigned i = nfc; i-- > 0; ) {
+			desc[nself + nfc] = os.str() + ": " + desc[nfc];
+		}
+
+		std::string name = os.str();
+
+		for (unsigned i = 0; i < 3; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": reaction force f" << xyz[i];
+			desc[i] = os.str();
+		}
+
+		for (unsigned i = 0; i < 2; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": reaction couple m" << xyz[i];
+			desc[3 + i] = os.str();
+		}
+
+		if (bInitial) {
+			for (unsigned i = 0; i < 3; i++) {
+				os.str(name);
+				os.seekp(0, std::ios_base::end);
+				os << ": reaction force derivative fP" << xyz[i];
+				desc[5 + i] = os.str();
+			}
+	
+			for (unsigned i = 0; i < 2; i++) {
+				os.str(name);
+				os.seekp(0, std::ios_base::end);
+				os << ": reaction couple derivative mP" << xyz[i];
+				desc[8 + i] = os.str();
+			}
+		}
+
+	} else {
+		if (i < -1) {
+			// error
+			throw ErrGeneric();
+		}
+
+		if (i >= nself) {
+			// error
+			throw ErrGeneric();
+		}
+
+		desc.resize(1);
+
+		switch (i) {
+		case 0:
+		case 1:
+		case 2:
+			os << ": reaction force f" << xyz[i];
+			break;
+
+		case 3:
+		case 4:
+			os << ": reaction couple m" << xyz[i - 3];
+			break;
+
+		case 5:
+		case 6:
+		case 7:
+			os << ": reaction force derivative fP" << xyz[i - 5];
+			break;
+
+		case 8:
+		case 9:
+			os << ": reaction couple derivative mP" << xyz[i - 8];
+			break;
+		}
+		desc[0] = os.str();
+	}
 }
 
 void
@@ -1237,16 +1427,9 @@ PlaneRotationJoint::~PlaneRotationJoint(void)
 
 
 std::ostream&
-PlaneRotationJoint::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
+PlaneRotationJoint::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("PlaneRotationJoint(" << GetLabel() << "): "
-			"DescribeDof(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out
 		<< prefix << iIndex + 1 << "->" << iIndex + 2 << ": "
@@ -1262,17 +1445,69 @@ PlaneRotationJoint::DescribeDof(std::ostream& out, const char *prefix, bool bIni
 	return out;
 }
 
+void
+PlaneRotationJoint::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	std::ostringstream os;
+	os << "PlaneRotationJoint(" << GetLabel() << ")";
+
+	unsigned short nself = 2;
+	if (bInitial) {
+		nself *= 2;
+	}
+
+	if (i == -1) {
+		desc.resize(nself);
+		std::string name = os.str();
+
+		for (unsigned i = 0; i < 2; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": reaction couple m" << xyz[i];
+			desc[i] = os.str();
+		}
+
+		if (bInitial) {
+			for (unsigned i = 0; i < 2; i++) {
+				os.str(name);
+				os.seekp(0, std::ios_base::end);
+				os << ": reaction couple derivative mP" << xyz[i];
+				desc[2 + i] = os.str();
+			}
+		}
+
+	} else {
+		if (i < -1) {
+			// error
+			throw ErrGeneric();
+		}
+
+		if (i >= nself) {
+			// error
+			throw ErrGeneric();
+		}
+
+		desc.resize(1);
+
+		switch (i) {
+		case 0:
+		case 1:
+			os << ": reaction couple m" << xyz[i];
+			break;
+
+		case 2:
+		case 3:
+			os << ": reaction couple derivative mP" << xyz[i - 2];
+			break;
+		}
+		desc[0] = os.str();
+	}
+}
+
 std::ostream&
-PlaneRotationJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
+PlaneRotationJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("PlaneRotationJoint(" << GetLabel() << "): "
-			"DescribeEq(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out
 		<< prefix << iIndex + 1 << "->" << iIndex + 2 << ": "
@@ -1286,6 +1521,65 @@ PlaneRotationJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInit
 	}
 
 	return out;
+}
+
+void
+PlaneRotationJoint::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	std::ostringstream os;
+	os << "PlaneRotationJoint(" << GetLabel() << ")";
+
+	unsigned short nself = 2;
+	if (bInitial) {
+		nself *= 2;
+	}
+
+	if (i == -1) {
+		desc.resize(nself);
+		std::string name = os.str();
+
+		for (unsigned i = 0; i < 2; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": reaction couple m" << xyz[i];
+			desc[i] = os.str();
+		}
+
+		if (bInitial) {
+			for (unsigned i = 0; i < 2; i++) {
+				os.str(name);
+				os.seekp(0, std::ios_base::end);
+				os << ": reaction couple derivative mP" << xyz[i];
+				desc[2 + i] = os.str();
+			}
+		}
+
+	} else {
+		if (i < -1) {
+			// error
+			throw ErrGeneric();
+		}
+
+		if (i >= nself) {
+			// error
+			throw ErrGeneric();
+		}
+
+		desc.resize(1);
+
+		switch (i) {
+		case 0:
+		case 1:
+			os << ": reaction couple m" << xyz[i];
+			break;
+
+		case 2:
+		case 3:
+			os << ": reaction couple derivative mP" << xyz[i - 2];
+			break;
+		}
+		desc[0] = os.str();
+	}
 }
 
 void
@@ -2016,16 +2310,9 @@ AxialRotationJoint::~AxialRotationJoint(void)
 
 
 std::ostream&
-AxialRotationJoint::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
+AxialRotationJoint::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("AxialRotationJoint(" << GetLabel() << "): "
-			"DescribeDof(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out
 		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
@@ -2051,24 +2338,119 @@ AxialRotationJoint::DescribeDof(std::ostream& out, const char *prefix, bool bIni
 				out << "->" << iIndex + iFCDofs;
 			}
 			out << ": friction dof(s)" << std::endl
-				<< "        ", fc->DescribeDof(out, prefix, bInitial, i);
+				<< "        ", fc->DescribeDof(out, prefix, bInitial);
 		}
 	}
 
 	return out;
 }
 
+void
+AxialRotationJoint::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	std::ostringstream os;
+	os << "AxialRotationJoint(" << GetLabel() << ")";
+
+	unsigned short nself = NumSelfDof;
+	if (bInitial) {
+		nself += NumSelfDof - 1;
+	}
+	if (fc && (i == -1 || i >= nself)) {
+		fc->DescribeDof(desc, bInitial, i - nself);
+		if (i != -1) {
+			desc[0] = os.str() + ": " + desc[0];
+			return;
+		}
+	}
+
+	if (i == -1) {
+		// move fc desc to the end
+		unsigned short nfc = 0;
+		if (fc) {
+			nfc = desc.size();
+		}
+		desc.resize(nfc + nself);
+		for (unsigned i = nfc; i-- > 0; ) {
+			desc[nself + nfc] = os.str() + ": " + desc[nfc];
+		}
+
+		std::string name = os.str();
+
+		for (unsigned i = 0; i < 3; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": reaction force f" << xyz[i];
+			desc[i] = os.str();
+		}
+
+		for (unsigned i = 0; i < 3; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": reaction couple m" << xyz[i];
+			desc[3 + i] = os.str();
+		}
+
+		if (bInitial) {
+			for (unsigned i = 0; i < 3; i++) {
+				os.str(name);
+				os.seekp(0, std::ios_base::end);
+				os << ": reaction force derivative fP" << xyz[i];
+				desc[6 + i] = os.str();
+			}
+	
+			for (unsigned i = 0; i < 2; i++) {
+				os.str(name);
+				os.seekp(0, std::ios_base::end);
+				os << ": reaction couple derivative mP" << xyz[i];
+				desc[9 + i] = os.str();
+			}
+		}
+
+	} else {
+		if (i < -1) {
+			// error
+			throw ErrGeneric();
+		}
+
+		if (i >= nself) {
+			// error
+			throw ErrGeneric();
+		}
+
+		desc.resize(1);
+
+		switch (i) {
+		case 0:
+		case 1:
+		case 2:
+			os << ": reaction force f" << xyz[i];
+			break;
+
+		case 3:
+		case 4:
+		case 5:
+			os << ": reaction couple m" << xyz[i - 3];
+			break;
+
+		case 6:
+		case 7:
+		case 8:
+			os << ": reaction force derivative fP" << xyz[i - 6];
+			break;
+
+		case 9:
+		case 10:
+			os << ": reaction couple derivative mP" << xyz[i - 9];
+			break;
+		}
+		desc[0] = os.str();
+	}
+}
+
 std::ostream&
-AxialRotationJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
+AxialRotationJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("AxialRotationJoint(" << GetLabel() << "): "
-			"DescribeEq(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out
 		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
@@ -2094,11 +2476,113 @@ AxialRotationJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInit
 				out << "->" << iIndex + iFCDofs;
 			}
 			out << ": friction equation(s)" << std::endl
-				<< "        ", fc->DescribeEq(out, prefix, bInitial, i);
+				<< "        ", fc->DescribeEq(out, prefix, bInitial);
 		}
 	}
 
 	return out;
+}
+
+void
+AxialRotationJoint::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	std::ostringstream os;
+	os << "AxialRotationJoint(" << GetLabel() << ")";
+
+	unsigned short nself = NumSelfDof;
+	if (bInitial) {
+		nself += NumSelfDof - 1;
+	}
+	if (fc && (i == -1 || i >= nself)) {
+		fc->DescribeEq(desc, bInitial, i - nself);
+		if (i != -1) {
+			desc[0] = os.str() + ": " + desc[0];
+			return;
+		}
+	}
+
+	if (i == -1) {
+		// move fc desc to the end
+		unsigned short nfc = 0;
+		if (fc) {
+			nfc = desc.size();
+		}
+		desc.resize(nfc + nself);
+		for (unsigned i = nfc; i-- > 0; ) {
+			desc[nself + nfc] = os.str() + ": " + desc[nfc];
+		}
+
+		std::string name = os.str();
+
+		for (unsigned i = 0; i < 3; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": reaction force f" << xyz[i];
+			desc[i] = os.str();
+		}
+
+		for (unsigned i = 0; i < 3; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": reaction couple m" << xyz[i];
+			desc[3 + i] = os.str();
+		}
+
+		if (bInitial) {
+			for (unsigned i = 0; i < 3; i++) {
+				os.str(name);
+				os.seekp(0, std::ios_base::end);
+				os << ": reaction force derivative fP" << xyz[i];
+				desc[6 + i] = os.str();
+			}
+	
+			for (unsigned i = 0; i < 2; i++) {
+				os.str(name);
+				os.seekp(0, std::ios_base::end);
+				os << ": reaction couple derivative mP" << xyz[i];
+				desc[9 + i] = os.str();
+			}
+		}
+
+	} else {
+		if (i < -1) {
+			// error
+			throw ErrGeneric();
+		}
+
+		if (i >= nself) {
+			// error
+			throw ErrGeneric();
+		}
+
+		desc.resize(1);
+
+		switch (i) {
+		case 0:
+		case 1:
+		case 2:
+			os << ": reaction force f" << xyz[i];
+			break;
+
+		case 3:
+		case 4:
+		case 5:
+			os << ": reaction couple m" << xyz[i - 3];
+			break;
+
+		case 6:
+		case 7:
+		case 8:
+			os << ": reaction force derivative fP" << xyz[i - 6];
+			break;
+
+		case 9:
+		case 10:
+			os << ": reaction couple derivative mP" << xyz[i - 9];
+			break;
+		}
+		desc[0] = os.str();
+	}
 }
 
 void
@@ -3132,16 +3616,9 @@ PlanePinJoint::~PlanePinJoint(void)
 
 
 std::ostream&
-PlanePinJoint::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
+PlanePinJoint::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("PlanePinJoint(" << GetLabel() << "): "
-			"DescribeDof(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out
 		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
@@ -3161,17 +3638,95 @@ PlanePinJoint::DescribeDof(std::ostream& out, const char *prefix, bool bInitial,
 	return out;
 }
 
+void
+PlanePinJoint::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	std::ostringstream os;
+	os << "PlanePinJoint(" << GetLabel() << ")";
+
+	unsigned short nself = 5;
+	if (bInitial) {
+		nself *= 2;
+	}
+
+	if (i == -1) {
+		desc.resize(nself);
+		std::string name = os.str();
+
+		for (unsigned i = 0; i < 3; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": reaction force f" << xyz[i];
+			desc[i] = os.str();
+		}
+
+		for (unsigned i = 0; i < 2; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": reaction couple m" << xyz[i];
+			desc[3 + i] = os.str();
+		}
+
+		if (bInitial) {
+			for (unsigned i = 0; i < 3; i++) {
+				os.str(name);
+				os.seekp(0, std::ios_base::end);
+				os << ": reaction force derivative fP" << xyz[i];
+				desc[5 + i] = os.str();
+			}
+	
+			for (unsigned i = 0; i < 2; i++) {
+				os.str(name);
+				os.seekp(0, std::ios_base::end);
+				os << ": reaction couple derivative mP" << xyz[i];
+				desc[8 + i] = os.str();
+			}
+		}
+
+	} else {
+		if (i < -1) {
+			// error
+			throw ErrGeneric();
+		}
+
+		if (i >= nself) {
+			// error
+			throw ErrGeneric();
+		}
+
+		desc.resize(1);
+
+		switch (i) {
+		case 0:
+		case 1:
+		case 2:
+			os << ": reaction force f" << xyz[i];
+			break;
+
+		case 3:
+		case 4:
+			os << ": reaction couple m" << xyz[i - 3];
+			break;
+
+		case 5:
+		case 6:
+		case 7:
+			os << ": reaction force derivative fP" << xyz[i - 5];
+			break;
+
+		case 8:
+		case 9:
+			os << ": reaction couple derivative mP" << xyz[i - 8];
+			break;
+		}
+		desc[0] = os.str();
+	}
+}
+
 std::ostream&
-PlanePinJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
+PlanePinJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("PlanePinJoint(" << GetLabel() << "): "
-			"DescribeEq(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out
 		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
@@ -3189,6 +3744,91 @@ PlanePinJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, 
 	}
 
 	return out;
+}
+
+void
+PlanePinJoint::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	std::ostringstream os;
+	os << "PlanePinJoint(" << GetLabel() << ")";
+
+	unsigned short nself = 5;
+	if (bInitial) {
+		nself *= 2;
+	}
+
+	if (i == -1) {
+		desc.resize(nself);
+		std::string name = os.str();
+
+		for (unsigned i = 0; i < 3; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": reaction force f" << xyz[i];
+			desc[i] = os.str();
+		}
+
+		for (unsigned i = 0; i < 2; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": reaction couple m" << xyz[i];
+			desc[3 + i] = os.str();
+		}
+
+		if (bInitial) {
+			for (unsigned i = 0; i < 3; i++) {
+				os.str(name);
+				os.seekp(0, std::ios_base::end);
+				os << ": reaction force derivative fP" << xyz[i];
+				desc[5 + i] = os.str();
+			}
+	
+			for (unsigned i = 0; i < 2; i++) {
+				os.str(name);
+				os.seekp(0, std::ios_base::end);
+				os << ": reaction couple derivative mP" << xyz[i];
+				desc[8 + i] = os.str();
+			}
+		}
+
+	} else {
+		if (i < -1) {
+			// error
+			throw ErrGeneric();
+		}
+
+		if (i >= nself) {
+			// error
+			throw ErrGeneric();
+		}
+
+		desc.resize(1);
+
+		switch (i) {
+		case 0:
+		case 1:
+		case 2:
+			os << ": reaction force f" << xyz[i];
+			break;
+
+		case 3:
+		case 4:
+			os << ": reaction couple m" << xyz[i - 3];
+			break;
+
+		case 5:
+		case 6:
+		case 7:
+			os << ": reaction force derivative fP" << xyz[i - 5];
+			break;
+
+		case 8:
+		case 9:
+			os << ": reaction couple derivative mP" << xyz[i - 8];
+			break;
+		}
+		desc[0] = os.str();
+	}
 }
 
 void

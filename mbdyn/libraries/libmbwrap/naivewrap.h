@@ -56,7 +56,7 @@ private:
 	mutable std::vector<integer> piv;
 	NaiveMatrixHandler *A;
 
-	void Factor(void);
+	void Factor(void) throw(LinearSolver::ErrFactor);
 
 public:
 	NaiveSolver(const integer &size, const doublereal &dMP,

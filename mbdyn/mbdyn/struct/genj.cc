@@ -1394,16 +1394,9 @@ ClampJoint::~ClampJoint(void)
 
 
 std::ostream&
-ClampJoint::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
+ClampJoint::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("ClampJoint(" << GetLabel() << "): "
-			"DescribeDof(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out
 		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
@@ -1423,17 +1416,58 @@ ClampJoint::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, in
 	return out;
 }
 
+static const char xyz[] = "xyz";
+static const char *dof[] = {
+	"reaction force f",
+	"reaction couple m",
+	"reaction force derivative fP",
+	"reaction couple derivative mP"
+};
+static const char *eq[] = {
+	"position constraint P",
+	"orientation constraint g",
+	"position constraint derivative v",
+	"orientation constraint derivative w"
+};
+
+void
+ClampJoint::DescribeDof(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	int iend = 1;
+	if (i == -1) {
+		if (bInitial) {
+			iend = 12;
+
+		} else {
+			iend = 6;
+		}
+	}
+	desc.resize(iend);
+
+	std::ostringstream os;
+	os << "ClampJoint(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name = os.str();
+		for (i = 0; i < iend; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": " << dof[i/3] << xyz[i%3];
+
+			desc[i] = os.str();
+		}
+
+	} else {
+		os << ": " << dof[i/3] << xyz[i%3];
+		desc[0] = os.str();
+	}
+}
+
 std::ostream&
-ClampJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
+ClampJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
 {
 	integer iIndex = iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("ClampJoint(" << GetLabel() << "): "
-			"DescribeEq(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	out
 		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
@@ -1451,6 +1485,40 @@ ClampJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int
 	}
 
 	return out;
+}
+
+void
+ClampJoint::DescribeEq(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	int iend = 1;
+	if (i == -1) {
+		if (bInitial) {
+			iend = 12;
+
+		} else {
+			iend = 6;
+		}
+	}
+	desc.resize(iend);
+
+	std::ostringstream os;
+	os << "ClampJoint(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name = os.str();
+		for (i = 0; i < iend; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": " << eq[i/3] << xyz[i%3];
+
+			desc[i] = os.str();
+		}
+
+	} else {
+		os << ": " << eq[i/3] << xyz[i%3];
+		desc[0] = os.str();
+	}
 }
 
 /*Funzione che legge lo stato iniziale dal file di input*/

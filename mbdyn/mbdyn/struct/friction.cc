@@ -90,17 +90,33 @@ unsigned int ModLugreFriction::iGetNumDof(void) const {
 };
 
 std::ostream&
-ModLugreFriction::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
+ModLugreFriction::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
 {
-	out << prefix << "[" << 1 << "]: ModLugreFriction state" << std::endl;
-	return out;
+	return out << prefix
+		<< "[1]: ModLugreFriction state" << std::endl;
+}
+
+void
+ModLugreFriction::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	ASSERT(i == -1 || i == 0);
+	desc.resize(1);
+	desc[0] = "ModLugreFriction state";
 }
 
 std::ostream&
-ModLugreFriction::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
+ModLugreFriction::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
 {
-	out << prefix << "[" << 1 << "]: ModLugreFriction equation" << std::endl;
-	return out;
+	return out << prefix
+		<< "[1]: ModLugreFriction equation" << std::endl;
+}
+
+void
+ModLugreFriction::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	ASSERT(i == -1 || i == 0);
+	desc.resize(1);
+	desc[0] = "ModLugreFriction equation";
 }
 
 DofOrder::Order ModLugreFriction::GetDofType(unsigned int i) const {
@@ -286,17 +302,33 @@ unsigned int DiscreteCoulombFriction::iGetNumDof(void) const {
 };
 
 std::ostream&
-DiscreteCoulombFriction::DescribeDof(std::ostream& out, const char *prefix, bool bInitial, int i) const
+DiscreteCoulombFriction::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
 {
-	out << prefix << "[" << 1 << "]: DiscreteCoulombFriction state" << std::endl;
-	return out;
+	return out << prefix
+		<< "[1]: DiscreteCoulombFriction state" << std::endl;
+}
+
+void
+DiscreteCoulombFriction::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	ASSERT(i == -1 || i == 0);
+	desc.resize(1);
+	desc[0] = "DiscreteCoulombFriction state";
 }
 
 std::ostream&
-DiscreteCoulombFriction::DescribeEq(std::ostream& out, const char *prefix, bool bInitial, int i) const
+DiscreteCoulombFriction::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
 {
-	out << prefix << "[" << 1 << "]: DiscreteCoulombFriction equation" << std::endl;
-	return out;
+	return out << prefix
+		<< "[1]: DiscreteCoulombFriction equation" << std::endl;
+}
+
+void
+DiscreteCoulombFriction::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	ASSERT(i == -1 || i == 0);
+	desc.resize(1);
+	desc[0] = "DiscreteCoulombFriction equation";
 }
 
 DofOrder::Order DiscreteCoulombFriction::GetDofType(unsigned int i) const {

@@ -65,7 +65,7 @@ Pierangelo Masarati (me!) worked as an undergraduate student at developing
 	the control-related genels and at the piezoelectric beam elements.
 	Then, as a PhD student, I entirely reengineered the program, by
 	rewriting it in C++/C/F77, and added many control-related features.
-	Now, as a Staff Researcher, I'm maintaining the code and leading
+	Now, as Assistant Professor, I'm maintaining the code and leading
 	the development team.
 
 Felice Felippone, as an undergraduate student, implemented the modal body 
@@ -80,20 +80,20 @@ Giuseppe Quaranta, (Beppe), as an undergrad, did a very good job in
 	with sophisticated aerodynamics, including wake modeling and CFD,
 	on matrix-free nonlinear solvers, periodic stability analysis
 	by means of transient response analysis and system identification,
-	and more.  Now, as a Ph.D., he is a stable member of the team.
+	and more.  Now, as a Post Doc., he is a stable member of the team.
 
 Leonardo Cassan, undergrad, worked at the ADAMS2MBDyn project,
 	a translator from ADAMS models in adm format into MBDyn raw input
 	files.  You can find what's available in contrib/a2m
-	(essentially abondoned).
+	(essentially abandoned).
 
 Marco Morandini, Ph.D., worked on sophisticated flexible bodies (beams),
 	on visualization issues, friction modeling for all joints,
 	third-order solver, and more.  He's currently working at
 	automatic differentiation within the ANTASME project.
-	He is a stable member of the team.
+	Now, as a Post Doc., he is a stable member of the team.
 
-Stefania Gualdi, Ph.D., is working on tire and landing gear analysis,
+Stefania Gualdi, Post Doc., is working on tire and landing gear analysis,
 	and (semi-)active control.
 
 Michele Attolico, while Ph.D. student, integrated RTAI 
@@ -105,13 +105,18 @@ Matteo Martegani, while graduate student, worked on
 	(http://www.aero.polimi.it/~mbdyn/mbdyn-rt/).
 
 Patrick Rix, as an independent user, is contributing to the NetCDF
-	output.
+	output and to wind-turbine modeling aspects.
 
 Alessandro Fumagalli, as Ph.D. student, is working on different 
 	formulation and implementation aspects related to robotics.
+	He implemented the total joint family and is currently working
+	at the inverse dynamics problem module.
 
 Luca Cavagna, as Ph.D. student, is working at interfacing MBDyn
-	with external CFD solvers (FOI's EDGE right now)
+	with external CFD solvers (FOI's EDGE right now).
+
+Michele Frumusa, undergrad, is interfacing MBDyn with FEA software
+	for detailed stress analysis from dynamics of coarse models.
 
 Other undergrads might have had a role in the F77 version of the code, 
 that I'm not aware of.

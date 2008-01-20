@@ -408,7 +408,7 @@ MultiThreadDataManager::ThreadSpawn(void)
 {
 	ASSERT(nThreads > 1);
 
-	SAFENEWARR(thread_data, MultiThreadDataManager::ThreadData, nThreads);
+	SAFENEWARRNOFILL(thread_data, MultiThreadDataManager::ThreadData, nThreads);
 	
 	for (unsigned i = 0; i < nThreads; i++) {
 		/* callback data */

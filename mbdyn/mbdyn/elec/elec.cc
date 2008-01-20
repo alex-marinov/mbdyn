@@ -664,7 +664,7 @@ Elem* ReadElectric(DataManager* pDM,
        }
 
        ScalarDof* pOutputs = NULL;
-       SAFENEWARR(pOutputs, ScalarDof, iNumOutputs);
+       SAFENEWARRNOFILL(pOutputs, ScalarDof, iNumOutputs);
        DriveCaller** ppOutScaleFact = NULL;
        SAFENEWARR(ppOutScaleFact, DriveCaller*, iNumOutputs);
 
@@ -687,7 +687,7 @@ Elem* ReadElectric(DataManager* pDM,
 
        /* Same thing for input nodes */
        ScalarDof* pInputs = NULL;
-       SAFENEWARR(pInputs, ScalarDof, iNumInputs);
+       SAFENEWARRNOFILL(pInputs, ScalarDof, iNumInputs);
 
        /* Allocazione nodi e connessioni */
        for (int i = 0; i < iNumInputs; i++) {

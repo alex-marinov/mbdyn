@@ -87,27 +87,22 @@ TotalEquation::~TotalEquation(void)
 	NO_OP;
 };
 
-// std::ostream&
-// TotalEquation::DescribeDof(std::ostream& out,
-// 	char *prefix, bool bInitial, int i) const
-// {
-// 	integer iIndex = iGetFirstIndex();
-// 
-// 	return out;
-// }
-
+#if 0
 std::ostream&
-TotalEquation::DescribeEq(std::ostream& out,
+TotalEquation::DescribeDof(std::ostream& out,
 	char *prefix, bool bInitial, int i) const
 {
 	integer iIndex = iGetFirstIndex();
 
-	if (i >= 0) {
-		silent_cerr("TotalEquation(" << GetLabel() << "): "
-			"DescribeEq(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
+	return out;
+}
+#endif
+
+std::ostream&
+TotalEquation::DescribeEq(std::ostream& out,
+	char *prefix, bool bInitial) const
+{
+	integer iIndex = iGetFirstIndex();
 
 	if (nPosConstraints > 1) {
 		out << prefix << iIndex + 1;
@@ -205,6 +200,13 @@ TotalEquation::DescribeEq(std::ostream& out,
 	}
 
 	return out;
+}
+
+void
+TotalEquation::DescribeEq(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	desc.resize(0);
 }
 
 void
@@ -999,16 +1001,9 @@ TotalReaction::~TotalReaction(void)
 
 std::ostream&
 TotalReaction::DescribeDof(std::ostream& out,
-	char *prefix, bool bInitial, int i) const
+	char *prefix, bool bInitial) const
 {
 	integer iIndex = total_equation_element->iGetFirstIndex();
-
-	if (i >= 0) {
-		silent_cerr("TotalReaction(" << GetLabel() << "): "
-			"DescribeDof(" << i << ") "
-			"not implemented yet" << std::endl);
-		throw ErrGeneric();
-	}
 
 	if (nPosConstraints > 1) {
 		out << prefix << iIndex + 1;
@@ -1090,12 +1085,21 @@ TotalReaction::DescribeDof(std::ostream& out,
 	return out;
 }
 
+void
+TotalReaction::DescribeDof(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	desc.resize(0);
+}
+
+#if 0
 std::ostream&
 TotalReaction::DescribeEq(std::ostream& out,
 	char *prefix, bool bInitial, int i) const
 {
 	return out;
 }
+#endif
 
 void
 TotalReaction::SetValue(DataManager *pDM,

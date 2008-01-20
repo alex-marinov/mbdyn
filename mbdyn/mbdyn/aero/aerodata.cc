@@ -415,7 +415,7 @@ i_points(i_p), i_data(0)
    	ASSERT(data != NULL);
 	ASSERT(i_points > 0);
 
-	SAFENEWARR(i_data, c81_data, i_points);
+	SAFENEWARRNOFILL(i_data, c81_data, i_points);
 
 	GaussDataIterator GDI(i_points);
 	PntWght PW = GDI.GetFirst();

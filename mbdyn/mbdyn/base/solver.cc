@@ -73,6 +73,7 @@
 #include "solman.h"
 #include <vector>
 #include "readlinsol.h"
+#include "ls.h"
 
 #include "solver_impl.h"
 
@@ -876,6 +877,17 @@ Solver::Run(void)
 		 */
 		throw SimulationDiverged();
 	}
+	catch (LinearSolver::ErrFactor err) {
+		/*
+		 * Mettere qui eventuali azioni speciali
+		 * da intraprendere in caso di errore ...
+		 */
+		silent_cerr("Initial derivatives failed because no pivot element "
+			"could be found for column " << err.iCol
+			<< " (" << pDM->GetDofDescription(err.iCol) << "); "
+			"aborting..." << std::endl);
+		throw SimulationDiverged();
+	}
 	catch (NonlinearSolver::ConvergenceOnSolution) {
 		bSolConv = true;
 	}
@@ -967,12 +979,10 @@ Solver::Run(void)
 					iStIter, dTest, dSolTest);
 		}
 		catch (NonlinearSolver::NoConvergence) {
-			silent_cerr(" first dummy step;" << std::endl
-				<< " does not converge;" << std::endl
-				<< "time step dt=" << dCurrTimeStep
-				<< " cannot be reduced further;"
-				<< std::endl
-				<< "aborting ..." << std::endl);
+			silent_cerr("First dummy step does not converge; "
+				"time step dt=" << dCurrTimeStep
+				<< " cannot be reduced further; "
+				"aborting..." << std::endl);
 	 		pDM->Output(0, dTime, dCurrTimeStep, true);
 	 		throw ErrMaxIterations();
 		}
@@ -981,6 +991,17 @@ Solver::Run(void)
 		 	 * Mettere qui eventuali azioni speciali
 		 	 * da intraprendere in caso di errore ...
 		 	 */
+			throw SimulationDiverged();
+		}
+		catch (LinearSolver::ErrFactor err) {
+			/*
+			 * Mettere qui eventuali azioni speciali
+			 * da intraprendere in caso di errore ...
+			 */
+			silent_cerr("First dummy step failed because no pivot element "
+				"could be found for column " << err.iCol
+				<< " (" << pDM->GetDofDescription(err.iCol) << "); "
+				"aborting..." << std::endl);
 			throw SimulationDiverged();
 		}
 		catch (NonlinearSolver::ConvergenceOnSolution) {
@@ -1049,12 +1070,11 @@ Solver::Run(void)
 						iStIter, dTest, dSolTest);
 			}
 			catch (NonlinearSolver::NoConvergence) {
-				silent_cerr("Dummy step: " << iSubStep << std::endl
-					<< " does not converge;" << std::endl
-					<< "time step dt=" << dCurrTimeStep
-					<< " cannot be reduced further;"
-					<< std::endl
-					<< "aborting ..." << std::endl);
+				silent_cerr("Dummy step " << iSubStep
+					<< " does not converge; "
+					"time step dt=" << dCurrTimeStep
+					<< " cannot be reduced further; "
+					"aborting..." << std::endl);
 	 			pDM->Output(0, dTime, dCurrTimeStep, true);
 	 			throw ErrMaxIterations();
 			}
@@ -1064,6 +1084,18 @@ Solver::Run(void)
 		 		 * Mettere qui eventuali azioni speciali
 		 		 * da intraprendere in caso di errore ...
 		 		 */
+				throw SimulationDiverged();
+			}
+			catch (LinearSolver::ErrFactor err) {
+				/*
+				 * Mettere qui eventuali azioni speciali
+				 * da intraprendere in caso di errore ...
+				 */
+				silent_cerr("Dummy step " << iSubStep
+					<< " failed because no pivot element "
+					"could be found for column " << err.iCol
+					<< " (" << pDM->GetDofDescription(err.iCol) << "); "
+					"aborting..." << std::endl);
 				throw SimulationDiverged();
 			}
 			catch (NonlinearSolver::ConvergenceOnSolution) {
@@ -1209,13 +1241,11 @@ IfFirstStepIsToBeRepeated:
 
 	    	silent_cerr("Maximum iterations number "
 			<< pRegularSteps->GetIntegratorMaxIters()
-			<< " has been reached during"
-			" first step (time=" << dTime << ");"
-			<< std::endl
+			<< " has been reached during "
+			"first step (time=" << dTime << "); "
 			<< "time step dt=" << dCurrTimeStep
-			<< " cannot be reduced further;"
-			<< std::endl
-			<< "aborting ..." << std::endl);
+			<< " cannot be reduced further; "
+			"aborting..." << std::endl);
 	    	pDM->Output(0, dTime, dCurrTimeStep, true);
 
 		throw Solver::ErrMaxIterations();
@@ -1226,6 +1256,17 @@ IfFirstStepIsToBeRepeated:
 		 * da intraprendere in caso di errore ...
 		 */
 
+		throw SimulationDiverged();
+	}
+	catch (LinearSolver::ErrFactor err) {
+		/*
+		 * Mettere qui eventuali azioni speciali
+		 * da intraprendere in caso di errore ...
+		 */
+		silent_cerr("FIrst step failed because no pivot element "
+			"could be found for column " << err.iCol
+			<< " (" << pDM->GetDofDescription(err.iCol) << "); "
+			"aborting..." << std::endl);
 		throw SimulationDiverged();
 	}
 	catch (NonlinearSolver::ConvergenceOnSolution) {
@@ -1580,7 +1621,6 @@ IfStepIsToBeRepeated:
 					qX, qXPrime, pX, pXPrime, iStIter,
 					dTest, dSolTest);
 		}
-
 		catch (NonlinearSolver::NoConvergence) {
 			if (dCurrTimeStep > dMinTimeStep) {
 				/* Riduce il passo */
@@ -1598,17 +1638,13 @@ IfStepIsToBeRepeated:
 				silent_cerr("Max iterations number "
 					<< pRegularSteps->GetIntegratorMaxIters()
 					<< " has been reached during"
-					" step " << lStep << ';'
-					<< std::endl
-					<< "time step dt="
-					<< dCurrTimeStep
-					<< " cannot be reduced"
-					" further;" << std::endl
-					<< "aborting ..." << std::endl);
+					" step " << lStep << "; "
+					"time step dt=" << dCurrTimeStep
+					<< " cannot be reduced further; "
+					"aborting..." << std::endl);
 	       			throw ErrMaxIterations();
 			}
 		}
-
 		catch (NonlinearSolver::ErrSimulationDiverged) {
 			/*
 			 * Mettere qui eventuali azioni speciali
@@ -1618,13 +1654,23 @@ IfStepIsToBeRepeated:
 				<< iStIter << " iterations, before "
 				"reaching max iteration number "
 				<< pRegularSteps->GetIntegratorMaxIters()
-				<< " during step " << lStep << ';'
-				<< std::endl
-				<< "time step dt="
-				<< dCurrTimeStep
-				<< " cannot be reduced"
-				" further;" << std::endl
-				<< "aborting ..." << std::endl);
+				<< " during step " << lStep << "; "
+				"time step dt=" << dCurrTimeStep
+				<< " cannot be reduced further; "
+				"aborting..." << std::endl);
+			throw SimulationDiverged();
+		}
+		catch (LinearSolver::ErrFactor err) {
+			/*
+			 * Mettere qui eventuali azioni speciali
+			 * da intraprendere in caso di errore ...
+			 */
+			silent_cerr("Simulation failed because no pivot element "
+				"could be found for column " << err.iCol
+				<< " (" << pDM->GetDofDescription(err.iCol) << ") "
+				"after " << iStIter << " iterations "
+				"during step " << lStep << "; "
+				"aborting..." << std::endl);
 			throw SimulationDiverged();
 		}
 		catch (NonlinearSolver::ConvergenceOnSolution) {
@@ -2188,7 +2234,7 @@ Solver::ReadData(MBDynParser& HP)
    	/* legge i dati della simulazione */
    	if (KeyWords(HP.GetDescription()) != BEGIN) {
       		silent_cerr("Error: <begin> expected at line "
-			<< HP.GetLineData() << "; aborting ..." << std::endl);
+			<< HP.GetLineData() << "; aborting..." << std::endl);
       		throw ErrGeneric();
    	}
 
@@ -2201,7 +2247,7 @@ Solver::ReadData(MBDynParser& HP)
 
 	default:
       		silent_cerr("Error: \"begin: initial value;\" expected at line "
-			<< HP.GetLineData() << "; aborting ..." << std::endl);
+			<< HP.GetLineData() << "; aborting..." << std::endl);
       		throw ErrGeneric();
    	}
 
@@ -2893,7 +2939,7 @@ Solver::ReadData(MBDynParser& HP)
 			default:
 				silent_cerr("\"end: initial value;\" expected "
 					"at line " << HP.GetLineData()
-					<< "; aborting ..." << std::endl);
+					<< "; aborting..." << std::endl);
 				throw ErrGeneric();
 			}
 			goto EndOfCycle;
@@ -3452,7 +3498,7 @@ Solver::ReadData(MBDynParser& HP)
 
 		default:
 			silent_cerr("unknown description at line "
-				<< HP.GetLineData() << "; aborting ..."
+				<< HP.GetLineData() << "; aborting..."
 				<< std::endl);
 			throw ErrGeneric();
 		}

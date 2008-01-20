@@ -789,7 +789,7 @@ Elem* ReadGenel(DataManager* pDM,
        }
 
        ScalarDof* pvSD_y = NULL;
-       SAFENEWARR(pvSD_y, ScalarDof, iNumOutputs);
+       SAFENEWARRNOFILL(pvSD_y, ScalarDof, iNumOutputs);
        for (int i = 0; i < iNumOutputs; i++) {
 	  pvSD_y[i] = ReadScalarDof(pDM, HP, 1);
 	  if (pvSD_y[i].pNode->GetNodeType() ==  Node::PARAMETER) {
@@ -813,7 +813,7 @@ Elem* ReadGenel(DataManager* pDM,
        }
 
        ScalarDof* pvSD_u = NULL;
-       SAFENEWARR(pvSD_u, ScalarDof, iNumInputs);
+       SAFENEWARRNOFILL(pvSD_u, ScalarDof, iNumInputs);
        for (int i = 0; i < iNumInputs; i++) {
 	  pvSD_u[i] = ReadScalarDof(pDM, HP, 1);
        }

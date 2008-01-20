@@ -101,10 +101,16 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
 
    virtual std::ostream& DescribeDof(std::ostream& out,
 		   const char *prefix = "",
+		   bool bInitial = false) const;
+   
+   virtual void DescribeDof(std::vector<std::string>& desc,
 		   bool bInitial = false, int i = -1) const;
    
    virtual std::ostream& DescribeEq(std::ostream& out,
 		   const char *prefix = "",
+		   bool bInitial = false) const;
+   
+   virtual void DescribeEq(std::vector<std::string>& desc,
 		   bool bInitial = false, int i = -1) const;
    
    DofOrder::Order GetDofType(unsigned int i) const;
@@ -223,10 +229,16 @@ class PlaneRotationJoint : virtual public Elem, public Joint {
 
    virtual std::ostream& DescribeDof(std::ostream& out,
 		   const char *prefix = "",
+		   bool bInitial = false) const;
+   
+   virtual void DescribeDof(std::vector<std::string>& desc,
 		   bool bInitial = false, int i = -1) const;
    
    virtual std::ostream& DescribeEq(std::ostream& out,
 		   const char *prefix = "",
+		   bool bInitial = false) const;
+   
+   virtual void DescribeEq(std::vector<std::string>& desc,
 		   bool bInitial = false, int i = -1) const;
    
    DofOrder::Order GetDofType(unsigned int i) const {
@@ -370,10 +382,16 @@ public Joint, public DriveOwner {
 
    virtual std::ostream& DescribeDof(std::ostream& out,
 		   const char *prefix = "",
+		   bool bInitial = false) const;
+   
+   virtual void DescribeDof(std::vector<std::string>& desc,
 		   bool bInitial = false, int i = -1) const;
    
    virtual std::ostream& DescribeEq(std::ostream& out,
 		   const char *prefix = "",
+		   bool bInitial = false) const;
+   
+   virtual void DescribeEq(std::vector<std::string>& desc,
 		   bool bInitial = false, int i = -1) const;
    
    DofOrder::Order GetDofType(unsigned int i) const {
@@ -501,10 +519,16 @@ class PlanePinJoint : virtual public Elem, public Joint {
 
    virtual std::ostream& DescribeDof(std::ostream& out,
 		   const char *prefix = "",
+		   bool bInitial = false) const;
+   
+   virtual void DescribeDof(std::vector<std::string>& desc,
 		   bool bInitial = false, int i = -1) const;
    
    virtual std::ostream& DescribeEq(std::ostream& out,
 		   const char *prefix = "",
+		   bool bInitial = false) const;
+   
+   virtual void DescribeEq(std::vector<std::string>& desc,
 		   bool bInitial = false, int i = -1) const;
    
    virtual DofOrder::Order GetDofType(unsigned int i) const {
