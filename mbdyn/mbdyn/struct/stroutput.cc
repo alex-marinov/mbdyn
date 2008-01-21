@@ -390,14 +390,6 @@ StructOutputInterpBase::InterpInit(void)
 	// initialize interpolation data
 }
 
-void
-StructOutputInterpBase::Manipulate(const GeometryData& orig_data)
-{
-	// do the interpolation at each call
-
-	StructOutput::Manipulate(data);
-}
-
 StructOutputInterpBase::StructOutputInterpBase(const Elem *pE)
 : Elem(pE->GetLabel(), pE->fToBeOutput()),
 StructOutput(pE)
@@ -437,6 +429,14 @@ StructOutputInterp::Restart(std::ostream& out) const
 {
 	return out << "# StructOutputInterp(" << GetLabel() << "): "
 		"not implemented yet!" << std::endl;
+}
+
+void
+StructOutputInterp::Manipulate(const GeometryData& orig_data)
+{
+	// do the interpolation at each call
+
+	StructOutput::Manipulate(data);
 }
 
 /* StructOutputInterp - end */

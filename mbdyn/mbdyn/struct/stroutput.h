@@ -217,7 +217,6 @@ protected:
 
 	virtual void InterpInit(void);
 	virtual void InterpInit_int(void) = 0;
-	virtual void Manipulate(const GeometryData& data);
 
 public:
    	StructOutputInterpBase(const Elem *pE);
@@ -239,6 +238,8 @@ public:
 	virtual ~StructOutputInterp(void);
 
 	virtual std::ostream& Restart(std::ostream& out) const;
+
+	virtual void Manipulate(const GeometryData& data);
 };
 
 /* StructOutputInterp - end */
