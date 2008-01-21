@@ -39,6 +39,7 @@
 #include <set>
 
 #include <cmath>
+#include <sstream>
 
 #include "dataman.h"
 #include "dataman_.h"
