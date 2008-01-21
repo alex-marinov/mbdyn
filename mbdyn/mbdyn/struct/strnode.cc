@@ -33,6 +33,8 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <sstream>
+
 #include "mynewmem.h"
 #include "strnode.h"
 #include "body.h"
@@ -2231,8 +2233,8 @@ ModalNode::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) con
 		StructNode::DescribeDof(desc, bInitial, i);
 
 		if (bInitial || (i >= 0 && i < 6)) {
-			for (i = 0; i < desc.size(); i++) {
-				desc[i] = "Modal" + desc[i];
+			for (size_t ii = 0; ii < desc.size(); ii++) {
+				desc[ii] = "Modal" + desc[ii];
 			}
 			return;
 		}
@@ -2302,8 +2304,8 @@ ModalNode::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) cons
 		StructNode::DescribeEq(desc, bInitial, new_i);
 
 		if (bInitial || (i >= 6 && i < 12)) {
-			for (i = 0; i < desc.size(); i++) {
-				desc[i] = "Modal" + desc[i];
+			for (size_t ii = 0; ii < desc.size(); ii++) {
+				desc[ii] = "Modal" + desc[ii];
 			}
 			return;
 		}
