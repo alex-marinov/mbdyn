@@ -1695,7 +1695,7 @@ InvAngularCLR::Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type&
 
 	doublereal dXi = HP.GetReal();
 
-	ConstitutiveLaw<Vec3, Mat3x3>* pCL2 = pDM->ReadConstLaw3D(HP, CLType);
+	ConstitutiveLaw<Vec3, Mat3x3>* pCL2 = HP.GetConstLaw3D(CLType);
 	CLType = ConstLawType::Type(ConstLawType::ELASTIC | CLType);
 
 	typedef InvAngularConstitutiveLaw L;
