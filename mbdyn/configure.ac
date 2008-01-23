@@ -144,7 +144,8 @@ AC_SUBST(mbdyn_subdir)dnl
 dnl ----------------------------------------------------------------
 dnl General "enable" options
 OL_ARG_ENABLE(debug,[  --enable-debug          enable debugging], no)dnl
-OL_ARG_WITH(debug_mode,[  --with-debug-mode[={none|mem}]  with debug mode {none|mem}],none,[none mem])
+OL_ARG_WITH(debug_mode,[  --with-debug-mode[={none|mem}]
+                          with debug mode {none|mem}],none,[none mem])
 OL_ARG_ENABLE(socket_drives,[  --enable-socket-drives  enable socket drives], auto)dnl
 OL_ARG_ENABLE(runtime_loading,[  --enable-runtime-loading    enable runtime loading], auto)dnl
 OL_ARG_WITH(static_modules,[  --with-static-modules   build (known) modules as static],auto,[no yes auto])
@@ -162,7 +163,7 @@ dnl General "with" options
 OL_ARG_WITH(tcl,[  --with-tcl              with tcl interpreters],auto,[auto yes no])
 OL_ARG_WITH(libf2c,[  --with-libf2c[={f2c|g2c}] with f2c library],auto,[auto yes no g2c])
 OL_ARG_WITH(g2c,[  --with-g2c              with g2c header],auto,[auto yes no])
-OL_ARG_WITH(fs,[  --with-fs[={unix|dos}]  filesystem type],unix,[unix dos])
+OL_ARG_WITH(fs,[  --with-fs[={unix|dos}]    filesystem type],unix,[unix dos])
 OL_ARG_WITH(mpi,[  --with-mpi              with MPI support (=pmpi for profiling)],auto,[auto yes pmpi no])
 OL_ARG_ENABLE(debug_mpi,[  --enable-debug-mpi      enable MPI debugging], no)dnl
 OL_ARG_WITH(metis,[  --with-metis            with Metis model partitioning support],auto,[auto yes no])
@@ -176,12 +177,13 @@ OL_ARG_WITH(rtai,[  --with-rtai             with RTAI support],no,[auto yes no])
 OL_ARG_WITH(boost,[  --with-boost            with BOOST support],no,[auto yes no])
 OL_ARG_WITH(blas,[
        math libraries:
-  --with-blas             with (C)BLAS math library],auto,[auto goto atlas cblas blas])
+  --with-blas[={auto|goto|atlas|cblas|blas}]
+                          with (C)BLAS math library],auto,[auto goto atlas cblas blas])
 AC_ARG_WITH(goto,[  --with-goto=lib(s)      with Goto BLAS implementation],[
 	ol_with_goto_lib="$withval"
 ],[ol_with_goto_lib=])
 OL_ARG_WITH(ginac,[  --with-ginac            with GiNaC support
-                          (ginac-config must be in \$PATH)],auto,[auto yes no])
+                          (ginac-config must be in $PATH)],auto,[auto yes no])
 OL_ARG_WITH(y12,[
        linear algebra solvers (naive is enabled by default):
   --with-y12              with Y12 sparse math library],yes,[auto yes no])
