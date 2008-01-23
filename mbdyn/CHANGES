@@ -24,6 +24,8 @@ MBDyn 1.X-Devel
 		- fix Schur matrix/vector handlers destructors
 		- fix solver first step with Schur data manager
 		- fix array allocation when --enable-debug
+		- fix Jacobian of invariant angular const. law wrapper
+		- allow references in invariant angular const. law wrapper
 
 MBDyn 1.3.2-Beta
 	Enhancements:

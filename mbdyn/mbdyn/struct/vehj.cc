@@ -1647,6 +1647,7 @@ InvAngularConstitutiveLaw::Restart(std::ostream& out) const
 void
 InvAngularConstitutiveLaw::Update(const Vec3& Eps, const Vec3& EpsPrime)
 {
+	// FIXME: EpsPrime should actually be modified
 	pCL->Update(Eps, EpsPrime);
 
 	ConstitutiveLaw<Vec3, Mat3x3>::Epsilon = Eps;
@@ -1664,7 +1665,7 @@ InvAngularConstitutiveLaw::Update(const Vec3& Eps, const Vec3& EpsPrime)
 	Mat3x3 Gx(RotManip::DRot(Tx));
 
 	// re-orientation of moment
-	ConstitutiveLaw<Vec3, Mat3x3>::FDE = Mat3x3(-ConstitutiveLaw<Vec3, Mat3x3>::F)*Gx;
+	ConstitutiveLaw<Vec3, Mat3x3>::FDE = Mat3x3(ConstitutiveLaw<Vec3, Mat3x3>::F*(-dXi))*Gx;
 
 	// stiffness, if any
 	if (pCL->GetConstLawType() & ConstLawType::ELASTIC) {
