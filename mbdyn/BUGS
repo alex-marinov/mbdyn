@@ -28,6 +28,17 @@ http://www.aero.polimi.it
 	- Schur solver seems to have issues in the interface solver,
 	  related to the number of partitions
 
+	- Some versions of g++ 3.2 and 3.3 don't like some perfectly
+	  legal C++ constructs used throughout MBDyn.  Occasionally,
+	  when detected, they are worked around using less clean,
+	  less efficient constructs, typically #ifdef'd with
+	  MBDYN_X_WORKAROUND_GCC_3_2 and MBDYN_X_WORKAROUND_GCC_3_3.
+	  However, since those compiler versions are seldom available,
+	  this issue is no longer consistently checked and worked around.
+	  If you spot more occurrences, as the code evolves, please feel
+	  free to notify it, possibly with a patch that works around
+	  the issue.
+
 HEAD
 	- y12/cc interaction (throws ErrRebuildMatrix)
 	- remove ScalarFilter (obsoleted by state-space SISO)
