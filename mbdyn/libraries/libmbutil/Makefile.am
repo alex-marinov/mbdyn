@@ -18,7 +18,6 @@ gauss.cc \
 gauss.h \
 input.cc \
 input.h \
-llist.cc \
 llist.h \
 llstack.cc \
 llstack.h \
