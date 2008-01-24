@@ -2970,6 +2970,13 @@ and 1 (attached to the second node); a value of 1/2 yields
 the \htmlref{\kw{invariant deformable hinge}}{sec:EL:JOINT:INVDEFORMABLEHINGE}
 joint, but any value is allowed.
 
+Note: the contribution to the Jacobian matrix will be incomplete
+when the underlying constitutive law has a viscous contribution.
+This may slow down convergence, or even prevent it.
+If this is an issue,
+the \htmlref{\kw{invariant deformable hinge}}{sec:EL:JOINT:INVDEFORMABLEHINGE}
+should be used, since it does not suffer from this limitation.
+
 
 
 

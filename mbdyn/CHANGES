@@ -20,6 +20,7 @@ MBDyn 1.X-Devel
 		- add dof description to linear solver diagnostics
 	Backward compatibility issues:
 	Known issues:
+		- document limitation of invariant angular const. law wrapper
 	Bug fixes:
 		- fix Schur matrix/vector handlers destructors
 		- fix solver first step with Schur data manager
