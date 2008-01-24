@@ -1647,9 +1647,7 @@ InvAngularConstitutiveLaw::Restart(std::ostream& out) const
 void
 InvAngularConstitutiveLaw::Update(const Vec3& Eps, const Vec3& EpsPrime)
 {
-	// FIXME: EpsPrime should actually be modified
-	pCL->Update(Eps, EpsPrime);
-
+	// Save Eps, just in case
 	ConstitutiveLaw<Vec3, Mat3x3>::Epsilon = Eps;
 
 	// Theta_xi = Theta * xi
@@ -1657,6 +1655,15 @@ InvAngularConstitutiveLaw::Update(const Vec3& Eps, const Vec3& EpsPrime)
 
 	// R_xi = exp(xi*Theta x)
 	Mat3x3 Rx(RotManip::Rot(Tx));
+
+	// If the underlying CL needs EpsPrime, re-orient it accordingly
+	Vec3 EP;
+	if (pCL->GetConstLawType() & ConstLawType::VISCOUS) {
+		EP = Rx.Transpose()*EpsPrime;
+	}
+
+	// EP is passed uninitialized if the underlying CL has no VISCOUS
+	pCL->Update(Eps, EP);
 
 	// F = R_xi * K * Theta
 	ConstitutiveLaw<Vec3, Mat3x3>::F =  Rx*pCL->GetF();
@@ -1672,7 +1679,7 @@ InvAngularConstitutiveLaw::Update(const Vec3& Eps, const Vec3& EpsPrime)
 		ConstitutiveLaw<Vec3, Mat3x3>::FDE += Rx*pCL->GetFDE();
 	}
 
-	// viscosity, if any
+	// viscosity, if any (FIXME: check)
 	if (pCL->GetConstLawType() & ConstLawType::VISCOUS) {
 		ConstitutiveLaw<Vec3, Mat3x3>::FDEPrime = Rx*pCL->GetFDEPrime();
 	}
