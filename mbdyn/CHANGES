@@ -27,6 +27,7 @@ MBDyn 1.X-Devel
 		- fix array allocation when --enable-debug
 		- fix Jacobian of invariant angular const. law wrapper
 		- allow references in invariant angular const. law wrapper
+		- fix c81 table lookup
 
 MBDyn 1.3.2-Beta
 	Enhancements:

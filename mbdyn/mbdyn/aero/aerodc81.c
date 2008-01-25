@@ -645,52 +645,87 @@ get_coef(int nm, doublereal* m, int na, doublereal* a, doublereal alpha, doubler
 	mach = fabs(mach);
 	
 	/*
-	 * im e' l'indice di m in cui si trova l'approssimazione per eccesso 
-	 * di mach
+	 * im e' l'indice di m in cui si trova
+	 * l'approssimazione per difetto di mach
 	 */
 	im = bisec_d(m, mach, 0, nm - 1);
-	if (im != nm) {
-		im++;
-	}
 	
 	/*
 	 * ia e' l'indice della prima colonna di a in cui si trova
-	 * l'approssimazione per eccesso di alpha
+	 * l'approssimazione per difetto di alpha
 	 */
 	if (c0 != NULL) {
 		ia0 = bisec_d(a, 0., 0, na - 1);
-		if (ia0 != na) {
-			ia0++;
-		}
 	}
 
 	ia = bisec_d(a, alpha, 0, na - 1);
-	if (ia != na) {
-		ia++;
-	}
 
-	/*
-	 * nota: sono stati scartati i casi im == 0 e ia == 0 perche'
-	 * impossibili per vari motivi
-	 */
-	if (im == nm) {
+	if (im == nm - 1) {
 		if (c0 != NULL) {
-			if (ia0 == na) {
+			if (ia0 == na - 1) {
 				*c0 = a[na*(nm + 1) - 1];
+
+			} else if (ia0 == -1) {
+				*c0 = a[na*nm];
+
 			} else {
-				doublereal da = -a[ia0 - 1]/(a[ia0] - a[ia0 - 1]);
+				doublereal da;
+
+				ia0++;
+				da = -a[ia0 - 1]/(a[ia0] - a[ia0 - 1]);
 				*c0 = (1. - da)*a[na*nm + ia0 - 1] + da*a[na*nm + ia0];
 			}
 		}
 		
-		if (ia == na) {
+		if (ia == na - 1) {
 			*c = a[na*(nm + 1) - 1];
+
+		} else if (ia == -1) {
+			*c = a[na*nm];
+
 		} else {
-			doublereal da = (alpha - a[ia - 1])/(a[ia] - a[ia - 1]);
+			doublereal da;
+
+			ia++;
+			da = (alpha - a[ia - 1])/(a[ia] - a[ia - 1]);
 			*c = (1. - da)*a[na*nm + ia - 1] + da*a[na*nm + ia];
 		}
+
+	} else if (im == -1) {
+		if (c0 != NULL) {
+			if (ia0 == na - 1) {
+				*c0 = a[na*2 - 1];
+
+			} else if (ia0 == -1) {
+				*c0 = a[na];
+
+			} else {
+				doublereal da;
+
+				ia0++;
+				da = -a[ia0 - 1]/(a[ia0] - a[ia0 - 1]);
+				*c0 = (1. - da)*a[na + ia0 - 1] + da*a[na + ia0];
+			}
+		}
+		
+		if (ia == na - 1) {
+			*c = a[na*2 - 1];
+
+		} else if (ia == -1) {
+			*c = a[na];
+
+		} else {
+			doublereal da;
+
+			ia++;
+			da = (alpha - a[ia - 1])/(a[ia] - a[ia - 1]);
+			*c = (1. - da)*a[na + ia - 1] + da*a[na + ia];
+		}
+
 	} else {
 		doublereal d;
+
+		im++;
 		d = (mach - m[im - 1])/(m[im] - m[im - 1]);
 
 		if (c0 != NULL) {
@@ -705,10 +740,16 @@ get_coef(int nm, doublereal* m, int na, doublereal* a, doublereal alpha, doubler
 			}
 		}
 
-		if (ia == na) {
+		if (ia == na - 1) {
 			*c = (1. - d)*a[na*(im + 1) - 1] + d*a[na*(im + 2) - 1];
+
+		} else if (ia == -1) {
+			*c = (1. - d)*a[na*im] + d*a[na*(im + 1)];
+
 		} else {
 			doublereal a1, a2, da;
+
+			ia++;
 			a1 = (1. - d)*a[na*im + ia - 1] + d*a[na*(im + 1) + ia - 1];
 			a2 = (1. - d)*a[na*im + ia] + d*a[na*(im + 1) + ia];
 			da = (alpha - a[ia - 1])/(a[ia] - a[ia - 1]);
@@ -731,14 +772,18 @@ get_dcla(int nm, doublereal* m, doublereal* s, doublereal mach)
 	 * di mach
 	 */
 	im = bisec_d(m, mach, 0, nm - 1);
-	if (im != nm) {
-		im++;
-	}
 	
-	if (im == nm) {
+	if (im == nm - 1) {
 		return s[3*nm - 1];
+
+	} else if (im == -1) {
+		return s[2*nm];
+
 	} else {
-		doublereal d = (mach - m[im - 1])/(m[im] - m[im - 1]);
+		doublereal d;
+
+		im++;
+		d = (mach - m[im - 1])/(m[im] - m[im - 1]);
 
 		return (1. - d)*s[2*nm + im - 1] + d*s[2*nm + im];
 	}
