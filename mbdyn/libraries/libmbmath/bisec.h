@@ -46,7 +46,7 @@
  * che approssima per difetto val;
  * se val > v[ub] restituisce ub;
  * se val < v[lb] restituisce lb - 1.
- * quindi v[ret] <= val <= v[ret + 1]
+ * quindi v[ret] <= val < v[ret + 1]
  *
  * Nota: ovviamente si presuppone che i valori di v siano ordinati in modo
  * crescente e strettamente monotono, ovvero v[i] < v[i + 1].
