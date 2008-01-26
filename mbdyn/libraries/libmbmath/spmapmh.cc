@@ -68,7 +68,7 @@
 #include "spmapmh.h"
 
 SpMapMatrixHandler::SpMapMatrixHandler(const integer &n, const integer &nn)
-: SparseMatrixHandler(n, nn)
+: SparseMatrixHandler(n, nn), m_end(*this, true)
 {
 	col_indices.resize(NCols);
 }
@@ -175,22 +175,20 @@ SpMapMatrixHandler::Reset(void)
 void
 SpMapMatrixHandler::Resize(integer n, integer nn)
 {
-	integer nnn;
-
 	if (nn == 0) {
-		nnn = n;
-	} else {
-		nnn = nn;
+		nn = n;
 	}
 
 	for (integer col = 0; col < NCols; col++) {
 		col_indices[col].clear();
 	}
 
-	col_indices.resize(nnn);
+	col_indices.resize(nn);
 	NRows = n;
-	NCols = nnn;
+	NCols = nn;
 	NZ = 0;
+
+	m_end.reset();
 }
 
 /* Estrae una colonna da una matrice */
@@ -376,3 +374,83 @@ SpMapMatrixHandler::MatTVecMul_base(void (VectorHandler::*op)(integer iRow,
 	return out;
 }
 
+void
+SpMapMatrixHandler::const_iterator::reset(bool is_end)
+{
+	if (is_end) {
+		elem.iRow = m.NRows;
+		elem.iCol = m.NCols;
+
+	} else {
+		i = m.col_indices[0].begin();
+		elem.iRow = i->first;
+		elem.iCol = 0;
+		elem.dCoef = i->second;
+	}
+}
+
+SpMapMatrixHandler::const_iterator::const_iterator(const SpMapMatrixHandler& m)
+: m(m), i(m.col_indices[0].begin()), elem(i->first, 0, i->second)
+{
+	NO_OP;
+}
+
+SpMapMatrixHandler::const_iterator::const_iterator(const SpMapMatrixHandler& m, bool)
+: m(m), elem(m.NRows, m.NCols, 0.)
+{
+	NO_OP;
+}
+
+SpMapMatrixHandler::const_iterator::~const_iterator(void)
+{
+	NO_OP;
+}
+
+const SpMapMatrixHandler::const_iterator&
+SpMapMatrixHandler::const_iterator::operator ++ (void) const
+{
+	++i;
+	while (i == m.col_indices[elem.iCol].end()) {
+		if (++elem.iCol == m.NCols) {
+			elem.iRow = m.NRows;
+			return *this;
+		}
+
+		i = m.col_indices[elem.iCol].begin();
+	}
+
+	elem.iRow = i->first;
+	elem.dCoef = i->second;
+
+	return *this;
+}
+
+const SparseMatrixHandler::SparseMatrixElement *
+SpMapMatrixHandler::const_iterator::operator -> (void)
+{
+	return &elem;
+}
+
+const SparseMatrixHandler::SparseMatrixElement&
+SpMapMatrixHandler::const_iterator::operator * (void)
+{
+	return elem;
+}
+
+bool
+SpMapMatrixHandler::const_iterator::operator == (const SpMapMatrixHandler::const_iterator& op) const
+{
+	if (elem.iRow == op.elem.iRow && elem.iCol == op.elem.iCol) {
+		return true;
+	}
+	return false;
+}
+
+bool
+SpMapMatrixHandler::const_iterator::operator != (const SpMapMatrixHandler::const_iterator& op) const
+{
+	if (elem.iRow != op.elem.iRow || elem.iCol != op.elem.iCol) {
+		return true;
+	}
+	return false;
+}

@@ -53,6 +53,18 @@ protected:
 #endif /* DEBUG */
 
 public:
+	struct SparseMatrixElement {
+		integer iRow;
+		integer iCol;
+		doublereal dCoef;
+
+		SparseMatrixElement(void)
+		: iRow(0), iCol(0), dCoef(0.) {};
+		SparseMatrixElement(integer iRow, integer iCol, const doublereal& dCoef)
+		: iRow(iRow), iCol(iCol), dCoef(dCoef) {};
+	};
+
+public:
 	const integer Nz() const {
 		return NZ;
 	};

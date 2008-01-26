@@ -88,9 +88,44 @@ private:
 #endif /* DEBUG */
 
 public:
+	class const_iterator {
+		friend class SpMapMatrixHandler;
+
+	private:
+		const SpMapMatrixHandler& m;
+		mutable row_cont_type::const_iterator i;
+		mutable SparseMatrixHandler::SparseMatrixElement elem;
+
+	protected:
+		void reset(bool is_end = false);
+
+	public:
+		const_iterator(const SpMapMatrixHandler& m);
+		const_iterator(const SpMapMatrixHandler& m, bool);
+		~const_iterator(void);
+		const SpMapMatrixHandler::const_iterator& operator ++ (void) const;
+		const SparseMatrixHandler::SparseMatrixElement* operator -> (void);
+		const SparseMatrixHandler::SparseMatrixElement& operator * (void);
+		bool operator == (const SpMapMatrixHandler::const_iterator& op) const;
+		bool operator != (const SpMapMatrixHandler::const_iterator& op) const;
+	};
+
+private:
+	const_iterator m_end;
+
+public:
+	SpMapMatrixHandler::const_iterator begin(void) const {
+		return const_iterator(*this);
+	};
+
+	const SpMapMatrixHandler::const_iterator& end(void) const {
+		return m_end;
+	};
+
+public:
 	SpMapMatrixHandler(const integer &n = 0,const integer &nn = 0);
 
-	virtual ~SpMapMatrixHandler();
+	virtual ~SpMapMatrixHandler(void);
 
 	doublereal & operator()(integer i_row, integer i_col) {
 		ASSERTMSGBREAK(i_row > 0 && i_row <= NRows,

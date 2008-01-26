@@ -18,6 +18,7 @@ MBDyn 1.X-Devel
 		- add elastic and viscous variants of nlsf/nlp const. laws
 		- add dof/equation description to solution/residual output
 		- add dof description to linear solver diagnostics
+		- add support for octave-compatible sparse matrix output
 	Backward compatibility issues:
 	Known issues:
 		- document limitation of invariant angular const. law wrapper
