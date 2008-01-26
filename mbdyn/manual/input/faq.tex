@@ -193,12 +193,14 @@ of a nonlinear problem does not converge?}
 
 One needs to:
 \begin{enumerate}
-\item find out the equations whose residual does not converge to zero.
+\item \emph{find out the equations whose residual does not converge to zero.}
+
 The residual is printed using the statement
 \begin{verbatim}
     output: residual;
 \end{verbatim}
-in the problem control block described in Chapter~\ref{sec:PROBLEMS}.
+in the problem control block described
+in Section~\ref{sec:PROBLEMS:OUTPUT} of Chapter~\ref{sec:PROBLEMS}.
 Each coefficient is preceded by its number
 and followed by a brief description of which node/element instantiated
 the equation and what its purpose is, if available;
@@ -220,9 +222,10 @@ Eq    12:        0 ModalStructNode(1): moment equilibrium Mz
 corresponds to a residual whose first 12 equations refer to a modal node
 labeled ``1'' (and the residual is exactly zero);
 
-\item find out who instantiated the offending equation or equations.
+\item \emph{find out who instantiated the offending equation or equations.}
+
 If this is not already indicated in the previously mentioned description,
-one should look the offending equation index in the output originated
+one should look up the offending equation index in the output originated
 by adding the statement
 \begin{verbatim}
     print: equation description;
@@ -238,13 +241,13 @@ Structural(1): 12 1->12
         10->12: moment equilibrium [Mx,My,Mz]
 \end{verbatim}
 
-\item find out who could contribute to that equation or equations.
+\item \emph{find out who could contribute to that equation or equations.}
 
 If the equation was instantiated by a node,
 one should look at the elements connected to that node.
 This information is obtained by adding the statement
 \begin{verbatim}
-    print: element connection;
+    print: node connection;
 \end{verbatim}
 in the \kw{control data} block, as described
 in Section~\ref{sec:CONTROLDATA:PRINT}.
@@ -254,8 +257,8 @@ Structural(1) connected to
         Joint(1)
         Joint(2)
 \end{verbatim}
-so one should try to find out which of those elements is generating
-the offending contribution to that equation.
+so one should try to find out which of the connected elements
+is generating the offending contribution to that equation.
 
 If the equation was instantiated by an element, usually the element
 itself is the sole contributor to that equation.

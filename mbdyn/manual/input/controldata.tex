@@ -132,21 +132,34 @@ for backwards compatibility.
         dof stats |
         dof description |
         equation description |
+        description |
         element connection |
+        node connection |
+        connection |
         all |
         none
     } [ , ... ] ;
 \end{verbatim}
-The \kw{dof stats} keyword enables the printing of all potential
-dof owner entities at initial assembly and at regular assembly,
-so that the index of all variables can be easily identified.
-The \kw{dof description} one adds extra variable description.
-The \kw{equation description} one adds extra equation description.
-The \kw{element connection} one prints information
-about element connectivity.
-The \kw{all} one enables all dof statistics printing.
-The \kw{none} disables all dof statistics printing (the default).
-Note that, apart from \kw{none}, the other values are additive, i.e.
+\begin{itemize}
+\item The keyword \kw{dof stats} enables printing of all potential
+	dof owner entities at initial assembly and at regular assembly,
+	so that the index of all variables can be easily identified;
+\item the keyword \kw{dof description} adds extra variable description;
+\item the keyword \kw{equation description} adds extra equation description;
+\item the keyword \kw{description} is a shortcut for both
+	\kw{dof description} and \kw{equation description};
+\item the keyword \kw{element connection} prints information
+	about element connectivity;
+\item the keyword \kw{node connection} prints information
+	about node connectivity;
+\item the keyword \kw{connection} is a shortcut for both
+	\kw{node connection} and \kw{element connection};
+\item the keyword \kw{all} enables all dof statistics printing;
+\item the keyword \kw{none} disables all dof statistics printing
+	(the default).
+\end{itemize}
+Note that, apart from \kw{none}, the other values are additive,
+i.e.\ the statement
 \begin{verbatim}
     print: dof stats;
     print: dof description;
@@ -155,7 +168,7 @@ is equivalent to
 \begin{verbatim}
     print: dof stats, dof description;
 \end{verbatim}
-while a 
+while the statement
 \begin{verbatim}
     print: none;
 \end{verbatim}
