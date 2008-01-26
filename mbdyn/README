@@ -56,7 +56,7 @@ distribution:
 	- follow the above instructions
 	- run "./configure" with the desired options
 	- add version and release date to NEWS
-	- add version and release notes to CHANGELOG
+	- add version and release notes to CHANGES
 	- check BUGS
 	- advance MBDYN_REL_ENG tag after running ./check_cvs.sh
 	- set MBDYN_REL_ENG_<version> tag
