@@ -61,6 +61,8 @@ distribution:
 	- advance MBDYN_REL_ENG tag after running ./check_cvs.sh
 	- set MBDYN_REL_ENG_<version> tag
 	- run "make dist"
+	- update http://www.aero.polimi.it/~mbdyn/ web page 
+	- update http://www.mbdyn.org/ web page
 
 
 
