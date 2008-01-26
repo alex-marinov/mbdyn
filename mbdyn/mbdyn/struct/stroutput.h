@@ -29,11 +29,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef STRINTERP_H
-#define STRINTERP_H
+#ifndef STROUTPUT_H
+#define STROUTPUT_H
 
-#include <nestedelem.h>
-#include <node.h>
+#include "nestedelem.h"
+#include "strnode.h"
+#include "spmapmh.h"
+
+#ifdef USE_X_ANN
+#include "MLS.h"
+#endif // USE_X_ANN
 
 /* Geometry */
 struct Geometry {
@@ -76,6 +81,8 @@ struct GeometryData {
 	std::vector<Geometry> data;
 };
 
+class InterpMethod;
+
 /* StructOutputManip - begin */
 
 class StructOutputManip {
@@ -84,6 +91,7 @@ public:
 
 	virtual ~StructOutputManip(void);
 
+	virtual void ManipulateInit(const GeometryData& data) = 0;
 	virtual void Manipulate(const GeometryData& data) = 0;
 };
 
@@ -118,12 +126,23 @@ public:
 /* StructOutputStart - begin */
 
 class StructOutputStart : virtual public Elem, public NestedElem {
+protected:
+	GeometryData data;
+
 public:
    	StructOutputStart(const Elem *pE);
 
 	virtual ~StructOutputStart(void);
 
-	virtual void Manipulate(const GeometryData& data);
+	virtual void SetValue(DataManager *pDM,
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints *ph = 0);
+
+	virtual void AfterConvergence(const VectorHandler& X, 
+			const VectorHandler& XP);
+
+	virtual void ManipulateInit(void);
+	virtual void Manipulate(void);
 };
 
 /* StructOutputStart - end */
@@ -136,6 +155,7 @@ public:
 
 	virtual ~StructOutput(void);
 
+	virtual void ManipulateInit(const GeometryData& data);
 	virtual void Manipulate(const GeometryData& data);
 };
 
@@ -146,9 +166,7 @@ public:
 class StructOutputCollectBase : virtual public Elem, public StructOutputStart {
 protected:
 	std::vector<const StructNode *> Nodes;
-	GeometryData data;
 
-	// Copiare da strext.cc:Send()
 	virtual void Manipulate_int(void) = 0;
 
 public:
@@ -158,12 +176,8 @@ public:
 
 	virtual ~StructOutputCollectBase(void);
 
-	virtual void SetValue(DataManager *pDM,
-			VectorHandler& X, VectorHandler& XP,
-			SimulationEntity::Hints *ph = 0);
-
-	virtual void AfterConvergence(const VectorHandler& X, 
-			const VectorHandler& XP);
+	virtual void ManipulateInit(void);
+	virtual void Manipulate(void);
 };
 
 /* StructOutputCollectBase - end */
@@ -172,7 +186,6 @@ public:
 
 class StructOutputCollect : virtual public Elem, public StructOutputCollectBase {
 protected:
-	// Copiare da strext.cc:Send()
 	virtual void Manipulate_int(void);
 
 public:
@@ -193,7 +206,6 @@ class StructOutputCollectRelative : virtual public Elem, public StructOutputColl
 protected:
 	const StructNode *pRefNode;
 
-	// Copiare da strext.cc:Send()
 	virtual void Manipulate_int(void);
 
 public:
@@ -213,15 +225,18 @@ public:
 
 class StructOutputInterpBase : virtual public Elem, public StructOutput {
 protected:
-	GeometryData data;
+	GeometryData fem_data;
 
-	virtual void InterpInit(void);
-	virtual void InterpInit_int(void) = 0;
+	virtual void ManipulateInit_int(const GeometryData& mb_data) = 0;
+	virtual void Manipulate_int(const GeometryData& mb_data) = 0;
 
 public:
    	StructOutputInterpBase(const Elem *pE);
 
 	virtual ~StructOutputInterpBase(void);
+
+	virtual void ManipulateInit(const GeometryData& mb_data);
+	virtual void Manipulate(const GeometryData& mb_data);
 };
 
 /* StructOutputInterpBase - end */
@@ -230,35 +245,62 @@ public:
 
 class StructOutputInterp : virtual public Elem, public StructOutputInterpBase {
 protected:
-	virtual void InterpInit_int(void);
+	SpMapMatrixHandler* pH;
+#ifdef USE_X_ANN
+	InterpMethod* pInt;
+#endif // USE_X_ANN
+
+	virtual void ManipulateInit_int(const GeometryData& mb_data);
+	virtual void Manipulate_int(const GeometryData& mb_data);
 
 public:
-   	StructOutputInterp(const Elem *pE);
+   	StructOutputInterp(const Elem *pE,
+		bool bQuad, int RBForder, int NearNodes);
 
 	virtual ~StructOutputInterp(void);
 
 	virtual std::ostream& Restart(std::ostream& out) const;
-
-	virtual void Manipulate(const GeometryData& data);
 };
 
 /* StructOutputInterp - end */
 
 /* StructOutputInterpOP2 - begin */
 
-class StructOutputInterpOP2 : virtual public Elem, public StructOutputInterpBase {
+class StructOutputInterpOP2 : virtual public Elem, public StructOutputInterp {
 protected:
-	virtual void InterpInit_int(void);
+	const std::string infilename;
+
+	virtual void ManipulateInit_int(const GeometryData& mb_data);
 
 public:
-   	StructOutputInterpOP2(const Elem *pE);
+   	StructOutputInterpOP2(const Elem *pE, const std::string& infilename,
+		bool bQuad, int RBForder, int NearNodes);
 
 	virtual ~StructOutputInterpOP2(void);
 
 	virtual std::ostream& Restart(std::ostream& out) const;
 };
 
-/* StructOutputInterp - end */
+/* StructOutputInterpOP2 - end */
+
+/* StructOutputInterpNative - begin */
+
+class StructOutputInterpNative : virtual public Elem, public StructOutputInterp {
+protected:
+	const std::string infilename;
+
+	virtual void ManipulateInit_int(const GeometryData& mb_data);
+
+public:
+   	StructOutputInterpNative(const Elem *pE, const std::string& infilename,
+		bool bQuad, int RBForder, int NearNodes);
+
+	virtual ~StructOutputInterpNative(void);
+
+	virtual std::ostream& Restart(std::ostream& out) const;
+};
+
+/* StructOutputInterpNative - end */
 
 /* StructOutputWriteBase - begin */
 
@@ -284,9 +326,6 @@ class StructOutputWrite : virtual public Elem, public StructOutputWriteBase {
 protected:
 	int iPrecision;
 
-	// Scrive su file "nativo"
-	virtual void Manipulate(const GeometryData& data);
-
 public:
    	StructOutputWrite(unsigned uLabel,
 		const std::string& outfilename,
@@ -297,6 +336,10 @@ public:
 	virtual ~StructOutputWrite(void);
 
 	virtual std::ostream& Restart(std::ostream& out) const;
+
+	// Scrive su file "nativo"
+	virtual void ManipulateInit(const GeometryData& data);
+	virtual void Manipulate(const GeometryData& data);
 };
 
 /* StructOutputWrite - end */
@@ -304,11 +347,6 @@ public:
 /* StructOutputWriteNASTRAN - begin */
 
 class StructOutputWriteNASTRAN : virtual public Elem, public StructOutputWriteBase {
-protected:
-
-	// Scrive su file bulk NASTRAN
-	virtual void Manipulate(const GeometryData& data);
-
 public:
    	StructOutputWriteNASTRAN(unsigned uLabel,
 		const std::string& outfilename,
@@ -318,6 +356,10 @@ public:
 	virtual ~StructOutputWriteNASTRAN(void);
 
 	virtual std::ostream& Restart(std::ostream& out) const;
+
+	// Scrive su file bulk NASTRAN
+	virtual void ManipulateInit(const GeometryData& data);
+	virtual void Manipulate(const GeometryData& data);
 };
 
 /* StructOutputWriteNASTRAN - end */
@@ -328,5 +370,5 @@ class MBDynParser;
 extern Elem *
 ReadStructOutput(DataManager *pDM, MBDynParser& HP, unsigned int uLabel);
 
-#endif // STRINTERP_H
+#endif // STROUTPUT_H
 

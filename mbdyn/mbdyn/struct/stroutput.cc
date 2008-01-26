@@ -103,7 +103,13 @@ StructOutputEnd::AssJac(VariableSubMatrixHandler& WorkMat,
 /* StructOutputStart - begin */
 
 void
-StructOutputStart::Manipulate(const GeometryData& data)
+StructOutputStart::ManipulateInit(void)
+{
+	dynamic_cast<StructOutputManip *>(pElem)->ManipulateInit(data);
+}
+
+void
+StructOutputStart::Manipulate(void)
 {
 	dynamic_cast<StructOutputManip *>(pElem)->Manipulate(data);
 }
@@ -120,9 +126,31 @@ StructOutputStart::~StructOutputStart(void)
 	NO_OP;
 }
 
-/* StructOutput - end */
+void
+StructOutputStart::SetValue(DataManager *pDM,
+	VectorHandler& X, VectorHandler& XP,
+	SimulationEntity::Hints *ph)
+{	
+	ManipulateInit();
+	NestedElem::SetValue(pDM, X, XP, ph);
+}
+
+void
+StructOutputStart::AfterConvergence(const VectorHandler& X, 
+		const VectorHandler& XP)
+{
+	Manipulate();
+}
+
+/* StructOutputStart - end */
 
 /* StructOutput - begin */
+
+void
+StructOutput::ManipulateInit(const GeometryData& data)
+{
+	dynamic_cast<StructOutputManip *>(pElem)->ManipulateInit(data);
+}
 
 void
 StructOutput::Manipulate(const GeometryData& data)
@@ -169,18 +197,17 @@ StructOutputCollectBase::~StructOutputCollectBase(void)
 }
 
 void
-StructOutputCollectBase::SetValue(DataManager *pDM,
-	VectorHandler& X, VectorHandler& XP,
-	SimulationEntity::Hints *ph)
+StructOutputCollectBase::ManipulateInit(void)
 {
 	Manipulate_int();
+	StructOutputStart::ManipulateInit();
 }
 
 void
-StructOutputCollectBase::AfterConvergence(const VectorHandler& X, 
-		const VectorHandler& XP)
+StructOutputCollectBase::Manipulate(void)
 {
 	Manipulate_int();
+	StructOutputStart::Manipulate();
 }
 
 void
@@ -223,8 +250,7 @@ StructOutputCollect::Manipulate_int(void)
 			data.data[i].WP = Nodes[i]->GetWPCurr();
 		}
 	}
-
-	StructOutputStart::Manipulate(data);
+	
 }
 
 StructOutputCollect::StructOutputCollect(const Elem *pE,
@@ -312,8 +338,6 @@ StructOutputCollectRelative::Manipulate_int(void)
 			data.data[i].WP = RRefT*Nodes[i]->GetWPCurr();
 		}
 	}
-
-	StructOutputStart::Manipulate(data);
 }
 
 StructOutputCollectRelative::StructOutputCollectRelative(const Elem *pE,
@@ -382,12 +406,27 @@ ReadStructOutputCollect(DataManager *pDM, MBDynParser& HP, const Elem *pNestedEl
 /* StructOutputInterpBase - begin */
 
 void
-StructOutputInterpBase::InterpInit(void)
+StructOutputInterpBase::ManipulateInit(const GeometryData& mb_data)
 {
+	
 	// gather interpolation data
-	InterpInit_int();
+	ManipulateInit_int(mb_data);
 
-	// initialize interpolation data
+	// propago i dati interpolati
+	StructOutput::ManipulateInit(fem_data);
+
+}
+
+void
+StructOutputInterpBase::Manipulate(const GeometryData& mb_data)
+{
+       
+	// manipulate data
+	Manipulate_int(mb_data);
+
+	// propago i dati interpolati
+	StructOutput::Manipulate(fem_data);
+
 }
 
 StructOutputInterpBase::StructOutputInterpBase(const Elem *pE)
@@ -407,16 +446,44 @@ StructOutputInterpBase::~StructOutputInterpBase(void)
 /* StructOutputInterp - begin */
 
 void
-StructOutputInterp::InterpInit_int(void)
+StructOutputInterp::ManipulateInit_int(const GeometryData& mb_data)
 {
-	NO_OP;
+
+	// use orig_data and fem_data to cook interpolation matrix
+	std::cout << "Interpolation matrix computation" << std::endl;
+	std::cout << "mb_data.size=" << mb_data.data.size()
+		<< " fem_data.size=" << fem_data.data.size() << std::endl;
+
+	// Allocating matrix H
+	SAFENEWWITHCONSTRUCTOR(pH, SpMapMatrixHandler ,
+		SpMapMatrixHandler(fem_data.data.size() , mb_data.data.size()));
+
+	// Computing matrix H
+	std::cout << "Interpolation matrix: " << pH->iGetNumRows() << " x " << pH->iGetNumCols() << std::endl;
+
+#ifdef USE_X_ANN
+	pInt->Interpolate(FemData, data, pH);
+#endif // USE_X_ANN
 }
 
-StructOutputInterp::StructOutputInterp(const Elem *pE)
+void
+StructOutputInterp::Manipulate_int(const GeometryData& mb_data)
+{
+
+	// fem_data = matrix * mb_data
+}
+
+StructOutputInterp::StructOutputInterp(const Elem *pE,
+	bool bQuad,
+	int RBForder,
+	int NearNodes)
 : Elem(pE->GetLabel(), pE->fToBeOutput()),
 StructOutputInterpBase(pE)
 {
-	NO_OP;
+#ifdef USE_X_ANN
+	SAFENEWWITHCONSTRUCTOR(pInt, MLSP ,
+		MLSP(NearNodes, RBForder, bQuad));
+#endif // USE_X_ANN
 }
 
 StructOutputInterp::~StructOutputInterp(void)
@@ -431,28 +498,33 @@ StructOutputInterp::Restart(std::ostream& out) const
 		"not implemented yet!" << std::endl;
 }
 
-void
-StructOutputInterp::Manipulate(const GeometryData& orig_data)
-{
-	// do the interpolation at each call
-
-	StructOutput::Manipulate(data);
-}
-
 /* StructOutputInterp - end */
 
 /* StructOutputInterpOP2 - begin */
 
 void
-StructOutputInterpOP2::InterpInit_int(void)
+StructOutputInterpOP2::ManipulateInit_int(const GeometryData& mb_data)
 {
 	// read op2 file
-	NO_OP;
+	std::ifstream inf(infilename.c_str());
+	if (!inf) {
+		silent_cerr("StructOutputWrite(" << GetLabel() << "): "
+			"unable to open input file \"" << infilename << "\""
+			<< std::endl);
+		throw ErrGeneric();
+	}
+	std::cout << "letto il file..." << std::endl;
+	StructOutputInterp::ManipulateInit_int(fem_data);
 }
 
-StructOutputInterpOP2::StructOutputInterpOP2(const Elem *pE)
+StructOutputInterpOP2::StructOutputInterpOP2(const Elem *pE,
+					const std::string& infilename,
+					bool bQuad,
+					int RBForder,
+					int NearNodes)
 : Elem(pE->GetLabel(), pE->fToBeOutput()),
-StructOutputInterpBase(pE)
+StructOutputInterp(pE, bQuad, RBForder, NearNodes),
+infilename(infilename)
 {
 	NO_OP;
 }
@@ -469,19 +541,169 @@ StructOutputInterpOP2::Restart(std::ostream& out) const
 		"not implemented yet!" << std::endl;
 }
 
+/* StrucitOutputInterpOP2 - end */
+
+/* StructOutputInterpNative - begin */
+
+void
+StructOutputInterpNative::ManipulateInit_int(const GeometryData& mb_data)
+{
+
+	int Nnod;
+
+	fem_data.uFlags = GeometryData::X;
+	
+	// read plain ASCII file
+	std::ifstream inf(infilename.c_str());
+	if (!inf) {
+		silent_cerr("StructOutputWrite(" << GetLabel() << "): "
+			"unable to open input file \"" << infilename << "\""
+			<< std::endl);
+		throw ErrGeneric();
+	}
+
+	// start reading
+	inf >> Nnod;
+
+	silent_cout("StructOutputWrite(" << GetLabel() << "): "
+		"Nnod=" << Nnod << std::endl);
+
+	fem_data.data.resize(Nnod);
+	for (int i = 0; i < Nnod ; i++) {
+		inf >> fem_data.data[i].uLabel
+			>> fem_data.data[i].X(1)
+			>> fem_data.data[i].X(2)
+			>> fem_data.data[i].X(3);
+
+		silent_cout("StructOutputWrite(" << GetLabel() << "): "
+			"Node[" << i << "]: "
+			<< fem_data.data[i].uLabel
+			<< " " << fem_data.data[i].X << std::endl);
+	}
+
+	StructOutputInterp::ManipulateInit_int(fem_data);
+}
+
+StructOutputInterpNative::StructOutputInterpNative(const Elem *pE,
+					const std::string& infilename,
+					bool bQuad,
+					int RBForder,
+					int NearNodes)
+: Elem(pE->GetLabel(), pE->fToBeOutput()),
+StructOutputInterp(pE, bQuad, RBForder, NearNodes),
+infilename(infilename)
+{
+	NO_OP;
+}
+
+StructOutputInterpNative::~StructOutputInterpNative(void)
+{
+	NO_OP;
+}
+
+std::ostream&
+StructOutputInterpNative::Restart(std::ostream& out) const
+{
+	return out << "# StructOutputInterpOP2(" << GetLabel() << "): "
+		"not implemented yet!" << std::endl;
+}
+
+/* StructOutputInterpOP2 - end */
+
 static Elem *
 ReadStructOutputInterp(DataManager *pDM, MBDynParser& HP, const Elem *pNestedElem)
 {
+#ifndef USE_X_ANN
+	silent_cerr("StructOutputInterp(" << pNestedElem->GetLabel() << "): "
+		"need libANN..." << std::endl);
+#endif // ! USE_X_ANN
+
+	bool bOp2;
+	if (HP.IsKeyWord("OP2")) {
+		bOp2 = true;
+
+	} else if (HP.IsKeyWord("native")) {
+		bOp2 = false;
+
+	} else {
+		silent_cerr("StructOutputInterp(" << pNestedElem->GetLabel() << "): "
+			"illegal input file format"
+			" at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric();
+	}
+
 	// collect parameters and pass to constructor
+	const char *s = HP.GetFileName();
+	
+	if (s == 0) {
+		silent_cerr("StructOutputInterp(" << pNestedElem->GetLabel() << "): "
+			"unable to read input file name "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric();
+	}
+
+	std::string infilename(s);
+
+	bool bQuad;
+	if (HP.IsKeyWord("quadratic")) {
+		bQuad = true;
+
+	} else if (HP.IsKeyWord("linear")) {
+		bQuad = false;
+
+	} else {
+		silent_cerr("StructOutputInterp(" << pNestedElem->GetLabel() << "): "
+			"illegal interpolation order"
+			" at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric();
+	}
+
+	int RBForder = HP.GetInt();
+	switch (RBForder) {
+		case 0:
+		case 2:
+		case 4:
+			break;
+
+		default:
+			silent_cerr("StructOutputInterp(" << pNestedElem->GetLabel() << "): "
+				"illegal RBF order"
+				" at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric();
+	}
+
+	int NearNodes = HP.GetInt();
+	if (NearNodes <= 0) {
+		silent_cerr("StructOutputInterp(" << pNestedElem->GetLabel() << "): "
+			"illegal interpolation order"
+			" at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric();
+
+	} else if (bQuad && NearNodes < 10) {
+		silent_cerr("Insufficient near nodes for quadratic interpolation: "
+			"increasing to 10" << std::endl);
+		NearNodes = 10;
+
+	} else if (!bQuad && NearNodes < 4) {
+		silent_cerr("Insufficient near nodes for linear interpolation: "
+		"increasing to 4" << std::endl);
+		NearNodes = 4;
+	}
 
 	Elem *pEl = 0;
-	SAFENEWWITHCONSTRUCTOR(pEl, StructOutputInterpOP2,
-		StructOutputInterpOP2(pNestedElem));
+	if (bOp2) {
+		SAFENEWWITHCONSTRUCTOR(pEl, StructOutputInterpOP2,
+			StructOutputInterpOP2(pNestedElem, infilename,
+				bQuad, RBForder, NearNodes));
+
+	} else {
+		SAFENEWWITHCONSTRUCTOR(pEl, StructOutputInterpNative,
+			StructOutputInterpNative(pNestedElem, infilename,
+				bQuad, RBForder, NearNodes));
+	}
 
 	return pEl;
 }
-
-/* StructOutputInterp - end */
 
 /* StructOutputWrite - begin */
 
@@ -505,6 +727,12 @@ StructOutputWriteBase::~StructOutputWriteBase(void)
 /* StructOutputWriteBase - end */
 
 /* StructOutputWrite - begin */
+
+void
+StructOutputWrite::ManipulateInit(const GeometryData& data)
+{
+	NO_OP;
+}
 
 void
 StructOutputWrite::Manipulate(const GeometryData& data)
@@ -678,6 +906,12 @@ ReadStructOutputWrite(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 /* StructOutputWriteNASTRAN - begin */
 
 void
+StructOutputWriteNASTRAN::ManipulateInit(const GeometryData& data)
+{
+	NO_OP;
+}
+
+void
 StructOutputWriteNASTRAN::Manipulate(const GeometryData& data)
 {
 	NO_OP;
@@ -740,7 +974,7 @@ ReadStructOutput(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		// Put manip types here
 		if (HP.IsKeyWord("interpolate")) {
 			pEl = ReadStructOutputInterp(pDM, HP, pEl);
-
+		 
 		// Add other manip types here...
 
 		// Put start types here
