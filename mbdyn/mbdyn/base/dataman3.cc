@@ -719,8 +719,17 @@ EndOfUse:
 				} else if (HP.IsKeyWord("equation" "description")) {
 					uPrintFlags |= (PRINT_DOF_STATS | PRINT_EQ_DESCRIPTION);
 
+				} else if (HP.IsKeyWord("description")) {
+					uPrintFlags |= (PRINT_DOF_STATS | PRINT_DESCRIPTION);
+
 				} else if (HP.IsKeyWord("element" "connection")) {
 					uPrintFlags |= PRINT_EL_CONNECTION;
+
+				} else if (HP.IsKeyWord("node" "connection")) {
+					uPrintFlags |= PRINT_NODE_CONNECTION;
+
+				} else if (HP.IsKeyWord("connection")) {
+					uPrintFlags |= PRINT_CONNECTION;
 
 				} else if (HP.IsKeyWord("all")) {
 					uPrintFlags = ~PRINT_NONE;
