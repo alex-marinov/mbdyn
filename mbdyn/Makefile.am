@@ -3,7 +3,7 @@ include $(top_srcdir)/build/top.mk
 ## Process this file with automake to produce Makefile.in
 ## Do not forget to run automake ( --add-missing ) when you modify Makefile.am
 
-EXTRA_DIST = CHANGELOG \
+EXTRA_DIST = CHANGES \
 contrib/SimulinkInterface/Makefile \
 contrib/SimulinkInterface/MBDynCom.mdl \
 contrib/SimulinkInterface/README \
