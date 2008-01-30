@@ -43,16 +43,17 @@
 
 /* Costruttore non banale */
 GimbalRotationJoint::GimbalRotationJoint(unsigned int uL,
-				 const DofOwner* pDO,
-				 const StructNode* pN1,
-				 const StructNode* pN2,
-				 const Mat3x3& R1,
-				 const Mat3x3& R2,
-				 flag fOut)
+	const DofOwner* pDO,
+	const StructNode* pN1,
+	const StructNode* pN2,
+	const Mat3x3& R1,
+	const Mat3x3& R2,
+	const OrientationDescription& od,
+	flag fOut)
 : Elem(uL, fOut),
 Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2), R1h(R1), R2h(R2),
-M(0.), dTheta(0.), dPhi(0.)
+M(0.), dTheta(0.), dPhi(0.), od(od)
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode2 != NULL);
@@ -89,10 +90,34 @@ GimbalRotationJoint::Output(OutputHandler& OH) const
 	if (fToBeOutput()) {
 		Mat3x3 Ra(pNode1->GetRCurr());
 
-		Vec3 d(MatR2EulerAngles(pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()));
-		Joint::Output(OH.Joints(), "Gimbal", GetLabel(),
+		// TODO: allow to customize orientation description
+		Mat3x3 R(pNode1->GetRCurr().Transpose()*pNode2->GetRCurr());
+
+		std::ostream& out = OH.Joints();
+
+		Joint::Output(out, "Gimbal", GetLabel(),
 				Zero3, M, Zero3, Ra*M)
-			<< " " << dTheta << " " << dPhi << std::endl;
+			<< " " << dTheta << " " << dPhi << " ";
+
+		switch (od) {
+		case EULER_123:
+			out << MatR2EulerAngles(R)*dRaDegr;
+			break;
+
+		case ORIENTATION_VECTOR:
+			out << RotManip::VecRot(R);
+			break;
+
+		case ORIENTATION_MATRIX:
+			out << R;
+			break;
+
+		default:
+			/* impossible */
+			break;
+		}
+
+		out << std::endl;
 	}
 }
 

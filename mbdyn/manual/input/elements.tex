@@ -3423,7 +3423,14 @@ See the technical manual for details.
 The \kw{gimbal rotation} joint outputs the three components
 of the reaction couple in the local frame (that of node 1) 
 and in the global frame.
+
 The extra columns 14 and 15 contain the angles $\vartheta$ and $\varphi$.
+The extra columns from 16 on contain the relative rotation
+between nodes 1 and 2, in the format determined either by an explicit
+selection of the orientation description, or by the default
+orientation description defined by the 
+\hyperref{\kw{default orientation} keyword}{\kw{default orientation} keyword (see Section~}{)}{sec:CONTROLDATA:DEFAULTORIENTATION}.
+
 The three components of the reaction couple in the local frame, 
 and the angles $\vartheta$ and $\varphi$ are also available
 as private data of the element under the names \kw{lambda[1-3]},

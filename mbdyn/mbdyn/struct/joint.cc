@@ -694,6 +694,16 @@ ReadJoint(DataManager* pDM,
 			pDC = HP.GetDriveCaller();
 		}
 
+		OrientationDescription od = UNKNOWN_ORIENTATION_DESCRIPTION;
+		switch (CurrKeyWord) {
+		case GIMBALROTATION:
+			od = ReadOptionalOrientationDescription(pDM, HP);
+			break;
+
+		default:
+			break;
+		}
+
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
 
 		switch (CurrKeyWord) {
@@ -869,7 +879,7 @@ ReadJoint(DataManager* pDM,
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				GimbalRotationJoint,
 				GimbalRotationJoint(uLabel, pDO,
-					pNode1, pNode2, R1h, R2h, fOut));
+					pNode1, pNode2, R1h, R2h, od, fOut));
 			} break;
 
 		/* allocazione e creazione pattino */

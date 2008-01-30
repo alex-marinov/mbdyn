@@ -52,18 +52,21 @@ protected:
 	Vec3 M;
 	doublereal dTheta, dPhi;
 
+	OrientationDescription od;
+
 	void AssMat(FullSubMatrixHandler& WM, doublereal dCoef);
 	void AssVec(SubVectorHandler& WorkVec, doublereal dCoef);
 
 public:
 		/* Costruttore non banale */
 	GimbalRotationJoint(unsigned int uL,	       
-			const DofOwner* pDO,
-			const StructNode* pN1, 
-			const StructNode* pN2,
-			const Mat3x3& R1,
-			const Mat3x3& R2, 
-			flag fOut);
+		const DofOwner* pDO,
+		const StructNode* pN1, 
+		const StructNode* pN2,
+		const Mat3x3& R1,
+		const Mat3x3& R2, 
+		const OrientationDescription& od,
+		flag fOut);
 
 	/* Distruttore */
 	virtual ~GimbalRotationJoint(void);
