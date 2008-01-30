@@ -2489,3 +2489,20 @@ ReadOrientationDescription(MBDynParser& HP)
 	return dod;
 }
 
+OrientationDescription
+ReadOptionalOrientationDescription(DataManager *pDM, MBDynParser& HP)
+{
+	OrientationDescription dod = UNKNOWN_ORIENTATION_DESCRIPTION;
+
+	if (HP.IsKeyWord("orientation" "description")) {
+		dod = ReadOrientationDescription(HP);
+
+	} else if (dod == UNKNOWN_ORIENTATION_DESCRIPTION && pDM != 0) {
+		/* get a sane default */
+		dod = pDM->GetOrientationDescription();
+	}
+
+	return dod;
+}
+
+

@@ -2718,22 +2718,6 @@ PivotRelFrameDummyStructNode::Update(const VectorHandler& /* X */ ,
 
 /* Legge un nodo strutturale */
 
-OrientationDescription
-ReadNodeOrientationDescription(DataManager *pDM, MBDynParser& HP)
-{
-	OrientationDescription dod = UNKNOWN_ORIENTATION_DESCRIPTION;
-
-	if (HP.IsKeyWord("orientation" "description")) {
-		dod = ReadOrientationDescription(HP);
-
-	} else if (dod == UNKNOWN_ORIENTATION_DESCRIPTION && pDM != 0) {
-		/* get a sane default */
-		dod = pDM->GetOrientationDescription();
-	}
-
-	return dod;
-}
-
 Node*
 ReadStructNode(DataManager* pDM,
 	MBDynParser& HP,
@@ -2812,7 +2796,7 @@ ReadStructNode(DataManager* pDM,
 			Vec3 f(HP.GetPosRel(RF));
 			Mat3x3 R(HP.GetRotRel(RF));
 
-			od = ReadNodeOrientationDescription(pDM, HP);
+			od = ReadOptionalOrientationDescription(pDM, HP);
 
 			flag fOut = pDM->fReadOutput(HP, Node::STRUCTURAL);
 			SAFENEWWITHCONSTRUCTOR(pNd,
@@ -2836,7 +2820,7 @@ ReadStructNode(DataManager* pDM,
 				Rh = HP.GetRotRel(RF);
 			}
 
-			od = ReadNodeOrientationDescription(pDM, HP);
+			od = ReadOptionalOrientationDescription(pDM, HP);
 
 			StructNode *pNodeRef2 = 0;
 			Vec3 fh2(Zero3);
@@ -2967,7 +2951,7 @@ ReadStructNode(DataManager* pDM,
 
 		pDO->SetScale(pDM->dReadScale(HP, DofOwner::STRUCTURALNODE));
 
-		od = ReadNodeOrientationDescription(pDM, HP);
+		od = ReadOptionalOrientationDescription(pDM, HP);
 
 		flag fOut = pDM->fReadOutput(HP, Node::STRUCTURAL);
 		if ((CurrType == DYNAMIC && HP.IsArg() && HP.IsKeyWord("accelerations"))

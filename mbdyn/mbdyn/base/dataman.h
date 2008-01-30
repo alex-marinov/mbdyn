@@ -780,6 +780,9 @@ ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder);
 extern OrientationDescription
 ReadOrientationDescription(MBDynParser& HP);
 
+extern OrientationDescription
+ReadOptionalOrientationDescription(DataManager *pDM, MBDynParser& HP);
+
 extern Shape* ReadShape(MBDynParser& HP);
 
 #endif /* DATAMAN_H */
