@@ -3397,13 +3397,17 @@ and a
 to emulate.
 
 \subsection{Gimbal rotation}\label{sec:EL:JOINT:GIMBALROTATION}
-A constant velocity joint without position constraints;
+A homokinetic joint without position constraints;
 this joint, in conjunction with a
 \hyperref{\kw{spherical hinge}}{\kw{spherical hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:SPHERICAL_HINGE}
 joint, should be used to implement an ideal tiltrotor gimbal
 instead of a
 \hyperref{\kw{universal rotation}}{\kw{universal rotation} (see Section~}{)}{sec:EL:STRUCT:JOINT:UNIVERSAL_ROTATION}.
 See the technical manual for details.
+It is equivalent to a series of two Cardano's joints
+(the \hyperref{\kw{universal hinge}}{\kw{universal hinge}, see Section~}{}{sec:EL:STRUCT:JOINT:UNIVERSAL_HINGE})
+rotated 90 degrees apart, each accounting for half the relative rotation
+between axis 3 of each side of the joint.
 \begin{verbatim}
     <joint_type> ::= gimbal rotation
     <joint_arglist> ::= 
@@ -3413,6 +3417,8 @@ See the technical manual for details.
         <node_2>
         [ , hinge , 
             (OrientationMatrix) <relative_orientation_matrix_2> ]
+        [ , orientation description ,
+            { euler123 | orientation vector | orientation matrix } ]
 \end{verbatim}
 {\em
     Note: this joint allows nodes 1 and 2 to rotate about relative 
@@ -4388,7 +4394,7 @@ the hint is passed to the Vec3 drive hint parser.
 
 \subsection{Universal hinge}
 \label{sec:EL:STRUCT:JOINT:UNIVERSAL_HINGE}
-This joint implements a ``Cardano'' joint, which is made of a sequence
+This joint implements a Cardano's joint, which is made of a sequence
 of two revolute hinges orthogonal to each other, one about relative axis 2
 and one about relative axis 3 of the reference systems
 defined by the two \kw{hinge} statements.
