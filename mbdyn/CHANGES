@@ -11,6 +11,7 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 MBDyn 1.X-Devel
 	Enhancements:
+		- configurable orientation output for gimbal rotation joint
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
