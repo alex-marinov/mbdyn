@@ -1073,7 +1073,7 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 
 			Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
 			Mat3x3 RDelta = R1r.Transpose()*R2r*R0T;
-			Vec3 ThetaDelta = RotManip::VecRot(RDelta);
+			ThetaDelta = RotManip::VecRot(RDelta);
 	
 			/* Position constraint  */
 			for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
@@ -2515,7 +2515,7 @@ TotalPinJoint::AssRes(SubVectorHandler& WorkVec,
 			for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
 				WorkVec.PutCoef(1 + iCnt, -(XDelta(iPosIncid[iCnt])));
 			}
-		
+
 			/* Rotation constraints: */
 			for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
 				WorkVec.PutCoef(1 + nPosConstraints + iCnt, -(ThetaDelta(iRotIncid[iCnt])));
@@ -2558,7 +2558,7 @@ TotalPinJoint::AssRes(SubVectorHandler& WorkVec,
 			
 			Vec3 fn(pNode->GetRCurr()*tilde_fn);
 			
-			Tmp += - (Mat3x3(pNode->GetWCurr()))*(Mat3x3(pNode->GetWCurr())*fn);
+			Tmp -=  (Mat3x3(pNode->GetWCurr()))*(Mat3x3(pNode->GetWCurr())*fn);
 
 			/* Position constraint second derivative  */
 			for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
@@ -2900,6 +2900,11 @@ TotalPinJoint::iGetPrivDataIdx(const char *s) const
 		off += 15;
 		break;
 
+	case 'W':
+		/* relative angular velocity */
+		off += 18;
+		break;
+
 	default:
 		return 0;
 	}
@@ -2961,6 +2966,13 @@ TotalPinJoint::dGetPrivData(unsigned int i) const
 			return 0.;
 		}
 		return ThetaDrv.Get()(i - 15);
+	case 19: 
+	case 20: 
+	case 21: 
+		{
+		Vec3 W(RchrT*pNode->GetWCurr());
+			return W(i-18);
+		}
 
 	default:
 		ASSERT(0);
