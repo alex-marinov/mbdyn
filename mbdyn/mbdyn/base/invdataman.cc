@@ -168,6 +168,7 @@ DataManager::AssRes(VectorHandler& ResHdl,
 	const Elem::Type ElemType[] = {
 		Elem::BODY,
 		Elem::BEAM,
+		Elem::FORCE,
 
 		Elem::LASTELEMTYPE
 	};

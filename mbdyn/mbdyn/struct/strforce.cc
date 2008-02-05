@@ -164,6 +164,40 @@ SubVectorHandler& ConservativeForce::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+/* Inverse Dynamics*/
+SubVectorHandler&
+ConservativeForce::AssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ ,
+	const VectorHandler& /* XPrimePrimeCurr */ ,
+	int iOrder)
+{
+   DEBUGCOUT("Entering ConservativeForce::AssRes()" << std::endl);
+
+   integer iNumRows;
+   integer iNumCols;
+   WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.ResizeReset(iNumRows);
+
+   /* Dati */
+   
+   doublereal dAmplitude = pGetDriveCaller()->dGet();
+   
+   /* Indici delle incognite del nodo */
+   integer iFirstMomentumIndex = pNode->iGetFirstPositionIndex();
+   for (integer iCnt = 1; iCnt <= 6; iCnt++) {
+      WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
+   }   
+   
+   Mat3x3 R(pNode->GetRCurr());
+   Vec3 F(Dir*dAmplitude);
+   Vec3 M((R*Arm).Cross(F));
+   
+   WorkVec.Add(1, F);
+   WorkVec.Add(4, M);
+
+   return WorkVec;
+}
 
 void ConservativeForce::Output(OutputHandler& OH) const 
 {
@@ -361,6 +395,43 @@ SubVectorHandler& FollowerForce::AssRes(SubVectorHandler& WorkVec,
 }
 
 
+/* Inverse Dynamics*/
+SubVectorHandler&
+FollowerForce::AssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ ,
+	const VectorHandler& /* XPrimePrimeCurr */ ,
+	int iOrder)
+{
+   DEBUGCOUT("Entering FollowerForce::AssRes()" << std::endl);
+   
+   integer iNumRows;
+   integer iNumCols;
+   WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.ResizeReset(iNumRows);
+   
+   /* Dati */
+   
+   doublereal dAmplitude = pGetDriveCaller()->dGet();
+   
+   /* Indici delle incognite del nodo */
+   integer iFirstMomentumIndex = pNode->iGetFirstPositionIndex();
+   for (integer iCnt = 1; iCnt <= 6; iCnt++) {
+      WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
+   }   
+   
+   Mat3x3 R(pNode->GetRCurr());
+   Vec3 TmpDir = Dir*dAmplitude;
+   Vec3 F(R*TmpDir);
+   Vec3 M(R*Arm.Cross(TmpDir));
+   
+   WorkVec.Add(1, F);
+   WorkVec.Add(4, M);
+
+   return WorkVec;
+}
+
+
 void FollowerForce::Output(OutputHandler& OH) const 
 {   
    if (fToBeOutput()) {
@@ -513,6 +584,36 @@ SubVectorHandler& ConservativeCouple::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+/* Inverse Dynamics*/
+SubVectorHandler&
+ConservativeCouple::AssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ ,
+	const VectorHandler& /* XPrimePrimeCurr */ ,
+	int iOrder)
+{
+   DEBUGCOUT("Entering ConservativeCouple::AssRes()" << std::endl);
+
+   integer iNumRows;
+   integer iNumCols;
+   WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.ResizeReset(iNumRows);
+
+   /* Dati */
+   
+   doublereal dAmplitude = pGetDriveCaller()->dGet();
+   
+   /* Indici delle incognite del nodo */
+   integer iFirstMomentumIndex = pNode->iGetFirstPositionIndex()+3;
+   for (integer iCnt = 1; iCnt <= 3; iCnt++) {
+      WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
+   }   
+   
+   WorkVec.Add(1, Dir*dAmplitude);
+
+   return WorkVec;
+}
+
 
 void ConservativeCouple::Output(OutputHandler& OH) const 
 {   
@@ -639,6 +740,37 @@ SubVectorHandler& FollowerCouple::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+
+/* Inverse Dynamics*/
+SubVectorHandler&
+FollowerCouple::AssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ ,
+	const VectorHandler& /* XPrimePrimeCurr */ ,
+	int iOrder)
+{
+   DEBUGCOUT("Entering FollowerCouple::AssRes()" << std::endl);
+   
+   integer iNumRows;
+   integer iNumCols;
+   WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.ResizeReset(iNumRows);
+   
+   /* Dati */
+   
+   doublereal dAmplitude = pGetDriveCaller()->dGet();
+   
+   /* Indici delle incognite del nodo */
+   integer iFirstMomentumIndex = pNode->iGetFirstPositionIndex()+3;
+   for (integer iCnt = 1; iCnt <= 3; iCnt++) {
+      WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
+   }
+       
+   Mat3x3 R(pNode->GetRCurr());
+   WorkVec.Add(1, (R*Dir)*dAmplitude);
+   
+   return WorkVec;
+}
 
 void FollowerCouple::Output(OutputHandler& OH) const 
 {   
@@ -850,6 +982,45 @@ ConservativeInternalForce::AssRes(SubVectorHandler& WorkVec,
    /* Indici delle incognite del nodo */
    integer iFirstMomentumIndex1 = pNode1->iGetFirstMomentumIndex();
    integer iFirstMomentumIndex2 = pNode2->iGetFirstMomentumIndex();
+   for (integer iCnt = 1; iCnt <= 6; iCnt++) {
+      WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex1+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iFirstMomentumIndex2+iCnt);
+   }   
+   
+   Vec3 F(Dir*dAmplitude);
+   Vec3 M1((pNode1->GetRCurr()*Arm1).Cross(F));
+   Vec3 M2(F.Cross(pNode2->GetRCurr()*Arm1));	/* - x2 /\ F */
+   
+   WorkVec.Add(1, F);
+   WorkVec.Add(4, M1);
+   WorkVec.Sub(7, F);
+   WorkVec.Sub(10, M2);
+
+   return WorkVec;
+}
+
+/* Inverse Dynamics*/
+SubVectorHandler&
+ConservativeInternalForce::AssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ ,
+	const VectorHandler& /* XPrimePrimeCurr */ ,
+	int iOrder)
+{
+   DEBUGCOUT("Entering ConservativeInternalForce::AssRes()" << std::endl);
+
+   integer iNumRows;
+   integer iNumCols;
+   WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.ResizeReset(iNumRows);
+
+   /* Dati */
+   
+   doublereal dAmplitude = pGetDriveCaller()->dGet();
+   
+   /* Indici delle incognite del nodo */
+   integer iFirstMomentumIndex1 = pNode1->iGetFirstPositionIndex();
+   integer iFirstMomentumIndex2 = pNode2->iGetFirstPositionIndex();
    for (integer iCnt = 1; iCnt <= 6; iCnt++) {
       WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex1+iCnt);
       WorkVec.PutRowIndex(6+iCnt, iFirstMomentumIndex2+iCnt);
@@ -1118,6 +1289,46 @@ FollowerInternalForce::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+/* Inverse Dynamics*/
+SubVectorHandler&
+FollowerInternalForce::AssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ ,
+	const VectorHandler& /* XPrimePrimeCurr */ ,
+	int iOrder)
+{
+   DEBUGCOUT("Entering FollowerInternalForce::AssRes()" << std::endl);
+   
+   integer iNumRows;
+   integer iNumCols;
+   WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.ResizeReset(iNumRows);
+   
+   /* Dati */
+   
+   doublereal dAmplitude = pGetDriveCaller()->dGet();
+   
+   /* Indici delle incognite del nodo */
+   integer iFirstMomentumIndex1 = pNode1->iGetFirstPositionIndex();
+   integer iFirstMomentumIndex2 = pNode2->iGetFirstPositionIndex();
+   for (integer iCnt = 1; iCnt <= 6; iCnt++) {
+      WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex1+iCnt);
+      WorkVec.PutRowIndex(6+iCnt, iFirstMomentumIndex2+iCnt);
+   }   
+   
+   Vec3 TmpDir = Dir*dAmplitude;
+   Vec3 F(pNode1->GetRCurr()*TmpDir);
+   Vec3 M1(pNode1->GetRCurr()*Arm1.Cross(TmpDir));
+   Vec3 M2(F.Cross(pNode2->GetRCurr()*Arm2));
+   
+   WorkVec.Add(1, F);
+   WorkVec.Add(4, M1);
+   WorkVec.Sub(7, F);
+   WorkVec.Add(10, M2);
+
+   return WorkVec;
+}
+
 
 void FollowerInternalForce::Output(OutputHandler& OH) const 
 {   
@@ -1321,6 +1532,39 @@ ConservativeInternalCouple::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+/* Inverse Dynamics*/
+SubVectorHandler&
+ConservativeInternalCouple::AssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ ,
+	const VectorHandler& /* XPrimePrimeCurr */ ,
+	int iOrder)
+{
+   DEBUGCOUT("Entering ConservativeInternalCouple::AssRes()" << std::endl);
+
+   integer iNumRows;
+   integer iNumCols;
+   WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.ResizeReset(iNumRows);
+
+   /* Dati */
+   
+   doublereal dAmplitude = pGetDriveCaller()->dGet();
+   
+   /* Indici delle incognite del nodo */
+   integer iFirstMomentumIndex1 = pNode1->iGetFirstPositionIndex()+3;
+   integer iFirstMomentumIndex2 = pNode2->iGetFirstPositionIndex()+3;
+   for (integer iCnt = 1; iCnt <= 3; iCnt++) {
+      WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex1+iCnt);
+      WorkVec.PutRowIndex(3+iCnt, iFirstMomentumIndex2+iCnt);
+   }   
+   
+   WorkVec.Add(1, Dir*dAmplitude);
+   WorkVec.Sub(4, Dir*dAmplitude);
+
+   return WorkVec;
+}
+
 
 void
 ConservativeInternalCouple::Output(OutputHandler& OH) const 
@@ -1461,6 +1705,39 @@ FollowerInternalCouple::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+/* Inverse Dynamics*/
+SubVectorHandler&
+FollowerInternalCouple::AssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ ,
+	const VectorHandler& /* XPrimePrimeCurr */ ,
+	int iOrder)
+{   
+   DEBUGCOUT("Entering FollowerInternalCouple::AssRes()" << std::endl);
+   
+   integer iNumRows;
+   integer iNumCols;
+   WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.ResizeReset(iNumRows);
+   
+   /* Dati */
+   
+   doublereal dAmplitude = pGetDriveCaller()->dGet();
+   
+   /* Indici delle incognite del nodo */
+   integer iFirstMomentumIndex1 = pNode1->iGetFirstPositionIndex() + 3;
+   integer iFirstMomentumIndex2 = pNode2->iGetFirstPositionIndex() + 3;
+   for (integer iCnt = 1; iCnt <= 3; iCnt++) {
+      WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex1 + iCnt);
+      WorkVec.PutRowIndex(3 + iCnt, iFirstMomentumIndex2 + iCnt);
+   }
+ 
+   Vec3 M((pNode1->GetRCurr()*Dir)*dAmplitude);
+   WorkVec.Add(1, M);
+   WorkVec.Sub(4, M);
+   
+   return WorkVec;
+}
 
 void
 FollowerInternalCouple::Output(OutputHandler& OH) const 

@@ -107,6 +107,13 @@ class ConservativeForce : virtual public Elem, public StructuralForce {
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);     
 
+	/* Inverse Dynamics*/
+	SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+				const VectorHandler& /* XCurr */ ,
+				const VectorHandler& /* XPrimeCurr */ ,
+				const VectorHandler& /* XPrimePrimeCurr */ ,
+				int iOrder);
+
    virtual void Output(OutputHandler& OH) const;
    
    virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
@@ -168,6 +175,13 @@ class FollowerForce : virtual public Elem, public StructuralForce {
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);     
 
+	/* Inverse Dynamics*/
+	SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+				const VectorHandler& /* XCurr */ ,
+				const VectorHandler& /* XPrimeCurr */ ,
+				const VectorHandler& /* XPrimePrimeCurr */ ,
+				int iOrder);
+
    virtual void Output(OutputHandler& OH) const;
    
    virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
@@ -222,6 +236,13 @@ class ConservativeCouple : virtual public Elem, public StructuralForce {
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);     
 
+	/* Inverse Dynamics*/
+	SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+				const VectorHandler& /* XCurr */ ,
+				const VectorHandler& /* XPrimeCurr */ ,
+				const VectorHandler& /* XPrimePrimeCurr */ ,
+				int iOrder);
+
    virtual void Output(OutputHandler& OH) const;
    
    virtual void InitialWorkSpaceDim(integer* piNumRows,integer* piNumCols) const { 
@@ -275,6 +296,13 @@ class FollowerCouple : virtual public Elem, public StructuralForce {
 			    doublereal dCoef,
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);     
+
+	/* Inverse Dynamics*/
+	SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+				const VectorHandler& /* XCurr */ ,
+				const VectorHandler& /* XPrimeCurr */ ,
+				const VectorHandler& /* XPrimePrimeCurr */ ,
+				int iOrder);
 
    virtual void Output(OutputHandler& OH) const;
    
@@ -371,6 +399,13 @@ class ConservativeInternalForce : virtual public Elem, public StructuralInternal
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);     
 
+	/* Inverse Dynamics*/
+	SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+				const VectorHandler& /* XCurr */ ,
+				const VectorHandler& /* XPrimeCurr */ ,
+				const VectorHandler& /* XPrimePrimeCurr */ ,
+				int iOrder);
+
    virtual void Output(OutputHandler& OH) const;
    
    virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
@@ -435,6 +470,13 @@ class FollowerInternalForce : virtual public Elem, public StructuralInternalForc
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);     
 
+	/* Inverse Dynamics*/
+	SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+				const VectorHandler& /* XCurr */ ,
+				const VectorHandler& /* XPrimeCurr */ ,
+				const VectorHandler& /* XPrimePrimeCurr */ ,
+				int iOrder);
+
    virtual void Output(OutputHandler& OH) const;
    
    virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
@@ -489,6 +531,13 @@ class ConservativeInternalCouple : virtual public Elem, public StructuralInterna
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);     
 
+	/* Inverse Dynamics*/
+	SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+				const VectorHandler& /* XCurr */ ,
+				const VectorHandler& /* XPrimeCurr */ ,
+				const VectorHandler& /* XPrimePrimeCurr */ ,
+				int iOrder);
+
    virtual void Output(OutputHandler& OH) const;
    
    virtual void InitialWorkSpaceDim(integer* piNumRows,integer* piNumCols) const { 
@@ -542,6 +591,13 @@ class FollowerInternalCouple : virtual public Elem, public StructuralInternalFor
 			    doublereal dCoef,
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);     
+
+	/* Inverse Dynamics*/
+	SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+				const VectorHandler& /* XCurr */ ,
+				const VectorHandler& /* XPrimeCurr */ ,
+				const VectorHandler& /* XPrimePrimeCurr */ ,
+				int iOrder);
 
    virtual void Output(OutputHandler& OH) const;
    
