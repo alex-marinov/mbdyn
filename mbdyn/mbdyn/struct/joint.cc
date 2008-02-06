@@ -2263,10 +2263,7 @@ ReadJoint(DataManager* pDM,
 				bActive[i] = true;
 
 			} else {
-				silent_cerr("ImposedOrientation(" << uLabel << "): "
-					"invalid status for component #" << i + 1
-					<< " at line " << HP.GetLineData() << std::endl);
-				throw ErrGeneric();
+				bActive[i] = HP.GetBool();
 			}
 		}
 
@@ -2337,16 +2334,8 @@ ReadJoint(DataManager* pDM,
 
 				} else {
 					if (HP.IsArg()) {
-						int iActive = HP.GetInt();
-						switch (iActive) {
-						case 0:
-							bXActive[i] = false;
-							continue;
-
-						default:
-							bXActive[i] = true;
-							continue;
-						}
+						bXActive[i] = HP.GetBool();
+						continue;
 					}
 
 					silent_cerr("TotalEquation(" << uLabel << "): "
@@ -2374,16 +2363,8 @@ ReadJoint(DataManager* pDM,
 
 				} else {
 					if (HP.IsArg()) {
-						int iActive = HP.GetInt();
-						switch (iActive) {
-						case 0:
-							bTActive[i] = false;
-							continue;
-
-						default:
-							bTActive[i] = true;
-							continue;
-						}
+						bTActive[i] = HP.GetBool();
+						continue;
 					}
 
 					silent_cerr("TotalEquation(" << uLabel << "): "
@@ -2476,16 +2457,8 @@ ReadJoint(DataManager* pDM,
 
 				} else {
 					if (HP.IsArg()) {
-						int iActive = HP.GetInt();
-						switch (iActive) {
-						case 0:
-							bXActive[i] = false;
-							continue;
-
-						default:
-							bXActive[i] = true;
-							continue;
-						}
+						bXActive[i] = HP.GetInt();
+						continue;
 					}
 
 					silent_cerr("TotalReaction(" << uLabel << "): "
@@ -2507,16 +2480,8 @@ ReadJoint(DataManager* pDM,
 
 				} else {
 					if (HP.IsArg()) {
-						int iActive = HP.GetInt();
-						switch (iActive) {
-						case 0:
-							bTActive[i] = false;
-							continue;
-
-						default:
-							bTActive[i] = true;
-							continue;
-						}
+						bTActive[i] = HP.GetBool();
+						continue;
 					}
 
 					silent_cerr("TotalReaction(" << uLabel << "): "
@@ -2534,17 +2499,17 @@ ReadJoint(DataManager* pDM,
 			Elem* el_pt = pDM->pFindElem(Elem::JOINT, tot_eq_j_label);
 			tot_eq_pt = dynamic_cast<TotalEquation*>(el_pt);
 			if (tot_eq_pt == 0) {
-				silent_cerr("Fatal error, TotalEquation joint " <<
-					tot_eq_j_label << " needed by TotalReaction joint " <<
-					uLabel << " at line " << HP.GetLineData() << 
-					" is not defined before the TotalReaction joint"
+				silent_cerr("TotalEquation" "(" << tot_eq_j_label << ") "
+					"needed by TotalReaction(" << uLabel << ") "
+					"at line " << HP.GetLineData()
+					<< " is not defined"
 					<< std::endl);
 				throw ErrGeneric();
 			}
 		} else {
-			silent_cerr("Fatal error, Total Reaction joint " <<
-				uLabel << " needs a reference to a corresponding" 
-				" TotalEquation joint at line " << HP.GetLineData() << 
+			silent_cerr("Total Reaction(" << uLabel << ") "
+				"needs a reference to a corresponding " 
+				"TotalEquation at line " << HP.GetLineData() << 
 				std::endl);
 		}
 
@@ -2635,18 +2600,10 @@ ReadJoint(DataManager* pDM,
 
 				} else {
 					if (HP.IsArg()) {
-						int iActive = HP.GetInt();
-						switch (iActive) {
-						case 0:
-							bXActive[i] = false;
-							bVActive[i] = false;
-							continue;
-
-						default:
-							bXActive[i] = true;
-							bVActive[i] = true;
-							continue;
-						}
+						bool bActive = HP.GetBool();
+						bXActive[i] = bActive;
+						bVActive[i] = bActive;
+						continue;
 					}
 
 					silent_cerr("TotalJoint(" << uLabel << "): "
@@ -2686,18 +2643,10 @@ ReadJoint(DataManager* pDM,
 
 				} else {
 					if (HP.IsArg()) {
-						int iActive = HP.GetInt();
-						switch (iActive) {
-						case 0:
-							bTActive[i] = false;
-							bWActive[i] = false;
-							continue;
-
-						default:
-							bTActive[i] = true;
-							bWActive[i] = true;
-							continue;
-						}
+						bool bActive = HP.GetInt();
+						bTActive[i] = bActive;
+						bWActive[i] = bActive;
+						continue;
 					}
 
 					silent_cerr("TotalJoint(" << uLabel << "): "
@@ -2792,16 +2741,8 @@ ReadJoint(DataManager* pDM,
 
 				} else {
 					if (HP.IsArg()) {
-						int iActive = HP.GetInt();
-						switch (iActive) {
-						case 0:
-							bXActive[i] = false;
-							continue;
-
-						default:
-							bXActive[i] = true;
-							continue;
-						}
+						bXActive[i] = HP.GetBool();
+						continue;
 					}
 
 					silent_cerr("TotalJoint(" << uLabel << "): "
@@ -2834,16 +2775,8 @@ ReadJoint(DataManager* pDM,
 
 				} else {
 					if (HP.IsArg()) {
-						int iActive = HP.GetInt();
-						switch (iActive) {
-						case 0:
-							bTActive[i] = false;
-							continue;
-
-						default:
-							bTActive[i] = true;
-							continue;
-						}
+						bTActive[i] = HP.GetBool();
+						continue;
 					}
 
 					silent_cerr("TotalJoint(" << uLabel << "): "

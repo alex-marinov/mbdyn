@@ -4257,19 +4257,26 @@ ideal constraints that link two nodes.
         [ , position orientation , (Mat3x3) <relative_position_orientation> ]
         [ , rotation orientation , (Mat3x3) <relative_rotation_orientation> ]
         [ , position constraint ,
-            { active | inactive } ,
-            { active | inactive } ,
-            { active | inactive } ,
+            { active | inactive | <status> } ,
+            { active | inactive | <status> } ,
+            { active | inactive | <status> } ,
             (Vec3_tpl_drive_caller) <imposed_relative_position> ]
         [ , orientation constraint ,
-            { active | inactive } ,
-            { active | inactive } ,
-            { active | inactive } ,
+            { active | inactive | <status> } ,
+            { active | inactive | <status> } ,
+            { active | inactive | <status> } ,
             (Vec3_tpl_drive_caller) <imposed_relative_rotation> ]
 \end{verbatim}
-The keyword \kw{active} means that the related motion component
-is constrained, while \kw{inactive} means that the related motion component
-is not constrained.
+The keyword \kw{active} means that the constraint is active
+with respect to that component of relative motion,
+so the related motion component is constrained,
+while \kw{inactive} means that the constraint is not active
+with respect of that component of relative motion,
+so the related motion component is not constrained.
+Otherwise, a boolean can be provided in \kw{status} to indicate
+that the degree of constraint is either inactive (0) or active (1);
+this may be useful, for instance, to make constraint activation
+parametric.
 
 \subsubsection{Private Data}
 The following data is available:

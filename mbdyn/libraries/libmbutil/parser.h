@@ -329,6 +329,8 @@ public:
 	virtual const char *IsWord(const HighParser::WordSet& ws);
 	/* Se ha letto un ";" lo rimette a posto */
 	virtual void PutBackSemicolon(void);
+	/* legge un booleano con il mathpar */
+	virtual bool GetBool(bool bDefval = false);
 	/* legge un intero con il mathpar */
 	virtual integer GetInt(int iDefval = 0);
 	/* legge un reale col mathpar */

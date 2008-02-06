@@ -819,6 +819,14 @@ HighParser::GetValue(const TypedValue& vDefVal)
 	return v;
 }
 
+bool
+HighParser::GetBool(bool bDefVal)
+{
+	TypedValue v(bDefVal);
+	v = GetValue(v);
+	return v.GetBool();
+}
+
 integer
 HighParser::GetInt(int iDefVal)
 {
