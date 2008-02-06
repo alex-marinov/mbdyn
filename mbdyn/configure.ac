@@ -161,8 +161,8 @@ OL_ARG_ENABLE(netcdf,[  --enable-netcdf         enable NetCDF based binary outpu
 dnl ----------------------------------------------------------------
 dnl General "with" options
 OL_ARG_WITH(tcl,[  --with-tcl              with tcl interpreters],auto,[auto yes no])
-OL_ARG_WITH(libf2c,[  --with-libf2c[={f2c|g2c}] with f2c library],auto,[auto yes no g2c])
-OL_ARG_WITH(g2c,[  --with-g2c              with g2c header],auto,[auto yes no])
+OL_ARG_WITH(libf2c,[  --with-libf2c[={f2c|g2c}] with f2c library],no,[auto yes no g2c])
+OL_ARG_WITH(g2c,[  --with-g2c              with g2c header],no,[auto yes no])
 OL_ARG_WITH(fs,[  --with-fs[={unix|dos}]    filesystem type],unix,[unix dos])
 OL_ARG_WITH(mpi,[  --with-mpi              with MPI support (=pmpi for profiling)],auto,[auto yes pmpi no])
 OL_ARG_ENABLE(debug_mpi,[  --enable-debug-mpi      enable MPI debugging], no)dnl
