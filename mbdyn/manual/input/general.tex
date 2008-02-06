@@ -726,9 +726,9 @@ They are:
         <dim> , (ConstitutiveLaw<dim>D) <constitutive_law> ;
 \end{verbatim}
 Constitutive laws are grouped by their dimensionality \kw{<dim>},
-which can be any of 1, 3 and 6; the \kw{<constitutive\_law>}
-is parsed according to the rules described
-in Section~\ref{sec:CONSTITUTIVE-LAWS}.
+which (up to now) can be any of 1, 3 and 6;
+the \kw{<constitutive\_law>} is parsed according to the rules
+described in Section~\ref{sec:CONSTITUTIVE-LAWS}.
 
 
 
@@ -737,7 +737,7 @@ This keyword allows to define and read the \kw{c81 data}
 airfoil tables that are used by aerodynamic elements.
 \begin{verbatim}
     <card> ::= c81 data : <label> [ , name , " <name> " ]
-        " <filename> " [ , fc511 | free format ] ;
+        " <filename> " [ , { fc511 | free format } ] ;
 \end{verbatim}
 
 \subsubsection{Traditional Format}
