@@ -102,6 +102,10 @@ __FC_DECL__(usrmes)(
 	F_INTEGER *code,
 	F_CHAR level[])
 {
+	silent_cerr("module-aerodyn: msg=\"" << msg << "\" "
+		"code=" << *code
+		<< " level=" << level
+		<< std::endl);
 	return 0;
 }
 
