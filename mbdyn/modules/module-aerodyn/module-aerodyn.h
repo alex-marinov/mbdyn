@@ -39,14 +39,10 @@
  * user-defined struct
  */
 typedef struct module_aerodyn_t {
+	StructNode	*pNacelle;
 	StructNode	*pHub;
-} module_aerodyn_t;
 
-/*
- * Unfortunately, we need to use a global variable to share module
- * data between functions; this means only one wind tower per analysis
- * will be allowed
- */
-extern module_aerodyn_t *module_aerodyn;
+	doublereal	Hub_Tower_xy_distance;
+} module_aerodyn_t;
 
 #endif /* MODULE_AERODYN_H */

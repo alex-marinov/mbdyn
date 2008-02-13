@@ -35,7 +35,7 @@ USE Blade
 
 IMPLICIT NONE
 
-CHARACTER(*) Version
+CHARACTER(26) Version
 INTEGER(4) NBlades
 
         DynProg = 'MBDyn '

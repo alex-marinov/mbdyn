@@ -27,6 +27,18 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+/* module-aerodyn
+ * Authors: Fanzhong Meng, Pierangelo Masarati
+ *
+ * Copyright (C) 2003-2008
+ *
+ * Fanzhong Meng <f.meng@tudelft.nl>
+ * 
+ * Faculty of Aerospace Engineering - Delft University of Technology
+ * Kluyverweg 1, 2629HS Delft, the Netherlands
+ * http://www.tudelft.nl
+ *
+ * */
 
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h> 		/* This goes first in every *.c,*.cc file */
@@ -35,11 +47,21 @@
 #include "loadable.h"
 #include "module-aerodyn.h"
 
+static module_aerodyn_t *module_aerodyn;
+
 // Called by AeroDyn
 
 /*
  * Rotor parameters - called once per time step.
  */
+/* This comment is added by Fanzhong MENG 9th.Feb.2008
+ *
+ * I think in these three functions we should add the codes
+ * that can deal with the communication with MBDyn to get the structure information which is need for the
+ * Aerodynamic calculation from libAeroDyn.a. 
+ */
+
+
 int
 __FC_DECL__(getrotorparams)(
 	F_REAL *Omega,
@@ -47,6 +69,44 @@ __FC_DECL__(getrotorparams)(
 	F_REAL *VHUB,
 	F_REAL *tau)
 {
+    	/*
+	 * This comment is added by Fanzhong MENG 10th.Feb.2008
+	 * NOTE: Add code here to get rotorspeed from MBDyn.  
+	 * Rotor can be running clockwise or ccw.  But the
+	 * value of *Omega must be positive
+	 */
+	const Mat3x3& nacelle_R = ::module_aerodyn->pNacelle->GetRCurr();
+	const Vec3& hub_Omega = ::module_aerodyn->pHub->GetWCurr();
+	Vec3 rotation_axis = nacelle_R.GetVec(3);
+
+	*Omega = fabs(hub_Omega*rotation_axis);
+
+    	/* 
+	 * This comment is added by Fanzhong MENG 10th.Feb.2008
+	 * NOTE: Add code here to get Yawangle from MBDyn.  
+	 * Yaw angle of the shaft relative to the ground reference.
+	 * Positive value is clockwise when viewed from above of nacelle.
+	 * Variable name is *gamma. [rad].
+	 */
+	*gamma = atan2(-rotation_axis(2), rotation_axis(1));
+
+    	/*
+	 * This comment is added by Fanzhong MENG 10th.Feb.2008
+	 * NOTE: Add code here to get tilt angle from MBDyn.
+	 * Tilt angle of the shaft relative to the ground reference.
+	 * Positive value is Tilt UP
+	 * Variable name is *tau. [rad].
+	 */
+	*tau = atan2(rotation_axis(3), rotation_axis(1));
+
+    	/*
+	 * This comment is added by Fanzhong MENG 10th.Feb.2008
+	 * NOTE: Add code here to get Hub Tangential velocity from MBDyn.
+	 * Positive value is in the same direction with Yaw Angle.
+	 * Variable name is *VHUB.[m/s or feet/s]
+	 */ 
+	*VHUB = hub_Omega(3)*::module_aerodyn->Hub_Tower_xy_distance;
+
 	return 0;
 }
 
@@ -56,6 +116,12 @@ __FC_DECL__(getrotorparams)(
 int
 __FC_DECL__(getbladeparams)(F_REAL *psi)
 {
+    	/*
+	 * This comment is added by Fanzhong MENG 10th.Feb.2008
+	 * NOTE: Add code here too get blade Azimuth angle.
+	 * The 6 o'clock position is positive value
+	 * Variable name is *psi. [rad].
+	 */ 
 	return 0;
 }
 
@@ -71,8 +137,43 @@ __FC_DECL__(getelemparams)(
 	F_REAL *YGRND,
 	F_REAL *ZGRND)
 {
+    	/*
+	 * This comment is added by Fanzhong MENG 10th.Feb.2008
+	 * Get coordinates of blade element relative to the undeflected
+	 * tower top reference frame.(Ground reference frame)
+	 * The variable name is *XGRND *YGRND *ZGRND
+	 */
+	
+    	/* 
+	 * This comment is added by Fanzhong MENG 10th.Feb.2008
+	 * The element pitch (*phi) and radius (*radius) are gotten from 
+	 * a separated function named Get_Elm_Pitch_Radius(F_REAL *phi, F_REAL *radius).
+	 */
+
+    	/* 
+	 * This comment is added by Fanzhong MENG 10th.Feb.2008
+	 * When the Multi-airfoil table option is open, we should also 
+	 * switch on this option.
+	 * I don't know how this Multi-airfoil table work,yet.
+	 */ 
+
+
 	return 0;
 }
+
+/*
+ * Get the pitch angle and radius position of the blade elements
+ * By Fanzhong MENG 10-02-2008.
+ */
+
+static int
+Get_Elm_Pitch_Radius(F_REAL *phi,
+	F_REAL *radius)
+{
+    	return 0;
+}
+
+
 
 /*
  * Compute VT, VN{W,E} based on VX, VY, VZ of the wind.
@@ -86,11 +187,42 @@ __FC_DECL__(getvnvt)(
 	F_REAL *VNW,
 	F_REAL *VNE)
 {
+    	/*
+	 * This function returns velocities of the wind
+	 * and the element in the ground reference frame.
+	 */ 
 	return 0;
 }
+/*
+ * This Function BldElmCount is added by Fanzhong MENG 9th.Feb.2008
+ * Function BldElmCount counts the number of blades and elements on the blade. 
+ */
 
+static int 
+BldElmCount(
+	F_LOGICAL *CountBld, 
+	F_REAL *ElPitch, 
+	F_REAL *RLOCAL, 
+	F_REAL *DeltaR, 
+	F_INTEGER *JMax)
+{
+	DEBUGCOUTFNAME("BldElmCount");
+        /* Local Variables */
+
+	F_INTEGER IBldMax = 0;
+	F_INTEGER PreAero = 0;
+	F_INTEGER PreBlad = 0;
+	F_INTEGER PreElem = 0;
+        F_CHAR Mesage[80];
+
+
+   	return 0;
+}
 /*
  * Write an error message to the appropriate stream
+ * By Fanzhong Meng: usrmes is an Adams built in function.
+ * We have to rewrite this function. Because libAeroDyn.a library-GenSub.f90 will call this function,
+ * so we can not simply remove this function.
  *
  * FIXME: the "msg" and "level" arrays should be reset by the caller
  * before writing the message, otherwise they're not '\0' terminated
@@ -108,8 +240,6 @@ __FC_DECL__(usrmes)(
 		<< std::endl);
 	return 0;
 }
-
-module_aerodyn_t *module_aerodyn = NULL;
 
 /* default funcs */
 static void *
@@ -139,40 +269,54 @@ read(
 	if (HP.IsKeyWord("help")) {
 		/* NOTE: add help message */
 		silent_cout(
-"Module: AeroDyn" << std::endl
-<< std::endl
-<< "This is the MBDyn interface to AeroDyn, the aerodynamic routines" << std::endl
-<< "developed by NREL <http://ww.nrel.gov/> to model the aerodynamic" << std::endl
-<< "forces acting on wind turbines" << std::endl
-);
+		"Module: AeroDyn" << std::endl
+		<< std::endl
+		<< "This is the MBDyn interface to AeroDyn, the aerodynamic routines" << std::endl
+		<< "developed by NREL <http://ww.nrel.gov/> to model the aerodynamic" << std::endl
+		<< "forces acting on wind turbines" << std::endl
+		<< std::endl
+		<< "usage:" << std::endl
+		<< "\t<nacelle node label>" << std::endl
+		<< "\t<hub node label>" << std::endl
+		<< "\t<pylon top-hub xy distance>" << std::endl
+		<< "\t<number of blades>" << std::endl
+		);
 	}
 
-	/* hub node */
-	unsigned int uNode = (unsigned int)HP.GetInt();
-       
-	DEBUGCOUT("Hub: node " << uNode << std::endl);
-       
-	/* verifica di esistenza del nodo */
-	p->pHub = pDM->pFindStructNode(uNode);
-	if (p->pHub  == NULL) {
+	/* nacelle node */
+	p->pNacelle = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+	if (p->pNacelle == 0) {
 		silent_cerr("Aerodyn(" << pEl->GetLabel() << "): "
-			"StructuralNode(" << uNode << ") not defined "
+			"nacelle node not defined "
 			"at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric();
 	}
+
+	/* hub node */
+	p->pHub = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+	if (p->pHub == 0) {
+		silent_cerr("Aerodyn(" << pEl->GetLabel() << "): "
+			"hub node not defined "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric();
+	}
+
+	p->Hub_Tower_xy_distance = HP.GetReal();
 
 	/*
 	 * Initialize AeroDyn package
 	 *
 	 * FIXME: does it return an error code?
 	 */
-	char Version[26];
+	char Version[27];
 	snprintf(Version, sizeof(Version), "(%s)", VERSION);
 	for (unsigned i = strlen(Version); i < sizeof(Version); i++) {
 		Version[i] = ' ';
 	}
+	Version[sizeof(Version) - 1] = '\0';
 
 	// number of blades
+	// How can we get the number of the blade?
 	F_INTEGER NBlades = HP.GetInt();
 	if (NBlades <= 0) {
 		silent_cerr("Aerodyn(" << pEl->GetLabel() << "): "
@@ -181,6 +325,8 @@ read(
 			<< std::endl);
 		throw ErrGeneric();
 	}
+
+	std::cerr << "Version: " << Version << std::endl;
 
 	__FC_DECL__(mbdyn_init)(Version, &NBlades);
 
@@ -308,6 +454,7 @@ after_predict(
 		VectorHandler& XP
 )
 {
+    	/* NOTE: think about what should be done here!*/
 	DEBUGCOUTFNAME("after_predict");
 }
 
@@ -326,6 +473,7 @@ after_convergence(const LoadableElem* /* pEl */ ,
 		const VectorHandler& /* X */ ,
 		const VectorHandler& /* XP */ )
 {
+    	/* NOTE: think about what should be done here!*/
 	DEBUGCOUTFNAME("after_convergence");
 }
 
@@ -402,7 +550,7 @@ LoadableCalls lc = {
 	"AeroDyn",
 	"1.1",
 	"Dipartimento di Ingegneria Aerospaziale, Politecnico di Milano",
-	"wind tower aerodynamics; uses AeroDyn package 12.3\n"
+	"wind turbine aerodynamics; uses AeroDyn package 12.58\n"
 		"\tas distributed by the National Renewable Energy Laboratory,\n"
 		"\thttp://www.nrel.gov",
 
