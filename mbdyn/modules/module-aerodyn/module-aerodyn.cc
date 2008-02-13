@@ -271,6 +271,8 @@ read(
 		silent_cout(
 		"Module: AeroDyn" << std::endl
 		<< std::endl
+		<< "Authors: Fanzhong Meng, Pierangelo Masarati" << std::endl
+		<< std::endl
 		<< "This is the MBDyn interface to AeroDyn, the aerodynamic routines" << std::endl
 		<< "developed by NREL <http://ww.nrel.gov/> to model the aerodynamic" << std::endl
 		<< "forces acting on wind turbines" << std::endl
