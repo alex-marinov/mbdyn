@@ -1274,7 +1274,7 @@ enum OrientationDescription {
 };
 
 /*
- Calcola i parametri di Rodriguez g a partire dalla matrice di rotazione R.
+ Calcola i parametri di Rodrigues g a partire dalla matrice di rotazione R.
  Nota: i parametri devono essere definiti, ovvero R non deve rappresentare 
  una rotazione a cui corrispondono parametri singolari.
  */
@@ -1316,7 +1316,7 @@ extern Mat3x3 EulerAngles2MatR(const Vec3& v);
 
 /* _MatR_Manip - begin */
 
-// Manipolatore per matrice R con parametri di Rodriguez.
+// Manipolatore per matrice R con parametri di Rodrigues.
 class _MatR_Manip : public _Mat3x3_Manip {   
  public:
    /*
@@ -1351,7 +1351,7 @@ class _MatR_Manip : public _Mat3x3_Manip {
 
 /* _MatG_Manip - begin */
 
-// Manipolatore per matrice G con parametri di Rodriguez.
+// Manipolatore per matrice G con parametri di Rodrigues.
 class _MatG_Manip : public _Mat3x3_Manip {
  public:
    /*
@@ -1376,7 +1376,7 @@ class _MatG_Manip : public _Mat3x3_Manip {
 
 /* _MatGm1_Manip - begin */
 
-// Manipolatore per inversa della matrice G con parametri di Rodriguez */
+// Manipolatore per inversa della matrice G con parametri di Rodrigues */
 class _MatGm1_Manip : public _Mat3x3_Manip {
  public:
    /*
