@@ -48,7 +48,7 @@
 \begin{document}
 
 \begin{latexonly}
-\title{\bf MBDyn Technical Manual \\
+\title{\bf MBDyn Theory \\ and Developer's Manual \\
 Version
 \input{../build/version}
 }
@@ -84,8 +84,24 @@ Version
 
 
 \chapter{Introduction}
-This document describes details about the formulation MBDyn:
-Multi-Body Dynamics relies on.
+This document describes the formulation MBDyn,
+the free general-purpose multibody dynamics sofwtare,
+relies on.
+It also describes implementation-related aspects.
+
+The document is far from complete; in fact, its preparation
+started at a late stage of the project, when many parts
+of the software were already completed and in use.
+From that time on, many modifications and improvements
+have been steadily documented and, occasionally,
+the theory manual anticipated the development
+(as should always happen, I know).
+
+The Developers committed themselves to keeping it at least up to date
+with new developments; undocumented stuff should be documented
+as soon as it needs modifications or refactoring.
+
+
 
 \chapter{Parsing}
 In MBDyn there are different levels of parsing.
@@ -340,7 +356,7 @@ The orientation of structural nodes is handled by storing the orientation
 matrix of each node, and updating it during prediction and correction 
 by incremental orientations.
 
-The code uses Gibbs-Rodriguez parameters to account for incremental 
+The code uses Gibbs-Rodrigues parameters to account for incremental 
 rotations.
 These parameters allow very efficient implementation, since they
 only require few algebraic operations to obtain the orientation matrix
@@ -534,7 +550,7 @@ or if $f_{/\dot{x}} \neq 0$.
 
 \section{Nodal rotation}
 The rotational gdl unknown during \texttt{AssRes()} and \texttt{AssJac()}
-are the increment of (Gibbs-Rodriguez) rotation parameters
+are the increment of (Gibbs-Rodrigues) rotation parameters
 with respect to the reference configuration.
 Of course the increment of the parameter is
 $\Delta \T g=\texttt{dCoef}\Delta \dot{\T g}$.
@@ -3486,7 +3502,7 @@ to the global frame.
 Equilibrium equations are obtained by means of the Virtual Work
 Principle (VWP).
 While the unknown orientation parameters depend on the parametrization 
-in use, and typically are Gibbs-Rodriguez parameters according 
+in use, and typically are Gibbs-Rodrigues parameters according 
 to the updated-updated approach, equilibrium is written in terms
 of the equations conjugated to perturbations of orientation,
 namely:
