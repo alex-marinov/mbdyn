@@ -38,11 +38,13 @@
  * Kluyverweg 1, 2629HS Delft, the Netherlands
  * http://www.tudelft.nl
  *
- * */
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h> 		/* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
+
+#include "Rot.hh"
 
 #include "loadable.h"
 #include "module-aerodyn.h"
@@ -121,7 +123,8 @@ __FC_DECL__(getbladeparams)(F_REAL *psi)
 	 * NOTE: Add code here too get blade Azimuth angle.
 	 * The 6 o'clock position is positive value
 	 * Variable name is *psi. [rad].
-	 */ 
+	 */
+    	
 	return 0;
 }
 
@@ -143,12 +146,25 @@ __FC_DECL__(getelemparams)(
 	 * tower top reference frame.(Ground reference frame)
 	 * The variable name is *XGRND *YGRND *ZGRND
 	 */
+	Vec3 x = ::module_aerodyn->nodes[::module_aerodyn->elem].pNode->GetXCurr()
+		- ::module_aerodyn->pNacelle->GetXCurr();
+	*XGRND = x(1);
+	*YGRND = x(2);
+	*ZGRND = x(3);
+
+	Vec3 d = ::module_aerodyn->pNacelle->GetRCurr().Transpose()*(
+		::module_aerodyn->nodes[::module_aerodyn->elem].pNode->GetXCurr()
+		- ::module_aerodyn->pHub->GetXCurr());
+	d(3) = 0.;
+	*radius = d.Norm();
 	
-    	/* 
-	 * This comment is added by Fanzhong MENG 10th.Feb.2008
-	 * The element pitch (*phi) and radius (*radius) are gotten from 
-	 * a separated function named Get_Elm_Pitch_Radius(F_REAL *phi, F_REAL *radius).
-	 */
+	unsigned blade = ::module_aerodyn->elem/::module_aerodyn->nelems;
+	Mat3x3 R = ::module_aerodyn->nodes[::module_aerodyn->elem].pNode->GetRCurr().Transpose()
+		*::module_aerodyn->pHub->GetRCurr()*::module_aerodyn->bladeR[blade];
+	Vec3 Phi(RotManip::VecRot(R));
+
+	*phi = Phi(1);
+	::module_aerodyn->nodes[::module_aerodyn->elem].PITNOW = *phi;
 
     	/* 
 	 * This comment is added by Fanzhong MENG 10th.Feb.2008
@@ -156,24 +172,10 @@ __FC_DECL__(getelemparams)(
 	 * switch on this option.
 	 * I don't know how this Multi-airfoil table work,yet.
 	 */ 
-
+	*MulTabLoc = 0;
 
 	return 0;
 }
-
-/*
- * Get the pitch angle and radius position of the blade elements
- * By Fanzhong MENG 10-02-2008.
- */
-
-static int
-Get_Elm_Pitch_Radius(F_REAL *phi,
-	F_REAL *radius)
-{
-    	return 0;
-}
-
-
 
 /*
  * Compute VT, VN{W,E} based on VX, VY, VZ of the wind.
@@ -193,31 +195,7 @@ __FC_DECL__(getvnvt)(
 	 */ 
 	return 0;
 }
-/*
- * This Function BldElmCount is added by Fanzhong MENG 9th.Feb.2008
- * Function BldElmCount counts the number of blades and elements on the blade. 
- */
 
-static int 
-BldElmCount(
-	F_LOGICAL *CountBld, 
-	F_REAL *ElPitch, 
-	F_REAL *RLOCAL, 
-	F_REAL *DeltaR, 
-	F_INTEGER *JMax)
-{
-	DEBUGCOUTFNAME("BldElmCount");
-        /* Local Variables */
-
-	F_INTEGER IBldMax = 0;
-	F_INTEGER PreAero = 0;
-	F_INTEGER PreBlad = 0;
-	F_INTEGER PreElem = 0;
-        F_CHAR Mesage[80];
-
-
-   	return 0;
-}
 /*
  * Write an error message to the appropriate stream
  * By Fanzhong Meng: usrmes is an Adams built in function.
@@ -304,6 +282,11 @@ read(
 	}
 
 	p->Hub_Tower_xy_distance = HP.GetReal();
+	/* For debug purpose to output is infomation*/
+	silent_cout(
+		"Hub_Tower_xy_distance:"<< p->Hub_Tower_xy_distance
+		<< std::endl
+		);
 
 	/*
 	 * Initialize AeroDyn package
@@ -318,8 +301,13 @@ read(
 	Version[sizeof(Version) - 1] = '\0';
 
 	// number of blades
-	// How can we get the number of the blade?
 	F_INTEGER NBlades = HP.GetInt();
+	// For debug reason to make sure that we get the correct number of blades
+	silent_cout(
+		"Number of Blade:"<< NBlades 
+		<< std::endl
+		);
+
 	if (NBlades <= 0) {
 		silent_cerr("Aerodyn(" << pEl->GetLabel() << "): "
 			"invalid number of blades " << NBlades
@@ -364,6 +352,8 @@ read(
 			"(err=" << rc << ")" << std::endl);
 		throw ErrGeneric();
 	}
+
+	(void)__FC_DECL__(mbdyn_true)(&p->FirstLoop);
 
 	::module_aerodyn = p;
 
@@ -421,18 +411,58 @@ ass_res(
 	
 	WorkVec.Resize(iNumRows);
 
-#if 0
 	module_aerodyn_t* p = (module_aerodyn_t *)pEl->pGetData(); 
-#endif /* 0 */
 	
 	/*
 	 * set sub-vector indices and coefs
 	 */
-	F_LOGICAL	FirstLoop;
-	F_INTEGER	JElem;
-	F_REAL		DFN, DFT, PMA;
 
-	__FC_DECL__(aerofrcintrface)(&FirstLoop, &JElem, &DFN, &DFT, &PMA);
+	F_INTEGER	JElem = 0;
+	for (int e = 0; e < p->nelems*p->nblades; e++) {
+		/*
+		 * set indices where force/moment need to be put
+		 */
+		integer iFirstIndex = p->nodes[e].pNode->iGetFirstMomentumIndex();
+		for (int i = 1; i <= 6; i++) {
+			WorkVec.PutRowIndex(6*e + i, iFirstIndex + i);
+		}
+
+		/*
+		 * get force/moment
+		 */
+		F_REAL		DFN, DFT, PMA;
+
+		/*
+		 * current element; use as index to access array
+		 * when inside callbacks
+		 */
+		p->elem = e;
+
+		JElem++;
+		__FC_DECL__(aerofrcintrface)(&p->FirstLoop, &JElem, &DFN, &DFT, &PMA);
+
+		/*
+		 * turn force/moment into the node frame
+		 * (passing thru local element frame),
+		 * including offset
+		 */
+		doublereal c = std::cos(p->nodes[e].PITNOW);
+		doublereal s = std::sin(p->nodes[e].PITNOW);
+		p->nodes[e].F = p->nodes[e].Ra*Vec3(DFT*c - DFN*s, DFT*s + DFN*c, 0.);
+		p->nodes[e].M = p->nodes[e].Ra.GetVec(3)*PMA + p->nodes[e].f.Cross(p->nodes[e].F);
+
+		/*
+		 * add force/moment to residual, after rotating them
+		 * into the global frame
+		 */
+		WorkVec.Add(6*e + 1, p->nodes[e].pNode->GetRCurr()*p->nodes[e].F);
+		WorkVec.Add(6*e + 4, p->nodes[e].pNode->GetRCurr()*p->nodes[e].M);
+	}
+
+	/* 
+	 * make sure next time FirstLoop will be false
+	 */
+	(void)__FC_DECL__(mbdyn_false)(&p->FirstLoop);
 	
 	return WorkVec;
 }

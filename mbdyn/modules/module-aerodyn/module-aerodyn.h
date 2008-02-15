@@ -35,6 +35,16 @@
 #define USE_DOUBLE_PRECISION
 #include "AeroDyn.h"
 
+struct AeroNode {
+	StructNode	*pNode;
+	Vec3		f;
+	Mat3x3		Ra;
+	Vec3		F;
+	Vec3		M;
+
+	doublereal	PITNOW;
+};
+
 /*
  * user-defined struct
  */
@@ -42,7 +52,22 @@ typedef struct module_aerodyn_t {
 	StructNode	*pNacelle;
 	StructNode	*pHub;
 
+	integer		nblades;
+	integer		nelems;
+
 	doublereal	Hub_Tower_xy_distance;
+
+	/*
+	 * node data
+	 */
+	std::vector<AeroNode>	nodes;
+	std::vector<Mat3x3>	bladeR;
+
+	/* 
+	 * internal states
+	 */
+	F_LOGICAL	FirstLoop;
+	unsigned	elem;
 } module_aerodyn_t;
 
 #endif /* MODULE_AERODYN_H */

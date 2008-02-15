@@ -49,3 +49,28 @@ INTEGER(4) NBlades
         RETURN
 
 END SUBROUTINE MBDyn_init
+
+SUBROUTINE MBDyn_true( val )
+
+IMPLICIT NONE
+
+LOGICAL val
+
+        val = .TRUE.
+
+        RETURN
+
+END SUBROUTINE MBDyn_true
+
+SUBROUTINE MBDyn_false( val )
+
+IMPLICIT NONE
+
+LOGICAL val
+
+        val = .FALSE.
+
+        RETURN
+
+END SUBROUTINE MBDyn_false
+

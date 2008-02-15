@@ -156,6 +156,18 @@ __FC_DECL__(ad_abort)(void);
 extern int
 __FC_DECL__(mbdyn_init)(F_CHAR *Version, F_INTEGER *nblades);
 
+/*
+ * MBDyn logical true
+ */
+extern int
+__FC_DECL__(mbdyn_true)(F_LOGICAL *val);
+
+/*
+ * MBDyn logical false
+ */
+extern int
+__FC_DECL__(mbdyn_false)(F_LOGICAL *val);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
