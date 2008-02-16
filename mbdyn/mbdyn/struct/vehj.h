@@ -85,6 +85,7 @@ protected:
 	/* priv data helper */
 	doublereal
 	dGetPrivDataInv(unsigned int i) const;
+	virtual void AfterPredict(void) = 0;
 
 public:
 	/* Costruttore non banale */
@@ -110,9 +111,13 @@ public:
 
 	virtual void Output(OutputHandler& OH) const;
 
+	/* Aggiorna le deformazioni ecc. */
+	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+
 	void SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph = 0);
+	virtual void SetInitialValue(VectorHandler& /* X */ );
 
 	virtual Hint *
 	ParseHint(DataManager *pDM, const char *s) const;
@@ -161,6 +166,7 @@ protected:
 	Vec3 ThetaRef;
 	Vec3 ThetaCurr;
 
+	virtual void AfterPredict(void);
 	virtual void AssMat(FullSubMatrixHandler& WM, doublereal dCoef);
 	virtual void AssVec(SubVectorHandler& WorkVec);
 
@@ -220,9 +226,6 @@ public:
 			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 
-	/* Aggiorna le deformazioni ecc. */
-	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
-
 	virtual void InitialWorkSpaceDim(integer* piNumRows,
 			integer* piNumCols) const {
 		*piNumRows = 6;
@@ -262,6 +265,7 @@ protected:
 	/* AssMatMDE is OK as MDE is updated fine by AfterPredict();
 	 * AssMatMDEPrime is not needed */
 
+	virtual void AfterPredict(void);
 	virtual void AssVec(SubVectorHandler& WorkVec);
 
 public:
@@ -275,9 +279,6 @@ public:
 			flag fOut);
 
 	virtual ~ElasticHingeJointInv(void);
-
-	/* Aggiorna le deformazioni ecc. */
-	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
 	virtual void Output(OutputHandler& OH) const;
 
@@ -324,6 +325,7 @@ class ViscousHingeJoint : virtual public Elem, public DeformableHingeJoint {
 protected:
 	Vec3 Omega;
 
+	virtual void AfterPredict(void);
 	virtual void AssMats(FullSubMatrixHandler& WMA,
 			FullSubMatrixHandler& WMB,
 			doublereal dCoef);
@@ -348,9 +350,6 @@ public:
 	virtual ConstLawType::Type GetConstLawType(void) const {
 		return ConstLawType::VISCOUS;
 	};
-
-	/* Aggiorna le deformazioni ecc. */
-	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
 	virtual void SetValue(DataManager *pDM,
@@ -428,6 +427,7 @@ protected:
 	AssMatMDEPrime(FullSubMatrixHandler& WMA,
 		FullSubMatrixHandler& WMB, doublereal dCoef);
 
+	virtual void AfterPredict(void);
 	virtual void AssVec(SubVectorHandler& WorkVec);
 
 public:
@@ -441,9 +441,6 @@ public:
 			flag fOut);
 
 	virtual ~ViscousHingeJointInv(void);
-
-	/* Aggiorna le deformazioni ecc. */
-	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
 	virtual void Output(OutputHandler& OH) const;
 
@@ -497,6 +494,8 @@ protected:
 	virtual void AssMats(FullSubMatrixHandler& WMA,
 			FullSubMatrixHandler& WMB,
 			doublereal dCoef);
+
+	virtual void AfterPredict(void);
 	virtual void AssVec(SubVectorHandler& WorkVec);
 
 public:
@@ -554,9 +553,6 @@ public:
 			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 
-	/* Aggiorna le deformazioni ecc. */
-	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
-
 	virtual void InitialWorkSpaceDim(integer* piNumRows,
 			integer* piNumCols) const {
 		*piNumRows = 6;
@@ -597,6 +593,7 @@ protected:
 	AssMatMDEPrime(FullSubMatrixHandler& WMA,
 		FullSubMatrixHandler& WMB, doublereal dCoef);
 
+	virtual void AfterPredict(void);
 	virtual void AssVec(SubVectorHandler& WorkVec);
 
 public:
@@ -610,9 +607,6 @@ public:
 			flag fOut);
 
 	~ViscoElasticHingeJointInv(void);
-
-	/* Aggiorna le deformazioni ecc. */
-	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
 	virtual void Output(OutputHandler& OH) const;
 
