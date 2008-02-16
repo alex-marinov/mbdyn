@@ -5073,16 +5073,20 @@ yields
 \begin{align}
 	\delta\T{F}_1 &= - \delta\T{F} \\
 	\delta\T{M}_1 &= \plbr{
-		\hat{\T{I}}
-		- \T{f}_1 \times{}
+		\T{f}_1 \times{}
+		+ \hat{\T{I}} \T{d}\times{}
 	} \delta\T{F}
-	+ \delta\hat{\T{I}} \T{F} - \T{F} \times \T{f}_1 \times \T{\theta}_{1\delta} \\
+	- \delta\T{f}_1 \times \T{F}
+	- \delta\hat{\T{I}} \T{d} \times \T{F}
+	- \hat{\T{I}} \delta\T{d} \times \T{F} \\
 	\delta\T{F}_2 &= \delta\T{F} \\
 	\delta\T{M}_2 &= \plbr{
-		\hat{\T{I}}^T
-		+ \T{f}_2 \times{}
+		\T{f}_2 \times{}
+		- \hat{\T{I}}^T \T{d} \times{}
 	} \delta\T{F}
-	+ \delta\hat{\T{I}}^T \T{F} + \T{F} \times \T{f}_2 \times \T{\theta}_{2\delta}
+	+ \delta\T{f}_2 \times \T{F}
+	- \delta\hat{\T{I}}^T \T{d} \times \T{F}
+	- \hat{\T{I}}^T \delta\T{d} \times \T{F}
 \end{align}
 After setting
 \begin{align}
