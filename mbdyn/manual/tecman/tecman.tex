@@ -5098,6 +5098,94 @@ After setting
 \end{align}
 the complete linearized problem, considering the updated-updated 
 approximation, is
+\begin{align}
+	\sqbr{\matr{cccc}{
+		\T{F}_{\dot{\tilde{\T{d}}}} 
+		& - \T{F}_{\dot{\tilde{\T{d}}}} \plbr{\T{f}_1\times{} + \T{d}\times\hat{\T{I}}^T}
+		& - \T{F}_{\dot{\tilde{\T{d}}}}
+		& \T{F}_{\dot{\tilde{\T{d}}}} \plbr{\T{f}_2\times{} - \T{d}\times\hat{\T{I}}} \\
+		? \\
+		- \T{F}_{\dot{\tilde{\T{d}}}} 
+		& \T{F}_{\dot{\tilde{\T{d}}}} \plbr{\T{f}_1\times{} + \T{d}\times\hat{\T{I}}^T}
+		& \T{F}_{\dot{\tilde{\T{d}}}}
+		& - \T{F}_{\dot{\tilde{\T{d}}}} \plbr{\T{f}_2\times{} - \T{d}\times\hat{\T{I}}} \\
+		?
+	}} \cubr{\cvvect{
+		\delta\dot{\T{x}}_1 \\
+		\delta\T{\omega}_1 \\
+		\delta\dot{\T{x}}_2 \\
+		\delta\T{\omega}_2
+	}} & \nonumber \\
+	+ \sqbr{\matr{cc}{
+		- \T{F}_{\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& \T{F}_{\dot{\tilde{\T{d}}}} \plbr{
+			\plbr{\hat{\T{I}}\plbr{\T{\omega}_1 - \T{\omega}_2}}\times\T{f}_1\times{}
+			+ \T{d}\times\hat{\T{I}}_1
+			+ \plbr{\dot{\T{d}} - \hat{\T{\omega}}\times\T{d}}\times\hat{\T{I}}^T
+		} \\
+		? \\
+		\T{F}_{\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& - \T{F}_{\dot{\tilde{\T{d}}}} \plbr{
+			\plbr{\hat{\T{I}}\plbr{\T{\omega}_1 - \T{\omega}_2}}\times\T{f}_1\times{}
+			+ \T{d}\times\hat{\T{I}}_1
+			+ \plbr{\dot{\T{d}} - \hat{\T{\omega}}\times\T{d}}\times\hat{\T{I}}^T
+		} \\
+		?
+	}}\cubr{\cvvect{
+		\delta\T{x}_1 \\
+		\T{\theta}_{1\delta}
+	}} & \nonumber \\
+	+ \sqbr{\matr{cc}{
+		\T{F}_{\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& \T{F}_{\dot{\tilde{\T{d}}}} \plbr{
+			\plbr{\hat{\T{I}}^T\plbr{\T{\omega}_1 - \T{\omega}_2}}\times\T{f}_2\times{}
+			+ \T{d}\times\hat{\T{I}}_2
+			+ \plbr{\dot{\T{d}} - \hat{\T{\omega}}\times\T{d}}\times\hat{\T{I}}
+		} \\
+		? \\
+		- \T{F}_{\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& - \T{F}_{\dot{\tilde{\T{d}}}} \plbr{
+			\plbr{\hat{\T{I}}^T\plbr{\T{\omega}_1 - \T{\omega}_2}}\times\T{f}_2\times{}
+			+ \T{d}\times\hat{\T{I}}_2
+			+ \plbr{\dot{\T{d}} - \hat{\T{\omega}}\times\T{d}}\times\hat{\T{I}}
+		} \\
+		?
+	}}\cubr{\cvvect{
+		\delta\T{x}_2 \\
+		\T{\theta}_{2\delta}
+	}} & \nonumber \\
+	+ \sqbr{\matr{cccc}{
+		\T{F}_{\tilde{\T{d}}} 
+		& - \T{F}_{\tilde{\T{d}}} \plbr{\T{f}_1\times{} + \T{d}\times\hat{\T{I}}^T}
+		& - \T{F}_{\tilde{\T{d}}}
+		& \T{F}_{\tilde{\T{d}}} \plbr{\T{f}_2\times{} - \T{d}\times\hat{\T{I}}} \\
+		? \\
+		- \T{F}_{\tilde{\T{d}}} 
+		& \T{F}_{\tilde{\T{d}}} \plbr{\T{f}_1\times{} + \T{d}\times\hat{\T{I}}^T}
+		& \T{F}_{\tilde{\T{d}}}
+		& - \T{F}_{\tilde{\T{d}}} \plbr{\T{f}_2\times{} - \T{d}\times\hat{\T{I}}} \\
+		?
+	}} \cubr{\cvvect{
+		\delta\T{x}_1 \\
+		\T{\theta}_{1\delta} \\
+		\delta\T{x}_2 \\
+		\T{\theta}_{2\delta}
+	}} & \nonumber \\
+	+ \sqbr{\matr{cc}{
+		\T{F}\times\hat{\T{I}}^T & \T{F}\times\hat{\T{I}} \\
+		? \\
+		- \T{F}\times\hat{\T{I}}^T & - \T{F}\times\hat{\T{I}} \\
+		?
+	}} \cubr{\cvvect{
+		\T{\theta}_{1\delta} \\
+		\T{\theta}_{2\delta}
+	}} &= \cubr{\cvvect{
+		- \T{F} \\
+		?
+		\T{F} \\
+		?
+	}}
+\end{align}
 \textbf{FIXME: TODO}
 
 
