@@ -2911,6 +2911,90 @@ The following data is available:
 
 
 
+\subsection{Cardano hinge}
+\label{sec:EL:STRUCT:JOINT:CARDANO_HINGE}
+This joint implements a Cardano's joint, also known as Hooke's joint
+or Universal joint, which is made of a sequence
+of two revolute hinges orthogonal to each other, one about relative axis 2
+and one about relative axis 3 of the reference systems
+defined by the two \kw{hinge} statements.
+Or, in other words, this joint constrains the relative axis 3 of node 1 
+to be always orthogonal to the relative axis 2 of node 2.
+As a result, torque is transmitted about axis 1 of both nodes.
+The relative position is also constrained.
+\begin{verbatim}
+    <joint_type> ::= cardano hinge
+    <joint_arglist> ::= 
+        <node_1> , (Vec3) <relative_offset_1> 
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
+        <node_2> , (Vec3) <relative_offset_2>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_2> ]
+\end{verbatim}
+Note: this joint does not represent a constant velocity joint,
+so, when a steady deflection between the two nodes is present,
+a constant velocity about axis 1 of one node results in an oscillating
+velocity about axis 1 for the other node.
+The constant velocity joint is implemented by the \kw{gimbal joint}
+(Section~\ref{sec:EL:JOINT:GIMBALROTATION}), which essentially consists
+of a sequence of two
+\hyperref{\kw{cardano hinge}}{\kw{cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}
+joints with the hinges in reversed order, assembled
+in a manner that the deflection is split half and half
+between the two joints.
+
+\subsection{Cardano pin}
+\label{sec:EL:STRUCT:JOINT:CARDANO_PIN}
+This joint implements a ``Cardano'' joint between a node and the ground.
+The absolute position is also constrained.
+See above for details about the formulation.
+\begin{verbatim}
+    <joint_type> ::= cardano pin
+    <joint_arglist> ::= 
+        <node> , (Vec3) <relative_offset>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix> ] ,
+        (Vec3) <absolute_pin_position>
+        [ , hinge , 
+            (OrientationMatrix) <absolute_pin_orientation_matrix> ]
+\end{verbatim}
+\emph{Note: this is equivalent to a
+\hyperref{\kw{cardano hinge}}{\kw{cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}
+when one node is grounded.
+}
+
+\subsection{Cardano rotation}
+\label{sec:EL:STRUCT:JOINT:CARDANO_ROTATION}
+This joint implements a ``Cardano'' joint, which is made of a sequence
+of two revolute hinges orthogonal to each other.
+The relative position is not constrained.
+\begin{verbatim}
+    <joint_type> ::= cardano rotation
+    <joint_arglist> ::= 
+        <node_1>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
+        <node_2>
+        [ , hinge , 
+            (OrientationMatrix) <relative_orientation_matrix_2> ]
+\end{verbatim}
+{\em
+    Note: this joint forces the relative direction 3 of node 1 to be always 
+    normal to the relative direction 2 of node 2.
+}
+
+\emph{Note: this is equivalent to a
+\hyperref{\kw{cardano hinge}}{\kw{cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}
+without position constraint.
+Or, in other words, a 
+\hyperref{\kw{cardano hinge}}{\kw{cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}
+is made of a \kw{cardano rotation} on top of a 
+\hyperref{\kw{spherical hinge}}{\kw{spherical hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:SPHERICAL_HINGE}.
+}
+
+
+
 \subsection{Clamp}
 This joint grounds all 6 degrees of freedom of a node
 in an arbitrary position and orientation that remains fixed.
@@ -3402,10 +3486,10 @@ this joint, in conjunction with a
 \hyperref{\kw{spherical hinge}}{\kw{spherical hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:SPHERICAL_HINGE}
 joint, should be used to implement an ideal tiltrotor gimbal
 instead of a
-\hyperref{\kw{universal rotation}}{\kw{universal rotation} (see Section~}{)}{sec:EL:STRUCT:JOINT:UNIVERSAL_ROTATION}.
+\hyperref{\kw{cardano rotation}}{\kw{cardano rotation} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_ROTATION}.
 See the technical manual for details.
 It is equivalent to a series of two Cardano's joints
-(the \hyperref{\kw{universal hinge}}{\kw{universal hinge}, see Section~}{}{sec:EL:STRUCT:JOINT:UNIVERSAL_HINGE})
+(the \hyperref{\kw{cardano hinge}}{\kw{cardano hinge}, see Section~}{}{sec:EL:STRUCT:JOINT:CARDANO_HINGE})
 rotated 90 degrees apart, each accounting for half the relative rotation
 between axis 3 of each side of the joint.
 \begin{verbatim}
@@ -4399,76 +4483,27 @@ the hint is passed to the Vec3 drive hint parser.
 
 
 
+
 \subsection{Universal hinge}
 \label{sec:EL:STRUCT:JOINT:UNIVERSAL_HINGE}
-This joint implements a Cardano's joint, which is made of a sequence
-of two revolute hinges orthogonal to each other, one about relative axis 2
-and one about relative axis 3 of the reference systems
-defined by the two \kw{hinge} statements.
-Or, in other words, this joint constrains the relative axis 3 of node 1 
-to be always orthogonal to the relative axis 2 of node 2.
-As a result, torque is transmitted about axis 1 of both nodes.
-The relative position is also constrained.
-\begin{verbatim}
-    <joint_type> ::= universal hinge
-    <joint_arglist> ::= 
-        <node_1> , (Vec3) <relative_offset_1> 
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
-        <node_2> , (Vec3) <relative_offset_2>
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix_2> ]
-\end{verbatim}
-Note: this joint does not represent a constant velocity joint,
-so, when a steady deflection between the two nodes is present,
-a constant velocity about axis 1 of one node results in an oscillating
-velocity about axis 1 for the other node.
-The constant velocity joint is implemented by the \kw{gimbal joint}
-(Section~\ref{sec:EL:JOINT:GIMBALROTATION}), which essentially consists
-of a sequence of two
-\hyperref{\kw{universal hinge}}{\kw{universal hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:UNIVERSAL_HINGE}
-joints with the hinges in reversed order, assembled
-in a manner that the deflection is split half and half
-between the two joints.
+Deprecated in favour of the
+\hyperref{\kw{cardano hinge}}{\kw{cardano hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_HINGE}.
+
+
 
 \subsection{Universal pin}
-This joint implements a ``Cardano'' joint between a node and the ground.
-The absolute position is also constrained.
-See above for details about the formulation.
-\begin{verbatim}
-    <joint_type> ::= universal pin
-    <joint_arglist> ::= 
-        <node> , (Vec3) <relative_offset>
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix> ] ,
-        (Vec3) <absolute_pin_position>
-        [ , hinge , 
-            (OrientationMatrix) <absolute_pin_orientation_matrix> ]
-\end{verbatim}
-\emph{Note: this is equivalent to a
-\hyperref{\kw{universal hinge}}{\kw{universal hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:UNIVERSAL_HINGE}
-when one node is grounded.
-}
+\label{sec:EL:STRUCT:JOINT:UNIVERSAL_PIN}
+Deprecated in favour of the
+\hyperref{\kw{cardano pin}}{\kw{cardano pin} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_PIN}.
+
+
 
 \subsection{Universal rotation}
 \label{sec:EL:STRUCT:JOINT:UNIVERSAL_ROTATION}
-This joint implements a ``Cardano'' joint, which is made of a sequence
-of two revolute hinges orthogonal to each other.
-The relative position is not constrained.
-\begin{verbatim}
-    <joint_type> ::= universal rotation
-    <joint_arglist> ::= 
-        <node_1>
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
-        <node_2>
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix_2> ]
-\end{verbatim}
-{\em
-    Note: this joint forces the relative direction 3 of node 1 to be always 
-    normal to the relative direction 2 of node 2.
-}
+Deprecated in favour of the
+\hyperref{\kw{cardano rotation}}{\kw{cardano rotation} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_ROTATION}.
+
+
 
 \section{Joint Regularization}
 The \kw{joint regularization} element is used to modify

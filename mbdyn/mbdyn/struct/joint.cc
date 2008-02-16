@@ -146,9 +146,12 @@ ReadJoint(DataManager* pDM,
 		"spherical" "hinge",
 		"pin",
 		"spherical" "pin",
-		"universal" "hinge",
-		"universal" "rotation",
-		"universal" "pin",
+		"universal" "hinge",			// deprecated
+		"universal" "rotation",			// deprecated
+		"universal" "pin",			// deprecated
+		"cardano" "pin",
+		"cardano" "hinge",
+		"cardano" "rotation",
 		"plane" "hinge",
 		"revolute" "hinge",
 		"revolute" "rotation",
@@ -203,9 +206,12 @@ ReadJoint(DataManager* pDM,
 		SPHERICALHINGE,
 		PIN,
 		SPHERICALPIN,
-		UNIVERSALHINGE,
-		UNIVERSALROTATION,
-		UNIVERSALPIN,
+		UNIVERSALHINGE,			// deprecated
+		UNIVERSALROTATION,		// deprecated
+		UNIVERSALPIN,			// deprecated
+		CARDANOHINGE,
+		CARDANOROTATION,
+		CARDANOPIN,
 		PLANEHINGE,
 		REVOLUTEHINGE,
 		REVOLUTEROTATION,
@@ -576,6 +582,8 @@ ReadJoint(DataManager* pDM,
 	case REVOLUTEROTATION:
 	case UNIVERSALHINGE:
 	case UNIVERSALROTATION:
+	case CARDANOHINGE:
+	case CARDANOROTATION:
 	case AXIALROTATION:
 	case GIMBALROTATION:
 	case PLANEDISPLACEMENT:
@@ -594,6 +602,7 @@ ReadJoint(DataManager* pDM,
 		switch (CurrKeyWord) {
 		case REVOLUTEROTATION:
 		case UNIVERSALROTATION:
+		case CARDANOROTATION:
 		case GIMBALROTATION:
 			if (HP.IsKeyWord("position")) {
 				/* currently ignored */
@@ -649,6 +658,7 @@ ReadJoint(DataManager* pDM,
 		switch (CurrKeyWord) {
 		case REVOLUTEROTATION:
 		case UNIVERSALROTATION:
+		case CARDANOROTATION:
 		case GIMBALROTATION:
 			if (HP.IsKeyWord("position")) {
 				/* currently ignored */
@@ -813,6 +823,7 @@ ReadJoint(DataManager* pDM,
 
 		/* allocazione e creazione cerniera universale */
 		case UNIVERSALHINGE:
+		case CARDANOHINGE:
 			{
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				UniversalHingeJoint,
@@ -832,6 +843,7 @@ ReadJoint(DataManager* pDM,
 
 		/* allocazione e creazione cerniera universale senza vincolo pos. */
 		case UNIVERSALROTATION:
+		case CARDANOROTATION:
 			{
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				UniversalRotationJoint,
@@ -898,6 +910,7 @@ ReadJoint(DataManager* pDM,
 		} break;
 
 	case UNIVERSALPIN:
+	case CARDANOPIN:
 	case PLANEPIN:
 	case REVOLUTEPIN:
 	case PLANEDISPLACEMENTPIN:
@@ -991,6 +1004,7 @@ ReadJoint(DataManager* pDM,
 			} break;
 
 		case UNIVERSALPIN:
+		case CARDANOPIN:
 			{
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				UniversalPinJoint,
