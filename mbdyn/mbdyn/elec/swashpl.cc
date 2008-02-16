@@ -257,7 +257,7 @@ SwashPlate::AssRes(SubVectorHandler& WorkVec,
 }
 
 void
-SwashPlate::SetInitialValue(VectorHandler& /* X */ ) const
+SwashPlate::SetInitialValue(VectorHandler& /* X */ )
 {
 	NO_OP;
 }

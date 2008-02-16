@@ -55,7 +55,7 @@ DofOwnerOwner::DofOwnerOwner(const DofOwner* pDO)
 }
    
 void 
-DofOwnerOwner::SetInitialValue(VectorHandler& /* X */ ) const 
+DofOwnerOwner::SetInitialValue(VectorHandler& /* X */ )
 { 
 	NO_OP; 
 }

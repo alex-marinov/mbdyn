@@ -1077,7 +1077,7 @@ StructNode::Update(const VectorHandler& X, int iOrder)
 
 /* Funzioni di inizializzazione, ereditate da DofOwnerOwner */
 void
-StructNode::SetInitialValue(VectorHandler& X) const
+StructNode::SetInitialValue(VectorHandler& X)
 {
 	/* FIXME: why is this called? */
 	integer iIndex = iGetFirstIndex();
@@ -2449,7 +2449,7 @@ DummyStructNode::InitialUpdate(const VectorHandler& /* X */ )
 
 /* Funzioni di inizializzazione, ereditate da DofOwnerOwner */
 void
-DummyStructNode::SetInitialValue(VectorHandler& /* X */ ) const
+DummyStructNode::SetInitialValue(VectorHandler& /* X */ )
 {
 	NO_OP;
 }

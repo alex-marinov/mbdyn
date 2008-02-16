@@ -337,7 +337,7 @@ class Beam
     };
    
     /* Setta il valore iniziale delle proprie variabili */
-    virtual void SetInitialValue(VectorHandler& /* X */ ) const {
+    virtual void SetInitialValue(VectorHandler& /* X */ ) {
         NO_OP; 
     };
    

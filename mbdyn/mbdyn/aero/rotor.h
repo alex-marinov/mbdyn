@@ -234,7 +234,7 @@ class Rotor
    virtual std::ostream& Restart(std::ostream& out) const;
    
    /* Relativo ai ...WithDofs */
-   virtual void SetInitialValue(VectorHandler& /* X */ ) const {
+   virtual void SetInitialValue(VectorHandler& /* X */ ) {
       NO_OP;
    };
    
@@ -604,7 +604,7 @@ class DynamicInflowRotor : virtual public Elem, public Rotor {
    virtual std::ostream& Restart(std::ostream& out) const;   
    
    /* Relativo ai ...WithDofs */
-   virtual void SetInitialValue(VectorHandler& X) const;
+   virtual void SetInitialValue(VectorHandler& X);
    
    /* Relativo ai ...WithDofs */
    virtual void SetValue(DataManager *pDM,

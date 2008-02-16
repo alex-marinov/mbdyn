@@ -277,7 +277,7 @@ public:
 	void Update(const VectorHandler& X, int iOrder);
 
 	/* Funzioni di inizializzazione, ereditate da DofOwnerOwner */
-	virtual void SetInitialValue(VectorHandler& X) const;
+	virtual void SetInitialValue(VectorHandler& X);
 	virtual void SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph = 0);
@@ -831,7 +831,7 @@ public:
 	virtual void InitialUpdate(const VectorHandler& X);
 
 	/* Funzioni di inizializzazione, ereditate da DofOwnerOwner */
-	virtual void SetInitialValue(VectorHandler& X) const;
+	virtual void SetInitialValue(VectorHandler& X);
 	virtual void SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph = 0);

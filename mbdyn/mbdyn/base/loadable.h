@@ -314,7 +314,7 @@ public:
 		      const VectorHandler& XCurr);
    	SubVectorHandler& 
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
-   	virtual void SetInitialValue(VectorHandler& X) const;   
+   	virtual void SetInitialValue(VectorHandler& X);
 
    	virtual void SetValue(DataManager *pDM,
 			VectorHandler& X, VectorHandler& XP,

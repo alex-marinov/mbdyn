@@ -59,7 +59,7 @@ public:
 	virtual void Output(OutputHandler& OH) const;
 
 	/* Setta il valore iniziale delle proprie variabili */
-	virtual void SetInitialValue(VectorHandler& X) const;
+	virtual void SetInitialValue(VectorHandler& X);
 
 	virtual void SetValue(DataManager *pdm,
 			VectorHandler& X, VectorHandler& XP,

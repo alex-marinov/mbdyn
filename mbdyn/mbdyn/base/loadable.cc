@@ -704,7 +704,7 @@ LoadableElem::InitialAssRes(SubVectorHandler& WorkVec,
 }
 
 void 
-LoadableElem::SetInitialValue(VectorHandler& X) const
+LoadableElem::SetInitialValue(VectorHandler& X)
 {   
    	ASSERT(calls->set_initial_value != NULL);
    	(*calls->set_initial_value)(this, X);

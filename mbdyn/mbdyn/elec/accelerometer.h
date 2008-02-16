@@ -79,7 +79,7 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
-	virtual void SetInitialValue(VectorHandler& /* X */ ) const;
+	virtual void SetInitialValue(VectorHandler& /* X */ );
 	virtual void SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& /* XP */ ,
 		SimulationEntity::Hints *ph = 0);
@@ -139,7 +139,7 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
-	virtual void SetInitialValue(VectorHandler& /* X */ ) const;
+	virtual void SetInitialValue(VectorHandler& /* X */ );
 	virtual void SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& /* XP */ ,
 		SimulationEntity::Hints *ph = 0);
@@ -198,7 +198,7 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
-	virtual void SetInitialValue(VectorHandler& /* X */ ) const;
+	virtual void SetInitialValue(VectorHandler& /* X */ );
 	virtual void SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& /* XP */ ,
 		SimulationEntity::Hints *ph = 0);

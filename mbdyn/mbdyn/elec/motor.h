@@ -93,7 +93,7 @@ public:
 			const VectorHandler& XCurr, 
 			const VectorHandler& XPrimeCurr);
    
-     	virtual void SetInitialValue(VectorHandler& /* X */ ) const;
+     	virtual void SetInitialValue(VectorHandler& /* X */ );
 
 	/* *******PER IL SOLUTORE PARALLELO******** */        
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento

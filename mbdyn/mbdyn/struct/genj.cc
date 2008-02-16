@@ -517,7 +517,7 @@ DistanceJoint::InitialAssRes(SubVectorHandler& WorkVec,
 }
 
 
-void DistanceJoint::SetInitialValue(VectorHandler& X) const
+void DistanceJoint::SetInitialValue(VectorHandler& X)
 {
    integer iFirstIndex = iGetFirstIndex();   
    
@@ -1174,7 +1174,7 @@ DistanceJointWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
 }
 
 
-void DistanceJointWithOffset::SetInitialValue(VectorHandler& X) const
+void DistanceJointWithOffset::SetInitialValue(VectorHandler& X)
 {
    integer iFirstIndex = iGetFirstIndex();   
    

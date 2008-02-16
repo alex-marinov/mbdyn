@@ -344,7 +344,7 @@ SubVectorHandler& InPlaneJoint::InitialAssRes(SubVectorHandler& WorkVec,
 
    
 /* Setta il valore iniziale delle proprie variabili */
-void InPlaneJoint::SetInitialValue(VectorHandler& /* X */ ) const
+void InPlaneJoint::SetInitialValue(VectorHandler& /* X */ )
 { 
    NO_OP;
 }
@@ -727,7 +727,7 @@ InPlaneWithOffsetJoint::InitialAssRes(SubVectorHandler& WorkVec,
 
    
 /* Setta il valore iniziale delle proprie variabili */
-void InPlaneWithOffsetJoint::SetInitialValue(VectorHandler& /* X */ ) const
+void InPlaneWithOffsetJoint::SetInitialValue(VectorHandler& /* X */ )
 { 
    NO_OP;
 }

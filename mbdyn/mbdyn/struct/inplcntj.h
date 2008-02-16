@@ -116,7 +116,7 @@ class InPlaneContactJoint : public Joint {
 				   const VectorHandler& XCurr);
    
    /* Setta il valore iniziale delle proprie variabili */
-   virtual void SetInitialValue(VectorHandler& X) const;
+   virtual void SetInitialValue(VectorHandler& X);
 
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento

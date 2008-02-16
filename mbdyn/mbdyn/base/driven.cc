@@ -151,7 +151,7 @@ DrivenElem::SetValue(DataManager *pdm,
 }
 
 void
-DrivenElem::SetInitialValue(VectorHandler& X) const
+DrivenElem::SetInitialValue(VectorHandler& X)
 {
 	ASSERT(pElem != NULL);
 	if (dGet() != 0.) {

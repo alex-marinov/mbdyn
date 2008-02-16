@@ -1738,7 +1738,7 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 
 /* Relativo ai ...WithDofs */
 void
-DynamicInflowRotor::SetInitialValue(VectorHandler& /* X */ ) const
+DynamicInflowRotor::SetInitialValue(VectorHandler& /* X */ )
 {
 	NO_OP;
 }

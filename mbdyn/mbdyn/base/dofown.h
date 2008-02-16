@@ -127,7 +127,13 @@ class DofOwnerOwner {
       return pDofOwner->iFirstIndex; 
    };   
 
-   virtual void SetInitialValue(VectorHandler& X) const;
+	/**
+	 * Initialize state vector used in initial assembly.
+	 * May set internal states of the element.
+	 * Do not rely on being always called, because initial
+	 * assembly could be implicitly or explicitly skipped
+	 */
+	virtual void SetInitialValue(VectorHandler& X);
 };
 
 #endif /* DOFOWN_H */

@@ -225,7 +225,7 @@ Motor::AssRes(SubVectorHandler& WorkVec,
 }
 
 void
-Motor::SetInitialValue(VectorHandler& /* X */ ) const
+Motor::SetInitialValue(VectorHandler& /* X */ )
 {
 	NO_OP;
 }

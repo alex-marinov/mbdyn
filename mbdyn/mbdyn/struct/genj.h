@@ -109,7 +109,7 @@ class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
 				   const VectorHandler& XCurr);
    
    /* Setta il valore iniziale delle proprie variabili */
-   virtual void SetInitialValue(VectorHandler& X) const;
+   virtual void SetInitialValue(VectorHandler& X);
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& XP,
 		   SimulationEntity::Hints *ph = 0);
@@ -220,7 +220,7 @@ virtual public Elem, public Joint, public DriveOwner {
 				   const VectorHandler& XCurr);
    
    /* Setta il valore iniziale delle proprie variabili */
-   virtual void SetInitialValue(VectorHandler& X) const;
+   virtual void SetInitialValue(VectorHandler& X);
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& XP,
 		   SimulationEntity::Hints *ph = 0);

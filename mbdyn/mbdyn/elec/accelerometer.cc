@@ -238,7 +238,7 @@ Accelerometer::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 }
 
 void
-Accelerometer::SetInitialValue(VectorHandler& /* X */ ) const
+Accelerometer::SetInitialValue(VectorHandler& /* X */ )
 {
 	NO_OP;
 }
@@ -384,7 +384,7 @@ TraslAccel::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 }
 
 void
-TraslAccel::SetInitialValue(VectorHandler& /* X */ ) const
+TraslAccel::SetInitialValue(VectorHandler& /* X */ )
 {
 	NO_OP;
 }
@@ -523,7 +523,7 @@ RotAccel::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 }
 
 void
-RotAccel::SetInitialValue(VectorHandler& /* X */ ) const
+RotAccel::SetInitialValue(VectorHandler& /* X */ )
 {
 	NO_OP;
 }

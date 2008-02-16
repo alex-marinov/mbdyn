@@ -140,7 +140,7 @@ NestedElem::AfterPredict(VectorHandler& X, VectorHandler& XP)
 }
 
 void
-NestedElem::SetInitialValue(VectorHandler& X) const
+NestedElem::SetInitialValue(VectorHandler& X)
 {
 	ASSERT(pElem != NULL);
 	ElemWithDofs*	pEwD = dynamic_cast<ElemWithDofs *>(pElem);

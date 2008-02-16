@@ -235,7 +235,7 @@ KinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 
 /* Setta il valore iniziale delle proprie variabili */
 void 
-KinJoint::SetInitialValue(VectorHandler& /* X */ ) const
+KinJoint::SetInitialValue(VectorHandler& /* X */ )
 {
    NO_OP;
 }

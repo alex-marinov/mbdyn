@@ -122,7 +122,7 @@ class InPlaneJoint : virtual public Elem, public Joint {
 				   const VectorHandler& XCurr);
    
    /* Setta il valore iniziale delle proprie variabili */
-   virtual void SetInitialValue(VectorHandler& X) const;
+   virtual void SetInitialValue(VectorHandler& X);
 
 #ifdef DEBUG
    virtual const char* sClassName(void) const { return "InPlaneJoint"; };
@@ -226,7 +226,7 @@ class InPlaneWithOffsetJoint : virtual public Elem, public Joint {
 				   const VectorHandler& XCurr);
    
    /* Setta il valore iniziale delle proprie variabili */
-   virtual void SetInitialValue(VectorHandler& X) const;
+   virtual void SetInitialValue(VectorHandler& X);
 
 #ifdef DEBUG
    virtual const char* sClassName(void) const { return "InPlaneWithOffsetJoint"; };
