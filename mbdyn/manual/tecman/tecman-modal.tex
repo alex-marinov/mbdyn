@@ -369,13 +369,13 @@ and only use the one associated to component 1.}.
 \item[2.] Static moment
 (matrix $3\times{1}$)
 \begin{equation}
-	\T{\mathrm{Inv}}_2 = \sum_{i=1,N} m_i \tilde{\T{f}}_i
+	\T{Inv}_2 = \sum_{i=1,N} m_i \tilde{\T{f}}_i
 \end{equation}
 
 \item[3.] Static coupling between rigid body and FEM node displacements
 (matrix $3\times{M}$)
 \begin{equation}
-	\T{\mathrm{Inv}}_3 = \sum_{i=1,N} m_i \T{U}_i
+	\TT{Inv}_3 = \sum_{i=1,N} m_i \T{U}_i
 \end{equation}
 where the portion related to the $k$-th mode is computed by summation
 of the contribute of each FEM node, obtained by multiplying the FEM node
@@ -386,7 +386,7 @@ of the $k$-th mode.
 displacements
 (matrix $3\times{M}$)
 \begin{equation}
-	\T{\mathrm{Inv}}_4 = \sum_{i=1,N} \plbr{
+	\TT{Inv}_4 = \sum_{i=1,N} \plbr{
 		m_i \tilde{\T{f}}_i \times \T{U}_i
 		+ \T{J}_i \T{V}_i
 	}
@@ -400,7 +400,7 @@ $k$-th mode.
 \item[5.] Static coupling between FEM node displacements
 (matrix $3\times{M}\times{M}$)
 \begin{equation}
-	\T{\mathrm{Inv}}_{5j} = \sum_{i=1,N} m_i \T{U}_{ij} \times \T{U}_i
+	\TT{Inv}_{5j} = \sum_{i=1,N} m_i \T{U}_{ij} \times \T{U}_i
 \end{equation}
 where the portion related to the $j$-th mode is computed by summation
 of the contribute of each FEM node, obtained by multiplying the FEM node
@@ -411,7 +411,7 @@ $k$-th modal displacement $\T{U}_{ik}$.
 \item[6.] Modal mass matrix
 (matrix $M\times{M}$)
 \begin{equation}
-	\T{\mathrm{Inv}}_6 = \sum_{i=1,N} \plbr{
+	\TT{Inv}_6 = \sum_{i=1,N} \plbr{
 		m_i \T{U}_i^T \T{U}_i
 		+ \T{V}_i^T \T{J}_i \T{V}_i
 	}
@@ -420,7 +420,7 @@ $k$-th modal displacement $\T{U}_{ik}$.
 \item[7.] Inertia matrix
 (matrix $3\times{3}$)
 \begin{equation}
-	\T{\mathrm{Inv}}_7 = \sum_{i=1,N} \plbr{
+	\TT{Inv}_7 = \sum_{i=1,N} \plbr{
 		m_i \tilde{\T{f}}_i \times \tilde{\T{f}}_i \times^T + \T{J}_i
 	}
 \end{equation}
@@ -428,26 +428,26 @@ $k$-th modal displacement $\T{U}_{ik}$.
 \item[8.]
 (matrix $3\times{M}\times{3}$)
 \begin{equation}
-	\T{\mathrm{Inv}}_{8j} =
+	\TT{Inv}_{8j} =
 		\sum_{i=1,N} m_i \tilde{\T{f}}_{i} \times \T{U}_{ij} \times{}^T
 \end{equation}
 
 \item[9.]
 (matrix $3\times{M}\times{M}\times{3}$)
 \begin{equation}
-	\T{\mathrm{Inv}}_{9jk} = \sum_{i=1,N} m_i \T{U}_{ij} \times \T{U}_{ik} \times{}
+	\TT{Inv}_{9jk} = \sum_{i=1,N} m_i \T{U}_{ij} \times \T{U}_{ik} \times{}
 \end{equation}
 
 \item[10.]
 (matrix $3\times{M}\times{3}$)
 \begin{equation}
-	\T{\mathrm{Inv}}_{10j} = \sum_{i=1,N} \T{V}_{ij}\times \T{J}_i
+	\TT{Inv}_{10j} = \sum_{i=1,N} \T{V}_{ij}\times \T{J}_i
 \end{equation}
 
 \item[11.]
 (matrix $3\times{M}$)
 \begin{equation}
-	\T{\mathrm{Inv}}_{11} = \sum_{i=1,N} \T{J}_i \T{V}_i
+	\TT{Inv}_{11} = \sum_{i=1,N} \T{J}_i \T{V}_i
 \end{equation}
 
 \end{enumerate}
@@ -455,18 +455,18 @@ $k$-th modal displacement $\T{U}_{ik}$.
 Using the invariants, the contributions to the inertia matrix of the body
 become
 \begin{align}
-	\T{M}_{xx}	&= \T{I} \mathrm{Inv}_1 \\
+	\T{M}_{xx}	&= \T{I} \, \mathrm{Inv}_1 \\
 	\T{M}_{x\phi}	&= \T{R}_0 \plbr{
-		\T{\mathrm{Inv}}_2 + \T{\mathrm{Inv}}_3 \T{q}}\times{}  \T{R}_0^T \\
-	\T{M}_{xq}	&= \T{R}_0 \T{\mathrm{Inv}}_3 \\
+		\T{Inv}_2 + \TT{Inv}_3 \T{q}}\times{}  \T{R}_0^T \\
+	\T{M}_{xq}	&= \T{R}_0 \TT{Inv}_3 \\
 	\T{M}_{\phi\phi}&= \T{R}_0 \plbr{
-		\T{\mathrm{Inv}}_7
-		+ \plbr{\T{\mathrm{Inv}}_{8j} + \T{\mathrm{Inv}}_{8j}^T} q_j
-		+ \T{\mathrm{Inv}}_{9jk} q_j q_k
+		\TT{Inv}_7
+		+ \plbr{\TT{Inv}_{8j} + \TT{Inv}_{8j}^T} q_j
+		+ \TT{Inv}_{9jk} q_j q_k
 	} \T{R}_0^T \\
 	\T{M}_{\phi q}	&= \T{R}_0 \lplbr{
-		\T{\mathrm{Inv}}_4
-		+ \T{\mathrm{Inv}}_{5j} q_j 
+		\TT{Inv}_4
+		+ \TT{Inv}_{5j} q_j 
 		+ \sum_{i=1,N} \plbr{
 			\T{J}_i \plbr{\T{V}_i \T{q}}\times^T \T{V}_i
 			+ \plbr{\T{V}_i \T{q}}\times \T{J}_i \T{V}_i
@@ -474,7 +474,7 @@ become
 	} \nonumber \\
 			& \rplbr{ \mbox{} + \sum_{i=1,N} \plbr{\T{V}_i \T{q}}\times \T{J}_i \plbr{\T{V}_i \T{q}}\times^T \T{V}_i
 	} \\
-	\T{M}_{qq}	&= \T{\mathrm{Inv}}_6 \nonumber \\
+	\T{M}_{qq}	&= \TT{Inv}_6 \nonumber \\
 			& \mbox{} + \sum_{i=1,N} \plbr{
 			\T{V}_i^T \T{J}_i \plbr{\T{V}_i \T{q}}\times^T \T{V}_i
 			+ \T{V}_i^T \plbr{\T{V}_i \T{q}}\times \T{J}_i \T{V}_i
@@ -491,20 +491,20 @@ in the nodal rotation become reasonably small, yielding
 \begin{align}
 	\T{M}_{xx}	&= \T{I} \mathrm{Inv}_1 \\
 	\T{M}_{x\phi}	&= \T{R}_0 \plbr{
-		\T{\mathrm{Inv}}_2 + \T{\mathrm{Inv}}_3 \T{q}}\times{}  \T{R}_0^T \\
-	\T{M}_{xq}	&= \T{R}_0 \T{\mathrm{Inv}}_3 \\
+		\T{Inv}_2 + \TT{Inv}_3 \T{q}}\times{}  \T{R}_0^T \\
+	\T{M}_{xq}	&= \T{R}_0 \TT{Inv}_3 \\
 	\T{M}_{\phi\phi}&= \T{R}_0 \plbr{
-		\T{\mathrm{Inv}}_7
-		+ \plbr{\T{\mathrm{Inv}}_{8j} + \T{\mathrm{Inv}}_{8j}^T} q_j
-		+ \T{\mathrm{Inv}}_{9jk} q_j q_k
+		\TT{Inv}_7
+		+ \plbr{\TT{Inv}_{8j} + \TT{Inv}_{8j}^T} q_j
+		+ \TT{Inv}_{9jk} q_j q_k
 	} \T{R}_0^T \\
 	\T{M}_{\phi q}	&= \T{R}_0 \plbr{
-		\T{\mathrm{Inv}}_4
-		+ \T{\mathrm{Inv}}_{5j} q_j 
+		\TT{Inv}_4
+		+ \TT{Inv}_{5j} q_j 
 	} \\
-	\T{M}_{qq}	&= \T{\mathrm{Inv}}_6 
+	\T{M}_{qq}	&= \TT{Inv}_6 
 \end{align}
-In some cases, the only remaining quadratic term in $\T{\mathrm{Inv}}_{9jk}$
+In some cases, the only remaining quadratic term in $\TT{Inv}_{9jk}$
 is neglected as well.
 
 

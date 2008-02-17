@@ -33,16 +33,17 @@
 \usepackage{ae,aecompl}
 \usepackage{graphicx}
 \usepackage{psfrag}
-\usepackage{amsmath}
-\usepackage{amsfonts}
+\usepackage{bm, amsmath, amsfonts, amssymb}
 %\usepackage[dvips,breaklinks=true,colorlinks=false]{hyperref}
 \usepackage{html}
 \usepackage{comment}
 
 \input{stdmacro}
 %poor man's bold symbol
-\newcommand{\T}[1]{\boldsymbol{#1}}
-\newcommand{\TT}[1]{\boldsymbol{#1}}
+\newcommand{\T}[1]{\bm{\mathbf{#1}}}
+\newcommand{\TT}[1]{\bm{\mathbf{#1}}}
+\newcommand{\TTT}[1]{\bm{\mathbf{#1}}}
+\newcommand{\TTTT}[1]{\mathbb{#1}}
 \newcommand{\equu}{\overset{\text{uu}}{=}}
 
 \begin{document}
@@ -2164,7 +2165,8 @@ It is implemented in files\\
 \paragraph{Definitions.} \
 The position of the nodes with respect to the global reference frame
 are $\T{x}_1$ and $\T{x}_2$.
-The orientations of the nodes with respect to the global reference frame
+The matrices that describe the orientation of the nodes
+with respect to the global reference frame
 are $\T{R}_1$ and $\T{R}_2$.
 An offset is allowed for the location of the points where 
 the relative position is constrained; the offsets $\tilde{\T{f}}_1$
@@ -2213,12 +2215,13 @@ $\T{R}_{1h}$.
 
 
 \paragraph{Orientation Constraint.} \
-The relative orientation is
+The relative orientation is expressed by matrix
 \begin{equation}
 	\T{R}_{\mathrm{rel}} = \T{R}_{1hr}^T \T{R}_{2hr}
 \end{equation}
-The desired relative orientation can be expressed by means of a vector 
-$\T{\theta}_0$; the corresponding orientation matrix is
+The desired relative orientation can be expressed by means
+of a rotation vector $\T{\theta}_0$;
+the corresponding rotation matrix is
 \begin{equation}
 	\T{R}_0 = \exp\plbr{\T{\theta}_0\times{}}
 \end{equation}
@@ -2259,7 +2262,7 @@ is equivalent to
 
 \noindent
 In general, the difference between the desired rotation
-$\T{\theta}_0$ and the current relative orientation between
+$\T{\theta}_0$ and the current relative rotation vector between
 nodes 1 and 2,
 \begin{equation}
 	\T{\theta} = \llk{ax}\plbr{\exp^{-1}\plbr{
@@ -2326,9 +2329,9 @@ The corresponding value of  $\T{x}^{\delta}$ and $\T{\theta}^{\delta}$
 could be used to apply moments based on the relative position/orientation 
 of the nodes, e.g.\ linear/rotational springs or dampers.
 In this case, the singularity problem on rotations is back: the norm
-of the relative orientation must not exceed $\pi$, i.e.\
+of the relative rotation must not exceed $\pi$, i.e.\
 $\shbr{\T{\theta}^{\delta}}<\pi$.
-Note that the relative orientation is computed with respect to 
+Note that the relative rotation is computed with respect to 
 $\T{\theta}_0$, so an anelastic (or imposed) rotation can be easily
 applied to the spring, resulting in an imposed rotation with stiffness.
 
@@ -2478,7 +2481,7 @@ a separate instance of a deformable element);
 in this case, the norm of the amplitude of the relative orientation 
 is limited to $\pi$;
 \item the imposed relative orientation goes in matrix $\T{R}_0$
-by means of a vector $\T{\theta}_0$ which can be time dependent;
+by means of a rotation vector $\T{\theta}_0$ which can be time dependent;
 there is no limitation on the amplitude of that rotation;
 \item friction can be added as well on those components
 that are not constrained;
@@ -2627,7 +2630,10 @@ We need to get $\T{\dot{R}}^{\delta}$, that is:
 			\T{R}_1^T \T{\omega}_2\times \T{R}_2 \T{R}_0^T +
 			\T{R}_1^T \T{R}_2 \T{R}_0^T \T{\omega}_0\times^T
 \end{equation*}
-where relative (constant) orientation matrices $\T{R}_{1h}$ and $\T{R}_{2h}$ have been omitted for clarity of notations. Since they are constant, there's no need to differentiate them. Now:
+where relative (constant) orientation matrices $\T{R}_{1h}$
+and $\T{R}_{2h}$ have been omitted for clarity of notations.
+Since they are constant, there is no need to differentiate them.
+Now:
 \begin{eqnarray*}
 \T{\dot{R}}^{\delta}\T{R}^{\delta T} &=& 	
 	\T{R}_1^T \T{\omega}_1\times^T \T{R}_2 \T{R}_0^T \T{R}_0\T{R}_2^T \T{R}_1 + 
@@ -2824,8 +2830,8 @@ It is implemented in files\\
 \paragraph{Definitions.} \
 The position of the node with respect to the global reference frame
 is $\T{x}_n$, while the absolute position of the constraint is $\T{x}_c$.
-The orientations of the node with respect to the global reference frame
-is $\T{R}_n$.
+The matrix that expresses the orientation of the node with respect
+to the global reference frame is $\T{R}_n$.
 An offset is allowed for the location of the points where 
 the absolute position is constrained; the offset $\tilde{\T{f}}_n$
 is rigidly connected to the node, so in the global reference frame 
@@ -2873,7 +2879,7 @@ $\T{R}_{nh}$.
 
 
 \paragraph{Orientation Constraint.} \
-The relative orientation is
+The matrix that expresses the relative orientation is
 \begin{equation}
 	\T{R}_{\mathrm{rel}} = \T{R}_{chr}^T \T{R}_{nhr}
 \end{equation}
@@ -3035,6 +3041,7 @@ The same considerations formulated for the TotalJoint apply.
 \subsection{Gimbal}
 \label{sec:GimbalRotationJoint}
 This element implements an ideal gimbal joint.
+It is discussed in \cite{GIMBAL}.
 A gimbal is a joint that allows the rotation between two nodes
 about two orthogonal axes.
 The angular velocity about the remaining axis is preserved regardless
@@ -3200,7 +3207,7 @@ or, which is equivalent,
 	\T{R}_{ab} \T{R}\plbr{\vartheta, \varphi}^T = \T{I} .
 	\label{eq:gimbal:eq-mat}
 \end{equation}
-As a consequence, the orientation vector
+As a consequence, the rotation vector
 \begin{equation}
 	\T{\theta} = \llk{ax}\plbr{\llk{exp}^{-1}\plbr{
 		\T{R}_{ab} \T{R}\plbr{\vartheta, \varphi}^T
@@ -3504,7 +3511,7 @@ Principle (VWP).
 While the unknown orientation parameters depend on the parametrization 
 in use, and typically are Gibbs-Rodrigues parameters according 
 to the updated-updated approach, equilibrium is written in terms
-of the equations conjugated to perturbations of orientation,
+of the equations conjugated to perturbations of relative rotation,
 namely:
 \begin{equation}
 	\delta\mathcal{L} = \sum \delta\T{x}_i^T \T{F}_i
@@ -3658,9 +3665,11 @@ the linearization of the force becomes
 
 
 \subsection{Deformable Hinge}
+\label{sec:constraints:deformable:deformable hinge}
 The deformable hinge applies to two nodes an internal moment that may depend
 on their relative orientation and angular velocity by means 
 of a 3D constitutive law.
+It is discussed in \cite{INVJOINT}.
 Two variants of this joint are presented:
 \begin{itemize}
 \item the one historically implemented in MBDyn, called ``attached'',
@@ -3671,7 +3680,7 @@ the constitutive law and the resulting moment attached to that intermediate
 orientation; as a consequence, the resulting internal moment does not depend
 on the node sequence even when anisotropic constitutive laws are considered.
 \end{itemize}
-The relative orientation is computed in analogy with the \texttt{drive hinge}
+The relative rotation vector is computed in analogy with the \texttt{drive hinge}
 joint (DriveHingeJoint).
 \begin{equation}
 	\T{\theta} =
@@ -3697,7 +3706,7 @@ The perturbation of $\T{R}_{1h}$, $\T{R}_{2h}$ yields
 since matrices $\tilde{\T{R}}_{1h}$, $\tilde{\T{R}}_{2h}$ are constant.
 
 Since the relative orientation $\T{R}_{1h}^T \T{R}_{2h}$ is a rotation 
-about an axis parallel to $\T{\theta}$, the orientation of $\T{\theta}$
+about an axis parallel to $\T{\theta}$, $\T{\theta}$ itself
 does not change when it is referred to any intermediate orientation
 between $\T{I}$ and $\T{R}_{1h}^T \T{R}_{2h}$, namely
 \begin{equation}
@@ -3788,7 +3797,7 @@ according to the simplifications of the updated-updated approach, yields
 	} .
 \end{align}
 The internal moment $\tilde{\T{M}}$ is computed as function
-of the relative orientation and velocity
+of the relative rotation and velocity
 \begin{equation}
 	\tilde{\T{M}} = \tilde{\T{M}}\plbr{\T{\theta}, \T{\omega}} .
 \end{equation}
@@ -3891,10 +3900,11 @@ According to the simplifications of the updated-updated approach, the linearizat
 The rotation $\tilde{\T{\theta}}=\T{\theta}/2$
 is used to define an intermediate reference frame for the joint,
 whose orientation with respect to node 1 is
-\begin{eqnarray}
-	\tilde{\T{R}} & = & \llk{exp}\plbr{\frac{1}{2}\llk{exp}^{-1}\plbr{\T{R}_{1h}^T \T{R}_{2h}}} \\
-		& = & \llk{exp}\plbr{\tilde{\T{\theta}}\times{}}
-\end{eqnarray}
+\begin{align}
+	\tilde{\T{R}}
+	&= \llk{exp}\plbr{\frac{1}{2}\llk{exp}^{-1}\plbr{\T{R}_{1h}^T \T{R}_{2h}}} \nonumber \\
+	&= \llk{exp}\plbr{\tilde{\T{\theta}}\times{}}
+\end{align}
 The orientation of the intermediate reference frame with respect 
 to node 2 is defined by $-\tilde{\T{\theta}}$, i.e.\ $\tilde{\T{R}}^T$.
 The orientation of the intermediate frame with respect
@@ -3924,7 +3934,7 @@ must be equal to the perturbation of the square
 of the half-relative orientation, namely
 \begin{align}
 	\T{\theta}_{\delta} \times{}
-	&= \delta\plbr{\tilde{\T{R}}\tilde{\T{R}}} \plbr{\tilde{\T{R}}\tilde{\T{R}}}^T \\
+	&= \delta\plbr{\tilde{\T{R}}\tilde{\T{R}}} \plbr{\tilde{\T{R}}\tilde{\T{R}}}^T \nonumber \\
 	&= \tilde{\T{\theta}}_{\delta} \times{} + \tilde{\T{R}} \tilde{\T{\theta}}_{\delta} \times \tilde{\T{R}}^T
 \end{align}
 and thus
@@ -3965,7 +3975,7 @@ of Equations~(\ref{eq:inv-def-h-property-1}, \ref{eq:inv-def-h-property-4}),
 	\tilde{\T{R}} \plbr{\T{I} + \tilde{\T{R}}} \tilde{\T{R}}^T = \plbr{\T{I} + \tilde{\T{R}}}
 	\label{eq:inv-def-h-property-5}
 \end{equation}
-which basically means that the trasformation $\plbr{\T{I} + \tilde{\T{R}}}$
+which basically means that the transformation $\plbr{\T{I} + \tilde{\T{R}}}$
 is coaxial with the rotation described by matrix $\tilde{\T{R}}$.
 A similar property exists for matrix $\plbr{\T{I} + \tilde{\T{R}}^T}$
 (e.g.\ by transposing Equation~(\ref{eq:inv-def-h-property-5})),
@@ -3989,7 +3999,7 @@ This can be easily proved by considering that,
 according to Equation~(\ref{eq:inv-def-h-property-4}),
 \begin{align}
 	\plbr{\T{I} + \tilde{\T{R}}}^{-1}
-	&= \plbr{\tilde{\T{R}}\plbr{\T{I} + \tilde{\T{R}}^T}}^{-1} \\
+	&= \plbr{\tilde{\T{R}}\plbr{\T{I} + \tilde{\T{R}}^T}}^{-1} \nonumber \\
 	&= \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \tilde{\T{R}}^T ,
 \end{align}
 and, as a consequence,
@@ -3998,6 +4008,19 @@ and, as a consequence,
 \end{equation}
 which reduces again to the identity matrix.
 
+\paragraph{Property 8.} \
+\begin{equation}
+	\plbr{\T{I} + \tilde{\T{R}}}^T = \plbr{\T{I} + \tilde{\T{R}}^T}
+	\label{eq:inv-def-h-property-8}
+\end{equation}
+
+\paragraph{Property 9.} \
+\begin{equation}
+	\plbr{\T{I} + \tilde{\T{R}}}^{-T} = \plbr{\T{I} + \tilde{\T{R}}^T}^{-1}
+	\label{eq:inv-def-h-property-9}
+\end{equation}
+
+\paragraph{Property 10.} \
 As a consequence
 of Equations~(\ref{eq:inv-def-h-property-1}--\ref{eq:inv-def-h-property-4}),
 \begin{equation}
@@ -4011,170 +4034,22 @@ and
 \end{equation}
 and all other combinations.
 
+\bigskip
+
 It is convenient to define
 \begin{equation}
 	\hat{\T{I}} =
-		\hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T ;
+		\hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T .
 \end{equation}
-its perturbation yields
-\begin{align}
-	\delta\hat{\T{I}}
-	&= \delta\hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T
-	\nonumber \\
-	& \mbox{\hspace{12pt}}
-	+ \hat{\T{R}} \ \delta\! \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T
-	\nonumber \\
-	& \mbox{\hspace{12pt}}
-	+ \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \delta\hat{\T{R}}^T \\
-	&= \plbr{
-		\T{\theta}_{1\delta} \times \hat{\T{R}}
-		+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta} \times \tilde{\T{R}}
-	} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T
-	\nonumber \\
-	& \mbox{\hspace{12pt}}
-	- \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1}
-		\tilde{\T{\theta}}_{\delta} \times
-		\plbr{\T{I} + \tilde{\T{R}}^T}^{-1}
-		\hat{\T{R}}^T
-	\nonumber \\
-	& \mbox{\hspace{12pt}}
-	+ \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \plbr{
-		\hat{\T{R}}^T \T{\theta}_{1\delta} \times^T
-		+ \tilde{\T{R}}^T \tilde{\T{\theta}}_{\delta} \times^T \T{R}_{1h}^T
-	} \\
-	&= \plbr{
-		\T{\theta}_{1\delta}
-		+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta}
-	} \times \hat{\T{I}}
-	- \hat{\T{I}} \plbr{\hat{\T{R}} \tilde{\T{\theta}}_{\delta}} \times \hat{\T{I}}^T
-	- \hat{\T{I}} \plbr{
-		\T{\theta}_{1\delta}
-		+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta}
-	}\times{}
-\end{align}
-But
-\begin{align}
-	\T{R}_{1h} \tilde{\T{\theta}}_{\delta}
-	&= \T{R}_{1h} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_{1h}^T \plbr{
-		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
-	} \\
-	&= \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T \plbr{
-		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
-	} \\
-	&= \hat{\T{I}} \plbr{
-		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
-	} 
-\end{align}
-and
-\begin{align}
-	\hat{\T{R}} \tilde{\T{\theta}}_{\delta}
-	&= \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_{1h}^T \plbr{
-		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
-	} \\
-	&= \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\T{R}}^T \plbr{
-		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
-	} \\
-	&= \hat{\T{I}}^T \plbr{
-		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
-	} 
-\end{align}
-so
-\begin{align}
-	\T{\theta}_{1\delta}
-	+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta}
-	&= \T{\theta}_{1\delta} + \hat{\T{I}} \plbr{
-		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
-	} \\
-	&= \hat{\T{I}} \T{\theta}_{2\delta}
-	+ \hat{\T{I}}^T \T{\theta}_{1\delta} ,
-\end{align}
-yielding
-\begin{align}
-	\delta\hat{\T{I}} &= \plbr{
-		\hat{\T{I}} \T{\theta}_{2\delta}
-		+ \hat{\T{I}}^T \T{\theta}_{1\delta}
-	} \times \hat{\T{I}}
-	\nonumber \\
-	& \mbox{\hspace{12pt}}
-	- \hat{\T{I}} \plbr{
-		\hat{\T{I}}^T \plbr{
-			\T{\theta}_{2\delta}
-			- \T{\theta}_{1\delta}
-		}
-	} \times \hat{\T{I}}^T
-	\nonumber \\
-	& \mbox{\hspace{12pt}}
-	- \hat{\T{I}} \plbr{
-		\hat{\T{I}} \T{\theta}_{2\delta}
-		+ \hat{\T{I}}^T \T{\theta}_{1\delta}
-	}\times{}
-\end{align}
-and
-\begin{align}
-	\delta\hat{\T{I}}^T &= \plbr{
-		\hat{\T{I}} \T{\theta}_{2\delta}
-		+ \hat{\T{I}}^T \T{\theta}_{1\delta}
-	} \times \hat{\T{I}}^T
-	\nonumber \\
-	& \mbox{\hspace{12pt}}
-	+ \hat{\T{I}} \plbr{
-		\hat{\T{I}} \plbr{
-			\T{\theta}_{2\delta}
-			- \T{\theta}_{1\delta}
-		}
-	} \times \hat{\T{I}}^T
-	\nonumber \\
-	& \mbox{\hspace{12pt}}
-	- \hat{\T{I}}^T \plbr{
-		\hat{\T{I}} \T{\theta}_{2\delta}
-		+ \hat{\T{I}}^T \T{\theta}_{1\delta}
-	}\times{} .
-\end{align}
-The perturbation of matrix $\hat{\T{I}}$ is generally useful
-when multiplying a generic vector $\T{v}$
-\begin{align}
-	\delta\hat{\T{I}} \T{v}
-	&= \plbr{
-		\plbr{
-			\hat{\T{I}} \T{v} \times{}
-			- \plbr{\hat{\T{I}} \T{v}} \times{}
-		} \hat{\T{I}}^T
-		- \hat{\T{I}} \plbr{\hat{\T{I}}^T \T{v}} \times \hat{\T{I}}^T
-	} \T{\theta}_{1\delta}
-		\nonumber \\
-	& \mbox{\hspace{12pt}} + \plbr{
-		\plbr{
-			\hat{\T{I}} \T{v} \times{}
-			- \plbr{\hat{\T{I}} \T{v}} \times{}
-		} \hat{\T{I}}
-		+ \hat{\T{I}} \plbr{\hat{\T{I}}^T \T{v}} \times \hat{\T{I}}^T
-	} \T{\theta}_{2\delta} \\
-	\delta\hat{\T{I}}^T \T{v}
-	&= \plbr{
-		\plbr{
-			\hat{\T{I}}^T \T{v} \times{}
-			- \plbr{\hat{\T{I}}^T \T{v}} \times{}
-		} \hat{\T{I}}^T
-		+ \hat{\T{I}} \plbr{\hat{\T{I}}^T \T{v}} \times \hat{\T{I}}
-	} \T{\theta}_{1\delta}
-		\nonumber \\
-	& \mbox{\hspace{12pt}} + \plbr{
-		\plbr{
-			\hat{\T{I}}^T \T{v} \times{}
-			- \plbr{\hat{\T{I}}^T \T{v}} \times{}
-		} \hat{\T{I}}
-		- \hat{\T{I}} \plbr{\hat{\T{I}}^T \T{v}} \times \hat{\T{I}}
-	} \T{\theta}_{2\delta} .
-\end{align}
 
 According to Equations~(\ref{eq:inv-def-h-theta-delta-tilde})
 and (\ref{eq:def-h-theta-delta}),
-the perturbation of the intermediate relative orientation yields
+the perturbation of the intermediate relative rotation vector yields
 \begin{align}
 	\tilde{\T{\theta}}_{\delta}
-	&= \plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{\theta}_{\delta} \\
+	&= \plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{\theta}_{\delta} \nonumber \\
 	&= \plbr{\T{I} + \tilde{\T{R}}}^{-1}
-		\T{R}_{1h}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \\
+		\T{R}_{1h}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \nonumber \\
 	&= \plbr{\T{I} + \tilde{\T{R}}^T}^{-1}
 		\hat{\T{R}}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} .
 \end{align}
@@ -4185,7 +4060,7 @@ respectively yields
 \begin{align}
 	\delta\hat{\T{R}} \hat{\T{R}}^T
 	&= \T{\theta}_{1\delta} \times
-		+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta}\times \T{R}_{1h}^T \\
+		+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta}\times \T{R}_{1h}^T \nonumber \\
 	&= \T{\theta}_{2\delta} \times
 		- \hat{\T{R}} \tilde{\T{\theta}}_{\delta}\times \hat{\T{R}}^T ,
 \end{align}
@@ -4194,28 +4069,117 @@ so
 	\hat{\T{\theta}}_{\delta}
 	&= \T{\theta}_{1\delta}
 		+ \T{R}_{1h} \tilde{\T{\theta}}_{\delta}
-		&& \text{Eq.~(\ref{eq:inv-def-h-hatR-1})} \\
+		&& \text{Eq.~(\ref{eq:inv-def-h-hatR-1})} \nonumber \\
 	&= \T{\theta}_{1\delta}
 		+ \T{R}_{1h} \plbr{\T{I} + \tilde{\T{R}}}^{-1}
-		\T{R}_{1h}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \\
+		\T{R}_{1h}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \nonumber \\
 	&= \T{\theta}_{1\delta}
 		+ \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1}
-		\hat{\T{R}}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \\
+		\hat{\T{R}}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \nonumber \\
 	&= \T{\theta}_{2\delta}
 		- \hat{\T{R}} \tilde{\T{\theta}}_{\delta}
-		&& \text{Eq.~(\ref{eq:inv-def-h-hatR-2})} \\
+		&& \text{Eq.~(\ref{eq:inv-def-h-hatR-2})} \nonumber \\
 	&= \T{\theta}_{2\delta}
 		- \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1}
-		\T{R}_{1h}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \\
+		\T{R}_{1h}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \nonumber \\
 	&= \T{\theta}_{2\delta}
 		- \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}^T}^{-1}
-		\hat{\T{R}}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \\
+		\hat{\T{R}}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}} \nonumber \\
 	&= \hat{\T{I}} \T{\theta}_{2\delta}
 		+ \hat{\T{I}}^T \T{\theta}_{1\delta}
 \end{align}
 
-\paragraph{Relative Orientation.} \
-The relative orientation is $\T{\theta}$; by definition, this does not depend
+The perturbation of matrix $\hat{\TT{I}}$ yields
+\begin{align}
+	\delta\hat{\T{I}}
+	&= \delta\hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T
+	\nonumber \\
+	& \mbox{}
+	+ \hat{\T{R}} \ \delta\! \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T
+	\nonumber \\
+	& \mbox{}
+	+ \hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \delta\hat{\T{R}}^T \\
+	&= \hat{\T{\theta}}_{\delta}\times\hat{\TT{I}}
+		- \hat{\TT{R}} \plbr{\TT{I} + \tilde{\TT{R}}}^{-1}
+			\tilde{\T{\theta}}_{\delta}\times\tilde{\TT{R}}
+			\plbr{\TT{I} + \tilde{\TT{R}}}^{-1} \hat{\TT{R}}^T
+		+ \hat{\TT{I}} \hat{\T{\theta}}_{\delta}\times{}^T
+	\nonumber \\
+	&= \hat{\T{\theta}}_{\delta}\times\hat{\TT{I}}
+	- \hat{\TT{R}} \plbr{\TT{I} + \tilde{\TT{R}}}^{-1}
+		\underbrace{\TT{R}_{1h}^T \TT{R}_{1h}}_{\TT{I}}
+		\tilde{\T{\theta}}_{\delta}\times \underbrace{\TT{R}_{1h}^T \TT{R}_{1h}}_{\TT{I}} \tilde{\TT{R}} 
+		\plbr{\TT{I} + \tilde{\TT{R}}}^{-1} \hat{\TT{R}}^T
+	- \hat{\TT{I}} \hat{\T{\theta}}_{\delta}\times{}
+	\nonumber \\
+	&= \hat{\T{\theta}}_{\delta}\times\hat{\TT{I}}
+	- \underbrace{\hat{\TT{R}} \plbr{\TT{I} + \tilde{\TT{R}}}^{-1} \TT{R}_{1h}^T}_{\hat{\TT{I}}^T}
+		\underbrace{
+			\TT{R}_{1h} \tilde{\T{\theta}}_{\delta}\times \TT{R}_{1h}^T
+		}_{\plbr{\TT{R}_{1h} \tilde{\T{\theta}}_{\delta}}\times{}}
+		\underbrace{
+			\overbrace{\TT{R}_{1h} \tilde{\TT{R}}}^{\hat{\TT{R}}} \plbr{\TT{I} + \tilde{\TT{R}}}^{-1} \hat{\TT{R}}^T
+		}_{\hat{\TT{I}}}
+	- \hat{\TT{I}} \hat{\T{\theta}}_{\delta}\times{}
+	\nonumber \\
+	&= \hat{\T{\theta}}_{\delta}\times\hat{\TT{I}}
+	- \hat{\TT{I}}^T \plbr{
+		\underbrace{
+			\TT{R}_{1h}\plbr{\TT{I} + \tilde{\TT{R}}}^{-1}\TT{R}_{1h}^T
+		}_{\hat{\TT{I}}} \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
+	}\times \hat{\TT{I}}
+	- \hat{\TT{I}} \hat{\T{\theta}}_{\delta}\times{}
+	\nonumber \\
+	&= \plbr{\hat{\TT{I}}\T{\theta}_{2\delta} + \hat{\TT{I}}^T\T{\theta}_{1\delta}}\times\hat{\TT{I}}
+	- \hat{\TT{I}}^T \plbr{\hat{\TT{I}}\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}}\times \hat{\TT{I}}
+	- \hat{\TT{I}}\plbr{\hat{\TT{I}}\T{\theta}_{2\delta} + \hat{\TT{I}}^T\T{\theta}_{1\delta}}\times{}
+\end{align}
+The perturbation of matrix $\hat{\T{I}}$ is generally useful
+when multiplying a generic vector $\T{v}$, resulting in
+\begin{align}
+	\delta\hat{\T{I}} \T{v}
+	&= \plbr{
+		\plbr{
+			\hat{\T{I}} \T{v} \times{}
+			- \plbr{\hat{\T{I}} \T{v}} \times{}
+		} \hat{\T{I}}^T
+		- \hat{\T{I}}^T \plbr{\hat{\T{I}} \T{v}} \times \hat{\T{I}}
+	} \T{\theta}_{1\delta}
+		\nonumber \\
+	& \mbox{\hspace{12pt}} + \plbr{
+		\plbr{
+			\hat{\T{I}} \T{v} \times{}
+			- \plbr{\hat{\T{I}} \T{v}} \times{}
+		} \hat{\T{I}}
+		+ \hat{\T{I}}^T \plbr{\hat{\T{I}} \T{v}} \times \hat{\T{I}}
+	} \T{\theta}_{2\delta}
+		\nonumber \\
+	&= \hat{\TT{I}}_{1\plbr{\T{v}}} \T{\theta}_{1\delta}
+		+ \hat{\TT{I}}_{2\plbr{\T{v}}} \T{\theta}_{2\delta} \\
+	\delta\plbr{\hat{\T{I}}^T} \T{v}
+	&= \plbr{
+		\plbr{
+			\hat{\T{I}}^T \T{v} \times{}
+			- \plbr{\hat{\T{I}}^T \T{v}} \times{}
+		} \hat{\T{I}}^T
+		+ \hat{\T{I}}^T \plbr{\hat{\T{I}} \T{v}} \times \hat{\T{I}}
+	} \T{\theta}_{1\delta}
+		\nonumber \\
+	& \mbox{\hspace{12pt}} + \plbr{
+		\plbr{
+			\hat{\T{I}}^T \T{v} \times{}
+			- \plbr{\hat{\T{I}}^T \T{v}} \times{}
+		} \hat{\T{I}}
+		- \hat{\T{I}}^T \plbr{\hat{\T{I}} \T{v}} \times \hat{\T{I}}
+	} \T{\theta}_{2\delta}
+		\nonumber \\
+	&= \plbr{\hat{\TT{I}}^T}_{1\plbr{\T{v}}} \T{\theta}_{1\delta}
+		+ \plbr{\hat{\TT{I}}^T}_{2\plbr{\T{v}}} \T{\theta}_{2\delta} .
+\end{align}
+
+
+\paragraph{Relative Rotation Vector.} \
+The relative rotation vector is $\T{\theta}$; by definition, this does not depend
 on the reference frame that is considered, among those intermediate 
 between node 1 and 2, since it is coaxial to any rotation intermediate 
 between the orientations of the two nodes; in detail
@@ -4257,40 +4221,7 @@ since, by definition,
 	\T{I} + \tilde{\T{\theta}} \times \T{\Gamma}\plbr{\tilde{\T{\theta}}} = \tilde{\T{R}} .
 \end{equation}
 
-\begin{comment}
-The perturbation of the relative orientation $\T{\theta}$, 
-projected in the intermediate reference frame,
-\begin{equation}
-	\delta\overline{\T{\theta}} = \tilde{\T{R}}^T \delta\T{\theta} ,
-\end{equation}
-is used as perturbation of the measure of the straining of the joint,
-resulting in
-\begin{align}
-	\delta\overline{\T{\theta}}
-	&= \tilde{\T{R}}^T \delta\T{\theta}
-	\nonumber \\
-	&= \tilde{\T{R}}^T \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
-	\nonumber \\
-	&= \tilde{\T{R}}^T \T{\Gamma}\plbr{\T{\theta}}^{-1} \tilde{\T{R}} \hat{\T{R}}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
-	\nonumber \\
-	&= \T{\Gamma}\plbr{\T{\theta}}^{-1} \hat{\T{R}}^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
-\end{align}
-where the last substitution exploits the property
-\begin{align}
-	\tilde{\T{R}}^T \T{\Gamma}\plbr{\T{\theta}}^{-1} \tilde{\T{R}}
-	&= \tilde{\T{R}}^{-1} \T{\Gamma}\plbr{\T{\theta}}^{-1} \tilde{\T{R}}^{-T} 
-	\nonumber \\
-	&= \plbr{
-		\tilde{\T{R}}^T \T{\Gamma}\plbr{\T{\theta}} \tilde{\T{R}}
-	}^{-1} 
-	\nonumber \\
-	&= \T{\Gamma}\plbr{\tilde{\T{R}}^T \T{\theta}}^{-1} 
-	\nonumber \\
-	&= \T{\Gamma}\plbr{\T{\theta}}^{-1} .
-\end{align}
-\end{comment}
-
-The perturbation of the relative orientation $\T{\theta}$, 
+The perturbation of the relative rotation vector $\T{\theta}$, 
 \begin{equation}
 	\delta\overline{\T{\theta}} = \delta\T{\theta} ,
 \end{equation}
@@ -4483,7 +4414,7 @@ which corresponds to
 	\T{M}_i = \plbr{-1}^i \hat{\T{R}}
 		\tilde{\T{M}}\plbr{\overline{\T{\theta}}, \overline{\T{\omega}}} .
 \end{equation}
-It depends on the relative orientation 
+It depends on the relative rotation vector
 $\overline{\T{\theta}}=\tilde{\T{R}}^T\T{\theta}=\T{\theta}$,
 and on the relative angular velocity $\overline{\T{\omega}}$,
 illustrated by Equation~(\ref{eq:inv-deformable-hinge-omega-rel}),
@@ -4662,6 +4593,7 @@ to yield the invariant constitutive law.
 
 
 \subsection{Deformable Displacement Joint}
+\label{sec:constraints:deformable:deformable displacement joint}
 The deformable hinge applies an internal force to two nodes at a specified 
 point that may be offset from the nodes; the force may depend on the relative
 position and velocity of the nodes at the point of application
@@ -5094,99 +5026,153 @@ After setting
 		\hat{\T{R}} \tilde{\T{F}}_{/\tilde{\T{d}}} \hat{\T{R}}^T \\
 	\T{F}_{/\dot{\tilde{\T{d}}}} &=
 		\hat{\T{R}} \tilde{\T{F}}_{/\dot{\tilde{\T{d}}}} \hat{\T{R}}^T
-	,
 \end{align}
-the complete linearized problem, considering the updated-updated 
-approximation, is
+and
 \begin{align}
+	\TT{A}_1 &= \plbr{\T{f}_1\times{} + \hat{\TT{I}}\T{d}\times{}} \\
+	\TT{A}_2 &= \plbr{\T{f}_2\times{} - \hat{\TT{I}}^T\T{d}\times{}} \\
+	\TT{B}_1 &= \plbr{
+			\plbr{\hat{\T{I}}\plbr{\T{\omega}_1 - \T{\omega}_2}}\times\T{f}_1\times{}
+			+ \T{d}\times\hat{\T{I}}_1
+			+ \plbr{\dot{\T{d}} - \hat{\T{\omega}}\times\T{d}}\times\hat{\T{I}}^T
+		} \\
+	\TT{B}_2 &= \plbr{
+			\plbr{\hat{\T{I}}^T\plbr{\T{\omega}_1 - \T{\omega}_2}}\times\T{f}_2\times{}
+			+ \T{d}\times\hat{\T{I}}_2
+			+ \plbr{\dot{\T{d}} - \hat{\T{\omega}}\times\T{d}}\times\hat{\T{I}}
+		}
+\end{align}
+the complete linearized problem is
+\begin{align}
+	\footnotesize
 	\sqbr{\matr{cccc}{
-		\T{F}_{\dot{\tilde{\T{d}}}} 
-		& - \T{F}_{\dot{\tilde{\T{d}}}} \plbr{\T{f}_1\times{} + \T{d}\times\hat{\T{I}}^T}
-		& - \T{F}_{\dot{\tilde{\T{d}}}}
-		& \T{F}_{\dot{\tilde{\T{d}}}} \plbr{\T{f}_2\times{} - \T{d}\times\hat{\T{I}}} \\
-		? \\
-		- \T{F}_{\dot{\tilde{\T{d}}}} 
-		& \T{F}_{\dot{\tilde{\T{d}}}} \plbr{\T{f}_1\times{} + \T{d}\times\hat{\T{I}}^T}
-		& \T{F}_{\dot{\tilde{\T{d}}}}
-		& - \T{F}_{\dot{\tilde{\T{d}}}} \plbr{\T{f}_2\times{} - \T{d}\times\hat{\T{I}}} \\
-		?
+		\T{F}_{/\dot{\tilde{\T{d}}}} 
+		& \T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_1^T
+		& - \T{F}_{/\dot{\tilde{\T{d}}}}
+		& - \T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_2^T \\
+%
+		\TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} 
+		& \TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_1^T
+		& - \TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}}
+		& - \TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_2^T \\
+%
+		- \T{F}_{/\dot{\tilde{\T{d}}}} 
+		& - \T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_1^T
+		& \T{F}_{/\dot{\tilde{\T{d}}}}
+		& \T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_2^T \\
+%
+		- \TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} 
+		& - \TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_1^T
+		& \TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}}
+		& \TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_2^T
 	}} \cubr{\cvvect{
 		\delta\dot{\T{x}}_1 \\
 		\delta\T{\omega}_1 \\
 		\delta\dot{\T{x}}_2 \\
 		\delta\T{\omega}_2
 	}} & \nonumber \\
-	+ \sqbr{\matr{cc}{
-		- \T{F}_{\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
-		& \T{F}_{\dot{\tilde{\T{d}}}} \plbr{
-			\plbr{\hat{\T{I}}\plbr{\T{\omega}_1 - \T{\omega}_2}}\times\T{f}_1\times{}
-			+ \T{d}\times\hat{\T{I}}_1
-			+ \plbr{\dot{\T{d}} - \hat{\T{\omega}}\times\T{d}}\times\hat{\T{I}}^T
-		} \\
-		? \\
-		\T{F}_{\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
-		& - \T{F}_{\dot{\tilde{\T{d}}}} \plbr{
-			\plbr{\hat{\T{I}}\plbr{\T{\omega}_1 - \T{\omega}_2}}\times\T{f}_1\times{}
-			+ \T{d}\times\hat{\T{I}}_1
-			+ \plbr{\dot{\T{d}} - \hat{\T{\omega}}\times\T{d}}\times\hat{\T{I}}^T
-		} \\
-		?
+	\footnotesize
+	\mbox{} + \sqbr{\matr{cccc}{
+		- \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& - \T{F}_{/\dot{\tilde{\T{d}}}} \TT{B}_1
+		& \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& - \T{F}_{/\dot{\tilde{\T{d}}}} \TT{B}_2 \\
+%
+		- \TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& - \TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} \TT{B}_1
+		& \TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& - \TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} \TT{B}_2 \\
+%
+		\T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& \T{F}_{/\dot{\tilde{\T{d}}}} \TT{B}_1
+		& - \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& \T{F}_{/\dot{\tilde{\T{d}}}} \TT{B}_2 \\
+%
+		\TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& \TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} \TT{B}_1
+		& - \TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& \TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} \TT{B}_2
 	}}\cubr{\cvvect{
+		\delta\T{x}_1 \\
+		\T{\theta}_{1\delta} \\
+		\delta\T{x}_2 \\
+		\T{\theta}_{2\delta}
+	}} & \nonumber \\
+	\footnotesize
+	\mbox{} + \sqbr{\matr{cccc}{
+		\T{F}_{/\tilde{\T{d}}} 
+		& \T{F}_{/\tilde{\T{d}}} \TT{A}_1^T
+		& - \T{F}_{/\tilde{\T{d}}}
+		& - \T{F}_{/\tilde{\T{d}}} \TT{A}_2^T \\
+%
+		\TT{A}_1 \T{F}_{/\tilde{\T{d}}} 
+		& \TT{A}_1 \T{F}_{/\tilde{\T{d}}} \TT{A}_1^T
+		& - \TT{A}_1 \T{F}_{/\tilde{\T{d}}}
+		& - \TT{A}_1 \T{F}_{/\tilde{\T{d}}} \TT{A}_2^T \\
+%
+		- \T{F}_{/\tilde{\T{d}}} 
+		& - \T{F}_{/\tilde{\T{d}}} \TT{A}_1^T
+		& \T{F}_{/\tilde{\T{d}}}
+		& \T{F}_{/\tilde{\T{d}}} \TT{A}_2^T \\
+%
+		- \TT{A}_2 \T{F}_{/\tilde{\T{d}}} 
+		& - \TT{A}_2 \T{F}_{/\tilde{\T{d}}} \TT{A}_1^T
+		& \TT{A}_2 \T{F}_{/\tilde{\T{d}}}
+		& \TT{A}_2 \T{F}_{/\tilde{\T{d}}} \TT{A}_2^T
+	}} \cubr{\cvvect{
+		\delta\T{x}_1 \\
+		\T{\theta}_{1\delta} \\
+		\delta\T{x}_2 \\
+		\T{\theta}_{2\delta}
+	}} & \nonumber \\
+	\footnotesize
+	\mbox{} + \sqbr{\matr{cc}{
+		\T{0} & \T{F}\times\hat{\T{I}}^T \\
+%
+		- \hat{\TT{I}}\T{F}\times{}
+		& \TT{A}_1 \T{F}\times\hat{\TT{I}}^T
+			- \hat{\TT{I}}^T \T{F}\times\T{f}_1\times{}
+			- \hat{\TT{I}}_{1\plbr{\T{d}\times\T{F}}} \\
+%
+		\T{0} & - \T{F}\times\hat{\T{I}}^T \\
+%
+		- \hat{\TT{I}}^T\T{F}\times{}
+		&  - \plbr{
+			\TT{A}_2 \T{F}\times\hat{\TT{I}}^T
+			+ \hat{\TT{I}}^T \T{F}\times\T{f}_1\times{}
+			+ \plbr{\hat{\TT{I}}^T}_{1\plbr{\T{d}\times\T{F}}}
+		}
+	}} \cubr{\cvvect{
 		\delta\T{x}_1 \\
 		\T{\theta}_{1\delta}
 	}} & \nonumber \\
-	+ \sqbr{\matr{cc}{
-		\T{F}_{\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
-		& \T{F}_{\dot{\tilde{\T{d}}}} \plbr{
-			\plbr{\hat{\T{I}}^T\plbr{\T{\omega}_1 - \T{\omega}_2}}\times\T{f}_2\times{}
-			+ \T{d}\times\hat{\T{I}}_2
-			+ \plbr{\dot{\T{d}} - \hat{\T{\omega}}\times\T{d}}\times\hat{\T{I}}
-		} \\
-		? \\
-		- \T{F}_{\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
-		& - \T{F}_{\dot{\tilde{\T{d}}}} \plbr{
-			\plbr{\hat{\T{I}}^T\plbr{\T{\omega}_1 - \T{\omega}_2}}\times\T{f}_2\times{}
-			+ \T{d}\times\hat{\T{I}}_2
-			+ \plbr{\dot{\T{d}} - \hat{\T{\omega}}\times\T{d}}\times\hat{\T{I}}
-		} \\
-		?
-	}}\cubr{\cvvect{
+	\footnotesize
+	\mbox{} + \sqbr{\matr{cc}{
+		\T{0} & \T{F}\times\hat{\T{I}} \\
+%
+		\hat{\TT{I}}\T{F}\times{}
+		&  \TT{A}_1 \T{F}\times\hat{\TT{I}}
+			- \hat{\TT{I}} \T{F}\times\T{f}_2\times{}
+			- \hat{\TT{I}}_{2\plbr{\T{d}\times\T{F}}}\\
+%
+		\T{0} & - \T{F}\times\hat{\T{I}} \\
+%
+		\hat{\TT{I}}^T\T{F}\times{}
+		& - \TT{A}_2 \T{F}\times\hat{\TT{I}}
+			+ \hat{\TT{I}} \T{F}\times\T{f}_2\times{}
+			+ \plbr{\hat{\TT{I}}^T}_{2\plbr{\T{d}\times\T{F}}}
+	}} \cubr{\cvvect{
 		\delta\T{x}_2 \\
 		\T{\theta}_{2\delta}
 	}} & \nonumber \\
-	+ \sqbr{\matr{cccc}{
-		\T{F}_{\tilde{\T{d}}} 
-		& - \T{F}_{\tilde{\T{d}}} \plbr{\T{f}_1\times{} + \T{d}\times\hat{\T{I}}^T}
-		& - \T{F}_{\tilde{\T{d}}}
-		& \T{F}_{\tilde{\T{d}}} \plbr{\T{f}_2\times{} - \T{d}\times\hat{\T{I}}} \\
-		? \\
-		- \T{F}_{\tilde{\T{d}}} 
-		& \T{F}_{\tilde{\T{d}}} \plbr{\T{f}_1\times{} + \T{d}\times\hat{\T{I}}^T}
-		& \T{F}_{\tilde{\T{d}}}
-		& - \T{F}_{\tilde{\T{d}}} \plbr{\T{f}_2\times{} - \T{d}\times\hat{\T{I}}} \\
-		?
-	}} \cubr{\cvvect{
-		\delta\T{x}_1 \\
-		\T{\theta}_{1\delta} \\
-		\delta\T{x}_2 \\
-		\T{\theta}_{2\delta}
-	}} & \nonumber \\
-	+ \sqbr{\matr{cc}{
-		\T{F}\times\hat{\T{I}}^T & \T{F}\times\hat{\T{I}} \\
-		? \\
-		- \T{F}\times\hat{\T{I}}^T & - \T{F}\times\hat{\T{I}} \\
-		?
-	}} \cubr{\cvvect{
-		\T{\theta}_{1\delta} \\
-		\T{\theta}_{2\delta}
-	}} &= \cubr{\cvvect{
-		- \T{F} \\
-		?
+	\footnotesize \mbox{} = \cubr{\cvvect{
 		\T{F} \\
-		?
-	}}
+		\TT{A}_1 \T{F} \\
+		- \T{F} \\
+		- \TT{A}_2 \T{F}
+	}} &
 \end{align}
-\textbf{FIXME: TODO}
+
 
 
 
@@ -5197,10 +5183,11 @@ approximation, is
 
 
 \subsection{Deformable Joint}
+\label{sec:constraints:deformable:deformable joint}
 The deformable joint applies an internal force and an internal moment
 to two nodes at a specified point that may be offset from the nodes;
 the force and the moment may depend on the relative position and velocity
-at the point of application and on the relative orientation and angular 
+at the point of application and on the relative rotation vector and angular 
 velocity of the nodes through a 6D constitutive law.
 
 Although it may appear as a combination of the Deformable Hinge
@@ -5213,62 +5200,91 @@ the same result with a bit less overhead is obtained by using
 a combination of a deformable hinge and a deformable displacement joint.
 
 \noindent
-The complete linearized problem is
-\begin{eqnarray*}
-	\sqbr{\matr{cc}{
-		\T{F}_{/\tilde{\T{d}}} & - \T{F}_{/\tilde{\T{d}}} \\
-		\T{M}_{/\tilde{\T{d}}} + \T{f}_1 \times \T{F}_{/\tilde{\T{d}}} &
-			-\plbr{\T{M}_{/\tilde{\T{d}}} + \T{f}_1 \times \T{F}_{/\tilde{\T{d}}}} \\
-		- \T{F}_{/\tilde{\T{d}}} & \T{F}_{/\tilde{\T{d}}} \\
-		- \plbr{\T{M}_{/\tilde{\T{d}}} + \T{f}_2 \times \T{F}_{/\tilde{\T{d}}}} &
-			\T{M}_{/\tilde{\T{d}}} + \T{f}_2 \times \T{F}_{/\tilde{\T{d}}}
-	}}\cubr{\cvvect{
-		\delta\T{x}_1 \\
-		\delta\T{x}_2 \\
-	}} \\
-	\mbox{} + \sqbr{\cvvect{
-		\T{F}_{/\T{\theta}} - \T{F}_{/\tilde{\T{d}}} \T{d}_1\times{} + \T{F}\times{} \\
-		\T{M}_{/\T{\theta}} - \T{M}_{/\tilde{\T{d}}} \T{d}_1\times{} 
-			+ \T{f}_1\times\T{F}_{/\T{\theta}}
-			- \T{f}_1\times\T{F}_{/\tilde{\T{d}}} \T{d}_1\times{}
-			+ \plbr{\T{f}_1\times\T{F}}\times{} + \T{M}\times{} \\
-		- \plbr{\T{F}_{/\T{\theta}} - \T{F}_{/\tilde{\T{d}}} \T{d}_1\times{} + \T{F}\times{}} \\
-		- \plbr{\T{M}_{/\T{\theta}} - \T{M}_{/\tilde{\T{d}}} \T{d}_1\times{}
-			+ \T{f}_2\times\T{F}_{/\T{\theta}}
-			- \T{f}_2\times\T{F}_{/\tilde{\T{d}}} \T{d}_1\times{}
-			+ \T{f}_2\times\T{F}\times{} + \T{M}\times{}}
-	}}\delta\T{g}_1 \\
-	\mbox{} + \sqbr{\cvvect{
-		- \plbr{\T{F}_{/\T{\theta}} - \T{F}_{/\tilde{\T{d}}} \T{f}_2\times{}} \\
-		- \plbr{\T{M}_{/\T{\theta}} - \T{M}_{/\tilde{\T{d}}} \T{f}_2\times{}
-			+ \T{f}_1\times\T{F}_{/\T{\theta}}
-			- \T{f}_1\times\T{F}_{/\tilde{\T{d}}} \T{f}_2\times{}} \\
-		\T{F}_{/\T{\theta}} - \T{F}_{/\tilde{\T{d}}} \T{f}_2\times{} \\
-		\T{M}_{/\T{\theta}} - \T{M}_{/\tilde{\T{d}}} \T{f}_2\times{}
-			+ \T{f}_2\times\T{F}_{/\T{\theta}}
-			- \T{f}_2\times\T{F}_{/\tilde{\T{d}}} \T{f}_2\times{}
-			+ \T{F}\times\T{f}_2\times{}
-	}}\delta\T{g}_2
-	& = & \\
-	\cubr{\cvvect{
-		\T{F} \\
-		\T{f}_1 \times \T{F} + \T{M} \\
-		- \T{F} \\
-		- \T{f}_2 \times \T{F} - \T{M}
-	}} & &
-\end{eqnarray*}
-where 
-\begin{eqnarray*}
-	\T{F}_{/\tilde{\T{d}}} & = & \T{R}_{1h} \tilde{\T{F}}_{/\tilde{\T{d}}} \T{R}_{1h}^T \\
-	\T{F}_{/\T{\theta}} & = & \T{R}_{1h} \tilde{\T{F}}_{/\T{\theta}} \T{R}_{1h}^T \\
-	\T{M}_{/\tilde{\T{d}}} & = & \T{R}_{1h} \tilde{\T{M}}_{/\tilde{\T{d}}} \T{R}_{1h}^T \\
-	\T{M}_{/\T{\theta}} & = & \T{R}_{1h} \tilde{\T{M}}_{/\T{\theta}} \T{R}_{1h}^T \\
-	\T{d}_1 & = & \T{x}_2 + \T{f}_2 - \T{x}_1
-\end{eqnarray*}
+The deformable joint equations can be computed by combining
+those of the deformable hinge
+(Section~\ref{sec:constraints:deformable:deformable hinge})
+and of the deformable displacement joint
+(Section~\ref{sec:constraints:deformable:deformable displacement joint}),
+considering that both the force $\T{F}$ and the moment $\T{M}$
+simultaneously depend on the relative displacement $\tilde{\T{d}}$
+and the relative orientation $\T{\theta}$.
+
+
+
+\subsubsection{Attached Deformable Joint}
+
+
+
+\subsubsection{Invariant Deformable Joint}
+The force and the moment, after defining
+\begin{subequations}
+\begin{align}
+	\T{F} &= \hat{\T{R}}
+		\tilde{\T{F}}\plbr{
+			\tilde{\T{d}},
+			\dot{\tilde{\T{d}}},
+			\T{\theta},
+			\overline{\T{\omega}}
+		} \\
+	\T{M} &= \hat{\T{R}}
+		\tilde{\T{M}}\plbr{
+			\tilde{\T{d}},
+			\dot{\tilde{\T{d}}},
+			\T{\theta},
+			\overline{\T{\omega}}
+		} ,
+\end{align}
+\end{subequations}
+are
+\begin{subequations}
+\begin{align}
+	\T{F}_1 &= - \T{F} \\
+	\T{M}_1 &= - \plbr{
+		\T{f}_1 \times{}
+		+ \hat{\T{I}} \T{d}\times{}
+	} \T{F} - \T{M} \\
+	\T{F}_2 &= \T{F} \\
+	\T{M}_2 &= \plbr{
+		\T{f}_2 \times{}
+		- \hat{\T{I}}^T \T{d}\times{}
+	} \T{F} + \T{M} .
+\end{align}
+\end{subequations}
+Their linearization, after defining
+\begin{subequations}
+\begin{align}
+	\T{F}_{/\tilde{\T{d}}} &=
+		\hat{\T{R}} \tilde{\T{F}}_{/\tilde{\T{d}}} \hat{\T{R}}^T \\
+	\T{F}_{/\dot{\tilde{\T{d}}}} &=
+		\hat{\T{R}} \tilde{\T{F}}_{/\dot{\tilde{\T{d}}}} \hat{\T{R}}^T \\
+	\T{F}_{/\T{\theta}}
+		&= \hat{\T{R}} \tilde{\T{F}}_{/\T{\theta}} \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T \\
+	\T{F}_{/\T{\omega}}
+		&= \hat{\T{R}} \tilde{\T{F}}_{/\T{\omega}} \hat{\T{R}}^T \\
+	\T{M}_{/\tilde{\T{d}}} &=
+		\hat{\T{R}} \tilde{\T{M}}_{/\tilde{\T{d}}} \hat{\T{R}}^T \\
+	\T{M}_{/\dot{\tilde{\T{d}}}} &=
+		\hat{\T{R}} \tilde{\T{M}}_{/\dot{\tilde{\T{d}}}} \hat{\T{R}}^T \\
+	\T{M}_{/\T{\theta}}
+		&= \hat{\T{R}} \tilde{\T{M}}_{/\T{\theta}} \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T \\
+	\T{M}_{/\T{\omega}}
+		&= \hat{\T{R}} \tilde{\T{M}}_{/\T{\omega}} \hat{\T{R}}^T ,
+\end{align}
+\end{subequations}
+yields
+\begin{align}
+\end{align}
+
+
+
+
+
 
 
 \section{Modal Element}
 \input{tecman-modal}
+
+
 
 
 \chapter{Hydraulic Library}
@@ -5321,10 +5337,10 @@ refer to hydraulic nodes 1 and 2.
 The structural node labeled as 1 is assumed as the cylinder,
 and its orientation determines the axis of the actuator.
 The relative orientation of the actuator is defined by the unit vector
-$\T{\tilde{v}}$, and the absolute orientation is $\T{R}_{s1} \T{\tilde{v}}$.
+$\tilde{\T{v}}$, and the absolute orientation is $\T{R}_{s1} \tilde{\T{v}}$.
 It is assumed that appropriate kinematic constraints allow only 
 a relative displacement of the structural nodes along 
-the axis $\T{\tilde{v}}$, and the only relative rotation, 
+the axis $\tilde{\T{v}}$, and the only relative rotation, 
 if any, is about the axis itself.
 This can be obtained by combining an inline joint with 
 a revolute rotation or a prismatic joint.
@@ -5352,17 +5368,17 @@ while the hydraulic nodes are defined as scalar algebraic.
 The force is defined as
 \begin{equation}
 	\T{F} = \plbr{A_{h1} p_{h1} - A_{h2} p_{h2}}
-		\plbr{\T{R}_{s1} \T{\tilde{v}}}
+		\plbr{\T{R}_{s1} \tilde{\T{v}}}
 \end{equation}
 The distance between the structural nodes, along the actuator axis, is
 \begin{equation}
-	l = \plbr{\T{R}_{s1} \T{\tilde{v}}}^T \plbr{
+	l = \plbr{\T{R}_{s1} \tilde{\T{v}}}^T \plbr{
 		\T{x}_{s2} + \T{f}_{s2} - \T{x}_{s1} - \T{f}_{s1}
 	}
 \end{equation}
 The relative velocity of the structural nodes, along the actuator axis, is
 \begin{equation}
-	\dot{l} = \plbr{\T{R}_{s1} \T{\tilde{v}}}^T \plbr{
+	\dot{l} = \plbr{\T{R}_{s1} \tilde{\T{v}}}^T \plbr{
 		\dot{\T{x}}_{s2} - \dot{\T{x}}_{s1} 
 		+ \T{\omega}_{s1}\times\plbr{\T{x}_{s2} - \T{x}_{s1}}
 		+ \plbr{\T{\omega}_{s2} - \T{\omega}_{s1}}\times\T{f}_{s2}
@@ -5558,7 +5574,7 @@ of the {\em Reynolds}\ number, is modeled for $2000<Re<4000$.
 
 
 \bibliographystyle{unsrt}
-\bibliography{mybib}
+\bibliography{mybib,tecman}
 
 
 \pagebreak
