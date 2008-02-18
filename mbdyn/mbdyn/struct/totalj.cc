@@ -3165,6 +3165,61 @@ TotalForce::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+/* Inverse Dynamics Residual Assembly */
+SubVectorHandler&
+TotalForce::AssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& /* XCurr */,
+	const VectorHandler& /* XPrimeCurr */, 
+	const VectorHandler& /* XPrimePrimeCurr */, 
+	int iOrder)
+{
+	DEBUGCOUT("Entering TotalForce::AssRes()" << std::endl);
+
+	ASSERT(iOrder = -1);
+
+	/* Dimensiona e resetta la matrice di lavoro */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.ResizeReset(iNumRows);
+
+	/* Indici */
+	integer iNode1FirstMomIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode2FirstMomIndex = pNode2->iGetFirstPositionIndex();
+
+	/* Indici dei nodi */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
+		WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex + iCnt);
+	}
+
+	/* Get Forces */
+	
+	F = FDrv.Get();
+	M = MDrv.Get();
+
+	Vec3 b2(pNode2->GetRCurr()*f2);
+	Vec3 b1(pNode2->GetXCurr() + b2 - pNode1->GetXCurr());
+
+	Mat3x3 R1 = pNode1->GetRCurr()*R1h;
+	Mat3x3 R1r = pNode1->GetRCurr()*R1hr;
+	Mat3x3 R2r = pNode2->GetRCurr()*R2hr;
+
+	Vec3 FTmp(R1*F);
+	Vec3 MTmp(R1r*M);
+
+	/* Equilibrium, node 1 */
+	WorkVec.Add(1, FTmp);
+	WorkVec.Add(3 + 1, MTmp + b1.Cross(FTmp));
+
+	/* Equilibrium, node 2 */
+	WorkVec.Sub(6 + 1, FTmp);
+	WorkVec.Sub(9 + 1, MTmp + b2.Cross(FTmp));
+
+	return WorkVec;
+}
+
+
 VariableSubMatrixHandler&
 TotalForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	const VectorHandler& XCurr)

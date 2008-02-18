@@ -488,10 +488,18 @@ public:
 		doublereal dCoef,
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
+
 	SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
 		doublereal dCoef,
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
+
+	/* Inverse Dynamics*/
+	SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+			const VectorHandler& /* XCurr */ ,
+			const VectorHandler& /* XPrimeCurr */ ,
+			const VectorHandler& /* XPrimePrimeCurr */ ,
+			int iOrder);
 
 	virtual void Output(OutputHandler& OH) const;
 
