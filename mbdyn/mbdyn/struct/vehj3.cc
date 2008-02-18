@@ -571,6 +571,38 @@ ElasticJoint::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+/* Inverse Dynamics Residual Assembly */
+SubVectorHandler&
+ElasticJoint::AssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& /* XCurr */,
+		const VectorHandler& /* XPrimeCurr */, 
+		const VectorHandler& /* XPrimePrimeCurr */, 
+		int iOrder)
+{	
+	ASSERT( iOrder = -1 );
+
+	bFirstRes = false;
+
+	/* Dimensiona e resetta la matrice di lavoro */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.ResizeReset(iNumRows);
+
+	/* Recupera gli indici */
+	integer iNode1FirstMomIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode2FirstMomIndex = pNode2->iGetFirstPositionIndex();
+
+	/* Setta gli indici della matrice */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex+iCnt);
+	}
+
+	AssVec(WorkVec);
+
+	return WorkVec;
+}
 
 void
 ElasticJoint::AssVec(SubVectorHandler& WorkVec)

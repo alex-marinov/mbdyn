@@ -188,6 +188,14 @@ public:
 			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 
+	/* Inverse Dynamics residual assembly */
+	SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& XCurr,
+		const VectorHandler&  XPrimeCurr,
+		const VectorHandler&  XPrimePrimeCurr,
+		int iOrder = -1);
+
 	/* Aggiorna le deformazioni ecc. */
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
@@ -293,6 +301,16 @@ public:
 			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 
+	/* Inverse Dynamics residual assembly */
+	SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& XCurr,
+		const VectorHandler&  XPrimeCurr,
+		const VectorHandler&  XPrimePrimeCurr,
+		int iOrder = -1)//;
+		{NO_OP;};
+
+	/* Aggiorna le deformazioni ecc. */
 	virtual void
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
 		*piNumRows = 12;
@@ -396,6 +414,16 @@ public:
 			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 
+	/* Inverse Dynamics residual assembly */
+	SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& XCurr,
+		const VectorHandler&  XPrimeCurr,
+		const VectorHandler&  XPrimePrimeCurr,
+		int iOrder = -1)//;
+		{NO_OP;};
+
+	/* Aggiorna le deformazioni ecc. */
 	virtual void
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
 		*piNumRows = 6;

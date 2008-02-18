@@ -68,6 +68,11 @@
 
 /* To handle  of Elem2Param */
 #include "j2p.h"
+
+/* deformable joint */
+#include "joint.h"
+#include "nestedelem.h"
+
 void 
 DataManager::LinkToSolution(const VectorHandler& XCurr,
                     const VectorHandler& XPrimeCurr,
@@ -169,7 +174,7 @@ DataManager::AssRes(VectorHandler& ResHdl,
 		Elem::BODY,
 		Elem::BEAM,
 		Elem::FORCE,
-
+		
 		Elem::LASTELEMTYPE
 	};
 
@@ -190,6 +195,55 @@ DataManager::AssRes(VectorHandler& ResHdl,
 				ResHdl += WorkVec;
 				ChangedEqStructure = true;
 			}
+		}
+	}
+
+	for (ElemMapType::iterator j = ElemData[Elem::JOINT].ElemMap.begin();
+		j != ElemData[Elem::JOINT].ElemMap.end();
+		j++)
+	{
+		// cast to Joint *
+		Joint *pj = dynamic_cast<Joint *>(j->second);
+		if (pj == 0) {
+			// In case of failure, must be driven...
+			NestedElem *pn = dynamic_cast<NestedElem *>(j->second);
+			if (pn == 0) {
+				// error
+			}
+			// ... and the driven element must be a joint!
+			pj = dynamic_cast<Joint *>(pn->pGetElem());
+			if (pj == 0) {
+				// error
+			}
+		}
+
+		switch (pj->GetJointType()) {
+		case Joint::DEFORMABLEHINGE:
+		case Joint::DEFORMABLEDISPJOINT:
+		case Joint::DEFORMABLEJOINT:
+			try {
+				ResHdl += pj->AssRes(WorkVec, *pXCurr, 
+							*pXPrimeCurr, *pXPrimePrimeCurr, 
+							-1);
+			}
+			catch (Elem::ChangedEquationStructure) {
+				ResHdl += WorkVec;
+				ChangedEqStructure = true;
+			}
+			break;
+
+		default:
+			continue;
+		}
+
+		try {
+			ResHdl += pj->AssRes(WorkVec, *pXCurr, 
+				*pXPrimeCurr, *pXPrimePrimeCurr, 
+				-1);
+		}
+		catch (Elem::ChangedEquationStructure) {
+			ResHdl += WorkVec;
+			ChangedEqStructure = true;
 		}
 	}
 

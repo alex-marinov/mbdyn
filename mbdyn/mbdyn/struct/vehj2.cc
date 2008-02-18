@@ -590,6 +590,40 @@ ElasticDispJoint::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+
+/* Inverse Dynamics Residual Assembly */
+SubVectorHandler&
+ElasticDispJoint::AssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& /* XCurr */,
+		const VectorHandler& /* XPrimeCurr */, 
+		const VectorHandler& /* XPrimePrimeCurr */, 
+		int iOrder)
+{	
+	ASSERT( iOrder = -1 );
+
+	bFirstRes = false;
+
+	/* Dimensiona e resetta la matrice di lavoro */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.ResizeReset(iNumRows);
+
+	/* Recupera gli indici */
+	integer iNode1FirstMomIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode2FirstMomIndex = pNode2->iGetFirstPositionIndex();
+
+	/* Setta gli indici della matrice */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
+		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
+	}
+
+	AssVec(WorkVec);
+
+	return WorkVec;
+}
+
 void
 ElasticDispJoint::AssVec(SubVectorHandler& WorkVec)
 {
@@ -831,6 +865,39 @@ ElasticDispJointInv::AssRes(SubVectorHandler& WorkVec,
 
 	return WorkVec;
 }
+
+/* Inverse Dynamics Residual Assembly */
+SubVectorHandler&
+ElasticDispJointInv::AssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& /* XCurr */,
+		const VectorHandler& /* XPrimeCurr */, 
+		const VectorHandler& /* XPrimePrimeCurr */, 
+		int iOrder)
+{	
+	ASSERT( iOrder = -1 );
+
+	bFirstRes = false;
+
+	/* Dimensiona e resetta la matrice di lavoro */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.ResizeReset(iNumRows);
+
+	/* Recupera gli indici */
+	integer iNode1FirstMomIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode2FirstMomIndex = pNode2->iGetFirstPositionIndex();
+
+	/* Setta gli indici della matrice */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
+		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
+	}
+
+	AssVec(WorkVec);
+
+	return WorkVec;
+}	
 
 void
 ElasticDispJointInv::AssVec(SubVectorHandler& WorkVec)
@@ -1083,6 +1150,39 @@ ViscousDispJoint::AssRes(SubVectorHandler& WorkVec,
 	/* Recupera gli indici */
 	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
 	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
+
+	/* Setta gli indici della matrice */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
+		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
+	}
+
+	AssVec(WorkVec);
+
+	return WorkVec;
+}
+
+/* Inverse Dynamics Residual Assembly */
+SubVectorHandler&
+ViscousDispJoint::AssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& /* XCurr */,
+		const VectorHandler& /* XPrimeCurr */, 
+		const VectorHandler& /* XPrimePrimeCurr */, 
+		int iOrder)
+{	
+	ASSERT( iOrder = -1 );
+
+	bFirstRes = false;
+
+	/* Dimensiona e resetta la matrice di lavoro */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.ResizeReset(iNumRows);
+
+	/* Recupera gli indici */
+	integer iNode1FirstMomIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode2FirstMomIndex = pNode2->iGetFirstPositionIndex();
 
 	/* Setta gli indici della matrice */
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
@@ -1382,6 +1482,39 @@ ViscoElasticDispJoint::AssRes(SubVectorHandler& WorkVec,
 	/* Recupera gli indici */
 	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
 	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
+
+	/* Setta gli indici della matrice */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
+		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
+	}
+
+	AssVec(WorkVec);
+	
+	return WorkVec;
+}
+
+/* Inverse Dynamics Residual Assembly */
+SubVectorHandler&
+ViscoElasticDispJoint::AssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& /* XCurr */,
+		const VectorHandler& /* XPrimeCurr */, 
+		const VectorHandler& /* XPrimePrimeCurr */, 
+		int iOrder)
+{	
+	ASSERT( iOrder = -1 );
+
+	bFirstRes = false;
+	
+	/* Dimensiona e resetta la matrice di lavoro */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.ResizeReset(iNumRows);
+
+	/* Recupera gli indici */
+	integer iNode1FirstMomIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode2FirstMomIndex = pNode2->iGetFirstPositionIndex();
 
 	/* Setta gli indici della matrice */
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
