@@ -56,7 +56,7 @@ class InLineJoint : virtual public Elem, public Joint {
 
    /* Tipo di joint */
    virtual Joint::Type GetJointType(void) const {
-      return INLINE;
+      return J_INLINE;
    };
 
    /* Contributo al file di restart */
@@ -149,7 +149,7 @@ class InLineWithOffsetJoint : virtual public Elem, public Joint {
 
    /* Tipo di joint */
    virtual Joint::Type GetJointType(void) const {
-      return INLINE;
+      return J_INLINE;
    };
 
    /* Contributo al file di restart */

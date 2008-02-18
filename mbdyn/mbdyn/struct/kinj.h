@@ -58,7 +58,7 @@ class KinJoint : virtual public Elem, public Joint {
 
    /* Tipo di joint */
    virtual Joint::Type GetJointType(void) const {
-      return INLINE;
+      return IMPOSEDKINEMATICS;
    };
 
    /* Contributo al file di restart */

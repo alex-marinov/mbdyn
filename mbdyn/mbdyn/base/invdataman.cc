@@ -64,7 +64,7 @@
 #include "beam.h"
 
 /* To allow direct loading of modules */
-#include <modules.h>
+#include "modules.h"
 
 /* To handle  of Elem2Param */
 #include "j2p.h"

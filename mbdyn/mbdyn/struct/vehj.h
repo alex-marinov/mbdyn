@@ -234,9 +234,6 @@ public:
 		const VectorHandler& XPrimePrimeCurr,
 		int iOrder = -1);
 
-	/* Aggiorna le deformazioni ecc. */
-	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
-
 	virtual void InitialWorkSpaceDim(integer* piNumRows,
 			integer* piNumCols) const {
 		*piNumRows = 6;
@@ -579,9 +576,6 @@ public:
 		const VectorHandler&  XPrimeCurr,
 		const VectorHandler&  XPrimePrimeCurr,
 		int iOrder = -1);
-
-	/* Aggiorna le deformazioni ecc. */
-	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
 	virtual void InitialWorkSpaceDim(integer* piNumRows,
 			integer* piNumCols) const {

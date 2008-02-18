@@ -221,7 +221,7 @@ ReadJoint(DataManager* pDM,
 		PLANEDISPLACEMENT,
 		PLANEDISPLACEMENTPIN,
 		INPLANE,
-		INLINE,
+		J_INLINE,
 		ROD,
 		RODWITHOFFSET,
 		DEFORMABLEHINGE,
@@ -1110,7 +1110,7 @@ ReadJoint(DataManager* pDM,
 
 		} break;
 
-	case INLINE:
+	case J_INLINE:
 		{
 		/* nodo collegato 1 */
 		StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
