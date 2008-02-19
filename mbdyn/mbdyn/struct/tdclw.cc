@@ -45,7 +45,7 @@ class TDConstitutiveLawWrapper
 : public ConstitutiveLaw<T, Tder> {
 private:
 	doublereal dF, dL, dLCurr;
-	T FPrev;
+	T EpsPrev, FPrev;
 	ConstitutiveLaw<T, Tder> *pCL;
 
 public:
@@ -63,6 +63,7 @@ public:
 	virtual void IncrementalUpdate(const T& DeltaEps, const T& EpsPrime = 0.);
 
 	virtual void AfterConvergence(const T& Eps, const T& EpsPrime = 0.);
+	virtual std::ostream& OutputAppend(std::ostream& out) const;
 };
 
 template <class T, class Tder>
@@ -111,6 +112,11 @@ template <class T, class Tder>
 void
 TDConstitutiveLawWrapper<T, Tder>::Update(const T& Eps, const T& EpsPrime)
 {
+#if 0
+	// not needed
+	ConstitutiveLaw<T, Tder>::Epsilon = Eps;
+#endif
+
 	pCL->Update(Eps, EpsPrime);
 
 	doublereal d = 1. + dF*exp(-dLCurr/dL);
@@ -135,11 +141,20 @@ template <class T, class Tder>
 void
 TDConstitutiveLawWrapper<T, Tder>::AfterConvergence(const T& Eps, const T& EpsPrime)
 {
-	// average force * (old - new epsilon, to avoid unary - operator
-	dLCurr += ((pCL->GetF() + FPrev)*(ConstitutiveLaw<T, Tder>::Epsilon - Eps))/2.;
+	pCL->AfterConvergence(Eps, EpsPrime);
 
-	ConstitutiveLaw<T, Tder>::Epsilon = Eps;
+	// average force * (old - new epsilon, to avoid unary - operator
+	dLCurr += ((pCL->GetF() + FPrev)*(EpsPrev - Eps))/2.;
+
 	FPrev = pCL->GetF();
+	EpsPrev = Eps;
+}
+
+template <class T, class Tder>
+std::ostream&
+TDConstitutiveLawWrapper<T, Tder>::OutputAppend(std::ostream& out) const
+{
+	return pCL->OutputAppend(out) << " " << dLCurr;
 }
 
 /* TDConstitutiveLawWrapper - end */
