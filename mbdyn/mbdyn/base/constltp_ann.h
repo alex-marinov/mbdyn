@@ -136,10 +136,6 @@ public:
 	virtual void Update(const T& Eps, const T& EpsPrime = 0.) {
 		Update(Eps, EpsPrime, ANN_FEEDBACK_NONE);
 	};
-
-	virtual void IncrementalUpdate(const T& DeltaEps, const T& /* EpsPrime */ = 0.) {
-		Update(ConstitutiveLaw<T, Tder>::Epsilon + DeltaEps);
-	};
 };
 
 template <>
@@ -231,10 +227,6 @@ public:
 
 	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime = 0.) {
 		Update(Eps, EpsPrime, ANN_FEEDBACK_NONE);
-	};
-
-	virtual void IncrementalUpdate(const doublereal& DeltaEps, const doublereal& /* EpsPrime */ = 0.) {
-		Update(ConstitutiveLaw<doublereal, doublereal>::Epsilon + DeltaEps);
 	};
 };
 

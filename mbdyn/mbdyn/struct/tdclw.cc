@@ -60,7 +60,6 @@ public:
 	virtual std::ostream& Restart(std::ostream& out) const;
 
 	virtual void Update(const T& Eps, const T& EpsPrime = 0.);
-	virtual void IncrementalUpdate(const T& DeltaEps, const T& EpsPrime = 0.);
 
 	virtual void AfterConvergence(const T& Eps, const T& EpsPrime = 0.);
 	virtual std::ostream& OutputAppend(std::ostream& out) const;
@@ -128,13 +127,6 @@ TDConstitutiveLawWrapper<T, Tder>::Update(const T& Eps, const T& EpsPrime)
 	if (GetConstLawType() & ConstLawType::VISCOUS) {
 		ConstitutiveLaw<T, Tder>::FDEPrime = pCL->GetFDEPrime()*d;
 	}
-}
-
-template <class T, class Tder>
-void
-TDConstitutiveLawWrapper<T, Tder>::IncrementalUpdate(const T& DeltaEps, const T& EpsPrime)
-{
-	Update(ConstitutiveLaw<T, Tder>::Epsilon + DeltaEps, EpsPrime);
 }
 
 template <class T, class Tder>

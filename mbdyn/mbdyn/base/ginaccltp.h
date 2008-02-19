@@ -66,8 +66,6 @@ public:
      	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const;
 	virtual std::ostream& Restart(std::ostream& out) const;
 	virtual void Update(const T& Eps, const T& /* EpsPrime */ = 0.);
-	virtual void IncrementalUpdate(const T& DeltaEps, 
-		const T& /* EpsPrime */ = 0.);
 };
 
 typedef GiNaCElasticConstitutiveLaw<doublereal, doublereal> 
@@ -221,13 +219,6 @@ GiNaCElasticConstitutiveLaw<T, Tder>::Update(const T& Eps,
 	}
 }
 
-template <class T, class Tder> void 
-GiNaCElasticConstitutiveLaw<T, Tder>::IncrementalUpdate(const T& DeltaEps, 
-		const T& /* EpsPrime */ )
-{
-	Update(ElasticConstitutiveLaw<T, Tder>::Epsilon + DeltaEps);
-}
-
 /* specialize for scalar constitutive law */
 
 template <>
@@ -249,8 +240,6 @@ public:
      	virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const;
 	virtual std::ostream& Restart(std::ostream& out) const;
 	virtual void Update(const doublereal& Eps, const doublereal& /* EpsPrime */ = 0.);
-	virtual void IncrementalUpdate(const doublereal& DeltaEps, 
-		const doublereal& /* EpsPrime */ = 0.);
 };
 
 GiNaCElasticConstitutiveLaw<doublereal, doublereal>::GiNaCElasticConstitutiveLaw(
@@ -351,14 +340,6 @@ GiNaCElasticConstitutiveLaw<doublereal, doublereal>::Update(const doublereal& Ep
 	ConstitutiveLaw<doublereal, doublereal>::FDE = GiNaC::ex_to<GiNaC::numeric>(f_derEps).to_double();
 }
 
-void 
-GiNaCElasticConstitutiveLaw<doublereal, doublereal>::IncrementalUpdate(
-	const doublereal& DeltaEps, 
-	const doublereal& /* EpsPrime */ )
-{
-	Update(ElasticConstitutiveLaw<doublereal, doublereal>::Epsilon + DeltaEps);
-}
-
 /* GiNaCElasticConstitutiveLaw - end */
 
 /* GiNaCViscousConstitutiveLaw - begin */
@@ -384,8 +365,6 @@ public:
      	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const;
 	virtual std::ostream& Restart(std::ostream& out) const;
 	virtual void Update(const T& Eps, const T& /* EpsPrime */ = 0.);
-	virtual void IncrementalUpdate(const T& DeltaEps, 
-		const T& /* EpsPrime */ = 0.);
 };
 
 typedef GiNaCViscousConstitutiveLaw<doublereal, doublereal> 
@@ -536,13 +515,6 @@ GiNaCViscousConstitutiveLaw<T, Tder>::Update(const T& Eps,
 	}
 }
 
-template <class T, class Tder> void 
-GiNaCViscousConstitutiveLaw<T, Tder>::IncrementalUpdate(const T& DeltaEps, 
-	const T& EpsPrime)
-{
-	Update(DeltaEps, EpsPrime);
-}
-
 /* specialize for scalar constitutive law */
 
 template <>
@@ -564,8 +536,6 @@ public:
      	virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const;
 	virtual std::ostream& Restart(std::ostream& out) const;
 	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime = 0.);
-	virtual void IncrementalUpdate(const doublereal& DeltaEps, 
-		const doublereal& EpsPrime = 0.);
 };
 
 GiNaCViscousConstitutiveLaw<doublereal, doublereal>::GiNaCViscousConstitutiveLaw(
@@ -664,13 +634,6 @@ GiNaCViscousConstitutiveLaw<doublereal, doublereal>::Update(
 	ConstitutiveLaw<doublereal, doublereal>::FDEPrime = GiNaC::ex_to<GiNaC::numeric>(f_derEpsPrime).to_double();
 }
 
-void 
-GiNaCViscousConstitutiveLaw<doublereal, doublereal>::IncrementalUpdate(const doublereal& /* DeltaEps */ ,
-		const doublereal& EpsPrime)
-{
-	Update(0, ElasticConstitutiveLaw<doublereal, doublereal>::EpsilonPrime + EpsPrime);
-}
-
 /* GiNaCViscousConstitutiveLaw - end */
 
 /* GiNaCViscoElasticConstitutiveLaw - begin */
@@ -699,8 +662,6 @@ public:
      	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const;
 	virtual std::ostream& Restart(std::ostream& out) const;
 	virtual void Update(const T& Eps, const T& /* EpsPrime */ = 0.);
-	virtual void IncrementalUpdate(const T& DeltaEps, 
-		const T& /* EpsPrime */ = 0.);
 };
 
 typedef GiNaCViscoElasticConstitutiveLaw<doublereal, doublereal> 
@@ -887,13 +848,6 @@ GiNaCViscoElasticConstitutiveLaw<T, Tder>::Update(const T& Eps,
 	}
 }
 
-template <class T, class Tder> void 
-GiNaCViscoElasticConstitutiveLaw<T, Tder>::IncrementalUpdate(const T& DeltaEps, 
-	const T& EpsPrime )
-{
-	Update(ElasticConstitutiveLaw<T, Tder>::Epsilon + DeltaEps, EpsPrime);
-}
-
 /* specialize for scalar constitutive law */
 
 template <>
@@ -918,8 +872,6 @@ public:
      	virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const;
 	virtual std::ostream& Restart(std::ostream& out) const;
 	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime = 0.);
-	virtual void IncrementalUpdate(const doublereal& DeltaEps, 
-		const doublereal& EpsPrime = 0.);
 };
 
 GiNaCViscoElasticConstitutiveLaw<doublereal, doublereal>::GiNaCViscoElasticConstitutiveLaw(
@@ -1042,15 +994,6 @@ GiNaCViscoElasticConstitutiveLaw<doublereal, doublereal>::Update(
 
 	GiNaC::ex f_derEpsPrime = gExprDEpsPrime.subs(l);
 	ConstitutiveLaw<doublereal, doublereal>::FDEPrime = GiNaC::ex_to<GiNaC::numeric>(f_derEpsPrime).to_double();
-}
-
-void 
-GiNaCViscoElasticConstitutiveLaw<doublereal, doublereal>::IncrementalUpdate(
-	const doublereal& DeltaEps, 
-	const doublereal& EpsPrime)
-{
-	Update(ElasticConstitutiveLaw<doublereal, doublereal>::Epsilon + DeltaEps,
-		ElasticConstitutiveLaw<doublereal, doublereal>::EpsilonPrime + EpsPrime);
 }
 
 /* GiNaCViscoElasticConstitutiveLaw - end */

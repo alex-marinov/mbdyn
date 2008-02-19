@@ -200,10 +200,6 @@ public:
 		ConstitutiveLaw<T, Tder>::F = ElasticConstitutiveLaw<T, Tder>::PreStress
 			+ (ElasticConstitutiveLaw<T, Tder>::Epsilon - ElasticConstitutiveLaw<T, Tder>::Get())*dStiffness;
 	};
-
-	virtual void IncrementalUpdate(const T& DeltaEps, const T& /* EpsPrime */ = 0.) {
-		Update(ElasticConstitutiveLaw<T, Tder>::Epsilon + DeltaEps);
-	};
 };
 
 typedef LinearElasticIsotropicConstitutiveLaw<doublereal, doublereal> LinearElasticIsotropicConstitutiveLaw1D;
@@ -252,10 +248,6 @@ public:
 		ConstitutiveLaw<T, Tder>::F = ElasticConstitutiveLaw<T, Tder>::PreStress
 			+ ConstitutiveLaw<T, Tder>::FDE*(ConstitutiveLaw<T, Tder>::Epsilon - ElasticConstitutiveLaw<T, Tder>::Get());
 	};
-
-	virtual void IncrementalUpdate(const T& DeltaEps, const T& /* EpsPrime */ = 0.) {
-		Update(ConstitutiveLaw<T, Tder>::Epsilon+DeltaEps);
-	};
 };
 
 typedef LinearElasticGenericConstitutiveLaw<doublereal, doublereal> LinearElasticGenericConstitutiveLaw1D;
@@ -293,10 +285,6 @@ public:
 	};
 
 	virtual void Update(const T& /* Eps */ , const T& /* EpsPrime */ = 0.) {
-		NO_OP;
-	};
-
-	virtual void IncrementalUpdate(const T& /* DeltaEps */ , const T& /* EpsPrime */ = 0.) {
 		NO_OP;
 	};
 };
@@ -350,10 +338,6 @@ public:
 		FDE.Put(4, 4, dRefTorsion + d*dAxialTorsionCoupling);
 		F = PreStress + FDE*(Epsilon-Get());
 	};
-
-	virtual void IncrementalUpdate(const Vec6& DeltaEps, const Vec6& /* EpsPrime */ = 0.) {
-		Update(Epsilon + DeltaEps);
-	};
 };
 
 /* LinearElasticGenericAxialTorsionCouplingConstitutiveLaw - end */
@@ -385,10 +369,6 @@ public:
 	};
 
 	virtual void Update(const T& Eps, const T& /* EpsPrime */ = 0.) {
-		NO_OP;
-	};
-
-	virtual void IncrementalUpdate(const T& DeltaEps, const T& /* EpsPrime */ = 0.) {
 		NO_OP;
 	};
 };
@@ -445,10 +425,6 @@ public:
 		ConstitutiveLaw1D::FDE = Stiff1 + 2.*Stiff2*f1 + 3.*Stiff3*e2;
 		ConstitutiveLaw1D::F = ElasticConstitutiveLaw1D::PreStress
 			+ Stiff1*e1 + Stiff2*f2 + Stiff3*e3;
-	};
-
-	virtual void IncrementalUpdate(const doublereal& DeltaEps, const doublereal& /* EpsPrime */ = 0.) {
-		Update(ConstitutiveLaw1D::Epsilon + DeltaEps);
 	};
 };
 
@@ -528,10 +504,6 @@ public:
 		ConstitutiveLaw3D::F += FTmp;
 #endif // MBDYN_X_WORKAROUND_GCC_3_3 || MBDYN_X_WORKAROUND_GCC_3_3
 	};
-
-	virtual void IncrementalUpdate(const Vec3& DeltaEps, const Vec3& /* EpsPrime */ = 0.) {
-		Update(ConstitutiveLaw3D::Epsilon + DeltaEps);
-	};
 };
 
 /* CubicElasticGenericConstitutiveLaw - end */
@@ -563,10 +535,6 @@ public:
 	};
 
 	virtual void Update(const T& /* Eps */ , const T& /* EpsPrime */ = 0.) {
-		NO_OP;
-	};
-
-	virtual void IncrementalUpdate(const T& /* DeltaEps */ , const T& /* EpsPrime */ = 0.) {
 		NO_OP;
 	};
 };
@@ -623,10 +591,6 @@ public:
 		F = PreStress + dStiffness*log(dCurrEps);
 		FDE = dStiffness/dCurrEps;
 	};
-
-	virtual void IncrementalUpdate(const doublereal& DeltaEps, const doublereal& /* EpsPrime */ = 0.) {
-		Update(Epsilon + DeltaEps);
-	};
 };
 
 /* LogConstitutiveLaw - end */
@@ -662,10 +626,6 @@ public:
 	};
 
 	virtual void Update(const T& /* Eps */ , const T& /* EpsPrime */ = 0.) {
-		NO_OP;
-	};
-
-	virtual void IncrementalUpdate(const T& /* DeltaEps */ , const T& /* EpsPrime */ = 0.) {
 		NO_OP;
 	};
 };
@@ -743,10 +703,6 @@ public:
 					+ dSecondStiffness*(dCurrStrain - dLowerLimitStrain);
 			}
 		}
-	};
-
-	virtual void IncrementalUpdate(const doublereal& DeltaEps, const doublereal& /* EpsPrime */ = 0.) {
-		Update(Epsilon + DeltaEps);
 	};
 };
 
@@ -830,10 +786,6 @@ public:
 			}
 		}
 	};
-
-	virtual void IncrementalUpdate(const Vec3& DeltaEps, const Vec3& /* EpsPrime */ = 0.) {
-		Update(Epsilon + DeltaEps);
-	};
 };
 
 /* DoubleLinearElasticConstitutiveLaw - end */
@@ -909,10 +861,6 @@ public:
 			+ x*(dStiffness*(dBeta + dAlpha*dx2)/dDen);
 		ConstitutiveLaw<T, Tder>::FDE = dStiffness*(dBeta + (3. - dBeta + dAlpha*dx2)*dAlpha*dx2)/(dDen*dDen);
 	};
-
-	virtual void IncrementalUpdate(const T& DeltaEps, const T& /* EpsPrime */ = 0.) {
-		Update(ConstitutiveLaw<T, Tder>::Epsilon + DeltaEps);
-	};
 };
 
 typedef IsotropicHardeningConstitutiveLaw<doublereal, doublereal> IsotropicHardeningConstitutiveLaw1D;
@@ -951,10 +899,6 @@ public:
 	};
 
 	virtual void Update(const T& /* Eps */ , const T& /* EpsPrime */ = 0.) {
-		NO_OP;
-	};
-
-	virtual void IncrementalUpdate(const T& /* DeltaEps */ , const T& /* EpsPrime */ = 0.) {
 		NO_OP;
 	};
 };
@@ -1023,10 +967,6 @@ public:
 			FDE = dGamma*dKappa/pow(1. + dE, dGamma + 1.);
 		}
 	};
-
-	virtual void IncrementalUpdate(const doublereal& DeltaEps, const doublereal& /* EpsPrime */ = 0.) {
-		Update(Epsilon + DeltaEps);
-	};
 };
 
 
@@ -1085,10 +1025,6 @@ public:
 			FDE.Put(3, 3, dGamma*dKappa/pow(1. + dE, dGamma + 1.));
 		}
 	};
-
-	virtual void IncrementalUpdate(const Vec3& DeltaEps, const Vec3& /* EpsPrime */ = 0.) {
-		Update(Epsilon + DeltaEps);
-	};
 };
 
 typedef ContactConstitutiveLaw<doublereal, doublereal> ContactConstitutiveLaw1D;
@@ -1146,10 +1082,6 @@ class LinearViscousIsotropicConstitutiveLaw
       ConstitutiveLaw<T, Tder>::EpsilonPrime = EpsPrime;
       ConstitutiveLaw<T, Tder>::F = ConstitutiveLaw<T, Tder>::EpsilonPrime*dStiffnessPrime;
    };
-
-   virtual void IncrementalUpdate(const T& DeltaEps, const T& EpsPrime = 0.) {
-      Update(DeltaEps, EpsPrime);
-   };
 };
 
 /* LinearViscousIsotropicConstitutiveLaw - end */
@@ -1198,10 +1130,6 @@ class LinearViscousGenericConstitutiveLaw
    virtual void Update(const T& /* Eps */ , const T& EpsPrime = 0.) {
       ConstitutiveLaw<T, Tder>::EpsilonPrime = EpsPrime;
       ConstitutiveLaw<T, Tder>::F = ConstitutiveLaw<T, Tder>::FDEPrime*ConstitutiveLaw<T, Tder>::EpsilonPrime;
-   };
-
-   virtual void IncrementalUpdate(const T& DeltaEps, const T& EpsPrime = 0.) {
-      Update(DeltaEps, EpsPrime);
    };
 };
 
@@ -1264,10 +1192,6 @@ class LinearViscoElasticIsotropicConstitutiveLaw
       ConstitutiveLaw<T, Tder>::F = ElasticConstitutiveLaw<T, Tder>::PreStress
 	+(ConstitutiveLaw<T, Tder>::Epsilon-ElasticConstitutiveLaw<T, Tder>::Get())*dStiffness+ConstitutiveLaw<T, Tder>::EpsilonPrime*dStiffnessPrime;
    };
-
-   virtual void IncrementalUpdate(const T& DeltaEps, const T& EpsPrime = 0.) {
-      Update(ConstitutiveLaw<T, Tder>::Epsilon+DeltaEps, EpsPrime);
-   };
 };
 
 typedef LinearViscoElasticIsotropicConstitutiveLaw<doublereal, doublereal> LinearViscoElasticIsotropicConstitutiveLaw1D;
@@ -1328,10 +1252,6 @@ class LinearViscoElasticGenericConstitutiveLaw
 	+ConstitutiveLaw<T, Tder>::FDE*(ConstitutiveLaw<T, Tder>::Epsilon-ElasticConstitutiveLaw<T, Tder>::Get())
 	+ConstitutiveLaw<T, Tder>::FDEPrime*ConstitutiveLaw<T, Tder>::EpsilonPrime;
    };
-
-   virtual void IncrementalUpdate(const T& DeltaEps, const T& EpsPrime = 0.) {
-      Update(ConstitutiveLaw<T, Tder>::Epsilon+DeltaEps, EpsPrime);
-   };
 };
 
 typedef LinearViscoElasticGenericConstitutiveLaw<doublereal, doublereal> LinearViscoElasticGenericConstitutiveLaw1D;
@@ -1373,10 +1293,6 @@ public:
 	};
 
 	virtual void Update(const T& Eps, const T& EpsPrime = 0.) {
-		NO_OP;
-	};
-
-	virtual void IncrementalUpdate(const T& DeltaEps, const T& EpsPrime = 0.) {
 		NO_OP;
 	};
 };
@@ -1442,10 +1358,6 @@ public:
 			+ ConstitutiveLaw<Vec6, Mat6x6>::FDE*(ConstitutiveLaw<Vec6, Mat6x6>::Epsilon - ElasticConstitutiveLaw<Vec6, Mat6x6>::Get())
 			+ ConstitutiveLaw<Vec6, Mat6x6>::FDEPrime*ConstitutiveLaw<Vec6, Mat6x6>::EpsilonPrime;
 	};
-
-	virtual void IncrementalUpdate(const Vec6& DeltaEps, const Vec6& EpsPrime = 0.) {
-		Update(ConstitutiveLaw<Vec6, Mat6x6>::Epsilon + DeltaEps, EpsPrime);
-	};
 };
 
 typedef LinearViscoElasticGenericAxialTorsionCouplingConstitutiveLaw<Vec6, Mat6x6> LinearViscoElasticGenericAxialTorsionCouplingConstitutiveLaw6D;
@@ -1480,10 +1392,6 @@ public:
 	};
 
 	virtual void Update(const T& Eps, const T& /* EpsPrime */ = 0.) {
-		NO_OP;
-	};
-
-	virtual void IncrementalUpdate(const T& DeltaEps, const T& /* EpsPrime */ = 0.) {
 		NO_OP;
 	};
 };
@@ -1543,10 +1451,6 @@ public:
 		ConstitutiveLaw1D::FDE = Stiff1 + 2.*Stiff2*f1 + 3.*Stiff3*e2;
 		ConstitutiveLaw1D::F = ElasticConstitutiveLaw1D::PreStress
 			+ Stiff1*e1 + Stiff2*f2 + Stiff3*e3 + ConstitutiveLaw1D::FDEPrime*EpsPrime;
-	};
-
-	virtual void IncrementalUpdate(const doublereal& DeltaEps, const doublereal& EpsPrime = 0.) {
-		Update(ConstitutiveLaw1D::Epsilon + DeltaEps, EpsPrime);
 	};
 };
 
@@ -1631,10 +1535,6 @@ public:
 		ConstitutiveLaw3D::F += FTmp;
 #endif // ! MBDYN_X_WORKAROUND_GCC_3_2 && ! MBDYN_X_WORKAROUND_GCC_3_3
 	};
-
-	virtual void IncrementalUpdate(const Vec3& DeltaEps, const Vec3& EpsPrime = 0.) {
-		Update(ConstitutiveLaw3D::Epsilon + DeltaEps, EpsPrime);
-	};
 };
 
 /* CubicViscoElasticGenericConstitutiveLaw - end */
@@ -1677,10 +1577,6 @@ class DoubleLinearViscoElasticConstitutiveLaw
    };
 
    virtual void Update(const T& /* Eps */ , const T& /* EpsPrime */ = 0.) {
-      NO_OP;
-   };
-
-   virtual void IncrementalUpdate(const T& /* DeltaEps */ , const T& /* EpsPrime */ = 0.) {
       NO_OP;
    };
 };
@@ -1778,10 +1674,6 @@ class DoubleLinearViscoElasticConstitutiveLaw<doublereal, doublereal>
 		+dSecondStiffnessPrime*EpsilonPrime;
 	 }
       }
-   };
-
-   virtual void IncrementalUpdate(const doublereal& DeltaEps, const doublereal& EpsPrime = 0.) {
-      Update(Epsilon+DeltaEps, EpsPrime);
    };
 };
 
@@ -1888,10 +1780,6 @@ class DoubleLinearViscoElasticConstitutiveLaw<Vec3, Mat3x3>
 	 }
       }
    };
-
-   virtual void IncrementalUpdate(const Vec3& DeltaEps, const Vec3& EpsPrime = 0.) {
-      Update(Epsilon+DeltaEps, EpsPrime);
-   };
 };
 
 /* DoubleLinearViscoElasticConstitutiveLaw - end */
@@ -1931,10 +1819,6 @@ class TurbulentViscoElasticConstitutiveLaw
    };
 
    virtual void Update(const T& /* Eps */ , const T& /* EpsPrime */ = 0.) {
-      NO_OP;
-   };
-
-   virtual void IncrementalUpdate(const T& /* DeltaEps */ , const T& /* EpsPrime */ = 0.) {
       NO_OP;
    };
 };
@@ -2011,10 +1895,6 @@ class TurbulentViscoElasticConstitutiveLaw<doublereal, doublereal>
 	 F = PreStress+dStiffness*(Epsilon-dPreStrain)
 	   +dParabolicStiffness*d*EpsilonPrime;
       }
-   };
-
-   virtual void IncrementalUpdate(const doublereal& DeltaEps, const doublereal& EpsPrime = 0.) {
-      Update(Epsilon+DeltaEps, EpsPrime);
    };
 };
 
@@ -2139,10 +2019,6 @@ public:
 			}
 			break;
 		}
-	};
-
-	virtual void IncrementalUpdate(const T& DeltaEps, const T& EpsPrime = 0.) {
-		Update(ConstitutiveLaw<T, Tder>::Epsilon+DeltaEps, EpsPrime);
 	};
 };
 

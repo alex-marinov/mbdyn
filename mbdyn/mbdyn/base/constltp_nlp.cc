@@ -180,10 +180,6 @@ public:
 			ConstitutiveLaw<T, Tder>::FDE(i + 1, i + 1) += fde;
 		}
 	};
-
-	virtual void IncrementalUpdate(const T& DeltaEps, const T& EpsPrime = 0.) {
-		Update(ConstitutiveLaw<T, Tder>::Epsilon + DeltaEps, EpsPrime);
-	};
 };
 
 template <>
@@ -316,10 +312,6 @@ public:
 
 		ConstitutiveLaw<doublereal, doublereal>::F += f;
 		ConstitutiveLaw<doublereal, doublereal>::FDE += fde;
-	};
-
-	virtual void IncrementalUpdate(const doublereal& DeltaEps, const doublereal& EpsPrime = 0.) {
-		Update(ConstitutiveLaw<doublereal, doublereal>::Epsilon + DeltaEps, EpsPrime);
 	};
 };
 

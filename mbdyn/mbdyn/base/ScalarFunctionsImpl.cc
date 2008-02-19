@@ -1188,10 +1188,6 @@ public:
 #endif // !MBDYN_X_WORKAROUND_GCC_3_3 && ! MBDYN_X_WORKAROUND_GCC_3_3
 		}
 	};
-
-	virtual void IncrementalUpdate(const T& DeltaEps, const T& /* EpsPrime */ = 0.) {
-		Update(ConstitutiveLaw<T, Tder>::Epsilon + DeltaEps);
-	};
 };
 
 template <>
@@ -1230,10 +1226,6 @@ public:
 		ConstitutiveLaw<doublereal, doublereal>::Epsilon = Eps;
 		ConstitutiveLaw<doublereal, doublereal>::F = (*pSF)(Eps);
 		ConstitutiveLaw<doublereal, doublereal>::FDE = pSF->ComputeDiff(Eps);
-	};
-
-	virtual void IncrementalUpdate(const doublereal& DeltaEps, const doublereal& /* EpsPrime */ = 0.) {
-		Update(ConstitutiveLaw<doublereal, doublereal>::Epsilon + DeltaEps);
 	};
 };
 
@@ -1351,10 +1343,6 @@ public:
 			ConstitutiveLaw<T, Tder>::FDE(i, i) = SF[i - 1]->ComputeDiff(Eps(i));
 #endif // !MBDYN_X_WORKAROUND_GCC_3_2 && ! MBDYN_X_WORKAROUND_GCC_3_3
 		}
-	};
-
-	virtual void IncrementalUpdate(const T& DeltaEps, const T& /* EpsPrime */ = 0.) {
-		Update(ConstitutiveLaw<T, Tder>::Epsilon + DeltaEps);
 	};
 };
 

@@ -85,14 +85,6 @@ public:
 	Update(const T& /* Eps */ , const T& /* EpsPrime */  = 0.) {
 		NO_OP;
 	};
-
-	virtual void
-	IncrementalUpdate(
-			const T& /* DeltaEps */ ,
-			const T& /* EpsPrime */ = 0.
-	) {
-		NO_OP;
-	};
 };
 
 
@@ -541,14 +533,6 @@ public:
 		if (ChangeJac) {
 			throw Elem::ChangedEquationStructure();
 		}
-	};
-
-	virtual void
-	IncrementalUpdate(
-		const doublereal& DeltaEps,
-		const doublereal& EpsPrime = 0.
-	) {
-		Update(Epsilon+DeltaEps, EpsPrime);
 	};
 
 	/*

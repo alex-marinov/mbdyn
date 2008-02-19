@@ -104,10 +104,6 @@ public:
 	
 	virtual void Update(const T& Eps, const T& EpsPrime = 0.) = 0;
 
-	/* DEPRECATED */
-	virtual void IncrementalUpdate(const T& DeltaEps,
-			const T& EpsPrime = 0.) = 0;
-
 	virtual void AfterConvergence(const T& Eps, const T& EpsPrime = 0.) {
 		NO_OP;
 	};
@@ -196,12 +192,6 @@ public:
 	inline void Update(const T& Eps, const T& EpsPrime = 0.) {
 		ASSERT(pConstLaw != NULL);
 		pConstLaw->Update(Eps, EpsPrime);
-	};
-
-	inline void IncrementalUpdate(const T& DeltaEps,
-			const T& EpsPrime = 0.) {
-		ASSERT(pConstLaw != NULL);
-		pConstLaw->IncrementalUpdate(DeltaEps, EpsPrime);
 	};
 
 	inline void AfterConvergence(const T& Eps, const T& EpsPrime = 0.) {

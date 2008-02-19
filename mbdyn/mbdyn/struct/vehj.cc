@@ -1663,7 +1663,6 @@ public:
 	virtual std::ostream& Restart(std::ostream& out) const;
 
 	virtual void Update(const Vec3& Eps, const Vec3& /* EpsPrime */  = 0.);
-	virtual void IncrementalUpdate(const Vec3& DeltaEps, const Vec3& /* EpsPrime */ = 0.);
 };
 
 
@@ -1747,12 +1746,6 @@ InvAngularConstitutiveLaw::Update(const Vec3& Eps, const Vec3& EpsPrime)
 		// delta hatR^T * (w_b - w_a) term in case of VISCOUS
 		ConstitutiveLaw<Vec3, Mat3x3>::FDEPrime = Rx*pCL->GetFDEPrime()*RxT;
 	}
-}
-
-void
-InvAngularConstitutiveLaw::IncrementalUpdate(const Vec3& DeltaEps, const Vec3& EpsPrime)
-{
-	Update(ConstitutiveLaw<Vec3, Mat3x3>::Epsilon + DeltaEps, EpsPrime);
 }
 
 /* InvAngularConstitutiveLaw - end */

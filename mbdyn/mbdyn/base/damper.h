@@ -74,10 +74,6 @@ class GRAALLDamperConstitutiveLaw
    virtual void Update(const T& /* Eps */ , const T& /* EpsPrime */  = 0.) {
       NO_OP;
    };
-   
-   virtual void IncrementalUpdate(const T& /* DeltaEps */ , const T& /* EpsPrime */ = 0.) {
-      NO_OP;
-   };
 };
 
 
@@ -460,10 +456,6 @@ C     VETVIS  tabella viscosita'/temperatura        NPVT punti
 			  &F,
 			  &FDE,
 			  &FDEPrime);
-   };
-   
-   virtual void IncrementalUpdate(const doublereal& DeltaEps, const doublereal& EpsPrime = 0.) {
-      Update(Epsilon+DeltaEps, EpsPrime);
    };
 };
 
