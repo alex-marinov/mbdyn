@@ -175,11 +175,11 @@ TDCLWR<T, Tder>::Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Typ
 
 	ConstitutiveLaw<T, Tder>* pCL2;
 	if (typeid(T) == typeid(doublereal)) {
-		pCL2 = dynamic_cast<ConstitutiveLaw<T, Tder> *>(pDM->ReadConstLaw1D(HP, CLType));
+		pCL2 = dynamic_cast<ConstitutiveLaw<T, Tder> *>(HP.GetConstLaw1D(CLType));
 	} else if (typeid(T) == typeid(Vec3)) {
-		pCL2 = dynamic_cast<ConstitutiveLaw<T, Tder> *>(pDM->ReadConstLaw3D(HP, CLType));
+		pCL2 = dynamic_cast<ConstitutiveLaw<T, Tder> *>(HP.GetConstLaw3D(CLType));
 	} else if (typeid(T) == typeid(Vec6)) {
-		pCL2 = dynamic_cast<ConstitutiveLaw<T, Tder> *>(pDM->ReadConstLaw6D(HP, CLType));
+		pCL2 = dynamic_cast<ConstitutiveLaw<T, Tder> *>(HP.GetConstLaw6D(CLType));
 	} else {
 		throw ErrGeneric();
 	}
