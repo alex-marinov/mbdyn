@@ -75,10 +75,6 @@ public:
 		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
 		ConstitutiveLaw<T, Tder>::F = ConstitutiveLaw<T, Tder>::Epsilon*dStiffness;
 	};
-
-	virtual void IncrementalUpdate(const T& DeltaEps, const T& /* EpsPrime */ = 0.) {
-		Update(ConstitutiveLaw<T, Tder>::Epsilon + DeltaEps);
-	};
 };
 
 /* specific functional object(s) */

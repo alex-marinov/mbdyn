@@ -71,10 +71,6 @@ public:
 		ConstitutiveLaw<T, Tder>::EpsilonPrime = EpsPrime;
 	};
 
-	virtual void IncrementalUpdate(const T& DeltaEps, const T& EpsPrime = 0.) {
-		Update(ConstitutiveLaw<T, Tder>::Epsilon + DeltaEps, EpsPrime);
-	};
-
 	virtual void AfterConvergence(const T& Eps, const T& EpsPrime = 0.) {
 		NO_OP;
 	};
@@ -136,10 +132,6 @@ public:
 		ConstitutiveLaw<doublereal, doublereal>::F = dF;
 		ConstitutiveLaw<doublereal, doublereal>::FDE = dFDE;
 		ConstitutiveLaw<doublereal, doublereal>::FDEPrime = dFDEP;
-	};
-
-	virtual void IncrementalUpdate(const doublereal& DeltaEps, const doublereal& EpsPrime = 0.) {
-		Update(ConstitutiveLaw<doublereal, doublereal>::Epsilon + DeltaEps, EpsPrime);
 	};
 
 	virtual void AfterConvergence(const doublereal& Eps, const doublereal& EpsPrime = 0.) {
@@ -208,10 +200,6 @@ public:
 		ConstitutiveLaw<Vec3, Mat3x3>::FDEPrime = Mat3x3(dFDEP, 3);
 	};
 
-	virtual void IncrementalUpdate(const Vec3& DeltaEps, const Vec3& EpsPrime = 0.) {
-		Update(ConstitutiveLaw<Vec3, Mat3x3>::Epsilon + DeltaEps, EpsPrime);
-	};
-
 	virtual void AfterConvergence(const Vec3& Eps, const Vec3& EpsPrime = 0.) {
 		us3aftc_(&size, &m_v[0], Eps.pGetVec(), EpsPrime.pGetVec(),
 			&err);
@@ -278,10 +266,6 @@ public:
 		ConstitutiveLaw<Vec6, Mat6x6>::F = dF;
 		ConstitutiveLaw<Vec6, Mat6x6>::FDE = Mat6x6(dFDE, 6);
 		ConstitutiveLaw<Vec6, Mat6x6>::FDEPrime = Mat6x6(dFDEP, 6);
-	};
-
-	virtual void IncrementalUpdate(const Vec6& DeltaEps, const Vec6& EpsPrime = 0.) {
-		Update(ConstitutiveLaw<Vec6, Mat6x6>::Epsilon + DeltaEps, EpsPrime);
 	};
 
 	virtual void AfterConvergence(const Vec6& Eps, const Vec6& EpsPrime = 0.) {

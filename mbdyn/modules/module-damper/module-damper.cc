@@ -458,12 +458,6 @@ public:
 		}
 	};
 
-	/* DEPRECATED */
-	virtual void IncrementalUpdate(const doublereal& DeltaEps,
-			const doublereal& EpsPrime = 0.) {
-		Update(Epsilon + DeltaEps, EpsilonPrime + EpsPrime);
-	};
-	
 	virtual void AfterConvergence(const doublereal& Eps, const doublereal& EpsPrime = 0.) {
 		double t = prev_time;
 // 		std::cerr << "AfterConvergence: 1" << std::endl;
