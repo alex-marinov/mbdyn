@@ -73,6 +73,8 @@ struct sym_params {
 	gsl_interp ** ik_s, ** ik_v, ** ic_s, ** ic_v; // tutti [n_elementi]
 	double *x, *y;
 
+	double a;
+
 	// per integrazione
 	double sf, si, vf, vi, tf, ti;
 	double f, f_s, f_v;
@@ -283,12 +285,22 @@ int func (double t, const double y[], double f[],
 			pa.f_v += c[0];
 		}
 	}
+	f[pa.n_elementi - pa.n_parallelo] = -y[pa.n_elementi - pa.n_parallelo] * 2. / pa.a + 
+		-y[pa.n_elementi - pa.n_parallelo + 1] / pa.a / pa.a + 
+		((pa.x[pa.n_variabili] * std::atan(v / pa.x[pa.n_variabili+1]) +
+		pa.x[pa.n_variabili+2] * std::atan(v / pa.x[pa.n_variabili+3]))/2. + pa.f) / pa.a / pa.a;
+	f[pa.n_elementi - pa.n_parallelo + 1] = y[pa.n_elementi - pa.n_parallelo];
+	pa.f = y[pa.n_elementi - pa.n_parallelo + 1];
 // 	pa.f += (pa.x[pa.n_variabili] * std::atan(f[0] / pa.x[pa.n_variabili+1]) +
 // 		pa.x[pa.n_variabili+2] * std::atan((v-f[0]) / pa.x[pa.n_variabili+3]))/2.;
+
+/*
 	pa.f += (pa.x[pa.n_variabili] * std::atan(v / pa.x[pa.n_variabili+1]) +
 		pa.x[pa.n_variabili+2] * std::atan(v / pa.x[pa.n_variabili+3]))/2.;
 	pa.f_v += (pa.x[pa.n_variabili] * 1./(1. + std::pow(v / pa.x[pa.n_variabili+1], 2)) / pa.x[pa.n_variabili+1] +
 		pa.x[pa.n_variabili+2] * 1./(1. + std::pow(v / pa.x[pa.n_variabili+3], 2)) / pa.x[pa.n_variabili+3])/2.;
+*/
+
 	//pa.f += pa.x[pa.n_variabili+4] * std::atan(v / pa.x[pa.n_variabili+5]);
 
 // 	//std::cerr << y[0] << " " << f[0] << "\n";
@@ -323,8 +335,8 @@ public:
 	scale_eps(l), scale_f(f) {
 		ConstitutiveLaw<doublereal, doublereal>::FDE =  0.; //FIXME dStiffness;
 
-		stepint = gsl_odeiv_step_alloc(T, pa.n_elementi - pa.n_parallelo);
-		evolve = gsl_odeiv_evolve_alloc(pa.n_elementi - pa.n_parallelo);
+		stepint = gsl_odeiv_step_alloc(T, pa.n_elementi - pa.n_parallelo + 2);
+		evolve = gsl_odeiv_evolve_alloc(pa.n_elementi - pa.n_parallelo + 2);
 		double eps_abs = 1.E-15;
 		double eps_rel = 1.E-15;
 		control = gsl_odeiv_control_standard_new(eps_abs, eps_rel, 1., 1.);
@@ -332,11 +344,11 @@ public:
 		sys.jacobian = NULL;
 		sys.dimension = 1;
 		sys.params = &pa;
-		y = new double[pa.n_elementi - pa.n_parallelo];
-		y_dummy = new double[pa.n_elementi - pa.n_parallelo];
+		y = new double[pa.n_elementi - pa.n_parallelo + 2];
+		y_dummy = new double[pa.n_elementi - pa.n_parallelo + 2];
 
 		pa.f = 0.;
-		for (int i = 0; i < pa.n_elementi - pa.n_parallelo; i++) {
+		for (int i = 0; i < pa.n_elementi - pa.n_parallelo + 2; i++) {
 			y[i] = y_dummy[i] = 0.;
 		}
 	};
@@ -366,7 +378,7 @@ public:
 
 		delete[] pa.v_max[0];
 		delete[] pa.v_max;
-
+		
 		for (int i=0; i<pa.n_elementi; i++) {
 			if (pa.npti_ks[i] > 1) {
 				gsl_interp_free(pa.ik_s[i]);
@@ -434,14 +446,14 @@ public:
 // 		std::cerr << "\tpa.tf: " << pa.tf << std::endl;
 // 		std::cerr << "\tpa.ti: " << pa.ti << std::endl;
 
-		dt = pa.tf - pa.ti;
+		dt = (pa.tf - pa.ti) / 10.;
 
 		pa.sf = Eps * scale_eps;
 		pa.si = Epsilon;
 		pa.vf = EpsPrime * scale_eps;
 		pa.vi = EpsilonPrime;
 		
-		for (int i=0; i < pa.n_elementi - pa.n_parallelo; i++) {
+		for (int i=0; i < pa.n_elementi - pa.n_parallelo + 2; i++) {
 			y_dummy[i] = y[i];
 		}
 		if (dt >0.) {
@@ -517,15 +529,25 @@ struct DamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 		double scale_eps = 1;
 		if (HP.IsKeyWord("scale_eps")) {
 			scale_eps = HP.GetReal();
+			// check?
 		}
 
 		double scale_f = 1;
 		if (HP.IsKeyWord("scale_f")) {
 			scale_f = HP.GetReal();
+			// check?
 		}
 
 		sym_params* pap = new sym_params();
 		sym_params &pa(*pap);
+
+		// FIXME: what does it mean?
+		pa.a = 0.002;
+		if (HP.IsKeyWord("filter")) {
+			pa.a = HP.GetReal();
+			// check?
+		}
+
 		pa.n_parallelo = HP.GetInt();
 		pa.gsl_C = new gsl_matrix*[pa.n_parallelo];
 		pa.gsl_K = new gsl_matrix*[pa.n_parallelo];
@@ -702,7 +724,7 @@ module_init(const char *module_name, void *pdm, void *php)
 	if (!SetCL1D("damper", rf1D)) {
 		delete rf1D;
 
-		silent_cerr("DummyConstitutiveLaw1D: "
+		silent_cerr("DamperConstitutiveLaw: "
 			"module_init(" << module_name << ") "
 			"failed" << std::endl);
 
@@ -711,4 +733,5 @@ module_init(const char *module_name, void *pdm, void *php)
 
 	return 0;
 }
+
 
