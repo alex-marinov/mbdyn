@@ -44,7 +44,7 @@ template <class T, class Tder>
 class TDConstitutiveLawWrapper
 : public ConstitutiveLaw<T, Tder> {
 private:
-	doublereal dF, dL, dLCurr;
+	doublereal dF, dW, dWCurr;
 	T EpsPrev, FPrev;
 	ConstitutiveLaw<T, Tder> *pCL;
 
@@ -68,7 +68,7 @@ public:
 template <class T, class Tder>
 TDConstitutiveLawWrapper<T, Tder>::TDConstitutiveLawWrapper(const doublereal& df,
 	const doublereal& dl, ConstitutiveLaw<T, Tder> *pcl)
-: dF(df), dL(dl), dLCurr(0.), FPrev(0.), pCL(pcl)
+: dF(df), dW(dl), dWCurr(0.), FPrev(0.), pCL(pcl)
 {
 	NO_OP;
 }
@@ -95,7 +95,7 @@ TDConstitutiveLawWrapper<T, Tder>::pCopy(void) const
 	ConstitutiveLaw<T, Tder>* pcl = NULL;
 
 	typedef TDConstitutiveLawWrapper cl;
-	SAFENEWWITHCONSTRUCTOR(pcl, cl, cl(dF, dL, pCL->pCopy()));
+	SAFENEWWITHCONSTRUCTOR(pcl, cl, cl(dF, dW, pCL->pCopy()));
 	return pcl;
 }
 
@@ -103,7 +103,7 @@ template <class T, class Tder>
 std::ostream&
 TDConstitutiveLawWrapper<T, Tder>::Restart(std::ostream& out) const
 {
-	out << "tdclw, " << dF << ", " << dL << ", ";
+	out << "tdclw, " << dF << ", " << dW << ", ";
 	return pCL->Restart(out);
 }
 
@@ -118,7 +118,7 @@ TDConstitutiveLawWrapper<T, Tder>::Update(const T& Eps, const T& EpsPrime)
 
 	pCL->Update(Eps, EpsPrime);
 
-	doublereal d = 1. + dF*exp(-dLCurr/dL);
+	doublereal d = 1. + dF*exp(-dWCurr/dW);
 
 	ConstitutiveLaw<T, Tder>::F = pCL->GetF()*d;
 	if (GetConstLawType() & ConstLawType::ELASTIC) {
@@ -136,9 +136,11 @@ TDConstitutiveLawWrapper<T, Tder>::AfterConvergence(const T& Eps, const T& EpsPr
 	pCL->AfterConvergence(Eps, EpsPrime);
 
 	// average force * (old - new epsilon, to avoid unary - operator
-	dLCurr += ((pCL->GetF() + FPrev)*(EpsPrev - Eps))/2.;
+	// const T& FCurr = pCL->GetF();
+	const T& FCurr = ConstitutiveLaw<T, Tder>::GetF();
+	dWCurr += ((FCurr + FPrev)*(EpsPrev - Eps))/2.;
 
-	FPrev = pCL->GetF();
+	FPrev = FCurr;
 	EpsPrev = Eps;
 }
 
@@ -146,7 +148,7 @@ template <class T, class Tder>
 std::ostream&
 TDConstitutiveLawWrapper<T, Tder>::OutputAppend(std::ostream& out) const
 {
-	return pCL->OutputAppend(out) << " " << dLCurr;
+	return pCL->OutputAppend(out) << " " << dWCurr;
 }
 
 /* TDConstitutiveLawWrapper - end */
@@ -173,8 +175,8 @@ TDCLWR<T, Tder>::Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Typ
 		throw ErrGeneric();
 	}
 
-	doublereal dL = HP.GetReal();
-	if (dL >= 0.) {
+	doublereal dW = HP.GetReal();
+	if (dW >= 0.) {
 		silent_cerr("Invalid positive or null reference work in TDCLW "
 			"at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric();
@@ -192,7 +194,7 @@ TDCLWR<T, Tder>::Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Typ
 	}
 
 	typedef TDConstitutiveLawWrapper<T, Tder> L;
-	SAFENEWWITHCONSTRUCTOR(pCL, L, L(dF, dL, pCL2));
+	SAFENEWWITHCONSTRUCTOR(pCL, L, L(dF, dW, pCL2));
 
 	return pCL;
 }
