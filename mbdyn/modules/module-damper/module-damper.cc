@@ -206,6 +206,30 @@ void compute_kc(double &k, double &c,
 	//std::cerr << "--------------------------------" << std::endl;
 }
 
+/* from the reference manual of gsl:
+
+25.1 Defining the ODE System
+============================
+
+The routines solve the general n-dimensional first-order system,
+
+     dy_i(t)/dt = f_i(t, y_1(t), ..., y_n(t))
+
+for i = 1, \dots, n.  The stepping functions rely on the vector of
+derivatives f_i and the Jacobian matrix, J_{ij} = df_i(t,y(t)) / dy_j.
+A system of equations is defined using the `gsl_odeiv_system' datatype.
+
+ -- Data Type: gsl_odeiv_system
+     This data type defines a general ODE system with arbitrary
+     parameters.
+
+    `int (* function) (double t, const double y[], double dydt[], void * params)'
+          This function should store the vector elements
+          f_i(t,y,params) in the array DYDT, for arguments (T,Y) and
+          parameters PARAMS.  The function should return `GSL_SUCCESS'
+          if the calculation was completed successfully. Any other
+          return value indicates an error.
+*/
 
 int func (double t, const double y[], double f[],
 	void *para) {
@@ -288,9 +312,9 @@ int func (double t, const double y[], double f[],
 	f[pa.n_elementi - pa.n_parallelo] = -y[pa.n_elementi - pa.n_parallelo] * 2. / pa.a + 
 		-y[pa.n_elementi - pa.n_parallelo + 1] / pa.a / pa.a + 
 		((pa.x[pa.n_variabili] * std::atan(v / pa.x[pa.n_variabili+1]) +
-		pa.x[pa.n_variabili+2] * std::atan(v / pa.x[pa.n_variabili+3]))/2. + pa.f) / pa.a / pa.a;
+		pa.x[pa.n_variabili+2] * std::atan(v / pa.x[pa.n_variabili+3]))/2.) / pa.a / pa.a;
 	f[pa.n_elementi - pa.n_parallelo + 1] = y[pa.n_elementi - pa.n_parallelo];
-	pa.f = y[pa.n_elementi - pa.n_parallelo + 1];
+	pa.f += y[pa.n_elementi - pa.n_parallelo + 1];
 // 	pa.f += (pa.x[pa.n_variabili] * std::atan(f[0] / pa.x[pa.n_variabili+1]) +
 // 		pa.x[pa.n_variabili+2] * std::atan((v-f[0]) / pa.x[pa.n_variabili+3]))/2.;
 
@@ -542,7 +566,7 @@ struct DamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 		sym_params &pa(*pap);
 
 		// FIXME: what does it mean?
-		pa.a = 0.002;
+		pa.a = 0.001;
 		if (HP.IsKeyWord("filter")) {
 			pa.a = HP.GetReal();
 			// check?
