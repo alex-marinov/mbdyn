@@ -565,10 +565,18 @@ struct DamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 		sym_params* pap = new sym_params();
 		sym_params &pa(*pap);
 
-		// FIXME: what does it mean?
-		pa.a = 0.001;
+		// By default, cut at 
+		pa.a = 1./80.;
 		if (HP.IsKeyWord("filter")) {
-			pa.a = HP.GetReal();
+			doublereal dOmega = HP.GetReal();
+			if (dOmega <= 0.) {
+				silent_cerr("DamperConstitutiveLaw: "
+					"invalid angular frequency "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric();
+			}
+			pa.a = 1./dOmega;
 			// check?
 		}
 
