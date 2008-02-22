@@ -2731,7 +2731,7 @@ The syntax is
         (derivative_of_entity) <kappa_0'> ,
         { null | (scalar_function) <diag_force'> }
         [ , ... ] ,
-        (derivative_of_entity) <kappa_0''> ,
+        { (derivative_of_entity) <kappa_0''> | proportional , <coef> } ,
         { null | (scalar_function) <diag_force''> }
         [ , ... ]
 
@@ -2874,7 +2874,7 @@ The syntax is
         (derivative_of_entity) <kappa_0'> ,
         { null | (scalar_function) <diag_stiffness> }
         [ , ... ] ,
-        (derivative_of_entity) <kappa_0''> ,
+        { (derivative_of_entity) <kappa_0''> | proportional , <coef> } ,
         { null | (scalar_function) <diag_damping> }
         [ , ... ]
 

@@ -384,7 +384,12 @@ struct NLPViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		}
 
 		if (Typ & ConstLawType::VISCOUS) {
-			FDEPrime0 = HP.Get(FDEPrime0);
+			if ((Typ & ConstLawType::ELASTIC) && HP.IsKeyWord("proportional")) {
+				FDEPrime0 = FDE0*HP.GetReal();
+			} else {
+				FDEPrime0 = HP.Get(FDEPrime0);
+			}
+
 
 			bViscous = !IsNull<Tder>(FDEPrime0);
 			for (unsigned i = 0; i < dim; i++) {

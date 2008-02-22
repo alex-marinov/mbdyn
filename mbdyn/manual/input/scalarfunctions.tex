@@ -134,6 +134,9 @@ it can be omitted if the card ends with a semicolon.
         [end]
     <point>            ::= <x>, <y>
 \end{verbatim}
+Unless \kw{do not extrapolate} is set, when the input is outside
+the provided values of \kw{x} the value is extrapolated using the slope
+of the nearest point pair.
 
 \subsubsection{Chebychev Scalar Function}
 \begin{verbatim}
