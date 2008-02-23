@@ -74,7 +74,7 @@ struct sym_params {
 	/* scale factors */
 	double scale_eps;
 	double scale_f;
-	/* filter angular frequency */
+	/* filter 1/angular frequency */
 	double a;
 
 	/* per integrazione */
