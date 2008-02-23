@@ -27,6 +27,9 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+/*
+ * This module was sponsored by AgustaWestland.
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
@@ -191,7 +194,7 @@ module_init(const char *module_name, void *pdm, void *php)
 
 	ConstitutiveLawRead<doublereal, doublereal> *rf1D
 		= new DamperCLR;
-	if (!SetCL1D("damper", rf1D)) {
+	if (!SetCL1D("nonlinear" "rheologic" "damper", rf1D)) {
 		delete rf1D;
 
 		silent_cerr("DamperConstitutiveLaw: "

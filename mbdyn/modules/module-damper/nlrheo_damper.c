@@ -29,9 +29,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 /*
- * AgustaWestland is granted permission to use this file internally
- * in violation of the GNU General Public License (GPL); however,
- * distribution to third-parties must occur according to GPL.
+ * This module was sponsored by AgustaWestland.
+ *
+ * AgustaWestland is granted permission to use this file for internal
+ * purposes in violation of the GNU General Public License (GPL);
+ * however, distribution to third-parties must occur according to GPL.
  */
 
 #ifdef HAVE_CONFIG_H
