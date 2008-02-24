@@ -44,13 +44,15 @@ template <class T, class Tder>
 class TDConstitutiveLawWrapper
 : public ConstitutiveLaw<T, Tder> {
 private:
-	doublereal dF, dW, dWCurr;
+	doublereal dF, dW, dScaleEpsilon, dScaleForce, dWCurr;
 	T EpsPrev, FPrev;
 	ConstitutiveLaw<T, Tder> *pCL;
 
 public:
 	TDConstitutiveLawWrapper(const doublereal& df,
 		const doublereal& dl,
+		const doublereal& dsd,
+		const doublereal& dsf,
 		ConstitutiveLaw<T, Tder> *pcl);
 	virtual ~TDConstitutiveLawWrapper(void);
 
@@ -66,9 +68,14 @@ public:
 };
 
 template <class T, class Tder>
-TDConstitutiveLawWrapper<T, Tder>::TDConstitutiveLawWrapper(const doublereal& df,
-	const doublereal& dl, ConstitutiveLaw<T, Tder> *pcl)
-: dF(df), dW(dl), dWCurr(0.), FPrev(0.), pCL(pcl)
+TDConstitutiveLawWrapper<T, Tder>::TDConstitutiveLawWrapper(
+	const doublereal& df,
+	const doublereal& dl,
+	const doublereal& dsd,
+	const doublereal& dsf,
+	ConstitutiveLaw<T, Tder> *pcl)
+: dF(df), dW(dl), dScaleEpsilon(dsd), dScaleForce(dsf),
+dWCurr(0.), FPrev(0.), pCL(pcl)
 {
 	NO_OP;
 }
@@ -95,7 +102,8 @@ TDConstitutiveLawWrapper<T, Tder>::pCopy(void) const
 	ConstitutiveLaw<T, Tder>* pcl = NULL;
 
 	typedef TDConstitutiveLawWrapper cl;
-	SAFENEWWITHCONSTRUCTOR(pcl, cl, cl(dF, dW, pCL->pCopy()));
+	SAFENEWWITHCONSTRUCTOR(pcl, cl,
+		cl(dF, dW, dScaleEpsilon, dScaleForce, pCL->pCopy()));
 	return pcl;
 }
 
@@ -103,7 +111,12 @@ template <class T, class Tder>
 std::ostream&
 TDConstitutiveLawWrapper<T, Tder>::Restart(std::ostream& out) const
 {
-	out << "tdclw, " << dF << ", " << dW << ", ";
+	out
+		<< "tdclw, " << dF
+		<< ", " << dW
+		<< ", scale deformation, " << dScaleEpsilon
+		<< ", scale force, " << dScaleForce
+		<< ", ";
 	return pCL->Restart(out);
 }
 
@@ -116,9 +129,9 @@ TDConstitutiveLawWrapper<T, Tder>::Update(const T& Eps, const T& EpsPrime)
 	ConstitutiveLaw<T, Tder>::Epsilon = Eps;
 #endif
 
-	pCL->Update(Eps, EpsPrime);
+	pCL->Update(Eps*dScaleEpsilon, EpsPrime*dScaleEpsilon);
 
-	doublereal d = 1. + dF*exp(-dWCurr/dW);
+	doublereal d = dScaleForce*(1. + dF*exp(-dWCurr/dW));
 
 	ConstitutiveLaw<T, Tder>::F = pCL->GetF()*d;
 	if (GetConstLawType() & ConstLawType::ELASTIC) {
@@ -133,15 +146,16 @@ template <class T, class Tder>
 void
 TDConstitutiveLawWrapper<T, Tder>::AfterConvergence(const T& Eps, const T& EpsPrime)
 {
-	pCL->AfterConvergence(Eps, EpsPrime);
+	T EpsCurr = Eps*dScaleEpsilon;
+	pCL->AfterConvergence(EpsCurr, EpsPrime*dScaleEpsilon);
 
 	// average force * (old - new epsilon, to avoid unary - operator
 	// const T& FCurr = pCL->GetF();
 	const T& FCurr = ConstitutiveLaw<T, Tder>::GetF();
-	dWCurr += ((FCurr + FPrev)*(EpsPrev - Eps))/2.;
+	dWCurr += ((FCurr + FPrev)*(EpsPrev - EpsCurr))/2.;
 
 	FPrev = FCurr;
-	EpsPrev = Eps;
+	EpsPrev = EpsCurr;
 }
 
 template <class T, class Tder>
@@ -169,10 +183,15 @@ TDCLWR<T, Tder>::Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Typ
 	ConstitutiveLaw<T, Tder>* pCL = 0;
 
 	doublereal dF = HP.GetReal();
-	if (dF <= 0.) {
-		silent_cerr("Invalid negative or null delta force in TDCLW "
-			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+
+	doublereal dScaleEpsilon = 1.;
+	if (HP.IsKeyWord("scale" "deformation")) {
+		dScaleEpsilon = HP.GetReal();
+	}
+
+	doublereal dScaleForce = 1.;
+	if (HP.IsKeyWord("scale" "force")) {
+		dScaleForce = HP.GetReal();
 	}
 
 	doublereal dW = HP.GetReal();
@@ -194,7 +213,8 @@ TDCLWR<T, Tder>::Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Typ
 	}
 
 	typedef TDConstitutiveLawWrapper<T, Tder> L;
-	SAFENEWWITHCONSTRUCTOR(pCL, L, L(dF, dW, pCL2));
+	SAFENEWWITHCONSTRUCTOR(pCL, L,
+		L(dF, dW, dScaleEpsilon, dScaleForce, pCL2));
 
 	return pCL;
 }
