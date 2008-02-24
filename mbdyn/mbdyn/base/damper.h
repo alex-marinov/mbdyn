@@ -41,44 +41,12 @@
 #ifndef DAMPER_H
 #define DAMPER_H
 
-#include <fstream>
-#include <constltp.h>
+#include "fstream"
+#include "constltp.h"
 
 /* GRAALLDamperConstitutiveLaw - begin */
 
-template <class T, class Tder>
-class GRAALLDamperConstitutiveLaw 
-: public ElasticConstitutiveLaw<T, Tder> {
- private:
-   
- public:
-   GRAALLDamperConstitutiveLaw(const TplDriveCaller<T>* pDC,
-			      const doublereal&,
-			      const char* const)
-     : ElasticConstitutiveLaw<T, Tder>(pDC, 0.) {
-      throw ErrGeneric();
-   };
-   
-   virtual ~GRAALLDamperConstitutiveLaw(void) {
-      NO_OP;
-   };
-   
-   virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
-      return NULL;
-   };
-	    
-   virtual ostream& Restart(ostream& out) const {
-      return out << "/* GRAALL damper, not implemented yet */" ;
-   };
-   
-   virtual void Update(const T& /* Eps */ , const T& /* EpsPrime */  = 0.) {
-      NO_OP;
-   };
-};
-
-
 /* GRAALLDamperConstitutiveLaw - begin */
-
 
 extern "C" {
    int __FC_DECL__(dmpfr) (doublereal* DL,
@@ -99,8 +67,7 @@ extern "C" {
 			   doublereal* FELDL);
 }
 
-
-class GRAALLDamperConstitutiveLaw<doublereal, doublereal> 
+class GRAALLDamperConstitutiveLaw
 : public ElasticConstitutiveLaw<doublereal, doublereal> {
  private:
    doublereal v[18];
@@ -162,16 +129,17 @@ C     VETVIS  tabella viscosita'/temperatura        NPVT punti
    doublereal* VETVIS;
    
    doublereal dT0;
+   DriveOwner Time;
    flag fWorking;
    
  public:
-   GRAALLDamperConstitutiveLaw(const TplDriveCaller<doublereal>* pDC,
+   GRAALLDamperConstitutiveLaw(const DriveCaller* pDC,
 			      const doublereal& rla,
 			      const char* const filename)
-     : ElasticConstitutiveLaw<doublereal, doublereal>(pDC, 0.),
+     : ElasticConstitutiveLaw<doublereal, doublereal>(0, 0.),
      NPDMR(0), NPDMA(0), NPCVR(0), NPCVA(0), NPVT(0),
      TBDMR(NULL), TBDMA(NULL), TBCVR(NULL), TBCVA(NULL), VETVIS(NULL),
-     dT0(0.), fWorking(0)
+     dT0(0.), Time(pDC), fWorking(0)
      {
 	char s[1024];
 	
@@ -180,103 +148,103 @@ C     VETVIS  tabella viscosita'/temperatura        NPVT punti
 	 * il tempo della simulazione */
 	
 	/* apre il file di ingresso in formato graal */
-	ifstream in(filename);
+	std::ifstream in(filename);
        	
 	/* legge alcuni parametri */
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "Skipping ... (remark: \"" << s 
-		   << "\")" << endl);
+		   << "\")" << std::endl);
 	
 	in >> v[P0-1];
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reading P0 (=" << v[P0-1] 
-		   << ", remark: \"" << s << "\")" << endl);
+		   << ", remark: \"" << s << "\")" << std::endl);
 	
 	in >> v[A0-1];
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reading A0 (=" << v[A0-1]
-		   << ", remark: \"" << s << "\")" << endl);
+		   << ", remark: \"" << s << "\")" << std::endl);
 
 	in >> v[PNTR-1];
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reading PNTR (=" << v[PNTR-1]
-		   << ", remark: \"" << s << "\")" << endl);
+		   << ", remark: \"" << s << "\")" << std::endl);
 
 	in >> v[RL0-1];
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reading RL0 (=" << v[RL0-1]
-		   << ", remark: \"" << s << "\")" << endl);
+		   << ", remark: \"" << s << "\")" << std::endl);
 
 	in >> v[PLTREX-1];
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reading PLTREX (=" << v[PLTREX-1]
-		   << ", remark: \"" << s << "\")" << endl);
+		   << ", remark: \"" << s << "\")" << std::endl);
        
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "Skipping ... (remark: \"" << s 
-		   << "\")" << endl);
+		   << "\")" << std::endl);
 
 	in >> v[ASTNT-1];
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reading ASTNT (=" << v[ASTNT-1]
-		   << ", remark: \"" << s << "\")" << endl);
+		   << ", remark: \"" << s << "\")" << std::endl);
 
 	in >> v[R0-1];
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reading R0 (=" << v[R0-1]
-		   << ", remark: \"" << s << "\")" << endl);
+		   << ", remark: \"" << s << "\")" << std::endl);
 
 	in >> v[TCOST-1];
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reading TCOST (=" << v[TCOST-1]
-		   << ", remark: \"" << s << "\")" << endl);
+		   << ", remark: \"" << s << "\")" << std::endl);
 
 	in >> v[TLIN-1];
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reading TLIN (=" << v[TLIN-1]
-		   << ", remark: \"" << s << "\")" << endl);
+		   << ", remark: \"" << s << "\")" << std::endl);
 
 	in >> v[TEMPORIF-1];
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reading A0 (=" << v[TEMPORIF-1]
-		   << ", remark: \"" << s << "\")" << endl);
+		   << ", remark: \"" << s << "\")" << std::endl);
 
 	in >> v[VELRIF-1];
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reading VELRIF (=" << v[VELRIF-1]
-		   << ", remark: \"" << s << "\")" << endl);
+		   << ", remark: \"" << s << "\")" << std::endl);
 
 	in >> v[CORONA-1];
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reading CORONA (=" << v[CORONA-1]
-		   << ", remark: \"" << s << "\")" << endl);
+		   << ", remark: \"" << s << "\")" << std::endl);
 	
 	in >> v[TRIFVUOTO-1];
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reading TRIFVUOTO (=" << v[TRIFVUOTO-1]
-		   << ", remark: \"" << s << "\")" << endl);
+		   << ", remark: \"" << s << "\")" << std::endl);
 
 	in >> v[RNURIF-1];
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reading RNURIF (=" << v[RNURIF-1]
-		   << ", remark: \"" << s << "\")" << endl);
+		   << ", remark: \"" << s << "\")" << std::endl);
 
 	in >> v[TRIFTEMP-1];
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reading TRIFTEMP (=" << v[TRIFTEMP-1]
-		   << ", remark: \"" << s << "\")" << endl);
+		   << ", remark: \"" << s << "\")" << std::endl);
 
 	/* legge le tabelle */
 	
 	/* legge TBDMR */
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reading TBDMR (remark: \"" << s 
-		   << "\")" << endl);
+		   << "\")" << std::endl);
 	
 	in >> NPDMR;
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "NPDMR=" << NPDMR 
-		   << " (remark: \"" << s << "\")" << endl);
+		   << " (remark: \"" << s << "\")" << std::endl);
 	
 	SAFENEWARR(TBDMR, doublereal, 2*NPDMR);
 	
@@ -287,7 +255,7 @@ C     VETVIS  tabella viscosita'/temperatura        NPVT punti
 	   DEBUGLCOUT(MYDEBUG_INPUT, "Reading TBDMR[" << i+1
 		      << "]=(" << TBDMR[i]
 		      << "," << TBDMR[NPDMR+i] 
-		      << ") (remark: \"" << s << "\")" << endl);
+		      << ") (remark: \"" << s << "\")" << std::endl);
 	}
 	
 	
@@ -297,12 +265,12 @@ C     VETVIS  tabella viscosita'/temperatura        NPVT punti
 	/* legge TBDMA */
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reading TBDMA (remark: \"" << s 
-		   << "\")" << endl);
+		   << "\")" << std::endl);
 	
 	in >> NPDMA;
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "NPDMA=" << NPDMA 
-		   << " (remark: \"" << s << "\")" << endl);
+		   << " (remark: \"" << s << "\")" << std::endl);
 	
 	SAFENEWARR(TBDMA, doublereal, 2*NPDMA);
 	
@@ -313,7 +281,7 @@ C     VETVIS  tabella viscosita'/temperatura        NPVT punti
 	   DEBUGLCOUT(MYDEBUG_INPUT, "Reading TBDMA[" << i+1
 		      << "]=(" << TBDMA[i]
 		      << "," << TBDMA[NPDMA+i] 
-		      << ") (remark: \"" << s << "\")" << endl);
+		      << ") (remark: \"" << s << "\")" << std::endl);
 	}
 
 	
@@ -322,12 +290,12 @@ C     VETVIS  tabella viscosita'/temperatura        NPVT punti
 	/* legge TBCVR */	
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reading TBCVR (remark: \"" << s 
-		   << "\")" << endl);
+		   << "\")" << std::endl);
 	
 	in >> NPCVR;
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "NPCVR=" << NPCVR 
-		   << " (remark: \"" << s << "\")" << endl);
+		   << " (remark: \"" << s << "\")" << std::endl);
 	
 	SAFENEWARR(TBCVR, doublereal, 2*NPCVR);
 	
@@ -338,7 +306,7 @@ C     VETVIS  tabella viscosita'/temperatura        NPVT punti
 	   DEBUGLCOUT(MYDEBUG_INPUT, "Reading TBCVR[" << i+1
 		      << "]=(" << TBCVR[i]
 		      << "," << TBCVR[NPCVR+i] 
-		      << ") (remark: \"" << s << "\")" << endl);
+		      << ") (remark: \"" << s << "\")" << std::endl);
 	}
 
 	
@@ -347,12 +315,12 @@ C     VETVIS  tabella viscosita'/temperatura        NPVT punti
 	/* legge TBCVA */
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reading TBCVA (remark: \"" << s 
-		   << "\")" << endl);
+		   << "\")" << std::endl);
 	
 	in >> NPCVA;
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "NPCVA=" << NPCVA 
-		   << " (remark: \"" << s << "\")" << endl);
+		   << " (remark: \"" << s << "\")" << std::endl);
 	
 	SAFENEWARR(TBCVA, doublereal, 2*NPCVA);
 	
@@ -363,7 +331,7 @@ C     VETVIS  tabella viscosita'/temperatura        NPVT punti
 	   DEBUGLCOUT(MYDEBUG_INPUT, "Reading TBCVA[" << i+1
 		      << "]=(" << TBCVA[i]
 		      << "," << TBCVA[NPCVA+i] 
-		      << ") (remark: \"" << s << "\")" << endl);
+		      << ") (remark: \"" << s << "\")" << std::endl);
 	}
 
 	
@@ -372,12 +340,12 @@ C     VETVIS  tabella viscosita'/temperatura        NPVT punti
 	/* legge VETVIS */
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reading VETVIS (remark: \"" << s 
-		   << "\")" << endl);
+		   << "\")" << std::endl);
 	
 	in >> NPVT;
 	in.getline(s, sizeof(s));
 	DEBUGLCOUT(MYDEBUG_INPUT, "NPVT=" << NPVT 
-		   << " (remark: \"" << s << "\")" << endl);
+		   << " (remark: \"" << s << "\")" << std::endl);
 	
 	SAFENEWARR(VETVIS, doublereal, 2*NPVT);
 	
@@ -388,7 +356,7 @@ C     VETVIS  tabella viscosita'/temperatura        NPVT punti
 	   DEBUGLCOUT(MYDEBUG_INPUT, "Reading VETVIS[" << i+1
 		      << "]=(" << VETVIS[i]
 		      << "," << VETVIS[NPVT+i] 
-		      << ") (remark: \"" << s << "\")" << endl);
+		      << ") (remark: \"" << s << "\")" << std::endl);
 	}
 
 	/* fine */
@@ -397,7 +365,7 @@ C     VETVIS  tabella viscosita'/temperatura        NPVT punti
 	/* Inizializza altri dati */
 	v[RLA-1] = rla;   // passato come argomento, per ora
 	v[T-1] = 273.16;  // T assoluta ?!?
-	v[TIME-1] = Get();
+	v[TIME-1] = Time.dGet();
      };
 
    virtual ~GRAALLDamperConstitutiveLaw(void) {
@@ -412,8 +380,8 @@ C     VETVIS  tabella viscosita'/temperatura        NPVT punti
       return NULL;
    };
 
-   virtual ostream& Restart(ostream& out) const {
-      return out << "GRAALLDamperConstitutiveLaw not implemented yet!" << endl;
+   virtual std::ostream& Restart(std::ostream& out) const {
+      return out << "GRAALLDamperConstitutiveLaw not implemented yet!" << std::endl;
    };
    
    virtual void Update(const doublereal& Eps, const doublereal& EpsPrime = 0.) {
@@ -431,11 +399,11 @@ C     VETVIS  tabella viscosita'/temperatura        NPVT punti
 	    return;
 	 } else {
 	    fWorking = 1;
-	    dT0 = Get();
+	    dT0 = Time.dGet();
 	 }
       } 
       
-      v[TIME-1] = Get()-dT0;
+      v[TIME-1] = Time.dGet()-dT0;
 
       doublereal E = Epsilon*v[RLA-1];
       doublereal EP = EpsilonPrime*v[RLA-1];

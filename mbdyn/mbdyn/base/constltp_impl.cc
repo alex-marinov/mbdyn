@@ -37,13 +37,11 @@
 
 #include "myassert.h"
 #include "mynewmem.h"
+#include "drive_.h"
 #include "constltp_impl.h"
 
 #include "symcltp.h"
 #include "ginaccltp.h"
-#ifdef USE_GRAALLDAMPER
-#include "damper.h"
-#endif /* USE_GRAALLDAMPER */
 #include "shockabsorber.h"
 #include "constltp_ann.h"
 
@@ -1045,11 +1043,12 @@ struct LinearViscoElasticBiStopCLR : public LinearBiStopCLR<T, Tder> {
 };
 
 #ifdef USE_GRAALLDAMPER
-template <class T, class Tder>
-struct GRAALLDamperCLR : public ConstitutiveLawRead<T, Tder> {
-	virtual ConstitutiveLaw<T, Tder> *
+#include "damper.h"
+
+struct GRAALLDamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
+	virtual ConstitutiveLaw<doublereal, doublereal> *
 	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType) {
-		ConstitutiveLaw<T, Tder>* pCL = 0;
+		ConstitutiveLaw<doublereal, doublereal>* pCL = 0;
 
 		CLType = ConstLawType::VISCOELASTIC;
 
@@ -1065,16 +1064,10 @@ struct GRAALLDamperCLR : public ConstitutiveLawRead<T, Tder> {
 				TimeDriveCaller,
 				TimeDriveCaller(pDM->pGetDrvHdl()));
 
-		T t(1.);
-		TplDriveCaller<T>* pTplDC = NULL;
-		SAFENEWWITHCONSTRUCTOR(pTplDC,
-				SingleTplDriveCaller<T>,
-				SingleTplDriveCaller<T>(pDC, t));
-
-		typedef GRAALLDamperConstitutiveLaw<T, Tder> L;
+		typedef GRAALLDamperConstitutiveLaw L;
 		SAFENEWWITHCONSTRUCTOR(pCL,
 				L,
-				L(pTplDC, rla, filename));
+				L(pDC, rla, filename));
 
 		return pCL;
 	};
@@ -1228,7 +1221,7 @@ InitCL(void)
 
 #ifdef USE_GRAALLDAMPER
 	/* GRAALL damper */
-	SetCL1D("GRAALL" "damper", new GRAALLDamperCLR<doublereal, doublereal>);
+	SetCL1D("GRAALL" "damper", new GRAALLDamperCLR);
 #endif /* USE_GRAALLDAMPER */
 
 	/* GRAALL damper */
