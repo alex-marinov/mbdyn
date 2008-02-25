@@ -45,6 +45,8 @@
 \newcommand{\TTT}[1]{\bm{\mathbf{#1}}}
 \newcommand{\TTTT}[1]{\mathbb{#1}}
 \newcommand{\equu}{\overset{\text{uu}}{=}}
+\newcommand{\dof}{DOF}
+\newcommand{\dofs}{DOFs}
 
 \begin{document}
 
@@ -86,7 +88,7 @@ Version
 
 \chapter{Introduction}
 This document describes the formulation MBDyn,
-the free general-purpose multibody dynamics sofwtare,
+the free general-purpose multibody dynamics software,
 relies on.
 It also describes implementation-related aspects.
 
@@ -335,7 +337,7 @@ which is necessary for the solving phase with the substructuring method.
 \end{itemize}
 Of course this two partitions must be connected, 
 so we build created a graph which is made of nodes and elements as vertex. 
-The connection between vertices are only between nodes and elements. 
+The connection between vertexes are only between nodes and elements. 
 There is no node to node or element to element connection.
 
 \texttt{pVertexWgts} 
@@ -349,7 +351,8 @@ by each one of them.
 of data which needs to be sent if the i-th vertex is part 
 of an interface between different partitions. 
 This means that nodes have a \texttt{CommWgts} equal to the number 
-of dofs while elements have a weight equal to eventual internal dofs of it.
+of \dofs, while elements have a weight equal
+to any internal \dofs\ they possess.
 
 
 \chapter{Orientation Handling}
@@ -550,7 +553,7 @@ or if $f_{/\dot{x}} \neq 0$.
 \end{itemize}
 
 \section{Nodal rotation}
-The rotational gdl unknown during \texttt{AssRes()} and \texttt{AssJac()}
+The rotational \dof\ unknown during \texttt{AssRes()} and \texttt{AssJac()}
 are the increment of (Gibbs-Rodrigues) rotation parameters
 with respect to the reference configuration.
 Of course the increment of the parameter is
@@ -593,7 +596,7 @@ The problem can be stated as follows:
 	\T{\Phi}_{/\T{x}} v + \T{\Phi}_{/t} & = \T{0}
 \end{align}
 where Equation~(\ref{eq:in-ass:holonomic}) and (\ref{eq:in-ass:non-holonomic})
-respectively contain the holonomic and non holonomic constraint equations.
+respectively contain the holonomic and non-holonomic constraint equations.
 The solution of this problem leads to the direct determination
 of an initial configuration and velocity that complies 
 with the constraints.
@@ -1309,7 +1312,7 @@ It is implemented in files
 \end{equation}
 where:\\
 $\T d_1$, $\T d_2$: offset of nodes 1,2 in node reference;\\
-$\T R_{h1}$, $\T R_{h2}$: joint relative orientation wrt. nodes 1,2 (FIXME).\\
+$\T R_{h1}$, $\T R_{h2}$: joint relative orientation wrt.\ nodes 1,2 (FIXME).\\
 
 \noindent
 Constraint equations (normalized by \texttt{dCoef})
@@ -1679,7 +1682,7 @@ The contribution of the constraint to the equilibrium equations is
 where $\T{\lambda}$ is the reaction force in the global reference frame.
 
 The contribution of forces and moments and of the constraint equation 
-to the jacobian matrix is
+to the Jacobian matrix is
 \begin{equation}
 	\sqbr{\matr{ccccc}{
 		\T{0} & \T{0} & \T{0} & \T{0} & - \T{I} \\
@@ -1829,7 +1832,7 @@ The contribution of the constraint to the equilibrium equations is
 where $\T{\lambda}$ is the reaction force in the absolute reference frame.
 
 The contribution of forces and moments and of the constraint equation 
-to the jacobian matrix is
+to the Jacobian matrix is
 \begin{equation}
 	\sqbr{\matr{ccc}{
 		\T{0} &
@@ -1982,7 +1985,7 @@ The contribution of the constraint to the equilibrium equations is
 where $\lambda$ is the reaction force (a scalar).
 
 The contribution of forces and moments and of the constraint equation 
-to the jacobian matrix is
+to the Jacobian matrix is
 \begin{equation}
 	\sqbr{\matr{ccccc}{
 		\T{0} & \lambda \T{e}_a \times{} & \T{0} & \T{0} & - \T{e}_a \\
@@ -2084,7 +2087,7 @@ The contribution of the constraint to the equilibrium equations is
 where $\lambda$ is the reaction force (a scalar).
 
 The contribution of forces and moments and of the constraint equation 
-to the jacobian matrix is
+to the Jacobian matrix is
 \begin{equation}
 	\sqbr{\matr{ccc}{
 		\T{0} & \T{0} & \T{e} \\
@@ -2148,7 +2151,7 @@ position and orientation about selected axes.
 Both imposed position and orientation are specified in the reference frame
 of node 1.
 The joint consists in 6 equations, 3 for positions and 3 for orientation, 
-that can be selectively turned on or off to enforce a constraint on that DoF.
+that can be selectively turned on or off to enforce a constraint on that \dof.
 
 \paragraph{Variants.} \
 There exists a pinned version of this joint that imposes 
@@ -2296,7 +2299,7 @@ the constraint equations for the relative position are:
 	\T{x} = \T{x}_0 .
 \end{equation}
 In analogy with the definition of $\T{\theta}^{\delta}$, a vector
-$\T{x}^{\delta}$ can be used to express the constraint on positions DoF,
+$\T{x}^{\delta}$ can be used to express the constraint on positions \dof,
 \begin{equation}
 	\T{x}^{\delta} = \T{x} - \T{x}_0 .
 \end{equation}
@@ -2344,7 +2347,7 @@ First, the perturbation of $\T{x}^{\delta}$,
 		- \delta\T{x}_1 + \T{b}_1 \times \T{\theta}_{1\delta}
 	}
 \end{equation}
-is conputed, where
+is computed, where
 \begin{align}
 	\T{b}_1 &= \T{x}_2 + \T{f}_2 - \T{x}_1 \\
 	\T{b}_2 &= \T{f}_2 .
@@ -2814,7 +2817,7 @@ Both imposed position and orientation are specified
 in the global reference frame, optionally re-oriented 
 by a constant orientation.
 The joint consists in 6 equations, 3 for positions and 3 for orientation, 
-that can be selectively turned on or off to enforce a constraint on that DoF.
+that can be selectively turned on or off to enforce a constraint on that \dof.
 
 \paragraph{Variants.} \
 This joint is a variant of the TotalJoint,
@@ -2924,7 +2927,7 @@ the constraint equations for the relative position are:
 	\T{x} = \T{x}_0 .
 \end{equation}
 In analogy with the definition of $\T{\theta}^{\delta}$, a vector
-$\T{x}^{\delta}$ can be used to express the constraint on positions DoF,
+$\T{x}^{\delta}$ can be used to express the constraint on positions \dof,
 \begin{equation}
 	\T{x}^{\delta} = \T{x} - \T{x}_0 .
 \end{equation}
@@ -2944,7 +2947,7 @@ First, the perturbation of $\T{x}^{\delta}$,
 		\delta\T{x}_n - \T{f}_n \times \T{\theta}_{n\delta}
 	}
 \end{equation}
-is conputed.
+is computed.
 Note that, since the constraint equations are defined by setting 
 to zero any components of the vector $\T{x}^{\delta}$, the
 related Jacobian matrix contribution is obtained by selecting 
@@ -4602,7 +4605,7 @@ through a 3D constitutive law.
 The points whose relative displacement represents the measure 
 of the straining can be offset from the nodes by rigid offsets
 $\tilde{\T{f}}_1$ and $\tilde{\T{f}}_2$, which are defined
-in the reference frame of the respctive nodes.
+in the reference frame of the respective nodes.
 So the offsets in the global reference frame are
 \begin{align}
 	\T{f}_1 &= \T{R}_1 \tilde{\T{f}}_1 \\
