@@ -1012,11 +1012,11 @@ in the initial assembly and, occasionally, in specific constraints.
 
 \subsection{Distance Joint}
 \label{sec:DistanceJoint}
-The distance joint (DistanceJoint) imposes the distance between two nodes,
+The distance joint (\texttt{DistanceJoint}) imposes the distance between two nodes,
 which may depend on time and other states of the problem.
 
 \paragraph{Variants.} \
-There is a variant with offsets (DistanceJointWithOffset),
+There is a variant with offsets (\texttt{DistanceJointWithOffset}),
 discussed in Section~\ref{sec:DistanceJointWithOffset}.
 
 \paragraph{Files.} \
@@ -1121,10 +1121,10 @@ where
 
 \subsection{Distance Joint With Offsets}
 \label{sec:DistanceJointWithOffset}
-The distance joint with offset (DistanceJointWithOffset) 
+The distance joint with offset (\texttt{DistanceJointWithOffset}) 
 imposes the distance between two points
 that rigidly offset from the respective nodes.
-It is a variant of the distance joint (DistanceJoint)
+It is a variant of the distance joint (\texttt{DistanceJoint})
 discussed in Section~\ref{sec:DistanceJoint}.
 
 \paragraph{Files.} \
@@ -1219,11 +1219,11 @@ Linearization: TODO(C).
 
 
 \subsection{Spherical hinge}
-The spherical hinge joint (SphericalHingeJoint) constrains the positions
+The spherical hinge joint (\texttt{SphericalHingeJoint}) constrains the positions
 of two points, that may be rigidly offset from two nodes, to be coincident.
 
 \paragraph{Variants.} \
-There exists a pinned version (SphericalPinJoint, TODO(C)).
+There exists a pinned version (\texttt{SphericalPinJoint}, TODO(C)).
 
 \paragraph{Files.} \
 It is implemented in files
@@ -1286,17 +1286,17 @@ $\T{F}$ & constraint reaction force.
 
 
 \subsection{Revolute hinge}
-The revolute hinge joint (PlaneHingeJoint) constrains the positions 
+The revolute hinge joint (\texttt{PlaneHingeJoint}) constrains the positions 
 of two points, that may be rigidly offset from two nodes, 
 to be coincident.
 It also constrains their orientations to keep the respective axis 3 
 parallel.
 
 \paragraph{Variants.} \
-There exist a pinned version (RevolutePinJoint, TODO(C)),
-a version that does not constrain the position (RevoluteRotationJoint),
+There exist a pinned version (\texttt{RevolutePinJoint}, TODO(C)),
+a version that does not constrain the position (\texttt{RevoluteRotationJoint}),
 and a version which imposes the relative angular velocity about axis 3
-(AxialRotationJoint).
+(\texttt{AxialRotationJoint}).
 
 \paragraph{Files.} \
 It is implemented in files
@@ -1527,7 +1527,7 @@ $
 
 
 \subsection{Drive Hinge}
-This joint (DriveHingeJoint) forces two nodes to assume a relative orientation
+This joint (\texttt{DriveHingeJoint}) forces two nodes to assume a relative orientation
 given by a rotation vector $\T{\theta}$, whose direction with respect
 to node 1 represents the rotation axis, and whose amplitude represents 
 the magnitude of the rotation.
@@ -1628,14 +1628,14 @@ because $\T{\theta}$ in general is a finite rotation.
 
 \subsection{Drive Displacement}
 \label{sec:DriveDisplacementJoint}
-This joint (DriveDisplacementJoint) constrains the relative position
+This joint (\texttt{DriveDisplacementJoint}) constrains the relative position
 of a point optionally offset from node $b$ with respect to a point
 optionally offset from node $a$, so that their relative position matches
 a value that is imposed in node $a$ reference frame; the imposed vector
 may depend on time and other states during the simulation.
 
 \paragraph{Variants.} \
-There exists a pinned version (DriveDisplacementPinJoint),
+There exists a pinned version (\texttt{DriveDisplacementPinJoint}),
 discussed in Section~\ref{sec:DriveDisplacementPinJoint}.
 
 \paragraph{Files.} \
@@ -1806,8 +1806,8 @@ of the initial assembly are
 
 \subsection{Drive Displacement Pin}
 \label{sec:DriveDisplacementPinJoint}
-This joint (DriveDisplacementPinJoint) is the ``pinned'' variant 
-of the drive displacement joint (DriveDisplacementJoint) discussed
+This joint (\texttt{DriveDisplacementPinJoint}) is the ``pinned'' variant 
+of the drive displacement joint (\texttt{DriveDisplacementJoint}) discussed
 in Section~\ref{sec:DriveDisplacementJoint}.
 It imposes the absolute position $\T{v}$ of a point
 optionally connected to a node by a rigid offset $\T{f}$:
@@ -1915,15 +1915,15 @@ of the initial assembly are
 
 \subsection{Imposed Displacement}
 \label{sec:ImposedDisplacementJoint}
-The imposed displacement joint (ImposedDisplacementJoint) 
-is similar to the drive displacement joint (DriveDisplacementPinJoint),
+The imposed displacement joint (\texttt{ImposedDisplacementJoint}) 
+is similar to the drive displacement joint (\texttt{DriveDisplacementPinJoint}),
 discussed in Section~\ref{sec:DriveDisplacementPinJoint},
 but the relative displacement $v$, a scalar possibly dependent on the time
 and on other states of the problem, is imposed only in direction 
 $\tilde{\T{e}}_a$, relative to node $a$.
 
 \paragraph{Variants.} \
-There exists a pinned version (ImposedDisplacementPinJoint),
+There exists a pinned version (\texttt{ImposedDisplacementPinJoint}),
 discussed in Section~\ref{sec:ImposedDisplacementPinJoint}.
 
 \paragraph{Files.} \
@@ -2036,9 +2036,9 @@ Its linearization yields
 
 \subsection{Imposed Displacement Pin}
 \label{sec:ImposedDisplacementPinJoint}
-The imposed displacement pin joint (ImposedDisplacementPinJoint) 
+The imposed displacement pin joint (\texttt{ImposedDisplacementPinJoint}) 
 is the ``pinned'' variant of the imposed displacement joint
-(ImposedDisplacementJoint) discussed
+(\texttt{ImposedDisplacementJoint}) discussed
 in Section~\ref{sec:ImposedDisplacementJoint}.
 
 In this case, the direction $\T{e}$ is referred to the absolute frame,
@@ -2047,7 +2047,7 @@ so it does no longer depend on the state of the problem.
 \paragraph{Variants.} \
 There exists a version that imposes the relative displacement of two nodes
 along a direction that is fixed with respect to one of them 
-(ImposedDisplacementJoint),
+(\texttt{ImposedDisplacementJoint}),
 discussed in Section~\ref{sec:ImposedDisplacementJoint}.
 
 \paragraph{Files.} \
@@ -2146,7 +2146,7 @@ Its linearization yields
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Total Joint}
 \label{sec:TotalJoint}
-This joint (TotalJoint) forces two nodes to assume an imposed relative
+This joint (\texttt{TotalJoint}) forces two nodes to assume an imposed relative
 position and orientation about selected axes.
 Both imposed position and orientation are specified in the reference frame
 of node 1.
@@ -2155,7 +2155,7 @@ that can be selectively turned on or off to enforce a constraint on that \dof.
 
 \paragraph{Variants.} \
 There exists a pinned version of this joint that imposes 
-the absolute position and orientation of a node (TotalPinJoint).
+the absolute position and orientation of a node (\texttt{TotalPinJoint}).
 It is discussed in Section~\ref{sec:TotalPinJoint}.
 
 \paragraph{Files.} \
@@ -2226,17 +2226,18 @@ The desired relative orientation can be expressed by means
 of a rotation vector $\T{\theta}_0$;
 the corresponding rotation matrix is
 \begin{equation}
-	\T{R}_0 = \exp\plbr{\T{\theta}_0\times{}}
+	\T{R}_0 = \exp\plbr{\T{\theta}_0\times{}} .
 \end{equation}
-this operation can always be performed with no ambiguity,
+This operation can always be performed with no ambiguity,
 regardless of the amplitude of $\T{\theta}_0$.
 However, the same is not true for the inverse operation, namely
 \begin{equation}
-	\T{\theta}_0 = \mathrm{ax}\plbr{\exp^{-1}\plbr{\T{R}_0}}
+	\T{\theta}_0 = \mathrm{ax}\plbr{\exp^{-1}\plbr{\T{R}_0}} ,
 \end{equation}
-can only yield the minimal $\T{\theta}_0$ corresponding to $\T{R}_0$,
+which can only yield the minimal $\T{\theta}_0$ corresponding
+to $\T{R}_0$,
 with the indetermination corresponding to an arbitrary amount 
-of entire revolutions.
+of complete revolutions.
 
 The equality
 \begin{equation}
@@ -2299,7 +2300,8 @@ the constraint equations for the relative position are:
 	\T{x} = \T{x}_0 .
 \end{equation}
 In analogy with the definition of $\T{\theta}^{\delta}$, a vector
-$\T{x}^{\delta}$ can be used to express the constraint on positions \dof,
+$\T{x}^{\delta}$ can be used to express the constraint
+on the position \dofs,
 \begin{equation}
 	\T{x}^{\delta} = \T{x} - \T{x}_0 .
 \end{equation}
@@ -2811,7 +2813,7 @@ are summarized below:
 
 \subsection{Total Pin Joint}
 \label{sec:TotalPinJoint}
-This joint (TotalPinJoint) forces a node to assume an imposed absolute
+This joint (\texttt{TotalPinJoint}) forces a node to assume an imposed absolute
 position and orientation about selected axes.
 Both imposed position and orientation are specified 
 in the global reference frame, optionally re-oriented 
@@ -2820,7 +2822,7 @@ The joint consists in 6 equations, 3 for positions and 3 for orientation,
 that can be selectively turned on or off to enforce a constraint on that \dof.
 
 \paragraph{Variants.} \
-This joint is a variant of the TotalJoint,
+This joint is a variant of the \texttt{TotalJoint},
 described in Section~\ref{sec:TotalJoint}.
 
 \paragraph{Files.} \
@@ -2887,7 +2889,7 @@ The matrix that expresses the relative orientation is
 	\T{R}_{\mathrm{rel}} = \T{R}_{chr}^T \T{R}_{nhr}
 \end{equation}
 The desired relative orientation is expressed in analogy 
-with the TotalJoint.
+with the \texttt{TotalJoint}.
 
 In general, the difference between the desired rotation
 $\T{\theta}_0$ and the current absolute orientation of the node,
@@ -2927,7 +2929,8 @@ the constraint equations for the relative position are:
 	\T{x} = \T{x}_0 .
 \end{equation}
 In analogy with the definition of $\T{\theta}^{\delta}$, a vector
-$\T{x}^{\delta}$ can be used to express the constraint on positions \dof,
+$\T{x}^{\delta}$ can be used to express the constraint
+on the position \dofs,
 \begin{equation}
 	\T{x}^{\delta} = \T{x} - \T{x}_0 .
 \end{equation}
@@ -2935,7 +2938,7 @@ $\T{x}^{\delta}$ can be used to express the constraint on positions \dof,
 \paragraph{Constraint Equations.} \
 The resulting constraint equations are identical
 to Eqs.~(\ref{TOTAL-JOINT:constraint-x}, \ref{TOTAL-JOINT:constraint-theta}),
-related to the TotalJoint, as illustrated
+related to the \texttt{TotalJoint}, as illustrated
 at page~\pageref{TOTAL-JOINT:constraint-x};
 the same considerations apply.
 
@@ -2957,7 +2960,7 @@ Then, the perturbation of $\T{\theta}^{\delta}$ results from
 \begin{align}
 	\T{\theta}^{\delta}_{\delta} \times{}
 	&= \delta\T{R}^{\delta} \T{R}^{\delta T} \nonumber \\
-	&= \T{R}_{chr}^T \T{\theta}_{n\delta} \times \T{R}_{1hr} ,
+	&= \T{R}_{chr}^T \T{\theta}_{n\delta} \times \T{R}_{chr} ,
 \end{align}
 which implies
 \begin{equation}
@@ -3031,8 +3034,69 @@ to the Jacobian matrix is:
 The updated-updated form is obtained by simply replacing
 $\T{\theta}_{n\delta}$ with $\delta\T{g}_n$.
 
+\subsubsection{Stabilized Form}
+\paragraph{Equations.} \
+\begin{align}
+	\TT{R}_{ch} \T{\mu}_{\T{x}} &= \T{0} \\
+%
+	\T{f}_n \times \TT{R}_{ch} \T{\mu}_{\T{x}} + \TT{R}_{chr} \T{\mu}_{\T{\theta}} &= \T{0} \\
+%
+	\TT{R}_{ch} \T{\lambda}_{\T{x}} &= \T{0} \\
+%
+	-\T{f}_n \times \T{\omega}_n \times \TT{R}_{ch} \T{\mu}_{\T{x}}
+	- \TT{R}_{chr} \plbr{\TT{R}^{\delta} \T{\omega}_0} \times \T{\mu}_{\T{\theta}} & \nonumber \\
+	\mbox{} + \T{f}_n \times \TT{R}_{ch} \T{\lambda}_{\T{x}} + \TT{R}_{chr} \T{\lambda}_{\T{\theta}} &= \T{0} \\
+%
+	\TT{R}_{ch}^T\plbr{\T{x}_n + \T{f}_n} - \T{x}_0 &= \T{0} \\
+%
+	\mathrm{ax}\plbr{
+		\mathrm{exp}^{-1}\plbr{
+			\TT{R}^{\delta}
+		}
+	} &= \T{0} \\
+%
+	\TT{R}_{ch}^T\plbr{\dot{\T{x}}_n + \T{\omega}_n \times \T{f}_n} -\dot{\T{x}}_0 &= \T{0} \\
+%
+	\TT{R}_{chr}^T \T{\omega}_n - \TT{R}^{\delta} \T{\omega}_0 &= \T{0}
+\end{align}
+\paragraph{Linearization.} \
+\begin{align}
+	\TT{R}_{ch} \delta\T{\mu}_{\T{x}} &= \T{0} \\
+%
+	- \plbr{
+		\T{f}_n \times \TT{R}_{ch} \T{\mu}_{\T{x}}
+	} \times \T{\theta}_{n\delta}
+	+ \T{f}_n \times \TT{R}_{ch} \delta\T{\mu}_{\T{x}} + \TT{R}_{chr} \delta\T{\mu}_{\T{\theta}} &= \T{0} \\
+%
+	\TT{R}_{ch} \delta\T{\lambda}_{\T{x}} &= \T{0} \\
+%
+	\plbr{
+		\T{f}_n \times \T{\omega}_n \times \TT{R}_{ch} \T{\mu}_{\T{x}}
+	} \times \T{\theta}_{n\delta} 
+	+ \T{f}_n \times \plbr{\TT{R}_{ch} \T{\mu}_{\T{x}}} \times \delta\T{\omega}_n & \nonumber \\
+	\mbox{} - \T{f}_n \times \T{\omega}_n \times \TT{R}_{ch} \delta\T{\mu}_{\T{x}} & \nonumber \\
+	\mbox{} - \plbr{\TT{R}_{chr} \T{\mu}_{\T{\theta}}}
+		\times \plbr{\TT{R}_{nhr} \TT{R}_0^T \T{\omega}_0} \times \T{\theta}_{n\delta} 
+	- \TT{R}_{chr} \plbr{\TT{R}^{\delta} \T{\omega}_0} \times \delta\T{\mu}_{\T{\theta}} & \nonumber \\
+	\mbox{} - \plbr{\T{f}_n \times \TT{R}_{ch} \T{\lambda}_{\T{x}}} \times \T{\theta}_{n\delta}
+	+ \T{f}_n \times \TT{R}_{ch} \delta\T{\lambda}_{\T{x}} + \TT{R}_{chr} \delta\T{\lambda}_{\T{\theta}} &= \T{0} \\
+%
+	\TT{R}_{ch}^T \delta\T{x}_n - \TT{R}_{ch}^T\T{f}_n\times \T{\theta}_{n\delta} &= \T{0} \\
+%
+	\TT{R}_{chr}^T \T{\theta}_{n\delta} &= \T{0} \\
+%
+	\TT{R}_{ch}^T \delta\dot{\T{x}}_n
+	- \TT{R}_{ch}^T \T{f}_n \times \delta\T{\omega}_n
+	- \TT{R}_{ch}^T \T{\omega}_n \times \T{f}_n \times \T{\theta}_{n\delta} &= \T{0} \\
+%
+	\TT{R}_{chr}^T \delta\T{\omega}_n
+	+ \TT{R}_{chr}^T \plbr{\TT{R}_{nhr} \TT{R}_0^T \T{\omega}_0} \times \T{\theta}_{n\delta} &= \T{0}
+\end{align}
+
+
+
 \subsubsection{Summary}
-The same considerations formulated for the TotalJoint apply.
+The same considerations formulated for the \texttt{TotalJoint} apply.
 
 
 
@@ -3684,7 +3748,7 @@ orientation; as a consequence, the resulting internal moment does not depend
 on the node sequence even when anisotropic constitutive laws are considered.
 \end{itemize}
 The relative rotation vector is computed in analogy with the \texttt{drive hinge}
-joint (DriveHingeJoint).
+joint (\texttt{DriveHingeJoint}).
 \begin{equation}
 	\T{\theta} =
 	\llk{ax}\plbr{\llk{exp}^{-1}\plbr{\T{R}_{1h}^T \T{R}_{2h}}}
