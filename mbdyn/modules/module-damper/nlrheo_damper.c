@@ -195,7 +195,7 @@ extern "C" int
 func (double t, const double y[], double f[],
 	void *para)
 {
-	sym_params & pa = *(sym_params *)para;
+	sym_params & pa = *((sym_params *)para);
 	double s = (pa.sf - pa.si) / (pa.tf - pa.ti) * (t - pa.ti) + pa.si;
 	double v = (pa.vf - pa.vi) / (pa.tf - pa.ti) * (t - pa.ti) + pa.vi;
 
@@ -282,9 +282,9 @@ func (double t, const double y[], double f[],
 }
 
 extern "C" int
-nlrheo_init(void *v_nlrheo)
+nlrheo_init(sym_params *nlrheo)
 {
-	sym_params& pa = *((sym_params *&)v_nlrheo);
+	sym_params& pa = *nlrheo;
 
 	pa.T = gsl_odeiv_step_rkf45;
 	pa.prev_time = 0.;
@@ -313,9 +313,9 @@ nlrheo_init(void *v_nlrheo)
 }
 
 extern "C" int
-nlrheo_destroy(void *v_nlrheo)
+nlrheo_destroy(sym_params *nlrheo)
 {
-	sym_params& pa = *((sym_params *&)v_nlrheo);
+	sym_params& pa = *nlrheo;
 
 	gsl_odeiv_step_free(pa.stepint);
 	gsl_odeiv_evolve_free(pa.evolve);
@@ -384,9 +384,10 @@ nlrheo_destroy(void *v_nlrheo)
 };
 
 extern "C" int
-nlrheo_update(void *v_nlrheo, double t_curr, double eps, double epsPrime, int do_try)
+nlrheo_update(sym_params *nlrheo,
+	double t_curr, double eps, double epsPrime, int do_try)
 {
-	sym_params& pa = *((sym_params *&)v_nlrheo);
+	sym_params& pa = *nlrheo;
 
 	double t = pa.prev_time;
 	double *yp = pa.y;
@@ -430,10 +431,10 @@ nlrheo_update(void *v_nlrheo, double t_curr, double eps, double epsPrime, int do
 }
 
 extern "C" int
-nlrheo_parse(void *v_nlrheo, double scale_eps, double scale_f, double filter)
+nlrheo_parse(sym_params **nlrheop,
+	double scale_eps, double scale_f, double filter)
 {
-	sym_params** papp = ((sym_params **&)v_nlrheo);
-	*papp = 0;
+	*nlrheop = 0;
 
 	sym_params* pap = new sym_params();
 	sym_params &pa(*pap);
@@ -634,7 +635,7 @@ nlrheo_parse(void *v_nlrheo, double scale_eps, double scale_f, double filter)
 		}
 	}
 
-	*papp = &pa;
+	*nlrheop = &pa;
 
 	return 0;
 }

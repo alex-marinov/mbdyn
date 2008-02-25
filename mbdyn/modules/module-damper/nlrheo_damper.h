@@ -51,7 +51,7 @@ extern "C" {
 #include "gsl/gsl_blas.h"
 #include "gsl/gsl_linalg.h"
 
-struct sym_params {
+typedef struct sym_params {
 	int n_parallelo;
 	int *n_serie;			/* [n_parallelo] */
 	int max_n_serie;
@@ -95,17 +95,17 @@ struct sym_params {
 	gsl_odeiv_system sys;
 	double prev_time, current_time, dt;
 	double prev_eps, prev_epsPrime;
-};
+} sym_params;
 
 /* read functions */
 extern int nlrheo_get_int(int *i);
 extern int nlrheo_get_real(double *d);
 
-extern "C" int nlrheo_init(void *v_nlrheo);
-extern "C" int nlrheo_destroy(void *v_nlrheo);
-extern "C" int nlrheo_update(void *v_nlrheo,
+extern "C" int nlrheo_init(sym_params *nlrheo);
+extern "C" int nlrheo_destroy(sym_params *nlrheo);
+extern "C" int nlrheo_update(sym_params *nlrheo,
 	double t_curr, double eps, double epsPrime, int do_try);
-extern "C" int nlrheo_parse(void *v_nlrheo,
+extern "C" int nlrheo_parse(sym_params **nlrheop,
 	double scale_eps, double scale_f, double filter);
 
 #ifdef __cplusplus
