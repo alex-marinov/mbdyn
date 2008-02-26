@@ -36,8 +36,9 @@ The \kw{nodes} section is enclosed in the cards:
 Every node card has the following format:
 \begin{verbatim}
     <card> :: = <node_type> : <node_label> ,
-                              <arglist>
-                              [ , output , { yes | no } ] ;
+        <arglist>
+        [ , output , { yes | no } ]
+        [ , <extra arglist> ] ;
 \end{verbatim}
 where \kw{node\_type} is one of the following:
 \begin{itemize}
@@ -106,13 +107,18 @@ a numerical value of 0 (no) or 1 (yes) is supported for backwards
 compatibility, but its use is deprecated.
 
 Only the \kw{dynamic} node type allows the optional output keyword
-\kw{accelerations} after the standard node output parameters,
+\kw{accelerations} after the standard node output parameters:
+\begin{verbatim}
+    <extra arglist> ::= accelerations
+\end{verbatim}
 to enable the output of the linear and angular accelerations of the node.
 Since this is a postprocessing, it is not required by the regular analysis,
 so it should be enabled only when strictly required.
 Also note that accelerations may be inaccurate, since they are reconstructed
 from the momentum and the momenta moment derivatives through the inertia
 associated to the node.
+Accelerations output can be controlled by means of the
+\hyperref{\kw{default output} statement}{\kw{default output} statement (see Section~}{)}{sec:CONTROLDATA:DEFAULTOUTPUT}.
 
 If the \kw{static} model type is used in the control data block,
 all dynamic structural nodes are actually treated as static.
