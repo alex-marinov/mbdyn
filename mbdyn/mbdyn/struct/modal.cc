@@ -1397,7 +1397,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 				iModalIndex + 2*NModes + 6*iStrNodem1 + 3 + 1);
 
 		/* giunto prismatico */
-		Vec3 ThetaCurr = RotManip::VecRot(pR2[iStrNodem1].Transpose()*pR1tot[iStrNodem1]);
+		Vec3 ThetaCurr = RotManip::VecRot(pR2[iStrNodem1].MulTM(pR1tot[iStrNodem1]));
 		Vec3 MTmp = pR2[iStrNodem1]*pM[iStrNodem1];
 
 		/* Equazioni di equilibrio, nodo 1 */
@@ -1737,19 +1737,18 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		WM.Sub(iOffset2 + 3 + 1, iRigidOffset + 1, SubMat1);
 
 		/* Equilibrio ai modi */
-		Mat3x3 R1totT(R1tot.Transpose());
 		if (pModalNode) {
-			SubMat2.RightMult(PHIrT, R1totT*MWedge);
+			SubMat2.RightMult(PHIrT, R1tot.MulTM(MWedge));
 			WM.Add(iRigidOffset + 1, 3 + 1, SubMat2);
 		}
-		SubMat2.RightMult(PHIrT, R1totT*MWedgeT);
+		SubMat2.RightMult(PHIrT, R1tot.MulTM(MWedgeT));
 		WM.Sub(iRigidOffset + 1, iOffset2 + 3 + 1, SubMat2);
 
 		Vec3 MA(Mat3x3(e2tota.Cross(e3b), e3tota.Cross(e1b),
 					e1tota.Cross(e2b))*M);
 		if (pModalNode) {
 			Mat3x3 MAWedge(MA);
-			SubMat2.RightMult(PHIrT, R1totT*MAWedge);
+			SubMat2.RightMult(PHIrT, R1tot.MulTM(MAWedge));
 			WM.Add(iRigidOffset + 1, 3 + 1, SubMat2);
 		}
 
@@ -1757,7 +1756,7 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		SubMat1.LeftMult(R1TMAWedge, PHIr);
 		Mat3xN SubMat3(NModes);
 		MatNxN SubMat4(NModes);
-		SubMat3.LeftMult(R1totT*M1Wedge, PHIr);
+		SubMat3.LeftMult(R1tot.MulTM(M1Wedge), PHIr);
 		SubMat1 += SubMat3;
 		SubMat4.Mult(PHIrT, SubMat1);
 		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
@@ -1833,7 +1832,7 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		}
 		WM.Sub(iOffset2 + 3 + 1, iOffset1 + 3 + 1, MWedge);
 
-		SubMat2.RightMult(PHIrT, R1totT*MWedge);
+		SubMat2.RightMult(PHIrT, R1tot.MulTM(MWedge));
 		WM.Add(iRigidOffset + 1, iOffset1 + 3 + 1, SubMat2);
 
 		/* Derivate dell'equilibrio */
@@ -2022,7 +2021,6 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 
 		Vec3 d1tot = d1rig + PHIt*a;
 		Mat3x3 R1tot = R*Mat3x3(1., PHIr*a);
-		Mat3x3 R1totT(R1tot.Transpose());
 
 		Vec3 x2(pInterfaceNodes[iStrNodem1]->GetXCurr());
 		Vec3 v2(pInterfaceNodes[iStrNodem1]->GetVCurr());
@@ -2117,13 +2115,9 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 		WorkVec.Add(iOffset2 + 3 + 1, MTmp);
 
 		/* Equazioni di equilibrio, contributo modale */
+		Vec3 MTmpRel(R1tot.MulTV(MTmp));
 		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
-			doublereal temp = 0;
-			
-			for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-				temp += PHIrT.dGet(jMode, iCnt)*(R1totT*MTmp).dGet(iCnt);
-			}
-			WorkVec.DecCoef(iRigidOffset + jMode, temp);
+			WorkVec.DecCoef(iRigidOffset + jMode, PHIrT.GetVec(jMode)*MTmpRel);
 		}
 
 		/* eaPrime = w/\ea + R*[(PHIr*b)/\]ia */
@@ -2150,7 +2144,7 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 
 		/* Derivate delle equazioni di equilibrio, contributo modale */
 		MatNx3 SubMat1(NModes);
-		SubMat1.RightMult(PHIrT, R1totT);
+		SubMat1.RightMult(PHIrT, R1tot.Transpose());
 
 		/* FIXME: temporary ((PHIr*b).Cross(RT*MTmp)) */
 		Vec3 T1 = MTmpPrime - Omega1.Cross(MTmp);
@@ -2576,7 +2570,6 @@ Modal::GetJ_int(void) const
 		x = pModalNode->GetXCurr();
 		R = pModalNode->GetRCurr();
 	}
-	RT = R.Transpose();
 
 	Vec3 STmp = Inv2;
 	if (pInv3 != 0) {
@@ -2592,7 +2585,7 @@ Modal::GetJ_int(void) const
 		}
 	}
 
-	return R*JTmp*RT
+	return R*JTmp.MulMT(R)
 		- Mat3x3(x, x*dMass)
 		- Mat3x3(x, s)
 		- Mat3x3(s, x);

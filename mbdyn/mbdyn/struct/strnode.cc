@@ -82,12 +82,12 @@ std::ostream&
 RelativeStructNodeOutput::Output(std::ostream& out, const StructNode *pN) const
 {
 	Vec3 Xr = pN->GetXCurr() - pBaseNode->GetXCurr();
-	Mat3x3 RT = pBaseNode->GetRCurr().Transpose();
+	const Mat3x3& R = pBaseNode->GetRCurr();
 
-	return out << RT*Xr
-		<< " " << MatR2EulerAngles(RT*pN->GetRCurr())*dRaDegr
-		<< " " << RT*(pN->GetVCurr() - pBaseNode->GetVCurr() - pBaseNode->GetWCurr().Cross(Xr))
-		<< " " << RT*(pN->GetWCurr() - pBaseNode->GetWCurr())
+	return out << R.MulTV(Xr)
+		<< " " << MatR2EulerAngles(R.MulTM(pN->GetRCurr()))*dRaDegr
+		<< " " << R.MulTV(pN->GetVCurr() - pBaseNode->GetVCurr() - pBaseNode->GetWCurr().Cross(Xr))
+		<< " " << R.MulTV(pN->GetWCurr() - pBaseNode->GetWCurr())
 		<< std::endl;
 }
 
@@ -1097,14 +1097,14 @@ StructNode::SetValue(DataManager *pDM,
 #ifdef MBDYN_X_RELATIVE_PREDICTION
 	if (pRefNode) {
 		Vec3 Xtmp = XPrev - pRefNode->GetXCurr();
-		Mat3x3 R0T = (pRefNode->GetRCurr()).Transpose();
-		Vec3 V0 = pRefNode->GetVCurr();
-		Vec3 W0 = pRefNode->GetWCurr();
+		const Mat3x3& R0 = pRefNode->GetRCurr();
+		const Vec3& V0 = pRefNode->GetVCurr();
+		const Vec3& W0 = pRefNode->GetWCurr();
 
-		XPrev = R0T*Xtmp;
-		RPrev = R0T*RCurr;
-		VPrev = R0T*(VCurr - V0 - W0.Cross(Xtmp));
-		WPrev = R0T*(WCurr - W0);
+		XPrev = R0.MulTV(Xtmp);
+		RPrev = R0.MulTM(RCurr);
+		VPrev = R0.MulTV(VCurr - V0 - W0.Cross(Xtmp));
+		WPrev = R0.MulTV(WCurr - W0);
 
 #if 0
 		std::cout << "StructNode(" << GetLabel() << "): "
@@ -1154,14 +1154,14 @@ StructNode::BeforePredict(VectorHandler& X,
 		   omega_r = R_0^T * ( omega - omega_0 )
 		 */
 		Vec3 Xtmp = XCurr - pRefNode->GetXCurr();
-		Mat3x3 R0T = (pRefNode->GetRCurr()).Transpose();
-		Vec3 V0 = pRefNode->GetVCurr();
-		Vec3 W0 = pRefNode->GetWCurr();
+		const Mat3x3& R0 = pRefNode->GetRCurr();
+		const Vec3& V0 = pRefNode->GetVCurr();
+		const Vec3& W0 = pRefNode->GetWCurr();
 
-		XCurr = R0T*Xtmp;
-		RCurr = R0T*RCurr;
-		VCurr = R0T*(VCurr - V0 - W0.Cross(Xtmp));
-		WCurr = R0T*(WCurr - W0);
+		XCurr = R0.MulTV(Xtmp);
+		RCurr = R0.MulTM(RCurr);
+		VCurr = R0.MulTV(VCurr - V0 - W0.Cross(Xtmp));
+		WCurr = R0.MulTV(WCurr - W0);
 
 		/* update state vectors with relative position and velocity */
 		X.Put(iFirstPos+1, XCurr);
@@ -1187,7 +1187,7 @@ StructNode::BeforePredict(VectorHandler& X,
 
 	/* Calcolo la matrice RDelta riferita a tutto il passo trascorso
 	 * all'indietro */
-	Mat3x3 RDelta(RPrev*RCurr.Transpose());
+	Mat3x3 RDelta(RPrev.MulMT(RCurr));
 
 	/* Mi assicuro che g al passo corrente sia nullo */
 	X.Put(iFirstPos+4, Vec3(0.));
@@ -1294,7 +1294,7 @@ StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 		 * che danno una predizione pari alla variazione
 		 * di R0 piu' l'incremento relativo, e le derivate
 		 * dei parametri corrispondenti */
-		gRef = MatR2gparam(R0*RDelta*(pRefNode->GetRPrev()).Transpose());
+		gRef = MatR2gparam(R0*RDelta.MulMT(pRefNode->GetRPrev()));
 		gPRef = Mat3x3(MatGm1, gRef)*WCurr;
 
 		/* to be safe, the correct values are put back
@@ -1706,7 +1706,32 @@ DynamicStructNode::AddInertia(const doublereal& dm, const Vec3& dS,
 	if (bComputeAccelerations) {
 		pAutoStr->AddInertia(dm, dS, dJ);
 	}
-};
+}
+
+/* Accesso ai suoi dati */
+const Vec3&
+DynamicStructNode::GetBCurr(void) const
+{
+	return pAutoStr->GetBCurr();
+}
+
+const Vec3&
+DynamicStructNode::GetGCurr(void) const
+{
+	return pAutoStr->GetGCurr();
+}
+
+const Vec3&
+DynamicStructNode::GetBPCurr(void) const
+{
+	return pAutoStr->GetBPCurr();
+}
+
+const Vec3&
+DynamicStructNode::GetGPCurr(void) const
+{
+	return pAutoStr->GetGPCurr();
+}
 
 void
 DynamicStructNode::ComputeAccelerations(bool b)
@@ -2595,8 +2620,7 @@ RelFrameDummyStructNode::~RelFrameDummyStructNode(void)
 void
 RelFrameDummyStructNode::Update_int(void)
 {
-	Mat3x3 RrT(pNodeRef->GetRCurr().Transpose());
-	Mat3x3 RT(RhT*RrT);
+	Mat3x3 RT(RhT.MulMT(pNodeRef->GetRCurr()));
 	Vec3 XRel(pNode->GetXCurr() - pNodeRef->GetXCurr());
 
 	RCurr = RT*pNode->GetRCurr();

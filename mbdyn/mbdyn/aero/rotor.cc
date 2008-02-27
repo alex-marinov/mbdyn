@@ -445,7 +445,7 @@ void Rotor::InitParam(bool bComputeMeanInducedVelocity)
    /* Ground effect */
    doublereal dGE = 1.;
    if (pGround) {
-	   Vec3 p = pGround->GetRCurr().Transpose()*(pRotor->GetXCurr() - pGround->GetXCurr());
+	   Vec3 p = pGround->GetRCurr().MulTV(pRotor->GetXCurr() - pGround->GetXCurr());
 	   doublereal z = p.dGet(3)*(4./dRadius);
 
 	   if (z < .25) {

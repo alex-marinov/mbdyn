@@ -393,6 +393,12 @@ class Vec3 {
 	+pdVec[V3]*v.pdVec[V3];
    };   
    
+	/**
+	 * Scalar product
+	 * multiplies self by matrix m; equivalent to m.Transpose() * this.
+	 */
+	Vec3 operator * (const Mat3x3& m) const;
+ 
    /*
     Operatore divisione per scalare. 
     Divide se stesso per d in un temporaneo.
@@ -1181,6 +1187,26 @@ class Mat3x3 {
 		 pdMat[M21]*m.pdMat[M13]+pdMat[M22]*m.pdMat[M23]+pdMat[M23]*m.pdMat[M33],
 		 pdMat[M31]*m.pdMat[M13]+pdMat[M32]*m.pdMat[M23]+pdMat[M33]*m.pdMat[M33]);
     };      
+
+	/**
+	 * multiply by another matrix, transposed: this * m^T
+	 */
+	Mat3x3 MulMT(const Mat3x3& m) const;
+
+	/**
+	 * multiply self transposed by a vector: this^T * v
+	 */
+	Vec3 MulTV(const Vec3& v) const;
+
+	/**
+	 * multiply self transposed by another matrix: this^T * m
+	 */
+	Mat3x3 MulTM(const Mat3x3& m) const;
+
+	/**
+	 * multiply self transposed by another matrix, transposed: this^T * m^T
+	 */
+	Mat3x3 MulTMT(const Mat3x3& m) const;
 
    doublereal Tr(void) const {
       return pdMat[M11]+pdMat[M22]+pdMat[M33];

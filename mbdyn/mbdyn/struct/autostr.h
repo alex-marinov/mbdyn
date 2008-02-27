@@ -50,7 +50,7 @@ protected:
 	Vec3 BP;
 	Vec3 GP;
 
-	/* Accesso ai suoi dati */
+   	/* Accesso ai suoi dati */
 	virtual inline const Vec3& GetBCurr(void) const { return B; };
 	virtual inline const Vec3& GetGCurr(void) const { return G; };     
 	virtual inline const Vec3& GetBPCurr(void) const { return BP; };
@@ -75,7 +75,7 @@ public:
 	virtual ~AutomaticStructElem(void) { 
 		NO_OP;
 	};
-   
+
 	/* inizializza i dati */
 	void Init(const Vec3& b, const Vec3& g, const Vec3& bp, const Vec3& gp);
 

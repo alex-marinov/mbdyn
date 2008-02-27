@@ -83,6 +83,27 @@ Vec3::Cross(const Mat3x3& m) const {
 		 pdVec[V1]*m.pdMat[M23]-pdVec[V2]*m.pdMat[M13]);
 }
 
+
+/**
+ * Scalar product
+ * multiplies self by matrix m; equivalent to m.Transpose() * this.
+ */
+Vec3
+Vec3::operator * (const Mat3x3& m) const
+{
+	return
+		Vec3(
+			m.pdMat[M11]*pdVec[V1]
+				+ m.pdMat[M21]*pdVec[V2]
+				+ m.pdMat[M31]*pdVec[V3],
+			m.pdMat[M12]*pdVec[V1]
+				+ m.pdMat[M22]*pdVec[V2]
+				+ m.pdMat[M32]*pdVec[V3],
+			m.pdMat[M13]*pdVec[V1]
+				+ m.pdMat[M23]*pdVec[V2]
+				+ m.pdMat[M33]*pdVec[V3]);
+}
+
 /* Vec3 - end */
 
 /* Mat3x3 - begin */
@@ -216,6 +237,138 @@ Mat3x3::LDLSolve(const Vec3& v) const
 
 	// x = L^-T * y
 	return Vec3(z1, z2 - l21*z1, z3 - l31*z1 - l32*z2);
+}
+
+/**
+ * multiply by another matrix, transposed: this * m^T
+ */
+Mat3x3
+Mat3x3::MulMT(const Mat3x3& m) const
+{
+	return Mat3x3(
+		pdMat[M11]*m.pdMat[M11]
+			+ pdMat[M12]*m.pdMat[M12]
+			+ pdMat[M13]*m.pdMat[M13],
+		pdMat[M21]*m.pdMat[M11]
+			+ pdMat[M22]*m.pdMat[M12]
+			+ pdMat[M23]*m.pdMat[M13],
+		pdMat[M31]*m.pdMat[M11]
+			+ pdMat[M32]*m.pdMat[M12]
+			+ pdMat[M33]*m.pdMat[M13],
+
+		pdMat[M11]*m.pdMat[M21]
+			+ pdMat[M12]*m.pdMat[M22]
+			+ pdMat[M13]*m.pdMat[M23],
+		pdMat[M21]*m.pdMat[M21]
+			+ pdMat[M22]*m.pdMat[M22]
+			+ pdMat[M23]*m.pdMat[M23],
+		pdMat[M31]*m.pdMat[M21]
+			+ pdMat[M32]*m.pdMat[M22]
+			+ pdMat[M33]*m.pdMat[M23],
+
+		pdMat[M11]*m.pdMat[M31]
+			+ pdMat[M12]*m.pdMat[M32]
+			+ pdMat[M13]*m.pdMat[M33],
+		pdMat[M21]*m.pdMat[M31]
+			+ pdMat[M22]*m.pdMat[M32]
+			+ pdMat[M23]*m.pdMat[M33],
+		pdMat[M31]*m.pdMat[M31]
+			+ pdMat[M32]*m.pdMat[M32]
+			+ pdMat[M33]*m.pdMat[M33]);
+}
+
+/**
+ * multiply self transposed by a vector: this^T * v
+ */
+Vec3
+Mat3x3::MulTV(const Vec3& v) const
+{
+	return Vec3(
+		pdMat[M11]*v.pdVec[V1]
+			+ pdMat[M21]*v.pdVec[V2]
+			+ pdMat[M31]*v.pdVec[V3],
+		pdMat[M12]*v.pdVec[V1]
+			+ pdMat[M22]*v.pdVec[V2]
+			+ pdMat[M32]*v.pdVec[V3],
+		pdMat[M13]*v.pdVec[V1]
+			+ pdMat[M23]*v.pdVec[V2]
+			+ pdMat[M33]*v.pdVec[V3]);
+}
+
+/**
+ * multiply self transposed by another matrix: this^T * m
+ */
+Mat3x3
+Mat3x3::MulTM(const Mat3x3& m) const
+{
+	return Mat3x3(
+		pdMat[M11]*m.pdMat[M11]
+			+ pdMat[M21]*m.pdMat[M21]
+			+ pdMat[M31]*m.pdMat[M31],
+		pdMat[M12]*m.pdMat[M11]
+			+ pdMat[M22]*m.pdMat[M21]
+			+ pdMat[M32]*m.pdMat[M31],
+		pdMat[M13]*m.pdMat[M11]
+			+ pdMat[M23]*m.pdMat[M21]
+			+ pdMat[M33]*m.pdMat[M31],
+
+		pdMat[M11]*m.pdMat[M12]
+			+ pdMat[M21]*m.pdMat[M22]
+			+ pdMat[M31]*m.pdMat[M32],
+		pdMat[M12]*m.pdMat[M12]
+			+ pdMat[M22]*m.pdMat[M22]
+			+ pdMat[M32]*m.pdMat[M32],
+		pdMat[M13]*m.pdMat[M12]
+			+ pdMat[M23]*m.pdMat[M22]
+			+ pdMat[M33]*m.pdMat[M32],
+
+		pdMat[M11]*m.pdMat[M13]
+			+ pdMat[M21]*m.pdMat[M23]
+			+ pdMat[M31]*m.pdMat[M33],
+		pdMat[M12]*m.pdMat[M13]
+			+ pdMat[M22]*m.pdMat[M23]
+			+ pdMat[M32]*m.pdMat[M33],
+		pdMat[M13]*m.pdMat[M13]
+			+ pdMat[M23]*m.pdMat[M23]
+			+ pdMat[M33]*m.pdMat[M33]);
+}
+
+/**
+ * multiply self transposed by another matrix, transposed: this^T * m^T
+ */
+Mat3x3
+Mat3x3::MulTMT(const Mat3x3& m) const
+{
+	return Mat3x3(
+		pdMat[M11]*m.pdMat[M11]
+			+ pdMat[M21]*m.pdMat[M12]
+			+ pdMat[M31]*m.pdMat[M13],
+		pdMat[M12]*m.pdMat[M11]
+			+ pdMat[M22]*m.pdMat[M12]
+			+ pdMat[M32]*m.pdMat[M13],
+		pdMat[M13]*m.pdMat[M11]
+			+ pdMat[M23]*m.pdMat[M12]
+			+ pdMat[M33]*m.pdMat[M13],
+
+		pdMat[M11]*m.pdMat[M21]
+			+ pdMat[M21]*m.pdMat[M22]
+			+ pdMat[M31]*m.pdMat[M23],
+		pdMat[M12]*m.pdMat[M21]
+			+ pdMat[M22]*m.pdMat[M22]
+			+ pdMat[M32]*m.pdMat[M23],
+		pdMat[M13]*m.pdMat[M21]
+			+ pdMat[M23]*m.pdMat[M22]
+			+ pdMat[M33]*m.pdMat[M23],
+
+		pdMat[M11]*m.pdMat[M31]
+			+ pdMat[M21]*m.pdMat[M32]
+			+ pdMat[M31]*m.pdMat[M33],
+		pdMat[M12]*m.pdMat[M31]
+			+ pdMat[M22]*m.pdMat[M32]
+			+ pdMat[M32]*m.pdMat[M33],
+		pdMat[M13]*m.pdMat[M31]
+			+ pdMat[M23]*m.pdMat[M32]
+			+ pdMat[M33]*m.pdMat[M33]);
 }
 
 /* Mat3x3 - end */

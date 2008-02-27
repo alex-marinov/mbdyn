@@ -492,6 +492,7 @@ protected:
 	mutable AutomaticStructElem *pAutoStr;
 
 	virtual inline void SetAutoStr(const AutomaticStructElem *p);
+	virtual inline const AutomaticStructElem *pGetAutoStr(void) const;
 
 public:
 	/* Costruttore definitivo (da mettere a punto) */
@@ -547,6 +548,12 @@ public:
 	virtual void AddInertia(const doublereal& dm, const Vec3& dS,
 		const Mat3x3& dJ) const;
 
+   	/* Accesso ai suoi dati */
+	virtual const Vec3& GetBCurr(void) const;
+	virtual const Vec3& GetGCurr(void) const;     
+	virtual const Vec3& GetBPCurr(void) const;
+	virtual const Vec3& GetGPCurr(void) const;   
+
 	virtual void AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP);
 
@@ -601,7 +608,13 @@ public:
 inline void
 DynamicStructNode::SetAutoStr(const AutomaticStructElem *p)
 {
-	pAutoStr = (AutomaticStructElem *)p;
+	pAutoStr = const_cast<AutomaticStructElem *>(p);
+}
+
+inline const AutomaticStructElem *
+DynamicStructNode::pGetAutoStr(void) const
+{
+	return pAutoStr;
 }
 
 

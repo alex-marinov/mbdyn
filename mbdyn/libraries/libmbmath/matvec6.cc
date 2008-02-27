@@ -177,17 +177,15 @@ Mat6x6 MultRM(const Mat6x6& m, const Mat3x3& R)
 
 Mat6x6 MultMRt(const Mat6x6& m, const Mat3x3& R)
 {
-   Mat3x3 Rt = R.Transpose();
-   return Mat6x6(m.GetMat11()*Rt, m.GetMat21()*Rt, 
-		 m.GetMat12()*Rt, m.GetMat22()*Rt);   
+   return Mat6x6(m.GetMat11().MulMT(R), m.GetMat21().MulMT(R), 
+		 m.GetMat12().MulMT(R), m.GetMat22().MulMT(R));   
 }
 
 
 Mat6x6 MultRMRt(const Mat6x6& m, const Mat3x3& R)
 {   
-   Mat3x3 Rt = R.Transpose();
-   return Mat6x6(R*m.GetMat11()*Rt, R*m.GetMat21()*Rt, 
-		 R*m.GetMat12()*Rt, R*m.GetMat22()*Rt);   
+   return Mat6x6(R*m.GetMat11().MulMT(R), R*m.GetMat21().MulMT(R), 
+		 R*m.GetMat12().MulMT(R), R*m.GetMat22().MulMT(R));   
 }
 
 
