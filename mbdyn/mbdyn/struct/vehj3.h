@@ -307,8 +307,11 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler&  XPrimeCurr,
 		const VectorHandler&  XPrimePrimeCurr,
-		int iOrder = -1)//;
-		{NO_OP;};
+		int iOrder = -1)
+	{
+		WorkVec.Resize(0);
+		return WorkVec;
+	};
 
 	/* Aggiorna le deformazioni ecc. */
 	virtual void
