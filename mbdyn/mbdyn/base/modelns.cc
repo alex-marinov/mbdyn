@@ -401,7 +401,7 @@ drive(const MathParser::MathArgs& args)
 static int
 model_sf(const MathParser::MathArgs& args)
 {
-	ASSERT(args.size() == 1 + 1 + 1);
+	ASSERT(args.size() == 1 + 2 + 1);
 	ASSERT(args[0]->Type() == MathParser::AT_REAL);
 	ASSERT(args[1]->Type() == MathParser::AT_REAL);
 	ASSERT(args[2]->Type() == MathParser::AT_INT);
