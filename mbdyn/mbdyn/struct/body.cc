@@ -83,7 +83,7 @@ Body::GetJ_int(void) const
 	Vec3 s = pNode->GetRCurr()*S0;
 	const Vec3& x = pNode->GetXCurr();
 
-	return pNode->GetRCurr()*J0*pNode->GetRCurr().Transpose()
+	return pNode->GetRCurr()*J0.MulMT(pNode->GetRCurr())
 		- Mat3x3(x, x*dMass) - Mat3x3(s, x) - Mat3x3(x, s);
 }
 
@@ -107,7 +107,7 @@ Body::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ )
 	const Mat3x3& R = pNode->GetRRef();
 
 	S = R*S0;
-	J = R*(J0*R.Transpose());
+	J = R*J0.MulMT(R);
 }
 
 /* Body - end */
@@ -323,7 +323,7 @@ DynamicBody::AssRes(SubVectorHandler& WorkVec,
 	/* Aggiorna i suoi dati (saranno pronti anche per AssJac) */
 	const Mat3x3& R(pNode->GetRCurr());
 	Vec3 STmp = R*S0;
-	Mat3x3 JTmp = R*(J0*R.Transpose());
+	Mat3x3 JTmp = R*J0.MulMT(R);
 
 	/* Quantita' di moto: R[1] = Q - M * V - W /\ S */
 	WorkVec.Sub(1, V*dMass + W.Cross(STmp));
@@ -435,7 +435,7 @@ DynamicBody::InitialAssRes(SubVectorHandler& WorkVec,
 	/* Aggiorna i suoi dati (saranno pronti anche per AssJac) */
 	const Mat3x3& R(pNode->GetRCurr());
 	Vec3 STmp = R*S0;
-	Mat3x3 JTmp = R*J0*R.Transpose();
+	Mat3x3 JTmp = R*J0.MulMT(R);
 
 	Vec3 FC(-W.Cross(W.Cross(STmp)));
 	Vec3 MC(-W.Cross(JTmp*W));
@@ -477,7 +477,7 @@ DynamicBody::SetValue(DataManager *pDM,
 	const Vec3& W(pNode->GetWCurr());
 	const Mat3x3& R(pNode->GetRCurr());
 	S = R*S0;
-	J = R*(J0*R.Transpose());
+	J = R*J0.MulMT(R);
 	X.Add(iFirstIndex + 1, V*dMass + W.Cross(S));
 	X.Add(iFirstIndex + 4, S.Cross(V) + J*W);
 }
@@ -688,7 +688,7 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 	/* Aggiorna i suoi dati (saranno pronti anche per AssJac) */
 	const Mat3x3& R(pNode->GetRCurr());
 	Vec3 STmp = R*S0;
-	Mat3x3 JTmp = R*(J0*R.Transpose());
+	Mat3x3 JTmp = R*J0.MulMT(R);
 
 	if (g || w) {
 		WorkVec.Add(1, Acceleration*dMass);
@@ -730,7 +730,7 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 	const Mat3x3& R(pNode->GetRCurr());
 	Vec3 XgcTmp = R*Xgc;
 	Vec3 STmp = R*S0;
-	Mat3x3 JTmp = R*(J0*R.Transpose());
+	Mat3x3 JTmp = R*J0.MulMT(R);
 
 	Vec3 Acceleration = pNode->GetXPPCurr()
 		+ pNode->GetWPCurr().Cross(XgcTmp)
@@ -905,13 +905,13 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 				NO_OP;
 			} else {
 				Mat3x3 RTmp(HP.GetRotRel(RF));
-				JTmp = RTmp*(JTmp*RTmp.Transpose());
+				JTmp = RTmp*JTmp.MulMT(RTmp);
 			}
 			DEBUGLCOUT(MYDEBUG_INPUT, "Inertia matrix of mass(" << iCnt
 				<< ") in current frame =" << std::endl << JTmp << std::endl);
 		}
 
-		J += (JTmp-Mat3x3(XgcTmp, XgcTmp*dMTmp));
+		J += JTmp - Mat3x3(XgcTmp, XgcTmp*dMTmp);
 	}
 
 	Xgc = STmp/dm;
