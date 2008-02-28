@@ -782,12 +782,69 @@ in terms of the inertia properties and the node's kinematics:
 \begin{subequations}
 \label{eq:body:momenta}
 \begin{align}
-	\T{\beta} &= m \dot{\T{x}} + \T{\omega} \times \T{S}
+	\T{\beta}
+	&= m \dot{\T{x}}_{CM} \nonumber \\
+	&= m \plbr{\dot{\T{x}} + \T{\omega}\times\T{f}} \nonumber \\
+	&= m \dot{\T{x}} + \T{\omega} \times \T{S}
 	\label{eq:body:momentum} \\
-	\T{\gamma} &= \T{S} \times \dot{\T{x}} + \TT{J} \T{\omega}
-	\label{eq:body:momenta-moment} .
+	\T{\gamma}
+	&= \T{\gamma}_{CM} + \T{f} \times\T{\beta} \nonumber \\
+	&= \TT{J}_{CM} \T{\omega} + \T{f} \times\T{\beta} \nonumber \\
+	&= \T{S} \times \dot{\T{x}} + \TT{J} \T{\omega}
+	\label{eq:body:momenta-moment} ,
 \end{align}
 \end{subequations}
+where
+\begin{equation}
+	\T{f} = \frac{\T{S}}{m}
+\end{equation}
+is the distance between the node and the CM of the body,
+which is constant in the reference frame of the node
+for a rigid body.
+
+The contribution to the equations of motion (Newton-Euler) is
+\begin{subequations}
+\begin{align}
+	\T{f}_{in} &= \dot{\T{\beta}} \\
+	\T{m}_{in} &= \dot{\T{\gamma}}_{CM} + \T{f}\times\T{f}_{in} \nonumber \\
+	&= \dot{\T{\gamma}} - \plbr{\T{\omega}\times\T{f}}\times\T{\beta} \nonumber \\
+	&= \dot{\T{\gamma}} - m \plbr{\T{\omega}\times\T{f}}\times\plbr{\dot{\T{x}} + \T{\omega}\times\T{f}} \nonumber \\
+	&= \dot{\T{\gamma}} + m \dot{\T{x}}\times\plbr{\T{\omega}\times\T{f}} \nonumber \\
+	&= \dot{\T{\gamma}} + m \dot{\T{x}}\times\plbr{\dot{\T{x}} + \T{\omega}\times\T{f}} \nonumber \\
+	&= \dot{\T{\gamma}} + \dot{\T{x}}\times\T{\beta}
+\end{align}
+\end{subequations}
+
+The perturbation of the momentum and momenta moment definitions yields
+\begin{subequations}
+\begin{align}
+	\delta\T{\beta}
+	&= m \delta\dot{\T{x}}
+	- \T{S}\times\delta\T{\omega}
+	- \T{\omega}\times\T{S}\times\T{\theta}_{\delta} \\
+	\delta\T{\gamma}
+	&=
+	\T{S}\times\delta\dot{\T{x}}
+	+ \TT{J} \delta\T{\omega}
+	+ \plbr{
+		\dot{\T{x}}\times\T{S}\times{}
+		- \plbr{\TT{J} \T{\omega}}\times{}
+		- \TT{J} \T{\omega}\times{}
+	}\T{\theta}_{\delta}
+\end{align}
+\end{subequations}
+The perturbation of the inertia force and moment yields
+\begin{subequations}
+\begin{align}
+	\delta\T{f}_{in}
+	&= \delta\dot{\T{\beta}} \\
+	\delta\T{m}_{in}
+	&= \delta\dot{\T{\gamma}}
+	- \T{\beta}\times\delta\dot{\T{x}}
+	+ \dot{\T{x}}\times\delta\T{\beta}
+\end{align}
+\end{subequations}
+
 
 \subsubsection{Accelerations}
 Since momentum and momenta moments are considered as unknowns
@@ -801,29 +858,27 @@ The differentiation of Equations~(\ref{eq:body:momenta}) yields
 \begin{align}
 	\dot{\T{\beta}} &= m \ddot{\T{x}} + \dot{\T{\omega}} \times \T{S}
 		+ \T{\omega} \times \T{\omega} \times \T{S} \\
-	\dot{\T{\gamma}} &= \T{\omega}\times \T{S} \times \dot{\T{x}}
+	\dot{\T{\gamma}} &= \plbr{\T{\omega}\times \T{S}} \times \dot{\T{x}}
 		+ \T{S} \times \ddot{\T{x}}
 		+ \T{\omega} \times \TT{J} \T{\omega}
-		+ \TT{J} \dot{\T{\omega}} \nonumber \\
-	&= \T{\omega}\times \T{\gamma}
-		+ \T{S} \times \ddot{\T{x}}
 		+ \TT{J} \dot{\T{\omega}} .
 \end{align}
 \end{subequations}
 As a consequence, the linear and angular accelerations are computed as
 \begin{align}
 	\dot{\T{\omega}}
-	&= \plbr{\T{J} + \T{S} \times \cfrac{\T{S}}{m} \times{}}^{-1}\plbr{
-		\dot{\T{\gamma}} - \T{\omega} \times \T{\gamma}
-		- \cfrac{\T{S}}{m} \plbr{
-			\dot{\T{\beta}}
-			- \T{\omega} \times \T{\omega} \times \T{S}
-		}
+	&= \TT{J}_{CM}^{-1} \plbr{
+		\dot{\T{\gamma}}
+		- \T{f} \times \dot{\T{\beta}}
+		- \T{\omega} \times \TT{J}_{CM} \T{\omega}
+		+ \dot{\T{x}} \times \T{\beta}
 	} \\
 	\ddot{\T{x}}
-	&= \cfrac{\dot{\T{\beta}}}{m}
-	- \dot{\T{\omega}} \times \cfrac{\T{S}}{m}
-	- \T{\omega} \times \T{\omega} \times \cfrac{\T{S}}{m} .
+	&= \cfrac{1}{m}\plbr{
+		\dot{\T{\beta}}
+		- \dot{\T{\omega}} \times \T{S}
+		- \T{\omega} \times \T{\omega} \times \T{S}
+	} .
 \end{align}
 
 
