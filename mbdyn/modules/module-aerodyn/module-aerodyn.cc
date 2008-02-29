@@ -47,6 +47,7 @@
 #include "Rot.hh"
 
 #include "loadable.h"
+#include "drive_.h"
 #include "module-aerodyn.h"
 
 static module_aerodyn_t *module_aerodyn;
@@ -515,6 +516,9 @@ read(
 
 	(void)__FC_DECL__(mbdyn_true)(&p->FirstLoop);
 
+	// FIXME: only needed when Beddoes is enabled
+	p->Time.Set(new TimeDriveCaller(pDM->pGetDrvHdl()));
+
 	::module_aerodyn = p;
 
 	return (void *)p;
@@ -683,6 +687,10 @@ after_predict(
 {
     	/* NOTE: think about what should be done here!*/
 	DEBUGCOUTFNAME("after_predict");
+
+	module_aerodyn_t* p = (module_aerodyn_t *)pEl->pGetData(); 
+
+	p->dDT = p->Time.dGet() - p->dOldTime;
 }
 
 static void
@@ -706,6 +714,7 @@ after_convergence(const LoadableElem* pEl,
 	module_aerodyn_t* p = (module_aerodyn_t *)pEl->pGetData(); 
 
 	p->bFirst = true;
+	p->dOldTime = p->Time.dGet();
 }
 
 static unsigned int

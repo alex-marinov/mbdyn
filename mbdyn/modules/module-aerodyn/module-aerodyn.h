@@ -83,6 +83,9 @@ typedef struct module_aerodyn_t {
 	F_INTEGER	c_blade; // use to identify the current blade!
 
 	bool bFirst;
+	DriveOwner	Time;		// time drive
+	doublereal	dOldTime;	// old time
+	doublereal	dDT;		// time step
 } module_aerodyn_t;
 
 #endif /* MODULE_AERODYN_H */
