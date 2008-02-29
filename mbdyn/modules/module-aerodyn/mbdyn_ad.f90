@@ -32,6 +32,8 @@ SUBROUTINE MBDyn_init( Version, NBlades )
 
 USE Identify
 USE Blade
+USE Wind  ! Use Global variable VX,VY,VZ.
+
 
 IMPLICIT NONE
 
@@ -73,4 +75,28 @@ LOGICAL val
         RETURN
 
 END SUBROUTINE MBDyn_false
+
+! This subroutine is to make MBDyn-AeroDyn interface function
+! can access the AeroDyn variables which was defined in the
+! common module. By Fanzhong MENG 21 Feb. 2008
+
+SUBROUTINE MBDyn_com_data( c_blade, c_elem )
+
+USE Identify
+USE Blade
+USE Element
+
+IMPLICIT NONE
+
+INTEGER(4) c_blade
+INTEGER(4) c_elem
+
+        IBlade = c_blade
+        JElem  = c_elem
+        
+        RETURN
+END SUBROUTINE MBDyn_com_data
+
+
+
 

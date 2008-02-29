@@ -168,6 +168,13 @@ __FC_DECL__(mbdyn_true)(F_LOGICAL *val);
 extern int
 __FC_DECL__(mbdyn_false)(F_LOGICAL *val);
 
+/*
+ * By Fanzhong Meng 21 Feb. 2008
+ * MBDyn-AeroDyn common module defined data
+ */
+extern int
+__FC_DECL__(mbdyn_com_data)(F_INTEGER *c_blade, F_INTEGER *c_elem);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
