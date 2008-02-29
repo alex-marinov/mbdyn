@@ -90,7 +90,7 @@ __FC_DECL__(getrotorparams)(
 	const Vec3& hub_Omega = ::module_aerodyn->pHub->GetWCurr();
 	Vec3 rotation_axis = nacelle_R.GetVec(3);
 
-	*Omega = fabs(hub_Omega*rotation_axis);
+	*Omega = std::fabs(hub_Omega*rotation_axis);
 
     	/* 
 	 * This comment is added by Fanzhong MENG 10th.Feb.2008
@@ -142,7 +142,7 @@ __FC_DECL__(getbladeparams)(F_REAL *psi)
 	const Mat3x3& R_nacelle = ::module_aerodyn->pNacelle->GetRCurr();
 	const Mat3x3& R_hub = ::module_aerodyn->pHub->GetRCurr();
 	const Mat3x3& R_blade_root = ::module_aerodyn->bladeR[::module_aerodyn->c_blade - 1];
-	Mat3x3 R = (R_hub*R_blade_root).Transpose()*R_nacelle;
+	Mat3x3 R = (R_hub*R_blade_root).MulTM(R_nacelle);
 	Vec3 Phi(RotManip::VecRot(R));
 
 	*psi = -Phi(3);
@@ -186,9 +186,10 @@ __FC_DECL__(getelemparams)(
 	 * Get blade elements radius. It is the perpendicular distance 
 	 * from the rotor axis to the element aerodynamic reference point.
 	 */ 
-	Vec3 d = ::module_aerodyn->pNacelle->GetRCurr().Transpose()*(
-		::module_aerodyn->nodes[::module_aerodyn->elem].pNode->GetXCurr()
-		- ::module_aerodyn->pHub->GetXCurr());
+	const Vec3& X_node = ::module_aerodyn->nodes[::module_aerodyn->elem].pNode->GetXCurr();
+	const Vec3& X_hub = ::module_aerodyn->pHub->GetXCurr();
+	const Mat3x3& R_nacelle = ::module_aerodyn->pNacelle->GetRCurr();
+	Vec3 d = R_nacelle.MulTV(X_node - X_hub);
 	d(3) = 0.;
 	*radius = d.Norm();
 	/*
@@ -235,29 +236,19 @@ __FC_DECL__(getvnvt)(
 	 * VX,VY,VZ are provided by AeroDyn for MBDyn.
 	 */
     
-	/*
-	 * Get velocities of the element related to the ground reference frame
-	 * defined in MBDyn.
-	 */
-	Vec3 ve_G, ve_El; //velocity of the element related to Ground and Element reference frame.
-	Vec3 vw_G, vw_El; //velocity of the wind related to Ground and Element reference frame.
-	ve_G = ::module_aerodyn->nodes[::module_aerodyn->elem].pNode->GetVCurr();
+	// velocity of the element related to Ground reference frame.
+	const Vec3& ve_G = ::module_aerodyn->nodes[::module_aerodyn->elem].pNode->GetVCurr();
 
-	/*
-	 * Get velocities of the wind related to the ground reference frame
-	 * defined in MBDyn.
-	 */
-
-	vw_G = Vec3(*VX, *VY, *VZ);
+	// velocity of the wind related to Ground reference frame.
+	Vec3 vw_G = Vec3(*VX, *VY, *VZ);
 
 	/*
 	 * Transform wind vector from ground coordinate system (vw_G) to
 	 * blade Node reference frame (vw_El)
 	 */
 	const Mat3x3& R_node = ::module_aerodyn->nodes[::module_aerodyn->elem].pNode->GetRCurr();
-	Mat3x3 node_Ra = R_node.Transpose();
-	vw_El = node_Ra * vw_G;
-	ve_El = node_Ra * ve_G;
+	Vec3 vw_El = R_node.MulTV(vw_G);
+	Vec3 ve_El = R_node.MulTV(ve_G);
 
 	/*
 	 * Calculate SIN and COS value of current pitch angle.
@@ -274,12 +265,10 @@ __FC_DECL__(getvnvt)(
 
 	doublereal vt_wind = -vw_El(2)*CPitchNow - vw_El(3)*SPitchNow;
 	doublereal vt_element = ve_El(2)*CPitchNow + ve_El(3)*SPitchNow;
-//	doublereal vt_element = ve_G(2)*CPitchNow + ve_G(3)*SPitchNow;
 
 	*VT = vt_wind + vt_element;
 	*VNW = -vw_El(2)*SPitchNow + vw_El(3)*CPitchNow;
 	*VNE = -ve_El(2)*SPitchNow + ve_El(3)*CPitchNow;
-//	*VNE = -ve_G(2)*SPitchNow + ve_G(3)*CPitchNow;
 
 	return 0;
 }
@@ -300,10 +289,16 @@ __FC_DECL__(usrmes)(
 	F_INTEGER *code,
 	F_CHAR level[])
 {
+#if 0
+	// can't work!
 	silent_cerr("module-aerodyn: msg=\"" << msg << "\" "
 		"code=" << *code
 		<< " level=" << level
 		<< std::endl);
+#endif
+	silent_cerr("module-aerodyn: diagnostics from AeroDyn, "
+		"code=" << *code << std::endl);
+
 	return 0;
 }
 
@@ -344,15 +339,17 @@ read(
 		<< "forces acting on wind turbines" << std::endl
 		<< std::endl
 		<< "usage:" << std::endl
-		<< "\t<nacelle node label>" << std::endl
-		<< "\t<hub node label>" << std::endl
-		<< "\t<pylon top-hub xy distance>" << std::endl
-		<< "\t<number of blades>" << std::endl
-		<< "\t<number of element per blade>" << std::endl
-		<< "\t<blade 1 orientation matrix>" << std::endl
-		<< "\t<blade 1 node labels>" << std::endl
-		<< "\t<blade 2 orientation matrix>" << std::endl
-		<< "\t<blade 2 node labels>" << std::endl
+		<< "\t<nacelle node label> ," << std::endl
+		<< "\t<hub node label> ," << std::endl
+		<< "\t<pylon top-hub xy distance> ," << std::endl
+		<< "\t<number of blades> ," << std::endl
+		<< "\t<number of elements per blade> ," << std::endl
+		<< "\t# for each blade..." << std::endl
+		<< "\t\t<i-th blade root orientation matrix> ," << std::endl
+		<< "\t\t# for each blade element..." << std::endl
+		<< "\t\t\t<i-th blade j-th node label> ," << std::endl
+		<< "\t\t\t[ orientation , <i-th blade j-th node orientation> , ]" << std::endl
+		<< "\t[ output file name , \" <file name> \" ]" << std::endl
 		);
 	}
 
@@ -375,11 +372,6 @@ read(
 	}
 
 	p->Hub_Tower_xy_distance = HP.GetReal();
-	/* For debug purpose to output is infomation*/
-	silent_cout(
-		"Hub_Tower_xy_distance:"<< p->Hub_Tower_xy_distance
-		<< std::endl
-		);
 
 	/*
 	 * Initialize AeroDyn package
@@ -395,12 +387,6 @@ read(
 
 	// number of blades
 	F_INTEGER NBlades = HP.GetInt();
-	// For debug reason to make sure that we get the correct number of blades
-	silent_cout(
-		"Number of Blades:" << NBlades 
-		<< std::endl
-		);
-
 	if (NBlades <= 0) {
 		silent_cerr("Aerodyn(" << pEl->GetLabel() << "): "
 			"invalid number of blades " << NBlades
@@ -411,12 +397,6 @@ read(
 
 	// number of elements per blade
 	F_INTEGER NElems = HP.GetInt();
-	// For debug reason to make sure that we get the correct number of blades
-	silent_cout(
-		"Number of elements per blade:"<< NElems 
-		<< std::endl
-		);
-
 	if (NElems <= 0) {
 		silent_cerr("Aerodyn(" << pEl->GetLabel() << "): "
 			"invalid number of elements per blade " << NElems
