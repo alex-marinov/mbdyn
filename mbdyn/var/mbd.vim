@@ -1,3 +1,4 @@
+" $Header$
 " Vim syntax file
 " Language:	MBDyn
 " Maintainer:	Pierangelo Masarati <masarati@aero.polimi.it>
