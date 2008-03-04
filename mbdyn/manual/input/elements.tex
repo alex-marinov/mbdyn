@@ -4509,10 +4509,19 @@ Deprecated in favour of the
 The \kw{joint regularization} element is used to modify
 algebraic constraint equations in order to improve ill-conditioned
 problems.
+\begin{comment}
+%%% TODO
 \begin{verbatim}
     <card> ::= <element_type> : <label> , <type> [ , <data> ] ;
     <element_type> ::= joint regularization
     <type> ::= { tikhonov | dynamic }
+    <data> ::= { <coef> | list , <coef_1> [ , ... ] }
+\end{verbatim}
+\end{comment}
+\begin{verbatim}
+    <card> ::= <element_type> : <label> , <type> [ , <data> ] ;
+    <element_type> ::= joint regularization
+    <type> ::= tikhonov
     <data> ::= { <coef> | list , <coef_1> [ , ... ] }
 \end{verbatim}
 An element is instantiated, which requires
@@ -4526,7 +4535,7 @@ If the keyword \kw{list} is used, the coefficients for each internal state
 is expected; the number of coefficients is determined by the joint.
 
 \subsection{Tikhonov}
-The \kw{tikhonov} regularization consists in modifying
+The \kw{tikhonov} joint regularization type consists in modifying
 a constraint, expressed by an algebraic equation $\T{\Phi}\plbr{\T{x}, t}$
 and the corresponding Lagrangian multipliers $\T{\lambda}$, namely
 \begin{align}
@@ -4550,8 +4559,11 @@ The Tikhonov regularization allows the constraint to be violated
 by an amount that depends on the multipliers.
 In this sense, the coefficient \kw{<coef>} should be considered
 sort of a compliance: the larger the coefficient,
-the larger the constraint violation.
+the larger the constraint violation for a given value
+of the reaction $\T{\lambda}$.
 
+\begin{comment}
+%%% TODO
 \subsection{Dynamic}
 The \kw{dynamic} regularization differs from that of Tikhonov
 by the fact that the multiplers are intended as dynamical quantities
@@ -4574,6 +4586,7 @@ the constraint equation is unmodified.
 The pseudo-dynamics of the multiplier is added to the constraint equation
 by using the $\Delta\T{\lambda}$ at the previous iteration
 in the right hand-side of the above equation.
+\end{comment}
 
 
 \section{Loadable Element}\label{sec:EL:BASE:LOADABLE}
@@ -4717,11 +4730,11 @@ to be added to the loader flags, e.g.
 \begin{verbatim}
     LDFLAGS="-rdynamic" ./configure --with-module=<module_name>
 \end{verbatim}
-on \kw{sh(1)} and compatible shells like \kw{bash(1)}, or
+with \kw{sh(1)} and compatible shells like \kw{bash(1)}, or
 \begin{verbatim}
     env LDFLAGS="-rdynamic" ./configure --with-module=<module_name>
 \end{verbatim}
-on \kw{csh(1)} and compatible shells.
+with \kw{csh(1)} and compatible shells.
 
 
 
