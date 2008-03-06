@@ -54,7 +54,7 @@ public:
 	{
 		ConstitutiveLaw<doublereal, doublereal>::FDE =  0.; //FIXME dStiffness;
 
-		if (nlrheo_init((void *)&pa)) {
+		if (nlrheo_init(&pa)) {
 			silent_cerr("DamperConstitutiveLaw: init failed" << std::endl);
 			throw ErrGeneric();
 		}
@@ -62,7 +62,7 @@ public:
 
 	virtual ~DamperConstitutiveLaw(void) {
 		SAFEDELETE(pTime);
-		(void)(nlrheo_destroy((void *)&pa));
+		(void)(nlrheo_destroy(&pa));
 	};
 
 	virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const {
@@ -79,14 +79,14 @@ public:
 	};
 
 	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime = 0.) {
-		if (nlrheo_update((void *)&pa, pTime->dGet(), Eps, EpsPrime, 1)) {
+		if (nlrheo_update(&pa, pTime->dGet(), Eps, EpsPrime, 1)) {
 			silent_cerr("DamperConstitutiveLaw: unable to update" << std::endl);
 			throw ErrGeneric();
 		}
 	};
 
 	virtual void AfterConvergence(const doublereal& Eps, const doublereal& EpsPrime = 0.) {
-		if (nlrheo_update((void *)&pa, pTime->dGet(), Eps, EpsPrime, 0)) {
+		if (nlrheo_update(&pa, pTime->dGet(), Eps, EpsPrime, 0)) {
 			silent_cerr("DamperConstitutiveLaw: unable to update after convergence" << std::endl);
 			throw ErrGeneric();
 		}
