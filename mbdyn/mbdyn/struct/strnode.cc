@@ -3051,12 +3051,12 @@ ReadStructNode(DataManager* pDM,
 
 		case ORIENTATION_VECTOR:
 			out << "phi ",
-				RotManip::VecRot(pNd->GetRCurr()).Write(out, "" );
+				RotManip::VecRot(pNd->GetRCurr()).Write(out, " ");
 			break;
 
 		case ORIENTATION_MATRIX:
 			out << "mat ",
-				pNd->GetRCurr().Write(out, "" );
+				pNd->GetRCurr().Write(out, " ");
 			break;
 
 		default:
