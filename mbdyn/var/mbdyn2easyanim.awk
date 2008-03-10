@@ -61,7 +61,7 @@ function mat3_mul_vec3_add_vec3(m, v1, v2, r)
 	r[3] = m[3, 1]*v1[1] + m[3, 2]*v1[2] + m[3, 3]*v1[3] + v2[3];
 }
 
-# trasforms 3 angles as aoutput by MBDyn (1,2,3 sequence) into R matrix
+# trasforms 3 angles as output by MBDyn (1,2,3 sequence) into R matrix
 function euler2R(Alpha, Beta, Gamma, R,   dCosAlpha, dSinAlpha, dCosBeta, dSinBeta, dCosGamma, dSinGamma) {
 	dCosAlpha = cos(Alpha*AngleScale);
 	dSinAlpha = sin(Alpha*AngleScale);
@@ -79,6 +79,47 @@ function euler2R(Alpha, Beta, Gamma, R,   dCosAlpha, dSinAlpha, dCosBeta, dSinBe
 	R[1, 3] = dSinBeta;
 	R[2, 3] = -dSinAlpha*dCosBeta;
 	R[3, 3] = dCosAlpha*dCosBeta;
+}
+
+# trasforms 3 angles as output by MBDyn (1,2,3 sequence) into R matrix
+function phi2R(phi1, phi2, phi3, R,   dPhi, da, db) {
+	dPhi = sqrt(phi1*phi1 + phi2*phi2 + phi3*phi3);
+	if (dPhi > 1e-6) {
+		da = sin(dPhi)/dPhi;
+		db = (1 - cos(dPhi))/(dPhi*dPhi);
+
+		R[1, 1] = 1. - db*(phi2*phi2 + phi3*phi3);
+		R[2, 1] = da*phi3 + db*phi2*phi1;
+		R[3, 1] = -da*phi2 + db*phi3*phi1;
+		R[1, 2] = -da*phi3 + db*phi1*phi2;
+		R[2, 2] = 1. - db*(phi3*phi3 + phi1*phi1);;
+		R[3, 2] = da*phi1 + db*phi3*phi2;
+		R[1, 3] = da*phi2 + db*phi1*phi3;
+		R[2, 3] = -da*phi1 + db*phi2*phi3;
+		R[3, 3] = 1. - db*(phi1*phi1 + phi2*phi2);;
+
+	} else if (dPhi > 1e-12) {
+		R[1, 1] = 1.;
+		R[2, 1] = phi3;
+		R[3, 1] = -phi2;
+		R[1, 2] = -phi3;
+		R[2, 2] = 1.;
+		R[3, 2] = phi1;
+		R[1, 3] = phi2;
+		R[2, 3] = -phi1;
+		R[3, 3] = 1.;
+
+	} else {
+		R[1, 1] = 1.;
+		R[2, 1] = 0.;
+		R[3, 1] = 0.;
+		R[1, 2] = 0.;
+		R[2, 2] = 1.;
+		R[3, 2] = 0.;
+		R[1, 3] = 0.;
+		R[2, 3] = 0.;
+		R[3, 3] = 1.;
+	}
 }
 
 BEGIN {
@@ -276,9 +317,17 @@ isvan == 0 && /structural node:/ {
 	strnode[$3, 1] = $4;
 	strnode[$3, 2] = $5;
 	strnode[$3, 3] = $6;
-	strnode[$3, 4] = $7;
-	strnode[$3, 5] = $8;
-	strnode[$3, 6] = $9;
+	if ($7 == "phi") {
+		strnode[$3, "orientation"] = "phi";
+		strnode[$3, 4] = $8;
+		strnode[$3, 5] = $9;
+		strnode[$3, 6] = $10;
+
+	} else {
+		strnode[$3, 4] = $7;
+		strnode[$3, 5] = $8;
+		strnode[$3, 6] = $9;
+	}
 	strnode_num++;
 
 	if (!exclude["structural node", $3]) {
@@ -1065,7 +1114,12 @@ function node_pos(i, X) {
 		v2[2] = strnode[label, 2];
 		v2[3] = strnode[label, 3];
 
-		euler2R(strnode[label, 4], strnode[label, 5], strnode[label, 6], R);
+		if (strnode[label, "orientation"] == "phi") {
+			phi2R(strnode[label, 4], strnode[label, 5], strnode[label, 6], R);
+
+		} else {
+			euler2R(strnode[label, 4], strnode[label, 5], strnode[label, 6], R);
+		}
 
 		v1[1] = node[i, 1];
 		v1[2] = node[i, 2];
