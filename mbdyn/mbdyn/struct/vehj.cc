@@ -177,6 +177,7 @@ DeformableHingeJoint::Output(OutputHandler& OH) const
 	if (fToBeOutput()) {
 		Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
 		Mat3x3 R2h(pNode2->GetRCurr()*tilde_R2h);
+		Mat3x3 R(R1h.MulTM(R2h));
 
 		Vec3 v(GetF());
 		Joint::Output(OH.Joints(), "DeformableHinge", GetLabel(),
@@ -184,15 +185,15 @@ DeformableHingeJoint::Output(OutputHandler& OH) const
 
 		switch (od) {
 		case EULER_123:
-			OH.Joints() << MatR2EulerAngles(R1h.MulTM(R2h))*dRaDegr;
+			OH.Joints() << MatR2EulerAngles(R)*dRaDegr;
 			break;
 
 		case ORIENTATION_VECTOR:
-			OH.Joints() << RotManip::VecRot(R1h.MulTM(R2h));
+			OH.Joints() << RotManip::VecRot(R);
 			break;
 
 		case ORIENTATION_MATRIX:
-			OH.Joints() << R1h.MulTM(R2h);
+			OH.Joints() << R;
 			break;
 
 		default:
@@ -216,12 +217,32 @@ DeformableHingeJoint::OutputInv(OutputHandler& OH) const
 		Mat3x3 R(R1h.Transpose()*R2h);
 		Mat3x3 hat_R(R1h*RotManip::Rot(RotManip::VecRot(R)/2.));
 
-		Vec3 d(MatR2EulerAngles(R)*dRaDegr);
 		Vec3 v(GetF());
-
 		Joint::Output(OH.Joints(), "DeformableHinge", GetLabel(),
-			Zero3, v, Zero3, hat_R*v)
-			<< " " << d << std::endl;
+			Zero3, v, Zero3, hat_R*v) << " ";
+
+		switch (od) {
+		case EULER_123:
+			OH.Joints() << MatR2EulerAngles(R)*dRaDegr;
+			break;
+
+		case ORIENTATION_VECTOR:
+			OH.Joints() << RotManip::VecRot(R);
+			break;
+
+		case ORIENTATION_MATRIX:
+			OH.Joints() << R;
+			break;
+
+		default:
+			/* impossible */
+			break;
+		}
+
+		/* TODO: the invariant case differs */
+		OH.Joints() << " "
+			<< hat_R.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr())
+			<< std::endl;
 	}
 }
 
