@@ -51,6 +51,7 @@ DeformableHingeJoint::DeformableHingeJoint(unsigned int uL,
 		const StructNode* pN2,
 		const Mat3x3& tilde_R1h,
 		const Mat3x3& tilde_R2h,
+		const OrientationDescription& od,
 		flag fOut)
 : Elem(uL, fOut),
 Joint(uL, pDO, fOut),
@@ -59,6 +60,7 @@ pNode1(pN1),
 pNode2(pN2),
 tilde_R1h(tilde_R1h),
 tilde_R2h(tilde_R2h),
+od(od),
 bFirstRes(false)
 {
 	ASSERT(pNode1 != NULL);
@@ -176,11 +178,32 @@ DeformableHingeJoint::Output(OutputHandler& OH) const
 		Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
 		Mat3x3 R2h(pNode2->GetRCurr()*tilde_R2h);
 
-		Vec3 d(MatR2EulerAngles(R1h.Transpose()*R2h)*dRaDegr);
 		Vec3 v(GetF());
 		Joint::Output(OH.Joints(), "DeformableHinge", GetLabel(),
-			Zero3, v, Zero3, R1h*v)
-			<< " " << d << std::endl;
+			Zero3, v, Zero3, R1h*v) << " ";
+
+		switch (od) {
+		case EULER_123:
+			OH.Joints() << MatR2EulerAngles(R1h.MulTM(R2h))*dRaDegr;
+			break;
+
+		case ORIENTATION_VECTOR:
+			OH.Joints() << RotManip::VecRot(R1h.MulTM(R2h));
+			break;
+
+		case ORIENTATION_MATRIX:
+			OH.Joints() << R1h.MulTM(R2h);
+			break;
+
+		default:
+			/* impossible */
+			break;
+		}
+
+		/* TODO: the invariant case differs */
+		OH.Joints() << " "
+			<< R1h.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr())
+			<< std::endl;
 	}
 }
 
@@ -409,9 +432,10 @@ ElasticHingeJoint::ElasticHingeJoint(unsigned int uL,
 		const StructNode* pN2,
 		const Mat3x3& tilde_R1h,
 		const Mat3x3& tilde_R2h,
+		const OrientationDescription& od,
 		flag fOut)
 : Elem(uL, fOut),
-DeformableHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, fOut),
+DeformableHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, od, fOut),
 ThetaRef(0.)
 {
 	NO_OP;
@@ -716,9 +740,10 @@ ElasticHingeJointInv::ElasticHingeJointInv(unsigned int uL,
 		const StructNode* pN2,
 		const Mat3x3& tilde_R1h,
 		const Mat3x3& tilde_R2h,
+		const OrientationDescription& od,
 		flag fOut)
 : Elem(uL, fOut),
-ElasticHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, fOut)
+ElasticHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, od, fOut)
 {
 	NO_OP;
 }
@@ -783,9 +808,10 @@ ViscousHingeJoint::ViscousHingeJoint(unsigned int uL,
 		const StructNode* pN2,
 		const Mat3x3& tilde_R1h,
 		const Mat3x3& tilde_R2h,
+		const OrientationDescription& od,
 		flag fOut)
 : Elem(uL, fOut),
-DeformableHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, fOut)
+DeformableHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, od, fOut)
 {
 	NO_OP;
 }
@@ -1095,9 +1121,10 @@ ViscousHingeJointInv::ViscousHingeJointInv(unsigned int uL,
 		const StructNode* pN2,
 		const Mat3x3& tilde_R1h,
 		const Mat3x3& tilde_R2h,
+		const OrientationDescription& od,
 		flag fOut)
 : Elem(uL, fOut),
-ViscousHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, fOut)
+ViscousHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, od, fOut)
 {
 	NO_OP;
 }
@@ -1199,9 +1226,10 @@ ViscoElasticHingeJoint::ViscoElasticHingeJoint(unsigned int uL,
 		const StructNode* pN2,
 		const Mat3x3& tilde_R1h,
 		const Mat3x3& tilde_R2h,
+		const OrientationDescription& od,
 		flag fOut)
 : Elem(uL, fOut),
-DeformableHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, fOut),
+DeformableHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, od, fOut),
 ThetaRef(0.)
 {
 	NO_OP;
@@ -1535,9 +1563,10 @@ ViscoElasticHingeJointInv::ViscoElasticHingeJointInv(unsigned int uL,
 		const StructNode* pN2,
 		const Mat3x3& tilde_R1h,
 		const Mat3x3& tilde_R2h,
+		const OrientationDescription& od,
 		flag fOut)
 : Elem(uL, fOut),
-ViscoElasticHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, fOut)
+ViscoElasticHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, od, fOut)
 {
 	NO_OP;
 }

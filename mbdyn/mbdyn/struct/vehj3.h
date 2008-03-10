@@ -424,7 +424,10 @@ public:
 		const VectorHandler&  XPrimeCurr,
 		const VectorHandler&  XPrimePrimeCurr,
 		int iOrder = -1)//;
-		{NO_OP;};
+	{
+		WorkVec.Resize(0);
+		return WorkVec;
+	};
 
 	/* Aggiorna le deformazioni ecc. */
 	virtual void

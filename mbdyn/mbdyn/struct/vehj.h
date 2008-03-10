@@ -50,6 +50,8 @@ protected:
 	mutable Mat3x3 tilde_R1h;
 	mutable Mat3x3 tilde_R2h;
 
+	OrientationDescription od;
+
 	bool bFirstRes;
 
 	Vec3 M;
@@ -96,6 +98,7 @@ public:
 			const StructNode* pN2,
 			const Mat3x3& tilde_R1h,
 			const Mat3x3& tilde_R2h,
+			const OrientationDescription& od,
 			flag fOut);
 
 	/* Distruttore */
@@ -178,6 +181,7 @@ public:
 			const StructNode* pN2,
 			const Mat3x3& tilde_R1h,
 			const Mat3x3& tilde_R2h,
+			const OrientationDescription& od,
 			flag fOut);
 
 	virtual ~ElasticHingeJoint(void);
@@ -284,6 +288,7 @@ public:
 			const StructNode* pN2,
 			const Mat3x3& tilde_R1h,
 			const Mat3x3& tilde_R2h,
+			const OrientationDescription& od,
 			flag fOut);
 
 	virtual ~ElasticHingeJointInv(void);
@@ -347,6 +352,7 @@ public:
 			const StructNode* pN2,
 			const Mat3x3& tilde_R1h,
 			const Mat3x3& tilde_R2h,
+			const OrientationDescription& od,
 			flag fOut);
 
 	virtual ~ViscousHingeJoint(void);
@@ -454,6 +460,7 @@ public:
 			const StructNode* pN2,
 			const Mat3x3& tilde_R1h,
 			const Mat3x3& tilde_R2h,
+			const OrientationDescription& od,
 			flag fOut);
 
 	virtual ~ViscousHingeJointInv(void);
@@ -522,6 +529,7 @@ public:
 			const StructNode* pN2,
 			const Mat3x3& tilde_R1h,
 			const Mat3x3& tilde_R2h,
+			const OrientationDescription& od,
 			flag fOut);
 
 	~ViscoElasticHingeJoint(void);
@@ -628,6 +636,7 @@ public:
 			const StructNode* pN2,
 			const Mat3x3& tilde_R1h,
 			const Mat3x3& tilde_R2h,
+			const OrientationDescription& od,
 			flag fOut);
 
 	~ViscoElasticHingeJointInv(void);

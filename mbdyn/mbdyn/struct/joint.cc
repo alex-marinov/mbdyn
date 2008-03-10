@@ -1537,6 +1537,17 @@ ReadJoint(DataManager* pDM,
 			throw ErrGeneric();
 		}
 
+		OrientationDescription od = UNKNOWN_ORIENTATION_DESCRIPTION;
+		switch (CurrKeyWord) {
+		case DEFORMABLEHINGE:
+		case INVARIANTDEFORMABLEHINGE:
+			od = ReadOptionalOrientationDescription(pDM, HP);
+			break;
+
+		default:
+			break;
+		}
+
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
 
 		const char *sJointLogName = 0;
@@ -1549,7 +1560,7 @@ ReadJoint(DataManager* pDM,
 					ElasticHingeJoint,
 					ElasticHingeJoint(uLabel, pDO, pCL,
 						pNode1, pNode2,
-						R1, R2, fOut));
+						R1, R2, od, fOut));
 				sJointLogName = "deformablehinge";
 				break;
 
@@ -1558,7 +1569,7 @@ ReadJoint(DataManager* pDM,
 					ElasticHingeJointInv,
 					ElasticHingeJointInv(uLabel, pDO, pCL,
 						pNode1, pNode2,
-						R1, R2, fOut));
+						R1, R2, od, fOut));
 				sJointLogName = "deformablehinge";
 				break;
 
@@ -1604,7 +1615,7 @@ ReadJoint(DataManager* pDM,
 					ViscousHingeJoint,
 					ViscousHingeJoint(uLabel, pDO, pCL,
 						pNode1, pNode2,
-						R1, R2, fOut));
+						R1, R2, od, fOut));
 				sJointLogName = "deformablehinge";
 				break;
 
@@ -1613,7 +1624,7 @@ ReadJoint(DataManager* pDM,
 					ViscousHingeJointInv,
 					ViscousHingeJointInv(uLabel, pDO, pCL,
 						pNode1, pNode2,
-						R1, R2, fOut));
+						R1, R2, od, fOut));
 				sJointLogName = "deformablehinge";
 				break;
 
@@ -1655,7 +1666,7 @@ ReadJoint(DataManager* pDM,
 					ViscoElasticHingeJoint,
 					ViscoElasticHingeJoint(uLabel, pDO, pCL,
 						pNode1, pNode2,
-						R1, R2, fOut));
+						R1, R2, od, fOut));
 				sJointLogName = "deformablehinge";
 				break;
 
@@ -1664,7 +1675,7 @@ ReadJoint(DataManager* pDM,
 					ViscoElasticHingeJointInv,
 					ViscoElasticHingeJointInv(uLabel, pDO, pCL,
 						pNode1, pNode2,
-						R1, R2, fOut));
+						R1, R2, od, fOut));
 				sJointLogName = "deformablehinge";
 				break;
 
