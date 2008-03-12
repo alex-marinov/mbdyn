@@ -232,7 +232,11 @@ const char* psJointNames[] = {
    "Beam Slider",
    "Brake",
    "Gimbal Rotation",
+   "Point Surface Contact",
    "Total Joint",
+   "Total Pin Joint",
+   "Total Equation",
+   "Total Reaction",
    
    "Modal",
    
