@@ -384,6 +384,9 @@ DataManager::ReadElems(MBDynParser& HP)
 						if (pE != 0) {
 							DEBUGLCOUT(MYDEBUG_INPUT, "element " << uL << std::endl);
 							pE->SetOutputFlag(flag(1));
+							if (dynamic_cast<Modal *>(pE)) {
+								OutputOpen(OutputHandler::MODAL);
+							}
 						}
 					}
 
@@ -397,6 +400,9 @@ DataManager::ReadElems(MBDynParser& HP)
 					} else {
 						DEBUGLCOUT(MYDEBUG_INPUT, "element " << uL << std::endl);
 						pE->SetOutputFlag(flag(1));
+						if (dynamic_cast<Modal *>(pE)) {
+							OutputOpen(OutputHandler::MODAL);
+						}
 					}
 				}
 			} /* end while (HP.IsArg()) */
