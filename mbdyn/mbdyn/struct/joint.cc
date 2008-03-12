@@ -63,6 +63,7 @@
 #include "planedj.h"
 #endif
 #include "planej.h"
+#include "point_contact.h"
 #include "prismj.h"    /* Vincolo prismatico */
 #include "rodj.h"      /* Aste elastiche */
 #include "spherj.h"
@@ -191,6 +192,7 @@ ReadJoint(DataManager* pDM,
 		"brake",
 		"gimbal" "rotation",
 		"modal",
+		"point" "contact",
 
 		NULL
 	};
@@ -251,7 +253,8 @@ ReadJoint(DataManager* pDM,
 		BRAKE,
 		GIMBALROTATION,
 		MODAL,
-
+		POINT_SURFACE_CONTACT,
+		
 		LASTKEYWORD
 	};
 
@@ -3063,7 +3066,45 @@ ReadJoint(DataManager* pDM,
 		pEl = ReadModal(pDM, HP, pDO, uLabel);
 		break;
 
+	case POINT_SURFACE_CONTACT:  {
+		/* leggo i due nodi */
+		/* nodo collegato */
+		StructNode* pNode1 = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+
+
+		/* nodo superficie*/
+		StructNode* pSup = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+	
+		/* leggo posizione e direzione della superficie nel sistema del nodo*/
+		Vec3 SupDirection = HP.GetVecRel(ReferenceFrame(pSup));
+
+	
+		/* Normalizzo l'orientazione del terreno */
+		doublereal d = SupDirection.Dot();
+		if (d <= DBL_EPSILON) {
+			silent_cerr("PointSurfaceContact(" << uLabel << "): "
+				"invalid direction at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric();
+		}
+		SupDirection /= sqrt(d);
+
+		double ElasticStiffness = HP.GetReal();
+	
+		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
+ 		
+ 		SAFENEWWITHCONSTRUCTOR(pEl,
+			PointSurfaceContact,
+			PointSurfaceContact(uLabel, pDO,
+				pNode1, pSup, SupDirection, ElasticStiffness, fOut));
+						
+	} break;
+	
+
+
 	/* Aggiungere qui altri vincoli */
+
+			
 
 	default:
 		{

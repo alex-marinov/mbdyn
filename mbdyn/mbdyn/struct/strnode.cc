@@ -2978,7 +2978,9 @@ ReadStructNode(DataManager* pDM,
 		od = ReadOptionalOrientationDescription(pDM, HP);
 
 		flag fOut = pDM->fReadOutput(HP, Node::STRUCTURAL);
-		if ((CurrType == DYNAMIC && HP.IsArg() && HP.IsKeyWord("accelerations"))
+		if (((CurrType == DYNAMIC || CurrType == MODAL)
+				&& HP.IsArg()
+				&& HP.IsKeyWord("accelerations"))
 			|| pDM->bOutputAccelerations())
 		{
 			fOut |= 2;

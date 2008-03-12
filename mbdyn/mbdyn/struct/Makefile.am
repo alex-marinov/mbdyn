@@ -66,6 +66,8 @@ modalforce.h \
 module-wheel2.cc \
 planej.cc \
 planej.h \
+point_contact.cc \
+point_contact.h \
 prismj.cc \
 prismj.h \
 pzbeam.cc \
