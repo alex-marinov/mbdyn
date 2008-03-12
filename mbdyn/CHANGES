@@ -14,6 +14,7 @@ MBDyn 1.X-Devel
 		- configurable orientation output for gimbal rotation joint
 	Backward compatibility issues:
 	Known issues:
+		- scalar filter seems to be broken; use state space SISO
 	Bug fixes:
 
 MBDyn 1.3.3-Beta
