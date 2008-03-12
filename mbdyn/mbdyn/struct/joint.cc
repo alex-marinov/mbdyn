@@ -1827,6 +1827,10 @@ ReadJoint(DataManager* pDM,
 
 		default:
 			ASSERTMSG(0, "You shouldn't have reached this point");
+			silent_cerr("\"deformable joint\" "
+				"at line " << HP.GetLineData()
+				<< " not implemented with the requested "
+				"constitutive law type" << std::endl);
 			throw DataManager::ErrGeneric();
 		}
 
