@@ -196,7 +196,9 @@ func (double t, const double y[], double f[],
 	void *para)
 {
 	sym_params & pa = *((sym_params *)para);
-	double s = (pa.sf - pa.si) / (pa.tf - pa.ti) * (t - pa.ti) + pa.si;
+	double sstatic = y[pa.n_elementi - pa.n_parallelo + 2];
+	double sdynamic = (pa.sf - pa.si) / (pa.tf - pa.ti) * (t - pa.ti) + pa.si; 
+	double s = sdynamic - sstatic;
 	double v = (pa.vf - pa.vi) / (pa.tf - pa.ti) * (t - pa.ti) + pa.vi;
 
 // 	Per ogni componente in parallelo
@@ -241,8 +243,8 @@ func (double t, const double y[], double f[],
 			//calcola b -= Kx
 			gsl_blas_dgemv(CblasNoTrans, -1., pa.gsl_K[i], pa.gsl_x[i], 1., pa.gsl_b[i]);
 			//calcola xp = C^-1 b
-			int s;
-			gsl_linalg_LU_decomp(pa.gsl_C[i], pa.gsl_perm[i], &s);
+			int ints;
+			gsl_linalg_LU_decomp(pa.gsl_C[i], pa.gsl_perm[i], &ints);
 			gsl_linalg_LU_solve(pa.gsl_C[i], pa.gsl_perm[i], pa.gsl_b[i], pa.gsl_xp[i]);
 			//TODO: setta f e par.f
 			for (int ii=0; ii < nincognite; ii++) {
@@ -271,12 +273,16 @@ func (double t, const double y[], double f[],
 			pa.f_v += c[0];
 		}
 	}
-	f[pa.n_elementi - pa.n_parallelo] = -y[pa.n_elementi - pa.n_parallelo] * 2. / pa.a + 
-		-y[pa.n_elementi - pa.n_parallelo + 1] / pa.a / pa.a + 
+	f[pa.n_elementi - pa.n_parallelo] = -y[pa.n_elementi - pa.n_parallelo] * 2. / pa.hi_freq_force_filter_coeff + 
+		-y[pa.n_elementi - pa.n_parallelo + 1] / pa.hi_freq_force_filter_coeff / pa.hi_freq_force_filter_coeff + 
 		((pa.x[pa.n_variabili] * std::atan(v / pa.x[pa.n_variabili+1]) +
-		pa.x[pa.n_variabili+2] * std::atan(v / pa.x[pa.n_variabili+3]))/2.) / pa.a / pa.a;
+		pa.x[pa.n_variabili+2] * std::atan(v / pa.x[pa.n_variabili+3]))/2.) / pa.hi_freq_force_filter_coeff / pa.hi_freq_force_filter_coeff;
 	f[pa.n_elementi - pa.n_parallelo + 1] = y[pa.n_elementi - pa.n_parallelo];
+	f[pa.n_elementi - pa.n_parallelo + 2] = -pa.low_freq_displ_filter_coeff * y[pa.n_elementi - pa.n_parallelo + 2] +
+		pa.low_freq_displ_filter_coeff * sdynamic; 
 	pa.f += y[pa.n_elementi - pa.n_parallelo + 1];
+	pa.f += sstatic * pa.static_low_freq_stiffness;
+	pa.f_s += pa.static_low_freq_stiffness;
 
 	return GSL_SUCCESS;
 }
@@ -292,8 +298,8 @@ nlrheo_init(sym_params *nlrheo)
 	pa.dt = 0.;
 	pa.prev_eps = 0.;
 	pa.prev_epsPrime = 0.;
-	pa.stepint = gsl_odeiv_step_alloc(pa.T, pa.n_elementi - pa.n_parallelo + 2);
-	pa.evolve = gsl_odeiv_evolve_alloc(pa.n_elementi - pa.n_parallelo + 2);
+	pa.stepint = gsl_odeiv_step_alloc(pa.T, pa.n_elementi - pa.n_parallelo + 2 + 1);
+	pa.evolve = gsl_odeiv_evolve_alloc(pa.n_elementi - pa.n_parallelo + 2 + 1);
 	double eps_abs = 1.E-15;
 	double eps_rel = 1.E-15;
 	pa.control = gsl_odeiv_control_standard_new(eps_abs, eps_rel, 1., 1.);
@@ -301,11 +307,11 @@ nlrheo_init(sym_params *nlrheo)
 	pa.sys.jacobian = NULL;
 	pa.sys.dimension = 1;
 	pa.sys.params = &pa;
-	pa.y = new double[pa.n_elementi - pa.n_parallelo + 2];
-	pa.y_dummy = new double[pa.n_elementi - pa.n_parallelo + 2];
+	pa.y = new double[pa.n_elementi - pa.n_parallelo + 2 + 1];
+	pa.y_dummy = new double[pa.n_elementi - pa.n_parallelo + 2 + 1];
 
 	pa.f = 0.;
-	for (int i = 0; i < pa.n_elementi - pa.n_parallelo + 2; i++) {
+	for (int i = 0; i < pa.n_elementi - pa.n_parallelo + 2 + 1; i++) {
 		pa.y[i] = pa.y_dummy[i] = 0.;
 	}
 
@@ -403,7 +409,7 @@ nlrheo_update(sym_params *nlrheo,
 	pa.vi = pa.prev_epsPrime;
 
 	if (do_try) {
-		for (int i = 0; i < pa.n_elementi - pa.n_parallelo + 2; i++) {
+		for (int i = 0; i < pa.n_elementi - pa.n_parallelo + 2 + 1; i++) {
 			pa.y_dummy[i] = pa.y[i];
 		}
 		yp = pa.y_dummy;
@@ -416,8 +422,8 @@ nlrheo_update(sym_params *nlrheo,
 			&pa.sys, &t, pa.tf, &pa.dt, yp);
 
 		pa.F = pa.f * pa.scale_f;
-		pa.FDE = pa.f_s * pa.scale_f;
-		pa.FDEPrime = pa.f_v * pa.scale_f;
+		pa.FDE = pa.f_s * pa.scale_f * pa.scale_eps;
+		pa.FDEPrime = pa.f_v * pa.scale_f * pa.scale_eps;
 	}
 
 	if (!do_try) {
@@ -432,7 +438,8 @@ nlrheo_update(sym_params *nlrheo,
 
 extern "C" int
 nlrheo_parse(sym_params **nlrheop,
-	double scale_eps, double scale_f, double filter)
+	double scale_eps, double scale_f, double hi_filter,
+	double lo_filter, double lo_stiffness)
 {
 	*nlrheop = 0;
 
@@ -441,7 +448,9 @@ nlrheo_parse(sym_params **nlrheop,
 
 	pa.scale_eps = scale_eps;
 	pa.scale_f = scale_f;
-	pa.a = filter;
+	pa.hi_freq_force_filter_coeff = hi_filter;
+	pa.low_freq_displ_filter_coeff = lo_filter;
+	pa.static_low_freq_stiffness = lo_stiffness;
 
 	if (nlrheo_get_int(&pa.n_parallelo)) {
 		return -1;

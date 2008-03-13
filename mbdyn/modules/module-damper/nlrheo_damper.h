@@ -75,7 +75,7 @@ typedef struct sym_params {
 	double scale_eps;
 	double scale_f;
 	/* filter 1/angular frequency */
-	double a;
+	double hi_freq_force_filter_coeff;
 
 	/* per integrazione */
 	double sf, si, vf, vi, tf, ti;
@@ -95,6 +95,9 @@ typedef struct sym_params {
 	gsl_odeiv_system sys;
 	double prev_time, current_time, dt;
 	double prev_eps, prev_epsPrime;
+	
+	double low_freq_displ_filter_coeff;
+	double static_low_freq_stiffness;
 } sym_params;
 
 /* read functions */
@@ -106,7 +109,8 @@ extern "C" int nlrheo_destroy(sym_params *nlrheo);
 extern "C" int nlrheo_update(sym_params *nlrheo,
 	double t_curr, double eps, double epsPrime, int do_try);
 extern "C" int nlrheo_parse(sym_params **nlrheop,
-	double scale_eps, double scale_f, double filter);
+	double scale_eps, double scale_f, double hi_filter,
+	double lo_filter, double lo_stiffness);
 
 #ifdef __cplusplus
 } /* extern "C" */

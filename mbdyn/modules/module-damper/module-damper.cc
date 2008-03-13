@@ -149,8 +149,8 @@ struct DamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 		}
 
 		// By default, cut at 
-		double a = 1./(2.*M_PI*160.);
-		if (HP.IsKeyWord("filter")) {
+		double hi_freq_force_filter_coeff = 1./(2.*M_PI*160.);
+		if (HP.IsKeyWord("force" "filter")) {
 			doublereal dOmega = HP.GetReal();
 			if (dOmega <= 0.) {
 				silent_cerr("DamperConstitutiveLaw: "
@@ -159,13 +159,39 @@ struct DamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 					<< std::endl);
 				throw ErrGeneric();
 			}
-			a = 1./dOmega;
+			hi_freq_force_filter_coeff = 1./dOmega;
+		}
+
+		double low_freq_displ_filter_coeff = 0.;
+		double static_low_freq_stiffness = 0.;
+		if (HP.IsKeyWord("deformation" "filter")) {
+			doublereal dOmega = HP.GetReal();
+			doublereal E = HP.GetReal();
+			if (dOmega <= 0.) {
+				silent_cerr("DamperConstitutiveLaw: "
+					"invalid angular frequency " << dOmega <<
+					" at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric();
+			}
+			if (E <= 0.) {
+				silent_cerr("DamperConstitutiveLaw: "
+					"invalid static stiffness " << E <<
+					" at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric();
+			}
+			low_freq_displ_filter_coeff = dOmega;
+			static_low_freq_stiffness = E;
 		}
 
 		sym_params* pap = 0;
 
 		pHP = &HP;
-		if (nlrheo_parse(&pap, scale_eps, scale_f, a)) {
+		if (nlrheo_parse(&pap, scale_eps, scale_f, 
+			hi_freq_force_filter_coeff,
+			low_freq_displ_filter_coeff,
+			static_low_freq_stiffness)) {
 			silent_cerr("DamperConstitutiveLaw: "
 				"parse error at line " << HP.GetLineData()
 				<< std::endl);
