@@ -1577,10 +1577,20 @@ The complete syntax is:
     <arglist> ::= <element_label> , 
         <element_type> ,
         <parameter_node_label> , 
+        <special_args>
+\end{verbatim}
+where \kw{special\_args} depend on the type of parameter node.
+
+\subsection{Element}
+When binding an element to an \kw{element} parameter node,
+each element makes a number of specific parameters available.
+A detailed list is given for each element in the \kw{private data}
+section.
+In that case:
+\begin{verbatim}
+    <special_args> ::=
         { <parameter_index> | name , " <parameter_name> " }
 \end{verbatim}
-Each element makes a number of parameters available for such binding; a
-detailed list is being added to the input manual.
 The value of \kw{parameter\_index} must be legal, i.e.\ between 1 and the
 maximum number of parameters made available by the element.
 The alternative form, which will become the default, allows more
@@ -1596,7 +1606,8 @@ what parameters they can make available be devised and implemented.
 Example: the parameter node \kw{angle} is bound to the rotation of a 
 \hyperref{\kw{revolute hinge}}{\kw{revolute hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:REVOLUTE_HINGE}.
 \begin{verbatim}
-    # ... integrator
+    # ... problem block
+
     begin: control data;
         structural nodes: 2;
         parameter nodes: 1;
@@ -1641,6 +1652,44 @@ through the \kw{bind} mechanism has the additional effect of updating
 the \kw{parameter} node, which can be used to connect \kw{genel} elements 
 for special purposes.
 
+\subsection{Beam strain gage}
+When binding an element to a \kw{beam strain gage} parameter node,
+the \kw{element\_type} field must be \kw{beam}.
+In that case:
+\begin{verbatim}
+    <special_args> ::=
+        <evaluation_point}
+\end{verbatim}
+where \kw{evaluation\_point} is the evaluation point of the beam element
+where the internal strain and curvatures must be evaluated.
+It must be 1 for 2-node beams, while it can be either 1 or 2
+for 3-node beams.
+
+Example:
+\begin{verbatim}
+    # ... problem block
+
+    begin: control data;
+        parameter nodes: 1;
+        beams: 1;
+        # ... other control data
+    end: control data;
+
+    set: integer BEAM = 100;
+    set: integer STRAIN = 200;
+
+    begin: nodes;
+        parameter: STRAIN, beam strain gage, 0.0, 0.1;
+        # ... other nodes
+    end: nodes;
+
+    begin: elements;
+        beam3: BEAM, ...; # beam data
+        bind: BEAM, beam, STRAIN, 1;
+        # ... other elements
+    end: elements;
+\end{verbatim}
+
 
 
 \section{Body}
@@ -1675,14 +1724,14 @@ of the inertia matrix are defined with a minus sign; for instance,
 NASTRAN's \kw{CONM2} lumped inertia card expects the values as indicated
 in Figure~\ref{fig:el:body:CONM2}.
 %
-\begin{figure}
+\begin{figure}[b]
 \centering
 \begin{minipage}{120mm}
-\begin{verbatim}
+\begin{boxedverbatim}
 $.......2.......3.......4.......5.......6.......7.......8.......
 CONM2   EID     G       CID     M       X1      X2      X3
         I11     I21     I22     I31     I32     I33
-\end{verbatim}
+\end{boxedverbatim}
 \end{minipage}
 \caption{NASTRAN \kw{CONM2} card}
 \label{fig:el:body:CONM2}
@@ -1708,9 +1757,9 @@ that will be used in the computation, i.e.\
 as reported below:
 \begin{displaymath}
 	\mathrm{MBDyn \ ::= } \ \sqbr{\matr{ccc}{
-		i11 & \multicolumn{2}{r}{\mathrm{sym.}} \\
-		i21 & i22 & \\
-		i31 & i32 & i33
+		i11 & i12 & i13 \\
+		& i22 & i23 \\
+		\multicolumn{2}{l}{\mathrm{sym.}} & i33
 	}}
 \end{displaymath}
 So:
@@ -1718,17 +1767,18 @@ So:
 	i11 & = & I11 \\
 	i22 & = & I22 \\
 	i33 & = & I33 \\
-	i21 & = & - I21 \\
-	i31 & = & - I31 \\
-	i32 & = & - I32
+	i12 & = & - I21 \\
+	i13 & = & - I31 \\
+	i23 & = & - I32
 \end{eqnarray*}
 The inertia properties of the model can be logged and verified
 by means of the \kw{inertia} keyword, as detailed
 in Section~\ref{sec:EL:MISC:INERTIA}.
 
 If the optional \kw{reference node} parameter is given, the structural
-node the element is connected to must be \kw{static}, or the model type
-must be \kw{static} in the control data section.
+node the element is connected to must be \kw{static},
+or the model type in the control data section must be
+\hyperref{\kw{static}}{\kw{static} (see Section~}{)}{sec:CONTROLDATA:MODEL}.
 In this case, the reference node is used to compute the angular velocity
 and the centripetal acceleration, which are used to generate reference
 inertia forcing terms.

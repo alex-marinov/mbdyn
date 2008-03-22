@@ -338,8 +338,10 @@ of what representation is being used and treat output accordingly.
 
 
 \subsubsection{Model}
+\label{sec:CONTROLDATA:MODEL}
 \begin{verbatim}
-    <card> ::= model : static ;
+    <card> ::= model : <model_type> ;
+    <model_type> ::= static
 \end{verbatim}
 This statement allows to set the model type to \kw{static}, which means
 that all dynamic structural nodes will be treated as static, and inertia
