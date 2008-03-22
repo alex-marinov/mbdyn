@@ -27,11 +27,13 @@ while test x$1 != x ; do
 	esac
 done
 
+rm -f "$LOG"
+
 TGT="input install"
 for IN in $TGT; do
 	OUT="mbdyn-${IN}$VV"
 
-	rm -rf "$IN" "$OUT" "$LOG"
+	rm -rf "$IN" "$OUT"
 
 	if test $MAKEPDF = yes ; then
 		echo "making $OUT.dvi..."

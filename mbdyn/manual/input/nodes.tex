@@ -56,7 +56,8 @@ The nodes are read as follows:
 
 
 
-\section{Structural Node}\label{sec:NODE:STRUCTURAL}
+\section{Structural Node}
+\label{sec:NODE:STRUCTURAL}
 The historical 6 dof structural node can be \kw{static},
 \kw{dynamic}, \kw{modal} or \kw{dummy}.
 The \kw{static} keyword means no inertia is related to that node, 
@@ -353,6 +354,7 @@ The format of each row is
 
 
 \section{Parameter Node}
+\label{sec:NODE:PARAMETER}
 \begin{verbatim}
     <arglist> ::= { <initial_value>
         | element 
@@ -370,11 +372,13 @@ node value can be changed during the solution by means of a proper driving
 force.
 
 \paragraph{Element}
+\label{sec:NODE:PARAMETER:ELEMENT}
 When the argument list starts with the keyword \kw{element}, the parameter
 node expects to be bound to an element, and to access bulk element data 
 (see the \hyperref{\kwnd{bind} statement}{\kw{bind} statement, Section~}{}{sec:EL:BIND}).
 
 \paragraph{Sample and Hold}
+\label{sec:NODE:PARAMETER:SAH}
 When the argument list starts with the keyword \kw{sample and hold},
 followed by a \kw{NodeDof} and a sample time,
 the parameter node contains the value of the input signal, namely
@@ -383,6 +387,7 @@ This may be useful to preserve the value of some signal across
 time steps.
 
 \paragraph{Beam Strain Gage}
+\label{sec:NODE:PARAMETER:BEAM_STRAIN_GAGE}
 When the argument list starts with the keyword \kw{beam strain gage},
 followed by the coordinates of a point on the section of a beam,
 the \kw{parameter} node expects to be bound to a \kw{beam} element,

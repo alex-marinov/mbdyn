@@ -1567,7 +1567,9 @@ only by the three-node beam element.
 
 
 \section{Bind}\label{sec:EL:BIND}
-This is not really an element; it is used to instruct a \kw{parameter node}
+The statement \kw{bind} does not really define an element.
+It is rather used to instruct a
+\htmlref{\kw{parameter node}}{sec:NODE:PARAMETER}
 about which parameter of an element it is bound to.
 The \kw{parameter node} must exist, and the element the node 
 is being bound to, of type \kw{element\_type} and label \kw{element\_label},
@@ -1577,18 +1579,19 @@ The complete syntax is:
     <arglist> ::= <element_label> , 
         <element_type> ,
         <parameter_node_label> , 
-        <special_args>
+        <bind_args>
 \end{verbatim}
-where \kw{special\_args} depend on the type of parameter node.
+where \kw{bind\_args} depend on the type of parameter node.
 
 \subsection{Element}
-When binding an element to an \kw{element} parameter node,
+When binding an element to an 
+\htmlref{\kw{element}}{sec:NODE:PARAMETER:ELEMENT} parameter node,
 each element makes a number of specific parameters available.
 A detailed list is given for each element in the \kw{private data}
 section.
 In that case:
 \begin{verbatim}
-    <special_args> ::=
+    <bind_args> ::=
         { <parameter_index> | name , " <parameter_name> " }
 \end{verbatim}
 The value of \kw{parameter\_index} must be legal, i.e.\ between 1 and the
@@ -1653,11 +1656,12 @@ the \kw{parameter} node, which can be used to connect \kw{genel} elements
 for special purposes.
 
 \subsection{Beam strain gage}
-When binding an element to a \kw{beam strain gage} parameter node,
-the \kw{element\_type} field must be \kw{beam}.
+When binding an element to a
+\htmlref{\kw{beam strain gage}}{sec:NODE:PARAMETER:BEAM_STRAIN_GAGE}
+parameter node, the \kw{element\_type} field must be \kw{beam}.
 In that case:
 \begin{verbatim}
-    <special_args> ::=
+    <bind_args> ::=
         <evaluation_point>
 \end{verbatim}
 where \kw{evaluation\_point} is the evaluation point of the beam element
