@@ -298,11 +298,13 @@ parse_args(int argc, char *argv[], bool &using_mpi,
 }
 #endif /* USE_MPI */
 
+#ifdef USE_MPI
 #ifdef HAVE_GETPID
 static pid_t pid;
 #else // ! HAVE_GETPID
 static int pid;
-#endif // ! 
+#endif // ! HAVE_GETPID
+#endif // USE_MPI
 
 int
 main(int argc, char* argv[])
