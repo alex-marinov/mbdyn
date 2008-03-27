@@ -160,7 +160,7 @@ OL_ARG_ENABLE(netcdf,[  --enable-netcdf         enable NetCDF based binary outpu
 
 dnl ----------------------------------------------------------------
 dnl General "with" options
-OL_ARG_WITH(tcl,[  --with-tcl              with tcl interpreters],auto,[auto yes no])
+OL_ARG_WITH(tcl,[  --with-tcl              with tcl interpreters],no,[auto yes no])
 OL_ARG_WITH(libf2c,[  --with-libf2c[={f2c|g2c}] with f2c library],no,[auto yes no g2c])
 OL_ARG_WITH(g2c,[  --with-g2c              with g2c header],no,[auto yes no])
 OL_ARG_WITH(fs,[  --with-fs[={unix|dos}]    filesystem type],unix,[unix dos])
@@ -169,7 +169,7 @@ OL_ARG_ENABLE(debug_mpi,[  --enable-debug-mpi      enable MPI debugging], no)dnl
 OL_ARG_WITH(metis,[  --with-metis            with Metis model partitioning support],auto,[auto yes no])
 
 dnl temporarily disabled until we figure out how to make chaco work...
-OL_ARG_WITH(chaco,[  --with-chaco            with Chaco model partitioning support],auto,[auto yes no])
+OL_ARG_WITH(chaco,[  --with-chaco            with Chaco model partitioning support],no,[auto yes no])
 dnl ol_with_chaco=no
 
 OL_ARG_WITH(threads,[  --with-threads          with threads],auto,[auto yes no])
@@ -185,22 +185,22 @@ AC_ARG_WITH(goto,[  --with-goto=lib(s)      with Goto BLAS implementation],[
 OL_ARG_WITH(ginac,[  --with-ginac            with GiNaC support
                           (ginac-config must be in $PATH)],auto,[auto yes no])
 OL_ARG_WITH(y12,[
-       linear algebra solvers (naive is enabled by default):
+       optional linear algebra solvers (naive is enabled by default):
   --with-y12              with Y12 sparse math library],yes,[auto yes no])
 OL_ARG_WITH(umfpack,[  --with-umfpack          with Umfpack math library],auto,[auto yes no])
 OL_ARG_WITH(lapack,[  --with-lapack           with LAPACK math library],auto,[auto yes no])
-OL_ARG_WITH(harwell,[  --with-hsl              with HSL (Harwell) sparse math library - historical],auto,[auto yes no])
-OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library - historical],auto,[auto yes no])
-OL_ARG_WITH(superlu,[  --with-superlu          with SuperLU math library - eXperimental],auto,[auto yes no])
-OL_ARG_WITH(wsmp,[  --with-wsmp             with Watson library - eXperimental],auto,[auto yes no])
+OL_ARG_WITH(harwell,[  --with-hsl              with HSL (Harwell) sparse math library - historical],no,[auto yes no])
+OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library - historical],no,[auto yes no])
+OL_ARG_WITH(superlu,[  --with-superlu          with SuperLU math library - eXperimental],no,[auto yes no])
+OL_ARG_WITH(wsmp,[  --with-wsmp             with Watson library - eXperimental],no,[auto yes no])
 
 dnl temporarily disabled until we find out how to make it work...
 dnl OL_ARG_WITH(taucs,[  --with-taucs            with TAUCS math library - eXperimental],auto,[auto yes no])
 ol_with_taucs=no
 OL_ARG_WITH(pam,[
        misc security libraries:
-  --with-pam              with PAM support],auto,[auto yes no])
-OL_ARG_WITH(sasl2,[  --with-sasl2            with Cyrus SASL2 support],auto,[auto yes no])
+  --with-pam              with PAM support],no,[auto yes no])
+OL_ARG_WITH(sasl2,[  --with-sasl2            with Cyrus SASL2 support],no,[auto yes no])
 
 dnl module with's
 AC_ARG_WITH(module,[
@@ -408,8 +408,8 @@ if test "$ol_enable_schur" = yes ; then
 
 	dnl add further partitioning package detection code here
 	if test "$ol_with_metis" = no \
-			-a "$ol_with_chaco" = no \
-			; then
+		-a "$ol_with_chaco" = no \
+	; then
 		AC_MSG_WARN([No partitioning library available; Schur parallel solver will only allow manual partitioning.])
 	fi
 fi
@@ -658,8 +658,6 @@ dnl Checks for tcl
 dnl
 ol_link_tcl=no
 if test $ol_with_tcl != no ; then
-	dnl OL_ADD_DIRS(tcl)
-
 	AC_CHECK_HEADERS(tcl.h)
 
 	AC_MSG_CHECKING([for tcl library])
@@ -1226,8 +1224,6 @@ dnl Check for Umfpack
 dnl
 ol_link_umfpack=no
 if test "$ol_with_umfpack" != "no" ; then
-	dnl OL_ADD_DIRS(umfpack)
-	
 	AC_CHECK_HEADERS(umfpack.h)
 
 	if test "$ac_cv_header_umfpack_h" = "yes" ; then
@@ -1385,8 +1381,6 @@ dnl Check for Meschach
 dnl
 ol_link_meschach=no
 if test $ol_with_meschach != no ; then
-	dnl OL_ADD_DIRS(meschach)
-	
 	AC_CHECK_HEADERS(meschach/sparse2.h)
 
 	if test "$ac_cv_header_meschach_sparse2_h" = "yes" ; then
@@ -1428,8 +1422,6 @@ dnl Check for SuperLU
 dnl
 ol_link_superlu=no
 if test $ol_with_superlu != no ; then
-	dnl OL_ADD_DIRS(meschach)
-	
 	AC_CHECK_HEADERS(dsp_defs.h)
 	AC_CHECK_HEADERS(pdsp_defs.h)
 	AC_CHECK_HEADERS(util.h)
@@ -1546,7 +1538,6 @@ dnl Check for LAPACK
 dnl
 ol_link_lapack=no
 if test $ol_with_lapack != no ; then
-	dnl OL_ADD_DIRS(lapack)
 	AC_MSG_CHECKING([for lapack])
 
 	save_LIBS="$LIBS"
@@ -1636,7 +1627,6 @@ dnl Check for PAM
 dnl
 ol_link_pam=no
 if test $ol_with_pam != no ; then
-	dnl OL_ADD_DIRS(pam)
 	AC_CHECK_HEADERS(security/pam_appl.h pam_misc.h security/pam_misc.h)
 	
 	if test "$ac_cv_header_security_pam_appl_h" = "yes" ; then
@@ -1713,7 +1703,6 @@ dnl FIXME: needs to be reworked for MPI2
 dnl
 ol_link_mpi=no
 if test $ol_with_mpi != no ; then
-	dnl OL_ADD_DIRS(mpi)
 	AC_CHECK_HEADERS(mpi.h)
 	AC_LANG_CPLUSPLUS
 	AC_CHECK_HEADERS(mpi++.h)
@@ -1788,8 +1777,6 @@ dnl
 dnl First we check for Metis
 ol_link_metis=no
 if test "$ol_with_metis" != "no" ; then
-	dnl OL_ADD_DIRS(metis)
-	
 	AC_CHECK_LIB(metis, METIS_PartGraphVKway,
 		[ol_link_metis=yes],[ol_link_metis=no],[-lm])
 	
@@ -1822,8 +1809,6 @@ dnl Now we check for Chaco.
 dnl
 ol_link_chaco=no
 if test "$ol_with_chaco" != no ; then
-	dnl OL_ADD_DIRS(chaco)
-	
 	AC_CHECK_LIB(chaco,interface,[have_chaco=yes],[have_chaco=no],[-lm])
 
 	if test $have_chaco != no ; then
@@ -1867,7 +1852,6 @@ dnl Check for TAUCS
 dnl
 ol_link_taucs=no
 if test $ol_with_taucs != no ; then
-	dnl OL_ADD_DIRS(taucs)
 	AC_MSG_CHECKING([for taucs])
 
 	if test $ol_link_metis = no ; then
