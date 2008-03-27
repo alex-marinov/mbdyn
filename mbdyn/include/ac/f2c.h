@@ -46,6 +46,9 @@ extern "C" {
 #else /* !HAVE_G2C_H && !HAVE_F2C_H */
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif /* HAVE_STDINT_H */
 typedef int32_t integer;
 typedef float real;
 #ifdef MBDYN_SINGLE_PRECISION
