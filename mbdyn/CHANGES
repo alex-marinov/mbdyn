@@ -17,6 +17,7 @@ MBDyn 1.X-Devel
 		- scalar filter seems to be broken; use state space SISO
 	Bug fixes:
 		- MSYS/MinGW needs to explicitly include stdint.h
+		- MSG_WAITALL is not defined on Cygwin
 
 MBDyn 1.3.3-Beta
 	Enhancements:

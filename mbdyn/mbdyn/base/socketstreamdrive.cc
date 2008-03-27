@@ -213,7 +213,9 @@ SocketStreamDrive::ServePending(const doublereal& t)
 	}
 
 	// Read data
-	rc = recv(sock_nr, buf, size, MSG_WAITALL);
+	// NOTE: flags __SHOULD__ contain MSG_WAITALL;
+	// however, it is not defined on some platforms (e.g. Cygwin)
+	rc = recv(sock_nr, buf, size, recv_flags);
 
 	/* FIXME: no receive at first step? */
 	switch (rc) {
