@@ -58,19 +58,32 @@ The nodes are read as follows:
 
 \section{Structural Node}
 \label{sec:NODE:STRUCTURAL}
-The historical 6 dof structural node can be \kw{static},
+The 6 dof structural node can be \kw{static},
 \kw{dynamic}, \kw{modal} or \kw{dummy}.
+
+\subsection{Static Node}
+\label{sec:NODE:STRUCTURAL:STATIC}
 The \kw{static} keyword means no inertia is related to that node, 
 so it must be appropriately constrained or attached to elastic elements.
 Static nodes are useful when there is no need to apply inertia
 to them, thus saving 6 degrees of freedom.
+
+\subsection{Dynamic Node}
+\label{sec:NODE:STRUCTURAL:DYNAMIC}
 The \kw{dynamic} keyword means inertia can be attached to the node, 
 so it provides linear and angular momenta degrees of freedom, 
 and automatically generates the so-called \kw{automatic structural}
 elements.
-The \kw{modal} node is a regular \kw{dynamic} node that must be used 
-to describe the rigid reference motion of a \kw{modal} joint.
+
+\subsection{Modal Node}
+\label{sec:NODE:STRUCTURAL:MODAL}
+The \kw{modal} node is basically a regular \kw{dynamic} node
+that must be used to describe the rigid reference motion
+of a \kw{modal} joint.
 See Section~\ref{sec:EL:STRUCT:JOINT:MODAL} for further details.
+
+\subsection{Syntax}
+\label{sec:NODE:STRUCTURAL:SYNTAX}
 \begin{verbatim}
     <arglist> ::= { static | dynamic | modal } ,
         (Vec3)              <absolute_position> ,
@@ -90,15 +103,6 @@ the initial angular velocity should follow or not the node
 as it is rotated by the initial assembly procedure; it may assume 
 the values \kw{yes}/\kw{no} or 0/nonzero.
 
-\noindent
-The \kw{dummy} structural node has been added to ease the visualization of
-the kinematics of arbitrary points of the system. 
-It owns no dofs, and it must be attached to another node, possibly with an
-offset and a relative orientation.
-Two dummy structural node types are available.
-\begin{verbatim}
-    <arglist> ::= dummy , <base_node> , <type> , <dummy_node_data>
-\end{verbatim}
 The stiffness parameters, and the \kw{omega\_rotates} flag, 
 override the default values. 
 They are optional, but they must be supplied all together if at least
@@ -127,12 +131,23 @@ all dynamic structural nodes are actually treated as static.
 This is a shortcut to ease running static analyses without the need
 to modify each node of a dynamic model.
 
+\subsection{Dummy Node}
+\label{sec:NODE:STRUCTURAL:DUMMY}
+The \kw{dummy} structural node has been added to ease the visualization
+of the kinematics of arbitrary points of the system. 
+It does not provide any degrees of freedom, and it must be attached
+to another node.
+
+Two dummy structural node types are available.
+\begin{verbatim}
+    <arglist> ::= dummy , <base_node> , <type> , <dummy_node_data>
+\end{verbatim}
+
 Dummy nodes take the label of the \kw{base\_node} they are attached to, 
 followed by the type of dummy node, possibly followed by specific data.
 The following dummy types are available:
 
 \begin{itemize}
-
     \item offset:
     \begin{verbatim}
     <type> ::= offset
@@ -163,9 +178,10 @@ The following dummy types are available:
     is transformed as if it were expressed in the reference frame
     of the pivot node, optionally offset by \kw{pivot\_offset}
     and with relative orientation \kw{pivot\_orientation\_matrix}.
+\end{itemize}
 
-    Examples:
-    \begin{verbatim}
+\paragraph{Examples.}
+\begin{verbatim}
     set: real Omega = 1.;
     structural: 1, static, null, eye, null, 0.,0.,Omega;
     structural: 1000, dummy, 1, offset, 1.,0.,0., eye;
@@ -176,13 +192,15 @@ The following dummy types are available:
         null,
         null,
         accelerations;
-    \end{verbatim}
+\end{verbatim}
 
-\end{itemize}
-
-\paragraph{Output}
+\paragraph{Output.}
 \label{sec:NODE:STRUCTURAL:OUTPUT}
-Structural nodes generate two kinds of output files. 
+Structural nodes generate two kinds of output files:
+\begin{itemize}
+\item the \kw{.mov} file;
+\item the \kw{.ine} file.
+\end{itemize}
 The first refers to the kinematics of the node; its extension is \kw{.mov},
 and for each time step it contains one row for each node whose output is
 required.
@@ -225,8 +243,9 @@ inertia; its extension is \kw{.ine}.
 For each time step, it contains information about the inertia of all the
 nodes whose output is required.
 Notice that more than one inertia body can be attached to one node; the
-information in this file refers to the sum of all the inertia referring to
+information in this file refers to the sum of all the inertia related to
 the node.
+
 The rows contain: \vspace{2mm} \\
 \begin{tabular}{lp{140mm}}
         \hline
@@ -242,7 +261,7 @@ The rows contain: \vspace{2mm} \\
 	\hline
 \end{tabular}\vspace{2mm}\\
 
-\paragraph{Private Data}
+\paragraph{Private Data.}
 \label{sec:NODE:STRUCTURAL:PRIV}
 The following data is available:
 \begin{enumerate}
@@ -334,7 +353,7 @@ node, so only \kw{value} is allowed.
 	the ancestor class. 
 }
 
-\paragraph{Output}
+\paragraph{Output.}
 The value of abstract nodes is output with file extension \kw{.abs}; for
 each time step the output of the required nodes is written.
 The format of each row is
@@ -371,13 +390,13 @@ do not need be reformulated with a grounded node, while the parameter
 node value can be changed during the solution by means of a proper driving 
 force.
 
-\paragraph{Element}
+\paragraph{Element.}
 \label{sec:NODE:PARAMETER:ELEMENT}
 When the argument list starts with the keyword \kw{element}, the parameter
 node expects to be bound to an element, and to access bulk element data 
 (see the \hyperref{\kwnd{bind} statement}{\kw{bind} statement, Section~}{}{sec:EL:BIND}).
 
-\paragraph{Sample and Hold}
+\paragraph{Sample and Hold.}
 \label{sec:NODE:PARAMETER:SAH}
 When the argument list starts with the keyword \kw{sample and hold},
 followed by a \kw{NodeDof} and a sample time,
@@ -386,7 +405,7 @@ the value of the node, for the duration of the \kw{sample\_time}.
 This may be useful to preserve the value of some signal across
 time steps.
 
-\paragraph{Beam Strain Gage}
+\paragraph{Beam Strain Gage.}
 \label{sec:NODE:PARAMETER:BEAM_STRAIN_GAGE}
 When the argument list starts with the keyword \kw{beam strain gage},
 followed by the coordinates of a point on the section of a beam,
