@@ -35,17 +35,18 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include <cfloat>
 
-#include <dataman.h>
-#include <constltp.h>
-#include <shapefnc.h>
-#include <beam.h>
-#include <beam2.h>
-#include <pzbeam2.h>
+#include "dataman.h"
+#include "constltp.h"
+#include "shapefnc.h"
+#include "beam.h"
+#include "beam2.h"
+#include "pzbeam2.h"
+#include "Rot.hh"
 
 /*
  * Nota: non e' ancora stato implementato il contributo 
@@ -131,100 +132,56 @@ Beam2::~Beam2(void)
 unsigned int
 Beam2::iGetNumPrivData(void) const
 {
-	return 12;
+	return Beam::iNumPrivData;
 }
 
 unsigned int
 Beam2::iGetPrivDataIdx(const char *s) const
 {
-	ASSERT(s != NULL);
-
-	/*
-	 * {ex|k{x|y|z}}
-	 */
-
-	unsigned int idx = 0;
-
-	switch (s[0]) {
-	case 'F':
-		idx += 6;
-	case 'e':
-		switch (s[1]) {
-		case 'x':
-			idx += 1;
-			break;
-
-		case 'y':
-		case 'z':
-			return 0;
-
-		default:
-			return 0;
-		}
-		break;
-
-	case 'M':
-		idx += 6;
-	case 'k':
-		idx += 3;
-		switch (s[1]) {
-		case 'x':
-			idx += 1;
-			break;
-
-		case 'y':
-			idx += 2;
-			break;
-
-		case 'z':
-			idx += 3;
-			break;
-
-		default:
-			return 0;
-		}
-		break;
-
-	default:
-		return 0;
+	ConstLawType::Type type = ConstLawType::ELASTIC;
+	if (dynamic_cast<const ViscoElasticBeam2 *>(this)) {
+		type = ConstLawType::VISCOUS;
 	}
 
-	if (s[2] != '\0') {
-		return 0;
-	}
-
-	return idx;
+	return Beam::iGetPrivDataIdx_int(s, type);
 }
 
 doublereal
 Beam2::dGetPrivData(unsigned int i) const
 {
-	ASSERT(i > 0 && i <= 6);
+	ASSERT(i > 0 && i <= iGetNumPrivData());
 
 	switch (i) {
 	case 1:
+	case 2:
+	case 3:
 	case 4:
 	case 5:
 	case 6:
 		return DefLoc.dGet(i);
 
 	case 7:
+	case 8:
+	case 9:
 	case 10:
 	case 11:
 	case 12:
-		return AzLoc.dGet(i);
+		return AzLoc.dGet(i - 7);
 
-	case 2:
-	case 3:
-		silent_cerr("Beam2(" << GetLabel() << "): "
-			"not allowed to return shear strain" << std::endl);
-		throw ErrGeneric();
+	case 13:
+	case 14:
+	case 15:
+		return p.dGet(i - 12);
 
-	case 8:
-	case 9:
-		silent_cerr("Beam2(" << GetLabel() << "): "
-			"not allowed to return shear force" << std::endl);
-		throw ErrGeneric();
+	case 16:
+	case 17:
+	case 18:
+		return RotManip::VecRot(R).dGet(i - 15);
+
+	case 19:
+	case 20:
+	case 21:
+		return Omega.dGet(i - 18);
 
 	default:
 		silent_cerr("Beam2(" << GetLabel() << "): "
@@ -1267,6 +1224,25 @@ ViscoElasticBeam2::AfterPredict(VectorHandler& /* X */ ,
 	ERef = MultRMRt(pD->GetFDEPrime(), R);
 	
 	bFirstRes = true;
+}
+
+doublereal
+ViscoElasticBeam2::dGetPrivData(unsigned int i) const
+{
+	ASSERT(i > 0 && i <= iGetNumPrivData());
+
+	switch (i) {
+	case 22:
+	case 23:
+	case 24:
+	case 25:
+	case 26:
+	case 27:
+		return DefPrimeLoc.dGet(i - 21);
+
+	default:
+		return Beam2::dGetPrivData(i);
+	}
 }
 
 /* ViscoElasticBeam - end */

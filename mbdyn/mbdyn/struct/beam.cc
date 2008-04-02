@@ -45,6 +45,7 @@
 #include "shapefnc.h"
 #include "beam.h"
 #include "pzbeam.h"
+#include "Rot.hh"
 
 /*
  * Nota: non e' ancora stato implementato il contributo
@@ -226,78 +227,89 @@ Beam::~Beam(void)
 	}
 }
 
+static const unsigned int iNumPrivData =
+		+3		//  0 ( 1 ->  3) - "e" strain
+		+3		//  3 ( 4 ->  6) - "k" curvature
+		+3		//  6 ( 7 ->  9) - "F" force
+		+3		//  9 (10 -> 12) - "M" moment
+		+3		// 12 (13 -> 15) - "X" position
+		+3		// 15 (16 -> 18) - "Phi" orientation vector
+		+3		// 18 (19 -> 21) - "Omega" angular velocity
+		+3		// 21 (22 -> 24) - "eP" strain rate
+		+3		// 24 (25 -> 27) - "kP" curvature rate
+	;
 
 /* Accesso ai dati privati */
 unsigned int
 Beam::iGetNumPrivData(void) const
 {
-	return 24;
+	return 2*iNumPrivData;
 }
 
 unsigned int
-Beam::iGetPrivDataIdx(const char *s) const
+Beam::iGetPrivDataIdx_int(const char *s, ConstLawType::Type type)
 {
 	ASSERT(s != NULL);
 
-	/*
-	 * p{I|II}.{ex|k{x|y|z}}
-	 */
-
 	unsigned int idx = 0;
 
-	if (strncmp(s, "pI", STRLENOF("pI")) != 0) {
-		return 0;
-	}
-	s += STRLENOF("pI");
-
-	if (s[0] == 'I') {
-		idx += 12;
-		s++;
-	}
-
-	if (s[0] != '.') {
-		return 0;
-	}
-	s++;
-
 	switch (s[0]) {
-	case 'F':
-		idx += 6;
+	case 'k':
+		idx += 3;
 	case 'e':
-		switch (s[1]) {
-		case 'x':
-			idx += 1;
+		if (s[1] == 'P') {
+			if (type != ConstLawType::VISCOUS) {
+				return 0;
+			}
+			s++;
+			idx += 21;
 			break;
-
-		case 'y':
-		case 'z':
-			return 0;
-
-		default:
-			return 0;
 		}
 		break;
 
-	case 'M':
+	case 'F':
 		idx += 6;
-	case 'k':
-		idx += 3;
-		switch (s[1]) {
-		case 'x':
-			idx += 1;
-			break;
+		break;
 
-		case 'y':
-			idx += 2;
-			break;
+	case 'M':
+		idx += 9;
+		break;
 
-		case 'z':
-			idx += 3;
-			break;
+	case 'X':
+		idx += 12;
+		break;
 
-		default:
+	case 'P':
+		if (strncasecmp(s, "Phi", STRLENOF("Phi")) != 0) {
 			return 0;
 		}
+		s += STRLENOF("Phi") - 1;
+		idx += 15;
+		break;
+
+	case 'O':
+		if (strncasecmp(s, "Omega", STRLENOF("Omega")) != 0) {
+			return 0;
+		}
+		s += STRLENOF("Omega") - 1;
+		idx += 18;
+		break;
+
+	default:
+		return 0;
+	}
+
+	switch (s[1]) {
+	case 'x':
+		idx += 1;
+		break;
+
+	case 'y':
+		idx += 2;
+		break;
+
+	case 'z':
+		idx += 3;
 		break;
 
 	default:
@@ -311,50 +323,81 @@ Beam::iGetPrivDataIdx(const char *s) const
 	return idx;
 }
 
+unsigned int
+Beam::iGetPrivDataIdx(const char *s) const
+{
+	ASSERT(s != NULL);
+
+	unsigned int p_idx = 0;
+
+	if (strncmp(s, "pI", STRLENOF("pI")) != 0) {
+		return 0;
+	}
+	s += STRLENOF("pI");
+
+	if (s[0] == 'I') {
+		p_idx += iNumPrivData;
+		s++;
+	}
+
+	if (s[0] != '.') {
+		return 0;
+	}
+	s++;
+
+	ConstLawType::Type type = ConstLawType::ELASTIC;
+	if (dynamic_cast<const ViscoElasticBeam *>(this)) {
+		type = ConstLawType::VISCOUS;
+	}
+
+	unsigned int idx = iGetPrivDataIdx_int(s, type);
+	if (idx != 0) {
+		idx += p_idx;
+	}
+
+	return idx;
+}
+
 doublereal
 Beam::dGetPrivData(unsigned int i) const
 {
-	ASSERT(i > 0 && i <= 12);
-	switch (i) {
+	ASSERT(i > 0 && i <= iGetNumPrivData());
+
+	int sez = (i - 1)/iNumPrivData;
+	int idx = (i - 1)%iNumPrivData + 1;
+
+	switch (idx) {
 	case 1:
+	case 2:
+	case 3:
 	case 4:
 	case 5:
 	case 6:
 
-	case 13:
-	case 16:
-	case 17:
-	case 18:
-		return DefLoc[(i - 1)/12].dGet((i - 1)%12 + 1);
+		return DefLoc[sez].dGet(idx);
 
 	case 7:
+	case 8:
+	case 9:
 	case 10:
 	case 11:
 	case 12:
+		return AzLoc[sez].dGet(idx - 6);
 
-	case 19:
-	case 22:
-	case 23:
-	case 24:
-		return AzLoc[(i - 1)/12].dGet((i - 1)%12 + 1);
-
-	case 2:
-	case 3:
-
+	case 13:
 	case 14:
 	case 15:
-		silent_cerr("Beam(" << GetLabel() << "): "
-			"not allowed to return shear strain" << std::endl);
-		throw ErrGeneric();
+		return p[sez].dGet(idx - 12);
 
-	case 8:
-	case 9:
+	case 16:
+	case 17:
+	case 18:
+		return RotManip::VecRot(R[sez]).dGet(idx - 15);
 
+	case 19:
 	case 20:
 	case 21:
-		silent_cerr("Beam(" << GetLabel() << "): "
-			"not allowed to return shear force" << std::endl);
-		throw ErrGeneric();
+		return Omega[sez].dGet(idx - 18);
 
 	default:
 		silent_cerr("Beam(" << GetLabel() << "): "
@@ -1737,6 +1780,28 @@ ViscoElasticBeam::AfterPredict(VectorHandler& /* X */ ,
 	}
 
 	bFirstRes = true;
+}
+
+doublereal
+ViscoElasticBeam::dGetPrivData(unsigned int i) const
+{
+	ASSERT(i > 0 && i <= iGetNumPrivData());
+
+	int sez = (i - 1)/iNumPrivData;
+	int idx = (i - 1)%iNumPrivData + 1;
+
+	switch (idx) {
+	case 22:
+	case 23:
+	case 24:
+	case 25:
+	case 26:
+	case 27:
+		return DefPrimeLoc[sez].dGet(idx - 21);
+
+	default:
+		return Beam::dGetPrivData(i);
+	}
 }
 
 /* ViscoElasticBeam - end */

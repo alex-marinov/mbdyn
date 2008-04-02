@@ -382,6 +382,8 @@ class ViscoElasticBeam2 : virtual public Elem, public Beam2 {
    
     virtual void
     AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
+
+    virtual doublereal dGetPrivData(unsigned int i) const;
 };
 
 /* ViscoElasticBeam - end */

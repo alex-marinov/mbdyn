@@ -12,6 +12,7 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 MBDyn 1.X-Devel
 	Enhancements:
 		- configurable orientation output for gimbal rotation joint
+		- more beam private data available
 	Backward compatibility issues:
 	Known issues:
 		- scalar filter seems to be broken; use state space SISO

@@ -1441,30 +1441,43 @@ abstract nodes that represent the electrodes.
 
 
 \paragraph{Private Data}
+\label{sec:EL:BEAM:PRIVATE}
 The following data is available:
 \begin{enumerate}
-\item \kw{"pI.ex"} point I axial strain
-\setcounter{enumi}{3}
-\item \kw{"pI.kx"} point I curvature about local axis 1 (torsional)
-\item \kw{"pI.ky"} point I curvature about local axis 2 (bending)
-\item \kw{"pI.kz"} point I curvature about local axis 3 (bending)
-\item \kw{"pI.Fx"} point I axial force
-\setcounter{enumi}{9}
-\item \kw{"pI.Mx"} point I moment about local axis 1 (torsional)
-\item \kw{"pI.My"} point I moment about local axis 2 (bending)
-\item \kw{"pI.Mz"} point I moment about local axis 3 (bending)
-\item \kw{"pII.ex"} point II axial strain
-\setcounter{enumi}{15}
-\item \kw{"pII.kx"} point II curvature about local axis 1 (torsional)
-\item \kw{"pII.ky"} point II curvature about local axis 2 (bending)
-\item \kw{"pII.kz"} point II curvature about local axis 3 (bending)
-\item \kw{"pII.Fx"} point II axial force
-\setcounter{enumi}{21}
-\item \kw{"pII.Mx"} point II moment about local axis 1 (torsional)
-\item \kw{"pII.My"} point II moment about local axis 2 (bending)
-\item \kw{"pII.Mz"} point II moment about local axis 3 (bending)
+\item \kw{"ex"} axial strain
+\item \kw{"ey"} shear strain (local axis 2)
+\item \kw{"ez"} shear strain (local axis 3)
+\item \kw{"kx"} curvature about local axis 1 (torsional)
+\item \kw{"ky"} curvature about local axis 2 (bending)
+\item \kw{"kz"} curvature about local axis 3 (bending)
+\item \kw{"Fx"} axial force
+\item \kw{"Fy"} shear force (direction 2)
+\item \kw{"Fz"} shear force (direction 3)
+\item \kw{"Mx"} moment about local axis 1 (torsional)
+\item \kw{"My"} moment about local axis 2 (bending)
+\item \kw{"Mz"} moment about local axis 3 (bending)
+\item \kw{"Xx"} absolute position component 1
+\item \kw{"Xy"} absolute position component 2
+\item \kw{"Xz"} absolute position component 3
+\item \kw{"Phix"} absolute orientation vector component 1
+\item \kw{"Phiy"} absolute orientation vector component 2
+\item \kw{"Phiz"} absolute orientation vector component 3
+\item \kw{"Omegax"} absolute angular velocity component 1
+\item \kw{"Omegay"} absolute angular velocity component 2
+\item \kw{"Omegaz"} absolute angular velocity component 3
+\item \kw{"ePx"} axial strain rate
+\item \kw{"ePy"} shear strain rate (local axis 2)
+\item \kw{"ePz"} shear strain rate (local axis 3)
+\item \kw{"kPx"} curvature rate about local axis 1 (torsional)
+\item \kw{"kPy"} curvature rate about local axis 2 (bending)
+\item \kw{"kPz"} curvature rate about local axis 3 (bending)
 \end{enumerate}
-
+Each string is prefixed by \kw{"pI."} or \kw{"pII."}
+to specify data related to either the first or the second point:
+\begin{verbatim}
+    "pI.Fx"     # axial force at point I
+    "pII.kz"    # bending curvature about local axis 3 at point II
+\end{verbatim}
 
 
 
@@ -1504,24 +1517,13 @@ The following data is available:
         (Mat6xN) <piezoelectric_matrix_I> ]
 \end{verbatim}
 
-\paragraph{Private Data}
-The following data is available:
-\begin{enumerate}
-\item \kw{"ex"} axial strain
-\setcounter{enumi}{3}
-\item \kw{"kx"} curvature about local axis 1 (torsional)
-\item \kw{"ky"} curvature about local axis 2 (bending)
-\item \kw{"kz"} curvature about local axis 3 (bending)
-\item \kw{"Fx"} axial force
-\setcounter{enumi}{9}
-\item \kw{"Mx"} moment about local axis 1 (torsional)
-\item \kw{"My"} moment about local axis 2 (bending)
-\item \kw{"Mz"} moment about local axis 3 (bending)
-\end{enumerate}
+\paragraph{Private Data.}
+The same private data indicated for the \kw{beam} element is available
+(see Section~\ref{sec:EL:BEAM:PRIVATE}).
+No prefix must be specified.
 
 
-
-
+\paragraph{Example.}
 As an example, a simple beam element, with diagonal section stiffness 
 matrix is presented:
 \begin{verbatim}

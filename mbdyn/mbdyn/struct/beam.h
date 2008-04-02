@@ -57,6 +57,7 @@ class Beam
 : virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {
     friend class AerodynamicBeam;
     friend Elem* ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
+    friend class Beam2;
 
   public:
     /* Tipi di travi */
@@ -69,6 +70,21 @@ class Beam
 	
 	LASTBEAMTYPE
     };
+
+protected:
+ 	static const unsigned int iNumPrivData =
+		+3		//  0 ( 1 ->  3) - strain
+		+3		//  3 ( 4 ->  6) - curvature
+		+3		//  6 ( 7 ->  9) - force
+		+3		//  9 (10 -> 12) - moment
+		+3		// 12 (13 -> 15) - position
+		+3		// 15 (16 -> 18) - orientation vector
+		+3		// 18 (19 -> 21) - angular velocity
+		+3		// 21 (22 -> 24) - strain rate
+		+3		// 24 (25 -> 27) - curvature rate
+	;
+    static unsigned int iGetPrivDataIdx_int(const char *s,
+	ConstLawType::Type type);
 
   public:
     class ErrGeneric {};
@@ -487,6 +503,8 @@ class ViscoElasticBeam : virtual public Elem, public Beam {
     virtual void
     AfterConvergence(const VectorHandler& X, const VectorHandler& XP, 
     		const VectorHandler& XPP);
+
+    virtual doublereal dGetPrivData(unsigned int i) const;
 };
 
 /* ViscoElasticBeam - end */
