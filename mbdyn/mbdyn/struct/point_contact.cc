@@ -61,8 +61,8 @@ Joint(uL, pDO, fOut), pNode1(pN1), pSup(pNs), SupDirection(SDir)		// assegnament
 		ASSERT(pNode1 != NULL);			// esecuzione solo se i nodi sono assegnati e se sono strutturali
 		ASSERT(pSup != NULL);
 
-		ASSERT(pNode1->GetNodeType() == STRUCTURAL);
-		ASSERT(pSup->GetNodeType() == STRUCTURAL);
+		ASSERT(pNode1->GetNodeType() == StructNode::STRUCTURAL);
+		ASSERT(pSup->GetNodeType() == StructNode::STRUCTURAL);
 
 		ElasticStiffness = Ek;
 }
