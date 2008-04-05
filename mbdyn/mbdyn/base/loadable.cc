@@ -30,12 +30,13 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include <unistd.h>
-#include <dataman.h>
-#include <loadable.h>
+
+#include "dataman.h"
+#include "loadable.h"
 
 /* funzioni di default */
 static unsigned int 
@@ -536,14 +537,14 @@ LoadableElem::BindCalls(DataManager* pDM, MBDynParser& HP)
 	}
 #endif /* USE_ADAMS */
 
-   	priv_data = (*calls->read)(this, pDM, HP);
+   	priv_data = calls->read(this, pDM, HP);
    	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE)); 
 }
 
 LoadableElem::~LoadableElem(void)
 {
 	ASSERT(calls->destroy != NULL);
-   	(*calls->destroy)(this);
+   	calls->destroy(this);
    
 #ifdef USE_RUNTIME_LOADING
    	if (handle != NULL) {
@@ -574,7 +575,7 @@ unsigned int
 LoadableElem::iGetNumDof(void) const
 {
 	ASSERT(calls->i_get_num_dof != NULL);
-   	return (*calls->i_get_num_dof)(this);
+   	return calls->i_get_num_dof(this);
 }
 
 DofOrder::Order 
@@ -582,14 +583,14 @@ LoadableElem::GetDofType(unsigned int i) const
 {
    	ASSERT(i < iGetNumDof());
 	ASSERT(calls->set_dof != NULL);
-   	return (*calls->set_dof)(this, i);
+   	return calls->set_dof(this, i);
 }
 
 void 
 LoadableElem::Output(OutputHandler& OH) const
 {
 	ASSERT(calls->output != NULL);
-   	(*calls->output)(this, OH);
+   	calls->output(this, OH);
 }
 
 std::ostream& 
@@ -598,14 +599,14 @@ LoadableElem::Restart(std::ostream& out) const
 	ASSERT(calls->restart != NULL);
    	out << "    loadable: " << GetLabel() << ", \"" 
 		<< module_name << "\", ";
-   	return (*calls->restart)(this, out) << ';' << std::endl;
+   	return calls->restart(this, out) << ';' << std::endl;
 }
 
 void 
 LoadableElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
 	ASSERT(calls->work_space_dim != NULL);
-   	(*calls->work_space_dim)(this, piNumRows, piNumCols);
+   	calls->work_space_dim(this, piNumRows, piNumCols);
 }
 
 VariableSubMatrixHandler& 
@@ -615,7 +616,7 @@ LoadableElem::AssJac(VariableSubMatrixHandler& WorkMat,
 		     const VectorHandler& XPCurr)
 {
 	ASSERT(calls->ass_jac != NULL);
-   	return (*calls->ass_jac)(this, WorkMat, dCoef, XCurr, XPCurr);
+   	return calls->ass_jac(this, WorkMat, dCoef, XCurr, XPCurr);
 }
 
 void
@@ -625,7 +626,7 @@ LoadableElem::AssMats(VariableSubMatrixHandler& WorkMatA,
 		     const VectorHandler& XPCurr)
 {
    	ASSERT(calls->ass_mats != NULL);
-   	(*calls->ass_mats)(this, WorkMatA, WorkMatB, XCurr, XPCurr);
+   	calls->ass_mats(this, WorkMatA, WorkMatB, XCurr, XPCurr);
 }
 
 SubVectorHandler& 
@@ -635,7 +636,7 @@ LoadableElem::AssRes(SubVectorHandler& WorkVec,
 		     const VectorHandler& XPCurr)
 {
    	ASSERT(calls->ass_res != NULL);
-   	return (*calls->ass_res)(this, WorkVec, 
+   	return calls->ass_res(this, WorkVec, 
 					    dCoef, XCurr, XPCurr);
 }
 
@@ -646,7 +647,7 @@ LoadableElem::BeforePredict(VectorHandler& X,
 			    VectorHandler& XPPrev) const
 {
    	ASSERT(calls->before_predict != NULL);
-   	(*calls->before_predict)(this, X, XP, XPrev, XPPrev);
+   	calls->before_predict(this, X, XP, XPrev, XPPrev);
 }
 
 void 
@@ -654,7 +655,7 @@ LoadableElem::AfterPredict(VectorHandler& X,
 			   VectorHandler& XP)
 {
    	ASSERT(calls->after_predict != NULL);
-   	(*calls->after_predict)(this, X, XP);
+   	calls->after_predict(this, X, XP);
 }
 
 void 
@@ -662,7 +663,7 @@ LoadableElem::Update(const VectorHandler& XCurr,
 		     const VectorHandler& XPrimeCurr)
 {
    	ASSERT(calls->update != NULL);
-   	(*calls->update)(this, XCurr, XPrimeCurr);
+   	calls->update(this, XCurr, XPrimeCurr);
 }
 
 void 
@@ -670,21 +671,21 @@ LoadableElem::AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP)
 {
    	ASSERT(calls->after_convergence != NULL);
-   	(*calls->after_convergence)(this, X, XP);
+   	calls->after_convergence(this, X, XP);
 }
 
 unsigned int 
 LoadableElem::iGetInitialNumDof(void) const
 {
    	ASSERT(calls->i_get_initial_num_dof != NULL);
-   	return (*calls->i_get_initial_num_dof)(this);
+   	return calls->i_get_initial_num_dof(this);
 }
 
 void 
 LoadableElem::InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
    	ASSERT(calls->initial_work_space_dim != NULL);
-   	(*calls->initial_work_space_dim)(this, piNumRows, piNumCols);
+   	calls->initial_work_space_dim(this, piNumRows, piNumCols);
 }
 
 VariableSubMatrixHandler& 
@@ -692,7 +693,7 @@ LoadableElem::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 			    const VectorHandler& XCurr)
 {
    	ASSERT(calls->initial_ass_jac != NULL);
-   	return (*calls->initial_ass_jac)(this, WorkMat, XCurr);
+   	return calls->initial_ass_jac(this, WorkMat, XCurr);
 }
 
 SubVectorHandler& 
@@ -700,14 +701,14 @@ LoadableElem::InitialAssRes(SubVectorHandler& WorkVec,
 			    const VectorHandler& XCurr)
 {
    	ASSERT(calls->initial_ass_res != NULL);
-   	return (*calls->initial_ass_res)(this, WorkVec, XCurr);
+   	return calls->initial_ass_res(this, WorkVec, XCurr);
 }
 
 void 
 LoadableElem::SetInitialValue(VectorHandler& X)
 {   
    	ASSERT(calls->set_initial_value != NULL);
-   	(*calls->set_initial_value)(this, X);
+   	calls->set_initial_value(this, X);
 }
 
 void 
@@ -716,42 +717,42 @@ LoadableElem::SetValue(DataManager *pDM,
 		SimulationEntity::Hints *ph)
 {
    	ASSERT(calls->set_value != NULL);
-   	(*calls->set_value)(this, pDM, X, XP, ph);
+   	calls->set_value(this, pDM, X, XP, ph);
 }
 
 unsigned int 
 LoadableElem::iGetNumPrivData(void) const
 {
    	ASSERT(calls->i_get_num_priv_data != NULL);
-   	return (*calls->i_get_num_priv_data)(this);
+   	return calls->i_get_num_priv_data(this);
 }
 
 unsigned int 
 LoadableElem::iGetPrivDataIdx(const char *s) const
 {
    	ASSERT(calls->i_get_priv_data_idx != NULL);
-   	return (*calls->i_get_priv_data_idx)(this, s);
+   	return calls->i_get_priv_data_idx(this, s);
 }
 
 doublereal 
 LoadableElem::dGetPrivData(unsigned int i) const
 {
    	ASSERT(calls->d_get_priv_data != NULL);
-   	return (*calls->d_get_priv_data)(this, i);
+   	return calls->d_get_priv_data(this, i);
 }
 
 int
 LoadableElem::GetNumConnectedNodes(void) const
 {
 	ASSERT(calls->i_get_num_connected_nodes != NULL);
-	return (*calls->i_get_num_connected_nodes)(this);
+	return calls->i_get_num_connected_nodes(this);
 }
 
 void
 LoadableElem::GetConnectedNodes(std::vector<const Node *>& connectedNodes)
 {
 	ASSERT(calls->get_connected_nodes != NULL);
-	return (*calls->get_connected_nodes)(this, connectedNodes);
+	return calls->get_connected_nodes(this, connectedNodes);
 }
 
 /* Adams output stuff */
@@ -759,21 +760,21 @@ unsigned int
 LoadableElem::iGetNumDummyParts(void) const
 {
 	ASSERT(calls->i_get_num_dummy_parts != NULL);
-	return (*calls->i_get_num_dummy_parts)(this);
+	return calls->i_get_num_dummy_parts(this);
 }
 
 void
 LoadableElem::GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& R) const
 {
 	ASSERT(calls->get_dummy_part_pos != NULL);
-	return (*calls->get_dummy_part_pos)(this, part, x, R);
+	return calls->get_dummy_part_pos(this, part, x, R);
 }
 
 void
 LoadableElem::GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const
 {
 	ASSERT(calls->get_dummy_part_vel != NULL);
-	return (*calls->get_dummy_part_vel)(this, part, v, w);
+	return calls->get_dummy_part_vel(this, part, v, w);
 }
 
 #ifdef USE_ADAMS
@@ -782,7 +783,7 @@ LoadableElem::WriteAdamsDummyPartCmd(std::ostream& out,
 		unsigned int part, unsigned int firstId) const
 {
 	ASSERT(calls->write_adams_dummy_part_cmd != NULL);
-	return (*calls->write_adams_dummy_part_cmd)(this, out, part, firstId);
+	return calls->write_adams_dummy_part_cmd(this, out, part, firstId);
 }
 #endif /* USE_ADAMS */
 
