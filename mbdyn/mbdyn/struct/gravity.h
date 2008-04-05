@@ -153,6 +153,7 @@ class GravityOwner {
 
 class ElemGravityOwner : virtual public Elem, public GravityOwner {
  protected:
+
    /*
     * momento statico e momento di inerzia nel sistema globale
     */
@@ -166,6 +167,18 @@ class ElemGravityOwner : virtual public Elem, public GravityOwner {
       pedantic_cerr("ElemGravityOwner(" << GetLabel() << "): "
 	      "warning, using default GetJ_int()" << std::endl);
       return Mat3x3(0.);
+   };
+
+   virtual Vec3 GetB_int(void) const {
+      pedantic_cerr("ElemGravityOwner(" << GetLabel() << "): "
+	      "warning, using default GetB_int()" << std::endl);
+      return Vec3(0.);
+   };
+
+   virtual Vec3 GetG_int(void) const {
+      pedantic_cerr("ElemGravityOwner(" << GetLabel() << "): "
+	      "warning, using default GetG_int()" << std::endl);
+      return Vec3(0.);
    };
 
  public:
@@ -186,11 +199,19 @@ class ElemGravityOwner : virtual public Elem, public GravityOwner {
 
   
    Vec3 GetS(void) const {
-	   return GetS_int();
+      return GetS_int();
    };
    
    Mat3x3 GetJ(void) const {
       return GetJ_int();
+   };
+   
+   Vec3 GetB(void) const {
+      return GetB_int();
+   };
+   
+   Vec3 GetG(void) const {
+      return GetG_int();
    };
    
 #ifdef DEBUG

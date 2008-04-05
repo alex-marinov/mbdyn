@@ -2591,6 +2591,24 @@ Modal::GetJ_int(void) const
 		- Mat3x3(s, x);
 }
 
+// momentum
+Vec3
+Modal::GetB_int(void) const
+{
+	if (pModalNode != 0) {
+		return pModalNode->GetVCurr()*dMass;
+	}
+
+	return Zero3;
+}
+
+// momenta moment
+Vec3
+Modal::GetG_int(void) const
+{
+	return Zero3;
+}
+
 Joint *
 ReadModal(DataManager* pDM,
 		MBDynParser& HP,

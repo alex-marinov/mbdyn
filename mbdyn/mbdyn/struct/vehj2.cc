@@ -374,7 +374,7 @@ DeformableDispJoint::iGetPrivDataIdx(const char *s) const
 	{
 		size_t l = STRLENOF("constitutiveLaw.");
 		if (strncmp(s, "constitutiveLaw.", l) == 0) {
-			idx = ConstitutiveLaw3DOwner::iGetPrivDataIdx(s + l);
+			idx = ConstitutiveLaw3DOwner::iGetPrivDataIdx(&s[l]);
 			if (idx > 0) {
 				return 9 + idx;
 			}

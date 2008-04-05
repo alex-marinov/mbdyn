@@ -101,6 +101,8 @@ public:
 
 		FORCE,
 
+		INERTIA,
+
 		ELECTRICBULK,
 		ELECTRIC,
 	

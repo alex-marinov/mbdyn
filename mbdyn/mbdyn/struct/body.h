@@ -97,6 +97,9 @@ class DynamicBody :
 virtual public Elem, public Body {
 private:
 
+	Vec3 GetB_int(void) const;
+	Vec3 GetG_int(void) const;
+
 	/* Assembla le due matrici necessarie per il calcolo degli
 	 * autovalori e per lo jacobiano */  
 	void AssMats(FullSubMatrixHandler& WorkMatA,

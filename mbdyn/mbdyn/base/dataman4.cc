@@ -49,6 +49,7 @@
 #include "autostr.h"   /* Elementi automatici associati ai nodi dinamici */
 #include "gravity.h"   /* Elemento accelerazione di gravita' */
 #include "body.h"
+#include "inertia.h"
 #include "joint.h"
 #include "jointreg.h"
 #include "force.h"
@@ -407,202 +408,6 @@ DataManager::ReadElems(MBDynParser& HP)
 				}
 			} /* end while (HP.IsArg()) */
 
-		} else if (CurrDesc == INERTIA) {
-			unsigned int uIn = (unsigned int)HP.GetInt();
-
-			/* Nome dell'elemento */
-			const char *sName = NULL;
-			if (HP.IsKeyWord("name")) {
-				const char *sTmp = HP.GetStringWithDelims();
-				SAFESTRDUP(sName, sTmp);
-			}
-
-			Vec3 x(Zero3);
-			if (HP.IsKeyWord("position")) {
-				x = HP.GetPosAbs(AbsRefFrame);
-			}
-
-			Mat3x3 R(Eye3);
-			Mat3x3 RT(Eye3);
-			if (HP.IsKeyWord("orientation")) {
-				R = HP.GetRotAbs(AbsRefFrame);
-				RT = R.Transpose();
-			}
-
-			doublereal dM(0.);
-			Vec3 S(0.);
-			Mat3x3 J(0.);
-
-			std::set<unsigned int> Body_labels;
-			Elem::Type Type = Elem::UNKNOWN;
-			bool bOut(false);
-			bool bLog(true);
-			while (HP.IsArg()) {
-				if (HP.IsKeyWord("output")) {
-					if (HP.IsKeyWord("no")) {
-						bLog = false;
-
-					} else if (HP.IsKeyWord("yes")) {
-						bLog = false;
-						bOut = true;
-
-					} else if (HP.IsKeyWord("log")) {
-						/* bLog = true */ ;
-
-					} else if (HP.IsKeyWord("both")) {
-						bOut = true;
-
-					} else {
-						silent_cerr("unknown output mode for inertia "
-							<< uIn << " at line "
-							<< HP.GetLineData()
-							<< std::endl);
-						throw ErrGeneric();
-					}
-					break;
-
-				} else if (HP.IsKeyWord(sKeyWords[BODY])) {
-					Type = Elem::BODY;
-
-				} else if (HP.IsKeyWord(sKeyWords[JOINT])) {
-					Type = Elem::JOINT;
-
-				} else if (HP.IsKeyWord(sKeyWords[LOADABLE])) {
-					Type = Elem::LOADABLE;
-
-#if 0
-				} else if (HP.IsKeyWord("...")) {
-					/* other types with inertia */
-#endif
-				}
-
-				if (Type == Elem::UNKNOWN) {
-					silent_cerr("inertia " << uIn);
-					if (sName) {
-						silent_cerr(" (" << sName << ")");
-					}
-					silent_cerr(" at line " << HP.GetLineData()
-						<< ": unknown or undefined element type"
-						<< std::endl);
-						throw ErrGeneric();
-				}
-
-				/*
-				 * FIXME: duplicate check?
-				 */
-
-				if (HP.IsKeyWord("all")) {
-					for (ElemMapType::const_iterator i = ElemData[Type].ElemMap.begin();
-						i != ElemData[Type].ElemMap.end();
-						i++)
-					{
-						unsigned int uL = i->second->GetLabel();
-						std::set<unsigned int>::const_iterator BL_end = Body_labels.end();
-
-						if (Body_labels.find(uL) == BL_end) {
-							Body_labels.insert(uL);
-							ElemGravityOwner *pEl = dynamic_cast<ElemGravityOwner *>(i->second);
-
-							dM += pEl->dGetM();
-							S += pEl->GetS();
-							J += pEl->GetJ();
-
-						} else {
-							silent_cerr(psElemNames[Type]
-								<< "(" << uL
-								<< ") duplicate label at line "
-								<< HP.GetLineData()
-								<< " (ignored)" << std::endl);
-						}
-					}
-
-				} else {
-					unsigned int uL = (unsigned int)HP.GetInt();
-					std::set<unsigned int>::const_iterator BL_end = Body_labels.end();
-					if (Body_labels.find(uL) == BL_end) {
-						Elem **ppTmpEl = (Elem **)ppFindElem(Type, uL);
-						if (ppTmpEl == NULL || ppTmpEl[0] == NULL) {
-							silent_cerr("inertia " << uIn
-								<< " at line " << HP.GetLineData()
-								<< ": unable to find " << psElemNames[Type]
-								<< "(" << uL << ")" << std::endl);
-							throw ErrGeneric();
-						}
-
-						Body_labels.insert(uL);
-						ElemGravityOwner *pEl = dynamic_cast<ElemGravityOwner *>(ppTmpEl[0]);
-						ASSERT(pEl != 0);
-
-						/* FIXME: temporary... */
-						if (Type == Elem::JOINT) {
-							Joint *pJ = dynamic_cast<Joint *>(pEl);
-							if (pJ == 0 || pJ->GetJointType() != Joint::MODAL) {
-								silent_cerr("warning, Joint(" << uL << ") "
-									"is not modal" << std::endl);
-							}
-						}
-
-						dM += pEl->dGetM();
-						S += pEl->GetS();
-						J += pEl->GetJ();
-
-					} else {
-						silent_cerr(psElemNames[Type] << "(" << uL
-							<< "): duplicate label at line "
-							<< HP.GetLineData() << " (ignored)"
-							<< std::endl);
-					}
-				}
-			}  /* end while (HP.IsArg()) */ 
-
-			Vec3 Xcg(0.);
-			Mat3x3 Jcg(J);
-			if (dM < DBL_EPSILON) {
-				silent_cerr("inertia " << uIn
-					<< " at line " << HP.GetLineData()
-					<< ": mass is null" << std::endl);
-			} else {
-				Xcg = S/dM;
-
-				/*
-				 * FIXME: should also rotate it in the principal
-				 * reference frame, and log the angles
-				 */
-				Jcg += Mat3x3(S, Xcg);
-			}
-
-			if (!x.IsNull()) {
-				Vec3 Dx = Xcg - x;
-				J += Mat3x3(x, x*dM) + Mat3x3(Dx, x*dM) + Mat3x3(x, Dx*dM);
-			}
-
-			if (bLog) {
-				OutHdl.Log()
-					<< "inertia: " << uIn
-					<< " (" << ( sName ? sName : "unnamed" ) << ")"
-					<< std::endl
-					<< "    mass:        " << dM << std::endl
-					<< "    Xcg:         " << Xcg << std::endl
-					<< "    Xcg-X:       " << (Xcg - x) << std::endl
-					<< "    R^T*(Xcg-X): " << RT*(Xcg - x) << std::endl
-					<< "    J:           " << RT*J*R << std::endl
-					<< "    Jcg:         " << RT*Jcg*R << std::endl;
-			}
-			if (bOut) {
-				silent_cout("inertia: " << uIn
-					<< " (" << ( sName ? sName : "unnamed" ) << ")"
-					<< std::endl
-					<< "    mass:        " << dM << std::endl
-					<< "    Xcg:         " << Xcg << std::endl
-					<< "    Xcg-X:       " << (Xcg - x) << std::endl
-					<< "    R^T*(Xcg-X): " << RT*(Xcg - x) << std::endl
-					<< "    J:           " << RT*J*R << std::endl
-					<< "    Jcg:         " << RT*Jcg*R << std::endl);
-			}
-			if (sName) {
-				SAFEDELETEARR(sName);
-			}
-
 		} else if (CurrDesc == BIND) {
 			/* Label dell'elemento */
 			unsigned int uL = HP.GetInt();
@@ -625,6 +430,10 @@ DataManager::ReadElems(MBDynParser& HP)
 			case FORCE:
 			case COUPLE:
 				t = Elem::FORCE;
+				break;
+
+			case INERTIA:
+				t = Elem::INERTIA;
 				break;
 
 			case BEAM:
@@ -711,8 +520,9 @@ DataManager::ReadElems(MBDynParser& HP)
 
 			/* Numero d'ordine del dato privato a cui fare il binding */
 			unsigned int i = 0;
+			std::string s;
 			if (HP.IsKeyWord("name") || HP.IsKeyWord("string" /* deprecated */ )) {
-				const char *s = HP.GetStringWithDelims();
+				s = HP.GetStringWithDelims();
 
 				ASSERT(s != NULL);
 
@@ -720,7 +530,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					<< "(" << pEl->GetLabel() << ") private data "
 					"\"" << s << "\"" << std::endl);
 
-				i = pEl->iGetPrivDataIdx(s);
+				i = pEl->iGetPrivDataIdx(s.c_str());
 
 			} else {
 				i = HP.GetInt();
@@ -728,9 +538,18 @@ DataManager::ReadElems(MBDynParser& HP)
 
 			/* indice del dato a cui il parametro e' bound */
 			if (i <= 0 || i > pEl->iGetNumPrivData()) {
-				silent_cerr("error in private data number " << i << " for element "
-					<< psElemNames[t] << " (" << pEl->GetLabel() << ") "
-					"at line " << HP.GetLineData() << std::endl);
+				if (!s.empty()) {
+					silent_cerr("error in private data \"" << s << "\" "
+						"for element " << psElemNames[t] << " (" << pEl->GetLabel() << ") "
+						"while binding to ParameterNode(" << uL << ") "
+						"at line " << HP.GetLineData() << std::endl);
+					
+				} else {
+					silent_cerr("error in private data #" << i << " "
+						"for element " << psElemNames[t] << " (" << pEl->GetLabel() << ") "
+						"while binding to ParameterNode(" << uL << ") "
+						"at line " << HP.GetLineData() << std::endl);
+				}
 				throw ErrGeneric();
 			}
 
@@ -1029,7 +848,7 @@ DataManager::ReadElems(MBDynParser& HP)
 						}
 
 						/* Reads the true element */
-						ppE = ReadOneElem(HP, uLabel, CurrDriven);
+						ppE = ReadOneElem(HP, uLabel, 0, CurrDriven);
 						if (ppE == NULL) {
 							DEBUGCERR("");
 							silent_cerr("error in allocation of element "
@@ -1074,6 +893,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				case FORCE:
 
 				case BODY:
+				case INERTIA:
 				case JOINT:
 				case JOINT_REGULARIZATION:
 				case COUPLE:
@@ -1112,7 +932,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					Elem **ppE = 0;
 
 					/* Nome dell'elemento */
-					const char *sName = NULL;
+					const char *sName = 0;
 					if (HP.IsKeyWord("name")) {
 						const char *sTmp = HP.GetStringWithDelims();
 						SAFESTRDUP(sName, sTmp);
@@ -1125,7 +945,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					}
 #endif // USE_RUNTIME_LOADING
 
-					ppE = ReadOneElem(HP, uLabel, CurrDesc);
+					ppE = ReadOneElem(HP, uLabel, sName, CurrDesc);
 
 					if (ppE != 0) {
 						pE = *ppE;
@@ -1161,26 +981,26 @@ DataManager::ReadElems(MBDynParser& HP)
 			}  /* end switch (CurrDesc) 'Elemento generico' */
 
 			/* verifica dell'allocazione */
-			ASSERT(pE != 0);
+			if (pE != 0) {
+				/* Aggiorna le dimensioni massime degli spazi di lavoro
+				 * (qui va bene perche' il puntatore e' gia' stato verificato) */
+				integer iNumRows = 0;
+				integer iNumCols = 0;
+				pE->WorkSpaceDim(&iNumRows, &iNumCols);
+				if (iNumRows > iMaxWorkNumRows) {
+					iMaxWorkNumRows = iNumRows;
+					DEBUGLCOUT(MYDEBUG_INIT, "Current max work rows number: "
+						<< iMaxWorkNumRows << std::endl);
+				}
+				if (iNumCols > iMaxWorkNumCols) {
+					iMaxWorkNumCols = iNumCols;
+					DEBUGLCOUT(MYDEBUG_INIT, "Current max work cols number: "
+						<< iMaxWorkNumCols << std::endl);
+				}
 
-			/* Aggiorna le dimensioni massime degli spazi di lavoro
-			 * (qui va bene perche' il puntatore e' gia' stato verificato) */
-			integer iNumRows = 0;
-			integer iNumCols = 0;
-			pE->WorkSpaceDim(&iNumRows, &iNumCols);
-			if (iNumRows > iMaxWorkNumRows) {
-				iMaxWorkNumRows = iNumRows;
-				DEBUGLCOUT(MYDEBUG_INIT, "Current max work rows number: "
-					<< iMaxWorkNumRows << std::endl);
+				/* decrementa il totale degli elementi mancanti */
+				iMissingElems--;
 			}
-			if (iNumCols > iMaxWorkNumCols) {
-				iMaxWorkNumCols = iNumCols;
-				DEBUGLCOUT(MYDEBUG_INIT, "Current max work cols number: "
-					<< iMaxWorkNumCols << std::endl);
-			}
-
-			/* decrementa il totale degli elementi mancanti */
-			iMissingElems--;
 			
 		}  /* end <<<<  D E F A U L T  >>>>  :  Read one element and create it */ 
 		   /* end default: leggo un elemento e lo creo */
@@ -1318,7 +1138,7 @@ DataManager::ReadElems(MBDynParser& HP)
 } /*  End of DataManager::ReadElems()  */
 
 Elem**
-DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, int CurrType)
+DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const char *sName, int CurrType)
 {
 	Elem* pE = 0;
 	Elem** ppE = 0;
@@ -2031,6 +1851,191 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, int CurrType)
 		if (pE != 0) {
 			ppE = &ElemData[Elem::SOCKETSTREAM_OUTPUT].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
 		}
+		break;
+	}
+
+	case INERTIA: {
+		silent_cout("Reading inertia " << uLabel << std::endl);
+
+		Vec3 x(Zero3);
+		if (HP.IsKeyWord("position")) {
+			x = HP.GetPosAbs(AbsRefFrame);
+		}
+
+		Mat3x3 R(Eye3);
+		Mat3x3 RT(Eye3);
+		if (HP.IsKeyWord("orientation")) {
+			R = HP.GetRotAbs(AbsRefFrame);
+			RT = R.Transpose();
+		}
+
+		std::set<const ElemGravityOwner *> elements;
+		Elem::Type Type = Elem::UNKNOWN;
+		bool bOut(false);
+		bool bLog(true);
+		bool bAlways(false);
+		while (HP.IsArg()) {
+			if (HP.IsKeyWord("output")) {
+				if (HP.IsKeyWord("no")) {
+					bLog = false;
+					bOut = false;
+
+				} else if (HP.IsKeyWord("yes")) {
+					bLog = false;
+					bOut = true;
+
+				} else if (HP.IsKeyWord("log")) {
+					bLog = true;
+
+				} else if (HP.IsKeyWord("both")) {
+					bLog = true;
+					bOut = true;
+
+				} else if (HP.IsKeyWord("always")) {
+					bAlways = true;
+					bLog = true;
+					bOut = true;
+
+				} else {
+					silent_cerr("Inertia(" << uLabel << "): "
+						"unknown output mode "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric();
+				}
+				break;
+
+			} else if (HP.IsKeyWord("body")) {
+				Type = Elem::BODY;
+
+			} else if (HP.IsKeyWord("joint")) {
+				Type = Elem::JOINT;
+
+			} else if (HP.IsKeyWord("loadable")) {
+				Type = Elem::LOADABLE;
+
+#if 0
+			} else if (HP.IsKeyWord("...")) {
+				/* other types with inertia */
+#endif
+			}
+
+			if (Type == Elem::UNKNOWN) {
+				if (sName) {
+					silent_cerr("Inertia(" << uLabel << ", \"" << sName << "\"): ");
+				} else {
+					silent_cerr("Inertia(" << uLabel << "): ");
+				}
+				silent_cerr("unknown or undefined element type "
+					"at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric();
+			}
+
+			/*
+			 * FIXME: duplicate check?
+			 */
+
+			if (HP.IsKeyWord("all")) {
+				for (ElemMapType::const_iterator i = ElemData[Type].ElemMap.begin();
+					i != ElemData[Type].ElemMap.end();
+					i++)
+				{
+					ElemGravityOwner *pEl = dynamic_cast<ElemGravityOwner *>(i->second);
+					if (pEl == 0) {
+						silent_cerr(psElemNames[Type]
+							<< "(" << i->second->GetLabel() << "): "
+							"not a gravity related element "
+							"at line " << HP.GetLineData()
+							<< std::endl);
+						throw ErrGeneric();
+					}
+
+					if (elements.find(pEl) != elements.end()) {
+						silent_cerr(psElemNames[Type]
+							<< "(" << pEl->GetLabel() << "): "
+							" duplicate label at line "
+							<< HP.GetLineData() << std::endl);
+						throw ErrGeneric();
+					}
+					elements.insert(pEl);
+				}
+
+			} else {
+				unsigned int uL = (unsigned int)HP.GetInt();
+				Elem *pTmpEl = pFindElem(Type, uL);
+				if (pTmpEl == 0) {
+					silent_cerr("Inertia(" << uLabel << "): "
+						"unable to find " << psElemNames[Type]
+						<< "(" << uL << ") "
+						"at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric();
+				}
+
+				ElemGravityOwner *pEl = dynamic_cast<ElemGravityOwner *>(pTmpEl);
+				if (pEl == 0) {
+					silent_cerr("Inertia(" << uLabel << "): "
+						<< psElemNames[Type]
+						<< "(" << uL << "): "
+						"not a gravity related element "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric();
+				}
+
+				if (elements.find(pEl) != elements.end()) {
+					silent_cerr("Inertia(" << uLabel << "): "
+						<< psElemNames[Type] << "(" << uL << ") "
+						"is duplicate at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric();
+				}
+
+				elements.insert(pEl);
+			}
+		}  /* end while (HP.IsArg()) */ 
+
+		flag fOut = fReadOutput(HP, Elem::BODY);
+		if (bLog) {
+			fOut |= 0x2;
+		}
+		if (bOut) {
+			fOut |= 0x4;
+		}
+		if (bAlways) {
+			if (iNumTypes[Elem::INERTIA]-- <= 0) {
+				DEBUGCERR("");
+				silent_cerr("line " << HP.GetLineData()
+					<< ": inertia " << uLabel
+					<< " exceeds inertia elements number" << std::endl);
+	
+				throw DataManager::ErrGeneric();
+			}
+
+			/* verifica che non sia gia' definito */
+			if (pFindElem(Elem::INERTIA, uLabel) != NULL) {
+				DEBUGCERR("");
+				silent_cerr("line " << HP.GetLineData()
+					<< ": inertia " << uLabel
+					<< " already defined" << std::endl);
+	
+				throw DataManager::ErrGeneric();
+			}
+
+			fOut |= 0x8;
+		}
+
+
+		SAFENEWWITHCONSTRUCTOR(pE, Inertia,
+			Inertia(uLabel, elements, x, R, OutHdl.Log(), fOut));
+		if (pE != 0) {
+			if (bAlways) {
+				ppE = &ElemData[Elem::INERTIA].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
+			} else {
+				SAFEDELETE(pE);
+				pE = 0;
+			}
+		}
+
 		break;
 	}
 

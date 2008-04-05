@@ -584,6 +584,7 @@ protected:
 	flag fGetDefaultOutputFlag(const Elem::Type& t) const;
 	Elem** ReadOneElem(MBDynParser& HP,
 			unsigned int uLabel,
+			const char *sName,
 			int CurrType);
 
 public:

@@ -534,7 +534,7 @@ Rod::iGetPrivDataIdx(const char *s) const
 
 	size_t l = STRLENOF("constitutiveLaw.");
 	if (strncmp(s, "constitutiveLaw.", l) == 0) {
-		return 3 + ConstitutiveLaw1DOwner::iGetPrivDataIdx(s + l);
+		return 3 + ConstitutiveLaw1DOwner::iGetPrivDataIdx(&s[l]);
 	}
 
 	/* error; handle later */

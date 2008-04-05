@@ -139,6 +139,9 @@ protected:
 	/* momento d'inerzia */
 	Mat3x3 GetJ_int(void) const;
  
+	Vec3 GetB_int(void) const;
+	Vec3 GetG_int(void) const;
+
 public:
 	/* Costruttore non banale */
 	Modal(unsigned int uL,

@@ -52,6 +52,8 @@ const char* psElemNames[] = {
    
    "Force",
    
+   "Inertia",
+   
    "Electric Bulk",
    "Electric",
 
@@ -71,7 +73,7 @@ const char* psElemNames[] = {
    "GENEL",
 
    "Socket Stream Output",
-   
+
    NULL
 };
 
@@ -89,6 +91,8 @@ const char* psReadElemsElems[] = {
    "plate",
    
    "force",
+   
+   "inertia",
    
    "electric" "bulk",
    "electric",
@@ -109,7 +113,7 @@ const char* psReadElemsElems[] = {
    "genel",
 
    "socket" "stream" "output",
-   
+
    NULL
 };
 
@@ -130,6 +134,8 @@ const char* psReadControlElems[] = {
    "plates",
    
    "forces",
+
+   "inertia",
    
    "electric" "bulk" "elements",
    "electric" "elements",
@@ -150,7 +156,7 @@ const char* psReadControlElems[] = {
    "genels",
 
    "output" "elements",
-   
+
    NULL
 };
 

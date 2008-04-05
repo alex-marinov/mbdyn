@@ -93,6 +93,7 @@ DataManager::ReadControl(MBDynParser& HP,
 		psReadControlElems[Elem::AEROMODAL],
 		psReadControlElems[Elem::AERODYNAMIC],
 		psReadControlElems[Elem::FORCE],
+		psReadControlElems[Elem::INERTIA],
 		psReadControlElems[Elem::GENEL],
 		psReadControlElems[Elem::ELECTRICBULK],
 		psReadControlElems[Elem::ELECTRIC],
@@ -174,6 +175,7 @@ DataManager::ReadControl(MBDynParser& HP,
 		AEROMODALS,
 		AERODYNAMICELEMENTS,
 		FORCES,
+		INERTIA,
 		GENELS,
 		ELECTRICBULKELEMENTS,
 		ELECTRICELEMENTS,
@@ -318,6 +320,13 @@ DataManager::ReadControl(MBDynParser& HP,
 			int iDmy = HP.GetInt();
 			ElemData[Elem::BODY].iExpectedNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Rigid bodies: " << iDmy << std::endl);
+		} break;
+
+		/* Numero di inerzie attese */
+		case INERTIA: {
+			int iDmy = HP.GetInt();
+			ElemData[Elem::INERTIA].iExpectedNum = iDmy;
+			DEBUGLCOUT(MYDEBUG_INPUT, "Inertia: " << iDmy << std::endl);
 		} break;
 
 		/* Numero di vincoli attesi */

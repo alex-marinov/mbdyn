@@ -255,7 +255,7 @@ public:
 		return Rod::iGetPrivDataIdx(s);
 	};
 	virtual doublereal dGetPrivData(unsigned int i) const {
-		return dGetPrivData(i);
+		return Rod::dGetPrivData(i);
 	};
 #endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
 };
@@ -350,7 +350,7 @@ public:
 		return Rod::iGetPrivDataIdx(s);
 	};
 	virtual doublereal dGetPrivData(unsigned int i) const {
-		return dGetPrivData(i);
+		return Rod::dGetPrivData(i);
 	};
 #endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
 };

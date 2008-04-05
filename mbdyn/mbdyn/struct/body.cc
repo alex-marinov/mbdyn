@@ -35,8 +35,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <body.h>
-#include <dataman.h>
+#include "body.h"
+#include "dataman.h"
 
 /* Body - begin */
 
@@ -481,6 +481,30 @@ DynamicBody::SetValue(DataManager *pDM,
 	X.Add(iFirstIndex + 1, V*dMass + W.Cross(S));
 	X.Add(iFirstIndex + 4, S.Cross(V) + J*W);
 }
+
+/* momentum */
+Vec3
+DynamicBody::GetB_int(void) const
+{
+	const Vec3& V(pNode->GetVCurr());
+	const Vec3& W(pNode->GetWCurr());
+	const Mat3x3& R(pNode->GetRCurr());
+
+	return V*dMass + W.Cross(R*S0);
+}
+
+
+/* momenta moment */
+Vec3
+DynamicBody::GetG_int(void) const
+{
+	const Vec3& V(pNode->GetVCurr());
+	const Vec3& W(pNode->GetWCurr());
+	const Mat3x3& R(pNode->GetRCurr());
+
+	return (R*S0).Cross(V) + R*(J0*(R.MulTV(W)));
+}
+
 
 /* DynamicBody - end */
 
