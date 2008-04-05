@@ -239,6 +239,74 @@ Mat3x3::LDLSolve(const Vec3& v) const
 	return Vec3(z1, z2 - l21*z1, z3 - l31*z1 - l32*z2);
 }
 
+#include <ac/lapack.h>
+
+bool
+Mat3x3::EigSym(Vec3& EigenValues) const
+{
+	Mat3x3 EigenVectors;
+
+	return EigSym(EigenValues, EigenVectors);
+}
+
+bool
+Mat3x3::EigSym(Vec3& EigenValues, Mat3x3& EigenVectors) const
+{
+	// TEMPORARY!!!
+	char sL[2] = "V";
+	char sR[2] = "V";
+
+	/* iNumDof is a member, set after dataman constr. */
+	integer iSize = 3;
+	/* Minimum workspace size. To be improved */
+	integer iWorkSize = 8*3;
+	integer iInfo = 0;
+
+	Mat3x3 A = *this;
+	Mat3x3 B = Eye3;
+
+	doublereal AlphaR[3];
+	doublereal AlphaI[3];
+	doublereal Beta[3];
+
+	doublereal WorkVec[8*3], L[3*3];
+
+	__FC_DECL__(dgegv)(sL,
+		sR,
+		&iSize,
+		A.pdMat,
+		&iSize,
+		B.pdMat,
+		&iSize,
+		AlphaR,
+		AlphaI,
+		Beta,
+		L,
+		&iSize,
+		EigenVectors.pdMat,
+		&iSize,
+		WorkVec,
+		&iWorkSize,
+		&iInfo);
+
+	for (int i = 1; i <= 3; i++) {
+		// by now, we assume eigenvalues and eigenvectors
+		// are real and positive
+		ASSERT(AlphaI[i - 1] == 0.);
+		ASSERT(Beta[i - 1] > 0.);
+
+		EigenValues(i) = AlphaR[i - 1]/Beta[i - 1];
+
+		Vec3 v = EigenVectors.GetVec(i);
+		v /= v.Norm();
+		EigenVectors(1, i) = v(1);
+		EigenVectors(2, i) = v(2);
+		EigenVectors(3, i) = v(3);
+	}
+
+	return true;
+}
+
 /**
  * multiply by another matrix, transposed: this * m^T
  */

@@ -869,7 +869,7 @@ class Mat3x3 {
    doublereal dDet(void) const;
    Mat3x3 Inv(const doublereal& ddet) const;
    Mat3x3 Inv(void) const;
-   
+
    /*
     Soluzione.
     Restituisce l'inversa di se stessa per v in un temporaneo.
@@ -879,6 +879,12 @@ class Mat3x3 {
    
    Vec3 LDLSolve(const Vec3& v) const;      
 
+   /*
+    Eigenvalues
+    */
+   bool EigSym(Vec3& EigenValues) const;
+   bool EigSym(Vec3& EigenValues, Mat3x3& EigenVectors) const;
+ 
    /*Operazioni su arrays di reali */
       
    /*
