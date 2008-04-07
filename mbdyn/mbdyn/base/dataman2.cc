@@ -883,7 +883,6 @@ DataManager::InitialJointAssembly(void)
 
 	InitialAssemblyIterator IAIter(&ElemData);
 	InitialAssemblyElem* pEl = IAIter.GetFirst();
-	ASSERT(pEl != NULL);
 	while (pEl != NULL) {
 		integer iCurrRows = 0;
 		integer iCurrCols = 0;

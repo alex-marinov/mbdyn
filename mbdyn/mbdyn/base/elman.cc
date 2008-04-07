@@ -39,6 +39,7 @@
 #include "search.h"
 #include "gravity.h"
 #include "aerodyn.h"
+#include "driven.h"
 
 /* DataManager - begin */
 
@@ -722,6 +723,8 @@ CurrType(Elem::UNKNOWN)
 		}
 	}
 
+	// NOTE: this fails if by chance there's no element
+	// that participates in initial assembly
 	ASSERT(iCnt < Elem::LASTELEMTYPE);
 	ASSERT((*pElemData)[iCnt].ElemMap.begin() != (*pElemData)[iCnt].ElemMap.end());
 
@@ -737,14 +740,14 @@ InitialAssemblyIterator::GetFirst(void) const
 
 	/* La variabile temporanea e' necessaria per il debug. */
 	InitialAssemblyElem* p = dynamic_cast<InitialAssemblyElem *>(pCurr->second);
-	for ( ; p == 0; p = GetNext()) {
-#ifdef DEBUG
-		if (p == 0) {
-			silent_cerr(psElemNames[pCurr->second->GetElemType()]
-				<< "(" << pCurr->second->GetLabel() << ")"
-				" is not subject to initial assembly" << std::endl);
+	if (p == 0) {
+		DrivenElem *pDE = dynamic_cast<DrivenElem *>(pCurr->second);
+		if (pDE != 0) {
+			p = dynamic_cast<InitialAssemblyElem *>(pDE->pGetElem());
 		}
-#endif
+		if (p == 0) {
+			p = GetNext();
+		}
 	}
 
 	return p;
@@ -761,7 +764,7 @@ InitialAssemblyIterator::GetNext(void) const
 
 			do {
 				if (++iCnt >= Elem::LASTELEMTYPE) {
-					return NULL;
+					return 0;
 				}
 			} while (!(*pElemData)[iCnt].bToBeUsedInAssembly()
 					|| (*pElemData)[iCnt].ElemMap.empty());
@@ -773,6 +776,13 @@ InitialAssemblyIterator::GetNext(void) const
 
 		/* La variabile temporanea e' necessaria per il debug. */
 		p = dynamic_cast<InitialAssemblyElem *>(pCurr->second);
+
+		if (p == 0) {
+			DrivenElem *pDE = dynamic_cast<DrivenElem *>(pCurr->second);
+			if (pDE != 0) {
+				p = dynamic_cast<InitialAssemblyElem *>(pDE->pGetElem());
+			}
+		}
 
 #ifdef DEBUG
 		if (p == 0) {
