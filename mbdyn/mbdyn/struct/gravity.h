@@ -175,6 +175,8 @@ class ElemGravityOwner : virtual public Elem, public GravityOwner {
       return Vec3(0.);
    };
 
+   // NOTE: gravity owners must provide the momenta moment
+   // with respect to the origin of the global reference frame!
    virtual Vec3 GetG_int(void) const {
       pedantic_cerr("ElemGravityOwner(" << GetLabel() << "): "
 	      "warning, using default GetG_int()" << std::endl);

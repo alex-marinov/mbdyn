@@ -498,11 +498,13 @@ DynamicBody::GetB_int(void) const
 Vec3
 DynamicBody::GetG_int(void) const
 {
+	const Vec3& X(pNode->GetXCurr());
+	const Mat3x3& R(pNode->GetRCurr());
 	const Vec3& V(pNode->GetVCurr());
 	const Vec3& W(pNode->GetWCurr());
-	const Mat3x3& R(pNode->GetRCurr());
 
-	return (R*S0).Cross(V) + R*(J0*(R.MulTV(W)));
+	// NOTE: with respect to the origin of the global reference frame!
+	return (R*S0 + X*dMass).Cross(V) + R*(J0*(R.MulTV(W)));
 }
 
 

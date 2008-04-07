@@ -2595,6 +2595,7 @@ Modal::GetJ_int(void) const
 Vec3
 Modal::GetB_int(void) const
 {
+	// FIXME: gross estimate
 	if (pModalNode != 0) {
 		return pModalNode->GetVCurr()*dMass;
 	}
