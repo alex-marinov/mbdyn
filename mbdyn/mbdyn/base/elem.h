@@ -31,7 +31,7 @@
 
 /*****************************************************************************
  *                                                                           *
- *                           Mbdyn - Elements                                *
+ *                           MBDyn - Elements                                *
  *                                                                           *
  *****************************************************************************/
 
@@ -41,21 +41,21 @@
 
 #include <vector>
 
-#include <myassert.h>
-#include <except.h>
+#include "myassert.h"
+#include "except.h"
 
-#include <solman.h>
-#include <submat.h>
-#include <output.h>
+#include "solman.h"
+#include "submat.h"
+#include "output.h"
 
-#include <withlab.h>
-#include <dofown.h>
+#include "withlab.h"
+#include "dofown.h"
 
-#include <simentity.h>
-#include <node.h>
+#include "simentity.h"
+#include "node.h"
 
 #ifdef USE_MULTITHREAD
-#include <veciter.h>
+#include "veciter.h"
 #endif /* USE_MULTITHREAD */
 
 extern const char* psElemNames[];
@@ -351,5 +351,5 @@ public:
 
 /* InitialAssemblyElem - end */
 
-#endif /* ELEM_H */
+#endif // ELEM_H
 

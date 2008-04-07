@@ -58,8 +58,8 @@
 #ifndef GRAVITY_H
 #define GRAVITY_H
 
-#include <elem.h>
-#include <tpldrive.h>
+#include "elem.h"
+#include "tpldrive.h"
 
 /* Gravity - begin */
 
@@ -225,4 +225,4 @@ class ElemGravityOwner : virtual public Elem, public GravityOwner {
 
 /* ElemGravityOwner - end */
 
-#endif
+#endif // GRAVITY_H
