@@ -2086,18 +2086,33 @@ must be in the range $\sqbr{-1,1}$, in strict ascending order.
 Every time a ``deformable'' entity requires a constitutive law, a template
 constitutive law is read. This has been implemented by means of C++
 templates in order to allow the definition of a general constitutive law
-when possible. The ``deformable'' elements at present are \kw{rod} joints (1D),
-\kw{deformable hinge} and \kw{deformable displacement joint} elements (3D),  
-and \kw{deformable joint} and \kw{beam} elements (6D).
+when possible.
+The ``deformable'' elements at present are:
+\begin{itemize}
+\item \htmlref{\kw{rod}}{sec:EL:STRUCT:JOINT:ROD}
+	element (1D);
+\item \htmlref{\kw{deformable hinge}}{sec:EL:JOINT:DEFORMABLEHINGE}
+	and \htmlref{\kw{deformable displacement joint}}{sec:EL:JOINT:DEFORMABLEDISP}
+	elements (3D);
+\item \htmlref{\kw{deformable joint}}{sec:EL:JOINT:DEFORMABLEJOINT}
+	and \htmlref{\kw{beam}}{sec:EL:BEAM}
+	elements (6D).
+\end{itemize}
 
 Constitutive laws are also used in non-structural components,
 to allow some degree of generality in defining input/output relationships.
 Some constitutive laws are meaningful only when related to some precise
-dimension. 
-In some special cases, general purpose (\kw{genel}) elements 
-use 1D constitutive laws to express an arbitrary dependence 
+dimensionality. 
+In some special cases, general purpose (\htmlref{\kw{genel}}{sec:EL:GENEL})
+elements use 1D constitutive laws to express an arbitrary dependence
 of some value on a scalar state of the system.
 Table~\ref{tab:CONST-LAW-DIM} shows the availability of each constitutive law.
+
+The meaning of the input and output parameters of a constitutive law
+is dictated by the entity that uses it.
+In general, the user should refer to the element the constitutive law
+is being instantiated for in order to understand what the input
+and the output parameters are supposed to be.
 
 Usually, constitutive laws can be directly defined when required,
 according to the definition of an element.
@@ -2177,7 +2192,7 @@ The constitutive laws are entered as follows:
 \end{verbatim}
 where \kw{const\_law\_name} is the name of the constitutive law and
 \kw{const\_law\_data} depends on the specific constitutive law. 
-The latter fields, whose type depends on the dimension of the
+The latter fields, whose type depends on the dimensionality of the
 constitutive law, are optional, under the assumption that the
 constitutive law is the last portion of a card, or that any ambiguity 
 can be avoided.

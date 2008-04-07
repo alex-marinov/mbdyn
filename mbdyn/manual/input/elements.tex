@@ -633,6 +633,7 @@ The following data is available:
 
 
 \section{Beam Element}
+\label{sec:EL:BEAM}
 The family of finite volume beam elements implemented in MBDyn
 allows to model slender deformable structural components 
 with a high level of flexibility.
@@ -1656,8 +1657,8 @@ ways; the latter, by means of the
 is more direct, but the former, by means of the 
 \hyperref{\kw{dof} drive}{\kw{dof} drive (see Section~}{)}{sec:DRIVE-DOF}
 through the \kw{bind} mechanism has the additional effect of updating
-the \kw{parameter} node, which can be used to connect \kw{genel} elements 
-for special purposes.
+the \kw{parameter} node, which can be used to connect
+\htmlref{\kw{genel}}{sec:EL:GENEL} elements for special purposes.
 
 \subsection{Beam strain gage}
 When binding an element to a
@@ -1810,9 +1811,10 @@ At present only the \kw{stiffness spring} type is available.
 \end{verbatim}
 The equation related to the desired dof of the linked node is added a
 contribution based on the value of the desired degree of freedom (even the
-derivative can be used) multiplied times the stiffness. \\
+derivative can be used) multiplied times the stiffness.
+
 {\em Note: this family of elements has been partially superseded by the
-\kw{genel} elements, which allow more generality.}
+\htmlref{\kw{genel}}{sec:EL:GENEL} elements, which allow more generality.}
 
 
 
@@ -2372,6 +2374,7 @@ the generalized external force element is connected to.
 
 
 \section{Genel Element}
+\label{sec:EL:GENEL}
 \textsc{Genel} is the compact form for \textsc{Gen}eral \textsc{el}ement.
 Those elements that cannot in general be classified in a precise way, 
 or are just under development and thus are not collected in a class 
@@ -3098,7 +3101,8 @@ Deprecated; use the
 instead.
 
 
-\subsection{Deformable displacement joint}\label{sec:EL:JOINT:DEFORMABLEDISP}
+\subsection{Deformable displacement joint}
+\label{sec:EL:JOINT:DEFORMABLEDISP}
 This joint implements a configuration dependent force that is exchanged
 between two points associated to two nodes with an offset.
 The force may depend, by way of a generic 3D constitutive law, 
@@ -3279,6 +3283,7 @@ and the node 2 orientation
 
 
 \subsection{Deformable joint}
+\label{sec:EL:JOINT:DEFORMABLEJOINT}
 This joint implements a configuration dependent force and moment
 that are exchanged by two points associated to two nodes with an offset.
 The force the and moment may depend, by way of a generic 6D constitutive law,
@@ -4272,16 +4277,40 @@ The syntax is:
                      (Vec3) <relative_offset_2> ] ,
         (ConstitutiveLaw1D) <const_law>
 \end{verbatim}
-The constitutive law \kw{<const\_law>} is used in form 
-of rod axial stiffness $EA$, i.e., for a linear constitutive law:
+The constitutive law \kw{const\_law} receives as input the rod axial strain
+\begin{equation}
+	\varepsilon = \frac{l - l_0}{l_0} ,
+\end{equation}
+where $l_0=\kw{rod\_length}$ and $l$ is the distance between the two nodes,
+and, in case of viscoelastic constitutive law, the axial strain derivative
+\begin{equation}
+	\dot{\varepsilon} = \frac{\dot{l}}{l_0} .
+\end{equation}
+It returns the corresponding rod axial force,
 \begin{displaymath}
-	F = EA \frac{l - l_0}{l_0}
+	F = F\plbr{\frac{l - l_0}{l_0}, \frac{\dot{l}}{l_0}} .
 \end{displaymath}
-and in general
+If a \kw{prestrain} $\varepsilon_p$ is defined,
+it consists in an imposed value of the axial strain
+that is subtracted from the geometrical strain
+before being passed to the constitutive law;
+if a \kw{prestress} $F_p$ is defined,
+it consists in an imposed axial force value
+that is added to the one obtained from the constitutive law,
+namely
 \begin{displaymath}
-	F = F\plbr{\frac{l - l_0}{l_0}, \frac{\dot{l}}{l_0}}
+	% F = F_p + F\plbr{\frac{l - l_0}{l_0} - \varepsilon_p, \frac{\dot{l}}{l_0} - \dot{\varepsilon}_p} .
+	F = F_p + F\plbr{\frac{l - l_0}{l_0} - \varepsilon_p, \frac{\dot{l}}{l_0}} .
 \end{displaymath}
-where $l_0=\kw{<rod\_length>}$.
+% FIXME: - \dot{\varepsilon}_p is not currently implemented
+
+For example, a linear elastic constitutive law for the rod element
+is defined as
+\begin{displaymath}
+	F = EA \frac{l - l_0}{l_0} ,
+\end{displaymath}
+where $EA$ is the axial stiffness of the rod.
+
 For further details on the supported constitutive laws, 
 see Section~\ref{sec:CONSTITUTIVE-LAWS}.
 If the optional \kw{offset} keyword is used, the element falls through
