@@ -524,7 +524,7 @@ DataManager::ReadElems(MBDynParser& HP)
 			if (HP.IsKeyWord("name") || HP.IsKeyWord("string" /* deprecated */ )) {
 				s = HP.GetStringWithDelims();
 
-				ASSERT(s != NULL);
+				ASSERT(!s.empty());
 
 				DEBUGCOUT("binding to " << psElemNames[pEl->GetElemType()]
 					<< "(" << pEl->GetLabel() << ") private data "
