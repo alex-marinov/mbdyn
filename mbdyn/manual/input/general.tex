@@ -2086,12 +2086,15 @@ must be in the range $\sqbr{-1,1}$, in strict ascending order.
 Every time a ``deformable'' entity requires a constitutive law, a template
 constitutive law is read. This has been implemented by means of C++
 templates in order to allow the definition of a general constitutive law
-when possible. The ``deformable elements at present are \kw{rod}s, 1D,
-\kw{deformable hinge}s and \kw{deformable displacement hinge}s, 3D,  
-and \kw{beam}s, 6D.
+when possible. The ``deformable'' elements at present are \kw{rod} joints (1D),
+\kw{deformable hinge} and \kw{deformable displacement joint} elements (3D),  
+and \kw{deformable joint} and \kw{beam} elements (6D).
+
+Constitutive laws are also used in non-structural components,
+to allow some degree of generality in defining input/output relationships.
 Some constitutive laws are meaningful only when related to some precise
 dimension. 
-In some specil cases, general purpose (\kw{genel}) elements 
+In some special cases, general purpose (\kw{genel}) elements 
 use 1D constitutive laws to express an arbitrary dependence 
 of some value on a scalar state of the system.
 Table~\ref{tab:CONST-LAW-DIM} shows the availability of each constitutive law.
