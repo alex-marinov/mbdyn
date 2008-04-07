@@ -887,6 +887,8 @@ Beam2(uL, pN1, pN2, F1, F2, R1, R2, r, pd, fOut)
 	
 	/* Nota: DsDxi() viene chiamata dal costruttore di Beam */
 	Beam2::Omega0();
+
+	OmegaRef = Omega;
 }
 
 void
@@ -1102,14 +1104,14 @@ ViscoElasticBeam2::AssStiffnessVec(SubVectorHandler& WorkVec,
 		/* Calcola le azioni interne */
 		pD->Update(DefLoc, DefPrimeLoc);
 		AzLoc = pD->GetF();
-		
+
 		/* corregge le azioni interne locali (piezo, ecc) */
 		AddInternalForces(AzLoc);
-		
+
 		/* Porta le azioni interne nel sistema globale */
 		Az = MultRV(AzLoc, R);
 	}
-	
+
 	WorkVec.Add(1, Az.GetVec1());
 	WorkVec.Add(4, (p - pNode[NODE1]->GetXCurr()).Cross(Az.GetVec1())+Az.GetVec2());
 	WorkVec.Sub(7, Az.GetVec1());
