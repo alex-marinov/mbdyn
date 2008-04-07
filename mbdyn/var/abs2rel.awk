@@ -32,10 +32,11 @@
 # Use:		awk -f abs2rel.awk -v<option>=<value> [...] <file>.mov
 #
 # options:
-#		name		value
+#		option name	expected value
 #		RefNode		label of reference node (required)
 #		InputMode	{euler123|vector|matrix} (default: euler123)
 #		OutputMode	{euler123|vector|matrix} (default: euler123)
+#		PositionOnly	{0|1} (default: 0): re-orient only
 
 # R matrix from Euler 123 angles
 function euler2R(Alpha, Beta, Gamma, R,   dCosAlpha, dSinAlpha, dCosBeta, dSinBeta, dCosGamma, dSinGamma) {
@@ -190,9 +191,10 @@ function vec3_cross_vec3(v1, v2, r)
 }
 
 # Modify reference configuration
-function prepare(X, R, V, W)
+function prepare(X, R, V, W, acc, A, WP)
 {
 	# add user-defined modifications to reference configuration
+	# operate on A, WP only if acc != 0
 	return;
 
 	# 45 deg rotation about z axis ...
@@ -222,11 +224,29 @@ function skip_label(l)
 # Output
 function output() {
 	for (node = 0; node < num_labels; node++) {
+
 		if (label[node] == RefNode) {
-			printf("%8d %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e\n",
+			printf("%8d %13.6e %13.6e %13.6e",
 				label[node],
-				0., 0., 0., 0., 0., 0.,
-				0., 0., 0., 0., 0., 0.);
+				0., 0., 0.);
+			if (omode == 2) {
+				printf(" %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e ",
+					0., 0., 0.,
+					0., 0., 0.,
+					0., 0., 0.);
+			} else {
+				printf(" %13.6e %13.6e %13.6e",
+					0., 0., 0.);
+			}
+			printf(" %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e ",
+				0., 0., 0.,
+				0., 0., 0.);
+			if (acc) {
+				printf(" %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e",
+					0., 0., 0.,
+					0., 0., 0.);
+			}
+			printf("\n");
 			continue;
 		}
 
@@ -267,27 +287,90 @@ function output() {
 			R2vec(R, e);
 		}
 
-		# Velocity
-		Wn[1] = Ome[node, 1];
-		Wn[2] = Ome[node, 2];
-		Wn[3] = Ome[node, 3];
+		if (PositionOnly) {
+			# velocity
+			Vr[1] = Vel[node, 1];
+			Vr[2] = Vel[node, 2];
+			Vr[3] = Vel[node, 3];
 
-		vec3_cross_vec3(Wn, Xr, Vtmp);
+			mat3T_mul_vec3(R0, Vr, V);
 
-		Vtmp[1] = Vel[node, 1] - V0[1] - Vtmp[1];
-		Vtmp[2] = Vel[node, 2] - V0[2] - Vtmp[2];
-		Vtmp[3] = Vel[node, 3] - V0[3] - Vtmp[3];
+			# angular velocity
+			Wr[1] = Ome[node, 1];
+			Wr[2] = Ome[node, 2];
+			Wr[3] = Ome[node, 3];
 
-		mat3T_mul_vec3(R0, Vtmp, V);
+			mat3T_mul_vec3(R0, Wr, W);
 
-		# angular velocity
-		Wtmp[1] = W0[1] - Ome[node, 1];
-		Wtmp[2] = W0[2] - Ome[node, 2];
-		Wtmp[3] = W0[3] - Ome[node, 3];
+			if (accel[node]) {
+				# acceleration
+				Ar[1] = Acc[node, 1];
+				Ar[2] = Acc[node, 2];
+				Ar[3] = Acc[node, 3];
 
-		mat3T_mul_vec3(R0, Wtmp, W);
+				mat3T_mul_vec3(R0, Ar, A);
+
+				# angular acceleration
+				WPr[1] = OmeP[node, 1];
+				WPr[2] = OmeP[node, 2];
+				WPr[3] = OmeP[node, 3];
+
+				mat3T_mul_vec3(R0, WPr, WP);
+			}
+
+		} else {
+			# velocity
+			vec3_cross_vec3(W0, Xr, Vtmp);
+
+			Vr[1] = Vel[node, 1] - V0[1] - Vtmp[1];
+			Vr[2] = Vel[node, 2] - V0[2] - Vtmp[2];
+			Vr[3] = Vel[node, 3] - V0[3] - Vtmp[3];
+
+			mat3T_mul_vec3(R0, Vr, V);
+
+			# angular velocity
+			Wr[1] = Ome[node, 1] - W0[1];
+			Wr[2] = Ome[node, 2] - W0[2];
+			Wr[3] = Ome[node, 3] - W0[3];
+
+			mat3T_mul_vec3(R0, Wr, W);
+
+			if (accel[node]) {
+				# acceleration
+				vec3_cross_vec3(WP0, Xr, ATmp);
+
+				Ar[1] = Acc[node, 1] - A0[1] - ATmp[1];
+				Ar[2] = Acc[node, 2] - A0[2] - ATmp[2];
+				Ar[3] = Acc[node, 3] - A0[3] - ATmp[3];
+
+				vec3_cross_vec3(W0, Xr, ATmp1);
+				vec3_cross_vec3(W0, ATmp1, ATmp);
+
+				Ar[1] -= ATmp[1]
+				Ar[2] -= ATmp[2]
+				Ar[3] -= ATmp[3]
+
+				vec3_cross_vec3(W0, Vr, ATmp);
+
+				Ar[1] -= 2*ATmp[1]
+				Ar[2] -= 2*ATmp[2]
+				Ar[3] -= 2*ATmp[3]
+			
+				mat3T_mul_vec3(R0, Ar, A);
+
+				# angular acceleration
+				vec3_cross_vec3(W0, Wr, WPTmp);
+
+				WPr[1] = OmeP[node, 1] - WP0[1] - WPTmp[1];
+				WPr[2] = OmeP[node, 2] - WP0[2] - WPTmp[2];
+				WPr[3] = OmeP[node, 3] - WP0[3] - WPTmp[3];
+
+				mat3T_mul_vec3(R0, WPr, WP);
+			}
+		}
 
 		printf("%8d %13.6e %13.6e %13.6e", label[node], X[1], X[2], X[3]);
+
 		if (omode == 2) {
 			printf(" %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e",
 				R[1, 1], R[1, 2], R[1, 3],
@@ -296,8 +379,16 @@ function output() {
 		} else {
 			printf(" %13.6e %13.6e %13.6e", e[1], e[2], e[3]);
 		}
-		printf(" %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e\n",
+	
+		printf(" %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e",
 			V[1], V[2], V[3], W[1], W[2], W[3]);
+	
+		if (accel[node]) {
+			printf(" %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e",
+				A[1], A[2], A[3], WP[1], WP[2], WP[3]);
+		}
+	
+		printf("\n");
 	}
 }
 
@@ -403,7 +494,21 @@ BEGIN {
 		W0[2] = $(offset + 5);
 		W0[3] = $(offset + 6);
 
-		prepare(X0, R0, V0, W0);
+		acc = 0;
+
+		if (NF > offset + 7) {
+			A0[1] = $(offset + 7);
+			A0[2] = $(offset + 8);
+			A0[3] = $(offset + 9);
+
+			WP[1] = $(offset + 10);
+			WP[2] = $(offset + 11);
+			WP[3] = $(offset + 12);
+
+			acc = 1;
+		}
+
+		prepare(X0, R0, V0, W0, acc, A0, WP0);
 	}
 
 	# skip undesired labels (modify the body of the function at will)
@@ -441,13 +546,25 @@ BEGIN {
 		offset = 13;
 	}
 
-	Vel[node, 1] = $(offset+1);
-	Vel[node, 2] = $(offset+2);
-	Vel[node, 3] = $(offset+3);
+	Vel[node, 1] = $(offset + 1);
+	Vel[node, 2] = $(offset + 2);
+	Vel[node, 3] = $(offset + 3);
 
-	Ome[node, 1] = $(offset+4);
-	Ome[node, 2] = $(offset+5);
-	Ome[node, 3] = $(offset+6);
+	Ome[node, 1] = $(offset + 4);
+	Ome[node, 2] = $(offset + 5);
+	Ome[node, 3] = $(offset + 6);
+
+	if (NF > offset + 7) {
+		accel[node] = 1;
+
+		Acc[node, 1] = $(offset + 7);
+		Acc[node, 2] = $(offset + 8);
+		Acc[node, 3] = $(offset + 9);
+
+		OmeP[node, 1] = $(offset + 10);
+		OmeP[node, 2] = $(offset + 11);
+		OmeP[node, 3] = $(offset + 12);
+	}
 
 	node++;
 }

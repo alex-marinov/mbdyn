@@ -949,6 +949,65 @@ according to the transformation
 \end{align}
 
 
+\subsection{Relative Motion}
+MBDyn uses the absolute coordinates of the nodes,
+and their absolute orientation, to define the motion.
+Whenever the representation of the motion in a relative reference frame
+is required or convenient, it needs to be computed
+from the absolute one that is computed inside the code.
+
+This is possible either run-time, by adding \texttt{dummy} structural nodes,
+or off-line, as a post-processing.
+For this purpose, the script \texttt{abs2rel.awk} is provided
+to convert the contents of the \texttt{.mov} file
+into the corresponding motion relative to a given node.
+
+\begin{subequations}
+\begin{align}
+	\TT{R} &= \TT{R}_0 \tilde{\TT{R}} \\
+	\T{x} &= \T{x}_0 + \TT{R}_0 \tilde{\T{x}} \\
+	\T{\omega} &= \T{\omega}_0 + \TT{R}_0 \tilde{\T{\omega}} \\
+	\dot{\T{x}} &= \dot{\T{x}}_0
+		+ \T{\omega}_0 \times \TT{R}_0 \tilde{\T{x}}
+		+ \TT{R}_0 \dot{\tilde{\T{x}}} \\
+	\dot{\T{\omega}} &= \dot{\T{\omega}}_0
+		+ \T{\omega}_0 \times \TT{R}_0 \tilde{\T{\omega}}
+		+ \TT{R}_0 \dot{\tilde{\T{\omega}}} \\
+	\ddot{\T{x}} &= \ddot{\T{x}}_0
+		+ \dot{\T{\omega}}_0 \times \TT{R}_0 \tilde{\T{x}}
+		+ \T{\omega}_0 \times \T{\omega}_0 \times \TT{R}_0 \tilde{\T{x}}
+		+ 2 \T{\omega}_0 \times \TT{R}_0 \dot{\tilde{\T{x}}}
+		+ \TT{R}_0 \ddot{\tilde{\T{x}}}
+\end{align}
+\end{subequations}
+and
+\begin{subequations}
+\begin{align}
+	\tilde{\TT{R}} &= \TT{R}_0^T \TT{R} \\
+	\tilde{\T{x}} &= \TT{R}_0^T\plbr{\T{x} - \T{x}_0} \\
+	\tilde{\T{\omega}} &= \TT{R}_0^T\plbr{\T{\omega} - \T{\omega}_0} \\
+	\dot{\tilde{\T{x}}} &= \TT{R}_0^T\plbr{
+		\dot{\T{x}} - \dot{\T{x}}_0
+		- \T{\omega}_0 \times \TT{R}_0 \tilde{\T{x}}
+	} \\
+	\dot{\tilde{\T{\omega}}} &= \TT{R}_0^T\plbr{
+		\dot{\T{\omega}}
+		- \dot{\T{\omega}}_0
+		- \T{\omega}_0 \times \TT{R}_0 \tilde{\T{\omega}}
+	} \\
+	\ddot{\tilde{\T{x}}} &= \TT{R}_0^T\plbr{
+		\ddot{\T{x}}
+		- \ddot{\T{x}}_0
+		- \dot{\T{\omega}}_0 \times \TT{R}_0 \tilde{\T{x}}
+		- \T{\omega}_0 \times \T{\omega}_0 \times \TT{R}_0 \tilde{\T{x}}
+		- 2 \T{\omega}_0 \times \TT{R}_0 \dot{\tilde{\T{x}}}
+	}
+\end{align}
+\end{subequations}
+
+
+
+
 
 
 \chapter{Constraints}
