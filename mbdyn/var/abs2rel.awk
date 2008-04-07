@@ -125,7 +125,8 @@ function R2vec(R, Phi,   dPhi, dCosPhi, dSinPhi)
 
 	dPhi = atan2(dSinPhi, dCosPhi);
 
-	if (dSinPhi > 1.e-15) {
+	# above 1e-7 they start differ in double precision
+	if (dSinPhi > 1.e-7) {
 		Phi[1] *= dPhi/dSinPhi;
 		Phi[2] *= dPhi/dSinPhi;
 		Phi[3] *= dPhi/dSinPhi;
