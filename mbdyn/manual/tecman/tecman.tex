@@ -962,6 +962,7 @@ For this purpose, the script \texttt{abs2rel.awk} is provided
 to convert the contents of the \texttt{.mov} file
 into the corresponding motion relative to a given node.
 
+Relative motion:
 \begin{subequations}
 \begin{align}
 	\TT{R} &= \TT{R}_0 \tilde{\TT{R}} \\
@@ -980,7 +981,8 @@ into the corresponding motion relative to a given node.
 		+ \TT{R}_0 \ddot{\tilde{\T{x}}}
 \end{align}
 \end{subequations}
-and
+
+The relative motion is defined as
 \begin{subequations}
 \begin{align}
 	\tilde{\TT{R}} &= \TT{R}_0^T \TT{R} \\
@@ -989,22 +991,47 @@ and
 	\dot{\tilde{\T{x}}} &= \TT{R}_0^T\plbr{
 		\dot{\T{x}} - \dot{\T{x}}_0
 		- \T{\omega}_0 \times \TT{R}_0 \tilde{\T{x}}
-	} \\
+	} \nonumber \\
+	&= \TT{R}_0^T\plbr{
+		\dot{\T{x}} - \dot{\T{x}}_0
+	} - \plbr{\TT{R}_0^T \T{\omega}_0} \times \tilde{\T{x}} \\
 	\dot{\tilde{\T{\omega}}} &= \TT{R}_0^T\plbr{
 		\dot{\T{\omega}}
 		- \dot{\T{\omega}}_0
 		- \T{\omega}_0 \times \TT{R}_0 \tilde{\T{\omega}}
-	} \\
+	} \nonumber \\
+	&= \TT{R}_0^T\plbr{
+		\dot{\T{\omega}}
+		- \dot{\T{\omega}}_0
+	} - \plbr{\TT{R}_0^T \T{\omega}_0} \times \tilde{\T{\omega}} \\
 	\ddot{\tilde{\T{x}}} &= \TT{R}_0^T\plbr{
 		\ddot{\T{x}}
 		- \ddot{\T{x}}_0
 		- \dot{\T{\omega}}_0 \times \TT{R}_0 \tilde{\T{x}}
 		- \T{\omega}_0 \times \T{\omega}_0 \times \TT{R}_0 \tilde{\T{x}}
 		- 2 \T{\omega}_0 \times \TT{R}_0 \dot{\tilde{\T{x}}}
-	}
+	} \nonumber \\
+ 	&= \TT{R}_0^T\plbr{
+		\ddot{\T{x}}
+		- \ddot{\T{x}}_0
+	} - \plbr{\TT{R}_0^T \dot{\T{\omega}}_0} \times \tilde{\T{x}} \nonumber \\
+	& \mbox{} - \plbr{\TT{R}_0^T \T{\omega}_0} \times \plbr{\TT{R}_0^T \T{\omega}_0} \times \tilde{\T{x}}
+		- 2 \plbr{\TT{R}_0^T \T{\omega}_0} \times \dot{\tilde{\T{x}}}
 \end{align}
 \end{subequations}
 
+An alternative, useful case is given by representing the absolute motion
+in a relative reference frame:
+\begin{subequations}
+\begin{align}
+	\tilde{\TT{R}} &= \TT{R}_0^T \TT{R} \\
+	\tilde{\T{x}} &= \TT{R}_0^T\plbr{\T{x} - \T{x}_0} \\
+	\overline{\T{\omega}} &= \TT{R}_0^T \T{\omega} \\
+	\dot{\overline{\T{x}}} &= \TT{R}_0^T \dot{\T{x}} \\
+	\dot{\overline{\T{\omega}}} &= \TT{R}_0^T \dot{\T{\omega}} \\
+	\ddot{\overline{\T{x}}} &= \TT{R}_0^T \ddot{\T{x}}
+\end{align}
+\end{subequations}
 
 
 
