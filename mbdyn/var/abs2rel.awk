@@ -36,7 +36,7 @@
 #		RefNode		label of reference node (required)
 #		InputMode	{euler123|vector|matrix} (default: euler123)
 #		OutputMode	{euler123|vector|matrix} (default: euler123)
-#		PositionOnly	{0|1} (default: 0): re-orient only
+#		RefOnly		{0|1} (default: 0): re-position & re-orient only
 
 # R matrix from Euler 123 angles
 function euler2R(Alpha, Beta, Gamma, R,   dCosAlpha, dSinAlpha, dCosBeta, dSinBeta, dCosGamma, dSinGamma) {
@@ -287,7 +287,7 @@ function output() {
 			R2vec(R, e);
 		}
 
-		if (PositionOnly) {
+		if (RefOnly) {
 			# velocity
 			Vr[1] = Vel[node, 1];
 			Vr[2] = Vel[node, 2];
