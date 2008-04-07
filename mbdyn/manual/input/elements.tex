@@ -4263,20 +4263,38 @@ with respect to node 2 is reset;
 
 \subsection{Rod}\label{sec:EL:STRUCT:JOINT:ROD}
 The \kw{rod} element represents a force between two nodes that depends
-on the relative position and velocity of two points, each attached
-to a node.
+on the relative position and velocity of two points, each rigidly attached
+to a \htmlref{\kw{structural node}}{sec:NODE:STRUCTURAL}.
 The direction of the force is also based on the relative position
 of the points: it is the line that passes through them.
-If no \kw{offset} is defined, the points are the nodes themselves.
+If no offset is defined, the points are the nodes themselves.
+
 The syntax is:
 \begin{verbatim}
     <joint_type> ::= rod 
-    <joint_arglist> ::= <node_1> , <node_2> , 
+    <joint_arglist> ::=
+        <node_1> ,
+            [ position , <relative_offset_1> , ]
+        <node_2> , 
+            [ position , <relative_offset_2> , ]
+        (scalar) { <rod_length> | from nodes }
+        (ConstitutiveLaw1D) <const_law>
+\end{verbatim}
+Note: an alternative obsolete syntax is:
+\begin{verbatim}
+    <joint_type> ::= rod 
+    <joint_arglist> ::=
+        <node_1> , <node_2> , 
         (scalar) { <rod_length> | from nodes }
         [ , offset , (Vec3) <relative_offset_1> , 
                      (Vec3) <relative_offset_2> ] ,
         (ConstitutiveLaw1D) <const_law>
 \end{verbatim}
+It will probably be discontinued.
+See also
+the \htmlref{\kw{rod with offset}}{sec:EL:STRUCT:JOINT:ROD_WITH_OFFSET}
+element.
+
 The constitutive law \kw{const\_law} receives as input the rod axial strain
 \begin{equation}
 	\varepsilon = \frac{l - l_0}{l_0} ,
@@ -4354,7 +4372,8 @@ description of the available data in Section~\ref{sec:CONSTITUTIVE-LAWS}.
 
 
 
-\subsection{Rod with offset}\label{sec:EL:STRUCT:JOINT:ROD_WITH_OFFSET}
+\subsection{Rod with offset}
+\label{sec:EL:STRUCT:JOINT:ROD_WITH_OFFSET}
 The syntax is:
 \begin{verbatim}
     <joint_type> ::= rod with offset
@@ -4365,6 +4384,8 @@ The syntax is:
 \end{verbatim}
 Analogous to the \kw{rod} joint with the optional arg \kw{offset};
 see Section~\ref{sec:EL:STRUCT:JOINT:ROD} for details.
+
+
 
 \subsection{Spherical hinge}
 \label{sec:EL:STRUCT:JOINT:SPHERICAL_HINGE}
