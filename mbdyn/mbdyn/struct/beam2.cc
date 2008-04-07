@@ -889,6 +889,7 @@ Beam2(uL, pN1, pN2, F1, F2, R1, R2, r, pd, fOut)
 	Beam2::Omega0();
 
 	OmegaRef = Omega;
+	ERef = MultRMRt(pD->GetFDEPrime(), RRef);
 }
 
 void
