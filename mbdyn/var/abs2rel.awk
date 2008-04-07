@@ -570,5 +570,9 @@ BEGIN {
 }
 
 END {
+	if (num_labels == 0) {
+		num_labels = node;
+	}
+
 	output();
 }
