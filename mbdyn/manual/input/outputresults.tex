@@ -233,18 +233,27 @@ extracts the desired information from the \kw{.mov} file.
 
 The script is \kw{\$SRC/var/abs2rel.awk}
 and is usually installed in \kw{\$PREFIX/share/awk}.
-It requires the specification of the reference node label;
-it also allows to specify the input and output formats 
-of the orientations, under the assumption that rotations
-of all nodes are generated with the same format.
 
 To invoke the script run
 \begin{verbatim}
-$ awk -f abs2rel.awk -vRefNode=label \
-        -vInputMode=imode -vOutputMode=omode \
+$ awk -f abs2rel.awk \
+        -v RefNode=label \
+        [-v RefOnly={0|1}] \
+        [-v InputMode=imode] \
+        [-v OutputMode=omode] \
         infile.mov > outfile.mov
 \end{verbatim}
-where \kw{imode} and \kw{omode} can be:
+It requires the specification of the reference node label,
+which is given by the \kw{RefNode} parameter.
+
+The optional parameter \kw{RefOnly} determines whether the output
+is transformed in a true reference frame, or it is simply re-oriented
+according to the orientation of the reference node.
+
+The command also allows to specify the input and output formats 
+of the orientations, under the assumption that rotations
+of all nodes are generated with the same format.
+The optional parameters \kw{imode} and \kw{omode} can be:
 \begin{itemize}
 \item \kw{euler123} for the Euler-like angles, in degrees,
 	according to the 123 sequence;
@@ -252,14 +261,39 @@ where \kw{imode} and \kw{omode} can be:
 \item \kw{matrix} for the orientation matrix.
 \end{itemize}
 
-This script basically computes the configuration of each node
+When \kw{RefOnly} is set to 0 (the default),
+this script basically computes the configuration of each node
 as function of that of the reference one, namely
 \begin{align}
-	x_n' &= R_0^T\plbr{x_n - x_0} \\
-	R_n' &= R_0^T R_n \\
-	v_n' &= R_0^T\plbr{v_n - v_0 - \omega_0\times\plbr{x_n - x_0}} \\
-	\omega_n' &= R_0^T\plbr{\omega_n - \omega_0}
+	\TT{R}_n' &= \TT{R}_0^T \TT{R}_n \\
+	\T{x}_n' &= \TT{R}_0^T\plbr{\T{x}_n - \T{x}_0} \\
+	\T{\omega}_n' &= \TT{R}_0^T\plbr{\T{\omega}_n - \T{\omega}_0} \\
+	\dot{\T{x}}_n' &= \TT{R}_0^T\plbr{\dot{\T{x}}_n - \dot{\T{x}}_0 - \T{\omega}_0\times\plbr{\T{x}_n - \T{x}_0}} \\
+	\dot{\T{\omega}}_n' &= \TT{R}_0^T\plbr{
+		\dot{\T{\omega}}_n - \dot{\T{\omega}}_0 - \T{\omega}_0\times\plbr{\T{\omega}_n - \T{\omega}_0}
+	} \\
+	\ddot{\T{x}}_n' &= \TT{R}_0^T\plbr{
+		\ddot{\T{x}}_n - \ddot{\T{x}}_0
+		- \dot{\T{\omega}}_0\times\plbr{\T{x}_n - \T{x}_0}
+		- \T{\omega}_0\times\T{\omega}_0\times\plbr{\T{x}_n - \T{x}_0}
+		- 2 \T{\omega}_0\times\plbr{\dot{\T{x}}_n - \dot{\T{x}}_0}
+	}
 \end{align}
 where subscript $0$ refers to the reference node,
 subscript $n$ refers to the generic $n$-th node,
 and the prime refers to the relative values.
+Accelerations are only computed when present in the \kw{.mov} file
+for both nodes.
+
+When \kw{RefOnly} is set to 1, the script simply re-orients
+the velocity and the acceleration of each node with respect
+to that of the reference node, namely
+\begin{align}
+	\TT{R}_n' &= \TT{R}_0^T \TT{R}_n \\
+	\T{x}_n' &= \TT{R}_0^T\plbr{\T{x}_n - \T{x}_0} \\
+	\T{\omega}_n' &= \TT{R}_0^T \T{\omega}_n \\
+	\dot{\T{x}}_n' &= \TT{R}_0^T \dot{\T{x}}_n \\
+	\dot{\T{\omega}}_n' &= \TT{R}_0^T \dot{\T{\omega}}_n \\
+	\ddot{\T{x}}_n' &= \TT{R}_0^T \ddot{\T{x}}_n
+\end{align}
+
