@@ -22,6 +22,7 @@ MBDyn 1.X-Devel
 		- MSYS/MinGW needs to explicitly include stdint.h
 		- MSG_WAITALL is not defined on Cygwin
 		- driven joints need to be used in initial assembly
+		- fix uninitialized parameter in beam2 initial assembly
 
 MBDyn 1.3.3-Beta
 	Enhancements:
