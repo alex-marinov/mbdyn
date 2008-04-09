@@ -848,7 +848,7 @@ TypedValue::Cast(const TypedValue& var)
 
 			case TypedValue::VAR_INT:
 			case TypedValue::VAR_REAL:
-				silent_cout("Warning: implicit cast "
+				silent_cerr("Warning: implicit cast "
 					"from " << GetTypeName(var.type)
 					<< " to " << GetTypeName(type)
 					<< " may loose precision"
@@ -868,7 +868,7 @@ TypedValue::Cast(const TypedValue& var)
 				break;
 
 			case TypedValue::VAR_REAL:
-				silent_cout("Warning: implicit cast "
+				silent_cerr("Warning: implicit cast "
 					"from " << GetTypeName(var.type)
 					<< " to " << GetTypeName(type)
 					<< " may loose precision"
