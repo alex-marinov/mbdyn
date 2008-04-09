@@ -809,6 +809,100 @@ TypedValue::operator = (const TypedValue& var)
 	return *this;
 }
 
+const TypedValue&
+TypedValue::Cast(const TypedValue& var)
+{
+	if (Const()) {
+		throw ErrConstraintViolation();
+	}
+
+	if (type == TypedValue::VAR_STRING) {
+		char buf[BUFSIZ];
+
+		switch (var.type) {
+		case TypedValue::VAR_BOOL:
+		case TypedValue::VAR_INT:
+			snprintf(buf, sizeof(buf), "%ld", (long)var.GetInt());
+			Set(std::string(buf));
+			break;
+
+		case TypedValue::VAR_REAL:
+			snprintf(buf, sizeof(buf), "%e", (double)var.GetReal());
+			Set(std::string(buf));
+			break;
+
+		case TypedValue::VAR_STRING:
+			this->s = var.GetString();
+			break;
+
+		default:
+			throw ErrUnknownType();
+		}
+
+	} else {
+		switch (type) {
+		case TypedValue::VAR_BOOL:
+			switch (var.type) {
+			case TypedValue::VAR_BOOL:
+				break;
+
+			case TypedValue::VAR_INT:
+			case TypedValue::VAR_REAL:
+				silent_cout("Warning: implicit cast "
+					"from " << GetTypeName(var.type)
+					<< " to " << GetTypeName(type)
+					<< " may loose precision"
+					<< std::endl);
+				break;
+
+			default:
+				throw ErrWrongType();
+			}
+			Set(var.GetBool());
+			break;
+
+		case TypedValue::VAR_INT:
+			switch (var.type) {
+			case TypedValue::VAR_BOOL:
+			case TypedValue::VAR_INT:
+				break;
+
+			case TypedValue::VAR_REAL:
+				silent_cout("Warning: implicit cast "
+					"from " << GetTypeName(var.type)
+					<< " to " << GetTypeName(type)
+					<< " may loose precision"
+					<< std::endl);
+				break;
+
+			default:
+				throw ErrWrongType();
+			}
+			Set(var.GetInt());
+			break;
+
+		case TypedValue::VAR_REAL:
+			switch (var.type) {
+			case TypedValue::VAR_BOOL:
+			case TypedValue::VAR_INT:
+			case TypedValue::VAR_REAL:
+				break;
+
+			default:
+				throw ErrWrongType();
+			}
+			Set(var.GetReal());
+			break;
+
+		default:
+			throw ErrUnknownType();
+		}
+	}
+
+	bConst = var.Const();
+	return *this;
+}
+
 TypedValue::Type
 TypedValue::GetType(void) const
 {
@@ -1453,6 +1547,12 @@ void
 Var::SetVal(const TypedValue& v)
 {
 	value = v;
+}
+
+void
+Var::Cast(const TypedValue& v)
+{
+	value.Cast(v);
 }
 
 void
@@ -3149,7 +3249,7 @@ MathParser::stmt(void)
 					/* assign new var, so that it internally
 					 * takes care of casting, while it inherits
 					 * const'ness from d */
-					newvar = d;
+					newvar.Cast(d);
 					v = table.Put(varname, newvar);
 
 				} else {
@@ -3223,7 +3323,7 @@ MathParser::stmt(void)
 								"cannot assign non-var named value "
 								"\"", v->GetName(), "\"");
 			 		}
-					dynamic_cast<Var *>(v)->SetVal(d);
+					dynamic_cast<Var *>(v)->Cast(d);
 					return v->GetVal();
 
 				} else {

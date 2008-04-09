@@ -85,6 +85,7 @@ public:
 	TypedValue(const TypedValue& var);
 	
 	const TypedValue& operator = (const TypedValue& var);
+	const TypedValue& Cast(const TypedValue& var);
 	
 	TypedValue::Type GetType(void) const;
 	const char *const GetTypeName(void) const;
@@ -171,6 +172,7 @@ public:
 	void SetVal(const Real& v);
 	void SetVal(const std::string& v);
 	void SetVal(const TypedValue& v);
+	void Cast(const TypedValue& v);
 };
 
 /*
