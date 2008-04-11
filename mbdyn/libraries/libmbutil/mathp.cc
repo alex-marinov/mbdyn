@@ -851,7 +851,7 @@ TypedValue::Cast(const TypedValue& var)
 				silent_cerr("Warning: implicit cast "
 					"from " << GetTypeName(var.type)
 					<< " to " << GetTypeName(type)
-					<< " may loose precision"
+					<< " may alter its value"
 					<< std::endl);
 				break;
 
@@ -871,7 +871,7 @@ TypedValue::Cast(const TypedValue& var)
 				silent_cerr("Warning: implicit cast "
 					"from " << GetTypeName(var.type)
 					<< " to " << GetTypeName(type)
-					<< " may loose precision"
+					<< " may alter its value"
 					<< std::endl);
 				break;
 
