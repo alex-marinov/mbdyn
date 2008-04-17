@@ -1787,7 +1787,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const char *sName
 			switch (KeyWords(CurrType)) {
 			case SOCKETSTREAM_OUTPUT:
 			case RTAI_OUTPUT:
-				silent_cerr("starting RTAIOutputElement(" uLabel << ")" << std::endl);
+				silent_cerr("starting RTAIOutputElement(" << uLabel << ")" << std::endl);
 				pE = ReadRTAIOutElem(this, HP, uLabel);
 				break;
 
