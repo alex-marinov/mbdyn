@@ -82,7 +82,7 @@ extern integer naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 		integer *nzc, IMAT ci, NZMAT nz, 
 		integer *piv, doublereal minpiv);
 
-extern void naivslv(RMAT a, integer neq, integer *nzc, IMAT ci,
+extern integer naivslv(RMAT a, integer neq, integer *nzc, IMAT ci,
 		doublereal *rhs, doublereal *sol, integer *piv);
 
 #ifdef __cplusplus

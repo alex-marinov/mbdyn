@@ -3410,7 +3410,7 @@ Solver::ReadData(MBDynParser& HP)
 			if (HP.IsKeyWord("cpu" "map")) {
 				int cpumap = HP.GetInt();
 				int ncpu = get_nprocs();
-				int newcpumap = pow(2, ncpu) - 1;
+				int newcpumap = int(pow(2, ncpu)) - 1;
 
 				/* i bit non legati ad alcuna cpu sono posti
 				 * a zero */

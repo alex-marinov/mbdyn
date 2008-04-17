@@ -86,8 +86,24 @@ NaiveSolver::Solve(void) const
       		bHasBeenReset = false;
 	}
 
-	naivslv(A->ppdRows, iSize, A->piNzc, A->ppiCols,
+	integer rc = naivslv(A->ppdRows, iSize, A->piNzc, A->ppiCols,
 			LinearSolver::pdRhs, LinearSolver::pdSol, &piv[0]);
+	integer err = (rc & NAIVE_MASK);
+	if (err) {
+		switch (err) {
+		case NAIVE_ERANGE:
+			silent_cerr("NaiveSolver: ERANGE"
+				<< std::endl);
+			break;
+
+		default:
+			silent_cerr("NaiveSolver: (" << rc << ")"
+				<< std::endl);
+			break;
+		}
+
+		throw ErrGeneric();
+	}
 }
 
 void

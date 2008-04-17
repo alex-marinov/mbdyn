@@ -53,8 +53,8 @@
 RTAIOutElem::RTAIOutElem(unsigned int uL, unsigned int nch, ScalarDof *& pn,
 		const char *h, const char *m, unsigned long n, bool c)
 : Elem(uL, flag(0)),
-NumChannels(nch), pNodes(pn), size(-1), buf(NULL),
-host(h), name(m), create(c), node(n), port(-1), mbx(NULL)
+NumChannels(nch), pNodes(pn), size(-1), buf(0),
+host(h), node(n), name(m), create(c), port(-1), mbx(0)
 {
 	/* FIXME: size depends on the type of the output signals */
 	size = sizeof(doublereal)*nch;

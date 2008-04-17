@@ -164,10 +164,11 @@ naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 			}
 		}
 	}
+
 	return 0;
 }
 
-void
+integer
 naivslv(RMAT a, integer neq, integer *nzc, IMAT ci, 
 		doublereal *rhs, doublereal * sol,
 		integer *piv)
@@ -212,6 +213,6 @@ naivslv(RMAT a, integer neq, integer *nzc, IMAT ci,
 		sol[i] = s*par[i];
 	}
 
-	return;
+	return 0;
 }
 
