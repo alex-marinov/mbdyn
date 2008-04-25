@@ -224,7 +224,6 @@ function skip_label(l)
 # Output
 function output() {
 	for (node = 0; node < num_labels; node++) {
-
 		if (label[node] == RefNode) {
 			printf("%8d %13.6e %13.6e %13.6e",
 				label[node],
@@ -238,13 +237,46 @@ function output() {
 				printf(" %13.6e %13.6e %13.6e",
 					0., 0., 0.);
 			}
-			printf(" %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e ",
-				0., 0., 0.,
-				0., 0., 0.);
-			if (acc) {
-				printf(" %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e",
-					0., 0., 0.,
-					0., 0., 0.);
+			if (RefOnly) {
+				# velocity
+				Vr[1] = Vel[node, 1];
+				Vr[2] = Vel[node, 2];
+				Vr[3] = Vel[node, 3];
+	
+				mat3T_mul_vec3(R0, Vr, V);
+	
+				# angular velocity
+				Wr[1] = Ome[node, 1];
+				Wr[2] = Ome[node, 2];
+				Wr[3] = Ome[node, 3];
+	
+				mat3T_mul_vec3(R0, Wr, W);
+	
+				if (accel[node]) {
+					# acceleration
+					Ar[1] = Acc[node, 1];
+					Ar[2] = Acc[node, 2];
+					Ar[3] = Acc[node, 3];
+	
+					mat3T_mul_vec3(R0, Ar, A);
+	
+					# angular acceleration
+					WPr[1] = OmeP[node, 1];
+					WPr[2] = OmeP[node, 2];
+					WPr[3] = OmeP[node, 3];
+	
+					mat3T_mul_vec3(R0, WPr, WP);
+				}
+
+			} else {
+				printf(" %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e ",
+					V[1], V[2], V[3],
+					W[1], W[2], W[3]);
+				if (acc) {
+					printf(" %13.6e %13.6e %13.6e %13.6e %13.6e %13.6e",
+						A[1], A[2], A[3],
+						WP[1], WP[2], WP[3]);
+				}
 			}
 			printf("\n");
 			continue;
