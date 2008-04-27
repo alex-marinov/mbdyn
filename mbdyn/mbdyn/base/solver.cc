@@ -1345,7 +1345,7 @@ IfFirstStepIsToBeRepeated:
 
 		/*
 		 * MBDyn can work in two ways:
-		 * - internaal timer
+		 * - internal timer
 		 * - scheduled by an external signal
 		 * only the first case is currently implemented
 		 */

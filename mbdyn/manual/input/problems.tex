@@ -717,7 +717,8 @@ as a regular (non-root) user while performing hard real-time operations
 with the underlying OS;
 \item when the keyword \kw{mode} is set to \kw{period}, the execution
 is scheduled periodically; when set to \kw{semaphore}, it waits 
-for an external trigger to start a new step;
+for an external trigger to start a new step
+(note: \kw{semaphore} is not implemented yet);
 \item the keyword \kw{reserve stack} instructs the program 
 to statically reserve the desired stack size by means 
 of the \kw{mlockall(2)} system call; it should be used to ensure 
