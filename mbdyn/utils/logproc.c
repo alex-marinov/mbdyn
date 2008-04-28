@@ -34,7 +34,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include <stdio.h>
@@ -59,28 +59,27 @@
 #error "No rtai_lxrt_user and no rtai_lxrt within rtai"
 #endif
 
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
 	RT_TASK *logtask, *mbdtask;
 	MBX *mbxlog;
 	int i = 0, time = 0;
-	char 	*mbdynname = argv[1];
-	char	*mbxname = argv[2];
-	int 	CpuMap = atoi(argv[3]);
-	struct dati{
+	char *mbdynname = argv[1];
+	char *mbxname = argv[2];
+	int CpuMap = atoi(argv[3]);
+	struct data {
 		int step;
 		int time;
 	};
-	int dim =sizeof(struct dati);
-	
-	struct dati msg;
-	
+	int dim = sizeof(struct data);
+	struct data msg;
 	
 	struct sched_param mysched;
 
 	mysched.sched_priority = 1;
 
-	if( sched_setscheduler( 0, SCHED_FIFO, &mysched ) == -1 ) {
+	if (sched_setscheduler(0, SCHED_FIFO, &mysched) == -1) {
 	puts(" ERROR IN SETTING THE SCHEDULER UP");
 	perror( "errno" );
 	exit( 0 );
@@ -89,37 +88,38 @@ int main(int argc, char* argv[])
 	mlockall(MCL_CURRENT | MCL_FUTURE);
  	
 	if (!(logtask = rt_task_init_schmod(nam2num("LTSK"), 20, 0, 0,
-			SCHED_FIFO, CpuMap))) {
+			SCHED_FIFO, CpuMap)))
+	{
 		printf("CANNOT INIT LOG TASK\n");
 		exit(1);
 	}
 	
-	 if (!(mbdtask = rt_get_adr(nam2num(mbdynname)))) {
+	if (!(mbdtask = rt_get_adr(nam2num(mbdynname)))) {
 		printf("CANNOT FIND MBDyn TASK\n");
 		exit(1);
 	}
 	
 	rt_task_resume(mbdtask);
 	
-	if (!( mbxlog= rt_get_adr(nam2num(mbxname)))) {
+	if (!(mbxlog = rt_get_adr(nam2num(mbxname)))) {
 		printf("CANNOT FIND LOG MBX\n");
 		exit(1);
 	}
 
 	printf("\nOVERRUNS MONITOR:\n");
-	printf("     step    t[micro s]\n");
-	while (!rt_mbx_receive(mbxlog, &msg, dim)){
+	printf("     step    t [ns]\n");
+	while (!rt_mbx_receive(mbxlog, &msg, dim)) {
 		i++;
 		time += msg.time;
 		printf("%3d %5d %10d\n", i, msg.step, msg.time);
-		
 	}
+
 	rt_sleep(nano2count(1000000000));
 	rt_task_delete(logtask);
-	//sleep(1);
 	printf("\n\nOVERRUNS MONITOR:\n");
-	printf("Total overruns detected: %d\n",i);
-	printf("Mean overruns time: %6.2lf micro s\n",(double)time/(double)i);
+	printf("Total overruns detected: %d\n", i);
+	printf("Mean overruns time: %6.2lf ns\n",
+		i ? ((double)time)/((double)i) : 0.);
 	printf("End of overruns monitor.\n");
 
 	return 0;	

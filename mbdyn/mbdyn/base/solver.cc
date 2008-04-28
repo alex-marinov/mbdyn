@@ -176,8 +176,8 @@ RTStackSize(1024),
 RTCpuMap(0xff),
 #ifdef RTAI_LOG
 bRTlog(false),
-mbxlog(NULL),
-LogProcName(NULL),
+mbxlog(0),
+LogProcName(0),
 #endif /* RTAI_LOG */
 #endif /* USE_RTAI */
 #ifdef __HACK_POD__
@@ -1405,30 +1405,39 @@ IfFirstStepIsToBeRepeated:
 #ifdef RTAI_LOG
 		if (bRTlog) {
 			char *mbxlogname = "logmb";
-			silent_cout("MBDyn start overruns monitor" << std::endl);
+			silent_cout("MBDyn start overruns monitor "
+				"(proc: \"" << LogProcName << "\")"
+				<< std::endl);
 
-			if (mbdyn_rt_mbx_init(mbxlogname, sizeof(msg)*16, &mbxlog)){
+			if (mbdyn_rt_mbx_init(mbxlogname, sizeof(msg)*16, &mbxlog))
+			{
 				bRTlog = false;
-				silent_cerr("Cannot init mail box log" << std::endl);
+				silent_cerr("Cannot init log mailbox "
+					"\"" << mbxlogname << "\""
+					<< std::endl);
 			}
+
 			switch (fork()) {
 			case 0: {
 				char LogCpuMap[] = "0xFF";
 
-				if (RTCpuMap != 0xff){
+				if (RTCpuMap != 0xff) {
 					/* MBDyn can use any cpu
 					 * The overruns monitor will use any free cpu */
-					snprintf(LogCpuMap, sizeof(LogCpuMap), "%4x", ~RTCpuMap);
+					snprintf(LogCpuMap, sizeof(LogCpuMap),
+						"%4x", ~RTCpuMap);
 				}
 
-				if (!strcmp(LogProcName, "logproc") != 0) {
-					if (execl(LogProcName, LogProcName, "MBDTSK",
-							mbxlogname, LogCpuMap, NULL) == -1) {
+				if (strcmp(LogProcName, "logproc") != 0) {
+					if (execl(LogProcName, LogProcName,
+						"MBDTSK", mbxlogname,
+						LogCpuMap, NULL) == -1)
+					{
 						/* error */
-						silent_cout("Cannot start log procedure \""
-								<< LogProcName
-								<< "\"; using default"
-								<< std::endl);
+						silent_cout("Cannot start "
+							"log procedure "
+							"\"" << LogProcName << "\"; "
+							"using default" << std::endl);
 					} else {
 						break;
 					}
@@ -1457,10 +1466,11 @@ IfFirstStepIsToBeRepeated:
 
 				/* start logger */
 				if (execlp("logproc", "logproc", "MBDTSK",
-			               	mbxlogname, LogCpuMap, NULL) == -1) {
+			               	mbxlogname, LogCpuMap, NULL) == -1)
+				{
 					silent_cout("Cannot start default "
-							"log procedure \"logproc\""
-							<< std::endl);
+						"log procedure \"logproc\""
+						<< std::endl);
 					/* FIXME: better give up logging? */
 					bRTlog = false;
 				}
@@ -1474,6 +1484,7 @@ IfFirstStepIsToBeRepeated:
 
 			default:
 				mbdyn_rt_sleep(mbdyn_nano2count(1000000000));
+				break;
 			}
 		}
 #endif /* RTAI_LOG */
@@ -1783,7 +1794,7 @@ Solver::~Solver(void)
       		SAFEDELETE(pDM);
 	}
 #if defined(USE_RTAI) && defined(RTAI_LOG)
-	if (bRTlog&&bRT){
+	if (bRTlog && bRT && mbxlog != 0){
 		mbdyn_rt_mbx_delete(&mbxlog);
 	}
 #endif /* USE_RTAI && RTAI_LOG */
