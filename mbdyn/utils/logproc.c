@@ -65,9 +65,9 @@ main(int argc, char* argv[])
 	RT_TASK *logtask, *mbdtask;
 	MBX *mbxlog;
 	int i = 0, time = 0;
-	char *mbdynname = argv[1];
-	char *mbxname = argv[2];
-	int CpuMap = atoi(argv[3]);
+	char *mbdynname;
+	char *mbxname;
+	int CpuMap;
 	struct data {
 		int step;
 		int time;
@@ -79,10 +79,29 @@ main(int argc, char* argv[])
 
 	mysched.sched_priority = 1;
 
+	if (argc != 5) {
+		fprintf(stderr, "INVALID NUMBER OF ARGUMENTS: ARGC=%d\n"
+			"\n"
+			"USAGE: logproc <MBDTSK> <MBXLOG> <CPUMAP> <NONROOT>\n",
+			argc);
+		exit(EXIT_FAILURE);
+	}
+
+	mbdynname = argv[1];
+	mbxname = argv[2];
+	CpuMap = atoi(argv[3]);
+	if (strcasecmp(argv[4], "true") == 0) {
+		rt_allow_nonroot_hrt();
+
+	} else if (strcasecmp(argv[4], "false" ) != 0) {
+		fprintf(stderr, "INVALID VALUE \"%s\" FOR NONROOT\n", argv[4]);
+		exit(EXIT_FAILURE);
+	}
+
 	if (sched_setscheduler(0, SCHED_FIFO, &mysched) == -1) {
-	puts(" ERROR IN SETTING THE SCHEDULER UP");
-	perror( "errno" );
-	exit( 0 );
+		fputs("ERROR IN SETTING THE SCHEDULER UP", stderr);
+		perror("errno");
+		exit( 0 );
  	}       
 	
 	mlockall(MCL_CURRENT | MCL_FUTURE);
@@ -90,33 +109,33 @@ main(int argc, char* argv[])
 	if (!(logtask = rt_task_init_schmod(nam2num("LTSK"), 20, 0, 0,
 			SCHED_FIFO, CpuMap)))
 	{
-		printf("CANNOT INIT LOG TASK\n");
-		exit(1);
+		fputs("CANNOT INIT LOG TASK\n", stderr);
+		exit(EXIT_FAILURE);
 	}
 	
 	if (!(mbdtask = rt_get_adr(nam2num(mbdynname)))) {
-		printf("CANNOT FIND MBDyn TASK\n");
-		exit(1);
+		fprintf(stderr, "CANNOT FIND MBDyn TASK \"%s\"\n", mbdynname);
+		exit(EXIT_FAILURE);
 	}
 	
 	rt_task_resume(mbdtask);
 	
 	if (!(mbxlog = rt_get_adr(nam2num(mbxname)))) {
-		printf("CANNOT FIND LOG MBX\n");
-		exit(1);
+		fprintf(stderr, "CANNOT FIND LOG MBX\n");
+		exit(EXIT_FAILURE);
 	}
 
-	printf("\nOVERRUNS MONITOR:\n");
-	printf("     step    t [ns]\n");
+	printf("\n" "OVERRUNS MONITOR:\n");
+	printf("             step     t [ns]\n");
 	while (!rt_mbx_receive(mbxlog, &msg, dim)) {
 		i++;
 		time += msg.time;
-		printf("%3d %5d %10d\n", i, msg.step, msg.time);
+		printf("%8d %8d %10d\n", i, msg.step, msg.time);
 	}
 
 	rt_sleep(nano2count(1000000000));
 	rt_task_delete(logtask);
-	printf("\n\nOVERRUNS MONITOR:\n");
+	printf("\n\n" "OVERRUNS MONITOR:\n");
 	printf("Total overruns detected: %d\n", i);
 	printf("Mean overruns time: %6.2lf ns\n",
 		i ? ((double)time)/((double)i) : 0.);
