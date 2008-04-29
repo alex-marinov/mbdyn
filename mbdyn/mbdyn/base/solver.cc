@@ -296,6 +296,10 @@ Solver::Run(void)
 
 #ifdef USE_RTAI
 	if (bRT) {
+		if (bRTAllowNonRoot) {
+			mbdyn_rt_allow_nonroot_hrt();
+		}
+
 		/* Init RTAI; if init'ed, it will be shut down at exit */
 		if (mbdyn_rt_task_init("MBDTSK", 1, 0, 0, RTCpuMap,
 					&mbdyn_rtai_task)) {
@@ -1338,11 +1342,6 @@ IfFirstStepIsToBeRepeated:
 			mbdyn_start_rt_timer(mbdyn_nano2count(1000000));
 		}
 
-
-		if (bRTAllowNonRoot) {
-			mbdyn_rt_allow_nonroot_hrt();
-		}
-
 		/*
 		 * MBDyn can work in two ways:
 		 * - internal timer
@@ -1354,12 +1353,20 @@ IfFirstStepIsToBeRepeated:
 			int r;
 
 			/* Timer should be init'ed */
-			ASSERT(t);
+			ASSERT(t > 0);
 
+			silent_cout("Task: " << mbdyn_rtai_task
+				<< "; time: " << t
+				<< "; period: " << lRTPeriod
+				<< std::endl);
 			DEBUGCOUT("Task: " << mbdyn_rtai_task
 				<< "; time: " << t
-				<< "; period: " << mbdyn_count2nano(lRTPeriod)
+				<< "; period: " << lRTPeriod
 				<< std::endl);
+
+			// NOTE: the period was in nanoseconds until now.
+			lRTPeriod = mbdyn_nano2count(lRTPeriod);
+
 			r = mbdyn_rt_task_make_periodic(mbdyn_rtai_task,
 					t, lRTPeriod);
 
@@ -1417,6 +1424,9 @@ IfFirstStepIsToBeRepeated:
 					<< std::endl);
 			}
 
+			const char *nonroot =
+				bRTAllowNonRoot ? "TRUE" : "FALSE";
+
 			switch (fork()) {
 			case 0: {
 				char LogCpuMap[] = "0xFF";
@@ -1431,16 +1441,16 @@ IfFirstStepIsToBeRepeated:
 				if (strcmp(LogProcName, "logproc") != 0) {
 					if (execl(LogProcName, LogProcName,
 						"MBDTSK", mbxlogname,
-						LogCpuMap, NULL) == -1)
+						LogCpuMap, nonroot, NULL) == 0)
 					{
-						/* error */
-						silent_cout("Cannot start "
-							"log procedure "
-							"\"" << LogProcName << "\"; "
-							"using default" << std::endl);
-					} else {
 						break;
 					}
+
+					/* error */
+					silent_cout("Cannot start "
+						"log procedure "
+						"\"" << LogProcName << "\"; "
+						"using default" << std::endl);
 				}
 
 #ifdef HAVE_SETENV
@@ -1466,7 +1476,8 @@ IfFirstStepIsToBeRepeated:
 
 				/* start logger */
 				if (execlp("logproc", "logproc", "MBDTSK",
-			               	mbxlogname, LogCpuMap, NULL) == -1)
+			               	mbxlogname, LogCpuMap, nonroot, NULL)
+					== -1)
 				{
 					silent_cout("Cannot start default "
 						"log procedure \"logproc\""
@@ -3370,7 +3381,7 @@ Solver::ReadData(MBDynParser& HP)
 						<< std::endl);
 					throw ErrGeneric();
 				}
-				lRTPeriod = mbdyn_nano2count(p);
+				lRTPeriod = p;
 
 			} else {
 				silent_cerr("need a time step for real time "
