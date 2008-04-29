@@ -95,10 +95,10 @@ RTAIInDrive::ServePending(const doublereal& /* t */ )
 	 * store in pdVal the values of all the channels
 	 * served by the mailbox
 	 */
-	if(!(mbdyn_RT_mbx_receive_if(node, port, mbx, (void *)buf, size))){
+	if (!(mbdyn_RT_mbx_receive_if(node, port, mbx, (void *)buf, size))) {
 		
 		doublereal *rbuf = (doublereal *)buf;
-		for (int i = 1; i <= iNumDrives; i++){
+		for (int i = 1; i <= iNumDrives; i++) {
 			pdVal[i] = rbuf[i-1];
 		}	
 
