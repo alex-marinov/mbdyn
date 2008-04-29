@@ -37,13 +37,13 @@ noinst_PROGRAMS = \
 playground
 
 MYLIBS = \
-../libraries/libobjs/libobjs.la \
 ../libraries/libmbwrap/libmbwrap.la \
 @Y12_LIBS@ \
 ../libraries/libcolamd/libmbdyncolamd.la \
 ../libraries/libann/libann.la \
 ../libraries/libmbmath/libmbmath.la \
 ../libraries/libmbutil/libmbutil.la \
+../libraries/libobjs/libobjs.la \
 @HARWELL_LIBS@ \
 @UMFPACK_LIBS@ \
 @MESCHACH_LIBS@ \
