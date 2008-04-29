@@ -84,6 +84,7 @@ extern int mbdyn_rt_sem_signal(void *__sem);
 extern int mbdyn_rt_sem_wait(void *__sem);
 
 extern void *mbdyn_rt_receive_if(void *__task,int *msg);
+extern long long mbdyn_rt_get_cpu_time_ns(void);
 
 #ifdef __cplusplus
 }

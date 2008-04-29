@@ -330,5 +330,11 @@ mbdyn_rt_receive_if(void *__task, int *msg)
 	return (void *)rt_receive_if(task, msg);
 }
 
+long long
+mbdyn_rt_get_cpu_time_ns(void)
+{
+	return rt_get_cpu_time_ns();
+}
+
 #endif /* USE_RTAI */
 
