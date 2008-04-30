@@ -803,6 +803,29 @@ and with arbitrary precision, with fields separated by blanks.
 The header is made of an arbitrary string, terminated by a semicolon,
 followed by the six numbers that define the dimensionality of the expected data.
 
+Example:
+\begin{verbatim}
+# FREE FORMAT
+this is the header; 2 8 2 2 2 2
+        0.0   0.9
+-180.0  0.0   0.0
+-170.0  1.0   0.9
+ -90.0  0.0   0.0
+ -10.0 -1.0  -0.9
+  10.0  1.0   0.9
+  90.0  0.0   0.0
+ 170.0 -1.0  -0.9
+ 180.0  0.0   0.0
+        0.0   0.9
+-180.0  0.1   0.1
+ 180.0  0.1   0.1
+        0.0   0.9
+-180.0  0.0   0.0
+ 180.0  0.0   0.0
+\end{verbatim}
+
+
+\subsubsection{Miscellaneous}
 A simple program that allows to read and plot the C81 tables
 is available at \\
 \htmladdnormallink{\kw{http://homepage.mac.com/jhuwaldt/java/Applications/TableReader/TableReader.html}}

@@ -175,18 +175,22 @@ and
 The field \kw{rotor} instructs the element that it is linked to a 
 \kw{rotor} element; this means that it can get information about the
 induced velocity and should supply information about the forces it generates.
-An arbitrary configuration and offset is allowed for both elements with
+
+An arbitrary relative orientation and offset is allowed for both elements with
 respect to the nodes they are linked to. 
 This means that the aerodynamic beam offsets refer to the position of the nodes,
 and have nothing to do with offsets related to the structural beam element.
+
 The \kw{shape} entities are used to compute the physical chord,
 aerodynamic center, velocity measurement point (the point where the
 kinematic boundary conditions are evaluated) and twist as functions 
 of the dimensionless abscissa along the span.
+
 The span of the \kw{aerodynamic body} element is set by the user; the
 center-span of the element is assumed to be the end of the offset vector.
 The span of the \kw{aerodynamic beam} is computed based on the end of the
 offset vectors related to nodes 1, 3.
+
 The aerodynamic center and the velocity measurement points are measured
 relative to the centerline of the elements, that is the line in direction 3
 of the local frame from the end of the offset vector.
@@ -209,7 +213,6 @@ and properties.
 The \kw{airfoil\_data} defaults to a built-in NACA 0012 semi-analytical
 model (FIXME: the unsteady correction is buggy; use the \kw{c81} 
 mode instead).
-
 The \kw{multiple} mode of the c81 data allows to specify
 more than one airfoil for an aerodynamic element; the transition
 between airfoils is sharp.
@@ -236,7 +239,6 @@ and NACA 0009 is used in the remaining rightmost 1/4, the syntax is:
             naca0009,  1.0,    # from  0.5 to  1.0
     # ...rest of aerodynamic element definition
 \end{verbatim}
-
 The \kw{interpolated} mode of the c81 data allows to specify 
 a smooth transition between different airfoils inside an element.
 The interpolation occurs at the integration points where the
