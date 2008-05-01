@@ -89,84 +89,74 @@ else
 		alpha = acos(dmy)/3;
 	end
 
-	if (alpha ~= pi/6),
-		if (alpha < pi/6),
-			idx1 = 1;
-		else
-			idx1 = 3;
-		end
-
-		eta_i = 2*sqrt(J2/3)*cos(alpha + 2/3*pi*(idx1 - 1));
-
-		l(idx1) = eta_i + trA_3;
-
-		% NOTE: there's a typo in the original paper;
-		% AA must be used instead of A
-		r = AA - eta_i*eye(3);
-		nr = [norm(r(:,1)), norm(r(:,2)), norm(r(:,3))];
-		imax = find(nr == max(nr));
-		imax = imax(1);
-
-		nrmax = nr(imax);
-		nr(imax) = nr(1);
-		nr(1) = nrmax;
-
-		rmax = r(:, imax);
-		r(:, imax) = r(:, 1);
-		r(:, 1) = rmax;
-
-		s = zeros(3, 2);
-		s(:, 1) = r(:, 1)/nr(1);
-		t2 = r(:, 2) - (s(:, 1)'*r(:, 2))*s(:, 1);
-		nt2 = norm(t2);
-		t3 = r(:, 3) - (s(:, 1)'*r(:, 3))*s(:, 1);
-		nt3 = norm(t3);
-
-		if (nt2 > nt3),
-			s(:, 2) = t2/nt2;
-		else
-			s(:, 2) = t3/nt3;
-		end
-
-		v(:, idx1) = cross(s(:, 1), s(:, 2));
-
-		AAA = zeros(3);
-		AAA(1, 1) = eta_i;
-		AAA(2:3, 2:3) = s'*AA*s;
-
-		idx2 = fmod(idx1, 3) + 1;
-		idx3 = fmod(idx1 + 1, 3) + 1;
-
-		AAA22p33 = AAA(2, 2) + AAA(3, 3);
-		AAA22m33 = AAA(2, 2) - AAA(3, 3);
-		eta2 = (AAA22p33 - sign(AAA22m33)*sqrt(AAA22m33^2 + 4*AAA(2, 3)*AAA(3, 2)))/2;
-		eta3 = AAA22p33 - eta2;
-
-		l(idx2) = eta2 + trA_3;
-		l(idx3) = eta3 + trA_3;
-
-		u1 = (AA - eta2*eye(3))*s(:, 1);
-		nu1 = norm(u1);
-		u2 = (AA - eta2*eye(3))*s(:, 2);
-		nu2 = norm(u2);
-
-		if (nu1 > nu2),
-			w1 = u1/nu1;
-		else
-			w1 = u2/nu2;
-		end
-
-		v(:, idx2) = cross(w1, v(:, idx1));
-		v(:, idx3) = cross(v(:, idx2), v(:, idx1));
-
+	if (alpha < pi/6),
+		idx1 = 1;
 	else
-		eta1 = 2*sqrt(J2/3)*cos(alpha);
-		l(1) = eta1 + trA_3;
-		eta2 = 2*sqrt(J2/3)*cos(alpha + 2/3*pi);
-		l(2) = eta2 + trA_3;
-		eta3 = 2*sqrt(J2/3)*cos(alpha + 4/3*pi);
-		l(3) = eta3 + trA_3;
+		idx1 = 3;
 	end
+
+	eta_i = 2*sqrt(J2/3)*cos(alpha + 2/3*pi*(idx1 - 1));
+
+	l(idx1) = eta_i + trA_3;
+
+	% NOTE: there's a typo in the original paper;
+	% AA must be used instead of A
+	r = AA - eta_i*eye(3);
+	nr = [norm(r(:,1)), norm(r(:,2)), norm(r(:,3))];
+	imax = find(nr == max(nr));
+	imax = imax(1);
+
+	nrmax = nr(imax);
+	nr(imax) = nr(1);
+	nr(1) = nrmax;
+
+	rmax = r(:, imax);
+	r(:, imax) = r(:, 1);
+	r(:, 1) = rmax;
+
+	s = zeros(3, 2);
+	s(:, 1) = r(:, 1)/nr(1);
+	t2 = r(:, 2) - (s(:, 1)'*r(:, 2))*s(:, 1);
+	nt2 = norm(t2);
+	t3 = r(:, 3) - (s(:, 1)'*r(:, 3))*s(:, 1);
+	nt3 = norm(t3);
+
+	if (nt2 > nt3),
+		s(:, 2) = t2/nt2;
+	else
+		s(:, 2) = t3/nt3;
+	end
+
+	v(:, idx1) = cross(s(:, 1), s(:, 2));
+
+	AAA = zeros(3);
+	AAA(1, 1) = eta_i;
+	AAA(2:3, 2:3) = s'*AA*s;
+
+	idx2 = fmod(idx1, 3) + 1;
+	idx3 = fmod(idx1 + 1, 3) + 1;
+
+	AAA22p33 = AAA(2, 2) + AAA(3, 3);
+	AAA22m33 = AAA(2, 2) - AAA(3, 3);
+	eta2 = (AAA22p33 - sign(AAA22m33)*sqrt(AAA22m33^2 + 4*AAA(2, 3)*AAA(3, 2)))/2;
+	eta3 = AAA22p33 - eta2;
+
+	l(idx2) = eta2 + trA_3;
+	l(idx3) = eta3 + trA_3;
+
+	u1 = (AA - eta2*eye(3))*s(:, 1);
+	nu1 = norm(u1);
+	u2 = (AA - eta2*eye(3))*s(:, 2);
+	nu2 = norm(u2);
+
+	if (nu1 > nu2),
+		w1 = u1/nu1;
+	else
+		w1 = u2/nu2;
+	end
+
+	v(:, idx2) = cross(w1, v(:, idx1));
+	v(:, idx3) = cross(v(:, idx2), v(:, idx1));
 end
 
 if nargout < 2,

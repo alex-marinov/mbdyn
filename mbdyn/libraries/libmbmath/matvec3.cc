@@ -252,6 +252,163 @@ Mat3x3::EigSym(Vec3& EigenValues) const
 bool
 Mat3x3::EigSym(Vec3& EigenValues, Mat3x3& EigenVectors) const
 {
+	// From:
+	// W.M. Scherzinger, C.R. Dohrmann,
+	// `A robust algorithm for finding the eigenvalues and eigenvectors
+	// of 3x3 symmetric matrices'
+	// Comput. Methods Appl. Mech. Engrg. 2008
+	// doi:10.1016/j.cma.2008.03.031
+
+	if (!IsSymmetric(1.e-15)) {
+		return false;
+	}
+
+	if (IsDiag(1.e-15)) {
+		EigenVectors = Eye3;
+		EigenValues = Vec3(pdMat[M11], pdMat[M22], pdMat[M33]);
+
+		return true;
+	}
+
+	Mat3x3 AA = *this;
+
+	doublereal trA_3 = Trace()/3;
+
+	AA(1, 1) -= trA_3;
+	AA(2, 2) -= trA_3;
+	AA(3, 3) -= trA_3;
+
+	doublereal J2 = (AA*AA).Trace()/2;
+
+	if (fabs(J2) < 1e-15) {
+		EigenVectors = Eye3;
+		EigenValues = Vec3(pdMat[M11], pdMat[M22], pdMat[M33]);
+
+		return true;
+	}
+
+	doublereal J2_dmy = sqrt(J2/3.);
+	doublereal J3 = AA.dDet();
+	doublereal dmy = J3/2/(J2_dmy*J2_dmy*J2_dmy);
+	doublereal alpha;
+
+	// NOTE: we want real eigenvalues; this requires the matrix to be
+	// positive definite or semi-definite
+	if (dmy < -1.) {
+		dmy = -1.;
+		alpha = M_PI;
+
+	} else if (dmy > 1.) {
+		dmy = 1.;
+		alpha = 0.;
+
+	} else {
+		alpha = acos(dmy)/3;
+	}
+
+	int idx1;
+	if (alpha < M_PI/6.) {
+		idx1 = 1;
+
+	} else {
+		idx1 = 3;
+	}
+
+	doublereal eta1 = 2*J2_dmy*cos(alpha + 2./3.*M_PI*(idx1 - 1));
+	EigenValues(idx1) = eta1 + trA_3;
+
+	// NOTE: there's a typo in the original paper;
+	// AA must be used instead of A
+	Vec3 r1 = AA.GetVec(1);
+	r1(1) -= eta1;
+	Vec3 r2 = AA.GetVec(2);
+	r2(2) -= eta1;
+	Vec3 r3 = AA.GetVec(3);
+	r3(3) -= eta1;
+
+	doublereal
+		nr1 = r1.Norm(),
+		nr2 = r2.Norm(),
+		nr3 = r3.Norm();
+
+	int irmax = 1;
+	doublereal nrmax = nr1;
+
+	if (nr2 > nrmax) {
+		irmax = 2;
+		nrmax = nr2;
+	}
+
+	if (nr3 > nrmax) {
+		irmax = 3;
+		nrmax = nr3;
+	}
+
+	if (irmax == 2) {
+		Vec3 rtmp = r2;
+		r2 = r1;
+		nr2 = nr1;
+		r1 = rtmp;
+		nr1 = nrmax;
+
+	} else if (irmax == 3) {
+		Vec3 rtmp = r3;
+		r3 = r1;
+		nr3 = nr1;
+		r1 = rtmp;
+		nr1 = nrmax;
+	}
+
+	Vec3 s1, s2;
+	s1 = r1/nr1;
+	Vec3 t2 = r2 - s1*(s1*r2);
+	doublereal nt2 = t2.Norm();
+	Vec3 t3 = r3 - s1*(s1*r3);
+	doublereal nt3 = t3.Norm();
+
+	if (nt2 > nt3) {
+		s2 = t2/nt2;
+
+	} else {
+		s2 = t3/nt3;
+	}
+
+	Vec3 v1(s1.Cross(s2));
+	EigenVectors.PutVec(1, v1);
+
+	Mat3x3 AAA(eta1, 0., 0.,
+		0., s1*(AA*s1), s2*(AA*s1),
+		0., s1*(AA*s2), s2*(AA*s2));
+
+	int idx2 = idx1%3 + 1;
+	int idx3 = (idx1 + 1)%3 + 1;
+
+	doublereal AAA22p33 = AAA(2, 2) + AAA(3, 3);
+	doublereal AAA22m33 = AAA(2, 2) - AAA(3, 3);
+	doublereal eta2 = (AAA22p33 - copysign(1., AAA22m33)*sqrt(AAA22m33*AAA22m33 + 4*AAA(2, 3)*AAA(3, 2)))/2;
+	doublereal eta3 = AAA22p33 - eta2;
+
+	EigenValues(idx2) = eta2 + trA_3;
+	EigenValues(idx3) = eta3 + trA_3;
+
+	Vec3 u1 = AA*s1 - s1*eta2;
+	doublereal nu1 = u1.Norm();
+	Vec3 u2 = AA*s2 - s2*eta2;
+	doublereal nu2 = u2.Norm();
+
+	Vec3 w1;
+	if (nu1 > nu2) {
+		w1 = u1/nu1;
+
+	} else {
+		w1 = u2/nu2;
+	}
+
+	Vec3 v2(w1.Cross(v1));
+	EigenVectors.PutVec(idx2, v2);
+	EigenVectors.PutVec(idx3, v2.Cross(v1));
+
+#if 0
 	// TEMPORARY!!!
 	char sL[2] = "V";
 	char sR[2] = "V";
@@ -303,6 +460,7 @@ Mat3x3::EigSym(Vec3& EigenValues, Mat3x3& EigenVectors) const
 		EigenVectors(2, i) = v(2);
 		EigenVectors(3, i) = v(3);
 	}
+#endif
 
 	return true;
 }

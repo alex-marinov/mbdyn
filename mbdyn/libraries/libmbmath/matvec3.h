@@ -1176,6 +1176,58 @@ class Mat3x3 {
 
       return sqrt(d2) <= dTol;
    };
+
+	bool IsSymmetric(void) const {
+		if (pdMat[M12] != pdMat[M21]
+			|| pdMat[M13] != pdMat[M31]
+			|| pdMat[M23] != pdMat[M32])
+		{
+			return false;
+		}
+
+		return true;
+	};
+ 
+	bool IsSymmetric(const doublereal& dTol = 0.) const {
+		ASSERT(dTol > 0.);
+
+		if (fabs(pdMat[M12] - pdMat[M21]) > dTol
+			|| fabs(pdMat[M13] - pdMat[M31]) > dTol
+			|| fabs(pdMat[M23] - pdMat[M32]) > dTol)
+		{
+			return false;
+		}
+
+		return true;
+	};
+
+	bool IsDiag(void) const {
+		if (pdMat[M12] != 0.
+			|| pdMat[M21] != 0.
+			|| pdMat[M13] != 0.
+			|| pdMat[M31] != 0.
+			|| pdMat[M23] != 0.
+			|| pdMat[M32] != 0.)
+		{
+			return false;
+		}
+
+		return true;
+	};
+ 
+	bool IsDiag(const doublereal& dTol) const {
+		if (fabs(pdMat[M12]) > dTol
+			|| fabs(pdMat[M21]) > dTol
+			|| fabs(pdMat[M13]) > dTol
+			|| fabs(pdMat[M31]) > dTol
+			|| fabs(pdMat[M23]) > dTol
+			|| fabs(pdMat[M32]) > dTol)
+		{
+			return false;
+		}
+
+		return true;
+	};
  
    /*
     Prodotto matrice per matrice.
