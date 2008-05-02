@@ -25,6 +25,9 @@ MBDyn 1.X-Devel
 		- fix uninitialized parameter in beam2 initial assembly
 		- fix variable init and assignment in math parser
 		  (thanks to Alessandro Fumagalli)
+		- fix "allow nonroot" in RTAI support
+		- fix tic count initialization in RTAI support
+		- fix optional log process execution in RTAI support
 
 MBDyn 1.3.3-Beta
 	Enhancements:
