@@ -1334,7 +1334,7 @@ IfFirstStepIsToBeRepeated:
 
 	if (bRT) {
 		/* Need timer */
-		if (!mbdyn_rt_is_hard_timer_running() ){
+		if (!mbdyn_rt_is_hard_timer_running()) {
 			/* FIXME: ??? */
 			silent_cout("Hard timer is started by MBDyn"
 				<< std::endl);
