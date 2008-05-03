@@ -30,7 +30,7 @@
 /* module-aerodyn
  * Authors: Fanzhong Meng, Pierangelo Masarati
  *
- * Copyright (C) 2003-2008
+ * Copyright (C) 2008
  *
  * Fanzhong Meng <f.meng@tudelft.nl>
  * 
