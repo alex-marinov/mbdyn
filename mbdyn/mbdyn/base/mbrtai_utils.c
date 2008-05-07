@@ -215,7 +215,7 @@ int
 mbdyn_RT_get_adr(unsigned long node, int port, const char *name, void **__task)
 {
 	assert(node >= 0);
-	//assert(port > 0);
+	assert(node == 0 || port > 0);
 	assert(name != NULL);
 	assert(strlen(name) == 6);
 	assert(__task != NULL);
