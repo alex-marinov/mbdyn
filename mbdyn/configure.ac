@@ -2195,6 +2195,9 @@ AC_SUBST(GINACLIB_LIBS)
 
 AC_SUBST(DATE)
 
+dnl conditional build declarations
+AM_CONDITIONAL(USE_X_ANN,[test "$ol_link_ANN" = yes])
+
 dnl ----------------------------------------------------------------
 dnl
 dnl Prepare for libtool output:

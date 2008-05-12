@@ -30,8 +30,11 @@ sockdrive \
 socket2stream \
 stream2socket \
 trim \
-vec2rot \
-mbfem
+vec2rot
+
+if USE_X_ANN
+bin_PROGRAMS += mbfem
+endif
 
 # do not install these
 noinst_PROGRAMS = \

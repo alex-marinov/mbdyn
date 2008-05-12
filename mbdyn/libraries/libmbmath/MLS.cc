@@ -2,6 +2,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#ifdef USE_X_ANN
+
 #include <MLS.h>
 
 #ifdef __cplusplus
@@ -293,4 +295,4 @@ MLSP::Interpolate_Adj(const GeometryData& fem_data, const GeometryData& mb_data,
 	}
 }
 
-
+#endif // USE_X_ANN
