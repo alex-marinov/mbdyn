@@ -246,6 +246,7 @@ public:
 class StructOutputInterp : virtual public Elem, public StructOutputInterpBase {
 protected:
 	SpMapMatrixHandler* pH;
+	std::vector<Vec3> Adj;
 #ifdef USE_X_ANN
 	InterpMethod* pInt;
 #endif // USE_X_ANN
@@ -255,7 +256,8 @@ protected:
 
 public:
    	StructOutputInterp(const Elem *pE,
-		bool bQuad, int RBForder, int NearNodes);
+		bool bQuad, int RBForder, int NearNodes,
+		int Nadj, double dL);
 
 	virtual ~StructOutputInterp(void);
 
@@ -274,7 +276,7 @@ protected:
 
 public:
    	StructOutputInterpOP2(const Elem *pE, const std::string& infilename,
-		bool bQuad, int RBForder, int NearNodes);
+		bool bQuad, int RBForder, int NearNodes, int Nadj, double dL);
 
 	virtual ~StructOutputInterpOP2(void);
 
@@ -293,7 +295,7 @@ protected:
 
 public:
    	StructOutputInterpNative(const Elem *pE, const std::string& infilename,
-		bool bQuad, int RBForder, int NearNodes);
+		bool bQuad, int RBForder, int NearNodes, int Nadj, double dL);
 
 	virtual ~StructOutputInterpNative(void);
 

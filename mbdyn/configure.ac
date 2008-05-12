@@ -175,6 +175,7 @@ dnl ol_with_chaco=no
 OL_ARG_WITH(threads,[  --with-threads          with threads],auto,[auto yes no])
 OL_ARG_WITH(rtai,[  --with-rtai             with RTAI support],no,[auto yes no])
 OL_ARG_WITH(boost,[  --with-boost            with BOOST support],no,[auto yes no])
+OL_ARG_WITH(ANN,[  --with-ANN              with ANN support],no,[auto yes no])
 OL_ARG_WITH(blas,[
        math libraries:
   --with-blas[={auto|goto|atlas|cblas|blas}]
@@ -300,6 +301,7 @@ SECURITY_LIBS=
 TCL_LIBS=
 NETCDF_LIBS=
 UDUNITS_LIBS=
+X_ANN_LIBS=
 
 GINACLIB_CONFIG=
 GINACLIB_LIBS=
@@ -1090,6 +1092,39 @@ if test $ol_with_boost != no ; then
 		if test $ol_with_boost != auto ; then
 			AC_MSG_ERROR([BOOST library headers not available])
 		fi
+	fi
+	AC_LANG_C
+fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for ANN
+dnl
+ol_link_ANN=no
+if test $ol_with_ANN != no ; then
+	AC_LANG_CPLUSPLUS
+	AC_CHECK_HEADERS(ANN.h)
+	SAVE_LIBS="$LIBS"
+	LIBS="$LIBS -lANN"
+	if test "$ac_cv_header_ANN_h" = "yes" ; then
+		AC_TRY_LINK([
+	#include "ANN.h"
+			],[
+	ANNkd_tree x(0,0);
+			],[have_ANN=yes],[have_ANN=no])
+		if test "$have_ANN" != "no" ; then
+			X_ANN_LIBS="-lANN"
+			AC_DEFINE(HAVE_X_ANN,1,[define to use ANN])
+			ol_link_ANN="yes"
+			AC_DEFINE(USE_X_ANN,1,[define to use ANN])
+		fi
+	fi
+	if test $ol_link_ANN != yes ; then
+		if test $ol_with_ANN != auto ; then
+			AC_MSG_ERROR([ANN library headers not available])
+		fi
+	else
+		LIBS="$SAVE_LIBS"
 	fi
 	AC_LANG_C
 fi
@@ -2146,6 +2181,7 @@ AC_SUBST(SECURITY_LIBS)
 AC_SUBST(TCL_LIBS)
 AC_SUBST(NETCDF_LIBS)
 AC_SUBST(UDUNITS_LIBS)
+AC_SUBST(X_ANN_LIBS)
 
 AC_SUBST(MODULES_DIRS)
 AC_SUBST(MODULE_LOADPATH)

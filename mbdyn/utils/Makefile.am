@@ -30,7 +30,8 @@ sockdrive \
 socket2stream \
 stream2socket \
 trim \
-vec2rot
+vec2rot \
+mbfem
 
 # do not install these
 noinst_PROGRAMS = \
@@ -80,6 +81,7 @@ socket2stream_SOURCES = socket2stream.cc s2s.cc s2s.h
 stream2socket_SOURCES = stream2socket.cc s2s.cc s2s.h
 trim_SOURCES = trim.cc s2s.cc s2s.h
 vec2rot_SOURCES = vec2rot.cc
+mbfem_SOURCES = Mbfem/mbfem.cpp Mbfem/block.cc Mbfem/MLS.cc Mbfem/nas_read.cc Mbfem/mbdyn_out.cc
 
 ann_in_LDADD = $(MYLIBS)
 ann_sf_LDADD = $(MYLIBS)
@@ -113,6 +115,7 @@ socket2stream_LDADD = $(MYLIBS)
 stream2socket_LDADD = $(MYLIBS)
 trim_LDADD = $(MYLIBS)
 vec2rot_LDADD = $(MYLIBS)
+mbfem_LDADD = $(MYLIBS) @X_ANN_LIBS@
 
 logproc_LDFLAGS = -static
 

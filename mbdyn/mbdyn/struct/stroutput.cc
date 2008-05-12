@@ -368,7 +368,9 @@ ReadStructOutputCollect(DataManager *pDM, MBDynParser& HP, const Elem *pNestedEl
 {
 	unsigned uFlags = 0;
 
-	uFlags = GeometryData::X;
+	uFlags = (GeometryData::X)|(GeometryData::R);
+
+	std::cout << uFlags << std::endl;
 
 	const StructNode *pRefNode = 0;
 	if (HP.IsKeyWord("reference" "node")) {
@@ -451,18 +453,22 @@ StructOutputInterp::ManipulateInit_int(const GeometryData& mb_data)
 
 	// use orig_data and fem_data to cook interpolation matrix
 	std::cout << "Interpolation matrix computation" << std::endl;
-	std::cout << "mb_data.size=" << mb_data.data.size()
+	std::cout << "mb_data.size=" << mb_data.data.size()*(Adj.size()+1)
 		<< " fem_data.size=" << fem_data.data.size() << std::endl;
 
 	// Allocating matrix H
 	SAFENEWWITHCONSTRUCTOR(pH, SpMapMatrixHandler ,
-		SpMapMatrixHandler(fem_data.data.size() , mb_data.data.size()));
+		SpMapMatrixHandler(fem_data.data.size() , mb_data.data.size()*(Adj.size()+1)));
 
 	// Computing matrix H
 	std::cout << "Interpolation matrix: " << pH->iGetNumRows() << " x " << pH->iGetNumCols() << std::endl;
 
 #ifdef USE_X_ANN
-	pInt->Interpolate(FemData, data, pH);
+	if (Adj.size() == 0){
+		pInt->Interpolate(fem_data, mb_data, pH);
+	} else {
+		pInt->Interpolate_Adj(fem_data, mb_data, pH, Adj);
+	}
 #endif // USE_X_ANN
 }
 
@@ -470,13 +476,185 @@ void
 StructOutputInterp::Manipulate_int(const GeometryData& mb_data)
 {
 
-	// fem_data = matrix * mb_data
+	fem_data.uFlags = mb_data.uFlags;
+
+	if (mb_data.uFlags & GeometryData::X) {
+		// Unpacking data	
+		FullMatrixHandler* pX_mb;
+		FullMatrixHandler* pX_fem;
+		SAFENEWWITHCONSTRUCTOR( pX_mb, FullMatrixHandler, FullMatrixHandler(mb_data.data.size()*(Adj.size()+1),3) );
+		SAFENEWWITHCONSTRUCTOR( pX_fem, FullMatrixHandler, FullMatrixHandler(fem_data.data.size(),3) );
+		for (unsigned i = 0 ; i < mb_data.data.size() ; i++){
+			for (unsigned j = 1; j <= 3 ; j++) {
+				pX_mb->PutCoef(i*(Adj.size()+1)+1, j, mb_data.data[i].X(j) );
+			}
+			// X on adjoint
+			// x = x0 + R*delta_x
+			for (unsigned i_a = 0; i_a < Adj.size() ; i_a++){
+				Vec3 tmp = mb_data.data[i].X + mb_data.data[i].R*Adj[i_a];
+				for (unsigned j = 1; j <= 3 ; j++) {
+					pX_mb->PutCoef(i*(Adj.size()+1)+1+i_a+1, j, tmp(j) );
+				}
+			}
+		}	
+		// Matrix Product
+		pH->MatMatMul(pX_fem,*pX_mb);
+		// Packing data
+		for (unsigned i = 0 ; i < fem_data.data.size() ; i++){
+			for (int j = 1; j <= 3 ; j++) {
+				fem_data.data[i].X(j) = pX_fem->dGetCoef(i+1,j);
+			}
+		}
+	}
+
+	if (mb_data.uFlags & GeometryData::R) {
+		// Unpacking data	
+		FullMatrixHandler* pR_mb;
+		FullMatrixHandler* pR_fem;
+		SAFENEWWITHCONSTRUCTOR( pR_mb, FullMatrixHandler, FullMatrixHandler(mb_data.data.size()*(Adj.size()+1),9) );
+		SAFENEWWITHCONSTRUCTOR( pR_fem, FullMatrixHandler, FullMatrixHandler(fem_data.data.size(),9) );
+		for (unsigned i = 0 ; i < mb_data.data.size() ; i++){
+			for (unsigned j = 1; j <= 3 ; j++) {
+				for (unsigned k = 1; k <= 3; k++) {
+					pR_mb->PutCoef(i*(Adj.size()+1)+1, 3*(j-1)+k, mb_data.data[i].R(j,k) );
+					// R on adjoint
+					// R = R0
+					for (unsigned i_a = 0; i_a < Adj.size() ; i_a++){
+						pR_mb->PutCoef(i*(Adj.size()+1)+1+i_a+1,3*(j-1)+k, mb_data.data[i].R(j,k) );	
+					}
+				}
+			}
+		}	
+		// Matrix Product
+		pH->MatMatMul(pR_fem,*pR_mb);
+		// Packing data
+		for (unsigned i = 0 ; i < fem_data.data.size() ; i++){
+			for (unsigned j = 1; j <= 3 ; j++) {
+				for (unsigned k = 1 ; k <= 3; k++) {
+					fem_data.data[i].R(j,k) = pR_fem->dGetCoef(i+1,(j-1)*3+k);
+				}
+			}
+		}
+	}
+
+	if (mb_data.uFlags & GeometryData::V) {
+		// Unpacking data	
+		FullMatrixHandler* pV_mb;
+		FullMatrixHandler* pV_fem;
+		SAFENEWWITHCONSTRUCTOR( pV_mb, FullMatrixHandler, FullMatrixHandler(mb_data.data.size()*(Adj.size()+1),3) );
+		SAFENEWWITHCONSTRUCTOR( pV_fem, FullMatrixHandler, FullMatrixHandler(fem_data.data.size(),3) );
+		for (unsigned i = 0 ; i < mb_data.data.size() ; i++){
+			for (int j = 1; j <= 3 ; j++) {
+				pV_mb->PutCoef(i+1, j, mb_data.data[i].V(j) );
+				// V on adjoint
+				// V = V0 + W*delta_x
+				for (unsigned i_a = 0; i_a < Adj.size() ; i_a++){
+					Vec3 tmp = mb_data.data[i].V + mb_data.data[i].W.Cross(Adj[i_a]);
+					for (unsigned j = 1; j <= 3 ; j++) {
+						pV_mb->PutCoef(i*(Adj.size()+1)+1+i_a+1, j, tmp(j) );
+					}	
+				}
+			}
+		}	
+		// Matrix Product
+		pH->MatMatMul(pV_fem,*pV_mb);
+		// Packing data
+		for (unsigned i = 0 ; i < fem_data.data.size() ; i++){
+			for (int j = 1; j <= 3 ; j++) {
+				fem_data.data[i].V(j) = pV_fem->dGetCoef(i+1,j);
+			}
+		}
+	}
+
+	if (mb_data.uFlags & GeometryData::W) {
+		// Unpacking data	
+		FullMatrixHandler* pW_mb;
+		FullMatrixHandler* pW_fem;
+		SAFENEWWITHCONSTRUCTOR( pW_mb, FullMatrixHandler, FullMatrixHandler(mb_data.data.size()*(Adj.size()+1),3) );
+		SAFENEWWITHCONSTRUCTOR( pW_fem, FullMatrixHandler, FullMatrixHandler(fem_data.data.size(),3) );
+		for (unsigned i = 0 ; i < mb_data.data.size() ; i++){
+			for (unsigned j = 1; j <= 3 ; j++) {
+				pW_mb->PutCoef(i+1, j, mb_data.data[i].W(j) );
+				// W on adjoint
+				// W = W0 
+				for (unsigned i_a = 0; i_a < Adj.size() ; i_a++){
+					pW_mb->PutCoef(i*(Adj.size()+1)+1+i_a+1, j,  mb_data.data[i].W(j)  );				
+				}
+			}
+		}	
+		// Matrix Product
+		pH->MatMatMul(pW_fem,*pW_mb);
+		// Packing data
+		for (unsigned i = 0 ; i < fem_data.data.size() ; i++){
+			for (int j = 1; j <= 3 ; j++) {
+				fem_data.data[i].W(j) = pW_fem->dGetCoef(i+1,j);
+			}
+		}
+	}
+
+	if (mb_data.uFlags & GeometryData::XPP) {
+		// Unpacking data	
+		FullMatrixHandler* pXPP_mb;
+		FullMatrixHandler* pXPP_fem;
+		SAFENEWWITHCONSTRUCTOR( pXPP_mb, FullMatrixHandler, FullMatrixHandler(mb_data.data.size()*(Adj.size()+1),3) );
+		SAFENEWWITHCONSTRUCTOR( pXPP_fem, FullMatrixHandler, FullMatrixHandler(fem_data.data.size(),3) );
+		for (unsigned i = 0 ; i < mb_data.data.size() ; i++){
+			for (int j = 1; j <= 3 ; j++) {
+				pXPP_mb->PutCoef(i+1, j, mb_data.data[i].XPP(j) );
+			}
+			// XPP on adjoint
+			// XPP = XPP0 + WP*delta_x + W*W*delta_x
+			for (unsigned i_a = 0; i_a < Adj.size() ; i_a++){
+				Vec3 tmp = mb_data.data[i].XPP + mb_data.data[i].WP.Cross(Adj[i_a])
+				           + mb_data.data[i].W.Cross(mb_data.data[i].W.Cross(Adj[i_a]));
+				for (unsigned j = 1; j <= 3 ; j++) {
+					pXPP_mb->PutCoef(i*(Adj.size()+1)+1+i_a+1, j, tmp(j) );
+				}	
+			}
+		}	
+		// Matrix Product
+		pH->MatMatMul(pXPP_fem,*pXPP_mb);
+		// Packing data
+		for (unsigned i = 0 ; i < fem_data.data.size() ; i++){
+			for (int j = 1; j <= 3 ; j++) {
+				fem_data.data[i].XPP(j) = pXPP_fem->dGetCoef(i+1,j);
+			}
+		}
+	}
+
+	if (mb_data.uFlags & GeometryData::WP) {
+		// Unpacking data	
+		FullMatrixHandler* pWP_mb;
+		FullMatrixHandler* pWP_fem;
+		SAFENEWWITHCONSTRUCTOR( pWP_mb, FullMatrixHandler, FullMatrixHandler(mb_data.data.size()*(Adj.size()+1),3) );
+		SAFENEWWITHCONSTRUCTOR( pWP_fem, FullMatrixHandler, FullMatrixHandler(fem_data.data.size(),3) );
+		for (unsigned i = 0 ; i < mb_data.data.size() ; i++){
+			for (unsigned j = 1; j <= 3 ; j++) {
+				pWP_mb->PutCoef(i+1, j, mb_data.data[i].WP(j) );
+				// W on adjoint
+				// W = W0 
+				for (unsigned i_a = 0; i_a < Adj.size() ; i_a++){
+					pWP_mb->PutCoef(i*(Adj.size()+1)+1+i_a+1, j,  mb_data.data[i].WP(j) );				
+				}
+			}
+		}	
+		// Matrix Product
+		pH->MatMatMul(pWP_fem,*pWP_mb);
+		// Packing data
+		for (unsigned i = 0 ; i < fem_data.data.size() ; i++){
+			for (int j = 1; j <= 3 ; j++) {
+				fem_data.data[i].WP(j) = pWP_fem->dGetCoef(i+1,j);
+			}
+		}
+	}
 }
 
 StructOutputInterp::StructOutputInterp(const Elem *pE,
 	bool bQuad,
 	int RBForder,
-	int NearNodes)
+	int NearNodes,
+	int Nadj,
+	double dL)
 : Elem(pE->GetLabel(), pE->fToBeOutput()),
 StructOutputInterpBase(pE)
 {
@@ -484,6 +662,24 @@ StructOutputInterpBase(pE)
 	SAFENEWWITHCONSTRUCTOR(pInt, MLSP ,
 		MLSP(NearNodes, RBForder, bQuad));
 #endif // USE_X_ANN
+	// Adjoint Nodes Vector
+	if (Nadj != 0){
+		if (Nadj==3){
+			//Adj[0] = Vec3(dL/5);
+			//Adj[1] = Vec3(0.,dL/5);
+			//Adj[2] = Vec3(0.,0.,dL/5);
+			Adj.push_back(Vec3(dL/5));
+			Adj.push_back(Vec3(0.,dL/5));
+			Adj.push_back(Vec3(0.,0.,dL/5));
+		} else {
+			Adj[0] = Vec3(dL/5);
+			Adj[1] = Vec3(-dL/5);
+			Adj[2] = Vec3(0.,dL/5);
+			Adj[3] = Vec3(0.,-dL/5);
+			Adj[4] = Vec3(0.,0.,dL/5);
+			Adj[5] = Vec3(0.,0.,-dL/5);
+		}
+	}
 }
 
 StructOutputInterp::~StructOutputInterp(void)
@@ -514,16 +710,18 @@ StructOutputInterpOP2::ManipulateInit_int(const GeometryData& mb_data)
 		throw ErrGeneric();
 	}
 	std::cout << "letto il file..." << std::endl;
-	StructOutputInterp::ManipulateInit_int(fem_data);
+	StructOutputInterp::ManipulateInit_int(mb_data);
 }
 
 StructOutputInterpOP2::StructOutputInterpOP2(const Elem *pE,
 					const std::string& infilename,
 					bool bQuad,
 					int RBForder,
-					int NearNodes)
+					int NearNodes,
+					int Nadj,
+					double dL)
 : Elem(pE->GetLabel(), pE->fToBeOutput()),
-StructOutputInterp(pE, bQuad, RBForder, NearNodes),
+StructOutputInterp(pE, bQuad, RBForder, NearNodes, Nadj, dL),
 infilename(infilename)
 {
 	NO_OP;
@@ -551,7 +749,7 @@ StructOutputInterpNative::ManipulateInit_int(const GeometryData& mb_data)
 
 	int Nnod;
 
-	fem_data.uFlags = GeometryData::X;
+	//fem_data.uFlags = GeometryData::X;
 	
 	// read plain ASCII file
 	std::ifstream inf(infilename.c_str());
@@ -574,23 +772,19 @@ StructOutputInterpNative::ManipulateInit_int(const GeometryData& mb_data)
 			>> fem_data.data[i].X(1)
 			>> fem_data.data[i].X(2)
 			>> fem_data.data[i].X(3);
-
-		silent_cout("StructOutputWrite(" << GetLabel() << "): "
-			"Node[" << i << "]: "
-			<< fem_data.data[i].uLabel
-			<< " " << fem_data.data[i].X << std::endl);
 	}
-
-	StructOutputInterp::ManipulateInit_int(fem_data);
+	StructOutputInterp::ManipulateInit_int(mb_data);
 }
 
 StructOutputInterpNative::StructOutputInterpNative(const Elem *pE,
 					const std::string& infilename,
 					bool bQuad,
 					int RBForder,
-					int NearNodes)
+					int NearNodes,
+					int Nadj,
+					double dL)
 : Elem(pE->GetLabel(), pE->fToBeOutput()),
-StructOutputInterp(pE, bQuad, RBForder, NearNodes),
+StructOutputInterp(pE, bQuad, RBForder, NearNodes, Nadj, dL),
 infilename(infilename)
 {
 	NO_OP;
@@ -690,16 +884,40 @@ ReadStructOutputInterp(DataManager *pDM, MBDynParser& HP, const Elem *pNestedEle
 		NearNodes = 4;
 	}
 
+	int Nadj = 0;
+	double dL = 0.;
+	if (HP.IsKeyWord("adjoint")) {
+		Nadj = HP.GetInt();
+		switch (Nadj) {
+			case 0:
+			case 3:
+			case 6:
+				break;
+			default:
+				silent_cerr("StructOutputInterp(" << pNestedElem->GetLabel() << "): "
+				"illegal number of adjoint nodes"
+				" at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric();
+		}
+		dL = HP.GetReal();
+		if (dL <= 0.){
+			silent_cerr("StructOutputInterp(" << pNestedElem->GetLabel() << "): "
+			"reference length must be a positive value"
+			" at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric();
+		}
+	}
+
 	Elem *pEl = 0;
 	if (bOp2) {
 		SAFENEWWITHCONSTRUCTOR(pEl, StructOutputInterpOP2,
 			StructOutputInterpOP2(pNestedElem, infilename,
-				bQuad, RBForder, NearNodes));
+				bQuad, RBForder, NearNodes, Nadj, dL));
 
 	} else {
 		SAFENEWWITHCONSTRUCTOR(pEl, StructOutputInterpNative,
 			StructOutputInterpNative(pNestedElem, infilename,
-				bQuad, RBForder, NearNodes));
+				bQuad, RBForder, NearNodes, Nadj, dL));
 	}
 
 	return pEl;
@@ -738,7 +956,7 @@ void
 StructOutputWrite::Manipulate(const GeometryData& data)
 {
 	// open file
-	std::ofstream outf(outfilename.c_str());
+	std::ofstream outf(outfilename.c_str(),std::ios::app);
 	if (!outf) {
 		silent_cerr("StructOutputWrite(" << GetLabel() << "): "
 			"unable to open output file \"" << outfilename << "\""

@@ -33,6 +33,8 @@ matvecexp.h \
 mbcomm.h \
 mh.cc \
 mh.h \
+MLS.cc \
+MLS.h \
 naivemh.cc \
 naivemh.h \
 Rot.cc \
