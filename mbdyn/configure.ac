@@ -1103,13 +1103,16 @@ dnl
 ol_link_ANN=no
 if test $ol_with_ANN != no ; then
 	AC_LANG_CPLUSPLUS
-	AC_CHECK_HEADERS(ANN.h)
+	ANN_H=
+	ANN_ANN_H=
+	AC_CHECK_HEADERS(ANN.h, [ANN_H="ANN.h"])
+	AC_CHECK_HEADERS(ANN/ANN.h, [ANN_H="ANN/ANN.h"])
 	SAVE_LIBS="$LIBS"
 	LIBS="$LIBS -lANN"
-	if test "$ac_cv_header_ANN_h" = "yes" ; then
-		AC_TRY_LINK([
-	#include "ANN.h"
-			],[
+	if test "$ac_cv_header_ANN_h" = "yes" -o "$ac_cv_header_ANN_ANN_h" = "yes" ; then
+		AC_TRY_LINK(
+	#include <$ANN_H>
+			,[
 	ANNkd_tree x(0,0);
 			],[have_ANN=yes],[have_ANN=no])
 		if test "$have_ANN" != "no" ; then

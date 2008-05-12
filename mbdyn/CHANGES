@@ -15,6 +15,8 @@ MBDyn 1.X-Devel
 		- more beam private data available
 		- add run-time computation of sets' inertia properties
 		- abs2rel.awk handles accelerations and RefOnly mode
+		- preliminary support for substructure output
+		  (by Michele Frumusa)
 	Backward compatibility issues:
 	Known issues:
 		- scalar filter seems to be broken; use state space SISO

@@ -35,53 +35,11 @@
 #include "nestedelem.h"
 #include "strnode.h"
 #include "spmapmh.h"
+#include "geomdata.h"
 
 #ifdef USE_X_ANN
 #include "MLS.h"
 #endif // USE_X_ANN
-
-/* Geometry */
-struct Geometry {
-	unsigned uLabel;
-
-	// kimenatics
-	Vec3 X;
-	Mat3x3 R;
-	Vec3 V;
-	Vec3 W;
-
-	// optional kinematics
-	Vec3 XPP;
-	Vec3 WP;
-
-	// optional forces
-	Vec3 F;
-	Vec3 M;
-};
-
-struct GeometryData {
-	enum Flags {
-		X			= 0x01U,
-		R			= 0x02U,
-		V			= 0x04U,
-		W			= 0x08U,
-
-		XPP			= 0x10U,
-		WP			= 0x20U,
-
-		ACCELERATIONS_MASK	= (XPP | WP ),
-
-		F			= 0x40U,
-		M			= 0x80U,
-
-		FORCES_MASK		= (F | M)
-	};
-	unsigned uFlags;
-
-	std::vector<Geometry> data;
-};
-
-class InterpMethod;
 
 /* StructOutputManip - begin */
 

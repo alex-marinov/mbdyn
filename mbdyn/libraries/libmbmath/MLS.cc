@@ -84,7 +84,7 @@ Quadratic::SetP(double* PosFem, double** PosMb, int* id, unsigned int k, MyVecto
 }
 
 MLSP::MLSP(unsigned int NodesN, int WgType, bool LinQuad)
-:N(NodesN),pp(),pP(),pW()
+:N(NodesN), pP(), pW(), pp()
 {
 	// Weight Matrix
 	switch (WgType) {
@@ -186,8 +186,8 @@ MLSP::Interpolate(const GeometryData& fem_data, const GeometryData& mb_data, SpM
 		delete [] iwork;
                 MyVectorHandler h(N);
 		B.MatTVecMul(h,pp);
-		for (int j = 0 ; j < N ; j++){
-			pH->PutCoef(i+1, idx[j]+1,h(j+1));
+		for (unsigned int j = 0 ; j < N ; j++){
+			pH->PutCoef(i+1, idx[j]+1, h(j+1));
 		}
 
 
@@ -287,8 +287,8 @@ MLSP::Interpolate_Adj(const GeometryData& fem_data, const GeometryData& mb_data,
 		delete [] iwork;
                 MyVectorHandler h(N);
 		B.MatTVecMul(h,pp);
-		for (int j = 0 ; j < N ; j++){
-			pH->PutCoef(i+1, idx[j]+1,h(j+1));
+		for (unsigned int j = 0 ; j < N ; j++){
+			pH->PutCoef(i+1, idx[j]+1, h(j+1));
 		}
 	}
 }

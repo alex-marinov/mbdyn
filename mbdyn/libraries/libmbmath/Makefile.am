@@ -14,6 +14,7 @@ dirccmh.cc \
 dirccmh.h \
 fullmh.cc \
 fullmh.h \
+geomdata.h \
 interp.h \
 interp.cc \
 JacSubMatrix.cc \
@@ -58,7 +59,7 @@ submat.h \
 vh.cc \
 vh.h
 
-libmbmath_la_LIBADD = @LIBS@ @F2C_LIBS@
+libmbmath_la_LIBADD = @LIBS@ @F2C_LIBS@ @X_ANN_LIBS@
 libmbmath_la_LDFLAGS =
 
 INCLUDES = \

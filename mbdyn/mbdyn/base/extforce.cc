@@ -116,7 +116,7 @@ ExtForce::AfterConvergence(const VectorHandler& X,
 
 /*
  * Unlink input file when no longer required
- * used to inform * companion software that a new input file can be written
+ * used to inform companion software that a new input file can be written
  */
 void
 ExtForce::Unlink(void)
