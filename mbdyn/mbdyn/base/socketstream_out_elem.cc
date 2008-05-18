@@ -63,26 +63,19 @@
 /* SocketStreamElem - begin */
 
 SocketStreamElem::SocketStreamElem(unsigned int uL,
-		std::vector<ScalarValue *>& pn,
-		unsigned int oe,
-		DataManager *pDM,
-		const char *h, const char *m, unsigned short int p, bool c,
-		int flags, bool bSF)
+	std::vector<ScalarValue *>& pn,
+	unsigned int oe,
+	DataManager *pDM,
+	const char *h, const char *m, unsigned short int p, bool c,
+	int flags, bool bSF)
 : Elem(uL, flag(0)),
-Values(pn), size(-1), buf(0),
-OutputEvery(oe), OutputCounter(0), 
+StreamOutElem(uL, pn, oe),
 pUS(0), name(m), send_flags(flags), bSendFirst(bSF)
 {
-	ASSERT(OutputEvery > 0);
-
-	/* FIXME: size depends on the type of the output signals */
-	size = sizeof(doublereal)*Values.size();
-	SAFENEWARR(buf, char, size);
-	memset(buf, 0, size);
-
 	SAFENEWWITHCONSTRUCTOR(pUS, UseInetSocket, UseInetSocket(h, p, c));
 	if (c) {
 		pDM->RegisterSocketUser(pUS);
+
 	} else {
 		pUS->Connect();
 	}
@@ -95,20 +88,13 @@ SocketStreamElem::SocketStreamElem(unsigned int uL,
 		const char *m, const char* const p, bool c,
 		int flags, bool bSF)
 : Elem(uL, flag(0)),
-Values(pn), size(-1), buf(0),
-OutputEvery(oe), OutputCounter(0), 
+StreamOutElem(uL, pn, oe),
 pUS(0), name(m), send_flags(flags), bSendFirst(bSF)
 {
-	ASSERT(OutputEvery > 0);
-
-	/* FIXME: size depends on the type of the output signals */
-	size = sizeof(doublereal)*Values.size();
-	SAFENEWARR(buf, char, size);
-	memset(buf, 0, size);
-	
 	SAFENEWWITHCONSTRUCTOR(pUS, UseLocalSocket, UseLocalSocket(p, c));
 	if (c) {
 		pDM->RegisterSocketUser(pUS);
+
 	} else {
 		pUS->Connect();
 	}
@@ -118,14 +104,6 @@ SocketStreamElem::~SocketStreamElem(void)
 {
 	if (pUS != 0) {
 		SAFEDELETE(pUS);
-	}
-
-	if (buf != 0) {
-		SAFEDELETEARR(buf);
-	}
-
-	for (std::vector<ScalarValue *>::iterator i = Values.begin(); i != Values.end(); i++) {
-		delete *i;
 	}
 }
 
@@ -145,35 +123,6 @@ SocketStreamElem::Restart(std::ostream& out) const
 	}
 	return out << ";" << std::endl;
 }	
-
-Elem::Type
-SocketStreamElem::GetElemType(void) const
-{
-	return Elem::SOCKETSTREAM_OUTPUT;
-}
-
-void
-SocketStreamElem::WorkSpaceDim(integer* piRows, integer* piCols) const
-{
-	*piRows = 0;
-	*piCols = 0;
-}
-
-SubVectorHandler&
-SocketStreamElem::AssRes(SubVectorHandler& WorkVec, doublereal dCoef,
-		const VectorHandler& X, const VectorHandler& XP)
-{
-	WorkVec.Resize(0);
-	return WorkVec;
-}
-
-VariableSubMatrixHandler& 
-SocketStreamElem::AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
-		const VectorHandler& X, const VectorHandler& XP)
-{
-	WorkMat.SetNullMatrix();
-	return WorkMat;
-}
 
 void
 SocketStreamElem::SetValue(DataManager *pDM,
@@ -245,7 +194,7 @@ void
 SocketStreamElem::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP, const VectorHandler& XPP)
 {
-		AfterConvergence(X, XP);
+	AfterConvergence(X, XP);
 }
 
 Elem *

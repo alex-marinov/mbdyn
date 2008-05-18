@@ -17,6 +17,7 @@ MBDyn 1.X-Devel
 		- abs2rel.awk handles accelerations and RefOnly mode
 		- preliminary support for substructure output
 		  (by Michele Frumusa)
+		- RTAI output uses stream output syntax for values
 	Backward compatibility issues:
 	Known issues:
 		- scalar filter seems to be broken; use state space SISO

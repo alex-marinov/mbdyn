@@ -129,6 +129,8 @@ socketstream_out_elem.cc \
 socketstream_out_elem.h \
 streamdrive.cc \
 streamdrive.h \
+streamoutelem.cc \
+streamoutelem.h \
 solver.cc \
 solver.h \
 solver_impl.h \

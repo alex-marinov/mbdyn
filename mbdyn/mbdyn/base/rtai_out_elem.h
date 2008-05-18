@@ -36,20 +36,12 @@
 
 /* include del programma */
 
-#include <elem.h>
-#include <node.h>
+#include <streamoutelem.h>
 
 /* RTMBDynOutElem - begin */
 
-class RTMBDynOutElem : virtual public Elem {
+class RTMBDynOutElem : public StreamOutElem, virtual public Elem {
 protected:
-	unsigned int NumChannels;
-   	ScalarDof* pNodes;
-
-	/* MBox buffer */
-	int size;
-	char *buf;
-
 	/* FIXME: store restart info as well */
 	const char *host;
 	unsigned long node;
@@ -59,23 +51,16 @@ protected:
 	void *mbx;
    
 public:
-   	RTMBDynOutElem(unsigned int uL, unsigned int nmb, ScalarDof *& pn,
+   	RTMBDynOutElem(unsigned int uL, std::vector<ScalarValue *>& pn,
 			const char *host, const char *m, unsigned long n,
 			bool c);
    	virtual ~RTMBDynOutElem(void);
 
 	virtual std::ostream& Restart(std::ostream& out) const;
-	virtual Elem::Type GetElemType(void) const;
-	virtual void WorkSpaceDim(integer* piRows, integer* piCols) const;
-	virtual SubVectorHandler&
-	AssRes(SubVectorHandler& WrokVec, doublereal dCoef,
-			const VectorHandler& X, const VectorHandler& XP);
-	virtual VariableSubMatrixHandler& 
-	AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
-			const VectorHandler& X, const VectorHandler& XP);
 
 	virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP);
+
 	/* Inverse Dynamics: */
 	virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP,

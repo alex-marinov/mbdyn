@@ -4869,9 +4869,11 @@ The syntax is:
         <channel_number> ,
             <value>
             [ , ... ]
-    <value> ::=
-        { [ nodedof , ] (node_dof) <output_dof>
-            | drive , (DriveCaller) <drive_data> }
+
+    <value> ::= {
+        [ nodedof , ] (node_dof) <output_dof>
+        | drive , (DriveCaller) <drive_data>
+    }
 \end{verbatim}
 where
 \begin{itemize}
@@ -4920,6 +4922,11 @@ The syntax is:
         <channel_number> ,
             <value>
             [ , ... ]
+
+    <value> ::= {
+        [ nodedof , ] (node_dof) <output_dof>
+        | drive , (DriveCaller) <drive_data>
+    }
 \end{verbatim}
 The stream output allows MBDyn to send streamed outputs 
 to remote processes both during regular simulations and during 

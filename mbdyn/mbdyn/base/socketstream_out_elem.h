@@ -38,55 +38,12 @@
 
 /*include del programma*/
 
-#include <elem.h>
-#include <node.h>
-
-/* ScalarValue - begin */
-
-class ScalarValue {
-public:
-	virtual ~ScalarValue(void) {};
-	virtual doublereal dGetValue(void) const = 0;
-};
-
-class ScalarDofValue : public ScalarValue, public ScalarDof {
-public:
-	ScalarDofValue(const ScalarDof& sd)
-	: ScalarDof(sd) {};
-	doublereal dGetValue(void) const {
-		return ScalarDof::dGetValue();
-	};
-};
-
-class ScalarDriveValue : public ScalarValue {
-protected:
-	const DriveCaller *pDC;
-
-public:
-	ScalarDriveValue(const DriveCaller *pdc)
-	: pDC(pdc) {};
-	~ScalarDriveValue(void) { if (pDC) delete pDC; };
-	doublereal dGetValue(void) const {
-		return pDC->dGet();
-	};
-};
-
-/* ScalarValue - end */
+#include <streamoutelem.h>
 
 /* SocketStreamElem - begin */
 
-class SocketStreamElem : virtual public Elem {
+class SocketStreamElem : public StreamOutElem, virtual public Elem {
 protected:
-	std::vector<ScalarValue *> Values;
-
-	/* Stream buffer */
-	int size;
-	char *buf;
-
-	/* output with lower ratio */
-	unsigned int OutputEvery;
-	mutable unsigned int OutputCounter;
-
 	UseSocket *pUS;
 
 	const char *name;
@@ -108,20 +65,13 @@ public:
    	virtual ~SocketStreamElem(void);
 
 	virtual std::ostream& Restart(std::ostream& out) const;
-	virtual Elem::Type GetElemType(void) const;
-	virtual void WorkSpaceDim(integer* piRows, integer* piCols) const;
-	virtual SubVectorHandler&
-	AssRes(SubVectorHandler& WorkVec, doublereal dCoef,
-			const VectorHandler& X, const VectorHandler& XP);
-	virtual VariableSubMatrixHandler& 
-	AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
-			const VectorHandler& X, const VectorHandler& XP);
 
 	virtual void SetValue(DataManager *pDM,
 			VectorHandler& X, VectorHandler& XP,
 			SimulationEntity::Hints *ph = 0);
 	virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP);
+
 	/* Inverse Dynamics */
 	virtual void AfterConvergence(const VectorHandler& X, 
 			const VectorHandler& XP, const VectorHandler& XPP);

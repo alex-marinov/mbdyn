@@ -37,6 +37,8 @@
 #include <filedrv.h>
 #include <streamdrive.h>
 
+/* StreamDrive - begin */
+
 StreamDrive::StreamDrive(unsigned int uL,
 			 const DriveHandler* pDH,
 			 const char* const sFileName,
@@ -64,3 +66,4 @@ StreamDrive::~StreamDrive(void)
 	}
 }
 
+/* StreamDrive - end */

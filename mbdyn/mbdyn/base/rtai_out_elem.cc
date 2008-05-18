@@ -48,16 +48,12 @@
 
 /* RTMBDynOutElem - begin */
 
-RTMBDynOutElem::RTMBDynOutElem(unsigned int uL, unsigned int nch, ScalarDof *& pn,
+RTMBDynOutElem::RTMBDynOutElem(unsigned int uL, std::vector<ScalarValue *>& pn,
 		const char *h, const char *m, unsigned long n, bool c)
 : Elem(uL, flag(0)),
-NumChannels(nch), pNodes(pn), size(-1), buf(0),
+StreamOutElem(uL, pn, 1),
 host(h), node(n), name(m), create(c), port(-1), mbx(0)
 {
-	/* FIXME: size depends on the type of the output signals */
-	size = sizeof(doublereal)*nch;
-	SAFENEWARR(buf, char, size);
-
 	/* RATIONALE:
 	 *
 	 * if host/node is present, the mailbox is "remote";
@@ -94,15 +90,6 @@ RTMBDynOutElem::~RTMBDynOutElem(void)
 		mbdyn_rt_mbx_delete(&mbx);
 	}
 
-	if (buf) {
-		SAFEDELETEARR(buf);
-	}
-
-	if (pNodes) {
-		/* FIXME: pNodes leak */
-		SAFEDELETEARR(pNodes);
-	}
-
 	if (host) {
 		SAFEDELETEARR(host);
 	}
@@ -114,62 +101,33 @@ RTMBDynOutElem::Restart(std::ostream& out) const
 	return out << "# not implemented yet" << std::endl;
 }
 
-Elem::Type
-RTMBDynOutElem::GetElemType(void) const
-{
-	return Elem::SOCKETSTREAM_OUTPUT;
-}
-
-void
-RTMBDynOutElem::WorkSpaceDim(integer* piRows, integer* piCols) const
-{
-	*piRows = 0;
-	*piCols = 0;
-}
-
-SubVectorHandler&
-RTMBDynOutElem::AssRes(SubVectorHandler& WorkVec, doublereal dCoef,
-		const VectorHandler& X, const VectorHandler& XP)
-{
-	WorkVec.Resize(0);
-	return WorkVec;
-}
-
-VariableSubMatrixHandler& 
-RTMBDynOutElem::AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
-		const VectorHandler& X, const VectorHandler& XP)
-{
-	WorkMat.SetNullMatrix();
-	return WorkMat;
-}
-
 void
 RTMBDynOutElem::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP)
 {
 	char *curbuf = buf;
 	
-	for (unsigned int i = 0; i < NumChannels; i++) {
+	for (std::vector<ScalarValue *>::iterator i = Values.begin(); i != Values.end(); i++) {
 		/* assign value somewhere into mailbox buffer */
-		doublereal v = pNodes[i].dGetValue();
+		doublereal v = (*i)->dGetValue();
 
 		doublereal *dbuf = (doublereal *)curbuf;
 		dbuf[0] = v;
 
 		curbuf += sizeof(doublereal);
 	}
+	
 	if (mbdyn_RT_mbx_send_if(node, -port, mbx, (void *)buf, size) != size) {
 		/* error */
 	}
 	 
 }
 
-/* Inverse Dynamics */
 void
 RTMBDynOutElem::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP, const VectorHandler& XPP)
 {
-	AfterConvergence(X, XP);	
+	AfterConvergence(X, XP);
 }
 
 Elem *
@@ -293,10 +251,16 @@ ReadRTMBDynOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		throw ErrGeneric();
 	}
 
-	ScalarDof *pNodes = NULL;
-	SAFENEWARRNOFILL(pNodes, ScalarDof, nch);
+	std::vector<ScalarValue *> Values(nch);
 	for (int i = 0; i < nch; i++) {
-		pNodes[i] = ReadScalarDof(pDM, HP, 1);
+		if (HP.IsKeyWord("drive")) {
+			Values[i] = new ScalarDriveValue(ReadDriveData(pDM, HP, false));
+		} else {
+			if (HP.IsKeyWord("node" "dof")) {
+				NO_OP; // skip
+			}
+			Values[i] = new ScalarDofValue(ReadScalarDof(pDM, HP, 1));
+		}
 	}
 
    	// (void)pDM->fReadOutput(HP, Elem::LOADABLE); 
@@ -312,7 +276,7 @@ ReadRTMBDynOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	/* costruzione dell'elemento */
 	Elem *pEl = NULL;
 	SAFENEWWITHCONSTRUCTOR(pEl, RTMBDynOutElem,
-			RTMBDynOutElem(uLabel, nch, pNodes,
+			RTMBDynOutElem(uLabel, Values,
 				host, name, node, create));
 	return pEl;
 }
