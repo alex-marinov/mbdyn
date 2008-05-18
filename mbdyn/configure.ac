@@ -2197,6 +2197,7 @@ AC_SUBST(DATE)
 
 dnl conditional build declarations
 AM_CONDITIONAL(USE_X_ANN,[test "$ol_link_ANN" = yes])
+AM_CONDITIONAL(USE_RTAI,[test "$use_rtai" = yes])
 
 dnl ----------------------------------------------------------------
 dnl

@@ -34,16 +34,14 @@
 #ifndef RTAI_OUT_ELEM_H
 #define RTAI_OUT_ELEM_H
 
-#ifdef USE_RTAI
-
 /* include del programma */
 
 #include <elem.h>
 #include <node.h>
 
-/* RTAIOutElem - begin */
+/* RTMBDynOutElem - begin */
 
-class RTAIOutElem : virtual public Elem {
+class RTMBDynOutElem : virtual public Elem {
 protected:
 	unsigned int NumChannels;
    	ScalarDof* pNodes;
@@ -61,10 +59,10 @@ protected:
 	void *mbx;
    
 public:
-   	RTAIOutElem(unsigned int uL, unsigned int nmb, ScalarDof *& pn,
+   	RTMBDynOutElem(unsigned int uL, unsigned int nmb, ScalarDof *& pn,
 			const char *host, const char *m, unsigned long n,
 			bool c);
-   	virtual ~RTAIOutElem(void);
+   	virtual ~RTMBDynOutElem(void);
 
 	virtual std::ostream& Restart(std::ostream& out) const;
 	virtual Elem::Type GetElemType(void) const;
@@ -88,11 +86,9 @@ class DataManager;
 class MBDynParser;
 
 extern Elem *
-ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel);
+ReadRTMBDynOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel);
 
-/* RTAIOutElem - end */
-
-#endif /* USE_RTAI */
+/* RTMBDynOutElem - end */
 
 #endif /* RTAI_OUT_ELEM_H */
 

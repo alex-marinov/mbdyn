@@ -40,8 +40,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef USE_RTAI
-
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/user.h>
@@ -143,13 +141,4 @@ main(int argc, char* argv[])
 
 	return 0;	
 }
-
-#else /* !USE_RTAI */
-int
-main(void)
-{
-	fprintf(stderr, "need RTAI support\n");
-	exit(EXIT_FAILURE);
-}
-#endif /* !USE_RTAI */
 

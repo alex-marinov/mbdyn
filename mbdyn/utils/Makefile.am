@@ -20,7 +20,6 @@ eu2rot \
 eu2phi \
 femgen \
 intg \
-logproc \
 posrel \
 rot2eu \
 rot2eup \
@@ -31,6 +30,11 @@ socket2stream \
 stream2socket \
 trim \
 vec2rot
+
+if USE_RTAI
+bin_PROGRAMS += \
+logproc
+endif
 
 if USE_X_ANN
 bin_PROGRAMS += mbfem

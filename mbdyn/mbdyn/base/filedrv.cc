@@ -190,7 +190,7 @@ ReadFileDriver(DataManager* pDM,
 
 	case RTAIINPUT:
 #ifndef USE_RTAI
-	       	silent_cout("need --with-rtai to allow RTAI mailboxes; "
+	       	silent_cout("need --with-rtai to allow RTMBDyn mailboxes; "
 				"using stream..." << std::endl);
 #endif /* ! USE_RTAI */
 		/* fall thru... */
@@ -199,8 +199,8 @@ ReadFileDriver(DataManager* pDM,
 read_stream:;
 #ifdef USE_RTAI
 		if (mbdyn_rtai_task != NULL){
-			silent_cout("starting RTAI input drive" << std::endl);
-			pDr = ReadRTAIInDrive(pDM, HP, uLabel);
+			silent_cout("starting RTMBDyn input drive" << std::endl);
+			pDr = ReadRTMBDynInDrive(pDM, HP, uLabel);
 		} else 
 #endif /* USE_RTAI */		
 		{

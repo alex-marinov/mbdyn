@@ -35,8 +35,6 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifdef USE_RTAI
-
 /* include del programma */
 
 #include <sys/socket.h>
@@ -48,9 +46,9 @@
 #include <mbrtai_utils.h>
 #include <dataman.h>
 
-/* RTAIOutElem - begin */
+/* RTMBDynOutElem - begin */
 
-RTAIOutElem::RTAIOutElem(unsigned int uL, unsigned int nch, ScalarDof *& pn,
+RTMBDynOutElem::RTMBDynOutElem(unsigned int uL, unsigned int nch, ScalarDof *& pn,
 		const char *h, const char *m, unsigned long n, bool c)
 : Elem(uL, flag(0)),
 NumChannels(nch), pNodes(pn), size(-1), buf(0),
@@ -70,7 +68,7 @@ host(h), node(n), name(m), create(c), port(-1), mbx(0)
 		ASSERT(node == 0);
 
 		if (mbdyn_rt_mbx_init(name, size, &mbx)) {
-			silent_cerr("RTAI mailbox(" << name << ") "
+			silent_cerr("RTMBDyn mailbox(" << name << ") "
 				"init failed" << std::endl);
 			throw ErrGeneric();
 		}
@@ -83,14 +81,14 @@ host(h), node(n), name(m), create(c), port(-1), mbx(0)
 		}
 
 		if (mbdyn_RT_get_adr(node, port, name, &mbx)) {
-			silent_cerr("RTAI mailbox(" << name << ") "
+			silent_cerr("RTMBDyn mailbox(" << name << ") "
 				"get_adr failed" << std::endl);
 			throw ErrGeneric();
 		}
 	}
 }
 
-RTAIOutElem::~RTAIOutElem(void)
+RTMBDynOutElem::~RTMBDynOutElem(void)
 {
 	if (mbx) {
 		mbdyn_rt_mbx_delete(&mbx);
@@ -111,26 +109,26 @@ RTAIOutElem::~RTAIOutElem(void)
 }
 
 std::ostream&
-RTAIOutElem::Restart(std::ostream& out) const
+RTMBDynOutElem::Restart(std::ostream& out) const
 {
 	return out << "# not implemented yet" << std::endl;
 }
 
 Elem::Type
-RTAIOutElem::GetElemType(void) const
+RTMBDynOutElem::GetElemType(void) const
 {
 	return Elem::SOCKETSTREAM_OUTPUT;
 }
 
 void
-RTAIOutElem::WorkSpaceDim(integer* piRows, integer* piCols) const
+RTMBDynOutElem::WorkSpaceDim(integer* piRows, integer* piCols) const
 {
 	*piRows = 0;
 	*piCols = 0;
 }
 
 SubVectorHandler&
-RTAIOutElem::AssRes(SubVectorHandler& WorkVec, doublereal dCoef,
+RTMBDynOutElem::AssRes(SubVectorHandler& WorkVec, doublereal dCoef,
 		const VectorHandler& X, const VectorHandler& XP)
 {
 	WorkVec.Resize(0);
@@ -138,7 +136,7 @@ RTAIOutElem::AssRes(SubVectorHandler& WorkVec, doublereal dCoef,
 }
 
 VariableSubMatrixHandler& 
-RTAIOutElem::AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
+RTMBDynOutElem::AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
 		const VectorHandler& X, const VectorHandler& XP)
 {
 	WorkMat.SetNullMatrix();
@@ -146,7 +144,7 @@ RTAIOutElem::AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
 }
 
 void
-RTAIOutElem::AfterConvergence(const VectorHandler& X, 
+RTMBDynOutElem::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP)
 {
 	char *curbuf = buf;
@@ -168,14 +166,14 @@ RTAIOutElem::AfterConvergence(const VectorHandler& X,
 
 /* Inverse Dynamics */
 void
-RTAIOutElem::AfterConvergence(const VectorHandler& X, 
+RTMBDynOutElem::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP, const VectorHandler& XPP)
 {
-	((RTAIOutElem*)this)->AfterConvergence(X, XP);	
+	AfterConvergence(X, XP);	
 }
 
 Elem *
-ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
+ReadRTMBDynOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 {
 	unsigned long node = 0;
 	const char *host = NULL;
@@ -185,24 +183,25 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	if (HP.IsKeyWord("name") || HP.IsKeyWord("stream" "name")) {
 		const char *m = HP.GetStringWithDelims();
 		if (m == NULL) {
-			silent_cerr("unable to read mailbox name "
-				"for RTAIOutElem(" << uLabel << ") at line "
-				<< HP.GetLineData() << std::endl);
+			silent_cerr("RTMBDynOutElem(" << uLabel << "): "
+				"unable to read mailbox name "
+				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 
 		} else if (strlen(m) != 6) {
-			silent_cerr("illegal mailbox name \"" << m
-				<< "\" for RTAIOutElem(" << uLabel 
-				<< ") (must be 6 char) at line "
-				<< HP.GetLineData() << std::endl);
+			silent_cerr("RTMBDynOutElem(" << uLabel << "): "
+				"illegal mailbox name \"" << m << "\" "
+				"(must be exactly 6 chars) "
+				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 		}
 
 		SAFESTRDUP(name, m);
 
 	} else {
-		silent_cerr("missing mailbox name for RTAIOutElem(" << uLabel
-			<< ") at line " << HP.GetLineData() << std::endl);
+		silent_cerr("RTMBDynOutElem(" << uLabel << "): "
+			"missing mailbox name "
+			"at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric();
 	}
 
@@ -212,7 +211,8 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		} else if (HP.IsKeyWord("no")) {
 			create = false;
 		} else {
-			silent_cerr("\"create\" must be \"yes\" or \"no\" "
+			silent_cerr("RTMBDynOutElem(" << uLabel << "): "
+				"\"create\" must be \"yes\" or \"no\" "
 				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 		}
@@ -220,16 +220,18 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	
 	if (HP.IsKeyWord("local") || HP.IsKeyWord("path")) {
 		const char *m = HP.GetStringWithDelims();
-		silent_cout("local path " << m 
-				<< " silently ignored" << std::endl);
+		silent_cout("RTMBDynOutElem(" << uLabel << "): "
+			"local path \"" << m << "\" silently ignored "
+			"at line " << HP.GetLineData() << std::endl);
 
 	}
 
 	if (HP.IsKeyWord("port")){
 		int p = HP.GetInt();
 		
-		silent_cout ("port " << p 
-				<< " silently ignored" << std::endl);
+		silent_cout ("RTMBDynOutElem(" << uLabel << "): "
+			"port " << p << " silently ignored "
+			"at line " << HP.GetLineData() << std::endl);
 	}
 
 	if (HP.IsKeyWord("host")) {
@@ -238,16 +240,16 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		
 		h = HP.GetStringWithDelims();
 		if (h == NULL) {
-			silent_cerr("unable to read host for "
-				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
-				<< "(" << uLabel << ") at line "
-				<< HP.GetLineData() << std::endl);
+			silent_cerr("RTMBDynOutElem(" << uLabel << "): "
+				"unable to read host "
+				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 		}
 
 		if (create) {
-			silent_cout ( "host name \"" << h 
-				<< "\" silently ignored" << std::endl);			
+			silent_cout("RTMBDynOutElem(" << uLabel << "): "
+				"host name \"" << h << "\" silently ignored "
+				"at line " << HP.GetLineData() << std::endl);			
 		} else {
 
 			SAFESTRDUP(host, h);
@@ -267,16 +269,17 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			}
 #endif /* ! HAVE_GETHOSTBYNAME && HAVE_INET_ATON */
 			else {
-				silent_cerr("unable to convert host "
-					"\"" << host << "\" at line "
-					<< HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+				silent_cerr("RTMBDynOutElem(" << uLabel << "): "
+					"unable to convert host "
+					"\"" << host << "\" "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric();
 			}
 #else /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
-			silent_cerr("host (RTAI RPC) not supported for "
-				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
-				<< "(" << uLabel << ") at line " << HP.GetLineData()
-				<< std::endl);
+			silent_cerr("RTMBDynOutElem(" << uLabel << "): "
+				"host (RTAI RPC) not supported "
+				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 #endif /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
 		}
@@ -284,10 +287,9 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 
 	int nch = HP.GetInt();
 	if (nch <= 0) {
-		silent_cerr("illegal number of channels for "
-			<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
-			<< "(" << uLabel << ") at line " << HP.GetLineData()
-			<< std::endl);
+		silent_cerr("RTMBDynOutElem(" << uLabel << "): "
+			"illegal number of channels "
+			"at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric();
 	}
 
@@ -297,22 +299,21 @@ ReadRTAIOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		pNodes[i] = ReadScalarDof(pDM, HP, 1);
 	}
 
-   	(void)pDM->fReadOutput(HP, Elem::LOADABLE); 
+   	// (void)pDM->fReadOutput(HP, Elem::LOADABLE); 
 
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {
-		silent_cerr("semicolon expected at line " << HP.GetLineData()
+		silent_cerr("RTMBDynOutElem(" << uLabel << "): "
+			"semicolon expected at line " << HP.GetLineData()
 			<< std::endl);
 		throw ErrGeneric();
 	}
       
-      /* costruzione del nodo */
+	/* costruzione dell'elemento */
 	Elem *pEl = NULL;
-	SAFENEWWITHCONSTRUCTOR(pEl, RTAIOutElem,
-			RTAIOutElem(uLabel, nch, pNodes,
+	SAFENEWWITHCONSTRUCTOR(pEl, RTMBDynOutElem,
+			RTMBDynOutElem(uLabel, nch, pNodes,
 				host, name, node, create));
 	return pEl;
 }
-
-#endif /* USE_RTAI */
 

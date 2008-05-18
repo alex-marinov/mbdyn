@@ -38,11 +38,9 @@
 
 #include "streamdrive.h"
 
-#ifdef USE_RTAI
+/* RTMBDynInDrive - begin */
 
-/* RTAIInDrive - begin */
-
-class RTAIInDrive : public StreamDrive {
+class RTMBDynInDrive : public StreamDrive {
 protected:
 	
 	/* FIXME: store restart info as well */
@@ -52,13 +50,13 @@ protected:
 	void *mbx;
 
 public:
-   	RTAIInDrive(unsigned int uL,
-			 const DriveHandler* pDH,
-			 const char* const sFileName,
-			 const char *h,
-			 integer nd, bool c, unsigned long /*int*/ n);
+   	RTMBDynInDrive(unsigned int uL,
+		const DriveHandler* pDH,
+		const char* const sFileName,
+		const char *h,
+		integer nd, bool c, unsigned long /*int*/ n);
    
-   	virtual ~RTAIInDrive(void);
+   	virtual ~RTMBDynInDrive(void);
    
    	virtual FileDrive::Type GetFileDriveType(void) const;
 
@@ -68,15 +66,13 @@ public:
    	virtual void ServePending(const doublereal& t);
 };
 
-/* RTAIInDrive - end */
-
-#endif /* USE_RTAI */
+/* RTMBDynInDrive - end */
 
 class DataManager;
 class MBDynParser;
 
 extern Drive *
-ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel);
+ReadRTMBDynInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel);
 
 
 #endif /* RTAI_IN_DRIVE_H */

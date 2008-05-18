@@ -77,8 +77,6 @@ loadable.cc \
 loadable.h \
 mbpar.cc \
 mbpar.h \
-mbrtai_utils.c \
-mbrtai_utils.h \
 mfree.cc \
 mfree.h \
 modelns.cc \
@@ -115,10 +113,6 @@ reffrm.h \
 resforces.cc \
 resforces.h \
 restart.h \
-rtai_in_drive.cc \
-rtai_in_drive.h \
-rtai_out_elem.cc \
-rtai_out_elem.h \
 sah.cc \
 sah.h \
 schurdataman.cc \
@@ -156,6 +150,16 @@ usesock.h \
 ScalarFunctions.h \
 ScalarFunctionsImpl.h \
 ScalarFunctionsImpl.cc
+
+if USE_RTAI
+libbase_la_SOURCES += \
+mbrtai_utils.c \
+mbrtai_utils.h \
+rtai_in_drive.cc \
+rtai_in_drive.h \
+rtai_out_elem.cc \
+rtai_out_elem.h
+endif
 
 libbase_la_LIBADD = @LIBS@ @SECURITY_LIBS@ $(GINACLIB_LIBS)
 libbase_la_LDFLAGS = -static

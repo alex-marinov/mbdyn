@@ -1752,7 +1752,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const char *sName
 
 	case RTAI_OUTPUT:
 #ifndef USE_RTAI
-		silent_cout("need --with-rtai to allow RTAI mailboxes; "
+		silent_cout("need --with-rtai to allow RTMBDyn mailboxes; "
 			"using stream output..." << std::endl);
 #endif /* ! USE_RTAI */
 		/* fall thru... */
@@ -1787,8 +1787,8 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const char *sName
 			switch (KeyWords(CurrType)) {
 			case SOCKETSTREAM_OUTPUT:
 			case RTAI_OUTPUT:
-				silent_cerr("starting RTAIOutputElement(" << uLabel << ")" << std::endl);
-				pE = ReadRTAIOutElem(this, HP, uLabel);
+				silent_cerr("starting RTMBDynOutputElement(" << uLabel << ")" << std::endl);
+				pE = ReadRTMBDynOutElem(this, HP, uLabel);
 				break;
 
 			case SOCKETSTREAM_MOTION_OUTPUT:
@@ -1796,7 +1796,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const char *sName
 			default:
 				silent_cerr("line " << HP.GetLineData() << ": "
 					"StreamMotionElement(" << uLabel << ") "
-					"not allowed with RTAI" << std::endl);
+					"not allowed with RTMBDyn" << std::endl);
 
 				throw DataManager::ErrGeneric();
 			}

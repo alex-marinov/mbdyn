@@ -35,13 +35,12 @@
 
 #include <dataman.h>
 
-#ifdef USE_RTAI
 #include <netdb.h>
 
 #include <rtai_in_drive.h>
 #include <mbrtai_utils.h>
 
-RTAIInDrive::RTAIInDrive(unsigned int uL,
+RTMBDynInDrive::RTMBDynInDrive(unsigned int uL,
 			 const DriveHandler* pDH,
 			 const char* const sFileName,
 			 const char *h,
@@ -54,7 +53,7 @@ host(h), node(n), port(-1), mbx(NULL)
 		ASSERT(node == 0);
 
 		if (mbdyn_rt_mbx_init(sFileName, size, &mbx)) {
-			silent_cerr("RTAI mailbox(" << sFileName << ") "
+			silent_cerr("RTMBDyn mailbox(" << sFileName << ") "
 				"init failed" << std::endl);
 			throw ErrGeneric();
 		}
@@ -66,7 +65,7 @@ host(h), node(n), port(-1), mbx(NULL)
 		}
 
 		if (mbdyn_RT_get_adr(node, port, sFileName, &mbx)) {
-			silent_cerr("RTAI mailbox(" << sFileName << ") "
+			silent_cerr("RTMBDyn mailbox(" << sFileName << ") "
 				"get_adr failed" << std::endl);
 			throw ErrGeneric();
 		}
@@ -74,7 +73,7 @@ host(h), node(n), port(-1), mbx(NULL)
 	
 }
 
-RTAIInDrive::~RTAIInDrive(void) 
+RTMBDynInDrive::~RTMBDynInDrive(void) 
 {
 	/*
 	 * destroy mailbox and so on
@@ -89,7 +88,7 @@ RTAIInDrive::~RTAIInDrive(void)
 }
 
 void 
-RTAIInDrive::ServePending(const doublereal& /* t */ )
+RTMBDynInDrive::ServePending(const doublereal& /* t */ )
 {
 	/*
 	 * store in pdVal the values of all the channels
@@ -108,24 +107,21 @@ RTAIInDrive::ServePending(const doublereal& /* t */ )
 }
 
 FileDrive::Type 
-RTAIInDrive::GetFileDriveType(void) const
+RTMBDynInDrive::GetFileDriveType(void) const
 {
    	return FileDrive::RTAI_IN;
 }
 
 /* Scrive il contributo del DriveCaller al file di restart */
 std::ostream&
-RTAIInDrive::Restart(std::ostream& out) const
+RTMBDynInDrive::Restart(std::ostream& out) const
 {
-   	return out << "0. /* RTAIInDrive not implemented yet */" << std::endl;
+   	return out << "0. /* RTMBDynInDrive not implemented yet */" << std::endl;
 }
 
-#endif /* ! USE_RTAI */
-
 Drive *
-ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
+ReadRTMBDynInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 {
-#ifdef USE_RTAI
 	unsigned long node = 0;
 	const char *host = NULL;
 	const char *name = NULL;
@@ -134,24 +130,25 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	if (HP.IsKeyWord("stream" "drive" "name")) {
 		const char *m = HP.GetStringWithDelims();
 		if (m == NULL) {
-			silent_cerr("unable to read mailbox name "
-				"for RTAIInDrive(" << uLabel << ") at line "
-				<< HP.GetLineData() << std::endl);
+			silent_cerr("RTMBDynInDrive(" << uLabel << "): "
+				"unable to read mailbox name "
+				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 
 		} else if (strlen(m) != 6) {
-			silent_cerr("illegal mailbox name \"" << m
-				<< "\" for RTAIInDrive(" << uLabel 
-				<< ") (must be 6 char) at line "
-				<< HP.GetLineData() << std::endl);
+			silent_cerr("RTMBDynInDrive(" << uLabel << "): "
+				"illegal mailbox name \"" << m << "\" "
+				"(must be exactly 6 chars) "
+				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 		}
 
 		SAFESTRDUP(name, m);
 
 	} else {
-		silent_cerr("missing mailbox name for RTAIInDrive(" << uLabel
-			<< ") at line " << HP.GetLineData() << std::endl);
+		silent_cerr("RTMBDynInDrive(" << uLabel << "): "
+			"missing mailbox name "
+			"at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric();
 	}
 
@@ -161,30 +158,32 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		} else if (HP.IsKeyWord("no")) {
 			create = false;
 		} else {
-			silent_cerr("\"create\" must be \"yes\" or \"no\" "
+			silent_cerr("RTMBDynInDrive(" << uLabel << "): "
+				"\"create\" must be \"yes\" or \"no\" "
 				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 		}
 	}
 
 	if (HP.IsKeyWord("non" "blocking")) {
-		silent_cout(" RTAIInDrive(" << uLabel 
-			<< "): RTAI mailboxes are always non-blocking");
+		silent_cout("RTMBDynInDrive(" << uLabel << "): "
+			"RTMBDyn mailboxes are always non-blocking"
+			<< std::endl);
 	}
 
 	if (HP.IsKeyWord("local") || HP.IsKeyWord("path")) {
 		const char *m = HP.GetStringWithDelims();
 		
-		silent_cout ( "local path \"" << m 
-				<< "\" silently ignored" << std::endl);
-		
+		silent_cout ( "RTMBDynInDrive(" << uLabel << "): "
+			"local path \"" << m << "\" silently ignored"
+			<< std::endl);
 	}
 
 	if (HP.IsKeyWord("port")){
 		int p = HP.GetInt();
 		
-		silent_cout ( "port " << p 
-				<< " silently ignored" << std::endl);
+		silent_cout("RTMBDynInDrive(" << uLabel << "): "
+			"port " << p << " silently ignored" << std::endl);
 	}
 	
 	if (HP.IsKeyWord("host")) {
@@ -193,15 +192,16 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		
 		h = HP.GetStringWithDelims();
 		if (h == NULL) {
-			silent_cerr("unable to read host "
-				"for RTAIInDrive(" << uLabel << ") at line "
-				<< HP.GetLineData() << std::endl);
+			silent_cerr("RTMBDynInDrive(" << uLabel << "): "
+				"unable to read host "
+				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 		}
 
 		if (create) {
-			silent_cout ( "host name \"" << h 
-					<< "\" silently ignored" << std::endl);
+			silent_cout ( "RTMBDynInDrive(" << uLabel << "): "
+				"host name \"" << h << "\" silently ignored"
+				<< std::endl);
 		} else {
 
 			SAFESTRDUP(host, h);
@@ -221,16 +221,17 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			}
 #endif /* ! HAVE_GETHOSTBYNAME && HAVE_INET_ATON */
 			else {
-				silent_cerr("unable to convert host "
-					"\"" << host << "\" at line "
-					<< HP.GetLineData() << std::endl);
+				silent_cerr("RTMBDynInDrive(" << uLabel << "): "
+					"unable to convert host "
+					"\"" << host << "\" "
+					"at line " << HP.GetLineData()
+					<< std::endl);
 				throw ErrGeneric();
 			}
 #else /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
-			silent_cerr("host (RTAI RPC) not supported "
-				"for RTAIInDrive(" << uLabel << ") at line "
-				<< HP.GetLineData() << std::endl;
-				<< std::endl);
+			silent_cerr("RTMBDynInDrive(" << uLabel << "): "
+				"host (RTAI RPC) not supported "
+				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric();
 #endif /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
 		}
@@ -238,24 +239,18 @@ ReadRTAIInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 
 	int idrives = HP.GetInt();
 	if (idrives <= 0) {
-		silent_cerr("illegal number of channels "
-			"for RTAIInDrive(" << uLabel << ") at line "
-			<< HP.GetLineData() << std::endl);
+		silent_cerr("RTMBDynInDrive(" << uLabel << "): "
+			"illegal number of channels "
+			"at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric();
 	}
 
 	Drive* pDr = NULL;
-	SAFENEWWITHCONSTRUCTOR(pDr, RTAIInDrive,
-			RTAIInDrive(uLabel, 
+	SAFENEWWITHCONSTRUCTOR(pDr, RTMBDynInDrive,
+			RTMBDynInDrive(uLabel, 
 			pDM->pGetDrvHdl(),
 			name, host, idrives, create, node));
 	
 	return pDr;
-#else /* ! USE_RTAI */
-       silent_cerr("Sorry, RTAI input requires configure --with-rtai"
-	       << std::endl);
-       throw ErrGeneric();
-#endif /* ! USE_RTAI */
-       
 }
  
