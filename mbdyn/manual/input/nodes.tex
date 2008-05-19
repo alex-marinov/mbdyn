@@ -336,6 +336,14 @@ and to the \kw{hydraulic node}; the latter is an algebraic
 node, so only \kw{value} is allowed.
 }
 
+\paragraph{Private Data.}
+\label{sec:NODE:ELECTRIC:PRIV}
+The following data is available:
+\begin{enumerate}
+\item \kw{"x"} value
+\item \kw{"xP"} derivative value
+\end{enumerate}
+
 
 
 
@@ -363,12 +371,27 @@ The format of each row is
     \item the value of the node derivative, when \kw{differential}
 \end{itemize}
 
+\paragraph{Private Data.}
+\label{sec:NODE:ABSTRACT:PRIV}
+The following data is available:
+\begin{enumerate}
+\item \kw{"x"} value
+\item \kw{"xP"} derivative value
+\end{enumerate}
+
 
 
 \section{Hydraulic Node}
 \begin{verbatim}
     <arglist> ::= value , <initial_value>
 \end{verbatim}
+
+\paragraph{Private Data.}
+\label{sec:NODE:HYDRAULIC:PRIV}
+The following data is available:
+\begin{enumerate}
+\item \kw{"x"} value
+\end{enumerate}
 
 
 
