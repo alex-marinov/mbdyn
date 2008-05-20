@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2008
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -40,77 +40,68 @@
 /* GenelFilterEq - begin */
 
 class GenelFilterEq : public Genel {
- protected:
-   ScalarDof SD_y; /* uscita */
-   ScalarValue *SV_u; /* ingresso */
-   
-   unsigned int Na;
-   unsigned int Nb;
-   
-   doublereal* pdA;
-   doublereal* pdB;
-   
-   doublereal* pdAlpha;
-   doublereal* pdBeta;
-   
-   flag fSteady;
-   
- public:
-   GenelFilterEq(unsigned int uLabel, const DofOwner* pDO, 
-		 const ScalarDof& y, ScalarValue* u,
-		 unsigned int na, unsigned int nb,
-		 doublereal* pa, doublereal* pb,
-		 flag fSt, flag fOutput);
-   virtual ~GenelFilterEq(void);
-   
-   virtual unsigned int iGetNumDof(void) const;   
-   virtual DofOrder::Order GetDofType(unsigned int i) const;
-   
-   /* Scrive il contributo dell'elemento al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const;
+protected:
+	ScalarDof SD_y;		/* uscita */
+	ScalarValue *SV_u;	/* ingresso */
 
-   /* Tipo di Genel */
-   virtual Genel::Type GetGenelType(void) const { 
-      return Genel::SCALARFILTER; 
-   };
+	unsigned int Na;
+	unsigned int Nb;
 
-   /* Dimensioni del workspace */
-   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
-   
-   /* assemblaggio jacobiano */
-   virtual VariableSubMatrixHandler& 
-     AssJac(VariableSubMatrixHandler& WorkMat,
-	    doublereal dCoef,
-	    const VectorHandler& /* XCurr */ ,
-	    const VectorHandler& /* XPrimeCurr */ );
+	doublereal* pdA;
+	doublereal* pdB;
 
-   /* assemblaggio residuo */
-   virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
-				    doublereal /* dCoef */ ,
-				    const VectorHandler& XCurr,
-				    const VectorHandler& XPrimeCurr);
+	doublereal* pdAlpha;
+	doublereal* pdBeta;
 
-   /* Setta i valori iniziali delle variabili (e fa altre cose) 
-    * prima di iniziare l'integrazione */
-   virtual void SetValue(DataManager *pDm,
-		   VectorHandler& X, VectorHandler& XP,
-		   SimulationEntity::Hints *ph = 0);
-   
-	/* *******PER IL SOLUTORE PARALLELO******** */        
+	flag fSteady;
+
+public:
+	GenelFilterEq(unsigned int uLabel, const DofOwner* pDO,
+		const ScalarDof& y, ScalarValue* u,
+		unsigned int na, unsigned int nb,
+		doublereal* pa, doublereal* pb,
+		flag fSt, flag fOutput);
+	virtual ~GenelFilterEq(void);
+
+	virtual unsigned int iGetNumDof(void) const;
+	virtual DofOrder::Order GetDofType(unsigned int i) const;
+
+	/* Scrive il contributo dell'elemento al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	/* Tipo di Genel */
+	virtual Genel::Type GetGenelType(void) const {
+		return Genel::SCALARFILTER;
+	};
+
+	/* Dimensioni del workspace */
+	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+
+	/* assemblaggio jacobiano */
+	virtual VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		doublereal dCoef,
+		const VectorHandler& /* XCurr */ ,
+		const VectorHandler& /* XPrimeCurr */ );
+
+	/* assemblaggio residuo */
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		doublereal /* dCoef */ ,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+
+	/* Setta i valori iniziali delle variabili (e fa altre cose)
+	 * prima di iniziare l'integrazione */
+	virtual void SetValue(DataManager *pDm,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0);
+
+	/* *******PER IL SOLUTORE PARALLELO******** */
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
 	virtual void
-	GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
-		unsigned iNodes = 1;
-		if (dynamic_cast<NodeDof *>(SV_u)) {
-			iNodes++;
-		}
-		connectedNodes.resize(iNodes);
-		connectedNodes[0] = SD_y.pNode;
-		if (dynamic_cast<NodeDof *>(SV_u)) {
-			connectedNodes[1] = dynamic_cast<NodeDof *>(SV_u)->pNode;
-		}
-	};
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes);
 	/* ************************************************ */
 };
 
@@ -120,78 +111,71 @@ class GenelFilterEq : public Genel {
 /* GenelStateSpaceSISO - begin */
 
 class GenelStateSpaceSISO : public Genel {
- protected:
-   ScalarDof SD_y; /* uscita */
-   ScalarValue *SV_u; /* ingresso */
-   
-   unsigned int iNumDofs;
-   
-   doublereal* pdA;
-   doublereal* pdB;
-   doublereal* pdC;
-   doublereal dD;
-   
-   doublereal* pdX;
-   doublereal* pdXP;
-   
- public:
-   GenelStateSpaceSISO(unsigned int uLabel, const DofOwner* pDO, 
-		       const ScalarDof& y, ScalarValue* u,
-		       unsigned int Order,
-		       doublereal* pA, doublereal* pB,	     
-		       doublereal* pC, doublereal D,
-		       flag fOutput);
-   
-   virtual ~GenelStateSpaceSISO(void);
-   
-   virtual unsigned int iGetNumDof(void) const;
-   
-   /* esegue operazioni sui dof di proprieta' dell'elemento */
-   virtual DofOrder::Order GetDofType(unsigned int i) const;
-   
-   /* Scrive il contributo dell'elemento al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const;
+protected:
+	ScalarDof SD_y;		/* uscita */
+	ScalarValue *SV_u;	/* ingresso */
 
-   /* Tipo di Genel */
-   virtual Genel::Type GetGenelType(void) const { 
-      return Genel::STATESPACESISO; 
-   };
-   
-   /* Dimensioni del workspace */
-   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
-   
-   /* assemblaggio jacobiano */
-   virtual VariableSubMatrixHandler& 
-     AssJac(VariableSubMatrixHandler& WorkMat,
-	    doublereal dCoef,
-	    const VectorHandler& /* XCurr */ ,
-	    const VectorHandler& /* XPrimeCurr */ );
+	unsigned int iNumDofs;
 
-   /* assemblaggio residuo */
-   virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
-				    doublereal /* dCoef */,
-				    const VectorHandler& XCurr,
-				    const VectorHandler& XPrimeCurr);
+	doublereal* pdE;
+	doublereal* pdA;
+	doublereal* pdB;
+	doublereal* pdC;
+	doublereal dD;
 
-    /* output; si assume che ogni tipo di elemento sappia, attraverso
-     * l'OutputHandler, dove scrivere il proprio output */
-    virtual void Output(OutputHandler& OH) const;   
+	doublereal* pdX;
+	doublereal* pdXP;
 
-	/* *******PER IL SOLUTORE PARALLELO******** */        
+public:
+	GenelStateSpaceSISO(unsigned int uLabel, const DofOwner* pDO,
+		const ScalarDof& y, ScalarValue* u,
+		unsigned int Order,
+		doublereal *pE,
+		doublereal* pA, doublereal* pB,
+		doublereal* pC, doublereal D,
+		flag fOutput);
+
+	virtual ~GenelStateSpaceSISO(void);
+
+	virtual unsigned int iGetNumDof(void) const;
+
+	/* esegue operazioni sui dof di proprieta' dell'elemento */
+	virtual DofOrder::Order GetDofType(unsigned int i) const;
+
+	/* Scrive il contributo dell'elemento al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	/* Tipo di Genel */
+	virtual Genel::Type GetGenelType(void) const {
+		return Genel::STATESPACESISO;
+	};
+
+	/* Dimensioni del workspace */
+	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+
+	/* assemblaggio jacobiano */
+	virtual VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		doublereal dCoef,
+		const VectorHandler& /* XCurr */ ,
+		const VectorHandler& /* XPrimeCurr */ );
+
+	/* assemblaggio residuo */
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		doublereal /* dCoef */,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+
+	/* output; si assume che ogni tipo di elemento sappia, attraverso
+	 * l'OutputHandler, dove scrivere il proprio output */
+	virtual void Output(OutputHandler& OH) const;
+
+	/* *******PER IL SOLUTORE PARALLELO******** */
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
 	virtual void
-	GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
-		unsigned iNodes = 1;
-		if (dynamic_cast<NodeDof *>(SV_u)) {
-			iNodes++;
-		}
-		connectedNodes.resize(iNodes);
-		connectedNodes[0] = SD_y.pNode;
-		if (dynamic_cast<NodeDof *>(SV_u)) {
-			connectedNodes[1] = dynamic_cast<NodeDof *>(SV_u)->pNode;
-		}
-	};
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes);
 	/* ************************************************ */
 };
 
@@ -201,96 +185,76 @@ class GenelStateSpaceSISO : public Genel {
 /* GenelStateSpaceMIMO - begin */
 
 class GenelStateSpaceMIMO : public Genel {
- protected:
-   unsigned int iNumOutputs;
-   unsigned int iNumInputs;
-   ScalarDof* pvSD_y; /* uscite */
-   std::vector<ScalarValue *> SV_u; /* ingressi */
-   
-   unsigned int iNumDofs;
-   
-   doublereal* pdA;
-   doublereal* pdB;
-   doublereal* pdC;
-   doublereal* pdD;
-   
-   doublereal* pdX;
-   doublereal* pdXP;
-   
- public:
-   GenelStateSpaceMIMO(unsigned int uLabel, const DofOwner* pDO,
-		       unsigned int iNumOut, const ScalarDof* y,
-		       std::vector<ScalarValue *>& u,
-		       unsigned int Order,
-		       doublereal* pA, doublereal* pB,	     
-		       doublereal* pC, doublereal* pD,
-		       flag fOutput);
-   
-   virtual ~GenelStateSpaceMIMO(void);
-   
-   virtual unsigned int iGetNumDof(void) const;
-   
-   /* esegue operazioni sui dof di proprieta' dell'elemento */
-   virtual DofOrder::Order GetDofType(unsigned int i) const;
-   
-   /* Scrive il contributo dell'elemento al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const;
+protected:
+	unsigned int iNumOutputs;
+	unsigned int iNumInputs;
+	ScalarDof* pvSD_y; /* uscite */
+	std::vector<ScalarValue *> SV_u; /* ingressi */
 
-   /* Tipo di Genel */
-   virtual Genel::Type GetGenelType(void) const { 
-      return Genel::STATESPACEMIMO; 
-   };
+	unsigned int iNumDofs;
 
-   /* Dimensioni del workspace */
-   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
-   
-   /* assemblaggio jacobiano */
-   virtual VariableSubMatrixHandler& 
-     AssJac(VariableSubMatrixHandler& WorkMat,
-	    doublereal dCoef,
-	    const VectorHandler& /* XCurr */ ,
-	    const VectorHandler& /* XPrimeCurr */ );
+	doublereal* pdE;
+	doublereal* pdA;
+	doublereal* pdB;
+	doublereal* pdC;
+	doublereal* pdD;
 
-   /* assemblaggio residuo */
-   virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
-				    doublereal /* dCoef */,
-				    const VectorHandler& XCurr,
-				    const VectorHandler& XPrimeCurr);
-    /* output; si assume che ogni tipo di elemento sappia, attraverso
-     * l'OutputHandler, dove scrivere il proprio output */
-    virtual void Output(OutputHandler& OH) const;   
+	doublereal* pdX;
+	doublereal* pdXP;
 
- /* *******PER IL SOLUTORE PARALLELO******** */        
-   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-      utile per l'assemblaggio della matrice di connessione fra i dofs */
-	virtual void
-	GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
-		unsigned i, iNodes = iNumInputs;
-		for (std::vector<ScalarValue *>::const_iterator u = SV_u.begin();
-			u != SV_u.end(); u++)
-		{
-			if (dynamic_cast<NodeDof *>(*u)) {
-				iNodes++;
-			}
-		}
+public:
+	GenelStateSpaceMIMO(unsigned int uLabel, const DofOwner* pDO,
+		unsigned int iNumOut, const ScalarDof* y,
+		std::vector<ScalarValue *>& u,
+		unsigned int Order,
+		doublereal* pE,
+		doublereal* pA, doublereal* pB,
+		doublereal* pC, doublereal* pD,
+		flag fOutput);
 
-		connectedNodes.resize(iNodes);
-		for (i = 0; i < iNumOutputs; i++) { 
-			connectedNodes[i] = pvSD_y[i].pNode;
-		}
+	virtual ~GenelStateSpaceMIMO(void);
 
-		for (std::vector<ScalarValue *>::const_iterator u = SV_u.begin();
-			u != SV_u.end(); u++)
-		{
-			NodeDof* ndp = dynamic_cast<NodeDof *>(*u);
-			if (ndp) {
-				connectedNodes[i++] = ndp->pNode;
-			}
-		}
+	virtual unsigned int iGetNumDof(void) const;
+
+	/* esegue operazioni sui dof di proprieta' dell'elemento */
+	virtual DofOrder::Order GetDofType(unsigned int i) const;
+
+	/* Scrive il contributo dell'elemento al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	/* Tipo di Genel */
+	virtual Genel::Type GetGenelType(void) const {
+		return Genel::STATESPACEMIMO;
 	};
+
+	/* Dimensioni del workspace */
+	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+
+	/* assemblaggio jacobiano */
+	virtual VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		doublereal dCoef,
+		const VectorHandler& /* XCurr */ ,
+		const VectorHandler& /* XPrimeCurr */ );
+
+	/* assemblaggio residuo */
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		doublereal /* dCoef */,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+	/* output; si assume che ogni tipo di elemento sappia, attraverso
+	 * l'OutputHandler, dove scrivere il proprio output */
+	virtual void Output(OutputHandler& OH) const;
+
+	/* *******PER IL SOLUTORE PARALLELO******** */
+	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
+	virtual void
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes);
 	/* ************************************************ */
 };
 
 /* GenelStateSpaceMIMO - end */
 
-#endif
+#endif // GENFILT_H

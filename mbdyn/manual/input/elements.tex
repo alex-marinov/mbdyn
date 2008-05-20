@@ -2530,25 +2530,38 @@ no auxiliary node needs to be set up.
         (node_dof) <output_node> ,
         { [ node dof , ] (node_dof) <input_node>
             | drive , (drive_caller) <input_value> } ,
-        <state_order> ,
+        <state_order>
+        [ , matrix E , <coefficient_list> ] ,
         matrix A , <coefficient_list> ,
         matrix B , <coefficient_list> ,
         matrix C , <coefficient_list>
         [ , matrix D , <coefficient> ]
 \end{verbatim}
 This element models a scalar (SISO) state space filter of the form
-\begin{displaymath}
-    \lvvect{ 
-        \dot{\T{x}} = \T{A} \T{x} + \T{B} u \\
-	y = \T{C} \T{x} + D u
-    }
-\end{displaymath}
+\begin{align*}
+	\T{E} \dot{\T{x}} &= \T{A} \T{x} + \T{B} u \\
+	y &= \T{C} \T{x} + D u
+\end{align*}
 where
-$ \T{A} $ is a matrix $ \mathtt{state\_order} \times \mathtt{state\_order} $,
-$ \T{B} $ is a vector $ \mathtt{state\_order} \times 1 $,
-$ \T{C} $ is a vector $1 \times \mathtt{state\_order} $,
-and $ D $ is scalar, if any.
-The matrices are read row-oriented.
+\begin{itemize}
+\item $\T{E}$ is a(n optional) matrix
+	$\mathtt{state\_order} \times \mathtt{state\_order}$,
+\item $\T{A}$ is a matrix
+	$\mathtt{state\_order} \times \mathtt{state\_order}$,
+\item $\T{B}$ is a vector
+	$\mathtt{state\_order} \times 1$,
+\item $\T{C}$ is a vector
+	$1 \times \mathtt{state\_order}$, and
+\item $D$ is a(n optional) scalar.
+\end{itemize}
+The matrices are read row-oriented; e.g., for matrix $\T{A}$:
+\begin{verbatim}
+    matrix A,
+       a11, a12, ..., a1N,
+       a21, a22, ..., a2N,
+       ...,
+       aN1, aN2, ..., aNN
+\end{verbatim}
 
 \subsubsection{State space MIMO}
 \begin{verbatim}
@@ -2559,25 +2572,31 @@ The matrices are read row-oriented.
             { [ node dof , ] (node_dof) <input_node>
                 | drive , (drive_caller) <input_value> }
             [ , ... ] ,
-        <state_order> ,
+        <state_order>
+        [ , matrix E , <coefficient_list> ] ,
         matrix A , <coefficient_list> ,
         matrix B , <coefficient_list> ,
         matrix C , <coefficient_list>
         [ , matrix D , <coefficient_list> ]
 \end{verbatim}
-This element models a vector (MISO) state space filter of the form
-\begin{displaymath}
-    \lvvect{ 
-        \dot{\T{x}} = \T{A}\T{x}+\T{B}\T{u} \\
-	\T{y} = \T{C}\T{x}+\T{D}\T{u}
-    }
-\end{displaymath}
+This element models a vector (MIMO) state space filter of the form
+\begin{align*}
+        \T{E} \dot{\T{x}} &= \T{A}\T{x}+\T{B}\T{u} \\
+	\T{y} &= \T{C}\T{x}+\T{D}\T{u}
+\end{align*}
 where
-$ \T{A} $ is a matrix $ \mathtt{state\_order} \times \mathtt{state\_order} $,
-$ \T{B} $ is a matrix $ \mathtt{state\_order} \times \mathtt{num\_inputs} $,
-$ \T{C} $ is a matrix $ \mathtt{num\_outputs} \times \mathtt{state\_order} $,
-and
-$ \T{D} $ is a matrix $ \mathtt{num\_outputs} \times \mathtt{num\_inputs} $.
+\begin{itemize}
+\item $\T{E}$ is a(n optional) matrix
+	$\mathtt{state\_order} \times \mathtt{state\_order}$,
+\item $\T{A}$ is a matrix
+	$\mathtt{state\_order} \times \mathtt{state\_order}$,
+\item $\T{B}$ is a matrix
+	$\mathtt{state\_order} \times \mathtt{num\_inputs}$,
+\item $\T{C}$ is a matrix
+	$\mathtt{num\_outputs} \times \mathtt{state\_order}$, and
+\item $\T{D}$ is a(n optional) matrix
+	$\mathtt{num\_outputs} \times \mathtt{num\_inputs}$.
+\end{itemize}
 The matrices are read row-oriented.
 
 

@@ -730,13 +730,24 @@ Elem* ReadGenel(DataManager* pDM,
        unsigned int Order = HP.GetInt();
        DEBUGCOUT("State Space SISO " << uLabel << " is of order " << Order << std::endl);
 
+       doublereal* pd = 0;
+
+       doublereal* pdE = NULL;
+       if (HP.IsKeyWord("matrixE")) {
+          SAFENEWARR(pdE, doublereal, Order*Order);
+          pd = pdE;
+          for (unsigned int i = 0; i < Order*Order; i++) {
+	     *pd++ = HP.GetReal();
+          }
+       }
+
        if (!HP.IsKeyWord("matrixA")) {
 	  silent_cerr("matrix A expected at line " << HP.GetLineNumber() << std::endl);
 	  throw ErrGeneric();
        }
        doublereal* pdA = NULL;
        SAFENEWARR(pdA, doublereal, Order*Order);
-       doublereal* pd = pdA;
+       pd = pdA;
        for (unsigned int i = 0; i < Order*Order; i++) {
 	  *pd++ = HP.GetReal();
        }
@@ -765,6 +776,11 @@ Elem* ReadGenel(DataManager* pDM,
 
        doublereal dD = 0.;
        if (HP.IsKeyWord("matrixD")) {
+          if (pdE) {
+             silent_cerr("GenelStateSpaceSISO(" << uLabel << "): "
+		"warning, matrix D provided while in descriptor form "
+		"at line " << HP.GetLineData() << std::endl);
+          }
 	  dD = HP.GetReal();
        }
 
@@ -774,7 +790,7 @@ Elem* ReadGenel(DataManager* pDM,
 			      GenelStateSpaceSISO,
 			      GenelStateSpaceSISO(uLabel, pDO, SD_y, SV_u,
 						  Order,
-						  pdA, pdB, pdC, dD, fOut));
+						  pdE, pdA, pdB, pdC, dD, fOut));
 
        break;
     }
@@ -818,13 +834,23 @@ Elem* ReadGenel(DataManager* pDM,
        unsigned int Order = HP.GetInt();
        DEBUGCOUT("State Space MIMO " << uLabel << " is of order " << Order << std::endl);
 
+       doublereal* pd = 0;
+       doublereal* pdE = NULL;
+       if (HP.IsKeyWord("matrixE")) {
+          SAFENEWARR(pdE, doublereal, Order*Order);
+          pd = pdE;
+          for (unsigned int i = 0; i < Order*Order; i++) {
+	     *pd++ = HP.GetReal();
+          }
+       }
+
        if (!HP.IsKeyWord("matrixA")) {
 	  silent_cerr("matrix A expected at line " << HP.GetLineNumber() << std::endl);
 	  throw ErrGeneric();
        }
        doublereal* pdA = NULL;
        SAFENEWARR(pdA, doublereal, Order*Order);
-       doublereal* pd = pdA;
+       pd = pdA;
        for (unsigned int i = 0; i < Order*Order; i++) {
 	  *pd++ = HP.GetReal();
        }
@@ -853,6 +879,11 @@ Elem* ReadGenel(DataManager* pDM,
 
        doublereal* pdD = NULL;
        if (HP.IsKeyWord("matrixD")) {
+          if (pdE) {
+             silent_cerr("GenelStateSpaceMIMO(" << uLabel << "): "
+		"warning, matrix D provided while in descriptor form "
+		"at line " << HP.GetLineData() << std::endl);
+          }
 	  SAFENEWARR(pdD, doublereal, iNumOutputs*iNumInputs);
 	  pd = pdD;
 	  for (int i = 0; i < iNumOutputs*iNumInputs; i++) {
@@ -868,7 +899,7 @@ Elem* ReadGenel(DataManager* pDM,
 						  iNumOutputs, pvSD_y,
 						  SV_u,
 						  Order,
-						  pdA, pdB, pdC, pdD, fOut));
+						  pdE, pdA, pdB, pdC, pdD, fOut));
 
        break;
     }
