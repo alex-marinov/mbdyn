@@ -115,6 +115,8 @@ resforces.h \
 restart.h \
 sah.cc \
 sah.h \
+scalarvalue.cc \
+scalarvalue.h \
 schurdataman.cc \
 schurdataman.h \
 shape.h \

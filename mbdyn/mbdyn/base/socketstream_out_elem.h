@@ -36,9 +36,7 @@
 #ifndef SOCKETSTREAM_OUT_ELEM_H
 #define SOCKETSTREAM_OUT_ELEM_H
 
-/*include del programma*/
-
-#include <streamoutelem.h>
+#include "streamoutelem.h"
 
 /* SocketStreamElem - begin */
 

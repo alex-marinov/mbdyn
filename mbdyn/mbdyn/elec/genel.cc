@@ -643,7 +643,7 @@ Elem* ReadGenel(DataManager* pDM,
        }
 
        /* input */
-       ScalarDof SD_u = ReadScalarDof(pDM, HP, 1);
+       ScalarValue *SV_u = ReadScalarValue(pDM, HP);
 
        /* ordine del denominatore */
        unsigned int na = HP.GetInt();
@@ -704,7 +704,7 @@ Elem* ReadGenel(DataManager* pDM,
 
        SAFENEWWITHCONSTRUCTOR(pEl,
 			      GenelFilterEq,
-			      GenelFilterEq(uLabel, pDO, SD_y, SD_u,
+			      GenelFilterEq(uLabel, pDO, SD_y, SV_u,
 					    na, nb, pdP, pdTau,
 					    fState, fOut));
 
@@ -725,7 +725,7 @@ Elem* ReadGenel(DataManager* pDM,
 	  throw DataManager::ErrGeneric();
        }
 
-       ScalarDof SD_u = ReadScalarDof(pDM, HP, 1);
+       ScalarValue *SV_u = ReadScalarValue(pDM, HP);
 
        unsigned int Order = HP.GetInt();
        DEBUGCOUT("State Space SISO " << uLabel << " is of order " << Order << std::endl);
@@ -772,7 +772,7 @@ Elem* ReadGenel(DataManager* pDM,
 
        SAFENEWWITHCONSTRUCTOR(pEl,
 			      GenelStateSpaceSISO,
-			      GenelStateSpaceSISO(uLabel, pDO, SD_y, SD_u,
+			      GenelStateSpaceSISO(uLabel, pDO, SD_y, SV_u,
 						  Order,
 						  pdA, pdB, pdC, dD, fOut));
 
@@ -812,11 +812,8 @@ Elem* ReadGenel(DataManager* pDM,
 	  throw ErrGeneric();
        }
 
-       ScalarDof* pvSD_u = NULL;
-       SAFENEWARRNOFILL(pvSD_u, ScalarDof, iNumInputs);
-       for (int i = 0; i < iNumInputs; i++) {
-	  pvSD_u[i] = ReadScalarDof(pDM, HP, 1);
-       }
+       std::vector<ScalarValue *> SV_u(iNumInputs);
+       ReadScalarValues(pDM, HP, SV_u);
 
        unsigned int Order = HP.GetInt();
        DEBUGCOUT("State Space MIMO " << uLabel << " is of order " << Order << std::endl);
@@ -869,7 +866,7 @@ Elem* ReadGenel(DataManager* pDM,
 			      GenelStateSpaceMIMO,
 			      GenelStateSpaceMIMO(uLabel, pDO,
 						  iNumOutputs, pvSD_y,
-						  iNumInputs, pvSD_u,
+						  SV_u,
 						  Order,
 						  pdA, pdB, pdC, pdD, fOut));
 

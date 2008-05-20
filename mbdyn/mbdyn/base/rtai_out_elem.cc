@@ -252,16 +252,7 @@ ReadRTMBDynOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	}
 
 	std::vector<ScalarValue *> Values(nch);
-	for (int i = 0; i < nch; i++) {
-		if (HP.IsKeyWord("drive")) {
-			Values[i] = new ScalarDriveValue(ReadDriveData(pDM, HP, false));
-		} else {
-			if (HP.IsKeyWord("node" "dof")) {
-				NO_OP; // skip
-			}
-			Values[i] = new ScalarDofValue(ReadScalarDof(pDM, HP, 1));
-		}
-	}
+	ReadScalarValues(pDM, HP, Values);
 
    	// (void)pDM->fReadOutput(HP, Elem::LOADABLE); 
 

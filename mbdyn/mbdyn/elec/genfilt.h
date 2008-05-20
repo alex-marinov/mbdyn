@@ -35,76 +35,14 @@
 #define GENFILT_H
 
 #include "genel.h"
-
-#if 0
-/* GenelFilter - begin */
-
-class GenelFilter : public Genel {
- protected:
-   ScalarDof SD_y; /* uscita */
-   ScalarDof SD_u; /* ingresso */
-   
-   unsigned int Na;
-   unsigned int Nb;
-   
-   unsigned int iNumDofs;
-   
-   doublereal* pdP;
-   doublereal* pdTau;
-   
- public:
-   GenelFilter(unsigned int uLabel, const DofOwner* pDO, 
-	       const ScalarDof& y, const ScalarDof& u,
-	       unsigned int na, unsigned int nb,
-	       doublereal* p, doublereal* tau,	     
-	       flag fOutput);
-   virtual ~GenelFilter(void);
-   
-   virtual unsigned int iGetNumDof(void) const;   
-   virtual DofOrder::Order GetDofType(unsigned int i) const;
-   
-   /* Scrive il contributo dell'elemento al file di restart */
-   virtual std::ostream& Restart(std::ostream& out) const;
-
-   /* Dimensioni del workspace */
-   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
-   
-   /* assemblaggio jacobiano */
-   virtual VariableSubMatrixHandler& 
-     AssJac(VariableSubMatrixHandler& WorkMat,
-	    doublereal dCoef,
-	    const VectorHandler& /* XCurr */ ,
-	    const VectorHandler& /* XPrimeCurr */ );
-
-   /* assemblaggio residuo */
-   virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
-				    doublereal /* dCoef */ ,
-				    const VectorHandler& XCurr,
-				    const VectorHandler& XPrimeCurr);
-
-   /* *******PER IL SOLUTORE PARALLELO******** */        
-   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-      utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(int& NumNodes, Node::Type* NdTyps, unsigned int* NdLabels) {
-     NumNodes = 2;
-     NdTyps[0] = SD_y.pNode->GetNodeType();
-     NdLabels[0] = SD_y.pNode->GetLabel();
-     NdTyps[1] = SD_u.pNode->GetNodeType();
-     NdLabels[1] = SD_u.pNode->GetLabel();
-   };
-   /* ************************************************ */
-};
-
-/* GenelFilter - end */
-#endif 
-
+#include "scalarvalue.h"
 
 /* GenelFilterEq - begin */
 
 class GenelFilterEq : public Genel {
  protected:
    ScalarDof SD_y; /* uscita */
-   ScalarDof SD_u; /* ingresso */
+   ScalarValue *SV_u; /* ingresso */
    
    unsigned int Na;
    unsigned int Nb;
@@ -119,7 +57,7 @@ class GenelFilterEq : public Genel {
    
  public:
    GenelFilterEq(unsigned int uLabel, const DofOwner* pDO, 
-		 const ScalarDof& y, const ScalarDof& u,
+		 const ScalarDof& y, ScalarValue* u,
 		 unsigned int na, unsigned int nb,
 		 doublereal* pa, doublereal* pb,
 		 flag fSt, flag fOutput);
@@ -158,16 +96,22 @@ class GenelFilterEq : public Genel {
 		   VectorHandler& X, VectorHandler& XP,
 		   SimulationEntity::Hints *ph = 0);
    
-   /* *******PER IL SOLUTORE PARALLELO******** */        
-   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-      utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
-     connectedNodes.resize(2);
-     connectedNodes[0] = SD_y.pNode;
-     connectedNodes[1] = SD_u.pNode;
-   };
-   /* ************************************************ */
-
+	/* *******PER IL SOLUTORE PARALLELO******** */        
+	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
+	virtual void
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+		unsigned iNodes = 1;
+		if (dynamic_cast<NodeDof *>(SV_u)) {
+			iNodes++;
+		}
+		connectedNodes.resize(iNodes);
+		connectedNodes[0] = SD_y.pNode;
+		if (dynamic_cast<NodeDof *>(SV_u)) {
+			connectedNodes[1] = dynamic_cast<NodeDof *>(SV_u)->pNode;
+		}
+	};
+	/* ************************************************ */
 };
 
 /* GenelFilterEq - end */
@@ -178,7 +122,7 @@ class GenelFilterEq : public Genel {
 class GenelStateSpaceSISO : public Genel {
  protected:
    ScalarDof SD_y; /* uscita */
-   ScalarDof SD_u; /* ingresso */
+   ScalarValue *SV_u; /* ingresso */
    
    unsigned int iNumDofs;
    
@@ -192,7 +136,7 @@ class GenelStateSpaceSISO : public Genel {
    
  public:
    GenelStateSpaceSISO(unsigned int uLabel, const DofOwner* pDO, 
-		       const ScalarDof& y, const ScalarDof& u,
+		       const ScalarDof& y, ScalarValue* u,
 		       unsigned int Order,
 		       doublereal* pA, doublereal* pB,	     
 		       doublereal* pC, doublereal D,
@@ -233,15 +177,22 @@ class GenelStateSpaceSISO : public Genel {
      * l'OutputHandler, dove scrivere il proprio output */
     virtual void Output(OutputHandler& OH) const;   
 
-   /* *******PER IL SOLUTORE PARALLELO******** */        
-   /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-      utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
-     connectedNodes.resize(2);
-     connectedNodes[0] = SD_y.pNode;
-     connectedNodes[1] = SD_u.pNode;
-   };
-   /* ************************************************ */
+	/* *******PER IL SOLUTORE PARALLELO******** */        
+	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
+	virtual void
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+		unsigned iNodes = 1;
+		if (dynamic_cast<NodeDof *>(SV_u)) {
+			iNodes++;
+		}
+		connectedNodes.resize(iNodes);
+		connectedNodes[0] = SD_y.pNode;
+		if (dynamic_cast<NodeDof *>(SV_u)) {
+			connectedNodes[1] = dynamic_cast<NodeDof *>(SV_u)->pNode;
+		}
+	};
+	/* ************************************************ */
 };
 
 /* GenelStateSpaceSISO - end */
@@ -254,7 +205,7 @@ class GenelStateSpaceMIMO : public Genel {
    unsigned int iNumOutputs;
    unsigned int iNumInputs;
    ScalarDof* pvSD_y; /* uscite */
-   ScalarDof* pvSD_u; /* ingressi */
+   std::vector<ScalarValue *> SV_u; /* ingressi */
    
    unsigned int iNumDofs;
    
@@ -269,7 +220,7 @@ class GenelStateSpaceMIMO : public Genel {
  public:
    GenelStateSpaceMIMO(unsigned int uLabel, const DofOwner* pDO,
 		       unsigned int iNumOut, const ScalarDof* y,
-		       unsigned int iNumIn, const ScalarDof* u,
+		       std::vector<ScalarValue *>& u,
 		       unsigned int Order,
 		       doublereal* pA, doublereal* pB,	     
 		       doublereal* pC, doublereal* pD,
@@ -312,17 +263,32 @@ class GenelStateSpaceMIMO : public Genel {
  /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
-     connectedNodes.resize(iNumInputs + iNumOutputs);
-     for (unsigned int i = 0; i < iNumOutputs; i++) { 
-       connectedNodes[i] = pvSD_y[i].pNode;
-     }
-     for (unsigned int i = 0; i < iNumInputs; i++) {
-       connectedNodes[iNumOutputs + i] = pvSD_u[i].pNode;
-     }
-   };
-   /* ************************************************ */
+	virtual void
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+		unsigned i, iNodes = iNumInputs;
+		for (std::vector<ScalarValue *>::const_iterator u = SV_u.begin();
+			u != SV_u.end(); u++)
+		{
+			if (dynamic_cast<NodeDof *>(*u)) {
+				iNodes++;
+			}
+		}
 
+		connectedNodes.resize(iNodes);
+		for (i = 0; i < iNumOutputs; i++) { 
+			connectedNodes[i] = pvSD_y[i].pNode;
+		}
+
+		for (std::vector<ScalarValue *>::const_iterator u = SV_u.begin();
+			u != SV_u.end(); u++)
+		{
+			NodeDof* ndp = dynamic_cast<NodeDof *>(*u);
+			if (ndp) {
+				connectedNodes[i++] = ndp->pNode;
+			}
+		}
+	};
+	/* ************************************************ */
 };
 
 /* GenelStateSpaceMIMO - end */

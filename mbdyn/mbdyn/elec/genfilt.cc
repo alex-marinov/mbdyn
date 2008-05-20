@@ -42,13 +42,13 @@
 /* GenelFilterEq - begin */
 
 GenelFilterEq::GenelFilterEq(unsigned int uLabel, const DofOwner* pDO,
-			     const ScalarDof& y, const ScalarDof& u,
+			     const ScalarDof& y, ScalarValue* u,
 			     unsigned int na, unsigned int nb,
 			     doublereal* pa, doublereal* pb,
 			     flag fSt, flag fOutput)
 : Elem(uLabel, fOutput),
 Genel(uLabel, pDO, fOutput),
-SD_y(y), SD_u(u),
+SD_y(y), SV_u(u),
 Na(na), Nb(nb),
 pdA(pa), pdB(pb),
 pdAlpha(NULL), pdBeta(NULL),
@@ -182,7 +182,7 @@ GenelFilterEq::AssRes(SubVectorHandler& WorkVec,
    integer iFirstIndex = iGetFirstIndex();
    
    doublereal y = SD_y.pNode->dGetX();
-   doublereal u = SD_u.pNode->dGetX();
+   doublereal u = SV_u->dGetValue();
    
    doublereal dXn = XCurr.dGetCoef(iFirstIndex+Na);
    doublereal dX = XCurr.dGetCoef(iFirstIndex+1);
@@ -230,7 +230,7 @@ GenelFilterEq::SetValue(DataManager *pDM,
       
       if (Na == 0) {
 	 integer iRowIndex_y = SD_y.pNode->iGetFirstRowIndex()+1;
-	 doublereal u = SD_u.pNode->dGetX();
+	 doublereal u = SV_u->dGetValue();
 	 X.PutCoef(iRowIndex_y, pdBeta[Nb]*u);
 # ifdef DEBUG
 	    std::cout << "Y = " << pdBeta[Nb]*u << std::endl;
@@ -257,7 +257,7 @@ GenelFilterEq::SetValue(DataManager *pDM,
       /* preparo termine noto */
       DEBUGCOUT("Preparing rhs ..." << std::endl);
       VectorHandler* rh = sm.pResHdl();
-      doublereal u = SD_u.pNode->dGetX();
+      doublereal u = SV_u->dGetValue();
 
       for (unsigned long i = 1; i <= Nb; i++) {
 	 rh->PutCoef(i, pdBeta[i-1]*u);
@@ -309,7 +309,7 @@ GenelFilterEq::SetValue(DataManager *pDM,
 GenelStateSpaceSISO::GenelStateSpaceSISO(unsigned int uLabel,
 					 const DofOwner* pDO, 
 					 const ScalarDof& y, 
-					 const ScalarDof& u,
+					 ScalarValue* u,
 					 unsigned int Order,
 					 doublereal* pA,
 					 doublereal* pB,
@@ -318,7 +318,7 @@ GenelStateSpaceSISO::GenelStateSpaceSISO(unsigned int uLabel,
 					 flag fOutput)
 : Elem(uLabel, fOutput),
 Genel(uLabel, pDO, fOutput),
-SD_y(y), SD_u(u),
+SD_y(y), SV_u(u),
 iNumDofs(Order),
 pdA(pA), pdB(pB), pdC(pC), dD(D),
 pdX(NULL), pdXP(NULL) 
@@ -328,7 +328,6 @@ pdX(NULL), pdXP(NULL)
    ASSERT(pdB != NULL);
    ASSERT(pdC != NULL);	
    ASSERT(SD_y.iOrder == 0);
-   ASSERT(SD_u.iOrder == 0);	
    DEBUGCOUT("GenelStateSpaceSISO " << uLabel 
 	     << ", NumDofs: " << iNumDofs << std::endl);
    
@@ -446,7 +445,7 @@ GenelStateSpaceSISO::AssRes(SubVectorHandler& WorkVec,
    integer iFirstIndex = iGetFirstIndex();
    
    doublereal y = SD_y.pNode->dGetX();
-   doublereal u = SD_u.pNode->dGetX();
+   doublereal u = SV_u->dGetValue();
    
    WorkVec.PutRowIndex(iNumRows, iRowIndex_y);
    
@@ -505,239 +504,226 @@ GenelStateSpaceSISO::Output(OutputHandler& OH) const
 /* GenelStateSpaceMIMO - begin */
 
 GenelStateSpaceMIMO::GenelStateSpaceMIMO(unsigned int uLabel,
-					 const DofOwner* pDO, 
-					 unsigned int iNumOut,
-					 const ScalarDof* y, 
-					 unsigned int iNumIn,
-					 const ScalarDof* u,
-					 unsigned int Order,
-					 doublereal* pA,
-					 doublereal* pB,
-					 doublereal* pC, 
-					 doublereal* pD,
-					 flag fOutput)
+	const DofOwner* pDO, 
+	unsigned int iNumOut,
+	const ScalarDof* y, 
+	std::vector<ScalarValue *>& u,
+	unsigned int Order,
+	doublereal* pA,
+	doublereal* pB,
+	doublereal* pC, 
+	doublereal* pD,
+	flag fOutput)
 : Elem(uLabel, fOutput),
 Genel(uLabel, pDO, fOutput),
-iNumOutputs(iNumOut), iNumInputs(iNumIn),
-pvSD_y((ScalarDof*)y), pvSD_u((ScalarDof*)u),
+iNumOutputs(iNumOut), iNumInputs(SV_u.size()),
+pvSD_y((ScalarDof*)y), SV_u(u),
 iNumDofs(Order),
 pdA(pA), pdB(pB), pdC(pC), pdD(pD),
 pdX(NULL), pdXP(NULL) 
 {
 #ifdef DEBUG
-   ASSERT(iNumDofs > 0);
-   ASSERT(iNumOutputs > 0);
-   ASSERT(pvSD_y != NULL);
-   for (int i = iNumOutputs; i-- > 0; ) {
-      ASSERT(pvSD_y[i].iOrder == 0);
-   }   
-   ASSERT(iNumInputs > 0);
-   ASSERT(pvSD_u != NULL);
-   for (int i = iNumInputs; i-- > 0; ) {
-      ASSERT(pvSD_u[i].iOrder == 0);
-   }   
-   ASSERT(pdA != NULL);
-   ASSERT(pdB != NULL);
-   ASSERT(pdC != NULL);	
-#if 0
-   ASSERT(pdD != NULL);	
-#endif /* 0 */
-   DEBUGCOUT("GenelStateSpaceMIMO " << uLabel 
-	     << ", NumDofs: " << iNumDofs << std::endl);
+	ASSERT(iNumDofs > 0);
+	ASSERT(iNumOutputs > 0);
+	ASSERT(pvSD_y != NULL);
+	for (int i = iNumOutputs; i-- > 0; ) {
+		ASSERT(pvSD_y[i].iOrder == 0);
+	}   
+	ASSERT(iNumInputs > 0);
+	ASSERT(pdA != NULL);
+	ASSERT(pdB != NULL);
+	ASSERT(pdC != NULL);	
+	DEBUGCOUT("GenelStateSpaceMIMO " << uLabel 
+		<< ", NumDofs: " << iNumDofs << std::endl);
 #endif /* DEBUG */
    
-   SAFENEWARR(pdX, doublereal, 2*Order);
-   pdXP = pdX+Order;
+	SAFENEWARR(pdX, doublereal, 2*Order);
+	pdXP = pdX + Order;
 }
-
 
 GenelStateSpaceMIMO::~GenelStateSpaceMIMO(void) 
 {
-   if (pdX != NULL) {
-      SAFEDELETEARR(pdX);
-   }
-   if (pdD != NULL) {
-      SAFEDELETEARR(pdD);
-   }
-   if (pdD != NULL) {
-      SAFEDELETEARR(pdC);
-   }
-   if (pdB != NULL) {
-      SAFEDELETEARR(pdB);
-   }
-   if (pdA != NULL) {
-      SAFEDELETEARR(pdA);
-   }
-   if (pvSD_u != NULL) {
-      SAFEDELETEARR(pvSD_u);
-   }   
-   if (pvSD_y != NULL) {
-      SAFEDELETEARR(pvSD_y);
-   }   
+	if (pdX != NULL) {
+		SAFEDELETEARR(pdX);
+	}
+	if (pdD != NULL) {
+		SAFEDELETEARR(pdD);
+	}
+	if (pdC != NULL) {
+		SAFEDELETEARR(pdC);
+	}
+	if (pdB != NULL) {
+		SAFEDELETEARR(pdB);
+	}
+	if (pdA != NULL) {
+		SAFEDELETEARR(pdA);
+	}
+	for (std::vector<ScalarValue *>::iterator i = SV_u.begin();
+		i != SV_u.end(); i++)
+	{
+		delete *i;
+	}
+	if (pvSD_y != NULL) {
+		SAFEDELETEARR(pvSD_y);
+	}   
 }
-
 
 unsigned int GenelStateSpaceMIMO::iGetNumDof(void) const 
 {
-   return iNumDofs;
+	return iNumDofs;
 }
-
 
 /* esegue operazioni sui dof di proprieta' dell'elemento */
 DofOrder::Order GenelStateSpaceMIMO::GetDofType(unsigned int i) const 
 {
-   ASSERT(i < iNumDofs);
-   return DofOrder::DIFFERENTIAL;
+	ASSERT(i < iNumDofs);
+	return DofOrder::DIFFERENTIAL;
 }
-
 
 /* Scrive il contributo dell'elemento al file di restart */
 std::ostream& GenelStateSpaceMIMO::Restart(std::ostream& out) const 
 {
-   return out << "GenelStateSpaceMIMO: not implemented yet!" << std::endl; 
+	return out << "GenelStateSpaceMIMO: not implemented yet!" << std::endl; 
 }
-
 
 /* Dimensioni del workspace */
 void GenelStateSpaceMIMO::WorkSpaceDim(integer* piNumRows, 
-				       integer* piNumCols) const 
+	integer* piNumCols) const 
 {
-   *piNumRows = iNumDofs+iNumOutputs;
-   *piNumCols = iNumDofs+iNumOutputs;
+	*piNumRows = iNumDofs + iNumOutputs;
+	*piNumCols = iNumDofs + iNumOutputs;
 }
-
 
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler& 
 GenelStateSpaceMIMO::AssJac(VariableSubMatrixHandler& WorkMat,
-			    doublereal dCoef,
-			    const VectorHandler& /* XCurr */ ,
-			    const VectorHandler& /* XPrimeCurr */ ) 
+	doublereal dCoef,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ ) 
 {
-   DEBUGCOUT("Entering GenelStateSpaceMIMO::AssJac()" << std::endl);
+	DEBUGCOUT("Entering GenelStateSpaceMIMO::AssJac()" << std::endl);
+ 
+	FullSubMatrixHandler& WM = WorkMat.SetFull();
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WM.ResizeReset(iNumRows, iNumCols);
+
+	integer iFirstIndex = iGetFirstIndex();
+	doublereal* pdc = pdC + iNumOutputs*iNumDofs - 1;
+	for (unsigned int i = iNumOutputs; i > 0; i--) {
+		integer iRowIndex_y = pvSD_y[i-1].pNode->iGetFirstRowIndex()+1;
+		integer iColIndex_y = pvSD_y[i-1].pNode->iGetFirstColIndex()+1;
+
+		WM.PutRowIndex(iNumDofs+i, iRowIndex_y);
+		WM.PutColIndex(iNumDofs+i, iColIndex_y);
+		WM.PutCoef(iNumDofs+i, iNumDofs+i, dCoef); // 1 sulla diagonale
+
+		pdc -= iNumDofs;
+		for (unsigned int j = iNumDofs; j > 0; j--) {
+			/* Attenzione: si assume C orientata per righe:
+			 * c_11, c_12, ..., c_1n, c_21, ..., c_2n, ..., c_nn */
+			WM.PutCoef(iNumDofs+i, j, -pdc[j]*dCoef);
+		}
+	}
+
+	doublereal* pda = pdA+iNumDofs*iNumDofs-1;
+	for (unsigned int i = iNumDofs; i > 0; i--) {
+		WM.PutRowIndex(i, iFirstIndex+i);
+		WM.PutColIndex(i, iFirstIndex+i);
+		pda -= iNumDofs;
+		for (unsigned int j = iNumDofs; j > 0; j--) {
+			/* Attenzione: si assume A orientata per righe:
+			 * a_11, a_12, ..., a_1n, a_21, ..., a_2n, ..., a_nn */
+			WM.PutCoef(i, j, -pda[j]*dCoef);
+		}
+		WM.IncCoef(i, i, 1.);
+	}
    
-   FullSubMatrixHandler& WM = WorkMat.SetFull();
-   integer iNumRows = 0;
-   integer iNumCols = 0;
-   WorkSpaceDim(&iNumRows, &iNumCols);
-   WM.ResizeReset(iNumRows, iNumCols);
-
-   integer iFirstIndex = iGetFirstIndex();
-   doublereal* pdc = pdC+iNumOutputs*iNumDofs-1;
-   for (unsigned int i = iNumOutputs; i > 0; i--) {
-      integer iRowIndex_y = pvSD_y[i-1].pNode->iGetFirstRowIndex()+1;
-      integer iColIndex_y = pvSD_y[i-1].pNode->iGetFirstColIndex()+1;
-
-      WM.PutRowIndex(iNumDofs+i, iRowIndex_y);
-      WM.PutColIndex(iNumDofs+i, iColIndex_y);
-      WM.PutCoef(iNumDofs+i, iNumDofs+i, dCoef); // 1 sulla diagonale
-
-      pdc -= iNumDofs;
-      for (unsigned int j = iNumDofs; j > 0; j--) {
-	 /* Attenzione: si assume C orientata per righe:
-	  * c_11, c_12, ..., c_1n, c_21, ..., c_2n, ..., c_nn */
-	 WM.PutCoef(iNumDofs+i, j, -pdc[j]*dCoef);
-      }
-   }
-
-   doublereal* pda = pdA+iNumDofs*iNumDofs-1;
-   for (unsigned int i = iNumDofs; i > 0; i--) {
-      WM.PutRowIndex(i, iFirstIndex+i);
-      WM.PutColIndex(i, iFirstIndex+i);
-      pda -= iNumDofs;
-      for (unsigned int j = iNumDofs; j > 0; j--) {
-	 /* Attenzione: si assume A orientata per righe:
-	  * a_11, a_12, ..., a_1n, a_21, ..., a_2n, ..., a_nn */
-	 WM.PutCoef(i, j, -pda[j]*dCoef);
-      }
-      WM.IncCoef(i, i, 1.);
-   }
-   
-   return WorkMat;
+	return WorkMat;
 }
-
 
 /* assemblaggio residuo */
 SubVectorHandler& 
 GenelStateSpaceMIMO::AssRes(SubVectorHandler& WorkVec,
-			    doublereal /* dCoef */,
-			    const VectorHandler& XCurr,
-			    const VectorHandler& XPrimeCurr) 
+	doublereal /* dCoef */,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr) 
 {
-   DEBUGCOUT("Entering GenelStateSpaceMIMO::AssRes()" << std::endl);
+	DEBUGCOUT("Entering GenelStateSpaceMIMO::AssRes()" << std::endl);
    
-   integer iNumRows = 0;
-   integer iNumCols = 0;
-   WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeReset(iNumRows);
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.ResizeReset(iNumRows);
    
-   integer iFirstIndex = iGetFirstIndex();
+	integer iFirstIndex = iGetFirstIndex();
    
-   doublereal* pdx = pdX-1;
-   doublereal* pdxp = pdXP-1;
-   for (unsigned int i = iNumDofs; i > 0; i--) {
-      WorkVec.PutRowIndex(i, iFirstIndex+i);
-      pdx[i] = XCurr.dGetCoef(iFirstIndex+i);
-      pdxp[i] = XPrimeCurr.dGetCoef(iFirstIndex+i);
-   }   
+	doublereal* pdx = pdX-1;
+	doublereal* pdxp = pdXP-1;
+	for (unsigned int i = iNumDofs; i > 0; i--) {
+		WorkVec.PutRowIndex(i, iFirstIndex+i);
+		pdx[i] = XCurr.dGetCoef(iFirstIndex+i);
+		pdxp[i] = XPrimeCurr.dGetCoef(iFirstIndex+i);
+	}   
 
-   doublereal* pdc = pdC+iNumOutputs*iNumDofs-1;
-   if (pdD != NULL) {      
-      doublereal* pdd = pdD+iNumOutputs*iNumInputs-1;
-      for (int i = iNumOutputs; i > 0; i--) {      
-	 integer iRowIndex_y = pvSD_y[i-1].pNode->iGetFirstRowIndex()+1;    
-	 WorkVec.PutRowIndex(iNumDofs+i, iRowIndex_y);      
-	 doublereal y = pvSD_y[i-1].pNode->dGetX();
-	 doublereal d = -y;
-	 pdc -= iNumDofs;
-	 for (unsigned int j = iNumDofs; j > 0; j--) {
-	    d += pdc[j]*pdx[j];
-	 }
-	 pdd -= iNumInputs;
-	 for (unsigned int j = iNumInputs; j > 0; j--) {
-	    d += pdd[j]*pvSD_u[j-1].pNode->dGetX();
-	 }      
-	 WorkVec.PutCoef(iNumDofs+i, d);
-      }
-   } else {
-      for (int i = iNumOutputs; i > 0; i--) {      
-	 integer iRowIndex_y = pvSD_y[i-1].pNode->iGetFirstRowIndex()+1;    
-	 WorkVec.PutRowIndex(iNumDofs+i, iRowIndex_y);      
-	 doublereal y = pvSD_y[i-1].pNode->dGetX();
-	 doublereal d = -y;
-	 pdc -= iNumDofs;
-	 for (unsigned int j = iNumDofs; j > 0; j--) {
-	    d += pdc[j]*pdx[j];
-	 }
-	 WorkVec.PutCoef(iNumDofs+i, d);
-      }
-   }   
+	doublereal* pdc = pdC+iNumOutputs*iNumDofs-1;
+	if (pdD != NULL) {      
+		doublereal* pdd = pdD+iNumOutputs*iNumInputs-1;
+		for (int i = iNumOutputs; i > 0; i--) {      
+			integer iRowIndex_y = pvSD_y[i-1].pNode->iGetFirstRowIndex()+1;    
+			WorkVec.PutRowIndex(iNumDofs+i, iRowIndex_y);      
+			doublereal y = pvSD_y[i-1].pNode->dGetX();
+			doublereal d = -y;
+			pdc -= iNumDofs;
+			for (unsigned int j = iNumDofs; j > 0; j--) {
+				d += pdc[j]*pdx[j];
+			}
+			pdd -= iNumInputs;
+			for (unsigned int j = iNumInputs; j > 0; j--) {
+				d += pdd[j]*SV_u[j-1]->dGetValue();
+			}      
+			WorkVec.PutCoef(iNumDofs+i, d);
+		}
+	} else {
+		for (int i = iNumOutputs; i > 0; i--) {      
+			integer iRowIndex_y = pvSD_y[i-1].pNode->iGetFirstRowIndex()+1;    
+			WorkVec.PutRowIndex(iNumDofs+i, iRowIndex_y);      
+			doublereal y = pvSD_y[i-1].pNode->dGetX();
+			doublereal d = -y;
+			pdc -= iNumDofs;
+			for (unsigned int j = iNumDofs; j > 0; j--) {
+				d += pdc[j]*pdx[j];
+			}
+			WorkVec.PutCoef(iNumDofs+i, d);
+		}
+	}   
       
-   doublereal* pda = pdA+iNumDofs*iNumDofs;
-   doublereal* pdb = pdB+iNumDofs*iNumInputs;
-   pdxp = pdXP;
-   pdx = pdX;
-   for (unsigned int i = iNumDofs; i-- > 0; ) {     
-      doublereal d = -pdxp[i];
-      pdb -= iNumInputs;
-      for (unsigned int j = iNumInputs; j-- > 0; ) {
-	 d += pdb[j]*pvSD_u[j].pNode->dGetX();
-      }
-      pda -= iNumDofs;
-      for (unsigned int j = iNumDofs; j-- > 0; ) {
-	 d += pda[j]*pdx[j];
-      }
-      WorkVec.PutCoef(i+1, d);
-   }
+	doublereal* pda = pdA+iNumDofs*iNumDofs;
+	doublereal* pdb = pdB+iNumDofs*iNumInputs;
+	pdxp = pdXP;
+	pdx = pdX;
+	for (unsigned int i = iNumDofs; i-- > 0; ) {     
+		doublereal d = -pdxp[i];
+		pdb -= iNumInputs;
+		for (unsigned int j = iNumInputs; j-- > 0; ) {
+			d += pdb[j]*SV_u[j]->dGetValue();
+		}
+		pda -= iNumDofs;
+		for (unsigned int j = iNumDofs; j-- > 0; ) {
+			d += pda[j]*pdx[j];
+		}
+		WorkVec.PutCoef(i+1, d);
+	}
 
-   return WorkVec;
+	return WorkVec;
 }
 
 void
 GenelStateSpaceMIMO::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		std::ostream &out(OH.Genels());
+		std::ostream& out(OH.Genels());
 		out << std::setw(8) << GetLabel();
 		for (unsigned int i = 0; i < iNumDofs; i++) {
 			out << " " << pdX[i];

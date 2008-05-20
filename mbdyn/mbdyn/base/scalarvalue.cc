@@ -37,64 +37,80 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include "streamoutelem.h"
+#include "dataman.h"
+#include "scalarvalue.h"
 
-/* StreamOutElem - begin */
+/* ScalarValue - begin */
 
-StreamOutElem::StreamOutElem(unsigned int uL,
-		std::vector<ScalarValue *>& pn,
-		unsigned int oe)
-: Elem(uL, flag(0)),
-Values(pn), size(-1), buf(0),
-OutputEvery(oe), OutputCounter(0)
+ScalarValue::~ScalarValue(void)
 {
-	ASSERT(OutputEvery > 0);
-
-	/* FIXME: size depends on the type of the output signals */
-	size = sizeof(doublereal)*Values.size();
-	SAFENEWARR(buf, char, size);
-	memset(buf, 0, size);
+	NO_OP;
 }
 
-StreamOutElem::~StreamOutElem(void)
+ScalarDofValue::ScalarDofValue(const ScalarDof& sd)
+: ScalarDof(sd)
 {
-	if (buf != 0) {
-		SAFEDELETEARR(buf);
+	NO_OP;
+}
+
+doublereal
+ScalarDofValue::dGetValue(void) const
+{
+	return ScalarDof::dGetValue();
+}
+
+ScalarDriveValue::ScalarDriveValue(const DriveCaller *pdc)
+: pDC(pdc)
+{
+	NO_OP;
+}
+
+ScalarDriveValue::~ScalarDriveValue(void)
+{
+	if (pDC) {
+		delete pDC;
+	}
+}
+
+doublereal
+ScalarDriveValue::dGetValue(void) const
+{
+	return pDC->dGet();
+}
+
+ScalarValue *
+ReadScalarValue(DataManager *pDM, MBDynParser& HP)
+{
+	ScalarValue *svp = 0;
+
+	if (HP.IsKeyWord("drive")) {
+		svp = new ScalarDriveValue(ReadDriveData(pDM, HP, false));
+	} else {
+		if (HP.IsKeyWord("node" "dof")) {
+			NO_OP; // skip
+		}
+		svp = new ScalarDofValue(ReadScalarDof(pDM, HP, 1));
 	}
 
-	for (std::vector<ScalarValue *>::iterator i = Values.begin();
-		i != Values.end(); i++)
-	{
-		delete *i;
-	}
+	return svp;
 }
 
-Elem::Type
-StreamOutElem::GetElemType(void) const
-{
-	return Elem::SOCKETSTREAM_OUTPUT;
-}
-
+/* NOTE: the array must have the desired size */
 void
-StreamOutElem::WorkSpaceDim(integer* piRows, integer* piCols) const
+ReadScalarValues(DataManager *pDM, MBDynParser& HP,
+	std::vector<ScalarValue *>& Values)
 {
-	*piRows = 0;
-	*piCols = 0;
+	unsigned nch = Values.size();
+	if (nch == 0) {
+		silent_cerr("Request to read an empty ScalarValue vector "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric();
+	}
+
+	for (unsigned int i = 0; i < nch; i++) {
+		Values[i] = ReadScalarValue(pDM, HP);
+	}
 }
 
-SubVectorHandler&
-StreamOutElem::AssRes(SubVectorHandler& WorkVec, doublereal dCoef,
-		const VectorHandler& X, const VectorHandler& XP)
-{
-	WorkVec.Resize(0);
-	return WorkVec;
-}
-
-VariableSubMatrixHandler& 
-StreamOutElem::AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
-		const VectorHandler& X, const VectorHandler& XP)
-{
-	WorkMat.SetNullMatrix();
-	return WorkMat;
-}
+/* ScalarValue - end */
 

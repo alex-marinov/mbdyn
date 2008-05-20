@@ -2494,11 +2494,13 @@ arbitrary manner (given by the \kw{const\_law}) to the
 \subsubsection{Scalar filter}
 \begin{verbatim}
     <genel_type> ::= scalar filter
-    <genel_arglist> ::= (node_dof) <output_node> ,
-                        (node_dof) <input_node> ,
-                        <output_order> [ , <output_coef_list> ] ,
-                        <input_order> , <input_coef_list>
-                        [ , gain , <gain> ]
+    <genel_arglist> ::=
+        (node_dof) <output_node> ,
+        { [ node dof , ] (node_dof) <input_node>
+            | drive , (drive_caller) <input_value> } ,
+        <output_order> [ , <output_coef_list> ] ,
+        <input_order> , <input_coef_list>
+        [ , gain , <gain> ]
 \end{verbatim}
 This element models a scalar filter of the form
 \begin{displaymath}
@@ -2510,25 +2512,35 @@ the \kw{input\_order}.
 The polynomial $ A $ is assumed to be monic, so only the coefficients
 from 1 to \kw{output\_order} must be input, while all the coefficients 
 of polynomial $ B $ are required, i.e.\ from 0 to \kw{input\_order}.
+
 If a gain is supplied, all the coefficients of $ B $ are multiplied by the
 gain.
+
+Originally, the input needed to be taken from a \kw{scalar\_dof};
+now, it can also be taken from a \kw{drive}, which can completely replace
+the original form (e.g.\ by means of the \kw{dof}, the \kw{node}
+and the \kw{element} drives) and requires much less effort because
+no auxiliary node needs to be set up.
+% FIXME: elaborate with examples
 
 \subsubsection{State space SISO}
 \begin{verbatim}
     <genel_type> ::= state space SISO
-    <genel_arglist> ::= (node_dof) <output_node> ,
-                        (node_dof) <input_node> ,
-                        <state_order> ,
-                        matrix A , <coefficient_list> ,
-                        matrix B , <coefficient_list> ,
-                        matrix C , <coefficient_list>
-                        [ , matrix D , <coefficient> ]
+    <genel_arglist> ::=
+        (node_dof) <output_node> ,
+        { [ node dof , ] (node_dof) <input_node>
+            | drive , (drive_caller) <input_value> } ,
+        <state_order> ,
+        matrix A , <coefficient_list> ,
+        matrix B , <coefficient_list> ,
+        matrix C , <coefficient_list>
+        [ , matrix D , <coefficient> ]
 \end{verbatim}
 This element models a scalar (SISO) state space filter of the form
 \begin{displaymath}
     \lvvect{ 
-        \dot{\T{x}} = \T{A}\T{x}+\T{B}u \\
-	y = \T{C}\T{x}+Du
+        \dot{\T{x}} = \T{A} \T{x} + \T{B} u \\
+	y = \T{C} \T{x} + D u
     }
 \end{displaymath}
 where
@@ -2541,13 +2553,17 @@ The matrices are read row-oriented.
 \subsubsection{State space MIMO}
 \begin{verbatim}
     <genel_type> ::= state space MIMO
-    <genel_arglist> ::= <num_outputs> , (node_dof) <output_node_list> ,
-                        <num_inputs> , (node_dof) <input_node_list> ,
-                        <state_order> ,
-                        matrix A , <coefficient_list> ,
-                        matrix B , <coefficient_list> ,
-                        matrix C , <coefficient_list>
-                        [ , matrix D , <coefficient_list> ]
+    <genel_arglist> ::=
+        <num_outputs> , (node_dof) <output_node_list> ,
+        <num_inputs> ,
+            { [ node dof , ] (node_dof) <input_node>
+                | drive , (drive_caller) <input_value> }
+            [ , ... ] ,
+        <state_order> ,
+        matrix A , <coefficient_list> ,
+        matrix B , <coefficient_list> ,
+        matrix C , <coefficient_list>
+        [ , matrix D , <coefficient_list> ]
 \end{verbatim}
 This element models a vector (MISO) state space filter of the form
 \begin{displaymath}

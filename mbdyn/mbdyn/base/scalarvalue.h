@@ -29,43 +29,46 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef STREAMOUTELEM_H
-#define STREAMOUTELEM_H
+#ifndef SCALARVALUE_H
+#define SCALARVALUE_H
 
 #include "elem.h"
-#include "scalarvalue.h"
 
-/* StreamOutElem - begin */
+/* ScalarValue - begin */
 
-class StreamOutElem : virtual public Elem {
-protected:
-	std::vector<ScalarValue *> Values;
-
-	/* Stream buffer */
-	int size;
-	char *buf;
-
-	/* output with lower ratio */
-	unsigned int OutputEvery;
-	mutable unsigned int OutputCounter;
-
+class ScalarValue {
 public:
-   	StreamOutElem(unsigned int uL, std::vector<ScalarValue *>& pn,
-			unsigned int oe);
-			
-   	virtual ~StreamOutElem(void);
-
-	virtual Elem::Type GetElemType(void) const;
-	virtual void WorkSpaceDim(integer* piRows, integer* piCols) const;
-	virtual SubVectorHandler&
-	AssRes(SubVectorHandler& WorkVec, doublereal dCoef,
-			const VectorHandler& X, const VectorHandler& XP);
-	virtual VariableSubMatrixHandler& 
-	AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
-			const VectorHandler& X, const VectorHandler& XP);
+	virtual ~ScalarValue(void);
+	virtual doublereal dGetValue(void) const = 0;
 };
 
-/* SocketStreamElem - end */
+class ScalarDofValue : public ScalarValue, public ScalarDof {
+public:
+	ScalarDofValue(const ScalarDof& sd);
+	doublereal dGetValue(void) const;
+};
 
-#endif /* STREAMOUTELEM_H */
+class ScalarDriveValue : public ScalarValue {
+protected:
+	const DriveCaller *pDC;
+
+public:
+	ScalarDriveValue(const DriveCaller *pdc);
+	~ScalarDriveValue(void);
+	doublereal dGetValue(void) const;
+};
+
+class DataManager;
+class MBDynParser;
+
+extern ScalarValue *
+ReadScalarValue(DataManager *pDM, MBDynParser& HP);
+
+extern void
+ReadScalarValues(DataManager *pDM, MBDynParser& HP,
+	std::vector<ScalarValue *>& Values);
+
+/* ScalarValue - end */
+
+#endif /* SCALARVALUE_H */
 
