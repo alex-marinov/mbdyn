@@ -540,7 +540,7 @@ InverseSolver::Run(void)
 	 * have not been ServePending'd
 	 */
 	dTime = dInitialTime;
-	pDM->SetTime(dTime);
+	pDM->SetTime(dTime, 0., 0);
 	
 	integer iTotIter = 0;
 	integer iStIter = 0;
@@ -941,7 +941,7 @@ InverseSolver::Run(void)
 
 IfStepIsToBeRepeated:
 		try {
-			pDM->SetTime(dTime+dCurrTimeStep);
+			pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, lStep);
 			dTest = dynamic_cast<InverseDynamicsStepSolver *>(pRegularSteps)->Advance(this, dRefTimeStep,
 					CurrStep, pX, pXPrime, pXPrimePrime, pLambda, 
 					iStIter, dTest, dSolTest);

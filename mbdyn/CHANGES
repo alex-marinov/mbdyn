@@ -20,6 +20,7 @@ MBDyn 1.X-Devel
 		- RTAI output uses stream output syntax for values
 		- allow drives as input to scalar filter/state space genels
 		- allow state space filters in descriptor form
+		- add "TimeStep" and "Step" vars to math parser
 	Backward compatibility issues:
 	Known issues:
 		- scalar filter seems to be broken; use state space SISO

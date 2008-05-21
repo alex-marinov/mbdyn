@@ -97,9 +97,6 @@ protected:
 	DriveHandler DrvHdl;
 	mutable OutputHandler OutHdl;
 
-	/* Puntatore alla variabile Time nella symbol table di MathPar */
-	Var* pTime;
-
 	/* Puntatori ai vettori soluzione durante il passo */
 	mutable VectorHandler* pXCurr;
 	mutable VectorHandler* pXPrimeCurr;
@@ -290,8 +287,9 @@ public:
 
 	/* Setta il valore della variabile tempo nella tabella dei simboli
 	 * del DataManager e nel DriveHandler */
-	void SetTime(doublereal dTime, bool bServePending = true);
-	doublereal dGetTime() const;
+	void SetTime(const doublereal& dTime, const doublereal& dTimeStep = -1.,
+		const integer& iStep = -1, bool bServePending = true);
+	doublereal dGetTime(void) const;
 
 	NamedValue *InsertSym(const char* const s, const Real& v,
 			int redefine = 0);

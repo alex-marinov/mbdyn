@@ -59,9 +59,10 @@ Drive::~Drive(void) {
 /* DriveHandler - begin */
 
 DriveHandler::DriveHandler(MathParser& mp)
-: dTime(0.), 
-Parser(mp),
+: Parser(mp),
 pTime(NULL), 
+pTimeStep(NULL), 
+pStep(NULL), 
 pVar(NULL),
 pXCurr(NULL), 
 pXPrimeCurr(NULL),
@@ -83,14 +84,16 @@ ppMyRand(NULL)
    }
 #endif /* USE_MULTITHREAD */
 
+   NamedValue *v;
+
    /* Inserisce la variabile Time nella tabella dei simboli; sara'
     * mantenuta aggiornata dal DriveHandler */
-   NamedValue *v = Parser.GetSymbolTable().Get("Time");
+   v = Parser.GetSymbolTable().Get("Time");
    if (v == NULL) {
       pTime = Parser.GetSymbolTable().Put("Time", Real(0));  
       if (pTime == NULL) {
 	 silent_cerr("DriveHandler::DriveHandler(): "
-			 "error in Time symbol insertion" << std::endl); 
+		 "error while inserting symbol 'Time'" << std::endl); 
 	 throw ErrGeneric();
       }
    } else {
@@ -99,6 +102,42 @@ ppMyRand(NULL)
          throw ErrGeneric();
       }
       pTime = (Var *)v;
+   }
+   
+   /* Inserisce la variabile TimeStep nella tabella dei simboli; sara'
+    * mantenuta aggiornata dal DriveHandler */
+   v = Parser.GetSymbolTable().Get("TimeStep");
+   if (v == NULL) {
+      pTimeStep = Parser.GetSymbolTable().Put("TimeStep", Real(-1.));  
+      if (pTimeStep == NULL) {
+	 silent_cerr("DriveHandler::DriveHandler(): "
+		 "error while inserting symbol 'TimeStep'" << std::endl); 
+	 throw ErrGeneric();
+      }
+   } else {
+      if (!v->IsVar()) {
+	 silent_cerr("Symbol 'TimeStep' must be a variable" << std::endl);
+         throw ErrGeneric();
+      }
+      pTimeStep = (Var *)v;
+   }
+   
+   /* Inserisce la variabile Step nella tabella dei simboli; sara'
+    * mantenuta aggiornata dal DriveHandler */
+   v = Parser.GetSymbolTable().Get("Step");
+   if (v == NULL) {
+      pStep = Parser.GetSymbolTable().Put("Step", Int(-1));  
+      if (pStep == NULL) {
+	 silent_cerr("DriveHandler::DriveHandler(): "
+		 "error while inserting symbol 'Step'" << std::endl); 
+	 throw ErrGeneric();
+      }
+   } else {
+      if (!v->IsVar()) {
+	 silent_cerr("Symbol 'Step' must be a variable" << std::endl);
+         throw ErrGeneric();
+      }
+      pStep = (Var *)v;
    }
    
    /* Inserisce la variabile Var nella tabella dei simboli; sara'
@@ -148,26 +187,42 @@ DriveHandler::~DriveHandler(void)
 }
 
 
-void DriveHandler::SetTime(const doublereal& dt, flag fNewStep)
+void
+DriveHandler::SetTime(const doublereal& dt, const doublereal& dts,
+	const integer& s, flag fNewStep)
 {      
-   dTime = dt;
-   
-   /* in case of new step */
-   if (fNewStep) {
-      iCurrStep++;
+	/* Setta la variabile Time nella tabella dei simboli */
+	ASSERT(pTime != NULL);
+	pTime->SetVal(dt);
+
+	/* Setta la variabile TimeStep nella tabella dei simboli */
+	if (dts >= 0.) {
+		ASSERT(pTimeStep != NULL);
+		pTimeStep->SetVal(dts);
+	}
+
+	/* Setta la variabile Step nella tabella dei simboli */
+	if (s >= 0) {
+		ASSERT(pStep != NULL);
+		pStep->SetVal(s);
+	}
+
+	/* in case of new step */
+	if (fNewStep) {
+		iCurrStep++;
       
-      /* update the meter drivers */
-      for (long int iCnt = 0; iCnt < iMeterDriveSize; iCnt++) {
-	 MyMeter* pmm = ppMyMeter[iCnt];
-	 pmm->SetMeter();
-      }      
+		/* update the meter drivers */
+		for (long int iCnt = 0; iCnt < iMeterDriveSize; iCnt++) {
+			MyMeter* pmm = ppMyMeter[iCnt];
+			pmm->SetMeter();
+		}      
       
-      /* update the random drivers */
-      for (long int iCnt = 0; iCnt < iRandDriveSize; iCnt++) {
-	 MyRand* pmr = ppMyRand[iCnt];
-	 pmr->SetMeter();
-      }      
-   }
+		/* update the random drivers */
+		for (long int iCnt = 0; iCnt < iRandDriveSize; iCnt++) {
+			MyRand* pmr = ppMyRand[iCnt];
+			pmr->SetMeter();
+		}      
+	}
 }
 
 

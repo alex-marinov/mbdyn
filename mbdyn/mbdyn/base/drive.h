@@ -126,7 +126,6 @@ class DriveHandler {
    friend class MeterDriveCaller;
    
  private:
-   doublereal dTime;
 #ifdef USE_MULTITHREAD
    mutable pthread_mutex_t parser_mutex;
 #endif /* USE_MULTITHREAD */
@@ -134,6 +133,8 @@ class DriveHandler {
    
    /* variabili predefinite: tempo e variabile generica */
    Var* pTime;
+   Var* pTimeStep;
+   Var* pStep;
    Var* pVar;
    
    static doublereal dDriveHandlerReturnValue; /* Usato per ritornare un reference */
@@ -183,7 +184,8 @@ class DriveHandler {
    MyRand** ppMyRand;
 
  protected:
-   void SetTime(const doublereal& dt, flag fNewStep = 1);
+   void SetTime(const doublereal& dt, const doublereal& dts = -1.,
+		const integer& s = -1, flag fNewStep = 1);
    void LinkToSolution(const VectorHandler& XCurr, 
 		       const VectorHandler& XPrimeCurr);
    integer iRandInit(integer iSteps);
@@ -198,7 +200,9 @@ class DriveHandler {
    
    doublereal dGet(InputStream& InStr) const;
       
-   inline const doublereal& dGetTime(void) const;
+   inline doublereal dGetTime(void) const;
+   inline doublereal dGetTimeStep(void) const;
+   inline integer dGetStep(void) const;
    inline long int iGetRand(integer iNumber) const;
    inline bool bGetMeter(integer iNumber) const;
 };
@@ -244,10 +248,25 @@ DriveHandler::MyMeter::SetMeter(void)
 }
 
 
-inline const doublereal& 
+inline doublereal
 DriveHandler::dGetTime(void) const
 {
-   return dTime;
+	ASSERT(pTime != 0);
+	return pTime->GetVal().GetReal();
+}
+
+inline doublereal
+DriveHandler::dGetTimeStep(void) const
+{
+	ASSERT(pTimeStep != 0);
+	return pTimeStep->GetVal().GetReal();
+}
+
+inline integer
+DriveHandler::dGetStep(void) const
+{
+	ASSERT(pStep != 0);
+	return pStep->GetVal().GetInt();
 }
 
 

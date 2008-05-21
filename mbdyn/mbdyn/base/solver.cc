@@ -773,7 +773,7 @@ Solver::Run(void)
 	 * have not been ServePending'd
 	 */
 	dTime = dInitialTime;
-	pDM->SetTime(dTime);
+	pDM->SetTime(dTime, 0., 0);
 	
 
 #ifdef __HACK_EIG__
@@ -965,7 +965,7 @@ Solver::Run(void)
       		dRefTimeStep = dInitialTimeStep*dFictitiousStepsRatio;
       		dCurrTimeStep = dRefTimeStep;
 		/* FIXME: do we need to serve pending drives in dummy steps? */
-      		pDM->SetTime(dTime+dCurrTimeStep);
+      		pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, 0);
 
       		DEBUGLCOUT(MYDEBUG_FSTEPS, "Current time step: "
 			   << dCurrTimeStep << std::endl);
@@ -1065,7 +1065,7 @@ Solver::Run(void)
 
 	 		ASSERT(pFictitiousSteps!= NULL);
 			try {
-	 			pDM->SetTime(dTime+dCurrTimeStep);
+	 			pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, 0);
 	 			dTest = pFictitiousSteps->Advance(this,
 						dRefTimeStep,
 						dCurrTimeStep/dRefTimeStep,
@@ -1223,7 +1223,7 @@ Solver::Run(void)
 	SetupSolmans(pFirstRegularStep->GetIntegratorNumUnknownStates(), true);
 IfFirstStepIsToBeRepeated:
 	try {
-		pDM->SetTime(dTime+dCurrTimeStep);
+		pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, 1);
 		dTest = pFirstRegularStep->Advance(this, dRefTimeStep,
 				dCurrTimeStep/dRefTimeStep, CurrStep,
 				qX, qXPrime, pX, pXPrime,
@@ -1637,7 +1637,7 @@ IfFirstStepIsToBeRepeated:
 IfStepIsToBeRepeated:
 		try {
 
-			pDM->SetTime(dTime+dCurrTimeStep);
+			pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, lStep);
 			dTest = pRegularSteps->Advance(this, dRefTimeStep,
 					dCurrTimeStep/dRefTimeStep, CurrStep,
 					qX, qXPrime, pX, pXPrime, iStIter,

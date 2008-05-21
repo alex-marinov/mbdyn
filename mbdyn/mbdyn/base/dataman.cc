@@ -102,7 +102,6 @@ MathPar(HP.GetMathParser()),
 pSolver(pS),
 DrvHdl(HP.GetMathParser()),
 OutHdl(sOutputFileName, strcmp(sInputFileName, sOutputFileName) == 0 ? -1 : 0),
-pTime(0),
 pXCurr(0), pXPrimeCurr(0), 
 /* Inverse Dynamics: */
 pXPrimePrimeCurr(0),
@@ -216,15 +215,7 @@ DofIter()
 	HP.GetMathParser().RegisterNameSpace(new ModelNameSpace(this));
 
 	/* Setta il tempo al valore iniziale */
-	pTime = (Var *)MathPar.GetSymbolTable().Get("Time");
-	ASSERT(pTime != 0);
-	if (pTime == 0) {
-		DEBUGCERR("");
-		silent_cerr("error in setting Time symbol" << std::endl);
-
-		throw DataManager::ErrGeneric();
-	}
-	SetTime(dInitialTime, false);
+	SetTime(dInitialTime, 0., 0, false);
 
 	DEBUGLCOUT(MYDEBUG_INIT, "Global symbol table:"
 		<< MathPar.GetSymbolTable() << std::endl);

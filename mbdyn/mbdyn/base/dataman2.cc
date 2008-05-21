@@ -132,18 +132,15 @@ DataManager::IncElemCount(Elem::Type type)
  * usato dal metodo numerico all'inizio di ogni step temporale */
 
 void
-DataManager::SetTime(doublereal dTime, bool bServePending)
+DataManager::SetTime(const doublereal& dTime, const doublereal& dTimeStep,
+	const integer& iStep, bool bServePending)
 {
-	/* Setta la variabile Time nella tabella dei simboli */
-	ASSERT(pTime != NULL);
-	pTime->SetVal(dTime);
+	/* Setta il tempo nel DriveHandler */
+	DrvHdl.SetTime(dTime, dTimeStep, iStep);
 
 	DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY,
 			"Global symbol table:" << std::endl
 	  		<< MathPar.GetSymbolTable() << std::endl);
-
-	/* Setta il tempo nel DriveHandler */
-	DrvHdl.SetTime(dTime);
 
 	/* serve i drive pending */
 	if (bServePending) {
@@ -156,8 +153,9 @@ DataManager::SetTime(doublereal dTime, bool bServePending)
 } /* End of DataManager::SetTime() */
 
 doublereal
-DataManager::dGetTime() const {
-	return pTime->GetVal().GetReal();
+DataManager::dGetTime(void) const
+{
+	return DrvHdl.dGetTime();
 } /* End of DataManager::dGetTime() */
 
 ElemWithDofs *
@@ -1599,9 +1597,7 @@ DataManager::AfterConvergence(void) const
 		break;
 
 	case TIME: {
-		ASSERT(pTime != NULL);
-
-		doublereal dT = pTime->GetVal().GetReal();
+		doublereal dT = DrvHdl.dGetTime();
 		if (dT - dLastRestartTime >= dRestartTime) {
 			dLastRestartTime = dT;
 			((DataManager*)this)->MakeRestart();
@@ -1610,9 +1606,7 @@ DataManager::AfterConvergence(void) const
 	}
 
 	case TIMES: {
-		ASSERT(pTime != NULL);
-
-		doublereal dT = pTime->GetVal().GetReal()
+		doublereal dT = DrvHdl.dGetTime()
 			+ pSolver->GetDInitialTimeStep()/100.;
 		if (iCurrRestartTime == iNumRestartTimes) {
 			break;
