@@ -1841,9 +1841,10 @@ in terms of the element's private data at each invocation.
 \subsection{Scalar function drive}
 \begin{verbatim}
     <drive_caller> ::= scalar function, " <scalar_function_name> "
+        [ , <scalar_function_definition> ]
 \end{verbatim}
-The scalar function called \kw{scalar\_function\_name} must exist.
-Alternatively, it must be defined inline.
+The scalar function called \kw{scalar\_function\_name} must exist;
+alternatively, it must be defined inline.
 
 Example:
 \begin{verbatim}
@@ -1857,7 +1858,7 @@ Example:
      set: integer MY_DRIVE = 1000;
      drive: MY_DRIVE, scalar function, "this_is_a_test";
 \end{verbatim}
-Alternative syntax:
+Alternative syntax example:
 \begin{verbatim}
      set: integer MY_DRIVE = 1000;
      drive: MY_DRIVE, scalar function, "this_is_a_test",
