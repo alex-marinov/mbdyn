@@ -184,10 +184,10 @@ struct ConstSFR: public ScalarFunctionRead {
 
 // LinearScalarFunction
 LinearScalarFunction::LinearScalarFunction(
-	const doublereal y_i,
-	const doublereal y_f,
 	const doublereal t_i,
-	const doublereal t_f)
+	const doublereal y_i,
+	const doublereal t_f,
+	const doublereal y_f)
 {
 	ASSERTMSGBREAK(t_i != t_f, "LinearScalarFunction error, t_i == t_f");
 	m = (y_f - y_i)/(t_f - t_i);
@@ -226,11 +226,11 @@ LinearScalarFunction::ComputeDiff(const doublereal x, const integer order) const
 struct LinearSFR: public ScalarFunctionRead {
 	virtual const BasicScalarFunction *
 	Read(DataManager* const pDM, MBDynParser& HP) const {
-		doublereal y_i = HP.GetReal();
-		doublereal y_f = HP.GetReal();
 		doublereal t_i = HP.GetReal();
+		doublereal y_i = HP.GetReal();
 		doublereal t_f = HP.GetReal();
-		return new LinearScalarFunction(y_i,y_f,t_i,t_f);
+		doublereal y_f = HP.GetReal();
+		return new LinearScalarFunction(t_i,y_i,t_f,y_f);
 	};
 };
 

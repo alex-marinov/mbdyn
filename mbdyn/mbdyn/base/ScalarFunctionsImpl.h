@@ -70,10 +70,10 @@ private:
 	doublereal y0;
 public:
 	LinearScalarFunction(
-		const doublereal y_i,
-		const doublereal y_f,
 		const doublereal t_i,
-		const doublereal t_f);
+		const doublereal y_i,
+		const doublereal t_f,
+		const doublereal y_f);
 	virtual ~LinearScalarFunction(void);
 	virtual doublereal operator()(const doublereal x) const;
 	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
