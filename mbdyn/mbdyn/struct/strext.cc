@@ -46,16 +46,11 @@ StructExtForce::StructExtForce(unsigned int uL,
 	std::vector<Vec3>& offsets,
 	bool bUnsorted,
 	bool bOutputAccelerations,
-	std::string& fin,
-	bool bRemoveIn,
-        std::string& fout,
-	bool bNoClobberOut,
-	int iSleepTime,
+	ExtFileHandlerBase *pEFH,
 	int iCoupling,
-	int iPrecision,
 	flag fOut)
 : Elem(uL, fOut), 
-ExtForce(uL, fin, bRemoveIn, fout, bNoClobberOut, iSleepTime, iCoupling, iPrecision, fOut), 
+ExtForce(uL, pEFH, iCoupling, fOut), 
 pRefNode(0),
 RefOffset(0.),
 bUnsorted(bUnsorted),
@@ -105,7 +100,7 @@ StructExtForce::~StructExtForce(void)
  * Send output to companion software
  */
 void
-StructExtForce::Send(std::ostream& outf)
+StructExtForce::Send(std::ostream& outf, bool bAfterConvergence)
 {
 	if (pRefNode) {
 #if 0
@@ -309,20 +304,24 @@ StructExtForce::Output(OutputHandler& OH) const
 	}
 }
  
+void
+StructExtForce::GetConnectedNodes(std::vector<const Node *>& connectedNodes)
+{
+	connectedNodes.resize(Nodes.size());
+	for (unsigned int i = 0; i < Nodes.size(); i++) {
+		connectedNodes[i] = Nodes[i];
+	}
+}
+
 Elem*
 ReadStructExtForce(DataManager* pDM, 
 	MBDynParser& HP, 
 	unsigned int uLabel)
 {
-	std::string fin;
-	bool bUnlinkIn;
-	std::string fout;
-	bool bNoClobberOut;
-	int iSleepTime;
+	ExtFileHandlerBase *pEFH = 0;
 	int iCoupling;
-	int iPrecision;
 	
-	ReadExtForce(pDM, HP, uLabel, fin, bUnlinkIn, fout, bNoClobberOut, iSleepTime, iCoupling, iPrecision);
+	ReadExtForce(pDM, HP, uLabel, pEFH, iCoupling);
 
 	bool bUnsorted(false);
 	if (HP.IsKeyWord("unsorted")) {
@@ -361,8 +360,7 @@ ReadStructExtForce(DataManager* pDM,
 	SAFENEWWITHCONSTRUCTOR(pEl, StructExtForce,
 		StructExtForce(uLabel, Nodes, Offsets,
 			bUnsorted, bOutputAccelerations,
-			fin, bUnlinkIn, fout, bNoClobberOut,
-			iSleepTime, iCoupling, iPrecision, fOut));
+			pEFH, iCoupling, fOut));
 
 	return pEl;
 }

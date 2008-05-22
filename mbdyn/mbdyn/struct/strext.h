@@ -52,7 +52,7 @@ protected:
 
 	bool bOutputAccelerations;
 
-	void Send(std::ostream& out);
+	void Send(std::ostream& out, bool bAfterConvergence = false);
 	void Recv(std::istream& in);
    
 public:
@@ -62,13 +62,8 @@ public:
 		std::vector<Vec3>& Offsets,
 		bool bUnsorted,
 		bool bOutputAccelerations,
-	        std::string& fin,
-		bool bRemoveIn,
-	        std::string& fout,
-		bool bNoClobberOut,
-		int iSleepTime,
+		ExtFileHandlerBase *pEFH,
 		int iCoupling,
-		int iPrecision,
 		flag fOut);
 
 	virtual ~StructExtForce(void);
@@ -93,13 +88,8 @@ public:
 	/* *******PER IL SOLUTORE PARALLELO******** */        
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
-	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes)
-	{
-		connectedNodes.resize(Nodes.size());
-		for (unsigned int i = 0; i < Nodes.size(); i++) {
-			connectedNodes[i] = Nodes[i];
-		}
-	};
+	virtual void
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes);
 	/* ************************************************ */
 };
 
@@ -108,9 +98,10 @@ public:
 class DataManager;
 class MBDynParser;
 
-extern Elem* ReadStructExtForce(DataManager* pDM, 
-		       MBDynParser& HP, 
-		       unsigned int uLabel);
+extern Elem*
+ReadStructExtForce(DataManager* pDM, 
+       MBDynParser& HP, 
+       unsigned int uLabel);
 
 #endif /* STREXT_H */
 

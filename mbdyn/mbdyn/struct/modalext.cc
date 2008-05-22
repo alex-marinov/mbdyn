@@ -44,16 +44,11 @@
 ModalExt::ModalExt(unsigned int uL,
 	Modal *pmodal,
 	bool bOutputAccelerations,
-	std::string& fin,
-	bool bRemoveIn,
-        std::string& fout,
-	bool bNoClobberOut,
-	int iSleepTime,
+	ExtFileHandlerBase *pEFH,
 	int iCoupling,
-	int iPrecision,
 	flag fOut)
 : Elem(uL, fOut), 
-ExtForce(uL, fin, bRemoveIn, fout, bNoClobberOut, iSleepTime, iCoupling, iPrecision, fOut), 
+ExtForce(uL, pEFH, iCoupling, fOut), 
 pModal(pmodal),
 F(0.),
 M(0.),
@@ -72,7 +67,7 @@ ModalExt::~ModalExt(void)
  * Send output to companion software
  */
 void
-ModalExt::Send(std::ostream& outf)
+ModalExt::Send(std::ostream& outf, bool bAfterConvergence)
 {
 	const StructNode *pNode = pModal->pGetModalNode();
 	if (pNode) {
@@ -124,8 +119,7 @@ ModalExt::Recv(std::istream& inf)
 	inf >> l >> F(1) >> F(2) >> F(3) >> M(1) >> M(2) >> M(3);
 	if (!inf) {
 		silent_cerr("ModalExt(" << GetLabel() << "): "
-			"unable to read reference node forces "
-			"from file \"" << fin << "\"" << std::endl);
+			"unable to read reference node forces" << std::endl);
 		throw ErrGeneric();
 	}
 
@@ -134,7 +128,7 @@ ModalExt::Recv(std::istream& inf)
 		if (!inf) {
 			silent_cerr("ModalExt(" << GetLabel() << "): "
 				"unable to read modal force #" << i
-				<< " from file \"" << fin << "\"" << std::endl);
+				<< std::endl);
 			throw ErrGeneric();
 		}
 	}
@@ -196,15 +190,10 @@ ReadModalExtForce(DataManager* pDM,
 	MBDynParser& HP, 
 	unsigned int uLabel)
 {
-	std::string fin;
-	bool bUnlinkIn;
-	std::string fout;
-	bool bNoClobberOut;
-	int iSleepTime;
+	ExtFileHandlerBase *pEFH;
 	int iCoupling;
-	int iPrecision;
 	
-	ReadExtForce(pDM, HP, uLabel, fin, bUnlinkIn, fout, bNoClobberOut, iSleepTime, iCoupling, iPrecision);
+	ReadExtForce(pDM, HP, uLabel, pEFH, iCoupling);
 
 	Modal *pModal = dynamic_cast<Modal *>(pDM->ReadElem(HP, Elem::JOINT));
 	if (pModal == 0) {
@@ -222,8 +211,7 @@ ReadModalExtForce(DataManager* pDM,
 	Elem *pEl = 0;
 	SAFENEWWITHCONSTRUCTOR(pEl, ModalExt,
 		ModalExt(uLabel, pModal, bOutputAccelerations,
-			fin, bUnlinkIn, fout, bNoClobberOut,
-			iSleepTime, iCoupling, iPrecision, fOut));
+			pEFH, iCoupling, fOut));
 
 	return pEl;
 }

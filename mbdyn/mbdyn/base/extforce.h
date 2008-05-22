@@ -38,32 +38,102 @@
 #include <string>
 #include "force.h"
 
+/* ExtFileHandlerBase - begin */
+
+class ExtFileHandlerBase {
+public:
+	virtual ~ExtFileHandlerBase(void);
+
+	virtual std::ostream& Send_pre(bool bAfterConvergence = false) = 0;
+	virtual void Send_post(bool bAfterConvergence = false) = 0;
+
+	virtual std::istream& Recv_pre(void) = 0;
+	virtual void Recv_post(void) = 0;
+};
+
+/* ExtFileHandlerBase - end */
+
+/* ExtFileHandler - begin */
+
+class ExtFileHandler : public ExtFileHandlerBase {
+protected:
+	std::string fin, fout, tmpout;
+	bool bRemoveIn, bNoClobberOut;
+	int iSleepTime, iPrecision;
+
+	std::ifstream inf;
+	std::ofstream outf;
+
+public:
+	ExtFileHandler(std::string& fin,
+		bool bRemoveIn,
+	        std::string& fout,
+		bool bNoClobberOut,
+		int iSleepTime,
+		int iPrecision);
+	~ExtFileHandler(void);
+
+	virtual std::ostream& Send_pre(bool bAfterConvergence = false);
+	virtual void Send_post(bool bAfterConvergence = false);
+
+	virtual std::istream& Recv_pre(void);
+	virtual void Recv_post(void);
+};
+
+/* ExtFileHandler - end */
+
+/* ExtFileHandlerEDGE - begin */
+
+class ExtFileHandlerEDGE : public ExtFileHandlerBase {
+protected:
+	std::string fflagname, fdataname;
+	int iSleepTime;
+
+	std::ifstream inf;
+	std::ofstream outf;
+
+	enum {
+		EDGE_INIT		= 1,
+		EDGE_READ_READY		= 2,
+		EDGE_MBDYN_WRITE_DONE	= 3,
+		EDGE_GOTO_NEXT_STEP	= 4,
+		EDGE_QUIT		= 5
+	};
+
+public:
+	ExtFileHandlerEDGE(std::string& fflagname,
+		std::string& fdataname, int iSleepTime);
+	~ExtFileHandlerEDGE(void);
+
+	virtual std::ostream& Send_pre(bool bAfterConvergence = false);
+	virtual void Send_post(bool bAfterConvergence = false);
+
+	virtual std::istream& Recv_pre(void);
+	virtual void Recv_post(void);
+};
+
+/* ExtFileHandlerEDGE - end */
+
 /* ExtForce - begin */
 
 class ExtForce : virtual public Elem, public Force {
 protected:
-	std::string fin, fout;
+	ExtFileHandlerBase *pEFH;
 
-	bool bRemoveIn, bNoClobberOut, bFirstRes;
-	int iSleepTime, iCoupling, iCouplingCounter, iPrecision;
+	bool bFirstRes;
+	int iCoupling, iCouplingCounter;
 
-	void Unlink(void);
-	void Send(void);
+	void Send(bool bAfterConvergence = false);
 	void Recv(void);
 
-	virtual void Send(std::ostream& out) = 0;
+	virtual void Send(std::ostream& out, bool bAfterConvergence = false) = 0;
 	virtual void Recv(std::istream& in) = 0;
    
 public:
 	/* Costruttore */
 	ExtForce(unsigned int uL,
-	        std::string& fin,
-		bool bRemoveIn,
-	        std::string& fout,
-		bool bNoClobberOut,
-		int iSleepTime,
+		ExtFileHandlerBase *pEFH,
 		int iCoupling,
-		int iPrecision,
 		flag fOut);
 
 	virtual ~ExtForce(void);
@@ -79,28 +149,18 @@ public:
 
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
-	virtual void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-		*piNumRows = 0; 
-		*piNumCols = 0; 
-	};
+	virtual void
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
    
 	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
 	virtual VariableSubMatrixHandler& 
 	InitialAssJac(VariableSubMatrixHandler& WorkMat,
-		const VectorHandler& XCurr)
-	{
-		WorkMat.SetNullMatrix();
-		return WorkMat;
-	};
+		const VectorHandler& XCurr);
 
 	/* Contributo al residuo durante l'assemblaggio iniziale */   
 	virtual SubVectorHandler& 
 	InitialAssRes(SubVectorHandler& WorkVec,
-		const VectorHandler& XCurr)
-	{
-		WorkVec.ResizeReset(0);
-		return WorkVec;
-	};
+		const VectorHandler& XCurr);
 };
 
 /* ExtForce - end */
@@ -112,11 +172,8 @@ extern void
 ReadExtForce(DataManager* pDM, 
 	MBDynParser& HP, 
 	unsigned int uLabel,
-	std::string& fin, bool& bUnlinkIn,
-	std::string& fout, bool& bNoClobberOut,
-	int& iSleepTime,
-	int& iCoupling,
-	int& iPrecision);
+	ExtFileHandlerBase*& pEFH,
+	int& iCoupling);
 
 #endif // EXTFORCE_H
 

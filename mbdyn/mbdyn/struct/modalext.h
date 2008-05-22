@@ -49,7 +49,7 @@ protected:
 
 	bool bOutputAccelerations;
 
-	void Send(std::ostream& out);
+	void Send(std::ostream& out, bool bAfterConvergence = false);
 	void Recv(std::istream& in);
    
 public:
@@ -57,13 +57,8 @@ public:
 	ModalExt(unsigned int uL,
 		Modal *pmodal,
 		bool bOutputAccelerations,
-	        std::string& fin,
-		bool bRemoveIn,
-	        std::string& fout,
-		bool bNoClobberOut,
-		int iSleepTime,
+		ExtFileHandlerBase *pEFH,
 		int iCoupling,
-		int iPrecision,
 		flag fOut);
 
 	virtual ~ModalExt(void);
@@ -74,7 +69,8 @@ public:
 	};
  
 	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-		*piNumRows = (pModal->pGetModalNode() ? 6 : 0) + pModal->uGetNModes();
+		*piNumRows = (pModal->pGetModalNode() ? 6 : 0)
+			+ pModal->uGetNModes();
 		*piNumCols = 1;
 	};
 
@@ -106,7 +102,8 @@ public:
 class DataManager;
 class MBDynParser;
 
-extern Elem* ReadModalExtForce(DataManager* pDM, 
+extern Elem*
+ReadModalExtForce(DataManager* pDM, 
        MBDynParser& HP, 
        unsigned int uLabel);
 

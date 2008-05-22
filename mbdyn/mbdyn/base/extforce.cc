@@ -35,6 +35,7 @@
 
 #include <dataman.h>
 #include "extforce.h"
+#include "except.h"
 
 #include <fstream>
 
@@ -44,29 +45,259 @@
 #include <unistd.h>
 #include <errno.h>
 
-/* ExtForce - begin */
+/* ExtFileHandlerBase - begin */
 
-/* Costruttore */
-ExtForce::ExtForce(unsigned int uL,
-	std::string& fin,
+ExtFileHandlerBase::~ExtFileHandlerBase(void)
+{
+	NO_OP;
+}
+
+/* ExtFileHandlerBase - end */
+
+/* ExtFileHandler - begin */
+
+ExtFileHandler::ExtFileHandler(std::string& fin,
 	bool bRemoveIn,
         std::string& fout,
 	bool bNoClobberOut,
 	int iSleepTime,
+	int iPrecision)
+: fin(fin), fout(fout), tmpout(fout + ".tmp"),
+bRemoveIn(bRemoveIn), bNoClobberOut(bNoClobberOut),
+iSleepTime(iSleepTime), iPrecision(iPrecision)
+{
+	NO_OP;
+}
+
+ExtFileHandler::~ExtFileHandler(void)
+{
+	NO_OP;
+}
+
+std::ostream&
+ExtFileHandler::Send_pre(bool bAfterConvergence)
+{
+	if (bNoClobberOut) {
+		bool	bKeepGoing(true);
+
+		for (int cnt = 0; bKeepGoing; cnt++) {
+			struct stat	s;
+
+			if (stat(fout.c_str(), &s) != 0) {
+				int save_errno = errno;
+
+				switch (save_errno) {
+				case ENOENT:
+					bKeepGoing = false;
+					break;
+
+				default:
+					silent_cerr("unable to stat "
+						"output file "
+						"\"" << fout.c_str() << "\": "
+						<< strerror(save_errno)
+						<< std::endl);
+					throw ErrGeneric();
+				}
+
+			} else {
+#ifdef USE_SLEEP
+				silent_cout("output file "
+					"\"" << fout.c_str() << "\" "
+					"still present, "
+					"try #" << cnt << "; "
+					"sleeping " << iSleepTime << " s"
+					<< std::endl);
+				sleep(iSleepTime);
+#endif // USE_SLEEP
+			}
+		}
+	}
+
+	outf.open(tmpout.c_str());
+
+	if (!outf) {
+		silent_cerr("unable to open file \"" << fout.c_str() << "\""
+			<< std::endl);
+		throw ErrGeneric();
+	}
+
+	if (iPrecision != 0) {
+		outf.precision(iPrecision);
+	}
+	outf.setf(std::ios::scientific);
+	return outf;
+}
+
+void
+ExtFileHandler::Send_post(bool bAfterConvergence)
+{
+	outf.close();
+	rename(tmpout.c_str(), fout.c_str());
+}
+
+std::istream&
+ExtFileHandler::Recv_pre(void)
+{
+	inf.open(fin.c_str());
+
+#ifdef USE_SLEEP
+	for (int cnt = 0; !inf; cnt++) {
+		silent_cout("input file \"" << fin.c_str() << "\" missing, "
+			"try #" << cnt << "; "
+			"sleeping " << iSleepTime << " s" << std::endl); 
+               
+		sleep(iSleepTime);
+		inf.clear();
+		inf.open(fin.c_str());
+	}
+#endif // USE_SLEEP
+
+	return inf;
+}
+
+void
+ExtFileHandler::Recv_post(void)
+{
+	if (bRemoveIn) {
+		if (unlink(fin.c_str()) != 0) {
+			int save_errno = errno;
+
+			switch (save_errno) {
+			case ENOENT:
+				break;
+
+			default:
+				silent_cerr("unable to delete input file "
+					"\"" << fin.c_str() << "\": "
+					<< strerror(save_errno) << std::endl);
+				throw ErrGeneric();
+			}
+		}
+	}
+}
+
+/* ExtFileHandler - end */
+
+/* ExtFileHandlerEDGE - begin */
+
+ExtFileHandlerEDGE::ExtFileHandlerEDGE(std::string& fflagname,
+	std::string& fdataname, int iSleepTime)
+: fflagname(fflagname), fdataname(fdataname), iSleepTime(iSleepTime)
+{
+	NO_OP;
+}
+
+ExtFileHandlerEDGE::~ExtFileHandlerEDGE(void)
+{
+	NO_OP;
+}
+
+std::ostream&
+ExtFileHandlerEDGE::Send_pre(bool bAfterConvergence)
+{
+	outf.open(fdataname.c_str());
+	if (!outf) {
+		silent_cerr("unable to open data file "
+			"\"" << fdataname.c_str() << "\" "
+			"for output" << std::endl);
+		throw ErrGeneric();
+	}
+
+	outf.setf(std::ios::scientific);
+	return outf;
+}
+
+void
+ExtFileHandlerEDGE::Send_post(bool bAfterConvergence)
+{
+	outf.close();
+
+	if (bAfterConvergence) {
+		outf.open("update.ainp");
+		outf << "UPDATE,N,0,0,1\n"
+			"IBREAK,I,1,1,0\n"
+			"5\n";
+
+	} else {
+		outf.open(fflagname.c_str());
+		outf << 3 << std::endl;
+	}
+	outf.close();
+}
+
+std::istream&
+ExtFileHandlerEDGE::Recv_pre(void)
+{
+	for (int cnt = 0; ; cnt++) {
+		inf.open(fflagname.c_str());
+
+#ifdef USE_SLEEP
+		for (; !inf; cnt++) {
+			silent_cout("flag file \"" << fflagname.c_str() << "\" "
+				"missing, try #" << cnt << "; "
+				"sleeping " << iSleepTime << " s" << std::endl); 
+               
+			sleep(iSleepTime);
+			inf.clear();
+			inf.open(fdataname.c_str());
+		}
+#endif // USE_SLEEP
+
+		int cmd;
+		inf >> cmd;
+
+		inf.close();
+
+		if (cmd == 2) {
+			break;
+
+		} else if (cmd == 4) {
+			silent_cout("EDGE requested end of simulation"
+				<< std::endl);
+			throw NoErr();
+		}
+
+		silent_cout("flag file \"" << fflagname.c_str() << "\": "
+			"cmd=" << cmd << " try #" << cnt << "; "
+			"sleeping " << iSleepTime << " s" << std::endl); 
+#ifdef USE_SLEEP
+		sleep(iSleepTime);
+#endif // USE_SLEEP
+	}
+
+	inf.open(fdataname.c_str());
+	if (!inf) {
+		silent_cerr("unable to open data file "
+			"\"" << fdataname.c_str() << "\" "
+			"for input" << std::endl);
+		throw ErrGeneric();
+	}
+
+	return inf;
+}
+
+void
+ExtFileHandlerEDGE::Recv_post(void)
+{
+	inf.close();
+}
+
+/* ExtFileHandlerEDGE - end */
+
+/* ExtForce - begin */
+
+/* Costruttore */
+ExtForce::ExtForce(unsigned int uL,
+	ExtFileHandlerBase *pEFH,
 	int iCoupling,
-	int iPrecision,
 	flag fOut)
 : Elem(uL, fOut), 
-Force(uL, fOut), 
-fin(fin.c_str()),
-fout(fout.c_str()),
-bRemoveIn(bRemoveIn),
-bNoClobberOut(bNoClobberOut),
+Force(uL, fOut),
+pEFH(pEFH),
 bFirstRes(false),
-iSleepTime(iSleepTime),
 iCoupling(iCoupling),
-iCouplingCounter(0),
-iPrecision(iPrecision)
+iCouplingCounter(0)
 {
 	NO_OP;
 }
@@ -107,33 +338,12 @@ ExtForce::AfterConvergence(const VectorHandler& X,
 {
 	/* If not running tight coupling, send kinematics only at convergence */
 	if (iCoupling != 1) {
-		Send();
+		Send(true);
+#if 0
 		if (bRemoveIn) {
 			Unlink();
 		}
-	}
-}
-
-/*
- * Unlink input file when no longer required
- * used to inform companion software that a new input file can be written
- */
-void
-ExtForce::Unlink(void)
-{
-	if (unlink(fin.c_str()) != 0) {
-		int save_errno = errno;
-
-		switch (save_errno) {
-		case ENOENT:
-			break;
-
-		default:
-			silent_cerr("ExtForce(" << GetLabel() << "): "
-				<< "unable to delete input file \"" << fin.c_str() 
-				<< "\": " << strerror(save_errno) << std::endl);
-			throw ErrGeneric();
-		}
+#endif
 	}
 }
 
@@ -141,136 +351,134 @@ ExtForce::Unlink(void)
  * Send output to companion software
  */
 void
-ExtForce::Send(void)
+ExtForce::Send(bool bAfterConvergence)
 {
-	if (bNoClobberOut) {
-		bool	bKeepGoing(true);
-
-		for (int cnt = 0; bKeepGoing; cnt++) {
-			struct stat	s;
-
-			if (stat(fout.c_str(), &s) != 0) {
-				int save_errno = errno;
-
-				switch (save_errno) {
-				case ENOENT:
-					bKeepGoing = false;
-					break;
-
-				default:
-					silent_cerr("ExtForce(" << GetLabel() << "): "
-						"unable to stat output file \"" << fout.c_str() << "\": "
-						<< strerror(save_errno) << std::endl);
-					throw ErrGeneric();
-				}
-
-			} else {
-#ifdef USE_SLEEP
-				silent_cout("ExtForce(" << GetLabel() << "): "
-					"output file \"" << fout.c_str() << "\" still present, "
-					"try #" << cnt << "; "
-					"sleeping " << iSleepTime << " s" << std::endl);
-				sleep(iSleepTime);
-#endif // USE_SLEEP
-			}
-		}
-	}
-
-	std::string tmpout(fout + ".tmp");
-	std::ofstream outf(tmpout.c_str());
-
-	if (!outf) {
-		silent_cerr("ExtForce(" << GetLabel() << "): "
-			"unable to open file \"" << fout.c_str() << "\"" << std::endl);
-		throw ErrGeneric();
-	}
-
-	if (iPrecision != 0) {
-		outf.precision(iPrecision);
-	}
-	outf.setf(std::ios::scientific);
-
-	Send(outf);
-
-	/* send */
-	outf.close();
-	rename(tmpout.c_str(), fout.c_str());
+	std::ostream& outf = pEFH->Send_pre(bAfterConvergence);
+	Send(outf, bAfterConvergence);
+	pEFH->Send_post(bAfterConvergence);
 }
 
 void
 ExtForce::Recv(void)
 {
 	if ((iCoupling && !(iCouplingCounter%iCoupling)) || bFirstRes) {
-	        std::ifstream inf(fin.c_str());
-
-#ifdef USE_SLEEP
-		for (int cnt = 0; !inf; cnt++) {
-			silent_cout("ExtForce(" << GetLabel() << "): "
-				"input file \"" << fin.c_str() << "\" missing, "
-				"try #" << cnt << "; "
-				"sleeping " << iSleepTime << " s" << std::endl); 
-               
-			sleep(iSleepTime);
-			inf.clear();
-			inf.open(fin.c_str());
-		}
-#endif // USE_SLEEP
-
+		std::istream& inf = pEFH->Recv_pre();
 		Recv(inf);
-
-		if (bRemoveIn) {
-			Unlink();
-		}
+		pEFH->Recv_post();
 	}
 
 	bFirstRes = false;
 }
 
 void
-ReadExtForce(DataManager* pDM, 
-	MBDynParser& HP, 
-	unsigned int uLabel,
-	std::string& fin, bool& bUnlinkIn,
-	std::string& fout, bool& bNoClobberOut,
-	int& iSleepTime,
-	int& iCoupling,
-	int& iPrecision)
+ExtForce::InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
+	*piNumRows = 0; 
+	*piNumCols = 0; 
+}
+   
+/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+VariableSubMatrixHandler& 
+ExtForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+	const VectorHandler& XCurr)
+{
+	WorkMat.SetNullMatrix();
+	return WorkMat;
+}
+
+/* Contributo al residuo durante l'assemblaggio iniziale */   
+SubVectorHandler& 
+ExtForce::InitialAssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& XCurr)
+{
+	WorkVec.ResizeReset(0);
+	return WorkVec;
+}
+
+static ExtFileHandlerBase *
+ReadExtFileHandler(DataManager* pDM,
+	MBDynParser& HP, 
+	unsigned int uLabel)
+{
+	ExtFileHandlerBase *pEFH = 0;
+
+	if (HP.IsKeyWord("EDGE")) {
+		
+		return pEFH;
+	}
+
+	// default
 	const char	*s = HP.GetFileName();
 	if (s == 0) {
-		silent_cerr("ExtForce(" << uLabel << "): unable to get input file name "
+		silent_cerr("ExtForce(" << uLabel << "): "
+			"unable to get input file name "
 			"at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric();
 	}
-	fin = s;
+	std::string fin = s;
 
-	bUnlinkIn = false;
+	bool bUnlinkIn = false;
 	if (HP.IsKeyWord("unlink")) {
 		bUnlinkIn = true;
 	}
 
 	s = HP.GetFileName();
 	if (s == 0) {
-		silent_cerr("ExtForce(" << uLabel << "): unable to get output file name "
+		silent_cerr("ExtForce(" << uLabel << "): "
+			"unable to get output file name "
 			"at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric();
 	}
-	fout = s;
+	std::string fout = s;
 
-	bNoClobberOut = false;
+	bool bNoClobberOut = false;
 	if (HP.IsKeyWord("no" "clobber")) {
 		bNoClobberOut = true;
 	}
 
-	iSleepTime = 1;
+	int iSleepTime = 1;
 	if (HP.IsKeyWord("sleep" "time")) {
 		iSleepTime = HP.GetInt();
 		if (iSleepTime <= 0 ) {
 			silent_cerr("ExtForce(" << uLabel << "): "
-				"invalid sleep time " << iSleepTime <<std::endl);
+				"invalid sleep time " << iSleepTime
+				<< " at line " << HP.GetLineData()
+				<< std::endl);
 			throw ErrGeneric();
 		}
 	}
+
+	int iPrecision = 0;
+	if (HP.IsKeyWord("precision")) {
+		if (!HP.IsKeyWord("default")) {
+			iPrecision = HP.GetInt();
+		}
+
+		if (iPrecision < 0) {
+			silent_cerr("ExtForce(" << uLabel << "): "
+				"invalid precision value "
+				"\"" << iPrecision << "\""
+				" at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric();
+		}
+	}
+
+	SAFENEWWITHCONSTRUCTOR(pEFH, ExtFileHandler,
+		ExtFileHandler(fin, bUnlinkIn, fout, bNoClobberOut,
+			iSleepTime, iPrecision));
+
+	return pEFH;
+}
+
+void
+ReadExtForce(DataManager* pDM, 
+	MBDynParser& HP, 
+	unsigned int uLabel,
+	ExtFileHandlerBase*& pEFH,
+	int& iCoupling)
+{
+	pEFH = ReadExtFileHandler(pDM, HP, uLabel);
 
 	iCoupling = 0;
 	if (HP.IsKeyWord("coupling")) {
@@ -288,22 +496,6 @@ ReadExtForce(DataManager* pDM,
 					<< std::endl);
 				throw ErrGeneric();
 			}
-		}
-	}
-
-	iPrecision = 0;
-	if (HP.IsKeyWord("precision")) {
-		if (!HP.IsKeyWord("default")) {
-			iPrecision = HP.GetInt();
-		}
-
-		if (iPrecision < 0) {
-			silent_cerr("ExtForce(" << uLabel << "): "
-				"invalid precision value "
-				"\"" << iPrecision << "\""
-				" at line " << HP.GetLineData()
-				<< std::endl);
-			throw ErrGeneric();
 		}
 	}
 }
