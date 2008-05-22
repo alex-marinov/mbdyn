@@ -165,6 +165,38 @@ TimeDriveCaller::dGetP(void) const
 /* TimeDriveCaller - end */
 
 
+/* TimeStepDriveCaller - begin */
+
+class TimeStepDriveCaller : public DriveCaller {
+public:
+	TimeStepDriveCaller(const DriveHandler* pDH);
+	virtual ~TimeStepDriveCaller(void);
+
+	/* Scrive il contributo del DriveCaller al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	/* Copia */
+	virtual DriveCaller* pCopy(void) const;
+
+	inline doublereal dGet(const doublereal& dVar) const;
+	inline doublereal dGet(void) const;
+};
+
+inline doublereal
+TimeStepDriveCaller::dGet(const doublereal& dVar) const
+{
+	return dVar;
+}
+
+inline doublereal
+TimeStepDriveCaller::dGet(void) const
+{
+	return pDrvHdl->dGetTimeStep();
+}
+
+/* TimeStepDriveCaller - end */
+
+
 /* LinearDriveCaller - begin */
 
 class LinearDriveCaller : public DriveCaller {

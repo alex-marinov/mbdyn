@@ -202,7 +202,7 @@ class DriveHandler {
       
    inline doublereal dGetTime(void) const;
    inline doublereal dGetTimeStep(void) const;
-   inline integer dGetStep(void) const;
+   inline integer iGetStep(void) const;
    inline long int iGetRand(integer iNumber) const;
    inline bool bGetMeter(integer iNumber) const;
 };
@@ -263,7 +263,7 @@ DriveHandler::dGetTimeStep(void) const
 }
 
 inline integer
-DriveHandler::dGetStep(void) const
+DriveHandler::iGetStep(void) const
 {
 	ASSERT(pStep != 0);
 	return pStep->GetVal().GetInt();
