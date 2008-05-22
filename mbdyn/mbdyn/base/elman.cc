@@ -631,7 +631,7 @@ DataManager::ppFindElem(Elem::Type Typ, unsigned int uL) const
 		return 0;
 	}
 
-	return (Elem**)&p->second;
+	return const_cast<Elem **>(&p->second);
 }
 
 /* cerca un elemento qualsiasi */
@@ -685,13 +685,15 @@ DataManager::pChooseElem(Elem* p, unsigned int iDeriv) const
 Drive *
 DataManager::pFindDrive(Drive::Type Typ, unsigned int uL) const
 {
-	ASSERT(DriveData[Typ].ppFirstDrive != NULL);
-	ASSERT(DriveData[Typ].iNum > 0);
 	ASSERT(uL > 0);
 
-	Drive* p = pLabelSearch(DriveData[Typ].ppFirstDrive, DriveData[Typ].iNum, uL);
+	if (DriveData[Typ].iNum == 0) {
+		return 0;
+	}
 
-	return p;
+	ASSERT(DriveData[Typ].ppFirstDrive != NULL);
+
+	return pLabelSearch(DriveData[Typ].ppFirstDrive, DriveData[Typ].iNum, uL);
 }
 
 

@@ -240,9 +240,13 @@ DataManager::fGetDefaultOutputFlag(const Node::Type& t) const
 Node*
 DataManager::pFindNode(Node::Type Typ, unsigned int uL) const
 {
-	ASSERT(NodeData[Typ].ppFirstNode != NULL);
-	ASSERT(NodeData[Typ].iNum > 0);
 	ASSERT(uL > 0);
+
+	if (NodeData[Typ].iNum == 0) {
+		return 0;
+	}
+
+	ASSERT(NodeData[Typ].ppFirstNode != 0);
 
 	return pLabelSearch(NodeData[Typ].ppFirstNode, NodeData[Typ].iNum, uL);
 }
@@ -253,12 +257,14 @@ DataManager::pFindStructNode(unsigned int uL) const
 {
 	ASSERT(uL > 0);
 
-	if (NodeData[Node::STRUCTURAL].ppFirstNode == 0) {
+	if (NodeData[Node::STRUCTURAL].iNum == 0) {
 		silent_cerr("No structural nodes defined; "
 			"StructNode(" << uL << ") cannot be located."
 			<< std::endl);
 		return 0;
 	}
+
+	ASSERT(NodeData[Node::STRUCTURAL].ppFirstNode != 0);
 
 	return dynamic_cast<StructNode *>(pLabelSearch(NodeData[Node::STRUCTURAL].ppFirstNode, NodeData[Node::STRUCTURAL].iNum, uL));
 }
@@ -269,12 +275,14 @@ DataManager::pFindElectricNode(unsigned int uL) const
 {
 	ASSERT(uL > 0);
 
-	if (NodeData[Node::ELECTRIC].ppFirstNode == 0) {
+	if (NodeData[Node::ELECTRIC].iNum == 0) {
 		silent_cerr("No electric nodes defined; "
 			"ElectricNode(" << uL << ") cannot be located"
 			<< std::endl);
 		return 0;
 	}
+
+	ASSERT(NodeData[Node::ELECTRIC].ppFirstNode != 0);
 
 	return dynamic_cast<ElectricNode *>(pLabelSearch(NodeData[Node::ELECTRIC].ppFirstNode, NodeData[Node::ELECTRIC].iNum, uL));
 }
