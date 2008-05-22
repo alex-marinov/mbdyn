@@ -35,6 +35,7 @@ MBDyn 1.X-Devel
 		- fix tic count initialization in RTAI support
 		- fix optional log process execution in RTAI support
 		- fix linear scalar function input
+		- fix crash when using model namespace too early
 
 MBDyn 1.3.3-Beta
 	Enhancements:

@@ -94,7 +94,7 @@ position(const MathParser::MathArgs& args)
 
 	StructNode *pNode = (*dm)()->pFindStructNode(uLabel);
 	if (pNode == 0) {
-		silent_cerr("position" << IDX2str(IDX)
+		silent_cerr("model::position" << IDX2str(IDX)
 				<< "(" << uLabel << "): "
 				"unable to find StructNode(" << uLabel << ")"
 				<< std::endl);
@@ -148,7 +148,7 @@ distance(const MathParser::MathArgs& args)
 
 	StructNode *pNode1 = (*dm)()->pFindStructNode(uLabel1);
 	if (pNode1 == 0) {
-		silent_cerr("distance" << IDX2str(IDX)
+		silent_cerr("model::distance" << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
 				"unable to find StructNode(" << uLabel1 << ")"
 				<< std::endl);
@@ -157,7 +157,7 @@ distance(const MathParser::MathArgs& args)
 
 	StructNode *pNode2 = (*dm)()->pFindStructNode(uLabel2);
 	if (pNode2 == 0) {
-		silent_cerr("distance" << IDX2str(IDX)
+		silent_cerr("model::distance" << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
 				"unable to find StructNode(" << uLabel2 << ")"
 				<< std::endl);
@@ -213,7 +213,7 @@ anglerel(const MathParser::MathArgs& args)
 
 	StructNode *pNode1 = (*dm)()->pFindStructNode(uLabel1);
 	if (pNode1 == 0) {
-		silent_cerr("angle" << IDX2str(IDX)
+		silent_cerr("model::angle" << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
 				"unable to find StructNode(" << uLabel1 << ")"
 				<< std::endl);
@@ -222,7 +222,7 @@ anglerel(const MathParser::MathArgs& args)
 
 	StructNode *pNode2 = (*dm)()->pFindStructNode(uLabel2);
 	if (pNode2 == 0) {
-		silent_cerr("angle" << IDX2str(IDX)
+		silent_cerr("model::angle" << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
 				"unable to find StructNode(" << uLabel2 << ")"
 				<< std::endl);
@@ -269,7 +269,7 @@ velocity(const MathParser::MathArgs& args)
 
 	StructNode *pNode = (*dm)()->pFindStructNode(uLabel);
 	if (pNode == 0) {
-		silent_cerr("velocity" << IDX2str(IDX)
+		silent_cerr("model::velocity" << IDX2str(IDX)
 				<< "(" << uLabel << "): "
 				"unable to find StructNode(" << uLabel << ")"
 				<< std::endl);
@@ -323,7 +323,7 @@ vrel(const MathParser::MathArgs& args)
 
 	StructNode *pNode1 = (*dm)()->pFindStructNode(uLabel1);
 	if (pNode1 == 0) {
-		silent_cerr("vrel" << IDX2str(IDX)
+		silent_cerr("model::vrel" << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
 				"unable to find StructNode(" << uLabel1 << ")"
 				<< std::endl);
@@ -332,7 +332,7 @@ vrel(const MathParser::MathArgs& args)
 
 	StructNode *pNode2 = (*dm)()->pFindStructNode(uLabel2);
 	if (pNode2 == 0) {
-		silent_cerr("vrel" << IDX2str(IDX)
+		silent_cerr("model::vrel" << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
 				"unable to find StructNode(" << uLabel2 << ")"
 				<< std::endl);
@@ -386,11 +386,13 @@ drive(const MathParser::MathArgs& args)
 
 	const DriveCaller *pDC = (*dm)()->GetMBDynParser().GetDrive(uLabel);
 	if (pDC == 0) {
-		silent_cerr("model namespace: drive " << uLabel << " not available" << std::endl);
+		silent_cerr("model::drive(" << uLabel << ") not available"
+			<< std::endl);
 		throw ErrGeneric();
 	}
 
-	*out = pDC->dGet((*arg2)());
+	doublereal val = (*arg2)();
+	*out = pDC->dGet(val);
 
 	return 0;
 }
@@ -428,7 +430,7 @@ model_sf(const MathParser::MathArgs& args)
 	} else {
 		const DifferentiableScalarFunction *dsf = dynamic_cast<const DifferentiableScalarFunction *>((*sf)());
 		if (dsf == 0) {
-			silent_cerr("model namespace scalar function: "
+			silent_cerr("model::sf "
 				"order=" << order << " only allowed "
 				"with differentiable scalar functions"
 				<< std::endl);
