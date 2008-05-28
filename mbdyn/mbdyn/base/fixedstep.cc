@@ -46,12 +46,11 @@
 FixedStepFileDrive::FixedStepFileDrive(unsigned int uL,
 		const DriveHandler* pDH,
 		const char* const sFileName,
-		integer is, integer nd,
+		integer ins, integer ind,
 		doublereal t0, doublereal dt, bool pz)
-: FileDrive(uL, pDH, sFileName, nd),
-dT0(t0), dDT(dt), iNumSteps(is), bPadZeroes(pz), pd(NULL), pvd(NULL)
+: FileDrive(uL, pDH, sFileName, ind),
+dT0(t0), dDT(dt), iNumSteps(ins), bPadZeroes(pz), pd(NULL), pvd(NULL)
 {
-	ASSERT(iNumSteps > 0);
 	ASSERT(iNumDrives > 0);
 	ASSERT(sFileName != NULL);
 	ASSERT(dDT > 0.);
@@ -61,16 +60,6 @@ dT0(t0), dDT(dt), iNumSteps(is), bPadZeroes(pz), pd(NULL), pvd(NULL)
 		silent_cerr("can't open file \""
 			<< sFileName << "\"" << std::endl);
 		throw ErrGeneric();
-	}
-
-	SAFENEWARR(pd, doublereal, iNumDrives*iNumSteps);
-	SAFENEWARR(pvd, doublereal*, iNumDrives + 1);
-
-	/* Attenzione: il primo puntatore e' vuoto
-	 * (ne e' stato allocato uno in piu'),
-	 * cosi' i drives possono essere numerati da 1 a n */
-	for (integer i = iNumDrives; i-- > 0; ) {
-		pvd[i + 1] = pd + i*iNumSteps;
 	}
 
 	/*
@@ -87,6 +76,35 @@ dT0(t0), dDT(dt), iNumSteps(is), bPadZeroes(pz), pd(NULL), pvd(NULL)
 
 	if (c != '#') {
 		in.putback(c);
+	}
+
+	if (ins == -1) {
+		std::streampos pos = in.tellg();
+
+		for (ins = 0; !in.eof(); ins++) {
+			char buf[1024];
+
+			do {
+				in.getline(buf, sizeof(buf));
+			} while (strlen(buf) == STRLENOF(buf) && buf[STRLENOF(buf)] != '\n');
+		}
+		iNumSteps = --ins;
+
+		in.clear();
+		in.seekg(pos);
+
+		silent_cout("FixedStepFileDrive(" << uL << "): "
+			"counted " << ins << " steps" << std::endl);
+	}
+
+	SAFENEWARR(pd, doublereal, iNumDrives*iNumSteps);
+	SAFENEWARR(pvd, doublereal*, iNumDrives + 1);
+
+	/* Attenzione: il primo puntatore e' vuoto
+	 * (ne e' stato allocato uno in piu'),
+	 * cosi' i drives possono essere numerati da 1 a n */
+	for (integer i = iNumDrives; i-- > 0; ) {
+		pvd[i + 1] = pd + i*iNumSteps;
 	}
 
 	for (integer j = 0; j < iNumSteps; j++) {
@@ -173,10 +191,36 @@ ReadFixedStepFileDrive(DataManager* pDM,
 		MBDynParser& HP,
 		unsigned int uLabel)
 {
-	integer isteps = HP.GetInt();
+	integer isteps = -1;
+	if (!HP.IsKeyWord("count")) {
+		isteps = HP.GetInt();
+		if (isteps <= 0) {
+			silent_cerr("FixedStepFileDrive(" << uLabel << "): "
+				"invalid steps number " << isteps
+				<< " at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric();
+		}
+	}
+
 	integer idrives = HP.GetInt();
+	if (idrives <= 0) {
+		silent_cerr("FixedStepFileDrive(" << uLabel << "): "
+			"invalid channels number " << idrives
+			<< " at line " << HP.GetLineData()
+			<< std::endl);
+		throw ErrGeneric();
+	}
+
 	doublereal t0 = HP.GetReal();
 	doublereal dt = HP.GetReal();
+	if (dt <= 0) {
+		silent_cerr("FixedStepFileDrive(" << uLabel << "): "
+			"invalid time step " << dt
+			<< " at line " << HP.GetLineData()
+			<< std::endl);
+		throw ErrGeneric();
+	}
 
 	bool pz(true);
 	if (HP.IsKeyWord("pad" "zeros") || HP.IsKeyWord("pad" "zeroes")) {
