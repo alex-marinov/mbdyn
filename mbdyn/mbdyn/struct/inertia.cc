@@ -213,7 +213,7 @@ Inertia::Collect_int(void)
 		silent_cerr("Inertia(" << GetLabel() << "): "
 			"mass is null" << std::endl);
 
-		R_princ = 0.;
+		R_princ = Eye3;
 		J_princ = 0.;
 
 	} else {
