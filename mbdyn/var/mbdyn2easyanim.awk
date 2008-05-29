@@ -1193,6 +1193,9 @@ isvan == 0 && /^###/ {
 		printf("%s %s %s %s\n", side[i], side[i, "N"], s, side[i, "prop"]) >> volfile;
 	}
 
+	# flush .vol
+	fflush(volfile);
+
 	isvan = 1;
 	i = 0;
 	getline;
