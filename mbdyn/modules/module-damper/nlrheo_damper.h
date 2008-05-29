@@ -98,6 +98,8 @@ typedef struct sym_params {
 	
 	double low_freq_displ_filter_coeff;
 	double static_low_freq_stiffness;
+
+	int nsubsteps;
 } sym_params;
 
 /* read functions */
@@ -110,7 +112,7 @@ extern "C" int nlrheo_update(sym_params *nlrheo,
 	double t_curr, double eps, double epsPrime, int do_try);
 extern "C" int nlrheo_parse(sym_params **nlrheop,
 	double scale_eps, double scale_f, double hi_filter,
-	double lo_filter, double lo_stiffness);
+	double lo_filter, double lo_stiffness, int nsubsteps);
 
 #ifdef __cplusplus
 } /* extern "C" */

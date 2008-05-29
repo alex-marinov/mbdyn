@@ -66,93 +66,93 @@ compute_kc(double &k, double &c,
 	const double *const x)
 {
 	// calcola k di el dato s,v
-	//std::cerr << "e: " << el << std::endl;
+	// std::cerr << "e: " << el << std::endl;
 	double k_v_i[npti_kv[el]];
 	int somma_k = 0;
-	for (int e=0; e < el; e++) {
+	for (int e = 0; e < el; e++) {
 		somma_k += npti_ks[e] * npti_kv[e];
 	}
 	if (ik_s != 0) {
-		for (int i=0; i < npti_kv[el]; i++) {
-			//somma_k += npti_ks[el] * i;
-			//std::cerr << "el: " << el << " s: " << s << " k_s[npti_ks[el]-1]: " << k_s[npti_ks[el]-1]<< std::endl;
+		for (int i = 0; i < npti_kv[el]; i++) {
+			// somma_k += npti_ks[el] * i;
+			// std::cerr << "el: " << el << " s: " << s << " k_s[npti_ks[el]-1]: " << k_s[npti_ks[el]-1]<< std::endl;
 			if (std::abs(s) > k_s[npti_ks[el]-1]) {
-				//std::cerr << "1: " << somma_k + npti_ks[el] - 1 << std::endl;
+				// std::cerr << "1: " << somma_k + npti_ks[el] - 1 << std::endl;
 				k_v_i[i] = x[somma_k + npti_ks[el] - 1];
 			} else if (std::abs(s) == 0) {
 				k_v_i[i] = x[somma_k];
-				//std::cerr << "2: " <<  somma_k << std::endl;
+				// std::cerr << "2: " <<  somma_k << std::endl;
 			} else {
 				double tx[npti_ks[el]];
-				for (int ii=0; ii < npti_ks[el]; ii++) {
+				for (int ii = 0; ii < npti_ks[el]; ii++) {
 					tx[ii] = x[somma_k + ii];
-					//std::cerr << "3: " <<  somma_k + ii << " " << " " << k_s[ii] << " " << tx[ii] << std::endl;
+					// std::cerr << "3: " <<  somma_k + ii << " " << " " << k_s[ii] << " " << tx[ii] << std::endl;
 				}
 				k_v_i[i] = gsl_interp_eval(ik_s, k_s, tx, std::abs(s), NULL);
-				//std::cerr << "interp[" << i << "]: " << k_v_i[0] << " s: " << std::abs(s) << std::endl;
+				// std::cerr << "interp[" << i << "]: " << k_v_i[0] << " s: " << std::abs(s) << std::endl;
 			}
 			somma_k += npti_ks[el];
 		}
 	} else {
-		for (int i=0; i < npti_kv[el]; i++) {
-			//std::cerr << somma_k + i << "x: " << k_v_i[i] << std::endl;
+		for (int i = 0; i < npti_kv[el]; i++) {
+			// std::cerr << somma_k + i << "x: " << k_v_i[i] << std::endl;
 			k_v_i[i] = x[somma_k + i];
 		}
 	}
-	//std::cerr << "<<<<<<<<<<<<<<<<<<\n";
+	// std::cerr << "<<<<<<<<<<<<<<<<<<\n";
 	if (ik_v != 0) {
-		for (int i=0; i < npti_kv[el]; i++) {
-			//std::cerr << "xx " << i << " " << k_v[i] << " " << k_v_i[i] << " " << std::abs(v) << std::endl;
+		for (int i = 0; i < npti_kv[el]; i++) {
+			// std::cerr << "xx " << i << " " << k_v[i] << " " << k_v_i[i] << " " << std::abs(v) << std::endl;
 		}
-		//std::cerr << "el: " << el << " v: " << s << " k_v[npti_kv[el]-1]: " << k_v[npti_kv[el]-1]<< std::endl;
+		// std::cerr << "el: " << el << " v: " << s << " k_v[npti_kv[el]-1]: " << k_v[npti_kv[el]-1]<< std::endl;
 		if (std::abs(v) > k_v[npti_kv[el] - 1]) {
 			k = k_v_i[npti_kv[el]-1];
-			//std::cerr << "4: " << k << " " << std::abs(v) << " " << k_v[npti_kv[el]] << std::endl;
+			// std::cerr << "4: " << k << " " << std::abs(v) << " " << k_v[npti_kv[el]] << std::endl;
 		} else if (std::abs(v) == 0) {
 			k = k_v_i[0];
-			//std::cerr << "5: " << k << std::endl;
+			// std::cerr << "5: " << k << std::endl;
 		} else {
 			k = gsl_interp_eval(ik_v, k_v, k_v_i, v, NULL);
-			//std::cerr << "6: " << k << std::endl;
+			// std::cerr << "6: " << k << std::endl;
 		}
 	} else {
 		k = k_v_i[0];
 	}
 	
-	//calcola c di el dato s,v
+	// calcola c di el dato s,v
 	double c_v_i[npti_cv[el]];
-	//std::cerr << "c: " << n_variabili_k << std::endl;
+	// std::cerr << "c: " << n_variabili_k << std::endl;
 	int somma_c = n_variabili_k;
-	for (int e=0; e < el; e++) {
+	for (int e = 0; e < el; e++) {
 		somma_c += npti_cs[e] * npti_cv[e];
 	}
 	if (ic_s != 0) {
-		for (int i=0; i < npti_cv[el]; i++) {
-			//somma_c += npti_cs[el] * i;
-			//std::cerr << "el: " << el << " s: " << s << " c_s[npti_cs[el]-1]: " << c_s[npti_cs[el]-1]<< std::endl;
+		for (int i = 0; i < npti_cv[el]; i++) {
+			// somma_c += npti_cs[el] * i;
+			// std::cerr << "el: " << el << " s: " << s << " c_s[npti_cs[el]-1]: " << c_s[npti_cs[el]-1]<< std::endl;
 			if (std::abs(s) > c_s[npti_cs[el] - 1]) {
-				//std::cerr << somma_c + npti_cs[el] - 1 << std::endl;
+				// std::cerr << somma_c + npti_cs[el] - 1 << std::endl;
 				c_v_i[i] = x[somma_c + npti_cs[el] - 1];
 			} else if (std::abs(s) == 0) {
-				//std::cerr << somma_c << std::endl;
+				// std::cerr << somma_c << std::endl;
 				c_v_i[i] = x[somma_c];
 			}
 			double tx[npti_cs[el]];
-			for (int ii=0; ii < npti_cs[el]; ii++) {
-				//std::cerr << somma_c + ii << std::endl;
+			for (int ii = 0; ii < npti_cs[el]; ii++) {
+				// std::cerr << somma_c + ii << std::endl;
 				tx[ii] = x[somma_c + ii];
 			}
 			c_v_i[i] = gsl_interp_eval(ic_s, c_s, tx, std::abs(s), NULL);
 			somma_c += npti_cs[el];
 		}
 	} else {
-		for (int i=0; i < npti_cv[el]; i++) {
-			//std::cerr << somma_c + i << std::endl;
+		for (int i = 0; i < npti_cv[el]; i++) {
+			// std::cerr << somma_c + i << std::endl;
 			c_v_i[i] = x[somma_c + i];
 		}
 	}
 	if (ic_v != 0) {
-		//std::cerr << "el: " << el << " v: " << v << " c_v[npti_cv[el]-1]: " << c_v[npti_cv[el]-1]<< std::endl;
+		// std::cerr << "el: " << el << " v: " << v << " c_v[npti_cv[el]-1]: " << c_v[npti_cv[el]-1]<< std::endl;
 		if (std::abs(v) > c_v[npti_cv[el] - 1]) {
 			c = c_v_i[npti_cv[el]-1];
 		} else if (std::abs(v) == 0) {
@@ -163,7 +163,7 @@ compute_kc(double &k, double &c,
 	} else {
 		c = c_v_i[0];
 	}
-	//std::cerr << "--------------------------------" << std::endl;
+	// std::cerr << "--------------------------------" << std::endl;
 }
 
 /* from the reference manual of gsl:
@@ -192,8 +192,7 @@ A system of equations is defined using the `gsl_odeiv_system' datatype.
 */
 
 extern "C" int
-func (double t, const double y[], double f[],
-	void *para)
+func(double t, const double y[], double f[], void *para)
 {
 	sym_params & pa = *((sym_params *)para);
 	double sstatic = y[pa.n_elementi - pa.n_parallelo + 2];
@@ -205,7 +204,7 @@ func (double t, const double y[], double f[],
 	int el = 0;
 	int unk = 0;
 	pa.f = pa.f_s = pa.f_v = 0.;
-	for (int i=0; i < pa.n_parallelo; i++) {
+	for (int i = 0; i < pa.n_parallelo; i++) {
 		double c[pa.n_serie[i]], k[pa.n_serie[i]];
 		for (int ii = 0; ii < pa.n_serie[i]; ii++) {
 			compute_kc(k[ii], c[ii], s, v, el + ii, pa.n_variabili_k, 
@@ -213,7 +212,7 @@ func (double t, const double y[], double f[],
 				pa.ik_s[el+ii], pa.ik_v[el+ii], pa.ic_s[el+ii], pa.ic_v[el+ii], 
 				pa.k_s[el+ii], pa.k_v[el+ii], pa.c_s[el+ii], pa.c_v[el+ii], 
 				pa.x);
-				//std::cerr << "k[" << ii << "] " << k[ii] << "c[" << ii <<"] " << c[ii] << std::endl;
+				// std::cerr << "k[" << ii << "] " << k[ii] << "c[" << ii <<"] " << c[ii] << std::endl;
 		}
 		int nincognite = pa.n_serie[i] - 1;
 
@@ -240,14 +239,14 @@ func (double t, const double y[], double f[],
 			gsl_vector_set(pa.gsl_b[i], nincognite - 1, c[nincognite] * v + k[nincognite] * s);
 			gsl_vector_set(pa.gsl_x[i], nincognite - 1, y[unk + nincognite - 1]);
 
-			//calcola b -= Kx
+			// calcola b -= Kx
 			gsl_blas_dgemv(CblasNoTrans, -1., pa.gsl_K[i], pa.gsl_x[i], 1., pa.gsl_b[i]);
-			//calcola xp = C^-1 b
+			// calcola xp = C^-1 b
 			int ints;
 			gsl_linalg_LU_decomp(pa.gsl_C[i], pa.gsl_perm[i], &ints);
 			gsl_linalg_LU_solve(pa.gsl_C[i], pa.gsl_perm[i], pa.gsl_b[i], pa.gsl_xp[i]);
-			//TODO: setta f e par.f
-			for (int ii=0; ii < nincognite; ii++) {
+			// TODO: setta f e par.f
+			for (int ii = 0; ii < nincognite; ii++) {
 				f[unk + ii] = gsl_vector_get(pa.gsl_xp[i], ii);
 			}
 			pa.f += (c[0] * f[unk] + k[0] * y[unk]);
@@ -296,6 +295,7 @@ nlrheo_init(sym_params *nlrheo)
 	pa.prev_time = 0.;
 	pa.current_time = 0.;
 	pa.dt = 0.;
+	pa.nsubsteps = 10;
 	pa.prev_eps = 0.;
 	pa.prev_epsPrime = 0.;
 	pa.stepint = gsl_odeiv_step_alloc(pa.T, pa.n_elementi - pa.n_parallelo + 2 + 1);
@@ -414,7 +414,7 @@ nlrheo_update(sym_params *nlrheo,
 		}
 		yp = pa.y_dummy;
 
-		pa.dt /= 10.;
+		pa.dt /= pa.nsubsteps;
 	}
 
 	if (pa.dt > 0.) {
@@ -439,7 +439,7 @@ nlrheo_update(sym_params *nlrheo,
 extern "C" int
 nlrheo_parse(sym_params **nlrheop,
 	double scale_eps, double scale_f, double hi_filter,
-	double lo_filter, double lo_stiffness)
+	double lo_filter, double lo_stiffness, int nsubsteps)
 {
 	*nlrheop = 0;
 
@@ -451,6 +451,9 @@ nlrheo_parse(sym_params **nlrheop,
 	pa.hi_freq_force_filter_coeff = hi_filter;
 	pa.low_freq_displ_filter_coeff = lo_filter;
 	pa.static_low_freq_stiffness = lo_stiffness;
+	if (nsubsteps > 0) {
+		pa.nsubsteps = nsubsteps;
+	}
 
 	if (nlrheo_get_int(&pa.n_parallelo)) {
 		return -1;

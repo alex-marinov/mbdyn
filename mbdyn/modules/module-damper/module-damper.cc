@@ -185,13 +185,27 @@ struct DamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 			static_low_freq_stiffness = E;
 		}
 
+		int nsubsteps = -1;
+		if (HP.IsKeyWord("substeps")) {
+			nsubsteps = HP.GetInt();
+			if (nsubsteps <= 0) {
+				silent_cerr("DamperConstitutiveLaw: "
+					"invalid substeps number " << nsubsteps
+					<< " at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric();
+			}
+		}
+
 		sym_params* pap = 0;
 
 		pHP = &HP;
 		if (nlrheo_parse(&pap, scale_eps, scale_f, 
 			hi_freq_force_filter_coeff,
 			low_freq_displ_filter_coeff,
-			static_low_freq_stiffness)) {
+			static_low_freq_stiffness,
+			nsubsteps))
+		{
 			silent_cerr("DamperConstitutiveLaw: "
 				"parse error at line " << HP.GetLineData()
 				<< std::endl);
