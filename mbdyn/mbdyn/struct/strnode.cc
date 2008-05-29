@@ -1315,6 +1315,18 @@ StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 
 	RRef = RCurr;
 	WRef = WCurr;
+
+#if 0
+	/* Ortho check */
+	Mat3x3 RRT = RCurr.MulTM(RCurr) - Eye3;
+	doublereal dmax = 0.;
+	for (int r = 1; r <= 3; r++) {
+		for (int c = 1; c <= 3; c++) {
+			dmax = std::max(dmax, fabs(RRT(r, c)));
+		}
+	}
+	silent_cout("### StructNode(" << GetLabel() << ") " << dmax << std::endl);
+#endif
 }
 
 /* Inverse Dynamics: */
