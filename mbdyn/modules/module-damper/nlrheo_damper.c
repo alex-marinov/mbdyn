@@ -422,8 +422,8 @@ nlrheo_update(sym_params *nlrheo,
 			&pa.sys, &t, pa.tf, &pa.dt, yp);
 
 		pa.F = pa.f * pa.scale_f;
-		pa.FDE = pa.f_s * pa.scale_f * pa.scale_eps;
-		pa.FDEPrime = pa.f_v * pa.scale_f * pa.scale_eps;
+		pa.FDE = pa.f_s * pa.scale_f / pa.scale_eps;
+		pa.FDEPrime = pa.f_v * pa.scale_f / pa.scale_eps;
 	}
 
 	if (!do_try) {
