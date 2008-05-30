@@ -295,7 +295,6 @@ nlrheo_init(sym_params *nlrheo)
 	pa.prev_time = 0.;
 	pa.current_time = 0.;
 	pa.dt = 0.;
-	pa.nsubsteps = 10;
 	pa.prev_eps = 0.;
 	pa.prev_epsPrime = 0.;
 	pa.stepint = gsl_odeiv_step_alloc(pa.T, pa.n_elementi - pa.n_parallelo + 2 + 1);
@@ -402,6 +401,7 @@ nlrheo_update(sym_params *nlrheo,
 	pa.ti = pa.prev_time;
 
 	pa.dt = pa.tf - pa.ti;
+	pa.dt = pa.dt / pa.nsubsteps;
 
 	pa.sf = eps * pa.scale_eps;
 	pa.si = pa.prev_eps;
@@ -413,8 +413,6 @@ nlrheo_update(sym_params *nlrheo,
 			pa.y_dummy[i] = pa.y[i];
 		}
 		yp = pa.y_dummy;
-
-		pa.dt /= pa.nsubsteps;
 	}
 
 	if (pa.dt > 0.) {
@@ -451,9 +449,7 @@ nlrheo_parse(sym_params **nlrheop,
 	pa.hi_freq_force_filter_coeff = hi_filter;
 	pa.low_freq_displ_filter_coeff = lo_filter;
 	pa.static_low_freq_stiffness = lo_stiffness;
-	if (nsubsteps > 0) {
-		pa.nsubsteps = nsubsteps;
-	}
+	pa.nsubsteps = nsubsteps;
 
 	if (nlrheo_get_int(&pa.n_parallelo)) {
 		return -1;

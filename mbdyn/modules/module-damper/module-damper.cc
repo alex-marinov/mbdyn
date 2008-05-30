@@ -185,7 +185,7 @@ struct DamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 			static_low_freq_stiffness = E;
 		}
 
-		int nsubsteps = -1;
+		int nsubsteps = 10;
 		if (HP.IsKeyWord("substeps")) {
 			nsubsteps = HP.GetInt();
 			if (nsubsteps <= 0) {
@@ -204,8 +204,7 @@ struct DamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 			hi_freq_force_filter_coeff,
 			low_freq_displ_filter_coeff,
 			static_low_freq_stiffness,
-			nsubsteps))
-		{
+			nsubsteps)) {
 			silent_cerr("DamperConstitutiveLaw: "
 				"parse error at line " << HP.GetLineData()
 				<< std::endl);
