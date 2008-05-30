@@ -46,7 +46,7 @@
 #include <cfloat>
 
 static void
-compute_kc(double &k, double &c, 
+nlrheo_int_compute_kc(double &k, double &c, 
 	const double s, 
 	const double v,
 	const int el, 
@@ -88,7 +88,7 @@ compute_kc(double &k, double &c,
 					tx[ii] = x[somma_k + ii];
 					// std::cerr << "3: " <<  somma_k + ii << " " << " " << k_s[ii] << " " << tx[ii] << std::endl;
 				}
-				k_v_i[i] = gsl_interp_eval(ik_s, k_s, tx, std::abs(s), NULL);
+				k_v_i[i] = gsl_interp_eval(ik_s, k_s, tx, std::abs(s), 0);
 				// std::cerr << "interp[" << i << "]: " << k_v_i[0] << " s: " << std::abs(s) << std::endl;
 			}
 			somma_k += npti_ks[el];
@@ -112,7 +112,7 @@ compute_kc(double &k, double &c,
 			k = k_v_i[0];
 			// std::cerr << "5: " << k << std::endl;
 		} else {
-			k = gsl_interp_eval(ik_v, k_v, k_v_i, v, NULL);
+			k = gsl_interp_eval(ik_v, k_v, k_v_i, v, 0);
 			// std::cerr << "6: " << k << std::endl;
 		}
 	} else {
@@ -142,7 +142,7 @@ compute_kc(double &k, double &c,
 				// std::cerr << somma_c + ii << std::endl;
 				tx[ii] = x[somma_c + ii];
 			}
-			c_v_i[i] = gsl_interp_eval(ic_s, c_s, tx, std::abs(s), NULL);
+			c_v_i[i] = gsl_interp_eval(ic_s, c_s, tx, std::abs(s), 0);
 			somma_c += npti_cs[el];
 		}
 	} else {
@@ -158,7 +158,7 @@ compute_kc(double &k, double &c,
 		} else if (std::abs(v) == 0) {
 			c = c_v_i[0];
 		} else {
-			c = gsl_interp_eval(ic_v, c_v, c_v_i, v, NULL);
+			c = gsl_interp_eval(ic_v, c_v, c_v_i, v, 0);
 		}
 	} else {
 		c = c_v_i[0];
@@ -192,7 +192,7 @@ A system of equations is defined using the `gsl_odeiv_system' datatype.
 */
 
 extern "C" int
-func(double t, const double y[], double f[], void *para)
+nlrheo_int_func(double t, const double y[], double f[], void *para)
 {
 	sym_params & pa = *((sym_params *)para);
 	double sstatic = y[pa.n_elementi - pa.n_parallelo + 2];
@@ -207,7 +207,7 @@ func(double t, const double y[], double f[], void *para)
 	for (int i = 0; i < pa.n_parallelo; i++) {
 		double c[pa.n_serie[i]], k[pa.n_serie[i]];
 		for (int ii = 0; ii < pa.n_serie[i]; ii++) {
-			compute_kc(k[ii], c[ii], s, v, el + ii, pa.n_variabili_k, 
+			nlrheo_int_compute_kc(k[ii], c[ii], s, v, el + ii, pa.n_variabili_k, 
 				pa.npti_ks, pa.npti_kv, pa.npti_cs, pa.npti_cv,
 				pa.ik_s[el+ii], pa.ik_v[el+ii], pa.ic_s[el+ii], pa.ic_v[el+ii], 
 				pa.k_s[el+ii], pa.k_v[el+ii], pa.c_s[el+ii], pa.c_v[el+ii], 
@@ -299,11 +299,11 @@ nlrheo_init(sym_params *nlrheo)
 	pa.prev_epsPrime = 0.;
 	pa.stepint = gsl_odeiv_step_alloc(pa.T, pa.n_elementi - pa.n_parallelo + 2 + 1);
 	pa.evolve = gsl_odeiv_evolve_alloc(pa.n_elementi - pa.n_parallelo + 2 + 1);
-	double eps_abs = 1.E-15;
-	double eps_rel = 1.E-15;
+	double eps_abs = 1.E-6;
+	double eps_rel = 1.E-6;
 	pa.control = gsl_odeiv_control_standard_new(eps_abs, eps_rel, 1., 1.);
-	pa.sys.function = func;
-	pa.sys.jacobian = NULL;
+	pa.sys.function = nlrheo_int_func;
+	pa.sys.jacobian = 0;
 	pa.sys.dimension = 1;
 	pa.sys.params = &pa;
 	pa.y = new double[pa.n_elementi - pa.n_parallelo + 2 + 1];
@@ -400,8 +400,7 @@ nlrheo_update(sym_params *nlrheo,
 	pa.tf = t_curr;
 	pa.ti = pa.prev_time;
 
-	pa.dt = pa.tf - pa.ti;
-	pa.dt = pa.dt / pa.nsubsteps;
+	pa.dt = (pa.tf - pa.ti) / pa.nsubsteps;
 
 	pa.sf = eps * pa.scale_eps;
 	pa.si = pa.prev_eps;
