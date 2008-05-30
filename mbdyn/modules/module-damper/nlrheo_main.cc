@@ -169,7 +169,7 @@ main(void)
 	sys.params = &pa;
 	pa.y = new double[pa.n_elementi - pa.n_parallelo + 2 + 1];
 	double t, dt;
-	
+
 	pa.f = 0.;
 	for (int i = 0; i < pa.n_elementi - pa.n_parallelo + 2 + 1; i++) {
 		pa.y[i] = 0.;
