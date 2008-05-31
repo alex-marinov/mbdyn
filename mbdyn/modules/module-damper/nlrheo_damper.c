@@ -299,8 +299,8 @@ nlrheo_init(sym_params *nlrheo)
 	pa.prev_epsPrime = 0.;
 	pa.stepint = gsl_odeiv_step_alloc(pa.T, pa.n_elementi - pa.n_parallelo + 2 + 1);
 	pa.evolve = gsl_odeiv_evolve_alloc(pa.n_elementi - pa.n_parallelo + 2 + 1);
-	double eps_abs = 1.E-6;
-	double eps_rel = 1.E-6;
+	double eps_abs = 1.E-15;
+	double eps_rel = 1.E-15;
 	pa.control = gsl_odeiv_control_standard_new(eps_abs, eps_rel, 1., 1.);
 	pa.sys.function = nlrheo_int_func;
 	pa.sys.jacobian = 0;
@@ -415,8 +415,12 @@ nlrheo_update(sym_params *nlrheo,
 	}
 
 	if (pa.dt > 0.) {
-		gsl_odeiv_evolve_apply(pa.evolve, pa.control, pa.stepint,
+		int rc = gsl_odeiv_evolve_apply(pa.evolve,
+			pa.control, pa.stepint,
 			&pa.sys, &t, pa.tf, &pa.dt, yp);
+		if (rc != GSL_SUCCESS) {
+			// error?
+		}
 
 		pa.F = pa.f * pa.scale_f;
 		pa.FDE = pa.f_s * pa.scale_f / pa.scale_eps;

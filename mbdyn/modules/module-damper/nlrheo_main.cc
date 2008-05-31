@@ -199,7 +199,7 @@ main(void)
 		}
 		gsl_odeiv_evolve_apply(evolve, control, stepint,
 			&sys, &t, pa.tf, &dt, pa.y);
-		std::cout << t << " " << pa.f << std::endl;
+		std::cout << t << " " << pa.f << " " << pa.sf << " " << pa.vf << std::endl;
 	}
    
 	return 0;
