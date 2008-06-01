@@ -197,6 +197,18 @@ struct DamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 			}
 		}
 
+		double dtmin = 0.;
+		if (HP.IsKeyWord("dtmin")) {
+			dtmin = HP.GetReal();
+			if (dtmin < 0.) {
+				silent_cerr("DamperConstitutiveLaw: "
+					"invalid dtmin " << dtmin
+					<< " at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric();
+			}
+		}
+
 		sym_params* pap = 0;
 
 		pHP = &HP;
@@ -204,7 +216,7 @@ struct DamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 			hi_freq_force_filter_coeff,
 			low_freq_displ_filter_coeff,
 			static_low_freq_stiffness,
-			nsubsteps);
+			nsubsteps, dtmin);
 		if (rc) {
 			silent_cerr("DamperConstitutiveLaw: "
 				"parse error at line " << HP.GetLineData()

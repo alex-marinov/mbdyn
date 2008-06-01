@@ -93,8 +93,10 @@ typedef struct sym_params {
 	gsl_odeiv_evolve * evolve;
 	gsl_odeiv_control * control;
 	gsl_odeiv_system sys;
-	double prev_time, current_time, dt;
+	double prev_time, current_time, dt, dtmin;
 	double prev_eps, prev_epsPrime;
+	double eps_abs;
+	double eps_rel;
 	
 	double low_freq_displ_filter_coeff;
 	double static_low_freq_stiffness;
@@ -112,7 +114,7 @@ extern "C" int nlrheo_update(sym_params *nlrheo,
 	double t_curr, double eps, double epsPrime, int do_try);
 extern "C" int nlrheo_parse(sym_params **nlrheop,
 	double scale_eps, double scale_f, double hi_filter,
-	double lo_filter, double lo_stiffness, int nsubsteps);
+	double lo_filter, double lo_stiffness, int nsubsteps, double dtmin);
 
 #ifdef __cplusplus
 } /* extern "C" */

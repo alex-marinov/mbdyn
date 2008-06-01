@@ -44,6 +44,8 @@
 
 #include <cmath>
 #include <cfloat>
+#include <algorithm>
+#include <iostream>
 
 static void
 nlrheo_int_compute_kc(double &k, double &c, 
@@ -299,9 +301,10 @@ nlrheo_init(sym_params *nlrheo)
 	pa.prev_epsPrime = 0.;
 	pa.stepint = gsl_odeiv_step_alloc(pa.T, pa.n_elementi - pa.n_parallelo + 2 + 1);
 	pa.evolve = gsl_odeiv_evolve_alloc(pa.n_elementi - pa.n_parallelo + 2 + 1);
-	double eps_abs = 1.E-15;
-	double eps_rel = 1.E-15;
-	pa.control = gsl_odeiv_control_standard_new(eps_abs, eps_rel, 1., 1.);
+	pa.eps_abs = 1.E-6;
+	pa.eps_rel = 1.E-6;
+	pa.control = gsl_odeiv_control_standard_new(pa.eps_abs, pa.eps_rel,
+		1., 1.);
 	pa.sys.function = nlrheo_int_func;
 	pa.sys.jacobian = 0;
 	pa.sys.dimension = 1;
@@ -394,7 +397,6 @@ nlrheo_update(sym_params *nlrheo,
 {
 	sym_params& pa = *nlrheo;
 
-	double t = pa.prev_time;
 	double *yp = pa.y;
 
 	pa.tf = t_curr;
@@ -415,12 +417,22 @@ nlrheo_update(sym_params *nlrheo,
 	}
 
 	if (pa.dt > 0.) {
-		int rc = gsl_odeiv_evolve_apply(pa.evolve,
-			pa.control, pa.stepint,
-			&pa.sys, &t, pa.tf, &pa.dt, yp);
-		if (rc != GSL_SUCCESS) {
-			// error?
+		for (double t = pa.prev_time; t < pa.tf; ) {
+			// double tt = t;
+			// FIXME: should add a check on the number
+			// of iterations
+			int rc = gsl_odeiv_evolve_apply(pa.evolve,
+				pa.control, pa.stepint,
+				&pa.sys, &t, pa.tf, &pa.dt, yp);
+			if (rc != GSL_SUCCESS) {
+				// error?
+			}
+			pa.dt = std::max(pa.dt, pa.dtmin);
+			// std::cerr << "### " << t << " " << t - tt
+			// 	<< " " << pa.F << " " << pa.FDE
+			// 	<< " " << pa.FDEPrime << std::endl;
 		}
+		// std::cerr << "#########" << std::endl;
 
 		pa.F = pa.f * pa.scale_f;
 		pa.FDE = pa.f_s * pa.scale_f / pa.scale_eps;
@@ -440,7 +452,7 @@ nlrheo_update(sym_params *nlrheo,
 extern "C" int
 nlrheo_parse(sym_params **nlrheop,
 	double scale_eps, double scale_f, double hi_filter,
-	double lo_filter, double lo_stiffness, int nsubsteps)
+	double lo_filter, double lo_stiffness, int nsubsteps, double dtmin)
 {
 	*nlrheop = 0;
 
@@ -453,6 +465,7 @@ nlrheo_parse(sym_params **nlrheop,
 	pa.low_freq_displ_filter_coeff = lo_filter;
 	pa.static_low_freq_stiffness = lo_stiffness;
 	pa.nsubsteps = nsubsteps;
+	pa.dtmin = dtmin;
 
 	if (nlrheo_get_int(&pa.n_parallelo)) {
 		return -1;
