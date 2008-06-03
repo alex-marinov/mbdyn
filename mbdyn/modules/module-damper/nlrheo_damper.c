@@ -301,8 +301,8 @@ nlrheo_init(sym_params *nlrheo)
 	pa.prev_epsPrime = 0.;
 	pa.stepint = gsl_odeiv_step_alloc(pa.T, pa.n_elementi - pa.n_parallelo + 2 + 1);
 	pa.evolve = gsl_odeiv_evolve_alloc(pa.n_elementi - pa.n_parallelo + 2 + 1);
-	pa.eps_abs = 1.E-6;
-	pa.eps_rel = 1.E-6;
+	pa.eps_abs = 1.E-2;
+	pa.eps_rel = 1.E-2;
 	pa.control = gsl_odeiv_control_standard_new(pa.eps_abs, pa.eps_rel,
 		1., 1.);
 	pa.sys.function = nlrheo_int_func;
@@ -421,6 +421,7 @@ nlrheo_update(sym_params *nlrheo,
 			// double tt = t;
 			// FIXME: should add a check on the number
 			// of iterations
+			gsl_odeiv_evolve_reset(pa.evolve);
 			int rc = gsl_odeiv_evolve_apply(pa.evolve,
 				pa.control, pa.stepint,
 				&pa.sys, &t, pa.tf, &pa.dt, yp);
