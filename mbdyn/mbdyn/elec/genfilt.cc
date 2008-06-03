@@ -598,8 +598,8 @@ GenelStateSpaceMIMO::GenelStateSpaceMIMO(unsigned int uLabel,
 	flag fOutput)
 : Elem(uLabel, fOutput),
 Genel(uLabel, pDO, fOutput),
-iNumOutputs(iNumOut), iNumInputs(SV_u.size()),
-pvSD_y((ScalarDof*)y), SV_u(u),
+iNumOutputs(iNumOut), iNumInputs(u.size()),
+pvSD_y(const_cast<ScalarDof *>(y)), SV_u(u),
 iNumDofs(Order),
 pdE(pE), pdA(pA), pdB(pB), pdC(pC), pdD(pD),
 pdX(NULL), pdXP(NULL)
@@ -781,7 +781,7 @@ GenelStateSpaceMIMO::AssRes(SubVectorHandler& WorkVec,
 
 	doublereal* pdc = pdC + iNumOutputs*iNumDofs - 1;
 	if (pdD != NULL) {
-		doublereal* pdd = pdD+iNumOutputs*iNumInputs - 1;
+		doublereal* pdd = pdD + iNumOutputs*iNumInputs - 1;
 		for (int i = iNumOutputs; i > 0; i--) {
 			integer iRowIndex_y = pvSD_y[i - 1].pNode->iGetFirstRowIndex()+1;
 			WorkVec.PutRowIndex(iNumDofs+i, iRowIndex_y);
@@ -870,7 +870,7 @@ void
 GenelStateSpaceMIMO::GetConnectedNodes(
 	std::vector<const Node *>& connectedNodes)
 {
-	unsigned i, iNodes = iNumInputs;
+	unsigned i, iNodes = iNumOutputs;
 	for (std::vector<ScalarValue *>::const_iterator u = SV_u.begin();
 		u != SV_u.end(); u++)
 	{
