@@ -1,40 +1,3 @@
-/* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
- * http://www.mbdyn.org
- *
- * Copyright (C) 2007
- *
- * Marco Morandini	<morandini@aero.polimi.it>
- * Pierangelo Masarati	<masarati@aero.polimi.it>
- *
- * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
- * via La Masa, 34 - 20156 Milano, Italy
- * http://www.aero.polimi.it
- *
- * Changing this copyright notice is forbidden.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation (version 2 of the License).
- * 
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
-/*
- * This module was sponsored by AgustaWestland.
- *
- * AgustaWestland is granted permission to use this file for internal
- * purposes in violation of the GNU General Public License (GPL);
- * however, distribution to third-parties must occur according to GPL.
- */
 
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
@@ -68,7 +31,6 @@ nlrheo_int_compute_kc(double &k, double &c,
 	const double *const x)
 {
 	// calcola k di el dato s,v
-	// std::cerr << "e: " << el << std::endl;
 	double k_v_i[npti_kv[el]];
 	int somma_k = 0;
 	for (int e = 0; e < el; e++) {
@@ -76,46 +38,31 @@ nlrheo_int_compute_kc(double &k, double &c,
 	}
 	if (ik_s != 0) {
 		for (int i = 0; i < npti_kv[el]; i++) {
-			// somma_k += npti_ks[el] * i;
-			// std::cerr << "el: " << el << " s: " << s << " k_s[npti_ks[el]-1]: " << k_s[npti_ks[el]-1]<< std::endl;
 			if (std::abs(s) > k_s[npti_ks[el]-1]) {
-				// std::cerr << "1: " << somma_k + npti_ks[el] - 1 << std::endl;
 				k_v_i[i] = x[somma_k + npti_ks[el] - 1];
 			} else if (std::abs(s) == 0) {
 				k_v_i[i] = x[somma_k];
-				// std::cerr << "2: " <<  somma_k << std::endl;
 			} else {
 				double tx[npti_ks[el]];
 				for (int ii = 0; ii < npti_ks[el]; ii++) {
 					tx[ii] = x[somma_k + ii];
-					// std::cerr << "3: " <<  somma_k + ii << " " << " " << k_s[ii] << " " << tx[ii] << std::endl;
 				}
 				k_v_i[i] = gsl_interp_eval(ik_s, k_s, tx, std::abs(s), 0);
-				// std::cerr << "interp[" << i << "]: " << k_v_i[0] << " s: " << std::abs(s) << std::endl;
 			}
 			somma_k += npti_ks[el];
 		}
 	} else {
 		for (int i = 0; i < npti_kv[el]; i++) {
-			// std::cerr << somma_k + i << "x: " << k_v_i[i] << std::endl;
 			k_v_i[i] = x[somma_k + i];
 		}
 	}
-	// std::cerr << "<<<<<<<<<<<<<<<<<<\n";
 	if (ik_v != 0) {
-		for (int i = 0; i < npti_kv[el]; i++) {
-			// std::cerr << "xx " << i << " " << k_v[i] << " " << k_v_i[i] << " " << std::abs(v) << std::endl;
-		}
-		// std::cerr << "el: " << el << " v: " << s << " k_v[npti_kv[el]-1]: " << k_v[npti_kv[el]-1]<< std::endl;
 		if (std::abs(v) > k_v[npti_kv[el] - 1]) {
 			k = k_v_i[npti_kv[el]-1];
-			// std::cerr << "4: " << k << " " << std::abs(v) << " " << k_v[npti_kv[el]] << std::endl;
 		} else if (std::abs(v) == 0) {
 			k = k_v_i[0];
-			// std::cerr << "5: " << k << std::endl;
 		} else {
-			k = gsl_interp_eval(ik_v, k_v, k_v_i, v, 0);
-			// std::cerr << "6: " << k << std::endl;
+			k = gsl_interp_eval(ik_v, k_v, k_v_i, std::abs(v), 0);
 		}
 	} else {
 		k = k_v_i[0];
@@ -123,25 +70,19 @@ nlrheo_int_compute_kc(double &k, double &c,
 	
 	// calcola c di el dato s,v
 	double c_v_i[npti_cv[el]];
-	// std::cerr << "c: " << n_variabili_k << std::endl;
 	int somma_c = n_variabili_k;
 	for (int e = 0; e < el; e++) {
 		somma_c += npti_cs[e] * npti_cv[e];
 	}
 	if (ic_s != 0) {
 		for (int i = 0; i < npti_cv[el]; i++) {
-			// somma_c += npti_cs[el] * i;
-			// std::cerr << "el: " << el << " s: " << s << " c_s[npti_cs[el]-1]: " << c_s[npti_cs[el]-1]<< std::endl;
 			if (std::abs(s) > c_s[npti_cs[el] - 1]) {
-				// std::cerr << somma_c + npti_cs[el] - 1 << std::endl;
 				c_v_i[i] = x[somma_c + npti_cs[el] - 1];
 			} else if (std::abs(s) == 0) {
-				// std::cerr << somma_c << std::endl;
 				c_v_i[i] = x[somma_c];
 			}
 			double tx[npti_cs[el]];
 			for (int ii = 0; ii < npti_cs[el]; ii++) {
-				// std::cerr << somma_c + ii << std::endl;
 				tx[ii] = x[somma_c + ii];
 			}
 			c_v_i[i] = gsl_interp_eval(ic_s, c_s, tx, std::abs(s), 0);
@@ -149,23 +90,20 @@ nlrheo_int_compute_kc(double &k, double &c,
 		}
 	} else {
 		for (int i = 0; i < npti_cv[el]; i++) {
-			// std::cerr << somma_c + i << std::endl;
 			c_v_i[i] = x[somma_c + i];
 		}
 	}
 	if (ic_v != 0) {
-		// std::cerr << "el: " << el << " v: " << v << " c_v[npti_cv[el]-1]: " << c_v[npti_cv[el]-1]<< std::endl;
 		if (std::abs(v) > c_v[npti_cv[el] - 1]) {
 			c = c_v_i[npti_cv[el]-1];
 		} else if (std::abs(v) == 0) {
 			c = c_v_i[0];
 		} else {
-			c = gsl_interp_eval(ic_v, c_v, c_v_i, v, 0);
+			c = gsl_interp_eval(ic_v, c_v, c_v_i, std::abs(v), 0);
 		}
 	} else {
 		c = c_v_i[0];
 	}
-	// std::cerr << "--------------------------------" << std::endl;
 }
 
 /* from the reference manual of gsl:
@@ -390,7 +328,7 @@ nlrheo_destroy(sym_params *nlrheo)
 
 	return 0;
 };
-
+#include <iostream>
 extern "C" int
 nlrheo_update(sym_params *nlrheo,
 	double t_curr, double eps, double epsPrime, int do_try)
@@ -442,7 +380,6 @@ nlrheo_update(sym_params *nlrheo,
 
 	if (!do_try) {
 		pa.prev_time = pa.current_time = pa.tf;
-		
 		pa.prev_eps = eps * pa.scale_eps;
 		pa.prev_epsPrime = epsPrime * pa.scale_eps;
 	}
