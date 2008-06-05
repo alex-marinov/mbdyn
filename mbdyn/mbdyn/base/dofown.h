@@ -109,7 +109,7 @@ class DofOwnerOwner {
    DofOwnerOwner(const DofOwner* pDO);
    virtual ~DofOwnerOwner() { NO_OP; };
    
-   inline const DofOwner* pGetDofOwner(void) const {
+   virtual inline const DofOwner* pGetDofOwner(void) const {
       ASSERT(pDofOwner != NULL);
       return pDofOwner; 
    };
@@ -123,7 +123,7 @@ class DofOwnerOwner {
     * questa convenzione e' stata assunta per compatibilita' con le
     * porzioni di codice scritte in FORTRAN
     */
-   inline integer iGetFirstIndex(void) const { 
+   virtual inline integer iGetFirstIndex(void) const { 
       return pDofOwner->iFirstIndex; 
    };   
 

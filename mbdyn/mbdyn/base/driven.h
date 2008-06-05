@@ -58,9 +58,6 @@ public:
 
 	virtual void Output(OutputHandler& OH) const;
 
-	/* Setta il valore iniziale delle proprie variabili */
-	virtual void SetInitialValue(VectorHandler& X);
-
 	virtual void SetValue(DataManager *pdm,
 			VectorHandler& X, VectorHandler& XP,
 			SimulationEntity::Hints *ph = 0);
@@ -116,6 +113,47 @@ public:
 	 * with 0 < i <= iGetNumPrivData()
 	 */
 	virtual doublereal dGetPrivData(unsigned int i) const;
+
+	/* InitialAssemblyElem */
+public:
+	virtual unsigned int iGetInitialNumDof(void) const;
+
+	/* Dimensione del workspace durante l'assemblaggio iniziale. Occorre tener
+	 * conto del numero di dof che l'elemento definisce in questa fase e dei
+	 * dof dei nodi che vengono utilizzati. Sono considerati dof indipendenti
+	 * la posizione e la velocita' dei nodi */
+	virtual void InitialWorkSpaceDim(integer* piNumRows, 
+		integer* piNumCols) const;
+
+	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+	virtual VariableSubMatrixHandler& 
+	InitialAssJac(VariableSubMatrixHandler& WorkMat,
+		const VectorHandler& XCurr);
+
+	/* Contributo al residuo durante l'assemblaggio iniziale */   
+	virtual SubVectorHandler& 
+	InitialAssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& XCurr);
+
+	/* ElemGravityOwner */
+protected:
+	virtual Vec3 GetS_int(void) const;
+	virtual Mat3x3 GetJ_int(void) const;
+
+	virtual Vec3 GetB_int(void) const;
+
+	// NOTE: gravity owners must provide the momenta moment
+	// with respect to the origin of the global reference frame!
+	virtual Vec3 GetG_int(void) const;
+
+public:
+	virtual doublereal dGetM(void) const;
+	Vec3 GetS(void) const;
+	Mat3x3 GetJ(void) const;
+
+	/* ElemDofOwner */
+public:
+	virtual void SetInitialValue(VectorHandler& X);
 };
 
 #endif /* DRIVEN_H */

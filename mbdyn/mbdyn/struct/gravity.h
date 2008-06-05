@@ -152,6 +152,8 @@ class GravityOwner {
 /* ElemGravityOwner - begin */
 
 class ElemGravityOwner : virtual public Elem, public GravityOwner {
+	friend class NestedElem;
+
  protected:
 
    /*

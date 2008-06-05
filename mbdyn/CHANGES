@@ -37,6 +37,7 @@ MBDyn 1.X-Devel
 		- fix optional log process execution in RTAI support
 		- fix linear scalar function input
 		- fix crash when using model namespace too early
+		- fix nested elements usage during initial assembly
 
 MBDyn 1.3.3-Beta
 	Enhancements:

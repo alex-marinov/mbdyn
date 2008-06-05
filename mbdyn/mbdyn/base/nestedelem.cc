@@ -40,6 +40,10 @@
 
 NestedElem::NestedElem(const Elem* pE)
 : Elem(pE->GetLabel(), pE->fToBeOutput()),
+InitialAssemblyElem(pE->GetLabel(), pE->fToBeOutput()),
+AerodynamicElem(pE->GetLabel(), pE->fToBeOutput()),
+ElemGravityOwner(pE->GetLabel(), pE->fToBeOutput()),
+ElemWithDofs(pE->GetLabel(), 0, pE->fToBeOutput()),
 pElem(const_cast<Elem *>(pE))
 {
 	ASSERT(pE != NULL);
@@ -137,16 +141,6 @@ NestedElem::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
 	ASSERT(pElem != NULL);
 	pElem->AfterPredict(X, XP);
-}
-
-void
-NestedElem::SetInitialValue(VectorHandler& X)
-{
-	ASSERT(pElem != NULL);
-	ElemWithDofs*	pEwD = dynamic_cast<ElemWithDofs *>(pElem);
-	if (pEwD) {
-		pEwD->SetInitialValue(X);
-	}
 }
 
 void
@@ -271,5 +265,216 @@ NestedElem::GetConnectedNodes(std::vector<const Node *>& connectedNodes)
 {
 	ASSERT(pElem != NULL);
 	pElem->GetConnectedNodes(connectedNodes);
+}
+
+/* InitialAssemblyElem */
+unsigned int
+NestedElem::iGetInitialNumDof(void) const
+{
+	ASSERT(pElem != NULL);
+	InitialAssemblyElem *pIAE = dynamic_cast<InitialAssemblyElem*>(pElem);
+	if (pIAE) {
+		return pIAE->iGetInitialNumDof();
+	}
+	return 0;
+}
+
+void
+NestedElem::InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+{
+	ASSERT(pElem != NULL);
+	InitialAssemblyElem *pIAE = dynamic_cast<InitialAssemblyElem*>(pElem);
+	if (pIAE) {
+		pIAE->InitialWorkSpaceDim(piNumRows, piNumCols);
+	}
+}
+
+VariableSubMatrixHandler& 
+NestedElem::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+	const VectorHandler& XCurr)
+{
+	ASSERT(pElem != NULL);
+	InitialAssemblyElem *pIAE = dynamic_cast<InitialAssemblyElem*>(pElem);
+	if (pIAE) {
+		return pIAE->InitialAssJac(WorkMat, XCurr);
+	}
+
+	WorkMat.SetNullMatrix();
+	return WorkMat;
+}
+
+/* Contributo al residuo durante l'assemblaggio iniziale */   
+SubVectorHandler& 
+NestedElem::InitialAssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& XCurr)
+{
+	ASSERT(pElem != NULL);
+	InitialAssemblyElem *pIAE = dynamic_cast<InitialAssemblyElem*>(pElem);
+	if (pIAE) {
+		return pIAE->InitialAssRes(WorkVec, XCurr);
+	}
+
+	WorkVec.Resize(0);
+	return WorkVec;
+}
+
+/* AerodynamicElem */
+AerodynamicElem::Type
+NestedElem::GetAerodynamicElemType(void) const
+{
+	ASSERT(pElem != NULL);
+	AerodynamicElem *pAE = dynamic_cast<AerodynamicElem *>(pElem);
+	if (pAE) {
+		return pAE->GetAerodynamicElemType();
+	}
+
+	return AerodynamicElem::UNKNOWN;
+}
+
+bool
+NestedElem::NeedsAirProperties(void) const
+{
+	ASSERT(pElem != NULL);
+	AerodynamicElem *pAE = dynamic_cast<AerodynamicElem *>(pElem);
+	if (pAE) {
+		return pAE->NeedsAirProperties();
+	}
+
+	return false;
+}
+
+const Rotor *
+NestedElem::pGetRotor(void) const
+{
+	ASSERT(pElem != NULL);
+	AerodynamicElem *pAE = dynamic_cast<AerodynamicElem *>(pElem);
+	if (pAE) {
+		return pAE->pGetRotor();
+	}
+
+	return 0;
+}
+
+/* ElemGravityOwner */
+Vec3
+NestedElem::GetS_int(void) const
+{
+	ASSERT(pElem != NULL);
+	ElemGravityOwner *pEGO = dynamic_cast<ElemGravityOwner *>(pElem);
+	if (pEGO) {
+		return pEGO->GetS_int();
+	}
+
+	return Zero3;
+}
+
+Mat3x3
+NestedElem::GetJ_int(void) const
+{
+	ASSERT(pElem != NULL);
+	ElemGravityOwner *pEGO = dynamic_cast<ElemGravityOwner *>(pElem);
+	if (pEGO) {
+		return pEGO->GetJ_int();
+	}
+
+	return Zero3x3;
+}
+
+Vec3
+NestedElem::GetB_int(void) const
+{
+	ASSERT(pElem != NULL);
+	ElemGravityOwner *pEGO = dynamic_cast<ElemGravityOwner *>(pElem);
+	if (pEGO) {
+		return pEGO->GetB_int();
+	}
+
+	return Zero3;
+}
+
+// NOTE: gravity owners must provide the momenta moment
+// with respect to the origin of the global reference frame!
+Vec3
+NestedElem::GetG_int(void) const
+{
+	ASSERT(pElem != NULL);
+	ElemGravityOwner *pEGO = dynamic_cast<ElemGravityOwner *>(pElem);
+	if (pEGO) {
+		return pEGO->GetG_int();
+	}
+
+	return Zero3;
+}
+
+doublereal
+NestedElem::dGetM(void) const
+{
+	ASSERT(pElem != NULL);
+	ElemGravityOwner *pEGO = dynamic_cast<ElemGravityOwner *>(pElem);
+	if (pEGO) {
+		return pEGO->dGetM();
+	}
+
+	return 0.;
+}
+
+Vec3
+NestedElem::GetS(void) const
+{
+	ASSERT(pElem != NULL);
+	ElemGravityOwner *pEGO = dynamic_cast<ElemGravityOwner *>(pElem);
+	if (pEGO) {
+		return pEGO->GetS();
+	}
+
+	return Zero3;
+}
+
+Mat3x3
+NestedElem::GetJ(void) const
+{
+	ASSERT(pElem != NULL);
+	ElemGravityOwner *pEGO = dynamic_cast<ElemGravityOwner *>(pElem);
+	if (pEGO) {
+		return pEGO->GetJ();
+	}
+
+	return Zero3x3;
+}
+
+/* ElemWithDofs */
+const DofOwner*
+NestedElem::pGetDofOwner(void) const
+{
+	ASSERT(pElem != NULL);
+	ElemWithDofs *pEwD = dynamic_cast<ElemWithDofs *>(pElem);
+	if (pEwD) {
+		return pEwD->pGetDofOwner();
+	}
+
+	return 0;
+
+}
+
+integer
+NestedElem::iGetFirstIndex(void) const
+{
+	ASSERT(pElem != NULL);
+	ElemWithDofs *pEwD = dynamic_cast<ElemWithDofs *>(pElem);
+	if (pEwD) {
+		return pEwD->iGetFirstIndex();
+	}
+
+	return -1;
+}
+
+void
+NestedElem::SetInitialValue(VectorHandler& X)
+{
+	ASSERT(pElem != NULL);
+	ElemWithDofs *pEwD = dynamic_cast<ElemWithDofs *>(pElem);
+	if (pEwD) {
+		pEwD->SetInitialValue(X);
+	}
 }
 

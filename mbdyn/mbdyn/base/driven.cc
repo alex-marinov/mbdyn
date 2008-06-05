@@ -150,6 +150,7 @@ DrivenElem::SetValue(DataManager *pdm,
 	}
 }
 
+#if 0
 void
 DrivenElem::SetInitialValue(VectorHandler& X)
 {
@@ -161,6 +162,7 @@ DrivenElem::SetInitialValue(VectorHandler& X)
 		}
 	}
 }
+#endif
 
 /* Aggiorna dati in base alla soluzione */
 void
@@ -310,5 +312,130 @@ DrivenElem::dGetPrivData(unsigned int i) const
 
 	/* safe default */
 	return 0.;
+}
+
+/* InitialAssemblyElem */
+unsigned int
+DrivenElem::iGetInitialNumDof(void) const
+{
+	if (dGet() != 0.) {
+		return NestedElem::iGetInitialNumDof();
+	}
+
+	return 0;
+}
+
+void
+DrivenElem::InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+{
+	if (dGet() != 0.) {
+		NestedElem::InitialWorkSpaceDim(piNumRows, piNumCols);
+	}
+}
+
+VariableSubMatrixHandler& 
+DrivenElem::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+	const VectorHandler& XCurr)
+{
+	if (dGet() != 0.) {
+		return NestedElem::InitialAssJac(WorkMat, XCurr);
+	}
+
+	WorkMat.SetNullMatrix();
+	return WorkMat;
+}
+
+SubVectorHandler& 
+DrivenElem::InitialAssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& XCurr)
+{
+	if (dGet() != 0.) {
+		return NestedElem::InitialAssRes(WorkVec, XCurr);
+	}
+
+	WorkVec.Resize(0);
+	return WorkVec;
+}
+
+/* ElemGravityOwner */
+Vec3
+DrivenElem::GetS_int(void) const
+{
+	if (dGet() != 0.) {
+		return NestedElem::GetS_int();
+	}
+
+	return Zero3;
+}
+
+Mat3x3
+DrivenElem::GetJ_int(void) const
+{
+	if (dGet() != 0.) {
+		return NestedElem::GetJ_int();
+	}
+
+	return Zero3x3;
+}
+
+Vec3
+DrivenElem::GetB_int(void) const
+{
+	if (dGet() != 0.) {
+		return NestedElem::GetB_int();
+	}
+
+	return Zero3;
+}
+
+// NOTE: gravity owners must provide the momenta moment
+// with respect to the origin of the global reference frame!
+Vec3
+DrivenElem::GetG_int(void) const
+{
+	if (dGet() != 0.) {
+		return NestedElem::GetG_int();
+	}
+
+	return Zero3;
+}
+
+doublereal
+DrivenElem::dGetM(void) const
+{
+	if (dGet() != 0.) {
+		return NestedElem::dGetM();
+	}
+
+	return 0.;
+}
+
+Vec3
+DrivenElem::GetS(void) const
+{
+	if (dGet() != 0.) {
+		return NestedElem::GetS();
+	}
+
+	return Zero3;
+}
+
+Mat3x3
+DrivenElem::GetJ(void) const
+{
+	if (dGet() != 0.) {
+		return NestedElem::GetJ();
+	}
+
+	return Zero3x3;
+}
+
+/* ElemDofOwner */
+void
+DrivenElem::SetInitialValue(VectorHandler& X)
+{
+	if (dGet() != 0.) {
+		return NestedElem::SetInitialValue(X);
+	}
 }
 

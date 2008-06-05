@@ -789,7 +789,8 @@ DataManager::InitialJointAssembly(void)
 						continue;
 					}
 
-					pTmp = (DofOwner *)pDOEl->pGetDofOwner();
+					pTmp = const_cast<DofOwner *>(pDOEl->pGetDofOwner());
+					ASSERT(pTmp != 0);
 					// numero di dof di un owner
 					unsigned int iNumDofs = pEl->iGetInitialNumDof();
 					pTmp->iNumDofs = iNumDofs;
