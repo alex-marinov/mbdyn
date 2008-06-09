@@ -279,7 +279,6 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
 	 * Matrice di trasformazione dal sistema globale a quello aerodinamico
 	 */
    	Mat3x3 RR(Rn*Ra);
-   	Mat3x3 RRT(RR.Transpose());
 
    	/*
 	 * Se l'elemento e' collegato ad un rotore,
@@ -346,7 +345,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
 		 * lo uso per correggere la matrice di rotazione
 		 * dal sistema aerodinamico a quello globale
 		 */
-      		Mat3x3 RRloc(RR);
+      		Mat3x3 RRloc;
 		if (dTw != 0.) {
       			doublereal dCosT = cos(dTw);
 			doublereal dSinT = sin(dTw);
@@ -355,14 +354,16 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
 				   -dSinT, dCosT, 0.,
 				    0.,    0.,    1.);
       			RRloc = RR*RTw;
+
+		} else {
+			RRloc = RR;
 		}
-		Mat3x3 RRlocT(RRloc.Transpose());
 
 		/*
 		 * Ruota velocita' e velocita' angolare nel sistema
 		 * aerodinamico e li copia nel vettore di lavoro dW
 		 */
-      		Vec3 Tmp(RRlocT*Vr);
+      		Vec3 Tmp(RRloc.MulTV(Vr));
       		Tmp.PutTo(dW);
 
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
@@ -372,7 +373,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
       		}
 #endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 
-      		Tmp = RRlocT*Wn;
+      		Tmp = RRloc.MulTV(Wn);
       		Tmp.PutTo(&dW[3]);
 
       		/* Funzione di calcolo delle forze aerodinamiche */
@@ -1129,20 +1130,15 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 	 * Matrice di trasformazione dal sistema globale a quello aerodinamico
 	 */
 	Mat3x3 RR1(Rn1*Ra1);
-	/* Mat3x3 RR1T(RR1.Transpose()); */
-
 	Mat3x3 RR2(Rn2*Ra2);
-	Mat3x3 RR2T(RR2.Transpose());
-
 	Mat3x3 RR3(Rn3*Ra3);
-	/* Mat3x3 RR3T(RR3.Transpose()); */
 
 	/*
 	 * Paramteri di rotazione dai nodi 1 e 3 al nodo 2 (nell'ipotesi
 	 * che tale trasformazione non dia luogo ad una singolarita')
 	 */
-	Vec3 g1(MatR2gparam(RR2T*RR1));
-	Vec3 g3(MatR2gparam(RR2T*RR3));
+	Vec3 g1(MatR2gparam(RR2.MulTM(RR1)));
+	Vec3 g3(MatR2gparam(RR2.MulTM(RR3)));
 
 	/*
 	 * Se l'elemento e' collegato ad un rotore,
@@ -1218,35 +1214,37 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 			dTw += dGet();
 
 			aerodata->SetSectionData(dCsi,
-					Chord.dGet(ds),
-					ForcePoint.dGet(ds),
-					VelocityPoint.dGet(ds),
-					dTw,
-					dOmega);
+				Chord.dGet(ds),
+				ForcePoint.dGet(ds),
+				VelocityPoint.dGet(ds),
+				dTw,
+				dOmega);
 
 			/*
 			 * Lo svergolamento non viene piu' trattato in aerod2_;
 			 * quindi lo uso per correggere la matrice di rotazione
 			 * dal sistema aerodinamico a quello globale
 			 */
-			doublereal dCosT = cos(dTw);
-			doublereal dSinT = sin(dTw);
-			/* Assumo lo svergolamento positivo a cabrare */
-			Mat3x3 RTw( dCosT, dSinT, 0.,
+			Mat3x3 RRloc(RR2*Mat3x3(MatR, g1*dN1+g3*dN3));
+			if (dTw != 0.) {
+				doublereal dCosT = cos(dTw);
+				doublereal dSinT = sin(dTw);
+				/* Assumo lo svergolamento positivo a cabrare */
+				Mat3x3 RTw(dCosT, dSinT, 0.,
 					-dSinT, dCosT, 0.,
 					0.,    0.,    1.);
-			/*
-			 * Allo stesso tempo interpola le g
-			 * e aggiunge lo svergolamento
-			 */
-			Mat3x3 RRloc(RR2*Mat3x3(MatR, g1*dN1+g3*dN3)*RTw);
-			Mat3x3 RRlocT(RRloc.Transpose());
+				/*
+				 * Allo stesso tempo interpola le g
+				 * e aggiunge lo svergolamento
+				 */
+				RRloc = RRloc*RTw;
+			}
 
 			/*
 			 * Ruota velocita' e velocita' angolare nel sistema
 			 * aerodinamico e li copia nel vettore di lavoro dW
 			 */
-			Vec3 Tmp(RRlocT*Vr);
+			Vec3 Tmp(RRloc.MulTV(Vr));
 			Tmp.PutTo(dW);
 
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
@@ -1256,7 +1254,7 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 			}
 #endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 
-			Tmp = RRlocT*Wr;
+			Tmp = RRloc.MulTV(Wr);
 			Tmp.PutTo(dW+3);
 
 			/* Funzione di calcolo delle forze aerodinamiche */
@@ -1765,16 +1763,13 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 	 * Matrice di trasformazione dal sistema globale a quello aerodinamico
 	 */
 	Mat3x3 RR1(Rn1*Ra1);
-	/* Mat3x3 RR1T(RR1.Transpose()); */
-
 	Mat3x3 RR2(Rn2*Ra2);
-	Mat3x3 RR2T(RR2.Transpose());
 
 	/*
 	 * Parametri di rotazione dai nodi 1 e 2 al punto medio (nell'ipotesi
 	 * che tale trasformazione non dia luogo ad una singolarita')
 	 */
-	Vec3 g1 = MatR2gparam(RR2T*RR1)/2.;
+	Vec3 g1 = MatR2gparam(RR2.MulTM(RR1))/2.;
 	Vec3 g2 = -g1;
 
 	/* matrice di rotazione del punto medio */
@@ -1865,23 +1860,25 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 			 * lo uso per correggere la matrice di rotazione
 			 * dal sistema aerodinamico a quello globale
 			 */
-			doublereal dCosT = cos(dTw);
-			doublereal dSinT = sin(dTw);
-			/* Assumo lo svergolamento positivo a cabrare */
-			Mat3x3 RTw( dCosT, dSinT, 0.,
-				   -dSinT, dCosT, 0.,
-				    0.,    0.,    1.);
-			/*
-			 * Allo stesso tempo interpola le g e aggiunge lo svergolamento
-			 */
-			Mat3x3 RRloc(RRm*Mat3x3(MatR, g1*dN1+g2*dN2)*RTw);
-			Mat3x3 RRlocT(RRloc.Transpose());
+			Mat3x3 RRloc(RRm*Mat3x3(MatR, g1*dN1+g2*dN2));
+			if (dTw != 0.) {
+				doublereal dCosT = cos(dTw);
+				doublereal dSinT = sin(dTw);
+				/* Assumo lo svergolamento positivo a cabrare */
+				Mat3x3 RTw( dCosT, dSinT, 0.,
+					   -dSinT, dCosT, 0.,
+					    0.,    0.,    1.);
+				/*
+				 * Allo stesso tempo interpola le g e aggiunge lo svergolamento
+				 */
+				RRloc = RRloc*RTw;
+			}
 
 			/*
 			 * Ruota velocita' e velocita' angolare nel sistema
 			 * aerodinamico e li copia nel vettore di lavoro dW
 			 */
-			Vec3 Tmp(RRlocT*Vr);
+			Vec3 Tmp(RRloc.MulTV(Vr));
 			Tmp.PutTo(dW);
 
 #if AEROD_OUTPUT == AEROD_OUT_PGAUSS
@@ -1891,7 +1888,7 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 			}
 #endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 
-			Tmp = RRlocT*Wr;
+			Tmp = RRloc.MulTV(Wr);
 			Tmp.PutTo(dW+3);
 
 			/* Funzione di calcolo delle forze aerodinamiche */
