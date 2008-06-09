@@ -111,6 +111,7 @@ enum KeyWords {
 	HBEAM,
 
 	AIRPROPERTIES,
+	GUST,
 	ROTOR,
 	AERODYNAMICBODY,
 	AERODYNAMICBEAM3,
@@ -172,6 +173,7 @@ DataManager::ReadElems(MBDynParser& HP)
 		"hbeam",
 
 		"air" "properties",
+		"gust",
 		"rotor",
 		"aerodynamic" "body",
 		"aerodynamic" "beam3",
@@ -559,6 +561,15 @@ DataManager::ReadElems(MBDynParser& HP)
 				"to Parameter " << pNd->GetLabel() << std::endl);
 			pNd->Bind(pEl, i);
 
+		/* Gust is attached to air properties... */
+		} else if (CurrDesc == GUST) {
+			if (ElemData[Elem::AIRPROPERTIES].ElemMap.empty()) {
+				silent_cerr("air properties not defined; "
+					"cannot add gust at line "
+					<< HP.GetLineData() << std::endl);
+			}
+			ElemMapType::iterator ap = ElemData[Elem::AIRPROPERTIES].ElemMap.begin();
+			dynamic_cast<AirProperties *>(ap->second)->AddGust(ReadGust(this, HP));
 
 		/* gestisco a parte gli elementi automatici strutturali, perche'
 		 * sono gia' stati costruiti altrove e li devo solo inizializzare;
@@ -901,6 +912,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				case BEAM2:
 				case HBEAM:
 
+				case GUST:
 				case ROTOR:
 				case AERODYNAMICBODY:
 				case AERODYNAMICBEAM:

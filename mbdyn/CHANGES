@@ -22,6 +22,7 @@ MBDyn 1.X-Devel
 		- allow state space filters in descriptor form
 		- add "TimeStep" and "Step" vars to math parser
 		- allow fixed step driver to count steps
+		- add provisions to combine multiple gust models
 	Backward compatibility issues:
 	Known issues:
 		- scalar filter seems to be broken; use state space SISO

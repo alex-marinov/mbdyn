@@ -76,18 +76,24 @@
 #ifndef AERODYN_H
 #define AERODYN_H
 
-#include <elem.h>
-#include <tpldrive.h>
+#include "elem.h"
+#include "tpldrive.h"
 
 extern const char* psAeroNames[];
+
+class AirProperties;
 
 /* Gust - begin */
 
 class Gust {
+protected:
+	const AirProperties *pAP;
+
 public:
 	virtual ~Gust(void);
-	virtual Vec3 GetVelocity(const Vec3& X) const = 0;
-	virtual void GetVelocity(const Vec3& X, Vec3& V) const = 0;
+	void SetAirProperties(const AirProperties *pap);
+	virtual Vec3 GetVelocity(const Vec3& X) const;
+	virtual bool GetVelocity(const Vec3& X, Vec3& V) const = 0;
 	virtual std::ostream& Restart(std::ostream& out) const = 0;
 };
 
@@ -100,11 +106,13 @@ class AirProperties
 : virtual public Elem, public InitialAssemblyElem, public TplDriveOwner<Vec3> {
 protected:
 	mutable Vec3 Velocity;
-	Gust *pGust;
+	std::vector<Gust *> gust;
    
 public:
-	AirProperties(const TplDriveCaller<Vec3>* pDC, Gust *pg, flag fOut);
+	AirProperties(const TplDriveCaller<Vec3>* pDC, std::vector<Gust *>& pg, flag fOut);
 	virtual ~AirProperties(void);
+
+	virtual void AddGust(Gust *pG);
 
 	/* Scrive il contributo dell'elemento al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
@@ -171,7 +179,7 @@ public:
 	 * Deprecated; use GetAirProps instead
 	 */
 	virtual Vec3 GetVelocity(const Vec3& /* X */ ) const;
-	virtual void GetVelocity(const Vec3& /* X */ , Vec3& V) const;
+	virtual bool GetVelocity(const Vec3& /* X */ , Vec3& V) const;
 	virtual doublereal dGetAirDensity(const Vec3& /* X */ ) const = 0;
 	virtual doublereal dGetAirPressure(const Vec3& /* X */ ) const = 0;
 	virtual doublereal dGetAirTemperature(const Vec3& /* X */ ) const = 0;
@@ -199,6 +207,9 @@ public:
 };
 
 class DataManager;
+
+extern Gust *
+ReadGust(DataManager *pDM, MBDynParser& HP);
 
 extern Elem *
 ReadAirProperties(DataManager* pDM, MBDynParser& HP);
