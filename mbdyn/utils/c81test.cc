@@ -83,6 +83,7 @@ main(int argc, char *argv[])
 	};
 	unsigned	got = GOT_NONE;
 	char		coef = '\0';
+	doublereal	tol = 1e-6;
 	
 	while (true) {
 		int opt = getopt(argc, argv, "a:cC:d::fm:o");
@@ -194,15 +195,15 @@ main(int argc, char *argv[])
 
 	switch (mode) {
 	case 'c':
-		rc = read_c81_data(in, data);
+		rc = read_c81_data(in, data, tol);
 		break;
 
 	case 'f':
-		rc = read_c81_data_free_format(in, data);
+		rc = read_c81_data_free_format(in, data, tol);
 		break;
 
 	case 'o':
-		rc = read_fc511_data(in, data);
+		rc = read_fc511_data(in, data, tol);
 		break;
 
 	default:

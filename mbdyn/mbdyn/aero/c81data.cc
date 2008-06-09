@@ -60,12 +60,12 @@ extern "C" {
  */
 
 static int
-do_c81_data_stall(c81_data *data);
+do_c81_data_stall(c81_data *data, const doublereal dcptol);
 static int
-do_c81_stall(int NM, int NA, doublereal *a, doublereal *stall);
+do_c81_stall(int NM, int NA, doublereal *a, doublereal *stall, const doublereal dcptol);
 
 int
-read_c81_data_free_format(std::istream& in, c81_data* data);
+read_c81_data_free_format(std::istream& in, c81_data* data, const doublereal dcptol);
 
 static int
 get_int(const char *const from, int &i)
@@ -250,14 +250,14 @@ destroy_c81_data(c81_data* data)
 }
 
 int
-read_c81_data(std::istream& in, c81_data* data)
+read_c81_data(std::istream& in, c81_data* data, const doublereal dcptol)
 {
    	char buf[BUFSIZ];	// 81 should suffice
    
    	/* header */
    	in.getline(buf, sizeof(buf));
 	if (strncasecmp(buf, "# FREE FORMAT", STRLENOF("# FREE FORMAT")) == 0) {
-		return read_c81_data_free_format(in, data);
+		return read_c81_data_free_format(in, data, dcptol);
 	}
 
    	buf[42] = '\0';
@@ -322,7 +322,7 @@ read_c81_data(std::istream& in, c81_data* data)
    	get_c81_mat(in, data->am, data->NAM, data->NMM+1);
 
 	/* FIXME: maybe this is not the best place */
-	do_c81_data_stall(data);
+	do_c81_data_stall(data, dcptol);
    
    	return 0;
 }
@@ -528,7 +528,7 @@ read_fc511_block(std::istream& in, int &NA, int &NM, doublereal *&da, doublereal
 }
 
 int
-read_fc511_data(std::istream& in, c81_data* data)
+read_fc511_data(std::istream& in, c81_data* data, const doublereal dcptol)
 {
    	char buf[128];	// 81 should suffice; let's make it 128
    
@@ -586,13 +586,13 @@ read_fc511_data(std::istream& in, c81_data* data)
 	}
 
 	/* FIXME: maybe this is not the best place */
-	do_c81_data_stall(data);
+	do_c81_data_stall(data, dcptol);
    
    	return 0;
 }
 
 int
-read_c81_data_free_format(std::istream& in, c81_data* data)
+read_c81_data_free_format(std::istream& in, c81_data* data, const doublereal dcptol)
 {
    	char buf[128];	// 81 should suffice; let's make it 128
    
@@ -672,7 +672,7 @@ read_c81_data_free_format(std::istream& in, c81_data* data)
 	}
 
 	/* FIXME: maybe this is not the best place */
-	do_c81_data_stall(data);
+	do_c81_data_stall(data, dcptol);
    
    	return 0;
 }
@@ -782,10 +782,8 @@ set_c81_data(long int jpro, c81_data* data)
 /*
  * sistema i dati di stallo
  */
-static const doublereal dcptol = 1.e-2;
-
 static int
-do_c81_stall(int NM, int NA, doublereal *a, doublereal *stall)
+do_c81_stall(int NM, int NA, doublereal *a, doublereal *stall, const doublereal dcptol)
 {
 	for (int nm = 0; nm < NM; nm++) {
 		int start = NA*(nm+1);
@@ -838,17 +836,17 @@ do_c81_stall(int NM, int NA, doublereal *a, doublereal *stall)
 }
 
 static int
-do_c81_data_stall(c81_data *data)
+do_c81_data_stall(c81_data *data, const doublereal dcptol)
 {
 	if (data == NULL || data->NML <= 0 || data->NMM <= 0) {
 		return -1;
 	}
 
 	data->stall = new doublereal[3*data->NML];
-	do_c81_stall(data->NML, data->NAL, data->al, data->stall);
+	do_c81_stall(data->NML, data->NAL, data->al, data->stall, dcptol);
 
 	data->mstall = new doublereal[3*data->NMM];
-	do_c81_stall(data->NMM, data->NAM, data->am, data->mstall);
+	do_c81_stall(data->NMM, data->NAM, data->am, data->mstall, dcptol);
 
 	return 0;
 }

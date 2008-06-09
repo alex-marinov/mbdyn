@@ -737,7 +737,9 @@ This keyword allows to define and read the \kw{c81 data}
 airfoil tables that are used by aerodynamic elements.
 \begin{verbatim}
     <card> ::= c81 data : <label> [ , name , " <name> " ]
-        " <filename> " [ , { fc511 | free format } ] ;
+        " <filename> "
+        [ , tolerance , <tolerance> ]
+        [ , { fc511 | free format } ] ;
 \end{verbatim}
 
 \subsubsection{Traditional Format}

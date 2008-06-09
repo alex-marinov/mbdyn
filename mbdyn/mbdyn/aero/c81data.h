@@ -38,9 +38,9 @@ extern "C" {
 extern void destroy_c81_data(c81_data* data);
 extern c81_data* get_c81_data(long int jpro);
 extern int set_c81_data(long int jpro, c81_data* data);
-extern int read_c81_data(std::istream& in, c81_data* data);
-extern int read_fc511_data(std::istream& in, c81_data* data);
-extern int read_c81_data_free_format(std::istream& in, c81_data* data);
+extern int read_c81_data(std::istream& in, c81_data* data, const doublereal dcptol);
+extern int read_fc511_data(std::istream& in, c81_data* data, const doublereal dcptol);
+extern int read_c81_data_free_format(std::istream& in, c81_data* data, const doublereal dcptol);
 extern int write_c81_data(std::ostream& out, c81_data* data);
 extern int write_c81_data_free_format(std::ostream& out, c81_data* data);
 extern doublereal get_c81_coef(int nm, doublereal* m, int na, doublereal* a, doublereal alpha, doublereal mach);

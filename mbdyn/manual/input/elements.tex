@@ -466,7 +466,7 @@ The following data is available:
 
 
 
-\section{Air Properties Element}\label{sec:EL:AERO:AIRPROPERTIES}
+\section{Air Properties}\label{sec:EL:AERO:AIRPROPERTIES}
 The properties of the airstream are made of the physical properties
 of the air plus the description of the airstream velocity direction
 and amplitude.
@@ -531,6 +531,7 @@ If the optional \kw{gust} keyword is used, a gust model can be added.
 Note that a very elementary gust model, represented by a uniform change
 in airstream speed and direction can be implemented by using
 a time-dependent airstream drive.
+
 A more sophisticated model is currently available, and provisions are
 made to allow four-dimensional gust profiles, dependent on time
 and position.
@@ -577,7 +578,13 @@ and a peak velocity of 5 m/s moving downstream at the airstream speed,
             cosine, 0., pi/waveLength, V_g/2., one, 0.;
 \end{verbatim}
 
-\subsection{Output}
+Gusts can also be added later to the \kw{air properties} element
+by using the statement
+\begin{verbatim}
+    gust : <gust_model> ;
+\end{verbatim}
+
+\paragraph{Output}
 The output occurs in the \kw{.air} file, which contains:
 \begin{itemize}
 \item a fake label, always set to 0
@@ -588,6 +595,14 @@ with respect to the inertial reference frame
 \end{itemize}
 
 
+\paragraph{Private Data}
+The following data is available:
+\begin{itemize}
+\item \kw{"vxinf"} the $x$ component of the airstream speed (without any gust contribution)
+\item \kw{"vyinf"} the $y$ component of the airstream speed (without any gust contribution)
+\item \kw{"vzinf"} the $z$ component of the airstream speed (without any gust contribution)
+\item \kw{"vinf"} the module of the airstream speed (without any gust contribution)
+\end{itemize}
 
 \section{Automatic structural}
 The so called \kw{automatic structural} element is automatically generated

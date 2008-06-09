@@ -291,6 +291,7 @@ main(int argc, char *argv[])
 	doublereal	dFrom = -1.,
 			dTo;
 	int		rc = EXIT_SUCCESS;
+	doublereal	tol = 1e-6;
 	
 	enum {
 		MODE_UNDEFINED, MODE_FROM, MODE_TO, MODE_BOTH
@@ -432,7 +433,7 @@ main(int argc, char *argv[])
 		throw ErrGeneric();
 	}
 
-	if (read_c81_data(in, &data_from)) {
+	if (read_c81_data(in, &data_from, tol)) {
 		silent_cerr("unable to read c81 data from file \"" << name_from << "\"" << std::endl);
 		throw ErrGeneric();
 	}
@@ -445,7 +446,7 @@ main(int argc, char *argv[])
 		throw ErrGeneric();
 	}
 
-	if (read_c81_data(in, &data_to)) {
+	if (read_c81_data(in, &data_to, tol)) {
 		silent_cerr("unable to read c81 data from file \"" << name_to << "\"" << std::endl);
 		throw ErrGeneric();
 	}
