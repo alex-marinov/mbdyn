@@ -1101,20 +1101,21 @@ dnl
 dnl Check for ANN
 dnl
 ol_link_ANN=no
-if test "$ol_with_ANN" != no ; then
+if test "$ol_with_ANN" != "no" ; then
 	AC_LANG_CPLUSPLUS
 	ANN_H=
 	ANN_ANN_H=
 	AC_CHECK_HEADERS(ANN.h, [ANN_H="ANN.h"])
 	AC_CHECK_HEADERS(ANN/ANN.h, [ANN_H="ANN/ANN.h"])
-	SAVE_LIBS="$LIBS"
-	LIBS="$LIBS -lANN"
 	if test "$ac_cv_header_ANN_h" = "yes" -o "$ac_cv_header_ANN_ANN_h" = "yes" ; then
+		SAVE_LIBS="$LIBS"
+		LIBS="$LIBS -lANN"
 		AC_TRY_LINK(
 	#include <$ANN_H>
 			,[
 	ANNkd_tree x(0,0);
 			],[have_ANN=yes],[have_ANN=no])
+		LIBS="$save_LIBS"
 		if test "$have_ANN" != "no" ; then
 			X_ANN_LIBS="-lANN"
 			AC_DEFINE(HAVE_X_ANN,1,[define to use ANN])
@@ -1122,8 +1123,8 @@ if test "$ol_with_ANN" != no ; then
 			AC_DEFINE(USE_X_ANN,1,[define to use ANN])
 		fi
 	fi
-	if test "$ol_link_ANN" != yes ; then
-		if test "$ol_with_ANN" != auto ; then
+	if test "$ol_link_ANN" != "yes" ; then
+		if test "$ol_with_ANN" = "yes" ; then
 			AC_MSG_ERROR([ANN library headers not available])
 		fi
 	else
