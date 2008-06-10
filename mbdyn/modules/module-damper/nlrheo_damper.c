@@ -162,22 +162,21 @@ nlrheo_int_func(double t, const double y[], double f[], void *para)
 			gsl_vector_set_zero(pa.gsl_xp[i]);
 			gsl_vector_set_zero(pa.gsl_x[i]);
 			gsl_vector_set_zero(pa.gsl_b[i]);
-			for (int row = 0; row < nincognite - 1; row++) {
-				for (int col = 0; col < nincognite - 1; col++) {
-					gsl_matrix_set(pa.gsl_C[i], row, col, c[col]);
-					gsl_matrix_set(pa.gsl_C[i], row, col+1, -c[col+1]);
-					gsl_matrix_set(pa.gsl_K[i], row, col, k[col]);
-					gsl_matrix_set(pa.gsl_K[i], row, col+1, -k[col+1]);
+			for (int row = 0; row < nincognite; row++) {
+				gsl_matrix_set(pa.gsl_C[i], row, row, c[row] + c[row + 1]);
+				gsl_matrix_set(pa.gsl_K[i], row, row, k[row] + k[row + 1]);
+				if (row < nincognite - 1) {
+					gsl_matrix_set(pa.gsl_C[i], row, row + 1, - c[row + 1]);
+					gsl_matrix_set(pa.gsl_K[i], row, row + 1, - k[row + 1]);
 				}
-				gsl_matrix_set(pa.gsl_C[i], nincognite, row, c[nincognite]);
-				gsl_matrix_set(pa.gsl_K[i], nincognite, row, k[nincognite]);
+				if (row > 0) {
+					gsl_matrix_set(pa.gsl_C[i], row, row - 1, - c[row]);
+					gsl_matrix_set(pa.gsl_K[i], row, row - 1, - k[row]);
+				}
 				gsl_vector_set(pa.gsl_b[i], row, 0.);
 				gsl_vector_set(pa.gsl_x[i], row, y[unk + row]);
 			}
-			gsl_matrix_set(pa.gsl_C[i], nincognite - 1, nincognite - 1, c[nincognite - 1] + c[nincognite]);
-			gsl_matrix_set(pa.gsl_K[i], nincognite - 1, nincognite - 1, k[nincognite - 1] + k[nincognite]);
 			gsl_vector_set(pa.gsl_b[i], nincognite - 1, c[nincognite] * v + k[nincognite] * s);
-			gsl_vector_set(pa.gsl_x[i], nincognite - 1, y[unk + nincognite - 1]);
 
 			// calcola b -= Kx
 			gsl_blas_dgemv(CblasNoTrans, -1., pa.gsl_K[i], pa.gsl_x[i], 1., pa.gsl_b[i]);
