@@ -1101,7 +1101,7 @@ dnl
 dnl Check for ANN
 dnl
 ol_link_ANN=no
-if test $ol_with_ANN != no ; then
+if test "$ol_with_ANN" != no ; then
 	AC_LANG_CPLUSPLUS
 	ANN_H=
 	ANN_ANN_H=
@@ -1122,8 +1122,8 @@ if test $ol_with_ANN != no ; then
 			AC_DEFINE(USE_X_ANN,1,[define to use ANN])
 		fi
 	fi
-	if test $ol_link_ANN != yes ; then
-		if test $ol_with_ANN != auto ; then
+	if test "$ol_link_ANN" != yes ; then
+		if test "$ol_with_ANN" != auto ; then
 			AC_MSG_ERROR([ANN library headers not available])
 		fi
 	else
