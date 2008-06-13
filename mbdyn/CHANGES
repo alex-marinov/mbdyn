@@ -23,6 +23,7 @@ MBDyn 1.X-Devel
 		- add "TimeStep" and "Step" vars to math parser
 		- allow fixed step driver to count steps
 		- add provisions to combine multiple gust models
+		- allow binding to air properties
 	Backward compatibility issues:
 	Known issues:
 		- scalar filter seems to be broken; use state space SISO

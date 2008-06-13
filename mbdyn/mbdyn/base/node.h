@@ -555,6 +555,11 @@ public:
 	/* Elaborazione dati dopo la predizione */
 	virtual void AfterPredict(VectorHandler& X,
 		VectorHandler& XP);
+
+	/* the value! */
+	virtual unsigned int iGetNumPrivData(void) const {
+		return 1;
+	};
 };
 
 /* ParameterNode - end */

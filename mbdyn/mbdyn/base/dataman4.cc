@@ -411,107 +411,122 @@ DataManager::ReadElems(MBDynParser& HP)
 			} /* end while (HP.IsArg()) */
 
 		} else if (CurrDesc == BIND) {
-			/* Label dell'elemento */
-			unsigned int uL = HP.GetInt();
-
-			/* Tipo dell'elemento */
+			Elem* pEl = 0;
 			Elem::Type t = Elem::UNKNOWN;
-			switch (KeyWords(HP.GetWord())) {
-			case BODY:
-				t = Elem::BODY;
-				break;
 
-			case AUTOMATICSTRUCTURAL:
-				t = Elem::AUTOMATICSTRUCTURAL;
-				break;
+			if (HP.IsKeyWord("air" "properties")) {
+				t = Elem::AIRPROPERTIES;
+				if (ElemData[t].ElemMap.empty()) {
+					silent_cerr("air properties not defined; "
+						"cannot bind at line "
+						<< HP.GetLineData() << std::endl);
+					throw ErrGeneric();
+				}
+				ElemMapType::iterator ap = ElemData[t].ElemMap.begin();
+				pEl = ap->second;
 
-			case JOINT:
-				t = Elem::JOINT;
-				break;
+			} else {
+				/* Label dell'elemento */
+				unsigned int uL = HP.GetInt();
 
-			case FORCE:
-			case COUPLE:
-				t = Elem::FORCE;
-				break;
-
-			case INERTIA:
-				t = Elem::INERTIA;
-				break;
-
-			case BEAM:
-			case BEAM3:			/* same as BEAM */
-			case BEAM2:
-			case HBEAM:
-				t = Elem::BEAM;
-				break;
-
-			case ROTOR:
-				t = Elem::ROTOR;
-				break;
-
-			case AEROMODAL:
-				t = Elem::AEROMODAL;
-				break;
-
+				/* Tipo dell'elemento */
+				switch (KeyWords(HP.GetWord())) {
+				case BODY:
+					t = Elem::BODY;
+					break;
+	
+				case AUTOMATICSTRUCTURAL:
+					t = Elem::AUTOMATICSTRUCTURAL;
+					break;
+	
+				case JOINT:
+					t = Elem::JOINT;
+					break;
+	
+				case FORCE:
+				case COUPLE:
+					t = Elem::FORCE;
+					break;
+	
+				case INERTIA:
+					t = Elem::INERTIA;
+					break;
+	
+				case BEAM:
+				case BEAM3:			/* same as BEAM */
+				case BEAM2:
+				case HBEAM:
+					t = Elem::BEAM;
+					break;
+	
+				case ROTOR:
+					t = Elem::ROTOR;
+					break;
+	
+				case AEROMODAL:
+					t = Elem::AEROMODAL;
+					break;
+	
 #ifdef USE_EXTERNAL
-			case AERODYNAMICEXTERNAL:
-			case AERODYNAMICEXTERNALMODAL:
-				t = Elem::EXTERNAL;
-				break;
+				case AERODYNAMICEXTERNAL:
+				case AERODYNAMICEXTERNALMODAL:
+					t = Elem::EXTERNAL;
+					break;
 #endif /* USE_EXTERNAL */
 
-			case AERODYNAMICBODY:
-			case AERODYNAMICBEAM:
-			case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
-			case AERODYNAMICBEAM2:
-			case AIRCRAFTINSTRUMENTS:
-			case GENERICAERODYNAMICFORCE:
-				t = Elem::AERODYNAMIC;
-				break;
+				case AERODYNAMICBODY:
+				case AERODYNAMICBEAM:
+				case AERODYNAMICBEAM3:	/* same as AERODYNAMICBEAM */
+				case AERODYNAMICBEAM2:
+				case AIRCRAFTINSTRUMENTS:
+				case GENERICAERODYNAMICFORCE:
+					t = Elem::AERODYNAMIC;
+					break;
+	
+				case GENEL:
+					t = Elem::GENEL;
+					break;
+	
+				case ELECTRIC:
+					t = Elem::ELECTRIC;
+					break;
+	
+				case THERMAL:
+					t = Elem::THERMAL;
+					break;
 
-			case GENEL:
-				t = Elem::GENEL;
-				break;
+				case HYDRAULIC:
+					t = Elem::HYDRAULIC;
+					break;
 
-			case ELECTRIC:
-				t = Elem::ELECTRIC;
-				break;
+				case BULK:
+					t = Elem::BULK;
+					break;
 
-			case THERMAL:
-				t = Elem::THERMAL;
-				break;
+				case LOADABLE:
+					t = Elem::LOADABLE;
+					break;
 
-			case HYDRAULIC:
-				t = Elem::HYDRAULIC;
-				break;
+				case RTAI_OUTPUT:
+				case SOCKETSTREAM_OUTPUT:
+				case SOCKETSTREAM_MOTION_OUTPUT:
+				case STRUCTOUTPUT:
+					silent_cerr(psElemNames[Elem::SOCKETSTREAM_OUTPUT]
+						<< " does not support bind" << std::endl);
+				default:
+					throw ErrGeneric();
+				} /* end switch (KeyWords(HP.GetWord())) */
 
-			case BULK:
-				t = Elem::BULK;
-				break;
-
-			case LOADABLE:
-				t = Elem::LOADABLE;
-				break;
-
-			case RTAI_OUTPUT:
-			case SOCKETSTREAM_OUTPUT:
-			case SOCKETSTREAM_MOTION_OUTPUT:
-			case STRUCTOUTPUT:
-				silent_cerr(psElemNames[Elem::SOCKETSTREAM_OUTPUT]
-					<< " does not support bind" << std::endl);
-			default:
-				throw ErrGeneric();
-			} /* end switch (KeyWords(HP.GetWord())) */
-
-			Elem* pEl = dynamic_cast<Elem*>(pFindElem(t, uL));
-			if (pEl == 0) {
-				silent_cerr("can't find " << psElemNames[t] << " (" << uL << ") "
-					"at line " << HP.GetLineData() << std::endl);
-				throw ErrGeneric();
+				pEl = dynamic_cast<Elem*>(pFindElem(t, uL));
+				if (pEl == 0) {
+					silent_cerr("can't find " << psElemNames[t] << " (" << uL << ") "
+						"at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric();
+				}
 			}
 
 			/* Label del nodo parameter */
-			uL = HP.GetInt();
+			unsigned uL = HP.GetInt();
 
 			Elem2Param* pNd = dynamic_cast<Elem2Param*>(pFindNode(Node::PARAMETER, uL));
 			if (pNd == 0) {
@@ -567,6 +582,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				silent_cerr("air properties not defined; "
 					"cannot add gust at line "
 					<< HP.GetLineData() << std::endl);
+				throw ErrGeneric();
 			}
 			ElemMapType::iterator ap = ElemData[Elem::AIRPROPERTIES].ElemMap.begin();
 			dynamic_cast<AirProperties *>(ap->second)->AddGust(ReadGust(this, HP));

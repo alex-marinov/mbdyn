@@ -90,9 +90,10 @@ Elem2Param::dGetDofValue(int /* iDof */ , int /* iOrder */ ) const
 inline const doublereal&
 Elem2Param::dGetX(void) const
 {
-	ASSERT(pElem != NULL);
-
-	dX = pElem->dGetPrivData(iNum);
+	/* element could be undefined (yet) */
+	if (pElem != 0) {
+		dX = pElem->dGetPrivData(iNum);
+	}
 	return dX;
 }
 
