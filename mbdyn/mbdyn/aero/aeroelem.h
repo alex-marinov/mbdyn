@@ -44,18 +44,46 @@
 #include "aerod2.h"
 #include "shape.h"
 
-/* per l'output !?! */
-#define AEROD_OUT_STD 0
-#define AEROD_OUT_PGAUSS 1
-#define AEROD_OUT_NODE 2
+class AerodynamicOutput {
+public:
+	enum eOutput {
+		AEROD_OUT_UNKNOWN	= -1,
 
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-typedef struct {
-	Vec3 f;
-	doublereal alpha;
-} Aero_output;
-#endif /* AEROD_OUTPUT */
+		AEROD_OUT_STD		= 0x2,
+		AEROD_OUT_PGAUSS	= 0x4,
+		AEROD_OUT_NODE		= 0x8,
 
+		AEROD_OUT_MASK		= (AEROD_OUT_STD | AEROD_OUT_PGAUSS | AEROD_OUT_NODE)
+	};
+
+protected:
+	flag m_eOutput;
+
+	// specific for AEROD_OUT_PGAUSS
+	typedef struct {
+		Vec3 f;
+		doublereal alpha;
+	} Aero_output;
+
+	/* per output AERO_OUT_PGAUSS */
+	std::vector<Aero_output> pOutput;
+	std::vector<Aero_output>::iterator pTmpOutput;
+	
+
+public:
+	AerodynamicOutput(flag f, int iNP);
+	~AerodynamicOutput(void);
+
+	void SetOutputFlag(flag f, int iNP);
+	void ResetIterator(void);
+	void SetData(const Vec3& v, const doublereal *pd);
+
+	AerodynamicOutput::eOutput GetOutput(void) const;
+	bool IsOutput(void) const;
+	bool IsSTD(void) const;
+	bool IsPGAUSS(void) const;
+	bool IsNODE(void) const;
+};
 
 /* AerodynamicBody - begin */
 
@@ -77,7 +105,8 @@ class AerodynamicBody
 : virtual public Elem,
 public AerodynamicElem,
 public InitialAssemblyElem, 
-public DriveOwner {
+public DriveOwner,
+public AerodynamicOutput  {
 protected:
 	AeroData* aerodata;
 	const StructNode* pNode;
@@ -101,10 +130,6 @@ protected:
 	Vec3 F;			/* Forza */
 	Vec3 M;			/* Momento */
 	
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-	/* temporaneo, per output */
-	Aero_output* pOutput;
-#endif /* AEROD_OUTPUT */
 	/*
 	 * overload della funzione di ToBeOutput();
 	 * serve per allocare il vettore dei dati di output se il flag
@@ -230,7 +255,8 @@ class AerodynamicBeam
 : virtual public Elem,
 public AerodynamicElem,
 public InitialAssemblyElem,
-public DriveOwner {
+public DriveOwner,
+public AerodynamicOutput  {
 protected:
 	enum { NODE1 = 0, NODE2, NODE3, LASTNODE };
 	
@@ -267,11 +293,6 @@ protected:
 	 */
 	Vec3 F[LASTNODE];	/* Forza */
 	Vec3 M[LASTNODE];	/* Momento */
-	
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-	/* temporaneo, per output */
-	Aero_output* pOutput;
-#endif /* AEROD_OUTPUT */
 	
 	/*
 	 * overload della funzione di ToBeOutput();
@@ -403,7 +424,8 @@ class AerodynamicBeam2
 : virtual public Elem,
 public AerodynamicElem,
 public InitialAssemblyElem,
-public DriveOwner {
+public DriveOwner,
+public AerodynamicOutput  {
 protected:
 	enum { NODE1 = 0, NODE2, LASTNODE };
 	AeroData* aerodata;
@@ -435,11 +457,6 @@ protected:
 	 */
 	Vec3 F[LASTNODE];	/* Forza */
 	Vec3 M[LASTNODE];	/* Momento */
-	
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-	/* temporaneo, per output */
-	Aero_output* pOutput;
-#endif /* AEROD_OUTPUT */
 	
 	/*
 	 * overload della funzione di ToBeOutput();

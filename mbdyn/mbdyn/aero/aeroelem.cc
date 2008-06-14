@@ -46,35 +46,82 @@ extern "C" {
 #include "c81data.h"
 }
 
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-Aero_output *
-Aero_output_alloc(unsigned int iNumPoints)
+AerodynamicOutput::AerodynamicOutput(flag f, int iNP)
 {
-   	DEBUGCOUTFNAME("Aero_output_alloc");
-	ASSERT(iNumPoints > 0);
-   	Aero_output* p = NULL;
-   	SAFENEWARRNOFILL(p, Aero_output, iNumPoints);
-   	return p;
+	SetOutputFlag(f, iNP);
 }
 
-inline void
-set_alpha(Aero_output* p, Vec3& v)
+AerodynamicOutput::~AerodynamicOutput(void)
 {
-   	DEBUGCOUTFNAME("set_alpha");
-	ASSERT(p != NULL);
-   	p->alpha = 180./M_PI*atan2(-v.dGet(2), v.dGet(1));
+	NO_OP;
 }
 
-inline void
-set_f(Aero_output* p, doublereal* pd)
+void
+AerodynamicOutput::SetOutputFlag(flag f, int iNP)
 {
-   	DEBUGCOUTFNAME("set_f");
-	ASSERT(p != NULL);
-	ASSERT(pd != NULL);
-   	p->f = Vec3(pd[1], pd[0], pd[5]);
-}
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
+	m_eOutput = f;
 
+	if (IsOutput() && IsPGAUSS()) {
+		pOutput.resize(iNP);
+
+	} else {
+		pOutput.resize(0);
+	}
+}
+
+void
+AerodynamicOutput::ResetIterator(void)
+{
+	if (IsOutput() && IsPGAUSS()) {
+		ASSERT(!pOutput.empty());
+		pTmpOutput = pOutput.begin();
+	}
+}
+
+void
+AerodynamicOutput::SetData(const Vec3& v, const doublereal* pd)
+{
+	ASSERT(IsPGAUSS());
+	ASSERT(!pOutput.empty());
+	ASSERT(pTmpOutput >= pOutput.begin());
+	ASSERT(pTmpOutput < pOutput.end());
+
+   	pTmpOutput->alpha = 180./M_PI*atan2(-v.dGet(2), v.dGet(1));
+   	pTmpOutput->f = Vec3(pd[1], pd[0], pd[5]);
+
+	// move iterator forward
+	pTmpOutput++;
+}
+
+AerodynamicOutput::eOutput
+AerodynamicOutput::GetOutput(void) const
+{
+	return eOutput(m_eOutput & AEROD_OUT_MASK);
+}
+
+bool
+AerodynamicOutput::IsOutput(void) const
+{
+	return (m_eOutput & 0x1);
+}
+
+bool
+AerodynamicOutput::IsSTD(void) const
+{
+	return GetOutput() == AEROD_OUT_STD;
+}
+
+bool
+AerodynamicOutput::IsPGAUSS(void) const
+{
+	return GetOutput() == AEROD_OUT_PGAUSS;
+}
+
+bool
+AerodynamicOutput::IsNODE(void) const
+{
+	return GetOutput() == AEROD_OUT_NODE;
+}
 
 /* AerodynamicBody - begin */
 
@@ -91,6 +138,7 @@ AerodynamicBody::AerodynamicBody(unsigned int uLabel,
 AerodynamicElem(uLabel, fOut),
 InitialAssemblyElem(uLabel, fOut),
 DriveOwner(pDC),
+AerodynamicOutput(fOut, iN),
 aerodata(a),
 pNode(pN),
 pRotor(pR),
@@ -108,9 +156,6 @@ pdOuta(NULL),
 pvdOuta(NULL),
 F(0.),
 M(0.)
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-, pOutput(NULL)
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 {
    	DEBUGCOUTFNAME("AerodynamicBody::AerodynamicBody");
 
@@ -132,21 +177,6 @@ M(0.)
    	for (integer i = iN; i-- > 0; ) {
       		pvdOuta[i] = pdOuta+20*i;
    	}
-
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-   	if (fToBeOutput()) {
-      		try {
-	 		pOutput = Aero_output_alloc(iN);
-      		}
-      		catch (ErrMemory) {
-	 		SetOutputFlag(flag(0));
-	 		silent_cerr("Unable to alloc memory for output"
-					" of AerodynamicBody("
-					<< GetLabel() << ")"
-					<< std::endl);
-      		}
-   	}
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 }
 
 AerodynamicBody::~AerodynamicBody(void)
@@ -155,12 +185,6 @@ AerodynamicBody::~AerodynamicBody(void)
 
    	SAFEDELETEARR(pvdOuta);
    	SAFEDELETEARR(pdOuta);
-
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-   	if (pOutput != NULL) {
-      		SAFEDELETEARR(pOutput);
-   	}
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 
    	SAFEDELETE(aerodata);
 }
@@ -175,24 +199,7 @@ AerodynamicBody::SetOutputFlag(flag f)
 {
    	DEBUGCOUTFNAME("AerodynamicBody::SetOutputFlag");
    	ToBeOutput::SetOutputFlag(f);
-
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-   	if (fToBeOutput()) {
-      		/* se non e' gia' stato allocato ... */
-      		if (pOutput == NULL) {
-	 		try {
-	    			pOutput = Aero_output_alloc(GDI.iGetNum());
-	 		}
-	 		catch (ErrMemory) {
-	    			SetOutputFlag(flag(0));
-	    			silent_cerr("Unable to alloc memory for output"
-						" of AerodynamicBody("
-						<< GetLabel() << ")"
-						<< std::endl);
-	 		}
-      		}
-   	}
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
+	AerodynamicOutput::SetOutputFlag(f, GDI.iGetNum());
 }
 
 /* Scrive il contributo dell'elemento al file di restart */
@@ -303,10 +310,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
 
    	doublereal** pvd = pvdOuta;
 
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-   	/* per output in modalita' punti di Gauss */
-   	Aero_output* pTmpOutput = pOutput;
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
+	ResetIterator();
 
    	/* Ciclo sui punti di Gauss */
    	PntWght PW = GDI.GetFirst();
@@ -363,18 +367,11 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
 		 * Ruota velocita' e velocita' angolare nel sistema
 		 * aerodinamico e li copia nel vettore di lavoro dW
 		 */
-      		Vec3 Tmp(RRloc.MulTV(Vr));
-      		Tmp.PutTo(dW);
+      		VTmp = RRloc.MulTV(Vr);
+      		VTmp.PutTo(dW);
 
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-      		if (fToBeOutput()) {
-	 		ASSERT(pOutput != NULL);
-	 		set_alpha(pTmpOutput, Tmp);
-      		}
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
-
-      		Tmp = RRloc.MulTV(Wn);
-      		Tmp.PutTo(&dW[3]);
+      		Vec3 WTmp = RRloc.MulTV(Wn);
+      		WTmp.PutTo(&dW[3]);
 
       		/* Funzione di calcolo delle forze aerodinamiche */
       		aerodata->GetForces(iPnt, dW, dTng, *pvd);
@@ -382,13 +379,10 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
       		/* OUTA */
       		pvd++;
 
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-      		if (fToBeOutput()) {
-	 		ASSERT(pOutput != NULL);
-	 		set_f(pTmpOutput, dTng);
-	 		pTmpOutput++;
+		// specific for Gauss points force output
+      		if (fToBeOutput() && IsPGAUSS()) {
+	 		SetData(VTmp, dTng);
       		}
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 
       		/* Dimensionalizza le forze */
       		doublereal dWght = PW.dGetWght();
@@ -443,29 +437,40 @@ AerodynamicBody::Output(OutputHandler& OH) const
 {
    	/* Output delle forze aerodinamiche F, M su apposito file */
    	if (fToBeOutput()) {
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-      		ASSERT(pOutput != NULL);
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
       		std::ostream& out = OH.Aerodynamic()
 			<< std::setw(8) << GetLabel();
 
-#if AEROD_OUTPUT == AEROD_OUT_NODE
-      		out << " " << std::setw(8) << pNode->GetLabel()
-			<< " ", F.Write(out, " ") << " ", M.Write(out, " ");
-#else /* AEROD_OUTPUT != AEROD_OUT_NODE */
-      		for (int i = 0; i < GDI.iGetNum(); i++) {
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-	 		out << " " << pOutput[i].alpha
-				<< " " << pOutput[i].f;
-#elif AEROD_OUTPUT == AEROD_OUT_STD
-	 		for (int j = 1; j <= 6; j++) {
-	    			out << " " << pvdOuta[i][j];
-	 		}
-			out << " " << pvdOuta[i][OUTA_ALF1]
-				<< " " << pvdOuta[i][OUTA_ALF2];
-#endif /* AEROD_OUTPUT == AEROD_OUT_STD */
-      		}
-#endif /* AEROD_OUTPUT != AEROD_OUT_NODE */
+		switch (GetOutput()) {
+		case AEROD_OUT_NODE:
+      			out << " " << std::setw(8) << pNode->GetLabel()
+				<< " ", F.Write(out, " ") << " ", M.Write(out, " ");
+			break;
+
+		case AEROD_OUT_PGAUSS:
+      			ASSERT(!pOutput.empty());
+      			for (std::vector<Aero_output>::const_iterator i = pOutput.begin();
+				i != pOutput.end(); i++)
+			{
+	 			out << " " << i->alpha
+					<< " " << i->f;
+			}
+			break;
+
+		case AEROD_OUT_STD:
+      			for (int i = 0; i < GDI.iGetNum(); i++) {
+	 			for (int j = 1; j <= 6; j++) {
+	    				out << " " << pvdOuta[i][j];
+	 			}
+				out << " " << pvdOuta[i][OUTA_ALF1]
+					<< " " << pvdOuta[i][OUTA_ALF2];
+      			}
+			break;
+
+		default:
+			ASSERT(0);
+			break;
+		}
+
       		out << std::endl;
    	}
 }
@@ -831,6 +836,23 @@ ReadAerodynamicBody(DataManager* pDM,
 	aerodata->SetNumPoints(iNumber);
 
 	flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
+	if (HP.IsArg()) {
+		if (HP.IsKeyWord("std")) {
+			fOut |= AerodynamicOutput::AEROD_OUT_STD;
+		} else if (HP.IsKeyWord("gauss")) {
+			fOut |= AerodynamicOutput::AEROD_OUT_PGAUSS;
+		} else if (HP.IsKeyWord("node")) {
+			fOut |= AerodynamicOutput::AEROD_OUT_NODE;
+		} else {
+			silent_cerr("AerodynamicBody(" << uLabel << "): "
+				"unknown output mode at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric();
+		}
+
+	} else if (fOut) {
+		fOut |= AerodynamicOutput::AEROD_OUT_STD;
+	}
 
 	Elem* pEl = NULL;
 	SAFENEWWITHCONSTRUCTOR(pEl,
@@ -889,6 +911,7 @@ AerodynamicBeam::AerodynamicBeam(unsigned int uLabel,
 AerodynamicElem(uLabel, fOut),
 InitialAssemblyElem(uLabel, fOut),
 DriveOwner(pDC),
+AerodynamicOutput(fOut, 3*iN),
 aerodata(a),
 pBeam(pB),
 pRotor(pR),
@@ -909,9 +932,6 @@ Twist(pT),
 GDI(iN),
 pdOuta(NULL),
 pvdOuta(NULL)
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-, pOutput(NULL)
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 {
    	DEBUGCOUTFNAME("AerodynamicBeam::AerodynamicBeam");
 
@@ -943,20 +963,6 @@ pvdOuta(NULL)
 	for (integer i = 3*iN; i-- > 0; ) {
 		pvdOuta[i] = pdOuta+20*i;
 	}
-
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-	if (fToBeOutput()) {
-		try {
-			pOutput = Aero_output_alloc(3*iN);
-      		}
-      		catch (ErrMemory) {
-	 		SetOutputFlag(flag(0));
-	 		silent_cerr("Unable to alloc memory for output"
-					" of AerodynamicBeam(" << GetLabel()
-					<< ")" << std::endl);
-      		}
-   	}
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 }
 
 AerodynamicBeam::~AerodynamicBeam(void)
@@ -965,12 +971,6 @@ AerodynamicBeam::~AerodynamicBeam(void)
 
 	SAFEDELETEARR(pvdOuta);
 	SAFEDELETEARR(pdOuta);
-
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-	if (pOutput != NULL) {
-		SAFEDELETEARR(pOutput);
-	}
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 
 	SAFEDELETE(aerodata);
 }
@@ -986,23 +986,7 @@ AerodynamicBeam::SetOutputFlag(flag f)
 	DEBUGCOUTFNAME("AerodynamicBeam::SetOutputFlag");
 
 	ToBeOutput::SetOutputFlag(f);
-
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-	if (fToBeOutput()) {
-		/* se non e' gia' stato allocato ... */
-		if (pOutput == NULL) {
-			try {
-				pOutput = Aero_output_alloc(3*GDI.iGetNum());
-	 		}
-	 		catch (ErrMemory) {
-	    			SetOutputFlag(flag(0));
-	    			silent_cerr("Unable to alloc memory "
-						"for output of AerodynamicBeam("
-						<< GetLabel() << ")" << std::endl);
-	 		}
-      		}
-   	}
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
+	AerodynamicOutput::SetOutputFlag(f, 3*GDI.iGetNum());
 }
 
 /* Scrive il contributo dell'elemento al file di restart */
@@ -1161,6 +1145,8 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 	doublereal** pvd = pvdOuta;
 	int iPnt = 0;
 
+	ResetIterator();
+
 	for (int iNode = 0; iNode < LASTNODE; iNode++) {
 
 		/* Resetta le forze */
@@ -1172,11 +1158,6 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 
 		doublereal dsm = (dsf+dsi)/2.;
 		doublereal dsdCsi = (dsf-dsi)/2.;
-
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-		/* per output */
-		Aero_output* pTmpOutput = pOutput;
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 
 		/* Ciclo sui punti di Gauss */
 		PntWght PW = GDI.GetFirst();
@@ -1244,18 +1225,11 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 			 * Ruota velocita' e velocita' angolare nel sistema
 			 * aerodinamico e li copia nel vettore di lavoro dW
 			 */
-			Vec3 Tmp(RRloc.MulTV(Vr));
-			Tmp.PutTo(dW);
+			VTmp = RRloc.MulTV(Vr);
+			VTmp.PutTo(dW);
 
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-			if (fToBeOutput()) {
-				ASSERT(pOutput != NULL);
-				set_alpha(pTmpOutput, Tmp);
-			}
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
-
-			Tmp = RRloc.MulTV(Wr);
-			Tmp.PutTo(dW+3);
+			Vec3 WTmp = RRloc.MulTV(Wr);
+			WTmp.PutTo(&dW[3]);
 
 			/* Funzione di calcolo delle forze aerodinamiche */
 			aerodata->GetForces(iPnt, dW, dTng, *pvd);
@@ -1263,13 +1237,10 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 			/* OUTA */
 			pvd++;
 
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-			if (fToBeOutput()) {
-				ASSERT(pOutput != NULL);
-				set_f(pTmpOutput, dTng);
-				pTmpOutput++;
+			// specific for Gauss points force output
+			if (fToBeOutput() && IsPGAUSS()) {
+				SetData(VTmp, dTng);
 			}
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 
 			/* Dimensionalizza le forze */
 			doublereal dWght = dXds*dsdCsi*PW.dGetWght();
@@ -1325,35 +1296,47 @@ AerodynamicBeam::AfterConvergence(const VectorHandler& /* X */ ,
  * l'OutputHandler, dove scrivere il proprio output
  */
 void
-AerodynamicBeam::Output(OutputHandler& OH ) const
+AerodynamicBeam::Output(OutputHandler& OH) const
 {
 	DEBUGCOUTFNAME("AerodynamicBeam::Output");
 
 	if (fToBeOutput()) {
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-		ASSERT(pOutput != NULL);
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 		std::ostream& out = OH.Aerodynamic() << std::setw(8) << GetLabel();
 
-#if AEROD_OUTPUT == AEROD_OUT_NODE
-		out << " " << std::setw(8) << pBeam->GetLabel();
-		out << " ", F[NODE1].Write(out, " ") << " ", M[NODE1].Write(out, " ");
-		out << " ", F[NODE2].Write(out, " ") << " ", M[NODE2].Write(out, " ");
-		out << " ", F[NODE3].Write(out, " ") << " ", M[NODE3].Write(out, " ");
-#else /* AEROD_OUTPUT != AEROD_OUT_NODE */
-		for (int i = 0; i < 3*GDI.iGetNum(); i++) {
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-			out << " " << pOutput[i].alpha
-				<< " " << pOutput[i].f;
-#elif AEROD_OUTPUT == AEROD_OUT_STD
-			for (int j = 1; j <= 6; j++) {
-				out << " " << pvdOuta[i][j];
+		switch (GetOutput()) {
+		case AEROD_OUT_NODE:
+			out << " " << std::setw(8) << pBeam->GetLabel()
+				<< " ", F[NODE1].Write(out, " ") << " ", M[NODE1].Write(out, " ")
+				<< " ", F[NODE2].Write(out, " ") << " ", M[NODE2].Write(out, " ")
+				<< " ", F[NODE3].Write(out, " ") << " ", M[NODE3].Write(out, " ");
+			break;
+
+		case AEROD_OUT_PGAUSS:
+			ASSERT(!pOutput.empty());
+
+			for (std::vector<Aero_output>::const_iterator i = pOutput.begin();
+				i != pOutput.end(); i++)
+			{
+				out << " " << i->alpha
+					<< " " << i->f;
 			}
-			out << " " << pvdOuta[i][OUTA_ALF1]
-				<< " " << pvdOuta[i][OUTA_ALF2];
-#endif /* AEROD_OUTPUT == AEROD_OUT_STD */
+			break;
+
+		case AEROD_OUT_STD:
+			for (int i = 0; i < 3*GDI.iGetNum(); i++) {
+				for (int j = 1; j <= 6; j++) {
+					out << " " << pvdOuta[i][j];
+				}
+				out << " " << pvdOuta[i][OUTA_ALF1]
+					<< " " << pvdOuta[i][OUTA_ALF2];
+			}
+			break;
+
+		default:
+			ASSERT(0);
+			break;
 		}
-#endif /* AEROD_OUTPUT != AEROD_OUT_NODE */
+
 		out << std::endl;
 	}
 }
@@ -1469,7 +1452,24 @@ ReadAerodynamicBeam(DataManager* pDM,
 
 	aerodata->SetNumPoints(3*iNumber);
 
-	flag fOut = pDM->fReadOutput(HP, Elem::BEAM);
+	flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
+	if (HP.IsArg()) {
+		if (HP.IsKeyWord("std")) {
+			fOut |= AerodynamicOutput::AEROD_OUT_STD;
+		} else if (HP.IsKeyWord("gauss")) {
+			fOut |= AerodynamicOutput::AEROD_OUT_PGAUSS;
+		} else if (HP.IsKeyWord("node")) {
+			fOut |= AerodynamicOutput::AEROD_OUT_NODE;
+		} else {
+			silent_cerr("AerodynamicBeam3(" << uLabel << "): "
+				"unknown output mode at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric();
+		}
+
+	} else if (fOut) {
+		fOut |= AerodynamicOutput::AEROD_OUT_STD;
+	}
 
 	Elem* pEl = NULL;
 
@@ -1545,6 +1545,7 @@ AerodynamicBeam2::AerodynamicBeam2(
 AerodynamicElem(uLabel, fOut),
 InitialAssemblyElem(uLabel, fOut),
 DriveOwner(pDC),
+AerodynamicOutput(fOut, 2*iN),
 aerodata(a),
 pBeam(pB),
 pRotor(pR),
@@ -1562,9 +1563,6 @@ Twist(pT),
 GDI(iN),
 pdOuta(NULL),
 pvdOuta(NULL)
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-, pOutput(NULL)
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 {
 	DEBUGCOUTFNAME("AerodynamicBeam2::AerodynamicBeam2");
 
@@ -1593,20 +1591,6 @@ pvdOuta(NULL)
 	for (integer i = 2*iN; i-- > 0; ) {
 		pvdOuta[i] = pdOuta+20*i;
 	}
-
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-	if (fToBeOutput()) {
-		try {
-			pOutput = Aero_output_alloc(2*iN);
-      		}
-      		catch (ErrMemory) {
-	 		SetOutputFlag(flag(0));
-	 		silent_cerr("unable to alloc memory for output "
-					"of AerodynamicBeam2(" << GetLabel() << ")"
-					<< std::endl);
-      		}
-   	}
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 }
 
 AerodynamicBeam2::~AerodynamicBeam2(void)
@@ -1615,12 +1599,6 @@ AerodynamicBeam2::~AerodynamicBeam2(void)
 
 	SAFEDELETEARR(pvdOuta);
 	SAFEDELETEARR(pdOuta);
-
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-	if (pOutput != NULL) {
-		SAFEDELETEARR(pOutput);
-	}
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 
 	SAFEDELETE(aerodata);
 }
@@ -1636,23 +1614,7 @@ AerodynamicBeam2::SetOutputFlag(flag f)
 	DEBUGCOUTFNAME("AerodynamicBeam2::SetOutputFlag");
 
 	ToBeOutput::SetOutputFlag(f);
-
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-	if (fToBeOutput()) {
-		/* se non e' gia' stato allocato ... */
-		if (pOutput == NULL) {
-			try {
-				pOutput = Aero_output_alloc(2*GDI.iGetNum());
-	 		}
-	 		catch (ErrMemory) {
-	    			SetOutputFlag(flag(0));
-	    			silent_cerr("unable to alloc memory for output "
-						"of AerodynamicBeam2("
-						<< GetLabel() << ")" << std::endl);
-	 		}
-      		}
-   	}
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
+	AerodynamicOutput::SetOutputFlag(f, 2*GDI.iGetNum());
 }
 
 /* Scrive il contributo dell'elemento al file di restart */
@@ -1800,6 +1762,8 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 	doublereal** pvd = pvdOuta;
 	int iPnt = 0;
 
+	ResetIterator();
+
 	for (int iNode = 0; iNode < LASTNODE; iNode++) {
 
 		/* Resetta i dati */
@@ -1811,11 +1775,6 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 
 		doublereal dsm = (dsf+dsi)/2.;
 		doublereal dsdCsi = (dsf-dsi)/2.;
-
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-		/* per output */
-		Aero_output* pTmpOutput = pOutput;
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 
 		/* Ciclo sui punti di Gauss */
 		PntWght PW = GDI.GetFirst();
@@ -1878,18 +1837,11 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 			 * Ruota velocita' e velocita' angolare nel sistema
 			 * aerodinamico e li copia nel vettore di lavoro dW
 			 */
-			Vec3 Tmp(RRloc.MulTV(Vr));
-			Tmp.PutTo(dW);
+			VTmp = RRloc.MulTV(Vr);
+			VTmp.PutTo(dW);
 
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-			if (fToBeOutput()) {
-				ASSERT(pOutput != NULL);
-				set_alpha(pTmpOutput, Tmp);
-			}
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
-
-			Tmp = RRloc.MulTV(Wr);
-			Tmp.PutTo(dW+3);
+			Vec3 WTmp = RRloc.MulTV(Wr);
+			WTmp.PutTo(&dW[3]);
 
 			/* Funzione di calcolo delle forze aerodinamiche */
 			aerodata->GetForces(iPnt, dW, dTng, *pvd);
@@ -1897,13 +1849,10 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 			/* OUTA */
 			pvd++;
 
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-			if (fToBeOutput()) {
-				ASSERT(pOutput != NULL);
-				set_f(pTmpOutput, dTng);
-				pTmpOutput++;
+			// specific for Gauss points force output
+			if (fToBeOutput() && IsPGAUSS()) {
+				SetData(VTmp, dTng);
 			}
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 
 			/* Dimensionalizza le forze */
 			doublereal dWght = dXds*dsdCsi*PW.dGetWght();
@@ -1961,27 +1910,42 @@ AerodynamicBeam2::Output(OutputHandler& OH ) const
 	DEBUGCOUTFNAME("AerodynamicBeam2::Output");
 
 	if (fToBeOutput()) {
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-		ASSERT(pOutput != NULL);
-#endif /* AEROD_OUTPUT == AEROD_OUT_PGAUSS */
 		std::ostream& out = OH.Aerodynamic() << std::setw(8) << GetLabel();
 
-#if AEROD_OUTPUT == AEROD_OUT_NODE
-		out << " " << std::setw(8) << pBeam->GetLabel();
-		out << " ", F1.Write(out, " ") << " ", M1.Write(out, " ");
-		out << " ", F2.Write(out, " ") << " ", M2.Write(out, " ");
-#else /* AEROD_OUTPUT != AEROD_OUT_NODE */
-		for (int i = 0; i < 2*GDI.iGetNum(); i++) {
-#if AEROD_OUTPUT == AEROD_OUT_PGAUSS
-			out << " " << pOutput[i].alpha
-				<< " " << pOutput[i].f;
-#elif AEROD_OUTPUT == AEROD_OUT_STD
-			for (int j = 1; j <= 6; j++) {
-				out << " " << pvdOuta[i][j];
+		switch (GetOutput()) {
+
+		case AEROD_OUT_NODE:
+			out << " " << std::setw(8) << pBeam->GetLabel()
+				<< " ", F[NODE1].Write(out, " ") << " ", M[NODE1].Write(out, " ")
+				<< " ", F[NODE2].Write(out, " ") << " ", M[NODE2].Write(out, " ");
+			break;
+
+		case AEROD_OUT_PGAUSS:
+			ASSERT(!pOutput.empty());
+
+			for (std::vector<Aero_output>::const_iterator i = pOutput.begin();
+				i != pOutput.end(); i++)
+			{
+				out << " " << i->alpha
+					<< " " << i->f;
 			}
-#endif /* AEROD_OUTPUT == AEROD_OUT_STD */
+			break;
+
+		case AEROD_OUT_STD:
+			for (int i = 0; i < 2*GDI.iGetNum(); i++) {
+				for (int j = 1; j <= 6; j++) {
+					out << " " << pvdOuta[i][j];
+				}
+				out << " " << pvdOuta[i][OUTA_ALF1]
+					<< " " << pvdOuta[i][OUTA_ALF2];
+			}
+			break;
+
+		default:
+			ASSERT(0);
+			break;
 		}
-#endif /* AEROD_OUTPUT != AEROD_OUT_NODE */
+
 		out << std::endl;
 	}
 }
@@ -2085,7 +2049,24 @@ ReadAerodynamicBeam2(
 
 	aerodata->SetNumPoints(2*iNumber);
 
-	flag fOut = pDM->fReadOutput(HP, Elem::BEAM);
+	flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
+	if (HP.IsArg()) {
+		if (HP.IsKeyWord("std")) {
+			fOut |= AerodynamicOutput::AEROD_OUT_STD;
+		} else if (HP.IsKeyWord("gauss")) {
+			fOut |= AerodynamicOutput::AEROD_OUT_PGAUSS;
+		} else if (HP.IsKeyWord("node")) {
+			fOut |= AerodynamicOutput::AEROD_OUT_NODE;
+		} else {
+			silent_cerr("AerodynamicBeam2(" << uLabel << "): "
+				"unknown output mode at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric();
+		}
+
+	} else if (fOut) {
+		fOut |= AerodynamicOutput::AEROD_OUT_STD;
+	}
 
 	Elem* pEl = NULL;
 
