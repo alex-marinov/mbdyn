@@ -149,8 +149,7 @@ TDConstitutiveLawWrapper<T, Tder>::AfterConvergence(const T& Eps, const T& EpsPr
 	T EpsCurr = Eps*dScaleEpsilon;
 	pCL->AfterConvergence(EpsCurr, EpsPrime*dScaleEpsilon);
 
-	// average force * (old - new epsilon, to avoid unary - operator
-	// const T& FCurr = pCL->GetF();
+	// average force * (old - new epsilon), to avoid unary - operator
 	const T& FCurr = ConstitutiveLaw<T, Tder>::GetF();
 	dWCurr += ((FCurr + FPrev)*(EpsPrev - EpsCurr))/2.;
 
