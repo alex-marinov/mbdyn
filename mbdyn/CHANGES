@@ -24,6 +24,7 @@ MBDyn 1.X-Devel
 		- allow fixed step driver to count steps
 		- add provisions to combine multiple gust models
 		- allow binding to air properties
+		- add bailout support to drives (Marco Morandini)
 	Backward compatibility issues:
 	Known issues:
 		- scalar filter seems to be broken; use state space SISO

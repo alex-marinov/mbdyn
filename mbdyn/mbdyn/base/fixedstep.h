@@ -44,6 +44,7 @@ protected:
 	doublereal dDT;
 	integer iNumSteps;
 	bool bPadZeroes;
+	Bailout boWhen;
 
 	doublereal* pd;
 	doublereal** pvd;
@@ -51,7 +52,7 @@ protected:
 public:
 	FixedStepFileDrive(unsigned int uL, const DriveHandler* pDH,
 			const char* const sFileName, integer is, integer id,
-			doublereal t0, doublereal dt, bool pz);
+			doublereal t0, doublereal dt, bool pz, Drive::Bailout bo);
 	virtual ~FixedStepFileDrive(void);
 
 	virtual FileDrive::Type GetFileDriveType(void) const {

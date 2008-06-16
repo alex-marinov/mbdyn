@@ -93,6 +93,14 @@ class Drive : public WithLabel {
 	LASTDRIVETYPE
    };
    
+public:
+	enum Bailout {
+		BO_NONE		= 0x0,
+		BO_UPPER	= 0x1,
+		BO_LOWER	= 0x2,
+		BO_ANY		= (BO_UPPER | BO_LOWER)
+	};
+
  protected:
    const DriveHandler* pDrvHdl;   
    static doublereal dReturnValue;

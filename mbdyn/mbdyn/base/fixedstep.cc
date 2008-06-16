@@ -47,9 +47,9 @@ FixedStepFileDrive::FixedStepFileDrive(unsigned int uL,
 		const DriveHandler* pDH,
 		const char* const sFileName,
 		integer ins, integer ind,
-		doublereal t0, doublereal dt, bool pz)
+		doublereal t0, doublereal dt, bool pz, Drive::Bailout bo)
 : FileDrive(uL, pDH, sFileName, ind),
-dT0(t0), dDT(dt), iNumSteps(ins), bPadZeroes(pz), pd(NULL), pvd(NULL)
+dT0(t0), dDT(dt), iNumSteps(ins), bPadZeroes(pz), boWhen(bo), pd(0), pvd(0)
 {
 	ASSERT(iNumDrives > 0);
 	ASSERT(sFileName != NULL);
@@ -148,6 +148,9 @@ FixedStepFileDrive::ServePending(const doublereal& t)
 				pdVal[i] = 0.;
 			}
 
+		} else if (boWhen & Drive::BO_LOWER) {
+			// throw exception
+
 		} else {
 			for (int i = 1; i <= iNumDrives; i++) {
 				pdVal[i] = pvd[i][0];
@@ -159,6 +162,9 @@ FixedStepFileDrive::ServePending(const doublereal& t)
 			for (int i = 1; i <= iNumDrives; i++) {
 				pdVal[i] = 0.;
 			}
+
+		} else if (boWhen & Drive::BO_UPPER) {
+			// throw exception
 
 		} else {
 			for (int i = 1; i <= iNumDrives; i++) {
@@ -223,6 +229,8 @@ ReadFixedStepFileDrive(DataManager* pDM,
 	}
 
 	bool pz(true);
+	Drive::Bailout bo(Drive::BO_NONE);
+
 	if (HP.IsKeyWord("pad" "zeros") || HP.IsKeyWord("pad" "zeroes")) {
 		if (HP.IsKeyWord("no")) {
 			pz = false;
@@ -230,6 +238,27 @@ ReadFixedStepFileDrive(DataManager* pDM,
 		} else if (!HP.IsKeyWord("yes")) {
 			silent_cerr("unknown value for \"pad zeros\" "
 				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric();
+		}
+
+	} else if (HP.IsKeyWord("bailout")) {
+		if (HP.IsKeyWord("none")) {
+			bo = Drive::BO_NONE;
+
+		} else if (HP.IsKeyWord("upper")) {
+			bo = Drive::BO_UPPER;
+
+		} else if (HP.IsKeyWord("lower")) {
+			bo = Drive::BO_LOWER;
+
+		} else if (HP.IsKeyWord("any")) {
+			bo = Drive::BO_ANY;
+
+		} else {
+			silent_cerr("FixedStepFileDrive(" << uLabel << "): "
+				"invalid bailout parameter "
+				"at line " << HP.GetLineData()
+				<< std::endl);
 			throw ErrGeneric();
 		}
 	}
@@ -241,7 +270,7 @@ ReadFixedStepFileDrive(DataManager* pDM,
 			FixedStepFileDrive,
 			FixedStepFileDrive(uLabel, pDM->pGetDrvHdl(),
 				filename, isteps, idrives,
-				t0, dt, pz));
+				t0, dt, pz, bo));
 
 	return pDr;
 } /* End of ReadFixedStepFileDrive */
