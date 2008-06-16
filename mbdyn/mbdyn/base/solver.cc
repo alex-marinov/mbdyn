@@ -1058,7 +1058,7 @@ Solver::Run(void)
 				   	*qX[0], *qXPrime[0]);
 	 		Flip();
 
-	 		DEBUGLCOUT(MYDEBUG_FSTEPS, "Fictitious step "
+	 		DEBUGLCOUT(MYDEBUG_FSTEPS, "Dummy step "
 				   << iSubStep
 				   << "; current time step: " << dCurrTimeStep
 				   << std::endl);
