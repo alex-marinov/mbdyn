@@ -149,7 +149,7 @@ struct DamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 		}
 
 		// By default, cut at 
-		double hi_freq_force_filter_coeff = 1./(2.*M_PI*160.);
+		double hi_freq_force_filter_coeff = (2.*M_PI*160.);
 		if (HP.IsKeyWord("force" "filter")) {
 			doublereal dOmega = HP.GetReal();
 			if (dOmega <= 0.) {
@@ -159,7 +159,7 @@ struct DamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 					<< std::endl);
 				throw ErrGeneric();
 			}
-			hi_freq_force_filter_coeff = 1./dOmega;
+			hi_freq_force_filter_coeff = dOmega;
 		}
 
 		double low_freq_displ_filter_coeff = 0.;
@@ -185,7 +185,7 @@ struct DamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 			static_low_freq_stiffness = E;
 		}
 
-		int nsubsteps = 1;
+		int nsubsteps = 10;
 		if (HP.IsKeyWord("substeps")) {
 			nsubsteps = HP.GetInt();
 			if (nsubsteps <= 0) {

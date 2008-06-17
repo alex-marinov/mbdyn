@@ -40,6 +40,11 @@ nlrheo_int_compute_kc(double &k, double &c,
 		for (int i = 0; i < npti_kv[el]; i++) {
 			if (std::abs(s) > k_s[npti_ks[el]-1]) {
 				k_v_i[i] = x[somma_k + npti_ks[el] - 1];
+// 					(x[somma_k + npti_ks[el] - 1] - x[somma_k + npti_ks[el] - 2])
+// 					/ (k_s[npti_ks[el]-1] - k_s[npti_ks[el]-2])
+// 					* (std::abs(s) - k_s[npti_ks[el]-1])
+// 					+ x[somma_k + npti_ks[el] - 1]
+// 				;
 			} else if (std::abs(s) == 0) {
 				k_v_i[i] = x[somma_k];
 			} else {
@@ -59,6 +64,11 @@ nlrheo_int_compute_kc(double &k, double &c,
 	if (ik_v != 0) {
 		if (std::abs(v) > k_v[npti_kv[el] - 1]) {
 			k = k_v_i[npti_kv[el]-1];
+// 				(k_v_i[npti_kv[el]-1] - k_v_i[npti_kv[el]-2]) 
+// 				/ (k_v[npti_kv[el] - 1] - k_v[npti_kv[el] - 2])
+// 				* (std::abs(v) - k_v[npti_kv[el] - 1])
+// 				+ k_v_i[npti_kv[el]-1]
+// 			;
 		} else if (std::abs(v) == 0) {
 			k = k_v_i[0];
 		} else {
@@ -78,6 +88,11 @@ nlrheo_int_compute_kc(double &k, double &c,
 		for (int i = 0; i < npti_cv[el]; i++) {
 			if (std::abs(s) > c_s[npti_cs[el] - 1]) {
 				c_v_i[i] = x[somma_c + npti_cs[el] - 1];
+// 					(x[somma_c + npti_cs[el] - 1] - x[somma_c + npti_cs[el] - 2])
+// 					/ (c_s[npti_cs[el] - 1] - c_s[npti_cs[el] - 2])
+// 					* (std::abs(s) - c_s[npti_cs[el] - 1])
+// 					+ x[somma_c + npti_cs[el] - 1]
+// 				;
 			} else if (std::abs(s) == 0) {
 				c_v_i[i] = x[somma_c];
 			}
@@ -96,6 +111,11 @@ nlrheo_int_compute_kc(double &k, double &c,
 	if (ic_v != 0) {
 		if (std::abs(v) > c_v[npti_cv[el] - 1]) {
 			c = c_v_i[npti_cv[el]-1];
+// 				(c_v_i[npti_cv[el]-1] - c_v_i[npti_cv[el]-2])
+// 				/ (c_v[npti_cv[el] - 1] - c_v[npti_cv[el] - 2])
+// 				* (std::abs(v) - c_v[npti_cv[el] - 1]) +
+// 				+ c_v_i[npti_cv[el]-1]
+// 			;
 		} else if (std::abs(v) == 0) {
 			c = c_v_i[0];
 		} else {
@@ -137,8 +157,10 @@ nlrheo_int_func(double t, const double y[], double f[], void *para)
 	sym_params & pa = *((sym_params *)para);
 	double sstatic = y[pa.n_elementi - pa.n_parallelo + 2];
 	double sdynamic = (pa.sf - pa.si) / (pa.tf - pa.ti) * (t - pa.ti) + pa.si; 
-	double s = sdynamic - sstatic;
-	double v = (pa.vf - pa.vi) / (pa.tf - pa.ti) * (t - pa.ti) + pa.vi;
+//	double s = sdynamic - sstatic;
+	double s = y[pa.n_elementi - pa.n_parallelo + 1] - sstatic;
+	double mbdynv = (pa.vf - pa.vi) / (pa.tf - pa.ti) * (t - pa.ti) + pa.vi;
+	double v = y[pa.n_elementi - pa.n_parallelo];
 
 // 	Per ogni componente in parallelo
 	int el = 0;
@@ -211,14 +233,27 @@ nlrheo_int_func(double t, const double y[], double f[], void *para)
 			pa.f_v += c[0];
 		}
 	}
-	f[pa.n_elementi - pa.n_parallelo] = -y[pa.n_elementi - pa.n_parallelo] * 2. / pa.hi_freq_force_filter_coeff + 
-		-y[pa.n_elementi - pa.n_parallelo + 1] / pa.hi_freq_force_filter_coeff / pa.hi_freq_force_filter_coeff + 
-		((pa.x[pa.n_variabili] * std::atan(v / pa.x[pa.n_variabili+1]) +
-		pa.x[pa.n_variabili+2] * std::atan(v / pa.x[pa.n_variabili+3]))/2.) / pa.hi_freq_force_filter_coeff / pa.hi_freq_force_filter_coeff;
+// 	f[pa.n_elementi - pa.n_parallelo] = -y[pa.n_elementi - pa.n_parallelo] * 2. / pa.hi_freq_force_filter_coeff + 
+// 		-y[pa.n_elementi - pa.n_parallelo + 1] / pa.hi_freq_force_filter_coeff / pa.hi_freq_force_filter_coeff + 
+// 		((pa.x[pa.n_variabili] * std::atan(v / pa.x[pa.n_variabili+1]) +
+// 		pa.x[pa.n_variabili+2] * std::atan(v / pa.x[pa.n_variabili+3]))/2.) / pa.hi_freq_force_filter_coeff / pa.hi_freq_force_filter_coeff;
+
+//filtro forze
+// 	f[pa.n_elementi - pa.n_parallelo] = -y[pa.n_elementi - pa.n_parallelo] * 2. / pa.hi_freq_force_filter_coeff + 
+// 		-y[pa.n_elementi - pa.n_parallelo + 1] / pa.hi_freq_force_filter_coeff / pa.hi_freq_force_filter_coeff + 
+// 		(mbdynv) / pa.hi_freq_force_filter_coeff / pa.hi_freq_force_filter_coeff;
+// 	f[pa.n_elementi - pa.n_parallelo + 1] = y[pa.n_elementi - pa.n_parallelo];
+	f[pa.n_elementi - pa.n_parallelo] = - std::sqrt(2.) * pa.hi_freq_force_filter_coeff * y[pa.n_elementi - pa.n_parallelo]
+						- std::pow(pa.hi_freq_force_filter_coeff, 2) * y[pa.n_elementi - pa.n_parallelo + 1]
+						+ std::pow(pa.hi_freq_force_filter_coeff, 2) * sdynamic;
 	f[pa.n_elementi - pa.n_parallelo + 1] = y[pa.n_elementi - pa.n_parallelo];
+
 	f[pa.n_elementi - pa.n_parallelo + 2] = -pa.low_freq_displ_filter_coeff * y[pa.n_elementi - pa.n_parallelo + 2] +
 		pa.low_freq_displ_filter_coeff * sdynamic; 
-	pa.f += y[pa.n_elementi - pa.n_parallelo + 1];
+// 	pa.f += y[pa.n_elementi - pa.n_parallelo + 1];
+//	if (std::abs(f[pa.n_elementi - pa.n_parallelo + 2]) > 5.)
+		pa.f += ((pa.x[pa.n_variabili] * std::atan(f[pa.n_elementi - pa.n_parallelo + 2] / pa.x[pa.n_variabili+1]) +
+			pa.x[pa.n_variabili+2] * std::atan(f[pa.n_elementi - pa.n_parallelo + 2] / pa.x[pa.n_variabili+3]))/2.);
 	pa.f += sstatic * pa.static_low_freq_stiffness;
 	pa.f_s += pa.static_low_freq_stiffness;
 
