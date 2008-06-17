@@ -232,8 +232,6 @@ ReadFixedStepFileDrive(DataManager* pDM,
 	bool pz(true);
 	Drive::Bailout bo(Drive::BO_NONE);
 
-	Drive::Bailout bo(Drive::BO_NONE);
-
 	if (HP.IsKeyWord("pad" "zeros") || HP.IsKeyWord("pad" "zeroes")) {
 		if (HP.IsKeyWord("no")) {
 			pz = false;

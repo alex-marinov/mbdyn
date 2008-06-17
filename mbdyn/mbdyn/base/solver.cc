@@ -1717,9 +1717,6 @@ IfStepIsToBeRepeated:
 		catch (NonlinearSolver::ConvergenceOnSolution) {
 			bSolConv = true;
 		}
-		catch (...) {
-			throw;
-		}
 		catch (EndOfSimulation& end) {
 			silent_cerr("Simulation ended during a regular step:\n" 
 				<< end.what() << "\n");
@@ -1740,6 +1737,9 @@ IfStepIsToBeRepeated:
 				<< "total error: " << dTotErr << std::endl);
 	 		return;
       		}
+		catch (...) {
+			throw;
+		}
 		
 	      	dTotErr += dTest;
       		iTotIter += iStIter;
