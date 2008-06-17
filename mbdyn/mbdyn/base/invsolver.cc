@@ -996,6 +996,28 @@ IfStepIsToBeRepeated:
 		catch (NonlinearSolver::ConvergenceOnSolution) {
 			bSolConv = true;
 		}
+		
+		catch (EndOfSimulation& end) {
+			silent_cerr("Simulation ended during a regular step:\n" 
+				<< end.what() << "\n");
+			::mbdyn_keep_going = false;
+#ifdef USE_MPI
+			(MPI_Finalized(&mpi_finalize), mpi_finalize)
+#endif /* USE_MPI */
+#ifdef USE_RTAI
+			if (bRT && bRTHard) {
+				mbdyn_rt_make_soft_real_time();
+			}
+#endif /* USE_RTAI */
+
+	 		silent_cout("Simulation ended at time "
+				<< dTime << " after "
+				<< lStep << " steps;" << std::endl
+				<< "total iterations: " << iTotIter << std::endl
+				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
+				<< "total error: " << dTotErr << std::endl);
+	 		return;
+      		}
 		catch (...) {
 			throw;
 		}

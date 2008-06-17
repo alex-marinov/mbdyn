@@ -37,9 +37,10 @@
 
 #include <fstream>
 
-#include <dataman.h>
-#include <filedrv.h>
-#include <fixedstep.h>
+#include "dataman.h"
+#include "filedrv.h"
+#include "fixedstep.h"
+#include "solver.h"
 
 /* FixedStepFileDrive - begin */
 
@@ -149,8 +150,8 @@ FixedStepFileDrive::ServePending(const doublereal& t)
 			}
 
 		} else if (boWhen & Drive::BO_LOWER) {
-			// throw exception
-
+			throw Solver::EndOfSimulation(0,
+				"A fixed step file drive lower bound is halting	the simulation");
 		} else {
 			for (int i = 1; i <= iNumDrives; i++) {
 				pdVal[i] = pvd[i][0];
@@ -164,8 +165,8 @@ FixedStepFileDrive::ServePending(const doublereal& t)
 			}
 
 		} else if (boWhen & Drive::BO_UPPER) {
-			// throw exception
-
+			throw Solver::EndOfSimulation(0,
+				"A fixed step file drive upper bound is halting	the simulation");
 		} else {
 			for (int i = 1; i <= iNumDrives; i++) {
 				pdVal[i] = pvd[i][iNumSteps - 1];
@@ -229,6 +230,8 @@ ReadFixedStepFileDrive(DataManager* pDM,
 	}
 
 	bool pz(true);
+	Drive::Bailout bo(Drive::BO_NONE);
+
 	Drive::Bailout bo(Drive::BO_NONE);
 
 	if (HP.IsKeyWord("pad" "zeros") || HP.IsKeyWord("pad" "zeroes")) {

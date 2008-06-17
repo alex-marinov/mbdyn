@@ -31,6 +31,7 @@
 #ifndef EXCEPT_H
 #define EXCEPT_H
 
+#include<exception>
 #include <stdio.h>
 
 #include <iostream>

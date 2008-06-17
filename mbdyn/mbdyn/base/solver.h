@@ -166,6 +166,16 @@ protected:
 	bool RTWaitPeriod(void) const {
 		return (RTMode == MBRTAI_WAITPERIOD);
 	};
+	class EndOfSimulation : public std::exception {
+	private:
+		int EndCode;
+		std::string message;
+		EndOfSimulation() {}
+	public:
+		EndOfSimulation(const int e, const std::string& msg) : EndCode(e), message(msg) {};
+		~EndOfSimulation() throw() {};
+		const char* what() const throw () {return message.c_str();};
+	};
 
 	bool RTSemaphore(void) const {
 		return (RTMode == MBRTAI_SEMAPHORE);
