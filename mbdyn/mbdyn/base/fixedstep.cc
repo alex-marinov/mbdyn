@@ -144,14 +144,16 @@ FixedStepFileDrive::ServePending(const doublereal& t)
 	doublereal tt = t - dT0;
 
 	if (tt < 0) {
+		if (boWhen & Drive::BO_LOWER) {
+			throw Solver::EndOfSimulation(EXIT_SUCCESS,
+				"A fixed step file drive lower bound is halting the simulation");
+		}
+
 		if (bPadZeroes) {
 			for (int i = 1; i <= iNumDrives; i++) {
 				pdVal[i] = 0.;
 			}
 
-		} else if (boWhen & Drive::BO_LOWER) {
-			throw Solver::EndOfSimulation(0,
-				"A fixed step file drive lower bound is halting	the simulation");
 		} else {
 			for (int i = 1; i <= iNumDrives; i++) {
 				pdVal[i] = pvd[i][0];
@@ -159,14 +161,16 @@ FixedStepFileDrive::ServePending(const doublereal& t)
 		}
 
 	} else if (tt > dDT*(iNumSteps - 1)) {
+		if (boWhen & Drive::BO_UPPER) {
+			throw Solver::EndOfSimulation(EXIT_SUCCESS,
+				"A fixed step file drive upper bound is halting the simulation");
+		}
+
 		if (bPadZeroes) {
 			for (int i = 1; i <= iNumDrives; i++) {
 				pdVal[i] = 0.;
 			}
 
-		} else if (boWhen & Drive::BO_UPPER) {
-			throw Solver::EndOfSimulation(0,
-				"A fixed step file drive upper bound is halting	the simulation");
 		} else {
 			for (int i = 1; i <= iNumDrives; i++) {
 				pdVal[i] = pvd[i][iNumSteps - 1];
