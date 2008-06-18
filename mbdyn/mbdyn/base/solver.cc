@@ -899,9 +899,6 @@ Solver::Run(void)
 		silent_cerr("Simulation ended during the derivatives steps:\n" << end.what() << "\n");
 		return;
 	}
-	catch (...) {
-		throw;
-	}
 
 	SAFEDELETE(pDerivativeSteps);
 	pDerivativeSteps = 0;
@@ -1020,9 +1017,6 @@ Solver::Run(void)
 				<< end.what() << "\n");
 			return;
 		}
-		catch (...) {
-			throw;
-		}
 
 		SAFEDELETE(pFirstFictitiousStep);
 		pFirstFictitiousStep = 0;
@@ -1118,9 +1112,6 @@ Solver::Run(void)
 				silent_cerr("Simulation ended during the dummy steps:\n" 
 					<< end.what() << "\n");
 				return;
-			}
-			catch (...) {
-				throw;
 			}
 
 #if 0
@@ -1294,9 +1285,6 @@ IfFirstStepIsToBeRepeated:
 		silent_cerr("Simulation ended during the first regular step:\n" 
 			<< end.what() << "\n");
 		return;
-	}
-	catch (...) {
-		throw;
 	}
 
 	SAFEDELETE(pFirstRegularStep);
@@ -1737,9 +1725,6 @@ IfStepIsToBeRepeated:
 				<< "total error: " << dTotErr << std::endl);
 	 		return;
       		}
-		catch (...) {
-			throw;
-		}
 		
 	      	dTotErr += dTest;
       		iTotIter += iStIter;
