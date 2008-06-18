@@ -133,6 +133,7 @@ TDConstitutiveLawWrapper<T, Tder>::Update(const T& Eps, const T& EpsPrime)
 
 	pCL->Update(Eps*dScaleEpsilon, EpsPrime*dScaleEpsilon);
 
+	// don't use dWCurr if > 0.
 	doublereal d = dScaleForce*(1. + dF*exp(-std::min(0., dWCurr)/dW));
 
 	ConstitutiveLaw<T, Tder>::F = pCL->GetF()*d;
