@@ -159,7 +159,7 @@ nlrheo_int_func(double t, const double y[], double f[], void *para)
 	double sdynamic = (pa.sf - pa.si) / (pa.tf - pa.ti) * (t - pa.ti) + pa.si; 
 //	double s = sdynamic - sstatic;
 	double s = y[pa.n_elementi - pa.n_parallelo + 1] - sstatic;
-	double mbdynv = (pa.vf - pa.vi) / (pa.tf - pa.ti) * (t - pa.ti) + pa.vi;
+//	double mbdynv = (pa.vf - pa.vi) / (pa.tf - pa.ti) * (t - pa.ti) + pa.vi;
 	double v = y[pa.n_elementi - pa.n_parallelo];
 
 // 	Per ogni componente in parallelo
