@@ -72,6 +72,16 @@ public:
 	class ErrGeneric {};
 	class ErrMaxIterations{};
 	class SimulationDiverged{};
+	class EndOfSimulation : public std::exception {
+	private:
+		int EndCode;
+		std::string message;
+		EndOfSimulation(void) { NO_OP; }
+	public:
+		EndOfSimulation(const int e, const std::string& msg) : EndCode(e), message(msg) { NO_OP; };
+		~EndOfSimulation(void) throw() { NO_OP; };
+		const char* what(void) const throw () { return message.c_str(); };
+	};
 
 protected:
 #ifdef USE_MULTITHREAD
@@ -100,18 +110,6 @@ protected:
 
    	/* Dati per strategia DRIVER_CHANGE */
 	DriveCaller* pStrategyChangeDrive;
-
-public:
-	class EndOfSimulation : public std::exception {
-	private:
-		int EndCode;
-		std::string message;
-		EndOfSimulation(void) { NO_OP; }
-	public:
-		EndOfSimulation(const int e, const std::string& msg) : EndCode(e), message(msg) { NO_OP; };
-		~EndOfSimulation(void) throw() { NO_OP; };
-		const char* what(void) const throw () { return message.c_str(); };
-	};
 
 #ifdef __HACK_EIG__
    	/* Dati per esecuzione di eigenanalysis */
