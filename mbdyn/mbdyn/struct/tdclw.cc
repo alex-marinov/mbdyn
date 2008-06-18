@@ -75,7 +75,7 @@ TDConstitutiveLawWrapper<T, Tder>::TDConstitutiveLawWrapper(
 	const doublereal& dsf,
 	ConstitutiveLaw<T, Tder> *pcl)
 : dF(df), dW(dl), dScaleEpsilon(dsd), dScaleForce(dsf),
-dWCurr(0.), FPrev(0.), pCL(pcl)
+dWCurr(0.), EpsPrev(0.), FPrev(0.), pCL(pcl)
 {
 	NO_OP;
 }
