@@ -53,6 +53,7 @@ public:
 		const doublereal& dl,
 		const doublereal& dsd,
 		const doublereal& dsf,
+		const doublereal& dInitialWork,
 		ConstitutiveLaw<T, Tder> *pcl);
 	virtual ~TDConstitutiveLawWrapper(void);
 
@@ -73,9 +74,10 @@ TDConstitutiveLawWrapper<T, Tder>::TDConstitutiveLawWrapper(
 	const doublereal& dl,
 	const doublereal& dsd,
 	const doublereal& dsf,
+	const doublereal& dInitialWork,
 	ConstitutiveLaw<T, Tder> *pcl)
 : dF(df), dW(dl), dScaleEpsilon(dsd), dScaleForce(dsf),
-dWCurr(0.), EpsPrev(0.), FPrev(0.), pCL(pcl)
+dWCurr(dInitialWork), EpsPrev(0.), FPrev(0.), pCL(pcl)
 {
 	NO_OP;
 }
@@ -103,7 +105,7 @@ TDConstitutiveLawWrapper<T, Tder>::pCopy(void) const
 
 	typedef TDConstitutiveLawWrapper cl;
 	SAFENEWWITHCONSTRUCTOR(pcl, cl,
-		cl(dF, dW, dScaleEpsilon, dScaleForce, pCL->pCopy()));
+		cl(dF, dW, dScaleEpsilon, dScaleForce, dWCurr, pCL->pCopy()));
 	return pcl;
 }
 
@@ -131,7 +133,7 @@ TDConstitutiveLawWrapper<T, Tder>::Update(const T& Eps, const T& EpsPrime)
 
 	pCL->Update(Eps*dScaleEpsilon, EpsPrime*dScaleEpsilon);
 
-	doublereal d = dScaleForce*(1. + dF*exp(-dWCurr/dW));
+	doublereal d = dScaleForce*(1. + dF*exp(-std::min(0., dWCurr)/dW));
 
 	ConstitutiveLaw<T, Tder>::F = pCL->GetF()*d;
 	if (GetConstLawType() & ConstLawType::ELASTIC) {
@@ -200,6 +202,16 @@ TDCLWR<T, Tder>::Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Typ
 		throw ErrGeneric();
 	}
 
+	doublereal dInitialWork = 0.;
+	if (HP.IsKeyWord("initial" "work")) {
+		dInitialWork = HP.GetReal();
+		if (dInitialWork > 0.) {
+			silent_cerr("Invalid positive initial work in TDCLW "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric();
+		}
+	}
+	
 	ConstitutiveLaw<T, Tder>* pCL2;
 	if (typeid(T) == typeid(doublereal)) {
 		pCL2 = dynamic_cast<ConstitutiveLaw<T, Tder> *>(HP.GetConstLaw1D(CLType));
@@ -213,7 +225,7 @@ TDCLWR<T, Tder>::Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Typ
 
 	typedef TDConstitutiveLawWrapper<T, Tder> L;
 	SAFENEWWITHCONSTRUCTOR(pCL, L,
-		L(dF, dW, dScaleEpsilon, dScaleForce, pCL2));
+		L(dF, dW, dScaleEpsilon, dScaleForce, dInitialWork, pCL2));
 
 	return pCL;
 }
