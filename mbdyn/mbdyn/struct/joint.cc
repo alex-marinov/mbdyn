@@ -2839,6 +2839,16 @@ ReadJoint(DataManager* pDM,
 				Xc, Rch, Rchr,
 				pNode, fn, Rnh, Rnhr,
 				fOut));
+
+		std::ostream& out = pDM->GetLogFile();
+		out << "totalpinjoint: " << uLabel
+			<< " " << pNode->GetLabel()
+			<< " " << fn
+			<< " " << Rnh
+			<< " " << Xc
+			<< " " << Rch
+			<< std::endl;
+
 		} break;
 
 	case KINEMATIC:
