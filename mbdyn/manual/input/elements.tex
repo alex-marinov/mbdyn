@@ -2702,6 +2702,7 @@ The matrices are read row-oriented; e.g., for matrix $\T{A}$:
        ...,
        aN1, aN2, ..., aNN
 \end{verbatim}
+The matrices are balanced using LAPACK's \kw{DGEBAL} routine, if available.
 
 \subsubsection{State space MIMO}
 \begin{verbatim}
@@ -2739,6 +2740,7 @@ where
 	$\mathtt{num\_outputs} \times \mathtt{num\_inputs}$.
 \end{itemize}
 The matrices are read row-oriented.
+The matrices are balanced using LAPACK's \kw{DGEBAL} routine, if available.
 
 
 \subsection{Special Rotorcraft \textsc{Genel} Elements}
