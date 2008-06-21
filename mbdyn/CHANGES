@@ -25,9 +25,11 @@ MBDyn 1.X-Devel
 		- add provisions to combine multiple gust models
 		- allow binding to air properties
 		- add bailout support to drives (Marco Morandini)
+		- allow controllable/observable canonical forms
+		  of scalar filters
 	Backward compatibility issues:
 	Known issues:
-		- scalar filter seems to be broken; use state space SISO
+		- odd operator precedence for power/unary minus
 	Bug fixes:
 		- MSYS/MinGW needs to explicitly include stdint.h
 		- MSG_WAITALL is not defined on Cygwin
@@ -41,6 +43,7 @@ MBDyn 1.X-Devel
 		- fix linear scalar function input
 		- fix crash when using model namespace too early
 		- fix nested elements usage during initial assembly
+		- fix scalar filter exploiting state space SISO
 
 MBDyn 1.3.3-Beta
 	Enhancements:

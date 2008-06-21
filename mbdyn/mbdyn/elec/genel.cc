@@ -44,25 +44,24 @@
 /* genel - begin */
 
 Genel::Genel(unsigned int uL,
-	     const DofOwner* pDO,
-	     flag fOut)
+	const DofOwner* pDO,
+	flag fOut)
 : Elem(uL, fOut),
 ElemWithDofs(uL, pDO, fOut)
 {
-   NO_OP;
+	NO_OP;
 }
-
 
 Genel::~Genel(void)
 {
-   NO_OP;
+	NO_OP;
 }
 
-
 /* Scrive il contributo dell'elemento al file di restart */
-std::ostream& Genel::Restart(std::ostream& out) const
+std::ostream&
+Genel::Restart(std::ostream& out) const
 {
-   return out << "  genel: " << GetLabel();
+	return out << "genel: " << GetLabel();
 }
 
 /* Genel - end */
@@ -70,861 +69,995 @@ std::ostream& Genel::Restart(std::ostream& out) const
 
 /* Legge un genel */
 
-Elem* ReadGenel(DataManager* pDM,
-		MBDynParser& HP,
-		const DofOwner* pDO,
-		unsigned int uLabel)
+Elem*
+ReadGenel(DataManager* pDM,
+	MBDynParser& HP,
+	const DofOwner* pDO,
+	unsigned int uLabel)
 {
-   DEBUGCOUTFNAME("ReadGenel()");
-
-   const char* sKeyWords[] = {
-      "swashplate",
-	"rotor" "trim",
-	"clamp",
-	"distance",
-	"spring",
-	"spring" "support",
-	"cross" "spring" "support",
-	"mass",
-	"scalar" "filter",
-	"state" "space" "SISO",
-	"state" "space" "MIMO",
-	NULL
-   };
-
-   /* enum delle parole chiave */
-   enum KeyWords {
-      UNKNOWN = -1,
-	SWASHPLATE = 0,
-	ROTORTRIM,
-	CLAMP,
-	DISTANCE,
-	SPRING,
-	SPRINGSUPPORT,
-	CROSSSPRINGSUPPORT,
-	MASS,
-	SCALARFILTER,
-	STATESPACESISO,
-	STATESPACEMIMO,
-	LASTKEYWORD
-   };
-
-   /* tabella delle parole chiave */
-   KeyTable K(HP, sKeyWords);
-
-   /* lettura del tipo di vincolo */
-   KeyWords CurrKeyWord = KeyWords(HP.GetWord());
-
-#ifdef DEBUG
-   if (CurrKeyWord >= 0) {
-      std::cout << "genel type: " << sKeyWords[CurrKeyWord] << std::endl;
-   }
-#endif
-
-   Elem* pEl = NULL;
-
-   switch (CurrKeyWord) {
-      /* genel piatto oscillante */
-    case SWASHPLATE: {
-       /* nodo Collettivo */
-       ScalarDifferentialNode* pCollIn = (ScalarDifferentialNode*)pDM->ReadNode(HP, Node::ABSTRACT);
-
-       flag fCollLimits(0);
-       doublereal dCollMax(0.);
-       doublereal dCollMin(0.);
-       if (HP.IsKeyWord("limits")) {
-	  fCollLimits = flag(1);
-	  dCollMin = HP.GetReal();
-	  dCollMax = HP.GetReal();
-       }
-
-
-       /* nodo Longitudinale */
-       ScalarDifferentialNode* pLongIn = (ScalarDifferentialNode*)pDM->ReadNode(HP, Node::ABSTRACT);
-
-       flag fForeAftLimits(0);
-       doublereal dForeAftMax(0.);
-       doublereal dForeAftMin(0.);
-       if (HP.IsKeyWord("limits")) {
-	  fForeAftLimits = flag(1);
-	  dForeAftMin = HP.GetReal();
-	  dForeAftMax = HP.GetReal();
-       }
-
-
-       /* nodo Laterale */
-       ScalarDifferentialNode* pLatIn = (ScalarDifferentialNode*)pDM->ReadNode(HP, Node::ABSTRACT);
-
-       flag fLatLimits(0);
-       doublereal dLatMax(0.);
-       doublereal dLatMin(0.);
-       if (HP.IsKeyWord("limits")) {
-	  fLatLimits = flag(1);
-	  dLatMin = HP.GetReal();
-	  dLatMax = HP.GetReal();
-       }
-
-
-       /* nodo collegato 1 */
-       ScalarDifferentialNode* pNode1 = (ScalarDifferentialNode*)pDM->ReadNode(HP, Node::ABSTRACT);
-
-       /* nodo collegato 2 */
-       ScalarDifferentialNode* pNode2 = (ScalarDifferentialNode*)pDM->ReadNode(HP, Node::ABSTRACT);
-
-
-       /* nodo collegato 3 */
-       ScalarDifferentialNode* pNode3 = (ScalarDifferentialNode*)pDM->ReadNode(HP, Node::ABSTRACT);
-
-       doublereal dDynCoef = 0.;
-       if (HP.IsArg()) {
-	  dDynCoef = HP.GetReal(dDynCoef);
-       }
-
-       doublereal dCyclFact = 1.;
-       if (HP.IsArg()) {
-	  dCyclFact = HP.GetReal(dCyclFact);
-       }
-
-       doublereal dCollFact = 1.;
-       if (HP.IsArg()) {
-	  dCollFact = HP.GetReal(dCollFact);
-       }
-
-       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
-
-       SAFENEWWITHCONSTRUCTOR(pEl,
-			      SwashPlate,
-			      SwashPlate(uLabel, pDO,
-					 pCollIn,
-					 pLongIn,
-					 pLatIn,
-					 pNode1, pNode2, pNode3,
-					 dDynCoef,
-					 dCyclFact,
-					 dCollFact,
-					 fCollLimits,
-					 dCollMin,
-					 dCollMax,
-					 fForeAftLimits,
-					 dForeAftMin,
-					 dForeAftMax,
-					 fLatLimits,
-					 dLatMin,
-					 dLatMax,
-					 fOut));
-       break;
-    }
-
-
-
-    case ROTORTRIM: {
-       unsigned int uL = HP.GetInt();
-       Rotor* pRot = dynamic_cast<Rotor *>(pDM->pFindElem(Elem::ROTOR, uL));
-       if (pRot == NULL) {
-	  silent_cerr("line " << HP.GetLineData() << ": can't find rotor "
-	    << uL << std::endl);
-	  throw ErrGeneric();
-       }
-
-       ScalarDifferentialNode* pvNodes[3];
-       uL = HP.GetInt();
-       pvNodes[0] = (ScalarDifferentialNode*)pDM->pFindNode(Node::ABSTRACT, uL);
-       if (pvNodes[0] == NULL) {
-	  silent_cerr("line " << HP.GetLineData() << ": can't find abstract node "
-	    << uL << std::endl);
-	  throw ErrGeneric();
-       }
-       uL = HP.GetInt();
-       pvNodes[1] = (ScalarDifferentialNode*)pDM->pFindNode(Node::ABSTRACT, uL);
-       if (pvNodes[1] == NULL) {
-	  silent_cerr("line " << HP.GetLineData() << ": can't find abstract node "
-	    << uL << std::endl);
-	  throw ErrGeneric();
-       }
-       uL = HP.GetInt();
-       pvNodes[2] = (ScalarDifferentialNode*)pDM->pFindNode(Node::ABSTRACT, uL);
-       if (pvNodes[2] == NULL) {
-	  silent_cerr("line " << HP.GetLineData() << ": can't find abstract node "
-	    << uL << std::endl);
-	  throw ErrGeneric();
-       }
-
-       DEBUGCOUT("Rotor trim " << uLabel
-		 << " linked to rotor " << pRot->GetLabel() << std::endl
-		 << "abstract nodes: "
-		 << pvNodes[0]->GetLabel() << ", "
-		 << pvNodes[1]->GetLabel() << ", "
-		 << pvNodes[2]->GetLabel() << std::endl);
-
-       DriveCaller* pvDrives[3];
-       pvDrives[0] = HP.GetDriveCaller();
-       pvDrives[1] = HP.GetDriveCaller();
-       pvDrives[2] = HP.GetDriveCaller();
-
-       doublereal dGamma = HP.GetReal();
-       DEBUGCOUT("Gamma: " << dGamma << std::endl);
-
-       doublereal dP = HP.GetReal();
-       DEBUGCOUT("P: " << dP << std::endl);
-
-       doublereal dTau0 = HP.GetReal();
-       DEBUGCOUT("Tau0: " << dTau0 << std::endl);
-
-       doublereal dTau1 = HP.GetReal();
-       DEBUGCOUT("Tau1: " << dTau1 << std::endl);
-
-       doublereal dKappa0 = HP.GetReal();
-       DEBUGCOUT("Kappa0: " << dKappa0 << std::endl);
-
-       doublereal dKappa1 = HP.GetReal();
-       DEBUGCOUT("Kappa1: " << dKappa1 << std::endl);
-
-       DriveCaller *pTrigger = 0;
-       if (HP.IsKeyWord("trigger")) {
-          pTrigger = HP.GetDriveCaller();
-       } else {
-	  SAFENEW(pTrigger, OneDriveCaller);
-       }
-
-       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
-
-       SAFENEWWITHCONSTRUCTOR(pEl,
-			      RotorTrim,
-			      RotorTrim(uLabel, pDO, pRot,
-					pvNodes[0], pvNodes[1], pvNodes[2],
-					pvDrives[0], pvDrives[1], pvDrives[2],
-					dGamma, dP,
-					dTau0, dTau1, dKappa0, dKappa1,
-					pTrigger, fOut));
-       break;
-    }
-
-    case CLAMP: {
-       ScalarDof SD = ReadScalarDof(pDM, HP, 1);
-       if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  silent_cerr("GenelClamp(" << uLabel << "): parameter nodes "
-		  "are not allowed" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       if (SD.iOrder > 1) {
-	  silent_cerr("GenelClamp(" << uLabel << "): illegal order "
-		  << SD.iOrder << " for ScalarDof" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       DriveCaller* pDC = HP.GetDriveCaller();
-
-       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
-
-
-       SAFENEWWITHCONSTRUCTOR(pEl,
-			      GenelClamp,
-			      GenelClamp(uLabel, pDO, pDC, SD, fOut));
-
-       break;
-    }
-
-    case DISTANCE: {
-       ScalarDof SD1 = ReadScalarDof(pDM, HP, 1);
-       if (SD1.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  silent_cerr("GenelDistance(" << uLabel << "): parameter nodes "
-		  "are not allowed for ScalarDof 1" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       if (SD1.iOrder > 1) {
-	  silent_cerr("GenelDistance(" << uLabel << "): illegal order "
-		  << SD1.iOrder << " for ScalarDof 1" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       ScalarDof SD2 = ReadScalarDof(pDM, HP, 1);
-       if (SD2.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  silent_cerr("GenelDistance(" << uLabel << "): parameter nodes "
-		  "are not allowed for ScalarDof 2" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       if (SD2.iOrder > 1) {
-	  silent_cerr("GenelDistance(" << uLabel << "): illegal order "
-		  << SD2.iOrder << " for ScalarDof 2" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       DriveCaller* pDC = HP.GetDriveCaller();
-
-       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
-
-       SAFENEWWITHCONSTRUCTOR(pEl,
-			      GenelDistance,
-			      GenelDistance(uLabel, pDO, pDC, SD1, SD2, fOut));
-
-
-       break;
-    }
-
-    case SPRING: {
-       ScalarDof SD1 = ReadScalarDof(pDM, HP, 1);
-       if (SD1.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  silent_cerr("GenelSpring(" << uLabel << "): parameter nodes "
-		  "are not allowed for ScalarDof 1" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       if (SD1.iOrder > 1) {
-	  silent_cerr("GenelSpring(" << uLabel << "): illegal order "
-		  << SD1.iOrder << " for ScalarDof 1" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       ScalarDof SD2 = ReadScalarDof(pDM, HP, 1);
-       if (SD2.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  silent_cerr("GenelSpring(" << uLabel << "): parameter nodes "
-		  "are not allowed for ScalarDof 2" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       if (SD2.iOrder > 1) {
-	  silent_cerr("GenelSpring(" << uLabel << "): illegal order "
-		  << SD2.iOrder << " for ScalarDof 2" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       ConstLawType::Type CLType = ConstLawType::UNKNOWN;
-       ConstitutiveLaw1D* pCL = HP.GetConstLaw1D(CLType);
-
-       if (pCL->iGetNumDof() != 0) {
-	  silent_cerr("Error at line " << HP.GetLineData()
-	    << ": spring genel does not support dynamic constitutive laws yet"
-	    << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       if (CLType != ConstLawType::ELASTIC) {
-	  silent_cerr("Error at line " << HP.GetLineData()
-	    << ": elastic constitutive laws only are allowed" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
-
-
-       SAFENEWWITHCONSTRUCTOR(pEl,
-			      GenelSpring,
-			      GenelSpring(uLabel, pDO, pCL, SD1, SD2, fOut));
-
-
-       break;
-    }
-
-    case SPRINGSUPPORT: {
-       ScalarDof SD = ReadScalarDof(pDM, HP, 1);
-       if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  silent_cerr("GenelSpringSupport(" << uLabel << "): parameter nodes "
-		  "are not allowed for ScalarDof" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       if (SD.iOrder != 0 || (SD.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL)) {
-	  silent_cerr("GenelSpringSupport(" << uLabel << "): illegal order "
-		  << SD.iOrder << " for ScalarDof; the algebraic value "
-		  "of a differential node is required" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       ConstLawType::Type CLType = ConstLawType::UNKNOWN;
-       ConstitutiveLaw1D* pCL = HP.GetConstLaw1D(CLType);
-
-       if (pCL->iGetNumDof() != 0) {
-	  silent_cerr("Error at line " << HP.GetLineData()
-	    << ": the spring support genel does not support "
-	    "dynamic constitutive laws yet"
-	    << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
-
-       switch (CLType) {
-	case ConstLawType::ELASTIC: {
-	   SAFENEWWITHCONSTRUCTOR(pEl,
-				  GenelSpringSupport,
-				  GenelSpringSupport(uLabel, pDO, pCL,
-						     SD, fOut));
-	   break;
+	DEBUGCOUTFNAME("ReadGenel()");
+
+	const char* sKeyWords[] = {
+		"swashplate",
+		"rotor" "trim",
+		"clamp",
+		"distance",
+		"spring",
+		"spring" "support",
+		"cross" "spring" "support",
+		"mass",
+		"scalar" "filter",
+		"state" "space" "SISO",
+		"state" "space" "MIMO",
+
+		NULL
+	};
+
+	/* enum delle parole chiave */
+	enum KeyWords {
+		UNKNOWN = -1,
+
+		SWASHPLATE = 0,
+		ROTORTRIM,
+		CLAMP,
+		DISTANCE,
+		SPRING,
+		SPRINGSUPPORT,
+		CROSSSPRINGSUPPORT,
+		MASS,
+		SCALARFILTER,
+		STATESPACESISO,
+		STATESPACEMIMO,
+
+		LASTKEYWORD
+	};
+
+	/* tabella delle parole chiave */
+	KeyTable K(HP, sKeyWords);
+
+	/* lettura del tipo di vincolo */
+	KeyWords CurrKeyWord = KeyWords(HP.GetWord());
+
+	Elem* pEl = 0;
+
+	switch (CurrKeyWord) {
+	/* genel piatto oscillante */
+	case SWASHPLATE: {
+		/* nodo Collettivo */
+		ScalarDifferentialNode* pCollIn = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
+		ASSERT(pCollIn != 0);
+
+		flag fCollLimits(0);
+		doublereal dCollMax(0.);
+		doublereal dCollMin(0.);
+		if (HP.IsKeyWord("limits")) {
+			fCollLimits = flag(1);
+			dCollMin = HP.GetReal();
+			dCollMax = HP.GetReal();
+		}
+
+		/* nodo Longitudinale */
+		ScalarDifferentialNode* pLongIn = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
+		ASSERT(pLongIn != 0);
+
+		flag fForeAftLimits(0);
+		doublereal dForeAftMax(0.);
+		doublereal dForeAftMin(0.);
+		if (HP.IsKeyWord("limits")) {
+			fForeAftLimits = flag(1);
+			dForeAftMin = HP.GetReal();
+			dForeAftMax = HP.GetReal();
+		}
+
+		/* nodo Laterale */
+		ScalarDifferentialNode* pLatIn = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
+		ASSERT(pLatIn != 0);
+
+		flag fLatLimits(0);
+		doublereal dLatMax(0.);
+		doublereal dLatMin(0.);
+		if (HP.IsKeyWord("limits")) {
+			fLatLimits = flag(1);
+			dLatMin = HP.GetReal();
+			dLatMax = HP.GetReal();
+		}
+
+		/* nodo collegato 1 */
+		ScalarDifferentialNode* pNode1 = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
+		ASSERT(pNode1 != 0);
+
+		/* nodo collegato 2 */
+		ScalarDifferentialNode* pNode2 = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
+		ASSERT(pNode2 != 0);
+
+		/* nodo collegato 3 */
+		ScalarDifferentialNode* pNode3 = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
+		ASSERT(pNode3 != 0);
+
+		doublereal dDynCoef = 0.;
+		if (HP.IsArg()) {
+			dDynCoef = HP.GetReal(dDynCoef);
+		}
+
+		doublereal dCyclFact = 1.;
+		if (HP.IsArg()) {
+			dCyclFact = HP.GetReal(dCyclFact);
+		}
+
+		doublereal dCollFact = 1.;
+		if (HP.IsArg()) {
+			dCollFact = HP.GetReal(dCollFact);
+		}
+
+		flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			SwashPlate,
+			SwashPlate(uLabel, pDO,
+				pCollIn,
+				pLongIn,
+				pLatIn,
+				pNode1, pNode2, pNode3,
+				dDynCoef,
+				dCyclFact,
+				dCollFact,
+				fCollLimits,
+				dCollMin,
+				dCollMax,
+				fForeAftLimits,
+				dForeAftMin,
+				dForeAftMax,
+				fLatLimits,
+				dLatMin,
+				dLatMax,
+				fOut));
+		} break;
+
+	case ROTORTRIM: {
+		Rotor* pRot = dynamic_cast<Rotor *>(pDM->ReadElem(HP, Elem::ROTOR));
+		ScalarDifferentialNode* pvNodes[3];
+		pvNodes[0] = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
+		pvNodes[1] = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
+		pvNodes[2] = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
+
+		DEBUGCOUT("Rotor trim " << uLabel
+			<< " linked to rotor " << pRot->GetLabel() << std::endl
+			<< "abstract nodes: "
+			<< pvNodes[0]->GetLabel() << ", "
+			<< pvNodes[1]->GetLabel() << ", "
+			<< pvNodes[2]->GetLabel() << std::endl);
+
+		DriveCaller* pvDrives[3];
+		pvDrives[0] = HP.GetDriveCaller();
+		pvDrives[1] = HP.GetDriveCaller();
+		pvDrives[2] = HP.GetDriveCaller();
+
+		doublereal dGamma = HP.GetReal();
+		DEBUGCOUT("Gamma: " << dGamma << std::endl);
+
+		doublereal dP = HP.GetReal();
+		DEBUGCOUT("P: " << dP << std::endl);
+
+		doublereal dTau0 = HP.GetReal();
+		DEBUGCOUT("Tau0: " << dTau0 << std::endl);
+
+		doublereal dTau1 = HP.GetReal();
+		DEBUGCOUT("Tau1: " << dTau1 << std::endl);
+
+		doublereal dKappa0 = HP.GetReal();
+		DEBUGCOUT("Kappa0: " << dKappa0 << std::endl);
+
+		doublereal dKappa1 = HP.GetReal();
+		DEBUGCOUT("Kappa1: " << dKappa1 << std::endl);
+
+		DriveCaller *pTrigger = 0;
+		if (HP.IsKeyWord("trigger")) {
+			pTrigger = HP.GetDriveCaller();
+
+		} else {
+			SAFENEW(pTrigger, OneDriveCaller);
+		}
+
+		flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			RotorTrim,
+			RotorTrim(uLabel, pDO, pRot,
+				pvNodes[0], pvNodes[1], pvNodes[2],
+				pvDrives[0], pvDrives[1], pvDrives[2],
+				dGamma, dP,
+				dTau0, dTau1, dKappa0, dKappa1,
+				pTrigger, fOut));
+		} break;
+
+	case CLAMP: {
+		ScalarDof SD = ReadScalarDof(pDM, HP, 1);
+		if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
+			silent_cerr("GenelClamp(" << uLabel << "): "
+				"parameter nodes are not allowed "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		if (SD.iOrder > 1) {
+			silent_cerr("GenelClamp(" << uLabel << "): "
+				"illegal order " << SD.iOrder
+				<< " for ScalarDof "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		DriveCaller* pDC = HP.GetDriveCaller();
+
+		flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			GenelClamp,
+			GenelClamp(uLabel, pDO, pDC, SD, fOut));
+		} break;
+
+	case DISTANCE: {
+		ScalarDof SD1 = ReadScalarDof(pDM, HP, 1);
+		if (SD1.pNode->GetNodeType() == Node::PARAMETER) {
+			silent_cerr("GenelDistance(" << uLabel << "): "
+				"parameter nodes not allowed "
+				"for ScalarDof 1 "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		if (SD1.iOrder > 1) {
+			silent_cerr("GenelDistance(" << uLabel << "): "
+				"illegal order " << SD1.iOrder
+				<< " for ScalarDof 1 "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		ScalarDof SD2 = ReadScalarDof(pDM, HP, 1);
+		if (SD2.pNode->GetNodeType() == Node::PARAMETER) {
+			silent_cerr("GenelDistance(" << uLabel << "): "
+				"parameter nodes not allowed "
+				"for ScalarDof 2 "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		if (SD2.iOrder > 1) {
+			silent_cerr("GenelDistance(" << uLabel << "): "
+				"illegal order " << SD2.iOrder
+				<< " for ScalarDof 2 "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		DriveCaller* pDC = HP.GetDriveCaller();
+
+		flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			GenelDistance,
+			GenelDistance(uLabel, pDO, pDC, SD1, SD2, fOut));
+
+		} break;
+
+	case SPRING: {
+		ScalarDof SD1 = ReadScalarDof(pDM, HP, 1);
+		if (SD1.pNode->GetNodeType() ==  Node::PARAMETER) {
+			silent_cerr("GenelSpring(" << uLabel << "): "
+				"parameter nodes not allowed for ScalarDof 1 "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		if (SD1.iOrder > 1) {
+			silent_cerr("GenelSpring(" << uLabel << "): "
+				"illegal order " << SD1.iOrder
+				<< " for ScalarDof 1 "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		ScalarDof SD2 = ReadScalarDof(pDM, HP, 1);
+		if (SD2.pNode->GetNodeType() ==  Node::PARAMETER) {
+			silent_cerr("GenelSpring(" << uLabel << "): "
+				"parameter nodes not allowed for ScalarDof 2 "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		if (SD2.iOrder > 1) {
+			silent_cerr("GenelSpring(" << uLabel << "): "
+				"illegal order " << SD2.iOrder
+				<< " for ScalarDof 2 "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		ConstLawType::Type CLType = ConstLawType::UNKNOWN;
+		ConstitutiveLaw1D* pCL = HP.GetConstLaw1D(CLType);
+
+		if (pCL->iGetNumDof() != 0) {
+			silent_cerr("GenelSpring(" << uLabel << "): "
+				"support dynamic constitutive laws "
+				"not supported "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		if (CLType != ConstLawType::ELASTIC) {
+			silent_cerr("GenelSpring(" << uLabel << "): "
+				"only elastic constitutive laws allowed "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			GenelSpring,
+			GenelSpring(uLabel, pDO, pCL, SD1, SD2, fOut));
+
+		} break;
+
+	case SPRINGSUPPORT: {
+		ScalarDof SD = ReadScalarDof(pDM, HP, 1);
+		if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
+			silent_cerr("GenelSpringSupport(" << uLabel << "): "
+				"parameter nodes not allowed for ScalarDof "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		if (SD.iOrder != 0 ||
+			SD.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL)
+		{
+			silent_cerr("GenelSpringSupport(" << uLabel << "): "
+				"illegal order " << SD.iOrder
+				<< " for ScalarDof; the algebraic value "
+				"of a differential node is required "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		ConstLawType::Type CLType = ConstLawType::UNKNOWN;
+		ConstitutiveLaw1D* pCL = HP.GetConstLaw1D(CLType);
+		if (pCL->iGetNumDof() != 0) {
+			silent_cerr("GenelSpringSupport(" << uLabel << "): "
+				"only elastic constitutive laws allowed "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
+
+		switch (CLType) {
+		case ConstLawType::ELASTIC:
+			SAFENEWWITHCONSTRUCTOR(pEl,
+				GenelSpringSupport,
+				GenelSpringSupport(uLabel, pDO, pCL,
+					SD, fOut));
+			break;
+
+		case ConstLawType::VISCOUS:
+		case ConstLawType::VISCOELASTIC:
+			SAFENEWWITHCONSTRUCTOR(pEl,
+				GenelSpringDamperSupport,
+				GenelSpringDamperSupport(uLabel, pDO, pCL,
+					SD, fOut));
+			break;
+
+		default:
+			silent_cerr("You shouldn't be here!" << std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		} break;
+
+	case CROSSSPRINGSUPPORT: {
+		ScalarDof SDRow = ReadScalarDof(pDM, HP, 1);
+		if (SDRow.pNode->GetNodeType() ==  Node::PARAMETER) {
+			silent_cerr(
+				"GenelCrossSpringSupport(" << uLabel << "): "
+				"parameter nodes not allowed for ScalarDof 1 "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		if (SDRow.iOrder > 1) {
+			silent_cerr(
+				"GenelCrossSpringSupport(" << uLabel << "): "
+				"illegal order " << SDRow.iOrder
+				<< " for ScalarDof 1 "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		ScalarDof SDCol = ReadScalarDof(pDM, HP, 1);
+		if (SDCol.iOrder != 0 ||
+			SDCol.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL)
+		{
+			silent_cerr(
+				"GenelCrossSpringSupport(" << uLabel << "): "
+				"parameter nodes not allowed for ScalarDof "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		if (SDCol.iOrder != 0 ||
+			SDCol.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL)
+		{
+			silent_cerr(
+				"GenelCrossSpringSupport(" << uLabel << "): "
+				"illegal order " << SDCol.iOrder
+				<< " for ScalarDof; the algebraic value "
+				"of a differential node is required "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		ConstLawType::Type CLType = ConstLawType::UNKNOWN;
+		ConstitutiveLaw1D* pCL = HP.GetConstLaw1D(CLType);
+
+		if (pCL->iGetNumDof() != 0) {
+			silent_cerr(
+				"GenelCrossSpringSupport(" << uLabel << "): "
+				"dynamic constitutive laws not supported "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
+
+		switch (CLType) {
+		case ConstLawType::ELASTIC:
+			SAFENEWWITHCONSTRUCTOR(pEl,
+				GenelCrossSpringSupport,
+				GenelCrossSpringSupport(uLabel, pDO, pCL,
+					SDRow, SDCol, fOut));
+			break;
+
+		case ConstLawType::VISCOUS:
+		case ConstLawType::VISCOELASTIC:
+			SAFENEWWITHCONSTRUCTOR(pEl,
+				GenelCrossSpringDamperSupport,
+				GenelCrossSpringDamperSupport(uLabel, pDO, pCL,
+					SDRow, SDCol, fOut));
+			break;
+
+		default:
+			silent_cerr("You shouldn't be here!" << std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		} break;
+
+	case MASS: {
+		ScalarDof SD = ReadScalarDof(pDM, HP, 1);
+		if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
+			silent_cerr("GenelMass(" << uLabel << "): "
+				"parameter nodes not allowed for ScalarDof "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		if (SD.iOrder > 1) {
+			silent_cerr("GenelMass(" << uLabel << "): "
+				"illegal order " << SD.iOrder
+				<< " for ScalarDof 1 "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		if (SD.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
+			silent_cerr("GenelMass(" << uLabel << "): "
+				"only differential dofs allowed for ScalarDof "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		DriveCaller* pDC = HP.GetDriveCaller();
+
+		flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			GenelMass,
+			GenelMass(uLabel, pDO, pDC, SD, fOut));
+
+		} break;
+
+	case STATESPACESISO: {
+		ScalarDof SD_y = ReadScalarDof(pDM, HP, 1);
+		if (SD_y.pNode->GetNodeType() ==  Node::PARAMETER) {
+			silent_cerr("GenelStateSpaceSISO(" << uLabel << "): "
+				"parameter nodes not allowed "
+				"for output ScalarDof (y) "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		if (SD_y.iOrder > 1) {
+			silent_cerr("GenelStateSpaceSISO(" << uLabel << "): "
+				"illegal order " << SD_y.iOrder
+				<< " for output ScalarDof (y) "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		ScalarValue *SV_u = ReadScalarValue(pDM, HP);
+
+		unsigned int Order = HP.GetInt();
+		DEBUGCOUT("State Space SISO " << uLabel
+			<< " is of order " << Order << std::endl);
+
+		doublereal* pd = 0;
+
+		doublereal* pdE = 0;
+		if (HP.IsKeyWord("matrix" "E")) {
+			SAFENEWARR(pdE, doublereal, Order*Order);
+			pd = pdE;
+			for (unsigned int i = 0; i < Order*Order; i++) {
+				*pd++ = HP.GetReal();
+			}
+		}
+
+		if (!HP.IsKeyWord("matrix" "A")) {
+			silent_cerr("GenelStateSpaceSISO(" << uLabel << "): "
+				"matrix A expected "
+				"at line " << HP.GetLineNumber()
+				<< std::endl);
+			throw ErrGeneric();
+		}
+
+		doublereal* pdA = 0;
+		SAFENEWARR(pdA, doublereal, Order*Order);
+		pd = pdA;
+		for (unsigned int i = 0; i < Order*Order; i++) {
+			*pd++ = HP.GetReal();
+		}
+
+		if (!HP.IsKeyWord("matrix" "B")) {
+			silent_cerr("GenelStateSpaceSISO(" << uLabel << "): "
+				"matrix B expected "
+				"at line " << HP.GetLineNumber()
+				<< std::endl);
+			throw ErrGeneric();
+		}
+
+		doublereal* pdB = 0;
+		SAFENEWARR(pdB, doublereal, Order);
+		pd = pdB;
+		for (unsigned int i = 0; i < Order; i++) {
+			*pd++ = HP.GetReal();
+		}
+
+		if (!HP.IsKeyWord("matrix" "C")) {
+			silent_cerr("GenelStateSpaceSISO(" << uLabel << "): "
+				"matrix C expected "
+				"at line " << HP.GetLineNumber()
+				<< std::endl);
+			throw ErrGeneric();
+		}
+
+		doublereal* pdC = 0;
+		SAFENEWARR(pdC, doublereal, Order);
+		pd = pdC;
+		for (unsigned int i = 0; i < Order; i++) {
+			*pd++ = HP.GetReal();
+		}
+
+		doublereal dD = 0.;
+		if (HP.IsKeyWord("matrix" "D")) {
+			if (pdE) {
+				silent_cerr("GenelStateSpaceSISO(" << uLabel << "): "
+					"warning, matrix D provided "
+					"while in descriptor form "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+			}
+			dD = HP.GetReal();
+		}
+
+		if (HP.IsKeyWord("gain")) {
+			doublereal dGain = HP.GetReal();
+
+			pd = pdC;
+			for (unsigned int i = 0; i < Order; i++) {
+				*pd++ *= dGain;
+			}
+
+			dD *= dGain;
+		}
+
+		flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			GenelStateSpaceSISO,
+			GenelStateSpaceSISO(uLabel, pDO, SD_y, SV_u,
+				Order,
+				pdE, pdA, pdB, pdC, dD, fOut));
+
+		} break;
+
+	case SCALARFILTER: {
+		ScalarDof SD_y = ReadScalarDof(pDM, HP, 1);
+		if (SD_y.pNode->GetNodeType() ==  Node::PARAMETER) {
+			silent_cerr("ScalarFilter(" << uLabel << "): "
+				"parameter nodes not allowed "
+				"for output ScalarDof (y) "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		if (SD_y.iOrder > 1) {
+			silent_cerr("ScalarFilter(" << uLabel << "): "
+				"illegal order " << SD_y.iOrder
+				<< " for output ScalarDof (y) "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric();
+		}
+
+		ScalarValue *SV_u = ReadScalarValue(pDM, HP);
+
+/*
+ * if nn < nd (strictly proper):
+ *
+ *	n_0 s^nn + n_1 s^(nn-1) + ... + n_nn
+ *	------------------------------------
+ *	  s^nd + d_1 s^(nd-1) + ... + d_nd
+ *
+ * d_0 == 1
+ *
+ * if nn == nd (proper, not strictly proper):
+ *
+ *	n_0 s^n + n_1 s^(n-1) + ... + n_n
+ *	------------------------------------
+ *	  s^n + d_1 s^(n-1) + ... + d_n
+ *
+ *	      (n_1 - d_1*n_0) s^(n-1) + ... (n_n - d_n *n_0)
+ *	n_0 + ----------------------------------------------
+ *	               s^n + d_1 s^(n-1) + ... + d_n
+ *
+ * d_0 == 1
+ *
+ */
+
+		bool bControllable(true);
+		if (HP.IsKeyWord("canonical" "form")) {
+			if (HP.IsKeyWord("controllable")) {
+				bControllable = true;
+
+			} else if (HP.IsKeyWord("observable")) {
+				bControllable = false;
+
+			} else {
+				silent_cerr("ScalarFilter(" << uLabel << "):"
+					"unknown canonical form "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric();
+			}
+		}
+
+		int nd = HP.GetInt();
+		if (nd < 1) {
+			silent_cerr("ScalarFilter(" << uLabel << "):"
+				"invalid denominator order " << nd << " "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric();
+		}
+
+		std::vector<doublereal> den(nd + 1);
+		den[0] = 1.;
+		for (int i = 1; i <= nd; i++) {
+			den[i] = HP.GetReal();
+		}
+
+		int nn = HP.GetInt();
+		if (nn < 0 || nn > nd) {
+			silent_cerr("ScalarFilter(" << uLabel << "):"
+				"invalid numerator order " << nn << " "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric();
+		}
+
+		std::vector<doublereal> num(nd + 1);
+		for (int i = 0; i < nd - nn; i++) {
+			num[i] = 0.;
+		}
+
+		for (int i = nd - nn; i <= nd; i++) {
+			num[i] = HP.GetReal();
+		}
+
+		if (HP.IsKeyWord("gain")) {
+			doublereal dGain = HP.GetReal();
+
+			for (int i = 0; i <= nd; i++) {
+				num[i] *= dGain;
+			}
+		}
+
+		// turn into strictly proper plus direct feedthrough
+		if (nn == nd) {
+			for (int i = 1; i <= nd; i++) {
+				num[i] -= den[i]*num[0];
+			}
+		}
+
+		unsigned int Order = nd;
+
+		doublereal* pd = 0;
+
+		doublereal* pdE = 0;
+		doublereal* pdA = 0;
+		SAFENEWARR(pdA, doublereal, Order*Order);
+		doublereal* pdB = 0;
+		SAFENEWARR(pdB, doublereal, Order);
+		doublereal* pdC = 0;
+		SAFENEWARR(pdC, doublereal, Order);
+		doublereal dD = num[0];
+
+		if (bControllable) {
+			// matrix A
+			pd = pdA;
+			for (unsigned int i = 1; i <= Order; i++) {
+				*pd++ = -den[i];
+			}
+			for (unsigned int i = 0; i < Order - 2; i++) {
+				*pd++ = 1.;
+				for (unsigned j = 0; j < Order; j++) {
+					*pd++ = 0.;
+				}
+			}
+			*pd++ = 1.;
+			*pd++ = 0.;
+	
+			// matrix B
+			pd = pdB;
+			*pd++ = 1.;
+			for (unsigned int i = 0; i < Order - 1; i++) {
+				*pd++ = 0.;
+			}
+	
+			// matrix C
+			pd = pdC;
+			for (unsigned int i = 1; i <= Order; i++) {
+				*pd++ = num[i];
+			}
+
+		} else {
+			// matrix A
+			pd = pdA;
+			for (unsigned int i = 1; i <= Order; i++) {
+				*pd++ = -den[i];
+				for (unsigned int j = 1; j < Order; j++) {
+					if (j == i) {
+						*pd++ = 1.;
+
+					} else {
+						*pd++ = 0.;
+					}
+				}
+			}
+	
+			// matrix B
+			pd = pdB;
+			for (unsigned int i = 1; i <= Order; i++) {
+				*pd++ = num[i];
+			}
+	
+			// matrix C
+			pd = pdC;
+			*pd++ = 1.;
+			for (unsigned int i = 0; i < Order - 1; i++) {
+				*pd++ = 0.;
+			}
+		}
+	
+		flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			GenelStateSpaceSISO,
+			GenelStateSpaceSISO(uLabel, pDO, SD_y, SV_u,
+				Order,
+				pdE, pdA, pdB, pdC, dD, fOut));
+
+		} break;
+
+	case STATESPACEMIMO: {
+		int iNumOutputs = HP.GetInt();
+		if (iNumOutputs <= 0) {
+			silent_cerr("GenelStateSpaceMIMO(" << uLabel << "): "
+				"illegal number of outputs "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric();
+		}
+
+		ScalarDof* pvSD_y = 0;
+		SAFENEWARRNOFILL(pvSD_y, ScalarDof, iNumOutputs);
+		for (int i = 0; i < iNumOutputs; i++) {
+			pvSD_y[i] = ReadScalarDof(pDM, HP, 1);
+			if (pvSD_y[i].pNode->GetNodeType() ==  Node::PARAMETER)
+			{
+				silent_cerr("GenelStateSpaceMIMO(" << uLabel << "): "
+					"parameter nodes not allowed "
+					"for output ScalarDof "
+					"(y[" << i << "]) "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw DataManager::ErrGeneric();
+			}
+
+			if (pvSD_y[i].iOrder > 1) {
+				silent_cerr("GenelStateSpaceMIMO(" << uLabel << "): "
+					"illegal order " << pvSD_y[i].iOrder
+					<< " for output ScalarDof "
+					"(y[" << i << "]) "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw DataManager::ErrGeneric();
+			}
+		}
+
+		int iNumInputs = HP.GetInt();
+		if (iNumInputs <= 0) {
+			silent_cerr("GenelStateSpaceMIMO(" << uLabel << "): "
+				"illegal number of inputs "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric();
+		}
+
+		std::vector<ScalarValue *> SV_u(iNumInputs);
+		ReadScalarValues(pDM, HP, SV_u);
+
+		unsigned int Order = HP.GetInt();
+		DEBUGCOUT("State Space MIMO " << uLabel
+			<< " is of order " << Order << std::endl);
+
+		doublereal* pd = 0;
+		doublereal* pdE = 0;
+		if (HP.IsKeyWord("matrix" "E")) {
+			SAFENEWARR(pdE, doublereal, Order*Order);
+			pd = pdE;
+			for (unsigned int i = 0; i < Order*Order; i++) {
+				*pd++ = HP.GetReal();
+			}
+		}
+
+		if (!HP.IsKeyWord("matrix" "A")) {
+			silent_cerr("GenelStateSpaceMIMO(" << uLabel << "): "
+				"matrix A expected "
+				"at line " << HP.GetLineNumber()
+				<< std::endl);
+			throw ErrGeneric();
+		}
+
+		doublereal* pdA = 0;
+		SAFENEWARR(pdA, doublereal, Order*Order);
+		pd = pdA;
+		for (unsigned int i = 0; i < Order*Order; i++) {
+			*pd++ = HP.GetReal();
+		}
+
+		if (!HP.IsKeyWord("matrix" "B")) {
+			silent_cerr("GenelStateSpaceMIMO(" << uLabel << "): "
+				"matrix B expected "
+				"at line " << HP.GetLineNumber()
+				<< std::endl);
+			throw ErrGeneric();
+		}
+
+		doublereal* pdB = 0;
+		SAFENEWARR(pdB, doublereal, Order*iNumInputs);
+		pd = pdB;
+		for (unsigned int i = 0; i < Order*iNumInputs; i++) {
+			*pd++ = HP.GetReal();
+		}
+
+		if (!HP.IsKeyWord("matrix" "C")) {
+			silent_cerr("GenelStateSpaceMIMO(" << uLabel << "): "
+				"matrix C expected "
+				"at line " << HP.GetLineNumber()
+				<< std::endl);
+			throw ErrGeneric();
+		}
+
+		doublereal* pdC = 0;
+		SAFENEWARR(pdC, doublereal, iNumOutputs*Order);
+		pd = pdC;
+		for (unsigned int i = 0; i < iNumOutputs*Order; i++) {
+			*pd++ = HP.GetReal();
+		}
+
+		doublereal* pdD = 0;
+		if (HP.IsKeyWord("matrix" "D")) {
+			if (pdE) {
+				silent_cerr("GenelStateSpaceMIMO(" << uLabel << "): "
+					"warning, matrix D provided "
+					"while in descriptor form "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+			}
+			SAFENEWARR(pdD, doublereal, iNumOutputs*iNumInputs);
+			pd = pdD;
+			for (int i = 0; i < iNumOutputs*iNumInputs; i++) {
+				*pd++ = HP.GetReal();
+			}
+		}
+
+		if (HP.IsKeyWord("gain")) {
+			doublereal dGain = HP.GetReal();
+
+			pd = pdC;
+			for (unsigned int i = 0; i < iNumOutputs*Order; i++) {
+				*pd++ *= dGain;
+			}
+
+			pd = pdD;
+			for (int i = 0; i < iNumOutputs*iNumInputs; i++) {
+				*pd++ *= dGain;
+			}
+		}
+
+		flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			GenelStateSpaceMIMO,
+			GenelStateSpaceMIMO(uLabel, pDO,
+				iNumOutputs, pvSD_y,
+				SV_u,
+				Order,
+				pdE, pdA, pdB, pdC, pdD, fOut));
+
+		} break;
+
+	/* Aggiungere altri genel */
+	default:
+		silent_cerr("Genel(" << uLabel << "): "
+			"unknown type at line " << HP.GetLineData()
+			<< std::endl);
+		throw DataManager::ErrGeneric();
 	}
-	case ConstLawType::VISCOUS:
-	case ConstLawType::VISCOELASTIC: {
-	   SAFENEWWITHCONSTRUCTOR(pEl,
-				  GenelSpringDamperSupport,
-				  GenelSpringDamperSupport(uLabel, pDO, pCL,
-							   SD, fOut));
-	   break;
+
+	/* Se non c'e' il punto e virgola finale */
+	if (HP.IsArg()) {
+		silent_cerr("semicolon expected "
+			"at line " << HP.GetLineData() << std::endl);
+		throw DataManager::ErrGeneric();
 	}
-	default: {
-	   silent_cerr("You shouldn't be here!" << std::endl);
-	   throw DataManager::ErrGeneric();
-	}
-       }
 
-       break;
-    }
-
-    case CROSSSPRINGSUPPORT: {
-       ScalarDof SDRow = ReadScalarDof(pDM, HP, 1);
-       if (SDRow.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  silent_cerr("GenelCrossSpringSupport(" << uLabel << "): parameter nodes "
-		  "are not allowed for ScalarDof 1" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       if (SDRow.iOrder > 1) {
-	  silent_cerr("GenelCrossSpringSupport(" << uLabel << "): illegal order "
-		  << SDRow.iOrder << " for ScalarDof 1" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       ScalarDof SDCol = ReadScalarDof(pDM, HP, 1);
-       if ((SDCol.iOrder != 0)
-	   || (SDCol.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL)) {
-	  silent_cerr("GenelCrossSpringSupport(" << uLabel << "): parameter nodes "
-		  "are not allowed for ScalarDof" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       if (SDCol.iOrder != 0 || (SDCol.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL)) {
-	  silent_cerr("GenelCrossSpringSupport(" << uLabel << "): illegal order "
-		  << SDCol.iOrder << " for ScalarDof; the algebraic value "
-		  "of a differential node is required" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       ConstLawType::Type CLType = ConstLawType::UNKNOWN;
-       ConstitutiveLaw1D* pCL = HP.GetConstLaw1D(CLType);
-
-       if (pCL->iGetNumDof() != 0) {
-	  silent_cerr("Error at line " << HP.GetLineData()
-	    << ": cross spring support genel does not support "
-	    "dynamic constitutive laws yet"
-	    << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
-
-       switch (CLType) {
-	case ConstLawType::ELASTIC: {
-	   SAFENEWWITHCONSTRUCTOR(pEl,
-				  GenelCrossSpringSupport,
-				  GenelCrossSpringSupport(uLabel, pDO, pCL,
-							  SDRow, SDCol, fOut));
-	   break;
-	}
-	case ConstLawType::VISCOUS:
-	case ConstLawType::VISCOELASTIC: {
-	   SAFENEWWITHCONSTRUCTOR(pEl,
-				  GenelCrossSpringDamperSupport,
-				  GenelCrossSpringDamperSupport(uLabel, pDO, pCL,
-								SDRow, SDCol, fOut));
-	   break;
-	}
-	default: {
-	   silent_cerr("You shouldn't be here!" << std::endl);
-	   throw DataManager::ErrGeneric();
-	}
-       }
-
-       break;
-    }
-
-    case MASS: {
-       ScalarDof SD = ReadScalarDof(pDM, HP, 1);
-       if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  silent_cerr("GenelMass(" << uLabel << "): parameter nodes "
-		  "are not allowed for ScalarDof" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       if (SD.iOrder > 1) {
-	  silent_cerr("GenelMass(" << uLabel << "): illegal order "
-		  << SD.iOrder << " for ScalarDof 1" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       if (SD.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
-	  silent_cerr("GenelMass(" << uLabel << "): only differential dofs "
-		  "are allowed for ScalarDof" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       DriveCaller* pDC = HP.GetDriveCaller();
-
-       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
-
-       SAFENEWWITHCONSTRUCTOR(pEl,
-			      GenelMass,
-			      GenelMass(uLabel, pDO, pDC, SD, fOut));
-
-
-       break;
-    }
-
-#if 0
-    case SCALARFILTER: {
-       ScalarDof SD_y = ReadScalarDof(pDM, HP, 1);
-       ScalarDof SD_u = ReadScalarDof(pDM, HP, 1);
-       if (SD_y.pNode->GetNodeType() ==  Node::PARAMETER
-	   || SD_u.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  silent_cerr("Sorry, parameters are not allowed for genel scalar filter" << std::endl);
-	  throw DataManager::ErrGeneric();
-       } else if (SD_y.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL
-		  || SD_u.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
-	  silent_cerr("Sorry, only differential dofs are allowed for genel scalar filter" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       unsigned int na = HP.GetInt();
-       DEBUGCOUT("GenelFilter " << uLabel << " has a " << na << " order denominator" << std::endl);
-       doublereal* pdP = NULL;
-       SAFENEWARR(pdP, doublereal, na+1);
-
-       pdP[0] = 1.;
-
-       if (na > 0) {
-	  for (unsigned int iCnt = 1; iCnt <= na; iCnt++) {
-	     pdP[iCnt] = HP.GetReal();
-	     DEBUGCOUT("a(" << iCnt << ") = " << pdP[iCnt] << std::endl);
-	  }
-       }
-
-       unsigned int nb = HP.GetInt();
-       DEBUGCOUT("GenelFilter " << uLabel << " has a " << nb << " order numerator" << std::endl);
-       doublereal* pdTau = NULL;
-       SAFENEWARR(pdTau, doublereal, nb+1);
-
-       for (unsigned int iCnt = 0; iCnt <= nb; iCnt++) {
-	  pdTau[iCnt] = HP.GetReal();
-	  DEBUGCOUT("b(" << iCnt << ") = " << pdTau[iCnt] << std::endl);
-       }
-
-       if (HP.IsKeyWord("gain")) {
-	  doublereal gain = HP.GetReal();
-	  DEBUGCOUT("Gain is: " << gain << std::endl);
-	  for (unsigned int iCnt = 0; iCnt <= nb; iCnt++) {
-	     pdTau[iCnt] *= gain;
-	  }
-       }
-
-       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
-
-       SAFENEWWITHCONSTRUCTOR(pEl,
-			      GenelFilter,
-			      GenelFilter(uLabel, pDO, SD_y, SD_u,
-					  na, nb, pdP, pdTau, fOut));
-
-       break;
-    }
-#endif /* 0 */
-
-    case SCALARFILTER: {
-       /* output */
-       ScalarDof SD_y = ReadScalarDof(pDM, HP, 1);
-       if (SD_y.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  silent_cerr("GenelFilterEq(" << uLabel << "): parameter nodes "
-		  "are not allowed for output ScalarDof (y)" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       if (SD_y.iOrder > 1) {
-	  silent_cerr("GenelFilterEq(" << uLabel << "): illegal order "
-		  << SD_y.iOrder << " for output ScalarDof (y)" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       /* input */
-       ScalarValue *SV_u = ReadScalarValue(pDM, HP);
-
-       /* ordine del denominatore */
-       unsigned int na = HP.GetInt();
-       DEBUGCOUT("GenelFilter " << uLabel << " has a " << na
-		       << " order denominator" << std::endl);
-       doublereal* pdP = NULL;
-       SAFENEWARR(pdP, doublereal, na+1);
-       pdP[0] = 1.;
-
-       /* i coefficienti vengono letti a partire da a1, perche' il polinomio
-	* e' assunto monico (a0 = 1) */
-       if (na > 0) {
-	  for (unsigned int iCnt = 1; iCnt <= na; iCnt++) {
-	     pdP[iCnt] = HP.GetReal();
-	     DEBUGCOUT("a(" << iCnt << ") = " << pdP[iCnt] << std::endl);
-	  }
-       }
-
-       /* ordine del numeratore */
-       unsigned int nb = HP.GetInt();
-       if (nb > na) {
-	  silent_cerr("illegal (non proper) transfer function for scalar filter "
-	    << uLabel << " at line " << HP.GetLineData() << std::endl);
-	  throw ErrGeneric();
-       }
-
-       DEBUGCOUT("GenelFilter " << uLabel << " has a " << nb
-		       << " order numerator" << std::endl);
-       doublereal* pdTau = NULL;
-       SAFENEWARR(pdTau, doublereal, nb+1);
-
-       /* i coefficienti vengono letti a partire da b0; e' possibile inserire
-	* il polinomio in forma monica e modificare direttamente il guadagno */
-       for (unsigned int iCnt = 0; iCnt <= nb; iCnt++) {
-	  pdTau[iCnt] = HP.GetReal();
-	  DEBUGCOUT("b(" << iCnt << ") = " << pdTau[iCnt] << std::endl);
-       }
-
-       /* guadagno (opzionale) */
-       if (HP.IsKeyWord("gain")) {
-	  doublereal gain = HP.GetReal();
-	  DEBUGCOUT("Gain is: " << gain << std::endl);
-	  for (unsigned int iCnt = 0; iCnt <= nb; iCnt++) {
-	     pdTau[iCnt] *= gain;
-	  }
-       }
-
-       flag fState(0);
-       if (HP.IsKeyWord("state")) {
-	  if (HP.IsKeyWord("steady")) {
-	     fState = 1;
-	  } else {
-	     silent_cerr("unknown state option at line " << HP.GetLineData() << std::endl);
-	  }
-       }
-
-       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
-
-       SAFENEWWITHCONSTRUCTOR(pEl,
-			      GenelFilterEq,
-			      GenelFilterEq(uLabel, pDO, SD_y, SV_u,
-					    na, nb, pdP, pdTau,
-					    fState, fOut));
-
-       break;
-    }
-
-    case STATESPACESISO: {
-       ScalarDof SD_y = ReadScalarDof(pDM, HP, 1);
-       if (SD_y.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  silent_cerr("GenelStateSpaceSISO(" << uLabel << "): parameter nodes "
-		  "are not allowed for output ScalarDof (y)" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       if (SD_y.iOrder > 1) {
-	  silent_cerr("GenelStateSpaceSISO(" << uLabel << "): illegal order "
-		  << SD_y.iOrder << " for output ScalarDof (y)" << std::endl);
-	  throw DataManager::ErrGeneric();
-       }
-
-       ScalarValue *SV_u = ReadScalarValue(pDM, HP);
-
-       unsigned int Order = HP.GetInt();
-       DEBUGCOUT("State Space SISO " << uLabel << " is of order " << Order << std::endl);
-
-       doublereal* pd = 0;
-
-       doublereal* pdE = NULL;
-       if (HP.IsKeyWord("matrixE")) {
-          SAFENEWARR(pdE, doublereal, Order*Order);
-          pd = pdE;
-          for (unsigned int i = 0; i < Order*Order; i++) {
-	     *pd++ = HP.GetReal();
-          }
-       }
-
-       if (!HP.IsKeyWord("matrixA")) {
-	  silent_cerr("matrix A expected at line " << HP.GetLineNumber() << std::endl);
-	  throw ErrGeneric();
-       }
-       doublereal* pdA = NULL;
-       SAFENEWARR(pdA, doublereal, Order*Order);
-       pd = pdA;
-       for (unsigned int i = 0; i < Order*Order; i++) {
-	  *pd++ = HP.GetReal();
-       }
-
-       if (!HP.IsKeyWord("matrixB")) {
-	  silent_cerr("matrix B expected at line " << HP.GetLineNumber() << std::endl);
-	  throw ErrGeneric();
-       }
-       doublereal* pdB = NULL;
-       SAFENEWARR(pdB, doublereal, Order);
-       pd = pdB;
-       for (unsigned int i = 0; i < Order; i++) {
-	  *pd++ = HP.GetReal();
-       }
-
-       if (!HP.IsKeyWord("matrixC")) {
-	  silent_cerr("matrix C expected at line " << HP.GetLineNumber() << std::endl);
-	  throw ErrGeneric();
-       }
-       doublereal* pdC = NULL;
-       SAFENEWARR(pdC, doublereal, Order);
-       pd = pdC;
-       for (unsigned int i = 0; i < Order; i++) {
-	  *pd++ = HP.GetReal();
-       }
-
-       doublereal dD = 0.;
-       if (HP.IsKeyWord("matrixD")) {
-          if (pdE) {
-             silent_cerr("GenelStateSpaceSISO(" << uLabel << "): "
-		"warning, matrix D provided while in descriptor form "
-		"at line " << HP.GetLineData() << std::endl);
-          }
-	  dD = HP.GetReal();
-       }
-
-       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
-
-       SAFENEWWITHCONSTRUCTOR(pEl,
-			      GenelStateSpaceSISO,
-			      GenelStateSpaceSISO(uLabel, pDO, SD_y, SV_u,
-						  Order,
-						  pdE, pdA, pdB, pdC, dD, fOut));
-
-       break;
-    }
-
-
-    case STATESPACEMIMO: {
-       int iNumOutputs = HP.GetInt();
-       if (iNumOutputs <= 0) {
-	  silent_cerr("illegal number of outputs for state space MIMO " << uLabel
-	    << " at line " << HP.GetLineData() << std::endl);
-	  throw ErrGeneric();
-       }
-
-       ScalarDof* pvSD_y = NULL;
-       SAFENEWARRNOFILL(pvSD_y, ScalarDof, iNumOutputs);
-       for (int i = 0; i < iNumOutputs; i++) {
-	  pvSD_y[i] = ReadScalarDof(pDM, HP, 1);
-	  if (pvSD_y[i].pNode->GetNodeType() ==  Node::PARAMETER) {
-	     silent_cerr("GenelStateSpaceSISO(" << uLabel << "): parameter nodes "
-		     "are not allowed for output ScalarDof (y[" << i << "])" << std::endl);
-	     throw DataManager::ErrGeneric();
-          }
-
-          if (pvSD_y[i].iOrder > 1) {
-	     silent_cerr("GenelStateSpaceSISO(" << uLabel << "): illegal order "
-		     << pvSD_y[i].iOrder << " for output ScalarDof (y[" << i << "])" << std::endl);
-	     throw DataManager::ErrGeneric();
-          }
-       }
-
-       int iNumInputs = HP.GetInt();
-       if (iNumInputs <= 0) {
-	  silent_cerr("illegal number of inputs for state space MIMO " << uLabel
-	    << " at line " << HP.GetLineData() << std::endl);
-	  throw ErrGeneric();
-       }
-
-       std::vector<ScalarValue *> SV_u(iNumInputs);
-       ReadScalarValues(pDM, HP, SV_u);
-
-       unsigned int Order = HP.GetInt();
-       DEBUGCOUT("State Space MIMO " << uLabel << " is of order " << Order << std::endl);
-
-       doublereal* pd = 0;
-       doublereal* pdE = NULL;
-       if (HP.IsKeyWord("matrixE")) {
-          SAFENEWARR(pdE, doublereal, Order*Order);
-          pd = pdE;
-          for (unsigned int i = 0; i < Order*Order; i++) {
-	     *pd++ = HP.GetReal();
-          }
-       }
-
-       if (!HP.IsKeyWord("matrixA")) {
-	  silent_cerr("matrix A expected at line " << HP.GetLineNumber() << std::endl);
-	  throw ErrGeneric();
-       }
-       doublereal* pdA = NULL;
-       SAFENEWARR(pdA, doublereal, Order*Order);
-       pd = pdA;
-       for (unsigned int i = 0; i < Order*Order; i++) {
-	  *pd++ = HP.GetReal();
-       }
-
-       if (!HP.IsKeyWord("matrixB")) {
-	  silent_cerr("matrix B expected at line " << HP.GetLineNumber() << std::endl);
-	  throw ErrGeneric();
-       }
-       doublereal* pdB = NULL;
-       SAFENEWARR(pdB, doublereal, Order*iNumInputs);
-       pd = pdB;
-       for (unsigned int i = 0; i < Order*iNumInputs; i++) {
-	  *pd++ = HP.GetReal();
-       }
-
-       if (!HP.IsKeyWord("matrixC")) {
-	  silent_cerr("matrix C expected at line " << HP.GetLineNumber() << std::endl);
-	  throw ErrGeneric();
-       }
-       doublereal* pdC = NULL;
-       SAFENEWARR(pdC, doublereal, iNumOutputs*Order);
-       pd = pdC;
-       for (unsigned int i = 0; i < iNumOutputs*Order; i++) {
-	  *pd++ = HP.GetReal();
-       }
-
-       doublereal* pdD = NULL;
-       if (HP.IsKeyWord("matrixD")) {
-          if (pdE) {
-             silent_cerr("GenelStateSpaceMIMO(" << uLabel << "): "
-		"warning, matrix D provided while in descriptor form "
-		"at line " << HP.GetLineData() << std::endl);
-          }
-	  SAFENEWARR(pdD, doublereal, iNumOutputs*iNumInputs);
-	  pd = pdD;
-	  for (int i = 0; i < iNumOutputs*iNumInputs; i++) {
-	     *pd++ = HP.GetReal();
-	  }
-       }
-
-       flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
-
-       SAFENEWWITHCONSTRUCTOR(pEl,
-			      GenelStateSpaceMIMO,
-			      GenelStateSpaceMIMO(uLabel, pDO,
-						  iNumOutputs, pvSD_y,
-						  SV_u,
-						  Order,
-						  pdE, pdA, pdB, pdC, pdD, fOut));
-
-       break;
-    }
-
-
-
-
-
-
-      /* Aggiungere altri genel */
-
-    default: {
-       silent_cerr("unknown genel type in genel " << uLabel
-	 << " at line " << HP.GetLineData() << std::endl);
-
-       throw DataManager::ErrGeneric();
-    }
-   }
-
-   /* Se non c'e' il punto e virgola finale */
-   if (HP.IsArg()) {
-      silent_cerr("semicolon expected at line " << HP.GetLineData() << std::endl);
-      throw DataManager::ErrGeneric();
-   }
-
-   return pEl;
+	return pEl;
 } /* ReadGenel() */
 

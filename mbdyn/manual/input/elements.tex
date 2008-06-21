@@ -2513,6 +2513,7 @@ arbitrary manner (given by the \kw{const\_law}) to the
         (node_dof) <output_node> ,
         { [ node dof , ] (node_dof) <input_node>
             | drive , (drive_caller) <input_value> } ,
+        [ canonical form , { controllable | observable } , ]
         <output_order> [ , <output_coef_list> ] ,
         <input_order> , <input_coef_list>
         [ , gain , <gain> ]
@@ -2521,15 +2522,29 @@ This element models a scalar filter of the form
 \begin{displaymath}
     A\plbr{s}y = B\plbr{s}u
 \end{displaymath}
-where $ A $, $ B $ are polynomials of arbitrary order, provided it is
-causal, namely the \kw{output\_order} is greater than or equal to 
-the \kw{input\_order}.
-The polynomial $ A $ is assumed to be monic, so only the coefficients
-from 1 to \kw{output\_order} must be input, while all the coefficients 
-of polynomial $ B $ are required, i.e.\ from 0 to \kw{input\_order}.
+where $ A $, $ B $ are polynomials of arbitrary order, namely
+\begin{displaymath}
+	y\plbr{s} = \frac{
+		b_0 s^{n_n}
+		+ b_1 s^{n_n-1}
+		+ \ldots
+		+ b_{n_n}
+	}{
+		a_0 s^{n_d}
+		+ a_1 s^{n_d-1}
+		+ \ldots
+		+ a_{n_d}
+	} u\plbr{s}
+\end{displaymath}
+The filter must be proper, namely the \kw{output\_order} $n_d$
+must be greater than or at most equal to the \kw{input\_order}, $n_n$.
+The polynomial $ A $ is assumed to be monic, so the coefficient 
+$a_0=1$ and only the coefficients from $a_1$ to $a_{n_d}$ must be input,
+while all the coefficients of polynomial $ B $ are required,
+i.e.\ from $b_0$ to $b_{n_n}$.
 
-If a gain is supplied, all the coefficients of $ B $ are multiplied by the
-gain.
+If a \kw{gain} is supplied, all the coefficients of $ B $
+are multiplied by the gain.
 
 Originally, the input needed to be taken from a \kw{scalar\_dof};
 now, it can also be taken from a \kw{drive}, which can completely replace
@@ -2537,6 +2552,115 @@ the original form (e.g.\ by means of the \kw{dof}, the \kw{node}
 and the \kw{element} drives) and requires much less effort because
 no auxiliary node needs to be set up.
 % FIXME: elaborate with examples
+
+The filter is internally rewritten as a \kw{state space SISO} element.
+By default, the \kw{controllable} canonical form is used, namely
+\begin{align*}
+	\cubr{\cvvect{
+		\dot{x}_1 \\
+		\dot{x}_2 \\
+		\dot{x}_3 \\
+		\vdots \\
+		\dot{x}_{n_d}
+	}} &= \sqbr{\matr{ccccc}{
+		-a_1 & -a_2 & -a_3 & \ldots & -a_{n_d} \\
+		1 & 0 & 0 & & 0 \\
+		0 & 1 & 0 & & 0 \\
+		\vdots & & & \ddots & \vdots \\
+		0 & 0 & 0 & \ldots & 0
+	}} \cubr{\cvvect{
+		x_1 \\
+		x_2 \\
+		x_3 \\
+		\vdots \\
+		x_{n_d}
+	}} + \sqbr{\cvvect{
+		1 \\
+		0 \\
+		0 \\
+		\vdots \\
+		0
+	}} u\plbr{t} \\
+	y &= \sqbr{\matr{ccccc}{
+		b_1 & b_2 & b_3 & \ldots & b_{n_d}
+	}} \cubr{\cvvect{
+		x_1 \\
+		x_2 \\
+		x_3 \\
+		\vdots \\
+		x_{n_d}
+	}}
+\end{align*}
+Otherwise, a \kw{observable} canonical form can be used, namely
+\begin{align*}
+	\cubr{\cvvect{
+		\dot{x}_1 \\
+		\dot{x}_2 \\
+		\dot{x}_3 \\
+		\vdots \\
+		\dot{x}_{n_d}
+	}} &= \sqbr{\matr{ccccc}{
+		-a_1 & 1 & 0 & \ldots & 0 \\
+		-a_2 & 0 & 1 & & 0 \\
+		-a_3 & 0 & 0 & & 0 \\
+		\vdots & & & \ddots & \vdots \\
+		-a_{n_d} & 0 & 0 & \ldots & 0
+	}} \cubr{\cvvect{
+		x_1 \\
+		x_2 \\
+		x_3 \\
+		\vdots \\
+		x_{n_d}
+	}} + \sqbr{\cvvect{
+		b_1 \\
+		b_2 \\
+		b_3 \\
+		\vdots \\
+		b_{n_d}
+	}} u\plbr{t} \\
+	y &= \sqbr{\matr{ccccc}{
+		1 & 0 & 0 & \ldots & 0
+	}} \cubr{\cvvect{
+		x_1 \\
+		x_2 \\
+		x_3 \\
+		\vdots \\
+		x_{n_d}
+	}}
+\end{align*}
+In case the filter is not strictly proper, because $n_n=n_d=n$,
+it is turned into a strictly proper one by the transformation
+\begin{align*}
+	H\plbr{s}
+	&= \frac{B\plbr{s}}{A\plbr{s}} \\
+	&= \frac{
+		b_0 s^n
+		+ b_1 s^{n-1}
+		+ \ldots
+		+ b_n
+	}{
+		s^n
+		+ a_1 s^{n-1}
+		+ \ldots
+		+ a_n
+	} \\
+	&= b_0 + \frac{B\plbr{s} - b_0 A\plbr{s}}{A\plbr{s}} \\
+	&= b_0 + \frac{
+		+ \plbr{b_1 - b_0 a_1} s^{n-1}
+		+ \ldots
+		+ \plbr{b_n - b_0 a_n}
+	}{
+		s^n
+		+ a_1 s^{n-1}
+		+ \ldots
+		+ a_n
+	}
+\end{align*}
+and the state space realization is modified by using the resulting 
+numerator coefficients and by introducing a direct feedthrough term
+$b_0 u\plbr{t}$ in the output.
+
+
 
 \subsubsection{State space SISO}
 \begin{verbatim}
@@ -2551,6 +2675,7 @@ no auxiliary node needs to be set up.
         matrix B , <coefficient_list> ,
         matrix C , <coefficient_list>
         [ , matrix D , <coefficient> ]
+        [ , gain , <gain> ]
 \end{verbatim}
 This element models a scalar (SISO) state space filter of the form
 \begin{align*}
@@ -2593,6 +2718,7 @@ The matrices are read row-oriented; e.g., for matrix $\T{A}$:
         matrix B , <coefficient_list> ,
         matrix C , <coefficient_list>
         [ , matrix D , <coefficient_list> ]
+        [ , gain , <gain> ]
 \end{verbatim}
 This element models a vector (MIMO) state space filter of the form
 \begin{align*}
