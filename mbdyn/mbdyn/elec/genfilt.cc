@@ -35,6 +35,10 @@
 
 #include "genfilt.h"
 
+extern "C" int
+__FC_DECL__(dgebal)(char *JOB, integer *N, doublereal *pdA, integer *LDA,
+		integer *ILO, integer *IHI, doublereal *SCALE, integer *INFO);
+
 /* GenelStateSpaceSISO - begin */
 
 GenelStateSpaceSISO::GenelStateSpaceSISO(unsigned int uLabel,
@@ -53,15 +57,35 @@ Genel(uLabel, pDO, fOutput),
 SD_y(y), SV_u(u),
 iNumDofs(Order),
 pdE(pE), pdA(pA), pdB(pB), pdC(pC), dD(D),
-pdX(NULL), pdXP(NULL)
+pdX(0), pdXP(0)
 {
 	ASSERT(Order > 0);
-	ASSERT(pdA != NULL);
-	ASSERT(pdB != NULL);
-	ASSERT(pdC != NULL);
+	ASSERT(pdA != 0);
+	ASSERT(pdB != 0);
+	ASSERT(pdC != 0);
 	ASSERT(SD_y.iOrder == 0);
 	DEBUGCOUT("GenelStateSpaceSISO " << uLabel
 		<< ", NumDofs: " << iNumDofs << std::endl);
+
+#ifdef USE_LAPACK
+	// try balancing the matrix?
+	int rc;
+	char JOB = 'S';
+	integer N = Order, LDA = Order, ILO, IHI, INFO;
+	std::vector<doublereal> SCALE(Order);
+	rc = __FC_DECL__(dgebal)(&JOB, &N, pdA, &LDA,
+		&ILO, &IHI, &SCALE[0], &INFO);
+	if (INFO != 0) {
+		silent_cout("GenelStateSpaceSISO(" << uLabel << "): "
+			"balancing failed (ignored)" << std::endl);
+
+	} else {
+		for (unsigned i = 0; i < Order; i++) {
+			pdB[i] *= SCALE[i];
+			pdC[i] /= SCALE[i];
+		}
+	}
+#endif // USE_LAPACK
 
 	SAFENEWARR(pdX, doublereal, 2*Order);
 	pdXP = pdX + Order;
@@ -69,23 +93,23 @@ pdX(NULL), pdXP(NULL)
 
 GenelStateSpaceSISO::~GenelStateSpaceSISO(void)
 {
-	if (pdX != NULL) {
+	if (pdX != 0) {
 		SAFEDELETEARR(pdX);
 	}
 
-	if (pdC != NULL) {
+	if (pdC != 0) {
 		SAFEDELETEARR(pdC);
 	}
 
-	if (pdB != NULL) {
+	if (pdB != 0) {
 		SAFEDELETEARR(pdB);
 	}
 
-	if (pdA != NULL) {
+	if (pdA != 0) {
 		SAFEDELETEARR(pdA);
 	}
 
-	if (pdE != NULL) {
+	if (pdE != 0) {
 		SAFEDELETEARR(pdE);
 	}
 }
@@ -303,22 +327,51 @@ iNumOutputs(iNumOut), iNumInputs(u.size()),
 pvSD_y(const_cast<ScalarDof *>(y)), SV_u(u),
 iNumDofs(Order),
 pdE(pE), pdA(pA), pdB(pB), pdC(pC), pdD(pD),
-pdX(NULL), pdXP(NULL)
+pdX(0), pdXP(0)
 {
-#ifdef DEBUG
 	ASSERT(iNumDofs > 0);
 	ASSERT(iNumOutputs > 0);
-	ASSERT(pvSD_y != NULL);
+	ASSERT(pvSD_y != 0);
 	for (int i = iNumOutputs; i-- > 0; ) {
 		ASSERT(pvSD_y[i].iOrder == 0);
 	}
 	ASSERT(iNumInputs > 0);
-	ASSERT(pdA != NULL);
-	ASSERT(pdB != NULL);
-	ASSERT(pdC != NULL);
+	ASSERT(pdA != 0);
+	ASSERT(pdB != 0);
+	ASSERT(pdC != 0);
 	DEBUGCOUT("GenelStateSpaceMIMO " << uLabel
 		<< ", NumDofs: " << iNumDofs << std::endl);
-#endif /* DEBUG */
+
+#ifdef USE_LAPACK
+	// try balancing the matrix?
+	int rc;
+	char JOB = 'S';
+	integer N = Order, LDA = Order, ILO, IHI, INFO;
+	std::vector<doublereal> SCALE(Order);
+	rc = __FC_DECL__(dgebal)(&JOB, &N, pdA, &LDA,
+		&ILO, &IHI, &SCALE[0], &INFO);
+	if (INFO != 0) {
+		silent_cout("GenelStateSpaceSISO(" << uLabel << "): "
+			"balancing failed (ignored)" << std::endl);
+
+	} else {
+		doublereal *pd = pdB;
+
+		for (unsigned i = 0; i < Order; i++) {
+			doublereal d = SCALE[i];
+			for (unsigned j = 0; j < iNumInputs; j++) {
+				*pd++ *= d;
+			}
+		}
+
+		pd = pdC;
+		for (unsigned j = 0; j < iNumOutputs; j++) {
+			for (unsigned i = 0; i < Order; i++) {
+				*pd++ = SCALE[i];
+			}
+		}
+	}
+#endif // USE_LAPACK
 
 	SAFENEWARR(pdX, doublereal, 2*Order);
 	pdXP = pdX + Order;
@@ -326,27 +379,27 @@ pdX(NULL), pdXP(NULL)
 
 GenelStateSpaceMIMO::~GenelStateSpaceMIMO(void)
 {
-	if (pdX != NULL) {
+	if (pdX != 0) {
 		SAFEDELETEARR(pdX);
 	}
 
-	if (pdD != NULL) {
+	if (pdD != 0) {
 		SAFEDELETEARR(pdD);
 	}
 
-	if (pdC != NULL) {
+	if (pdC != 0) {
 		SAFEDELETEARR(pdC);
 	}
 
-	if (pdB != NULL) {
+	if (pdB != 0) {
 		SAFEDELETEARR(pdB);
 	}
 
-	if (pdA != NULL) {
+	if (pdA != 0) {
 		SAFEDELETEARR(pdA);
 	}
 
-	if (pdE != NULL) {
+	if (pdE != 0) {
 		SAFEDELETEARR(pdE);
 	}
 
@@ -356,7 +409,7 @@ GenelStateSpaceMIMO::~GenelStateSpaceMIMO(void)
 		delete *i;
 	}
 
-	if (pvSD_y != NULL) {
+	if (pvSD_y != 0) {
 		SAFEDELETEARR(pvSD_y);
 	}
 }
@@ -481,7 +534,7 @@ GenelStateSpaceMIMO::AssRes(SubVectorHandler& WorkVec,
 	}
 
 	doublereal* pdc = pdC + iNumOutputs*iNumDofs - 1;
-	if (pdD != NULL) {
+	if (pdD != 0) {
 		doublereal* pdd = pdD + iNumOutputs*iNumInputs - 1;
 		for (int i = iNumOutputs; i > 0; i--) {
 			integer iRowIndex_y = pvSD_y[i - 1].pNode->iGetFirstRowIndex()+1;
