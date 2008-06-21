@@ -351,7 +351,7 @@ pdX(0), pdXP(0)
 	rc = __FC_DECL__(dgebal)(&JOB, &N, pdA, &LDA,
 		&ILO, &IHI, &SCALE[0], &INFO);
 	if (INFO != 0) {
-		silent_cout("GenelStateSpaceSISO(" << uLabel << "): "
+		silent_cout("GenelStateSpaceMIMO(" << uLabel << "): "
 			"balancing failed (ignored)" << std::endl);
 
 	} else {
