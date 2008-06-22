@@ -694,13 +694,30 @@ ReadGenel(DataManager* pDM,
 			dD *= dGain;
 		}
 
+		bool bBalance(true);
+		if (HP.IsKeyWord("balance")) {
+			if (HP.IsKeyWord("yes")) {
+				bBalance = true;
+
+			} else if (HP.IsKeyWord("no")) {
+				bBalance = false;
+
+			} else {
+				silent_cerr("GenelStateSpaceSISO(" << uLabel << "): "
+					"unknown balance mode at line "
+					<< HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric();
+			}
+		}
+
 		flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
 
 		SAFENEWWITHCONSTRUCTOR(pEl,
 			GenelStateSpaceSISO,
 			GenelStateSpaceSISO(uLabel, pDO, SD_y, SV_u,
 				Order,
-				pdE, pdA, pdB, pdC, dD, fOut));
+				pdE, pdA, pdB, pdC, dD, bBalance, fOut));
 
 		} break;
 
@@ -884,13 +901,30 @@ ReadGenel(DataManager* pDM,
 			}
 		}
 	
+		bool bBalance(true);
+		if (HP.IsKeyWord("balance")) {
+			if (HP.IsKeyWord("yes")) {
+				bBalance = true;
+
+			} else if (HP.IsKeyWord("no")) {
+				bBalance = false;
+
+			} else {
+				silent_cerr("ScalarFilter(" << uLabel << "): "
+					"unknown balance mode at line "
+					<< HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric();
+			}
+		}
+
 		flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
 
 		SAFENEWWITHCONSTRUCTOR(pEl,
 			GenelStateSpaceSISO,
 			GenelStateSpaceSISO(uLabel, pDO, SD_y, SV_u,
 				Order,
-				pdE, pdA, pdB, pdC, dD, fOut));
+				pdE, pdA, pdB, pdC, dD, bBalance, fOut));
 
 		} break;
 
@@ -1031,6 +1065,23 @@ ReadGenel(DataManager* pDM,
 			}
 		}
 
+		bool bBalance(true);
+		if (HP.IsKeyWord("balance")) {
+			if (HP.IsKeyWord("yes")) {
+				bBalance = true;
+
+			} else if (HP.IsKeyWord("no")) {
+				bBalance = false;
+
+			} else {
+				silent_cerr("GenelStateSpaceMIMO(" << uLabel << "): "
+					"unknown balance mode at line "
+					<< HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric();
+			}
+		}
+
 		flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
 
 		SAFENEWWITHCONSTRUCTOR(pEl,
@@ -1039,7 +1090,7 @@ ReadGenel(DataManager* pDM,
 				iNumOutputs, pvSD_y,
 				SV_u,
 				Order,
-				pdE, pdA, pdB, pdC, pdD, fOut));
+				pdE, pdA, pdB, pdC, pdD, bBalance, fOut));
 
 		} break;
 

@@ -62,6 +62,7 @@ public:
 		doublereal *pE,
 		doublereal* pA, doublereal* pB,
 		doublereal* pC, doublereal D,
+		bool bBalance,
 		flag fOutput);
 
 	virtual ~GenelStateSpaceSISO(void);
@@ -139,6 +140,7 @@ public:
 		doublereal* pE,
 		doublereal* pA, doublereal* pB,
 		doublereal* pC, doublereal* pD,
+		bool bBalance,
 		flag fOutput);
 
 	virtual ~GenelStateSpaceMIMO(void);

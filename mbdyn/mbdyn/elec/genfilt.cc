@@ -35,9 +35,16 @@
 
 #include "genfilt.h"
 
+#ifdef USE_LAPACK
 extern "C" int
 __FC_DECL__(dgebal)(char *JOB, integer *N, doublereal *pdA, integer *LDA,
-		integer *ILO, integer *IHI, doublereal *SCALE, integer *INFO);
+	integer *ILO, integer *IHI, doublereal *SCALE, integer *INFO);
+extern "C" int
+__FC_DECL__(dggbal)(char *JOB, integer *N, doublereal *pdA, integer *LDA,
+	doublereal *pdB, integer *LDB, integer *ILO, integer *IHI,
+	doublereal *LSCALE, doublereal *RSCALE, doublereal *WORK,
+	integer *INFO);
+#endif // USE_LAPACK
 
 /* GenelStateSpaceSISO - begin */
 
@@ -51,6 +58,7 @@ GenelStateSpaceSISO::GenelStateSpaceSISO(unsigned int uLabel,
 	doublereal* pB,
 	doublereal* pC,
 	doublereal D,
+	bool bBalance,
 	flag fOutput)
 : Elem(uLabel, fOutput),
 Genel(uLabel, pDO, fOutput),
@@ -69,20 +77,44 @@ pdX(0), pdXP(0)
 
 #ifdef USE_LAPACK
 	// try balancing the matrix?
-	int rc;
-	char JOB = 'S';
-	integer N = Order, LDA = Order, ILO, IHI, INFO;
-	std::vector<doublereal> SCALE(Order);
-	rc = __FC_DECL__(dgebal)(&JOB, &N, pdA, &LDA,
-		&ILO, &IHI, &SCALE[0], &INFO);
-	if (INFO != 0) {
-		silent_cout("GenelStateSpaceSISO(" << uLabel << "): "
-			"balancing failed (ignored)" << std::endl);
+	if (bBalance) {
+		int rc;
+		char JOB = 'S';
+		integer N = Order;
+		integer LDA = Order;
+		integer LDB = Order;
+		integer ILO;
+		integer IHI;
+		integer INFO;
 
-	} else {
-		for (unsigned i = 0; i < Order; i++) {
-			pdB[i] *= SCALE[i];
-			pdC[i] /= SCALE[i];
+		std::vector<doublereal> RSCALE(Order);
+		std::vector<doublereal> LSCALE(Order);
+
+		if (pdE != 0) {
+			std::vector<doublereal> WORK(6*Order);
+
+			rc = __FC_DECL__(dggbal)(&JOB, &N, pdA, &LDA,
+				pdE, &LDB, &ILO, &IHI,
+				&LSCALE[0], &RSCALE[0], &WORK[0], &INFO);
+
+		} else {
+			rc = __FC_DECL__(dgebal)(&JOB, &N, pdA, &LDA,
+				&ILO, &IHI, &RSCALE[0], &INFO);
+
+			for (unsigned i = 0; i < Order; i++) {
+				LSCALE[i] = 1./RSCALE[i];
+			}
+		}
+
+		if (INFO != 0) {
+			silent_cout("GenelStateSpaceSISO(" << uLabel << "): "
+				"balancing failed (ignored)" << std::endl);
+
+		} else {
+			for (unsigned i = 0; i < Order; i++) {
+				pdB[i] *= RSCALE[i];
+				pdC[i] *= LSCALE[i];
+			}
 		}
 	}
 #endif // USE_LAPACK
@@ -320,6 +352,7 @@ GenelStateSpaceMIMO::GenelStateSpaceMIMO(unsigned int uLabel,
 	doublereal* pB,
 	doublereal* pC,
 	doublereal* pD,
+	bool bBalance,
 	flag fOutput)
 : Elem(uLabel, fOutput),
 Genel(uLabel, pDO, fOutput),
@@ -344,30 +377,54 @@ pdX(0), pdXP(0)
 
 #ifdef USE_LAPACK
 	// try balancing the matrix?
-	int rc;
-	char JOB = 'S';
-	integer N = Order, LDA = Order, ILO, IHI, INFO;
-	std::vector<doublereal> SCALE(Order);
-	rc = __FC_DECL__(dgebal)(&JOB, &N, pdA, &LDA,
-		&ILO, &IHI, &SCALE[0], &INFO);
-	if (INFO != 0) {
-		silent_cout("GenelStateSpaceMIMO(" << uLabel << "): "
-			"balancing failed (ignored)" << std::endl);
+	if (bBalance) {
+		int rc;
+		char JOB = 'S';
+		integer N = Order;
+		integer LDA = Order;
+		integer LDB = Order;
+		integer ILO;
+		integer IHI;
+		integer INFO;
 
-	} else {
-		doublereal *pd = pdB;
+		std::vector<doublereal> RSCALE(Order);
+		std::vector<doublereal> LSCALE(Order);
 
-		for (unsigned i = 0; i < Order; i++) {
-			doublereal d = SCALE[i];
-			for (unsigned j = 0; j < iNumInputs; j++) {
-				*pd++ *= d;
+		if (pdE != 0) {
+			std::vector<doublereal> WORK(6*Order);
+
+			rc = __FC_DECL__(dggbal)(&JOB, &N, pdA, &LDA,
+				pdE, &LDB, &ILO, &IHI,
+				&LSCALE[0], &RSCALE[0], &WORK[0], &INFO);
+
+		} else {
+			rc = __FC_DECL__(dgebal)(&JOB, &N, pdA, &LDA,
+				&ILO, &IHI, &RSCALE[0], &INFO);
+
+			for (unsigned i = 0; i < Order; i++) {
+				LSCALE[i] = 1./RSCALE[i];
 			}
 		}
 
-		pd = pdC;
-		for (unsigned j = 0; j < iNumOutputs; j++) {
+		if (INFO != 0) {
+			silent_cout("GenelStateSpaceMIMO(" << uLabel << "): "
+				"balancing failed (ignored)" << std::endl);
+
+		} else {
+			doublereal *pd = pdB;
+
 			for (unsigned i = 0; i < Order; i++) {
-				*pd++ = SCALE[i];
+				doublereal d = RSCALE[i];
+				for (unsigned j = 0; j < iNumInputs; j++) {
+					*pd++ *= d;
+				}
+			}
+	
+			pd = pdC;
+			for (unsigned j = 0; j < iNumOutputs; j++) {
+				for (unsigned i = 0; i < Order; i++) {
+					*pd++ *= LSCALE[i];
+				}
 			}
 		}
 	}
