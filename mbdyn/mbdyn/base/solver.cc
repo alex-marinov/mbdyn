@@ -302,7 +302,8 @@ Solver::Run(void)
 
 		/* Init RTAI; if init'ed, it will be shut down at exit */
 		if (mbdyn_rt_task_init("MBDTSK", 1, 0, 0, RTCpuMap,
-					&mbdyn_rtai_task)) {
+			&mbdyn_rtai_task))
+		{
 			silent_cerr("unable to init RTAI task" << std::endl);
 			throw ErrGeneric();
 		}
