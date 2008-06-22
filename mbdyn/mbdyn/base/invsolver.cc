@@ -997,12 +997,12 @@ IfStepIsToBeRepeated:
 			bSolConv = true;
 		}
 		
-		catch (EndOfSimulation& end) {
+		catch (EndOfSimulation& eos) {
 			silent_cerr("Simulation ended during a regular step:\n" 
-				<< end.what() << "\n");
+				<< eos.what() << "\n");
 			::mbdyn_keep_going = false;
 #ifdef USE_MPI
-			(MPI_Finalized(&mpi_finalize), mpi_finalize)
+			MBDynComm.Abort(0);
 #endif /* USE_MPI */
 #ifdef USE_RTAI
 			if (bRT && bRTHard) {

@@ -896,8 +896,8 @@ Solver::Run(void)
 	catch (NonlinearSolver::ConvergenceOnSolution) {
 		bSolConv = true;
 	}
-	catch (EndOfSimulation& end) {
-		silent_cerr("Simulation ended during the derivatives steps:\n" << end.what() << "\n");
+	catch (EndOfSimulation& eos) {
+		silent_cerr("Simulation ended during the derivatives steps:\n" << eos.what() << "\n");
 		return;
 	}
 
@@ -1013,9 +1013,9 @@ Solver::Run(void)
 		catch (NonlinearSolver::ConvergenceOnSolution) {
 			bSolConv = true;
 		}
-		catch (EndOfSimulation& end) {
+		catch (EndOfSimulation& eos) {
 			silent_cerr("Simulation ended during the first dummy step:\n" 
-				<< end.what() << "\n");
+				<< eos.what() << "\n");
 			return;
 		}
 
@@ -1109,9 +1109,9 @@ Solver::Run(void)
 			catch (NonlinearSolver::ConvergenceOnSolution) {
 				bSolConv = true;
 			}
-			catch (EndOfSimulation& end) {
+			catch (EndOfSimulation& eos) {
 				silent_cerr("Simulation ended during the dummy steps:\n" 
-					<< end.what() << "\n");
+					<< eos.what() << "\n");
 				return;
 			}
 
@@ -1282,9 +1282,9 @@ IfFirstStepIsToBeRepeated:
 	catch (NonlinearSolver::ConvergenceOnSolution) {
 		bSolConv = true;
 	}
-	catch (EndOfSimulation& end) {
+	catch (EndOfSimulation& eos) {
 		silent_cerr("Simulation ended during the first regular step:\n" 
-			<< end.what() << "\n");
+			<< eos.what() << "\n");
 		return;
 	}
 
@@ -1706,11 +1706,11 @@ IfStepIsToBeRepeated:
 		catch (NonlinearSolver::ConvergenceOnSolution) {
 			bSolConv = true;
 		}
-		catch (EndOfSimulation& end) {
+		catch (EndOfSimulation& eos) {
 			silent_cerr("Simulation ended during a regular step:\n" 
-				<< end.what() << "\n");
+				<< eos.what() << "\n");
 #ifdef USE_MPI
-			(MPI_Finalized(&mpi_finalize), mpi_finalize)
+			MBDynComm.Abort(0);
 #endif /* USE_MPI */
 #ifdef USE_RTAI
 			if (bRT && bRTHard) {
