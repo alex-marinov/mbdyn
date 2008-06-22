@@ -27,6 +27,7 @@ MBDyn 1.X-Devel
 		- add bailout support to drives (Marco Morandini)
 		- allow controllable/observable canonical forms
 		  of scalar filters
+		- add balancing of state space filter matrices
 	Backward compatibility issues:
 	Known issues:
 		- odd operator precedence for power/unary minus
@@ -43,7 +44,7 @@ MBDyn 1.X-Devel
 		- fix linear scalar function input
 		- fix crash when using model namespace too early
 		- fix nested elements usage during initial assembly
-		- fix scalar filter exploiting state space SISO
+		- fix scalar filter (using state space SISO)
 
 MBDyn 1.3.3-Beta
 	Enhancements:
