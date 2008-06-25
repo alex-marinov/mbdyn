@@ -41,6 +41,7 @@
 
 #ifdef USE_Y12
 
+#include <cstring>
 #include "spmh.h"
 #include "spmapmh.h"
 #include "dirccmh.h"

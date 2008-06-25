@@ -34,6 +34,7 @@
 #ifndef WITHLAB_H
 #define WITHLAB_H
 
+#include <cstring>
 #include "myassert.h"
 
 

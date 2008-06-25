@@ -32,6 +32,7 @@
 #ifndef TPLDRIVE_IMPL_H
 #define TPLDRIVE_IMPL_H
 
+#include <typeinfo>
 #include "tpldrive.h"
 #include "mbpar.h"
 

@@ -51,6 +51,7 @@
 #endif /* HAVE_CONFIG_H */
 
 /* required for configure time macros with paths */
+#include <limits>
 #include <mbdefs.h>
 
 #define RTAI_LOG

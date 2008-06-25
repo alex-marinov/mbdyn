@@ -35,6 +35,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <cstring>
+
 #include "myassert.h"
 #include "mh.h"
 #include "submat.h"

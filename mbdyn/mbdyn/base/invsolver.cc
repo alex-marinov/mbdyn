@@ -55,6 +55,7 @@
 
 #define RTAI_LOG
 
+#include <limits>
 #include <unistd.h>
 #include <errno.h>
 #include <sys/stat.h>
