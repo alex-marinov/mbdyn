@@ -93,6 +93,7 @@ public:
 	};
    
 	virtual const doublereal& GetF(void) const {
+// 		std::cerr << pTime->dGet() << " " << pa.F << "\n";
 		return pa.F;
 	};
 

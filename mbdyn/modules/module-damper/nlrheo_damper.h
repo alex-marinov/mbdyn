@@ -32,7 +32,8 @@ typedef struct sym_params {
 	double **c_s;			/* [n_elementi][max_npti_cs] */
 	double **c_v;			/* [n_elementi][max_npti_cv] */
 	gsl_interp ** ik_s, ** ik_v, ** ic_s, ** ic_v;	/* tutti [n_elementi] */
-	double *x, *y, *y_dummy;
+	double *x, *y, *y_dummy, *yp, *yp_saved, *yp_prev;
+	double nlrheo_t_cur, nlrheo_t_prev;
 
 	/* scale factors */
 	double scale_eps;
@@ -57,7 +58,7 @@ typedef struct sym_params {
 	gsl_odeiv_control * control;
 	gsl_odeiv_system sys;
 	double prev_time, current_time, dt, dtmin;
-	double prev_eps, prev_epsPrime;
+	double prev_s, prev_sPrime;
 	double eps_abs;
 	double eps_rel;
 	
