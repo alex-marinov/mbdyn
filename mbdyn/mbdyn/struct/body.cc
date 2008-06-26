@@ -110,6 +110,46 @@ Body::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ )
 	J = R*J0.MulMT(R);
 }
 
+
+/* Accesso ai dati privati */
+unsigned int
+Body::iGetNumPrivData(void) const
+{
+	return 1;
+}
+
+unsigned int
+Body::iGetPrivDataIdx(const char *s) const
+{
+	if (strcmp(s, "E") == 0) {
+		// kinetic energy
+		return 1;
+	}
+
+	return 0;
+}
+
+doublereal
+Body::dGetPrivData(unsigned int i) const
+{
+	if (i == 1) {
+		// kinetic energy
+		const Mat3x3& Rn = pNode->GetRCurr();
+		const Vec3& Vn = pNode->GetVCurr();
+		const Vec3& Wn = pNode->GetWCurr();
+
+		Vec3 X = Rn*Xgc;
+		Vec3 V = Vn + Wn.Cross(X);
+		Vec3 W = Rn*Wn;
+
+		Mat3x3 Jgc = J0 + Mat3x3(Xgc, Xgc*dMass);
+
+		return ((V*V)*dMass + W*(Jgc*W))/2.;
+	}
+
+	return 0.;
+}
+
 /* Body - end */
 
 
