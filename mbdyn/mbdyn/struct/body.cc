@@ -258,10 +258,14 @@ DynamicBody::AssMats(FullSubMatrixHandler& WMA,
 	DEBUGCOUTFNAME("DynamicBody::AssMats");
 
 	const Vec3& V(pNode->GetVCurr());
-	const Vec3& W(pNode->GetWRef());
+	const Vec3& W(pNode->GetWCurr());
 
-	Mat3x3 SWedge(S);			/* S /\ */
-	Vec3 Sc(S*dCoef);
+	const Mat3x3& R(pNode->GetRCurr());
+	Vec3 STmp(R*S0);
+	Mat3x3 JTmp = R*J0.MulMT(R);
+
+	Mat3x3 SWedge(STmp);			/* S /\ */
+	Vec3 Sc(STmp*dCoef);
 
 	/*
 	 * momentum:
@@ -282,8 +286,8 @@ DynamicBody::AssMats(FullSubMatrixHandler& WMA,
 	 */
 	WMB.Add(3 + 1, 1, SWedge);
 
-	WMB.Add(3 + 1, 3 + 1, J);
-	WMA.Add(3 + 1, 3 + 1, Mat3x3(V, Sc) - Mat3x3(J*(W*dCoef)));
+	WMB.Add(3 + 1, 3 + 1, JTmp);
+	WMA.Add(3 + 1, 3 + 1, Mat3x3(V, Sc) - Mat3x3(JTmp*(W*dCoef)));
 
 	if (bGravity) {
 		WMA.Sub(9 + 1, 3 + 1, Mat3x3(GravityAcceleration, Sc));
