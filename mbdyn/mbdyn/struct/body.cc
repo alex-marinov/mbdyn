@@ -35,6 +35,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <limits>
+
 #include "body.h"
 #include "dataman.h"
 
@@ -106,8 +108,8 @@ Body::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ )
 {
 	const Mat3x3& R = pNode->GetRRef();
 
-	S = R*S0;
-	J = R*J0.MulMT(R);
+	STmp = R*S0;
+	JTmp = R*J0.MulMT(R);
 }
 
 
@@ -300,9 +302,10 @@ DynamicBody::AssMats(FullSubMatrixHandler& WMA,
 	const Vec3& V(pNode->GetVCurr());
 	const Vec3& W(pNode->GetWCurr());
 
-	const Mat3x3& R(pNode->GetRCurr());
-	Vec3 STmp(R*S0);
-	Mat3x3 JTmp = R*J0.MulMT(R);
+	// STmp, JTmp computed by AssRes()
+	// const Mat3x3& R(pNode->GetRCurr());
+	// STmp = R*S0;
+	// JTmp = R*J0.MulMT(R);
 
 	Mat3x3 SWedge(STmp);			/* S /\ */
 	Vec3 Sc(STmp*dCoef);
@@ -366,8 +369,8 @@ DynamicBody::AssRes(SubVectorHandler& WorkVec,
 
 	/* Aggiorna i suoi dati (saranno pronti anche per AssJac) */
 	const Mat3x3& R(pNode->GetRCurr());
-	Vec3 STmp = R*S0;
-	Mat3x3 JTmp = R*J0.MulMT(R);
+	STmp = R*S0;
+	JTmp = R*J0.MulMT(R);
 
 	/* Quantita' di moto: R[1] = Q - M * V - W /\ S */
 	WorkVec.Sub(1, V*dMass + W.Cross(STmp));
@@ -425,16 +428,17 @@ DynamicBody::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	/* Velocita' angolare corrente */
 	const Vec3& W(pNode->GetWRef());
 
-	Vec3 SWedgeW(S.Cross(W));
-	Mat3x3 WWedgeSWedge(-W, S);
+	Vec3 SWedgeW(STmp.Cross(W));
+	Mat3x3 WWedgeSWedge(-W, STmp);
 	Mat3x3 WWedge(W);
 	Mat3x3 WWedgeWWedgeSWedge(WWedge*WWedgeSWedge);
-	Mat3x3 FDeltaW(Mat3x3(SWedgeW)+WWedgeSWedge);
+	Mat3x3 FDeltaW(Mat3x3(SWedgeW) + WWedgeSWedge);
 
-	Vec3 JW(J*W);
+	// STmp, JTmp computed by InitialAssRes()
+	Vec3 JW(JTmp*W);
 	Mat3x3 JWWedge(JW);
-	Mat3x3 MDeltag(WWedge*(J*WWedge-JWWedge));
-	Mat3x3 MDeltaW(WWedge*J-JWWedge);
+	Mat3x3 MDeltag(WWedge*(JTmp*WWedge - JWWedge));
+	Mat3x3 MDeltaW(WWedge*JTmp - JWWedge);
 
 	/* Forza */
 	WM.Add(1, 1, WWedgeWWedgeSWedge);
@@ -476,10 +480,10 @@ DynamicBody::InitialAssRes(SubVectorHandler& WorkVec,
 	const Vec3& X(pNode->GetXCurr());
 	const Vec3& W(pNode->GetWCurr());
 
-	/* Aggiorna i suoi dati (saranno pronti anche per AssJac) */
+	// Aggiorna i suoi dati (saranno pronti anche per InitialAssJac)
 	const Mat3x3& R(pNode->GetRCurr());
-	Vec3 STmp = R*S0;
-	Mat3x3 JTmp = R*J0.MulMT(R);
+	STmp = R*S0;
+	JTmp = R*J0.MulMT(R);
 
 	Vec3 FC(-W.Cross(W.Cross(STmp)));
 	Vec3 MC(-W.Cross(JTmp*W));
@@ -520,10 +524,10 @@ DynamicBody::SetValue(DataManager *pDM,
 	const Vec3& V(pNode->GetVCurr());
 	const Vec3& W(pNode->GetWCurr());
 	const Mat3x3& R(pNode->GetRCurr());
-	S = R*S0;
-	J = R*J0.MulMT(R);
-	X.Add(iFirstIndex + 1, V*dMass + W.Cross(S));
-	X.Add(iFirstIndex + 4, S.Cross(V) + J*W);
+	STmp = R*S0;
+	JTmp = R*J0.MulMT(R);
+	X.Add(iFirstIndex + 1, V*dMass + W.Cross(STmp));
+	X.Add(iFirstIndex + 4, STmp.Cross(V) + JTmp*W);
 }
 
 /* momentum */
@@ -550,7 +554,8 @@ DynamicBody::GetG_int(void) const
 	Vec3 STmp(R*S0);
 
 	// NOTE: with respect to the origin of the global reference frame!
-	return (STmp + X*dMass).Cross(V) + R*(J0*(R.MulTV(W))) - X.Cross(STmp.Cross(W));
+	return (STmp + X*dMass).Cross(V) + R*(J0*(R.MulTV(W)))
+		- X.Cross(STmp.Cross(W));
 }
 
 
@@ -704,19 +709,20 @@ StaticBody::AssMats(FullSubMatrixHandler& WMA,
 	}
 
 	if (g || w) {
-		WMA.Add(3 + 1, 3 + 1, Mat3x3(Acceleration, S*dCoef));
+		WMA.Add(3 + 1, 3 + 1, Mat3x3(Acceleration, STmp*dCoef));
 	}
 
 	if (w) {
 		Mat3x3 wcwc(W, W);
-		Mat3x3 Sc(S*dCoef);
+		Mat3x3 Sc(STmp*dCoef);
 
 		WMA.Sub(1, 1, wcwc*(dMass*dCoef));
 		WMA.Sub(1, 3 + 1, wcwc*Sc);
 
 		WMA.Sub(3 + 1, 1, Sc*wcwc);
 		WMA.Sub(3 + 1, 3 + 1,
-			Mat3x3(W*dCoef, J*W) + Mat3x3(W)*J*Mat3x3(W*dCoef));
+			Mat3x3(W*dCoef, JTmp*W)
+			+ Mat3x3(W)*JTmp*Mat3x3(W*dCoef));
 	}
 
 	return false;
@@ -759,8 +765,8 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 
 	/* Aggiorna i suoi dati (saranno pronti anche per AssJac) */
 	const Mat3x3& R(pNode->GetRCurr());
-	Vec3 STmp = R*S0;
-	Mat3x3 JTmp = R*J0.MulMT(R);
+	STmp = R*S0;
+	JTmp = R*J0.MulMT(R);
 
 	if (g || w) {
 		WorkVec.Add(1, Acceleration*dMass);
@@ -801,8 +807,8 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 
 	const Mat3x3& R(pNode->GetRCurr());
 	Vec3 XgcTmp = R*Xgc;
-	Vec3 STmp = R*S0;
-	Mat3x3 JTmp = R*J0.MulMT(R);
+	STmp = R*S0;
+	JTmp = R*J0.MulMT(R);
 
 	Vec3 Acceleration = pNode->GetXPPCurr()
 		+ pNode->GetWPCurr().Cross(XgcTmp)
@@ -814,8 +820,8 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.Sub(1, Acceleration*dMass);
 
 	Vec3 M = JTmp*pNode->GetWPCurr()
-		+ S.Cross(pNode->GetXPPCurr())
-		+ S.Cross(pNode->GetWCurr().Cross(pNode->GetWCurr().Cross(XgcTmp)));
+		+ STmp.Cross(pNode->GetXPPCurr())
+		+ STmp.Cross(pNode->GetWCurr().Cross(pNode->GetWCurr().Cross(XgcTmp)));
 	if (g) {
 		M -= GravityAcceleration*dMass;
 	}
@@ -865,7 +871,8 @@ StaticBody::SetValue(DataManager *pDM,
 
 
 /* Legge un corpo rigido */
-Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
+Elem*
+ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 {
 	DEBUGCOUTFNAME("ReadBody");
 
@@ -979,11 +986,18 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 				Mat3x3 RTmp(HP.GetRotRel(RF));
 				JTmp = RTmp*JTmp.MulMT(RTmp);
 			}
-			DEBUGLCOUT(MYDEBUG_INPUT, "Inertia matrix of mass(" << iCnt
-				<< ") in current frame =" << std::endl << JTmp << std::endl);
+			DEBUGLCOUT(MYDEBUG_INPUT,
+				"Inertia matrix of mass(" << iCnt << ") "
+				"in current frame =" << JTmp << std::endl);
 		}
 
 		J += JTmp - Mat3x3(XgcTmp, XgcTmp*dMTmp);
+	}
+
+	if (dm < std::numeric_limits<doublereal>::epsilon()) {
+		silent_cerr("Body(" << uLabel << "): "
+			"mass value is too small" << std::endl);
+		throw DataManager::ErrGeneric();
 	}
 
 	Xgc = STmp/dm;
@@ -1031,10 +1045,14 @@ Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	Elem* pEl = NULL;
 	if (bStaticModel || bInverseDynamics) {
 		/* static */
-		SAFENEWWITHCONSTRUCTOR(pEl, StaticBody, StaticBody(uLabel, pStaticNode, pRefNode, dm, Xgc, J, fOut));
+		SAFENEWWITHCONSTRUCTOR(pEl, StaticBody,
+			StaticBody(uLabel, pStaticNode, pRefNode,
+				dm, Xgc, J, fOut));
 
 	} else {
-		SAFENEWWITHCONSTRUCTOR(pEl, DynamicBody, DynamicBody(uLabel, pDynamicNode, dm, Xgc, J, fOut));
+		SAFENEWWITHCONSTRUCTOR(pEl, DynamicBody,
+			DynamicBody(uLabel, pDynamicNode,
+				dm, Xgc, J, fOut));
 	}
 
 	/* Se non c'e' il punto e virgola finale */

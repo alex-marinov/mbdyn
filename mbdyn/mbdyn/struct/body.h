@@ -51,8 +51,8 @@ protected:
 	Vec3 S0;
 	Mat3x3 J0;
  
-	mutable Vec3 S;
-	mutable Mat3x3 J;
+	mutable Vec3 STmp;
+	mutable Mat3x3 JTmp;
 
 	/* momento statico */
 	Vec3 GetS_int(void) const;
