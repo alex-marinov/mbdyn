@@ -1912,6 +1912,11 @@ Solver::NewTimeStep(doublereal dCurrTimeStep,
 
 			iWeightedPerformedIters = (10*iPerformedIters + 9*iWeightedPerformedIters)/10;
 			
+// 			std::cerr << iPerformedIters << " " << StrategyFactor.iMaxIters << " " 
+// 				<< iPerformedIters << " " << StrategyFactor.iMinIters  << " "
+// 				<< iStepsAfterReduction << " " << StrategyFactor.iStepsBeforeReduction << " "
+// 				<< iStepsAfterRaise << " " << StrategyFactor.iStepsBeforeRaise << " "
+// 				<< dCurrTimeStep << " " << dMaxTimeStep << "\n";
 			if (iPerformedIters > StrategyFactor.iMaxIters) {
 	     			iStepsAfterReduction = 0;
 				bLastChance = false;
@@ -3582,6 +3587,43 @@ EndOfCycle: /* esce dal ciclo di lettura */
 				<< "will be used"
 				<< std::endl);
 			StrategyFactor.iMaxIters = iMaxIterations;
+		}
+		if (dMaxTimeStep == ::dDefaultMaxTimeStep) {
+			silent_cerr("warning, "
+				<< "maximum time step not set and strategy "
+				<< "factor selected:\n"
+				<< "the initial time step value will be used as "
+				<< "maximum time step: "
+				<< "max time step = "
+				<< dInitialTimeStep
+				<< std::endl);
+			dMaxTimeStep = dInitialTimeStep;
+		}
+		if (dMinTimeStep == dDefaultMinTimeStep) {
+			silent_cerr("warning, "
+				<< "minimum time step not set and strategy "
+				<< "factor selected:\n"
+				<< "the initial time step value will be used as "
+				<< "minimum time step: "
+				<< "min time step = "
+				<< dInitialTimeStep
+				<< std::endl);
+			dMinTimeStep = dInitialTimeStep;
+		}
+		if (dMinTimeStep == dMaxTimeStep) {
+			silent_cerr("error, "
+				<< "minimum and maximum time step are equal, but "
+				<< "strategy factor has been selected:\n"
+				<< "this is almost meaningless"
+				<< std::endl);
+		}
+		if (dMinTimeStep > dMaxTimeStep) {
+			silent_cerr("error, "
+				<< "minimum and maximum time step are equal, but "
+				<< "strategy factor has been selected:\n"
+				<< "this is meaningless - bailing out"
+				<< std::endl);
+			throw ErrGeneric();
 		}
 		break;
 
