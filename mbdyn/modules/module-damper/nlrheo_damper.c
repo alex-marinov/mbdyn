@@ -12,6 +12,10 @@
 
 static void
 nlrheo_int_compute_kc(double &k, double &c, 
+	double & k_partial_s,
+	double & k_partial_v,
+	double & c_partial_s,
+	double & c_partial_v,
 	const double s, 
 	const double v,
 	const int el, 
@@ -32,6 +36,7 @@ nlrheo_int_compute_kc(double &k, double &c,
 {
 	// calcola k di el dato s,v
 	double k_v_i[npti_kv[el]];
+	double k_v_i_partial_s[npti_kv[el]];
 	int somma_k = 0;
 	for (int e = 0; e < el; e++) {
 		somma_k += npti_ks[e] * npti_kv[e];
@@ -45,20 +50,25 @@ nlrheo_int_compute_kc(double &k, double &c,
 // 					* (std::abs(s) - k_s[npti_ks[el]-1])
 // 					+ x[somma_k + npti_ks[el] - 1]
 // 				;
+				k_v_i_partial_s[i] = 0.;
 			} else if (std::abs(s) == 0) {
 				k_v_i[i] = x[somma_k];
+				k_v_i_partial_s[i] = 0.;
 			} else {
 				double tx[npti_ks[el]];
 				for (int ii = 0; ii < npti_ks[el]; ii++) {
 					tx[ii] = x[somma_k + ii];
 				}
 				k_v_i[i] = gsl_interp_eval(ik_s, k_s, tx, std::abs(s), 0);
+				k_v_i_partial_s[i] = gsl_interp_eval_deriv(ik_s, k_s, tx, std::abs(s), 0) 
+					* copysign(1., s);
 			}
 			somma_k += npti_ks[el];
 		}
 	} else {
 		for (int i = 0; i < npti_kv[el]; i++) {
 			k_v_i[i] = x[somma_k + i];
+			k_v_i_partial_s[i] = 0.;
 		}
 	}
 	if (ik_v != 0) {
@@ -69,17 +79,27 @@ nlrheo_int_compute_kc(double &k, double &c,
 // 				* (std::abs(v) - k_v[npti_kv[el] - 1])
 // 				+ k_v_i[npti_kv[el]-1]
 // 			;
+			k_partial_s = k_v_i_partial_s[npti_kv[el] - 1];
+			k_partial_v = 0.;
 		} else if (std::abs(v) == 0) {
 			k = k_v_i[0];
+			k_partial_s = k_v_i_partial_s[0];
+			k_partial_v = 0.;
 		} else {
 			k = gsl_interp_eval(ik_v, k_v, k_v_i, std::abs(v), 0);
+			k_partial_s = gsl_interp_eval(ik_v, k_v, k_v_i_partial_s, std::abs(v), 0);
+			k_partial_v = gsl_interp_eval_deriv(ik_v, k_v, k_v_i, std::abs(v), 0)
+				* copysign(1., v);
 		}
 	} else {
 		k = k_v_i[0];
+		k_partial_s = k_v_i_partial_s[0];
+		k_partial_v = 0.;
 	}
 	
 	// calcola c di el dato s,v
 	double c_v_i[npti_cv[el]];
+	double c_v_i_partial_s[npti_cv[el]];
 	int somma_c = n_variabili_k;
 	for (int e = 0; e < el; e++) {
 		somma_c += npti_cs[e] * npti_cv[e];
@@ -93,19 +113,25 @@ nlrheo_int_compute_kc(double &k, double &c,
 // 					* (std::abs(s) - c_s[npti_cs[el] - 1])
 // 					+ x[somma_c + npti_cs[el] - 1]
 // 				;
+				c_v_i_partial_s[i] = 0.;
 			} else if (std::abs(s) == 0) {
 				c_v_i[i] = x[somma_c];
+				c_v_i_partial_s[i] = 0.;
+			} else {
+				double tx[npti_cs[el]];
+				for (int ii = 0; ii < npti_cs[el]; ii++) {
+					tx[ii] = x[somma_c + ii];
+				}
+				c_v_i[i] = gsl_interp_eval(ic_s, c_s, tx, std::abs(s), 0);
+				c_v_i_partial_s[i] = gsl_interp_eval_deriv(ic_s, c_s, tx, std::abs(s), 0)
+					* copysign(1., s);
 			}
-			double tx[npti_cs[el]];
-			for (int ii = 0; ii < npti_cs[el]; ii++) {
-				tx[ii] = x[somma_c + ii];
-			}
-			c_v_i[i] = gsl_interp_eval(ic_s, c_s, tx, std::abs(s), 0);
 			somma_c += npti_cs[el];
 		}
 	} else {
 		for (int i = 0; i < npti_cv[el]; i++) {
 			c_v_i[i] = x[somma_c + i];
+			c_v_i_partial_s[i] = 0.;
 		}
 	}
 	if (ic_v != 0) {
@@ -116,13 +142,22 @@ nlrheo_int_compute_kc(double &k, double &c,
 // 				* (std::abs(v) - c_v[npti_cv[el] - 1]) +
 // 				+ c_v_i[npti_cv[el]-1]
 // 			;
+			c_partial_s = c_v_i_partial_s[npti_cv[el] - 1];
+			c_partial_v = 0.;
 		} else if (std::abs(v) == 0) {
 			c = c_v_i[0];
+			c_partial_s = c_v_i_partial_s[0];
+			c_partial_v = 0.;
 		} else {
 			c = gsl_interp_eval(ic_v, c_v, c_v_i, std::abs(v), 0);
+			c_partial_s = gsl_interp_eval(ic_v, c_v, c_v_i_partial_s, std::abs(v), 0);
+			c_partial_v = gsl_interp_eval_deriv(ic_v, c_v, c_v_i, std::abs(v), 0)
+				* copysign(1., v);
 		}
 	} else {
 		c = c_v_i[0];
+		c_partial_s = c_v_i_partial_s[0];
+		c_partial_v = 0.;
 	}
 // 	std::cerr << std::abs(s) << " " << std::abs(v) << " " << k << " " << c << std::endl;
 }
@@ -156,27 +191,43 @@ extern "C" int
 nlrheo_int_func(double t, const double y[], double f[], void *para)
 {
 	sym_params & pa = *((sym_params *)para);
+	bool displ_hi_freq_low_pass_filter = true;
+	bool vel_hi_freq_low_pass_filter = true;
 	double sstatic = y[pa.n_elementi - pa.n_parallelo + 2];
+	double vstatic = y[pa.n_elementi - pa.n_parallelo + 2 + 1];
  	double sdynamic = (pa.sf - pa.si) / (pa.tf - pa.ti) * (t - pa.ti) + pa.si; 
-	double s = sdynamic - sstatic;
-// 	double s = y[pa.n_elementi - pa.n_parallelo + 1] - sstatic;
+	double s;
+	if (displ_hi_freq_low_pass_filter) {
+		s = y[pa.n_elementi - pa.n_parallelo + 1] - sstatic;
+	} else {
+		s = sdynamic - sstatic;
+	}
 	double mbdynv = (pa.vf - pa.vi) / (pa.tf - pa.ti) * (t - pa.ti) + pa.vi;
-	double v = mbdynv;//y[pa.n_elementi - pa.n_parallelo];
+	double v;
+	if (vel_hi_freq_low_pass_filter) {
+		v = y[pa.n_elementi - pa.n_parallelo + 2 + 1 + 1 + 1];
+	} else {
+		v = mbdynv;
+	}
 
 // 	Per ogni componente in parallelo
 	int el = 0;
 	int unk = 0;
 	pa.f = pa.f_s = pa.f_v = 0.;
 	if (pa.nlrheo_t_cur > t) {
-		for (int i = 0; i < pa.n_elementi - pa.n_parallelo + 2 + 1; i++) {
+		for (int i = 0; i < pa.n_elementi - pa.n_parallelo + 2 + 1 + 1 + 2; i++) {
 			pa.yp[i] = pa.yp_prev[i];
 		}
 		pa.nlrheo_t_cur = pa.nlrheo_t_prev;
+		//std::cerr << &pa << ": ----------\n" << &pa << ":   ";
 	} else {
 		pa.nlrheo_t_cur = t;
+		//std::cerr << &pa << ": + ";
 	}
 	for (int i = 0; i < pa.n_parallelo; i++) {
 		double c[pa.n_serie[i]], k[pa.n_serie[i]];
+		double c_partial_s[pa.n_serie[i]], c_partial_v[pa.n_serie[i]];
+		double k_partial_s[pa.n_serie[i]], k_partial_v[pa.n_serie[i]];
 // 		for (int ii = 0; ii < pa.n_serie[i]; ii++) {
 // 			nlrheo_int_compute_kc(k[ii], c[ii], s, v, el + ii, pa.n_variabili_k, 
 // 				pa.npti_ks, pa.npti_kv, pa.npti_cs, pa.npti_cv,
@@ -186,9 +237,14 @@ nlrheo_int_func(double t, const double y[], double f[], void *para)
 // 				// std::cerr << "k[" << ii << "] " << k[ii] << "c[" << ii <<"] " << c[ii] << std::endl;
 // 		}
 		int nincognite = pa.n_serie[i] - 1;
+		c[0] = 0;
 		if (nincognite > 0) {
 			int ii = 0;
 			nlrheo_int_compute_kc(k[ii], c[ii], 
+				k_partial_s[ii],
+				k_partial_v[ii],
+				c_partial_s[ii],
+				c_partial_v[ii],
 				y[unk + ii], 
 				pa.yp[unk+ii], el + ii, pa.n_variabili_k, 
 				pa.npti_ks, pa.npti_kv, pa.npti_cs, pa.npti_cv,
@@ -198,6 +254,10 @@ nlrheo_int_func(double t, const double y[], double f[], void *para)
 		}
 		for (int ii = 1; ii < nincognite; ii++) {
 			nlrheo_int_compute_kc(k[ii], c[ii], 
+				k_partial_s[ii],
+				k_partial_v[ii],
+				c_partial_s[ii],
+				c_partial_v[ii],
 				y[unk + ii] - y[unk + ii - 1], 
 				pa.yp[unk + ii] - pa.yp[unk + ii - 1], 
 				el + ii, pa.n_variabili_k, 
@@ -208,6 +268,10 @@ nlrheo_int_func(double t, const double y[], double f[], void *para)
 		}
 		for (int ii = nincognite; ii < pa.n_serie[i]; ii++) {
 			nlrheo_int_compute_kc(k[ii], c[ii], 
+				k_partial_s[ii],
+				k_partial_v[ii],
+				c_partial_s[ii],
+				c_partial_v[ii],
 				s - y[unk + ii], 
 				v - pa.yp[unk+ii], 
 				el + ii, pa.n_variabili_k, 
@@ -219,57 +283,147 @@ nlrheo_int_func(double t, const double y[], double f[], void *para)
 
 		if (nincognite > 0) {
 			gsl_matrix_set_zero(pa.gsl_C[i]);
+			gsl_matrix_set_zero(pa.gsl_C_partial_s[i]);
+			gsl_matrix_set_zero(pa.gsl_C_partial_v[i]);
 			gsl_matrix_set_zero(pa.gsl_K[i]);
+			gsl_matrix_set_zero(pa.gsl_K_partial_s[i]);
+			gsl_matrix_set_zero(pa.gsl_K_partial_v[i]);
 			gsl_vector_set_zero(pa.gsl_xp[i]);
+			gsl_vector_set_zero(pa.gsl_xp_partial_s[i]);
+			gsl_vector_set_zero(pa.gsl_xp_partial_v[i]);
 			gsl_vector_set_zero(pa.gsl_x[i]);
+			gsl_vector_set_zero(pa.gsl_x_partial_s[i]);
+			gsl_vector_set_zero(pa.gsl_x_partial_v[i]);
 			gsl_vector_set_zero(pa.gsl_b[i]);
+			gsl_vector_set_zero(pa.gsl_b_partial_s_for_x[i]);
+			gsl_vector_set_zero(pa.gsl_b_partial_v_for_x[i]);
+			gsl_vector_set_zero(pa.gsl_b_partial_s_for_xp[i]);
+			gsl_vector_set_zero(pa.gsl_b_partial_v_for_xp[i]);
+			double s1, s2, v1, v2;
 			for (int row = 0; row < nincognite; row++) {
 				gsl_matrix_set(pa.gsl_C[i], row, row, c[row] + c[row + 1]);
 				gsl_matrix_set(pa.gsl_K[i], row, row, k[row] + k[row + 1]);
+				if (row == 0) {
+					s1 = y[unk + row];
+					s2 = y[unk + row + 1] - y[unk + row];
+					v1 = pa.yp[unk + row];
+					v2 = pa.yp[unk + row + 1] - pa.yp[unk + row];
+				} else if (row == nincognite - 1) {
+					s1 = y[unk + row] - y[unk + row - 1];
+					s2 = s - y[unk + row];
+					v1 = pa.yp[unk + row] - pa.yp[unk + row - 1];
+					v2 = v - pa.yp[unk + row];
+				} else {
+					s1 = y[unk + row] - y[unk + row - 1];
+					s2 = y[unk + row + 1] - y[unk + row];
+					v1 = pa.yp[unk + row] - pa.yp[unk + row - 1];
+					v2 = pa.yp[unk + row + 1] - pa.yp[unk + row];
+				}
+				gsl_matrix_set(pa.gsl_C_partial_v[i], row, row, 
+					c_partial_v[row] * v1 + c_partial_v[row + 1] * v2);
+				gsl_matrix_set(pa.gsl_K_partial_v[i], row, row, 
+					k_partial_v[row] * s1 + k_partial_v[row + 1] * s2);
+				
 				if (row < nincognite - 1) {
 					gsl_matrix_set(pa.gsl_C[i], row, row + 1, - c[row + 1]);
 					gsl_matrix_set(pa.gsl_K[i], row, row + 1, - k[row + 1]);
-				}
+					gsl_matrix_set(pa.gsl_C_partial_v[i], row, row + 1, 
+						- c_partial_v[row + 1] * v2);
+					gsl_matrix_set(pa.gsl_K_partial_v[i], row, row + 1, 
+						- k_partial_v[row + 1] * s2);
+				} 
+// 				if (row == nincognite - 2) {
+// 					gsl_matrix_set(pa.gsl_C_partial_s[i], row, row + 1, - c_partial_s[row + 1]);
+// 					gsl_matrix_set(pa.gsl_K_partial_s[i], row, row + 1, - k_partial_s[row + 1]);
+// 					gsl_matrix_set(pa.gsl_C_partial_v[i], row, row + 1, - c_partial_v[row + 1]);
+// 					gsl_matrix_set(pa.gsl_K_partial_v[i], row, row + 1, - k_partial_v[row + 1]);
+// 				}
 				if (row > 0) {
 					gsl_matrix_set(pa.gsl_C[i], row, row - 1, - c[row]);
 					gsl_matrix_set(pa.gsl_K[i], row, row - 1, - k[row]);
+					gsl_matrix_set(pa.gsl_C_partial_v[i], row, row - 1, 
+						- c_partial_v[row] * v1);
+					gsl_matrix_set(pa.gsl_K_partial_v[i], row, row - 1, 
+						- k_partial_v[row] * s1);
 				}
 				gsl_vector_set(pa.gsl_b[i], row, 0.);
 				gsl_vector_set(pa.gsl_x[i], row, y[unk + row]);
 			}
 			gsl_vector_set(pa.gsl_b[i], nincognite - 1, c[nincognite] * v + k[nincognite] * s);
+// 			gsl_vector_set(pa.gsl_b_partial_s_for_x[i], nincognite - 1, 
+// 				c_partial_s[nincognite] * v + k_partial_s[nincognite] * s + k[nincognite]);
+			gsl_vector_set(pa.gsl_b_partial_s_for_xp[i], nincognite - 1, 
+				- c_partial_v[nincognite] * pa.yp[unk + nincognite - 1]
+				- k_partial_v[nincognite] * y[unk + nincognite - 1]
+				+ c_partial_s[nincognite] * v2 
+				+ k_partial_s[nincognite] * s2 
+				+ k[nincognite]);
+// 			gsl_vector_set(pa.gsl_b_partial_v_for_x[i], nincognite - 1, 
+// 				c_partial_v[nincognite] * v + k_partial_v[nincognite] * s + c[nincognite]);
+			gsl_vector_set(pa.gsl_b_partial_v_for_xp[i], nincognite - 1, 
+				c_partial_v[nincognite] * v2 + k_partial_v[nincognite] * s2 
+				+ c[nincognite]);
+				
+			gsl_matrix_add(pa.gsl_C_partial_v[i], pa.gsl_C[i]);
+			gsl_matrix_add(pa.gsl_C_partial_v[i], pa.gsl_K_partial_v[i]);
 
-			// calcola b -= Kx
+			// calcola b -= Kx, b_{/s}_xp -= K_{/s}x , b_{/v}_xp -= K_{/v}x, 
+			//                  b_{/s}_x  -= K_{/s}x,  b_{/v}_x  -= K_{/v}p, 
 			gsl_blas_dgemv(CblasNoTrans, -1., pa.gsl_K[i], pa.gsl_x[i], 1., pa.gsl_b[i]);
+// 			gsl_blas_dgemv(CblasNoTrans, -1., pa.gsl_K_partial_s[i], pa.gsl_x[i], 1., 
+// 				pa.gsl_b_partial_s_for_xp[i]);
+// 			gsl_blas_dgemv(CblasNoTrans, -1., pa.gsl_K_partial_v[i], pa.gsl_x[i], 1., 
+// 				pa.gsl_b_partial_v_for_xp[i]);
+// 			gsl_blas_dgemv(CblasNoTrans, -1., pa.gsl_K_partial_s[i], pa.gsl_x[i], 1., 
+// 				pa.gsl_b_partial_s_for_x[i]);
+// 			gsl_blas_dgemv(CblasNoTrans, -1., pa.gsl_K_partial_v[i], pa.gsl_x[i], 1., 
+// 				pa.gsl_b_partial_v_for_x[i]);
 			// calcola xp = C^-1 b
 			int ints;
-			gsl_linalg_LU_decomp(pa.gsl_C[i], pa.gsl_perm[i], &ints);
-			gsl_linalg_LU_solve(pa.gsl_C[i], pa.gsl_perm[i], pa.gsl_b[i], pa.gsl_xp[i]);
+			gsl_linalg_LU_decomp(pa.gsl_C[i], pa.gsl_perm_C[i], &ints);
+			gsl_linalg_LU_solve(pa.gsl_C[i], pa.gsl_perm_C[i], pa.gsl_b[i], pa.gsl_xp[i]);
+			
+			//calcola xp_s = C_v^-1 b_s e xp_v = C_v^-1 b_v
+			gsl_linalg_LU_decomp(pa.gsl_C_partial_v[i], pa.gsl_perm_C[i], &ints);
+			gsl_linalg_LU_solve(pa.gsl_C_partial_v[i], pa.gsl_perm_C[i], 
+				pa.gsl_b_partial_s_for_xp[i], pa.gsl_xp_partial_s[i]);
+			gsl_linalg_LU_solve(pa.gsl_C_partial_v[i], pa.gsl_perm_C[i], 
+				pa.gsl_b_partial_v_for_xp[i], pa.gsl_xp_partial_v[i]);
+			
 			// TODO: setta f e par.f
 			for (int ii = 0; ii < nincognite; ii++) {
 				pa.yp[unk + ii] = f[unk + ii] = gsl_vector_get(pa.gsl_xp[i], ii);
 			}
 			pa.f += (c[0] * f[unk] + k[0] * y[unk]);
 				
+/*			
 			gsl_vector_set(pa.gsl_b[i], nincognite - 1, 
 				gsl_vector_get(pa.gsl_b[i], nincognite - 1) 
 					- k[nincognite] * s
 					+ k[nincognite]);
 			gsl_linalg_LU_solve(pa.gsl_C[i], pa.gsl_perm[i], pa.gsl_b[i], pa.gsl_xp[i]);
 			pa.f_s += (c[0] * gsl_vector_get(pa.gsl_xp[i], 0) + k[0] * y[unk]);	
-
+*/
+			pa.f_s += k_partial_v[0] * y[unk] * gsl_vector_get(pa.gsl_xp_partial_s[i], 0)
+				+ c_partial_v[0] * pa.yp[unk] * gsl_vector_get(pa.gsl_xp_partial_s[i], 0)
+				+ c[0] * gsl_vector_get(pa.gsl_xp_partial_s[i], 0);
+/*			
 			gsl_vector_set(pa.gsl_b[i], nincognite - 1, 
 				gsl_vector_get(pa.gsl_b[i], nincognite - 1) 
 					- k[nincognite] - c[nincognite] * v + c[nincognite]);
 			gsl_linalg_LU_solve(pa.gsl_C[i], pa.gsl_perm[i], pa.gsl_b[i], pa.gsl_xp[i]);
 			pa.f_v += (c[0] * gsl_vector_get(pa.gsl_xp[i], 0) + k[0] * y[unk]);	
+*/
+			pa.f_v += k_partial_v[0] * y[unk] * gsl_vector_get(pa.gsl_xp_partial_v[i], 0)
+				+ c_partial_v[0] * pa.yp[unk] * gsl_vector_get(pa.gsl_xp_partial_v[i], 0)
+				+ c[0] * gsl_vector_get(pa.gsl_xp_partial_v[i], 0);
 
 			el += pa.n_serie[i];
 			unk += pa.n_serie[i] - 1;
 		} else {
 			pa.f += c[0] * v + k[0] * s;
-			pa.f_s += k[0];
-			pa.f_v += c[0];
+			pa.f_s += k[0] + k_partial_s[0] * s + c_partial_s[0] * v;
+			pa.f_v += c[0] + k_partial_v[0] * s + c_partial_v[0] * v;
 		}
 	}
 // 	f[pa.n_elementi - pa.n_parallelo] = -y[pa.n_elementi - pa.n_parallelo] * 2. / pa.hi_freq_force_filter_coeff + 
@@ -282,6 +436,8 @@ nlrheo_int_func(double t, const double y[], double f[], void *para)
 // 		-y[pa.n_elementi - pa.n_parallelo + 1] / pa.hi_freq_force_filter_coeff / pa.hi_freq_force_filter_coeff + 
 // 		(mbdynv) / pa.hi_freq_force_filter_coeff / pa.hi_freq_force_filter_coeff;
 // 	f[pa.n_elementi - pa.n_parallelo + 1] = y[pa.n_elementi - pa.n_parallelo];
+
+	//filtro secondo ordine spostamento
 	pa.yp[pa.n_elementi - pa.n_parallelo] = 
 	f[pa.n_elementi - pa.n_parallelo] = 
 		- std::sqrt(2.) * pa.hi_freq_force_filter_coeff * y[pa.n_elementi - pa.n_parallelo]
@@ -291,17 +447,36 @@ nlrheo_int_func(double t, const double y[], double f[], void *para)
 	f[pa.n_elementi - pa.n_parallelo + 1] = 
 		y[pa.n_elementi - pa.n_parallelo];
 
+	//filtro primo ordine spostamento
 	pa.yp[pa.n_elementi - pa.n_parallelo + 2] = 
 	f[pa.n_elementi - pa.n_parallelo + 2] = 
 		-pa.low_freq_displ_filter_coeff * y[pa.n_elementi - pa.n_parallelo + 2] +
 		pa.low_freq_displ_filter_coeff * sdynamic; 
+	//filtro primo ordine velocita'
+	pa.yp[pa.n_elementi - pa.n_parallelo + 2 + 1] = 
+	f[pa.n_elementi - pa.n_parallelo + 2 + 1] = 
+		-pa.low_freq_displ_filter_coeff * y[pa.n_elementi - pa.n_parallelo + 2 + 1] +
+		pa.low_freq_displ_filter_coeff * mbdynv; 
+
+	//filtro secondo ordine velocita'
+	pa.yp[pa.n_elementi - pa.n_parallelo + 2 + 1 + 1] = 
+	f[pa.n_elementi - pa.n_parallelo + 2 + 1 + 1] = 
+		- std::sqrt(2.) * pa.hi_freq_force_filter_coeff * y[pa.n_elementi - pa.n_parallelo + 2 + 1 + 1]
+		- std::pow(pa.hi_freq_force_filter_coeff, 2) * y[pa.n_elementi - pa.n_parallelo + 2 + 1 + 1 + 1]
+		+ std::pow(pa.hi_freq_force_filter_coeff, 2) * mbdynv;
+	pa.yp[pa.n_elementi - pa.n_parallelo + 2 + 1 + 1 + 1] = 
+	f[pa.n_elementi - pa.n_parallelo + 2 + 1 + 1 + 1] = 
+		y[pa.n_elementi - pa.n_parallelo + 2 + 1 + 1];
+
 // 	pa.f += y[pa.n_elementi - pa.n_parallelo + 1];
 //	if (std::abs(f[pa.n_elementi - pa.n_parallelo + 2]) > 5.)
-		pa.f += ((pa.x[pa.n_variabili] * std::atan(f[pa.n_elementi - pa.n_parallelo + 2] / pa.x[pa.n_variabili+1]) +
-			pa.x[pa.n_variabili+2] * std::atan(f[pa.n_elementi - pa.n_parallelo + 2] / pa.x[pa.n_variabili+3]))/2.);
+
+	pa.f += ((pa.x[pa.n_variabili] * std::atan(vstatic / pa.x[pa.n_variabili+1]) +
+		pa.x[pa.n_variabili+2] * std::atan(vstatic / pa.x[pa.n_variabili+3]))/2.);
+
 	pa.f += sstatic * pa.static_low_freq_stiffness;
 	pa.f_s += pa.static_low_freq_stiffness;
-	//std::cerr << t << " " << pa.f << std::endl;
+	//std::cerr << pa.nlrheo_t_prev << " -> " << t << " -> " << pa.tf << " - " << pa.sf << " " << pa.vf << " " << pa.f << std::endl;
 
 	return GSL_SUCCESS;
 }
@@ -317,8 +492,8 @@ nlrheo_init(sym_params *nlrheo)
 	pa.dt = 0.;
 	pa.prev_s = 0.;
 	pa.prev_sPrime = 0.;
-	pa.stepint = gsl_odeiv_step_alloc(pa.T, pa.n_elementi - pa.n_parallelo + 2 + 1);
-	pa.evolve = gsl_odeiv_evolve_alloc(pa.n_elementi - pa.n_parallelo + 2 + 1);
+	pa.stepint = gsl_odeiv_step_alloc(pa.T, pa.n_elementi - pa.n_parallelo + 2 + 1 + 1 + 2);
+	pa.evolve = gsl_odeiv_evolve_alloc(pa.n_elementi - pa.n_parallelo + 2 + 1 + 1 + 2);
 	pa.eps_abs = 1.E-2;
 	pa.eps_rel = 1.E-2;
 	pa.control = gsl_odeiv_control_standard_new(pa.eps_abs, pa.eps_rel,
@@ -327,14 +502,14 @@ nlrheo_init(sym_params *nlrheo)
 	pa.sys.jacobian = 0;
 	pa.sys.dimension = 1;
 	pa.sys.params = &pa;
-	pa.y = new double[pa.n_elementi - pa.n_parallelo + 2 + 1];
-	pa.y_dummy = new double[pa.n_elementi - pa.n_parallelo + 2 + 1];
-	pa.yp = new double[pa.n_elementi - pa.n_parallelo + 2 + 1];
-	pa.yp_prev = new double[pa.n_elementi - pa.n_parallelo + 2 + 1];
-	pa.yp_saved = new double[pa.n_elementi - pa.n_parallelo + 2 + 1];
+	pa.y = new double[pa.n_elementi - pa.n_parallelo + 2 + 1 + 1 + 2];
+	pa.y_dummy = new double[pa.n_elementi - pa.n_parallelo + 2 + 1 + 1 + 2];
+	pa.yp = new double[pa.n_elementi - pa.n_parallelo + 2 + 1 + 1 + 2];
+	pa.yp_prev = new double[pa.n_elementi - pa.n_parallelo + 2 + 1 + 1 + 2];
+	pa.yp_saved = new double[pa.n_elementi - pa.n_parallelo + 2 + 1 + 1 + 2];
 
 	pa.f = 0.;
-	for (int i = 0; i < pa.n_elementi - pa.n_parallelo + 2 + 1; i++) {
+	for (int i = 0; i < pa.n_elementi - pa.n_parallelo + 2 + 1 + 1 + 2; i++) {
 		pa.y[i] = pa.y_dummy[i] = pa.yp[i] = pa.yp_prev[i] = pa.yp_saved[i] = 0.;
 	}
 
@@ -351,19 +526,41 @@ nlrheo_destroy(sym_params *nlrheo)
 	for (int i = 0; i < pa.n_parallelo; i++) {
 		if (pa.n_serie[i] - 1 > 0) {
 			gsl_matrix_free(pa.gsl_C[i]);
+			gsl_matrix_free(pa.gsl_C_partial_s[i]);
+			gsl_matrix_free(pa.gsl_C_partial_v[i]);
 			gsl_matrix_free(pa.gsl_K[i]);
+			gsl_matrix_free(pa.gsl_K_partial_s[i]);
+			gsl_matrix_free(pa.gsl_K_partial_v[i]);
 			gsl_vector_free(pa.gsl_xp[i]);
+			gsl_vector_free(pa.gsl_xp_partial_s[i]);
+			gsl_vector_free(pa.gsl_xp_partial_v[i]);
 			gsl_vector_free(pa.gsl_x[i]);
 			gsl_vector_free(pa.gsl_b[i]);
-			gsl_permutation_free(pa.gsl_perm[i]);
+			gsl_vector_free(pa.gsl_b_partial_s_for_x[i]);
+			gsl_vector_free(pa.gsl_b_partial_v_for_x[i]);
+			gsl_vector_free(pa.gsl_b_partial_s_for_xp[i]);
+			gsl_vector_free(pa.gsl_b_partial_v_for_xp[i]);
+			gsl_permutation_free(pa.gsl_perm_K[i]);
+			gsl_permutation_free(pa.gsl_perm_C[i]);
 		}
 	}
 	delete[] pa.gsl_C;
+	delete[] pa.gsl_C_partial_s;
+	delete[] pa.gsl_C_partial_v;
 	delete[] pa.gsl_K;
+	delete[] pa.gsl_K_partial_s;
+	delete[] pa.gsl_K_partial_v;
 	delete[] pa.gsl_xp;
+	delete[] pa.gsl_xp_partial_s;
+	delete[] pa.gsl_xp_partial_v;
 	delete[] pa.gsl_x;
 	delete[] pa.gsl_b;
-	delete[] pa.gsl_perm;
+	delete[] pa.gsl_b_partial_s_for_x;
+	delete[] pa.gsl_b_partial_v_for_x;
+	delete[] pa.gsl_b_partial_s_for_xp;
+	delete[] pa.gsl_b_partial_v_for_xp;
+	delete[] pa.gsl_perm_K;
+	delete[] pa.gsl_perm_C;
 	
 	delete[] pa.s_max[0];
 	delete[] pa.s_max;
@@ -416,13 +613,13 @@ nlrheo_destroy(sym_params *nlrheo)
 };
 #include <iostream>
 extern "C" int
-nlrheo_update(sym_params *nlrheo,
+nlrheo_update2(sym_params *nlrheo,
 	double t_curr, double eps, double epsPrime, int do_try)
 {
 	sym_params& pa = *nlrheo;
 
 	double *y = pa.y;
-	for (int i = 0; i < pa.n_elementi - pa.n_parallelo + 2 + 1; i++) {
+	for (int i = 0; i < pa.n_elementi - pa.n_parallelo + 2 + 1 + 1 + 2; i++) {
 		pa.yp[i] = pa.yp_prev[i] = pa.yp_saved[i];
 		pa.nlrheo_t_cur = pa.nlrheo_t_prev = pa.prev_time;
 	}
@@ -438,7 +635,7 @@ nlrheo_update(sym_params *nlrheo,
 	pa.vi = pa.prev_sPrime;
 
 	if (do_try) {
-		for (int i = 0; i < pa.n_elementi - pa.n_parallelo + 2 + 1; i++) {
+		for (int i = 0; i < pa.n_elementi - pa.n_parallelo + 2 + 1 + 1 + 2; i++) {
 			pa.y_dummy[i] = pa.y[i];
 		}
 		y = pa.y_dummy;
@@ -456,7 +653,7 @@ nlrheo_update(sym_params *nlrheo,
 			if (rc != GSL_SUCCESS) {
 				// error?
 			}
-			for (int i = 0; i < pa.n_elementi - pa.n_parallelo + 2 + 1; i++) {
+			for (int i = 0; i < pa.n_elementi - pa.n_parallelo + 2 + 1 + 1 + 2; i++) {
 				pa.yp_prev[i] = pa.yp[i];
 			}
 
@@ -469,21 +666,53 @@ nlrheo_update(sym_params *nlrheo,
 		// std::cerr << "#########" << std::endl;
 
 		pa.F = pa.f * pa.scale_f;
-		pa.FDE = pa.f_s * pa.scale_f / pa.scale_eps;
-		pa.FDEPrime = pa.f_v * pa.scale_f / pa.scale_eps;
+		pa.FDE = pa.f_s * pa.scale_f * pa.scale_eps;
+		pa.FDEPrime = pa.f_v * pa.scale_f * pa.scale_eps;
+// 		std::cerr << t_curr << " " << pa.F << " " << pa.FDE << " " << pa.FDEPrime << " "
+// 			<< 15 * pa.scale_f / pa.scale_eps << "\n";
 	}
 
 	if (!do_try) {
 		pa.prev_time = pa.current_time = pa.tf;
 		pa.prev_s = eps * pa.scale_eps;
 		pa.prev_sPrime = epsPrime * pa.scale_eps;
-		for (int i = 0; i < pa.n_elementi - pa.n_parallelo + 2 + 1; i++) {
+		for (int i = 0; i < pa.n_elementi - pa.n_parallelo + 2 + 1 + 1 + 2; i++) {
 			pa.yp_saved[i] = pa.yp[i];
 		}
 	}
 
 	return 0;
 }
+
+
+extern "C" int
+nlrheo_update(sym_params *nlrheo,
+	double t_curr, double eps, double epsPrime, int do_try)
+{
+
+	sym_params& pa = *nlrheo;
+	double diffeps = 1.E-10;
+	double diffepsp = 1.E-6;
+
+	nlrheo_update2(nlrheo, t_curr, eps + diffeps, epsPrime, 1);
+	double feps = pa.f;
+	nlrheo_update2(nlrheo, t_curr, eps, epsPrime + diffepsp, 1);
+	double fepsp = pa.f;
+	nlrheo_update2(nlrheo, t_curr, eps, epsPrime, do_try);
+
+
+// 	std::cerr << pa.f << " " << feps << " " << fepsp;
+// 	std::cerr << " " << pa.FDE / pa.scale_f / pa.scale_eps << " " << 
+// 		(feps - pa.f) / diffeps / pa.scale_eps;
+// 	std::cerr << " " << pa.FDEPrime / pa.scale_f / pa.scale_eps << " " << 
+// 		(fepsp - pa.f) / diffepsp / pa.scale_eps << " " << pa.scale_eps << "\n";
+
+	pa.FDE = (feps - pa.f) / diffeps * pa.scale_f;
+	pa.FDEPrime = (fepsp - pa.f) / diffepsp * pa.scale_f;
+	
+	return 0;
+}
+
 
 extern "C" int
 nlrheo_parse(sym_params **nlrheop,
@@ -508,11 +737,24 @@ nlrheo_parse(sym_params **nlrheop,
 	}
 
 	pa.gsl_C = new gsl_matrix*[pa.n_parallelo];
+	pa.gsl_C_partial_s = new gsl_matrix*[pa.n_parallelo];
+	pa.gsl_C_partial_v = new gsl_matrix*[pa.n_parallelo];
 	pa.gsl_K = new gsl_matrix*[pa.n_parallelo];
+	pa.gsl_K_partial_s = new gsl_matrix*[pa.n_parallelo];
+	pa.gsl_K_partial_v = new gsl_matrix*[pa.n_parallelo];
 	pa.gsl_xp = new gsl_vector*[pa.n_parallelo];
+	pa.gsl_xp_partial_s = new gsl_vector*[pa.n_parallelo];
+	pa.gsl_xp_partial_v = new gsl_vector*[pa.n_parallelo];
 	pa.gsl_x = new gsl_vector*[pa.n_parallelo];
+	pa.gsl_x_partial_s = new gsl_vector*[pa.n_parallelo];
+	pa.gsl_x_partial_v = new gsl_vector*[pa.n_parallelo];
 	pa.gsl_b = new gsl_vector*[pa.n_parallelo];
-	pa.gsl_perm = new gsl_permutation*[pa.n_parallelo];
+	pa.gsl_b_partial_s_for_x = new gsl_vector*[pa.n_parallelo];
+	pa.gsl_b_partial_v_for_x = new gsl_vector*[pa.n_parallelo];
+	pa.gsl_b_partial_s_for_xp = new gsl_vector*[pa.n_parallelo];
+	pa.gsl_b_partial_v_for_xp = new gsl_vector*[pa.n_parallelo];
+	pa.gsl_perm_K = new gsl_permutation*[pa.n_parallelo];
+	pa.gsl_perm_C = new gsl_permutation*[pa.n_parallelo];
 	pa.n_serie = new int[pa.n_parallelo];
 	for (int i = 0; i < pa.n_parallelo; i++) {
 		if (nlrheo_get_int(&pa.n_serie[i])) {
@@ -520,18 +762,44 @@ nlrheo_parse(sym_params **nlrheop,
 		}
 		if (pa.n_serie[i] - 1 > 0) {
 			pa.gsl_C[i] = gsl_matrix_alloc(pa.n_serie[i] - 1, pa.n_serie[i] - 1);
+			pa.gsl_C_partial_s[i] = gsl_matrix_alloc(pa.n_serie[i] - 1, pa.n_serie[i] - 1);
+			pa.gsl_C_partial_v[i] = gsl_matrix_alloc(pa.n_serie[i] - 1, pa.n_serie[i] - 1);
 			pa.gsl_K[i] = gsl_matrix_alloc(pa.n_serie[i] - 1, pa.n_serie[i] - 1);
+			pa.gsl_K_partial_s[i] = gsl_matrix_alloc(pa.n_serie[i] - 1, pa.n_serie[i] - 1);
+			pa.gsl_K_partial_v[i] = gsl_matrix_alloc(pa.n_serie[i] - 1, pa.n_serie[i] - 1);
 			pa.gsl_xp[i] = gsl_vector_alloc(pa.n_serie[i] - 1);
+			pa.gsl_xp_partial_s[i] = gsl_vector_alloc(pa.n_serie[i] - 1);
+			pa.gsl_xp_partial_v[i] = gsl_vector_alloc(pa.n_serie[i] - 1);
 			pa.gsl_x[i] = gsl_vector_alloc(pa.n_serie[i] - 1);
+			pa.gsl_x_partial_s[i] = gsl_vector_alloc(pa.n_serie[i] - 1);
+			pa.gsl_x_partial_v[i] = gsl_vector_alloc(pa.n_serie[i] - 1);
 			pa.gsl_b[i] = gsl_vector_alloc(pa.n_serie[i] - 1);
-			pa.gsl_perm[i] = gsl_permutation_alloc(pa.n_serie[i] - 1);
+			pa.gsl_b_partial_s_for_x[i] = gsl_vector_alloc(pa.n_serie[i] - 1);
+			pa.gsl_b_partial_v_for_x[i] = gsl_vector_alloc(pa.n_serie[i] - 1);
+			pa.gsl_b_partial_s_for_xp[i] = gsl_vector_alloc(pa.n_serie[i] - 1);
+			pa.gsl_b_partial_v_for_xp[i] = gsl_vector_alloc(pa.n_serie[i] - 1);
+			pa.gsl_perm_K[i] = gsl_permutation_alloc(pa.n_serie[i] - 1);
+			pa.gsl_perm_C[i] = gsl_permutation_alloc(pa.n_serie[i] - 1);
 		} else {
 			pa.gsl_C[i] = 0;
+			pa.gsl_C_partial_s[i] = 0;
+			pa.gsl_C_partial_v[i] = 0;
 			pa.gsl_K[i] = 0;
+			pa.gsl_K_partial_s[i] = 0;
+			pa.gsl_K_partial_v[i] = 0;
 			pa.gsl_xp[i] = 0;
+			pa.gsl_xp_partial_s[i] = 0;
+			pa.gsl_xp_partial_v[i] = 0;
 			pa.gsl_x[i] = 0;
+			pa.gsl_x_partial_s[i] = 0;
+			pa.gsl_x_partial_v[i] = 0;
 			pa.gsl_b[i] = 0;
-			pa.gsl_perm[i] = 0;
+			pa.gsl_b_partial_s_for_x[i] = 0;
+			pa.gsl_b_partial_v_for_x[i] = 0;
+			pa.gsl_b_partial_s_for_xp[i] = 0;
+			pa.gsl_b_partial_v_for_xp[i] = 0;
+			pa.gsl_perm_K[i] = 0;
+			pa.gsl_perm_C[i] = 0;
 		}
 	}
 	if (nlrheo_get_int(&pa.max_n_serie)) {
