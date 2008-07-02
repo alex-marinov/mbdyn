@@ -49,8 +49,14 @@ typedef struct sym_params {
 
 	/* di servizio */
 	gsl_matrix **gsl_C, **gsl_K;
-	gsl_vector **gsl_xp, **gsl_x, **gsl_b;
-	gsl_permutation **gsl_perm;
+	gsl_matrix **gsl_C_partial_s, **gsl_K_partial_s;
+	gsl_matrix **gsl_C_partial_v, **gsl_K_partial_v;
+	gsl_vector **gsl_xp, **gsl_xp_partial_s, **gsl_xp_partial_v; 
+	gsl_vector **gsl_x, **gsl_x_partial_s, **gsl_x_partial_v;
+	gsl_vector **gsl_b;
+	gsl_vector **gsl_b_partial_s_for_x, **gsl_b_partial_v_for_x;
+	gsl_vector **gsl_b_partial_s_for_xp, **gsl_b_partial_v_for_xp;
+	gsl_permutation **gsl_perm_C, **gsl_perm_K;
 
 	const gsl_odeiv_step_type *T;
 	gsl_odeiv_step *stepint;
