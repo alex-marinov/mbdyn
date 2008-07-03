@@ -1822,7 +1822,7 @@ SchurDataManager::AfterConvergence(void) const
 	case TIME: {
 		ASSERT(pTime != NULL);
 
-		doublereal dT = pTime->GetVal().GetReal();
+		doublereal dT = dGetTime();
 		if (dT - dLastRestartTime >= dRestartTime) {
 			dLastRestartTime = dT;
 			((SchurDataManager*)this)->MakeRestart();
