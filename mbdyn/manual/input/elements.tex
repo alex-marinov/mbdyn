@@ -1069,17 +1069,17 @@ can be selected in order to decouple them; by applying the transformation
 \end{eqnarray}
 The angle that decouples the shear forces is
 \begin{equation*}
-	\beta = \frac{1}{2}\llk{atan}\plbr{\frac{2 S_{12}^*}{S_{22}^* - S_{11}^*}}
+	\beta = \frac{1}{2}\llk{atan}\plbr{\frac{2 S_{12}}{S_{22} - S_{11}}}
 \end{equation*}
 representing a rotation about the axis $x$ of the beam with respect
 to the origin of the initial reference frame as shown 
 in Figure~\ref{fig:EL:BEAM:SECTION},
 and the resulting coefficients are
 \begin{eqnarray}
-	GA_y & = & S_{11}^* \cos^2\alpha + S_{22}^* \sin^2\alpha
-		- 2 S_{12}^* \sin\alpha \cos\alpha \\
-	GA_z & = & S_{11}^* \sin^2\alpha + S_{22}^* \cos^2\alpha
-		+ 2 S_{12}^* \sin\alpha \cos\alpha
+	GA_y & = & S_{11} \cos^2\beta + S_{22} \sin^2\beta
+		- 2 S_{12} \sin\beta \cos\beta \\
+	GA_z & = & S_{11} \sin^2\beta + S_{22} \cos^2\beta
+		+ 2 S_{12} \sin\beta \cos\beta
 \end{eqnarray}
 the shear block becomes
 \begin{eqnarray*}
