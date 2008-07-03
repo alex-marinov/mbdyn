@@ -1820,12 +1820,10 @@ SchurDataManager::AfterConvergence(void) const
 		break;
 
 	case TIME: {
-		ASSERT(pTime != NULL);
-
 		doublereal dT = dGetTime();
 		if (dT - dLastRestartTime >= dRestartTime) {
 			dLastRestartTime = dT;
-			((SchurDataManager*)this)->MakeRestart();
+			const_cast<SchurDataManager *>(this)->MakeRestart();
 		}
 		break;
 	}

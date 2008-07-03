@@ -450,7 +450,7 @@ DataManager::AdamsResOutput(integer iBlock, const char *type, const char *id) co
 	out.flags(tmpflags);
 	out << id << std::endl;
 	out << std::setw(12) << std::setprecision(5)
-		<< pTime->GetVal().GetReal() << std::endl
+		<< dGetTime() << std::endl
 		<< std::endl
 		<< std::endl;
 

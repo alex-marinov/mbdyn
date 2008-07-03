@@ -153,7 +153,7 @@ void
 DataManager::MotionViewResOutput(integer iBlock, const char *type,
 		const char *id) const
 {
-	MRF(mrfOpenTimeStep)((float)pTime->GetVal().GetReal());
+	MRF(mrfOpenTimeStep)((float)dGetTime());
 
 	MRF(mrfOpenDataTypeByIndex)(MRFDataType[MRF_RIGID_BODY].index);
 	for (unsigned int i = 0; i < NodeData[Node::STRUCTURAL].iNum; i++) {
