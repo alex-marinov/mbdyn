@@ -39,15 +39,56 @@
 #include "extforce.h"
 #include "modal.h"
 
+/* ExtModalForceBase - begin */
+
+class ExtModalForceBase {
+public:
+	enum {
+		EMF_NONE		= 0x0U,
+		EMF_RIGID		= 0x01U,
+		EMF_MODAL		= 0x02U,
+
+		EMF_RIGID_DETECT	= 0x10U,
+		EMF_MODAL_DETECT	= 0x20U,
+
+		EMF_RIGID_DETECT_MASK	= (EMF_RIGID_DETECT|EMF_RIGID),
+		EMF_MODAL_DETECT_MASK	= (EMF_MODAL_DETECT|EMF_MODAL),
+
+		EMF_DETECT_MASK		= (EMF_RIGID_DETECT|EMF_MODAL_DETECT),
+
+		EMF_ERR			= 0x10000000U
+	};
+
+	virtual ~ExtModalForceBase(void);
+
+	virtual unsigned
+	Recv(std::istream& fin, unsigned uFlags, unsigned& uLabel,
+		Vec3& f, Vec3& m, std::vector<doublereal>& f) = 0;
+
+	virtual void
+	Send(std::ostream& fout, unsigned uFlags, unsigned uLabel,
+		const Vec3& x, const Mat3x3& R, const Vec3& v, const Vec3& w,
+		const std::vector<doublereal>& q,
+		const std::vector<doublereal>& qP) = 0;
+};
+
+/* ExtModalForceBase - end */
+
 /* ModalExt - begin */
 
 class ModalExt : virtual public Elem, public ExtForce {
 protected:
 	Modal *pModal;
+	bool bOutputAccelerations;
+	ExtModalForceBase *pEMF;
+	unsigned uFlags;
+
 	Vec3 F, M;
 	std::vector<doublereal> f;
 
-	bool bOutputAccelerations;
+	// Temporary?
+	std::vector<doublereal> q;
+	std::vector<doublereal> qP;
 
 	void Send(std::ostream& out, bool bAfterConvergence = false);
 	void Recv(std::istream& in);
@@ -58,6 +99,7 @@ public:
 		Modal *pmodal,
 		bool bOutputAccelerations,
 		ExtFileHandlerBase *pEFH,
+		ExtModalForceBase *pEMF,
 		int iCoupling,
 		flag fOut);
 

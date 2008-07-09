@@ -52,6 +52,8 @@ elem.h \
 elman.cc \
 enums.cc \
 env.cc \
+extedge.cc \
+extedge.h \
 external.cc \
 external.h \
 extforce.cc \

@@ -82,37 +82,7 @@ public:
 
 /* ExtFileHandler - end */
 
-/* ExtFileHandlerEDGE - begin */
-
-class ExtFileHandlerEDGE : public ExtFileHandlerBase {
-protected:
-	std::string fflagname, fdataname;
-	int iSleepTime;
-
-	std::ifstream inf;
-	std::ofstream outf;
-
-	enum {
-		EDGE_INIT		= 1,
-		EDGE_READ_READY		= 2,
-		EDGE_MBDYN_WRITE_DONE	= 3,
-		EDGE_GOTO_NEXT_STEP	= 4,
-		EDGE_QUIT		= 5
-	};
-
-public:
-	ExtFileHandlerEDGE(std::string& fflagname,
-		std::string& fdataname, int iSleepTime);
-	~ExtFileHandlerEDGE(void);
-
-	virtual std::ostream& Send_pre(bool bAfterConvergence = false);
-	virtual void Send_post(bool bAfterConvergence = false);
-
-	virtual std::istream& Recv_pre(void);
-	virtual void Recv_post(void);
-};
-
-/* ExtFileHandlerEDGE - end */
+/* ExtFileHandlerEDGE moved to extedge.h, extedge.cc */
 
 /* ExtForce - begin */
 

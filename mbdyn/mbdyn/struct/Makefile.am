@@ -61,6 +61,8 @@ kinj.cc \
 kinj.h \
 modal.cc \
 modal.h \
+modaledge.cc \
+modaledge.h \
 modalext.cc \
 modalext.h \
 modalforce.cc \

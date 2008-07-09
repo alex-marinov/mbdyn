@@ -33,8 +33,9 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <dataman.h>
+#include "dataman.h"
 #include "extforce.h"
+#include "extedge.h"
 #include "except.h"
 
 #include <fstream>
@@ -102,14 +103,24 @@ ExtFileHandler::Send_pre(bool bAfterConvergence)
 
 			} else {
 #ifdef USE_SLEEP
-				silent_cout("output file "
-					"\"" << fout.c_str() << "\" "
-					"still present, "
-					"try #" << cnt << "; "
-					"sleeping " << iSleepTime << " s"
-					<< std::endl);
-				sleep(iSleepTime);
+				if (iSleepTime > 0) {
+					silent_cout("output file "
+						"\"" << fout.c_str() << "\" "
+						"still present, "
+						"try #" << cnt << "; "
+						"sleeping " << iSleepTime << " s"
+						<< std::endl);
+					sleep(iSleepTime);
+
+				} else
 #endif // USE_SLEEP
+				{
+					silent_cout("output file "
+						"\"" << fout.c_str() << "\" "
+						"still present, "
+						"try #" << cnt
+						<< std::endl);
+				}
 			}
 		}
 	}
@@ -179,111 +190,7 @@ ExtFileHandler::Recv_post(void)
 
 /* ExtFileHandler - end */
 
-/* ExtFileHandlerEDGE - begin */
-
-ExtFileHandlerEDGE::ExtFileHandlerEDGE(std::string& fflagname,
-	std::string& fdataname, int iSleepTime)
-: fflagname(fflagname), fdataname(fdataname), iSleepTime(iSleepTime)
-{
-	NO_OP;
-}
-
-ExtFileHandlerEDGE::~ExtFileHandlerEDGE(void)
-{
-	NO_OP;
-}
-
-std::ostream&
-ExtFileHandlerEDGE::Send_pre(bool bAfterConvergence)
-{
-	outf.open(fdataname.c_str());
-	if (!outf) {
-		silent_cerr("unable to open data file "
-			"\"" << fdataname.c_str() << "\" "
-			"for output" << std::endl);
-		throw ErrGeneric();
-	}
-
-	outf.setf(std::ios::scientific);
-	return outf;
-}
-
-void
-ExtFileHandlerEDGE::Send_post(bool bAfterConvergence)
-{
-	outf.close();
-
-	if (bAfterConvergence) {
-		outf.open("update.ainp");
-		outf << "UPDATE,N,0,0,1\n"
-			"IBREAK,I,1,1,0\n"
-			"5\n";
-
-	} else {
-		outf.open(fflagname.c_str());
-		outf << 3 << std::endl;
-	}
-	outf.close();
-}
-
-std::istream&
-ExtFileHandlerEDGE::Recv_pre(void)
-{
-	for (int cnt = 0; ; cnt++) {
-		inf.open(fflagname.c_str());
-
-#ifdef USE_SLEEP
-		for (; !inf; cnt++) {
-			silent_cout("flag file \"" << fflagname.c_str() << "\" "
-				"missing, try #" << cnt << "; "
-				"sleeping " << iSleepTime << " s" << std::endl); 
-               
-			sleep(iSleepTime);
-			inf.clear();
-			inf.open(fdataname.c_str());
-		}
-#endif // USE_SLEEP
-
-		int cmd;
-		inf >> cmd;
-
-		inf.close();
-
-		if (cmd == 2) {
-			break;
-
-		} else if (cmd == 4) {
-			silent_cout("EDGE requested end of simulation"
-				<< std::endl);
-			throw NoErr();
-		}
-
-		silent_cout("flag file \"" << fflagname.c_str() << "\": "
-			"cmd=" << cmd << " try #" << cnt << "; "
-			"sleeping " << iSleepTime << " s" << std::endl); 
-#ifdef USE_SLEEP
-		sleep(iSleepTime);
-#endif // USE_SLEEP
-	}
-
-	inf.open(fdataname.c_str());
-	if (!inf) {
-		silent_cerr("unable to open data file "
-			"\"" << fdataname.c_str() << "\" "
-			"for input" << std::endl);
-		throw ErrGeneric();
-	}
-
-	return inf;
-}
-
-void
-ExtFileHandlerEDGE::Recv_post(void)
-{
-	inf.close();
-}
-
-/* ExtFileHandlerEDGE - end */
+/* ExtFileHandlerEDGE moved to extedge.h, extedge.cc */
 
 /* ExtForce - begin */
 
@@ -354,7 +261,9 @@ void
 ExtForce::Send(bool bAfterConvergence)
 {
 	std::ostream& outf = pEFH->Send_pre(bAfterConvergence);
-	Send(outf, bAfterConvergence);
+	if (outf.good()) {
+		Send(outf, bAfterConvergence);
+	}
 	pEFH->Send_post(bAfterConvergence);
 }
 
@@ -363,7 +272,9 @@ ExtForce::Recv(void)
 {
 	if ((iCoupling && !(iCouplingCounter%iCoupling)) || bFirstRes) {
 		std::istream& inf = pEFH->Recv_pre();
-		Recv(inf);
+		if (inf.good()) {
+			Recv(inf);
+		}
 		pEFH->Recv_post();
 	}
 
@@ -400,12 +311,11 @@ ReadExtFileHandler(DataManager* pDM,
 	MBDynParser& HP, 
 	unsigned int uLabel)
 {
-	ExtFileHandlerBase *pEFH = 0;
-
 	if (HP.IsKeyWord("EDGE")) {
-		
-		return pEFH;
+		return ReadExtFileHandlerEDGE(pDM, HP, uLabel);
 	}
+
+	ExtFileHandlerBase *pEFH = 0;
 
 	// default
 	const char	*s = HP.GetFileName();

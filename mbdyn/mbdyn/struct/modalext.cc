@@ -34,9 +34,16 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <dataman.h>
+#include "extedge.h"
 #include "modalext.h"
+#include "modaledge.h"
 
 #include <fstream>
+
+ExtModalForceBase::~ExtModalForceBase(void)
+{
+	NO_OP;
+}
 
 /* ModalExt - begin */
 
@@ -45,17 +52,34 @@ ModalExt::ModalExt(unsigned int uL,
 	Modal *pmodal,
 	bool bOutputAccelerations,
 	ExtFileHandlerBase *pEFH,
+	ExtModalForceBase* pEMF,
 	int iCoupling,
 	flag fOut)
 : Elem(uL, fOut), 
 ExtForce(uL, pEFH, iCoupling, fOut), 
 pModal(pmodal),
+bOutputAccelerations(bOutputAccelerations),
+pEMF(pEMF),
+uFlags(ExtModalForceBase::EMF_NONE),
 F(0.),
-M(0.),
-bOutputAccelerations(bOutputAccelerations)
+M(0.)
 {
 	ASSERT(pModal != 0);
+	ASSERT(pEMF != 0);
+
 	f.resize(pModal->uGetNModes());
+
+	// Temporary?
+	q.resize(pModal->uGetNModes());
+	qP.resize(pModal->uGetNModes());
+
+	if (pModal->uGetNModes() > 0) {
+		uFlags |= ExtModalForceBase::EMF_MODAL;
+	}
+
+	if (pModal->pGetModalNode() != 0) {
+		uFlags |= ExtModalForceBase::EMF_RIGID;
+	}
 }
 
 ModalExt::~ModalExt(void)
@@ -70,6 +94,36 @@ void
 ModalExt::Send(std::ostream& outf, bool bAfterConvergence)
 {
 	const StructNode *pNode = pModal->pGetModalNode();
+
+	Vec3 x;
+	Mat3x3 R;
+	Vec3 v;
+	Vec3 w;
+
+	if (pNode) {
+		x = pNode->GetXCurr();
+		R = pNode->GetRCurr();
+		v = pNode->GetVCurr();
+		w = pNode->GetWCurr();
+
+	} else {
+		x = Zero3;
+		R = Eye3;
+		v = Zero3;
+		w = Zero3;
+	}
+
+	// Temporary?
+	const VecN& a = pModal->GetA();
+	const VecN& b = pModal->GetB();
+	for (unsigned i = 0; i < q.size(); i++) {
+		q[i] = a(i + 1);
+		qP[i] = b(i + 1);
+	}
+
+	pEMF->Send(outf, uFlags, GetLabel(), x, R, v, w, q, qP);
+
+#if 0
 	if (pNode) {
 		Mat3x3 RT = pNode->GetRCurr().Transpose();
 		outf << pNode->GetLabel()
@@ -108,31 +162,28 @@ ModalExt::Send(std::ostream& outf, bool bAfterConvergence)
 		}
 		outf << std::endl;
 	}
+#endif
 }
 
 void
 ModalExt::Recv(std::istream& inf)
 {
-	/* assume unsigned int label */
-	unsigned l;
+	unsigned uLabel = 0;
+	unsigned uOutFlags = pEMF->Recv(inf, uFlags, uLabel, F, M, f);
 
-	inf >> l >> F(1) >> F(2) >> F(3) >> M(1) >> M(2) >> M(3);
-	if (!inf) {
+	if (uOutFlags & ExtModalForceBase::EMF_ERR) {
 		silent_cerr("ModalExt(" << GetLabel() << "): "
-			"unable to read reference node forces" << std::endl);
+			"error while reading modal force data" << std::endl);
 		throw ErrGeneric();
 	}
 
-	for (integer i = 0; i < pModal->uGetNModes(); i++) {
-		inf >> f[i];
-		if (!inf) {
-			silent_cerr("ModalExt(" << GetLabel() << "): "
-				"unable to read modal force #" << i
-				<< std::endl);
-			throw ErrGeneric();
-		}
+	if (uFlags != uOutFlags) {
+		silent_cerr("ModalExt(" << GetLabel() << "): "
+			"error while reading modal force data "
+			"(" << uOutFlags << "!=" << uFlags << ")"
+			<< std::endl);
+		throw ErrGeneric();
 	}
-
 }
 
 SubVectorHandler&
@@ -207,11 +258,22 @@ ReadModalExtForce(DataManager* pDM,
 		bOutputAccelerations = true;
 	}
 
+	ExtModalForceBase *pEMF = 0;
+	if (dynamic_cast<ExtFileHandlerEDGE *>(pEFH) != 0) {
+		SAFENEWWITHCONSTRUCTOR(pEMF, ExtModalForceEDGE,
+			ExtModalForceEDGE(pDM));
+
+	} else {
+		silent_cerr("ModalExt(" << uLabel << "): "
+			"unknown external force type" << std::endl);
+		throw ErrGeneric();
+	}
+
 	flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
 	Elem *pEl = 0;
 	SAFENEWWITHCONSTRUCTOR(pEl, ModalExt,
 		ModalExt(uLabel, pModal, bOutputAccelerations,
-			pEFH, iCoupling, fOut));
+			pEFH, pEMF, iCoupling, fOut));
 
 	return pEl;
 }
