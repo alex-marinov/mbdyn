@@ -904,6 +904,8 @@ RunMBDyn(MBDynParser& HP,
 			"parallel" "initial" "value",
 			"inverse" "dynamics",
 
+		"parallel",			/* deprecated */
+
 		NULL
     	};
 
@@ -923,6 +925,8 @@ RunMBDyn(MBDynParser& HP,
         		MULTISTEP,		/* deprecated */
 			PARALLEL_INITIAL_VALUE,
 			INVERSE_DYNAMICS,
+
+		PARALLEL,			/* deprecated */
 
         	LASTKEYWORD
     	};
@@ -999,7 +1003,12 @@ RunMBDyn(MBDynParser& HP,
 					<< "; aborting ..." << std::endl);
 	        		throw ErrGeneric();
             		}
-            		break;    
+            		break;
+
+		case PARALLEL:
+			silent_cerr("Warning: deprecated \"parallel\" keyword "
+				"is no longer required; ignored" << std::endl);
+			break;
 
         	case END:
 	    		if (KeyWords(HP.GetWord()) != DATA) {
