@@ -63,7 +63,7 @@ public:
 
 	virtual unsigned
 	Recv(std::istream& fin, unsigned uFlags, unsigned& uLabel,
-		Vec3& f, Vec3& m, std::vector<doublereal>& f) = 0;
+		Vec3& f, Vec3& m, std::vector<doublereal>& fv) = 0;
 
 	virtual void
 	Send(std::ostream& fout, unsigned uFlags, unsigned uLabel,
