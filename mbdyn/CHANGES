@@ -45,6 +45,7 @@ MBDyn 1.X-Devel
 		- fix crash when using model namespace too early
 		- fix nested elements usage during initial assembly
 		- fix scalar filter (using state space SISO)
+		- fix Crank-Nicolson spelling
 
 MBDyn 1.3.3-Beta
 	Enhancements:
