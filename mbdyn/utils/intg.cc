@@ -79,7 +79,7 @@ main(int argn, char *const argv[])
 		METHOD_MULTISTEP,
 		METHOD_HOPE,
 		METHOD_CUBIC,
-		METHOD_CRANK_NICHOLSON
+		METHOD_CRANK_NICOLSON
    	};
 
    	struct s_method {
@@ -89,7 +89,7 @@ main(int argn, char *const argv[])
 		{ "ms",                METHOD_MULTISTEP         },
 		{ "hope",              METHOD_HOPE              },
 		{ "cubic",             METHOD_CUBIC             },
-		{ "crank-nicholson",   METHOD_CRANK_NICHOLSON   },
+		{ "crank-nicolson",    METHOD_CRANK_NICOLSON    },
 
 		{ 0,                METHOD_UNKNOWN           }
    	};
@@ -264,7 +264,7 @@ main(int argn, char *const argv[])
     	case METHOD_CUBIC:
       		rc = method_cubic(module, &d, method_data, user_defined);
       		break;
-    	case METHOD_CRANK_NICHOLSON:
+    	case METHOD_CRANK_NICOLSON:
       		rc = method_cn(module, &d, method_data, user_defined);
       		break;
     	default:

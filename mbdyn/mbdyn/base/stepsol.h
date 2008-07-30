@@ -322,16 +322,16 @@ protected:
 };
 
 
-class CrankNicholsonIntegrator: 
+class CrankNicolsonIntegrator: 
 	public Step1Integrator
 {
 public:
-	CrankNicholsonIntegrator(const doublereal Tl, 
+	CrankNicolsonIntegrator(const doublereal Tl, 
 			const doublereal dSolTl, 
 			const integer iMaxIt,
 			const bool bmod_res_test);
 
-	~CrankNicholsonIntegrator(void);
+	~CrankNicolsonIntegrator(void);
 
 protected:
 	void SetCoef(doublereal dT, 

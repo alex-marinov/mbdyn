@@ -1118,7 +1118,7 @@ StructNode::SetValue(DataManager *pDM,
 	} else
 #endif /* MBDYN_X_RELATIVE_PREDICTION */
 	{
-		/* FIXME: in any case, we start with Crank-Nicholson ... */
+		/* FIXME: in any case, we start with Crank-Nicolson ... */
 		XPrev = XCurr;
 		RPrev = RCurr;
 		VPrev = VCurr;

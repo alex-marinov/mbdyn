@@ -235,7 +235,7 @@ protected:
 
    	/* Parametri per il metodo */
 	enum StepIntegratorType {
-			INT_CRANKNICHOLSON,
+			INT_CRANKNICOLSON,
 			INT_MS2,
 			INT_HOPE,
 			INT_THIRDORDER,

@@ -51,7 +51,7 @@ enum method_t {
 	METHOD_HOPE,
 	METHOD_CUBIC,
 	METHOD_RADAU_II,
-	METHOD_CRANK_NICHOLSON
+	METHOD_CRANK_NICOLSON
 };
 
 struct integration_data {
@@ -88,7 +88,7 @@ main(int argc, char *const argv[])
 		{ "hope",              METHOD_HOPE              },
 		{ "cubic",             METHOD_CUBIC             },
 		{ "radau-II",	       METHOD_RADAU_II		},
-		{ "crank-nicholson",   METHOD_CRANK_NICHOLSON   },
+		{ "crank-nicolson",    METHOD_CRANK_NICOLSON    },
 
 		{ NULL,                METHOD_UNKNOWN           }
    	};
@@ -292,7 +292,7 @@ main(int argc, char *const argv[])
     	case METHOD_RADAU_II:
       		rc = method_radau_II(module, &d, method_data, user_defined);
       		break;
-    	case METHOD_CRANK_NICHOLSON:
+    	case METHOD_CRANK_NICOLSON:
       		rc = method_cn(module, &d, method_data, user_defined);
       		break;
     	default:

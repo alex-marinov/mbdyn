@@ -692,7 +692,7 @@ and, according to the integration formula that we're using,
 \begin{equation}
   \Delta y = \texttt{dCoef} * \Delta \dot{y}
 \end{equation}
-where \texttt{dCoef} is essentially the time step times some number that is specific to the integration formula; it's 1/2 for Crank-Nicholson, it's 2/3 for BDF and so on.
+where \texttt{dCoef} is essentially the time step times some number that is specific to the integration formula; it's 1/2 for Crank-Nicolson, it's 2/3 for BDF and so on.
 So the real iteration is
 \begin{equation}
   ( F_{/\dot{y}} + \texttt{dCoef} F_{/y} ) \Delta \dot{y} = - F

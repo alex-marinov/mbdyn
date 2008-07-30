@@ -1972,8 +1972,8 @@ Solver::Restart(std::ostream& out,DataManager::eRestart type) const
 	
 	out << "  method: ";
 	switch(RegularType) {
-	case INT_CRANKNICHOLSON:
-		out << "Crank Nicholson; " << std::endl;
+	case INT_CRANKNICOLSON:
+		out << "Crank Nicolson; " << std::endl;
 		break;
 	case INT_MS2:
 		out << "ms, ";
@@ -2127,7 +2127,8 @@ Solver::ReadData(MBDynParser& HP)
 		/* DEPRECATED */ "fictitious" "steps" "method" /* END OF DEPRECATED */ ,
 		"dummy" "steps" "method",
 
-		"Crank" "Nicholson",
+		"Crank" "Nicolson",
+		/* DEPRECATED */ "Crank" "Nicholson" /* END OF DEPRECATED */ ,
 			/* DEPRECATED */ "nostro" /* END OF DEPRECATED */ ,
 			"ms",
 			"hope",
@@ -2228,6 +2229,7 @@ Solver::ReadData(MBDynParser& HP)
 		METHOD,
 		FICTITIOUSSTEPSMETHOD,
 		DUMMYSTEPSMETHOD,
+		CRANKNICOLSON,
 		CRANKNICHOLSON,
 		NOSTRO,
 		MS,
@@ -2572,7 +2574,9 @@ Solver::ReadData(MBDynParser& HP)
 	  		KeyWords KMethod = KeyWords(HP.GetWord());
 	  		switch (KMethod) {
 	   		case CRANKNICHOLSON:
-				RegularType = INT_CRANKNICHOLSON;
+				silent_cout("warning: \"crank nicolson\" is the correct spelling" << std::endl);
+	   		case CRANKNICOLSON:
+				RegularType = INT_CRANKNICOLSON;
 	      			break;
 
 			case BDF:
@@ -2669,7 +2673,9 @@ Solver::ReadData(MBDynParser& HP)
 			KeyWords KMethod = KeyWords(HP.GetWord());
 			switch (KMethod) {
 			case CRANKNICHOLSON:
-				FictitiousType = INT_CRANKNICHOLSON;
+				silent_cout("warning: \"crank nicolson\" is the correct spelling" << std::endl);
+			case CRANKNICOLSON:
+				FictitiousType = INT_CRANKNICOLSON;
 				break;
 
 			case BDF:
@@ -3684,21 +3690,21 @@ EndOfCycle: /* esce dal ciclo di lettura */
 				iDerivativesMaxIterations,
 				bModResTest));
 
-	/* First step prediction must always be Crank-Nicholson for accuracy */
+	/* First step prediction must always be Crank-Nicolson for accuracy */
 	if (iFictitiousStepsNumber) {
 		SAFENEWWITHCONSTRUCTOR(pFirstFictitiousStep,
-				CrankNicholsonIntegrator,
-				CrankNicholsonIntegrator(dFictitiousStepsTolerance,
+				CrankNicolsonIntegrator,
+				CrankNicolsonIntegrator(dFictitiousStepsTolerance,
 					0.,
 					iFictitiousStepsMaxIterations,
 					bModResTest));
 
 		/* costruzione dello step solver fictitious */
 		switch (FictitiousType) {
-		case INT_CRANKNICHOLSON:
+		case INT_CRANKNICOLSON:
 			SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
-					CrankNicholsonIntegrator,
-					CrankNicholsonIntegrator(dFictitiousStepsTolerance,
+					CrankNicolsonIntegrator,
+					CrankNicolsonIntegrator(dFictitiousStepsTolerance,
 						0.,
 						iFictitiousStepsMaxIterations,
 						bModResTest));
@@ -3762,18 +3768,18 @@ EndOfCycle: /* esce dal ciclo di lettura */
 	}
 
 	SAFENEWWITHCONSTRUCTOR(pFirstRegularStep,
-			CrankNicholsonIntegrator,
-			CrankNicholsonIntegrator(dTol,
+			CrankNicolsonIntegrator,
+			CrankNicolsonIntegrator(dTol,
 				dSolutionTol,
 				iMaxIterations,
 				bModResTest));
 
 	/* costruzione dello step solver per i passi normali */
 	switch (RegularType) {
-	case INT_CRANKNICHOLSON:
+	case INT_CRANKNICOLSON:
 		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
-			CrankNicholsonIntegrator,
-			CrankNicholsonIntegrator(dTol,
+			CrankNicolsonIntegrator,
+			CrankNicolsonIntegrator(dTol,
 				dSolutionTol,
 				iMaxIterations,
 				bModResTest));
