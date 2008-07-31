@@ -82,8 +82,8 @@ protected:
 	MatNxN *pModalMass;
 	MatNxN *pModalStiff;
 	MatNxN *pModalDamp;
-	unsigned int* IdFemNodes;
-	unsigned int* IntFEMNodes;
+	std::vector<std::string> IdFemNodes;
+	std::vector<std::string> IntFEMNodes;
 	Mat3xN *pXYZFemNodes;
 	Mat3xN *pOffsetFEMNodes;   
 	Mat3xN *pOffsetMBNodes;   
@@ -158,8 +158,8 @@ public:
 			MatNxN *pGenMass,
 			MatNxN *pGenStiff,
 			MatNxN *pGenDamp,
-			unsigned int* IdFemNodes,
-			unsigned int* IntFEMNodes,
+			std::vector<std::string>& IdFemNodes,
+			std::vector<std::string>& IntFEMNodes,
 			Mat3xN *pN,
 			Mat3xN *pOffsetfemNodes,
 			Mat3xN *pOffsetmbNodes,

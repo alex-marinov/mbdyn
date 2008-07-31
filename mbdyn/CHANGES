@@ -28,9 +28,12 @@ MBDyn 1.X-Devel
 		- allow controllable/observable canonical forms
 		  of scalar filters
 		- add balancing of state space filter matrices
+		- allow to use strings for FEM labels in modal joint
+		- add "from file" keyword for FEM node number in modal joint
 	Backward compatibility issues:
 	Known issues:
 		- odd operator precedence for power/unary minus
+		- scalar functions may leak at shutdown; need redesign
 	Bug fixes:
 		- MSYS/MinGW needs to explicitly include stdint.h
 		- MSG_WAITALL is not defined on Cygwin
@@ -45,6 +48,9 @@ MBDyn 1.X-Devel
 		- fix crash when using model namespace too early
 		- fix nested elements usage during initial assembly
 		- fix scalar filter (using state space SISO)
+		- fix one-time leak in modal joint
+		- fix crasher in revolute hinge friction dof/eq description
+		- fix one-time leak in elements with friction
 		- fix Crank-Nicolson spelling
 
 MBDyn 1.3.3-Beta

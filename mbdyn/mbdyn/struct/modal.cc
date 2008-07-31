@@ -133,8 +133,8 @@ Modal::Modal(unsigned int uL,
 		MatNxN *pGenMass,
 		MatNxN *pGenStiff,
 		MatNxN *pGenDamp,
-		unsigned int *IdFemNodes, /* label nodi FEM */
-		unsigned int *intFEMNodes,/* label nodi FEM d'interfaccia */
+		std::vector<std::string>& IdFemNodes, /* label nodi FEM */
+		std::vector<std::string>& IntFEMNodes,/* label nodi FEM d'interfaccia */
 		Mat3xN *pN,               /* posizione dei nodi FEM */
 		Mat3xN *pOffsetfemNodes,
 		Mat3xN *pOffsetmbNodes,
@@ -173,7 +173,7 @@ pModalMass(pGenMass),
 pModalStiff(pGenStiff),
 pModalDamp(pGenDamp),
 IdFemNodes(IdFemNodes),
-IntFEMNodes(intFEMNodes),
+IntFEMNodes(IntFEMNodes),
 pXYZFemNodes(pN),
 pOffsetFEMNodes(pOffsetfemNodes),
 pOffsetMBNodes(pOffsetmbNodes),
@@ -253,9 +253,6 @@ Modal::~Modal(void)
 	if (pR2 != NULL) {
 		SAFEDELETEARR(pR2);
 	}
-	if (IntFEMNodes) {
-		SAFEDELETEARR(IntFEMNodes);
-	}
 	if (pInterfaceNodes) {
 		SAFEDELETEARR(pInterfaceNodes);
 	}
@@ -277,9 +274,6 @@ Modal::~Modal(void)
 	if (pModeShapesr) {
 		SAFEDELETE(pModeShapesr);
 	}
-	if (IdFemNodes) {
-		SAFEDELETEARR(IdFemNodes);
-	}
 	if (pOffsetFEMNodes) {
 		SAFEDELETE(pOffsetFEMNodes);
 	}
@@ -294,6 +288,27 @@ Modal::~Modal(void)
 	}
 	if (pPHIr) {
 		SAFEDELETE(pPHIr);
+	}
+	if (pInv3) {
+		SAFEDELETE(pInv3);
+	}
+	if (pInv4) {
+		SAFEDELETE(pInv4);
+	}
+	if (pInv5) {
+		SAFEDELETE(pInv5);
+	}
+	if (pInv8) {
+		SAFEDELETE(pInv8);
+	}
+	if (pInv9) {
+		SAFEDELETE(pInv9);
+	}
+	if (pInv10) {
+		SAFEDELETE(pInv10);
+	}
+	if (pInv11) {
+		SAFEDELETE(pInv11);
 	}
 
 	/* FIXME: destroy all the other data ... */
@@ -2261,26 +2276,26 @@ Modal::iGetPrivDataIdx(const char *s) const
 		return 0;
 	}
 
-	/* buffer per numero (dimensione massima: 32 bit) */
-	char buf[] = "18446744073709551615,18446744073709551615";
-	size_t		len = end - s;
-
-	ASSERT(len < sizeof(buf));
-
-	strncpy(buf, s, len);
-	buf[len] = '\0';
-
-	/* leggi il numero */
-	if (buf[0] == '-') {
-		return 0;
-	}
-
-	unsigned long n = strtoul(buf, &end, 10);
-	if (end == buf) {
-		return 0;
-	}
-
 	if (what == 'q') {
+		/* buffer per numero (dimensione massima: 32 bit) */
+		char buf[] = "18446744073709551615,18446744073709551615";
+		size_t		len = end - s;
+
+		ASSERT(len < sizeof(buf));
+
+		strncpy(buf, s, len);
+		buf[len] = '\0';
+
+		/* leggi il numero */
+		if (buf[0] == '-') {
+			return 0;
+		}
+
+		unsigned long n = strtoul(buf, &end, 10);
+		if (end == buf) {
+			return 0;
+		}
+
 		if (end[0] != '\0') {
 			return 0;
 		}
@@ -2292,18 +2307,21 @@ Modal::iGetPrivDataIdx(const char *s) const
 		return p*NModes + n;
 	}
 
-	if (end[0] != ',') {
+	end = strchr(s, ',');
+	if (end == NULL ) {
 		return 0;
 	}
+
+	std::string FEMLabel(s, end - s);
 
 	end++;
 	if (end[0] == '-') {
 		return 0;
 	}
-	memmove(buf, end, sizeof(buf) - (end - buf));
 
-	unsigned int index = strtoul(buf, &end, 10);
-	if (end == buf || end[0] != '\0') {
+	char *next;
+	unsigned int index = strtoul(end, &next, 10);
+	if (next == end || next[0] != ']') {
 		return 0;
 	}
 
@@ -2313,7 +2331,7 @@ Modal::iGetPrivDataIdx(const char *s) const
 
 	unsigned int i;
 	for (i = 0; i < NFemNodes; i++) {
-		if (IdFemNodes[i] == n) {
+		if (IdFemNodes[i] == FEMLabel) {
 			break;
 		}
 	}
@@ -2681,8 +2699,7 @@ ReadModal(DataManager* pDM,
 	}
 	unsigned int NModes = (unsigned int)tmpNModes;
 
-	unsigned int *uModeNumber = NULL;
-	SAFENEWARR(uModeNumber, unsigned int, NModes);
+	std::vector<unsigned int> uModeNumber(NModes);
 	if (HP.IsKeyWord("list")) {
 		for (unsigned int iCnt = 0; iCnt < NModes; iCnt++) {
 			int n = HP.GetInt();
@@ -2726,14 +2743,17 @@ ReadModal(DataManager* pDM,
 	}
 
 	/* numero di nodi FEM del modello */
-	int tmpNFemNodes = HP.GetInt();
-	if (tmpNFemNodes <= 0) {
-		silent_cerr("Modal(" << uLabel << "): "
-			"illegal number of FEM nodes " << tmpNFemNodes
-			<< " at line " << HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+	unsigned int NFemNodes = unsigned(-1);
+	if (!HP.IsKeyWord("from" "file")) {
+		int tmpNFemNodes = HP.GetInt();
+		if (tmpNFemNodes <= 0) {
+			silent_cerr("Modal(" << uLabel << "): "
+				"illegal number of FEM nodes " << tmpNFemNodes
+				<< " at line " << HP.GetLineData() << std::endl);
+			throw DataManager::ErrGeneric();
+		}
+		NFemNodes = unsigned(tmpNFemNodes);
 	}
-	unsigned int NFemNodes = (unsigned int)tmpNFemNodes;
 
 #ifdef MODAL_SCALE_DATA
 	/* Legge gli eventuali fattori di scala per le masse nodali
@@ -2790,8 +2810,8 @@ ReadModal(DataManager* pDM,
 	doublereal dMass = 0;              /* massa totale */
 	Vec3 STmp(0.);                     /* momenti statici  */
 	Mat3x3 JTmp(0.);                   /* inerzia totale  */
-	VecN FemMass(NFemNodes, 0.);       /* masse nodali   */
-	Mat3xN FemJ(NFemNodes, 0.);        /* inerzie nodali (sono diagonali) */
+	std::vector<doublereal> FemMass;   /* masse nodali   */
+	std::vector<Vec3> FemJ;            /* inerzie nodali (sono diagonali) */
 
 	Mat3xN *pModeShapest = NULL;       /* forme di traslaz. e rotaz. */
 	Mat3xN *pModeShapesr = NULL;
@@ -2910,30 +2930,25 @@ ReadModal(DataManager* pDM,
 	/* alloca la memoria per le matrici necessarie a memorizzare i dati
 	 * relativi al corpo flessibile
 	 * nota: devo usare i puntatori perche' altrimenti non si riesce
-	 * a passarli al costruttore       */
-	SAFENEWWITHCONSTRUCTOR(pXYZFemNodes, Mat3xN, Mat3xN(NFemNodes, 0.));
+	 * a passarli al costruttore
+	 */
 	SAFENEWWITHCONSTRUCTOR(pGenMass,  MatNxN, MatNxN(NModes, 0.));
 	SAFENEWWITHCONSTRUCTOR(pGenStiff, MatNxN, MatNxN(NModes, 0.));
 	SAFENEWWITHCONSTRUCTOR(pGenDamp,  MatNxN, MatNxN(NModes, 0.));
-	SAFENEWWITHCONSTRUCTOR(pModeShapest, Mat3xN,
-			Mat3xN(NFemNodes*NModes, 0.));
-	SAFENEWWITHCONSTRUCTOR(pModeShapesr, Mat3xN,
-			Mat3xN(NFemNodes*NModes, 0.));
 
 	SAFENEWWITHCONSTRUCTOR(a,  VecN, VecN(NModes, 0.));
 	SAFENEWWITHCONSTRUCTOR(aP, VecN, VecN(NModes, 0.));
 	
 	/* array contenente le label dei nodi FEM */
-	unsigned int *IdFemNodes = NULL;
-	SAFENEWARR(IdFemNodes, unsigned int, NFemNodes);
-	
-	bool *bActiveModes = NULL;
+	std::vector<std::string> IdFemNodes;
+	std::vector<bool> bActiveModes;
 
-	/* increment this each time the binary format changes! */
-	unsigned	BinVersion = 1,
-			currBinVersion;
+	/* NOTE: increment this each time the binary format changes! */
+	unsigned	BinVersion = 2;
+
+	unsigned	currBinVersion;
 	char		checkPoint;
-	unsigned int	NFemNodesFEM = 0, NModesFEM = 0;
+	unsigned	NFemNodesFEM = 0, NModesFEM = 0;
 
 	bool		bBuildInvariants = false;
 
@@ -2973,10 +2988,24 @@ ReadModal(DataManager* pDM,
 		char		str[BUFSIZ];
 
 		/* Note: to keep it readable, we use a base 1 array */
-		bool		bRecordGroup[13];
-		for (int i = 1; i < 13; i++) {
-			bRecordGroup[i] = false;
-		}
+		bool		bRecordGroup[] = {
+			false,		// use 1-based array
+
+			false,		// record 1: header
+			false,		// record 2: FEM node labels
+			false,		// record 3: initial modal amplitudes
+			false,		// record 4: initial modal amplitude rates
+			false,		// record 5: FEM node X
+			false,		// record 6: FEM node Y
+			false,		// record 7: FEM node Z
+			false,		// record 8: shapes
+			false,		// record 9: generalized mass matrix
+			false,		// record 10: generalized stiffness matrix
+			false,		// record 11: diagonal mass matrix
+			false,		// record 12: rigid body inertia
+
+			false		// record -1: end of file
+		};
 
 		while (fdat && !fdat.eof()) {        /* parsing del file */
 			fdat.getline(str, sizeof(str));
@@ -3014,7 +3043,10 @@ ReadModal(DataManager* pDM,
 				NModesFEM -= NRejModes;
 		
 				/* consistency checks */
-				if (NFemNodes != NFemNodesFEM) {
+				if (NFemNodes == unsigned(-1)) {
+					NFemNodes = NFemNodesFEM;
+
+				} else if (NFemNodes != NFemNodesFEM) {
 					silent_cerr("Modal(" << uLabel << "), "
 						"file \"" << sFileFem << "\": "
 						"FEM nodes number " << NFemNodes
@@ -3032,11 +3064,19 @@ ReadModal(DataManager* pDM,
 							<< " modes" << std::endl);
 				}
 
-				if (bActiveModes != NULL) {
+				if (!bActiveModes.empty()) {
 					throw ErrGeneric();
 				}
 
-				SAFENEWARR(bActiveModes, bool, NModesFEM + 1);
+				FemMass.resize(NFemNodes);
+				FemJ.resize(NFemNodes);
+				IdFemNodes.resize(NFemNodes);
+
+				SAFENEWWITHCONSTRUCTOR(pXYZFemNodes, Mat3xN, Mat3xN(NFemNodes, 0.));
+				SAFENEWWITHCONSTRUCTOR(pModeShapest, Mat3xN, Mat3xN(NFemNodes*NModes, 0.));
+				SAFENEWWITHCONSTRUCTOR(pModeShapesr, Mat3xN, Mat3xN(NFemNodes*NModes, 0.));
+
+				bActiveModes.resize(NModesFEM + 1);
 
 				for (unsigned int iCnt = 1; iCnt <= NModesFEM; iCnt++) {
 					bActiveModes[iCnt] = false;
@@ -3053,8 +3093,6 @@ ReadModal(DataManager* pDM,
 					}
 					bActiveModes[uModeNumber[iCnt]] = true;
 				}
-				SAFEDELETEARR(uModeNumber);
-				uModeNumber = NULL;
 
 				if (bWriteBIN) {
 					checkPoint = 1;
@@ -3062,6 +3100,8 @@ ReadModal(DataManager* pDM,
 					fbin.write((char *)&NFemNodesFEM, sizeof(NFemNodesFEM));
 					fbin.write((char *)&NModesFEM, sizeof(NModesFEM));
 				}
+
+				bRecordGroup[1] = true;
 
 			/* legge il secondo blocco (Id.nodi) */
 			} else if (!strncmp("** RECORD GROUP 2,", str,
@@ -3074,15 +3114,30 @@ ReadModal(DataManager* pDM,
 					throw ErrGeneric();
 				}
 
-				for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
-					fdat >> IdFemNodes[iNode - 1];
+				if (!bRecordGroup[1]) {
+					silent_cerr("file=\"" << sFileFem << "\": "
+						"\"RECORD GROUP 1\" not parsed yet"
+						<< std::endl);
+					throw ErrGeneric();
+				}
+
+				for (unsigned int iNode = 0; iNode < NFemNodes; iNode++) {
+					// NOTE: this precludes the possibility
+					// to have blanks in node labels
+					fdat >> IdFemNodes[iNode];
 				}
 
 				if (bWriteBIN) {
 					checkPoint = 2;
 					fbin.write(&checkPoint, sizeof(checkPoint));
-					fbin.write((char *)IdFemNodes, sizeof(IdFemNodes[0])*NFemNodes);
+					for (unsigned int iNode = 0; iNode < NFemNodes; iNode++) {
+						size_t len = IdFemNodes[iNode].size();
+						fbin.write((char *)&len, sizeof(size_t));
+						fbin.write((char *)IdFemNodes[iNode].c_str(), len);
+					}
 				}
+
+				bRecordGroup[2] = true;
 
 			/* deformate iniziali dei modi */
 			} else if (!strncmp("** RECORD GROUP 3,", str,
@@ -3095,9 +3150,16 @@ ReadModal(DataManager* pDM,
 					throw ErrGeneric();
 				}
 
+				if (!bRecordGroup[1]) {
+					silent_cerr("file=\"" << sFileFem << "\": "
+						"\"RECORD GROUP 1\" not parsed yet"
+						<< std::endl);
+					throw ErrGeneric();
+				}
+
 				unsigned int iCnt = 1;
 
-				if (bActiveModes == NULL) {
+				if (bActiveModes.empty()) {
 					silent_cerr("Modal(" << uLabel << "): "
 						"input file \"" << sFileFem << "\""
 						"is bogus (RECORD GROUP 3)"
@@ -3123,6 +3185,8 @@ ReadModal(DataManager* pDM,
 					a->Put(iCnt, d);
 					iCnt++;
 				}
+
+				bRecordGroup[3] = true;
 	
 			/* velocita' iniziali dei modi */
 			} else if (!strncmp("** RECORD GROUP 4,", str,
@@ -3135,9 +3199,16 @@ ReadModal(DataManager* pDM,
 					throw ErrGeneric();
 				}
 
+				if (!bRecordGroup[1]) {
+					silent_cerr("file=\"" << sFileFem << "\": "
+						"\"RECORD GROUP 1\" not parsed yet"
+						<< std::endl);
+					throw ErrGeneric();
+				}
+
 				unsigned int iCnt = 1;
 	
-				if (bActiveModes == NULL) {
+				if (bActiveModes.empty()) {
 					silent_cerr("Modal(" << uLabel << "): "
 						"input file \"" << sFileFem << "\""
 						"is bogus (RECORD GROUP 4)"
@@ -3163,6 +3234,8 @@ ReadModal(DataManager* pDM,
 					aP->Put(iCnt, d);
 					iCnt++;
 				}
+
+				bRecordGroup[4] = true;
 	
 			/* Coordinate X dei nodi */
 			} else if (!strncmp("** RECORD GROUP 5,", str,
@@ -3171,6 +3244,13 @@ ReadModal(DataManager* pDM,
 				if (bRecordGroup[5]) {
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 5\" already parsed"
+						<< std::endl);
+					throw ErrGeneric();
+				}
+
+				if (!bRecordGroup[1]) {
+					silent_cerr("file=\"" << sFileFem << "\": "
+						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric();
 				}
@@ -3193,6 +3273,8 @@ ReadModal(DataManager* pDM,
 					pXYZFemNodes->Put(1, iNode, d);
 				}
 
+				bRecordGroup[5] = true;
+
 			/* Coordinate Y dei nodi*/
 			} else if (!strncmp("** RECORD GROUP 6,", str,
 				STRLENOF("** RECORD GROUP 6,")))
@@ -3200,6 +3282,13 @@ ReadModal(DataManager* pDM,
 				if (bRecordGroup[6]) {
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 6\" already parsed"
+						<< std::endl);
+					throw ErrGeneric();
+				}
+
+				if (!bRecordGroup[1]) {
+					silent_cerr("file=\"" << sFileFem << "\": "
+						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric();
 				}
@@ -3221,6 +3310,8 @@ ReadModal(DataManager* pDM,
 #endif /* MODAL_SCALE_DATA */
 					pXYZFemNodes->Put(2, iNode, d);
 				}
+
+				bRecordGroup[6] = true;
 	
 			/* Coordinate Z dei nodi*/
 			} else if (!strncmp("** RECORD GROUP 7,", str,
@@ -3229,6 +3320,13 @@ ReadModal(DataManager* pDM,
 				if (bRecordGroup[7]) {
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 7\" already parsed"
+						<< std::endl);
+					throw ErrGeneric();
+				}
+
+				if (!bRecordGroup[1]) {
+					silent_cerr("file=\"" << sFileFem << "\": "
+						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric();
 				}
@@ -3250,6 +3348,8 @@ ReadModal(DataManager* pDM,
 #endif /* MODAL_SCALE_DATA */
 					pXYZFemNodes->Put(3, iNode, d);
 				}
+
+				bRecordGroup[7] = true;
 	
 			/* Forme modali */
 			} else if (!strncmp("** RECORD GROUP 8,", str,
@@ -3258,6 +3358,13 @@ ReadModal(DataManager* pDM,
 				if (bRecordGroup[8]) {
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 8\" already parsed"
+						<< std::endl);
+					throw ErrGeneric();
+				}
+
+				if (!bRecordGroup[1]) {
+					silent_cerr("file=\"" << sFileFem << "\": "
+						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric();
 				}
@@ -3274,7 +3381,7 @@ ReadModal(DataManager* pDM,
 					fdat.getline(str, sizeof(str));
 				}
 				
-				if (bActiveModes == NULL) {
+				if (bActiveModes.empty()) {
 					silent_cerr("Modal(" << uLabel << "): "
 						"input file \"" << sFileFem << "\""
 						"is bogus (RECORD GROUP 8)"
@@ -3323,6 +3430,8 @@ ReadModal(DataManager* pDM,
 					fdat.getline(str, sizeof(str));
 				}
 
+				bRecordGroup[8] = true;
+
 			/* Matrice di massa  modale */
 			} else if (!strncmp("** RECORD GROUP 9,", str,
 				STRLENOF("** RECORD GROUP 9,")))
@@ -3334,7 +3443,14 @@ ReadModal(DataManager* pDM,
 					throw ErrGeneric();
 				}
 
-				if (bActiveModes == NULL) {
+				if (!bRecordGroup[1]) {
+					silent_cerr("file=\"" << sFileFem << "\": "
+						"\"RECORD GROUP 1\" not parsed yet"
+						<< std::endl);
+					throw ErrGeneric();
+				}
+
+				if (bActiveModes.empty()) {
 					silent_cerr("Modal(" << uLabel << "): "
 						"input file \"" << sFileFem << "\""
 						"is bogus (RECORD GROUP 9)"
@@ -3369,6 +3485,8 @@ ReadModal(DataManager* pDM,
 						iCnt++;
 					}
 				}
+
+				bRecordGroup[9] = true;
 	
 			/* Matrice di rigidezza  modale */
 			} else if (!strncmp("** RECORD GROUP 10,", str,
@@ -3381,7 +3499,14 @@ ReadModal(DataManager* pDM,
 					throw ErrGeneric();
 				}
 
-				if (bActiveModes == NULL) {
+				if (!bRecordGroup[1]) {
+					silent_cerr("file=\"" << sFileFem << "\": "
+						"\"RECORD GROUP 1\" not parsed yet"
+						<< std::endl);
+					throw ErrGeneric();
+				}
+
+				if (bActiveModes.empty()) {
 					silent_cerr("Modal(" << uLabel << "): "
 						"input file \"" << sFileFem << "\""
 						"is bogus (RECORD GROUP 10)"
@@ -3417,6 +3542,7 @@ ReadModal(DataManager* pDM,
 					}
 				}
 
+				bRecordGroup[10] = true;
 
 			/* Lumped Masses */
 			} else if (!strncmp("** RECORD GROUP 11,", str,
@@ -3425,6 +3551,13 @@ ReadModal(DataManager* pDM,
 				if (bRecordGroup[11]) {
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 11\" already parsed"
+						<< std::endl);
+					throw ErrGeneric();
+				}
+
+				if (!bRecordGroup[1]) {
+					silent_cerr("file=\"" << sFileFem << "\": "
+						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric();
 				}
@@ -3449,7 +3582,7 @@ ReadModal(DataManager* pDM,
 #ifdef MODAL_SCALE_DATA
 							d *= scalemass;
 #endif /* MODAL_SCALE_DATA */
-							FemMass.Put(iNode, d);
+							FemMass[iNode - 1] = d;
 							break;
 
 						case 2:
@@ -3462,30 +3595,20 @@ ReadModal(DataManager* pDM,
 							break;
 					
 						case 4:
-#ifdef MODAL_SCALE_DATA
-							d *= scaleinertia;
-#endif /* MODAL_SCALE_DATA */
-							FemJ.Put(1, iNode, d);
-							break;
-
 						case 5:
-#ifdef MODAL_SCALE_DATA
-							d *= scaleinertia;
-#endif /* MODAL_SCALE_DATA */
-							FemJ.Put(2, iNode, d);
-							break;
-					
 						case 6:
 #ifdef MODAL_SCALE_DATA
 							d *= scaleinertia;
 #endif /* MODAL_SCALE_DATA */
-							FemJ.Put(3, iNode, d);
+							FemJ[iNode - 1](jCnt - 3) = d;
 							break;
 						}
 					}
 				}
 
 				bBuildInvariants = true;
+
+				bRecordGroup[11] = true;
 
 			/* Rigid body inertia */
 			} else if (!strncmp("** RECORD GROUP 12,", str,
@@ -3494,6 +3617,13 @@ ReadModal(DataManager* pDM,
 				if (bRecordGroup[12]) {
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 12\" already parsed"
+						<< std::endl);
+					throw ErrGeneric();
+				}
+
+				if (!bRecordGroup[1]) {
+					silent_cerr("file=\"" << sFileFem << "\": "
+						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric();
 				}
@@ -3533,21 +3663,24 @@ ReadModal(DataManager* pDM,
 						JTmp(iRow, iCol) = d;
 					}
 				}
+
+				bRecordGroup[12] = true;
 				
 			} /* fine parser del file */
 		}
 
-		SAFEDELETEARR(bActiveModes);
-		bActiveModes = NULL;
-
 		fdat.close();
 		if (bWriteBIN) {
+			checkPoint = -1;
+			fbin.write(&checkPoint, sizeof(checkPoint));
 			fbin.close();
 		}
 
 		/* unlink binary file if create/update failed */
 		} catch (...) {
 			if (bWriteBIN) {
+				// NOTE: might be worth leaving in place
+				// for debugging purposes
 				(void)unlink(sBinFileFem.c_str());
 			}
 			throw;
@@ -3574,6 +3707,14 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric();
 		}
 
+		pedantic_cout("Modal(" << uLabel << "): "
+			"binary version " << currBinVersion << std::endl);
+
+		// NOTE: the binary file is expected to be in order;
+		// however, if generated from a non-ordered textual file
+		// it will be out of order...  perhaps also the textual
+		// file should always be ordered?
+
 		/* legge il primo blocco (HEADER) */
 		fbin.read(&checkPoint, sizeof(checkPoint));
 		if (checkPoint != 1) {
@@ -3584,11 +3725,17 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric();
 		}
 
+		pedantic_cout("Modal(" << uLabel << "): "
+			"reading block " << int(checkPoint) << std::endl);
+
 		fbin.read((char *)&NFemNodesFEM, sizeof(NFemNodesFEM));
 		fbin.read((char *)&NModesFEM, sizeof(NModesFEM));
 
 		/* consistency checks */
-		if (NFemNodes != NFemNodesFEM) {
+		if (NFemNodes == unsigned(-1)) {
+			NFemNodes = NFemNodesFEM;
+
+		} else if (NFemNodes != NFemNodesFEM) {
 			silent_cerr("Modal(" << uLabel << "), "
 				"file \"" << sFileFem << "\": "
 				"FEM nodes number " << NFemNodes
@@ -3606,11 +3753,19 @@ ReadModal(DataManager* pDM,
 					<< " modes" << std::endl);
 		}
 
-		if (bActiveModes != NULL) {
+		if (!bActiveModes.empty()) {
 			throw ErrGeneric();
 		}
 
-		SAFENEWARR(bActiveModes, bool, NModesFEM + 1);
+		FemMass.resize(NFemNodes);
+		FemJ.resize(NFemNodes);
+		IdFemNodes.resize(NFemNodes);
+
+		SAFENEWWITHCONSTRUCTOR(pXYZFemNodes, Mat3xN, Mat3xN(NFemNodes, 0.));
+		SAFENEWWITHCONSTRUCTOR(pModeShapest, Mat3xN, Mat3xN(NFemNodes*NModes, 0.));
+		SAFENEWWITHCONSTRUCTOR(pModeShapesr, Mat3xN, Mat3xN(NFemNodes*NModes, 0.));
+
+		bActiveModes.resize(NModesFEM + 1);
 
 		for (unsigned int iCnt = 1; iCnt <= NModesFEM; iCnt++) {
 			bActiveModes[iCnt] = false;
@@ -3627,8 +3782,6 @@ ReadModal(DataManager* pDM,
 			}
 			bActiveModes[uModeNumber[iCnt]] = true;
 		}
-		SAFEDELETEARR(uModeNumber);
-		uModeNumber = NULL;
 
 		/* legge il secondo blocco (Id.nodi) */
 		fbin.read(&checkPoint, sizeof(checkPoint));
@@ -3640,7 +3793,16 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric();
 		}
 
-		fbin.read((char *)IdFemNodes, sizeof(IdFemNodes[0])*NFemNodes);
+		pedantic_cout("Modal(" << uLabel << "): "
+			"reading block " << int(checkPoint) << std::endl);
+
+		for (unsigned int iNode = 0; iNode < NFemNodes; iNode++) {
+			size_t len;
+			fbin.read((char *)&len, sizeof(size_t));
+			ASSERT(len > 0);
+			IdFemNodes[iNode].resize(len);
+			fbin.read((char *)IdFemNodes[iNode].c_str(), len);
+		}
 
 		/* deformate iniziali dei modi */
 		fbin.read(&checkPoint, sizeof(checkPoint));
@@ -3651,6 +3813,9 @@ ReadModal(DataManager* pDM,
 					<< std::endl);
 			throw ErrGeneric();
 		}
+
+		pedantic_cout("Modal(" << uLabel << "): "
+			"reading block " << int(checkPoint) << std::endl);
 
 		for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
 			doublereal	d;
@@ -3675,6 +3840,9 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric();
 		}
 
+		pedantic_cout("Modal(" << uLabel << "): "
+			"reading block " << int(checkPoint) << std::endl);
+
 		for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
 			doublereal	d;
 
@@ -3698,6 +3866,9 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric();
 		}
 
+		pedantic_cout("Modal(" << uLabel << "): "
+			"reading block " << int(checkPoint) << std::endl);
+
 		for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
 			doublereal	d;
 
@@ -3719,6 +3890,9 @@ ReadModal(DataManager* pDM,
 					<< std::endl);
 			throw ErrGeneric();
 		}
+
+		pedantic_cout("Modal(" << uLabel << "): "
+			"reading block " << int(checkPoint) << std::endl);
 
 		for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
 			doublereal	d;
@@ -3742,6 +3916,9 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric();
 		}
 
+		pedantic_cout("Modal(" << uLabel << "): "
+			"reading block " << int(checkPoint) << std::endl);
+
 		for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
 			doublereal	d;
 
@@ -3763,6 +3940,9 @@ ReadModal(DataManager* pDM,
 					<< std::endl);
 			throw ErrGeneric();
 		}
+
+		pedantic_cout("Modal(" << uLabel << "): "
+			"reading block " << int(checkPoint) << std::endl);
 
 		for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
 			for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
@@ -3798,6 +3978,9 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric();
 		}
 
+		pedantic_cout("Modal(" << uLabel << "): "
+			"reading block " << int(checkPoint) << std::endl);
+
 		for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
 			unsigned int jCnt = 1;
 	
@@ -3828,6 +4011,9 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric();
 		}
 
+		pedantic_cout("Modal(" << uLabel << "): "
+			"reading block " << int(checkPoint) << std::endl);
+
 		for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
 			unsigned int jCnt = 1;
 	
@@ -3850,8 +4036,11 @@ ReadModal(DataManager* pDM,
 
 		/* Lumped Masses */
 		fbin.read(&checkPoint, sizeof(checkPoint));
-		switch (checkPoint ) {
+		switch (checkPoint) {
 		case 11:
+			pedantic_cout("Modal(" << uLabel << "): "
+				"reading block " << int(checkPoint) << std::endl);
+
 			for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
 				for (unsigned int jCnt = 1; jCnt <= 6; jCnt++) {
 					doublereal	d;
@@ -3863,41 +4052,33 @@ ReadModal(DataManager* pDM,
 #ifdef MODAL_SCALE_DATA
 						d *= scalemass;
 #endif /* MODAL_SCALE_DATA */
-						FemMass.Put(iNode, d);
+						FemMass[iNode - 1] = d;
 						break;
 
 					case 4:
-#ifdef MODAL_SCALE_DATA
-						d *= scaleinertia;
-#endif /* MODAL_SCALE_DATA */
-						FemJ.Put(1, iNode, d);
-						break;
-
 					case 5:
-#ifdef MODAL_SCALE_DATA
-						d *= scaleinertia;
-#endif /* MODAL_SCALE_DATA */
-						FemJ.Put(2, iNode, d);
-						break;
-					
 					case 6:
 #ifdef MODAL_SCALE_DATA
 						d *= scaleinertia;
 #endif /* MODAL_SCALE_DATA */
-						FemJ.Put(3, iNode, d);
+						FemJ[iNode - 1](jCnt - 3) = d;
 						break;
 					}
 				}
 			}
 
 			bBuildInvariants = true;
+
+			// read next checkpoint
+			fbin.read(&checkPoint, sizeof(checkPoint));
 			break;
 
 		case 12: {
+			pedantic_cout("Modal(" << uLabel << "): "
+				"reading block " << int(checkPoint) << std::endl);
+
 			doublereal      d;
-
 			fbin.read((char *)&d, sizeof(d));
-
 			dMass = d;
 
 			for (int iRow = 1; iRow <= 3; iRow++) {
@@ -3913,15 +4094,23 @@ ReadModal(DataManager* pDM,
 					JTmp(iRow, iCol) = d;
 				}
 			}
-			} break;
 
-		default:
+			// read next checkpoint
+			fbin.read(&checkPoint, sizeof(checkPoint));
+
+			} break;
+		}
+
+		if (checkPoint != -1) {
 			silent_cerr("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFem << "\" "
-					"looks broken (expecting checkpoint 11)"
-					<< std::endl);
+				"file \"" << sBinFileFem << "\" "
+				"looks broken (expecting final checkpoint)"
+				<< std::endl);
 			throw ErrGeneric();
 		}
+
+		pedantic_cout("Modal(" << uLabel << "): "
+			"reading block " << int(checkPoint) << std::endl);
 
 		fbin.close();
 	}
@@ -3938,7 +4127,7 @@ ReadModal(DataManager* pDM,
 	/* puntatori ai nodi multibody */
 	const StructNode** pInterfaceNodes = NULL;
 	/* array contenente le label dei nodi d'interfaccia */
-	unsigned int *IntFEMNodes = NULL;
+	std::vector<std::string> IntFEMNodes;
 	/* array contenente le forme modali dei nodi d'interfaccia */
 	Mat3xN* pPHItStrNode = NULL;
 	Mat3xN* pPHIrStrNode = NULL;
@@ -3949,18 +4138,29 @@ ReadModal(DataManager* pDM,
 
 	if (HP.IsKeyWord("origin" "node")) {
 		/* numero di nodi FEM del modello */
-		unsigned int NFemOriginNode = HP.GetInt();
-		unsigned int iNode;
+		std::string FemOriginNode;
+		if (HP.IsStringWithDelims()) {
+			FemOriginNode = HP.GetStringWithDelims();
 
+		} else {
+			pedantic_cerr("Modal(" << uLabel << "): "
+				"origin node expected as string with delimiters"
+				<< std::endl);
+			std::ostringstream os;
+			os << HP.GetInt();
+			FemOriginNode = os.str();
+		}
+
+		unsigned int iNode;
 		for (iNode = 0; iNode < NFemNodes; iNode++) {
-			if (NFemOriginNode == IdFemNodes[iNode]) {
+			if (FemOriginNode == IdFemNodes[iNode]) {
 				break;
 			}
 		}
 
 		if (iNode == NFemNodes) {
 			silent_cerr("Modal(" << uLabel << "): "
-				"FEM node " << NFemOriginNode
+				"FEM node \"" << FemOriginNode << "\""
 				<< " at line " << HP.GetLineData()
 				<< " not defined " << std::endl);
 			throw DataManager::ErrGeneric();
@@ -4000,24 +4200,43 @@ ReadModal(DataManager* pDM,
 			Mat3xN(NStrNodes*NModes, 0.));
 
 	SAFENEWARR(pInterfaceNodes, const StructNode*, NStrNodes);
-	SAFENEWARR(IntFEMNodes, unsigned int, NStrNodes);
+	IntFEMNodes.resize(NStrNodes);
 
 	for (unsigned int iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
-		/* nodo collegato 1 (è il nodo FEM) */
-		unsigned int uNode1 = (unsigned int)HP.GetInt();
-		DEBUGCOUT("Linked to FEM Node " << uNode1 << std::endl);
+		/* nodo collegato 1 (e' il nodo FEM) */
+		std::string Node1;
+		if (HP.IsStringWithDelims()) {
+			Node1 = HP.GetStringWithDelims();
+			// NOTE: we should check whether a label includes
+			// whitespace.  In any case, it wouldn't match
+			// any of the labels read, so it is pointless,
+			// but could help debugging...
+			if (Node1.find(' ') != std::string::npos ) {
+				silent_cout("Modal(" << uLabel << "): "
+					"FEM node \"" << Node1 << "\""
+					<< " at line " << HP.GetLineData()
+					<< " contains a blank" << std::endl);
+			}
+
+		} else {
+			std::ostringstream os;
+			os << HP.GetInt();
+			Node1 = os.str();
+		}
+
+		DEBUGCOUT("Linked to FEM Node " << Node1 << std::endl);
 
 		unsigned int iNode;
 		/* verifica di esistenza del nodo 1*/
 		for (iNode = 0; iNode < NFemNodes; iNode++) {
-			if (uNode1 == IdFemNodes[iNode]) {
+			if (Node1 == IdFemNodes[iNode]) {
 				break;
 			}
 		}
 
 		if (iNode == NFemNodes) {
 			silent_cerr("Modal(" << uLabel << "): "
-				"FEM node " << uNode1
+				"FEM node \"" << Node1 << "\""
 				<< " at line " << HP.GetLineData()
 				<< " not defined " << std::endl);
 			throw DataManager::ErrGeneric();
@@ -4076,14 +4295,15 @@ ReadModal(DataManager* pDM,
 
 		/* salva le label dei nodi vincolati nell'array IntNodes;
 		 * puo' servire per il restart? */
-		IntFEMNodes[iStrNode - 1] = uNode1;
+		IntFEMNodes[iStrNode - 1] = Node1;
 
 		Vec3 xMB(pInterfaceNodes[iStrNode - 1]->GetXCurr());
 		pedantic_cout("Interface node " << iStrNode << ":" << std::endl
 				<< "        MB node " << uNode2 << " x={" << xMB << "}" << std::endl);
 		Vec3 xFEMRel(pXYZFemNodes->GetVec(iNodeCurr));
 		Vec3 xFEM(X0 + R*xFEMRel);
-		pedantic_cout("        FEM node " << uNode1 << " x={" << xFEM << "} xrel={" << xFEMRel << "}" << std::endl);
+		pedantic_cout("        FEM node \"" << Node1 << "\" x={" << xFEM << "} "
+			"xrel={" << xFEMRel << "}" << std::endl);
 		pedantic_cout("        offset={" << xFEM - xMB << "}" << std::endl);
 	}  /* fine ciclo sui nodi d'interfaccia */
 
@@ -4123,7 +4343,7 @@ ReadModal(DataManager* pDM,
 
 		/* inizio ciclo scansione nodi */
 		for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
-			doublereal mi = FemMass.dGet(iNode);
+			doublereal mi = FemMass[iNode - 1];
 	
 			/* massa totale (Inv 1) */
 			dMass += mi;
@@ -4134,9 +4354,9 @@ ReadModal(DataManager* pDM,
 			Mat3x3 uivett(ui);
 			Mat3x3 JiNodeTmp(0.);
 	
-			JiNodeTmp.Put(1, 1, FemJ.dGet(1, iNode));
-			JiNodeTmp.Put(2, 2, FemJ.dGet(2, iNode));
-			JiNodeTmp.Put(3, 3, FemJ.dGet(3, iNode));
+			JiNodeTmp.Put(1, 1, FemJ[iNode - 1](1));
+			JiNodeTmp.Put(2, 2, FemJ[iNode - 1](2));
+			JiNodeTmp.Put(3, 3, FemJ[iNode - 1](3));
 	
 			JTmp += JiNodeTmp - Mat3x3(ui, ui*mi);
 			STmp += ui*mi;

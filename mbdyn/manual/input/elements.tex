@@ -4014,20 +4014,21 @@ and orientation of the corresponding FEM nodes.
             [ , position , (Vec3)<absolute_position> ]
             [ , orientation , (Mat3x3)<absolute_orientation> ] } ,
         <mode_number> ,
-        [ , list, <mode> [ , ... ] ]
-        <fem_node_number> 
-        [ , no damping 
+        [ list, <mode> [ , ... ] ] ,
+        { <fem_node_number> | from file } ,
+        [ no damping 
             | proportional damping , <damping_coef>
             | diag damping , 
                 <mode_index> , <mode_damping_coef> 
                 [ , ... ] 
-        ] , " <fem_data_file> " ,
+        ] ,
+        " <fem_data_file> " ,
         [ { create binary | use binary | update binary }
             [ , ... ] , ]
         [ use invariant 9 , ]
         [ , { origin node , <origin_node> | origin position , (Vec3)<pos> } ]
         <interface_nodes_number> ,
-            <fem_node_label> ,
+            { " <fem_node_label> " | (integer)<fem_node_label> } ,
                 <multibody_label> , (Vec3)<offset_of_FEM_node>
             [ , ... ]
 \end{verbatim}
@@ -4075,6 +4076,13 @@ The \kw{origin position } keyword defines where, in the FEM model
 reference frame, the \kw{modal} node is placed, or the location
 that corresponds to the optional absolute position and orientation
 in case of a clamped modal element.
+
+\noindent
+The FEM labels can be strings made of any character,
+provided they do not contain blanks.
+The strings must be enclosed in double quotes.
+For legacy reasons, a label not enclosed in double quotes
+is accepted, provided it is an integer.
 
 \noindent
 The list of matchings between FEM and multibody nodes needs
@@ -4311,10 +4319,10 @@ of a mechanism.
 The output occurs in the \kw{.jnt} file, according to default joint output
 for the first 13 columns; specific columns contain:
 \begin{itemize}
-\item columns 14--16: the so-called \emph{Euler} angles that describe 
-	the relative rotation; only the third component is relevant,
-	the first two essentially indicate the accuracy of the rotation 
-	constraint;
+\item columns 14--16: the so-called \emph{Euler} angles (in degrees)
+	that describe the relative rotation; only the third component
+	is relevant, the first two essentially indicate the accuracy
+	of the rotation constraint;
 \item column 17--19: the relative angular velocity;
 \end{itemize}
 If friction is present:

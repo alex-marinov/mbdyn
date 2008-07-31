@@ -78,8 +78,14 @@ Sh_c(sh), fc(f), preF(pref), r(rr)
 /* Distruttore banale */
 PlaneHingeJoint::~PlaneHingeJoint(void)
 {
-   NO_OP;
-};
+	if (Sh_c) {
+		delete Sh_c;
+	}
+
+	if (fc) {
+		delete fc;
+	}
+}
 
 std::ostream&
 PlaneHingeJoint::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
@@ -145,7 +151,7 @@ PlaneHingeJoint::DescribeDof(std::vector<std::string>& desc, bool bInitial, int 
 		}
 		desc.resize(nfc + nself);
 		for (unsigned i = nfc; i-- > 0; ) {
-			desc[nself + nfc] = os.str() + ": " + desc[nfc];
+			desc[nself + i] = os.str() + ": " + desc[nfc];
 		}
 
 		std::string name = os.str();
@@ -169,14 +175,14 @@ PlaneHingeJoint::DescribeDof(std::vector<std::string>& desc, bool bInitial, int 
 				os.str(name);
 				os.seekp(0, std::ios_base::end);
 				os << ": reaction force derivative fP" << xyz[i];
-				desc[5 + i] = os.str();
+				desc[3 + 2 + i] = os.str();
 			}
 	
 			for (unsigned i = 0; i < 2; i++) {
 				os.str(name);
 				os.seekp(0, std::ios_base::end);
 				os << ": reaction couple derivative mP" << xyz[i];
-				desc[8 + i] = os.str();
+				desc[3 + 2 + 3 + i] = os.str();
 			}
 		}
 
@@ -208,12 +214,12 @@ PlaneHingeJoint::DescribeDof(std::vector<std::string>& desc, bool bInitial, int 
 		case 5:
 		case 6:
 		case 7:
-			os << ": reaction force derivative fP" << xyz[i - 5];
+			os << ": reaction force derivative fP" << xyz[i - 3 - 2];
 			break;
 
 		case 8:
 		case 9:
-			os << ": reaction couple derivative mP" << xyz[i - 8];
+			os << ": reaction couple derivative mP" << xyz[i - 3 - 2 - 3];
 			break;
 		}
 		desc[0] = os.str();
@@ -282,7 +288,7 @@ PlaneHingeJoint::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i
 		}
 		desc.resize(nfc + nself);
 		for (unsigned i = nfc; i-- > 0; ) {
-			desc[nself + nfc] = os.str() + ": " + desc[nfc];
+			desc[nself + i] = os.str() + ": " + desc[nfc];
 		}
 
 		std::string name = os.str();
@@ -306,14 +312,14 @@ PlaneHingeJoint::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i
 				os.str(name);
 				os.seekp(0, std::ios_base::end);
 				os << ": reaction force derivative fP" << xyz[i];
-				desc[5 + i] = os.str();
+				desc[3 + 2 + i] = os.str();
 			}
 	
 			for (unsigned i = 0; i < 2; i++) {
 				os.str(name);
 				os.seekp(0, std::ios_base::end);
 				os << ": reaction couple derivative mP" << xyz[i];
-				desc[8 + i] = os.str();
+				desc[3 + 2 + 3 + i] = os.str();
 			}
 		}
 
@@ -345,12 +351,12 @@ PlaneHingeJoint::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i
 		case 5:
 		case 6:
 		case 7:
-			os << ": reaction force derivative fP" << xyz[i - 5];
+			os << ": reaction force derivative fP" << xyz[i - 3 - 2];
 			break;
 
 		case 8:
 		case 9:
-			os << ": reaction couple derivative mP" << xyz[i - 8];
+			os << ": reaction couple derivative mP" << xyz[i - 3 - 2 - 3];
 			break;
 		}
 		desc[0] = os.str();
@@ -2305,8 +2311,14 @@ Sh_c(sh), fc(f), preF(pref), r(rr)
 /* Distruttore banale */
 AxialRotationJoint::~AxialRotationJoint(void)
 {
-	NO_OP;
-};
+	if (Sh_c) {
+		delete Sh_c;
+	}
+
+	if (fc) {
+		delete fc;
+	}
+}
 
 
 std::ostream&
@@ -2371,7 +2383,7 @@ AxialRotationJoint::DescribeDof(std::vector<std::string>& desc, bool bInitial, i
 		}
 		desc.resize(nfc + nself);
 		for (unsigned i = nfc; i-- > 0; ) {
-			desc[nself + nfc] = os.str() + ": " + desc[nfc];
+			desc[nself + i] = os.str() + ": " + desc[nfc];
 		}
 
 		std::string name = os.str();
@@ -2509,7 +2521,7 @@ AxialRotationJoint::DescribeEq(std::vector<std::string>& desc, bool bInitial, in
 		}
 		desc.resize(nfc + nself);
 		for (unsigned i = nfc; i-- > 0; ) {
-			desc[nself + nfc] = os.str() + ": " + desc[nfc];
+			desc[nself + i] = os.str() + ": " + desc[nfc];
 		}
 
 		std::string name = os.str();
