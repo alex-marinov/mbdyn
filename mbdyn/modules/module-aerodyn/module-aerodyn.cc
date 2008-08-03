@@ -379,7 +379,7 @@ read(
 	 *
 	 * FIXME: does it return an error code?
 	 */
-	char Version[26];
+	char Version[26 + 1];
 	snprintf(Version, sizeof(Version), "(%s)", VERSION);
 	for (unsigned i = strlen(Version); i < sizeof(Version); i++) {
 		Version[i] = ' ';
@@ -457,10 +457,6 @@ read(
 			throw ErrGeneric();
 		}
 	}
-
-#if 0
-	std::cerr << "Version: " << Version << std::endl;
-#endif
 
 	__FC_DECL__(mbdyn_init)(Version, &NBlades);
 
