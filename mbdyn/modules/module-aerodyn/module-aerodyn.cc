@@ -350,6 +350,7 @@ read(
 		<< "\t\t\t<i-th blade j-th node label> ," << std::endl
 		<< "\t\t\t[ orientation , <i-th blade j-th node orientation> , ]" << std::endl
 		<< "\t[ output file name , \" <file name> \" ]" << std::endl
+		<< "\t[ input file name , \" <file name> \" ] (default: \"aerodyn.ipt\")" << std::endl
 		);
 	}
 
@@ -411,7 +412,7 @@ read(
     	p->nodes.resize(NBlades*NElems);
     	p->bladeR.resize(NBlades);
 	ReferenceFrame rf(p->pHub);
-	for (unsigned e = 0; e < NBlades*NElems; e++) {
+	for (unsigned e = 0; e < unsigned(NBlades*NElems); e++) {
 		if ((e % NElems) == 0) {
 		    	/*
 			 * why we need to get the blade Rotation Matrix related to Hub
@@ -429,7 +430,7 @@ read(
 		 */
 		if (HP.IsKeyWord("orientation")) {
 			p->nodes[e].Ra = HP.GetRotRel(ReferenceFrame(p->nodes[e].pNode));
-			const Vec3& e1 = p->nodes[e].Ra.GetVec(1);
+			Vec3 e1 = p->nodes[e].Ra.GetVec(1);
 			p->nodes[e].dBuiltinPitch = std::atan2(e1(3), e1(2));
 		} else {
 			p->nodes[e].Ra = Eye3;
@@ -441,8 +442,8 @@ read(
 		const char *ofname = HP.GetFileName();
 		if (ofname == 0) {
 			silent_cerr("Aerodyn(" << pEl->GetLabel() << "): "
-				"unable to get file name "
-				" at line " << HP.GetLineData()
+				"unable to get output file name "
+				"at line " << HP.GetLineData()
 				<< std::endl);
 			throw ErrGeneric();
 		}
@@ -451,42 +452,39 @@ read(
 		if (!p->out) {
 			silent_cerr("Aerodyn(" << pEl->GetLabel() << "): "
 				"unable to open file \"" << ofname << "\" "
-				" at line " << HP.GetLineData()
+				"at line " << HP.GetLineData()
 				<< std::endl);
 			throw ErrGeneric();
 		}
 	}
 
+#if 0
 	std::cerr << "Version: " << Version << std::endl;
+#endif
 
 	__FC_DECL__(mbdyn_init)(Version, &NBlades);
 
-#if 0
-	// does not work as expected...
-	const char *tmp = HP.GetStringWithDelims();
-	if (tmp == 0) {
-		silent_cerr("unable to get input file "
-			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
-	}
+	int rc;
+	if (HP.IsKeyWord("input" "file" "name")) {
+#if 1
+		// FIXME: does not work as expected...
+		const char *input_file_name = HP.GetStringWithDelims();
+		if (input_file_name == 0) {
+			silent_cerr("unable to get input file name "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric();
+		}
 
-	char input_file[80];
-	if (strlen(tmp) >= sizeof(input_file)) {
-		silent_cerr("Aerodyn(" << pEl->GetLabel() << "): "
-			"file name \"" << tmp << "\" too long "
-			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
-	}
-
-	strncpy(input_file, tmp, sizeof(input_file));
-	for (unsigned i = strlen(input_file); i < sizeof(input_file); i++) {
-		input_file[i] = ' ';
-	}
-	int rc = __FC_DECL__(ad_inputgate)(input_file);
+		F_INTEGER input_file_name_len = strlen(input_file_name);
+		rc = __FC_DECL__(mbdyn_ad_inputgate)((F_CHAR *)input_file_name, &input_file_name_len);
 #else
-	// the input file name must be "aerodyn.ipt"
-	int rc = __FC_DECL__(adinputgate)();
+		// the input file name must be "aerodyn.ipt"
+		rc = __FC_DECL__(adinputgate)();
 #endif
+	} else {
+		rc = __FC_DECL__(adinputgate)();
+	}
+
 	if (rc != 0) {
 		silent_cerr("Aerodyn(" << pEl->GetLabel() << "): "
 			"initialization failed "
@@ -527,8 +525,8 @@ output(const LoadableElem* pEl, OutputHandler& OH)
 	
 	if (p->out) {
 		unsigned c = 0;
-		for (unsigned b = 0; b < p->nblades; b++) {
-			for (unsigned e = 0; e < p->nelems; e++, c++) {
+		for (unsigned b = 0; b < unsigned(p->nblades); b++) {
+			for (unsigned e = 0; e < unsigned(p->nelems); e++, c++) {
 				p->out
 					<< b + 1 << '.' << e + 1
 					<< " " << p->nodes[c].F
@@ -619,7 +617,7 @@ ass_res(
 		p->bFirst = false;
 	}
 
-	for (unsigned e = 0; e < p->nblades*p->nelems; e++) {
+	for (unsigned e = 0; e < unsigned(p->nblades*p->nelems); e++) {
 		/*
 		 * set indices where force/moment need to be put
 		 */
@@ -635,7 +633,9 @@ ass_res(
 		WorkVec.Add(6*e + 1, p->nodes[e].pNode->GetRCurr()*p->nodes[e].F);
 		WorkVec.Add(6*e + 4, p->nodes[e].pNode->GetRCurr()*p->nodes[e].M);
 
+#if 0
 		std::cerr << "aerodyn[" << e << "]: " << p->nodes[e].F << " " << p->nodes[e].M << std::endl;
+#endif
 	}
 
 	/* 

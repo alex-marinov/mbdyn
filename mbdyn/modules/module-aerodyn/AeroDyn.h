@@ -157,6 +157,12 @@ extern int
 __FC_DECL__(mbdyn_init)(F_CHAR *Version, F_INTEGER *nblades);
 
 /*
+ * AeroDyn initialization wrapper
+ */
+extern int
+__FC_DECL__(mbdyn_ad_inputgate)(F_CHAR *fname, F_INTEGER *fnamelen);
+
+/*
  * MBDyn logical true
  */
 extern int

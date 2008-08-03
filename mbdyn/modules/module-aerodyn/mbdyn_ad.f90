@@ -52,6 +52,21 @@ INTEGER(4) NBlades
 
 END SUBROUTINE MBDyn_init
 
+SUBROUTINE MBDyn_ad_inputgate( FileName, FileNameLen )
+
+IMPLICIT NONE
+
+INTEGER(4) FileNameLen
+CHARACTER(FileNameLen) FileName
+
+        print *,'### FileName=',FileName(1:FileNameLen),' FileNameLen=',FileNameLen
+
+        CALL AD_inputgate(FileName)
+
+        RETURN
+
+END SUBROUTINE MBDyn_ad_inputgate
+
 SUBROUTINE MBDyn_true( val )
 
 IMPLICIT NONE
