@@ -3699,12 +3699,35 @@ ReadModal(DataManager* pDM,
 			"\"" << sBinFileFem << "\"" << std::endl);
 
 		/* check version */
+		// NOTE: any time the format of the binary file changes,
+		// the BinVersion should be incremented.
+		// When reading the binary file, the version of the file
+		// is compared with that of the code.  If they do not match:
+		// if the file is newer than the code, abort.
+		// if the file is older than the code, try to deal with it
+		// as much as possible
+		//
+		// History:
+		//
+		// 1: first implementation
+		//
+		// 2: July 2008, at LaMSID
+		//	- string FEM labels
+		//	- 11 & 12 optional
+		//	- -1 as the last checkpoint
+		//	- version 1 tolerated
 		fbin.read((char *)&currBinVersion, sizeof(currBinVersion));
-		if (currBinVersion != BinVersion) {
+		if (currBinVersion > BinVersion) {
 			silent_cerr("Modal(" << uLabel << "): "
 					"file \"" << sBinFileFem << "\" "
-					"version does not match" << std::endl);
+					"version " << currBinVersion << " unsupported" << std::endl);
 			throw ErrGeneric();
+
+		} else if (currBinVersion < BinVersion) {
+			silent_cout("Modal(" << uLabel << "): "
+					"file \"" << sBinFileFem << "\" "
+					"version " << currBinVersion << " is outdated; "
+					"trying to read anyway..." << std::endl);
 		}
 
 		pedantic_cout("Modal(" << uLabel << "): "
@@ -3796,12 +3819,24 @@ ReadModal(DataManager* pDM,
 		pedantic_cout("Modal(" << uLabel << "): "
 			"reading block " << int(checkPoint) << std::endl);
 
-		for (unsigned int iNode = 0; iNode < NFemNodes; iNode++) {
-			size_t len;
-			fbin.read((char *)&len, sizeof(size_t));
-			ASSERT(len > 0);
-			IdFemNodes[iNode].resize(len);
-			fbin.read((char *)IdFemNodes[iNode].c_str(), len);
+		if (currBinVersion == 1) {
+			// NOTE: accept unsigned int FEM labels (old binary format)
+			for (unsigned int iNode = 0; iNode < NFemNodes; iNode++) {
+				unsigned uFemLabel;
+				fbin.read((char *)&uFemLabel, sizeof(uFemLabel));
+				std::ostringstream os;
+				os << uFemLabel;
+				IdFemNodes[iNode] = os.str();
+			}
+
+		} else {
+			for (unsigned int iNode = 0; iNode < NFemNodes; iNode++) {
+				size_t len;
+				fbin.read((char *)&len, sizeof(size_t));
+				ASSERT(len > 0);
+				IdFemNodes[iNode].resize(len);
+				fbin.read((char *)IdFemNodes[iNode].c_str(), len);
+			}
 		}
 
 		/* deformate iniziali dei modi */
@@ -4101,12 +4136,14 @@ ReadModal(DataManager* pDM,
 			} break;
 		}
 
-		if (checkPoint != -1) {
-			silent_cerr("Modal(" << uLabel << "): "
-				"file \"" << sBinFileFem << "\" "
-				"looks broken (expecting final checkpoint)"
-				<< std::endl);
-			throw ErrGeneric();
+		if (currBinVersion != 1) {
+			if (checkPoint != -1) {
+				silent_cerr("Modal(" << uLabel << "): "
+					"file \"" << sBinFileFem << "\" "
+					"looks broken (expecting final checkpoint)"
+					<< std::endl);
+				throw ErrGeneric();
+			}
 		}
 
 		pedantic_cout("Modal(" << uLabel << "): "

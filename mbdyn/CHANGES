@@ -31,6 +31,8 @@ MBDyn 1.X-Devel
 		- allow to use strings for FEM labels in modal joint
 		- add "from file" keyword for FEM node number in modal joint
 	Backward compatibility issues:
+		- the binary format of modal fem data changed;
+		  old files "should" be still usable
 	Known issues:
 		- odd operator precedence for power/unary minus
 		- scalar functions may leak at shutdown; need redesign
