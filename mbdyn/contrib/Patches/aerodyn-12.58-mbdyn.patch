@@ -6,28 +6,41 @@ It is provided AS IS, WITHOUT ANY EXPLICIT OR IMPLIED WARRANTY.
 
 This patch is released under the same terms and conditions of AeroDyn
 
+The patch provides:
+  - gfortran compatibitily:
+    - replace Abort() with AD_Abort() calls, as gfortran provides
+      a conflicting internal definition for Abort()
+    - compile with -ffixed-line-length-0 otherwise gfortran complains
+      because some string constants exceed 72 columns
+  - add 'MBDyn' to the list of supported program names
+
     --- o --- o --- o ---
 
 To build AeroDyn as a library suitable for linking with MBDyn's
 module-aerodyn:
 
-- download AeroDyn version 12.58 (used to be available from
-  <http://wind.nrel.gov/designcodes/simulators/aerodyn/>)
-- apply the patch aerodyn-12.58-mbdyn.patch, available in the folder
-  contrib/Patches/ of MBDyn's source tree
-- execute
+  - download AeroDyn version 12.58 (used to be available from
+    <http://wind.nrel.gov/designcodes/simulators/aerodyn/>)
+  - apply the patch aerodyn-12.58-mbdyn.patch, available in folder
+    contrib/Patches/ of MBDyn's source tree
+  - execute
 
-        gfortran -O -c *.f90
+        gfortran -ffixed-line-length-0 -O -c *.f90
         ar ru libAeroDyn.a *.o
 
-- copy libAeroDyn.a where it can be found by the linker, or directly
-  in folder modules/module-aerodyn/ of MBDyn's source tree
+  - copy libAeroDyn.a where it can be found by the linker, or directly
+    in folder modules/module-aerodyn/ of MBDyn's source tree
+
+NOTE: use the f90 compiler of your choice, although this has only been
+tested with gfortran so far.
 
     --- o --- o --- o ---
 
 Please report bugs or issues related to integration and use with MBDyn
 through the mailing list <mbdyn-users@mbdyn.org> (need to subscribe first;
-instructions at <https://www.mbdyn.org/mailman/listinfo/mbdyn-users>)
+instructions at <https://www.mbdyn.org/mailman/listinfo/mbdyn-users>).
+
+AeroDyn usage questions should be reported to NREL's forums.
 
 Index: AeroSubs.f90
 ===================================================================
@@ -57,70 +70,6 @@ diff -u -r1.1 AeroSubs.f90
  
  
   ! Open and read airfoil data file(s)
-@@ -854,12 +859,18 @@
-    WRITE(UnADopt, Frmt) TRIM( Int2LStr( NumCTyD  ) ), TRIM( Int2LStr( NumCTzD ) ), TRIM( Int2LStr( NumCTt ) )
-    Frmt = "( '  The wind data will start at ', A, ' seconds and end at ', A, ' seconds.', / )"
-    WRITE(UnADopt, Frmt ) TRIM( Flt2LStr( T_CT_St ) ), TRIM( Flt2LStr( T_CT_En ) )
--   WRITE(UnADopt,'(A)' ) '  CTDistSc   - Disturbance scale (ratio of wave height to rotor diameter)     = '//TRIM( Flt2LStr( CTDistSc ) )
--   WRITE(UnADopt,'(A)' ) '  CTLy       - Lateral location of tower centerline in the dataset            = '//TRIM( Flt2LStr( CTLy       ) )
--   WRITE(UnADopt,'(A)' ) '  CTLz       - Vertical location of tower centerline in the dataset           = '//TRIM( Flt2LStr( CTLz       ) )
--   WRITE(UnADopt,'(A)' ) '  CTScaleVel - Scaling velocity, U0 (m/s)                                     = '//TRIM( Flt2LStr( CTScaleVel ) )
--   WRITE(UnADopt,'(A)' ) '  CT_DF_Y    - Decimation factor for wind data in the y direction             = '//TRIM( Int2LStr( CT_DF_Y  ) )
--   WRITE(UnADopt,'(A)' ) '  CT_DF_Z    - Decimation factor for wind data in the z direction             = '//TRIM( Int2LStr( CT_DF_Z  ) )
-+   WRITE(UnADopt,'(A)' ) '  CTDistSc   - Disturbance scale (ratio of wave height to rotor diameter)     = '&
-+      //TRIM( Flt2LStr( CTDistSc ) )
-+   WRITE(UnADopt,'(A)' ) '  CTLy       - Lateral location of tower centerline in the dataset            = '&
-+      //TRIM( Flt2LStr( CTLy       ) )
-+   WRITE(UnADopt,'(A)' ) '  CTLz       - Vertical location of tower centerline in the dataset           = '&
-+      //TRIM( Flt2LStr( CTLz       ) )
-+   WRITE(UnADopt,'(A)' ) '  CTScaleVel - Scaling velocity, U0 (m/s)                                     = '&
-+      //TRIM( Flt2LStr( CTScaleVel ) )
-+   WRITE(UnADopt,'(A)' ) '  CT_DF_Y    - Decimation factor for wind data in the y direction             = '&
-+      //TRIM( Int2LStr( CT_DF_Y  ) )
-+   WRITE(UnADopt,'(A)' ) '  CT_DF_Z    - Decimation factor for wind data in the z direction             = '&
-+      //TRIM( Int2LStr( CT_DF_Z  ) )
-    WRITE(UnADopt,'(/A)') ' Background wind file: '
- 
- ENDIF
-@@ -879,18 +890,28 @@
- ELSEIF ( FDWindFlag )  THEN
-    WRITE(UnADopt,'(/A)') ' 4D-wind-field info:'
-    Frmt = "( /, '  Using a ', A, 'x', A, 'x', A, ' wind field with ', A, ' time steps.', / )"
--   WRITE(UnADopt, Frmt) TRIM( Int2LStr( Num4DxD  ) ), TRIM( Int2LStr( Num4DyD  ) ), TRIM( Int2LStr( Num4DzD ) ), TRIM( Int2LStr( Num4Dt ) )
-+   WRITE(UnADopt, Frmt) TRIM( Int2LStr( Num4DxD  ) ), TRIM( Int2LStr( Num4DyD  ) ), TRIM( Int2LStr( Num4DzD ) ), &
-+      TRIM( Int2LStr( Num4Dt ) )
-    Frmt = "( '  The wind data will start at ', A, ' seconds and end at ', A, ' seconds.', / )"
-    WRITE(UnADopt, Frmt) TRIM( Flt2LStr( T_4D_St ) ), TRIM( Flt2LStr( T_4D_En ) )
--   WRITE(UnADopt,'(A)') '  Ubot     - u-component, steady wind speed at the bottom of the wave (m/s) = '//TRIM( Flt2LStr( Ubot     ) )
--   WRITE(UnADopt,'(A)') '  DistScal - Disturbance scale (ratio of wave height to rotor diameter)     = '//TRIM( Flt2LStr( DistScal ) )
--   WRITE(UnADopt,'(A)') '  Lx       - Downwind location of tower centerline in the dataset           = '//TRIM( Flt2LStr( Lx       ) )
--   WRITE(UnADopt,'(A)') '  Ly       - Lateral location of tower centerline in the dataset            = '//TRIM( Flt2LStr( Ly       ) )
--   WRITE(UnADopt,'(A)') '  Lz       - Vertical location of tower centerline in the dataset           = '//TRIM( Flt2LStr( Lz       ) )
--   WRITE(UnADopt,'(A)') '  ScaleVel - Scaling velocity, U0 (m/s)                                     = '//TRIM( Flt2LStr( ScaleVel ) )
--   WRITE(UnADopt,'(A)') '  FD_DF_X  - Decimation factor for wind data in the x direction             = '//TRIM( Int2LStr( FD_DF_X  ) )
--   WRITE(UnADopt,'(A)') '  FD_DF_Y  - Decimation factor for wind data in the y direction             = '//TRIM( Int2LStr( FD_DF_Y  ) )
--   WRITE(UnADopt,'(A)') '  FD_DF_Z  - Decimation factor for wind data in the z direction             = '//TRIM( Int2LStr( FD_DF_Z  ) )
-+   WRITE(UnADopt,'(A)') '  Ubot     - u-component, steady wind speed at the bottom of the wave (m/s) = '//&
-+      TRIM( Flt2LStr( Ubot     ) )
-+   WRITE(UnADopt,'(A)') '  DistScal - Disturbance scale (ratio of wave height to rotor diameter)     = '//&
-+      TRIM( Flt2LStr( DistScal ) )
-+   WRITE(UnADopt,'(A)') '  Lx       - Downwind location of tower centerline in the dataset           = '//&
-+      TRIM( Flt2LStr( Lx       ) )
-+   WRITE(UnADopt,'(A)') '  Ly       - Lateral location of tower centerline in the dataset            = '//&
-+      TRIM( Flt2LStr( Ly       ) )
-+   WRITE(UnADopt,'(A)') '  Lz       - Vertical location of tower centerline in the dataset           = '//&
-+      TRIM( Flt2LStr( Lz       ) )
-+   WRITE(UnADopt,'(A)') '  ScaleVel - Scaling velocity, U0 (m/s)                                     = '//&
-+      TRIM( Flt2LStr( ScaleVel ) )
-+   WRITE(UnADopt,'(A)') '  FD_DF_X  - Decimation factor for wind data in the x direction             = '//&
-+      TRIM( Int2LStr( FD_DF_X  ) )
-+   WRITE(UnADopt,'(A)') '  FD_DF_Y  - Decimation factor for wind data in the y direction             = '//&
-+      TRIM( Int2LStr( FD_DF_Y  ) )
-+   WRITE(UnADopt,'(A)') '  FD_DF_Z  - Decimation factor for wind data in the z direction             = '//&
-+      TRIM( Int2LStr( FD_DF_Z  ) )
- ELSEIF ( UsrWndFlag )  THEN
-    WRITE(UnADopt,'(/A)') ' Aerodyn is using a user-defined wind model.'
- ELSE
 @@ -1128,22 +1149,22 @@
   ! Allocate local arrays with NTables dimension
  
