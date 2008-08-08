@@ -2840,12 +2840,52 @@ ReadModal(DataManager* pDM,
 	const char *s = HP.GetFileName();
 	if (s == NULL) {
 		silent_cerr("Modal(" << uLabel << "): unable to get "
-			"modal data file name" << std::endl);
+			"modal data file name at line " << HP.GetLineData()
+			<< std::endl);
 		throw ErrGeneric();
 	}
 
 	const char *sFileFem = NULL;
 	SAFESTRDUP(sFileFem, s);
+
+	doublereal dMassThreshold = 0.;
+	doublereal dStiffnessThreshold = 0.;
+	while (true) {
+		if (HP.IsKeyWord("threshold")) {
+			dStiffnessThreshold = HP.GetReal();
+			if (dStiffnessThreshold < 0.) {
+				silent_cerr("Modal(" << uLabel << "): "
+					"invalid threshold " << dStiffnessThreshold
+					<< " at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric();
+			}
+			dMassThreshold = dStiffnessThreshold;
+
+		} else if (HP.IsKeyWord("mass" "threshold")) {
+			dMassThreshold = HP.GetReal();
+			if (dMassThreshold < 0.) {
+				silent_cerr("Modal(" << uLabel << "): "
+					"invalid mass threshold " << dMassThreshold
+					<< " at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric();
+			}
+
+		} else if (HP.IsKeyWord("stiffness" "threshold")) {
+			dStiffnessThreshold = HP.GetReal();
+			if (dStiffnessThreshold < 0.) {
+				silent_cerr("Modal(" << uLabel << "): "
+					"invalid stiffness threshold " << dStiffnessThreshold
+					<< " at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric();
+			}
+
+		} else {
+			break;
+		}
+	}
 
 	/* loop for binary keywords */
 	bool bCreateBinary = false;
@@ -2952,6 +2992,26 @@ ReadModal(DataManager* pDM,
 
 	bool		bBuildInvariants = false;
 
+	/* Note: to keep it readable, we use a base 1 array */
+	bool		bRecordGroup[] = {
+		false,		// use 1-based array
+
+		false,		// record 1: header
+		false,		// record 2: FEM node labels
+		false,		// record 3: initial modal amplitudes
+		false,		// record 4: initial modal amplitude rates
+		false,		// record 5: FEM node X
+		false,		// record 6: FEM node Y
+		false,		// record 7: FEM node Z
+		false,		// record 8: shapes
+		false,		// record 9: generalized mass matrix
+		false,		// record 10: generalized stiffness matrix
+		false,		// record 11: diagonal mass matrix
+		false,		// record 12: rigid body inertia
+
+		false		// record -1: end of file
+	};
+
 	if (bReadFEM) {
 		/* apre il file con i dati del modello FEM */
 		std::ifstream fdat(sFileFem);
@@ -2986,26 +3046,6 @@ ReadModal(DataManager* pDM,
 		doublereal	d;
 		unsigned int	NRejModes = 0;
 		char		str[BUFSIZ];
-
-		/* Note: to keep it readable, we use a base 1 array */
-		bool		bRecordGroup[] = {
-			false,		// use 1-based array
-
-			false,		// record 1: header
-			false,		// record 2: FEM node labels
-			false,		// record 3: initial modal amplitudes
-			false,		// record 4: initial modal amplitude rates
-			false,		// record 5: FEM node X
-			false,		// record 6: FEM node Y
-			false,		// record 7: FEM node Z
-			false,		// record 8: shapes
-			false,		// record 9: generalized mass matrix
-			false,		// record 10: generalized stiffness matrix
-			false,		// record 11: diagonal mass matrix
-			false,		// record 12: rigid body inertia
-
-			false		// record -1: end of file
-		};
 
 		while (fdat && !fdat.eof()) {        /* parsing del file */
 			fdat.getline(str, sizeof(str));
@@ -3470,6 +3510,10 @@ ReadModal(DataManager* pDM,
 					for (unsigned int kMode = 1; kMode <= NModesFEM; kMode++) {
 						fdat >> d;
 
+						if (dMassThreshold > 0.0 && fabs(d) < dMassThreshold) {
+							d = 0.0;
+						}
+
 						if (bWriteBIN) {
 							fbin.write((char *)&d, sizeof(d));
 						}
@@ -3526,6 +3570,10 @@ ReadModal(DataManager* pDM,
 					for (unsigned int kMode = 1; kMode <= NModesFEM; kMode++) {
 						fdat >> d;
 						
+						if (dStiffnessThreshold > 0.0 && fabs(d) < dStiffnessThreshold) {
+							d = 0.0;
+						}
+
 						if (bWriteBIN) {
 							fbin.write((char *)&d, sizeof(d));
 						}
@@ -3713,7 +3761,8 @@ ReadModal(DataManager* pDM,
 		//
 		// 2: July 2008, at LaMSID
 		//	- string FEM labels
-		//	- 11 & 12 optional
+		//	- 3 & 4 optional
+		//	- 11 & 12 optional and no longer mutually exclusive
 		//	- -1 as the last checkpoint
 		//	- version 1 tolerated
 		fbin.read((char *)&currBinVersion, sizeof(currBinVersion));
@@ -3806,6 +3855,8 @@ ReadModal(DataManager* pDM,
 			bActiveModes[uModeNumber[iCnt]] = true;
 		}
 
+		bRecordGroup[1] = true;
+
 		/* legge il secondo blocco (Id.nodi) */
 		fbin.read(&checkPoint, sizeof(checkPoint));
 		if (checkPoint != 2) {
@@ -3839,60 +3890,84 @@ ReadModal(DataManager* pDM,
 			}
 		}
 
+		bRecordGroup[2] = true;
+
 		/* deformate iniziali dei modi */
 		fbin.read(&checkPoint, sizeof(checkPoint));
 		if (checkPoint != 3) {
-			silent_cerr("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFem << "\" "
-					"looks broken (expecting checkpoint 3)"
-					<< std::endl);
-			throw ErrGeneric();
-		}
-
-		pedantic_cout("Modal(" << uLabel << "): "
-			"reading block " << int(checkPoint) << std::endl);
-
-		for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
-			doublereal	d;
-
-			fbin.read((char *)&d, sizeof(d));
-				
-			if (!bActiveModes[jMode]) {
-				continue;
+			if (currBinVersion == 1) {
+				silent_cerr("Modal(" << uLabel << "): "
+						"file \"" << sBinFileFem << "\" "
+						"looks broken (expecting checkPoint 3)"
+						<< std::endl);
+				throw ErrGeneric();
 			}
 
-			a->Put(iCnt, d);
-			iCnt++;
-		}
+			silent_cerr("Modal(" << uLabel << "): "
+					"warning: file \"" << sBinFileFem << "\" "
+					"does not contain modal coordinate initial values"
+					<< std::endl);
+
+		} else {
+			pedantic_cout("Modal(" << uLabel << "): "
+				"reading block " << int(checkPoint) << std::endl);
+
+			for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
+				doublereal	d;
 	
+				fbin.read((char *)&d, sizeof(d));
+					
+				if (!bActiveModes[jMode]) {
+					continue;
+				}
+	
+				a->Put(iCnt, d);
+				iCnt++;
+			}
+	
+			bRecordGroup[3] = true;
+
+			fbin.read(&checkPoint, sizeof(checkPoint));
+		}
+
 		/* velocita' iniziali dei modi */
-		fbin.read(&checkPoint, sizeof(checkPoint));
 		if (checkPoint != 4) {
-			silent_cerr("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFem << "\" "
-					"looks broken (expecting checkpoint 4)"
-					<< std::endl);
-			throw ErrGeneric();
-		}
-
-		pedantic_cout("Modal(" << uLabel << "): "
-			"reading block " << int(checkPoint) << std::endl);
-
-		for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
-			doublereal	d;
-
-			fbin.read((char *)&d, sizeof(d));
-				
-			if (!bActiveModes[jMode]) {
-				continue;
+			if (currBinVersion == 1) {
+				silent_cerr("Modal(" << uLabel << "): "
+						"file \"" << sBinFileFem << "\" "
+						"looks broken (expecting checkPoint 4)"
+						<< std::endl);
+				throw ErrGeneric();
 			}
 
-			aP->Put(iCnt, d);
-			iCnt++;
-		}
+			silent_cerr("Modal(" << uLabel << "): "
+					"warning: file \"" << sBinFileFem << "\" "
+					"does not contain modal coordinate derivative initial values"
+					<< std::endl);
+
+		} else {
+			pedantic_cout("Modal(" << uLabel << "): "
+				"reading block " << int(checkPoint) << std::endl);
+
+			for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
+				doublereal	d;
+
+				fbin.read((char *)&d, sizeof(d));
+				
+				if (!bActiveModes[jMode]) {
+					continue;
+				}
+
+				aP->Put(iCnt, d);
+				iCnt++;
+			}
 	
+			bRecordGroup[4] = true;
+
+			fbin.read(&checkPoint, sizeof(checkPoint));
+		}
+
 		/* Coordinate X dei nodi */
-		fbin.read(&checkPoint, sizeof(checkPoint));
 		if (checkPoint != 5) {
 			silent_cerr("Modal(" << uLabel << "): "
 					"file \"" << sBinFileFem << "\" "
@@ -3915,6 +3990,8 @@ ReadModal(DataManager* pDM,
 
 			pXYZFemNodes->Put(1, iNode, d);
 		}
+
+		bRecordGroup[5] = true;
 
 		/* Coordinate Y dei nodi*/
 		fbin.read(&checkPoint, sizeof(checkPoint));
@@ -3941,6 +4018,8 @@ ReadModal(DataManager* pDM,
 			pXYZFemNodes->Put(2, iNode, d);
 		}
 
+		bRecordGroup[6] = true;
+
 		/* Coordinate Z dei nodi*/
 		fbin.read(&checkPoint, sizeof(checkPoint));
 		if (checkPoint != 7) {
@@ -3965,6 +4044,8 @@ ReadModal(DataManager* pDM,
 
 			pXYZFemNodes->Put(3, iNode, d);
 		}
+
+		bRecordGroup[7] = true;
 
 		/* Forme modali */
 		fbin.read(&checkPoint, sizeof(checkPoint));
@@ -4003,6 +4084,8 @@ ReadModal(DataManager* pDM,
 			}
 		}
 
+		bRecordGroup[8] = true;
+
 		/* Matrice di massa modale */
 		fbin.read(&checkPoint, sizeof(checkPoint));
 		if (checkPoint != 9) {
@@ -4036,6 +4119,8 @@ ReadModal(DataManager* pDM,
 			}
 		}
 
+		bRecordGroup[9] = true;
+
 		/* Matrice di rigidezza  modale */
 		fbin.read(&checkPoint, sizeof(checkPoint));
 		if (checkPoint != 10) {
@@ -4068,6 +4153,8 @@ ReadModal(DataManager* pDM,
 				iCnt++;
 			}
 		}
+
+		bRecordGroup[10] = true;
 
 		/* Lumped Masses */
 		fbin.read(&checkPoint, sizeof(checkPoint));
@@ -4104,6 +4191,8 @@ ReadModal(DataManager* pDM,
 
 			bBuildInvariants = true;
 
+			bRecordGroup[11] = true;
+
 			// read next checkpoint
 			fbin.read(&checkPoint, sizeof(checkPoint));
 			break;
@@ -4129,6 +4218,8 @@ ReadModal(DataManager* pDM,
 					JTmp(iRow, iCol) = d;
 				}
 			}
+
+			bRecordGroup[12] = true;
 
 			// read next checkpoint
 			fbin.read(&checkPoint, sizeof(checkPoint));
@@ -4354,6 +4445,10 @@ ReadModal(DataManager* pDM,
 	/* NOTE: right now, either they are all used (except for Inv9)
 	 * or none is used, and the global inertia of the body is expected */
 	if (bBuildInvariants) {
+		doublereal dMassInv = 0.;
+		Vec3 STmpInv(0.);
+		Mat3x3 JTmpInv(0.);
+
 		MatNxN GenMass(NModes, 0.);
 
 		/* TODO: select what terms are used */
@@ -4383,7 +4478,7 @@ ReadModal(DataManager* pDM,
 			doublereal mi = FemMass[iNode - 1];
 	
 			/* massa totale (Inv 1) */
-			dMass += mi;
+			dMassInv += mi;
 	
 			/* posizione nodi FEM */
 			Vec3 ui = pXYZFemNodes->GetVec(iNode);
@@ -4395,8 +4490,8 @@ ReadModal(DataManager* pDM,
 			JiNodeTmp.Put(2, 2, FemJ[iNode - 1](2));
 			JiNodeTmp.Put(3, 3, FemJ[iNode - 1](3));
 	
-			JTmp += JiNodeTmp - Mat3x3(ui, ui*mi);
-			STmp += ui*mi;
+			JTmpInv += JiNodeTmp - Mat3x3(ui, ui*mi);
+			STmpInv += ui*mi;
 	
 			/* estrae le forme modali del nodo i-esimo */
 			for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
@@ -4480,7 +4575,17 @@ ReadModal(DataManager* pDM,
 			silent_cout(std::endl);
 		}
 
-	} else {
+		// if record 12 was read, leave its data in place
+		if (!bRecordGroup[12]) {
+			dMass = dMassInv;
+			STmp = STmpInv;
+			JTmp = JTmpInv;
+		}
+
+	}
+
+	// if record 12 was read, fix static moment
+	if (bRecordGroup[12]) {
 		/* left over when reading XCG */
 		STmp *= dMass;
 	}
