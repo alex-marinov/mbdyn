@@ -4023,6 +4023,7 @@ and orientation of the corresponding FEM nodes.
                 [ , ... ] 
         ] ,
         " <fem_data_file> " ,
+        [ [ { mass | stiffness } ] threshold , <threshold> , ]
         [ { create binary | use binary | update binary }
             [ , ... ] , ]
         [ use invariant 9 , ]
@@ -4083,6 +4084,13 @@ provided they do not contain blanks.
 The strings must be enclosed in double quotes.
 For legacy reasons, a label not enclosed in double quotes
 is accepted, provided it is an integer.
+
+\noindent
+If any of \kw{mass threshold}, \kw{stiffness threshold} are given,
+elements whose absolute value is lower than the threshold
+are discarded from the mass and stiffness matrix, respectively.
+The keyword \kw{threshold} is a catchall for both,
+meaning that the same threshold must be used for both matrices.
 
 \noindent
 The list of matchings between FEM and multibody nodes needs
