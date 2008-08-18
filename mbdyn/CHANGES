@@ -35,7 +35,6 @@ MBDyn 1.X-Devel
 		  old files "should" be still usable
 	Known issues:
 		- odd operator precedence for power/unary minus
-		- scalar functions may leak at shutdown; need redesign
 	Bug fixes:
 		- MSYS/MinGW needs to explicitly include stdint.h
 		- MSG_WAITALL is not defined on Cygwin
