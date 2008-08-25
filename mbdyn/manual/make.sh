@@ -54,7 +54,7 @@ for IN in $TGT; do
 		latex "$IN" >> "$LOG" 2>&1
 		latex "$IN" >> "$LOG" 2>&1
 
-		echo "making $OUT.ps..."
+		echo "making $OUT.ps(.gz)..."
 		which dvips > /dev/null 2>&1
 		RC=$?
 		if [ "$RC" != 0 ] ; then
@@ -80,6 +80,7 @@ for IN in $TGT; do
 			if [ "$CONVERT" != "" ] ; then
 				"$CONVERT" "$OUT.ps" "$OUT.pdf" >> "$LOG" 2>&1
 			fi
+			gzip "$OUT.ps"
 		fi
 	fi
 
