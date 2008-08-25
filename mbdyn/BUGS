@@ -39,7 +39,9 @@ http://www.aero.polimi.it
 	  free to notify it, possibly with a patch that works around
 	  the issue.
 
+1.3.4
+	- (-x^y) is equivalent to ((-x)^y) instead of (-(x^y)).
+
 HEAD
 	- y12/cc interaction (throws ErrRebuildMatrix)
-	- remove ScalarFilter (obsoleted by state-space SISO)
 

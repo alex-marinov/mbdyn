@@ -36,9 +36,9 @@ bin_PROGRAMS += \
 logproc
 endif
 
-if USE_X_ANN
-bin_PROGRAMS += mbfem
-endif
+#if USE_X_ANN
+#bin_PROGRAMS += mbfem
+#endif
 
 # do not install these
 noinst_PROGRAMS = \
