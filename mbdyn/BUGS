@@ -41,7 +41,6 @@ http://www.aero.polimi.it
 
 1.3.4
 	- (-x^y) is equivalent to ((-x)^y) instead of (-(x^y)).
-	- the switch --with-libf2c=g2c is often needed when using g77
 
 HEAD
 	- y12/cc interaction (throws ErrRebuildMatrix)
