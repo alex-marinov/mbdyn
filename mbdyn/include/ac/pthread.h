@@ -31,15 +31,9 @@
 #ifndef AC_PTHREAD_H
 #define AC_PTHREAD_H
 
-/* either libc's <pthread.h>, or RTAI's <rtai_usp_posix.h> 
- * #ifdef USE_RTAI, must be included before the pthread_* 
- * funcs are called */
+/* libc's <pthread.h> must be included before the pthread_* funcs are called */
 
 #ifdef USE_RTAI
-
-#ifdef HAVE_RTAI_USP_POSIX_H
-#include <rtai_usp_posix.h>
-#endif /* HAVE_RTAI_USP_POSIX_H */
 
 /* from <pthread.h> */
 #undef  pthread_create

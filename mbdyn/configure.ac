@@ -1967,9 +1967,10 @@ if test $ol_with_rtai != no ; then
 		fi
 	fi
 
+	dnl FIXME: no longer used
 	dnl FIXME: is this correct for >= 3.0 as well?
-	AC_CHECK_HEADERS(rtai_usp_posix.h)
-	AC_CHECK_HEADERS(rtai_posix.h)
+	dnl AC_CHECK_HEADERS(rtai_usp_posix.h)
+	dnl AC_CHECK_HEADERS(rtai_posix.h)
 	dnl if test "$ac_cv_header_rtai_usp_posix_h" = "no" -o \
 	dnl 		"$ac_cv_header_rtai_posix_h" = "no" ; then
 	dnl 	use_rtai=no
