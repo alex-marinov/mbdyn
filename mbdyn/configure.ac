@@ -669,6 +669,10 @@ dnl
 dnl Check for f2c libraries
 dnl
 ol_link_libf2c=no
+if test $ol_with_libf2c = no -a `basename "$ac_cv_prog_ac_ct_F77"` = "g77" ; then
+	ol_with_libf2c=auto
+fi
+	
 if test $ol_with_libf2c != no ; then
 	AC_CHECK_HEADER(g2c.h, [
 	AC_COMPILE_IFELSE([
@@ -739,7 +743,7 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Add fortran lib
 dnl
-case "$F77" in
+case `basename "$F77"` in
 gfortran)
 	F2C_LIBS="$F2C_LIBS -lgfortran"
 	;;
