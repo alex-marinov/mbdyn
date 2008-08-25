@@ -36,9 +36,9 @@ bin_PROGRAMS += \
 logproc
 endif
 
-#if USE_X_ANN
-#bin_PROGRAMS += mbfem
-#endif
+if USE_X_ANN
+bin_PROGRAMS += mbfem
+endif
 
 # do not install these
 noinst_PROGRAMS = \
@@ -88,18 +88,18 @@ socket2stream_SOURCES = socket2stream.cc s2s.cc s2s.h
 stream2socket_SOURCES = stream2socket.cc s2s.cc s2s.h
 trim_SOURCES = trim.cc s2s.cc s2s.h
 vec2rot_SOURCES = vec2rot.cc
-#mbfem_SOURCES = \
-#Mbfem/block.cc \
-#Mbfem/block.h \
-#Mbfem/force3.h \
-#Mbfem/mbdyn_out.cc \
-#Mbfem/mbdyn_out.h \
-#Mbfem/mbfem.cc \
-#Mbfem/mls.cc \
-#Mbfem/mls.h \
-#Mbfem/nas_read.cc \
-#Mbfem/nas_read.h \
-#Mbfem/node3.h
+mbfem_SOURCES = \
+Mbfem/block.cc \
+Mbfem/block.h \
+Mbfem/force3.h \
+Mbfem/mbdyn_out.cc \
+Mbfem/mbdyn_out.h \
+Mbfem/mbfem.cc \
+Mbfem/mls.cc \
+Mbfem/mls.h \
+Mbfem/nas_read.cc \
+Mbfem/nas_read.h \
+Mbfem/node3.h
 
 ann_in_LDADD = $(MYLIBS)
 ann_sf_LDADD = $(MYLIBS)
@@ -133,7 +133,7 @@ socket2stream_LDADD = $(MYLIBS)
 stream2socket_LDADD = $(MYLIBS)
 trim_LDADD = $(MYLIBS)
 vec2rot_LDADD = $(MYLIBS)
-#mbfem_LDADD = $(MYLIBS) @X_ANN_LIBS@
+mbfem_LDADD = $(MYLIBS) @X_ANN_LIBS@
 
 logproc_LDFLAGS = -static
 
