@@ -8,6 +8,7 @@ f2c-int.h \
 f2c.h \
 getopt.h \
 lapack.h \
+mpi.h \
 pthread.h \
 spinlock.h \
 sys_sysinfo.h
