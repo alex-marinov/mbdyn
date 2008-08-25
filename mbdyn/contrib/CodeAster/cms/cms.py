@@ -370,6 +370,8 @@ def cms_write_mbdyn(data, maillage, cms_interface, cms_exposed_fact, \
 	else:
 		assert(cms_exposed_fact['TOUT'] == 'OUI');
 		cms_exposed = 'TOUT_MA';
+		# maillage's name must be "ma", sigh.
+		# FIXME: this is broken
 		ma = maillage
 		ma = DEFI_GROUP(	reuse = ma,
 					MAILLAGE = ma,
