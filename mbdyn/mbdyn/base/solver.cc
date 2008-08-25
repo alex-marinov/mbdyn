@@ -3472,15 +3472,18 @@ Solver::ReadData(MBDynParser& HP)
 
 			if (HP.IsKeyWord("cpu" "map")) {
 				int cpumap = HP.GetInt();
-				int ncpu = get_nprocs();
-				int newcpumap = int(pow(2, ncpu)) - 1;
+				// NOTE: there is a hard limit at 4 CPU
+				int ncpu = std::min(get_nprocs(), 4);
+				int newcpumap = (2 << (ncpu - 1)) - 1;
 
 				/* i bit non legati ad alcuna cpu sono posti
 				 * a zero */
 				newcpumap &= cpumap;
 				if (newcpumap < 1 || newcpumap > 0xff) {
+					char buf[5];
+					snprintf(buf, sizeof(buf), "0x%2x", cpumap);
 					silent_cerr("illegal cpu map "
-						<< cpumap << " at line "
+						<< buf << " at line "
 						<< HP.GetLineData()
 						<< std::endl);
 					throw ErrGeneric();
