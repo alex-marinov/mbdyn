@@ -564,7 +564,10 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 		T PreStress(0.);
 		GetPreStress(HP, PreStress);
 		T PreStrain(0.);
-		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
+#ifdef HAVE_GINAC
+		TplDriveCaller<T>* pTplDC =
+#endif /* ! HAVE_GINAC */
+			GetPreStrain(pDM, HP, PreStrain);
 
 		switch (CLType) {
 		case ConstLawType::ELASTIC: {
