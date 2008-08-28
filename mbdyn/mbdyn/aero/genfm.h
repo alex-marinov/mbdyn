@@ -35,7 +35,7 @@
 /* Generic force/moment element based on table lookup */
 /* originated from GARTEUR HC AG-16 activity to model generic aerodynamic
  * forces related to rigid body motion as a function of dynamic pressure
- * and incidence, sideslip angles, with data provided by DLR for Bo105
+ * angle of attack and sideslip angle, with data provided by DLR for Bo105
  * fuselage and tail empennages */
 
 #include "aerodyn.h"
@@ -43,7 +43,7 @@
 struct GenericAerodynamicData {
 	std::string name;
 
-	/* incidence and sideslip datapoints number */
+	/* angle of attack and sideslip angle datapoints number */
 	int nAlpha;
 	int nBeta;
 

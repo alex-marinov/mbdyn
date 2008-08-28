@@ -52,7 +52,7 @@ usage(int rc)
 "usage: c81test [<options>] <file> [<alpha (deg)> <mach>]\n"
 "\n"
 "options:\n"
-"\t-a <alpha>\t"	"dump coefficients for incidence <alpha>\n"
+"\t-a <alpha>\t"	"dump coefficients for angle of attack <alpha>\n"
 "\t-c\t\t"		"interpret <file> as traditional c81 format (default)\n"
 "\t-C <coef>\t"		"only dump coefficient <coef> (must be cl, cd or cm)\n"
 "\t-d [<dump>]\t"	"dump contents (to optional file <dump>, if given)\n"

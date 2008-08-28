@@ -429,7 +429,7 @@ ReadGenericAerodynamicData(const std::string& fname)
 
 	if (nAlpha <= 0) {
 		silent_cerr("ReadGenericAerodynamicData(" << fname << "): "
-			"invalid number of incidence angles " << nAlpha << " "
+			"invalid number of angles of attack " << nAlpha << " "
 			"from file \"" << fname << "\"" << std::endl);
 		throw ErrGeneric();
 	}
