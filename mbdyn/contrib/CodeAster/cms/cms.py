@@ -369,13 +369,19 @@ def cms_write_mbdyn(data, maillage, cms_interface, cms_exposed_fact, \
 
 	else:
 		assert(cms_exposed_fact['TOUT'] == 'OUI');
-		cms_exposed = 'TOUT_MA';
-		# maillage's name must be "ma", sigh.
-		# FIXME: this is broken
+		# NOTE: this name is reserved to MBDyn (!?!)
+		cms_exposed = 'MBDYN_TN';
+		# NOTE: 1.e+38 to make sure we catch all (?!?)
+		# FIXME: only works if model is truly 3D :-(
 		ma = maillage
 		ma = DEFI_GROUP(	reuse = ma,
 					MAILLAGE = ma,
-					CREA_GROUP_NO = _F( TOUT_GROUP_MA = 'OUI' ) );
+					CREA_GROUP_NO = ( _F(
+						NOM = cms_exposed,
+						OPTION = 'ENV_SPHERE',
+						POINT = ( 0.0, 0.0, 0.0 ),
+						RAYON = 1.e+38,
+						PRECISION = ( 1.e+38 ) ) ) );
 		maillage = ma;
 
 	# create handler for mesh

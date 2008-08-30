@@ -19,7 +19,7 @@ fi
 set +xv
 
 ASTERCMD="/home/masarati/Lavoro/mbdyn/ASTER/aster-9.3.0/outils/as_run"
-WORKDIR="/home/masarati/Lavoro/mbdyn/ASTER/2008-07-17-RomanelliSerioli/Code_Aster/TUTORIAL/cms"
+WORKDIR="/home/masarati/Lavoro/mbdyn/mbdyn-src/contrib/CodeAster/cms"
 EXPORTINFNAME="cms.export.in"
 EXPORTFNAME="${FNAME}.export"
 COMMFNAME="${FNAME}.comm"
