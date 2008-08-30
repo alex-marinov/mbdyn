@@ -46,18 +46,18 @@
 
 #===============================================================================
 # LOG:
-# 2007-07-29: normal modes + Craig-Bampton works
-# 2007-07-29: file creation works
-# 2007-07-31: turned into macro
-# 2007-08-04: first attempt to add diagonal of mass matrix
-# 2007-08-05: optionally prints diagonal of mass matrix
-# 2007-08-05: optionally prints rigid-body inertia matrix
+# 2008-08-30: fix TOUT = 'OUI' using 'ENV_SPHERE' (needs work)
+# 2008-08-25: release with MBDyn 1.3.4-Beta
+# 2008-08-05: optionally prints rigid-body inertia matrix
+# 2008-08-05: optionally prints diagonal of mass matrix
+# 2008-08-04: first attempt to add diagonal of mass matrix
+# 2008-07-31: turned into macro
+# 2008-07-29: file creation works
+# 2008-07-29: normal modes + Craig-Bampton works
 #
 #===============================================================================
 # TODO:
 # - check the possibility to add inertia relief to static shapes
-# - allow more optional parameters
-#	- allow TOUT = 'OUI' instead of group of exposed nodes
 # - modal analysis where rigid modes are either rejected
 #   or (selectively) accepted (e.g. aileron example)
 
