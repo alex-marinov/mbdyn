@@ -158,7 +158,7 @@ LapackSolutionManager::MatrReset(void)
 	pLS->Reset();
 }
 
-/* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
+/* Risolve il sistema  Fattorizzazione + Backward Substitution */
 void
 LapackSolutionManager::Solve(void)
 {
