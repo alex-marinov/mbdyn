@@ -76,7 +76,7 @@
 from Utilitai.partition import *
 
 # Path to macro
-path_to_cms_macro = '/home/masarati/Lavoro/mbdyn/ASTER/2008-07-17-RomanelliSerioli/Code_Aster/TUTORIAL/cms';
+path_to_cms_macro = '/home/masarati/Lavoro/mbdyn/mbdyn-src/contrib/CodeAster/cms';
 
 #
 # name of interface node group
