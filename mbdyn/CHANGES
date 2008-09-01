@@ -14,6 +14,7 @@ MBDyn 1.X-Devel
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
+		- fix "cardano hinge" keyword detection (Marco Morandini)
 
 MBDyn 1.3.4-Beta
 	Enhancements:
