@@ -5295,6 +5295,10 @@ the \kw{reference\_omega} field is used to decide whether to inhibit
 or not the induced velocity computation if the rotor speed is very low;
 the \kw{reference\_radius} field is used in the adimensionalization
 of the rotor related parameters. \\
+The \kw{ground} parameter is used to inform the rotor about the proximity
+to the ground; the $z$ component of the distance between the rotor
+and the ground nodes, in the ground node reference frame,
+is used for an approximate correction of the axial inflow velocity. \\
 The \kw{memory\_factor}, the \kw{hover\_correction\_factor} 
 and the \kw{ff\_correction\_factor} (forward flight) are
 used to correct the nominal induced velocity, according to the formula
@@ -5317,38 +5321,36 @@ with
 		+ \cfrac{\mu^2}{\mathtt{ff\_correction\_factor}^2}
 	}}
 \end{displaymath}
-The \kw{memory\_factor} parameter is used to
-combine the current reference induced velocity with the induced velocity
-at the previous step; no delay means there is no memory of the previous value 
-(\emph{Note: for historical reasons, the keyword \kw{weight}
-can be used instead of \kw{delay}}). \\
-The \kw{memory\_factor} parameter defaults to 0; 
-the \kw{hover\_correction\_factor} 
-and the \kw{ff\_correction\_factor} parameters default to 1. \\
+The \kw{delay} parameter is used to linearly combine the current
+reference induced velocity with the induced velocity at the previous step;
+no delay means there is no memory of the previous value.
+The \kw{memory\_factor} parameter defaults to 0.
+The \kw{hover\_correction\_factor} 
+and \kw{ff\_correction\_factor} parameters default to 1. \\
 The \kw{max\_iterations}, the \kw{tolerance} 
 and the \kw{eta} parameters refer to the iteration cycle 
-that is performed to compute the nominal induced velocity; 
-after \kw{max\_iterations}, or when the absolute value 
+that is performed to compute the nominal induced velocity.
+After \kw{max\_iterations}, or when the absolute value 
 of the difference between two iterations of the nominal induced 
-velocity is less than \kw{tolerance}, the cycle breaks.
+velocity is less than \kw{tolerance}, the cycle ends.
 Only a fraction \kw{eta} of the difference between two
 iterations of the nominal induced velocity is actually
-used; \kw{eta} defaults to one.
+used; \kw{eta} defaults to 1.
 The default is to make only one iteration, which is backward-compatible
 with the original behavior.
+
 \emph{
-	Note: the syntax of the correction factor input changed
-	from MBDyn 1.1 to MBDyn 1.2, where two different factors,
-	according to conventional models (e.g.\ CAMRAD/JA), have
-	been considered instead of one.
+	Note: the syntax of the correction factors input changed
+	from MBDyn 1.1 to MBDyn 1.2, where two separate factors,
+	according to conventional models (e.g.\ CAMRAD/JA), 
+	are now allowed instead of one.
 	No backward compatibility has been implemented because 
 	this is a very specialistic parameter and it was introduced 
 	very recently.
 }
 
-\noindent
-The last one uses a dynamic inflow model, based on \cite{PITT},
-with inflow states.
+The last induced velocity model uses a dynamic inflow model,
+based on \cite{PITT}, with 3 inflow states.
 The syntax is:
 \begin{verbatim}
     <induced_velocity_model> ::= dynamic inflow , 
@@ -5364,11 +5366,11 @@ The syntax is:
         [ , correction , <hover_correction_factor> ,
             <ff_correction_factor> ]
 \end{verbatim}
-Most of the entries are the same as for the previous models;
-the \kw{delay} optional entry is missing, while the three states, 
-corresponding to average, fore-aft and lateral inflow,
+Most of the parameters are the same as for the previous models.
+The optional \kw{delay} parameter is no longer allowed.
+The three states, corresponding to uniform, fore-aft and lateral inflow,
 can be explicitly initialized by means of the optional 
-entry \kw{initial value}.
+\kw{initial value} parameter.
 
 \subsubsection{Output}
 The following output is available for all rotor elements:
