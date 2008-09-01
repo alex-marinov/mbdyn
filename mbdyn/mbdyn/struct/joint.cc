@@ -150,9 +150,9 @@ ReadJoint(DataManager* pDM,
 		"universal" "hinge",			// deprecated
 		"universal" "rotation",			// deprecated
 		"universal" "pin",			// deprecated
-		"cardano" "pin",
 		"cardano" "hinge",
 		"cardano" "rotation",
+		"cardano" "pin",
 		"plane" "hinge",
 		"revolute" "hinge",
 		"revolute" "rotation",
