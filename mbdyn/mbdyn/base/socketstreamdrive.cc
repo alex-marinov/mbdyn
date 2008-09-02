@@ -139,14 +139,7 @@ SocketStreamDrive::Restart(std::ostream& out) const
 void
 SocketStreamDrive::ServePending(const doublereal& t)
 {
-	/*
-	silent_cout("SocketStreamDrive(" << sFileName << "): "
-		"ServePending; timeout="
-		<< SocketTimeout.tv_sec << "s "
-		<< SocketTimeout.tv_usec << "ns"
-		<< std::endl);
-	*/
-
+	
 	// by now, an abandoned drive is not read any more;
 	// should we retry or what?
 	if (pUS->Abandoned()) {
@@ -172,11 +165,6 @@ SocketStreamDrive::ServePending(const doublereal& t)
 		// socket clients fail.
 		fd_set readfds;
 
-		/*
-		silent_cout("SocketStreamDrive(" << sFileName << "): "
-			"socket=" << sock_nr << std::endl);
-		*/
-		
 		// Clear the set
 		FD_ZERO(&readfds);
 
