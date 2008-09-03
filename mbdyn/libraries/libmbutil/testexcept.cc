@@ -40,26 +40,47 @@ public:
 };
 
 class ErrReason : public Err_base {
-private:
-	std::string reason;
-
 public:
 	ErrReason(MBDYN_EXCEPT_ARGS_DECL, const std::string& r)
-	: Err_base(MBDYN_EXCEPT_ARGS_PASSTHRU), reason(r) {};
+	: Err_base(MBDYN_EXCEPT_ARGS_PASSTHRU, r) {};
 	virtual ~ErrReason(void) throw() {};
+};
+
+class ErrCode: public Err_base {
+private:
+	std::string s;
+
+public:
+	ErrCode(MBDYN_EXCEPT_ARGS_DECL, const std::string& r, int code)
+	: Err_base(MBDYN_EXCEPT_ARGS_PASSTHRU, r) {
+		std::stringstream ss;
+		ss << Err_base::str() << " code=" << code;
+		s = ss.str();
+	};
+	virtual ~ErrCode(void) throw() {};
 
 	const char* what(void) const throw () {
-		return (Err_base::str() + ": " + reason).c_str();
+		return s.c_str();
 	};
 };
 
 int
 main(int argc, const char *argv[])
 {
-	if (argc == 1) {
+	std::cout << "usage: testexcept [reason [code]]"
+		<< std::endl << std::endl;
+	switch (argc) {
+	case 1:
 		throw ErrPlain(MBDYN_EXCEPT_ARGS("$Header$"));
-	} else {
+		break;
+
+	case 2:
 		throw ErrReason(MBDYN_EXCEPT_ARGS("$Header$"), argv[1]);
+		break;
+
+	default:
+		throw ErrCode(MBDYN_EXCEPT_ARGS("$Header$"), argv[1], atoi(argv[2]));
+		break;
 	}
 
 	return 0;

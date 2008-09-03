@@ -36,15 +36,16 @@
 #include <stdexcept>
 #include <sstream>
 
-// Use this macro instead of the required set of args when declaring the constructor
-// of classes derived from Err_base
+// Use this macro instead of the required set of args when declaring
+// the constructor of classes derived from Err_base
 #define MBDYN_EXCEPT_ARGS_DECL \
 	const char *file, int line, const char *func, const char *cvs_header
-// Use this macro to pass the required set of args thru to Err_base from the constructor
-// of derived classes
+// Use this macro to pass the required set of args thru to Err_base
+// from the constructor of derived classes
 #define MBDYN_EXCEPT_ARGS_PASSTHRU \
 	file, line, func, cvs_header
-// Use this macro to pass the required set of args to error classes derived from Err_base
+// Use this macro to pass the required set of args to error classes 
+// derived from Err_base
 #if __GNUC__ >= 2
 #define MBDYN_EXCEPT_ARGS( cvs_header ) \
 	__FILE__ , __LINE__ , __PRETTY_FUNCTION__, (cvs_header)
@@ -98,8 +99,11 @@ private:
 	std::string s;
 
 public:
-	Err_base(MBDYN_EXCEPT_ARGS_DECL)
+	Err_base(MBDYN_EXCEPT_ARGS_DECL,
+		const std::string& reason = std::string())
 	{
+		// NOTE: build the string here and keep it,
+		// otherwise what() would return a temporary!
 		std::stringstream ss;
 		ss << "function=`" << func << "' "
 			"[" << file << ":" << line;
@@ -107,15 +111,20 @@ public:
 			ss << " " << cvs_header;
 		}
 		ss << "]";
+		if (!reason.empty()) {
+			ss << " reason=\"" << reason << "\"";
+		}
 		s = ss.str();
 	};
 
 	virtual ~Err_base(void) throw() {};
 
+	// allow access to string (for descendants from inside what())
 	const std::string& str(void) const {
 		return s;
 	};
 
+	// provide a default what()
 	const char * what(void) const throw() {
 		return s.c_str();
 	};
