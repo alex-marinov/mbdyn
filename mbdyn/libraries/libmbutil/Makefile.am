@@ -24,6 +24,7 @@ llstack.h \
 mathp.cc \
 mathp.h \
 mathtyp.h \
+mbexcept.h \
 mbsasl.c \
 mbsasl.h \
 myassert.cc \
@@ -59,9 +60,11 @@ INCLUDES = \
 -I$(srcdir)/../../libraries/libmbmath \
 -I$(srcdir)/../../mbdyn
 
-noinst_PROGRAMS = mbsasltest
+noinst_PROGRAMS = mbsasltest testexcept
 mbsasltest_SOURCES = mbsasltest.c
 mbsasltest_LDADD = @THREAD_LIBS@ @SECURITY_LIBS@ \
 ./libmbutil.la
+
+testexcept_SOURCES = testexcept.cc
 
 include $(top_srcdir)/build/bot.mk
