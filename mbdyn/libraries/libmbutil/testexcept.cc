@@ -32,30 +32,34 @@
 #include <iostream>
 #include "mbexcept.h"
 
-class Err : public std::exception, public Err_base {
-protected:
+class ErrPlain : public Err_base {
+public:
+	ErrPlain(MBDYN_EXCEPT_ARGS_DECL)
+	: Err_base(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	virtual ~ErrPlain(void) throw() {};
+};
+
+class ErrReason : public Err_base {
+private:
 	std::string reason;
 
 public:
-	Err(MBDYN_EXCEPT_ARGS_DECL, const std::string& r)
+	ErrReason(MBDYN_EXCEPT_ARGS_DECL, const std::string& r)
 	: Err_base(MBDYN_EXCEPT_ARGS_PASSTHRU), reason(r) {};
-	virtual ~Err(void) throw() {};
+	virtual ~ErrReason(void) throw() {};
 
 	const char* what(void) const throw () {
-		return (Err_base::str() + " called Err (" + reason + ")").c_str();
+		return (Err_base::str() + ": " + reason).c_str();
 	};
 };
 
 int
 main(int argc, const char *argv[])
 {
-	if (argc > 1) {
-		// passa la stringa CVS header...
-		throw Err(MBDYN_EXCEPT_ARGS("$Header$"), argv[1]);
-
+	if (argc == 1) {
+		throw ErrPlain(MBDYN_EXCEPT_ARGS("$Header$"));
 	} else {
-		// ... non la passa
-		throw Err(MBDYN_EXCEPT_ARGS(""), "for testing");
+		throw ErrReason(MBDYN_EXCEPT_ARGS("$Header$"), argv[1]);
 	}
 
 	return 0;

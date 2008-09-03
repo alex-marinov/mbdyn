@@ -58,16 +58,26 @@
 
 #if 0
 
-class MyErr : public Err_base, public std::exception {
+class MyErr : public Err_base {
+public:
+	MyErr(MBDYN_EXCEPT_ARGS_DECL)
+	: Err_base(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	virtual MyErr(void) throw() {};
+	const char * what(void) const throw() {
+		return (Err_base::str() + ": MyErr").c_str();
+	};
+};
+
+class MyErrWithMessage : public Err_base {
 private:
 	std::string m_msg;
 
 public:
-	MyErr(MBDYN_EXCEPT_ARGS_DECL, const std::string& msg)
+	MyErrWithMessage(MBDYN_EXCEPT_ARGS_DECL, const std::string& msg)
 	: Err_base(MBDYN_EXCEPT_ARGS_PASSTHRU), m_msg(msg) {};
-	virtual MyErr(void) throw() {};
-	const char *what(void) const throw() {
-		return (Err_base::str() + " " + msg).c_str();
+	virtual MyErrWithMessage(void) throw() {};
+	const char * what(void) const throw() {
+		return (Err_base::str() + ": MyErrWithMessage(" + m_msg + ")").c_str();
 	};
 };
 
@@ -83,7 +93,7 @@ func(int i)
 
 #endif
 
-class Err_base {
+class Err_base : public std::exception {
 private:
 	std::string s;
 
@@ -99,10 +109,15 @@ public:
 		ss << "]";
 		s = ss.str();
 	};
+
 	virtual ~Err_base(void) throw() {};
 
 	const std::string& str(void) const {
 		return s;
+	};
+
+	const char * what(void) const throw() {
+		return s.c_str();
 	};
 };
 
