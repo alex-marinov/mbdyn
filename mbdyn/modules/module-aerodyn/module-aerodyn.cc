@@ -60,7 +60,8 @@ static module_aerodyn_t *module_aerodyn;
 /* This comment is added by Fanzhong MENG 9th.Feb.2008
  *
  * I think in these three functions we should add the codes
- * that can deal with the communication with MBDyn to get the structure information which is need for the
+ * that can deal with the communication with MBDyn to get
+ * the structure information which is need for the
  * Aerodynamic calculation from libAeroDyn.a. 
  */
 
@@ -76,16 +77,14 @@ __FC_DECL__(getrotorparams)(
 	 * This comment is added by Fanzhong MENG 10th.Feb.2008
 	 * NOTE: Add code here to get rotorspeed from MBDyn.  
 	 * Rotor can be running clockwise or ccw.  But the
-	 * value of *Omega must be positive
+	 * value of *Omega must be positive [rad/s]
+	 */
+	/*
+	 * PM 2008-09-06:
+	 * nacelle & rotor axis is node axis 3, positive opposite
+	 * to wind direction
 	 */
 
-    	/*
-	 * By Fanzhong MENG 21 Feb. 2008.
-	 * Here I think we made small mistake on the orientation 
-	 * stuff with respect to the test MBDyn input file. We need
-	 * some smart(flexible) way to deal with the orientation stuff instead
-	 * of a fixed hard code.
-	 */ 
 	const Mat3x3& nacelle_R = ::module_aerodyn->pNacelle->GetRCurr();
 	const Vec3& hub_Omega = ::module_aerodyn->pHub->GetWCurr();
 	Vec3 rotation_axis = nacelle_R.GetVec(3);
@@ -108,7 +107,7 @@ __FC_DECL__(getrotorparams)(
 	 * Positive value is Tilt UP
 	 * Variable name is *tau. [rad].
 	 */
-	*tau = std::atan2(-rotation_axis(3),
+	*tau = std::atan2(rotation_axis(3),
 		std::sqrt(rotation_axis(1)*rotation_axis(1) + rotation_axis(2)*rotation_axis(2)));
 
     	/*
@@ -118,6 +117,14 @@ __FC_DECL__(getrotorparams)(
 	 * Variable name is *VHUB.[m/s or feet/s]
 	 */ 
 	*VHUB = hub_Omega(3)*::module_aerodyn->Hub_Tower_xy_distance;
+
+#ifdef MODULE_AERODYN_DEBUG
+	silent_cerr("getrotorparams: "
+		"Omega=" << *Omega << " "
+		"gamma=" << (*gamma)*180/M_PI << " "
+		"tau=" << (*tau)*180/M_PI << " "
+		"VHUB=" << *VHUB << std::endl);
+#endif // MODULE_AERODYN_DEBUG
 
 	return 0;
 }
@@ -134,23 +141,22 @@ __FC_DECL__(getbladeparams)(F_REAL *psi)
 	 * The 6 o'clock position is positive value
 	 * Variable name is *psi. [rad].
 	 */
-    	/*
-	 * by Fanzhong MENG 21 Feb. 2008.
-	 * I am not sure about the mothed that we used here to 
-	 * get the Azimuth angle.
-	 */ 
 	const Mat3x3& R_nacelle = ::module_aerodyn->pNacelle->GetRCurr();
 	const Mat3x3& R_hub = ::module_aerodyn->pHub->GetRCurr();
 	const Mat3x3& R_blade_root = ::module_aerodyn->bladeR[::module_aerodyn->c_blade - 1];
 	Mat3x3 R = (R_hub*R_blade_root).MulTM(R_nacelle);
 	Vec3 Phi(RotManip::VecRot(R));
-
 	*psi = -Phi(3);
 
-#if 0
-	std::cerr << "getbladeparams: blade=" << ::module_aerodyn->c_blade
-		<< " psi=" << *psi << std::endl;
-#endif
+	// unwrap psi (0 <= psi <= 360)
+	while (*psi < 0) {
+	    *psi += 2*M_PI;
+	}
+
+#ifdef MODULE_AERODYN_DEBUG
+	silent_cerr("getbladeparams: blade=" << ::module_aerodyn->c_blade
+		<< " psi=" << (*psi)*180/M_PI << std::endl);
+#endif // MODULE_AERODYN_DEBUG
 
 	return 0;
 }
@@ -192,17 +198,19 @@ __FC_DECL__(getelemparams)(
 	Vec3 d = R_nacelle.MulTV(X_node - X_hub);
 	d(3) = 0.;
 	*radius = d.Norm();
+
 	/*
 	 * Get the blade elements local pitch angle. Here X-axis is in the blade
 	 * spanwise direction.
 	 */ 
 	unsigned blade = ::module_aerodyn->elem/::module_aerodyn->nelems;
-	const Mat3x3& R_node = ::module_aerodyn->nodes[::module_aerodyn->elem].pNode->GetRCurr();
+	const Mat3x3& R_node = ::module_aerodyn->nodes[::module_aerodyn->elem].pNode->GetRCurr(); //Pitch bug is not fixed!
 	const Mat3x3& R_hub = ::module_aerodyn->pHub->GetRCurr();
 	const Mat3x3& R_blade_root = ::module_aerodyn->bladeR[blade];
-	Mat3x3 R = R_node.Transpose()*(R_hub*R_blade_root);
-	Vec3 Phi(RotManip::VecRot(R));
+	Mat3x3 R = (R_hub*R_blade_root).MulTM(R_node);
+	Vec3 Phi(RotManip::VecRot(R.Transpose()));
 
+	// Pitch Now = Pitch+ Twist 
 	*phi = Phi(1) + ::module_aerodyn->nodes[::module_aerodyn->elem].dBuiltinPitch;
 	::module_aerodyn->nodes[::module_aerodyn->elem].PITNOW = *phi;
 
@@ -235,20 +243,35 @@ __FC_DECL__(getvnvt)(
 	 * and the element in the ground reference frame.
 	 * VX,VY,VZ are provided by AeroDyn for MBDyn.
 	 */
-    
-	// velocity of the element related to Ground reference frame.
+        /*
+	 * This "getvnvt" function is correct now!
+         */
+	/*
+	 * velocity of the element related to Ground reference frame.
+	 */
 	const Vec3& ve_G = ::module_aerodyn->nodes[::module_aerodyn->elem].pNode->GetVCurr();
 
-	// velocity of the wind related to Ground reference frame.
-	Vec3 vw_G = Vec3(*VX, *VY, *VZ);
+	/*
+	 * velocity of the wind related to Ground reference frame.
+	 * The "-" sign change the wind velocity from Aerodyn reference frame to MBDyn 
+	 *  Global reference frame. AeroDyn global reference frame can be found on page 35 of Aerodyn user's guide--Figure C1
+	 */
+	Vec3 vw_G = Vec3(-(*VX), -(*VY), *VZ);
 
 	/*
 	 * Transform wind vector from ground coordinate system (vw_G) to
 	 * blade Node reference frame (vw_El)
 	 */
 	const Mat3x3& R_node = ::module_aerodyn->nodes[::module_aerodyn->elem].pNode->GetRCurr();
-	Vec3 vw_El = R_node.MulTV(vw_G);
-	Vec3 ve_El = R_node.MulTV(ve_G);
+	/*
+	 * 10th of June. Modified by fanzhong meng.
+	 * get orientation matrix of node twist with respect to node without pitch.
+	 */
+	const Mat3x3& R_node_twist = ::module_aerodyn->nodes[::module_aerodyn->elem].Ra; 
+
+	
+	Vec3 vw_El = R_node_twist.MulTV( R_node.MulTV(vw_G) );
+	Vec3 ve_El = R_node_twist.MulTV( R_node.MulTV(ve_G) );
 
 	/*
 	 * Calculate SIN and COS value of current pitch angle.
@@ -268,7 +291,11 @@ __FC_DECL__(getvnvt)(
 
 	*VT = vt_wind + vt_element;
 	*VNW = -vw_El(2)*SPitchNow + vw_El(3)*CPitchNow;
-	*VNE = -ve_El(2)*SPitchNow + ve_El(3)*CPitchNow;
+	/* 
+	 * Element Normal velocity opposites to the Wind Normal velocity. 
+	 * You can find is on page 35 of Aerodyn user's guide--Figure C2.
+	 */
+	*VNE = -(-ve_El(2)*SPitchNow + ve_El(3)*CPitchNow);
 
 	return 0;
 }
@@ -290,7 +317,7 @@ __FC_DECL__(usrmes)(
 	F_CHAR level[])
 {
 #if 0
-	// can't work!
+	// can't work, unless we know the size of the arrays!
 	silent_cerr("module-aerodyn: msg=\"" << msg << "\" "
 		"code=" << *code
 		<< " level=" << level
@@ -304,13 +331,13 @@ __FC_DECL__(usrmes)(
 
 /* default funcs */
 static void *
-read(
+module_aerodyn_read(
 		LoadableElem *pEl,
 		DataManager* pDM,
 		MBDynParser& HP
 )
 {
-	DEBUGCOUTFNAME("read");
+	DEBUGCOUTFNAME("module_aerodyn_read");
 
 	if (::module_aerodyn != NULL) {
 		silent_cerr("Another module-aerodyn might be running; error"
@@ -339,22 +366,25 @@ read(
 		<< "forces acting on wind turbines" << std::endl
 		<< std::endl
 		<< "usage:" << std::endl
+		<< "Nacelle node; requirements:" << std::endl
+		<< "\t\t- axis 3 is the shaft axis" << std::endl
+		<< "\t\t- axis 3 in wind direction" << std::endl
 		<< "\t<nacelle node label> ," << std::endl
 		<< "\t<hub node label> ," << std::endl
 		<< "\t<pylon top-hub xy distance> ," << std::endl
+		<< "\t<hub radius> ," << std::endl
 		<< "\t<number of blades> ," << std::endl
 		<< "\t<number of elements per blade> ," << std::endl
-		<< "\t# for each blade..." << std::endl
+		<< "\t# for each blade... axis 1 must be the blade spanwise direction" << std::endl
 		<< "\t\t<i-th blade root orientation matrix> ," << std::endl
 		<< "\t\t# for each blade element..." << std::endl
 		<< "\t\t\t<i-th blade j-th node label> ," << std::endl
 		<< "\t\t\t[ orientation , <i-th blade j-th node orientation> , ]" << std::endl
 		<< "\t[ output file name , \" <file name> \" ]" << std::endl
-		<< "\t[ input file name , \" <file name> \" ] (default: \"aerodyn.ipt\")" << std::endl
 		);
 	}
 
-	/* nacelle node */
+	/* read nacelle node */
 	p->pNacelle = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 	if (p->pNacelle == 0) {
 		silent_cerr("Aerodyn(" << pEl->GetLabel() << "): "
@@ -363,7 +393,7 @@ read(
 		throw ErrGeneric();
 	}
 
-	/* hub node */
+	/* read hub node */
 	p->pHub = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 	if (p->pHub == 0) {
 		silent_cerr("Aerodyn(" << pEl->GetLabel() << "): "
@@ -373,6 +403,8 @@ read(
 	}
 
 	p->Hub_Tower_xy_distance = HP.GetReal();
+
+	p->r_hub = HP.GetReal();
 
 	/*
 	 * Initialize AeroDyn package
@@ -409,40 +441,47 @@ read(
 	p->nblades = NBlades;
 	p->nelems = NElems;
 
+	// get blade root orientation(without pitch angle).
+
     	p->nodes.resize(NBlades*NElems);
     	p->bladeR.resize(NBlades);
 	ReferenceFrame rf(p->pHub);
 	for (unsigned e = 0; e < unsigned(NBlades*NElems); e++) {
 		if ((e % NElems) == 0) {
 		    	/*
-			 * why we need to get the blade Rotation Matrix related to Hub
-			 * reference frame?
+			 * Get the orientation matrix of blade root with respect to hub reference frame
 			 */ 
 			p->bladeR[e/NElems] = HP.GetRotRel(rf);
+#if 0
+		std::cerr << "Root[" << e/NElems << "] Rotation Matrix:" << p->bladeR[e/NElems] << std::endl;
+		std::cerr << "Hub Rotation Matrix:" << p->pHub->GetRCurr() << std::endl;
+		std::cerr << "Nacelle Rotation Matrix:" << p->pNacelle->GetRCurr() << std::endl<< std::endl;
+#endif
 		}
+
 		p->nodes[e].pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 		/*
-		 * blade nodes offset matrix should read from user input
+		 * blade nodes offset matrix should be read from user input
 		 */ 
 		p->nodes[e].f = Zero3;
-		/*
-		 * why here we give the Identity matrix to Node Rotation Matrix?
-		 */
+
 		if (HP.IsKeyWord("orientation")) {
 			p->nodes[e].Ra = HP.GetRotRel(ReferenceFrame(p->nodes[e].pNode));
-			Vec3 e1 = p->nodes[e].Ra.GetVec(1);
-			p->nodes[e].dBuiltinPitch = std::atan2(e1(3), e1(2));
+			Mat3x3 R = p->nodes[e].Ra;
+			Vec3 Twist(RotManip::VecRot(R.Transpose()));
+			p->nodes[e].dBuiltinPitch = Twist(1);
 		} else {
 			p->nodes[e].Ra = Eye3;
 			p->nodes[e].dBuiltinPitch = 0.;
 		}
+
 	}
 
 	if (HP.IsKeyWord("output" "file" "name")) {
 		const char *ofname = HP.GetFileName();
 		if (ofname == 0) {
 			silent_cerr("Aerodyn(" << pEl->GetLabel() << "): "
-				"unable to get output file name "
+				"unable to get file name "
 				"at line " << HP.GetLineData()
 				<< std::endl);
 			throw ErrGeneric();
@@ -462,8 +501,6 @@ read(
 
 	int rc;
 	if (HP.IsKeyWord("input" "file" "name")) {
-#if 1
-		// FIXME: does not work as expected...
 		const char *input_file_name = HP.GetStringWithDelims();
 		if (input_file_name == 0) {
 			silent_cerr("unable to get input file name "
@@ -473,10 +510,7 @@ read(
 
 		F_INTEGER input_file_name_len = strlen(input_file_name);
 		rc = __FC_DECL__(mbdyn_ad_inputgate)((F_CHAR *)input_file_name, &input_file_name_len);
-#else
-		// the input file name must be "aerodyn.ipt"
-		rc = __FC_DECL__(adinputgate)();
-#endif
+
 	} else {
 		rc = __FC_DECL__(adinputgate)();
 	}
@@ -490,8 +524,25 @@ read(
 
 	(void)__FC_DECL__(mbdyn_true)(&p->FirstLoop);
 
-	// FIXME: only needed when Beddoes is enabled
+	// Calculate the Tip and Hub loss constants for AeroDyn.
+	for (int e = 0; e < p->nelems; e++) {
+	    p->elem = e;
+	    const Vec3& X_node = p->nodes[p->elem].pNode->GetXCurr();
+	    const Vec3& X_hub = p->pHub->GetXCurr();
+	    const Mat3x3& R_nacelle = p->pNacelle->GetRCurr();
+	    Vec3 d = R_nacelle.MulTV(X_node - X_hub);
+//	    d(3) = 0.;
+	    p->rlocal = (F_REAL)d.Norm();
+	    p->c_elem = e + 1;
+	    __FC_DECL__(mbdyn_get_tl_const)(&p->rlocal, &p->c_elem);
+    	    __FC_DECL__(mbdyn_get_hl_const)(&p->rlocal, &p->c_elem, &p->r_hub);
+	}
+
+
+	// FIXME: only needed when Beddoes and also Dynamic Inflow model are enabled 
 	p->Time.Set(new TimeDriveCaller(pDM->pGetDrvHdl()));
+	p->dCurTime = p->Time.dGet();
+	(void)__FC_DECL__(mbdyn_sim_time)(&p->dCurTime);
 
 	::module_aerodyn = p;
 
@@ -499,23 +550,23 @@ read(
 }
 
 static unsigned int
-i_get_num_dof(const LoadableElem* pEl)
+module_aerodyn_i_get_num_dof(const LoadableElem* pEl)
 {
-	DEBUGCOUTFNAME("i_get_num_dof");
+	DEBUGCOUTFNAME("module_aerodyn_i_get_num_dof");
 	return 0;
 }
 
 static DofOrder::Order
-set_dof(const LoadableElem*, unsigned int i)
+module_aerodyn_set_dof(const LoadableElem*, unsigned int i)
 {
-	DEBUGCOUTFNAME("set_dof");
+	DEBUGCOUTFNAME("module_aerodyn_set_dof");
 	return DofOrder::UNKNOWN;
 }
 
 static void
-output(const LoadableElem* pEl, OutputHandler& OH)
+module_aerodyn_output(const LoadableElem* pEl, OutputHandler& OH)
 {
-	DEBUGCOUTFNAME("output");
+	DEBUGCOUTFNAME("module_aerodyn_output");
 
 	module_aerodyn_t* p = (module_aerodyn_t *)pEl->pGetData(); 
 	
@@ -534,16 +585,16 @@ output(const LoadableElem* pEl, OutputHandler& OH)
 }
 
 static std::ostream&
-restart(const LoadableElem* pEl, std::ostream& out)
+module_aerodyn_restart(const LoadableElem* pEl, std::ostream& out)
 {
-	DEBUGCOUTFNAME("restart");
+	DEBUGCOUTFNAME("module_aerodyn_restart");
 	return out << "not implemented yet;" << std::endl;
 }
 
 static void
-work_space_dim(const LoadableElem* pEl, integer* piNumRows, integer* piNumCols)
+module_aerodyn_work_space_dim(const LoadableElem* pEl, integer* piNumRows, integer* piNumCols)
 {
-	DEBUGCOUTFNAME("work_space_dim");
+	DEBUGCOUTFNAME("module_aerodyn_work_space_dim");
 
 	module_aerodyn_t* p = (module_aerodyn_t *)pEl->pGetData(); 
 	
@@ -552,7 +603,7 @@ work_space_dim(const LoadableElem* pEl, integer* piNumRows, integer* piNumCols)
 }
 
 static SubVectorHandler& 
-ass_res(
+module_aerodyn_ass_res(
 		LoadableElem* pEl, 
 		SubVectorHandler& WorkVec,
 		doublereal dCoef,
@@ -560,7 +611,7 @@ ass_res(
 		const VectorHandler& XPrimeCurr
 )
 {
-	DEBUGCOUTFNAME("ass_res");
+	DEBUGCOUTFNAME("module_aerodyn_ass_res");
 	integer iNumRows = 0;
 	integer iNumCols = 0;
 	pEl->WorkSpaceDim(&iNumRows, &iNumCols);
@@ -595,20 +646,46 @@ ass_res(
 
 			p->c_elem = e%p->nelems + 1;
 			(void)__FC_DECL__(mbdyn_com_data)(&p->c_blade, &p->c_elem);
-			__FC_DECL__(aerofrcintrface)(&p->FirstLoop, &p->c_elem, &DFN, &DFT, &PMA);
+                        /*
+	                 * Get blade elements radius. It is the perpendicular distance 
+	                 * from the rotor axis to the element aerodynamic reference point.
+	                 */ 
 
+			__FC_DECL__(aerofrcintrface)(&p->FirstLoop, &p->c_elem, &DFN, &DFT, &PMA);
+#ifdef MODULE_AERODYN_DEBUG
+		        silent_cerr("aerodyn[" << e << "] in rotation plane: DFN=" << DFN << " DFT=" << DFT << " PMA=" << PMA << std::endl);
+#endif // MODULE_AERODYN_DEBUG
 			/*
-			 * turn force/moment into the node frame
+			 * turn force/moment into the node frame (blade element frame used by Aerodyn to calculation forces)
 			 * (passing thru local element frame),
 			 * including offset
 			 */
+
 			doublereal c = std::cos(p->nodes[e].PITNOW);
 			doublereal s = std::sin(p->nodes[e].PITNOW);
-			p->nodes[e].F = p->nodes[e].Ra*Vec3(DFT*c - DFN*s, DFT*s + DFN*c, 0.);
-			p->nodes[e].M = p->nodes[e].Ra.GetVec(3)*PMA + p->nodes[e].f.Cross(p->nodes[e].F);
-//			p->nodes[e].F = p->nodes[e].Ra*Vec3(DFT,DFN,0.);
+//			p->nodes[e].F = p->nodes[e].Ra*Vec3(DFT*c - DFN*s, DFT*s + DFN*c, 0.);
+			p->nodes[e].F = Vec3(0., DFT*c - DFN*s, DFT*s + DFN*c);
 //			p->nodes[e].M = p->nodes[e].Ra.GetVec(3)*PMA + p->nodes[e].f.Cross(p->nodes[e].F);
+			p->nodes[e].M = p->nodes[e].Ra.GetVec(1)*PMA + p->nodes[e].f.Cross(p->nodes[e].F);
+
+
+
+#if 0 // def MODULE_AERODYN_DEBUG
+	        	silent_cerr("aerodyn[" << e << "] in BEM frame: "
+				<< p->nodes[e].F << " " << p->nodes[e].M << std::endl
+        			<< "aerodyn[" << e << "] in Twist: "
+				<< p->nodes[e].Ra*p->nodes[e].F
+				<< " " << p->nodes[e].Ra*p->nodes[e].M << std::endl
+				<< "aerodyn[" << e << "] in global frame: "
+				<< p->nodes[e].pNode->GetRCurr()*p->nodes[e].Ra*p->nodes[e].F
+				<< " " << p->nodes[e].pNode->GetRCurr()*p->nodes[e].Ra*p->nodes[e].M
+				<< std::endl << std::endl);
+#endif // MODULE_AERODYN_DEBUG
 		}
+
+#ifdef MODULE_AERODYN_DEBUG
+ 	       silent_cerr(std::endl);
+#endif // MODULE_AERODYN_DEBUG
 
 		p->bFirst = false;
 	}
@@ -626,12 +703,12 @@ ass_res(
 		 * add force/moment to residual, after rotating them
 		 * into the global frame
 		 */
-		WorkVec.Add(6*e + 1, p->nodes[e].pNode->GetRCurr()*p->nodes[e].F);
-		WorkVec.Add(6*e + 4, p->nodes[e].pNode->GetRCurr()*p->nodes[e].M);
+		/*
+		 * Transfer the force/moment to global frame need to be fixed!!!!
+	         */	 
+		WorkVec.Add(6*e + 1, p->nodes[e].pNode->GetRCurr()*p->nodes[e].Ra*p->nodes[e].F);
+		WorkVec.Add(6*e + 4, p->nodes[e].pNode->GetRCurr()*p->nodes[e].Ra*p->nodes[e].M);
 
-#if 0
-		std::cerr << "aerodyn[" << e << "]: " << p->nodes[e].F << " " << p->nodes[e].M << std::endl;
-#endif
 	}
 
 	/* 
@@ -642,50 +719,50 @@ ass_res(
 	return WorkVec;
 }
 
+#if 0
 static void
-before_predict(
-		const LoadableElem* pEl, 
-		VectorHandler& X,
-		VectorHandler& XP,
-		VectorHandler& XPrev,
-		VectorHandler& XPPrev
-)
+module_aerodyn_before_predict(const LoadableElem* pEl, 
+	VectorHandler& X, VectorHandler& XP,
+	VectorHandler& XPrev, VectorHandler& XPPrev)
 {
-	DEBUGCOUTFNAME("before_predict");
+	DEBUGCOUTFNAME("module_aerodyn_before_predict");
 }
+#endif
 
 static void
-after_predict(
-		const LoadableElem* pEl, 
-		VectorHandler& X,
-		VectorHandler& XP
-)
+module_aerodyn_after_predict(const LoadableElem* pEl, 
+	VectorHandler& X, VectorHandler& XP)
 {
     	/* NOTE: think about what should be done here!*/
-	DEBUGCOUTFNAME("after_predict");
+	DEBUGCOUTFNAME("module_aerodyn_after_predict");
 
 	module_aerodyn_t* p = (module_aerodyn_t *)pEl->pGetData(); 
 
+	/*
+	 * Get the current simulation time and time step!
+	 * MENG: 19 June 2008.
+	 */ 
 	p->dDT = p->Time.dGet() - p->dOldTime;
+	p->dCurTime = p->Time.dGet();
+	(void)__FC_DECL__(mbdyn_sim_time)(&p->dCurTime);
+	(void)__FC_DECL__(mbdyn_time_step)(&p->dDT);
 }
 
+#if 0
 static void
-update(
-		LoadableElem* pEl, 
-		const VectorHandler& X,
-		const VectorHandler& XP
-)
+module_aerodyn_update(LoadableElem* pEl, 
+	const VectorHandler& X, const VectorHandler& XP)
 {
-	DEBUGCOUTFNAME("update");
+	DEBUGCOUTFNAME("module_aerodyn_update");
 }
+#endif
 
 static void 
-after_convergence(const LoadableElem* pEl,
-		const VectorHandler& /* X */ ,
-		const VectorHandler& /* XP */ )
+module_aerodyn_after_convergence(const LoadableElem* pEl,
+	const VectorHandler& /* X */ , const VectorHandler& /* XP */ )
 {
     	/* NOTE: think about what should be done here!*/
-	DEBUGCOUTFNAME("after_convergence");
+	DEBUGCOUTFNAME("module_aerodyn_after_convergence");
 
 	module_aerodyn_t* p = (module_aerodyn_t *)pEl->pGetData(); 
 
@@ -694,41 +771,43 @@ after_convergence(const LoadableElem* pEl,
 }
 
 static unsigned int
-i_get_initial_num_dof(const LoadableElem* pEl)
+module_aerodyn_i_get_initial_num_dof(const LoadableElem* pEl)
 {
-	DEBUGCOUTFNAME("i_get_initial_num_dof");
+	DEBUGCOUTFNAME("module_aerodyn_i_get_initial_num_dof");
 	return 0;
 }
 
 static void
-set_value(const LoadableElem* pEl, DataManager *pDM,
+module_aerodyn_set_value(const LoadableElem* pEl, DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph)
 {
-	DEBUGCOUTFNAME("set_value");
+	DEBUGCOUTFNAME("module_aerodyn_set_value");
 
 	module_aerodyn_t* p = (module_aerodyn_t *)pEl->pGetData(); 
 
 	p->bFirst = true;
 }
-   
+
+#if 0   
 static void
-set_initial_value(const LoadableElem* pEl, VectorHandler& X)
+module_aerodyn_set_initial_value(const LoadableElem* pEl, VectorHandler& X)
 {
-	DEBUGCOUTFNAME("set_initial_value");
+	DEBUGCOUTFNAME("module_aerodyn_set_initial_value");
 }
+#endif
 
 static unsigned int
-i_get_num_priv_data(const LoadableElem* pEl)
+module_aerodyn_i_get_num_priv_data(const LoadableElem* pEl)
 {
-	DEBUGCOUTFNAME("i_get_num_priv_data");
+	DEBUGCOUTFNAME("module_aerodyn_i_get_num_priv_data");
 	return 0;
 }
 
 static void
-destroy(LoadableElem* pEl)
+module_aerodyn_destroy(LoadableElem* pEl)
 {
-	DEBUGCOUTFNAME("destroy");
+	DEBUGCOUTFNAME("module_aerodyn_destroy");
 
 	module_aerodyn_t* p = (module_aerodyn_t *)pEl->pGetData();
 
@@ -741,26 +820,26 @@ destroy(LoadableElem* pEl)
 }
 
 static int
-i_get_num_connected_nodes(const LoadableElem* pEl)
+module_aerodyn_i_get_num_connected_nodes(const LoadableElem* pEl)
 {
-	DEBUGCOUTFNAME("i_get_num_connected_nodes");
+	DEBUGCOUTFNAME("module_aerodyn_i_get_num_connected_nodes");
 	return 0;
 }
 
 static void
-get_connected_nodes(const LoadableElem* pEl, 
+module_aerodyn_get_connected_nodes(const LoadableElem* pEl, 
 		std::vector<const Node *>& connectedNodes)
 {
-	DEBUGCOUTFNAME("get_connected_nodes");
+	DEBUGCOUTFNAME("module_aerodyn_get_connected_nodes");
 
 #if 0
 	module_aerodyn_t* p = (module_aerodyn_t *)pEl->pGetData();
-#endif /* 0 */
+#endif // 0
 
 	/*
 	 * set args according to element connections
 	 */
-	connectedNodes.resize(i_get_num_connected_nodes(pEl));
+	connectedNodes.resize(module_aerodyn_i_get_num_connected_nodes(pEl));
 }
 
 static struct
@@ -774,31 +853,31 @@ LoadableCalls lc = {
 		"\tas distributed by the National Renewable Energy Laboratory,\n"
 		"\thttp://www.nrel.gov",
 
-	read,
-	i_get_num_dof,
-	set_dof,
-	output,
-	restart,
-	work_space_dim,
-	NULL /* ass_jac */ ,
-	NULL /* ass_mats */ ,
-	ass_res,
-	before_predict,
-	after_predict,
-	update,
-	after_convergence,
-	i_get_initial_num_dof,
-	NULL /* initial_work_space_dim */ ,
-	NULL /* initial_ass_jac */ ,
-	NULL /* initial_ass_res */ ,
-	set_value,
-	set_initial_value,
-	i_get_num_priv_data,
-	NULL /* i_get_priv_data_idx */ ,
-	NULL /* d_get_priv_data */ ,
-	i_get_num_connected_nodes,
-	get_connected_nodes,
-	destroy,
+	module_aerodyn_read,
+	module_aerodyn_i_get_num_dof,
+	module_aerodyn_set_dof,
+	module_aerodyn_output,
+	module_aerodyn_restart,
+	module_aerodyn_work_space_dim,
+	NULL /* module_aerodyn_ass_jac */ ,
+	NULL /* module_aerodyn_ass_mats */ ,
+	module_aerodyn_ass_res,
+	NULL /* module_aerodyn_before_predict */ ,
+	module_aerodyn_after_predict,
+	NULL /* module_aerodyn_update */ ,
+	module_aerodyn_after_convergence,
+	module_aerodyn_i_get_initial_num_dof,
+	NULL /* module_aerodyn_initial_work_space_dim */ ,
+	NULL /* module_aerodyn_initial_ass_jac */ ,
+	NULL /* module_aerodyn_initial_ass_res */ ,
+	module_aerodyn_set_value,
+	NULL /* module_aerodyn_set_initial_value */ ,
+	module_aerodyn_i_get_num_priv_data,
+	NULL /* module_aerodyn_i_get_priv_data_idx */ ,
+	NULL /* module_aerodyn_d_get_priv_data */ ,
+	module_aerodyn_i_get_num_connected_nodes,
+	module_aerodyn_get_connected_nodes,
+	module_aerodyn_destroy,
 	NULL,
 	NULL,
 	NULL,

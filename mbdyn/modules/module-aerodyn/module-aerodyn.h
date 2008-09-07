@@ -32,8 +32,13 @@
 #ifndef MODULE_AERODYN_H
 #define MODULE_AERODYN_H
 
-//#define USE_DOUBLE_PRECISION
+// uncomment to enable debug output
+#define MODULE_AERODYN_DEBUG
+
+// keep this consistent with AeroDyn build
+// #define USE_DOUBLE_PRECISION
 #define USE_SINGLE_PRECISION
+
 #include "AeroDyn.h"
 
 struct AeroNode {
@@ -68,7 +73,7 @@ typedef struct module_aerodyn_t {
 	 * node data
 	 */
 	std::vector<AeroNode>	nodes;		// nodes
-	std::vector<Mat3x3>	bladeR;		// reference orientation of each blade in the hub reference frame
+	std::vector<Mat3x3>	bladeR;		// orientation matrix of each blade root in the hub reference frame
 
 	std::string ofname;
 	std::ofstream out;
@@ -78,14 +83,17 @@ typedef struct module_aerodyn_t {
 	 * common MODULEs of AeroDyn
 	 */
 	F_LOGICAL	FirstLoop;
-	F_INTEGER       elem; // use to identify the current element in the interface module!
-	F_INTEGER       c_elem; // use to identify the current element in AeroDyn!
-	F_INTEGER	c_blade; // use to identify the current blade!
+	F_INTEGER       elem;    // use to identify the current element in the interface module!
+	F_INTEGER       c_elem;  // use to identify the current element in AeroDyn!
+	F_INTEGER	c_blade; // use to identify the current blade in AeroDyn!
+        F_REAL          rlocal;  // use to identify the current element position 
+        F_REAL          r_hub;   // use to identify the hub radius.
 
 	bool bFirst;
 	DriveOwner	Time;		// time drive
 	doublereal	dOldTime;	// old time
-	doublereal	dDT;		// time step
+	doublereal      dCurTime;       // current time
+	F_REAL          dDT;		// time step
 } module_aerodyn_t;
 
 #endif /* MODULE_AERODYN_H */

@@ -48,6 +48,8 @@ INTEGER(4) NBlades
 
         NB = NBlades
 
+        B = NB    ! Need this value when we swith on "WAKE"
+                  ! or "SWIRL" options
         RETURN
 
 END SUBROUTINE MBDyn_init
@@ -59,7 +61,7 @@ IMPLICIT NONE
 INTEGER(4) FileNameLen
 CHARACTER(FileNameLen) FileName
 
-        print *,'### FileName=',FileName(1:FileNameLen),' FileNameLen=',FileNameLen
+        !print *,'### FileName=',FileName(1:FileNameLen),' FileNameLen=',FileNameLen
 
         CALL AD_inputgate(FileName)
 
@@ -112,6 +114,121 @@ INTEGER(4) c_elem
         RETURN
 END SUBROUTINE MBDyn_com_data
 
+! This subroutine is to pass the current simulation time 
+! of MBDyn to AeroDyn!
+! c_time: current time
+
+SUBROUTINE MBDyn_sim_time(c_time)
+
+USE Identify
+USE Blade
+USE Element
+USE Precision
+USE AeroTime
+
+IMPLICIT NONE
+
+REAL(DbKi) c_time
+
+        TIME = c_time
+        
+        RETURN
+END SUBROUTINE MBDyn_sim_time
+
+! This subroutine is to pass the current simulation time step 
+! of MBDyn to AeroDyn!
+! dt: time step
+
+SUBROUTINE MBDyn_time_step(time_step)
+
+USE Identify
+USE Blade
+USE Element
+USE Precision
+USE AeroTime
+
+IMPLICIT NONE
+
+REAL(ReKi) time_step
+
+        DT = time_step
+        
+        RETURN
+END SUBROUTINE MBDyn_time_step
+
+!Tip loss constants are calculated and stored.
+
+SUBROUTINE MBDyn_get_tl_const ( RLOCAL, Cur_elem )
+
+! AeroDyn Modules:
+
+USE               Blade
+USE               Element
+USE               Precision
 
 
+IMPLICIT          NONE
+
+
+! Passed Variables:
+
+REAL(4)         RLOCAL
+INTEGER(4)      Cur_elem
+
+
+! Local Variables:
+
+REAL(4)         DTIP
+!!! INTEGER(4)      IELM
+
+! Calculation of tip loss constants. 
+
+! R = RLOCAL(NELM) + 0.5 * DR( NELM ) !* COS( PC )
+
+! Calculate the tip-loss constant for each element
+   DTIP           = R - RLOCAL
+   TLCNST( Cur_elem ) = 0.5 * B * DTIP / RLOCAL
+
+RETURN
+END SUBROUTINE MBDyn_get_tl_const
+
+
+
+
+!  Hub loss constants are calculated and stored.
+SUBROUTINE MBDyn_get_hl_const( RLOCAL, Cur_elem, RHub )
+
+! AeroDyn Modules:
+
+USE               Blade
+USE               Element
+USE               Precision
+
+
+IMPLICIT          NONE
+
+! Passed variables:
+
+REAL(4)        RLOCAL
+INTEGER(4)     Cur_elem
+REAL(4)        RHub
+
+! Local Variables:
+
+REAL(4)        DHUB
+!!! INTEGER(4)     IELM
+
+
+! Calculation of hub loss constants. 
+
+! Calculate the hub-loss constant for each element
+IF (RHub > 0.001) THEN
+      DHUB           = RLOCAL - RHub
+      HLCNST( Cur_elem ) = 0.5 * B * DHUB / RHub
+ENDIF
+
+
+
+RETURN
+END SUBROUTINE MBDyn_get_hl_const
 

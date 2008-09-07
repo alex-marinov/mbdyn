@@ -181,6 +181,45 @@ __FC_DECL__(mbdyn_false)(F_LOGICAL *val);
 extern int
 __FC_DECL__(mbdyn_com_data)(F_INTEGER *c_blade, F_INTEGER *c_elem);
 
+/* 
+ * This subroutine is to pass the current simulation time 
+ * from MBDyn to AeroDyn!
+ * c_time: current time
+ * By Fanzhong MENG 19 June 2008
+ */
+extern int
+__FC_DECL__(mbdyn_sim_time)(doublereal *c_time);
+
+/* 
+ * This subroutine is to pass the current simulation time step 
+ * from MBDyn to AeroDyn!
+ * dt: time step
+ * By Fanzhong MENG 19 June 2008
+ */
+extern int
+__FC_DECL__(mbdyn_time_step)(F_REAL *dt);
+
+
+/* 
+ * This Subroutine is to get the Tip loss constants.
+ * RLOCAL: store the position of the blade element.
+ * Cur_elem: store the number of current blade element.
+ * By Fanzhong Meng 14 August 2008
+ */
+extern int
+__FC_DECL__(mbdyn_get_tl_const)(F_REAL *RLOCAL, F_INTEGER *Cur_elem);
+
+
+/* 
+ * This Subroutine is to get the Hub loss constants.
+ * RLOCAL: store the position of the blade element.
+ * Cur_elem: store the number of current blade element.
+ * RHub:     Store the hub radius.
+ * By Fanzhong Meng 14 August 2008
+ */
+extern int
+__FC_DECL__(mbdyn_get_hl_const)(F_REAL *RLOCAL, F_INTEGER *Cur_elem, F_REAL *RHub);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
