@@ -60,12 +60,12 @@ extern "C" {
  */
 
 static int
-do_c81_data_stall(c81_data *data, const doublereal dcptol);
+do_c81_data_stall(c81_data *data, const doublereal dcltol);
 static int
-do_c81_stall(int NM, int NA, doublereal *a, doublereal *stall, const doublereal dcptol);
+do_c81_stall(int NM, int NA, doublereal *a, doublereal *stall, const doublereal dcltol);
 
 int
-read_c81_data_free_format(std::istream& in, c81_data* data, const doublereal dcptol);
+read_c81_data_free_format(std::istream& in, c81_data* data, const doublereal dcltol);
 
 static int
 get_int(const char *const from, int &i)
@@ -250,14 +250,14 @@ destroy_c81_data(c81_data* data)
 }
 
 int
-read_c81_data(std::istream& in, c81_data* data, const doublereal dcptol)
+read_c81_data(std::istream& in, c81_data* data, const doublereal dcltol)
 {
    	char buf[BUFSIZ];	// 81 should suffice
    
    	/* header */
    	in.getline(buf, sizeof(buf));
 	if (strncasecmp(buf, "# FREE FORMAT", STRLENOF("# FREE FORMAT")) == 0) {
-		return read_c81_data_free_format(in, data, dcptol);
+		return read_c81_data_free_format(in, data, dcltol);
 	}
 
    	buf[42] = '\0';
@@ -322,7 +322,7 @@ read_c81_data(std::istream& in, c81_data* data, const doublereal dcptol)
    	get_c81_mat(in, data->am, data->NAM, data->NMM+1);
 
 	/* FIXME: maybe this is not the best place */
-	do_c81_data_stall(data, dcptol);
+	do_c81_data_stall(data, dcltol);
    
    	return 0;
 }
@@ -528,7 +528,7 @@ read_fc511_block(std::istream& in, int &NA, int &NM, doublereal *&da, doublereal
 }
 
 int
-read_fc511_data(std::istream& in, c81_data* data, const doublereal dcptol)
+read_fc511_data(std::istream& in, c81_data* data, const doublereal dcltol)
 {
    	char buf[128];	// 81 should suffice; let's make it 128
    
@@ -586,13 +586,13 @@ read_fc511_data(std::istream& in, c81_data* data, const doublereal dcptol)
 	}
 
 	/* FIXME: maybe this is not the best place */
-	do_c81_data_stall(data, dcptol);
+	do_c81_data_stall(data, dcltol);
    
    	return 0;
 }
 
 int
-read_c81_data_free_format(std::istream& in, c81_data* data, const doublereal dcptol)
+read_c81_data_free_format(std::istream& in, c81_data* data, const doublereal dcltol)
 {
    	char buf[128];	// 81 should suffice; let's make it 128
    
@@ -672,7 +672,7 @@ read_c81_data_free_format(std::istream& in, c81_data* data, const doublereal dcp
 	}
 
 	/* FIXME: maybe this is not the best place */
-	do_c81_data_stall(data, dcptol);
+	do_c81_data_stall(data, dcltol);
    
    	return 0;
 }
@@ -783,50 +783,71 @@ set_c81_data(long int jpro, c81_data* data)
  * sistema i dati di stallo
  */
 static int
-do_c81_stall(int NM, int NA, doublereal *a, doublereal *stall, const doublereal dcptol)
+do_c81_stall(int NM, int NA, doublereal *a, doublereal *stall, const doublereal dcltol)
 {
 	for (int nm = 0; nm < NM; nm++) {
-		int start = NA*(nm+1);
-		int na = NA/2;	/* punto di mezzo */
+		int start = NA*(nm + 1);
+		int na = NA/2;	// mid point
+
+		// look for zero
+		while (a[na] > 0.) {
+			na--;
+			if (na <= 0) {
+				silent_cerr("do_c81_stall: "
+					"unable to find negative alpha range "
+					"for Mach #" << nm + 1 << std::endl);
+				return -1;
+			}
+		}
+
+		while (a[na] < 0.) {
+			na++;
+			if (na >= NA) {
+				silent_cerr("do_c81_stall: "
+					"unable to find positive alpha range "
+					"for Mach #" << nm + 1 << std::endl);
+				return -1;
+			}
+		}
+
 		doublereal a0 = a[na];
-		doublereal dcp0 = a[start+na];
-		doublereal dcpa0 = (a[start+na+1]-dcp0)/(a[na+1]-a0);
+		doublereal dcl0 = a[start + na];
+
+		doublereal dcla0 = (a[start + na + 1] - dcl0)/(a[na + 1] - a0);
 
 		/* cerca il punto superiore in cui cessa la linearita' */
 		stall[nm] = 1.;
-		stall[NM+nm] = 1.;
-		stall[2*NM+nm] = 0.;
+		stall[NM + nm] = 1.;
+		stall[2*NM + nm] = 0.;
 
-		for (int i = na+2; i < NA; i++) {
-			doublereal dcpa = (a[start+i]-dcp0)/(a[i]-a0);
-			if (fabs(dcpa-dcpa0) > dcptol) {
+		for (int i = na + 2; i < NA; i++) {
+			doublereal dcla = (a[start + i] - dcl0)/(a[i] - a0);
+			if (dcla - dcla0 < -dcla0*dcltol) {
 
 				/* alpha di stallo superiore */
-				stall[nm] = a[i-1];
+				stall[nm] = a[i - 1];
 
 				/* mette temporaneamente il Cp di stallo */
-				stall[2*NM+nm] = 
-					a[start+i-1];
+				stall[2*NM + nm] = a[start + i - 1];
 				break;
 			}
 		}
 
-		dcpa0 = (a[start+na-1]-dcp0)/(a[na-1]-a0);
+		dcla0 = (a[start + na - 1] - dcl0)/(a[na - 1] - a0);
 		
 		/* cerca il punto inferiore in cui cessa la linearita' */
-		for (int i = na-2; i >= 0; i--) {
-			doublereal dcpa = (a[start+i]-dcp0)/(a[i]-a0);
-			if (fabs(dcpa-dcpa0) > dcptol) {
+		for (int i = na - 2; i >= 0; i--) {
+			doublereal dcla = (a[start + i] - dcl0)/(a[i] - a0);
+			if (dcla - dcla0 < -dcla0*dcltol) {
 			
 				/* stallo inferiore */
-				stall[NM+nm] = a[i+1];
+				stall[NM + nm] = a[i + 1];
 
-				/* sottrae il cp allo stallo inferiore */
-				stall[2*NM+nm] -= 
-					a[start+i+1];
-					
+				/* sottrae il cl allo stallo inferiore */
+				stall[2*NM + nm] -= a[start + i + 1];
+
 				/* divide per il delta alpha */
-				stall[2*NM+nm] /= (stall[nm] - stall[NM+nm]);
+				stall[2*NM + nm] /= (stall[nm] - stall[NM + nm]);
 				break;
 			}
 		}
@@ -836,19 +857,19 @@ do_c81_stall(int NM, int NA, doublereal *a, doublereal *stall, const doublereal 
 }
 
 static int
-do_c81_data_stall(c81_data *data, const doublereal dcptol)
+do_c81_data_stall(c81_data *data, const doublereal dcltol)
 {
 	if (data == NULL || data->NML <= 0 || data->NMM <= 0) {
 		return -1;
 	}
 
 	data->stall = new doublereal[3*data->NML];
-	do_c81_stall(data->NML, data->NAL, data->al, data->stall, dcptol);
+	do_c81_stall(data->NML, data->NAL, data->al, data->stall, dcltol);
 
 	data->mstall = new doublereal[3*data->NMM];
-	do_c81_stall(data->NMM, data->NAM, data->am, data->mstall, dcptol);
+	do_c81_stall(data->NMM, data->NAM, data->am, data->mstall, dcltol);
 
 	return 0;
 }
 
-} /* extern "C" */
+} // extern "C"

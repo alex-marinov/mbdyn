@@ -366,9 +366,9 @@ c81_aerod2_u(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA,
 			doublereal dclatmp = (cl - cl0)/(alpha*cosgam);
 			if (dclatmp < dcla) {
 				dcla = dclatmp;
+				cl = cl0 + dcla*alpha;
 			}
 		}
-		cl = cl0 + dcla*alpha;
 		break;
 
 	case 1:
