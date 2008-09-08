@@ -49,13 +49,13 @@ static void
 usage(int rc)
 {
 	std::cerr <<
-"usage: c81test [<options>] <file> [<alpha (deg)> <mach>]\n"
+"usage: c81test [<options>] <file>\n"
 "\n"
 "options:\n"
 "\t-a <alpha>\t"	"dump coefficients for angle of attack <alpha>\n"
 "\t-c\t\t"		"interpret <file> as traditional c81 format (default)\n"
 "\t-C <coef>\t"		"only dump coefficient <coef> (must be cl, cd or cm)\n"
-"\t-d [<dump>]\t"	"dump contents (to optional file <dump>, if given)\n"
+"\t-d {<dump>|-}\t"	"dump contents (to optional file <dump>, if given)\n"
 "\t-f\t\t"		"interpret <file> as free format\n"
 "\t-m <mach>\t"		"dump coefficients for Mach number <mach>\n"
 "\t-o\t\t"		"interpret <file> as fc511 format\n"
@@ -86,7 +86,7 @@ main(int argc, char *argv[])
 	doublereal	tol = 1e-6;
 	
 	while (true) {
-		int opt = getopt(argc, argv, "a:cC:d::fm:o");
+		int opt = getopt(argc, argv, "a:cC:d:fm:o");
 
 		if (opt == EOF) {
 			break;
@@ -121,7 +121,7 @@ main(int argc, char *argv[])
 
 		case 'd':
 			dump = true;
-			if (optarg) {
+			if (optarg && strcmp(optarg, "-") != 0) {
 				dump_fname = optarg;
 			}
 			break;
@@ -144,8 +144,8 @@ main(int argc, char *argv[])
 		}
 	}
 
-	argv += optind;
 	argc -= optind;
+	argv += optind;
 
 	/* C81 file name is mandatory */
 	if (argc != 1) {
@@ -184,12 +184,13 @@ main(int argc, char *argv[])
 	/* read C81 database */
 	std::ifstream in(argv[0]);
 	if (!in) {
-		std::cerr << "unable to open file '" << argv[0] 
-			<< "'" << std::endl;
+		std::cerr << "unable to open file '" << argv[0] << "'"
+			<< std::endl;
 		exit(EXIT_FAILURE);
 	}
 
-	c81_data* data = new C81Data(1);
+	c81_data databuf = {{'\0'}};
+	c81_data* data = &databuf;
 
 	int rc;
 
@@ -210,6 +211,8 @@ main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	in.close();
+
 	if (rc) {
 		std::cerr << "unable to read c81 data from file "
 			"\"" << argv[0] << "\"" << std::endl;
@@ -219,10 +222,13 @@ main(int argc, char *argv[])
 	if (dump_fname) {
 		std::ofstream out(dump_fname);
 		write_c81_data_free_format(out, data);
+		out.close();
+		destroy_c81_data(data);
 		exit(EXIT_SUCCESS);
 
 	} else if (dump) {
 		write_c81_data_free_format(std::cout, data);
+		destroy_c81_data(data);
 		exit(EXIT_SUCCESS);
 	}
 
@@ -319,6 +325,7 @@ main(int argc, char *argv[])
 
 	} else {
 		std::cerr << "don't know what to do..." << std::endl;
+		destroy_c81_data(data);
 		usage(EXIT_FAILURE);
 	}
 
