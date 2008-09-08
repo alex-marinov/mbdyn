@@ -68,6 +68,10 @@
 #include <getopt.h>
 #else /* !HAVE_GETOPT_H */
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #include <unistd.h>
 
 extern int getopt(int argc, char * const argv[], const char *optstring);
@@ -81,6 +85,10 @@ extern int getopt_long(int argc,
 		       const char *optstring,
 		       const struct option *longopts, int *longindex);
 #endif /* 0 */
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !HAVE_GETOPT_H */
 
