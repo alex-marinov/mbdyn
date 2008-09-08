@@ -59,6 +59,7 @@ usage(int rc)
 "\t-f\t\t"		"interpret <file> as free format\n"
 "\t-m <mach>\t"		"dump coefficients for Mach number <mach>\n"
 "\t-o\t\t"		"interpret <file> as fc511 format\n"
+"\t-t <tolerance>\t"	"use <tolerance> to determine end of linearity\n"
 		<< std::endl;
 
 	exit(rc);
@@ -86,7 +87,7 @@ main(int argc, char *argv[])
 	doublereal	tol = 1e-6;
 	
 	while (true) {
-		int opt = getopt(argc, argv, "a:cC:d:fm:o");
+		int opt = getopt(argc, argv, "a:cC:d:fm:ot:");
 
 		if (opt == EOF) {
 			break;
@@ -137,6 +138,10 @@ main(int argc, char *argv[])
 
 		case 'o':
 			mode = 'o';
+			break;
+
+		case 't':
+			tol = atof(optarg);
 			break;
 
 		default:
