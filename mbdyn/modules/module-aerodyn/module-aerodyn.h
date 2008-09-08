@@ -43,13 +43,18 @@
 
 struct AeroNode {
 	StructNode	*pNode;
-	Vec3		f;     // offset of the aero point wrt./ the node.
-	Mat3x3		Ra;    // aerodynamic orientation of the aero point wrt./ the node
-	doublereal	dBuiltinPitch;
-	Vec3		F;     // Force on Node
-	Vec3		M;     // Moment on Node.
+	Vec3		f;	// offset of the aero point wrt./ the node,
+				// constant in the node's reference frame
+	Mat3x3		Ra;	// aerodynamic orientation of the aero point
+				// wrt./ the node
 
-	doublereal	PITNOW; // Node pitch angle.
+	doublereal	dBuiltInTwist;
+
+	Vec3		F;	// Force acting on Node
+	Vec3		M;	// Moment acting on Node, with respect
+				// to node's position
+
+	doublereal	PITNOW; // Node pitch angle
 };
 
 /*

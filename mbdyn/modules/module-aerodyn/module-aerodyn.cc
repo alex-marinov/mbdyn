@@ -210,8 +210,8 @@ __FC_DECL__(getelemparams)(
 	Mat3x3 R = (R_hub*R_blade_root).MulTM(R_node);
 	Vec3 Phi(RotManip::VecRot(R.Transpose()));
 
-	// Pitch Now = Pitch+ Twist 
-	*phi = Phi(1) + ::module_aerodyn->nodes[::module_aerodyn->elem].dBuiltinPitch;
+	// Pitch Now = Pitch + Twist 
+	*phi = Phi(1) + ::module_aerodyn->nodes[::module_aerodyn->elem].dBuiltInTwist;
 	::module_aerodyn->nodes[::module_aerodyn->elem].PITNOW = *phi;
 
     	/* 
@@ -460,21 +460,30 @@ module_aerodyn_read(
 		}
 
 		p->nodes[e].pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
-		/*
-		 * blade nodes offset matrix should be read from user input
-		 */ 
-		p->nodes[e].f = Zero3;
 
-		if (HP.IsKeyWord("orientation")) {
-			p->nodes[e].Ra = HP.GetRotRel(ReferenceFrame(p->nodes[e].pNode));
-			Mat3x3 R = p->nodes[e].Ra;
-			Vec3 Twist(RotManip::VecRot(R.Transpose()));
-			p->nodes[e].dBuiltinPitch = Twist(1);
+		// (optional) aerodynamics offset with respect to the node,
+		// constant in the reference frame of the node
+		if (HP.IsKeyWord("position")) {
+			p->nodes[e].f = HP.GetPosRel(ReferenceFrame(p->nodes[e].pNode));
+
 		} else {
-			p->nodes[e].Ra = Eye3;
-			p->nodes[e].dBuiltinPitch = 0.;
+			p->nodes[e].f = Zero3;
 		}
 
+		// (optional) relative orientation between the aerodynamics
+		// and the node
+		if (HP.IsKeyWord("orientation")) {
+			p->nodes[e].Ra = HP.GetRotRel(ReferenceFrame(p->nodes[e].pNode));
+			// built-in twist: the component about blade axis 1
+			// (x) of the relative orientation between
+			// the aerodynamics and the node
+			Vec3 Twist(RotManip::VecRot(p->nodes[e].Ra));
+			p->nodes[e].dBuiltInTwist = -Twist(1);
+
+		} else {
+			p->nodes[e].Ra = Eye3;
+			p->nodes[e].dBuiltInTwist = 0.;
+		}
 	}
 
 	if (HP.IsKeyWord("output" "file" "name")) {
@@ -663,22 +672,22 @@ module_aerodyn_ass_res(
 
 			doublereal c = std::cos(p->nodes[e].PITNOW);
 			doublereal s = std::sin(p->nodes[e].PITNOW);
-//			p->nodes[e].F = p->nodes[e].Ra*Vec3(DFT*c - DFN*s, DFT*s + DFN*c, 0.);
-			p->nodes[e].F = Vec3(0., DFT*c - DFN*s, DFT*s + DFN*c);
-//			p->nodes[e].M = p->nodes[e].Ra.GetVec(3)*PMA + p->nodes[e].f.Cross(p->nodes[e].F);
+
+			Vec3 F_BEM = Vec3(0., DFT*c - DFN*s, DFT*s + DFN*c);
+
+			p->nodes[e].F = p->nodes[e].Ra*F_BEM;
 			p->nodes[e].M = p->nodes[e].Ra.GetVec(1)*PMA + p->nodes[e].f.Cross(p->nodes[e].F);
 
 
 
 #if 0 // def MODULE_AERODYN_DEBUG
 	        	silent_cerr("aerodyn[" << e << "] in BEM frame: "
-				<< p->nodes[e].F << " " << p->nodes[e].M << std::endl
-        			<< "aerodyn[" << e << "] in Twist: "
-				<< p->nodes[e].Ra*p->nodes[e].F
-				<< " " << p->nodes[e].Ra*p->nodes[e].M << std::endl
+				<< F_BEM << " " << PMA << " " << 0.0 << " " << 0.0 << std::endl
+        			<< "aerodyn[" << e << "] in Twist: " << p->nodes[e].F
+				<< " " << p->nodes[e].M << std::endl
 				<< "aerodyn[" << e << "] in global frame: "
-				<< p->nodes[e].pNode->GetRCurr()*p->nodes[e].Ra*p->nodes[e].F
-				<< " " << p->nodes[e].pNode->GetRCurr()*p->nodes[e].Ra*p->nodes[e].M
+				<< p->nodes[e].pNode->GetRCurr()*p->nodes[e].F
+				<< " " << p->nodes[e].pNode->GetRCurr()*p->nodes[e].M
 				<< std::endl << std::endl);
 #endif // MODULE_AERODYN_DEBUG
 		}
@@ -706,8 +715,8 @@ module_aerodyn_ass_res(
 		/*
 		 * Transfer the force/moment to global frame need to be fixed!!!!
 	         */	 
-		WorkVec.Add(6*e + 1, p->nodes[e].pNode->GetRCurr()*p->nodes[e].Ra*p->nodes[e].F);
-		WorkVec.Add(6*e + 4, p->nodes[e].pNode->GetRCurr()*p->nodes[e].Ra*p->nodes[e].M);
+		WorkVec.Add(6*e + 1, p->nodes[e].pNode->GetRCurr()*p->nodes[e].F);
+		WorkVec.Add(6*e + 4, p->nodes[e].pNode->GetRCurr()*p->nodes[e].M);
 
 	}
 
