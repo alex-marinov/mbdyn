@@ -329,5 +329,7 @@ main(int argc, char *argv[])
 		usage(EXIT_FAILURE);
 	}
 
+	destroy_c81_data(data);
+
 	return 0;
 }
