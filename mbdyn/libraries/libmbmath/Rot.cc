@@ -141,6 +141,15 @@ Vec3 RotManip::VecRot(const Mat3x3 & Phi) {
 	doublereal phi, a, cosphi, sinphi;
 	Vec3 unit;
 
+	// Modified from Appendix 2.4 of
+	//
+	// author = {Marco Borri and Lorenzo Trainelli and Carlo L. Bottasso},
+	// title = {On Representations and Parameterizations of Motion},
+	// journal = {Multibody System Dynamics},
+	// volume = {4},
+	// pages = {129--193},
+	// year = {2000}
+
 	cosphi = (Phi.Trace() - 1.)/2.;
 	if (cosphi > 0.) {
 		unit = Phi.Ax();
