@@ -141,7 +141,7 @@ Vec3 RotManip::VecRot(const Mat3x3 & Phi) {
 	doublereal phi, a, cosphi, sinphi;
 	Vec3 unit;
 
-	cosphi = .5*(Phi.Trace()-1.);
+	cosphi = (Phi.Trace() - 1.)/2.;
 	if (cosphi > 0.) {
 		unit = Phi.Ax();
 		sinphi = unit.Norm();
@@ -149,19 +149,21 @@ Vec3 RotManip::VecRot(const Mat3x3 & Phi) {
 		CoeffA(phi, phi, &a);
 		unit = unit/a;
 	} else {
+		// -1 <= cosphi <= 0
 		Mat3x3 eet(Phi.Symm());
-		eet -= Mat3x3(cosphi);
-		eet /= (1.-cosphi);
+		eet(1, 1) -= cosphi;
+		eet(2, 2) -= cosphi;
+		eet(3, 3) -= cosphi;
+		// largest (abs) component of unit vector phi/|phi|
 		Int maxcol = 1;
-		if ((eet.dGet(2, 2) > eet.dGet(1, 1))
-				||(eet.dGet(3, 3) > eet.dGet(1, 1))) {
+		if (eet(2, 2) > eet(1, 1)) {
 			maxcol = 2;
-			if (eet.dGet(3, 3) > eet.dGet(2, 2)) {
-				maxcol = 3;
-			}
 		}
-		unit = (eet.GetVec(maxcol)/sqrt(eet.dGet(maxcol, maxcol)));
-		sinphi = (Mat3x3(unit)*Phi).Trace()*(-.5);
+		if (eet(3, 3) > eet(maxcol, maxcol)) {
+			maxcol = 3;
+		}
+		unit = (eet.GetVec(maxcol)/sqrt(eet(maxcol, maxcol)*(1. - cosphi)));
+		sinphi = -(Mat3x3(unit)*Phi).Trace()/2.;
 		unit *= atan2(sinphi, cosphi);
 	}
 	return unit;
