@@ -143,7 +143,7 @@ ExtFileHandlerEDGE::Send_post(bool bAfterConvergence)
 	}
 
 	outf.open(fflagname.c_str());
-	outf << 3;
+	outf << int(EDGE_MBDYN_WRITE_DONE);
 	outf.close();
 	outf.clear();
 }
