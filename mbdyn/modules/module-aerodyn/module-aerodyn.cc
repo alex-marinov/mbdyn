@@ -634,12 +634,20 @@ module_aerodyn_ass_res(
 	 */
 
 	if (p->bFirst) {
+		int c_blade = -1;
+		p->c_blade = 0;
+		Mat3x3 BladeR;
+		Vec3 BladeAxis;
+
 		for (int e = 0; e < p->nelems*p->nblades; e++) {
 			/*
 			 * get the current blade number.
 			 */ 
 			if ((e % p->nelems) == 0) {
-				p->c_blade = e/p->nelems + 1;
+				c_blade++;
+				p->c_blade++;
+				BladeR = p->pHub->GetRCurr()*p->bladeR[c_blade];
+				BladeAxis = BladeR.GetVec(1);
 			}
 
 			/*
@@ -655,39 +663,35 @@ module_aerodyn_ass_res(
 
 			p->c_elem = e%p->nelems + 1;
 			(void)__FC_DECL__(mbdyn_com_data)(&p->c_blade, &p->c_elem);
+
                         /*
 	                 * Get blade elements radius. It is the perpendicular distance 
 	                 * from the rotor axis to the element aerodynamic reference point.
 	                 */ 
 
+			/*
+			 * forces and moments are in the blade reference frame,
+			 * not in the element's.
+			 */
 			__FC_DECL__(aerofrcintrface)(&p->FirstLoop, &p->c_elem, &DFN, &DFT, &PMA);
+
 #ifdef MODULE_AERODYN_DEBUG
 		        silent_cerr("aerodyn[" << e << "] in rotation plane: DFN=" << DFN << " DFT=" << DFT << " PMA=" << PMA << std::endl);
 #endif // MODULE_AERODYN_DEBUG
+
 			/*
-			 * turn force/moment into the node frame (blade element frame used by Aerodyn to calculation forces)
-			 * (passing thru local element frame),
-			 * including offset
+			 * turn force/moment into the global frame,
+			 * the moment with respect to the node
 			 */
-
-			doublereal c = std::cos(p->nodes[e].PITNOW);
-			doublereal s = std::sin(p->nodes[e].PITNOW);
-
-			Vec3 F_BEM = Vec3(0., DFT*c - DFN*s, DFT*s + DFN*c);
-
-			p->nodes[e].F = p->nodes[e].Ra*F_BEM;
-			p->nodes[e].M = p->nodes[e].Ra.GetVec(1)*PMA + p->nodes[e].f.Cross(p->nodes[e].F);
-
-
+			p->nodes[e].F = BladeR*Vec3(0., DFT, DFN);
+			Vec3 Arm(p->nodes[e].pNode->GetRCurr()*p->nodes[e].f);
+			p->nodes[e].M = BladeAxis*PMA + Arm.Cross(p->nodes[e].F);
 
 #if 0 // def MODULE_AERODYN_DEBUG
 	        	silent_cerr("aerodyn[" << e << "] in BEM frame: "
 				<< F_BEM << " " << PMA << " " << 0.0 << " " << 0.0 << std::endl
-        			<< "aerodyn[" << e << "] in Twist: " << p->nodes[e].F
-				<< " " << p->nodes[e].M << std::endl
 				<< "aerodyn[" << e << "] in global frame: "
-				<< p->nodes[e].pNode->GetRCurr()*p->nodes[e].F
-				<< " " << p->nodes[e].pNode->GetRCurr()*p->nodes[e].M
+				<< p->nodes[e].F << " " << p->nodes[e].M
 				<< std::endl << std::endl);
 #endif // MODULE_AERODYN_DEBUG
 		}
@@ -713,10 +717,10 @@ module_aerodyn_ass_res(
 		 * into the global frame
 		 */
 		/*
-		 * Transfer the force/moment to global frame need to be fixed!!!!
+		 * The force/moment is already in the global reference frame
 	         */	 
-		WorkVec.Add(6*e + 1, p->nodes[e].pNode->GetRCurr()*p->nodes[e].F);
-		WorkVec.Add(6*e + 4, p->nodes[e].pNode->GetRCurr()*p->nodes[e].M);
+		WorkVec.Add(6*e + 1, p->nodes[e].F);
+		WorkVec.Add(6*e + 4, p->nodes[e].M);
 
 	}
 
