@@ -247,6 +247,22 @@ Mat3x3::EigSym(Vec3& EigenValues) const
 	return EigSym(EigenValues, EigenVectors);
 }
 
+#if 0
+bool
+Mat3x3::EigSym(Vec3& EigenValues,
+	Mat3x3& EigenVectors,
+	const Mat3x3& Hints) const
+{
+	Mat3x3 Tmp;
+
+	if (!EigSym(EigenValues, Tmp)) {
+		return false;
+	}
+
+	/* TBC */
+}
+#endif
+
 bool
 Mat3x3::EigSym(Vec3& EigenValues, Mat3x3& EigenVectors) const
 {
