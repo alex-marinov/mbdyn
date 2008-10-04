@@ -171,6 +171,7 @@ rebuild_matrix:;
 
 				/* need to rebuild the matrix... */
       				pSM->MatrInitialize();
+				/* FIXME: could loop forever! */
 				goto rebuild_matrix;
 
 			} catch (...) {
