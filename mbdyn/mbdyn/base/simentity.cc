@@ -137,14 +137,14 @@ unsigned int
 SimulationEntity::iGetPrivDataIdx(const char *s) const 
 {
 	silent_cerr("no private data available" << std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 doublereal
 SimulationEntity::dGetPrivData(unsigned int /* i */ ) const
 {
 	silent_cerr("no private data available" << std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 std::ostream&

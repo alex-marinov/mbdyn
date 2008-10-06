@@ -94,7 +94,7 @@ DofOrder::Order LinearAccelerationJoint::GetDofType(unsigned int i) const
       return DofOrder::ALGEBRAIC;
     default:
       silent_cerr("invalid dof number" << std::endl);
-      throw ErrGeneric();
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
 }
 
@@ -240,7 +240,7 @@ LinearAccelerationJoint::dGetPrivData(unsigned int i) const
     case 2:
       return dGet();
     default:
-      throw ErrGeneric();
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
 }
 
@@ -306,7 +306,7 @@ DofOrder::Order AngularAccelerationJoint::GetDofType(unsigned int i) const
       return DofOrder::ALGEBRAIC;
     default:
       silent_cerr("invalid dof number" << std::endl);
-      throw ErrGeneric();
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
 }
 
@@ -454,7 +454,7 @@ AngularAccelerationJoint::dGetPrivData(unsigned int i) const
     case 2:
       return dGet();
     default:
-      throw ErrGeneric();
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
 }
 

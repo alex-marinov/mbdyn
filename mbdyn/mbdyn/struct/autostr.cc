@@ -242,7 +242,7 @@ AutomaticStructElem::OutputPrepare(OutputHandler &OH)
 				(unsigned long)GetLabel());
 			// NOTE: "BP" is the longest var name
 			if (l < 0 || l >= int(sizeof(buf) - STRLENOF("BP"))) {
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			/* Add NetCDF (output) variables to the BinFile object
@@ -254,84 +254,84 @@ AutomaticStructElem::OutputPrepare(OutputHandler &OH)
 			Var_B = pBinFile->add_var(buf, ncDouble,
 				OH.DimTime(), OH.DimV3());
 			if (Var_B == 0) {
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_B->add_att("units", "kg m/s")) {
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_B->add_att("type", "Vec3")) {
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_B->add_att("description",
 				"momentum (X, Y, Z)"))
 			{
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			strcpy(&buf[l], "G");
 			Var_G = pBinFile->add_var(buf, ncDouble,
 				OH.DimTime(), OH.DimV3());
 			if (Var_G == 0) {
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_G->add_att("units", "kg m^2/s")) {
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_G->add_att("type", "Vec3")) {
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_G->add_att("description",
 				"momenta moment (X, Y, Z)"))
 			{
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			strcpy(&buf[l], "BP");
 			Var_BP = pBinFile->add_var(buf, ncDouble,
 				OH.DimTime(), OH.DimV3());
 			if (Var_BP == 0) {
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_BP->add_att("units", "kg m/s^2")) {
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_BP->add_att("type", "Vec3")) {
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_BP->add_att("description",
 				"momentum derivative (X, Y, Z)"))
 			{
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			strcpy(&buf[l], "GP");
 			Var_GP = pBinFile->add_var(buf, ncDouble,
 				OH.DimTime(), OH.DimV3());
 			if (Var_GP == 0) {
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_GP->add_att("units", "kg m^2/s^2")) {
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_GP->add_att("type", "Vec3")) {
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_GP->add_att("description",
 				"momenta moment derivative (X, Y, Z)"))
 			{
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 #endif // USE_NETCDF

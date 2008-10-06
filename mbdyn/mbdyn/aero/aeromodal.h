@@ -153,7 +153,7 @@ class AerodynamicModal : virtual public Elem, public AerodynamicElem,
       	if (i < NAeroStates+NGust*2) {
 		return DofOrder::DIFFERENTIAL;
 	} else {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
    };
 

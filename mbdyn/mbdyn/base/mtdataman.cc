@@ -145,7 +145,7 @@ propagate_ErrMatrixRebuild(sig_atomic_t(false))
 	rc = sched_getparam(0, &sp);
 	if (rc != 0) {
 		silent_cerr("sched_getparam() failed: " << errno << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	int pmin = sched_get_priority_min(policy);
@@ -164,20 +164,20 @@ propagate_ErrMatrixRebuild(sig_atomic_t(false))
 				"to set SCHED_FIFO scheduling policy: "
 				<< errno
 				<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 #endif
 
 	if (pthread_mutex_init(&thread_mutex, NULL)) {
 		silent_cerr("MultiThreadDataManager::MultiThreadDataManager(): "
 				"mutex init failed" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 		
 	if (pthread_cond_init(&thread_cond, NULL)) {
 		silent_cerr("MultiThreadDataManager::MultiThreadDataManager(): "
 				"cond init failed" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	ThreadSpawn();
@@ -337,7 +337,7 @@ MultiThreadDataManager::thread(void *p)
 		default:
 			silent_cerr("MultiThreadDataManager: unhandled op"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		/* decrease counter and signal if last
@@ -461,7 +461,7 @@ MultiThreadDataManager::ThreadSpawn(void)
 			silent_cerr("pthread_create() failed "
 					"for thread " << i
 					<< " of " << nThreads << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 	
@@ -541,7 +541,7 @@ retry:;
 	default:
 		silent_cerr("unable to detect jacobian matrix type "
 				"for multithread assembly" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -600,7 +600,7 @@ retry:;
 		break;
 
 	default:
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 	}
 
@@ -643,7 +643,7 @@ retry:;
 		}
 		CCReady = CC_NO;
 
-		throw MatrixHandler::ErrRebuildMatrix();
+		throw MatrixHandler::ErrRebuildMatrix(MBDYN_EXCEPT_ARGS);
 	}
 
 	for (unsigned i = 1; i < nThreads; i++) {

@@ -221,7 +221,7 @@ ReadResSet(DataManager* pDM, MBDynParser& HP, unsigned int uL)
 			(StructNode *)pDM->ReadNode(HP, Node::STRUCTURAL);
 		
 		if (pNode == NULL) {
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (HP.IsKeyWord("local")) {
@@ -236,7 +236,7 @@ ReadResSet(DataManager* pDM, MBDynParser& HP, unsigned int uL)
 	} else {
 		silent_cerr("unknown force set type at line " 
 			<< HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	unsigned int nItems = HP.GetInt();
@@ -244,7 +244,7 @@ ReadResSet(DataManager* pDM, MBDynParser& HP, unsigned int uL)
 		silent_cerr("illegal number of items " << nItems 
 			<< " in set at line " << HP.GetLineData() << std::endl);
 		SAFEDELETE(pres);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	SAFENEWWITHCONSTRUCTOR(pset, ResForceSet, ResForceSet(uL, pres));
@@ -259,7 +259,7 @@ ReadResSet(DataManager* pDM, MBDynParser& HP, unsigned int uL)
 				<< " in set at line " << HP.GetLineData() 
 				<< std::endl);
 			SAFEDELETE(pset);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -278,7 +278,7 @@ ReadResSets(DataManager* pDM, MBDynParser& HP)
 			silent_cerr("Illegal number of sets (" << nSets 
 				<< ") at line " << HP.GetLineData() 
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		SAFENEWARR(ppres, ResForceSet*, nSets+1);

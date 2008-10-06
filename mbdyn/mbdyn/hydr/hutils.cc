@@ -582,7 +582,7 @@ Tank::AssRes(SubVectorHandler& WorkVec,
    if (s < 0.) {
       silent_cerr("Tank(" << GetLabel() << ": negative fluid level "
 		      << s << " impossible" << std::endl);
-      throw ErrGeneric();
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
      
    doublereal jumpPres1S = fabs(p1-press);

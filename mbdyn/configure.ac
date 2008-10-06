@@ -669,7 +669,7 @@ dnl
 dnl Check for f2c libraries
 dnl
 ol_link_libf2c=no
-if test $ol_with_libf2c = no -a `basename "$ac_cv_prog_ac_ct_F77"` = "g77" ; then
+if test $ol_with_libf2c = no -a `basename "$F77"` = "g77" ; then
 	ol_with_libf2c=auto
 fi
 	

@@ -98,7 +98,10 @@ extern int get_debug_options(const char *const s, const debug_array da[]);
 
 class MyAssert {
  public:
-   class ErrGeneric {};
+   class ErrGeneric : public MBDynErrBase {
+	public:
+		ErrGeneric(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
 };
 
 extern void _Assert(const char* file, const int line, const char* msg = NULL);
@@ -116,7 +119,7 @@ extern std::ostream& _Out(std::ostream& out, const char* file, const int line);
     do { \
         if (!(expr)) { \
             _Assert(__FILE__, __LINE__); \
-            throw MyAssert::ErrGeneric(); \
+            throw MyAssert::ErrGeneric(MBDYN_EXCEPT_ARGS); \
         } \
     } while (0)
 
@@ -131,7 +134,7 @@ extern std::ostream& _Out(std::ostream& out, const char* file, const int line);
     do { \
         if (!(expr)) { \
             _Assert(__FILE__, __LINE__, (msg)); \
-            throw MyAssert::ErrGeneric(); \
+            throw MyAssert::ErrGeneric(MBDYN_EXCEPT_ARGS); \
         } \
     } while (0)
 

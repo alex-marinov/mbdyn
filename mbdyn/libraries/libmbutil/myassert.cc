@@ -75,7 +75,7 @@ void _Assert(const char* file, const int line, const char* msg)
    std::cerr << std::endl;
    
 #ifdef DEBUG_STOP
-   throw MyAssert::ErrGeneric();
+   throw MyAssert::ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif   
    
    return;

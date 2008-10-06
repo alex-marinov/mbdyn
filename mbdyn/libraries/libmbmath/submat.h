@@ -66,7 +66,10 @@ public:
 	/*
 	 * Errore di ridimensionamento illegale.
 	 */
-	class ErrResize {};
+	class ErrResize : public MBDynErrBase {
+	public:
+		ErrResize(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
 
 	/* Costruttori */
 
@@ -679,7 +682,10 @@ class SparseSubMatrixHandler : public SubMatrixHandler {
 public:
 	/* Errori */
 
-	class ErrResize {};
+	class ErrResize : MBDynErrBase {
+	public:
+		ErrResize(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
 
 private:
 	bool bOwnsMemory;
@@ -1195,12 +1201,12 @@ public:
 
 	const doublereal&
 	operator () (integer iRow, integer iCol) const {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	};
 
 	doublereal&
 	operator () (integer iRow, integer iCol) {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	};
 };
 

@@ -415,5 +415,5 @@ Inertia::dGetPrivData(unsigned int i) const
 		return Omega_cm(which);
 	}
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }

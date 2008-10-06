@@ -420,7 +420,7 @@ ReadJointRegularization(DataManager* pDM,
 				<< "(" << uLabel << ") "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		unsigned iNumDofs = pJ->iGetNumDof();
@@ -432,7 +432,7 @@ ReadJointRegularization(DataManager* pDM,
 				<< "(" << uLabel << ") "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		}
 
@@ -469,7 +469,7 @@ ReadJointRegularization(DataManager* pDM,
 			break;
 
 		default:
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 	} break;
@@ -487,13 +487,13 @@ ReadJointRegularization(DataManager* pDM,
 			<< psElemNames[Elem::JOINT_REGULARIZATION]
 			<< "(" << uLabel << ")" << std::endl);
 
-		throw ErrMemory();
+		throw ErrMemory(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (HP.IsArg()) {
 		silent_cerr("semicolon expected at line " << HP.GetLineData()
 			<< std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return pEl;

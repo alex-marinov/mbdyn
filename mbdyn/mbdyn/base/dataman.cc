@@ -267,7 +267,7 @@ DofIter()
 		silent_cerr("<begin> expected at line "
 			<< HP.GetLineData() << std::endl);
 
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (KeyWords(HP.GetWord()) != CONTROLDATA) {
@@ -275,7 +275,7 @@ DofIter()
 		silent_cerr("<begin: control data;> expected at line "
 			<< HP.GetLineData() << std::endl);
 
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	ReadControl(HP, sInputFileName);
@@ -314,7 +314,7 @@ DofIter()
 			silent_cerr("<begin> expected at line "
 				<< HP.GetLineData() << std::endl);
 
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (KeyWords(HP.GetWord()) != NODES) {
@@ -322,7 +322,7 @@ DofIter()
 			silent_cerr("<begin: nodes;> expected at line "
 				<< HP.GetLineData() << std::endl);
 
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		ReadNodes(HP);
@@ -348,7 +348,7 @@ DofIter()
 			silent_cerr("\"begin\" expected at line "
 				<< HP.GetLineData() << std::endl);
 
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (KeyWords(HP.GetWord()) != DRIVERS) {
@@ -356,7 +356,7 @@ DofIter()
 			silent_cerr("\"begin: drivers;\" expected at line "
 				<< HP.GetLineData() << std::endl);
 
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		ReadDrivers(HP);
@@ -380,7 +380,7 @@ DofIter()
 			silent_cerr("\"begin\" expected at line "
 				<< HP.GetLineData() << std::endl);
 
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (KeyWords(HP.GetWord()) != ELEMENTS) {
@@ -388,7 +388,7 @@ DofIter()
 			silent_cerr("\"begin: elements;\" expected at line "
 				<< HP.GetLineData() << std::endl);
 
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		ReadElems(HP);
@@ -625,7 +625,7 @@ DataManager::~DataManager(void)
 	if (loadableElemInitialized) {
 		if (lt_dlexit()) {
 			std::cerr << "lt_dlexit failed" << std::endl;
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 #endif // USE_RUNTIME_LOADING

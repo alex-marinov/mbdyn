@@ -69,20 +69,26 @@ class Solver;
 
 class Solver : public SolverDiagnostics {
 public:
-	class ErrGeneric {};
-	class ErrMaxIterations{};
-	class SimulationDiverged{};
-	class EndOfSimulation : public std::exception {
-	private:
-		int EndCode;
-		std::string message;
-		EndOfSimulation(void) { NO_OP; }
-	public:
-		EndOfSimulation(const int e, const std::string& msg) : EndCode(e), message(msg) { NO_OP; };
-		~EndOfSimulation(void) throw() { NO_OP; };
-		const char* what(void) const throw () { return message.c_str(); };
-	};
-
+ 	class ErrGeneric : public MBDynErrBase {
+  	public:
+ 		ErrGeneric(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+  	};
+ 	class ErrMaxIterations : public MBDynErrBase {
+  	public:
+ 		ErrMaxIterations(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+  	};
+ 	class SimulationDiverged : public MBDynErrBase {
+  	public:
+ 		SimulationDiverged(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+  	};
+ 	class EndOfSimulation : public MBDynErrBase {
+  	private:
+  		int EndCode;
+  	public:
+ 		EndOfSimulation(const int e, MBDYN_EXCEPT_ARGS_DECL_NODEF) : 
+ 		MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU), EndCode(e){};
+  	};
+  
 protected:
 #ifdef USE_MULTITHREAD
 	unsigned nThreads;

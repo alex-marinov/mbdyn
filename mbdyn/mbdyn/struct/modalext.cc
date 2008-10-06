@@ -174,7 +174,7 @@ ModalExt::Recv(std::istream& inf)
 	if (uOutFlags & ExtModalForceBase::EMF_ERR) {
 		silent_cerr("ModalExt(" << GetLabel() << "): "
 			"error while reading modal force data" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (uFlags != uOutFlags) {
@@ -182,7 +182,7 @@ ModalExt::Recv(std::istream& inf)
 			"error while reading modal force data "
 			"(" << uOutFlags << "!=" << uFlags << ")"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -250,7 +250,7 @@ ReadModalExtForce(DataManager* pDM,
 	if (pModal == 0) {
 		silent_cerr("ModalExt(" << uLabel << "): illegal Modal joint "
 			" at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	bool bOutputAccelerations(false);
@@ -266,7 +266,7 @@ ReadModalExtForce(DataManager* pDM,
 	} else {
 		silent_cerr("ModalExt(" << uLabel << "): "
 			"unknown external force type" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	flag fOut = pDM->fReadOutput(HP, Elem::FORCE);

@@ -66,7 +66,7 @@ DistanceJoint::Abort(void)
 {
 	silent_cerr("DistanceJoint(" << GetLabel() << "): distance is null"
 		<< std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 void
@@ -87,7 +87,7 @@ DistanceJoint::SetValue(DataManager *pDM,
 					silent_cerr("DistanceJoint(" << uLabel << "): "
 						"unable to create drive after hint "
 						"#" << i << std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				DriveOwner::Set(pDC);
@@ -115,7 +115,7 @@ DistanceJoint::SetValue(DataManager *pDM,
 			"nodes are coincident;" << std::endl
 	  		<< "initial joint assembly is recommended"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -151,7 +151,7 @@ DistanceJoint::dGetPrivData(unsigned int i) const
 		return dGet();
 	}
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* Contributo al file di restart */
@@ -493,7 +493,7 @@ DistanceJointWithOffset::SetValue(DataManager *pDM,
 					silent_cerr("DistanceJointWithOffset(" << uLabel << "): "
 						"unable to create drive after hint "
 						"#" << i << std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				DriveOwner::Set(pDC);
@@ -519,7 +519,7 @@ DistanceJointWithOffset::SetValue(DataManager *pDM,
 			<< " and " << pNode2->GetLabel() << ": "
 			"nodes are coincident;" << std::endl
 			<< "this is no longer supported" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 

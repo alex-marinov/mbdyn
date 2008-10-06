@@ -61,7 +61,7 @@ int DiscreteControlARXProcess_Debug::ReadMatrix(std::istream& In,
 		 << sMatName << '_'
 		 << k+1 << '(' << i+1 << ',' << j+1 << ')' << std::endl);
 	       
-	       throw ErrGeneric();
+	       throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	    }
 	    
 	    DEBUGLCOUT(MYDEBUG_INIT, sMatName << '_' << k+1 << "(" << i 
@@ -429,7 +429,7 @@ fout(sf != NULL ? 1 : 0)
       break;
     default:
       silent_cerr("Unknown type of identification!" << std::endl);
-      throw ErrGeneric();
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
    
    if (f_md) {

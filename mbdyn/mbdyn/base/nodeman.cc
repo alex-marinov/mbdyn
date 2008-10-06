@@ -149,23 +149,23 @@ DataManager::NodeOutputPrepare(OutputHandler& OH)
 			char buf[BUFSIZ];
 			int l = snprintf(buf, sizeof(buf), "%s_node_labels_dim", NodeData[nt].ShortDesc);
 			if (l <= 0 || l >= int(sizeof(buf))) {
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			NcDim *DimLabels = 
 				pBinFile->add_dim(buf, iNumNodes);
 
 			l = snprintf(buf, sizeof(buf), "node.%s", NodeData[nt].ShortDesc);
 			if (l <= 0 || l >= int(sizeof(buf))) {
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			NcVar *VarLabels = pBinFile->add_var(buf, ncInt, DimLabels);
 
 			l = snprintf(buf, sizeof(buf), "%s nodes labels", NodeData[nt].Desc);
 			if (l <= 0 || l >= int(sizeof(buf))) {
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			if (!VarLabels->add_att("description", buf)) {
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			for (unsigned i = 0; i < unsigned(iNumNodes); i++) {
@@ -190,7 +190,7 @@ DataManager::NodeOutputPrepare(OutputHandler& OH)
 		NcVar *VarLabels = pBinFile->add_var("node.struct", ncInt,
 			DimLabels);
 		if (!VarLabels->add_att("description", "Structural nodes labels")) {
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		for (unsigned i = 0; i < unsigned(iNumNodes); i++) {

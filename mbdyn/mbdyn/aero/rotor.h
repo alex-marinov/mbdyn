@@ -67,7 +67,10 @@ class Rotor
    };
 
  public:
-   class ErrInfiniteMeanInducedVelocity {};
+   class ErrInfiniteMeanInducedVelocity : public MBDynErrBase {
+	public:
+		ErrInfiniteMeanInducedVelocity(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
    
  protected:
 #ifdef USE_MPI

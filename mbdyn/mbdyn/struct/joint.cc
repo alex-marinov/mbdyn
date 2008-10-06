@@ -397,7 +397,7 @@ ReadJoint(DataManager* pDM,
 		if (!HP.IsArg()) {
 			silent_cerr("line " << HP.GetLineData()
 				<< ": driver data expected" << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		DriveCaller* pDC = NULL;
@@ -787,7 +787,7 @@ ReadJoint(DataManager* pDM,
 			if (!HP.IsKeyWord("friction")) {
 				silent_cerr("missing keyword \"friction\" at line "
 					<< HP.GetLineData() << std::endl);
-					throw ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			doublereal r = HP.GetReal();
 
@@ -903,11 +903,11 @@ ReadJoint(DataManager* pDM,
 				"unsupported; "
 				"use an InPlane and a RevoluteRotation"
 				<< std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		default:
 			ASSERTMSG(0, "You shouldn't have reached this point");
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		} break;
@@ -1030,11 +1030,11 @@ ReadJoint(DataManager* pDM,
 				"unsupported; "
 				"use an \"inplane\" and a \"revolute rotation\" instead"
 				<< std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		default:
 			ASSERTMSG(0, "You shouldn't have reached this point");
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		} break;
@@ -1066,7 +1066,7 @@ ReadJoint(DataManager* pDM,
 		if (d <= DBL_EPSILON) {
 			silent_cerr("null direction at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		v /= sqrt(d);
 
@@ -1246,7 +1246,7 @@ ReadJoint(DataManager* pDM,
 					"offsets already defined "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			bOffset = true;
@@ -1285,7 +1285,7 @@ ReadJoint(DataManager* pDM,
 				"rod joint does not support "
 				"dynamic constitutive laws yet"
 				<< std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
@@ -1408,7 +1408,7 @@ ReadJoint(DataManager* pDM,
 				"\"rod with offset\" joint does not support "
 				"dynamic constitutive laws yet"
 				<< std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
@@ -1537,7 +1537,7 @@ ReadJoint(DataManager* pDM,
 				"\"deformable hinge\" joint does not support "
 				"dynamic constitutive laws yet"
 				<< std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		OrientationDescription od = UNKNOWN_ORIENTATION_DESCRIPTION;
@@ -1592,7 +1592,7 @@ ReadJoint(DataManager* pDM,
 				silent_cerr("\"invariant deformable displacement joint\" "
 					"at line " << HP.GetLineData()
 					<< " not implemented yet" << std::endl);
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif
 #if 1
 				SAFENEWWITHCONSTRUCTOR(pEl,
@@ -1606,7 +1606,7 @@ ReadJoint(DataManager* pDM,
 				break;
 			default:
 				ASSERTMSG(0, "You shouldn't have reached this point");
-				throw DataManager::ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				break;
 			}
 			break;
@@ -1645,7 +1645,7 @@ ReadJoint(DataManager* pDM,
 				silent_cerr("\"invariant deformable displacement joint\" "
 					"at line " << HP.GetLineData()
 					<< " not implemented yet" << std::endl);
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 #if 0
 				SAFENEWWITHCONSTRUCTOR(pEl,
 					ViscousDispJoint,
@@ -1657,7 +1657,7 @@ ReadJoint(DataManager* pDM,
 				break;
 			default:
 				ASSERTMSG(0, "You shouldn't have reached this point");
-				throw DataManager::ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				break;
 			}
 			break;
@@ -1697,7 +1697,7 @@ ReadJoint(DataManager* pDM,
 				silent_cerr("\"invariant deformable displacement joint\" "
 					"at line " << HP.GetLineData()
 					<< " not implemented yet" << std::endl);
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 #if 0
 				SAFENEWWITHCONSTRUCTOR(pEl,
 					ViscoElasticDispJointInv,
@@ -1710,14 +1710,14 @@ ReadJoint(DataManager* pDM,
 				break;
 			default:
 				ASSERTMSG(0, "You shouldn't have reached this point");
-				throw DataManager::ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				break;
 			}
 			break;
 
 		default:
 			ASSERTMSG(0, "You shouldn't have reached this point");
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		std::ostream& out = pDM->GetLogFile();
@@ -1767,7 +1767,7 @@ ReadJoint(DataManager* pDM,
 				"\"deformable joint\" does not support "
 				"dynamic constitutive laws yet"
 				<< std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
@@ -1787,7 +1787,7 @@ ReadJoint(DataManager* pDM,
 				silent_cerr("\"invariant deformable joint\" "
 					"at line " << HP.GetLineData()
 					<< " not implemented yet" << std::endl);
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 #if 0
 				SAFENEWWITHCONSTRUCTOR(pEl,
 					ElasticJointInv,
@@ -1798,7 +1798,7 @@ ReadJoint(DataManager* pDM,
 				break;
 			default:
 				ASSERTMSG(0, "You shouldn't have reached this point");
-				throw DataManager::ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				break;
 			}
 
@@ -1831,7 +1831,7 @@ ReadJoint(DataManager* pDM,
 				"at line " << HP.GetLineData()
 				<< " not implemented with the requested "
 				"constitutive law type" << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		std::ostream& out = pDM->GetLogFile();
@@ -1859,7 +1859,7 @@ ReadJoint(DataManager* pDM,
 			Dir /= sqrt(d);
 		} else {
 			silent_cerr("direction is null" << std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		DriveCaller* pDC = HP.GetDriveCaller();
@@ -1883,7 +1883,7 @@ ReadJoint(DataManager* pDM,
 
 		default:
 			ASSERTMSG(0, "You shouldn't have reached this point");
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		} break;
 
@@ -1900,7 +1900,7 @@ ReadJoint(DataManager* pDM,
 			Dir /= sqrt(d);
 		} else {
 			silent_cerr("direction is null" << std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		DriveCaller* pDC = HP.GetDriveCaller();
@@ -1924,7 +1924,7 @@ ReadJoint(DataManager* pDM,
 
 		default:
 			ASSERTMSG(0, "You shouldn't have reached this point");
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		} break;
 
@@ -2373,7 +2373,7 @@ ReadJoint(DataManager* pDM,
 					silent_cerr("TotalEquation(" << uLabel << "): "
 						"invalid status for position component #" << i + 1
 						<< " at line " << HP.GetLineData() << std::endl);
-					throw ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
 
@@ -2402,7 +2402,7 @@ ReadJoint(DataManager* pDM,
 					silent_cerr("TotalEquation(" << uLabel << "): "
 						"invalid status for position component #" << i + 1
 						<< " at line " << HP.GetLineData() << std::endl);
-					throw ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
 
@@ -2496,7 +2496,7 @@ ReadJoint(DataManager* pDM,
 					silent_cerr("TotalReaction(" << uLabel << "): "
 						"invalid status for position component #" << i + 1
 						<< " at line " << HP.GetLineData() << std::endl);
-					throw ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
 		}
@@ -2519,7 +2519,7 @@ ReadJoint(DataManager* pDM,
 					silent_cerr("TotalReaction(" << uLabel << "): "
 						"invalid status for position component #" << i + 1
 						<< " at line " << HP.GetLineData() << std::endl);
-					throw ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
 
@@ -2536,7 +2536,7 @@ ReadJoint(DataManager* pDM,
 					"at line " << HP.GetLineData()
 					<< " is not defined"
 					<< std::endl);
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		} else {
 			silent_cerr("Total Reaction(" << uLabel << ") "
@@ -2641,7 +2641,7 @@ ReadJoint(DataManager* pDM,
 					silent_cerr("TotalJoint(" << uLabel << "): "
 						"invalid status for position component #" << i + 1
 						<< " at line " << HP.GetLineData() << std::endl);
-					throw ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
 
@@ -2684,7 +2684,7 @@ ReadJoint(DataManager* pDM,
 					silent_cerr("TotalJoint(" << uLabel << "): "
 						"invalid status for position component #" << i + 1
 						<< " at line " << HP.GetLineData() << std::endl);
-					throw ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
 
@@ -2780,7 +2780,7 @@ ReadJoint(DataManager* pDM,
 					silent_cerr("TotalJoint(" << uLabel << "): "
 						"invalid status for position component #" << i + 1
 						<< " at line " << HP.GetLineData() << std::endl);
-					throw ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
 
@@ -2814,7 +2814,7 @@ ReadJoint(DataManager* pDM,
 					silent_cerr("TotalJoint(" << uLabel << "): "
 						"invalid status for position component #" << i + 1
 						<< " at line " << HP.GetLineData() << std::endl);
-					throw ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
 
@@ -2897,7 +2897,7 @@ ReadJoint(DataManager* pDM,
 			} else {
 				silent_cerr("unknown slider type at line "
 					<< HP.GetLineData() << std::endl);
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -2905,7 +2905,7 @@ ReadJoint(DataManager* pDM,
 		if (nB < 1) {
 			silent_cerr("At least one beam is required at line "
 				<< HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		BeamConn **bc = NULL;
@@ -2921,14 +2921,14 @@ ReadJoint(DataManager* pDM,
 				silent_cerr(" at line " << HP.GetLineData()
 					<< ": Beam3(" << uBeam << ") "
 					"not defined" << std::endl);
-				throw DataManager::ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			Beam *pBeam = dynamic_cast<Beam *>(p);
 			if (pBeam == 0) {
 				silent_cerr(" at line " << HP.GetLineData()
 					<< ": Beam(" << uBeam << ") "
 					"is not a Beam3" << std::endl);
-				throw DataManager::ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			/* Nodo 1: */
@@ -2946,7 +2946,7 @@ ReadJoint(DataManager* pDM,
 						"and Beam(" << bc[i-1]->pGetBeam()->GetLabel() << ")"
 							".Node3(" << pLastNode->GetLabel() << ") "
 						"do not match" << std::endl);
-					throw ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (HP.IsKeyWord("same")) {
@@ -2959,7 +2959,7 @@ ReadJoint(DataManager* pDM,
 							"Beam(" << pBeam->GetLabel() << ").f1 "
 							"and Beam(" << bc[i-1]->pGetBeam()->GetLabel() << ").f3 "
 							"do not match" << std::endl);
-						throw ErrGeneric();
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 				}
 				DEBUGLCOUT(MYDEBUG_INPUT, "Node 1 offset: " << f1 << std::endl);
@@ -2975,7 +2975,7 @@ ReadJoint(DataManager* pDM,
 								"Beam(" << pBeam->GetLabel() << ").R1 "
 								"and Beam(" << bc[i-1]->pGetBeam()->GetLabel() << ").R3 "
 								"do not match" << std::endl);
-							throw ErrGeneric();
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 						}
 					}
 					DEBUGLCOUT(MYDEBUG_INPUT, "Node 1 rotation matrix: "
@@ -3040,7 +3040,7 @@ ReadJoint(DataManager* pDM,
 				silent_cerr("illegal initial beam " << uIB
 					<< " at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -3051,7 +3051,7 @@ ReadJoint(DataManager* pDM,
 			if (uIN < 1 || uIN > 3) {
 				silent_cerr("illegal initial node " << uIN
 					<< " at line " << HP.GetLineData() << std::endl);
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -3099,7 +3099,7 @@ ReadJoint(DataManager* pDM,
 			silent_cerr("PointSurfaceContact(" << uLabel << "): "
 				"invalid direction at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		SupDirection /= sqrt(d);
 
@@ -3129,7 +3129,7 @@ ReadJoint(DataManager* pDM,
 		if (c == 0) {
 			silent_cerr("unknown joint type \"" << s << "\" in joint " << uLabel
 				<< " at line " << HP.GetLineData() << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		SAFENEWWITHCONSTRUCTOR(pEl, LoadableElem,
@@ -3144,7 +3144,7 @@ ReadJoint(DataManager* pDM,
 		silent_cerr("error in allocation of element "
 			<< uLabel << std::endl);
 
-		throw ErrMemory();
+		throw ErrMemory(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (HP.IsKeyWord("initial" "state")) {
@@ -3155,7 +3155,7 @@ ReadJoint(DataManager* pDM,
 	if (HP.IsArg()) {
 		silent_cerr("semicolon expected at line " << HP.GetLineData()
 			<< std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return pEl;

@@ -158,7 +158,10 @@ public:
 	struct MomentsHint : public Joint::ReactionsHint {};
 
 public:
-	class ErrGeneric {};
+ 	class ErrGeneric : public MBDynErrBase {
+  	public:
+ 		ErrGeneric(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
 
 public:
 	Joint(unsigned int uL, const DofOwner* pD, flag fOut);

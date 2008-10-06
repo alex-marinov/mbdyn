@@ -253,7 +253,7 @@ ReadSocketStreamMotionElem(DataManager *pDM,
 				"for SocketStreamMotionElem(" << uLabel
 				<< ") at line "
 				<< HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		} 
 		
@@ -263,7 +263,7 @@ ReadSocketStreamMotionElem(DataManager *pDM,
 		silent_cerr("missing stream name "
 			"for SocketStreamMotionElem(" << uLabel
 			<< ") at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (HP.IsKeyWord("create")) {
@@ -278,7 +278,7 @@ ReadSocketStreamMotionElem(DataManager *pDM,
 					"\"yes\" or \"no\" "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 	
@@ -290,7 +290,7 @@ ReadSocketStreamMotionElem(DataManager *pDM,
 				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 				<< "(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		
 		SAFESTRDUP(path, m);	
@@ -303,7 +303,7 @@ ReadSocketStreamMotionElem(DataManager *pDM,
 				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 				<< "(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl);
-			throw ErrGeneric();		
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
 		}
 		int p = HP.GetInt();
 		/* Da sistemare da qui */
@@ -317,7 +317,7 @@ ReadSocketStreamMotionElem(DataManager *pDM,
 				<< IPPORT_USERRESERVED
 				<< " at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		/* if #undef'd, don't bother checking;
 		 * the OS will do it for us */
@@ -332,7 +332,7 @@ ReadSocketStreamMotionElem(DataManager *pDM,
 				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 				<< "(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl);
-			throw ErrGeneric();		
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
 		}
 
 		const char *h;
@@ -343,7 +343,7 @@ ReadSocketStreamMotionElem(DataManager *pDM,
 				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 				<< "(" << uLabel << ") at line "
 				<< HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		SAFESTRDUP(host, h);
@@ -389,7 +389,7 @@ ReadSocketStreamMotionElem(DataManager *pDM,
 			silent_cerr("invalid output every value " << i
 					<< " at line " << HP.GetLineData()
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		OutputEvery = (unsigned int)i;
 	}

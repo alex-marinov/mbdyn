@@ -82,7 +82,7 @@ bOutputAccelerations(bOutputAccelerations)
 					"StructNode(" << Nodes[i]->GetLabel() << ") "
 					"is not dynamic"
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			pDSN->ComputeAccelerations(true);
@@ -200,7 +200,7 @@ StructExtForce::Recv(std::istream& inf)
 					"unknown label " << l
 					<< " as " << cnt << "-th node"
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (done[i]) {
@@ -208,7 +208,7 @@ StructExtForce::Recv(std::istream& inf)
 					"(" << GetLabel() << "): "
 					"label " << l << " already done"
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			done[i] = true;
@@ -228,11 +228,11 @@ StructExtForce::Recv(std::istream& inf)
 						"(" << GetLabel() << "): "
 						"node " << Nodes[i]->GetLabel()
 						<< " not done" << std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
 
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 	} else {
@@ -254,7 +254,7 @@ StructExtForce::Recv(std::istream& inf)
 					"(" << GetLabel() << "): "
 					"invalid " << i << "-th label " << l
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			F[i] = Vec3(f);
@@ -337,7 +337,7 @@ ReadStructExtForce(DataManager* pDM,
 	if (n <= 0) {
 		silent_cerr("StructExtForce(" << uLabel << "): illegal node number " << n <<
 			" at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	std::vector<StructNode *> Nodes(n);

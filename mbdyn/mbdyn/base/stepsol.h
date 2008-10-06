@@ -82,7 +82,10 @@ class StepIntegrator
 {
 
 public:
-	class ErrGeneric{};
+	class ErrGeneric: public MBDynErrBase {
+	public:
+		ErrGeneric(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
 	
 	enum { DIFFERENTIAL = 0, ALGEBRAIC = 1 };
 	enum StepChange { NEWSTEP, REPEATSTEP };   
@@ -709,7 +712,7 @@ public:
 			doublereal& SolErr)
 	{
 		silent_cerr("InverseDynamicsStepSolver::Advance()");
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	};
 	
 	/* Real Advancer*/

@@ -189,7 +189,7 @@ Rotor::dGetPrivData(unsigned int i) const
 		return Res.Couple().dGet(i - 3);
 	}
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
  
 /* Tipo dell'elemento (usato per debug ecc.) */
@@ -498,7 +498,7 @@ void Rotor::InitParam(bool bComputeMeanInducedVelocity)
       if (iCurrIter == iMaxIter) {
 	 silent_cerr("unable to compute mean induced velocity for Rotor(" 
 		 << GetLabel() << ")" << std::endl);
-	 throw ErrGeneric();
+	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
 #endif
    }
@@ -1874,7 +1874,7 @@ ReadRotor(DataManager* pDM,
 			<< " at line " << HP.GetLineData() 
 			<< ": craft structural node " << uNode
 			<< " not defined" << std::endl);
-	  	throw DataManager::ErrGeneric();
+	  	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
      	}
 
      	Mat3x3 rrot(Eye3);
@@ -1893,7 +1893,7 @@ ReadRotor(DataManager* pDM,
 			<< " at line " << HP.GetLineData() 
 			<< ": rotor structural node " << uNode
 			<< " not defined" << std::endl);
-	  	throw DataManager::ErrGeneric();
+	  	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
      	}
 
 	KeyWords InducedType = NO;
@@ -1935,7 +1935,7 @@ ReadRotor(DataManager* pDM,
 				"reference speed for rotor " << uLabel
 				<< " at line " << HP.GetLineData()
 				<< std::endl);
-	      		throw DataManager::ErrGeneric();
+	      		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	 	}
        
 	 	doublereal dR = HP.GetReal();
@@ -1945,7 +1945,7 @@ ReadRotor(DataManager* pDM,
 				"for rotor " << uLabel
 				<< " at line " << HP.GetLineData()
 				<< std::endl);
-	      		throw DataManager::ErrGeneric();
+	      		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	 	}
        
 	 	doublereal dVConst = 0.;
@@ -1964,7 +1964,7 @@ ReadRotor(DataManager* pDM,
 	  			silent_cerr("ground structural node " << uNode
 					<< " not defined at line " 
 					<< HP.GetLineData()  << std::endl);
-	  			throw DataManager::ErrGeneric();
+	  			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
      			}
 		}
 
@@ -2014,7 +2014,7 @@ ReadRotor(DataManager* pDM,
 				silent_cerr("illegal max iterations " 
 					<< i << " for Rotor(" 
 					<< uLabel << ")");
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			iMaxIter = i;
 		}
@@ -2030,7 +2030,7 @@ ReadRotor(DataManager* pDM,
 				silent_cerr("illegal tolerance " 
 					<< dTolerance << " for Rotor(" 
 					<< uLabel << ")");
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -2044,7 +2044,7 @@ ReadRotor(DataManager* pDM,
 				silent_cerr("illegal eta " 
 					<< dEta << " for Rotor(" 
 					<< uLabel << ")");
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -2132,7 +2132,7 @@ ReadRotor(DataManager* pDM,
 			
      		default:
 			ASSERTMSG(0, "You shouldn't have reached this point");
-			throw DataManager::ErrGeneric();	    
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);	    
       		}
 	 	break;
 	}
@@ -2140,14 +2140,14 @@ ReadRotor(DataManager* pDM,
 	default:
 		silent_cerr("unknown induced velocity type at line " 
 	       		<< HP.GetLineData() << std::endl);
-	 	throw DataManager::ErrGeneric();
+	 	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
    
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {
 		silent_cerr("semicolon expected at line "
 			<< HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	ASSERT(pEl != NULL);

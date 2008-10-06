@@ -56,7 +56,7 @@ public:
 
 		if (nlrheo_init(&pa)) {
 			silent_cerr("DamperConstitutiveLaw: init failed" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	};
 
@@ -70,7 +70,7 @@ public:
 			"not implemented.\n" 
 			"Please build explicitly "
 			"different instances of the constitutive law" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		return 0;
 	};
 
@@ -81,14 +81,14 @@ public:
 	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime = 0.) {
 		if (nlrheo_update(&pa, pTime->dGet(), Eps, EpsPrime, 1)) {
 			silent_cerr("DamperConstitutiveLaw: unable to update" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	};
 
 	virtual void AfterConvergence(const doublereal& Eps, const doublereal& EpsPrime = 0.) {
 		if (nlrheo_update(&pa, pTime->dGet(), Eps, EpsPrime, 0)) {
 			silent_cerr("DamperConstitutiveLaw: unable to update after convergence" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	};
    
@@ -173,14 +173,14 @@ struct DamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 					"invalid angular frequency " << dOmega <<
 					" at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			if (E <= 0.) {
 				silent_cerr("DamperConstitutiveLaw: "
 					"invalid static stiffness " << E <<
 					" at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			low_freq_displ_filter_coeff = dOmega;
 			static_low_freq_stiffness = E;
@@ -194,7 +194,7 @@ struct DamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 					"invalid substeps number " << nsubsteps
 					<< " at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -206,7 +206,7 @@ struct DamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 					"invalid dtmin " << dtmin
 					<< " at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -222,7 +222,7 @@ struct DamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 			silent_cerr("DamperConstitutiveLaw: "
 				"parse error at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		DriveCaller *pT = 0;

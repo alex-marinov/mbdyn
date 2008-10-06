@@ -115,7 +115,7 @@ void DataManager::DofDataInit(void)
       /* Se non sono definiti DofOwners, la simulazione non ha senso,
        * quindi il programma termina */
       silent_cerr("warning, no dof owners are defined" << std::endl);
-      throw NoErr();
+      throw NoErr(MBDYN_EXCEPT_ARGS);
    }
 }
 
@@ -149,7 +149,7 @@ void DataManager::DofInit(void)
       DEBUGCERR("");
       silent_cerr("no dof owners are defined" << std::endl);
       
-      throw DataManager::ErrGeneric();
+      throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
    }	   	
    
    	
@@ -172,7 +172,7 @@ void DataManager::DofInit(void)
       DEBUGCERR("");
       silent_cerr("no dofs are defined" << std::endl);
       
-      throw DataManager::ErrGeneric();
+      throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
    }	   	
 }  
 

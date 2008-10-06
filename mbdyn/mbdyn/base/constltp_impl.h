@@ -104,7 +104,7 @@ public:
 						silent_cerr("ElasticConstitutiveLaw: "
 							"unable to create prestrain drive after hint "
 							"#" << i << std::endl);
-						throw ErrGeneric();
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 					TplDriveOwner<T>::Set(pDC);
 
@@ -2007,7 +2007,7 @@ public:
 				ConstitutiveLaw<T, Tder>::FDE = 0.;
 				ConstitutiveLaw<T, Tder>::FDEPrime = 0.;
 				ConstitutiveLaw<T, Tder>::F = ElasticConstitutiveLaw<T, Tder>::PreStress;
-				throw Elem::ChangedEquationStructure();
+				throw Elem::ChangedEquationStructure(MBDYN_EXCEPT_ARGS);
 			}
 			/* change force as well */
 			ConstitutiveLaw<T, Tder>::F = ElasticConstitutiveLaw<T, Tder>::PreStress
@@ -2015,7 +2015,7 @@ public:
 				+ConstitutiveLaw<T, Tder>::FDEPrime*ConstitutiveLaw<T, Tder>::EpsilonPrime;
 			if (ChangeJac) {
 				/* if activating, ask for jacobian rigeneration */
-				throw Elem::ChangedEquationStructure();
+				throw Elem::ChangedEquationStructure(MBDYN_EXCEPT_ARGS);
 			}
 			break;
 		}

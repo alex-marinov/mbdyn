@@ -58,7 +58,7 @@ PrivPlugIn::Read(int argc, char *argv[])
 		silent_cerr("PrivPlugIn::Read(): "
 			"illegal number of parameters " << argc
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	uLabel = ReadLabel(argv[0]);
 
@@ -66,7 +66,7 @@ PrivPlugIn::Read(int argc, char *argv[])
 		silent_cerr("PrivPlugIn::Read(" << argv[0] << "): "
 			<< "illegal number of parameters " << argc
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	ReadSE(uLabel, argv[1]);
 
@@ -74,7 +74,7 @@ PrivPlugIn::Read(int argc, char *argv[])
 	switch (iMaxIndex) {
 	case 0:
 		silent_cerr(*this << "allows no private data" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 	case 1:
 		iIndex = 1;
@@ -88,7 +88,7 @@ PrivPlugIn::Read(int argc, char *argv[])
 			silent_cerr("PrivPlugIn::Read(" << argv[0] << "): "
 				<< "illegal number of parameters " << argc
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		ReadIndex(iMaxIndex, argv[2]);
 		break;
@@ -157,7 +157,7 @@ PrivPlugIn::ReadIndex(unsigned int iMaxIndex, const char *s)
 	if (iIndex == 0 || iIndex > iMaxIndex) {
 		silent_cerr("illegal index " << iIndex << " for "
 			<< *this << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (name != 0) {
@@ -206,12 +206,12 @@ NodePrivPlugIn::ReadSE(unsigned int uLabel, const char *ss)
 	
 	if (i == Node::LASTNODETYPE) {
 		silent_cerr("unknown node type '" << ss << "'" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if ((pSE = (SimulationEntity *)pDM->pFindNode(Node::Type(i), uLabel)) == 0) {
 		silent_cerr(*this << " not defined" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -220,7 +220,7 @@ NodePrivPlugIn::Err(std::ostream& out) const
 {
 	Node *pNode = dynamic_cast<Node *>(pSE);
 	if (pSE == 0) {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return out << psNodeNames[pNode->GetNodeType()]
@@ -268,12 +268,12 @@ ElemPrivPlugIn::ReadSE(unsigned int uLabel, const char *ss)
 	
 	if (i == Elem::LASTELEMTYPE) {
 		silent_cerr("unknown element type \"" << ss << "\"" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if ((pSE = (SimulationEntity *)pDM->pFindElem(Elem::Type(i), uLabel)) == 0) {
 		silent_cerr(*this << " not defined" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -282,7 +282,7 @@ ElemPrivPlugIn::Err(std::ostream& out) const
 {
 	Elem *pElem = dynamic_cast<Elem *>(pSE);
 	if (pSE == 0) {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return out << psElemNames[pElem->GetElemType()]

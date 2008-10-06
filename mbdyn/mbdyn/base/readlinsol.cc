@@ -79,7 +79,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		if (!bAllowEmpty) {
 			silent_cerr("empty solver not allowed at line "
 				<< HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		cs.SetSolver(LinSol::EMPTY_SOLVER);
@@ -174,7 +174,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 
 	default:
 		silent_cerr("unknown solver" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	const LinSol::solver_t	currSolver = ::solver[cs.GetSolver()];
@@ -183,7 +183,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		silent_cerr(currSolver.s_name << " solver "
 			"not available at line " << HP.GetLineData()
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	cs.SetSolverFlags(currSolver.s_default_flags);
@@ -251,7 +251,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 			"remove this check (readlinsol.cc)."
 			"Patches welcome"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MMDATA) {
 			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_MMDATA);
 			pedantic_cout("using mmd symmetric preordering for "
@@ -326,7 +326,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		silent_cerr("nested dissection permutation not built in;"
 			"please configure --with-metis to get it"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif //USE_METIS
 	}
 

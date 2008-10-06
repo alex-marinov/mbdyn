@@ -162,10 +162,22 @@ public:
 class NonlinearSolver : public SolverDiagnostics
 {
 public:
- 	class ErrSimulationDiverged {};
- 	class NoConvergence {};
-	class ConvergenceOnSolution {};
-	class ErrGeneric {};
+ 	class ErrSimulationDiverged : MBDynErrBase {
+	public:
+		ErrSimulationDiverged(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+ 	class NoConvergence : public MBDynErrBase {
+	public:
+		NoConvergence(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ConvergenceOnSolution : public MBDynErrBase {
+	public:
+		ConvergenceOnSolution(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrGeneric : public MBDynErrBase {
+	public:
+		ErrGeneric(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
 
 	enum Type {
 		UNKNOWN = -1,

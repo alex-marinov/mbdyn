@@ -91,7 +91,7 @@ read(LoadableElem* pEl,
 			/*
 			 * Exit quietly if nothing else is provided
 			 */
-			throw NoErr();
+			throw NoErr(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -101,7 +101,7 @@ read(LoadableElem* pEl,
 	if (p->dof.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
 		silent_cerr("Friction(" << pEl->GetLabel() << "): "
 			"need a differential node" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	p->f = NULL;
@@ -134,7 +134,7 @@ read(LoadableElem* pEl,
 				silent_cerr("Friction(" << pEl->GetLabel() << "): "
 					"unknown state for discrete state friction model"
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 		
@@ -145,7 +145,7 @@ read(LoadableElem* pEl,
 	} else {
 		silent_cerr("Friction(" << pEl->GetLabel() << "): "
 			"unknown friction model" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return (void *)p;

@@ -196,7 +196,7 @@ VectorHandler&
 SpMapMatrixHandler::GetCol(integer icol, VectorHandler& out) const
 {
         if (icol > iGetNumCols()) {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	row_cont_type::const_iterator ri, re;
@@ -219,7 +219,7 @@ SpMapMatrixHandler::MatMatMul_base(void (MatrixHandler::*op)(integer iRow,
 	{
 		silent_cerr("Assertion fault "
 			"in SpMapMatrixHandler::MatMatIncMul" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	integer ncols_in = in.iGetNumCols();
@@ -248,7 +248,7 @@ SpMapMatrixHandler::MatTMatMul_base(void (MatrixHandler::*op)(integer iRow,
 	{
 		silent_cerr("Assertion fault "
 			"in SpMapMatrixHandler::MatTMatMul_base" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	integer ncols_in = in.iGetNumCols();
@@ -277,7 +277,7 @@ SpMapMatrixHandler::MulAndSumWithShift(MatrixHandler& out, doublereal s ,
 		silent_cerr("Assertion fault "
 			"in SpMapMatrixHandler::MulAndSumWithShift"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	drow = drow + 1;
@@ -305,7 +305,7 @@ SpMapMatrixHandler::FakeThirdOrderMulAndSumWithShift(MatrixHandler& out,
 		silent_cerr("Assertion fault "
 			"in SpMapMatrixHandler::MulAndSumWithShift"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	drow = drow + 1;
@@ -333,7 +333,7 @@ SpMapMatrixHandler::MatVecMul_base(void (VectorHandler::*op)(integer iRow,
 	if (in.iGetSize() != iGetNumCols()
 			|| out.iGetSize() != iGetNumRows())
 	{
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
   	}
 
 	row_cont_type::const_iterator ri, re;
@@ -357,7 +357,7 @@ SpMapMatrixHandler::MatTVecMul_base(void (VectorHandler::*op)(integer iRow,
 	if (out.iGetSize() != iGetNumRows()
 			|| in.iGetSize() != iGetNumCols())
 	{
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	row_cont_type::const_iterator ri, re;

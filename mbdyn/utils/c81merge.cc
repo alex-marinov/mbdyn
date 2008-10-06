@@ -349,7 +349,7 @@ main(int argc, char *argv[])
 				
 			} else {
 				silent_cerr("unknown mode \"" << optarg << "\"" <<std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			break;
 
@@ -367,11 +367,11 @@ main(int argc, char *argv[])
 			dFrom = strtod(optarg, &next);
 			if (next == optarg || next[0] != '\0') {
 				silent_cerr("illegal value \"" << optarg << "\" for -s option" << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			if (dFrom < 0. || dFrom > 1.) {
 				silent_cerr("-s " << optarg << " is out of bounds (0.,1.)" << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			break;
 
@@ -405,17 +405,17 @@ main(int argc, char *argv[])
 
 	if (name_from == 0) {
 		silent_cerr("missing required -f \"from\" parameter" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (name_to == 0) {
 		silent_cerr("missing required -t \"to\" parameter" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (dFrom == -1.) {
 		silent_cerr("missing required -s \"fraction\" parameter" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (mode == MODE_UNDEFINED) {
@@ -430,12 +430,12 @@ main(int argc, char *argv[])
 	in.open(name_from);
 	if (!in) {
 		silent_cerr("unable to open file \"" << name_from << "\"" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (read_c81_data(in, &data_from, tol)) {
 		silent_cerr("unable to read c81 data from file \"" << name_from << "\"" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	in.close();
 
@@ -443,12 +443,12 @@ main(int argc, char *argv[])
 	in.open(name_to);
 	if (!in) {
 		silent_cerr("unable to open file \"" << name_to << "\"" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (read_c81_data(in, &data_to, tol)) {
 		silent_cerr("unable to read c81 data from file \"" << name_to << "\"" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	in.close();
 
@@ -457,7 +457,7 @@ main(int argc, char *argv[])
 		silent_cerr("number of AoA values for Cl differ ("
 				<< data_from.NAL << " vs. " << data_to.NAL
 				<< ")" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	for (int i = 0; i < data_from.NAL; i++) {
@@ -466,7 +466,7 @@ main(int argc, char *argv[])
 					<< data_from.al[i] << " vs. " 
 					<< data_to.al[i] << ")"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -474,7 +474,7 @@ main(int argc, char *argv[])
 		silent_cerr("number of AoA values for Cd differ ("
 				<< data_from.NAD << " vs. " << data_to.NAD
 				<< ")" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	for (int i = 0; i < data_from.NAL; i++) {
@@ -483,7 +483,7 @@ main(int argc, char *argv[])
 					<< data_from.ad[i] << " vs. " 
 					<< data_to.ad[i] << ")"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -491,7 +491,7 @@ main(int argc, char *argv[])
 		silent_cerr("number of AoA values for Cm differ ("
 				<< data_from.NAM << " vs. " << data_to.NAM
 				<< ")" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	for (int i = 0; i < data_from.NAL; i++) {
@@ -500,7 +500,7 @@ main(int argc, char *argv[])
 					<< data_from.am[i] << " vs. " 
 					<< data_to.am[i] << ")"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -519,7 +519,7 @@ main(int argc, char *argv[])
 		break;
 
 	default:
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	memcpy(data.header, header, sizeof(header));
@@ -533,7 +533,7 @@ main(int argc, char *argv[])
 		std::ofstream fout(name);
 		if (!fout) {
 			silent_cerr("unable to open file \"" << name << "\"" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		rc = write_c81_data(fout, &data);
 

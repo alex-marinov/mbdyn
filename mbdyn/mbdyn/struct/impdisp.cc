@@ -142,7 +142,7 @@ ImposedDisplacementJoint::SetValue(DataManager *pDM,
 					silent_cerr("ImposedDisplacementJoint(" << uLabel << "): "
 						"unable to create drive "
 						"after hint[" << i << "]" << std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				DriveOwner::Set(pDC);
@@ -234,7 +234,7 @@ ImposedDisplacementJoint::DescribeDof(std::vector<std::string>& desc,
 	} else {
 		if (i < 0 || i >= nself) {
 			// error
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		os << ": " << dof[i];
@@ -292,7 +292,7 @@ ImposedDisplacementJoint::DescribeEq(std::vector<std::string>& desc,
 	} else {
 		if (i < 0 || i >= nself) {
 			// error
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		os << ": " << eq[i];
@@ -341,7 +341,7 @@ ImposedDisplacementJoint::dGetPrivData(unsigned int i) const
 		return F;
 	}
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* assemblaggio jacobiano */
@@ -871,7 +871,7 @@ ImposedDisplacementPinJoint::SetValue(DataManager *pDM,
 					silent_cerr("ImposedDisplacementPinJoint(" << uLabel << "): "
 						"unable to create drive "
 						"after hint[" << i << "]" << std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				DriveOwner::Set(pDC);
@@ -954,7 +954,7 @@ ImposedDisplacementPinJoint::DescribeDof(std::vector<std::string>& desc,
 	} else {
 		if (i < 0 || i >= nself) {
 			// error
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		os << ": " << dof[i];
@@ -1012,7 +1012,7 @@ ImposedDisplacementPinJoint::DescribeEq(std::vector<std::string>& desc,
 	} else {
 		if (i < 0 || i >= nself) {
 			// error
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		os << ": " << eq[i];
@@ -1061,7 +1061,7 @@ ImposedDisplacementPinJoint::dGetPrivData(unsigned int i) const
 		return F;
 	}
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* assemblaggio jacobiano */

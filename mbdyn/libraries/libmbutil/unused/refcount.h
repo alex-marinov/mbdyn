@@ -95,7 +95,7 @@ class RefCount {
       SAFENEW(piCount, unsigned int);
       if (piCount == NULL) {
 	 cerr << "Out of memory" << endl;
-	 throw ErrMemory();
+	 throw ErrMemory(MBDYN_EXCEPT_ARGS);
       }
       *piCount = 1;
    };
@@ -158,7 +158,7 @@ class RefCount {
       SAFENEW(piCount, unsigned int);
       if (piCount == NULL) {
 	 cerr << "Out of memory" << endl;
-	 throw ErrMemory();
+	 throw ErrMemory(MBDYN_EXCEPT_ARGS);
       }
       *piCount = 1;
       return *this;

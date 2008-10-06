@@ -382,7 +382,7 @@ ReadStructOutputCollect(DataManager *pDM, MBDynParser& HP, const Elem *pNestedEl
 		silent_cerr("StructOutputCollect(" << pNestedElem->GetLabel() << "): "
 			"illegal node number " << n
 			<< " at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	std::vector<const StructNode *> Nodes(n);
@@ -707,7 +707,7 @@ StructOutputInterpOP2::ManipulateInit_int(const GeometryData& mb_data)
 		silent_cerr("StructOutputWrite(" << GetLabel() << "): "
 			"unable to open input file \"" << infilename << "\""
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	std::cout << "letto il file..." << std::endl;
 	StructOutputInterp::ManipulateInit_int(mb_data);
@@ -757,7 +757,7 @@ StructOutputInterpNative::ManipulateInit_int(const GeometryData& mb_data)
 		silent_cerr("StructOutputWrite(" << GetLabel() << "): "
 			"unable to open input file \"" << infilename << "\""
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// start reading
@@ -823,7 +823,7 @@ ReadStructOutputInterp(DataManager *pDM, MBDynParser& HP, const Elem *pNestedEle
 		silent_cerr("StructOutputInterp(" << pNestedElem->GetLabel() << "): "
 			"illegal input file format"
 			" at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// collect parameters and pass to constructor
@@ -833,7 +833,7 @@ ReadStructOutputInterp(DataManager *pDM, MBDynParser& HP, const Elem *pNestedEle
 		silent_cerr("StructOutputInterp(" << pNestedElem->GetLabel() << "): "
 			"unable to read input file name "
 			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	std::string infilename(s);
@@ -849,7 +849,7 @@ ReadStructOutputInterp(DataManager *pDM, MBDynParser& HP, const Elem *pNestedEle
 		silent_cerr("StructOutputInterp(" << pNestedElem->GetLabel() << "): "
 			"illegal interpolation order"
 			" at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	int RBForder = HP.GetInt();
@@ -863,7 +863,7 @@ ReadStructOutputInterp(DataManager *pDM, MBDynParser& HP, const Elem *pNestedEle
 			silent_cerr("StructOutputInterp(" << pNestedElem->GetLabel() << "): "
 				"illegal RBF order"
 				" at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	int NearNodes = HP.GetInt();
@@ -871,7 +871,7 @@ ReadStructOutputInterp(DataManager *pDM, MBDynParser& HP, const Elem *pNestedEle
 		silent_cerr("StructOutputInterp(" << pNestedElem->GetLabel() << "): "
 			"illegal interpolation order"
 			" at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 	} else if (bQuad && NearNodes < 10) {
 		silent_cerr("Insufficient near nodes for quadratic interpolation: "
@@ -897,14 +897,14 @@ ReadStructOutputInterp(DataManager *pDM, MBDynParser& HP, const Elem *pNestedEle
 				silent_cerr("StructOutputInterp(" << pNestedElem->GetLabel() << "): "
 				"illegal number of adjoint nodes"
 				" at line " << HP.GetLineData() << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		dL = HP.GetReal();
 		if (dL <= 0.){
 			silent_cerr("StructOutputInterp(" << pNestedElem->GetLabel() << "): "
 			"reference length must be a positive value"
 			" at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -961,7 +961,7 @@ StructOutputWrite::Manipulate(const GeometryData& data)
 		silent_cerr("StructOutputWrite(" << GetLabel() << "): "
 			"unable to open output file \"" << outfilename << "\""
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (iPrecision) {
@@ -1081,7 +1081,7 @@ ReadStructOutputWrite(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		silent_cerr("StructOutputWrite(" << uLabel << "): "
 			"unable to read output file name "
 			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	std::string outfilename(s);
@@ -1103,7 +1103,7 @@ ReadStructOutputWrite(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 				"\"" << iPrecision << "\""
 				" at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -1183,7 +1183,7 @@ ReadStructOutput(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			"first element must be \"end\"-typed "
 			"at line " << HP.GetLineData()
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// Add other end types here...
@@ -1206,7 +1206,7 @@ ReadStructOutput(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			silent_cerr("StructOutput(" << uLabel << "): "
 				"unknown type at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (dynamic_cast<StructOutputStart *>(pEl) != 0) {

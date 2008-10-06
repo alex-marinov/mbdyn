@@ -81,7 +81,7 @@ public:
 				|| (Ai[row_end] - off) < i_row)
 		{
 			/* matrix must be rebuilt */
-			throw ErrRebuildMatrix();
+			throw ErrRebuildMatrix(MBDYN_EXCEPT_ARGS);
 		}
 
 		while (row_end >= row_begin) {
@@ -97,7 +97,7 @@ public:
 		}
 
 		/* matrix must be rebuilt */
-		throw ErrRebuildMatrix();
+		throw ErrRebuildMatrix(MBDYN_EXCEPT_ARGS);
 	};
 
 	const doublereal& operator () (integer i_row, integer i_col) const {

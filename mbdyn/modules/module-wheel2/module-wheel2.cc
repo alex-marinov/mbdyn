@@ -194,7 +194,7 @@ read(LoadableElem* pEl,
 			/*
 			 * Exit quietly if nothing else is provided
 			 */
-			throw NoErr();
+			throw NoErr(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -229,7 +229,7 @@ read(LoadableElem* pEl,
 		silent_cerr("Wheel2(" << pEl->GetLabel() << "): "
 			"null direction at line " << HP.GetLineData()
 			<< std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	p->GroundDirection /= sqrt(d);
 
@@ -525,7 +525,7 @@ ass_res(LoadableElem* pEl,
 			silent_cerr("Wheel2(" << pEl->GetLabel() << "): "
 				"wheel axle is (neraly) orthogonal "
 				"to the ground" << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		fwd /= sqrt(d);
 

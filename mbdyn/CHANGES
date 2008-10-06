@@ -11,6 +11,7 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 MBDyn 1.X-Devel
 	Enhancements:
+		- rework exception handling
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:

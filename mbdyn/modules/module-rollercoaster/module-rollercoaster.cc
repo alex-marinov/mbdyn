@@ -108,7 +108,7 @@ read(LoadableElem* pEl,
       cerr << "line " << HP.GetLineData() 
 	<< ": structural node " << uNode
 	<< " not defined" << endl;    
-      throw DataManager::ErrGeneric();
+      throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
    
    return (void *)p;
@@ -432,7 +432,7 @@ d_get_priv_data(const LoadableElem* pEl, unsigned int i)
    ASSERT(pEl->iGetNumPrivData() > 0);
    if (i > pEl->iGetNumPrivData()) {
       cerr << "Module-template Elem: illegal private data index " << i << endl;      
-      throw ErrGeneric();
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
    
    // return i-th priv data

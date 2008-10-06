@@ -81,7 +81,10 @@ public:
 
 class StructNode : public Node {
 public:
-	class ErrGeneric {};
+	class ErrGeneric : public MBDynErrBase {
+  	public:
+ 		ErrGeneric(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
 
 	enum Type {
 		UNKNOWN = -1,
@@ -870,7 +873,7 @@ DummyStructNode::iGetFirstPositionIndex(void) const
 {
 	silent_cerr("DummyStructNode(" << GetLabel() << ") has no dofs"
 		<< std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* Ritorna il primo indice (-1) di Quantita' di moto */
@@ -879,7 +882,7 @@ DummyStructNode::iGetFirstMomentumIndex(void) const
 {
 	silent_cerr("DummyStructNode(" << GetLabel() << ") has no dofs"
 		<< std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */

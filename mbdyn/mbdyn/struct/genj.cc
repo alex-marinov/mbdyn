@@ -92,7 +92,7 @@ DistanceJoint::dGetPrivData(unsigned int i) const
 		return dGet();
 	}
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* Contributo al file di restart */
@@ -241,7 +241,7 @@ SubVectorHandler& DistanceJoint::AssRes(SubVectorHandler& WorkVec,
    if (fabs(dDistance) <= DBL_EPSILON) {	
       silent_cerr("DistanceJoint(" << GetLabel() << "): "
 	      "near-zero distance" << std::endl);
-      throw ErrGeneric();
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
 
    Vec3 TmpVec(v*dAlpha);
@@ -492,7 +492,7 @@ DistanceJoint::InitialAssRes(SubVectorHandler& WorkVec,
    if (fabs(dDistance) <= DBL_EPSILON) {
       silent_cerr("DistanceJoint(" << GetLabel() << "): "
 	      "near-zero distance" << std::endl);
-      throw ErrGeneric();
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
    WorkVec.Add(0+1, v*dAlpha);
    WorkVec.Add(3+1, w*dBeta);
@@ -525,7 +525,7 @@ void DistanceJoint::SetInitialValue(VectorHandler& X)
    if (fabs(dDistance) <= DBL_EPSILON) {
       silent_cerr("DistanceJoint(" << GetLabel() << "): "
 	      "near-zero distance" << std::endl);
-      throw ErrGeneric();
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
      
    v = ((pNode2->GetXCurr())-(pNode1->GetXCurr()));
@@ -533,7 +533,7 @@ void DistanceJoint::SetInitialValue(VectorHandler& X)
    if (d < DBL_EPSILON) {
       silent_cerr("DistanceJoint(" << GetLabel() << "): "
 	      "initial length is null" << std::endl);
-      throw ErrGeneric();
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
    v /= sqrt(d);
    
@@ -560,7 +560,7 @@ DistanceJoint::SetValue(DataManager *pDM,
 					silent_cerr("DistanceJoint(" << uLabel << "): "
 						"unable to create drive after hint "
 						"#" << i << std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				DriveOwner::Set(pDC);
@@ -576,7 +576,7 @@ DistanceJoint::SetValue(DataManager *pDM,
 	if (fabs(dDistance) <= DBL_EPSILON) {	
 		silent_cerr("DistanceJoint(" << uLabel << "): "
 			"near-zero distance" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* Scrive la direzione della distanza. Se e' stata ottenuta con 
@@ -590,7 +590,7 @@ DistanceJoint::SetValue(DataManager *pDM,
 			"nodes are coincident;" << std::endl
 	  		<< "initial joint assembly is recommended"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	v /= sqrt(d);	     
 
@@ -720,7 +720,7 @@ DistanceJointWithOffset::dGetPrivData(unsigned int i) const
 		return dGet();
 	}
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 
@@ -895,7 +895,7 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
    if (fabs(dDistance) <= DBL_EPSILON) {	
       silent_cerr("DistanceJoint(" << GetLabel() << "): "
 		      "near-zero distance" << std::endl);
-      throw ErrGeneric();
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
    Vec3 TmpVec(v*dAlpha);
    WorkVec.Add(1, TmpVec);
@@ -1145,7 +1145,7 @@ DistanceJointWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
    if (fabs(dDistance) <= DBL_EPSILON) {
       silent_cerr("DistanceJoint(" << GetLabel() << "): "
 	      "near-zero distance" << std::endl);
-      throw ErrGeneric();
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
    Vec3 Tmp(v*dAlpha);
    WorkVec.Put(1, Tmp);
@@ -1182,7 +1182,7 @@ void DistanceJointWithOffset::SetInitialValue(VectorHandler& X)
    if (fabs(dDistance) <= DBL_EPSILON) {
       silent_cerr("DistanceJoint(" << GetLabel() << "): "
 	      "near-zero distance" << std::endl);
-      throw ErrGeneric();
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
    
    Vec3 x1(pNode1->GetXCurr());
@@ -1199,7 +1199,7 @@ void DistanceJointWithOffset::SetInitialValue(VectorHandler& X)
    if (d < DBL_EPSILON) {
       silent_cerr("DistanceJoint(" << GetLabel() << "): "
 	      "initial length is null" << std::endl);
-      throw ErrGeneric();
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
    v /= sqrt(d);
    
@@ -1226,7 +1226,7 @@ DistanceJointWithOffset::SetValue(DataManager *pDM,
 					silent_cerr("DistanceJointWithOffset(" << uLabel << "): "
 						"unable to create drive after hint "
 						"#" << i << std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				DriveOwner::Set(pDC);
@@ -1242,7 +1242,7 @@ DistanceJointWithOffset::SetValue(DataManager *pDM,
 	if (fabs(dDistance) <= DBL_EPSILON) {	
 		silent_cerr("DistanceJoint(" << GetLabel() << "):"
 			"near-zero distance" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	v = pNode2->GetXCurr() + pNode2->GetRCurr()*f2 - pNode1->GetXCurr() - pNode1->GetRCurr()*f1;
@@ -1253,7 +1253,7 @@ DistanceJointWithOffset::SetValue(DataManager *pDM,
 			<< " and " << pNode2->GetLabel() << ": "
 			"nodes are coincident;" << std::endl
 			<< "this is no longer supported" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	v /= sqrt(d);
 
@@ -1927,7 +1927,7 @@ ClampJoint::dGetPrivData(unsigned int i) const
 		return M.dGet(i-3);
 	}
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* ClampJoint - end */

@@ -131,7 +131,7 @@ ReadCL1D(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType)
 		silent_cerr("unknown constitutive law 1D type "
 			"\"" << sOrig << "\" "
 			"at line " << HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return func->second->Read(pDM, HP, CLType);
@@ -148,7 +148,7 @@ ReadCL3D(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType)
 #else
 		silent_cerr("unknown constitutive law 3D type "
 			"at line " << HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif
 
 	} else {
@@ -160,7 +160,7 @@ ReadCL3D(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType)
 		silent_cerr("unknown constitutive law 3D type "
 			"\"" << sOrig << "\" "
 			"at line " << HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return func->second->Read(pDM, HP, CLType);
@@ -177,7 +177,7 @@ ReadCL6D(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType)
 #else
 		silent_cerr("unknown constitutive law 6D type "
 			"at line " << HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif
 
 	} else {
@@ -189,7 +189,7 @@ ReadCL6D(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType)
 		silent_cerr("unknown constitutive law 6D type "
 			"\"" << sOrig << "\" "
 			"at line " << HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return func->second->Read(pDM, HP, CLType);
@@ -415,7 +415,7 @@ struct IsotropicHardeningCLR : public ConstitutiveLawRead<T, Tder> {
 		if (dE <= 0.) {
 			silent_cerr("error, null or negative reference strain at line "
 				<< HP.GetLineData() << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		doublereal dS0 = 0.;
@@ -458,7 +458,7 @@ struct ContactElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		if (dGamma < 1.) {
 			silent_cerr("error, exponent < 1. at line "
 				<< HP.GetLineData() << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		/* Prestress and prestrain */
@@ -495,14 +495,14 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 				"for symbolic constitutive law "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		std::vector<std::string> epsilon;
 		if (CLType & ConstLawType::ELASTIC) {
 			if (!HP.IsKeyWord("epsilon")) {
 				silent_cerr("keyword \"epsilon\" expected at line " << HP.GetLineData() << std::endl);
-				throw DataManager::ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			epsilon.resize(dim);
@@ -514,7 +514,7 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 					silent_cerr("unable to get \"epsilon\" "
 						"symbol #" << row << " "
 						"at line " << HP.GetLineData() << std::endl);
-					throw DataManager::ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 				epsilon[row] = tmp;
 			}
@@ -524,7 +524,7 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 		if (CLType & ConstLawType::VISCOUS) {
 			if (!HP.IsKeyWord("epsilon" "prime")) {
 				silent_cerr("keyword \"epsilon prime\" expected at line " << HP.GetLineData() << std::endl);
-				throw DataManager::ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			epsilonPrime.resize(dim);
@@ -536,7 +536,7 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 					silent_cerr("unable to get \"epsilonPrime\" "
 						"symbol #" << row << " "
 						"at line " << HP.GetLineData() << std::endl);
-					throw DataManager::ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 				epsilonPrime[row] = tmp;
 			}
@@ -544,7 +544,7 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 
 		if (!HP.IsKeyWord("expression")) {
 			silent_cerr("keyword \"expression\" expected at line " << HP.GetLineData() << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		std::vector<std::string> expression(dim);
@@ -555,7 +555,7 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 					"#" << row << " "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-				throw DataManager::ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			expression[row] = tmp;
 		}
@@ -580,7 +580,7 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 #else /* ! HAVE_GINAC */
 			silent_cerr("symbolic constitutive law not supported "
 				"at line " << HP.GetLineData() << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* ! HAVE_GINAC */
 			break;
 		}
@@ -595,7 +595,7 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 #else /* ! HAVE_GINAC */
 			silent_cerr("symbolic constitutive law not supported "
 				"at line " << HP.GetLineData() << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* ! HAVE_GINAC */
 			break;
 		}
@@ -610,14 +610,14 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 #else /* ! HAVE_GINAC */
 			silent_cerr("symbolic constitutive law not supported "
 				"at line " << HP.GetLineData() << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* ! HAVE_GINAC */
 			break;
 		}
 
 		default:
 			ASSERT(0);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		return pCL;
@@ -1008,7 +1008,7 @@ struct LinearBiStopCLR : public ConstitutiveLawRead<T, Tder> {
 			} else {
 				silent_cerr("unknown initial status at line "
 					<< HP.GetLineData() << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -1257,7 +1257,7 @@ DestroyCL(void)
 {
 	if (::done == 0) {
 		silent_cerr("DestroyCL() called once too many" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (--::done > 0) {

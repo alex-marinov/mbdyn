@@ -196,15 +196,42 @@ public:
 
 class HighParser {
 public:   
-	class ErrInvalidCallToGetDescription {};
-	class ErrKeyWordExpected {};
-	class ErrSemicolonExpected {};
-	class ErrColonExpected {};
-	class ErrMissingSeparator {};
-	class ErrIntegerExpected {};
-	class ErrRealExpected {};
-	class ErrStringExpected {};
-	class ErrIllegalDelimiter {};
+	class ErrInvalidCallToGetDescription : public MBDynErrBase {
+	public:
+		ErrInvalidCallToGetDescription(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrKeyWordExpected : public MBDynErrBase {
+	public:
+		ErrKeyWordExpected(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrSemicolonExpected : public MBDynErrBase {
+	public:
+		ErrSemicolonExpected(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrColonExpected : public MBDynErrBase {
+	public:
+		ErrColonExpected(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrMissingSeparator : public MBDynErrBase {
+	public:
+		ErrMissingSeparator(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrIntegerExpected : public MBDynErrBase {
+	public:
+		ErrIntegerExpected(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrRealExpected : public MBDynErrBase {
+	public:
+		ErrRealExpected(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrStringExpected : public MBDynErrBase {
+	public:
+		ErrStringExpected(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrIllegalDelimiter : public MBDynErrBase {
+	public:
+		ErrIllegalDelimiter(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
    
 public:      
 	enum Token {

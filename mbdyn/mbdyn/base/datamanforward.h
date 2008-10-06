@@ -43,15 +43,42 @@ struct ltstrcase {
 
 class DataManagerErrors {
 public:
-	class ErrGeneric {};
-	class ErrAssemblyDiverged {};
-	class ErrAssemblyMaxIters {};
-	class ErrElemNotAllowedInAssembly {};
-	class ErrUnknownElem {};
-	class ErrUnknownFunction {};
-	class ErrUnknownNode {};
-	class ErrMissingNodes {};
-	class ErrNeedDataManager {};
+	class ErrGeneric : public MBDynErrBase {
+	public:
+		ErrGeneric(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrAssemblyDiverged: public MBDynErrBase {
+	public:
+		ErrAssemblyDiverged(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrAssemblyMaxIters: public MBDynErrBase {
+	public:
+		ErrAssemblyMaxIters(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrElemNotAllowedInAssembly: MBDynErrBase {
+	public:
+		ErrElemNotAllowedInAssembly(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrUnknownElem: public MBDynErrBase {
+	public:
+		ErrUnknownElem(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrUnknownFunction: public MBDynErrBase {
+	public:
+		ErrUnknownFunction(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrUnknownNode: public MBDynErrBase {
+	public:
+		ErrUnknownNode(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrMissingNodes: public MBDynErrBase {
+	public:
+		ErrMissingNodes(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrNeedDataManager: public MBDynErrBase {
+	public:
+		ErrNeedDataManager(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
 };
 
 class DataManager;

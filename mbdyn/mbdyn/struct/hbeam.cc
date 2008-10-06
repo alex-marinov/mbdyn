@@ -215,18 +215,18 @@ HBeam::dGetPrivData(unsigned int i) const
 	case 3:
 		silent_cerr("HBeam(" << GetLabel() << "): "
 			"not allowed to return shear strain" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 	case 8:
 	case 9:
 		silent_cerr("HBeam(" << GetLabel() << "): "
 			"not allowed to return shear force" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 	default:
 		silent_cerr("HBeam(" << GetLabel() << "): "
 			"illegal private data " << i << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -258,7 +258,7 @@ HBeam::DsDxi(void)
 		silent_cerr("HBeam(" << GetLabel() << ") "
 			"has singular metric; aborting ..." << std::endl);
 		
-		throw HBeam::ErrGeneric();
+		throw HBeam::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	
 	dsdxi = dsdxi*d;
@@ -708,7 +708,7 @@ HBeam::pGetNode(unsigned int i) const
 	case 2:
 		return pNode[i-1];
 	default:
-		throw HBeam::ErrGeneric();
+		throw HBeam::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -1204,7 +1204,7 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 			<< ": HBeam(" << uLabel << ") does not support "
 			"dynamic constitutive laws yet"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	
 #ifdef DEBUG   
@@ -1243,7 +1243,7 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 				<< iNumElec 
 				<< " at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		
 		SAFENEWARR(pvElecDofs, ScalarDifferentialNode*, iNumElec);
@@ -1258,7 +1258,7 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					"can't find AbstractNode(" << uL << ") "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 		
@@ -1339,7 +1339,7 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 #else /* VISCOELASTIC_BEAM */
 		silent_cerr("Sorry, the ViscoElasticHBeam element"
 			" is not available yet" << std::endl);
-		throw ErrNotImplementedYet();
+		throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 #endif /* VISCOELASTIC_BEAM */
 	}
 	
@@ -1347,7 +1347,7 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	if (HP.IsArg()) {
 		silent_cerr("semicolon expected at line "
 			<< HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	
 	return pEl;

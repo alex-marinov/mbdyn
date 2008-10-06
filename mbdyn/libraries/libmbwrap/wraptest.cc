@@ -649,7 +649,7 @@ main(int argc, char *argv[])
 #else /* !USE_SUPERLU_MT */
 			silent_cerr("multithread SuperLU solver support not compiled; "
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		} else {
 			std::cerr << "SuperLU solver";
 			if (dir) {
@@ -787,7 +787,7 @@ main(int argc, char *argv[])
 					"you can configure --enable-multithread-naive "
 					"on a linux ix86 to get it"
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* USE_NAIVE_MULTITHREAD */
 			} else {
 				SAFENEWWITHCONSTRUCTOR(pSM,
@@ -805,7 +805,7 @@ main(int argc, char *argv[])
 					"you can configure --enable-multithread-naive "
 					"on a linux ix86 to get it"
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* USE_NAIVE_MULTITHREAD */
 			} else {
 				SAFENEWWITHCONSTRUCTOR(pSM,

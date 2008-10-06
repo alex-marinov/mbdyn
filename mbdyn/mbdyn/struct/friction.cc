@@ -495,7 +495,7 @@ void DiscreteCoulombFriction::AssRes(
 	//update status
 	first_iter = false;
 	if (transition_type != null) {
-		throw Elem::ChangedEquationStructure();
+		throw Elem::ChangedEquationStructure(MBDYN_EXCEPT_ARGS);
 	}
 //	current_velocity = v;
 };
@@ -652,7 +652,7 @@ BasicFriction *const ParseFriction(MBDynParser& HP,
 	default: {
 		silent_cerr("ParseFriction(): unrecognized friction type "
 				"at line " << HP.GetLineData() << std::endl);
-		throw MBDynParser::ErrGeneric();
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		break;
 	}
 	}
@@ -690,7 +690,7 @@ BasicShapeCoefficient *const ParseShapeCoefficient(MBDynParser& HP) {
 		silent_cerr("ParseShapeCoefficient(): "
 			"unrecognized shape coefficient type "
 			"at line " << HP.GetLineData() << std::endl);
-		throw MBDynParser::ErrGeneric();
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		break;
 	}
 	}

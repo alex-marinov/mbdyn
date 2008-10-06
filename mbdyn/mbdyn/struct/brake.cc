@@ -400,7 +400,7 @@ SubVectorHandler& Brake::AssRes(SubVectorHandler& WorkVec,
 //!!!!!!!!!!!!!!
 //      M += e3a*M3;
       if (ChangeJac) {
-          throw Elem::ChangedEquationStructure();
+          throw Elem::ChangedEquationStructure(MBDYN_EXCEPT_ARGS);
       }
    
    return WorkVec;
@@ -527,7 +527,7 @@ doublereal Brake::dGetPrivData(unsigned int i) const
     default:
       silent_cerr("Brake(" << GetLabel() << "): "
 	      "illegal private data " << i << std::endl);
-      throw ErrGeneric();
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
 }
 

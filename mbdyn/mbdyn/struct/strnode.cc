@@ -245,7 +245,7 @@ StructNode::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) co
 
 	} else {
 		if (i < 0 || i >= iend) {
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		os << ": " << initial_dof[i/3] << xyz[i%3];
 		desc[0] = os.str();
@@ -325,14 +325,14 @@ StructNode::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) con
 	} else {
 		if (bInitial) {
 			if (i < 0 || i >= 12) {
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			os << ": " << initial_eq[i/3] << xyz[i%3];
 
 		} else {
 			if (i < 0 || i >= 6) {
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			os << ": " << eq[2 + i/3] << xyz[i%3];
@@ -387,13 +387,13 @@ StructNode::dGetDofValue(int iDof, int iOrder) const
 		} else if (iOrder == 0) {
 			silent_cerr("StructNode(" << GetLabel() << "): "
 				"unable to return angles" << std::endl);
-			throw StructNode::ErrGeneric();
+			throw StructNode::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	} else {
 		silent_cerr("StructNode(" << GetLabel() << "): "
 			"required dof " << iDof << " (order " << iOrder << ") "
 			"is not available." << std::endl);
-		throw StructNode::ErrGeneric();
+		throw StructNode::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* dummy return value to workaround compiler complains */
@@ -420,13 +420,13 @@ StructNode::dGetDofValuePrev(int iDof, int iOrder) const
 		} else if (iOrder == 0) {
 			silent_cerr("StructNode(" << GetLabel() << "): "
 				"unable to return angles" << std::endl);
-			throw StructNode::ErrGeneric();
+			throw StructNode::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	} else {
 		silent_cerr("StructNode(" << GetLabel() << "): "
 			"required dof " << iDof << " (order " << iOrder << ") "
 			"is not available." << std::endl);
-		throw StructNode::ErrGeneric();
+		throw StructNode::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* dummy return value to workaround compiler complains */
@@ -458,14 +458,14 @@ StructNode::SetDofValue(const doublereal& dValue,
 		} else if (iOrder == 0) {
 			silent_cerr("StructNode(" << GetLabel() << "): "
 				"unable to set angles" << std::endl);
-			throw StructNode::ErrGeneric();
+			throw StructNode::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 	} else {
 		silent_cerr("StructNode(" << GetLabel() << "): "
 			"required dof " << iDof << " (order " << iOrder << ") "
 			"is not available." << std::endl);
-		throw StructNode::ErrGeneric();
+		throw StructNode::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -494,7 +494,7 @@ StructNode::OutputPrepare(OutputHandler &OH)
 				(unsigned long)GetLabel());
 			// NOTE: "Omega" is the longest var name
 			if (l < 0 || l >= int(sizeof(buf) - STRLENOF(".Omega"))) {
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			NcVar *Var_Type = pBinFile->add_var(buf, ncChar, OH.DimV1());
@@ -522,7 +522,7 @@ StructNode::OutputPrepare(OutputHandler &OH)
 			}
 
 			if (!Var_Type->add_att("type", type)) {
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			// add var name separator
@@ -537,21 +537,21 @@ StructNode::OutputPrepare(OutputHandler &OH)
 			Var_X = pBinFile->add_var(buf, ncDouble,
 				OH.DimTime(), OH.DimV3());
 			if (Var_X == 0) {
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_X->add_att("units", "m")) {
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_X->add_att("type", "Vec3")) {
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_X->add_att("description",
 				"global position vector (X, Y, Z)"))
 			{
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			switch (od) {
@@ -560,15 +560,15 @@ StructNode::OutputPrepare(OutputHandler &OH)
 				Var_Phi = pBinFile->add_var(buf, ncDouble,
 					OH.DimTime(), OH.DimV3(), OH.DimV3());
 				if (Var_Phi == 0) {
-					throw ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!Var_Phi->add_att("units", "-")) {
-					throw ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!Var_Phi->add_att("type", "Mat3x3")) {
-					throw ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!Var_Phi->add_att("description",
@@ -576,7 +576,7 @@ StructNode::OutputPrepare(OutputHandler &OH)
 					"(R11, R21, R31, "
 					"R12, R22, R32, R13, R23, R33)" ))
 				{
-					throw ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 				break;
 
@@ -585,22 +585,22 @@ StructNode::OutputPrepare(OutputHandler &OH)
 				Var_Phi = pBinFile->add_var(buf, ncDouble,
 					OH.DimTime(), OH.DimV3());
 				if (Var_Phi == 0) {
-					throw ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!Var_Phi->add_att("units", "radian")) {
-					throw ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!Var_Phi->add_att("type", "Vec3")) {
-					throw ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!Var_Phi->add_att("description",
 					"global orientation vector "
 					"(Phi_X, Phi_Y, Phi_Z)"))
 				{
-					throw ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 				break;
 
@@ -609,70 +609,70 @@ StructNode::OutputPrepare(OutputHandler &OH)
 				Var_Phi = pBinFile->add_var(buf, ncDouble,
 					OH.DimTime(), OH.DimV3());
 				if (Var_Phi == 0) {
-					throw ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!Var_Phi->add_att("units", "radian")) {
-					throw ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!Var_Phi->add_att("type", "Vec3")) {
-					throw ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!Var_Phi->add_att("description",
 					"global orientation Euler angles (123) "
 					"(E_X, E_Y, E_Z)"))
 				{
-					throw ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 				break;
 
 			default:
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			strcpy(&buf[l], "XP");
 			Var_XP = pBinFile->add_var(buf, ncDouble,
 				OH.DimTime(), OH.DimV3());
 			if (Var_XP == 0) {
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_XP->add_att("units", "m/s")) {
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_XP->add_att("type", "Vec3")) {
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_XP->add_att("description",
 				"global velocity vector (v_X, v_Y, v_Z)"))
 			{
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			strcpy(&buf[l], "Omega");
 			Var_Omega = pBinFile->add_var(buf, ncDouble,
 				OH.DimTime(), OH.DimV3());
 			if (Var_Omega == 0) {
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_Omega->add_att("units", "radian/s")) {
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_Omega->add_att("type", "Vec3")) {
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_Omega->add_att("description",
 				"global angular velocity vector "
 				"(omega_X, omega_Y, omega_Z)"))
 			{
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 		}
@@ -1528,7 +1528,7 @@ StructNode::dGetPrivData(unsigned int i) const
 	}
 	}
 
-	throw ErrGeneric();
+	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* StructNode - end */
@@ -1627,7 +1627,7 @@ DynamicStructNode::DescribeDof(std::vector<std::string>& desc, bool bInitial, in
 
 	} else {
 		if (i < 6 || i >= 12) {
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		os << ": " << dof[i/3] << xyz[i%3];
@@ -1693,7 +1693,7 @@ DynamicStructNode::DescribeEq(std::vector<std::string>& desc, bool bInitial, int
 
 	} else {
 		if (i < 0 || i >= 6) {
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		os << ": " << eq[i/3] << xyz[i%3];
@@ -1793,7 +1793,7 @@ DynamicStructNode::OutputPrepare(OutputHandler &OH)
 			int l = snprintf(buf, sizeof(buf), "node.struct.%lu.",
 				(unsigned long)GetLabel());
 			if (l < 0 || l >= int(sizeof(buf) - STRLENOF("OmegaP"))) {
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			// Add NetCDF (output) variables to the BinFile object and
@@ -1803,40 +1803,40 @@ DynamicStructNode::OutputPrepare(OutputHandler &OH)
 			strcpy(&buf[l], "XPP");
 			Var_XPP = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
 			if (Var_XPP == 0) {
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_XPP->add_att("units", "m/s^2")) {
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_XPP->add_att("type", "Vec3")) {
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_XPP->add_att("description", "global acceleration vector (a_X, a_Y, a_Z)")) {
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			strcpy(&buf[l], "OmegaP");
 			Var_OmegaP = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
 			if (Var_OmegaP == 0) {
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_OmegaP->add_att("units", "radian/s^2")) {
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_OmegaP->add_att("type", "Vec3")) {
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (!Var_OmegaP->add_att("description",
 				"global angular acceleration vector "
 				"(omegaP_X, omegaP_Y, omegaP_Z)"))
 			{
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 #endif // USE_NETCDF
@@ -1954,7 +1954,7 @@ DynamicStructNode::dGetDofValue(int iDof, int iOrder) const
 				<< iDof << "," << iOrder << "): "
 				"accelerations are not computed while they should"
 				<< std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 #if 1
@@ -1992,7 +1992,7 @@ DynamicStructNode::dGetDofValuePrev(int iDof, int iOrder) const
 				<< iDof << "," << iOrder << "): "
 				"accelerations are not computed while they should"
 				<< std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (iDof >= 1 && iDof <= 3) {
@@ -2023,7 +2023,7 @@ DynamicStructNode::SetDofValue(const doublereal& dValue,
 				<< dValue << "," << iDof << "," << iOrder << "): "
 				"accelerations are not computed while they should"
 				<< std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (iDof >= 1 && iDof <= 3) {
@@ -2303,7 +2303,7 @@ ModalNode::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) con
 
 	} else {
 		if (i < 6 || i >= 12) {
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		os << ": " << initial_dof[i/3] << xyz[i%3];
@@ -2378,7 +2378,7 @@ ModalNode::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) cons
 
 	} else {
 		if (i < 0 || i >= 6) {
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		os << ": " << xeq[i/3] << xyz[i%3];
@@ -2438,7 +2438,7 @@ DummyStructNode::dGetDofValue(int iDof, int iOrder) const
 {
 	silent_cerr("DummyStructNode(" << GetLabel() << ") has no dofs"
 		<< std::endl);
-	throw ErrGeneric();
+	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 
@@ -2449,7 +2449,7 @@ DummyStructNode::dGetDofValuePrev(int iDof, int iOrder) const
 {
 	silent_cerr("DummyStructNode(" << GetLabel() << ") has no dofs"
 		<< std::endl);
-	throw ErrGeneric();
+	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 
@@ -2461,7 +2461,7 @@ DummyStructNode::SetDofValue(const doublereal& dValue,
 {
 	silent_cerr("DummyStructNode(" << GetLabel() << ") has no dofs"
 		<< std::endl);
-	throw ErrGeneric();
+	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 
@@ -2802,7 +2802,7 @@ ReadStructNode(DataManager* pDM,
 		silent_cerr("StructNode(" << uLabel << "): "
 			"missing node type at line " << HP.GetLineData()
 			<< std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 #ifdef DEBUG
@@ -2894,7 +2894,7 @@ ReadStructNode(DataManager* pDM,
 			silent_cerr("StructNode(" << uLabel << "): "
 				"unknown dummy node type "
 				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	} else {
 		/* posizione (vettore di 3 elementi) */
@@ -2946,7 +2946,7 @@ ReadStructNode(DataManager* pDM,
 					"for static and dynamic nodes only, "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			pRefNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
@@ -3007,7 +3007,7 @@ ReadStructNode(DataManager* pDM,
 		if (HP.IsArg()) {
 			silent_cerr(sFuncName << ": semicolon expected "
 				"at line " << HP.GetLineData() << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		/* costruzione del nodo */

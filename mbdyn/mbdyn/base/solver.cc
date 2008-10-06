@@ -113,7 +113,7 @@ mbdyn_really_exit_handler(int signum)
 #endif // SIGPIPE
    	}
 
-	throw ErrInterrupted();
+	throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
 }
 
 void
@@ -306,13 +306,13 @@ Solver::Run(void)
 			&mbdyn_rtai_task))
 		{
 			silent_cerr("unable to init RTAI task" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (lRTPeriod < 0) {
 			silent_cerr("illegal real-time time step"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 #endif /* USE_RTAI */
@@ -338,7 +338,7 @@ Solver::Run(void)
 		
 				silent_cerr("stat(" << sOutputFileName << ") failed "
 					"(" << save_errno << ": " << errmsg << ")" << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			char	*sOutputFilePath = 0;
@@ -355,12 +355,12 @@ Solver::Run(void)
 					silent_cerr("stat(" << sOutputFileName << ") failed because "
 							"stat(" << sOutputFilePath << ") failed "
 						"(" << save_errno << ": " << errmsg << ")" << std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 				} else if (!S_ISDIR(s.st_mode)) {
 					silent_cerr("path to file \"" << sOutputFileName << "\" is invalid ("
 							"\"" << sOutputFilePath << "\" is not a dir)" << std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
 			SAFEDELETEARR(sOutputFilePath);
@@ -472,7 +472,7 @@ Solver::Run(void)
 					if (!b) {
 						silent_cerr("unable to select a CC-capable solver"
 									<< std::endl);
-						throw ErrGeneric();
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 				}
 			}
@@ -650,7 +650,7 @@ Solver::Run(void)
 		if (!PodOut) {
 			silent_cerr("unable to open file \"" << PODFileName
 				<< "\"" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		SAFEDELETEARR(PODFileName);
 
@@ -701,7 +701,7 @@ Solver::Run(void)
 
 		default:
 			ASSERT(0);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		/* registers scale factors at nonlinear solver */
@@ -726,7 +726,7 @@ Solver::Run(void)
 
 		default:
 			ASSERT(0);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -746,7 +746,7 @@ Solver::Run(void)
 
 	default:
 		ASSERT(0);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* registers tests in nonlinear solver */
@@ -873,7 +873,7 @@ Solver::Run(void)
 			<< " does not converge; aborting..." << std::endl
 			<< "(hint: try playing with the \"derivatives coefficient\" value)" << std::endl);
 	 	pDM->Output(0, dTime, 0., true);
-	 	throw ErrMaxIterations();
+	 	throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
 
 	}
 	catch (NonlinearSolver::ErrSimulationDiverged) {
@@ -881,7 +881,7 @@ Solver::Run(void)
 		 * Mettere qui eventuali azioni speciali
 		 * da intraprendere in caso di errore ...
 		 */
-		throw SimulationDiverged();
+		throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 	}
 	catch (LinearSolver::ErrFactor err) {
 		/*
@@ -892,7 +892,7 @@ Solver::Run(void)
 			"could be found for column " << err.iCol
 			<< " (" << pDM->GetDofDescription(err.iCol) << "); "
 			"aborting..." << std::endl);
-		throw SimulationDiverged();
+		throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 	}
 	catch (NonlinearSolver::ConvergenceOnSolution) {
 		bSolConv = true;
@@ -945,7 +945,7 @@ Solver::Run(void)
 		 */
       		pDM->Output(0, dTime, 0., true);
       		Out << "Interrupted during derivatives computation." << std::endl;
-      		throw ErrInterrupted();
+      		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
 #endif /* HAVE_SIGNAL */
    	}
 
@@ -991,14 +991,14 @@ Solver::Run(void)
 				<< " cannot be reduced further; "
 				"aborting..." << std::endl);
 	 		pDM->Output(0, dTime, dCurrTimeStep, true);
-	 		throw ErrMaxIterations();
+	 		throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
 		}
 		catch (NonlinearSolver::ErrSimulationDiverged) {
 			/*
 		 	 * Mettere qui eventuali azioni speciali
 		 	 * da intraprendere in caso di errore ...
 		 	 */
-			throw SimulationDiverged();
+			throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 		}
 		catch (LinearSolver::ErrFactor err) {
 			/*
@@ -1009,7 +1009,7 @@ Solver::Run(void)
 				"could be found for column " << err.iCol
 				<< " (" << pDM->GetDofDescription(err.iCol) << "); "
 				"aborting..." << std::endl);
-			throw SimulationDiverged();
+			throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 		}
 		catch (NonlinearSolver::ConvergenceOnSolution) {
 			bSolConv = true;
@@ -1042,7 +1042,7 @@ Solver::Run(void)
 	   		pDM->Output(0, dTime, dCurrTimeStep, true);
 #endif /* DEBUG_FICTITIOUS */
 	 		Out << "Interrupted during first dummy step." << std::endl;
-	 		throw ErrInterrupted();
+	 		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
       		}
 #endif /* HAVE_SIGNAL */
 
@@ -1085,7 +1085,7 @@ Solver::Run(void)
 					<< " cannot be reduced further; "
 					"aborting..." << std::endl);
 	 			pDM->Output(0, dTime, dCurrTimeStep, true);
-	 			throw ErrMaxIterations();
+	 			throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
 			}
 
 			catch (NonlinearSolver::ErrSimulationDiverged) {
@@ -1093,7 +1093,7 @@ Solver::Run(void)
 		 		 * Mettere qui eventuali azioni speciali
 		 		 * da intraprendere in caso di errore ...
 		 		 */
-				throw SimulationDiverged();
+				throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 			}
 			catch (LinearSolver::ErrFactor err) {
 				/*
@@ -1105,7 +1105,7 @@ Solver::Run(void)
 					"could be found for column " << err.iCol
 					<< " (" << pDM->GetDofDescription(err.iCol) << "); "
 					"aborting..." << std::endl);
-				throw SimulationDiverged();
+				throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 			}
 			catch (NonlinearSolver::ConvergenceOnSolution) {
 				bSolConv = true;
@@ -1146,7 +1146,7 @@ Solver::Run(void)
 #endif /* DEBUG_FICTITIOUS */
 	    			Out << "Interrupted during dummy steps."
 					<< std::endl;
-				throw ErrInterrupted();
+				throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
 			}
 #endif /* HAVE_SIGNAL */
 
@@ -1197,7 +1197,7 @@ Solver::Run(void)
    	} else if (!::mbdyn_keep_going) {
       		/* Fa l'output della soluzione ed esce */
       		Out << "Interrupted during dummy steps." << std::endl;
-      		throw ErrInterrupted();
+      		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
 #endif /* HAVE_SIGNAL */
    	}
 
@@ -1259,7 +1259,7 @@ IfFirstStepIsToBeRepeated:
 			"aborting..." << std::endl);
 	    	pDM->Output(0, dTime, dCurrTimeStep, true);
 
-		throw Solver::ErrMaxIterations();
+		throw Solver::ErrMaxIterations(MBDYN_EXCEPT_ARGS);
       	}
 	catch (NonlinearSolver::ErrSimulationDiverged) {
 		/*
@@ -1267,7 +1267,7 @@ IfFirstStepIsToBeRepeated:
 		 * da intraprendere in caso di errore ...
 		 */
 
-		throw SimulationDiverged();
+		throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 	}
 	catch (LinearSolver::ErrFactor err) {
 		/*
@@ -1278,7 +1278,7 @@ IfFirstStepIsToBeRepeated:
 			"could be found for column " << err.iCol
 			<< " (" << pDM->GetDofDescription(err.iCol) << "); "
 			"aborting..." << std::endl);
-		throw SimulationDiverged();
+		throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 	}
 	catch (NonlinearSolver::ConvergenceOnSolution) {
 		bSolConv = true;
@@ -1298,7 +1298,7 @@ IfFirstStepIsToBeRepeated:
    	if (!::mbdyn_keep_going) {
       		/* Fa l'output della soluzione al primo passo ed esce */
       		Out << "Interrupted during first step." << std::endl;
-      		throw ErrInterrupted();
+      		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
    	}
 #endif /* HAVE_SIGNAL */
 
@@ -1382,7 +1382,7 @@ IfFirstStepIsToBeRepeated:
 			if (r) {
 				silent_cerr("rt_task_make_periodic() failed ("
 					<< r << ")" << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 #if 0
@@ -1397,7 +1397,7 @@ IfFirstStepIsToBeRepeated:
 			if (r) {
 				silent_cerr("rt_sem_init() failed ("
 					<< r << ")" << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -1413,7 +1413,7 @@ IfFirstStepIsToBeRepeated:
 			if (r) {
 				silent_cerr("rt_sem_init() failed ("
 					<< r << ")" << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}*/
 		}
 #endif
@@ -1592,7 +1592,7 @@ IfFirstStepIsToBeRepeated:
 				<< "total iterations: " << iTotIter << std::endl
 				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
 				<< "total error: " << dTotErr << std::endl);
-	 		throw ErrInterrupted();
+	 		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
 #endif /* HAVE_SIGNAL */
       		}
 
@@ -1673,7 +1673,7 @@ IfStepIsToBeRepeated:
 					"time step dt=" << dCurrTimeStep
 					<< " cannot be reduced further; "
 					"aborting..." << std::endl);
-	       			throw ErrMaxIterations();
+	       			throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
 			}
 		}
 		catch (NonlinearSolver::ErrSimulationDiverged) {
@@ -1689,7 +1689,7 @@ IfStepIsToBeRepeated:
 				"time step dt=" << dCurrTimeStep
 				<< " cannot be reduced further; "
 				"aborting..." << std::endl);
-			throw SimulationDiverged();
+			throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 		}
 		catch (LinearSolver::ErrFactor err) {
 			/*
@@ -1702,7 +1702,7 @@ IfStepIsToBeRepeated:
 				"after " << iStIter << " iterations "
 				"during step " << lStep << "; "
 				"aborting..." << std::endl);
-			throw SimulationDiverged();
+			throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 		}
 		catch (NonlinearSolver::ConvergenceOnSolution) {
 			bSolConv = true;
@@ -1937,7 +1937,7 @@ Solver::NewTimeStep(doublereal dCurrTimeStep,
 
     	default:
        		silent_cerr("You shouldn't have reached this point!" << std::endl);
-       		throw Solver::ErrGeneric();
+       		throw Solver::ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
 
    	return dCurrTimeStep;
@@ -2014,7 +2014,7 @@ Solver::Restart(std::ostream& out,DataManager::eRestart type) const
 		NO_OP;
 	default:
 		silent_cerr("unhandled nonlinear solver test type" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (bScale) {
@@ -2290,7 +2290,7 @@ Solver::ReadData(MBDynParser& HP)
    	if (KeyWords(HP.GetDescription()) != BEGIN) {
       		silent_cerr("Error: <begin> expected at line "
 			<< HP.GetLineData() << "; aborting..." << std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
 
    	switch (KeyWords(HP.GetWord())) {
@@ -2303,7 +2303,7 @@ Solver::ReadData(MBDynParser& HP)
 	default:
       		silent_cerr("Error: \"begin: initial value;\" expected at line "
 			<< HP.GetLineData() << "; aborting..." << std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
 
    	bool bMethod(false);
@@ -2387,12 +2387,12 @@ Solver::ReadData(MBDynParser& HP)
 	  		if (dMinTimeStep == 0.) {
 	     			silent_cerr("warning, null min time step"
 					" is not allowed" << std::endl);
-	     			throw ErrGeneric();
+	     			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 			} else if (dMinTimeStep < 0.) {
 				silent_cerr("negative min time step"
 					" is not allowed" << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	  		}
 	  		break;
 
@@ -2412,7 +2412,7 @@ Solver::ReadData(MBDynParser& HP)
 			} else if (dMaxTimeStep < 0.) {
 				silent_cerr("negative max time step"
 					" is not allowed" << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	  		}
 	  		break;
 
@@ -2424,7 +2424,7 @@ Solver::ReadData(MBDynParser& HP)
 					::iDefaultFictitiousStepsNumber;
 				silent_cerr("negative dummy steps number"
 					" is illegal" << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 			} else if (iFictitiousStepsNumber == 1) {
 				silent_cerr("warning, a single dummy step"
@@ -2441,7 +2441,7 @@ Solver::ReadData(MBDynParser& HP)
 	  		if (dFictitiousStepsRatio < 0.) {
 				silent_cerr("negative dummy steps ratio"
 					" is illegal" << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 	  		if (dFictitiousStepsRatio > 1.) {
@@ -2461,7 +2461,7 @@ Solver::ReadData(MBDynParser& HP)
 	  		if (dFictitiousStepsTolerance <= 0.) {
 				silent_cerr("negative dummy steps"
 					" tolerance is illegal" << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	  		}
 			DEBUGLCOUT(MYDEBUG_INPUT,
 				   "Fictitious steps tolerance: "
@@ -2503,7 +2503,7 @@ Solver::ReadData(MBDynParser& HP)
 	   		default:
 	      			silent_cerr("Don't know when to abort,"
 					" so I'm going to abort now" << std::endl);
-	      			throw ErrGeneric();
+	      			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	  		}
 	  		break;
        		}
@@ -2567,7 +2567,7 @@ Solver::ReadData(MBDynParser& HP)
 	     			silent_cerr("error: multiple definition"
 					" of integration method at line "
 					<< HP.GetLineData() << std::endl);
-	     			throw ErrGeneric();
+	     			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	  		}
 	  		bMethod = true;
 
@@ -2596,7 +2596,7 @@ Solver::ReadData(MBDynParser& HP)
 
 					default:
 						silent_cerr("unhandled BDF order " << iOrder << std::endl);
-						throw ErrGeneric();
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 				}
 
@@ -2634,7 +2634,7 @@ Solver::ReadData(MBDynParser& HP)
 		  			break;
 
 	       			default:
-	          			throw ErrGeneric();
+	          			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	      			}
 	      			break;
 
@@ -2654,7 +2654,7 @@ Solver::ReadData(MBDynParser& HP)
 	   		default:
 	      			silent_cerr("Unknown integration method at line "
 					<< HP.GetLineData() << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	  		}
 	  		break;
        		}
@@ -2666,7 +2666,7 @@ Solver::ReadData(MBDynParser& HP)
 					"of dummy steps integration method "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			bFictitiousStepsMethod = true;
 
@@ -2695,7 +2695,7 @@ Solver::ReadData(MBDynParser& HP)
 
 					default:
 						silent_cerr("unhandled BDF order " << iOrder << std::endl);
-						throw ErrGeneric();
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 				}
 
@@ -2727,7 +2727,7 @@ Solver::ReadData(MBDynParser& HP)
 					break;
 
 	       			default:
-	          			throw ErrGeneric();
+	          			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 	      			break;
 
@@ -2746,7 +2746,7 @@ Solver::ReadData(MBDynParser& HP)
 
 			default:
 				silent_cerr("Unknown integration method at line " << HP.GetLineData() << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			break;
 		}
@@ -2789,7 +2789,7 @@ Solver::ReadData(MBDynParser& HP)
 							"method at line "
 							<< HP.GetLineData()
 							<< std::endl);
-						throw ErrGeneric();
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 
 					if (HP.IsKeyWord("scale")) {
@@ -2829,7 +2829,7 @@ Solver::ReadData(MBDynParser& HP)
 								"method at line "
 								<< HP.GetLineData()
 								<< std::endl);
-							throw ErrGeneric();
+							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 						}
 					}
 				}
@@ -2838,7 +2838,7 @@ Solver::ReadData(MBDynParser& HP)
 				silent_cerr("need solution tolerance "
 					"with null residual tolerance"
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (dSolutionTol < 0.) {
@@ -2852,7 +2852,7 @@ Solver::ReadData(MBDynParser& HP)
 			if (dTol == 0. && dSolutionTol == 0.) {
 				silent_cerr("both residual and solution "
 					"tolerances are zero" << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			DEBUGLCOUT(MYDEBUG_INPUT, "tolerance = " << dTol
@@ -3003,7 +3003,7 @@ Solver::ReadData(MBDynParser& HP)
 				silent_cerr("\"end: initial value;\" expected "
 					"at line " << HP.GetLineData()
 					<< "; aborting..." << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			goto EndOfCycle;
 
@@ -3127,7 +3127,7 @@ Solver::ReadData(MBDynParser& HP)
 				silent_cerr("unknown time step control "
 					"strategy at line "
 					<< HP.GetLineData() << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			break;
 		}
@@ -3256,7 +3256,7 @@ Solver::ReadData(MBDynParser& HP)
 				silent_cerr("unknown nonlinear solver "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				break;
 			}
 
@@ -3319,7 +3319,7 @@ Solver::ReadData(MBDynParser& HP)
 						"solver at line "
 						<< HP.GetLineData()
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (HP.IsKeyWord("tolerance")) {
@@ -3396,7 +3396,7 @@ Solver::ReadData(MBDynParser& HP)
 							"at line "
 							<< HP.GetLineData()
 							<< std::endl);
-						throw ErrGeneric();
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 					break;
 				}
@@ -3404,7 +3404,7 @@ Solver::ReadData(MBDynParser& HP)
 
 			default:
 				ASSERT(0);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			break;
 
@@ -3420,7 +3420,7 @@ Solver::ReadData(MBDynParser& HP)
 						<< p << " at line "
 						<< HP.GetLineData()
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 				lRTPeriod = p;
 
@@ -3428,7 +3428,7 @@ Solver::ReadData(MBDynParser& HP)
 				silent_cerr("need a time step for real time "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (HP.IsKeyWord("allow" "nonroot")) {
@@ -3448,7 +3448,7 @@ Solver::ReadData(MBDynParser& HP)
 					silent_cerr("unknown realtime mode "
 						"at line " << HP.GetLineData()
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
 
@@ -3460,7 +3460,7 @@ Solver::ReadData(MBDynParser& HP)
 						<< size << " at line "
 						<< HP.GetLineData()
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				RTStackSize = size;
@@ -3486,7 +3486,7 @@ Solver::ReadData(MBDynParser& HP)
 						<< buf << " at line "
 						<< HP.GetLineData()
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 				RTCpuMap = newcpumap;
 			}
@@ -3506,7 +3506,7 @@ Solver::ReadData(MBDynParser& HP)
 #else /* !USE_RTAI */
 			silent_cerr("need to configure --with-rtai "
 				"to use realtime" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* !USE_RTAI */
 			break;
 
@@ -3576,7 +3576,7 @@ Solver::ReadData(MBDynParser& HP)
 			silent_cerr("unknown description at line "
 				<< HP.GetLineData() << "; aborting..."
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -3632,7 +3632,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 				<< "strategy factor has been selected:\n"
 				<< "this is meaningless - bailing out"
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		break;
 
@@ -3765,7 +3765,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		default:
 			silent_cerr("unknown dummy steps integration method"
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			break;
 		}
 	}
@@ -3840,7 +3840,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 
 	default:
 		silent_cerr("Unknown integration method" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		break;
 	}
 
@@ -4423,7 +4423,7 @@ Solver::AllocateSchurSolman(integer iStates)
 				<< CurrIntSolver.GetSolverName()
 				<< " is not allowed as interface solver "
 				"for SchurSolutionManager" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	SAFENEWWITHCONSTRUCTOR(pSSM,
@@ -4435,7 +4435,7 @@ Solver::AllocateSchurSolman(integer iStates)
 
 #else /* !USE_MPI */
 	silent_cerr("Configure --with-mpi to enable Schur solver" << std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* !USE_MPI */
 
 	return pSSM;
@@ -4545,7 +4545,7 @@ Solver::SetupSolmans(integer iStates, bool bCanBeParallel)
 	 */
 	if (pSM == NULL) {
 		silent_cerr("No linear solver defined" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 

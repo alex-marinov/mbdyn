@@ -90,7 +90,7 @@ pFlags(NULL)
 			<< "): socket failed "
 			"(" << save_errno << ": "<< err_msg << ")"
 			<< std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
    	} else if (sock == -2) {
 		const char	*err_msg = strerror(save_errno);
@@ -99,7 +99,7 @@ pFlags(NULL)
 			<< "): bind failed "
 			"(" << save_errno << ": "<< err_msg << ")"
 			<< std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
 
    	Init();
@@ -129,7 +129,7 @@ pFlags(NULL)
 			<< "): socket failed "
 			"(" << save_errno << ": "<< err_msg << ")"
 			<< std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
    	} else if (sock == -2) {
 		const char	*err_msg = strerror(save_errno);
@@ -138,7 +138,7 @@ pFlags(NULL)
 			<< "): bind failed "
 			"(" << save_errno << ": "<< err_msg << ")"
 			<< std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
 
 	Init();
@@ -153,20 +153,20 @@ SocketDrive::Init(void)
 		silent_cerr("SocketDrive(" << GetLabel()
 				<< ": unable to get socket flags"
 				<< std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
    	oldflags |= O_NONBLOCK;
    	if (fcntl(sock, F_SETFL, oldflags) == -1) {
 		silent_cerr("SocketDrive(" << GetLabel()
 				<< ": unable to set socket flags"
 				<< std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
 
    	if (listen(sock, 1) < 0) {
       		silent_cerr("SocketDrive(" << GetLabel()
 			<< "): listen failed" << std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
 
    	SAFENEWARR(pFlags, int, iNumDrives + 1);
@@ -561,7 +561,7 @@ ReadSocketDrive(DataManager* pDM,
 					<< IPPORT_USERRESERVED
 					<< " at line " << HP.GetLineData()
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		/* if #undef'd, don't bother checking;
 		 * the OS will do it for us */
@@ -575,7 +575,7 @@ ReadSocketDrive(DataManager* pDM,
 			silent_cerr("need an authentication method "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		SAFENEWWITHCONSTRUCTOR(pDr,
@@ -595,7 +595,7 @@ ReadSocketDrive(DataManager* pDM,
 #else /* ! USE_SOCKET_DRIVES */
 	silent_cerr("Sorry, socket drives not supported at line"
 		<< HP.GetLineData() << std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* USE_SOCKET_DRIVES */
 }
 

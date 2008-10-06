@@ -88,7 +88,10 @@ public:
 
 public:
 	/* Errori: */
-	class ErrGeneric {};
+	class ErrGeneric : public MBDynErrBase {
+	public:
+		ErrGeneric(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+ 	};
 
 	/* Costruttori */
 
@@ -495,7 +498,7 @@ inline const doublereal&
 ScalarAlgebraicNode::dGetXPrime(void) const
 {
 	DEBUGCERR("Error, getting derivative from algebraic dof!" << std::endl);
-	throw Node::ErrGeneric();
+	throw Node::ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* ScalarAlgebraicNode - end */

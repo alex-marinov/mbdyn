@@ -705,27 +705,27 @@ pivot(PNULL)
 	
    	if ((A = m_get(m, n)) == MNULL) {
       		silent_cerr("A = m_get(" << m << ',' << n << ") failed" << std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
 	
    	if ((diag = v_get(std::min(m, n))) == VNULL) {
       		silent_cerr("diag = v_get(" << std::min(m, n) << ") failed" << std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
 	
    	if ((x = v_get(n)) == VNULL) {
       		silent_cerr("x = v_get(" << n << ") failed" << std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
 	
    	if ((b = v_get(m)) == VNULL) {
       		silent_cerr("b = v_get(" << m << ") failed" << std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
 	
    	if ((pivot = px_get(n)) == PNULL) {
       		silent_cerr("pivot = px_get(" << n << ") failed" << std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
 }
 
@@ -946,10 +946,10 @@ DeadBeat::DesignControl(const doublereal* pdTheta,
    	if (info < 0) {
       		silent_cerr("DeadBeat::DesignControl(): illegal value in " 
 			<< -info << "-th argument of dgesvd()" << std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	} else if (info > 0) {
       		silent_cerr("DeadBeat::DesignControl(): error in dgesvd()" << std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	} /* else: OK */
      
    	/* recupero delle matrici (pinv(P) e' organizzata per righe) */
@@ -1058,7 +1058,7 @@ pInv(NULL)
       
    	if (pInv == NULL) {
       		silent_cerr("unable to create GPCInv" << std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
    
    	/* note that iPredHor == iContrStep */
@@ -1218,10 +1218,10 @@ GPC::DesignControl(const doublereal* pdTheta,
    	if (info < 0) {
       		silent_cerr("GPC::DesignControl(): illegal value in " 
 			<< -info << "-th argument of dgesvd()" << std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	} else if (info > 0) {
       		silent_cerr("GPC::DesignControl(): error in dgesvd()" << std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	} /* else: OK */
      
    	/* recupero delle matrici (pinv(P) e' organizzata per righe) */

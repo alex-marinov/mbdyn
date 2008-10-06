@@ -145,11 +145,6 @@ public:
  */
 
 class ParSuperLUSparseSolutionManager : public SolutionManager {
-public: 
-	class ErrGeneric {};
-
-private:
-
 protected:
 	integer iMatSize;		/* ordine della matrice */
 	std::vector<integer> Ai;	/* array di interi con

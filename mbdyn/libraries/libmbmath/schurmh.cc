@@ -154,7 +154,7 @@ void
 SchurMatrixHandler::Resize(integer, integer)
 {
 	silent_cerr("cannot resize a SchurMatrixHandler" << std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* SchurMatrixHandler - End */

@@ -65,7 +65,7 @@ DofPlugIn::Read(int argc, char *argv[])
 		silent_cerr("DofPlugIn::Read(): "
 			"illegal number of parameters #" << argc
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	uLabel = ReadLabel(argv[0]);
 
@@ -73,7 +73,7 @@ DofPlugIn::Read(int argc, char *argv[])
 		silent_cerr("DofPlugIn::Read(" << argv[0] << "): "
 			"illegal number of parameters " << argc
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	pNode = ReadNode(uLabel, argv[1]);
 
@@ -92,7 +92,7 @@ DofPlugIn::Read(int argc, char *argv[])
 				<< argv[1] << "): "
 				"illegal number of parameters " << argc 
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		iOrder = ReadDofOrder(pNode, 1, argv[2]);
 		break;
@@ -105,7 +105,7 @@ DofPlugIn::Read(int argc, char *argv[])
 				<< argv[1] << "): "
 				"illegal number of parameters " << argc 
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		unsigned int iIndex = ReadIndex(pNode, iMaxIndex, argv[2]);
 
@@ -115,7 +115,7 @@ DofPlugIn::Read(int argc, char *argv[])
 				<< argv[2] << "): "
 				"illegal number of parameters " << argc 
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		iOrder = ReadDofOrder(pNode, iIndex, argv[3]);
 
@@ -153,7 +153,7 @@ DofPlugIn::Read(int argc, char *argv[])
 			if (v == NULL) {
 				silent_cerr("dof plugin: missing \"=\" "
 					"in <param>=<value>" << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			v[0] = '\0';
@@ -170,14 +170,14 @@ DofPlugIn::Read(int argc, char *argv[])
 						"unknown mode for parameter "
 						"\"" << p << "=" << v << "\""
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 			} else {
 				silent_cerr("dof plugin: unknown parameter "
 					"\"" << p << "=" << v << "\""
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -235,12 +235,12 @@ DofPlugIn::ReadNode(unsigned int uLabel, const char *s)
 	}
 	if (i == Node::LASTNODETYPE) {
 		silent_cerr("unknown node type '" << s << "'" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	if ((pNode = pDM->pFindNode(Node::Type(i), uLabel)) == NULL) {
 		silent_cerr(psNodeNames[Node::Type(i)] 
 			<< "(" << uLabel << ") not defined" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	return pNode;
 }
@@ -253,7 +253,7 @@ DofPlugIn::ReadIndex(Node *pNode, unsigned int iMaxIndex, const char *s)
 		silent_cerr("illegal index " << i << " for "
 			<< psNodeNames[pNode->GetNodeType()]
 			<< "(" << pNode->GetLabel() << ")" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	return i;
 }
@@ -267,7 +267,7 @@ DofPlugIn::ReadDofOrder(Node *pNode, unsigned int iIndex, const char *s)
 				<< psNodeNames[pNode->GetNodeType()] 
 				<< "(" << pNode->GetLabel() << ")"
 				"[" << iIndex << "]" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		return 1;
 	}
@@ -277,7 +277,7 @@ DofPlugIn::ReadDofOrder(Node *pNode, unsigned int iIndex, const char *s)
 	} 
 
 	silent_cerr("unknown dof order '" << s << "'" << std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 MathParser::PlugIn *

@@ -201,7 +201,7 @@ TDCLWR<T, Tder>::Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Typ
 	if (dW >= 0.) {
 		silent_cerr("Invalid positive or null reference work in TDCLW "
 			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	doublereal dInitialWork = 0.;
@@ -210,7 +210,7 @@ TDCLWR<T, Tder>::Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Typ
 		if (dInitialWork > 0.) {
 			silent_cerr("Invalid positive initial work in TDCLW "
 				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 	
@@ -222,7 +222,7 @@ TDCLWR<T, Tder>::Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Typ
 	} else if (typeid(T) == typeid(Vec6)) {
 		pCL2 = dynamic_cast<ConstitutiveLaw<T, Tder> *>(HP.GetConstLaw6D(CLType));
 	} else {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	typedef TDConstitutiveLawWrapper<T, Tder> L;

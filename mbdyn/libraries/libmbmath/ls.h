@@ -58,13 +58,14 @@ class LinearSolver {
 public:
 	struct ErrFactor : public ErrGeneric {
 		integer iCol;
-		ErrFactor(integer i) : iCol(i) { NO_OP; };
+		ErrFactor(integer i, MBDYN_EXCEPT_ARGS_DECL) : 
+			ErrGeneric(MBDYN_EXCEPT_ARGS_PASSTHRU), iCol(i) { NO_OP; };
 	};
 	struct ErrNoPivot : public ErrFactor {
-		ErrNoPivot(integer i) : ErrFactor(i) { NO_OP; };
+		ErrNoPivot(integer i, MBDYN_EXCEPT_ARGS_DECL) : ErrFactor(i, MBDYN_EXCEPT_ARGS_PASSTHRU) { NO_OP; };
 	};
 	struct ErrNullColumn : public ErrFactor {
-		ErrNullColumn(integer i) : ErrFactor(i) { NO_OP; };
+		ErrNullColumn(integer i, MBDYN_EXCEPT_ARGS_DECL) : ErrFactor(i, MBDYN_EXCEPT_ARGS_PASSTHRU) { NO_OP; };
 	};
 
 protected:

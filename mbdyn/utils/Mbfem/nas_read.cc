@@ -799,7 +799,7 @@ void readmat(char* InFileName, vector<int> femidblock, map<int,Block>* BlList){
 	if (Ncol/nfem != 6){
 		std::cout << Ncol << " " << nfem << std::endl;
 		std::cerr << "Size not matching - aborting" << std::endl;
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	
 	// Contatori per l'inserimento nei blocchi

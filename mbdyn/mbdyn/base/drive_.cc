@@ -1003,7 +1003,7 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	if (func == DrvFuncMap.end()) {
 		silent_cerr("unknown drive type \"" << s << "\" "
 			"at line " << HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return func->second->Read(pDM, HP, bDeferred);
@@ -1016,7 +1016,7 @@ DriveCallerRead::NeedDM(const DataManager* pDM, MBDynParser& HP, bool bDeferred,
 	if (pDM == 0 && !bDeferred) {
 		silent_cerr("\"" << name << "\" drive needs data manager "
 			"at line " << HP.GetLineData() << std::endl);
-		throw DataManager::ErrNeedDataManager();
+		throw DataManager::ErrNeedDataManager(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -1380,7 +1380,7 @@ DoubleRampDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 			<< " is less than or equal to ascending initial time "
 			<< dAscendingInitialTime
 			<< " in double ramp func drive" << std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	doublereal dDescendingSlope = HP.GetReal(-1.);
@@ -1399,7 +1399,7 @@ DoubleRampDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 			<< " is less than ascending final time "
 			<< dAscendingFinalTime
 			<< " in double ramp func drive" << std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	doublereal dDescendingFinalTime = HP.GetReal();
@@ -1412,7 +1412,7 @@ DoubleRampDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 			<< " is less than descending initial time "
 			<< dDescendingInitialTime
 			<< " in double ramp func drive" << std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	doublereal dInitialValue = HP.GetReal();
@@ -1577,7 +1577,7 @@ FourierSeriesDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	if (n <= 0) {
 		silent_cerr("FourierSeriesDriveCaller: invalid order " << n
 			<< " at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	std::vector<doublereal> a(1 + 2*n);
@@ -1602,7 +1602,7 @@ FourierSeriesDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	if (iNumCycles < 0) {
 		silent_cerr("FourierSeriesDriveCaller: invalid number of cycles "
 			<< iNumCycles << " at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	doublereal dInitialValue = HP.GetReal();
@@ -1844,7 +1844,7 @@ PiecewiseLinearDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred
 	if (n < 2) {
 		silent_cerr("Need at least two points for piecewise linear drive at line "
 			<< HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	doublereal *p = 0;
@@ -1857,7 +1857,7 @@ PiecewiseLinearDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred
 			silent_cerr("point " << p[i]
 				<< " is smaller than or equal to preceding point " << p[i-1]
 				<< " at line " << HP.GetLineData() << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		p[i+n] = HP.GetReal();
 	}
@@ -1922,7 +1922,7 @@ DofDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 		silent_cerr("sorry, since the driver is not owned by a DataManager" << std::endl
 			<< "no DOF dependent drivers are allowed;" << std::endl
 			<< "aborting ..." << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	ScalarDof SD = ReadScalarDof(pDM, HP, 1);
@@ -1975,7 +1975,7 @@ SimulationEntityDCR::Read(const DataManager* pDM,
 				" for " << msg
 				<< " at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		SAFESTRDUP(sIndexName, s);
 
@@ -1988,13 +1988,13 @@ SimulationEntityDCR::Read(const DataManager* pDM,
 	} else {
 		silent_cerr("need a private data index for " << msg
 			<< " at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (iIndex < 1 || iIndex > pSE->iGetNumPrivData()) {
 		silent_cerr("illegal index " << iIndex << " for " << msg
 			<< " at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 #ifdef USE_MPI
@@ -2035,7 +2035,7 @@ ElementDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 		silent_cerr("since the driver is not owned by a DataManager" << std::endl
 			<< "no element dependent drivers are allowed;" << std::endl
 			<< "aborting ..." << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	unsigned uLabel = HP.GetInt();
@@ -2046,7 +2046,7 @@ ElementDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 		silent_cerr("unknown element type \"" << s
 			<< "\" at line " << HP.GetLineData()
 			<< std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* Type(Label) */
@@ -2057,7 +2057,7 @@ ElementDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	if (pElem == 0) {
 		silent_cerr("unable to find " << msg << " at line "
 			<< HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return SimulationEntityDCR::Read(pDM, HP, pElem, msg);
@@ -2078,7 +2078,7 @@ NodeDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 		silent_cerr("since the driver is not owned by a DataManager" << std::endl
 			<< "no node dependent drivers are allowed;" << std::endl
 			<< "aborting ..." << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	unsigned uLabel = HP.GetInt();
@@ -2089,7 +2089,7 @@ NodeDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 		silent_cerr("unknown node type \"" << s
 			<< "\" at line " << HP.GetLineData()
 			<< std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* Type(Label) */
@@ -2100,7 +2100,7 @@ NodeDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	if (pNode == 0) {
 		silent_cerr("unable to find " << msg << " at line "
 			<< HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return SimulationEntityDCR::Read(pDM, HP, pNode, msg);
@@ -2150,7 +2150,7 @@ ArrayDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	unsigned short int iNumDr = (unsigned short int)HP.GetInt();
 	if (iNumDr == 0) {
 		silent_cerr("Sorry, at least one driver is required" << std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 	/* creazione di un driver normale mediante chiamata ricorsiva */
 	} else if (iNumDr == 1) {
@@ -2188,7 +2188,7 @@ FileDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 		silent_cerr("sorry, since the driver is not owned by a DataManager" << std::endl
 			<< "no driver dependent drivers are allowed;" << std::endl
 			<< "aborting ..." << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	const DriveHandler* pDrvHdl = pDM->pGetDrvHdl();
@@ -2201,7 +2201,7 @@ FileDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	if (pDrv == 0) {
 		silent_cerr("line " << HP.GetLineData()
 			<< ": can't find FileDrive(" << uL << ")" << std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	integer id = 1;
@@ -2212,7 +2212,7 @@ FileDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 				<< ": invalid column number " << id
 				<< " (must be between 1 and " 
 				<< pDrv->iGetNumDrives() << ")" << std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -2281,7 +2281,7 @@ DestroyDriveData(void)
 {
 	if (::done == 0) {
 		silent_cerr("DestroyDriveData() called once too many" << std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (--::done > 0) {

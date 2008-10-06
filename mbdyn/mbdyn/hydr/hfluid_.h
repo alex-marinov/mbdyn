@@ -143,7 +143,7 @@ class LinearCompressibleHydraulicFluid : public HydraulicFluid {
    dDensityDPres(0.),
    dViscosity(dVisc) {
       if (dB == 0.) {
-	 throw ErrGeneric();
+	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
       (doublereal&)dDensityDPres = dDens/dB;
    };
@@ -155,7 +155,7 @@ class LinearCompressibleHydraulicFluid : public HydraulicFluid {
    dDensityDPres(0.),
    dViscosity(HF.dViscosity) {
       if (dBeta == 0.) {
-	 throw ErrGeneric();
+	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
       (doublereal&)dDensityDPres = dDensity/dBeta;
    };
@@ -310,7 +310,7 @@ class SuperHydraulicFluid : public HydraulicFluid {
    dDensityDPres(0.),
    dViscosity(dVisc) {
       if (dB == 0.) {
-	 throw ErrGeneric();
+	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
       (doublereal&)dDensityDPres = dDens/dB;
    };
@@ -322,7 +322,7 @@ class SuperHydraulicFluid : public HydraulicFluid {
    dDensityDPres(0.),
    dViscosity(HF.dViscosity) {
       if (dBeta == 0.) {
-	 throw ErrGeneric();
+	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
       (doublereal&)dDensityDPres = dDensity/dBeta;
    };
@@ -471,7 +471,7 @@ class ExpHydraulicFluid : public HydraulicFluid {
    dViscosity(dVisc),
    dPsat(dPs) {
       if (dB == 0.) {
-	 throw ErrGeneric();
+	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
    };
    
@@ -482,7 +482,7 @@ class ExpHydraulicFluid : public HydraulicFluid {
    dViscosity(HF.dViscosity),
    dPsat(HF.dPsat) {
       if (dBeta == 0.) {
-	 throw ErrGeneric();
+	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
    };
    

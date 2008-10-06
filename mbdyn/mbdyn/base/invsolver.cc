@@ -128,13 +128,13 @@ InverseSolver::Run(void)
 		if (mbdyn_rt_task_init("MBDTSK", 1, 0, 0, RTCpuMap,
 					&mbdyn_rtai_task)) {
 			silent_cerr("unable to init RTAI task" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (lRTPeriod < 0) {
 			silent_cerr("illegal real-time time step"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 #endif /* USE_RTAI */
@@ -160,7 +160,7 @@ InverseSolver::Run(void)
 		
 				silent_cerr("stat(" << sOutputFileName << ") failed "
 					"(" << save_errno << ": " << errmsg << ")" << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			char	*sOutputFilePath = 0;
@@ -177,12 +177,12 @@ InverseSolver::Run(void)
 					silent_cerr("stat(" << sOutputFileName << ") failed because "
 							"stat(" << sOutputFilePath << ") failed "
 						"(" << save_errno << ": " << errmsg << ")" << std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 				} else if (!S_ISDIR(s.st_mode)) {
 					silent_cerr("path to file \"" << sOutputFileName << "\" is invalid ("
 							"\"" << sOutputFilePath << "\" is not a dir)" << std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
 			SAFEDELETEARR(sOutputFilePath);
@@ -293,7 +293,7 @@ InverseSolver::Run(void)
 					if (!b) {
 						silent_cerr("unable to select a CC-capable solver"
 									<< std::endl);
-						throw ErrGeneric();
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 				}
 			}
@@ -467,7 +467,7 @@ InverseSolver::Run(void)
 
 		default:
 			ASSERT(0);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		/* registers scale factors at nonlinear solver */
@@ -492,7 +492,7 @@ InverseSolver::Run(void)
 
 		default:
 			ASSERT(0);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -512,7 +512,7 @@ InverseSolver::Run(void)
 
 	default:
 		ASSERT(0);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* registers tests in nonlinear solver */
@@ -626,7 +626,7 @@ InverseSolver::Run(void)
    	if (!::mbdyn_keep_going) {
       		/* Fa l'output della soluzione al primo passo ed esce */
       		Out << "Interrupted during first step." << std::endl;
-      		throw ErrInterrupted();
+      		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
    	}
 #endif /* HAVE_SIGNAL */
 
@@ -693,7 +693,7 @@ InverseSolver::Run(void)
 			if (r) {
 				silent_cerr("rt_task_make_periodic() failed ("
 					<< r << ")" << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 #if 0
@@ -708,7 +708,7 @@ InverseSolver::Run(void)
 			if (r) {
 				silent_cerr("rt_sem_init() failed ("
 					<< r << ")" << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -724,7 +724,7 @@ InverseSolver::Run(void)
 			if (r) {
 				silent_cerr("rt_sem_init() failed ("
 					<< r << ")" << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}*/
 		}
 #endif
@@ -892,7 +892,7 @@ InverseSolver::Run(void)
 				<< "total iterations: " << iTotIter << std::endl
 				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
 				<< "total error: " << dTotErr << std::endl);
-	 		throw ErrInterrupted();
+	 		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
 #endif /* HAVE_SIGNAL */
       		}
 
@@ -972,7 +972,7 @@ IfStepIsToBeRepeated:
 					<< " cannot be reduced"
 					" further;" << std::endl
 					<< "aborting ..." << std::endl);
-	       			throw ErrMaxIterations();
+	       			throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -992,7 +992,7 @@ IfStepIsToBeRepeated:
 				<< " cannot be reduced"
 				" further;" << std::endl
 				<< "aborting ..." << std::endl);
-			throw SimulationDiverged();
+			throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 		}
 		catch (NonlinearSolver::ConvergenceOnSolution) {
 			bSolConv = true;
@@ -1141,7 +1141,7 @@ InverseSolver::Restart(std::ostream& out,DataManager::eRestart type) const
 		NO_OP;
 	default:
 		silent_cerr("unhandled nonlinear solver test type" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (bScale) {
@@ -1362,13 +1362,13 @@ InverseSolver::ReadData(MBDynParser& HP)
    	if (KeyWords(HP.GetDescription()) != BEGIN) {
       		silent_cerr("Error: <begin> expected at line "
 			<< HP.GetLineData() << "; aborting ..." << std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
 
    	if (KeyWords(HP.GetWord()) != INVERSEDYNAMICS) {
       		silent_cerr("Error: <begin: inverse dynamics;> expected at line "
 			<< HP.GetLineData() << "; aborting ..." << std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
 
    	bool bMethod(false);
@@ -1448,7 +1448,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 	  		if (dMinTimeStep == 0.) {
 	     			silent_cerr("warning, null minimum time step"
 					" is not allowed" << std::endl);
-	     			throw ErrGeneric();
+	     			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			} else if (dMinTimeStep < 0.) {
 				dMinTimeStep = -dMinTimeStep;
 				silent_cerr("warning, negative minimum time step"
@@ -1510,7 +1510,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 	   		default:
 	      			silent_cerr("Don't know when to abort,"
 					" so I'm going to abort now" << std::endl);
-	      			throw ErrGeneric();
+	      			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	  		}
 	  		break;
        		}	
@@ -1607,7 +1607,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 							"method at line "
 							<< HP.GetLineData()
 							<< std::endl);
-						throw ErrGeneric();
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 
 					if (HP.IsKeyWord("scale")) {
@@ -1647,7 +1647,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 								"method at line "
 								<< HP.GetLineData()
 								<< std::endl);
-							throw ErrGeneric();
+							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 						}
 					}
 				}
@@ -1656,7 +1656,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 				silent_cerr("need solution tolerance "
 					"with null residual tolerance"
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (dSolutionTol < 0.) {
@@ -1670,7 +1670,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 			if (dTol == 0. && dSolutionTol == 0.) {
 				silent_cerr("both residual and solution "
 					"tolerances are zero" << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			DEBUGLCOUT(MYDEBUG_INPUT, "tolerance = " << dTol
@@ -1750,7 +1750,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 				silent_cerr("\"end: inverse dynamics;\" expected "
 					"at line " << HP.GetLineData()
 					<< "; aborting ..." << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			goto EndOfCycle;
 
@@ -1876,7 +1876,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 				silent_cerr("unknown time step control "
 					"strategy at line "
 					<< HP.GetLineData() << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			break;
 		}
@@ -1924,7 +1924,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 				silent_cerr("unknown nonlinear solver "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				break;
 			}
 
@@ -1986,7 +1986,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 						"solver at line "
 						<< HP.GetLineData()
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (HP.IsKeyWord("tolerance")) {
@@ -2063,7 +2063,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 							"at line "
 							<< HP.GetLineData()
 							<< std::endl);
-						throw ErrGeneric();
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 					break;
 				}
@@ -2071,7 +2071,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 
 			default:
 				ASSERT(0);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			break;
 
@@ -2087,7 +2087,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 						<< p << " at line "
 						<< HP.GetLineData()
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 				lRTPeriod = mbdyn_nano2count(p);
 
@@ -2095,7 +2095,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 				silent_cerr("need a time step for real time "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (HP.IsKeyWord("allow" "nonroot")) {
@@ -2115,7 +2115,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 					silent_cerr("unknown realtime mode "
 						"at line " << HP.GetLineData()
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
 
@@ -2127,7 +2127,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 						<< size << " at line "
 						<< HP.GetLineData()
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				RTStackSize = size;
@@ -2150,7 +2150,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 						<< cpumap << " at line "
 						<< HP.GetLineData()
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 				RTCpuMap = newcpumap;
 			}
@@ -2170,7 +2170,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 #else /* !USE_RTAI */
 			silent_cerr("need to configure --with-rtai "
 				"to use realtime" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* !USE_RTAI */
 			break;
 
@@ -2240,7 +2240,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 			silent_cerr("unknown description at line "
 				<< HP.GetLineData() << "; aborting ..."
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 

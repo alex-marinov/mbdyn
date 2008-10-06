@@ -78,7 +78,7 @@ public:
 		integer idx = pindices[i_col][i_row];
 		if (idx == -1) {
 			/* matrix must be rebuilt */
-			throw ErrRebuildMatrix();
+			throw ErrRebuildMatrix(MBDYN_EXCEPT_ARGS);
 		} else  {
 			return Ax[idx];
 		}

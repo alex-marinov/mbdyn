@@ -82,7 +82,7 @@ DataManager::SetLoadableElemModule(std::string name,
 			silent_cerr("DataManager::SetLoadableElemModule(): "
 				"loadable element handler \"" << name
 				<< "\" already defined" << std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		case MIM_IGNORE:
 			silent_cout("DataManager::SetLoadableElemModule(): "
@@ -172,7 +172,7 @@ DataManager::CastElemWithDofs(Elem *pEl)
 				<< psElemNames[pEl->GetElemType()]
 				<< "(" << pEl->GetLabel() << ") "
 				"to ElemWithDofs" << std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		pEWD = dynamic_cast<ElemWithDofs *>(pDE->pGetElem());
 	}
@@ -194,7 +194,7 @@ DataManager::CastElemGravityOwner(Elem *pEl)
 				<< psElemNames[pEl->GetElemType()]
 				<< "(" << pEl->GetLabel() << ") "
 				"to ElemGravityOwner" << std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		pEGO = dynamic_cast<ElemGravityOwner *>(pDE->pGetElem());
 	}
@@ -216,7 +216,7 @@ DataManager::CastAerodynamicElem(Elem *pEl)
 				<< psElemNames[pEl->GetElemType()]
 				<< "(" << pEl->GetLabel() << ") "
 				"to AerodynamicElem" << std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		pAEL = dynamic_cast<AerodynamicElem *>(pDE->pGetElem());
 	}
@@ -1030,7 +1030,7 @@ DataManager::InitialJointAssembly(void)
 		doublereal dTest = pResHdl->Dot()/(1.+X.Dot());
 		if (!std::isfinite(dTest)) {
 			silent_cerr("Assembly diverged; aborting ..." << std::endl);
-			throw DataManager::ErrAssemblyDiverged();
+			throw DataManager::ErrAssemblyDiverged(MBDYN_EXCEPT_ARGS);
 		}
 		dTest = sqrt(dTest);
 
@@ -1061,7 +1061,7 @@ DataManager::InitialJointAssembly(void)
 				"reached maximum number "
 				<< iMaxInitialIterations << "; aborting ..."
 				<< std::endl);
-			throw DataManager::ErrAssemblyMaxIters();
+			throw DataManager::ErrAssemblyMaxIters(MBDYN_EXCEPT_ARGS);
 		}
 
 		/* Assemblo lo jacobiano e risolvo */
@@ -1133,7 +1133,7 @@ DataManager::InitialJointAssembly(void)
 				"could be found for column " << err.iCol
 				<< " (" << GetDofDescription(err.iCol) << "); "
 				"aborting..." << std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (
@@ -1263,7 +1263,7 @@ DataManager::SetValue(VectorHandler& X, VectorHandler& XP)
 			silent_cerr("DataManager::SetValue(): "
 				"Cannot open file \"" << solArrFileName << "\""
 				<< std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 #endif /* HAVE_ISOPEN */
 #if 0
@@ -1277,7 +1277,7 @@ DataManager::SetValue(VectorHandler& X, VectorHandler& XP)
 		if (count != (X.iGetSize()+XP.iGetSize())*sizeof(double)) {
 			silent_cerr("DataManager::SetValue(): "
 				"File(" << solArrFileName << ") too short!" << std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 #endif
 		fp.read((char*)X.pdGetVec() , X.iGetSize()*sizeof(double));
@@ -1285,14 +1285,14 @@ DataManager::SetValue(VectorHandler& X, VectorHandler& XP)
 			silent_cerr("DataManager::SetValue(): "
 				"File(" << solArrFileName << ") too short!"
 				<< std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		fp.read((char*)XP.pdGetVec() , XP.iGetSize()*sizeof(double));
 		if (fp.gcount() != std::streamsize(XP.iGetSize()*sizeof(double))) {
 			silent_cerr("DataManager::SetValue(): "
 				"File(" << solArrFileName << ") too short!"
 				<< std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		SAFEDELETEARR(solArrFileName);
 		fp.close();
@@ -1319,57 +1319,57 @@ DataManager::OutputPrepare(void)
 		Var_Step = pBinFile->add_var("run.step", ncLong,
 			OutHdl.DimTime(), OutHdl.DimV1());
 		if (Var_Step == 0) {
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (!Var_Step->add_att("units", "-")) {
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (!Var_Step->add_att("type", "integer")) {
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (!Var_Step->add_att("description", "time step index")) {
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		Var_Time = pBinFile->add_var("run.time", ncDouble,
 			OutHdl.DimTime(), OutHdl.DimV1());
 		if (Var_Time == 0) {
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		/* FIXME: needs to be configurable? */
 		if (!Var_Time->add_att("units", "s")) {
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (!Var_Time->add_att("type", "doublereal")) {
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (!Var_Time->add_att("description", "simulation time")) {
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		Var_TimeStep = pBinFile->add_var("run.timestep", ncDouble,
 			OutHdl.DimTime(), OutHdl.DimV1());
 		if (Var_TimeStep == 0) {
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		/* FIXME: needs to be configurable? */
 		if (!Var_TimeStep->add_att("units", "s")) {
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (!Var_TimeStep->add_att("type", "doublereal")) {
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (!Var_TimeStep->add_att("description", "integration time step")) {
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 #endif /* USE_NETCDF */

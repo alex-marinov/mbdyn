@@ -451,7 +451,7 @@ clMemMan::add(const void *pvIn, size_t sizeIn, flag fArr)
    	if (pstN == NULL) {
       		CERR << std::endl << "clMemMan " << sName 
 			<< ": error in allocation in add()" << std::endl;
-      		throw ErrMemory();
+      		throw ErrMemory(MBDYN_EXCEPT_ARGS);
    	}
    
    	pstN->pstNext = pstL->pstNext;

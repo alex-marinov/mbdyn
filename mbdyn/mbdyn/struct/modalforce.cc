@@ -151,7 +151,7 @@ ReadModalForce(DataManager* pDM,
 	if (pModal == 0) {
 		silent_cerr("ModalForce(" << uLabel << "): illegal Modal joint "
 			" at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	std::vector<int> modeList;
@@ -166,7 +166,7 @@ ReadModalForce(DataManager* pDM,
 			silent_cerr("ModalForce(" << uLabel << "): "
 				"illegal mode number " << iNumModes
 				<< " at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		modeList.resize(iNumModes);
 
@@ -176,14 +176,14 @@ ReadModalForce(DataManager* pDM,
 				silent_cerr("ModalForce(" << uLabel << "): "
 					"illegal mode index " << iModeIdx
 					<< " at line " << HP.GetLineData() << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (gotIt[iModeIdx]) {
 				silent_cerr("ModalForce(" << uLabel << "): "
 					"mode " << iModeIdx << " already set "
 					"at line " << HP.GetLineData() << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			modeList[i] = iModeIdx;
@@ -211,7 +211,7 @@ ReadModalForce(DataManager* pDM,
 			silent_cerr("ModalForce(" << uLabel << "): "
 				"unable to read DriveCaller for mode #" << i + 1
 				<< " at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (pNode && HP.IsKeyWord("resultant")) {

@@ -71,7 +71,7 @@ dEpsilonPrime(0.)
 		if (dDot <= DBL_EPSILON) {
 			silent_cerr("Rod(" << GetLabel() << "): "
 				"initial length must be non-null" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		dElle = sqrt(dDot);
@@ -115,7 +115,7 @@ Rod::AssMat(FullSubMatrixHandler& WorkMat, doublereal dCoef)
 		silent_cerr("Rod(" << GetLabel() << "): "
 			"null distance between nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << std::endl);
-		throw Joint::ErrGeneric();
+		throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* Lunghezza corrente */
@@ -149,7 +149,7 @@ Rod::AssVec(SubVectorHandler& WorkVec)
 		silent_cerr("Rod(" << GetLabel() << "): "
 			"null distance between nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << std::endl);
-		throw Joint::ErrGeneric();
+		throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* Deformazione */
@@ -177,7 +177,7 @@ Rod::AssVec(SubVectorHandler& WorkVec)
 	WorkVec.Sub(4, F);
 
 	if (ChangeJac) {
-		throw Elem::ChangedEquationStructure();
+		throw Elem::ChangedEquationStructure(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -310,7 +310,7 @@ Rod::Output_pch(std::ostream& out) const
 		if (label > 9999999) {
 			silent_cerr("Rod(" << label <<"): label is too large"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		const char *name = GetName();
@@ -633,7 +633,7 @@ ViscoElasticRod::AssJac(VariableSubMatrixHandler& WorkMat,
 		silent_cerr("ViscoElasticRod(" << GetLabel() << "): "
 			"null distance between nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << std::endl);
-		throw Joint::ErrGeneric();
+		throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* Lunghezza corrente */
@@ -695,7 +695,7 @@ ViscoElasticRod::AssRes(SubVectorHandler& WorkVec,
 		silent_cerr("ViscoElasticRod(" << GetLabel() << "): "
 			"null distance between nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << std::endl);
-		throw Joint::ErrGeneric();
+		throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* Lunghezza corrente */
@@ -725,7 +725,7 @@ ViscoElasticRod::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.Sub(4, F);
 
 	if (ChangeJac) {
-		throw Elem::ChangedEquationStructure();
+		throw Elem::ChangedEquationStructure(MBDYN_EXCEPT_ARGS);
 	}
 
 	return WorkVec;
@@ -771,7 +771,7 @@ ViscoElasticRod::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		silent_cerr("ViscoElasticRod(" << GetLabel() << "): "
 			"null distance between nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << std::endl);
-		throw Joint::ErrGeneric();
+		throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* Lunghezza corrente */
@@ -838,7 +838,7 @@ ViscoElasticRod::InitialAssRes(SubVectorHandler& WorkVec,
 		silent_cerr("ViscoElasticRod(" << GetLabel() << "): "
 			"null distance between nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << std::endl);
-		throw Joint::ErrGeneric();
+		throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* Lunghezza corrente */
@@ -897,7 +897,7 @@ f2(f2Tmp)
 	if (dDot <= DBL_EPSILON) {
 		silent_cerr("RodWithOffset(" << GetLabel() << "): "
 			"inital length must be non-null" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	dElle = sqrt(dDot);
@@ -1105,7 +1105,7 @@ RodWithOffset::AssVec(SubVectorHandler& WorkVec)
 		silent_cerr("RodWithOffset(" << GetLabel() << "): "
 			"null distance between nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << std::endl);
-		throw Joint::ErrGeneric();
+		throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* Lunghezza corrente */
@@ -1138,7 +1138,7 @@ RodWithOffset::AssVec(SubVectorHandler& WorkVec)
 	WorkVec.Sub(9 + 1, f2Tmp.Cross(F));
 
 	if (ChangeJac) {
-		throw Elem::ChangedEquationStructure();
+		throw Elem::ChangedEquationStructure(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -1153,7 +1153,7 @@ RodWithOffset::Output_pch(std::ostream& out) const
 		if (label > 9999999) {
 			silent_cerr("Rod(" << label <<"): label is too large"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		const char *name = GetName();

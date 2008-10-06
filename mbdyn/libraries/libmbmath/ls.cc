@@ -76,7 +76,7 @@ void
 LinearSolver::SolveT(void) const
 {
 	silent_cerr("LinearSolver::SolveT() not supported" << std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 void

@@ -439,7 +439,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 #else /* !USE_Y12 */
       		silent_cerr("Configure with --with-y12 "
 			"to enable Y12 solver" << std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* !USE_Y12 */
 
      	case LinSol::SUPERLU_SOLVER: 
@@ -477,7 +477,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 		if (nThreads > 1 && mt) {
 			silent_cerr("multithread SuperLU solver support not compiled; "
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		switch (type) {
 		case LinSol::SOLVER_FLAGS_ALLOWS_DIR: {
@@ -506,7 +506,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 #else /* !USE_SUPERLU */
       		silent_cerr("Configure with --with-superlu "
 			"to enable superlu solver" << std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* !USE_SUPERLU */
 
 	case LinSol::MESCHACH_SOLVER:
@@ -519,7 +519,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 #else /* !USE_MESCHACH */
 		silent_cerr("Configure with --with-meschach "
 			"to enable Meschach solver" << std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* !USE_MESCHACH */
 
 	case LinSol::LAPACK_SOLVER:
@@ -531,7 +531,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 #else /* !USE_LAPACK */
 		silent_cerr("Configure with --with-lapack "
 			"to enable Lapack dense solver" << std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* !USE_LAPACK */
 
      	case LinSol::TAUCS_SOLVER: 
@@ -559,7 +559,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 #else /* !USE_TAUCS */
 		silent_cerr("Configure with --with-taucs "
 			"to enable Taucs sparse solver" << std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* !USE_TAUCS */
 
  	case LinSol::HARWELL_SOLVER:
@@ -572,7 +572,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 #else /* !USE_HARWELL */
       		silent_cerr("Configure with --with-harwell "
 			"to enable Harwell solver" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* !USE_HARWELL */
 
 	case LinSol::UMFPACK_SOLVER:
@@ -603,7 +603,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 #else /* !USE_UMFPACK */
       		silent_cerr("Configure with --with-umfpack "
 			"to enable Umfpack solver" << std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* !USE_UMFPACK */
 
 	case LinSol::NAIVE_SOLVER:
@@ -622,7 +622,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 					"you can configure --enable-multithread-naive "
 					"on a linux ix86 to get it"
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* ! USE_NAIVE_MULTITHREAD */
 			}
 #ifdef USE_BOOST
@@ -643,13 +643,13 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 					"reverse Cuthill-McKee permutation not"
 					"available yet. Patches welcome"
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #else /* ! USE_NAIVE_MULTITHREAD */
 				silent_cerr("multithread naive solver support not compiled; "
 					"you can configure --enable-multithread-naive "
 					"on a linux ix86 to get it"
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* ! USE_NAIVE_MULTITHREAD */
 			}
 #endif /* HAVE_BOOST_GRAPH_CUTHILL_MCKEE_ORDERING_HPP */
@@ -671,13 +671,13 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
  					"approximate minimum degree permutation not"
  					"available yet. Patches welcome"
  					<< std::endl);
- 				throw ErrGeneric();
+ 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #else
  				silent_cerr("multithread naive solver support not compiled; "
  					"you can configure --enable-multithread-naive "
  					"on a linux ix86 to get it"
  					<< std::endl);
- 				throw ErrGeneric();
+ 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* USE_NAIVE_MULTITHREAD */
  			}
 #endif
@@ -699,13 +699,13 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 					"king permutation not"
 					"available yet. Patches welcome"
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #else /* ! USE_NAIVE_MULTITHREAD */
 				silent_cerr("multithread naive solver support not compiled; "
 					"you can configure --enable-multithread-naive "
 					"on a linux ix86 to get it"
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* ! USE_NAIVE_MULTITHREAD */
 			}
 #endif /* HAVE_BOOST_GRAPH_KING_ORDERING_HPP */
@@ -727,13 +727,13 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 					"sloan permutation not"
 					"available yet. Patches welcome"
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #else /* ! USE_NAIVE_MULTITHREAD */
 				silent_cerr("multithread naive solver support not compiled; "
 					"you can configure --enable-multithread-naive "
 					"on a linux ix86 to get it"
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* ! USE_NAIVE_MULTITHREAD */
 			}
 #endif /* HAVE_BOOST_GRAPH_SLOAN_ORDERING_HPP */
@@ -755,13 +755,13 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 					"md permutation not"
 					"available yet. Patches welcome"
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #else /* ! USE_NAIVE_MULTITHREAD */
 				silent_cerr("multithread naive solver support not compiled; "
 					"you can configure --enable-multithread-naive "
 					"on a linux ix86 to get it"
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* ! USE_NAIVE_MULTITHREAD */
 			}
 #endif /* HAVE_BOOST_GRAPH_MINIMUM_DEGREE_ORDERING_HPP */
@@ -784,19 +784,19 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 					"nested dissection permutation not"
 					"available yet. Patches welcome"
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #else /* ! USE_NAIVE_MULTITHREAD */
 				silent_cerr("multithread naive solver support not compiled; "
 					"you can configure --enable-multithread-naive "
 					"on a linux ix86 to get it"
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* ! USE_NAIVE_MULTITHREAD */
 			}
 #else /* ! USE_METIS */
 			silent_cerr("you should not get here("<< __FILE__ << ":" <<
 				__LINE__ << ")" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* ! USE_METIS */
 
 		} else {
@@ -814,7 +814,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 					"you can configure --enable-multithread-naive "
 					"on a linux ix86 to get it"
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* USE_NAIVE_MULTITHREAD */
 			}
 		}
@@ -825,7 +825,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 		
    	default:
 		ASSERT(0);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 	}
 

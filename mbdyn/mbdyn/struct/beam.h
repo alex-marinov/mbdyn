@@ -87,7 +87,10 @@ protected:
 	ConstLawType::Type type);
 
   public:
-    class ErrGeneric {};
+    class ErrGeneric : public MBDynErrBase {
+	public:
+		ErrGeneric(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
    
   public:   
     enum Section { S_I = 0, SII = 1, NUMSEZ = 2 };

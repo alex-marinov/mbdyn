@@ -54,7 +54,7 @@ module_initialize(void)
 #ifdef USE_RUNTIME_LOADING
 	if (lt_dlinit()) {
 		silent_cerr("unable to initialize run-time loading" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/*
@@ -62,7 +62,7 @@ module_initialize(void)
 	 */
 	if (lt_dlsetsearchpath(MODULE_LOADPATH) != 0) {
 		silent_cerr("unable to initialize load path" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 #endif // USE_RUNTIME_LOADING
 }

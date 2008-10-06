@@ -334,14 +334,14 @@ public:
    	void pdSetResVec(doublereal* pRes){
 		silent_cerr("Sorry Meschach is not available as local parallel solver. "
 			<< "Aborting" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	};
    
    	/* sposta il puntatore al vettore del residuo */
    	void pdSetSolVec(doublereal* pSol) {
 		silent_cerr("Sorry Meschach is not available as local parallel solver. "
 			<< "Aborting" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	};   
    	
 	/* Rende disponibile l'handler per la matrice */

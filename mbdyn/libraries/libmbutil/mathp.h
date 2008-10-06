@@ -228,11 +228,13 @@ protected:
 public:
 
 	/* Gestione degli errori */
-	class ErrGeneric {
+	class ErrGeneric : public MBDynErrBase {
 	public:
-		ErrGeneric(void);
-		ErrGeneric(MathParser* p, const char* const s);
-		ErrGeneric(MathParser* p, const char* const s1, 
+		ErrGeneric(MBDYN_EXCEPT_ARGS_DECL);
+		ErrGeneric(MathParser* p, MBDYN_EXCEPT_ARGS_DECL);
+		ErrGeneric(MathParser* p, 
+				const char *file, int line, const char *func, 
+				const std::string r, 
 				const char* const s2, const char* const s3);
 	};
    

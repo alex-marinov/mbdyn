@@ -169,7 +169,7 @@ AeroData::AeroData(AeroData::UnsteadyModel u, DriveCaller *ptime)
 {
    	if (u != AeroData::STEADY) {
 		if (ptime == 0) {
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 }
@@ -198,7 +198,7 @@ AeroData::StorageSize(void) const
 		return 0;
 
 	default:
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -261,7 +261,7 @@ STAHRAeroData::Restart(std::ostream& out) const
       		break;
 	
     	default: 
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
 	
 	return RestartUnsteady(out);
@@ -432,7 +432,7 @@ i_points(i_p), i_data(0)
 
 		if (from == -1) {
 			silent_cerr("cannot find C81 data lower bound for point xi=" << dCsi << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		ASSERT(from < nprofiles);
@@ -449,7 +449,7 @@ i_points(i_p), i_data(0)
 					<< from << " (" << data[from]->NML << ") and "
 					<< to << " (" << data[to]->NML << ") do not match"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (data[from]->NAL != data[to]->NAL) {
@@ -457,7 +457,7 @@ i_points(i_p), i_data(0)
 					<< from << " (" << data[from]->NAL << ") and "
 					<< to << " (" << data[to]->NAL << ") do not match"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (data[from]->NMD != data[to]->NMD) {
@@ -465,7 +465,7 @@ i_points(i_p), i_data(0)
 					<< from << " (" << data[from]->NMD << ") and "
 					<< to << " (" << data[to]->NMD << ") do not match"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (data[from]->NAD != data[to]->NAD) {
@@ -473,7 +473,7 @@ i_points(i_p), i_data(0)
 					<< from << " (" << data[from]->NAD << ") and "
 					<< to << " (" << data[to]->NAD << ") do not match"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (data[from]->NMM != data[to]->NMM) {
@@ -481,7 +481,7 @@ i_points(i_p), i_data(0)
 					<< from << " (" << data[from]->NMM << ") and "
 					<< to << " (" << data[to]->NMM << ") do not match"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (data[from]->NAM != data[to]->NAM) {
@@ -489,7 +489,7 @@ i_points(i_p), i_data(0)
 					<< from << " (" << data[from]->NAM << ") and "
 					<< to << " (" << data[to]->NAM << ") do not match"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		for (int i = 0; i < data[from]->NML; i++) {
@@ -498,7 +498,7 @@ i_points(i_p), i_data(0)
 						<< from << " (" << data[from]->ml[i] << ") and "
 						<< to << " (" << data[to]->ml[i] << ") differs"
 						<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -508,7 +508,7 @@ i_points(i_p), i_data(0)
 						<< from << " (" << data[from]->al[i] << ") and "
 						<< to << " (" << data[to]->al[i] << ") differs"
 						<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 

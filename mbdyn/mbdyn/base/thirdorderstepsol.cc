@@ -149,7 +149,7 @@ void ThirdOrderIntegrator::PredictDof_for_AfterPredict(const int DCount,
  		silent_cerr("ThirdOrderIntegrator::PredictDof_for_AfterPredict:"
 			<< "unknown order for dof " 
 			<< DCount<< std::endl);
- 		throw ErrGeneric();
+ 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 void ThirdOrderIntegrator::RealPredictDof(const int DCount,
@@ -191,7 +191,7 @@ void ThirdOrderIntegrator::RealPredictDof(const int DCount,
 		silent_cerr("ThirdOrderIntegrator::RealPredictDof: "
 			<< "unknown order for dof " 
 			<< DCount<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -355,7 +355,7 @@ void ThirdOrderIntegrator::UpdateDof(const int DCount,
 	} else {
  		silent_cerr("unknown order for dof " 
 			<< DCount<< std::endl);
- 		throw ErrGeneric();
+ 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 };
 

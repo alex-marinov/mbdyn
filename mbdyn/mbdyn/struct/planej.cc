@@ -189,12 +189,12 @@ PlaneHingeJoint::DescribeDof(std::vector<std::string>& desc, bool bInitial, int 
 	} else {
 		if (i < -1) {
 			// error
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (i >= nself) {
 			// error
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		desc.resize(1);
@@ -326,12 +326,12 @@ PlaneHingeJoint::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i
 	} else {
 		if (i < -1) {
 			// error
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (i >= nself) {
 			// error
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		desc.resize(1);
@@ -905,7 +905,7 @@ SubVectorHandler& PlaneHingeJoint::AssRes(SubVectorHandler& WorkVec,
 //!!!!!!!!!!!!!!
 //      M += e3a*M3;
       if (ChangeJac) {
-          throw Elem::ChangedEquationStructure();
+          throw Elem::ChangedEquationStructure(MBDYN_EXCEPT_ARGS);
       }
    }
    
@@ -1111,7 +1111,7 @@ PlaneHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       silent_cerr("PlaneHingeJoint(" << GetLabel() << "): "
 	      "first and second node hinge axes are (nearly) orthogonal"
 	      << std::endl);
-      throw Joint::ErrGeneric();
+      throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
    }   
    
    Vec3 TmpPrime1(e2b.Cross(Omega1.Cross(e3a))-e3a.Cross(Omega2.Cross(e2b)));
@@ -1403,7 +1403,7 @@ doublereal PlaneHingeJoint::dGetPrivData(unsigned int i) const
       
    silent_cerr("PlaneHingeJoint(" << GetLabel() << "): "
 	      "illegal private data " << i << std::endl);
-   throw ErrGeneric();
+   throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* PlaneHingeJoint - end */
@@ -1485,12 +1485,12 @@ PlaneRotationJoint::DescribeDof(std::vector<std::string>& desc, bool bInitial, i
 	} else {
 		if (i < -1) {
 			// error
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (i >= nself) {
 			// error
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		desc.resize(1);
@@ -1563,12 +1563,12 @@ PlaneRotationJoint::DescribeEq(std::vector<std::string>& desc, bool bInitial, in
 	} else {
 		if (i < -1) {
 			// error
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (i >= nself) {
 			// error
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		desc.resize(1);
@@ -2027,7 +2027,7 @@ PlaneRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       silent_cerr("PlaneRotationJoint(" << GetLabel() << "): "
 	      "first and second node hinge axes are (nearly) orthogonal"
 	      << std::endl);
-      throw Joint::ErrGeneric();
+      throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
    }   
    
    Vec3 TmpPrime1(e2b.Cross(Omega1.Cross(e3a))-e3a.Cross(Omega2.Cross(e2b)));
@@ -2274,7 +2274,7 @@ doublereal PlaneRotationJoint::dGetPrivData(unsigned int i) const
       
    silent_cerr("PlaneRotationJoint(" << GetLabel() << "): "
 	   "illegal private data " << i << std::endl);
-   throw ErrGeneric();
+   throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* PlaneRotationJoint - end */
@@ -2421,12 +2421,12 @@ AxialRotationJoint::DescribeDof(std::vector<std::string>& desc, bool bInitial, i
 	} else {
 		if (i < -1) {
 			// error
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (i >= nself) {
 			// error
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		desc.resize(1);
@@ -2559,12 +2559,12 @@ AxialRotationJoint::DescribeEq(std::vector<std::string>& desc, bool bInitial, in
 	} else {
 		if (i < -1) {
 			// error
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (i >= nself) {
 			// error
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		desc.resize(1);
@@ -2614,7 +2614,7 @@ AxialRotationJoint::SetValue(DataManager *pDM,
 						silent_cerr("AxialRotationJoint::SetValue: "
 							"unable to create drive after hint "
 							"#" << i << std::endl);
-						throw ErrGeneric();
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 
 					DriveOwner::Set(pDC);
@@ -3086,7 +3086,7 @@ SubVectorHandler& AxialRotationJoint::AssRes(SubVectorHandler& WorkVec,
 //!!!!!!!!!!!!!!
 //      M += e3a*M3;
       if (ChangeJac) {
-          throw Elem::ChangedEquationStructure();
+          throw Elem::ChangedEquationStructure(MBDYN_EXCEPT_ARGS);
       }
    }
    
@@ -3278,7 +3278,7 @@ AxialRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       silent_cerr("AxialRotationJoint(" << GetLabel() << "): "
 	      "first and second node hinge axes are (nearly) orthogonal" 
 	      << std::endl);
-      throw Joint::ErrGeneric();
+      throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
    }   
    
    Vec3 TmpPrime1(e2b.Cross(Omega1.Cross(e3a))-e3a.Cross(Omega2.Cross(e2b)));
@@ -3594,7 +3594,7 @@ AxialRotationJoint::dGetPrivData(unsigned int i) const
 
 	silent_cerr("AxialRotationJoint(" << GetLabel() << "): "
 		"illegal private data " << i << std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* AxialRotationJoint - end */
@@ -3698,12 +3698,12 @@ PlanePinJoint::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i)
 	} else {
 		if (i < -1) {
 			// error
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (i >= nself) {
 			// error
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		desc.resize(1);
@@ -3806,12 +3806,12 @@ PlanePinJoint::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) 
 	} else {
 		if (i < -1) {
 			// error
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (i >= nself) {
 			// error
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		desc.resize(1);
@@ -4223,7 +4223,7 @@ PlanePinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       silent_cerr("PlanePinJoint(" << GetLabel() << "): "
 	      "node and fixed point hinge axes are (nearly) orthogonal" 
 	      << std::endl);
-      throw Joint::ErrGeneric();
+      throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
    }   
    
    Vec3 TmpPrime1(e3.Cross(e2.Cross(Omega)));
@@ -4476,7 +4476,7 @@ PlanePinJoint::dGetPrivData(unsigned int i) const
       
    silent_cerr("PlanePinJoint(" << GetLabel() << "): "
 	   "illegal private data " << i << std::endl);
-   throw ErrGeneric();
+   throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* PlanePinJoint - end */

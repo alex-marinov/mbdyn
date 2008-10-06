@@ -49,7 +49,7 @@ static DofOrder::Order
 int_set_dof(const LoadableElem*, unsigned int /* i */ )
 {
    	silent_cerr("You shouldn't be here!" << std::endl);
-   	throw ErrGeneric();
+   	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 static void
@@ -200,14 +200,14 @@ static unsigned int
 int_i_get_priv_data_idx(const LoadableElem* /* pEl */ , const char *s)
 {
    	silent_cerr("You shouldn't be here!" << std::endl);
-   	throw ErrGeneric();
+   	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 static doublereal 
 int_d_get_priv_data(const LoadableElem* /* pEl */ , unsigned int /* i */ )
 {
    	silent_cerr("You shouldn't be here!" << std::endl);
-   	throw ErrGeneric();
+   	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 static int
@@ -321,7 +321,7 @@ LoadableElem::GetCalls(MBDynParser& HP)
 	if (s == NULL) {
 		silent_cerr("Loadable(" << GetLabel()
 			<< "): unable to get module name" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
    	SAFESTRDUP(module_name, s);
@@ -337,7 +337,7 @@ LoadableElem::GetCalls(MBDynParser& HP)
 			<< "): unable to open module <" << module_name 
 			<< "> (" << err << ") at line " << HP.GetLineData()
 			<< std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
 
 	/* default LoadableCalls struct */
@@ -366,14 +366,14 @@ LoadableElem::GetCalls(MBDynParser& HP)
 	   			<< "> (\"" << err 
 				<< "\")" << std::endl);
       		}
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
 
 	calls = *tmpcalls;
 #else // !USE_RUNTIME_LOADING
 	silent_cerr("LoadableElem(" << GetLabel() << ") GetCalls: "
 		"should not be called when --disable-runtime-loading" << std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif // ! USE_RUNTIME_LOADING
 }
 
@@ -387,14 +387,14 @@ LoadableElem::BindCalls(DataManager* pDM, MBDynParser& HP)
 			<< ", got " 
 			<< LOADABLE_VERSION_OUT(calls->loadable_version) 
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
    
 	if (calls->read == NULL) {
 		silent_cerr("Loadable(" << uLabel
 			<< "): function \"read\" must be defined in module <"
 			<< module_name << "> data" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (calls->name == NULL) {
@@ -551,7 +551,7 @@ LoadableElem::~LoadableElem(void)
    		if (lt_dlclose(handle) != 0) {
 			silent_cerr("unable to close module "
 				"\"" << module_name << "\"" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 #endif // USE_RUNTIME_LOADING
@@ -805,7 +805,7 @@ ReadLoadable(DataManager* pDM,
 				"unable to find loadable element module \""
 				<< s << "\" at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		SAFENEWWITHCONSTRUCTOR(pEl,

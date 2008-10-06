@@ -66,7 +66,7 @@ IDX2str(IDX_t IDX)
 		return "<3>";
 	}
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /*
@@ -98,7 +98,7 @@ position(const MathParser::MathArgs& args)
 				<< "(" << uLabel << "): "
 				"unable to find StructNode(" << uLabel << ")"
 				<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	switch (IDX) {
@@ -152,7 +152,7 @@ distance(const MathParser::MathArgs& args)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
 				"unable to find StructNode(" << uLabel1 << ")"
 				<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	StructNode *pNode2 = (*dm)()->pFindStructNode(uLabel2);
@@ -161,7 +161,7 @@ distance(const MathParser::MathArgs& args)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
 				"unable to find StructNode(" << uLabel2 << ")"
 				<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	Vec3 d = pNode2->GetXCurr() - pNode1->GetXCurr();
@@ -217,7 +217,7 @@ anglerel(const MathParser::MathArgs& args)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
 				"unable to find StructNode(" << uLabel1 << ")"
 				<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	StructNode *pNode2 = (*dm)()->pFindStructNode(uLabel2);
@@ -226,7 +226,7 @@ anglerel(const MathParser::MathArgs& args)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
 				"unable to find StructNode(" << uLabel2 << ")"
 				<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	Vec3 phi(RotManip::VecRot(pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()));
@@ -273,7 +273,7 @@ velocity(const MathParser::MathArgs& args)
 				<< "(" << uLabel << "): "
 				"unable to find StructNode(" << uLabel << ")"
 				<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	switch (IDX) {
@@ -327,7 +327,7 @@ vrel(const MathParser::MathArgs& args)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
 				"unable to find StructNode(" << uLabel1 << ")"
 				<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	StructNode *pNode2 = (*dm)()->pFindStructNode(uLabel2);
@@ -336,7 +336,7 @@ vrel(const MathParser::MathArgs& args)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
 				"unable to find StructNode(" << uLabel2 << ")"
 				<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	Vec3 d = pNode2->GetVCurr() - pNode1->GetVCurr();
@@ -388,7 +388,7 @@ drive(const MathParser::MathArgs& args)
 	if (pDC == 0) {
 		silent_cerr("model::drive(" << uLabel << ") not available"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	doublereal val = (*arg2)();
@@ -434,7 +434,7 @@ model_sf(const MathParser::MathArgs& args)
 				"order=" << order << " only allowed "
 				"with differentiable scalar functions"
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		*out = dsf->ComputeDiff(v, order);
@@ -462,7 +462,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// position2
@@ -479,7 +479,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// xposition
@@ -496,7 +496,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// yposition
@@ -513,7 +513,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// zposition
@@ -530,7 +530,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// distance
@@ -548,7 +548,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// distance2
@@ -566,7 +566,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// xdistance
@@ -584,7 +584,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// ydistance
@@ -602,7 +602,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// zdistance
@@ -620,7 +620,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// anglerel
@@ -638,7 +638,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// xanglerel
@@ -656,7 +656,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// yanglerel
@@ -674,7 +674,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// zanglerel
@@ -692,7 +692,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// velocity
@@ -709,7 +709,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// velocity2
@@ -726,7 +726,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// xvelocity
@@ -743,7 +743,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// yvelocity
@@ -760,7 +760,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// zvelocity
@@ -777,7 +777,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// vrel
@@ -795,7 +795,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// vrel2
@@ -813,7 +813,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// xvrel
@@ -831,7 +831,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// yvrel
@@ -849,7 +849,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// zvrel
@@ -867,7 +867,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// drive
@@ -885,7 +885,7 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		silent_cerr("model namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// scalar functions
@@ -933,7 +933,7 @@ ModelNameSpace::GetFunc(const char* const s) const
 		const BasicScalarFunction *sf = pDM->GetMBDynParser().GetScalarFunction(&s[STRLENOF("sf::")]);
 
 		if (sf == 0) {
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		(*dynamic_cast<MathArgSF*>(sf_func.args[3]))() = sf;
@@ -975,7 +975,7 @@ ModelNameSpace::EvalFunc(MathParser::MathFunc_t *f, const MathParser::MathArgs& 
 		return TypedValue((*dynamic_cast<MathParser::MathArgReal_t*>(args[0]))());
 
 	default:
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 

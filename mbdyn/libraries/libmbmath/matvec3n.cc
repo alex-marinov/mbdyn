@@ -445,7 +445,7 @@ const Mat3xN& Mat3xN::operator /= (const doublereal& d)
 #endif /* DEBUG */
    if (d == 0.) {
       silent_cerr("division by zero" << std::endl);
-      throw ErrGeneric();
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
    if (d != 1.) {
       for (integer j = iNumCols; j-- > 0; ) {

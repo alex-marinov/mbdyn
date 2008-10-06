@@ -72,7 +72,7 @@ void
 CColMatrixHandler<off>::Resize(integer n, integer nn)
 {
 	silent_cerr("CColMatrixHandler<off>::Resize called" << std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* Estrae una colonna da una matrice */
@@ -85,7 +85,7 @@ CColMatrixHandler<off>::GetCol(integer icol, VectorHandler& out) const
 	 */
 	
         if (icol > iGetNumCols()) {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	integer idx = Ap[icol - 1];
@@ -107,7 +107,7 @@ CColMatrixHandler<off>::MatMatMul_base(void (MatrixHandler::*op)(integer iRow,
 {
 	silent_cerr("CColMatrixHandler<off>::MatMatMul_base called"
 			<< std::endl);
-	throw ErrGeneric();		
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
 }
 
 template <int off>
@@ -139,13 +139,13 @@ CColMatrixHandler<off>::MulAndSumWithShift(MatrixHandler& out, doublereal s,
 {
 	silent_cerr("CColMatrixHandler<off>::MulAndSumWithShift called"
 			<< std::endl);
-	throw ErrGeneric();		
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
 	if ((out.iGetNumCols() < iGetNumCols()+dcol)
 		|| (out.iGetNumRows() < iGetNumRows()+drow)) {
 		silent_cerr("Assertion fault "
 				"in CColMatrixHandler<off>::MulAndSumWithShift"
 				<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	drow = drow + 1;
 	for (integer col = 0; col < NCols; col++) {
@@ -169,13 +169,13 @@ CColMatrixHandler<off>::FakeThirdOrderMulAndSumWithShift(MatrixHandler& out,
 {
 	silent_cerr("CColMatrixHandler<off>::FakeThirdOrderMulAndSumWithShift "
 			"called" << std::endl);
-	throw ErrGeneric();		
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
 	if ((out.iGetNumCols() < iGetNumCols()+dcol)
 			|| (out.iGetNumRows() < iGetNumRows()+drow)) {
 		silent_cerr("Assertion fault "
 				"in CColMatrixHandler<off>::MulAndSumWithShift"
 				<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	drow = drow + 1;
 	for (integer col = 0; col < NCols; col++) {
@@ -200,7 +200,7 @@ CColMatrixHandler<off>::MatVecMul_base(void (VectorHandler::*op)(integer iRow,
 {
 	silent_cerr("CColMatrixHandler<off>::MatVecMul_base called"
 			<< std::endl);
-	throw ErrGeneric();		
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
 }
 
 template <int off>
@@ -211,7 +211,7 @@ CColMatrixHandler<off>::MatTVecMul_base(void (VectorHandler::*op)(integer iRow,
 {
 	silent_cerr("CColMatrixHandler<off>::MatTVecMul_base called"
 			<< std::endl);
-	throw ErrGeneric();		
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
 }
 
 template class CColMatrixHandler<0>;

@@ -450,7 +450,7 @@ TotalJoint::SetValue(DataManager *pDM,
 						silent_cerr("TotalJoint(" << uLabel << "): "
 							"unable to create drive "
 							"after hint #" << i << std::endl);
-						throw ErrGeneric();
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 
 					if (dynamic_cast<Joint::PositionDriveHint<Vec3> *>(pjdh)) {
@@ -1166,7 +1166,7 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 		 */
 
 		ASSERT(0);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return WorkVec;
@@ -2079,7 +2079,7 @@ TotalPinJoint::SetValue(DataManager *pDM,
 						silent_cerr("TotalPinJoint(" << uLabel << "): "
 							"unable to create drive "
 							"after hint #" << i << std::endl);
-						throw ErrGeneric();
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 
 					if (dynamic_cast<Joint::PositionDriveHint<Vec3> *>(pjdh)) {

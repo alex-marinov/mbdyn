@@ -75,7 +75,7 @@ pPrevNLP(NULL)
 	default:
 		silent_cerr("Unknown Preconditioner type; aborting"
 			<< std::endl);
-		throw ErrGeneric(); 
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS); 
 	}
 }
 

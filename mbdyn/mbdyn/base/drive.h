@@ -345,7 +345,7 @@ DriveCaller::dGetP(const doublereal& dVar) const
 {
 	/* shouldn't get called if not differentiable,
 	 * or should be overridden if differentiable */
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 inline doublereal 

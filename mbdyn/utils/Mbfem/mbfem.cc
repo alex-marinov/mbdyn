@@ -80,7 +80,7 @@ int main(int argc,char* ingresso[]){
 			}
 		default:
 			cerr << "Invalid Step Keyword - Aborting" << endl;
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			break;
 		}
 	// Trattamento delle forze
@@ -116,7 +116,7 @@ int main(int argc,char* ingresso[]){
 					}
 				default: 
 					cerr << "Invalid Load Keyword - Aborting" << endl;
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					break;
 			}
 		}
@@ -141,7 +141,7 @@ int main(int argc,char* ingresso[]){
 					break;
 				default:
 					cerr << "Invalid Linear/Quadratic Keyword - Aborting" << endl;
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					break;
 			}
 			switch (beam) {
@@ -158,7 +158,7 @@ int main(int argc,char* ingresso[]){
 					break;
 				default:
 					cerr << "Invalid Rotational Inertia Keyword - Aborting" << endl;
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					break;
 			}		
 			// Reading block limit
@@ -178,7 +178,7 @@ int main(int argc,char* ingresso[]){
 		outnas = true;
 	} else {
 		cerr << "Invalid Output Keyword - Aborting" << endl;
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	// Output
 		fgets(buffer,100,fin);
@@ -199,13 +199,13 @@ int main(int argc,char* ingresso[]){
 					break;
 				default:
 					cerr << "Invalid Output Keyword - Aborting" << endl;
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					break;
 			}
 		}	  
 	} else {
 		cerr << "Invalid path or filename - Aborting" << endl;
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		return(0);
 	}
 	// Letto il file, passiamo alla lettura dei file

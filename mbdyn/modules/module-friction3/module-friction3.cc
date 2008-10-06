@@ -88,7 +88,7 @@ read(LoadableElem* pEl,
 			/*
 			 * Exit quietly if nothing else is provided
 			 */
-			throw NoErr();
+			throw NoErr(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -99,12 +99,12 @@ read(LoadableElem* pEl,
 	if (p->mom.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
 		silent_cerr("Friction3(" << pEl->GetLabel() << "): "
 			"need a differential node" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	if (p->pos.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
 		silent_cerr("Friction3(" << pEl->GetLabel() << "): "
 			"need a differential node" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	p->mass = HP.GetReal();
 

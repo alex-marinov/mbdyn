@@ -138,7 +138,7 @@ UseSocket::PostConnect(void)
       		silent_cerr("UseSocket::PostConnect: setsockopt() failed "
 			"(" << save_errno << ": " << msg << ")"
 			<< std::endl);
-      		throw ErrGeneric();
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -163,7 +163,7 @@ UseSocket::Connect(void)
 			silent_cerr("UseSocket::Connect: connect() failed "
 				"(" << save_errno << ": " << msg << ")"
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		/* Success */
@@ -174,7 +174,7 @@ UseSocket::Connect(void)
 
 	silent_cerr("UseSocket(): connection timed out"
 		<< std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 void
@@ -248,7 +248,7 @@ port(p)
 				"socket() failed "
 				"(" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
-      			throw ErrGeneric();
+      			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
    		} else if (sock == -2) {
 			const char	*err_msg = strerror(save_errno);
@@ -257,14 +257,14 @@ port(p)
 				"bind() failed "
 				"(" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
-      			throw ErrGeneric();
+      			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
    		} else if (sock == -3) {
       			silent_cerr("UseInetSocket(" << buf << "): "
 				"illegal host name \"" << host << "\" "
 				"(" << save_errno << ")"
 				<< std::endl);
-      			throw ErrGeneric();
+      			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    		}
 
    		if (listen(sock, 1) < 0) {
@@ -275,7 +275,7 @@ port(p)
 				"listen() failed "
 				"(" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
-      			throw ErrGeneric();
+      			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    		}
 	}	 
 }
@@ -315,7 +315,7 @@ UseInetSocket::Connect(void)
 		silent_cerr("UseSocket(): socket() failed "
 				<< "\"" << h << ":" << port << "\""
 				<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	addr.sin_family = AF_INET;
@@ -328,7 +328,7 @@ UseInetSocket::Connect(void)
 		silent_cerr("UseSocket(): unknown host "
 				"\"" << h << ":" << port << "\""
 				<< std::endl);
-		throw ErrGeneric();	
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);	
 	}
 
 	pedantic_cout("connecting to inet socket "
@@ -378,7 +378,7 @@ path(0)
 				"socket() failed "
 				"(" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
-      			throw ErrGeneric();
+      			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
    		} else if (sock == -2) {
 			const char	*err_msg = strerror(save_errno);
@@ -387,7 +387,7 @@ path(0)
 				"bind() failed "
 				"(" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
-      			throw ErrGeneric();
+      			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    		}
    		if (listen(sock, 1) < 0) {
 			save_errno = errno;
@@ -397,7 +397,7 @@ path(0)
 				"listen() failed "
 				"(" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
-      			throw ErrGeneric();
+      			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    		}
 	}	 
 }
@@ -435,7 +435,7 @@ UseLocalSocket::Connect(void)
 		silent_cerr("UseSocket(): socket() failed "
 				"(" << save_errno << ": " << msg << ")"
 				<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	addr.sun_family = AF_UNIX;
 	memcpy(addr.sun_path, path, sizeof(addr.sun_path));

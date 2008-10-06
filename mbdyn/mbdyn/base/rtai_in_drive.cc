@@ -55,7 +55,7 @@ host(h), node(n), port(-1), mbx(NULL)
 		if (mbdyn_rt_mbx_init(sFileName, size, &mbx)) {
 			silent_cerr("RTMBDyn mailbox(" << sFileName << ") "
 				"init failed" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	} else {
 		if (node) {
@@ -67,7 +67,7 @@ host(h), node(n), port(-1), mbx(NULL)
 		if (mbdyn_RT_get_adr(node, port, sFileName, &mbx)) {
 			silent_cerr("RTMBDyn mailbox(" << sFileName << ") "
 				"get_adr failed" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 	
@@ -133,14 +133,14 @@ ReadRTMBDynInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			silent_cerr("RTMBDynInDrive(" << uLabel << "): "
 				"unable to read mailbox name "
 				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		} else if (strlen(m) != 6) {
 			silent_cerr("RTMBDynInDrive(" << uLabel << "): "
 				"illegal mailbox name \"" << m << "\" "
 				"(must be exactly 6 chars) "
 				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		SAFESTRDUP(name, m);
@@ -149,7 +149,7 @@ ReadRTMBDynInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		silent_cerr("RTMBDynInDrive(" << uLabel << "): "
 			"missing mailbox name "
 			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (HP.IsKeyWord("create")) {
@@ -161,7 +161,7 @@ ReadRTMBDynInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			silent_cerr("RTMBDynInDrive(" << uLabel << "): "
 				"\"create\" must be \"yes\" or \"no\" "
 				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -195,7 +195,7 @@ ReadRTMBDynInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			silent_cerr("RTMBDynInDrive(" << uLabel << "): "
 				"unable to read host "
 				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (create) {
@@ -226,13 +226,13 @@ ReadRTMBDynInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 					"\"" << host << "\" "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 #else /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
 			silent_cerr("RTMBDynInDrive(" << uLabel << "): "
 				"host (RTAI RPC) not supported "
 				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
 		}
 	}
@@ -242,7 +242,7 @@ ReadRTMBDynInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		silent_cerr("RTMBDynInDrive(" << uLabel << "): "
 			"illegal number of channels "
 			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	Drive* pDr = NULL;

@@ -185,14 +185,14 @@ SocketStreamDrive::ServePending(const doublereal& t)
 				"(" << sFileName << "): select failed"
 				<< " (" << save_errno << ": " 
 				<< err_msg << ")" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 		case 0:
 			silent_cout("SocketStreamDrive"
 				"(" << sFileName << "): select timed out"
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		default:
 			if (!FD_ISSET(sock_nr, &readfds)) {
@@ -200,7 +200,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 					"(" << sFileName << "): "
 					"socket " << sock_nr << " reset"
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 	}
@@ -234,7 +234,7 @@ do_abandon:;
 		silent_cout("SocketStreamDrive(" << sFileName << ") failed "
 				"(" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 	default: {	
@@ -270,7 +270,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 				"unable to read stream drive name "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		} 
 
@@ -281,7 +281,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 			"missing stream drive name "
 			"at line " << HP.GetLineData()
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (HP.IsKeyWord("create")) {
@@ -295,7 +295,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 				"\"create\" must be either \"yes\" or \"no\" "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 		
@@ -308,7 +308,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 				"unable to read local path"
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		
 		SAFESTRDUP(path, m);
@@ -322,7 +322,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 				"for a local socket "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();		
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
 		}
 		int p = HP.GetInt();
 		/* Da sistemare da qui */
@@ -335,7 +335,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 				"IPPORT_USERRESERVED=" << IPPORT_USERRESERVED
 				<< " at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		/* if #undef'd, don't bother checking;
 		 * the OS will do it for us */
@@ -351,7 +351,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 				"cannot specify host for a local socket "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();		
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
 		}
 
 		const char *h;
@@ -363,7 +363,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 				"unable to read host "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		SAFESTRDUP(host, h);
@@ -416,7 +416,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 				"invalid \"input every\" value " << i
 				<< " at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		InputEvery = (unsigned int)i;
 	}
@@ -430,7 +430,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 				"invalid socket timeout value " << st
 				<< " at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		SocketTimeout.tv_sec = long(st);
 		SocketTimeout.tv_usec = long((st - SocketTimeout.tv_sec)*1000000);
@@ -448,7 +448,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 			"illegal number of channels " << idrives
 			<< "at line " << HP.GetLineData()
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	
 	Drive* pDr = 0;

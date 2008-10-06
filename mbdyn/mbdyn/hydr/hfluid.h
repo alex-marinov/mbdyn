@@ -114,7 +114,7 @@ HydraulicFluid::dGetRe(HydraulicFluid::Re which)
 		return 4000.;
 
 	default:
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 

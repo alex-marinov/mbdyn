@@ -123,7 +123,7 @@ thread_data(0)
 			silent_cerr("ParNaiveSolver: pthread_create() failed "
 					"for thread " << t
 					<< " of " << nThreads << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 }
@@ -204,17 +204,17 @@ ParNaiveSolver::thread_op(void *arg)
 				if (td->retval & ENULCOL) {
 					silent_cerr("NaiveSolver: ENULCOL("
 							<< (td->retval & ~ENULCOL) << ")" << std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (td->retval & ENOPIV) {
 					silent_cerr("NaiveSolver: ENOPIV("
 							<< (td->retval & ~ENOPIV) << ")" << std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				/* default */
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			break;
 
@@ -240,7 +240,7 @@ ParNaiveSolver::thread_op(void *arg)
 		default:
 			silent_cerr("ParNaiveSolver: unhandled op"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		td->pSLUS->EndOfOp();
@@ -538,7 +538,7 @@ ParNaiveSparsePermSolutionManager::ComputePermutation(void)
 	if (!mbdyn_colamd(A->iGetNumRows(), A->iGetNumCols(), Alen,
 		&(Ai[0]), &(invperm[0]), knobs, stats)) {
 		silent_cerr("colamd permutation failed" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	for (integer i = 0; i < A->iGetNumRows(); i++) {
 		perm[invperm[i]] = i;

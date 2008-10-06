@@ -138,7 +138,7 @@ bNewMatrix(false)
 		silent_cerr("SchurSolutionManager: "
 			"invalid communicator size " << SolvCommSize
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 #ifdef DEBUG
@@ -765,7 +765,7 @@ SchurSolutionManager::InitializeComm(void)
 	if (MyRank == 0 && pDispl[SolvCommSize] == 0) {
 		silent_cerr("SchurSolutionManager::InitializeComm(): "
 				"empty problem" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (MyRank == 0) {
@@ -867,7 +867,7 @@ SchurSolutionManager::pdSetResVec(doublereal* pRes)
 	silent_cerr("SchurSolutionManager::pdSetResVec(): "
 		"you should not be here!! "
 		"Aborting..." << std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* sposta il puntatore al vettore del residuo */
@@ -877,7 +877,7 @@ SchurSolutionManager::pdSetSolVec(doublereal* pSol)
 	silent_cerr("SchurSolutionManager::pdSetSolVec(): "
 		"you should not be here!! "
 		"Aborting..." << std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* Rende disponibile l'handler per la matrice */

@@ -47,7 +47,10 @@ class Table {
    friend std::ostream& operator << (std::ostream& out, Table& T);
    
  public:
-   class ErrNameAlreadyDefined {};   
+   class ErrNameAlreadyDefined : public MBDynErrBase {
+	public:
+		ErrNameAlreadyDefined(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
    
  private:
    int size;        /* dimensioni dell'array */

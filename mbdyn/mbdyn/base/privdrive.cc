@@ -91,7 +91,7 @@ PrivDriveCaller::Restart(std::ostream& out) const
 			<< psReadNodesNodes[pNode->GetNodeType()] << ", ";
 
 	} else {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (sIndexName) {

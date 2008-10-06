@@ -231,7 +231,7 @@ AircraftInstruments::dGetPrivData(unsigned int i) const
 	if (i <= 0 || i >= LASTMEASURE) {
 		silent_cerr("AircraftInstruments(" << GetLabel() << "): "
 			"illegal measure " << i << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return dMeasure[i];

@@ -126,9 +126,18 @@ extern void mbdyn_warranty(void);
 
 class MBDynParser : public IncludeParser {
 public:
-	class ErrGeneric {};
-	class ErrReferenceAlreadyDefined {};
-	class ErrReferenceUndefined {};
+	class ErrGeneric : public MBDynErrBase {
+	public:
+		ErrGeneric(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrReferenceAlreadyDefined : public MBDynErrBase {
+	public:
+		ErrReferenceAlreadyDefined(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrReferenceUndefined : public MBDynErrBase {
+	public:
+		ErrReferenceUndefined(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
    
 public:
 	enum Frame {

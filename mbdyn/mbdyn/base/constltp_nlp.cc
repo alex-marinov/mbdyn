@@ -93,7 +93,7 @@ public:
 	virtual std::ostream& Restart(std::ostream& out) const {
 		silent_cerr("NLPViscoElasticConstitutiveLaw: Restart not implemented"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 #if 0 /* ScalarFunction restart not implemented yet */
 		out << "nlp viscoelastic, ",
@@ -231,7 +231,7 @@ public:
 	virtual std::ostream& Restart(std::ostream& out) const {
 		silent_cerr("NLPViscoElasticConstitutiveLaw: Restart not implemented"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 #if 0 /* ScalarFunction restart not implemented yet */
 		out << "nlp viscoelastic, ",
@@ -342,7 +342,7 @@ struct NLPViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 				"for NLP viscoelastic constitutive law "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		/* stiffness */
@@ -368,7 +368,7 @@ struct NLPViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 							"stiffness scalar function #" << i << " "
 							"at line " << HP.GetLineData() << " "
 							"must be differentiable" << std::endl);
-						throw ErrGeneric();
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 					bElastic = true;
 				}
@@ -402,7 +402,7 @@ struct NLPViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 							"damping scalar function #" << i << " "
 							"at line " << HP.GetLineData() << " "
 							"must be differentiable" << std::endl);
-						throw ErrGeneric();
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 					bViscous = true;
 				}

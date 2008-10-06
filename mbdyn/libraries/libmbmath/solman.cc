@@ -83,7 +83,7 @@ void
 SolutionManager::SolveT(void)
 {
 	silent_cerr("SolutionManager::SolveT() not supported" << std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 void

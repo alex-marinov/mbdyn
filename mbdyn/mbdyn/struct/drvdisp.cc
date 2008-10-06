@@ -139,7 +139,7 @@ DriveDisplacementJoint::SetValue(DataManager *pDM,
 					silent_cerr("DriveDisplacementJoint(" << uLabel << "): "
 						"unable to create drive "
 						"after hint #" << i << std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 				
 				TplDriveOwner<Vec3>::Set(pDC);
@@ -345,7 +345,7 @@ DriveDisplacementJoint::dGetPrivData(unsigned int i) const
 		return F(i - 3);
 	}
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* assemblaggio jacobiano */
@@ -762,7 +762,7 @@ DriveDisplacementPinJoint::SetValue(DataManager *pDM,
 					silent_cerr("DriveDisplacementPinJoint(" << uLabel << "): "
 						"unable to create drive "
 						"after hint #" << i << std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 				
 				TplDriveOwner<Vec3>::Set(pDC);
@@ -964,7 +964,7 @@ DriveDisplacementPinJoint::dGetPrivData(unsigned int i) const
 		return F(i - 3);
 	}
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* assemblaggio jacobiano */

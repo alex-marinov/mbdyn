@@ -120,7 +120,7 @@ thread_data(0)
 			silent_cerr("ParSuperLUSolver: pthread_create() failed "
 					"for thread " << t
 					<< " of " << nThreads << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 }
@@ -201,7 +201,7 @@ ParSuperLUSolver::thread_op(void *arg)
 		default:
 			silent_cerr("ParSuperLUSolver: unhandled op"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		td->pSLUS->EndOfOp();

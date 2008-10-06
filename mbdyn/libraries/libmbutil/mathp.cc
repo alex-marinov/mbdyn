@@ -282,7 +282,7 @@ mp_print(const MathParser::MathArgs& args)
 		break;
 
 	default:
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return 0;
@@ -305,11 +305,11 @@ mp_stop(const MathParser::MathArgs& args)
 	if ((*s)() != 0) {
 		if ((*v)() == 0) {
 			silent_cout("mp_stop(SUCCESS)" << std::endl);
-			throw NoErr();
+			throw NoErr(MBDYN_EXCEPT_ARGS);
 
 		} else {
 			silent_cout("mp_stop(FAILURE)" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -707,7 +707,7 @@ TypedValue::TypedValue(const TypedValue::Type t, bool isConst)
 		break;
 
 	default:
-		throw ErrUnknownType();
+		throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -735,7 +735,7 @@ TypedValue::TypedValue(const TypedValue& var)
 		break;
 
 	default:
-		throw ErrUnknownType();
+		throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -743,7 +743,7 @@ const TypedValue&
 TypedValue::operator = (const TypedValue& var)
 {
 	if (Const()) {
-		throw ErrConstraintViolation();
+		throw ErrConstraintViolation(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (type == TypedValue::VAR_STRING) {
@@ -766,7 +766,7 @@ TypedValue::operator = (const TypedValue& var)
 			break;
 
 		default:
-			throw ErrUnknownType();
+			throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
 		}
 
 	} else {
@@ -788,7 +788,7 @@ TypedValue::operator = (const TypedValue& var)
 
 		case TypedValue::VAR_STRING:
 			if (type != TypedValue::VAR_UNKNOWN) {
-				throw ErrWrongType();
+				throw ErrWrongType(MBDYN_EXCEPT_ARGS);
 			}
 			type = TypedValue::VAR_STRING;
 			s = var.s;
@@ -796,12 +796,12 @@ TypedValue::operator = (const TypedValue& var)
 
 		case TypedValue::VAR_UNKNOWN:
 			if (type != TypedValue::VAR_UNKNOWN) {
-				throw ErrWrongType();
+				throw ErrWrongType(MBDYN_EXCEPT_ARGS);
 			}
 			break;
 
 		default:
-			throw ErrUnknownType();
+			throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -813,7 +813,7 @@ const TypedValue&
 TypedValue::Cast(const TypedValue& var)
 {
 	if (Const()) {
-		throw ErrConstraintViolation();
+		throw ErrConstraintViolation(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (type == TypedValue::VAR_STRING) {
@@ -836,7 +836,7 @@ TypedValue::Cast(const TypedValue& var)
 			break;
 
 		default:
-			throw ErrUnknownType();
+			throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
 		}
 
 	} else {
@@ -856,7 +856,7 @@ TypedValue::Cast(const TypedValue& var)
 				break;
 
 			default:
-				throw ErrWrongType();
+				throw ErrWrongType(MBDYN_EXCEPT_ARGS);
 			}
 			Set(var.GetBool());
 			break;
@@ -876,7 +876,7 @@ TypedValue::Cast(const TypedValue& var)
 				break;
 
 			default:
-				throw ErrWrongType();
+				throw ErrWrongType(MBDYN_EXCEPT_ARGS);
 			}
 			Set(var.GetInt());
 			break;
@@ -889,13 +889,13 @@ TypedValue::Cast(const TypedValue& var)
 				break;
 
 			default:
-				throw ErrWrongType();
+				throw ErrWrongType(MBDYN_EXCEPT_ARGS);
 			}
 			Set(var.GetReal());
 			break;
 
 		default:
-			throw ErrUnknownType();
+			throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -920,7 +920,7 @@ TypedValue::GetTypeName(TypedValue::Type t)
 		return TypeNames[t].name;
 
 	default:
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -950,10 +950,10 @@ TypedValue::GetBool(void) const
 		return v.r ? 1 : 0;
 
 	case TypedValue::VAR_STRING:
-		throw ErrWrongType();
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS);
 
 	default:
-		throw ErrUnknownType();
+		throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -969,10 +969,10 @@ TypedValue::GetInt(void) const
 		return Int(v.r);
 
 	case TypedValue::VAR_STRING:
-		throw ErrWrongType();
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS);
 
 	default:
-		throw ErrUnknownType();
+		throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -988,10 +988,10 @@ TypedValue::GetReal(void) const
  		return v.r;
 
 	case TypedValue::VAR_STRING:
-		throw ErrWrongType();
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS);
 
 	default:
-		throw ErrUnknownType();
+		throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -1002,13 +1002,13 @@ TypedValue::GetString(void) const
 	case TypedValue::VAR_BOOL:
 	case TypedValue::VAR_INT:
 	case TypedValue::VAR_REAL:
-		throw ErrWrongType();
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS);
 
 	case TypedValue::VAR_STRING:
  		return s;
 
 	default:
-		throw ErrUnknownType();
+		throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -1016,7 +1016,7 @@ void
 TypedValue::SetType(TypedValue::Type t, bool isConst)
 {
 	if (Const()) {
-		throw ErrConstraintViolation();
+		throw ErrConstraintViolation(MBDYN_EXCEPT_ARGS);
 	}
 
 	type = t;
@@ -1033,7 +1033,7 @@ const TypedValue&
 TypedValue::Set(const bool& b)
 {
 	if (Const()) {
-		throw ErrConstraintViolation();
+		throw ErrConstraintViolation(MBDYN_EXCEPT_ARGS);
 	}
 
 	switch (GetType()) {
@@ -1047,10 +1047,10 @@ TypedValue::Set(const bool& b)
 		break;
 
 	case TypedValue::VAR_STRING:
-		throw ErrWrongType();
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS);
 
 	default:
-		throw ErrUnknownType();
+		throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
 	}
 
 	return *this;
@@ -1060,7 +1060,7 @@ const TypedValue&
 TypedValue::Set(const Int& i)
 {
 	if (Const()) {
-		throw ErrConstraintViolation();
+		throw ErrConstraintViolation(MBDYN_EXCEPT_ARGS);
 	}
 
 	switch (GetType()) {
@@ -1077,10 +1077,10 @@ TypedValue::Set(const Int& i)
 		break;
 
 	case TypedValue::VAR_STRING:
-		throw ErrWrongType();
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS);
 
 	default:
-		throw ErrUnknownType();
+		throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
 	}
 
 	return *this;
@@ -1090,7 +1090,7 @@ const TypedValue&
 TypedValue::Set(const Real& r)
 {
 	if (Const()) {
-		throw ErrConstraintViolation();
+		throw ErrConstraintViolation(MBDYN_EXCEPT_ARGS);
 	}
 
 	switch (GetType()) {
@@ -1107,10 +1107,10 @@ TypedValue::Set(const Real& r)
 		break;
 
 	case TypedValue::VAR_STRING:
-		throw ErrWrongType();
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS);
 
 	default:
-		throw ErrUnknownType();
+		throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
 	}
 
 	return *this;
@@ -1120,21 +1120,21 @@ const TypedValue&
 TypedValue::Set(const std::string& s)
 {
 	if (Const()) {
-		throw ErrConstraintViolation();
+		throw ErrConstraintViolation(MBDYN_EXCEPT_ARGS);
 	}
 
 	switch (GetType()) {
 	case TypedValue::VAR_BOOL:
 	case TypedValue::VAR_INT:
 	case TypedValue::VAR_REAL:
-		throw ErrWrongType();
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS);
 
 	case TypedValue::VAR_STRING:
 		this->s = s;
 		break;
 
 	default:
-		throw ErrUnknownType();
+		throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
 	}
 
 	return *this;
@@ -1208,7 +1208,7 @@ TypedValue::operator + (const TypedValue& v) const
 			return TypedValue(GetString() + v.GetString());
 
 		default:
-			throw ErrWrongType();
+			throw ErrWrongType(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -1265,7 +1265,7 @@ const TypedValue&
 TypedValue::operator += (const TypedValue& v)
 {
 	if (Const()) {
-		throw ErrConstraintViolation();
+		throw ErrConstraintViolation(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (GetType() == TypedValue::VAR_STRING) {
@@ -1288,7 +1288,7 @@ TypedValue::operator += (const TypedValue& v)
 			break;
 
 		default:
-			throw ErrWrongType();
+			throw ErrWrongType(MBDYN_EXCEPT_ARGS);
 		}
 
 		return *this;
@@ -1311,7 +1311,7 @@ const TypedValue&
 TypedValue::operator -= (const TypedValue& v)
 {
 	if (Const()) {
-		throw ErrConstraintViolation();
+		throw ErrConstraintViolation(MBDYN_EXCEPT_ARGS);
 	}
 
 	if ((GetType() == TypedValue::VAR_BOOL || GetType() == TypedValue::VAR_INT)
@@ -1329,7 +1329,7 @@ const TypedValue&
 TypedValue::operator *= (const TypedValue& v)
 {
 	if (Const()) {
-		throw ErrConstraintViolation();
+		throw ErrConstraintViolation(MBDYN_EXCEPT_ARGS);
 	}
 
 	if ((GetType() == TypedValue::VAR_BOOL || GetType() == TypedValue::VAR_INT)
@@ -1347,7 +1347,7 @@ const TypedValue&
 TypedValue::operator /= (const TypedValue& v)
 {
 	if (Const()) {
-		throw ErrConstraintViolation();
+		throw ErrConstraintViolation(MBDYN_EXCEPT_ARGS);
 	}
 
 	if ((GetType() == TypedValue::VAR_BOOL || GetType() == TypedValue::VAR_INT)
@@ -1384,10 +1384,10 @@ operator - (const TypedValue& v)
 		return TypedValue(-v.GetReal());
 
 	case TypedValue::VAR_STRING:
-		throw TypedValue::ErrWrongType();
+		throw TypedValue::ErrWrongType(MBDYN_EXCEPT_ARGS);
 
 	default:
-		throw TypedValue::ErrUnknownType();
+		throw TypedValue::ErrUnknownType(MBDYN_EXCEPT_ARGS);
 	}
 
 	return 0;
@@ -1414,7 +1414,7 @@ operator << (std::ostream& out, const TypedValue& v)
 		return out << v.GetString();
 
 	default:
-		throw TypedValue::ErrUnknownType();
+		throw TypedValue::ErrUnknownType(MBDYN_EXCEPT_ARGS);
 	}
 
 	return out;
@@ -1606,22 +1606,19 @@ MathParser::PlugInVar::GetVal(void) const
 	return pgin->GetVal();
 }
 
-MathParser::ErrGeneric::ErrGeneric(void)
-{
-	NO_OP;
-}
+MathParser::ErrGeneric::ErrGeneric(MBDYN_EXCEPT_ARGS_DECL_NODEF) : 
+	MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
 
-MathParser::ErrGeneric::ErrGeneric(MathParser* p, const char* const s)
-{
-	silent_cerr(s << " at line " << p->GetLineNumber() << std::endl);
+MathParser::ErrGeneric::ErrGeneric(MathParser* p, MBDYN_EXCEPT_ARGS_DECL_NODEF) :
+	MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {
+	silent_cerr(what() << " at line " << p->GetLineNumber() << std::endl);
 }
 
 MathParser::ErrGeneric::ErrGeneric(MathParser* p,
-		const char* const s1,
+		MBDYN_EXCEPT_ARGS_DECL_NODEF, 
 		const char* const s2,
-		const char* const s3)
-{
-	silent_cerr("MathParser - " << s1 << s2 << s3
+		const char* const s3) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU + s2 + s3) {
+	silent_cerr("MathParser - " << r << s2 << s3
 			<< " at line " << p->GetLineNumber() << std::endl);
 }
 
@@ -1722,7 +1719,7 @@ Var*
 MathParser::NewVar(const char* const s, TypedValue::Type t, const Real& d)
 {
 	if (GetVar(s) != NULL) {
-		throw ErrGeneric(this, "var '", s, "' already defined!" );
+		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "var '", s, "' already defined!" );
 	}
 
 	Var* v = 0;
@@ -1736,7 +1733,7 @@ MathParser::NewVar(const char* const s, TypedValue::Type t, const Real& d)
 		break;
 
 	default:
-		throw TypedValue::ErrUnknownType();
+		throw TypedValue::ErrUnknownType(MBDYN_EXCEPT_ARGS);
 	}
 
 	VarList* p = 0;
@@ -1786,7 +1783,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// acos
@@ -1803,7 +1800,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// atan
@@ -1819,7 +1816,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// actan
@@ -1835,7 +1832,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// atan2
@@ -1852,7 +1849,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// actan2
@@ -1869,7 +1866,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// cos
@@ -1885,7 +1882,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// sin
@@ -1901,7 +1898,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// tan
@@ -1917,7 +1914,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// ctan
@@ -1933,7 +1930,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// cosh
@@ -1949,7 +1946,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// sinh
@@ -1965,7 +1962,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// tanh
@@ -1981,7 +1978,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// ctanh
@@ -1997,7 +1994,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 #ifdef __USE_XOPEN
@@ -2014,7 +2011,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// asinh
@@ -2030,7 +2027,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// atanh
@@ -2046,7 +2043,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// actanh
@@ -2062,7 +2059,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 #endif /* __USE_XOPEN */
 
@@ -2079,7 +2076,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// log
@@ -2095,7 +2092,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// log10
@@ -2111,7 +2108,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// sqrt
@@ -2127,7 +2124,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// abs
@@ -2143,7 +2140,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// sign
@@ -2159,7 +2156,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// copysign
@@ -2176,7 +2173,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// max
@@ -2193,7 +2190,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// min
@@ -2210,7 +2207,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// floor
@@ -2226,7 +2223,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// ceil
@@ -2242,7 +2239,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 #ifdef __USE_XOPEN
@@ -2259,7 +2256,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 #endif /* __USE_XOPEN */
 
@@ -2275,7 +2272,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// random
@@ -2290,7 +2287,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// seed
@@ -2306,7 +2303,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// step
@@ -2322,7 +2319,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// ramp
@@ -2338,7 +2335,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// sramp
@@ -2355,7 +2352,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// sramp
@@ -2371,7 +2368,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// print
@@ -2387,7 +2384,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// stop
@@ -2404,7 +2401,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		silent_cerr("static namespace: "
 			"unable to insert handler "
 			"for function " << f->fname << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -2466,7 +2463,7 @@ MathParser::StaticNameSpace::EvalFunc(MathParser::MathFunc_t *f, const MathArgs&
 		return TypedValue((*dynamic_cast<MathArgString_t*>(args[0]))());
 
 	default:
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -2913,7 +2910,7 @@ MathParser::mult(void)
 			GetToken();
 			TypedValue e = power();
 			if (e == 0.) {
-				throw ErrGeneric(this, "divide by zero in mult()");
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "divide by zero in mult()");
 			}
 			d /= e;
 			break;
@@ -2946,7 +2943,7 @@ MathParser::power(void)
 		if (d < 0. && e <= 0.) {
 			DEBUGCERR("can't compute " << d << '^'
 					<< e << " in power()" << std::endl);
-			throw ErrGeneric(this, "invalid operands in power()");
+			throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "invalid operands in power()");
 		}
 
 		/*
@@ -3021,7 +3018,7 @@ MathParser::evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f)
 		case MathParser::AT_INT:
 			if (currtoken == CBR) {
 				if (!args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
-					throw ErrGeneric(this, "integer argument expected");
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "integer argument expected");
 				}
 				(*dynamic_cast<MathArgInt_t*>(args[i]))() = (*dynamic_cast<MathArgInt_t*>(f->args[i]))();
 				args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
@@ -3034,7 +3031,7 @@ MathParser::evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f)
 		case MathParser::AT_REAL:
 			if (currtoken == CBR) {
 				if (!args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
-					throw ErrGeneric(this, "real argument expected");
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "real argument expected");
 				}
 				(*dynamic_cast<MathArgReal_t*>(args[i]))() = (*dynamic_cast<MathArgReal_t*>(f->args[i]))();
 				args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
@@ -3047,7 +3044,7 @@ MathParser::evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f)
 		case MathParser::AT_STRING:
 			if (currtoken == CBR) {
 				if (!args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
-					throw ErrGeneric(this, "string argument expected");
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "string argument expected");
 				}
 				(*dynamic_cast<MathArgString_t*>(args[i]))() = (*dynamic_cast<MathArgString_t*>(f->args[i]))();
 				args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
@@ -3062,7 +3059,7 @@ MathParser::evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f)
 			break;
 
 		default:
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (i < args.size() - 1) {
@@ -3070,7 +3067,7 @@ MathParser::evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f)
 				switch (currtoken) {
 				case CBR:
 					if (!args[i + 1]->IsFlag(MathParser::AF_OPTIONAL)) {
-						throw ErrGeneric(this,
+						throw ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 							"mandatory argument expected");
 					}
 					break;
@@ -3080,7 +3077,7 @@ MathParser::evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f)
 					break;
 
 				default:
-					throw ErrGeneric(this,
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 						"argument separator expected");
 				}
 			}
@@ -3093,7 +3090,7 @@ MathParser::evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f)
 				<< ns->sGetName() << "::" << f->fname 
 				<< " " "(msg: " << f->errmsg << ")"
 				<< " in evalfunc()" << std::endl);
-			throw ErrGeneric(this, f->fname.c_str(), ": error ", f->errmsg.c_str());
+			throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, f->fname.c_str(), ": error ", f->errmsg.c_str());
 		}
 	}
 
@@ -3118,7 +3115,7 @@ MathParser::expr(void)
 		GetToken();
 		TypedValue d = stmtlist();
 		if (currtoken != CBR) {
-			throw ErrGeneric(this, "closing parenthesis expected");
+			throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "closing parenthesis expected");
 		}
 		GetToken();
 		return d;
@@ -3127,7 +3124,7 @@ MathParser::expr(void)
 	if (currtoken == OPGIN) {
 		TypedValue d = readplugin();
 		if (currtoken != CPGIN) {
-			throw ErrGeneric(this, "closing plugin expected");
+			throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "closing plugin expected");
 		}
 		GetToken();
 		return d;
@@ -3140,12 +3137,12 @@ MathParser::expr(void)
 			std::string name(namebuf);
 			NameSpaceMap::iterator i = nameSpaceMap.find(name);
 			if (i == nameSpaceMap.end()) {
-				throw ErrGeneric(this, "unable to find namespace \"", namebuf, "\"");
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to find namespace \"", namebuf, "\"");
 			}
 			currNameSpace = i->second;
 			GetToken();
 			if (currtoken != NAME) {
-				throw ErrGeneric(this, "name expected after namespace");
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "name expected after namespace");
 			}
 			GetToken();
 		}
@@ -3153,17 +3150,17 @@ MathParser::expr(void)
 		if (currtoken == OBR) {
 			/* in futuro ci potranno essere magari i dati strutturati */
 			if (!currNameSpace->IsFunc(namebuf)) {
-				throw ErrGeneric(this, "user-defined functions not supported yet!");
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "user-defined functions not supported yet!");
 			}
 
 			MathParser::MathFunc_t* f = currNameSpace->GetFunc(namebuf);
 			if (f == NULL) {
-				throw ErrGeneric(this, "function '", namebuf, "' not found");
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", namebuf, "' not found");
 			}
 			GetToken();
 			TypedValue d = evalfunc(currNameSpace, f);
 			if (currtoken != CBR) {
-				throw ErrGeneric(this, "closing parenthesis "
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "closing parenthesis "
 						"expected after function "
 						"\"", f->fname.c_str(), "\" in expr()");
 			}
@@ -3177,12 +3174,12 @@ MathParser::expr(void)
 			}
 		}
 
-		throw ErrGeneric(this, "unknown name \"", namebuf, "\"");
+		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unknown name \"", namebuf, "\"");
 	}
 
 	/* invalid expr */
 	if (currtoken != ENDOFFILE) {
-		throw ErrGeneric(this, "unknown token");
+		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unknown token");
 	}
 
 	return TypedValue(0.);
@@ -3205,7 +3202,7 @@ MathParser::stmt(void)
 			}
 
 			if (GetToken() != NAME || !IsType(namebuf)) {
-				throw ErrGeneric(this, "type expected "
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "type expected "
 						"after type modifier "
 						"in declaration");
 			}
@@ -3217,13 +3214,13 @@ MathParser::stmt(void)
 			ASSERT(type != TypedValue::VAR_UNKNOWN);
 			
 			if (GetToken() != NAME) {
-				throw ErrGeneric(this, "name expected "
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "name expected "
 						"after type in declaration");
 			}
 
 			/* FIXME: need to specialize symbol table for namespaces */
 			if (IsKeyWord(defaultNameSpace, namebuf)) {
-				throw ErrGeneric(this, "name '", namebuf, "' "
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "name '", namebuf, "' "
 						"is a keyword");
 			}
 
@@ -3259,14 +3256,14 @@ MathParser::stmt(void)
 						if (v->Const()) {
 							silent_cerr("cannot redefine a const named value"
 									<< std::endl);
-							throw MathParser::ErrGeneric(this,
+							throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 									"cannot redefine "
 									"a const named value "
 									"\"", v->GetName(), "\"");
 						}
 
 						if (!v->IsVar()) {
-				   			throw MathParser::ErrGeneric(this,
+				   			throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 								"cannot redefine "
 								"non-var named value "
 								"\"", v->GetName(), "\"");
@@ -3291,7 +3288,7 @@ MathParser::stmt(void)
 					if (isConst) {
 						/* cannot insert a const var
 						 * with no value */
-			      			throw MathParser::ErrGeneric(this,
+			      			throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 		      						"cannot create const named value "
 								"\"", v->GetName(), "\" with no value");
 					}
@@ -3313,13 +3310,13 @@ MathParser::stmt(void)
 					GetToken();
 					TypedValue d = logical();
 					if (v->Const()) {
-			      			throw MathParser::ErrGeneric(this,
+			      			throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 		      						"cannot assign const named value "
 								"\"", v->GetName(), "\"");
 			 		}
 
 			 		if (!v->IsVar()) {
-						throw MathParser::ErrGeneric(this,
+						throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 								"cannot assign non-var named value "
 								"\"", v->GetName(), "\"");
 			 		}
@@ -3396,7 +3393,7 @@ MathParser::readplugin(void)
 			if (c != ',' && c != ']') {
 				silent_cerr("need a separator "
 					"after closing quotes" << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			in->putback(c);
 			break;
@@ -3434,7 +3431,7 @@ MathParser::readplugin(void)
 		 */
 		if (i >= sizeof(buf)) {
 			silent_cerr("buffer overflow" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -3442,7 +3439,7 @@ last_arg:
 	if (in->eof()) {
 		silent_cerr("eof encountered while parsing plugin"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/*
@@ -3464,13 +3461,13 @@ last_arg:
 	 */
 	if (pginname == NULL || *pginname == '\0') {
 		silent_cerr("illegal or missing plugin name" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (varname == NULL || *varname == '\0') {
 		silent_cerr("illegal or missing plugin variable name"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/*
@@ -3480,7 +3477,7 @@ last_arg:
 	if (v != NULL) {
 		silent_cerr("variable " << varname << " already defined"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/*
@@ -3531,7 +3528,7 @@ last_arg:
 	 * si arriva qui solo se il plugin non e' stato registrato
 	 */
 	silent_cerr("plugin '" << pginname << "' not supported" << std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 TypedValue
@@ -3568,7 +3565,7 @@ powerstack()
 
 	defaultNameSpace = new StaticNameSpace();
 	if (RegisterNameSpace(defaultNameSpace)) {
-		throw ErrGeneric(this, "unable to register namespace "
+		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to register namespace "
 				"\"", defaultNameSpace->sGetName(), "\"");
 	}
 
@@ -3597,7 +3594,7 @@ powerstack()
 
 	defaultNameSpace = new StaticNameSpace();
 	if (RegisterNameSpace(defaultNameSpace)) {
-		throw ErrGeneric(this, "unable to register namespace "
+		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to register namespace "
 				"\"", defaultNameSpace->sGetName(), "\"");
 	}
 
@@ -3622,7 +3619,7 @@ MathParser::InsertSym(const char* const s, const Real& v, int redefine)
 			if (var->IsVar()) {
 				((Var *)var)->SetVal(TypedValue(v));
 			} else {
-				throw MathParser::ErrGeneric(this,
+				throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 						"cannot redefine "
 						"non-var " "named value "
 						"\"", var->GetName(), "\"");
@@ -3636,7 +3633,7 @@ MathParser::InsertSym(const char* const s, const Real& v, int redefine)
 	}
 
 	if (var == NULL) {
-		throw ErrGeneric(this, "error while adding real var '", s, "");
+		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "error while adding real var '", s, "");
 	}
 
 	return var;
@@ -3660,7 +3657,7 @@ MathParser::InsertSym(const char* const s, const Int& v, int redefine)
 				((Var *)var)->SetVal(TypedValue(v));
 
 			} else {
-				throw MathParser::ErrGeneric(this,
+				throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 						"cannot redefine "
 						"non-var named value "
 						"\"", var->GetName(), "\"");
@@ -3674,7 +3671,7 @@ MathParser::InsertSym(const char* const s, const Int& v, int redefine)
 	}
 
 	if (var == NULL) {
-		throw ErrGeneric(this, "error while adding integer var '", s, "");
+		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "error while adding integer var '", s, "");
 	}
 
 	return var;
@@ -3744,7 +3741,7 @@ MathParser::Get(const TypedValue& /* v */ )
 	GetToken();
 	TypedValue vv = stmt();
 	if (currtoken != STMTSEP && currtoken != ENDOFFILE) {
-		throw ErrGeneric(this, "statement separator expected");
+		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "statement separator expected");
 	}
 	return vv;
 }
@@ -3766,7 +3763,7 @@ MathParser::Get(const InputStream& strm, const TypedValue& v)
 		in->putback(',');
 
 	} else {
-		throw ErrGeneric(this, "separator expected");
+		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "separator expected");
 	}
 	in = (InputStream*)p;
 

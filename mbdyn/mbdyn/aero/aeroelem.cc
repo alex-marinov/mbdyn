@@ -415,7 +415,7 @@ AerodynamicBody::AfterConvergence(const VectorHandler& /* X */ ,
 		break;
 
 	case AeroData::HARRIS:
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 	case AeroData::BIELAWA:
       		for (integer i = 0; i < GDI.iGetNum(); i++) {
@@ -424,7 +424,7 @@ AerodynamicBody::AfterConvergence(const VectorHandler& /* X */ ,
 		break;
 
 	default:
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
 }
 
@@ -513,7 +513,7 @@ ReadUnsteadyFlag(MBDynParser& HP)
 							<< " at line "
 							<< HP.GetLineData()
 							<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
       				eInst = AeroData::UnsteadyModel(i);
 			}
@@ -529,12 +529,12 @@ ReadUnsteadyFlag(MBDynParser& HP)
 					"are not available at line "
 					<< HP.GetLineData()
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		default:
 	    		silent_cerr("illegal unsteady flag at line "
 					<< HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       		}
 
 		/*
@@ -556,7 +556,7 @@ ReadC81MultipleAeroData(DataManager* pDM, MBDynParser& HP, AeroData** aerodata)
 	if (nProfiles <= 0) {
 		silent_cerr("Need at least one profile at line "
 				<< HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	integer *profiles = NULL;
 	SAFENEWARR(profiles, integer, nProfiles+1);
@@ -574,7 +574,7 @@ ReadC81MultipleAeroData(DataManager* pDM, MBDynParser& HP, AeroData** aerodata)
 					<< " too small at line "
 					<< HP.GetLineData()
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		} else if (upper_bounds[i] > 1.) {
 			silent_cerr("upper bound " << i+1 << " = "
@@ -582,7 +582,7 @@ ReadC81MultipleAeroData(DataManager* pDM, MBDynParser& HP, AeroData** aerodata)
 					<< " too large at line "
 					<< HP.GetLineData()
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		} else if (i > 0 && upper_bounds[i] <= upper_bounds[i-1]) {
 			silent_cerr("upper bound " << i+1 << " = "
@@ -590,7 +590,7 @@ ReadC81MultipleAeroData(DataManager* pDM, MBDynParser& HP, AeroData** aerodata)
 					<< " not in increasing order "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		data[i] = HP.GetC81Data(profiles[i]);
 		if (data[i] == NULL) {
@@ -598,7 +598,7 @@ ReadC81MultipleAeroData(DataManager* pDM, MBDynParser& HP, AeroData** aerodata)
 					<< profiles[i] << " at line "
 					<< HP.GetLineData()
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
  		DEBUGLCOUT(MYDEBUG_INPUT, "profile data " << i+1
 				<< " is from file c81 " << profiles[i]
@@ -634,7 +634,7 @@ static void
 ReadC81InterpolatedAeroData(DataManager* pDM, MBDynParser& HP, AeroData** aerodata)
 {
 	silent_cerr("C81InterpolatedAeroData not implemented yet" << std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 static void
@@ -676,7 +676,7 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP,
 	if (*piNumber <= 0) {
 		silent_cerr("need at least 1 Gauss integration point at line "
 				<< HP.GetLineData()  << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
    	DEBUGLCOUT(MYDEBUG_INPUT, "Gauss points number: "
 			<< *piNumber << std::endl);
@@ -804,7 +804,7 @@ ReadAerodynamicBody(DataManager* pDM,
 		 	silent_cerr("Rotor(" << uNode << ") not defined "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		pRotor = dynamic_cast<Rotor *>(p);
 		ASSERT(pRotor != 0);
@@ -847,7 +847,7 @@ ReadAerodynamicBody(DataManager* pDM,
 			silent_cerr("AerodynamicBody(" << uLabel << "): "
 				"unknown output mode at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 	} else if (fOut) {
@@ -865,7 +865,7 @@ ReadAerodynamicBody(DataManager* pDM,
 	if (HP.IsArg()) {
 		silent_cerr("semicolon expected at line "
 			<< HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	Vec3 Ra3 = Ra.GetVec(3);
@@ -1278,7 +1278,7 @@ AerodynamicBeam::AfterConvergence(const VectorHandler& /* X */ ,
 		break;
 
 	case AeroData::HARRIS:
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 	case AeroData::BIELAWA:
 		for (integer i = 0; i < 3*GDI.iGetNum(); i++) {
@@ -1287,7 +1287,7 @@ AerodynamicBeam::AfterConvergence(const VectorHandler& /* X */ ,
 		break;
 
 	default:
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -1364,14 +1364,14 @@ ReadAerodynamicBeam(DataManager* pDM,
 		silent_cerr("Beam3(" << uBeam << ") not defined "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	Beam *pBeam = dynamic_cast<Beam *>(p);
 	if (pBeam == 0) {
 		silent_cerr("Beam(" << uBeam << ") is not a Beam3 "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	ASSERT(pBeam != 0);
 
@@ -1392,7 +1392,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 			silent_cerr("Rotor(" << uRotor << ") not defined "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		pRotor = dynamic_cast<Rotor *>(p);
 		ASSERT(pRotor != 0);
@@ -1464,7 +1464,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 			silent_cerr("AerodynamicBeam3(" << uLabel << "): "
 				"unknown output mode at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 	} else if (fOut) {
@@ -1484,7 +1484,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 	if (HP.IsArg()) {
 		silent_cerr("semicolon expected at line "
 			<< HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	std::ostream& out = pDM->GetLogFile();
@@ -1887,7 +1887,7 @@ AerodynamicBeam2::AfterConvergence(const VectorHandler& /* X */ ,
 		break;
 
 	case AeroData::HARRIS:
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 	case AeroData::BIELAWA:
       		for (integer i = 0; i < 2*GDI.iGetNum(); i++) {
@@ -1896,7 +1896,7 @@ AerodynamicBeam2::AfterConvergence(const VectorHandler& /* X */ ,
 		break;
 
 	default:
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
 }
 
@@ -1975,14 +1975,14 @@ ReadAerodynamicBeam2(
 		silent_cerr("Beam2(" << uBeam << ") not defined "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	Beam2* pBeam = dynamic_cast<Beam2 *>(p);
 	if (pBeam == 0) {
 		silent_cerr("Beam(" << uBeam << ") is not a Beam2 "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* Eventuale rotore */
@@ -2002,7 +2002,7 @@ ReadAerodynamicBeam2(
 			silent_cerr("Rotor(" << uRotor << " not defined "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		pRotor = dynamic_cast<Rotor *>(p);
 		ASSERT(pRotor != 0);
@@ -2061,7 +2061,7 @@ ReadAerodynamicBeam2(
 			silent_cerr("AerodynamicBeam2(" << uLabel << "): "
 				"unknown output mode at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 	} else if (fOut) {
@@ -2081,7 +2081,7 @@ ReadAerodynamicBeam2(
 	if (HP.IsArg()) {
 		silent_cerr("semicolon expected at line "
 			<< HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	std::ostream& out = pDM->GetLogFile();

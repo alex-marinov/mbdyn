@@ -80,7 +80,7 @@ ppMyRand(NULL)
    if (pthread_mutex_init(&parser_mutex, NULL)) {
       silent_cerr("DriveHandler::DriveHandler(): mutex init failed"
 		      << std::endl);
-      throw ErrGeneric();
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
 #endif /* USE_MULTITHREAD */
 
@@ -94,12 +94,12 @@ ppMyRand(NULL)
       if (pTime == NULL) {
 	 silent_cerr("DriveHandler::DriveHandler(): "
 		 "error while inserting symbol 'Time'" << std::endl); 
-	 throw ErrGeneric();
+	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
    } else {
       if (!v->IsVar()) {
 	 silent_cerr("Symbol 'Time' must be a variable" << std::endl);
-         throw ErrGeneric();
+         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
       pTime = (Var *)v;
    }
@@ -112,12 +112,12 @@ ppMyRand(NULL)
       if (pTimeStep == NULL) {
 	 silent_cerr("DriveHandler::DriveHandler(): "
 		 "error while inserting symbol 'TimeStep'" << std::endl); 
-	 throw ErrGeneric();
+	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
    } else {
       if (!v->IsVar()) {
 	 silent_cerr("Symbol 'TimeStep' must be a variable" << std::endl);
-         throw ErrGeneric();
+         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
       pTimeStep = (Var *)v;
    }
@@ -130,12 +130,12 @@ ppMyRand(NULL)
       if (pStep == NULL) {
 	 silent_cerr("DriveHandler::DriveHandler(): "
 		 "error while inserting symbol 'Step'" << std::endl); 
-	 throw ErrGeneric();
+	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
    } else {
       if (!v->IsVar()) {
 	 silent_cerr("Symbol 'Step' must be a variable" << std::endl);
-         throw ErrGeneric();
+         throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
       pStep = (Var *)v;
    }
@@ -148,13 +148,13 @@ ppMyRand(NULL)
       if (pVar == NULL) {
 	 silent_cerr("DriveHandler::DriveHandler(): "
 			 "error in Var symbol insertion" << std::endl);
-	 throw ErrGeneric();
+	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
 
    } else {
       if (!v->IsVar()) {
 	 silent_cerr("Symbol 'Var' must be a variable" << std::endl);
-	 throw ErrGeneric();
+	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
       pVar = (Var *)v;
    }
@@ -255,7 +255,7 @@ integer DriveHandler::iRandInit(integer iSteps)
       if (!MyRandLL.GetFirst(pmr)) {
 	 silent_cerr("Error in getting first random drive data" << std::endl);
 	 
-	 throw ErrGeneric();
+	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
       
 #ifdef DEBUG
@@ -278,7 +278,7 @@ integer DriveHandler::iRandInit(integer iSteps)
    
    if (MyRandLL.Add(pmr)) {
       silent_cerr("Error in insertion of random driver data" << std::endl);
-      throw ErrGeneric();
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
    
    return iNumber;
@@ -306,7 +306,7 @@ integer DriveHandler::iMeterInit(integer iSteps)
       if (!MyMeterLL.GetFirst(pmm)) {
 	 silent_cerr("Error in getting first meter drive data" << std::endl);
 	 
-	 throw ErrGeneric();
+	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
       
 #ifdef DEBUG
@@ -329,7 +329,7 @@ integer DriveHandler::iMeterInit(integer iSteps)
    
    if (MyMeterLL.Add(pmm)) {
       silent_cerr("Error in insertion of meter driver data" << std::endl);
-      throw ErrGeneric();
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
    
    return iNumber;

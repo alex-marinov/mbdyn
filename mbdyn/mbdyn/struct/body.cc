@@ -903,7 +903,7 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 			silent_cerr("Body(" << uLabel << "): "
 				"at least one mass is required in \"condense\" "
 				"at line " << HP.GetLineData() << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		DEBUGLCOUT(MYDEBUG_INPUT,
 			iNumMasses << " masses will be condensed" << std::endl);
@@ -997,7 +997,7 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	if (dm < std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("Body(" << uLabel << "): "
 			"mass value is too small" << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	Xgc = STmp/dm;
@@ -1025,7 +1025,7 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 				"illegal structural node type "
 				"for StructNode(" << pStrNode->GetLabel() << ") "
 				"at line " << HP.GetLineData() << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 	} else {
@@ -1035,7 +1035,7 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 				"illegal structural node type "
 				"for StructNode(" << pStrNode->GetLabel() << ") "
 				"at line " << HP.GetLineData() << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -1059,7 +1059,7 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	if (HP.IsArg()) {
 		silent_cerr("semicolon expected "
 			"at line " << HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return pEl;

@@ -301,7 +301,7 @@ LogScalarFunction::operator()(const doublereal x) const
 {
 	if (x <= 0.) {
 		silent_cerr("LogScalarFunction: argument must be positive" << std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return log(coef*x)*mul_const;
@@ -317,7 +317,7 @@ LogScalarFunction::ComputeDiff(const doublereal x, const integer order) const
 
 	if (x <= 0.) {
 		silent_cerr("LogScalarFunction: argument must be positive" << std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/*
@@ -351,7 +351,7 @@ struct LogSFR: public ScalarFunctionRead {
 					<< " at line "
 					<< HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -364,7 +364,7 @@ struct LogSFR: public ScalarFunctionRead {
 					<< " at line "
 					<< HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -432,7 +432,7 @@ struct ExpSFR: public ScalarFunctionRead {
 					<< " at line "
 					<< HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -445,7 +445,7 @@ struct ExpSFR: public ScalarFunctionRead {
 					<< " at line "
 					<< HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -476,7 +476,7 @@ CubicSplineScalarFunction::CubicSplineScalarFunction(
 				<< " is not less than "
 				"X[" << i + 1 << "]=" << *(xi + 1)
 				<< std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 	spline(X_i, Y_i, b, c, d);
@@ -576,7 +576,7 @@ MultiLinearScalarFunction::MultiLinearScalarFunction(
 				<< " is not less than "
 				"X[" << i + 1 << "]=" << *(xi + 1)
 				<< std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 }
@@ -675,7 +675,7 @@ ChebychevScalarFunction::operator()(const doublereal x) const
 			silent_cerr("Chebychev interpolation: "
 				"x=" << x << " is out of range "
 				"[" << da << "," << db << "]" << std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		return dfa + dfap*(x - da);
@@ -685,7 +685,7 @@ ChebychevScalarFunction::operator()(const doublereal x) const
 			silent_cerr("Chebychev interpolation: "
 				"x=" << x << " is out of range "
 				"[" << da << "," << db << "]" << std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		return dfb + dfbp*(x - db);
@@ -718,7 +718,7 @@ ChebychevScalarFunction::ComputeDiff(const doublereal x, const integer order) co
 
 	default:
 		silent_cerr("differentiation of order " << order << " not supported yet" << std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (x < da) {
@@ -726,7 +726,7 @@ ChebychevScalarFunction::ComputeDiff(const doublereal x, const integer order) co
 			silent_cerr("Chebychev interpolation: "
 				"x=" << x << " is out of range "
 				"[" << da << "," << db << "]" << std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		return dfap;
@@ -736,7 +736,7 @@ ChebychevScalarFunction::ComputeDiff(const doublereal x, const integer order) co
 			silent_cerr("Chebychev interpolation: "
 				"x=" << x << " is out of range "
 				"[" << da << "," << db << "]" << std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		return dfbp;
@@ -774,7 +774,7 @@ struct ChebychevSFR: public ScalarFunctionRead {
 				"of Chebychev series b=" << b
 				<< " must be larger than lower bound a=" << a
 				<< " at line" << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			
 		}
 		std::vector<doublereal> v;
@@ -787,7 +787,7 @@ struct ChebychevSFR: public ScalarFunctionRead {
 		if (order == 0) {
 			silent_cerr("Need at least one Chebychev series coefficient "
 				<< "at line" << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		return new ChebychevScalarFunction(v, a, b, doNotExtrapolate);
 	};
@@ -957,7 +957,7 @@ DivScalarFunction::operator()(const doublereal x) const
 	if (d == 0) {
 		/* TODO: cleanup exception handling */
 		silent_cerr("DivScalarFunction: division by zero" << std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	n = a1->operator()(x);
 	return n/d;
@@ -977,7 +977,7 @@ DivScalarFunction::ComputeDiff(const doublereal x, const integer order) const
 		if (d == 0.) {
 			/* TODO: cleanup exception handling */
 			silent_cerr("DivScalarFunction: division by zero" << std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		return a1->ComputeDiff(x, order)/d
@@ -1026,7 +1026,7 @@ ParseScalarFunction(MBDynParser& HP, DataManager* const pDM)
 			silent_cerr("unknown scalar function type \"" << s << "\" "
 				"for function \"" << func_name << "\" "
 				"at line " << HP.GetLineData() << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		try {
@@ -1040,14 +1040,14 @@ ParseScalarFunction(MBDynParser& HP, DataManager* const pDM)
 		if (!HP.SetScalarFunction(func_name, sf)) {
 			silent_cerr("scalar function \"" << func_name << "\" "
 				"already defined at line " << HP.GetLineData() << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 	} else if (HP.IsWord(SFWordSet)) {
 		silent_cerr("Error: redefinition of "
 			"\"" << func_name << "\" scalar function "
 			"at line " << HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	
 	return sf;
@@ -1082,7 +1082,7 @@ public:
 	virtual std::ostream& Restart(std::ostream& out) const {
 		silent_cerr("ScalarFunctionDriveCaller: Restart not implemented"
 			<< std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	};
 
 	virtual doublereal dGet(const doublereal& dVar) const {
@@ -1113,7 +1113,7 @@ ScalarFunctionDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 		silent_cerr("sorry, since the driver is not owned by a DataManager" << std::endl
 			<< "no driver dependent drivers are allowed;" << std::endl
 			<< "aborting ..." << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	const DriveHandler* pDrvHdl = pDM->pGetDrvHdl();
@@ -1152,7 +1152,7 @@ public:
 
 		} else {
 			silent_cerr("ScalarFunctionIsotropicCL<" << typeid(T).name() << ", " << typeid(Tder).name() << "> not implemented" << std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	};
 
@@ -1260,7 +1260,7 @@ ScalarFunctionIsotropicCLR<T, Tder>::Read(const DataManager* pDM,
 		silent_cerr("ScalarFunctionIsotropicCL"
 			"<" << typeid(T).name() << ", " << typeid(Tder).name() << "> "
 			"not implemented" << std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	
 	const BasicScalarFunction *pSF = ParseScalarFunction(HP, (DataManager *const)pDM);
@@ -1268,7 +1268,7 @@ ScalarFunctionIsotropicCLR<T, Tder>::Read(const DataManager* pDM,
 	if (psf == 0) {
 		silent_cerr("ScalarFunction must be differentiable "
 			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	typedef ScalarFunctionIsotropicCL<T, Tder> L;
@@ -1297,7 +1297,7 @@ public:
 
 		} else {
 			silent_cerr("ScalarFunctionOrthotropicCL<" << typeid(T).name() << ", " << typeid(Tder).name() << "> not implemented" << std::endl);
-			throw ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		ASSERT(sf.size() == n);
@@ -1372,7 +1372,7 @@ ScalarFunctionOrthotropicCLR<T, Tder>::Read(const DataManager* pDM,
 
 	} else if (typeid(T) != typeid(doublereal)) {
 		silent_cerr("ScalarFunctionOrthotropicCL<" << typeid(T).name() << ", " << typeid(Tder).name() << "> not implemented" << std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	
 	std::vector<const DifferentiableScalarFunction *> SF(n);
@@ -1386,7 +1386,7 @@ ScalarFunctionOrthotropicCLR<T, Tder>::Read(const DataManager* pDM,
 			if (SF[i] == 0) {
 				silent_cerr("ScalarFunction #" << i + 1 << " must be differentiable "
 					"at line " << HP.GetLineData() << std::endl);
-				throw ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 	}
@@ -1449,7 +1449,7 @@ InitSF(void)
 		silent_cerr("unable to register scalar function drive caller"
 			<< std::endl);
 
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* this is about initializing the scalar function constitutive law(s) */
@@ -1461,7 +1461,7 @@ InitSF(void)
 		silent_cerr("unable to register scalar function isotropic 1D constitutive law"
 			<< std::endl);
 
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	rf1D = new ScalarFunctionIsotropicCLR<doublereal, doublereal>;
@@ -1471,7 +1471,7 @@ InitSF(void)
 		silent_cerr("unable to register scalar function orthotropic 1D constitutive law"
 			<< std::endl);
 
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	rf1D = new ScalarFunctionIsotropicCLR<doublereal, doublereal>;
@@ -1481,7 +1481,7 @@ InitSF(void)
 		silent_cerr("unable to register scalar function 1D constitutive law"
 			<< std::endl);
 
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	ConstitutiveLawRead<Vec3, Mat3x3> *rf3D = new ScalarFunctionIsotropicCLR<Vec3, Mat3x3>;
@@ -1491,7 +1491,7 @@ InitSF(void)
 		silent_cerr("unable to register scalar function isotropic 3D constitutive law"
 			<< std::endl);
 
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	rf3D = new ScalarFunctionOrthotropicCLR<Vec3, Mat3x3>;
@@ -1501,7 +1501,7 @@ InitSF(void)
 		silent_cerr("unable to register scalar function orthotropic 3D constitutive law"
 			<< std::endl);
 
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	ConstitutiveLawRead<Vec6, Mat6x6> *rf6D = new ScalarFunctionIsotropicCLR<Vec6, Mat6x6>;
@@ -1511,7 +1511,7 @@ InitSF(void)
 		silent_cerr("unable to register scalar function isotropic 6D constitutive law"
 			<< std::endl);
 
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	rf6D = new ScalarFunctionOrthotropicCLR<Vec6, Mat6x6>;
@@ -1521,7 +1521,7 @@ InitSF(void)
 		silent_cerr("unable to register scalar function orthotropic 6D constitutive law"
 			<< std::endl);
 
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -1530,7 +1530,7 @@ DestroySF(void)
 {
 	if (::done == 0) {
 		silent_cerr("DestroySF() called once too many" << std::endl);
-		throw ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (--done > 0) {

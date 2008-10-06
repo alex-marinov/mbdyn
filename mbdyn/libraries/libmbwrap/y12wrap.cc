@@ -198,7 +198,7 @@ Y12Solver::Factor(void)
 			"error during pre-factorization, code " 
 			<< iIFAIL << ":" << std::endl);
 		PutError(iIFAIL);
-		throw Y12Solver::ErrFactorization(iIFAIL);
+		throw Y12Solver::ErrFactorization(iIFAIL, MBDYN_EXCEPT_ARGS);
 	}
 
 	/* actual factorization */
@@ -214,7 +214,7 @@ Y12Solver::Factor(void)
 			"error during factorization, code " 
 			<< iIFAIL << ":" << std::endl);
 		PutError(iIFAIL);
-		throw Y12Solver::ErrFactorization(iIFAIL);
+		throw Y12Solver::ErrFactorization(iIFAIL, MBDYN_EXCEPT_ARGS);
 	}
 
 	if (dAFLAG[7] < 1.e-12) {
@@ -248,7 +248,7 @@ Y12Solver::Solve(void) const
 			"error during back substitution, code "
 			<< iIFAIL << ":" << std::endl);
 		PutError(iIFAIL);
-		throw Y12Solver::ErrFactorization(iIFAIL);
+		throw Y12Solver::ErrFactorization(iIFAIL, MBDYN_EXCEPT_ARGS);
 	}
 	
 	if (bHasBeenReset) {

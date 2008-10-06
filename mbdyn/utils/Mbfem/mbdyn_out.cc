@@ -22,7 +22,7 @@ map<int,int> read_mov(char* InFileName,map<int,int> iminMb,
 	fmov = fopen(filemov,"r");
 	if (fmov == NULL) {
 		cerr << "Invalid path or filename - Aborting" << endl;
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	// Inizio della lettura delle posizioni iniziali dei nodi
 	int n1 = -1, N_mb = 0;
@@ -101,7 +101,7 @@ void read_frc(char* InFileName,map<int,int> idblock,vector<int> step_list,
 	ffrc = fopen(filefrc,"r");
 	if (ffrc == NULL) {
 		cerr << "Invalid path or filename - Aborting" << endl;
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	
 	// Acquisizione delle forze presenti nel modello

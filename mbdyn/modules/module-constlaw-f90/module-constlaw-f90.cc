@@ -89,7 +89,7 @@ public:
 	{
 		us1init_(&size, &m_v[0], &err);
 		if (err != 0) {
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	};
 
@@ -127,7 +127,7 @@ public:
 		us1updt_(&size, &m_v[0], &Eps, &EpsPrime, &dF, &dFDE, &dFDEP,
 			&err);
 		if (err != 0) {
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		ConstitutiveLaw<doublereal, doublereal>::F = dF;
 		ConstitutiveLaw<doublereal, doublereal>::FDE = dFDE;
@@ -137,7 +137,7 @@ public:
 	virtual void AfterConvergence(const doublereal& Eps, const doublereal& EpsPrime = 0.) {
 		us1aftc_(&size, &m_v[0], &Eps, &EpsPrime, &err);
 		if (err != 0) {
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	};
 };
@@ -155,7 +155,7 @@ public:
 	{
 		us3init_(&size, &m_v[0], &err);
 		if (err != 0) {
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	};
 
@@ -193,7 +193,7 @@ public:
 		us3updt_(&size, &m_v[0], Eps.pGetVec(), EpsPrime.pGetVec(),
 			dF, dFDE, dFDEP, &err);
 		if (err != 0) {
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		ConstitutiveLaw<Vec3, Mat3x3>::F = dF;
 		ConstitutiveLaw<Vec3, Mat3x3>::FDE = Mat3x3(dFDE, 3);
@@ -204,7 +204,7 @@ public:
 		us3aftc_(&size, &m_v[0], Eps.pGetVec(), EpsPrime.pGetVec(),
 			&err);
 		if (err != 0) {
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	};
 };
@@ -222,7 +222,7 @@ public:
 	{
 		us6init_(&size, &m_v[0], &err);
 		if (err != 0) {
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	};
 
@@ -261,7 +261,7 @@ public:
 		EpsPrime.PutTo(dEP);
 		us6updt_(&size, &m_v[0], dE, dEP, dF, dFDE, dFDEP, &err);
 		if (err != 0) {
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		ConstitutiveLaw<Vec6, Mat6x6>::F = dF;
 		ConstitutiveLaw<Vec6, Mat6x6>::FDE = Mat6x6(dFDE, 6);
@@ -274,7 +274,7 @@ public:
 		EpsPrime.PutTo(dEP);
 		us6aftc_(&size, &m_v[0], dE, dEP, &err);
 		if (err != 0) {
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	};
 };

@@ -87,7 +87,7 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 		// error
 		silent_cerr("flag file \"" << fflagname.c_str() << "\" "
 			"missing" << std::endl); 
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	int cmd;
@@ -111,7 +111,7 @@ ExtFileHandlerEDGE::Send_pre(bool bAfterConvergence)
 			silent_cerr("unable to open data file "
 				"\"" << fdataname.c_str() << "\" "
 				"for output" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		outf.setf(std::ios::scientific);
@@ -167,7 +167,7 @@ ExtFileHandlerEDGE::Recv_pre(void)
 		case EDGE_QUIT:
 			silent_cout("EDGE requested end of simulation"
 				<< std::endl);
-			throw NoErr();
+			throw NoErr(MBDYN_EXCEPT_ARGS);
 
 		default:
 			break;
@@ -197,7 +197,7 @@ done:;
 			silent_cerr("unable to open data file "
 				"\"" << fdataname.c_str() << "\" "
 				"for input" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 	} else {
@@ -229,7 +229,7 @@ ReadExtFileHandlerEDGE(DataManager* pDM,
 		silent_cerr("ExtForceEDGE(" << uLabel << "): "
 			"unable to get flag file name "
 			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	std::string fflagname = s;
 
@@ -238,7 +238,7 @@ ReadExtFileHandlerEDGE(DataManager* pDM,
 		silent_cerr("ExtForceEDGE(" << uLabel << "): "
 			"unable to get data file name "
 			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	std::string fdataname = s;
 
@@ -250,7 +250,7 @@ ReadExtFileHandlerEDGE(DataManager* pDM,
 				"invalid sleep time " << iSleepTime
 				<< " at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 

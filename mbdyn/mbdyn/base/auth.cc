@@ -82,14 +82,14 @@ PasswordAuth::PasswordAuth(const char *u, const char *c, const char *salt_format
 		if (strlen(tmp) >= sizeof(Cred)) {
 			silent_cerr("unable to handle credentials (too long)"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 	} else {
 		tmp = crypt(c, mbdyn_make_salt(salt, sizeof(salt), salt_format));
 		if (tmp == NULL) {
 			silent_cerr("crypt() failed" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -106,7 +106,7 @@ PasswordAuth::Auth(const char *user, const char *cred) const
 
 	char *tmp = crypt(cred, Cred);
 	if (tmp == NULL) {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (strcmp(User, user) == 0 && strcmp(Cred, tmp) == 0) {
@@ -119,7 +119,7 @@ PasswordAuth::Auth(const char *user, const char *cred) const
 AuthMethod::AuthRes
 PasswordAuth::Auth(int sock) const
 {
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 #endif /* HAVE_CRYPT */
@@ -299,7 +299,7 @@ PAM_Auth::PAM_Auth(const char *u)
 
 		if (pw == NULL) {
 			silent_cerr("PAM_Auth: cannot determine the effective user!" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		u = pw->pw_name;
@@ -322,7 +322,7 @@ PAM_Auth::PAM_Auth(const char *u)
 			silent_cerr("PAM_Auth: unable to release PAM authenticator" << std::endl);
 		}
 		
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (pam_end(pamh, retval) != PAM_SUCCESS) {
@@ -373,7 +373,7 @@ PAM_Auth::Auth(const char *user, const char *cred) const
 AuthMethod::AuthRes
 PAM_Auth::Auth(int sock) const
 {
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 #endif /* USE_PAM */
@@ -421,14 +421,14 @@ SASL2_Auth::SASL2_Auth(const mbdyn_sasl_t *ms)
 	log_server_f = mbdyn_sasl_log;
 
 	if (mbdyn_sasl_init(&mbdyn_sasl) != SASL_OK) {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
 AuthMethod::AuthRes
 SASL2_Auth::Auth(const char *user, const char *cred) const
 {
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 AuthMethod::AuthRes
@@ -493,14 +493,14 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
 		if (!HP.IsKeyWord("user")) {
 			silent_cerr("ReadAuthMethod: user expected at line "
 					<< HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		const char* tmp = HP.GetStringWithDelims();
 		if (strlen(tmp) == 0) {
 			silent_cerr("ReadAuthMethod: Need a legal user id at line "
 					<< HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		char* user = 0;
@@ -509,7 +509,7 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
 		if (!HP.IsKeyWord("credentials")) {
 			silent_cerr("ReadAuthMethod: credentials expected at line "
 					<< HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (HP.IsKeyWord("prompt")) {
@@ -547,7 +547,7 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
 #else /* !HAVE_CRYPT */
 		silent_cerr("ReadAuthMethod: line " << HP.GetLineData()
 				<< ": no working crypt(3)" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* !HAVE_CRYPT */
 	}
 
@@ -559,7 +559,7 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
 			if (strlen(tmp) == 0) {
 				silent_cerr("ReadAuthMethod: Need a legal user id at line "
 						<< HP.GetLineData() << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			SAFESTRDUP(user, tmp);
@@ -570,7 +570,7 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
 #else /* !USE_PAM */
 		silent_cerr("ReadAuthMethod: line " << HP.GetLineData()
 			<< ": no PAM support" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* !USE_PAM */
 	}
 
@@ -594,7 +594,7 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
 #else /* !HAVE_SASL2 */
 		silent_cerr("ReadAuthMethod: line " << HP.GetLineData()
 			<< ": no SASL2 support" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* !HAVE_SASL2 */
 	}
 
@@ -602,7 +602,7 @@ ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
 		silent_cerr("ReadAuthMethod: PWDB not implemented yet" << std::endl);
 
 	default:
-		throw ErrNotImplementedYet();
+		throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 	}
 
 	return pAuth;

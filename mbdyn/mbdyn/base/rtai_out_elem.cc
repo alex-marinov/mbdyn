@@ -66,7 +66,7 @@ host(h), node(n), name(m), create(c), port(-1), mbx(0)
 		if (mbdyn_rt_mbx_init(name, size, &mbx)) {
 			silent_cerr("RTMBDyn mailbox(" << name << ") "
 				"init failed" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 	} else {
@@ -79,7 +79,7 @@ host(h), node(n), name(m), create(c), port(-1), mbx(0)
 		if (mbdyn_RT_get_adr(node, port, name, &mbx)) {
 			silent_cerr("RTMBDyn mailbox(" << name << ") "
 				"get_adr failed" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 }
@@ -144,14 +144,14 @@ ReadRTMBDynOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			silent_cerr("RTMBDynOutElem(" << uLabel << "): "
 				"unable to read mailbox name "
 				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		} else if (strlen(m) != 6) {
 			silent_cerr("RTMBDynOutElem(" << uLabel << "): "
 				"illegal mailbox name \"" << m << "\" "
 				"(must be exactly 6 chars) "
 				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		SAFESTRDUP(name, m);
@@ -160,7 +160,7 @@ ReadRTMBDynOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		silent_cerr("RTMBDynOutElem(" << uLabel << "): "
 			"missing mailbox name "
 			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (HP.IsKeyWord("create")) {
@@ -172,7 +172,7 @@ ReadRTMBDynOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			silent_cerr("RTMBDynOutElem(" << uLabel << "): "
 				"\"create\" must be \"yes\" or \"no\" "
 				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 	
@@ -201,7 +201,7 @@ ReadRTMBDynOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			silent_cerr("RTMBDynOutElem(" << uLabel << "): "
 				"unable to read host "
 				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (create) {
@@ -232,13 +232,13 @@ ReadRTMBDynOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 					"\"" << host << "\" "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 #else /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
 			silent_cerr("RTMBDynOutElem(" << uLabel << "): "
 				"host (RTAI RPC) not supported "
 				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
 		}
 	}
@@ -248,7 +248,7 @@ ReadRTMBDynOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		silent_cerr("RTMBDynOutElem(" << uLabel << "): "
 			"illegal number of channels "
 			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	std::vector<ScalarValue *> Values(nch);
@@ -261,7 +261,7 @@ ReadRTMBDynOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		silent_cerr("RTMBDynOutElem(" << uLabel << "): "
 			"semicolon expected at line " << HP.GetLineData()
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
       
 	/* costruzione dell'elemento */

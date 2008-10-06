@@ -402,7 +402,7 @@ Beam::dGetPrivData(unsigned int i) const
 	default:
 		silent_cerr("Beam(" << GetLabel() << "): "
 			"illegal private data " << i << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -476,7 +476,7 @@ Beam::DsDxi(void)
 			silent_cerr("warning, beam " << GetLabel()
 				<< " has singular metric; aborting ..." << std::endl);
 
-			throw Beam::ErrGeneric();
+			throw Beam::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -1039,7 +1039,7 @@ Beam::Output_pch(std::ostream& out) const
 		if (label > 9999999) {
 			silent_cerr("label of Beam(" << label <<") "
 				"is too large" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		const char *name = GetName();
@@ -1284,7 +1284,7 @@ Beam::pGetNode(unsigned int i) const
 	case 3:
 		return pNode[i-1];
 	default:
-		throw Beam::ErrGeneric();
+		throw Beam::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -1895,7 +1895,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 			<< ": Beam(" << uLabel << ") "
 			"does not support dynamic constitutive laws yet"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 #ifdef DEBUG
@@ -1951,7 +1951,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 				<< ": Beam(" << uLabel << ") "
 				"does not support dynamic constitutive laws yet"
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -1986,7 +1986,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 			silent_cerr("PiezoElectricBeam(" << uLabel << "): "
 				"illegal number of electric nodes " << iNumElec
 				<< " at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		SAFENEWARR(pvElecDofs, ScalarDifferentialNode*, iNumElec);
@@ -1999,7 +1999,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 				silent_cerr("PiezoElectricBeam(" << uLabel << "): "
 					"can't find AbstractNode(" << uL << ") "
 					"at line " << HP.GetLineData() << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -2127,7 +2127,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	if (HP.IsArg()) {
 		silent_cerr("semicolon expected "
 			"at line " << HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return pEl;

@@ -61,7 +61,7 @@ sCurrFile(NULL)
    	char s[PATHBUFSIZE];
    	if (getcwd(s, PATHBUFSIZE) == NULL) {
 		silent_cerr("Error in getcwd()" << std::endl);
-      		throw ErrFileSystem();
+      		throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
    	}
 	SAFESTRDUP(sCurrPath, s);
    	DEBUGCOUT("Current directory is <" << sCurrPath << '>' << std::endl);
@@ -124,7 +124,7 @@ void IncludeParser::Close(void)
       		if (chdir(sCurrPath)) {
 			silent_cerr("Error in chdir, path=" 
 				<< sCurrPath << std::endl);
-	 		throw ErrFileSystem();
+	 		throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
       		}
 #endif /* USE_INCLUDE_PARSER */
 
@@ -184,7 +184,7 @@ IncludeParser::fCheckStack(void)
       		if (chdir(sCurrPath)) {
 			silent_cerr("Error in chdir, path=" 
 				<< sCurrPath << std::endl);
-	 		throw ErrFileSystem();
+	 		throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
       		}
 #endif /* USE_INCLUDE_PARSER */
       
@@ -202,7 +202,7 @@ IncludeParser::Include_int()
 		silent_cerr("Parser error in IncludeParser::Include_int(),"
 			" colon expected at line " << GetLineData() 
 			<< std::endl);
-      		throw HighParser::ErrColonExpected();
+      		throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
    	}
    
    	const char* sfname = GetFileName();
@@ -218,21 +218,21 @@ IncludeParser::Include_int()
 				<< save_errno 
 				<< " (" << strerror(save_errno) << ")" 
 				<< std::endl);
-      			throw ErrFile();
+      			throw ErrFile(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (!S_ISREG(s.st_mode)) {
 			silent_cerr("File <" << sfname << "> "
 				"at line " << GetLineData() << ": "
 				"not a regular file?" << std::endl);
-      			throw ErrFile();
+      			throw ErrFile(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (!(s.st_mode & S_IRUSR)) {
 			silent_cerr("File <" << sfname << "> "
 				"at line " << GetLineData() << ": "
 				"no read permissions?" << std::endl);
-      			throw ErrFile();
+      			throw ErrFile(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -263,7 +263,7 @@ IncludeParser::Include_int()
    
 		silent_cerr("Invalid file <" << sfname << "> "
 			"at line " << GetLineData() << std::endl);
-      		throw ErrFile();
+      		throw ErrFile(MBDYN_EXCEPT_ARGS);
    	}
    
    	SAFENEWWITHCONSTRUCTOR(pIn, InputStream, InputStream(*pf));
@@ -282,13 +282,13 @@ IncludeParser::Include_int()
 	 		if (chdir(stmp)) {
 				silent_cerr("Error in chdir, path=" 
 					<< stmp << std::endl);
-	    			throw ErrFileSystem();
+	    			throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
 	 		}
 	 		char p[PATHBUFSIZE];
 	 		if (getcwd(p, PATHBUFSIZE) == NULL) {
 				silent_cerr("Error in getcwd()" << std::endl);
 	    			SAFEDELETEARR(stmp);
-	    			throw ErrFileSystem();
+	    			throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
 	 		}
 			SAFESTRDUP(sCurrPath, p);
 	 		DEBUGCOUT("Current directory is <" << sCurrPath 
@@ -308,7 +308,7 @@ IncludeParser::Include_int()
       		char s[PATHBUFSIZE];
       		if (getcwd(s, PATHBUFSIZE) == NULL) {
 			silent_cerr("Error in getcwd()" << std::endl);
-	 		throw ErrFileSystem();
+	 		throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
       		}
 		SAFESTRDUP(sCurrPath, s);
       		DEBUGCOUT("Current directory is <" << sCurrPath 
@@ -335,7 +335,7 @@ void
 IncludeParser::Eof(void)
 {
 	if(!fCheckStack()) {
-		throw EndOfFile();
+		throw EndOfFile(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -353,7 +353,7 @@ IncludeParser::GetDescription_int(const char *s)
 				"in IncludeParser::Include_int(), "
 				"colon expected at line " << GetLineData() 
 				<< std::endl);
-      			throw HighParser::ErrColonExpected();
+      			throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
    		}
    
    		const char* sfname = GetFileName();
@@ -361,7 +361,7 @@ IncludeParser::GetDescription_int(const char *s)
       		if (chdir(sfname)) {
 			silent_cerr("Error in chdir, path = " 
 				<< sfname << std::endl);
-	 		throw ErrFileSystem();
+	 		throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
       		}
       		return true;
 

@@ -76,13 +76,13 @@ Elem* ReadBulk(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
        if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  silent_cerr("BulkSpringSupport(" << uLabel << "): parameter nodes "
 		  "are not allowed" << std::endl);
-	  throw DataManager::ErrGeneric();	      
+	  throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);	      
        }
 
        if (SD.iOrder > 1) {
 	  silent_cerr("BulkSpringSupport(" << uLabel << "): illegal order "
 			  << SD.iOrder << " for ScalarDof" << std::endl);
-	  throw DataManager::ErrGeneric();	      
+	  throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);	      
        }
        
        DriveCaller* pDC = HP.GetDriveCaller();
@@ -100,7 +100,7 @@ Elem* ReadBulk(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
     default: {
        silent_cerr("unknown bulk element type in bulk element " << uLabel
 	 << " at line " << HP.GetLineData() << std::endl);
-       throw DataManager::ErrGeneric();
+       throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
     }	
    }
    
@@ -108,7 +108,7 @@ Elem* ReadBulk(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    if (HP.IsArg()) {
       silent_cerr("semicolon expected at line " 
 	      << HP.GetLineData() << std::endl);
-      throw DataManager::ErrGeneric();
+      throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
    }   
    
    return pEl;

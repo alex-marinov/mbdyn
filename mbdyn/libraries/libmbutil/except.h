@@ -31,46 +31,90 @@
 #ifndef EXCEPT_H
 #define EXCEPT_H
 
-#include<exception>
+#include <exception>
 #include <stdio.h>
 
 #include <iostream>
 
-#if 0
-#ifdef USE_EXCEPTIONS
-#define THROW(cl) \
-    do {          \
-        throw cl; \
-    } while (0)
-#else /* !USE_EXCEPTIONS */
-#define THROW(cl)                                                   \
-    do {                                                            \
-        fprintf(stderr, "(%s,%d) aborting after call to exit()\n",  \
-                __FILE__, __LINE__);                                \
-        exit(EXIT_FAILURE);                                         \
-    } while (0)
-#endif /* !USE_EXCEPTIONS */
-#endif
+// Use this macro instead of the required set of args when declaring the constructor
+// of classes derived from Err_base
+#define MBDYN_EXCEPT_ARGS_DECL \
+	const char *file, int line, const char *func, const std::string r = std::string()
+// Use this macro instead of the required set of args when coding, not inline, the constructor
+// of classes derived from Err_base
+#define MBDYN_EXCEPT_ARGS_DECL_NODEF \
+	const char *file, int line, const char *func, const std::string r
+// Use this macro to pass the required set of args thru to Err_base from the constructor
+// of derived classes
+#define MBDYN_EXCEPT_ARGS_PASSTHRU \
+	file, line, func, r
+// Use this macro to pass the required set of args to error classes derived from Err_base
+#if __GNUC__ >= 2
+#define MBDYN_EXCEPT_ARGS \
+	__FILE__ , __LINE__ , __PRETTY_FUNCTION__
+#else // ! __GNUC__
+// FIXME: need to detect whether __func__ (C99) is available
+#define MBDYN_EXCEPT_ARGS \
+	__FILE__ , __LINE__ , "(unknown)"
+#endif // ! __GNUC__
 
-class NoErr {};
-class ErrGeneric {};
-class ErrInterrupted {};
-
-class ErrOutOfRange {};
-class ErrDivideByZero {};
-class ErrMemory {
-  public: 
-    ErrMemory(void) {};
-    ErrMemory(const char* const s) { silent_cerr(s << std::endl); };
-    ErrMemory(std::ostream& out, const char* const s) { out << s << std::endl; };   
+class MBDynErrBase : public std::exception {
+private:
+	std::string s;
+public:
+	MBDynErrBase(MBDYN_EXCEPT_ARGS_DECL);
+	virtual ~MBDynErrBase(void) throw() {};
+	const char * what(void) const throw();
 };
 
-class EndOfFile {};
-class ErrFile {};
-class ErrFileSystem {};
 
-class ErrNotAvailableYet {};
-class ErrNotImplementedYet {};
-
+class NoErr : public MBDynErrBase {
+public:
+	NoErr(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+};
+class ErrGeneric : public MBDynErrBase {
+public:
+	ErrGeneric(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+};
+class ErrInterrupted : public MBDynErrBase {
+public:
+	ErrInterrupted(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+};
+  
+class ErrOutOfRange : public MBDynErrBase {
+public:
+	ErrOutOfRange(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+};
+class ErrDivideByZero : public MBDynErrBase {
+public:
+	ErrDivideByZero(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+};
+class ErrMemory : public MBDynErrBase {
+public: 
+	ErrMemory(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+};
+  
+class EndOfFile : public MBDynErrBase {
+public:
+	EndOfFile(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+};
+class ErrFile : public MBDynErrBase {
+public:
+	ErrFile(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+};
+class ErrFileSystem : public MBDynErrBase {
+public:
+	ErrFileSystem(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+};
+  
+class ErrNotAvailableYet : public MBDynErrBase {
+public:
+	ErrNotAvailableYet(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+};
+class ErrNotImplementedYet : public MBDynErrBase {
+public:
+	ErrNotImplementedYet(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+};
+  
 #endif /* EXCEPT_H */
 

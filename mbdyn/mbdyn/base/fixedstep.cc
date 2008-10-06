@@ -60,7 +60,7 @@ dT0(t0), dDT(dt), iNumSteps(ins), bPadZeroes(pz), boWhen(bo), pd(0), pvd(0)
 	if (!in) {
 		silent_cerr("can't open file \""
 			<< sFileName << "\"" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/*
@@ -114,7 +114,7 @@ dT0(t0), dDT(dt), iNumSteps(ins), bPadZeroes(pz), boWhen(bo), pd(0), pvd(0)
 			if (in.eof()) {
 				silent_cerr("unexpected end of file '"
 					<< sFileName << '\'' << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 	}
@@ -146,6 +146,7 @@ FixedStepFileDrive::ServePending(const doublereal& t)
 	if (tt < 0) {
 		if (boWhen & Drive::BO_LOWER) {
 			throw Solver::EndOfSimulation(EXIT_SUCCESS,
+				MBDYN_EXCEPT_ARGS,
 				"A fixed step file drive lower bound is halting the simulation");
 		}
 
@@ -163,6 +164,7 @@ FixedStepFileDrive::ServePending(const doublereal& t)
 	} else if (tt > dDT*(iNumSteps - 1)) {
 		if (boWhen & Drive::BO_UPPER) {
 			throw Solver::EndOfSimulation(EXIT_SUCCESS,
+				MBDYN_EXCEPT_ARGS,
 				"A fixed step file drive upper bound is halting the simulation");
 		}
 
@@ -210,7 +212,7 @@ ReadFixedStepFileDrive(DataManager* pDM,
 				"invalid steps number " << isteps
 				<< " at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -220,7 +222,7 @@ ReadFixedStepFileDrive(DataManager* pDM,
 			"invalid channels number " << idrives
 			<< " at line " << HP.GetLineData()
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	doublereal t0 = HP.GetReal();
@@ -230,7 +232,7 @@ ReadFixedStepFileDrive(DataManager* pDM,
 			"invalid time step " << dt
 			<< " at line " << HP.GetLineData()
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	bool pz(true);
@@ -243,7 +245,7 @@ ReadFixedStepFileDrive(DataManager* pDM,
 		} else if (!HP.IsKeyWord("yes")) {
 			silent_cerr("unknown value for \"pad zeros\" "
 				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 	} else if (HP.IsKeyWord("bailout")) {
@@ -264,7 +266,7 @@ ReadFixedStepFileDrive(DataManager* pDM,
 				"invalid bailout parameter "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 

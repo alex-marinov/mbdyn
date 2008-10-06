@@ -138,7 +138,7 @@ DriveHingeJoint::SetValue(DataManager *pDM,
 					silent_cerr("DriveHingeJoint(" << uLabel << "): "
 						"unable to create drive "
 						"after hint #" << i << std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				TplDriveOwner<Vec3>::Set(pDC);
@@ -345,7 +345,7 @@ DriveHingeJoint::dGetPrivData(unsigned int i) const
 
 	default:
 		ASSERT(0);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 

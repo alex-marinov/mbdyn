@@ -277,7 +277,7 @@ ReadGenel(DataManager* pDM,
 				"parameter nodes are not allowed "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (SD.iOrder > 1) {
@@ -286,7 +286,7 @@ ReadGenel(DataManager* pDM,
 				<< " for ScalarDof "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		DriveCaller* pDC = HP.GetDriveCaller();
@@ -306,7 +306,7 @@ ReadGenel(DataManager* pDM,
 				"for ScalarDof 1 "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (SD1.iOrder > 1) {
@@ -315,7 +315,7 @@ ReadGenel(DataManager* pDM,
 				<< " for ScalarDof 1 "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		ScalarDof SD2 = ReadScalarDof(pDM, HP, 1);
@@ -325,7 +325,7 @@ ReadGenel(DataManager* pDM,
 				"for ScalarDof 2 "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (SD2.iOrder > 1) {
@@ -334,7 +334,7 @@ ReadGenel(DataManager* pDM,
 				<< " for ScalarDof 2 "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		DriveCaller* pDC = HP.GetDriveCaller();
@@ -354,7 +354,7 @@ ReadGenel(DataManager* pDM,
 				"parameter nodes not allowed for ScalarDof 1 "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (SD1.iOrder > 1) {
@@ -363,7 +363,7 @@ ReadGenel(DataManager* pDM,
 				<< " for ScalarDof 1 "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		ScalarDof SD2 = ReadScalarDof(pDM, HP, 1);
@@ -372,7 +372,7 @@ ReadGenel(DataManager* pDM,
 				"parameter nodes not allowed for ScalarDof 2 "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (SD2.iOrder > 1) {
@@ -381,7 +381,7 @@ ReadGenel(DataManager* pDM,
 				<< " for ScalarDof 2 "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		ConstLawType::Type CLType = ConstLawType::UNKNOWN;
@@ -393,7 +393,7 @@ ReadGenel(DataManager* pDM,
 				"not supported "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (CLType != ConstLawType::ELASTIC) {
@@ -401,7 +401,7 @@ ReadGenel(DataManager* pDM,
 				"only elastic constitutive laws allowed "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
@@ -419,7 +419,7 @@ ReadGenel(DataManager* pDM,
 				"parameter nodes not allowed for ScalarDof "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (SD.iOrder != 0 ||
@@ -431,7 +431,7 @@ ReadGenel(DataManager* pDM,
 				"of a differential node is required "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		ConstLawType::Type CLType = ConstLawType::UNKNOWN;
@@ -441,7 +441,7 @@ ReadGenel(DataManager* pDM,
 				"only elastic constitutive laws allowed "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
@@ -464,7 +464,7 @@ ReadGenel(DataManager* pDM,
 
 		default:
 			silent_cerr("You shouldn't be here!" << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		} break;
@@ -477,7 +477,7 @@ ReadGenel(DataManager* pDM,
 				"parameter nodes not allowed for ScalarDof 1 "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (SDRow.iOrder > 1) {
@@ -487,7 +487,7 @@ ReadGenel(DataManager* pDM,
 				<< " for ScalarDof 1 "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		ScalarDof SDCol = ReadScalarDof(pDM, HP, 1);
@@ -499,7 +499,7 @@ ReadGenel(DataManager* pDM,
 				"parameter nodes not allowed for ScalarDof "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (SDCol.iOrder != 0 ||
@@ -512,7 +512,7 @@ ReadGenel(DataManager* pDM,
 				"of a differential node is required "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		ConstLawType::Type CLType = ConstLawType::UNKNOWN;
@@ -524,7 +524,7 @@ ReadGenel(DataManager* pDM,
 				"dynamic constitutive laws not supported "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
@@ -547,7 +547,7 @@ ReadGenel(DataManager* pDM,
 
 		default:
 			silent_cerr("You shouldn't be here!" << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		} break;
@@ -559,7 +559,7 @@ ReadGenel(DataManager* pDM,
 				"parameter nodes not allowed for ScalarDof "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (SD.iOrder > 1) {
@@ -568,7 +568,7 @@ ReadGenel(DataManager* pDM,
 				<< " for ScalarDof 1 "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (SD.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL) {
@@ -576,7 +576,7 @@ ReadGenel(DataManager* pDM,
 				"only differential dofs allowed for ScalarDof "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		DriveCaller* pDC = HP.GetDriveCaller();
@@ -597,7 +597,7 @@ ReadGenel(DataManager* pDM,
 				"for output ScalarDof (y) "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (SD_y.iOrder > 1) {
@@ -606,7 +606,7 @@ ReadGenel(DataManager* pDM,
 				<< " for output ScalarDof (y) "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		ScalarValue *SV_u = ReadScalarValue(pDM, HP);
@@ -631,7 +631,7 @@ ReadGenel(DataManager* pDM,
 				"matrix A expected "
 				"at line " << HP.GetLineNumber()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		doublereal* pdA = 0;
@@ -646,7 +646,7 @@ ReadGenel(DataManager* pDM,
 				"matrix B expected "
 				"at line " << HP.GetLineNumber()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		doublereal* pdB = 0;
@@ -661,7 +661,7 @@ ReadGenel(DataManager* pDM,
 				"matrix C expected "
 				"at line " << HP.GetLineNumber()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		doublereal* pdC = 0;
@@ -707,7 +707,7 @@ ReadGenel(DataManager* pDM,
 					"unknown balance mode at line "
 					<< HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -729,7 +729,7 @@ ReadGenel(DataManager* pDM,
 				"for output ScalarDof (y) "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (SD_y.iOrder > 1) {
@@ -738,7 +738,7 @@ ReadGenel(DataManager* pDM,
 				<< " for output ScalarDof (y) "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		ScalarValue *SV_u = ReadScalarValue(pDM, HP);
@@ -779,7 +779,7 @@ ReadGenel(DataManager* pDM,
 					"unknown canonical form "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -789,7 +789,7 @@ ReadGenel(DataManager* pDM,
 				"invalid denominator order " << nd << " "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		std::vector<doublereal> den(nd + 1);
@@ -804,7 +804,7 @@ ReadGenel(DataManager* pDM,
 				"invalid numerator order " << nn << " "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		std::vector<doublereal> num(nd + 1);
@@ -914,7 +914,7 @@ ReadGenel(DataManager* pDM,
 					"unknown balance mode at line "
 					<< HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -935,7 +935,7 @@ ReadGenel(DataManager* pDM,
 				"illegal number of outputs "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		ScalarDof* pvSD_y = 0;
@@ -950,7 +950,7 @@ ReadGenel(DataManager* pDM,
 					"(y[" << i << "]) "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-				throw DataManager::ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (pvSD_y[i].iOrder > 1) {
@@ -960,7 +960,7 @@ ReadGenel(DataManager* pDM,
 					"(y[" << i << "]) "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-				throw DataManager::ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -970,7 +970,7 @@ ReadGenel(DataManager* pDM,
 				"illegal number of inputs "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		std::vector<ScalarValue *> SV_u(iNumInputs);
@@ -995,7 +995,7 @@ ReadGenel(DataManager* pDM,
 				"matrix A expected "
 				"at line " << HP.GetLineNumber()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		doublereal* pdA = 0;
@@ -1010,7 +1010,7 @@ ReadGenel(DataManager* pDM,
 				"matrix B expected "
 				"at line " << HP.GetLineNumber()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		doublereal* pdB = 0;
@@ -1025,7 +1025,7 @@ ReadGenel(DataManager* pDM,
 				"matrix C expected "
 				"at line " << HP.GetLineNumber()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		doublereal* pdC = 0;
@@ -1078,7 +1078,7 @@ ReadGenel(DataManager* pDM,
 					"unknown balance mode at line "
 					<< HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -1099,14 +1099,14 @@ ReadGenel(DataManager* pDM,
 		silent_cerr("Genel(" << uLabel << "): "
 			"unknown type at line " << HP.GetLineData()
 			<< std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {
 		silent_cerr("semicolon expected "
 			"at line " << HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return pEl;

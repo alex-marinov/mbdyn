@@ -155,7 +155,7 @@ FullSubMatrixHandler::Resize(integer iNewRow, integer iNewCol) {
 		silent_cerr("FullSubMatrixHandler::Resize() - error"
 				<< std::endl);
 
-		throw SubMatrixHandler::ErrResize();
+		throw SubMatrixHandler::ErrResize(MBDYN_EXCEPT_ARGS);
 	}
 
 	iNumRows = iNewRow;
@@ -1180,7 +1180,7 @@ SparseSubMatrixHandler::Resize(integer iNewRow, integer iNewCol)
 			|| iNewRow > iDoubleSize) {
 		silent_cerr("SparseSubMatrixHandler::Resize() - error"
 				<< std::endl);
-		throw SparseSubMatrixHandler::ErrResize();
+		throw SparseSubMatrixHandler::ErrResize(MBDYN_EXCEPT_ARGS);
 	}
 
 	iNumItems = iNewRow;
@@ -1635,7 +1635,7 @@ MySubVectorHandler::MySubVectorHandler(integer iSize, integer* piTmpRow,
 
 		if (pdTmpVec == 0) {
 			silent_cerr("MySubVectorHandler(): illegal args" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		
 		SAFENEWARR(piTmpRow, integer, iSize);
@@ -1652,7 +1652,7 @@ MySubVectorHandler::Resize(integer iSize)
 {
 	if (iSize < 0) {
 		silent_cerr("Negative size!" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	ASSERT((piRowm1 == NULL && pdVecm1 == NULL)
@@ -1663,7 +1663,7 @@ MySubVectorHandler::Resize(integer iSize)
 			silent_cerr("Can't resize to " << iSize
 				<< ": larger than max size " << iMaxSize
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		iCurSize = iSize;
 

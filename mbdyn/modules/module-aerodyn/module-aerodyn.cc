@@ -342,7 +342,7 @@ module_aerodyn_read(
 	if (::module_aerodyn != NULL) {
 		silent_cerr("Another module-aerodyn might be running; error"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	
 	/*
@@ -390,7 +390,7 @@ module_aerodyn_read(
 		silent_cerr("Aerodyn(" << pEl->GetLabel() << "): "
 			"nacelle node not defined "
 			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* read hub node */
@@ -399,7 +399,7 @@ module_aerodyn_read(
 		silent_cerr("Aerodyn(" << pEl->GetLabel() << "): "
 			"hub node not defined "
 			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	p->Hub_Tower_xy_distance = HP.GetReal();
@@ -425,7 +425,7 @@ module_aerodyn_read(
 			"invalid number of blades " << NBlades
 			<< " at line " << HP.GetLineData()
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// number of elements per blade
@@ -435,7 +435,7 @@ module_aerodyn_read(
 			"invalid number of elements per blade " << NElems
 			<< " at line " << HP.GetLineData()
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	p->nblades = NBlades;
@@ -493,7 +493,7 @@ module_aerodyn_read(
 				"unable to get file name "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		p->ofname = ofname;
 		p->out.open(ofname);
@@ -502,7 +502,7 @@ module_aerodyn_read(
 				"unable to open file \"" << ofname << "\" "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -514,7 +514,7 @@ module_aerodyn_read(
 		if (input_file_name == 0) {
 			silent_cerr("unable to get input file name "
 				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		F_INTEGER input_file_name_len = strlen(input_file_name);
@@ -528,7 +528,7 @@ module_aerodyn_read(
 		silent_cerr("Aerodyn(" << pEl->GetLabel() << "): "
 			"initialization failed "
 			"(err=" << rc << ")" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	(void)__FC_DECL__(mbdyn_true)(&p->FirstLoop);

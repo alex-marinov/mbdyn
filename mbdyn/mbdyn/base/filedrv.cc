@@ -212,7 +212,7 @@ read_stream:;
 				<< " not allowed at line " << HP.GetLineData()
 				<< " because apparently the current architecture "
 				"does not support sockets" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif // ! USE_SOCKET
 		}
 		break;
@@ -220,7 +220,7 @@ read_stream:;
 	default:
 		silent_cerr("unknown file drive at line " << HP.GetLineData()
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return pDr;

@@ -616,7 +616,7 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
    if (pModalJoint == 0 || pModalJoint->GetJointType() != Joint::MODAL) {
       silent_cerr("Joint " << pM->GetLabel()
 	      << " is required to be a modal joint" << std::endl);
-      throw DataManager::ErrGeneric();
+      throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
    
    ReferenceFrame RF(pModalNode);
@@ -649,7 +649,7 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
    if (!fdat) {
      silent_cerr(std::endl << "Unable to open file \"" << sFileData << "\""
 	     << std::endl);
-     throw DataManager::ErrGeneric();
+     throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
    }	
    SpMapMatrixHandler* pAMat = NULL;
    FullMatrixHandler* pBMat = NULL;	   
@@ -743,7 +743,7 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
    if (HP.IsArg()) {
       silent_cerr("semicolon expected at line " 
 	      << HP.GetLineData() << std::endl);
-      throw DataManager::ErrGeneric();
+      throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
    }   
    
    return pEl;

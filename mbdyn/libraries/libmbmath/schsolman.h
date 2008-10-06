@@ -67,7 +67,11 @@ const int S_TAG = 200;
 
 class SchurSolutionManager : public SolutionManager {
 public: 
-	class ErrGeneric {};
+	class ErrGeneric : public MBDynErrBase {
+	public:
+		ErrGeneric(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+
    
 private:
 

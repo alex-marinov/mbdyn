@@ -148,7 +148,7 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 	}
 
 	if (ChangedEqStructure) {
-		throw ChangedEquationStructure();
+		throw ChangedEquationStructure(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -248,7 +248,7 @@ DataManager::AssRes(VectorHandler& ResHdl,
 	}
 
 	if (ChangedEqStructure) {
-		throw ChangedEquationStructure();
+		throw ChangedEquationStructure(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -480,7 +480,7 @@ void DataManager::InverseDofInit(bool bIsSquare)
      	 	DEBUGCERR("");
      	 	silent_cerr("no dof owners are defined" << std::endl);
     	  
-      		throw DataManager::ErrGeneric();
+      		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}	   	
   	 
   	 	
@@ -521,7 +521,7 @@ void DataManager::InverseDofInit(bool bIsSquare)
 		DEBUGCERR("");
       		silent_cerr("no dofs are defined" << std::endl);
      	 
-      		throw DataManager::ErrGeneric();
+      		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}	   	
 }  
 

@@ -11,6 +11,7 @@ crypt.h \
 destr.h \
 dummypgin.cc \
 dummypgin.h \
+except.cc \
 except.h \
 filename.h \
 fn_UNIX.cc \
@@ -66,5 +67,7 @@ mbsasltest_LDADD = @THREAD_LIBS@ @SECURITY_LIBS@ \
 ./libmbutil.la
 
 testexcept_SOURCES = testexcept.cc
+testexcept_LDADD =  \
+./libmbutil.la
 
 include $(top_srcdir)/build/bot.mk

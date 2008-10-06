@@ -218,16 +218,16 @@ public:
 	{
 		if (typeid(T) == typeid(Vec3)) {
 			if (dc.size() != 3) {
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 		} else if (typeid(T) == typeid(Vec6)) {
 			if (dc.size() != 6) {
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 		} else {
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	};
 
@@ -322,7 +322,7 @@ public:
 
 		} else {
 			silent_cerr("component template drive used with unknown type" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		for (unsigned i = 0; i < dc.size(); i++) {
@@ -529,7 +529,7 @@ public:
 		if (iNumDr == 0) {
 			silent_cerr("At least one drive is required "
 				"in array template drive" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		} else if (iNumDr == 1) {
 			return SingleTDCR<T>::Read(pDM, HP);
@@ -634,7 +634,7 @@ ReadDC1D(const DataManager* pDM, MBDynParser& HP)
 	if (func == DC1DFuncMap.end()) {
 		silent_cerr("unknown template drive caller 1D type \"" << s << "\" "
 			"at line " << HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return func->second->Read(pDM, HP);
@@ -652,7 +652,7 @@ ReadDC3D(const DataManager* pDM, MBDynParser& HP)
 	if (func == DC3DFuncMap.end()) {
 		silent_cerr("unknown template drive caller 3D type \"" << s << "\" "
 			"at line " << HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return func->second->Read(pDM, HP);
@@ -670,7 +670,7 @@ ReadDC6D(const DataManager* pDM, MBDynParser& HP)
 	if (func == DC6DFuncMap.end()) {
 		silent_cerr("unknown template drive caller 6D type \"" << s << "\" "
 			"at line " << HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return func->second->Read(pDM, HP);
@@ -716,7 +716,7 @@ DestroyTplDC(void)
 {
 	if (::done == 0) {
 		silent_cerr("DestroyTplDC() called once too many" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (--::done > 0) {

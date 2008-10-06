@@ -51,7 +51,10 @@
 
 class SchurMatrixHandler : public MatrixHandler {
 public:
-	class ErrGeneric{};
+	class ErrGeneric : public MBDynErrBase {
+	public:
+		ErrGeneric(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
 
 protected:
 	integer LSize, ISize; /* dimensioni locali, interfacce */
@@ -212,7 +215,7 @@ SchurMatrixHandler::PutCoef(integer iRow, integer iCol,
 		<< iRow << "," << iCol << std::endl);
 #endif /* ! USE_MPI */
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 inline void
@@ -255,7 +258,7 @@ SchurMatrixHandler::IncCoef(integer iRow, integer iCol,
 		<< iRow << "," << iCol << std::endl);
 #endif /* ! USE_MPI */
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 inline void
@@ -298,7 +301,7 @@ SchurMatrixHandler::DecCoef(integer iRow, integer iCol,
 		<< iRow << "," << iCol << std::endl);
 #endif /* ! USE_MPI */
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 inline const doublereal&
@@ -374,7 +377,7 @@ SchurMatrixHandler::operator()(integer iRow, integer iCol)
 		<< iRow << "," << iCol << std::endl);
 #endif /* ! USE_MPI */
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 inline const doublereal&
@@ -498,7 +501,10 @@ SchurMatrixHandler::PrintMatrix(void)
 
 class SchurVectorHandler : public VectorHandler {
 public:
-	class ErrGeneric{};
+	class ErrGeneric: public MBDynErrBase {
+	public:
+		ErrGeneric(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
 
 private:
 	integer LSize, ISize;
@@ -614,7 +620,7 @@ SchurVectorHandler::PutCoef(integer iRow, const doublereal& dCoef)
 			"trying to operate on nonlocal index "
 			<< iRow << std::endl);
 #endif /* ! USE_MPI */
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	return;
 }
@@ -643,7 +649,7 @@ SchurVectorHandler::IncCoef(integer iRow, const doublereal& dCoef)
 			"trying to operate on nonlocal index "
 			<< iRow << std::endl);
 #endif /* ! USE_MPI */
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	return;
 }
@@ -672,7 +678,7 @@ SchurVectorHandler::DecCoef(integer iRow, const doublereal& dCoef)
 			"trying to operate on nonlocal index "
 			<< iRow << std::endl);
 #endif /* ! USE_MPI */
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	return;
 }
@@ -740,7 +746,7 @@ SchurVectorHandler::operator()(integer iRow)
 		"cannot be used on nonlocal index "
 		<< iRow << std::endl);
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 inline void
@@ -764,7 +770,11 @@ SchurVectorHandler::PrintVector(void)
 
 class SchurMatrixHandlerUm : public SchurMatrixHandler {
 public:
-	class ErrGeneric{};
+	class ErrGeneric : public MBDynErrBase {
+	public:
+		ErrGeneric(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+
 
 private:
 	doublereal* pdEs;
@@ -883,7 +893,7 @@ SchurMatrixHandlerUm::PutCoef(integer iRow, integer iCol,
 		<< iRow << "," << iCol << std::endl);
 #endif /* ! USE_MPI */
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 inline void
@@ -931,7 +941,7 @@ SchurMatrixHandlerUm::IncCoef(integer iRow, integer iCol,
 		<< iRow << "," << iCol << std::endl);
 #endif /* ! USE_MPI */
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 inline void
@@ -979,7 +989,7 @@ SchurMatrixHandlerUm::DecCoef(integer iRow, integer iCol,
 		<< iRow << "," << iCol << std::endl);
 #endif /* ! USE_MPI */
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 inline const doublereal&

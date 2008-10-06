@@ -149,7 +149,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 			if (outputBailout()) {
 				pS->PrintResidual(*pRes, iIterCnt);
 			}
-			throw NoConvergence();
+			throw NoConvergence(MBDYN_EXCEPT_ARGS);
 		}
           
       		iIterCnt++;
@@ -213,7 +213,7 @@ rebuild_matrix:;
 #endif /* USE_MPI */
 		}
 		if (dSolErr < SolTol) {
-			throw ConvergenceOnSolution();
+			throw ConvergenceOnSolution(MBDYN_EXCEPT_ARGS);
 		}
 	}
 }

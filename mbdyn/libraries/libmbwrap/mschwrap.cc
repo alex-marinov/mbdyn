@@ -51,7 +51,7 @@ pdVecm1(NULL)
       		pv = v_get(iSize);
       		if (pv == VNULL) {
 	 		silent_cerr("out of memory?" << std::endl);
-	 		throw ErrMemory();
+	 		throw ErrMemory(MBDYN_EXCEPT_ARGS);
       		}
 		pdVecm1 = pv->ve - 1;
    	}
@@ -93,7 +93,7 @@ MeschachVectorHandler::Resize(integer iNewSize)
    	VEC* p = v_resize(pv, iNewSize);
    	if (p == VNULL) {
       		silent_cerr("out of memory?" << std::endl);
-      		throw ErrMemory();
+      		throw ErrMemory(MBDYN_EXCEPT_ARGS);
    	}
    	pv = p;
 	pdVecm1 = pv->ve - 1;
@@ -186,7 +186,7 @@ MeschachSparseSolutionManager::Create(unsigned integer iSize,
       		PERM* p = px_resize(pivot, iSize);
       		if (p == PNULL) {
 	 		silent_cerr("out of memory?" << std::endl);
-	 		throw ErrMemory();
+	 		throw ErrMemory(MBDYN_EXCEPT_ARGS);
       		}
       		pivot = p;
    	}

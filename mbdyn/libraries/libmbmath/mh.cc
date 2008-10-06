@@ -117,7 +117,7 @@ MatrixHandler::MatMatMul_base(void (MatrixHandler::*op)(integer iRow,
 			|| out->iGetNumCols() != in.iGetNumCols()
 			|| in.iGetNumRows() != iGetNumCols())
 	{
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	for (integer c = 1; c <= out->iGetNumCols(); c++) {
@@ -144,7 +144,7 @@ MatrixHandler::MatTMatMul_base(void (MatrixHandler::*op)(integer iRow,
 			|| out->iGetNumCols() != in.iGetNumCols()
 			|| in.iGetNumRows() != iGetNumRows())
 	{
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	for (integer c = 1; c <= out->iGetNumCols(); c++) {
@@ -212,7 +212,7 @@ MatrixHandler::MatVecMul_base(void (VectorHandler::*op)(integer iRow,
 {
 	if (out.iGetSize() != iGetNumRows()
 			|| in.iGetSize() != iGetNumCols()) {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	for (integer r = 1; r <= iGetNumRows(); r++) {
@@ -235,7 +235,7 @@ MatrixHandler::MatTVecMul_base(void (VectorHandler::*op)(integer iRow,
 {
 	if (out.iGetSize() != iGetNumCols()
 			|| in.iGetSize() != iGetNumRows()) {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	for (integer r = 1; r <= iGetNumCols(); r++) {

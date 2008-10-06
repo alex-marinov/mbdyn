@@ -94,7 +94,7 @@ unit_convert(const MathParser::MathArgs& args)
 		silent_cerr("utScan could not interpret "
 			"unit \"" << (*arg1)() << "\" in first arg"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	utUnit	u_to;
@@ -107,7 +107,7 @@ unit_convert(const MathParser::MathArgs& args)
 		silent_cerr("utScan could not interpret "
 			"unit \"" << (*arg2)() << "\" in second arg"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	double slope, intercept;
@@ -118,7 +118,7 @@ unit_convert(const MathParser::MathArgs& args)
 
 	default:
 		silent_cerr("utConvert failed (rc=" << rc << ")" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (arg3->IsFlag(MathParser::AF_OPTIONAL_NON_PRESENT)) {
@@ -126,7 +126,7 @@ unit_convert(const MathParser::MathArgs& args)
 			silent_cerr("conversion between \"" << (*arg1)() << "\" "
 				"and \"" << (*arg2)() << "\" "
 				"has non-zero intercept" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		*out = slope;
@@ -155,27 +155,27 @@ UDUnitsNameSpace::UDUnitsNameSpace(const char *path)
 	case UT_ENOFILE:
 		silent_cerr("utUnit could not find file \"" << path << "\""
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 	case UT_ESYNTAX:
 		silent_cerr("utUnit found a syntax error "
 			"in file \"" << path << "\"" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 	case UT_EUNKNOWN:
 		silent_cerr("utUnit found an unknown specification "
 			"in file \"" << path << "\"" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 	case UT_EIO:
 		silent_cerr("utUnit hit an I/O error while reading "
 			"file \"" << path << "\"" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 	case UT_EALLOC:
 		silent_cerr("utUnit ran out of memory while reading "
 			"file \"" << path << "\"" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	f.fname = "convert";

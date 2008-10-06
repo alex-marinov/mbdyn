@@ -413,7 +413,7 @@ Modal::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) const
 
 	if (i < -1 ) {
 		// error
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 	} else if (i == -1) {
 		std::string name(os.str());
@@ -444,7 +444,7 @@ Modal::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) const
 
 			if (unsigned(i) >= modulo*NStrNodes) {
 				// error
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			os << ": StructNode(" << pInterfaceNodes[i/modulo]->GetLabel() << ") "
@@ -510,7 +510,7 @@ Modal::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) const
 
 	if (i < -1 ) {
 		// error
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 	} else if (i == -1) {
 		std::string name(os.str());
@@ -541,7 +541,7 @@ Modal::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) const
 
 			if (unsigned(i) >= modulo*NStrNodes) {
 				// error
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			os << ": StructNode(" << pInterfaceNodes[i/modulo]->GetLabel() << ") "
@@ -1836,7 +1836,7 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 				"and second node hinge axis "
 				"are (nearly) orthogonal; aborting ..."
 				<< std::endl);
-			throw Joint::ErrGeneric();
+			throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		
 		MWedge = Mat3x3(v1, v2, v3);
@@ -2376,7 +2376,7 @@ Modal::dGetPrivData(unsigned int i) const
 	switch (p) {
 	case 0:
 		if (w) {
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		} else {
 			if (pModalNode) {
@@ -2482,7 +2482,7 @@ Modal::dGetPrivData(unsigned int i) const
 		break;
 	}
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 Mat3xN *
@@ -2667,7 +2667,7 @@ ReadModal(DataManager* pDM,
 				"StructuralNode(" << uNode << ") "
 				"at line " << HP.GetLineData()
 				<< " not defined" << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (pTmpNode->GetStructNodeType() != StructNode::MODAL) {
@@ -2676,7 +2676,7 @@ ReadModal(DataManager* pDM,
 				"StructuralNode(" << uNode << ") "
 				"at line " << HP.GetLineData() 
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		pModalNode = dynamic_cast<ModalNode *>(pTmpNode);
 
@@ -2695,7 +2695,7 @@ ReadModal(DataManager* pDM,
 		silent_cerr("Modal(" << uLabel << "): "
 			"illegal number of modes " << tmpNModes << " at line "
 			<< HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	unsigned int NModes = (unsigned int)tmpNModes;
 
@@ -2729,7 +2729,7 @@ ReadModal(DataManager* pDM,
 					"illegal " << iCnt + 1 << "'" << th 
 					<< " mode number " << n 
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			/* FIXME: check for duplicates? */
@@ -2750,7 +2750,7 @@ ReadModal(DataManager* pDM,
 			silent_cerr("Modal(" << uLabel << "): "
 				"illegal number of FEM nodes " << tmpNFemNodes
 				<< " at line " << HP.GetLineData() << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		NFemNodes = unsigned(tmpNFemNodes);
 	}
@@ -2842,7 +2842,7 @@ ReadModal(DataManager* pDM,
 		silent_cerr("Modal(" << uLabel << "): unable to get "
 			"modal data file name at line " << HP.GetLineData()
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	const char *sFileFem = NULL;
@@ -2858,7 +2858,7 @@ ReadModal(DataManager* pDM,
 					"invalid threshold " << dStiffnessThreshold
 					<< " at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			dMassThreshold = dStiffnessThreshold;
 
@@ -2869,7 +2869,7 @@ ReadModal(DataManager* pDM,
 					"invalid mass threshold " << dMassThreshold
 					<< " at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 		} else if (HP.IsKeyWord("stiffness" "threshold")) {
@@ -2879,7 +2879,7 @@ ReadModal(DataManager* pDM,
 					"invalid stiffness threshold " << dStiffnessThreshold
 					<< " at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 		} else {
@@ -2921,7 +2921,7 @@ ReadModal(DataManager* pDM,
 				"unable to stat(\"" << sFileFem << "\") "
 				"(" << save_errno << ": " << errmsg << ")"
 				<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (bUseBinary || bCreateBinary || bUpdateBinary) {
@@ -2944,7 +2944,7 @@ ReadModal(DataManager* pDM,
 						"unable to stat(\"" << sBinFileFem << "\") "
 						"(" << save_errno << ": " << errmsg << ")"
 						<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			
 		} else {
@@ -3019,7 +3019,7 @@ ReadModal(DataManager* pDM,
 			silent_cerr("Modal(" << uLabel << "): "
 				"unable to open file \"" << sFileFem << "\""
 				"at line " << HP.GetLineData() << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		/* don't leave behind a corrupted .bin file */
@@ -3032,7 +3032,7 @@ ReadModal(DataManager* pDM,
 				silent_cerr("Modal(" << uLabel << "): "
 					"unable to open file \"" << sBinFileFem << "\""
 					"at line " << HP.GetLineData() << std::endl);
-				throw DataManager::ErrGeneric();
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			currBinVersion = BinVersion;
@@ -3058,7 +3058,7 @@ ReadModal(DataManager* pDM,
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 1\" already parsed"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 		 		fdat.getline(str, sizeof(str));
@@ -3093,7 +3093,7 @@ ReadModal(DataManager* pDM,
 						<< " does not match node number "
 						<< NFemNodesFEM
 						<< std::endl);
-					throw DataManager::ErrGeneric();
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (NModes != NModesFEM) {
@@ -3105,7 +3105,7 @@ ReadModal(DataManager* pDM,
 				}
 
 				if (!bActiveModes.empty()) {
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				FemMass.resize(NFemNodes);
@@ -3129,7 +3129,7 @@ ReadModal(DataManager* pDM,
 							<< " is not available (max = "
 							<< NModesFEM << ")"
 							<< std::endl);
-						throw ErrGeneric();
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 					bActiveModes[uModeNumber[iCnt]] = true;
 				}
@@ -3151,14 +3151,14 @@ ReadModal(DataManager* pDM,
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 2\" already parsed"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!bRecordGroup[1]) {
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				for (unsigned int iNode = 0; iNode < NFemNodes; iNode++) {
@@ -3187,14 +3187,14 @@ ReadModal(DataManager* pDM,
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 3\" already parsed"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!bRecordGroup[1]) {
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				unsigned int iCnt = 1;
@@ -3204,7 +3204,7 @@ ReadModal(DataManager* pDM,
 						"input file \"" << sFileFem << "\""
 						"is bogus (RECORD GROUP 3)"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (bWriteBIN) {
@@ -3236,14 +3236,14 @@ ReadModal(DataManager* pDM,
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 4\" already parsed"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!bRecordGroup[1]) {
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				unsigned int iCnt = 1;
@@ -3253,7 +3253,7 @@ ReadModal(DataManager* pDM,
 						"input file \"" << sFileFem << "\""
 						"is bogus (RECORD GROUP 4)"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 	
 				if (bWriteBIN) {
@@ -3285,14 +3285,14 @@ ReadModal(DataManager* pDM,
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 5\" already parsed"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!bRecordGroup[1]) {
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (bWriteBIN) {
@@ -3323,14 +3323,14 @@ ReadModal(DataManager* pDM,
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 6\" already parsed"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!bRecordGroup[1]) {
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (bWriteBIN) {
@@ -3361,14 +3361,14 @@ ReadModal(DataManager* pDM,
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 7\" already parsed"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!bRecordGroup[1]) {
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (bWriteBIN) {
@@ -3399,14 +3399,14 @@ ReadModal(DataManager* pDM,
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 8\" already parsed"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!bRecordGroup[1]) {
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (bWriteBIN) {
@@ -3426,7 +3426,7 @@ ReadModal(DataManager* pDM,
 						"input file \"" << sFileFem << "\""
 						"is bogus (RECORD GROUP 8)"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 	
 				unsigned int iCnt = 1;
@@ -3438,7 +3438,7 @@ ReadModal(DataManager* pDM,
 							"input file \"" << sFileFem << "\""
 							"is bogus (\"**\" expected)"
 							<< std::endl);
-						throw ErrGeneric();
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 					
 					for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
@@ -3480,14 +3480,14 @@ ReadModal(DataManager* pDM,
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 9\" already parsed"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!bRecordGroup[1]) {
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (bActiveModes.empty()) {
@@ -3495,7 +3495,7 @@ ReadModal(DataManager* pDM,
 						"input file \"" << sFileFem << "\""
 						"is bogus (RECORD GROUP 9)"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (bWriteBIN) {
@@ -3540,14 +3540,14 @@ ReadModal(DataManager* pDM,
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 10\" already parsed"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!bRecordGroup[1]) {
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (bActiveModes.empty()) {
@@ -3555,7 +3555,7 @@ ReadModal(DataManager* pDM,
 						"input file \"" << sFileFem << "\""
 						"is bogus (RECORD GROUP 10)"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 	
 				if (bWriteBIN) {
@@ -3600,14 +3600,14 @@ ReadModal(DataManager* pDM,
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 11\" already parsed"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!bRecordGroup[1]) {
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (bWriteBIN) {
@@ -3666,14 +3666,14 @@ ReadModal(DataManager* pDM,
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 12\" already parsed"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!bRecordGroup[1]) {
 					silent_cerr("file=\"" << sFileFem << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (bWriteBIN) {
@@ -3740,7 +3740,7 @@ ReadModal(DataManager* pDM,
 			silent_cerr("Modal(" << uLabel << "): "
 				"unable to open file \"" << sBinFileFem << "\""
 				"at line " << HP.GetLineData() << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		silent_cout("Modal(" << uLabel << "): "
 			"reading flexible body data from file "
@@ -3770,7 +3770,7 @@ ReadModal(DataManager* pDM,
 			silent_cerr("Modal(" << uLabel << "): "
 					"file \"" << sBinFileFem << "\" "
 					"version " << currBinVersion << " unsupported" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		} else if (currBinVersion < BinVersion) {
 			silent_cout("Modal(" << uLabel << "): "
@@ -3794,7 +3794,7 @@ ReadModal(DataManager* pDM,
 					"file \"" << sBinFileFem << "\" "
 					"looks broken (expecting checkpoint 1)"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		pedantic_cout("Modal(" << uLabel << "): "
@@ -3814,7 +3814,7 @@ ReadModal(DataManager* pDM,
 				<< " does not match node number "
 				<< NFemNodesFEM
 				<< std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (NModes != NModesFEM) {
@@ -3826,7 +3826,7 @@ ReadModal(DataManager* pDM,
 		}
 
 		if (!bActiveModes.empty()) {
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		FemMass.resize(NFemNodes);
@@ -3850,7 +3850,7 @@ ReadModal(DataManager* pDM,
 					<< " is not available (max = "
 					<< NModesFEM << ")"
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			bActiveModes[uModeNumber[iCnt]] = true;
 		}
@@ -3864,7 +3864,7 @@ ReadModal(DataManager* pDM,
 					"file \"" << sBinFileFem << "\" "
 					"looks broken (expecting checkpoint 2)"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		pedantic_cout("Modal(" << uLabel << "): "
@@ -3900,7 +3900,7 @@ ReadModal(DataManager* pDM,
 						"file \"" << sBinFileFem << "\" "
 						"looks broken (expecting checkPoint 3)"
 						<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			silent_cerr("Modal(" << uLabel << "): "
@@ -3937,7 +3937,7 @@ ReadModal(DataManager* pDM,
 						"file \"" << sBinFileFem << "\" "
 						"looks broken (expecting checkPoint 4)"
 						<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			silent_cerr("Modal(" << uLabel << "): "
@@ -3973,7 +3973,7 @@ ReadModal(DataManager* pDM,
 					"file \"" << sBinFileFem << "\" "
 					"looks broken (expecting checkpoint 5)"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		pedantic_cout("Modal(" << uLabel << "): "
@@ -4000,7 +4000,7 @@ ReadModal(DataManager* pDM,
 					"file \"" << sBinFileFem << "\" "
 					"looks broken (expecting checkpoint 6)"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		pedantic_cout("Modal(" << uLabel << "): "
@@ -4027,7 +4027,7 @@ ReadModal(DataManager* pDM,
 					"file \"" << sBinFileFem << "\" "
 					"looks broken (expecting checkpoint 7)"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		pedantic_cout("Modal(" << uLabel << "): "
@@ -4054,7 +4054,7 @@ ReadModal(DataManager* pDM,
 					"file \"" << sBinFileFem << "\" "
 					"looks broken (expecting checkpoint 8)"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		pedantic_cout("Modal(" << uLabel << "): "
@@ -4093,7 +4093,7 @@ ReadModal(DataManager* pDM,
 					"file \"" << sBinFileFem << "\" "
 					"looks broken (expecting checkpoint 9)"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		pedantic_cout("Modal(" << uLabel << "): "
@@ -4128,7 +4128,7 @@ ReadModal(DataManager* pDM,
 					"file \"" << sBinFileFem << "\" "
 					"looks broken (expecting checkpoint 10)"
 					<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		pedantic_cout("Modal(" << uLabel << "): "
@@ -4233,7 +4233,7 @@ ReadModal(DataManager* pDM,
 					"file \"" << sBinFileFem << "\" "
 					"looks broken (expecting final checkpoint)"
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -4291,7 +4291,7 @@ ReadModal(DataManager* pDM,
 				"FEM node \"" << FemOriginNode << "\""
 				<< " at line " << HP.GetLineData()
 				<< " not defined " << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		iNode++;
@@ -4367,7 +4367,7 @@ ReadModal(DataManager* pDM,
 				"FEM node \"" << Node1 << "\""
 				<< " at line " << HP.GetLineData()
 				<< " not defined " << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		iNode++;
@@ -4404,7 +4404,7 @@ ReadModal(DataManager* pDM,
 				"StructuralNode(" << uNode2 << ") "
 				"at line " << HP.GetLineData()
 				<< " not defined" << std::endl);
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		/* offset del nodo Multi-Body */

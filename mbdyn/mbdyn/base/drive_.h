@@ -415,7 +415,7 @@ StepDriveCaller::dGetP(const doublereal& dVar) const
 	/* FIXME: what if we get exactly to the step time? */
 	if (dVar == dStepTime) {
 		silent_cerr("singularity in step drive derivative at " << dVar << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return 0.;
@@ -485,7 +485,7 @@ DoubleStepDriveCaller::dGetP(const doublereal& dVar) const
 	/* FIXME: what if we get exactly to the step time? */
 	if (dVar == dStepTime || dVar == dEndStepTime) {
 		silent_cerr("singularity in double step drive derivative at " << dVar << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return 0.;
@@ -973,7 +973,7 @@ FourierSeriesDriveCaller::dGetP(const doublereal& dVar) const
 	if (dVar == dStartTime || (!bNeverEnd && dVar == dEndTime)) {
 		if (bSingular) {
 			silent_cerr("singularity in fourier series drive derivative at " << dVar << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		dVal /= 2.;
 	}
@@ -1282,7 +1282,7 @@ PiecewiseLinearDriveCaller::dGet(const doublereal& dVar) const
 		}
 	}
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 inline bool
@@ -1319,7 +1319,7 @@ PiecewiseLinearDriveCaller::dGetP(const doublereal& dVar) const
 		}
 	}
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* PiecewiseLinearDriveCaller - end */

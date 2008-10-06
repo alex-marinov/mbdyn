@@ -382,7 +382,7 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
 					"in " << psElemNames[pTmpEl->GetElemType()]
 					<< "(" << pTmpEl->GetLabel() << ")"
 					<< std::endl);
-				throw ErrDivideByZero();
+				throw ErrDivideByZero(MBDYN_EXCEPT_ARGS);
 			}
 
 		} while (Iter.bGetNext(pTmpEl));
@@ -474,13 +474,13 @@ DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
 					"in " << psElemNames[pTmpEl->GetElemType()]
 					<< "(" << pTmpEl->GetLabel() << ")"
 					<< std::endl);
-				throw ErrDivideByZero();
+				throw ErrDivideByZero(MBDYN_EXCEPT_ARGS);
 			}
 
 		} while (Iter.bGetNext(pTmpEl));
 	}
 	if (ChangedEqStructure) {
-		throw ChangedEquationStructure();
+		throw ChangedEquationStructure(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -504,22 +504,22 @@ DataManager::ElemOutputPrepare(OutputHandler& OH)
 
 			l = snprintf(buf, sizeof(buf), "%s_elem_labels_dim", ElemData[et].ShortDesc);
 			if (l <= 0 || l >= int(sizeof(buf))) {
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			NcDim *DimLabels = pBinFile->add_dim(buf, iNumElems);
 
 			l = snprintf(buf, sizeof(buf), "elem.%s", ElemData[et].ShortDesc);
 			if (l <= 0 || l >= int(sizeof(buf))) {
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			NcVar *VarLabels = pBinFile->add_var(buf, ncInt, DimLabels);
 
 			l = snprintf(buf, sizeof(buf), "%s elements labels", ElemData[et].Desc);
 			if (l <= 0 || l >= int(sizeof(buf))) {
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			if (!VarLabels->add_att("description", buf)) {
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			ElemMapType::const_iterator p = ElemData[et].ElemMap.begin();

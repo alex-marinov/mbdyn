@@ -489,8 +489,14 @@ class clMemMan {
 	friend ostream& operator << (ostream& rout, const clMemMan& rm);
 
 public:
-	class ErrGeneric {};
-	class ErrNotFound {};
+	class ErrGeneric : public MBDynErrBase {
+	public:
+		ErrGeneric(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrNotFound : public MBDynErrBase {
+	public:
+		ErrNotFound(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
 
 private:
 	struct stList {

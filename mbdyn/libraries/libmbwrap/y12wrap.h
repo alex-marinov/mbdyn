@@ -118,18 +118,20 @@
 
 class Y12Solver : public LinearSolver  {
 public:
-	class ErrFactorization {
+	class ErrFactorization : public MBDynErrBase {
 	private: 
 		integer iErrCode;
 
 	public:
-		ErrFactorization(integer i) : iErrCode(i) {
+		ErrFactorization(integer i, MBDYN_EXCEPT_ARGS_DECL) : 
+			MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU), iErrCode(i) {
 			NO_OP;
 		};
 
 		integer iGetErrCode(void) const {
 			return iErrCode;
 		};
+		ErrFactorization(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
 	};
 
 private:
@@ -215,11 +217,6 @@ public:
  */
 
 class Y12SparseSolutionManager : public SolutionManager {
-public: 
-	class ErrGeneric {};
-
-private:
-
 protected:
 	integer iMatSize;		/* ordine della matrice */
 	std::vector<integer> iRow;	/* array di interi con

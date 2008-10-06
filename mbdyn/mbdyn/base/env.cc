@@ -88,7 +88,7 @@ GetEnviron(MathParser& MP)
 	 		if (v == NULL) {
 	    			silent_cerr("parse error in envvar <" 
 					<< p << ">" << std::endl);
-	    			throw ErrGeneric();
+	    			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	 		}
 
 	 		*v = '\0';
@@ -106,7 +106,7 @@ GetEnviron(MathParser& MP)
 							"real <" << v << "> "
 							"for var <" << p << ">"
 							<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 	    			DEBUGCOUT("setting real var <" 
 					<< n << "=" << d << ">" << std::endl);
@@ -117,7 +117,7 @@ GetEnviron(MathParser& MP)
 							" error in insertion"
 							" of real symbol <"
 		    					<< n << ">" << std::endl);
-		  				throw ErrGeneric();
+		  				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	       				}
 	    			}
 	    
@@ -131,7 +131,7 @@ GetEnviron(MathParser& MP)
 						"integer <" << v << "> "
 						"for var <" << p << ">"
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 #else /* !HAVE_STRTOL */
 	    			i = atol(v);
@@ -145,7 +145,7 @@ GetEnviron(MathParser& MP)
 							" error in insertion"
 							" of integer symbol <"
 		    					<< n << ">" << std::endl);
-		  				throw ErrGeneric();
+		  				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	       				}
 	    			}
 	    

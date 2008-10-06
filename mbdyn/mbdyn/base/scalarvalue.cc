@@ -104,7 +104,7 @@ ReadScalarValues(DataManager *pDM, MBDynParser& HP,
 	if (nch == 0) {
 		silent_cerr("Request to read an empty ScalarValue vector "
 			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	for (unsigned int i = 0; i < nch; i++) {

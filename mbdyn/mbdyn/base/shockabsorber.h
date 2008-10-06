@@ -61,7 +61,7 @@ public:
 			TplDriveCaller<T>* pDC,
 			MBDynParser& HP
 	) : ElasticConstitutiveLaw<T, Tder>(pDC, 0.) {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	};
    
 	virtual
@@ -270,7 +270,7 @@ public:
 				/*
 				 * Exit quietly if nothing else is provided
 				 */
-				throw NoErr();
+				throw NoErr(MBDYN_EXCEPT_ARGS);
 			}
 		
 		}
@@ -290,7 +290,7 @@ public:
 				silent_cerr("line " << HP.GetLineData()
 					<< ": epsilon min must be less"
 					" than epsilon max" << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -316,7 +316,7 @@ public:
 			silent_cerr("line " << HP.GetLineData()
 				<< ": at least one area (metering or orifice)"
 				" must be defined" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		AreaFluid = HP.GetReal();
@@ -330,7 +330,7 @@ public:
 					"Epsilon Prime " << EpsPrimeRef 
 					<< " at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			FrictionAmpl = HP.GetReal();
@@ -339,7 +339,7 @@ public:
 					"Amplitude Coefficient " << FrictionAmpl
 					<< " at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -520,7 +520,7 @@ public:
 		if (dArea <= 0.) {
 			silent_cerr("ShockAbsorberConstitutiveLaw::Update:"
 				" null or negative area" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		
 		doublereal d = .5*RhoFluid*AreaFluid*pow(AreaFluid/(dArea*Cd), 2);
@@ -531,7 +531,7 @@ public:
 		FDEPrime += d*fabs(EpsPrime);
 
 		if (ChangeJac) {
-			throw Elem::ChangedEquationStructure();
+			throw Elem::ChangedEquationStructure(MBDYN_EXCEPT_ARGS);
 		}
 	};
 
@@ -603,7 +603,7 @@ public:
 		/* aggiungere ulteriori case */
 		}
 
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	};
 
 	virtual std::ostream& OutputAppend(std::ostream& out) const {

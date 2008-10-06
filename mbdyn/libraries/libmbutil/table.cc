@@ -131,7 +131,7 @@ Table::Table(Int s, Int f) : size(s), v(NULL)
       if (n == NULL) { 
 	 silent_cerr(func_name << ": unable to insert " << p->name 
 		 << std::endl);
-	 throw ErrGeneric();
+	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
       p++;
    }
@@ -177,7 +177,7 @@ Table::Put(const char* const name, const TypedValue& x)
    if (pVar != NULL) {
       silent_cerr(func_name << ": name \"" << name 
 	<< "\" already defined" << std::endl);
-      throw Table::ErrNameAlreadyDefined();
+      throw Table::ErrNameAlreadyDefined(MBDYN_EXCEPT_ARGS);
    }
    
    int ii = FindRow(name);
@@ -199,7 +199,7 @@ Table::Put(NamedValue *p)
    if (pVar != NULL) {
       silent_cerr(func_name << ": name \"" << p->GetName()
 	<< "\" already defined" << std::endl);
-      throw Table::ErrNameAlreadyDefined();
+      throw Table::ErrNameAlreadyDefined(MBDYN_EXCEPT_ARGS);
    }
 
    int ii = FindRow(p->GetName());

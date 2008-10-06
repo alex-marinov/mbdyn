@@ -175,7 +175,7 @@ WsmpSolver::Solve(void) const
 		/* de-allocate memory */
 		wsmp_clear_();
 
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	
 	iparm[1] = 4;
@@ -191,7 +191,7 @@ WsmpSolver::Solve(void) const
 		/* de-allocate memory */
 		wsmp_clear_();
 
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	
 }
@@ -206,7 +206,7 @@ WsmpSolver::Factor(void)
 	 */
 		
 	if (!Symbolic && !bPrepareSymbolic()) {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	iparm[1] = 2;
@@ -224,7 +224,7 @@ WsmpSolver::Factor(void)
 		/* de-allocate memory */
 		wsmp_clear_();
 
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -266,7 +266,7 @@ WsmpSolver::bPrepareSymbolic(void)
 		/* de-allocate memory */
 		wsmp_clear_();
 
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	Symbolic = true;

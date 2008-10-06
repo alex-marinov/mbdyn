@@ -401,7 +401,7 @@ ReadGenericAerodynamicData(const std::string& fname)
 		silent_cerr("ReadGenericAerodynamicData: "
 			"unable to open file \"" << fname << "\""
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	char buf[LINE_MAX];
@@ -424,21 +424,21 @@ ReadGenericAerodynamicData(const std::string& fname)
 		silent_cerr("ReadGenericAerodynamicData(" << fname << "): "
 			"unable to read size of data matrix "
 			"from file \"" << fname << "\"" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (nAlpha <= 0) {
 		silent_cerr("ReadGenericAerodynamicData(" << fname << "): "
 			"invalid number of angles of attack " << nAlpha << " "
 			"from file \"" << fname << "\"" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (nBeta <= 0) {
 		silent_cerr("ReadGenericAerodynamicData(" << fname << "): "
 			"invalid number of sideslip angles " << nBeta << " "
 			"from file \"" << fname << "\"" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* skip comments */
@@ -452,7 +452,7 @@ ReadGenericAerodynamicData(const std::string& fname)
 		silent_cerr("ReadGenericAerodynamicData(" << fname << "): "
 			"unable to get to data "
 			"in file \"" << fname << "\"" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	GenericAerodynamicData *pData = new GenericAerodynamicData;
@@ -487,7 +487,7 @@ ReadGenericAerodynamicData(const std::string& fname)
 					"differs from previous, "
 						<< pData->Alpha[iAlpha]
 						<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			/* read (and check) beta */
@@ -506,7 +506,7 @@ ReadGenericAerodynamicData(const std::string& fname)
 					"differs from previous, "
 						<< pData->Beta[iBeta]
 						<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			for (int iCoef = 0; iCoef < 6; iCoef++) {
@@ -525,7 +525,7 @@ ReadGenericAerodynamicData(const std::string& fname)
 						"unable to read data past "
 						"iAlpha=" << iAlpha << ", "
 						"iBeta=" << iBeta << std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
 		}
@@ -545,7 +545,7 @@ ReadGenericAerodynamicData(const std::string& fname)
 				"strict ordering violated between "
 				"Alpha #" << iAlpha - 1 << " and "
 				"Alpha #" << iAlpha << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -563,7 +563,7 @@ ReadGenericAerodynamicData(const std::string& fname)
 				"strict ordering violated between "
 				"Beta #" << iBeta - 1 << " and "
 				"Beta #" << iBeta << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 

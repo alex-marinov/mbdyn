@@ -460,7 +460,7 @@ void Step1Integrator::PredictDof(const int DCount,
 			"PredictDof(): "
 			"unknown order for local dof " 
 			<< DCount << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -595,7 +595,7 @@ void Step2Integrator::PredictDof(const int DCount,
 			"PredictDof(): "
 			"unknown order for local dof " 
 			<< DCount << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 

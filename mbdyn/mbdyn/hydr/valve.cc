@@ -105,7 +105,7 @@ unsigned int Control_valve::iGetNumDof(void) const
 DofOrder::Order Control_valve::GetDofType(unsigned int i) const 
 {
    silent_cerr("ControlValve(" << GetLabel() << ") has no dofs!" << std::endl);
-   throw ErrGeneric();
+   throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 

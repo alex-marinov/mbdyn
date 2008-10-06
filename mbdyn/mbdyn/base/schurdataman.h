@@ -57,7 +57,10 @@ class Solver;
 
 class SchurDataManager : public DataManager {
 public:
-	class ErrGeneric {}; 
+	class ErrGeneric : public MBDynErrBase {
+	public:
+		ErrGeneric(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	}; 
 
 private:
 	int iTotVertices;	/* # totale dei vertici: nodi = elementi */ 

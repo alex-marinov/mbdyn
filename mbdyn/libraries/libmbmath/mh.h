@@ -59,9 +59,18 @@ class VariableSubMatrixHandler;
 
 class MatrixHandler {
 public:
-	class ErrGeneric {};
-	class ErrRebuildMatrix {};
-	class ErrMatrixIsSingular {};
+	class ErrGeneric : public MBDynErrBase {
+	public:
+		ErrGeneric(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrRebuildMatrix : public MBDynErrBase {
+	public:
+		ErrRebuildMatrix(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrMatrixIsSingular : public MBDynErrBase {
+	public:
+		ErrMatrixIsSingular(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
 
 public:
 	virtual ~MatrixHandler(void);

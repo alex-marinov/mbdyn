@@ -43,7 +43,7 @@ interp(NULL), cmd(NULL)
 {
 	interp = Tcl_CreateInterp();
 	if (interp == NULL) {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -73,7 +73,7 @@ TclPlugIn::Read(int argc, char *argv[])
 		type = TypedValue::VAR_INT;
 	} else {
 		silent_cerr("unknown type \"" << s_type << "\"" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	char *s_tcl = argv[1];
@@ -85,12 +85,12 @@ TclPlugIn::Read(int argc, char *argv[])
 		fin = fopen(s_tcl+7, "r");
 		if (fin == NULL) {
 			silent_cerr("TclPlugIn::Read: error" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (!fgets(buf, sizeof(buf), fin)) {
 			silent_cerr("TclPlugIn::Read: error" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		s = strdup(buf);
@@ -102,7 +102,7 @@ TclPlugIn::Read(int argc, char *argv[])
 			if (s == NULL) {
 				silent_cerr("TclPlugIn::Read: error" 
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			strcat(s, buf);
 		}
@@ -120,7 +120,7 @@ TclPlugIn::Read(int argc, char *argv[])
 
 	if (cmd == NULL) {
 		silent_cerr("TclPlugIn::Read: error" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return 0;
@@ -140,20 +140,20 @@ TclPlugIn::GetVal(void) const
 	if (Tcl_GlobalEvalObj(interp, cmd) != TCL_OK) {
 		silent_cerr("TclPlugIn::GetVal: Tcl_GlobalEvalObj: error" 
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if ((res = Tcl_GetObjResult(interp)) == NULL) {
 		silent_cerr("TclPlugIn::GetVal: Tcl_GlobalEvalObj: error" 
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	
 	Real d;
 	if (Tcl_GetDoubleFromObj(NULL, res, &d) != TCL_OK) {
 		silent_cerr("TclPlugIn::GetVal: Tcl_GetDoubleFromObj: error"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	Tcl_ResetResult(interp);

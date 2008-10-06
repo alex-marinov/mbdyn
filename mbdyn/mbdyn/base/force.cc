@@ -274,7 +274,7 @@ Elem* ReadForce(DataManager* pDM,
 	if (CurrType == UNKNOWN) {
 		silent_cerr(sFuncName << " at line " << HP.GetLineData() 
 			<< ": unknown force type" << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	switch (CurrType) {
@@ -293,7 +293,7 @@ Elem* ReadForce(DataManager* pDM,
 	default:
 		if (fCouple) {
 			silent_cerr("Force(" << uLabel << "): must be a \"force\"" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -386,7 +386,7 @@ Elem* ReadForce(DataManager* pDM,
 		doublereal d = Dir.Dot();
 		if (d <= DBL_EPSILON) {      
 			silent_cerr("Force(" << uLabel << ") has null direction" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		Dir /= sqrt(d);
  
@@ -606,7 +606,7 @@ Elem* ReadForce(DataManager* pDM,
 	if (HP.IsArg()) {
 		silent_cerr(sFuncName
 			<< ": semicolon expected at line " << HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return pEl;

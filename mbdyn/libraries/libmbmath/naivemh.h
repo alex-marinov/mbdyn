@@ -80,7 +80,7 @@ public:
 
 	/* Ridimensiona la matrice */
 	virtual void Resize(integer, integer) {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	};
 
 	virtual inline const doublereal&

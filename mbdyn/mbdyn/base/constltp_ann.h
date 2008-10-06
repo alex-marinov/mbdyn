@@ -54,12 +54,12 @@ protected:
 			dim = 6;
 
 		} else {
-			throw DataManager::ErrGeneric();
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		net = new ANN;
 		if (ANN_init(net, fname.c_str()) != 0) {
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -83,7 +83,7 @@ protected:
                 	net->input.vec[r] = E(r + 1);
 		}
                 if (ANN_sim(net, &net->input, &net->output, feedback)) {
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                 }
 		ANN_jacobian_matrix( net, &net->jacobian );
 
@@ -150,7 +150,7 @@ protected:
 	{
 		net = new ANN;
 		if (ANN_init(net, fname.c_str()) != 0) {
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -180,7 +180,7 @@ protected:
 		}
 
                 if (ANN_sim(net, &net->input, &net->output, feedback)) {
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                 }
 		ANN_jacobian_matrix(net, &net->jacobian);
 
@@ -261,7 +261,7 @@ protected:
                 if (ANN_sim(net, &net->input, &net->output, feedback))
 		{
                         silent_cout("AnnViscoElasticConstitutiveLaw: Network simulation error" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                 }
 		ANN_jacobian_matrix(net, &net->jacobian);
 
@@ -328,7 +328,7 @@ protected:
                 if (ANN_sim(net, &net->input, &net->output, feedback))
 		{
                         silent_cout("AnnViscoElasticConstitutiveLaw: Network simulation error" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
                 }
 		ANN_jacobian_matrix(net, &net->jacobian );
 	
@@ -385,7 +385,7 @@ struct AnnElasticCLR : public ConstitutiveLawRead<T, Tder> {
 			silent_cerr("AnnElasticCLR: "
 				"unable to get ann file name "
 				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		typedef AnnElasticConstitutiveLaw<T, Tder> L;
@@ -419,7 +419,7 @@ struct AnnViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 			silent_cerr("AnnViscoElasticCLR: "
 				"unable to get ann file name "
 				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		typedef AnnViscoElasticConstitutiveLaw<T, Tder> L;

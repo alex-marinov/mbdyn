@@ -102,7 +102,7 @@ NaiveSolver::Solve(void) const
 			break;
 		}
 
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -123,12 +123,12 @@ throw(LinearSolver::ErrFactor)
 		case NAIVE_ENULCOL:
 			silent_cerr("NaiveSolver: ENULCOL(" << idx << ")"
 				<< std::endl);
-			throw LinearSolver::ErrNullColumn(idx);
+			throw LinearSolver::ErrNullColumn(idx, MBDYN_EXCEPT_ARGS);
 	
 		case NAIVE_ENOPIV:
 			silent_cerr("NaiveSolver: ENOPIV(" << idx << ")"
 				<< std::endl);
-			throw LinearSolver::ErrNoPivot(idx);
+			throw LinearSolver::ErrNoPivot(idx, MBDYN_EXCEPT_ARGS);
 	
 		case NAIVE_ERANGE:
 			silent_cerr("NaiveSolver: ERANGE"
@@ -141,7 +141,7 @@ throw(LinearSolver::ErrFactor)
 			break;
 		}
 
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -328,7 +328,7 @@ NaiveSparsePermSolutionManager<Colamd_ordering>::ComputePermutation(void)
 		&Ai[0], &invperm[0], knobs, stats))
 	{
 		silent_cerr("colamd permutation failed" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	for (integer i = 0; i < A->iGetNumRows(); i++) {
 		perm[invperm[i]] = i;

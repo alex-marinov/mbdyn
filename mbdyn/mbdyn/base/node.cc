@@ -326,7 +326,7 @@ ScalarDifferentialNode::dGetPrivData(unsigned int i) const
 
 	}
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* ScalarDifferentialNode - end */
@@ -414,7 +414,7 @@ void
 ScalarAlgebraicNode::SetXPrime(const doublereal& /* d */ )
 {
 	DEBUGCERR("Error, setting derivative from algebraic dof" << std::endl);
-	throw Node::ErrGeneric();
+	throw Node::ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 void
@@ -513,7 +513,7 @@ ParameterNode::iGetNumDof(void) const
 DofOrder::Order
 ParameterNode::GetDofType(unsigned int i) const
 {
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	return DofOrder::UNKNOWN;
 }
 
@@ -641,7 +641,7 @@ const doublereal&
 Node2Scalar::dGetDofValue(int iDof, int iOrder) const
 {
 	if (iDof != 1) {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	return ND.pNode->dGetDofValue(ND.iDofNumber + 1, iOrder);
 }
@@ -652,7 +652,7 @@ const doublereal&
 Node2Scalar::dGetDofValuePrev(int iDof, int iOrder) const
 {
 	if (iDof != 1) {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	return ND.pNode->dGetDofValuePrev(ND.iDofNumber + 1, iOrder);
 }
@@ -668,7 +668,7 @@ Node2Scalar::SetDofValue(const doublereal& dValue,
 	if (iDof == 1) {
 		((Node*)ND.pNode)->SetDofValue(dValue, ND.iDofNumber + 1, iOrder);
 	}
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* Funzioni "spurie": consentono l'accesso ai dati privati;

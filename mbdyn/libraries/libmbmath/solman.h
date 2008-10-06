@@ -78,7 +78,10 @@ class SolutionDataManager {
 public:
 	virtual ~SolutionDataManager(void);
 
-	struct ChangedEquationStructure {};
+	struct ChangedEquationStructure: public MBDynErrBase {
+	public:
+		ChangedEquationStructure(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
 	
 	/* Collega il DataManager ed il DriveHandler ai vettori soluzione */
 	virtual void

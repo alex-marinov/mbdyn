@@ -98,7 +98,7 @@ ExtFileHandler::Send_pre(bool bAfterConvergence)
 						"\"" << fout.c_str() << "\": "
 						<< strerror(save_errno)
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 			} else {
@@ -130,7 +130,7 @@ ExtFileHandler::Send_pre(bool bAfterConvergence)
 	if (!outf) {
 		silent_cerr("unable to open file \"" << fout.c_str() << "\""
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (iPrecision != 0) {
@@ -182,7 +182,7 @@ ExtFileHandler::Recv_post(void)
 				silent_cerr("unable to delete input file "
 					"\"" << fin.c_str() << "\": "
 					<< strerror(save_errno) << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 	}
@@ -323,7 +323,7 @@ ReadExtFileHandler(DataManager* pDM,
 		silent_cerr("ExtForce(" << uLabel << "): "
 			"unable to get input file name "
 			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	std::string fin = s;
 
@@ -337,7 +337,7 @@ ReadExtFileHandler(DataManager* pDM,
 		silent_cerr("ExtForce(" << uLabel << "): "
 			"unable to get output file name "
 			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	std::string fout = s;
 
@@ -354,7 +354,7 @@ ReadExtFileHandler(DataManager* pDM,
 				"invalid sleep time " << iSleepTime
 				<< " at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -370,7 +370,7 @@ ReadExtFileHandler(DataManager* pDM,
 				"\"" << iPrecision << "\""
 				" at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -404,7 +404,7 @@ ReadExtForce(DataManager* pDM,
 					"\"" << iCoupling << "\""
 					" at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 	}

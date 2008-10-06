@@ -186,7 +186,7 @@ Beam2::dGetPrivData(unsigned int i) const
 	default:
 		silent_cerr("Beam2(" << GetLabel() << "): "
 			"illegal private data " << i << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -235,7 +235,7 @@ Beam2::DsDxi(void)
 		silent_cerr("warning, Beam2(" << GetLabel() << ") "
 			"has singular metric; aborting ..." << std::endl);
 		
-		throw Beam2::ErrGeneric();
+		throw Beam2::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* Calcola le deformazioni iniziali */
@@ -807,7 +807,7 @@ Beam2::pGetNode(unsigned int i) const
 	case 2:
 		return pNode[i-1];
 	default:
-		throw Beam2::ErrGeneric();
+		throw Beam2::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -1311,7 +1311,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 			<< ": Beam2(" << uLabel << ") does not support "
 			"dynamic constitutive laws yet"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	
 #ifdef DEBUG   
@@ -1349,7 +1349,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 				<< iNumElec
 				<< " at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		
 		SAFENEWARR(pvElecDofs, ScalarDifferentialNode*, iNumElec);
@@ -1364,7 +1364,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					"can't find AbstractNode(" << uL << ") "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 		
@@ -1457,7 +1457,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	if (HP.IsArg()) {
 		silent_cerr("semicolon expected at line "
 			<< HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric();
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	
 	return pEl;

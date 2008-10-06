@@ -261,7 +261,7 @@ TotalEquation::SetValue(DataManager *pDM,
 						silent_cerr("TotalEquation(" << uLabel << "): "
 							"unable to create drive "
 							"after hint #" << i << std::endl);
-						throw ErrGeneric();
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 
 					if (dynamic_cast<Joint::PositionDriveHint<Vec3> *>(pjdh)) {
@@ -990,7 +990,7 @@ total_equation_element(t_elm)
 			<< total_equation_element->GetLabel() <<
 			" defines only " << total_equation_element->nConstraints <<
 			" contraints" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -1153,7 +1153,7 @@ TotalReaction::SetValue(DataManager *pDM,
 // 						silent_cerr("TotalReaction(" << uLabel << "): "
 // 							"unable to create drive "
 // 							"after hint #" << i << std::endl);
-// 						throw ErrGeneric();
+// 						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 // 					}
 // 
 // 					if (dynamic_cast<Joint::PositionDriveHint<Vec3> *>(pjdh)) {

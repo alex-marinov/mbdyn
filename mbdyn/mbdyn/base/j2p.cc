@@ -59,7 +59,7 @@ Elem2Param::Bind(const Elem* pEl, unsigned int i)
 			<< ") is already bound to "
 			<< psElemNames[pElem->GetElemType()] 
 			<< " (" << pElem->GetLabel() << ')' << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (i <= 0) {
@@ -67,7 +67,7 @@ Elem2Param::Bind(const Elem* pEl, unsigned int i)
 			<< " for " << psElemNames[pEl->GetElemType()] 
 			<< " (" << pEl->GetLabel() << ") private data"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	iNum = i;     
@@ -77,7 +77,7 @@ Elem2Param::Bind(const Elem* pEl, unsigned int i)
 			"wrong element private data number "
 			<< iNum << " for " << psElemNames[pEl->GetElemType()]
 			<< " (" << pEl->GetLabel() << ')' << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	pElem = (Elem*)pEl;
 
@@ -122,7 +122,7 @@ Elem2Param::SetValue(DataManager *pDM,
 	if (pElem == NULL) {
 		silent_cerr("ParameterNode(" << GetLabel() 
 				<< "): never bound" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	dX = dGetX();
@@ -152,7 +152,7 @@ StrainGageParam::Bind(const Elem* pEl, unsigned int i)
 	if (pEl->GetElemType() != Elem::BEAM) {
 		silent_cerr("StrainGageParam::Bind(): must bind to a beam"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* Nota: ora i == 1 o 2 per punto di valutazione I o II */

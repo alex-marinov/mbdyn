@@ -88,7 +88,7 @@ do_timeout:;
 				silent_cerr("DataManager::WaitSocketUsers(): "
 						"timeout " << SocketUsersTimeout
 						<< " s exceeded" << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			timeout.tv_sec = finalTime - timeout.tv_sec;
 			timeout.tv_usec = 0;
@@ -105,7 +105,7 @@ do_timeout:;
 
 			silent_cerr("select() failed: " << save_errno << " "
 				"(" << msg << ")" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		case 0:
@@ -128,7 +128,7 @@ do_timeout:;
 							<< save_errno << " "
 							"(" << msg << ")"
 							<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				/* remove accepted from set */

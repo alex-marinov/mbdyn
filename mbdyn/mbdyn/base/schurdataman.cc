@@ -83,7 +83,7 @@ SchurDataManager::SchurDataManager(MBDynParser& HP,
 		"Something weird is happening. "
 		"Anyway, please compile with -DUSE_MPI "
 		"to enable parallel solution" << std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 SchurDataManager::~SchurDataManager()
@@ -301,7 +301,7 @@ iTotalExpConnections(0)
 	if (KeyWords(HP.GetWord()) != PARALLEL) {
 		silent_cerr("Error: \"begin: parallel;\" expected at line "
 			<< HP.GetLineData() << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	while (true) {
@@ -311,7 +311,7 @@ iTotalExpConnections(0)
 				silent_cerr("Error: Weight flag expected "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			while (HP.IsArg()) {
@@ -333,7 +333,7 @@ iTotalExpConnections(0)
 					silent_cerr("invalid weight "
 						" at line " << HP.GetLineData()
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
 			break;
@@ -348,7 +348,7 @@ iTotalExpConnections(0)
 						"input so far "
 						"at line " << HP.GetLineData()
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 				pParAmgProcs[i] = HP.GetInt();
 				if (pParAmgProcs[i] < 0 ||
@@ -361,7 +361,7 @@ iTotalExpConnections(0)
 						"at line " << HP.GetLineData()
 						<< "; must be between 0 and "
 						<< DataCommSize - 1 << std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
 			break;
@@ -372,7 +372,7 @@ iTotalExpConnections(0)
 				Partitioner = PARTITIONER_METIS;
 #else /* ! USE_METIS */
 				silent_cerr("METIS partitioner not available; aborting..." << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* ! USE_METIS */
 
 			} else if (HP.IsKeyWord("chaco")) {
@@ -380,7 +380,7 @@ iTotalExpConnections(0)
 				Partitioner = PARTITIONER_CHACO;
 #else /* ! USE_CHACO */
 				silent_cerr("CHACO partitioner not available; aborting..." << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* ! USE_CHACO */
 			} else if (HP.IsKeyWord("manual")) {
 				Partitioner = PARTITIONER_MANUAL;
@@ -389,7 +389,7 @@ iTotalExpConnections(0)
 				silent_cerr("unknown partitioner "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			break;
 
@@ -398,7 +398,7 @@ iTotalExpConnections(0)
 				silent_cerr("Error: \"end: parallel;\" expected "
 					"at line " << HP.GetLineData()
 					<< "; aborting ..." << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			goto endcycle;
 
@@ -406,7 +406,7 @@ iTotalExpConnections(0)
 			silent_cerr("Unknown input at line "
 				<< HP.GetLineData() << "; aborting ..." 
 				<< std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		case NUMBEROFCONNECTIONS:
 			iTotalExpConnections = HP.GetInt();
@@ -424,7 +424,7 @@ iTotalExpConnections(0)
 						<< HP.GetLineData() 
 						<< "; aborting ..." 
 						<< std::endl);
-					throw ErrGeneric();
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				for (int k = 0; k < 2; k++) {
@@ -499,7 +499,7 @@ iTotalExpConnections(0)
 							silent_cerr("Error: invalid element type "
 								"at line " << HP.GetLineData()
 								<< "; aborting ..." << std::endl);
-							throw ErrGeneric();
+							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 						}
 
 						if (HP.IsArg()) {
@@ -511,7 +511,7 @@ iTotalExpConnections(0)
 								<< " element type at line "
 								<< HP.GetLineData()
 								<< "; aborting ..." << std::endl);
-							throw ErrGeneric();
+							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 						}
 
 						ppExpCntElems[iNumElems] =
@@ -522,7 +522,7 @@ iTotalExpConnections(0)
 								<< psElemNames[CurrElType]
 								<< "(" << j << ") undefined; "
 								"aborting ..." << std::endl);
-							throw ErrGeneric();
+							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 						}
 						iNumElems++;
 						break;
@@ -557,7 +557,7 @@ iTotalExpConnections(0)
 							silent_cerr("Error: invalid node type "
 								"at line " << HP.GetLineData()
 								<< "; aborting ..." << std::endl);
-							throw ErrGeneric();
+							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 						}
 
 						if (HP.IsArg()) {
@@ -567,7 +567,7 @@ iTotalExpConnections(0)
 							silent_cerr("Error: label expected "
 								"at line " << HP.GetLineData()
 								<< "; aborting ..." << std::endl);
-							throw ErrGeneric();
+							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 						}
 
 						ppExpCntNodes[iNumNodes] =
@@ -578,7 +578,7 @@ iTotalExpConnections(0)
 								<< psNodeNames[CurrNdType]
 								<< "(" << j << ") undefined; "
 								<< "aborting ..." << std::endl);
-							throw ErrGeneric();
+							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 						}
 						iNumNodes++;
 						break;
@@ -587,7 +587,7 @@ iTotalExpConnections(0)
 						silent_cerr("Unknown input at line "
 							<< HP.GetLineData()
 							<< "; aborting ..." << std::endl);
-						throw ErrGeneric();
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 				}
 			}
@@ -598,7 +598,7 @@ iTotalExpConnections(0)
 					" in the parallel section at line "
 					<< HP.GetLineData()
 					<< " is not consistent; aborting ..." << std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			break;
 		}
@@ -665,7 +665,7 @@ SchurDataManager::HowManyDofs(DofType who) const
 		silent_cerr("SchurDataManager::HowManyDofs: "
 			"illegal request (" << unsigned(who) << ")"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -686,7 +686,7 @@ SchurDataManager::GetDofsList(DofType who) const
 		silent_cerr("SchurDataManager::GetDofsList: "
 			"illegal request (" << unsigned(who) << ")"
 			<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -983,7 +983,7 @@ SchurDataManager::CreatePartition(void)
 			silent_cerr("no partition library is available; "
 				"partition assignments must be provided "
 				"manually" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -1656,7 +1656,7 @@ SchurDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef) throw(ChangedE
 				"by Schur data manager." << std::endl);
 		}
 
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 

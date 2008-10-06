@@ -81,7 +81,7 @@ void
 DirCColMatrixHandler<off>::Resize(integer n, integer nn)
 {
 	silent_cerr("DirCColMatrixHandler<off>::Resize called" << std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* Estrae una colonna da una matrice */
@@ -94,7 +94,7 @@ DirCColMatrixHandler<off>::GetCol(integer icol, VectorHandler& out) const
 	 */
 	
         if (icol > iGetNumCols()) {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	integer idx = Ap[icol - 1];
@@ -116,7 +116,7 @@ DirCColMatrixHandler<off>::MatMatMul_base(void (MatrixHandler::*op)(integer iRow
 {
 	silent_cerr("DirCColMatrixHandler<off>::MatMatMul_base called"
 			<< std::endl);
-	throw ErrGeneric();		
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
 }
 
 template <int off>
@@ -127,7 +127,7 @@ DirCColMatrixHandler<off>::MatTMatMul_base(void (MatrixHandler::*op)(integer iRo
 {
 	silent_cerr("DirCColMatrixHandler<off>::MatTMatMul_base called"
 			<< std::endl);
-	throw ErrGeneric();		
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
 }
 
 /* Moltiplica per uno scalare e somma a una matrice */
@@ -138,13 +138,13 @@ DirCColMatrixHandler<off>::MulAndSumWithShift(MatrixHandler& out, doublereal s,
 {
 	silent_cerr("DirCColMatrixHandler<off>::MulAndSumWithShift called"
 			<< std::endl);
-	throw ErrGeneric();		
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
 	if ((out.iGetNumCols() < iGetNumCols()+dcol)
 		|| (out.iGetNumRows() < iGetNumRows()+drow)) {
 		silent_cerr("Assertion fault "
 				"in DirCColMatrixHandler<off>::MulAndSumWithShift"
 				<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	drow = drow + 1;
 	for (integer col = 0; col < NCols; col++) {
@@ -168,13 +168,13 @@ DirCColMatrixHandler<off>::FakeThirdOrderMulAndSumWithShift(MatrixHandler& out,
 {
 	silent_cerr("DirCColMatrixHandler<off>::FakeThirdOrderMulAndSumWithShift "
 			"called" << std::endl);
-	throw ErrGeneric();		
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
 	if ((out.iGetNumCols() < iGetNumCols()+dcol)
 			|| (out.iGetNumRows() < iGetNumRows()+drow)) {
 		silent_cerr("Assertion fault "
 				"in DirCColMatrixHandler<off>::MulAndSumWithShift"
 				<< std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	drow = drow + 1;
 	for (integer col = 0; col < NCols; col++) {
@@ -198,7 +198,7 @@ DirCColMatrixHandler<off>::MatVecMul_base(void (VectorHandler::*op)(integer iRow
 {
 	silent_cerr("DirCColMatrixHandler<off>::MatVecMul_base called"
 			<< std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 template <int off>
@@ -209,7 +209,7 @@ DirCColMatrixHandler<off>::MatTVecMul_base(void (VectorHandler::*op)(integer iRo
 {
 	silent_cerr("DirCColMatrixHandler<off>::MatTVecMul_base called"
 			<< std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 template class DirCColMatrixHandler<0>;

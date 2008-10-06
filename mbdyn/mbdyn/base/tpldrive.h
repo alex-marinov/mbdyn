@@ -60,7 +60,7 @@ public:
 		return false;
 	};
 	virtual T GetP(void) const {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	};
 
 	virtual int getNDrives(void) const = 0;

@@ -180,13 +180,13 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 	 		return;
       		}
       		if (!std::isfinite(dErr)) {
-			throw ErrSimulationDiverged();
+			throw ErrSimulationDiverged(MBDYN_EXCEPT_ARGS);
 		}
 		if (iIterCnt > iMaxIter) {
 			if (outputBailout()) {
 				pS->PrintResidual(*pRes, iIterCnt);
 			}
-			throw NoConvergence();
+			throw NoConvergence(MBDYN_EXCEPT_ARGS);
 		}
           	rateo = dErr*dErr/Fnorm;
 		Fnorm = dErr*dErr;
@@ -382,7 +382,7 @@ rebuild_matrix:;
 #endif /* USE_MPI */
 		}
 		if (dSolErr < SolTol) {
-			throw ConvergenceOnSolution();
+			throw ConvergenceOnSolution(MBDYN_EXCEPT_ARGS);
 		}
 	}
 }

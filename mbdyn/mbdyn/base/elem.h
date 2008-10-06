@@ -128,8 +128,11 @@ public:
 		LASTELEMTYPE
 	};
 
-	struct ChangedEquationStructure {};
-   
+	struct ChangedEquationStructure : public MBDynErrBase {
+  	public:
+ 		ChangedEquationStructure(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+ 
 public:
 	Elem(unsigned int uL, flag fOut);
 	virtual ~Elem(void);
@@ -249,20 +252,20 @@ Elem::iGetNumDummyParts(void) const
 inline void
 Elem::GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& R) const
 {
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 inline void
 Elem::GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const
 {
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 #ifdef USE_ADAMS
 inline std::ostream&
 Elem::WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const
 {
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 #endif /* USE_ADAMS */
 

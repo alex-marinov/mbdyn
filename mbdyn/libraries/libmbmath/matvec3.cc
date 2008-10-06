@@ -145,7 +145,7 @@ Mat3x3::Inv(void) const
    doublereal d = dDet();
    if (fabs(d) < DBL_EPSILON) {
       silent_cerr("matrix is singular" << std::endl);
-      throw MatrixHandler::ErrMatrixIsSingular();
+      throw MatrixHandler::ErrMatrixIsSingular(MBDYN_EXCEPT_ARGS);
    }
    
    return Inv(d);
@@ -180,7 +180,7 @@ Mat3x3::Solve(const Vec3& v) const
    
    if (fabs(d) < DBL_EPSILON) {
       silent_cerr("matrix is singular" << std::endl);
-      throw ErrGeneric();
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
 
    return Solve(d, v);
@@ -678,7 +678,7 @@ MatR2gparam(const Mat3x3& m)
 	if (fabs(d) < DBL_EPSILON) {
 		silent_cerr("MatR2gparam(): divide by zero, "
 		"probably due to singularity in rotation parameters" << std::endl);
-		throw ErrDivideByZero();
+		throw ErrDivideByZero(MBDYN_EXCEPT_ARGS);
 	}
    
 	return m.Ax()*(4./d);
@@ -703,7 +703,7 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
    if (ia < 1 || ia > 3) {
       silent_cerr(sFuncName << ": first index is illegal" 
 	      << std::endl);
-      throw ErrGeneric();
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
    
    int i1 = ia-1;
@@ -714,20 +714,20 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
       doublereal d = va.Norm();
       if (d <= DBL_EPSILON) {
 	 silent_cerr(sFuncName << ": first vector must be non-null" << std::endl );
-	 throw ErrGeneric();
+	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
       r[i1] = va/d;
       d = vb.Norm();
       if (d <= DBL_EPSILON) {
 	 silent_cerr(sFuncName << ": second vector must be non-null" << std::endl );
-	 throw ErrGeneric();
+	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
       r[i3] = r[i1].Cross(vb);
       d = r[i3].Dot();
       if (d <= DBL_EPSILON) {
 	 silent_cerr(sFuncName << ": vectors must be distinct" 
 		 << std::endl);
-	 throw ErrGeneric();
+	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }	
       d = sqrt(d);
       r[i3] /= d;
@@ -740,20 +740,20 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
       doublereal d = va.Norm();
       if (d <= DBL_EPSILON) {
 	 silent_cerr(sFuncName << ": first vector must be non-null" << std::endl );
-	 throw ErrGeneric();
+	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
       r[i1] = va/d;
       d = vb.Norm();
       if (d <= DBL_EPSILON) {
 	 silent_cerr(sFuncName << ": second vector must be non-null" << std::endl );
-	 throw ErrGeneric();
+	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
       r[i2] = vb.Cross(r[i1]);
       d = r[i2].Dot();
       if (d <= DBL_EPSILON) {
 	 silent_cerr(sFuncName << ": vectors must be distinct" 
 		 << std::endl);
-	 throw ErrGeneric();
+	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }	
       d = sqrt(d);
       r[i2] /= d;
@@ -764,7 +764,7 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
       return Mat3x3(r[0], r[1], r[2]);
    } else {
       silent_cerr(sFuncName << ": second index is illegal" << std::endl);
-      throw ErrGeneric();
+      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
    
    return Zero3x3; // phony call, not reachable

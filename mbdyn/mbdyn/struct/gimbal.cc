@@ -465,7 +465,7 @@ GimbalRotationJoint::dGetPrivData(unsigned int i) const
 		return dPhi;
 	}
 
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* GimbalRotationJoint - end */

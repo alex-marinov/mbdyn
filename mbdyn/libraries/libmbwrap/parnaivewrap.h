@@ -137,11 +137,6 @@ public:
  */
 
 class ParNaiveSparseSolutionManager : public SolutionManager {
-public: 
-	class ErrGeneric {};
-
-private:
-
 protected:
 	mutable NaiveMatrixHandler *A;
 

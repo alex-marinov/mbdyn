@@ -85,14 +85,14 @@ CompactSparseMatrixHandler::AddUnchecked(const CompactSparseMatrixHandler& m)
 	for (std::vector<doublereal>::size_type i = 0; i < Ai.size(); i++) {
 		if (Ai[i] != m.Ai[i]) {
 			silent_cerr("AddUnchecked: Ai[" << i << "] differs" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
 	for (std::vector<doublereal>::size_type i = 0; i < Ap.size(); i++) {
 		if (Ap[i] != m.Ap[i]) {
 			silent_cerr("AddUnchecked: Ap[" << i << "] differs" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 #endif /* DEBUG */
@@ -115,7 +115,7 @@ CompactSparseMatrixHandler::MakeCompressedColumnForm(doublereal *const Ax,
 		integer *const Ai, integer *const Ap,
 		int offset) const
 {
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	return Nz();
 }
 
@@ -124,7 +124,7 @@ CompactSparseMatrixHandler::MakeCompressedColumnForm(std::vector<doublereal>& Ax
 		std::vector<integer>& Ai, std::vector<integer>& Ap,
 		int offset) const
 {
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	return Nz();
 }
 
@@ -133,7 +133,7 @@ CompactSparseMatrixHandler::MakeIndexForm(doublereal *const rAx,
 		integer *const Arow, integer *const Acol,
 		integer *const AcolSt, int offset) const
 {
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	return Nz();
 }
 
@@ -142,6 +142,6 @@ CompactSparseMatrixHandler::MakeIndexForm(std::vector<doublereal>& rAx,
                 std::vector<integer>& Arow, std::vector<integer>& Acol,
 		std::vector<integer>& AcolSt, int offset) const
 {
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	return Nz();
 }

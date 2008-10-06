@@ -279,7 +279,7 @@ OutputHandler::Open(const OutputHandler::OutFiles out)
 	
          		if (!pBinFile->is_valid()) {
 				silent_cerr("NetCDF file is invalid" << std::endl);
-				throw ErrFile();
+				throw ErrFile(MBDYN_EXCEPT_ARGS);
 			}
 
 			static const char *DimName[] = {
@@ -302,7 +302,7 @@ OutputHandler::Open(const OutputHandler::OutFiles out)
 				silent_cerr("Unable to create NetCDF "
 					"\"time\" dimension"
 					<< std::endl);
-				throw ErrFile();
+				throw ErrFile(MBDYN_EXCEPT_ARGS);
 			}
 
 			for (int i = 1; i < DIM_LAST; i++) {
@@ -311,7 +311,7 @@ OutputHandler::Open(const OutputHandler::OutFiles out)
 					silent_cerr("Unable to create NetCDF "
 						"\"" << DimName[i] << "\" "
 						"dimension" << std::endl);
-					throw ErrFile();
+					throw ErrFile(MBDYN_EXCEPT_ARGS);
 				}
 			}
 
@@ -335,7 +335,7 @@ OutputHandler::Open(const OutputHandler::OutFiles out)
 			if (!(*OutData[out].pof)) {
 				silent_cerr("Unable to open file "
 					"\"" << fname << "\"" << std::endl);
-				throw ErrFile();
+				throw ErrFile(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -421,7 +421,7 @@ void
 OutputHandler::SetText(const OutputHandler::OutFiles out)
 {
 	if (!(OutData[out].flags & OUTPUT_MAY_USE_TEXT)) {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	OutData[out].flags |= OUTPUT_USE_TEXT;
@@ -441,7 +441,7 @@ void
 OutputHandler::ClearText(const OutputHandler::OutFiles out)
 {
 	if (!(OutData[out].flags & OUTPUT_MAY_USE_TEXT)) {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	OutData[out].flags &= ~OUTPUT_USE_TEXT;
@@ -466,7 +466,7 @@ void
 OutputHandler::SetNetCDF(const OutputHandler::OutFiles out)
 {
 	if (!(OutData[out].flags & OUTPUT_MAY_USE_NETCDF)) {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	OutData[out].flags |= OUTPUT_USE_NETCDF;
@@ -486,7 +486,7 @@ void
 OutputHandler::ClearNetCDF(const OutputHandler::OutFiles out)
 {
 	if (!(OutData[out].flags & OUTPUT_MAY_USE_NETCDF)) {
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	OutData[out].flags &= ~OUTPUT_USE_NETCDF;
@@ -545,7 +545,7 @@ OutputHandler::RestartOpen(bool openResXSol)
 	      	if(!(*OutData[RESTART].pof)) {
 		 	std::cerr << "Unable to open file '" << _sPutExt(resExt)
 		   		<< '\'' << std::endl;
-			throw ErrFile();
+			throw ErrFile(MBDYN_EXCEPT_ARGS);
 		}
 		SAFEDELETEARR(resExt);
 
@@ -577,7 +577,7 @@ OutputHandler::RestartOpen(bool openResXSol)
 		      	if(!(*OutData[RESTARTXSOL].pof)) {
 			 	std::cerr << "Unable to open file '" << _sPutExt(resExt)
 			   		<< '\'' << std::endl;
-				throw ErrFile();
+				throw ErrFile(MBDYN_EXCEPT_ARGS);
 			}
 			SAFEDELETEARR(resXSolExt);
 			/* non occorre settare la precisione e il formato

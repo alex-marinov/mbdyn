@@ -135,7 +135,7 @@ TaucsSolver::Solve(void) const
 		NULL);
 	if (status != TAUCS_SUCCESS) {
 		silent_cerr("Taucs back-solve failed" << std::endl);
-		throw ErrGeneric();
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -185,7 +185,7 @@ TaucsSolver::Factor(void)
 		} else {
 			/* bail out */
 			silent_cerr("Taucs factorization failed" << std::endl);
-			throw ErrGeneric();
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 	Symbolic = true;

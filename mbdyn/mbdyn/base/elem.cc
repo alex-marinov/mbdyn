@@ -123,7 +123,7 @@ Elem::GetDofType(unsigned int) const
 	silent_cerr(psElemNames[GetElemType()] << "(" << GetLabel() << "): "
 		"GetDofType() is undefined because element "
 		"has no degrees of freedom" << std::endl);
-	throw ErrGeneric();
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 /* Elem - end */

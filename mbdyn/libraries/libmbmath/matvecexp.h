@@ -265,7 +265,7 @@ public:
 			return *this; /* No operations */
 		}
 		if (d == 0.) {
-			throw ErrDivideByZero(); /* error */
+			throw ErrDivideByZero(MBDYN_EXCEPT_ARGS); /* error */
 		}
 		/* else */
 #endif /* __MBDYN_PARANOID__ */
