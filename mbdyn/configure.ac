@@ -176,6 +176,7 @@ OL_ARG_WITH(threads,[  --with-threads          with threads],auto,[auto yes no])
 OL_ARG_WITH(rtai,[  --with-rtai             with RTAI support],no,[auto yes no])
 OL_ARG_WITH(boost,[  --with-boost            with BOOST support],no,[auto yes no])
 OL_ARG_WITH(ANN,[  --with-ANN              with ANN support],no,[auto yes no])
+OL_ARG_WITH(bullet,[  --with-bullet           with bullet support],no,[auto yes no])
 OL_ARG_WITH(blas,[
        math libraries:
   --with-blas[={auto|goto|atlas|cblas|blas}]
@@ -302,6 +303,7 @@ TCL_LIBS=
 NETCDF_LIBS=
 UDUNITS_LIBS=
 X_ANN_LIBS=
+BULLET_LIBS=
 
 GINACLIB_CONFIG=
 GINACLIB_LIBS=
@@ -1120,6 +1122,36 @@ if test "$ol_with_ANN" != "no" ; then
 		fi
 	else
 		LIBS="$SAVE_LIBS"
+	fi
+	AC_LANG_C
+fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for bullet <http://bulletphysics.com>
+dnl
+ol_link_bullet=no
+if test "$ol_with_bullet" != "no" ; then
+	AC_LANG_CPLUSPLUS
+	have_libbullet=no
+	AC_CHECK_HEADER(BulletCollision/CollisionShapes/btCollisionShape.h,[have_bullet_h=yes],[have_bullet_h=no])
+	if test "$have_bullet_h" = "yes" ; then
+		SAVE_LIBS="$LIBS"
+		try_BULLET_LIBS="-lbulletcollision -lbulletmath"
+		LIBS="$try_BULLET_LIBS $LIBS"
+		AC_CHECK_LIB(bulletcollision,btBulletCollisionProbe,[
+			have_libbullet=yes
+			BULLET_LIBS="$try_BULLET_LIBS"
+		],[have_libbullet=no],[-lbulletmath])
+		LIBS="$save_LIBS"
+	fi
+
+	if test $have_libbullet = yes ; then
+		AC_DEFINE(USE_BULLET,1,[define this to enable bullet <http://bulletphysics.com>])
+	else
+		if test "$ol_with_bullet" = "yes" ; then
+			AC_MSG_ERROR([bullet not available])
+		fi
 	fi
 	AC_LANG_C
 fi
@@ -2178,6 +2210,7 @@ AC_SUBST(TCL_LIBS)
 AC_SUBST(NETCDF_LIBS)
 AC_SUBST(UDUNITS_LIBS)
 AC_SUBST(X_ANN_LIBS)
+AC_SUBST(BULLET_LIBS)
 
 AC_SUBST(MODULES_DIRS)
 AC_SUBST(MODULE_LOADPATH)
