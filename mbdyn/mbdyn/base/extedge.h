@@ -44,8 +44,8 @@ protected:
 	int iSleepTime;
 	bool bReadForces;
 
-	std::ifstream inf;
-	std::ofstream outf;
+	std::ifstream infile;
+	std::ofstream outfile;
 
 	enum EDGEcmd {
 		// ?

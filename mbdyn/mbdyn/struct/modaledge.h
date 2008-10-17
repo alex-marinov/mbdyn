@@ -37,7 +37,7 @@
 #include "modalext.h"
 #include "aerodyn.h"
 
-/* ExtModalForceBaseEDGE - begin */
+/* ExtModalForceEDGE - begin */
 
 class ExtModalForceEDGE : public ExtModalForceBase {
 protected:
@@ -57,7 +57,7 @@ public:
 		const std::vector<doublereal>& qP);
 };
 
-/* ExtModalForceBaseEDGE - end */
+/* ExtModalForceEDGE - end */
 
 #endif // MODALEDGE_H
 

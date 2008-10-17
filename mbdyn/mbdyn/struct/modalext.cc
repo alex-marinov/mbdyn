@@ -54,6 +54,7 @@ ModalExt::ModalExt(unsigned int uL,
 	ExtFileHandlerBase *pEFH,
 	ExtModalForceBase* pEMF,
 	int iCoupling,
+	Type t,
 	flag fOut)
 : Elem(uL, fOut), 
 ExtForce(uL, pEFH, iCoupling, fOut), 
@@ -62,22 +63,32 @@ bOutputAccelerations(bOutputAccelerations),
 pEMF(pEMF),
 uFlags(ExtModalForceBase::EMF_NONE),
 F(0.),
-M(0.)
+M(0.),
+type(t)
 {
 	ASSERT(pModal != 0);
 	ASSERT(pEMF != 0);
 
-	f.resize(pModal->uGetNModes());
+	ASSERT(type != NONE);
 
-	// Temporary?
-	q.resize(pModal->uGetNModes());
-	qP.resize(pModal->uGetNModes());
+	if (type & MODAL) {
+		f.resize(pModal->uGetNModes());
 
-	if (pModal->uGetNModes() > 0) {
+		// Temporary?
+		q.resize(pModal->uGetNModes());
+		qP.resize(pModal->uGetNModes());
+
+		assert(pModal->uGetNModes() > 0);
 		uFlags |= ExtModalForceBase::EMF_MODAL;
+
+	} else {
+		f.resize(0);
+		q.resize(0);
+		qP.resize(0);
 	}
 
-	if (pModal->pGetModalNode() != 0) {
+	if (type & RIGID) {
+		ASSERT(pModal->pGetModalNode() != 0);
 		uFlags |= ExtModalForceBase::EMF_RIGID;
 	}
 }
@@ -93,14 +104,14 @@ ModalExt::~ModalExt(void)
 void
 ModalExt::Send(std::ostream& outf, bool bAfterConvergence)
 {
-	const StructNode *pNode = pModal->pGetModalNode();
-
 	Vec3 x;
 	Mat3x3 R;
 	Vec3 v;
 	Vec3 w;
 
-	if (pNode) {
+	if (type & RIGID) {
+		const StructNode *pNode = pModal->pGetModalNode();
+
 		x = pNode->GetXCurr();
 		R = pNode->GetRCurr();
 		v = pNode->GetVCurr();
@@ -124,7 +135,9 @@ ModalExt::Send(std::ostream& outf, bool bAfterConvergence)
 	pEMF->Send(outf, uFlags, GetLabel(), x, R, v, w, q, qP);
 
 #if 0
-	if (pNode) {
+	if (type & RIGID) {
+		const StructNode *pNode = pModal->pGetModalNode();
+
 		Mat3x3 RT = pNode->GetRCurr().Transpose();
 		outf << pNode->GetLabel()
 			<< " " << pNode->GetXCurr()
@@ -137,30 +150,19 @@ ModalExt::Send(std::ostream& outf, bool bAfterConvergence)
 				<< " " << pNode->GetWPCurr();
 		}
 		outf << std::endl;
-
-	} else {
-		outf << 0
-			<< " " << Zero3
-			<< " " << Zero3x3
-			<< " " << Zero3
-			<< " " << Zero3;
-		if (bOutputAccelerations) {
-			outf
-				<< " " << Zero3
-				<< " " << Zero3;
-		}
-		outf << std::endl;
 	}
 
-	const VecN& a = pModal->GetA();
-	const VecN& b = pModal->GetB();
-	const VecN& bP = pModal->GetBP();
-	for (integer i = 1; i < pModal->uGetNModes(); i++) {
-		outf << a(i) << " " << b(i);
-		if (bOutputAccelerations) {
-			outf << " " << bP(i);
+	if (type & MODAL) {
+		const VecN& a = pModal->GetA();
+		const VecN& b = pModal->GetB();
+		const VecN& bP = pModal->GetBP();
+		for (integer i = 1; i < pModal->uGetNModes(); i++) {
+			outf << a(i) << " " << b(i);
+			if (bOutputAccelerations) {
+				outf << " " << bP(i);
+			}
+			outf << std::endl;
 		}
-		outf << std::endl;
 	}
 #endif
 }
@@ -199,8 +201,9 @@ ModalExt::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.ResizeReset(iR);
 
 	integer iIdx = 1;
-	const StructNode *pNode = pModal->pGetModalNode();
-	if (pNode) {
+	if (type & RIGID) {
+		const StructNode *pNode = pModal->pGetModalNode();
+
 		integer iFirstIndex = pNode->iGetFirstMomentumIndex();
 
 		for (integer iCnt = 1; iCnt <= 6; iCnt++) {
@@ -211,12 +214,13 @@ ModalExt::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.Put(4, pNode->GetRCurr()*M);
 
 		iIdx += 6;
-
 	}
 
-	integer iModalIndex = pModal->iGetModalIndex() + pModal->uGetNModes() + 1;
-	for (integer iMode = 0; iMode < pModal->uGetNModes(); iMode++) {
-		WorkVec.PutItem(iIdx + iMode, iModalIndex + iMode, f[iMode]);
+	if (type & MODAL) {
+		integer iModalIndex = pModal->iGetModalIndex() + pModal->uGetNModes() + 1;
+		for (integer iMode = 0; iMode < pModal->uGetNModes(); iMode++) {
+			WorkVec.PutItem(iIdx + iMode, iModalIndex + iMode, f[iMode]);
+		}
 	}
 
 	return WorkVec;
@@ -228,10 +232,16 @@ ModalExt::Output(OutputHandler& OH) const
 	if (fToBeOutput()) {
 		std::ostream& out = OH.Forces();
 
-		out << GetLabel() << " " << F << " " << M;
-		for (std::vector<doublereal>::const_iterator i = f.begin(); i != f.end(); i++) {
-			out << " " << *i;
+		if (type & RIGID) {
+			out << GetLabel() << " " << F << " " << M;
 		}
+
+		if (type & MODAL) {
+			for (std::vector<doublereal>::const_iterator i = f.begin(); i != f.end(); i++) {
+				out << " " << *i;
+			}
+		}
+
 		out << std::endl;
 	}
 }
@@ -258,10 +268,28 @@ ReadModalExtForce(DataManager* pDM,
 		bOutputAccelerations = true;
 	}
 
+	// safe default: both rigid and modal
+	ModalExt::Type type = ModalExt::BOTH;
+	if (HP.IsKeyWord("type")) {
+		if (HP.IsKeyWord("rigid")) {
+			type = ModalExt::RIGID;
+		} else if (HP.IsKeyWord("modal")) {
+			type = ModalExt::MODAL;
+		} else if (HP.IsKeyWord("both")) {
+			type = ModalExt::BOTH;
+		} else {
+			silent_cerr("ModalExt(" << uLabel << "): unknown ModalExt type "
+				" at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
 	ExtModalForceBase *pEMF = 0;
 	if (dynamic_cast<ExtFileHandlerEDGE *>(pEFH) != 0) {
 		SAFENEWWITHCONSTRUCTOR(pEMF, ExtModalForceEDGE,
 			ExtModalForceEDGE(pDM));
+
+	// addmore types
 
 	} else {
 		silent_cerr("ModalExt(" << uLabel << "): "
@@ -273,7 +301,7 @@ ReadModalExtForce(DataManager* pDM,
 	Elem *pEl = 0;
 	SAFENEWWITHCONSTRUCTOR(pEl, ModalExt,
 		ModalExt(uLabel, pModal, bOutputAccelerations,
-			pEFH, pEMF, iCoupling, fOut));
+			pEFH, pEMF, iCoupling, type, fOut));
 
 	return pEl;
 }

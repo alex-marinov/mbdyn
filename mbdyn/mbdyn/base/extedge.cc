@@ -65,21 +65,21 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 {
 	cnt++;
 
-	inf.open(fflagname.c_str());
+	infile.open(fflagname.c_str());
 
 #ifdef USE_SLEEP
 	if (iSleepTime > 0) {
 		// WARNING: loops forever
 		// add optional, configurable limit?
-		for (; !inf; cnt++) {
+		for (; !infile; cnt++) {
 			silent_cout("flag file \"" << fflagname.c_str() << "\" "
 				"missing, try #" << cnt << "; "
 				"sleeping " << iSleepTime << " s" << std::endl); 
 
 			sleep(iSleepTime);
 
-			inf.clear();
-			inf.open(fdataname.c_str());
+			infile.clear();
+			infile.open(fdataname.c_str());
 		}
 	} else
 #endif // USE_SLEEP
@@ -91,10 +91,10 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 	}
 
 	int cmd;
-	inf >> cmd;
+	infile >> cmd;
 
-	inf.close();
-	inf.clear();
+	infile.close();
+	infile.clear();
 
 	return EDGEcmd(cmd);
 }
@@ -106,46 +106,50 @@ ExtFileHandlerEDGE::Send_pre(bool bAfterConvergence)
 	// open data file for writing
 	int cnt = 0;
 	if (CheckFlag(cnt) == EDGE_READ_READY) {
-		outf.open(fdataname.c_str());
-		if (!outf) {
+		outfile.open(fdataname.c_str());
+		if (!outfile) {
 			silent_cerr("unable to open data file "
 				"\"" << fdataname.c_str() << "\" "
 				"for output" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		outf.setf(std::ios::scientific);
+		outfile.setf(std::ios::scientific);
 
 	} else {
-		outf.setstate(std::ios_base::badbit);
+		outfile.setstate(std::ios_base::badbit);
 	}
 
-	return outf;
+	return outfile;
 }
 
 void
 ExtFileHandlerEDGE::Send_post(bool bAfterConvergence)
 {
 	// close data file after writing
-	if (outf.is_open()) {
-		outf.close();
+	if (outfile.is_open()) {
+		outfile.close();
 	}
 
 	if (bAfterConvergence) {
-		outf.open("update.ainp");
-		outf << "UPDATE,N,0,0,1\n"
+#if 0
+		// This stops EDGE's subiterations
+		// and advances to next step
+		outfile.open("update.ainp");
+		outfile << "UPDATE,N,0,0,1\n"
 			"IBREAK,I,1,1,0\n"
 			"5\n";
-		outf.close();
+		outfile.close();
+#endif
 
 		// re-set flag
 		bReadForces = true;
 	}
 
-	outf.open(fflagname.c_str());
-	outf << int(EDGE_MBDYN_WRITE_DONE);
-	outf.close();
-	outf.clear();
+	outfile.open(fflagname.c_str());
+	outfile << int(EDGE_MBDYN_WRITE_DONE);
+	outfile.close();
+	outfile.clear();
 }
 
 std::istream&
@@ -192,8 +196,8 @@ ExtFileHandlerEDGE::Recv_pre(void)
 
 done:;
 	if (bReadForces) {
-		inf.open(fdataname.c_str());
-		if (!inf) {
+		infile.open(fdataname.c_str());
+		if (!infile) {
 			silent_cerr("unable to open data file "
 				"\"" << fdataname.c_str() << "\" "
 				"for input" << std::endl);
@@ -201,17 +205,17 @@ done:;
 		}
 
 	} else {
-		inf.setstate(std::ios_base::badbit);
+		infile.setstate(std::ios_base::badbit);
 	}
 
-	return inf;
+	return infile;
 }
 
 void
 ExtFileHandlerEDGE::Recv_post(void)
 {
-	if (inf.is_open()) {
-		inf.close();
+	if (infile.is_open()) {
+		infile.close();
 	}
 }
 

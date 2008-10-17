@@ -90,6 +90,17 @@ protected:
 	std::vector<doublereal> q;
 	std::vector<doublereal> qP;
 
+public:
+	enum Type {
+		NONE			= 0x0U,
+		RIGID			= 0x1U,
+		MODAL			= 0x2U,
+		BOTH			= (ModalExt::RIGID|ModalExt::MODAL)
+	};
+
+protected:
+	Type type;
+
 	void Send(std::ostream& out, bool bAfterConvergence = false);
 	void Recv(std::istream& in);
    
@@ -101,6 +112,7 @@ public:
 		ExtFileHandlerBase *pEFH,
 		ExtModalForceBase *pEMF,
 		int iCoupling,
+		Type t,
 		flag fOut);
 
 	virtual ~ModalExt(void);
