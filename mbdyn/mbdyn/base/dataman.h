@@ -381,6 +381,20 @@ protected:
 		SubVectorHandler& WorkVec)
 	throw(ChangedEquationStructure);
 
+protected:
+	std::vector<bool> IsConverged;
+
+public:
+	// returns an idx to a newly created slot for convergence
+	unsigned ConvergedRegister(void);
+	// set the value of a slot; elements that register
+	// using ConvergedRegister() should set to false
+	// at first iteration, and set to true when convergence
+	// is allowed
+	void ConvergedSet(unsigned idx, bool b);
+	// returns true only if all slots are true
+	bool Converged(void) const;
+
 public:
 	virtual void OutputPrepare(void);
 

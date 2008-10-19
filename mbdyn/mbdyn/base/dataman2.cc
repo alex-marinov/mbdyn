@@ -1695,4 +1695,35 @@ DataManager::GetEqDescription(int i) const
 	return pDofs[i - 1].EqDescription;
 }
 
+unsigned
+DataManager::ConvergedRegister(void)
+{
+	unsigned idx = IsConverged.size();
+	IsConverged.resize(idx + 1);
+	return idx;
+}
+
+void
+DataManager::ConvergedSet(unsigned idx, bool b)
+{
+	ASSERT(idx < IsConverged.size());
+
+	IsConverged[idx] = b;
+}
+
+bool
+DataManager::Converged(void) const
+{
+	for (std::vector<bool>::const_iterator i = IsConverged.begin();
+		i != IsConverged.end();
+		i++)
+	{
+		if (!*i) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 /* DataManager - end */

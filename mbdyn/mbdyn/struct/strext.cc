@@ -42,6 +42,7 @@
 
 /* Costruttore */
 StructExtForce::StructExtForce(unsigned int uL,
+	DataManager *pDM,
 	std::vector<StructNode *>& nodes,
 	std::vector<Vec3>& offsets,
 	bool bUnsorted,
@@ -50,7 +51,7 @@ StructExtForce::StructExtForce(unsigned int uL,
 	int iCoupling,
 	flag fOut)
 : Elem(uL, fOut), 
-ExtForce(uL, pEFH, iCoupling, fOut), 
+ExtForce(uL, pDM, pEFH, iCoupling, fOut), 
 pRefNode(0),
 RefOffset(0.),
 bUnsorted(bUnsorted),
@@ -358,7 +359,7 @@ ReadStructExtForce(DataManager* pDM,
 	flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
 	Elem *pEl = 0;
 	SAFENEWWITHCONSTRUCTOR(pEl, StructExtForce,
-		StructExtForce(uLabel, Nodes, Offsets,
+		StructExtForce(uLabel, pDM, Nodes, Offsets,
 			bUnsorted, bOutputAccelerations,
 			pEFH, iCoupling, fOut));
 

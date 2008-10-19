@@ -167,7 +167,7 @@ ExtFileHandler::Recv_pre(void)
 	return inf;
 }
 
-void
+bool
 ExtFileHandler::Recv_post(void)
 {
 	if (bRemoveIn) {
@@ -186,6 +186,9 @@ ExtFileHandler::Recv_post(void)
 			}
 		}
 	}
+
+	// NOTE: allow MBDyn to decide when converged
+	return true;
 }
 
 /* ExtFileHandler - end */
@@ -196,17 +199,19 @@ ExtFileHandler::Recv_post(void)
 
 /* Costruttore */
 ExtForce::ExtForce(unsigned int uL,
+	DataManager *pDM,
 	ExtFileHandlerBase *pEFH,
 	int iCoupling,
 	flag fOut)
 : Elem(uL, fOut), 
 Force(uL, fOut),
+pDM(pDM),
 pEFH(pEFH),
 bFirstRes(false),
 iCoupling(iCoupling),
 iCouplingCounter(0)
 {
-	NO_OP;
+	uConverged = pDM->ConvergedRegister();
 }
 
 ExtForce::~ExtForce(void)
@@ -234,6 +239,7 @@ ExtForce::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
 	/* After prediction, mark next residual as first */
 	bFirstRes = true;
+	pDM->ConvergedSet(uConverged, false);
 }
 
 /*
@@ -275,7 +281,10 @@ ExtForce::Recv(void)
 		if (inf.good()) {
 			Recv(inf);
 		}
-		pEFH->Recv_post();
+
+		if (pEFH->Recv_post()) {
+			pDM->ConvergedSet(uConverged, true);
+		}
 	}
 
 	bFirstRes = false;

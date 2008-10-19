@@ -100,10 +100,10 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 		pSol = pSM->pSolHdl();
 		Size = pRes->iGetSize();
 
-#ifdef 	USE_EXTERNAL 	
+#ifdef USE_EXTERNAL
 		SendExternal();
 #endif /* USE_EXTERNAL */
-		
+
 		pRes->Reset();
 		bool forceJacobian(false);
 		try {
@@ -125,23 +125,22 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 		 * in the output (maybe we could conditionally disable 
 		 * it? */
 
-		dErr = MakeResTest(pS, *pRes)*pNLP->TestScale(pResTest);
+		bool bTest = MakeResTest(pS, pNLP, *pRes, Tol, dErr);
 
 		if (outputIters()) {
 #ifdef USE_MPI
-			if (!bParallel || MBDynComm.Get_rank() == 0) {
+			if (!bParallel || MBDynComm.Get_rank() == 0)
 #endif /* USE_MPI */
+			{
 				silent_cout("\tIteration(" << iIterCnt << ") " << dErr);
-				if (dErr >= Tol && (bTrueNewtonRaphson || (iPerformedIterations%IterationBeforeAssembly == 0))){
+				if (!bTest && (bTrueNewtonRaphson || (iPerformedIterations%IterationBeforeAssembly == 0))) {
 					silent_cout(" J");
 				}
 				silent_cout(std::endl);
-#ifdef USE_MPI
 			}
-#endif /* USE_MPI */
 		}
 		
-      		if (dErr < Tol) {
+      		if (bTest) {
 	 		return;
       		}
       		
@@ -201,18 +200,17 @@ rebuild_matrix:;
 		
       		pNLP->Update(pSol);
 		
-		dSolErr = MakeSolTest(pS, *pSol);
+		bTest = MakeSolTest(pS, *pSol, SolTol, dSolErr);
 		if (outputIters()) {
 #ifdef USE_MPI
-			if (!bParallel || MBDynComm.Get_rank() == 0) {
+			if (!bParallel || MBDynComm.Get_rank() == 0)
 #endif /* USE_MPI */
+			{
 				silent_cout("\t\tSolErr "
 					<< dSolErr << std::endl);
-#ifdef USE_MPI
 			}
-#endif /* USE_MPI */
 		}
-		if (dSolErr < SolTol) {
+		if (bTest) {
 			throw ConvergenceOnSolution(MBDYN_EXCEPT_ARGS);
 		}
 	}

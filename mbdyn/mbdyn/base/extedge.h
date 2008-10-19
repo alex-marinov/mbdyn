@@ -81,7 +81,7 @@ public:
 	virtual void Send_post(bool bAfterConvergence = false);
 
 	virtual std::istream& Recv_pre(void);
-	virtual void Recv_post(void);
+	virtual bool Recv_post(void);
 };
 
 /* ExtFileHandlerEDGE - end */

@@ -48,7 +48,8 @@ public:
 	virtual void Send_post(bool bAfterConvergence = false) = 0;
 
 	virtual std::istream& Recv_pre(void) = 0;
-	virtual void Recv_post(void) = 0;
+	// NOTE: returns true if converged
+	virtual bool Recv_post(void) = 0;
 };
 
 /* ExtFileHandlerBase - end */
@@ -77,7 +78,7 @@ public:
 	virtual void Send_post(bool bAfterConvergence = false);
 
 	virtual std::istream& Recv_pre(void);
-	virtual void Recv_post(void);
+	virtual bool Recv_post(void);
 };
 
 /* ExtFileHandler - end */
@@ -88,6 +89,8 @@ public:
 
 class ExtForce : virtual public Elem, public Force {
 protected:
+	DataManager *pDM;
+	unsigned uConverged;
 	ExtFileHandlerBase *pEFH;
 
 	bool bFirstRes;
@@ -102,6 +105,7 @@ protected:
 public:
 	/* Costruttore */
 	ExtForce(unsigned int uL,
+		DataManager *pDM,
 		ExtFileHandlerBase *pEFH,
 		int iCoupling,
 		flag fOut);

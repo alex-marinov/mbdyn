@@ -43,10 +43,11 @@
 
 class ExtModalForceBase {
 public:
-	enum {
+	enum BitMask {
 		EMF_NONE		= 0x0U,
 		EMF_RIGID		= 0x01U,
 		EMF_MODAL		= 0x02U,
+		EMF_ALL			= (EMF_RIGID|EMF_MODAL),
 
 		EMF_RIGID_DETECT	= 0x10U,
 		EMF_MODAL_DETECT	= 0x20U,
@@ -90,29 +91,19 @@ protected:
 	std::vector<doublereal> q;
 	std::vector<doublereal> qP;
 
-public:
-	enum Type {
-		NONE			= 0x0U,
-		RIGID			= 0x1U,
-		MODAL			= 0x2U,
-		BOTH			= (ModalExt::RIGID|ModalExt::MODAL)
-	};
-
-protected:
-	Type type;
-
 	void Send(std::ostream& out, bool bAfterConvergence = false);
 	void Recv(std::istream& in);
    
 public:
 	/* Costruttore */
 	ModalExt(unsigned int uL,
+		DataManager *pDM,
 		Modal *pmodal,
 		bool bOutputAccelerations,
 		ExtFileHandlerBase *pEFH,
 		ExtModalForceBase *pEMF,
 		int iCoupling,
-		Type t,
+		ExtModalForceBase::BitMask bm,
 		flag fOut);
 
 	virtual ~ModalExt(void);

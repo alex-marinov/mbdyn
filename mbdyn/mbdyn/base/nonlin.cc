@@ -353,16 +353,25 @@ NonlinearSolver::TotalAssembledJacobian(void)
 	return TotJac;
 }
 
-doublereal
-NonlinearSolver::MakeResTest(Solver *pS, const VectorHandler& Vec)
+bool
+NonlinearSolver::MakeResTest(Solver *pS,
+	const NonlinearProblem *pNLP,
+	const VectorHandler& Vec,
+	const doublereal& dTol,
+	doublereal& dTest)
 {
-	return pResTest->MakeTest(pS, Size, Vec, true);
+	dTest = pResTest->MakeTest(pS, Size, Vec, true)*pNLP->TestScale(pResTest);
+	return ((dTest < dTol) && pS->pGetDataManager()->Converged());
 }
 
-doublereal
-NonlinearSolver::MakeSolTest(Solver *pS, const VectorHandler& Vec)
+bool
+NonlinearSolver::MakeSolTest(Solver *pS,
+	const VectorHandler& Vec,
+	const doublereal& dTol,
+	doublereal& dTest)
 {
-	return pSolTest->MakeTest(pS, Size, Vec);
+	dTest = pSolTest->MakeTest(pS, Size, Vec);
+	return ((dTest < dTol) && pS->pGetDataManager()->Converged());
 }
 
 #ifdef USE_EXTERNAL

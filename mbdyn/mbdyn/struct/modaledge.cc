@@ -60,10 +60,29 @@ goto_eol(std::istream& fin, char *buf, size_t bufsiz)
 	return 0;
 }
 
-ExtModalForceEDGE::ExtModalForceEDGE(DataManager *pDM)
+/* ExtForceEDGE - begin */
+
+ExtForceEDGE::ExtForceEDGE(DataManager *pDM)
 : pAP(0)
 {
 	pAP = dynamic_cast<AirProperties *>(pDM->pFindElem(Elem::AIRPROPERTIES, 1));
+	ASSERT(pAP != 0);
+}
+
+ExtForceEDGE::~ExtForceEDGE(void)
+{
+	NO_OP;
+}
+
+/* ExtForceEDGE - end */
+
+
+/* ExtRigidForceEDGE - begin */
+
+ExtRigidForceEDGE::ExtRigidForceEDGE(DataManager *pDM)
+: ExtForceEDGE(pDM)
+{
+	NO_OP;
 }
 
 /*
@@ -71,19 +90,20 @@ ExtModalForceEDGE::ExtModalForceEDGE(DataManager *pDM)
 * intestazione a scelta
 body_forces,R,1,6,0
 0.1 0.2 0.3 0.4 0.5 0.6
-modal_force_flow,R,1,5,0
-0.1 0.2 0.3 0.4 0.5
 
 */
 
 unsigned
-ExtModalForceEDGE::Recv(std::istream& fin,
+ExtRigidForceEDGE::Recv(std::istream& fin,
 	unsigned uFlags,
 	unsigned& uLabel,
 	Vec3& f, Vec3& m,
 	std::vector<doublereal>& a)
 {
 	unsigned uOutFlags = ExtModalForceBase::EMF_NONE;
+
+	ASSERT((uFlags & ExtModalForceBase::EMF_RIGID) != 0);
+	ASSERT((uFlags & ~ExtModalForceBase::EMF_ALL) == 0);
 
 	// fake
 	uLabel = 0;
@@ -122,40 +142,6 @@ ExtModalForceEDGE::Recv(std::istream& fin,
 			if (goto_eol(fin, buf, sizeof(buf))) {
 				// error
 			}
-			
-			continue;
-		}
-
-		if (strncasecmp(buf, "modal_force_flow,R,1,", STRLENOF("modal_force_flow,R,1,")) == 0) {
-			p = buf + STRLENOF("modal_force_flow,R,1,");
-
-			char *next;
-			long nmodes = strtol(p, &next, 10);
-
-			if (next == p) {
-				// error
-			}
-
-			if (nmodes != long(a.size())) {
-				// error
-			}
-
-			if (uFlags & ExtModalForceBase::EMF_MODAL_DETECT_MASK) {
-				for (std::vector<doublereal>::iterator i = a.begin();
-					i != a.end(); i++)
-				{
-					fin >> *i;
-				}
-
-				uOutFlags |= (uFlags & ExtModalForceBase::EMF_MODAL_DETECT_MASK);
-			}
-
-			// skip to eol
-			if (goto_eol(fin, buf, sizeof(buf))) {
-				// error
-			}
-			
-			continue;
 		}
 	}
 
@@ -178,6 +164,125 @@ OMGMAN,R,3,3,0
 12 22 32
 13 23 33
 
+*/
+
+void
+ExtRigidForceEDGE::Send(std::ostream& fout, unsigned uFlags,
+	unsigned uLabel,
+	const Vec3& x, const Mat3x3& R, const Vec3& v, const Vec3& w,
+	const std::vector<doublereal>& q,
+	const std::vector<doublereal>& qP)
+{
+	ASSERT((uFlags & ExtModalForceBase::EMF_RIGID) != 0);
+	ASSERT((uFlags & ~ExtModalForceBase::EMF_ALL) == 0);
+
+	Vec3 vv = v;
+	Vec3 v_infty;
+
+	if (pAP && pAP->GetVelocity(x, v_infty)) {
+		vv -= v_infty;
+	}
+
+	Vec3 vB = R.MulTV(vv);
+	Vec3 wB = R.MulTV(w);
+
+	fout << "* MBDyn to EDGE rigid body dynamics\n"
+		"body_dynamics,N,0,0,3\n"
+		"* Body linear velocity in body axes\n"
+		"VRELV,R,1,3,0\n"
+		<< vB(1) << " " << vB(2) << " " << vB(3) << "\n"
+		"* Body angular velocity in body axes\n"
+		"VRELM,R,1,3,0\n"
+		<< wB(1) << " " << wB(2) << " " << wB(3) << "\n"
+		"* Body reference frame cosines (listed by columns)\n"
+		"OMGMAN,R,3,3,0\n"
+		<< R(1, 1) << " " << R(2, 1) << " " << R(3, 1) << "\n"
+		<< R(1, 2) << " " << R(2, 2) << " " << R(3, 2) << "\n"
+		<< R(1, 3) << " " << R(2, 3) << " " << R(3, 3) << "\n";
+}
+
+/* ExtRigidForceEDGE - end */
+
+/* ExtModalForceEDGE - begin */
+
+ExtModalForceEDGE::ExtModalForceEDGE(DataManager *pDM)
+: ExtForceEDGE(pDM)
+{
+	NO_OP;
+}
+
+/*
+
+* intestazione a scelta
+modal_force_flow,R,1,5,0
+0.1 0.2 0.3 0.4 0.5
+
+*/
+
+unsigned
+ExtModalForceEDGE::Recv(std::istream& fin,
+	unsigned uFlags,
+	unsigned& uLabel,
+	Vec3& f, Vec3& m,
+	std::vector<doublereal>& a)
+{
+	unsigned uOutFlags = ExtModalForceBase::EMF_NONE;
+
+	ASSERT((uFlags & ExtModalForceBase::EMF_MODAL) != 0);
+	ASSERT((uFlags & ~ExtModalForceBase::EMF_ALL) == 0);
+
+	// fake
+	uLabel = 0;
+
+	// cycle
+	while (true) {
+		char buf[BUFSIZ], *p;
+		if (goto_eol(fin, buf, sizeof(buf))) {
+			if (!fin) {
+				break;
+			}
+		}
+
+		if (buf[0] == '*') {
+			continue;
+		}
+
+		if (strncasecmp(buf, "modal_force_flow,R,1,", STRLENOF("modal_force_flow,R,1,")) == 0) {
+			p = buf + STRLENOF("modal_force_flow,R,1,");
+
+			char *next;
+			long nmodes = strtol(p, &next, 10);
+
+			if (next == p) {
+				// error
+			}
+
+			if (std::vector<doublereal>::size_type(nmodes) != a.size()) {
+				// error
+			}
+
+			if (uFlags & ExtModalForceBase::EMF_MODAL_DETECT_MASK) {
+				for (std::vector<doublereal>::iterator i = a.begin();
+					i != a.end(); i++)
+				{
+					fin >> *i;
+				}
+
+				uOutFlags |= (uFlags & ExtModalForceBase::EMF_MODAL_DETECT_MASK);
+			}
+
+			// skip to eol
+			if (goto_eol(fin, buf, sizeof(buf))) {
+				// error
+			}
+		}
+	}
+
+	return uOutFlags;
+}
+
+/*
+
 * intestazione a scelta
 modal_state,N,0,0,2
 modal_coordinate,R,1,5,0
@@ -194,53 +299,28 @@ ExtModalForceEDGE::Send(std::ostream& fout, unsigned uFlags,
 	const std::vector<doublereal>& q,
 	const std::vector<doublereal>& qP)
 {
-	if (uFlags & ExtModalForceBase::EMF_RIGID) {
-		Vec3 vv = v;
-		Vec3 v_infty;
+	ASSERT((uFlags & ExtModalForceBase::EMF_MODAL) != 0);
+	ASSERT((uFlags & ~ExtModalForceBase::EMF_ALL) == 0);
 
-		if (pAP && pAP->GetVelocity(x, v_infty)) {
-			vv -= v_infty;
-		}
-
-		Vec3 vB = R.MulTV(vv);
-		Vec3 wB = R.MulTV(w);
-
-		fout << "* MBDyn to EDGE rigid body dynamics\n"
-			"body_dynamics,N,0,0,3\n"
-			"* Body linear velocity in body axes\n"
-			"VRELV,R,1,3,0\n"
-			<< vB(1) << " " << vB(2) << " " << vB(3) << "\n"
-			"* Body angular velocity in body axes\n"
-			"VRELM,R,1,3,0\n"
-			<< wB(1) << " " << wB(2) << " " << wB(3) << "\n"
-			"* Body reference frame cosines (listed by columns)\n"
-			"OMGMAN,R,3,3,0\n"
-			<< R(1, 1) << " " << R(2, 1) << " " << R(3, 1) << "\n"
-			<< R(1, 2) << " " << R(2, 2) << " " << R(3, 2) << "\n"
-			<< R(1, 3) << " " << R(2, 3) << " " << R(3, 3) << "\n";
+	fout << "* MBDyn to EDGE modal dynamics\n"
+		"modal_state,N,0,0,2\n"
+		"modal_coordinate,R,1," << q.size() << ",0\n"
+		<< q[0];
+	for (std::vector<doublereal>::const_iterator i = q.begin() + 1;
+		i < q.end(); i++)
+	{
+		fout << " " << *i;
 	}
-
-	if (uFlags & ExtModalForceBase::EMF_MODAL) {
-		fout << "* MBDyn to EDGE modal dynamics\n"
-			"modal_state,N,0,0,2\n"
-			"modal_coordinate,R,1," << q.size() << ",0\n"
-			<< q[0];
-		for (std::vector<doublereal>::const_iterator i = q.begin() + 1;
-			i < q.end(); i++)
-		{
-			fout << " " << *i;
-		}
-		fout << "\n"
-			"modal_velocity,R,1," << qP.size() << ",0\n"
-			<< qP[0];
-		for (std::vector<doublereal>::const_iterator i = qP.begin() + 1;
-			i < qP.end(); i++)
-		{
-			fout << " " << *i;
-		}
-		fout << "\n";
+	fout << "\n"
+		"modal_velocity,R,1," << qP.size() << ",0\n"
+		<< qP[0];
+	for (std::vector<doublereal>::const_iterator i = qP.begin() + 1;
+		i < qP.end(); i++)
+	{
+		fout << " " << *i;
 	}
+	fout << "\n";
 }
 
-/* ExtModalForceBaseEDGE - end */
+/* ExtModalForceEDGE - end */
 

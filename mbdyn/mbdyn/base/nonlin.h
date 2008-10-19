@@ -203,7 +203,10 @@ protected:
 	External::ExtMessage ExtStepType;
 #endif /* USE_EXTERNAL */
 
-	virtual doublereal MakeSolTest(Solver* pS, const VectorHandler& Vec);
+	virtual bool MakeSolTest(Solver* pS,
+		const VectorHandler& Vec,
+		const doublereal& dTol,
+		doublereal& dTest);
 
 public:
 	NonlinearSolver(bool JacReq = false);
@@ -212,7 +215,11 @@ public:
 		
 	virtual ~NonlinearSolver(void);
 
-	virtual doublereal MakeResTest(Solver* pS, const VectorHandler& Vec);
+	virtual bool MakeResTest(Solver* pS,
+		const NonlinearProblem *pNLP,
+		const VectorHandler& Vec,
+		const doublereal& dTol,
+		doublereal& dTest);
 	
 	virtual void Solve(const NonlinearProblem *pNLP,
 			Solver *pS,

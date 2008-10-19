@@ -136,7 +136,8 @@ ExtFileHandlerEDGE::Send_post(bool bAfterConvergence)
 		// This stops EDGE's subiterations
 		// and advances to next step
 		outfile.open("update.ainp");
-		outfile << "UPDATE,N,0,0,1\n"
+		outfile <<
+			"UPDATE,N,0,0,1\n"
 			"IBREAK,I,1,1,0\n"
 			"5\n";
 		outfile.close();
@@ -211,12 +212,14 @@ done:;
 	return infile;
 }
 
-void
+bool
 ExtFileHandlerEDGE::Recv_post(void)
 {
 	if (infile.is_open()) {
 		infile.close();
 	}
+
+	return !bReadForces;
 }
 
 /* ExtFileHandlerEDGE - end */

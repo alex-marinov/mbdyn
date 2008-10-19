@@ -58,6 +58,7 @@ protected:
 public:
 	/* Costruttore */
 	StructExtForce(unsigned int uL,
+		DataManager *pDM,
 		std::vector<StructNode *>& Nodes,
 		std::vector<Vec3>& Offsets,
 		bool bUnsorted,

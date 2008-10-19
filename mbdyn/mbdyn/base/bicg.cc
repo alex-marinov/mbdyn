@@ -156,7 +156,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 			pS->PrintResidual(*pRes, iIterCnt);
       		}
 
-		dErr = MakeResTest(pS, *pRes) * pNLP->TestScale(pResTest);
+		bool bTest = MakeResTest(pS, pNLP, *pRes, Tol, dErr);
 
 #ifdef DEBUG_ITERATIVE
 		std::cerr << "dErr " << dErr << std::endl;
@@ -164,19 +164,18 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 
 		if (outputIters()) {
 #ifdef USE_MPI
-			if (!bParallel || MBDynComm.Get_rank() == 0) {
+			if (!bParallel || MBDynComm.Get_rank() == 0)
 #endif /* USE_MPI */
+			{
 				silent_cout("\tIteration(" << iIterCnt << ") " << dErr);
-				if (bBuildMat && dErr >= Tol) {
+				if (bBuildMat && !bTest) {
 					silent_cout(" J");
 				}
 				silent_cout(std::endl);
-#ifdef USE_MPI
 			}
-#endif /* USE_MPI */
 		}
 		
-		if (dErr < Tol) {
+		if (bTest) {
 	 		return;
       		}
       		if (!std::isfinite(dErr)) {
@@ -370,18 +369,17 @@ rebuild_matrix:;
 		
       		pNLP->Update(&dx);
 
-		dSolErr = MakeSolTest(pS, dx);
+		bTest = MakeSolTest(pS, dx, SolTol, dSolErr);
 		if (outputIters()) {
 #ifdef USE_MPI
-			if (!bParallel || MBDynComm.Get_rank() == 0) {
+			if (!bParallel || MBDynComm.Get_rank() == 0)
 #endif /* USE_MPI */
+			{
 				silent_cout("\t\tSolErr " << dSolErr
 						<< std::endl);
-#ifdef USE_MPI
 			}
-#endif /* USE_MPI */
 		}
-		if (dSolErr < SolTol) {
+		if (bTest) {
 			throw ConvergenceOnSolution(MBDYN_EXCEPT_ARGS);
 		}
 	}

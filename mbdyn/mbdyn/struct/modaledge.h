@@ -37,12 +37,41 @@
 #include "modalext.h"
 #include "aerodyn.h"
 
-/* ExtModalForceEDGE - begin */
+/* ExtForceEDGE - begin */
 
-class ExtModalForceEDGE : public ExtModalForceBase {
+class ExtForceEDGE : public ExtModalForceBase {
 protected:
 	AirProperties *pAP;
 
+public:
+	ExtForceEDGE(DataManager *pDM);
+	virtual ~ExtForceEDGE(void);
+};
+
+/* ExtForceEDGE - end */
+
+/* ExtRigidForceEDGE - begin */
+
+class ExtRigidForceEDGE : public ExtForceEDGE {
+public:
+	ExtRigidForceEDGE(DataManager *pDM);
+
+	unsigned
+	Recv(std::istream& fin, unsigned uFlags, unsigned& uLabel,
+		Vec3& f, Vec3& m, std::vector<doublereal>& a);
+
+	void
+	Send(std::ostream& fout, unsigned uFlags, unsigned uLabel,
+		const Vec3& x, const Mat3x3& R, const Vec3& v, const Vec3& w,
+		const std::vector<doublereal>& q,
+		const std::vector<doublereal>& qP);
+};
+
+/* ExtRigidForceEDGE - end */
+
+/* ExtModalForceEDGE - begin */
+
+class ExtModalForceEDGE : public ExtForceEDGE {
 public:
 	ExtModalForceEDGE(DataManager *pDM);
 
