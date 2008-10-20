@@ -2355,18 +2355,27 @@ ReadJoint(DataManager* pDM,
 		}
 
 		bool bXActive[3] = { false, false, false };
+		bool bVActive[3] = { false, false, false };
 		TplDriveCaller<Vec3>* pXDC[3] = {0, 0, 0};
 		if (HP.IsKeyWord("position" "constraint")) {
 			for (unsigned i = 0; i < 3; i++) {
 				if (HP.IsKeyWord("inactive")) {
 					bXActive[i] = false;
+					bVActive[i] = false;
 
-				} else if (HP.IsKeyWord("active")) {
+				} else if (HP.IsKeyWord("position") || HP.IsKeyWord("active")) {
 					bXActive[i] = true;
+					bVActive[i] = false;
+
+				} else if (HP.IsKeyWord("velocity")) {
+					bVActive[i] = true;
+					bXActive[i] = false;
 
 				} else {
 					if (HP.IsArg()) {
-						bXActive[i] = HP.GetBool();
+						bool bActive = HP.GetBool();
+						bXActive[i] = bActive;
+						bVActive[i] = bActive;
 						continue;
 					}
 
@@ -2379,23 +2388,37 @@ ReadJoint(DataManager* pDM,
 
 			pXDC[0] = ReadDC3D(pDM, HP);
 
+			if (pDM->bIsInverseDynamics()) {
+				pXDC[1] = ReadDC3D(pDM, HP);
+				pXDC[2] = ReadDC3D(pDM, HP);
+			}
+
 		} else {
 			SAFENEW(pXDC[0], ZeroTplDriveCaller<Vec3>);
 		}
 
 		bool bTActive[3] = { false, false, false };
+		bool bWActive[3] = { false, false, false };
 		TplDriveCaller<Vec3>* pTDC[3] = {0, 0, 0};
 		if (HP.IsKeyWord("orientation" "constraint")) {
 			for (unsigned i = 0; i < 3; i++) {
 				if (HP.IsKeyWord("inactive")) {
 					bTActive[i] = false;
+					bWActive[i] = false;
 
-				} else if (HP.IsKeyWord("active")) {
+				} else if (HP.IsKeyWord("rotation") || HP.IsKeyWord("active")) {
 					bTActive[i] = true;
+					bWActive[i] = false;
+				
+				} else if (HP.IsKeyWord("angular" "velocity")) {
+					bTActive[i] = false;
+					bWActive[i] = true;
 
 				} else {
 					if (HP.IsArg()) {
-						bTActive[i] = HP.GetBool();
+						bool bActive = HP.GetInt();
+						bTActive[i] = bActive;
+						bWActive[i] = bActive;
 						continue;
 					}
 
@@ -2408,6 +2431,11 @@ ReadJoint(DataManager* pDM,
 
 			pTDC[0] = ReadDC3D(pDM, HP);
 
+			if (pDM->bIsInverseDynamics()) {
+				pTDC[1] = ReadDC3D(pDM, HP);
+				pTDC[2] = ReadDC3D(pDM, HP);
+			}
+
 		} else {
 			SAFENEW(pTDC[0], ZeroTplDriveCaller<Vec3>);
 		}
@@ -2417,14 +2445,14 @@ ReadJoint(DataManager* pDM,
 		SAFENEWWITHCONSTRUCTOR(pEl,
 			TotalEquation,
 			TotalEquation(uLabel, pDO,
-				bXActive, pXDC,
-				bTActive, pTDC,
+				bXActive, bVActive, pXDC,
+				bTActive, bWActive, pTDC,
 				pNode1, f1, R1h, R1hr,
 				pNode2, f2, R2h, R2hr,
 				fOut));
 
 		std::ostream& out = pDM->GetLogFile();
-		out << "totaljoint: " << uLabel
+		out << "totalequation: " << uLabel
 			<< " " << pNode1->GetLabel()
 			<< " " << f1
 			<< " " << R1h
