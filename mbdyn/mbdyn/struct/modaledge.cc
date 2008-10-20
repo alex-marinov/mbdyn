@@ -41,6 +41,7 @@ static int
 goto_eol(std::istream& fin, char *buf, size_t bufsiz)
 {
 	size_t i;
+
 	for (i = 0; i < bufsiz; i++) {
 		buf[i] = fin.get();
 
@@ -59,6 +60,58 @@ goto_eol(std::istream& fin, char *buf, size_t bufsiz)
 
 	return 0;
 }
+
+static char *
+eat_sep(char *buf, size_t& buflen)
+{
+	ASSERT(buflen > 0);
+
+	while (buflen > 0) {
+		if (buf[0] == '\n' || (buf[0] != ',' && !std::isspace(buf[0]))) {
+			return buf;
+		}
+
+		buflen--;
+		buf++;
+	}
+
+	return 0;
+}
+
+static char *
+eat_field(char *buf, size_t& buflen, const char *val)
+{
+	ASSERT(buflen > 0);
+
+	size_t vallen = strlen(val);
+	if (buflen < vallen) {
+		return 0;
+	}
+
+	if (strncmp(buf, val, vallen) == 0) {
+		return buf + vallen;
+	}
+
+	return 0;
+}
+
+#if 0
+static char *
+eat_field(char *buf, size_t& buflen)
+{
+	ASSERT(buflen > 0);
+	while (buflen > 0) {
+		if (buf[0] == ',' || std::isspace(buf[0])) {
+			return buf;
+		}
+
+		buflen--;
+		buf++;
+	}
+
+	return 0;
+}
+#endif
 
 /* ExtForceEDGE - begin */
 
@@ -121,9 +174,56 @@ ExtRigidForceEDGE::Recv(std::istream& fin,
 			continue;
 		}
 
-		if (strncasecmp(buf, "body_forces,R,", STRLENOF("body_forces,R,")) == 0) {
-			p = &buf[0] + STRLENOF("body_forces,R,");
-			if (strncmp(p, "1,6,0", STRLENOF("1,6,0")) != 0) {
+		if (strncasecmp(buf, "body_forces", STRLENOF("body_forces")) == 0) {
+			size_t buflen = sizeof(buf) - STRLENOF("body_forces");
+			p = &buf[0] + STRLENOF("body_forces");
+
+			p = eat_sep(p, buflen);
+			if (p == 0) {
+				// error
+			}
+
+			p = eat_field(p, buflen, "R");
+			if (p == 0) {
+				// error
+			}
+
+			p = eat_sep(p, buflen);
+			if (p == 0) {
+				// error
+			}
+
+			p = eat_field(p, buflen, "1");
+			if (p == 0) {
+				// error
+			}
+
+			p = eat_sep(p, buflen);
+			if (p == 0) {
+				// error
+			}
+
+			p = eat_field(p, buflen, "6");
+			if (p == 0) {
+				// error
+			}
+
+			p = eat_sep(p, buflen);
+			if (p == 0) {
+				// error
+			}
+
+			p = eat_field(p, buflen, "0");
+			if (p == 0) {
+				// error
+			}
+
+			p = eat_sep(p, buflen);
+			if (p == 0) {
+				// error
+			}
+
+			if (p[0] != '\0' && p[0] != '\n') {
 				// error
 			}
 
@@ -247,13 +347,60 @@ ExtModalForceEDGE::Recv(std::istream& fin,
 			continue;
 		}
 
-		if (strncasecmp(buf, "modal_force_flow,R,1,", STRLENOF("modal_force_flow,R,1,")) == 0) {
-			p = buf + STRLENOF("modal_force_flow,R,1,");
+		// if (strncasecmp(buf, "modal_force_flow,R,1,", STRLENOF("modal_force_flow,R,1,")) == 0) {
+		if (strncasecmp(buf, "modal_force_flow", STRLENOF("modal_force_flow")) == 0) {
+			p = buf + STRLENOF("modal_force_flow");
+
+			size_t buflen = sizeof(buf) - STRLENOF("modal_force_flow");
+			p = &buf[0] + STRLENOF("modal_force_flow");
+
+			p = eat_sep(p, buflen);
+			if (p == 0) {
+				// error
+			}
+
+			p = eat_field(p, buflen, "R");
+			if (p == 0) {
+				// error
+			}
+
+			p = eat_sep(p, buflen);
+			if (p == 0) {
+				// error
+			}
+
+			p = eat_field(p, buflen, "1");
+			if (p == 0) {
+				// error
+			}
+
+			p = eat_sep(p, buflen);
+			if (p == 0) {
+				// error
+			}
 
 			char *next;
 			long nmodes = strtol(p, &next, 10);
-
 			if (next == p) {
+				// error
+			}
+
+			p = eat_sep(next, buflen);
+			if (p == 0) {
+				// error
+			}
+
+			p = eat_field(p, buflen, "0");
+			if (p == 0) {
+				// error
+			}
+
+			p = eat_sep(p, buflen);
+			if (p == 0) {
+				// error
+			}
+
+			if (p[0] != '\0' && p[0] != '\n') {
 				// error
 			}
 
@@ -304,7 +451,7 @@ ExtModalForceEDGE::Send(std::ostream& fout, unsigned uFlags,
 
 	fout << "* MBDyn to EDGE modal dynamics\n"
 		"modal_state,N,0,0,2\n"
-		"modal_coordinate,R,1," << q.size() << ",0\n"
+		"modal_coordinate,R," << q.size() << ",1,0\n"
 		<< q[0];
 	for (std::vector<doublereal>::const_iterator i = q.begin() + 1;
 		i < q.end(); i++)
@@ -312,7 +459,7 @@ ExtModalForceEDGE::Send(std::ostream& fout, unsigned uFlags,
 		fout << " " << *i;
 	}
 	fout << "\n"
-		"modal_velocity,R,1," << qP.size() << ",0\n"
+		"modal_velocity,R," << qP.size() << ",1,0\n"
 		<< qP[0];
 	for (std::vector<doublereal>::const_iterator i = qP.begin() + 1;
 		i < qP.end(); i++)
