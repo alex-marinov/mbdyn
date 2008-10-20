@@ -36,7 +36,9 @@
 
 #include <vector>
 #include <string>
+
 #include "force.h"
+#include "converged.h"
 
 /* ExtFileHandlerBase - begin */
 
@@ -89,8 +91,7 @@ public:
 
 class ExtForce : virtual public Elem, public Force {
 protected:
-	DataManager *pDM;
-	unsigned uConverged;
+	Converged c;
 	ExtFileHandlerBase *pEFH;
 
 	bool bFirstRes;

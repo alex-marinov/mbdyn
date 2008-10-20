@@ -205,13 +205,13 @@ ExtForce::ExtForce(unsigned int uL,
 	flag fOut)
 : Elem(uL, fOut), 
 Force(uL, fOut),
-pDM(pDM),
+c(pDM),
 pEFH(pEFH),
 bFirstRes(false),
 iCoupling(iCoupling),
 iCouplingCounter(0)
 {
-	uConverged = pDM->ConvergedRegister();
+	NO_OP;
 }
 
 ExtForce::~ExtForce(void)
@@ -239,7 +239,7 @@ ExtForce::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
 	/* After prediction, mark next residual as first */
 	bFirstRes = true;
-	pDM->ConvergedSet(uConverged, false);
+	c.Set(false);
 }
 
 /*
@@ -283,7 +283,7 @@ ExtForce::Recv(void)
 		}
 
 		if (pEFH->Recv_post()) {
-			pDM->ConvergedSet(uConverged, true);
+			c.Set(true);
 		}
 	}
 

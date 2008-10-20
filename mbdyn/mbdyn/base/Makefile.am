@@ -22,6 +22,8 @@ constltp_nlp.h \
 constltp_nlsf.cc \
 constltp_nlsf.h \
 contactj.h \
+converged.cc \
+converged.h \
 damper.f \
 damper.h \
 dataman.cc \
