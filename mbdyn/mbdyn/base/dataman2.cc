@@ -1533,13 +1533,21 @@ DataManager::BeforePredict(VectorHandler& X, VectorHandler& XP,
 void
 DataManager::AfterPredict(void) const
 {
+	/* reset any external convergence requirement before starting
+	 * a new step */
+	for (std::vector<bool>::iterator i = IsConverged.begin();
+		i != IsConverged.end();
+		i++)
+	{
+		*i = false;
+	}
+
 	Node** ppLastNode = ppNodes+iTotNodes;
 	for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
 		ASSERT(*ppTmp != NULL);
 		(*ppTmp)->AfterPredict(*pXCurr, *pXPrimeCurr);
 	}
 
-	/* Versione con iteratore: */
 	Elem* pEl = NULL;
 	if (ElemIter.bGetFirst(pEl)) {
 		do {
@@ -1700,6 +1708,7 @@ DataManager::ConvergedRegister(void)
 {
 	unsigned idx = IsConverged.size();
 	IsConverged.resize(idx + 1);
+	IsConverged[idx] = true;
 	return idx;
 }
 

@@ -93,12 +93,19 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 	int cmd;
 	infile >> cmd;
 
+	silent_cerr("flag file \"" << fflagname.c_str() << "\": cmd=" << cmd << std::endl);
+
 	infile.close();
 	infile.clear();
 
 	return EDGEcmd(cmd);
 }
 
+void
+ExtFileHandlerEDGE::AfterPredict(void)
+{
+	bReadForces = true;
+}
 
 std::ostream&
 ExtFileHandlerEDGE::Send_pre(bool bAfterConvergence)
@@ -142,9 +149,6 @@ ExtFileHandlerEDGE::Send_post(bool bAfterConvergence)
 			"5\n";
 		outfile.close();
 #endif
-
-		// re-set flag
-		bReadForces = true;
 	}
 
 	outfile.open(fflagname.c_str());

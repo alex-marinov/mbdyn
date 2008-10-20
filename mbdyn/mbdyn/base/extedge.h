@@ -77,6 +77,8 @@ public:
 		std::string& fdataname, int iSleepTime);
 	~ExtFileHandlerEDGE(void);
 
+	virtual void AfterPredict(void);
+
 	virtual std::ostream& Send_pre(bool bAfterConvergence = false);
 	virtual void Send_post(bool bAfterConvergence = false);
 

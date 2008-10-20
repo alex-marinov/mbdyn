@@ -46,6 +46,8 @@ class ExtFileHandlerBase {
 public:
 	virtual ~ExtFileHandlerBase(void);
 
+	virtual void AfterPredict(void) = 0;
+
 	virtual std::ostream& Send_pre(bool bAfterConvergence = false) = 0;
 	virtual void Send_post(bool bAfterConvergence = false) = 0;
 
@@ -75,6 +77,8 @@ public:
 		int iSleepTime,
 		int iPrecision);
 	~ExtFileHandler(void);
+
+	virtual void AfterPredict(void);
 
 	virtual std::ostream& Send_pre(bool bAfterConvergence = false);
 	virtual void Send_post(bool bAfterConvergence = false);

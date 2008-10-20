@@ -382,7 +382,7 @@ protected:
 	throw(ChangedEquationStructure);
 
 protected:
-	std::vector<bool> IsConverged;
+	mutable std::vector<bool> IsConverged;
 
 public:
 	// returns an idx to a newly created slot for convergence

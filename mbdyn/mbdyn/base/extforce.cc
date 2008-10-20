@@ -75,6 +75,12 @@ ExtFileHandler::~ExtFileHandler(void)
 	NO_OP;
 }
 
+void
+ExtFileHandler::AfterPredict(void)
+{
+	NO_OP;
+}
+
 std::ostream&
 ExtFileHandler::Send_pre(bool bAfterConvergence)
 {
@@ -205,7 +211,7 @@ ExtForce::ExtForce(unsigned int uL,
 	flag fOut)
 : Elem(uL, fOut), 
 Force(uL, fOut),
-c(pDM),
+c(iCoupling ? pDM: NULL),
 pEFH(pEFH),
 bFirstRes(false),
 iCoupling(iCoupling),
@@ -239,7 +245,11 @@ ExtForce::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
 	/* After prediction, mark next residual as first */
 	bFirstRes = true;
-	c.Set(false);
+
+	pEFH->AfterPredict();
+
+	/* needed to send predicted data */
+	Update(X, XP);
 }
 
 /*
@@ -282,7 +292,7 @@ ExtForce::Recv(void)
 			Recv(inf);
 		}
 
-		if (pEFH->Recv_post()) {
+		if (pEFH->Recv_post() && iCoupling) {
 			c.Set(true);
 		}
 	}
