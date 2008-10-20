@@ -365,6 +365,147 @@ DynamicRegularization::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+/* JacobianRegularization - begin */
+
+JacobianRegularization::JacobianRegularization(unsigned int uL,
+	const Joint *j,
+	const std::vector<doublereal>& c,
+	flag fOut)
+: Elem(uL, fOut),
+JointRegularization(uL, j, fOut),
+dC(c)
+{
+	NO_OP;
+}
+
+JacobianRegularization::~JacobianRegularization(void)
+{
+	NO_OP;
+}
+
+JointRegularization::Type
+JacobianRegularization::GetJointRegularizationType(void) const
+{
+	return JointRegularization::TIKHONOV_REGULARIZATION;
+}
+
+
+void
+JacobianRegularization::WorkSpaceDim(integer* piNumRows,
+	integer* piNumCols) const
+{
+	*piNumRows = *piNumCols = pJ->iGetNumDof();
+}
+
+/* assemblaggio residuo */
+SubVectorHandler&
+JacobianRegularization::AssRes(SubVectorHandler& WorkVec,
+	doublereal dCoef,
+	const VectorHandler& XCurr, 
+	const VectorHandler& XPrimeCurr)
+{
+/*
+	integer iFirstIndex = pJ->iGetFirstIndex();
+	unsigned iNumDofs = pJ->iGetNumDof();
+
+	WorkVec.ResizeReset(iNumDofs);
+
+	for (unsigned iCnt = 1; iCnt <= iNumDofs; iCnt++) {
+		WorkVec.PutItem(iCnt, iFirstIndex + iCnt,
+			dC[iCnt - 1]*XCurr(iFirstIndex + iCnt)/dCoef);
+	}
+*/
+	return WorkVec;
+}
+
+/* assemblaggio jacobiano */
+VariableSubMatrixHandler& 
+JacobianRegularization::AssJac(VariableSubMatrixHandler& WorkMat,
+	doublereal dCoef, 
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr)
+{
+	SparseSubMatrixHandler& WM = WorkMat.SetSparse();
+
+	integer iFirstIndex = pJ->iGetFirstIndex();
+	unsigned iNumDofs = pJ->iGetNumDof();
+
+	WM.ResizeReset(iNumDofs, 0);
+
+	for (unsigned iCnt = 1; iCnt <= iNumDofs; iCnt++) {
+		WM.PutItem(iCnt, iFirstIndex + iCnt, iFirstIndex + iCnt,
+			- dC[iCnt - 1]/dCoef);
+	}
+
+	return WorkMat;
+}
+
+void
+JacobianRegularization::InitialWorkSpaceDim(integer* piNumRows,
+	integer* piNumCols) const
+{
+	*piNumRows = *piNumCols = pJ->iGetInitialNumDof();
+}
+
+VariableSubMatrixHandler& 
+JacobianRegularization::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+	const VectorHandler& XCurr)
+{	
+	SparseSubMatrixHandler& WM = WorkMat.SetSparse();
+
+	integer iFirstIndex = pJ->iGetFirstIndex();
+	unsigned iNumDofs = pJ->iGetInitialNumDof();
+
+	WM.ResizeReset(iNumDofs, 0);
+	unsigned tmp1 = 0;
+	unsigned tmp2 = 0;
+
+	for (unsigned iCnt = 1; iCnt <= iNumDofs; iCnt++) {
+		WM.PutItem(iCnt, iFirstIndex + iCnt, iFirstIndex + iCnt,
+			- dC[tmp2]);
+		if(tmp1 == 1)	{
+			tmp1 = 0;
+			tmp2++;
+		} else	{
+			tmp1++;
+		}
+	}
+
+
+
+	return WorkMat;
+}
+
+SubVectorHandler& 
+JacobianRegularization::InitialAssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& XCurr)
+{	
+/*	
+	integer iFirstIndex = pJ->iGetFirstIndex();
+	unsigned iNumDofs = pJ->iGetInitialNumDof();
+
+	WorkVec.ResizeReset(iNumDofs);
+
+	unsigned tmp1 = 0;
+	unsigned tmp2 = 0;
+
+	for (unsigned iCnt = 1; iCnt <= iNumDofs; iCnt++) {
+		WorkVec.PutItem(iCnt, iFirstIndex + iCnt,
+			dC[tmp2]*XCurr(iFirstIndex + iCnt));
+		if(tmp1 == 1)	{
+			tmp1 = 0;
+			tmp2++;
+		} else	{
+			tmp1++;
+		}
+	}
+*/
+
+	return WorkVec;
+}
+
+/* JacobianRegularization - end */
+
 /* JointRegularization - end */
 
 
@@ -378,6 +519,7 @@ ReadJointRegularization(DataManager* pDM,
 	const char* sKeyWords[] = {
 		"tikhonov",
 		"dynamic",
+		"jacobian",
 
 		0
 	};
@@ -388,6 +530,7 @@ ReadJointRegularization(DataManager* pDM,
 
 		TIKHONOV = 0,
 		DYNAMIC,
+		JACOBIAN,
 
 		LASTKEYWORD
 	};
@@ -410,6 +553,7 @@ ReadJointRegularization(DataManager* pDM,
 
 	case TIKHONOV:
 	case DYNAMIC:
+	case JACOBIAN:
 	{
 		Joint *pJ = dynamic_cast<Joint *>(pDM->pFindElem(Elem::JOINT, uLabel));
 		if (pJ == 0) {
@@ -420,7 +564,7 @@ ReadJointRegularization(DataManager* pDM,
 				<< "(" << uLabel << ") "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		unsigned iNumDofs = pJ->iGetNumDof();
@@ -432,7 +576,7 @@ ReadJointRegularization(DataManager* pDM,
 				<< "(" << uLabel << ") "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		}
 
@@ -468,8 +612,14 @@ ReadJointRegularization(DataManager* pDM,
 				DynamicRegularization(uLabel, pJ, dC, 0));
 			break;
 
+		case JACOBIAN:
+			SAFENEWWITHCONSTRUCTOR(pEl,
+				JacobianRegularization,
+				JacobianRegularization(uLabel, pJ, dC, 0));
+			break;
+
 		default:
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 	} break;

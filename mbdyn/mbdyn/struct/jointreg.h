@@ -53,6 +53,7 @@ public:
 
 		TIKHONOV_REGULARIZATION = 0,
 		DYNAMIC_REGULARIZATION,
+		JACOBIAN_REGULARIZATION,
 
 		LASTJOINTREGTYPE
 	};
@@ -183,6 +184,53 @@ public:
 
 /* DynamicRegularization - end */
 
+/* JacobianRegularization - begin */
+
+class JacobianRegularization
+: virtual public Elem, public JointRegularization
+{
+protected:
+	std::vector<doublereal> dC;
+
+public:
+	JacobianRegularization(unsigned int uL,
+		const Joint *j,
+		const std::vector<doublereal>& c,
+		flag fOut);
+	virtual ~JacobianRegularization(void);
+
+	virtual JointRegularization::Type
+	GetJointRegularizationType(void) const;
+
+	virtual void
+	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+
+	/* assemblaggio residuo */
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr);
+
+	/* assemblaggio jacobiano */
+	virtual VariableSubMatrixHandler& 
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		doublereal dCoef, 
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+
+	virtual void
+	InitialWorkSpaceDim(integer* piNumRows,
+		integer* piNumCols) const;
+	virtual VariableSubMatrixHandler& 
+	InitialAssJac(VariableSubMatrixHandler& WorkMat,
+		const VectorHandler& XCurr);
+	virtual SubVectorHandler& 
+	InitialAssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& XCurr);
+};
+
+/* JacobianRegularization - end */
 
 /* Lettura joint regularizations */
 class DataManager;
