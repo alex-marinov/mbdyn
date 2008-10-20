@@ -386,7 +386,7 @@ JacobianRegularization::~JacobianRegularization(void)
 JointRegularization::Type
 JacobianRegularization::GetJointRegularizationType(void) const
 {
-	return JointRegularization::TIKHONOV_REGULARIZATION;
+	return JointRegularization::JACOBIAN_REGULARIZATION;
 }
 
 
