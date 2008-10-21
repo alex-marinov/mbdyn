@@ -30,32 +30,25 @@
  */
 
 #include <iostream>
+#include <sstream>
 #include <cstdlib>
-#include "mbexcept.h"
+#include "except.h"
 
-class ErrPlain : public Err_base {
+class ErrPlain : public MBDynErrBase {
 public:
 	ErrPlain(MBDYN_EXCEPT_ARGS_DECL)
-	: Err_base(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	: MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
 	virtual ~ErrPlain(void) throw() {};
 };
 
-class ErrReason : public Err_base {
-public:
-	ErrReason(MBDYN_EXCEPT_ARGS_DECL, const std::string& r)
-	: Err_base(MBDYN_EXCEPT_ARGS_PASSTHRU, r) {};
-	virtual ~ErrReason(void) throw() {};
-};
-
-class ErrCode: public Err_base {
+class ErrCode: public MBDynErrBase {
 private:
 	std::string s;
-
 public:
-	ErrCode(MBDYN_EXCEPT_ARGS_DECL, const std::string& r, int code)
-	: Err_base(MBDYN_EXCEPT_ARGS_PASSTHRU, r) {
+	ErrCode(MBDYN_EXCEPT_ARGS_DECL, int code = -1)
+	: MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {
 		std::stringstream ss;
-		ss << Err_base::str() << " code=" << code;
+		ss << MBDynErrBase::what() << " code=" << code;
 		s = ss.str();
 	};
 	virtual ~ErrCode(void) throw() {};
@@ -72,15 +65,15 @@ main(int argc, const char *argv[])
 		<< std::endl << std::endl;
 	switch (argc) {
 	case 1:
-		throw ErrPlain(MBDYN_EXCEPT_ARGS("$Header$"));
+		throw ErrPlain(MBDYN_EXCEPT_ARGS);
 		break;
 
 	case 2:
-		throw ErrReason(MBDYN_EXCEPT_ARGS("$Header$"), argv[1]);
+		throw ErrPlain(MBDYN_EXCEPT_ARGS, argv[1]);
 		break;
 
 	default:
-		throw ErrCode(MBDYN_EXCEPT_ARGS("$Header$"), argv[1], atoi(argv[2]));
+		throw ErrCode(MBDYN_EXCEPT_ARGS, argv[1], std::atoi(argv[2]));
 		break;
 	}
 
