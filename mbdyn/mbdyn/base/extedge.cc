@@ -119,7 +119,9 @@ ExtFileHandlerEDGE::Send_pre(bool bAfterConvergence)
 {
 	// open data file for writing
 	int cnt = 0;
-	if (CheckFlag(cnt) == EDGE_READ_READY) {
+	switch (CheckFlag(cnt)) {
+	case EDGE_READ_READY:
+	case EDGE_GOTO_NEXT_STEP:
 		outfile.open(fdataname.c_str());
 		if (!outfile) {
 			silent_cerr("unable to open data file "
@@ -129,9 +131,11 @@ ExtFileHandlerEDGE::Send_pre(bool bAfterConvergence)
 		}
 
 		outfile.setf(std::ios::scientific);
+		break;
 
-	} else {
+	default:
 		outfile.setstate(std::ios_base::badbit);
+		break;
 	}
 
 	return outfile;

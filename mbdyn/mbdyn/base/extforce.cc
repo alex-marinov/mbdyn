@@ -245,6 +245,7 @@ ExtForce::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
 	/* After prediction, mark next residual as first */
 	bFirstRes = true;
+	iCouplingCounter = 0;
 
 	pEFH->AfterPredict();
 
