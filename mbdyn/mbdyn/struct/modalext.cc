@@ -233,8 +233,10 @@ ModalExt::Output(OutputHandler& OH) const
 	if (fToBeOutput()) {
 		std::ostream& out = OH.Forces();
 
+		out << GetLabel();
+
 		if (uFlags & ExtModalForceBase::EMF_RIGID) {
-			out << GetLabel() << " " << F << " " << M;
+			out << " " << F << " " << M;
 		}
 
 		if (uFlags & ExtModalForceBase::EMF_MODAL) {
