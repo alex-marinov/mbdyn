@@ -314,7 +314,7 @@ ExtModalForceEDGE::ExtModalForceEDGE(DataManager *pDM)
 /*
 
 * intestazione a scelta
-modal_force_flow,R,1,5,0
+modal_force_flow,R,5,1,0
 0.1 0.2 0.3 0.4 0.5
 
 */
@@ -347,7 +347,6 @@ ExtModalForceEDGE::Recv(std::istream& fin,
 			continue;
 		}
 
-		// if (strncasecmp(buf, "modal_force_flow,R,1,", STRLENOF("modal_force_flow,R,1,")) == 0) {
 		if (strncasecmp(buf, "modal_force_flow", STRLENOF("modal_force_flow")) == 0) {
 			p = buf + STRLENOF("modal_force_flow");
 
@@ -369,16 +368,6 @@ ExtModalForceEDGE::Recv(std::istream& fin,
 				// error
 			}
 
-			p = eat_field(p, buflen, "1");
-			if (p == 0) {
-				// error
-			}
-
-			p = eat_sep(p, buflen);
-			if (p == 0) {
-				// error
-			}
-
 			char *next;
 			long nmodes = strtol(p, &next, 10);
 			if (next == p) {
@@ -386,6 +375,16 @@ ExtModalForceEDGE::Recv(std::istream& fin,
 			}
 
 			p = eat_sep(next, buflen);
+			if (p == 0) {
+				// error
+			}
+
+			p = eat_field(p, buflen, "1");
+			if (p == 0) {
+				// error
+			}
+
+			p = eat_sep(p, buflen);
 			if (p == 0) {
 				// error
 			}
