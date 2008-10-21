@@ -158,7 +158,7 @@ struct DamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 					"invalid angular frequency "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric();
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			hi_freq_force_filter_coeff = dOmega;
 		}
