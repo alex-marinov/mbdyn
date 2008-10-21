@@ -81,16 +81,38 @@
 const char sDefaultOutputFileName[] = "MBDyn";
 
 #ifdef HAVE_SIGNAL
-volatile sig_atomic_t mbdyn_keep_going = 1;
+/*
+ * MBDyn starts with mbdyn_keep_going == MBDYN_KEEP_GOING.
+ *
+ * A single CTRL^C sets it to MBDYN_STOP_AT_END_OF_TIME_STEP,
+ * which results in exiting at the end of the time step,
+ * after the output in case of success.
+ *
+ * A second CTRL^C sets it to MBDYN_STOP_AT_END_OF_ITERATION,
+ * which results in exiting at the end of the current iteration,
+ * after printing debug output if required.
+ *
+ * A further CTRL^C sets it to MBDYN_STOP_NOW and in throwing
+ * an exception.
+ */
+enum {
+	MBDYN_KEEP_GOING = 0,
+	MBDYN_STOP_AT_END_OF_TIME_STEP = 1,
+	MBDYN_STOP_AT_END_OF_ITERATION = 2,
+	MBDYN_STOP_NOW = 3
+	
+};
+
+volatile sig_atomic_t mbdyn_keep_going = MBDYN_KEEP_GOING;
 __sighandler_t mbdyn_sh_term = SIG_DFL;
 __sighandler_t mbdyn_sh_int = SIG_DFL;
 __sighandler_t mbdyn_sh_hup = SIG_DFL;
 __sighandler_t mbdyn_sh_pipe = SIG_DFL;
 
-void
+extern "C" void
 mbdyn_really_exit_handler(int signum)
 {
-   	::mbdyn_keep_going = 0;
+   	::mbdyn_keep_going = MBDYN_STOP_NOW;
    	switch (signum) {
     	case SIGTERM:
       		signal(signum, ::mbdyn_sh_term);
@@ -116,13 +138,90 @@ mbdyn_really_exit_handler(int signum)
 	throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
 }
 
-void
-mbdyn_modify_final_time_handler(int signum)
+extern "C" void
+mbdyn_modify_last_iteration(int signum)
 {
-   	::mbdyn_keep_going = 0;
+   	::mbdyn_keep_going = MBDYN_STOP_AT_END_OF_ITERATION;
       	signal(signum, mbdyn_really_exit_handler);
 }
+
+extern "C" void
+mbdyn_modify_final_time_handler(int signum)
+{
+   	::mbdyn_keep_going = MBDYN_STOP_AT_END_OF_TIME_STEP;
+      	signal(signum, mbdyn_modify_last_iteration);
+}
 #endif /* HAVE_SIGNAL */
+
+extern "C" int
+mbdyn_stop_at_end_of_iteration(void)
+{
+#ifdef HAVE_SIGNAL
+	return ::mbdyn_keep_going >= MBDYN_STOP_AT_END_OF_ITERATION;
+#else // ! HAVE_SIGNAL
+	return 0;
+#endif // ! HAVE_SIGNAL
+}
+
+extern "C" int
+mbdyn_stop_at_end_of_time_step(void)
+{
+#ifdef HAVE_SIGNAL
+	return ::mbdyn_keep_going >= MBDYN_STOP_AT_END_OF_TIME_STEP;
+#else // ! HAVE_SIGNAL
+	return 0;
+#endif // ! HAVE_SIGNAL
+}
+
+extern "C" void
+mbdyn_set_stop_at_end_of_iteration(void)
+{
+#ifdef HAVE_SIGNAL
+	::mbdyn_keep_going = MBDYN_STOP_AT_END_OF_ITERATION;
+#endif // HAVE_SIGNAL
+}
+
+extern "C" void
+mbdyn_set_stop_at_end_of_time_step(void)
+{
+#ifdef HAVE_SIGNAL
+	::mbdyn_keep_going = MBDYN_STOP_AT_END_OF_TIME_STEP;
+#endif // HAVE_SIGNAL
+}
+
+extern "C" void
+mbdyn_signal_init(void)
+{
+#ifdef HAVE_SIGNAL
+	/*
+	 * FIXME: don't do this if compiling with USE_RTAI
+	 * Re FIXME: use sigaction() ...
+	 */
+	::mbdyn_sh_term = signal(SIGTERM, mbdyn_modify_final_time_handler);
+	if (::mbdyn_sh_term == SIG_IGN) {
+		signal(SIGTERM, SIG_IGN);
+	}
+
+	::mbdyn_sh_int = signal(SIGINT, mbdyn_modify_final_time_handler);
+	if (::mbdyn_sh_int == SIG_IGN) {
+		signal(SIGINT, SIG_IGN);
+	}
+
+#ifdef SIGHUP
+	::mbdyn_sh_hup = signal(SIGHUP, mbdyn_modify_final_time_handler);
+	if (::mbdyn_sh_hup == SIG_IGN) {
+		signal(SIGHUP, SIG_IGN);
+	}
+#endif // SIGHUP
+
+#ifdef SIGPIPE
+	::mbdyn_sh_pipe = signal(SIGPIPE, mbdyn_modify_final_time_handler);
+	if (::mbdyn_sh_pipe == SIG_IGN) {
+		signal(SIGPIPE, SIG_IGN);
+	}
+#endif // SIGPIPE
+#endif /* HAVE_SIGNAL */
+}
 
 #ifdef USE_RTAI
 int
@@ -798,35 +897,7 @@ Solver::Run(void)
 	DEBUGLCOUT(MYDEBUG_DERIVATIVES, "derivatives solution step"
 			<< std::endl);
 
-#ifdef HAVE_SIGNAL
-	/*
-	 * FIXME: don't do this if compiling with USE_RTAI
-	 * Re FIXME: use sigaction() ...
-	 */
-	::mbdyn_sh_term = signal(SIGTERM, mbdyn_modify_final_time_handler);
-	if (::mbdyn_sh_term == SIG_IGN) {
-		signal(SIGTERM, SIG_IGN);
-	}
-
-	::mbdyn_sh_int = signal(SIGINT, mbdyn_modify_final_time_handler);
-	if (::mbdyn_sh_int == SIG_IGN) {
-		signal(SIGINT, SIG_IGN);
-	}
-
-#ifdef SIGHUP
-	::mbdyn_sh_hup = signal(SIGHUP, mbdyn_modify_final_time_handler);
-	if (::mbdyn_sh_hup == SIG_IGN) {
-		signal(SIGHUP, SIG_IGN);
-	}
-#endif // SIGHUP
-
-#ifdef SIGPIPE
-	::mbdyn_sh_pipe = signal(SIGPIPE, mbdyn_modify_final_time_handler);
-	if (::mbdyn_sh_pipe == SIG_IGN) {
-		signal(SIGPIPE, SIG_IGN);
-	}
-#endif // SIGPIPE
-#endif /* HAVE_SIGNAL */
+	mbdyn_signal_init();
 
 	/* settaggio degli output Types */
 	unsigned OF = OutputFlags;
@@ -938,15 +1009,13 @@ Solver::Run(void)
       		Out << "End of derivatives; no simulation is required."
 			<< std::endl;
       		return;
-#ifdef HAVE_SIGNAL
-   	} else if (!::mbdyn_keep_going) {
+   	} else if (mbdyn_stop_at_end_of_time_step()) {
       		/*
 		 * Fa l'output della soluzione delle derivate iniziali ed esce
 		 */
       		pDM->Output(0, dTime, 0., true);
       		Out << "Interrupted during derivatives computation." << std::endl;
       		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
-#endif /* HAVE_SIGNAL */
    	}
 
 	/* Dati comuni a passi fittizi e normali */
@@ -1032,8 +1101,7 @@ Solver::Run(void)
 #endif
       		iTotIter += iStIter;
 
-#ifdef HAVE_SIGNAL
-      		if (!::mbdyn_keep_going) {
+      		if (mbdyn_stop_at_end_of_time_step()) {
 	 		/*
 			 * Fa l'output della soluzione delle derivate iniziali
 			 * ed esce
@@ -1044,7 +1112,6 @@ Solver::Run(void)
 	 		Out << "Interrupted during first dummy step." << std::endl;
 	 		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
       		}
-#endif /* HAVE_SIGNAL */
 
 #ifdef DEBUG_FICTITIOUS
       		pDM->Output(0, dTime, dCurrTimeStep, true);
@@ -1138,8 +1205,7 @@ Solver::Run(void)
 				   "in " << iStIter << " iterations"
 				   << std::endl);
 
-#ifdef HAVE_SIGNAL
-	 		if (!::mbdyn_keep_going) {
+	 		if (mbdyn_stop_at_end_of_time_step()) {
 				/* */
 #ifdef DEBUG_FICTITIOUS
 	    			pDM->Output(0, dTime, dCurrTimeStep);
@@ -1148,7 +1214,6 @@ Solver::Run(void)
 					<< std::endl;
 				throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
 			}
-#endif /* HAVE_SIGNAL */
 
 			dTime += dRefTimeStep;
       		}
@@ -1193,12 +1258,11 @@ Solver::Run(void)
       		Out << "End of dummy steps; no simulation is required."
 			<< std::endl;
 		return;
-#ifdef HAVE_SIGNAL
-   	} else if (!::mbdyn_keep_going) {
+
+   	} else if (mbdyn_stop_at_end_of_time_step()) {
       		/* Fa l'output della soluzione ed esce */
       		Out << "Interrupted during dummy steps." << std::endl;
       		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
-#endif /* HAVE_SIGNAL */
    	}
 
 	/* primo passo regolare */
@@ -1294,13 +1358,11 @@ IfFirstStepIsToBeRepeated:
 	
    	pDM->Output(lStep, dTime + dCurrTimeStep, dCurrTimeStep);
 
-#ifdef HAVE_SIGNAL
-   	if (!::mbdyn_keep_going) {
+   	if (mbdyn_stop_at_end_of_time_step()) {
       		/* Fa l'output della soluzione al primo passo ed esce */
       		Out << "Interrupted during first step." << std::endl;
       		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
    	}
-#endif /* HAVE_SIGNAL */
 
 	if (outputMsg()) {
       		Out
@@ -1572,8 +1634,7 @@ IfFirstStepIsToBeRepeated:
 			return;
 #endif /* USE_RTAI */
 
-#ifdef HAVE_SIGNAL
-      		} else if (!::mbdyn_keep_going
+      		} else if (mbdyn_stop_at_end_of_time_step()
 #ifdef USE_MPI
 				|| (MPI_Finalized(&mpi_finalize), mpi_finalize)
 #endif /* USE_MPI */
@@ -1593,7 +1654,6 @@ IfFirstStepIsToBeRepeated:
 				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
 				<< "total error: " << dTotErr << std::endl);
 	 		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
-#endif /* HAVE_SIGNAL */
       		}
 
       		lStep++;

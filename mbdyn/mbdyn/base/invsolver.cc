@@ -552,36 +552,8 @@ InverseSolver::Run(void)
 
 	dTest = 0.;
 	dSolTest = 0.;
-#ifdef HAVE_SIGNAL
-	/*
-	 * FIXME: don't do this if compiling with USE_RTAI
-	 * Re FIXME: use sigaction() ...
-	 */
-	::mbdyn_sh_term = signal(SIGTERM, mbdyn_modify_final_time_handler);
-	if (::mbdyn_sh_term == SIG_IGN) {
-		signal(SIGTERM, SIG_IGN);
-	}
 
-	::mbdyn_sh_int = signal(SIGINT, mbdyn_modify_final_time_handler);
-	if (::mbdyn_sh_int == SIG_IGN) {
-		signal(SIGINT, SIG_IGN);
-	}
-
-// not available with MinGW (!?!)
-#ifdef SIGHUP
-	::mbdyn_sh_hup = signal(SIGHUP, mbdyn_modify_final_time_handler);
-	if (::mbdyn_sh_hup == SIG_IGN) {
-		signal(SIGHUP, SIG_IGN);
-	}
-#endif // SIGHUP
-
-#ifdef SIGPIPE
-	::mbdyn_sh_pipe = signal(SIGPIPE, mbdyn_modify_final_time_handler);
-	if (::mbdyn_sh_pipe == SIG_IGN) {
-		signal(SIGPIPE, SIG_IGN);
-	}
-#endif // SIGPIPE
-#endif /* HAVE_SIGNAL */
+	mbdyn_signal_init();
 
 	/* settaggio degli output Types */
 	unsigned OF = OutputFlags;
@@ -622,13 +594,11 @@ InverseSolver::Run(void)
    	lStep = 1; /* Resetto di nuovo lStep */
    	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
 
-#ifdef HAVE_SIGNAL
-   	if (!::mbdyn_keep_going) {
+   	if (mbdyn_stop_at_end_of_time_step()) {
       		/* Fa l'output della soluzione al primo passo ed esce */
       		Out << "Interrupted during first step." << std::endl;
       		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
    	}
-#endif /* HAVE_SIGNAL */
 
 	if (outputMsg()) {
       		Out
@@ -872,8 +842,7 @@ InverseSolver::Run(void)
 			return;
 #endif /* USE_RTAI */
 
-#ifdef HAVE_SIGNAL
-      		} else if (!::mbdyn_keep_going
+      		} else if (mbdyn_stop_at_end_of_time_step()
 #ifdef USE_MPI
 				|| (MPI_Finalized(&mpi_finalize), mpi_finalize)
 #endif /* USE_MPI */
@@ -893,7 +862,6 @@ InverseSolver::Run(void)
 				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
 				<< "total error: " << dTotErr << std::endl);
 	 		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
-#endif /* HAVE_SIGNAL */
       		}
 
       		lStep++;
@@ -1001,7 +969,7 @@ IfStepIsToBeRepeated:
 		catch (EndOfSimulation& eos) {
 			silent_cerr("Simulation ended during a regular step:\n" 
 				<< eos.what() << "\n");
-			::mbdyn_keep_going = false;
+			mbdyn_set_stop_at_end_of_time_step();
 #ifdef USE_MPI
 			MBDynComm.Abort(0);
 #endif /* USE_MPI */

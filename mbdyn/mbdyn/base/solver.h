@@ -67,6 +67,11 @@ class Solver;
 #include "mfree.h"
 #include "precond.h"
 
+extern "C" int mbdyn_stop_at_end_of_iteration(void);
+extern "C" int mbdyn_stop_at_end_of_time_step(void);
+extern "C" void mbdyn_set_stop_at_end_of_iteration(void);
+extern "C" void mbdyn_set_stop_at_end_of_time_step(void);
+
 class Solver : public SolverDiagnostics {
 public:
  	class ErrGeneric : public MBDynErrBase {

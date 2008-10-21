@@ -70,6 +70,7 @@
 
 extern const char sDefaultOutputFileName[];
 
+#if 0
 #ifdef HAVE_SIGNAL
 extern volatile sig_atomic_t mbdyn_keep_going;
 extern __sighandler_t mbdyn_sh_term;
@@ -77,9 +78,13 @@ extern __sighandler_t mbdyn_sh_int;
 extern __sighandler_t mbdyn_sh_hup;
 extern __sighandler_t mbdyn_sh_pipe;
 
-extern void mbdyn_really_exit_handler(int signum);
-extern void mbdyn_modify_final_time_handler(int signum);
+extern "C" void mbdyn_really_exit_handler(int signum);
+extern "C" void mbdyn_modify_last_iteration(int signum);
+extern "C" void mbdyn_modify_final_time_handler(int signum);
 #endif /* HAVE_SIGNAL */
+#endif
+
+extern "C" void mbdyn_signal_init(void);
 
 #ifdef USE_RTAI
 extern int mbdyn_reserve_stack(unsigned long size);

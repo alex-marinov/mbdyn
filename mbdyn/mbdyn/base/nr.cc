@@ -213,6 +213,11 @@ rebuild_matrix:;
 		if (bTest) {
 			throw ConvergenceOnSolution(MBDYN_EXCEPT_ARGS);
 		}
+
+		// allow to bail out in case of multiple CTRL^C
+		if (mbdyn_stop_at_end_of_iteration()) {
+			throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
+		}
 	}
 }
 

@@ -13,7 +13,9 @@ MBDyn 1.X-Devel
 	Enhancements:
 		- rework exception handling
 		- allow to control convergence test
+		- allow interrupt within iterations (CTRL^C twice)
 	Backward compatibility issues:
+		- now immediate abort requires CTRL^C three times
 	Known issues:
 	Bug fixes:
 		- fix "cardano hinge" keyword detection (Marco Morandini)

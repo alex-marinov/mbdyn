@@ -36,6 +36,7 @@
 #include "dataman.h"
 #include "extedge.h"
 #include "except.h"
+#include "solver.h"
 
 #include <fstream>
 
@@ -63,6 +64,8 @@ ExtFileHandlerEDGE::~ExtFileHandlerEDGE(void)
 ExtFileHandlerEDGE::EDGEcmd
 ExtFileHandlerEDGE::CheckFlag(int& cnt)
 {
+	int cmd;
+
 	cnt++;
 
 	infile.open(fflagname.c_str());
@@ -75,6 +78,10 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 			silent_cout("flag file \"" << fflagname.c_str() << "\" "
 				"missing, try #" << cnt << "; "
 				"sleeping " << iSleepTime << " s" << std::endl); 
+			if (mbdyn_stop_at_end_of_iteration()) {
+				cmd = EDGE_QUIT;
+				goto done;
+			}
 
 			sleep(iSleepTime);
 
@@ -90,9 +97,9 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	int cmd;
 	infile >> cmd;
 
+done:;
 	silent_cerr("flag file \"" << fflagname.c_str() << "\": cmd=" << cmd << std::endl);
 
 	infile.close();
@@ -180,6 +187,11 @@ ExtFileHandlerEDGE::Recv_pre(void)
 
 		default:
 			break;
+		}
+
+		if (mbdyn_stop_at_end_of_iteration()) {
+			bReadForces = false;
+			goto done;
 		}
 
 		// WARNING: loops forever
