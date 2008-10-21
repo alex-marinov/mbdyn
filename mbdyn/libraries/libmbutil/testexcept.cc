@@ -30,6 +30,7 @@
  */
 
 #include <iostream>
+#include <cstdlib>
 #include "mbexcept.h"
 
 class ErrPlain : public Err_base {
