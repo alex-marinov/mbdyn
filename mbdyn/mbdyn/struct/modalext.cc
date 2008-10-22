@@ -201,10 +201,9 @@ ModalExt::AssRes(SubVectorHandler& WorkVec,
 	WorkSpaceDim(&iR, &iC);
 	WorkVec.ResizeReset(iR);
 
+	const StructNode *pNode = pModal->pGetModalNode();
 	integer iIdx = 1;
 	if (uFlags & ExtModalForceBase::EMF_RIGID) {
-		const StructNode *pNode = pModal->pGetModalNode();
-
 		integer iFirstIndex = pNode->iGetFirstMomentumIndex();
 
 		for (integer iCnt = 1; iCnt <= 6; iCnt++) {
@@ -213,7 +212,9 @@ ModalExt::AssRes(SubVectorHandler& WorkVec,
 
 		WorkVec.Put(1, pNode->GetRCurr()*F);
 		WorkVec.Put(4, pNode->GetRCurr()*M);
+	}
 
+	if (pNode) {
 		iIdx += 6;
 	}
 
