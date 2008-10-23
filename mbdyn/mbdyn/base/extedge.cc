@@ -86,7 +86,7 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 			sleep(iSleepTime);
 
 			infile.clear();
-			infile.open(fdataname.c_str());
+			infile.open(fflagname.c_str());
 		}
 	} else
 #endif // USE_SLEEP
@@ -131,6 +131,7 @@ ExtFileHandlerEDGE::Send_pre(bool bAfterConvergence)
 		}
 
 		outfile.setf(std::ios::scientific);
+		outfile.precision(16);
 		break;
 
 	default:
