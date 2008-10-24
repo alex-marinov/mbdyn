@@ -210,8 +210,8 @@ ModalExt::AssRes(SubVectorHandler& WorkVec,
 			WorkVec.PutRowIndex(iCnt, iFirstIndex + iCnt);
 		}
 
-		WorkVec.Put(1, pNode->GetRCurr()*F);
-		WorkVec.Put(4, pNode->GetRCurr()*M);
+		WorkVec.Put(1, F);
+		WorkVec.Put(4, M);
 	}
 
 	if (pNode) {

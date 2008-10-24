@@ -335,6 +335,7 @@ ExtRigidForceEDGE::Send(std::ostream& fout, unsigned uFlags,
 		<< wB(1) << " " << wB(2) << " " << wB(3) << "\n"
 		"* Body reference frame cosines (listed by columns)\n"
 		"OMGMAN,R,3,3,0\n"
+		// NOTE: this is the transpose of the node's R
 		<< R(1, 1) << " " << R(2, 1) << " " << R(3, 1) << "\n"
 		<< R(1, 2) << " " << R(2, 2) << " " << R(3, 2) << "\n"
 		<< R(1, 3) << " " << R(2, 3) << " " << R(3, 3) << "\n";

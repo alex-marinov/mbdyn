@@ -62,10 +62,28 @@ public:
 
 	virtual ~ExtModalForceBase(void);
 
+	/*
+	 * Interface:
+	 *	f	force on node wrt/ the global reference frame
+	 *	m	moment on node wrt/ the global reference frame,
+	 *		referred to the node
+	 *
+	 *	fv	modal forces
+	 */
 	virtual unsigned
 	Recv(std::istream& fin, unsigned uFlags, unsigned& uLabel,
 		Vec3& f, Vec3& m, std::vector<doublereal>& fv) = 0;
 
+	/*
+	 * Interface:
+	 *	x	position of node wrt/ the global reference frame
+	 *	R	orientation of node wrt/ the global reference frame
+	 *	v	velocity of node wrt/ the global reference frame
+	 *	w	angular velocity of node wrt/ the global reference frame
+	 *
+	 *	q	modal coordinates
+	 *	qP	derivatives of modal coordinates
+	 */
 	virtual void
 	Send(std::ostream& fout, unsigned uFlags, unsigned uLabel,
 		const Vec3& x, const Mat3x3& R, const Vec3& v, const Vec3& w,
