@@ -270,20 +270,17 @@ AirProperties::GetVelocity(const Vec3& X) const
 bool
 AirProperties::GetVelocity(const Vec3& X, Vec3& V) const
 {
-	bool res = false;
-
 	V = Velocity;
 	for (std::vector<Gust *>::const_iterator i = gust.begin();
 		i != gust.end(); i++)
 	{
 		Vec3 VV;
 		if ((*i)->GetVelocity(X, VV)) {
-			res = true;
 			V += VV;
 		}
 	}
 
-	return res;
+	return true;
 }
 
 /* Dati privati */
