@@ -163,6 +163,26 @@ ExtFileHandlerEDGE::Send_post(bool bAfterConvergence)
 #endif
 	}
 
+	// write to a temporary, unique file and then rename to fflagname
+	char ftmpname[] = "mbedgeXXXXXX";
+	int filedes = mkstemp(ftmpname);
+	FILE *fd = fdopen(filedes, "w");
+	fprintf(fd, "%d", int(EDGE_MBDYN_WRITE_DONE));
+	fclose(fd);
+retry:;
+	if (rename(ftmpname, fflagname.c_str()) == -1) {
+		switch(errno) {
+		case EBUSY:
+			sleep(1);
+			goto retry;
+		default:
+			silent_cerr("unable to rename flag file "
+				"\"" << fdataname.c_str() << "\" "
+				"(errno=" << errno << ")" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
 	outfile.open(fflagname.c_str());
 	outfile << int(EDGE_MBDYN_WRITE_DONE);
 	outfile.close();
