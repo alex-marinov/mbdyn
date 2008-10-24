@@ -64,9 +64,9 @@ public:
 
 	/*
 	 * Interface:
-	 *	f	force on node wrt/ the global reference frame
-	 *	m	moment on node wrt/ the global reference frame,
-	 *		referred to the node
+	 *	f	force oriented wrt/ the global reference frame
+	 *	m	moment oriented wrt/ the global reference frame,
+	 *		the pole is the node
 	 *
 	 *	fv	modal forces
 	 */

@@ -153,6 +153,8 @@ ExtRigidForceEDGE::ExtRigidForceEDGE(DataManager *pDM)
 body_forces,R,1,6,0
 0.1 0.2 0.3 0.4 0.5 0.6
 
+ * NOTE: force and moment orientation wrt/ the global reference frame,
+ * the pole of the moment is the node
 */
 
 unsigned
@@ -303,7 +305,13 @@ OMGMAN,R,3,3,0
 12 22 32
 13 23 33
 
-*/
+ * NOTE:
+ *	- node velocity wrt/ the reference frame of the node,
+ *	  including the wind velocity (from "air properties")
+ *	- node angular velocity wrt/ the reference frame of the node
+ *	- node orientation from global to node reference frame
+ *	  (the transpose of node's R)
+ */
 
 void
 ExtRigidForceEDGE::Send(std::ostream& fout, unsigned uFlags,
@@ -357,7 +365,7 @@ ExtModalForceEDGE::ExtModalForceEDGE(DataManager *pDM)
 modal_force_flow,R,5,1,0
 0.1 0.2 0.3 0.4 0.5
 
-*/
+ */
 
 unsigned
 ExtModalForceEDGE::Recv(std::istream& fin,
@@ -508,7 +516,7 @@ modal_coordinate,R,1,5,0
 modal_velocity,R,1,5,0
 0.1 0.2 0.3 0.4 0.5
 
-*/
+ */
 
 void
 ExtModalForceEDGE::Send(std::ostream& fout, unsigned uFlags,
