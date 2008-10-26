@@ -96,7 +96,9 @@ M(0.)
 
 ModalExt::~ModalExt(void)
 {
-	NO_OP;
+	if (pEMF) {
+		SAFEDELETE(pEMF);
+	}
 }
 
 /*

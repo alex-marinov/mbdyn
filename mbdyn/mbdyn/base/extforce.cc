@@ -222,7 +222,9 @@ iCouplingCounter(0)
 
 ExtForce::~ExtForce(void)
 {
-	NO_OP;
+	if (pEFH) {
+		SAFEDELETE(pEFH);
+	}
 }
 
 
