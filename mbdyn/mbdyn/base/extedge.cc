@@ -117,8 +117,12 @@ ExtFileHandlerEDGE::AfterPredict(void)
 std::ostream&
 ExtFileHandlerEDGE::Send_pre(bool bAfterConvergence)
 {
-	// open data file for writing
 	int cnt = 0;
+	if (!bReadForces) {
+		goto bad;
+	}
+
+	// open data file for writing
 	switch (CheckFlag(cnt)) {
 	case EDGE_READ_READY:
 	case EDGE_GOTO_NEXT_STEP:
@@ -135,6 +139,7 @@ ExtFileHandlerEDGE::Send_pre(bool bAfterConvergence)
 		break;
 
 	default:
+bad:;
 		outfile.setstate(std::ios_base::badbit);
 		break;
 	}
@@ -145,6 +150,10 @@ ExtFileHandlerEDGE::Send_pre(bool bAfterConvergence)
 void
 ExtFileHandlerEDGE::Send_post(bool bAfterConvergence)
 {
+	if (!bReadForces) {
+		return;
+	}
+
 	// close data file after writing
 	if (outfile.is_open()) {
 		outfile.close();
