@@ -168,7 +168,8 @@ public:
 
 	void
 	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-		*piNumCols = *piNumRows = 12 + nConstraints ;
+		*piNumRows = nConstraints ;
+		*piNumCols = 12;
 	};
 
 	VariableSubMatrixHandler&

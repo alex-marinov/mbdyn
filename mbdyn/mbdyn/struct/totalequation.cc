@@ -650,7 +650,7 @@ TotalEquation::AssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	for (unsigned int iCnt = 1; iCnt <= nConstraints; iCnt++) {
-		WM.PutRowIndex(12 + iCnt, iFirstReactionIndex + iCnt);
+		WM.PutRowIndex(iCnt, iFirstReactionIndex + iCnt);
 	}
 
 	/* Recupera i dati che servono */
@@ -670,22 +670,22 @@ TotalEquation::AssJac(VariableSubMatrixHandler& WorkMat,
 		Vec3 vb2Cross_R1(b2Cross_R1.GetVec(iPosIncid[iCnt]));
 
 		/* Constraint, node 1 */
-      		WM.SubT(12 + 1 + iPosEqIndex[iCnt], 1, vR1);
-      		WM.SubT(12 + 1 + iPosEqIndex[iCnt], 3 + 1, vb1Cross_R1);
+      		WM.SubT(1 + iPosEqIndex[iCnt], 1, vR1);
+      		WM.SubT(1 + iPosEqIndex[iCnt], 3 + 1, vb1Cross_R1);
 
 		/* Constraint, node 2 */
-      		WM.AddT(12 + 1 + iPosEqIndex[iCnt], 6 + 1, vR1);
-      		WM.AddT(12 + 1 + iPosEqIndex[iCnt], 9 + 1, vb2Cross_R1);
+      		WM.AddT(1 + iPosEqIndex[iCnt], 6 + 1, vR1);
+      		WM.AddT(1 + iPosEqIndex[iCnt], 9 + 1, vb2Cross_R1);
 	}
 	
 	for (unsigned iCnt = 0 ; iCnt < nRotConstraints; iCnt++) {
 		Vec3 vR1(R1r.GetVec(iRotIncid[iCnt]));
 
 		/* Constraint, node 1 */
-      		WM.SubT(12 + 1 + iRotEqIndex[iCnt], 3 + 1, vR1);
+      		WM.SubT(1 + iRotEqIndex[iCnt], 3 + 1, vR1);
 
 		/* Constraint, node 2 */
-      		WM.AddT(12 + 1 + iRotEqIndex[iCnt], 9 + 1, vR1);
+      		WM.AddT(1 + iRotEqIndex[iCnt], 9 + 1, vR1);
 	}
 
 	if (nVelConstraints > 0) {
@@ -710,19 +710,19 @@ TotalEquation::AssJac(VariableSubMatrixHandler& WorkMat,
 			
 			/* Constraint, node 1 */
 			/* The same as in position constraint*/
-      			WM.SubT(12 + 1 + iVelEqIndex[iCnt], 1, vR1);				// delta_v1
-      			WM.SubT(12 + 1 + iVelEqIndex[iCnt], 3 + 1, vb1Cross_R1);		// delta_W1
+      			WM.SubT(1 + iVelEqIndex[iCnt], 1, vR1);				// delta_v1
+      			WM.SubT(1 + iVelEqIndex[iCnt], 3 + 1, vb1Cross_R1);		// delta_W1
 			/* New contributions, related to delta_x1 and delta_g1 */
-     			WM.SubT(12 + 1 + iVelEqIndex[iCnt], 1, vOmega1Cross_R1 * dCoef);	// delta_x1
-     			WM.AddT(12 + 1 + iVelEqIndex[iCnt], 3 + 1, vTmp12 * dCoef);		// delta_g1
+     			WM.SubT(1 + iVelEqIndex[iCnt], 1, vOmega1Cross_R1 * dCoef);	// delta_x1
+     			WM.AddT(1 + iVelEqIndex[iCnt], 3 + 1, vTmp12 * dCoef);		// delta_g1
 			
 			/* Constraint, node 2 */
 			/* The same as in position constraint*/
-      			WM.AddT(12 + 1 + iVelEqIndex[iCnt], 6 + 1, vR1);			// delta_v2
-      			WM.AddT(12 + 1 + iVelEqIndex[iCnt], 9 + 1, vb2Cross_R1);		// delta_W2
+      			WM.AddT(1 + iVelEqIndex[iCnt], 6 + 1, vR1);			// delta_v2
+      			WM.AddT(1 + iVelEqIndex[iCnt], 9 + 1, vb2Cross_R1);		// delta_W2
 			/* New contributions, related to delta_x1 and delta_g1 */
-     			WM.AddT(12 + 1 + iVelEqIndex[iCnt], 6 + 1, vOmega1Cross_R1 * dCoef);	// delta_x2
-     			WM.AddT(12 + 1 + iVelEqIndex[iCnt], 9 + 1, vTmp22 * dCoef);		// delta_g2
+     			WM.AddT(1 + iVelEqIndex[iCnt], 6 + 1, vOmega1Cross_R1 * dCoef);	// delta_x2
+     			WM.AddT(1 + iVelEqIndex[iCnt], 9 + 1, vTmp22 * dCoef);		// delta_g2
 		}
 	}
 	
@@ -733,12 +733,12 @@ TotalEquation::AssJac(VariableSubMatrixHandler& WorkMat,
 			Vec3 vDeltaWCross_R1(DeltaWCross_R1.GetVec(iAgvIncid[iCnt]));
 
 			/* Constraint, node 1 */
-      			WM.SubT(12 + 1 + iAgvEqIndex[iCnt], 3 + 1, vR1);	// delta_W1
+      			WM.SubT(1 + iAgvEqIndex[iCnt], 3 + 1, vR1);	// delta_W1
 			/* New contribution, related to delta_g1 */
-      			WM.SubT(12 + 1 + iAgvEqIndex[iCnt], 3 + 1, vDeltaWCross_R1 * dCoef);	// delta_g1
+      			WM.SubT(1 + iAgvEqIndex[iCnt], 3 + 1, vDeltaWCross_R1 * dCoef);	// delta_g1
 	
 			/* Constraint, node 2 */
-      			WM.AddT(12 + 1 + iAgvEqIndex[iCnt], 9 + 1, vR1);// delta_W2
+      			WM.AddT(1 + iAgvEqIndex[iCnt], 9 + 1, vR1);// delta_W2
 		}
 	}
 
@@ -765,7 +765,7 @@ TotalEquation::AssRes(SubVectorHandler& WorkVec,
 
 	/* Indici del vincolo */
 	for (unsigned int iCnt = 1; iCnt <= nConstraints; iCnt++) {
-		WorkVec.PutRowIndex(12 + iCnt, iFirstReactionIndex + iCnt);
+		WorkVec.PutRowIndex(iCnt, iFirstReactionIndex + iCnt);
 	}
 
 	Vec3 b2(pNode2->GetRCurr()*f2);
@@ -796,25 +796,25 @@ TotalEquation::AssRes(SubVectorHandler& WorkVec,
 
 		/* Position constraint:  */
 		for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
-			WorkVec.PutCoef(12 + 1 + iPosEqIndex[iCnt],
+			WorkVec.PutCoef(1 + iPosEqIndex[iCnt],
 				-(XDelta(iPosIncid[iCnt])/dCoef));
 		}
 
 		/* Rotation constraints: */
 		for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
-			WorkVec.PutCoef(12 + 1 + iRotEqIndex[iCnt],
+			WorkVec.PutCoef(1 + iRotEqIndex[iCnt],
 				-(ThetaDelta(iRotIncid[iCnt])/dCoef));
 		}
 
 		/* Linear Velocity Constraint */
 		for (unsigned iCnt = 0; iCnt < nVelConstraints; iCnt++) {
-			WorkVec.PutCoef(12 + 1 + iVelEqIndex[iCnt],
+			WorkVec.PutCoef(1 + iVelEqIndex[iCnt],
 				-(VDelta(iVelIncid[iCnt])));
 		}
 		
 		/* Angular Velocity Constraint */
 		for (unsigned iCnt = 0; iCnt < nAgvConstraints; iCnt++) {
-			WorkVec.PutCoef(12 + 1 + iAgvEqIndex[iCnt],
+			WorkVec.PutCoef(1 + iAgvEqIndex[iCnt],
 				-(WDelta(iAgvIncid[iCnt])));
 		}
 
