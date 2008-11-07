@@ -1,0 +1,14 @@
+First, install Blender from www.blender.org and MBDyn from http://www.aero.polimi.it/~mbdyn/
+Both of these applications and websites provide extensive installation and usage instructions.
+
+When you have both of these programs working, and you have the executable "mbdyn" accessible by the
+Blender application, you can then copy these two Python scripts into a Blender accessible folder,
+for instance ~/.blender/scripts if you are on a Debian operating system.
+
+Then start Blender, and in your Python Window click Scripts -> Update Menus.  You will then find the
+that the MBDyn script can be run from your Python Window by clicking Scripts -> Animation -> MBDyn
+
+A video tutorial is available from the home page of www.baldwintechnology.com
+
+Please use Sourceforge for feature requests and bug reports.
+
