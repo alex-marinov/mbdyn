@@ -47,10 +47,10 @@ and can be manually editied before pressing the Run button to execute MBDyn.
 # ***** END GPL LICENCE BLOCK *****
 # -------------------------------------------------------------------------- 
 
-import mbdyn_v0_1_1
-reload(mbdyn_v0_1_1)
-from mbdyn_v0_1_1 import MBDyn, Frame, Element, Constitutive, Shape
-from mbdyn_v0_1_1 import Matrix, Friction, Function, Drive, Menu
+import mbdyn
+reload(mbdyn)
+from mbdyn import MBDyn, Frame, Element, Constitutive, Shape
+from mbdyn import Matrix, Friction, Function, Drive, Menu
 import Blender, pickle
 from Blender import Draw, Object, Scene, Text, Window, BGL, Mathutils, Ipo
 from cStringIO import StringIO
