@@ -41,6 +41,7 @@
 
 class SocketStreamMotionElem : virtual public Elem {
 protected:
+	unsigned uFlags;
 	std::vector<StructNode *> nodes;
 
 	/* Stream buffer */
@@ -56,14 +57,20 @@ protected:
 	const char *name;
 	int send_flags;
 	bool bSendFirst;
+
+	void Init_int(void);
 	
 public:
-   	SocketStreamMotionElem(unsigned int uL, std::vector<StructNode *>& n,
+   	SocketStreamMotionElem(unsigned int uL,
+		unsigned uFlags,
+		std::vector<StructNode *>& n,
 		unsigned int oe,
 		DataManager *pDM,
 		const char *h, const char *m, unsigned short int p,
 		bool c, int flags, bool bSendFirst);
-   	SocketStreamMotionElem(unsigned int uL, std::vector<StructNode *>& n,
+   	SocketStreamMotionElem(unsigned int uL,
+		unsigned uFlags,
+		std::vector<StructNode *>& n,
 		unsigned int oe,
 		DataManager *pDM,
 		const char *m, const char* const Path,

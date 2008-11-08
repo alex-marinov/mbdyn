@@ -16,6 +16,7 @@ MBDyn 1.X-Devel
 		- allow interrupt within iterations (CTRL^C twice)
 		- add support for generic external forces
 		- add file-based interface with EDGE
+		- allow socket stream element to output all kinematics
 	Backward compatibility issues:
 		- now immediate abort requires CTRL^C three times
 	Known issues:

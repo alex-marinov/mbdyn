@@ -38,7 +38,7 @@
 struct Geometry {
 	unsigned uLabel;
 
-	// kimenatics
+	// kinematics
 	Vec3 X;
 	Mat3x3 R;
 	Vec3 V;
@@ -55,18 +55,24 @@ struct Geometry {
 
 struct GeometryData {
 	enum Flags {
-		X			= 0x01U,
-		R			= 0x02U,
-		V			= 0x04U,
-		W			= 0x08U,
+		X			= 0x0001U,
 
-		XPP			= 0x10U,
-		WP			= 0x20U,
+		R			= 0x0002U,
+		RT			= 0x0004U,
+		PHI			= 0x0008U,
 
-		ACCELERATIONS_MASK	= (XPP | WP ),
+		ORIENTATION_MASK	= (R | RT | PHI),
 
-		F			= 0x40U,
-		M			= 0x80U,
+		V			= 0x0010U,
+		W			= 0x0020U,
+
+		XPP			= 0x0040U,
+		WP			= 0x0080U,
+
+		ACCELERATIONS_MASK	= (XPP | WP),
+
+		F			= 0x0100U,
+		M			= 0x0200U,
 
 		FORCES_MASK		= (F | M)
 	};

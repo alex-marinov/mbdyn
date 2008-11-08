@@ -51,6 +51,7 @@
 #include "dataman.h"
 #include "socketstreammotionelem.h"
 #include "sock.h"
+#include "geomdata.h"
 
 #define UNIX_PATH_MAX    108
 #define DEFAULT_PORT	5501 /* FIXME: da definire meglio */
@@ -58,23 +59,44 @@
 
 /* SocketStreamMotionElem - begin */
 
+void
+SocketStreamMotionElem::Init_int(void)
+{
+	/* FIXME: size depends on the type of the output signals */
+	ASSERT(uFlags != 0);
+	size = 0;
+	if (uFlags & GeometryData::X) {
+		size += sizeof(doublereal)*3;
+	}
+	if (uFlags & GeometryData::R) {
+		size += sizeof(doublereal)*9;
+	}
+	if (uFlags & GeometryData::V) {
+		size += sizeof(doublereal)*3;
+	}
+	if (uFlags & GeometryData::W) {
+		size += sizeof(doublereal)*3;
+	}
+	size *= nodes.size();
+	SAFENEWARR(buf, char, size);
+	memset(buf, 0, size);
+}
+
 SocketStreamMotionElem::SocketStreamMotionElem(unsigned int uL,
+	unsigned uFlags,
 	std::vector<StructNode *>& n,
 	unsigned int oe,
 	DataManager *pDM,
 	const char *h, const char *m, unsigned short int p, bool c,
 	int flags, bool bSF)
 : Elem(uL, flag(0)),
-nodes(n), size(-1), buf(0),
+uFlags(uFlags), nodes(n), size(-1), buf(0),
 OutputEvery(oe), OutputCounter(0), 
 pUS(0), name(m), send_flags(flags), bSendFirst(bSF)
 {
 	ASSERT(OutputEvery > 0);
 
-	/* FIXME: size depends on the type of the output signals */
-	size = sizeof(doublereal)*3*nodes.size();
-	SAFENEWARR(buf, char, size);
-	memset(buf, 0, size);
+	Init_int();
 
 	SAFENEWWITHCONSTRUCTOR(pUS, UseInetSocket, UseInetSocket(h, p, c));
 	if (c) {
@@ -85,23 +107,21 @@ pUS(0), name(m), send_flags(flags), bSendFirst(bSF)
 }
 
 SocketStreamMotionElem::SocketStreamMotionElem(unsigned int uL,
+	unsigned uFlags,
 	std::vector<StructNode *>& n,
 	unsigned int oe,
 	DataManager *pDM,
 	const char *m, const char* const p, bool c,
 	int flags, bool bSF)
 : Elem(uL, flag(0)),
-nodes(n), size(-1), buf(0),
+uFlags(uFlags), nodes(n), size(-1), buf(0),
 OutputEvery(oe), OutputCounter(0), 
 pUS(0), name(m), send_flags(flags), bSendFirst(bSF)
 {
 	ASSERT(OutputEvery > 0);
 
-	/* FIXME: size depends on the type of the output signals */
-	size = sizeof(doublereal)*3*nodes.size();
-	SAFENEWARR(buf, char, size);
-	memset(buf, 0, size);
-	
+	Init_int();
+
 	SAFENEWWITHCONSTRUCTOR(pUS, UseLocalSocket, UseLocalSocket(p, c));
 	if (c) {
 		pDM->RegisterSocketUser(pUS);
@@ -127,9 +147,25 @@ SocketStreamMotionElem::Restart(std::ostream& out) const
 	out << "  stream motion output: " << uLabel 
 		<< ", stream name, \"" << name << "\"";
 	pUS->Restart(out);
+
+	out << ", output flags";
+	if (uFlags & GeometryData::X) {
+		out << ", position";
+	}
+	if (uFlags & GeometryData::R) {
+		out << ", orientation matrix";
+	}
+	if (uFlags & GeometryData::V) {
+		out << ", velocity";
+	}
+	if (uFlags & GeometryData::W) {
+		out << ", angular velocity";
+	}
+
 	if (!bSendFirst) {
 		out << ", no send first";
 	}
+
 	for (unsigned i = 0; i < nodes.size(); i++) {
 		out << ", " << nodes[i]->GetLabel();
 	}
@@ -213,14 +249,72 @@ SocketStreamMotionElem::AfterConvergence(const VectorHandler& X,
 	char *curbuf = buf;
 	for (unsigned int i = 0; i < nodes.size(); i++) {
 		/* assign value somewhere into mailbox buffer */
-		const Vec3& X = nodes[i]->GetXCurr();
+		if (uFlags & GeometryData::X) {
+			const Vec3& X = nodes[i]->GetXCurr();
 
-		doublereal *dbuf = (doublereal *)curbuf;
-		dbuf[0] = X(1);
-		dbuf[1] = X(2);
-		dbuf[2] = X(3);
+			doublereal *dbuf = (doublereal *)curbuf;
+			dbuf[0] = X(1);
+			dbuf[1] = X(2);
+			dbuf[2] = X(3);
 
-		curbuf += 3*sizeof(doublereal);
+			curbuf += 3*sizeof(doublereal);
+		}
+
+		if (uFlags & GeometryData::R) {
+			const Mat3x3& R = nodes[i]->GetRCurr();
+
+			doublereal *dbuf = (doublereal *)curbuf;
+			dbuf[0] = R(1, 1);
+			dbuf[1] = R(1, 2);
+			dbuf[2] = R(1, 3);
+			dbuf[3] = R(2, 1);
+			dbuf[4] = R(2, 2);
+			dbuf[5] = R(2, 3);
+			dbuf[6] = R(3, 1);
+			dbuf[7] = R(3, 2);
+			dbuf[8] = R(3, 3);
+
+			curbuf += 9*sizeof(doublereal);
+		}
+
+		if (uFlags & GeometryData::RT) {
+			const Mat3x3& R = nodes[i]->GetRCurr();
+
+			doublereal *dbuf = (doublereal *)curbuf;
+			dbuf[0] = R(1, 1);
+			dbuf[1] = R(2, 1);
+			dbuf[2] = R(3, 1);
+			dbuf[3] = R(1, 2);
+			dbuf[4] = R(2, 2);
+			dbuf[5] = R(3, 2);
+			dbuf[6] = R(1, 3);
+			dbuf[7] = R(2, 3);
+			dbuf[8] = R(3, 3);
+
+			curbuf += 9*sizeof(doublereal);
+		}
+
+		if (uFlags & GeometryData::V) {
+			const Vec3& V = nodes[i]->GetVCurr();
+
+			doublereal *dbuf = (doublereal *)curbuf;
+			dbuf[0] = V(1);
+			dbuf[1] = V(2);
+			dbuf[2] = V(3);
+
+			curbuf += 3*sizeof(doublereal);
+		}
+
+		if (uFlags & GeometryData::W) {
+			const Vec3& W = nodes[i]->GetWCurr();
+
+			doublereal *dbuf = (doublereal *)curbuf;
+			dbuf[0] = W(1);
+			dbuf[1] = W(2);
+			dbuf[2] = W(3);
+
+			curbuf += 3*sizeof(doublereal);
+		}
 	}
 	
 	if (send(pUS->GetSock(), (void *)buf, size, send_flags) == -1) {
@@ -394,6 +488,66 @@ ReadSocketStreamMotionElem(DataManager *pDM,
 		OutputEvery = (unsigned int)i;
 	}
 
+	unsigned uFlags = GeometryData::X;
+	if (HP.IsKeyWord("output" "flags")) {
+		uFlags = 0;
+		while (true) {
+			if (HP.IsKeyWord("position")) {
+				if (uFlags & GeometryData::X) {
+					silent_cerr("SocketStreamMotionElem(" << uLabel << "): "
+						"position flag already defined "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				uFlags |= GeometryData::X;
+
+			} else if (HP.IsKeyWord("orientation" "matrix")) {
+				if (uFlags & GeometryData::ORIENTATION_MASK) {
+					silent_cerr("SocketStreamMotionElem(" << uLabel << "): "
+						"orientation flag already defined "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				uFlags |= GeometryData::R;
+
+			} else if (HP.IsKeyWord("orientation" "matrix" "transpose")) {
+				if (uFlags & GeometryData::ORIENTATION_MASK) {
+					silent_cerr("SocketStreamMotionElem(" << uLabel << "): "
+						"orientation flag already defined "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				uFlags |= GeometryData::RT;
+
+			} else if (HP.IsKeyWord("velocity")) {
+				if (uFlags & GeometryData::V) {
+					silent_cerr("SocketStreamMotionElem(" << uLabel << "): "
+						"velocity flag already defined "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				uFlags |= GeometryData::V;
+
+			} else if (HP.IsKeyWord("angular" "velocity")) {
+				if (uFlags & GeometryData::W) {
+					silent_cerr("SocketStreamMotionElem(" << uLabel << "): "
+						"angular velocity flag already defined "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				uFlags |= GeometryData::W;
+
+			} else {
+				break;
+			}
+		}
+	}
+
 	std::vector<StructNode *> nodes;
 	if (HP.IsKeyWord("all")) {
 		/* FIXME: todo */
@@ -408,14 +562,14 @@ ReadSocketStreamMotionElem(DataManager *pDM,
 
 	if (path == 0){
 		SAFENEWWITHCONSTRUCTOR(pEl, SocketStreamMotionElem,
-				SocketStreamMotionElem(uLabel, nodes,
+				SocketStreamMotionElem(uLabel, uFlags, nodes,
 					OutputEvery,
 					pDM,
 					host, name, port, create, flags,
 					bSendFirst));
 	} else {
 		SAFENEWWITHCONSTRUCTOR(pEl, SocketStreamMotionElem,
-				SocketStreamMotionElem(uLabel, nodes,
+				SocketStreamMotionElem(uLabel, uFlags, nodes,
 					OutputEvery,
 					pDM,
 					name, path, create, flags,
