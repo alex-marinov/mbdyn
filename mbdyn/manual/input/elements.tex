@@ -5161,7 +5161,13 @@ The syntax is:
         [ { local , " <socket_name> " , |
             [ port , <port_number> , ]
             [ host , " <host_name> " , ] } ]
-        [ { no signal | no send first | non blocking } , [ ... ] ]
+        [ { no signal | no send first | non blocking } [ , ... ] , ]
+        [ output flags ,
+            { position
+            | orientation matrix
+            | orientation matrix transpose
+            | velocity
+            | angular velocity } [ , ... ] , ]
         <struct_node_label>
             [ , ... ]
 \end{verbatim}
@@ -5169,12 +5175,16 @@ As opposed to the \kw{stream output}, which is intended for generic
 output for interprocess communication, this element is intended to ease
 and optimize the output of the motion, to be used for on-line visualization
 purposes.
-Currently, only the position of the selected nodes is sent.
+By default, only the position of the selected nodes is sent.
 This is intended for interoperability with a development version
 of EasyAnim which can read the motion info (the so-called ``van'' file)
 from a stream.
+The optional keyword \kw{output flags} allows to request the output
+of specific node kinematics: the node position, orientation matrix
+(either row- or column-major), the velocity and the angular velocity.
+The default is equivalent to \kw{output flags, position}.
 
-The stream output allows MBDyn to send motion-related streamed output 
+The stream motion output allows MBDyn to send motion-related streamed output 
 to remote processes both during regular simulations and during 
 real-time simulations under RTAI.
 If the simulation is run in real-time, it uses RTAI mailboxes, 
