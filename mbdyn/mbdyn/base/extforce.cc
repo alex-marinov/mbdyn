@@ -48,6 +48,12 @@
 
 /* ExtFileHandlerBase - begin */
 
+ExtFileHandlerBase::ExtFileHandlerBase(int iSleepTime, int iPrecision)
+: iSleepTime(iSleepTime), iPrecision(iPrecision)
+{
+	NO_OP;
+}
+
 ExtFileHandlerBase::~ExtFileHandlerBase(void)
 {
 	NO_OP;
@@ -63,9 +69,9 @@ ExtFileHandler::ExtFileHandler(std::string& fin,
 	bool bNoClobberOut,
 	int iSleepTime,
 	int iPrecision)
-: fin(fin), fout(fout), tmpout(fout + ".tmp"),
-bRemoveIn(bRemoveIn), bNoClobberOut(bNoClobberOut),
-iSleepTime(iSleepTime), iPrecision(iPrecision)
+: ExtFileHandlerBase(iSleepTime, iPrecision),
+fin(fin), fout(fout), tmpout(fout + ".tmp"),
+bRemoveIn(bRemoveIn), bNoClobberOut(bNoClobberOut)
 {
 	NO_OP;
 }
@@ -328,6 +334,42 @@ ExtForce::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+void
+ReadExtFileParams(DataManager* pDM,
+	MBDynParser& HP, 
+	unsigned int uLabel,
+	int& iSleepTime,
+	int& iPrecision)
+{
+	iSleepTime = 1;
+	if (HP.IsKeyWord("sleep" "time")) {
+		iSleepTime = HP.GetInt();
+		if (iSleepTime <= 0 ) {
+			silent_cerr("ExtForce(" << uLabel << "): "
+				"invalid sleep time " << iSleepTime
+				<< " at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
+	iPrecision = 6;
+	if (HP.IsKeyWord("precision")) {
+		if (!HP.IsKeyWord("default")) {
+			iPrecision = HP.GetInt();
+		}
+
+		if (iPrecision < 0) {
+			silent_cerr("ExtForce(" << uLabel << "): "
+				"invalid precision value "
+				"\"" << iPrecision << "\""
+				" at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+}
+
 static ExtFileHandlerBase *
 ReadExtFileHandler(DataManager* pDM,
 	MBDynParser& HP, 
@@ -369,32 +411,8 @@ ReadExtFileHandler(DataManager* pDM,
 	}
 
 	int iSleepTime = 1;
-	if (HP.IsKeyWord("sleep" "time")) {
-		iSleepTime = HP.GetInt();
-		if (iSleepTime <= 0 ) {
-			silent_cerr("ExtForce(" << uLabel << "): "
-				"invalid sleep time " << iSleepTime
-				<< " at line " << HP.GetLineData()
-				<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-	}
-
 	int iPrecision = 0;
-	if (HP.IsKeyWord("precision")) {
-		if (!HP.IsKeyWord("default")) {
-			iPrecision = HP.GetInt();
-		}
-
-		if (iPrecision < 0) {
-			silent_cerr("ExtForce(" << uLabel << "): "
-				"invalid precision value "
-				"\"" << iPrecision << "\""
-				" at line " << HP.GetLineData()
-				<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-	}
+	ReadExtFileParams(pDM, HP, uLabel, iSleepTime, iPrecision);
 
 	SAFENEWWITHCONSTRUCTOR(pEFH, ExtFileHandler,
 		ExtFileHandler(fin, bUnlinkIn, fout, bNoClobberOut,

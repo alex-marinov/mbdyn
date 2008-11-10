@@ -41,7 +41,6 @@
 class ExtFileHandlerEDGE : public ExtFileHandlerBase {
 protected:
 	std::string fflagname, fdataname;
-	int iSleepTime;
 	bool bReadForces;
 
 	std::ifstream infile;
@@ -74,7 +73,7 @@ protected:
 
 public:
 	ExtFileHandlerEDGE(std::string& fflagname,
-		std::string& fdataname, int iSleepTime);
+		std::string& fdataname, int iSleepTime, int iPrecision);
 	~ExtFileHandlerEDGE(void);
 
 	virtual void AfterPredict(void);

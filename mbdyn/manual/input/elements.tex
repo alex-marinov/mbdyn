@@ -2229,21 +2229,99 @@ is allowed for each mode drive caller.
 The keyword \kw{resultant} is followed by two $3\times 1$ vectors
 containing the resultant force and moment associated to the related mode.
 
+\subsection{External forces}
+External forces are elements that allow to communicate
+with an external software that computes forces
+based on information on the kinematics of the model.
+
+Different communication schemes are supported.
+By default, communication occurs via files.
+Currently supported communication schemes are
+\begin{verbatim}
+    <external_force_communicator> ::= { <file> | <edge> }
+
+    <file> ::=
+        " <input_file_name> " [ , unlink ] ,
+        " <output_file_name> " [ , no clobber ]
+        [ <common_parameters> ]
+
+    <edge> ::= edge ,
+        " <flag_file_name> " ,
+        " <data_file_name> "
+        [ <common_parameters> ]
+
+    <common_parameters> ::=
+        [ , sleep time , <sleep_time> ]
+        [ , coupling , { loose | tight | <coupling_steps> } ]
+        [ , precision , { default | <digits> } ]
+\end{verbatim}
+
+\subsubsection{File communicator}
+\kw{input\_file\_name} is the name of the file MBDyn expects to find
+with the values of the force.
+The content depends on the purpose it is used for.
+The optional keyword \kw{unlink} indicates that MBDyn is supposed
+to unlink the file as soon as it is ready to read another one.
+
+\kw{output\_file\_name} is the name of the file MBDyn creates
+each time it intends to communicate the kinematics of the model
+to the external software.
+The content depends on the purpose it is used for.
+The option \kw{no clobber} indicates that MBDyn is supposed to wait
+until the external software removed the file before generating a new one.
+
+
+
+\subsubsection{EDGE communicator}
+This communicator has been developed in cooperation with Luca Cavagna,
+to support communication with FOI's EDGE.
+
+\kw{flag\_file\_name} is the name of the file used to communicate
+between the processes.
+The same file is truncated and reused by both processes.
+It contains a single digit, whose meaning is:
+\begin{itemize}
+\item[0 ---] external software is initializing; MBDyn must wait;
+\item[1 ---] external software is busy; MBDyn must wait;
+\item[2 ---] external software is ready to read kinematics; MBDyn can start writing kinematics;
+\item[3 ---] MBDyn finished writing kinematics; external software can start reading;
+\item[4 ---] external software converged; MBDyn should go to converge and advance to the next time step;
+\item[5 ---] external software decided to quit; MBDyn should stop communicating.
+\end{itemize}
+There are no provisions for re-executing a time step,
+nor for communicating either the time or the time step,
+so adaptive time stepping cannot be implemented.
+
+\kw{data\_file\_name} is the name of the file used to actually send data
+between the two processes.
+Its content depends on the purpose it is used for.
+
+
+
+\subsubsection{Common parameters}
+The optional parameter \kw{sleep\_time} determines how long MBDyn
+is supposed to sleep while waiting for a new input file to appear
+or for an old output file to disappear.
+
+The optional parameter \kw{precision} determines the precision
+used in writing the output file; the default is 16 digits.
+
+The optional parameter \kw{coupling} determines whether the coupling
+will be \kw{loose} (communicate each time step, the default) or
+\kw{tight} (communicate each iteration); otherwise, if \kw{coupling\_steps}
+is provided, the communication occurs every \kw{coupling\_steps}.
+
+
+
 
 \subsection{External structural}
 This element allows to communicate with an external software that computes
 forces applied to a pool of nodes and may depend on the kinematics of those
 nodes.
-Communication occurs by means of regular files; a socket-based extension
-may appear in the future.
+Communication occurs by means of the communicators illustrated earlier.
 \begin{verbatim}
     <force_type> ::= external structural
-    <force_arglist> ::=
-        " <input_file_name> " , [ unlink , ]
-        " <output_file_name> " , [ no clobber , ]
-        [ sleep time , <sleep_time> , ]
-        [ coupling , { loose | tight | <coupling_steps> } , ]
-        [ precision , { default | <digits> } , ]
+    <force_arglist> ::= <external_force_communicator> ,
         [ , unsorted ]
         [ , accelerations ]
         <num_nodes> ,
@@ -2251,8 +2329,9 @@ may appear in the future.
             [ , ... ]
 \end{verbatim}
 
-\kw{input\_file\_name} is the name of the file MBDyn expects to find
-with the values of the forces in textual form, each line formatted as follows:
+\subsubsection{File communicator}
+The forces are read from the input file in textual form,
+each line formatted as follows:
 \begin{itemize}
 \item a label
 \item three components of force in the global frame
@@ -2263,13 +2342,8 @@ each force is applied in a point that may be optionally offset
 from the corresponding node location according to \kw{offset}.
 The optional keyword \kw{unsorted} tells the forces might be
 read in arbitrary order, so they need to be recognized by the label.
-The optional keyword \kw{unlink} indicates that MBDyn is supposed
-to unlink the file as soon as it is ready to read another one.
 
-\kw{output\_file\_name} is the name of the file MBDyn creates
-each time it intends to communicate the kinematics of the pool of nodes
-to the external software.
-The file is written in textual form, each line formatted as follows:
+The output file is written in textual form, each line formatted as follows:
 \begin{itemize}
 \item a label;
 \item the position in the global frame;
@@ -2286,22 +2360,9 @@ at the end of each line the following optional fields will appear:
 The label indicates what node the kinematics is related to;
 the position and the velocity refer to a point that may be optionally
 offset from the node location according to \kw{offset}.
-The option \kw{no clobber} indicates that MBDyn is supposed to wait
-until the external software removed the file before generating a new one.
 
-The optional parameter \kw{sleep\_time} determines how long MBDyn
-is supposed to sleep while waiting for a new input file to appear
-or for an old output file to disappear.
-
-The optional parameter \kw{coupling} determines whether the coupling
-will be \kw{loose} (communicate each time step, the default) or
-\kw{tight} (communicate each iteration); otherwise, if \kw{coupling\_steps}
-is provided, the communication occurs every \kw{coupling\_steps}.
-
-The optional parameter \kw{precision} determines the precision
-used in writing the output file; the default is 16 digits.
-
-
+\subsubsection{EDGE communicator}
+TBD
 
 
 \subsection{External modal}
@@ -2309,23 +2370,37 @@ This element allows to communicate with an external software that computes
 forces applied to a 
 \htmlref{\kw{modal}}{sec:EL:STRUCT:JOINT:MODAL} joint element,
 and may depend on the values of the corresponding generalized variables.
-Communication occurs by means of regular files; a socket-based extension
-may appear in the future.
+Communication occurs by means of the communicators illustrated earlier.
 \begin{verbatim}
     <force_type> ::= external modal
-    <force_arglist> ::=
-        " <input_file_name> " , [ unlink , ]
-        " <output_file_name> " , [ no clobber , ]
-        [ sleep time , <sleep_time> , ]
-        [ coupling , { loose | tight | <coupling_steps> } , ]
-        [ precision , { default | <digits> } , ]
+    <force_arglist> ::= <external_force_communicator> ,
         <modal_label>
         [ , accelerations ]
+        [ , type , { rigid | modal | all } ]
 \end{verbatim}
+\kw{modal\_label} is the label of the 
+\htmlref{\kw{modal}}{sec:EL:STRUCT:JOINT:MODAL} joint element
+the force element is connected to.
 
-\kw{input\_file\_name} is the name of the file MBDyn expects to find
-with the values of the forces in textual form.
-The first line contains
+If the optional keyword \kw{accelerations} is present,
+the output will also contain the modal accelerations.
+
+If the optional keyword \kw{type} is present,
+the alternative keywords \kw{rigid}, \kw{modal} or \kw{all}
+inform MBDyn about whether only the rigid or the modal portions
+of the force are expected.
+The default is \kw{all}, but some communicators might require
+a specific value.
+If \kw{rigid} or \kw{all} are used, the \kw{modal} joint element
+must be connected to a \kw{modal} node.
+The number of modes of the modal force must match that of the active modes
+in the \kw{modal} joint element.
+
+
+
+\subsubsection{File communicator}
+If \kw{type} is \kw{rigid} or \kw{all}, the first line of the input file
+must contain:
 \begin{itemize}
 \item the label of the \kw{modal} node the \kw{modal} joint element
 	is connected to, or 0 if the element is grounded;
@@ -2334,16 +2409,12 @@ The first line contains
 \end{itemize}
 If the \kw{modal} joint element is grounded, the force and moment
 are ignored.
-Each of the following lines contains the value of the generalized force
-for each of the modes.
-The option \kw{unlink} indicates that MBDyn is supposed to unlink
-the file as soon as it is ready to read another one.
+If \kw{type} is \kw{modal} or \kw{all},
+each of the following lines contains the value of the generalized force
+for the respective mode.
 
-\kw{output\_file\_name} is the name of the file MBDyn creates
-each time it intends to communicate the kinematics of the \kw{modal}
-joint element to the external software.
-The file is written in textual form.
-The first line contains
+The output file file is written in textual form.
+If \kw{type} is \kw{rigid} or \kw{all}, the first line contains:
 \begin{itemize}
 \item the label of the \kw{modal} node the \kw{modal} joint element
 	is connected to, or 0 if the element is grounded;
@@ -2360,7 +2431,8 @@ at the end of each line the following optional fields will appear:
 \end{itemize}
 If the \kw{modal} joint element is grounded, all the data corresponds
 to that of the origin of the global reference frame.
-Each of the following lines contains, for each mode:
+If \kw{type} is \kw{modal} or \kw{all}, each of the following lines contains,
+for each mode:
 \begin{itemize}
 \item the value of the generalized variable;
 \item the value of the first derivative of the generalized variable.
@@ -2370,23 +2442,88 @@ at the end of each line the following optional field will appear:
 \begin{itemize}
 \item the value of the second derivative of the generalized variable.
 \end{itemize}
-The option \kw{no clobber} indicates that MBDyn is supposed to wait
-until the external software removed the file before generating a new one.
 
-The optional parameter \kw{sleep\_time} determines how long MBDyn
-is supposed to sleep while waiting for a new input file to appear
-or for an old output file to disappear.
 
-The optional parameter \kw{coupling} determines whether the coupling
-will be \kw{loose} (communicate each time step, the default) or
-\kw{tight} (communicate each iteration); otherwise, if \kw{coupling\_steps}
-is provided, the communication occurs every \kw{coupling\_steps}.
 
-The optional parameter \kw{precision} determines the precision
-used in writing the output file; the default is 16 digits.
+\subsubsection{EDGE communicator}
+When the \kw{edge} communicator is used,
+the \kw{accelerations} keyword is ignored.
+\kw{type} must be either \kw{rigid} or \kw{modal}.
+If both need to be used, two \kw{external modal} forces must be instantiated:
+one with \kw{type} set to \kw{rigid}
+and the other with \kw{type} set to \kw{modal}.
 
-\kw{modal\_label} is the label of the \kw{modal} joint element
-the generalized external force element is connected to.
+When \kw{type} is \kw{rigid}, the data file written by the external software
+is expected to contain:
+\begin{verbatim}
+* this is a comment
+body_forces,R,1,6,0
+<fx> <fy> <fz> <mx> <my> <mz>
+\end{verbatim}
+where \kw{fx}, \kw{fy}, \kw{fz}, \kw{mx}, \kw{my}, \kw{mz}
+respectively are the force and moment components
+in the global reference frame.
+
+The data file written by MBDyn contains:
+\begin{verbatim}
+* this is a comment
+body_dynamics,N,0,0,3
+* Body linear velocity in body axes
+VRELV,R,1,3,0
+<vx> <vy> <vz>
+* Body angular velocity in body axes
+VRELM,R,1,3,0
+<omegax> <omegay> <omegaz>
+* Body reference frame cosines (listed by columns)
+OMGMAN,R,3,3,0
+<R11> <R21> <R31>
+<R12> <R22> <R32>
+<R13> <R23> <R33>
+\end{verbatim}
+where:
+\begin{itemize}
+\item \kw{vx}, \kw{vy}, \kw{vz} are the components of the velocity
+	of the rigid body, in body axes;
+\item \kw{omegax}, \kw{omegay}, \kw{omegaz} are the components
+	of the angular velocity of the rigid body, in body axes;
+\item \kw{R11}, \kw{R12}, \kw{R13}, \kw{R21}, \kw{R22}, \kw{R23},
+	\kw{R31}, \kw{R32}, \kw{R33} are the components
+	of the orientation matrix.
+\end{itemize}
+
+When \kw{type} is \kw{modal}, the data file written by the external software
+is expected to contain:
+\begin{verbatim}
+* this is a comment
+modal_force_flow,R,<n>,1,0
+<f1> ... <fn>
+\end{verbatim}
+where \kw{n} is the number of modes (must match the number of active modes
+in the \kw{modal} joint element), while \kw{f1} to \kw{fn} are the amplitudes
+of the modal forces.
+
+The data file written by MBDyn contains:
+\begin{verbatim}
+* this is a comment
+modal_state,N,0,0,2
+modal_coordinate,R,1,<n>,0
+<q1> ... <qn>
+modal_velocity,R,1,<n>,0
+<qp1> ... <qpn>
+\end{verbatim}
+where:
+\begin{itemize}
+\item \kw{n} is again the number of modes;
+\item \kw{q1} to \kw{qn} are the amplitudes of the modal coordinates;
+\item \kw{qp1} to \kw{qpn} are the amplitudes of the derivatives
+	of the modal coordinates.
+\end{itemize}
+
+Each field can be separated by an arbitrary amount of whitespace,
+and by at most one ``comma'' (``,'').
+Although specifically developed for ease of interfacing with EDGE,
+this format is open, and thus can be implemented by other software
+in order to easily couple with MBDyn.
 
 
 

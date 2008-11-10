@@ -43,7 +43,11 @@
 /* ExtFileHandlerBase - begin */
 
 class ExtFileHandlerBase {
+protected:
+	int iSleepTime, iPrecision;
+
 public:
+	ExtFileHandlerBase(int iSleepTime, int iPrecision);
 	virtual ~ExtFileHandlerBase(void);
 
 	virtual void AfterPredict(void) = 0;
@@ -64,7 +68,6 @@ class ExtFileHandler : public ExtFileHandlerBase {
 protected:
 	std::string fin, fout, tmpout;
 	bool bRemoveIn, bNoClobberOut;
-	int iSleepTime, iPrecision;
 
 	std::ifstream inf;
 	std::ofstream outf;
@@ -153,6 +156,13 @@ ReadExtForce(DataManager* pDM,
 	unsigned int uLabel,
 	ExtFileHandlerBase*& pEFH,
 	int& iCoupling);
+
+extern void
+ReadExtFileParams(DataManager* pDM,
+	MBDynParser& HP, 
+	unsigned int uLabel,
+	int& iSleepTime,
+	int& iPrecision);
 
 #endif // EXTFORCE_H
 

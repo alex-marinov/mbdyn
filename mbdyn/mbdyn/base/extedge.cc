@@ -49,9 +49,10 @@
 /* ExtFileHandlerEDGE - begin */
 
 ExtFileHandlerEDGE::ExtFileHandlerEDGE(std::string& fflagname,
-	std::string& fdataname, int iSleepTime)
-: fflagname(fflagname), fdataname(fdataname),
-iSleepTime(iSleepTime), bReadForces(true)
+	std::string& fdataname, int iSleepTime, int iPrecision)
+: ExtFileHandlerBase(iSleepTime, iPrecision),
+fflagname(fflagname), fdataname(fdataname),
+bReadForces(true)
 {
 	NO_OP;
 }
@@ -135,7 +136,7 @@ ExtFileHandlerEDGE::Send_pre(bool bAfterConvergence)
 		}
 
 		outfile.setf(std::ios::scientific);
-		outfile.precision(16);
+		outfile.precision(iPrecision);
 		break;
 
 	default:
@@ -310,19 +311,11 @@ ReadExtFileHandlerEDGE(DataManager* pDM,
 	std::string fdataname = s;
 
 	int iSleepTime = 1;
-	if (HP.IsKeyWord("sleep" "time")) {
-		iSleepTime = HP.GetInt();
-		if (iSleepTime <= 0 ) {
-			silent_cerr("ExtForce(" << uLabel << "): "
-				"invalid sleep time " << iSleepTime
-				<< " at line " << HP.GetLineData()
-				<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-	}
+	int iPrecision = 0;
+	ReadExtFileParams(pDM, HP, uLabel, iSleepTime, iPrecision);
 
 	SAFENEWWITHCONSTRUCTOR(pEFH, ExtFileHandlerEDGE,
-		ExtFileHandlerEDGE(fflagname, fdataname, iSleepTime));
+		ExtFileHandlerEDGE(fflagname, fdataname, iSleepTime, iPrecision));
 
 	return pEFH;
 }
