@@ -2079,6 +2079,7 @@ AC_CHECK_FUNCS([ \
 	localtime \
 	memset \
 	memmove \
+	mkstemp \
 	mlockall \
 	pstat_getdynamic \
 	pstat_getprocessor \
