@@ -2526,6 +2526,19 @@ this format is open, and thus can be implemented by other software
 in order to easily couple with MBDyn.
 
 
+\subsubsection{Output}
+The output contains:
+\begin{itemize}
+\item in column 1 the label of the element;
+\item if \kw{type} is \kw{ridig} or \kw{all},
+	in columns 2--4 the three components of the force,
+	and in columns 5--6 the three components of the moment;
+\item if \kw{type} is \kw{modal} or \kw{all},
+	in the subsequent columns the amplitude of the modal force
+	for each mode.
+\end{itemize}
+
+
 
 \section{Genel Element}
 \label{sec:EL:GENEL}
