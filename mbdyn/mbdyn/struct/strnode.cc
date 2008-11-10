@@ -2100,7 +2100,7 @@ DynamicStructNode::iGetPrivDataIdx(const char *s) const
 		omegaP		37 + idx	idx = {1,3}
 	 */
 
-	if (idx >= 1 && idx <= 3) {
+	if (idx >= 1 && idx <= 3 && len >= STRLENOF("XPP")) {
 		if (strncasecmp(s, "XPP", len) == 0) {
 			bComputeAccelerations = true;
 			return 28 + idx;
