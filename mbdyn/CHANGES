@@ -23,7 +23,8 @@ MBDyn 1.X-Devel
 	Bug fixes:
 		- fix "cardano hinge" keyword detection (Marco Morandini)
 		- fix radial flow correction
-		- fix bug in structural node priv data (Alessandro Colombo)
+		- fix structural node acceleration priv data
+		  (noted by Alessandro Colombo)
 
 MBDyn 1.3.4-Beta
 	Enhancements:
