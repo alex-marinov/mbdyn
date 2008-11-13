@@ -120,6 +120,9 @@ public:
 
 	virtual ~ExtForce(void);
 
+	virtual void SetValue(DataManager *pDM,
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints* h = 0);
 	virtual void Update(const VectorHandler& XCurr, 
 		const VectorHandler& XPrimeCurr);
 	

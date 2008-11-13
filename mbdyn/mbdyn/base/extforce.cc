@@ -221,7 +221,7 @@ ExtForce::ExtForce(unsigned int uL,
 Force(uL, fOut),
 c(iCoupling ? pDM: NULL),
 pEFH(pEFH),
-bFirstRes(false),
+bFirstRes(true),
 iCoupling(iCoupling),
 iCouplingCounter(0)
 {
@@ -235,6 +235,13 @@ ExtForce::~ExtForce(void)
 	}
 }
 
+void
+ExtForce::SetValue(DataManager *pDM,
+	VectorHandler& X, VectorHandler& XP,
+	SimulationEntity::Hints* h)
+{
+	bFirstRes = true;
+}
 
 void
 ExtForce::Update(const VectorHandler& XCurr, 
