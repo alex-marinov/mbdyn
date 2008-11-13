@@ -182,6 +182,8 @@ ExtFileHandler::Recv_pre(void)
 bool
 ExtFileHandler::Recv_post(void)
 {
+	inf.close();
+
 	if (bRemoveIn) {
 		if (unlink(fin.c_str()) != 0) {
 			int save_errno = errno;
