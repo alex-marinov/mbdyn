@@ -37,6 +37,7 @@
 #include "extforce.h"
 #include "extedge.h"
 #include "except.h"
+#include "solver.h"
 
 #include <fstream>
 
@@ -114,6 +115,11 @@ ExtFileHandler::Send_pre(bool bAfterConvergence)
 				}
 
 			} else {
+				if (mbdyn_stop_at_end_of_iteration()) {
+					outf.setstate(std::ios_base::badbit);
+					return outf;
+				}
+
 #ifdef USE_SLEEP
 				if (iSleepTime > 0) {
 					silent_cout("output file "
@@ -170,6 +176,11 @@ ExtFileHandler::Recv_pre(void)
 			"try #" << cnt << "; "
 			"sleeping " << iSleepTime << " s" << std::endl); 
                
+		if (mbdyn_stop_at_end_of_iteration()) {
+			inf.setstate(std::ios_base::badbit);
+			return inf;
+		}
+
 		sleep(iSleepTime);
 		inf.clear();
 		inf.open(fin.c_str());
