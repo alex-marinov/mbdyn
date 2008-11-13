@@ -152,18 +152,18 @@ DispMeasure::SetValue(DataManager *pDM,
 	Vec3 x1 = pStrNode1->GetXCurr()+ff1;
 	Vec3 x2 = pStrNode2->GetXCurr()+ff2;
 
-	doublereal d = (x2-x1).Norm();
+	doublereal d = (x2 - x1).Norm();
 
-	((ScalarDifferentialNode *&)pAbsNode)->SetX(d);
+	const_cast<ScalarDifferentialNode *>(pAbsNode)->SetX(d);
 	X.PutCoef(iIndex, d);
 
 	/* velocita' */
-	Vec3 v1 = pStrNode1->GetVCurr()+(pStrNode1->GetWCurr()).Cross(ff1);
-	Vec3 v2 = pStrNode2->GetVCurr()+(pStrNode2->GetWCurr()).Cross(ff2);
+	Vec3 v1 = pStrNode1->GetVCurr() + (pStrNode1->GetWCurr()).Cross(ff1);
+	Vec3 v2 = pStrNode2->GetVCurr() + (pStrNode2->GetWCurr()).Cross(ff2);
 
-	doublereal v = (v2-v1).Norm();
+	doublereal v = (v2 - v1).Norm();
 
-	((ScalarDifferentialNode *&)pAbsNode)->SetXPrime(v);
+	const_cast<ScalarDifferentialNode *>(pAbsNode)->SetXPrime(v);
 
 	XP.PutCoef(iIndex, v);
 }

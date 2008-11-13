@@ -89,6 +89,10 @@ class ErrDivideByZero : public MBDynErrBase {
 public:
 	ErrDivideByZero(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
 };
+class ErrNullNorm : public MBDynErrBase {
+public:
+	ErrNullNorm(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+};
 class ErrMemory : public MBDynErrBase {
 public: 
 	ErrMemory(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};

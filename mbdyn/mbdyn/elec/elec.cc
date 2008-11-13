@@ -231,16 +231,15 @@ Elem* ReadElectric(DataManager* pDM,
 	  ScalarDifferentialNode* pAbsNode = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
 
 	  /* Direzione */
-	  Vec3 Dir(HP.GetVecRel(ReferenceFrame(pStrNode)));
-	  doublereal d = Dir.Dot();
-	  if (d > 0.) {
-	     Dir /= d;
-	     DEBUGCOUT("Direction: " << std::endl << Dir << std::endl);
-	  } else {
+	  Vec3 Dir;
+          try {
+	     Dir = HP.GetUnitVecRel(ReferenceFrame(pStrNode));
+          } catch (ErrNullNorm) {
 	     silent_cerr("Warning, null direction in accelerometer "
 	       << uLabel << std::endl);
-	     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	  }
+	     throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
+          }
+	  DEBUGCOUT("Direction: " << std::endl << Dir << std::endl);
 
 	  /* offset */
 	  Vec3 Tmpf(0.);
@@ -251,8 +250,8 @@ Elem* ReadElectric(DataManager* pDM,
 	  switch (f) {
 	   case 1:
 	      SAFENEWWITHCONSTRUCTOR(pEl,
-				     TraslAccel,
-				     TraslAccel(uLabel, pDO,
+				     TranslAccel,
+				     TranslAccel(uLabel, pDO,
 						pStrNode, pAbsNode,
 						Dir, Tmpf, fOut));
 	      break;
@@ -279,16 +278,15 @@ Elem* ReadElectric(DataManager* pDM,
 	  ScalarDifferentialNode* pAbsNode = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
 
 	  /* Direzione */
-	  Vec3 Dir(HP.GetVecRel(ReferenceFrame(pStrNode)));
-	  doublereal d = Dir.Dot();
-	  if (d > 0.) {
-	     Dir /= d;
-	     DEBUGCOUT("Direction: " << std::endl << Dir << std::endl);
-	  } else {
+	  Vec3 Dir;
+          try {
+	     Dir = HP.GetUnitVecRel(ReferenceFrame(pStrNode));
+          } catch (ErrNullNorm) {
 	     silent_cerr("Warning, null direction in accelerometer "
 	       << uLabel << std::endl);
-	     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	  }
+	     throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
+          }
+	  DEBUGCOUT("Direction: " << std::endl << Dir << std::endl);
 
 	  /* Parametri */
 	  doublereal dOmega = HP.GetReal();
@@ -370,11 +368,14 @@ Elem* ReadElectric(DataManager* pDM,
        StructNode* pStrNode2 = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 
        /* direzione */
-       Vec3 TmpDir(HP.GetVecRel(ReferenceFrame(pStrNode1)));
-       if (TmpDir.Norm() < DBL_EPSILON) {
-	       silent_cerr("motor direction is illegal at line "
+       Vec3 TmpDir;
+       try {
+          TmpDir = HP.GetUnitVecRel(ReferenceFrame(pStrNode1));
+       } catch (ErrNullNorm) {
+	       silent_cerr("Motor(" << uLabel << "): "
+                       "motor direction is illegal at line "
 		       << HP.GetLineData() << std::endl);
-	       throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	       throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
        }
 
        /* nodo elettrico1 collegato */

@@ -255,10 +255,10 @@ Accelerometer::SetValue(DataManager *pDM,
 /* Accelerometer - end */
 
 
-/* TraslAccel - begin */
+/* TranslAccel - begin */
 
 /* Costruttore */
-TraslAccel::TraslAccel(unsigned int uL,
+TranslAccel::TranslAccel(unsigned int uL,
 	const DofOwner* pDO,
 	const StructNode* pS,
 	const ScalarDifferentialNode* pA,
@@ -277,14 +277,14 @@ Dir(TmpDir), f(Tmpf)
 }
 
 /* Distruttore banale */
-TraslAccel::~TraslAccel(void)
+TranslAccel::~TranslAccel(void)
 {
 	NO_OP;
 }
 
 /* Contributo al file di restart */
 std::ostream&
-TraslAccel::Restart(std::ostream& out) const
+TranslAccel::Restart(std::ostream& out) const
 {
 	Electric::Restart(out) << ", accelerometer, translational, "
 		<< pStrNode->GetLabel() << ", "
@@ -297,12 +297,12 @@ TraslAccel::Restart(std::ostream& out) const
 
 /* Costruisce il contributo allo jacobiano */
 VariableSubMatrixHandler&
-TraslAccel::AssJac(VariableSubMatrixHandler& WorkMat,
+TranslAccel::AssJac(VariableSubMatrixHandler& WorkMat,
 	doublereal dCoef,
 	const VectorHandler& /* XCurr */ ,
 	const VectorHandler& /* XPrimeCurr */ )
 {
-	DEBUGCOUT("Entering TraslAccel::AssJac()" << std::endl);
+	DEBUGCOUT("Entering TranslAccel::AssJac()" << std::endl);
 
 	/* Casting di WorkMat */
 	SparseSubMatrixHandler& WM = WorkMat.SetSparse();
@@ -334,12 +334,12 @@ TraslAccel::AssJac(VariableSubMatrixHandler& WorkMat,
 
 /* Costruisce il contributo al residuo */
 SubVectorHandler&
-TraslAccel::AssRes(SubVectorHandler& WorkVec,
+TranslAccel::AssRes(SubVectorHandler& WorkVec,
 	doublereal /* dCoef */ ,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {
-	DEBUGCOUT("Entering TraslAccel::AssRes()" << std::endl);
+	DEBUGCOUT("Entering TranslAccel::AssRes()" << std::endl);
 
 	/* Dimensiona e resetta la matrice di lavoro */
 	WorkVec.Resize(2);
@@ -364,33 +364,33 @@ TraslAccel::AssRes(SubVectorHandler& WorkVec,
 }
 
 unsigned int
-TraslAccel::iGetNumDof(void) const
+TranslAccel::iGetNumDof(void) const
 {
 	return 1;
 }
 
 DofOrder::Order
-TraslAccel::GetDofType(unsigned int i) const
+TranslAccel::GetDofType(unsigned int i) const
 {
 	ASSERT(i == 0);
 	return DofOrder::DIFFERENTIAL;
 }
 
 void
-TraslAccel::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+TranslAccel::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
 	*piNumRows = 2;
 	*piNumCols = 8;
 }
 
 void
-TraslAccel::SetInitialValue(VectorHandler& /* X */ )
+TranslAccel::SetInitialValue(VectorHandler& /* X */ )
 {
 	NO_OP;
 }
 
 void
-TraslAccel::SetValue(DataManager *pDM,
+TranslAccel::SetValue(DataManager *pDM,
 	VectorHandler& X, VectorHandler& XP,
 	SimulationEntity::Hints *ph)
 {
@@ -401,7 +401,7 @@ TraslAccel::SetValue(DataManager *pDM,
 	XP.PutCoef(iGetFirstIndex() + 1, 0.);
 }
 
-/* TraslAccel - end */
+/* TranslAccel - end */
 
 
 /* RotAccel - begin */

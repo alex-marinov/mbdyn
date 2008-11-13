@@ -1061,15 +1061,15 @@ ReadJoint(DataManager* pDM,
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
 		DEBUGCOUT("Node 1 reference frame p:" << std::endl << p << std::endl);
 
-		Vec3 v(HP.GetVecRel(RF));
-		doublereal d = v.Dot();
-		if (d <= DBL_EPSILON) {
-			silent_cerr("null direction at line " << HP.GetLineData()
+		Vec3 v;
+		try {
+			v = HP.GetUnitVecRel(RF);
+		} catch (ErrNullNorm) {
+			silent_cerr("Joint(" << uLabel << "): "
+				"null direction at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 		}
-		v /= sqrt(d);
-
 
 		/* nodo collegato 2 */
 		StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
@@ -1852,14 +1852,12 @@ ReadJoint(DataManager* pDM,
 		/* nodo collegato */
 		StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
-		Vec3 Dir(HP.GetVecRel(ReferenceFrame(pNode)));
-		doublereal d = Dir.Dot();
-		ASSERT(d > 0.);
-		if (d > 0.) {
-			Dir /= sqrt(d);
-		} else {
+		Vec3 Dir;
+		try {
+			Dir = HP.GetUnitVecRel(ReferenceFrame(pNode));
+		} catch (ErrNullNorm) {
 			silent_cerr("direction is null" << std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 		}
 
 		DriveCaller* pDC = HP.GetDriveCaller();
@@ -1893,14 +1891,13 @@ ReadJoint(DataManager* pDM,
 		/* nodo collegato */
 		StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
-		Vec3 Dir(HP.GetVecRel(ReferenceFrame(pNode)));
-		doublereal d = Dir.Dot();
-		ASSERT(d > 0.);
-		if (d > 0.) {
-			Dir /= sqrt(d);
-		} else {
-			silent_cerr("direction is null" << std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		Vec3 Dir;
+		try {
+			Dir = HP.GetUnitVecRel(ReferenceFrame(pNode));
+		} catch (ErrNullNorm) {
+			silent_cerr("Joint(" << uLabel << "): "
+				"direction is null" << std::endl);
+			throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 		}
 
 		DriveCaller* pDC = HP.GetDriveCaller();
@@ -3118,18 +3115,16 @@ ReadJoint(DataManager* pDM,
 		StructNode* pSup = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 	
 		/* leggo posizione e direzione della superficie nel sistema del nodo*/
-		Vec3 SupDirection = HP.GetVecRel(ReferenceFrame(pSup));
-
-	
 		/* Normalizzo l'orientazione del terreno */
-		doublereal d = SupDirection.Dot();
-		if (d <= DBL_EPSILON) {
+		Vec3 SupDirection;
+		try {
+			SupDirection = HP.GetUnitVecRel(ReferenceFrame(pSup));
+		} catch (ErrNullNorm) {
 			silent_cerr("PointSurfaceContact(" << uLabel << "): "
 				"invalid direction at line " << HP.GetLineData()
 				<< std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 		}
-		SupDirection /= sqrt(d);
 
 		double ElasticStiffness = HP.GetReal();
 	

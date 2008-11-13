@@ -1867,18 +1867,20 @@ The syntax is described below.
         { translational | rotational } ,
         <struct_node_label> ,
         <abstract_node_label> ,
-        (Vec3) <measure_direction>
+        ((Unit)Vec3) <measure_direction>
         [ , position , (Vec3) <position> ]
 \end{verbatim}
 The \kw{position} is optional; it is meaningless for \kw{rotational}
 accelerometers.
+The measure is taken along or about direction \kw{measure\_direction};
+it is normalized to unity.
 
 \noindent
 Legacy element: accelerometer with built-in transfer function
 \begin{verbatim}
     <electric_arglist> ::= <struct_node_label> ,
         <abstract_node_label> ,
-        (Vec3) <measure_direction> ,
+        ((Unit)Vec3) <measure_direction> ,
         (scalar) <omega> ,
         (scalar) <tau> ,
         (scalar) <csi> ,
@@ -1888,6 +1890,8 @@ The label \kw{struct\_node\_label} defines the node whose acceleration
 is being measured; the label \kw{abstract\_node\_label} defines the
 \kw{abstract node} that will receive the output signal. 
 An \kw{electric node} can be used as well (?).
+The measure is taken along direction \kw{measure\_direction};
+it is normalized to unity.
 The transfer function of the accelerometer is:
 \begin{displaymath}
     \frac{e_0}{a} = \kw{kappa}\frac{\kw{tau} \ s}{
@@ -1911,13 +1915,15 @@ and $ s $ is the Laplace variable.
     <electric_arglist> ::=
         <node_1> ,
         <node_2> , 
-	(Vec3) <direction_relative_to_node_1> ,
+	((Unit)Vec3) <direction_relative_to_node_1> ,
         <abstract_node_label1>,
         <abstract_node_label2>,
 	(scalar) dG,
 	(scalar) dl,
 	(scalar) dr
 \end{verbatim}
+The motor applies a torque about direction \kw{direction\_relative\_to\_node\_1};
+it is normalized to unity.
 
 
 \subsection{Discrete control}\label{sec:EL:DISCCTRL}
@@ -2099,7 +2105,7 @@ The format is:
 \begin{verbatim}
     <force_type> ::= { absolute | follower } 
     <force_arglist> ::= <node_label> , 
-                        (Vec3) <relative_direction> ,
+                        ((Unit)Vec3) <relative_direction> ,
                         (Vec3) <relative_arm> ,
                         (drive_caller) <force_magnitude>
 \end{verbatim}
@@ -2134,12 +2140,14 @@ In both cases, the moment applied to the node \kw{node\_label} is
 \begin{verbatim}
     <force_type> ::= { absolute | follower } internal
     <force_arglist> ::= <node1_label> , 
-                        (Vec3) <relative_direction> ,
+                        ((Unit)Vec3) <relative_direction> ,
                         (Vec3) <relative_arm1> ,
                         <node2_label> ,
                         (Vec3) <relative_arm2> ,
                         (drive_caller) <force_magnitude>
 \end{verbatim}
+The vector \kw{relative\_direction} defines the direction of the force;
+the code normalizes it to a unit vector whatever value is provided.
 
 \subsubsection{Output}
 The format is:
@@ -2164,19 +2172,24 @@ Example:
 \begin{verbatim}
     <force_type> ::= { absolute | follower } 
     <force_arglist> ::= <node_label> ,
-                        (Vec3) <relative_direction> ,  
+                        ((Unit)Vec3) <relative_direction> ,  
                         (drive_caller) <couple_magnitude>
 \end{verbatim}
+The vector \kw{relative\_direction} defines the direction of the torque;
+the code normalizes it to a unit vector whatever value is provided.
+As opposed to forces, the arm is not required. 
 
 \subsection{Structural internal couple}
 \begin{verbatim}
     <force_type> ::= { absolute | follower } internal
     <force_arglist> ::= <node1_label> ,
-                        (Vec3) <relative_direction> ,  
+                        ((Unit)Vec3) <relative_direction> ,  
                         <node2_label> ,
                         (drive_caller) <couple_magnitude>
 \end{verbatim}
-i.e., as opposed to forces, the arm is not required. 
+The vector \kw{relative\_direction} defines the direction of the torque;
+the code normalizes it to a unit vector whatever value is provided.
+As opposed to forces, the arm is not required. 
 
 \subsubsection{Output}
 The format is:
@@ -2333,9 +2346,9 @@ Communication occurs by means of the communicators illustrated earlier.
 The forces are read from the input file in textual form,
 each line formatted as follows:
 \begin{itemize}
-\item a label
-\item three components of force in the global frame
-\item three components of moment in the global frame
+\item a label;
+\item three components of force in the global frame;
+\item three components of moment in the global frame, referred to the node as the pole.
 \end{itemize}
 The label indicates what node the force and the moment apply to; 
 each force is applied in a point that may be optionally offset 
@@ -2347,7 +2360,8 @@ The output file is written in textual form, each line formatted as follows:
 \begin{itemize}
 \item a label;
 \item the position in the global frame;
-\item the orientation matrix in the global frame;
+\item the orientation matrix in the global frame, row-oriented:
+$R_{11}$, $R_{12}$, $R_{13}$, $R_{21}$, \ldots, $R_{32}$, $R_{33}$;
 \item the velocity with respect to the global frame;
 \item the angular velocity with respect to the global frame.
 \end{itemize}
@@ -2532,7 +2546,7 @@ The output contains:
 \item in column 1 the label of the element;
 \item if \kw{type} is \kw{ridig} or \kw{all},
 	in columns 2--4 the three components of the force,
-	and in columns 5--6 the three components of the moment;
+	and in columns 5--7 the three components of the moment;
 \item if \kw{type} is \kw{modal} or \kw{all},
 	in the subsequent columns the amplitude of the modal force
 	for each mode.
@@ -3020,13 +3034,14 @@ previously defined fluid can be recalled by using the keyword
     <hydr_elem_data> ::= <node_1> , <node_2> , 
                          <struct_node_1> , (Vec3) <offset_1> ,
                          <struct_node_2> , (Vec3) <offset_2> ,
-                         [ direction , (Vec3) <direction> , ]
+                         [ direction , ((Unit)Vec3) <direction> , ]
                          <area_1> ,
                          <area_2> ,
                          <cylinder_length> ,
                          <hydraulic_fluid_properties_1> ,
                          { same | <hydraulic_fluid_properties_2> }
 \end{verbatim}
+The vector \kw{direction} is normalized to unity.
 
 \subsection{Minor Loss}
 \begin{verbatim}
@@ -3148,9 +3163,10 @@ This joint imposes the absolute angular acceleration of a node
 about a given axis.
 \begin{verbatim}
     <joint_type> ::= angular acceleration
-    <joint_arglist> ::= <node> , (Vec3) <relative_direction> , 
+    <joint_arglist> ::= <node> , ((Unit)Vec3) <relative_direction> , 
                         (drive_caller) <acceleration>
 \end{verbatim}
+The axis is \kw{relative\_direction}; it is normalized to unity.
 
 \subsubsection{Private Data}
 The following data is available:
@@ -3167,9 +3183,10 @@ This joint imposes the absolute angular velocity of a node
 about a given axis.
 \begin{verbatim}
     <joint_type> ::= angular velocity
-    <joint_arglist> ::= <node> , (Vec3) <relative_direction> , 
+    <joint_arglist> ::= <node> , ((Unit)Vec3) <relative_direction> , 
                         (drive_caller) <velocity>
 \end{verbatim}
+The axis is \kw{relative\_direction}; it is normalized to unity.
 
 \subsubsection{Private Data}
 The following data is available:
@@ -4051,15 +4068,16 @@ in a plane attached to the first node.
     <joint_arglist> ::= 
         <node_1> , 
         (Vec3) <relative_plane_position> ,
-        (Vec3) <relative_normal_direction> ,
+        ((Unit)Vec3) <relative_normal_direction> ,
         <node_2>
         [ , offset , (Vec3) <relative_offset>]
 \end{verbatim}
 A point, optionally offset by \kw{relative\_offset} from the position
 of node \kw{node\_2}, slides on a plane that passes through a point 
 that is rigidly offset by \kw{relative\_plane\_position}
-from the position of \kw{node\_1}, and is perpendicular to direction 3 
-of \kw{relative orientation}.
+from the position of \kw{node\_1}, and is perpendicular to 
+\kw{relative\_normal\_direction}.
+The vector \kw{relative\_normal\_direction} is normalized to unity.
 
 
 
@@ -4120,9 +4138,10 @@ This joint imposes the absolute linear acceleration of a node
 along a given axis.
 \begin{verbatim}
     <joint_type> ::= linear acceleration
-    <joint_arglist> ::= <node> , (Vec3) <relative_direction> , 
+    <joint_arglist> ::= <node> , ((Unit)Vec3) <relative_direction> , 
                         (drive_caller) <acceleration>
 \end{verbatim}
+The axis is \kw{relative\_direction}; it is normalized to unity.
 
 \subsubsection{Private Data}
 The following data is available:
@@ -4136,9 +4155,10 @@ This joint imposes the absolute linear velocity of a node
 along a given axis.
 \begin{verbatim}
     <joint_type> ::= linear velocity
-    <joint_arglist> ::= <node> , (Vec3) <relative_direction> , 
+    <joint_arglist> ::= <node> , ((Unit)Vec3) <relative_direction> , 
                         (drive_caller) <velocity>
 \end{verbatim}
+The axis is \kw{relative\_direction}; it is normalized to unity.
 
 \subsubsection{Private Data}
 The following data is available:

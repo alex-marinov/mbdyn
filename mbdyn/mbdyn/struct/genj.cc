@@ -185,7 +185,7 @@ DistanceJoint::AssJac(VariableSubMatrixHandler& WorkMat,
       doublereal d = v.Dot();
       ASSERT(d > DBL_EPSILON);
       if (d > DBL_EPSILON) {	   
-	 d = sqrt(d);
+	 d = std::sqrt(d);
 	 /* termini di Delta_v su alpha */
 	 for (int iCnt = 3; iCnt > 0; iCnt--) {	      
 	    WM.PutItem(21+iCnt, iFirstReactionIndex+4,
@@ -253,7 +253,7 @@ SubVectorHandler& DistanceJoint::AssRes(SubVectorHandler& WorkVec,
    doublereal d = v.Dot();
    ASSERT(d > DBL_EPSILON);
    if (d > DBL_EPSILON) {	   
-      d = sqrt(d);
+      d = std::sqrt(d);
    } else {	   
       d = 0.;
    }
@@ -415,7 +415,7 @@ DistanceJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       doublereal d = v.Dot();
       ASSERT(d > DBL_EPSILON);
       if (d > DBL_EPSILON) {
-	 d = sqrt(d);	     
+	 d = std::sqrt(d);	     
 	 for (int iCnt = 1; iCnt <= 3; iCnt++) {		
 	    WM.PutItem(48+iCnt, iFirstReactionIndex+4,
 			iFirstReactionIndex+iCnt, v.dGet(iCnt)/d);
@@ -503,7 +503,7 @@ DistanceJoint::InitialAssRes(SubVectorHandler& WorkVec,
    doublereal d = v.Dot();
    ASSERT(d > DBL_EPSILON);
    if(d > DBL_EPSILON) {	 
-      d = sqrt(d);
+      d = std::sqrt(d);
    } else {	 
       d = 0.;
    }
@@ -533,9 +533,9 @@ void DistanceJoint::SetInitialValue(VectorHandler& X)
    if (d < DBL_EPSILON) {
       silent_cerr("DistanceJoint(" << GetLabel() << "): "
 	      "initial length is null" << std::endl);
-      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+      throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
    }
-   v /= sqrt(d);
+   v /= std::sqrt(d);
    
    X.Put(iFirstIndex+1, v);
    X.Put(iFirstIndex+4+1, v);   
@@ -590,9 +590,9 @@ DistanceJoint::SetValue(DataManager *pDM,
 			"nodes are coincident;" << std::endl
 	  		<< "initial joint assembly is recommended"
 			<< std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 	}
-	v /= sqrt(d);	     
+	v /= std::sqrt(d);	     
 
 	/* Scrittura sul vettore soluzione */
 	X.Put(iGetFirstIndex() + 1, v);	 
@@ -835,7 +835,7 @@ DistanceJointWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
       doublereal d = v.Dot();
       ASSERT(d > DBL_EPSILON);
       if (d > DBL_EPSILON) {
-	 d = sqrt(d);
+	 d = std::sqrt(d);
       } else {
 	 d = 1.;
       }      
@@ -907,7 +907,7 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
       
    doublereal dTmp = v.Dot();
    ASSERT(dTmp >= 0.0);
-   dTmp = sqrt(dTmp);
+   dTmp = std::sqrt(dTmp);
 
    WorkVec.PutCoef(16, 1.-dTmp);
 
@@ -1082,7 +1082,7 @@ DistanceJointWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       doublereal d = v.Dot();
       ASSERT(d > DBL_EPSILON);
       if (d > DBL_EPSILON) {
-	 d = sqrt(d);
+	 d = std::sqrt(d);
 	 
 	 Tmp = v/d;
 	 for (int iCnt = 1; iCnt <= 3; iCnt++) {
@@ -1166,7 +1166,7 @@ DistanceJointWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
    doublereal d = v.Dot();
       
    ASSERT(d > DBL_EPSILON);
-   d = sqrt(d);
+   d = std::sqrt(d);
    WorkVec.PutCoef(28, 1.-d);
    WorkVec.PutCoef(32, -v.Dot(vP)/d);
    
@@ -1199,9 +1199,9 @@ void DistanceJointWithOffset::SetInitialValue(VectorHandler& X)
    if (d < DBL_EPSILON) {
       silent_cerr("DistanceJoint(" << GetLabel() << "): "
 	      "initial length is null" << std::endl);
-      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+      throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
    }
-   v /= sqrt(d);
+   v /= std::sqrt(d);
    
    X.Put(iFirstIndex+1, v);
    X.Put(iFirstIndex+5, (v2+Omega2.Cross(f2Tmp)-v1-Omega1.Cross(f1Tmp))/d);
@@ -1253,9 +1253,9 @@ DistanceJointWithOffset::SetValue(DataManager *pDM,
 			<< " and " << pNode2->GetLabel() << ": "
 			"nodes are coincident;" << std::endl
 			<< "this is no longer supported" << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 	}
-	v /= sqrt(d);
+	v /= std::sqrt(d);
 
 	/* Scrittura sul vettore soluzione */
 	X.Put(iGetFirstIndex() + 1, v);	 

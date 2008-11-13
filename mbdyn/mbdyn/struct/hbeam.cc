@@ -253,12 +253,12 @@ HBeam::DsDxi(void)
 	
 	doublereal d = L.Dot();
 	if (d > DBL_EPSILON) {
-		d = sqrt(d);
+		d = std::sqrt(d);
 	} else {
 		silent_cerr("HBeam(" << GetLabel() << ") "
 			"has singular metric; aborting ..." << std::endl);
 		
-		throw HBeam::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 	}
 	
 	dsdxi = dsdxi*d;

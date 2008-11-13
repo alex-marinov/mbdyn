@@ -1836,7 +1836,7 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 				"and second node hinge axis "
 				"are (nearly) orthogonal; aborting ..."
 				<< std::endl);
-			throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 		}
 		
 		MWedge = Mat3x3(v1, v2, v3);

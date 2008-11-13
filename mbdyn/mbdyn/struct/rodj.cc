@@ -71,10 +71,10 @@ dEpsilonPrime(0.)
 		if (dDot <= DBL_EPSILON) {
 			silent_cerr("Rod(" << GetLabel() << "): "
 				"initial length must be non-null" << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 		}
 
-		dElle = sqrt(dDot);
+		dElle = std::sqrt(dDot);
 	}
 
 	ASSERT(dLength > DBL_EPSILON);
@@ -115,11 +115,11 @@ Rod::AssMat(FullSubMatrixHandler& WorkMat, doublereal dCoef)
 		silent_cerr("Rod(" << GetLabel() << "): "
 			"null distance between nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << std::endl);
-		throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* Lunghezza corrente */
-	dElle = sqrt(dCross);
+	dElle = std::sqrt(dCross);
 
 	/* Forza e slope */
 	doublereal dF = GetF();
@@ -149,7 +149,7 @@ Rod::AssVec(SubVectorHandler& WorkVec)
 		silent_cerr("Rod(" << GetLabel() << "): "
 			"null distance between nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << std::endl);
-		throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* Deformazione */
@@ -633,7 +633,7 @@ ViscoElasticRod::AssJac(VariableSubMatrixHandler& WorkMat,
 		silent_cerr("ViscoElasticRod(" << GetLabel() << "): "
 			"null distance between nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << std::endl);
-		throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* Lunghezza corrente */
@@ -695,7 +695,7 @@ ViscoElasticRod::AssRes(SubVectorHandler& WorkVec,
 		silent_cerr("ViscoElasticRod(" << GetLabel() << "): "
 			"null distance between nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << std::endl);
-		throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* Lunghezza corrente */
@@ -771,7 +771,7 @@ ViscoElasticRod::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		silent_cerr("ViscoElasticRod(" << GetLabel() << "): "
 			"null distance between nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << std::endl);
-		throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* Lunghezza corrente */
@@ -838,7 +838,7 @@ ViscoElasticRod::InitialAssRes(SubVectorHandler& WorkVec,
 		silent_cerr("ViscoElasticRod(" << GetLabel() << "): "
 			"null distance between nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << std::endl);
-		throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* Lunghezza corrente */
@@ -897,7 +897,7 @@ f2(f2Tmp)
 	if (dDot <= DBL_EPSILON) {
 		silent_cerr("RodWithOffset(" << GetLabel() << "): "
 			"inital length must be non-null" << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 	}
 
 	dElle = sqrt(dDot);
@@ -1105,7 +1105,7 @@ RodWithOffset::AssVec(SubVectorHandler& WorkVec)
 		silent_cerr("RodWithOffset(" << GetLabel() << "): "
 			"null distance between nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << std::endl);
-		throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* Lunghezza corrente */

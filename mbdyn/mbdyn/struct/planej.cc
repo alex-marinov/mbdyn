@@ -1111,7 +1111,7 @@ PlaneHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       silent_cerr("PlaneHingeJoint(" << GetLabel() << "): "
 	      "first and second node hinge axes are (nearly) orthogonal"
 	      << std::endl);
-      throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
+      throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
    }   
    
    Vec3 TmpPrime1(e2b.Cross(Omega1.Cross(e3a))-e3a.Cross(Omega2.Cross(e2b)));
@@ -2027,7 +2027,7 @@ PlaneRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       silent_cerr("PlaneRotationJoint(" << GetLabel() << "): "
 	      "first and second node hinge axes are (nearly) orthogonal"
 	      << std::endl);
-      throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
+      throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
    }   
    
    Vec3 TmpPrime1(e2b.Cross(Omega1.Cross(e3a))-e3a.Cross(Omega2.Cross(e2b)));
@@ -3278,7 +3278,7 @@ AxialRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       silent_cerr("AxialRotationJoint(" << GetLabel() << "): "
 	      "first and second node hinge axes are (nearly) orthogonal" 
 	      << std::endl);
-      throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
+      throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
    }   
    
    Vec3 TmpPrime1(e2b.Cross(Omega1.Cross(e3a))-e3a.Cross(Omega2.Cross(e2b)));
@@ -4223,7 +4223,7 @@ PlanePinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       silent_cerr("PlanePinJoint(" << GetLabel() << "): "
 	      "node and fixed point hinge axes are (nearly) orthogonal" 
 	      << std::endl);
-      throw Joint::ErrGeneric(MBDYN_EXCEPT_ARGS);
+      throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
    }   
    
    Vec3 TmpPrime1(e3.Cross(e2.Cross(Omega)));

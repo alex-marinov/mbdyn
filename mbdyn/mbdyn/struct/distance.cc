@@ -115,7 +115,7 @@ DistanceJoint::SetValue(DataManager *pDM,
 			"nodes are coincident;" << std::endl
 	  		<< "initial joint assembly is recommended"
 			<< std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 	}
 }
 
@@ -519,7 +519,7 @@ DistanceJointWithOffset::SetValue(DataManager *pDM,
 			<< " and " << pNode2->GetLabel() << ": "
 			"nodes are coincident;" << std::endl
 			<< "this is no longer supported" << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 	}
 }
 

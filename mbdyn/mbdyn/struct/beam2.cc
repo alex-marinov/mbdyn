@@ -230,12 +230,12 @@ Beam2::DsDxi(void)
 	Vec3 xGrad = InterpDeriv(xTmp[NODE1], xTmp[NODE2]);
 	doublereal d = xGrad.Dot();
 	if (d > DBL_EPSILON) {
-		dsdxi = 1./sqrt(d);
+		dsdxi = 1./std::sqrt(d);
 	} else {
 		silent_cerr("warning, Beam2(" << GetLabel() << ") "
 			"has singular metric; aborting ..." << std::endl);
 		
-		throw Beam2::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* Calcola le deformazioni iniziali */

@@ -179,15 +179,14 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        ReferenceFrame RF(pNodeStr1);
        Vec3 axis(0., 0., 1.); 
        if (HP.IsKeyWord("direction")) {
-	  axis = HP.GetVecRel(RF);
-	  doublereal d = axis.Norm();
-	  if (d < DBL_EPSILON) {
+          try {
+	     axis = HP.GetUnitVecRel(RF);
+          } catch (ErrNullNorm) {
 	     silent_cerr("Actuator(" << uLabel << "): "
-			     "need a definite direction, not "
-			     << axis << "!" << std::endl);
-	     throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		     "need a definite direction, not "
+		     << axis << "!" << std::endl);
+	     throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 	  }
-	  axis /= d;
        } 
        
        /* Area nodo1 */

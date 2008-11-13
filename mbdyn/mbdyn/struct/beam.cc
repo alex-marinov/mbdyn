@@ -470,13 +470,13 @@ Beam::DsDxi(void)
 		doublereal d = xGrad[i].Dot();
 		if (d > DBL_EPSILON) {
 			/* final */
-			dsdxi[i] = 1./sqrt(d);
+			dsdxi[i] = 1./std::sqrt(d);
 
 		} else {
 			silent_cerr("warning, beam " << GetLabel()
 				<< " has singular metric; aborting ..." << std::endl);
 
-			throw Beam::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 		}
 	}
 

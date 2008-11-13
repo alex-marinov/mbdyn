@@ -35,6 +35,8 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <cfloat>
+
 #include "mbpar.h"
 
 #include "hfluid.h"
@@ -1001,6 +1003,32 @@ MBDynParser::GetVecAbs(const ReferenceFrame& rf)
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+}
+
+Vec3 
+MBDynParser::GetUnitVecRel(const ReferenceFrame& rf)
+{
+	Vec3 v = GetVecRel(rf);
+
+	doublereal d = v.Dot();
+	if (d <= DBL_EPSILON) {
+		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
+	}
+
+	return v /= std::sqrt(d);
+}
+
+Vec3 
+MBDynParser::GetUnitVecAbs(const ReferenceFrame& rf)
+{
+	Vec3 v = GetVecAbs(rf);
+
+	doublereal d = v.Dot();
+	if (d <= DBL_EPSILON) {
+		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
+	}
+
+	return v /= std::sqrt(d);
 }
 
 Mat3x3

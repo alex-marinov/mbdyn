@@ -37,8 +37,8 @@
 
 #include <cfloat>
 
-#include <strforce.h>
-#include <dataman.h>
+#include "strforce.h"
+#include "dataman.h"
 
 /* StructuralForce - begin */
 
@@ -56,7 +56,7 @@ pNode(pN), Dir(TmpDir)
    ASSERT(pNode != NULL);
    ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);
    ASSERT(pDC != NULL);
-   ASSERT(Dir.Dot() > 0.);
+   ASSERT(Dir.Dot() > DBL_EPSILON);
 }
 
 
@@ -873,7 +873,7 @@ pNode1(pN1), pNode2(pN2), Dir(TmpDir)
    ASSERT(pNode2 != NULL);
    ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
    ASSERT(pDC != NULL);
-   ASSERT(Dir.Dot() > 0.);
+   ASSERT(Dir.Dot() > DBL_EPSILON);
 }
 
 

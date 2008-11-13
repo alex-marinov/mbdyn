@@ -138,7 +138,7 @@ public:
 	public:
 		ErrReferenceUndefined(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
 	};
-   
+ 
 public:
 	enum Frame {
 		UNKNOWNFRAME = 0,
@@ -224,6 +224,8 @@ public:
 	Vec3 GetOmeAbs(const ReferenceFrame& rf);
 	Vec3 GetVecRel(const ReferenceFrame& rf);
 	Vec3 GetVecAbs(const ReferenceFrame& rf);
+	Vec3 GetUnitVecRel(const ReferenceFrame& rf);
+	Vec3 GetUnitVecAbs(const ReferenceFrame& rf);
 	Mat3x3 GetMatRel(const ReferenceFrame& rf);
 	Mat3x3 GetMatAbs(const ReferenceFrame& rf);
 	Mat3x3 GetRotRel(const ReferenceFrame& rf);

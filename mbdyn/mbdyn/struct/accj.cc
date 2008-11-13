@@ -52,8 +52,8 @@ Dir(TmpDir),
 dF(0.)
 {
    ASSERT(pNode != NULL);
-   ASSERT(Dir.Dot() > DBL_EPSILON);
-   Dir /= Dir.Dot();
+   ASSERT(Dir.Norm() > DBL_EPSILON);
+   Dir /= Dir.Norm();
 }
 
 
@@ -264,8 +264,8 @@ Dir(TmpDir),
 dM(0.)
 {
    ASSERT(pNode != NULL);
-   ASSERT(Dir.Dot() > DBL_EPSILON);
-   Dir /= Dir.Dot();   
+   ASSERT(Dir.Norm() > DBL_EPSILON);
+   Dir /= Dir.Norm();   
 }
 
 

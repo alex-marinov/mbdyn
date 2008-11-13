@@ -349,7 +349,14 @@ Elem* ReadForce(DataManager* pDM,
 		/* direzione della forza */   	     
 		Mat3x3 RNode(pNode->GetRCurr());     
 		ReferenceFrame RF(pNode);
-		Vec3 Dir(HP.GetVecRel(RF));
+
+		Vec3 Dir;
+		try {
+			Dir = HP.GetUnitVecRel(RF);
+		} catch (ErrNullNorm) {
+			silent_cerr("Force(" << uLabel << ") has null direction" << std::endl);
+			throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
+		}
 
 		switch (CurrType) {
 		case CONSERVATIVE:
@@ -380,15 +387,6 @@ Elem* ReadForce(DataManager* pDM,
 		default:
 			break;
 		}      	           
- 
-		/* Normalizza la direzione */
-		ASSERT(Dir.Dot() > DBL_EPSILON);
-		doublereal d = Dir.Dot();
-		if (d <= DBL_EPSILON) {      
-			silent_cerr("Force(" << uLabel << ") has null direction" << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		Dir /= sqrt(d);
  
 		/* distanza dal nodo (vettore di 3 elementi) ( solo se e' una forza) */
 		Vec3 Arm(0.);
