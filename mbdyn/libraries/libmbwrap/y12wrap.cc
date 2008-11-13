@@ -533,7 +533,7 @@ MH(iSize),
 VH(iSize, &dVec[0])
 {
    	ASSERT(iSize > 0);
-   	ASSERT((dPivotFactor >= 0.0) && (dPivotFactor <= 1.0));
+   	ASSERT(((dPivotFactor >= 0.0) && (dPivotFactor <= 1.0)) || dPivotFactor == -1.0);
 
 
    	/* Valore di default */
