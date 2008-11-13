@@ -100,9 +100,9 @@ public:
 /* Accelerometer - end */
 
 
-/* TraslAccel - begin */
+/* TranslAccel - begin */
 
-class TraslAccel : virtual public Elem, public Electric {
+class TranslAccel : virtual public Elem, public Electric {
 private:
 	const StructNode* pStrNode;
 	const ScalarDifferentialNode* pAbsNode;	/* TODO: check if relaxable to ScalarNode */
@@ -110,11 +110,11 @@ private:
 	Vec3 f;
 
 public:
-	TraslAccel(unsigned int uL, const DofOwner* pD,
+	TranslAccel(unsigned int uL, const DofOwner* pD,
 		const StructNode* pS, const ScalarDifferentialNode* pA,
 		const Vec3& TmpDir, const Vec3& Tmpf,
 		flag fOut);
-	~TraslAccel(void);
+	~TranslAccel(void);
 
 	virtual Electric::Type GetElectricType(void) const {
 		return Electric::ACCELEROMETER;
@@ -157,7 +157,7 @@ public:
 	/* ************************************************ */
 };
 
-/* TraslAccel - end */
+/* TranslAccel - end */
 
 
 /* RotAccel - begin */
