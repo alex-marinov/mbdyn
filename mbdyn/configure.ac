@@ -2081,9 +2081,13 @@ AC_CHECK_FUNCS([ \
 	memmove \
 	mkstemp \
 	mlockall \
+	nanosleep \
 	pstat_getdynamic \
 	pstat_getprocessor \
 	putenv \
+	sched_setaffinity \
+	sched_setparam \
+	sched_setscheduler \
 	setenv \
 	signal \
 	sleep \
