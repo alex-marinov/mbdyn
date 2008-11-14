@@ -228,9 +228,9 @@ Inertia::Collect_int(void)
 
 		if (flags & 2) {
 			if (flags & 1) {
-				J0 = R0*J0*R0.Transpose();
+				J0 = R0*J0.MulMT(R0);
 			} else {
-				J0 = R0*J*R0.Transpose();
+				J0 = R0*J.MulMT(R0);
 			}
 		}
 
