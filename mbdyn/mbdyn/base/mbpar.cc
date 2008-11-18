@@ -1015,7 +1015,15 @@ MBDynParser::GetUnitVecRel(const ReferenceFrame& rf)
 		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 	}
 
-	return v /= std::sqrt(d);
+	d = std::sqrt(d);
+
+	if (std::fabs(d - 1.) > DBL_EPSILON) {
+		silent_cerr("warning: non-unit vector (norm=" << d << ") "
+			"at line " << GetLineData() << "; "
+			"normalized" << std::endl);
+	}
+
+	return v /= d;
 }
 
 Vec3 
@@ -1028,7 +1036,15 @@ MBDynParser::GetUnitVecAbs(const ReferenceFrame& rf)
 		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 	}
 
-	return v /= std::sqrt(d);
+	d = std::sqrt(d);
+
+	if (std::fabs(d - 1.) > DBL_EPSILON) {
+		silent_cerr("warning: non-unit vector (norm=" << d << ") "
+			"at line " << GetLineData() << "; "
+			"normalized" << std::endl);
+	}
+
+	return v /= d;
 }
 
 Mat3x3
