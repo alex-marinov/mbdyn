@@ -2378,6 +2378,35 @@ offset from the node location according to \kw{offset}.
 \subsubsection{EDGE communicator}
 TBD
 
+\subsubsection{Examples}
+The following defines an \kw{external structural} force
+with the file communicator
+\begin{verbatim}
+    set: integer FORCE_LABEL = 1000;
+    set: integer NODE_1 = 10;
+    set: integer NODE_2 = 20;
+    force: FORCE_LABEL, external structural,
+        "IN.dat", unlink,
+        "OUT.dat", no clobber,
+        sleep time, 10,
+        precision, 12,
+        coupling, loose,
+        2, # number of nodes
+            NODE_1,
+            NODE_2, offset, 0.,0.,.5;
+\end{verbatim}
+
+\subsubsection{Output}
+An external modal element writes one line for each connected node
+at each time step in the \kw{.frc} file.
+Each line contains:
+\begin{itemize}
+\item in column 1 the label of the element and that of the corresponding node;
+	the format of this field is \kw{<element\_label>.<node\_label>};
+\item in columns 2--4 the three components of the force;
+\item in columns 5--7 the three components of the moment.
+\end{itemize}
+
 
 \subsection{External modal}
 This element allows to communicate with an external software that computes
@@ -2541,7 +2570,9 @@ in order to easily couple with MBDyn.
 
 
 \subsubsection{Output}
-The output contains:
+An external modal element writes one line at each time step
+in the \kw{.frc} file.
+The line contains:
 \begin{itemize}
 \item in column 1 the label of the element;
 \item if \kw{type} is \kw{ridig} or \kw{all},
