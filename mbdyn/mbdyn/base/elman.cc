@@ -688,10 +688,17 @@ DataManager::pFindDrive(Drive::Type Typ, unsigned int uL) const
 	ASSERT(uL > 0);
 
 	if (DriveData[Typ].iNum == 0) {
+		silent_cerr("FileDrive(" << uL << "): "
+			"no file drivers defined" << std::endl);
 		return 0;
 	}
 
-	ASSERT(DriveData[Typ].ppFirstDrive != NULL);
+	if (DriveData[Typ].ppFirstDrive == 0) {
+		silent_cerr("FileDrive(" << uL << "): "
+			"file drivers can only be dereferenced "
+			"after the \"drivers\" block" << std::endl);
+		return 0;
+	}
 
 	return pLabelSearch(DriveData[Typ].ppFirstDrive, DriveData[Typ].iNum, uL);
 }
