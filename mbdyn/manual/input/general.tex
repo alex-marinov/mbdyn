@@ -1663,12 +1663,12 @@ defines a drive whose value is zero except at time step 0.
 and every 10 time steps from that, where it assumes unit value.
 
 \subsection{File drive}\label{sec:FILE-DRIVE}
-A family of file drivers is being planned.
-At present only a multiple-valued, constant time-step file drive is
-implemented.
 The \kw{DriveCaller} is attached to a file drive object that must be declared
 and defined in the \htmlref{\kw{drivers}}{sec:DRIVERS} section 
 of the input file (see Section~\ref{sec:DRIVERS}).
+As a consequence, \kw{file} drive callers can only be instantiated
+after the \htmlref{\kw{drivers}}{sec:DRIVERS} section
+of the input file.
 \begin{verbatim}
     <drive_caller> ::= file ,
         <drive_label>
