@@ -135,6 +135,7 @@ The input of the program MBDyn is subject to continuous changes
 at a fast pace, since the code is under development.
 This documentation attempts to give some insight into the logics 
 that drove its implementation.
+
 While most of the software resulted from a careful design, 
 some portions are ``as they are'' only because they were made in a hurry, 
 or because no better way was at hand at the moment they were made.
@@ -144,10 +145,12 @@ of existing parts are required, an effort will be attempted to make
 it as much backward compatible as possible, or at least reliable 
 diagnostics and error checking will be put in place that warns 
 for possible erroneous inputs related to a change in the input format. 
+
 At present the input of MBDyn already warns for many possible errors 
 and makes as many cross-checks as possible on the consistency of the data. 
 Nearly every warning and error issue shows the line of the input file 
 where the error occurred. 
+
 This document will be subjected to changes, so be sure you always have 
 a release that is aligned with the version of the code you're running.
 
