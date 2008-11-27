@@ -785,18 +785,18 @@ in terms of the inertia properties and the node's kinematics:
 	\T{\beta}
 	&= m \dot{\T{x}}_{CM} \nonumber \\
 	&= m \plbr{\dot{\T{x}} + \T{\omega}\times\T{f}} \nonumber \\
-	&= m \dot{\T{x}} + \T{\omega} \times \T{S}
+	&= m \dot{\T{x}} + \T{\omega} \times \T{s}
 	\label{eq:body:momentum} \\
 	\T{\gamma}
 	&= \T{\gamma}_{CM} + \T{f} \times\T{\beta} \nonumber \\
 	&= \TT{J}_{CM} \T{\omega} + \T{f} \times\T{\beta} \nonumber \\
-	&= \T{S} \times \dot{\T{x}} + \TT{J} \T{\omega}
+	&= \T{s} \times \dot{\T{x}} + \TT{J} \T{\omega}
 	\label{eq:body:momenta-moment} ,
 \end{align}
 \end{subequations}
 where
 \begin{equation}
-	\T{f} = \frac{\T{S}}{m}
+	\T{f} = \frac{\T{s}}{m}
 \end{equation}
 is the distance between the node and the CM of the body,
 which is constant in the reference frame of the node
@@ -820,14 +820,14 @@ The perturbation of the momentum and momenta moment definitions yields
 \begin{align}
 	\delta\T{\beta}
 	&= m \delta\dot{\T{x}}
-	- \T{S}\times\delta\T{\omega}
-	- \T{\omega}\times\T{S}\times\T{\theta}_{\delta} \\
+	- \T{s}\times\delta\T{\omega}
+	- \T{\omega}\times\T{s}\times\T{\theta}_{\delta} \\
 	\delta\T{\gamma}
 	&=
-	\T{S}\times\delta\dot{\T{x}}
+	\T{s}\times\delta\dot{\T{x}}
 	+ \TT{J} \delta\T{\omega}
 	+ \plbr{
-		\dot{\T{x}}\times\T{S}\times{}
+		\dot{\T{x}}\times\T{s}\times{}
 		- \plbr{\TT{J} \T{\omega}}\times{}
 		- \TT{J} \T{\omega}\times{}
 	}\T{\theta}_{\delta}
@@ -856,10 +856,10 @@ of the definitions of the momentum and the momenta moment.
 The differentiation of Equations~(\ref{eq:body:momenta}) yields
 \begin{subequations}
 \begin{align}
-	\dot{\T{\beta}} &= m \ddot{\T{x}} + \dot{\T{\omega}} \times \T{S}
-		+ \T{\omega} \times \T{\omega} \times \T{S} \\
-	\dot{\T{\gamma}} &= \plbr{\T{\omega}\times \T{S}} \times \dot{\T{x}}
-		+ \T{S} \times \ddot{\T{x}}
+	\dot{\T{\beta}} &= m \ddot{\T{x}} + \dot{\T{\omega}} \times \T{s}
+		+ \T{\omega} \times \T{\omega} \times \T{s} \\
+	\dot{\T{\gamma}} &= \plbr{\T{\omega}\times \T{s}} \times \dot{\T{x}}
+		+ \T{s} \times \ddot{\T{x}}
 		+ \T{\omega} \times \TT{J} \T{\omega}
 		+ \TT{J} \dot{\T{\omega}} .
 \end{align}
@@ -876,8 +876,8 @@ As a consequence, the linear and angular accelerations are computed as
 	\ddot{\T{x}}
 	&= \cfrac{1}{m}\plbr{
 		\dot{\T{\beta}}
-		- \dot{\T{\omega}} \times \T{S}
-		- \T{\omega} \times \T{\omega} \times \T{S}
+		- \dot{\T{\omega}} \times \T{s}
+		- \T{\omega} \times \T{\omega} \times \T{s}
 	} .
 \end{align}
 
@@ -962,7 +962,7 @@ For this purpose, the script \texttt{abs2rel.awk} is provided
 to convert the contents of the \texttt{.mov} file
 into the corresponding motion relative to a given node.
 
-Relative motion:
+Absolute motion as function of relative (tilde) and reference (0) motion:
 \begin{subequations}
 \begin{align}
 	\TT{R} &= \TT{R}_0 \tilde{\TT{R}} \\
@@ -982,7 +982,7 @@ Relative motion:
 \end{align}
 \end{subequations}
 
-The relative motion is defined as
+Relative motion (tilde) as function of absolute and reference (0) motion:
 \begin{subequations}
 \begin{align}
 	\tilde{\TT{R}} &= \TT{R}_0^T \TT{R} \\
@@ -1020,6 +1020,141 @@ The relative motion is defined as
 \end{align}
 \end{subequations}
 
+Perturbation, assuming reference motion is imposed:
+\begin{subequations}
+\begin{align}
+	\T{\theta}_{\delta}
+	&= \TT{R}_0 \tilde{\T{\theta}}_{\delta} \\
+	\delta\T{x} &= \TT{R}_0 \delta\tilde{\T{x}} \\
+	\delta\T{\omega} &= \TT{R}_0 \delta\tilde{\T{\omega}} \\
+	\delta\dot{\T{x}} &= 
+		\T{\omega}_0 \times \TT{R}_0 \delta\tilde{\T{x}}
+		+ \TT{R}_0 \delta\dot{\tilde{\T{x}}} \\
+	\delta\dot{\T{\omega}} &= 
+		\T{\omega}_0 \times \TT{R}_0 \delta\tilde{\T{\omega}}
+		+ \TT{R}_0 \delta\dot{\tilde{\T{\omega}}} \\
+	\delta\ddot{\T{x}}
+		&= \dot{\T{\omega}}_0 \times \TT{R}_0 \delta\tilde{\T{x}}
+		+ \T{\omega}_0 \times \T{\omega}_0 \times \TT{R}_0 \delta\tilde{\T{x}}
+		+ 2 \T{\omega}_0 \times \TT{R}_0 \delta\dot{\tilde{\T{x}}}
+		+ \TT{R}_0 \delta\ddot{\tilde{\T{x}}}
+		\nonumber \\
+		&= \plbr{
+			\dot{\T{\omega}}_0 \times{}
+			+ \T{\omega}_0 \times \T{\omega}_0 \times{}
+		} \TT{R}_0 \delta\tilde{\T{x}}
+		+ 2 \T{\omega}_0 \times \TT{R}_0 \delta\dot{\tilde{\T{x}}}
+		+ \TT{R}_0 \delta\ddot{\tilde{\T{x}}}
+\end{align}
+\end{subequations}
+
+Perturbation, when reference motion is independent:
+\begin{subequations}
+\begin{align}
+	\T{\theta}_{\delta}
+		&= \T{\theta}_{0\delta}
+	+ \TT{R}_0 \tilde{\T{\theta}}_{\delta} \\
+	\delta\T{x}
+		&= \delta\T{x}_0
+		+ \T{\theta}_{0\delta}\times\TT{R}_0 \tilde{\T{x}}
+		+ \TT{R}_0 \delta\tilde{\T{x}}
+		\nonumber \\
+		&= \delta\T{x}_0
+		- \plbr{\TT{R}_0 \tilde{\T{x}}} \times \T{\theta}_{0\delta}
+		+ \TT{R}_0 \delta\tilde{\T{x}} \\
+	\delta \T{\omega}
+		&= \delta\T{\omega}_0
+		+ \T{\theta}_{0\delta}\times\TT{R}_0 \tilde{\T{\omega}}
+		+ \TT{R}_0 \delta\tilde{\T{\omega}}
+		\nonumber \\
+		&= \delta\T{\omega}_0
+		- \plbr{\TT{R}_0 \tilde{\T{\omega}}} \times \T{\theta}_{0\delta}
+		+ \TT{R}_0 \delta\tilde{\T{\omega}} \\
+	\delta\dot{\T{x}}
+		&= \delta\dot{\T{x}}_0
+		+ \delta\T{\omega}_0 \times \TT{R}_0 \tilde{\T{x}}
+		+ \T{\omega}_0 \times \T{\theta}_{0\delta}\times\TT{R}_0 \tilde{\T{x}}
+		+ \T{\omega}_0 \times \TT{R}_0 \delta\tilde{\T{x}}
+		\nonumber \\
+		&\hphantom{=}+ \T{\theta}_{0\delta}\times\TT{R}_0 \dot{\tilde{\T{x}}}
+		+ \TT{R}_0 \delta\dot{\tilde{\T{x}}}
+		\nonumber \\
+		&= \delta\dot{\T{x}}_0
+		- \plbr{\TT{R}_0 \tilde{\T{x}}} \times \delta\T{\omega}_0
+		- \plbr{
+			\T{\omega}_0 \times \plbr{\TT{R}_0 \tilde{\T{x}}} \times{}
+			+ \plbr{\TT{R}_0 \dot{\tilde{\T{x}}}}\times{}
+		}\T{\theta}_{0\delta}
+		\nonumber \\
+		&\hphantom{=}+ \T{\omega}_0 \times \TT{R}_0 \delta\tilde{\T{x}}
+		+ \TT{R}_0 \delta\dot{\tilde{\T{x}}} \\
+	\delta\dot{\T{\omega}}
+		&= \delta\dot{\T{\omega}}_0
+		+ \delta\T{\omega}_0 \times \TT{R}_0 \tilde{\T{\omega}}
+		+ \T{\omega}_0 \times \T{\theta}_{0\delta}\times\TT{R}_0 \tilde{\T{\omega}}
+		+ \T{\omega}_0 \times \TT{R}_0 \delta\tilde{\T{\omega}}
+		\nonumber \\
+		&\hphantom{=}+ \T{\theta}_{0\delta}\times\TT{R}_0 \dot{\tilde{\T{\omega}}}
+		+ \TT{R}_0 \delta\dot{\tilde{\T{\omega}}}
+		\nonumber \\
+		&= \delta\dot{\T{\omega}}_0
+		- \plbr{\TT{R}_0 \tilde{\T{\omega}}} \times \delta\T{\omega}_0
+		- \plbr{
+			\T{\omega}_0 \times \plbr{\TT{R}_0 \tilde{\T{\omega}}}\times{}
+			+ \plbr{\TT{R}_0 \dot{\tilde{\T{\omega}}}}\times{}
+		}\T{\theta}_{0\delta}
+		\nonumber \\
+		&\hphantom{=}+ \T{\omega}_0 \times \TT{R}_0 \delta\tilde{\T{\omega}}
+		+ \TT{R}_0 \delta\dot{\tilde{\T{\omega}}} \\
+	\delta\ddot{\T{x}} &= \delta\ddot{\T{x}}_0
+		\nonumber \\
+		&\hphantom{=}+ \delta\dot{\T{\omega}}_0 \times \TT{R}_0 \tilde{\T{x}}
+		+ \dot{\T{\omega}}_0 \times \T{\theta}_{0\delta}\times\TT{R}_0 \tilde{\T{x}}
+		+ \dot{\T{\omega}}_0 \times \TT{R}_0 \delta\tilde{\T{x}}
+		\nonumber \\
+		&\hphantom{=}+ \delta\T{\omega}_0 \times \T{\omega}_0 \times \TT{R}_0 \tilde{\T{x}}
+		+ \T{\omega}_0 \times \delta\T{\omega}_0 \times \TT{R}_0 \tilde{\T{x}}
+		\nonumber \\
+		&\hphantom{=}+ \T{\omega}_0 \times \T{\omega}_0 \times \T{\theta}_{0\delta}\times\TT{R}_0 \tilde{\T{x}}
+		+ \T{\omega}_0 \times \T{\omega}_0 \times \TT{R}_0 \delta\tilde{\T{x}}
+		\nonumber \\
+		&\hphantom{=}+ 2 \delta\T{\omega}_0 \times \TT{R}_0 \dot{\tilde{\T{x}}}
+		+ 2 \T{\omega}_0 \times \T{\theta}_{0\delta}\times\TT{R}_0 \dot{\tilde{\T{x}}}
+		+ 2 \T{\omega}_0 \times \TT{R}_0 \delta\dot{\tilde{\T{x}}}
+		\nonumber \\
+		&\hphantom{=}+ \T{\theta}_{0\delta}\times\TT{R}_0 \ddot{\tilde{\T{x}}}
+		+ \TT{R}_0 \delta\ddot{\tilde{\T{x}}}
+		\nonumber \\
+	&= \delta\ddot{\T{x}}_0 - \plbr{\TT{R}_0 \tilde{\T{x}}} \times \delta\dot{\T{\omega}}_0
+		\nonumber \\
+		&\hphantom{=}- \plbr{
+			\plbr{\T{\omega}_0 \times \TT{R}_0 \tilde{\T{x}}} \times{}
+			+ \T{\omega}_0 \times \plbr{\TT{R}_0 \tilde{\T{x}}} \times{}
+			+ 2 \plbr{\TT{R}_0 \dot{\tilde{\T{x}}}} \times{}
+		} \delta\T{\omega}_0
+		\nonumber \\
+		&\hphantom{=}- \plbr{
+			\plbr{
+				\dot{\T{\omega}}_0 \times{}
+				+ \T{\omega}_0 \times \T{\omega}_0 \times{}
+			} \plbr{\TT{R}_0 \tilde{\T{x}}} \times{}
+			+ 2 \T{\omega}_0 \times \plbr{\TT{R}_0 \dot{\tilde{\T{x}}}} \times{}
+			+ \plbr{\TT{R}_0 \ddot{\tilde{\T{x}}}} \times{}
+		}\T{\theta}_{0\delta}
+		\nonumber \\
+		&\hphantom{=}+ \plbr{
+			\dot{\T{\omega}}_0 \times{}
+			+ \T{\omega}_0 \times \T{\omega}_0 \times{}
+		} \TT{R}_0 \delta\tilde{\T{x}}
+%
+		+ 2 \T{\omega}_0 \times \TT{R}_0 \delta\dot{\tilde{\T{x}}}
+%
+		+ \TT{R}_0 \delta\ddot{\tilde{\T{x}}}
+\end{align}
+\end{subequations}
+
+
+\subsection{Motion expressed in a relative reference frame}
 An alternative, useful case is given by representing the absolute motion
 in a relative reference frame:
 \begin{subequations}
