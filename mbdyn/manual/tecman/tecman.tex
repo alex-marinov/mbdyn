@@ -805,8 +805,8 @@ for a rigid body.
 The contribution to the equations of motion (Newton-Euler) is
 \begin{subequations}
 \begin{align}
-	\T{f}_{in} &= \dot{\T{\beta}} \\
-	\T{m}_{in} &= \dot{\T{\gamma}}_{CM} + \T{f}\times\T{f}_{in} \nonumber \\
+	\T{f}_{\text{in}} &= \dot{\T{\beta}} \\
+	\T{m}_{\text{in}} &= \dot{\T{\gamma}}_{CM} + \T{f}\times\T{f}_{\text{in}} \nonumber \\
 	&= \dot{\T{\gamma}} - \plbr{\T{\omega}\times\T{f}}\times\T{\beta} \nonumber \\
 	&= \dot{\T{\gamma}} - m \plbr{\T{\omega}\times\T{f}}\times\plbr{\dot{\T{x}} + \T{\omega}\times\T{f}} \nonumber \\
 	&= \dot{\T{\gamma}} + m \dot{\T{x}}\times\plbr{\T{\omega}\times\T{f}} \nonumber \\
@@ -836,9 +836,9 @@ The perturbation of the momentum and momenta moment definitions yields
 The perturbation of the inertia force and moment yields
 \begin{subequations}
 \begin{align}
-	\delta\T{f}_{in}
+	\delta\T{f}_{\text{in}}
 	&= \delta\dot{\T{\beta}} \\
-	\delta\T{m}_{in}
+	\delta\T{m}_{\text{in}}
 	&= \delta\dot{\T{\gamma}}
 	- \T{\beta}\times\delta\dot{\T{x}}
 	+ \dot{\T{x}}\times\delta\T{\beta}
@@ -1153,8 +1153,7 @@ Perturbation, when reference motion is independent:
 \end{align}
 \end{subequations}
 
-
-\subsection{Motion expressed in a relative reference frame}
+\subsection{Motion Expressed in a Relative Reference Frame}
 An alternative, useful case is given by representing the absolute motion
 in a relative reference frame:
 \begin{subequations}
@@ -1167,6 +1166,90 @@ in a relative reference frame:
 	\ddot{\overline{\T{x}}} &= \TT{R}_0^T \ddot{\T{x}}
 \end{align}
 \end{subequations}
+
+
+\subsection{Dynamics in a Relative Reference Frame}
+Momentum and momenta moments
+\begin{subequations}
+\begin{align}
+	\T{\beta}
+	&= m \dot{\T{x}}_0
+	+ \T{\omega}_0 \times \T{s}_0
+	+ \TT{R}_0 \tilde{\T{\beta}} \\
+	\T{\gamma}
+	&= \T{s}\times\plbr{
+		\dot{\T{x}}_0
+		+ \T{\omega}_0 \times \TT{R}_0 \tilde{\T{x}}
+	} + \TT{J} \T{\omega}_0
+	+ \TT{R}_0 \tilde{\T{\gamma}}
+\end{align}
+\end{subequations}
+where
+\begin{align}
+	\T{s}_0 &= \TT{R}_0 \tilde{\T{s}}_0 \\
+	\tilde{\T{s}}_0 &= \tilde{\T{s}} + m \tilde{\T{x}} \\
+	\T{s} &= \TT{R}_0 \tilde{\T{s}} \\
+	\TT{J} &= \TT{R}_0 \tilde{\TT{J}} \TT{R}_0^T
+\end{align}
+
+Momentum and momenta moments derivative
+\begin{subequations}
+\begin{align}
+	\dot{\T{\beta}}
+	&= m \ddot{\T{x}}_0
+	+ \plbr{
+		\dot{\T{\omega}}_0 \times{}
+		+ \T{\omega}_0 \times \T{\omega}_0 \times{}
+	} \TT{R}_0 \tilde{\T{s}}_0
+	+ 2 \T{\omega}_0 \times \TT{R}_0 \tilde{\beta}
+	+ \TT{R}_0 \dot{\tilde{\T{\beta}}} \\
+	\dot{\T{\gamma}}
+	&= ?
+\end{align}
+\end{subequations}
+
+Inertia forces and moments projected in the relative frame
+\begin{subequations}
+\begin{align}
+	\overline{\T{f}}_{\text{in}}
+	&= \TT{R}_0^T \dot{\T{\beta}}
+	\nonumber \\
+	&= m \ddot{\overline{\T{x}}}_0
+	+ \plbr{
+		\dot{\overline{\T{\omega}}}_0 \times{}
+		+ \overline{\T{\omega}}_0 \times \overline{\T{\omega}}_0 \times{}
+	} \tilde{\T{s}}_0
+	%\noindent \\
+	%&\hphantom{=}
+	+ 2 \overline{\T{\omega}}_0 \times \tilde{\T{\beta}}
+	+ \dot{\tilde{\T{\beta}}} \\
+	\overline{\T{m}}_{\text{in}}
+	&= \TT{R}_0^T \plbr{\dot{\T{\gamma}} + \dot{\T{x}} \times \T{\beta}}
+	\nonumber \\
+	&= ?
+\end{align}
+\end{subequations}
+
+Perturbation, assuming reference motion is imposed:
+\begin{subequations}
+\begin{align}
+	\delta\overline{\T{f}}_{\text{in}}
+	&= \plbr{
+		\dot{\overline{\T{\omega}}}_0 \times{}
+		+ \overline{\T{\omega}}_0 \times \overline{\T{\omega}}_0 \times{}
+	} \plbr{
+		\delta\tilde{\T{x}}
+		- \tilde{\T{s}} \times \tilde{\T{\theta}}_{\delta}
+	}
+	\noindent \\
+	&\hphantom{=}+ 2 \overline{\T{\omega}}_0 \times \delta\tilde{\T{\beta}}
+	+ \delta \dot{\tilde{\T{\beta}}} \\
+	\delta\overline{\T{m}}_{\text{in}}
+	&= ?
+\end{align}
+\end{subequations}
+
+
 
 
 
