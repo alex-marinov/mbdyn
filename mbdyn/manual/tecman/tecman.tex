@@ -783,13 +783,13 @@ in terms of the inertia properties and the node's kinematics:
 \label{eq:body:momenta}
 \begin{align}
 	\T{\beta}
-	&= m \dot{\T{x}}_{CM} \nonumber \\
+	&= m \dot{\T{x}}_{\text{CM}} \nonumber \\
 	&= m \plbr{\dot{\T{x}} + \T{\omega}\times\T{f}} \nonumber \\
 	&= m \dot{\T{x}} + \T{\omega} \times \T{s}
 	\label{eq:body:momentum} \\
 	\T{\gamma}
-	&= \T{\gamma}_{CM} + \T{f} \times\T{\beta} \nonumber \\
-	&= \TT{J}_{CM} \T{\omega} + \T{f} \times\T{\beta} \nonumber \\
+	&= \T{\gamma}_{\text{CM}} + \T{f} \times\T{\beta} \nonumber \\
+	&= \TT{J}_{\text{CM}} \T{\omega} + \T{f} \times\T{\beta} \nonumber \\
 	&= \T{s} \times \dot{\T{x}} + \TT{J} \T{\omega}
 	\label{eq:body:momenta-moment} ,
 \end{align}
@@ -806,7 +806,7 @@ The contribution to the equations of motion (Newton-Euler) is
 \begin{subequations}
 \begin{align}
 	\T{f}_{\text{in}} &= \dot{\T{\beta}} \\
-	\T{m}_{\text{in}} &= \dot{\T{\gamma}}_{CM} + \T{f}\times\T{f}_{\text{in}} \nonumber \\
+	\T{m}_{\text{in}} &= \dot{\T{\gamma}}_{\text{CM}} + \T{f}\times\T{f}_{\text{in}} \nonumber \\
 	&= \dot{\T{\gamma}} - \plbr{\T{\omega}\times\T{f}}\times\T{\beta} \nonumber \\
 	&= \dot{\T{\gamma}} - m \plbr{\T{\omega}\times\T{f}}\times\plbr{\dot{\T{x}} + \T{\omega}\times\T{f}} \nonumber \\
 	&= \dot{\T{\gamma}} + m \dot{\T{x}}\times\plbr{\T{\omega}\times\T{f}} \nonumber \\
@@ -867,10 +867,10 @@ The differentiation of Equations~(\ref{eq:body:momenta}) yields
 As a consequence, the linear and angular accelerations are computed as
 \begin{align}
 	\dot{\T{\omega}}
-	&= \TT{J}_{CM}^{-1} \plbr{
+	&= \TT{J}_{\text{CM}}^{-1} \plbr{
 		\dot{\T{\gamma}}
 		- \T{f} \times \dot{\T{\beta}}
-		- \T{\omega} \times \TT{J}_{CM} \T{\omega}
+		- \T{\omega} \times \TT{J}_{\text{CM}} \T{\omega}
 		+ \dot{\T{x}} \times \T{\beta}
 	} \\
 	\ddot{\T{x}}
@@ -1169,6 +1169,18 @@ in a relative reference frame:
 
 
 \subsection{Dynamics in a Relative Reference Frame}
+The rationale is that MBDyn is based on the assumption
+that the kinematics of the nodes and their equations of motion
+are formulated in the global reference frame.
+However, in some cases one may want to express the motion
+of the nodes in a relative reference frame.
+
+The following discussion is intended to modify the inertial contribution
+to the equilibrium in order to reformulate the dynamical problem
+in a relative reference frame, whose motion is imposed.
+The constraints and the deformable components are unaffected,
+as they already intrinsically based on relative kinematics.
+
 Momentum and momenta moments
 \begin{subequations}
 \begin{align}
@@ -1204,7 +1216,29 @@ Momentum and momenta moments derivative
 	+ 2 \T{\omega}_0 \times \TT{R}_0 \tilde{\beta}
 	+ \TT{R}_0 \dot{\tilde{\T{\beta}}} \\
 	\dot{\T{\gamma}}
-	&= ?
+	&= \dot{\T{s}} \times \plbr{
+		\dot{\T{x}}_0
+		+ \T{\omega}_0 \times \TT{R}_0 \tilde{\T{x}}
+	}
+	\nonumber \\
+	&\hphantom{=}+ \T{s} \times \plbr{
+		\ddot{\T{x}}_0
+		+ \plbr{
+			\dot{\T{\omega}}_0 \times{}
+			+ \T{\omega}_0 \times \T{\omega}_0 \times{}
+		} \TT{R}_0 \tilde{\T{x}}
+		+ \T{\omega}_0 \times \TT{R}_0 \dot{\tilde{\T{x}}}
+	}
+	\nonumber \\
+	&\hphantom{=}+ \T{\omega}_0 \times \TT{J} \T{\omega}_0
+	+ \TT{J} \dot{\T{\omega}}_0
+	+ \TT{R}_0 \plbr{
+		\tilde{\T{\omega}} \times \tilde{\TT{J}}
+		- \tilde{\TT{J}} \tilde{\T{\omega}} \times{}
+	} \TT{R}_0^T \T{\omega}_0
+	\nonumber \\
+	&\hphantom{=}+ \T{\omega}_0 \times \TT{R}_0 \tilde{\T{\gamma}}
+	+ \TT{R}_0 \dot{\tilde{\T{\gamma}}}
 \end{align}
 \end{subequations}
 
@@ -1219,14 +1253,32 @@ Inertia forces and moments projected in the relative frame
 		\dot{\overline{\T{\omega}}}_0 \times{}
 		+ \overline{\T{\omega}}_0 \times \overline{\T{\omega}}_0 \times{}
 	} \tilde{\T{s}}_0
-	%\noindent \\
-	%&\hphantom{=}
 	+ 2 \overline{\T{\omega}}_0 \times \tilde{\T{\beta}}
 	+ \dot{\tilde{\T{\beta}}} \\
+%
 	\overline{\T{m}}_{\text{in}}
 	&= \TT{R}_0^T \plbr{\dot{\T{\gamma}} + \dot{\T{x}} \times \T{\beta}}
 	\nonumber \\
-	&= ?
+	&= \tilde{\T{s}} \times \plbr{
+		\ddot{\overline{\T{x}}}_0
+		+ \plbr{
+			\dot{\overline{\T{\omega}}}_0 \times{}
+			+ \overline{\T{\omega}}_0 \times \overline{\T{\omega}}_0 \times{}
+		} \tilde{\T{x}}
+		+ \overline{\T{\omega}}_0 \times \dot{\tilde{\T{x}}}
+	}
+	\nonumber \\
+	&\hphantom{=}+ \overline{\T{\omega}}_0 \times \tilde{\TT{J}} \overline{\T{\omega}}_0
+	+ \tilde{\TT{J}} \dot{\overline{\T{\omega}}}_0
+	+ \plbr{
+		\tilde{\T{\omega}} \times \tilde{\TT{J}}
+		- \tilde{\TT{J}} \tilde{\T{\omega}} \times{}
+	} \overline{\T{\omega}}_0
+	\nonumber \\
+	&\hphantom{=}+ \overline{\T{\omega}}_0 \times \tilde{\T{\gamma}}
+	+ \dot{\tilde{\T{\gamma}}}
+	+ \dot{\tilde{\T{x}}} \times \overline{\T{\omega}}_0 \times \tilde{\T{s}}
+	+ \dot{\tilde{\T{x}}} \times \tilde{\T{\beta}}
 \end{align}
 \end{subequations}
 
@@ -1244,11 +1296,80 @@ Perturbation, assuming reference motion is imposed:
 	\noindent \\
 	&\hphantom{=}+ 2 \overline{\T{\omega}}_0 \times \delta\tilde{\T{\beta}}
 	+ \delta \dot{\tilde{\T{\beta}}} \\
+%
 	\delta\overline{\T{m}}_{\text{in}}
-	&= ?
+	&= \lplbr{
+		\plbr{
+			\ddot{\overline{\T{x}}}_0
+			+ \plbr{
+				\dot{\overline{\T{\omega}}}_0 \times{}
+				+ \overline{\T{\omega}}_0 \times \overline{\T{\omega}}_0 \times{}
+			} \tilde{\T{x}}
+			+ \overline{\T{\omega}}_0 \times \dot{\tilde{\T{x}}}
+		} \times \tilde{\T{s}} \times{}
+	} \nonumber \\
+%	&\hphantom{=}
+%		- \overline{\T{\omega}}_0 \times \plbr{\tilde{\TT{J}} \overline{\T{\omega}}_0} \times{}
+%		+ \overline{\T{\omega}}_0 \times \tilde{\TT{J}} \overline{\T{\omega}}_0 \times{}
+%		- \plbr{\tilde{\TT{J}} \dot{\overline{\T{\omega}}}_0} \times{}
+%		+ \tilde{\TT{J}} \dot{\overline{\T{\omega}}}_0 \times{}
+%	\nonumber \\
+%	&\hphantom{=}
+%		- \tilde{\T{\omega}} \times \plbr{\tilde{\TT{J}} \overline{\T{\omega}}_0} \times{}
+%		+ \tilde{\T{\omega}} \times \tilde{\TT{J}} \overline{\T{\omega}}_0 \times{}
+%		+ \plbr{\tilde{\TT{J}} \tilde{\T{\omega}} \times \overline{\T{\omega}}_0} \times{}
+%		- \tilde{\TT{J}} \plbr{\tilde{\T{\omega}} \times \overline{\T{\omega}}_0} \times{}
+%	\nonumber \\
+	&\hphantom{=}
+		- \plbr{
+			\overline{\T{\omega}}_0
+			+ \tilde{\T{\omega}}
+		} \times \plbr{\tilde{\TT{J}} \overline{\T{\omega}}_0} \times{}
+		+ \plbr{
+			\overline{\T{\omega}}_0
+			+ \tilde{\T{\omega}}
+		} \times \tilde{\TT{J}} \overline{\T{\omega}}_0 \times{}
+	\nonumber \\
+	&\hphantom{=}
+		- \plbr{\tilde{\TT{J}} \plbr{
+			\dot{\overline{\T{\omega}}}_0
+			+ \overline{\T{\omega}} \times \tilde{\T{\omega}}_0
+		}} \times{}
+		+ \tilde{\TT{J}} \plbr{
+			\dot{\overline{\T{\omega}}}_0
+			+ \overline{\T{\omega}} \times \tilde{\T{\omega}}_0
+		} \times{}
+	\nonumber \\
+	&\hphantom{=}
+	\rplbr{
+		- \dot{\tilde{\T{x}}} \times \overline{\T{\omega}}_0 \times \tilde{\T{s}} \times{}
+	} \tilde{\T{\theta}}_{\delta}
+	\nonumber \\
+	&\hphantom{=}
+	+ \plbr{
+		\tilde{\TT{J}} \overline{\T{\omega}}_0 \times{}
+		- \plbr{\tilde{\TT{J}} \overline{\T{\omega}}_0} \times{}
+	} \delta\tilde{\T{\omega}}
+	\nonumber \\
+	&\hphantom{=}
+	+ \tilde{\T{s}} \times \plbr{
+		\dot{\overline{\T{\omega}}}_0 \times{}
+		+ \overline{\T{\omega}}_0 \times \overline{\T{\omega}}_0 \times{}
+	} \delta\tilde{\T{x}}
+	\nonumber \\
+	&\hphantom{=}
+	+ \plbr{
+		\tilde{\T{s}} \times \overline{\T{\omega}}_0 \times{}
+		- \plbr{\overline{\T{\omega}}_0 \times \tilde{\T{s}}} \times{}
+		- \tilde{\T{\beta}} \times{}
+	} \delta\dot{\tilde{\T{x}}}
+	\nonumber \\
+	&\hphantom{=}
+	+ \overline{\T{\omega}}_0 \times \delta\tilde{\T{\gamma}}
+	+ \delta\dot{\tilde{\T{\gamma}}}
+	+ \dot{\tilde{\T{x}}} \times \delta\tilde{\T{\beta}}
 \end{align}
 \end{subequations}
-
 
 
 
