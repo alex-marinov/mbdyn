@@ -1290,7 +1290,7 @@ Perturbation, assuming reference motion is imposed:
 		\dot{\overline{\T{\omega}}}_0 \times{}
 		+ \overline{\T{\omega}}_0 \times \overline{\T{\omega}}_0 \times{}
 	} \plbr{
-		\delta\tilde{\T{x}}
+		m \delta\tilde{\T{x}}
 		- \tilde{\T{s}} \times \tilde{\T{\theta}}_{\delta}
 	}
 	\noindent \\
@@ -1321,24 +1321,23 @@ Perturbation, assuming reference motion is imposed:
 %		- \tilde{\TT{J}} \plbr{\tilde{\T{\omega}} \times \overline{\T{\omega}}_0} \times{}
 %	\nonumber \\
 	&\hphantom{=}
-		- \plbr{
-			\overline{\T{\omega}}_0
-			+ \tilde{\T{\omega}}
-		} \times \plbr{\tilde{\TT{J}} \overline{\T{\omega}}_0} \times{}
 		+ \plbr{
 			\overline{\T{\omega}}_0
 			+ \tilde{\T{\omega}}
-		} \times \tilde{\TT{J}} \overline{\T{\omega}}_0 \times{}
+		} \times \plbr{
+			\tilde{\TT{J}} \overline{\T{\omega}}_0 \times{}
+			- \plbr{\tilde{\TT{J}} \overline{\T{\omega}}_0} \times{}
+		}
 	\nonumber \\
 	&\hphantom{=}
-		- \plbr{\tilde{\TT{J}} \plbr{
-			\dot{\overline{\T{\omega}}}_0
-			+ \overline{\T{\omega}} \times \tilde{\T{\omega}}_0
-		}} \times{}
 		+ \tilde{\TT{J}} \plbr{
 			\dot{\overline{\T{\omega}}}_0
 			+ \overline{\T{\omega}} \times \tilde{\T{\omega}}_0
 		} \times{}
+		- \plbr{\tilde{\TT{J}} \plbr{
+			\dot{\overline{\T{\omega}}}_0
+			+ \overline{\T{\omega}} \times \tilde{\T{\omega}}_0
+		}} \times{}
 	\nonumber \\
 	&\hphantom{=}
 	\rplbr{
@@ -1370,6 +1369,337 @@ Perturbation, assuming reference motion is imposed:
 	+ \dot{\tilde{\T{x}}} \times \delta\tilde{\T{\beta}}
 \end{align}
 \end{subequations}
+
+\subsection{New Approach?}
+Kinematics:
+\begin{subequations}
+\begin{align}
+	\TT{R} &:= \text{node orientation matrix} \\
+	\T{x} &:= \text{node position}
+\end{align}
+\end{subequations}
+Angular and linear velocity, $\T{\omega}$ and $\T{v}$:
+\begin{subequations}
+\begin{align}
+	\T{\omega} &= \mathrm{ax}\plbr{\dot{\TT{R}} \TT{R}^T} \\
+	\T{v} &= \dot{\T{x}}
+\end{align}
+\end{subequations}
+
+Inertia forces and moments:
+\begin{subequations}
+\begin{align}
+	\T{f}_{\text{in}} &= m \dot{\T{v}}_{\text{CM}} \\
+	\T{m}_{\text{in}} &=
+	\T{\omega} \times \TT{J}_{\text{CM}} \T{\omega}
+	+ \TT{J}_{\text{CM}} \dot{\T{\omega}}
+	+ \T{s} \times \dot{\T{v}}_{\text{CM}}
+\end{align}
+\end{subequations}
+where
+\begin{subequations}
+\begin{align}
+	\T{s} & \vphantom{\frac{1}{m}}
+		&\hspace{-40mm} \text{static moment with respect to the node position} \\
+	\TT{J}_{\text{CM}} & \vphantom{\frac{1}{m}}
+		&\hspace{-40mm} \text{inertia tensor with respect to the center of mass} \\
+	\T{x}_{\text{CM}} &= \T{x} + \frac{1}{m} \T{s}
+		&\hspace{-40mm} \text{position of the center of mass} \\
+	\T{v}_{\text{CM}} &= \T{v} + \frac{1}{m} \T{\omega} \times \T{s}
+		&\hspace{-40mm} \text{velocity of the center of mass} \\
+	\dot{\T{v}}_{\text{CM}} &= \dot{\T{v}}
+		+ \frac{1}{m}\plbr{
+			\dot{\T{\omega}}\times{}
+			+ \T{\omega}\times\T{\omega}\times{}
+		} \T{s}
+\end{align}
+\end{subequations}
+Perturbation
+\begin{subequations}
+\begin{align}
+	\delta\T{s}
+		&= \T{\theta}_{\delta} \times \T{s} \\
+	\delta \TT{J}_{\text{CM}}
+		&= \T{\theta}_{\delta} \times \TT{J}_{\text{CM}}
+		- \TT{J}_{\text{CM}} \T{\theta}_{\delta} \times{} \\
+	\delta\T{x}_{\text{CM}}
+		&= \delta\T{x} + \frac{1}{m} \delta\T{s}
+		\nonumber \\
+		&= \delta\T{x} - \frac{1}{m} \T{s} \times \T{\theta}_{\delta} \\
+	\T{v}_{\text{CM}}
+		&= \delta\T{v}
+		+ \frac{1}{m} \delta\T{\omega} \times \T{s}
+		+ \frac{1}{m} \T{\omega} \times \delta\T{s}
+		\nonumber \\
+		&= \delta\T{v}
+		- \frac{1}{m} \T{s} \times \delta\T{\omega}
+		- \frac{1}{m} \T{\omega} \times \T{s} \times \T{\theta}_{\delta} \\
+	\delta\dot{\T{v}}_{\text{CM}}
+		&= \delta\dot{\T{v}}
+		+ \frac{1}{m}\plbr{
+			\delta\dot{\T{\omega}}\times\T{s}
+			+ \delta\T{\omega}\times\T{\omega}\times\T{s}
+			+ \T{\omega}\times\delta\T{\omega}\times\T{s}
+			+ \plbr{
+				\dot{\T{\omega}}\times{}
+				+ \T{\omega}\times\T{\omega}\times{}
+			} \delta\T{s}
+		}
+		\nonumber \\
+		&= \delta\dot{\T{v}}
+			- \frac{1}{m} \T{s} \times \delta\dot{\T{\omega}}
+			- \frac{1}{m} \plbr{
+				\plbr{\T{\omega}\times\T{s}}\times{}
+				+ \T{\omega}\times\T{s}\times{}
+			} \delta\T{\omega}
+		\nonumber \\ &\hphantom{=}
+			- \frac{1}{m} \plbr{
+				\dot{\T{\omega}}\times{}
+				+ \T{\omega}\times\T{\omega}\times{}
+			} \T{s}\times\T{\theta}_{\delta}
+\end{align}
+\end{subequations}
+
+Inertia forces and moments with respect to nodal quantities:
+\begin{subequations}
+\begin{align}
+	\T{f}_{\text{in}} &= m \dot{\T{v}}_{\text{CM}}
+	\nonumber \\
+	&=
+	m \dot{\T{v}}
+	+ \plbr{
+		\dot{\T{\omega}} \times{}
+		+ \T{\omega} \times \T{\omega} \times{}
+	} \T{s} \\
+	\T{m}_{\text{in}} &=
+	\T{\omega} \times \TT{J}_{\text{CM}} \T{\omega}
+	+ \TT{J}_{\text{CM}} \dot{\T{\omega}}
+	+ \T{s} \times \dot{\T{v}}_{\text{CM}}
+	\nonumber \\
+	&= \T{s} \times \dot{\T{v}}
+	+ \TT{J} \dot{\T{\omega}}
+	+ \T{\omega} \times \TT{J} \T{\omega}
+\end{align}
+\end{subequations}
+with
+\begin{align}
+	\TT{J} &= \TT{J}_{\text{CM}} - \frac{1}{m} \T{s} \times \T{s} \times{}
+\end{align}
+the inertia tensor with respect to the node.
+
+Perturbation:
+\begin{subequations}
+\begin{align}
+	\delta \T{f}_{\text{in}}
+	&=
+	m \delta \dot{\T{v}}
+	- \T{s} \times \delta \dot{\T{\omega}}
+	- \plbr{
+		\plbr{\T{\omega} \times \T{s}} \times {}
+		+ \T{\omega} \times \T{s} \times{}
+	} \delta\T{\omega}
+	\nonumber \\ &\hphantom{=}
+	- \plbr{
+		\dot{\T{\omega}} \times{}
+		+ \T{\omega} \times \T{\omega} \times{}
+	} \T{s} \times \T{\theta}_{\delta} \\
+%
+	\delta\T{m}_{\text{in}} &=
+	\T{s} \times \delta\dot{\T{v}}
+	+ \TT{J} \delta\dot{\T{\omega}}
+	+ \plbr{
+		\T{\omega} \times \TT{J}
+		- \plbr{\TT{J} \T{\omega}} \times{}
+	} \delta\T{\omega}
+	\nonumber \\ &\hphantom{=}
+	+ \plbr{
+		\T{\omega} \times \plbr{
+			\TT{J} \T{\omega} \times {}
+			- \plbr{\TT{J} \T{\omega}} \times{}
+		}
+		+ \TT{J} \dot{\T{\omega}} \times{}
+		- \plbr{\TT{J} \dot{\T{\omega}}} \times {}
+		+ \dot{\T{v}} \times \T{s} \times {}
+	} \T{\theta}_{\delta}
+\end{align}
+\end{subequations}
+
+Relative frame kinematics:
+\begin{subequations}
+\begin{align}
+	\TT{R} &= \TT{R}_0 \tilde{\TT{R}} \\
+	\T{x} &= \T{x}_0
+		+ \TT{R}_0 \tilde{\T{x}} \\
+	\T{\omega} &= \T{\omega}_0
+		+ \TT{R}_0 \tilde{\T{\omega}} \\
+	\T{v} &= \T{v}_0
+		+ \T{\omega}_0 \times \TT{R}_0 \tilde{\T{x}}
+		+ \TT{R}_0 \tilde{\T{v}} \\
+	\dot{\T{\omega}} &= \dot{\T{\omega}}_0
+		+ \T{\omega}_0 \times \TT{R}_0 \tilde{\T{\omega}} 
+		+ \TT{R}_0 \dot{\tilde{\T{\omega}}} \\
+	\dot{\T{v}} &= \dot{\T{v}}_0
+		+ \plbr{
+			\dot{\T{\omega}}_0 \times{}
+			+ \T{\omega}_0 \times \T{\omega}_0 \times{}
+		} \TT{R}_0 \tilde{\T{x}}
+		+ 2 \T{\omega}_0 \times \TT{R}_0 \tilde{\T{v}}
+		+ \TT{R}_0 \dot{\tilde{\T{v}}}
+\end{align}
+\end{subequations}
+
+Perturbation:
+\begin{subequations}
+\begin{align}
+	\T{\theta}_{\delta} &= \TT{R}_0 \tilde{\T{\theta}}_{\delta} \\
+	\delta\T{x} &= \TT{R}_0 \delta\tilde{\T{x}} \\
+	\delta\T{\omega} &= \TT{R}_0 \delta\tilde{\T{\omega}} \\
+	\delta\T{v} &= \T{\omega}_0 \times \TT{R}_0 \delta\tilde{\T{x}}
+		+ \TT{R}_0 \delta\tilde{\T{v}} \\
+	\delta\dot{\T{\omega}} &= \T{\omega}_0 \times \TT{R}_0 \delta\tilde{\T{\omega}} 
+		+ \TT{R}_0 \delta\dot{\tilde{\T{\omega}}} \\
+	\delta\dot{\T{v}} &= \plbr{
+			\dot{\T{\omega}}_0 \times{}
+			+ \T{\omega}_0 \times \T{\omega}_0 \times{}
+		} \TT{R}_0 \delta\tilde{\T{x}}
+		+ 2 \T{\omega}_0 \times \TT{R}_0 \delta\tilde{\T{v}}
+		+ \TT{R}_0 \delta\dot{\tilde{\T{v}}}
+\end{align}
+\end{subequations}
+
+Relative frame kinematics projected in the relative frame:
+\begin{subequations}
+\begin{align}
+	\overline{\TT{R}} &= \tilde{\TT{R}} \\
+	\overline{\T{x}} &= \TT{R}_0^T \T{x}_0
+		+ \tilde{\T{x}} \\
+	\overline{\T{\omega}} &= \TT{R}_0^T \T{\omega}_0
+		+ \tilde{\T{\omega}} \\
+	\overline{\T{v}} &= \TT{R}_0^T \T{v}_0
+		+ \overline{\T{\omega}}_0 \times \tilde{\T{x}}
+		+ \tilde{\T{v}} \\
+	\dot{\overline{\T{\omega}}} &= \TT{R}_0^T \dot{\T{\omega}}_0
+		+ \overline{\T{\omega}}_0 \times \tilde{\T{\omega}} 
+		+ \dot{\tilde{\T{\omega}}} \\
+	\overline{\dot{\T{v}}} &= \TT{R}_0^T \dot{\T{v}}_0
+		+ \plbr{
+			\dot{\overline{\T{\omega}}}_0 \times{}
+			+ \overline{\T{\omega}}_0 \times \overline{\T{\omega}}_0 \times{}
+		} \tilde{\T{x}}
+		+ 2 \overline{\T{\omega}}_0 \times \tilde{\T{v}}
+		+ \dot{\tilde{\T{v}}}
+\end{align}
+\end{subequations}
+
+Perturbation projected in the relative frame:
+\begin{subequations}
+\begin{align}
+	\overline{\T{\theta}}_{\delta} &= \tilde{\T{\theta}}_{\delta} \\
+	\delta\overline{\T{x}} &= \delta\tilde{\T{x}} \\
+	\delta\overline{\T{\omega}} &= \delta\tilde{\T{\omega}} \\
+	\delta\overline{\T{v}} &= \overline{\T{\omega}}_0 \times \delta\tilde{\T{x}}
+		+ \delta\tilde{\T{v}} \\
+	\delta\dot{\overline{\T{\omega}}} &= \overline{\T{\omega}}_0 \times \delta\tilde{\T{\omega}} 
+		+ \delta\dot{\tilde{\T{\omega}}} \\
+	\delta\dot{\overline{\T{v}}} &= \plbr{
+			\dot{\overline{\T{\omega}}}_0 \times{}
+			+ \overline{\T{\omega}}_0 \times \overline{\T{\omega}}_0 \times{}
+		} \delta\tilde{\T{x}}
+		+ 2 \overline{\T{\omega}}_0 \times \delta\tilde{\T{v}}
+		+ \delta\dot{\tilde{\T{v}}}
+\end{align}
+\end{subequations}
+
+
+Inertia forces and moments with respect to nodal quantities, in a relative frame:
+\begin{subequations}
+\begin{align}
+	\overline{\T{f}}_{\text{in}}
+	&= m \dot{\overline{\T{v}}}_{\text{CM}}
+	\\
+%
+	\overline{\T{m}}_{\text{in}}
+	&= \tilde{\T{s}}\times \dot{\overline{\T{v}}}_{\text{CM}}
+	+ \overline{\T{\omega}} \times \tilde{\TT{J}}_{\text{CM}} \overline{\T{\omega}}
+	+ \tilde{\TT{J}}_{\text{CM}} \dot{\overline{\T{\omega}}}
+\end{align}
+\end{subequations}
+
+Perturbation
+\begin{subequations}
+\begin{align}
+	\delta\overline{\T{f}}_{\text{in}}
+	&= m \delta\dot{\overline{\T{v}}}_{\text{CM}}
+	\nonumber \\
+	&= m \delta\dot{\tilde{\T{v}}}
+	+ 2 m \overline{\T{\omega}}_0 \times \delta\tilde{\T{v}}
+	+ m \plbr{
+		\dot{\overline{\T{\omega}}}_0 \times{}
+		+ \overline{\T{\omega}}_0 \times \overline{\T{\omega}}_0 \times{}
+	} \delta\tilde{\T{x}}
+	\nonumber \\ &\hphantom{=}
+	- \tilde{\T{s}} \times \delta\dot{\tilde{\T{\omega}}}
+	- \plbr{
+		\tilde{\T{s}} \times \overline{\T{\omega}}_0 \times{}
+		+ \plbr{\overline{\T{\omega}} \times \tilde{\T{s}}} \times{}
+		+ \overline{\T{\omega}} \times \tilde{\T{s}} \times{}
+	} \delta\tilde{\T{\omega}}
+	\nonumber \\ &\hphantom{=}
+	- \plbr{
+		\dot{\overline{\T{\omega}}} \times{}
+		+ \overline{\T{\omega}} \times \overline{\T{\omega}} \times{}
+	} \tilde{\T{s}} \times \tilde{\T{\theta}}_{\delta}
+	\\
+%
+	\delta\overline{\T{m}}_{\text{in}}
+	&= \tilde{\T{s}} \times \delta\dot{\overline{\T{v}}}_{\text{CM}}
+	+ \delta\tilde{\T{s}} \times \dot{\overline{\T{v}}}_{\text{CM}}
+	\nonumber \\ &\hphantom{=}
+	+ \tilde{\TT{J}}_{\text{CM}} \delta\dot{\overline{\T{\omega}}}
+	+ \plbr{
+		\overline{\T{\omega}} \times \tilde{\TT{J}}_{\text{CM}}
+		- \plbr{\tilde{\TT{J}}_{\text{CM}} \overline{\T{\omega}}} \times{}
+	} \delta\overline{\T{\omega}}
+	\nonumber \\ &\hphantom{=}
+	+ \plbr{
+		\overline{\T{\omega}} \times \plbr{
+			\tilde{\TT{J}}_{\text{CM}} \overline{\T{\omega}} \times{}
+			- \plbr{\tilde{\TT{J}}_{\text{CM}} \overline{\T{\omega}}} \times{}
+		}
+		+ \tilde{\TT{J}}_{\text{CM}} \dot{\overline{\T{\omega}}} \times{}
+		- \plbr{\tilde{\TT{J}}_{\text{CM}} \dot{\overline{\T{\omega}}}} \times{}
+	} \tilde{\T{\theta}}_{\delta}
+	\nonumber \\
+	&= \tilde{\T{s}} \times \delta\dot{\tilde{\T{v}}}
+	\nonumber \\ &\hphantom{=}
+	+ 2 \tilde{\T{s}} \times \overline{\T{\omega}}_0 \times \delta\tilde{\T{v}}
+	\nonumber \\ &\hphantom{=}
+	+ \tilde{\T{s}} \times \plbr{
+		\dot{\overline{\T{\omega}}}_0 \times{}
+		+ \overline{\T{\omega}}_0 \times \overline{\T{\omega}}_0 \times{}
+	} \delta\tilde{\T{x}}
+	\nonumber \\ &\hphantom{=}
+	+ \tilde{\TT{J}} \dot{\tilde{\T{\omega}}}
+	\nonumber \\ &\hphantom{=}
+	+ \plbr{
+		\tilde{\TT{J}} \overline{\T{\omega}}_0 \times{}
+		+ \overline{\T{\omega}} \times \tilde{\TT{J}}
+		- \plbr{\tilde{\TT{J}} \overline{\T{\omega}}} \times{}
+	} \delta\tilde{\T{\omega}}
+	\nonumber \\ &\hphantom{=}
+	+ \plbr{
+		\tilde{\TT{J}} \dot{\overline{\T{\omega}}} \times{}
+		- \plbr{\tilde{\TT{J}} \dot{\overline{\T{\omega}}}} \times{}
+		+ \overline{\T{\omega}} \times \plbr{
+			\tilde{\T{J}} \overline{\T{\omega}} \times{}
+			- \plbr{\tilde{\TT{J}} \overline{\T{\omega}}} \times{}
+		}
+		+ \dot{\overline{\T{v}}} \times \tilde{\T{s}} \times{}
+	} \tilde{\T{\theta}}_{\delta}
+\end{align}
+\end{subequations}
+
+
 
 
 
