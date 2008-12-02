@@ -31,17 +31,15 @@
 
 /* nodi */
 
-
 #ifndef NODE_H
 #define NODE_H
 
+#include "myassert.h"
 
-#include <myassert.h>
-
-#include <output.h>
-#include <withlab.h>
-#include <dofown.h>
-#include <simentity.h>
+#include "output.h"
+#include "withlab.h"
+#include "dofown.h"
+#include "simentity.h"
 
 /*
  * Array dei nomi dei nodi.

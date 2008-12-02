@@ -34,6 +34,7 @@
 
 #include "node.h"
 #include "matvec3.h"
+#include "rbk.h"
 
 extern const char* psStructNodeNames[];
 
@@ -79,7 +80,7 @@ public:
 	std::ostream& Output(std::ostream& out, const StructNode *pN) const;
 };
 
-class StructNode : public Node {
+class StructNode : public Node, public RigidBodyKinematics {
 public:
 	class ErrGeneric : public MBDynErrBase {
   	public:
@@ -168,6 +169,14 @@ public:
 
 	/* Tipo di nodo */
 	virtual Node::Type GetNodeType(void) const;
+
+	/* rigid-body kinematics */
+	const Vec3& GetX(void) const;
+	const Mat3x3& GetR(void) const;
+	const Vec3& GetV(void) const;
+	const Vec3& GetW(void) const;
+	const Vec3& GetXPP(void) const;
+	const Vec3& GetWP(void) const;
 
 	/* Contributo del nodo strutturale al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
@@ -521,6 +530,10 @@ public:
 
 	/* Tipo di nodo strutturale */
 	virtual StructNode::Type GetStructNodeType(void) const;
+
+	/* rigid-body kinematics */
+	const Vec3& GetXPP(void) const;
+	const Vec3& GetWP(void) const;
 
 	/* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */
 	virtual inline unsigned int iGetNumDof(void) const;

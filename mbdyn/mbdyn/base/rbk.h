@@ -29,54 +29,24 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* Reference frame: structure, handling etc. */
+/* Rigid body kinematics: structure, handling etc. */
 
-#ifndef REFFRM_H
-#define REFFRM_H
+#ifndef RBK_H
+#define RBK_H
 
-#include <iostream>
-
-#include "myassert.h"
-#include "mynewmem.h"
-
-#include "withlab.h"
 #include "matvec3.h"
-#include "rbk.h"
 
-class ReferenceFrame : public WithLabel, public RigidBodyKinematics {
-private:
-	Vec3 x;
-	Mat3x3 R;
-	Vec3 v;
-	Vec3 w;
-
+class RigidBodyKinematics {
 public:
-	ReferenceFrame(void);
+	virtual ~RigidBodyKinematics(void) { NO_OP; };
 
-	ReferenceFrame(unsigned int uLabel, 
-			const Vec3& xIn, const Mat3x3& RIn,
-			const Vec3& vIn = 0., const Vec3& wIn = 0.);
-
-	ReferenceFrame(const RigidBodyKinematics* pRBK);
-
-	~ReferenceFrame(void);
-	
-	const Vec3& GetX(void) const;
-
-	const Mat3x3& GetR(void) const;
-
-	const Vec3& GetV(void) const;
-
-	const Vec3& GetW(void) const;
-
-	const Vec3& GetXPP(void) const;
-
-	const Vec3& GetWP(void) const;
-
-	ReferenceFrame& operator = (const ReferenceFrame& rf);
-
-	std::ostream& Output(std::ostream& out) const;
+	virtual const Vec3& GetX(void) const = 0;
+	virtual const Mat3x3& GetR(void) const = 0;
+	virtual const Vec3& GetV(void) const = 0;
+	virtual const Vec3& GetW(void) const = 0;
+	virtual const Vec3& GetXPP(void) const = 0;
+	virtual const Vec3& GetWP(void) const = 0;
 };
 
-#endif /* REFFRM_H */
+#endif // RBK_H
 

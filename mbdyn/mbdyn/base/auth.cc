@@ -30,17 +30,17 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#include "mbconfig.h"           // This goes first in every *.c,*.cc file
+#endif // HAVE_CONFIG_H
 
 #include <unistd.h>
 #ifdef HAVE_PWD_H
 #include <pwd.h>
 #endif // HAVE_PWD_H
 
-#include <dataman.h>
-#include <auth.h>
-#include <crypt.h>
+#include "dataman.h"
+#include "auth.h"
+#include "crypt.h"
 
 /* NoAuth - begin */
 

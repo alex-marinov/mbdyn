@@ -29,13 +29,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* Reference frame: strutura, gestione ecc. */
+/* Reference frame: structure, handling etc. */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#include "mbconfig.h"           // This goes first in every *.c,*.cc file
+#endif // HAVE_CONFIG_H
 
-#include <reffrm.h>
+#include <iomanip>
+
+#include "reffrm.h"
 
 ReferenceFrame::ReferenceFrame(void)
 {
@@ -50,10 +52,10 @@ ReferenceFrame::ReferenceFrame(unsigned int uLabel,
 	NO_OP;
 }
 
-ReferenceFrame::ReferenceFrame(const StructNode* pNode)
-: WithLabel(pNode->GetLabel()),
-x(pNode->GetXCurr()), R(pNode->GetRCurr()),
-v(pNode->GetVCurr()), w(pNode->GetWCurr())
+ReferenceFrame::ReferenceFrame(const RigidBodyKinematics* pRBK)
+: WithLabel(0),
+x(pRBK->GetX()), R(pRBK->GetR()),
+v(pRBK->GetV()), w(pRBK->GetW())
 {
 	NO_OP;
 }
@@ -84,6 +86,18 @@ const Vec3&
 ReferenceFrame::GetW(void) const
 {
 	return w;
+}
+
+const Vec3&
+ReferenceFrame::GetXPP(void) const
+{
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
+const Vec3&
+ReferenceFrame::GetWP(void) const
+{
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 ReferenceFrame&

@@ -37,9 +37,9 @@
 #ifndef HFLUID_H
 #define HFLUID_H
 
-#include <ac/f2c.h>
+#include "ac/f2c.h"
 
-#include <withlab.h>
+#include "withlab.h"
 
 /* HydraulicFluid - begin */
 
@@ -120,6 +120,7 @@ HydraulicFluid::dGetRe(HydraulicFluid::Re which)
 
 /* legge un fluido idraulico; non va usata direttamente, viene invece 
  * gestita dal parser specializzato di MBDyn, MBDynParser (mbpar.h) */
+class MBDynParser;
 extern HydraulicFluid* ReadHydraulicFluid(MBDynParser& HP, unsigned int uLabel);
 
 /* HydraulicFluid - end */

@@ -157,6 +157,43 @@ StructNode::GetNodeType(void) const
 	return Node::STRUCTURAL;
 }
 
+/* rigid-body kinematics */
+const Vec3&
+StructNode::GetX(void) const
+{
+	return GetXCurr();
+}
+
+const Mat3x3&
+StructNode::GetR(void) const
+{
+	return GetRCurr();
+}
+
+const Vec3&
+StructNode::GetV(void) const
+{
+	return GetVCurr();
+}
+
+const Vec3&
+StructNode::GetW(void) const
+{
+	return GetWCurr();
+}
+
+const Vec3&
+StructNode::GetXPP(void) const
+{
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
+const Vec3&
+StructNode::GetWP(void) const
+{
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
 std::ostream&
 StructNode::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
 {
@@ -1574,6 +1611,19 @@ StructNode::Type
 DynamicStructNode::GetStructNodeType(void) const
 {
 	return StructNode::DYNAMIC;
+}
+
+/* rigid-body kinematics */
+const Vec3&
+DynamicStructNode::GetXPP(void) const
+{
+	return GetXPPCurr();
+}
+
+const Vec3&
+DynamicStructNode::GetWP(void) const
+{
+	return GetWPCurr();
 }
 
 std::ostream&
