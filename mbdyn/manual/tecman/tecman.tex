@@ -1192,6 +1192,7 @@ Momentum and momenta moments
 	&= \T{s}\times\plbr{
 		\dot{\T{x}}_0
 		+ \T{\omega}_0 \times \TT{R}_0 \tilde{\T{x}}
+		% + \TT{R}_0 \dot{\tilde{\T{x}}}
 	} + \TT{J} \T{\omega}_0
 	+ \TT{R}_0 \tilde{\T{\gamma}}
 \end{align}
@@ -1370,7 +1371,95 @@ Perturbation, assuming reference motion is imposed:
 \end{align}
 \end{subequations}
 
-\subsection{New Approach?}
+To summarize:
+\begin{align}
+	\cubr{\cvvect{
+		\delta\overline{\T{f}}_{\text{in}} \\
+		\delta\overline{\T{m}}_{\text{in}}
+	}} &= \sqbr{\matr{cc}{
+		\TT{I} & \TT{0} \\
+		\TT{0} & \TT{I}
+	}} \cubr{\cvvect{
+		\delta\dot{\tilde{\T{\beta}}} \\
+		\delta\dot{\tilde{\T{\gamma}}}
+	}} + \sqbr{\matr{cc}{
+		2 \overline{\T{\omega}}_0 \times{} & \TT{0} \\
+		\dot{\tilde{\T{x}}} \times{} & \overline{\T{\omega}} \times{}
+	}} \cubr{\cvvect{
+		\delta\tilde{\T{\beta}} \\
+		\delta\tilde{\T{\gamma}}
+	}}
+	\nonumber \\ & \hspace{-20mm}
+	+ \sqbr{\matr{cc}{
+		\TT{0} & \TT{0} \\
+		\plbr{
+			\tilde{\T{s}} \times \overline{\T{\omega}}_0 \times{}
+			- \plbr{\overline{\T{\omega}}_0 \times \tilde{\T{s}}} \times{}
+			- \tilde{\T{\beta}} \times{}
+		}
+		& \plbr{
+			\tilde{\TT{J}} \overline{\T{\omega}}_0 \times{}
+			- \plbr{\tilde{\TT{J}} \overline{\T{\omega}}_0} \times{}
+		}
+	}} \cubr{\cvvect{
+		\delta\dot{\tilde{\T{x}}} \\
+		\delta\tilde{\T{\omega}}
+	}}
+	\nonumber \\ & \hspace{-20mm}
+	+ \sqbr{\matr{c}{
+		m \plbr{
+			\dot{\overline{\T{\omega}}}_0 \times{}
+			+ \overline{\T{\omega}}_0 \times \overline{\T{\omega}}_0 \times{}
+		} \\
+		\tilde{\T{s}} \times \plbr{
+			\dot{\overline{\T{\omega}}}_0 \times{}
+			+ \overline{\T{\omega}}_0 \times \overline{\T{\omega}}_0 \times{}
+		}
+	}} \delta\tilde{\T{x}}
+	\nonumber \\ & \hspace{-20mm}
+	+ \sqbr{\matr{c}{
+		- \plbr{
+			\dot{\overline{\T{\omega}}}_0 \times{}
+			+ \overline{\T{\omega}}_0 \times \overline{\T{\omega}}_0 \times{}
+		} \tilde{\T{s}} \times{} \\
+		\plbr{\cvvect{
+			\plbr{
+				\ddot{\overline{\T{x}}}_0
+				+ \plbr{
+					\dot{\overline{\T{\omega}}}_0 \times{}
+					+ \overline{\T{\omega}}_0 \times \overline{\T{\omega}}_0 \times{}
+				} \tilde{\T{x}}
+				+ \overline{\T{\omega}}_0 \times \dot{\tilde{\T{x}}}
+			} \times \tilde{\T{s}} \times{} \\
+			- \dot{\tilde{\T{x}}} \times \overline{\T{\omega}}_0 \times \tilde{\T{s}} \times{}
+			+ \overline{\T{\omega}} \times \plbr{
+				\tilde{\TT{J}} \overline{\T{\omega}}_0 \times{}
+				- \plbr{\tilde{\TT{J}} \overline{\T{\omega}}_0} \times{}
+			} \\
+			+ \tilde{\TT{J}} \plbr{
+				\dot{\overline{\T{\omega}}}_0
+				+ \overline{\T{\omega}} \times \tilde{\T{\omega}}
+			} \times{}
+			- \plbr{\tilde{\TT{J}} \plbr{
+				\dot{\overline{\T{\omega}}}_0
+				+ \overline{\T{\omega}} \times \tilde{\T{\omega}}
+			}} \times{}
+		}}
+	}} \tilde{\T{\theta}}_{\delta}
+\end{align}
+
+\subsection{New Approach}
+The new approach consists in replacing the momentum and momenta moment
+definitions withe the definitions of the angular and linear velocities,
+\begin{subequations}
+\begin{align}
+	\T{v} &= \dot{\T{x}} \\
+	\T{\omega} &= \mathrm{ax}\plbr{\dot{\TT{R}} \TT{R}^T}
+\end{align}
+\end{subequations}
+An advantage is that this approach allows an easier implementation
+of constraint stabilization.
+
 Kinematics:
 \begin{subequations}
 \begin{align}
@@ -1641,8 +1730,8 @@ Perturbation
 	- \tilde{\T{s}} \times \delta\dot{\tilde{\T{\omega}}}
 	- \plbr{
 		\tilde{\T{s}} \times \overline{\T{\omega}}_0 \times{}
-		+ \plbr{\overline{\T{\omega}} \times \tilde{\T{s}}} \times{}
 		+ \overline{\T{\omega}} \times \tilde{\T{s}} \times{}
+		- \plbr{\tilde{\T{s}} \times \overline{\T{\omega}}} \times{}
 	} \delta\tilde{\T{\omega}}
 	\nonumber \\ &\hphantom{=}
 	- \plbr{
@@ -1679,7 +1768,7 @@ Perturbation
 		+ \overline{\T{\omega}}_0 \times \overline{\T{\omega}}_0 \times{}
 	} \delta\tilde{\T{x}}
 	\nonumber \\ &\hphantom{=}
-	+ \tilde{\TT{J}} \dot{\tilde{\T{\omega}}}
+	+ \tilde{\TT{J}} \delta\dot{\tilde{\T{\omega}}}
 	\nonumber \\ &\hphantom{=}
 	+ \plbr{
 		\tilde{\TT{J}} \overline{\T{\omega}}_0 \times{}
@@ -1698,6 +1787,92 @@ Perturbation
 	} \tilde{\T{\theta}}_{\delta}
 \end{align}
 \end{subequations}
+
+To summarize:
+\begin{align}
+	\cubr{\cvvect{
+		\delta\overline{\T{f}}_{\text{in}} \\
+		\delta\overline{\T{m}}_{\text{in}} \\
+	}} &= \sqbr{\matr{cc}{
+		m \TT{I} & -\tilde{\T{s}} \times{} \\
+		\tilde{\T{s}} \times{} & \tilde{\TT{J}}
+	}} \cubr{\cvvect{
+		\delta\dot{\tilde{\T{v}}} \\
+		\delta\dot{\tilde{\T{\omega}}}
+	}}
+	\nonumber \\ & \hspace{-20mm}
+	+ \sqbr{\matr{cc}{
+		2 m \overline{\T{\omega}}_0 \times{}
+		& - \plbr{
+			\tilde{\T{s}} \times \overline{\T{\omega}}_0 \times{}
+			+ \overline{\T{\omega}} \times \tilde{\T{s}} \times{}
+			- \plbr{\tilde{\T{s}} \times \overline{\T{\omega}}} \times{}
+		} \\
+		2 \tilde{\T{s}} \times \overline{\T{\omega}}_0 \times{}
+		& \plbr{
+			\tilde{\TT{J}} \overline{\T{\omega}}_0 \times{}
+			+ \overline{\T{\omega}} \times \tilde{\TT{J}}
+			- \plbr{\tilde{\TT{J}} \overline{\T{\omega}}} \times{}
+		}
+	}} \cubr{\cvvect{
+		\delta\tilde{\T{v}} \\
+		\delta\tilde{\T{\omega}}
+	}}
+%	\nonumber \\ & \hspace{-20mm}
+%	+ \sqbr{\matr{cc}{
+%		m \plbr{
+%			\dot{\overline{\T{\omega}}}_0 \times{}
+%			+ \overline{\T{\omega}}_0 \times \overline{\T{\omega}}_0 \times{}
+%		}
+%		& - \plbr{
+%			\dot{\overline{\T{\omega}}} \times{}
+%			+ \overline{\T{\omega}} \times \overline{\T{\omega}} \times{}
+%		} \tilde{\T{s}}\times{} \\
+%		\tilde{\T{s}} \times \plbr{
+%			\dot{\overline{\T{\omega}}}_0 \times{}
+%			+ \overline{\T{\omega}}_0 \times \overline{\T{\omega}}_0 \times{}
+%		}
+%		& \plbr{
+%			\tilde{\TT{J}} \dot{\overline{\T{\omega}}} \times{}
+%			- \plbr{\tilde{\TT{J}} \dot{\overline{\T{\omega}}}} \times{}
+%			+ \overline{\T{\omega}} \times \plbr{
+%				\tilde{\T{J}} \overline{\T{\omega}} \times{}
+%				- \plbr{\tilde{\TT{J}} \overline{\T{\omega}}} \times{}
+%			}
+%			+ \dot{\overline{\T{v}}} \times \tilde{\T{s}} \times{}
+%		}
+%	}} \cubr{\cvvect{
+%		\delta\tilde{\T{x}} \\
+%		\tilde{\T{\theta}}_{\delta}
+%	}}
+	\nonumber \\ & \hspace{-20mm}
+	+ \sqbr{\matr{c}{
+		m \plbr{
+			\dot{\overline{\T{\omega}}}_0 \times{}
+			+ \overline{\T{\omega}}_0 \times \overline{\T{\omega}}_0 \times{}
+		} \\
+		\tilde{\T{s}} \times \plbr{
+			\dot{\overline{\T{\omega}}}_0 \times{}
+			+ \overline{\T{\omega}}_0 \times \overline{\T{\omega}}_0 \times{}
+		}
+	}} \delta\tilde{\T{x}}
+	\nonumber \\ & \hspace{-20mm}
+	+ \sqbr{\matr{c}{
+		- \plbr{
+			\dot{\overline{\T{\omega}}} \times{}
+			+ \overline{\T{\omega}} \times \overline{\T{\omega}} \times{}
+		} \tilde{\T{s}}\times{} \\
+		\plbr{
+			\tilde{\TT{J}} \dot{\overline{\T{\omega}}} \times{}
+			- \plbr{\tilde{\TT{J}} \dot{\overline{\T{\omega}}}} \times{}
+			+ \overline{\T{\omega}} \times \plbr{
+				\tilde{\T{J}} \overline{\T{\omega}} \times{}
+				- \plbr{\tilde{\TT{J}} \overline{\T{\omega}}} \times{}
+			}
+			+ \dot{\overline{\T{v}}} \times \tilde{\T{s}} \times{}
+		}
+	}} \tilde{\T{\theta}}_{\delta}
+\end{align}
 
 
 
