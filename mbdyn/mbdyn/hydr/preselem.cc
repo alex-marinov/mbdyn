@@ -922,7 +922,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        DEBUGCOUT("Area_pipe: " << area_pipe << std::endl);
        
        doublereal ReCr = 10;
-       if (HP.IsKeyWord("ReCr")) 
+       if (HP.IsKeyWord("reynolds")) 
 	 {
 	    ReCr = HP.GetReal();
 	    if (ReCr <= 0.) 
@@ -1245,7 +1245,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        DEBUGCOUT("Diameter: " << diameter << std::endl);
        
        // Area      	   
-       doublereal area = diameter*diameter*0.785;
+       doublereal area = diameter*diameter*M_PI_4;
        if (HP.IsKeyWord("area")) 
 	 {
 	    area = HP.GetReal();
@@ -1276,7 +1276,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 	  DEBUGCOUT("Turbulent" << std::endl); 
        }
        doublereal q0 = 0.;
-       if (HP.IsKeyWord("initialvalue")) {
+       if (HP.IsKeyWord("initial" "value")) {
 	  q0 = HP.GetReal();
 	  DEBUGCOUT("Initial q = " << q0 << std::endl); 
        }
@@ -1297,10 +1297,10 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case DYNAMIC_PIPE: {
        
        /* nodo 1 */
-       PressureNode* pNode1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       PressureNode* pNode1 = dynamic_cast<PressureNode *>(pDM->ReadNode(HP, Node::HYDRAULIC));
        
        /* nodo 2 */
-       PressureNode* pNode2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       PressureNode* pNode2 = dynamic_cast<PressureNode *>(pDM->ReadNode(HP, Node::HYDRAULIC));
        
        doublereal diameter = HP.GetReal();
        if (diameter <= 0.) {		  
@@ -1312,7 +1312,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        DEBUGCOUT("Diameter: " << diameter << std::endl);
        
        // Area      	   
-       doublereal area = diameter*diameter*0.785;
+       doublereal area = diameter*diameter*M_PI_4;
        if (HP.IsKeyWord("area")) 
 	      {
 		 area = HP.GetReal();
@@ -1342,7 +1342,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
 	  DEBUGCOUT("Turbulent" << std::endl); 
        }
        doublereal q0 = 0.;
-       if (HP.IsKeyWord("initialvalue")) {
+       if (HP.IsKeyWord("initial" "value")) {
 	  q0 = HP.GetReal();
 	  DEBUGCOUT("Initial q = " << q0 << std::endl); 
        }
@@ -1352,19 +1352,11 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        flag fOut = pDM->fReadOutput(HP, Elem::HYDRAULIC);
 
-#if 0
-       SAFENEWWITHCONSTRUCTOR(pEl, 
-			      Dynamic_pipe,
-			      Dynamic_pipe(uLabel, pDO, hf,
-					   pNode1, pNode2, diameter, 
-					   area, lenght, turbulent, q0, fOut));
-#else
        SAFENEWWITHCONSTRUCTOR(pEl,
 			      DynamicPipe,
 			      DynamicPipe(uLabel, pDO, hf,
 					   pNode1, pNode2, diameter, 
 					   area, lenght, turbulent, q0, fOut));
-#endif
        break;
     }	   
       

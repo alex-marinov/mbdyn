@@ -1872,6 +1872,12 @@ DataManager::ReadNodes(MBDynParser& HP)
 					/* lettura dei dati specifici */
 					doublereal dX(0.);
 					if (HP.IsArg()) {
+						/* eat keyword "value" */
+						if (!HP.IsKeyWord("value")) {
+							pedantic_cerr("ParameterNode(" << uLabel << "): "
+								"initial value specified without "
+    				 				"\"value\" keyword (deprecated)" << std::endl);
+						}
 						dX = HP.GetReal();
 						DEBUGLCOUT(MYDEBUG_INPUT,
 							"Initial value x = " << dX
