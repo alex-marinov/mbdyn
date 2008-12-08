@@ -49,6 +49,9 @@ D. Code:
 		is detected
 	- implement optional binary/ascii output (use NetCDF; partially DONE)
 	- abstract NetCDF use for aggregate data (e.g. Vec3)
+	- add relative reference frame overall dynamics
+	- add absolute/relative reference frame dynamics interface
+	- generalize inflow models for fixed wing lifting surfaces
 
 	Medium Projects:
 	- recover existing soft restart (Michele Attolico worked at it)
@@ -80,6 +83,7 @@ D. Code:
 		.mod:
 			mbdyn > ascii
 			mbdyn > netcdf (in global output database)
+	- add aerodynamic elements Jacobian matrix contribution
 
 	Small Projects:
 	- add MATLAB/Octave and Simulink hooks.
@@ -166,6 +170,7 @@ D. Code:
 	- use getopt(3) in utils/
 	- add package-wide support for WinSocks in communication entities,
 	  including SimulinkInterface (using MSYS/MinGW)
+	- add pseudo-realtime support based on nanosleep(2)
 
 
 
