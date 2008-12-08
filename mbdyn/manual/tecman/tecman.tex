@@ -6482,7 +6482,7 @@ which results in
 \begin{equation}
     q_{/x} + A\rho_{/t} \ = \ 0 ,
 \end{equation}
-where $q=\rho{Av}$ is the mass flux.
+where $q=\rho{Av}$ is the mass flow.
 Consider now the momentum equation~(\ref{eq:MOMENTUM}); the total derivative
 of the momentum $dQ=vdm$ yields
 \begin{equation}
@@ -6498,8 +6498,8 @@ acting on the fluid, the momentum balance equation yields
 \begin{equation}
     q_{/t} + \plbr{qv + Ap}_{/x} \ = \ f_v ,
 \end{equation}
-which can be reduced to the pressure and flux unknowns simply by recalling
-the definition of the flux:
+which can be reduced to the pressure and flow unknowns simply by recalling
+the definition of the flow:
 \begin{equation}
     q_{/t} + \plbr{\frac{q^2}{\rho{A}} + Ap}_{/x} \ = \ f_v .
 \end{equation}
@@ -6512,7 +6512,7 @@ The pipe is discretized by considering a finite volume approach, based on
 the use of constant stepwise ({\em Heavyside}) test functions with arbitrary
 trial functions.
 In the present case, linear trial functions have been considered both for
-the flux and for the pressure:
+the flow and for the pressure:
 \begin{eqnarray*}
     q\plbr{x} & = & \sqbr{\matr{cc}{
         \cfrac{1 - \xi}{2} &
@@ -6591,12 +6591,12 @@ equations of the finite volume pipe become
     } \hspace{40mm}
 \end{eqnarray*}
 where $\phi_1$ and $\phi_2$ are the contributions of the two portions of
-pipe to the respective nodal flux balance equations.
+pipe to the respective nodal flow balance equations.
 The integral of the time derivative of the density is numerically computed.
 The integral of the viscous forces per unit length is numerically performed
 as well, accounting for the flow regime in the pipe as function of the
 {\em Reynolds}\ number.
-In fact, for the forces per unit length, the dependency on the flux is
+In fact, for the forces per unit length, the dependency on the flow is
 considered linear for $0<Re<2000$, and quadratic for $Re>4000$, while a
 polynomial fitting of the transition behavior, accounting also for the rate
 of the {\em Reynolds}\ number, is modeled for $2000<Re<4000$.

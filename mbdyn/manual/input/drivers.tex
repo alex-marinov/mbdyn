@@ -144,7 +144,7 @@ The syntax is:
 where
 \begin{itemize}
 \item \kw{<mailbox\_name>} is the name of the mailbox (a unique string 
-not longer than six chars);
+exactly six chars long);
 \item the \kw{create} keyword determines whether the mailbox 
 must be created or looked-up as already existing on the system;
 \item \kw{<host\_name} is the name or the IP of the remote host where 
@@ -229,7 +229,7 @@ The meaning of the parameters is:
 \begin{itemize}
 \item the parameter \kw{<name>} indicates the name the stream
 will be known as in RTAI's resource namespace;
-it is limited to 6 characters, and actually represents the mailbox name;
+it must be exactly 6 characters long, and actually represents the mailbox name;
 \item the instruction \kw{create} determines whether the mailbox will be
 created or looked for by MBDyn;
 \item the keyword \kw{local} is ignored;

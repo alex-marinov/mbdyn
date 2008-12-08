@@ -35,10 +35,10 @@ The \kw{nodes} section is enclosed in the cards:
 \end{verbatim}
 Every node card has the following format:
 \begin{verbatim}
-    <card> :: = <node_type> : <node_label> ,
-        <arglist>
+    <card> ::= <node_type> : <node_label>
+        <additional_args>
         [ , output , { yes | no } ]
-        [ , <extra arglist> ] ;
+        [ , <extra_arglist> ] ;
 \end{verbatim}
 where \kw{node\_type} is one of the following:
 \begin{itemize}
@@ -85,7 +85,7 @@ See Section~\ref{sec:EL:STRUCT:JOINT:MODAL} for further details.
 \subsection{Syntax}
 \label{sec:NODE:STRUCTURAL:SYNTAX}
 \begin{verbatim}
-    <arglist> ::= { static | dynamic | modal } ,
+    <additional_args> ::= { , static | dynamic | modal } ,
         (Vec3)              <absolute_position> ,
         (OrientationMatrix) <absolute_orientation_matrix> ,
             [ orientation description , <orientation_description> , ]
@@ -115,7 +115,7 @@ Only the \kw{dynamic} and the \kw{modal} node types allow
 the optional output keyword
 \kw{accelerations} after the standard node output parameters:
 \begin{verbatim}
-    <extra arglist> ::= accelerations
+    <extra_arglist> ::= accelerations
 \end{verbatim}
 to enable the output of the linear and angular accelerations of the node.
 Since this is a postprocessing, it is not required by the regular analysis,
@@ -140,7 +140,7 @@ to another node.
 
 Two dummy structural node types are available.
 \begin{verbatim}
-    <arglist> ::= dummy , <base_node> , <type> , <dummy_node_data>
+    <additional_args> ::= , dummy , <base_node> , <type> , <dummy_node_data>
 \end{verbatim}
 
 Dummy nodes take the label of the \kw{base\_node} they are attached to, 
@@ -325,8 +325,8 @@ already been explicitly enabled.
 
 \section{Electric Node}
 \begin{verbatim}
-    <arglist> ::= value , <initial_value> 
-        [ , derivative , <derivative_initial_value> ]
+    <additional_args> ::= [ , value , <initial_value>
+        [ , derivative , <derivative_initial_value> ] ]
 \end{verbatim}
 \emph{Note: the keywords \kw{value} and \kw{derivative}
 have been introduced recently; \kw{value} is not mandatory,
@@ -350,9 +350,9 @@ The following data is available:
 
 \section{Abstract Node}
 \begin{verbatim}
-    <arglist> ::= { algebraic | differential } ,
-        value , <initial_value>
-        [ , derivative , <derivative_initial_value> ]
+    <additional_args> ::= , { algebraic | differential }
+        [ , value , <initial_value>
+        [ , derivative , <derivative_initial_value> ] ]
 \end{verbatim}
 \emph{
 	Note: abstract nodes are ancestors of all scalar node types.
@@ -382,8 +382,15 @@ The following data is available:
 
 
 \section{Hydraulic Node}
+\label{sec:NODE:HYDRAULIC}
+The hydraulic node represents the pressure
+at a given location of a hydraulic circuit.
+It is derived from the generic scalar agebraic node; as a consequence,
+it can be connected to all elements that operate on generic scalar nodes. 
+
+The syntax is
 \begin{verbatim}
-    <arglist> ::= value , <initial_value>
+    <additional_args> ::= [ , value , <initial_value> ]
 \end{verbatim}
 
 \paragraph{Private Data.}
@@ -398,10 +405,10 @@ The following data is available:
 \section{Parameter Node}
 \label{sec:NODE:PARAMETER}
 \begin{verbatim}
-    <arglist> ::= { <initial_value>
-        | element 
-        | sample and hold, (node_dof) <signal> , <sample_time>
-        | beam strain gage , <y> , <z> }
+    <aditional_args> ::= { [ , value , <initial_value> ]
+        | , element 
+        | , sample and hold, (node_dof) <signal> , <sample_time>
+        | , beam strain gage , <y> , <z> }
 \end{verbatim}
 The parameter node is derived from the class scalar algebraic node, but it
 is used in a rather peculiar way: it doesn't own any degree of freedom,
