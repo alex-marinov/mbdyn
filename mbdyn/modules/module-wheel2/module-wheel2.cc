@@ -816,6 +816,11 @@ extern "C" int
 module_init(const char *s, void *dm, void *)
 {
 	DataManager *pDM = (DataManager *)dm;
+
+	if (pDM == 0) {
+		silent_cerr("module-wheel2: DataManager unavailable (module_init() called too early?)" << std::endl);
+		return 1;
+	}
 	
 	pDM->SetLoadableElemModule(module_wheel2_lc.name, &module_wheel2_lc);
 
