@@ -106,7 +106,7 @@ distclean:
 	-@if test x"$(MODULES_DIRS)" != x ; then \
 		for i in $(MODULES_DIRS) ; do \
 			echo "Cleaning $$i ..."; \
-			rm -rf $$i ; \
+			rm -rf $$i/*.so $$i/*.lo $$i/*.o ; \
 		done \
 	fi
 	rm -f Makefile libtool
