@@ -89,7 +89,7 @@ __FC_DECL__(getrotorparams)(
 	const Vec3& hub_Omega = ::module_aerodyn->pHub->GetWCurr();
 	Vec3 rotation_axis = nacelle_R.GetVec(3);
 
-	*Omega = std::fabs(hub_Omega*rotation_axis);
+	module_aerodyn->Rotor_speed = *Omega = std::fabs(hub_Omega*rotation_axis);
 
     	/* 
 	 * This comment is added by Fanzhong MENG 10th.Feb.2008
@@ -204,7 +204,7 @@ __FC_DECL__(getelemparams)(
 	 * spanwise direction.
 	 */ 
 	unsigned blade = ::module_aerodyn->elem/::module_aerodyn->nelems;
-	const Mat3x3& R_node = ::module_aerodyn->nodes[::module_aerodyn->elem].pNode->GetRCurr(); //Pitch bug is not fixed!
+	const Mat3x3& R_node = ::module_aerodyn->nodes[::module_aerodyn->elem].pNode->GetRCurr(); 
 	const Mat3x3& R_hub = ::module_aerodyn->pHub->GetRCurr();
 	const Mat3x3& R_blade_root = ::module_aerodyn->bladeR[blade];
 	Mat3x3 R = (R_hub*R_blade_root).MulTM(R_node);
@@ -580,16 +580,27 @@ module_aerodyn_output(const LoadableElem* pEl, OutputHandler& OH)
 	module_aerodyn_t* p = (module_aerodyn_t *)pEl->pGetData(); 
 	
 	if (p->out) {
-		unsigned c = 0;
-		for (unsigned b = 0; b < unsigned(p->nblades); b++) {
-			for (unsigned e = 0; e < unsigned(p->nelems); e++, c++) {
-				p->out
-					<< b + 1 << '.' << e + 1
-					<< " " << p->nodes[c].F
-					<< " " << p->nodes[c].M
-					<< std::endl;
-			}
-		}
+#ifdef MODULE_AERODYN_DEBUG
+//		unsigned c = 0;
+//		for (unsigned b = 0; b < unsigned(p->nblades); b++) {
+//			for (unsigned e = 0; e < unsigned(p->nelems); e++, c++) {
+//				p->out
+//					<< b + 1 << '.' << e + 1
+//					<< " " << p->nodes[c].F
+//					<< " " << p->nodes[c].M
+//					<< " " << p->nodes[c].FN
+//					<< " " << p->nodes[c].FT
+//					<< " " << p->nodes[c].AM
+//					<< std::endl;
+//			}
+//		}
+#endif // MODULE_AERODYN_DEBUG
+		p->out << p->dCurTime 
+		       << " " << p->Thrust 
+		       << " " << p->Torque 
+		       << " " << p->Rotor_speed
+		       << " " << p->Torque*p->Rotor_speed
+		       << std::endl; 
 	}
 }
 
@@ -675,17 +686,30 @@ module_aerodyn_ass_res(
 			 */
 			__FC_DECL__(aerofrcintrface)(&p->FirstLoop, &p->c_elem, &DFN, &DFT, &PMA);
 
+ 			p->nodes[e].FN = DFN;
+ 			p->nodes[e].FT = DFT;
+ 			p->nodes[e].AM = PMA;
+
 #ifdef MODULE_AERODYN_DEBUG
 		        silent_cerr("aerodyn[" << e << "] in rotation plane: DFN=" << DFN << " DFT=" << DFT << " PMA=" << PMA << std::endl);
 #endif // MODULE_AERODYN_DEBUG
-
 			/*
-			 * turn force/moment into the global frame,
-			 * the moment with respect to the node
+			 * turn force/moment into the node frame (blade element frame used by Aerodyn to calculation forces)
+			 * (passing thru local element frame),
+			 * including offset
 			 */
-			p->nodes[e].F = BladeR*Vec3(0., DFT, DFN);
-			Vec3 Arm(p->nodes[e].pNode->GetRCurr()*p->nodes[e].f);
-			p->nodes[e].M = BladeAxis*PMA + Arm.Cross(p->nodes[e].F);
+
+			doublereal c = std::cos(p->nodes[e].PITNOW);
+			doublereal s = std::sin(p->nodes[e].PITNOW);
+			p->nodes[e].F = Vec3(0., DFT*c - DFN*s, DFT*s + DFN*c);
+			p->nodes[e].M = p->nodes[e].Ra.GetVec(1)*PMA + p->nodes[e].f.Cross(p->nodes[e].F);
+
+
+#ifdef MODULE_AERODYN_DEBUG
+
+ 	               // silent_cerr("Moment on Node[" << e << "]: " << p->nodes[e].f.Cross(p->nodes[e].F) << std::endl);
+
+#endif // MODULE_AERODYN_DEBUG
 
 #if 0 // def MODULE_AERODYN_DEBUG
 	        	silent_cerr("aerodyn[" << e << "] in BEM frame: "
@@ -703,6 +727,9 @@ module_aerodyn_ass_res(
 		p->bFirst = false;
 	}
 
+
+	p->TF = Vec3(0.);
+	p->TM = Vec3(0.);
 	for (unsigned e = 0; e < unsigned(p->nblades*p->nelems); e++) {
 		/*
 		 * set indices where force/moment need to be put
@@ -717,17 +744,41 @@ module_aerodyn_ass_res(
 		 * into the global frame
 		 */
 		/*
-		 * The force/moment is already in the global reference frame
+		 * Transfer the force/moment to global frame. 
 	         */	 
-		WorkVec.Add(6*e + 1, p->nodes[e].F);
-		WorkVec.Add(6*e + 4, p->nodes[e].M);
+  		WorkVec.Add(6*e + 1, p->nodes[e].pNode->GetRCurr()*(p->nodes[e].Ra*p->nodes[e].F));
+  		WorkVec.Add(6*e + 4, p->nodes[e].pNode->GetRCurr()*(p->nodes[e].Ra*p->nodes[e].M));
 
-	}
+		/*
+		 * calculate the force and moment contributions on the rotor in absolute frame.
+	         */
+		const Vec3& Xp = p->nodes[e].pNode->GetXCurr();
+		const Vec3& Xh = p->pHub->GetXCurr();
 
+		p->TF = p->TF + p->nodes[e].pNode->GetRCurr()*p->nodes[e].Ra*p->nodes[e].F;
+		p->TM = p->TM + p->nodes[e].pNode->GetRCurr()*p->nodes[e].Ra*p->nodes[e].M
+			+ (Xp-Xh).Cross(p->nodes[e].pNode->GetRCurr()*p->nodes[e].Ra*p->nodes[e].F);
+  	}
+
+	/*
+	 * Transfer the force/moment to hub reference frame.
+	 */
+	const Mat3x3& Rh = p->pHub->GetRCurr();
+	p->TF_h = Rh.MulTV(p->TF);
+	p->TM_h = Rh.MulTV(p->TM);
+
+	/*
+	 * The 3rd component of TF_h and TM_h are the rotor Thrust and rotor Torque.
+	 */
+	p->Thrust = p->TF_h(3);
+	p->Torque = p->TM_h(3);
+  
 	/* 
 	 * make sure next time FirstLoop will be false
 	 */
-	(void)__FC_DECL__(mbdyn_false)(&p->FirstLoop);
+	if (p->FirstLoop) {
+		(void)__FC_DECL__(mbdyn_false)(&p->FirstLoop);
+	}
 	
 	return WorkVec;
 }

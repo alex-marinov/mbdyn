@@ -54,6 +54,10 @@ struct AeroNode {
 	Vec3		M;	// Moment acting on Node, with respect
 				// to node's position
 
+ 	doublereal      FN;    // Normal Force on each blade element (Not being used now!).
+ 	doublereal      FT;    // Tangental force on each blade element.(Not being used now!)
+ 	doublereal      AM;    // Aerodynamic moment on each blade element.(Not being used now!)
+ 
 	doublereal	PITNOW; // Node pitch angle
 };
 
@@ -83,6 +87,16 @@ typedef struct module_aerodyn_t {
 	std::string ofname;
 	std::ofstream out;
 
+	/*
+	 * Total aerodynamic data
+	 */
+	Vec3		TF;     // Total Force on the rotor in the absolute frame
+	Vec3		TM;     // Total Moment on the rotor in the absolute frame.
+	Vec3		TF_h;     // Total Force on the rotor in the hub frame
+	Vec3		TM_h;     // Total Moment on the rotor in the hub frame.
+	doublereal      Thrust;   // Rotor Thrust.
+	doublereal      Torque;   // Rotor Torque.
+	doublereal      Rotor_speed;   // Rotor angular velocity.
 	/* 
 	 * internal states to access the Variables which is defined in the 
 	 * common MODULEs of AeroDyn
