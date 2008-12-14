@@ -1255,7 +1255,7 @@ Inertia forces and moments projected in the relative frame
 		+ \overline{\T{\omega}}_0 \times \overline{\T{\omega}}_0 \times{}
 	} \tilde{\T{s}}_0
 	+ 2 \overline{\T{\omega}}_0 \times \tilde{\T{\beta}}
-	+ \dot{\tilde{\T{\beta}}} \\
+	+ \hspace{-10mm}\underbrace{\dot{\tilde{\T{\beta}}}}_{\text{relative momentum}} \\
 %
 	\overline{\T{m}}_{\text{in}}
 	&= \TT{R}_0^T \plbr{\dot{\T{\gamma}} + \dot{\T{x}} \times \T{\beta}}
@@ -1277,9 +1277,11 @@ Inertia forces and moments projected in the relative frame
 	} \overline{\T{\omega}}_0
 	\nonumber \\
 	&\hphantom{=}+ \overline{\T{\omega}}_0 \times \tilde{\T{\gamma}}
-	+ \dot{\tilde{\T{\gamma}}}
 	+ \dot{\tilde{\T{x}}} \times \overline{\T{\omega}}_0 \times \tilde{\T{s}}
-	+ \dot{\tilde{\T{x}}} \times \tilde{\T{\beta}}
+	+ \hspace{-8mm}\underbrace{
+		\dot{\tilde{\T{x}}} \times \tilde{\T{\beta}}
+		+ \dot{\tilde{\T{\gamma}}}
+	}_{\text{relative momenta moment}}
 \end{align}
 \end{subequations}
 
@@ -1366,8 +1368,8 @@ Perturbation, assuming reference motion is imposed:
 	\nonumber \\
 	&\hphantom{=}
 	+ \overline{\T{\omega}}_0 \times \delta\tilde{\T{\gamma}}
-	+ \delta\dot{\tilde{\T{\gamma}}}
 	+ \dot{\tilde{\T{x}}} \times \delta\tilde{\T{\beta}}
+	+ \delta\dot{\tilde{\T{\gamma}}}
 \end{align}
 \end{subequations}
 
