@@ -120,6 +120,8 @@ resforces.h \
 restart.h \
 rtaisolver.cc \
 rtaisolver.h \
+rtposixsolver.cc \
+rtposixsolver.h \
 rtsolver.cc \
 rtsolver.h \
 sah.cc \

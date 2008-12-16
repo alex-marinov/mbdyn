@@ -29,53 +29,33 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
-#ifndef RTAISOLVER_H
-#define RTAISOLVER_H  
+#ifndef RTPOSIXSOLVER_H
+#define RTPOSIXSOLVER_H  
+
+#ifdef USE_RT
 
 #include "rtsolver.h"
 
-#ifdef USE_RTAI
+/* RTPOSIXSolver - begin */
 
-/* RTAISolver - begin */
-
-class RTAISolver : public RTSolverBase {
+class RTPOSIXSolver : public RTSolverBase {
 private:
-	bool bRTHard;
-	bool bRTlog;
-	const std::string LogProcName;
-
-	long long lRTPeriod;
-
-	/* if eRTMode == MBRTAI_SEMAPHORE */
-	void *RTSemPtr_in;
-	void *RTSemPtr_out;
-
-	void *mbxlog;
-	int RTStpFlag;
-        int t_tot;
-	long long t0, t1;
-	int or_counter;
+	int clock_flags;
+	struct timespec t0, t;
 
 public:
-	RTAISolver(Solver *pS,
+	RTPOSIXSolver(Solver *pS,
 		RTMode eRTMode,
-		long long lRTPeriod,
+		unsigned long lRTPeriod,
 		unsigned long RTStackSize,
 		bool bRTAllowNonRoot,
-		int RTCpuMap,
-		bool bRTHard,
-		bool bRTlog,
-		const std::string& LogProcName);
-	~RTAISolver(void);
+		int RTCpuMap);
+	~RTPOSIXSolver(void);
 
 	// write contribution to restart file
 	std::ostream& Restart(std::ostream& out) const;
 	// very first setup, to be always performed
 	void Setup(void);
-	// initialization to be performed only if real-time is requested
-	void Init(void);
-	// check whether stop is commanded by real-time
-	bool IsStopCommanded(void);
 	// to be performed when stop is commanded by someone else
 	void StopCommanded(void);
 	// write real-time related message when stop commanded by someone else
@@ -84,12 +64,12 @@ public:
 	void Wait(void);
 };
 
-/* RTAISolver - end */
+/* RTPOSIXSolver - end */
 
-#endif /* USE_RTAI */
+#endif // USE_RT
 
 extern RTSolverBase *
-ReadRTAISolver(Solver *pS, MBDynParser& HP);
+ReadRTPOSIXSolver(Solver *pS, MBDynParser& HP);
 
-#endif // RTAISOLVER_H
+#endif // RTPOSIXSOLVER_H
 

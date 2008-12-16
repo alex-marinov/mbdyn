@@ -41,7 +41,6 @@
 
 #ifdef USE_RTAI
 #include "mbrtai_utils.h"
-#include "ac/sys_sysinfo.h"
 
 // RTAI log message
 struct mbrtai_msg_t {
@@ -52,25 +51,21 @@ struct mbrtai_msg_t {
 /* RTAISolver - begin */
 
 RTAISolver::RTAISolver(Solver *pS,
+	RTMode eRTMode,
+	long long lRTPeriod,
 	unsigned long RTStackSize,
 	bool bRTAllowNonRoot,
-	RTMode eRTMode,
-	bool bRTHard,
-	long long lRTPeriod,
 	int RTCpuMap,
+	bool bRTHard,
 	bool bRTlog,
 	const std::string& LogProcName)
-: RTSolverBase(pS, RTStackSize),
-bRTAllowNonRoot(bRTAllowNonRoot),
-eRTMode(eRTMode),
+: RTSolverBase(pS, eRTMode, lRTPeriod, RTStackSize, bRTAllowNonRoot, RTCpuMap),
 bRTHard(bRTHard),
-lRTPeriod(lRTPeriod),
-RTCpuMap(RTCpuMap),
 bRTlog(bRTlog),
 LogProcName(LogProcName),
+lRTPeriod(lRTPeriod),
 mbxlog(0),
 RTStpFlag(0),
-RTSteps(0),
 t_tot(0),
 t0(0),
 t1(0),
@@ -92,20 +87,17 @@ RTAISolver::~RTAISolver(void)
 std::ostream&
 RTAISolver::Restart(std::ostream& out) const
 {
-	out << "RTAI, "
-		"time step, " << lRTPeriod;
+	out << "RTAI";
 
-	if (bRTAllowNonRoot) {
-		out << ", allow nonroot";
-	}
+	out << ", reserve stack, " << RTStackSize;
 
 	out << ", mode, ";
 	switch (eRTMode) {
-	case RTAISolver::MBRTAI_WAITPERIOD:
-		out << "period";
+	case RTAISolver::MBRT_WAITPERIOD:
+		out << "period, time step, " << lRTPeriod;
 		break;
 
-	case RTAISolver::MBRTAI_SEMAPHORE:
+	case RTAISolver::MBRT_SEMAPHORE:
 		out << "semaphore";
 		break;
 
@@ -113,14 +105,16 @@ RTAISolver::Restart(std::ostream& out) const
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	out << ", reserve stack, " << RTStackSize;
-
-	if (bRTHard) {
-		out << ", hard realtime";
+	if (bRTAllowNonRoot) {
+		out << ", allow nonroot";
 	}
 
 	if (RTCpuMap != 0xff) {
 		out << ", cpu map, " << RTCpuMap;
+	}
+
+	if (bRTHard) {
+		out << ", hard realtime";
 	}
 
 	if (bRTlog) {
@@ -230,7 +224,7 @@ RTAISolver::Init(void)
 
 	/* FIXME: should check whether RTStackSize is correctly set? */
 	if (bRTlog) {
-		char *mbxlogname = "logmb";
+		char *mbxlogname = "logmbd";
 		silent_cout("MBDyn start overruns monitor "
 			"(proc: \"" << LogProcName << "\")"
 			<< std::endl);
@@ -370,20 +364,18 @@ RTAISolver::Wait(void)
 	if (RTWaitPeriod()) {
 		rtmbdyn_rt_task_wait_period();
 
+#if 0
 	} else if (RTSemaphore()) {
 		/* FIXME: semaphore must be configurable */
-#if 0
 		mbdyn_rt_sem_wait(RTSemPtr_in);
 #endif
 	}
 
 	t0 = rtmbdyn_rt_get_time();
 
-	if (bRTHard) {
-		if (RTSteps == 2) {
-			/* make hard real time */
-			rtmbdyn_rt_make_hard_real_time();
-		}
+	if (RTSteps == 2 && bRTHard) {
+		/* make hard real time */
+		rtmbdyn_rt_make_hard_real_time();
 	}
 	RTSteps++;
 }
@@ -396,89 +388,16 @@ RTSolverBase *
 ReadRTAISolver(Solver *pS, MBDynParser& HP)
 {
 #ifdef USE_RTAI
-	long long lRTPeriod(-1);
-	if (HP.IsKeyWord("time" "step")) {
-		long long p = HP.GetInt();
-
-		if (p <= 0) {
-			silent_cerr("RTAISolver: illegal time step "
-				<< p << " at line "
-				<< HP.GetLineData()
-				<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		lRTPeriod = p;
-
-	} else {
-		silent_cerr("RTAISolver: need a time step for real time "
-			"at line " << HP.GetLineData()
-			<< std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	bool bRTAllowNonRoot(false);
-	if (HP.IsKeyWord("allow" "nonroot")) {
-		bRTAllowNonRoot = true;
-	}
-
-	RTAISolver::RTMode eRTMode = RTAISolver::MBRTAI_UNKNOWN;
-	/* FIXME: use a safe default? */
-	if (HP.IsKeyWord("mode")) {
-		if (HP.IsKeyWord("period")) {
-			eRTMode = RTAISolver::MBRTAI_WAITPERIOD;
-
-		} else if (HP.IsKeyWord("semaphore")) {
-			/* FIXME: not implemented yet ... */
-			eRTMode = RTAISolver::MBRTAI_SEMAPHORE;
-
-		} else {
-			silent_cerr("RTAISolver: unknown realtime mode "
-				"at line " << HP.GetLineData()
-				<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-	}
-
-	unsigned long RTStackSize = 1024;
-	if (HP.IsKeyWord("reserve" "stack")) {
-		long size = HP.GetInt();
-
-		if (size <= 0) {
-			silent_cerr("RTAISolver: illegal stack size "
-				<< size << " at line "
-				<< HP.GetLineData()
-				<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		RTStackSize = size;
-	}
+	RTSolverBase::RTMode eRTMode;
+	unsigned long lRTPeriod;
+	unsigned long RTStackSize;
+	bool bRTAllowNonRoot;
+	int RTCpuMap;
+	ReadRTParams(pS, HP, eRTMode, lRTPeriod, RTStackSize, bRTAllowNonRoot, RTCpuMap);
 
 	bool bRTHard = false;
 	if (HP.IsKeyWord("hard" "real" "time")) {
 		bRTHard = true;
-	}
-
-	int RTCpuMap(0xff);
-	if (HP.IsKeyWord("cpu" "map")) {
-		int cpumap = HP.GetInt();
-		// NOTE: there is a hard limit at 4 CPU
-		int ncpu = std::min(get_nprocs(), 4);
-		int newcpumap = (2 << (ncpu - 1)) - 1;
-
-		/* i bit non legati ad alcuna cpu sono posti a zero */
-		newcpumap &= cpumap;
-		if (newcpumap < 1 || newcpumap > 0xff) {
-			char buf[5];
-			snprintf(buf, sizeof(buf), "0x%2x", cpumap);
-			silent_cerr("RTAISolver: illegal cpu map "
-				<< buf << " at line "
-				<< HP.GetLineData()
-				<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		RTCpuMap = newcpumap;
 	}
 
 	bool bRTlog(false);
@@ -505,9 +424,9 @@ ReadRTAISolver(Solver *pS, MBDynParser& HP)
 
 	RTSolverBase *pRTSolver(0);
 	SAFENEWWITHCONSTRUCTOR(pRTSolver, RTAISolver,
-		RTAISolver(pS, RTStackSize,
-			bRTAllowNonRoot, eRTMode, bRTHard, lRTPeriod,
-			RTCpuMap, bRTlog, LogProcName));
+		RTAISolver(pS, eRTMode, lRTPeriod,
+			RTStackSize, bRTAllowNonRoot, RTCpuMap,
+			bRTHard, bRTlog, LogProcName));
 	return pRTSolver;
 
 #else // !USE_RTAI

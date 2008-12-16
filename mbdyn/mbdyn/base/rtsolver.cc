@@ -38,14 +38,26 @@
 #include "solver_impl.h"
 #include "rtsolver.h"
 #include "rtaisolver.h"
+#include "rtposixsolver.h"
+#include "ac/sys_sysinfo.h"
  
 /* RTSolverBase - begin */
 
-RTSolverBase::RTSolverBase(Solver *pS, unsigned long RTStackSize)
+RTSolverBase::RTSolverBase(Solver *pS,
+	RTMode eRTMode,
+	unsigned long lRTPeriod,
+	unsigned long RTStackSize,
+	bool bRTAllowNonRoot,
+	int RTCpuMap)
 : pS(pS),
-RTStackSize(RTStackSize)
+eRTMode(eRTMode),
+lRTPeriod(lRTPeriod),
+RTStackSize(RTStackSize),
+bRTAllowNonRoot(bRTAllowNonRoot),
+RTCpuMap(RTCpuMap)
 {
-	NO_OP;
+	ASSERT(RTStackSize > 0);
+	ASSERT(lRTPeriod > 0);
 }
 
 RTSolverBase::~RTSolverBase(void)
@@ -59,7 +71,6 @@ RTSolverBase::Init(void)
 	/* if using real-time, clear out any type of output */
 	pS->SetNoOutput();
 
-	ASSERT(RTStackSize > 0);
 	mbdyn_reserve_stack(RTStackSize);
 }
 
@@ -72,69 +83,112 @@ RTSolverBase::IsStopCommanded(void)
 
 /* RTSolverBase - end */
 
-/* RTSolver - begin */
-
-RTSolver::RTSolver(Solver *pS, unsigned long RTStackSize)
-: RTSolverBase(pS, RTStackSize)
-{
-	NO_OP;
-}
-
-RTSolver::~RTSolver(void)
-{
-	NO_OP;
-}
-
-// write contribution to restart file
-std::ostream&
-RTSolver::Restart(std::ostream& out) const
-{
-	return out;
-}
-
-// very first setup, to be always performed
 void
-RTSolver::Setup(void)
+ReadRTParams(Solver *pS, MBDynParser& HP,
+	RTSolverBase::RTMode& eRTMode,
+	unsigned long& lRTPeriod,
+	unsigned long& RTStackSize,
+	bool& bRTAllowNonRoot,
+	int& RTCpuMap)
 {
-	NO_OP;
-}
+	eRTMode = RTSolverBase::MBRT_UNKNOWN;
+	/* FIXME: use a safe default? */
+	if (HP.IsKeyWord("mode")) {
+		if (HP.IsKeyWord("period")) {
+			eRTMode = RTSolverBase::MBRT_WAITPERIOD;
 
-// initialization to be performed only if real-time is requested
-void
-RTSolver::Init(void)
-{
-	RTSolverBase::Init();
-}
+		} else if (HP.IsKeyWord("semaphore")) {
+			/* FIXME: not implemented yet ... */
+			eRTMode = RTSolverBase::MBRT_SEMAPHORE;
 
-// to be performed when stop is commanded by someone else
-void
-RTSolver::StopCommanded(void)
-{
-	NO_OP;
-}
+		} else {
+			silent_cerr("RTSolver: unknown realtime mode "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
 
-// write real-time related message when stop commanded by someone else
-void
-RTSolver::Log(void)
-{
-	NO_OP;
-}
+	switch (eRTMode) {
+	case RTSolverBase::MBRT_UNKNOWN:
+	case RTSolverBase::MBRT_WAITPERIOD:
+		lRTPeriod = -1;
+		if (HP.IsKeyWord("time" "step")) {
+			long long p = HP.GetInt();
 
-// wait for period to expire
-void
-RTSolver::Wait(void)
-{
-	// nanosleep
-	NO_OP;
+			if (p <= 0) {
+				silent_cerr("RTSolver: illegal time step "
+					<< p << " at line "
+					<< HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			lRTPeriod = p;
+
+		} else {
+			silent_cerr("RTSolver: need a time step for real time "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		break;
+
+	case RTSolverBase::MBRT_SEMAPHORE:
+		// impossible, right now
+		break;
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	RTStackSize = 1024;
+	if (HP.IsKeyWord("reserve" "stack")) {
+		long size = HP.GetInt();
+
+		if (size <= 0) {
+			silent_cerr("RTSolver: illegal stack size "
+				<< size << " at line "
+				<< HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		RTStackSize = size;
+	}
+
+	bRTAllowNonRoot = false;
+	if (HP.IsKeyWord("allow" "nonroot")) {
+		bRTAllowNonRoot = true;
+	}
+
+	RTCpuMap = 0xff;
+	if (HP.IsKeyWord("cpu" "map")) {
+		int cpumap = HP.GetInt();
+		// NOTE: there is a hard limit at 4 CPU
+		int ncpu = std::min(get_nprocs(), 4);
+		int newcpumap = (2 << (ncpu - 1)) - 1;
+
+		/* i bit non legati ad alcuna cpu sono posti a zero */
+		newcpumap &= cpumap;
+		if (newcpumap < 1 || newcpumap > 0xff) {
+			char buf[5];
+			snprintf(buf, sizeof(buf), "0x%2x", cpumap);
+			silent_cerr("RTSolver: illegal cpu map "
+				<< buf << " at line "
+				<< HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		RTCpuMap = newcpumap;
+	}
 }
 
 RTSolverBase *
 ReadRTSolver(Solver *pS, MBDynParser& HP)
 {
-	if (HP.IsKeyWord("OS")) {
-		// this
-		return 0;
-
+	if (HP.IsKeyWord("POSIX")) {
+		return ReadRTPOSIXSolver(pS, HP);
 	}
 
 	if (!HP.IsKeyWord("RTAI")) {

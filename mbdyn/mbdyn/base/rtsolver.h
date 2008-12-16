@@ -37,12 +37,43 @@ class Solver;
 /* RTSolverBase - begin */
 
 class RTSolverBase {
+public:
+	enum RTMode {
+		MBRT_UNKNOWN,
+		MBRT_WAITPERIOD,
+		MBRT_SEMAPHORE,
+		MBRT_LASTMODE
+	};
+
 protected:
 	Solver *pS;
+
+	RTMode eRTMode;
+
+	/* if eRTMode == MBRT_WAITPERIOD */
+	unsigned long lRTPeriod;
+
 	unsigned long RTStackSize;
+	bool bRTAllowNonRoot;
+	int RTCpuMap;
+
+	bool RTWaitPeriod(void) const {
+		return (eRTMode == MBRT_WAITPERIOD);
+	};
+
+	bool RTSemaphore(void) const {
+		return (eRTMode == MBRT_SEMAPHORE);
+	};
+
+	volatile int RTSteps;
 
 public:
-	RTSolverBase(Solver *pS, unsigned long RTStackSize);
+	RTSolverBase(Solver *pS,
+		RTMode eRTMode,
+		unsigned long lRTPeriod,
+		unsigned long RTStackSize,
+		bool bRTAllowNonRoot,
+		int RTCpuMap);
 	virtual ~RTSolverBase(void);
 
 	// write contribution to restart file
@@ -63,28 +94,13 @@ public:
 
 /* RTSolverBase - end */
 
-/* RTSolver - begin */
-
-class RTSolver : public RTSolverBase {
-public:
-	RTSolver(Solver *pS, unsigned long RTStackSize);
-	~RTSolver(void);
-
-	// write contribution to restart file
-	std::ostream& Restart(std::ostream& out) const;
-	// very first setup, to be always performed
-	void Setup(void);
-	// initialization to be performed only if real-time is requested
-	void Init(void);
-	// to be performed when stop is commanded by someone else
-	void StopCommanded(void);
-	// write real-time related message when stop commanded by someone else
-	void Log(void);
-	// wait for period to expire
-	void Wait(void);
-};
-
-/* RTSolver - end */
+extern void
+ReadRTParams(Solver *pS, MBDynParser& HP,
+	RTSolverBase::RTMode& eRTMode,
+	unsigned long& lRTPeriod,
+	unsigned long& RTStackSize,
+	bool& bRTAllowNonRoot,
+	int& RTCpuMap);
 
 extern RTSolverBase *
 ReadRTSolver(Solver *pS, MBDynParser& HP);

@@ -173,6 +173,7 @@ OL_ARG_WITH(chaco,[  --with-chaco            with Chaco model partitioning suppo
 dnl ol_with_chaco=no
 
 OL_ARG_WITH(threads,[  --with-threads          with threads],auto,[auto yes no])
+OL_ARG_WITH(rt,[  --with-rt               with POSIX realtime support],auto,[auto yes no])
 OL_ARG_WITH(rtai,[  --with-rtai             with RTAI support],no,[auto yes no])
 OL_ARG_WITH(boost,[  --with-boost            with BOOST support],no,[auto yes no])
 OL_ARG_WITH(ANN,[  --with-ANN              with ANN support],no,[auto yes no])
@@ -302,6 +303,7 @@ SECURITY_LIBS=
 TCL_LIBS=
 NETCDF_LIBS=
 UDUNITS_LIBS=
+RT_LIBS=
 X_ANN_LIBS=
 BULLET_LIBS=
 
@@ -1967,6 +1969,27 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
+dnl Check for POSIX realtime
+dnl
+if test $ol_with_rt != no ; then
+	save_LIBS="$LIBS"
+	try_RT_LIBS="-lrt"
+	LIBS="$try_RT_LIBS $LIBS"
+	AC_CHECK_LIB(rt,clock_nanosleep,[
+		have_librt=yes
+		RT_LIBS="$try_RT_LIBS"
+	],[have_librt=no])
+	LIBS="$save_LIBS"
+
+	if test "$have_librt" = "yes" ; then
+		AC_DEFINE(USE_RT,1,[define to use POSIX realtime])
+	elif test "$ol_with_rt" = "yes" ; then
+		AC_MSG_ERROR([POSIX realtime is not available])
+	fi
+fi
+
+dnl ----------------------------------------------------------------
+dnl
 dnl Check for RTAI
 dnl
 if test $ol_with_rtai != no ; then
@@ -2081,13 +2104,9 @@ AC_CHECK_FUNCS([ \
 	memmove \
 	mkstemp \
 	mlockall \
-	nanosleep \
 	pstat_getdynamic \
 	pstat_getprocessor \
 	putenv \
-	sched_setaffinity \
-	sched_setparam \
-	sched_setscheduler \
 	setenv \
 	signal \
 	sleep \
@@ -2214,6 +2233,7 @@ AC_SUBST(SECURITY_LIBS)
 AC_SUBST(TCL_LIBS)
 AC_SUBST(NETCDF_LIBS)
 AC_SUBST(UDUNITS_LIBS)
+AC_SUBST(RT_LIBS)
 AC_SUBST(X_ANN_LIBS)
 AC_SUBST(BULLET_LIBS)
 

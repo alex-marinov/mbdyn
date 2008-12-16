@@ -698,13 +698,13 @@ and add the iterations output, use:
 \subsection{Special Data}
 \subsubsection{Real-Time Execution}\label{sec:REAL-TIME}
 \begin{verbatim}
-    <card> ::= real time :
+    <card> ::= real time : [ { RTAI | POSIX } , ]
+        [ mode , { period | semaphore } , ]
         time step , <time-step> 
-        [ , allow nonroot ]
-        [ , mode , { period | semaphore } ]
         [ , reserve stack , <stack-size> ]
-        [ , hard real time ]
+        [ , allow nonroot ]
         [ , cpu map , <cpu-map> ]
+        [ , hard real time ]
         [ , real time log [ , file name , <command-name> ] ]
 \end{verbatim}
 where:
