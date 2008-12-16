@@ -33,12 +33,13 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifdef USE_RTAI
 
 #include "mbdefs.h"
 #include "solver.h"
 #include "solver_impl.h"
 #include "rtaisolver.h"
+
+#ifdef USE_RTAI
 #include "mbrtai_utils.h"
 #include "ac/sys_sysinfo.h"
 

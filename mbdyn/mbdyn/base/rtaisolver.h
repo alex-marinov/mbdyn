@@ -32,9 +32,9 @@
 #ifndef RTAISOLVER_H
 #define RTAISOLVER_H  
 
-#ifdef USE_RTAI
-
 #include "rtsolver.h"
+
+#ifdef USE_RTAI
 
 /* RTAISolver - begin */
 
