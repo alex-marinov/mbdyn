@@ -31,8 +31,10 @@
 
 /* socket driver */
 
-#ifndef RTAI_UTILS_H
-#define RTAI_UTILS_H
+#ifndef MBRTAI_UTILS_H
+#define MBRTAI_UTILS_H
+
+// NOTE: all calls to RTAI are wrapped by MBDyn calls prefixed by "rtmbdyn_"
 
 #ifdef USE_RTAI
 
@@ -40,51 +42,51 @@
 extern "C" {
 #endif /* __cplusplus */
 
-extern int mbdyn_rt_task_init(const char *name, int priority, int stack_size,
-	int max_msg_size, int cpu, void **__task);
-extern int mbdyn_rt_task_delete(void **__task);
+extern int rtmbdyn_rt_task_init(const char *name, int priority, int stack_size,
+	int max_msg_size, int cpu, void **task);
+extern int rtmbdyn_rt_task_delete(void **task);
 
-extern	void mbdyn_rt_make_hard_real_time(void);
-extern void mbdyn_rt_make_soft_real_time(void);
+extern	void rtmbdyn_rt_make_hard_real_time(void);
+extern void rtmbdyn_rt_make_soft_real_time(void);
 
-extern void mbdyn_rt_allow_nonroot_hrt(void);
+extern void rtmbdyn_rt_allow_nonroot_hrt(void);
 
-extern void mbdyn_rt_set_oneshot_mode(void);
-extern void mbdyn_rt_set_periodic_mode(void);
+extern void rtmbdyn_rt_set_oneshot_mode(void);
+extern void rtmbdyn_rt_set_periodic_mode(void);
 
-extern int mbdyn_rt_is_hard_timer_running(void);
-extern long long mbdyn_start_rt_timer(long long __period);
-extern void mbdyn_stop_rt_timer(void);
-extern long long mbdyn_rt_get_time(void);
-extern int mbdyn_rt_task_make_periodic(void *__task, long long __start_time,
-	long long __period);
-extern void mbdyn_rt_task_wait_period(void);
-extern long long mbdyn_count2nano(long long count);
-extern long long mbdyn_nano2count(long long nanos);
+extern int rtmbdyn_rt_is_hard_timer_running(void);
+extern long long rtmbdyn_start_rt_timer(long long period);
+extern void rtmbdyn_stop_rt_timer(void);
+extern long long rtmbdyn_rt_get_time(void);
+extern int rtmbdyn_rt_task_make_periodic(void *task, long long start_time,
+	long long period);
+extern void rtmbdyn_rt_task_wait_period(void);
+extern long long rtmbdyn_count2nano(long long count);
+extern long long rtmbdyn_nano2count(long long nanos);
 
-extern int mbdyn_rt_request_port(unsigned long node);
+extern int rtmbdyn_rt_request_port(unsigned long node);
 
-extern int mbdyn_rt_mbx_init(const char *name, int size, void **__mbx);
-extern int mbdyn_rt_mbx_delete(void **__mbx);
-extern int mbdyn_RT_mbx_send_if(unsigned long node, int port, void *__mbx,
+extern int rtmbdyn_rt_mbx_init(const char *name, int size, void **mbx);
+extern int rtmbdyn_rt_mbx_delete(void **mbx);
+extern int rtmbdyn_RT_mbx_send_if(unsigned long node, int port, void *mbx,
 		void *msg, int msg_size);
-extern int mbdyn_RT_mbx_receive_if(unsigned long node, int port, void *__mbx,
+extern int rtmbdyn_RT_mbx_receive_if(unsigned long node, int port, void *mbx,
 		void *msg, int msg_size);
 		
-extern int mbdyn_RT_get_adr(unsigned long node, int port, const char *name, 
-		void **__task);
+extern int rtmbdyn_RT_get_adr(unsigned long node, int port, const char *name, 
+		void **task);
 		
-extern int mbdyn_rt_task_suspend(void *__task);
-extern int mbdyn_rt_task_resume(void *__task);
-extern void mbdyn_rt_sleep(long long count);
+extern int rtmbdyn_rt_task_suspend(void *task);
+extern int rtmbdyn_rt_task_resume(void *task);
+extern void rtmbdyn_rt_sleep(long long count);
 
-extern int mbdyn_rt_sem_init(char *name, int value, void **__sem);
-extern int mbdyn_rt_sem_delete(void **__sem);
-extern int mbdyn_rt_sem_signal(void *__sem);
-extern int mbdyn_rt_sem_wait(void *__sem);
+extern int rtmbdyn_rt_sem_init(char *name, int value, void **sem);
+extern int rtmbdyn_rt_sem_delete(void **sem);
+extern int rtmbdyn_rt_sem_signal(void *sem);
+extern int rtmbdyn_rt_sem_wait(void *sem);
 
-extern void *mbdyn_rt_receive_if(void *__task,int *msg);
-extern long long mbdyn_rt_get_cpu_time_ns(void);
+extern void *rtmbdyn_rt_receive_if(void *task,int *msg);
+extern long long rtmbdyn_rt_get_cpu_time_ns(void);
 
 #ifdef __cplusplus
 }
@@ -92,5 +94,5 @@ extern long long mbdyn_rt_get_cpu_time_ns(void);
 
 #endif /* USE_RTAI */
 
-#endif /* RTAI_UTILS_H */
+#endif /* MBRTAI_UTILS_H */
 

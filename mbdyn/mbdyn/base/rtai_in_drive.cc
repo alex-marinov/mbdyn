@@ -52,7 +52,7 @@ host(h), node(n), port(-1), mbx(NULL)
 	if (create) {
 		ASSERT(node == 0);
 
-		if (mbdyn_rt_mbx_init(sFileName, size, &mbx)) {
+		if (rtmbdyn_rt_mbx_init(sFileName, size, &mbx)) {
 			silent_cerr("RTMBDyn mailbox(" << sFileName << ") "
 				"init failed" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -60,11 +60,11 @@ host(h), node(n), port(-1), mbx(NULL)
 	} else {
 		if (node) {
 			/* get port ... */
-			port = mbdyn_rt_request_port(node);
+			port = rtmbdyn_rt_request_port(node);
 			/* FIXME: what in case of failure? */
 		}
 
-		if (mbdyn_RT_get_adr(node, port, sFileName, &mbx)) {
+		if (rtmbdyn_RT_get_adr(node, port, sFileName, &mbx)) {
 			silent_cerr("RTMBDyn mailbox(" << sFileName << ") "
 				"get_adr failed" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -79,7 +79,7 @@ RTMBDynInDrive::~RTMBDynInDrive(void)
 	 * destroy mailbox and so on
 	 */
 	if (mbx) {
-		mbdyn_rt_mbx_delete(&mbx);
+		rtmbdyn_rt_mbx_delete(&mbx);
 	}
 	
 	if (host) {
@@ -94,7 +94,7 @@ RTMBDynInDrive::ServePending(const doublereal& /* t */ )
 	 * store in pdVal the values of all the channels
 	 * served by the mailbox
 	 */
-	if (!(mbdyn_RT_mbx_receive_if(node, port, mbx, (void *)buf, size))) {
+	if (!(rtmbdyn_RT_mbx_receive_if(node, port, mbx, (void *)buf, size))) {
 		
 		doublereal *rbuf = (doublereal *)buf;
 		for (int i = 1; i <= iNumDrives; i++) {

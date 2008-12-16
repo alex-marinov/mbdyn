@@ -198,7 +198,7 @@ ReadFileDriver(DataManager* pDM,
 	case STREAM:
 read_stream:;
 #ifdef USE_RTAI
-		if (mbdyn_rtai_task != NULL){
+		if (::rtmbdyn_rtai_task != NULL){
 			silent_cout("starting RTMBDyn input drive" << std::endl);
 			pDr = ReadRTMBDynInDrive(pDM, HP, uLabel);
 		} else 

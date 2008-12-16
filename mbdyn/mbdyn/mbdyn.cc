@@ -101,7 +101,7 @@ std::list<MPI::Intercomm>  InterfaceComms;
 
 #ifdef USE_RTAI
 #include "mbrtai_utils.h"
-void *mbdyn_rtai_task = NULL;
+void *rtmbdyn_rtai_task = NULL;
 #endif /* USE_RTAI */
 
 #include "myassert.h"
@@ -896,9 +896,9 @@ main(int argc, char* argv[])
     		}
  	}
 #ifdef USE_RTAI
-	if (mbdyn_rtai_task) {
-		(void)mbdyn_rt_task_delete(&mbdyn_rtai_task);
-		mbdyn_rtai_task = NULL;
+	if (::rtmbdyn_rtai_task) {
+		(void)rtmbdyn_rt_task_delete(&::rtmbdyn_rtai_task);
+		::rtmbdyn_rtai_task = NULL;
 	}
 #endif /* USE_RTAI */
    

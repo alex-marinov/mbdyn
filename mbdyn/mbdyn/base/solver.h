@@ -47,8 +47,6 @@
 #ifndef SOLVER_H
 #define SOLVER_H  
 
-#define RTAI_LOG
-
 #include <unistd.h>
 #include <cfloat>
 #include <cmath>
@@ -66,6 +64,7 @@ class Solver;
 #include "nonlin.h"
 #include "mfree.h"
 #include "precond.h"
+#include "rtsolver.h"
 
 extern "C" int mbdyn_stop_at_end_of_iteration(void);
 extern "C" int mbdyn_stop_at_end_of_time_step(void);
@@ -163,35 +162,7 @@ protected:
 	void Eig(void);
 #endif /* __HACK_EIG__ */
 
-#ifdef USE_RTAI
-	bool bRT;
-	bool bRTAllowNonRoot;
-	enum {
-		MBRTAI_UNKNOWN,
-		MBRTAI_WAITPERIOD,
-		MBRTAI_SEMAPHORE,
-		MBRTAI_LASTMODE
-	} RTMode;
-	bool bRTHard;
-	long long lRTPeriod;		/* if RTMode == MBRTAI_WAITPERIOD */
-	void *RTSemPtr_in;			/* if RTMode == MBRTAI_SEMAPHORE */
-	void *RTSemPtr_out;
-	unsigned long RTStackSize;
-	int RTCpuMap;
-#ifdef RTAI_LOG
-	bool bRTlog;
-	void *mbxlog;
-	char *LogProcName;
-#endif /*RTAI_LOG*/
-
-	bool RTWaitPeriod(void) const {
-		return (RTMode == MBRTAI_WAITPERIOD);
-	};
-
-	bool RTSemaphore(void) const {
-		return (RTMode == MBRTAI_SEMAPHORE);
-	};
-#endif /* USE_RTAI */
+	RTSolverBase *pRTSolver;
 
 #ifdef __HACK_POD__
        struct PODData {

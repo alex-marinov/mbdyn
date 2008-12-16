@@ -61,12 +61,9 @@
 #endif /* USE_MPI */
 
 
-#if defined(USE_RTAI)
-#include "mbrtai_utils.h"
 #if defined(HAVE_SYS_MMAN_H)
 #include <sys/mman.h>
 #endif /* HAVE_SYS_MMAN_H */
-#endif /* USE_RTAI */
 
 extern const char sDefaultOutputFileName[];
 
@@ -86,9 +83,7 @@ extern "C" void mbdyn_modify_final_time_handler(int signum);
 
 extern "C" void mbdyn_signal_init(void);
 
-#ifdef USE_RTAI
 extern int mbdyn_reserve_stack(unsigned long size);
-#endif /* USE_RTAI */
 
 /* Parametri locali */
 static const doublereal dDefaultDerivativesCoefficient = 1.e-6;

@@ -57,7 +57,7 @@
 #include "mbrtai_utils.h"
 
 int
-mbdyn_rt_task_init(const char *name, int priority, int stack_size,
+rtmbdyn_rt_task_init(const char *name, int priority, int stack_size,
 		int max_msg_size, int cpu, void **__task)
 {
 	assert(name != NULL);
@@ -71,7 +71,7 @@ mbdyn_rt_task_init(const char *name, int priority, int stack_size,
 }
 
 int
-mbdyn_rt_task_delete(void **__task)
+rtmbdyn_rt_task_delete(void **__task)
 {
 	RT_TASK		*task;
 	int		rc;
@@ -87,17 +87,17 @@ mbdyn_rt_task_delete(void **__task)
 	return /* rc */ 0;
 }
 void
-mbdyn_rt_make_hard_real_time(void)
+rtmbdyn_rt_make_hard_real_time(void)
 {
 	rt_make_hard_real_time();
 }
 void
-mbdyn_rt_make_soft_real_time(void)
+rtmbdyn_rt_make_soft_real_time(void)
 {
 	rt_make_soft_real_time();
 }
 int
-mbdyn_rt_task_make_periodic(void *__task, long long __start_time,
+rtmbdyn_rt_task_make_periodic(void *__task, long long __start_time,
 		long long __period)
 {
 	
@@ -112,19 +112,19 @@ mbdyn_rt_task_make_periodic(void *__task, long long __start_time,
 }
 
 void
-mbdyn_rt_task_wait_period(void)
+rtmbdyn_rt_task_wait_period(void)
 {
 	rt_task_wait_period();
 }
 
 void
-mbdyn_rt_allow_nonroot_hrt(void)
+rtmbdyn_rt_allow_nonroot_hrt(void)
 {
 	rt_allow_nonroot_hrt();
 }
 
 int
-mbdyn_rt_request_port(unsigned long node)
+rtmbdyn_rt_request_port(unsigned long node)
 {
 	assert(node > 0);
 
@@ -132,56 +132,56 @@ mbdyn_rt_request_port(unsigned long node)
 }
 
 void
-mbdyn_rt_set_oneshot_mode(void)
+rtmbdyn_rt_set_oneshot_mode(void)
 {
 	rt_set_oneshot_mode();
 }
 
 void
-mbdyn_rt_set_periodic_mode(void)
+rtmbdyn_rt_set_periodic_mode(void)
 {
 	rt_set_periodic_mode();
 }
 
 int
-mbdyn_rt_is_hard_timer_running(void)
+rtmbdyn_rt_is_hard_timer_running(void)
 {
 	return rt_is_hard_timer_running();
 }
 
 long long
-mbdyn_start_rt_timer(long long __period)
+rtmbdyn_start_rt_timer(long long __period)
 {
 	RTIME period = (RTIME)__period;
 	return start_rt_timer(period);
 }
 
 void
-mbdyn_stop_rt_timer(void)
+rtmbdyn_stop_rt_timer(void)
 {
 	stop_rt_timer();
 }
 
 long long
-mbdyn_rt_get_time(void)
+rtmbdyn_rt_get_time(void)
 {	
 	return (long long)rt_get_time();
 }
 
 long long
-mbdyn_count2nano(long long count)
+rtmbdyn_count2nano(long long count)
 {
 	return (long long)count2nano((RTIME)count);
 }
 
 long long
-mbdyn_nano2count(long long nanos)
+rtmbdyn_nano2count(long long nanos)
 {
 	return (long long)nano2count((RTIME)nanos);
 }
 
 int
-mbdyn_rt_mbx_init(const char *name, int size, void **__mbx)
+rtmbdyn_rt_mbx_init(const char *name, int size, void **__mbx)
 {	
 	assert(name);
 	assert(strlen(name) <= 6);
@@ -195,7 +195,7 @@ mbdyn_rt_mbx_init(const char *name, int size, void **__mbx)
 }
 
 int
-mbdyn_rt_mbx_delete(void **__mbx)
+rtmbdyn_rt_mbx_delete(void **__mbx)
 {
 	MBX	*mbx;
 	int	rc;
@@ -212,7 +212,7 @@ mbdyn_rt_mbx_delete(void **__mbx)
 }
 
 int
-mbdyn_RT_get_adr(unsigned long node, int port, const char *name, void **__task)
+rtmbdyn_RT_get_adr(unsigned long node, int port, const char *name, void **__task)
 {
 	assert(node >= 0);
 	assert(node == 0 || port > 0);
@@ -228,7 +228,7 @@ mbdyn_RT_get_adr(unsigned long node, int port, const char *name, void **__task)
 }
 
 int
-mbdyn_RT_mbx_send_if(unsigned long node, int port, void *__mbx,
+rtmbdyn_RT_mbx_send_if(unsigned long node, int port, void *__mbx,
 		void *msg, int msg_size)
 {
 	MBX	*mbx = (MBX *)__mbx;
@@ -242,7 +242,7 @@ mbdyn_RT_mbx_send_if(unsigned long node, int port, void *__mbx,
 }
 
 int
-mbdyn_RT_mbx_receive_if(unsigned long node, int port, void *__mbx,
+rtmbdyn_RT_mbx_receive_if(unsigned long node, int port, void *__mbx,
 		void *msg, int msg_size)
 {
 	MBX	*mbx = (MBX *)__mbx;
@@ -255,7 +255,7 @@ mbdyn_RT_mbx_receive_if(unsigned long node, int port, void *__mbx,
 }
 
 int
-mbdyn_rt_task_suspend(void *__task)
+rtmbdyn_rt_task_suspend(void *__task)
 {
 	RT_TASK		*task = (RT_TASK *)__task;
 	
@@ -266,7 +266,7 @@ mbdyn_rt_task_suspend(void *__task)
 }
 
 int
-mbdyn_rt_task_resume(void *__task)
+rtmbdyn_rt_task_resume(void *__task)
 {
 	RT_TASK		*task = (RT_TASK *)__task;
 	
@@ -276,12 +276,12 @@ mbdyn_rt_task_resume(void *__task)
 
 }
 void
-mbdyn_rt_sleep(long long count)
+rtmbdyn_rt_sleep(long long count)
 {
 		rt_sleep((RTIME)count);
 }
 int
-mbdyn_rt_sem_init(char *name, int value, void **__sem)
+rtmbdyn_rt_sem_init(char *name, int value, void **__sem)
 {	
 	assert(strlen(name) == 6);
 	assert(__sem != NULL);
@@ -292,7 +292,7 @@ mbdyn_rt_sem_init(char *name, int value, void **__sem)
 }
 
 int
-mbdyn_rt_sem_delete(void **__sem)
+rtmbdyn_rt_sem_delete(void **__sem)
 {
 	SEM	*sem;
 	int	rc;
@@ -308,14 +308,14 @@ mbdyn_rt_sem_delete(void **__sem)
 	return rc;
 }
 int
-mbdyn_rt_sem_signal(void *__sem)
+rtmbdyn_rt_sem_signal(void *__sem)
 {
 	SEM	*sem = (SEM *)__sem;
 	
 	return rt_sem_signal(sem);
 }
 int
-mbdyn_rt_sem_wait(void *__sem)
+rtmbdyn_rt_sem_wait(void *__sem)
 {
 	SEM	*sem=(SEM *)__sem;
 	
@@ -323,7 +323,7 @@ mbdyn_rt_sem_wait(void *__sem)
 }
 
 void *
-mbdyn_rt_receive_if(void *__task, int *msg)
+rtmbdyn_rt_receive_if(void *__task, int *msg)
 {
 	RT_TASK *task = (RT_TASK *)__task;
 	
@@ -331,7 +331,7 @@ mbdyn_rt_receive_if(void *__task, int *msg)
 }
 
 long long
-mbdyn_rt_get_cpu_time_ns(void)
+rtmbdyn_rt_get_cpu_time_ns(void)
 {
 	return rt_get_cpu_time_ns();
 }

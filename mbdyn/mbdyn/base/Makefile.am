@@ -118,6 +118,10 @@ reffrm.h \
 resforces.cc \
 resforces.h \
 restart.h \
+rtaisolver.cc \
+rtaisolver.h \
+rtsolver.cc \
+rtsolver.h \
 sah.cc \
 sah.h \
 scalarvalue.cc \

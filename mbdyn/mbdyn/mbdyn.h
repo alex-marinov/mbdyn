@@ -151,7 +151,7 @@ enum {
 
 #ifdef USE_RTAI
 /* visible to all */
-extern void *mbdyn_rtai_task;
+extern void *rtmbdyn_rtai_task;
 #endif /* USE_RTAI */
 
 #ifndef LINE_MAX

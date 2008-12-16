@@ -47,6 +47,12 @@ SolverDiagnostics::~SolverDiagnostics(void)
 }
 	
 void
+SolverDiagnostics::SetNoOutput(void)
+{
+	OutputFlags = OUTPUT_NONE;
+}
+
+void
 SolverDiagnostics::SetOutputFlags(unsigned OF)
 {
 	OutputFlags = OF;

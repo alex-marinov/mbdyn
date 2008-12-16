@@ -45,8 +45,6 @@
 #ifndef INVERSESOLVER_H
 #define INVERSESOLVER_H  
 
-#define RTAI_LOG
-
 #include <unistd.h>
 #include <cfloat>
 #include <cmath>

@@ -63,7 +63,7 @@ host(h), node(n), name(m), create(c), port(-1), mbx(0)
 	if (create) {
 		ASSERT(node == 0);
 
-		if (mbdyn_rt_mbx_init(name, size, &mbx)) {
+		if (rtmbdyn_rt_mbx_init(name, size, &mbx)) {
 			silent_cerr("RTMBDyn mailbox(" << name << ") "
 				"init failed" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -72,11 +72,11 @@ host(h), node(n), name(m), create(c), port(-1), mbx(0)
 	} else {
 		if (node) {
 			/* get port ... */
-			port = mbdyn_rt_request_port(node);
+			port = rtmbdyn_rt_request_port(node);
 			/* FIXME: what in case of failure? */
 		}
 
-		if (mbdyn_RT_get_adr(node, port, name, &mbx)) {
+		if (rtmbdyn_RT_get_adr(node, port, name, &mbx)) {
 			silent_cerr("RTMBDyn mailbox(" << name << ") "
 				"get_adr failed" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -87,7 +87,7 @@ host(h), node(n), name(m), create(c), port(-1), mbx(0)
 RTMBDynOutElem::~RTMBDynOutElem(void)
 {
 	if (mbx) {
-		mbdyn_rt_mbx_delete(&mbx);
+		rtmbdyn_rt_mbx_delete(&mbx);
 	}
 
 	if (host) {
@@ -117,8 +117,8 @@ RTMBDynOutElem::AfterConvergence(const VectorHandler& X,
 		curbuf += sizeof(doublereal);
 	}
 	
-	if (mbdyn_RT_mbx_send_if(node, -port, mbx, (void *)buf, size) != size) {
-		/* error */
+	if (rtmbdyn_RT_mbx_send_if(node, -port, mbx, (void *)buf, size) != size) {
+		/* FIXME: error */
 	}
 	 
 }

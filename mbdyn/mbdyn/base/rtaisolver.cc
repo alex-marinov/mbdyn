@@ -1,0 +1,471 @@
+/* $Header$ */
+/* 
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2008
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation (version 2 of the License).
+ * 
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
+
+#ifdef USE_RTAI
+
+#include "mbdefs.h"
+#include "solver.h"
+#include "solver_impl.h"
+#include "rtaisolver.h"
+#include "mbrtai_utils.h"
+#include "ac/sys_sysinfo.h"
+
+// RTAI log message
+struct mbrtai_msg_t {
+	int step;
+	int time;
+} msg;
+
+/* RTAISolver - begin */
+
+RTAISolver::RTAISolver(Solver *pS,
+	unsigned long RTStackSize,
+	bool bRTAllowNonRoot,
+	RTMode eRTMode,
+	bool bRTHard,
+	long long lRTPeriod,
+	int RTCpuMap,
+	bool bRTlog,
+	char *LogProcName)
+: RTSolverBase(pS, RTStackSize),
+bRTAllowNonRoot(bRTAllowNonRoot),
+eRTMode(eRTMode),
+bRTHard(false),
+lRTPeriod(-1),
+RTCpuMap(0xff),
+bRTlog(false),
+LogProcName(0),
+mbxlog(0),
+RTStpFlag(0),
+RTSteps(0),
+t_tot(0),
+t0(0),
+t1(0),
+or_counter(0)
+{
+	NO_OP;
+}
+
+RTAISolver::~RTAISolver(void)
+{
+	NO_OP;
+}
+
+// very first setup, to be always performed
+void
+RTAISolver::Setup(void)
+{
+	if (bRTAllowNonRoot) {
+		rtmbdyn_rt_allow_nonroot_hrt();
+	}
+
+	/* Init RTAI; if init'ed, it will be shut down at exit */
+	if (rtmbdyn_rt_task_init("MBDTSK", 1, 0, 0, RTCpuMap,
+		&::rtmbdyn_rtai_task))
+	{
+		silent_cerr("unable to init RTAI task" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	if (lRTPeriod < 0) {
+		silent_cerr("illegal real-time time step"
+				<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
+// initialization to be performed only if real-time is requested
+void
+RTAISolver::Init(void)
+{
+	/* Need timer */
+	if (!rtmbdyn_rt_is_hard_timer_running()) {
+		/* FIXME: ??? */
+		silent_cout("Hard timer is started by MBDyn"
+			<< std::endl);
+		rtmbdyn_rt_set_oneshot_mode();
+		rtmbdyn_start_rt_timer(rtmbdyn_nano2count(1000000));
+	}
+
+	/*
+	 * MBDyn can work in two ways:
+	 * - internal timer
+	 * - scheduled by an external signal
+	 * only the first case is currently implemented
+	 */
+	if (RTWaitPeriod()) {
+		long long t = rtmbdyn_rt_get_time();
+		int r;
+
+		/* Timer should be init'ed */
+		ASSERT(t > 0);
+
+		silent_cout("Task: " << ::rtmbdyn_rtai_task
+			<< "; time: " << t
+			<< "; period: " << lRTPeriod
+			<< std::endl);
+		DEBUGCOUT("Task: " << ::rtmbdyn_rtai_task
+			<< "; time: " << t
+			<< "; period: " << lRTPeriod
+			<< std::endl);
+
+		// NOTE: the period was in nanoseconds until now.
+		lRTPeriod = rtmbdyn_nano2count(lRTPeriod);
+
+		r = rtmbdyn_rt_task_make_periodic(::rtmbdyn_rtai_task,
+			t, lRTPeriod);
+
+		if (r) {
+			silent_cerr("rt_task_make_periodic() failed "
+				"(" << r << ")" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+#if 0
+	else {
+		int r;
+
+		/* FIXME: check args
+		 * name should be configurable?
+		 * initial value 0: non-blocking
+		 */
+		r = rtmbdyn_rt_sem_init("MBDSMI", 0, &RTSemPtr_in);
+		if (r) {
+			silent_cerr("rt_sem_init() failed ("
+				<< r << ")" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
+	if (true) {	/* FIXME: option has to be configurable!*/
+		int r;
+
+		/* FIXME: check args
+		 * name should be configurable?
+		 * initial value 0: non-blocking
+		 */
+		r = rtmbdyn_rt_sem_init("MBDSMO", 0, &RTSemPtr_out);
+		if (r) {
+			silent_cerr("rt_sem_init() failed ("
+				<< r << ")" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+#endif
+
+	/* FIXME: should check whether RTStackSize is correctly set? */
+	if (bRTlog) {
+		char *mbxlogname = "logmb";
+		silent_cout("MBDyn start overruns monitor "
+			"(proc: \"" << LogProcName << "\")"
+			<< std::endl);
+
+		if (rtmbdyn_rt_mbx_init(mbxlogname, sizeof(msg)*16, &mbxlog)) {
+			bRTlog = false;
+			silent_cerr("Cannot init log mailbox "
+				"\"" << mbxlogname << "\""
+				<< std::endl);
+		}
+
+		const char *nonroot =
+			bRTAllowNonRoot ? "TRUE" : "FALSE";
+
+		switch (fork()) {
+		case 0: {
+			char LogCpuMap[] = "0xFF";
+
+			if (RTCpuMap != 0xff) {
+				/* MBDyn can use any cpu
+				 * The overruns monitor will use any free cpu */
+				snprintf(LogCpuMap, sizeof(LogCpuMap),
+					"%4x", ~RTCpuMap);
+			}
+
+			if (strcmp(LogProcName, "logproc") != 0) {
+				if (execl(LogProcName, LogProcName,
+					"MBDTSK", mbxlogname,
+					LogCpuMap, nonroot, NULL) == 0)
+				{
+					break;
+				}
+
+				/* error */
+				silent_cout("Cannot start "
+					"log procedure "
+					"\"" << LogProcName << "\"; "
+					"using default" << std::endl);
+			}
+
+#ifdef HAVE_SETENV
+			/* sets new path */
+			/* BINPATH is the ${bindir} variable
+			 * at configure time, defined in
+			 * include/mbdefs.h.in */
+			char *origpath = getenv("PATH");
+			if (origpath == NULL) {
+				/* ?!? */
+				setenv("PATH", ".:" BINPATH, 1);
+
+			} else {
+				size_t	len = strlen(origpath);
+				char newpath[STRLENOF(".:" BINPATH ":") + len + 1];
+
+				/* prepend ".:BINPATH:" to original path */
+				memcpy(newpath, ".:" BINPATH ":", STRLENOF(".:" BINPATH ":") + 1);
+				memcpy(&newpath[STRLENOF(".:" BINPATH ":")], origpath, len + 1);
+				setenv("PATH", newpath, 1);
+			}
+#endif // HAVE_SETENV
+
+			/* start logger */
+			if (execlp("logproc", "logproc", "MBDTSK",
+		               	mbxlogname, LogCpuMap, nonroot, NULL)
+				== -1)
+			{
+				silent_cout("Cannot start default "
+					"log procedure \"logproc\""
+					<< std::endl);
+				/* FIXME: better give up logging? */
+				bRTlog = false;
+			}
+			break;
+		}
+
+		case -1:
+			silent_cerr("Cannot init log procedure" << std::endl);
+			bRTlog = false;
+			break;
+
+		default:
+			rtmbdyn_rt_sleep(rtmbdyn_nano2count(1000000000));
+			break;
+		}
+	}
+
+	RTSolverBase::Init();
+}
+
+// check whether stop is commanded by real-time
+bool
+RTAISolver::IsStopCommanded(void)
+{
+	if (RTStpFlag == 1) {
+		StopCommanded();
+	}
+
+	return (RTStpFlag != 0);
+}
+
+// to be performed when stop is commanded by someone else
+void
+RTAISolver::StopCommanded(void)
+{
+	if (bRTHard) {
+		rtmbdyn_rt_make_soft_real_time();
+	}
+}
+
+// write real-time related message when stop commanded by someone else
+void
+RTAISolver::Log(void)
+{
+	silent_cout("total overruns: " << or_counter  << std::endl
+		  << "total overrun time: " << t_tot << " micros" << std::endl);
+}
+
+// wait for period to expire
+void
+RTAISolver::Wait(void)
+{
+	rtmbdyn_rt_receive_if(NULL, &RTStpFlag);
+
+	t1 = rtmbdyn_rt_get_time();
+	if (RTSteps >= 2 && t1 > (t0 + lRTPeriod)) {
+		or_counter++;
+		t_tot = t_tot + rtmbdyn_count2nano(t1 - t0 - lRTPeriod)/1000;
+
+		if (bRTlog){
+			msg.step = RTSteps;
+			msg.time =(int)rtmbdyn_count2nano(t1 - t0 - lRTPeriod)/1000;
+
+			rtmbdyn_RT_mbx_send_if(0, 0, mbxlog, &msg, sizeof(msg));
+		}
+	}
+
+	if (RTWaitPeriod()) {
+		rtmbdyn_rt_task_wait_period();
+
+	} else if (RTSemaphore()) {
+		/* FIXME: semaphore must be configurable */
+#if 0
+		mbdyn_rt_sem_wait(RTSemPtr_in);
+#endif
+	}
+
+	t0 = rtmbdyn_rt_get_time();
+
+	if (bRTHard) {
+		if (RTSteps == 2) {
+			/* make hard real time */
+			rtmbdyn_rt_make_hard_real_time();
+		}
+	}
+	RTSteps++;
+}
+
+/* RTAISolver - end */
+
+#endif // USE_RTAI
+
+RTSolverBase *
+ReadRTAISolver(Solver *pS, MBDynParser& HP)
+{
+#ifdef USE_RTAI
+	long long lRTPeriod(-1);
+	if (HP.IsKeyWord("time" "step")) {
+		long long p = HP.GetInt();
+
+		if (p <= 0) {
+			silent_cerr("RTAISolver: illegal time step "
+				<< p << " at line "
+				<< HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		lRTPeriod = p;
+
+	} else {
+		silent_cerr("RTAISolver: need a time step for real time "
+			"at line " << HP.GetLineData()
+			<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	bool bRTAllowNonRoot(false);
+	if (HP.IsKeyWord("allow" "nonroot")) {
+		bRTAllowNonRoot = true;
+	}
+
+	RTAISolver::RTMode eRTMode = RTAISolver::MBRTAI_UNKNOWN;
+	/* FIXME: use a safe default? */
+	if (HP.IsKeyWord("mode")) {
+		if (HP.IsKeyWord("period")) {
+			eRTMode = RTAISolver::MBRTAI_WAITPERIOD;
+
+		} else if (HP.IsKeyWord("semaphore")) {
+			/* FIXME: not implemented yet ... */
+			eRTMode = RTAISolver::MBRTAI_SEMAPHORE;
+
+		} else {
+			silent_cerr("RTAISolver: unknown realtime mode "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
+	unsigned long RTStackSize = 1024;
+	if (HP.IsKeyWord("reserve" "stack")) {
+		long size = HP.GetInt();
+
+		if (size <= 0) {
+			silent_cerr("RTAISolver: illegal stack size "
+				<< size << " at line "
+				<< HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		RTStackSize = size;
+	}
+
+	bool bRTHard = false;
+	if (HP.IsKeyWord("hard" "real" "time")) {
+		bRTHard = true;
+	}
+
+	int RTCpuMap(0xff);
+	if (HP.IsKeyWord("cpu" "map")) {
+		int cpumap = HP.GetInt();
+		// NOTE: there is a hard limit at 4 CPU
+		int ncpu = std::min(get_nprocs(), 4);
+		int newcpumap = (2 << (ncpu - 1)) - 1;
+
+		/* i bit non legati ad alcuna cpu sono posti a zero */
+		newcpumap &= cpumap;
+		if (newcpumap < 1 || newcpumap > 0xff) {
+			char buf[5];
+			snprintf(buf, sizeof(buf), "0x%2x", cpumap);
+			silent_cerr("RTAISolver: illegal cpu map "
+				<< buf << " at line "
+				<< HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		RTCpuMap = newcpumap;
+	}
+
+	bool bRTlog(false);
+	char *LogProcName(0);
+	if (HP.IsKeyWord("real" "time" "log")) {
+		if (HP.IsKeyWord("file" "name")){
+			const char *m = HP.GetFileName();
+			SAFESTRDUP(LogProcName, m);
+
+		} else {
+			/* FIXME */
+			SAFESTRDUP(LogProcName, "logproc");
+		}
+
+		bRTlog = true;
+	}
+
+	RTSolverBase *pRTSolver(0);
+	SAFENEWWITHCONSTRUCTOR(pRTSolver, RTAISolver,
+		RTAISolver(pS, RTStackSize,
+			bRTAllowNonRoot, eRTMode, bRTHard, lRTPeriod,
+			RTCpuMap, bRTlog, LogProcName));
+	return pRTSolver;
+
+#else // !USE_RTAI
+	silent_cerr("RTAISolver: need to configure --with-rtai "
+		"to use RTAI realtime" << std::endl);
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+	return 0;
+#endif // USE_RTAI
+}
+

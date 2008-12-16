@@ -17,6 +17,7 @@ MBDyn 1.X-Devel
 		- add support for generic external forces
 		- add file-based interface with EDGE
 		- allow socket stream element to output all kinematics
+		- add OS-based soft real-time support
 	Backward compatibility issues:
 		- now immediate abort requires CTRL^C three times
 	Known issues:

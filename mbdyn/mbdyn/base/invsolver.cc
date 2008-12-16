@@ -98,13 +98,6 @@ InverseSolver::Run(void)
 /*FIXME:*/	
 //	bParallel = false;
 
-#if USE_RTAI
-	if (bRT) {
-		/* FIXME: if using RTAI, clear out output */
-		SetOutputFlags(OUTPUT_NONE);
-	}
-#endif /* USE_RTAI */
-
 #ifdef USE_MULTITHREAD
 	/* check for thread potential */
 	if (nThreads == 0) {
@@ -122,22 +115,9 @@ InverseSolver::Run(void)
 	}
 #endif /* USE_MULTITHREAD */
 
-#ifdef USE_RTAI
-	if (bRT) {
-		/* Init RTAI; if init'ed, it will be shut down at exit */
-		if (mbdyn_rt_task_init("MBDTSK", 1, 0, 0, RTCpuMap,
-					&mbdyn_rtai_task)) {
-			silent_cerr("unable to init RTAI task" << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		if (lRTPeriod < 0) {
-			silent_cerr("illegal real-time time step"
-					<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+	if (pRTSolver) {
+		pRTSolver->Setup();
 	}
-#endif /* USE_RTAI */
 
 	/* Nome del file di output */
 	if (sOutputFileName == 0) {
@@ -616,175 +596,9 @@ InverseSolver::Run(void)
    	dRefTimeStep = dInitialTimeStep;
 	dCurrTimeStep = dRefTimeStep;
 
-#ifdef USE_RTAI
-
-#ifdef RTAI_LOG
-	struct {
-		int step;
-		int time;
-	} msg;
-#endif /* RTAI_LOG */
-
-	if (bRT) {
-		/* Need timer */
-		if (!mbdyn_rt_is_hard_timer_running() ){
-			/* FIXME: ??? */
-			silent_cout("Hard timer is started by MBDyn"
-				<< std::endl);
-			mbdyn_rt_set_oneshot_mode();
-			mbdyn_start_rt_timer(mbdyn_nano2count(1000000));
-		}
-
-
-		if (bRTAllowNonRoot) {
-			mbdyn_rt_allow_nonroot_hrt();
-		}
-
-		/*
-		 * MBDyn can work in two ways:
-		 * - internaal timer
-		 * - scheduled by an external signal
-		 * only the first case is currently implemented
-		 */
-		if (RTWaitPeriod()) {
-			long long t = mbdyn_rt_get_time();
-			int r;
-
-			/* Timer should be init'ed */
-			ASSERT(t);
-
-			DEBUGCOUT("Task: " << mbdyn_rtai_task
-				<< "; time: " << t
-				<< "; period: " << mbdyn_count2nano(lRTPeriod)
-				<< std::endl);
-			r = mbdyn_rt_task_make_periodic(mbdyn_rtai_task,
-					t, lRTPeriod);
-
-			if (r) {
-				silent_cerr("rt_task_make_periodic() failed ("
-					<< r << ")" << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-		}
-#if 0
-		else {
-			int r;
-
-			/* FIXME: check args
-			 * name should be configurable?
-			 * initial value 0: non-blocking
-			 */
-			r = mbdyn_rt_sem_init("MBDSMI", 0, &RTSemPtr_in);
-			if (r) {
-				silent_cerr("rt_sem_init() failed ("
-					<< r << ")" << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-		}
-
-		if (true) {	/* FIXME: option has to be configurable!*/
-			int r;
-
-			/* FIXME: check args
-			 * name should be configurable?
-			 * initial value 0: non-blocking
-			 */
-			/*
-			r = mbdyn_rt_sem_init("MBDSMO", 0, &RTSemPtr_out);
-			if (r) {
-				silent_cerr("rt_sem_init() failed ("
-					<< r << ")" << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}*/
-		}
-#endif
-		/* FIXME: should check whether RTStackSize is correclty set? */
-#ifdef RTAI_LOG
-		if (bRTlog) {
-			char *mbxlogname = "logmb";
-			silent_cout("MBDyn start overruns monitor" << std::endl);
-
-			if (mbdyn_rt_mbx_init(mbxlogname, sizeof(msg)*16, &mbxlog)){
-				bRTlog = false;
-				silent_cerr("Cannot init mail box log" << std::endl);
-			}
-			switch (fork()) {
-			case 0: {
-				char LogCpuMap[] = "0xFF";
-
-				if (RTCpuMap != 0xff){
-					/* MBDyn can use any cpu
-					 * The overruns monitor will use any free cpu */
-					snprintf(LogCpuMap, sizeof(LogCpuMap), "%4x", ~RTCpuMap);
-				}
-
-				if (!strcmp(LogProcName, "logproc") != 0) {
-					if (execl(LogProcName, LogProcName, "MBDTSK",
-							mbxlogname, LogCpuMap, NULL) == -1) {
-						/* error */
-						silent_cout("Cannot start log procedure \""
-								<< LogProcName
-								<< "\"; using default"
-								<< std::endl);
-					} else {
-						break;
-					}
-				}
-
-#ifdef HAVE_SETENV
-				/* sets new path */
-				/* BINPATH is the ${bindir} variable
-				 * at configure time, defined in
-				 * include/mbdefs.h.in */
-				char *origpath = getenv("PATH");
-				if (origpath == NULL) {
-					/* ?!? */
-					setenv("PATH", ".:" BINPATH, 1);
-
-				} else {
-					size_t	len = strlen(origpath);
-					char newpath[STRLENOF(".:" BINPATH ":") + len + 1];
-
-					/* prepend ".:BINPATH:" to original path */
-					memcpy(newpath, ".:" BINPATH ":", STRLENOF(".:" BINPATH ":") + 1);
-					memcpy(&newpath[STRLENOF(".:" BINPATH ":")], origpath, len + 1);
-					setenv("PATH", newpath, 1);
-				}
-#endif // HAVE_SETENV
-
-				/* start logger */
-				if (execlp("logproc", "logproc", "MBDTSK",
-			               	mbxlogname, LogCpuMap, NULL) == -1) {
-					silent_cout("Cannot start default "
-							"log procedure \"logproc\""
-							<< std::endl);
-					/* FIXME: better give up logging? */
-					bRTlog = false;
-				}
-				break;
-			}
-
-			case -1:
-				silent_cerr("Cannot init log procedure" << std::endl);
-				bRTlog = false;
-				break;
-
-			default:
-				mbdyn_rt_sleep(mbdyn_nano2count(1000000000));
-			}
-		}
-#endif /* RTAI_LOG */
-
-		mbdyn_reserve_stack(RTStackSize);
+	if (pRTSolver) {
+		pRTSolver->Init();
 	}
-
-	int 	RTStpFlag = 0;
-	volatile int	RTSteps = 0;
-
-        int t_tot = 0;
-	long long t0 = 0, t1;
-	int or_counter = 0;
-#endif /* USE_RTAI */
 
 	ASSERT(pRegularSteps != NULL);
 	
@@ -801,11 +615,10 @@ InverseSolver::Run(void)
 				= StepIntegrator::NEWSTEP;
 
       		if (dTime >= dFinalTime) {
-#ifdef USE_RTAI
-			if (bRT && bRTHard) {
-				mbdyn_rt_make_soft_real_time();
+			if (pRTSolver) {
+				pRTSolver->StopCommanded();
 			}
-#endif /* USE_RTAI */
+
 			silent_cout("End of simulation at time "
 				<< dTime << " after "
 				<< lStep << " steps;" << std::endl
@@ -814,20 +627,13 @@ InverseSolver::Run(void)
 				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
 				<< "total error: " << dTotErr << std::endl);
 
-#ifdef USE_RTAI
-			if (bRT){
-				silent_cout("total overruns: " << or_counter  << std::endl
-					  << "total overrun time: " << t_tot << " micros" << std::endl);
+			if (pRTSolver) {
+				pRTSolver->Log();
 			}
-#endif /* USE_RTAI */
 
 			return;
 
-#ifdef USE_RTAI
-		} else if (bRT && RTStpFlag == 1){
-			if (bRTHard) {
-				mbdyn_rt_make_soft_real_time();
-			}
+		} else if (pRTSolver && pRTSolver->IsStopCommanded()) {
 			silent_cout("Simulation is stopped by RTAI task" << std::endl
 				<< "Simulation ended at time "
 				<< dTime << " after "
@@ -835,12 +641,8 @@ InverseSolver::Run(void)
 				<< "total iterations: " << iTotIter << std::endl
 				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
 				<< "total error: " << dTotErr << std::endl);
-			if (!bRTlog){
-				silent_cout("total overruns: " << or_counter  << std::endl
-					<< "total overruns time: " << t_tot << " micros" << std::endl);
-			}
+			pRTSolver->Log();
 			return;
-#endif /* USE_RTAI */
 
       		} else if (mbdyn_stop_at_end_of_time_step()
 #ifdef USE_MPI
@@ -848,11 +650,9 @@ InverseSolver::Run(void)
 #endif /* USE_MPI */
 				)
 		{
-#ifdef USE_RTAI
-			if (bRT && bRTHard) {
-				mbdyn_rt_make_soft_real_time();
+			if (pRTSolver) {
+				pRTSolver->StopCommanded();
 			}
-#endif /* USE_RTAI */
 
 	 		silent_cout("Interrupted!" << std::endl
 	   			<< "Simulation ended at time "
@@ -861,52 +661,19 @@ InverseSolver::Run(void)
 				<< "total iterations: " << iTotIter << std::endl
 				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
 				<< "total error: " << dTotErr << std::endl);
+
+			if (pRTSolver) {
+				pRTSolver->Log();
+			}
+
 	 		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
       		}
 
       		lStep++;
 
-#ifdef USE_RTAI
-		if (bRT) {
-			mbdyn_rt_receive_if(NULL, &RTStpFlag);
-
-			t1 = mbdyn_rt_get_time();
-			if ((RTSteps >= 2) && (t1 > (t0 + lRTPeriod))) {
-				or_counter++;
-				t_tot = t_tot + mbdyn_count2nano(t1 - t0 - lRTPeriod)/1000;
-
-#ifdef RTAI_LOG
-				if (bRTlog){
-					msg.step = RTSteps;
-					msg.time =(int)mbdyn_count2nano(t1 - t0 - lRTPeriod)/1000;
-
-					mbdyn_RT_mbx_send_if(0, 0, mbxlog, &msg, sizeof(msg));
-				}
-#endif /* RTAI_LOG */
-			}
-
-
-			if (RTWaitPeriod()) {
-				mbdyn_rt_task_wait_period();
-
-			} else if (RTSemaphore()) {
-				/* FIXME: semaphore must be configurable */
-				//mbdyn_rt_sem_wait(RTSemPtr_in);
-			}
-
-
-			t0 = mbdyn_rt_get_time();
-
-			if (bRTHard) {
-				if (RTSteps == 2) {
-					/* make hard real time */
-					mbdyn_rt_make_hard_real_time();
-				}
-			}
-			RTSteps++;
+		if (pRTSolver) {
+			pRTSolver->Wait();
 		}
-
-#endif /* USE_RTAI */
 
 IfStepIsToBeRepeated:
 		try {
@@ -973,11 +740,10 @@ IfStepIsToBeRepeated:
 #ifdef USE_MPI
 			MBDynComm.Abort(0);
 #endif /* USE_MPI */
-#ifdef USE_RTAI
-			if (bRT && bRTHard) {
-				mbdyn_rt_make_soft_real_time();
+
+			if (pRTSolver) {
+				pRTSolver->StopCommanded();
 			}
-#endif /* USE_RTAI */
 
 	 		silent_cout("Simulation ended at time "
 				<< dTime << " after "
@@ -985,6 +751,11 @@ IfStepIsToBeRepeated:
 				<< "total iterations: " << iTotIter << std::endl
 				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
 				<< "total error: " << dTotErr << std::endl);
+
+			if (pRTSolver) {
+				pRTSolver->Log();
+			}
+
 	 		return;
       		}
 		catch (...) {
@@ -1048,12 +819,6 @@ InverseSolver::~InverseSolver(void)
    	if (pDM != NULL) {
       		SAFEDELETE(pDM);
 	}
-#if defined(USE_RTAI) && defined(RTAI_LOG)
-	if (bRTlog&&bRT){
-		mbdyn_rt_mbx_delete(&mbxlog);
-	}
-#endif /* USE_RTAI && RTAI_LOG */
-
 
 	if (pRegularSteps) {
 		SAFEDELETE(pRegularSteps);
@@ -2044,102 +1809,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 			break;
 
 		case REALTIME:
-#ifdef USE_RTAI
-			bRT = true;
-
-			if (HP.IsKeyWord("time" "step")) {
-				long long p = HP.GetInt();
-
-				if (p <= 0) {
-					silent_cerr("illegal time step "
-						<< p << " at line "
-						<< HP.GetLineData()
-						<< std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-				lRTPeriod = mbdyn_nano2count(p);
-
-			} else {
-				silent_cerr("need a time step for real time "
-					"at line " << HP.GetLineData()
-					<< std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (HP.IsKeyWord("allow" "nonroot")) {
-				bRTAllowNonRoot = true;
-			}
-
-			/* FIXME: use a safe default? */
-			if (HP.IsKeyWord("mode")) {
-				if (HP.IsKeyWord("period")) {
-					RTMode = MBRTAI_WAITPERIOD;
-
-				} else if (HP.IsKeyWord("semaphore")) {
-					/* FIXME: not implemented yet ... */
-					RTMode = MBRTAI_SEMAPHORE;
-
-				} else {
-					silent_cerr("unknown realtime mode "
-						"at line " << HP.GetLineData()
-						<< std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-			}
-
-			if (HP.IsKeyWord("reserve" "stack")) {
-				long size = HP.GetInt();
-
-				if (size <= 0) {
-					silent_cerr("illegal stack size "
-						<< size << " at line "
-						<< HP.GetLineData()
-						<< std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				RTStackSize = size;
-			}
-
-			if (HP.IsKeyWord("hard" "real" "time")) {
-				bRTHard = true;
-			}
-
-			if (HP.IsKeyWord("cpu" "map")) {
-				int cpumap = HP.GetInt();
-				int ncpu = get_nprocs();
-				int newcpumap = pow(2, ncpu) - 1;
-
-				/* i bit non legati ad alcuna cpu sono posti
-				 * a zero */
-				newcpumap &= cpumap;
-				if (newcpumap < 1 || newcpumap > 0xff) {
-					silent_cerr("illegal cpu map "
-						<< cpumap << " at line "
-						<< HP.GetLineData()
-						<< std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-				RTCpuMap = newcpumap;
-			}
-#ifdef RTAI_LOG
-			if (HP.IsKeyWord("real" "time" "log")) {
-				if (HP.IsKeyWord("file" "name")){
-					const char *m = HP.GetFileName();
-					SAFESTRDUP(LogProcName, m);
-				} else {
-					/* FIXME */
-					SAFESTRDUP(LogProcName, "logproc");
-				}
-				bRTlog = true;
-			}
-#endif /* RTAI_LOG */
-
-#else /* !USE_RTAI */
-			silent_cerr("need to configure --with-rtai "
-				"to use realtime" << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-#endif /* !USE_RTAI */
+			pRTSolver = ReadRTSolver(this, HP);
 			break;
 
 		case THREADS:

@@ -1811,7 +1811,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const char *sName
 
 		/* allocazione e creazione */
 #ifdef USE_RTAI
-		if (mbdyn_rtai_task != 0) {
+		if (::rtmbdyn_rtai_task != 0) {
 			switch (KeyWords(CurrType)) {
 			case SOCKETSTREAM_OUTPUT:
 			case RTAI_OUTPUT:

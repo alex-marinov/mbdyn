@@ -56,6 +56,8 @@ public:
 	SolverDiagnostics(unsigned OF = OUTPUT_DEFAULT);
 	virtual ~SolverDiagnostics(void);
 	
+	void SetNoOutput(void);
+
 	void SetOutputFlags(unsigned OF);
 	void AddOutputFlags(unsigned OF);
 	void DelOutputFlags(unsigned OF);
