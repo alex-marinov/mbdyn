@@ -110,7 +110,7 @@ RTAISolver::Restart(std::ostream& out) const
 		out << ", allow nonroot";
 	}
 
-	if (RTCpuMap != 0xff) {
+	if (RTCpuMap != 0xFF) {
 		out << ", cpu map, " << RTCpuMap;
 	}
 
@@ -241,11 +241,11 @@ RTAISolver::Init(void)
 			case 0: {
 				char LogCpuMap[] = "0xFF";
 
-				if (RTCpuMap != 0xff) {
+				if (RTCpuMap != 0xFF) {
 					/* MBDyn can use any cpu
 					 * The overruns monitor will use any free cpu */
 					snprintf(LogCpuMap, sizeof(LogCpuMap),
-						"%4x", ~RTCpuMap);
+						"0x%02X", ~RTCpuMap);
 				}
 
 				if (strcmp(LogProcName.c_str(), "logproc") != 0) {

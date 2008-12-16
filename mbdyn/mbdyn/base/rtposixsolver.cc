@@ -92,7 +92,7 @@ RTPOSIXSolver::Setup(void)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
         }
 
-	if (RTCpuMap != 0xff) {
+	if (RTCpuMap != 0xFF) {
 		cpu_set_t cpuset;
 
 		CPU_ZERO(&cpuset);

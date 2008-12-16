@@ -166,7 +166,7 @@ ReadRTParams(Solver *pS, MBDynParser& HP,
 		bRTAllowNonRoot = true;
 	}
 
-	RTCpuMap = 0xff;
+	RTCpuMap = 0xFF;
 	if (HP.IsKeyWord("cpu" "map")) {
 		int cpumap = HP.GetInt();
 		// NOTE: there is a hard limit at 4 CPU
@@ -175,9 +175,9 @@ ReadRTParams(Solver *pS, MBDynParser& HP,
 
 		/* i bit non legati ad alcuna cpu sono posti a zero */
 		newcpumap &= cpumap;
-		if (newcpumap < 1 || newcpumap > 0xff) {
-			char buf[5];
-			snprintf(buf, sizeof(buf), "0x%02x", cpumap);
+		if (newcpumap < 1 || newcpumap > 0xFF) {
+			char buf[16];
+			snprintf(buf, sizeof(buf), "0x%02X", (unsigned)cpumap);
 			silent_cerr("RTSolver: illegal cpu map "
 				<< buf << " at line "
 				<< HP.GetLineData()
