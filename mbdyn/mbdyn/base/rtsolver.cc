@@ -48,13 +48,15 @@ RTSolverBase::RTSolverBase(Solver *pS,
 	unsigned long lRTPeriod,
 	unsigned long RTStackSize,
 	bool bRTAllowNonRoot,
-	int RTCpuMap)
+	int RTCpuMap,
+	bool bNoOutput)
 : pS(pS),
 eRTMode(eRTMode),
 lRTPeriod(lRTPeriod),
 RTStackSize(RTStackSize),
 bRTAllowNonRoot(bRTAllowNonRoot),
-RTCpuMap(RTCpuMap)
+RTCpuMap(RTCpuMap),
+bNoOutput(bNoOutput)
 {
 	ASSERT(RTStackSize > 0);
 	ASSERT(lRTPeriod > 0);
@@ -69,7 +71,9 @@ void
 RTSolverBase::Init(void)
 {
 	/* if using real-time, clear out any type of output */
-	pS->SetNoOutput();
+	if (bNoOutput) {
+		pS->SetNoOutput();
+	}
 
 	mbdyn_reserve_stack(RTStackSize);
 }
@@ -192,8 +196,8 @@ ReadRTSolver(Solver *pS, MBDynParser& HP)
 	}
 
 	if (!HP.IsKeyWord("RTAI")) {
-		pedantic_cerr("missing real-time type; assuming RTAI "
-			"at line " << HP.GetLineData()
+		pedantic_cerr("ReadRTSolver: missing real-time model; "
+			"assuming RTAI at line " << HP.GetLineData()
 			<< std::endl);
 	}
 

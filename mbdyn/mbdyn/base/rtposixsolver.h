@@ -49,7 +49,8 @@ public:
 		unsigned long lRTPeriod,
 		unsigned long RTStackSize,
 		bool bRTAllowNonRoot,
-		int RTCpuMap);
+		int RTCpuMap,
+		bool bNoOutput);
 	~RTPOSIXSolver(void);
 
 	// write contribution to restart file

@@ -57,6 +57,8 @@ protected:
 	bool bRTAllowNonRoot;
 	int RTCpuMap;
 
+	bool bNoOutput;
+
 	bool RTWaitPeriod(void) const {
 		return (eRTMode == MBRT_WAITPERIOD);
 	};
@@ -73,7 +75,8 @@ public:
 		unsigned long lRTPeriod,
 		unsigned long RTStackSize,
 		bool bRTAllowNonRoot,
-		int RTCpuMap);
+		int RTCpuMap,
+		bool bNoOutput = true);
 	virtual ~RTSolverBase(void);
 
 	// write contribution to restart file

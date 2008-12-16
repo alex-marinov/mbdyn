@@ -33,6 +33,7 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <cerrno>
 #include "myassert.h"
 #include "solver.h"
 #include "solver_impl.h"
@@ -48,8 +49,9 @@ RTPOSIXSolver::RTPOSIXSolver(Solver *pS,
 	unsigned long lRTPeriod,
 	unsigned long RTStackSize,
 	bool bRTAllowNonRoot,
-	int RTCpuMap)
-: RTSolverBase(pS, eRTMode, lRTPeriod, RTStackSize, bRTAllowNonRoot, RTCpuMap),
+	int RTCpuMap,
+	bool bNoOutput)
+: RTSolverBase(pS, eRTMode, lRTPeriod, RTStackSize, bRTAllowNonRoot, RTCpuMap, bNoOutput),
 clock_flags(TIMER_ABSTIME)
 {
 	NO_OP;
@@ -127,8 +129,12 @@ RTPOSIXSolver::Wait(void)
 	case 0:
 		break;
 
+	case EINTR:
+		silent_cerr("RTPOSIXSolver: clock_nanosleep interrupted" << std::endl);
+		break;
+
 	default:
-		silent_cerr("RTSolver: clock_nanosleep failed "
+		silent_cerr("RTPOSIXSolver: clock_nanosleep failed "
 			"(rc=" << rc << ")" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
@@ -149,14 +155,29 @@ ReadRTPOSIXSolver(Solver *pS, MBDynParser& HP)
 	int RTCpuMap;
 	ReadRTParams(pS, HP, eRTMode, lRTPeriod, RTStackSize, bRTAllowNonRoot, RTCpuMap);
 
+	bool bNoOutput(true);
+	if (HP.IsKeyWord("output")) {
+		if (HP.IsKeyWord("yes")) {
+			bNoOutput = false;
+
+		} else if (HP.IsKeyWord("no")) {
+			bNoOutput = true;
+
+		} else {
+			int iNoOutput = HP.GetInt(1);
+			bNoOutput = (iNoOutput == 0);
+		}
+	}
+
 	RTSolverBase *pRTSolver(0);
 	SAFENEWWITHCONSTRUCTOR(pRTSolver, RTPOSIXSolver,
 		RTPOSIXSolver(pS, eRTMode, lRTPeriod,
-			RTStackSize, bRTAllowNonRoot, RTCpuMap));
+			RTStackSize, bRTAllowNonRoot, RTCpuMap,
+			bNoOutput));
 	return pRTSolver;
 
 #else // !USE_RT
-	silent_cerr("RTPOSIXSolver: need to configure --with-rt "
+	silent_cerr("ReadRTPOSIXSolver: need to configure --with-rt "
 		"to use POSIX realtime" << std::endl);
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 

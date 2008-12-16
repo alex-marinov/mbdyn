@@ -703,6 +703,7 @@ and add the iterations output, use:
         [ , reserve stack , <stack-size> ]
         [ , allow nonroot ]
         [ , cpu map , <cpu-map> ]
+        [ , output , { yes | no } ]
         [ , hard real time ]
         [ , real time log [ , file name , <command-name> ] ]
     <mode> ::= {
@@ -736,6 +737,10 @@ a minimal default value is set in any case;
 execution on a specific subset of CPUs on multiprocessor hardware;
 the syntax of the \kw{<cpu-map>} field is a byte-sized integer 
 (between 0 and 255) whose active bits are the desired CPUs;
+\item the keyword \kw{output} determines whether output is entirely disabled
+or not; this option is only available to \kw{POSIX} real-time,
+and should always be set to \kw{no} in order to disable any output,
+so that I/O only occurs for the purpose of interprocess communication;
 \item the keyword \kw{hard real time} instructs the program to run
 in hard real-time; the default is soft real-time
 (RTAI only; by default scheduling is in soft real-time);

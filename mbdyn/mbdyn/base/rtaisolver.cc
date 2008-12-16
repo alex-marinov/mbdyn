@@ -59,7 +59,8 @@ RTAISolver::RTAISolver(Solver *pS,
 	bool bRTHard,
 	bool bRTlog,
 	const std::string& LogProcName)
-: RTSolverBase(pS, eRTMode, lRTPeriod, RTStackSize, bRTAllowNonRoot, RTCpuMap),
+: RTSolverBase(pS, eRTMode, lRTPeriod,
+	RTStackSize, bRTAllowNonRoot, RTCpuMap),
 bRTHard(bRTHard),
 bRTlog(bRTlog),
 LogProcName(LogProcName),
@@ -138,7 +139,7 @@ RTAISolver::Setup(void)
 	if (rtmbdyn_rt_task_init("MBDTSK", 1, 0, 0, RTCpuMap,
 		&::rtmbdyn_rtai_task))
 	{
-		silent_cerr("unable to init RTAI task" << std::endl);
+		silent_cerr("RTAISolver: unable to init RTAI task" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
@@ -150,7 +151,7 @@ RTAISolver::Init(void)
 	/* Need timer */
 	if (!rtmbdyn_rt_is_hard_timer_running()) {
 		/* FIXME: ??? */
-		silent_cout("Hard timer is started by MBDyn"
+		silent_cout("RTAISolver: Hard timer is started by MBDyn"
 			<< std::endl);
 		rtmbdyn_rt_set_oneshot_mode();
 		rtmbdyn_start_rt_timer(rtmbdyn_nano2count(1000000));
@@ -169,11 +170,7 @@ RTAISolver::Init(void)
 		/* Timer should be init'ed */
 		ASSERT(t > 0);
 
-		silent_cout("Task: " << ::rtmbdyn_rtai_task
-			<< "; time: " << t
-			<< "; period: " << lRTPeriod
-			<< std::endl);
-		DEBUGCOUT("Task: " << ::rtmbdyn_rtai_task
+		silent_cout("RTAISolver: Task: " << ::rtmbdyn_rtai_task
 			<< "; time: " << t
 			<< "; period: " << lRTPeriod
 			<< std::endl);
@@ -185,7 +182,8 @@ RTAISolver::Init(void)
 			t, lRTPeriod);
 
 		if (r) {
-			silent_cerr("rt_task_make_periodic() failed "
+			silent_cerr("RTAISolver: "
+				"rtmbdyn_rt_task_make_periodic() failed "
 				"(" << r << ")" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
@@ -224,14 +222,14 @@ RTAISolver::Init(void)
 
 	/* FIXME: should check whether RTStackSize is correctly set? */
 	if (bRTlog) {
-		silent_cout("MBDyn starts overruns monitor "
+		silent_cout("RTAISolver: MBDyn starts overruns monitor "
 			"(proc: \"" << LogProcName << "\")"
 			<< std::endl);
 
 		char *mbxlogname = "logmb";
 		if (rtmbdyn_rt_mbx_init(mbxlogname, sizeof(msg)*16, &mbxlog)) {
 			bRTlog = false;
-			silent_cerr("Cannot init log mailbox "
+			silent_cerr("RTAISolver: cannot init log mailbox "
 				"\"" << mbxlogname << "\""
 				<< std::endl);
 
@@ -259,7 +257,7 @@ RTAISolver::Init(void)
 					}
 
 					/* error */
-					silent_cout("Cannot start "
+					silent_cout("RTAISolver: cannot start "
 						"log procedure "
 						"\"" << LogProcName << "\"; "
 						"using default" << std::endl);
@@ -287,7 +285,7 @@ RTAISolver::Init(void)
 			               	mbxlogname, LogCpuMap, nonroot, NULL)
 					== -1)
 				{
-					silent_cout("Cannot start default "
+					silent_cout("RTAISolver: cannot start default "
 						"log procedure \"logproc\""
 						<< std::endl);
 					/* FIXME: better give up logging? */
