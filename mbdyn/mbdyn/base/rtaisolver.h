@@ -61,7 +61,7 @@ private:
 
 	int RTCpuMap;
 	bool bRTlog;
-	char *LogProcName;
+	const std::string LogProcName;
 
 	bool RTWaitPeriod(void) const {
 		return (eRTMode == MBRTAI_WAITPERIOD);
@@ -87,9 +87,11 @@ public:
 		long long lRTPeriod,
 		int RTCpuMap,
 		bool bRTlog,
-		char *LogProcName);
+		const std::string& LogProcName);
 	~RTAISolver(void);
 
+	// write contribution to restart file
+	std::ostream& Restart(std::ostream& out) const;
 	// very first setup, to be always performed
 	void Setup(void);
 	// initialization to be performed only if real-time is requested

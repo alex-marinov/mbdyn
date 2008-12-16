@@ -45,6 +45,8 @@ public:
 	RTSolverBase(Solver *pS, unsigned long RTStackSize);
 	virtual ~RTSolverBase(void);
 
+	// write contribution to restart file
+	virtual std::ostream& Restart(std::ostream& out) const = 0;
 	// very first setup, to be always performed
 	virtual void Setup(void) = 0;
 	// initialization to be performed only if real-time is requested
@@ -68,6 +70,8 @@ public:
 	RTSolver(Solver *pS, unsigned long RTStackSize);
 	~RTSolver(void);
 
+	// write contribution to restart file
+	std::ostream& Restart(std::ostream& out) const;
 	// very first setup, to be always performed
 	void Setup(void);
 	// initialization to be performed only if real-time is requested

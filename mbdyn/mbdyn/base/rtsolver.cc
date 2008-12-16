@@ -85,6 +85,13 @@ RTSolver::~RTSolver(void)
 	NO_OP;
 }
 
+// write contribution to restart file
+std::ostream&
+RTSolver::Restart(std::ostream& out) const
+{
+	return out;
+}
+
 // very first setup, to be always performed
 void
 RTSolver::Setup(void)

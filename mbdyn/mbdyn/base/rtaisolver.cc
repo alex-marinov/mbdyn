@@ -59,15 +59,15 @@ RTAISolver::RTAISolver(Solver *pS,
 	long long lRTPeriod,
 	int RTCpuMap,
 	bool bRTlog,
-	char *LogProcName)
+	const std::string& LogProcName)
 : RTSolverBase(pS, RTStackSize),
 bRTAllowNonRoot(bRTAllowNonRoot),
 eRTMode(eRTMode),
-bRTHard(false),
-lRTPeriod(-1),
-RTCpuMap(0xff),
-bRTlog(false),
-LogProcName(0),
+bRTHard(bRTHard),
+lRTPeriod(lRTPeriod),
+RTCpuMap(RTCpuMap),
+bRTlog(bRTlog),
+LogProcName(LogProcName),
 mbxlog(0),
 RTStpFlag(0),
 RTSteps(0),
@@ -76,12 +76,58 @@ t0(0),
 t1(0),
 or_counter(0)
 {
-	NO_OP;
+	ASSERT(lRTPeriod > 0);
+	ASSERT(!bRTlog || !LogProcName.empty());
 }
 
 RTAISolver::~RTAISolver(void)
 {
-	NO_OP;
+	if (mbxlog) {
+		rtmbdyn_rt_mbx_delete(&mbxlog);
+		mbxlog = 0;
+	}
+}
+
+// write contribution to restart file
+std::ostream&
+RTAISolver::Restart(std::ostream& out) const
+{
+	out << "RTAI, "
+		"time step, " << lRTPeriod;
+
+	if (bRTAllowNonRoot) {
+		out << ", allow nonroot";
+	}
+
+	out << ", mode, ";
+	switch (eRTMode) {
+	case RTAISolver::MBRTAI_WAITPERIOD:
+		out << "period";
+		break;
+
+	case RTAISolver::MBRTAI_SEMAPHORE:
+		out << "semaphore";
+		break;
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	out << ", reserve stack, " << RTStackSize;
+
+	if (bRTHard) {
+		out << ", hard realtime";
+	}
+
+	if (RTCpuMap != 0xff) {
+		out << ", cpu map, " << RTCpuMap;
+	}
+
+	if (bRTlog) {
+		out << ", realtime log, \"" << LogProcName << "\"";
+	}
+
+	return out;
 }
 
 // very first setup, to be always performed
@@ -92,17 +138,13 @@ RTAISolver::Setup(void)
 		rtmbdyn_rt_allow_nonroot_hrt();
 	}
 
+	ASSERT(::rtmbdyn_rtai_task == 0);
+
 	/* Init RTAI; if init'ed, it will be shut down at exit */
 	if (rtmbdyn_rt_task_init("MBDTSK", 1, 0, 0, RTCpuMap,
 		&::rtmbdyn_rtai_task))
 	{
 		silent_cerr("unable to init RTAI task" << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	if (lRTPeriod < 0) {
-		silent_cerr("illegal real-time time step"
-				<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
@@ -214,8 +256,8 @@ RTAISolver::Init(void)
 					"%4x", ~RTCpuMap);
 			}
 
-			if (strcmp(LogProcName, "logproc") != 0) {
-				if (execl(LogProcName, LogProcName,
+			if (strcmp(LogProcName.c_str(), "logproc") != 0) {
+				if (execl(LogProcName.c_str(), LogProcName.c_str(),
 					"MBDTSK", mbxlogname,
 					LogCpuMap, nonroot, NULL) == 0)
 				{
@@ -440,15 +482,22 @@ ReadRTAISolver(Solver *pS, MBDynParser& HP)
 	}
 
 	bool bRTlog(false);
-	char *LogProcName(0);
+	std::string LogProcName;
 	if (HP.IsKeyWord("real" "time" "log")) {
 		if (HP.IsKeyWord("file" "name")){
 			const char *m = HP.GetFileName();
-			SAFESTRDUP(LogProcName, m);
+			if (m == 0) {
+				silent_cerr("RTAISolver: unable to get "
+					"log process name (\"file name\") "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			LogProcName = m;
 
 		} else {
-			/* FIXME */
-			SAFESTRDUP(LogProcName, "logproc");
+			// built-in log process
+			LogProcName = "logproc";
 		}
 
 		bRTlog = true;
