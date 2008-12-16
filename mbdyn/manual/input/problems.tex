@@ -699,37 +699,46 @@ and add the iterations output, use:
 \subsubsection{Real-Time Execution}\label{sec:REAL-TIME}
 \begin{verbatim}
     <card> ::= real time : [ { RTAI | POSIX } , ]
-        [ mode , { period | semaphore } , ]
-        time step , <time-step> 
+        <mode>
         [ , reserve stack , <stack-size> ]
         [ , allow nonroot ]
         [ , cpu map , <cpu-map> ]
         [ , hard real time ]
         [ , real time log [ , file name , <command-name> ] ]
+    <mode> ::= {
+        [ mode , period , ] time step , <time-step>
+        | mode , semaphore [ , <semaphore_args> ]
+    }
 \end{verbatim}
 where:
 \begin{itemize}
-\item the \kw{time step} is the sampling time in \emph{nanoseconds} (ns); 
+\item the optional \kw{RTAI} or \kw{POSIX} keywords indicate whether
+RTAI (\kw{http://www.rtai.org/}) or POSIX should be used to schedule
+the execution of MBDyn in real-time (defaults to \kw{RTAI});
+\item when the keyword \kw{mode} is set to \kw{period}, the execution
+is scheduled periodically; when set to \kw{semaphore}, it waits 
+for an external trigger to start a new step
+(note: \kw{semaphore} is not implemented yet, so \kw{semaphore\_args}
+is currently undefined; default is \kw{period});
+\item the \kw{time step}, required when the scheduling is \kw{periodic},
+is the sampling time in \emph{nanoseconds} (ns); 
 usually, it should match the time step 
 of the simulation, but it can be different for other purposes;
 \item \kw{allow nonroot} means that the program should be allowed to run
 as a regular (non-root) user while performing hard real-time operations
 with the underlying OS;
-\item when the keyword \kw{mode} is set to \kw{period}, the execution
-is scheduled periodically; when set to \kw{semaphore}, it waits 
-for an external trigger to start a new step
-(note: \kw{semaphore} is not implemented yet);
 \item the keyword \kw{reserve stack} instructs the program 
 to statically reserve the desired stack size by means 
 of the \kw{mlockall(2)} system call; it should be used to ensure 
 that no page swapping occurs during the real-time simulation;
 a minimal default value is set in any case;
-\item the keyword \kw{hard real time} instructs the program to run
-in hard real-time; the default is soft real-time;
 \item the keyword \kw{cpu map} allows the program to force its
 execution on a specific subset of CPUs on multiprocessor hardware;
 the syntax of the \kw{<cpu-map>} field is a byte-sized integer 
 (between 0 and 255) whose active bits are the desired CPUs;
+\item the keyword \kw{hard real time} instructs the program to run
+in hard real-time; the default is soft real-time
+(RTAI only; by default scheduling is in soft real-time);
 \item the keyword \kw{real time log} enables logging by means 
 of RTAI mailboxes; an optional \kw{filename} argument allows 
 to set the name of the logging process that is used.

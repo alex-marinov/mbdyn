@@ -224,90 +224,87 @@ RTAISolver::Init(void)
 
 	/* FIXME: should check whether RTStackSize is correctly set? */
 	if (bRTlog) {
-		char *mbxlogname = "logmbd";
-		silent_cout("MBDyn start overruns monitor "
+		silent_cout("MBDyn starts overruns monitor "
 			"(proc: \"" << LogProcName << "\")"
 			<< std::endl);
 
+		char *mbxlogname = "logmb";
 		if (rtmbdyn_rt_mbx_init(mbxlogname, sizeof(msg)*16, &mbxlog)) {
 			bRTlog = false;
 			silent_cerr("Cannot init log mailbox "
 				"\"" << mbxlogname << "\""
 				<< std::endl);
-		}
 
-		const char *nonroot =
-			bRTAllowNonRoot ? "TRUE" : "FALSE";
+		} else {
+			const char *nonroot =
+				bRTAllowNonRoot ? "TRUE" : "FALSE";
 
-		switch (fork()) {
-		case 0: {
-			char LogCpuMap[] = "0xFF";
+			switch (fork()) {
+			case 0: {
+				char LogCpuMap[] = "0xFF";
 
-			if (RTCpuMap != 0xff) {
-				/* MBDyn can use any cpu
-				 * The overruns monitor will use any free cpu */
-				snprintf(LogCpuMap, sizeof(LogCpuMap),
-					"%4x", ~RTCpuMap);
-			}
-
-			if (strcmp(LogProcName.c_str(), "logproc") != 0) {
-				if (execl(LogProcName.c_str(), LogProcName.c_str(),
-					"MBDTSK", mbxlogname,
-					LogCpuMap, nonroot, NULL) == 0)
-				{
-					break;
+				if (RTCpuMap != 0xff) {
+					/* MBDyn can use any cpu
+					 * The overruns monitor will use any free cpu */
+					snprintf(LogCpuMap, sizeof(LogCpuMap),
+						"%4x", ~RTCpuMap);
 				}
 
-				/* error */
-				silent_cout("Cannot start "
-					"log procedure "
-					"\"" << LogProcName << "\"; "
-					"using default" << std::endl);
-			}
+				if (strcmp(LogProcName.c_str(), "logproc") != 0) {
+					if (execl(LogProcName.c_str(), LogProcName.c_str(),
+						"MBDTSK", mbxlogname,
+						LogCpuMap, nonroot, NULL) == 0)
+					{
+						break;
+					}
+
+					/* error */
+					silent_cout("Cannot start "
+						"log procedure "
+						"\"" << LogProcName << "\"; "
+						"using default" << std::endl);
+				}
 
 #ifdef HAVE_SETENV
-			/* sets new path */
-			/* BINPATH is the ${bindir} variable
-			 * at configure time, defined in
-			 * include/mbdefs.h.in */
-			char *origpath = getenv("PATH");
-			if (origpath == NULL) {
-				/* ?!? */
-				setenv("PATH", ".:" BINPATH, 1);
+				/* sets new path */
+				/* BINPATH is the ${bindir} variable
+				 * at configure time, defined in
+				 * include/mbdefs.h.in */
+				char *origpath = getenv("PATH");
+				if (origpath == 0) {
+					/* ?!? */
+					setenv("PATH", ".:" BINPATH, 1);
 
-			} else {
-				size_t	len = strlen(origpath);
-				char newpath[STRLENOF(".:" BINPATH ":") + len + 1];
-
-				/* prepend ".:BINPATH:" to original path */
-				memcpy(newpath, ".:" BINPATH ":", STRLENOF(".:" BINPATH ":") + 1);
-				memcpy(&newpath[STRLENOF(".:" BINPATH ":")], origpath, len + 1);
-				setenv("PATH", newpath, 1);
-			}
+				} else {
+					std::string newpath = ".:" BINPATH ":";
+					newpath += origpath;
+					setenv("PATH", newpath.c_str(), 1);
+				}
 #endif // HAVE_SETENV
 
-			/* start logger */
-			if (execlp("logproc", "logproc", "MBDTSK",
-		               	mbxlogname, LogCpuMap, nonroot, NULL)
-				== -1)
-			{
-				silent_cout("Cannot start default "
-					"log procedure \"logproc\""
-					<< std::endl);
-				/* FIXME: better give up logging? */
-				bRTlog = false;
+				/* start logger */
+				if (execlp("logproc", "logproc", "MBDTSK",
+			               	mbxlogname, LogCpuMap, nonroot, NULL)
+					== -1)
+				{
+					silent_cout("Cannot start default "
+						"log procedure \"logproc\""
+						<< std::endl);
+					/* FIXME: better give up logging? */
+					bRTlog = false;
+				}
+				break;
 			}
-			break;
-		}
 
-		case -1:
-			silent_cerr("Cannot init log procedure" << std::endl);
-			bRTlog = false;
-			break;
+			case -1:
+				silent_cerr("Cannot init log procedure" << std::endl);
+				bRTlog = false;
+				break;
 
-		default:
-			rtmbdyn_rt_sleep(rtmbdyn_nano2count(1000000000));
-			break;
+			default:
+				rtmbdyn_rt_sleep(rtmbdyn_nano2count(1000000000));
+				break;
+			}
 		}
 	}
 

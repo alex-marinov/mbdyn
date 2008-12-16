@@ -33,7 +33,6 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <cerrno>
 #include "myassert.h"
 #include "solver.h"
 #include "solver_impl.h"
@@ -123,13 +122,14 @@ RTPOSIXSolver::Wait(void)
 		t.tv_sec++;
 	}
 
-	switch (clock_nanosleep(CLOCK_MONOTONIC, clock_flags, &t, NULL)) {
+	int rc = clock_nanosleep(CLOCK_MONOTONIC, clock_flags, &t, NULL);
+	switch (rc) {
 	case 0:
 		break;
 
-	case -EINVAL:
-	case -EFAULT:
-		silent_cerr("RTSolver: clock_nanosleep failed" << std::endl);
+	default:
+		silent_cerr("RTSolver: clock_nanosleep failed "
+			"(rc=" << rc << ")" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
