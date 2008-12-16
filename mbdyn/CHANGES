@@ -20,6 +20,7 @@ MBDyn 1.X-Devel
 		- add OS-based soft real-time support
 	Backward compatibility issues:
 		- now immediate abort requires CTRL^C three times
+		- changed real-time args order (not backward compatible)
 	Known issues:
 	Bug fixes:
 		- fix "cardano hinge" keyword detection (Marco Morandini)
