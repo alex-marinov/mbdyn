@@ -33,6 +33,7 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <cerrno>
 #include "myassert.h"
 #include "solver.h"
 #include "solver_impl.h"
