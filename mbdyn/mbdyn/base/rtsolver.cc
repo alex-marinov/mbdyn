@@ -177,7 +177,7 @@ ReadRTParams(Solver *pS, MBDynParser& HP,
 		newcpumap &= cpumap;
 		if (newcpumap < 1 || newcpumap > 0xff) {
 			char buf[5];
-			snprintf(buf, sizeof(buf), "0x%2x", cpumap);
+			snprintf(buf, sizeof(buf), "0x%02x", cpumap);
 			silent_cerr("RTSolver: illegal cpu map "
 				<< buf << " at line "
 				<< HP.GetLineData()

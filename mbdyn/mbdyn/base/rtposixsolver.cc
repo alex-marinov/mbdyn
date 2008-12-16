@@ -91,6 +91,22 @@ RTPOSIXSolver::Setup(void)
 		silent_cerr("RTPOSIXSolver: sched_setscheduler failed" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
         }
+
+	if (RTCpuMap != 0xff) {
+		cpu_set_t cpuset;
+
+		CPU_ZERO(&cpuset);
+		for (int cpu = 0; cpu < 8; cpu++) {
+			if ((RTCpuMap >> cpu) & 0x1) {
+				CPU_SET(cpu, &cpuset);
+			}
+		}
+
+		if (sched_setaffinity(0, sizeof(cpu_set_t), &cpuset)) {
+			silent_cerr("RTPOSIXSolver: sched_setaffinity failed" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
 }
 
 // to be performed when stop is commanded by someone else
