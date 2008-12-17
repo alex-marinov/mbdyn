@@ -90,6 +90,10 @@ public:
 		ASSERT(pStart != NULL);
 		ASSERT(iSize > 0);
 
+		if (pStart == NULL) {
+			return false;
+		}
+
 		pCount = pStart;
 		TReturn = *pStart;
 
