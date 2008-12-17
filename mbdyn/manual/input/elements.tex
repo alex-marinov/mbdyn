@@ -3581,6 +3581,17 @@ the only allowed relative kinematics between the two nodes are
 a rotation about relative axis 3.
 }
 
+\subsubsection{Output}
+In addition to the standard output, the \kw{brake} joint outputs:
+\begin{itemize}
+\item the three Euler-Cardano angles that express the relative rotation
+	between the two connected nodes, in degrees;
+\item the three components of the relative angular velocity,
+	in the reference frame of node 2;
+\item any output specific for the friction model in use;
+\item the value of the force the brake is activated with.
+\end{itemize}
+
 \subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
