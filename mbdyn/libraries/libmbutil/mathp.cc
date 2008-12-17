@@ -294,7 +294,7 @@ mp_stop(const MathParser::MathArgs& args)
 	ASSERT(args.size() == 1 + 2);
 	ASSERT(args[0]->Type() == MathParser::AT_VOID);
 	ASSERT(args[1]->Type() == MathParser::AT_INT);
-	ASSERT(args[1]->Type() == MathParser::AT_INT);
+	ASSERT(args[2]->Type() == MathParser::AT_INT);
 
 	MathParser::MathArgInt_t *s = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
 	ASSERT(s != 0);
