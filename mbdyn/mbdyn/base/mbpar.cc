@@ -722,6 +722,18 @@ MBDynParser::GetRef(ReferenceFrame& rf)
 	if (IsKeyWord("local")) {
 		return MBDynParser::LOCAL;
 	}
+
+	if (IsKeyWord("other" "position")) {
+		return MBDynParser::OTHER_POSITION;
+	}
+	
+	if (IsKeyWord("other" "orientation")) {
+		return MBDynParser::OTHER_ORIENTATION;
+	}
+	
+	if (IsKeyWord("other" "node")) {
+		return MBDynParser::OTHER_NODE;
+	}
 	
 	unsigned int uLabel((unsigned int)GetInt());
 	RFType::const_iterator i = RF.find(uLabel);
@@ -750,7 +762,7 @@ MBDynParser::GetPosRel(const ReferenceFrame& rf)
 	ReferenceFrame rfOut;
 	switch (GetRef(rfOut)) {
 	case GLOBAL:
-		return (rf.GetR()).Transpose()*(GetVec3()-rf.GetX());
+		return (rf.GetR()).Transpose()*(GetVec3() - rf.GetX());
 	
 	case NODE:
 	case UNKNOWNFRAME:
@@ -762,10 +774,52 @@ MBDynParser::GetPosRel(const ReferenceFrame& rf)
 	}
 	
 	case REFERENCE:
-		return rf.GetR().Transpose()*((rfOut.GetX()
-			+rfOut.GetR()*GetVec3()
-			)-rf.GetX());
-			
+		return rf.GetR().Transpose()*((rfOut.GetX() + rfOut.GetR()*GetVec3()) - rf.GetX());
+
+	case OTHER_POSITION:
+	case OTHER_ORIENTATION:
+	case OTHER_NODE:
+		silent_cerr("GetPosRel: \"other\" meaningless in this context "
+			"at line " << GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+	default:
+		ASSERTMSG(0, "You shouldn't have reached this point");
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
+Vec3 
+MBDynParser::GetPosRel(const ReferenceFrame& rf, const ReferenceFrame& other_rf, const Vec3& other_X)
+{
+	ReferenceFrame rfOut;
+	switch (GetRef(rfOut)) {
+	case GLOBAL:
+		return (rf.GetR()).Transpose()*(GetVec3() - rf.GetX());
+	
+	case NODE:
+	case UNKNOWNFRAME:
+		return GetVec3();
+	
+	case LOCAL: {
+		Mat3x3 R(GetMatR2vec());
+		return R*GetVec3();
+	}
+	
+	case REFERENCE:
+		return rf.GetR().Transpose()*((rfOut.GetX() + rfOut.GetR()*GetVec3()) - rf.GetX());
+
+	case OTHER_POSITION:
+		return rf.GetR().Transpose()*((other_rf.GetX() + other_rf.GetR()*(other_X + GetVec3())) - rf.GetX());
+
+	case OTHER_NODE:
+		return rf.GetR().Transpose()*((other_rf.GetX() + other_rf.GetR()*GetVec3()) - rf.GetX());
+
+	case OTHER_ORIENTATION:
+		silent_cerr("GetPosRel: \"other\" meaningless in this context "
+			"at line " << GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -782,16 +836,23 @@ MBDynParser::GetPosAbs(const ReferenceFrame& rf)
 		return GetVec3();
 	
 	case NODE:
-		return rf.GetX()+rf.GetR()*GetVec3();
+		return rf.GetX() + rf.GetR()*GetVec3();
 		
 	case LOCAL: {
 		Mat3x3 R(GetMatR2vec());
-		return rf.GetX()+rf.GetR()*(R*GetVec3());
+		return rf.GetX() + rf.GetR()*(R*GetVec3());
 	}
 	
 	case REFERENCE:
-		return rfOut.GetX()+rfOut.GetR()*GetVec3();
+		return rfOut.GetX() + rfOut.GetR()*GetVec3();
 	
+	case OTHER_POSITION:
+	case OTHER_ORIENTATION:
+	case OTHER_NODE:
+		silent_cerr("GetPosAbs: \"other\" meaningless in this context "
+			"at line " << GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -826,6 +887,13 @@ MBDynParser::GetVelRel(const ReferenceFrame& rf, const Vec3& x)
 			-rf.GetW().Cross(x-rf.GetX())
 			);
 	
+	case OTHER_POSITION:
+	case OTHER_ORIENTATION:
+	case OTHER_NODE:
+		silent_cerr("GetVelRel: \"other\" meaningless in this context "
+			"at line " << GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -855,6 +923,13 @@ MBDynParser::GetVelAbs(const ReferenceFrame& rf, const Vec3& x)
 		return rfOut.GetV()+rfOut.GetR()*GetVec3()
 			+rfOut.GetW().Cross(x-rfOut.GetX());
 	
+	case OTHER_POSITION:
+	case OTHER_ORIENTATION:
+	case OTHER_NODE:
+		silent_cerr("GetVelAbs: \"other\" meaningless in this context "
+			"at line " << GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -883,6 +958,13 @@ MBDynParser::GetOmeRel(const ReferenceFrame& rf)
 			+rfOut.GetR()*GetVec3()
 			)-rf.GetW());
 	
+	case OTHER_POSITION:
+	case OTHER_ORIENTATION:
+	case OTHER_NODE:
+		silent_cerr("GetOmeRel: \"other\" meaningless in this context "
+			"at line " << GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -909,6 +991,13 @@ MBDynParser::GetOmeAbs(const ReferenceFrame& rf)
 	case REFERENCE:
 		return rfOut.GetW()+rfOut.GetR()*GetVec3();
 	
+	case OTHER_POSITION:
+	case OTHER_ORIENTATION:
+	case OTHER_NODE:
+		silent_cerr("GetOmeAbs: \"other\" meaningless in this context "
+			"at line " << GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -954,6 +1043,13 @@ MBDynParser::GetVecRel(const ReferenceFrame& rf)
 	case REFERENCE:
 		return (rf.GetR()).Transpose()*(rfOut.GetR()*GetVec3());
 	
+	case OTHER_POSITION:
+	case OTHER_ORIENTATION:
+	case OTHER_NODE:
+		silent_cerr("GetVecRel: \"other\" meaningless in this context "
+			"at line " << GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -999,6 +1095,13 @@ MBDynParser::GetVecAbs(const ReferenceFrame& rf)
 	case REFERENCE:
 		return rfOut.GetR()*GetVec3();
 	
+	case OTHER_POSITION:
+	case OTHER_ORIENTATION:
+	case OTHER_NODE:
+		silent_cerr("GetVecAbs: \"other\" meaningless in this context "
+			"at line " << GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1066,6 +1169,13 @@ MBDynParser::GetMatRel(const ReferenceFrame& rf)
 			*(GetMat3x3()
 			*(rfOut.GetR().Transpose()*rf.GetR())));
 	
+	case OTHER_POSITION:
+	case OTHER_ORIENTATION:
+	case OTHER_NODE:
+		silent_cerr("GetMatRel: \"other\" meaningless in this context "
+			"at line " << GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1087,6 +1197,13 @@ MBDynParser::GetMatAbs(const ReferenceFrame& rf)
 
 	case REFERENCE:
 		return rfOut.GetR()*(GetMat3x3()*rfOut.GetR().Transpose());
+
+	case OTHER_POSITION:
+	case OTHER_ORIENTATION:
+	case OTHER_NODE:
+		silent_cerr("GetMatAbs: \"other\" meaningless in this context "
+			"at line " << GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
@@ -1110,6 +1227,46 @@ MBDynParser::GetRotRel(const ReferenceFrame& rf)
 	case REFERENCE:
 		return rf.GetR().Transpose()*(rfOut.GetR()*GetMatR2vec());
 	
+	case OTHER_POSITION:
+	case OTHER_ORIENTATION:
+	case OTHER_NODE:
+		silent_cerr("GetRotRel: \"other\" meaningless in this context "
+			"at line " << GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+	default:
+		ASSERTMSG(0, "You shouldn't have reached this point");
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
+Mat3x3 
+MBDynParser::GetRotRel(const ReferenceFrame& rf, const ReferenceFrame& other_rf, const Mat3x3& other_R)
+{   
+	ReferenceFrame rfOut;
+	switch (GetRef(rfOut)) {
+	case GLOBAL:
+		return rf.GetR().Transpose()*GetMatR2vec();
+	
+	case NODE:
+	case LOCAL:
+	case UNKNOWNFRAME:
+		return GetMatR2vec();
+	
+	case REFERENCE:
+		return rf.GetR().Transpose()*(rfOut.GetR()*GetMatR2vec());
+	
+	case OTHER_POSITION:
+		silent_cerr("GetRotRel: \"other\" meaningless in this context "
+			"at line " << GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+	case OTHER_ORIENTATION:
+		return rf.GetR().Transpose()*(other_rf.GetR()*(other_R*GetMatR2vec()));
+
+	case OTHER_NODE:
+		return rf.GetR().Transpose()*(other_rf.GetR()*GetMatR2vec());
+
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1132,6 +1289,13 @@ MBDynParser::GetRotAbs(const ReferenceFrame& rf)
 	case REFERENCE:
 		return rfOut.GetR()*GetMatR2vec();
 	
+	case OTHER_POSITION:
+	case OTHER_ORIENTATION:
+	case OTHER_NODE:
+		silent_cerr("GetRotAbs: \"other\" meaningless in this context "
+			"at line " << GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);

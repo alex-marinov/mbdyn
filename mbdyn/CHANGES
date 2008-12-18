@@ -18,6 +18,7 @@ MBDyn 1.X-Devel
 		- add file-based interface with EDGE
 		- allow socket stream element to output all kinematics
 		- add OS-based soft real-time support
+		- add "other {position,orientation,node}" reference types
 	Backward compatibility issues:
 		- now immediate abort requires CTRL^C three times
 		- changed real-time args order (not backward compatible)

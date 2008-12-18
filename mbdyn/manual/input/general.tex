@@ -990,6 +990,68 @@ So, depending on the caller, the entry can be in the following forms:
 	the data is in \kw{reference\_label} reference frame. 
 	This reference frame must be already defined. 
 \end{enumerate}
+In some cases, significantly in case of joints that connect two nodes,
+$a$ and $b$, special reference types are allowed
+when reading specific entities related to the second node.
+These reference types compute the value of the entity with respect
+to the reference frame associated to the first node, $a$:
+\begin{enumerate}
+\item \kw{other position}: \\
+	a relative position $\tilde{\T{p}}$ is intended in the other node's
+	reference frame, with respect to the relative position $\tilde{\T{f}}_a$
+	already specified for the other node,
+\begin{equation}
+	\tilde{\T{f}}_b = \TT{R}_b^T\plbr{
+		\T{x}_a + \TT{R}_a \plbr{
+			\tilde{\T{f}}_a
+			+ \tilde{\T{p}}
+		}
+		- \T{x}_b
+	} ,
+\end{equation}
+	which is the solution of equation
+\begin{equation}
+	\T{x}_a + \TT{R}_a \plbr{\tilde{\T{f}}_a + \tilde{\T{p}}}
+	= \T{x}_b + \TT{R}_b \tilde{\T{f}}_b ;
+\end{equation}
+
+\item \kw{other orientation}: \\
+	a relative orientation $\tilde{\TT{R}} $ is intended in the other node's
+	reference frame, with respect to the relative orientation
+	$\tilde{\TT{R}}_{ha}$ already specified for the other node,
+\begin{equation}
+	\tilde{\TT{R}}_{hb} = \TT{R}_b^T \TT{R}_a \tilde{\TT{R}}_{ha} \tilde{\TT{R}} ,
+\end{equation}
+	which is the solution of equation
+\begin{equation}
+	\TT{R}_a \tilde{\TT{R}}_{ha} \tilde{\TT{R}}
+	= \TT{R}_b \tilde{\TT{R}}_{hb} ;
+\end{equation}
+
+\item \kw{other node}: \\
+	a relative position $\tilde{\T{p}}$
+	or a relative orientation $\tilde{\TT{R}}$
+	are intended in the other node's reference frame,
+\begin{subequations}
+\begin{align}
+	\tilde{\T{f}}_b &= \TT{R}_b^T\plbr{
+		\T{x}_a + \TT{R}_a \tilde{\T{p}}
+		- \T{x}_b
+	} \\
+	\tilde{\TT{R}}_{hb} &= \TT{R}_b^T \TT{R}_a \tilde{\TT{R}} ,
+\end{align}
+\end{subequations}
+	which are the solutions of equations
+\begin{subequations}
+\begin{align}
+	\T{x}_a + \TT{R}_a \tilde{\T{p}}
+	&= \T{x}_b + \TT{R}_b \tilde{\T{f}}_b \\
+	\TT{R}_a \tilde{\TT{R}}
+	&= \TT{R}_b \tilde{\TT{R}}_{hb} .
+\end{align}
+\end{subequations}
+\end{enumerate}
+
 Examples:
 \begin{itemize}
     \item absolute position:

@@ -147,6 +147,10 @@ public:
 		NODE,
 		LOCAL,
 		REFERENCE,
+
+		OTHER_POSITION,
+		OTHER_ORIENTATION,
+		OTHER_NODE,
 		
 		LASTFRAME
 	};
@@ -217,6 +221,7 @@ public:
 	 * relative ed assolute rispetto ad un riferimento
 	 */
 	Vec3 GetPosRel(const ReferenceFrame& rf);
+	Vec3 GetPosRel(const ReferenceFrame& rf, const ReferenceFrame& other_rf, const Vec3& other_X);
 	Vec3 GetPosAbs(const ReferenceFrame& rf);
 	Vec3 GetVelRel(const ReferenceFrame& rf, const Vec3& x);
 	Vec3 GetVelAbs(const ReferenceFrame& rf, const Vec3& x);
@@ -229,6 +234,7 @@ public:
 	Mat3x3 GetMatRel(const ReferenceFrame& rf);
 	Mat3x3 GetMatAbs(const ReferenceFrame& rf);
 	Mat3x3 GetRotRel(const ReferenceFrame& rf);
+	Mat3x3 GetRotRel(const ReferenceFrame& rf, const ReferenceFrame& other_rf, const Mat3x3& other_R);
 	Mat3x3 GetRotAbs(const ReferenceFrame& rf);
 
 	void OutputFrames(std::ostream& out) const;
