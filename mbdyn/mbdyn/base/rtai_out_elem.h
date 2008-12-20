@@ -72,13 +72,5 @@ public:
 			const VectorHandler& XPP);
 };
 
-class DataManager;
-class MBDynParser;
-
-extern Elem *
-ReadRTMBDynOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, StreamContent::Type type);
-
-/* RTMBDynOutElem - end */
-
 #endif /* RTAI_OUT_ELEM_H */
 

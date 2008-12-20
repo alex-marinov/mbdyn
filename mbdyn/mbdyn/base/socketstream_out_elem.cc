@@ -37,9 +37,9 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifdef USE_SOCKET
-
 #include <string.h>
+
+#ifdef USE_SOCKET
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -51,10 +51,15 @@
 #include <netinet/in.h>
 #include <sys/un.h>
 #include <arpa/inet.h>
+#endif // USE_SOCKET
 
 #include "dataman.h"
 #include "socketstream_out_elem.h"
 #include "sock.h"
+
+#ifdef USE_RTAI
+#include "rtai_out_elem.h"
+#endif // USE_RTAI
 
 /* SocketStreamElem - begin */
 
@@ -148,29 +153,53 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 Elem *
 ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, StreamContent::Type type)
 {
-	bool bCreate = false;
-	unsigned short int port = -1;
+	bool bIsRTAI(false);
+#ifdef USE_RTAI
+	if (::rtmbdyn_rtai_task != 0) {
+		bIsRTAI = true;
+	}
+#endif // USE_RTAI
+#ifndef USE_SOCKET
+	if (!bIsRTAI) {
+		silent_cerr("SocketStreamElem(" << uLabel << "): "
+			"not allowed because apparently the current "
+			"architecture does not support sockets "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+#endif // ! USE_SOCKET
+
 	std::string name;
-	std::string host;
 	std::string path;
+	std::string host;
+	unsigned short int port = -1;
+	bool bCreate = false;
 
 	if (HP.IsKeyWord("name") || HP.IsKeyWord("stream" "name")) {
 		const char *m = HP.GetStringWithDelims();
 		if (m == 0) {
-			silent_cerr("unable to read stream name "
-				"for SocketStreamElem(" << uLabel << ") "
+			silent_cerr("SocketStreamElem(" << uLabel << "): "
+				"unable to read stream name "
 				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
+		} else if (strlen(m) != 6) {
+			silent_cerr("SocketStreamElem(" << uLabel << "): "
+				"illegal stream name \"" << m << "\" "
+				"(must be exactly 6 chars) "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		} 
 		
 		name = m;
 
 	} else {
-		silent_cerr("missing stream name "
-			"for SocketStreamElem(" << uLabel
-			<< ") at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		silent_cerr("SocketStreamElem(" << uLabel << "): "
+			"missing stream name "
+			"at line " << HP.GetLineData() << std::endl);
+		if (bIsRTAI) {
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 	}
 
 	if (HP.IsKeyWord("create")) {
@@ -181,10 +210,11 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 			bCreate = false;
 
 		} else {
-			silent_cerr("\"create\" must be either "
-					"\"yes\" or \"no\" "
-					"at line " << HP.GetLineData()
-					<< std::endl);
+			silent_cerr("SocketStreamElem(" << uLabel << "):"
+				"\"create\" must be either "
+				"\"yes\" or \"no\" "
+				"at line " << HP.GetLineData()
+				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
@@ -193,10 +223,9 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 		const char *m = HP.GetFileName();
 		
 		if (m == 0) {
-			silent_cerr("unable to read local path for "
-				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
-				<< "(" << uLabel << ") at line "
-				<< HP.GetLineData() << std::endl);
+			silent_cerr("SocketStreamElem(" << uLabel << "): "
+				"unable to read local path "
+				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		
@@ -205,40 +234,30 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 
 	if (HP.IsKeyWord("port")) {
 		if (!path.empty()) {
-			silent_cerr("cannot specify a port "
-					"for a local socket in "
-				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
-				<< "(" << uLabel << ") at line "
-				<< HP.GetLineData() << std::endl);
+			silent_cerr("SocketStreamElem(" << uLabel << "): "
+				"cannot specify a port for a local socket "
+				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
 		}
-		int p = HP.GetInt();
-		/* Da sistemare da qui */
 
-#ifdef IPPORT_USERRESERVED
-		if (p <= IPPORT_USERRESERVED) {
-			silent_cerr(psElemNames[Elem::SOCKETSTREAM_OUTPUT]
-				<< "(" << uLabel << "): "
-				"cannot listen on port " << port
-				<< ": less than IPPORT_USERRESERVED=" 
-				<< IPPORT_USERRESERVED
-				<< " at line " << HP.GetLineData()
-				<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		int p = HP.GetInt();
+
+		if (p <= 0) {
+			silent_cerr("SocketStreamElem(" << uLabel << "): "
+				"illegal port " << p << " "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
 		}
-		/* if #undef'd, don't bother checking;
-		 * the OS will do it for us */
-#endif /* IPPORT_USERRESERVED */
+
 		port = p;
 	}
 
 	if (HP.IsKeyWord("host")) {
 		if (!path.empty()) {
-			silent_cerr("cannot specify an allowed host "
-					"for a local socket in "
-				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
-				<< "(" << uLabel << ") at line "
-				<< HP.GetLineData() << std::endl);
+			silent_cerr("SocketStreamElem(" << uLabel << "): "
+				"cannot specify an allowed host "
+				"for a local socket "
+				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
 		}
 
@@ -246,10 +265,9 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 		
 		h = HP.GetStringWithDelims();
 		if (h == 0) {
-			silent_cerr("unable to read host for "
-				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
-				<< "(" << uLabel << ") at line "
-				<< HP.GetLineData() << std::endl);
+			silent_cerr("SocketStreamElem(" << uLabel << "): "
+				"unable to read host "
+				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
@@ -257,18 +275,19 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 
 	} else if (path.empty() && !bCreate) {
 		/* INET sockets (!path) must be created if host is missing */
-		silent_cerr("host undefined for "
-			<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
-			<< "(" << uLabel << ") at line "
-			<< HP.GetLineData() << std::endl);
+		silent_cerr("SocketStreamElem(" << uLabel << "): "
+			"host undefined "
+			"at line " << HP.GetLineData() << std::endl);
 		host = DEFAULT_HOST;
-		silent_cerr("using default host: "
+		silent_cerr("SocketStreamElem(" << uLabel << "): "
+			"using default host: "
 			<< host << ":"
 			<< (port == (unsigned short int)(-1) ? DEFAULT_PORT : port)
 			<< std::endl);
 	}
 
 	int flags = 0;
+	bool bNonBlocking = false;
 	bool bSendFirst = true;
 	bool bAbortIfBroken = false;
 	while (HP.IsArg()) {
@@ -279,22 +298,10 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 			flags &= ~MSG_NOSIGNAL;
 
 		} else if (HP.IsKeyWord("blocking")) {
-#ifdef MSG_DONTWAIT
-			flags &= ~MSG_DONTWAIT;
-#else /* !MSG_DONTWAIT */
-			silent_cerr("SocketStreamElem(" << uLabel << "): "
-				"MSG_DONTWAIT undefined; "
-				"your mileage may vary" << std::endl);
-#endif /* !MSG_DONTWAIT */
+			bNonBlocking = false;
 
 		} else if (HP.IsKeyWord("non" "blocking")) {
-#ifdef MSG_DONTWAIT
-			flags |= MSG_DONTWAIT;
-#else /* !MSG_DONTWAIT */
-			silent_cerr("SocketStreamElem(" << uLabel << "): "
-				"MSG_DONTWAIT undefined; "
-				"your mileage may vary" << std::endl);
-#endif /* !MSG_DONTWAIT */
+			bNonBlocking = true;
 
 		} else if (HP.IsKeyWord("no" "send" "first")) {
 			bSendFirst = false;
@@ -317,9 +324,9 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 	if (HP.IsKeyWord("output" "every")) {
 		int i = HP.GetInt();
 		if (i <= 0) {
-			silent_cerr("invalid output every value " << i
-					<< " at line " << HP.GetLineData()
-					<< std::endl);
+			silent_cerr("SocketStreamElem(" << uLabel << "): "
+				"invalid output every value " << i << " "
+				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		OutputEvery = (unsigned int)i;
@@ -329,39 +336,97 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {
-		silent_cerr("semicolon expected at line " << HP.GetLineData()
-			<< std::endl);
+		silent_cerr("SocketStreamElem(" << uLabel << "): "
+			"semicolon expected "
+			"at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	/* costruzione del nodo */
-	UseSocket *pUS = 0;
-	if (path.empty()) {
-		if (port == (unsigned short int)(-1)) {
-			port = DEFAULT_PORT;
-			silent_cerr("port undefined; using default port "
-				<< port << std::endl);
-		}
-      
-		SAFENEWWITHCONSTRUCTOR(pUS, UseInetSocket, UseInetSocket(host.c_str(), port, bCreate));
-
-	} else {
-		SAFENEWWITHCONSTRUCTOR(pUS, UseLocalSocket, UseLocalSocket(path.c_str(), bCreate));
-	}
-
-	if (bCreate) {
-		pDM->RegisterSocketUser(pUS);
-
-	} else {
-		pUS->Connect();
-	}
-
 	Elem *pEl = 0;
-	SAFENEWWITHCONSTRUCTOR(pEl, SocketStreamElem,
-		SocketStreamElem(uLabel, name, OutputEvery,
-			pUS, pSC, flags, bSendFirst, bAbortIfBroken));
+	if (bIsRTAI) {
+		unsigned long node;
+#ifdef USE_RTAI
+#if defined(HAVE_GETHOSTBYNAME) || defined(HAVE_INET_ATON)
+		/* resolve host
+	 	 * FIXME: non-reentrant ... */
+#if defined(HAVE_GETHOSTBYNAME)
+		struct hostent *he = gethostbyname(host.c_str());
+		if (he != NULL) {
+			node = ((unsigned long *)he->h_addr_list[0])[0];
+		} 
+#elif defined(HAVE_INET_ATON)
+		struct in_addr addr;
+		if (inet_aton(host.c_str(), &addr)) {
+			node = addr.s_addr;
+
+		}
+#endif /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
+		else {
+			silent_cerr("SocketStreamElem(" << uLabel << "): "
+				"unable to convert host "
+				"\"" << host << "\" "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+#else /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
+		silent_cerr("SocketStreamElem(" << uLabel << "): "
+			"host (RTAI RPC) not supported "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#endif /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
+
+		silent_cerr("starting RTMBDynOutputElement(" << uLabel << ")..."
+			<< std::endl);
+		SAFENEWWITHCONSTRUCTOR(pEl, RTMBDynOutElem,
+			RTMBDynOutElem(uLabel,
+       				host, name, node, bCreate, pSC, bNonBlocking));
+#endif // USE_RTAI
+	} else {
+		/* costruzione del nodo */
+		UseSocket *pUS = 0;
+		if (path.empty()) {
+			if (port == (unsigned short int)(-1)) {
+				port = DEFAULT_PORT;
+				silent_cerr("SocketStreamElem(" << uLabel << "): "
+					"port undefined; using default port "
+					<< port << " at line "
+					<< HP.GetLineData() << std::endl);
+			}
+      
+			SAFENEWWITHCONSTRUCTOR(pUS, UseInetSocket, UseInetSocket(host.c_str(), port, bCreate));
+
+		} else {
+			SAFENEWWITHCONSTRUCTOR(pUS, UseLocalSocket, UseLocalSocket(path.c_str(), bCreate));
+		}
+
+		if (bCreate) {
+			pDM->RegisterSocketUser(pUS);
+
+		} else {
+			pUS->Connect();
+		}
+
+#ifdef MSG_DONTWAIT
+		if (bNonBlocking) {
+			flags |= MSG_DONTWAIT;
+
+		} else {
+			flags &= ~MSG_DONTWAIT;
+		}
+#else // !MSG_DONTWAIT
+		silent_cerr("SocketStreamElem(" << uLabel << "): "
+			"MSG_DONTWAIT undefined; "
+			"your mileage may vary" << std::endl);
+#endif // !MSG_DONTWAIT
+
+		silent_cerr("starting SocketStreamElem(" << uLabel << ")..."
+			<< std::endl);
+		SAFENEWWITHCONSTRUCTOR(pEl, SocketStreamElem,
+			SocketStreamElem(uLabel, name, OutputEvery,
+				pUS, pSC, flags, bSendFirst, bAbortIfBroken));
+	}
 
 	return pEl;
 }
 
-#endif // USE_SOCKET

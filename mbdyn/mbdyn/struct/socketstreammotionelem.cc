@@ -33,25 +33,8 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifdef USE_SOCKET
-
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/un.h>
-#include <arpa/inet.h>
-
 #include "dataman.h"
 #include "socketstreammotionelem.h"
-#include "socketstream_out_elem.h"
-#include "sock.h"
 #include "geomdata.h"
 
 /* StreamContentMotion - begin */
@@ -164,4 +147,3 @@ StreamContentMotion::Prepare(void)
 
 /* StreamContentMotion - end */
 
-#endif // USE_SOCKET

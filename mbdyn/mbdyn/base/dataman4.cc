@@ -1781,7 +1781,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const char *sName
 	case RTAI_OUTPUT:
 #ifndef USE_RTAI
 		silent_cout("need --with-rtai to allow RTMBDyn mailboxes; "
-			"using stream output..." << std::endl);
+			"using stream output instead..." << std::endl);
 #endif /* ! USE_RTAI */
 		/* fall thru... */
 
@@ -1810,74 +1810,33 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const char *sName
 		}
 
 		/* allocazione e creazione */
-#ifdef USE_RTAI
-		if (::rtmbdyn_rtai_task != 0) {
-			switch (KeyWords(CurrType)) {
-			case SOCKETSTREAM_OUTPUT:
-			case RTAI_OUTPUT:
-				silent_cerr("starting RTMBDynOutputElement(" << uLabel << ")" << std::endl);
-				pE = ReadRTMBDynOutElem(this, HP, uLabel, StreamContent::VALUES);
-				break;
+		switch (KeyWords(CurrType)) {
+		case RTAI_OUTPUT:
+		case SOCKETSTREAM_OUTPUT:
+			pE = ReadSocketStreamElem(this, HP, uLabel,
+				StreamContent::VALUES);
+			break;
 
-			case SOCKETSTREAM_MOTION_OUTPUT:
-				silent_cerr("starting RTMBDynOutputElement(" << uLabel << ")" << std::endl);
-				pE = ReadRTMBDynOutElem(this, HP, uLabel, StreamContent::MOTION);
-				break;
+		case SOCKETSTREAM_MOTION_OUTPUT:
+			pedantic_cerr("SocketStreamMotionElem(" << uLabel << "): "
+				"deprecated in favour of SocketStreamElem "
+				"with \"motion\" content type "
+				"at line " << HP.GetLineData() << std::endl);
+			pE = ReadSocketStreamElem(this, HP, uLabel,
+				StreamContent::MOTION);
+			break;
 
-			case STRUCTOUTPUT:
-			default:
-				silent_cerr("line " << HP.GetLineData() << ": "
-					"StreamMotionElement(" << uLabel << ") "
-					"not allowed with RTMBDyn" << std::endl);
+		case STRUCTOUTPUT:
+			pE = ReadStructOutput(this, HP, uLabel);
+			break;
 
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-				
-		} else
-#endif /* USE_RTAI */
-		{
-			switch (KeyWords(CurrType)) {
-			case SOCKETSTREAM_OUTPUT:
-			case RTAI_OUTPUT:
-#ifdef USE_SOCKET
-				pedantic_cout("starting StreamElement(" << uLabel << ")" << std::endl);
-				pE = ReadSocketStreamElem(this, HP, uLabel, StreamContent::VALUES);
-#else // ! USE_SOCKET
-				silent_cerr(psElemNames[Elem::SOCKETSTREAM_OUTPUT]
-					<< "(" << uLabel << ") "
-					" not allowed at line " << HP.GetLineData()
-					<< " because apparently the current "
-					"architecture does not support sockets"
-					<< std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-#endif // ! USE_SOCKET
-				break;
-
-			case SOCKETSTREAM_MOTION_OUTPUT:
-#ifdef USE_SOCKET
-				pedantic_cout("starting StreamMotionElement(" << uLabel << ")" << std::endl);
-				pE = ReadSocketStreamElem(this, HP, uLabel, StreamContent::MOTION);
-#else // ! USE_SOCKET
-				silent_cerr(psElemNames[Elem::SOCKETSTREAM_OUTPUT]
-					<< "(" << uLabel << ") "
-					" not allowed at line " << HP.GetLineData()
-					<< " because apparently the current "
-					"architecture does not support sockets"
-					<< std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-#endif // ! USE_SOCKET
-				break;
-
-			case STRUCTOUTPUT:
-				pE = ReadStructOutput(this, HP, uLabel);
-				break;
-
-			default:
-				silent_cerr("You shouldn't be here: " __FILE__ << ":" << __LINE__ << std::endl);
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-				break;
-			}
+		default:
+			silent_cerr("You shouldn't be here: "
+				__FILE__ << ":" << __LINE__ << std::endl);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			break;
 		}
+
 		if (pE != 0) {
 			ppE = &ElemData[Elem::SOCKETSTREAM_OUTPUT].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
 		}
