@@ -256,6 +256,19 @@ rtmbdyn_RT_mbx_send_if(unsigned long node, int port, void *v_mbx,
 }
 
 int
+rtmbdyn_RT_mbx_receive(unsigned long node, int port, void *v_mbx,
+		void *msg, int msg_size)
+{
+	MBX	*mbx = (MBX *)v_mbx;
+
+	assert(v_mbx != NULL);
+	assert(msg != NULL);
+	assert(msg_size > 0);
+
+	return RT_mbx_receive(node, port, mbx, msg, msg_size);
+}
+
+int
 rtmbdyn_RT_mbx_receive_if(unsigned long node, int port, void *v_mbx,
 		void *msg, int msg_size)
 {
@@ -334,6 +347,14 @@ rtmbdyn_rt_sem_wait(void *v_sem)
 	SEM	*sem=(SEM *)v_sem;
 	
 	return rt_sem_wait(sem);
+}
+
+void *
+rtmbdyn_rt_receive(void *v_task, int *msg)
+{
+	RT_TASK *task = (RT_TASK *)v_task;
+	
+	return (void *)rt_receive(task, msg);
 }
 
 void *

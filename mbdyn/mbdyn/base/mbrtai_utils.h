@@ -72,6 +72,8 @@ extern int rtmbdyn_RT_mbx_send(unsigned long node, int port, void *mbx,
 		void *msg, int msg_size);
 extern int rtmbdyn_RT_mbx_send_if(unsigned long node, int port, void *mbx,
 		void *msg, int msg_size);
+extern int rtmbdyn_RT_mbx_receive(unsigned long node, int port, void *mbx,
+		void *msg, int msg_size);
 extern int rtmbdyn_RT_mbx_receive_if(unsigned long node, int port, void *mbx,
 		void *msg, int msg_size);
 		
@@ -87,6 +89,7 @@ extern int rtmbdyn_rt_sem_delete(void **sem);
 extern int rtmbdyn_rt_sem_signal(void *sem);
 extern int rtmbdyn_rt_sem_wait(void *sem);
 
+extern void *rtmbdyn_rt_receive(void *task,int *msg);
 extern void *rtmbdyn_rt_receive_if(void *task,int *msg);
 extern long long rtmbdyn_rt_get_cpu_time_ns(void);
 
