@@ -344,8 +344,8 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 
 	Elem *pEl = 0;
 	if (bIsRTAI) {
-		unsigned long node;
 #ifdef USE_RTAI
+		unsigned long node;
 #if defined(HAVE_GETHOSTBYNAME) || defined(HAVE_INET_ATON)
 		/* resolve host
 	 	 * FIXME: non-reentrant ... */
@@ -382,6 +382,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 			RTMBDynOutElem(uLabel,
        				host, name, node, bCreate, pSC, bNonBlocking));
 #endif // USE_RTAI
+
 	} else {
 		/* costruzione del nodo */
 		UseSocket *pUS = 0;
