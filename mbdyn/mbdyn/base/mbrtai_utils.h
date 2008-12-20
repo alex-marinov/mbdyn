@@ -68,6 +68,8 @@ extern int rtmbdyn_rt_request_port(unsigned long node);
 
 extern int rtmbdyn_rt_mbx_init(const char *name, int size, void **mbx);
 extern int rtmbdyn_rt_mbx_delete(void **mbx);
+extern int rtmbdyn_RT_mbx_send(unsigned long node, int port, void *mbx,
+		void *msg, int msg_size);
 extern int rtmbdyn_RT_mbx_send_if(unsigned long node, int port, void *mbx,
 		void *msg, int msg_size);
 extern int rtmbdyn_RT_mbx_receive_if(unsigned long node, int port, void *mbx,

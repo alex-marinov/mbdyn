@@ -58,31 +58,31 @@
 
 int
 rtmbdyn_rt_task_init(const char *name, int priority, int stack_size,
-		int max_msg_size, int cpu, void **__task)
+		int max_msg_size, int cpu, void **v_task)
 {
 	assert(name != NULL);
 	assert(strlen(name) == 6);
-	assert(__task != NULL);
-	assert(*__task == NULL);
+	assert(v_task != NULL);
+	assert(*v_task == NULL);
 
-	*__task = (void *)rt_task_init_schmod(nam2num(name), priority,
+	*v_task = (void *)rt_task_init_schmod(nam2num(name), priority,
 			stack_size, max_msg_size, SCHED_FIFO,/*0x2*/ cpu);
-	return (*__task == NULL);
+	return (*v_task == NULL);
 }
 
 int
-rtmbdyn_rt_task_delete(void **__task)
+rtmbdyn_rt_task_delete(void **v_task)
 {
 	RT_TASK		*task;
 	int		rc;
 
-	assert(__task != NULL);
-	assert(*__task != NULL);
+	assert(v_task != NULL);
+	assert(*v_task != NULL);
 
-	task = (RT_TASK *)*__task;
+	task = (RT_TASK *)*v_task;
 	rc = rt_task_delete(task);
 
-	*__task = NULL;
+	*v_task = NULL;
 
 	return /* rc */ 0;
 }
@@ -97,16 +97,16 @@ rtmbdyn_rt_make_soft_real_time(void)
 	rt_make_soft_real_time();
 }
 int
-rtmbdyn_rt_task_make_periodic(void *__task, long long __start_time,
-		long long __period)
+rtmbdyn_rt_task_make_periodic(void *v_task, long long v_start_time,
+		long long v_period)
 {
 	
 	
-	RT_TASK		*task = (RT_TASK *)__task;
-	RTIME		start_time = (RTIME)__start_time;
-	RTIME		period = (RTIME)__period;
+	RT_TASK		*task = (RT_TASK *)v_task;
+	RTIME		start_time = (RTIME)v_start_time;
+	RTIME		period = (RTIME)v_period;
 
-	assert(__task != NULL);
+	assert(v_task != NULL);
 
 	return rt_task_make_periodic(task, start_time, period);
 }
@@ -150,9 +150,9 @@ rtmbdyn_rt_is_hard_timer_running(void)
 }
 
 long long
-rtmbdyn_start_rt_timer(long long __period)
+rtmbdyn_start_rt_timer(long long v_period)
 {
-	RTIME period = (RTIME)__period;
+	RTIME period = (RTIME)v_period;
 	return start_rt_timer(period);
 }
 
@@ -181,59 +181,73 @@ rtmbdyn_nano2count(long long nanos)
 }
 
 int
-rtmbdyn_rt_mbx_init(const char *name, int size, void **__mbx)
+rtmbdyn_rt_mbx_init(const char *name, int size, void **v_mbx)
 {	
 	assert(name);
 	assert(strlen(name) <= 6);
 	assert(size > 0);
-	assert(__mbx != NULL);
-	assert(*__mbx == NULL);		/* questa e' bastarda */
+	assert(v_mbx != NULL);
+	assert(*v_mbx == NULL);		/* questa e' bastarda */
 	
-	*__mbx = (void *)rt_mbx_init(nam2num(name), size);
+	*v_mbx = (void *)rt_mbx_init(nam2num(name), size);
 
-	return (*__mbx == NULL);
+	return (*v_mbx == NULL);
 }
 
 int
-rtmbdyn_rt_mbx_delete(void **__mbx)
+rtmbdyn_rt_mbx_delete(void **v_mbx)
 {
 	MBX	*mbx;
 	int	rc;
 
-	assert(__mbx != NULL);
-	assert(*__mbx != NULL);
+	assert(v_mbx != NULL);
+	assert(*v_mbx != NULL);
 
-	mbx = (MBX *)*__mbx;
+	mbx = (MBX *)*v_mbx;
 	rc = rt_mbx_delete(mbx);
 
-	*__mbx = NULL;
+	*v_mbx = NULL;
 
 	return rc;
 }
 
 int
-rtmbdyn_RT_get_adr(unsigned long node, int port, const char *name, void **__task)
+rtmbdyn_RT_get_adr(unsigned long node, int port, const char *name, void **v_task)
 {
 	assert(node >= 0);
 	assert(node == 0 || port > 0);
 	assert(name != NULL);
 	assert(strlen(name) == 6);
-	assert(__task != NULL);
-	assert(*__task == NULL);	/* questa e' bastarda */
+	assert(v_task != NULL);
+	assert(*v_task == NULL);	/* questa e' bastarda */
 
 	/* non ci va nam2num(name) */
-	*__task = (void *)RT_get_adr(node, port, name);
+	*v_task = (void *)RT_get_adr(node, port, name);
 
-	return (*__task == NULL);
+	return (*v_task == NULL);
 }
 
 int
-rtmbdyn_RT_mbx_send_if(unsigned long node, int port, void *__mbx,
+rtmbdyn_RT_mbx_send(unsigned long node, int port, void *v_mbx,
 		void *msg, int msg_size)
 {
-	MBX	*mbx = (MBX *)__mbx;
+	MBX	*mbx = (MBX *)v_mbx;
 	
-	assert(__mbx != NULL);
+	assert(v_mbx != NULL);
+	assert(msg != NULL);
+	assert(msg_size > 0);
+	
+	return RT_mbx_send(node, port, mbx, msg, msg_size);
+	
+}
+
+int
+rtmbdyn_RT_mbx_send_if(unsigned long node, int port, void *v_mbx,
+		void *msg, int msg_size)
+{
+	MBX	*mbx = (MBX *)v_mbx;
+	
+	assert(v_mbx != NULL);
 	assert(msg != NULL);
 	assert(msg_size > 0);
 	
@@ -242,12 +256,12 @@ rtmbdyn_RT_mbx_send_if(unsigned long node, int port, void *__mbx,
 }
 
 int
-rtmbdyn_RT_mbx_receive_if(unsigned long node, int port, void *__mbx,
+rtmbdyn_RT_mbx_receive_if(unsigned long node, int port, void *v_mbx,
 		void *msg, int msg_size)
 {
-	MBX	*mbx = (MBX *)__mbx;
+	MBX	*mbx = (MBX *)v_mbx;
 
-	assert(__mbx != NULL);
+	assert(v_mbx != NULL);
 	assert(msg != NULL);
 	assert(msg_size > 0);
 
@@ -255,22 +269,22 @@ rtmbdyn_RT_mbx_receive_if(unsigned long node, int port, void *__mbx,
 }
 
 int
-rtmbdyn_rt_task_suspend(void *__task)
+rtmbdyn_rt_task_suspend(void *v_task)
 {
-	RT_TASK		*task = (RT_TASK *)__task;
+	RT_TASK		*task = (RT_TASK *)v_task;
 	
-	assert(__task != NULL);
+	assert(v_task != NULL);
 
 	return rt_task_suspend(task);
 
 }
 
 int
-rtmbdyn_rt_task_resume(void *__task)
+rtmbdyn_rt_task_resume(void *v_task)
 {
-	RT_TASK		*task = (RT_TASK *)__task;
+	RT_TASK		*task = (RT_TASK *)v_task;
 	
-	assert(__task != NULL);
+	assert(v_task != NULL);
 
 	return rt_task_resume(task);
 
@@ -281,51 +295,51 @@ rtmbdyn_rt_sleep(long long count)
 		rt_sleep((RTIME)count);
 }
 int
-rtmbdyn_rt_sem_init(char *name, int value, void **__sem)
+rtmbdyn_rt_sem_init(char *name, int value, void **v_sem)
 {	
 	assert(strlen(name) == 6);
-	assert(__sem != NULL);
-	assert(*__sem == NULL);	/* questa e' bastarda */
-	*__sem = (void *)rt_sem_init(nam2num(name),value);
+	assert(v_sem != NULL);
+	assert(*v_sem == NULL);	/* questa e' bastarda */
+	*v_sem = (void *)rt_sem_init(nam2num(name),value);
 
-	return (*__sem == NULL);
+	return (*v_sem == NULL);
 }
 
 int
-rtmbdyn_rt_sem_delete(void **__sem)
+rtmbdyn_rt_sem_delete(void **v_sem)
 {
 	SEM	*sem;
 	int	rc;
 
-	assert(__sem != NULL);
-	assert(*__sem != NULL);
+	assert(v_sem != NULL);
+	assert(*v_sem != NULL);
 
-	sem = (SEM *)*__sem;
+	sem = (SEM *)*v_sem;
 	rc = rt_sem_delete(sem);
 
-	*__sem = NULL;
+	*v_sem = NULL;
 
 	return rc;
 }
 int
-rtmbdyn_rt_sem_signal(void *__sem)
+rtmbdyn_rt_sem_signal(void *v_sem)
 {
-	SEM	*sem = (SEM *)__sem;
+	SEM	*sem = (SEM *)v_sem;
 	
 	return rt_sem_signal(sem);
 }
 int
-rtmbdyn_rt_sem_wait(void *__sem)
+rtmbdyn_rt_sem_wait(void *v_sem)
 {
-	SEM	*sem=(SEM *)__sem;
+	SEM	*sem=(SEM *)v_sem;
 	
 	return rt_sem_wait(sem);
 }
 
 void *
-rtmbdyn_rt_receive_if(void *__task, int *msg)
+rtmbdyn_rt_receive_if(void *v_task, int *msg)
 {
-	RT_TASK *task = (RT_TASK *)__task;
+	RT_TASK *task = (RT_TASK *)v_task;
 	
 	return (void *)rt_receive_if(task, msg);
 }
