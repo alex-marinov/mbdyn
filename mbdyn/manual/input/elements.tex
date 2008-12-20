@@ -1731,7 +1731,6 @@ Example:
         { <one_body>
         | condense, (integer) <num_masses> ,
             <one_body> [ , ... ] }
-        [ , reference node , <ref_node_label> ]
 \end{verbatim}
 If only one mass is defined, the first method should be used. Otherwise,
 many masses can be referred to the same element by means of the keyword
@@ -1800,15 +1799,6 @@ So:
 The inertia properties of the model can be logged and verified
 by means of the \kw{inertia} keyword, as detailed
 in Section~\ref{sec:EL:MISC:INERTIA}.
-
-If the optional \kw{reference node} parameter is given, the structural
-node the element is connected to must be \kw{static},
-or the model type in the control data section must be
-\hyperref{\kw{static}}{\kw{static} (see Section~}{)}{sec:CONTROLDATA:MODEL}.
-In this case, the reference node is used to compute the angular velocity
-and the centripetal acceleration, which are used to generate reference
-inertia forcing terms.
-
 
 \section{Bulk Elements}
 The \kw{bulk} element is intended as a sort of NASTRAN's \kw{CELAS} card,
