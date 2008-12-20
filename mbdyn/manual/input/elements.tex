@@ -5580,6 +5580,7 @@ The syntax is:
         stream name , " <mailbox_name> " ,
         create , { yes | no } ,
         [ host , " <host_name> " , ]
+        [ [ non ] blocking , ]
         <content>
 \end{verbatim}
 where
@@ -5594,6 +5595,9 @@ must be created or looked-up as already existing on the system;
 the mailbox resides; note that if this field is given, \kw{create} must
 be set to \kw{no} and the mailbox must be already defined
 on the remote host;
+
+\item the flag \kw{non blocking} requests the mailbox to not block
+(the default, recommended when using real-time).
 \end{itemize}
 This element is actually used only when the simulation is scheduled
 using RTAI; otherwise, the corresponding \kw{stream output} element
