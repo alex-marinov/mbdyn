@@ -178,9 +178,8 @@ ReadRTParams(Solver *pS, MBDynParser& HP,
 		if (newcpumap < 1 || newcpumap > 0xFF) {
 			char buf[16];
 			snprintf(buf, sizeof(buf), "0x%02X", (unsigned)cpumap);
-			silent_cerr("RTSolver: illegal cpu map "
-				<< buf << " at line "
-				<< HP.GetLineData()
+			silent_cerr("RTSolver: illegal cpu map " << buf
+				<< " at line " << HP.GetLineData()
 				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
@@ -195,6 +194,7 @@ ReadRTSolver(Solver *pS, MBDynParser& HP)
 		return ReadRTPOSIXSolver(pS, HP);
 	}
 
+#ifdef USE_RTAI
 	if (!HP.IsKeyWord("RTAI")) {
 		pedantic_cerr("ReadRTSolver: missing real-time model; "
 			"assuming RTAI at line " << HP.GetLineData()
@@ -202,6 +202,20 @@ ReadRTSolver(Solver *pS, MBDynParser& HP)
 	}
 
 	return ReadRTAISolver(pS, HP);
+#else // ! USE_RTAI
+	if (HP.IsKeyWord("RTAI")) {
+		silent_cerr("ReadRTSolver: need to configure --with-rtai "
+			"to use RTAI real-time solver "
+			"at line " << HP.GetLineData() << std::endl);
+
+	} else {
+		silent_cerr("ReadRTSolver: need to configure --with-rtai "
+			"to use default RTAI real-time solver "
+			"at line " << HP.GetLineData() << std::endl);
+	}
+
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#endif // ! USE_RTAI
 }
 
 /* RTSolver - end */

@@ -39,7 +39,6 @@
 #include "solver_impl.h"
 #include "rtaisolver.h"
 
-#ifdef USE_RTAI
 #include "mbrtai_utils.h"
 
 // RTAI log message
@@ -377,12 +376,9 @@ RTAISolver::Wait(void)
 
 /* RTAISolver - end */
 
-#endif // USE_RTAI
-
 RTSolverBase *
 ReadRTAISolver(Solver *pS, MBDynParser& HP)
 {
-#ifdef USE_RTAI
 	RTSolverBase::RTMode eRTMode;
 	unsigned long lRTPeriod;
 	unsigned long RTStackSize;
@@ -423,13 +419,5 @@ ReadRTAISolver(Solver *pS, MBDynParser& HP)
 			RTStackSize, bRTAllowNonRoot, RTCpuMap,
 			bRTHard, bRTlog, LogProcName));
 	return pRTSolver;
-
-#else // !USE_RTAI
-	silent_cerr("RTAISolver: need to configure --with-rtai "
-		"to use RTAI realtime" << std::endl);
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-	return 0;
-#endif // USE_RTAI
 }
 

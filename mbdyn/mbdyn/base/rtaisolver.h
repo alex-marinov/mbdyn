@@ -34,8 +34,6 @@
 
 #include "rtsolver.h"
 
-#ifdef USE_RTAI
-
 /* RTAISolver - begin */
 
 class RTAISolver : public RTSolverBase {
@@ -85,8 +83,6 @@ public:
 };
 
 /* RTAISolver - end */
-
-#endif /* USE_RTAI */
 
 extern RTSolverBase *
 ReadRTAISolver(Solver *pS, MBDynParser& HP);

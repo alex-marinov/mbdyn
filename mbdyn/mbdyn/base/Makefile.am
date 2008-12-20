@@ -118,8 +118,6 @@ reffrm.h \
 resforces.cc \
 resforces.h \
 restart.h \
-rtaisolver.cc \
-rtaisolver.h \
 rtposixsolver.cc \
 rtposixsolver.h \
 rtsolver.cc \
@@ -173,7 +171,9 @@ mbrtai_utils.h \
 rtai_in_drive.cc \
 rtai_in_drive.h \
 rtai_out_elem.cc \
-rtai_out_elem.h
+rtai_out_elem.h \
+rtaisolver.cc \
+rtaisolver.h
 endif
 
 libbase_la_LIBADD = @LIBS@ @SECURITY_LIBS@ $(GINACLIB_LIBS)
