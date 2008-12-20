@@ -52,11 +52,9 @@
 	
 
 FileDrive::FileDrive(unsigned int uL, const DriveHandler* pDH,
-		const char* const s, integer nd)
-: Drive(uL, pDH), sFileName(NULL), iNumDrives(nd), pdVal(NULL)
+		const std::string& s, integer nd)
+: Drive(uL, pDH), sFileName(s), iNumDrives(nd), pdVal(NULL)
 {
-	ASSERT(s != NULL);
-	SAFESTRDUP(sFileName, s);
    	SAFENEWARR(pdVal, doublereal, nd + 1);
    	for (int iCnt = 0; iCnt <= nd; iCnt++) {
       		pdVal[iCnt] = 0.;
@@ -66,10 +64,6 @@ FileDrive::FileDrive(unsigned int uL, const DriveHandler* pDH,
 
 FileDrive::~FileDrive(void)
 {
-	if (sFileName != NULL) {
-		SAFEDELETEARR(sFileName);
-	}
-
    	if (pdVal != NULL) {
       		SAFEDELETEARR(pdVal);
    	}

@@ -51,7 +51,7 @@ protected:
 public:
    	StreamDrive(unsigned int uL,
 			 const DriveHandler* pDH,
-			 const char* const sFileName,
+			 const std::string& sFileName,
 			 integer nd, bool c);
 
    	virtual ~StreamDrive(void);

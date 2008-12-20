@@ -53,13 +53,13 @@ public:
 	};
 
 protected:
-	char* sFileName;
+	std::string sFileName;
 	integer iNumDrives;
    	doublereal* pdVal;
 
 public:
 	FileDrive(unsigned int uL, const DriveHandler* pDH,
-			const char* const s, integer nd);
+			const std::string& s, integer nd);
 	virtual ~FileDrive(void);
 
 	virtual Drive::Type GetDriveType(void) const;

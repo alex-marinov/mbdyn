@@ -47,14 +47,20 @@ protected:
 	const char *host;
 	unsigned long node;
 	int port;
+	bool bNonBlocking;
+
 	void *mbx;
+
+	int (*f_receive)(unsigned long node, int port, void *mbx,
+		void *msg, int msg_size);
 
 public:
    	RTMBDynInDrive(unsigned int uL,
 		const DriveHandler* pDH,
 		const char* const sFileName,
 		const char *h,
-		integer nd, bool c, unsigned long /*int*/ n);
+		integer nd, bool c, unsigned long /*int*/ n,
+		bool bNonBlocking);
    
    	virtual ~RTMBDynInDrive(void);
    

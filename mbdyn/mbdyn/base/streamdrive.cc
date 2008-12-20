@@ -41,13 +41,12 @@
 
 StreamDrive::StreamDrive(unsigned int uL,
 			 const DriveHandler* pDH,
-			 const char* const sFileName,
+			 const std::string& sFileName,
 			 integer nd, bool c)
 : FileDrive(uL, pDH, sFileName, nd),
 create(c)
 {
    	ASSERT(nd > 0);
-	//ASSERT(sFileName != NULL);
 	
 	/*
 	 * initialize mailbox and so on

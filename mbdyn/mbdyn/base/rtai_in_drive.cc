@@ -41,12 +41,14 @@
 #include <mbrtai_utils.h>
 
 RTMBDynInDrive::RTMBDynInDrive(unsigned int uL,
-			 const DriveHandler* pDH,
-			 const char* const sFileName,
-			 const char *h,
-			 integer nd, bool c, unsigned long /*int*/ n)
+	const DriveHandler* pDH,
+	const char* const sFileName,
+	const char *h,
+	integer nd, bool c, unsigned long /*int*/ n,
+	bool bNonBlocking)
 : StreamDrive(uL, pDH, sFileName, nd, c),
-host(h), node(n), port(-1), mbx(NULL)
+host(h), node(n), port(-1), bNonBlocking(bNonBlocking),
+mbx(NULL)
 {
 	ASSERT(sFileName != NULL);
 	if (create) {
@@ -70,7 +72,13 @@ host(h), node(n), port(-1), mbx(NULL)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
-	
+
+	if (bNonBlocking) {
+		f_receive = rtmbdyn_RT_mbx_receive_if;
+
+	} else {
+		f_receive = rtmbdyn_RT_mbx_receive;
+	}
 }
 
 RTMBDynInDrive::~RTMBDynInDrive(void) 
@@ -94,8 +102,8 @@ RTMBDynInDrive::ServePending(const doublereal& /* t */ )
 	 * store in pdVal the values of all the channels
 	 * served by the mailbox
 	 */
-	if (!(rtmbdyn_RT_mbx_receive_if(node, port, mbx, (void *)buf, size))) {
-		
+	int rc = f_receive(node, port, mbx, (void *)buf, size);
+	if (!rc) {
 		doublereal *rbuf = (doublereal *)buf;
 		for (int i = 1; i <= iNumDrives; i++) {
 			pdVal[i] = rbuf[i-1];
@@ -237,6 +245,25 @@ ReadRTMBDynInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		}
 	}
 
+	bool bNonBlocking(true);
+	while (HP.IsArg()) {
+		if (HP.IsKeyWord("signal")) {
+			// ignore
+
+		} else if (HP.IsKeyWord("no" "signal")) {
+			// ignore
+
+		} else if (HP.IsKeyWord("blocking")) {
+			bNonBlocking = false;
+
+		} else if (HP.IsKeyWord("non" "blocking")) {
+			bNonBlocking = true;
+
+		} else {
+			break;
+		}
+	}
+
 	int idrives = HP.GetInt();
 	if (idrives <= 0) {
 		silent_cerr("RTMBDynInDrive(" << uLabel << "): "
@@ -249,7 +276,7 @@ ReadRTMBDynInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	SAFENEWWITHCONSTRUCTOR(pDr, RTMBDynInDrive,
 			RTMBDynInDrive(uLabel, 
 			pDM->pGetDrvHdl(),
-			name, host, idrives, create, node));
+			name, host, idrives, create, node, bNonBlocking));
 	
 	return pDr;
 }

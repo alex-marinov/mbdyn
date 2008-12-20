@@ -139,6 +139,7 @@ The syntax is:
         stream drive name , " <mailbox_name> " ,
         [ create , { yes | no } , ]
         [ host , " <host_name> " , ]
+        [ { [ non ] blocking } , [ ... ] ]
         <columns_number> ;
 \end{verbatim}
 where
@@ -174,7 +175,8 @@ or model debugging purposes.}
         [ { local , " <socket_name> " , |
             [ port , <port_number> , ]
             [ host , " <host_name> " , ] } ]
-        [ no signal , ]
+        [ { [ no ] signal
+            | [ non ] blocking } , [ ... ] ]
         [ timeout , <timeout> , ]
         <columns_number> ;
 \end{verbatim}
