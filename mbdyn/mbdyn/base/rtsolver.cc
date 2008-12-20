@@ -105,6 +105,9 @@ ReadRTParams(Solver *pS, MBDynParser& HP,
 			/* FIXME: not implemented yet ... */
 			eRTMode = RTSolverBase::MBRT_SEMAPHORE;
 
+		} else if (HP.IsKeyWord("io")) {
+			eRTMode = RTSolverBase::MBRT_IO;
+
 		} else {
 			silent_cerr("RTSolver: unknown realtime mode "
 				"at line " << HP.GetLineData()
@@ -140,6 +143,9 @@ ReadRTParams(Solver *pS, MBDynParser& HP,
 
 	case RTSolverBase::MBRT_SEMAPHORE:
 		// impossible, right now
+		break;
+
+	case RTSolverBase::MBRT_IO:
 		break;
 
 	default:
@@ -202,6 +208,7 @@ ReadRTSolver(Solver *pS, MBDynParser& HP)
 	}
 
 	return ReadRTAISolver(pS, HP);
+
 #else // ! USE_RTAI
 	if (HP.IsKeyWord("RTAI")) {
 		silent_cerr("ReadRTSolver: need to configure --with-rtai "

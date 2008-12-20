@@ -5500,9 +5500,84 @@ with \kw{csh(1)} and compatible shells.
 
 
 \section{Output Elements}
+Output elements take care of inter-process communication.
+These elements can use specific communication means,
+depending on the type of simulation they are used for,
+and can communicate specific types of data.
 
-\subsection{RTAI output}\label{sec:EL:BASE:RTAI_out}
-This is a special element which takes care of sending generic output
+\subsection{Streamed output}
+Communication occurs via RTAI mailboxes when a real-time simulation
+is performed using RTAI scheduling (see Section~\ref{sec:REAL-TIME}).
+Otherwise, communication occurs via regular UNIX sockets,
+either \kw{local} or \kw{inet}.
+
+Different types of data can be sent.
+The most general form is called \kw{values}, consisting
+in an arbitrary set of independent scalar channels.
+A form specifically intended to communicate the motion
+of a mechanical system is called \kw{motion}, consisting
+in a subset of the kinematics of a set of structural nodes:
+\begin{verbatim}
+    <content> ::= { <values> | <motion> }
+
+    <values> ::= [ values , ]
+        <channel_number> ,
+            <value>
+            [ , ... ]
+
+    <value> ::= {
+        [ nodedof , ] (node_dof) <output_dof>
+        | drive , (DriveCaller) <drive_data>
+    }
+
+    <motion> ::= motion ,
+        [ output flags ,
+            { position
+            | orientation matrix
+            | orientation matrix transpose
+            | velocity
+            | angular velocity } [ , ... ] , ]
+        { all | <struct_node_label> [ , ... ] }
+\end{verbatim}
+where
+\begin{itemize}
+\item the (optional) keyword \kw{values} indicates that a set
+of independent scalar channels is output by the element;
+
+\item the number of channels \kw{<channel\_number>} that are written
+determines how many \kw{value} entries must be read.
+In case of \kw{node\_dof} (the default, deprecated),
+they must be valid scalar dof entries, which can be connected
+in many ways to nodal degrees of freedom;
+in case of \kw{drive\_data}, they can be arbitrary functions,
+including node or element private data;
+
+\item the keyword \kw{motion} indicates that a subset of the kinematic
+parameters of a set of structural nodes is output by the element.
+As opposed to the \kw{values} case, which is intended for generic
+interprocess communication output, this content type is intended to ease
+and optimize the output of the motion of structural nodes,
+to be used for on-line visualization purposes.
+By default, only the position of the selected nodes is sent.
+This is intended for interoperability with a development version
+of EasyAnim which can read the motion info (the so-called ``van'' file)
+from a stream.
+The optional keyword \kw{output flags} allows to request the output
+of specific node kinematics: the node position, orientation matrix
+(either row- or column-major), the velocity and the angular velocity.
+The default is equivalent to \kw{output flags, position}.
+\end{itemize}
+
+This class of output elements can be used for real-time or batch
+interprocess communication.
+When real-time is provided by RTAI, communication uses RTAI mailboxes.
+When real-time is delegated to the POSIX layer of the underlying OS,
+or when a batch simulation is performed, generic stream output elements
+are used.
+
+
+\subsection{RTAI output}\label{sec:EL:OUTELEM:RTAI_out}
+This is a special element that takes care of sending output
 to external processes by means of RTAI mailboxes during real-time 
 simulations.
 This topic is under development, so expect frequent changes, and
@@ -5515,47 +5590,31 @@ The syntax is:
         stream name , " <mailbox_name> " ,
         create , { yes | no } ,
         [ host , " <host_name> " , ]
-        <channel_number> ,
-            <value>
-            [ , ... ]
-
-    <value> ::= {
-        [ nodedof , ] (node_dof) <output_dof>
-        | drive , (DriveCaller) <drive_data>
-    }
+        <content>
 \end{verbatim}
 where
 \begin{itemize}
-\item \kw{<mailbox\_name>} is the name of the RTAI mailbox where 
+\item \kw{mailbox\_name} is the name of the RTAI mailbox where 
 the output is written  (a unique string exactly six characters long);
+
 \item the \kw{create} keyword determines whether the mailbox
 must be created or looked-up as already existing on the system;
-\item \kw{<host\_name} is the name or the IP of the remote host where
+
+\item \kw{host\_name} is the name or the IP of the remote host where
 the mailbox resides; note that if this field is given, \kw{create} must
 be set to \kw{no} and the mailbox must be already defined
 on the remote host;
-\item the number of channels \kw{<channel\_number>} that are written
-determines how many \kw{value} entries must be read.
-In case of \kw{node\_dof}, they must be valid scalar dof entries,
-which can be connected in many ways to nodal degrees of freedom;
-in case of \kw{drive\_data}, they can be arbitrary functions,
-including node or element private data.
 \end{itemize}
-
-\emph{Note: at present, these elements require that the simulation
-be run in real-time mode (see Section~\ref{sec:REAL-TIME});
-future development will allow to emulate the use of these elements
-also when the simulation is not run in real-time, e.g.\ for modeling
-or model debugging purposes.}
+This element is actually used only when the simulation is scheduled
+using RTAI; otherwise, the corresponding \kw{stream output} element
+is used (see Section~\ref{sec:EL:OUTELEM:STREAM_OUTPUT}).
 
 
 
 
-
-
-\subsection{Stream output}\label{sec:EL:BASE:STREAM_OUTPUT}
-This is a special element which takes care of sending generic output
-to external processes by means of either local or internet sockets
+\subsection{Stream output}\label{sec:EL:OUTELEM:STREAM_OUTPUT}
+This is a special element which takes care of sending output
+to external processes by means of either \kw{local} or \kw{inet} sockets
 during batch or POSIX real-time simulations.
 This topic is under development, so expect frequent changes, and
 please do not count too much on backward compatibility.
@@ -5564,109 +5623,107 @@ The syntax is:
     <elem_type> ::= stream output
 
     <arglist> ::=
-        name , " <mailbox_name> " ,
+        stream name , " <mailbox_name> " ,
         create , { yes | no } ,
         [ { local , " <socket_name> " , |
             [ port , <port_number> , ]
             [ host , " <host_name> " , ] } ]
-        [ { no signal | no send first | non blocking
-            | abort if broken } , [ ... ] ]
-        <channel_number> ,
-            <value>
-            [ , ... ]
-
-    <value> ::= {
-        [ nodedof , ] (node_dof) <output_dof>
-        | drive , (DriveCaller) <drive_data>
-    }
+        [ { [ no ] signal
+            | [ non ] blocking
+            | [ no ] send first
+            | [ do not ] abort if broken } [ , ... ] , ]
+        <content>
 \end{verbatim}
 The stream output allows MBDyn to send streamed outputs 
 to remote processes during both batch and POSIX real-time simulations,
-using sockets either in the local or in the internet namespace.
+using sockets either in the \kw{local} or in the \kw{inet} namespace.
 If the simulation is run in real-time using RTAI, RTAI mailboxes
 are used instead.
 
-This output element type is intended to allow the development 
-of real-time models by running regular simulations for the purpose 
-of debugging the model and the control process without the overhead 
-and the potential problems of running in real-time.
-Then the same model can be run in real-time without changing the details
-of the communication with the controller process.
+\begin{itemize}
+\item \kw{mailbox\_name} is the name of the RTAI mailbox where 
+the output is written  (a unique string exactly six characters long);
+it is basically ignored by the \kw{stream output} element;
 
-\subsection{Stream motion output}\label{sec:EL:BASE:STREAM_MOTION_OUTPUT}
-This is another special element which takes care of sending motion-related
-output to external processes by means of regular sockets/RTAI mailboxes
-during batch or real-time simulations.
-This topic is under development, so expect frequent changes, and
-please do not count too much on backward compatibility.
+\item the \kw{create} keyword determines whether the socket
+must be created or looked-up as already existing on the system;
+
+\item \kw{socket\_name} is the path of the \kw{local} socket 
+that is used to communicate between processes;
+
+\item \kw{port} is the port number to be used with a \kw{inet} socket.
+The default port number is 9011 (intentionally unassigned by IANA).
+If no \kw{host\_name} is given, \kw{localhost} will be used;
+
+\item \kw{host\_name} is the name or the IP of the remote host where
+the mailbox resides; note that if this field is given, \kw{create} must
+be set to \kw{no}.
+The simulation will not start until the socket is created on the remote host;
+
+\item the flag \kw{no signal} requests that no \kw{SIGPIPE} be raised
+when sending through a socket when the other end is broken
+(by default, \kw{SIGPIPE} is raised);
+
+\item the flag \kw{non blocking} requests that operations on the socket
+do not block (or block, in case of \kw{blocking}, the default);
+
+\item the flag \kw{no send first} requests that no send occurs before
+the first time step (by default, data is always sent);
+
+\item the flag \kw{do not abort if broken} requests that the simulation
+continues in case the connection breaks.
+No further data send will occur for the duration of the simulation
+(the default).
+\end{itemize}
+This element, when used with the \kw{motion} content type,
+obsoletes the \kw{stream motion output} element
+(see Section~\ref{sec:EL:OUTELEM:STREAM_MOTION_OUTPUT}).
+
+
+
+\subsection{Stream motion output}\label{sec:EL:OUTELEM:STREAM_MOTION_OUTPUT}
+This element type is obsoleted by the \kw{stream output} element
+with the \kw{motion} content type
+(see Section~\ref{sec:EL:OUTELEM:STREAM_MOTION_OUTPUT}).
 The syntax is:
 \begin{verbatim}
     <elem_type> ::= stream motion output
 
     <arglist> ::= 
-        name , " <mailbox_name> " ,
+        stream name , " <mailbox_name> " ,
         create , { yes | no } ,
         [ { local , " <socket_name> " , |
             [ port , <port_number> , ]
             [ host , " <host_name> " , ] } ]
-        [ { no signal | no send first | non blocking
-            | abort if broken } [ , ... ] , ]
-        [ output flags ,
-            { position
-            | orientation matrix
-            | orientation matrix transpose
-            | velocity
-            | angular velocity } [ , ... ] , ]
-        { all | <struct_node_label> [ , ... ] }
+        [ { [ no ] signal
+            | [ non ] blocking
+            | [ no ] send first
+            | [ do not ] abort if broken } [ , ... ] , ]
+        <motion>
 \end{verbatim}
-As opposed to the \kw{stream output}, which is intended for generic
-output for interprocess communication, this element is intended to ease
-and optimize the output of the motion of structural nodes,
-to be used for on-line visualization purposes.
-By default, only the position of the selected nodes is sent.
-This is intended for interoperability with a development version
-of EasyAnim which can read the motion info (the so-called ``van'' file)
-from a stream.
-The optional keyword \kw{output flags} allows to request the output
-of specific node kinematics: the node position, orientation matrix
-(either row- or column-major), the velocity and the angular velocity.
-The default is equivalent to \kw{output flags, position}.
 
-The stream motion output allows MBDyn to send motion-related streamed output 
-to remote processes both during regular simulations and during 
-real-time simulations under RTAI.
-If the simulation is run in real-time, it uses RTAI mailboxes, 
-otherwise regular UNIX sockets are used, either in the \kw{local} or 
-in the \kw{internet} namespace.
-
-This output element type is intended to allow the development 
-of real-time models by running regular simulations for the purpose 
-of debugging the model and the control process without the overhead 
-and the potential problems of running in real-time.
-Then the same model can be run in real-time without changing the details
-of the communication with the controller process.
-
-\noindent
-\emph{Note: the real-time variant of this element has not been implemented
-yet.}
 
 \subsubsection{Non real-time simulation}
 During non real-time simulations, streams operate in blocking mode.
 The meaning of the parameters is:
 \begin{itemize}
-\item \kw{<name>} indicates the name the stream
+\item \kw{mailbox\_name} indicates the name the stream
 will be known as; it is limited to 6 characters, and mostly useless;
+
 \item the instruction \kw{create} determines whether the socket will be
 created or looked for by MBDyn;
+
 \item the keyword \kw{local} indicates that a socket 
 in the local namespace will be used; if \kw{create} is set to \kw{yes},
 the socket is created, otherwise it must exist.
+
 \item either of the keywords \kw{port} or \kw{host} indicate that a socket
 in the internet namespace will be used;
-if \kw{create} is set to \kw{yes}, \kw{<host\_name>} indicates 
+
+if \kw{create} is set to \kw{yes}, \kw{host\_name} indicates 
 the host that is allowed to connect to the socket; it defaults 
 to any host (\kw{0.0.0.0}); if \kw{create} is set to \kw{no},
-\kw{<host\_name>} indicates what host to connect to; the default 
+\kw{host\_name} indicates what host to connect to; the default 
 is localhost (\kw{127.0.0.1}); the default port is \kw{9011}
 (intentionally unassigned by IANA).
 \end{itemize}
@@ -5679,7 +5736,7 @@ keyword is mandatory.
 During real-time simulations, streams wrap non-blocking RTAI mailboxes.
 The meaning of the parameters is:
 \begin{itemize}
-\item the parameter \kw{<name>} indicates the name the stream
+\item the parameter \kw{mailbox\_name} indicates the name the stream
 will be known as in RTAI's resource namespace; it must be exactly 6 characters long;
 \item the instruction \kw{create} determines whether the mailbox will be
 created or looked for by MBDyn;
@@ -5690,10 +5747,6 @@ RTAI does not provide the possibility to create remote resources;
 if none is given, a local mailbox is assumed;
 \item the keyword \kw{port} is ignored.
 \end{itemize}
-
-The number of channels \kw{<channel\_number>} that are written
-determines how many \kw{value} entries must be read.
-See Section~\ref{sec:EL:BASE:RTAI_out} for a detailed description.
 
 
 

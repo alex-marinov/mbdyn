@@ -275,6 +275,18 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 		if (HP.IsKeyWord("no" "signal")) {
 			flags |= MSG_NOSIGNAL;
 
+		} else if (HP.IsKeyWord("signal")) {
+			flags &= ~MSG_NOSIGNAL;
+
+		} else if (HP.IsKeyWord("blocking")) {
+#ifdef MSG_DONTWAIT
+			flags &= ~MSG_DONTWAIT;
+#else /* !MSG_DONTWAIT */
+			silent_cerr("SocketStreamElem(" << uLabel << "): "
+				"MSG_DONTWAIT undefined; "
+				"your mileage may vary" << std::endl);
+#endif /* !MSG_DONTWAIT */
+
 		} else if (HP.IsKeyWord("non" "blocking")) {
 #ifdef MSG_DONTWAIT
 			flags |= MSG_DONTWAIT;
@@ -287,8 +299,14 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 		} else if (HP.IsKeyWord("no" "send" "first")) {
 			bSendFirst = false;
 
+		} else if (HP.IsKeyWord("send" "first")) {
+			bSendFirst = true;
+
 		} else if (HP.IsKeyWord("abort" "if" "broken")) {
 			bAbortIfBroken = true;
+
+		} else if (HP.IsKeyWord("do" "not" "abort" "if" "broken")) {
+			bAbortIfBroken = false;
 
 		} else {
 			break;

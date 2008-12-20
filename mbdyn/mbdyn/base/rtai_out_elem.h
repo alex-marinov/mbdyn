@@ -47,15 +47,18 @@ protected:
 	unsigned long node;
 	bool create;
 	int port;
+	bool bNonBlocking;
 
 	StreamContent *pSC;
 
 	void *mbx;
+	int (*f_send)(unsigned long node, int port, void *v_mbx,
+		void *msg, int msg_size);
    
 public:
    	RTMBDynOutElem(unsigned int uL, const std::string& m,
 			const std::string& host, unsigned long n, bool c,
-			StreamContent *pSC);
+			StreamContent *pSC, bool bNonBlocking);
    	virtual ~RTMBDynOutElem(void);
 
 	virtual std::ostream& Restart(std::ostream& out) const;

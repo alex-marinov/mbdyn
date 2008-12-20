@@ -32,16 +32,19 @@
 #ifndef RTSOLVER_H
 #define RTSOLVER_H  
 
-class Solver;
-
 /* RTSolverBase - begin */
+
+class Solver;
 
 class RTSolverBase {
 public:
 	enum RTMode {
-		MBRT_UNKNOWN,
+		MBRT_UNKNOWN = -1,
+
 		MBRT_WAITPERIOD,
 		MBRT_SEMAPHORE,
+		MBRT_IO,
+
 		MBRT_LASTMODE
 	};
 
@@ -63,8 +66,12 @@ protected:
 		return (eRTMode == MBRT_WAITPERIOD);
 	};
 
-	bool RTSemaphore(void) const {
+	bool RTSemWait(void) const {
 		return (eRTMode == MBRT_SEMAPHORE);
+	};
+
+	bool RTBlockingIO(void) const {
+		return (eRTMode == MBRT_IO);
 	};
 
 	volatile int RTSteps;

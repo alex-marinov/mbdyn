@@ -186,9 +186,9 @@ RTAISolver::Init(void)
 				"(" << r << ")" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
-	}
+
 #if 0
-	else {
+	} else if (RTSemWait()) {
 		int r;
 
 		/* FIXME: check args
@@ -201,10 +201,6 @@ RTAISolver::Init(void)
 				<< r << ")" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
-	}
-
-	if (true) {	/* FIXME: option has to be configurable!*/
-		int r;
 
 		/* FIXME: check args
 		 * name should be configurable?
@@ -216,8 +212,8 @@ RTAISolver::Init(void)
 				<< r << ")" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
-	}
 #endif
+	}
 
 	/* FIXME: should check whether RTStackSize is correctly set? */
 	if (bRTlog) {
@@ -347,9 +343,9 @@ RTAISolver::Wait(void)
 		or_counter++;
 		t_tot = t_tot + rtmbdyn_count2nano(t1 - t0 - lRTPeriod)/1000;
 
-		if (bRTlog){
+		if (bRTlog) {
 			msg.step = RTSteps;
-			msg.time =(int)rtmbdyn_count2nano(t1 - t0 - lRTPeriod)/1000;
+			msg.time = (int)rtmbdyn_count2nano(t1 - t0 - lRTPeriod)/1000;
 
 			rtmbdyn_RT_mbx_send_if(0, 0, mbxlog, &msg, sizeof(msg));
 		}
@@ -359,11 +355,11 @@ RTAISolver::Wait(void)
 		rtmbdyn_rt_task_wait_period();
 
 #if 0
-	} else if (RTSemaphore()) {
+	} else if (RTSemWait()) {
 		/* FIXME: semaphore must be configurable */
 		mbdyn_rt_sem_wait(RTSemPtr_in);
 #endif
-	}
+	} /* else RTBlockingIO(): do nothing */
 
 	t0 = rtmbdyn_rt_get_time();
 
@@ -371,6 +367,7 @@ RTAISolver::Wait(void)
 		/* make hard real time */
 		rtmbdyn_rt_make_hard_real_time();
 	}
+
 	RTSteps++;
 }
 
@@ -418,6 +415,7 @@ ReadRTAISolver(Solver *pS, MBDynParser& HP)
 		RTAISolver(pS, eRTMode, lRTPeriod,
 			RTStackSize, bRTAllowNonRoot, RTCpuMap,
 			bRTHard, bRTlog, LogProcName));
+
 	return pRTSolver;
 }
 

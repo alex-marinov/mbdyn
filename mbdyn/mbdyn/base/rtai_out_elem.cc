@@ -49,10 +49,15 @@
 /* RTMBDynOutElem - begin */
 
 RTMBDynOutElem::RTMBDynOutElem(unsigned int uL, const std::string& m,
-	const std::string& host, unsigned long n, bool c, StreamContent *pSC)
+	const std::string& host, unsigned long n, bool c, StreamContent *pSC,
+	bool bNonBlocking)
 : Elem(uL, flag(0)),
 StreamOutElem(uL, m, 1),
-host(host), node(n), create(c), port(-1), pSC(pSC), mbx(0)
+host(host), node(n), create(c), port(-1),
+bNonBlocking(bNonBlocking),
+pSC(pSC),
+mbx(0),
+f_send(0)
 {
 	/* RATIONALE:
 	 *
@@ -82,6 +87,11 @@ host(host), node(n), create(c), port(-1), pSC(pSC), mbx(0)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
+	if (bNonBlocking) {
+		f_send = rtmbdyn_RT_mbx_send_if;
+	} else {
+		f_send = rtmbdyn_RT_mbx_send;
+	}
 }
 
 RTMBDynOutElem::~RTMBDynOutElem(void)
@@ -108,10 +118,10 @@ RTMBDynOutElem::AfterConvergence(const VectorHandler& X,
 {
 	pSC->Prepare();
 
-	if (rtmbdyn_RT_mbx_send_if(node, -port, mbx, pSC->GetBuf(), pSC->GetSize()) != pSC->GetSize()) {
+	int rc = f_send(node, -port, mbx, pSC->GetBuf(), pSC->GetSize());
+	if (rc != pSC->GetSize()) {
 		/* FIXME: error */
 	}
-	 
 }
 
 void
@@ -234,9 +244,20 @@ ReadRTMBDynOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Strea
 		}
 	}
 
-	StreamContent *pSC = ReadStreamContent(pDM, HP, type);
+	bool bNonBlocking = true;
+	while (HP.IsArg()) {
+		if (HP.IsKeyWord("blocking")) {
+			bNonBlocking = false;
 
-   	// (void)pDM->fReadOutput(HP, Elem::LOADABLE); 
+		} else if (HP.IsKeyWord("non" "blocking")) {
+			bNonBlocking = true;
+
+		} else {
+			break;
+		}
+	}
+
+	StreamContent *pSC = ReadStreamContent(pDM, HP, type);
 
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {
@@ -250,7 +271,7 @@ ReadRTMBDynOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Strea
 	Elem *pEl = NULL;
 	SAFENEWWITHCONSTRUCTOR(pEl, RTMBDynOutElem,
 			RTMBDynOutElem(uLabel,
-				host, name, node, create, pSC));
+				host, name, node, create, pSC, bNonBlocking));
 	return pEl;
 }
 

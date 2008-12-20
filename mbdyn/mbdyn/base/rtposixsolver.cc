@@ -129,31 +129,37 @@ RTPOSIXSolver::Log(void)
 void
 RTPOSIXSolver::Wait(void)
 {
-	if (RTSteps == 0) {
-		clock_gettime(CLOCK_MONOTONIC, &t0);
-		t = t0;
-	}
+	if (RTWaitPeriod()) {
+		if (RTSteps == 0) {
+			clock_gettime(CLOCK_MONOTONIC, &t0);
+			t = t0;
+		}
 
-	t.tv_nsec += lRTPeriod;
-	if (t.tv_nsec >= 1000000000) {
-		t.tv_nsec -= 1000000000;
-		t.tv_sec++;
-	}
+		t.tv_nsec += lRTPeriod;
+		if (t.tv_nsec >= 1000000000) {
+			t.tv_nsec -= 1000000000;
+			t.tv_sec++;
+		}
 
-	int rc = clock_nanosleep(CLOCK_MONOTONIC, clock_flags, &t, NULL);
-	switch (rc) {
-	case 0:
-		break;
+		int rc = clock_nanosleep(CLOCK_MONOTONIC, clock_flags, &t, NULL);
+		switch (rc) {
+		case 0:
+			break;
 
-	case EINTR:
-		silent_cerr("RTPOSIXSolver: clock_nanosleep interrupted" << std::endl);
-		break;
+		case EINTR:
+			silent_cerr("RTPOSIXSolver: clock_nanosleep interrupted" << std::endl);
+			break;
 
-	default:
-		silent_cerr("RTPOSIXSolver: clock_nanosleep failed "
-			"(rc=" << rc << ")" << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+		default:
+			silent_cerr("RTPOSIXSolver: clock_nanosleep failed "
+				"(rc=" << rc << ")" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+#if 0
+	} else if (RTSemWait()) {
+#endif
+	} /* else RTBlockingIO(): do nothing */
 
 	RTSteps++;
 }
