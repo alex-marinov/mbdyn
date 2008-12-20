@@ -192,7 +192,7 @@ parse_format(const char *fmt)
 	if (f[0] == 'e' || f[0] == 'E') {
 		std::cout.setf(std::ios::scientific);
 
-	} else if (f[0] != 'f' & f[0] != 'F') {
+	} else if (f[0] != 'f' && f[0] != 'F') {
 		silent_cerr("unable to parse format string "
 			"\"" << fmt << "\"" << std::endl);
 		throw;

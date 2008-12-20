@@ -35,11 +35,15 @@
 #include "elem.h"
 #include "scalarvalue.h"
 
+#define UNIX_PATH_MAX	108
+#define DEFAULT_PORT	9011 /* intentionally unassigned by IANA */
+#define DEFAULT_HOST	"127.0.0.1"
+
 /* StreamOutElem - begin */
 
 class StreamOutElem : virtual public Elem {
 protected:
-	std::vector<ScalarValue *> Values;
+	std::string name;
 
 	/* Stream buffer */
 	int size;
@@ -50,8 +54,7 @@ protected:
 	mutable unsigned int OutputCounter;
 
 public:
-   	StreamOutElem(unsigned int uL, std::vector<ScalarValue *>& pn,
-			unsigned int oe);
+   	StreamOutElem(unsigned int uL, const std::string& name, unsigned int oe);
 			
    	virtual ~StreamOutElem(void);
 
@@ -65,7 +68,55 @@ public:
 			const VectorHandler& X, const VectorHandler& XP);
 };
 
-/* SocketStreamElem - end */
+/* StreamOutElem - end */
+
+/* StreamContent - begin */
+
+class StreamContent {
+public:
+	enum Type {
+		UNKNOWN = -1,
+
+		VALUES = 0,
+		MOTION = 1,
+
+		LASTTYPE
+	};
+
+protected:
+	/* Stream buffer */
+	int size;
+	char *buf;
+
+public:
+	StreamContent(void);
+	virtual ~StreamContent(void);
+
+	void *GetBuf(void) const;
+	int GetSize(void) const;
+
+	virtual void Prepare(void) = 0;
+};
+
+extern StreamContent*
+ReadStreamContent(DataManager *pDM, MBDynParser& HP, StreamContent::Type type);
+
+/* StreamContent - end */
+
+/* StreamContentValue - begin */
+
+class StreamContentValue : public StreamContent {
+protected:
+	std::vector<ScalarValue *> Values;
+
+public:
+	StreamContentValue(const std::vector<ScalarValue *>& v);
+	virtual ~StreamContentValue(void);
+
+	void Prepare(void);
+};
+
+/* StreamContentValue - end */
 
 #endif /* STREAMOUTELEM_H */
 

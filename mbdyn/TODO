@@ -170,7 +170,8 @@ D. Code:
 	- use getopt(3) in utils/
 	- add package-wide support for WinSocks in communication entities,
 	  including SimulinkInterface (using MSYS/MinGW)
-	- add pseudo-realtime support based on nanosleep(2)
+	- add pseudo-realtime support based on nanosleep(2) (DONE)
+	- add RTAI-based motion output (DONE)
 
 
 

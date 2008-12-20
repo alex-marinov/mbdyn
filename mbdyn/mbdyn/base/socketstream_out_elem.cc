@@ -56,48 +56,20 @@
 #include "socketstream_out_elem.h"
 #include "sock.h"
 
-#define UNIX_PATH_MAX    108
-#define DEFAULT_PORT	5501 /* FIXME:da definire meglio */
-#define DEFAULT_HOST 	"127.0.0.1"
-
 /* SocketStreamElem - begin */
 
 SocketStreamElem::SocketStreamElem(unsigned int uL,
-	std::vector<ScalarValue *>& pn,
+	const std::string& name,
 	unsigned int oe,
-	DataManager *pDM,
-	const char *h, const char *m, unsigned short int p, bool c,
-	int flags, bool bSF)
+	UseSocket *pUS,
+	StreamContent *pSC,
+	int flags, bool bSendFirst, bool bAbortIfBroken)
 : Elem(uL, flag(0)),
-StreamOutElem(uL, pn, oe),
-pUS(0), name(m), send_flags(flags), bSendFirst(bSF)
+StreamOutElem(uL, name, oe),
+pUS(pUS), pSC(pSC), send_flags(flags),
+bSendFirst(bSendFirst), bAbortIfBroken(bAbortIfBroken)
 {
-	SAFENEWWITHCONSTRUCTOR(pUS, UseInetSocket, UseInetSocket(h, p, c));
-	if (c) {
-		pDM->RegisterSocketUser(pUS);
-
-	} else {
-		pUS->Connect();
-	}
-}
-
-SocketStreamElem::SocketStreamElem(unsigned int uL,
-		std::vector<ScalarValue *>& pn,
-		unsigned int oe,
-		DataManager *pDM,
-		const char *m, const char* const p, bool c,
-		int flags, bool bSF)
-: Elem(uL, flag(0)),
-StreamOutElem(uL, pn, oe),
-pUS(0), name(m), send_flags(flags), bSendFirst(bSF)
-{
-	SAFENEWWITHCONSTRUCTOR(pUS, UseLocalSocket, UseLocalSocket(p, c));
-	if (c) {
-		pDM->RegisterSocketUser(pUS);
-
-	} else {
-		pUS->Connect();
-	}
+	NO_OP;
 }
 
 SocketStreamElem::~SocketStreamElem(void)
@@ -105,23 +77,17 @@ SocketStreamElem::~SocketStreamElem(void)
 	if (pUS != 0) {
 		SAFEDELETE(pUS);
 	}
+
+	if (pSC != 0) {
+		SAFEDELETE(pSC);
+	}
 }
 
 std::ostream&
 SocketStreamElem::Restart(std::ostream& out) const
 {   	
-	out << "  stream output: " << uLabel 
-		<< ", stream name, \"" << name << "\"";
-	pUS->Restart(out);
-	if (!bSendFirst) {
-		out << ", no send first";
-	}
-	out << ", " << Values.size();
-	for (unsigned i = 0; i < Values.size(); i++) {
-		out << ", " ;
-		//Values[i].RestartScalarDofCaller(out);
-	}
-	return out << ";" << std::endl;
+	return out << "# SocketStreamElem(" << GetLabel() << "): "
+		"not implemented yet" << std::endl;
 }	
 
 void
@@ -130,21 +96,7 @@ SocketStreamElem::SetValue(DataManager *pDM,
 		SimulationEntity::Hints *ph)
 {
 	if (bSendFirst) {
-#if 1
 		AfterConvergence(X, XP);
-#else
-		if (send(pUS->GetSock(), (void *)buf, size, send_flags) == -1) {
-			int save_errno = errno;
-			char *msg = strerror(save_errno);
-		
-			silent_cerr("SocketStreamElem(" << name << "): "
-					"send() failed "
-					"(" << save_errno << ": " << msg << ")"
-					<< std::endl);
-
-			pUS->Abandon();
-		}
-#endif
 	}
 }
 
@@ -167,24 +119,20 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 	}
 	OutputCounter = 0;
 
-	char *curbuf = buf;
-	for (std::vector<ScalarValue *>::iterator i = Values.begin(); i != Values.end(); i++) {
-		/* assign value somewhere into mailbox buffer */
-		doublereal v = (*i)->dGetValue();
+	// prepare the output buffer
+	pSC->Prepare();
 
-		doublereal *dbuf = (doublereal *)curbuf;
-		dbuf[0] = v;
-
-		curbuf += sizeof(doublereal);
-	}
-	
-	if (send(pUS->GetSock(), (void *)buf, size, send_flags) == -1) {
+	if (send(pUS->GetSock(), pSC->GetBuf(), pSC->GetSize(), send_flags) != pSC->GetSize()) {
 		int save_errno = errno;
 		char *msg = strerror(save_errno);
 		
 		silent_cerr("SocketStreamElem(" << name << "): send() failed "
 				"(" << save_errno << ": " << msg << ")"
 				<< std::endl);
+
+		if (bAbortIfBroken) {
+			throw NoErr(MBDYN_EXCEPT_ARGS);
+		}
 
 		pUS->Abandon();
 	}
@@ -198,26 +146,25 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 }
 
 Elem *
-ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
+ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, StreamContent::Type type)
 {
-	bool create = false;
-	unsigned short int port = DEFAULT_PORT;
-	const char *name = 0;
-	const char *host = 0;
-	const char *path = 0;
+	bool bCreate = false;
+	unsigned short int port = -1;
+	std::string name;
+	std::string host;
+	std::string path;
 
 	if (HP.IsKeyWord("name") || HP.IsKeyWord("stream" "name")) {
 		const char *m = HP.GetStringWithDelims();
 		if (m == 0) {
 			silent_cerr("unable to read stream name "
-				"for SocketStreamElem(" << uLabel
-				<< ") at line "
-				<< HP.GetLineData() << std::endl);
+				"for SocketStreamElem(" << uLabel << ") "
+				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		} 
 		
-		SAFESTRDUP(name, m);
+		name = m;
 
 	} else {
 		silent_cerr("missing stream name "
@@ -228,10 +175,10 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 
 	if (HP.IsKeyWord("create")) {
 		if (HP.IsKeyWord("yes")) {
-			create = true;
+			bCreate = true;
 
 		} else if (HP.IsKeyWord("no")) {
-			create = false;
+			bCreate = false;
 
 		} else {
 			silent_cerr("\"create\" must be either "
@@ -253,11 +200,11 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		
-		SAFESTRDUP(path, m);	
+		path = m;
 	}
 
 	if (HP.IsKeyWord("port")) {
-		if (path != 0){
+		if (!path.empty()) {
 			silent_cerr("cannot specify a port "
 					"for a local socket in "
 				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
@@ -286,7 +233,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	}
 
 	if (HP.IsKeyWord("host")) {
-		if (path != 0) {
+		if (!path.empty()) {
 			silent_cerr("cannot specify an allowed host "
 					"for a local socket in "
 				<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
@@ -306,21 +253,24 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		SAFESTRDUP(host, h);
+		host = h;
 
-	} else if (!path && !create) {
+	} else if (path.empty() && !bCreate) {
 		/* INET sockets (!path) must be created if host is missing */
 		silent_cerr("host undefined for "
 			<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 			<< "(" << uLabel << ") at line "
 			<< HP.GetLineData() << std::endl);
+		host = DEFAULT_HOST;
 		silent_cerr("using default host: "
-			<< DEFAULT_HOST << std::endl);
-		SAFESTRDUP(host, DEFAULT_HOST);
+			<< host << ":"
+			<< (port == (unsigned short int)(-1) ? DEFAULT_PORT : port)
+			<< std::endl);
 	}
 
 	int flags = 0;
 	bool bSendFirst = true;
+	bool bAbortIfBroken = false;
 	while (HP.IsArg()) {
 		if (HP.IsKeyWord("no" "signal")) {
 			flags |= MSG_NOSIGNAL;
@@ -336,6 +286,9 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 
 		} else if (HP.IsKeyWord("no" "send" "first")) {
 			bSendFirst = false;
+
+		} else if (HP.IsKeyWord("abort" "if" "broken")) {
+			bAbortIfBroken = true;
 
 		} else {
 			break;
@@ -354,19 +307,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		OutputEvery = (unsigned int)i;
 	}
 
-	int nch = HP.GetInt();
-	if (nch <= 0) {
-		silent_cerr("illegal number of channels for "
-			<< psElemNames[Elem::SOCKETSTREAM_OUTPUT]
-			<< "(" << uLabel << ") at line " << HP.GetLineData()
-			<< std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	std::vector<ScalarValue *> Values(nch);
-	ReadScalarValues(pDM, HP, Values);
-
-   	(void)pDM->fReadOutput(HP, Elem::LOADABLE); 
+	StreamContent *pSC = ReadStreamContent(pDM, HP, type);
 
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {
@@ -374,25 +315,33 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-      
-	/* costruzione del nodo */
-	Elem *pEl = 0;
 
-	if (path == 0) {
-		SAFENEWWITHCONSTRUCTOR(pEl, SocketStreamElem,
-				SocketStreamElem(uLabel, Values,
-					OutputEvery,
-					pDM,
-					host, name, port, create, flags,
-					bSendFirst));
+	/* costruzione del nodo */
+	UseSocket *pUS = 0;
+	if (path.empty()) {
+		if (port == (unsigned short int)(-1)) {
+			port = DEFAULT_PORT;
+			silent_cerr("port undefined; using default port "
+				<< port << std::endl);
+		}
+      
+		SAFENEWWITHCONSTRUCTOR(pUS, UseInetSocket, UseInetSocket(host.c_str(), port, bCreate));
+
 	} else {
-		SAFENEWWITHCONSTRUCTOR(pEl, SocketStreamElem,
-				SocketStreamElem(uLabel, Values,
-					OutputEvery,
-					pDM,
-					name, path, create, flags,
-					bSendFirst));
+		SAFENEWWITHCONSTRUCTOR(pUS, UseLocalSocket, UseLocalSocket(path.c_str(), bCreate));
 	}
+
+	if (bCreate) {
+		pDM->RegisterSocketUser(pUS);
+
+	} else {
+		pUS->Connect();
+	}
+
+	Elem *pEl = 0;
+	SAFENEWWITHCONSTRUCTOR(pEl, SocketStreamElem,
+		SocketStreamElem(uLabel, name, OutputEvery,
+			pUS, pSC, flags, bSendFirst, bAbortIfBroken));
 
 	return pEl;
 }

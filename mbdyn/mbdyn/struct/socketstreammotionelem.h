@@ -34,10 +34,30 @@
 
 /*include del programma*/
 
-#include <elem.h>
-#include <strnode.h>
+#include "elem.h"
+#include "strnode.h"
+#include "streamoutelem.h"
+
+/* StreamContentMotion - begin */
+
+class StreamContentMotion : public StreamContent {
+protected:
+	unsigned uFlags;
+	std::vector<StructNode *> nodes;
+
+public:
+	StreamContentMotion( unsigned uFlags,
+		std::vector<StructNode *>& n);
+	virtual ~StreamContentMotion(void);
+
+	void Prepare(void);
+};
+
+/* StreamContentMotion - end */
 
 /* SocketStreamMotionElem - begin */
+
+#if 0
 
 class SocketStreamMotionElem : virtual public Elem {
 protected:
@@ -57,6 +77,7 @@ protected:
 	const char *name;
 	int send_flags;
 	bool bSendFirst;
+	bool bAbortIfBroken;
 
 	void Init_int(void);
 	
@@ -67,14 +88,14 @@ public:
 		unsigned int oe,
 		DataManager *pDM,
 		const char *h, const char *m, unsigned short int p,
-		bool c, int flags, bool bSendFirst);
+		bool c, int flags, bool bSendFirst, bool bAbortIfBroken);
    	SocketStreamMotionElem(unsigned int uL,
 		unsigned uFlags,
 		std::vector<StructNode *>& n,
 		unsigned int oe,
 		DataManager *pDM,
 		const char *m, const char* const Path,
-		bool c, int flags, bool bSendFirst);
+		bool c, int flags, bool bSendFirst, bool bAbortIfBroken);
 			
    	virtual ~SocketStreamMotionElem(void);
 
@@ -94,6 +115,8 @@ public:
 	virtual void AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP);
 };
+
+#endif 
 
 class DataManager;
 class MBDynParser;

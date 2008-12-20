@@ -43,23 +43,17 @@
 class SocketStreamElem : public StreamOutElem, virtual public Elem {
 protected:
 	UseSocket *pUS;
+	StreamContent *pSC;
 
-	const char *name;
 	int send_flags;
 	bool bSendFirst;
+	bool bAbortIfBroken;
 	
 public:
-   	SocketStreamElem(unsigned int uL, std::vector<ScalarValue *>& pn,
-			unsigned int oe,
-			DataManager *pDM,
-			const char *h, const char *m, unsigned short int p,
-			bool c, int flags, bool bSendFirst);
-   	SocketStreamElem(unsigned int uL, std::vector<ScalarValue *>& pn,
-			unsigned int oe,
-			DataManager *pDM,
-			const char *m, const char* const Path,
-			bool c, int flags, bool bSendFirst);
-			
+   	SocketStreamElem(unsigned int uL, const std::string& name, unsigned int oe,
+			UseSocket *pUS, StreamContent *pSC,
+			int flags, bool bSendFirst, bool bAbortIfBroken);
+
    	virtual ~SocketStreamElem(void);
 
 	virtual std::ostream& Restart(std::ostream& out) const;
@@ -79,7 +73,7 @@ class DataManager;
 class MBDynParser;
 
 extern Elem *
-ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel);
+ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, StreamContent::Type type);
 
 /* SocketStreamElem - end */
 

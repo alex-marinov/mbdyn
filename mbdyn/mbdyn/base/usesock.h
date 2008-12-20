@@ -67,12 +67,12 @@ public:
 
 class UseInetSocket : public UseSocket {
 protected:
-	const char *host;
+	std::string host;
  	unsigned short int port;
 	struct sockaddr_in addr;
 	
 public:
-	UseInetSocket(const char *h, unsigned short p, bool c);
+	UseInetSocket(const std::string& h, unsigned short p, bool c);
 	virtual ~UseInetSocket(void);
 	
 	std::ostream& Restart(std::ostream& out) const;
@@ -84,11 +84,11 @@ public:
 
 class UseLocalSocket : public UseSocket {
 protected:
-	const char *path;
+	std::string path;
 	struct sockaddr_un addr;
 	
 public:
-	UseLocalSocket(const char *p, bool c);
+	UseLocalSocket(const std::string& p, bool c);
 	virtual ~UseLocalSocket(void);
 	
 	std::ostream& Restart(std::ostream& out) const;

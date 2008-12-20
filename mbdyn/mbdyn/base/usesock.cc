@@ -211,9 +211,9 @@ UseSocket::GetSocklen(void) const
 	return socklen;
 }
 
-UseInetSocket::UseInetSocket(const char *const h, unsigned short p, bool c)
+UseInetSocket::UseInetSocket(const std::string& h, unsigned short p, bool c)
 : UseSocket(c),
-host(0),
+host(h),
 port(p)
 {
    	ASSERT(port > 0);
@@ -223,22 +223,20 @@ port(p)
 	char buf[256];
 
 	/* if 0, means INET on localhost */
-	if (h) {
-		SAFESTRDUP(host, h);
-		snprintf(buf, sizeof(buf), "%s:%u", host, port);
-
-	} else {
-		snprintf(buf, sizeof(buf), "%s:%u", DEFAULT_HOST, port);
+	if (h.empty()) {
+		host = DEFAULT_HOST;
 	}
+
+	snprintf(buf, sizeof(buf), "%s:%u", host.c_str(), port);
 	
 	if (create) {
 		struct sockaddr_in	addr_name;
 		int			save_errno;
 		
-		/*Set everything to zero*/
+		/* Set everything to zero */
 		memset(&addr_name, 0, sizeof(addr_name));
 
-   		sock = mbdyn_make_inet_socket(&addr_name, host, port, 1, 
+   		sock = mbdyn_make_inet_socket(&addr_name, host.c_str(), port, 1, 
 				&save_errno);
 		
 		if (sock == -1) {
@@ -282,10 +280,7 @@ port(p)
 
 UseInetSocket::~UseInetSocket(void)
 {
-	if (host) {
-		SAFEDELETEARR(host);
-		host = 0;
-	}
+	NO_OP;
 }
 
 std::ostream&
@@ -293,7 +288,7 @@ UseInetSocket::Restart(std::ostream& out) const
 {
 	UseSocket::Restart(out);
 	out << ", port, " << port;
-	if (host) {
+	if (!host.empty()) {
 		out << ", host, " << "\"" << host << "\"";
 	}
 	return out;
@@ -308,25 +303,17 @@ UseInetSocket::Connect(void)
 
 	sock = socket(PF_INET, SOCK_STREAM, 0);
 	if (sock < 0) {
-		const char *h = host;
-		if (h == 0) {
-			h = DEFAULT_HOST;
-		}
 		silent_cerr("UseSocket(): socket() failed "
-				<< "\"" << h << ":" << port << "\""
+				<< "\"" << host << ":" << port << "\""
 				<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(port);
-	if (inet_aton(host, &addr.sin_addr) == 0) {
-		const char *h = host;
-		if (h == 0) {
-			h = DEFAULT_HOST;
-		}
+	if (inet_aton(host.c_str(), &addr.sin_addr) == 0) {
 		silent_cerr("UseSocket(): unknown host "
-				"\"" << h << ":" << port << "\""
+				"\"" << host << ":" << port << "\""
 				<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);	
 	}
@@ -356,20 +343,17 @@ UseInetSocket::GetSockaddr(void) const
 	return (struct sockaddr *)&addr;
 }
 	
-UseLocalSocket::UseLocalSocket(const char *const p, bool c)
-: UseSocket(c),
-path(0)
+UseLocalSocket::UseLocalSocket(const std::string& p, bool c)
+: UseSocket(c), path(p)
 {
 	ASSERT(p);
 
 	socklen = sizeof(addr);
 	
-	SAFESTRDUP(path, p);
-
 	if (create) {
 		int		save_errno;
 
-		sock = mbdyn_make_named_socket(path, 1, &save_errno);
+		sock = mbdyn_make_named_socket(path.c_str(), 1, &save_errno);
 		
 		if (sock == -1) {
 			const char	*err_msg = strerror(save_errno);
@@ -404,13 +388,8 @@ path(0)
 
 UseLocalSocket::~UseLocalSocket(void)
 {
-	if (path) {
-		if (create) {
-			unlink(path);
-		}
-
-		SAFEDELETEARR(path);
-		path = 0;
+	if (!path.empty() && create) {
+		unlink(path.c_str());
 	}
 }
 
@@ -438,7 +417,7 @@ UseLocalSocket::Connect(void)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	addr.sun_family = AF_UNIX;
-	memcpy(addr.sun_path, path, sizeof(addr.sun_path));
+	memcpy(addr.sun_path, path.c_str(), sizeof(addr.sun_path));
 
 	pedantic_cout("connecting to local socket \""
 			<< path << "\" ..." << std::endl);

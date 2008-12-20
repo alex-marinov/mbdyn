@@ -43,17 +43,19 @@
 class RTMBDynOutElem : public StreamOutElem, virtual public Elem {
 protected:
 	/* FIXME: store restart info as well */
-	const char *host;
+	std::string host;
 	unsigned long node;
-	const char *name;
 	bool create;
 	int port;
+
+	StreamContent *pSC;
+
 	void *mbx;
    
 public:
-   	RTMBDynOutElem(unsigned int uL, std::vector<ScalarValue *>& pn,
-			const char *host, const char *m, unsigned long n,
-			bool c);
+   	RTMBDynOutElem(unsigned int uL, const std::string& m,
+			const std::string& host, unsigned long n, bool c,
+			StreamContent *pSC);
    	virtual ~RTMBDynOutElem(void);
 
 	virtual std::ostream& Restart(std::ostream& out) const;
@@ -71,7 +73,7 @@ class DataManager;
 class MBDynParser;
 
 extern Elem *
-ReadRTMBDynOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel);
+ReadRTMBDynOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, StreamContent::Type type);
 
 /* RTMBDynOutElem - end */
 

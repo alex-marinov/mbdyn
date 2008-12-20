@@ -48,11 +48,11 @@
 
 /* RTMBDynOutElem - begin */
 
-RTMBDynOutElem::RTMBDynOutElem(unsigned int uL, std::vector<ScalarValue *>& pn,
-		const char *h, const char *m, unsigned long n, bool c)
+RTMBDynOutElem::RTMBDynOutElem(unsigned int uL, const std::string& m,
+	const std::string& host, unsigned long n, bool c, StreamContent *pSC)
 : Elem(uL, flag(0)),
-StreamOutElem(uL, pn, 1),
-host(h), node(n), name(m), create(c), port(-1), mbx(0)
+StreamOutElem(uL, m, 1),
+host(host), node(n), create(c), port(-1), pSC(pSC), mbx(0)
 {
 	/* RATIONALE:
 	 *
@@ -63,7 +63,7 @@ host(h), node(n), name(m), create(c), port(-1), mbx(0)
 	if (create) {
 		ASSERT(node == 0);
 
-		if (rtmbdyn_rt_mbx_init(name, size, &mbx)) {
+		if (rtmbdyn_rt_mbx_init(name.c_str(), size, &mbx)) {
 			silent_cerr("RTMBDyn mailbox(" << name << ") "
 				"init failed" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -76,7 +76,7 @@ host(h), node(n), name(m), create(c), port(-1), mbx(0)
 			/* FIXME: what in case of failure? */
 		}
 
-		if (rtmbdyn_RT_get_adr(node, port, name, &mbx)) {
+		if (rtmbdyn_RT_get_adr(node, port, name.c_str(), &mbx)) {
 			silent_cerr("RTMBDyn mailbox(" << name << ") "
 				"get_adr failed" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -90,34 +90,25 @@ RTMBDynOutElem::~RTMBDynOutElem(void)
 		rtmbdyn_rt_mbx_delete(&mbx);
 	}
 
-	if (host) {
-		SAFEDELETEARR(host);
+	if (pSC) {
+		SAFEDELETE(pSC);
 	}
 }
 
 std::ostream&
 RTMBDynOutElem::Restart(std::ostream& out) const
 {
-	return out << "# not implemented yet" << std::endl;
+	return out << "# RTMBDynOutElem(" << GetLabel() << ") "
+		"not implemented yet" << std::endl;
 }
 
 void
 RTMBDynOutElem::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP)
 {
-	char *curbuf = buf;
-	
-	for (std::vector<ScalarValue *>::iterator i = Values.begin(); i != Values.end(); i++) {
-		/* assign value somewhere into mailbox buffer */
-		doublereal v = (*i)->dGetValue();
+	pSC->Prepare();
 
-		doublereal *dbuf = (doublereal *)curbuf;
-		dbuf[0] = v;
-
-		curbuf += sizeof(doublereal);
-	}
-	
-	if (rtmbdyn_RT_mbx_send_if(node, -port, mbx, (void *)buf, size) != size) {
+	if (rtmbdyn_RT_mbx_send_if(node, -port, mbx, pSC->GetBuf(), pSC->GetSize()) != pSC->GetSize()) {
 		/* FIXME: error */
 	}
 	 
@@ -131,11 +122,11 @@ RTMBDynOutElem::AfterConvergence(const VectorHandler& X,
 }
 
 Elem *
-ReadRTMBDynOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
+ReadRTMBDynOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, StreamContent::Type type)
 {
 	unsigned long node = 0;
-	const char *host = NULL;
-	const char *name = NULL;
+	std::string host;
+	std::string name;
 	bool create = false;
 
 	if (HP.IsKeyWord("name") || HP.IsKeyWord("stream" "name")) {
@@ -154,7 +145,7 @@ ReadRTMBDynOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		SAFESTRDUP(name, m);
+		name = m;
 
 	} else {
 		silent_cerr("RTMBDynOutElem(" << uLabel << "): "
@@ -210,19 +201,19 @@ ReadRTMBDynOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 				"at line " << HP.GetLineData() << std::endl);			
 		} else {
 
-			SAFESTRDUP(host, h);
+			host = h;
 
 			/* resolve host
 		 	* FIXME: non-reentrant ... */
 #if defined(HAVE_GETHOSTBYNAME)
-			struct hostent *he = gethostbyname(host);
+			struct hostent *he = gethostbyname(host.c_str());
 			if (he != NULL)
 			{
 				node = ((unsigned long *)he->h_addr_list[0])[0];
 			} 
 #elif defined(HAVE_INET_ATON)
 			struct in_addr addr;
-			if (inet_aton(host, &addr)) {
+			if (inet_aton(host.c_str(), &addr)) {
 				node = addr.s_addr;
 			}
 #endif /* ! HAVE_GETHOSTBYNAME && HAVE_INET_ATON */
@@ -243,16 +234,7 @@ ReadRTMBDynOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		}
 	}
 
-	int nch = HP.GetInt();
-	if (nch <= 0) {
-		silent_cerr("RTMBDynOutElem(" << uLabel << "): "
-			"illegal number of channels "
-			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	std::vector<ScalarValue *> Values(nch);
-	ReadScalarValues(pDM, HP, Values);
+	StreamContent *pSC = ReadStreamContent(pDM, HP, type);
 
    	// (void)pDM->fReadOutput(HP, Elem::LOADABLE); 
 
@@ -267,8 +249,8 @@ ReadRTMBDynOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	/* costruzione dell'elemento */
 	Elem *pEl = NULL;
 	SAFENEWWITHCONSTRUCTOR(pEl, RTMBDynOutElem,
-			RTMBDynOutElem(uLabel, Values,
-				host, name, node, create));
+			RTMBDynOutElem(uLabel,
+				host, name, node, create, pSC));
 	return pEl;
 }
 

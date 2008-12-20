@@ -5509,7 +5509,9 @@ This topic is under development, so expect frequent changes, and
 please do not count too much on backward compatibility.
 The syntax is:
 \begin{verbatim}
-    <normal_arglist> ::=
+    <elem_type> ::= RTAI output
+
+    <arglist> ::=
         stream name , " <mailbox_name> " ,
         create , { yes | no } ,
         [ host , " <host_name> " , ]
@@ -5553,19 +5555,22 @@ or model debugging purposes.}
 
 \subsection{Stream output}\label{sec:EL:BASE:STREAM_OUTPUT}
 This is a special element which takes care of sending generic output
-to external processes by means of RTAI mailboxes during real-time 
-simulations.
+to external processes by means of either local or internet sockets
+during batch or POSIX real-time simulations.
 This topic is under development, so expect frequent changes, and
 please do not count too much on backward compatibility.
 The syntax is:
 \begin{verbatim}
-    <normal_arglist> ::= stream output
+    <elem_type> ::= stream output
+
+    <arglist> ::=
         name , " <mailbox_name> " ,
         create , { yes | no } ,
         [ { local , " <socket_name> " , |
             [ port , <port_number> , ]
             [ host , " <host_name> " , ] } ]
-        [ { no signal | no send first | non blocking } , [ ... ] ]
+        [ { no signal | no send first | non blocking
+            | abort if broken } , [ ... ] ]
         <channel_number> ,
             <value>
             [ , ... ]
@@ -5576,11 +5581,10 @@ The syntax is:
     }
 \end{verbatim}
 The stream output allows MBDyn to send streamed outputs 
-to remote processes both during regular simulations and during 
-real-time simulations under RTAI.
-If the simulation is run in real-time, it uses RTAI mailboxes, 
-otherwise regular UNIX sockets are used, either in the \kw{local} or 
-in the \kw{internet} namespace.
+to remote processes during both batch and POSIX real-time simulations,
+using sockets either in the local or in the internet namespace.
+If the simulation is run in real-time using RTAI, RTAI mailboxes
+are used instead.
 
 This output element type is intended to allow the development 
 of real-time models by running regular simulations for the purpose 
@@ -5597,13 +5601,16 @@ This topic is under development, so expect frequent changes, and
 please do not count too much on backward compatibility.
 The syntax is:
 \begin{verbatim}
-    <normal_arglist> ::= stream motion output
+    <elem_type> ::= stream motion output
+
+    <arglist> ::= 
         name , " <mailbox_name> " ,
         create , { yes | no } ,
         [ { local , " <socket_name> " , |
             [ port , <port_number> , ]
             [ host , " <host_name> " , ] } ]
-        [ { no signal | no send first | non blocking } [ , ... ] , ]
+        [ { no signal | no send first | non blocking
+            | abort if broken } [ , ... ] , ]
         [ output flags ,
             { position
             | orientation matrix
@@ -5614,8 +5621,8 @@ The syntax is:
 \end{verbatim}
 As opposed to the \kw{stream output}, which is intended for generic
 output for interprocess communication, this element is intended to ease
-and optimize the output of the motion, to be used for on-line visualization
-purposes.
+and optimize the output of the motion of structural nodes,
+to be used for on-line visualization purposes.
 By default, only the position of the selected nodes is sent.
 This is intended for interoperability with a development version
 of EasyAnim which can read the motion info (the so-called ``van'' file)
@@ -5660,7 +5667,8 @@ if \kw{create} is set to \kw{yes}, \kw{<host\_name>} indicates
 the host that is allowed to connect to the socket; it defaults 
 to any host (\kw{0.0.0.0}); if \kw{create} is set to \kw{no},
 \kw{<host\_name>} indicates what host to connect to; the default 
-is localhost (\kw{127.0.0.1}); the default port is \kw{5500};
+is localhost (\kw{127.0.0.1}); the default port is \kw{9011}
+(intentionally unassigned by IANA).
 \end{itemize}
 If no socket type is specified, i.e.\ none of the \kw{local}, \kw{port} 
 and \kw{host} keywords are given, a socket is opened by default 

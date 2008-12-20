@@ -1816,10 +1816,14 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const char *sName
 			case SOCKETSTREAM_OUTPUT:
 			case RTAI_OUTPUT:
 				silent_cerr("starting RTMBDynOutputElement(" << uLabel << ")" << std::endl);
-				pE = ReadRTMBDynOutElem(this, HP, uLabel);
+				pE = ReadRTMBDynOutElem(this, HP, uLabel, StreamContent::VALUES);
 				break;
 
 			case SOCKETSTREAM_MOTION_OUTPUT:
+				silent_cerr("starting RTMBDynOutputElement(" << uLabel << ")" << std::endl);
+				pE = ReadRTMBDynOutElem(this, HP, uLabel, StreamContent::MOTION);
+				break;
+
 			case STRUCTOUTPUT:
 			default:
 				silent_cerr("line " << HP.GetLineData() << ": "
@@ -1837,7 +1841,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const char *sName
 			case RTAI_OUTPUT:
 #ifdef USE_SOCKET
 				pedantic_cout("starting StreamElement(" << uLabel << ")" << std::endl);
-				pE = ReadSocketStreamElem(this, HP, uLabel);
+				pE = ReadSocketStreamElem(this, HP, uLabel, StreamContent::VALUES);
 #else // ! USE_SOCKET
 				silent_cerr(psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 					<< "(" << uLabel << ") "
@@ -1852,7 +1856,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const char *sName
 			case SOCKETSTREAM_MOTION_OUTPUT:
 #ifdef USE_SOCKET
 				pedantic_cout("starting StreamMotionElement(" << uLabel << ")" << std::endl);
-				pE = ReadSocketStreamMotionElem(this, HP, uLabel);
+				pE = ReadSocketStreamElem(this, HP, uLabel, StreamContent::MOTION);
 #else // ! USE_SOCKET
 				silent_cerr(psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 					<< "(" << uLabel << ") "

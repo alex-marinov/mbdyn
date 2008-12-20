@@ -17,11 +17,14 @@ MBDyn 1.X-Devel
 		- add support for generic external forces
 		- add file-based interface with EDGE
 		- allow socket stream element to output all kinematics
-		- add OS-based soft real-time support
+		- add POSIX soft real-time support
 		- add "other {position,orientation,node}" reference types
+		- add "abort if broken" keyword to stream output elements
+		- add RTAI-based motion output
 	Backward compatibility issues:
 		- now immediate abort requires CTRL^C three times
 		- changed real-time args order (not backward compatible)
+		- changed stream output elements default port (to 9011)
 	Known issues:
 	Bug fixes:
 		- fix "cardano hinge" keyword detection (Marco Morandini)

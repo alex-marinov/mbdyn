@@ -30,42 +30,34 @@
  */
 
 /*
- * Michele Attolico <attolico@aero.polimi.it>
+ * Portions Copyright Michele Attolico <attolico@aero.polimi.it>
  */
 
 #ifdef HAVE_CONFIG_H
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include "dataman.h"
 #include "streamoutelem.h"
+#include "geomdata.h"
+#include "socketstreammotionelem.h"
 
 /* StreamOutElem - begin */
 
 StreamOutElem::StreamOutElem(unsigned int uL,
-		std::vector<ScalarValue *>& pn,
-		unsigned int oe)
+	const std::string& name,
+	unsigned int oe)
 : Elem(uL, flag(0)),
-Values(pn), size(-1), buf(0),
+name(name), size(-1), buf(0),
 OutputEvery(oe), OutputCounter(0)
 {
 	ASSERT(OutputEvery > 0);
-
-	/* FIXME: size depends on the type of the output signals */
-	size = sizeof(doublereal)*Values.size();
-	SAFENEWARR(buf, char, size);
-	memset(buf, 0, size);
 }
 
 StreamOutElem::~StreamOutElem(void)
 {
 	if (buf != 0) {
 		SAFEDELETEARR(buf);
-	}
-
-	for (std::vector<ScalarValue *>::iterator i = Values.begin();
-		i != Values.end(); i++)
-	{
-		delete *i;
 	}
 }
 
@@ -98,3 +90,197 @@ StreamOutElem::AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
 	return WorkMat;
 }
 
+/* StreamOutElem - end */
+
+
+/* StreamContent - begin */
+
+StreamContent::StreamContent(void)
+: size(-1), buf(0)
+{
+	NO_OP;
+}
+
+StreamContent::~StreamContent(void)
+{
+	if (buf != 0) {
+		SAFEDELETEARR(buf);
+	}
+}
+
+void *
+StreamContent::GetBuf(void) const
+{
+	return (void *)buf;
+}
+
+int
+StreamContent::GetSize(void) const
+{
+	return size;
+}
+
+/* StreamContent - end */
+
+
+/* StreamContentValue - begin */
+
+StreamContentValue::StreamContentValue(const std::vector<ScalarValue *>& v)
+: Values(v)
+{
+	ASSERT(Values.size() > 0);
+
+	size = sizeof(doublereal)*Values.size();
+	SAFENEWARR(buf, char, size);
+}
+
+StreamContentValue::~StreamContentValue(void)
+{
+	for (std::vector<ScalarValue *>::iterator i = Values.begin();
+		i != Values.end(); i++)
+	{
+		delete *i;
+	}
+}
+
+void
+StreamContentValue::Prepare(void)
+{
+	char *curbuf = buf;
+	for (std::vector<ScalarValue *>::iterator i = Values.begin(); i != Values.end(); i++) {
+		/* assign value somewhere into mailbox buffer */
+		doublereal v = (*i)->dGetValue();
+
+		doublereal *dbuf = (doublereal *)curbuf;
+		dbuf[0] = v;
+
+		curbuf += sizeof(doublereal);
+	}
+}
+
+/* StreamContentValue - end */
+
+/*
+ * NOTE: the use of type to determine what type of stream contents
+ * to read is only a hack; needs improvements
+ */
+
+StreamContent*
+ReadStreamContent(DataManager *pDM, MBDynParser& HP, StreamContent::Type type)
+{
+	switch (type) {
+	case StreamContent::UNKNOWN:
+	case StreamContent::VALUES:
+		type = StreamContent::VALUES;
+		if (HP.IsKeyWord("motion")) {
+			type = StreamContent::MOTION;
+
+		} else if (!HP.IsKeyWord("values")) {
+			silent_cerr("ReadStreamContent: "
+				"missing type, assuming \"values\" "
+				"at line " << HP.GetLineData() << std::endl);
+		}
+		break;
+
+	default:
+		break;
+	}
+
+	StreamContent *pSC = 0;
+	switch (type) {
+	case StreamContent::VALUES: {
+		int nch = HP.GetInt();
+		if (nch <= 0) {
+			silent_cerr("illegal number of channels for StreamContent "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		std::vector<ScalarValue *> Values(nch);
+		ReadScalarValues(pDM, HP, Values);
+
+		SAFENEWWITHCONSTRUCTOR(pSC, StreamContentValue, StreamContentValue(Values));
+		} break;
+
+	case StreamContent::MOTION: {
+		unsigned uFlags = GeometryData::X;
+		if (HP.IsKeyWord("output" "flags")) {
+			uFlags = 0;
+			while (true) {
+				if (HP.IsKeyWord("position")) {
+					if (uFlags & GeometryData::X) {
+						silent_cerr("StreamContent: "
+							"position flag already defined "
+							"at line " << HP.GetLineData()
+							<< std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+					uFlags |= GeometryData::X;
+	
+				} else if (HP.IsKeyWord("orientation" "matrix")) {
+					if (uFlags & GeometryData::ORIENTATION_MASK) {
+						silent_cerr("StreamContent: "
+							"orientation flag already defined "
+							"at line " << HP.GetLineData()
+							<< std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+					uFlags |= GeometryData::R;
+	
+				} else if (HP.IsKeyWord("orientation" "matrix" "transpose")) {
+					if (uFlags & GeometryData::ORIENTATION_MASK) {
+						silent_cerr("StreamContent: "
+							"orientation flag already defined "
+							"at line " << HP.GetLineData()
+							<< std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+					uFlags |= GeometryData::RT;
+	
+				} else if (HP.IsKeyWord("velocity")) {
+					if (uFlags & GeometryData::V) {
+						silent_cerr("StreamContent: "
+							"velocity flag already defined "
+							"at line " << HP.GetLineData()
+							<< std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+					uFlags |= GeometryData::V;
+	
+				} else if (HP.IsKeyWord("angular" "velocity")) {
+					if (uFlags & GeometryData::W) {
+						silent_cerr("StreamContent: "
+							"angular velocity flag already defined "
+							"at line " << HP.GetLineData()
+							<< std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+					uFlags |= GeometryData::W;
+	
+				} else {
+					break;
+				}
+			}
+		}
+	
+		std::vector<StructNode *> nodes;
+		if (HP.IsKeyWord("all")) {
+			/* FIXME: todo */
+	
+		} else {
+			while (HP.IsArg()) {
+				nodes.insert(nodes.end(), (StructNode *)pDM->ReadNode(HP, Node::STRUCTURAL));
+			}
+		}
+	
+		SAFENEWWITHCONSTRUCTOR(pSC, StreamContentMotion, StreamContentMotion(uFlags, nodes));
+		} break;
+
+	default:
+		silent_cerr("ReadStreamContent: unknown type "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return pSC;
+}
