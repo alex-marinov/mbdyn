@@ -75,26 +75,26 @@ UseSocket::~UseSocket(void)
 		int status;
 
 		status = shutdown(sock, SHUT_RDWR);
-		
+		int save_errno = errno;
 		time_t t = time(NULL);
-		pedantic_cout("UseSocket::~UseSocket: shutdown: "
-			"socket=" << sock
-			<< " status=" << status
-			<< " time=" << asctime(localtime(&t))
-			<< std::endl);
+		if (status == 0) {
+			pedantic_cout("UseSocket::~UseSocket: shutdown: "
+				"socket=" << sock
+				<< " status=" << status
+				<< " time=" << asctime(localtime(&t))
+				<< std::endl);
 
-		if (status < 0) {
-			int save_errno = errno;
+		} else {
 			char *msg = strerror(save_errno);
-
-			silent_cerr("UseSocket::~UseSocket: shutdown error "
-				"(" << save_errno << ": " << msg << ")"
+			silent_cerr("UseSocket::~UseSocket: shutdown "
+				"socket=" << sock
+				<< " status=" << status
+				<< " time=" << asctime(localtime(&t))
+				<< " error=" << save_errno << " (" << msg << ")"
 				<< std::endl);
 		}
 
 		status = close(sock);
-		t = time(NULL);
-
 		pedantic_cout("UseSocket::~UseSocket: close: "
 			"socket=" << sock
 			<< " status=" << status
@@ -346,7 +346,7 @@ UseInetSocket::GetSockaddr(void) const
 UseLocalSocket::UseLocalSocket(const std::string& p, bool c)
 : UseSocket(c), path(p)
 {
-	ASSERT(p);
+	ASSERT(!p.empty());
 
 	socklen = sizeof(addr);
 	
