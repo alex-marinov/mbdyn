@@ -5495,12 +5495,83 @@ These elements can use specific communication means,
 depending on the type of simulation they are used for,
 and can communicate specific types of data.
 
-\subsection{Streamed output}
-Communication occurs via RTAI mailboxes when a real-time simulation
-is performed using RTAI scheduling (see Section~\ref{sec:REAL-TIME}).
-Otherwise, communication occurs via regular UNIX sockets,
-either \kw{local} or \kw{inet}.
+\subsection{Stream output}\label{sec:EL:OUTELEM:STREAM_OUTPUT}
+This is a special element which takes care of sending output
+to external processes by means of either \kw{local} or \kw{inet} sockets
+during batch or real-time simulations.
+This topic is under development, so expect frequent changes, and
+please do not count too much on backward compatibility.
 
+The syntax is:
+\begin{verbatim}
+    <elem_type> ::= stream output
+
+    <arglist> ::=
+        stream name , " <stream_name> " ,
+        create , { yes | no } ,
+        [ { local , " <socket_name> " , |
+            [ port , <port_number> , ]
+            [ host , " <host_name> " , ] } ]
+        [ { [ no ] signal
+            | [ non ] blocking
+            | [ no ] send first
+            | [ do not ] abort if broken } [ , ... ] , ]
+        <content>
+\end{verbatim}
+The stream output allows MBDyn to send streamed outputs 
+to remote processes during both batch and real-time simulations,
+using sockets either in the \kw{local} or in the \kw{inet} namespace.
+If the simulation is run in real-time using RTAI, RTAI mailboxes
+are used instead.
+
+\begin{itemize}
+\item \kw{stream\_name} is the name of the RTAI mailbox where 
+the output is written  (a unique string exactly six characters long);
+it is basically ignored by the \kw{stream output} element
+except when using RTAI;
+
+\item the \kw{create} keyword determines whether the socket
+must be created or looked-up as already existing on the system;
+
+\item \kw{socket\_name} is the path of the \kw{local} socket 
+that is used to communicate between processes;
+
+\item \kw{port} is the port number to be used with a \kw{inet} socket.
+The default port number is 9011 (intentionally unassigned by IANA).
+If no \kw{host\_name} is given, \kw{localhost} will be used;
+
+\item \kw{host\_name} is the name or the IP of the remote host where
+the mailbox resides; note that if this field is given, \kw{create} must
+be set to \kw{no}.
+The simulation will not start until the socket is created on the remote host;
+
+\item the flag \kw{no signal} requests that no \kw{SIGPIPE} be raised
+when sending through a socket when the other end is broken
+(by default, \kw{SIGPIPE} is raised);
+
+\item the flag \kw{non blocking} requests that operations on the socket
+do not block (or block, in case of \kw{blocking}, the default);
+
+\item the flag \kw{no send first} requests that no send occurs before
+the first time step (by default, data is always sent);
+
+\item the flag \kw{do not abort if broken} requests that the simulation
+continues in case the connection breaks.
+No further data send will occur for the duration of the simulation
+(the default).
+
+\item the field \kw{content} is detailed in the next section.
+\end{itemize}
+This element, when used with the \kw{motion} content type,
+obsoletes the \kw{stream motion output} element
+(see Section~\ref{sec:EL:OUTELEM:STREAM_MOTION_OUTPUT}).
+When the simulation is executed in real-time using RTAI,
+this element obsoletes the \kw{RTAI output} element
+(see Section~\ref{sec:EL:OUTELEM:RTAI_out}).
+
+
+
+\subsubsection{Streamed output}
 Different types of data can be sent.
 The most general form is called \kw{values}, consisting
 in an arbitrary set of independent scalar channels.
@@ -5558,120 +5629,90 @@ of specific node kinematics: the node position, orientation matrix
 The default is equivalent to \kw{output flags, position}.
 \end{itemize}
 
-This class of output elements can be used for real-time or batch
-interprocess communication.
-When real-time is provided by RTAI, communication uses RTAI mailboxes.
-When real-time is delegated to the POSIX layer of the underlying OS,
-or when a batch simulation is performed, generic stream output elements
-are used.
+
+
+\subsubsection{Non real-time simulation}
+During non real-time simulations, streams operate in blocking mode.
+The meaning of the parameters is:
+\begin{itemize}
+\item \kw{stream\_name} indicates the name the stream would be known as
+by RTAI; it is limited to 6 characters, and mostly useless;
+
+\item the instruction \kw{create} determines whether MBDyn will create
+the socket, or try to connect to an existing one;
+
+\item the keyword \kw{local} indicates that a socket 
+in the local namespace will be used; if \kw{create} is set to \kw{yes},
+the socket is created, otherwise it must exist.
+
+\item either of the keywords \kw{port} or \kw{host} indicate that a socket
+in the internet namespace will be used;
+
+if \kw{create} is set to \kw{yes}, \kw{host\_name} indicates 
+the host that is allowed to connect to the socket; it defaults 
+to any host (\kw{0.0.0.0}); if \kw{create} is set to \kw{no},
+\kw{host\_name} indicates what host to connect to; the default 
+is localhost (\kw{127.0.0.1}); the default port is \kw{9011}
+(intentionally unassigned by IANA);
+
+\item the flag \kw{no signal} is honored;
+
+\item the flag \kw{non blocking} is honored;
+
+\item the flag \kw{no send first} is honored;
+
+\item the flag \kw{do not abort if broken} is honored.
+\end{itemize}
+If no socket type is specified, i.e.\ none of the \kw{local}, \kw{port} 
+and \kw{host} keywords are given, a socket is opened by default 
+in the internet namespace with the default IP and port; the \kw{create}
+keyword is mandatory.
+
+
+
+\subsubsection{Real-time simulation}
+During real-time simulations, streams wrap non-blocking RTAI mailboxes.
+The meaning of the parameters is:
+\begin{itemize}
+\item the parameter \kw{stream\_name} indicates the name the stream
+will be known as in RTAI's resource namespace; it must be exactly 6 characters long;
+
+\item the instruction \kw{create} determines whether the mailbox will be
+created or looked for by MBDyn;
+
+\item the keyword \kw{local} is ignored;
+
+\item the keyword \kw{host} indicates that a mailbox on a remote host 
+will be used; it is useless when \kw{create} is set to \kw{yes}, because
+RTAI does not provide the possibility to create remote resources;
+if none is given, a local mailbox is assumed;
+
+\item the keyword \kw{port} is ignored.
+
+\item the flag \kw{no signal} is ignored;
+
+\item the flag \kw{non blocking} is honored; however, blocking mailboxes
+make little sense, and real-time synchronization using RTAI should not rely
+on blocking mailboxes;
+
+\item the flag \kw{no send first} is ignored (although it should be honored
+when the mailbox is blocking);
+
+\item the flag \kw{do not abort if broken} is ignored;
+the program is always terminated if a mailbox is no longer available.
+\end{itemize}
+
+
+
 
 
 \subsection{RTAI output}\label{sec:EL:OUTELEM:RTAI_out}
-This is a special element that takes care of sending output
-to external processes by means of RTAI mailboxes during real-time 
-simulations.
-This topic is under development, so expect frequent changes, and
-please do not count too much on backward compatibility.
-The syntax is:
-\begin{verbatim}
-    <elem_type> ::= RTAI output
-
-    <arglist> ::=
-        stream name , " <mailbox_name> " ,
-        create , { yes | no } ,
-        [ host , " <host_name> " , ]
-        [ [ non ] blocking , ]
-        <content>
-\end{verbatim}
-where
-\begin{itemize}
-\item \kw{mailbox\_name} is the name of the RTAI mailbox where 
-the output is written  (a unique string exactly six characters long);
-
-\item the \kw{create} keyword determines whether the mailbox
-must be created or looked-up as already existing on the system;
-
-\item \kw{host\_name} is the name or the IP of the remote host where
-the mailbox resides; note that if this field is given, \kw{create} must
-be set to \kw{no} and the mailbox must be already defined
-on the remote host;
-
-\item the flag \kw{non blocking} requests the mailbox to not block
-(the default, recommended when using real-time).
-\end{itemize}
 This element is actually used only when the simulation is scheduled
 using RTAI; otherwise, the corresponding \kw{stream output} element
 is used (see Section~\ref{sec:EL:OUTELEM:STREAM_OUTPUT}).
+As a consequence, its explicit use is discouraged and deprecated.
+The \kw{stream output} element should be used instead.
 
-
-
-
-\subsection{Stream output}\label{sec:EL:OUTELEM:STREAM_OUTPUT}
-This is a special element which takes care of sending output
-to external processes by means of either \kw{local} or \kw{inet} sockets
-during batch or POSIX real-time simulations.
-This topic is under development, so expect frequent changes, and
-please do not count too much on backward compatibility.
-The syntax is:
-\begin{verbatim}
-    <elem_type> ::= stream output
-
-    <arglist> ::=
-        stream name , " <mailbox_name> " ,
-        create , { yes | no } ,
-        [ { local , " <socket_name> " , |
-            [ port , <port_number> , ]
-            [ host , " <host_name> " , ] } ]
-        [ { [ no ] signal
-            | [ non ] blocking
-            | [ no ] send first
-            | [ do not ] abort if broken } [ , ... ] , ]
-        <content>
-\end{verbatim}
-The stream output allows MBDyn to send streamed outputs 
-to remote processes during both batch and POSIX real-time simulations,
-using sockets either in the \kw{local} or in the \kw{inet} namespace.
-If the simulation is run in real-time using RTAI, RTAI mailboxes
-are used instead.
-
-\begin{itemize}
-\item \kw{mailbox\_name} is the name of the RTAI mailbox where 
-the output is written  (a unique string exactly six characters long);
-it is basically ignored by the \kw{stream output} element;
-
-\item the \kw{create} keyword determines whether the socket
-must be created or looked-up as already existing on the system;
-
-\item \kw{socket\_name} is the path of the \kw{local} socket 
-that is used to communicate between processes;
-
-\item \kw{port} is the port number to be used with a \kw{inet} socket.
-The default port number is 9011 (intentionally unassigned by IANA).
-If no \kw{host\_name} is given, \kw{localhost} will be used;
-
-\item \kw{host\_name} is the name or the IP of the remote host where
-the mailbox resides; note that if this field is given, \kw{create} must
-be set to \kw{no}.
-The simulation will not start until the socket is created on the remote host;
-
-\item the flag \kw{no signal} requests that no \kw{SIGPIPE} be raised
-when sending through a socket when the other end is broken
-(by default, \kw{SIGPIPE} is raised);
-
-\item the flag \kw{non blocking} requests that operations on the socket
-do not block (or block, in case of \kw{blocking}, the default);
-
-\item the flag \kw{no send first} requests that no send occurs before
-the first time step (by default, data is always sent);
-
-\item the flag \kw{do not abort if broken} requests that the simulation
-continues in case the connection breaks.
-No further data send will occur for the duration of the simulation
-(the default).
-\end{itemize}
-This element, when used with the \kw{motion} content type,
-obsoletes the \kw{stream motion output} element
-(see Section~\ref{sec:EL:OUTELEM:STREAM_MOTION_OUTPUT}).
 
 
 
@@ -5695,54 +5736,13 @@ The syntax is:
             | [ do not ] abort if broken } [ , ... ] , ]
         <motion>
 \end{verbatim}
+Its support may be discontinued in the future.
 
 
-\subsubsection{Non real-time simulation}
-During non real-time simulations, streams operate in blocking mode.
-The meaning of the parameters is:
-\begin{itemize}
-\item \kw{mailbox\_name} indicates the name the stream
-will be known as; it is limited to 6 characters, and mostly useless;
 
-\item the instruction \kw{create} determines whether the socket will be
-created or looked for by MBDyn;
-
-\item the keyword \kw{local} indicates that a socket 
-in the local namespace will be used; if \kw{create} is set to \kw{yes},
-the socket is created, otherwise it must exist.
-
-\item either of the keywords \kw{port} or \kw{host} indicate that a socket
-in the internet namespace will be used;
-
-if \kw{create} is set to \kw{yes}, \kw{host\_name} indicates 
-the host that is allowed to connect to the socket; it defaults 
-to any host (\kw{0.0.0.0}); if \kw{create} is set to \kw{no},
-\kw{host\_name} indicates what host to connect to; the default 
-is localhost (\kw{127.0.0.1}); the default port is \kw{9011}
-(intentionally unassigned by IANA).
-\end{itemize}
-If no socket type is specified, i.e.\ none of the \kw{local}, \kw{port} 
-and \kw{host} keywords are given, a socket is opened by default 
-in the internet namespace with the default IP and port; the \kw{create}
-keyword is mandatory.
-
-\subsubsection{Real-time simulation}
-During real-time simulations, streams wrap non-blocking RTAI mailboxes.
-The meaning of the parameters is:
-\begin{itemize}
-\item the parameter \kw{mailbox\_name} indicates the name the stream
-will be known as in RTAI's resource namespace; it must be exactly 6 characters long;
-\item the instruction \kw{create} determines whether the mailbox will be
-created or looked for by MBDyn;
-\item the keyword \kw{local} is ignored;
-\item the keyword \kw{host} indicates that a mailbox on a remote host 
-will be used; it is useless when \kw{create} is set to \kw{yes}, because
-RTAI does not provide the possibility to create remote resources;
-if none is given, a local mailbox is assumed;
-\item the keyword \kw{port} is ignored.
-\end{itemize}
-
-
+\subsection{Structural output}
+\label{sec:EL:OUTELEM:STRUCTURAL_OUTPUT}
+TODO.
 
 
 
@@ -5767,14 +5767,15 @@ The optional \kw{rotor\_orientation} is required when axis 3
 of the \kw{craft\_node} is not aligned with the rotor axis; axis 3
 of the \kw{rotor\_node} must be aligned with the rotor axis.
 
+\begin{comment}
 \emph{Note: after the keyword \kw{induced velocity} there used to be
 a colon is used as separator.
 This changed for uniformity with the rest of the syntax.
 No backwards compatibility is provided, so users are urged to update
 their models.
 }
+\end{comment}
 
-\noindent
 There are five models of induced velocity. 
 The first is no induced velocity; the syntax is:
 \begin{verbatim}
@@ -5797,34 +5798,38 @@ models:
         [ , correction , <hover_correction_factor> ,
             <ff_correction_factor> ]
 \end{verbatim}
-the \kw{reference\_omega} field is used to decide whether to inhibit
-or not the induced velocity computation if the rotor speed is very low;
-the \kw{reference\_radius} field is used in the adimensionalization
-of the rotor related parameters. \\
+
+\begin{itemize}
+\item
+The \kw{reference\_omega} field is used to decide whether
+the induced velocity computation must be inhibited because the rotor speed
+is very low.
+
+\item
+The \kw{reference\_radius} field is used to make the rotor related parameters
+non-dimensional.
+
+\item
 The \kw{ground} parameter is used to inform the rotor about the proximity
 to the ground; the $z$ component of the distance between the rotor
 and the ground nodes, in the ground node reference frame
 (direction 3, positive),
 is used for an approximate correction of the axial inflow velocity
-\cite{NASA-TR-3021}. \\
+\cite{NASA-TR-3021}.
+
+\item
 The \kw{memory\_factor}, the \kw{hover\_correction\_factor} 
 and the \kw{ff\_correction\_factor} (forward flight) are
 used to correct the nominal induced velocity, according to the formula
-%\begin{eqnarray*}
-%	U_{effective} & = &
-%	\plbr{1 - \kw{memory\_factor}} 
-%		\kw{correction\_factor} \ U_{nominal} \\
-%	& & \mbox{} + \kw{memory\_factor} \ U_{previous}
-%\end{eqnarray*}
 \begin{eqnarray*}
-	U_{effective} & = &
+	U_{\text{effective}} & = &
 	\plbr{1 - \mathtt{memory\_factor}} 
-		U_{nominal} \\
-	& & \mbox{} + \mathtt{memory\_factor} \ U_{previous}
+		U_{\text{nominal}} \\
+	& & \mbox{} + \mathtt{memory\_factor} \ U_{\text{previous}}
 \end{eqnarray*}
 with
 \begin{displaymath}
-	U_{nominal} = \frac{T}{2 \rho A V_{tip} \sqrt{
+	U_{\text{nominal}} = \frac{T}{2 \rho A V_{\text{tip}} \sqrt{
 		\cfrac{\lambda^2}{\mathtt{hover\_correction\_factor}^4}
 		+ \cfrac{\mu^2}{\mathtt{ff\_correction\_factor}^2}
 	}}
@@ -5834,7 +5839,9 @@ reference induced velocity with the induced velocity at the previous step;
 no delay means there is no memory of the previous value.
 The \kw{memory\_factor} parameter defaults to 0.
 The \kw{hover\_correction\_factor} 
-and \kw{ff\_correction\_factor} parameters default to 1. \\
+and \kw{ff\_correction\_factor} parameters default to 1.
+
+\item
 The \kw{max\_iterations}, the \kw{tolerance} 
 and the \kw{eta} parameters refer to the iteration cycle 
 that is performed to compute the nominal induced velocity.
@@ -5856,6 +5863,7 @@ with the original behavior.
 	this is a very specialistic parameter and it was introduced 
 	very recently.
 }
+\end{itemize}
 
 The last induced velocity model uses a dynamic inflow model,
 based on \cite{PITT}, with 3 inflow states.
@@ -6053,13 +6061,13 @@ For instance, the hint that instructs a joint to compute the offset
 with respect to the second node when it is activated is
 \begin{verbatim}
     driven: 10, string, "Time>1.", hint, "offset{2}",
-    joint: 10, ..."
+    joint: 10, ...
 \end{verbatim}
 A similar for is used to instruct a joint to compute the relative
 orientation with respect to node 1:
 \begin{verbatim}
     driven: 20, string, "Time>1.", hint, "hinge{1}",
-    joint: 20, ..."
+    joint: 20, ...
 \end{verbatim}
 A \kw{distance} joint may be fed a new drive by using:
 \begin{verbatim}
