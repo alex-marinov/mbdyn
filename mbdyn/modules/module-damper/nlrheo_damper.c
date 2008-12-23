@@ -513,11 +513,9 @@ nlrheo_int_func(double t, const double y[], double f[], void *para)
 }
 
 int
-nlrheo_init(sym_params *nlrheo)
+nlrheo_init(sym_params *pa)
 {
 	int i;
-
-	sym_params * pa = nlrheo;
 
 	pa->T = gsl_odeiv_step_rkf45;
 	pa->prev_time = 0.;
@@ -550,14 +548,13 @@ nlrheo_init(sym_params *nlrheo)
 }
 
 int
-nlrheo_destroy(sym_params *nlrheo)
+nlrheo_destroy(sym_params *pa)
 {
 	int i;
 	
-	sym_params * pa = nlrheo;
-
 	gsl_odeiv_step_free(pa->stepint);
 	gsl_odeiv_evolve_free(pa->evolve);
+	gsl_odeiv_control_free(pa->control);
 	for (i = 0; i < pa->n_parallelo; i++) {
 		if (pa->n_serie[i] - 1 > 0) {
 			gsl_matrix_free(pa->gsl_C[i]);
@@ -570,6 +567,8 @@ nlrheo_destroy(sym_params *nlrheo)
 			gsl_vector_free(pa->gsl_xp_partial_s[i]);
 			gsl_vector_free(pa->gsl_xp_partial_v[i]);
 			gsl_vector_free(pa->gsl_x[i]);
+			gsl_vector_free(pa->gsl_x_partial_s[i]);
+			gsl_vector_free(pa->gsl_x_partial_v[i]);
 			gsl_vector_free(pa->gsl_b[i]);
 			gsl_vector_free(pa->gsl_b_partial_s_for_x[i]);
 			gsl_vector_free(pa->gsl_b_partial_v_for_x[i]);
@@ -589,6 +588,8 @@ nlrheo_destroy(sym_params *nlrheo)
 	free(pa->gsl_xp_partial_s);
 	free(pa->gsl_xp_partial_v);
 	free(pa->gsl_x);
+	free(pa->gsl_x_partial_s);
+	free(pa->gsl_x_partial_v);
 	free(pa->gsl_b);
 	free(pa->gsl_b_partial_s_for_x);
 	free(pa->gsl_b_partial_v_for_x);
@@ -596,6 +597,7 @@ nlrheo_destroy(sym_params *nlrheo)
 	free(pa->gsl_b_partial_v_for_xp);
 	free(pa->gsl_perm_K);
 	free(pa->gsl_perm_C);
+	free(pa->n_serie);
 	
 	free(pa->s_max[0]);
 	free(pa->s_max);
@@ -644,18 +646,18 @@ nlrheo_destroy(sym_params *nlrheo)
 	free(pa->yp_prev);
 	free(pa->yp_saved);
 
+	free(pa);
+
 	return 0;
 };
 
 int
-nlrheo_update2(sym_params *nlrheo,
+nlrheo_update2(sym_params *pa,
 	double t_curr, double eps, double epsPrime, int do_try)
 {
 	int i;
 	double t;
 	
-	sym_params * pa = nlrheo;
-
 	double *y = pa->y;
 	for (i = 0; i < pa->n_elementi - pa->n_parallelo + 2 + 1 + 1 + 2; i++) {
 		pa->yp[i] = pa->yp_prev[i] = pa->yp_saved[i];
@@ -724,44 +726,48 @@ nlrheo_update2(sym_params *nlrheo,
 
 
 int
-nlrheo_update(sym_params *nlrheo,
+nlrheo_update(sym_params *pa,
 	double t_curr, double eps, double epsPrime, int do_try)
 {
 
-	sym_params * pa = nlrheo;
 	double diffeps = 1.E-10;
 	double diffepsp = 1.E-6;
 
-	nlrheo_update2(nlrheo, t_curr, eps + diffeps, epsPrime, 1);
+	nlrheo_update2(pa, t_curr, eps + diffeps, epsPrime, 1);
 	double feps = pa->f;
-	nlrheo_update2(nlrheo, t_curr, eps, epsPrime + diffepsp, 1);
+	nlrheo_update2(pa, t_curr, eps, epsPrime + diffepsp, 1);
 	double fepsp = pa->f;
-	nlrheo_update2(nlrheo, t_curr, eps, epsPrime, do_try);
+	nlrheo_update2(pa, t_curr, eps, epsPrime, do_try);
 
-
-// 	std::cerr << pa->f << " " << feps << " " << fepsp;
-// 	std::cerr << " " << pa->FDE / pa->scale_f / pa->scale_eps << " " << 
-// 		(feps - pa->f) / diffeps / pa->scale_eps;
-// 	std::cerr << " " << pa->FDEPrime / pa->scale_f / pa->scale_eps << " " << 
-// 		(fepsp - pa->f) / diffepsp / pa->scale_eps << " " << pa->scale_eps << "\n";
+#if 0
+ 	std::cerr << pa->f << " " << feps << " " << fepsp;
+ 	std::cerr << " " << pa->FDE / pa->scale_f / pa->scale_eps << " " << 
+ 		(feps - pa->f) / diffeps / pa->scale_eps;
+ 	std::cerr << " " << pa->FDEPrime / pa->scale_f / pa->scale_eps << " " << 
+ 		(fepsp - pa->f) / diffepsp / pa->scale_eps << " " << pa->scale_eps << "\n";
+#endif
 
 	pa->FDE = (feps - pa->f) / diffeps * pa->scale_f;
 	pa->FDEPrime = (fepsp - pa->f) / diffepsp * pa->scale_f;
+
+#if 0
+	fprintf(stderr, "=> F=%e FDE=%e FDEPrime=%e\n", pa->f, pa->FDE, pa->FDEPrime);
+#endif
 	
 	return 0;
 }
 
 
 int
-nlrheo_parse(sym_params **nlrheop,
+nlrheo_parse(sym_params **pap,
 	double scale_eps, double scale_f, double hi_filter,
 	double lo_filter, double lo_stiffness, int nsubsteps, double dtmin)
 {
 	int i, j;
 	
-	*nlrheop = 0;
+	*pap = 0;
 
-	sym_params* pa = (sym_params*) malloc(sizeof(sym_params));
+	sym_params* pa = (sym_params*) calloc(1, sizeof(sym_params));
 
 	pa->scale_eps = scale_eps;
 	pa->scale_f = scale_f;
@@ -848,7 +854,10 @@ nlrheo_parse(sym_params **nlrheop,
 	pa->s_max = (double**) malloc (sizeof(double*) * (pa->max_n_serie));
 	pa->s_max[0] = (double*) malloc (sizeof(double) * (pa->max_n_serie*pa->n_parallelo));
 	for (i = 0; i < pa->max_n_serie; i++) {
-		pa->s_max[i] = pa->s_max[0] + i * pa->n_parallelo;
+		if (i > 0) {
+			pa->s_max[i] = pa->s_max[i - 1] + pa->n_parallelo;
+		}
+
 		for (j = 0; j < pa->n_parallelo; j++) {
 			if (nlrheo_get_real(&pa->s_max[i][j])) {
 				return -1;
@@ -859,7 +868,9 @@ nlrheo_parse(sym_params **nlrheop,
 	pa->v_max = (double**) malloc (sizeof(double*) * (pa->max_n_serie));
 	pa->v_max[0] = (double*) malloc (sizeof(double) * (pa->max_n_serie*pa->n_parallelo));
 	for (i = 0; i < pa->max_n_serie; i++) {
-		pa->v_max[i] = pa->v_max[0] + i * pa->n_parallelo;
+		if (i > 0) {
+			pa->v_max[i] = pa->v_max[i - 1] + pa->n_parallelo;
+		}
 		for (j = 0; j < pa->n_parallelo; j++) {
 			if (nlrheo_get_real(&pa->v_max[i][j])) {
 				return -1;
@@ -925,7 +936,9 @@ nlrheo_parse(sym_params **nlrheop,
 	pa->k_s = (double**) malloc (sizeof(double*) * (pa->n_elementi));
 	pa->k_s[0] = (double*) malloc (sizeof(double) * (pa->n_elementi*pa->max_npti_ks));
 	for (i = 0; i < pa->n_elementi; i++) {
-		pa->k_s[i] = pa->k_s[0] + i * pa->max_npti_ks;
+		if (i > 0) {
+			pa->k_s[i] = pa->k_s[i - 1] + pa->max_npti_ks;
+		}
 		for (j = 0; j < pa->max_npti_ks; j++) {
 			if (nlrheo_get_real(&pa->k_s[i][j])) {
 				return -1;
@@ -935,7 +948,9 @@ nlrheo_parse(sym_params **nlrheop,
 	pa->k_v = (double**) malloc (sizeof(double*) * (pa->n_elementi));
 	pa->k_v[0] = (double*) malloc (sizeof(double) * (pa->n_elementi*pa->max_npti_kv));
 	for (i = 0; i < pa->n_elementi; i++) {
-		pa->k_v[i] = pa->k_v[0] + i * pa->max_npti_kv;
+		if (i > 0) {
+			pa->k_v[i] = pa->k_v[i - 1] + pa->max_npti_kv;
+		}
 		for (j = 0; j < pa->max_npti_kv; j++) {
 			if (nlrheo_get_real(&pa->k_v[i][j])) {
 				return -1;
@@ -945,7 +960,9 @@ nlrheo_parse(sym_params **nlrheop,
 	pa->c_s = (double**) malloc (sizeof(double*) * (pa->n_elementi));
 	pa->c_s[0] = (double*) malloc (sizeof(double) * (pa->n_elementi*pa->max_npti_cs));
 	for (i = 0; i < pa->n_elementi; i++) {
-		pa->c_s[i] = pa->c_s[0] + i * pa->max_npti_cs;
+		if (i > 0) {
+			pa->c_s[i] = pa->c_s[i - 1] + i * pa->max_npti_cs;
+		}
 		for (j = 0; j < pa->max_npti_cs; j++) {
 			if (nlrheo_get_real(&pa->c_s[i][j])) {
 				return -1;
@@ -955,7 +972,9 @@ nlrheo_parse(sym_params **nlrheop,
 	pa->c_v = (double**) malloc (sizeof(double*) * (pa->n_elementi));
 	pa->c_v[0] = (double*) malloc (sizeof(double) * (pa->n_elementi*pa->max_npti_cv));
 	for (i = 0; i < pa->n_elementi ; i++) {
-		pa->c_v[i] = pa->c_v[0] + i * pa->max_npti_cv;
+		if (i > 0) {
+			pa->c_v[i] = pa->c_v[i - 1] + pa->max_npti_cv;
+		}
 		for (j = 0; j < pa->max_npti_cv; j++) {
 			if (nlrheo_get_real(&pa->c_v[i][j])) {
 				return -1;
@@ -978,31 +997,31 @@ nlrheo_parse(sym_params **nlrheop,
 	for (i = 0; i < pa->n_elementi; i++) {
 		if (pa->npti_ks[i] > 1) {
 			pa->ik_s[i] = gsl_interp_alloc(gsl_interp_linear, pa->npti_ks[i]);
-				gsl_interp_init(pa->ik_s[i], pa->k_s[i], pa->k_s[i], pa->npti_ks[i]);
+			gsl_interp_init(pa->ik_s[i], pa->k_s[i], pa->k_s[i], pa->npti_ks[i]);
 		} else  {
 			pa->ik_s[i] = 0;
 		}
 		if (pa->npti_kv[i] > 1) {
 			pa->ik_v[i] = gsl_interp_alloc(gsl_interp_linear, pa->npti_kv[i]);
-				gsl_interp_init(pa->ik_v[i], pa->k_v[i], pa->k_v[i], pa->npti_kv[i]);
+			gsl_interp_init(pa->ik_v[i], pa->k_v[i], pa->k_v[i], pa->npti_kv[i]);
 		} else  {
 			pa->ik_v[i] = 0;
 		}
 		if (pa->npti_cs[i] > 1) {
 			pa->ic_s[i] = gsl_interp_alloc(gsl_interp_linear, pa->npti_cs[i]);
-				gsl_interp_init(pa->ic_s[i], pa->c_s[i], pa->c_s[i], pa->npti_cs[i]);
+			gsl_interp_init(pa->ic_s[i], pa->c_s[i], pa->c_s[i], pa->npti_cs[i]);
 		} else  {
 			pa->ic_s[i] = 0;
 		}
 		if (pa->npti_cv[i] > 1) {
 			pa->ic_v[i] = gsl_interp_alloc(gsl_interp_linear, pa->npti_cv[i]);
-				gsl_interp_init(pa->ic_v[i], pa->c_v[i], pa->c_v[i], pa->npti_cv[i]);
+			gsl_interp_init(pa->ic_v[i], pa->c_v[i], pa->c_v[i], pa->npti_cv[i]);
 		} else  {
 			pa->ic_v[i] = 0;
 		}
 	}
 
-	*nlrheop = pa;
+	*pap = pa;
 
 	return 0;
 }

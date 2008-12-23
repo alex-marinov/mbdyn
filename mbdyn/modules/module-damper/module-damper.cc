@@ -45,16 +45,16 @@
 class DamperConstitutiveLaw
 : public ConstitutiveLaw<doublereal, doublereal> {
 private:
-	sym_params& pa;
+	sym_params *pa;
 	DriveCaller *pTime;
 
 public:
-	DamperConstitutiveLaw(sym_params & pap, DriveCaller *pT)
-	: pa(pap), pTime(pT)
+	DamperConstitutiveLaw(sym_params *pa, DriveCaller *pT)
+	: pa(pa), pTime(pT)
 	{
 		ConstitutiveLaw<doublereal, doublereal>::FDE =  0.; //FIXME dStiffness;
 
-		if (nlrheo_init(&pa)) {
+		if (nlrheo_init(pa)) {
 			silent_cerr("DamperConstitutiveLaw: init failed" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
@@ -62,7 +62,7 @@ public:
 
 	virtual ~DamperConstitutiveLaw(void) {
 		SAFEDELETE(pTime);
-		(void)(nlrheo_destroy(&pa));
+		(void)nlrheo_destroy(pa);
 	};
 
 	virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const {
@@ -79,30 +79,38 @@ public:
 	};
 
 	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime = 0.) {
-		if (nlrheo_update(&pa, pTime->dGet(), Eps, EpsPrime, 1)) {
+		if (nlrheo_update(pa, pTime->dGet(), Eps, EpsPrime, 1)) {
 			silent_cerr("DamperConstitutiveLaw: unable to update" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	};
 
 	virtual void AfterConvergence(const doublereal& Eps, const doublereal& EpsPrime = 0.) {
-		if (nlrheo_update(&pa, pTime->dGet(), Eps, EpsPrime, 0)) {
+		if (nlrheo_update(pa, pTime->dGet(), Eps, EpsPrime, 0)) {
 			silent_cerr("DamperConstitutiveLaw: unable to update after convergence" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	};
    
 	virtual const doublereal& GetF(void) const {
-// 		std::cerr << pTime->dGet() << " " << pa.F << "\n";
-		return pa.F;
+#if 0
+ 		std::cerr << "Time=" << pTime->dGet() << " F=" << pa->F << "\n";
+#endif
+		return pa->F;
 	};
 
 	virtual const doublereal& GetFDE(void) const {
-		return pa.FDE;
+#if 0
+ 		std::cerr << "Time=" << pTime->dGet() << " FDE=" << pa->FDE << "\n";
+#endif
+		return pa->FDE;
 	};
 
 	virtual const doublereal& GetFDEPrime(void) const {
-		return pa.FDEPrime;
+#if 0
+ 		std::cerr << "Time=" << pTime->dGet() << " FDEPrime=" << pa->FDEPrime << "\n";
+#endif
+		return pa->FDEPrime;
 	};
 };
 
@@ -210,10 +218,10 @@ struct DamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 			}
 		}
 
-		sym_params* pap = 0;
+		sym_params* pa = 0;
 
 		pHP = &HP;
-		int rc = nlrheo_parse(&pap, scale_eps, scale_f, 
+		int rc = nlrheo_parse(&pa, scale_eps, scale_f, 
 			hi_freq_force_filter_coeff,
 			low_freq_displ_filter_coeff,
 			static_low_freq_stiffness,
@@ -231,7 +239,7 @@ struct DamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 			TimeDriveCaller(pDM->pGetDrvHdl()));
 		SAFENEWWITHCONSTRUCTOR(pCL, 
 			DamperConstitutiveLaw, 
-			DamperConstitutiveLaw(*pap, pT));
+			DamperConstitutiveLaw(pa, pT));
 
 		return pCL;
 	};
