@@ -9,5 +9,5 @@ MODULE_LINK = -lgsl -lgslcblas
 all: module-damper.so nlrheo_main
 
 # Rule for the main (FIXME: should export the CXXCOMPILE...)
-nlrheo_main: nlrheo_main.cc nlrheo_damper.cc $(MBDYN_MODULE_SRCDIR)/nlrheo_damper.h
-	-$(CXX) -g -O0 -I$(MBDYN_MODULE_SRCDIR) -o $@ nlrheo_main.cc nlrheo_damper.cc $(MODULE_LINK)
+nlrheo_main: nlrheo_main.cc nlrheo_damper.c $(MBDYN_MODULE_SRCDIR)/nlrheo_damper.h
+	-$(CXX) -g -O0 -I$(MBDYN_MODULE_SRCDIR) -o $@ nlrheo_main.cc nlrheo_damper.c $(MODULE_LINK)
