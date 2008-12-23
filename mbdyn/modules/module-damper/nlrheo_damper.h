@@ -1,3 +1,32 @@
+/* 
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2008
+ *
+ * Marco Morandini	<morandini@aero.polimi.it>
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation (version 2 of the License).
+ * 
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
 #ifndef NLRHEO_DAMPER_H
 #define NLRHEO_DAMPER_H
@@ -7,12 +36,12 @@ extern "C" {
 #endif /* __cplusplus */
 
 #include <gsl/gsl_errno.h>
-#include "gsl/gsl_interp.h"
-#include "gsl/gsl_odeiv.h"
-#include "gsl/gsl_vector.h"
-#include "gsl/gsl_matrix.h"
-#include "gsl/gsl_blas.h"
-#include "gsl/gsl_linalg.h"
+#include <gsl/gsl_interp.h>
+#include <gsl/gsl_odeiv.h>
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_blas.h>
+#include <gsl/gsl_linalg.h>
 
 typedef struct sym_params {
 	int n_parallelo;
@@ -78,11 +107,11 @@ typedef struct sym_params {
 extern int nlrheo_get_int(int *i);
 extern int nlrheo_get_real(double *d);
 
-extern "C" int nlrheo_init(sym_params *nlrheo);
-extern "C" int nlrheo_destroy(sym_params *nlrheo);
-extern "C" int nlrheo_update(sym_params *nlrheo,
+int nlrheo_init(sym_params *nlrheo);
+int nlrheo_destroy(sym_params *nlrheo);
+int nlrheo_update(sym_params *nlrheo,
 	double t_curr, double eps, double epsPrime, int do_try);
-extern "C" int nlrheo_parse(sym_params **nlrheop,
+int nlrheo_parse(sym_params **nlrheop,
 	double scale_eps, double scale_f, double hi_filter,
 	double lo_filter, double lo_stiffness, int nsubsteps, double dtmin);
 

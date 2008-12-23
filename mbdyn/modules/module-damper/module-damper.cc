@@ -137,13 +137,13 @@ struct DamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 		
 		CLType = ConstLawType::VISCOELASTIC;
 		
-		double scale_eps = 1;
+		double scale_eps = 1.;
 		if (HP.IsKeyWord("scale_eps")) {
 			scale_eps = HP.GetReal();
 			// check?
 		}
 
-		double scale_f = 1;
+		double scale_f = 1.;
 		if (HP.IsKeyWord("scale_f")) {
 			scale_f = HP.GetReal();
 			// check?
