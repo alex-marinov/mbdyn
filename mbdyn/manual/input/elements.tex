@@ -5516,6 +5516,7 @@ The syntax is:
             | [ non ] blocking
             | [ no ] send first
             | [ do not ] abort if broken } [ , ... ] , ]
+        [ output every, <steps> , ]
         <content>
 \end{verbatim}
 The stream output allows MBDyn to send streamed outputs 
@@ -5558,7 +5559,10 @@ the first time step (by default, data is always sent);
 \item the flag \kw{do not abort if broken} requests that the simulation
 continues in case the connection breaks.
 No further data send will occur for the duration of the simulation
-(the default).
+(the default);
+
+\item the field \kw{output every} requests output to occur
+only every \kw{steps};
 
 \item the field \kw{content} is detailed in the next section.
 \end{itemize}
