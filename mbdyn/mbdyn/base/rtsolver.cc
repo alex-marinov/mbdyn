@@ -118,6 +118,13 @@ ReadRTParams(Solver *pS, MBDynParser& HP,
 
 	switch (eRTMode) {
 	case RTSolverBase::MBRT_UNKNOWN:
+		eRTMode = RTSolverBase::MBRT_WAITPERIOD;
+		silent_cerr("RTSolver: unknown realtime mode; "
+			"assuming periodic "
+			"at line " << HP.GetLineData()
+			<< std::endl);
+		// fallthru
+
 	case RTSolverBase::MBRT_WAITPERIOD:
 		lRTPeriod = -1;
 		if (HP.IsKeyWord("time" "step")) {

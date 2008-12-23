@@ -136,8 +136,8 @@ RTPOSIXSolver::Wait(void)
 		}
 
 		t.tv_nsec += lRTPeriod;
-		if (t.tv_nsec >= 1000000000) {
-			t.tv_nsec -= 1000000000;
+		if (t.tv_nsec >= 1000000000L) {
+			t.tv_nsec -= 1000000000L;
 			t.tv_sec++;
 		}
 
