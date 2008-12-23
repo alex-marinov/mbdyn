@@ -275,7 +275,7 @@ ScalarDifferentialNode::Restart(std::ostream& out) const
 	out << "  " << psReadNodesNodes[GetNodeType()]
 		<< ": " << GetLabel();
 
-	if (GetName() != NULL) {
+	if (!GetName().empty()) {
 		out << ", name, \"" << GetName() << "\"";
 	}
 
@@ -455,7 +455,7 @@ ScalarAlgebraicNode::Restart(std::ostream& out) const
 	out << "  " << psReadNodesNodes[GetNodeType()]
 		<< ": " << GetLabel();
 
-	if (GetName() != NULL) {
+	if (!GetName().empty()) {
 		out << ", name, \"" << GetName() << "\"";
 	}
 

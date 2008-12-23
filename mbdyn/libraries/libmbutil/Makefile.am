@@ -48,6 +48,7 @@ task2cpu.h \
 tclpgin.cc \
 tclpgin.h \
 veciter.h \
+withlab.cc \
 withlab.h
 
 libmbutil_la_LIBADD = @LIBS@

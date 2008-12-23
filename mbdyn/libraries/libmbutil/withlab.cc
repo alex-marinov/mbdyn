@@ -28,33 +28,48 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* Classe da cui derivare gli oggetti dotati di label */
+#ifdef HAVE_CONFIG_H
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
 
+#include "withlab.h"
 
-#ifndef WITHLAB_H
-#define WITHLAB_H
-
-#include <string>
-#include "myassert.h"
 
 /* WithLabel - begin */
 
-class WithLabel {
-protected:
-	unsigned int uLabel;
-	std::string sName;
+WithLabel::WithLabel(unsigned int uL, const std::string& sN) 
+: uLabel(uL), sName(sN)
+{
+	NO_OP;
+}
 	
-public:
-   	WithLabel(unsigned int uL = 0, const std::string& sN = "");
-   	virtual ~WithLabel(void);
+WithLabel::~WithLabel(void)
+{
+	NO_OP;
+}
 
-        void PutLabel(unsigned int uL);
-	void PutName(const std::string& sN);
+void
+WithLabel::PutLabel(unsigned int uL)
+{
+	uLabel = uL;
+}
+	
+void
+WithLabel::PutName(const std::string& sN)
+{
+	sName = sN;
+}
    
-   	unsigned int GetLabel(void) const;
-	const std::string& GetName(void) const;
-};
+unsigned int
+WithLabel::GetLabel(void) const
+{
+	return uLabel; 
+}
+
+const std::string&
+WithLabel::GetName(void) const
+{
+	return sName;
+}
  
 /* WithLabel - end */
-
-#endif // WITHLAB_H

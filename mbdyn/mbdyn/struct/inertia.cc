@@ -132,7 +132,7 @@ Inertia::Output_int(std::ostream& out) const
 {
 	out
 		<< "inertia: " << GetLabel()
-		<< " (" << ( GetName() ? GetName() : "unnamed" ) << ")"
+		<< " (" << ( GetName().empty() ? "unnamed" : GetName() ) << ")"
 		<< std::endl;
 	CenterOfMass::Output_int(out)
 		<< "    Xcg-X:       " << (X_cm - X0) << std::endl

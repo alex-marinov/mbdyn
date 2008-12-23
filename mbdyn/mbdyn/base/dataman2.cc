@@ -1027,7 +1027,7 @@ DataManager::InitialJointAssembly(void)
 
 		/* Eseguo il test di convergenza; se e' positivo, esco */
 		/* FIXME: why /(1.+X.Dot()) ??? */
-		doublereal dTest = pResHdl->Dot()/(1.+X.Dot());
+		doublereal dTest = pResHdl->Dot()/(1. + X.Dot());
 		if (!std::isfinite(dTest)) {
 			silent_cerr("Assembly diverged; aborting ..." << std::endl);
 			throw DataManager::ErrAssemblyDiverged(MBDYN_EXCEPT_ARGS);

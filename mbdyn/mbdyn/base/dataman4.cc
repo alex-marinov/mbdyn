@@ -874,7 +874,7 @@ DataManager::ReadElems(MBDynParser& HP)
 						}
 
 						/* Reads the true element */
-						ppE = ReadOneElem(HP, uLabel, 0, CurrDriven);
+						ppE = ReadOneElem(HP, uLabel, "", CurrDriven);
 						if (ppE == NULL) {
 							DEBUGCERR("");
 							silent_cerr("error in allocation of element "
@@ -959,10 +959,18 @@ DataManager::ReadElems(MBDynParser& HP)
 					Elem **ppE = 0;
 
 					/* Nome dell'elemento */
-					const char *sName = 0;
+					std::string sName;
 					if (HP.IsKeyWord("name")) {
 						const char *sTmp = HP.GetStringWithDelims();
-						SAFESTRDUP(sName, sTmp);
+						if (sTmp == 0) {
+							silent_cerr("error - element type "
+								<< sKeyWords[CurrDesc] << ": "
+								"unable to parse name"
+								" at line " << HP.GetLineData()
+								<< std::endl);
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+						sName = sTmp;
 					}
 
 #ifdef USE_RUNTIME_LOADING
@@ -976,9 +984,8 @@ DataManager::ReadElems(MBDynParser& HP)
 
 					if (ppE != 0) {
 						pE = *ppE;
-						if (sName != 0) {
+						if (!sName.empty()) {
 							pE->PutName(sName);
-							SAFEDELETEARR(sName);
 						}
 					}
 
@@ -1165,7 +1172,7 @@ DataManager::ReadElems(MBDynParser& HP)
 } /*  End of DataManager::ReadElems()  */
 
 Elem**
-DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const char *sName, int CurrType)
+DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string& sName, int CurrType)
 {
 	Elem* pE = 0;
 	Elem** ppE = 0;
@@ -1910,7 +1917,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const char *sName
 			}
 
 			if (Type == Elem::UNKNOWN) {
-				if (sName) {
+				if (!sName.empty()) {
 					silent_cerr("Inertia(" << uLabel << ", \"" << sName << "\"): ");
 				} else {
 					silent_cerr("Inertia(" << uLabel << "): ");
