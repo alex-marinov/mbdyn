@@ -44,7 +44,6 @@
 
 Body::Body(unsigned int uL,
 	const StructNode *pNode,
-	const RigidBodyKinematics* pRBK,
 	doublereal dMass,
 	const Vec3& Xgc,
 	const Mat3x3& J,
@@ -56,8 +55,7 @@ pNode(pNode),
 dMass(dMass),
 Xgc(Xgc),
 S0(Xgc*dMass),
-J0(J),
-pRBK(pRBK)
+J0(J)
 {
 	ASSERT(pNode != NULL);
 	ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);
@@ -161,13 +159,12 @@ Body::dGetPrivData(unsigned int i) const
 
 DynamicBody::DynamicBody(unsigned int uL,
 	const DynamicStructNode* pNode,
-	const RigidBodyKinematics* pRBK,
 	doublereal dMass,
 	const Vec3& Xgc,
 	const Mat3x3& J,
 	flag fOut)
 : Elem(uL, fOut),
-Body(uL, pNode, pRBK, dMass, Xgc, J, fOut)
+Body(uL, pNode, dMass, Xgc, J, fOut)
 {
 	NO_OP;
 }
@@ -206,7 +203,7 @@ DynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 		GravityAcceleration);
 
 	integer iNumRows = 6;
-	if (g) {
+	if (g || pNode->pGetRBK()) {
 		iNumRows = 12;
 	}
 
@@ -227,7 +224,7 @@ DynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.PutColIndex(iCnt, iFirstPositionIndex + iCnt);
 	}
 
-	if (g) {
+	if (iNumRows == 12) {
 		integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
 		for (integer iCnt = 1; iCnt <= 6; iCnt++) {
 			WM.PutRowIndex(6 + iCnt, iFirstMomentumIndex + iCnt);
@@ -338,6 +335,9 @@ DynamicBody::AssMats(FullSubMatrixHandler& WMA,
 	if (bGravity) {
 		WMA.Sub(9 + 1, 3 + 1, Mat3x3(GravityAcceleration, Sc));
 	}
+
+	if (pNode->pGetRBK()) {
+	}
 }
 
 
@@ -356,6 +356,8 @@ DynamicBody::AssRes(SubVectorHandler& WorkVec,
 	Vec3 GravityAcceleration;
 	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(),
 		GravityAcceleration);
+
+	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
 
 	integer iNumRows = 6;
 	if (g || pRBK) {
@@ -604,13 +606,12 @@ DynamicBody::GetG_int(void) const
 
 StaticBody::StaticBody(unsigned int uL,
 	const StaticStructNode* pNode,
-	const RigidBodyKinematics* pRBK,
 	doublereal dMass,
 	const Vec3& Xgc,
 	const Mat3x3& J,
 	flag fOut)
 : Elem(uL, fOut),
-Body(uL, pNode, pRBK, dMass, Xgc, J, fOut)
+Body(uL, pNode, dMass, Xgc, J, fOut)
 {
 	NO_OP;
 }
@@ -629,13 +630,6 @@ StaticBody::Restart(std::ostream& out) const
 {
 	Body::Restart_int(out);
 
-#if 0
-	if (pRBK != 0) {
-		out << ", reference node, "
-			<< pRBK->GetLabel();
-	}
-#endif
-		
 	out << ';' << std::endl;
 
 	return out;
@@ -735,6 +729,8 @@ StaticBody::AssMats(FullSubMatrixHandler& WMA,
 
 	/* TODO: reference */
 	Vec3 W(0.);
+
+	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
 	bool w(pRBK != 0);
 
 	if (!g && !w) {
@@ -783,6 +779,8 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 
 	/* W is uninitialized because its use is conditioned by w */
 	Vec3 W;
+
+	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
 	bool w(pRBK != 0);
 
 	if (!g && !w) {
@@ -1047,15 +1045,6 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 
 	DynamicStructNode* pDynamicNode = 0;
 	StaticStructNode* pStaticNode = 0;
-	RigidBodyKinematics *pRBK = 0;
-
-	if (HP.IsKeyWord("reference" "node")) {
-		Node *pRN = pDM->ReadNode(HP, Node::STRUCTURAL);
-		pRBK = dynamic_cast<RigidBodyKinematics *>(pRN);
-		ASSERT(pRBK != 0);
-	}
-
-	// else: add other means to collect rigid-body kinematics
 
 	if (bStaticModel || bInverseDynamics) {
 		/* static */
@@ -1086,12 +1075,12 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	if (bStaticModel || bInverseDynamics) {
 		/* static */
 		SAFENEWWITHCONSTRUCTOR(pEl, StaticBody,
-			StaticBody(uLabel, pStaticNode, pRBK,
+			StaticBody(uLabel, pStaticNode,
 				dm, Xgc, J, fOut));
 
 	} else {
 		SAFENEWWITHCONSTRUCTOR(pEl, DynamicBody,
-			DynamicBody(uLabel, pDynamicNode, pRBK,
+			DynamicBody(uLabel, pDynamicNode,
 				dm, Xgc, J, fOut));
 	}
 

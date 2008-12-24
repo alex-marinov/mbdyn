@@ -149,6 +149,9 @@ protected:
 	doublereal dVelocityStiffness;
 	bool bOmegaRot;       /* Flag di velocita' angolare solidale col nodo */
 
+	// reference motion, for relative kinematics
+	const RigidBodyKinematics *pRefRBK;
+ 
 public:
 	/* Costruttore definitivo */
 	StructNode(unsigned int uL,
@@ -171,6 +174,8 @@ public:
 	virtual Node::Type GetNodeType(void) const;
 
 	/* rigid-body kinematics */
+	const RigidBodyKinematics *pGetRBK(void) const;
+
 	const Vec3& GetX(void) const;
 	const Mat3x3& GetR(void) const;
 	const Vec3& GetV(void) const;

@@ -51,8 +51,6 @@ protected:
 	Vec3 S0;
 	Mat3x3 J0;
  
-	const RigidBodyKinematics *pRBK;
- 
 	mutable Vec3 STmp;
 	mutable Mat3x3 JTmp;
 
@@ -68,7 +66,6 @@ protected:
 public:
 	/* Costruttore definitivo (da mettere a punto) */
 	Body(unsigned int uL, const StructNode *pNode,
-		const RigidBodyKinematics* pRBK,
 		doublereal dMassTmp, const Vec3& XgcTmp, const Mat3x3& JTmp, 
 		flag fOut);
 
@@ -119,7 +116,6 @@ private:
 public:
 	/* Costruttore definitivo (da mettere a punto) */
 	DynamicBody(unsigned int uL, const DynamicStructNode* pNodeTmp, 
-		const RigidBodyKinematics* pRBK,
 		doublereal dMassTmp, const Vec3& XgcTmp, const Mat3x3& JTmp, 
 		flag fOut);
 
@@ -202,7 +198,6 @@ private:
 public:
 	/* Costruttore definitivo (da mettere a punto) */
 	StaticBody(unsigned int uL, const StaticStructNode* pNode,
-		const RigidBodyKinematics* pRBK,
 		doublereal dMass, const Vec3& Xgc, const Mat3x3& J, 
 		flag fOut);
 

@@ -139,7 +139,8 @@ Var_Omega(0),
 od(ood),
 dPositionStiffness(dPosStiff),
 dVelocityStiffness(dVelStiff),
-bOmegaRot(bOmRot)
+bOmegaRot(bOmRot),
+pRefRBK(0)
 {
 	NO_OP;
 }
@@ -158,6 +159,12 @@ StructNode::GetNodeType(void) const
 }
 
 /* rigid-body kinematics */
+const RigidBodyKinematics *
+StructNode::pGetRBK(void) const
+{
+	return pRefRBK;
+}
+
 const Vec3&
 StructNode::GetX(void) const
 {
