@@ -1276,14 +1276,33 @@ Inertia forces and moments projected in the relative frame
 		- \tilde{\TT{J}} \tilde{\T{\omega}} \times{}
 	} \overline{\T{\omega}}_0
 	\nonumber \\
-	&\hphantom{=}+ \overline{\T{\omega}}_0 \times \tilde{\T{\gamma}}
+	&\hphantom{=}
 	+ \dot{\tilde{\T{x}}} \times \overline{\T{\omega}}_0 \times \tilde{\T{s}}
+	+ \overline{\T{\omega}}_0 \times \tilde{\T{\gamma}}
 	+ \hspace{-8mm}\underbrace{
 		\dot{\tilde{\T{x}}} \times \tilde{\T{\beta}}
 		+ \dot{\tilde{\T{\gamma}}}
 	}_{\text{relative momenta moment}}
 \end{align}
 \end{subequations}
+The contributions
+\begin{subequations}
+\begin{align}
+	\overline{\T{f}}_{\text{in}}^*
+	&= 2 \overline{\T{\omega}}_0 \times \tilde{\T{\beta}}
+	+ \dot{\tilde{\T{\beta}}} \\
+%
+	\overline{\T{m}}_{\text{in}}^*
+	&= \overline{\T{\omega}}_0 \times \tilde{\T{\gamma}}
+	+ \dot{\tilde{\T{x}}} \times \tilde{\T{\beta}}
+	+ \dot{\tilde{\T{\gamma}}}
+\end{align}
+\end{subequations}
+belong to the \texttt{automatic structural} element associated
+to each dynamic node.
+As such, they are computed once for all irrespective of the number
+of rigid bodies that are connected to the node.
+The remaining contributions are computed by each rigid body.
 
 Perturbation, assuming reference motion is imposed:
 \begin{subequations}
@@ -1335,11 +1354,11 @@ Perturbation, assuming reference motion is imposed:
 	&\hphantom{=}
 		+ \tilde{\TT{J}} \plbr{
 			\dot{\overline{\T{\omega}}}_0
-			+ \overline{\T{\omega}} \times \tilde{\T{\omega}}_0
+			+ \overline{\T{\omega}}_0 \times \tilde{\T{\omega}}
 		} \times{}
 		- \plbr{\tilde{\TT{J}} \plbr{
 			\dot{\overline{\T{\omega}}}_0
-			+ \overline{\T{\omega}} \times \tilde{\T{\omega}}_0
+			+ \overline{\T{\omega}}_0 \times \tilde{\T{\omega}}
 		}} \times{}
 	\nonumber \\
 	&\hphantom{=}
