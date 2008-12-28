@@ -31,47 +31,66 @@
 
 /* Rigid body kinematics: structure, handling etc. */
 
-#ifndef RBK_H
-#define RBK_H
+#ifdef HAVE_CONFIG_H
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
 
-#include "matvec3.h"
+#include "rbk.h"
 
-class RigidBodyKinematics {
-public:
-	virtual ~RigidBodyKinematics(void);
+RigidBodyKinematics::~RigidBodyKinematics(void)
+{
+	NO_OP;
+}
 
-	virtual const Vec3& GetX(void) const = 0;
-	virtual const Mat3x3& GetR(void) const = 0;
-	virtual const Vec3& GetV(void) const = 0;
-	virtual const Vec3& GetW(void) const = 0;
-	virtual const Vec3& GetXPP(void) const = 0;
-	virtual const Vec3& GetWP(void) const = 0;
-};
+ConstRigidBodyKinematics::ConstRigidBodyKinematics(const Vec3& X,
+	const Mat3x3& R,
+	const Vec3& V,
+	const Vec3& W,
+	const Vec3& XPP,
+	const Vec3& WP)
+: X(X), R(R), V(V), W(W), XPP(XPP), WP(WP)
+{
+	NO_OP;
+}
 
-class ConstRigidBodyKinematics : public RigidBodyKinematics {
-private:
-	const Vec3 X;
-	const Mat3x3 R;
-	const Vec3 V;
-	const Vec3 W;
-	const Vec3 XPP;
-	const Vec3 WP;
+ConstRigidBodyKinematics::~ConstRigidBodyKinematics(void)
+{
+	NO_OP;
+}
 
-public:
-	ConstRigidBodyKinematics(const Vec3& X,
-		const Mat3x3& R,
-		const Vec3& V,
-		const Vec3& W,
-		const Vec3& XPP,
-		const Vec3& WP);
-	virtual ~ConstRigidBodyKinematics(void);
-	virtual const Vec3& GetX(void) const;
-	virtual const Mat3x3& GetR(void) const;
-	virtual const Vec3& GetV(void) const;
-	virtual const Vec3& GetW(void) const;
-	virtual const Vec3& GetXPP(void) const;
-	virtual const Vec3& GetWP(void) const;
-};
+const Vec3&
+ConstRigidBodyKinematics::GetX(void) const
+{
+	return X;
+}
 
-#endif // RBK_H
+const Mat3x3&
+ConstRigidBodyKinematics::GetR(void) const
+{
+	return R;
+}
+
+const Vec3&
+ConstRigidBodyKinematics::GetV(void) const
+{
+	return V;
+}
+
+const Vec3&
+ConstRigidBodyKinematics::GetW(void) const
+{
+	return W;
+}
+
+const Vec3&
+ConstRigidBodyKinematics::GetXPP(void) const
+{
+	return XPP;
+}
+
+const Vec3&
+ConstRigidBodyKinematics::GetWP(void) const
+{
+	return WP;
+}
 

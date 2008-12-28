@@ -336,7 +336,62 @@ DynamicBody::AssMats(FullSubMatrixHandler& WMA,
 		WMA.Sub(9 + 1, 3 + 1, Mat3x3(GravityAcceleration, Sc));
 	}
 
-	if (pNode->pGetRBK()) {
+	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
+	if (pRBK) {
+		Mat3x3 MTmp;
+		Vec3 VTmp;
+
+		// f: delta x
+		MTmp = Mat3x3(pRBK->GetWP());
+		MTmp += Mat3x3(pRBK->GetW(), pRBK->GetW());
+
+		WMA.Add(6 + 1, 1, MTmp*(dMass*dCoef));
+
+
+		// f: theta delta
+
+		WMA.Sub(6 + 1, 3 + 1, MTmp*Mat3x3(Sc));
+
+
+		// m: delta x
+		MTmp = Mat3x3(Sc, pRBK->GetWP());
+		MTmp += Mat3x3(Sc)*Mat3x3(pRBK->GetW(), pRBK->GetW());
+
+		WMA.Add(9 + 1, 1, MTmp);
+
+
+		// m: theta delta
+
+		VTmp = pRBK->GetXPP();
+		VTmp += pRBK->GetWP().Cross(pNode->GetXCurr());
+		VTmp += pRBK->GetW().Cross(pRBK->GetW().Cross(pNode->GetXCurr()));
+		VTmp += pRBK->GetW().Cross(pNode->GetVCurr());
+
+		MTmp = Mat3x3(VTmp, Sc);
+
+		VTmp = (pRBK->GetW() + pNode->GetWCurr())*dCoef;
+
+		Mat3x3 MTmp2(JTmp*Mat3x3(pRBK->GetW()) - Mat3x3(JTmp*pRBK->GetW()));
+		MTmp += Mat3x3(VTmp)*MTmp2;
+
+		VTmp = (pRBK->GetWP() + pRBK->GetW().Cross(pNode->GetWCurr()))*dCoef;
+
+		MTmp += JTmp*Mat3x3(VTmp);
+		MTmp -= Mat3x3(JTmp*VTmp);
+
+		MTmp -= Mat3x3(pNode->GetVCurr())*Mat3x3(pRBK->GetW(), STmp);
+
+		WMA.Add(9 + 1, 3 + 1, MTmp);
+
+
+		// m: delta dot x
+		MTmp = Mat3x3(Sc, pRBK->GetW());
+		MTmp -= Mat3x3(pRBK->GetW().Cross(Sc));
+
+		WMB.Add(9 + 1, 1, MTmp);
+
+		// m: delta omega
+		WMB.Add(9 + 1, 3 + 1, MTmp2);
 	}
 }
 
@@ -348,8 +403,6 @@ DynamicBody::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XPrimeCurr */ )
 {
 	DEBUGCOUTFNAME("Body::DynamicAssRes");
-
-	const DynamicStructNode *pDN = dynamic_cast<const DynamicStructNode *>(pNode);
 
 	/* Se e' definita l'accelerazione di gravita',
 	 * la aggiunge (solo al residuo) */
@@ -402,7 +455,6 @@ DynamicBody::AssRes(SubVectorHandler& WorkVec,
 		f = pRBK->GetXPP()*dMass;
 		f += pRBK->GetWP().Cross(s0);
 		f += pRBK->GetW().Cross(pRBK->GetW().Cross(s0));
-		f += pRBK->GetW().Cross(pDN->GetBCurr()*2.);
 
 		WorkVec.Sub(6 + 1, f);
 
@@ -419,11 +471,13 @@ DynamicBody::AssRes(SubVectorHandler& WorkVec,
 		m += JTmp*pRBK->GetWP();
 		m += pNode->GetWCurr().Cross(JTmp*pRBK->GetW());
 		m -= JTmp*(pNode->GetWCurr().Cross(pRBK->GetW()));
-		m += pRBK->GetW().Cross(pDN->GetGCurr());
 		m += pNode->GetVCurr().Cross(pRBK->GetW().Cross(STmp));
 
 		WorkVec.Sub(9 + 1, m);
 	}
+
+	const DynamicStructNode *pDN = dynamic_cast<const DynamicStructNode *>(pNode);
+	ASSERT(pDN != 0);
 
 	pDN->AddInertia(dMass, STmp, JTmp);
 

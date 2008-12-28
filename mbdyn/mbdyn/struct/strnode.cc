@@ -105,6 +105,7 @@ StructNode::StructNode(unsigned int uL,
 	const Vec3& V0,
 	const Vec3& W0,
 	const StructNode *pRN,
+	const RigidBodyKinematics *pRBK,
 	doublereal dPosStiff,
 	doublereal dVelStiff,
 	bool bOmRot,
@@ -140,7 +141,7 @@ od(ood),
 dPositionStiffness(dPosStiff),
 dVelocityStiffness(dVelStiff),
 bOmegaRot(bOmRot),
-pRefRBK(0)
+pRefRBK(pRBK)
 {
 	NO_OP;
 }
@@ -1587,12 +1588,13 @@ DynamicStructNode::DynamicStructNode(unsigned int uL,
 	const Vec3& V0,
 	const Vec3& W0,
 	const StructNode *pRN,
+	const RigidBodyKinematics *pRBK,
 	doublereal dPosStiff,
 	doublereal dVelStiff,
 	bool bOmRot,
 	OrientationDescription ood,
 	flag fOut)
-: StructNode(uL, pDO, X0, R0, V0, W0, pRN, dPosStiff, dVelStiff, bOmRot,
+: StructNode(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot,
 	ood, fOut),
 #ifdef USE_NETCDF
 Var_XPP(0),
@@ -2229,12 +2231,13 @@ StaticStructNode::StaticStructNode(unsigned int uL,
 	const Vec3& V0,
 	const Vec3& W0,
 	const StructNode *pRN,
+	const RigidBodyKinematics *pRBK,
 	doublereal dPosStiff,
 	doublereal dVelStiff,
 	bool bOmRot,
 	OrientationDescription ood,
 	flag fOut)
-: StructNode(uL, pDO, X0, R0, V0, W0, pRN, dPosStiff, dVelStiff, bOmRot,
+: StructNode(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot,
 	ood, fOut)
 {
 	NO_OP;
@@ -2266,12 +2269,13 @@ ModalNode::ModalNode(unsigned int uL,
 	const Mat3x3& R0,
 	const Vec3& V0,
 	const Vec3& W0,
+	const RigidBodyKinematics *pRBK,
 	doublereal dPosStiff,
 	doublereal dVelStiff,
 	bool bOmRot,
 	OrientationDescription ood,
 	flag fOut)
-: DynamicStructNode(uL, pDO, X0, R0, V0, W0, 0,
+: DynamicStructNode(uL, pDO, X0, R0, V0, W0, 0, pRBK,
 	dPosStiff, dVelStiff, bOmRot, ood, fOut)
 {
 	/* XPP and WP are unknowns in ModalNode */
@@ -2467,7 +2471,7 @@ DummyStructNode::DummyStructNode(unsigned int uL,
 	const StructNode* pN,
 	OrientationDescription ood,
 	flag fOut)
-: StructNode(uL, pDO, 0., 0., 0., 0., 0, 0., 0., 0, ood, fOut), pNode(pN)
+: StructNode(uL, pDO, 0., 0., 0., 0., 0, 0, 0., 0., 0, ood, fOut), pNode(pN)
 {
 	ASSERT(pNode != NULL);
 }
@@ -2990,7 +2994,7 @@ ReadStructNode(DataManager* pDM,
 		DEBUGCOUT("Xprime0 =" << std::endl << XPrime0 << std::endl
 			<< "Omega0 =" << std::endl << Omega0 << std::endl);
 
-		StructNode *pRefNode = 0;
+		const StructNode *pRefNode = 0;
 		if (HP.IsKeyWord("prediction" "node")) {
 			switch (CurrType) {
 			case STATIC:
@@ -3005,13 +3009,15 @@ ReadStructNode(DataManager* pDM,
 					<< std::endl);
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
-			pRefNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+			pRefNode = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 
 #ifndef MBDYN_X_RELATIVE_PREDICTION
 			silent_cerr("warning, relative prediction disabled; "
 				"absolute prediction will be used" << std::endl);
 #endif /* ! MBDYN_X_RELATIVE_PREDICTION */
 		}
+
+		const RigidBodyKinematics *pRBK = pDM->pGetRBK();
 
 		/* Rigidezza in assemblaggio diversa da quella di default
 		 * e flag di output */
@@ -3074,6 +3080,7 @@ ReadStructNode(DataManager* pDM,
 					X0, R0,
 					XPrime0, Omega0,
 					pRefNode,
+					pRBK,
 					dPosStiff, dVelStiff,
 					bOmRot, od, fOut));
 
@@ -3083,6 +3090,7 @@ ReadStructNode(DataManager* pDM,
 					X0, R0,
 					XPrime0, Omega0,
 					pRefNode,
+					pRBK,
 					dPosStiff, dVelStiff,
 					bOmRot, od, fOut));
 
@@ -3094,6 +3102,7 @@ ReadStructNode(DataManager* pDM,
 				ModalNode(uLabel, pDO,
 					X0, R0,
 					XPrime0, Omega0,
+					pRBK,
 					dPosStiff, dVelStiff,
 					bOmRot, od, fOut));
 		}

@@ -117,6 +117,7 @@ dInitialAssemblyTol(dDefaultInitialAssemblyTol),
 iMaxInitialIterations(iDefaultMaxInitialIterations),
 dEpsilon(1.),
 CurrSolver(pS->GetLinearSolver()),
+pRBK(0),
 bStaticModel(false),
 /* auto-detect if running inverse dynamics */
 bInverseDynamics(dynamic_cast<InverseSolver *>(pS) != 0),

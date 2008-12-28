@@ -148,6 +148,8 @@ DataManager::ReadControl(MBDynParser& HP,
 		"select" "timeout",
 		"model",
 
+		"rigid" "body" "kinematics",
+
 		0
 	};
 
@@ -230,6 +232,7 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		SELECTTIMEOUT,
 		MODEL,
+		RIGIDBODYKINEMATICS,
 
 		LASTKEYWORD
 	};
@@ -1209,6 +1212,80 @@ EndOfUse:
 				bStaticModel = true;
 			}
 			break;
+
+		case RIGIDBODYKINEMATICS: {
+			if (HP.IsKeyWord("const")) {
+				Vec3 X(0.);
+				Mat3x3 R(Eye3);
+				Vec3 V(0.);
+				Vec3 W(0.);
+				Vec3 XPP(0.);
+				Vec3 WP(0.);
+
+				bool bGot(false);
+
+				ReferenceFrame RF;
+
+				if (HP.IsKeyWord("position")) {
+					X = HP.GetPosAbs(RF);
+					if (!X.IsNull()) {
+						bGot = true;
+					}
+				}
+
+				if (HP.IsKeyWord("orientation")) {
+					R = HP.GetRotAbs(RF);
+					if (!R.IsExactlySame(Eye3)) {
+						bGot = true;
+					}
+				}
+
+				if (HP.IsKeyWord("velocity")) {
+					V = HP.GetVecAbs(RF);
+					if (!V.IsNull()) {
+						bGot = true;
+					}
+				}
+
+				if (HP.IsKeyWord("angular" "velocity")) {
+					W = HP.GetVecAbs(RF);
+					if (!W.IsNull()) {
+						bGot = true;
+					}
+				}
+
+				if (HP.IsKeyWord("acceleration")) {
+					XPP = HP.GetVecAbs(RF);
+					if (!XPP.IsNull()) {
+						bGot = true;
+					}
+				}
+
+				if (HP.IsKeyWord("angular" "acceleration")) {
+					WP = HP.GetVecAbs(RF);
+					if (!WP.IsNull()) {
+						bGot = true;
+					}
+				}
+
+				if (!bGot) {
+					silent_cerr("null rigid body kinematics "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					break;
+				}
+
+				SAFENEWWITHCONSTRUCTOR(pRBK,
+					ConstRigidBodyKinematics,
+					ConstRigidBodyKinematics(X, R, V, W, XPP, WP));
+				break;
+			}
+
+			silent_cerr("unknown rigid body kinematics "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		} break;
 
 		case UNKNOWN:
 			/*

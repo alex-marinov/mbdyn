@@ -118,6 +118,7 @@ protected:
 	doublereal dEpsilon;
 	LinSol CurrSolver;
 
+	RigidBodyKinematics *pRBK;
 	bool bStaticModel;
 	bool bInverseDynamics;
 
@@ -447,6 +448,9 @@ public:
 	};
 	bool bIsStaticModel(void) const {
 		return bStaticModel;
+	};
+	const RigidBodyKinematics *pGetRBK(void) const {
+		return pRBK;
 	};
 
 	/* Inverse Dynamics: */

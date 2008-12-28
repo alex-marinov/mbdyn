@@ -40,6 +40,7 @@
 #include "reffrm.h"
 
 ReferenceFrame::ReferenceFrame(void)
+: WithLabel(0), x(0.), R(Eye3), v(0.), w(0.)
 {
 	NO_OP;
 }

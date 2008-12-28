@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2008
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -40,10 +40,10 @@
 
 /* Costruttore */
 AutomaticStructElem::AutomaticStructElem(const DynamicStructNode* pN)
-: Elem(pN->GetLabel(), pN->fToBeOutput()), 
+: Elem(pN->GetLabel(), pN->fToBeOutput()),
 pNode((DynamicStructNode *)pN), B(0.), G(0.), BP(0.), GP(0.),
 m(0.), S(0.), J(0.)
-{ 
+{
 	pNode->SetAutoStr(this);
 }
 
@@ -63,7 +63,7 @@ AutomaticStructElem::ComputeAccelerations(Vec3& XPP, Vec3& WP) const
 	WP = Jcg.LDLSolve(GP - Xcg.Cross(BP) - W.Cross(Jcg*W) + V.Cross(B));
 	XPP = (BP - WP.Cross(S) - W.Cross(W.Cross(S)))/m;
 }
- 
+
 void
 AutomaticStructElem::AddInertia(const doublereal& dm, const Vec3& dS,
 		const Mat3x3& dJ)
@@ -74,153 +74,187 @@ AutomaticStructElem::AddInertia(const doublereal& dm, const Vec3& dS,
 }
 
 /* inizializza i dati */
-void 
-AutomaticStructElem::Init(const Vec3& b, const Vec3& g, 
+void
+AutomaticStructElem::Init(const Vec3& b, const Vec3& g,
 			  const Vec3& bp, const Vec3& gp)
 {
-   B = b;
-   G = g;
-   BP = bp;
-   GP = gp;
+	B = b;
+	G = g;
+	BP = bp;
+	GP = gp;
 }
 
 
 /* Scrive il contributo dell'elemento al file di restart */
-std::ostream& 
+std::ostream&
 AutomaticStructElem::Restart(std::ostream& out) const
 {
-   out << "    automatic structural: " << GetLabel() << ", "
-     "reference, global, ", B.Write(out, ", ") << ", "
-     "reference, global, ", G.Write(out, ", ") << ", "
-     "reference, global, ", BP.Write(out, ", ") << ", "
-     "reference, global, ", GP.Write(out, ", ") << ";" << std::endl;
+	out << "automatic structural: " << GetLabel() << ", "
+		"reference, global, ", B.Write(out, ", ") << ", "
+		"reference, global, ", G.Write(out, ", ") << ", "
+		"reference, global, ", BP.Write(out, ", ") << ", "
+		"reference, global, ", GP.Write(out, ", ") << ";" << std::endl;
 
-   return out;
+	return out;
 }
 
 
 /* assemblaggio jacobiano */
-VariableSubMatrixHandler& 
+VariableSubMatrixHandler&
 AutomaticStructElem::AssJac(VariableSubMatrixHandler& WorkMat,
-			    doublereal dCoef, 
-			    const VectorHandler& /* XCurr */ ,
-			    const VectorHandler& /* XPrimeCurr */ )
+	doublereal dCoef,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUTFNAME("AutomaticStructElem::AssJac");
+	DEBUGCOUTFNAME("AutomaticStructElem::AssJac");
 
-   /* Casting di WorkMat */
-   SparseSubMatrixHandler& WM = WorkMat.SetSparse();
-   
-   /* Dimensiona e resetta la matrice di lavoro */
-   WM.ResizeReset(24, 0);
-      
-   /* Setta gli indici della matrice - le incognite sono ordinate come:
-    *   - posizione (3)
-    *   - parametri di rotazione (3)
-    *   - quantita' di moto (3)
-    *   - momento della quantita' di moto 
-    * e gli indici sono consecutivi. La funzione pGetFirstPositionIndex() 
-    * ritorna il valore del primo indice -1, in modo che l'indice i-esimo
-    * e' dato da iGetFirstPositionIndex()+i */
-   integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
-   integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
-  
-   for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WM.PutItem(iCnt, iFirstPositionIndex+iCnt,
-		  iFirstMomentumIndex+iCnt, -dCoef);
-      WM.PutItem(6+iCnt, iFirstMomentumIndex+iCnt,
-		  iFirstMomentumIndex+iCnt, 1.);    
-   }
+	/* Casting di WorkMat */
+	SparseSubMatrixHandler& WM = WorkMat.SetSparse();
 
-   WM.PutCross(13, iFirstMomentumIndex+3, iFirstMomentumIndex, 
-		   pNode->GetVCurr()*dCoef);
-   WM.PutCross(19, iFirstMomentumIndex+3, iFirstPositionIndex, -B);
-   
-   return WorkMat;
+	/* Dimensiona e resetta la matrice di lavoro */
+	integer iCoefs = 24;
+	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
+	if (pRBK) {
+		iCoefs += 12;
+	}
+	WM.ResizeReset(iCoefs, 0);
+
+	/* Setta gli indici della matrice - le incognite sono ordinate come:
+	 *   - posizione (3)
+	 *   - parametri di rotazione (3)
+	 *   - quantita' di moto (3)
+	 *   - momento della quantita' di moto
+	 * e gli indici sono consecutivi. La funzione pGetFirstPositionIndex()
+	 * ritorna il valore del primo indice -1, in modo che l'indice i-esimo
+	 * e' dato da iGetFirstPositionIndex()+i
+	 */
+	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
+	integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
+
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WM.PutItem(iCnt, iFirstPositionIndex + iCnt,
+			iFirstMomentumIndex + iCnt, -dCoef);
+		WM.PutItem(6+iCnt, iFirstMomentumIndex + iCnt,
+			iFirstMomentumIndex + iCnt, 1.);
+	}
+
+	WM.PutCross(13, iFirstMomentumIndex + 3,
+		iFirstMomentumIndex, pNode->GetVCurr()*dCoef);
+	WM.PutCross(19, iFirstMomentumIndex + 3,
+		iFirstPositionIndex, -B);
+
+	// relative frame dynamics contribution
+	// (see tecman, "Dynamics in a Relative Reference Frame")
+	if (pRBK) {
+		const Vec3& W0 = pRBK->GetW();
+
+		WM.PutCross(25, iFirstMomentumIndex,
+			iFirstMomentumIndex, W0*(2.*dCoef));
+		WM.PutCross(31, iFirstMomentumIndex + 3,
+			iFirstMomentumIndex + 3, W0*dCoef);
+	}
+
+	return WorkMat;
 }
 
 
 /* assemblaggio autoval */
-void 
+void
 AutomaticStructElem::AssMats(VariableSubMatrixHandler& WorkMatA,
-			    VariableSubMatrixHandler& WorkMatB,
-			    const VectorHandler& /* XCurr */ ,
-			    const VectorHandler& /* XPrimeCurr */ )
+	VariableSubMatrixHandler& WorkMatB,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUTFNAME("AutomaticStructElem::AssMats");
+	DEBUGCOUTFNAME("AutomaticStructElem::AssMats");
 
-   /* Casting di WorkMat */
-   SparseSubMatrixHandler& WMA = WorkMatA.SetSparse();
-   SparseSubMatrixHandler& WMB = WorkMatB.SetSparse();
-   
-   /* Dimensiona e resetta la matrice di lavoro */
-   WMA.ResizeReset(6, 0);
-   WMB.ResizeReset(6, 0);
-      
-   /* Setta gli indici della matrice - le incognite sono ordinate come:
-    *   - posizione (3)
-    *   - parametri di rotazione (3)
-    *   - quantita' di moto (3)
-    *   - momento della quantita' di moto 
-    * e gli indici sono consecutivi. La funzione pGetFirstPositionIndex() 
-    * ritorna il valore del primo indice -1, in modo che l'indice i-esimo
-    * e' dato da iGetFirstPositionIndex()+i */
-   integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
-   integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
-  
-   for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      WMA.PutItem(iCnt, iFirstPositionIndex+iCnt,
-		   iFirstMomentumIndex+iCnt, -1.);
-      WMB.PutItem(iCnt, iFirstMomentumIndex+iCnt,
-		   iFirstMomentumIndex+iCnt, 1.);    
-   }   
+	/* Casting di WorkMat */
+	SparseSubMatrixHandler& WMA = WorkMatA.SetSparse();
+	SparseSubMatrixHandler& WMB = WorkMatB.SetSparse();
+
+	/* Dimensiona e resetta la matrice di lavoro */
+	WMA.ResizeReset(12, 0);
+	WMB.ResizeReset(12, 0);
+
+	/* Setta gli indici della matrice - le incognite sono ordinate come:
+	 *   - posizione (3)
+	 *   - parametri di rotazione (3)
+	 *   - quantita' di moto (3)
+	 *   - momento della quantita' di moto
+	 * e gli indici sono consecutivi. La funzione pGetFirstPositionIndex()
+	 * ritorna il valore del primo indice -1, in modo che l'indice i-esimo
+	 * e' dato da iGetFirstPositionIndex()+i
+	 */
+	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
+	integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
+
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WMA.PutItem(iCnt, iFirstPositionIndex + iCnt,
+			iFirstMomentumIndex + iCnt, -1.);
+		WMB.PutItem(iCnt, iFirstMomentumIndex + iCnt,
+			iFirstMomentumIndex + iCnt, 1.);
+	}
+
+	WMA.PutCross(7, iFirstMomentumIndex + 3, iFirstMomentumIndex,
+		pNode->GetVCurr());
+	WMB.PutCross(7, iFirstMomentumIndex + 3, iFirstPositionIndex, -B);
 }
 
-   
+
 /* assemblaggio residuo */
-SubVectorHandler& 
+SubVectorHandler&
 AutomaticStructElem::AssRes(SubVectorHandler& WorkVec,
-			    doublereal /* dCoef */ ,
-			    const VectorHandler& XCurr, 
-			    const VectorHandler& XPrimeCurr)
+	doublereal /* dCoef */ ,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUTFNAME("AutomaticStructElem::AssRes");
+	DEBUGCOUTFNAME("AutomaticStructElem::AssRes");
 
-   WorkVec.ResizeReset(12);
-   
-   integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
-   integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
-   for (integer iCnt = 1; iCnt <= 12; iCnt++) {      
-      WorkVec.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);
-   }   
-   
-   /* Collects data */
-   B = Vec3(XCurr, iFirstMomentumIndex + 1);
-   G = Vec3(XCurr, iFirstMomentumIndex + 4);
-   BP = Vec3(XPrimeCurr, iFirstMomentumIndex + 1);
-   GP = Vec3(XPrimeCurr, iFirstMomentumIndex + 4);
-   
-   /*
-    * Momentum and momenta moment (about node):
-    *
-    * B = m V + W /\ S
-    *
-    * G = S /\ V + J W
-    *
-    * Bp = F
-    *
-    * Gp + V /\ B = M
-    */
-   WorkVec.Add(1, B);
-   WorkVec.Add(4, G);
-   WorkVec.Sub(7, BP);
-   WorkVec.Sub(10, GP + pNode->GetVCurr().Cross(B));
+	WorkVec.ResizeReset(12);
 
-   m = 0.;
-   S = Zero3;
-   J = Zero3x3;
+	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
+	integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
+	for (integer iCnt = 1; iCnt <= 12; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iFirstPositionIndex + iCnt);
+	}
 
-   return WorkVec;
+	/* Collects data */
+	B = Vec3(XCurr, iFirstMomentumIndex + 1);
+	G = Vec3(XCurr, iFirstMomentumIndex + 4);
+	BP = Vec3(XPrimeCurr, iFirstMomentumIndex + 1);
+	GP = Vec3(XPrimeCurr, iFirstMomentumIndex + 4);
+
+	/*
+	 * Momentum and momenta moment (about node):
+	 *
+	 * B = m V + W /\ S
+	 *
+	 * G = S /\ V + J W
+	 *
+	 * Bp = F
+	 *
+	 * Gp + V /\ B = M
+	 */
+	WorkVec.Add(1, B);
+	WorkVec.Add(4, G);
+	WorkVec.Sub(7, BP);
+	WorkVec.Sub(10, GP + pNode->GetVCurr().Cross(B));
+
+	// relative frame dynamics contribution
+	// (see tecman, "Dynamics in a Relative Reference Frame")
+	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
+	if (pRBK) {
+		const Vec3& W0 = pRBK->GetW();
+
+		WorkVec.Sub(7, W0.Cross(B*2.));
+		WorkVec.Sub(10, W0.Cross(G));
+	}
+
+	// reset instantaneous inertia properties
+	m = 0.;
+	S = Zero3;
+	J = Zero3x3;
+
+	return WorkVec;
 }
 
 
@@ -362,26 +396,17 @@ AutomaticStructElem::Output(OutputHandler& OH) const
 	}
 }
 
-
-
-
-
-
-
-
-
-
-/* Setta i valori iniziali delle variabili (e fa altre cose) 
+/* Setta i valori iniziali delle variabili (e fa altre cose)
  * prima di iniziare l'integrazione */
-void 
+void
 AutomaticStructElem::SetValue(DataManager *pDM,
-		VectorHandler& /* X */ , VectorHandler& XP,
-		SimulationEntity::Hints *ph)
+	VectorHandler& /* X */ , VectorHandler& XP,
+	SimulationEntity::Hints *ph)
 {
-   integer iIndex = pNode->iGetFirstMomentumIndex();
-   
-   XP.Put(iIndex + 1, BP);
-   XP.Put(iIndex + 4, GP);
+	integer iIndex = pNode->iGetFirstMomentumIndex();
+
+	XP.Put(iIndex + 1, BP);
+	XP.Put(iIndex + 4, GP);
 }
 
 /* Dati privati */

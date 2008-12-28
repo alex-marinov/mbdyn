@@ -110,6 +110,7 @@ privdrive.cc \
 privdrive.h \
 privpgin.cc \
 privpgin.h \
+rbk.cc \
 rbk.h \
 readlinsol.cc \
 readlinsol.h \
