@@ -341,6 +341,7 @@ of what representation is being used and treat output accordingly.
 \label{sec:CONTROLDATA:MODEL}
 \begin{verbatim}
     <card> ::= model : <model_type> ;
+
     <model_type> ::= static
 \end{verbatim}
 This statement allows to set the model type to \kw{static}, which means
@@ -349,6 +350,47 @@ forces ignored.
 Gravity and centripetal acceleration will only be considered as forcing
 terms.
 See the \kw{structural} node (Section~\ref{sec:NODE:STRUCTURAL}) for details.
+
+
+
+\subsubsection{Rigid Body Kinematics}
+\label{sec:CONTROLDATA:RBK}
+\begin{verbatim}
+    <card> ::= rigid body kinematics : <rbk_data> ;
+
+    <rbk_data> ::= { <const_rbk> | <drive_rbk> }
+
+    <const_rbk> ::= const
+            [ , position , (Vec3)<abs_position> ]
+            [ , orientation , (OrientationMatrix)<abs_orientation> ]
+            [ , velocity , (Vec3)<abs_velocity> ]
+            [ , angular velocity , (Vec3)<abs_angular_velocity> ]
+            [ , acceleration , (Vec3)<abs_acceleration> ]
+            [ , angular acceleration , (Vec3)<abs_angular_acceleration> ]
+
+    <drive_rbk> ::= drive
+            [ , position , (Vec3_tpl_drive_caller)<abs_position> ]
+            [ , orientation , (Vec3_tpl_drive_caller)<abs_orientation_vector> ]
+            [ , velocity , (Vec3_tpl_drive_caller)<abs_velocity> ]
+            [ , angular velocity , (Vec3_tpl_drive_caller)<abs_angular_velocity> ]
+            [ , acceleration , (Vec3_tpl_drive_caller)<abs_acceleration> ]
+            [ , angular acceleration , (Vec3_tpl_drive_caller)<abs_angular_acceleration> ]
+\end{verbatim}
+In principle, the kinematic parameters should be consistent.
+However, in most cases this is not strictly required, nor desirable.
+In fact, if the model is made only of rigid bodies, algebraic constraints
+and deformable restraints, the case of a system rotating
+at constant angular velocity does not require \kw{abs\_angular\_velocity}
+to be the derivative of \kw{abs\_orientation}, since the latter
+never appears in the forces acting on the system.
+Similarly, the \kw{abs\_position} and \kw{abs\_velocity}
+do not appear as well, as soon as the latter is constant.
+
+However, if other forces that depend on the absolute motion
+(position, orientation, and velocity) participate, this is no longer true.
+This is the case, for example, of aerodynamic forces,
+which depend on the velocity of the body with respect to the airstream,
+whose velocity is typically expressed in the global reference frame.
 
 
 \section{Model Counter Cards}
