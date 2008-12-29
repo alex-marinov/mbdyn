@@ -1279,6 +1279,62 @@ EndOfUse:
 					ConstRigidBodyKinematics,
 					ConstRigidBodyKinematics(X, R, V, W, XPP, WP));
 				break;
+
+			} else if (HP.IsKeyWord("drive")) {
+				TplDriveCaller<Vec3> *pXDrv(0);
+				TplDriveCaller<Vec3> *pThetaDrv(0);
+				TplDriveCaller<Vec3> *pVDrv(0);
+				TplDriveCaller<Vec3> *pWDrv(0);
+				TplDriveCaller<Vec3> *pXPPDrv(0);
+				TplDriveCaller<Vec3> *pWPDrv(0);
+
+				bool bGot(false);
+
+				if (HP.IsKeyWord("position")) {
+					pXDrv = ReadDC3D(this, HP);
+					bGot = true;
+				}
+
+				if (HP.IsKeyWord("orientation")) {
+					pThetaDrv = ReadDC3D(this, HP);
+					bGot = true;
+				}
+
+				if (HP.IsKeyWord("velocity")) {
+					pVDrv = ReadDC3D(this, HP);
+					bGot = true;
+				}
+
+				if (HP.IsKeyWord("angular" "velocity")) {
+					pWDrv = ReadDC3D(this, HP);
+					bGot = true;
+				}
+
+				if (HP.IsKeyWord("acceleration")) {
+					pXPPDrv = ReadDC3D(this, HP);
+					bGot = true;
+				}
+
+				if (HP.IsKeyWord("angular" "acceleration")) {
+					pWPDrv = ReadDC3D(this, HP);
+					bGot = true;
+				}
+
+				if (!bGot) {
+					silent_cerr("null rigid body kinematics "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					break;
+				}
+
+				SAFENEWWITHCONSTRUCTOR(pRBK,
+					DriveRigidBodyKinematics,
+					DriveRigidBodyKinematics(pXDrv,
+						pThetaDrv, pVDrv, pWDrv,
+						pXPPDrv, pWPDrv));
+				break;
+
+				
 			}
 
 			silent_cerr("unknown rigid body kinematics "

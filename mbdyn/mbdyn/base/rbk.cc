@@ -36,8 +36,21 @@
 #endif /* HAVE_CONFIG_H */
 
 #include "rbk.h"
+#include "Rot.hh"
 
 RigidBodyKinematics::~RigidBodyKinematics(void)
+{
+	NO_OP;
+}
+
+void
+RigidBodyKinematics::Update(void)
+{
+	NO_OP;
+}
+
+ConstRigidBodyKinematics::ConstRigidBodyKinematics(void)
+: X(0.), R(Eye3), V(0.), W(0.), XPP(0.), WP(0.)
 {
 	NO_OP;
 }
@@ -94,3 +107,52 @@ ConstRigidBodyKinematics::GetWP(void) const
 	return WP;
 }
 
+DriveRigidBodyKinematics::DriveRigidBodyKinematics(
+	const TplDriveCaller<Vec3> *pXDrv,
+	const TplDriveCaller<Vec3> *pThetaDrv,
+	const TplDriveCaller<Vec3> *pVDrv,
+	const TplDriveCaller<Vec3> *pWDrv,
+	const TplDriveCaller<Vec3> *pXPPDrv,
+	const TplDriveCaller<Vec3> *pWPDrv)
+: XDrv(pXDrv),
+ThetaDrv(pThetaDrv),
+VDrv(pVDrv),
+WDrv(pWDrv),
+XPPDrv(pXPPDrv),
+WPDrv(pWPDrv)
+{
+	Update();
+}
+
+DriveRigidBodyKinematics::~DriveRigidBodyKinematics(void)
+{
+	NO_OP;
+}
+
+void
+DriveRigidBodyKinematics::Update(void)
+{
+	if (XDrv.pGetDriveCaller()) {
+		X = XDrv.Get();
+	}
+
+	if (ThetaDrv.pGetDriveCaller()) {
+		R = RotManip::Rot(ThetaDrv.Get());
+	}
+
+	if (VDrv.pGetDriveCaller()) {
+		V = VDrv.Get();
+	}
+
+	if (WDrv.pGetDriveCaller()) {
+		W = WDrv.Get();
+	}
+
+	if (XPPDrv.pGetDriveCaller()) {
+		XPP = XPPDrv.Get();
+	}
+
+	if (WPDrv.pGetDriveCaller()) {
+		WP = WPDrv.Get();
+	}
+}

@@ -150,6 +150,11 @@ DataManager::SetTime(const doublereal& dTime, const doublereal& dTimeStep,
 			}
 		}
 	}
+
+	// updates rigid body kinematics, if any
+	if (pRBK) {
+		pRBK->Update();
+	}
 } /* End of DataManager::SetTime() */
 
 doublereal
