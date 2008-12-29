@@ -76,7 +76,7 @@
 #ifndef AERODYN__H
 #define AERODYN__H
 
-#include <aerodyn.h>
+#include "aerodyn.h"
 
 /* Gust1D - begin */
 
@@ -110,7 +110,9 @@ protected:
    
 public:
 	BasicAirProperties(const TplDriveCaller<Vec3>* pDC,
-		DriveCaller *pRho, doublereal dSS, std::vector<Gust *>& g, flag fOut);
+		DriveCaller *pRho, doublereal dSS, std::vector<Gust *>& g,
+		const RigidBodyKinematics *pRBK,
+		flag fOut);
    
 	virtual ~BasicAirProperties(void);
 
@@ -159,7 +161,9 @@ public:
 		doublereal PRef_, DriveCaller *RhoRef_, doublereal TRef_,
 		doublereal a_, doublereal R_, doublereal g0_,
 		doublereal z0_, doublereal z1_, doublereal z2_,
-		std::vector<Gust *>& g, flag fOut);
+		std::vector<Gust *>& g,
+		const RigidBodyKinematics *pRBK,
+		flag fOut);
    
 	virtual ~StdAirProperties(void);
 

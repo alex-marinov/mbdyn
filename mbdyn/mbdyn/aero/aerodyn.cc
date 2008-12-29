@@ -132,12 +132,15 @@ Gust1D::GetVelocity(const Vec3& X, Vec3& V) const
 /* AirProperties - begin */
 
 AirProperties::AirProperties(const TplDriveCaller<Vec3>* pDC,
-		std::vector<Gust *>& g, flag fOut)
+		std::vector<Gust *>& g,
+		const RigidBodyKinematics *pRBK,
+		flag fOut)
 : Elem(1, fOut),
 InitialAssemblyElem(1, fOut),
 TplDriveOwner<Vec3>(pDC),
 Velocity(0.),
-gust(g)
+gust(g),
+pRBK(pRBK)
 {
 	for (std::vector<Gust *>::iterator i = gust.begin();
 		i != gust.end(); i++)
@@ -209,10 +212,15 @@ AirProperties::AssRes(SubVectorHandler& WorkVec,
 	 * minimo overhead */
 	Velocity = Get();
   	
+	if (pRBK) {
+		R0T = pRBK->GetR().Transpose();
+		W0 = R0T*pRBK->GetW();
+	}
+
 	return WorkVec;
 }
    
-   /* Numero di GDL iniziali */
+/* Numero di GDL iniziali */
 unsigned int
 AirProperties::iGetInitialNumDof(void) const
 {
@@ -270,13 +278,33 @@ AirProperties::GetVelocity(const Vec3& X) const
 bool
 AirProperties::GetVelocity(const Vec3& X, Vec3& V) const
 {
-	V = Velocity;
-	for (std::vector<Gust *>::const_iterator i = gust.begin();
-		i != gust.end(); i++)
-	{
-		Vec3 VV;
-		if ((*i)->GetVelocity(X, VV)) {
-			V += VV;
+	if (pRBK) {
+		Vec3 Xabs = pRBK->GetX();
+		Xabs += pRBK->GetR()*X;
+
+		V = Velocity;
+		V += pRBK->GetV();
+		for (std::vector<Gust *>::const_iterator i = gust.begin();
+			i != gust.end(); i++)
+		{
+			Vec3 VV;
+			if ((*i)->GetVelocity(Xabs, VV)) {
+				V += VV;
+			}
+		}
+
+		V = R0T*V;
+		V += W0.Cross(X);
+
+	} else {
+		V = Velocity;
+		for (std::vector<Gust *>::const_iterator i = gust.begin();
+			i != gust.end(); i++)
+		{
+			Vec3 VV;
+			if ((*i)->GetVelocity(X, VV)) {
+				V += VV;
+			}
 		}
 	}
 
@@ -337,9 +365,10 @@ AirProperties::dGetPrivData(unsigned int i) const
 /* BasicAirProperties - begin */
 
 BasicAirProperties::BasicAirProperties(const TplDriveCaller<Vec3>* pDC,
-		DriveCaller *pRho, doublereal dSS, std::vector<Gust *>& g, flag fOut)
+	DriveCaller *pRho, doublereal dSS, std::vector<Gust *>& g,
+	const RigidBodyKinematics *pRBK, flag fOut)
 : Elem(1, fOut),
-AirProperties(pDC, g, fOut),
+AirProperties(pDC, g, pRBK, fOut),
 AirDensity(pRho),
 dSoundSpeed(dSS)
 {
@@ -403,12 +432,12 @@ BasicAirProperties::GetAirProps(const Vec3& X, doublereal& rho,
 /* StdAirProperties - begin */
 
 StdAirProperties::StdAirProperties(const TplDriveCaller<Vec3>* pDC,
-		 doublereal PRef_, DriveCaller *RhoRef_, doublereal TRef_,
-		 doublereal a_, doublereal R_, doublereal g0_,
-		 doublereal z0_, doublereal z1_, doublereal z2_,
-		 std::vector<Gust *>& g, flag fOut)
+	doublereal PRef_, DriveCaller *RhoRef_, doublereal TRef_,
+	doublereal a_, doublereal R_, doublereal g0_,
+	doublereal z0_, doublereal z1_, doublereal z2_,
+	std::vector<Gust *>& g, const RigidBodyKinematics *pRBK, flag fOut)
 : Elem(1, fOut),
-AirProperties(pDC, g, fOut),
+AirProperties(pDC, g, pRBK, fOut),
 PRef(PRef_),
 RhoRef(RhoRef_),
 TRef(TRef_),
@@ -534,6 +563,7 @@ StdAirProperties::GetAirProps(const Vec3& X, doublereal& rho,
 Gust *
 ReadGust(DataManager *pDM, MBDynParser& HP)
 {
+	Gust *pG = 0;
 	if (HP.IsKeyWord("front" "1d")) {
 		/* front direction */
 		Vec3 f = HP.GetVecAbs(AbsRefFrame);
@@ -554,15 +584,16 @@ ReadGust(DataManager *pDM, MBDynParser& HP)
 		DriveCaller *pP = HP.GetDriveCaller();
 
 		/* gust */
-		Gust *pG = 0;
 		SAFENEWWITHCONSTRUCTOR(pG, Gust1D,
 				Gust1D(f, g, v, pT, pP));
-		return pG;
+
+	} else {
+		silent_cerr("unknown gust type at line "
+			<< HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	silent_cerr("unknown gust type at line "
-		<< HP.GetLineData() << std::endl);
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	return pG;
 }
 
 static void
@@ -727,10 +758,10 @@ ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 	     	flag fOut = pDM->fReadOutput(HP, Elem::AIRPROPERTIES);
 	     
 	     	SAFENEWWITHCONSTRUCTOR(pEl, 
-				StdAirProperties,
-				StdAirProperties(pDC, 
-					PRef, RhoRef, TRef, a, R, g0, z0, z1, z2,
-					gust, fOut));
+			StdAirProperties,
+			StdAirProperties(pDC, 
+				PRef, RhoRef, TRef, a, R, g0, z0, z1, z2,
+				gust, pDM->pGetRBK(), fOut));
 	} else {
 		/* Legacy: density and sound celerity at one altitude;
 		 * no altitude dependency */
@@ -753,9 +784,9 @@ ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 	     	flag fOut = pDM->fReadOutput(HP, Elem::AIRPROPERTIES);
 	     
 	     	SAFENEWWITHCONSTRUCTOR(pEl, 
-				BasicAirProperties,
-				BasicAirProperties(pDC, pRho, dSS,
-					gust, fOut));
+			BasicAirProperties,
+			BasicAirProperties(pDC, pRho, dSS,
+				gust, pDM->pGetRBK(), fOut));
 	}
 
 	return pEl;

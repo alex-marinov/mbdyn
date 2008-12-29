@@ -78,6 +78,7 @@
 
 #include "elem.h"
 #include "tpldrive.h"
+#include "rbk.h"
 
 extern const char* psAeroNames[];
 
@@ -107,9 +108,17 @@ class AirProperties
 protected:
 	mutable Vec3 Velocity;
 	std::vector<Gust *> gust;
+
+	// rigid body kinematics
+	const RigidBodyKinematics *pRBK;
+	Mat3x3 R0T;
+	Vec3 W0;
    
 public:
-	AirProperties(const TplDriveCaller<Vec3>* pDC, std::vector<Gust *>& pg, flag fOut);
+	AirProperties(const TplDriveCaller<Vec3>* pDC,
+		std::vector<Gust *>& pg,
+		const RigidBodyKinematics *pRBK,
+		flag fOut);
 	virtual ~AirProperties(void);
 
 	virtual void AddGust(Gust *pG);
