@@ -30,7 +30,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include <limits>
@@ -138,7 +138,8 @@ ConstDriveCaller::~ConstDriveCaller(void)
 }
 
 /* Copia */
-DriveCaller* ConstDriveCaller::pCopy(void) const
+DriveCaller*
+ConstDriveCaller::pCopy(void) const
 {
 	DriveCaller* pDC = 0;
 	SAFENEWWITHCONSTRUCTOR(pDC, ConstDriveCaller, ConstDriveCaller(dConst));
@@ -597,7 +598,8 @@ CosineDriveCaller::~CosineDriveCaller(void)
 }
 
 /* Copia */
-DriveCaller* CosineDriveCaller::pCopy(void) const
+DriveCaller*
+CosineDriveCaller::pCopy(void) const
 {
 	DriveCaller* pDC = 0;
 	SAFENEWWITHCONSTRUCTOR(pDC,
@@ -638,7 +640,8 @@ TanhDriveCaller::~TanhDriveCaller(void)
 }
 
 /* Copia */
-DriveCaller* TanhDriveCaller::pCopy(void) const
+DriveCaller*
+TanhDriveCaller::pCopy(void) const
 {
 	DriveCaller* pDC = 0;
 	SAFENEWWITHCONSTRUCTOR(pDC,
@@ -741,7 +744,8 @@ ExpDriveCaller::~ExpDriveCaller(void)
 }
 
 /* Copia */
-DriveCaller* ExpDriveCaller::pCopy(void) const
+DriveCaller*
+ExpDriveCaller::pCopy(void) const
 {
 	DriveCaller* pDC = 0;
 	SAFENEWWITHCONSTRUCTOR(pDC,
@@ -2234,7 +2238,7 @@ FileDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
-static unsigned done = 0;
+static unsigned done;
 
 void
 InitDriveData(void)
@@ -2275,9 +2279,10 @@ InitDriveData(void)
 
 	/* NOTE: add here initialization of new built-in drive callers;
 	 * alternative ways to register new custom drive callers are:
-	 * - call SetCL*D() from anywhere in the code
+	 * - call SetDriveData() from anywhere in the code
 	 * - write a module that calls SetDriveData() from inside a function
-	 *   called module_init(), and load it using "module load".
+	 *   called module_init(), and run-time load it using "module load"
+	 *   in the input file.
 	 */
 }
 

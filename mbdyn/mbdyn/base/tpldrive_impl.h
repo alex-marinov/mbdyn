@@ -104,7 +104,7 @@ ReadTplDC(const DataManager* pDM, MBDynParser& HP, const T& t)
 	silent_cerr("unknown type in ReadTplDC "
 		"at line " << HP.GetLineData() << std::endl);
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-}
+};
 
 #endif // TPLDRIVE_IMPL_H
 

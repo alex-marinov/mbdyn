@@ -30,7 +30,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include "myassert.h"
@@ -676,7 +676,7 @@ ReadDC6D(const DataManager* pDM, MBDynParser& HP)
 	return func->second->Read(pDM, HP);
 }
 
-static unsigned done = 0;
+static unsigned done;
 
 void
 InitTplDC(void)
@@ -701,11 +701,12 @@ InitTplDC(void)
 	SetDC6D("single", new SingleTDCR<Vec6>);
 
 	/* component */
-	SetDC1D("component", new SingleTDCR<doublereal>);	/* in the scalar case, "single" and "component" are identical */
+	/* in the scalar case, "single" and "component" are identical */
+	SetDC1D("component", new SingleTDCR<doublereal>);
 	SetDC3D("component", new CompTDCR<Vec3>);
 	SetDC6D("component", new CompTDCR<Vec6>);
 
-	/* component */
+	/* array */
 	SetDC1D("array", new ArrayTDCR<doublereal>);
 	SetDC3D("array", new ArrayTDCR<Vec3>);
 	SetDC6D("array", new ArrayTDCR<Vec6>);
