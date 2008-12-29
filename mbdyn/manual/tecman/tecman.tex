@@ -588,12 +588,12 @@ the initial configuration.
 
 The problem can be stated as follows:
 \begin{align}
-	\T{k} \T{x} + \T{\Phi}_{/\T{x}}^T \T{\lambda}_{\T{\Phi}} + \T{A}^T \T{\lambda}_{\T{A}}
+	\T{k} \T{x} + \T{\phi}_{/\T{x}}^T \T{\lambda}_{\T{\phi}} + \T{A}^T \T{\lambda}_{\T{A}}
 		& = \T{k} \T{x}_0 + \T{F} \\
-	\T{c} \T{v} + \T{\Phi}_{/\T{x}}^T \T{\mu} & = \T{c} \T{v}_0 \\
-	\T{\Phi}\plbr{\T{x}, t} & = \T{0} \label{eq:in-ass:holonomic} \\
+	\T{c} \T{v} + \T{\phi}_{/\T{x}}^T \T{\mu} & = \T{c} \T{v}_0 \\
+	\T{\phi}\plbr{\T{x}, t} & = \T{0} \label{eq:in-ass:holonomic} \\
 	\T{A}\plbr{\T{x}, t} \T{v} + \T{B}\plbr{\T{x}, t} & = \T{0} \label{eq:in-ass:non-holonomic} \\
-	\T{\Phi}_{/\T{x}} v + \T{\Phi}_{/t} & = \T{0}
+	\T{\phi}_{/\T{x}} v + \T{\phi}_{/t} & = \T{0}
 \end{align}
 where Equation~(\ref{eq:in-ass:holonomic}) and (\ref{eq:in-ass:non-holonomic})
 respectively contain the holonomic and non-holonomic constraint equations.
@@ -605,14 +605,14 @@ Unfortunately, this requires the implementation of more constraints
 than required by the regular solution phases, namely the time derivative
 of the algebraic constraints that depend only on the configuration.
 A new procedure is being considered, which requires only the use 
-of the constraint equation $\Phi$ and its Jacobian matrix $\Phi_{/x}$.
+of the constraint equation $\phi$ and its Jacobian matrix $\phi_{/x}$.
 
 The problem that is solved with the new procedure is (FIXME):
 \begin{align}
-	\T{k} \T{x} + \T{\Phi}_{/\T{x}}^T \T{\lambda}_{\T{\Phi}} + \T{A}^T \T{\lambda}_{\T{A}} 
+	\T{k} \T{x} + \T{\phi}_{/\T{x}}^T \T{\lambda}_{\T{\phi}} + \T{A}^T \T{\lambda}_{\T{A}} 
 		& = \T{k} \T{x}_0 + \T{F} \\
 	\T{c} \T{v} + \T{A}^T \T{\lambda}_{A} & = \T{c} \T{v}_0 \\
-	\T{\Phi}\plbr{\T{x}, t} & = \T{0} \\
+	\T{\phi}\plbr{\T{x}, t} & = \T{0} \\
 	\T{A}\plbr{\T{x}, t} \T{v} + \T{B}\plbr{\T{x}, t} & = \T{0}
 \end{align}
 so that only the configuration is required to comply 
@@ -620,22 +620,22 @@ with the constraint equations, and the same constraint
 Jacobian matrix and residual of the regular steps are required;
 then, after convergence, the following equation is considered:
 \begin{equation}
-	\T{\Phi}_{/\T{x}} \T{v} + \T{\Phi}_{/t} = 0
+	\T{\phi}_{/\T{x}} \T{v} + \T{\phi}_{/t} = 0
 \end{equation}
 which uses the Jacobian matrix of the constraint equations; 
 only the derivative of the time-dependent constraints is required.
 
-The number of rows of matrix $\T{\Phi}_{/\T{x}}$ is equal to the number 
+The number of rows of matrix $\T{\phi}_{/\T{x}}$ is equal to the number 
 of degrees of freedom that are constrained, so typically the matrix 
 must be underdetermined.
 It can be decomposed as
 \begin{equation}
-	\T{\Phi}_{/\T{x}}^T = \T{Q} \T{R}
+	\T{\phi}_{/\T{x}}^T = \T{Q} \T{R}
 		= \sqbr{\matr{cc}{\T{Q}_1 & \T{Q}_2}}\sqbr{\cvvect{\T{R}_1 \\ \T{0}}}
 \end{equation}
 so
 \begin{equation}
-	\T{Q}_1^T \T{v} + \T{R}_1^{-T} \T{\Phi}_{/t} = 0
+	\T{Q}_1^T \T{v} + \T{R}_1^{-T} \T{\phi}_{/t} = 0
 	\label{eq:in-ass:test}
 \end{equation}
 becomes a compatibility test for the initial velocities.
@@ -649,7 +649,7 @@ test~(\ref{eq:in-ass:test});
 by projecting them in the space that is compatible with the constraints, 
 e.g.:
 \begin{equation}
-	\T{v}_c = \T{v} - \T{Q}_1 \plbr{\T{Q}_1^T \T{v} + \T{R}_1^{-T}\T{\Phi}_{/t}}
+	\T{v}_c = \T{v} - \T{Q}_1 \plbr{\T{Q}_1^T \T{v} + \T{R}_1^{-T}\T{\phi}_{/t}}
 \end{equation}
 The initial assembly procedure can be repeated until 
 test~(\ref{eq:in-ass:test}) passes.
@@ -1504,6 +1504,10 @@ The \texttt{RigidBodyKinematics} will need to inherit from
 and thus avoid repeating evaluations of reference frame kinematic
 entities.
 
+Future development may allow to have multiple relative reference frame
+submodels, connected to each other and to the absolute reference frame
+submodel, if any, by dedicated algebraic constraints.
+
 
 
 
@@ -1948,111 +1952,121 @@ To summarize:
 \section{Algebraic Constraints}
 Consider a holonomic constraint equation of the form
 \begin{equation}
-	\T{\Phi}\plbr{\T{q}, t} = 0 
+	\T{\phi}\plbr{\T{q}, t} = 0 
 \end{equation}
 Its time derivative and perturbation yields
-\begin{eqnarray*}
-	\delta\frac{\llk{d}}{\llk{d}t}\plbr{\T{\mu}^T\T{\Phi}} & = &
-		\delta\dot{\T{\mu}}^T \T{\Phi}
-		+ \delta\T{\Phi}^T \dot{\T{\mu}}
-		+ \delta\T{\mu}^T \dot{\T{\Phi}}
-		+ \delta\dot{\T{\Phi}}^T \T{\mu} \\
-	& = & \delta\dot{\T{\mu}}^T \T{\Phi}
-		+ \delta\T{q}^T \T{\Phi}_{/\T{q}}^T \dot{\T{\mu}}
+\begin{align}
+	\delta\frac{\llk{d}}{\llk{d}t}\plbr{\T{\mu}^T\T{\phi}} &=
+		\delta\dot{\T{\mu}}^T \T{\phi}
+		+ \delta\T{\phi}^T \dot{\T{\mu}}
+		+ \delta\T{\mu}^T \dot{\T{\phi}}
+		+ \delta\dot{\T{\phi}}^T \T{\mu} \nonumber \\
+	&= \delta\dot{\T{\mu}}^T \T{\phi}
+		+ \delta\T{q}^T \T{\phi}_{/\T{q}}^T \dot{\T{\mu}}
 		+ \delta\T{\mu}^T\plbr{
-			\T{\Phi}_{/\T{q}} \dot{\T{q}}
-			+ \T{\Phi}_{/t}
-		} \\
-	& & \mbox{} + \plbr{
-			\delta\dot{\T{q}}^T \T{\Phi}_{/\T{q}}^T
+			\T{\phi}_{/\T{q}} \dot{\T{q}}
+			+ \T{\phi}_{/t}
+		} \nonumber \\
+	&\hphantom{=} + \plbr{
+			\delta\dot{\T{q}}^T \T{\phi}_{/\T{q}}^T
 			+ \delta\T{q}^T \plbr{
-				\T{\Phi}_{/\T{q}} \dot{\T{q}}
-				+ \T{\Phi}_{/t}
+				\T{\phi}_{/\T{q}} \dot{\T{q}}
+				+ \T{\phi}_{/t}
 			}_{/\T{q}}^T
-		} \T{\mu} \\
-	& = & \delta\dot{\T{q}}^T \T{\Phi}_{/\T{q}}^T \T{\mu} \\
-	& & \mbox{} + \delta\T{q}^T \plbr{
+		} \T{\mu} \nonumber \\
+	&= \delta\dot{\T{q}}^T \T{\phi}_{/\T{q}}^T \T{\mu} \nonumber \\
+	&\hphantom{=} + \delta\T{q}^T \plbr{
 		\plbr{
-			\T{\Phi}_{/\T{q}} \dot{\T{q}}
-			+ \T{\Phi}_{/t}
+			\T{\phi}_{/\T{q}} \dot{\T{q}}
+			+ \T{\phi}_{/t}
 		}_{/\T{q}}^T \T{\mu}
-		+ \T{\Phi}_{/\T{q}}^T \dot{\T{\mu}}
-	} \\
-	& & \mbox{} + \delta\dot{\T{\mu}}^T \T{\Phi} \\
-	& & \mbox{} + \delta\T{\mu}^T \plbr{
-		\T{\Phi}_{/\T{q}} \dot{\T{q}}
-		+ \T{\Phi}_{/t}
+		+ \T{\phi}_{/\T{q}}^T \dot{\T{\mu}}
+	} \nonumber \\
+	&\hphantom{=} + \delta\dot{\T{\mu}}^T \T{\phi} \nonumber \\
+	&\hphantom{=} + \delta\T{\mu}^T \plbr{
+		\T{\phi}_{/\T{q}} \dot{\T{q}}
+		+ \T{\phi}_{/t}
 	}
-\end{eqnarray*}
+\end{align}
 Its linearization yields
-\begin{eqnarray*}
-	\Delta\plbr{\delta\frac{\llk{d}}{\llk{d}t}\plbr{\T{\mu}^T\T{\Phi}}}
-	& = & \delta\dot{\T{q}}^T \plbr{
-		\T{\Phi}_{/\T{q}}^T \Delta\T{\mu}
-		+ \plbr{\T{\Phi}_{/\T{q}}^T \T{\mu}}_{/\T{q}} \Delta\T{q}
-	} \\
-	& & \mbox{} + \delta\T{q}^T \lplbr{
+\begin{align}
+	\Delta\plbr{\delta\frac{\llk{d}}{\llk{d}t}\plbr{\T{\mu}^T\T{\phi}}}
+	&= \delta\dot{\T{q}}^T \plbr{
+		\T{\phi}_{/\T{q}}^T \Delta\T{\mu}
+		+ \plbr{\T{\phi}_{/\T{q}}^T \T{\mu}}_{/\T{q}} \Delta\T{q}
+	} \nonumber \\
+	&\hphantom{=} + \delta\T{q}^T \lplbr{
 		\plbr{
-			\T{\Phi}_{/\T{q}} \dot{\T{q}}
-			+ \T{\Phi}_{/t}
+			\T{\phi}_{/\T{q}} \dot{\T{q}}
+			+ \T{\phi}_{/t}
 		}_{/\T{q}}^T \Delta \T{\mu}
-		+ \T{\Phi}_{/\T{q}} \Delta\dot{\T{\mu}}
-		+ \plbr{\T{\Phi}_{/\T{q}} \Delta\dot{\T{q}}}_{/\T{q}}^T \T{\mu}
-	} \\
-	& & \mbox{\hspace{12mm}} + \rplbr{
+		+ \T{\phi}_{/\T{q}} \Delta\dot{\T{\mu}}
+		+ \plbr{\T{\phi}_{/\T{q}} \Delta\dot{\T{q}}}_{/\T{q}}^T \T{\mu}
+	} \nonumber \\
+	&\hphantom{=}\hspace{12mm} + \rplbr{
 		\plbr{
 			\plbr{
-				\T{\Phi}_{/\T{q}} \dot{\T{q}}
-				+ \T{\Phi}_{/t}
+				\T{\phi}_{/\T{q}} \dot{\T{q}}
+				+ \T{\phi}_{/t}
 			}_{/\T{q}}^T \T{\mu}
-			+ \T{\Phi}_{/\T{q}}^T \dot{\T{\mu}}
+			+ \T{\phi}_{/\T{q}}^T \dot{\T{\mu}}
 		}_{/\T{q}} \Delta\T{q}
-	} \\
-	& & \mbox{} + \delta\dot{\T{\mu}}^T \T{\Phi}_{/\T{q}} \Delta\T{q} \\
-	& & \mbox{} + \delta\T{\mu}^T \plbr{
-		\T{\Phi}_{/\T{q}} \Delta\dot{\T{q}}
+	} \nonumber \\
+	&\hphantom{=} + \delta\dot{\T{\mu}}^T \T{\phi}_{/\T{q}} \Delta\T{q} \nonumber \\
+	&\hphantom{=} + \delta\T{\mu}^T \plbr{
+		\T{\phi}_{/\T{q}} \Delta\dot{\T{q}}
 		+ \plbr{
-			\T{\Phi}_{/\T{q}} \dot{\T{q}}
-			+ \T{\Phi}_{/t}
+			\T{\phi}_{/\T{q}} \dot{\T{q}}
+			+ \T{\phi}_{/t}
 		}_{/\T{q}} \Delta\T{q}
 	}
-\end{eqnarray*}
+\end{align}
 An unconstrained problem of the form
-\begin{eqnarray*}
-	\T{M} \dot{\T{q}} - \T{p} & = & \T{0} \\
-	\dot{\T{p}} & = & \T{F}\plbr{\T{q}, \dot{\T{q}}, t}
-\end{eqnarray*}
+\begin{subequations}
+\begin{align}
+	\T{M} \dot{\T{q}} - \T{p} &= \T{0} \\
+	\dot{\T{p}} &= \T{F}\plbr{\T{q}, \dot{\T{q}}, t}
+\end{align}
+\end{subequations}
 becomes
-\begin{eqnarray*}
-	\T{M} \dot{\T{q}} - \T{p} + \T{\Phi}_{/\T{q}}^T \T{\mu} & = & \T{0} \\
+\begin{subequations}
+\begin{align}
+	\T{M} \dot{\T{q}} - \T{p} + \T{\phi}_{/\T{q}}^T \T{\mu} &= \T{0} \\
 	\dot{\T{p}} + \plbr{
-		\T{\Phi}_{/\T{q}} \dot{\T{q}}
-		+ \T{\Phi}_{/t}
+		\T{\phi}_{/\T{q}} \dot{\T{q}}
+		+ \T{\phi}_{/t}
 	}_{/\T{q}}^T \T{\mu}
-	+ \T{\Phi}_{/\T{q}}^T \dot{\T{\mu}} & = & \T{F}\plbr{\T{q}, \dot{\T{q}}, t} \\
-	\T{\Phi} & = & \T{0} \\
-	\T{\Phi}_{/\T{q}} \dot{\T{q}} + \T{\Phi}_{/t} & = & \T{0}
-\end{eqnarray*}
+	+ \T{\phi}_{/\T{q}}^T \dot{\T{\mu}} &= \T{F}\plbr{\T{q}, \dot{\T{q}}, t} \\
+	\T{\phi} &= \T{0} \\
+	\T{\phi}_{/\T{q}} \TT{M}^{-1} \T{p} + \T{\phi}_{/t} &= \T{0} \label{eq:constr:constr-stab:constr-der},
+\end{align}
+\end{subequations}
+where $\dot{\T{q}}=\TT{M}^{-1}\T{p}$ has been used
+in Eq.~(\ref{eq:constr:constr-stab:constr-der}).
 Actually, $\dot{\T{\mu}}$ is independent of $\T{\mu}$;
 $\T{\mu}$ by definition is zero if the exact solution is considered.
 So $\dot{\T{\mu}}$ is redefined as $\dot{\T{\mu}}=\T{\lambda}$:
-\begin{eqnarray*}
-	\T{M} \dot{\T{q}} - \T{p} + \T{\Phi}_{/\T{q}}^T \T{\mu} & = & \T{0} \\
+\begin{subequations}
+\begin{align}
+	\T{M} \dot{\T{q}} - \T{p} + \T{\phi}_{/\T{q}}^T \T{\mu} &= \T{0} \\
 	\dot{\T{p}} + \plbr{
-		\T{\Phi}_{/\T{q}} \dot{\T{q}}
-		+ \T{\Phi}_{/t}
-	}_{/\T{q}}^T \T{\mu} + \T{\Phi}_{/\T{q}}^T \T{\lambda}
-		& = & \T{F}\plbr{\T{q}, \dot{\T{q}}, t} \\
-	\T{\Phi} & = & \T{0} \\
-	\T{\Phi}_{/\T{q}} \dot{\T{q}} + \T{\Phi}_{/t} & = & \T{0}
-\end{eqnarray*}
+		\T{\phi}_{/\T{q}} \dot{\T{q}}
+		+ \T{\phi}_{/t}
+	}_{/\T{q}}^T \T{\mu} + \T{\phi}_{/\T{q}}^T \T{\lambda}
+		&= \T{F}\plbr{\T{q}, \dot{\T{q}}, t} \\
+	\T{\phi} &= \T{0} \\
+	\T{\phi}_{/\T{q}} \TT{M}^{-1} \T{p} + \T{\phi}_{/t} &= \T{0} .
+\end{align}
+\end{subequations}
 If $\T{\mu}=0$ then a conventional DAE of index 3 results, i.e.
-\begin{eqnarray*}
-	\T{M} \dot{\T{q}} - \T{p} & = & \T{0} \\
-	\dot{\T{p}} + \T{\Phi}_{/\T{q}}^T \T{\lambda}
-		& = & \T{F}\plbr{\T{q}, \dot{\T{q}}, t} \\
-	\T{\Phi} & = & \T{0}
-\end{eqnarray*}
+\begin{subequations}
+\begin{align}
+	\T{M} \dot{\T{q}} - \T{p} &= \T{0} \\
+	\dot{\T{p}} + \T{\phi}_{/\T{q}}^T \T{\lambda}
+		&= \T{F}\plbr{\T{q}, \dot{\T{q}}, t} \\
+	\T{\phi} &= \T{0} ,
+\end{align}
+\end{subequations}
 while the previous form is known as stabilized index 2 form.
 The latter is typically used throughout MBDyn, while the former is used 
 in the initial assembly and, occasionally, in specific constraints.
@@ -2096,10 +2110,12 @@ It is implemented in files
 \end{equation}
 
 \paragraph{Forces.} \
-\begin{eqnarray}
-	\T{F}_1 & = & \alpha \T{u} \\
-	\T{F}_2 & = & -\alpha \T{u}
-\end{eqnarray}
+\begin{subequations}
+\begin{align}
+	\T{F}_1 &= \alpha \T{u} \\
+	\T{F}_2 &= -\alpha \T{u}
+\end{align}
+\end{subequations}
 
 \paragraph{Linearization.} \
 \begin{equation}
@@ -2127,10 +2143,12 @@ It is implemented in files
 \end{equation}
 
 \paragraph{Force Derivatives.} \
-\begin{eqnarray}
-	\dot{\T{F}}_1 & = & \alpha \dot{\T{u}} + \dot{\alpha} \T{u} \\
-	\dot{\T{F}}_2 & = & -\alpha \dot{\T{u}} - \dot{\alpha} \T{u}
-\end{eqnarray}
+\begin{subequations}
+\begin{align}
+	\dot{\T{F}}_1 &= \alpha \dot{\T{u}} + \dot{\alpha} \T{u} \\
+	\dot{\T{F}}_2 &= -\alpha \dot{\T{u}} - \dot{\alpha} \T{u}
+\end{align}
+\end{subequations}
 where
 \begin{equation}
 	\dot{\T{u}} = \frac{\dot{\T{x}}_2 - \dot{\T{x}}_1}{d} - \T{u} \frac{\dot{d}}{d}
@@ -2201,14 +2219,16 @@ Constraint equation
 	d \sqrt{\T{u}^T \T{u}} = d
 \end{equation}
 Forces:
-\begin{eqnarray}
-	\T{F}_1 & = & \alpha \T{u} \\
-	\T{M}_1 & = & \alpha \T{f}_1 \times \T{u} \\
-	\T{F}_2 & = & -\alpha \T{u} \\
-	\T{M}_2 & = & -\alpha \T{f}_2 \times \T{u}
-\end{eqnarray}
+\begin{subequations}
+\begin{align}
+	\T{F}_1 &= \alpha \T{u} \\
+	\T{M}_1 &= \alpha \T{f}_1 \times \T{u} \\
+	\T{F}_2 &= -\alpha \T{u} \\
+	\T{M}_2 &= -\alpha \T{f}_2 \times \T{u}
+\end{align}
+\end{subequations}
 Linearization:
-\begin{equation}
+\begin{align}
 	\sqbr{\matr{ccccc}{
 		\cfrac{\alpha}{d}\T{I} & -\cfrac{\alpha}{d}\T{f}_1\times{} &
 			-\cfrac{\alpha}{d}\T{I} & \cfrac{\alpha}{d}\T{f}_2\times{} & -\T{u} \\
@@ -2233,32 +2253,32 @@ Linearization:
 		\delta\T{x}_2 \\
 		\delta\T{g}_2 \\
 		\delta\alpha
-	}}
-\end{equation}
-\begin{equation}
-	\mbox{\hspace{100mm}} = \cubr{\cvvect{
+	}} & \nonumber \\
+	\mbox{} = \cubr{\cvvect{
 		\alpha \T{u} \\
 		\alpha \T{f}_1\times\T{u} \\
 		-\alpha \T{u} \\
 		-\alpha \T{f}_2\times\T{u} \\
 		d\plbr{1 - \sqrt{\T{u}^T \T{u}}}
-	}}
-\end{equation}
+	}} &
+\end{align}
 Constraint Equation Derivative
 \begin{equation}
 	d \T{u}^T\dot{\T{u}} = 0
 \end{equation}
 Forces:
-\begin{eqnarray}
-	\dot{\T{F}}_1 & = &  \alpha \dot{\T{u}} + \dot{\alpha} \T{u} \\
-	\dot{\T{M}}_1 & = & \alpha \plbr{\T{\omega}_1\times\T{f}_1} \times \T{u} 
+\begin{subequations}
+\begin{align}
+	\dot{\T{F}}_1 &= \alpha \dot{\T{u}} + \dot{\alpha} \T{u} \\
+	\dot{\T{M}}_1 &= \alpha \plbr{\T{\omega}_1\times\T{f}_1} \times \T{u} 
 		+ \alpha \T{f}_1 \times \dot{\T{u}}
 		+ \dot{\alpha} \T{f}_1 \times \T{u} \\
-	\dot{\T{F}}_2 & = & -\alpha \dot{\T{u}} - \dot{\alpha} \T{u} \\
-	\dot{\T{M}}_2 & = & -\alpha \plbr{\T{\omega}_2 \times\T{f}_2} \times \T{u}
+	\dot{\T{F}}_2 &= -\alpha \dot{\T{u}} - \dot{\alpha} \T{u} \\
+	\dot{\T{M}}_2 &= -\alpha \plbr{\T{\omega}_2 \times\T{f}_2} \times \T{u}
 		- \alpha \T{f}_2 \times \dot{\T{u}}
 		- \dot{\alpha} \T{f}_2 \times \T{u}
-\end{eqnarray}
+\end{align}
+\end{subequations}
 Linearization: TODO(C).
 
 
@@ -2696,16 +2716,16 @@ It is implemented in files
 \paragraph{Constraint Equation.} \
 The constraint equation is
 \begin{equation}
-	\T{\Phi} = \T{x}_b + \T{f}_b - \T{x}_a - \T{f}_a - \T{v} = \T{0}
+	\T{\phi} = \T{x}_b + \T{f}_b - \T{x}_a - \T{f}_a - \T{v} = \T{0}
 \end{equation}
 or, based on the initial assumptions,
 \begin{equation}
-	\T{\Phi} = \T{x}_b + \T{f}_b - \T{x}_a
+	\T{\phi} = \T{x}_b + \T{f}_b - \T{x}_a
 		- \T{R}_a\plbr{\tilde{\T{f}}_a + \tilde{\T{v}}} = \T{0}
 \end{equation}
 The perturbation of the constraint equation yields
 \begin{equation}
-	\delta\T{\Phi} = 
+	\delta\T{\phi} = 
 		\delta\T{x}_b
 		- \T{f}_b\times\T{\theta}_{b\delta}
 		- \delta\T{x}_a
@@ -2748,7 +2768,7 @@ to the Jacobian matrix is
 
 The derivative of the constraint equation is
 \begin{equation}
-	\dot{\T{\Phi}} = 
+	\dot{\T{\phi}} = 
 		\dot{\T{x}}_b
 		+ \T{\omega}_b \times \T{f}_b
 		- \dot{\T{x}}_a
@@ -2757,7 +2777,7 @@ The derivative of the constraint equation is
 \end{equation}
 where $\dot{\T{d}}=\T{R}_a\dot{\tilde{\T{v}}}$; its perturbation yields
 \begin{equation}
-	\delta\dot{\T{\Phi}}
+	\delta\dot{\T{\phi}}
 	= \delta\dot{\T{x}}_b
 	+ \delta\T{\omega}_b \times \T{f}_b
 	+ \T{\omega}_b \times \T{\theta}_{b\delta} \times \T{f}_b
@@ -2859,11 +2879,11 @@ in Section~\ref{sec:DriveDisplacementJoint}.
 It imposes the absolute position $\T{v}$ of a point
 optionally connected to a node by a rigid offset $\T{f}$:
 \begin{equation}
-	\T{\Phi} = \T{x} + \T{f} - \T{x}_0 - \T{v} = \T{0}
+	\T{\phi} = \T{x} + \T{f} - \T{x}_0 - \T{v} = \T{0}
 \end{equation}
 The perturbation of the constraint equation yields
 \begin{equation}
-	\delta\T{\Phi} = 
+	\delta\T{\phi} = 
 	\delta\T{x} - \T{f}\times \T{\theta}_{\delta}
 \end{equation}
 The contribution of the constraint to the equilibrium equations is
@@ -2900,14 +2920,14 @@ to the Jacobian matrix is
 
 The derivative of the constraint equation is
 \begin{equation}
-	\dot{\T{\Phi}}
+	\dot{\T{\phi}}
 	= \dot{\T{x}}
 	+ \T{\omega}\times\T{f}
 	- \dot{\T{v}} ;
 \end{equation}
 its perturbation yields
 \begin{equation}
-	\delta\dot{\T{\Phi}}
+	\delta\dot{\T{\phi}}
 	= \delta\dot{\T{x}}
 	- \T{f}\times\delta\T{\omega}
 	- \T{\omega}\times\T{f}\times\T{\theta}_{\delta}
@@ -2983,23 +3003,23 @@ It is implemented in files
 
 \paragraph{Constraint equation.}
 \begin{equation}
-	\Phi = \T{e}_a^T \plbr{\T{x}_b + \T{f}_b - \T{x}_a - \T{f}_a} - v = 0 ,
+	\phi = \T{e}_a^T \plbr{\T{x}_b + \T{f}_b - \T{x}_a - \T{f}_a} - v = 0 ,
 \end{equation}
 or, based on the initial assumptions,
 \begin{equation}
-	\Phi = \T{e}_a^T \plbr{\T{x}_b + \T{f}_b - \T{x}_a}
+	\phi = \T{e}_a^T \plbr{\T{x}_b + \T{f}_b - \T{x}_a}
 		- \plbr{\tilde{\T{e}}_a^T \tilde{\T{f}}_a + v} = 0 ,
 \end{equation}
 or
 \begin{equation}
-	\Phi = \T{e}_a^T \T{d}
+	\phi = \T{e}_a^T \T{d}
 		- \plbr{\tilde{\T{e}}_a^T \tilde{\T{f}}_a + v} = 0 ,
 \end{equation}
 where $\T{d}=\T{x}_b + \T{f}_b - \T{x}_a$ 
 and $\tilde{\T{e}}_a$ is constant in the reference frame of node $a$.
 The perturbation of the constraint equation yields
 \begin{equation}
-	\delta\Phi = 
+	\delta\phi = 
 		\T{e}_a^T \plbr{\delta\T{x}_b
 		- \T{f}_b\times\T{\theta}_{b\delta}
 		- \delta\T{x}_a
@@ -3009,7 +3029,7 @@ The perturbation of the constraint equation yields
 \end{equation}
 or
 \begin{equation}
-	\delta\Phi = 
+	\delta\phi = 
 		\T{e}_a^T \plbr{\delta\T{x}_b
 		- \T{f}_b\times\T{\theta}_{b\delta}
 		- \delta\T{x}_a
@@ -3055,7 +3075,7 @@ to the Jacobian matrix is
 
 The constraint derivative is
 \begin{equation}
-	\dot{\Phi} = \T{e}_a^T\plbr{
+	\dot{\phi} = \T{e}_a^T\plbr{
 		\dot{\T{x}}_b
 		+ \T{\omega}_b \times \T{f}_b
 		- \dot{\T{x}}_a
@@ -3063,13 +3083,13 @@ The constraint derivative is
 \end{equation}
 or
 \begin{equation}
-	\dot{\Phi} = \T{e}_a^T \dot{\T{d}}
+	\dot{\phi} = \T{e}_a^T \dot{\T{d}}
 	+ \T{d}^T \plbr{\T{\omega}_a \times \T{e}_a} - \dot{v} = 0 ,
 \end{equation}
 with $\dot{\T{d}}=\dot{\T{x}}_b+\T{\omega}_b\times\T{f}_b-\dot{\T{x}}_a$.
 Its linearization yields
 \begin{align}
-	\delta\dot{\Phi} &= \T{e}_a^T \delta\dot{\T{x}}_b
+	\delta\dot{\phi} &= \T{e}_a^T \delta\dot{\T{x}}_b
 	- \T{e}_a^T \delta\dot{\T{x}}_a
 	+ \plbr{\T{f}_b \times \T{e}_a}^T \delta\T{\omega}_b
 	- \plbr{\T{d} \times \T{e}_a}^T \delta\T{\omega}_a \nonumber \\
@@ -3107,16 +3127,16 @@ It is implemented in files
 
 The constraint equation is
 \begin{equation}
-	\Phi = \T{e}^T \plbr{\T{x} + \T{f} - \T{x}_0} - v = 0 ,
+	\phi = \T{e}^T \plbr{\T{x} + \T{f} - \T{x}_0} - v = 0 ,
 \end{equation}
 or
 \begin{equation}
-	\Phi = \T{e}^T \T{d} - v = 0 ,
+	\phi = \T{e}^T \T{d} - v = 0 ,
 \end{equation}
 where $\T{d}=\T{x} + \T{f} - \T{x}_0$.
 The perturbation of the constraint equation yields
 \begin{equation}
-	\delta\Phi = 
+	\delta\phi = 
 		\T{e}^T \plbr{\delta\T{x}_b
 		- \T{f}_b\times\T{\theta}_{b\delta}
 		} .
@@ -3149,11 +3169,11 @@ to the Jacobian matrix is
 
 The constraint derivative is
 \begin{equation}
-	\dot{\Phi} = \T{e}^T \plbr{\dot{\T{x}} + \T{\omega}\times\T{f}} - \dot{v} = 0 ,
+	\dot{\phi} = \T{e}^T \plbr{\dot{\T{x}} + \T{\omega}\times\T{f}} - \dot{v} = 0 ,
 \end{equation}
 or
 \begin{equation}
-	\dot{\Phi} = \T{e}^T \dot{\T{d}} - \dot{v} = 0 ,
+	\dot{\phi} = \T{e}^T \dot{\T{d}} - \dot{v} = 0 ,
 \end{equation}
 Its linearization yields
 \begin{equation}
@@ -3222,10 +3242,12 @@ An offset is allowed for the location of the points where
 the relative position is constrained; the offsets $\tilde{\T{f}}_1$
 and $\tilde{\T{f}}_2$ are rigidly connected to the nodes,
 so in the global reference frame their expression is
+\begin{subequations}
 \begin{align}
 	\T{f}_1 &= \T{R}_1 \tilde{\T{f}}_1 \\
 	\T{f}_2 &= \T{R}_2 \tilde{\T{f}}_2 .
 \end{align}
+\end{subequations}
 The position constraint may be expressed in a reference frame 
 that is rigidly connected to node 1, $\tilde{\T{R}}_{1h}$, whose orientation
 in the global reference frame is
@@ -3236,10 +3258,12 @@ Similarly, the orientation constraint may be expressed in a reference
 frame that is rigidly connected to both nodes by matrices
 $\tilde{\T{R}}_{1hr}$ and $\tilde{\T{R}}_{2hr}$, whose orientation
 in the global reference frame is
+\begin{subequations}
 \begin{align}
 	\T{R}_{1hr} &= \T{R}_1 \tilde{\T{R}}_{1hr} \\
 	\T{R}_{2hr} &= \T{R}_2 \tilde{\T{R}}_{2hr} .
 \end{align}
+\end{subequations}
 The relative position and orientation may refer to different
 local reference frames to increase the versatility of the element.
 
@@ -3248,6 +3272,7 @@ orientation matrices does not affect the relative orientation between
 the constraint and each node, namely matrices $\tilde{\T{R}}_{1hr}$
 and $\tilde{\T{R}}_{2hr}$, which are constant.
 As a consequence,
+\begin{subequations}
 \begin{align}
 	\delta\T{R}_{1hr}
 		&= \delta\T{R}_1 \tilde{\T{R}}_{1hr} \nonumber \\
@@ -3255,6 +3280,7 @@ As a consequence,
 		&= \T{\theta}_{1\delta}\times \T{R}_{1hr} \\
 	\delta\T{R}_{2hr} &= \T{\theta}_{2\delta}\times \T{R}_{2hr} ,
 \end{align}
+\end{subequations}
 and
 \begin{align}
 	\dot{\T{R}}_{1hr} &= \T{\omega}_1 \times \T{R}_{1hr} \\
@@ -3355,12 +3381,14 @@ on the position \dofs,
 
 \paragraph{Constraint Equations.} \
 The resulting constraint equations are:
+\begin{subequations}
 \begin{align}
 	\T{x}^{\delta} &= \T{0}
 	\label{TOTAL-JOINT:constraint-x} \\
 	\T{\theta}^{\delta} &= \T{0} .
 	\label{TOTAL-JOINT:constraint-theta}
 \end{align}
+\end{subequations}
 Any component of $\T{x}^{\delta}$ and $\T{\theta}^{\delta}$
 can be selectively set to zero to enforce a constraint
 on that degree of freedom.
@@ -3397,10 +3425,12 @@ First, the perturbation of $\T{x}^{\delta}$,
 	}
 \end{equation}
 is computed, where
+\begin{subequations}
 \begin{align}
 	\T{b}_1 &= \T{x}_2 + \T{f}_2 - \T{x}_1 \\
 	\T{b}_2 &= \T{f}_2 .
 \end{align}
+\end{subequations}
 Note that, since the constraint equations are defined by setting 
 to zero any components of the vector $\T{x}^{\delta}$, the
 related Jacobian matrix contribution is obtained by selecting 
@@ -3433,18 +3463,22 @@ and $\tilde{\T{\lambda}}_{\T{\theta}}$ the Lagrange multipliers
 respectively related to the relative position and orientation
 constraints, and noticing that in the global reference frame
 they become
+\begin{subequations}
 \begin{align}
 	\T{\lambda}_{\T{x}} &= \T{R}_{1h} \tilde{\T{\lambda}}_{\T{x}} \\
 	\T{\lambda}_{\T{\theta}} &= \T{R}_{1hr} \tilde{\T{\lambda}}_{\T{\theta}} ,
 \end{align}
+\end{subequations}
 the contribution of the constraint reactions to the equilibrium equations
 of the participating nodes is
+\begin{subequations}
 \begin{align}
 	\T{F}_1 &= - \T{\lambda}_{\T{x}} \\
 	\T{C}_1 &= - \T{b}_1 \times \T{\lambda}_{\T{x}} - \T{\lambda}_{\T{\theta}} \\
 	\T{F}_2 &= \T{\lambda}_{\T{x}} \\
 	\T{C}_2 &= \T{b}_2 \times \T{\lambda}_{\T{x}} + \T{\lambda}_{\T{\theta}} .
 \end{align}
+\end{subequations}
 
 Due to the simplifications related to the updated-updated approach,
 the contribution of the constraint equations and of the equilibrium 
@@ -4024,16 +4058,20 @@ and $\tilde{\T{\lambda}}_{\T{\theta}}$ the Lagrange multipliers
 respectively related to the relative position and orientation
 constraints, and noticing that in the global reference frame
 they become
+\begin{subequations}
 \begin{align}
 	\T{\lambda}_{\T{x}} &= \T{R}_{ch} \tilde{\T{\lambda}}_{\T{x}} \\
 	\T{\lambda}_{\T{\theta}} &= \T{R}_{chr} \tilde{\T{\lambda}}_{\T{\theta}} ,
 \end{align}
+\end{subequations}
 the contribution of the constraint reactions to the equilibrium equations
 of the participating nodes is
+\begin{subequations}
 \begin{align}
 	\T{F}_n &= \T{\lambda}_{\T{x}} \\
 	\T{C}_n &= \T{f}_n \times \T{\lambda}_{\T{x}} + \T{\lambda}_{\T{\theta}} .
 \end{align}
+\end{subequations}
 
 Due to the simplifications related to the updated-updated approach,
 the contribution of the constraint equations and of the equilibrium 
@@ -4083,6 +4121,7 @@ $\T{\theta}_{n\delta}$ with $\delta\T{g}_n$.
 
 \subsubsection{Stabilized Form}
 \paragraph{Equations.} \
+\begin{subequations}
 \begin{align}
 	\TT{R}_{ch} \T{\mu}_{\T{x}} &= \T{0} \\
 %
@@ -4106,7 +4145,10 @@ $\T{\theta}_{n\delta}$ with $\delta\T{g}_n$.
 %
 	\TT{R}_{chr}^T \T{\omega}_n - \TT{R}^{\delta} \T{\omega}_0 &= \T{0}
 \end{align}
+\end{subequations}
+
 \paragraph{Linearization.} \
+\begin{subequations}
 \begin{align}
 	\TT{R}_{ch} \delta\T{\mu}_{\T{x}} &= \T{0} \\
 %
@@ -4139,6 +4181,7 @@ $\T{\theta}_{n\delta}$ with $\delta\T{g}_n$.
 	\TT{R}_{chr}^T \delta\T{\omega}_n
 	+ \TT{R}_{chr}^T \plbr{\TT{R}_{nhr} \TT{R}_0^T \T{\omega}_0} \times \T{\theta}_{n\delta} &= \T{0}
 \end{align}
+\end{subequations}
 
 
 
@@ -4182,6 +4225,7 @@ It is implemented in files
 \paragraph{Definitions.} \
 The relative orientation between the nodes is made of three steps,
 described by
+\begin{subequations}
 \begin{align}
 	\T{R}_{\text{rel}}
 	&= \T{R}_a^T \T{R}_b & & ( = \T{R}_{ab} )
@@ -4192,17 +4236,20 @@ described by
 	& & ( = \T{R}\plbr{\vartheta, \varphi} )
 	\label{eq:gimbal:R_theta_phi}
 \end{align}
+\end{subequations}
 where
-\begin{eqnarray}
-	\llk{exp}\plbr{\vartheta \T{e}_2 \times{}} & = &
+\begin{subequations}
+\begin{align}
+	\llk{exp}\plbr{\vartheta \T{e}_2 \times{}} &=
 		\T{I} + \sin\vartheta \T{e}_2\times{}
 			+ \plbr{1 - \cos\vartheta}\T{e}_2\times\T{e}_2\times{}
 		\label{eq:GIMBAL-EXP-THETA} \\
-	\llk{exp}\plbr{\varphi \T{e}_1 \times{}} & = &
+	\llk{exp}\plbr{\varphi \T{e}_1 \times{}} &=
 		\T{I} + \sin\varphi \T{e}_1\times{}
 			+ \plbr{1 - \cos\varphi}\T{e}_1\times\T{e}_1\times{}
 		\label{eq:GIMBAL-EXP-PHI}
-\end{eqnarray}
+\end{align}
+\end{subequations}
 and $\T{e}_i$ are the unit vectors in directions $i=1,2,3$.
 
 This represents a sequence of mutually orthogonal rotations,
@@ -4348,11 +4395,13 @@ where
 Note, that by definition $\T{\theta}$ must be zero,
 so $\T{\Gamma}\plbr{\T{\theta}}\cong\T{I}$.
 Without any simplification, Equation~(\ref{eq:gimbal:lagrange}) results in
+\begin{subequations}
 \begin{align}
 	0 &= \delta\plbr{\T{\lambda}^T \T{\theta}} \\
 	&= \delta\T{\lambda}^T \T{\theta}
 	+ \T{\theta}_{\delta}^T \T{\Gamma}\plbr{\T{\theta}}^{-T}\T{\lambda} .
 \end{align}
+\end{subequations}
 To eliminate the $\T{\Gamma}\plbr{\T{\theta}}^{-T}$ term,
 the multipliers can be redefined as 
 \begin{equation}
@@ -4362,7 +4411,7 @@ The perturbation $\T{\theta}_{\delta}$ results from
 \begin{align}
 	\T{\theta}_{\delta}\times{}
 	&= \delta \llk{exp}\plbr{\T{\theta}\times{}}
-		\llk{exp}\plbr{\T{\theta}\times{}}^T \\
+		\llk{exp}\plbr{\T{\theta}\times{}}^T \nonumber \\
 	&= \delta \plbr{
 		\T{R}_a^T
 		\T{R}_b
@@ -4376,7 +4425,7 @@ The perturbation $\T{\theta}_{\delta}$ results from
 		\llk{exp}\plbr{\vartheta \T{e}_2\times{}}^T
 		\llk{exp}\plbr{\varphi \T{e}_1\times{}}^T
 		\llk{exp}\plbr{\vartheta \T{e}_2\times{}}^T
-	}^T \\
+	}^T \nonumber \\
 	&= \T{R}_a^T
 	\plbr{\T{\theta}_{b\delta} - \T{\theta}_{a\delta}}\times{} \T{R}_a
 	\nonumber \\
@@ -4404,6 +4453,7 @@ which yields
 	}
 \end{align}
 with
+\begin{subequations}
 \begin{align}
 	\T{w}_{\vartheta}
 	&= \plbr{
@@ -4420,6 +4470,7 @@ with
 	\nonumber \\
 	&= \cos\vartheta \T{e}_1 + \sin\vartheta \T{e}_3 .
 \end{align}
+\end{subequations}
 
 Linearization
 \begin{align}
@@ -4470,6 +4521,7 @@ Linearization
 	}}
 \end{align}
 where
+\begin{subequations}
 \begin{align}
 	\T{w}_{\vartheta/\vartheta}
 	&= \sin\varphi \cos\vartheta \T{e}_1
@@ -4483,6 +4535,7 @@ where
 	\T{w}_{\varphi/\varphi}
 	&= \T{0} .
 \end{align}
+\end{subequations}
 
 
 
@@ -4650,16 +4703,19 @@ strain rate
 	\dot{\varepsilon} = \frac{\dot{l}}{l_0}
 \end{equation}
 where
+\begin{subequations}
 \begin{align}
 	\dot{l} &= \frac{1}{l} \T{l}^T \dot{\T{l}} \\
 	\dot{\T{l}} &= \dot{\T{x}}_2 + \T{\omega}_2 \times \T{f}_2
 		- \dot{\T{x}}_1 - \T{\omega}_1 \times \T{f}_1
 \end{align}
+\end{subequations}
 scalar force
 \begin{equation}
 	f = f\plbr{\varepsilon, \dot{\varepsilon}}
 \end{equation}
 nodal forces and moments result from the VWP according to
+\begin{subequations}
 \begin{align}
 	\delta \mathcal{L} &= \delta l^T f \\
 	&= \delta\T{l}^T \frac{\T{l}}{l} f \\
@@ -4670,24 +4726,29 @@ nodal forces and moments result from the VWP according to
 		+ \T{f}_1 \times \T{\theta}_{1\delta}
 	}^T \frac{\T{l}}{l} f
 \end{align}
+\end{subequations}
 force vector
 \begin{equation}
 	\T{F} = \frac{\T{l}}{l} f
 \end{equation}
 nodal forces and moments
+\begin{subequations}
 \begin{align}
 	\T{F}_1 &= -\T{F} \\
 	\T{M}_1 &= -\T{f}_1 \times \T{F} \\
 	\T{F}_2 &= \T{F} \\
 	\T{M}_2 &= \T{f}_2 \times \T{F}
 \end{align}
+\end{subequations}
 equation linearization
+\begin{subequations}
 \begin{align}
 	\delta\T{F}_1 &= -\delta\T{F} \\
 	\delta\T{M}_1 &= -\T{f}_1 \times \delta\T{F} - \T{F}\times\T{f}_1\times \T{\theta}_{1\delta} \\
 	\delta\T{F}_2 &= \delta\T{F} \\
 	\delta\T{M}_2 &= \T{f}_2 \times \delta\T{F} + \T{F}\times\T{f}_2\times \T{\theta}_{2\delta}
 \end{align}
+\end{subequations}
 force linearization
 \begin{equation}
 	\delta\T{F} = \frac{f}{l}\plbr{\T{I} - \frac{\T{l}\T{l}^T}{l^2}} \delta\T{l} + \frac{\T{l}}{l} \delta{f}
@@ -4702,16 +4763,19 @@ strain linearization
 	\delta\varepsilon = \frac{1}{l_0}\delta{l}
 \end{equation}
 where
+\begin{subequations}
 \begin{align}
 	\delta{l} &= \frac{1}{l}\T{l}^T \delta\T{l} \\
 	\delta\T{l} &= \delta\T{x}_2 - \T{f}_2 \times \T{\theta}_{2\delta}
 		- \delta\T{x}_1 + \T{f}_1 \times \T{\theta}_{1\delta}
 \end{align}
+\end{subequations}
 strain rate linearization
 \begin{equation}
 	\delta\dot{\varepsilon} = \frac{1}{l_0} \delta\dot{l}
 \end{equation}
 where
+\begin{subequations}
 \begin{align}
 	\delta\dot{l} &= \frac{\T{l}^T}{l} \delta\dot{\T{l}}
 		+ \frac{\dot{\T{l}}^T}{l}\plbr{\T{I} - \frac{\T{l}\T{l}^T}{l^2}} \delta\T{l} \\
@@ -4721,11 +4785,13 @@ where
 		& \mbox{} - \delta\dot{\T{x}}_1
 		+ \T{f}_1 \times \delta\T{\omega}_1 + \T{\omega}_1 \times \T{f}_1 \times \T{\theta}_{1\delta}
 \end{align}
+\end{subequations}
 to summarize:
 \begin{equation}
 	\delta\T{F} = \T{K}_{\T{l}} \delta\T{l} + \T{K}_{\dot{\T{l}}} \delta\dot{\T{l}}
 \end{equation}
 with
+\begin{subequations}
 \begin{align}
 	\T{K}_{\T{l}} &= \frac{f}{l} \T{I}
 		+ \plbr{
@@ -4736,11 +4802,14 @@ with
 		+ \frac{1}{l^2 l_0} \frac{\partial{f}}{\partial\dot{\varepsilon}} \T{l}\dot{\T{l}}^T \\
 	\T{K}_{\dot{\T{l}}} &= \frac{1}{l^2 l_0} \frac{\partial{f}}{\partial\dot{\varepsilon}} \T{l}\T{l}^T
 \end{align}
+\end{subequations}
 according to the simplifications of the updated-updated approach,
+\begin{subequations}
 \begin{align}
 	\T{\theta}_{i\delta} &\equu \delta\T{g}_i \\
 	\delta\T{\omega}_i &\equu \delta\dot{\T{g}}_i - \T{\omega}\times\delta\T{g}_i
 \end{align}
+\end{subequations}
 recalling that
 \begin{equation}
 	\delta{z} = c \delta\dot{z}
@@ -4803,20 +4872,24 @@ joint (\texttt{DriveHingeJoint}).
 where $\T{R}_{1h}$, $\T{R}_{2h}$ are the matrices that express
 the orientation of each side of the hinge in the global reference frame,
 defined as
+\begin{subequations}
 \begin{align}
 	\T{R}_{1h} &= \T{R}_{1} \tilde{\T{R}}_{1h} \\
 	\T{R}_{2h} &= \T{R}_{2} \tilde{\T{R}}_{2h}
 \end{align}
+\end{subequations}
 and $\tilde{\T{R}}_{1h}$, $\tilde{\T{R}}_{2h}$ are the matrices
 that express the orientation of each side of the hinge with respect
 to the corresponding node.
 The perturbation of $\T{R}_{1h}$, $\T{R}_{2h}$ yields
+\begin{subequations}
 \begin{align}
 	\delta \T{R}_{1h} &= \T{\theta}_{1\delta} \times \T{R}_{1} \tilde{\T{R}}_{1h}
 		= \T{\theta}_{1\delta} \times \T{R}_{1h} \\
 	\delta \T{R}_{2h} &= \T{\theta}_{2\delta} \times \T{R}_{2} \tilde{\T{R}}_{2h}
 		= \T{\theta}_{2\delta} \times \T{R}_{2h}
 \end{align}
+\end{subequations}
 since matrices $\tilde{\T{R}}_{1h}$, $\tilde{\T{R}}_{2h}$ are constant.
 
 Since the relative orientation $\T{R}_{1h}^T \T{R}_{2h}$ is a rotation 
@@ -4838,13 +4911,13 @@ of the relative orientation matrix
 		\T{R}_{1h}^T \T{R}_{2h}
 	} \plbr{
 		\T{R}_{1h}^T \T{R}_{2h}
-	}^T \\
+	}^T \nonumber \\
 	&= \plbr{
 		\dot{\T{R}}_{1h}^T \T{R}_{2h}
 		+ \T{R}_{1h}^T \dot{\T{R}}_{2h}
-	} \T{R}_{2h}^T \T{R}_{1h} \\
+	} \T{R}_{2h}^T \T{R}_{1h} \nonumber \\
 	&= \T{R}_{1h}^T \T{\omega}_1 \times^T \T{R}_{1h}
-	+ \T{R}_{1h}^T \T{\omega}_2 \times \T{R}_{1h} \\
+	+ \T{R}_{1h}^T \T{\omega}_2 \times \T{R}_{1h} \nonumber \\
 	&= \T{R}_{1h}^T \plbr{
 		\T{\omega}_2 - \T{\omega}_1
 	}\times \T{R}_{1h}
@@ -4884,9 +4957,9 @@ of $\TT{R}_{1h}^T\TT{R}_{2h}$
 in fact, the time derivative of the relative orientation yields
 \begin{align}
 	\T{\omega} \times{}
-	&= \frac{\mathrm{d}}{\mathrm{d}t}\plbr{\T{R}_{1h}^T \T{R}_{2h}}\plbr{\T{R}_{1h}^T \T{R}_{2h}}^T \\
-	&= \plbr{\dot{\T{R}}_{1h}^T \T{R}_{2h} + \T{R}_{1h}^T \dot{\T{R}}_{2h}} \T{R}_{2h}^T \T{R}_{1h} \\
-	&= \T{R}_{1h}^T \T{\omega}_1 \times{}^T \T{R}_{1h} + \T{R}_{1h}^T \T{\omega}_2 \times \T{R}_{1h} \\
+	&= \frac{\mathrm{d}}{\mathrm{d}t}\plbr{\T{R}_{1h}^T \T{R}_{2h}}\plbr{\T{R}_{1h}^T \T{R}_{2h}}^T \nonumber \\
+	&= \plbr{\dot{\T{R}}_{1h}^T \T{R}_{2h} + \T{R}_{1h}^T \dot{\T{R}}_{2h}} \T{R}_{2h}^T \T{R}_{1h} \nonumber \\
+	&= \T{R}_{1h}^T \T{\omega}_1 \times{}^T \T{R}_{1h} + \T{R}_{1h}^T \T{\omega}_2 \times \T{R}_{1h} \nonumber \\
 	&= \T{R}_{1h}^T \plbr{\T{\omega}_2 - \T{\omega}_1} \times \T{R}_{1h}
 \end{align}
 \end{comment}
@@ -4898,12 +4971,12 @@ according to the simplifications of the updated-updated approach, yields
 		\plbr{\T{\omega}_2 - \T{\omega}_1} \times \T{\theta}_{1\delta}
 		+ \delta\T{\omega}_2
 		- \delta\T{\omega}_1
-	} \\
+	} \nonumber \\
 	&\equu \T{R}_{1h}^T\plbr{
 		\plbr{\T{\omega}_2 - \T{\omega}_1} \times \delta\T{g}_1
 		+ \delta\dot{\T{g}}_2 - \T{\omega}_2 \times \delta\T{g}_2
 		- \delta\dot{\T{g}}_1 + \T{\omega}_1 \times \delta\T{g}_1
-	} \\
+	} \nonumber \\
 	&= \T{R}_{1h}^T\plbr{
 		\delta\dot{\T{g}}_2
 		- \delta\dot{\T{g}}_1
@@ -4917,7 +4990,7 @@ of the relative rotation and velocity
 \end{equation}
 The nodal moments result from the VWP as
 \begin{align}
-	\delta\mathcal{L} &= \T{\theta}_{\delta}^T \tilde{\T{M}} \\
+	\delta\mathcal{L} &= \T{\theta}_{\delta}^T \tilde{\T{M}} \nonumber \\
 	&= \plbr{
 		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
 	}^T \T{R}_{1h} \tilde{\T{M}} ,
@@ -4969,10 +5042,12 @@ The complete linearized problem is
 	}} ,
 \end{align}
 where
+\begin{subequations}
 \begin{align}
 	\T{M}_{/\T{\theta}} &= \T{R}_{1h} \tilde{\T{M}}_{/\T{\theta}} \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T \\
 	\T{M}_{/\T{\omega}} &= \T{R}_{1h} \tilde{\T{M}}_{/\T{\omega}} \T{R}_{1h}^T .
 \end{align}
+\end{subequations}
 According to the simplifications of the updated-updated approach, the linearization becomes
 \begin{align}
 	\sqbr{\matr{cc}{
@@ -5023,12 +5098,14 @@ The orientation of the intermediate reference frame with respect
 to node 2 is defined by $-\tilde{\T{\theta}}$, i.e.\ $\tilde{\T{R}}^T$.
 The orientation of the intermediate frame with respect
 to the global frame is thus
-\begin{eqnarray}
-	\hat{\T{R}} & = & \T{R}_{1h} \tilde{\T{R}}
+\begin{subequations}
+\begin{align}
+	\hat{\T{R}} &= \T{R}_{1h} \tilde{\T{R}}
 		\label{eq:inv-def-h-hatR-1} \\
-	& = & \T{R}_{2h} \tilde{\T{R}}^T
+	&= \T{R}_{2h} \tilde{\T{R}}^T
 		\label{eq:inv-def-h-hatR-2}
-\end{eqnarray}
+\end{align}
+\end{subequations}
 The perturbation of $\tilde{\T{R}}$ is
 \begin{equation}
 	\delta\tilde{\T{R}} = \tilde{\T{\theta}}_{\delta}\times\tilde{\T{R}}
@@ -5204,6 +5281,7 @@ so
 \end{align}
 
 The perturbation of matrix $\hat{\TT{I}}$ yields
+\begin{subequations}
 \begin{align}
 	\delta\hat{\T{I}}
 	&= \delta\hat{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T
@@ -5248,8 +5326,10 @@ The perturbation of matrix $\hat{\TT{I}}$ yields
 	- \hat{\TT{I}}^T \plbr{\hat{\TT{I}}\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}}\times \hat{\TT{I}}
 	- \hat{\TT{I}}\plbr{\hat{\TT{I}}\T{\theta}_{2\delta} + \hat{\TT{I}}^T\T{\theta}_{1\delta}}\times{}
 \end{align}
+\end{subequations}
 The perturbation of matrix $\hat{\T{I}}$ is generally useful
 when multiplying a generic vector $\T{v}$, resulting in
+\begin{subequations}
 \begin{align}
 	\delta\hat{\T{I}} \T{v}
 	&= \plbr{
@@ -5290,6 +5370,7 @@ when multiplying a generic vector $\T{v}$, resulting in
 	&= \plbr{\hat{\TT{I}}^T}_{1\plbr{\T{v}}} \T{\theta}_{1\delta}
 		+ \plbr{\hat{\TT{I}}^T}_{2\plbr{\T{v}}} \T{\theta}_{2\delta} .
 \end{align}
+\end{subequations}
 
 
 \paragraph{Relative Rotation Vector.} \
@@ -5361,35 +5442,35 @@ of Equation~(\ref{eq:inv-deformable-hinge-omega-rel}) yields
 	&= \hat{\T{R}}^T \plbr{
 		\plbr{\T{\omega}_2 - \T{\omega}_1} \times \plbr{\T{\theta}_{1\delta} + \T{R}_{1h} \tilde{\T{\theta}}_{\delta}}
 		+ \delta\T{\omega}_2 - \delta\T{\omega}_1
-	} \\
+	} \nonumber \\
 	&= \hat{\T{R}}^T \plbr{
 		\delta\T{\omega}_2 - \delta\T{\omega}_1
 	} \nonumber \\
 	& \mbox{\hspace{10pt}} + \hat{\T{R}}^T \plbr{\T{\omega}_2 - \T{\omega}_1} \times 
 			\T{R}_{1h}\plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_{1h}^T \T{\theta}_{2\delta} \nonumber \\
 	& \mbox{\hspace{10pt}} + \hat{\T{R}}^T \plbr{\T{\omega}_2 - \T{\omega}_1} \times
-			\plbr{\T{I} - \T{R}_{1h}\plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_{1h}^T} \T{\theta}_{1\delta} \\
+			\plbr{\T{I} - \T{R}_{1h}\plbr{\T{I} + \tilde{\T{R}}}^{-1} \T{R}_{1h}^T} \T{\theta}_{1\delta} \nonumber \\
 	&= \hat{\T{R}}^T \plbr{
 		\delta\T{\omega}_2 - \delta\T{\omega}_1
 	} \nonumber \\
 	& \mbox{\hspace{10pt}} + \hat{\T{R}}^T \plbr{\T{\omega}_2 - \T{\omega}_1} \times 
 			\hat{\T{R}}\plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T \T{\theta}_{2\delta} \nonumber \\
 	& \mbox{\hspace{10pt}} + \hat{\T{R}}^T \plbr{\T{\omega}_2 - \T{\omega}_1} \times
-			\hat{\T{R}}\plbr{\T{I} - \plbr{\T{I} + \tilde{\T{R}}}^{-1}} \hat{\T{R}}^T \T{\theta}_{1\delta} \\
+			\hat{\T{R}}\plbr{\T{I} - \plbr{\T{I} + \tilde{\T{R}}}^{-1}} \hat{\T{R}}^T \T{\theta}_{1\delta} \nonumber \\
 	&= \hat{\T{R}}^T \plbr{
 		\delta\T{\omega}_2 - \delta\T{\omega}_1
 	} \nonumber \\
 	& \mbox{\hspace{10pt}} + \overline{\T{\omega}} \times \plbr{
 		\plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T \T{\theta}_{2\delta}
 		+ \plbr{\T{I} - \plbr{\T{I} + \tilde{\T{R}}}^{-1}} \hat{\T{R}}^T \T{\theta}_{1\delta}
-	} \\
+	} \nonumber \\
 	&= \hat{\T{R}}^T \plbr{
 		\delta\T{\omega}_2 - \delta\T{\omega}_1
 	} \nonumber \\
 	& \mbox{\hspace{10pt}} + \overline{\T{\omega}} \times \plbr{
 		\plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T \T{\theta}_{2\delta}
 		+ \plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\T{R}}^T \T{\theta}_{1\delta}
-	} \\
+	} \nonumber \\
 	&= \hat{\T{R}}^T \plbr{
 		\delta\T{\omega}_2 - \delta\T{\omega}_1
 	+ \plbr{\T{\omega}_2 - \T{\omega}_1} \times \plbr{
@@ -5405,7 +5486,7 @@ since
 and thus
 \begin{align}
 	\plbr{\T{I} + \tilde{\T{R}}}^{-1}
-	&= \tilde{\T{R}}^{-T} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \tilde{\T{R}}^{-1} \\
+	&= \tilde{\T{R}}^{-T} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \tilde{\T{R}}^{-1} \nonumber \\
 	&= \tilde{\T{R}} \plbr{\T{I} + \tilde{\T{R}}}^{-1} \tilde{\T{R}}^T ,
 \end{align}
 where Equation~(\ref{eq:inv-def-h-property-7}) has been used.
@@ -5415,9 +5496,9 @@ where Equation~(\ref{eq:inv-def-h-property-7}) has been used.
 Consider now
 \begin{align}
 	\hat{\T{\omega}}\times{}
-	&= \dot{\hat{\T{R}}} \hat{\T{R}}^T \\
+	&= \dot{\hat{\T{R}}} \hat{\T{R}}^T \nonumber \\
 	&= \T{\omega}_{1} \times
-		+ \T{R}_{1h} \tilde{\T{\omega}}\times \T{R}_{1h}^T \\
+		+ \T{R}_{1h} \tilde{\T{\omega}}\times \T{R}_{1h}^T \nonumber \\
 	&= \T{\omega}_{2} \times
 		- \hat{\T{R}} \tilde{\T{\omega}}\times \hat{\T{R}}^T ,
 \end{align}
@@ -5435,7 +5516,7 @@ results from
 		\tilde{\T{R}} \tilde{\T{R}}
 	} \plbr{
 		\tilde{\T{R}} \tilde{\T{R}}
-	}^T \\
+	}^T \nonumber \\
 	&= \tilde{\T{\omega}} \times{}
 	+ \tilde{\T{R}} \tilde{\T{\omega}} \times \tilde{\T{R}}^T ,
 \end{align}
@@ -5463,7 +5544,7 @@ its perturbation becomes
 	\delta\plbr{
 		\hat{\T{I}} \T{\omega}_2
 		+ \hat{\T{I}}^T \T{\omega}_1
-	} \\
+	} \nonumber \\
 	&= \hat{\T{I}} \delta\T{\omega}_2
 		+ \hat{\T{I}}^T \delta\T{\omega}_1
 	\nonumber \\
@@ -5496,11 +5577,11 @@ its perturbation becomes
 				\T{\omega}_2 - \T{\omega}_1
 			}
 		}\times \hat{\T{I}}^T
-	}} \T{\theta}_{1\delta} \\
+	}} \T{\theta}_{1\delta} \nonumber \\
 	&= \hat{\T{I}} \delta\T{\omega}_2
 		+ \hat{\T{I}}^T \delta\T{\omega}_1
 	+ \hat{\T{I}}_2 \T{\theta}_{2\delta}
-	+ \hat{\T{I}}_1 \T{\theta}_{1\delta} \\
+	+ \hat{\T{I}}_1 \T{\theta}_{1\delta} \nonumber \\
 	&\equu
 	\hat{\T{I}} \delta\dot{\T{g}}_2
 		+ \hat{\T{I}}^T \delta\dot{\T{g}}_1
@@ -5518,7 +5599,7 @@ The nodal moment results from the VWP, considering the perturbation
 of the relative orientation $\overline{\T{\theta}}_{\delta}$,
 \begin{align}
 	\delta\mathcal{L}
-	& = \overline{\T{\theta}}_{\delta}^T \tilde{\T{M}} \\
+	& = \overline{\T{\theta}}_{\delta}^T \tilde{\T{M}} \nonumber \\
 	&= \plbr{
 		\T{\theta}_{2\delta} - \T{\theta}_{1\delta}
 	}^T \hat{\T{R}} \tilde{\T{M}} ,
@@ -5548,7 +5629,7 @@ The perturbation of the moment then yields
 		\plbr{\T{I} + \tilde{\T{R}}}^{-1} \hat{\T{R}}^T \T{\theta}_{2\delta}
 	\nonumber \\
 	& \mbox{\hspace{10pt}} - \T{M}_i \times \hat{\T{R}} 
-		\plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\T{R}}^T \T{\theta}_{1\delta} \\
+		\plbr{\T{I} + \tilde{\T{R}}^T}^{-1} \hat{\T{R}}^T \T{\theta}_{1\delta} \nonumber \\
 	&= \plbr{-1}^i \hat{\T{R}} \plbr{
 		\tilde{\T{M}}_{/\T{\theta}} \delta\overline{\T{\theta}}
 		+ \tilde{\T{M}}_{/\T{\omega}} \delta\overline{\T{\omega}}
@@ -5596,11 +5677,13 @@ The complete linearized problem is
 	}}
 \end{align}
 where
+\begin{subequations}
 \begin{align}
 	%\T{M}_{/\T{\theta}} &= \hat{\T{R}} \tilde{\T{M}}_{/\T{\theta}} \T{\Gamma}\plbr{\T{\theta}}^{-1} \hat{\T{R}}^T \\
 	\T{M}_{/\T{\theta}} &= \hat{\T{R}} \tilde{\T{M}}_{/\T{\theta}} \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T \\
 	\T{M}_{/\T{\omega}} &= \hat{\T{R}} \tilde{\T{M}}_{/\T{\omega}} \hat{\T{R}}^T .
 \end{align}
+\end{subequations}
 Accounting for the simplifications of the updated-updated approach, it becomes
 \begin{align}
 	\sqbr{\matr{cc}{
@@ -5650,7 +5733,8 @@ in the global reference frame, is
 while the moment applied by the invariant formulation to node 1,
 in the global reference frame, is
 \begin{align}
-	\T{M}_i &= \hat{\T{R}} \tilde{\T{M}}_i\plbr{\T{\theta}} \\
+	\T{M}_i
+	&= \hat{\T{R}} \tilde{\T{M}}_i\plbr{\T{\theta}} \nonumber \\
 	&= \T{R}_{1h} \tilde{\T{R}} \tilde{\T{M}}_i\plbr{\tilde{\T{R}}^T \T{\theta}} ,
 \end{align}
 since $\tilde{\T{R}}^T \T{\theta}=\T{\theta}$.
@@ -5718,18 +5802,22 @@ of the straining can be offset from the nodes by rigid offsets
 $\tilde{\T{f}}_1$ and $\tilde{\T{f}}_2$, which are defined
 in the reference frame of the respective nodes.
 So the offsets in the global reference frame are
+\begin{subequations}
 \begin{align}
 	\T{f}_1 &= \T{R}_1 \tilde{\T{f}}_1 \\
 	\T{f}_2 &= \T{R}_2 \tilde{\T{f}}_2 .
 \end{align}
+\end{subequations}
 The constitutive law is expressed in a reference frame that may be rotated
 from that of the node by rigid rotations $\tilde{\T{R}}_{1h}$
 and $\tilde{\T{R}}_{2h}$.
 So the orientations of the constitutive law in the global reference frame are
+\begin{subequations}
 \begin{align}
 	\T{R}_{1h} &= \T{R}_1 \tilde{\T{R}}_{1h} \\
 	\T{R}_{2h} &= \T{R}_2 \tilde{\T{R}}_{2h} .
 \end{align}
+\end{subequations}
 
 As for the \texttt{deformable hinge}, the constitutive law of this joint
 may be either attached to one node or defined in an intermediate
@@ -5766,23 +5854,26 @@ but it can be replaced by
 	} ,
 \end{equation}
 where
-\begin{eqnarray*}
-	\T{d}_1 & = & \T{x}_2 + \T{f}_2 - \T{x}_1 \\
-	\dot{\T{d}}_1 & = & \dot{\T{x}}_2 + \T{\omega}_2 \times \T{f}_2 - \dot{\T{x}}_1 ,
-\end{eqnarray*}
+\begin{subequations}
+\begin{align}
+	\T{d}_1 &= \T{x}_2 + \T{f}_2 - \T{x}_1 \\
+	\dot{\T{d}}_1 &= \dot{\T{x}}_2 + \T{\omega}_2 \times \T{f}_2 - \dot{\T{x}}_1 ,
+\end{align}
+\end{subequations}
 since the relative velocity associated to the rotation of $\T{f}_1$,
 the offset of the reference point attached to node 1,
 is zero by definition.
 The linearization of the distance yields
-\begin{eqnarray*}
-	\delta{\tilde{\T{d}}} & = & \T{R}_{1h}^T\plbr{
+\begin{align}
+	\delta{\tilde{\T{d}}}
+	&= \T{R}_{1h}^T\plbr{
 		\delta\T{d} - \T{d} \times \T{\theta}_{1\delta}
-	} \\
-	& = & \T{R}_{1h}^T\plbr{
+	} \nonumber \\
+	&= \T{R}_{1h}^T\plbr{
 		\delta{\T{x}}_2 - \T{f}_2\times\T{\theta}_{2\delta}
 		- \delta{\T{x}}_1 + \T{f}_1\times\T{\theta}_{1\delta}
-	} + \T{R}_{1h}^T \T{d}\times\T{\theta}_{1\delta} \\
-	& = & \T{R}_{1h}^T\plbr{
+	} + \T{R}_{1h}^T \T{d}\times\T{\theta}_{1\delta} \nonumber \\
+	&= \T{R}_{1h}^T\plbr{
 		\delta{\T{x}}_2
 		- \T{f}_2\times\T{\theta}_{2\delta}
 		- \delta{\T{x}}_1
@@ -5791,23 +5882,24 @@ The linearization of the distance yields
 			+ \T{f}_2
 			- \T{x}_1
 		}\times\T{\theta}_{\delta}1
-	} \\
-	& = & \T{R}_{1h}^T\plbr{
+	} \nonumber \\
+	&= \T{R}_{1h}^T\plbr{
 		\delta{\T{x}}_2
 		- \T{f}_2\times\T{\theta}_{2\delta}
 		- \delta{\T{x}}_1
 		+ \T{d}_1\times\T{\theta}_{1\delta}
-	} \\
-	& \equu & \T{R}_{1h}^T\plbr{
+	} \nonumber \\
+	&\equu \T{R}_{1h}^T\plbr{
 		\delta{\T{x}}_2
 		- \T{f}_2\times\delta\T{g}_2
 		- \delta{\T{x}}_1
 		+ \T{d}_1\times\delta\T{g}_1
 	}
-\end{eqnarray*}
+\end{align}
 while the linearization of the relative velocity yields
-\begin{eqnarray*}
-	\delta\dot{\tilde{\T{d}}} & = & \T{R}_{1h}^T\plbr{
+\begin{align}
+	\delta\dot{\tilde{\T{d}}}
+	&= \T{R}_{1h}^T\plbr{
 		\delta\dot{\T{d}}
 		+ \T{d} \times \delta\T{\omega}_1
 		- \T{\omega}_1 \times \delta\T{d}
@@ -5815,8 +5907,8 @@ while the linearization of the relative velocity yields
 			\dot{\T{d}}
 			- \T{\omega}_1 \times \T{d}
 		}\times\T{\theta}_{1\delta}
-	} \\
-	& = & \T{R}_{1h}^T\plbr{\cvvect{
+	} \nonumber \\
+	&= \T{R}_{1h}^T\plbr{\cvvect{
 		\delta\dot{\T{x}}_2
 		- \T{f}_2\times\delta\T{\omega}_2
 		- \delta\dot{\T{x}}_1
@@ -5830,8 +5922,8 @@ while the linearization of the relative velocity yields
 		+ \plbr{
 			\dot{\T{d}} - \T{\omega}_1 \times \T{d}
 		} \T{\theta}_{1\delta}
-	}} \\
-	& \equu & \T{R}_{1h}^T\plbr{\cvvect{
+	}} \nonumber \\
+	&\equu \T{R}_{1h}^T\plbr{\cvvect{
 		\delta\dot{\T{x}}_2
 		- \T{f}_2\times\delta\dot{\T{g}}_2
 		- \delta\dot{\T{x}}_1
@@ -5847,10 +5939,11 @@ while the linearization of the relative velocity yields
 			- \T{\omega}_1 \times \T{d}_1\times{}
 		} \delta\T{g}_1
 	}}
-\end{eqnarray*}
+\end{align}
 The nodal forces and moments result from the VWP
 \begin{align}
-	\delta\mathcal{L} &= \delta \tilde{\T{d}}^T \tilde{\T{F}} \\
+	\delta\mathcal{L}
+	&= \delta \tilde{\T{d}}^T \tilde{\T{F}} \nonumber \\
 	&= \plbr{
 		\delta{\T{x}}_2
 		- \T{f}_2\times\T{\theta}_{2\delta}
@@ -5859,10 +5952,12 @@ The nodal forces and moments result from the VWP
 	}^T \T{R}_{1h} \tilde{\T{F}} ,
 \end{align}
 which corresponds to
+\begin{subequations}
 \begin{align}
 	\T{F}_i &= \plbr{ -1 }^i \T{R}_{1h} \tilde{\T{F}}\plbr{\tilde{\T{d}}, \dot{\tilde{\T{d}}}} \\
 	\T{M}_i &= \T{d}_i \times \T{F}_i
 \end{align}
+\end{subequations}
 where $\T{d}_1$ has already been defined, and
 \begin{equation}
 	\T{d}_2 = \T{f}_2 ;
@@ -5870,21 +5965,25 @@ where $\T{d}_1$ has already been defined, and
 note that
 \begin{align}
 	\T{\omega}_2\times\T{f}_2
-	&= \T{\omega}_2\times\T{d}_2 \\
+	&= \T{\omega}_2\times\T{d}_2 \nonumber \\
 	&= \dot{\T{d}}_2 .
 \end{align}
 Their linearization yields
-\begin{eqnarray*}
-	\delta\T{F}_i & = & \plbr{ -1 }^i \T{R}_{1h} \plbr{
+\begin{subequations}
+\begin{align}
+	\delta\T{F}_i
+	&= \plbr{ -1 }^i \T{R}_{1h} \plbr{
 		\tilde{\T{F}}_{/\tilde{\T{d}}} \delta{\tilde{\T{d}}}
 		+ \tilde{\T{F}}_{/\dot{\tilde{\T{d}}}} \delta\dot{\tilde{\T{d}}}
 	} - \T{F}_i \times \T{\theta}_{1\delta} \\
-	\delta\T{M}_i & = & \T{d}_i \times \delta\T{F}_i
+	\delta\T{M}_i
+	&= \T{d}_i \times \delta\T{F}_i
 	- \T{F}_i \times \delta \T{d}_i
-\end{eqnarray*}
+\end{align}
+\end{subequations}
 The complete linearized problem, after applying the updated-updated 
 approximation, is
-\begin{eqnarray*}
+\begin{align}
 	\sqbr{\matr{cccc}{
 		\T{F}_{/\dot{\tilde{\T{d}}}} & -\T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{} &
 			- \T{F}_{/\dot{\tilde{\T{d}}}} & \T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_2\times{} \\
@@ -5903,14 +6002,14 @@ approximation, is
 		\delta\dot{\T{g}}_1 \\
 		\delta\dot{\T{x}}_2 \\
 		\delta\dot{\T{g}}_2
-	}} & & \\
+	}} & \nonumber \\
 	\mbox{} + \sqbr{\cvvect{
 		\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
 		\T{d}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}}
 			- \T{F}\times{} \\
 		- \T{F}_{/\tilde{\T{d}}} + \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
 		- \T{d}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}}
-	}} \delta\T{x}_1 & & \\
+	}} \delta\T{x}_1 & \nonumber \\
 	\mbox{} + \sqbr{\cvvect{
 		- \T{F}_{/\tilde{\T{d}}} \T{d}_1 \times{}
 		- \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
@@ -5938,7 +6037,7 @@ approximation, is
 			+ \T{F}\times{} \\
 		\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
 		\T{d}_2 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}}
-	}} \delta\T{x}_2 & & \\
+	}} \delta\T{x}_2 & \nonumber \\
 	\mbox{} + \sqbr{\cvvect{
 		\T{F}_{/\tilde{\T{d}}} \T{d}_2 \times{}
 		+ \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
@@ -5963,19 +6062,21 @@ approximation, is
 			}
 		} + \T{F} \times \T{d}_2 \times{}
 	}} \delta\T{g}_2
-	& = & \\
-	\cubr{\cvvect{
+	& \nonumber \\
+	\mbox{} = \cubr{\cvvect{
 		\T{F} \\
 		\T{d}_1 \times \T{F} \\
 		- \T{F} \\
 		- \T{d}_2 \times \T{F}
-	}} & &
-\end{eqnarray*}
+	}} &
+\end{align}
 where 
-\begin{eqnarray*}
-	\T{F}_{/\tilde{\dot{\T{d}}}} & = & \T{R}_{1h} \tilde{\T{F}}_{/\tilde{\dot{\T{d}}}} \T{R}_{1h}^T \\
-	\T{F}_{/\tilde{\T{d}}} & = & \T{R}_{1h} \tilde{\T{F}}_{/\tilde{\T{d}}} \T{R}_{1h}^T
-\end{eqnarray*}
+\begin{subequations}
+\begin{align}
+	\T{F}_{/\tilde{\dot{\T{d}}}} &= \T{R}_{1h} \tilde{\T{F}}_{/\tilde{\dot{\T{d}}}} \T{R}_{1h}^T \\
+	\T{F}_{/\tilde{\T{d}}} &= \T{R}_{1h} \tilde{\T{F}}_{/\tilde{\T{d}}} \T{R}_{1h}^T
+\end{align}
+\end{subequations}
 
 
 
@@ -6014,6 +6115,7 @@ The perturbation of the relative position yields
 	}
 \end{equation}
 where
+\begin{subequations}
 \begin{align}
 	\delta\T{d}
 	&= \delta\T{x}_2 - \T{f}_2 \times \T{\theta}_{2\delta}
@@ -6021,6 +6123,7 @@ where
 	\hat{\T{\theta}}_{\delta}
 	&= \hat{\TT{I}} \T{\theta}_{2\delta} + \hat{\TT{I}}^T \T{\theta}_{1\delta} .
 \end{align}
+\end{subequations}
 
 The perturbation of the relative velocity yields
 \begin{equation}
@@ -6040,7 +6143,7 @@ where
 			\nonumber \\
 		& \quad - \delta\dot{\T{x}}
 		+ \T{f}_1 \times \delta\T{\omega}_{1}
-		+ \T{\omega}_{1} \times \T{f}_1 \times \T{\theta}_{1\delta} \\
+		+ \T{\omega}_{1} \times \T{f}_1 \times \T{\theta}_{1\delta}
 \end{align}
 The computation of $\delta\hat{\T{\omega}}$ has been illustrated
 in Section~\ref{sec:deformable-hinge-invariant}.
@@ -6071,11 +6174,12 @@ in Section~\ref{sec:deformable-hinge-invariant}.
 
 The force and the moment result from the VWP
 \begin{align}
-	\delta\mathcal{L} &= \delta \tilde{\T{d}}^T \tilde{\T{F}} \\
+	\delta\mathcal{L}
+	&= \delta \tilde{\T{d}}^T \tilde{\T{F}} \nonumber \\
 	&= \plbr{
 		\delta\T{d}
 		+ \T{d} \times \hat{\T{\theta}}_{\delta}
-	}^T \hat{\T{R}} \tilde{\T{F}} \\
+	}^T \hat{\T{R}} \tilde{\T{F}} \nonumber \\
 	&= \plbr{
 		\delta\T{x}_2
 		+ \plbr{
@@ -6096,6 +6200,7 @@ after defining
 		\tilde{\T{F}}\plbr{\tilde{\T{d}}, \dot{\tilde{\T{d}}}} ,
 \end{equation}
  are
+\begin{subequations}
 \begin{align}
 	\T{F}_1 &= - \T{F} \\
 	\T{M}_1 &= - \plbr{
@@ -6108,6 +6213,7 @@ after defining
 		- \hat{\T{I}}^T \T{d}\times{}
 	} \T{F} .
 \end{align}
+\end{subequations}
 Their linearization, after defining
 \begin{equation}
 	\delta\T{F} = \hat{\T{R}} \plbr{
@@ -6116,6 +6222,7 @@ Their linearization, after defining
 	} - \T{F} \times \hat{\T{\theta}}_{\delta} ,
 \end{equation}
 yields
+\begin{subequations}
 \begin{align}
 	\delta\T{F}_1 &= - \delta\T{F} \\
 	\delta\T{M}_1 &= \plbr{
@@ -6134,14 +6241,18 @@ yields
 	- \delta\hat{\T{I}}^T \T{d} \times \T{F}
 	- \hat{\T{I}}^T \delta\T{d} \times \T{F}
 \end{align}
+\end{subequations}
 After setting
+\begin{subequations}
 \begin{align}
 	\T{F}_{/\tilde{\T{d}}} &=
 		\hat{\T{R}} \tilde{\T{F}}_{/\tilde{\T{d}}} \hat{\T{R}}^T \\
 	\T{F}_{/\dot{\tilde{\T{d}}}} &=
 		\hat{\T{R}} \tilde{\T{F}}_{/\dot{\tilde{\T{d}}}} \hat{\T{R}}^T
 \end{align}
+\end{subequations}
 and
+\begin{subequations}
 \begin{align}
 	\TT{A}_1 &= \plbr{\T{f}_1\times{} + \hat{\TT{I}}\T{d}\times{}} \\
 	\TT{A}_2 &= \plbr{\T{f}_2\times{} - \hat{\TT{I}}^T\T{d}\times{}} \\
@@ -6156,6 +6267,7 @@ and
 			+ \plbr{\dot{\T{d}} - \hat{\T{\omega}}\times\T{d}}\times\hat{\T{I}}
 		}
 \end{align}
+\end{subequations}
 the complete linearized problem is
 \begin{align}
 	\footnotesize
