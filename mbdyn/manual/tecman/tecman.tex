@@ -1459,19 +1459,60 @@ To summarize:
 			} \\
 			+ \tilde{\TT{J}} \plbr{
 				\dot{\overline{\T{\omega}}}_0
-				+ \overline{\T{\omega}} \times \tilde{\T{\omega}}
+				+ \overline{\T{\omega}}_0 \times \tilde{\T{\omega}}
 			} \times{}
 			- \plbr{\tilde{\TT{J}} \plbr{
 				\dot{\overline{\T{\omega}}}_0
-				+ \overline{\T{\omega}} \times \tilde{\T{\omega}}
+				+ \overline{\T{\omega}}_0 \times \tilde{\T{\omega}}
 			}} \times{}
 		}}
 	}} \tilde{\T{\theta}}_{\delta}
 \end{align}
 
-\subsection{New Approach}
-The new approach consists in replacing the momentum and momenta moment
-definitions withe the definitions of the angular and linear velocities,
+\subsection{Implementation Notes}
+The relative reference frame dynamics is under development.
+In the current design, the whole model is subjected 
+to a single relative reference frame.
+The ``ground'' is intended to be rigidly connected
+to the relative reference frame (e.g.\ all ``pin'' joints
+and the ``clamp'' joint).
+Deformable elements and kinematic constraints do not discriminate
+between absolute and relative reference frame, since they only deal
+with the relative kinematics of the nodes they connect.
+
+The relative frame motion is delegated to the \texttt{DataManager}.
+The \texttt{StructNode} is responsible for providing a pointer
+to a \texttt{RigidBodyKinematics} object that describes
+the relative frame motion.
+
+The equations of motion (force and moment equilibrium)
+and the definitions of the momentum and momenta moment are not altered.
+
+The \texttt{AutomaticStructElem} element takes care of the portion
+of relative frame inertia forces that depends on the momentum
+and on the momenta moment.
+The \texttt{DynamicBody} element takes care of the remaining portion
+of relative frame inertia forces.
+
+\textbf{TODO:} \
+The \texttt{StaticBody} element will need to be modified accordingly.
+The \texttt{AirProperties} element will need to take care
+of the relative frame motion in order to project
+the absolute reference frame airstream into the relative reference frame.
+The \texttt{RigidBodyKinematics} will need to inherit from
+\texttt{SimulationEntity}, in order to be able to \texttt{Update}
+and thus avoid repeating evaluations of reference frame kinematic
+entities.
+
+
+
+
+\subsection{Pseudo-Velocities Approach}
+NOTE: this is not currently implemented, nor foreseen.
+
+The pseudo-velocities approach consists in replacing the momentum
+and momenta moment definitions with the definitions of the angular
+and linear velocities,
 \begin{subequations}
 \begin{align}
 	\T{v} &= \dot{\T{x}} \\
