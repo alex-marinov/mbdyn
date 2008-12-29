@@ -37,19 +37,19 @@
 
 /* include generali */
 #include <time.h>
-#include <ac/f2c.h>
-#include <ac/pthread.h>
+#include "ac/f2c.h"
+#include "ac/pthread.h"
 
 /* include per il debug */
-#include <myassert.h>
-#include <mynewmem.h>
+#include "myassert.h"
+#include "mynewmem.h"
 
 /* include del programma */
-#include <mathp.h>
-#include <output.h>
-#include <solman.h>
-#include <withlab.h>
-#include <llist.h>
+#include "mathp.h"
+#include "output.h"
+#include "solman.h"
+#include "withlab.h"
+#include "llist.h"
 
 extern const char* psDriveNames[];
 extern const char* psReadControlDrivers[];
@@ -147,8 +147,8 @@ private:
 
 	static doublereal dDriveHandlerReturnValue; /* Usato per ritornare un reference */
 
-	const VectorHandler* pXCurr;
-	const VectorHandler* pXPrimeCurr;
+	mutable VectorHandler* pXCurr;
+	mutable VectorHandler* pXPrimeCurr;
 
 	integer iCurrStep;
 
@@ -536,7 +536,7 @@ protected:
 	DriveCaller* pDriveCaller;
 
 public:
-	DriveOwner(const DriveCaller* pDC = NULL);
+	DriveOwner(const DriveCaller* pDC = 0);
 	virtual ~DriveOwner(void);
 
 	void Set(const DriveCaller* pDC);
@@ -566,7 +566,7 @@ protected:
 		const char *const name);
 
 public:
-	virtual ~DriveCallerRead( void ) { NO_OP; };
+	virtual ~DriveCallerRead(void);
 	virtual DriveCaller *
 	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred) = 0;
 };

@@ -1020,6 +1020,11 @@ DriveCallerRead::NeedDM(const DataManager* pDM, MBDynParser& HP, bool bDeferred,
 	}
 }
 
+DriveCallerRead::~DriveCallerRead(void)
+{
+	NO_OP;
+}
+
 struct TimeDCR : public DriveCallerRead {
 	DriveCaller *
 	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
