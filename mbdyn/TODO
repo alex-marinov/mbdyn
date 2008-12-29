@@ -50,6 +50,9 @@ D. Code:
 	- implement optional binary/ascii output (use NetCDF; partially DONE)
 	- abstract NetCDF use for aggregate data (e.g. Vec3)
 	- add relative reference frame overall dynamics
+		- rigid body (DONE)
+		- modal element
+		- air properties
 	- add absolute/relative reference frame dynamics interface
 	- generalize inflow models for fixed wing lifting surfaces
 
@@ -64,8 +67,7 @@ D. Code:
 	- improve friction and add it to all joints (Marco Morandini is
 		working at it; suggestion: try a transition force from stick
 		to slip that is higher than slip force)
-	- add Arnoldi-like eigenvalue extraction module (Giuseppe Quaranta
-		is working at it; see var/pod*.m)
+	- add Arnoldi-like eigenvalue extraction module
 	- review output to allow selective ascii/binary output (see NetCDF)
 	- replace MyLList and LLStack with STL containers
 	- add friction to contacts
@@ -84,6 +86,8 @@ D. Code:
 			mbdyn > ascii
 			mbdyn > netcdf (in global output database)
 	- add aerodynamic elements Jacobian matrix contribution
+	- add sparse eigenvalue extraction (see ARPACK++)
+	- add center of mass computation/constraint
 
 	Small Projects:
 	- add MATLAB/Octave and Simulink hooks.
@@ -96,7 +100,7 @@ D. Code:
 	- review/improve user-configurable statistics output (partially DONE;
 		see "output:" statement in integrator data block)
 	- add Matlab-compatible sparse matrix generation for sparse
-	  matrix eigenvalue analysis (eigs)
+	  matrix eigenvalue analysis (eigs; DONE)
 	- add selected output streamed on sockets for interactive analysis
 		by implementing sort of "sensors", possibly based on the
 		elements' "private data" (Michele Attolico worked at it;
