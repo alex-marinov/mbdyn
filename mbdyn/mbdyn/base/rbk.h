@@ -51,52 +51,5 @@ public:
 	virtual const Vec3& GetWP(void) const = 0;
 };
 
-class ConstRigidBodyKinematics : public RigidBodyKinematics {
-protected:
-	Vec3 X;
-	Mat3x3 R;
-	Vec3 V;
-	Vec3 W;
-	Vec3 XPP;
-	Vec3 WP;
-
-public:
-	ConstRigidBodyKinematics(void);
-	ConstRigidBodyKinematics(const Vec3& X,
-		const Mat3x3& R,
-		const Vec3& V,
-		const Vec3& W,
-		const Vec3& XPP,
-		const Vec3& WP);
-	virtual ~ConstRigidBodyKinematics(void);
-	virtual const Vec3& GetX(void) const;
-	virtual const Mat3x3& GetR(void) const;
-	virtual const Vec3& GetV(void) const;
-	virtual const Vec3& GetW(void) const;
-	virtual const Vec3& GetXPP(void) const;
-	virtual const Vec3& GetWP(void) const;
-};
-
-class DriveRigidBodyKinematics : public ConstRigidBodyKinematics {
-private:
-	TplDriveOwner<Vec3> XDrv;
-	TplDriveOwner<Vec3> ThetaDrv;
-	TplDriveOwner<Vec3> VDrv;
-	TplDriveOwner<Vec3> WDrv;
-	TplDriveOwner<Vec3> XPPDrv;
-	TplDriveOwner<Vec3> WPDrv;
-
-public:
-	DriveRigidBodyKinematics(
-		const TplDriveCaller<Vec3> *pXDrv,
-		const TplDriveCaller<Vec3> *pThetaDrv,
-		const TplDriveCaller<Vec3> *pVDrv,
-		const TplDriveCaller<Vec3> *pWDrv,
-		const TplDriveCaller<Vec3> *pXPPDrv,
-		const TplDriveCaller<Vec3> *pWPDrv);
-	virtual ~DriveRigidBodyKinematics(void);
-	virtual void Update(void);
-};
-
 #endif // RBK_H
 

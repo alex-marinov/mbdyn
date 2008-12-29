@@ -112,6 +112,8 @@ privpgin.cc \
 privpgin.h \
 rbk.cc \
 rbk.h \
+rbk_impl.cc \
+rbk_impl.h \
 readlinsol.cc \
 readlinsol.h \
 reffrm.cc \
