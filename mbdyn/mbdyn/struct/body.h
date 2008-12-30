@@ -63,6 +63,16 @@ protected:
 	/* Scrive il contributo dell'elemento al file di restart */
 	virtual std::ostream& Restart_int(std::ostream& out) const;
  
+	void
+	AssVecRBK_int(SubVectorHandler& WorkVec);
+
+	void
+	AssMatsRBK_int(
+		FullSubMatrixHandler& WMA,
+		FullSubMatrixHandler& WMB,
+		const doublereal& dCoef,
+		const Vec3& Sc);
+
 public:
 	/* Costruttore definitivo (da mettere a punto) */
 	Body(unsigned int uL, const StructNode *pNode,

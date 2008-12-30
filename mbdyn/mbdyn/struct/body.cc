@@ -152,6 +152,116 @@ Body::dGetPrivData(unsigned int i) const
 	return 0.;
 }
 
+void
+Body::AssVecRBK_int(SubVectorHandler& WorkVec)
+{
+	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
+
+	Vec3 s0;
+
+	integer iIdx = 0;
+	if (dynamic_cast<DynamicBody *>(this)) {
+		iIdx = 6;
+	}
+
+	s0 = pNode->GetXCurr()*dMass + STmp;
+
+	// force
+	Vec3 f;
+	f = pRBK->GetXPP()*dMass;
+	f += pRBK->GetWP().Cross(s0);
+	f += pRBK->GetW().Cross(pRBK->GetW().Cross(s0));
+
+	WorkVec.Sub(iIdx + 1, f);
+
+	// moment
+	Vec3 a;
+	a = pRBK->GetXPP();
+	a += pRBK->GetWP().Cross(pNode->GetXCurr());
+	a += pRBK->GetW().Cross(pRBK->GetW().Cross(pNode->GetXCurr()));
+	a += pRBK->GetW().Cross(pNode->GetVCurr());
+
+	Vec3 m;
+	m = STmp.Cross(a);
+	m += pRBK->GetW().Cross(JTmp*pRBK->GetW());
+	m += JTmp*pRBK->GetWP();
+	m += pNode->GetWCurr().Cross(JTmp*pRBK->GetW());
+	m -= JTmp*(pNode->GetWCurr().Cross(pRBK->GetW()));
+	m += pNode->GetVCurr().Cross(pRBK->GetW().Cross(STmp));
+
+	WorkVec.Sub(iIdx + 3 + 1, m);
+}
+
+void
+Body::AssMatsRBK_int(
+	FullSubMatrixHandler& WMA,
+	FullSubMatrixHandler& WMB,
+	const doublereal& dCoef,
+	const Vec3& Sc)
+{
+	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
+
+	Mat3x3 MTmp;
+	Vec3 VTmp;
+
+	integer iIdx = 0;
+	if (dynamic_cast<DynamicBody *>(this)) {
+		iIdx = 6;
+	}
+
+	// f: delta x
+	MTmp = Mat3x3(pRBK->GetWP());
+	MTmp += Mat3x3(pRBK->GetW(), pRBK->GetW());
+
+	WMA.Add(iIdx + 1, 1, MTmp*(dMass*dCoef));
+
+
+	// f: theta delta
+
+	WMA.Sub(iIdx + 1, 3 + 1, MTmp*Mat3x3(Sc));
+
+
+	// m: delta x
+	MTmp = Mat3x3(Sc, pRBK->GetWP());
+	MTmp += Mat3x3(Sc)*Mat3x3(pRBK->GetW(), pRBK->GetW());
+
+	WMA.Add(iIdx + 3 + 1, 1, MTmp);
+
+
+	// m: theta delta
+
+	VTmp = pRBK->GetXPP();
+	VTmp += pRBK->GetWP().Cross(pNode->GetXCurr());
+	VTmp += pRBK->GetW().Cross(pRBK->GetW().Cross(pNode->GetXCurr()));
+	VTmp += pRBK->GetW().Cross(pNode->GetVCurr());
+
+	MTmp = Mat3x3(VTmp, Sc);
+
+	VTmp = (pRBK->GetW() + pNode->GetWCurr())*dCoef;
+
+	Mat3x3 MTmp2(JTmp*Mat3x3(pRBK->GetW()) - Mat3x3(JTmp*pRBK->GetW()));
+	MTmp += Mat3x3(VTmp)*MTmp2;
+
+	VTmp = (pRBK->GetWP() + pRBK->GetW().Cross(pNode->GetWCurr()))*dCoef;
+
+	MTmp += JTmp*Mat3x3(VTmp);
+	MTmp -= Mat3x3(JTmp*VTmp);
+
+	MTmp -= Mat3x3(pNode->GetVCurr())*Mat3x3(pRBK->GetW(), Sc);
+
+	WMA.Add(iIdx + 3 + 1, 3 + 1, MTmp);
+
+
+	// m: delta dot x
+	MTmp = Mat3x3(STmp, pRBK->GetW());
+	MTmp -= Mat3x3(pRBK->GetW().Cross(STmp));
+
+	WMB.Add(iIdx + 3 + 1, 1, MTmp);
+
+	// m: delta omega
+	WMB.Add(iIdx + 3 + 1, 3 + 1, MTmp2);
+}
+
 /* Body - end */
 
 
@@ -338,60 +448,7 @@ DynamicBody::AssMats(FullSubMatrixHandler& WMA,
 
 	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
 	if (pRBK) {
-		Mat3x3 MTmp;
-		Vec3 VTmp;
-
-		// f: delta x
-		MTmp = Mat3x3(pRBK->GetWP());
-		MTmp += Mat3x3(pRBK->GetW(), pRBK->GetW());
-
-		WMA.Add(6 + 1, 1, MTmp*(dMass*dCoef));
-
-
-		// f: theta delta
-
-		WMA.Sub(6 + 1, 3 + 1, MTmp*Mat3x3(Sc));
-
-
-		// m: delta x
-		MTmp = Mat3x3(Sc, pRBK->GetWP());
-		MTmp += Mat3x3(Sc)*Mat3x3(pRBK->GetW(), pRBK->GetW());
-
-		WMA.Add(9 + 1, 1, MTmp);
-
-
-		// m: theta delta
-
-		VTmp = pRBK->GetXPP();
-		VTmp += pRBK->GetWP().Cross(pNode->GetXCurr());
-		VTmp += pRBK->GetW().Cross(pRBK->GetW().Cross(pNode->GetXCurr()));
-		VTmp += pRBK->GetW().Cross(pNode->GetVCurr());
-
-		MTmp = Mat3x3(VTmp, Sc);
-
-		VTmp = (pRBK->GetW() + pNode->GetWCurr())*dCoef;
-
-		Mat3x3 MTmp2(JTmp*Mat3x3(pRBK->GetW()) - Mat3x3(JTmp*pRBK->GetW()));
-		MTmp += Mat3x3(VTmp)*MTmp2;
-
-		VTmp = (pRBK->GetWP() + pRBK->GetW().Cross(pNode->GetWCurr()))*dCoef;
-
-		MTmp += JTmp*Mat3x3(VTmp);
-		MTmp -= Mat3x3(JTmp*VTmp);
-
-		MTmp -= Mat3x3(pNode->GetVCurr())*Mat3x3(pRBK->GetW(), STmp);
-
-		WMA.Add(9 + 1, 3 + 1, MTmp);
-
-
-		// m: delta dot x
-		MTmp = Mat3x3(Sc, pRBK->GetW());
-		MTmp -= Mat3x3(pRBK->GetW().Cross(Sc));
-
-		WMB.Add(9 + 1, 1, MTmp);
-
-		// m: delta omega
-		WMB.Add(9 + 1, 3 + 1, MTmp2);
+		AssMatsRBK_int(WMA, WMB, dCoef, Sc);
 	}
 }
 
@@ -446,34 +503,7 @@ DynamicBody::AssRes(SubVectorHandler& WorkVec,
 	}
 
 	if (pRBK) {
-		Vec3 s0;
-
-		s0 = pNode->GetXCurr()*dMass + STmp;
-
-		// force
-		Vec3 f;
-		f = pRBK->GetXPP()*dMass;
-		f += pRBK->GetWP().Cross(s0);
-		f += pRBK->GetW().Cross(pRBK->GetW().Cross(s0));
-
-		WorkVec.Sub(6 + 1, f);
-
-		// moment
-		// hijack f...
-		f = pRBK->GetXPP();
-		f += pRBK->GetWP().Cross(pNode->GetXCurr());
-		f += pRBK->GetW().Cross(pRBK->GetW().Cross(pNode->GetXCurr()));
-		f += pRBK->GetW().Cross(pNode->GetVCurr());
-
-		Vec3 m;
-		m = STmp.Cross(f);
-		m += pRBK->GetW().Cross(JTmp*pRBK->GetW());
-		m += JTmp*pRBK->GetWP();
-		m += pNode->GetWCurr().Cross(JTmp*pRBK->GetW());
-		m -= JTmp*(pNode->GetWCurr().Cross(pRBK->GetW()));
-		m += pNode->GetVCurr().Cross(pRBK->GetW().Cross(STmp));
-
-		WorkVec.Sub(9 + 1, m);
+		AssVecRBK_int(WorkVec);
 	}
 
 	const DynamicStructNode *pDN = dynamic_cast<const DynamicStructNode *>(pNode);
@@ -778,40 +808,26 @@ StaticBody::AssMats(FullSubMatrixHandler& WMA,
 	/* Se e' definita l'accelerazione di gravita',
 	 * la aggiunge (solo al residuo) */
 	Vec3 Acceleration(0.);
-	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(),
-		Acceleration);
+	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(), Acceleration);
 
 	/* TODO: reference */
 	Vec3 W(0.);
 
 	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
-	bool w(pRBK != 0);
 
-	if (!g && !w) {
+	if (!g && !pRBK) {
 		/* Caller will set WMA & WMB to null matrix */
 		return true;
 	}
 
-	if (w) {
-		W = pRBK->GetW();
-		Acceleration -= W.Cross(W.Cross(pNode->GetXCurr() - pRBK->GetX()));
+	Vec3 Sc(STmp*dCoef);
+
+	if (g) {
+		WMA.Add(3 + 1, 3 + 1, Mat3x3(Acceleration, Sc));
 	}
 
-	if (g || w) {
-		WMA.Add(3 + 1, 3 + 1, Mat3x3(Acceleration, STmp*dCoef));
-	}
-
-	if (w) {
-		Mat3x3 wcwc(W, W);
-		Mat3x3 Sc(STmp*dCoef);
-
-		WMA.Sub(1, 1, wcwc*(dMass*dCoef));
-		WMA.Sub(1, 3 + 1, wcwc*Sc);
-
-		WMA.Sub(3 + 1, 1, Sc*wcwc);
-		WMA.Sub(3 + 1, 3 + 1,
-			Mat3x3(W*dCoef, JTmp*W)
-			+ Mat3x3(W)*JTmp*Mat3x3(W*dCoef));
+	if (pRBK) {
+		AssMatsRBK_int(WMA, WMB, dCoef, Sc);
 	}
 
 	return false;
@@ -832,19 +848,11 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(), Acceleration);
 
 	/* W is uninitialized because its use is conditioned by w */
-	Vec3 W;
-
 	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
-	bool w(pRBK != 0);
 
-	if (!g && !w) {
+	if (!g && !pRBK) {
 		WorkVec.ResizeReset(0);
 		return WorkVec;
-	}
-
-	if (w) {
-		W = pRBK->GetW();
-		Acceleration -= W.Cross(W.Cross(pNode->GetXCurr() - pRBK->GetX()));
 	}
 
 	WorkVec.ResizeReset(6);
@@ -859,14 +867,13 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 	STmp = R*S0;
 	JTmp = R*J0.MulMT(R);
 
-	if (g || w) {
+	if (g) {
 		WorkVec.Add(1, Acceleration*dMass);
 		WorkVec.Add(3 + 1, STmp.Cross(Acceleration));
 	}
 
-	if (w) {
-		WorkVec.Add(1, W.Cross(W.Cross(STmp)));
-		WorkVec.Add(3 + 1, W.Cross(JTmp*W));
+	if (pRBK) {
+		AssVecRBK_int(WorkVec);
 	}
 
 	return WorkVec;
