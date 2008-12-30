@@ -278,34 +278,36 @@ AirProperties::GetVelocity(const Vec3& X) const
 bool
 AirProperties::GetVelocity(const Vec3& X, Vec3& V) const
 {
+	Vec3 Xabs;
 	if (pRBK) {
+		// X is the position of the point in the relative frame
+		// Xabs is the position of the point in the absolute frame
 		Vec3 Xabs = pRBK->GetX();
 		Xabs += pRBK->GetR()*X;
 
-		V = Velocity;
-		V += pRBK->GetV();
-		for (std::vector<Gust *>::const_iterator i = gust.begin();
-			i != gust.end(); i++)
-		{
-			Vec3 VV;
-			if ((*i)->GetVelocity(Xabs, VV)) {
-				V += VV;
-			}
-		}
-
-		V = R0T*V;
-		V += W0.Cross(X);
-
 	} else {
-		V = Velocity;
-		for (std::vector<Gust *>::const_iterator i = gust.begin();
-			i != gust.end(); i++)
-		{
-			Vec3 VV;
-			if ((*i)->GetVelocity(X, VV)) {
-				V += VV;
-			}
+		Xabs = X;
+	}
+
+	V = Velocity;
+	for (std::vector<Gust *>::const_iterator i = gust.begin();
+		i != gust.end(); i++)
+	{
+		Vec3 VV;
+		if ((*i)->GetVelocity(Xabs, VV)) {
+			V += VV;
 		}
+	}
+
+	if (pRBK) {
+		// V is the velocity of the point in the absolute frame,
+		// plus the airstream speed, minus the relative frame velocity
+		V -= pRBK->GetV();
+
+		// the velocity is projected in the relative frame
+		// and the contribution of the angular velocity is added
+		V = R0T*V;
+		V -= W0.Cross(X);
 	}
 
 	return true;
