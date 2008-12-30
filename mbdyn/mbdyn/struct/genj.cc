@@ -1426,7 +1426,7 @@ static const char *dof[] = {
 };
 static const char *eq[] = {
 	"position constraint P",
-	"orientation constraint g",
+	"orientation constraint theta",
 	"position constraint derivative v",
 	"orientation constraint derivative w"
 };
@@ -1474,7 +1474,7 @@ ClampJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) con
 		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
 			"position constraints [Px=Px0,Py=Py0,Pz=Pz0]" << std::endl
 		<< prefix << iIndex + 4 << "->" << iIndex + 6 << ": "
-			"orientation constraints [gx=gx0,gy=gy0,gz=gz0]" << std::endl;
+			"orientation constraints [thetax=thetax0,thetay=thetay0,thetaz=thetaz0]" << std::endl;
 	
 	if (bInitial) {
 		iIndex += 6;
@@ -1523,18 +1523,21 @@ ClampJoint::DescribeEq(std::vector<std::string>& desc,
 }
 
 /*Funzione che legge lo stato iniziale dal file di input*/
-void ClampJoint::ReadInitialState(MBDynParser& HP)
+void
+ClampJoint::ReadInitialState(MBDynParser& HP)
 {
-	F = Vec3(HP.GetVec3());
-	M = Vec3(HP.GetVec3());
+	F = HP.GetVec3();
+	M = HP.GetVec3();
 }
+
 /* Contributo al file di restart */
-std::ostream& ClampJoint::Restart(std::ostream& out) const
+std::ostream&
+ClampJoint::Restart(std::ostream& out) const
 {
-   return Joint::Restart(out) << ", clamp, "
-     << pNode->GetLabel() << ", node, node, "
-     << "initial state, ", F.Write(out, ", ")
-     << ", ", M.Write(out, ", ") << ';' << std::endl;
+	return Joint::Restart(out) << ", clamp, "
+		<< pNode->GetLabel() << ", node, node, "
+		<< "initial state, ", F.Write(out, ", ")
+		<< ", ", M.Write(out, ", ") << ';' << std::endl;
 }
 
 
@@ -1585,8 +1588,8 @@ ClampJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    	integer iFirstReactionIndex = iGetFirstIndex();
    	
 	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-      		WM.PutItem(iCnt, iFirstReactionIndex+iCnt, 
-		iFirstPositionIndex+iCnt, 1.);    
+      		WM.PutItem(iCnt, iFirstReactionIndex + iCnt, 
+			iFirstPositionIndex + iCnt, 1.);    
    	}
         
 	return WorkMat;
@@ -1605,7 +1608,6 @@ ClampJoint::AssMats(VariableSubMatrixHandler& WorkMatA,
 	WorkMatA.SetNullMatrix();
 	AssJac(WorkMatB, 1., XCurr, XPrimeCurr);
 }
-
 
 
 SubVectorHandler&
@@ -1628,7 +1630,7 @@ ClampJoint::AssRes(SubVectorHandler& WorkVec,
 
 	/* Aggiorna le reazioni vincolari */
 	F = Vec3(XCurr, iFirstReactionIndex + 1);
-	M = Vec3(XCurr, iFirstReactionIndex + 4);
+	M = Vec3(XCurr, iFirstReactionIndex + 3 + 1);
 
 	/* Calcola posizione e parametri di rotazione */
 	const Vec3& x(pNode->GetXCurr());
@@ -1638,13 +1640,13 @@ ClampJoint::AssRes(SubVectorHandler& WorkVec,
 
 	/* Residuo della riga di equilibrio */
 	WorkVec.Sub(1, F);
-	WorkVec.Sub(4, M);
+	WorkVec.Sub(3 + 1, M);
  
 	/* Modifica: divido le equazioni di vincolo per dCoef */
 	if (dCoef != 0.) {	
 		/* Residuo dell'equazione di vincolo */
-		WorkVec.Sub(7, (x - XClamp)/dCoef);
-		WorkVec.Sub(10, theta_c/dCoef);   
+		WorkVec.Sub(6 + 1, (x - XClamp)/dCoef);
+		WorkVec.Sub(9 + 1, theta_c/dCoef);   
 	}
 
 	return WorkVec;
@@ -1660,10 +1662,7 @@ ClampJoint::AssRes(SubVectorHandler& WorkVec,
 {
    	DEBUGCOUT("Entering ClampJoint::AssRes()" << std::endl);
 
-   	integer iNumRows;
-   	integer iNumCols;
-   	WorkSpaceDim(&iNumRows, &iNumCols);
-   	WorkVec.ResizeReset(iNumRows - 6);
+   	WorkVec.ResizeReset(6);
 
    	/* FIXME: Indici delle incognite */
    	integer iFirstReactionIndex = iGetFirstIndex();
@@ -1674,13 +1673,14 @@ ClampJoint::AssRes(SubVectorHandler& WorkVec,
 	/* The residual is != 0 only for position */
    	if (iOrder == 0) {
    		/* Calcola posizione e parametri di rotazione */
-   		Vec3 x(pNode->GetXCurr());
-   		Mat3x3 R(pNode->GetRCurr());
-   		/* Nota: si sfrutta il fatto che g(R^T) = -g(R) per avere -g(R_Delta) */
-   		Vec3 g(MatR2gparam(RClamp*R.Transpose()));
+   		const Vec3& x(pNode->GetXCurr());
+   		const Mat3x3& R(pNode->GetRCurr());
+
+   		Vec3 theta_c(RotManip::VecRot(R.MulMT(RClamp)));
+
       		/* Residuo dell'equazione di vincolo */
-      		WorkVec.Add(1, XClamp-x);
-      		WorkVec.Add(3, g);   
+      		WorkVec.Sub(1, x - XClamp);
+      		WorkVec.Sub(3 + 1, theta_c);   
 	}
 
 	return WorkVec;
@@ -1691,26 +1691,27 @@ void
 ClampJoint::Update(const VectorHandler& XCurr, int iOrder)
 {
 	integer iFirstReactionIndex = iGetFirstIndex();
+
    	/* Aggiorna le reazioni vincolari */
-   	F = Vec3(XCurr, iFirstReactionIndex+1);
-   	M = Vec3(XCurr, iFirstReactionIndex+4);
-};
-
-void ClampJoint::Output(OutputHandler& OH) const
-{
-   if (fToBeOutput()) {
-      Mat3x3 RT(pNode->GetRCurr().Transpose());
-
-      Joint::Output(OH.Joints(), "Clamp", GetLabel(),
-		    RT*F, RT*M, F, M) << std::endl;
-   }
+   	F = Vec3(XCurr, iFirstReactionIndex + 1);
+   	M = Vec3(XCurr, iFirstReactionIndex + 4);
 }
 
+void
+ClampJoint::Output(OutputHandler& OH) const
+{
+	if (fToBeOutput()) {
+		const Mat3x3& R(pNode->GetRCurr());
+
+		Joint::Output(OH.Joints(), "Clamp", GetLabel(),
+			R.MulTV(F), R.MulTV(M), F, M) << std::endl;
+	}
+}
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
 VariableSubMatrixHandler& 
 ClampJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
-			  const VectorHandler& /* XCurr */ )
+	const VectorHandler& /* XCurr */ )
 {
    DEBUGCOUT("Entering ClampJoint::InitialAssJac()" << std::endl);
    
@@ -1872,11 +1873,11 @@ doublereal
 ClampJoint::dGetPrivData(unsigned int i) const
 {
 	if (i >= 1 && i <= 3) {
-		return F.dGet(i);
+		return F(i);
 	}
 
 	if (i >= 4 && i <= 6) {
-		return M.dGet(i-3);
+		return M(i - 3);
 	}
 
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);

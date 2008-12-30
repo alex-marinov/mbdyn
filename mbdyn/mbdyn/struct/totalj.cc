@@ -297,7 +297,7 @@ TotalJoint::DescribeEq(std::ostream& out,
 			if (cnt > 1) {
 				out << ",";
 			}
-			out << "g" << idx2xyz[i] << "1=g" << idx2xyz[i] << "2";
+			out << "theta" << idx2xyz[i] << "1=theta" << idx2xyz[i] << "2";
 		}
 		else if (bAgvActive[i]) {
 			cnt++;
@@ -1933,7 +1933,7 @@ TotalPinJoint::DescribeEq(std::ostream& out,
 			if (cnt > 1) {
 				out << ",";
 			}
-			out << "g" << idx2xyz[i] << "1=g" << idx2xyz[i] << "2";
+			out << "theta" << idx2xyz[i] << "1=theta" << idx2xyz[i] << "2";
 		}
 	}
 	if (nRotConstraints > 0) {
