@@ -111,8 +111,6 @@ protected:
 
 	// rigid body kinematics
 	const RigidBodyKinematics *pRBK;
-	Mat3x3 R0T;
-	Vec3 W0;
    
 public:
 	AirProperties(const TplDriveCaller<Vec3>* pDC,

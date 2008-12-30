@@ -61,13 +61,13 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <aerodyn_.h>
-#include <dataman.h>
-#include <drive_.h>
-#include <tpldrive.h>
+#include "aerodyn_.h"
+#include "dataman.h"
+#include "drive_.h"
+#include "tpldrive.h"
 
 /*
  * Gust
@@ -212,11 +212,6 @@ AirProperties::AssRes(SubVectorHandler& WorkVec,
 	 * minimo overhead */
 	Velocity = Get();
   	
-	if (pRBK) {
-		R0T = pRBK->GetR().Transpose();
-		W0 = R0T*pRBK->GetW();
-	}
-
 	return WorkVec;
 }
    
@@ -301,13 +296,17 @@ AirProperties::GetVelocity(const Vec3& X, Vec3& V) const
 
 	if (pRBK) {
 		// V is the velocity of the point in the absolute frame,
+		// projected in the relative reference frame,
 		// plus the airstream speed, minus the relative frame velocity
-		V -= pRBK->GetV();
 
 		// the velocity is projected in the relative frame
-		// and the contribution of the angular velocity is added
-		V = R0T*V;
-		V -= W0.Cross(X);
+		V = pRBK->GetR().MulTV(V);
+
+		// the reference velocity is subtracted
+		V -= pRBK->GetV();
+
+		// the contribution of the angular velocity is subtracted
+		V -= pRBK->GetW().Cross(X);
 	}
 
 	return true;

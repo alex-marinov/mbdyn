@@ -121,27 +121,55 @@ DriveRigidBodyKinematics::~DriveRigidBodyKinematics(void)
 void
 DriveRigidBodyKinematics::Update(void)
 {
-	if (XDrv.pGetDriveCaller()) {
-		X = XDrv.Get();
-	}
+	bool bR(false);
 
 	if (ThetaDrv.pGetDriveCaller()) {
 		R = RotManip::Rot(ThetaDrv.Get());
+		bR = true;
+	}
+
+	if (XDrv.pGetDriveCaller()) {
+		if (bR) {
+			X = R.MulTV(XDrv.Get());
+
+		} else {
+			X = XDrv.Get();
+		}
 	}
 
 	if (VDrv.pGetDriveCaller()) {
-		V = VDrv.Get();
+		if (bR) {
+			V = R.MulTV(VDrv.Get());
+
+		} else {
+			V = VDrv.Get();
+		}
 	}
 
 	if (WDrv.pGetDriveCaller()) {
-		W = WDrv.Get();
+		if (bR) {
+			W = R.MulTV(WDrv.Get());
+
+		} else {
+			W = WDrv.Get();
+		}
 	}
 
 	if (XPPDrv.pGetDriveCaller()) {
-		XPP = XPPDrv.Get();
+		if (bR) {
+			XPP = R.MulTV(XPPDrv.Get());
+
+		} else {
+			XPP = XPPDrv.Get();
+		}
 	}
 
 	if (WPDrv.pGetDriveCaller()) {
-		WP = WPDrv.Get();
+		if (bR) {
+			WP = R.MulTV(WPDrv.Get());
+
+		} else {
+			WP = WPDrv.Get();
+		}
 	}
 }
