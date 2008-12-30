@@ -618,6 +618,10 @@ DataManager::~DataManager(void)
 		SAFEDELETE(pOutputMeter);
 	}
 
+	if (pRBK) {
+		SAFEDELETE(pRBK);
+	}
+
 	ElemManagerDestructor();
 	NodeManagerDestructor();
 	DofManagerDestructor();
