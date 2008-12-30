@@ -21,7 +21,7 @@ MBDyn 1.X-Devel
 		- add "other {position,orientation,node}" reference types
 		- add "abort if broken" keyword to stream output elements
 		- add RTAI-based motion output
-		- add embryonic relative frame dynamics
+		- add embryonic relative frame dynamics & aerodynamics
 	Backward compatibility issues:
 		- now immediate abort requires CTRL^C three times
 		- changed real-time args order (not backward compatible)

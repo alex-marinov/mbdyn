@@ -52,7 +52,7 @@ D. Code:
 	- add relative reference frame overall dynamics
 		- rigid body (DONE)
 		- modal element
-		- air properties
+		- air properties (DONE)
 	- add absolute/relative reference frame dynamics interface
 	- generalize inflow models for fixed wing lifting surfaces
 
