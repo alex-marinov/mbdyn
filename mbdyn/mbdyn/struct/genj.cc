@@ -32,13 +32,14 @@
 /* Vincoli generali */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include "dataman.h"
 #include "genj.h"
 #include "hint.h"
 #include "hint_impl.h"
+#include "Rot.hh"
 
 #ifndef MBDYN_X_DISTANCE_JOINT
 
@@ -1539,81 +1540,39 @@ std::ostream& ClampJoint::Restart(std::ostream& out) const
 
 VariableSubMatrixHandler& 
 ClampJoint::AssJac(VariableSubMatrixHandler& WorkMat,
-		   doublereal /* dCoef */ ,
-		   const VectorHandler& /* XCurr */ ,
-		   const VectorHandler& /* XPrimeCurr */ )
+	doublereal /* dCoef */ ,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering ClampJoint::AssJac()" << std::endl);
+	DEBUGCOUT("Entering ClampJoint::AssJac()" << std::endl);
       
-   SparseSubMatrixHandler& WM = WorkMat.SetSparse();
+	SparseSubMatrixHandler& WM = WorkMat.SetSparse();
    
-   /* Dimensiona e resetta la matrice di lavoro */
-   WM.ResizeReset(12, 1);
+	/* Dimensiona e resetta la matrice di lavoro */
+	WM.ResizeReset(12, 1);
+
+	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
+	integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
+	integer iFirstReactionIndex = iGetFirstIndex();
    
-   integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
-   integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
-   integer iFirstReactionIndex = iGetFirstIndex();
-   
-   /* Matrice jacobiana del vincolo di incastro:
-    * 
-    *     posizione:  x = XClamp
-    *     assetto:    R = RClamp
-    * 
-    *  -F          - Delta_F = 0
-    *  -M          - Delta_M = 0
-    *   x          + Delta_x = XClamp
-    *  -g(R_Delta) + Delta_g = 0
-    * 
-    * con R_Delta = R*RClamp^T
-    * si ottiene quindi:
-    * 
-    *  -Delta_F = F
-    *  -Delta_M = M
-    *   Delta_x = XClamp - x
-    *   Delta_g = -g(R_Delta)
-    * 
-    * Nota: con la definizione dei nodi statici, questa parte non viene piu'
-    * usata.
-    * 
-    * A questo si aggiunga la riga di definizione della quantita' di moto,
-    * che deve essere identicamente nulla (si presume che per un nodo 
-    * incastrato non sia definito elemento di massa)
-    * 
-    * 
-    * Organizzazione del contributo allo jacobiano
-    * 
-    *     x, g    Q, Gamma   F, M     dot
-    *  |   0      -dCoef*I    0  | |x, g    |   | Q, Gamma              |
-    *  |   0         0       -I  | |Q, Gamma| = | F, M                  |
-    *  | dCoef*I     0        0  | |F, M    |   | XClamp-x, -g(R_Delta) |
-    * 
-    * Il termine -dCoef*I viene messo in quanto si suppone che un nodo
-    * vincolato non abbia un elemento corpo rigido definito.
-    * In questo modo si impone che la quantita' di moto sia nulla
-    * e la matrice jacobiana non e' singolare.
-    * 
-    * Viene usata la sottomatrice sparsa, in quanto sono richiesti solo
-    * diciotto coefficienti non nulli */
-   
-   /* Attenzione: modifico dividendo le equazioni di vincolo per dCoef */
-   
-   for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-      WM.PutItem(iCnt, iFirstReactionIndex+iCnt, 
-		  iFirstPositionIndex+iCnt, 1.);    
-      WM.PutItem(6+iCnt, iFirstMomentumIndex+iCnt,
-		  iFirstReactionIndex+iCnt, -1.);
-   }
-        
-   /* Con l'aggiunta dei nodi statici non occorre piu' evitare la
-    * singolarita' della matrice */
-   
-   return WorkMat;
+	/* Attenzione: modifico dividendo le equazioni di vincolo per dCoef */
+	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
+		WM.PutItem(iCnt, iFirstReactionIndex + iCnt, 
+			iFirstPositionIndex + iCnt, 1.);    
+		WM.PutItem(6 + iCnt, iFirstMomentumIndex + iCnt,
+			iFirstReactionIndex + iCnt, 1.);
+	}
+ 
+	/* Con l'aggiunta dei nodi statici non occorre piu' evitare la
+	 * singolarita' della matrice */
+
+	return WorkMat;
 }
 
 /* Inverse Dynamics */
 VariableSubMatrixHandler& 
 ClampJoint::AssJac(VariableSubMatrixHandler& WorkMat,
-		   const VectorHandler& /* XCurr */ )
+	const VectorHandler& /* XCurr */ )
 {
 	DEBUGCOUT("Entering ClampJoint::AssJac()" << std::endl);
    
@@ -1630,80 +1589,74 @@ ClampJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		iFirstPositionIndex+iCnt, 1.);    
    	}
         
-return WorkMat;
+	return WorkMat;
 }
 
 /* assemblaggio matrici per autovalori */
-void ClampJoint::AssMats(VariableSubMatrixHandler& WorkMatA,
-			VariableSubMatrixHandler& WorkMatB,
-			const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr)
+void
+ClampJoint::AssMats(VariableSubMatrixHandler& WorkMatA,
+	VariableSubMatrixHandler& WorkMatB,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Entering ClampJoint::AssMats(); will result in call to AssJac()"
-		   << std::endl);
+	DEBUGCOUT("Entering ClampJoint::AssMats(); will result in call to AssJac()"
+		<< std::endl);
    
-   WorkMatA.SetNullMatrix();
-   AssJac(WorkMatB, 1., XCurr, XPrimeCurr);
+	WorkMatA.SetNullMatrix();
+	AssJac(WorkMatB, 1., XCurr, XPrimeCurr);
 }
 
 
 
-SubVectorHandler& ClampJoint::AssRes(SubVectorHandler& WorkVec,
-				     doublereal dCoef,
-				     const VectorHandler& XCurr, 
-				     const VectorHandler& /* XPrimeCurr */ )
+SubVectorHandler&
+ClampJoint::AssRes(SubVectorHandler& WorkVec,
+	doublereal dCoef,
+	const VectorHandler& XCurr, 
+	const VectorHandler& /* XPrimeCurr */ )
 {
-   DEBUGCOUT("Entering ClampJoint::AssRes()" << std::endl);
+	DEBUGCOUT("Entering ClampJoint::AssRes()" << std::endl);
 
-   integer iNumRows;
-   integer iNumCols;
-   WorkSpaceDim(&iNumRows, &iNumCols);
-   WorkVec.ResizeReset(iNumRows);
+	WorkVec.ResizeReset(12);
 
-   /* Per i commenti, vedi AssJac */
-   
-   /* Con l'aggiunta dei nodi statici non occorre piu' evitare 
-    * la singolarita' della matrice */
-   
-   /* Indici delle incognite del nodo e delle reazioni */
-   integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
-   integer iFirstReactionIndex = iGetFirstIndex();
-   for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-      WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
-      WorkVec.PutRowIndex(6+iCnt, iFirstReactionIndex+iCnt);
-   }   
-   
-   /* Aggiorna le reazioni vincolari */
-   F = Vec3(XCurr, iFirstReactionIndex+1);
-   M = Vec3(XCurr, iFirstReactionIndex+4);
-   
-   /* Calcola posizione e parametri di rotazione */
-   Vec3 x(pNode->GetXCurr());
-   Mat3x3 R(pNode->GetRCurr());
-   /* Nota: si sfrutta il fatto che g(R^T) = -g(R) per avere -g(R_Delta) */
-   Vec3 g(MatR2gparam(RClamp*R.Transpose()));
-   
+	/* Indici delle incognite del nodo e delle reazioni */
+	integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
+	integer iFirstReactionIndex = iGetFirstIndex();
+	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex + iCnt);
+		WorkVec.PutRowIndex(6 + iCnt, iFirstReactionIndex + iCnt);
+	}   
 
-   /* Residuo della riga di equilibrio */
-   WorkVec.Add(1, F);
-   WorkVec.Add(4, M);
-   
-   /* Modifica: divido le equazioni di vincolo per dCoef */
-   if (dCoef != 0.) {	
-      /* Residuo dell'equazione di vincolo */
-      WorkVec.Add(7, (XClamp-x)/dCoef);
-      WorkVec.Add(10, g/dCoef);   
-   }
-   
-   return WorkVec;
+	/* Aggiorna le reazioni vincolari */
+	F = Vec3(XCurr, iFirstReactionIndex + 1);
+	M = Vec3(XCurr, iFirstReactionIndex + 4);
+
+	/* Calcola posizione e parametri di rotazione */
+	const Vec3& x(pNode->GetXCurr());
+	const Mat3x3& R(pNode->GetRCurr());
+
+	Vec3 theta_c(RotManip::VecRot(R.MulMT(RClamp)));
+
+	/* Residuo della riga di equilibrio */
+	WorkVec.Sub(1, F);
+	WorkVec.Sub(4, M);
+ 
+	/* Modifica: divido le equazioni di vincolo per dCoef */
+	if (dCoef != 0.) {	
+		/* Residuo dell'equazione di vincolo */
+		WorkVec.Sub(7, (x - XClamp)/dCoef);
+		WorkVec.Sub(10, theta_c/dCoef);   
+	}
+
+	return WorkVec;
 }
 
 /* Inverse Dynamics: AssRes()*/
-SubVectorHandler& ClampJoint::AssRes(SubVectorHandler& WorkVec,
-				     const VectorHandler& XCurr, 
-				     const VectorHandler& /* XPrimeCurr */,
-				     const VectorHandler& /* XPrimePrimeCurr */,
-				     int iOrder)
+SubVectorHandler&
+ClampJoint::AssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& XCurr, 
+	const VectorHandler& /* XPrimeCurr */,
+	const VectorHandler& /* XPrimePrimeCurr */,
+	int iOrder)
 {
    	DEBUGCOUT("Entering ClampJoint::AssRes()" << std::endl);
 
@@ -1715,12 +1668,11 @@ SubVectorHandler& ClampJoint::AssRes(SubVectorHandler& WorkVec,
    	/* FIXME: Indici delle incognite */
    	integer iFirstReactionIndex = iGetFirstIndex();
    	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-     	WorkVec.PutRowIndex(iCnt, iFirstReactionIndex+iCnt);
+     		WorkVec.PutRowIndex(iCnt, iFirstReactionIndex+iCnt);
    	}   
  
-/* The residual is != 0 only for position */
-   	if(iOrder == 0)	{
-
+	/* The residual is != 0 only for position */
+   	if (iOrder == 0) {
    		/* Calcola posizione e parametri di rotazione */
    		Vec3 x(pNode->GetXCurr());
    		Mat3x3 R(pNode->GetRCurr());
@@ -1731,7 +1683,7 @@ SubVectorHandler& ClampJoint::AssRes(SubVectorHandler& WorkVec,
       		WorkVec.Add(3, g);   
 	}
 
-return WorkVec;
+	return WorkVec;
 }
 
 /* Inverse Dynamics update */

@@ -1567,6 +1567,34 @@ The \texttt{StructNode} is responsible for providing a pointer
 to a \texttt{RigidBodyKinematics} object that describes
 the relative frame motion.
 
+The kinematic parameters received in input with the
+\texttt{rigid body kinematics} card in the \texttt{control data} section
+are intended expressed in the global reference frame.
+Note however that the calls to the \texttt{Get*()} methods
+of the \texttt{RigidBodyKinematics} class return them
+in the relative reference frame, namely pre-multiplied
+by the transpose of the orientation matrix:
+\begin{subequations}
+\begin{align}
+	& \texttt{GetR()}:
+	& \TT{R}_0 &= \texttt{\{ } \mathrm{exp}\plbr{
+		\texttt{abs\_orientation\_vector}\times{}
+	} \nonumber \\
+	& & & \hphantom{=} \texttt{ | abs\_orientation \} } \\
+	& \texttt{GetX()}:
+	& \overline{\T{x}}_0 &= \TT{R}_0^T \texttt{abs\_position} \\
+	& \texttt{GetW()}:
+	& \overline{\T{\omega}}_0 &= \TT{R}_0^T \texttt{abs\_angular\_velocity} \\
+	& \texttt{GetV()}:
+	& \dot{\overline{\T{x}}}_0 &= \TT{R}_0^T \texttt{abs\_velocity} \\
+	& \texttt{GetWP()}:
+	& \dot{\overline{\T{\omega}}}_0 &= \TT{R}_0^T \texttt{abs\_angular\_acceleration} \\
+	& \texttt{GetXPP()}:
+	& \ddot{\overline{\T{x}}}_0 &= \TT{R}_0^T \texttt{abs\_acceleration}
+\end{align}
+\end{subequations}
+
+
 \subsubsection{Dynamics}
 The equations of motion (force and moment equilibrium)
 and the definitions of the momentum and momenta moment are not altered.
@@ -1576,9 +1604,7 @@ of relative frame inertia forces that depends on the momentum
 and on the momenta moment.
 The \texttt{DynamicBody} element takes care of the remaining portion
 of relative frame inertia forces.
-
-\textbf{TODO:} \
-The \texttt{StaticBody} element needs to be modified accordingly.
+The \texttt{StaticBody} element has been modified accordingly.
 
 \subsubsection{Air Properties}
 The \texttt{AirProperties} element takes care of the relative frame motion
@@ -2158,6 +2184,80 @@ If $\T{\mu}=0$ then a conventional DAE of index 3 results, i.e.
 while the previous form is known as stabilized index 2 form.
 The latter is typically used throughout MBDyn, while the former is used 
 in the initial assembly and, occasionally, in specific constraints.
+
+
+
+\subsection{Clamp Joint}
+\label{sec:ClampJoint}
+The clamp joint (\texttt{Clamp}) imposes the position
+and the orientation of a node.
+
+\paragraph{Files.} \
+It is implemented in files
+
+\begin{tabular}{l}
+\texttt{mbdyn/struct/genj.h} \\
+\texttt{mbdyn/struct/genj.cc}
+\end{tabular}
+
+\paragraph{Definitions.} \
+\begin{align}
+	\T{d}_c &= \T{x} - \T{x}_0 \\
+	\T{\theta}_c &= \mathrm{ax}\plbr{\mathrm{exp}^{-1}\plbr{\TT{R}\TT{R}_0^T}}
+\end{align}
+
+\paragraph{Constraint Equation.} \
+\begin{align}
+	\T{d}_c &= \T{0} \\
+	\T{\theta}_c &= \T{0}
+\end{align}
+
+\paragraph{Perturbation.} \
+\begin{align}
+	\delta\T{d}_c &= \delta\T{x} \\
+	\delta\T{\theta}_c &= \TT{\Gamma}^{-1}\!\plbr{\T{\theta}_c} \T{\theta}_{\delta}
+\end{align}
+
+\paragraph{Forces.} \
+\begin{subequations}
+\begin{align}
+	\T{f} &= \T{\lambda} \\
+	\T{m} &= \TT{\Gamma}^{-T}\!\plbr{\T{\theta}_c} \overline{\T{\mu}}
+	\overset{\text{def}}{=} \T{\mu}
+\end{align}
+\end{subequations}
+
+\paragraph{Linearization.} \
+\begin{equation}
+	\sqbr{\matr{cc}{
+	\TT{0} & \TT{0} \\
+	\TT{0} & \TT{0} \\
+	\TT{I} & \TT{0} \\
+	\TT{0} & \TT{I}
+	}} \cubr{\cvvect{
+		\Delta\T{x} \\
+		\T{\theta}_{\Delta}
+	}}
+	+ \sqbr{\matr{cc}{
+		\TT{I} & \TT{0} \\
+		\TT{0} & \TT{I} \\
+		\TT{0} & \TT{0} \\
+		\TT{0} & \TT{0}
+	}} \cubr{\cvvect{
+		\Delta\T{\lambda} \\
+		\Delta\T{\mu}
+	}}
+	= - \cubr{\cvvect{
+		- \T{\lambda} \\
+		- \T{\mu} \\
+		- \T{d}_c \\
+		- \T{\theta}_c
+	}}
+\end{equation}
+since $\TT{\Gamma}\!\plbr{\T{\theta}_c} \T{\theta}_c = \T{\theta}_c$.
+
+
+
 
 \subsection{Distance Joint}
 \label{sec:DistanceJoint}
