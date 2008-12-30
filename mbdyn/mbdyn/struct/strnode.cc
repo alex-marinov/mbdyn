@@ -1005,12 +1005,20 @@ StructNode::Update(const VectorHandler& X, const VectorHandler& XP)
 {
 	integer iFirstIndex = iGetFirstIndex();
 
-	XCurr = Vec3(X, iFirstIndex+1);
-	VCurr = Vec3(XP, iFirstIndex+1);
+	XCurr = Vec3(X, iFirstIndex + 1);
+	VCurr = Vec3(XP, iFirstIndex + 1);
 
 	/* Nota: i g, gP non vengono incrementati */
-	gCurr = Vec3(X, iFirstIndex+4);
-	gPCurr = Vec3(XP, iFirstIndex+4);
+	gCurr = Vec3(X, iFirstIndex + 4);
+	gPCurr = Vec3(XP, iFirstIndex + 4);
+
+#if 0
+	// test amplitude of orientation increment
+	if (gCurr.Norm() > 1.) {
+		silent_cerr("StructNode(" << GetLabel() << "): "
+			"incremental rotation too large, YMMV" << std::endl);
+	}
+#endif
 
 	/* Matrice RDelta, incremento di rotazione da predetto a corrente;
 	 * Questo e' piu' efficiente */
@@ -1030,7 +1038,7 @@ StructNode::Update(const VectorHandler& X, const VectorHandler& XP)
 	 * la velocita' angolare e' data dalla parte incrementale totale
 	 * piu' il contributo della velocita' di riferimento (costante) */
 	RCurr = RDelta*RRef;
-	WCurr = Mat3x3(MatG, gCurr)*gPCurr+RDelta*WRef;
+	WCurr = Mat3x3(MatG, gCurr)*gPCurr + RDelta*WRef;
 
 #if 0
 	/* Nuovo manipolatore (forse e' meno efficiente) */
@@ -1046,10 +1054,10 @@ StructNode::DerivativesUpdate(const VectorHandler& X, const VectorHandler& XP)
 	integer iFirstIndex = iGetFirstIndex();
 
 	/* Forza configurazione e velocita' al valore iniziale */
-	((VectorHandler&)X).Put(iFirstIndex+1, XCurr);
-	((VectorHandler&)X).Put(iFirstIndex+4, Zero3);
-	((VectorHandler&)XP).Put(iFirstIndex+1, VCurr);
-	((VectorHandler&)XP).Put(iFirstIndex+4, Zero3);
+	const_cast<VectorHandler &>(X).Put(iFirstIndex + 1, XCurr);
+	const_cast<VectorHandler &>(X).Put(iFirstIndex + 4, Zero3);
+	const_cast<VectorHandler &>(XP).Put(iFirstIndex + 1, VCurr);
+	const_cast<VectorHandler &>(XP).Put(iFirstIndex + 4, Zero3);
 }
 
 
@@ -1059,11 +1067,11 @@ StructNode::InitialUpdate(const VectorHandler& X)
 {
 	integer iFirstIndex = iGetFirstIndex();
 
-	XCurr = Vec3(X, iFirstIndex+1);
-	VCurr = Vec3(X, iFirstIndex+7);
+	XCurr = Vec3(X, iFirstIndex + 1);
+	VCurr = Vec3(X, iFirstIndex + 7);
 
 	/* Nota: g viene incrementato */
-	gCurr = Vec3(X, iFirstIndex+4);
+	gCurr = Vec3(X, iFirstIndex + 4);
 
 #if 1
 	/* Questo manipolatore e' piu' efficiente */
@@ -1074,7 +1082,7 @@ StructNode::InitialUpdate(const VectorHandler& X)
 #endif
 
 	RCurr = RDelta*RRef;
-	WCurr = Vec3(X, iFirstIndex+10);
+	WCurr = Vec3(X, iFirstIndex + 10);
 }
 
 /* Inverse Dynamics: */
@@ -1084,29 +1092,27 @@ StructNode::Update(const VectorHandler& X, int iOrder)
 
 	integer iFirstIndex = iGetFirstIndex();
 	switch(iOrder)	{
-		case 0:	{
-			XCurr = Vec3(X, iFirstIndex+1);
-			gCurr = Vec3(X, iFirstIndex+4);
+		case 0: {
+			XCurr = Vec3(X, iFirstIndex + 1);
+			gCurr = Vec3(X, iFirstIndex + 4);
 			Mat3x3 RDelta(MatR, gCurr);
 			RCurr = RDelta*RRef;
-			break;
-		}
+		} break;
 		
 		case 1:	{
-			VCurr = Vec3(X, iFirstIndex+1);
-			//gPCurr = Vec3(X, iFirstIndex+4);
-			//Mat3x3 RDelta(MatR, gCurr);
-			//WCurr = Mat3x3(MatG, gCurr)*gPCurr+RDelta*WRef;
-			WCurr = Vec3(X, iFirstIndex+4);
-			break;
-		}
+			VCurr = Vec3(X, iFirstIndex + 1);
+#if 0
+			gPCurr = Vec3(X, iFirstIndex + 4);
+			Mat3x3 RDelta(MatR, gCurr);
+			WCurr = Mat3x3(MatG, gCurr)*gPCurr + RDelta*WRef;
+#endif
+			WCurr = Vec3(X, iFirstIndex + 4);
+		} break;
+
 		case 2:	{
-			XPPCurr = Vec3(X, iFirstIndex+1);
-			WPCurr = Vec3(X, iFirstIndex+4);
-			break;
-		}
-		default:
-			NO_OP;
+			XPPCurr = Vec3(X, iFirstIndex + 1);
+			WPCurr = Vec3(X, iFirstIndex + 4);
+		} break;
 	}
 
 
@@ -1171,11 +1177,11 @@ StructNode::SetValue(DataManager *pDM,
 	}
 
 	integer iFirstIndex = iGetFirstIndex();
-	X.Put(iFirstIndex+1, XPrev);
-	X.Put(iFirstIndex+4, Vec3(0.));
+	X.Put(iFirstIndex + 1, XPrev);
+	X.Put(iFirstIndex + 4, Vec3(0.));
 	gRef = gCurr = gPRef = gPCurr = Vec3(0.);
-	XP.Put(iFirstIndex+1, VPrev);
-	XP.Put(iFirstIndex+4, WPrev);
+	XP.Put(iFirstIndex + 1, VPrev);
+	XP.Put(iFirstIndex + 4, WPrev);
 }
 
 
@@ -1209,10 +1215,10 @@ StructNode::BeforePredict(VectorHandler& X,
 		WCurr = R0.MulTV(WCurr - W0);
 
 		/* update state vectors with relative position and velocity */
-		X.Put(iFirstPos+1, XCurr);
-		XP.Put(iFirstPos+1, VCurr);
-		XPr.Put(iFirstPos+1, XPrev);
-		XPPr.Put(iFirstPos+1, VPrev);
+		X.Put(iFirstPos + 1, XCurr);
+		XP.Put(iFirstPos + 1, VCurr);
+		XPr.Put(iFirstPos + 1, XPrev);
+		XPPr.Put(iFirstPos + 1, VPrev);
 
 #if 0
 		std::cout << "StructNode(" << GetLabel() << "): "
@@ -1235,22 +1241,22 @@ StructNode::BeforePredict(VectorHandler& X,
 	Mat3x3 RDelta(RPrev.MulMT(RCurr));
 
 	/* Mi assicuro che g al passo corrente sia nullo */
-	X.Put(iFirstPos+4, Vec3(0.));
+	X.Put(iFirstPos + 4, Vec3(0.));
 
 	/* Calcolo g al passo precedente attraverso la matrice RDelta riferita
 	 * a tutto il passo. Siccome RDelta e' calcolata all'indietro,
 	 * i parametri sono gia' con il segno corretto */
 	Vec3 gPrev = MatR2gparam(RDelta);
-	XPr.Put(iFirstPos+4, gPrev);
+	XPr.Put(iFirstPos + 4, gPrev);
 
 	/* Calcolo gP al passo precedente attraverso la definizione
 	 * mediante le Omega. Siccome i parametri sono con il segno meno
 	 * e la matrice RDelta e' gia' calcolata all'indietro, l'insieme
 	 * e' consistente */
-	XPPr.Put(iFirstPos+4, Mat3x3(MatGm1, gPrev)*WPrev);
+	XPPr.Put(iFirstPos + 4, Mat3x3(MatGm1, gPrev)*WPrev);
 
 	/* Metto Omega al passo corrente come gP (perche' G(0) = I) */
-	XP.Put(iFirstPos+4, WCurr);
+	XP.Put(iFirstPos + 4, WCurr);
 
 #if 0
 	std::cout
@@ -1288,11 +1294,11 @@ StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 	integer iFirstIndex = iGetFirstIndex();
 
 	/* Spostamento e velocita' aggiornati */
-	XCurr = Vec3(X, iFirstIndex+1);
-	VCurr = Vec3(XP, iFirstIndex+1);
+	XCurr = Vec3(X, iFirstIndex + 1);
+	VCurr = Vec3(XP, iFirstIndex + 1);
 
 	/* Ottengo il g predetto */
-	gRef = Vec3(X, iFirstIndex+4);
+	gRef = Vec3(X, iFirstIndex + 4);
 
 	/* Calcolo la matrice RDelta derivante dalla predizione */
 	Mat3x3 RDelta(MatR, gRef);
@@ -1301,14 +1307,14 @@ StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 	RCurr = RDelta*RPrev;
 
 	/* Calcolo la Omega corrente in base alla predizione (gP "totale") */
-	gPRef = Vec3(XP, iFirstIndex+4);
+	gPRef = Vec3(XP, iFirstIndex + 4);
 
 	/* Calcolo il nuovo Omega */
 	WCurr = Mat3x3(MatG, gRef)*gPRef;
 
 	/* Resetto i parametri di rotazione e le derivate, g e gP */
-	X.Put(iFirstIndex+4, Vec3(0.));
-	XP.Put(iFirstIndex+4, Vec3(0.));
+	X.Put(iFirstIndex + 4, Vec3(0.));
+	XP.Put(iFirstIndex + 4, Vec3(0.));
 
 	gCurr = gPCurr = Vec3(0.);
 
@@ -1344,8 +1350,8 @@ StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 
 		/* to be safe, the correct values are put back
 		 * in the state vectors */
-		X.Put(iFirstIndex+1, XCurr);
-		XP.Put(iFirstIndex+1, VCurr);
+		X.Put(iFirstIndex + 1, XCurr);
+		XP.Put(iFirstIndex + 1, VCurr);
 
 #if 0
 		std::cout << "StructNode(" << GetLabel() << "): "
@@ -1393,7 +1399,7 @@ StructNode::AfterConvergence(const VectorHandler& X,
 	 * Get g and impose it as gRef: successive iterations 
 	 * use gRef as reference and the solution is a perturbation
 	 * from it */
-	gRef = Vec3(X, iFirstIndex+4);
+	gRef = Vec3(X, iFirstIndex + 4);
 	gCurr = Vec3(0.);
 	RRef = RCurr;
 }
