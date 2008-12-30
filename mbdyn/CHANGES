@@ -22,6 +22,7 @@ MBDyn 1.X-Devel
 		- add "abort if broken" keyword to stream output elements
 		- add RTAI-based motion output
 		- add embryonic relative frame dynamics & aerodynamics
+		- clamp joint more resilient to large transient violations
 	Backward compatibility issues:
 		- now immediate abort requires CTRL^C three times
 		- changed real-time args order (not backward compatible)
@@ -37,6 +38,7 @@ MBDyn 1.X-Devel
 		- do not remove module dir while making distclean
 		- fix check for module load early call
 		  (noted by Riccardo Gori)
+		- minor fix to clamp joint inverse dynamics
 
 MBDyn 1.3.4-Beta
 	Enhancements:
