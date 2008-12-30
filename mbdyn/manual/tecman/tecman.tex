@@ -770,12 +770,15 @@ with every linked \texttt{ExpandableRowVector} taken in account.
 
 
 \chapter{Nodes}
+\label{sec:nodes}
 
 \section{Structural Nodes}
+\label{sec:nodes:structural nodes}
 Structural nodes provide the kinematics unknowns
 and the corresponding equilibrium equations.
 
 \subsection{Dynamic Structural Nodes}
+\label{sec:nodes:structural nodes:dynamic structural nodes}
 The dynamic structural node also provides momentum and momenta moment
 unknowns, and the equations that represent their definition
 in terms of the inertia properties and the node's kinematics:
@@ -847,6 +850,7 @@ The perturbation of the inertia force and moment yields
 
 
 \subsubsection{Accelerations}
+\label{sec:nodes:structural nodes:dynamic structural nodes:accelerations}
 Since momentum and momenta moments are used as the unknowns
 that take care of inertia, linear and angular accelerations
 are not directly available from the simulation.
@@ -883,6 +887,7 @@ As a consequence, the linear and angular accelerations are computed as
 
 
 \subsection{Static Structural Nodes}
+\label{sec:nodes:structural nodes:static structural nodes}
 Static structural nodes represent a degeneration of the dynamic ones,
 when the inertia is structurally null.
 In that case, no momentum nor momenta moment definition equations
@@ -890,6 +895,7 @@ are instantiated, and their derivatives are always null.
 As a consequence, static nodes only instantiate their equilibrium equations.
 
 \subsection{Dummy Nodes}
+\label{sec:nodes:structural nodes:dummy nodes}
 Dummy nodes are special structural nodes that do not directly 
 participate in the analysis.
 In fact, they do not provide degrees of freedom; they rather
@@ -950,6 +956,7 @@ according to the transformation
 
 
 \subsection{Relative Motion}
+\label{sec:nodes:structural nodes:relative motion}
 MBDyn uses the absolute coordinates of the nodes,
 and their absolute orientation, to define the motion.
 Whenever the representation of the motion in a relative reference frame
@@ -970,7 +977,8 @@ Absolute motion as function of relative (tilde) and reference (0) motion:
 	\T{\omega} &= \T{\omega}_0 + \TT{R}_0 \tilde{\T{\omega}} \\
 	\dot{\T{x}} &= \dot{\T{x}}_0
 		+ \T{\omega}_0 \times \TT{R}_0 \tilde{\T{x}}
-		+ \TT{R}_0 \dot{\tilde{\T{x}}} \\
+		+ \TT{R}_0 \dot{\tilde{\T{x}}}
+		\label{eq:relframe:xp} \\
 	\dot{\T{\omega}} &= \dot{\T{\omega}}_0
 		+ \T{\omega}_0 \times \TT{R}_0 \tilde{\T{\omega}}
 		+ \TT{R}_0 \dot{\tilde{\T{\omega}}} \\
@@ -1154,6 +1162,7 @@ Perturbation, when reference motion is independent:
 \end{subequations}
 
 \subsection{Motion Expressed in a Relative Reference Frame}
+\label{sec:nodes:structural nodes:relative frame motion}
 An alternative, useful case is given by representing the absolute motion
 in a relative reference frame:
 \begin{subequations}
@@ -1169,6 +1178,7 @@ in a relative reference frame:
 
 
 \subsection{Dynamics in a Relative Reference Frame}
+\label{sec:nodes:structural nodes:relative frame dynamics}
 The rationale is that MBDyn is based on the assumption
 that the kinematics of the nodes and their equations of motion
 are formulated in the global reference frame.
@@ -1469,7 +1479,79 @@ To summarize:
 	}} \tilde{\T{\theta}}_{\delta}
 \end{align}
 
+
+
+\subsection{Airstream Velocity}
+\label{sec:nodes:structural nodes:airstream velocity}
+Aerodynamic elements need the absolute velocity of specific points
+in order to evaluate the boundary conditions for the computation
+of the aerodynamic forces.
+
+The velocity of the airstream at a given absolute location $\T{x}$ is
+\begin{align}
+	\T{v}_{\text{as}}
+	&= \T{v}_{\text{as}}\!\plbr{\T{x}, t} ,
+\end{align}
+which results from the superimposition of a time-dependent airstream velocity
+and of a time- and space-dependent gust velocity,
+\begin{align}
+	\T{v}_{\text{as}}
+	&= \T{v}_{\text{as0}}\!\plbr{t}
+	+ \T{v}_{\text{g}}\!\plbr{\T{x}, t} .
+\end{align}
+The velocity of point $\T{x}$ with respect to the air at point $\T{x}$
+itself is thus
+\begin{align}
+	\T{v}_{\text{a}}
+	&= \dot{\T{x}}
+	- \T{v}_{\text{as}} .
+	\label{eq:relframe:air:vel-air-point-x}
+\end{align}
+When the motion of the point is expressed in the relative reference frame,
+the position of the point is expressed by Eq.~(\ref{eq:relframe:xp}).
+The velocity of Eq.~(\ref{eq:relframe:air:vel-air-point-x}) becomes
+\begin{align}
+	\T{v}_{\text{a}}
+	&= \dot{\T{x}}_0
+	+ \T{\omega}_0 \times \TT{R}_0 \tilde{\T{x}}
+	+ \TT{R}_0 \dot{\tilde{\T{x}}}
+	- \T{v}_{\text{as}} .
+\end{align}
+This velocity, projected in the relative reference frame, is
+\begin{align}
+	\overline{\T{v}}_{\text{a}}
+	&= \TT{R}_0^T \T{v}_{\text{a}} \nonumber \\
+	&= \dot{\overline{\T{x}}}_0
+	+ \overline{\T{\omega}}_0 \times \tilde{\T{x}}
+	+ \dot{\tilde{\T{x}}}
+	- \overline{\T{v}}_{\text{as}} .
+\end{align}
+When referring aerodynamic elements to the relative frame,
+the equivalent airstream speed is thus
+\begin{align}
+	\T{v}_{\text{as equivalent}}
+	&=
+	\overline{\T{v}}_{\text{as}}
+	- \dot{\overline{\T{x}}}_0
+	- \overline{\T{\omega}}_0 \times \tilde{\T{x}} ,
+\end{align}
+so that the velocity of the air at point $\tilde{\T{x}}$ is computed as
+\begin{align}
+	\overline{\T{v}}_{\text{a}}
+	&= \dot{\tilde{\T{x}}}
+	- \T{v}_{\text{as equivalent}} ,
+\end{align}
+in analogy with Eq.~(\ref{eq:relframe:air:vel-air-point-x}).
+This allows to confine the relative reference frame modification
+of the aerodynamic forces in the computation of the airstream velocity.
+
+
+
+
 \subsection{Implementation Notes}
+\label{sec:nodes:structural nodes:implementation notes}
+
+\subsubsection{Kinematics}
 The relative reference frame dynamics is under development.
 In the current design, the whole model is subjected 
 to a single relative reference frame.
@@ -1485,6 +1567,7 @@ The \texttt{StructNode} is responsible for providing a pointer
 to a \texttt{RigidBodyKinematics} object that describes
 the relative frame motion.
 
+\subsubsection{Dynamics}
 The equations of motion (force and moment equilibrium)
 and the definitions of the momentum and momenta moment are not altered.
 
@@ -1495,15 +1578,19 @@ The \texttt{DynamicBody} element takes care of the remaining portion
 of relative frame inertia forces.
 
 \textbf{TODO:} \
-The \texttt{StaticBody} element will need to be modified accordingly.
-The \texttt{AirProperties} element will need to take care
-of the relative frame motion in order to project
-the absolute reference frame airstream into the relative reference frame.
-The \texttt{RigidBodyKinematics} will need to inherit from
-\texttt{SimulationEntity}, in order to be able to \texttt{Update}
-and thus avoid repeating evaluations of reference frame kinematic
-entities.
+The \texttt{StaticBody} element needs to be modified accordingly.
 
+\subsubsection{Air Properties}
+The \texttt{AirProperties} element takes care of the relative frame motion
+in order to project the absolute reference frame airstream velocity
+into the relative reference frame,
+according to Section~\ref{sec:nodes:structural nodes:airstream velocity}.
+
+All other built-in aerodynamic elements should naturally inherit
+the correct air velocity at the reference points.
+
+
+\subsubsection{Future Development}
 Future development may allow to have multiple relative reference frame
 submodels, connected to each other and to the absolute reference frame
 submodel, if any, by dedicated algebraic constraints.
@@ -1512,6 +1599,7 @@ submodel, if any, by dedicated algebraic constraints.
 
 
 \subsection{Pseudo-Velocities Approach}
+\label{sec:nodes:structural nodes:pseudo-velocities approach}
 NOTE: this is not currently implemented, nor foreseen.
 
 The pseudo-velocities approach consists in replacing the momentum
