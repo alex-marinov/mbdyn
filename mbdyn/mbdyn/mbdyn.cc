@@ -556,8 +556,8 @@ mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 #endif /* HAVE_GETOPT */
 }
 
-int
-mbdyn_program( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
+static int
+mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 {
 	mbdyn_welcome();
 #ifdef USE_MPI
@@ -877,6 +877,7 @@ main(int argc, char* argv[])
 
 	if (mbp.bException) {
 		mbdyn_program(mbp, argc, argv, currarg);
+
 	} else {
 	    	/* The program is a big try block */
 	    	try {
@@ -1142,6 +1143,7 @@ endofcycle:
     	/* Runs the simulation */
 	if (bException) {
 		pSolv->Run();
+
 	} else {
 		try {
     			/* Runs the simulation */
