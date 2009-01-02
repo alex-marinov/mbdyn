@@ -80,9 +80,7 @@ template <int off>
 VectorHandler&
 CColMatrixHandler<off>::GetCol(integer icol, VectorHandler& out) const
 {
-	/*
-	 * Note: we assume out has been reset
-	 */
+	// NOTE: out must be zeroed by caller
 	
         if (icol > iGetNumCols()) {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -105,25 +103,51 @@ CColMatrixHandler<off>::MatMatMul_base(void (MatrixHandler::*op)(integer iRow,
 			integer iCol, const doublereal& dCoef),
 			MatrixHandler* out, const MatrixHandler& in) const
 {
-	silent_cerr("CColMatrixHandler<off>::MatMatMul_base called"
-			<< std::endl);
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
+	ASSERT(in.iGetNumRows() == NCols);
+	ASSERT(out.iGetNumRows() == NRows);
+	ASSERT(in.iGetNumCols() == out.iGetNumCols());
+
+	// NOTE: out must be zeroed by caller
+
+	integer ncols_in = in.iGetNumCols();
+
+	for (integer col_idx = 1; col_idx <= NCols; col_idx++) {
+		integer re = Ap[col_idx];
+		integer ri = Ap[col_idx - 1];
+		for ( ; ri < re; ri++) {
+			integer row_idx = Ai[ri] + 1;
+			const doublereal& d = Ax[ri];
+			for (integer col_in = 1; col_in <= ncols_in; col_in++) {
+				(out->*op)(row_idx, col_in, d*in(col_idx, col_in));
+			}
+		}
+	}
+
+	return out;
 }
 
+/* Prodotto Matrice trasposta per Matrice */
 template <int off>
 MatrixHandler*
 CColMatrixHandler<off>::MatTMatMul_base(void (MatrixHandler::*op)(integer iRow,
 			integer iCol, const doublereal& dCoef),
 			MatrixHandler* out, const MatrixHandler& in) const
 {
+	ASSERT(in.iGetNumRows() == NRows);
+	ASSERT(out.iGetNumRows() == NCols);
+	ASSERT(in.iGetNumCols() == out.iGetNumCols());
+	// NOTE: out must be zeroed by caller
+
 	integer ncols_in = in.iGetNumCols();
-	for (integer row_out = 0; row_out < NCols; row_out++) {
-		integer ri, re;
-		re = Ap[row_out + 1] - off;
-		for (ri = Ap[row_out] - off; ri < re; ri++) {
-			for (integer col_in = 1; col_in <= ncols_in;  col_in++) {
-				(out->*op)(row_out + 1, col_in,
-						Ax[Ai[ri] - off]*in(Ai[ri] - off + 1, col_in));
+
+	for (integer col_idx = 1; col_idx <= NCols; col_idx++) {
+		integer re = Ap[col_idx];
+		integer ri = Ap[col_idx - 1];
+		for ( ; ri < re; ri++) {
+			integer row_idx = Ai[ri] + 1;
+			const doublereal& d = Ax[ri];
+			for (integer col_in = 1; col_in <= ncols_in; col_in++) {
+				(out->*op)(col_idx, col_in, d*in(row_idx, col_in));
 			}
 		}
 	}
@@ -153,7 +177,7 @@ CColMatrixHandler<off>::MulAndSumWithShift(MatrixHandler& out, doublereal s,
 		integer idxe = Ap[col+1];
 		integer newcol = col + dcol + 1;
 		for (; idx < idxe; idx++) {
-			out.IncCoef(Ai[idx]+drow,newcol,Ax[idx]*s);
+			out.IncCoef(Ai[idx] + drow, newcol, Ax[idx]*s);
 		}
 	}
 	return out;	
@@ -184,7 +208,7 @@ CColMatrixHandler<off>::FakeThirdOrderMulAndSumWithShift(MatrixHandler& out,
 		integer newcol = col + dcol + 1;
 		for (; idx < idxe; idx++) {
 			if (b[Ai[idx]]) {
-				out.IncCoef(Ai[idx]+drow,newcol,Ax[idx]*s);
+				out.IncCoef(Ai[idx] + drow, newcol, Ax[idx]*s);
 			}
 		}
 	}
@@ -198,20 +222,47 @@ CColMatrixHandler<off>::MatVecMul_base(void (VectorHandler::*op)(integer iRow,
 			const doublereal& dCoef),
 			VectorHandler& out, const VectorHandler& in) const
 {
-	silent_cerr("CColMatrixHandler<off>::MatVecMul_base called"
-			<< std::endl);
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
+	ASSERT(in.iGetSize() == NCols);
+	ASSERT(out.iGetSize() == NRows);
+
+	// NOTE: out must be zeroed by caller
+
+	for (integer col_idx = 1; col_idx <= NCols; col_idx++) {
+		integer re = Ap[col_idx];
+		integer ri = Ap[col_idx - 1];
+		for ( ; ri < re; ri++) {
+			integer row_idx = Ai[ri] + 1;
+			const doublereal& d = Ax[ri];
+			(out.*op)(row_idx, d*in(col_idx));
+		}
+	}
+
+	return out;
 }
 
+/* Prodotto Matrice trasposta per Vettore */
 template <int off>
 VectorHandler&
 CColMatrixHandler<off>::MatTVecMul_base(void (VectorHandler::*op)(integer iRow,
 			const doublereal& dCoef),
 			VectorHandler& out, const VectorHandler& in) const
 {
-	silent_cerr("CColMatrixHandler<off>::MatTVecMul_base called"
-			<< std::endl);
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
+	ASSERT(in.iGetSize() == NRows);
+	ASSERT(out.iGetSize() == NCols);
+
+	// NOTE: out must be zeroed by caller
+
+	for (integer col_idx = 1; col_idx <= NCols; col_idx++) {
+		integer re = Ap[col_idx];
+		integer ri = Ap[col_idx - 1];
+		for ( ; ri < re; ri++) {
+			integer row_idx = Ai[ri] + 1;
+			const doublereal& d = Ax[ri];
+			(out.*op)(col_idx, d*in(row_idx));
+		}
+	}
+
+	return out;
 }
 
 template class CColMatrixHandler<0>;
