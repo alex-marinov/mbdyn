@@ -87,7 +87,7 @@ D. Code:
 			mbdyn > ascii
 			mbdyn > netcdf (in global output database)
 	- add aerodynamic elements Jacobian matrix contribution
-	- add sparse eigenvalue extraction (see ARPACK++)
+	- add sparse eigenvalue extraction (see ARPACK/ARPACK++)
 	- add center of mass computation/constraint
 
 	Small Projects:
