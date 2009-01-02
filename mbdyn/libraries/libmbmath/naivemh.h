@@ -109,14 +109,14 @@ public:
 
 protected:
         /* Matrix Matrix product */
-	virtual MatrixHandler*
+	virtual MatrixHandler&
 	MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
 				const doublereal& dCoef),
-			MatrixHandler* out, const MatrixHandler& in) const;
-	virtual MatrixHandler*
+			MatrixHandler& out, const MatrixHandler& in) const;
+	virtual MatrixHandler&
 	MatTMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
 				const doublereal& dCoef),
-			MatrixHandler* out, const MatrixHandler& in) const;
+			MatrixHandler& out, const MatrixHandler& in) const;
 
 	/* Matrix Vector product */
 	virtual VectorHandler&
@@ -202,14 +202,14 @@ public:
 
 protected:
         /* Matrix Matrix product */
-	virtual MatrixHandler*
+	virtual MatrixHandler&
 	MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
 				const doublereal& dCoef),
-			MatrixHandler* out, const MatrixHandler& in) const;
-	virtual MatrixHandler*
+			MatrixHandler& out, const MatrixHandler& in) const;
+	virtual MatrixHandler&
 	MatTMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
 				const doublereal& dCoef),
-			MatrixHandler* out, const MatrixHandler& in) const;
+			MatrixHandler& out, const MatrixHandler& in) const;
 
 	/* Matrix Vector product */
 	virtual VectorHandler&

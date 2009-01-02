@@ -305,8 +305,8 @@ void MLSP::Interpolate(std::vector<Node>& FemNodes, std::vector<Node>& MbNodes, 
 		/* calcola le matrici A e B */
 		int d2 = pP.iGetNumCols();
 		FullMatrixHandler A(d2,d2),B(d2,N);;
-		pP.MatTMatMul(&B,pW);
-		B.MatMatMul(&A,pP);
+		pP.MatTMatMul(B,pW);
+		B.MatMatMul(A,pP);
 		// Calcolo della pseudo inversa
 		int ord = N;
 		int info;

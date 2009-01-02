@@ -170,8 +170,8 @@ MLSP::Interpolate(const GeometryData& fem_data, const GeometryData& mb_data, SpM
 		// Computing Matrix
 		int d2 = pP.iGetNumCols();
 		FullMatrixHandler A(d2,d2),B(d2,N);;
-		pP.MatTMatMul(&B,pW);
-		B.MatMatMul(&A,pP);
+		pP.MatTMatMul(B,pW);
+		B.MatMatMul(A,pP);
 		int ord = N;
 		int info;
 		double* S = new double[d2];
@@ -271,8 +271,8 @@ MLSP::Interpolate_Adj(const GeometryData& fem_data, const GeometryData& mb_data,
 		// Computing Matrix
 		int d2 = pP.iGetNumCols();
 		FullMatrixHandler A(d2,d2),B(d2,N);;
-		pP.MatTMatMul(&B,pW);
-		B.MatMatMul(&A,pP);
+		pP.MatTMatMul(B,pW);
+		B.MatMatMul(A,pP);
 		int ord = N;
 		int info;
 		double* S = new double[d2];

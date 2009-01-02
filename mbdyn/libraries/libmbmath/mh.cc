@@ -108,98 +108,98 @@ MatrixHandler::ScalarMul(const doublereal& d)
 }
 
 /* Matrix Matrix product */
-MatrixHandler*
+MatrixHandler&
 MatrixHandler::MatMatMul_base(void (MatrixHandler::*op)(integer iRow, 
 			integer iCol, const doublereal& dCoef),
-		MatrixHandler* out, const MatrixHandler& in) const
+		MatrixHandler& out, const MatrixHandler& in) const
 {
-	if (out->iGetNumRows() != iGetNumRows()
-			|| out->iGetNumCols() != in.iGetNumCols()
+	if (out.iGetNumRows() != iGetNumRows()
+			|| out.iGetNumCols() != in.iGetNumCols()
 			|| in.iGetNumRows() != iGetNumCols())
 	{
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	for (integer c = 1; c <= out->iGetNumCols(); c++) {
-		for (integer r = 1; r <= out->iGetNumRows(); r++) {
+	for (integer c = 1; c <= out.iGetNumCols(); c++) {
+		for (integer r = 1; r <= out.iGetNumRows(); r++) {
 			doublereal d = 0.;
 
 			for (integer k = 1; k <= in.iGetNumRows(); k++) {
 				d += dGetCoef(r, k)*in(k, c);
 			}
 
-			(out->*op)(r, c, d);
+			(out.*op)(r, c, d);
 		}
 	}
 
 	return out;
 }
 
-MatrixHandler*
+MatrixHandler&
 MatrixHandler::MatTMatMul_base(void (MatrixHandler::*op)(integer iRow, 
 			integer iCol, const doublereal& dCoef),
-		MatrixHandler* out, const MatrixHandler& in) const
+		MatrixHandler& out, const MatrixHandler& in) const
 {
-	if (out->iGetNumRows() != iGetNumCols()
-			|| out->iGetNumCols() != in.iGetNumCols()
+	if (out.iGetNumRows() != iGetNumCols()
+			|| out.iGetNumCols() != in.iGetNumCols()
 			|| in.iGetNumRows() != iGetNumRows())
 	{
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	for (integer c = 1; c <= out->iGetNumCols(); c++) {
-		for (integer r = 1; r <= out->iGetNumRows(); r++) {
+	for (integer c = 1; c <= out.iGetNumCols(); c++) {
+		for (integer r = 1; r <= out.iGetNumRows(); r++) {
 			doublereal d = 0.;
 
 			for (integer k = 1; k <= in.iGetNumRows(); k++) {
 				d += dGetCoef(k, r)*in(k, c);
 			}
 
-			(out->*op)(r, c, d);
+			(out.*op)(r, c, d);
 		}
 	}
 
 	return out;
 }
 
-MatrixHandler*
-MatrixHandler::MatMatMul(MatrixHandler* out, const MatrixHandler& in) const
+MatrixHandler&
+MatrixHandler::MatMatMul(MatrixHandler& out, const MatrixHandler& in) const
 {
 	/* Put is implemented resetting out first, then passing IncCoef()
 	 * so that out-of-order assignments work */
-	out->Reset();
+	out.Reset();
 	return MatMatMul_base(&MatrixHandler::IncCoef, out, in);
 }
 
-MatrixHandler*
-MatrixHandler::MatTMatMul(MatrixHandler* out, const MatrixHandler& in) const
+MatrixHandler&
+MatrixHandler::MatTMatMul(MatrixHandler& out, const MatrixHandler& in) const
 {
 	/* Put is implemented resetting out first, then passing IncCoef()
 	 * so that out-of-order assignments work */
-	out->Reset();
+	out.Reset();
 	return MatTMatMul_base(&MatrixHandler::IncCoef, out, in);
 }
 
-MatrixHandler*
-MatrixHandler::MatMatIncMul(MatrixHandler* out, const MatrixHandler& in) const
+MatrixHandler&
+MatrixHandler::MatMatIncMul(MatrixHandler& out, const MatrixHandler& in) const
 {
 	return MatMatMul_base(&MatrixHandler::IncCoef, out, in);
 }
 
-MatrixHandler*
-MatrixHandler::MatTMatIncMul(MatrixHandler* out, const MatrixHandler& in) const
+MatrixHandler&
+MatrixHandler::MatTMatIncMul(MatrixHandler& out, const MatrixHandler& in) const
 {
 	return MatTMatMul_base(&MatrixHandler::IncCoef, out, in);
 }
 
-MatrixHandler*
-MatrixHandler::MatMatDecMul(MatrixHandler* out, const MatrixHandler& in) const
+MatrixHandler&
+MatrixHandler::MatMatDecMul(MatrixHandler& out, const MatrixHandler& in) const
 {
 	return MatMatMul_base(&MatrixHandler::DecCoef, out, in);
 }
 
-MatrixHandler*
-MatrixHandler::MatTMatDecMul(MatrixHandler* out, const MatrixHandler& in) const
+MatrixHandler&
+MatrixHandler::MatTMatDecMul(MatrixHandler& out, const MatrixHandler& in) const
 {
 	return MatTMatMul_base(&MatrixHandler::DecCoef, out, in);
 }
@@ -211,7 +211,8 @@ MatrixHandler::MatVecMul_base(void (VectorHandler::*op)(integer iRow,
 		VectorHandler& out, const VectorHandler& in) const
 {
 	if (out.iGetSize() != iGetNumRows()
-			|| in.iGetSize() != iGetNumCols()) {
+			|| in.iGetSize() != iGetNumCols())
+	{
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -234,7 +235,8 @@ MatrixHandler::MatTVecMul_base(void (VectorHandler::*op)(integer iRow,
 		VectorHandler& out, const VectorHandler& in) const
 {
 	if (out.iGetSize() != iGetNumCols()
-			|| in.iGetSize() != iGetNumRows()) {
+			|| in.iGetSize() != iGetNumRows())
+	{
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 

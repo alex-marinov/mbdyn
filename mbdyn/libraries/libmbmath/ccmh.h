@@ -64,10 +64,10 @@ public:
 
 public:
 	doublereal & operator()(integer i_row, integer i_col) {
-		ASSERTMSGBREAK(i_row > 0 && i_row <= NRows,
+		ASSERTMSGBREAK(i_row > 0 && i_row <= SparseMatrixHandler::iGetNumRows(),
 				"Error in CColMatrixHandler::operator(), "
 				"row index out of range");
-		ASSERTMSGBREAK(i_col > 0 && i_col <= NCols,
+		ASSERTMSGBREAK(i_col > 0 && i_col <= SparseMatrixHandler::iGetNumCols(),
 				"Error in CColMatrixHandler::operator(), "
 				"col index out of range");
 		i_row--;
@@ -101,10 +101,10 @@ public:
 	};
 
 	const doublereal& operator () (integer i_row, integer i_col) const {
-		ASSERTMSGBREAK(i_row > 0 && i_row <= NRows,
+		ASSERTMSGBREAK(i_row > 0 && i_row <= SparseMatrixHandler::iGetNumRows(),
 				"Error in CColMatrixHandler::operator(), "
 				"row index out of range");
-		ASSERTMSGBREAK(i_col > 0 && i_col <= NCols,
+		ASSERTMSGBREAK(i_col > 0 && i_col <= SparseMatrixHandler::iGetNumCols(),
 				"Error in CColMatrixHandler::operator(), "
 				"col index out of range");
 		i_row--;

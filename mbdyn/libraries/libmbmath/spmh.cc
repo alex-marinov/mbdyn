@@ -166,10 +166,10 @@ CompactSparseMatrixHandler_tpl<off>::~CompactSparseMatrixHandler_tpl(void)
 
 /* Prodotto Matrice per Matrice */
 template <int off>
-MatrixHandler*
+MatrixHandler&
 CompactSparseMatrixHandler_tpl<off>::MatMatMul_base(
 	void (MatrixHandler::*op)(integer iRow, integer iCol, const doublereal& dCoef),
-	MatrixHandler* out, const MatrixHandler& in) const
+	MatrixHandler& out, const MatrixHandler& in) const
 {
 	ASSERT(in.iGetNumRows() == NCols);
 	ASSERT(out.iGetNumRows() == NRows);
@@ -186,7 +186,7 @@ CompactSparseMatrixHandler_tpl<off>::MatMatMul_base(
 			integer row_idx = Ai[ri] - off + 1;
 			const doublereal& d = Ax[ri];
 			for (integer col_in = 1; col_in <= ncols_in; col_in++) {
-				(out->*op)(row_idx, col_in, d*in(col_idx, col_in));
+				(out.*op)(row_idx, col_in, d*in(col_idx, col_in));
 			}
 		}
 	}
@@ -196,10 +196,10 @@ CompactSparseMatrixHandler_tpl<off>::MatMatMul_base(
 
 /* Prodotto Matrice trasposta per Matrice */
 template <int off>
-MatrixHandler*
+MatrixHandler&
 CompactSparseMatrixHandler_tpl<off>::MatTMatMul_base(
 	void (MatrixHandler::*op)(integer iRow, integer iCol, const doublereal& dCoef),
-	MatrixHandler* out, const MatrixHandler& in) const
+	MatrixHandler& out, const MatrixHandler& in) const
 {
 	ASSERT(in.iGetNumRows() == NRows);
 	ASSERT(out.iGetNumRows() == NCols);
@@ -215,7 +215,7 @@ CompactSparseMatrixHandler_tpl<off>::MatTMatMul_base(
 			integer row_idx = Ai[ri] - off + 1;
 			const doublereal& d = Ax[ri];
 			for (integer col_in = 1; col_in <= ncols_in; col_in++) {
-				(out->*op)(col_idx, col_in, d*in(row_idx, col_in));
+				(out.*op)(col_idx, col_in, d*in(row_idx, col_in));
 			}
 		}
 	}

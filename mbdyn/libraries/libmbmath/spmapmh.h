@@ -272,14 +272,14 @@ public:
 	
 	/* Matrix Matrix product */
 protected:
-	MatrixHandler*
+	MatrixHandler&
 	MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
 				const doublereal& dCoef),
-			MatrixHandler* out, const MatrixHandler& in) const;
-	MatrixHandler*
+			MatrixHandler& out, const MatrixHandler& in) const;
+	MatrixHandler&
 	MatTMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
 				const doublereal& dCoef),
-			MatrixHandler* out, const MatrixHandler& in) const;
+			MatrixHandler& out, const MatrixHandler& in) const;
 public:
 
         /* Moltiplica per uno scalare e somma a una matrice */

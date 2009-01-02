@@ -238,7 +238,7 @@ void Block::InterpAcc(){
 			FemAcc[it_st->first]->ResizeReset(Nfem, it_st->second->iGetNumCols());
 		}
 		// Calcolo delle accelerazioni
-		H->MatMatMul(FemAcc[it_st->first],*it_st->second);
+		H->MatMatMul(*FemAcc[it_st->first], *it_st->second);
 		if (beam && FemMM != 0) {
 			// Calcolo delle coppie di inerzia
 			// Allocazione dello spazio per la matrice
@@ -305,7 +305,7 @@ void Block::InterpDisp(){
 			FemDisp[it_st->first]->ResizeReset(Nfem, it_st->second->iGetNumCols());
 		}
 		// Calcolo degli spostamenti
-		H->MatMatMul(FemDisp[it_st->first],*it_st->second);
+		H->MatMatMul(*FemDisp[it_st->first], *it_st->second);
 	}
 }
 

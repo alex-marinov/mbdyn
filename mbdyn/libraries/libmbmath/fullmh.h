@@ -203,14 +203,14 @@ public:
 
 #if 0	/* by now, use the default implementation */
 protected:
-	MatrixHandler*
+	MatrixHandler&
 	MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
 				const doublereal& dCoef),
-			MatrixHandler* out, const MatrixHandler& in) const;
-	MatrixHandler*
+			MatrixHandler& out, const MatrixHandler& in) const;
+	MatrixHandler&
 	MatTMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
 				const doublereal& dCoef),
-			MatrixHandler* out, const MatrixHandler& in) const;
+			MatrixHandler& out, const MatrixHandler& in) const;
 #endif /* by now, use the default implementation */
 
 public:

@@ -147,28 +147,28 @@ public:
 
         /* Matrix Matrix product */
 protected:
-	virtual MatrixHandler*
+	virtual MatrixHandler&
 	MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
 				const doublereal& dCoef),
-			MatrixHandler* out, const MatrixHandler& in) const;
-	virtual MatrixHandler*
+			MatrixHandler& out, const MatrixHandler& in) const;
+	virtual MatrixHandler&
 	MatTMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
 				const doublereal& dCoef),
-			MatrixHandler* out, const MatrixHandler& in) const;
+			MatrixHandler& out, const MatrixHandler& in) const;
 
 public:
-	virtual MatrixHandler*
-	MatMatMul(MatrixHandler* out, const MatrixHandler& in) const;
-	virtual MatrixHandler*
-	MatTMatMul(MatrixHandler* out, const MatrixHandler& in) const;
-	virtual MatrixHandler*
-	MatMatIncMul(MatrixHandler* out, const MatrixHandler& in) const;
-	virtual MatrixHandler*
-	MatTMatIncMul(MatrixHandler* out, const MatrixHandler& in) const;
-	virtual MatrixHandler*
-	MatMatDecMul(MatrixHandler* out, const MatrixHandler& in) const;
-	virtual MatrixHandler*
-	MatTMatDecMul(MatrixHandler* out, const MatrixHandler& in) const;
+	virtual MatrixHandler&
+	MatMatMul(MatrixHandler& out, const MatrixHandler& in) const;
+	virtual MatrixHandler&
+	MatTMatMul(MatrixHandler& out, const MatrixHandler& in) const;
+	virtual MatrixHandler&
+	MatMatIncMul(MatrixHandler& out, const MatrixHandler& in) const;
+	virtual MatrixHandler&
+	MatTMatIncMul(MatrixHandler& out, const MatrixHandler& in) const;
+	virtual MatrixHandler&
+	MatMatDecMul(MatrixHandler& out, const MatrixHandler& in) const;
+	virtual MatrixHandler&
+	MatTMatDecMul(MatrixHandler& out, const MatrixHandler& in) const;
 
 	/* Matrix Vector product */
 protected:

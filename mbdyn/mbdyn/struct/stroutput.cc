@@ -498,7 +498,7 @@ StructOutputInterp::Manipulate_int(const GeometryData& mb_data)
 			}
 		}	
 		// Matrix Product
-		pH->MatMatMul(pX_fem,*pX_mb);
+		pH->MatMatMul(*pX_fem,*pX_mb);
 		// Packing data
 		for (unsigned i = 0 ; i < fem_data.data.size() ; i++){
 			for (int j = 1; j <= 3 ; j++) {
@@ -526,7 +526,7 @@ StructOutputInterp::Manipulate_int(const GeometryData& mb_data)
 			}
 		}	
 		// Matrix Product
-		pH->MatMatMul(pR_fem,*pR_mb);
+		pH->MatMatMul(*pR_fem,*pR_mb);
 		// Packing data
 		for (unsigned i = 0 ; i < fem_data.data.size() ; i++){
 			for (unsigned j = 1; j <= 3 ; j++) {
@@ -557,7 +557,7 @@ StructOutputInterp::Manipulate_int(const GeometryData& mb_data)
 			}
 		}	
 		// Matrix Product
-		pH->MatMatMul(pV_fem,*pV_mb);
+		pH->MatMatMul(*pV_fem,*pV_mb);
 		// Packing data
 		for (unsigned i = 0 ; i < fem_data.data.size() ; i++){
 			for (int j = 1; j <= 3 ; j++) {
@@ -583,7 +583,7 @@ StructOutputInterp::Manipulate_int(const GeometryData& mb_data)
 			}
 		}	
 		// Matrix Product
-		pH->MatMatMul(pW_fem,*pW_mb);
+		pH->MatMatMul(*pW_fem,*pW_mb);
 		// Packing data
 		for (unsigned i = 0 ; i < fem_data.data.size() ; i++){
 			for (int j = 1; j <= 3 ; j++) {
@@ -613,7 +613,7 @@ StructOutputInterp::Manipulate_int(const GeometryData& mb_data)
 			}
 		}	
 		// Matrix Product
-		pH->MatMatMul(pXPP_fem,*pXPP_mb);
+		pH->MatMatMul(*pXPP_fem,*pXPP_mb);
 		// Packing data
 		for (unsigned i = 0 ; i < fem_data.data.size() ; i++){
 			for (int j = 1; j <= 3 ; j++) {
@@ -639,7 +639,7 @@ StructOutputInterp::Manipulate_int(const GeometryData& mb_data)
 			}
 		}	
 		// Matrix Product
-		pH->MatMatMul(pWP_fem,*pWP_mb);
+		pH->MatMatMul(*pWP_fem,*pWP_mb);
 		// Packing data
 		for (unsigned i = 0 ; i < fem_data.data.size() ; i++){
 			for (int j = 1; j <= 3 ; j++) {

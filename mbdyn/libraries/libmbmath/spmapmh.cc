@@ -208,14 +208,14 @@ SpMapMatrixHandler::GetCol(integer icol, VectorHandler& out) const
 }
 
 /* Prodotto Matrice per Matrice */
-MatrixHandler*
+MatrixHandler&
 SpMapMatrixHandler::MatMatMul_base(void (MatrixHandler::*op)(integer iRow,
 			integer iCol, const doublereal& dCoef),
-			MatrixHandler* out, const MatrixHandler& in) const
+			MatrixHandler& out, const MatrixHandler& in) const
 {
 	if ((in.iGetNumRows() != iGetNumCols())
-			|| (in.iGetNumCols() != out->iGetNumCols())
-			|| (out->iGetNumRows() != iGetNumRows()))
+			|| (in.iGetNumCols() != out.iGetNumCols())
+			|| (out.iGetNumRows() != iGetNumRows()))
 	{
 		silent_cerr("Assertion fault "
 			"in SpMapMatrixHandler::MatMatIncMul" << std::endl);
@@ -228,7 +228,7 @@ SpMapMatrixHandler::MatMatMul_base(void (MatrixHandler::*op)(integer iRow,
 		re = col_indices[row_in].end();
 		for (ri = col_indices[row_in].begin(); ri != re; ri++) {
 			for (integer col_in = 1; col_in <= ncols_in;  col_in++) {
-				(out->*op)(ri->first + 1, col_in,
+				(out.*op)(ri->first + 1, col_in,
 						ri->second*in(row_in + 1, col_in));
 			}
 		}
@@ -237,14 +237,14 @@ SpMapMatrixHandler::MatMatMul_base(void (MatrixHandler::*op)(integer iRow,
 	return out;
 }
 
-MatrixHandler*
+MatrixHandler&
 SpMapMatrixHandler::MatTMatMul_base(void (MatrixHandler::*op)(integer iRow,
 			integer iCol, const doublereal& dCoef),
-			MatrixHandler* out, const MatrixHandler& in) const
+			MatrixHandler& out, const MatrixHandler& in) const
 {
 	if ((in.iGetNumRows() != iGetNumCols())
-			|| (in.iGetNumCols() != out->iGetNumCols())
-			|| (out->iGetNumRows() != iGetNumRows()))
+			|| (in.iGetNumCols() != out.iGetNumCols())
+			|| (out.iGetNumRows() != iGetNumRows()))
 	{
 		silent_cerr("Assertion fault "
 			"in SpMapMatrixHandler::MatTMatMul_base" << std::endl);
@@ -257,7 +257,7 @@ SpMapMatrixHandler::MatTMatMul_base(void (MatrixHandler::*op)(integer iRow,
 		re = col_indices[row_out].end();
 		for (ri = col_indices[row_out].begin(); ri != re; ri++) {
 			for (integer col_in = 1; col_in <= ncols_in;  col_in++) {
-				(out->*op)(row_out + 1, col_in,
+				(out.*op)(row_out + 1, col_in,
 						ri->second*in(ri->first + 1, col_in));
 			}
 		}

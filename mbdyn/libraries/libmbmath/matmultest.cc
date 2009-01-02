@@ -197,7 +197,6 @@ main(void)
 	for (int i = 1; i <= 5; i++) {
 		v(i) = 1.;
 
-		out.Reset();
 		spm.MatVecMul(out, v);
 		std::cout << "sp*v(" << i << ")=" << std::endl
 			<< out << std::endl;
@@ -205,7 +204,6 @@ main(void)
 			std::cerr << "*** failed!" << std::endl;
 		}
 
-		out.Reset();
 		spm.MatTVecMul(out, v);
 		std::cout << "sp^T*v(" << i << ")=" << std::endl
 			<< out << std::endl;
@@ -213,7 +211,6 @@ main(void)
 			std::cerr << "*** failed!" << std::endl;
 		}
 
-		out.Reset();
 		nm.MatVecMul(out, v);
 		std::cout << "naive*v(" << i << ")=" << std::endl
 			<< out << std::endl;
@@ -221,7 +218,6 @@ main(void)
 			std::cerr << "*** failed!" << std::endl;
 		}
 
-		out.Reset();
 		nm.MatTVecMul(out, v);
 		std::cout << "naive^T*v(" << i << ")=" << std::endl
 			<< out << std::endl;
@@ -229,7 +225,6 @@ main(void)
 			std::cerr << "*** failed!" << std::endl;
 		}
 
-		out.Reset();
 		npm.MatVecMul(out, v);
 		std::cout << "naiveperm*v(" << i << ")=" << std::endl
 			<< out << std::endl;
@@ -237,7 +232,6 @@ main(void)
 			std::cerr << "*** failed!" << std::endl;
 		}
 
-		out.Reset();
 		npm.MatTVecMul(out, v);
 		std::cout << "naiveperm^T*v(" << i << ")=" << std::endl
 			<< out << std::endl;
@@ -245,7 +239,6 @@ main(void)
 			std::cerr << "*** failed!" << std::endl;
 		}
 
-		out.Reset();
 		ccm0.MatVecMul(out, v);
 		std::cout << "cc<0>*v(" << i << ")=" << std::endl
 			<< out << std::endl;
@@ -253,7 +246,6 @@ main(void)
 			std::cerr << "*** failed!" << std::endl;
 		}
 
-		out.Reset();
 		ccm0.MatTVecMul(out, v);
 		std::cout << "cc<0>^T*v(" << i << ")=" << std::endl
 			<< out << std::endl;
@@ -261,7 +253,6 @@ main(void)
 			std::cerr << "*** failed!" << std::endl;
 		}
 
-		out.Reset();
 		ccm1.MatVecMul(out, v);
 		std::cout << "cc<1>*v(" << i << ")=" << std::endl
 			<< out << std::endl;
@@ -269,7 +260,6 @@ main(void)
 			std::cerr << "*** failed!" << std::endl;
 		}
 
-		out.Reset();
 		ccm1.MatTVecMul(out, v);
 		std::cout << "cc<1>^T*v(" << i << ")=" << std::endl
 			<< out << std::endl;
@@ -277,7 +267,6 @@ main(void)
 			std::cerr << "*** failed!" << std::endl;
 		}
 
-		out.Reset();
 		dirm0.MatVecMul(out, v);
 		std::cout << "dir<0>*v(" << i << ")=" << std::endl
 			<< out << std::endl;
@@ -285,7 +274,6 @@ main(void)
 			std::cerr << "*** failed!" << std::endl;
 		}
 
-		out.Reset();
 		dirm0.MatTVecMul(out, v);
 		std::cout << "dir<0>^T*v(" << i << ")=" << std::endl
 			<< out << std::endl;
@@ -293,7 +281,6 @@ main(void)
 			std::cerr << "*** failed!" << std::endl;
 		}
 
-		out.Reset();
 		dirm1.MatVecMul(out, v);
 		std::cout << "dir<1>*v(" << i << ")=" << std::endl
 			<< out << std::endl;
@@ -301,7 +288,6 @@ main(void)
 			std::cerr << "*** failed!" << std::endl;
 		}
 
-		out.Reset();
 		dirm1.MatTVecMul(out, v);
 		std::cout << "dir<1>^T*v(" << i << ")=" << std::endl
 			<< out << std::endl;
@@ -321,112 +307,98 @@ main(void)
 	fmin(4, 4) = 1.;
 	fmin(5, 5) = 1.;
 
-	fmout.Reset();
-	spm.MatMatMul(&fmout, fmin);
+	spm.MatMatMul(fmout, fmin);
 	std::cout << "sp*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
 	
-	fmout.Reset();
-	spm.MatTMatMul(&fmout, fmin);
+	spm.MatTMatMul(fmout, fmin);
 	std::cout << "sp^T*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat_transpose(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
 	
-	fmout.Reset();
-	nm.MatMatMul(&fmout, fmin);
+	nm.MatMatMul(fmout, fmin);
 	std::cout << "naive*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
 	
-	fmout.Reset();
-	nm.MatTMatMul(&fmout, fmin);
+	nm.MatTMatMul(fmout, fmin);
 	std::cout << "naive^T*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat_transpose(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
 	
-	fmout.Reset();
-	npm.MatMatMul(&fmout, fmin);
+	npm.MatMatMul(fmout, fmin);
 	std::cout << "naiveperm*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
 	
-	fmout.Reset();
-	npm.MatTMatMul(&fmout, fmin);
+	npm.MatTMatMul(fmout, fmin);
 	std::cout << "naiveperm^T*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat_transpose(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
 	
-	fmout.Reset();
-	ccm0.MatMatMul(&fmout, fmin);
+	ccm0.MatMatMul(fmout, fmin);
 	std::cout << "cc<0>*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
 	
-	fmout.Reset();
-	ccm0.MatTMatMul(&fmout, fmin);
+	ccm0.MatTMatMul(fmout, fmin);
 	std::cout << "cc<0>^T*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat_transpose(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
 	
-	fmout.Reset();
-	ccm1.MatMatMul(&fmout, fmin);
+	ccm1.MatMatMul(fmout, fmin);
 	std::cout << "cc<1>*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
 	
-	fmout.Reset();
-	ccm1.MatTMatMul(&fmout, fmin);
+	ccm1.MatTMatMul(fmout, fmin);
 	std::cout << "cc<1>^T*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat_transpose(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
 
-	fmout.Reset();
-	dirm0.MatMatMul(&fmout, fmin);
+	dirm0.MatMatMul(fmout, fmin);
 	std::cout << "dir<0>*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
 	
-	fmout.Reset();
-	dirm0.MatTMatMul(&fmout, fmin);
+	dirm0.MatTMatMul(fmout, fmin);
 	std::cout << "dir<0>^T*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat_transpose(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
 	
-	fmout.Reset();
-	dirm1.MatMatMul(&fmout, fmin);
+	dirm1.MatMatMul(fmout, fmin);
 	std::cout << "dir<1>*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat(fmout)) {
 		std::cerr << "*** failed!" << std::endl;
 	}
 	
-	fmout.Reset();
-	dirm1.MatTMatMul(&fmout, fmin);
+	dirm1.MatTMatMul(fmout, fmin);
 	std::cout << "dir<1>^T*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat_transpose(fmout)) {
