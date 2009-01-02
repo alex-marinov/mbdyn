@@ -43,7 +43,7 @@
 
 /* Sparse Matrix in columns form */
 template <int off>
-class CColMatrixHandler : public CompactSparseMatrixHandler {
+class CColMatrixHandler : public CompactSparseMatrixHandler_tpl<off> {
 private:
 #ifdef DEBUG
 	void IsValid(void) const {
@@ -71,33 +71,33 @@ public:
 				"Error in CColMatrixHandler::operator(), "
 				"col index out of range");
 		i_row--;
-		integer row_begin = Ap[i_col - 1];
-		integer row_end = Ap[i_col] - 1;
+		integer row_begin = CompactSparseMatrixHandler_tpl<off>::Ap[i_col - 1] - off;
+		integer row_end = CompactSparseMatrixHandler_tpl<off>::Ap[i_col] - off - 1;
 		integer idx;
 		integer row;
 
-		if (row_begin == Ap[i_col]
-				|| (Ai[row_begin] - off) > i_row
-				|| (Ai[row_end] - off) < i_row)
+		if (row_begin == (CompactSparseMatrixHandler_tpl<off>::Ap[i_col] - off)
+				|| (CompactSparseMatrixHandler_tpl<off>::Ai[row_begin] - off) > i_row
+				|| (CompactSparseMatrixHandler_tpl<off>::Ai[row_end] - off) < i_row)
 		{
 			/* matrix must be rebuilt */
-			throw ErrRebuildMatrix(MBDYN_EXCEPT_ARGS);
+			throw MatrixHandler::ErrRebuildMatrix(MBDYN_EXCEPT_ARGS);
 		}
 
 		while (row_end >= row_begin) {
 			idx = (row_begin + row_end)/2;
-			row = Ai[idx] - off;
+			row = CompactSparseMatrixHandler_tpl<off>::Ai[idx] - off;
 			if (i_row < row) {
 				row_end = idx - 1;
 			} else if (i_row > row) {
 				row_begin = idx + 1;
 			} else {
-				return Ax[idx];
+				return CompactSparseMatrixHandler_tpl<off>::Ax[idx];
 			}
 		}
 
 		/* matrix must be rebuilt */
-		throw ErrRebuildMatrix(MBDYN_EXCEPT_ARGS);
+		throw MatrixHandler::ErrRebuildMatrix(MBDYN_EXCEPT_ARGS);
 	};
 
 	const doublereal& operator () (integer i_row, integer i_col) const {
@@ -108,27 +108,27 @@ public:
 				"Error in CColMatrixHandler::operator(), "
 				"col index out of range");
 		i_row--;
-		integer row_begin = Ap[i_col - 1];
-		integer row_end = Ap[i_col] - 1;
+		integer row_begin = CompactSparseMatrixHandler_tpl<off>::Ap[i_col - 1] - off;
+		integer row_end = CompactSparseMatrixHandler_tpl<off>::Ap[i_col] - off - 1;
 		integer idx;
 		integer row;
 
-		if (row_begin == Ap[i_col]
-				|| Ai[row_begin] - off > i_row
-				|| Ai[row_end] - off < i_row)
+		if (row_begin == CompactSparseMatrixHandler_tpl<off>::Ap[i_col] - off
+				|| CompactSparseMatrixHandler_tpl<off>::Ai[row_begin] - off > i_row
+				|| CompactSparseMatrixHandler_tpl<off>::Ai[row_end] - off < i_row)
 		{
 			return ::dZero;
 		}
 
 		while (row_end >= row_begin) {
 			idx = (row_begin + row_end)/2;
-			row = Ai[idx] - off;
+			row = CompactSparseMatrixHandler_tpl<off>::Ai[idx] - off;
 			if (i_row < row) {
 				row_end = idx - 1;
 			} else if (i_row > row) {
 				row_begin = idx + 1;
 			} else {
-				return Ax[idx];
+				return CompactSparseMatrixHandler_tpl<off>::Ax[idx];
 			}
 		}
 
@@ -139,18 +139,6 @@ public:
 
 	/* Estrae una colonna da una matrice */
 	VectorHandler& GetCol(integer icol, VectorHandler& out) const;
-	
-	/* Matrix Matrix product */
-protected:
-	MatrixHandler*
-	MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
-				const doublereal& dCoef),
-			MatrixHandler* out, const MatrixHandler& in) const;
-	MatrixHandler*
-	MatTMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
-				const doublereal& dCoef),
-			MatrixHandler* out, const MatrixHandler& in) const;
-public:
 
         /* Moltiplica per uno scalare e somma a una matrice */
 	MatrixHandler& MulAndSumWithShift(MatrixHandler& out,
@@ -160,19 +148,6 @@ public:
 	MatrixHandler& FakeThirdOrderMulAndSumWithShift(MatrixHandler& out, 
 		std::vector<bool> b, doublereal s = 1.,
 		integer drow = 0, integer dcol = 0) const;
-
-	/* Matrix Vector product */
-protected:
-	virtual VectorHandler&
-	MatVecMul_base(void (VectorHandler::*op)(integer iRow,
-				const doublereal& dCoef),
-			VectorHandler& out, const VectorHandler& in) const;
-	virtual VectorHandler&
-	MatTVecMul_base(void (VectorHandler::*op)(integer iRow,
-				const doublereal& dCoef),
-			VectorHandler& out, const VectorHandler& in) const;
-
-public:
 };
 
 #endif /* CColMatrixHandler_hh */

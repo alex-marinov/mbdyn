@@ -43,7 +43,7 @@
 
 /* Sparse Matrix in columns form */
 template <int off>
-class DirCColMatrixHandler : public CompactSparseMatrixHandler {
+class DirCColMatrixHandler : public CompactSparseMatrixHandler_tpl<off> {
 private:
 #ifdef DEBUG
 	void IsValid(void) const {
@@ -75,13 +75,14 @@ public:
 		ASSERTMSGBREAK(i_col > 0 && i_col <= NCols,
 				"Error in CColMatrixHandler::operator(), "
 				"col index out of range");
+
 		integer idx = pindices[i_col][i_row];
 		if (idx == -1) {
 			/* matrix must be rebuilt */
-			throw ErrRebuildMatrix(MBDYN_EXCEPT_ARGS);
-		} else  {
-			return Ax[idx];
+			throw MatrixHandler::ErrRebuildMatrix(MBDYN_EXCEPT_ARGS);
 		}
+
+		return CompactSparseMatrixHandler_tpl<off>::Ax[idx];
 	};
 
 	const doublereal& operator () (integer i_row, integer i_col) const {
@@ -97,27 +98,15 @@ public:
 			/* matrix must be rebuilt */
 			return ::dZero;
 
-		} else  {
-			return Ax[idx];
 		}
+
+		return CompactSparseMatrixHandler_tpl<off>::Ax[idx];
 	};
 
 	void Resize(integer n, integer nn);
 
 	/* Estrae una colonna da una matrice */
 	VectorHandler& GetCol(integer icol, VectorHandler& out) const;
-	
-	/* Matrix Matrix product */
-protected:
-	MatrixHandler*
-	MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
-				const doublereal& dCoef),
-			MatrixHandler* out, const MatrixHandler& in) const;
-	MatrixHandler*
-	MatTMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
-				const doublereal& dCoef),
-			MatrixHandler* out, const MatrixHandler& in) const;
-public:
 
         /* Moltiplica per uno scalare e somma a una matrice */
 	MatrixHandler& MulAndSumWithShift(MatrixHandler& out,
@@ -127,19 +116,6 @@ public:
 	MatrixHandler& FakeThirdOrderMulAndSumWithShift(MatrixHandler& out, 
 		std::vector<bool> b, doublereal s = 1.,
 		integer drow = 0, integer dcol = 0) const;
-	
-	/* Matrix Vector product */
-protected:
-	virtual VectorHandler&
-	MatVecMul_base(void (VectorHandler::*op)(integer iRow,
-				const doublereal& dCoef),
-			VectorHandler& out, const VectorHandler& in) const;
-	virtual VectorHandler&
-	MatTVecMul_base(void (VectorHandler::*op)(integer iRow,
-				const doublereal& dCoef),
-			VectorHandler& out, const VectorHandler& in) const;
-
-public:
 };
 
 

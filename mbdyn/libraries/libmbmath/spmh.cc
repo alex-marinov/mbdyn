@@ -145,3 +145,134 @@ CompactSparseMatrixHandler::MakeIndexForm(std::vector<doublereal>& rAx,
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	return Nz();
 }
+
+template <int off>
+CompactSparseMatrixHandler_tpl<off>::CompactSparseMatrixHandler_tpl(
+		const integer &n,
+		const integer &nn,
+		std::vector<doublereal>&x,
+		const std::vector<integer>& i,
+		const std::vector<integer>& p)
+: CompactSparseMatrixHandler(n, nn, x, i, p)
+{
+	NO_OP;
+}
+
+template <int off>
+CompactSparseMatrixHandler_tpl<off>::~CompactSparseMatrixHandler_tpl(void)
+{
+	NO_OP;
+}
+
+/* Prodotto Matrice per Matrice */
+template <int off>
+MatrixHandler*
+CompactSparseMatrixHandler_tpl<off>::MatMatMul_base(
+	void (MatrixHandler::*op)(integer iRow, integer iCol, const doublereal& dCoef),
+	MatrixHandler* out, const MatrixHandler& in) const
+{
+	ASSERT(in.iGetNumRows() == NCols);
+	ASSERT(out.iGetNumRows() == NRows);
+	ASSERT(in.iGetNumCols() == out.iGetNumCols());
+
+	// NOTE: out must be zeroed by caller
+
+	integer ncols_in = in.iGetNumCols();
+
+	for (integer col_idx = 1; col_idx <= NCols; col_idx++) {
+		integer re = Ap[col_idx] - off;
+		integer ri = Ap[col_idx - 1] - off;
+		for ( ; ri < re; ri++) {
+			integer row_idx = Ai[ri] - off + 1;
+			const doublereal& d = Ax[ri];
+			for (integer col_in = 1; col_in <= ncols_in; col_in++) {
+				(out->*op)(row_idx, col_in, d*in(col_idx, col_in));
+			}
+		}
+	}
+
+	return out;
+}
+
+/* Prodotto Matrice trasposta per Matrice */
+template <int off>
+MatrixHandler*
+CompactSparseMatrixHandler_tpl<off>::MatTMatMul_base(
+	void (MatrixHandler::*op)(integer iRow, integer iCol, const doublereal& dCoef),
+	MatrixHandler* out, const MatrixHandler& in) const
+{
+	ASSERT(in.iGetNumRows() == NRows);
+	ASSERT(out.iGetNumRows() == NCols);
+	ASSERT(in.iGetNumCols() == out.iGetNumCols());
+	// NOTE: out must be zeroed by caller
+
+	integer ncols_in = in.iGetNumCols();
+
+	for (integer col_idx = 1; col_idx <= NCols; col_idx++) {
+		integer re = Ap[col_idx] - off;
+		integer ri = Ap[col_idx - 1] - off;
+		for ( ; ri < re; ri++) {
+			integer row_idx = Ai[ri] - off + 1;
+			const doublereal& d = Ax[ri];
+			for (integer col_in = 1; col_in <= ncols_in; col_in++) {
+				(out->*op)(col_idx, col_in, d*in(row_idx, col_in));
+			}
+		}
+	}
+
+	return out;
+}
+
+/* Prodotto Matrice per Vettore */
+template <int off>
+VectorHandler&
+CompactSparseMatrixHandler_tpl<off>::MatVecMul_base(
+	void (VectorHandler::*op)(integer iRow, const doublereal& dCoef),
+	VectorHandler& out, const VectorHandler& in) const
+{
+	ASSERT(in.iGetSize() == NCols);
+	ASSERT(out.iGetSize() == NRows);
+
+	// NOTE: out must be zeroed by caller
+
+	for (integer col_idx = 1; col_idx <= NCols; col_idx++) {
+		integer re = Ap[col_idx] - off;
+		integer ri = Ap[col_idx - 1] - off;
+		for ( ; ri < re; ri++) {
+			integer row_idx = Ai[ri] - off + 1;
+			const doublereal& d = Ax[ri];
+			(out.*op)(row_idx, d*in(col_idx));
+		}
+	}
+
+	return out;
+}
+
+/* Prodotto Matrice trasposta per Vettore */
+template <int off>
+VectorHandler&
+CompactSparseMatrixHandler_tpl<off>::MatTVecMul_base(
+	void (VectorHandler::*op)(integer iRow,
+	const doublereal& dCoef),
+	VectorHandler& out, const VectorHandler& in) const
+{
+	ASSERT(in.iGetSize() == NRows);
+	ASSERT(out.iGetSize() == NCols);
+
+	// NOTE: out must be zeroed by caller
+
+	for (integer col_idx = 1; col_idx <= NCols; col_idx++) {
+		integer re = Ap[col_idx] - off;
+		integer ri = Ap[col_idx - 1] - off;
+		for ( ; ri < re; ri++) {
+			integer row_idx = Ai[ri] - off + 1;
+			const doublereal& d = Ax[ri];
+			(out.*op)(col_idx, d*in(row_idx));
+		}
+	}
+
+	return out;
+}
+
+template class CompactSparseMatrixHandler_tpl<0>;
+template class CompactSparseMatrixHandler_tpl<1>;

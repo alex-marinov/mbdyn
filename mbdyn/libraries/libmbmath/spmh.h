@@ -167,7 +167,38 @@ public:
 			std::vector<integer>& Arow, std::vector<integer>& Acol,
 			std::vector<integer>& AcolSt,
 			int offset = 0) const;
+};
 
+/* Sparse Matrix in compact form */
+template <int off>
+class CompactSparseMatrixHandler_tpl : public CompactSparseMatrixHandler {
+public:
+	CompactSparseMatrixHandler_tpl(const integer &n, const integer &nn,
+			std::vector<doublereal>& x,
+			const std::vector<integer>& i,
+			const std::vector<integer>& p);
+	virtual ~CompactSparseMatrixHandler_tpl(void);
+
+protected:
+	/* Matrix Matrix product */
+	MatrixHandler*
+	MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
+				const doublereal& dCoef),
+			MatrixHandler* out, const MatrixHandler& in) const;
+	MatrixHandler*
+	MatTMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
+				const doublereal& dCoef),
+			MatrixHandler* out, const MatrixHandler& in) const;
+
+	/* Matrix Vector product */
+	virtual VectorHandler&
+	MatVecMul_base(void (VectorHandler::*op)(integer iRow,
+				const doublereal& dCoef),
+			VectorHandler& out, const VectorHandler& in) const;
+	virtual VectorHandler&
+	MatTVecMul_base(void (VectorHandler::*op)(integer iRow,
+				const doublereal& dCoef),
+			VectorHandler& out, const VectorHandler& in) const;
 };
 
 #endif /* SPMH_H */
