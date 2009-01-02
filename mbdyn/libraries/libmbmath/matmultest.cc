@@ -45,6 +45,7 @@
 #include "spmapmh.h"
 #include "ccmh.h"
 #include "dirccmh.h"
+#include "naivemh.h"
 
 static doublereal mat[5][5] = {
 	{ 11.,  0., 13.,  0., 15. },
@@ -111,17 +112,32 @@ check_vec_transpose(VectorHandler& vh, unsigned r)
 int
 main(void)
 {
+	integer perm[5] = { 4, 3, 2, 1, 0}, invperm[5];
+	for (int i = 0; i < 5; i++) {
+		invperm[perm[i]] = i;
+	}
+
 	SpMapMatrixHandler spm(5, 5);
+	NaiveMatrixHandler nm(5);
+	NaivePermMatrixHandler npm(5, perm, invperm);
 
 	for (int r = 0; r < 5; r++) {
 		for (int c = 0; c < 5; c++) {
 			if (mat[r][c] != 0.) {
 				spm(r + 1, c + 1) = mat[r][c];
+				nm(r + 1, c + 1) = mat[r][c];
+				npm(r + 1, c + 1) = mat[r][c];
 			}
 		}
 	}
 
 	std::cout << "matrix in sparse form: " << std::endl
+		<< spm << std::endl;
+
+	std::cout << "matrix in naive form: " << std::endl
+		<< spm << std::endl;
+
+	std::cout << "matrix in naive permutated form: " << std::endl
 		<< spm << std::endl;
 
 	std::vector<doublereal> Ax0, Ax1;
@@ -192,6 +208,38 @@ main(void)
 		out.Reset();
 		spm.MatTVecMul(out, v);
 		std::cout << "sp^T*v(" << i << ")=" << std::endl
+			<< out << std::endl;
+		if (check_vec_transpose(out, i)) {
+			std::cerr << "*** failed!" << std::endl;
+		}
+
+		out.Reset();
+		nm.MatVecMul(out, v);
+		std::cout << "naive*v(" << i << ")=" << std::endl
+			<< out << std::endl;
+		if (check_vec(out, i)) {
+			std::cerr << "*** failed!" << std::endl;
+		}
+
+		out.Reset();
+		nm.MatTVecMul(out, v);
+		std::cout << "naive^T*v(" << i << ")=" << std::endl
+			<< out << std::endl;
+		if (check_vec_transpose(out, i)) {
+			std::cerr << "*** failed!" << std::endl;
+		}
+
+		out.Reset();
+		npm.MatVecMul(out, v);
+		std::cout << "naiveperm*v(" << i << ")=" << std::endl
+			<< out << std::endl;
+		if (check_vec(out, i)) {
+			std::cerr << "*** failed!" << std::endl;
+		}
+
+		out.Reset();
+		npm.MatTVecMul(out, v);
+		std::cout << "naiveperm^T*v(" << i << ")=" << std::endl
 			<< out << std::endl;
 		if (check_vec_transpose(out, i)) {
 			std::cerr << "*** failed!" << std::endl;
@@ -284,6 +332,38 @@ main(void)
 	fmout.Reset();
 	spm.MatTMatMul(&fmout, fmin);
 	std::cout << "sp^T*eye=" << std::endl
+		<< fmout << std::endl;
+	if (check_mat_transpose(fmout)) {
+		std::cerr << "*** failed!" << std::endl;
+	}
+	
+	fmout.Reset();
+	nm.MatMatMul(&fmout, fmin);
+	std::cout << "naive*eye=" << std::endl
+		<< fmout << std::endl;
+	if (check_mat(fmout)) {
+		std::cerr << "*** failed!" << std::endl;
+	}
+	
+	fmout.Reset();
+	nm.MatTMatMul(&fmout, fmin);
+	std::cout << "naive^T*eye=" << std::endl
+		<< fmout << std::endl;
+	if (check_mat_transpose(fmout)) {
+		std::cerr << "*** failed!" << std::endl;
+	}
+	
+	fmout.Reset();
+	npm.MatMatMul(&fmout, fmin);
+	std::cout << "naiveperm*eye=" << std::endl
+		<< fmout << std::endl;
+	if (check_mat(fmout)) {
+		std::cerr << "*** failed!" << std::endl;
+	}
+	
+	fmout.Reset();
+	npm.MatTMatMul(&fmout, fmin);
+	std::cout << "naiveperm^T*eye=" << std::endl
 		<< fmout << std::endl;
 	if (check_mat_transpose(fmout)) {
 		std::cerr << "*** failed!" << std::endl;

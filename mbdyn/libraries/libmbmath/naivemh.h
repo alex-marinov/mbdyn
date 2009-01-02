@@ -44,11 +44,12 @@ class MultiThreadDataManager;
 
 /* Sparse Matrix */
 class NaiveMatrixHandler : public MatrixHandler {
-protected:
 	friend void* sum_naive_matrices(void* arg);
 	friend class NaiveSolver;
 	friend class ParNaiveSolver;
 	friend class MultiThreadDataManager;
+
+protected:
 	integer iSize;
 	bool bOwnsMemory;
 	doublereal **ppdRows;
@@ -106,6 +107,26 @@ public:
 	void MakeCCStructure(std::vector<integer>& Ai,
 		std::vector<integer>& Ap);
 
+protected:
+        /* Matrix Matrix product */
+	virtual MatrixHandler*
+	MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
+				const doublereal& dCoef),
+			MatrixHandler* out, const MatrixHandler& in) const;
+	virtual MatrixHandler*
+	MatTMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
+				const doublereal& dCoef),
+			MatrixHandler* out, const MatrixHandler& in) const;
+
+	/* Matrix Vector product */
+	virtual VectorHandler&
+	MatVecMul_base(void (VectorHandler::*op)(integer iRow,
+				const doublereal& dCoef),
+			VectorHandler& out, const VectorHandler& in) const;
+	virtual VectorHandler&
+	MatTVecMul_base(void (VectorHandler::*op)(integer iRow,
+				const doublereal& dCoef),
+			VectorHandler& out, const VectorHandler& in) const;
 };
 
 
@@ -141,6 +162,7 @@ NaiveMatrixHandler::operator () (integer iRow, integer iCol)
 class NaivePermMatrixHandler : public NaiveMatrixHandler {
 protected:
 	const integer* const perm;
+	const integer* const invperm;
 
 #ifdef DEBUG
 	void IsValid(void) const {
@@ -151,14 +173,18 @@ protected:
 public:
 	/* FIXME: always square? yes! */
 	NaivePermMatrixHandler(integer iSize,
-		const integer *const tperm);
+		const integer *const tperm,
+		const integer *const invperm);
 
 	NaivePermMatrixHandler(NaiveMatrixHandler*const nmh, 
-		const integer *const tperm);
+		const integer *const tperm,
+		const integer *const invperm);
 
 	virtual ~NaivePermMatrixHandler(void);
 
 	const integer* const pGetPerm(void) const;
+
+	const integer* const pGetInvPerm(void) const;
 
 	virtual inline const doublereal&
 	operator () (integer iRow, integer iCol) const {
@@ -174,7 +200,26 @@ public:
 		return NaiveMatrixHandler::operator()(iRow, iCol);
 	};
 
+protected:
+        /* Matrix Matrix product */
+	virtual MatrixHandler*
+	MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
+				const doublereal& dCoef),
+			MatrixHandler* out, const MatrixHandler& in) const;
+	virtual MatrixHandler*
+	MatTMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
+				const doublereal& dCoef),
+			MatrixHandler* out, const MatrixHandler& in) const;
 
+	/* Matrix Vector product */
+	virtual VectorHandler&
+	MatVecMul_base(void (VectorHandler::*op)(integer iRow,
+				const doublereal& dCoef),
+			VectorHandler& out, const VectorHandler& in) const;
+	virtual VectorHandler&
+	MatTVecMul_base(void (VectorHandler::*op)(integer iRow,
+				const doublereal& dCoef),
+			VectorHandler& out, const VectorHandler& in) const;
 };
 
 

@@ -349,7 +349,8 @@ NaiveMatrixHandler::operator -= (const VariableSubMatrixHandler& SubMH)
 	return *this;
 }
 
-void NaiveMatrixHandler::MakeCCStructure(std::vector<integer>& Ai,
+void
+NaiveMatrixHandler::MakeCCStructure(std::vector<integer>& Ai,
 		std::vector<integer>& Ap) {
 	integer nnz = 0;
 	for (integer i = 0; i < iSize; i++) {
@@ -369,21 +370,107 @@ void NaiveMatrixHandler::MakeCCStructure(std::vector<integer>& Ai,
 	Ap[iSize] = nnz;
 };
 
+/* Matrix Matrix product */
+MatrixHandler*
+NaiveMatrixHandler::MatMatMul_base(
+	void (MatrixHandler::*op)(integer iRow, integer iCol, const doublereal& dCoef),
+	MatrixHandler* out, const MatrixHandler& in) const
+{
+	ASSERT(in.iGetNumRows() == iSize);
+	ASSERT(out.iGetiNumRows() == iSize);
+	ASSERT(out.iGetNumCols() == in.iGetNumCols());
+
+	integer in_ncols = in.iGetNumCols();
+
+	for (integer ir = 0; ir < iSize; ir++) {
+		for (integer idx = 0; idx < piNzc[ir]; idx++) {
+			integer ic = ppiCols[ir][idx];
+			for (integer ik = 1; ik <= in_ncols; ik++) {
+				(out->*op)(ir + 1, ik, ppdRows[ir][ic]*in(ic + 1, ik));
+			}
+		}
+	}
+
+	return out;
+}
+
+MatrixHandler*
+NaiveMatrixHandler::MatTMatMul_base(
+	void (MatrixHandler::*op)(integer iRow, integer iCol, const doublereal& dCoef),
+	MatrixHandler* out, const MatrixHandler& in) const
+{
+	ASSERT(in.iGetNumRows() == iSize);
+	ASSERT(out.iGetiNumRows() == iSize);
+	ASSERT(out.iGetNumCols() == in.iGetNumCols());
+
+	integer in_ncols = in.iGetNumCols();
+
+	for (integer ic = 0; ic < iSize; ic++) {
+		for (integer idx = 0; idx < piNzr[ic]; idx++) {
+			integer ir = ppiRows[ic][idx];
+			for (integer ik = 1; ik <= in_ncols; ik++) {
+				(out->*op)(ic + 1, ik, ppdRows[ir][ic]*in(ir + 1, ik));
+			}
+		}
+	}
+
+	return out;
+}
+
+/* Matrix Vector product */
+VectorHandler&
+NaiveMatrixHandler::MatVecMul_base(
+	void (VectorHandler::*op)(integer iRow, const doublereal& dCoef),
+	VectorHandler& out, const VectorHandler& in) const
+{
+	ASSERT(in.iGetSize() == iSize);
+	ASSERT(out.iGetSize() == iSize);
+
+	for (integer ir = 0; ir < iSize; ir++) {
+		for (integer idx = 0; idx < piNzc[ir]; idx++) {
+			integer ic = ppiCols[ir][idx];
+			(out.*op)(ir + 1, ppdRows[ir][ic]*in(ic + 1));
+		}
+	}
+
+	return out;
+}
+
+VectorHandler&
+NaiveMatrixHandler::MatTVecMul_base(
+	void (VectorHandler::*op)(integer iRow, const doublereal& dCoef),
+	VectorHandler& out, const VectorHandler& in) const
+{
+	ASSERT(in.iGetSize() == iSize);
+	ASSERT(out.iGetSize() == iSize);
+
+	for (integer ic = 0; ic < iSize; ic++) {
+		for (integer idx = 0; idx < piNzr[ic]; idx++) {
+			integer ir = ppiRows[ic][idx];
+			(out.*op)(ic + 1, ppdRows[ir][ic]*in(ir + 1));
+		}
+	}
+
+	return out;
+}
+
 /* NaiveMatrixHandler end */
 
 
 /* NaivePermMatrixHandler begin */
 
 NaivePermMatrixHandler::NaivePermMatrixHandler(integer iSize,
-		const integer *const tperm)
-: NaiveMatrixHandler(iSize), perm(tperm)
+		const integer *const tperm,
+		const integer *const tinvperm)
+: NaiveMatrixHandler(iSize), perm(tperm), invperm(tinvperm)
 {
 	NO_OP;
 }
 
 NaivePermMatrixHandler::NaivePermMatrixHandler(NaiveMatrixHandler*const nmh, 
-		const integer *const tperm)
-: NaiveMatrixHandler(0, nmh), perm(tperm)
+		const integer *const tperm, 
+		const integer *const tinvperm)
+: NaiveMatrixHandler(0, nmh), perm(tperm), invperm(tinvperm)
 {
 	NO_OP;
 }
@@ -399,9 +486,95 @@ NaivePermMatrixHandler::pGetPerm(void) const
 	return perm;
 }
 
+const integer* const
+NaivePermMatrixHandler::pGetInvPerm(void) const
+{
+	return invperm;
+}
+
+/* Matrix Matrix product */
+MatrixHandler*
+NaivePermMatrixHandler::MatMatMul_base(
+	void (MatrixHandler::*op)(integer iRow, integer iCol, const doublereal& dCoef),
+	MatrixHandler* out, const MatrixHandler& in) const
+{
+	ASSERT(in.iGetNumRows() == iSize);
+	ASSERT(out.iGetiNumRows() == iSize);
+	ASSERT(out.iGetNumCols() == in.iGetNumCols());
+
+	integer in_ncols = in.iGetNumCols();
+
+	for (integer ir = 0; ir < iSize; ir++) {
+		for (integer idx = 0; idx < piNzc[ir]; idx++) {
+			integer ic = ppiCols[ir][idx];
+			for (integer ik = 1; ik <= in_ncols; ik++) {
+				(out->*op)(ir + 1, ik, ppdRows[ir][ic]*in(invperm[ic] + 1, ik));
+			}
+		}
+	}
+
+	return out;
+}
+
+MatrixHandler*
+NaivePermMatrixHandler::MatTMatMul_base(
+	void (MatrixHandler::*op)(integer iRow, integer iCol, const doublereal& dCoef),
+	MatrixHandler* out, const MatrixHandler& in) const
+{
+	ASSERT(in.iGetNumRows() == iSize);
+	ASSERT(out.iGetiNumRows() == iSize);
+	ASSERT(out.iGetNumCols() == in.iGetNumCols());
+
+	integer in_ncols = in.iGetNumCols();
+
+	for (integer ic = 0; ic < iSize; ic++) {
+		for (integer idx = 0; idx < piNzr[ic]; idx++) {
+			integer ir = ppiRows[ic][idx];
+			for (integer ik = 1; ik <= in_ncols; ik++) {
+				(out->*op)(invperm[ic] + 1, ik, ppdRows[ir][ic]*in(ir + 1, ik));
+			}
+		}
+	}
+
+	return out;
+}
+
+/* Matrix Vector product */
+VectorHandler&
+NaivePermMatrixHandler::MatVecMul_base(
+	void (VectorHandler::*op)(integer iRow, const doublereal& dCoef),
+	VectorHandler& out, const VectorHandler& in) const
+{
+	ASSERT(in.iGetSize() == iSize);
+	ASSERT(out.iGetSize() == iSize);
+
+	for (integer ir = 0; ir < iSize; ir++) {
+		for (integer idx = 0; idx < piNzc[ir]; idx++) {
+			integer ic = ppiCols[ir][idx];
+			(out.*op)(ir + 1, ppdRows[ir][ic]*in(invperm[ic] + 1));
+		}
+	}
+
+	return out;
+}
+
+VectorHandler&
+NaivePermMatrixHandler::MatTVecMul_base(
+	void (VectorHandler::*op)(integer iRow, const doublereal& dCoef),
+	VectorHandler& out, const VectorHandler& in) const
+{
+	ASSERT(in.iGetSize() == iSize);
+	ASSERT(out.iGetSize() == iSize);
+
+	for (integer ic = 0; ic < iSize; ic++) {
+		for (integer idx = 0; idx < piNzr[ic]; idx++) {
+			integer ir = ppiRows[ic][idx];
+			(out.*op)(invperm[ic] + 1, ppdRows[ir][ic]*in(ir + 1));
+		}
+	}
+
+	return out;
+}
+
 /* NaivePermMatrixHandler end */
-
-
-
-
 
