@@ -150,6 +150,8 @@ OL_ARG_ENABLE(socket_drives,[  --enable-socket-drives  enable socket drives], au
 OL_ARG_ENABLE(runtime_loading,[  --enable-runtime-loading    enable runtime loading], auto)dnl
 OL_ARG_WITH(static_modules,[  --with-static-modules   build (known) modules as static],auto,[no yes auto])
 OL_ARG_ENABLE(crypt,[  --enable-crypt          enable crypt (deprecated)], no)dnl
+OL_ARG_ENABLE(eig,[  --enable-eig            enable direct eigensolution
+                          (needs either LAPACK or ARPACK )],auto,[auto yes no])dnl needs LAPACK or ARPACK
 OL_ARG_ENABLE(schur,[  --enable-schur          enable Schur parallel solver
                           (needs MPI and either Metis or Chaco)],auto,[auto yes no])dnl needs MPI and Metis or Chaco
 OL_ARG_ENABLE(multithread,[  --enable-multithread    enable multithread assembly],no,[auto yes no force])dnl
@@ -196,10 +198,11 @@ OL_ARG_WITH(harwell,[  --with-hsl              with HSL (Harwell) sparse math li
 OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library - historical],no,[auto yes no])
 OL_ARG_WITH(superlu,[  --with-superlu          with SuperLU math library - eXperimental],no,[auto yes no])
 OL_ARG_WITH(wsmp,[  --with-wsmp             with Watson library - eXperimental],no,[auto yes no])
-
 dnl temporarily disabled until we find out how to make it work...
 dnl OL_ARG_WITH(taucs,[  --with-taucs            with TAUCS math library - eXperimental],auto,[auto yes no])
 ol_with_taucs=no
+OL_ARG_WITH(arpack,[  --with-arpack           with ARPACK math library],auto,[auto yes no])
+
 OL_ARG_WITH(pam,[
        misc security libraries:
   --with-pam              with PAM support],no,[auto yes no])
@@ -299,6 +302,7 @@ WSMP_LIBS=
 HARWELL_LIBS=
 LAPACK_LIBS=
 TAUCS_LIBS=
+ARPACK_LIBS=
 SECURITY_LIBS=
 TCL_LIBS=
 NETCDF_LIBS=
@@ -616,11 +620,10 @@ AC_TRY_COMPILE([],[
 		(void *)0;
 	}
 ],[have_exceptions=yes],[have_exceptions=no])
-if test $have_exceptions != no ; then
-	AC_DEFINE(USE_EXCEPTIONS,1,[define if C++ compiler handles exceptions])
+if test "$have_exceptions" = "yes" ; then
 	AC_MSG_RESULT([yes])
 else
-	AC_MSG_RESULT([no])
+	AC_MSG_ERROR([C++ compiler does not handle exceptions])
 fi
 AC_LANG_C
 
@@ -764,8 +767,11 @@ case "$ol_with_fs" in
 		AC_DEFINE(USE_UNIX_FILE,1,
 			[define this to use UNIX-style filenames])
 		;;
-	dos)	AC_DEFINE(USE_DOS_FILE,1,
-		[define this to use DOS-style filenames])
+	dnl dos)	AC_DEFINE(USE_DOS_FILE,1,
+	dnl	[define this to use DOS-style filenames])
+	dnl	;;
+	*)
+		AC_MSG_ERROR([only UNIX-stype filenames are allowed])
 		;;
 esac
 
@@ -1655,6 +1661,64 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
+dnl Check for ARPACK
+dnl
+ol_link_arpack=no
+if test $ol_with_arpack != no ; then
+	AC_MSG_CHECKING([for arpack])
+
+	save_LIBS="$LIBS"
+	try_arpack_LIBS="-larpack"
+	LIBS="$try_arpack_LIBS $LAPACK_LIBS $BLAS_LIBS $F2C_LIBS $save_LIBS"
+	AC_TRY_LINK([
+	extern double dnaupd(double *);
+		],[
+	double i = 1., o;
+	o = dnaupd(&i);
+		],[have_arpack=yes
+		   have_arpack_=no],[
+		AC_TRY_LINK([
+	extern double dnaupd_(double *);
+			],[
+	double i = 1., o;
+	o = dnaupd_(&i);
+		],[have_arpack=yes
+		   have_arpack_=yes],[have_arpack=no
+				      have_arpack_=no])])
+	
+	if test $have_arpack != no ; then
+		AC_DEFINE(USE_ARPACK,1,[define to use ARPACK libraries])
+		ARPACK_LIBS="$try_arpack_LIBS"
+	fi
+
+	if test "$have_arpack" = "yes" ; then
+		ol_link_arpack=yes
+		AC_MSG_RESULT([yes])
+	else
+		if test "$ol_with_arpack" = "yes" ; then
+			AC_MSG_ERROR([Could not locate arpack])
+		fi
+		AC_MSG_RESULT([no])
+	fi
+	LIBS="$save_LIBS"
+fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for eig
+dnl
+if test $ol_enable_eig != no ; then
+	if test $ol_link_arpack = yes -o $ol_link_lapack = yes ; then
+		AC_DEFINE(USE_EIG,1,[define if you want to enable direct eigensolution])
+	else
+		if test $ol_enable_eig = yes ; then
+			AC_MSG_ERROR([Need either LAPACK or ARPACK to enable direct eigenanalysis])
+		fi
+	fi
+fi
+
+dnl ----------------------------------------------------------------
+dnl
 dnl Check for SASL2
 dnl
 ol_link_sasl2="no"
@@ -2227,8 +2291,9 @@ AC_SUBST(HARWELL_LIBS)
 AC_SUBST(MESCHACH_LIBS)
 AC_SUBST(LAPACK_LIBS)
 AC_SUBST(BLAS_LIBS)
-AC_SUBST(THREAD_LIBS)
 AC_SUBST(TAUCS_LIBS)
+AC_SUBST(ARPACK_LIBS)
+AC_SUBST(THREAD_LIBS)
 AC_SUBST(SECURITY_LIBS)
 AC_SUBST(TCL_LIBS)
 AC_SUBST(NETCDF_LIBS)
@@ -2249,6 +2314,7 @@ AC_SUBST(DATE)
 dnl conditional build declarations
 AM_CONDITIONAL(USE_X_ANN,[test "$ol_link_ANN" = yes])
 AM_CONDITIONAL(USE_RTAI,[test "$use_rtai" = yes])
+AM_CONDITIONAL(USE_ARPACK,[test "$ol_link_arpack" = yes])
 
 dnl ----------------------------------------------------------------
 dnl

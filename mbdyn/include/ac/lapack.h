@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2008
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -35,14 +35,16 @@
  * http://netlib.org
  */
 
-#ifndef LAPACK_H
-#define LAPACK_H
+#ifndef AC_LAPACK_H
+#define AC_LAPACK_H
+
+#ifdef USE_LAPACK
 
 #if defined(__cplusplus)
 extern "C" {
 #endif /* __cplusplus */
-	
-#include <ac/f2c.h>
+
+#include "ac/f2c.h"
 
 /*
  * Add declarations of lapack routines used by MBDyn
@@ -50,14 +52,16 @@ extern "C" {
 
 /* Subroutine */ extern int
 __FC_DECL__(dgegv)(char *jobvl, char *jobvr, integer *n, doublereal *
-	a, integer *lda, doublereal *b, integer *ldb, doublereal *alphar, 
-	doublereal *alphai, doublereal *beta, doublereal *vl, integer *ldvl, 
-	doublereal *vr, integer *ldvr, doublereal *work, integer *lwork, 
+	a, integer *lda, doublereal *b, integer *ldb, doublereal *alphar,
+	doublereal *alphai, doublereal *beta, doublereal *vl, integer *ldvl,
+	doublereal *vr, integer *ldvr, doublereal *work, integer *lwork,
 	integer *info);
 
 #if defined(__cplusplus)
 }
 #endif /* __cplusplus */
 
-#endif /* LAPACK_H */
+#endif /* USE_LAPACK */
+
+#endif /* AC_LAPACK_H */
 
