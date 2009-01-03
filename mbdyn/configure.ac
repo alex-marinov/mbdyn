@@ -1637,6 +1637,22 @@ if test $ol_with_lapack != no ; then
 
 	if test "$have_lapack_" = "yes" ; then
 		AC_TRY_LINK([
+	extern double dggev_(double *);
+			],[
+	double i = 1., o;
+	o = dggev_(&i);
+			],[AC_DEFINE(HAVE_DGGEV,1,[define to use LAPACK's dggev in Eig])])
+	elif test "$have_lapack" = "yes" ; then
+		AC_TRY_LINK([
+	extern double dggev(double *);
+			],[
+	double i = 1., o;
+	o = dggev(&i);
+			],[AC_DEFINE(HAVE_DGGEV_,1,[define to use LAPACK's dggev in Eig])])
+	fi
+
+	if test "$have_lapack_" = "yes" ; then
+		AC_TRY_LINK([
 	extern double dgegv_(double *);
 			],[
 	double i = 1., o;
