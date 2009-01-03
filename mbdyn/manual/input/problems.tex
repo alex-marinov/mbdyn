@@ -370,10 +370,11 @@ using the \kw{rigid body kinematics} card
 	and of the eigenvectors in a \kw{.m} file,
 	intended to be loaded by tools like octave/matlab;
 \item \kw{use lapack} performs the eigenanalysis using
-	LAPACK's \kw{dggev} routine (generalized unsymmetric eigenanalysis
+	LAPACK's \kw{dggev()} routine (generalized unsymmetric eigenanalysis
 	using the QZ decomposition);
 \item \kw{use arpack} performs the eigenanalysis using
-	ARPACK's \kw{dnaupd} routine (canonical unsymmetric eigenanalysis,
+	ARPACK's \kw{dnaupd()} and \kw{dneupd()} routines
+	(canonical unsymmetric eigenanalysis,
 	using the Implicitly Restarted Arnoldi Method, IRAM).
 	It requires the additional parameters:
 	\begin{itemize}
