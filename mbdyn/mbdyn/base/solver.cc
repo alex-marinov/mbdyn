@@ -3663,15 +3663,171 @@ do_eig(const doublereal& b, const doublereal& re,
 	return isPi;
 }
 
-/*
- * choices:
- * - assemble and output matrices
- * - assemble matrices, perform eigenanalysis and output results, using:
- *	- lapack
- *	- arpack
- */
+// Writes eigenvalues to the .out file in human-readable form
+static void
+output_eigenvalues(const VectorHandler *pBeta,
+	const VectorHandler& R, const VectorHandler& I,
+	const doublereal& dShiftR,
+	DataManager* pDM,
+	const Solver::EigenAnalysis *pEA)
+{
+	std::ostream& Out = pDM->GetOutFile();
+
+	/* Output? */
+	Out << "Mode n. " "  " "    Real    " "   " "    Imag    " "  " "    " "   Damp %   " "  Freq Hz" << std::endl;
+
+	integer iNVec = R.iGetSize();
+
+	for (int iCnt = 1; iCnt <= iNVec; iCnt++) {
+		Out << std::setw(8) << iCnt << ": ";
+
+		doublereal b = pBeta ? (*pBeta)(iCnt): 1.;
+		doublereal re = R(iCnt) + dShiftR;
+		doublereal im = I(iCnt);
+		doublereal sigma;
+		doublereal omega;
+		doublereal csi;
+		doublereal freq;
+
+		const doublereal& h = pEA->dParam;
+		int isPi = do_eig(b, re, im, h, sigma, omega, csi, freq);
+
+		if (isPi) {
+			Out << std::setw(12) << 0. << " - " << "          PI j";
+		} else {
+			Out << std::setw(12) << sigma << " + " << std::setw(12) << omega << " j";
+		}
+
+		/* FIXME: why 1.e-15? */
+		if (fabs(csi) > 1.e-15) {
+			Out << "    " << std::setw(12) << csi;
+		} else {
+			Out << "    " << std::setw(12) << 0.;
+		}
+
+		if (isPi) {
+			Out << "    " << "PI";
+		} else {
+			Out << "    " << std::setw(12) << freq;
+		}
+
+		Out << std::endl;
+	}
+}
+
+// Writes eigenvalues and eigenvectors
+// in a form suitable for handling with octave/matlab
+static void
+output_eigenvectors(const VectorHandler *pBeta,
+	const VectorHandler& R, const VectorHandler& I,
+	const doublereal& dShiftR,
+	const MatrixHandler *pVL, const MatrixHandler& VR,
+	DataManager* pDM,
+	const Solver::EigenAnalysis *pEA,
+	std::ostream& o)
+{
+	static const char signs[] = { '-', '+' };
+	int isign;
+
+	integer iSize = VR.iGetNumRows();
+	integer iNVec = VR.iGetNumCols();
+
+	// alphar, alphai, beta
+	o
+		<< "% alphar, alphai, beta" << std::endl
+		<< "alpha = [";
+
+	for (integer r = 1; r <= iNVec; r++) {
+		o
+			<< std::setw(24) << R(r) + dShiftR
+			<< std::setw(24) << I(r)
+			<< std::setw(24) << (pBeta ? (*pBeta)(r) : 1.)
+			<< ";" << std::endl;
+	}
+	o << "];" << std::endl;
+
+	if (pVL) {
+		// VL
+		o
+			<< "% left eigenvectors" << std::endl
+			<< "VL = [" << std::endl;
+		for (integer r = 1; r <= iSize; r++) {
+			for (integer c = 1; c <= iNVec; c++) {
+				if (I(c) != 0.) {
+					ASSERT(c < iNVec);
+					ASSERT(I(c) > 0.);
+
+					doublereal re = (*pVL)(r, c);
+					doublereal im = (*pVL)(r, c + 1);
+					if (im < 0 ) {
+						isign = 0;
+						im = -im;
+
+					} else {
+						isign = 1;
+					}
+					o
+						<< std::setw(24) << re << signs[isign] << "i*" << std::setw(24) << im
+						<< std::setw(24) << re << signs[1-isign] << "i*" << std::setw(24) << im;
+					c++;
+
+				} else {
+					o
+						<< std::setw(24) << (*pVL)(r, c);
+				}
+			}
+
+			if (r < iSize) {
+				o << ";" << std::endl;
+
+			} else {
+				o << "];" << std::endl;
+			}
+		}
+	}
+
+	// VR
+	o
+		<< "% right eigenvectors" << std::endl
+		<< "VR = [" << std::endl;
+	for (integer r = 1; r <= iSize; r++) {
+		for (integer c = 1; c <= iNVec; c++) {
+			if (I(c) != 0.) {
+				ASSERT(c < iNVec);
+				ASSERT(I(c) > 0.);
+
+				doublereal re = VR(r, c);
+				doublereal im = VR(r, c + 1);
+				if (im < 0 ) {
+					isign = 0;
+					im = -im;
+
+				} else {
+					isign = 1;
+				}
+				o
+					<< std::setw(24) << re << signs[isign] << "i*" << std::setw(24) << im
+					<< std::setw(24) << re << signs[1-isign] << "i*" << std::setw(24) << im;
+				c++;
+
+			} else {
+				o
+					<< std::setw(24) << VR(r, c);
+			}
+		}
+
+		if (r < iSize) {
+			o << ";" << std::endl;
+
+		} else {
+			o << "];" << std::endl;
+		}
+	}
+}
 
 #ifdef USE_LAPACK
+// Computes eigenvalues and eigenvectors using LAPACK's
+// generalized non-symmetric eigenanalysis
 static void
 eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 	DataManager *pDM, Solver::EigenAnalysis *pEA, std::ostream& o)
@@ -3811,138 +3967,11 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 		Out << "error return from " << sErrs[iInfo-iSize-1] << std::endl;
 	}
 
-	/* Output? */
-	Out << "Mode n. " "  " "    Real    " "   " "    Imag    " "  " "    " "   Damp %   " "  Freq Hz" << std::endl;
-
-	for (int iCnt = 1; iCnt <= iSize; iCnt++) {
-		Out << std::setw(8) << iCnt << ": ";
-
-		doublereal b = Beta(iCnt);
-		doublereal re = AlphaR(iCnt);
-		doublereal im = AlphaI(iCnt);
-		doublereal sigma;
-		doublereal omega;
-		doublereal csi;
-		doublereal freq;
-
-		const doublereal& h = pEA->dParam;
-		int isPi = do_eig(b, re, im, h, sigma, omega, csi, freq);
-
-		if (isPi) {
-			Out << std::setw(12) << 0. << " - " << "          PI j";
-		} else {
-			Out << std::setw(12) << sigma << " + " << std::setw(12) << omega << " j";
-		}
-
-		/* FIXME: why 1.e-15? */
-		if (fabs(csi) > 1.e-15) {
-			Out << "    " << std::setw(12) << csi;
-		} else {
-			Out << "    " << std::setw(12) << 0.;
-		}
-
-		if (isPi) {
-			Out << "    " << "PI";
-		} else {
-			Out << "    " << std::setw(12) << freq;
-		}
-
-		Out << std::endl;
-	}
+	output_eigenvalues(&Beta, AlphaR, AlphaI, 0., pDM, pEA);
 
 	if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_EIGENVECTORS) {
-		static const char signs[] = { '-', '+' };
-		int isign;
-
-		// alphar, alphai, beta
-		o
-			<< "% alphar, alphai, beta" << std::endl
-			<< "alpha = [";
-
-		for (integer r = 1; r <= iSize; r++) {
-			o
-				<< std::setw(24) << AlphaR(r)
-				<< std::setw(24) << AlphaI(r)
-				<< std::setw(24) << Beta(r)
-				<< ";" << std::endl;
-		}
-		o << "];" << std::endl;
-
-		// VL
-		o
-			<< "% left eigenvectors" << std::endl
-			<< "VL = [" << std::endl;
-		for (integer r = 1; r <= iSize; r++) {
-			for (integer c = 1; c <= iSize; c++) {
-				if (AlphaI(c) != 0.) {
-					ASSERT(c < iSize);
-					ASSERT(AlphaI(c) > 0.);
-
-					doublereal re = MatVL(r, c);
-					doublereal im = MatVL(r, c + 1);
-					if (im < 0 ) {
-						isign = 0;
-						im = -im;
-
-					} else {
-						isign = 1;
-					}
-					o
-						<< std::setw(24) << re << signs[isign] << "i*" << std::setw(24) << im
-						<< std::setw(24) << re << signs[1-isign] << "i*" << std::setw(24) << im;
-					c++;
-
-				} else {
-					o
-						<< std::setw(24) << MatVL(r, c);
-				}
-			}
-
-			if (r < iSize) {
-				o << ";" << std::endl;
-
-			} else {
-				o << "];" << std::endl;
-			}
-		}
-
-		// VR
-		o
-			<< "% right eigenvectors" << std::endl
-			<< "VR = [" << std::endl;
-		for (integer r = 1; r <= iSize; r++) {
-			for (integer c = 1; c <= iSize; c++) {
-				if (AlphaI(c) != 0.) {
-					ASSERT(c < iSize);
-					ASSERT(AlphaI(c) > 0.);
-
-					doublereal re = MatVR(r, c);
-					doublereal im = MatVR(r, c + 1);
-					if (im < 0 ) {
-						isign = 0;
-						im = -im;
-
-					} else {
-						isign = 1;
-					}
-					o
-						<< std::setw(24) << re << signs[isign] << "i*" << std::setw(24) << im
-						<< std::setw(24) << re << signs[1-isign] << "i*" << std::setw(24) << im;
-					c++;
-
-				} else {
-					o
-						<< std::setw(24) << MatVR(r, c);
-				}
-			}
-
-			if (r < iSize) {
-				o << ";" << std::endl;
-
-			} else {
-				o << "];" << std::endl;
-			}
-		}
+		output_eigenvectors(&Beta, AlphaR, AlphaI, 0.,
+			&MatVL, MatVR, pDM, pEA, o);
 	}
 
 	SAFEDELETEARR(pd);
@@ -3951,6 +3980,8 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 #endif // USE_LAPACK
 
 #ifdef USE_ARPACK
+// Computes eigenvalues and eigenvectors using ARPACK's
+// canonical non-symmetric eigenanalysis
 static void
 eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 	DataManager *pDM, Solver::EigenAnalysis *pEA, std::ostream& o)
@@ -3958,7 +3989,6 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 	NaiveSparsePermSolutionManager<Colamd_ordering>& sm
 		= dynamic_cast<NaiveSparsePermSolutionManager<Colamd_ordering> &>(*pSM);
 	const NaiveMatrixHandler& MatA = dynamic_cast<const NaiveMatrixHandler &>(*pMatA);
-	// const NaiveMatrixHandler& MatB = dynamic_cast<const NaiveMatrixHandler &>(*sm.pMatHdl());
 
 	// shift
 	doublereal SIGMAR = 0.;
@@ -3995,7 +4025,7 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 	IPARAM[0] = 1;
 	IPARAM[2] = 300;		// configurable?
 	IPARAM[3] = 1;
-	IPARAM[6] = 1;			// mode...
+	IPARAM[6] = 1;			// mode 1: canonical problem
 	WORKD.resize(3*N, 0.);
 	LWORKL = 3*NCV*NCV + 6*NCV;
 	WORKL.resize(LWORKL, 0.);
@@ -4003,107 +4033,56 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 
 	int cnt = 0;
 	do {
-#if 0
-		std::cout << "before:" << std::endl
-			<< "IDO=" << IDO << std::endl
-			<< "BMAT=" << BMAT << std::endl
-			<< "N=" << N << std::endl
-			<< "WHICH=" << WHICH << std::endl
-			<< "NEV=" << NEV << std::endl
-			<< "TOL=" << TOL << std::endl
-			<< "&RESID[0]=" << &RESID[0] << std::endl
-			<< "NCV=" << NCV << std::endl
-			<< "&V[0]=" << &V[0] << std::endl
-			<< "LDV=" << LDV << std::endl
-			<< "IPARAM=" << IPARAM[0]
-				<< "," << IPARAM[1]
-				<< "," << IPARAM[2]
-				<< "," << IPARAM[3]
-				<< "," << IPARAM[4]
-				<< "," << IPARAM[5]
-				<< "," << IPARAM[6]
-				<< "," << IPARAM[7]
-				<< "," << IPARAM[8]
-				<< "," << IPARAM[9]
-				<< "," << IPARAM[10]
-				<< std::endl
-			<< "IPNTR=" << IPNTR[0]
-				<< "," << IPNTR[1]
-				<< "," << IPNTR[2]
-				<< "," << IPNTR[3]
-				<< "," << IPNTR[4]
-				<< "," << IPNTR[5]
-				<< "," << IPNTR[6]
-				<< "," << IPNTR[7]
-				<< "," << IPNTR[8]
-				<< "," << IPNTR[9]
-				<< "," << IPNTR[10]
-				<< "," << IPNTR[11]
-				<< "," << IPNTR[12]
-				<< "," << IPNTR[13]
-				<< std::endl
-			<< "&WORKD[0]=" << &WORKD[0] << std::endl
-			<< "&WORKL[0]=" << &WORKL[0] << std::endl
-			<< "LWORKL=" << LWORKL << std::endl
-			<< "INFO=" << INFO << std::endl
-			<< std::endl;
-#endif
-
 		__FC_DECL__(dnaupd)(&IDO, &BMAT[0], &N, &WHICH[0], &NEV,
 			&TOL, &RESID[0], &NCV, &V[0], &LDV, &IPARAM[0], &IPNTR[0],
 			&WORKD[0], &WORKL[0], &LWORKL, &INFO);
 
 #if 0
-		std::cout << "after:" << std::endl
-			<< "IDO=" << IDO << std::endl
-			<< "BMAT=" << BMAT << std::endl
-			<< "N=" << N << std::endl
-			<< "WHICH=" << WHICH << std::endl
-			<< "NEV=" << NEV << std::endl
-			<< "TOL=" << TOL << std::endl
-			<< "&RESID[0]=" << &RESID[0] << std::endl
-			<< "NCV=" << NCV << std::endl
-			<< "&V[0]=" << &V[0] << std::endl
-			<< "LDV=" << LDV << std::endl
-			<< "IPARAM=" << IPARAM[0]
-				<< "," << IPARAM[1]
-				<< "," << IPARAM[2]
-				<< "," << IPARAM[3]
-				<< "," << IPARAM[4]
-				<< "," << IPARAM[5]
-				<< "," << IPARAM[6]
-				<< "," << IPARAM[7]
-				<< "," << IPARAM[8]
-				<< "," << IPARAM[9]
-				<< "," << IPARAM[10]
-				<< std::endl
-			<< "IPNTR=" << IPNTR[0]
-				<< "," << IPNTR[1]
-				<< "," << IPNTR[2]
-				<< "," << IPNTR[3]
-				<< "," << IPNTR[4]
-				<< "," << IPNTR[5]
-				<< "," << IPNTR[6]
-				<< "," << IPNTR[7]
-				<< "," << IPNTR[8]
-				<< "," << IPNTR[9]
-				<< "," << IPNTR[10]
-				<< "," << IPNTR[11]
-				<< "," << IPNTR[12]
-				<< "," << IPNTR[13]
-				<< std::endl
-			<< "&WORKD[0]=" << &WORKD[0] << std::endl
-			<< "&WORKL[0]=" << &WORKL[0] << std::endl
-			<< "LWORKL=" << LWORKL << std::endl
-			<< "INFO=" << INFO << std::endl
-			<< std::endl;
-#endif
-
 		std::cout << "cnt=" << cnt << ": IDO=" << IDO << ", INFO=" << INFO << std::endl;
+#endif
 
 		// compute Y = OP*X
 		MyVectorHandler X(N, &WORKD[IPNTR[0] - 1]);
 		MyVectorHandler Y(N, &WORKD[IPNTR[1] - 1]);
+
+		/*
+		 * NOTE: we are solving the problem
+
+			MatB * X * Lambda = MatA * X
+
+		 * and we want to focus on Ritz parameters Lambda
+		 * as close as possible to (1., 0.), which maps
+		 * to (0., 0.) in continuous time.
+		 *
+		 * We are casting the problem in the form
+
+			X * Alpha = A * X
+
+		 * by putting the problem in canonical form
+
+			X * Lambda = MatB \ MatA * X
+
+		 * and then subtracting a shift Sigma = (1., 0) after :
+
+			X * Lambda - X = MatB \ MatA * X - X
+
+			X * (Lambda - 1.) = (MatB \ MatA - I) * X
+
+		 * so
+
+			Alpha = Lambda - 1.
+
+			A = MatB \ MatA - I
+
+		 * and the sequence of operations for Y = A * X is
+
+			X' = MatA * X
+			X'' = MatB \ X'
+			Y = X'' - X
+
+		 * the eigenvalues need to be modified by adding 1.
+		 */
+		
 
 		MatA.MatVecMul(*sm.pResHdl(), X);
 		sm.Solve();
@@ -4111,21 +4090,17 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 
 		Y = *sm.pSolHdl();
 
-		// Y += MatA * X
-		// Y = MatB \ Y
-
-#if 0
-		std::cout << "X:" << std::endl << X << std::endl;
-		std::cout << "Y:" << std::endl << Y << std::endl;
-#endif
-
 		cnt++;
 	} while (IDO == 1 || IDO == -1);
 
 	if (INFO < 0) {
-		std::cerr << "error" << std::endl;
+		silent_cerr("ARPACK error after " << cnt << " iterations; "
+			"IDO=" << IDO << ", INFO=" << INFO << std::endl);
 		return;
 	}
+
+	std::ostream& Out = pDM->GetOutFile();
+	Out << "INFO: " << INFO << std::endl;
 
 	logical RVEC = true;
 	const char *HOWMNY = "A";
@@ -4142,78 +4117,20 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 		&TOL, &RESID[0], &NCV, &V[0], &LDV, &IPARAM[0], &IPNTR[0],
 		&WORKD[0], &WORKL[0], &LWORKL, &INFO);
 
-	bool bCmplx = false;
-	bool bFirst;
-	for (integer nv = 0; nv < NEV; nv++) {
-		doublereal sigma;
-		doublereal omega;
-		doublereal csi;
-		doublereal freq;
+	MyVectorHandler AlphaR(pEA->iNEV, &DR[0]);
+	MyVectorHandler AlphaI(pEA->iNEV, &DI[0]);
+	output_eigenvalues(0, AlphaR, AlphaI, 1., pDM, pEA);
 
-		bool isPI = do_eig(1., DR[nv] + 1., DI[nv], pEA->dParam,
-			sigma, omega, csi, freq);
-
-#if 0
-		std::cout << "value " << std::setw(8) << nv << ":"
-			<< std::setw(16) << DR[nv] + 1.
-			<< (DI[nv] >= 0. ? " + " : " - ")
-			<< std::setw(16) << std::abs(DI[nv]) << " i"
-#endif
-
-		std::cout << std::setw(7) << nv << ":"
-			<< std::setw(16) << sigma << std::setw(16) << omega
-			<< std::setw(16) << csi << std::setw(16) << freq
-			<< std::endl;
-
-#if 0
-		std::cout << "vector " << std::setw(8) << nv << ":"
-			<< std::endl;
-		if (!bCmplx) {
-			if (DI[nv] != 0.) {
-				bCmplx = true;
-				bFirst = true;
-			}
-		}
-
-		if (!bCmplx) {
-			for (integer idx = 0; idx < N; idx++) {
-				std::cout
-					<< std::setw(8) << idx << ":"
-					<< std::setw(16) << Z[N*nv + idx]
-					<< std::endl;
-			}
-
-		} else if (bFirst) {
-			bFirst = false;
-
-			for (integer idx = 0; idx < N; idx++) {
-				doublereal d = Z[N*(nv + 1) + idx];
-				std::cout
-					<< std::setw(8) << idx << ":"
-					<< std::setw(16) << Z[N*nv + idx]
-					<< (d > 0. ? " + " : " - " )
-					<< std::setw(16) << std::abs(d) << " i"
-					<< std::endl;
-			}
-
-		} else {
-			bCmplx = false;
-
-			for (integer idx = 0; idx < N; idx++) {
-				doublereal d = Z[N*nv + idx];
-				std::cout
-					<< std::setw(8) << idx << ":"
-					<< std::setw(16) << Z[N*(nv - 1) + idx]
-					<< (d > 0. ? " + " : " - " )
-					<< std::setw(16) << std::abs(d) << " i"
-					<< std::endl;
-			}
-		}
-#endif
+	if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_EIGENVECTORS) {
+		std::vector<doublereal *> ZC(pEA->iNEV);
+		FullMatrixHandler VR(&Z[0], &ZC[0], N*pEA->iNEV, N, pEA->iNEV);
+		output_eigenvectors(0, AlphaR, AlphaI, 1.,
+			0, VR, pDM, pEA, o);
 	}
 }
 #endif // USE_ARPACK
 
+// writes a full matrix in a form compatible with octave/matlab
 static void
 output_full_matrix(std::ostream& o,
 	const MatrixHandler* pm,
@@ -4243,6 +4160,7 @@ output_full_matrix(std::ostream& o,
 	}
 }
 
+// writes a sparse map matrix in a form compatible with octave/matlab
 static void
 output_sparse_matrix(std::ostream& o,
 	const MatrixHandler* pm,
@@ -4267,6 +4185,7 @@ output_sparse_matrix(std::ostream& o,
 		<< name << " = spconvert(" << name << ");" << std::endl;
 }
 
+// writes a naive sparse matrix in a form compatible with octave/matlab
 static void
 output_naive_matrix(std::ostream& o,
 	const MatrixHandler* pm,
@@ -4291,6 +4210,7 @@ output_naive_matrix(std::ostream& o,
 		<< name << " = spconvert(" << name << ");" << std::endl;
 }
 
+// Driver for eigenanalysis
 void
 Solver::Eig(void)
 {
@@ -4336,7 +4256,7 @@ Solver::Eig(void)
 	pMatA->Reset();
 	pMatB->Reset();
 
-	/* Matrices Assembly (vedi eig.ps) */
+	// Matrices assembly (see eig.ps)
 	doublereal h = EigAn.dParam;
 	pDM->AssJac(*pMatA, -h/2.);
 	pDM->AssJac(*pMatB, h/2.);
@@ -4377,7 +4297,9 @@ Solver::Eig(void)
 		output_full_matrix(o, pMatA, "% F/xPrime - dCoef * F/x", "Aminus");
 
 	} else if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_SPARSE_MATRICES) {
-		void (*om)(std::ostream&, const MatrixHandler *, const std::string&, const std::string&);
+		void (*om)(std::ostream&, const MatrixHandler *,
+			const std::string&, const std::string&);
+
 		if (dynamic_cast<const NaiveMatrixHandler *>(pMatB)) {
 			om = output_naive_matrix;
 	
@@ -4393,304 +4315,22 @@ Solver::Eig(void)
 	}
 
 	switch (EigAn.uFlags & EigenAnalysis::EIG_USE_MASK) {
-	case EigenAnalysis::EIG_USE_LAPACK:
 #ifdef USE_LAPACK
+	case EigenAnalysis::EIG_USE_LAPACK:
 		eig_lapack(pMatA, pMatB, pDM, &EigAn, o);
+		break;
 #endif // USE_LAPACK
-		break;
 
-	case EigenAnalysis::EIG_USE_ARPACK:
 #ifdef USE_ARPACK
+	case EigenAnalysis::EIG_USE_ARPACK:
 		eig_arpack(pMatA, pSM, pDM, &EigAn, o);
-#endif // USE_ARPACK
 		break;
+#endif // USE_ARPACK
+
+	default:
+		// can't get here!
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-#if 0
-		char sL[2] = "V";
-		char sR[2] = "V";
-
-		/* iNumDof is a member, set after dataman constr. */
-		integer iSize = iNumDofs;
-		/* Minimum workspace size. To be improved */
-		integer iWorkSize = 8*iNumDofs;
-		integer iInfo = 0;
-
-		/* Workspaces */
-		/* 4 matrices iSize x iSize, 3 vectors iSize x 1, 1 vector iWorkSize x 1 */
-		doublereal* pd = NULL;
-		int iTmpSize = 2*(iSize*iSize) + 3*iSize + iWorkSize;
-		SAFENEWARR(pd, doublereal, iTmpSize);
-		for (int iCnt = iTmpSize; iCnt-- > 0; ) {
-			pd[iCnt] = 0.;
-		}
-
-		/* 4 pointer arrays iSize x 1 for the matrices */
-		doublereal** ppd = NULL;
-		SAFENEWARR(ppd, doublereal*, 2*iSize);
-
-		/* Data Handlers */
-		doublereal* pdTmp = pd;
-		doublereal** ppdTmp = ppd;
-
-		FullMatrixHandler MatVL(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);
-		pdTmp += iSize*iSize;
-		ppdTmp += iSize;
-
-		FullMatrixHandler MatVR(pdTmp, ppdTmp, iSize*iSize, iSize, iSize);
-		pdTmp += iSize*iSize;
-
-		MyVectorHandler AlphaR(iSize, pdTmp);
-		pdTmp += iSize;
-
-		MyVectorHandler AlphaI(iSize, pdTmp);
-		pdTmp += iSize;
-
-		MyVectorHandler Beta(iSize, pdTmp);
-		pdTmp += iSize;
-
-		MyVectorHandler WorkVec(iWorkSize, pdTmp);
-
-#ifdef DEBUG_MEMMANAGER
-		ASSERT(defaultMemoryManager.fIsValid(pMatA->pdGetMat(),
-			iSize*iSize*sizeof(doublereal)));
-		ASSERT(defaultMemoryManager.fIsValid(pMatB->pdGetMat(),
-			iSize*iSize*sizeof(doublereal)));
-		ASSERT(defaultMemoryManager.fIsValid(MatVL.pdGetMat(),
-			iSize*iSize*sizeof(doublereal)));
-		ASSERT(defaultMemoryManager.fIsValid(MatVR.pdGetMat(),
-			iSize*iSize*sizeof(doublereal)));
-		ASSERT(defaultMemoryManager.fIsValid(AlphaR.pdGetVec(),
-			iSize*sizeof(doublereal)));
-		ASSERT(defaultMemoryManager.fIsValid(AlphaI.pdGetVec(),
-			iSize*sizeof(doublereal)));
-		ASSERT(defaultMemoryManager.fIsValid(Beta.pdGetVec(),
-			iSize*sizeof(doublereal)));
-		ASSERT(defaultMemoryManager.fIsValid(WorkVec.pdGetVec(),
-			iWorkSize*sizeof(doublereal)));
-#endif /* DEBUG_MEMMANAGER */
-
-
-/* Eigenanalysis */
-		__FC_DECL__(dgegv)(sL,
-			sR,
-			&iSize,
-			pMatA->pdGetMat(),
-			&iSize,
-			pMatB->pdGetMat(),
-			&iSize,
-			AlphaR.pdGetVec(),
-			AlphaI.pdGetVec(),
-			Beta.pdGetVec(),
-			MatVL.pdGetMat(),
-			&iSize,
-			MatVR.pdGetMat(),
-			&iSize,
-			WorkVec.pdGetVec(),
-			&iWorkSize,
-			&iInfo);
-
-		std::ostream& Out = pDM->GetOutFile();
-		Out << "Info: " << iInfo << ", ";
-
-		const char* const sErrs[] = {
-			"DGGBAL",
-			"DGEQRF",
-			"DORMQR",
-			"DORGQR",
-			"DGGHRD",
-			"DHGEQZ (other than failed iteration)",
-			"DTGEVC",
-			"DGGBAK (computing VL)",
-			"DGGBAK (computing VR)",
-			"DLASCL (various calls)"
-		};
-
-		if (iInfo == 0) {
-			/* = 0:  successful exit */
-			Out << "success" << std::endl;
-
-		} else if (iInfo < 0) {
-			char *th = "th";
-
-			/* Aaaaah, English! :) */
-			if (-iInfo/10 != 10) {
-				switch ((-iInfo + 20) % 10) {
-				case 1:
-					th = "st";
-					break;
-				case 2:
-					th = "nd";
-					break;
-				case 3:
-					th = "rd";
-					break;
-				}
-			}
-
-			/* < 0:  if INFO = -i, the i-th argument had an illegal value. */
-			Out << "the " << -iInfo << "-" << th
-				<< " argument had an illegal value" << std::endl;
-
-		} else if (iInfo > 0 && iInfo <= iSize) {
-			/* = 1,...,N:
-			 * The QZ iteration failed.  No eigenvectors have been
-			 * calculated, but ALPHAR(j), ALPHAI(j), and BETA(j)
-			 * should be correct for j=INFO+1,...,N. */
-			Out << "the QZ iteration failed, but eigenvalues "
-				<< iInfo + 1 << "->" << iSize << "should be correct"
-				<< std::endl;
-
-		} else if (iInfo > iSize) {
-			/* > N:  errors that usually indicate LAPACK problems:
-			 * =N+1: error return from DGGBAL
-			 * =N+2: error return from DGEQRF
-			 * =N+3: error return from DORMQR
-			 * =N+4: error return from DORGQR
-			 * =N+5: error return from DGGHRD
-			 * =N+6: error return from DHGEQZ (other than failed iteration)
-			 * =N+7: error return from DTGEVC
-			 * =N+8: error return from DGGBAK (computing VL)
-			 * =N+9: error return from DGGBAK (computing VR)
-			 * =N+10: error return from DLASCL (various calls) */
-			Out << "error return from " << sErrs[iInfo-iSize-1] << std::endl;
-		}
-
-		/* Output? */
-		Out << "Mode n. " "  " "    Real    " "   " "    Imag    " "  " "    " "   Damp %   " "  Freq Hz" << std::endl;
-
-		for (int iCnt = 1; iCnt <= iSize; iCnt++) {
-			Out << std::setw(8) << iCnt << ": ";
-
-			doublereal b = Beta(iCnt);
-			doublereal re = AlphaR(iCnt);
-			doublereal im = AlphaI(iCnt);
-			doublereal sigma;
-			doublereal omega;
-			doublereal csi;
-			doublereal freq;
-
-			int isPi = do_eig(b, re, im, h, sigma, omega, csi, freq);
-
-			if (isPi) {
-				Out << std::setw(12) << 0. << " - " << "          PI j";
-			} else {
-				Out << std::setw(12) << sigma << " + " << std::setw(12) << omega << " j";
-			}
-
-			/* FIXME: why 1.e-15? */
-			if (fabs(csi) > 1.e-15) {
-				Out << "    " << std::setw(12) << csi;
-			} else {
-				Out << "    " << std::setw(12) << 0.;
-			}
-
-			if (isPi) {
-				Out << "    " << "PI";
-			} else {
-				Out << "    " << std::setw(12) << freq;
-			}
-
-			Out << std::endl;
-		}
-
-		if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_EIGENVECTORS) {
-			static const char signs[] = { '-', '+' };
-			int isign;
-
-			// alphar, alphai, beta
-			o
-				<< "% alphar, alphai, beta" << std::endl
-				<< "alpha = [";
-
-			for (integer r = 1; r <= iSize; r++) {
-				o
-					<< std::setw(24) << AlphaR(r)
-					<< std::setw(24) << AlphaI(r)
-					<< std::setw(24) << Beta(r)
-					<< ";" << std::endl;
-			}
-			o << "];" << std::endl;
-
-			// VL
-			o
-				<< "% left eigenvectors" << std::endl
-				<< "VL = [" << std::endl;
-			for (integer r = 1; r <= iSize; r++) {
-				for (integer c = 1; c <= iSize; c++) {
-					if (AlphaI(c) != 0.) {
-						ASSERT(c < iSize);
-						ASSERT(AlphaI(c) > 0.);
-
-						doublereal re = MatVL(r, c);
-						doublereal im = MatVL(r, c + 1);
-						if (im < 0 ) {
-							isign = 0;
-							im = -im;
-
-						} else {
-							isign = 1;
-						}
-						o
-							<< std::setw(24) << re << signs[isign] << "i*" << std::setw(24) << im
-							<< std::setw(24) << re << signs[1-isign] << "i*" << std::setw(24) << im;
-						c++;
-
-					} else {
-						o
-							<< std::setw(24) << MatVL(r, c);
-					}
-				}
-
-				if (r < iSize) {
-					o << ";" << std::endl;
-
-				} else {
-					o << "];" << std::endl;
-				}
-			}
-
-			// VR
-			o
-				<< "% right eigenvectors" << std::endl
-				<< "VR = [" << std::endl;
-			for (integer r = 1; r <= iSize; r++) {
-				for (integer c = 1; c <= iSize; c++) {
-					if (AlphaI(c) != 0.) {
-						ASSERT(c < iSize);
-						ASSERT(AlphaI(c) > 0.);
-
-						doublereal re = MatVR(r, c);
-						doublereal im = MatVR(r, c + 1);
-						if (im < 0 ) {
-							isign = 0;
-							im = -im;
-
-						} else {
-							isign = 1;
-						}
-						o
-							<< std::setw(24) << re << signs[isign] << "i*" << std::setw(24) << im
-							<< std::setw(24) << re << signs[1-isign] << "i*" << std::setw(24) << im;
-						c++;
-
-					} else {
-						o
-							<< std::setw(24) << MatVR(r, c);
-					}
-				}
-
-				if (r < iSize) {
-					o << ";" << std::endl;
-
-				} else {
-					o << "];" << std::endl;
-				}
-			}
-		}
-
-		SAFEDELETEARR(pd);
-		SAFEDELETEARR(ppd);
-#endif
 
 	if (o) {
 		o.close();
