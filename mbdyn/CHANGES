@@ -23,6 +23,7 @@ MBDyn 1.X-Devel
 		- add RTAI-based motion output
 		- add embryonic relative frame dynamics & aerodynamics
 		- clamp joint more resilient to large transient violations
+		- add direct eigensolution based on LAPACK & ARPACK
 	Backward compatibility issues:
 		- now immediate abort requires CTRL^C three times
 		- changed real-time args order (not backward compatible)
