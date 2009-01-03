@@ -121,7 +121,7 @@ protected:
    	/* Dati per strategia DRIVER_CHANGE */
 	DriveCaller* pStrategyChangeDrive;
 
-#ifdef __HACK_EIG__
+public:
    	/* Dati per esecuzione di eigenanalysis */
 	struct EigenAnalysis {
 		bool bAnalysis;
@@ -137,6 +137,10 @@ protected:
 
 			EIG_SOLVE			= 0x4U,
 
+			EIG_USE_LAPACK			= 0x10U,
+			EIG_USE_ARPACK			= 0x20U,
+			EIG_USE_MASK			= (EIG_USE_LAPACK|EIG_USE_ARPACK),
+
 			EIG_LAST
 		};
 		unsigned uFlags;
@@ -146,21 +150,32 @@ protected:
 	   	} OneAnalysis;
 		doublereal dParam;
 		bool bOutputModes;
+
+		// unused (?!?)
 		doublereal dUpperFreq;
 		doublereal dLowerFreq;
+
+		// ARPACK specific
+		integer iNEV;
+		integer iNCV;
+		doublereal dTOL;
+
 		EigenAnalysis(void)
-			: bAnalysis(false),
-			uFlags(EIG_NONE),
-			dParam(1.),
-			bOutputModes(false),
-			dUpperFreq(FLT_MAX),
-			dLowerFreq(0.)
+		: bAnalysis(false),
+		uFlags(EIG_NONE),
+		dParam(1.),
+		bOutputModes(false),
+		dUpperFreq(FLT_MAX),
+		dLowerFreq(0.)
 		{
 			NO_OP;
 		};
-	} EigAn;
+	};
+
+protected:
+	struct EigenAnalysis EigAn;
+
 	void Eig(void);
-#endif /* __HACK_EIG__ */
 
 	RTSolverBase *pRTSolver;
 

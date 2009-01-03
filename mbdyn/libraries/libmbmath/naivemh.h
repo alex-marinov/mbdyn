@@ -38,6 +38,7 @@
 
 #include "myassert.h"
 #include "solman.h"
+#include "spmh.h"
 
 class NaiveSolver;
 class MultiThreadDataManager;
@@ -48,6 +49,10 @@ class NaiveMatrixHandler : public MatrixHandler {
 	friend class NaiveSolver;
 	friend class ParNaiveSolver;
 	friend class MultiThreadDataManager;
+
+private:
+	// don't allow copy constructor!
+	NaiveMatrixHandler(const NaiveMatrixHandler&);
 
 protected:
 	integer iSize;
@@ -62,6 +67,40 @@ protected:
 		NO_OP;
 	};
 #endif /* DEBUG */
+
+public:
+	class const_iterator {
+		friend class NaiveMatrixHandler;
+
+	private:
+		const NaiveMatrixHandler& m;
+		mutable integer i_row;
+		mutable SparseMatrixHandler::SparseMatrixElement elem;
+
+	protected:
+		void reset(bool is_end = false);
+
+	public:
+		const_iterator(const NaiveMatrixHandler& m, bool is_end = false);
+		~const_iterator(void);
+		const NaiveMatrixHandler::const_iterator& operator ++ (void) const;
+		const SparseMatrixHandler::SparseMatrixElement* operator -> (void);
+		const SparseMatrixHandler::SparseMatrixElement& operator * (void);
+		bool operator == (const NaiveMatrixHandler::const_iterator& op) const;
+		bool operator != (const NaiveMatrixHandler::const_iterator& op) const;
+	};
+
+protected:
+	const_iterator m_end;
+
+public:
+	NaiveMatrixHandler::const_iterator begin(void) const {
+		return const_iterator(*this);
+	};
+
+	const NaiveMatrixHandler::const_iterator& end(void) const {
+		return m_end;
+	};
 
 public:
 	/* FIXME: always square? yes! */
@@ -169,6 +208,41 @@ protected:
 		NO_OP;
 	};
 #endif /* DEBUG */
+
+public:
+	class const_iterator {
+		friend class NaivePermMatrixHandler;
+
+	private:
+		const NaivePermMatrixHandler& m;
+		mutable integer i_row;
+		mutable SparseMatrixHandler::SparseMatrixElement elem;
+
+	protected:
+		void reset(bool is_end = false);
+
+	public:
+		const_iterator(const NaivePermMatrixHandler& m);
+		const_iterator(const NaivePermMatrixHandler& m, bool);
+		~const_iterator(void);
+		const NaivePermMatrixHandler::const_iterator& operator ++ (void) const;
+		const SparseMatrixHandler::SparseMatrixElement* operator -> (void);
+		const SparseMatrixHandler::SparseMatrixElement& operator * (void);
+		bool operator == (const NaivePermMatrixHandler::const_iterator& op) const;
+		bool operator != (const NaivePermMatrixHandler::const_iterator& op) const;
+	};
+
+protected:
+	const_iterator m_end;
+
+public:
+	NaivePermMatrixHandler::const_iterator begin(void) const {
+		return const_iterator(*this);
+	};
+
+	const NaivePermMatrixHandler::const_iterator& end(void) const {
+		return m_end;
+	};
 
 public:
 	/* FIXME: always square? yes! */

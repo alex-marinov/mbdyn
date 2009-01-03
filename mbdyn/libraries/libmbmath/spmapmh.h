@@ -100,8 +100,7 @@ public:
 		void reset(bool is_end = false);
 
 	public:
-		const_iterator(const SpMapMatrixHandler& m);
-		const_iterator(const SpMapMatrixHandler& m, bool);
+		const_iterator(const SpMapMatrixHandler& m, bool is_end = false);
 		~const_iterator(void);
 		const SpMapMatrixHandler::const_iterator& operator ++ (void) const;
 		const SparseMatrixHandler::SparseMatrixElement* operator -> (void);

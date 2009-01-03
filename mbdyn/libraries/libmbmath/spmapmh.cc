@@ -389,16 +389,10 @@ SpMapMatrixHandler::const_iterator::reset(bool is_end)
 	}
 }
 
-SpMapMatrixHandler::const_iterator::const_iterator(const SpMapMatrixHandler& m)
-: m(m), i(m.col_indices[0].begin()), elem(i->first, 0, i->second)
+SpMapMatrixHandler::const_iterator::const_iterator(const SpMapMatrixHandler& m, bool is_end)
+: m(m)
 {
-	NO_OP;
-}
-
-SpMapMatrixHandler::const_iterator::const_iterator(const SpMapMatrixHandler& m, bool)
-: m(m), elem(m.NRows, m.NCols, 0.)
-{
-	NO_OP;
+	reset(is_end);
 }
 
 SpMapMatrixHandler::const_iterator::~const_iterator(void)

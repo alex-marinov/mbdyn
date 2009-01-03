@@ -62,10 +62,31 @@ vh.h
 libmbmath_la_LIBADD = @LIBS@ @F2C_LIBS@ @X_ANN_LIBS@
 libmbmath_la_LDFLAGS =
 
-noinst_PROGRAMS = matmultest
+noinst_PROGRAMS = matmultest itertest
 
 matmultest_SOURCES = matmultest.cc
 matmultest_LDADD = \
+../libmbmath/libmbmath.la \
+../libmbutil/libmbutil.la \
+../libobjs/libobjs.la \
+../libcolamd/libmbdyncolamd.la \
+../libnaive/libnaive.la \
+@UMFPACK_LIBS@ \
+@MESCHACH_LIBS@ \
+@HARWELL_LIBS@ \
+@SUPERLU_LIBS@ \
+@TAUCS_LIBS@ \
+@LAPACK_LIBS@ \
+@Y12_LIBS@ \
+@METIS_LIBS@ \
+@BLAS_LIBS@ \
+@F2C_LIBS@ \
+@LIBS@ \
+@TCL_LIBS@ \
+@THREAD_LIBS@
+
+itertest_SOURCES = itertest.cc
+itertest_LDADD = \
 ../libmbmath/libmbmath.la \
 ../libmbutil/libmbutil.la \
 ../libobjs/libobjs.la \

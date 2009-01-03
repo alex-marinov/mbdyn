@@ -50,7 +50,7 @@
 NaiveMatrixHandler::NaiveMatrixHandler(const integer n, 
 	NaiveMatrixHandler *const nmh)
 :  iSize(n), bOwnsMemory(true),
-ppdRows(0), ppiRows(0), ppiCols(0), ppnonzero(0), piNzr(0), piNzc(0)
+ppdRows(0), ppiRows(0), ppiCols(0), ppnonzero(0), piNzr(0), piNzc(0), m_end(*this, true)
 {
 	if (nmh) {
 		bOwnsMemory = false;
@@ -454,6 +454,89 @@ NaiveMatrixHandler::MatTVecMul_base(
 	return out;
 }
 
+void
+NaiveMatrixHandler::const_iterator::reset(bool is_end)
+{
+	if (is_end) {
+		elem.iRow = m.iSize;
+		elem.iCol = m.iSize;
+
+	} else {
+		i_row = 0;
+		elem.iCol = 0;
+
+		while (m.piNzr[elem.iCol] == 0) {
+			if (++elem.iCol == m.iSize) {
+				elem.iRow = m.iSize;
+				return;
+			}
+		}
+
+		elem.iRow = m.ppiRows[elem.iCol][i_row];
+		elem.dCoef = m.ppdRows[elem.iRow][elem.iCol];
+	}
+}
+
+NaiveMatrixHandler::const_iterator::const_iterator(const NaiveMatrixHandler& m, bool is_end)
+: m(m)
+{
+	reset(is_end);
+}
+
+NaiveMatrixHandler::const_iterator::~const_iterator(void)
+{
+	NO_OP;
+}
+
+const NaiveMatrixHandler::const_iterator&
+NaiveMatrixHandler::const_iterator::operator ++ (void) const
+{
+	i_row++;
+	while (i_row == m.piNzr[elem.iCol]) {
+		if (++elem.iCol == m.iSize) {
+			elem.iRow = m.iSize;
+			return *this;
+		}
+
+		i_row = 0;
+	}
+
+	elem.iRow = m.ppiRows[elem.iCol][i_row];
+	elem.dCoef = m.ppdRows[elem.iRow][elem.iCol];
+
+	return *this;
+}
+
+const SparseMatrixHandler::SparseMatrixElement *
+NaiveMatrixHandler::const_iterator::operator -> (void)
+{
+	return &elem;
+}
+
+const SparseMatrixHandler::SparseMatrixElement&
+NaiveMatrixHandler::const_iterator::operator * (void)
+{
+	return elem;
+}
+
+bool
+NaiveMatrixHandler::const_iterator::operator == (const NaiveMatrixHandler::const_iterator& op) const
+{
+	if (elem.iRow == op.elem.iRow && elem.iCol == op.elem.iCol) {
+		return true;
+	}
+	return false;
+}
+
+bool
+NaiveMatrixHandler::const_iterator::operator != (const NaiveMatrixHandler::const_iterator& op) const
+{
+	if (elem.iRow != op.elem.iRow || elem.iCol != op.elem.iCol) {
+		return true;
+	}
+	return false;
+}
+
 /* NaiveMatrixHandler end */
 
 
@@ -462,7 +545,7 @@ NaiveMatrixHandler::MatTVecMul_base(
 NaivePermMatrixHandler::NaivePermMatrixHandler(integer iSize,
 		const integer *const tperm,
 		const integer *const tinvperm)
-: NaiveMatrixHandler(iSize), perm(tperm), invperm(tinvperm)
+: NaiveMatrixHandler(iSize), perm(tperm), invperm(tinvperm), m_end(*this, true)
 {
 	NO_OP;
 }
@@ -470,7 +553,7 @@ NaivePermMatrixHandler::NaivePermMatrixHandler(integer iSize,
 NaivePermMatrixHandler::NaivePermMatrixHandler(NaiveMatrixHandler*const nmh, 
 		const integer *const tperm, 
 		const integer *const tinvperm)
-: NaiveMatrixHandler(0, nmh), perm(tperm), invperm(tinvperm)
+: NaiveMatrixHandler(0, nmh), perm(tperm), invperm(tinvperm), m_end(*this, true)
 {
 	NO_OP;
 }
@@ -574,6 +657,95 @@ NaivePermMatrixHandler::MatTVecMul_base(
 	}
 
 	return out;
+}
+
+void
+NaivePermMatrixHandler::const_iterator::reset(bool is_end)
+{
+	if (is_end) {
+		elem.iRow = m.iSize;
+		elem.iCol = m.iSize;
+
+	} else {
+		i_row = 0;
+		elem.iCol = 0;
+		elem.iRow = m.ppiRows[m.perm[elem.iCol]][i_row];
+		elem.dCoef = m.ppdRows[elem.iRow][m.perm[elem.iCol]];
+	}
+}
+
+NaivePermMatrixHandler::const_iterator::const_iterator(const NaivePermMatrixHandler& m)
+: m(m), i_row(0), elem(0, 0, 0.)
+{
+	while (m.piNzr[m.perm[elem.iCol]] == 0) {
+		if (++elem.iCol == m.iSize) {
+			elem.iRow = m.iSize;
+			return;
+		}
+	}
+
+	elem.iRow = m.ppiRows[m.perm[elem.iCol]][i_row];
+	elem.dCoef = m.ppdRows[elem.iRow][m.perm[elem.iCol]];
+}
+
+NaivePermMatrixHandler::const_iterator::const_iterator(const NaivePermMatrixHandler& m, bool)
+: m(m), i_row(0), elem(m.iSize, m.iSize, 0.)
+{
+	NO_OP;
+}
+
+NaivePermMatrixHandler::const_iterator::~const_iterator(void)
+{
+	NO_OP;
+}
+
+const NaivePermMatrixHandler::const_iterator&
+NaivePermMatrixHandler::const_iterator::operator ++ (void) const
+{
+	i_row++;
+	while (i_row == m.piNzr[m.perm[elem.iCol]]) {
+		if (++elem.iCol == m.iSize) {
+			elem.iRow = m.iSize;
+			return *this;
+		}
+
+		i_row = 0;
+	}
+
+	elem.iRow = m.ppiRows[m.perm[elem.iCol]][i_row];
+	elem.dCoef = m.ppdRows[elem.iRow][m.perm[elem.iCol]];
+
+	return *this;
+}
+
+const SparseMatrixHandler::SparseMatrixElement *
+NaivePermMatrixHandler::const_iterator::operator -> (void)
+{
+	return &elem;
+}
+
+const SparseMatrixHandler::SparseMatrixElement&
+NaivePermMatrixHandler::const_iterator::operator * (void)
+{
+	return elem;
+}
+
+bool
+NaivePermMatrixHandler::const_iterator::operator == (const NaivePermMatrixHandler::const_iterator& op) const
+{
+	if (elem.iRow == op.elem.iRow && elem.iCol == op.elem.iCol) {
+		return true;
+	}
+	return false;
+}
+
+bool
+NaivePermMatrixHandler::const_iterator::operator != (const NaivePermMatrixHandler::const_iterator& op) const
+{
+	if (elem.iRow != op.elem.iRow || elem.iCol != op.elem.iCol) {
+		return true;
+	}
+	return false;
 }
 
 /* NaivePermMatrixHandler end */
