@@ -5,7 +5,6 @@ include $(top_srcdir)/build/top.mk
 noinst_LTLIBRARIES = libobjs.la
 
 libobjs_la_SOURCES = \
-dgegv.c \
 get_nprocs.c \
 getopt.c
 
