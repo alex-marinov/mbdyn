@@ -68,7 +68,6 @@ matmultest_SOURCES = matmultest.cc
 matmultest_LDADD = \
 ../libmbmath/libmbmath.la \
 ../libmbutil/libmbutil.la \
-../libobjs/libobjs.la \
 ../libcolamd/libmbdyncolamd.la \
 ../libnaive/libnaive.la \
 @UMFPACK_LIBS@ \
@@ -89,7 +88,6 @@ itertest_SOURCES = itertest.cc
 itertest_LDADD = \
 ../libmbmath/libmbmath.la \
 ../libmbutil/libmbutil.la \
-../libobjs/libobjs.la \
 ../libcolamd/libmbdyncolamd.la \
 ../libnaive/libnaive.la \
 @UMFPACK_LIBS@ \
