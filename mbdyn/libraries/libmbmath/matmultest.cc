@@ -130,10 +130,10 @@ main(void)
 		<< spm << std::endl;
 
 	std::cout << "matrix in naive form: " << std::endl
-		<< spm << std::endl;
+		<< nm << std::endl;
 
-	std::cout << "matrix in naive permutated form: " << std::endl
-		<< spm << std::endl;
+	std::cout << "matrix in naive permuted form: " << std::endl
+		<< npm << std::endl;
 
 	std::vector<doublereal> Ax0, Ax1;
 	std::vector<integer> Ai0, Ai1, Ap0, Ap1;
