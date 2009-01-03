@@ -10,6 +10,8 @@ bisec.cc \
 bisec.h \
 ccmh.cc \
 ccmh.h \
+dgeequ.cc \
+dgeequ.h \
 dirccmh.cc \
 dirccmh.h \
 fullmh.cc \
@@ -62,7 +64,7 @@ vh.h
 libmbmath_la_LIBADD = @LIBS@ @F2C_LIBS@ @X_ANN_LIBS@
 libmbmath_la_LDFLAGS =
 
-noinst_PROGRAMS = matmultest itertest
+noinst_PROGRAMS = matmultest itertest dgeequtest
 
 matmultest_SOURCES = matmultest.cc
 matmultest_LDADD = \
@@ -86,6 +88,26 @@ matmultest_LDADD = \
 
 itertest_SOURCES = itertest.cc
 itertest_LDADD = \
+../libmbmath/libmbmath.la \
+../libmbutil/libmbutil.la \
+../libcolamd/libmbdyncolamd.la \
+../libnaive/libnaive.la \
+@UMFPACK_LIBS@ \
+@MESCHACH_LIBS@ \
+@HARWELL_LIBS@ \
+@SUPERLU_LIBS@ \
+@TAUCS_LIBS@ \
+@LAPACK_LIBS@ \
+@Y12_LIBS@ \
+@METIS_LIBS@ \
+@BLAS_LIBS@ \
+@F2C_LIBS@ \
+@LIBS@ \
+@TCL_LIBS@ \
+@THREAD_LIBS@
+
+dgeequtest_SOURCES = dgeequtest.cc
+dgeequtest_LDADD = \
 ../libmbmath/libmbmath.la \
 ../libmbutil/libmbutil.la \
 ../libcolamd/libmbdyncolamd.la \

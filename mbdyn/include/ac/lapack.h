@@ -66,6 +66,11 @@ __FC_DECL__(dgegv)(char *jobvl, char *jobvr, integer *n, doublereal *
 	doublereal *vr, integer *ldvr, doublereal *work, integer *lwork,
 	integer *info);
 
+/* Subroutine */ int
+__FC_DECL__(dgeequ)(integer *M, integer *N, doublereal *A, integer *LDA,
+	doublereal *R, doublereal *C, doublereal *ROWCND, doublereal *COLCND,
+	doublereal *AMAX, integer * INFO);
+
 #if defined(__cplusplus)
 }
 #endif /* __cplusplus */

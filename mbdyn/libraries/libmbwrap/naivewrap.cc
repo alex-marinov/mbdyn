@@ -178,7 +178,7 @@ NaiveSparseSolutionManager::MatrReset()
 	pLS->Reset();
 }
 
-/* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
+/* Risolve il sistema  Fattorizzazione + Backward Substitution*/
 void
 NaiveSparseSolutionManager::Solve(void)
 {
