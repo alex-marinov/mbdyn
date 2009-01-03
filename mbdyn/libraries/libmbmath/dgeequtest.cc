@@ -38,10 +38,9 @@
 
 #include "dgeequ.h"
 
-//#include "fullmh.h"
-//#include "spmapmh.h"
-//#include "ccmh.h"
-//#include "dirccmh.h"
+#include "spmapmh.h"
+#include "ccmh.h"
+#include "dirccmh.h"
 #include "naivemh.h"
 
 static doublereal mat[5][5] = {
@@ -63,18 +62,33 @@ main(void)
 	NaiveMatrixHandler nm(5);
 	NaivePermMatrixHandler npm(5, perm, invperm);
 	FullMatrixHandler fm(5);
+	SpMapMatrixHandler spm(5, 5);
 
 	nm.Reset();
+	npm.Reset();
 	fm.Reset();
+	spm.Reset();
 	for (unsigned ir = 0; ir < 5; ir++) {
 		for (unsigned ic = 0; ic < 5; ic++) {
 			if (mat[ir][ic] != 0.) {
 				nm(ir + 1, ic + 1) = mat[ir][ic];
 				npm(ir + 1, ic + 1) = mat[ir][ic];
 				fm(ir + 1, ic + 1) = mat[ir][ic];
+				spm(ir + 1, ic + 1) = mat[ir][ic];
 			}
 		}
 	}
+
+	std::vector<doublereal> Ax0, Ax1;
+	std::vector<integer> Ai0, Ai1, Ap0, Ap1;
+
+	spm.MakeCompressedColumnForm(Ax0, Ai0, Ap0, 0);
+	spm.MakeCompressedColumnForm(Ax1, Ai1, Ap1, 1);
+
+	CColMatrixHandler<0> ccm0(Ax0, Ai0, Ap0);
+	CColMatrixHandler<1> ccm1(Ax1, Ai1, Ap1);
+	DirCColMatrixHandler<0> dirccm0(Ax0, Ai0, Ap0);
+	DirCColMatrixHandler<1> dirccm1(Ax1, Ai1, Ap1);
 
 	std::vector<doublereal> r, c;
 	doublereal amax, rowcnd, colcnd;
@@ -128,5 +142,71 @@ main(void)
 		std::cout << std::endl;
 	}
 #endif // USE_LAPACK
+
+	dgeequ<CColMatrixHandler<0>, CColMatrixHandler<0>::const_iterator>(ccm0, r, c, rowcnd, colcnd, amax);
+	std::cout << "ccol0: amax=" << amax << ", rowcnd=" << rowcnd << ", colcnd=" << colcnd << std::endl;
+	for (unsigned ir = 0; ir < 5; ir++) {
+		std::cout
+			<< "   r[" << ir << "]=" << std::setw(12) << r[ir]
+			<< "       c[" << ir << "]=" << std::setw(12) << c[ir]
+			<< std::endl;
+	}
+
+	for (unsigned ir = 0; ir < 5; ir++) {
+		for (unsigned ic = 0; ic < 5; ic++) {
+			std::cout << std::setw(12) << r[ir]*c[ic]*mat[ir][ic];
+		}
+		std::cout << std::endl;
+	}
+
+	dgeequ<CColMatrixHandler<1>, CColMatrixHandler<1>::const_iterator>(ccm1, r, c, rowcnd, colcnd, amax);
+	std::cout << "ccol1: amax=" << amax << ", rowcnd=" << rowcnd << ", colcnd=" << colcnd << std::endl;
+	for (unsigned ir = 0; ir < 5; ir++) {
+		std::cout
+			<< "   r[" << ir << "]=" << std::setw(12) << r[ir]
+			<< "       c[" << ir << "]=" << std::setw(12) << c[ir]
+			<< std::endl;
+	}
+
+	for (unsigned ir = 0; ir < 5; ir++) {
+		for (unsigned ic = 0; ic < 5; ic++) {
+			std::cout << std::setw(12) << r[ir]*c[ic]*mat[ir][ic];
+		}
+		std::cout << std::endl;
+	}
+
+	dgeequ<DirCColMatrixHandler<0>, DirCColMatrixHandler<0>::const_iterator>(dirccm0, r, c, rowcnd, colcnd, amax);
+	std::cout << "dirccol0: amax=" << amax << ", rowcnd=" << rowcnd << ", colcnd=" << colcnd << std::endl;
+	for (unsigned ir = 0; ir < 5; ir++) {
+		std::cout
+			<< "   r[" << ir << "]=" << std::setw(12) << r[ir]
+			<< "       c[" << ir << "]=" << std::setw(12) << c[ir]
+			<< std::endl;
+	}
+
+	for (unsigned ir = 0; ir < 5; ir++) {
+		for (unsigned ic = 0; ic < 5; ic++) {
+			std::cout << std::setw(12) << r[ir]*c[ic]*mat[ir][ic];
+		}
+		std::cout << std::endl;
+	}
+
+	dgeequ<DirCColMatrixHandler<1>, DirCColMatrixHandler<1>::const_iterator>(dirccm1, r, c, rowcnd, colcnd, amax);
+	std::cout << "dirccol1: amax=" << amax << ", rowcnd=" << rowcnd << ", colcnd=" << colcnd << std::endl;
+	for (unsigned ir = 0; ir < 5; ir++) {
+		std::cout
+			<< "   r[" << ir << "]=" << std::setw(12) << r[ir]
+			<< "       c[" << ir << "]=" << std::setw(12) << c[ir]
+			<< std::endl;
+	}
+
+	for (unsigned ir = 0; ir < 5; ir++) {
+		for (unsigned ic = 0; ic < 5; ic++) {
+			std::cout << std::setw(12) << r[ir]*c[ic]*mat[ir][ic];
+		}
+		std::cout << std::endl;
+	}
+
+	return 0;
 }
 
