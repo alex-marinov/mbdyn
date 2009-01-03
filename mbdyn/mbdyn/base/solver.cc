@@ -3001,15 +3001,24 @@ Solver::ReadData(MBDynParser& HP)
 					}
 
 					EigAn.iNCV = HP.GetInt();
-					if (EigAn.iNCV <= 0 || EigAn.iNCV < EigAn.iNEV + 2) {
+					if (EigAn.iNCV <= 0
+						|| EigAn.iNCV <= 2*EigAn.iNEV
+						|| EigAn.iNCV < EigAn.iNEV + 2)
+					{
 						silent_cerr("invalid number of Arnoldi vectors "
-							"(>= 2*NEV && >= NEV+2) "
+							"(> 2*NEV && >= NEV+2) "
 							"at line " << HP.GetLineData()
 							<< std::endl);
 						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 
 					EigAn.dTOL = HP.GetReal();
+					if (EigAn.dTOL < 0.) {
+						silent_cerr("tolerance must be non-negative "
+							"at line " << HP.GetLineData()
+							<< std::endl);
+						EigAn.dTOL = 0.;
+					}
 #else // !USE_ARPACK
 					silent_cerr("\"use arpack\" "
 						"needs to configure --with-arpack "
@@ -3611,8 +3620,6 @@ EndOfCycle: /* esce dal ciclo di lettura */
 #endif /* USE_MULTITHREAD */
 }
 
-/* Estrazione autovalori, vincolata alla disponibilita' delle LAPACK */
-
 static int
 do_eig(const doublereal& b, const doublereal& re,
 	const doublereal& im, const doublereal& h,
@@ -3632,7 +3639,7 @@ do_eig(const doublereal& b, const doublereal& re,
 		sigma = log(d)/h;
 		omega = atan2(im, re)/h;
 
-		isPi = (fabs(im/b) < 1.e-15 && fabs(re/b+1.) < 1.e-15);
+		isPi = (fabs(im/b) < 1.e-15 && fabs(re/b + 1.) < 1.e-15);
 		if (isPi) {
 			sigma = 0.;
 			omega = HUGE_VAL;
@@ -3838,15 +3845,52 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 	char sL[2] = "V";
 	char sR[2] = "V";
 
-	/* iNumDof is a member, set after dataman constr. */
+	// iNumDof is a member, set after dataman constr.
 	integer iSize = MatA.iGetNumRows();
 
-	/* Minimum workspace size. To be improved */
-	integer iWorkSize = 8*iSize;
+	// Minimum workspace size. To be improved.
+	// NOTE: optimal iWorkSize is computed by dggev()
+	// when called with iWorkSize = -1.
+	// The computed value is stored in WorkVec[0].
+	integer iWorkSize = -1;
 	integer iInfo = 0;
 
-	/* Workspaces */
-	/* 2 matrices iSize x iSize, 3 vectors iSize x 1, 1 vector iWorkSize x 1 */
+	doublereal dDmy;
+	doublereal dWV;
+	__FC_DECL__(dggev)(sL,
+		sR,
+		&iSize,
+		&dDmy,
+		&iSize,
+		&dDmy,
+		&iSize,
+		&dDmy,
+		&dDmy,
+		&dDmy,
+		&dDmy,
+		&iSize,
+		&dDmy,
+		&iSize,
+		&dWV,
+		&iWorkSize,
+		&iInfo);
+
+	if (iInfo != 0) {
+		silent_cerr("dggev() query for worksize failed "
+			"INFO=" << iInfo << std::endl);
+		iInfo = 0;
+	}
+
+	iWorkSize = (integer)dWV;
+	if (iWorkSize < 8*iSize) {
+		silent_cerr("dggev() asked for a worksize " << iWorkSize
+			<< " less than the minimum, " << 8*iSize
+			<< "; using the minimum" << std::endl);
+		iWorkSize = 8*iSize;
+	}
+
+	// Workspaces
+	// 2 matrices iSize x iSize, 3 vectors iSize x 1, 1 vector iWorkSize x 1
 	doublereal* pd = NULL;
 	int iTmpSize = 2*(iSize*iSize) + 3*iSize + iWorkSize;
 	SAFENEWARR(pd, doublereal, iTmpSize);
@@ -3854,11 +3898,11 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 		pd[iCnt] = 0.;
 	}
 
-	/* 2 pointer arrays iSize x 1 for the matrices */
+	// 2 pointer arrays iSize x 1 for the matrices
 	doublereal** ppd = NULL;
 	SAFENEWARR(ppd, doublereal*, 2*iSize);
 
-	/* Data Handlers */
+	// Data Handlers
 	doublereal* pdTmp = pd;
 	doublereal** ppdTmp = ppd;
 
@@ -3897,10 +3941,13 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 		iSize*sizeof(doublereal)));
 	ASSERT(defaultMemoryManager.fIsValid(WorkVec.pdGetVec(),
 		iWorkSize*sizeof(doublereal)));
-#endif /* DEBUG_MEMMANAGER */
+#endif // DEBUG_MEMMANAGER
 
-	/* Eigenanalysis */
-	__FC_DECL__(dgegv)(sL,
+	// Eigenanalysis
+	// NOTE: according to lapack's documentation, dgegv() is deprecated
+	// in favour of dggev()... I find dgegv() a little bit faster (10%?)
+	// for typical problems (N ~ 1000).
+	__FC_DECL__(dggev)(sL,
 		sR,
 		&iSize,
 		MatA.pdGetMat(),
@@ -3935,11 +3982,11 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 	};
 
 	if (iInfo == 0) {
-		/* = 0:  successful exit */
+		// = 0:  successful exit
 		Out << "success" << std::endl;
 
 	} else if (iInfo < 0) {
-		/* < 0:  if INFO = -i, the i-th argument had an illegal value. */
+		// < 0:  if INFO = -i, the i-th argument had an illegal value.
 		Out << "argument #" << -iInfo << " was passed "
 			"an illegal value" << std::endl;
 
@@ -4093,6 +4140,7 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 		cnt++;
 	} while (IDO == 1 || IDO == -1);
 
+	// NOTE: improve diagnostics
 	if (INFO < 0) {
 		silent_cerr("ARPACK error after " << cnt << " iterations; "
 			"IDO=" << IDO << ", INFO=" << INFO << std::endl);
