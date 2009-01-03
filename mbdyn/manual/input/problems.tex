@@ -330,8 +330,62 @@ The default behavior is to ignore such requests\footnote{See note above}.
 
 
 \subsubsection{Eigenanalysis}
-Experimental, not available nor documented yet.
-Will likely be disabled.
+\label{sec:IVP:eigenanalysis}
+\begin{verbatim}
+    <card> ::= eigenanalysis , <when>
+        [ , parameter , <param> ]
+        [ , { output [ full ] matrices
+            | output sparse matrices
+            | output eigenvectors
+            | use lapack
+            | use arpack , <nev> , <ncv> , <tol> } [ , ... ] ]
+\end{verbatim}
+Performs the direct eigenanalysis of the problem.
+This functionality is experimental.
+Direct eigenanalysis based on the matrices of the system
+only makes sense when the system is in a steady configuration,
+so the user needs to ensure this configuration has been reached.
+Moreover, not all elements currently contribute to the Jacobian
+matrix of the system, so YMMV.
+In case of rotating systems, a steady configuration could be reached
+when the model is expressed in a relative reference frame,
+using the \kw{rigid body kinematics} card
+(see Section~\ref{sec:CONTROLDATA:RBK}).
+
+\begin{itemize}
+\item \kw{when} indicates at what time the eigenanalysis is performed;
+\item \kw{param} is the value of the coefficient that is used to project
+	the problem in the discrete time domain; it can be interpreted
+	as inverse of half the largest frequency that can be computed.
+	However, accuracy is lost by the projection procedure,
+	so it should be much larger than the largest frequencies of interest
+	by at least two orders of magnitude;
+\item \kw{output full matrices} causes the output
+	of the (full) problem matrices in a \kw{.m} file,
+	intended to be loaded by tools like octave/matlab;
+\item \kw{output sparse matrices} causes the output
+	of the problem matrices in sparse form in a \kw{.m} file,
+	intended to be loaded by tools like octave/matlab;
+\item \kw{output eigenvectors} causes the output of the eigenvalues
+	and of the eigenvectors in a \kw{.m} file,
+	intended to be loaded by tools like octave/matlab;
+\item \kw{use lapack} performs the eigenanalysis using
+	LAPACK's \kw{dggev} routine (generalized unsymmetric eigenanalysis
+	using the QZ decomposition);
+\item \kw{use arpack} performs the eigenanalysis using
+	ARPACK's \kw{dnaupd} routine (canonical unsymmetric eigenanalysis,
+	using the Implicitly Restarted Arnoldi Method, IRAM).
+	It requires the additional parameters:
+	\begin{itemize}
+	\item \kw{nev}, the number of the desired eigenvalues;
+	\item \kw{ncv}, the number of the Arnoldi vectors;
+	\item \kw{tol}, the tolerance (positive; zero means machine error).
+	\end{itemize}
+\end{itemize}
+This functionality is experimental, so the syntax could need adjustments
+and change across versions.
+
+
 
 \subsubsection{Abort After}
 \label{sec:IVP:abort after}
