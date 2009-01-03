@@ -51,6 +51,15 @@ extern "C" {
  */
 
 /* Subroutine */ extern int
+__FC_DECL__(dggev)(char *jobvl, char *jobvr, integer *n, doublereal *
+	a, integer *lda, doublereal *b, integer *ldb, doublereal *alphar,
+	doublereal *alphai, doublereal *beta, doublereal *vl, integer *ldvl,
+	doublereal *vr, integer *ldvr, doublereal *work, integer *lwork,
+	integer *info);
+
+/* NOTE: according to lapack's documentation, dgegv() is deprecated
+ * in favour of dggev()... */
+/* Subroutine */ extern int
 __FC_DECL__(dgegv)(char *jobvl, char *jobvr, integer *n, doublereal *
 	a, integer *lda, doublereal *b, integer *ldb, doublereal *alphar,
 	doublereal *alphai, doublereal *beta, doublereal *vl, integer *ldvl,
