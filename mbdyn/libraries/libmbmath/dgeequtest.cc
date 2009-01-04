@@ -102,12 +102,16 @@ main(void)
 			<< std::endl;
 	}
 
+#if 0
 	for (unsigned ir = 0; ir < 5; ir++) {
 		for (unsigned ic = 0; ic < 5; ic++) {
 			std::cout << std::setw(12) << r[ir]*c[ic]*mat[ir][ic];
 		}
 		std::cout << std::endl;
 	}
+#endif
+	dgeequ_scale<NaiveMatrixHandler, NaiveMatrixHandler::const_iterator>(nm, r, c);
+	std::cout << nm << std::endl;
 
 	dgeequ<NaivePermMatrixHandler, NaivePermMatrixHandler::const_iterator>(npm, r, c, rowcnd, colcnd, amax);
 	std::cout << "naive permuted: amax=" << amax << ", rowcnd=" << rowcnd << ", colcnd=" << colcnd << std::endl;
@@ -118,14 +122,17 @@ main(void)
 			<< std::endl;
 	}
 
+#if 0
 	for (unsigned ir = 0; ir < 5; ir++) {
 		for (unsigned ic = 0; ic < 5; ic++) {
 			std::cout << std::setw(12) << r[ir]*c[ic]*mat[ir][ic];
 		}
 		std::cout << std::endl;
 	}
+#endif
+	dgeequ_scale<NaivePermMatrixHandler, NaivePermMatrixHandler::const_iterator>(npm, r, c);
+	std::cout << npm << std::endl;
 
-#ifdef USE_LAPACK
 	dgeequ(fm, r, c, rowcnd, colcnd, amax);
 	std::cout << "full: amax=" << amax << ", rowcnd=" << rowcnd << ", colcnd=" << colcnd << std::endl;
 	for (unsigned ir = 0; ir < 5; ir++) {
@@ -135,13 +142,17 @@ main(void)
 			<< std::endl;
 	}
 
+#if 0
 	for (unsigned ir = 0; ir < 5; ir++) {
 		for (unsigned ic = 0; ic < 5; ic++) {
 			std::cout << std::setw(12) << r[ir]*c[ic]*mat[ir][ic];
 		}
 		std::cout << std::endl;
 	}
-#endif // USE_LAPACK
+#endif
+
+	dgeequ_scale(fm, r, c);
+	std::cout << fm << std::endl;
 
 	dgeequ<CColMatrixHandler<0>, CColMatrixHandler<0>::const_iterator>(ccm0, r, c, rowcnd, colcnd, amax);
 	std::cout << "ccol0: amax=" << amax << ", rowcnd=" << rowcnd << ", colcnd=" << colcnd << std::endl;
@@ -152,12 +163,17 @@ main(void)
 			<< std::endl;
 	}
 
+#if 0
 	for (unsigned ir = 0; ir < 5; ir++) {
 		for (unsigned ic = 0; ic < 5; ic++) {
 			std::cout << std::setw(12) << r[ir]*c[ic]*mat[ir][ic];
 		}
 		std::cout << std::endl;
 	}
+#endif
+
+	dgeequ_scale<CColMatrixHandler<0>, CColMatrixHandler<0>::const_iterator>(ccm0, r, c);
+	std::cout << ccm0 << std::endl;
 
 	dgeequ<CColMatrixHandler<1>, CColMatrixHandler<1>::const_iterator>(ccm1, r, c, rowcnd, colcnd, amax);
 	std::cout << "ccol1: amax=" << amax << ", rowcnd=" << rowcnd << ", colcnd=" << colcnd << std::endl;
@@ -168,12 +184,17 @@ main(void)
 			<< std::endl;
 	}
 
+#if 0
 	for (unsigned ir = 0; ir < 5; ir++) {
 		for (unsigned ic = 0; ic < 5; ic++) {
 			std::cout << std::setw(12) << r[ir]*c[ic]*mat[ir][ic];
 		}
 		std::cout << std::endl;
 	}
+#endif
+
+	dgeequ_scale<CColMatrixHandler<1>, CColMatrixHandler<1>::const_iterator>(ccm1, r, c);
+	std::cout << ccm1 << std::endl;
 
 	dgeequ<DirCColMatrixHandler<0>, DirCColMatrixHandler<0>::const_iterator>(dirccm0, r, c, rowcnd, colcnd, amax);
 	std::cout << "dirccol0: amax=" << amax << ", rowcnd=" << rowcnd << ", colcnd=" << colcnd << std::endl;
@@ -184,12 +205,17 @@ main(void)
 			<< std::endl;
 	}
 
+#if 0
 	for (unsigned ir = 0; ir < 5; ir++) {
 		for (unsigned ic = 0; ic < 5; ic++) {
 			std::cout << std::setw(12) << r[ir]*c[ic]*mat[ir][ic];
 		}
 		std::cout << std::endl;
 	}
+#endif
+
+	dgeequ_scale<DirCColMatrixHandler<0>, DirCColMatrixHandler<0>::const_iterator>(dirccm0, r, c);
+	std::cout << dirccm0 << std::endl;
 
 	dgeequ<DirCColMatrixHandler<1>, DirCColMatrixHandler<1>::const_iterator>(dirccm1, r, c, rowcnd, colcnd, amax);
 	std::cout << "dirccol1: amax=" << amax << ", rowcnd=" << rowcnd << ", colcnd=" << colcnd << std::endl;
@@ -200,12 +226,17 @@ main(void)
 			<< std::endl;
 	}
 
+#if 0
 	for (unsigned ir = 0; ir < 5; ir++) {
 		for (unsigned ic = 0; ic < 5; ic++) {
 			std::cout << std::setw(12) << r[ir]*c[ic]*mat[ir][ic];
 		}
 		std::cout << std::endl;
 	}
+#endif
+
+	dgeequ_scale<DirCColMatrixHandler<1>, DirCColMatrixHandler<1>::const_iterator>(dirccm1, r, c);
+	std::cout << dirccm1 << std::endl;
 
 	return 0;
 }

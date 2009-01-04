@@ -106,9 +106,9 @@ dgeequ(const FullMatrixHandler& mh, std::vector<doublereal>& r, std::vector<doub
 }
 #endif // !USE_LAPACK
 
-// scales vector 
-void
-dgeequ_scale(const FullMatrixHandler& mh, std::vector<doublereal>& r, std::vector<doublereal>& c)
+// scales matrix for full matrix handler, in place
+FullMatrixHandler&
+dgeequ_scale(FullMatrixHandler& mh, std::vector<doublereal>& r, std::vector<doublereal>& c)
 {
 	integer nrows = mh.iGetNumRows();
 	integer ncols = mh.iGetNumCols();
@@ -121,14 +121,25 @@ dgeequ_scale(const FullMatrixHandler& mh, std::vector<doublereal>& r, std::vecto
 		}
 		pd += ncols;
 	}
+
+	return mh;
 }
 
-// scales vector 
+// scales vector, in place
 void
-dgeequ_vscale(integer N, doublereal *v, doublereal *s)
+dgeequ_scale(integer N, doublereal *v_out, doublereal *v_in, doublereal *s)
 {
 	for (; N-- > 0; ) {
-		v[N] *= s[N];
+		v_out[N] = v_in[N]*s[N];
 	}
+}
+
+// scales vector handler, in place
+VectorHandler&
+dgeequ_scale(VectorHandler& v, doublereal *s)
+{
+	dgeequ_scale(v.iGetSize(), v.pdGetVec(), v.pdGetVec(), s);
+
+	return v;
 }
 

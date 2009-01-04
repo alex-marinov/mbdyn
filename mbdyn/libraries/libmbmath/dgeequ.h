@@ -129,10 +129,10 @@ dgeequ(const FullMatrixHandler& mh,
 	std::vector<doublereal>& r, std::vector<doublereal>& c,
 	doublereal& rowcnd, doublereal& colcnd, doublereal& amax);
 
-// scales matrix for a matrix handler with an iterator
+// scales matrix for a matrix handler with an iterator, in place
 template <class T, class Titer>
-void
-dgeequ_mscale(T& mh, std::vector<doublereal>& r, std::vector<doublereal>& c)
+T&
+dgeequ_scale(T& mh, std::vector<doublereal>& r, std::vector<doublereal>& c)
 {
 	for (Titer i = mh.begin(); i != mh.end(); ++i) {
 		// FIXME: were a non-const iterator available...
@@ -141,10 +141,21 @@ dgeequ_mscale(T& mh, std::vector<doublereal>& r, std::vector<doublereal>& c)
 #endif
 		mh(i->iRow + 1, i->iCol + 1) = i->dCoef * r[i->iRow] * c[i->iCol];
 	}
+
+	return mh;
 }
 
-// scales vector 
+// scales matrix for full matrix handler, in place
+FullMatrixHandler&
+dgeequ_scale(FullMatrixHandler& mh,
+	std::vector<doublereal>& r, std::vector<doublereal>& c);
+
+// scales vector, in place
 void
-dgeequ_vscale(integer N, doublereal *v, doublereal *s);
+dgeequ_scale(integer N, doublereal *v_out, doublereal *v_in, doublereal *s);
+
+// scales vector handler, in place
+VectorHandler&
+dgeequ_scale(VectorHandler& v, doublereal *s);
 
 #endif // DGEEQU_H
