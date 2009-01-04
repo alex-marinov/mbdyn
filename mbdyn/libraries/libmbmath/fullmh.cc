@@ -400,11 +400,28 @@ FullMatrixHandler::const_iterator::~const_iterator(void)
 const FullMatrixHandler::const_iterator&
 FullMatrixHandler::const_iterator::operator ++ (void) const
 {
+#if 0
+	// NOTE: this version only iterates on non-zero entries
+	do {
+		++i_idx;
+		if (++elem.iRow == m.iNumRows) {
+			if (++elem.iCol == m.iNumCols) {
+				return *this;
+			}
+			elem.iRow = 0;
+		}
+	} while (m.pdRaw[i_idx] == 0.);
+#else
+	// NOTE: this version iterates on all coefficients
 	++i_idx;
 	if (++elem.iRow == m.iNumRows) {
+		if (++elem.iCol == m.iNumCols) {
+			return *this;
+		}
 		elem.iRow = 0;
-		elem.iCol++;
 	}
+#endif
+
 	elem.dCoef = m.pdRaw[i_idx];
 
 	return *this;
