@@ -58,6 +58,7 @@ main(void)
 		invperm[perm[i]] = i;
 	}
 
+	FullMatrixHandler fm(5);
 	SpMapMatrixHandler spm(5, 5);
 	NaiveMatrixHandler nm(5);
 	NaivePermMatrixHandler npm(5, perm, invperm);
@@ -65,12 +66,16 @@ main(void)
 	for (int r = 0; r < 5; r++) {
 		for (int c = 0; c < 5; c++) {
 			if (mat[r][c] != 0.) {
+				fm(r + 1, c + 1) = mat[r][c];
 				spm(r + 1, c + 1) = mat[r][c];
 				nm(r + 1, c + 1) = mat[r][c];
 				npm(r + 1, c + 1) = mat[r][c];
 			}
 		}
 	}
+
+	std::cout << "matrix in full form: " << std::endl
+		<< fm << std::endl;
 
 	std::cout << "matrix in sparse form: " << std::endl
 		<< spm << std::endl;
@@ -134,6 +139,18 @@ main(void)
 	}
 
 	std::cout << "***************************" << std::endl
+		<< "full matrix handler:" << std::endl;
+
+	for (FullMatrixHandler::const_iterator i = fm.begin();
+		i != fm.end(); ++i)
+	{
+		std::cout << "(" << i->iRow << ", " << i->iCol << ", " << i->dCoef << ")" << std::endl;
+		if (mat[i->iRow][i->iCol] != i->dCoef) {
+			std::cout << "==> failed!" << std::endl;
+		}
+	}
+
+	std::cout << "***************************" << std::endl
 		<< "sparse map matrix handler:" << std::endl;
 
 	for (SpMapMatrixHandler::const_iterator i = spm.begin();
@@ -167,7 +184,6 @@ main(void)
 		}
 	}
 
-#if 0
 	std::cout << "***************************" << std::endl
 		<< "column compressed <0> sparse matrix handler:" << std::endl;
 	for (CColMatrixHandler<0>::const_iterator i = ccm0.begin();
@@ -178,7 +194,39 @@ main(void)
 			std::cout << "==> failed!" << std::endl;
 		}
 	}
-#endif
+
+	std::cout << "***************************" << std::endl
+		<< "column compressed <1> sparse matrix handler:" << std::endl;
+	for (CColMatrixHandler<1>::const_iterator i = ccm1.begin();
+		i != ccm1.end(); ++i)
+	{
+		std::cout << "(" << i->iRow << ", " << i->iCol << ", " << i->dCoef << ")" << std::endl;
+		if (mat[i->iRow][i->iCol] != i->dCoef) {
+			std::cout << "==> failed!" << std::endl;
+		}
+	}
+
+	std::cout << "***************************" << std::endl
+		<< "dir column compressed <0> sparse matrix handler:" << std::endl;
+	for (DirCColMatrixHandler<0>::const_iterator i = dirm0.begin();
+		i != dirm0.end(); ++i)
+	{
+		std::cout << "(" << i->iRow << ", " << i->iCol << ", " << i->dCoef << ")" << std::endl;
+		if (mat[i->iRow][i->iCol] != i->dCoef) {
+			std::cout << "==> failed!" << std::endl;
+		}
+	}
+
+	std::cout << "***************************" << std::endl
+		<< "dir column compressed <1> sparse matrix handler:" << std::endl;
+	for (DirCColMatrixHandler<1>::const_iterator i = dirm1.begin();
+		i != dirm1.end(); ++i)
+	{
+		std::cout << "(" << i->iRow << ", " << i->iCol << ", " << i->dCoef << ")" << std::endl;
+		if (mat[i->iRow][i->iCol] != i->dCoef) {
+			std::cout << "==> failed!" << std::endl;
+		}
+	}
 
 	return 0;
 }
