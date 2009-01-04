@@ -155,8 +155,7 @@ NaiveSparseSolutionManager::NaiveSparseSolutionManager(const integer Dim,
 VH(Dim)
 {
 	SAFENEWWITHCONSTRUCTOR(A, NaiveMatrixHandler, NaiveMatrixHandler(Dim));
-	SAFENEWWITHCONSTRUCTOR(pLS, NaiveSolver, 
-		NaiveSolver(Dim, dMP, A));
+	SAFENEWWITHCONSTRUCTOR(pLS, NaiveSolver, NaiveSolver(Dim, dMP, A));
 
 	pLS->pdSetResVec(VH.pdGetVec());
 	pLS->pdSetSolVec(VH.pdGetVec());
@@ -223,6 +222,7 @@ ePermState(PERM_NO)
 	perm.resize(Dim, 0);
 	invperm.resize(Dim, 0);
 
+	// replace matrix handler
 	SAFEDELETE(A);
 	A = 0;
 	SAFENEWWITHCONSTRUCTOR(A, NaivePermMatrixHandler,
