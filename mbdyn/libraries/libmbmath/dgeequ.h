@@ -40,16 +40,14 @@
 #include "fullmh.h"
 #endif // USE_LAPACK
 
-//#include "spmapmh.h"
-//#include "ccmh.h"
-//#include "dirccmh.h"
-//#include "naivemh.h"
-
+// helper for dgeequ
 void
 dgeequ_prepare(const MatrixHandler& mh,
 	std::vector<doublereal>& r, std::vector<doublereal>& c,
 	integer& nrows, integer& ncols);
 
+// computes scaling factors for a matrix handler that has an iterator
+// based on lapack's dgeequ
 template <class T, class Titer>
 void
 dgeequ(const T& mh, std::vector<doublereal>& r, std::vector<doublereal>& c,
@@ -58,6 +56,7 @@ dgeequ(const T& mh, std::vector<doublereal>& r, std::vector<doublereal>& c,
 	integer nrows, ncols;
 	dgeequ_prepare(mh, r, c, nrows, ncols);
 
+	// FIXME: define reasonable SMLNUM (e.g. using lapack's)
 	const doublereal SMLNUM = 1.e-15;
 	const doublereal BIGNUM = 1/SMLNUM;
 
@@ -123,11 +122,29 @@ dgeequ(const T& mh, std::vector<doublereal>& r, std::vector<doublereal>& c,
 	colcnd = std::max(rcmin, SMLNUM)/std::min(rcmax, BIGNUM);
 }
 
-#ifdef USE_LAPACK
+// computes scaling factors for a full matrix handler
+// uses lapack's dgeequ if available
 void
 dgeequ(const FullMatrixHandler& mh,
 	std::vector<doublereal>& r, std::vector<doublereal>& c,
 	doublereal& rowcnd, doublereal& colcnd, doublereal& amax);
-#endif // USE_LAPACK
+
+// scales matrix for a matrix handler with an iterator
+template <class T, class Titer>
+void
+dgeequ_mscale(T& mh, std::vector<doublereal>& r, std::vector<doublereal>& c)
+{
+	for (Titer i = mh.begin(); i != mh.end(); ++i) {
+		// FIXME: were a non-const iterator available...
+#if 0
+		i->dCoef *= r[i->iRow] * c[i->iCol];
+#endif
+		mh(i->iRow + 1, i->iCol + 1) = i->dCoef * r[i->iRow] * c[i->iCol];
+	}
+}
+
+// scales vector 
+void
+dgeequ_vscale(integer N, doublereal *v, doublereal *s);
 
 #endif // DGEEQU_H

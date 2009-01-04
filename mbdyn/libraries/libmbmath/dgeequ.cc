@@ -38,6 +38,7 @@
 #include "ac/lapack.h"
 #endif // USE_LAPACK
 
+// helper for dgeequ
 void
 dgeequ_prepare(const MatrixHandler& mh,
 	std::vector<doublereal>& r, std::vector<doublereal>& c,
@@ -70,6 +71,9 @@ dgeequ_prepare(const MatrixHandler& mh,
 
 }
 
+#ifdef USE_LAPACK
+// computes scaling factors for a full matrix handler
+// uses lapack's dgeequ
 void
 dgeequ(const FullMatrixHandler& mh, std::vector<doublereal>& r, std::vector<doublereal>& c,
 	doublereal& rowcnd, doublereal& colcnd, doublereal& amax)
@@ -91,6 +95,40 @@ dgeequ(const FullMatrixHandler& mh, std::vector<doublereal>& r, std::vector<doub
 		&INFO);
 	if (INFO != 0) {
 		// error
+	}
+}
+#else // !USE_LAPACK
+void
+dgeequ(const FullMatrixHandler& mh, std::vector<doublereal>& r, std::vector<doublereal>& c,
+	doublereal& rowcnd, doublereal& colcnd, doublereal& amax)
+{
+	dgeequ<FullMatrixHandler, FullMatrixHandler::const_iterator>(mh, r, c, rowcnd, colcnd, amax);
+}
+#endif // !USE_LAPACK
+
+// scales vector 
+void
+dgeequ_scale(const FullMatrixHandler& mh, std::vector<doublereal>& r, std::vector<doublereal>& c)
+{
+	integer nrows = mh.iGetNumRows();
+	integer ncols = mh.iGetNumCols();
+
+	doublereal *pd = mh.pdGetMat();
+
+	for (integer ic = 0; ic < ncols; ic++) {
+		for (integer ir = 0; ir < nrows; ir++) {
+			pd[ir] *= r[ir]*c[ic];
+		}
+		pd += ncols;
+	}
+}
+
+// scales vector 
+void
+dgeequ_vscale(integer N, doublereal *v, doublereal *s)
+{
+	for (; N-- > 0; ) {
+		v[N] *= s[N];
 	}
 }
 

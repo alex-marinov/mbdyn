@@ -35,6 +35,8 @@
 #include "solman.h"
 #include "except.h"
 
+#include "spmh.h"
+
 /* FullMatrixHandler - begin */
 
 class FullMatrixHandler : public MatrixHandler {
@@ -62,6 +64,40 @@ protected:
 	doublereal** ppdColsm1;
 
 	void CreateColRow(integer iNR, integer iNC);
+
+public:
+	class const_iterator {
+		friend class FullMatrixHandler;
+
+	private:
+		const FullMatrixHandler& m;
+		mutable integer i_idx;
+		mutable SparseMatrixHandler::SparseMatrixElement elem;
+
+	protected:
+		void reset(bool is_end = false);
+
+	public:
+		const_iterator(const FullMatrixHandler& m, bool is_end = false);
+		~const_iterator(void);
+		const FullMatrixHandler::const_iterator& operator ++ (void) const;
+		const SparseMatrixHandler::SparseMatrixElement* operator -> (void);
+		const SparseMatrixHandler::SparseMatrixElement& operator * (void);
+		bool operator == (const FullMatrixHandler::const_iterator& op) const;
+		bool operator != (const FullMatrixHandler::const_iterator& op) const;
+	};
+
+private:
+	const_iterator m_end;
+
+public:
+	FullMatrixHandler::const_iterator begin(void) const {
+		return const_iterator(*this);
+	};
+
+	const FullMatrixHandler::const_iterator& end(void) const {
+		return m_end;
+	};
 
 public:
 	FullMatrixHandler(doublereal* pd, doublereal** ppd,

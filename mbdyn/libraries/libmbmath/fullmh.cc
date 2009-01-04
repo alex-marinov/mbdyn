@@ -80,7 +80,7 @@ FullMatrixHandler::FullMatrixHandler(doublereal* pd, doublereal** ppd,
 : bOwnsMemory(false),
 iNumRows(iNR), iNumCols(iNC), iRawSize(iSize), iMaxCols(iMaxC),
 pdRaw(pd), pdRawm1(0),
-ppdCols(ppd), ppdColsm1(0)
+ppdCols(ppd), ppdColsm1(0), m_end(*this, true)
 {
 	if (iMaxCols == 0) {
 		iMaxCols = iNumCols;
@@ -104,7 +104,7 @@ FullMatrixHandler::FullMatrixHandler(integer iNR, integer iNC)
 iNumRows(iNR), iNumCols(iNC ? iNC : iNumRows),
 iRawSize(iNumRows*iNumCols), iMaxCols(iNumCols),
 pdRaw(NULL), pdRawm1(NULL),
-ppdCols(NULL), ppdColsm1(NULL)
+ppdCols(NULL), ppdColsm1(NULL), m_end(*this, true)
 {
 	ASSERT(iNumRows > 0);
 	ASSERT(iNumCols > 0);
@@ -121,7 +121,7 @@ FullMatrixHandler::FullMatrixHandler(void)
 : bOwnsMemory(true),
 iNumRows(0), iNumCols(0), iRawSize(0), iMaxCols(0),
 pdRaw(NULL), pdRawm1(NULL),
-ppdCols(NULL), ppdColsm1(NULL)
+ppdCols(NULL), ppdColsm1(NULL), m_end(*this, true)
 {
 	NO_OP;
 }
@@ -371,6 +371,74 @@ FullMatrixHandler::MatMul(const FullMatrixHandler& m1,
 	}
 }
 
+void
+FullMatrixHandler::const_iterator::reset(bool is_end)
+{
+	if (is_end) {
+		elem.iRow = m.iNumRows;
+		elem.iCol = m.iNumCols;
+
+	} else {
+		i_idx = 0;
+		elem.iRow = 0;
+		elem.iCol = 0;
+		elem.dCoef = m.pdRaw[i_idx];
+	}
+}
+
+FullMatrixHandler::const_iterator::const_iterator(const FullMatrixHandler& m, bool is_end)
+: m(m)
+{
+	reset(is_end);
+}
+
+FullMatrixHandler::const_iterator::~const_iterator(void)
+{
+	NO_OP;
+}
+
+const FullMatrixHandler::const_iterator&
+FullMatrixHandler::const_iterator::operator ++ (void) const
+{
+	++i_idx;
+	if (++elem.iRow == m.iNumRows) {
+		elem.iRow = 0;
+		elem.iCol++;
+	}
+	elem.dCoef = m.pdRaw[i_idx];
+
+	return *this;
+}
+
+const SparseMatrixHandler::SparseMatrixElement *
+FullMatrixHandler::const_iterator::operator -> (void)
+{
+	return &elem;
+}
+
+const SparseMatrixHandler::SparseMatrixElement&
+FullMatrixHandler::const_iterator::operator * (void)
+{
+	return elem;
+}
+
+bool
+FullMatrixHandler::const_iterator::operator == (const FullMatrixHandler::const_iterator& op) const
+{
+	if (elem.iRow == op.elem.iRow && elem.iCol == op.elem.iCol) {
+		return true;
+	}
+	return false;
+}
+
+bool
+FullMatrixHandler::const_iterator::operator != (const FullMatrixHandler::const_iterator& op) const
+{
+	if (elem.iRow != op.elem.iRow || elem.iCol != op.elem.iCol) {
+		return true;
+	}
+	return false;
+}
 
 /* FullMatrixHandler - end */
 
