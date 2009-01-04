@@ -82,7 +82,7 @@ void
 NaiveSolver::Solve(void) const
 {
 	if (bHasBeenReset) {
-      		((NaiveSolver *)this)->Factor();
+      		const_cast<NaiveSolver *>(this)->Factor();
       		bHasBeenReset = false;
 	}
 
