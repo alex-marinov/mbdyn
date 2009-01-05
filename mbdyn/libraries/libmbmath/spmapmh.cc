@@ -434,17 +434,11 @@ SpMapMatrixHandler::const_iterator::operator * (void)
 bool
 SpMapMatrixHandler::const_iterator::operator == (const SpMapMatrixHandler::const_iterator& op) const
 {
-	if (elem.iRow == op.elem.iRow && elem.iCol == op.elem.iCol) {
-		return true;
-	}
-	return false;
+	return elem == op.elem;
 }
 
 bool
 SpMapMatrixHandler::const_iterator::operator != (const SpMapMatrixHandler::const_iterator& op) const
 {
-	if (elem.iRow != op.elem.iRow || elem.iCol != op.elem.iCol) {
-		return true;
-	}
-	return false;
+	return elem != op.elem;
 }

@@ -442,19 +442,13 @@ FullMatrixHandler::const_iterator::operator * (void)
 bool
 FullMatrixHandler::const_iterator::operator == (const FullMatrixHandler::const_iterator& op) const
 {
-	if (elem.iRow == op.elem.iRow && elem.iCol == op.elem.iCol) {
-		return true;
-	}
-	return false;
+	return elem == op.elem;
 }
 
 bool
 FullMatrixHandler::const_iterator::operator != (const FullMatrixHandler::const_iterator& op) const
 {
-	if (elem.iRow != op.elem.iRow || elem.iCol != op.elem.iCol) {
-		return true;
-	}
-	return false;
+	return elem != op.elem;
 }
 
 /* FullMatrixHandler - end */

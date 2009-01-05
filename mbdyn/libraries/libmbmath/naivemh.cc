@@ -522,19 +522,13 @@ NaiveMatrixHandler::const_iterator::operator * (void)
 bool
 NaiveMatrixHandler::const_iterator::operator == (const NaiveMatrixHandler::const_iterator& op) const
 {
-	if (elem.iRow == op.elem.iRow && elem.iCol == op.elem.iCol) {
-		return true;
-	}
-	return false;
+	return elem == op.elem;
 }
 
 bool
 NaiveMatrixHandler::const_iterator::operator != (const NaiveMatrixHandler::const_iterator& op) const
 {
-	if (elem.iRow != op.elem.iRow || elem.iCol != op.elem.iCol) {
-		return true;
-	}
-	return false;
+	return elem != op.elem;
 }
 
 /* NaiveMatrixHandler end */
@@ -733,19 +727,13 @@ NaivePermMatrixHandler::const_iterator::operator * (void)
 bool
 NaivePermMatrixHandler::const_iterator::operator == (const NaivePermMatrixHandler::const_iterator& op) const
 {
-	if (elem.iRow == op.elem.iRow && elem.iCol == op.elem.iCol) {
-		return true;
-	}
-	return false;
+	return elem == op.elem;
 }
 
 bool
 NaivePermMatrixHandler::const_iterator::operator != (const NaivePermMatrixHandler::const_iterator& op) const
 {
-	if (elem.iRow != op.elem.iRow || elem.iCol != op.elem.iCol) {
-		return true;
-	}
-	return false;
+	return elem != op.elem;
 }
 
 /* NaivePermMatrixHandler end */

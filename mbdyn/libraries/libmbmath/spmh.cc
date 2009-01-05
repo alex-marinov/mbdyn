@@ -48,6 +48,8 @@ SparseMatrixHandler::~SparseMatrixHandler(void)
 	NO_OP;
 }
 
+doublereal SparseMatrixHandler::SparseMatrixElement_base::dZero = 0.;
+
 CompactSparseMatrixHandler::CompactSparseMatrixHandler(const integer &n,
 		const integer &nn,
 		std::vector<doublereal>&x,
@@ -349,14 +351,14 @@ template <int off>
 bool
 CompactSparseMatrixHandler_const_iterator<off>::operator == (const CompactSparseMatrixHandler_const_iterator<off>& op) const
 {
-	return (elem.iRow == op.elem.iRow && elem.iCol == op.elem.iCol);
+	return elem == op.elem;
 }
 
 template <int off>
 bool
 CompactSparseMatrixHandler_const_iterator<off>::operator != (const CompactSparseMatrixHandler_const_iterator<off>& op) const
 {
-	return (elem.iRow != op.elem.iRow || elem.iCol != op.elem.iCol);
+	return elem != op.elem;
 }
 
 template class CompactSparseMatrixHandler_const_iterator<0>;
