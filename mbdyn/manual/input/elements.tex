@@ -292,9 +292,9 @@ The format is:
 When an \kw{aerodynamic beam} is considered, the output 
 is repeated for each portion of the beam; so, for example,
 a two-node beam is split in two portions, so the output
-contains $2\times \kw{<integration\_points>}$ data blocks,
+contains $2\times \kw{integration\_points}$ data blocks,
 while a three-node beam is split in three portions,
-so the output contains $3\times \kw{<integration\_points>}$ data blocks.
+so the output contains $3\times \kw{integration\_points}$ data blocks.
 
 \subsubsection{Node}
 The format is:
@@ -421,7 +421,7 @@ All quantities are expressed in inches and pounds.
     <arglist> ::= <aircraft_node>
         [ , orientation , (Mat3x3)<relative orientation> ]
 \end{verbatim}
-The \kw{<aircraft\_node>} represents the aircraft; it is assumed
+The \kw{aircraft\_node} represents the aircraft; it is assumed
 that the ``nose'' of the aircraft is toward the positive $x$ direction
 of the node, and the ``top'' of the aircraft is toward the positive 
 $z$ direction of the node.
@@ -2392,7 +2392,7 @@ at each time step in the \kw{.frc} file.
 Each line contains:
 \begin{itemize}
 \item in column 1 the label of the element and that of the corresponding node;
-	the format of this field is \kw{<element\_label>.<node\_label>};
+	the format of this field is \kw{element\_label.node\_label};
 \item in columns 2--4 the three components of the force;
 \item in columns 5--7 the three components of the moment.
 \end{itemize}
@@ -5294,8 +5294,8 @@ and the corresponding Lagrangian multipliers $\T{\lambda}$, namely
 	\T{\Phi}_{/\T{x}} \Delta\T{x} &= - \T{\Phi}\plbr{\T{x}, t}
 \end{align}
 by adding the multipliers to the constraint equation,
-weighed by the coefficient \kw{<coef>} (or by the list of coefficients
-\kw{<coef\_i>}, in case different coefficients are given):
+weighed by the coefficient \kw{coef} (or by the list of coefficients
+\kw{coef\_i}, in case different coefficients are given):
 \begin{align}
 	\plbr{\T{\Phi}_{/\T{x}}^T \T{\lambda}}_{/\T{x}} \Delta\T{x}
 	+ \T{\Phi}_{/\T{x}}^T \Delta\T{\lambda}
@@ -5306,7 +5306,7 @@ weighed by the coefficient \kw{<coef>} (or by the list of coefficients
 \end{align}
 The Tikhonov regularization allows the constraint to be violated
 by an amount that depends on the multipliers.
-In this sense, the coefficient \kw{<coef>} should be considered
+In this sense, the coefficient \kw{coef} should be considered
 sort of a compliance: the larger the coefficient,
 the larger the constraint violation for a given value
 of the reaction $\T{\lambda}$.
@@ -5392,7 +5392,7 @@ libraries listed in \kw{/etc/ld.so.cache}, and finally in
 \kw{/usr/lib} and in \kw{/lib} (see \kw{dlopen(3)}).
 At last, it is searched in the current directory, and the extension
 \kw{.so} is added if missing.
-The string \kw{<calls>} represents the name of the structure that contains
+The string \kw{calls} represents the name of the structure that contains
 the bindings to the functions.
 The default is \kw{calls}.
 
@@ -5527,7 +5527,7 @@ are used instead.
 
 \begin{itemize}
 \item \kw{stream\_name} is the name of the RTAI mailbox where 
-the output is written  (a unique string exactly six characters long);
+the output is written  (a unique string no more than six characters long);
 it is basically ignored by the \kw{stream output} element
 except when using RTAI;
 
@@ -5609,7 +5609,7 @@ where
 \item the (optional) keyword \kw{values} indicates that a set
 of independent scalar channels is output by the element;
 
-\item the number of channels \kw{<channel\_number>} that are written
+\item the number of channels \kw{channel\_number} that are written
 determines how many \kw{value} entries must be read.
 In case of \kw{node\_dof} (the default, deprecated),
 they must be valid scalar dof entries, which can be connected
@@ -5640,7 +5640,7 @@ During non real-time simulations, streams operate in blocking mode.
 The meaning of the parameters is:
 \begin{itemize}
 \item \kw{stream\_name} indicates the name the stream would be known as
-by RTAI; it is limited to 6 characters, and mostly useless;
+by RTAI; it must be no more than 6 characters long, and mostly useless;
 
 \item the instruction \kw{create} determines whether MBDyn will create
 the socket, or try to connect to an existing one;
@@ -5729,7 +5729,7 @@ The syntax is:
     <elem_type> ::= stream motion output
 
     <arglist> ::= 
-        stream name , " <mailbox_name> " ,
+        stream name , " <stream_name> " ,
         create , { yes | no } ,
         [ { local , " <socket_name> " , |
             [ port , <port_number> , ]
@@ -5965,7 +5965,7 @@ The syntax for a driven element is:
     <driven_element> ::= <element_card>
 \end{verbatim}
 When the first format is used, an existing element 
-of type \kw{<elem\_type>} and label \kw{<elem\_label>} is looked for, 
+of type \kw{elem\_type} and label \kw{elem\_label} is looked for, 
 and it is wrapped by the driven element.
 In this case, no new element is instantiated.
 The label of the element must match that of the driving element given 
@@ -6146,7 +6146,7 @@ output of selected elements, and it is analogous to that of the
 \kw{elem\_type} is a valid element type that can be read 
 as card name in the \kw{elements} block.
 In case the keyword \kw{range} is used, all existing elements comprised
-between \kw{<elem\_start\_label>} and \kw{<elem\_end\_label>}
+between \kw{elem\_start\_label} and \kw{elem\_end\_label}
 are set; missing ones are silently ignored.
 
 

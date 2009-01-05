@@ -37,7 +37,7 @@ Every \kw{driver} card has the following format:
 \begin{verbatim}
     <card> ::= <driver_type> : <arglist> ;
 \end{verbatim}
-At present only \kw{<driver\_type>} drivers of type \kw{file} are supported.
+At present only \kw{driver\_type} drivers of type \kw{file} are supported.
 
 \section{File Drivers}
 The \kw{file} drivers are defined by the statement
@@ -81,8 +81,8 @@ respective ''time`` bounds.
                            | [ , port, <port_number> ] }
                          (AuthenticationMethod)<authentication>
 \end{verbatim}
-The driver binds to a socket listening on port \kw{<port\_number>} 
-(defaults to 5555) or on the named pipe \kw{<file\_name>}; at the
+The driver binds to a socket listening on port \kw{port\_number} 
+(defaults to 5555) or on the named pipe \kw{file\_name}; at the
 beginning of each time step, in case of connection, the driver expects some
 input data in text format, consisting in an authentication token 
 (if required).
@@ -92,8 +92,8 @@ The authentication token is usually in the form
     password: <user_password> <new_line>
 \end{verbatim}
 {\em 
-    Note: white-spaces may be significant in \kw{<user\_name>}, 
-    and surely are in \kw{<user\_password>}.
+    Note: white-spaces may be significant in \kw{user\_name}, 
+    and surely are in \kw{user\_password}.
 } \\    
 It is followed by a label token, in the form
 \begin{verbatim}
@@ -136,7 +136,7 @@ running in real-time.
 The syntax is:
 \begin{verbatim}
     <normal_arglist> ::= RTAI input ,
-        stream drive name , " <mailbox_name> " ,
+        stream drive name , " <stream_name> " ,
         [ create , { yes | no } , ]
         [ host , " <host_name> " , ]
         [ { [ non ] blocking } , [ ... ] ]
@@ -144,15 +144,15 @@ The syntax is:
 \end{verbatim}
 where
 \begin{itemize}
-\item \kw{<mailbox\_name>} is the name of the mailbox (a unique string 
-exactly six chars long);
+\item \kw{stream\_name} is the name of the mailbox (a unique string 
+no more than 6 characters long);
 \item the \kw{create} keyword determines whether the mailbox 
 must be created or looked-up as already existing on the system;
-\item \kw{<host\_name} is the name or the IP of the remote host where 
+\item \kw{host\_name} is the name or the IP of the remote host where 
 the mailbox resides; note that if this field is given, \kw{create} must
 be set to \kw{no} and the mailbox must be already defined
 on the remote host;
-\item the number of channels \kw{<columns\_number>} determines how many
+\item the number of channels \kw{columns\_number} determines how many
 columns can be accessed via the \kw{file} drive caller mechanism 
 of Section~\ref{sec:FILE-DRIVE}, as for all the other \kw{file} drivers.
 \end{itemize}
@@ -170,7 +170,7 @@ or model debugging purposes.}
 \subsection{Stream}\label{sec:Stream}
 \begin{verbatim}
     <normal_arglist> ::= stream,
-        name , " <name> " ,
+        name , " <stream_name> " ,
         create , { yes | no } ,
         [ { local , " <socket_name> " , |
             [ port , <port_number> , ]
@@ -198,8 +198,8 @@ of the communication with the controller process.
 During non real-time simulations, streams operate in blocking mode.
 The meaning of the parameters is:
 \begin{itemize}
-\item \kw{<name>} indicates the name the stream will be known as;
-it is mostly useless, and is limited to 6 characters,
+\item \kw{stream\_name} indicates the name the stream will be known as;
+it is mostly useless, and must be no more than 6 characters long,
 since it is only allowed for compatibility with RTAI's mailboxes;
 \item the instruction \kw{create} determines whether the socket will be
 created or looked for by MBDyn;
@@ -208,10 +208,10 @@ in the local namespace will be used; if \kw{create} is set to \kw{yes},
 the socket is created, otherwise it must exist.
 \item either of the keywords \kw{port} or \kw{host} indicate that a socket
 in the internet namespace will be used;
-if \kw{create} is set to \kw{yes}, \kw{<host\_name>} indicates 
+if \kw{create} is set to \kw{yes}, \kw{host\_name} indicates 
 the host that is allowed to connect to the socket; it defaults 
 to any host (\kw{0.0.0.0}); if \kw{create} is set to \kw{no},
-\kw{<host\_name>} indicates what host to connect to; the default 
+\kw{host\_name} indicates what host to connect to; the default 
 is localhost (\kw{127.0.0.1}); the default port is \kw{5500};
 \item the keyword \kw{no signal} disables raising a \kw{SIGPIPE}
 in case the stream is read after it was closed by the peer;
@@ -229,9 +229,9 @@ keyword is mandatory.
 During real-time simulations, streams wrap non-blocking RTAI mailboxes.
 The meaning of the parameters is:
 \begin{itemize}
-\item the parameter \kw{<name>} indicates the name the stream
+\item the parameter \kw{stream\_name} indicates the name the stream
 will be known as in RTAI's resource namespace;
-it must be exactly 6 characters long, and actually represents the mailbox name;
+it must no more than 6 characters long, and actually represents the mailbox name;
 \item the instruction \kw{create} determines whether the mailbox will be
 created or looked for by MBDyn;
 \item the keyword \kw{local} is ignored;
@@ -242,7 +242,7 @@ if none is given, a local mailbox is assumed;
 \item the keyword \kw{port} is ignored.
 \end{itemize}
 
-The parameter \kw{<columns\_number>} determines how many
+The parameter \kw{columns\_number} determines how many
 channels will be used.
 A channel is a double typed number; a \kw{stream drive} can read
 an arbitrary number of simultaneous channels.
