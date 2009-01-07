@@ -4,11 +4,11 @@ include $(top_srcdir)/build/top.mk
 
 SUBDIRS = \
 libmbutil \
-libmbmath \
 libobjs \
 liby12 \
 libcolamd \
 libnaive \
+libmbmath \
 libmbwrap \
 libann
 
