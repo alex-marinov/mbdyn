@@ -41,6 +41,8 @@
 
 #ifdef USE_NAIVE_MULTITHREAD
 
+#include <atomic_ops.h>
+
 #include <iostream>
 #include "ac/pthread.h"
 #include <vector>
@@ -72,8 +74,8 @@ private:
 	mutable std::vector<integer> piv;
 	mutable std::vector<doublereal> fwd;
 	std::vector<integer>	todo; 
-	mutable std::vector<unsigned long> row_locks;
-	mutable std::vector<unsigned long> col_locks;
+	mutable std::vector<AO_t> row_locks;
+	mutable std::vector<AO_t> col_locks;
 
 	NaiveMatrixHandler *A;
 

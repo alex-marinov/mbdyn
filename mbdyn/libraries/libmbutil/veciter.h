@@ -142,7 +142,7 @@ public:
  */
 class InUse {
 private:
-	mutable sig_atomic_t	inuse;
+	mutable AO_t	inuse;
 
 public:
 	InUse(void) : inuse(false) { NO_OP; };
@@ -156,7 +156,7 @@ public:
 		 * 	false:	make it true; return true
 		 */
 		/* FIXME: make it portable */
-		bool b = mbdyn_compare_and_swap(inuse,
+		bool b = mbdyn_compare_and_swap(&inuse,
 				sig_atomic_t(true), sig_atomic_t(false));
 
 		return !b;

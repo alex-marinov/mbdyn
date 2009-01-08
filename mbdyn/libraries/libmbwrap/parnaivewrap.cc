@@ -66,8 +66,8 @@ int pnaivfct(doublereal** a,
 	integer *piv,
 	integer *todo,
 	doublereal minpiv,
-	unsigned long *row_locks,
-	unsigned long *col_locks,
+	AO_t *row_locks,
+	AO_t *col_locks,
 	int task,
 	int NCPU);
 
@@ -79,7 +79,7 @@ void pnaivslv(doublereal** a,
 	integer *piv,
 	doublereal *fwd,
 	doublereal *sol,
-	unsigned long *locks,
+	AO_t *locks,
 	int task,
 	int NCPU);
 }
@@ -104,7 +104,7 @@ thread_data(0)
 	fwd.resize(iSize);
 	todo.resize(iSize);
 	row_locks.resize(iSize + 2);
-	col_locks.resize(iSize, 0);
+	col_locks.resize(iSize, AO_TS_INITIALIZER);
 
 	pthread_mutex_init(&thread_mutex, NULL);
 	pthread_cond_init(&thread_cond, NULL);

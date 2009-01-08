@@ -333,6 +333,7 @@ dnl Checks for header files.
 dnl
 AC_STDC_HEADERS
 AC_CHECK_HEADERS(arpa/inet.h)
+AC_CHECK_HEADERS(atomic_ops.h)
 AC_CHECK_HEADERS(getopt.h)
 AC_CHECK_HEADERS(netdb.h)
 AC_CHECK_HEADERS(netinet/in.h)
@@ -871,58 +872,6 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
-dnl Check for compare-and-swap capability
-dnl
-have_compare_and_swap=no
-dnl
-dnl i486 and above ...
-AC_TRY_COMPILE([
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif /* HAVE_SYS_TYPES_H */
-	],[
-	struct __xchg_dummy { unsigned long a[100]; };
-	#define __xg(x) ((struct __xchg_dummy *)(x))
-
-	/* from <asm/bitops.h> */
-	#define LOCK_PREFIX "lock ; "
-
-	int8_t	valptr = 0, oldval = 0, newval = 1, prev;
-
-	__asm__ __volatile__( LOCK_PREFIX "cmpxchgb %b1,%2"
-			: "=a"(prev)
-			: "q"(newval), "m"(*__xg(valptr)), "0"(oldval)
-			: "memory");
-],[have_cmpxchg=yes],[have_cmpxchg=no])
-if test "$have_cmpxchg" = "yes" ; then
-	AC_DEFINE(HAVE_i486_CMPXCHG,1,[define if system ( >= i486) has cmpxchg])
-	have_compare_and_swap=yes
-fi
-dnl
-dnl IA64
-AC_TRY_COMPILE([
-#ifdef HAVE_ASM_SYSTEM_H
-#include <asm/system.h>
-#endif /* HAVE_ASM_SYSTEM_H */
-	],[
-	int8_t	valptr = 0, oldval = 0, newval = 1;
-	return (cmpxchg(&valptr, oldval, newval) == oldval);
-],[have_cmpxchg=yes],[have_cmpxchg=no])
-if test "$have_cmpxchg" = "yes" ; then
-	AC_DEFINE(HAVE_IA64_CMPXCHG,1,[define if system ( >= i486) has cmpxchg])
-	have_compare_and_swap=yes
-fi
-dnl
-dnl add tests for other systems ...
-
-dnl
-dnl summarize ...
-if test "$have_compare_and_swap" = "yes" ; then
-	AC_DEFINE(HAVE_COMPARE_AND_SWAP,1,[define if system supports atomic compare-and-swap])
-fi
-
-dnl ----------------------------------------------------------------
-dnl
 dnl Check for multithread assembly (use previous checks)
 dnl
 ol_link_multithread=no
@@ -931,8 +880,13 @@ if test "$ol_enable_multithread" != no ; then
 		AC_MSG_ERROR([Can't enable multithread --without-threads])
 	fi
 	AC_MSG_CHECKING([whether to enable multithread])
+
 	if test "$ac_cv_header_pthread_h" != "yes" ; then
 		AC_MSG_ERROR([need pthreads.h])
+	fi
+
+	if test "$ac_cv_header_atomic_ops_h" != "yes" ; then
+		AC_MSG_ERROR([need atomic_ops.h (from HP's atomic_ops project)])
 	fi
 
 	if test "$have_threads" = no ; then
@@ -969,8 +923,13 @@ if test "$ol_enable_multithread_naive" != no ; then
 		AC_MSG_ERROR([Can't enable multithread naive solver --without-threads])
 	fi
 	AC_MSG_CHECKING([whether to enable multithread naive solver])
+
 	if test "$ac_cv_header_pthread_h" != "yes" ; then
 		AC_MSG_ERROR([need pthreads.h])
+	fi
+
+	if test "$ac_cv_header_atomic_ops_h" != "yes" ; then
+		AC_MSG_ERROR([need atomic_ops.h (from HP's atomic_ops project)])
 	fi
 
 	if test "$have_threads" = no ; then
@@ -1006,8 +965,13 @@ fi
 ol_link_multithread=no
 if test "$ol_enable_multithread" != no ; then
 	AC_MSG_CHECKING([for usable threads])
+
 	if test "$ac_cv_header_pthread_h" != "yes" ; then
 		AC_MSG_ERROR([need pthreads.h])
+	fi
+
+	if test "$ac_cv_header_atomic_ops_h" != "yes" ; then
+		AC_MSG_ERROR([need atomic_ops.h (from HP's atomic_ops project)])
 	fi
 
 	save_LIBS="$LIBS"

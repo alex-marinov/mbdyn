@@ -58,13 +58,13 @@ extern "C" {
 #include "task2cpu.h"
 
 static inline void
-do_lock(integer &p)
+do_lock(AO_t *p)
 {
 	while (!mbdyn_compare_and_swap(p, 1, 0));
 }
 	
 static inline void
-do_unlock(integer &p)
+do_unlock(AO_t *p)
 {
 	mbdyn_compare_and_swap(p, 0, 1);
 }
@@ -73,7 +73,7 @@ static void
 naivepsad(doublereal **ga, integer **gri, 
 		integer *gnzr, integer **gci, integer *gnzc, char **gnz,
 		doublereal **a, integer **ci, integer *nzc,
-		integer from, integer to, integer *lock)
+		integer from, integer to, AO_t *lock)
 {
 
 	for (integer r = from; r < to; r++) {
@@ -97,12 +97,12 @@ naivepsad(doublereal **ga, integer **gri,
 					 */
 					gnz[r][c] = 1;
 					
-					do_lock(lock[c]);
+					do_lock(&lock[c]);
 
 					gri[c][gnzr[c]] = r;
 					gnzr[c]++;
 										
-					do_unlock(lock[c]);
+					do_unlock(&lock[c]);
 					gnzc[r]++;
 				}
 			}
@@ -135,7 +135,7 @@ CCReady(CC_NO),
 thread_data(0),
 op(MultiThreadDataManager::OP_UNKNOWN),
 thread_count(0),
-propagate_ErrMatrixRebuild(sig_atomic_t(false))
+propagate_ErrMatrixRebuild(false)
 {
 #if 0	/* no effects ... */
 	struct sched_param	sp;
@@ -277,7 +277,7 @@ MultiThreadDataManager::thread(void *p)
 						<< " caught ErrRebuildMatrix"
 						<< std::endl);
 
-				mbdyn_compare_and_swap(arg->pDM->propagate_ErrMatrixRebuild,
+				mbdyn_compare_and_swap(&arg->pDM->propagate_ErrMatrixRebuild,
 						sig_atomic_t(true), sig_atomic_t(false));
 
 			} catch (...) {
@@ -506,8 +506,8 @@ retry:;
 			 * each thread sees the array of all the matrices,
 			 * and uses only its own for element assembly,
 			 * all for per-thread matrix summation */
-			SAFENEWARR(thread_data[0].lock, integer, JacHdl.iGetNumRows());
-			memset(thread_data[0].lock, 0, sizeof(integer)*JacHdl.iGetNumRows());
+			SAFENEWARR(thread_data[0].lock, AO_t, JacHdl.iGetNumRows());
+			memset(thread_data[0].lock, 0, sizeof(AO_t)*JacHdl.iGetNumRows());
 
 			SAFENEWARR(thread_data[0].ppNaiveJacHdl,
 					NaiveMatrixHandler*, nThreads);
@@ -624,7 +624,7 @@ retry:;
 				<< " caught ErrRebuildMatrix"
 				<< std::endl);
 
-		mbdyn_compare_and_swap(propagate_ErrMatrixRebuild,
+		mbdyn_compare_and_swap(&propagate_ErrMatrixRebuild,
 				sig_atomic_t(true), sig_atomic_t(false));
 
 	} catch (...) {

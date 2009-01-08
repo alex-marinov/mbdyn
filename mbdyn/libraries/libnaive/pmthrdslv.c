@@ -55,7 +55,7 @@ struct task_struct;
 #include <asm/bitops.h>
 #endif
 
-#include "ac/spinlock.h"
+#include <atomic_ops.h>
 
 /* FIXME: from <f2c.h> */
 typedef int     integer;
@@ -78,8 +78,8 @@ pnaivfct(doublereal** a,
 	integer *piv,
 	integer *todo,
 	doublereal minpiv,
-	unsigned long *row_locks,
-	unsigned long *col_locks,
+	AO_t *row_locks,
+	AO_t *col_locks,
 	int task,
 	int ncpu)
 {
@@ -88,7 +88,7 @@ pnaivfct(doublereal** a,
 	char *pnzk;
 	doublereal den, mul, mulpiv, fapvr, fari;
 	doublereal *par, *papvr;
-	unsigned long *sync_lock = &row_locks[neq];
+	AO_t *sync_lock = &row_locks[neq];
 	//unsigned long *pivot_lock = &row_locks[neq + 1];
 
 	if (minpiv == 0.) {
@@ -149,14 +149,14 @@ pnaivfct(doublereal** a,
 			todo[pvr] = 0;
 			papvr = a[pvr];
 			den = papvr[i] = 1.0/papvr[i];
-			wmb();
+			AO_nop_full();
 
 			//set_wmb(piv[i], pvr);
 			piv[i] = pvr;
 
 
 		} else {
-			while ((pvr = atomic_read((atomic_t *)&piv[i])) < 0);
+			while ((pvr = AO_int_load_full(&piv[i])) < 0);
 			papvr = a[pvr];
 			
 			den = papvr[i];
@@ -189,7 +189,8 @@ pnaivfct(doublereal** a,
 #if 0
 					while (atomic_inc_and_test((atomic_t *)&col_locks[pvc]));
 #endif
-					while (mbdyn_cmpxchgl((int32_t *)&col_locks[pvc], 1, 0) != 0);
+					//while (mbdyn_cmpxchgl((int32_t *)&col_locks[pvc], 1, 0) != 0);
+					while (AO_compare_and_swap(&col_locks[pvc], 0, 1) == 0);
 					pnzk[pvc] = 1;
 					ri[pvc][nzr[pvc]++] = r;
 					col_locks[pvc] = 0;
@@ -198,8 +199,8 @@ pnaivfct(doublereal** a,
 			}
 		}
 
-		atomic_inc((atomic_t *)&row_locks[i]);
-		while (atomic_read((atomic_t *)&row_locks[i]) < ncpu);
+ 		AO_fetch_and_add1(&row_locks[i]);
+ 		while (AO_load_full(&row_locks[i]) < ncpu);
 	}
 
 //	if (task == 0) {
@@ -233,8 +234,8 @@ pnaivslv(doublereal** a,
 
 	if (!task) {
 		fwd[0] = rhs[piv[0]];
-		wmb();
-		atomic_set((atomic_t *)locks, 1);
+		AO_nop_full();
+		AO_store_full(locks, 1);
 	}
 
 	for (i = 1; i < neq; i++) {
@@ -250,25 +251,27 @@ pnaivslv(doublereal** a,
 		for (k = 0; k < nc; k++) {
 			c = pci[k];
 			if (c < i) {
-				while (!atomic_read((atomic_t *)&locks[c]));
+				while (!AO_load_full(&locks[c]));
 				s -= par[c]*fwd[c];
 			}
 		}
-		set_wmb(fwd[i], s);
+		AO_nop_full();
+		fwd[i] = s;
+		AO_nop_full();
 #if 0
 		fwd[i] = s;
 #endif
-		atomic_set((atomic_t *)&locks[i], 1);
+		AO_store_full(&locks[i], 1);
 	}
 
-	atomic_inc((atomic_t *)&locks[neq]);
-	while (atomic_read((atomic_t *)&locks[neq]) < ncpu);
+	AO_fetch_and_add1(&locks[neq]);
+	while (AO_load_full(&locks[neq]) < ncpu);
 
 	neq--;
 	r = piv[neq];
 	if (!task) {
 		sol[neq] = fwd[neq]*a[r][neq];
-		atomic_set((atomic_t *)&locks[neq], 0);
+		AO_store_full(&locks[neq], 0);
 	}
 	for (i = neq - 1; i >= 0; i--) {
 #if 0
@@ -285,15 +288,18 @@ pnaivslv(doublereal** a,
 		pci = ci[r];
 		for (k = 0; k < nc; k++) {
 			if ((c = pci[k]) > i) {
-				while (atomic_read((atomic_t *)&locks[c]));
+				while (AO_load_full(&locks[c]));
 				s -= par[c]*sol[c];
 			}
 		}
-		set_wmb(sol[i], s*par[i]);
+		AO_nop_full();
+		sol[i] = s*par[i];
+		AO_nop_full();
+		
 #if 0
 		sol[i] = s*par[i];
 #endif
-		atomic_set((atomic_t *)&locks[i], 0);
+		AO_store_full(&locks[i], 0);
 	}
 
 	return;
