@@ -32,6 +32,7 @@
 #ifndef DGEEQU_H
 #define DGEEQU_H
 
+#include <cmath>
 #include <vector>
 
 #include "mh.h"
