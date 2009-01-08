@@ -36,10 +36,7 @@
 #include <vector>
 
 #include "mh.h"
-
-#ifdef USE_LAPACK
 #include "fullmh.h"
-#endif // USE_LAPACK
 
 // helper for dgeequ
 void
