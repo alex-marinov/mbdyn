@@ -68,7 +68,7 @@ noinst_PROGRAMS = matmultest itertest dgeequtest
 
 matmultest_SOURCES = matmultest.cc
 matmultest_LDADD = \
-../libmbmath/libmbmath.la \
+libmbmath.la \
 ../libmbutil/libmbutil.la \
 ../libcolamd/libmbdyncolamd.la \
 ../libnaive/libnaive.la \
@@ -88,7 +88,7 @@ matmultest_LDADD = \
 
 itertest_SOURCES = itertest.cc
 itertest_LDADD = \
-../libmbmath/libmbmath.la \
+libmbmath.la \
 ../libmbutil/libmbutil.la \
 ../libcolamd/libmbdyncolamd.la \
 ../libnaive/libnaive.la \
@@ -108,7 +108,7 @@ itertest_LDADD = \
 
 dgeequtest_SOURCES = dgeequtest.cc
 dgeequtest_LDADD = \
-../libmbmath/libmbmath.la \
+libmbmath.la \
 ../libmbutil/libmbutil.la \
 ../libcolamd/libmbdyncolamd.la \
 ../libnaive/libnaive.la \
