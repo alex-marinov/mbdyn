@@ -74,15 +74,16 @@ enum {
 #define NAIVE_ENOPIV	(0x20000000U)
 #define NAIVE_ERANGE	(0x40000000U)
 
+
 typedef integer** IMAT;
 typedef doublereal** RMAT;
 typedef char** NZMAT;
 
-extern integer naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
+extern int naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 		integer *nzc, IMAT ci, NZMAT nz, 
 		integer *piv, doublereal minpiv);
 
-extern integer naivslv(RMAT a, integer neq, integer *nzc, IMAT ci,
+extern int naivslv(RMAT a, integer neq, integer *nzc, IMAT ci,
 		doublereal *rhs, doublereal *sol, integer *piv);
 
 #ifdef __cplusplus

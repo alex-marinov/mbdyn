@@ -58,7 +58,7 @@ The subroutine naivfct perform the LU factorization, naivslv the back-solve.
 #else /* !HAVE_CONFIG_H */
 /* to ease compilation outside of MBDyn...
  * replace long and double with the preferred types */
-#include "math.h"
+#include <math.h>
 typedef long int integer;
 typedef double doublereal;
 #endif /* !HAVE_CONFIG_H */
@@ -72,7 +72,7 @@ typedef double doublereal;
 
 #define MINPIV   1.0e-8
 
-integer
+int
 naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 		integer *nzc, IMAT ci, NZMAT nz, 
 		integer *piv, doublereal minpiv)
@@ -139,6 +139,7 @@ naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 			}
 		}
 		if (nc == neq + 1) { return NAIVE_ENOPIV + i; }
+		if (mulpiv == 0.)  { return NAIVE_ENOPIV + i; }
 
 		piv[i] = pvr;
 		todo[pvr] = 0;
@@ -164,11 +165,10 @@ naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 			}
 		}
 	}
-
 	return 0;
 }
 
-integer
+int
 naivslv(RMAT a, integer neq, integer *nzc, IMAT ci, 
 		doublereal *rhs, doublereal * sol,
 		integer *piv)

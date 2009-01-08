@@ -28,10 +28,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 /*
- * Copyright (C) 2009
- *
- * Marco Morandini
- *
+ * Copyright Marco Morandini
  */
 
 #ifdef HAVE_CONFIG_H
@@ -40,7 +37,6 @@
 
 #ifdef USE_NAIVE_MULTITHREAD
 
-#define __KERNEL__
 #define _GNU_SOURCE
 
 #include <stdlib.h>
@@ -52,31 +48,20 @@
 
 struct task_struct;
 
-#if 0	/* moved to "ac/spinlock.h" */
-#include <asm/system.h>
-#include <asm/atomic.h>
-#include <asm/bitops.h>
-#endif
-
-#include <atomic_ops.h>
-
 /* FIXME: from <f2c.h> */
 typedef int     integer;
 typedef double  doublereal;
 
+#include "pmthrdslv.h"
 
-#define BIGINT   (1 << 30)
-#define ENULCOL  1000000
-#define ENOPIV   2000000
+#define MINPIV   (1.0e-8)
 
-#define MINPIV   1.0e-8
-
-
-integer
+int
 pnaivfct(doublereal** a,
 	integer neq,
 	integer *nzr, integer** ri,
 	integer *nzc, integer** ci,
+	integer* nril, integer **ril,
 	char** nz,
 	integer *piv,
 	integer *todo,
@@ -91,23 +76,18 @@ pnaivfct(doublereal** a,
 	char *pnzk;
 	doublereal den, mul, mulpiv, fapvr, fari;
 	doublereal *par, *papvr;
-	AO_t *sync_lock = &row_locks[neq];
-	//unsigned long *pivot_lock = &row_locks[neq + 1];
 
 	if (minpiv == 0.) {
 		minpiv = MINPIV;
 	}
 
-/*	atomic_inc((atomic_t *)sync_lock);
- 	while (atomic_read((atomic_t *)sync_lock) < ncpu);
-*/	
 	for (i = 0; i < neq; i++) {
-		nr = nzr[i];
-		if (nr == 0) {
-			return ENULCOL + i; 
-		}
 		pri = ri[i];
 		if (task == 0) {
+			nr = nzr[i];
+			if (nr == 0) {
+				return NAIVE_ENULCOL + i; 
+			}
 			nc = neq + 1;	
 			mul = mulpiv = fapvr = 0.0;
 /*
@@ -147,7 +127,8 @@ pnaivfct(doublereal** a,
 					}
 				}
 			}
-			if (nc == neq + 1) { return ENOPIV + i; }
+			if (nc == neq + 1) { return NAIVE_ENOPIV + i; }
+			if (mulpiv == 0.)  { return NAIVE_ENOPIV + i; }
 
 			todo[pvr] = 0;
 			papvr = a[pvr];
@@ -159,9 +140,12 @@ pnaivfct(doublereal** a,
 
 
 		} else {
-			while ((pvr = AO_int_load_full(&piv[i])) < 0);
+			while ((pvr = AO_int_load_full((unsigned int *)&piv[i])) < 0);
 			papvr = a[pvr];
-			
+			nr = nzr[i];
+			if (nr == 0) {
+				return NAIVE_ENULCOL + i; 
+			}			
 			den = papvr[i];
 		}
 
@@ -183,7 +167,6 @@ pnaivfct(doublereal** a,
 				if (pvc <= i) {
 					continue;
 				}
-
 				if (pnzk[pvc]) {
 					par[pvc] -= mul*papvr[pvc];
 				} else {
@@ -193,30 +176,34 @@ pnaivfct(doublereal** a,
 					while (atomic_inc_and_test((atomic_t *)&col_locks[pvc]));
 #endif
 					//while (mbdyn_cmpxchgl((int32_t *)&col_locks[pvc], 1, 0) != 0);
-					while (AO_compare_and_swap(&col_locks[pvc], 0, 1) == 0);
+					while (AO_compare_and_swap_full(&col_locks[pvc], 0, 1) == 0);
 					pnzk[pvc] = 1;
-					ri[pvc][nzr[pvc]++] = r;
+					ril[k][nril[k]++] = pvc;
 					col_locks[pvc] = 0;
 					//atomic_set((atomic_t *)&col_locks[pvc], 0); 
 				}
 			}
 		}
 
- 		AO_fetch_and_add1(&row_locks[i]);
- 		while (AO_load_full(&row_locks[i]) < ncpu);
+		AO_fetch_and_add1_full(&row_locks[i]);
+		while (AO_load_full(&row_locks[i]) < ncpu);
+
+		if (task == 0) {
+			for (k = 0; k < nr; k++) {
+				r = pri[k];
+				for (j = 0; j < nril[k]; j++) {
+					pvc = ril[k][j];
+					ri[pvc][nzr[pvc]++] = r;
+				}
+				nril[k] = 0;
+			}
+		}
 	}
-
-//	if (task == 0) {
-		/* NOTE: same as sync_lock[0] */
-//		sync_lock[0] = 0;
-
-//		wmb();
-//	}
 
 	return 0;
 }
 
-void
+int
 pnaivslv(doublereal** a,
 		integer neq,
 		integer *nzc,
@@ -267,7 +254,7 @@ pnaivslv(doublereal** a,
 		AO_store_full(&locks[i], 1);
 	}
 
-	AO_fetch_and_add1(&locks[neq]);
+	AO_fetch_and_add1_full(&locks[neq]);
 	while (AO_load_full(&locks[neq]) < ncpu);
 
 	neq--;
@@ -305,7 +292,7 @@ pnaivslv(doublereal** a,
 		AO_store_full(&locks[i], 0);
 	}
 
-	return;
+	return 0;
 }
 
 void

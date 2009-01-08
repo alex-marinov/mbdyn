@@ -8,7 +8,8 @@ lib_LTLIBRARIES = libnaive.la
 libnaive_la_SOURCES = \
 mthrdslv.c \
 mthrdslv.h \
-pmthrdslv.c
+pmthrdslv.c \
+pmthrdslv.h
 
 libnaive_la_LIBADD = @LIBS@ \
 @ATOMIC_OPS_LIBS@

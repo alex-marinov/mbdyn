@@ -36,7 +36,7 @@
  *****************************************************************************/
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #ifdef USE_NAIVE_MULTITHREAD
@@ -57,32 +57,7 @@
 #include "mthrdslv.h"
 #include "task2cpu.h"
 
-extern "C" {
-int pnaivfct(doublereal** a,
-	integer neq,
-	integer *nzr, integer** ri,
-	integer *nzc, integer** ci,
-	char ** nz,
-	integer *piv,
-	integer *todo,
-	doublereal minpiv,
-	AO_t *row_locks,
-	AO_t *col_locks,
-	int task,
-	int NCPU);
-
-void pnaivslv(doublereal** a,
-	integer neq,
-	integer *nzc,
-	integer** ci,
-	doublereal *rhs,
-	integer *piv,
-	doublereal *fwd,
-	doublereal *sol,
-	AO_t *locks,
-	int task,
-	int NCPU);
-}
+#include "pmthrdslv.h"
 
 /* ParNaiveSolver - begin */
 
@@ -201,15 +176,15 @@ ParNaiveSolver::thread_op(void *arg)
 			);
 
 			if (td->retval) {
-				if (td->retval & ENULCOL) {
+				if (td->retval & NAIVE_ENULCOL) {
 					silent_cerr("NaiveSolver: ENULCOL("
-							<< (td->retval & ~ENULCOL) << ")" << std::endl);
+							<< (td->retval & ~NAIVE_ENULCOL) << ")" << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
-				if (td->retval & ENOPIV) {
+				if (td->retval & NAIVE_ENOPIV) {
 					silent_cerr("NaiveSolver: ENOPIV("
-							<< (td->retval & ~ENOPIV) << ")" << std::endl);
+							<< (td->retval & ~NAIVE_ENOPIV) << ")" << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
