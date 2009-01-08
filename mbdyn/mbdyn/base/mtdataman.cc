@@ -521,9 +521,10 @@ retry:;
 
 				if (pNaivePermJacHdl) {
 					SAFENEWWITHCONSTRUCTOR(thread_data[0].ppNaiveJacHdl[i],
-							NaivePermMatrixHandler,
-							NaivePermMatrixHandler(JacHdl.iGetNumRows(),
-								pNaivePermJacHdl->pGetPerm()));
+						NaivePermMatrixHandler,
+						NaivePermMatrixHandler(JacHdl.iGetNumRows(),
+							pNaivePermJacHdl->pGetPerm(),
+							pNaivePermJacHdl->pGetInvPerm()));
 
 				} else {
 					SAFENEWWITHCONSTRUCTOR(thread_data[0].ppNaiveJacHdl[i],
