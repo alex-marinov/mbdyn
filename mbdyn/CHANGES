@@ -24,6 +24,8 @@ MBDyn 1.3.5-Beta
 		- add embryonic relative frame dynamics & aerodynamics
 		- clamp joint more resilient to large transient violations
 		- add direct eigensolution based on LAPACK & ARPACK
+		- use HP's atomic_ops for spinlock in multithread
+		  (by Marco Morandini)
 	Backward compatibility issues:
 		- now immediate abort requires CTRL^C three times
 		- changed real-time args order (not backward compatible)
