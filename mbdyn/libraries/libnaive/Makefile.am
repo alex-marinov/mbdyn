@@ -10,7 +10,8 @@ mthrdslv.c \
 mthrdslv.h \
 pmthrdslv.c
 
-libnaive_la_LIBADD = @LIBS@
+libnaive_la_LIBADD = @LIBS@ \
+@ATOMIC_OPS_LIBS@
 libnaive_la_LDFLAGS =
 
 INCLUDES = \

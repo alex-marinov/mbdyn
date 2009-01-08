@@ -296,6 +296,7 @@ Y12_LIBS=
 UMFPACK_LIBS=
 BLAS_LIBS=
 THREAD_LIBS=
+ATOMIC_OPS_LIBS=
 MESCHACH_LIBS=
 SUPERLU_LIBS=
 WSMP_LIBS=
@@ -1018,6 +1019,16 @@ if test "$ol_enable_multithread" != no ; then
 		ol_link_multithread=yes
 		AC_DEFINE(USE_MULTITHREAD,1,[define to enable multithreaded solution])
 		AC_MSG_RESULT([yes])
+	fi
+fi
+
+if test "$ol_link_multithread" = "yes" -o "$ol_link_multithread_naive" = "yes" ; then
+	AC_CHECK_LIB(atomic_ops_gpl, AO_compare_and_swap_full,[have_atomic_ops=yes],[have_atomic_ops=no],[-latomic_ops])
+	if test $have_atomic_ops = "yes" ; then
+		AC_DEFINE(HAVE_ATOMIC_OPS,1,[define to use HP's atomic_ops library])
+	else
+		AC_MSG_ERROR([Need HP's atomic_ops library for multithreaded features])
+		ATOMIC_OPS_LIBS="-latomic_ops_gpl -latomic_ops"
 	fi
 fi
 
@@ -2274,6 +2285,7 @@ AC_SUBST(BLAS_LIBS)
 AC_SUBST(TAUCS_LIBS)
 AC_SUBST(ARPACK_LIBS)
 AC_SUBST(THREAD_LIBS)
+AC_SUBST(ATOMIC_OPS_LIBS)
 AC_SUBST(SECURITY_LIBS)
 AC_SUBST(TCL_LIBS)
 AC_SUBST(NETCDF_LIBS)
