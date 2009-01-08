@@ -64,10 +64,10 @@ INCLUDES = \
 noinst_PROGRAMS = mbsasltest testexcept
 mbsasltest_SOURCES = mbsasltest.c
 mbsasltest_LDADD = @THREAD_LIBS@ @SECURITY_LIBS@ \
-./libmbutil.la
+libmbutil.la
 
 testexcept_SOURCES = testexcept.cc
 testexcept_LDADD =  \
-./libmbutil.la
+libmbutil.la
 
 include $(top_srcdir)/build/bot.mk

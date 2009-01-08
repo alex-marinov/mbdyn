@@ -70,7 +70,7 @@ endif
 
 wraptest_SOURCES = wraptest.cc
 wraptest_LDADD = \
-./libmbwrap.la \
+libmbwrap.la \
 ../libmbmath/libmbmath.la \
 ../libmbutil/libmbutil.la \
 ../libobjs/libobjs.la \
@@ -92,7 +92,7 @@ wraptest_LDADD = \
 
 cctest_SOURCES = cctest.cc
 cctest_LDADD = \
-./libmbwrap.la \
+libmbwrap.la \
 ../libmbmath/libmbmath.la \
 ../libmbutil/libmbutil.la \
 ../libobjs/libobjs.la \
@@ -112,7 +112,7 @@ cctest_LDADD = \
 if USE_ARPACK
 arptest_SOURCES = arptest.cc
 arptest_LDADD = \
-./libmbwrap.la \
+libmbwrap.la \
 ../libmbmath/libmbmath.la \
 ../libmbutil/libmbutil.la \
 ../libobjs/libobjs.la \
