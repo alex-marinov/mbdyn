@@ -766,9 +766,9 @@ main(void)
 
 	// arpack-related vars
 	integer IDO;		// 0 at first iteration; then set by dnaupd
-	const char *BMAT;		// 'I' for standard problem
+	const char *BMAT;	// 'I' for standard problem
 	integer N;		// size of problem
-	const char *WHICH;		// "SM" to request smallest eigenvalues
+	const char *WHICH;	// "SM" to request smallest eigenvalues
 	integer NEV;		// number of eigenvalues
 	doublereal TOL;		// -1 to use machine precision
 	std::vector<doublereal> RESID;	// residual vector (ignored if IDO==0)
