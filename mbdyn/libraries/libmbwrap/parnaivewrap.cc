@@ -1,9 +1,8 @@
-/* $Header$ */
 /* 
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2009
+ * Copyright (C) 1996-2005
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -28,6 +27,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+/*
+ * Copyright (C) 2009
+ *
+ * Marco Morandini
+ *
+ */
 
 /*****************************************************************************
  *                                                                           *
@@ -48,7 +53,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
-#include <stdio.h>
+#include <cstdio>
 
 #include <unistd.h>
 #include <signal.h>
@@ -68,13 +73,14 @@ ParNaiveSolver::ParNaiveSolver(unsigned nt, const integer &size,
 : LinearSolver(0),
 iSize(size),
 dMinPiv(dMP),
+ppril(0),
+pnril(0),
 A(a),
 nThreads(nt),
 thread_data(0)
 {
 	ASSERT(iN > 0);
 
-	
 	piv.resize(iSize);
 	fwd.resize(iSize);
 	todo.resize(iSize);
@@ -83,6 +89,22 @@ thread_data(0)
 
 	pthread_mutex_init(&thread_mutex, NULL);
 	pthread_cond_init(&thread_cond, NULL);
+
+	SAFENEWARR(ppril, integer *, iSize);
+	ppril[0] = 0;
+	SAFENEWARR(ppril[0], integer, iSize*iSize);
+	for (integer i = 1; i < iSize; i++) {
+		ppril[i] = ppril[i - 1] + iSize;
+	}
+	SAFENEWARR(pnril, integer, iSize);
+#ifdef HAVE_MEMSET_H
+	memset(pnril, 0, sizeof(integer)*iSize);
+#else /* ! HAVE_MEMSET_H */
+	for (integer row = 0; row < iSize; row++) {
+		pnril[row] = 0;
+	}
+#endif /* ! HAVE_MEMSET_H */		
+
 
 	SAFENEWARRNOFILL(thread_data, thread_data_t, nThreads);
 	
@@ -129,6 +151,16 @@ ParNaiveSolver::~ParNaiveSolver(void)
 	pthread_mutex_destroy(&thread_mutex);
 	pthread_cond_destroy(&thread_cond);
 
+	if (ppril) {
+		if (ppril[0]) {
+			SAFEDELETEARR(ppril[0]);
+		}
+		SAFEDELETEARR(ppril);
+	}
+	if (pnril) {
+		SAFEDELETEARR(pnril);
+	}
+
 	/* other cleanup... */
 }
 
@@ -165,6 +197,8 @@ ParNaiveSolver::thread_op(void *arg)
 				td->pSLUS->A->ppiRows,
 				td->pSLUS->A->piNzc,
 				td->pSLUS->A->ppiCols,
+				td->pSLUS->pnril,
+				td->pSLUS->ppril, 
 				td->pSLUS->A->ppnonzero,
 				&td->pSLUS->piv[0],
 				&td->pSLUS->todo[0],
@@ -177,13 +211,13 @@ ParNaiveSolver::thread_op(void *arg)
 
 			if (td->retval) {
 				if (td->retval & NAIVE_ENULCOL) {
-					silent_cerr("NaiveSolver: ENULCOL("
+					silent_cerr("NaiveSolver: NAIVE_ENULCOL("
 							<< (td->retval & ~NAIVE_ENULCOL) << ")" << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (td->retval & NAIVE_ENOPIV) {
-					silent_cerr("NaiveSolver: ENOPIV("
+					silent_cerr("NaiveSolver: NAIVE_ENOPIV("
 							<< (td->retval & ~NAIVE_ENOPIV) << ")" << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
@@ -273,6 +307,7 @@ ParNaiveSolver::Factor(void)
 			piv[i] = -1;
 			todo[i] = -1;
 			row_locks[i] = 0;
+			pnril[0] = 0;
 	}
 
 	/* NOTE: these are for pivot_lock and sync_lock */

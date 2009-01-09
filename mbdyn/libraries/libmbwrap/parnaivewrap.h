@@ -28,6 +28,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+/*
+ * Copyright (C) 2009
+ *
+ * Marco Morandini
+ *
+ */
 
 /*****************************************************************************
  *                                                                           *
@@ -72,6 +78,8 @@ private:
 
 	doublereal dMinPiv;
 	mutable std::vector<integer> piv;
+	integer **ppril;
+	integer *pnril;
 	mutable std::vector<doublereal> fwd;
 	std::vector<integer>	todo; 
 	mutable std::vector<AO_t> row_locks;
