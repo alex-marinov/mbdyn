@@ -87,8 +87,9 @@ D. Code:
 			mbdyn > ascii
 			mbdyn > netcdf (in global output database)
 	- add aerodynamic elements Jacobian matrix contribution
-	- add sparse eigenvalue extraction (see ARPACK/ARPACK++)
+	- add sparse eigenvalue extraction (see ARPACK/ARPACK++, DONE)
 	- add center of mass computation/constraint
+	- add matrix scaling (partially DONE)
 
 	Small Projects:
 	- add MATLAB/Octave and Simulink hooks.
@@ -97,7 +98,7 @@ D. Code:
 	- move critical Reynolds numbers from constants to fluid properties
 		with pressure/temperature dependencies.
 	- improve symbolic constitutive law (based on GiNaC)
-	- move exception handling towards <stdexcept>
+	- move exception handling towards <stdexcept> (DONE otherwise)
 	- review/improve user-configurable statistics output (partially DONE;
 		see "output:" statement in integrator data block)
 	- add Matlab-compatible sparse matrix generation for sparse
