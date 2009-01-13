@@ -14,6 +14,7 @@ MBDyn 1.X-Devel
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
+		- fix plane hinge family eq. description
 
 MBDyn 1.3.5
 	Enhancements:

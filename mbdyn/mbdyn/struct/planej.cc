@@ -296,14 +296,14 @@ PlaneHingeJoint::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i
 		for (unsigned i = 0; i < 3; i++) {
 			os.str(name);
 			os.seekp(0, std::ios_base::end);
-			os << ": reaction force f" << xyz[i];
+			os << ": position constraint P" << xyz[i];
 			desc[i] = os.str();
 		}
 
 		for (unsigned i = 0; i < 2; i++) {
 			os.str(name);
 			os.seekp(0, std::ios_base::end);
-			os << ": reaction couple m" << xyz[i];
+			os << ": orientation constraint g" << xyz[i];
 			desc[3 + i] = os.str();
 		}
 
@@ -311,14 +311,14 @@ PlaneHingeJoint::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i
 			for (unsigned i = 0; i < 3; i++) {
 				os.str(name);
 				os.seekp(0, std::ios_base::end);
-				os << ": reaction force derivative fP" << xyz[i];
+				os << ": position constraint derivative v" << xyz[i];
 				desc[3 + 2 + i] = os.str();
 			}
 	
 			for (unsigned i = 0; i < 2; i++) {
 				os.str(name);
 				os.seekp(0, std::ios_base::end);
-				os << ": reaction couple derivative mP" << xyz[i];
+				os << ": orientation constraint derivative w" << xyz[i];
 				desc[3 + 2 + 3 + i] = os.str();
 			}
 		}
@@ -340,23 +340,23 @@ PlaneHingeJoint::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i
 		case 0:
 		case 1:
 		case 2:
-			os << ": reaction force f" << xyz[i];
+			os << ": position constraint P" << xyz[i];
 			break;
 
 		case 3:
 		case 4:
-			os << ": reaction couple m" << xyz[i - 3];
+			os << ": orientation constraint g" << xyz[i - 3];
 			break;
 
 		case 5:
 		case 6:
 		case 7:
-			os << ": reaction force derivative fP" << xyz[i - 3 - 2];
+			os << ": position constraint derivative v" << xyz[i - 3 - 2];
 			break;
 
 		case 8:
 		case 9:
-			os << ": reaction couple derivative mP" << xyz[i - 3 - 2 - 3];
+			os << ": orientation constraint derivative w" << xyz[i - 3 - 2 - 3];
 			break;
 		}
 		desc[0] = os.str();
@@ -1547,7 +1547,7 @@ PlaneRotationJoint::DescribeEq(std::vector<std::string>& desc, bool bInitial, in
 		for (unsigned i = 0; i < 2; i++) {
 			os.str(name);
 			os.seekp(0, std::ios_base::end);
-			os << ": reaction couple m" << xyz[i];
+			os << ": orientation constraint g" << xyz[i];
 			desc[i] = os.str();
 		}
 
@@ -1555,7 +1555,7 @@ PlaneRotationJoint::DescribeEq(std::vector<std::string>& desc, bool bInitial, in
 			for (unsigned i = 0; i < 2; i++) {
 				os.str(name);
 				os.seekp(0, std::ios_base::end);
-				os << ": reaction couple derivative mP" << xyz[i];
+				os << ": orientation constraint derivative w" << xyz[i];
 				desc[2 + i] = os.str();
 			}
 		}
@@ -1576,12 +1576,12 @@ PlaneRotationJoint::DescribeEq(std::vector<std::string>& desc, bool bInitial, in
 		switch (i) {
 		case 0:
 		case 1:
-			os << ": reaction couple m" << xyz[i];
+			os << ": orientation constraint g" << xyz[i];
 			break;
 
 		case 2:
 		case 3:
-			os << ": reaction couple derivative mP" << xyz[i - 2];
+			os << ": orientation constraint derivative w" << xyz[i - 2];
 			break;
 		}
 		desc[0] = os.str();
@@ -2467,8 +2467,10 @@ AxialRotationJoint::DescribeEq(std::ostream& out, const char *prefix, bool bInit
 	out
 		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
 			"position constraints [Px1=Px2,Py1=Py2,Pz1=Pz2]" << std::endl
-		<< prefix << iIndex + 4 << "->" << iIndex + 6 << ": "
-			"orientation constraints [gx1=gx2,gy1=gy2,gz2-gz1=Omega]" << std::endl;
+		<< prefix << iIndex + 4 << "->" << iIndex + 5 << ": "
+			"orientation constraints [gx1=gx2,gy1=gy2]" << std::endl
+		<< prefix << iIndex + 6 << ": "
+			"angular velocity constraint wz2-wz1=Omega]" << std::endl;
 
 	if (bInitial) {
 		iIndex += NumSelfDof;
@@ -2529,29 +2531,34 @@ AxialRotationJoint::DescribeEq(std::vector<std::string>& desc, bool bInitial, in
 		for (unsigned i = 0; i < 3; i++) {
 			os.str(name);
 			os.seekp(0, std::ios_base::end);
-			os << ": reaction force f" << xyz[i];
+			os << ": position constraint P" << xyz[i];
 			desc[i] = os.str();
 		}
 
-		for (unsigned i = 0; i < 3; i++) {
+		for (unsigned i = 0; i < 2; i++) {
 			os.str(name);
 			os.seekp(0, std::ios_base::end);
-			os << ": reaction couple m" << xyz[i];
+			os << ": orientation constraint g" << xyz[i];
 			desc[3 + i] = os.str();
 		}
+
+		os.str(name);
+		os.seekp(0, std::ios_base::end);
+		os << ": angular velocity constraint wz";
+		desc[5] = os.str();
 
 		if (bInitial) {
 			for (unsigned i = 0; i < 3; i++) {
 				os.str(name);
 				os.seekp(0, std::ios_base::end);
-				os << ": reaction force derivative fP" << xyz[i];
+				os << ": position constraint derivative v" << xyz[i];
 				desc[6 + i] = os.str();
 			}
 	
 			for (unsigned i = 0; i < 2; i++) {
 				os.str(name);
 				os.seekp(0, std::ios_base::end);
-				os << ": reaction couple derivative mP" << xyz[i];
+				os << ": orientation constraint derivative w" << xyz[i];
 				desc[9 + i] = os.str();
 			}
 		}
@@ -2573,24 +2580,27 @@ AxialRotationJoint::DescribeEq(std::vector<std::string>& desc, bool bInitial, in
 		case 0:
 		case 1:
 		case 2:
-			os << ": reaction force f" << xyz[i];
+			os << ": position constraint P" << xyz[i];
 			break;
 
 		case 3:
 		case 4:
+			os << ": orientation constraint g" << xyz[i - 3];
+			break;
+
 		case 5:
-			os << ": reaction couple m" << xyz[i - 3];
+			os << ": angular velocity constraint wz";
 			break;
 
 		case 6:
 		case 7:
 		case 8:
-			os << ": reaction force derivative fP" << xyz[i - 6];
+			os << ": position constraint derivative v" << xyz[i - 6];
 			break;
 
 		case 9:
 		case 10:
-			os << ": reaction couple derivative mP" << xyz[i - 9];
+			os << ": orientation constraint derivative w" << xyz[i - 9];
 			break;
 		}
 		desc[0] = os.str();
@@ -3776,14 +3786,14 @@ PlanePinJoint::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) 
 		for (unsigned i = 0; i < 3; i++) {
 			os.str(name);
 			os.seekp(0, std::ios_base::end);
-			os << ": reaction force f" << xyz[i];
+			os << ": position constraint P" << xyz[i];
 			desc[i] = os.str();
 		}
 
 		for (unsigned i = 0; i < 2; i++) {
 			os.str(name);
 			os.seekp(0, std::ios_base::end);
-			os << ": reaction couple m" << xyz[i];
+			os << ": orientation constraint g" << xyz[i];
 			desc[3 + i] = os.str();
 		}
 
@@ -3791,14 +3801,14 @@ PlanePinJoint::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) 
 			for (unsigned i = 0; i < 3; i++) {
 				os.str(name);
 				os.seekp(0, std::ios_base::end);
-				os << ": reaction force derivative fP" << xyz[i];
+				os << ": position constraint derivative v" << xyz[i];
 				desc[5 + i] = os.str();
 			}
 	
 			for (unsigned i = 0; i < 2; i++) {
 				os.str(name);
 				os.seekp(0, std::ios_base::end);
-				os << ": reaction couple derivative mP" << xyz[i];
+				os << ": orientation constraint derivative w" << xyz[i];
 				desc[8 + i] = os.str();
 			}
 		}
@@ -3820,23 +3830,23 @@ PlanePinJoint::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) 
 		case 0:
 		case 1:
 		case 2:
-			os << ": reaction force f" << xyz[i];
+			os << ": position constraint P" << xyz[i];
 			break;
 
 		case 3:
 		case 4:
-			os << ": reaction couple m" << xyz[i - 3];
+			os << ": orientation constraint g" << xyz[i - 3];
 			break;
 
 		case 5:
 		case 6:
 		case 7:
-			os << ": reaction force derivative fP" << xyz[i - 5];
+			os << ": position constraint derivative v" << xyz[i - 5];
 			break;
 
 		case 8:
 		case 9:
-			os << ": reaction couple derivative mP" << xyz[i - 8];
+			os << ": orientation constraint derivative w" << xyz[i - 8];
 			break;
 		}
 		desc[0] = os.str();
