@@ -222,6 +222,15 @@ AC_ARG_WITH(module,[
 	MODULES_DIRS=$ol_arg
 ],[MODULES_DIRS=])dnl
 
+fool_libtool=yes
+case "$host" in
+	*-apple-*)
+		fool_libtool=no
+		;;
+	*)
+		;;
+esac
+
 dnl ----------------------------------------------------------------
 dnl
 dnl Checks for programs.
@@ -2310,6 +2319,7 @@ dnl conditional build declarations
 AM_CONDITIONAL(USE_X_ANN,[test "$ol_link_ANN" = yes])
 AM_CONDITIONAL(USE_RTAI,[test "$use_rtai" = yes])
 AM_CONDITIONAL(USE_ARPACK,[test "$ol_link_arpack" = yes])
+AM_CONDITIONAL(FOOL_LIBTOOL,[test "$fool_libtool" = yes])
 
 dnl ----------------------------------------------------------------
 dnl

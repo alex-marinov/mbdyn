@@ -16,27 +16,29 @@ mbdyn.h
 
 # need to fool libtool in getting libbase linked twice ;)
 # hope this is not fixed for a while...
+
+DO_FOOL_LIBTOOL =
+if FOOL_LIBTOOL
+DO_FOOL_LIBTOOL += ../mbdyn/base/libbase.la
+endif
+
 mbdyn_LDADD = \
-../mbdyn/base/libbase.la \
+$(DO_FOOL_LIBTOOL) \
+../mbdyn/base/libbase.la  \
 aero/libaero.la \
-../libraries/libmbwrap/libmbwrap.la \
 struct/libstruct.la \
 elec/libelec.la \
 thermo/libthermo.la \
 hydr/libhydr.la \
 base/libbase.la  \
-$(GINACLIB_LIBS)\
-../libraries/libmbmath/libmbmath.la \
-../libraries/libmbutil/libmbutil.la \
-@Y12_LIBS@ \
-../libraries/libcolamd/libmbdyncolamd.la \
-../libraries/libnaive/libnaive.la \
+../libraries/libmbwrap/libmbwrap.la \
 ../libraries/libann/libann.la \
+$(GINACLIB_LIBS) \
+@Y12_LIBS@ \
 @HARWELL_LIBS@ \
 @ARPACK_LIBS@ \
 @LAPACK_LIBS@ \
 @UMFPACK_LIBS@ \
-../libraries/libobjs/libobjs.la \
 @MESCHACH_LIBS@ \
 @SUPERLU_LIBS@ \
 @TAUCS_LIBS@ \

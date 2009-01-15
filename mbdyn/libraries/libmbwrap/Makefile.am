@@ -71,11 +71,6 @@ endif
 wraptest_SOURCES = wraptest.cc
 wraptest_LDADD = \
 libmbwrap.la \
-../libmbmath/libmbmath.la \
-../libmbutil/libmbutil.la \
-../libobjs/libobjs.la \
-../libcolamd/libmbdyncolamd.la \
-../libnaive/libnaive.la \
 @UMFPACK_LIBS@ \
 @MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
@@ -93,11 +88,6 @@ libmbwrap.la \
 cctest_SOURCES = cctest.cc
 cctest_LDADD = \
 libmbwrap.la \
-../libmbmath/libmbmath.la \
-../libmbutil/libmbutil.la \
-../libobjs/libobjs.la \
-../libcolamd/libmbdyncolamd.la \
-../libnaive/libnaive.la \
 @UMFPACK_LIBS@ \
 @MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
@@ -113,11 +103,6 @@ if USE_ARPACK
 arptest_SOURCES = arptest.cc
 arptest_LDADD = \
 libmbwrap.la \
-../libmbmath/libmbmath.la \
-../libmbutil/libmbutil.la \
-../libobjs/libobjs.la \
-../libcolamd/libmbdyncolamd.la \
-../libnaive/libnaive.la \
 @ARPACK_LIBS@ \
 @LAPACK_LIBS@ \
 @UMFPACK_LIBS@ \
