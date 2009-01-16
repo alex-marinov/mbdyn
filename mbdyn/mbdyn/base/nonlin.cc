@@ -67,7 +67,7 @@ NonlinearSolverTest::MakeTest(Solver *pS, const integer& Size,
 
    	doublereal dTest = 0.;
 
-#ifdef USE_MPI
+#ifdef USE_SCHUR
 	/* Only residual test is parallelized; the master node
 	 * always knows the entire solution */
 	ASSERT(pS != NULL);
@@ -122,7 +122,7 @@ NonlinearSolverTest::MakeTest(Solver *pS, const integer& Size,
 		}
 
 	} else
-#endif /* USE_MPI */
+#endif // USE_SCHUR
 	{
 		ASSERT(Vec.iGetSize() == Size);
 

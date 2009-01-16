@@ -44,6 +44,7 @@ StepIntegrator::UpdateLoop(
 	ASSERT(pDM != NULL);
 	
    	Dof CurrDof;
+#ifdef USE_SCHUR
 	SchurDataManager* pSDM;
 	if ((pSDM = dynamic_cast<SchurDataManager*> (pDM)) != 0) {
 		
@@ -69,7 +70,9 @@ StepIntegrator::UpdateLoop(
 			(t->*pUpd)(DCount,CurrDof.Order,pSol);
 		}
 
-	} else {
+	} else
+#endif // USE_SCHUR
+	{
 		
    		DofIterator.bGetFirst(CurrDof);
 		integer iNumDofs = pDM->iGetNumDofs();

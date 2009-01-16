@@ -199,7 +199,8 @@ InverseSolver::Run(void)
 			sOutputFileName = tmpOut;
 		}
 	}
-#ifdef USE_MPI
+
+#ifdef USE_SCHUR
 	int mpi_finalize = 0;
 
 	int MyRank = 0;
@@ -251,7 +252,7 @@ InverseSolver::Run(void)
 		pDM = pSDM;
 
 	} else
-#endif /* USE_MPI */
+#endif // USE_SCHUR
 	{
 		/* chiama il gestore dei dati generali della simulazione */
 #ifdef USE_MULTITHREAD
@@ -330,16 +331,18 @@ InverseSolver::Run(void)
    	std::ostream& Out = pDM->GetOutFile();
 
 	/* Qui crea le partizioni: principale fra i processi, se parallelo  */
-#ifdef USE_MPI
+#ifdef USE_SCHUR
 	if (bParallel) {
 		pSDM->CreatePartition();
 	}
-#endif /* USE_MPI */
+#endif // USE_SCHUR
+
 	const DriveHandler* pDH = pDM->pGetDrvHdl();
 	pRegularSteps->SetDriveHandler(pDH);
    	/* Costruisce i vettori della soluzione ai vari passi */
    	DEBUGLCOUT(MYDEBUG_MEM, "creating solution vectors" << std::endl);
 
+#ifdef USE_SCHUR
 	if (bParallel) {
 		iNumDofs = pSDM->HowManyDofs(SchurDataManager::TOTAL);
 		pDofs = pSDM->pGetDofsList();
@@ -350,7 +353,9 @@ InverseSolver::Run(void)
 		iNumIntDofs = pSDM->HowManyDofs(SchurDataManager::INTERNAL);
 		pIntDofs = pSDM->GetDofsList(SchurDataManager::INTERNAL);
 
-	} else {
+	} else
+#endif // USE_SCHUR
+	{
    		iNumDofs = pDM->iGetNumDofs();
 	}
 

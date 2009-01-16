@@ -416,6 +416,7 @@ if test "$ol_enable_debug" != no -o "$ol_enable_debug_mpi" != no ; then
 fi
 
 dnl try to detect MPI and either Metis or Chaco
+use_schur=no
 if test "$ol_enable_schur" = yes ; then
 	case "$ol_with_mpi" in
 	no)
@@ -1965,6 +1966,7 @@ dnl
 if test $ol_enable_schur != no ; then
 	if test $ol_link_mpi = yes ; then
 		if test $ol_link_metis = yes -o $ol_link_chaco = yes ; then
+			use_schur=yes
 			AC_DEFINE(USE_SCHUR,1,[define if you want to use Schur parallel solver])
 		else
 			if test $ol_enable_schur = yes ; then
@@ -2060,8 +2062,8 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Check for RTAI
 dnl
+use_rtai=no
 if test $ol_with_rtai != no ; then
-	use_rtai=no
 
 	dnl RTAI >= 3.0
 	AC_CHECK_HEADERS(rtai_lxrt.h)
@@ -2319,6 +2321,7 @@ AC_SUBST(DATE)
 dnl conditional build declarations
 AM_CONDITIONAL(USE_X_ANN,[test "$ol_link_ANN" = yes])
 AM_CONDITIONAL(USE_RTAI,[test "$use_rtai" = yes])
+AM_CONDITIONAL(USE_SCHUR,[test "$use_schur" = yes])
 AM_CONDITIONAL(USE_ARPACK,[test "$ol_link_arpack" = yes])
 AM_CONDITIONAL(FOOL_LIBTOOL,[test "$fool_libtool" = yes])
 

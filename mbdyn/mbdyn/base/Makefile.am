@@ -129,8 +129,6 @@ sah.cc \
 sah.h \
 scalarvalue.cc \
 scalarvalue.h \
-schurdataman.cc \
-schurdataman.h \
 shape.h \
 shockabsorber.h \
 simentity.cc \
@@ -177,6 +175,12 @@ rtai_out_elem.cc \
 rtai_out_elem.h \
 rtaisolver.cc \
 rtaisolver.h
+endif
+
+if USE_SCHUR
+libbase_la_SOURCES += \
+schurdataman.cc \
+schurdataman.h
 endif
 
 libbase_la_LIBADD = @LIBS@ @SECURITY_LIBS@ $(GINACLIB_LIBS)

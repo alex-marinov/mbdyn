@@ -455,7 +455,7 @@ Solver::Run(void)
 		}
 	}
 
-#ifdef USE_MPI
+#ifdef USE_SCHUR
 	int mpi_finalize = 0;
 
 	int MyRank = 0;
@@ -507,7 +507,7 @@ Solver::Run(void)
 		pDM = pSDM;
 
 	} else
-#endif /* USE_MPI */
+#endif // USE_SCHUR
 	{
 		/* chiama il gestore dei dati generali della simulazione */
 #ifdef USE_MULTITHREAD
@@ -600,12 +600,12 @@ Solver::Run(void)
       		return;
    	}
 
+#ifdef USE_SCHUR
 	/* Qui crea le partizioni: principale fra i processi, se parallelo  */
-#ifdef USE_MPI
 	if (bParallel) {
 		pSDM->CreatePartition();
 	}
-#endif /* USE_MPI */
+#endif // USE_SCHUR
 
    	/* Si fa dare il DriveHandler e linka i drivers di rho ecc. */
    	const DriveHandler* pDH = pDM->pGetDrvHdl();
@@ -617,6 +617,7 @@ Solver::Run(void)
    	/* Costruisce i vettori della soluzione ai vari passi */
    	DEBUGLCOUT(MYDEBUG_MEM, "creating solution vectors" << std::endl);
 
+#ifdef USE_SCHUR
 	if (bParallel) {
 		iNumDofs = pSDM->HowManyDofs(SchurDataManager::TOTAL);
 		pDofs = pSDM->pGetDofsList();
@@ -627,7 +628,9 @@ Solver::Run(void)
 		iNumIntDofs = pSDM->HowManyDofs(SchurDataManager::INTERNAL);
 		pIntDofs = pSDM->GetDofsList(SchurDataManager::INTERNAL);
 
-	} else {
+	} else
+#endif // USE_SCHUR
+	{
    		iNumDofs = pDM->iGetNumDofs();
 	}
 

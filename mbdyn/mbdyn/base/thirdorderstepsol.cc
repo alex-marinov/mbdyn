@@ -195,19 +195,22 @@ void ThirdOrderIntegrator::RealPredictDof(const int DCount,
 	}
 }
 
-void ThirdOrderIntegrator::Predict(void) {
+void
+ThirdOrderIntegrator::Predict(void)
+{
    	DEBUGCOUTFNAME("ThirdOrderIntegrator::Predict");
    	ASSERT(pDM != NULL);
    	Dof CurrDof;
 
-	{SchurDataManager* pSDM;
+#ifdef USE_SCHUR
+	SchurDataManager* pSDM;
 	if ((pSDM = dynamic_cast<SchurDataManager*> (pDM)) != 0) {
 		silent_cerr("Warning: ThirdOrderIntegrator currently is "
 			<< "untested with the parallel solver" << std::endl);
-	}}
+	}
+#endif // USE_SCHUR
 
 	DofIterator.bGetFirst(CurrDof);
-	//integer iNumDofs = pDM->iGetNumDofs();
 	
    	/* 
 	 * Linear combination of previous step state and derivative 
@@ -359,17 +362,20 @@ void ThirdOrderIntegrator::UpdateDof(const int DCount,
 	}
 };
 
-void ThirdOrderIntegrator::Update(const VectorHandler* pSol) const
+void
+ThirdOrderIntegrator::Update(const VectorHandler* pSol) const
 {
   	DEBUGCOUTFNAME("ThirdOrderIntegrator::Predict");
   	ASSERT(pDM != NULL);
-  	//Dof CurrDof;
-	
-	{SchurDataManager* pSDM;
+
+#ifdef USE_SCHUR
+	SchurDataManager* pSDM;
 	if ((pSDM = dynamic_cast<SchurDataManager*> (pDM)) != 0) {
 		silent_cerr("Warning: ThirdOrderIntegrator is untested "
 			<< "with the parallel solver" << std::endl);
-	}}
+	}
+#endif // USE_SCHUR
+
 	UpdateLoop(this,&ThirdOrderIntegrator::UpdateDof,pSol);	
 	pDM->Update();
 	return;

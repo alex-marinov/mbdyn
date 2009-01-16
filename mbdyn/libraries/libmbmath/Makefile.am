@@ -44,10 +44,6 @@ Rot.cc \
 Rot.hh \
 RotCoeff.hc \
 RotCoeff.hh \
-schsolman.cc \
-schsolman.h \
-schurmh.h \
-schurmh.cc \
 solman.cc \
 solman.h \
 spdata.h \
@@ -60,6 +56,14 @@ submat.cc \
 submat.h \
 vh.cc \
 vh.h
+
+if USE_SCHUR
+libmbmath_la_SOURCES += \
+schsolman.cc \
+schsolman.h \
+schurmh.h \
+schurmh.cc
+endif
 
 libmbmath_la_LIBADD = @LIBS@ @F2C_LIBS@ @X_ANN_LIBS@
 libmbmath_la_LDFLAGS =
