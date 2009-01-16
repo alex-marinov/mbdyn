@@ -24,7 +24,6 @@ endif
 
 mbdyn_LDADD = \
 $(DO_FOOL_LIBTOOL) \
-../mbdyn/base/libbase.la  \
 aero/libaero.la \
 struct/libstruct.la \
 elec/libelec.la \
