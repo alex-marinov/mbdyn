@@ -2956,7 +2956,10 @@ Solver::ReadData(MBDynParser& HP)
 					<< " (parameter: " << EigAn.dParam << ")"
 					<< std::endl);
 			while (HP.IsArg()) {
-				if (HP.IsKeyWord("output" "matrices") || HP.IsKeyWord("output" "full" "matrices")) {
+				if (HP.IsKeyWord("output" "matrices")) {
+					EigAn.uFlags |= EigenAnalysis::EIG_OUTPUT_MATRICES;
+
+				} else if (HP.IsKeyWord("output" "full" "matrices")) {
 					EigAn.uFlags |= EigenAnalysis::EIG_OUTPUT_FULL_MATRICES;
 
 				} else if (HP.IsKeyWord("output" "sparse" "matrices")) {
@@ -3026,14 +3029,50 @@ Solver::ReadData(MBDynParser& HP)
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif // !USE_ARPACK
+				} else {
+					silent_cerr("unknown option "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
+			}
+
+			switch (EigAn.uFlags & EigenAnalysis::EIG_USE_MASK) {
+			case EigenAnalysis::EIG_USE_LAPACK:
+				if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_SPARSE_MATRICES) {
+					silent_cerr("sparse matrices output "
+						"incompatible with lapack "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_MATRICES) {
+					EigAn.uFlags |= EigenAnalysis::EIG_OUTPUT_FULL_MATRICES;
+				}
+				break;
+
+			case EigenAnalysis::EIG_USE_ARPACK:
+				if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_FULL_MATRICES) {
+					silent_cerr("full matrices output "
+						"incompatible with arpack "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_MATRICES) {
+					EigAn.uFlags |= EigenAnalysis::EIG_OUTPUT_SPARSE_MATRICES;
+				}
+				break;
+
+			default:
+				break;
 			}
 
 			// if an eigenanalysis routine is selected
 			// or sparse matrix output is not requested,
 			// force direct eigensolution
 			if ((EigAn.uFlags & EigenAnalysis::EIG_USE_MASK)
-				||!(EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_SPARSE_MATRICES))
+				|| !(EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_SPARSE_MATRICES))
 			{
 				EigAn.uFlags |= EigenAnalysis::EIG_SOLVE;
 			}
@@ -3044,6 +3083,9 @@ Solver::ReadData(MBDynParser& HP)
 				&& !(EigAn.uFlags & EigenAnalysis::EIG_USE_MASK))
 			{
 				EigAn.uFlags |= EigenAnalysis::EIG_USE_LAPACK;
+				if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_MATRICES) {
+					EigAn.uFlags |= EigenAnalysis::EIG_OUTPUT_FULL_MATRICES;
+				}
 			}
 #else // !USE_EIG
 			HP.GetReal();
@@ -3052,7 +3094,10 @@ Solver::ReadData(MBDynParser& HP)
 			}
 
 			while (HP.IsArg()) {
-				if (HP.IsKeyWord("output" "matrices") || HP.IsKeyWord("output" "full" "matrices")) {
+				if (HP.IsKeyWord("output" "matrices")) {
+					NO_OP;
+
+				} else if (HP.IsKeyWord("output" "full" "matrices")) {
 					NO_OP;
 
 				} else if (HP.IsKeyWord("output" "sparse" "matrices")) {
