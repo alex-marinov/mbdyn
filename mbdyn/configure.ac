@@ -1655,6 +1655,7 @@ if test $ol_with_lapack != no ; then
 	fi
 
 	if test "$have_lapack" = "yes" ; then
+		ol_link_lapack=yes
 		AC_MSG_RESULT([yes])
 	else
 		AC_MSG_RESULT([no])	

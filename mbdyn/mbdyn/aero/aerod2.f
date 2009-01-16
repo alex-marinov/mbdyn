@@ -1475,8 +1475,7 @@ C=    COMPILER (LINK=IBJ$)
       INTEGER*4 N
       REAL*8 XY(2,1),X,Y,PEND
 
-      REAL*8 K1, K2
-      INTEGER*4 I
+      INTEGER*4 K1, K2, I
       IF(X.GT.XY(1,1)) GO TO 10
       K1=1
       GO TO 30
