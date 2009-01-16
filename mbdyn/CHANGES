@@ -19,6 +19,7 @@ MBDyn 1.X-Devel
 		  (noted by Min Mao)
 		- fix LAPACK detection (noted Shreyas Ananthan)
 		- fix type in aerod2.f (noted Shreyas Ananthan)
+		- fix build error in GPC-related elements
 
 MBDyn 1.3.5
 	Enhancements:

@@ -601,9 +601,7 @@ Elem* ReadElectric(DataManager* pDM,
 	      DEBUGCOUT("Trigger:" << std::endl);
 	      pTrig = HP.GetDriveCaller();
 	   } else {
-	      SAFENEWWITHCONSTRUCTOR(pTrig,
-				     OneDriveCaller,
-				     OneDriveCaller(pDM->pGetDrvHdl()));
+	      SAFENEW(pTrig, OneDriveCaller);
 	   }
 
 	   /* desired output */
