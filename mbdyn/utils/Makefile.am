@@ -47,11 +47,7 @@ playground
 MYLIBS = \
 ../libraries/libmbwrap/libmbwrap.la \
 @Y12_LIBS@ \
-../libraries/libcolamd/libmbdyncolamd.la \
 ../libraries/libann/libann.la \
-../libraries/libmbmath/libmbmath.la \
-../libraries/libmbutil/libmbutil.la \
-../libraries/libobjs/libobjs.la \
 @HARWELL_LIBS@ \
 @UMFPACK_LIBS@ \
 @MESCHACH_LIBS@ \
@@ -106,12 +102,18 @@ ann_sf_LDADD = $(MYLIBS)
 ann_sim_LDADD = $(MYLIBS)
 ann_tr_LDADD = $(MYLIBS)
 autopilot_LDADD = $(MYLIBS) @SECURITY_LIBS@
+
 # need to fool libtool in getting libbase linked twice ;)
 # hope this is not fixed for a while...
+DO_FOOL_LIBTOOL =
+if FOOL_LIBTOOL
+DO_FOOL_LIBTOOL += ../mbdyn/base/libbase.la
+endif
+
 c81merge_LDADD = \
-../mbdyn/base/libbase.la \
+$(DO_FOOL_LIBTOOL) \
 ../mbdyn/aero/libaero.la \
-../mbdyn/../mbdyn/base/libbase.la \
+../mbdyn/base/libbase.la \
 $(MYLIBS)
 c81test_LDADD = ../mbdyn/aero/libaero.la \
 ../libraries/libmbutil/libmbutil.la \
