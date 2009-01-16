@@ -30,13 +30,15 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
+
+#include <cfloat>
 
 #include "modelns.h"
 #include "strnode.h"
-#include <matvecexp.h>
-#include <Rot.hh>
+#include "matvecexp.h"
+#include "Rot.hh"
 
 enum IDX_t {
 	IDX1 = 1,
@@ -177,6 +179,71 @@ distance(const MathParser::MathArgs& args)
 
 	default:
 		*out = d(IDX);
+		break;
+	}
+
+	return 0;
+}
+
+/*
+ * Computes the components of the direction between two structural nodes
+ */
+template <IDX_t IDX>
+static int
+unitvec(const MathParser::MathArgs& args)
+{
+	ASSERT(args.size() == 1 + 2 + 1);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_INT);
+	ASSERT(args[2]->Type() == MathParser::AT_INT);
+	ASSERT(args[3]->Type() == MathParser::AT_PRIVATE);
+
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t *>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgInt_t *arg1 = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
+	ASSERT(arg1 != 0);
+
+	MathParser::MathArgInt_t *arg2 = dynamic_cast<MathParser::MathArgInt_t *>(args[2]);
+	ASSERT(arg2 != 0);
+
+	ModelNameSpace::MathArgDM *dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[3]);
+	ASSERT(dm != 0);
+
+	unsigned uLabel1 = unsigned((*arg1)());
+	unsigned uLabel2 = unsigned((*arg2)());
+
+	StructNode *pNode1 = (*dm)()->pFindStructNode(uLabel1);
+	if (pNode1 == 0) {
+		silent_cerr("model::unitvec" << IDX2str(IDX)
+				<< "(" << uLabel1 << "," << uLabel2 << "): "
+				"unable to find StructNode(" << uLabel1 << ")"
+				<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	StructNode *pNode2 = (*dm)()->pFindStructNode(uLabel2);
+	if (pNode2 == 0) {
+		silent_cerr("model::unitvec" << IDX2str(IDX)
+				<< "(" << uLabel1 << "," << uLabel2 << "): "
+				"unable to find StructNode(" << uLabel2 << ")"
+				<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	Vec3 d = pNode2->GetXCurr() - pNode1->GetXCurr();
+	doublereal dd = d.Norm();
+	if (dd <= DBL_EPSILON) {
+		silent_cerr("model::unitvec" << IDX2str(IDX)
+				<< "(" << uLabel1 << "," << uLabel2 << "): "
+				"null distance"
+				<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	switch (IDX) {
+	default:
+		*out = d(IDX)/dd;
 		break;
 	}
 
@@ -614,6 +681,60 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 	f->args[2] = new MathParser::MathArgInt_t;
 	f->args[3] = new MathArgDM;
 	f->f = distance<IDX3>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	// xunitvec
+	f = new MathParser::MathFunc_t;
+	f->fname = "xunitvec";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgInt_t;
+	f->args[3] = new MathArgDM;
+	f->f = unitvec<IDX1>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	// yunitvec
+	f = new MathParser::MathFunc_t;
+	f->fname = "yunitvec";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgInt_t;
+	f->args[3] = new MathArgDM;
+	f->f = unitvec<IDX2>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	// zunitvec
+	f = new MathParser::MathFunc_t;
+	f->fname = "zunitvec";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgInt_t;
+	f->args[3] = new MathArgDM;
+	f->f = unitvec<IDX3>;
 	f->t = 0;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {

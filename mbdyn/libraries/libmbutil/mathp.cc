@@ -30,11 +30,11 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include <cfloat>
-#include <mathp.h>
+#include "mathp.h"
 
 
 /* helper per le funzioni built-in */
