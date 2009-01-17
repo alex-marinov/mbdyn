@@ -61,6 +61,8 @@
 #include "rtai_out_elem.h"
 #endif // USE_RTAI
 
+#ifdef USE_SOCKET
+
 /* SocketStreamElem - begin */
 
 SocketStreamElem::SocketStreamElem(unsigned int uL,
@@ -150,6 +152,8 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 	AfterConvergence(X, XP);
 }
 
+#endif // USE_SOCKET
+
 Elem *
 ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, StreamContent::Type type)
 {
@@ -172,7 +176,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 	std::string name;
 	std::string path;
 	std::string host;
-	unsigned short int port = -1;
+	unsigned short int port = (unsigned short int)(-1);
 	bool bCreate = false;
 
 	if (HP.IsKeyWord("name") || HP.IsKeyWord("stream" "name")) {
@@ -288,14 +292,15 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 
 	int flags = 0;
 	bool bNonBlocking = false;
+	bool bNoSignal = false;
 	bool bSendFirst = true;
 	bool bAbortIfBroken = false;
 	while (HP.IsArg()) {
 		if (HP.IsKeyWord("no" "signal")) {
-			flags |= MSG_NOSIGNAL;
+			bNoSignal = true;
 
 		} else if (HP.IsKeyWord("signal")) {
-			flags &= ~MSG_NOSIGNAL;
+			bNoSignal = false;
 
 		} else if (HP.IsKeyWord("blocking")) {
 			bNonBlocking = false;
@@ -384,6 +389,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 #endif // USE_RTAI
 
 	} else {
+#ifdef USE_SOCKET
 		/* costruzione del nodo */
 		UseSocket *pUS = 0;
 		if (path.empty()) {
@@ -408,7 +414,22 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 			pUS->Connect();
 		}
 
+#ifdef MSG_NOSIGNAL
+		if (bNoSignal) {
+			// NOTE: we assume MSG_NOSIGNAL is a macro...
+			flags |= MSG_NOSIGNAL;
+
+		} else {
+			flags &= ~MSG_NOSIGNAL;
+		}
+#else // !MSG_NOSIGNAL
+		silent_cerr("SocketStreamElem(" << uLabel << "): "
+			"MSG_NOSIGNAL undefined; "
+			"your mileage may vary" << std::endl);
+#endif // !MSG_NOSIGNAL
+
 #ifdef MSG_DONTWAIT
+		// NOTE: we assume MSG_DONTWAIT is a macro...
 		if (bNonBlocking) {
 			flags |= MSG_DONTWAIT;
 
@@ -426,6 +447,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 		SAFENEWWITHCONSTRUCTOR(pEl, SocketStreamElem,
 			SocketStreamElem(uLabel, name, OutputEvery,
 				pUS, pSC, flags, bSendFirst, bAbortIfBroken));
+#endif // USE_SOCKET
 	}
 
 	return pEl;

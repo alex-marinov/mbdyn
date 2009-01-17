@@ -28,6 +28,7 @@ MBDyn 1.3.6
 		- fix type in aerod2.f (noted Shreyas Ananthan)
 		- fix build error in GPC-related elements
 		- fix and improve eigenanalysis options detection
+		- fix MSYS/MinGW build
 
 MBDyn 1.3.5
 	Enhancements:

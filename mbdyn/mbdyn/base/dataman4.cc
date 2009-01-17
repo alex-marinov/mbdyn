@@ -84,10 +84,8 @@
 #include "rtai_out_elem.h"
 #endif /* USE_RTAI */
 
-#ifdef USE_SOCKET
 #include "socketstream_out_elem.h"
 #include "socketstreammotionelem.h"
-#endif // USE_SOCKET
 
 #include "stroutput.h"
 
