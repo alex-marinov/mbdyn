@@ -178,6 +178,8 @@ D. Code:
 	  including SimulinkInterface (using MSYS/MinGW)
 	- add pseudo-realtime support based on nanosleep(2) (DONE)
 	- add RTAI-based motion output (DONE)
+	- use 3D (or 6D) templates for force and couple elements,
+	  preserving backward compatibility of the input as much as possible
 
 
 
