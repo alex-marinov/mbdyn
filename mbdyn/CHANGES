@@ -13,8 +13,10 @@ MBDyn 1.X-Devel
 	Enhancements:
 		- add {xyz}unitvec function to model namespace
 	Backward compatibility issues:
+		- runtime loadable modules now loaded as libmodule-<name>.la
 	Known issues:
 	Bug fixes:
+		- fix libtool handling of modules (Marco Morandini)
 
 MBDyn 1.3.6
 	Enhancements:

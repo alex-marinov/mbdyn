@@ -3,7 +3,7 @@ include $(top_srcdir)/build/top.mk
 ## Process this file with automake to produce Makefile.in
 
 # Build libann.a library
-lib_LTLIBRARIES = libann.la
+noinst_LTLIBRARIES = libann.la
 
 libann_la_SOURCES = \
 ActivationFunction.c \

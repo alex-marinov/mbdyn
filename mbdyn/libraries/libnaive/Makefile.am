@@ -3,7 +3,7 @@ include $(top_srcdir)/build/top.mk
 ## Process this file with automake to produce Makefile.in
 
 # Build libnaive.a library
-lib_LTLIBRARIES = libnaive.la
+noinst_LTLIBRARIES = libnaive.la
 
 libnaive_la_SOURCES = \
 mthrdslv.c \

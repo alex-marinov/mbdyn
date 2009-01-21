@@ -3,7 +3,7 @@ include $(top_srcdir)/build/top.mk
 ## Process this file with automake to produce Makefile.in
 
 # Build libcolamd.a library
-lib_LTLIBRARIES = libmbdyncolamd.la
+noinst_LTLIBRARIES = libmbdyncolamd.la
 
 libmbdyncolamd_la_SOURCES = \
 colamd.c \

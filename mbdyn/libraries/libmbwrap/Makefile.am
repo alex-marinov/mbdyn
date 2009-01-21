@@ -3,7 +3,7 @@ include $(top_srcdir)/build/top.mk
 ## Process this file with automake to produce Makefile.in
 
 # Build libmbwrap.a library
-lib_LTLIBRARIES = libmbwrap.la
+noinst_LTLIBRARIES = libmbwrap.la
 
 libmbwrap_la_SOURCES = \
 chacowrap.cc \

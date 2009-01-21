@@ -290,7 +290,7 @@ if test "$GCC" = "yes" ; then
 	fi
 fi
 
-AM_DISABLE_SHARED dnl Remove when you want to build shared libs also
+dnl AM_DISABLE_SHARED dnl Remove when you want to build shared libs also
 AM_PROG_LIBTOOL
 
 dnl ----------------------------------------------------------------

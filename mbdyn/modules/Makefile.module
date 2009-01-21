@@ -35,31 +35,31 @@
 
 .PHONY: all clean clean-so
 
-all: $(MBDYN_MODULE).so
+all: lib$(MBDYN_MODULE).la
 
-$(MBDYN_MODULE).so: $(MODULE_DEPENDENCIES) $(MBDYN_MODULE).o 
+lib$(MBDYN_MODULE).la: $(MODULE_DEPENDENCIES) $(MBDYN_MODULE).lo 
 	rm -f $@
-	$(CXXLINK) -o $@ $^ $(MODULE_LINK)
+	$(CXXLINK) -rpath $(LIBEXEC_DIR) -o $@ $^ $(MODULE_LINK)
 
-%.o: %.cc
+%.lo: %.cc
 	$(MAKE) clean-so
-	$(LTCXXCOMPILE) -I$(MBDYN_MODULE_SRCDIR) -DMBDYN_MODULE -c $<
+	$(LTCXXCOMPILE) -o $@ -I$(MBDYN_MODULE_SRCDIR) -DMBDYN_MODULE -c $<
 
-%.o: %.c
+%.lo: %.c
 	$(MAKE) clean-so
-	$(LTCOMPILE) -I$(MBDYN_MODULE_SRCDIR) -DMBDYN_MODULE -c $<
+	$(LTCOMPILE) -o $@ -I$(MBDYN_MODULE_SRCDIR) -DMBDYN_MODULE -c $<
 
-%.o: %.f90
+%.lo: %.f90
 	$(MAKE) clean-so
-	$(LTF77COMPILE) -DMBDYN_MODULE -c $<
+	$(LTF77COMPILE) -o $@ -DMBDYN_MODULE -c $<
 
-%.o: %.f
+%.lo: %.f
 	$(MAKE) clean-so
-	$(LTF77COMPILE) -DMBDYN_MODULE -c $<
+	$(LTF77COMPILE) -o $@ -DMBDYN_MODULE -c $<
 
-install: $(MBDYN_MODULE).so
+install: lib$(MBDYN_MODULE).la
 	if test -f $<; then \
-		$(INSTALL_PROGRAM) $< $(LIBEXEC_DIR)/$< ; \
+		$(LIBTOOL) --mode=install $(INSTALL_PROGRAM) $< $(LIBEXEC_DIR)/$< ; \
 	fi
 
 clean:
