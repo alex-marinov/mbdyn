@@ -903,11 +903,14 @@ Examples of this usage are given in the tutorials
 
 
 
-\subsection{Module Load}\label{sec:GENERAL:MODULE-LOAD}
+\subsection{Module Load}
+\label{sec:GENERAL:MODULE-LOAD}
 The \kw{module load} directive:
 \begin{verbatim}
     <card> ::= module load : " <file_name> "
         [ , <module_arglist> ] ;
+
+    <module_arglist> ::= <arg> [ , ... ]
 \end{verbatim}
 where \kw{file\_name} is the name of a runtime loadable object,
 causes the object to be opened, and a function \kw{module\_init},
@@ -918,15 +921,19 @@ with prototype
                 void *data_manager, void* mbdyn_parser);
 \end{verbatim}
 to be executed.
+
 The function is assumed to perform the operations required to initialize
 the module, eventually taking advantage of the parsing
 and of the data manager; see the technical manual for details.
-The function is expected to take care of the \kw{module\_arglist}
+
+The function is also expected to take care of the \kw{module\_arglist}
 arguments; in detail, module developers are encouraged to support
-\kw{help} as the first optional argument, that prints to standard output
+\kw{help} as the first optional argument.
+The presence of this argument should result in printing to standard output
 as much information as possible about the use of the module.
-The typical use consists in registering some methods for later use;
-a clear example is given in
+
+The typical use consists in registering some methods for later use.
+A clear example is given in
 \begin{verbatim}
         modules/module-wheel2/module-wheel2.cc
 \end{verbatim}
@@ -936,6 +943,26 @@ the syntax described in Section~\ref{sec:EL:BASE:LOADABLE}.
 Note, however, that the execution of the \kw{module\_init} function 
 may be used for any purpose; typically, to register any kind of handlers
 for subsequent use.
+
+Run-time module loading is taken care of by GNU's \kw{libltdl}.
+Modules are compiled using \kw{libtool} for portability purposes.
+The resulting modules assume the name
+\kw{libmodule-<name>.la}.
+
+Modules are installed by default in the directory
+\kw{\$\{prefix\}/libexec}.
+When loaded using only the module name, the default directory is searched.
+The run-time loading path can be modified by the 
+\kw{loadable path} statement described
+in Section~\ref{sec:CONTROLDATA:LOADABLE_PATH}.
+
+Although \kw{libltdl} is supposed to be portable on a wide variety
+of platforms (that's what it is designed for, all in all),
+run-time loading within MBDyn is mainly tested using Linux.
+Users are encouraged to report problems they might encounter,
+especially when building modules for different platforms,
+as this would help making MBDyn more portable.
+
 
 
 \subsection{Reference}

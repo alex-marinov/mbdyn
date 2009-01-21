@@ -394,6 +394,23 @@ whose velocity is typically expressed in the global reference frame.
 
 
 
+\subsubsection{Loadable path}
+\label{sec:CONTROLDATA:LOADABLE_PATH}
+\begin{verbatim}
+    loadable path : [ { set | add } , ] " <path> " ;
+\end{verbatim}
+This card allows to either set (optional keyword \kw{set})
+or augment (optional keyword \kw{add}) the search path
+for run-time loadable modules using the path specified
+as the mandatory argument \kw{path}.
+
+Note: this command should be considered obsolete, but its replacement
+is not implemented yet.
+It impacts the loading of all run-time loadable modules,
+not only that of \kw{loadable} elements (Section~\ref{sec:EL:BASE:LOADABLE}.
+See for example the \kw{module load} statement
+in Section~\ref{sec:GENERAL:MODULE-LOAD}.
+
 
 
 \section{Model Counter Cards}
