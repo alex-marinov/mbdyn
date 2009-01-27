@@ -12,6 +12,7 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 MBDyn 1.X-Devel
 	Enhancements:
 		- add {xyz}unitvec function to model namespace
+		- release module-aerodyn for wind-turbine modeling
 	Backward compatibility issues:
 		- runtime loadable modules now loaded as libmodule-<name>.la
 	Known issues:

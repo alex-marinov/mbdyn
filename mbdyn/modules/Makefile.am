@@ -113,6 +113,12 @@ distclean:
 
 # Add distributed modules below
 EXTRA_DIST = Makefile.module Makefile.template \
+module-aerodyn/AeroDyn.h \
+module-aerodyn/Makefile.inc \
+module-aerodyn/mbdyn_ad.f90 \
+module-aerodyn/module-aerodyn.cc \
+module-aerodyn/module-aerodyn.h \
+module-aerodyn/README \
 module-constlaw/module-constlaw.cc \
 module-constlaw/README \
 module-constlaw-f90/Makefile.inc \
