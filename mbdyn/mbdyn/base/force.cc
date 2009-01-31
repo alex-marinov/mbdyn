@@ -455,15 +455,15 @@ Elem* ReadForce(DataManager* pDM,
 			case CONSERVATIVE:
 			case ABSOLUTE:
 				SAFENEWWITHCONSTRUCTOR(pEl, 
-					ConservativeForce,
-					ConservativeForce(uLabel, pNode, pDC, Dir, Arm, fOut));
+					AbsoluteForce,
+					AbsoluteForce(uLabel, pNode, pDC, Dir, Arm, fOut));
 				break;
 
 			case CONSERVATIVEINTERNAL:
 			case ABSOLUTEINTERNAL:
 				SAFENEWWITHCONSTRUCTOR(pEl, 
-					ConservativeInternalForce,
-					ConservativeInternalForce(uLabel, pNode, pNode2, pDC, Dir, Arm, Arm2, fOut));
+					AbsoluteInternalForce,
+					AbsoluteInternalForce(uLabel, pNode, pNode2, pDC, Dir, Arm, Arm2, fOut));
 				break;
 
 			case FOLLOWER:
@@ -487,15 +487,15 @@ Elem* ReadForce(DataManager* pDM,
 			case  CONSERVATIVE:
 			case  ABSOLUTE:
 				SAFENEWWITHCONSTRUCTOR(pEl, 
-					ConservativeCouple,
-					ConservativeCouple(uLabel, pNode, pDC, Dir, fOut));
+					AbsoluteCouple,
+					AbsoluteCouple(uLabel, pNode, pDC, Dir, fOut));
 				break;
 
 			case CONSERVATIVEINTERNAL:
 			case ABSOLUTEINTERNAL:
 				SAFENEWWITHCONSTRUCTOR(pEl, 
-					ConservativeInternalCouple,
-					ConservativeInternalCouple(uLabel, pNode, pNode2, pDC, Dir, fOut));
+					AbsoluteInternalCouple,
+					AbsoluteInternalCouple(uLabel, pNode, pNode2, pDC, Dir, fOut));
 				break;
 
 			case FOLLOWER:
