@@ -1048,7 +1048,7 @@ ConservativeInternalForce::Output(OutputHandler& OH) const
 	<< " " << dGet()
 	<< " " << Dir*dGet()
 	<< " " << pNode1->GetXCurr() + pNode1->GetRCurr()*Arm1
-	<< " " << pNode2->GetXCurr() + pNode2->GetRCurr()*Arm1
+	<< " " << pNode2->GetXCurr() + pNode2->GetRCurr()*Arm2
 	<< std::endl;
    }
 }
