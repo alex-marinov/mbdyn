@@ -1746,10 +1746,13 @@ ReadJoint(DataManager* pDM,
 
 		/* Offset if displacement hinge */
 		ReferenceFrame RF1(pNode1);
+		if (HP.IsKeyWord("position")) {
+			NO_OP; // ignore it by now
+		}
 		Vec3 f1(HP.GetPosRel(RF1));
 
 		Mat3x3 R1(Eye3);
-		if (HP.IsKeyWord("hinge")) {
+		if (HP.IsKeyWord("hinge") || HP.IsKeyWord("orientation")) {
 			R1 = HP.GetRotRel(RF1);
 		}
 
@@ -1758,10 +1761,13 @@ ReadJoint(DataManager* pDM,
 
 		/* Offset */
 		ReferenceFrame RF2(pNode2);
+		if (HP.IsKeyWord("position")) {
+			NO_OP; // ignore it by now
+		}
 		Vec3 f2(HP.GetPosRel(RF2, RF1, f1));
 
 		Mat3x3 R2(Eye3);
-		if (HP.IsKeyWord("hinge")) {
+		if (HP.IsKeyWord("hinge") || HP.IsKeyWord("orientation")) {
 			R2 = HP.GetRotRel(RF2, RF1, R1);
 		}
 
