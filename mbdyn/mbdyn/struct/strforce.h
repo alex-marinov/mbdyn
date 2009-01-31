@@ -82,7 +82,7 @@ public:
 
 	/* Tipo di forza */
 	virtual Force::Type GetForceType(void) const {
-		return Force::CONSERVATIVEFORCE;
+		return Force::ABSOLUTEFORCE;
 	};
 
 	/* Contributo al file di restart */
@@ -207,7 +207,7 @@ public:
 
 	/* Tipo di forza */
 	virtual Force::Type GetForceType(void) const {
-		return Force::CONSERVATIVECOUPLE;
+		return Force::ABSOLUTECOUPLE;
 	};
 
 	/* Contributo al file di restart */
@@ -354,7 +354,7 @@ public:
 
 	/* Tipo di forza */
 	virtual Force::Type GetForceType(void) const {
-		return Force::CONSERVATIVEINTERNALFORCE;
+		return Force::ABSOLUTEINTERNALFORCE;
 	};
 
 	/* Contributo al file di restart */
@@ -484,7 +484,7 @@ public:
 
 	/* Tipo di forza */
 	virtual Force::Type GetForceType(void) const {
-		return Force::CONSERVATIVEINTERNALCOUPLE;
+		return Force::ABSOLUTEINTERNALCOUPLE;
 	};
 
 	/* Contributo al file di restart */
