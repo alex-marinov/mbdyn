@@ -12,10 +12,9 @@ naca0012.c81 \
 mbdyn2easyanim.sh.in \
 pod.m
 
-sharedir = "$(prefix)/share"
-octavedir = "$(sharedir)/octave"
-c81dir = "$(sharedir)/c81"
-awkdir = "$(sharedir)/awk"
+octavedir = "$(datarootdir)/octave"
+c81dir = "$(datarootdir)/c81"
+awkdir = "$(datarootdir)/awk"
 
 generated = mbdyn2easyanim.sh
 
@@ -28,7 +27,7 @@ $(generated): FORCE
 	done
 
 install-data-local: $(EXTRA_DIST) $(generated)
-	$(mkinstalldirs) $(DESTDIR)$(sharedir) $(DESTDIR)$(awkdir) $(DESTDIR)$(c81dir) $(DESTDIR)$(octavedir) $(DESTDIR)$(bindir)
+	$(mkinstalldirs) $(DESTDIR)$(datarootdir) $(DESTDIR)$(awkdir) $(DESTDIR)$(c81dir) $(DESTDIR)$(octavedir) $(DESTDIR)$(bindir)
 	@for f in $^ ; do \
 		case $$f in \
 		*.awk) echo "$(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(awkdir)" ; $(INSTALL_SCRIPT) -m 444 $(srcdir)/$$f $(DESTDIR)$(awkdir) ;; \

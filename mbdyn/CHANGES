@@ -19,6 +19,7 @@ MBDyn 1.X-Devel
 	Bug fixes:
 		- fix libtool handling of modules (Marco Morandini)
 		- fix absolute internal force output
+		- fix Code Aster macros install path (noted by Tomislav Maric)
 
 MBDyn 1.3.6
 	Enhancements:

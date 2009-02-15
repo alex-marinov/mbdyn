@@ -3,7 +3,7 @@ include $(top_srcdir)/build/top.mk
 ## Process this file with automake to produce Makefile.in
 ## Do not forget to run automake ( --add-missing ) when you modify Makefile.am
 
-codeasterdir = "$(sharedir)/Aster"
+codeasterdir = "$(datarootdir)/Aster"
 codeasterfiles = \
 contrib/CodeAster/cms/cms.py
 
@@ -23,7 +23,7 @@ contrib/Patches \
 $(codeasterfiles)
 
 install-data-local-codeaster: $(codeasterfiles)
-	$(mkinstalldirs) $(DESTDIR)$(sharedir) $(DESTDIR)$(codeasterdir)
+	$(mkinstalldirs) $(DESTDIR)$(datarootdir) $(DESTDIR)$(codeasterdir)
 	@for f in $^ ; do \
 		case $$f in \
 		*.py) echo "$(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(codeasterdir)" ; $(INSTALL_SCRIPT) -m 444 $(srcdir)/$$f $(DESTDIR)$(codeasterdir) ;; \
