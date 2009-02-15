@@ -254,7 +254,7 @@ mbdyn_welcome(void)
 		<< "compiled on " << __DATE__
 			<< " at " << __TIME__ << std::endl
 		<< std::endl
-		<< "Copyright 1996-2005 (C) Paolo Mantegazza "
+		<< "Copyright 1996-2009 (C) Paolo Mantegazza "
 			"and Pierangelo Masarati," << std::endl
 		<< "Dipartimento di Ingegneria Aerospaziale "
 			"<http://www.aero.polimi.it/>" << std::endl
