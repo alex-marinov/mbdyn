@@ -398,7 +398,7 @@ FollowerForce::AssJac(VariableSubMatrixHandler& WorkMat,
 	integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
 	for (integer iCnt = 1; iCnt <= 3; iCnt++) {
 		WM.PutRowIndex(iCnt, iFirstMomentumIndex + iCnt);     /* forza */
-		WM.PutRowIndex(3+iCnt, iFirstMomentumIndex + 3 + iCnt); /* coppia */
+		WM.PutRowIndex(3 + iCnt, iFirstMomentumIndex + 3 + iCnt); /* coppia */
 		WM.PutColIndex(iCnt, iFirstRotationIndex + iCnt);     /* rotazione */
 	}
 
