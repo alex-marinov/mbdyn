@@ -32,13 +32,13 @@
 /* vettori 3 e matrici 3x3 */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include <cmath>
 #include <cfloat>
 
-#include <matvec3.h>
+#include "matvec3.h"
 
 /* noteworthy constant */
 const Mat3x3 Eye3(1., 0., 0., 0., 1., 0., 0., 0., 1.);
@@ -938,5 +938,29 @@ bool
 IsSame(const doublereal& d1, const doublereal& d2, const doublereal& dTol)
 {
 	return fabs(d1 - d2) <= dTol;
+}
+
+Vec3
+MultRV(const Vec3& v, const Mat3x3& R)
+{
+	return R*v;
+}
+
+Mat3x3
+MultRM(const Mat3x3& m, const Mat3x3& R)
+{
+	return R*m;
+}
+
+Mat3x3
+MultMRt(const Mat3x3& m, const Mat3x3& R)
+{
+	return m.MulMT(R);
+}
+
+Mat3x3
+MultRMRt(const Mat3x3& m, const Mat3x3& R)
+{
+	return R*m.MulMT(R);
 }
 

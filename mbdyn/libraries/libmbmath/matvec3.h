@@ -1549,5 +1549,11 @@ template <>
 bool
 IsSame(const doublereal& d1, const doublereal& d2, const doublereal& dTol);
 
+extern Vec3 MultRV(const Vec3& v, const Mat3x3& R);
+
+extern Mat3x3 MultRM(const Mat3x3& m, const Mat3x3& R);
+extern Mat3x3 MultMRt(const Mat3x3& m, const Mat3x3& R);
+extern Mat3x3 MultRMRt(const Mat3x3& m, const Mat3x3& R);
+
 #endif /* MATVEC3_H */
 
