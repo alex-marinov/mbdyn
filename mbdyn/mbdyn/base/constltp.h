@@ -58,14 +58,16 @@ class ConstitutiveLaw : public WithLabel, public SimulationEntity {
 public:
 	class ErrNotAvailable : public MBDynErrBase {
 	public:
-		ErrNotAvailable(MBDYN_EXCEPT_ARGS_DECL) :
-			MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {
+		ErrNotAvailable(MBDYN_EXCEPT_ARGS_DECL)
+		: MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU)
+		{
 			silent_cerr("Constitutive law not available "
 				"for this dimensionality"
 				<< std::endl);
 		};
-		ErrNotAvailable(std::ostream& out, MBDYN_EXCEPT_ARGS_DECL) : 
-			MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {
+		ErrNotAvailable(std::ostream& out, MBDYN_EXCEPT_ARGS_DECL)
+		: MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU)
+		{
 			out << "Constitutive law not available "
 				"for this dimensionality"
 				<< what()

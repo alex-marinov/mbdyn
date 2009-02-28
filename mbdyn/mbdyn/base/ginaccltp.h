@@ -90,9 +90,7 @@ GiNaCElasticConstitutiveLaw<T, Tder>::GiNaCElasticConstitutiveLaw(
 		dim = 6;
 
 	} else {
-		throw (typename ConstitutiveLaw<T, Tder>::ErrNotAvailable(std::cerr,
-			"GiNaCElasticConstitutiveLaw() is not defined "
-			"for the requested dimensionality")); 
+		throw (typename ConstitutiveLaw<T, Tder>::ErrNotAvailable(MBDYN_EXCEPT_ARGS)); 
 	}
 
 	gEps.resize(dim);
@@ -389,9 +387,7 @@ GiNaCViscousConstitutiveLaw<T, Tder>::GiNaCViscousConstitutiveLaw(
 		dim = 6;
 
 	} else {
-		throw (typename ConstitutiveLaw<T, Tder>::ErrNotAvailable(std::cerr,
-			"GiNaCViscousConstitutiveLaw() is not defined "
-			"for the requested dimensionality")); 
+		throw (typename ConstitutiveLaw<T, Tder>::ErrNotAvailable(MBDYN_EXCEPT_ARGS)); 
 	}
 
 	gEpsPrime.resize(dim);
@@ -687,9 +683,7 @@ GiNaCViscoElasticConstitutiveLaw<T, Tder>::GiNaCViscoElasticConstitutiveLaw(
 		dim = 6;
 
 	} else {
-		throw (typename ConstitutiveLaw<T, Tder>::ErrNotAvailable(std::cerr,
-			"GiNaCViscoElasticConstitutiveLaw() is not defined "
-			"for the requested dimensionality")); 
+		throw (typename ConstitutiveLaw<T, Tder>::ErrNotAvailable(MBDYN_EXCEPT_ARGS)); 
 	}
 
 	gEps.resize(dim);

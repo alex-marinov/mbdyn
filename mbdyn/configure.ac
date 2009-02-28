@@ -321,7 +321,7 @@ RT_LIBS=
 X_ANN_LIBS=
 BULLET_LIBS=
 
-GINACLIB_CONFIG=
+dnl GINACLIB_CONFIG=
 GINACLIB_LIBS=
 GINACLIB_CPPFLAGS=
 
@@ -2132,14 +2132,26 @@ if test $ol_with_ginac != no ; then
 	AC_CHECK_HEADERS(ginac/ginac.h)
 	AC_LANG_C
 	AC_MSG_CHECKING([for GiNaC library])
+	have_ginac=no
+
 	ginac-config --version >/dev/null 2>&1
 	if test $? = 0 ; then
-		GINACLIB_CONFIG="ginac-config"
-		GINACLIB_LIBS=`$GINACLIB_CONFIG --libs`
-		GINACLIB_CPPFLAGS=`$GINACLIB_CONFIG --cppflags`
+		GINACLIB_LIBS=`ginac-config --libs`
+		GINACLIB_CPPFLAGS=`ginac-config --cppflags`
+		have_ginac=yes
+	else
+		pkg-config ginac
+		if test $? = 0; then
+			GINACLIB_LIBS=`pkg-config --libs ginac`
+			GINACLIB_CPPFLAGS=`pkg-config --cflags ginac`
+			have_ginac=yes
+		fi
+	fi
+
+	if test $have_ginac = yes ; then
 		AC_DEFINE(HAVE_GINAC,1,[define if GiNaC is available])
 		AC_MSG_RESULT([yes])
-	else 
+	else
 		AC_MSG_RESULT([no])
 		if test $ol_with_ginac != auto; then
 			AC_MSG_ERROR([GiNaC not available])
@@ -2312,7 +2324,7 @@ AC_SUBST(BULLET_LIBS)
 AC_SUBST(MODULES_DIRS)
 AC_SUBST(MODULE_LOADPATH)
 
-AC_SUBST(GINACLIB_CONFIG)
+dnl AC_SUBST(GINACLIB_CONFIG)
 AC_SUBST(GINACLIB_CPPFLAGS)
 AC_SUBST(GINACLIB_LIBS)
 
