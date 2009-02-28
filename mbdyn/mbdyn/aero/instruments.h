@@ -49,6 +49,7 @@ public:
 		VERTICALSPEED,
 		AOA,
 		HEADING,
+
 		LASTMEASURE
 	};
 
@@ -62,7 +63,7 @@ protected:
 	
 public:
 	AircraftInstruments(unsigned int uLabel, const StructNode* pN,
-			const Mat3x3 &R, flag fOut);
+		const Mat3x3 &R, flag fOut);
 	virtual ~AircraftInstruments(void);
 	
 	/* Scrive il contributo dell'elemento al file di restart */

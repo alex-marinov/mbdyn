@@ -98,11 +98,12 @@ AircraftInstruments::Update(void)
 	dMeasure[VERTICALSPEED] = VV(3);
 
 	/* angle of attack */
-	VTmp = R.Transpose()*VV;
+	VTmp = R.MulTV(VV);
 	dMeasure[AOA] = std::atan2(VTmp(3), VTmp(1));
 
 	/* heading */
-	dMeasure[HEADING] = std::atan2(e1(2), e1(1));
+	/* FIXME: assumes a flat world! N={1,0,0}, W={0,1,0} */
+	dMeasure[HEADING] = -std::atan2(e1(2), e1(1));
 }
 
 /* Scrive il contributo dell'elemento al file di restart */
