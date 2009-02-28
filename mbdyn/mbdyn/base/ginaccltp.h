@@ -257,7 +257,7 @@ gEps(epsilon[0])
 	try {
 		gExpr = GiNaC::ex(expression[0], l);
 
-	} catch (std::exception e) {
+	} catch (std::exception &e) {
 		silent_cerr("expression parsing failed: " << e.what() << std::endl);
 		throw e;
 	}
@@ -265,7 +265,7 @@ gEps(epsilon[0])
 	try {
 		gExprDEps = gExpr.diff(gEps);
 
-	} catch (std::exception e) {
+	} catch (std::exception &e) {
 		silent_cerr("expression differentiation wrt/ Eps failed: " << e.what() << std::endl);
 		throw e;
 	}
