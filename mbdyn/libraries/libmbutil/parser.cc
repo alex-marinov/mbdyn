@@ -1655,6 +1655,35 @@ HighParser::GetMat6xN(Mat3xN& m1, Mat3xN& m2, integer iNumCols)
 	}
 }
 
+doublereal
+HighParser::Get(const doublereal& d)
+{
+	return GetReal(doublereal(d));
+}
+
+Vec3
+HighParser::Get(const Vec3& v)
+{
+	return GetVec3(v);
+}
+
+Mat3x3
+HighParser::Get(const Mat3x3& m)
+{
+	return GetMat3x3(m);
+}
+
+Vec6
+HighParser::Get(const Vec6& v)
+{
+	return GetVec6(v);
+}
+
+Mat6x6
+HighParser::Get(const Mat6x6& m)
+{
+	return GetMat6x6(m);
+}
 
 /* HighParser - end */
 

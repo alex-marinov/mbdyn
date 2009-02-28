@@ -389,13 +389,11 @@ public:
 	virtual Mat6x6 GetMat6x6(void);
 	virtual Mat6x6 GetMat6x6(const Mat6x6& mDef);
 
-	virtual inline doublereal Get(const doublereal& d) {
-		return GetReal(doublereal(d));
-	};
-	virtual inline Vec3 Get(const Vec3& v) { return GetVec3(v); };
-	virtual inline Mat3x3 Get(const Mat3x3& m) { return GetMat3x3(m); };
-	virtual inline Vec6 Get(const Vec6& v) { return GetVec6(v); };
-	virtual inline Mat6x6 Get(const Mat6x6& m) { return GetMat6x6(m); };
+	virtual doublereal Get(const doublereal& d);
+	virtual Vec3 Get(const Vec3& v);
+	virtual Mat3x3 Get(const Mat3x3& m);
+	virtual Vec6 Get(const Vec6& v);
+	virtual Mat6x6 Get(const Mat6x6& m);
 
 	virtual void GetMat6xN(Mat3xN& m1, Mat3xN& m2, integer iNumCols);
 };
