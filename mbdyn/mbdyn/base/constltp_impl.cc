@@ -736,8 +736,31 @@ struct LinearViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		T PreStrain(0.);
 		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
 
-		typedef LinearViscoElasticIsotropicConstitutiveLaw<T, Tder> L;
-		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, dS, dSP));
+#if 0	// TODO: implement a "null" constitutive law that does nothing
+		if (dS == 0. && dSP == 0.) {
+
+		} else
+#endif
+		if (dS == 0.) {
+			silent_cerr("warning, null stiffness, "
+				"using linear viscous constitutive law instead"
+				<< std::endl);
+
+			typedef LinearViscousIsotropicConstitutiveLaw<T, Tder> L;
+			SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, dSP));
+
+		} else if (dSP == 0.) {
+			silent_cerr("warning, null stiffness prime, "
+				"using linear elastic constitutive law instead"
+				<< std::endl);
+
+			typedef LinearElasticIsotropicConstitutiveLaw<T, Tder> L;
+			SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, dS));
+
+		} else {
+			typedef LinearViscoElasticIsotropicConstitutiveLaw<T, Tder> L;
+			SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, dS, dSP));
+		}
 
 		return pCL;
 	};
@@ -758,6 +781,7 @@ struct LinearViscoElasticGenericCLR : public ConstitutiveLawRead<T, Tder> {
 		if (HP.IsKeyWord("proportional")) {
 			doublereal k = HP.GetReal();
 			SP = S*k;
+
 		} else {
 			SP = HP.Get(SP);
 		}
@@ -768,8 +792,31 @@ struct LinearViscoElasticGenericCLR : public ConstitutiveLawRead<T, Tder> {
 		T PreStrain(0.);
 		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
 
-		typedef LinearViscoElasticGenericConstitutiveLaw<T, Tder> L;
-		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, S, SP));
+#if 0	// TODO: implement a "null" constitutive law that does nothing
+		if (IsNull(S) && IsNull(SP)) {
+
+		} else
+#endif
+		if (IsNull(S)) {
+			silent_cerr("warning, null stiffness, "
+				"using linear viscous constitutive law instead"
+				<< std::endl);
+
+			typedef LinearElasticGenericConstitutiveLaw<T, Tder> L;
+			SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, S));
+
+		} else if (IsNull(SP)) {
+			silent_cerr("warning, null stiffness prime, "
+				"using linear elastic constitutive law instead"
+				<< std::endl);
+
+			typedef LinearViscousGenericConstitutiveLaw<T, Tder> L;
+			SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, SP));
+
+		} else {
+			typedef LinearViscoElasticGenericConstitutiveLaw<T, Tder> L;
+			SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, S, SP));
+		}
 
 		return pCL;
 	};
