@@ -1615,11 +1615,13 @@ MathParser::ErrGeneric::ErrGeneric(MathParser* p, MBDYN_EXCEPT_ARGS_DECL_NODEF) 
 }
 
 MathParser::ErrGeneric::ErrGeneric(MathParser* p,
-		MBDYN_EXCEPT_ARGS_DECL_NODEF, 
-		const char* const s2,
-		const char* const s3) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU + s2 + s3) {
+	MBDYN_EXCEPT_ARGS_DECL_NODEF, 
+	const char* const s2,
+	const char* const s3)
+: MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU + s2 + s3)
+{
 	silent_cerr("MathParser - " << r << s2 << s3
-			<< " at line " << p->GetLineNumber() << std::endl);
+		<< " at line " << p->GetLineNumber() << std::endl);
 }
 
 /* gioca con table e stream di ingresso */
@@ -3252,30 +3254,27 @@ MathParser::stmt(void)
 				} else {
 					/* altrimenti, se la posso ridefinire, mi limito
 					 * ad assegnarle il nuovo valore */
-					if (redefine_vars) {
-						if (v->Const()) {
-							silent_cerr("cannot redefine a const named value"
-									<< std::endl);
-							throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
-									"cannot redefine "
-									"a const named value "
-									"\"", v->GetName(), "\"");
-						}
-
-						if (!v->IsVar()) {
-				   			throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
-								"cannot redefine "
-								"non-var named value "
-								"\"", v->GetName(), "\"");
-						}
-						dynamic_cast<Var *>(v)->SetVal(d);
-
-					} else {
-						/* altrimenti la reinserisco,
-						 * cosi' da provocare l'errore
-						 * di table */
-						v = table.Put(varname, TypedValue(type));
+					if (!bRedefineVars) {
+				   		throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+							"cannot redefine "
+							"var \"", v->GetName(), "\"");
 					}
+
+					if (v->Const()) {
+						throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+							"cannot redefine "
+							"a const named value "
+							"\"", v->GetName(), "\"");
+					}
+
+					if (!v->IsVar()) {
+			   			throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+							"cannot redefine "
+							"non-var named value "
+							"\"", v->GetName(), "\"");
+					}
+
+					dynamic_cast<Var *>(v)->SetVal(d);
 				}
 				
 				/* distruggo il temporaneo */
@@ -3284,7 +3283,7 @@ MathParser::stmt(void)
 
 			} else if (currtoken == STMTSEP) {
 				NamedValue* v = table.Get(namebuf);
-				if (v == NULL || !redefine_vars) {
+				if (v == NULL || !bRedefineVars) {
 					if (isConst) {
 						/* cannot insert a const var
 						 * with no value */
@@ -3545,10 +3544,10 @@ MathParser::stmtlist(void)
 
 const int default_namebuflen = 127;
 
-MathParser::MathParser(const InputStream& strm, Table& t, int redefine_vars)
+MathParser::MathParser(const InputStream& strm, Table& t, bool bRedefineVars)
 : PlugIns(0),
 table(t),
-redefine_vars(redefine_vars),
+bRedefineVars(bRedefineVars),
 in(const_cast<InputStream*>(&strm)),
 defaultNameSpace(0),
 namebuf(0),
@@ -3574,10 +3573,10 @@ powerstack()
 	srand(tm);
 }
 
-MathParser::MathParser(Table& t, int redefine_vars)
+MathParser::MathParser(Table& t, bool bRedefineVars)
 : PlugIns(0),
 table(t),
-redefine_vars(redefine_vars),
+bRedefineVars(bRedefineVars),
 in(0),
 defaultNameSpace(0),
 namebuf(0),
@@ -3824,3 +3823,4 @@ MathParser::RegisterNameSpace(MathParser::NameSpace *ns)
 
 	return 0;
 }
+

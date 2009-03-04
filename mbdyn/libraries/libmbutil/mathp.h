@@ -232,15 +232,14 @@ public:
 	public:
 		ErrGeneric(MBDYN_EXCEPT_ARGS_DECL);
 		ErrGeneric(MathParser* p, MBDYN_EXCEPT_ARGS_DECL);
-		ErrGeneric(MathParser* p, 
-				const char *file, int line, const char *func, 
-				const std::string r, 
+		ErrGeneric(MathParser* p, MBDYN_EXCEPT_ARGS_DECL_NODEF,
 				const char* const s2, const char* const s3);
 	};
    
 	Table&   table;      /* symbol table */
-	int redefine_vars;  /* redefine_vars flag */
-   
+	bool bRedefineVars;  /* redefine_vars flag */
+
+public:
 	/* gioca con table e stream di ingresso */
 	Table& GetSymbolTable(void) const;
 	void PutSymbolTable(Table& T);
@@ -374,8 +373,8 @@ protected:
 	void trim_arg(char *const s);
 
 public:   
-	MathParser(const InputStream& strm, Table& t, int redefine_vars = 0);
-	MathParser(Table& t, int redefine_vars = 0);
+	MathParser(const InputStream& strm, Table& t, bool bRedefineVars = false);
+	MathParser(Table& t, bool bRedefineVars = false);
 	~MathParser(void);
 
 	NamedValue *
