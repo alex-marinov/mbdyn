@@ -802,16 +802,16 @@ struct LinearViscoElasticGenericCLR : public ConstitutiveLawRead<T, Tder> {
 				"using linear viscous constitutive law instead"
 				<< std::endl);
 
-			typedef LinearElasticGenericConstitutiveLaw<T, Tder> L;
-			SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, S));
+			typedef LinearViscousGenericConstitutiveLaw<T, Tder> L;
+			SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, SP));
 
 		} else if (IsNull(SP)) {
 			silent_cerr("warning, null stiffness prime, "
 				"using linear elastic constitutive law instead"
 				<< std::endl);
 
-			typedef LinearViscousGenericConstitutiveLaw<T, Tder> L;
-			SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, SP));
+			typedef LinearElasticGenericConstitutiveLaw<T, Tder> L;
+			SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, S));
 
 		} else {
 			typedef LinearViscoElasticGenericConstitutiveLaw<T, Tder> L;
