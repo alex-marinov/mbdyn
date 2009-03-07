@@ -172,7 +172,8 @@ Vec3 RotManip::VecRot(const Mat3x3 & Phi) {
 			maxcol = 3;
 		}
 		unit = (eet.GetVec(maxcol)/sqrt(eet(maxcol, maxcol)*(1. - cosphi)));
-		sinphi = -(Mat3x3(unit)*Phi).Trace()/2.;
+		// sinphi = -(Mat3x3(unit)*Phi).Trace()/2.;
+		sinphi = -(unit.Cross(Phi)).Trace()/2.;
 		unit *= atan2(sinphi, cosphi);
 	}
 	return unit;
