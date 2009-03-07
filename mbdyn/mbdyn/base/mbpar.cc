@@ -135,6 +135,11 @@ MBDynParser::~MBDynParser(void)
 	for (DCType::iterator i = DC.begin(); i != DC.end(); i++) {
 		SAFEDELETE(i->second);
 	}
+
+	if (!bEmptyManip()) {
+		silent_cerr("MBDynParser::~MBDynParser: "
+			"manipulators' stack not empty" << std::endl);
+	}
 }
 
 void
@@ -762,7 +767,7 @@ MBDynParser::GetPosRel(const ReferenceFrame& rf)
 	ReferenceFrame rfOut;
 	switch (GetRef(rfOut)) {
 	case GLOBAL:
-		return (rf.GetR()).Transpose()*(GetVec3() - rf.GetX());
+		return rf.GetR().MulTV(GetVec3() - rf.GetX());
 	
 	case NODE:
 	case UNKNOWNFRAME:
@@ -774,7 +779,7 @@ MBDynParser::GetPosRel(const ReferenceFrame& rf)
 	}
 	
 	case REFERENCE:
-		return rf.GetR().Transpose()*((rfOut.GetX() + rfOut.GetR()*GetVec3()) - rf.GetX());
+		return rf.GetR().MulTV((rfOut.GetX() + rfOut.GetR()*GetVec3()) - rf.GetX());
 
 	case OTHER_POSITION:
 	case OTHER_ORIENTATION:
@@ -795,7 +800,7 @@ MBDynParser::GetPosRel(const ReferenceFrame& rf, const ReferenceFrame& other_rf,
 	ReferenceFrame rfOut;
 	switch (GetRef(rfOut)) {
 	case GLOBAL:
-		return (rf.GetR()).Transpose()*(GetVec3() - rf.GetX());
+		return rf.GetR().MulTV(GetVec3() - rf.GetX());
 	
 	case NODE:
 	case UNKNOWNFRAME:
@@ -807,13 +812,13 @@ MBDynParser::GetPosRel(const ReferenceFrame& rf, const ReferenceFrame& other_rf,
 	}
 	
 	case REFERENCE:
-		return rf.GetR().Transpose()*((rfOut.GetX() + rfOut.GetR()*GetVec3()) - rf.GetX());
+		return rf.GetR().MulTV((rfOut.GetX() + rfOut.GetR()*GetVec3()) - rf.GetX());
 
 	case OTHER_POSITION:
-		return rf.GetR().Transpose()*((other_rf.GetX() + other_rf.GetR()*(other_X + GetVec3())) - rf.GetX());
+		return rf.GetR().MulTV((other_rf.GetX() + other_rf.GetR()*(other_X + GetVec3())) - rf.GetX());
 
 	case OTHER_NODE:
-		return rf.GetR().Transpose()*((other_rf.GetX() + other_rf.GetR()*GetVec3()) - rf.GetX());
+		return rf.GetR().MulTV((other_rf.GetX() + other_rf.GetR()*GetVec3()) - rf.GetX());
 
 	case OTHER_ORIENTATION:
 		silent_cerr("GetPosRel: \"other\" meaningless in this context "
@@ -865,7 +870,7 @@ MBDynParser::GetVelRel(const ReferenceFrame& rf, const Vec3& x)
 	ReferenceFrame rfOut;
 	switch (GetRef(rfOut)) {
 	case GLOBAL:
-		return (rf.GetR()).Transpose()*(GetVec3()
+		return rf.GetR().MulTV(GetVec3()
 			-rf.GetV()
 			-rf.GetW().Cross(x-rf.GetX()));
 	
@@ -879,7 +884,7 @@ MBDynParser::GetVelRel(const ReferenceFrame& rf, const Vec3& x)
 	}
 	
 	case REFERENCE:
-		return (rf.GetR()).Transpose()*(
+		return rf.GetR().MulTV(
 			rfOut.GetV()
 			+rfOut.GetR()*GetVec3()
 			+rfOut.GetW().Cross(x-rfOut.GetX())
@@ -942,7 +947,7 @@ MBDynParser::GetOmeRel(const ReferenceFrame& rf)
 	ReferenceFrame rfOut;
 	switch (GetRef(rfOut)) {
 	case GLOBAL:
-		return (rf.GetR()).Transpose()*(GetVec3()-rf.GetW());
+		return rf.GetR().MulTV(GetVec3()-rf.GetW());
 	
 	case NODE:
 	case UNKNOWNFRAME:
@@ -954,9 +959,7 @@ MBDynParser::GetOmeRel(const ReferenceFrame& rf)
 	}
 	
 	case REFERENCE:
-		return (rf.GetR()).Transpose()*((rfOut.GetW()
-			+rfOut.GetR()*GetVec3()
-			)-rf.GetW());
+		return rf.GetR().MulTV(rfOut.GetW() + rfOut.GetR()*GetVec3() - rf.GetW());
 	
 	case OTHER_POSITION:
 	case OTHER_ORIENTATION:
@@ -1010,7 +1013,7 @@ MBDynParser::GetVecRel(const ReferenceFrame& rf)
 	ReferenceFrame rfOut;
 	switch (GetRef(rfOut)) {
 	case GLOBAL:
-		return (rf.GetR()).Transpose()*GetVec3();
+		return rf.GetR().MulTV(GetVec3());
 	
 	case UNKNOWNFRAME: /* global */
 		if (IsKeyWord("from" "node")) {
@@ -1021,16 +1024,19 @@ MBDynParser::GetVecRel(const ReferenceFrame& rf)
 			
 			unsigned int uLabel = GetInt();
 			StructNode *pNode1 = NULL; /* get node 1 */
-			if (IsKeyWord("to" "node")) {
+
+
+			if (!IsKeyWord("to" "node")) {
 				silent_cerr("missing keyword 'to node' at line "
 					<< GetLineData() << std::endl);
 				throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
+
 			uLabel = GetInt();
 			StructNode *pNode2 = NULL; /* get node 2 */
 
-			Vec3 v = pNode2->GetXCurr()-pNode1->GetXCurr();
-			return (rf.GetR()).Transpose()*v;
+			Vec3 v = pNode2->GetXCurr() - pNode1->GetXCurr();
+			return rf.GetR().MulTV(v);
 		} /* else local */
 	case NODE:
 		return GetVec3();
@@ -1041,7 +1047,7 @@ MBDynParser::GetVecRel(const ReferenceFrame& rf)
 	}
 	
 	case REFERENCE:
-		return (rf.GetR()).Transpose()*(rfOut.GetR()*GetVec3());
+		return rf.GetR().MulTV(rfOut.GetR()*GetVec3());
 	
 	case OTHER_POSITION:
 	case OTHER_ORIENTATION:
@@ -1156,7 +1162,7 @@ MBDynParser::GetMatRel(const ReferenceFrame& rf)
 	ReferenceFrame rfOut;
 	switch (GetRef(rfOut)) {
 	case GLOBAL:
-		return rf.GetR().Transpose()*(GetMat3x3()*rf.GetR());
+		return rf.GetR().MulTM(GetMat3x3()*rf.GetR());
 		
 	case NODE:
 	case LOCAL:
@@ -1164,10 +1170,7 @@ MBDynParser::GetMatRel(const ReferenceFrame& rf)
 		return GetMat3x3();
 	
 	case REFERENCE:
-		return rf.GetR().Transpose()
-			*(rfOut.GetR()
-			*(GetMat3x3()
-			*(rfOut.GetR().Transpose()*rf.GetR())));
+		return rf.GetR().MulTM(rfOut.GetR()*GetMat3x3()*rfOut.GetR().MulTM(rf.GetR()));
 	
 	case OTHER_POSITION:
 	case OTHER_ORIENTATION:
@@ -1217,7 +1220,7 @@ MBDynParser::GetRotRel(const ReferenceFrame& rf)
 	ReferenceFrame rfOut;
 	switch (GetRef(rfOut)) {
 	case GLOBAL:
-		return rf.GetR().Transpose()*GetMatR2vec();
+		return rf.GetR().MulTM(GetMatR2vec());
 	
 	case NODE:
 	case LOCAL:
@@ -1225,7 +1228,7 @@ MBDynParser::GetRotRel(const ReferenceFrame& rf)
 		return GetMatR2vec();
 	
 	case REFERENCE:
-		return rf.GetR().Transpose()*(rfOut.GetR()*GetMatR2vec());
+		return rf.GetR().MulTM(rfOut.GetR()*GetMatR2vec());
 	
 	case OTHER_POSITION:
 	case OTHER_ORIENTATION:
@@ -1246,7 +1249,7 @@ MBDynParser::GetRotRel(const ReferenceFrame& rf, const ReferenceFrame& other_rf,
 	ReferenceFrame rfOut;
 	switch (GetRef(rfOut)) {
 	case GLOBAL:
-		return rf.GetR().Transpose()*GetMatR2vec();
+		return rf.GetR().MulTM(GetMatR2vec());
 	
 	case NODE:
 	case LOCAL:
@@ -1254,7 +1257,7 @@ MBDynParser::GetRotRel(const ReferenceFrame& rf, const ReferenceFrame& other_rf,
 		return GetMatR2vec();
 	
 	case REFERENCE:
-		return rf.GetR().Transpose()*(rfOut.GetR()*GetMatR2vec());
+		return rf.GetR().MulTM(rfOut.GetR()*GetMatR2vec());
 	
 	case OTHER_POSITION:
 		silent_cerr("GetRotRel: \"other\" meaningless in this context "
@@ -1262,10 +1265,10 @@ MBDynParser::GetRotRel(const ReferenceFrame& rf, const ReferenceFrame& other_rf,
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 	case OTHER_ORIENTATION:
-		return rf.GetR().Transpose()*(other_rf.GetR()*(other_R*GetMatR2vec()));
+		return rf.GetR().MulTM(other_rf.GetR()*other_R*GetMatR2vec());
 
 	case OTHER_NODE:
-		return rf.GetR().Transpose()*(other_rf.GetR()*GetMatR2vec());
+		return rf.GetR().MulTM(other_rf.GetR()*GetMatR2vec());
 
 	default:
 		ASSERTMSG(0, "You shouldn't have reached this point");
@@ -1497,6 +1500,302 @@ bool
 MBDynParser::SetScalarFunction(const std::string &s, const BasicScalarFunction *sf)
 {
 	return SF.insert(SFType::value_type(s, sf)).second;
+}
+
+void
+MBDynParser::PopManip(void)
+{
+	manip.pop();
+}
+
+void
+MBDynParser::PushManip(const Manip *m)
+{
+	manip.push(m);
+}
+
+const MBDynParser::Manip *
+MBDynParser::GetManip(void) const
+{
+	if (manip.empty()) {
+		return 0;
+	}
+
+	return manip.top();
+}
+
+bool
+MBDynParser::bEmptyManip(void) const
+{
+	return manip.empty();
+}
+
+doublereal
+MBDynParser::Get(const doublereal& d)
+{
+	return HighParser::Get(d);
+}
+
+Vec3
+MBDynParser::Get(const Vec3& v)
+{
+	bool bManip = false;
+	Vec3 vv = v;
+
+	while (!bEmptyManip()) {
+		const Manip *m = GetManip();
+		const TplManip<Vec3> *v3m = dynamic_cast<const TplManip<Vec3> *>(m);
+		if (v3m) {
+			bManip = true;
+			vv = v3m->Get(vv);
+		}
+
+		PopManip();
+	}
+
+	if (!bManip) {
+		vv = HighParser::Get(v);
+	}
+
+	return vv;
+}
+
+Mat3x3
+MBDynParser::Get(const Mat3x3& m)
+{
+	return HighParser::Get(m);
+}
+
+Vec6
+MBDynParser::Get(const Vec6& v)
+{
+	return HighParser::Get(v);
+}
+
+Mat6x6
+MBDynParser::Get(const Mat6x6& m)
+{
+	return HighParser::Get(m);
+}
+
+template <class T>
+MBDynParser::TplManip<T>::~TplManip(void)
+{
+	NO_OP;
+}
+
+template <class T>
+MBDynParser::RefTplManip<T>::RefTplManip(
+	MBDynParser& HP,
+	const ReferenceFrame& rf,
+	VecMatOpType type)
+: HP(HP),
+rf(rf),
+type(type)
+{
+	NO_OP;
+}
+
+template <class T>
+MBDynParser::RefTplManip<T>::~RefTplManip(void)
+{
+	NO_OP;
+}
+
+MBDynParser::RefVec3Manip::RefVec3Manip(
+	MBDynParser& HP,
+	const ReferenceFrame& rf,
+	VecMatOpType type)
+: RefTplManip<Vec3>(HP, rf, type)
+{
+	NO_OP;
+}
+
+MBDynParser::RefVec3Manip::~RefVec3Manip(void)
+{
+	NO_OP;
+}
+
+#if 0
+Vec6
+MBDynParser::RefVec6Manip::Get(const Vec6& v) const
+{
+	switch (type) {
+	case VM_NONE:
+	case VM_POSREL:
+	case VM_POSABS:
+	case VM_VELREL:
+	case VM_VELABS:
+	case VM_OMEREL:
+	case VM_OMEABS:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+	case VM_VECREL: {
+		ReferenceFrame rfOut;
+		switch (HP.GetRef(rfOut)) {
+		case GLOBAL: {
+			Vec6 v(HP.GetVec6());
+			return MultRV(v, rf.GetR());
+			}
+
+		case UNKNOWNFRAME: /* global */
+		case NODE:
+			return HighParser::Get(t);
+
+		case LOCAL: {
+			Mat3x3 R(GetMatR2vec());
+			Vec6 v(HighParser::Get(t)());
+			return Vec6(R*v.GetVec1(), R*v.GetVec2());
+			}
+
+		case REFERENCE: {
+			Vec6 v(HighParser::Get(t)());
+			return Vec6(rf.GetR().MulTV(rfOut.GetR()*v.GetVec1()),
+				rf.GetR().MulTV(rfOut.GetR()*v.GetVec2()));
+			}
+
+		case OTHER_POSITION:
+		case OTHER_ORIENTATION:
+		case OTHER_NODE:
+			silent_cerr("Get<Vec6>: \"other\" meaningless in this context "
+				"at line " << GetLineData() << std::endl);
+			throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+		default:
+			// will error out later
+			break;
+		}
+		} break;
+
+	case VM_VECABS: {
+		ReferenceFrame rfOut;
+		switch (GetRef(rfOut)) {
+		case UNKNOWNFRAME: /* global */
+		case GLOBAL:
+			return HighParser::Get(t)();
+
+		case NODE: {
+			Vec6 v(HighParser::Get(t)());
+			return Vec6(rf.GetR()*v.GetVec1(), rf.GetR()*v.GetVec2());
+			}
+
+		case LOCAL: {
+			Mat3x3 R(GetMatR2vec());
+			Vec6 v(HighParser::Get(t)());
+			return Vec6(rf.GetR()*(R*v.GetVec1()), rf.GetR()*(R*v.GetVec2()));
+			}
+
+		case REFERENCE: {
+			Vec6 v(HighParser::Get(t)());
+			return Vec6(rfOut.GetR()*v.GetVec1(), rfOut.GetR()*v.GetVec2());
+		}
+
+		case OTHER_POSITION:
+		case OTHER_ORIENTATION:
+		case OTHER_NODE:
+			silent_cerr("Get<Vec6>: \"other\" meaningless in this context "
+				"at line " << GetLineData() << std::endl);
+			throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+		default:
+			// will error out later
+			break;
+		}
+		} break;
+
+	case VM_UNITVECREL:
+	case VM_UNITVECABS:
+		// fall thru
+
+	case VM_MATREL:
+	case VM_MATABS:
+	case VM_ROTREL:
+	case VM_ROTABS:
+		// fall thru
+
+	case VM_LAST:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	ASSERTMSG(0, "You shouldn't have reached this point");
+	throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+#endif
+
+Vec3
+MBDynParser::RefVec3Manip::Get(const Vec3& v) const
+{
+	switch (type) {
+	case VM_NONE:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+	case VM_POSREL:
+		return HP.GetPosRel(rf);
+
+	case VM_POSABS:
+		return HP.GetPosAbs(rf);
+
+	case VM_VELREL:
+	case VM_VELABS:
+		// need offset
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+	case VM_OMEREL:
+		return HP.GetOmeRel(rf);
+
+	case VM_OMEABS:
+		return HP.GetOmeAbs(rf);
+
+	case VM_VECREL:
+		return HP.GetVecRel(rf);
+
+	case VM_VECABS:
+		return HP.GetVecAbs(rf);
+
+	case VM_UNITVECREL:
+		return HP.GetUnitVecRel(rf);
+
+	case VM_UNITVECABS:
+		return HP.GetUnitVecAbs(rf);
+
+	case VM_MATREL:
+	case VM_MATABS:
+	case VM_ROTREL:
+	case VM_ROTABS:
+		// fall thru
+
+	default:
+	case VM_LAST:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return v;
+}
+
+MBDynParser::VecRelManip::VecRelManip(
+	MBDynParser& HP,
+	const ReferenceFrame& rf)
+: RefVec3Manip(HP, rf, VM_VECREL)
+{
+	NO_OP;
+}
+
+MBDynParser::VecRelManip::~VecRelManip(void)
+{
+	NO_OP;
+}
+
+MBDynParser::VecAbsManip::VecAbsManip(
+	MBDynParser& HP,
+	const ReferenceFrame& rf)
+: RefVec3Manip(HP, rf, VM_VECABS)
+{
+	NO_OP;
+}
+
+MBDynParser::VecAbsManip::~VecAbsManip(void)
+{
+	NO_OP;
 }
 
 /* MBDynParser - end */

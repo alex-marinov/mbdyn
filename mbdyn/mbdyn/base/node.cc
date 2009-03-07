@@ -570,8 +570,8 @@ NodeDof::NodeDof(void)
 	NO_OP;
 }
 
-NodeDof::NodeDof(unsigned int u, int id, Node* p)
-: uNode(u), iDofNumber(id), pNode(p)
+NodeDof::NodeDof(int id, Node* p)
+: iDofNumber(id), pNode(p)
 {
 	NO_OP;
 }
@@ -582,7 +582,7 @@ NodeDof::~NodeDof(void)
 }
 
 Node2Scalar::Node2Scalar(const NodeDof& nd)
-: ScalarNode(nd.uNode, nd.pNode->pGetDofOwner(), 0), ND(nd)
+: ScalarNode(nd.pNode->GetLabel(), nd.pNode->pGetDofOwner(), 0), ND(nd)
 {
 	NO_OP;
 }

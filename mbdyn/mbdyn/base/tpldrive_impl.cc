@@ -38,6 +38,7 @@
 
 #include "dataman.h"
 #include "tpldrive_impl.h"
+#include "reffrm.h"
 
 /* ZeroTplDriveCaller<T> defined in "tpldrive_impl.h",
  * which includes "tpldrive.h" */
@@ -73,6 +74,7 @@ public:
 
 /* SingleTplDriveCaller - begin */
 
+#if 0
 template <class T>
 class SingleTplDriveCaller : public TplDriveCaller<T>, public DriveOwner {
 protected:
@@ -80,7 +82,7 @@ protected:
 
 public:
 	SingleTplDriveCaller(const DriveCaller* pDC, const T& x)
-	: DriveOwner(pDC), t((T&)x) {
+	: DriveOwner(pDC), t(const_cast<T&>(x)) {
 		NO_OP;
 	};
 
@@ -180,6 +182,7 @@ public:
 		return 1;
 	};
 };
+#endif
 
 template <class T>
 class SingleTDCR : public TplDriveCallerRead<T> {
@@ -674,6 +677,34 @@ ReadDC6D(const DataManager* pDM, MBDynParser& HP)
 	}
 
 	return func->second->Read(pDM, HP);
+}
+
+TplDriveCaller<Vec3> *
+ReadDCVecRel(const DataManager* pDM, MBDynParser& HP, const ReferenceFrame& rf)
+{
+	MBDynParser::VecRelManip manip(HP, rf);
+
+	HP.PushManip(&manip);
+	TplDriveCaller<Vec3>* pDC = ReadDC3D(pDM, HP);
+	if (HP.GetManip() == &manip) {
+		HP.PopManip();
+	}
+
+	return pDC;
+}
+
+TplDriveCaller<Vec3> *
+ReadDCVecAbs(const DataManager* pDM, MBDynParser& HP, const ReferenceFrame& rf)
+{
+	MBDynParser::VecAbsManip manip(HP, rf);
+
+	HP.PushManip(&manip);
+	TplDriveCaller<Vec3>* pDC = ReadDC3D(pDM, HP);
+	if (HP.GetManip() == &manip) {
+		HP.PopManip();
+	}
+
+	return pDC;
 }
 
 static unsigned done;

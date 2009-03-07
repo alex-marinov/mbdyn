@@ -37,26 +37,26 @@
 
 #include <cfloat>
 
-#include "strforce.h"
 #include "dataman.h"
+#include "strforce.h"
+#include "strforce_impl.h"
+#include "tpldrive_impl.h"
 
 /* StructuralForce - begin */
 
 /* Costruttore */
 StructuralForce::StructuralForce(unsigned int uL,
 	const StructNode* pN,
-	const DriveCaller* pDC,
-	const Vec3& TmpDir,
+	const TplDriveCaller<Vec3>* pDC,
 	flag fOut)
 : Elem(uL, fOut),
 Force(uL, fOut),
-DriveOwner(pDC),
-pNode(pN), Dir(TmpDir)
+f(pDC),
+pNode(pN)
 {
 	ASSERT(pNode != NULL);
 	ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);
 	ASSERT(pDC != NULL);
-	ASSERT(Dir.Dot() > DBL_EPSILON);
 }
 
 
@@ -81,11 +81,11 @@ StructuralForce::GetConnectedNodes(std::vector<const Node *>& connectedNodes)
 
 AbsoluteForce::AbsoluteForce(unsigned int uL,
 	const StructNode* pN,
-	const DriveCaller* pDC,
-	const Vec3& TmpDir, const Vec3& TmpArm,
+	const TplDriveCaller<Vec3>* pDC,
+	const Vec3& TmpArm,
 	flag fOut)
 : Elem(uL, fOut),
-StructuralForce(uL, pN, pDC, TmpDir, fOut),
+StructuralForce(uL, pN, pDC, fOut),
 Arm(TmpArm)
 {
 	NO_OP;
@@ -117,12 +117,10 @@ AbsoluteForce::InitialWorkSpaceDim(
 std::ostream&
 AbsoluteForce::Restart(std::ostream& out) const
 {
-	Force::Restart(out) << ", conservative, "
-		<< pNode->GetLabel() << ", reference, global, ",
-		((pNode->GetRCurr()).Transpose()*Dir).Write(out, ", ")
-		<< ", reference, node, ",
+	Force::Restart(out) << ", absolute, "
+		<< pNode->GetLabel() << ", position, reference, node, ",
 		Arm.Write(out, ", ") << ", ";
-	return pGetDriveCaller()->Restart(out) << ';' << std::endl;
+	return f.pGetDriveCaller()->Restart(out) << ';' << std::endl;
 }
 
 VariableSubMatrixHandler&
@@ -146,16 +144,14 @@ AbsoluteForce::AssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	/* Dati */
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
 	Vec3 TmpArm(pNode->GetRRef()*Arm);
-	Vec3 TmpDir = Dir*dAmplitude;
 
 	/* |    F/\   |           |   F  |
 	 * |          | Delta_g = |      |
 	 * | (d/\F)/\ |           | d/\F |
 	 */
 
-	WM.Sub(1, 1, Mat3x3(TmpDir, TmpArm*dCoef));
+	WM.Sub(1, 1, Mat3x3(f.Get(), TmpArm*dCoef));
 
 	return WorkMat;
 }
@@ -175,10 +171,6 @@ AbsoluteForce::AssRes(SubVectorHandler& WorkVec,
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
 	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
@@ -186,7 +178,7 @@ AbsoluteForce::AssRes(SubVectorHandler& WorkVec,
 	}
 
 	const Mat3x3& R(pNode->GetRCurr());
-	Vec3 F(Dir*dAmplitude);
+	Vec3 F(f.Get());
 	Vec3 M((R*Arm).Cross(F));
 
 	WorkVec.Add(1, F);
@@ -210,10 +202,6 @@ AbsoluteForce::AssRes(SubVectorHandler& WorkVec,
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstMomentumIndex = pNode->iGetFirstPositionIndex();
 	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
@@ -221,7 +209,7 @@ AbsoluteForce::AssRes(SubVectorHandler& WorkVec,
 	}
 
 	const Mat3x3& R(pNode->GetRCurr());
-	Vec3 F(Dir*dAmplitude);
+	Vec3 F(f.Get());
 	Vec3 M((R*Arm).Cross(F));
 
 	WorkVec.Add(1, F);
@@ -234,10 +222,10 @@ void
 AbsoluteForce::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		OH.Forces() << GetLabel()
+		OH.Forces()
+			<< GetLabel()
 			<< " " << pNode->GetLabel()
-			<< " " << dGet()
-			<< " " << Dir*dGet()
+			<< " " << f.Get()
 			<< " " << pNode->GetXCurr() + pNode->GetRCurr()*Arm
 			<< std::endl;
 	}
@@ -266,9 +254,8 @@ AbsoluteForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	/* Dati */
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
 	Vec3 TmpArm(pNode->GetRRef()*Arm);
-	Vec3 TmpDir = Dir*dAmplitude;
+	Vec3 TmpDir = f.Get();
 	const Vec3& Omega(pNode->GetWRef());
 
 	/* |    F/\   |           |   F  |
@@ -276,9 +263,11 @@ AbsoluteForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	 * | (d/\F)/\ |           | d/\F |
 	 */
 
-	WM.Sub(1, 1, Mat3x3(TmpDir, TmpArm));
+	Mat3x3 MTmp(Mat3x3(TmpDir, TmpArm));
+
+	WM.Sub(1, 1, MTmp);
 	WM.Sub(4, 1, Mat3x3(TmpDir, Omega)*Mat3x3(TmpArm));
-	WM.Sub(4, 4, Mat3x3(TmpDir, TmpArm));
+	WM.Sub(4, 4, MTmp);
 
 	return WorkMat;
 }
@@ -296,10 +285,6 @@ AbsoluteForce::InitialAssRes(SubVectorHandler& WorkVec,
 	InitialWorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
 	integer iFirstVelocityIndex = iFirstPositionIndex + 6;
@@ -308,8 +293,9 @@ AbsoluteForce::InitialAssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(6+iCnt, iFirstVelocityIndex + iCnt);
 	}
 
+	/* Dati */
 	const Mat3x3& R(pNode->GetRCurr());
-	Vec3 TmpDir(Dir*dAmplitude);
+	Vec3 TmpDir(f.Get());
 	Vec3 TmpArm(R*Arm);
 	const Vec3& Omega(pNode->GetWCurr());
 
@@ -329,11 +315,11 @@ AbsoluteForce::InitialAssRes(SubVectorHandler& WorkVec,
 /* Costruttore non banale */
 
 FollowerForce::FollowerForce(unsigned int uL, const StructNode* pN,
-	const DriveCaller* pDC,
-	const Vec3& TmpDir, const Vec3& TmpArm,
+	const TplDriveCaller<Vec3>* pDC,
+	const Vec3& TmpArm,
 	flag fOut)
 : Elem(uL, fOut),
-StructuralForce(uL, pN, pDC, TmpDir, fOut),
+StructuralForce(uL, pN, pDC, fOut),
 Arm(TmpArm)
 {
 	NO_OP;
@@ -370,11 +356,9 @@ FollowerForce::Restart(std::ostream& out) const
 {
 	Force::Restart(out) << ", follower, "
 		<< pNode->GetLabel()
-		<< ", reference, node, ",
-		Dir.Write(out, ", ")
-		<< ", reference, node, ",
+		<< ", position, reference, node, ",
 		Arm.Write(out, ", ") << ", ";
-	return pGetDriveCaller()->Restart(out) << ';' << std::endl;
+	return f.pGetDriveCaller()->Restart(out) << ';' << std::endl;
 }
 
 
@@ -403,9 +387,8 @@ FollowerForce::AssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	/* Dati */
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
 	const Mat3x3& R(pNode->GetRRef());
-	Vec3 TmpDir(R*(Dir*(dAmplitude*dCoef)));
+	Vec3 TmpDir(R*(f.Get()*dCoef));
 	Vec3 TmpArm(R*Arm);
 
 	/* |    F/\   |           |   F  |
@@ -434,18 +417,15 @@ FollowerForce::AssRes(SubVectorHandler& WorkVec,
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
 	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex + iCnt);
 	}
 
+	/* Dati */
 	const Mat3x3& R(pNode->GetRCurr());
-	Vec3 TmpDir = Dir*dAmplitude;
+	Vec3 TmpDir = f.Get();
 	Vec3 F(R*TmpDir);
 	Vec3 M(R*Arm.Cross(TmpDir));
 
@@ -471,18 +451,15 @@ FollowerForce::AssRes(SubVectorHandler& WorkVec,
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstMomentumIndex = pNode->iGetFirstPositionIndex();
 	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
 	}
 
+	/* Dati */
 	const Mat3x3& R(pNode->GetRCurr());
-	Vec3 TmpDir = Dir*dAmplitude;
+	Vec3 TmpDir = f.Get();
 	Vec3 F(R*TmpDir);
 	Vec3 M(R*Arm.Cross(TmpDir));
 
@@ -497,12 +474,12 @@ void
 FollowerForce::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		OH.Forces() << GetLabel()
+		OH.Forces()
+			<< GetLabel()
 			<< " " << pNode->GetLabel()
-			<< " " << dGet()
-			<< " " << pNode->GetRCurr()*(Dir*dGet())
+			<< " " << pNode->GetRCurr()*f.Get()
 			<< " " << pNode->GetXCurr() + pNode->GetRCurr()*Arm
-		<< std::endl;
+			<< std::endl;
 	}
 }
 
@@ -531,10 +508,9 @@ FollowerForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	/* Dati */
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
 	const Mat3x3& R(pNode->GetRRef());
 	Vec3 TmpArm(R*Arm);
-	Vec3 TmpDir = R*(Dir*dAmplitude);
+	Vec3 TmpDir = R*f.Get();
 	const Vec3& Omega(pNode->GetWRef());
 
 	/* |    F/\   |           |   F  |
@@ -565,10 +541,6 @@ FollowerForce::InitialAssRes(SubVectorHandler& WorkVec,
 	InitialWorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
 	integer iFirstVelocityIndex = iFirstPositionIndex + 6;
@@ -577,8 +549,9 @@ FollowerForce::InitialAssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(6 + iCnt, iFirstVelocityIndex + iCnt);
 	}
 
+	/* Dati */
 	const Mat3x3& R(pNode->GetRCurr());
-	Vec3 TmpDir(R*(Dir*dAmplitude));
+	Vec3 TmpDir(R*f.Get());
 	Vec3 TmpArm(R*Arm);
 	const Vec3& Omega(pNode->GetWCurr());
 
@@ -599,11 +572,10 @@ FollowerForce::InitialAssRes(SubVectorHandler& WorkVec,
 /* Costruttore non banale */
 
 AbsoluteCouple::AbsoluteCouple(unsigned int uL, const StructNode* pN,
-	const DriveCaller* pDC,
-	const Vec3& TmpDir,
+	const TplDriveCaller<Vec3>* pDC,
 	flag fOut)
 : Elem(uL, fOut),
-StructuralForce(uL, pN, pDC, TmpDir, fOut)
+StructuralForce(uL, pN, pDC, fOut)
 {
 	NO_OP;
 }
@@ -637,11 +609,9 @@ AbsoluteCouple::InitialWorkSpaceDim(
 std::ostream&
 AbsoluteCouple::Restart(std::ostream& out) const
 {
-	out << "  couple: " << GetLabel() << ", conservative, "
-		<< pNode->GetLabel() << ", reference, global, ",
-		Dir.Write(out, ", ")
-		<< ", ";
-	return pGetDriveCaller()->Restart(out) << ';' << std::endl;
+	out << "  couple: " << GetLabel() << ", absolute, "
+		<< pNode->GetLabel() << ", ";
+	return f.pGetDriveCaller()->Restart(out) << ';' << std::endl;
 }
 
 
@@ -659,17 +629,13 @@ AbsoluteCouple::AssRes(SubVectorHandler& WorkVec,
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex()+3;
 	for (integer iCnt = 1; iCnt <= 3; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
 	}
 
-	WorkVec.Add(1, Dir*dAmplitude);
+	WorkVec.Add(1, f.Get());
 
 	return WorkVec;
 }
@@ -689,17 +655,13 @@ AbsoluteCouple::AssRes(SubVectorHandler& WorkVec,
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstMomentumIndex = pNode->iGetFirstPositionIndex()+3;
 	for (integer iCnt = 1; iCnt <= 3; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
 	}
 
-	WorkVec.Add(1, Dir*dAmplitude);
+	WorkVec.Add(1, f.Get());
 
 	return WorkVec;
 }
@@ -709,10 +671,11 @@ void
 AbsoluteCouple::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		OH.Forces() << GetLabel()
+		OH.Forces()
+			<< GetLabel()
 			<< " " << pNode->GetLabel()
-			<< " " << dGet()
-			<< " " << Dir*dGet() << std::endl;
+			<< " " << f.Get()
+			<< std::endl;
 	}
 }
 
@@ -726,17 +689,13 @@ AbsoluteCouple::InitialAssRes(SubVectorHandler& WorkVec,
 
 	WorkVec.Resize(3);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex() + 3;
 	for (integer iCnt = 1; iCnt <= 3; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iFirstPositionIndex + iCnt);
 	}
 
-	WorkVec.Add(1, Dir*dAmplitude);
+	WorkVec.Add(1, f.Get());
 
 	return WorkVec;
 }
@@ -747,10 +706,10 @@ AbsoluteCouple::InitialAssRes(SubVectorHandler& WorkVec,
 /* FollowerCouple - begin */
 
 FollowerCouple::FollowerCouple(unsigned int uL, const StructNode* pN,
-	const DriveCaller* pDC, const Vec3& TmpDir,
+	const TplDriveCaller<Vec3>* pDC,
 	flag fOut)
 : Elem(uL, fOut),
-StructuralForce(uL, pN, pDC, TmpDir, fOut)
+StructuralForce(uL, pN, pDC, fOut)
 {
 	NO_OP;
 }
@@ -785,9 +744,8 @@ std::ostream&
 FollowerCouple::Restart(std::ostream& out) const
 {
 	out << "  couple: " << GetLabel() << ", follower, "
-		<< pNode->GetLabel() << ", reference, node, ",
-		Dir.Write(out, ", ") << ", ";
-	return pGetDriveCaller()->Restart(out) << ';' << std::endl;
+		<< pNode->GetLabel() << ", ";
+	return f.pGetDriveCaller()->Restart(out) << ';' << std::endl;
 }
 
 
@@ -815,9 +773,8 @@ FollowerCouple::AssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	/* Dati */
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
 	const Mat3x3& R(pNode->GetRRef());
-	Mat3x3 MWedge((R*Dir)*(dAmplitude*dCoef));
+	Mat3x3 MWedge(R*(f.Get()*dCoef));
 
 	/* | M /\| Delta_g = | M | */
 
@@ -841,18 +798,15 @@ FollowerCouple::AssRes(SubVectorHandler& WorkVec,
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex() + 3;
 	for (integer iCnt = 1; iCnt <= 3; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex + iCnt);
 	}
 
+	/* Dati */
 	const Mat3x3& R(pNode->GetRCurr());
-	WorkVec.Add(1, (R*Dir)*dAmplitude);
+	WorkVec.Add(1, R*f.Get());
 
 	return WorkVec;
 }
@@ -873,18 +827,15 @@ FollowerCouple::AssRes(SubVectorHandler& WorkVec,
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstMomentumIndex = pNode->iGetFirstPositionIndex()+3;
 	for (integer iCnt = 1; iCnt <= 3; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex+iCnt);
 	}
 
+	/* Dati */
 	Mat3x3 R(pNode->GetRCurr());
-	WorkVec.Add(1, (R*Dir)*dAmplitude);
+	WorkVec.Add(1, R*f.Get());
 
 	return WorkVec;
 }
@@ -893,10 +844,11 @@ void
 FollowerCouple::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		OH.Forces() << GetLabel()
+		OH.Forces()
+			<< GetLabel()
 			<< " " << pNode->GetLabel()
-			<< " " << dGet()
-			<< " " << pNode->GetRCurr()*(Dir*dGet()) << std::endl;
+			<< " " << pNode->GetRCurr()*f.Get()
+			<< std::endl;
 	}
 }
 
@@ -923,8 +875,7 @@ FollowerCouple::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	/* Dati */
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-	Vec3 TmpDir(pNode->GetRRef()*(Dir*dAmplitude));
+	Vec3 TmpDir(pNode->GetRRef()*f.Get());
 	const Vec3& Omega(pNode->GetWRef());
 
 	/* |    F/\   |           |   F  |
@@ -949,10 +900,6 @@ FollowerCouple::InitialAssRes(SubVectorHandler& WorkVec,
 
 	WorkVec.ResizeReset(6);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex() + 3;
 	integer iFirstVelocityIndex = iFirstPositionIndex + 6;
@@ -961,8 +908,9 @@ FollowerCouple::InitialAssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(6 + iCnt, iFirstVelocityIndex + iCnt);
 	}
 
+	/* Dati */
 	const Mat3x3& R(pNode->GetRCurr());
-	Vec3 TmpDir(R*(Dir*dAmplitude));
+	Vec3 TmpDir(R*f.Get());
 	const Vec3& Omega(pNode->GetWCurr());
 
 	WorkVec.Add(1, TmpDir);
@@ -979,19 +927,18 @@ FollowerCouple::InitialAssRes(SubVectorHandler& WorkVec,
 /* Costruttore */
 StructuralInternalForce::StructuralInternalForce(unsigned int uL,
 	const StructNode* pN1, const StructNode* pN2,
-	const DriveCaller* pDC, const Vec3& TmpDir,
+	const TplDriveCaller<Vec3>* pDC,
 	flag fOut)
 : Elem(uL, fOut),
 Force(uL, fOut),
-DriveOwner(pDC),
-pNode1(pN1), pNode2(pN2), Dir(TmpDir)
+f(pDC),
+pNode1(pN1), pNode2(pN2)
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode1->GetNodeType() == Node::STRUCTURAL);
 	ASSERT(pNode2 != NULL);
 	ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
 	ASSERT(pDC != NULL);
-	ASSERT(Dir.Dot() > DBL_EPSILON);
 }
 
 
@@ -1018,11 +965,11 @@ StructuralInternalForce::GetConnectedNodes(
 
 AbsoluteInternalForce::AbsoluteInternalForce(unsigned int uL,
 	const StructNode* pN1, const StructNode* pN2,
-	const DriveCaller* pDC, const Vec3& TmpDir,
+	const TplDriveCaller<Vec3>* pDC,
 	const Vec3& TmpArm1, const Vec3& TmpArm2,
 	flag fOut)
 : Elem(uL, fOut),
-StructuralInternalForce(uL, pN1, pN2, pDC, TmpDir, fOut),
+StructuralInternalForce(uL, pN1, pN2, pDC, fOut),
 Arm1(TmpArm1), Arm2(TmpArm2)
 {
 	NO_OP;
@@ -1059,14 +1006,12 @@ AbsoluteInternalForce::InitialWorkSpaceDim(
 std::ostream&
 AbsoluteInternalForce::Restart(std::ostream& out) const
 {
-	Force::Restart(out) << ", conservative internal, "
-		<< pNode1->GetLabel() << ", reference, global, ",
-		((pNode1->GetRCurr()).Transpose()*Dir).Write(out, ", ")
-		<< ", reference, node, ",
+	Force::Restart(out) << ", absolute internal, "
+		<< pNode1->GetLabel() << ", position, reference, node, ",
 		Arm1.Write(out, ", ") << ", "
-		<< pNode2->GetLabel() << ", reference, global, ",
+		<< pNode2->GetLabel() << ", position, reference, node, ",
 		Arm2.Write(out, ", ") << ", ";
-	return pGetDriveCaller()->Restart(out) << ';' << std::endl;
+	return f.pGetDriveCaller()->Restart(out) << ';' << std::endl;
 }
 
 
@@ -1098,18 +1043,17 @@ AbsoluteInternalForce::AssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	/* Dati */
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
 	Vec3 TmpArm1(pNode1->GetRRef()*Arm1);
 	Vec3 TmpArm2(pNode2->GetRRef()*Arm2);
-	Vec3 TmpDir = Dir*dAmplitude;
+	Vec3 TmpDir = f.Get()*dCoef;
 
 	/* |    F/\   |           |   F  |
 	 * |          | Delta_g = |      |
 	 * | (d/\F)/\ |           | d/\F |
 	 */
 
-	WM.Sub(1, 1, Mat3x3(TmpDir, TmpArm1*dCoef));
-	WM.Add(4, 4, Mat3x3(TmpDir, TmpArm2*dCoef));
+	WM.Sub(1, 1, Mat3x3(TmpDir, TmpArm1));
+	WM.Add(4, 4, Mat3x3(TmpDir, TmpArm2));
 
 	return WorkMat;
 }
@@ -1129,10 +1073,6 @@ AbsoluteInternalForce::AssRes(SubVectorHandler& WorkVec,
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstMomentumIndex1 = pNode1->iGetFirstMomentumIndex();
 	integer iFirstMomentumIndex2 = pNode2->iGetFirstMomentumIndex();
@@ -1141,7 +1081,8 @@ AbsoluteInternalForce::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(6 + iCnt, iFirstMomentumIndex2 + iCnt);
 	}
 
-	Vec3 F(Dir*dAmplitude);
+	/* Dati */
+	Vec3 F(f.Get());
 	Vec3 M1((pNode1->GetRCurr()*Arm1).Cross(F));
 	Vec3 M2(F.Cross(pNode2->GetRCurr()*Arm1));	/* - x2 /\ F */
 
@@ -1168,10 +1109,6 @@ AbsoluteInternalForce::AssRes(SubVectorHandler& WorkVec,
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstMomentumIndex1 = pNode1->iGetFirstPositionIndex();
 	integer iFirstMomentumIndex2 = pNode2->iGetFirstPositionIndex();
@@ -1180,7 +1117,8 @@ AbsoluteInternalForce::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(6 + iCnt, iFirstMomentumIndex2 + iCnt);
 	}
 
-	Vec3 F(Dir*dAmplitude);
+	/* Dati */
+	Vec3 F(f.Get());
 	Vec3 M1((pNode1->GetRCurr()*Arm1).Cross(F));
 	Vec3 M2(F.Cross(pNode2->GetRCurr()*Arm1));	/* - x2 /\ F */
 
@@ -1197,11 +1135,14 @@ void
 AbsoluteInternalForce::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		OH.Forces() << GetLabel()
+		Vec3 F(f.Get());
+		OH.Forces()
+			<< GetLabel()
 			<< " " << pNode1->GetLabel()
-			<< " " << dGet()
-			<< " " << Dir*dGet()
+			<< " " << F
 			<< " " << pNode1->GetXCurr() + pNode1->GetRCurr()*Arm1
+			<< " " << pNode2->GetLabel()
+			<< " " << -F
 			<< " " << pNode2->GetXCurr() + pNode2->GetRCurr()*Arm2
 			<< std::endl;
 	}
@@ -1242,10 +1183,9 @@ AbsoluteInternalForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	/* Dati */
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
 	Vec3 TmpArm1(pNode1->GetRRef()*Arm1);
 	Vec3 TmpArm2(pNode2->GetRRef()*Arm2);
-	Vec3 TmpDir = Dir*dAmplitude;
+	Vec3 TmpDir = f.Get();
 	Vec3 Omega1(pNode1->GetWRef());
 	Vec3 Omega2(pNode2->GetWRef());
 
@@ -1278,10 +1218,6 @@ AbsoluteInternalForce::InitialAssRes(SubVectorHandler& WorkVec,
 	InitialWorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstPositionIndex1 = pNode1->iGetFirstPositionIndex();
 	integer iFirstVelocityIndex1 = iFirstPositionIndex1 + 6;
@@ -1297,7 +1233,8 @@ AbsoluteInternalForce::InitialAssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(18 + iCnt, iFirstVelocityIndex2 + iCnt);
 	}
 
-	Vec3 TmpDir(Dir*dAmplitude);
+	/* Dati */
+	Vec3 TmpDir(f.Get());
 	Vec3 TmpArm1(pNode1->GetRCurr()*Arm1);
 	Vec3 TmpArm2(pNode2->GetRCurr()*Arm2);
 	const Vec3& Omega1(pNode1->GetWCurr());
@@ -1327,11 +1264,11 @@ AbsoluteInternalForce::InitialAssRes(SubVectorHandler& WorkVec,
 
 FollowerInternalForce::FollowerInternalForce(unsigned int uL,
 	const StructNode* pN1, const StructNode* pN2,
-	const DriveCaller* pDC, const Vec3& TmpDir,
+	const TplDriveCaller<Vec3>* pDC,
 	const Vec3& TmpArm1, const Vec3& TmpArm2,
 	flag fOut)
 : Elem(uL, fOut),
-StructuralInternalForce(uL, pN1, pN2, pDC, TmpDir, fOut),
+StructuralInternalForce(uL, pN1, pN2, pDC, fOut),
 Arm1(TmpArm1), Arm2(TmpArm2)
 {
 	NO_OP;
@@ -1370,14 +1307,12 @@ FollowerInternalForce::Restart(std::ostream& out) const
 {
 	Force::Restart(out) << ", follower internal, "
 		<< pNode1->GetLabel()
-		<< ", reference, node, ",
-		Dir.Write(out, ", ")
-		<< ", reference, node, ",
+		<< ", position, reference, node, ",
 		Arm1.Write(out, ", ") << ", "
 		<< pNode2->GetLabel()
-		<< ", reference, node, ",
+		<< ", position, reference, node, ",
 		Arm2.Write(out, ", ") << ", ";
-	return pGetDriveCaller()->Restart(out) << ';' << std::endl;
+	return f.pGetDriveCaller()->Restart(out) << ';' << std::endl;
 }
 
 
@@ -1410,8 +1345,7 @@ FollowerInternalForce::AssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	/* Dati */
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-	Vec3 TmpDir(pNode1->GetRRef()*(Dir*(dAmplitude*dCoef)));
+	Vec3 TmpDir(pNode1->GetRRef()*(f.Get()*dCoef));
 	Vec3 TmpArm1(pNode1->GetRRef()*Arm1);
 	Vec3 TmpArm2(pNode2->GetRRef()*Arm2);
 
@@ -1446,10 +1380,6 @@ FollowerInternalForce::AssRes(SubVectorHandler& WorkVec,
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstMomentumIndex1 = pNode1->iGetFirstMomentumIndex();
 	integer iFirstMomentumIndex2 = pNode2->iGetFirstMomentumIndex();
@@ -1458,7 +1388,8 @@ FollowerInternalForce::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(6 + iCnt, iFirstMomentumIndex2 + iCnt);
 	}
 
-	Vec3 TmpDir = Dir*dAmplitude;
+	/* Dati */
+	Vec3 TmpDir(f.Get());
 	Vec3 F(pNode1->GetRCurr()*TmpDir);
 	Vec3 M1(pNode1->GetRCurr()*Arm1.Cross(TmpDir));
 	Vec3 M2(F.Cross(pNode2->GetRCurr()*Arm2));
@@ -1486,10 +1417,6 @@ FollowerInternalForce::AssRes(SubVectorHandler& WorkVec,
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstMomentumIndex1 = pNode1->iGetFirstPositionIndex();
 	integer iFirstMomentumIndex2 = pNode2->iGetFirstPositionIndex();
@@ -1498,7 +1425,8 @@ FollowerInternalForce::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(6+iCnt, iFirstMomentumIndex2 + iCnt);
 	}
 
-	Vec3 TmpDir = Dir*dAmplitude;
+	/* Dati */
+	Vec3 TmpDir(f.Get());
 	Vec3 F(pNode1->GetRCurr()*TmpDir);
 	Vec3 M1(pNode1->GetRCurr()*Arm1.Cross(TmpDir));
 	Vec3 M2(F.Cross(pNode2->GetRCurr()*Arm2));
@@ -1516,11 +1444,14 @@ void
 FollowerInternalForce::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		OH.Forces() << GetLabel()
+		Vec3 F(pNode1->GetRCurr()*f.Get());
+		OH.Forces()
+			<< GetLabel()
 			<< " " << pNode1->GetLabel()
-			<< " " << dGet()
-			<< " " << pNode1->GetRCurr()*(Dir*dGet())
+			<< " " << F
 			<< " " << pNode1->GetXCurr() + pNode1->GetRCurr()*Arm1
+			<< " " << pNode2->GetLabel()
+			<< " " << -F
 			<< " " << pNode2->GetXCurr() + pNode2->GetRCurr()*Arm2
 			<< std::endl;
 	}
@@ -1568,10 +1499,9 @@ FollowerInternalForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	/* Dati */
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
 	Vec3 TmpArm1(pNode1->GetRRef()*Arm1);
 	Vec3 TmpArm2(pNode2->GetRRef()*Arm2);
-	Vec3 TmpDir = pNode1->GetRRef()*(Dir*dAmplitude);
+	Vec3 TmpDir = pNode1->GetRRef()*f.Get();
 	const Vec3& Omega1(pNode1->GetWRef());
 	const Vec3& Omega2(pNode2->GetWRef());
 
@@ -1613,10 +1543,6 @@ FollowerInternalForce::InitialAssRes(SubVectorHandler& WorkVec,
 	InitialWorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstPositionIndex1 = pNode1->iGetFirstPositionIndex();
 	integer iFirstVelocityIndex1 = iFirstPositionIndex1 + 6;
@@ -1632,7 +1558,8 @@ FollowerInternalForce::InitialAssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(18 + iCnt, iFirstVelocityIndex2 + iCnt);
 	}
 
-	Vec3 TmpDir(pNode1->GetRCurr()*(Dir*dAmplitude));
+	/* Dati */
+	Vec3 TmpDir(pNode1->GetRCurr()*f.Get());
 	Vec3 TmpArm1(pNode1->GetRCurr()*Arm1);
 	Vec3 TmpArm2(pNode2->GetRCurr()*Arm2);
 	const Vec3& Omega1(pNode1->GetWCurr());
@@ -1662,10 +1589,10 @@ FollowerInternalForce::InitialAssRes(SubVectorHandler& WorkVec,
 
 AbsoluteInternalCouple::AbsoluteInternalCouple(unsigned int uL,
 	const StructNode* pN1, const StructNode* pN2,
-	const DriveCaller* pDC, const Vec3& TmpDir,
+	const TplDriveCaller<Vec3>* pDC,
 	flag fOut)
 : Elem(uL, fOut),
-StructuralInternalForce(uL, pN1, pN2, pDC, TmpDir, fOut)
+StructuralInternalForce(uL, pN1, pN2, pDC, fOut)
 {
 	NO_OP;
 }
@@ -1700,11 +1627,10 @@ AbsoluteInternalCouple::InitialWorkSpaceDim(
 std::ostream&
 AbsoluteInternalCouple::Restart(std::ostream& out) const
 {
-	out << "  couple: " << GetLabel() << ", conservative internal, "
-		<< pNode1->GetLabel() << ", reference, global, ",
-		Dir.Write(out, ", ") << ", "
-		<< pNode1->GetLabel() << ", ";
-	return pGetDriveCaller()->Restart(out) << ';' << std::endl;
+	out << "  couple: " << GetLabel() << ", absolute internal, "
+		<< pNode1->GetLabel() << ", "
+		<< pNode2->GetLabel() << ", ";
+	return f.pGetDriveCaller()->Restart(out) << ';' << std::endl;
 }
 
 
@@ -1722,10 +1648,6 @@ AbsoluteInternalCouple::AssRes(SubVectorHandler& WorkVec,
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstMomentumIndex1 = pNode1->iGetFirstMomentumIndex() + 3;
 	integer iFirstMomentumIndex2 = pNode2->iGetFirstMomentumIndex() + 3;
@@ -1734,8 +1656,11 @@ AbsoluteInternalCouple::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(3 + iCnt, iFirstMomentumIndex2 + iCnt);
 	}
 
-	WorkVec.Add(1, Dir*dAmplitude);
-	WorkVec.Sub(4, Dir*dAmplitude);
+	/* Dati */
+	Vec3 F(f.Get());
+
+	WorkVec.Add(1, F);
+	WorkVec.Sub(4, F);
 
 	return WorkVec;
 }
@@ -1755,10 +1680,6 @@ AbsoluteInternalCouple::AssRes(SubVectorHandler& WorkVec,
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstMomentumIndex1 = pNode1->iGetFirstPositionIndex() + 3;
 	integer iFirstMomentumIndex2 = pNode2->iGetFirstPositionIndex() + 3;
@@ -1767,8 +1688,11 @@ AbsoluteInternalCouple::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(3 + iCnt, iFirstMomentumIndex2 + iCnt);
 	}
 
-	WorkVec.Add(1, Dir*dAmplitude);
-	WorkVec.Sub(4, Dir*dAmplitude);
+	/* Dati */
+	Vec3 F(f.Get());
+
+	WorkVec.Add(1, F);
+	WorkVec.Sub(4, F);
 
 	return WorkVec;
 }
@@ -1778,10 +1702,14 @@ void
 AbsoluteInternalCouple::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		OH.Forces() << GetLabel()
+		Vec3 F(f.Get());
+		OH.Forces()
+			<< GetLabel()
 			<< " " << pNode1->GetLabel()
-			<< " " << dGet()
-			<< " " << Dir*dGet() << std::endl;
+			<< " " << F
+			<< " " << pNode2->GetLabel()
+			<< " " << -F
+			<< std::endl;
 	}
 }
 
@@ -1795,10 +1723,6 @@ AbsoluteInternalCouple::InitialAssRes(SubVectorHandler& WorkVec,
 
 	WorkVec.ResizeReset(6);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstPositionIndex1 = pNode1->iGetFirstPositionIndex() + 3;
 	integer iFirstPositionIndex2 = pNode2->iGetFirstPositionIndex() + 3;
@@ -1807,8 +1731,11 @@ AbsoluteInternalCouple::InitialAssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(3 + iCnt, iFirstPositionIndex2 + iCnt);
 	}
 
-	WorkVec.Add(1, Dir*dAmplitude);
-	WorkVec.Sub(4, Dir*dAmplitude);
+	/* Dati */
+	Vec3 F(f.Get());
+
+	WorkVec.Add(1, F);
+	WorkVec.Sub(4, F);
 
 	return WorkVec;
 }
@@ -1820,10 +1747,10 @@ AbsoluteInternalCouple::InitialAssRes(SubVectorHandler& WorkVec,
 
 FollowerInternalCouple::FollowerInternalCouple(unsigned int uL,
 	const StructNode* pN1, const StructNode* pN2,
-	const DriveCaller* pDC, const Vec3& TmpDir,
+	const TplDriveCaller<Vec3>* pDC,
 	flag fOut)
 : Elem(uL, fOut),
-StructuralInternalForce(uL, pN1, pN2, pDC, TmpDir, fOut)
+StructuralInternalForce(uL, pN1, pN2, pDC, fOut)
 {
 	NO_OP;
 }
@@ -1859,10 +1786,9 @@ std::ostream&
 FollowerInternalCouple::Restart(std::ostream& out) const
 {
 	out << "  couple: " << GetLabel() << ", follower internal, "
-		<< pNode1->GetLabel() << ", reference, node, ",
-		Dir.Write(out, ", ") << ", "
+		<< pNode1->GetLabel() << ", "
 		<< pNode2->GetLabel() << ", ";
-	return pGetDriveCaller()->Restart(out) << ';' << std::endl;
+	return f.pGetDriveCaller()->Restart(out) << ';' << std::endl;
 }
 
 
@@ -1893,8 +1819,7 @@ FollowerInternalCouple::AssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	/* Dati */
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-	Mat3x3 MWedge((pNode1->GetRRef()*Dir)*(dAmplitude*dCoef));
+	Mat3x3 MWedge(pNode1->GetRRef()*(f.Get()*dCoef));
 
 	/* | M /\| Delta_g = | M | */
 
@@ -1919,10 +1844,6 @@ FollowerInternalCouple::AssRes(SubVectorHandler& WorkVec,
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstMomentumIndex1 = pNode1->iGetFirstMomentumIndex() + 3;
 	integer iFirstMomentumIndex2 = pNode2->iGetFirstMomentumIndex() + 3;
@@ -1931,7 +1852,9 @@ FollowerInternalCouple::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(3 + iCnt, iFirstMomentumIndex2 + iCnt);
 	}
 
-	Vec3 M((pNode1->GetRCurr()*Dir)*dAmplitude);
+	/* Dati */
+	Vec3 M(pNode1->GetRCurr()*f.Get());
+
 	WorkVec.Add(1, M);
 	WorkVec.Sub(4, M);
 
@@ -1953,10 +1876,6 @@ FollowerInternalCouple::AssRes(SubVectorHandler& WorkVec,
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstMomentumIndex1 = pNode1->iGetFirstPositionIndex() + 3;
 	integer iFirstMomentumIndex2 = pNode2->iGetFirstPositionIndex() + 3;
@@ -1965,7 +1884,9 @@ FollowerInternalCouple::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(3 + iCnt, iFirstMomentumIndex2 + iCnt);
 	}
 
-	Vec3 M((pNode1->GetRCurr()*Dir)*dAmplitude);
+	/* Dati */
+	Vec3 M(pNode1->GetRCurr()*f.Get());
+
 	WorkVec.Add(1, M);
 	WorkVec.Sub(4, M);
 
@@ -1976,10 +1897,14 @@ void
 FollowerInternalCouple::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		OH.Forces() << GetLabel()
+		Vec3 F(pNode1->GetRCurr()*f.Get());
+		OH.Forces()
+			<< GetLabel()
 			<< " " << pNode1->GetLabel()
-			<< " " << dGet()
-			<< " " << pNode1->GetRCurr()*(Dir*dGet()) << std::endl;
+			<< " " << F
+			<< " " << pNode2->GetLabel()
+			<< " " << -F
+			<< std::endl;
 	}
 }
 
@@ -2012,8 +1937,7 @@ FollowerInternalCouple::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	/* Dati */
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-	Vec3 TmpDir(pNode1->GetRRef()*(Dir*dAmplitude));
+	Vec3 TmpDir(pNode1->GetRRef()*f.Get());
 	const Vec3& Omega1(pNode1->GetWRef());
 
 	/* |    F/\   |           |   F  |
@@ -2042,10 +1966,6 @@ FollowerInternalCouple::InitialAssRes(SubVectorHandler& WorkVec,
 
 	WorkVec.ResizeReset(12);
 
-	/* Dati */
-
-	doublereal dAmplitude = pGetDriveCaller()->dGet();
-
 	/* Indici delle incognite del nodo */
 	integer iFirstPositionIndex1 = pNode1->iGetFirstPositionIndex() + 3;
 	integer iFirstVelocityIndex1 = iFirstPositionIndex1 + 6;
@@ -2061,7 +1981,8 @@ FollowerInternalCouple::InitialAssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(9 + iCnt, iFirstVelocityIndex2 + iCnt);
 	}
 
-	Vec3 TmpDir(pNode1->GetRCurr()*(Dir*dAmplitude));
+	/* Dati */
+	Vec3 TmpDir(pNode1->GetRCurr()*f.Get());
 	const Vec3& Omega1(pNode1->GetWCurr());
 
 	WorkVec.Add(1, TmpDir);
@@ -2074,4 +1995,155 @@ FollowerInternalCouple::InitialAssRes(SubVectorHandler& WorkVec,
 }
 
 /* FollowerInternalCouple - end */
+
+Elem *
+ReadStructuralForce(DataManager* pDM,
+	MBDynParser& HP,
+	unsigned int uLabel,
+	bool bCouple,
+	bool bFollower,
+	bool bInternal)
+{
+	Elem *pEl = 0;
+	const char *sType = bCouple ? "Couple" : "Force";
+
+	if (bCouple && bInternal) {
+		silent_cerr(sType << "(" << uLabel << ") "
+			"line " << HP.GetLineData() << ": "
+			"warning, the syntax changed" << std::endl);
+	}
+
+	/* nodo collegato */
+	StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+	ReferenceFrame rf(pNode);
+	Vec3 Arm(0.);
+
+	// FIXME: legacy...
+	Vec3 Dir(0.);
+	bool bLegacy(false);
+
+	/* distanza dal nodo (vettore di 3 elementi) (solo se e' una forza) */
+	if (HP.IsKeyWord("position")) {
+		Arm = HP.GetPosRel(rf);
+		DEBUGCOUT("Arm is supplied" << std::endl);
+
+	} else {
+		if (!bCouple) {
+			silent_cerr(sType << "(" << uLabel << "): "
+				"\"position\" keyword expected "
+				"at line " << HP.GetLineData() << "; "
+				"still using deprecated syntax?"
+				<< std::endl);
+
+			if (bFollower) {
+				try {
+					Dir = HP.GetUnitVecRel(rf);
+				} catch (ErrNullNorm) {
+					silent_cerr(sType << "(" << uLabel << ") has null direction" << std::endl);
+					throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
+				}
+
+			} else {
+				try {
+					Dir = HP.GetUnitVecAbs(rf);
+				} catch (ErrNullNorm) {
+					silent_cerr(sType << "(" << uLabel << ") has null direction" << std::endl);
+					throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
+				}
+			}
+
+			Arm = HP.GetPosRel(rf);
+
+			bLegacy = true;
+		}
+	}
+
+	StructNode *pNode2 = 0;
+	Vec3 Arm2(0.);
+	if (bInternal) {
+		/* nodo collegato */
+		pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+		ReferenceFrame rf2(pNode2);
+
+		/* distanza dal nodo (vettore di 3 elementi) ( solo se e' una forza) */
+		if (HP.IsKeyWord("position")) {
+			Arm2 = HP.GetPosRel(rf2);
+			DEBUGCOUT("Node 2 arm is supplied" << std::endl);
+
+		} else if (bLegacy) {
+			Arm2 = HP.GetPosRel(rf2);
+		}
+	}
+
+	TplDriveCaller<Vec3>* pDC = 0;
+	if (bLegacy) {
+		pDC = DC2TDC(HP.GetDriveCaller(), Dir);
+
+	} else {
+		if (bFollower) {
+			pDC = ReadDCVecRel(pDM, HP, rf);
+
+		} else {
+			pDC = ReadDCVecAbs(pDM, HP, rf);
+		}
+	}
+
+	flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
+
+	/* Alloca la forza */
+	if (!bCouple) {
+		if (!bFollower) {
+			if (!bInternal) {
+				SAFENEWWITHCONSTRUCTOR(pEl,
+					AbsoluteForce,
+					AbsoluteForce(uLabel, pNode, pDC, Arm, fOut));
+
+			} else {
+				SAFENEWWITHCONSTRUCTOR(pEl,
+					AbsoluteInternalForce,
+					AbsoluteInternalForce(uLabel, pNode, pNode2, pDC, Arm, Arm2, fOut));
+			}
+
+		} else {
+			if (!bInternal) {
+				SAFENEWWITHCONSTRUCTOR(pEl,
+					FollowerForce,
+					FollowerForce(uLabel, pNode, pDC, Arm, fOut));
+
+			} else {
+				SAFENEWWITHCONSTRUCTOR(pEl,
+					FollowerInternalForce,
+					FollowerInternalForce(uLabel, pNode, pNode2, pDC, Arm, Arm2, fOut));
+			}
+		}
+
+	} else {
+		if (!bFollower) {
+			if (!bInternal) {
+				SAFENEWWITHCONSTRUCTOR(pEl,
+					AbsoluteCouple,
+					AbsoluteCouple(uLabel, pNode, pDC, fOut));
+
+			} else {
+				SAFENEWWITHCONSTRUCTOR(pEl,
+					AbsoluteInternalCouple,
+					AbsoluteInternalCouple(uLabel, pNode, pNode2, pDC, fOut));
+			}
+
+		} else {
+			if (!bInternal) {
+				SAFENEWWITHCONSTRUCTOR(pEl,
+					FollowerCouple,
+					FollowerCouple(uLabel, pNode, pDC, fOut));
+
+			} else {
+				SAFENEWWITHCONSTRUCTOR(pEl,
+					FollowerInternalCouple,
+					FollowerInternalCouple(uLabel, pNode, pNode2, pDC, fOut));
+			}
+		}
+	}
+
+	return pEl;
+}
 

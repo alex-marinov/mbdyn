@@ -102,6 +102,8 @@
 #ifndef MBPAR_H
 #define MBPAR_H
 
+#include <stack>
+
 #include "parsinc.h"
 
 /* Per reference frame */
@@ -205,6 +207,30 @@ protected:
 
 	DataManager *pDM;
 
+public:
+	class Manip {
+	public:
+		Manip(void) {};
+		virtual ~Manip(void) {};
+	};
+
+private:
+	std::stack<const Manip *> manip;
+
+public:
+	void PopManip(void);
+	void PushManip(const Manip *);
+	const Manip *GetManip(void) const;
+	bool bEmptyManip(void) const;
+
+public:
+	template <class T>
+	class TplManip : public Manip {
+	public:
+		virtual ~TplManip(void);
+		virtual T Get(const T& t) const = 0;
+	};
+
 private:
 	/* not allowed */
 	MBDynParser(const MBDynParser&);
@@ -236,6 +262,70 @@ public:
 	Mat3x3 GetRotRel(const ReferenceFrame& rf);
 	Mat3x3 GetRotRel(const ReferenceFrame& rf, const ReferenceFrame& other_rf, const Mat3x3& other_R);
 	Mat3x3 GetRotAbs(const ReferenceFrame& rf);
+
+	enum VecMatOpType {
+		VM_NONE		= 0,
+
+		VM_POSABS,
+		VM_VELABS,
+		VM_OMEABS,
+		VM_VECABS,
+		VM_UNITVECABS,
+
+		VM_MATABS,
+		VM_ROTABS,
+
+		VM_MOD_REL	= 0x1000U,
+		VM_MOD_OTHER	= 0x2000U,
+
+		VM_POSREL	= VM_POSABS | VM_MOD_REL,
+		VM_VELREL	= VM_VELABS | VM_MOD_REL,
+		VM_OMEREL	= VM_OMEABS | VM_MOD_REL,
+		VM_VECREL	= VM_VECABS | VM_MOD_REL,
+		VM_UNITVECREL	= VM_UNITVECABS | VM_MOD_REL,
+
+		VM_MATREL	= VM_MATABS | VM_MOD_REL,
+		VM_ROTREL	= VM_ROTABS | VM_MOD_REL,
+
+		VM_LAST
+	};
+
+	template <class T>
+	class RefTplManip : public TplManip<T> {
+	protected:
+		mutable MBDynParser& HP;
+		const ReferenceFrame& rf;
+		VecMatOpType type;
+
+	public:
+		RefTplManip(MBDynParser& HP, const ReferenceFrame& rf, VecMatOpType type);
+		virtual ~RefTplManip(void);
+	};
+
+	class RefVec3Manip : public RefTplManip<Vec3> {
+	public:
+		RefVec3Manip(MBDynParser& HP, const ReferenceFrame& rf, VecMatOpType type);
+		virtual ~RefVec3Manip(void);
+		virtual Vec3 Get(const Vec3& v) const;
+	};
+
+	class VecRelManip : public RefVec3Manip {
+	public:
+		VecRelManip(MBDynParser& HP, const ReferenceFrame& rf);
+		virtual ~VecRelManip(void);
+	};
+
+	class VecAbsManip : public RefVec3Manip {
+	public:
+		VecAbsManip(MBDynParser& HP, const ReferenceFrame& rf);
+		virtual ~VecAbsManip(void);
+	};
+
+	virtual doublereal Get(const doublereal& d);
+	virtual Vec3 Get(const Vec3& v);
+	virtual Mat3x3 Get(const Mat3x3& m);
+	virtual Vec6 Get(const Vec6& v);
+	virtual Mat6x6 Get(const Mat6x6& m);
 
 	void OutputFrames(std::ostream& out) const;
    

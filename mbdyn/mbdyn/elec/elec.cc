@@ -32,18 +32,18 @@
 /* Elementi elettrici */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <elec.h>
-#include <elecnode.h>
-#include <drive.h>
-#include <strnode.h>
-#include <accelerometer.h>
-#include <displacement.h>
-#include <motor.h>
-#include <dataman.h>
-#include <discctrl.h>
+#include "elec.h"
+#include "elecnode.h"
+#include "drive.h"
+#include "strnode.h"
+#include "accelerometer.h"
+#include "displacement.h"
+#include "motor.h"
+#include "dataman.h"
+#include "discctrl.h"
 
 /* Electric - begin */
 
@@ -669,7 +669,7 @@ Elem* ReadElectric(DataManager* pDM,
 
        /* Allocazione nodi e connessioni */
        for (int i = 0; i < iNumOutputs; i++) {
-	  pOutputs[i] = ReadScalarDof(pDM, HP, 1);
+	  pOutputs[i] = ReadScalarDof(pDM, HP, true);
 	  if (HP.IsKeyWord("scale")) {
 	     ppOutScaleFact[i] = HP.GetDriveCaller();
 	  } else {
@@ -690,7 +690,7 @@ Elem* ReadElectric(DataManager* pDM,
 
        /* Allocazione nodi e connessioni */
        for (int i = 0; i < iNumInputs; i++) {
-	  pInputs[i] = ReadScalarDof(pDM, HP, 1);
+	  pInputs[i] = ReadScalarDof(pDM, HP, true);
 	  if (pInputs[i].pNode->GetNodeType() ==  Node::PARAMETER) {
 	     silent_cerr("Sorry, parameters are not allowed as input nodes"
 	       << std::endl);

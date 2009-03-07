@@ -236,15 +236,18 @@ ModalExt::Output(OutputHandler& OH) const
 	if (fToBeOutput()) {
 		std::ostream& out = OH.Forces();
 
-		out << GetLabel();
-
 		if (uFlags & ExtModalForceBase::EMF_RIGID) {
-			out << " " << F << " " << M;
+			out << GetLabel() << "@" << pModal->pGetModalNode()->GetLabel()
+				<< " " << F << " " << M
+				<< std::endl;
 		}
 
 		if (uFlags & ExtModalForceBase::EMF_MODAL) {
+			unsigned cnt = 1;
 			for (std::vector<doublereal>::const_iterator i = f.begin(); i != f.end(); i++) {
-				out << " " << *i;
+				out << GetLabel() << '.' << cnt
+					<< " " << *i << std::endl;
+				cnt++;
 			}
 		}
 

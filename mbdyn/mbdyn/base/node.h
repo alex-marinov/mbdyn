@@ -108,6 +108,7 @@ public:
 	virtual ~Node(void);
 
 	/* Funzioni di servizio */
+	const Node *GetNode(void) const { return this; };
 
 	/* Tipo del nodo (usato per debug ecc.) */
 	virtual Node::Type GetNodeType(void) const = 0;
@@ -574,8 +575,6 @@ public:
  * di un nodo generico come se fosse un nodo scalare
  */
 struct NodeDof {
-	/* Label del nodo */
-	unsigned int uNode;
 	/* DoF del nodo */
 	int iDofNumber;     /* Dof of the node */
 	/* Puntatore al nodo */
@@ -586,7 +585,7 @@ struct NodeDof {
 	/* Costruttore di default */
 	NodeDof(void);
 	/* Costruttore */
-	NodeDof(unsigned int u, int id, Node* p);
+	NodeDof(int id, Node* p);
 	/* Distruttore */
 	virtual ~NodeDof(void);
 };
@@ -609,6 +608,7 @@ public:
 	virtual ~Node2Scalar(void);
 
 	/* Metodi di servizio */
+	const Node *GetNode(void) const { return ND.pNode; };
 
 	/* Tipo del nodo. Uusato per debug ecc. */
 	virtual Node::Type GetNodeType(void) const;

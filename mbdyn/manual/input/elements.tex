@@ -2069,6 +2069,19 @@ the \kw{dof} field is a normal \kw{node\_dof} but no \kw{order} is required
 since the \kw{force} simply applies to the equation related to the node,
 regardless of the order.
 
+\subsubsection{Output}
+The format is:
+\begin{itemize}
+    \item the label of the element;
+    \item the label of the node\footnote{Since the \kw{abstract} force type
+	can connect to \kw{node\_dof}, information provided here
+	can be partial if the \kw{node\_dof} actually represents
+	a component of a node with more than one degree of freedom.
+	\label{footnote:EL:FORCE:ABSTRACT:OUTPUT:node_dof}}
+	the force is applied to;
+    \item the value of the force.
+\end{itemize}
+
 \subsection{Abstract reaction force}
 \begin{verbatim}
     <force_type> ::= abstract internal
@@ -2084,120 +2097,194 @@ opposite magnitudes.
 \subsubsection{Output}
 The format is:
 \begin{itemize}
-    \item the label of the element
-    \item the label of the abstract node the force is applied to
-	(the first node in case of \kw{abstract internal})
-    \item the value of the force
+    \item the label of the element;
+    \item the label of the first node\footnote{See
+	footnote~\ref{footnote:EL:FORCE:ABSTRACT:OUTPUT:node_dof}.}
+	the force is applied to;
+    \item the value of the force applied to the first node;
+    \item the label of the second node\footnote{See
+	footnote~\ref{footnote:EL:FORCE:ABSTRACT:OUTPUT:node_dof}.}
+	the force is applied to;
+    \item the value of the force applied to the second node
+	  (opposite to that applied to the first node).
 \end{itemize}
-
 
 \subsection{Structural force}
 \begin{verbatim}
     <force_type> ::= { absolute | follower } 
-    <force_arglist> ::= <node_label> , 
-                        ((Unit)Vec3) <relative_direction> ,
-                        (Vec3) <relative_arm> ,
-                        (drive_caller) <force_magnitude>
+    <force_arglist> ::=
+        <node_label> , 
+        position, (Vec3) <relative_arm> ,
+        (Vec3_tpl_drive_caller) <force_value>
 \end{verbatim}
-The vector \kw{relative\_direction} defines the direction of the force;
-the code normalizes it to a unit vector whatever value is provided.
 The vector \kw{relative\_arm} defines the offset with respect
 to the node of the point where the force is applied.
-The drive \kw{force\_magnitude} defines the magnitude of the force
+The drive \kw{force\_value} defines the value of the force
 as a function of time.
 
-The force applied to the node \kw{node\_label} is thus
+The force and the moment applied to node \kw{node\_label} are thus
 \begin{itemize}
 \item \kw{absolute} force element:
-\begin{equation}
-	\T{F}
-	= \mathtt{relative\_direction} * \mathtt{force\_magnitude} ;
-\end{equation}
+\begin{subequations}
+\begin{align}
+	\T{f} & = \mathtt{force\_value} \\
+	\T{m} & = \plbr{\TT{R} \ \mathtt{relative\_arm}} \times \mathtt{force\_value} ;
+\end{align}
+\end{subequations}
 
 \item \kw{follower} force element:
-\begin{equation}
-	\T{F}
-	= \TT{R} \ \mathtt{relative\_direction} * \mathtt{force\_magnitude} ;
-\end{equation}
+\begin{subequations}
+\begin{align}
+	\T{f} & = \TT{R} \ \mathtt{force\_value} \\
+	\T{m} & = \TT{R} \plbr{\mathtt{relative\_arm} \times \mathtt{force\_value}} ;
+\end{align}
+\end{subequations}
 \end{itemize}
 $\TT{R}$ is the orientation matrix of the node \kw{node\_label}.
-In both cases, the moment applied to the node \kw{node\_label} is
-\begin{equation}
-	\T{M} = \plbr{\TT{R} \ \mathtt{relative\_arm}} \times \T{F} .
-\end{equation}
+
+\subsubsection{Example}
+\begin{verbatim}
+    force: 10, absolute,
+        1000,
+            position, .5, 0., 0.,
+        1., 0., 0.,
+            const, 25.;
+    force: 20, follower,
+        2000,
+            position, null,
+        component,
+            const, 0.,
+            ramp, 10., 0., 1., 0.,
+            file, 5, 2;
+\end{verbatim}
+
+\subsubsection{Output}
+The format is:
+\begin{itemize}
+    \item the label of the element;
+    \item the label of the node the force is applied to;
+    \item the three components of the force;
+    \item the arm of the force, in the global frame (i.e.\ referred
+          to point $ \cubr{0,0,0} $ and oriented as the global frame)
+\end{itemize}
 
 \subsection{Structural internal force}
 \begin{verbatim}
     <force_type> ::= { absolute | follower } internal
-    <force_arglist> ::= <node1_label> , 
-                        ((Unit)Vec3) <relative_direction> ,
-                        (Vec3) <relative_arm1> ,
-                        <node2_label> ,
-                        (Vec3) <relative_arm2> ,
-                        (drive_caller) <force_magnitude>
+    <force_arglist> ::=
+        <node1_label> , 
+        position, (Vec3) <relative_arm1> ,
+        <node2_label> ,
+        position, (Vec3) <relative_arm2> ,
+        (Vec3_tpl_drive_caller) <force_value>
 \end{verbatim}
-The vector \kw{relative\_direction} defines the direction of the force;
-the code normalizes it to a unit vector whatever value is provided.
+The format is basically identical to the previous case,
+except for the definition of the second node.
 
 \subsubsection{Output}
 The format is:
 \begin{itemize}
-    \item the label of the element
-    \item the label of the structural node the force is applied to
-    \item the value of the force
-    \item the three components of the force
-    \item the arm of the force, in the global frame (i.e.\ referred
-          to point $ \cubr{0,0,0} $)
+    \item the label of the element;
+    \item the label of the first node the force is applied to;
+    \item the three components of the force applied to the first node;
+    \item the arm of the force with respect to the first node,
+	  in the global frame (i.e.\ referred to point $ \cubr{0,0,0} $
+	  and oriented as the global frame).
+    \item the label of the second node the force is applied to;
+    \item the three components of the force applied to the second node
+	  (opposite to that applied to the first node);
+    \item the arm of the force with respect to the second node,
+	  in the global frame (i.e.\ referred to point $ \cubr{0,0,0} $
+	  and oriented as the global frame).
 \end{itemize}
+
 Example:
 \begin{verbatim}
     # constant structural force
     force: 1, absolute,
-        0.,0.,1., null,
-        const, 100.;
+        10, position, null,
+        0., 0., 1.,
+            const, 100.;
+
+    # constant structural internal force
+    force: 1, absolute internal,
+        10, position, null,
+        20, position, null,
+        0.,0.,1.,
+            const, 100.;
 \end{verbatim}
 
 
 \subsection{Structural couple}
+The structural couple is defined by using \kw{couple} as \kw{elem\_type}.
 \begin{verbatim}
+    <elem_type> ::= couple
     <force_type> ::= { absolute | follower } 
-    <force_arglist> ::= <node_label> ,
-                        ((Unit)Vec3) <relative_direction> ,  
-                        (drive_caller) <couple_magnitude>
+    <force_arglist> ::=
+        <node_label> ,
+        [ position, (Vec3) <relative_arm> , ]
+        (Vec3_tpl_drive_caller) <couple_value>
 \end{verbatim}
-The vector \kw{relative\_direction} defines the direction of the torque;
-the code normalizes it to a unit vector whatever value is provided.
-As opposed to forces, the arm is not required. 
+The vector \kw{relative\_arm} defines the offset with respect
+to the node of the point where the couple is applied.
+It is not used in the analysis, but it can be optionally provided
+for future reference (e.g.\ for the visualization of the couple).
+The drive \kw{couple\_value} defines the value of the couple
+as a function of time.
 
-\subsection{Structural internal couple}
-\begin{verbatim}
-    <force_type> ::= { absolute | follower } internal
-    <force_arglist> ::= <node1_label> ,
-                        ((Unit)Vec3) <relative_direction> ,  
-                        <node2_label> ,
-                        (drive_caller) <couple_magnitude>
-\end{verbatim}
-The vector \kw{relative\_direction} defines the direction of the torque;
-the code normalizes it to a unit vector whatever value is provided.
-As opposed to forces, the arm is not required. 
+The moment applied to node \kw{node\_label} is thus
+\begin{itemize}
+\item \kw{absolute} couple element:
+\begin{align}
+	\T{m} & = \mathtt{couple\_value}
+\end{align}
+
+\item \kw{follower} couple element:
+\begin{align}
+	\T{m} & = \TT{R} \ \mathtt{couple\_value}
+\end{align}
+\end{itemize}
+$\TT{R}$ is the orientation matrix of the node \kw{node\_label}.
 
 \subsubsection{Output}
 The format is:
 \begin{itemize}
-    \item the label of the element
-    \item the label of the structural node the couple is applied to
-    \item the value of the couple
-    \item the three components of the couple
+    \item the label of the element;
+    \item the label of the node the couple is applied to;
+    \item the three components of the couple.
+\end{itemize}
+
+\subsection{Structural internal couple}
+The structural couple is defined by using \kw{couple} as \kw{elem\_type}.
+\begin{verbatim}
+    <elem_type> ::= couple
+    <force_type> ::= { absolute | follower } internal
+    <force_arglist> ::=
+        <node1_label> ,
+        [ position, (Vec3) <relative_arm1> , ]
+        <node2_label> ,
+        [ position, (Vec3) <relative_arm2> , ]
+        (Vec3_tpl_drive_caller) <couple_value>
+\end{verbatim}
+The format is basically identical to the previous case,
+except for the definition of the second node.
+
+\subsubsection{Output}
+The format is:
+\begin{itemize}
+    \item the label of the element;
+    \item the label of the first node the couple is applied to;
+    \item the three components of the couple applied to the first node;
+    \item the label of the second node the couple is applied to;
+    \item the three components of the couple applied to the second node
+	  (opposite to that applied to the first node);
 \end{itemize}
 
 
-\noindent
+\bigskip
 {\em 
 Note: by using a \kw{dof} drive, a simple feedback control can be easily
-implemented. \\
-A more general force element can be written by using a template drive
-that contains both the direction and the amplitude. This will be done in the
-future. 
+implemented.
 }
 
 \subsection{Modal}
@@ -2264,14 +2351,16 @@ Currently supported communication schemes are
 with the values of the force.
 The content depends on the purpose it is used for.
 The optional keyword \kw{unlink} indicates that MBDyn is supposed
-to unlink the file as soon as it is ready to read another one.
+to unlink the file as soon as it is ready to read another one,
+as a primitive form of inter-process communication.
 
 \kw{output\_file\_name} is the name of the file MBDyn creates
 each time it intends to communicate the kinematics of the model
 to the external software.
-The content depends on the purpose it is used for.
+The contents depend on the purpose it is used for.
 The option \kw{no clobber} indicates that MBDyn is supposed to wait
-until the external software removed the file before generating a new one.
+until the external software removed the file before generating a new one,
+as a primitive form of inter-process communication.
 
 
 
@@ -2287,17 +2376,18 @@ It contains a single digit, whose meaning is:
 \item[0 ---] external software is initializing; MBDyn must wait;
 \item[1 ---] external software is busy; MBDyn must wait;
 \item[2 ---] external software is ready to read kinematics; MBDyn can start writing kinematics;
-\item[3 ---] MBDyn finished writing kinematics; external software can start reading;
-\item[4 ---] external software converged; MBDyn should go to converge and advance to the next time step;
+\item[3 ---] MBDyn finished writing kinematics; external software can start reading (written by MBDyn);
+\item[4 ---] external software converged; MBDyn should go to convergence and advance to the next time step;
 \item[5 ---] external software decided to quit; MBDyn should stop communicating.
 \end{itemize}
-There are no provisions for re-executing a time step,
+So far, there are no provisions for re-executing a time step,
 nor for communicating either the time or the time step,
 so adaptive time stepping cannot be implemented.
 
 \kw{data\_file\_name} is the name of the file used to actually send data
 between the two processes.
-Its content depends on the purpose it is used for.
+Its contents depend on the purpose it is used for,
+as described in the subsequent sections.
 
 
 
@@ -2392,7 +2482,7 @@ at each time step in the \kw{.frc} file.
 Each line contains:
 \begin{itemize}
 \item in column 1 the label of the element and that of the corresponding node;
-	the format of this field is \kw{element\_label.node\_label};
+	the format of this field is \kw{element\_label@node\_label};
 \item in columns 2--4 the three components of the force;
 \item in columns 5--7 the three components of the moment.
 \end{itemize}
@@ -2560,17 +2650,21 @@ in order to easily couple with MBDyn.
 
 
 \subsubsection{Output}
-An external modal element writes one line at each time step
+An external modal element writes multiple lines at each time step
 in the \kw{.frc} file.
-The line contains:
+
+If \kw{type} is \kw{ridig} or \kw{all}, the line contains:
 \begin{itemize}
-\item in column 1 the label of the element;
-\item if \kw{type} is \kw{ridig} or \kw{all},
-	in columns 2--4 the three components of the force,
-	and in columns 5--7 the three components of the moment;
-\item if \kw{type} is \kw{modal} or \kw{all},
-	in the subsequent columns the amplitude of the modal force
-	for each mode.
+\item in column 1 the label of the element and that of the corresponding node;
+	the format of this field is \kw{element\_label@node\_label};
+\item in columns 2--4 the three components of the force;
+\item in columns 5--7 the three components of the moment.
+\end{itemize}
+If \kw{type} is \kw{modal} or \kw{all}, each line contains:
+\begin{itemize}
+\item in column 1 the label of the element and the corresponding mode;
+	the format of this field is \kw{element\_label.mode\_number};
+\item in column 2 the amplitude of the corresponding modal force.
 \end{itemize}
 
 

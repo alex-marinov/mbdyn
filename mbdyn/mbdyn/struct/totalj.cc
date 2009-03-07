@@ -68,7 +68,7 @@ XDrv(pDCPos[0]), XPDrv(pDCPos[1]), XPPDrv(pDCPos[2]),
 ThetaDrv(pDCRot[0]), OmegaDrv(pDCRot[1]), OmegaPDrv(pDCRot[2]),
 nConstraints(0), nPosConstraints(0), nRotConstraints(0),
 nVelConstraints(0), nAgvConstraints(0),
-tilde_f1(R1h.Transpose()*f1),
+tilde_f1(R1h.MulTV(f1)),
 M(0.), F(0.), ThetaDelta(0.), ThetaDeltaPrev(0.)
 {
 	/* Equations 1->3: Positions
@@ -414,7 +414,7 @@ TotalJoint::SetValue(DataManager *pDM,
 					Vec3 fTmp2(pNode2->GetRCurr()*f2);
 
 					f1 = R1T*(pNode2->GetXCurr() + fTmp2 - pNode1->GetXCurr());
-					tilde_f1 = R1h.Transpose()*f1 - XDrv.Get();
+					tilde_f1 = R1h.MulTV(f1) - XDrv.Get();
 
 				} else if (dynamic_cast<Joint::OffsetHint<2> *>(pjh)) {
 					Mat3x3 R2T(pNode2->GetRCurr().Transpose());
@@ -425,18 +425,18 @@ TotalJoint::SetValue(DataManager *pDM,
 
 				} else if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
 					if (dynamic_cast<Joint::PositionHingeHint<1> *>(pjh)) {
-						R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2h;
+						R1h = pNode1->GetRCurr().MulTM(pNode2->GetRCurr()*R2h);
 
 					} else if (dynamic_cast<Joint::OrientationHingeHint<1> *>(pjh)) {
-						R1hr = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2hr;
+						R1hr = pNode1->GetRCurr().MulTM(pNode2->GetRCurr()*R2hr);
 					}
 
 				} else if (dynamic_cast<Joint::HingeHint<2> *>(pjh)) {
 					if (dynamic_cast<Joint::PositionHingeHint<2> *>(pjh)) {
-						R2h = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1h;
+						R2h = pNode2->GetRCurr().MulTM(pNode1->GetRCurr()*R1h);
 
 					} else if (dynamic_cast<Joint::OrientationHingeHint<2> *>(pjh)) {
-						R2hr = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1hr;
+						R2hr = pNode2->GetRCurr().MulTM(pNode1->GetRCurr()*R1hr);
 					}
 
 				} else if (dynamic_cast<Joint::JointDriveHint<Vec3> *>(pjh)) {
@@ -719,7 +719,7 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	/* Lines 10->12: */
 	WM.Sub(9 + 1, 3 + 1, Mat3x3(b2, FTmp) + Mat3x3(MTmp));
 
-/* Phi/q and (Phi/q)^T */
+	/* Phi/q and (Phi/q)^T */
 
 	Mat3x3 b1Cross_R1(Mat3x3(b1)*R1); // = [ b1 x ] * R1
 	Mat3x3 b2Cross_R1(Mat3x3(b2)*R1); // = [ b2 x ] * R1
@@ -821,7 +821,7 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			/* Constraint, node 1 */
       			WM.SubT(12 + 1 + iAgvEqIndex[iCnt], 3 + 1, vR1);	// delta_W1
 			/* New contribution, related to delta_g1 */
-      			WM.SubT(12 + 1 + iAgvEqIndex[iCnt], 3 + 1, vDeltaWCross_R1 * dCoef);	// delta_g1
+      			WM.SubT(12 + 1 + iAgvEqIndex[iCnt], 3 + 1, vDeltaWCross_R1*dCoef);	// delta_g1
 			
 			/* Equilibrium, node 2 */
       			WM.Add(9 + 1, 12 + 1 + iAgvEqIndex[iCnt], vR1);	// delta_M
@@ -857,7 +857,7 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	/* Indici dei nodi */
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
-		WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex + iCnt);
+		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
 	}
 
 	/* Indici del vincolo */
@@ -2049,11 +2049,11 @@ TotalPinJoint::SetValue(DataManager *pDM,
 
 				} else if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
 					if (dynamic_cast<Joint::PositionHingeHint<1> *>(pjh)) {
-						tilde_Rnh = pNode->GetRCurr().Transpose()*Rch;
+						tilde_Rnh = pNode->GetRCurr().MulTM(Rch);
 						/* NOTE: pointless */
 
 					} else if (dynamic_cast<Joint::OrientationHingeHint<1> *>(pjh)) {
-						tilde_Rnhr = pNode->GetRCurr().Transpose()*Rchr*RotManip::Rot(ThetaDrv.Get());
+						tilde_Rnhr = pNode->GetRCurr().MulTM(Rchr*RotManip::Rot(ThetaDrv.Get()));
 					}
 
 				} else if (dynamic_cast<Joint::HingeHint<0> *>(pjh)) {

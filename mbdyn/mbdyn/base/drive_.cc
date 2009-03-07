@@ -1934,7 +1934,7 @@ DofDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	ScalarDof SD = ReadScalarDof(pDM, HP, 1);
+	ScalarDof SD = ReadScalarDof(pDM, HP, true);
 
 #ifdef USE_MPI
 	if (MPI::Is_initialized() && MBDynComm.Get_size() > 1) {

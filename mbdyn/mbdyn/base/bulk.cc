@@ -72,7 +72,7 @@ Elem* ReadBulk(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    switch (CurrKeyWord) {
       /*  */
     case SPRINGSUPPORT: {       
-       ScalarDof SD = ReadScalarDof(pDM, HP, 1);
+       ScalarDof SD = ReadScalarDof(pDM, HP, true);
        if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
 	  silent_cerr("BulkSpringSupport(" << uLabel << "): parameter nodes "
 		  "are not allowed" << std::endl);

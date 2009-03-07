@@ -520,17 +520,18 @@ DataManager::DofOwnerInit(void)
 					i != connectedNodes.end();
 					i++)
 				{
+					const Node *real_i = (*i)->GetNode();
 					if (uPrintFlags & PRINT_EL_CONNECTION) {
 						silent_cout("        "
-							<< psNodeNames[(*i)->GetNodeType()]
-							<< "(" << (*i)->GetLabel() << ")" << std::endl);
+							<< psNodeNames[real_i->GetNodeType()]
+							<< "(" << real_i->GetLabel() << ")" << std::endl);
 					}
 	
-					nodemap::iterator n = connectedElems[(*i)->GetNodeType()].find(*i);
-					if (n == connectedElems[(*i)->GetNodeType()].end()) {
-						connectedElems[(*i)->GetNodeType()][*i] = new elmap;
+					nodemap::iterator n = connectedElems[real_i->GetNodeType()].find(real_i);
+					if (n == connectedElems[real_i->GetNodeType()].end()) {
+						connectedElems[real_i->GetNodeType()][real_i] = new elmap;
 					}
-					connectedElems[(*i)->GetNodeType()][*i]->insert(pEl);
+					connectedElems[real_i->GetNodeType()][real_i]->insert(pEl);
 				}
 
 			} else {

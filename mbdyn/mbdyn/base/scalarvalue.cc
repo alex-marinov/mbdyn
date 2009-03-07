@@ -89,7 +89,7 @@ ReadScalarValue(DataManager *pDM, MBDynParser& HP)
 		if (HP.IsKeyWord("node" "dof")) {
 			NO_OP; // skip
 		}
-		svp = new ScalarDofValue(ReadScalarDof(pDM, HP, 1));
+		svp = new ScalarDofValue(ReadScalarDof(pDM, HP, true));
 	}
 
 	return svp;

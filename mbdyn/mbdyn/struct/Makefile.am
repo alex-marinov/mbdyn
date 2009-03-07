@@ -90,6 +90,7 @@ strext.cc \
 strext.h \
 strforce.cc \
 strforce.h \
+strforce_impl.h \
 strnode.cc \
 strnode.h \
 stroutput.cc \

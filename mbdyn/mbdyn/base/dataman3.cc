@@ -1951,7 +1951,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 						psNodeNames[Node::PARAMETER] << "(" << uLabel << ") "
 						"is a sample-and-hold" << std::endl);
 
-					ScalarDof SD(ReadScalarDof(this, HP, 0));
+					ScalarDof SD(ReadScalarDof(this, HP, false));
 
 					DriveCaller *pDC = NULL;
 					SAFENEWWITHCONSTRUCTOR(pDC, TimeDriveCaller,
@@ -2395,7 +2395,7 @@ GetDofOrder(MBDynParser& HP, Node* pNode, int iIndex)
 }
 
 ScalarDof
-ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder)
+ReadScalarDof(const DataManager* pDM, MBDynParser& HP, bool bOrder)
 {
 	/* tabella delle parole chiave */
 	KeyTable KDof(HP, psReadNodesNodes);
@@ -2441,7 +2441,7 @@ ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder)
 
 	/* se e' richiesto l'order del dof e se il dof e' differenziale ... */
 	int iOrder = 0;
-	if (fOrder && pNode->iGetNumDof() > 0
+	if (bOrder && pNode->iGetNumDof() > 0
 		&& pNode->GetDofType(iIndex-1) == DofOrder::DIFFERENTIAL)
 	{
 		iOrder = GetDofOrder(HP, pNode, iIndex);
@@ -2450,15 +2450,11 @@ ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder)
 
 	/* se il nodo non e' scalare, alloca un Node2Scalar che lo wrappa */
 	if (iMaxIndex > 1) {
-		NodeDof nd(pNode->GetLabel(), iIndex-1, pNode);
+		NodeDof nd(iIndex - 1, pNode);
 
-		pNode = NULL;
+		pNode = 0;
 		/* Chi dealloca questa memoria? ci vorrebbe l'handle */
 		SAFENEWWITHCONSTRUCTOR(pNode, Node2Scalar, Node2Scalar(nd));
-		pedantic_cerr(psNodeNames[Type] << "(" << uNode << "): "
-			"warning, possibly allocating a NodeDof "
-			"that nobody will delete "
-			"at line " << HP.GetLineData() << std::endl);
 	}
 
 	return ScalarDof(dynamic_cast<ScalarNode *>(pNode), iOrder, iIndex);

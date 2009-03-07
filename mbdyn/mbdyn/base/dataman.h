@@ -792,7 +792,7 @@ public:
 
 
 extern ScalarDof
-ReadScalarDof(const DataManager* pDM, MBDynParser& HP, flag fOrder);
+ReadScalarDof(const DataManager* pDM, MBDynParser& HP, bool bOrder);
 
 extern OrientationDescription
 ReadOrientationDescription(MBDynParser& HP);

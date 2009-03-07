@@ -36,6 +36,9 @@
 #include "matvec3.h"
 #include "matvec6.h"
 
+// forward declaration, since "reffrm.h" needs "tpldrive.h"
+class ReferenceFrame;
+
 /* TplDriveCaller - begin */
 
 template <class T>
@@ -122,6 +125,11 @@ extern TplDriveCaller<Vec3> *
 ReadDC3D(const DataManager* pDM, MBDynParser& HP);
 extern TplDriveCaller<Vec6> *
 ReadDC6D(const DataManager* pDM, MBDynParser& HP);
+
+extern TplDriveCaller<Vec3> *
+ReadDCVecRel(const DataManager* pDM, MBDynParser& HP, const ReferenceFrame& rf);
+extern TplDriveCaller<Vec3> *
+ReadDCVecAbs(const DataManager* pDM, MBDynParser& HP, const ReferenceFrame& rf);
 
 /* prototype of the template functional object: reads a constitutive law */
 template <class T>

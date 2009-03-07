@@ -142,9 +142,7 @@ public:
 	AbstractForce(unsigned int uL, const Node* pN, 
 		const DriveCaller* pDC, flag fOut);
       
-	virtual ~AbstractForce(void) { 
-		NO_OP;
-	};
+	virtual ~AbstractForce(void);
    
 	/* Tipo di forza */
 	virtual Force::Type GetForceType(void) const { 
@@ -204,9 +202,7 @@ public:
 	AbstractInternalForce(unsigned int uL, const Node* pN1, const Node* pN2, 
 		const DriveCaller* pDC, flag fOut);
       
-	virtual ~AbstractInternalForce(void) { 
-		NO_OP;
-	};
+	virtual ~AbstractInternalForce(void);
    
 	/* Tipo di forza */
 	virtual Force::Type GetForceType(void) const { 
@@ -259,7 +255,7 @@ extern Elem*
 ReadForce(DataManager* pDM, 
 	MBDynParser& HP, 
 	unsigned int uLabel, 
-	flag);
+	bool);
 
 #endif /* FORCE_H */
 

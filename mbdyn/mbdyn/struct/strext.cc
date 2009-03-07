@@ -298,7 +298,7 @@ StructExtForce::Output(OutputHandler& OH) const
 	std::ostream& out = OH.Forces();
 
 	for (unsigned i = 0; i < Nodes.size(); i++) {
-		out << GetLabel() << "." << Nodes[i]->GetLabel()
+		out << GetLabel() << "@" << Nodes[i]->GetLabel()
 			<< " " << F[i]
 			<< " " << M[i]
 			<< std::endl;

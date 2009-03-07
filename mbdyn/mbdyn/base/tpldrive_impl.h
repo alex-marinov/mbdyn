@@ -86,6 +86,132 @@ public:
 	};
 };
 
+/* ZeroTplDriveCaller - end */
+
+/* SingleTplDriveCaller - begin */
+
+template <class T>
+class SingleTplDriveCaller : public TplDriveCaller<T>, public DriveOwner {
+protected:
+	T t;
+
+public:
+	SingleTplDriveCaller(const DriveCaller* pDC, const T& x)
+	: DriveOwner(pDC), t(const_cast<T&>(x)) {
+		NO_OP;
+	};
+
+	~SingleTplDriveCaller(void) {
+		NO_OP;
+	};
+
+	/* copia */
+	virtual TplDriveCaller<T>* pCopy(void) const {
+		typedef SingleTplDriveCaller<T> dc;
+		TplDriveCaller<T>* pDC = 0;
+
+		SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(pGetDriveCaller()->pCopy(), t));
+
+		return pDC;
+	};
+
+	/* Scrive il contributo del DriveCaller al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const {
+		out << "single, ",
+		Write(out, t, ", ") << ", ";
+		return pGetDriveCaller()->Restart(out);
+	};
+
+	virtual std::ostream& Restart_int(std::ostream& out) const {
+		Write(out, t, ", ") << ", ";
+		return pGetDriveCaller()->Restart(out);
+	};
+
+	inline T Get(void) const {
+		return t*dGet();
+	};
+
+	/* this is about drives that are differentiable */
+	inline bool bIsDifferentiable(void) const {
+		return DriveOwner::bIsDifferentiable();
+	};
+
+	inline T GetP(void) const {
+		return t*dGetP();
+	};
+
+	inline int getNDrives(void) const {
+		return 1;
+	};
+};
+
+/* Nota: in caso scalare, viene semplificata la classe in modo da
+ *       usare solo il drive senza pesatura che viene assunta unitaria */
+
+template<>
+class SingleTplDriveCaller<doublereal>
+: public TplDriveCaller<doublereal>, public DriveOwner {
+public:
+	SingleTplDriveCaller(const DriveCaller* pDC, const doublereal& = 0.)
+	: DriveOwner(pDC) {
+		NO_OP;
+	};
+
+	~SingleTplDriveCaller(void) {
+		NO_OP;
+	};
+
+	/* copia */
+	virtual TplDriveCaller<doublereal>* pCopy(void) const {
+		TplDriveCaller<doublereal>* pDC = 0;
+
+		typedef SingleTplDriveCaller<doublereal> dc;
+		SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(pGetDriveCaller()->pCopy()));
+
+		return pDC;
+	};
+
+	/* Scrive il contributo del DriveCaller al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const {
+		out << "single, ";
+		return pGetDriveCaller()->Restart(out);
+	};
+
+	virtual std::ostream& Restart_int(std::ostream& out) const {
+		return pGetDriveCaller()->Restart(out);
+	};
+
+	inline doublereal Get(void) const {
+		return dGet();
+	};
+
+	inline bool bIsDifferentiable(void) const {
+		return DriveOwner::bIsDifferentiable();
+	};
+
+	inline doublereal GetP(void) const {
+		return dGetP();
+	};
+
+	inline int getNDrives(void) const {
+		return 1;
+	};
+};
+
+template <class T>
+TplDriveCaller<T> *
+DC2TDC(DriveCaller *pDC, T& t)
+{
+	typedef SingleTplDriveCaller<T> STDC;
+
+	TplDriveCaller<T> *p = 0;
+	SAFENEWWITHCONSTRUCTOR(p, STDC, STDC(pDC, t));
+	return p;
+}
+
+
+/* SingleTplDriveCaller - end */
+
 template <class T>
 TplDriveCaller<T> *
 ReadTplDC(const DataManager* pDM, MBDynParser& HP, const T& t)
@@ -104,7 +230,7 @@ ReadTplDC(const DataManager* pDM, MBDynParser& HP, const T& t)
 	silent_cerr("unknown type in ReadTplDC "
 		"at line " << HP.GetLineData() << std::endl);
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-};
+}
 
 #endif // TPLDRIVE_IMPL_H
 

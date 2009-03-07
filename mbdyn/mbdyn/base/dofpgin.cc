@@ -119,7 +119,7 @@ DofPlugIn::Read(int argc, char *argv[])
 		}
 		iOrder = ReadDofOrder(pNode, iIndex, argv[3]);
 
-		NodeDof nd(pNode->GetLabel(), iIndex-1, pNode);
+		NodeDof nd(iIndex-1, pNode);
 		pNode = NULL;
 		/* Chi dealloca questa memoria? ci vorrebbe l'handle */
 		SAFENEWWITHCONSTRUCTOR(pNode, Node2Scalar, Node2Scalar(nd));

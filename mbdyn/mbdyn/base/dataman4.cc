@@ -1180,13 +1180,12 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 	case FORCE:
 	case COUPLE:
 	{
-		int iForceType;
+		bool bCouple(false);
 		if (KeyWords(CurrType) == FORCE) {
-			iForceType = 0;
 			silent_cout("Reading Force(" << uLabel << ")" << std::endl);
 
 		} else /* if(KeyWords(CurrType) == COUPLE) */ {
-			iForceType = 1;
+			bCouple = true;
 			silent_cout("Reading Couple(" << uLabel << ")" << std::endl);
 		}
 
@@ -1210,7 +1209,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 		}
 
 		/* allocazione e creazione */
-		pE = ReadForce(this, HP, uLabel, iForceType);
+		pE = ReadForce(this, HP, uLabel, bCouple);
 		if (pE != 0) {
 			ppE = &ElemData[Elem::FORCE].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
 		}

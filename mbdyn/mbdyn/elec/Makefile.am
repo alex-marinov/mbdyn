@@ -19,6 +19,7 @@ forgfact.cc \
 forgfact.h \
 genel.cc \
 genel.h \
+genel_.cc \
 genel_.h \
 genfilt.cc \
 genfilt.h \
