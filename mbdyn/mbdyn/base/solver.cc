@@ -3942,9 +3942,13 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 	doublereal* pd = NULL;
 	int iTmpSize = 2*(iSize*iSize) + 3*iSize + iWorkSize;
 	SAFENEWARR(pd, doublereal, iTmpSize);
+#if defined HAVE_MEMSET
+	memset(pd, 0, iTmpSize*sizeof(doublereal));
+#else // !HAVE_MEMSET
 	for (int iCnt = iTmpSize; iCnt-- > 0; ) {
 		pd[iCnt] = 0.;
 	}
+#endif // !HAVE_MEMSET
 
 	// 2 pointer arrays iSize x 1 for the matrices
 	doublereal** ppd = NULL;
@@ -4185,8 +4189,20 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 
 		Y = *sm.pSolHdl();
 
+#define CNT (100)
 		cnt++;
+		if (!(cnt % CNT)) {
+			silent_cerr("\r" "cnt=" << cnt);
+		}
+
+		if (mbdyn_stop_at_end_of_iteration()) {
+			silent_cerr((cnt >= CNT ? "\n" : "")
+				<< "ARPACK: interrupted" << std::endl);
+			return;
+		}
 	} while (IDO == 1 || IDO == -1);
+
+	silent_cerr("\n" "cnt=" << cnt << std::endl);
 
 	// NOTE: improve diagnostics
 	if (INFO < 0) {
