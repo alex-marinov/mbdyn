@@ -799,7 +799,7 @@ struct LinearViscoElasticGenericCLR : public ConstitutiveLawRead<T, Tder> {
 #endif
 		if (IsNull(S)) {
 			silent_cerr("warning, null stiffness, "
-				"using linear viscous constitutive law instead"
+				"using linear viscous generic constitutive law instead"
 				<< std::endl);
 
 			typedef LinearViscousGenericConstitutiveLaw<T, Tder> L;
@@ -807,7 +807,7 @@ struct LinearViscoElasticGenericCLR : public ConstitutiveLawRead<T, Tder> {
 
 		} else if (IsNull(SP)) {
 			silent_cerr("warning, null stiffness prime, "
-				"using linear elastic constitutive law instead"
+				"using linear elastic generic constitutive law instead"
 				<< std::endl);
 
 			typedef LinearElasticGenericConstitutiveLaw<T, Tder> L;
