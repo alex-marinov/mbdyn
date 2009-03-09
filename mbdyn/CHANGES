@@ -14,6 +14,7 @@ MBDyn 1.X-Devel
 		- add {xyz}unitvec function to model namespace
 		- release module-aerodyn for wind-turbine modeling
 		- struct force/couple with 3D drive (supersedes original)
+		- downgrade linear viscoelastic const. laws as appropriate
 	Backward compatibility issues:
 		- runtime loadable modules now loaded as libmodule-<name>.la
 		- syntax of force elements changed
