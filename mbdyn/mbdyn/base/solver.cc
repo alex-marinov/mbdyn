@@ -3008,14 +3008,20 @@ Solver::ReadData(MBDynParser& HP)
 
 					EigAn.iNCV = HP.GetInt();
 					if (EigAn.iNCV <= 0
-						|| EigAn.iNCV <= 2*EigAn.iNEV
 						|| EigAn.iNCV < EigAn.iNEV + 2)
 					{
 						silent_cerr("invalid number of Arnoldi vectors "
-							"(> 2*NEV && >= NEV+2) "
+							"(must be >= NEV+2) "
 							"at line " << HP.GetLineData()
 							<< std::endl);
 						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (EigAn.iNCV < 2*EigAn.iNEV) {
+						silent_cerr("warning, possibly incorrect number of Arnoldi vectors "
+							"(should be > 2*NEV) "
+							"at line " << HP.GetLineData()
+							<< std::endl);
 					}
 
 					EigAn.dTOL = HP.GetReal();
@@ -4202,7 +4208,7 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 		}
 	} while (IDO == 1 || IDO == -1);
 
-	silent_cerr("\n" "cnt=" << cnt << std::endl);
+	silent_cerr("\r" "cnt=" << cnt << std::endl);
 
 	// NOTE: improve diagnostics
 	if (INFO < 0) {
@@ -4211,8 +4217,39 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 		return;
 	}
 
+	switch (INFO) {
+	case 1:
+		silent_cerr("Maximum number of iterations taken. "
+			"All possible eigenvalues of OP have been found. IPARAM(5) "
+			"returns the number of wanted converged Ritz values "
+			"(currently = " << IPARAM[4] << "; requested NEV = " << NEV << ")."
+			<< std::endl);
+		break;
+
+	case 2:
+		silent_cerr("No longer an informational error. Deprecated starting "
+			"with release 2 of ARPACK."
+			<< std::endl);
+		break;
+
+	case 3:
+		silent_cerr("No shifts could be applied during a cycle of the "
+			"implicitly restarted Arnoldi iteration. One possibility "
+			"is to increase the size of NCV (currently = " << NCV << ") "
+			"relative to NEV (currently = " << NEV << "). "
+			"See remark 4 in dnaupd(3)."
+			<< std::endl);
+		break;
+	}
+
 	std::ostream& Out = pDM->GetOutFile();
 	Out << "INFO: " << INFO << std::endl;
+
+#if 0
+	for (int ii = 0; ii < 11; ii++) {
+		std::cerr << "IPARAM(" << ii + 1 << ")=" << IPARAM[ii] << std::endl;
+	}
+#endif
 
 	logical RVEC = true;
 	const char *HOWMNY = "A";
@@ -4223,21 +4260,56 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 	integer LDZ = N;
 	std::vector<doublereal> WORKEV(3*NCV);
 
+#if 0
+	std::cerr << "dneupd:" << std::endl
+		<< "RVEC = " << RVEC << std::endl
+		<< "HOWMNY = " << HOWMNY << std::endl
+		<< "SELECT(" << NCV << ")" << std::endl
+		<< "DR(" << NEV + 1 << ")" << std::endl
+		<< "DI(" << NEV + 1 << ")" << std::endl
+		<< "Z(" << N << ", " << NEV + 1 << ")" << std::endl
+		<< "LDZ = " << LDZ << std::endl
+		<< "SIGMAR = " << SIGMAR << std::endl
+		<< "SIGMAI = " << SIGMAI << std::endl
+		<< "WORKEV(" << 3*NCV << ")" << std::endl
+		<< "BMAT = " << BMAT << std::endl
+		<< "N = " << N << std::endl
+		<< "WHICH = " << WHICH << std::endl
+		<< "NEV = " << NEV << std::endl
+		<< "TOL = " << TOL << std::endl
+		<< "RESID(" << N << ")" << std::endl
+		<< "NCV = " << NCV << std::endl
+		<< "V(" << N << ", " << NCV << ")" << std::endl
+		<< "LDV = " << LDV << std::endl
+		<< "IPARAM(" << sizeof(IPARAM)/sizeof(IPARAM[0]) << ")" << std::endl
+		<< "IPNTR(" << sizeof(IPNTR)/sizeof(IPNTR[0]) << ")" << std::endl
+		<< "WORKD(" << 3*N << ")" << std::endl
+		<< "WORKL(" << LWORKL << ")" << std::endl
+		<< "LWORKL = " << LWORKL << std::endl
+		<< "INFO = " << INFO << std::endl;
+#endif
+
 	__FC_DECL__(dneupd)(&RVEC, &HOWMNY[0], &SELECT[0], &DR[0], &DI[0],
 		&Z[0], &LDZ, &SIGMAR, &SIGMAI, &WORKEV[0],
 		&BMAT[0], &N, &WHICH[0], &NEV,
 		&TOL, &RESID[0], &NCV, &V[0], &LDV, &IPARAM[0], &IPNTR[0],
 		&WORKD[0], &WORKL[0], &LWORKL, &INFO);
 
-	MyVectorHandler AlphaR(pEA->iNEV, &DR[0]);
-	MyVectorHandler AlphaI(pEA->iNEV, &DI[0]);
-	output_eigenvalues(0, AlphaR, AlphaI, 1., pDM, pEA);
+	int nconv = IPARAM[4];
+	if (nconv > 0) {
+		MyVectorHandler AlphaR(nconv, &DR[0]);
+		MyVectorHandler AlphaI(nconv, &DI[0]);
+		output_eigenvalues(0, AlphaR, AlphaI, 1., pDM, pEA);
 
-	if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_EIGENVECTORS) {
-		std::vector<doublereal *> ZC(pEA->iNEV);
-		FullMatrixHandler VR(&Z[0], &ZC[0], N*pEA->iNEV, N, pEA->iNEV);
-		output_eigenvectors(0, AlphaR, AlphaI, 1.,
-			0, VR, pDM, pEA, o);
+		if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_EIGENVECTORS) {
+			std::vector<doublereal *> ZC(nconv);
+			FullMatrixHandler VR(&Z[0], &ZC[0], N*nconv, N, nconv);
+			output_eigenvectors(0, AlphaR, AlphaI, 1.,
+				0, VR, pDM, pEA, o);
+		}
+
+	} else {
+		silent_cerr("no converged Ritz coefficients" << std::endl);
 	}
 }
 #endif // USE_ARPACK
