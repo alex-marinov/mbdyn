@@ -82,6 +82,7 @@ CenterOfMass::Collect_int(void)
 		X_cm = 0.;
 		V_cm = 0.;
 		Omega_cm = 0.;
+		J_cm = J_cm.Symm();
 
 	} else {
 		X_cm = S/dMass;
@@ -92,6 +93,7 @@ CenterOfMass::Collect_int(void)
 		 * reference frame, and log the angles
 		 */
 		J_cm += Mat3x3(S, X_cm);
+		J_cm = J_cm.Symm();
 
 		Omega_cm = J_cm.Solve(G - X_cm.Cross(B));
 	}
