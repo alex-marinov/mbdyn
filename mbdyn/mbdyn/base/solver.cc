@@ -3682,42 +3682,36 @@ do_eig(const doublereal& b, const doublereal& re,
 {
 	int isPi = 0;
 
-	if (fabs(b) > 1.e-16) {
-		doublereal d;
-		if (im != 0.) {
-			d = sqrt(re*re + im*im)/fabs(b);
+	// denominator
+	doublereal d = re + b;
+	d *= d;
+	d += im*im;
+	d *= h/2.;
 
-		} else {
-			d = fabs(re/b);
-		}
-		sigma = log(d)/h;
-		omega = atan2(im, re)/h;
+	// real & imag
+	sigma = (re*re - b*b + im*im)/d;
+	omega = 2.*b*im/d;
 
-		isPi = (fabs(im/b) < 1.e-15 && fabs(re/b + 1.) < 1.e-15);
-		if (isPi) {
-			sigma = 0.;
-			omega = HUGE_VAL;
-		}
-
-		d = sqrt(sigma*sigma + omega*omega);
-		if (d > 1.e-15 && fabs(sigma)/d > 1.e-15) {
-			csi = -100*sigma/d;
+	// frequency and damping factor
+	if (im != 0.) {
+		d = sigma*sigma + omega*omega;
+		if (d > 1.e-15) {
+			csi = -100*sigma/sqrt(d);
 
 		} else {
 			csi = 0.;
 		}
 
-		if (isPi) {
-			freq = HUGE_VAL;
-
-		} else {
-			freq = omega/(2*M_PI);
-		}
+		freq = omega/(2*M_PI);
 
 	} else {
-		sigma = 0.;
-		omega = 0.;
-		csi = 0.;
+		if (std::abs(sigma) < 1.e-15) {
+			csi = 0.;
+
+		} else {
+			csi = -100.*copysign(1, sigma);
+		}
+
 		freq = 0.;
 	}
 
@@ -3742,7 +3736,7 @@ output_eigenvalues(const VectorHandler *pBeta,
 	for (int iCnt = 1; iCnt <= iNVec; iCnt++) {
 		Out << std::setw(8) << iCnt << ": ";
 
-		doublereal b = pBeta ? (*pBeta)(iCnt): 1.;
+		doublereal b = pBeta ? (*pBeta)(iCnt) : 1.;
 		doublereal re = R(iCnt) + dShiftR;
 		doublereal im = I(iCnt);
 		doublereal sigma;
