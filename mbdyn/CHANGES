@@ -28,6 +28,7 @@ MBDyn 1.X-Devel
 		  (noted by Christophe Trophime)
 		- write file/line number in error when a variable is redefined
 		- fix eigenvalue postprocessing
+		- fix sqrt() arg checking (0 is valid)
 
 MBDyn 1.3.6
 	Enhancements:

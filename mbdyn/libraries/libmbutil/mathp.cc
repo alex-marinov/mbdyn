@@ -171,7 +171,7 @@ mp_atanh_t(const MathParser::MathArgs& args)
 }
 
 static int
-mp_log_t(const MathParser::MathArgs& args)
+mp_greater_than_0_t(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 1);
 	ASSERT(args[1]->Type() == MathParser::AT_REAL);
@@ -180,6 +180,22 @@ mp_log_t(const MathParser::MathArgs& args)
 	ASSERT(arg1 != 0);
 
 	if ((*arg1)() <= 0.) {
+		return 1;
+	}
+
+	return 0;
+}
+
+static int
+mp_greater_than_or_equal_to_0_t(const MathParser::MathArgs& args)
+{
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
+
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
+	ASSERT(arg1 != 0);
+
+	if ((*arg1)() < 0.) {
 		return 1;
 	}
 
@@ -2088,7 +2104,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
 	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, log>;
-	f->t = mp_log_t;
+	f->t = mp_greater_than_0_t;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
 		silent_cerr("static namespace: "
@@ -2104,7 +2120,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
 	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, log10>;
-	f->t = mp_log_t;
+	f->t = mp_greater_than_0_t;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
 		silent_cerr("static namespace: "
@@ -2120,7 +2136,7 @@ MathParser::StaticNameSpace::StaticNameSpace()
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
 	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, sqrt>;
-	f->t = mp_log_t;
+	f->t = mp_greater_than_or_equal_to_0_t;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
 		silent_cerr("static namespace: "
