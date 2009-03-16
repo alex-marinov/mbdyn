@@ -36,7 +36,7 @@
 \usepackage[dvips,breaklinks=true,colorlinks=false]{hyperref}
 \usepackage{html}
 
-\input{stdmacro}
+\input{../stdmacro}
 
 \newcommand{\kw}[1]{\texttt{#1}}
 %\newcommand{\kw}[1]{\fbox{\texttt{#1}}}
@@ -47,7 +47,7 @@
 \begin{latexonly}
 \title{\bf MBDyn Installation Manual \\
 Version
-\input{../build/version}
+\input{../../build/version}
 }
 \author{Pierangelo Masarati \vspace{5mm}\\
     \sc Dipartimento di Ingegneria Aerospaziale \\
@@ -704,7 +704,7 @@ This need appropriate versions of the autotools:
 \end{itemize}
 
 \bibliographystyle{unsrt}
-\bibliography{mybib}
+\bibliography{../mybib,../mbdyn}
 
 
 \end{document}
