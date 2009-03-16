@@ -7,24 +7,10 @@ man_MANS = mbdyn.1
 
 EXTRA_DIST = \
 mbdyn.1.in \
-controldata.tex \
-data.tex \
-drivers.tex \
-elements.tex \
-general.tex \
-input.tex \
-integrators.tex \
-install.tex \
-modal-fem-format.tex \
-nodes.tex \
-overview.tex \
-scalarfilter.tex \
-scalarfunctions.tex \
-stdmacro.tex \
+mbdyn.bib \
 mybib.bib \
-airfoil.eps \
-beamsect.eps \
-hydr-in.txt \
-parallel.txt 
+stdmacro.tex \
+input \
+install
 
 include $(top_srcdir)/build/bot.mk
