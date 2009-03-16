@@ -41,7 +41,7 @@
 #include "myassert.h"
 #include "solman.h"
 #include "fullmh.h"
-#include "y12wrap.h"
+#include "linsol.h"
 
 #include "dae-intg.h"
 
@@ -473,11 +473,12 @@ method_multistep(const char* module, integration_data* d,
    	MyVectorHandler R(size);
 
 	// TODO: abstract from a specific solution manager?
-	Y12SparseSolutionManager sm(size, 10*size*(size+1)+1, 1.);
+	LinSol ls;
+	SolutionManager *sm = ls.GetSolutionManager(size);
 
-   	MatrixHandler* Jac = sm.pMatHdl();
-   	VectorHandler* Res = sm.pResHdl();
-   	VectorHandler* Sol = sm.pSolHdl();
+   	MatrixHandler* Jac = sm->pMatHdl();
+   	VectorHandler* Res = sm->pResHdl();
+   	VectorHandler* Sol = sm->pSolHdl();
 
    	/* parametri di integrazione */
    	doublereal ti = d->ti;
@@ -543,9 +544,9 @@ method_multistep(const char* module, integration_data* d,
       		doublereal test;
       		doublereal coef = dt*b0;
       		do {
-			Jac = sm.pMatHdl();
-			Res = sm.pResHdl();
-			Sol = sm.pSolHdl();
+			Jac = sm->pMatHdl();
+			Res = sm->pResHdl();
+			Sol = sm->pSolHdl();
 
 			::ff->func(p_data, *Res, *pX, *pXP, t);
 
@@ -562,7 +563,7 @@ method_multistep(const char* module, integration_data* d,
 	 		}
 
 	 		/* correct */
-	 		sm.MatrReset();
+	 		sm->MatrReset();
 	 		J.Reset();
 	 		::ff->grad(p_data, J, JP, *pX, *pXP, t);
 	 		for (int ir = 1; ir <= size; ir++) {
@@ -571,7 +572,7 @@ method_multistep(const char* module, integration_data* d,
 						+ coef*J(ir, ic);
 	    			}
 	 		}
-	 		sm.Solve();
+	 		sm->Solve();
 
 	 		/* update */
 	 		for (int ir = size; ir > 0; ir--) {
@@ -656,11 +657,12 @@ method_cubic(const char* module, integration_data* d,
    	MyVectorHandler XPz(size);
 
 	// TODO: abstract from a specific solution manager?
-	Y12SparseSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
+	LinSol ls;
+	SolutionManager *sm = ls.GetSolutionManager(2*size);
 
-   	MatrixHandler* Jac = sm.pMatHdl();
-   	VectorHandler* Res = sm.pResHdl();
-   	VectorHandler* Sol = sm.pSolHdl();
+   	MatrixHandler* Jac = sm->pMatHdl();
+   	VectorHandler* Res = sm->pResHdl();
+   	VectorHandler* Sol = sm->pSolHdl();
 
    	MyVectorHandler Resz(size, Res->pdGetVec() + size);
 
@@ -756,9 +758,9 @@ method_cubic(const char* module, integration_data* d,
       		doublereal test;
       		do {
 
-			Jac = sm.pMatHdl();
-			Res = sm.pResHdl();
-			Sol = sm.pSolHdl();
+			Jac = sm->pMatHdl();
+			Res = sm->pResHdl();
+			Sol = sm->pSolHdl();
 
 			Resz.Attach(size, Res->pdGetVec() + size);
 
@@ -780,7 +782,7 @@ method_cubic(const char* module, integration_data* d,
 	 		}
 
 	 		/* correct */
-	 		sm.MatrReset();
+	 		sm->MatrReset();
 	 		Jz.Reset();
 	 		JPz.Reset();
 	 		J0.Reset();
@@ -803,7 +805,7 @@ method_cubic(const char* module, integration_data* d,
 				}
 			}
 
-	 		sm.Solve();
+	 		sm->Solve();
 
 	 		/* update */
 	 		for (int ir = size; ir > 0; ir--) {
@@ -928,11 +930,12 @@ method_radau_II(const char* module, integration_data* d,
    	MyVectorHandler XPz(size);
 
 	// TODO: abstract from a specific solution manager?
-	Y12SparseSolutionManager sm(2*size, 2*size*(2*size+1)+1, 1.);
+	LinSol ls;
+	SolutionManager *sm = ls.GetSolutionManager(2*size);
 
-   	MatrixHandler* Jac = sm.pMatHdl();
-   	VectorHandler* Res = sm.pResHdl();
-   	VectorHandler* Sol = sm.pSolHdl();
+   	MatrixHandler* Jac = sm->pMatHdl();
+   	VectorHandler* Res = sm->pResHdl();
+   	VectorHandler* Sol = sm->pSolHdl();
 
    	MyVectorHandler Resz(size, Res->pdGetVec() + size);
 
@@ -1031,9 +1034,9 @@ method_radau_II(const char* module, integration_data* d,
       		doublereal test;
       		do {
 
-			Jac = sm.pMatHdl();
-			Res = sm.pResHdl();
-			Sol = sm.pSolHdl();
+			Jac = sm->pMatHdl();
+			Res = sm->pResHdl();
+			Sol = sm->pSolHdl();
 
 			Resz.Attach(size, Res->pdGetVec() + size);
 
@@ -1055,7 +1058,7 @@ method_radau_II(const char* module, integration_data* d,
 	 		}
 
 	 		/* correct */
-	 		sm.MatrReset();
+	 		sm->MatrReset();
 	 		Jz.Reset();
 	 		JPz.Reset();
 	 		J0.Reset();
@@ -1078,7 +1081,7 @@ method_radau_II(const char* module, integration_data* d,
 				}
 			}
 
-	 		sm.Solve();
+	 		sm->Solve();
 
 	 		/* update */
 	 		for (int ir = size; ir > 0; ir--) {

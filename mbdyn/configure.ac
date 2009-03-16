@@ -2335,6 +2335,7 @@ AM_CONDITIONAL(USE_RTAI,[test "$use_rtai" = yes])
 AM_CONDITIONAL(USE_SCHUR,[test "$use_schur" = yes])
 AM_CONDITIONAL(USE_ARPACK,[test "$ol_link_arpack" = yes])
 AM_CONDITIONAL(FOOL_LIBTOOL,[test "$fool_libtool" = yes])
+AM_CONDITIONAL(BUILD_Y12,[test "$ol_link_y12" = yes])
 
 dnl ----------------------------------------------------------------
 dnl
@@ -2354,13 +2355,13 @@ AC_OUTPUT([ \
 	Makefile:Makefile.in
 	./libraries/Makefile:libraries/Makefile.in
 	./libraries/libmbutil/Makefile:libraries/libmbutil/Makefile.in
+	./libraries/libobjs/Makefile:libraries/libobjs/Makefile.in
+	./libraries/libcolamd/Makefile:libraries/libcolamd/Makefile.in
+	./libraries/libnaive/Makefile:libraries/libnaive/Makefile.in
+	./libraries/liby12/Makefile:libraries/liby12/Makefile.in
 	./libraries/libmbmath/Makefile:libraries/libmbmath/Makefile.in
 	./libraries/libmbwrap/Makefile:libraries/libmbwrap/Makefile.in
-	./libraries/liby12/Makefile:libraries/liby12/Makefile.in
-	./libraries/libcolamd/Makefile:libraries/libcolamd/Makefile.in
 	./libraries/libann/Makefile:libraries/libann/Makefile.in
-	./libraries/libnaive/Makefile:libraries/libnaive/Makefile.in
-	./libraries/libobjs/Makefile:libraries/libobjs/Makefile.in
 	./mbdyn/Makefile:mbdyn/Makefile.in
 	./mbdyn/base/Makefile:mbdyn/base/Makefile.in
 	./mbdyn/aero/Makefile:mbdyn/aero/Makefile.in

@@ -19,6 +19,8 @@ MBDyn 1.X-Devel
 		- runtime loadable modules now loaded as libmodule-<name>.la
 		- syntax of force elements changed
 		- output format of force elements changed
+		- naive is the default solver unless umfpack is available;
+		  y12 is optional, built by default unless explicitly disabled
 	Known issues:
 	Bug fixes:
 		- fix libtool handling of modules (Marco Morandini)

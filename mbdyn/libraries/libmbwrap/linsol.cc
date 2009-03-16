@@ -135,26 +135,9 @@ const LinSol::solver_t solver[] = {
 LinSol::SolverType LinSol::defaultSolver = 
 #if defined(USE_UMFPACK)
 	LinSol::UMFPACK_SOLVER
-#elif /* !USE_UMFPACK */ defined(USE_Y12)
-	LinSol::Y12_SOLVER
-#elif /* !USE_Y12 */ defined(USE_SUPERLU)
-	LinSol::SUPERLU_SOLVER
-#elif /* !USE_SUPERLU */ defined(USE_HARWELL)
-	LinSol::HARWELL_SOLVER
-#elif /* !USE_HARWELL */ defined(USE_MESCHACH)
-	LinSol::MESCHACH_SOLVER
-#elif /* !USE_MESCHACK */ defined(USE_LAPACK)
-	LinSol::LAPACK_SOLVER
-#elif /* !USE_LAPACK */ defined(USE_TAUCS)
-	LinSol::TAUCS_SOLVER
-#else /* !USE_TAUCS */
+#else /* !USE_UMFPACK */
 	LinSol::NAIVE_SOLVER
-#if 0
-	LinSol::EMPTY_SOLVER
 #endif
-/* FIXME: remove this error if no solver becomes acceptable :) */
-#error "need a solver!"
-#endif /* !USE_MESCHACH */
 	;
 
 LinSol::LinSol(void)

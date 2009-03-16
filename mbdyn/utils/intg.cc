@@ -43,7 +43,8 @@
 
 #include "myassert.h"
 #include "solman.h"
-#include "y12wrap.h"
+#include "linsol.h"
+#include "fullmh.h"
 #include "harwrap.h"
 #include "mschwrap.h"
 
@@ -375,11 +376,12 @@ method_multistep(const char* module, integration_data* d,
 	MyVectorHandler R(size);
 
 	// TODO: abstract from a specific solution manager?
-	Y12SparseSolutionManager sm(size, 0, 1.);
+	LinSol ls;
+	SolutionManager *sm = ls.GetSolutionManager(size);
 
-	MatrixHandler& Jac = *sm.pMatHdl();
-	VectorHandler& Res = *sm.pResHdl();
-	VectorHandler& Sol = *sm.pSolHdl();
+	MatrixHandler& Jac = *sm->pMatHdl();
+	VectorHandler& Res = *sm->pResHdl();
+	VectorHandler& Sol = *sm->pSolHdl();
 
 	// parametri di integrazione
 	doublereal ti = d->ti;
@@ -454,7 +456,7 @@ method_multistep(const char* module, integration_data* d,
 			}
 
 			// correct
-			sm.MatrReset();
+			sm->MatrReset();
 			J.Reset();
 			::ff->grad(p_data, J, *pX, t);
 			for (int k = 1; k <= size; k++) {
@@ -463,7 +465,7 @@ method_multistep(const char* module, integration_data* d,
 				}
 				Jac.IncCoef(k, k, 1.);
 			}
-			sm.Solve();
+			sm->Solve();
 
 			// update
 			for (int k = size; k > 0; k--) {
@@ -530,11 +532,12 @@ method_cubic(const char* module, integration_data* d,
 	MyVectorHandler XPz(size);
 
 	// TODO: abstract from a specific solution manager?
-	Y12SparseSolutionManager sm(size, size*(size+1)+1, 1.);
+	LinSol ls;
+	SolutionManager *sm = ls.GetSolutionManager(size);
 
-	MatrixHandler& Jac = *sm.pMatHdl();
-	VectorHandler& Res = *sm.pResHdl();
-	VectorHandler& Sol = *sm.pSolHdl();
+	MatrixHandler& Jac = *sm->pMatHdl();
+	VectorHandler& Res = *sm->pResHdl();
+	VectorHandler& Sol = *sm->pSolHdl();
 
 	// paramteri di integrazione
 	doublereal ti = d->ti;
@@ -625,7 +628,7 @@ method_cubic(const char* module, integration_data* d,
 			}
 
 			// correct
-			sm.MatrReset();
+			sm->MatrReset();
 			Jz.Reset();
 			J0.Reset();
 			::ff->grad(p_data, Jz, Xz, t+z*dt);
@@ -641,7 +644,7 @@ method_cubic(const char* module, integration_data* d,
 				}
 				Jac.IncCoef(k, k, 1.);
 			}
-			sm.Solve();
+			sm->Solve();
 
 			// update
 			for (int k = size; k > 0; k--) {

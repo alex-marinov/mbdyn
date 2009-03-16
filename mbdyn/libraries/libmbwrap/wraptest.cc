@@ -29,13 +29,13 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>
+#include "mbconfig.h"
 #endif /* HAVE_CONFIG */
 
 #include <cstring>
 #include <stdlib.h>
 #include <unistd.h>
-#include <ac/getopt.h>
+#include "ac/getopt.h"
 
 extern "C" {
 #include <time.h>
@@ -47,21 +47,22 @@ extern "C" {
 #include <iostream>
 #include <fstream>
 
-#include <solman.h>
-#include <spmapmh.h>
-#include <ccmh.h>
-#include <dirccmh.h>
-#include <y12wrap.h>
-#include <harwrap.h>
-#include <mschwrap.h>
-#include <umfpackwrap.h>
-#include <parsuperluwrap.h>
-#include <superluwrap.h>
-#include <lapackwrap.h>
-#include <taucswrap.h>
-#include <naivewrap.h>
-#include <parnaivewrap.h>
-#include <wsmpwrap.h>
+#include "solman.h"
+#include "submat.h"
+#include "spmapmh.h"
+#include "ccmh.h"
+#include "dirccmh.h"
+#include "y12wrap.h"
+#include "harwrap.h"
+#include "mschwrap.h"
+#include "umfpackwrap.h"
+#include "parsuperluwrap.h"
+#include "superluwrap.h"
+#include "lapackwrap.h"
+#include "taucswrap.h"
+#include "naivewrap.h"
+#include "parnaivewrap.h"
+#include "wsmpwrap.h"
 
 const char *solvers[] = {
 #if defined(USE_Y12)
