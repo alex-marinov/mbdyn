@@ -76,6 +76,7 @@ which is no longer orthogonal, because of matrix
 which represents a linearized rotation.
 
 The first and second derivatives of position and orientation yield:
+\begin{subequations}
 \begin{align}
 	\dot{\T{x}}_P &= \dot{\T{x}}_0
 		+ \T{\omega}_0 \times \T{R}_0 \plbr{\tilde{\T{f}}_P + \T{U}_P \T{q}}
@@ -91,9 +92,11 @@ The first and second derivatives of position and orientation yield:
 		+ \T{\omega}_0 \times \T{R}_0 \T{V}_P \dot{\T{q}}
 		+ \T{R}_0 \T{V}_P \ddot{\T{q}}
 \end{align}
+\end{subequations}
 
 The virtual perturbation of the position and orientation
 of the generic point $P$ are:
+\begin{subequations}
 \begin{align}
 	\delta{\T{x}}_P &= \delta{\T{x}}_0
 		+ \delta\T{\phi}_0 \times \T{R}_0 \plbr{\tilde{\T{f}}_P + \T{U}_P \T{q}}
@@ -101,6 +104,7 @@ of the generic point $P$ are:
 	\delta\T{\phi}_P &= \delta\T{\phi}_0
 		+ \T{R}_0 \T{V}_P \delta{\T{q}}
 \end{align}
+\end{subequations}
 
 Without significant losses in generality, from now on it is assumed
 that the structure of the problem is given in form of lumped inertia
@@ -118,10 +122,12 @@ The nodal mass of the $i$-th FEM node is
 There is no strict requirement for matrix $\T{J}_i$ to be diagonal.
 
 The inertia forces and moments acting on each FEM node are:
+\begin{subequations}
 \begin{align}
 	\T{F}_i &= - m_i \ddot{\T{x}}_i \\
 	\T{C}_i &= - \T{R}_i \T{J}_i \T{R}_i^T \dot{\T{\omega}}_i
 \end{align}
+\end{subequations}
 and the virtual work done by the inertia forces is
 \begin{equation}
 	\delta{L} = \sum_{i=1,N} \plbr{
@@ -152,6 +158,7 @@ which results in
 	}
 \end{equation}
 with
+\begin{subequations}
 \begin{align}
 	\T{M}_{xx}	&= \T{I} \sum_{i=1,N} m_i \\
 	\T{M}_{x\phi}	&= \T{R}_0 \sum_{i=1,N} m_i \plbr{\tilde{\T{f}}_i + \T{U}_i \T{q}}\times^T \T{R}_0^T \\
@@ -192,8 +199,10 @@ with
 		\mbox{} + \T{V}_i^T \tilde{\T{R}}_i \T{J}_i \tilde{\T{R}}_i^T \T{R}_0^T \T{\omega}_0 \times \T{R}_0 \T{V}_i \dot{\T{q}}
 	}
 \end{align}
+\end{subequations}
 The $\T{M}_{jk}$ terms can be rewritten to highlight contributions of order
 0, 1, and higher:
+\begin{subequations}
 \begin{align}
 	\T{M}_{xx}	&= \T{I} \plbr{\sum_{i=1,N} m_i} \\
 	\T{M}_{x\phi}	&= \T{R}_0 \plbr{\plbr{
@@ -242,6 +251,7 @@ The $\T{M}_{jk}$ terms can be rewritten to highlight contributions of order
 			& \mbox{} + \sum_{i=1,N}
 			\T{V}_i^T \plbr{\T{V}_i \T{q}}\times \T{J}_i \plbr{\T{V}_i \T{q}}\times^T \T{V}_i
 \end{align}
+\end{subequations}
 
 \subsection{Physics: Orthogonality}
 Some noteworthy entities appear in the above equations, which may partially
@@ -454,6 +464,7 @@ $k$-th modal displacement $\T{U}_{ik}$.
 
 Using the invariants, the contributions to the inertia matrix of the body
 become
+\begin{subequations}
 \begin{align}
 	\T{M}_{xx}	&= \T{I} \, \mathrm{Inv}_1 \\
 	\T{M}_{x\phi}	&= \T{R}_0 \plbr{
@@ -482,14 +493,16 @@ become
 			& \mbox{} + \sum_{i=1,N}
 			\T{V}_i^T \plbr{\T{V}_i \T{q}}\times \T{J}_i \plbr{\T{V}_i \T{q}}\times^T \T{V}_i
 \end{align}
+\end{subequations}
 where summation over repeated indices is assumed.
 The remaining summation terms could be also cast into some invariant form;
 however, in common practice (e.g.\ in ADAMS) they are simply neglected,
 under the assumption that the finer the discretization, the smaller 
 the FEM node inertia, so that linear and quadratic terms 
 in the nodal rotation become reasonably small, yielding
+\begin{subequations}
 \begin{align}
-	\T{M}_{xx}	&= \T{I} \mathrm{Inv}_1 \\
+	\T{M}_{xx}	&= \T{I} \, \mathrm{Inv}_1 \\
 	\T{M}_{x\phi}	&= \T{R}_0 \plbr{
 		\T{Inv}_2 + \TT{Inv}_3 \T{q}}\times{}  \T{R}_0^T \\
 	\T{M}_{xq}	&= \T{R}_0 \TT{Inv}_3 \\
@@ -504,6 +517,7 @@ in the nodal rotation become reasonably small, yielding
 	} \\
 	\T{M}_{qq}	&= \TT{Inv}_6 
 \end{align}
+\end{subequations}
 In some cases, the only remaining quadratic term in $\TT{Inv}_{9jk}$
 is neglected as well.
 
