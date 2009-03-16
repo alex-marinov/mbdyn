@@ -29,8 +29,10 @@ done
 
 rm -f "$LOG"
 
-TGT="input install"
+TGT="input install tecman"
 for IN in $TGT; do
+	cd $IN
+
 	OUT="mbdyn-${IN}$VV"
 
 	rm -rf "$IN" "$OUT"
@@ -84,7 +86,7 @@ for IN in $TGT; do
 		fi
 	fi
 
-	if test $MAKEHTML = yes ; then
+	if test $MAKEHTML = yes -a $IN != "tecman" ; then
 		echo "making $OUT.html..."
 		which latex2html > /dev/null 2>&1
 		RC=$?
@@ -101,6 +103,8 @@ for IN in $TGT; do
 			mv -f "$IN" "$OUT"
 		fi
 	fi
+
+	cd -
 done
 
 which doxygen > /dev/null 2>&1
