@@ -68,7 +68,6 @@ D. Code:
 	- improve friction and add it to all joints (Marco Morandini is
 		working at it; suggestion: try a transition force from stick
 		to slip that is higher than slip force)
-	- add Arnoldi-like eigenvalue extraction module
 	- review output to allow selective ascii/binary output (see NetCDF)
 	- replace MyLList and LLStack with STL containers
 	- add friction to contacts
@@ -87,8 +86,8 @@ D. Code:
 			mbdyn > ascii
 			mbdyn > netcdf (in global output database)
 	- add aerodynamic elements Jacobian matrix contribution
-	- add sparse eigenvalue extraction (see ARPACK/ARPACK++, DONE)
-	- add center of mass computation/constraint
+	- add sparse eigenvalue extraction (DONE, using ARPACK)
+	- add center of mass computation (DONE)/constraint
 	- add matrix scaling (partially DONE)
 
 	Small Projects:
@@ -106,7 +105,7 @@ D. Code:
 	- add selected output streamed on sockets for interactive analysis
 		by implementing sort of "sensors", possibly based on the
 		elements' "private data" (Michele Attolico worked at it;
-		see "output elements" and RTAI-related features)
+		see "output elements" and RTAI-related features; DONE)
 	- add rot2any/any2rot utilities
 	- try to rewrite hydraulic nodes as scalar differential (?)
 	- add joints like:
