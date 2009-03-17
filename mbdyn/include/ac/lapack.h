@@ -51,25 +51,91 @@ extern "C" {
  */
 
 /* Subroutine */ extern int
-__FC_DECL__(dggev)(char *jobvl, char *jobvr, integer *n, doublereal *
-	a, integer *lda, doublereal *b, integer *ldb, doublereal *alphar,
-	doublereal *alphai, doublereal *beta, doublereal *vl, integer *ldvl,
-	doublereal *vr, integer *ldvr, doublereal *work, integer *lwork,
-	integer *info);
+__FC_DECL__(dggev)(
+	char *JOBVL,
+	char *JOBVR,
+	integer *N,
+	doublereal *A,
+	integer *LDA,
+	doublereal *B,
+	integer *LDB,
+	doublereal *ALPHAR,
+	doublereal *ALPHAI,
+	doublereal *BETA,
+	doublereal *VL,
+	integer *LDVL,
+	doublereal *VR,
+	integer *LDVR,
+	doublereal *WORK,
+	integer *LWORK,
+	integer *INFO);
+
+/* Subroutine */ extern int
+__FC_DECL__(dggevx)(
+	char *BALANC,
+	char *JOBVL,
+	char *JOBVR,
+	char *SENSE,
+	integer *N,
+	doublereal *A,
+	integer *LDA,
+	doublereal *B,
+	integer *LDB,
+	doublereal *ALPHAR,
+	doublereal *ALPHAI,
+	doublereal *BETA,
+	doublereal *VL,
+	integer *LDVL,
+	doublereal *VR,
+	integer *LDVR,
+	integer *ILO,
+	integer *IHI,
+	doublereal *LSCALE,
+	doublereal *RSCALE,
+	doublereal *ABNRM,
+	doublereal *BBNRM,
+	doublereal *RCONDE,
+	doublereal *RCONDV,
+	doublereal *WORK,
+	integer *LWORK,
+	integer *IWORK,
+	logical *BWORK,
+	integer *INFO);
 
 /* NOTE: according to lapack's documentation, dgegv() is deprecated
  * in favour of dggev()... */
 /* Subroutine */ extern int
-__FC_DECL__(dgegv)(char *jobvl, char *jobvr, integer *n, doublereal *
-	a, integer *lda, doublereal *b, integer *ldb, doublereal *alphar,
-	doublereal *alphai, doublereal *beta, doublereal *vl, integer *ldvl,
-	doublereal *vr, integer *ldvr, doublereal *work, integer *lwork,
-	integer *info);
+__FC_DECL__(dgegv)(
+	char *JOBVL,
+	char *JOBVR,
+	integer *N,
+	doublereal *A,
+	integer *LDA,
+	doublereal *B,
+	integer *LDB,
+	doublereal *ALPHAR,
+	doublereal *ALPHAI,
+	doublereal *BETA,
+	doublereal *VL,
+	integer *LDVL,
+	doublereal *VR,
+	integer *LDVR,
+	doublereal *WORK,
+	integer *LWORK,
+	integer *INFO);
 
 /* Subroutine */ int
-__FC_DECL__(dgeequ)(integer *M, integer *N, doublereal *A, integer *LDA,
-	doublereal *R, doublereal *C, doublereal *ROWCND, doublereal *COLCND,
-	doublereal *AMAX, integer * INFO);
+__FC_DECL__(dgeequ)(
+	integer *M,
+	integer *N,
+	doublereal *A,
+	integer *LDA,
+	doublereal *R,
+	doublereal *C,
+	doublereal *ROWCND,
+	doublereal *COLCND,
+	doublereal *AMAX,
+	integer *INFO);
 
 #if defined(__cplusplus)
 }

@@ -3038,6 +3038,27 @@ Solver::ReadData(MBDynParser& HP)
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif // !USE_ARPACK
+
+				} else if (HP.IsKeyWord("balance")) {
+					if (HP.IsKeyWord("no")) {
+						EigAn.uFlags &= ~EigenAnalysis::EIG_BALANCE;
+
+					} else if (HP.IsKeyWord("permute")) {
+						EigAn.uFlags |= EigenAnalysis::EIG_PERMUTE;
+
+					} else if (HP.IsKeyWord("scale")) {
+						EigAn.uFlags |= EigenAnalysis::EIG_SCALE;
+
+					} else if (HP.IsKeyWord("all")) {
+						EigAn.uFlags |= EigenAnalysis::EIG_BALANCE;
+
+					} else {
+						silent_cerr("unknown balance option "
+							"at line " << HP.GetLineData()
+							<< std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
 				} else {
 					silent_cerr("unknown option "
 						"at line " << HP.GetLineData()
@@ -3680,8 +3701,6 @@ do_eig(const doublereal& b, const doublereal& re,
 	doublereal& sigma, doublereal& omega,
 	doublereal& csi, doublereal& freq)
 {
-	int isPi = 0;
-
 	// denominator
 	doublereal d = re + b;
 	d *= d;
@@ -3715,7 +3734,7 @@ do_eig(const doublereal& b, const doublereal& re,
 		freq = 0.;
 	}
 
-	return isPi;
+	return 0;
 }
 
 // Writes eigenvalues to the .out file in human-readable form
@@ -3745,13 +3764,9 @@ output_eigenvalues(const VectorHandler *pBeta,
 		doublereal freq;
 
 		const doublereal& h = pEA->dParam;
-		int isPi = do_eig(b, re, im, h, sigma, omega, csi, freq);
+		do_eig(b, re, im, h, sigma, omega, csi, freq);
 
-		if (isPi) {
-			Out << std::setw(12) << 0. << " - " << "          PI j";
-		} else {
-			Out << std::setw(12) << sigma << " + " << std::setw(12) << omega << " j";
-		}
+		Out << std::setw(12) << sigma << " + " << std::setw(12) << omega << " j";
 
 		/* FIXME: why 1.e-15? */
 		if (fabs(csi) > 1.e-15) {
@@ -3760,11 +3775,7 @@ output_eigenvalues(const VectorHandler *pBeta,
 			Out << "    " << std::setw(12) << 0.;
 		}
 
-		if (isPi) {
-			Out << "    " << "PI";
-		} else {
-			Out << "    " << std::setw(12) << freq;
-		}
+		Out << "    " << std::setw(12) << freq;
 
 		Out << std::endl;
 	}
@@ -3890,57 +3901,121 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 	const FullMatrixHandler& MatA = dynamic_cast<const FullMatrixHandler &>(*pMatA);
 	const FullMatrixHandler& MatB = dynamic_cast<const FullMatrixHandler &>(*pMatB);
 
+	char sB[2] = "N";
+	if ((pEA->uFlags & Solver::EigenAnalysis::EIG_BALANCE)
+		== Solver::EigenAnalysis::EIG_BALANCE)
+	{
+		sB[0] = 'B';
+
+	} else if (pEA->uFlags & Solver::EigenAnalysis::EIG_PERMUTE) {
+		sB[0] = 'P';
+
+	} else if (pEA->uFlags & Solver::EigenAnalysis::EIG_SCALE) {
+		sB[0] = 'S';
+	}
+
 	char sL[2] = "V";
 	char sR[2] = "V";
+	char sS[2] = "N";
 
 	// iNumDof is a member, set after dataman constr.
 	integer iSize = MatA.iGetNumRows();
 
 	// Minimum workspace size. To be improved.
-	// NOTE: optimal iWorkSize is computed by dggev()
+	// NOTE: optimal iWorkSize is computed by dggev() and dggevx()
 	// when called with iWorkSize = -1.
 	// The computed value is stored in WorkVec[0].
 	integer iWorkSize = -1;
+	integer iMinWorkSize = -1;
 	integer iInfo = 0;
 
+	integer iILO = 1, iIHI = iSize;
+	doublereal dABNRM = -1., dBBNRM = -1.;
+
 	doublereal dDmy;
+	integer	iDmy;
+	logical lDmy;
 	doublereal dWV;
-	__FC_DECL__(dggev)(sL,
-		sR,
-		&iSize,
-		&dDmy,
-		&iSize,
-		&dDmy,
-		&iSize,
-		&dDmy,
-		&dDmy,
-		&dDmy,
-		&dDmy,
-		&iSize,
-		&dDmy,
-		&iSize,
-		&dWV,
-		&iWorkSize,
-		&iInfo);
+	if (sB[0] == 'N') {
+		iMinWorkSize = 8*iSize;
+
+		__FC_DECL__(dggev)(
+			sL,		// JOBVL
+			sR,		// JOBVR
+			&iSize,		// N
+			&dDmy,		// A
+			&iSize,		// LDA
+			&dDmy,		// B
+			&iSize,		// LDB
+			&dDmy,		// ALPHAR
+			&dDmy,		// ALPHAI
+			&dDmy,		// BETA
+			&dDmy,		// VL
+			&iSize,		// LDVL
+			&dDmy,		// VR
+			&iSize,		// LDVR
+			&dWV,		// WORK
+			&iWorkSize,	// LWORK
+			&iInfo);
+
+	} else {
+		iMinWorkSize = 6*iSize;
+
+		__FC_DECL__(dggevx)(
+			sB,		// BALANC
+			sL,		// JOBVL
+			sR,		// JOBVR
+			sS,		// SENSE
+			&iSize,		// N
+			&dDmy,		// A
+			&iSize,		// LDA
+			&dDmy,		// B
+			&iSize,		// LDB
+			&dDmy,		// ALPHAR
+			&dDmy,		// ALPHAI
+			&dDmy,		// BETA
+			&dDmy,		// VL
+			&iSize,		// LDVL
+			&dDmy,		// VR
+			&iSize,		// LDVR
+			&iILO,		// ILO
+			&iIHI,		// IHI
+			&dDmy,		// LSCALE
+			&dDmy,		// RSCALE
+			&dABNRM,	// ABNRM
+			&dBBNRM,	// BBNRM
+			&dDmy,		// RCONDE
+			&dDmy,		// RCONDV
+			&dWV,		// WORK
+			&iWorkSize,	// LWORK
+			&iDmy,		// IWORK
+			&lDmy,		// BWORK
+			&iInfo);
+	}
 
 	if (iInfo != 0) {
-		silent_cerr("dggev() query for worksize failed "
+		silent_cerr("dggev[x]() query for worksize failed "
 			"INFO=" << iInfo << std::endl);
 		iInfo = 0;
 	}
 
 	iWorkSize = (integer)dWV;
-	if (iWorkSize < 8*iSize) {
-		silent_cerr("dggev() asked for a worksize " << iWorkSize
-			<< " less than the minimum, " << 8*iSize
+	if (iWorkSize < iMinWorkSize) {
+		silent_cerr("dggev[x]() asked for a worksize " << iWorkSize
+			<< " less than the minimum, " << iMinWorkSize
 			<< "; using the minimum" << std::endl);
-		iWorkSize = 8*iSize;
+		iWorkSize = iMinWorkSize;
 	}
 
 	// Workspaces
-	// 2 matrices iSize x iSize, 3 vectors iSize x 1, 1 vector iWorkSize x 1
+	// 	2 matrices iSize x iSize
+	//	5 vectors iSize x 1
+	//	1 vector iWorkSize x 1
 	doublereal* pd = NULL;
 	int iTmpSize = 2*(iSize*iSize) + 3*iSize + iWorkSize;
+	if (sB[0] != 'N') {
+		iTmpSize += 2*iSize;
+	}
 	SAFENEWARR(pd, doublereal, iTmpSize);
 #if defined HAVE_MEMSET
 	memset(pd, 0, iTmpSize*sizeof(doublereal));
@@ -3974,73 +4049,151 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 	MyVectorHandler Beta(iSize, pdTmp);
 	pdTmp += iSize;
 
-	MyVectorHandler WorkVec(iWorkSize, pdTmp);
+	MyVectorHandler LScale;
+	MyVectorHandler RScale;
+	if (sB[0] != 'N') {
+		LScale.Attach(iSize, pdTmp);
+		pdTmp += iSize;
 
-#ifdef DEBUG_MEMMANAGER
-	ASSERT(defaultMemoryManager.fIsValid(pMatA->pdGetMat(),
-		iSize*iSize*sizeof(doublereal)));
-	ASSERT(defaultMemoryManager.fIsValid(pMatB->pdGetMat(),
-		iSize*iSize*sizeof(doublereal)));
-	ASSERT(defaultMemoryManager.fIsValid(MatVL.pdGetMat(),
-		iSize*iSize*sizeof(doublereal)));
-	ASSERT(defaultMemoryManager.fIsValid(MatVR.pdGetMat(),
-		iSize*iSize*sizeof(doublereal)));
-	ASSERT(defaultMemoryManager.fIsValid(AlphaR.pdGetVec(),
-		iSize*sizeof(doublereal)));
-	ASSERT(defaultMemoryManager.fIsValid(AlphaI.pdGetVec(),
-		iSize*sizeof(doublereal)));
-	ASSERT(defaultMemoryManager.fIsValid(Beta.pdGetVec(),
-		iSize*sizeof(doublereal)));
-	ASSERT(defaultMemoryManager.fIsValid(WorkVec.pdGetVec(),
-		iWorkSize*sizeof(doublereal)));
-#endif // DEBUG_MEMMANAGER
+		RScale.Attach(iSize, pdTmp);
+		pdTmp += iSize;
+	}
+
+	MyVectorHandler WorkVec(iWorkSize, pdTmp);
 
 	// Eigenanalysis
 	// NOTE: according to lapack's documentation, dgegv() is deprecated
 	// in favour of dggev()... I find dgegv() a little bit faster (10%?)
 	// for typical problems (N ~ 1000).
-	__FC_DECL__(dggev)(sL,
-		sR,
-		&iSize,
-		MatA.pdGetMat(),
-		&iSize,
-		MatB.pdGetMat(),
-		&iSize,
-		AlphaR.pdGetVec(),
-		AlphaI.pdGetVec(),
-		Beta.pdGetVec(),
-		MatVL.pdGetMat(),
-		&iSize,
-		MatVR.pdGetMat(),
-		&iSize,
-		WorkVec.pdGetVec(),
-		&iWorkSize,
-		&iInfo);
+	if (sB[0] == 'N') {
+		__FC_DECL__(dggev)(
+			sL,			// JOBVL
+			sR,			// JOBVR
+			&iSize,			// N
+			MatA.pdGetMat(),	// A
+			&iSize,			// LDA
+			MatB.pdGetMat(),	// B
+			&iSize,			// LDB
+			AlphaR.pdGetVec(),	// ALPHAR
+			AlphaI.pdGetVec(),	// ALPHAI
+			Beta.pdGetVec(),	// BETA
+			MatVL.pdGetMat(),	// VL
+			&iSize,			// LDVL
+			MatVR.pdGetMat(),	// VR
+			&iSize,			// LDVR
+			WorkVec.pdGetVec(),	// WORK
+			&iWorkSize,		// LWORK
+			&iInfo);		// INFO
+
+	} else {
+		std::vector<integer> iIWORK(iSize + 6);
+
+		__FC_DECL__(dggevx)(
+			sB,			// BALANCE
+			sL,			// JOBVL
+			sR,			// JOBVR
+			sS,			// SENSE
+			&iSize,			// N
+			MatA.pdGetMat(),	// A
+			&iSize,			// LDA
+			MatB.pdGetMat(),	// B
+			&iSize,			// LDB
+			AlphaR.pdGetVec(),	// ALPHAR
+			AlphaI.pdGetVec(),	// ALPHAI
+			Beta.pdGetVec(),	// BETA
+			MatVL.pdGetMat(),	// VL
+			&iSize,			// LDVL
+			MatVR.pdGetMat(),	// VR
+			&iSize,			// LDVR
+			&iILO,			// ILO
+			&iIHI,			// IHI
+			LScale.pdGetVec(),	// LSCALE
+			RScale.pdGetVec(),	// RSCALE
+			&dABNRM,		// ABNRM
+			&dBBNRM,		// BBNRM
+			&dDmy,			// RCONDE
+			&dDmy,			// RCONDV
+			WorkVec.pdGetVec(),	// WORK
+			&iWorkSize,		// LWORK
+			&iIWORK[0],		// IWORK
+			&lDmy,			// BWORK
+			&iInfo);		// INFO
+	}
 
 	std::ostream& Out = pDM->GetOutFile();
 	Out << "Info: " << iInfo << ", ";
 
-	const char* const sErrs[] = {
-		"DGGBAL",
-		"DGEQRF",
-		"DORMQR",
-		"DORGQR",
-		"DGGHRD",
-		"DHGEQZ (other than failed iteration)",
-		"DTGEVC",
-		"DGGBAK (computing VL)",
-		"DGGBAK (computing VR)",
-		"DLASCL (various calls)"
-	};
-
 	if (iInfo == 0) {
 		// = 0:  successful exit
-		Out << "success" << std::endl;
+		Out << "success"
+			<< " BALANC=\"" << sB << "\""
+			<< " ILO=" << iILO
+			<< " IHI=" << iIHI
+			<< " ABNRM=" << dABNRM
+			<< " BBNRM=" << dBBNRM
+			<< std::endl;
 
 	} else if (iInfo < 0) {
+		char *arg[] = {
+			"JOBVL",
+			"JOBVR",
+			"N",
+			"A",
+			"LDA",
+			"B",
+			"LDB",
+			"ALPHAR",
+			"ALPHAI",
+			"BETA",
+			"VL",
+			"LDVL",
+			"VR",
+			"LDVR",
+			"WORK",
+			"LWORK",
+			"INFO",
+			NULL
+		};
+
+		char *argx[] = {
+			"BALANCE",
+			"JOBVL",
+			"JOBVR",
+			"SENSE",
+			"N",
+			"A",
+			"LDA",
+			"B",
+			"LDB",
+			"ALPHAR",
+			"ALPHAI",
+			"BETA",
+			"VL",
+			"LDVL",
+			"VR",
+			"LDVR",
+			"ILO",
+			"IHI",
+			"LSCALE",
+			"RSCALE",
+			"ABNRM",
+			"BBNRM",
+			"RCONDE",
+			"RCONDV",
+			"WORK",
+			"LWORK",
+			"IWORK",
+			"BWORK",
+			"INFO",
+			NULL
+		};
+
+		char **argv = (sB[0] == 'N' ? arg : argx );
+
 		// < 0:  if INFO = -i, the i-th argument had an illegal value.
-		Out << "argument #" << -iInfo << " was passed "
-			"an illegal value" << std::endl;
+		Out << "argument #" << -iInfo
+			<< " (" << argv[-iInfo - 1] << ") "
+			<< "was passed an illegal value" << std::endl;
 
 	} else if (iInfo > 0 && iInfo <= iSize) {
 		/* = 1,...,N:
@@ -4052,18 +4205,14 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 			<< std::endl;
 
 	} else if (iInfo > iSize) {
-		/* > N:  errors that usually indicate LAPACK problems:
-		 * =N+1: error return from DGGBAL
-		 * =N+2: error return from DGEQRF
-		 * =N+3: error return from DORMQR
-		 * =N+4: error return from DORGQR
-		 * =N+5: error return from DGGHRD
-		 * =N+6: error return from DHGEQZ (other than failed iteration)
-		 * =N+7: error return from DTGEVC
-		 * =N+8: error return from DGGBAK (computing VL)
-		 * =N+9: error return from DGGBAK (computing VR)
-		 * =N+10: error return from DLASCL (various calls) */
-		Out << "error return from " << sErrs[iInfo-iSize-1] << std::endl;
+		const char* const sErrs[] = {
+			"DHGEQZ (other than QZ iteration failed in DHGEQZ)",
+			"DTGEVC",
+			NULL
+		};
+
+		Out << "error return from " << sErrs[iInfo - iSize - 1]
+			<< std::endl;
 	}
 
 	output_eigenvalues(&Beta, AlphaR, AlphaI, 0., pDM, pEA);

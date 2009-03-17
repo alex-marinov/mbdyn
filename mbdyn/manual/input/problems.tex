@@ -338,6 +338,7 @@ The default behavior is to ignore such requests\footnote{See note above}.
             | output sparse matrices
             | output eigenvectors
             | use lapack
+              [ , balance , { no | scale | permute | all } ]
             | use arpack , <nev> , <ncv> , <tol> } [ , ... ] ]
 \end{verbatim}
 Performs the direct eigenanalysis of the problem.
@@ -355,11 +356,10 @@ using the \kw{rigid body kinematics} card
 \begin{itemize}
 \item \kw{when} indicates at what time the eigenanalysis is performed;
 \item \kw{param} is the value of the coefficient that is used to project
-	the problem in the discrete time domain; it can be interpreted
-	as inverse of half the largest frequency that can be computed.
-	However, accuracy is lost by the projection procedure,
-	so it should be much larger than the largest frequencies of interest
-	by at least two orders of magnitude;
+	the problem in the discrete time domain; it represents
+	a singularity point in the transformation from the discrete
+	to the continuous eigenvalues, so it should not coincide with
+	an eigenvalue of the problem;  by default it is 1.0;
 \item \kw{output full matrices} causes the output
 	of the (full) problem matrices in a \kw{.m} file,
 	intended to be loaded by tools like octave/matlab;
@@ -372,6 +372,10 @@ using the \kw{rigid body kinematics} card
 \item \kw{use lapack} performs the eigenanalysis using
 	LAPACK's \kw{dggev()} routine (generalized unsymmetric eigenanalysis
 	using the QZ decomposition);
+\item \kw{balance} performs matrix permutation (\kw{permute}),
+	scaling (\kw{scale}) or both (\kw{all}) when using LAPACK's
+	\kw{dggevx()} routine; by default, \kw{dggev()} is used instead,
+	(equivalent to \kw{no});
 \item \kw{use arpack} performs the eigenanalysis using
 	ARPACK's \kw{dnaupd()} and \kw{dneupd()} routines
 	(canonical unsymmetric eigenanalysis,
