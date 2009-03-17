@@ -122,9 +122,9 @@ pNodeStr1(pN1), pNodeStr2(pN2), f1(f1Tmp), f2(f2Tmp)
    ASSERT(pNodeHyd1->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNodeHyd2 != NULL);
    ASSERT(pNodeHyd2->GetNodeType() == Node::HYDRAULIC);
-   ASSERT(area1 > DBL_EPSILON); 
-   ASSERT(area2 > DBL_EPSILON);
-   ASSERT(dl > DBL_EPSILON);
+   ASSERT(area1 > std::numeric_limits<doublereal>::epsilon()); 
+   ASSERT(area2 > std::numeric_limits<doublereal>::epsilon());
+   ASSERT(dl > std::numeric_limits<doublereal>::epsilon());
    ASSERT(pNodeStr1 != NULL);
    ASSERT(pNodeStr1->GetNodeType() == Node::STRUCTURAL);
    ASSERT(pNodeStr2 != NULL);

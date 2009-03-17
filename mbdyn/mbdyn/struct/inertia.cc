@@ -78,7 +78,7 @@ CenterOfMass::Collect_int(void)
 	}
 
 	J_cm = J;
-	if (dMass < DBL_EPSILON) {
+	if (dMass < std::numeric_limits<doublereal>::epsilon()) {
 		X_cm = 0.;
 		V_cm = 0.;
 		Omega_cm = 0.;
@@ -211,7 +211,7 @@ Inertia::Collect_int(void)
 {
 	CenterOfMass::Collect_int();
 
-	if (dMass < DBL_EPSILON) {
+	if (dMass < std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("Inertia(" << GetLabel() << "): "
 			"mass is null" << std::endl);
 

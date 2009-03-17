@@ -60,7 +60,7 @@ dKappa1(dK1), dKappa2(dK2), area(A)
    ASSERT(pNode2->GetNodeType() == Node::HYDRAULIC);
    ASSERT(dK1 >= 0.);
    ASSERT(dK2 >= 0.);
-   ASSERT(A > DBL_EPSILON);
+   ASSERT(A > std::numeric_limits<doublereal>::epsilon());
 }
 
 Minor_loss::~Minor_loss(void)
@@ -120,8 +120,8 @@ Minor_loss::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal jumpPres = fabs(p1-p2);
    
    /* evito di dividere per un numero troppo piccolo */
-   if (jumpPres < 1.e8*DBL_EPSILON) {
-      jumpPres = 1.e8*DBL_EPSILON;
+   if (jumpPres < 1.e8*std::numeric_limits<doublereal>::epsilon()) {
+      jumpPres = 1.e8*std::numeric_limits<doublereal>::epsilon();
    }
    /*
     * se voglio usare un fluido comprimibile, metto la pressione
@@ -223,8 +223,8 @@ dKappa1(dK1), dKappa2(dK2), area1(A1), area2(A2)
 	ASSERT(pNode2->GetNodeType() == Node::HYDRAULIC);
 	ASSERT(dK1 >= 0.);
 	ASSERT(dK2 >= 0.);
-	ASSERT(A1 > DBL_EPSILON);
-	ASSERT(A2 > DBL_EPSILON);
+	ASSERT(A1 > std::numeric_limits<doublereal>::epsilon());
+	ASSERT(A2 > std::numeric_limits<doublereal>::epsilon());
 }
 
 ThreeWayMinorLoss::~ThreeWayMinorLoss(void)
@@ -290,8 +290,8 @@ ThreeWayMinorLoss::AssJac(
 	doublereal jumpPres = fabs(p0-p);
 	
 	/* evito di dividere per un numero troppo piccolo */
-	if (jumpPres < 1.e8*DBL_EPSILON) {
-		jumpPres = 1.e8*DBL_EPSILON;
+	if (jumpPres < 1.e8*std::numeric_limits<doublereal>::epsilon()) {
+		jumpPres = 1.e8*std::numeric_limits<doublereal>::epsilon();
 	}
 	/*
 	 * se voglio usare un fluido comprimibile, metto la pressione
@@ -408,9 +408,9 @@ area_pipe(A_pipe),  ReCr(ReCr), turbulent(false)
 	ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);
 	ASSERT(pNode2 != NULL);
 	ASSERT(pNode2->GetNodeType() == Node::HYDRAULIC);
-	ASSERT(Dh > DBL_EPSILON);
-	ASSERT(A_diaf > DBL_EPSILON);
-	ASSERT(A_pipe > DBL_EPSILON);
+	ASSERT(Dh > std::numeric_limits<doublereal>::epsilon());
+	ASSERT(A_diaf > std::numeric_limits<doublereal>::epsilon());
+	ASSERT(A_pipe > std::numeric_limits<doublereal>::epsilon());
    
 	/* se |p1-p2| < CriticJump avrò sicuramente moto laminare se no turbolento */
    
@@ -435,7 +435,7 @@ area_pipe(A_pipe),  ReCr(ReCr), turbulent(false)
       
 	doublereal base = Cc*rapp;
 	doublereal rad = 1.-base*base;
-	if (rad < 1.e3*DBL_EPSILON) {
+	if (rad < 1.e3*std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("Orifice(" << GetLabel() << "): error computing Cd" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}

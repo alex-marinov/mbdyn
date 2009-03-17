@@ -365,7 +365,7 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
 				silent_cerr("JacHdl(" << r << "," << c << ")="
 						<< JacHdl(r, c) << std::endl);
 			}
-			JacHdl(r, c) = 1e-16;
+			JacHdl(r, c) = std::numeric_limits<doublereal>::epsilon();
 		}
 	}
 #endif

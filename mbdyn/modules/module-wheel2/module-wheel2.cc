@@ -225,7 +225,7 @@ read(LoadableElem* pEl,
 	 * normalizzo l'orientazione del terreno
 	 */
 	doublereal d = p->GroundDirection.Dot();
-	if (d <= DBL_EPSILON) {
+	if (d <= std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("Wheel2(" << pEl->GetLabel() << "): "
 			"null direction at line " << HP.GetLineData()
 			<< std::endl);
@@ -521,7 +521,7 @@ ass_res(LoadableElem* pEl,
 		 */
 		Vec3 fwd = (p->pWheel->GetRCurr()*p->WheelAxle).Cross(n);
 		doublereal d = fwd.Dot();
-		if (d < DBL_EPSILON) {
+		if (d < std::numeric_limits<doublereal>::epsilon()) {
 			silent_cerr("Wheel2(" << pEl->GetLabel() << "): "
 				"wheel axle is (neraly) orthogonal "
 				"to the ground" << std::endl);

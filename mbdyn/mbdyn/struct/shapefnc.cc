@@ -117,7 +117,7 @@ DxDcsi2N(doublereal d, const Vec3& X1, const Vec3& X2)
 	Vec3 DXDcsi(X1*dN1p+X2*dN2p);
 	doublereal dd = DXDcsi.Dot();
 
-	if (dd > DBL_EPSILON) {
+	if (dd > std::numeric_limits<doublereal>::epsilon()) {
 		return std::sqrt(dd);
 	}
 
@@ -233,7 +233,7 @@ DxDcsi3N(doublereal d, const Vec3& X1, const Vec3& X2, const Vec3& X3)
 	Vec3 DXDcsi(X1*dN1p+X2*dN2p+X3*dN3p);
 	doublereal dd = DXDcsi.Dot();
 
-	if (dd > DBL_EPSILON) {
+	if (dd > std::numeric_limits<doublereal>::epsilon()) {
 		return std::sqrt(dd);
 	}
 

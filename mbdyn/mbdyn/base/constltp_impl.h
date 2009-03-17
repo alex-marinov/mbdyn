@@ -581,11 +581,11 @@ public:
 
 		doublereal dPreStrain = Get();
 		dCurrEps = 1. + Epsilon - dPreStrain;
-		ASSERT(dCurrEps > DBL_EPSILON);
+		ASSERT(dCurrEps > std::numeric_limits<doublereal>::epsilon());
 
-		if (dCurrEps < DBL_EPSILON) {
+		if (dCurrEps < std::numeric_limits<doublereal>::epsilon()) {
 			// throw ErrGeneric();
-			dCurrEps = DBL_EPSILON;
+			dCurrEps = std::numeric_limits<doublereal>::epsilon();
 		}
 
 		F = PreStress + dStiffness*log(dCurrEps);
@@ -817,8 +817,8 @@ public:
 	: ElasticConstitutiveLaw<T, Tder>(pDC, PStress),
 	dStiffness(dStiff), dAlpha(0.), dBeta(0.)
 	{
-		ASSERT(dEpsHard > DBL_EPSILON);
-		ASSERT(dStiff > DBL_EPSILON);
+		ASSERT(dEpsHard > std::numeric_limits<doublereal>::epsilon());
+		ASSERT(dStiff > std::numeric_limits<doublereal>::epsilon());
 
 		dAlpha = 3./(dEpsHard*dEpsHard);
 		dBeta = dStiff0/dStiff;

@@ -80,7 +80,7 @@ void
 Gmres::GeneratePlaneRotation(const doublereal &dx, const doublereal &dy, 
 		doublereal &cs, doublereal &sn) const 
 {
-	if (fabs(dy) < DBL_EPSILON) {
+	if (fabs(dy) < std::numeric_limits<doublereal>::epsilon()) {
 		cs = 1.0;
 		sn = 0.0;
 
@@ -357,7 +357,7 @@ rebuild_matrix:;
 			v[i+1].Resize(Size);
 			
 			/*  Reorthogonalize? */
-			if  (.001*norm2/norm1 < DBL_EPSILON) {
+			if  (.001*norm2/norm1 < std::numeric_limits<doublereal>::epsilon()) {
     				for (int k = 0;  k <= i; k++) {       
 					doublereal hr = v[k].InnerProd(w);
         				H(k+1, i+1) += hr;
@@ -370,7 +370,7 @@ rebuild_matrix:;
 				}
 				H(i+2, i+1) = w.Norm();
 			}
-			if (fabs(H(i+2, i+1)) > DBL_EPSILON) { 
+			if (fabs(H(i+2, i+1)) > std::numeric_limits<doublereal>::epsilon()) { 
 				v[i+1].ScalarMul(w, 1./H(i+2, i+1));
 
 #ifdef DEBUG_ITERATIVE

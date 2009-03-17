@@ -459,7 +459,7 @@ UniversalHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
     * unitario */
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
-   if (Tmp.Dot() < DBL_EPSILON) {
+   if (Tmp.Dot() < std::numeric_limits<doublereal>::epsilon()) {
       silent_cerr("UniversalHingeJoint(" << GetLabel() << "): "
       	      "first and second node hinge axes are (nearly) orthogonal"
 	      << std::endl);
@@ -990,7 +990,7 @@ UniversalRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
     * unitario */
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
-   if (Tmp.Dot() < DBL_EPSILON) {
+   if (Tmp.Dot() < std::numeric_limits<doublereal>::epsilon()) {
       silent_cerr("UniversalRotationJoint(" << GetLabel() << "): "
       	      "first and second node hinge axes are (nearly) orthogonal"
 	      << std::endl);
@@ -1416,7 +1416,7 @@ UniversalPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
     * unitario */
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
-   if (Tmp.Dot() < DBL_EPSILON) {
+   if (Tmp.Dot() < std::numeric_limits<doublereal>::epsilon()) {
       silent_cerr("UniversalPinJoint(" << GetLabel() << "): "
       	      "node and fixed point hinge axes are (nearly) orthogonal"
 	      << std::endl);

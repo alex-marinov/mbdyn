@@ -56,7 +56,7 @@ Vec3
 dir(const Vec3& v)
 {
 	doublereal d = v.Norm();
-	if (d < DBL_EPSILON) {
+	if (d < std::numeric_limits<doublereal>::epsilon()) {
 		return Zero3;
 	}
 	return v/d;
@@ -66,7 +66,7 @@ Vec3
 tanh(const Vec3& v)
 {
 	doublereal d = v.Norm();
-	if (d < DBL_EPSILON) {
+	if (d < std::numeric_limits<doublereal>::epsilon()) {
 		return Zero3;
 	}
 	return v*(tanh(d)/d);
@@ -76,7 +76,7 @@ Vec3
 sin(const Vec3& v)
 {
 	doublereal d = v.Norm();
-	if (d < DBL_EPSILON) {
+	if (d < std::numeric_limits<doublereal>::epsilon()) {
 		return Zero3;
 	}
 	return v*(sin(d)/d);

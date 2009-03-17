@@ -58,9 +58,9 @@ length(L), turbulent(transition), q0(q0)
    ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode2 != NULL);
    ASSERT(pNode2->GetNodeType() == Node::HYDRAULIC);
-   ASSERT(Dh > DBL_EPSILON);
-   ASSERT(A > DBL_EPSILON);
-   ASSERT(L> DBL_EPSILON);
+   ASSERT(Dh > std::numeric_limits<doublereal>::epsilon());
+   ASSERT(A > std::numeric_limits<doublereal>::epsilon());
+   ASSERT(L> std::numeric_limits<doublereal>::epsilon());
    viscosity = HF->dGetViscosity();
    
    doublereal density = HF->dGetDensity((pNode1->dGetX()+pNode2->dGetX())/2.);
@@ -117,7 +117,7 @@ Pipe::AssJac(VariableSubMatrixHandler& WorkMat,
 {
    DEBUGCOUT("Entering Pipe::AssJac()" << std::endl);
 #ifdef HYDR_DEVEL
-   DEBUGCOUT("dblepsilon INIZIO: "  << DBL_EPSILON << std::endl);
+   DEBUGCOUT("dblepsilon INIZIO: "  << std::numeric_limits<doublereal>::epsilon() << std::endl);
 #endif /* HYDR_DEVEL */
    
    FullSubMatrixHandler& WM = WorkMat.SetFull();
@@ -162,8 +162,8 @@ Pipe::AssJac(VariableSubMatrixHandler& WorkMat,
       DEBUGCOUT("Entering Pipe::AssJac() sono turbolento" << std::endl);   
 #endif /* HYDR_DEVEL */
       /* evito di dividere per un numero troppo piccolo */
-      if (jumpPres < 1.e8*DBL_EPSILON) {
-	 jumpPres = 1.e8*DBL_EPSILON;
+      if (jumpPres < 1.e8*std::numeric_limits<doublereal>::epsilon()) {
+	 jumpPres = 1.e8*std::numeric_limits<doublereal>::epsilon();
       }
 #ifdef HYDR_DEVEL
       DEBUGCOUT("AssJac() JUMPPRES dopo: " << jumpPres << std::endl);
@@ -214,8 +214,8 @@ Pipe::AssJac(VariableSubMatrixHandler& WorkMat,
 	 if (Re > HF->dGetRe(HydraulicFluid::UPPER)*.775) {
 	    /* uso lo jacobiano turbolento per la parte finale */
 	    /* evito di dividere per un numero troppo piccolo */
-	    if (jumpPres < 1.e8*DBL_EPSILON) {
-	       jumpPres = 1.e8*DBL_EPSILON;
+	    if (jumpPres < 1.e8*std::numeric_limits<doublereal>::epsilon()) {
+	       jumpPres = 1.e8*std::numeric_limits<doublereal>::epsilon();
 	    }
 #ifdef HYDR_DEVEL	    
 	    DEBUGCOUT("AssJac() JUMPPRES dopo: " << jumpPres << std::endl);
@@ -482,9 +482,9 @@ length(L), turbulent(transition), q0(q0)
    ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode2 != NULL);
    ASSERT(pNode2->GetNodeType() == Node::HYDRAULIC);
-   ASSERT(Dh > DBL_EPSILON);
-   ASSERT(A > DBL_EPSILON);
-   ASSERT(L > DBL_EPSILON);
+   ASSERT(Dh > std::numeric_limits<doublereal>::epsilon());
+   ASSERT(A > std::numeric_limits<doublereal>::epsilon());
+   ASSERT(L > std::numeric_limits<doublereal>::epsilon());
    
    doublereal viscosity = HF->dGetViscosity();
    doublereal density = HF->dGetDensity((pNode1->dGetX()+pNode2->dGetX())/2.);
@@ -536,7 +536,7 @@ Dynamic_pipe::AssJac(VariableSubMatrixHandler& WorkMat,
 	     const VectorHandler& XPrimeCurr)
 {
    DEBUGCOUT("Entering Pipe::AssJac()" << std::endl);
-   DEBUGCOUT("Valore di dblepsilon INIZIO:"  << DBL_EPSILON << std::endl); 
+   DEBUGCOUT("Valore di dblepsilon INIZIO:"  << std::numeric_limits<doublereal>::epsilon() << std::endl); 
    FullSubMatrixHandler& WM = WorkMat.SetFull();
    WM.ResizeReset(5, 5);
   
@@ -1030,9 +1030,9 @@ q0(q0)
    ASSERT(pNode2 != NULL);
    ASSERT(pNode2->GetNodeType() == Node::HYDRAULIC);
    
-   ASSERT(Dh > DBL_EPSILON);
-   ASSERT(A > DBL_EPSILON);
-   ASSERT(L > DBL_EPSILON);
+   ASSERT(Dh > std::numeric_limits<doublereal>::epsilon());
+   ASSERT(A > std::numeric_limits<doublereal>::epsilon());
+   ASSERT(L > std::numeric_limits<doublereal>::epsilon());
    
    dKlam = 16.*length/(diameter*diameter);
    dKtra = .25*length/(diameter*area);

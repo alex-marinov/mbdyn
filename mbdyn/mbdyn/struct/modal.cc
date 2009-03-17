@@ -1827,9 +1827,9 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 		/* Error handling: il programma si ferma,
 		 * pero' segnala dov'e' l'errore */
-		if (v1.Dot() < DBL_EPSILON
-				|| v2.Dot() < DBL_EPSILON
-				|| v3.Dot() < DBL_EPSILON)
+		if (v1.Dot() < std::numeric_limits<doublereal>::epsilon()
+				|| v2.Dot() < std::numeric_limits<doublereal>::epsilon()
+				|| v3.Dot() < std::numeric_limits<doublereal>::epsilon())
 		{
 			silent_cerr("Modal(" << GetLabel() << "):" 
 				<< "warning, first node hinge axis "

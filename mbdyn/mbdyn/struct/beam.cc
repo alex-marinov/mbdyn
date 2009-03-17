@@ -468,7 +468,7 @@ Beam::DsDxi(void)
 			xTmp[NODE3],
 			Beam::Section(i));
 		doublereal d = xGrad[i].Dot();
-		if (d > DBL_EPSILON) {
+		if (d > std::numeric_limits<doublereal>::epsilon()) {
 			/* final */
 			dsdxi[i] = 1./std::sqrt(d);
 

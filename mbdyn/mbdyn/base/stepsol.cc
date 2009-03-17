@@ -164,13 +164,13 @@ ImplicitStepIntegrator::EvalProd(doublereal Tau, const VectorHandler& f0,
 	ASSERT(pDM != NULL);
         
 	doublereal nw = w.Norm();
-        if (nw < DBL_EPSILON) {
+        if (nw < std::numeric_limits<doublereal>::epsilon()) {
                 z.Reset();
                 return;
         }
         doublereal sigma = pXCurr->InnerProd(w);
         sigma /=  nw;
-        if (fabs(sigma) > DBL_EPSILON) {
+        if (fabs(sigma) > std::numeric_limits<doublereal>::epsilon()) {
                 doublereal xx = (fabs( sigma) <= 1.) ? 1. : fabs(sigma);
                 Tau = copysign(Tau*xx, sigma);
         }
@@ -1267,13 +1267,13 @@ InverseDynamicsStepSolver::EvalProd(doublereal Tau, const VectorHandler& f0,
 	ASSERT(pDM != NULL);
         
 	doublereal nw = w.Norm();
-        if (nw < DBL_EPSILON) {
+        if (nw < std::numeric_limits<doublereal>::epsilon()) {
                 z.Reset();
                 return;
         }
         doublereal sigma = pXCurr->InnerProd(w);
         sigma /=  nw;
-        if (fabs(sigma) > DBL_EPSILON) {
+        if (fabs(sigma) > std::numeric_limits<doublereal>::epsilon()) {
                 doublereal xx = (fabs( sigma) <= 1.) ? 1. : fabs(sigma);
                 Tau = copysign(Tau*xx, sigma);
         }

@@ -1120,13 +1120,13 @@ MBDynParser::GetUnitVecRel(const ReferenceFrame& rf)
 	Vec3 v = GetVecRel(rf);
 
 	doublereal d = v.Dot();
-	if (d <= DBL_EPSILON) {
+	if (d <= std::numeric_limits<doublereal>::epsilon()) {
 		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 	}
 
 	d = std::sqrt(d);
 
-	if (std::fabs(d - 1.) > DBL_EPSILON) {
+	if (std::fabs(d - 1.) > std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("warning: non-unit vector (norm=" << d << ") "
 			"at line " << GetLineData() << "; "
 			"normalized" << std::endl);
@@ -1141,13 +1141,13 @@ MBDynParser::GetUnitVecAbs(const ReferenceFrame& rf)
 	Vec3 v = GetVecAbs(rf);
 
 	doublereal d = v.Dot();
-	if (d <= DBL_EPSILON) {
+	if (d <= std::numeric_limits<doublereal>::epsilon()) {
 		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 	}
 
 	d = std::sqrt(d);
 
-	if (std::fabs(d - 1.) > DBL_EPSILON) {
+	if (std::fabs(d - 1.) > std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("warning: non-unit vector (norm=" << d << ") "
 			"at line " << GetLineData() << "; "
 			"normalized" << std::endl);

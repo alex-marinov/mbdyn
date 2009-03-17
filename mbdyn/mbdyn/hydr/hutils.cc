@@ -64,10 +64,10 @@ c_spost(cs), c_vel(cv), c_acc(ca)
 {
    ASSERT(pNode1 != NULL);
    ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);
-   ASSERT(St > DBL_EPSILON);
-   ASSERT(As > DBL_EPSILON); 
-   ASSERT(A_pipe > DBL_EPSILON); 
-   ASSERT(ms > DBL_EPSILON);
+   ASSERT(St > std::numeric_limits<doublereal>::epsilon());
+   ASSERT(As > std::numeric_limits<doublereal>::epsilon()); 
+   ASSERT(A_pipe > std::numeric_limits<doublereal>::epsilon()); 
+   ASSERT(ms > std::numeric_limits<doublereal>::epsilon());
    ASSERT(P0 >= 0.);
    ASSERT(Pmax >= 0.);
    ASSERT(k >= 0.);
@@ -406,9 +406,9 @@ s_max(s_mx), s_min(s_mn), c_spost(c_s)
    ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode2 != NULL);
    ASSERT(pNode2->GetNodeType() == Node::HYDRAULIC);
-   ASSERT(Ps > DBL_EPSILON);
-   ASSERT(A_pipe > DBL_EPSILON);
-   ASSERT(A_serb > DBL_EPSILON);
+   ASSERT(Ps > std::numeric_limits<doublereal>::epsilon());
+   ASSERT(A_pipe > std::numeric_limits<doublereal>::epsilon());
+   ASSERT(A_serb > std::numeric_limits<doublereal>::epsilon());
    ASSERT(lev >= 0.);
    ASSERT(s_mx >= 0.);
    ASSERT(s_mn >= 0.);
@@ -497,15 +497,15 @@ Tank::AssJac(VariableSubMatrixHandler& WorkMat,
    /* salto di pressione nodo1-Tank */
    doublereal jumpPres1S = fabs(p1-press);  
    /* evito di dividere per un numero troppo piccolo */
-   if (jumpPres1S < 1.e8*DBL_EPSILON) {
-      jumpPres1S = 1.e8*DBL_EPSILON;
+   if (jumpPres1S < 1.e8*std::numeric_limits<doublereal>::epsilon()) {
+      jumpPres1S = 1.e8*std::numeric_limits<doublereal>::epsilon();
    }
    
    /* salto di pressione Tank-nodo2 */
    doublereal jumpPresS2 = fabs(press-p2);
    /* evito di dividere per un numero troppo piccolo */
-   if (jumpPresS2 < 1.e8*DBL_EPSILON) {
-      jumpPresS2 = 1.e8*DBL_EPSILON;
+   if (jumpPresS2 < 1.e8*std::numeric_limits<doublereal>::epsilon()) {
+      jumpPresS2 = 1.e8*std::numeric_limits<doublereal>::epsilon();
    }
    doublereal density = HF->dGetDensity((p1+p2)/2.);
    

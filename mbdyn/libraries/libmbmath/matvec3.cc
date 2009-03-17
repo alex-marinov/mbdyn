@@ -123,7 +123,7 @@ Mat3x3::dDet(void) const
 Mat3x3
 Mat3x3::Inv(const doublereal &d) const
 {
-   ASSERT(fabs(d) > DBL_EPSILON);
+   ASSERT(fabs(d) > std::numeric_limits<doublereal>::epsilon());
 
    doublereal* p = (doublereal*)pdMat;
 
@@ -143,7 +143,7 @@ Mat3x3
 Mat3x3::Inv(void) const
 {
    doublereal d = dDet();
-   if (fabs(d) < DBL_EPSILON) {
+   if (fabs(d) < std::numeric_limits<doublereal>::epsilon()) {
       silent_cerr("matrix is singular" << std::endl);
       throw MatrixHandler::ErrMatrixIsSingular(MBDYN_EXCEPT_ARGS);
    }
@@ -159,7 +159,7 @@ Mat3x3::Solve(const doublereal& d, const Vec3& v) const
    doublereal* p = (doublereal*)pdMat;
    doublereal* pv = v.pGetVec();
 
-   ASSERT(fabs(d) > DBL_EPSILON);
+   ASSERT(fabs(d) > std::numeric_limits<doublereal>::epsilon());
    
    return Vec3((pv[V1]*(p[M22]*p[M33]-p[M23]*p[M32])
 		+pv[V2]*(p[M13]*p[M32]-p[M12]*p[M33])
@@ -178,7 +178,7 @@ Mat3x3::Solve(const Vec3& v) const
 {
    doublereal d = dDet();
    
-   if (fabs(d) < DBL_EPSILON) {
+   if (fabs(d) < std::numeric_limits<doublereal>::epsilon()) {
       silent_cerr("matrix is singular" << std::endl);
       throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
@@ -193,14 +193,14 @@ Mat3x3::LDLSolve(const Vec3& v) const
 
 	d1 = pdMat[M11];
 	ASSERT(d1 >= 0.);
-	if (d1 > DBL_EPSILON) {
+	if (d1 > std::numeric_limits<doublereal>::epsilon()) {
 		l21 = (pdMat[M21] + pdMat[M12])/(2.*d1);
 		l31 = (pdMat[M31] + pdMat[M13])/(2.*d1);
 	}
 
 	d2 = pdMat[M22] - l21*l21*d1;
 	ASSERT(d2 >= 0.);
-	if (d2 > DBL_EPSILON) {
+	if (d2 > std::numeric_limits<doublereal>::epsilon()) {
 		l32 = (pdMat[M32] + pdMat[M23])/(2.*d2);
 	}
 
@@ -217,19 +217,19 @@ Mat3x3::LDLSolve(const Vec3& v) const
 	doublereal z1 = v(1) - l21*z2 - l31*z3;
 
 	// y = D^-1 * z
-	if (d1 > DBL_EPSILON) {
+	if (d1 > std::numeric_limits<doublereal>::epsilon()) {
 		z1 /= d1;
 	} else {
 		z1 = 0.;
 	}
 
-	if (d2 > DBL_EPSILON) {
+	if (d2 > std::numeric_limits<doublereal>::epsilon()) {
 		z2 /= d2;
 	} else {
 		z2 = 0.;
 	}
 
-	if (d3 > DBL_EPSILON) {
+	if (d3 > std::numeric_limits<doublereal>::epsilon()) {
 		z3 /= d3;
 	} else {
 		z3 = 0.;
@@ -273,11 +273,11 @@ Mat3x3::EigSym(Vec3& EigenValues, Mat3x3& EigenVectors) const
 	// Comput. Methods Appl. Mech. Engrg. 2008
 	// doi:10.1016/j.cma.2008.03.031
 
-	if (!IsSymmetric(1.e-15)) {
+	if (!IsSymmetric(std::numeric_limits<doublereal>::epsilon())) {
 		return false;
 	}
 
-	if (IsDiag(1.e-15)) {
+	if (IsDiag(std::numeric_limits<doublereal>::epsilon())) {
 		EigenVectors = Eye3;
 		EigenValues = Vec3(pdMat[M11], pdMat[M22], pdMat[M33]);
 
@@ -294,7 +294,7 @@ Mat3x3::EigSym(Vec3& EigenValues, Mat3x3& EigenVectors) const
 
 	doublereal J2 = (AA*AA).Trace()/2;
 
-	if (fabs(J2) < 1e-15) {
+	if (fabs(J2) < std::numeric_limits<doublereal>::epsilon()) {
 		EigenVectors = Eye3;
 		EigenValues = Vec3(pdMat[M11], pdMat[M22], pdMat[M33]);
 
@@ -675,7 +675,7 @@ MatR2gparam(const Mat3x3& m)
 	/* test di singolarita' */
 	doublereal d = 1. + m.Trace();
    
-	if (fabs(d) < DBL_EPSILON) {
+	if (fabs(d) < std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("MatR2gparam(): divide by zero, "
 		"probably due to singularity in rotation parameters" << std::endl);
 		throw ErrDivideByZero(MBDYN_EXCEPT_ARGS);
@@ -712,19 +712,19 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
    
    if (ib == (ia%3)+1) {
       doublereal d = va.Norm();
-      if (d <= DBL_EPSILON) {
+      if (d <= std::numeric_limits<doublereal>::epsilon()) {
 	 silent_cerr(sFuncName << ": first vector must be non-null" << std::endl );
 	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
       r[i1] = va/d;
       d = vb.Norm();
-      if (d <= DBL_EPSILON) {
+      if (d <= std::numeric_limits<doublereal>::epsilon()) {
 	 silent_cerr(sFuncName << ": second vector must be non-null" << std::endl );
 	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
       r[i3] = r[i1].Cross(vb);
       d = r[i3].Dot();
-      if (d <= DBL_EPSILON) {
+      if (d <= std::numeric_limits<doublereal>::epsilon()) {
 	 silent_cerr(sFuncName << ": vectors must be distinct" 
 		 << std::endl);
 	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -738,19 +738,19 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
       return Mat3x3(r[0], r[1], r[2]);
    } else if (ib == ((ia+1)%3+1)) {
       doublereal d = va.Norm();
-      if (d <= DBL_EPSILON) {
+      if (d <= std::numeric_limits<doublereal>::epsilon()) {
 	 silent_cerr(sFuncName << ": first vector must be non-null" << std::endl );
 	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
       r[i1] = va/d;
       d = vb.Norm();
-      if (d <= DBL_EPSILON) {
+      if (d <= std::numeric_limits<doublereal>::epsilon()) {
 	 silent_cerr(sFuncName << ": second vector must be non-null" << std::endl );
 	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
       r[i2] = vb.Cross(r[i1]);
       d = r[i2].Dot();
-      if (d <= DBL_EPSILON) {
+      if (d <= std::numeric_limits<doublereal>::epsilon()) {
 	 silent_cerr(sFuncName << ": vectors must be distinct" 
 		 << std::endl);
 	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -891,7 +891,7 @@ Unwrap(const Vec3& vPrev, const Vec3& v)
 	doublereal dTheta = v.Norm();
 	if (dTheta > 0.) {
 		doublereal dThetaPrev = vPrev.Norm();
-		if (dThetaPrev > DBL_EPSILON) {
+		if (dThetaPrev > std::numeric_limits<doublereal>::epsilon()) {
 			bool b(false);
 
 			if (vPrev*v < 0) {

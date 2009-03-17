@@ -261,7 +261,7 @@ rebuild_matrix:;
 				std::cerr << "rho_1 " << rho_1 << std::endl;
 #endif /* DEBUG_ITERATIVE */
 
-	               		if (fabs(rho_1) < DBL_EPSILON) {
+	               		if (fabs(rho_1) < std::numeric_limits<doublereal>::epsilon()) {
                         		silent_cout("Bi-CGStab Iterative "
 						"Solver breakdown" 
 						<<  " rho_1 = 0 "
@@ -331,7 +331,7 @@ rebuild_matrix:;
 #endif /* DEBUG_ITERATIVE */
 
 			TotalIter++;
-                	if (fabs(omega) < DBL_EPSILON) {
+                	if (fabs(omega) < std::numeric_limits<doublereal>::epsilon()) {
                         	silent_cout("Bi-CGStab Iterative Solver "
 					"breakdown omega = 0 " << std::endl);
 				break;

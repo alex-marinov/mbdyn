@@ -52,7 +52,7 @@ Dir(TmpDir),
 dF(0.)
 {
    ASSERT(pNode != NULL);
-   ASSERT(Dir.Norm() > DBL_EPSILON);
+   ASSERT(Dir.Norm() > std::numeric_limits<doublereal>::epsilon());
    Dir /= Dir.Norm();
 }
 
@@ -264,7 +264,7 @@ Dir(TmpDir),
 dM(0.)
 {
    ASSERT(pNode != NULL);
-   ASSERT(Dir.Norm() > DBL_EPSILON);
+   ASSERT(Dir.Norm() > std::numeric_limits<doublereal>::epsilon());
    Dir /= Dir.Norm();   
 }
 

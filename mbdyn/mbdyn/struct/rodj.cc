@@ -68,7 +68,7 @@ dEpsilonPrime(0.)
 		v = pN2->GetXCurr() - pN1->GetXCurr();
 
 		doublereal dDot = v.Dot();
-		if (dDot <= DBL_EPSILON) {
+		if (dDot <= std::numeric_limits<doublereal>::epsilon()) {
 			silent_cerr("Rod(" << GetLabel() << "): "
 				"initial length must be non-null" << std::endl);
 			throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
@@ -77,7 +77,7 @@ dEpsilonPrime(0.)
 		dElle = std::sqrt(dDot);
 	}
 
-	ASSERT(dLength > DBL_EPSILON);
+	ASSERT(dLength > std::numeric_limits<doublereal>::epsilon());
 }
 
 /* Distruttore */
@@ -111,7 +111,7 @@ Rod::AssMat(FullSubMatrixHandler& WorkMat, doublereal dCoef)
 	doublereal dCross = v.Dot();
 
 	/* Verifica che la distanza non sia nulla */
-	if (dCross <= DBL_EPSILON) {
+	if (dCross <= std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("Rod(" << GetLabel() << "): "
 			"null distance between nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << std::endl);
@@ -145,7 +145,7 @@ Rod::AssVec(SubVectorHandler& WorkVec)
 	doublereal dCross = v.Dot();
 
 	/* Verifica che la distanza non sia nulla */
-	if (dCross <= DBL_EPSILON) {
+	if (dCross <= std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("Rod(" << GetLabel() << "): "
 			"null distance between nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << std::endl);
@@ -286,7 +286,7 @@ void
 Rod::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		ASSERT(dElle > DBL_EPSILON);
+		ASSERT(dElle > std::numeric_limits<doublereal>::epsilon());
 		Vec3 vTmp(v/dElle);
 		doublereal d = GetF();
 
@@ -629,7 +629,7 @@ ViscoElasticRod::AssJac(VariableSubMatrixHandler& WorkMat,
 	doublereal dCross = v.Dot();
 
 	/* Verifica che la distanza non sia nulla */
-	if (dCross <= DBL_EPSILON) {
+	if (dCross <= std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("ViscoElasticRod(" << GetLabel() << "): "
 			"null distance between nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << std::endl);
@@ -691,7 +691,7 @@ ViscoElasticRod::AssRes(SubVectorHandler& WorkVec,
 	doublereal dCross = v.Dot();
 
 	/* Verifica che la distanza non sia nulla */
-	if (dCross <= DBL_EPSILON) {
+	if (dCross <= std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("ViscoElasticRod(" << GetLabel() << "): "
 			"null distance between nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << std::endl);
@@ -767,7 +767,7 @@ ViscoElasticRod::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	doublereal dCross = v.Dot();
 
 	/* Verifica che la distanza non sia nulla */
-	if (dCross <= DBL_EPSILON) {
+	if (dCross <= std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("ViscoElasticRod(" << GetLabel() << "): "
 			"null distance between nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << std::endl);
@@ -834,7 +834,7 @@ ViscoElasticRod::InitialAssRes(SubVectorHandler& WorkVec,
 	doublereal dCross = v.Dot();
 
 	/* Verifica che la distanza non sia nulla */
-	if (dCross <= DBL_EPSILON) {
+	if (dCross <= std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("ViscoElasticRod(" << GetLabel() << "): "
 			"null distance between nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << std::endl);
@@ -894,7 +894,7 @@ f2(f2Tmp)
 		- pN1->GetXCurr() - pN1->GetRCurr()*f1Tmp;
 
 	doublereal dDot = v.Dot();
-	if (dDot <= DBL_EPSILON) {
+	if (dDot <= std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("RodWithOffset(" << GetLabel() << "): "
 			"inital length must be non-null" << std::endl);
 		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
@@ -902,7 +902,7 @@ f2(f2Tmp)
 
 	dElle = sqrt(dDot);
 
-	ASSERT(dLength > DBL_EPSILON);
+	ASSERT(dLength > std::numeric_limits<doublereal>::epsilon());
 }
 
 /* Distruttore */
@@ -1101,7 +1101,7 @@ RodWithOffset::AssVec(SubVectorHandler& WorkVec)
 	doublereal dCross = v.Dot();
 
 	/* Verifica che la distanza non sia nulla */
-	if (dCross <= DBL_EPSILON) {
+	if (dCross <= std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("RodWithOffset(" << GetLabel() << "): "
 			"null distance between nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << std::endl);

@@ -239,7 +239,7 @@ void DynamicForgettingFactor2::Update(const doublereal* pE) {
     * se viene superato il limite, il forgetting factor scatta al valore 
     * minimo (massima dimenticanza) */
    doublereal d = 0.;
-   if (fabs(dS1) > DBL_EPSILON && (d = fabs(1.-dS2/dS1)) > dFact) {
+   if (fabs(dS1) > std::numeric_limits<doublereal>::epsilon() && (d = fabs(1.-dS2/dS1)) > dFact) {
 #if 0
       dk = (dkLim-dkRef)*exp(-d)+dkRef;
 #else 

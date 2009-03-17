@@ -655,7 +655,9 @@ ImposedOrientationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
     * unitario */
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
-   if (Tmp1.Dot() <= DBL_EPSILON || Tmp2.Dot() <= DBL_EPSILON) {
+   if (Tmp1.Dot() <= std::numeric_limits<doublereal>::epsilon()
+	|| Tmp2.Dot() <= std::numeric_limits<doublereal>::epsilon())
+   {
       silent_cerr("ImposedOrientationJoint(" << GetLabel() << "): "
 	      "first and second node hinge axes are (nearly) orthogonal"
 	      << std::endl);

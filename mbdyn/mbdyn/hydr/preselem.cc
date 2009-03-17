@@ -191,7 +191,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* Area nodo1 */
        doublereal area1 = HP.GetReal();
-       if (area1 <= DBL_EPSILON) {
+       if (area1 <= std::numeric_limits<doublereal>::epsilon()) {
 	  silent_cerr("Actuator(" << uLabel << "): "
 			  "null or negative area1 "
 			  "at line " << HP.GetLineData() << std::endl);
@@ -201,7 +201,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* Area nodo2 */
        doublereal area2 = HP.GetReal();
-       if (area2 <= DBL_EPSILON) {		  
+       if (area2 <= std::numeric_limits<doublereal>::epsilon()) {		  
 	  silent_cerr("Actuator(" << uLabel << "): "
 			  "null or negative area2 "
 			  "at line " << HP.GetLineData() << std::endl);
@@ -211,7 +211,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* lunghezza cilindro (a meno dello spessore */
        doublereal dl = HP.GetReal();
-       if (dl <= DBL_EPSILON) {		  
+       if (dl <= std::numeric_limits<doublereal>::epsilon()) {		  
 	  silent_cerr("Actuator(" << uLabel << "): "
 			  "null or negative dl "
 			  "at line " << HP.GetLineData() << std::endl);
@@ -273,7 +273,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* Area */
        doublereal area = HP.GetReal();
-       if (area <= DBL_EPSILON) {		  
+       if (area <= std::numeric_limits<doublereal>::epsilon()) {		  
 	  silent_cerr("MinorLoss(" << uLabel << "): "
 		  "null or negative area "
 		  "at line " << HP.GetLineData() << std::endl);
@@ -325,7 +325,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* Area 1 */
        doublereal area1 = HP.GetReal();
-       if (area1 <= DBL_EPSILON) {		  
+       if (area1 <= std::numeric_limits<doublereal>::epsilon()) {		  
 	  silent_cerr("ThreeWayMinorLoss(" << uLabel << "): "
 		  "null or negative area1 "
 		  "at line " << HP.GetLineData() << std::endl);
@@ -335,7 +335,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        
        /* Area 2 */
        doublereal area2 = HP.GetReal();
-       if (area1 <= DBL_EPSILON) {		  
+       if (area1 <= std::numeric_limits<doublereal>::epsilon()) {		  
 	  silent_cerr("ThreeWayMinorLoss(" << uLabel << "): "
 		  "null or negative area2 "
 		  "at line " << HP.GetLineData() << std::endl);

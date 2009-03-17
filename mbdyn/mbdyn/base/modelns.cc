@@ -233,7 +233,7 @@ unitvec(const MathParser::MathArgs& args)
 
 	Vec3 d = pNode2->GetXCurr() - pNode1->GetXCurr();
 	doublereal dd = d.Norm();
-	if (dd <= DBL_EPSILON) {
+	if (dd <= std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("model::unitvec" << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
 				"null distance"

@@ -252,7 +252,7 @@ HBeam::DsDxi(void)
 			L, Rho);
 	
 	doublereal d = L.Dot();
-	if (d > DBL_EPSILON) {
+	if (d > std::numeric_limits<doublereal>::epsilon()) {
 		d = std::sqrt(d);
 	} else {
 		silent_cerr("HBeam(" << GetLabel() << ") "

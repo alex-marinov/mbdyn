@@ -3714,7 +3714,7 @@ do_eig(const doublereal& b, const doublereal& re,
 	// frequency and damping factor
 	if (im != 0.) {
 		d = sigma*sigma + omega*omega;
-		if (d > 1.e-15) {
+		if (d > std::numeric_limits<doublereal>::epsilon()) {
 			csi = -100*sigma/sqrt(d);
 
 		} else {
@@ -3724,7 +3724,7 @@ do_eig(const doublereal& b, const doublereal& re,
 		freq = omega/(2*M_PI);
 
 	} else {
-		if (std::abs(sigma) < 1.e-15) {
+		if (std::abs(sigma) < std::numeric_limits<doublereal>::epsilon()) {
 			csi = 0.;
 
 		} else {
@@ -3768,8 +3768,7 @@ output_eigenvalues(const VectorHandler *pBeta,
 
 		Out << std::setw(12) << sigma << " + " << std::setw(12) << omega << " j";
 
-		/* FIXME: why 1.e-15? */
-		if (fabs(csi) > 1.e-15) {
+		if (fabs(csi) > std::numeric_limits<doublereal>::epsilon()) {
 			Out << "    " << std::setw(12) << csi;
 		} else {
 			Out << "    " << std::setw(12) << 0.;

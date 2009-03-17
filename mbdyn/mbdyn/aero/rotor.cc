@@ -97,7 +97,7 @@ iNumSteps(0)
 
 	Vec3 R3C((pCraft->GetRCurr()*RRot).GetVec(3));
 	Vec3 R3R((pRotor->GetRCurr()).GetVec(3));
-	if (R3C.Dot(R3R) < 1. - DBL_EPSILON) {
+	if (R3C.Dot(R3R) < 1. - std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("warning, possible misalignment "
 			"of rotor StructNode(" << pRotor->GetLabel() << ") "
 			"axis {" << R3R << "} "
@@ -371,7 +371,7 @@ Rotor::GetPos(const Vec3& X, doublereal& dr, doublereal& dp) const
 
 	doublereal d = sqrt(d1*d1+d2*d2);
 
-	ASSERT(dRadius > DBL_EPSILON);
+	ASSERT(dRadius > std::numeric_limits<doublereal>::epsilon());
 	dr = d/dRadius;
 
 	dp = atan2(d2, d1) - dPsi0;
@@ -417,7 +417,7 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 
 	/* Angolo di influsso */
 	dVelocity = sqrt(dV3*dV3 + dVV);
-	if (dVelocity > DBL_EPSILON) {
+	if (dVelocity > std::numeric_limits<doublereal>::epsilon()) {
 		dSinAlphad = -dV3/dVelocity;
 		dCosAlphad = dV/dVelocity;
 
@@ -440,7 +440,7 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 	dLambda = 0.;
 	dVTip = dOmega*dRadius;
 
-	if (dVTip > DBL_EPSILON) {
+	if (dVTip > std::numeric_limits<doublereal>::epsilon()) {
 		dMu = (dVelocity*dCosAlphad)/dVTip;
 	}
 
@@ -476,7 +476,7 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 	}
 
 	bUMeanRefConverged = false;
-	if (dVTip > DBL_EPSILON) {
+	if (dVTip > std::numeric_limits<doublereal>::epsilon()) {
 		for (iCurrIter = 0; iCurrIter < iMaxIter; iCurrIter++ ) {
 			doublereal dUMeanRefOrig = dUMeanRef;
 
@@ -1617,7 +1617,7 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 		 * per dOmega anziche' dOmega^2)
 		 */
 	   	doublereal dDim = dGetAirDensity(GetXCurr())*dArea*dOmega*(dRadius*dRadius);
-	   	if (dDim > DBL_EPSILON) {
+	   	if (dDim > std::numeric_limits<doublereal>::epsilon()) {
 			/*
 			 * From Claudio Monteggia:
 			 *
@@ -1632,7 +1632,7 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 		 	doublereal dVT
 				= sqrt(dLambdaTmp*dLambdaTmp + dMuTmp*dMuTmp);
 		 	doublereal dVm = 0.;
-		 	if (dVT > DBL_EPSILON) {
+		 	if (dVT > std::numeric_limits<doublereal>::epsilon()) {
 		       		dVm = (dMuTmp*dMuTmp + dLambdaTmp*(dLambdaTmp + dVConst))/dVT;
 		 	}
 

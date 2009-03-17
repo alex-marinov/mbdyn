@@ -130,7 +130,7 @@ mp_tan_t(const MathParser::MathArgs& args)
 	Real a1 = (*arg1)();
 	Real a = a1;
 	a -= int(a1/M_PI)*M_PI;
-	if (fabs(fabs(a) - M_PI_2) < DBL_EPSILON) {
+	if (fabs(fabs(a) - M_PI_2) < std::numeric_limits<double>::epsilon()) {
 		return 1;
 	}
 
@@ -362,7 +362,7 @@ mp_ctg_t(const MathParser::MathArgs& args)
 	Real a1 = (*arg1)();
 	Real a = a1;
 	a -= int(a1/M_PI)*M_PI;
-	if (fabs(a) < DBL_EPSILON) {
+	if (fabs(a) < std::numeric_limits<double>::epsilon()) {
 		return 1;
 	}
 
@@ -439,7 +439,7 @@ mp_ctgh_t(const MathParser::MathArgs& args)
 	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
 	ASSERT(arg1 != 0);
 
-	if (fabs((*arg1)()) < DBL_EPSILON) {
+	if (fabs((*arg1)()) < std::numeric_limits<double>::epsilon()) {
 		return 1;
 	}
 

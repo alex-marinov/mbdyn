@@ -59,7 +59,7 @@ class ContactJoint : virtual public Elem, public Joint {
 	ASSERT(pNode1->GetNodeType() == Node::STRUCTURAL);
 	ASSERT(pNode2 != NULL);
 	ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
-	ASSERT(n.Dot() > DBL_EPSILON);       
+	ASSERT(n.Dot() > std::numeric_limits<doublereal>::epsilon());       
 
 	Vec3 D(pNode2->GetXCurr()-pNode1->GetXCurr());
 	Vec3 N(pNode1->GetRCurr()*n);

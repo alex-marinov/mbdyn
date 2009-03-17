@@ -68,7 +68,7 @@ A4min(area_max*loss_area)
    ASSERT(pNode3->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode4 != NULL);
    ASSERT(pNode4->GetNodeType() == Node::HYDRAULIC);
-   ASSERT(A_max > DBL_EPSILON);
+   ASSERT(A_max > std::numeric_limits<doublereal>::epsilon());
    ASSERT(loss_area >= 0.);
    
    /* 
@@ -157,17 +157,17 @@ Control_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal jumpPres24 = fabs(p2-p4); /* salto di pressione nodo2 & nodo3 */
    doublereal jumpPres34 = fabs(p3-p4); /* salto di pressione nodo2 & nodo4 */
    
-   if (jumpPres12 < 1.e8*DBL_EPSILON) {
-      jumpPres12 = 1.e8*DBL_EPSILON;
+   if (jumpPres12 < 1.e8*std::numeric_limits<doublereal>::epsilon()) {
+      jumpPres12 = 1.e8*std::numeric_limits<doublereal>::epsilon();
    }
-   if (jumpPres13 < 1.e8*DBL_EPSILON) {
-      jumpPres13 = 1.e8*DBL_EPSILON;
+   if (jumpPres13 < 1.e8*std::numeric_limits<doublereal>::epsilon()) {
+      jumpPres13 = 1.e8*std::numeric_limits<doublereal>::epsilon();
    }
-   if (jumpPres24 < 1.e8*DBL_EPSILON) {
-      jumpPres24 = 1.e8*DBL_EPSILON;
+   if (jumpPres24 < 1.e8*std::numeric_limits<doublereal>::epsilon()) {
+      jumpPres24 = 1.e8*std::numeric_limits<doublereal>::epsilon();
    }
-   if (jumpPres34 < 1.e8*DBL_EPSILON) {
-      jumpPres34 = 1.e8*DBL_EPSILON;
+   if (jumpPres34 < 1.e8*std::numeric_limits<doublereal>::epsilon()) {
+      jumpPres34 = 1.e8*std::numeric_limits<doublereal>::epsilon();
    }
    
    doublereal primo = Cd*A1/sqrt(2*jumpPres12/density);
@@ -354,7 +354,7 @@ area_max(A_max), loss_area(Loss_A), area_min(area_max*loss_area)
 	ASSERT(pNode[N4] != NULL);
 	ASSERT(pNode[N4]->GetNodeType() == Node::HYDRAULIC);
 
-	ASSERT(area_max > DBL_EPSILON);
+	ASSERT(area_max > std::numeric_limits<doublereal>::epsilon());
 	ASSERT(loss_area > 1.e-9);	/* 
 					 * se = 0. occorre fare un elemento
 					 * apposta con solo 2 dof
@@ -656,9 +656,9 @@ valve_diameter(Valve_d), valve_density(Valve_rho), s_max(s_mx)
    ASSERT(pNode4 != NULL);
    ASSERT(pNode4->GetNodeType() == Node::HYDRAULIC);
    ASSERT(s0 >= 0.);
-   ASSERT(Valve_rho > DBL_EPSILON);
-   ASSERT(Valve_d > DBL_EPSILON);
-   ASSERT(W > DBL_EPSILON);
+   ASSERT(Valve_rho > std::numeric_limits<doublereal>::epsilon());
+   ASSERT(Valve_d > std::numeric_limits<doublereal>::epsilon());
+   ASSERT(W > std::numeric_limits<doublereal>::epsilon());
    ASSERT(Loss_A >= 0.);
    ASSERT(s_mx >= 0.);
     
@@ -758,17 +758,17 @@ Dynamic_control_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal jumpPres24 = fabs(p2-p4); /* salto di pressione nodo2 & nodo4 */
    doublereal jumpPres34 = fabs(p3-p4); /* salto di pressione nodo3 & nodo4 */
    
-   if (jumpPres12 < 1.e8*DBL_EPSILON) {
-      jumpPres12 = 1.e8*DBL_EPSILON;
+   if (jumpPres12 < 1.e8*std::numeric_limits<doublereal>::epsilon()) {
+      jumpPres12 = 1.e8*std::numeric_limits<doublereal>::epsilon();
    }
-   if (jumpPres13 < 1.e8*DBL_EPSILON) {
-      jumpPres13 = 1.e8*DBL_EPSILON;
+   if (jumpPres13 < 1.e8*std::numeric_limits<doublereal>::epsilon()) {
+      jumpPres13 = 1.e8*std::numeric_limits<doublereal>::epsilon();
    }
-   if (jumpPres24 < 1.e8*DBL_EPSILON) {
-      jumpPres24 = 1.e8*DBL_EPSILON;
+   if (jumpPres24 < 1.e8*std::numeric_limits<doublereal>::epsilon()) {
+      jumpPres24 = 1.e8*std::numeric_limits<doublereal>::epsilon();
    }
-   if (jumpPres34 < 1.e8*DBL_EPSILON) {
-      jumpPres34 = 1.e8*DBL_EPSILON;
+   if (jumpPres34 < 1.e8*std::numeric_limits<doublereal>::epsilon()) {
+      jumpPres34 = 1.e8*std::numeric_limits<doublereal>::epsilon();
    }
    doublereal Jac15;
    doublereal Jac25;
@@ -1103,9 +1103,9 @@ c_spost(cs), c_vel(cv), c_acc(ca)
    ASSERT(pNode6 != NULL);
    ASSERT(pNode6->GetNodeType() == Node::HYDRAULIC);
    ASSERT(s0 >= 0.);
-   ASSERT(Valve_rho > DBL_EPSILON);
-   ASSERT(Valve_d > DBL_EPSILON);
-   ASSERT(W > DBL_EPSILON);
+   ASSERT(Valve_rho > std::numeric_limits<doublereal>::epsilon());
+   ASSERT(Valve_d > std::numeric_limits<doublereal>::epsilon());
+   ASSERT(W > std::numeric_limits<doublereal>::epsilon());
    ASSERT(Loss_A >= 0.);
    ASSERT(s_mx >= 0.);
     
@@ -1210,17 +1210,17 @@ Pressure_flow_control_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal jumpPres24 = fabs(p2-p4); /* salto di pressione nodo2 & nodo4 */
    doublereal jumpPres34 = fabs(p3-p4); /* salto di pressione nodo3 & nodo4 */
    
-   if (jumpPres12 < 1.e8*DBL_EPSILON) {
-      jumpPres12 = 1.e8*DBL_EPSILON;
+   if (jumpPres12 < 1.e8*std::numeric_limits<doublereal>::epsilon()) {
+      jumpPres12 = 1.e8*std::numeric_limits<doublereal>::epsilon();
    }
-   if (jumpPres13 < 1.e8*DBL_EPSILON) {
-      jumpPres13 = 1.e8*DBL_EPSILON;
+   if (jumpPres13 < 1.e8*std::numeric_limits<doublereal>::epsilon()) {
+      jumpPres13 = 1.e8*std::numeric_limits<doublereal>::epsilon();
    }
-   if (jumpPres24 < 1.e8*DBL_EPSILON) {
-      jumpPres24 = 1.e8*DBL_EPSILON;
+   if (jumpPres24 < 1.e8*std::numeric_limits<doublereal>::epsilon()) {
+      jumpPres24 = 1.e8*std::numeric_limits<doublereal>::epsilon();
    }
-   if (jumpPres34 < 1.e8*DBL_EPSILON) {
-      jumpPres34 = 1.e8*DBL_EPSILON;
+   if (jumpPres34 < 1.e8*std::numeric_limits<doublereal>::epsilon()) {
+      jumpPres34 = 1.e8*std::numeric_limits<doublereal>::epsilon();
    }
    doublereal Jac17;
    doublereal Jac27;
@@ -1508,12 +1508,12 @@ Kappa(K), force0(F0), width(w),c_spost(cs), c_vel(cv), c_acc(ca)
    ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode2 != NULL);
    ASSERT(pNode2->GetNodeType() == Node::HYDRAULIC);
-   ASSERT(A_dia > DBL_EPSILON);
-   ASSERT(mv > DBL_EPSILON); 
-   ASSERT(A_max > DBL_EPSILON);
+   ASSERT(A_dia > std::numeric_limits<doublereal>::epsilon());
+   ASSERT(mv > std::numeric_limits<doublereal>::epsilon()); 
+   ASSERT(A_max > std::numeric_limits<doublereal>::epsilon());
    ASSERT(K >= 0. );
    ASSERT(F0 >= 0.);
-   ASSERT(w > DBL_EPSILON); 
+   ASSERT(w > std::numeric_limits<doublereal>::epsilon()); 
    ASSERT(s_mx>=0.);  // corsa massima della valvola
 
 }
@@ -1598,8 +1598,8 @@ Pressure_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal jumpPres = fabs(p1-p2);
  
    /* evito di dividere per un numero troppo piccolo */
-   if (jumpPres < 1.e8*DBL_EPSILON) {
-      jumpPres = 1.e8*DBL_EPSILON;
+   if (jumpPres < 1.e8*std::numeric_limits<doublereal>::epsilon()) {
+      jumpPres = 1.e8*std::numeric_limits<doublereal>::epsilon();
    }
 
    doublereal Jac11 = 0.;
@@ -1860,13 +1860,13 @@ Kappa(K), force0(F0), width(w), s_max(s_mx), c_spost(cs), c_vel(cv), c_acc(ca)
    ASSERT(pNode2->GetNodeType() == Node::HYDRAULIC);
    ASSERT(pNode3 != NULL);
    ASSERT(pNode3->GetNodeType() == Node::HYDRAULIC);
-   ASSERT(A_dia > DBL_EPSILON);
-   ASSERT(mv > DBL_EPSILON); 
-   ASSERT(A_pipe > DBL_EPSILON);
-   ASSERT(A_max > DBL_EPSILON);
-   ASSERT(K > DBL_EPSILON );
+   ASSERT(A_dia > std::numeric_limits<doublereal>::epsilon());
+   ASSERT(mv > std::numeric_limits<doublereal>::epsilon()); 
+   ASSERT(A_pipe > std::numeric_limits<doublereal>::epsilon());
+   ASSERT(A_max > std::numeric_limits<doublereal>::epsilon());
+   ASSERT(K > std::numeric_limits<doublereal>::epsilon() );
    ASSERT(F0 >= 0.);
-   ASSERT(w > DBL_EPSILON); 
+   ASSERT(w > std::numeric_limits<doublereal>::epsilon()); 
    ASSERT(s_max >= 0.);
    
    h = .02; /* coefficiente di perdita di carico concentrata tra i nodi 1 e 2 (smorza il moto della valvola) */
@@ -1957,14 +1957,14 @@ Flow_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal density = HF->dGetDensity();
     
    /* evito di dividere per un numero troppo piccolo */
-   if (jumpPres12 < 1.e8*DBL_EPSILON) {
-      jumpPres12 = 1.e8*DBL_EPSILON;
+   if (jumpPres12 < 1.e8*std::numeric_limits<doublereal>::epsilon()) {
+      jumpPres12 = 1.e8*std::numeric_limits<doublereal>::epsilon();
    }
-   if (jumpPres23 < 1.e8*DBL_EPSILON) {
-      jumpPres23 = 1.e8*DBL_EPSILON;
+   if (jumpPres23 < 1.e8*std::numeric_limits<doublereal>::epsilon()) {
+      jumpPres23 = 1.e8*std::numeric_limits<doublereal>::epsilon();
    }
-   if (jumpPres13 < 1.e8*DBL_EPSILON) {
-      jumpPres13 = 1.e8*DBL_EPSILON;
+   if (jumpPres13 < 1.e8*std::numeric_limits<doublereal>::epsilon()) {
+      jumpPres13 = 1.e8*std::numeric_limits<doublereal>::epsilon();
    }
  
    doublereal Jac11 = 0.;

@@ -1188,8 +1188,8 @@ class Mat3x3 {
 		return true;
 	};
  
-	bool IsSymmetric(const doublereal& dTol = 0.) const {
-		ASSERT(dTol > 0.);
+	bool IsSymmetric(const doublereal& dTol) const {
+		ASSERT(dTol > std::numeric_limits<doublereal>::epsilon());
 
 		if (fabs(pdMat[M12] - pdMat[M21]) > dTol
 			|| fabs(pdMat[M13] - pdMat[M31]) > dTol
@@ -1216,6 +1216,8 @@ class Mat3x3 {
 	};
  
 	bool IsDiag(const doublereal& dTol) const {
+		ASSERT(dTol > std::numeric_limits<doublereal>::epsilon());
+
 		if (fabs(pdMat[M12]) > dTol
 			|| fabs(pdMat[M21]) > dTol
 			|| fabs(pdMat[M13]) > dTol

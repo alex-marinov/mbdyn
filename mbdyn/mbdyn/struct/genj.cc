@@ -184,8 +184,8 @@ DistanceJoint::AssJac(VariableSubMatrixHandler& WorkMat,
       }	
       
       doublereal d = v.Dot();
-      ASSERT(d > DBL_EPSILON);
-      if (d > DBL_EPSILON) {	   
+      ASSERT(d > std::numeric_limits<doublereal>::epsilon());
+      if (d > std::numeric_limits<doublereal>::epsilon()) {	   
 	 d = std::sqrt(d);
 	 /* termini di Delta_v su alpha */
 	 for (int iCnt = 3; iCnt > 0; iCnt--) {	      
@@ -239,7 +239,7 @@ SubVectorHandler& DistanceJoint::AssRes(SubVectorHandler& WorkVec,
    doublereal dDistance = pGetDriveCaller()->dGet();
 
    /* Distanza nulla */
-   if (fabs(dDistance) <= DBL_EPSILON) {	
+   if (fabs(dDistance) <= std::numeric_limits<doublereal>::epsilon()) {	
       silent_cerr("DistanceJoint(" << GetLabel() << "): "
 	      "near-zero distance" << std::endl);
       throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -252,8 +252,8 @@ SubVectorHandler& DistanceJoint::AssRes(SubVectorHandler& WorkVec,
    WorkVec.Add(7, x1-x2+v*dDistance);
       
    doublereal d = v.Dot();
-   ASSERT(d > DBL_EPSILON);
-   if (d > DBL_EPSILON) {	   
+   ASSERT(d > std::numeric_limits<doublereal>::epsilon());
+   if (d > std::numeric_limits<doublereal>::epsilon()) {	   
       d = std::sqrt(d);
    } else {	   
       d = 0.;
@@ -270,7 +270,7 @@ void DistanceJoint::Output(OutputHandler& OH) const
    if(fToBeOutput()) {      
       doublereal d = dGet();
       Vec3 vTmp;      
-      if (fabs(d) > DBL_EPSILON) {
+      if (fabs(d) > std::numeric_limits<doublereal>::epsilon()) {
 	 vTmp = Vec3(dAlpha, 0., 0.);
       } else {      
 	 vTmp = v;
@@ -414,8 +414,8 @@ DistanceJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       
       /* termini di Delta_v su alpha */
       doublereal d = v.Dot();
-      ASSERT(d > DBL_EPSILON);
-      if (d > DBL_EPSILON) {
+      ASSERT(d > std::numeric_limits<doublereal>::epsilon());
+      if (d > std::numeric_limits<doublereal>::epsilon()) {
 	 d = std::sqrt(d);	     
 	 for (int iCnt = 1; iCnt <= 3; iCnt++) {		
 	    WM.PutItem(48+iCnt, iFirstReactionIndex+4,
@@ -490,7 +490,7 @@ DistanceJoint::InitialAssRes(SubVectorHandler& WorkVec,
    doublereal dDistance = pGetDriveCaller()->dGet();
    
    /* Distanza nulla */
-   if (fabs(dDistance) <= DBL_EPSILON) {
+   if (fabs(dDistance) <= std::numeric_limits<doublereal>::epsilon()) {
       silent_cerr("DistanceJoint(" << GetLabel() << "): "
 	      "near-zero distance" << std::endl);
       throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -502,8 +502,8 @@ DistanceJoint::InitialAssRes(SubVectorHandler& WorkVec,
    WorkVec.Add(12+1, x1-x2+v*dDistance);
       
    doublereal d = v.Dot();
-   ASSERT(d > DBL_EPSILON);
-   if(d > DBL_EPSILON) {	 
+   ASSERT(d > std::numeric_limits<doublereal>::epsilon());
+   if(d > std::numeric_limits<doublereal>::epsilon()) {	 
       d = std::sqrt(d);
    } else {	 
       d = 0.;
@@ -523,7 +523,7 @@ void DistanceJoint::SetInitialValue(VectorHandler& X)
    integer iFirstIndex = iGetFirstIndex();   
    
    doublereal dDistance = pGetDriveCaller()->dGet();
-   if (fabs(dDistance) <= DBL_EPSILON) {
+   if (fabs(dDistance) <= std::numeric_limits<doublereal>::epsilon()) {
       silent_cerr("DistanceJoint(" << GetLabel() << "): "
 	      "near-zero distance" << std::endl);
       throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -531,7 +531,7 @@ void DistanceJoint::SetInitialValue(VectorHandler& X)
      
    v = ((pNode2->GetXCurr())-(pNode1->GetXCurr()));
    doublereal d = v.Dot();
-   if (d < DBL_EPSILON) {
+   if (d < std::numeric_limits<doublereal>::epsilon()) {
       silent_cerr("DistanceJoint(" << GetLabel() << "): "
 	      "initial length is null" << std::endl);
       throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
@@ -574,7 +574,7 @@ DistanceJoint::SetValue(DataManager *pDM,
    
 	/* Setta a 1 dAlpha, che e' indipendente dalle altre variabili
 	 * in caso di distanza nulla */
-	if (fabs(dDistance) <= DBL_EPSILON) {	
+	if (fabs(dDistance) <= std::numeric_limits<doublereal>::epsilon()) {	
 		silent_cerr("DistanceJoint(" << uLabel << "): "
 			"near-zero distance" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -584,7 +584,7 @@ DistanceJoint::SetValue(DataManager *pDM,
 	 * l'assemblaggio iniziale bene, se no' la calcola */
 	v = pNode2->GetXCurr() - pNode1->GetXCurr();
 	doublereal d = v.Dot();
-	if (d <= DBL_EPSILON) {
+	if (d <= std::numeric_limits<doublereal>::epsilon()) {
     		silent_cerr("DistanceJoint(" << uLabel << ") "
 			"linked to nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << ": "
@@ -834,8 +834,8 @@ DistanceJointWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
       
       
       doublereal d = v.Dot();
-      ASSERT(d > DBL_EPSILON);
-      if (d > DBL_EPSILON) {
+      ASSERT(d > std::numeric_limits<doublereal>::epsilon());
+      if (d > std::numeric_limits<doublereal>::epsilon()) {
 	 d = std::sqrt(d);
       } else {
 	 d = 1.;
@@ -893,7 +893,7 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
    doublereal dDistance = pGetDriveCaller()->dGet();
    
    /* Distanza nulla */
-   if (fabs(dDistance) <= DBL_EPSILON) {	
+   if (fabs(dDistance) <= std::numeric_limits<doublereal>::epsilon()) {	
       silent_cerr("DistanceJoint(" << GetLabel() << "): "
 		      "near-zero distance" << std::endl);
       throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -921,7 +921,7 @@ void DistanceJointWithOffset::Output(OutputHandler& OH) const
    if (fToBeOutput()) {
       doublereal d = dGet();
       Vec3 vTmp;      
-      if (fabs(d) > DBL_EPSILON) {
+      if (fabs(d) > std::numeric_limits<doublereal>::epsilon()) {
 	 vTmp = Vec3(dAlpha, 0., 0.);
       } else {      
 	 vTmp = v;
@@ -1081,8 +1081,8 @@ DistanceJointWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       WM.Add(29, 16, MTmp);
       
       doublereal d = v.Dot();
-      ASSERT(d > DBL_EPSILON);
-      if (d > DBL_EPSILON) {
+      ASSERT(d > std::numeric_limits<doublereal>::epsilon());
+      if (d > std::numeric_limits<doublereal>::epsilon()) {
 	 d = std::sqrt(d);
 	 
 	 Tmp = v/d;
@@ -1143,7 +1143,7 @@ DistanceJointWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
    
    doublereal dDistance = pGetDriveCaller()->dGet();
    
-   if (fabs(dDistance) <= DBL_EPSILON) {
+   if (fabs(dDistance) <= std::numeric_limits<doublereal>::epsilon()) {
       silent_cerr("DistanceJoint(" << GetLabel() << "): "
 	      "near-zero distance" << std::endl);
       throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1166,7 +1166,7 @@ DistanceJointWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
       
    doublereal d = v.Dot();
       
-   ASSERT(d > DBL_EPSILON);
+   ASSERT(d > std::numeric_limits<doublereal>::epsilon());
    d = std::sqrt(d);
    WorkVec.PutCoef(28, 1.-d);
    WorkVec.PutCoef(32, -v.Dot(vP)/d);
@@ -1180,7 +1180,7 @@ void DistanceJointWithOffset::SetInitialValue(VectorHandler& X)
    integer iFirstIndex = iGetFirstIndex();   
    
    doublereal dDistance = pGetDriveCaller()->dGet();
-   if (fabs(dDistance) <= DBL_EPSILON) {
+   if (fabs(dDistance) <= std::numeric_limits<doublereal>::epsilon()) {
       silent_cerr("DistanceJoint(" << GetLabel() << "): "
 	      "near-zero distance" << std::endl);
       throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1197,7 +1197,7 @@ void DistanceJointWithOffset::SetInitialValue(VectorHandler& X)
    
    v = x2+f2Tmp-x1-f1Tmp;
    doublereal d = v.Dot();
-   if (d < DBL_EPSILON) {
+   if (d < std::numeric_limits<doublereal>::epsilon()) {
       silent_cerr("DistanceJoint(" << GetLabel() << "): "
 	      "initial length is null" << std::endl);
       throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
@@ -1240,7 +1240,7 @@ DistanceJointWithOffset::SetValue(DataManager *pDM,
 
 	/* Setta a 1 dAlpha, che e' indipendente dalle altre variabili
 	 * in caso di distanza nulla */
-	if (fabs(dDistance) <= DBL_EPSILON) {	
+	if (fabs(dDistance) <= std::numeric_limits<doublereal>::epsilon()) {	
 		silent_cerr("DistanceJoint(" << GetLabel() << "):"
 			"near-zero distance" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1248,7 +1248,7 @@ DistanceJointWithOffset::SetValue(DataManager *pDM,
 
 	v = pNode2->GetXCurr() + pNode2->GetRCurr()*f2 - pNode1->GetXCurr() - pNode1->GetRCurr()*f1;
 	doublereal d = v.Dot();
-	if (d <= DBL_EPSILON) {
+	if (d <= std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("DistanceJoint(" << GetLabel() << ") "
 			"linked to nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << ": "

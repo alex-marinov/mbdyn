@@ -100,7 +100,7 @@ DistanceJoint::SetValue(DataManager *pDM,
    
 	/* Setta a 1 dAlpha, che e' indipendente dalle altre variabili
 	 * in caso di distanza nulla */
-	if (fabs(dDistance) <= DBL_EPSILON) {	
+	if (fabs(dDistance) <= std::numeric_limits<doublereal>::epsilon()) {	
 		Abort();
 	}
 
@@ -108,7 +108,7 @@ DistanceJoint::SetValue(DataManager *pDM,
 	 * l'assemblaggio iniziale bene, se no' la calcola */
 	Vec = pNode2->GetXCurr() - pNode1->GetXCurr();
 	doublereal d = Vec.Dot();
-	if (d <= DBL_EPSILON) {
+	if (d <= std::numeric_limits<doublereal>::epsilon()) {
     		silent_cerr("DistanceJoint(" << uLabel << ") "
 			"linked to nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << ": "
@@ -324,7 +324,7 @@ DistanceJoint::AssRes(SubVectorHandler& WorkVec,
 	dDistance = pGetDriveCaller()->dGet();
    
 	/* Distanza nulla */
-	if (fabs(dDistance) <= DBL_EPSILON) {	
+	if (fabs(dDistance) <= std::numeric_limits<doublereal>::epsilon()) {	
 		Abort();
 	}
 
@@ -506,14 +506,14 @@ DistanceJointWithOffset::SetValue(DataManager *pDM,
 
 	/* Setta a 1 dAlpha, che e' indipendente dalle altre variabili
 	 * in caso di distanza nulla */
-	if (fabs(dDistance) <= DBL_EPSILON) {	
+	if (fabs(dDistance) <= std::numeric_limits<doublereal>::epsilon()) {	
 		Abort();
 	}
 
 	 Vec= pNode2->GetXCurr() + pNode2->GetRCurr()*f2
 		- pNode1->GetXCurr() - pNode1->GetRCurr()*f1;
 	doublereal d = Vec.Dot();
-	if (d <= DBL_EPSILON) {
+	if (d <= std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("DistanceJoint(" << GetLabel() << ") "
 			"linked to nodes " << pNode1->GetLabel()
 			<< " and " << pNode2->GetLabel() << ": "
@@ -756,7 +756,7 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
 	dDistance = pGetDriveCaller()->dGet();
    
 	/* Distanza nulla */
-	if (fabs(dDistance) <= DBL_EPSILON) {	
+	if (fabs(dDistance) <= std::numeric_limits<doublereal>::epsilon()) {	
 		Abort();
 	}
 

@@ -55,8 +55,8 @@ dgeequ(const T& mh, std::vector<doublereal>& r, std::vector<doublereal>& c,
 	dgeequ_prepare(mh, r, c, nrows, ncols);
 
 	// FIXME: define reasonable SMLNUM (e.g. using lapack's)
-	const doublereal SMLNUM = 1.e-15;
-	const doublereal BIGNUM = 1/SMLNUM;
+	const doublereal SMLNUM = std::numeric_limits<doublereal>::epsilon();
+	const doublereal BIGNUM = 1./SMLNUM;
 
 	doublereal rcmin;
 	doublereal rcmax;
