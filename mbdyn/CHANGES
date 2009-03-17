@@ -9,7 +9,7 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
-MBDyn 1.X-Devel
+MBDyn 1.3.7
 	Enhancements:
 		- add {xyz}unitvec function to model namespace
 		- release module-aerodyn for wind-turbine modeling
