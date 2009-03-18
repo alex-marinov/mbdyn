@@ -1297,7 +1297,7 @@ IfFirstStepIsToBeRepeated:
 		 * Mettere qui eventuali azioni speciali
 		 * da intraprendere in caso di errore ...
 		 */
-		silent_cerr("FIrst step failed because no pivot element "
+		silent_cerr("First step failed because no pivot element "
 			"could be found for column " << err.iCol
 			<< " (" << pDM->GetDofDescription(err.iCol) << "); "
 			"aborting..." << std::endl);
