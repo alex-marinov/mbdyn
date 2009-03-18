@@ -543,7 +543,7 @@ StructNode::OutputPrepare(OutputHandler &OH)
 			}
 
 			NcVar *Var_Type = pBinFile->add_var(buf, ncChar, OH.DimV1());
-			char *type = 0;
+			const char *type = 0;
 			switch (GetStructNodeType()) {
 			case STATIC:
 				type = "static";
