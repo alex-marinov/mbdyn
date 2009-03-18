@@ -1,21 +1,11 @@
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #ifdef USE_X_ANN
 
-#include <MLS.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
-extern int
-__FC_DECL__(dgelsd)(int* m, int* n, int* nrhs, doublereal* a, int* lda, doublereal* b, int* ldb, double* s, double* rcond, int* rank, double* work, int* lwork, int* iwork, int* info);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
+#include "ac/lapack.h"
+#include "MLS.h"
 
 void 
 RBF0::SetWeight(MyVectorHandler& r, SparseMatrixHandler& w_out) {
