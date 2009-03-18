@@ -35,8 +35,13 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <limits>
 #include <cfloat>
 #include <limits>
+
+#if defined(USE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
+#include <ltdl.h>
+#endif // USE_RUNTIME_LOADING && HAVE_LTDL_H
 
 #include "mbpar.h"
 
@@ -44,10 +49,6 @@
 
 #include "aerodc81.h"
 #include "c81data.h"
-
-#if defined(USE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
-#include <ltdl.h>
-#endif // USE_RUNTIME_LOADING && HAVE_LTDL_H
 
 #include "dataman.h"
 #include "modules.h"

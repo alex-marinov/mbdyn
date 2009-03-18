@@ -33,11 +33,12 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <limits>
 #include <cfloat>
 #include <limits>
 
-#include <matvec3.h>
-#include <shapefnc.h>
+#include "matvec3.h"
+#include "shapefnc.h"
 
 /* Funzioni di forma e loro derivate */
 const doublereal dN2_1 = .5;            /* ShapeFunc2N(0., 1, 0) */

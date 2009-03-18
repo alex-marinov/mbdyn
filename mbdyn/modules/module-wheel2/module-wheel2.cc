@@ -34,6 +34,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <iostream>
+#include <limits>
 #include <cfloat>
 
 #include "dataman.h"

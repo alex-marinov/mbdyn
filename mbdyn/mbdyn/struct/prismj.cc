@@ -37,7 +37,7 @@
 
 #include <limits>
 
-#include <prismj.h>
+#include "prismj.h"
 
 /* PrismaticJoint - begin */
 

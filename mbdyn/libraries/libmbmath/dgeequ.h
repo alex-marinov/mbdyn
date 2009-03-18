@@ -32,6 +32,7 @@
 #ifndef DGEEQU_H
 #define DGEEQU_H
 
+#include <limits>
 #include <cmath>
 #include <vector>
 #include <limits>

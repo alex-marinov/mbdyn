@@ -110,7 +110,6 @@
 /* FIXME: gravity in modal elements is eXperimental; undefine to disable */
 #define MODAL_USE_GRAVITY
 
-#include <unistd.h>
 #include <cerrno>
 #include <sys/stat.h>
 #include <limits>

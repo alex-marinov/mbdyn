@@ -41,18 +41,19 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
   
+#include <cmath>
+#include <limits>
+
 #include "solver.h"
-#include "bicg.h"  
+#include "bicg.h"
+
 #ifdef USE_MPI
 #include "mbcomm.h"
 #include "schsolman.h"
 #endif /* USE_MPI */
 
 #include "dofown.h"
-#include <unistd.h>
-#include "output.h">
-#include <cmath>
-#include <limits>
+#include "output.h"
 
 BiCGStab::BiCGStab(const Preconditioner::PrecondType PType, 
 		const integer iPStep,

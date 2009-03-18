@@ -36,7 +36,6 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <iostream>
-#include <fstream>
 #include <limits>
 
 #include "planej.h"

@@ -35,12 +35,10 @@
 #ifndef CONSTLTP__H
 #define CONSTLTP__H
 
-extern "C" {
-#include <math.h>
-}
-
-#include <cfloat>
 #include <limits>
+#include <cfloat>
+#include <cmath>
+
 #include "tpldrive_impl.h"
 #include "constltp.h"
 #include "hint_impl.h"

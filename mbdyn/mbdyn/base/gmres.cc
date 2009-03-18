@@ -41,18 +41,19 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <limits>
+#include <cmath>
+
 #include "solver.h"
 #include "gmres.h"  
+
 #ifdef USE_MPI
 #include "mbcomm.h"
 #include "schsolman.h"
 #endif /* USE_MPI */
 
 #include "dofown.h"
-#include <unistd.h>
 #include "output.h"
-#include <cmath>
-#include <limits>
 
 Gmres::Gmres(const Preconditioner::PrecondType PType, 
 		const integer iPStep,
