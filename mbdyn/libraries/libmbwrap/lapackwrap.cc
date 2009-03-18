@@ -72,13 +72,7 @@
 #include "solman.h"
 #include "lapackwrap.h"
 
-extern "C" {
-int dgetrf_(integer *N, integer *N2, doublereal *A, integer *LDA,
-		integer *IPIV, integer *INFO);
-int dgetrs_(const char *MODE, integer *N, integer *NRHS, doublereal *A,
-		integer *LDA, integer *IPIV, doublereal *B, integer *LDB,
-		integer *INFO);
-}
+#include "ac/lapack.h"
 
 /* LapackSolver - begin */
 	
