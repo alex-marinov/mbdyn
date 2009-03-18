@@ -137,6 +137,44 @@ __FC_DECL__(dgeequ)(
 	doublereal *AMAX,
 	integer *INFO);
 
+/* Subroutine */ extern int
+__FC_DECL__(dgelsd)(
+	integer* m,
+	integer* n,
+	integer* nrhs,
+	doublereal* a,
+	integer* lda,
+	doublereal* b,
+	integer* ldb,
+	doublereal* s,
+	doublereal* rcond,
+	integer* rank,
+	doublereal* work,
+	integer* lwork,
+	integer* iwork,
+	integer* info);
+
+/* Subroutine */ extern int
+__FC_DECL__(dgetrf)(
+	integer *N,
+	integer *N2,
+	doublereal *A,
+	integer *LDA,
+	integer *IPIV,
+	integer *INFO);
+
+/* Subroutine */ extern int
+__FC_DECL__(dgetrs)(
+	char *MODE,
+	integer *N,
+	integer *NRHS,
+	doublereal *A,
+	integer *LDA,
+	integer *IPIV,
+	doublereal *B,
+	integer *LDB,
+	integer *INFO);
+
 #if defined(__cplusplus)
 }
 #endif /* __cplusplus */
