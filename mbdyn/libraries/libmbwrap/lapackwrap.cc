@@ -65,20 +65,12 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #ifdef USE_LAPACK
 #include "solman.h"
 #include "lapackwrap.h"
-
-extern "C" {
-int dgetrf_(integer *N, integer *N2, doublereal *A, integer *LDA,
-		integer *IPIV, integer *INFO);
-int dgetrs_(char *MODE, integer *N, integer *NRHS, doublereal *A,
-		integer *LDA, integer *IPIV, doublereal *B, integer *LDB,
-		integer *INFO);
-}
 
 /* LapackSolver - begin */
 	
@@ -119,7 +111,8 @@ LapackSolver::Solve(void) const
 	integer	iNRHS = 1, iINFO = 0;
 	integer iN = iSize;
 
-	dgetrs_("No transpose", &iN, &iNRHS, pA, &iN, piIPIV, pB, &iN, &iINFO);
+	static char sMessage[] = "No transpose";
+	__FC_DECL__(dgetrs)(sMessage, &iN, &iNRHS, pA, &iN, piIPIV, pB, &iN, &iINFO);
 }
 
 void
@@ -127,7 +120,7 @@ LapackSolver::Factor(void)
 {
 	integer	iINFO = 0;
 
-	dgetrf_(&iSize, &iSize, pA, &iSize, piIPIV, &iINFO);
+	__FC_DECL__(dgetrf)(&iSize, &iSize, pA, &iSize, piIPIV, &iINFO);
 }
 
 /* LapackSolver - end */
