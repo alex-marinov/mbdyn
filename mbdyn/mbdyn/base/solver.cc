@@ -4133,7 +4133,7 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 			<< std::endl;
 
 	} else if (iInfo < 0) {
-		char *arg[] = {
+		const char *arg[] = {
 			"JOBVL",
 			"JOBVR",
 			"N",
@@ -4154,7 +4154,7 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 			NULL
 		};
 
-		char *argx[] = {
+		const char *argx[] = {
 			"BALANCE",
 			"JOBVL",
 			"JOBVR",
@@ -4187,7 +4187,7 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 			NULL
 		};
 
-		char **argv = (sB[0] == 'N' ? arg : argx );
+		const char **argv = (sB[0] == 'N' ? arg : argx );
 
 		// < 0:  if INFO = -i, the i-th argument had an illegal value.
 		Out << "argument #" << -iInfo
