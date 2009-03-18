@@ -34,6 +34,7 @@
 
 #include <cmath>
 #include <vector>
+#include <limits>
 
 #include "mh.h"
 #include "fullmh.h"

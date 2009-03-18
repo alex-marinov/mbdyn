@@ -35,20 +35,21 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include <cfloat>
+#include <limits>
 
-#include <dataman.h>
-#include <constltp.h>
-#include <shapefnc.h>
-#include <beam.h>
-#include <hbeam.h>
+#include "dataman.h"
+#include "constltp.h"
+#include "shapefnc.h"
+#include "beam.h"
+#include "hbeam.h"
 #if 0	/* not implemented yet */
 #include <pzhbeam.h>
 #endif
-#include <hbeam_interp.h>
+#include "hbeam_interp.h"
 
 /*
  * Nota: non e' ancora stato implementato il contributo 

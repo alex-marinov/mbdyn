@@ -40,6 +40,7 @@ extern "C" {
 }
 
 #include <cfloat>
+#include <limits>
 #include "tpldrive_impl.h"
 #include "constltp.h"
 #include "hint_impl.h"

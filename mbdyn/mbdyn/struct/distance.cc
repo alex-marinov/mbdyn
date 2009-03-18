@@ -35,6 +35,8 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <limits>
+
 #ifdef MBDYN_X_DISTANCE_JOINT
 
 #include "distance.h"

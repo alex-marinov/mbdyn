@@ -34,6 +34,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <cfloat>
+#include <limits>
 
 #include "modelns.h"
 #include "strnode.h"

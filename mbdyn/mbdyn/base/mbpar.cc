@@ -36,6 +36,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <cfloat>
+#include <limits>
 
 #include "mbpar.h"
 

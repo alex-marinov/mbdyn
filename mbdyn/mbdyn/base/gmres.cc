@@ -38,20 +38,21 @@
   */
   
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <solver.h>
-#include <gmres.h>  
+#include "solver.h"
+#include "gmres.h"  
 #ifdef USE_MPI
-#include <mbcomm.h>
-#include <schsolman.h>
+#include "mbcomm.h"
+#include "schsolman.h"
 #endif /* USE_MPI */
 
-#include <dofown.h>
+#include "dofown.h"
 #include <unistd.h>
-#include <output.h>
+#include "output.h"
 #include <cmath>
+#include <limits>
 
 Gmres::Gmres(const Preconditioner::PrecondType PType, 
 		const integer iPStep,

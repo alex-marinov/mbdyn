@@ -36,6 +36,7 @@
 #define MATVEC3_H
 
 #include <iostream>
+#include <limits>
 #include "ac/f2c.h"
 
 #include "myassert.h"
@@ -1189,7 +1190,7 @@ class Mat3x3 {
 	};
  
 	bool IsSymmetric(const doublereal& dTol) const {
-		ASSERT(dTol > std::numeric_limits<doublereal>::epsilon());
+		ASSERT(dTol > 0.);
 
 		if (fabs(pdMat[M12] - pdMat[M21]) > dTol
 			|| fabs(pdMat[M13] - pdMat[M31]) > dTol

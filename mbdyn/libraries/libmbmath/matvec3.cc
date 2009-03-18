@@ -37,6 +37,7 @@
 
 #include <cmath>
 #include <cfloat>
+#include <limits>
 
 #include "matvec3.h"
 

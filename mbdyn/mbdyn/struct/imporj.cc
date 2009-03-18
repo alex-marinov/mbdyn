@@ -32,11 +32,12 @@
 /* Continuano i vincoli di rotazione piani */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include <iostream>
 #include <fstream>
+#include <limits>
 
 #include "imporj.h"
 #include "Rot.hh"

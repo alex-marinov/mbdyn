@@ -34,6 +34,8 @@
 #ifndef CONTACTJ_H
 #define CONTACTJ_H
 
+#include <limits>
+
 #include "joint.h"
 
 /* ContactJoint - begin */

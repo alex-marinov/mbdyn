@@ -36,6 +36,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <cmath>
+#include <limits>
 
 #include "dataman.h"
 #include "rodj.h"

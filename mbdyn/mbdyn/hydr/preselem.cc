@@ -35,20 +35,21 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include <cfloat>
+#include <limits>
 
-#include <dataman.h>
-#include <preselem.h>
+#include "dataman.h"
+#include "preselem.h"
 
-#include <actuator.h>
-#include <hfluid.h>
-#include <hminor.h>
-#include <hutils.h>
-#include <pipe.h>
-#include <valve.h>
+#include "actuator.h"
+#include "hfluid.h"
+#include "hminor.h"
+#include "hutils.h"
+#include "pipe.h"
+#include "valve.h"
 
 /* HydraulicElem - begin */
 

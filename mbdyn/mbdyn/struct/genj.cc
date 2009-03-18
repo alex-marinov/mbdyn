@@ -35,6 +35,8 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <limits>
+
 #include "dataman.h"
 #include "genj.h"
 #include "hint.h"

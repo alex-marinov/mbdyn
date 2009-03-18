@@ -87,12 +87,13 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include <cfloat>
+#include <limits>
 
-#include <actuator.h>
+#include "actuator.h"
 
 #define HF1 HF /* Hack to use the base member HF as HF1 in actuator */
 
