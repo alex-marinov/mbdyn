@@ -589,10 +589,8 @@ protected:
 	MySubVectorHandler *pWorkVec;
 
 	/* ricerca elementi*/
-	//void* pFindElem(Elem::Type Typ, unsigned int uL,
 	Elem* pFindElem(Elem::Type Typ, unsigned int uL,
 			unsigned int iDeriv) const;
-	//void* pChooseElem(Elem* p, unsigned int iDeriv) const;
 	Elem* pChooseElem(Elem* p, unsigned int iDeriv) const;
 
 	Elem** ppFindElem(Elem::Type Typ, unsigned int uL) const;
@@ -605,11 +603,9 @@ protected:
 
 public:
 	/* ricerca drives */
-	//void* pFindDrive(Drive::Type Typ, unsigned int uL) const;
 	Drive* pFindDrive(Drive::Type Typ, unsigned int uL) const;
 
 	/* ricerca elementi*/
-	//void* pFindElem(Elem::Type Typ, unsigned int uL) const;
 	Elem* pFindElem(Elem::Type Typ, unsigned int uL) const;
 
 	/* pseudocostruttore */

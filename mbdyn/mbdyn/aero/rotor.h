@@ -34,79 +34,16 @@
 #ifndef ROTOR_H
 #define ROTOR_H
 
-extern "C" {
-#include <cfloat>
-}
-#include "ac/pthread.h"
-
-#ifdef USE_MPI
-#include "ac/mpi.h"
-#endif /* USE_MPI */
-
-#include <aerodyn.h>
-#include <strnode.h>
-#include <resforces.h>
+#include "indvel.h"
 
 extern const char* psRotorNames[];
 
 /* Rotor - begin */
 
 class Rotor
-: virtual public Elem, public AerodynamicElem, public ElemWithDofs {
-public:
-	// Tipi di rotori
-	enum Type {
-		UNKNOWN = -1,
-
-		NO = 0,
-		UNIFORM,
-		GLAUERT,
-		MANGLER,
-		DYNAMICINFLOW,
-
-		LASTROTORTYPE
-	};
-
-public:
-	class ErrInfiniteMeanInducedVelocity : public MBDynErrBase {
-	public:
-		ErrInfiniteMeanInducedVelocity(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
-	};
-
+: virtual public Elem, public InducedVelocity {
 protected:
-#ifdef USE_MPI
-	// Communicator per il calcolo della trazione totale
-	bool is_parallel;
-	// Gruppo di macchine su cui si scambiano dati relativi al rotore
-	MPI::Intracomm RotorComm;
-	int* pBlockLenght;
-	// vettore di indirizzi di dati
-	MPI::Aint* pDispl;
-	// request per le comunicazioni Send Receive
-	MPI::Request ReqV;
-	// dimensioni vettore forze scambiato fra i processi
-	integer iForcesVecDim;
-	// vettori temporanei per scambio forze
-	doublereal*  pTmpVecR;
-	doublereal*  pTmpVecS;
-	// datatype che contiene le posizioni
-	// dei dati da scambiare ad ogni passo
-	MPI::Datatype* pRotDataType;
-#endif // USE_MPI
-
-#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
-	mutable pthread_mutex_t forces_mutex;
-
-	mutable pthread_mutex_t induced_velocity_mutex;
-	mutable pthread_cond_t induced_velocity_cond;
-	mutable bool bDone;
-
-	void Wait(void) const;
-	void Done(void) const;
-#endif // USE_MULTITHREAD && MBDYN_X_MT_ASSRES
-
 	const StructNode* pCraft;
-	const StructNode* pRotor;
 	const StructNode* pGround;
 
 	doublereal dOmegaRef;		// Velocita' di rotazione di riferimento
@@ -132,11 +69,6 @@ protected:
 	doublereal dHoverCorrection;
 	// FF
 	doublereal dForwardFlightCorrection;
-
-	// force, couple and pole for resultants
-	ExternResForces Res;
-	// extra forces
-	ResForceSet **ppRes;
 
 	// Trasposta della matrice di rotazione rotore
 	Mat3x3 RRotTranspose;
@@ -182,59 +114,6 @@ public:
 		ResForceSet **ppres, flag fOut);
 	virtual ~Rotor(void);
 
-	// funzioni di servizio
-
-	// Tipo dell'elemento (usato per debug ecc.)
-	virtual Elem::Type GetElemType(void) const;
-	virtual AerodynamicElem::Type GetAerodynamicElemType(void) const;
-
-	/* Il metodo iGetNumDof() serve a ritornare il numero di gradi di liberta'
-	 * propri che l'elemento definisce. Non e' virtuale in quanto serve a
-	 * ritornare 0 per gli elementi che non possiedono gradi di liberta'.
-	 * Viene usato nella costruzione dei DofOwner e quindi deve essere
-	 * indipendente da essi. In genere non comporta overhead in quanto il
-	 * numero di dof aggiunti da un tipo e' una costante e non richede dati
-	 * propri.
-	 * Il metodo pGetDofOwner() ritorna il puntatore al DofOwner dell'oggetto.
-	 * E' usato da tutti quelli che agiscono direttamente sui DofOwner.
-	 * Non e' virtuale in quanto ritorna NULL per tutti i tipi che non hanno
-	 * dof propri.
-	 * Il metodo GetDofType() ritorna, per ogni dof dell'elemento, l'ordine.
-	 * E' usato per completare i singoli Dof relativi all'elemento.
-	 */
-
-	// ritorna il numero di Dofs per gli elementi che sono anche DofOwners
-	virtual unsigned int iGetNumDof(void) const {
-		return 0;
-	};
-
-	// esegue operazioni sui dof di proprieta' dell'elemento
-#ifdef DEBUG
-	virtual DofOrder::Order GetDofType(unsigned int i) const
-#else
-	virtual DofOrder::Order GetDofType(unsigned int /* i */ ) const
-#endif
-	{
-		ASSERT(i >= 0 && i < this->iGetNumDof());
-		return DofOrder::DIFFERENTIAL;
-	};
-
-	// funzioni proprie */
-
-	// Dimensioni del workspace
-	virtual void
-	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-		*piNumRows = 0;
-		*piNumCols = 0;
-	};
-
-	// assemblaggio jacobiano
-	virtual VariableSubMatrixHandler&
-	AssJac(VariableSubMatrixHandler& WorkMat,
-		doublereal dCoef,
-		const VectorHandler& XCurr,
-		const VectorHandler& XPrimeCurr);
-
 	// Elaborazione stato interno dopo la convergenza
 	virtual void
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
@@ -251,20 +130,8 @@ public:
 		NO_OP;
 	};
 
-	// Relativo ai ...WithDofs
-	virtual void
-	SetValue(DataManager *pDM,
-		VectorHandler& /* X */ , VectorHandler& /* XP */ ,
-		SimulationEntity::Hints *ph = 0)
-	{
-		NO_OP;
-	};
-
-	// Tipo di rotore
-	virtual Rotor::Type GetRotorType(void) const = 0;
-
 	virtual inline const Vec3& GetXCurr(void) const {
-		return pRotor->GetXCurr();
+		return pNode->GetXCurr();
 	};
 
 	// accesso a dati
@@ -303,18 +170,6 @@ public:
 		return Res.Couple();
 	};
 
-	/* Metodi per l'estrazione di dati "privati".
-	 * Si suppone che l'estrattore li sappia interpretare.
-	 * Come default non ci sono dati privati estraibili */
-	virtual unsigned int iGetNumPrivData(void) const;
-	virtual unsigned int iGetPrivDataIdx(const char *s) const;
-	virtual doublereal dGetPrivData(unsigned int i) const;
-
-	// Somma alla trazione il contributo di un elemento
-	virtual void AddForce(unsigned int uL,
-		const Vec3& F, const Vec3& M, const Vec3& X);
-	virtual void ResetForce(void);
-
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
 	virtual Vec3 GetInducedVelocity(const Vec3& X) const = 0;
@@ -336,12 +191,12 @@ public:
 		}
 
 		connectedNodes[0] = pCraft;
-		connectedNodes[1] = pRotor;
+		connectedNodes[1] = pNode;
 	};
 	// ************************************************
 
 #ifdef USE_MPI
-	void InitializeRotorComm(MPI::Intracomm* Rot);
+	void InitializeIndVelComm(MPI::Intracomm* Rot);
 	void ExchangeVelocity(void);
 #endif /* USE_MPI */
 };
@@ -357,7 +212,7 @@ public:
 		const DofOwner* pDO,
 		const StructNode* pCraft,
 		const Mat3x3& rrot,
-		const StructNode* pRotor,
+		const StructNode* pNode,
 		ResForceSet **ppres,
 		const doublereal& dR,
 		flag fOut);
@@ -373,8 +228,8 @@ public:
 	// Contributo al file di Restart
 	virtual std::ostream& Restart(std::ostream& out) const;
 
-	virtual Rotor::Type GetRotorType(void) const {
-		return Rotor::NO;
+	virtual InducedVelocity::Type GetInducedVelocityType(void) const {
+		return InducedVelocity::NO;
 	};
 
 	// Somma alla trazione il contributo di un elemento
@@ -397,7 +252,7 @@ public:
 		const DofOwner* pDO,
 		const StructNode* pCraft,
 	   	const Mat3x3& rrot,
-		const StructNode* pRotor,
+		const StructNode* pNode,
 		const StructNode* pGround,
 		ResForceSet **ppres,
 		const doublereal& dOR,
@@ -421,8 +276,8 @@ public:
 	// Contributo al file di Restart
 	virtual std::ostream& Restart(std::ostream& out) const;
 
-	Rotor::Type GetRotorType(void) const {
-		return Rotor::UNIFORM;
+	InducedVelocity::Type GetInducedVelocityType(void) const {
+		return InducedVelocity::UNIFORM;
 	};
 
 	// Somma alla trazione il contributo di un elemento
@@ -445,7 +300,7 @@ public:
 		const DofOwner* pDO,
 		const StructNode* pCraft,
 		const Mat3x3& rrot,
-		const StructNode* pRotor,
+		const StructNode* pNode,
 		const StructNode* pGround,
 		ResForceSet **ppres,
 		const doublereal& dOR,
@@ -469,8 +324,8 @@ public:
 	// Contributo al file di Restart
 	virtual std::ostream& Restart(std::ostream& out) const;
 
-	Rotor::Type GetRotorType(void) const {
-		return Rotor::GLAUERT;
+	InducedVelocity::Type GetInducedVelocityType(void) const {
+		return InducedVelocity::GLAUERT;
 	};
 
 	// Somma alla trazione il contributo di un elemento
@@ -493,7 +348,7 @@ public:
 		const DofOwner* pDO,
 		const StructNode* pCraft,
 		const Mat3x3& rrot,
-		const StructNode* pRotor,
+		const StructNode* pNode,
 		const StructNode* pGround,
 		ResForceSet **ppres,
 		const doublereal& dOR,
@@ -517,8 +372,8 @@ public:
 	// Contributo al file di Restart
 	virtual std::ostream& Restart(std::ostream& out) const;
 
-	Rotor::Type GetRotorType(void) const {
-		return Rotor::MANGLER;
+	InducedVelocity::Type GetInducedVelocityType(void) const {
+		return InducedVelocity::MANGLER;
 	};
 
 	// Somma alla trazione il contributo di un elemento
@@ -567,7 +422,7 @@ public:
 		const DofOwner* pDO,
 		const StructNode* pCraft,
 		const Mat3x3& rrot,
-		const StructNode* pRotor,
+		const StructNode* pNode,
       		const StructNode* pGround,
 		ResForceSet **ppres,
 		const doublereal& dOR,
@@ -624,8 +479,8 @@ public:
 		VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph = 0);
 
-	Rotor::Type GetRotorType(void) const {
-		return Rotor::DYNAMICINFLOW;
+	InducedVelocity::Type GetInducedVelocityType(void) const {
+		return InducedVelocity::DYNAMICINFLOW;
 	};
 
 	// Somma alla trazione il contributo di un elemento */

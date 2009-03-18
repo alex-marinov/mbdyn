@@ -88,7 +88,7 @@ public:
 		UNKNOWN = -1,
 
 		/* rotors must be as early as possible */
-		ROTOR = 0,
+		INDUCEDVELOCITY = 0,
 	
 		AUTOMATICSTRUCTURAL,
 	

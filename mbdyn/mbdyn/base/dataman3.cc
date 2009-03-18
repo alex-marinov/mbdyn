@@ -92,7 +92,7 @@ DataManager::ReadControl(MBDynParser& HP,
 		psReadControlElems[Elem::BEAM],
 		psReadControlElems[Elem::PLATE],
 		psReadControlElems[Elem::AIRPROPERTIES],
-		psReadControlElems[Elem::ROTOR],
+		psReadControlElems[Elem::INDUCEDVELOCITY],
 		psReadControlElems[Elem::AEROMODAL],
 		psReadControlElems[Elem::AERODYNAMIC],
 		psReadControlElems[Elem::FORCE],
@@ -106,7 +106,8 @@ DataManager::ReadControl(MBDynParser& HP,
 		psReadControlElems[Elem::LOADABLE],
 		psReadControlElems[Elem::EXTERNAL],
 		psReadControlElems[Elem::SOCKETSTREAM_OUTPUT],
-		"RTAI" "output",
+			"RTAI" "output",	// deprecated
+			"rotors",		// deprecated
 
 		psReadControlDrivers[Drive::FILEDRIVE],
 
@@ -176,7 +177,7 @@ DataManager::ReadControl(MBDynParser& HP,
 		BEAMS,
 		PLATES,
 		AIRPROPERTIES,
-		ROTORS,
+		INDUCEDVELOCITYELEMENTS,
 		AEROMODALS,
 		AERODYNAMICELEMENTS,
 		FORCES,
@@ -190,7 +191,8 @@ DataManager::ReadControl(MBDynParser& HP,
 		LOADABLEELEMENTS,
 		EXTERNALELEMENTS,
 		SOCKETSTREAMOUTPUTELEMENTS,
-		RTAIOUTPUTELEMENTS,
+			RTAIOUTPUTELEMENTS,	// deprecated
+			ROTORS,			// deprecated
 
 		FILEDRIVERS,
 
@@ -377,10 +379,11 @@ DataManager::ReadControl(MBDynParser& HP,
 		} break;
 
 		/* Elementi aerodinamici: rotori */
-		case ROTORS: {
+		case ROTORS:
+		case INDUCEDVELOCITYELEMENTS: {
 			int iDmy = HP.GetInt();
-			ElemData[Elem::ROTOR].iExpectedNum = iDmy;
-			DofData[DofOwner::ROTOR].iNum = iDmy;
+			ElemData[Elem::INDUCEDVELOCITY].iExpectedNum = iDmy;
+			DofData[DofOwner::INDUCEDVELOCITY].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Rotors: " << iDmy << std::endl);
 		} break;
 
@@ -1037,7 +1040,8 @@ EndOfUse:
 					break;
 
 				case ROTORS:
-					ElemData[Elem::ROTOR].DefaultOut(true);
+				case INDUCEDVELOCITYELEMENTS:
+					ElemData[Elem::INDUCEDVELOCITY].DefaultOut(true);
 					break;
 
 				case AEROMODALS:
@@ -1136,7 +1140,8 @@ EndOfUse:
 					break;
 
 				case ROTORS:
-					DofData[DofOwner::ROTOR].dDefScale = dScale;
+				case INDUCEDVELOCITYELEMENTS:
+					DofData[DofOwner::INDUCEDVELOCITY].dDefScale = dScale;
 					break;
 
 				case AEROMODALS:

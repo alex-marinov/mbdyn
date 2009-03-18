@@ -64,7 +64,7 @@ DataManager::ElemManager(void)
 	ElemData[Elem::THERMAL].DofOwnerType = DofOwner::THERMAL;
 	ElemData[Elem::ELECTRICBULK].DofOwnerType = DofOwner::ELECTRICBULK;
 	ElemData[Elem::GENEL].DofOwnerType = DofOwner::GENEL;
-	ElemData[Elem::ROTOR].DofOwnerType = DofOwner::ROTOR;
+	ElemData[Elem::INDUCEDVELOCITY].DofOwnerType = DofOwner::INDUCEDVELOCITY;
 	ElemData[Elem::AEROMODAL].DofOwnerType = DofOwner::AEROMODAL;
 	ElemData[Elem::HYDRAULIC].DofOwnerType = DofOwner::HYDRAULIC;
 	ElemData[Elem::LOADABLE].DofOwnerType = DofOwner::LOADABLE;
@@ -86,9 +86,9 @@ DataManager::ElemManager(void)
 	ElemData[Elem::BEAM].Desc = "Beam";
 	ElemData[Elem::BEAM].ShortDesc = "beam";
 
-	ElemData[Elem::ROTOR].OutFile = OutputHandler::ROTORS;
-	ElemData[Elem::ROTOR].Desc = "Rotor";
-	ElemData[Elem::ROTOR].ShortDesc = "rotor";
+	ElemData[Elem::INDUCEDVELOCITY].OutFile = OutputHandler::ROTORS;
+	ElemData[Elem::INDUCEDVELOCITY].Desc = "InducedVelocity";
+	ElemData[Elem::INDUCEDVELOCITY].ShortDesc = "indvel";
 
 	ElemData[Elem::AEROMODAL].OutFile = OutputHandler::AEROMODALS;
 	ElemData[Elem::AEROMODAL].Desc = "AerodynamicModal";
@@ -128,7 +128,7 @@ DataManager::ElemManager(void)
 	ElemData[Elem::BEAM].iDerivation = ELEM | GRAVITYOWNER | INITIALASSEMBLY;
 	ElemData[Elem::PLATE].iDerivation = ELEM | INITIALASSEMBLY;
 	ElemData[Elem::AIRPROPERTIES].iDerivation = ELEM | INITIALASSEMBLY;
-	ElemData[Elem::ROTOR].iDerivation = ELEM | DOFOWNER | AIRPROPOWNER;
+	ElemData[Elem::INDUCEDVELOCITY].iDerivation = ELEM | DOFOWNER | AIRPROPOWNER;
 	ElemData[Elem::AEROMODAL].iDerivation = ELEM | DOFOWNER | AIRPROPOWNER;
 	ElemData[Elem::AERODYNAMIC].iDerivation = ELEM | AIRPROPOWNER |INITIALASSEMBLY;
 	ElemData[Elem::ELECTRIC].iDerivation = ELEM | DOFOWNER;
@@ -157,7 +157,7 @@ DataManager::ElemManager(void)
 
 	/* Aggiungere qui se un tipo usa le proprieta' dell'aria e quindi
 	 * deve essere collegato all'elemento proprieta' dell'aria */
-	ElemData[Elem::ROTOR].UsesAirProperties(true);
+	ElemData[Elem::INDUCEDVELOCITY].UsesAirProperties(true);
 	ElemData[Elem::AEROMODAL].UsesAirProperties(true);
 	ElemData[Elem::AERODYNAMIC].UsesAirProperties(true);
 	ElemData[Elem::LOADABLE].UsesAirProperties(true);

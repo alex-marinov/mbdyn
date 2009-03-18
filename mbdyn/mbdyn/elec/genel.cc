@@ -214,7 +214,7 @@ ReadGenel(DataManager* pDM,
 		} break;
 
 	case ROTORTRIM: {
-		Rotor* pRot = dynamic_cast<Rotor *>(pDM->ReadElem(HP, Elem::ROTOR));
+		Rotor* pRot = dynamic_cast<Rotor *>(pDM->ReadElem(HP, Elem::INDUCEDVELOCITY));
 		ScalarDifferentialNode* pvNodes[3];
 		pvNodes[0] = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
 		pvNodes[1] = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));

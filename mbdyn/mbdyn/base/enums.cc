@@ -122,7 +122,7 @@ const char* psReadElemsElems[] = {
  * hanno lo stesso numero progressivo degli elementi, quindi vi si accede con 
  * l'enum Elem::Type */
 const char* psReadControlElems[] = {
-   "rotors",
+   "induced" "velocity" "elements",
 
    "automatic" "structural" "elements",
 

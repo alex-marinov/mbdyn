@@ -58,20 +58,19 @@ extern "C" {
 
 Rotor::Rotor(unsigned int uL, const DofOwner* pDO,
 	const StructNode* pC, const Mat3x3& rrot,
-	const StructNode* pR, const StructNode* pG,
+	const StructNode* pN, const StructNode* pG,
 	unsigned int iMaxIt, const doublereal& dTol, const doublereal& dE,
 	ResForceSet **ppres, flag fOut)
 : Elem(uL, fOut),
-AerodynamicElem(uL, fOut),
-ElemWithDofs(uL, pDO, fOut),
+InducedVelocity(uL, pDO, pN, ppres, fOut),
 #ifdef USE_MPI
 is_parallel(false),
 pBlockLenght(0),
 pDispl(0),
 ReqV(MPI::REQUEST_NULL),
-pRotDataType(0),
+pIndVelDataType(0),
 #endif /* USE_MPI */
-pCraft(pC), pRotor(pR), pGround(pG),
+pCraft(pC), pGround(pG),
 dOmegaRef(0.), dRadius(0.), dArea(0.),
 dUMean(0.), dUMeanRef(0.), dUMeanPrev(0.),
 iMaxIter(iMaxIt),
@@ -81,7 +80,6 @@ dEta(dE),
 bUMeanRefConverged(false),
 Weight(), dWeight(0.),
 dHoverCorrection(1.), dForwardFlightCorrection(1.),
-ppRes(ppres),
 RRotTranspose(0.), RRot(rrot), RRot3(0.),
 VCraft(0.),
 dPsi0(0.), dSinAlphad(1.), dCosAlphad(0.),
@@ -89,126 +87,27 @@ dMu(0.), dLambda(1.), dChi(0.),
 dVelocity(0.), dOmega(0.),
 iNumSteps(0)
 {
-	ASSERT(pC != 0);
-	ASSERT(pC->GetNodeType() == Node::STRUCTURAL);
-	ASSERT(pR != 0);
-	ASSERT(pR->GetNodeType() == Node::STRUCTURAL);
-	ASSERT(pG == 0 || pG->GetNodeType() == Node::STRUCTURAL);
-
 	Vec3 R3C((pCraft->GetRCurr()*RRot).GetVec(3));
-	Vec3 R3R((pRotor->GetRCurr()).GetVec(3));
+	Vec3 R3R((pNode->GetRCurr()).GetVec(3));
 	if (R3C.Dot(R3R) < 1. - std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("warning, possible misalignment "
-			"of rotor StructNode(" << pRotor->GetLabel() << ") "
+			"of rotor StructNode(" << pNode->GetLabel() << ") "
 			"axis {" << R3R << "} "
 			"and craft StructNode(" << pCraft->GetLabel() << ") "
 			"axis {" << R3C << "} "
 			<< "for Rotor(" << GetLabel() << ")"
 			<< std::endl);
 	}
-
-#ifdef USE_MPI
-	iForcesVecDim = 6;
-	for (int i = 0; ppRes && ppRes[i]; i++) {
-		iForcesVecDim += 6;
-	}
-	SAFENEWARR(pTmpVecR, doublereal, iForcesVecDim);
-	SAFENEWARR(pTmpVecS, doublereal, iForcesVecDim);
-	if (MPI::Is_initialized()) {
-		is_parallel = true;
-   		RotorComm = MBDynComm.Dup();
-	}
-#endif /* USE_MPI */
-
-#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
-	pthread_mutex_init(&induced_velocity_mutex, NULL);
-	pthread_cond_init(&induced_velocity_cond, NULL);
-	pthread_mutex_init(&forces_mutex, NULL);
-#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 }
 
 Rotor::~Rotor(void)
 {
-#ifdef USE_MPI
-	SAFEDELETEARR(pTmpVecR);
-	SAFEDELETEARR(pTmpVecS);
-#endif /* USE_MPI */
-
-#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
-	pthread_mutex_destroy(&induced_velocity_mutex);
-	pthread_cond_destroy(&induced_velocity_cond);
-	pthread_mutex_destroy(&forces_mutex);
-#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
-}
-
-unsigned int
-Rotor::iGetNumPrivData(void) const {
-	return 6;
-}
-
-unsigned int
-Rotor::iGetPrivDataIdx(const char *s) const
-{
-	ASSERT(s != 0);
-
-	unsigned int idx = 0;
-
-	switch (s[0]) {
-	case 'M':
-		idx += 3;
-	case 'T':
-		switch (s[1]) {
-		case 'x':
-			return idx + 1;
-
-		case 'y':
-			return idx + 2;
-
-		case 'z':
-			return idx + 3;
-		}
-	}
-
-	return 0;
-}
-
-doublereal
-Rotor::dGetPrivData(unsigned int i) const
-{
-	ASSERT(i > 0 && i <= 6);
-
-	switch (i) {
-	case 1:
-	case 2:
-	case 3:
-		return Res.Force().dGet(i);
-
-	case 4:
-	case 5:
-	case 6:
-		return Res.Couple().dGet(i - 3);
-	}
-
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-}
-
-/* Tipo dell'elemento (usato per debug ecc.) */
-Elem::Type
-Rotor::GetElemType(void) const
-{
-	return Elem::ROTOR;
-}
-
-/* Tipo dell'elemento (usato per debug ecc.) */
-AerodynamicElem::Type
-Rotor::GetAerodynamicElemType(void) const
-{
-	return AerodynamicElem::ROTOR;
+	NO_OP;
 }
 
 void
-Rotor::AfterConvergence(const VectorHandler& /* X */ ,
-		const VectorHandler& /* XP */ )
+Rotor::AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP)
 {
 	/* non mi ricordo a cosa serve! */
 	iNumSteps++;
@@ -234,10 +133,7 @@ Rotor::AfterConvergence(const VectorHandler& /* X */ ,
 		}
 	}
 
-#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
-	ASSERT(bDone);
-	bDone = false;
-#endif // USE_MULTITHREAD && MBDYN_X_MT_ASSRES
+	InducedVelocity::AfterConvergence(X, XP);
 }
 
 void
@@ -245,8 +141,8 @@ Rotor::Output(OutputHandler& OH) const
 {
     	if (fToBeOutput()) {
 #ifdef USE_MPI
-		if (is_parallel && RotorComm.Get_size() > 1) {
-	    		if (RotorComm.Get_rank() == 0) {
+		if (is_parallel && IndVelComm.Get_size() > 1) {
+	    		if (IndVelComm.Get_rank() == 0) {
 				Vec3 TmpF(pTmpVecR);
 				Vec3 TmpM(pTmpVecR+3);
 
@@ -384,7 +280,7 @@ void
 Rotor::InitParam(bool bComputeMeanInducedVelocity)
 {
 	ASSERT(pCraft != 0);
-	ASSERT(pRotor != 0);
+	ASSERT(pNode != 0);
 
 	/* Trasposta della matrice di rotazione del rotore */
 	RRotTranspose = pCraft->GetRCurr()*RRot;
@@ -392,15 +288,15 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 	RRotTranspose = RRotTranspose.Transpose();
 
 	/* Posizione del rotore */
-	Res.PutPole(pRotor->GetXCurr());
+	Res.PutPole(pNode->GetXCurr());
 
 	/* Velocita' angolare del rotore */
-	dOmega = (pRotor->GetWCurr() - pCraft->GetWCurr()).Norm();
+	dOmega = (pNode->GetWCurr() - pCraft->GetWCurr()).Norm();
 
 	/* Velocita' di traslazione del velivolo */
-	VCraft = -pRotor->GetVCurr();
+	VCraft = -pNode->GetVCurr();
 	Vec3 VTmp(0.);
-	if (fGetAirVelocity(VTmp, pRotor->GetXCurr())) {
+	if (fGetAirVelocity(VTmp, pNode->GetXCurr())) {
 		VCraft += VTmp;
 	}
 
@@ -449,7 +345,7 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 	/* Ground effect */
 	doublereal dGE = 1.;
 	if (pGround) {
-		Vec3 p = pGround->GetRCurr().MulTV(pRotor->GetXCurr() - pGround->GetXCurr());
+		Vec3 p = pGround->GetRCurr().MulTV(pNode->GetXCurr() - pGround->GetXCurr());
 		doublereal z = p.dGet(3)*(4./dRadius);
 
 		if (z < .25) {
@@ -528,128 +424,13 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 	dUMean = (1.-dWeight)*dT/(d+1.)+dWeight*dUMeanPrev;
 }
 
-/* assemblaggio jacobiano (nullo per tutti tranne che per il DynamicInflow) */
-VariableSubMatrixHandler&
-Rotor::AssJac(VariableSubMatrixHandler& WorkMat,
-	doublereal /* dCoef */ ,
-	const VectorHandler& /* XCurr */ ,
-	const VectorHandler& /* XPrimeCurr */ )
-{
-	DEBUGCOUT("Entering Rotor::AssJac()" << std::endl);
-	WorkMat.SetNullMatrix();
-
-	return WorkMat;
-}
-
 std::ostream&
 Rotor::Restart(std::ostream& out) const
 {
 	return out << "  rotor: " << GetLabel() << ", "
-		<< pCraft->GetLabel() << ", " << pRotor->GetLabel()
+		<< pCraft->GetLabel() << ", " << pNode->GetLabel()
 		<< ", induced velocity: ";
 }
-
-#ifdef USE_MPI
-void
-Rotor::ExchangeTraction(flag fWhat)
-{
-#ifdef MPI_PROFILING
-	MPE_Log_event(33, 0, "start RotorTrust Exchange ");
-#endif /* MPI_PROFILING */
-	/* Se il rotore è connesso ad una sola macchina non è necessario scambiare messaggi */
-	if (is_parallel && RotorComm.Get_size() > 1) {
-		if (fWhat) {
-			/* Scambia F e M */
-			Res.Force().PutTo(pTmpVecS);
-			Res.Couple().PutTo(pTmpVecS + 3);
-			for (int i = 0; ppRes && ppRes[i]; i++) {
-				ppRes[i]->pRes->Force().PutTo(pTmpVecS + 6 + 6*i);
-				ppRes[i]->pRes->Couple().PutTo(pTmpVecS + 9 + 6*i);
-			}
-			RotorComm.Allreduce(pTmpVecS, pTmpVecR, iForcesVecDim, MPI::DOUBLE, MPI::SUM);
-			Res.PutForces(Vec3(pTmpVecR), Vec3(pTmpVecR + 3));
-			for (int i = 0; ppRes && ppRes[i]; i++) {
-				ppRes[i]->pRes->PutForces(Vec3(pTmpVecR + 6 + 6*i),  Vec3(pTmpVecR + 9 + 6*i));
-			}
-
-		} else {
-			RotorComm.Allreduce(Res.Force().pGetVec(), pTmpVecR, 3, MPI::DOUBLE, MPI::SUM);
-			Res.PutForce(Vec3(pTmpVecR));
-		}
-	}
-#ifdef MPI_PROFILING
-	MPE_Log_event(34, 0, "end RotorTrust Exchange ");
-#endif /* MPI_PROFILING */
-}
-
-void
-Rotor::InitializeRotorComm(MPI::Intracomm* Rot)
-{
-	ASSERT(is_parallel);
-  	RotorComm = *Rot;
-}
-
-void
-Rotor::ExchangeVelocity(void)
-{
-#define ROTDATATYPELABEL	100
-	if (is_parallel && RotorComm.Get_size() > 1){
-		if (RotorComm.Get_rank() == 0) {
-			for (int i = 1; i < RotorComm.Get_size(); i++) {
-				RotorComm.Send(MPI::BOTTOM, 1, *pRotDataType,
-						i, ROTDATATYPELABEL);
-			}
-		} else {
-			ReqV = RotorComm.Irecv((void *)MPI::BOTTOM, 1,
-					*pRotDataType, 0, ROTDATATYPELABEL);
-		}
-	}
-}
-#endif /* USE_MPI */
-
-/* Somma alla trazione il contributo di forza di un elemento generico */
-void
-Rotor::AddForce(unsigned int uL,
-	const Vec3& F, const Vec3& M, const Vec3& X)
-{
-	for (int i = 0; ppRes && ppRes[i]; i++) {
-		if (ppRes[i]->is_in(uL)) {
-			ppRes[i]->pRes->AddForces(F, M, X);
-		}
-	}
-}
-
-void
-Rotor::ResetForce(void)
-{
-	Res.Reset(pRotor->GetXCurr());
-	for (int i = 0; ppRes && ppRes[i]; i++) {
-		ppRes[i]->pRes->Reset();
-	}
-}
-
-#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
-void
-Rotor::Wait(void) const
-{
-	pthread_mutex_lock(&induced_velocity_mutex);
-	if (!bDone) {
-		pthread_cond_wait(&induced_velocity_cond,
-				&induced_velocity_mutex);
-	}
-	pthread_mutex_unlock(&induced_velocity_mutex);
-}
-
-void
-Rotor::Done(void) const
-{
-	pthread_mutex_lock(&induced_velocity_mutex);
-	ASSERT(!bDone);
-	bDone = true;
-	pthread_cond_broadcast(&induced_velocity_cond);
-	pthread_mutex_unlock(&induced_velocity_mutex);
-}
-#endif // USE_MULTITHREAD && MBDYN_X_MT_ASSRES
 
 /* Rotor - end */
 
@@ -660,12 +441,12 @@ NoRotor::NoRotor(unsigned int uLabel,
 	const DofOwner* pDO,
 	const StructNode* pCraft,
 	const Mat3x3& rrot,
-	const StructNode* pRotor,
+	const StructNode* pNode,
 	ResForceSet **ppres,
 	const doublereal& dR,
 	flag fOut)
 : Elem(uLabel, fOut),
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, 0, 0, 0., 0., ppres, fOut)
+Rotor(uLabel, pDO, pCraft, rrot, pNode, 0, 0, 0., 0., ppres, fOut)
 {
 	dRadius = dR; /* puo' essere richiesto dal trim */
 #ifdef USE_MPI
@@ -678,9 +459,9 @@ Rotor(uLabel, pDO, pCraft, rrot, pRotor, 0, 0, 0., 0., ppres, fOut)
 		for (int i = 0; i < 3; i++) {
 			pDispl[i] = MPI::Get_address(&(Res.Pole().pGetVec()[i]));
 		}
-		SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype,
+		SAFENEWWITHCONSTRUCTOR(pIndVelDataType, MPI::Datatype,
 				MPI::Datatype(MPI::DOUBLE.Create_hindexed(3, pBlockLenght, pDispl)));
-		pRotDataType->Commit();
+		pIndVelDataType->Commit();
 	}
 #endif /* USE_MPI */
 }
@@ -690,7 +471,7 @@ NoRotor::~NoRotor(void)
 #ifdef USE_MPI
 	SAFEDELETEARR(pBlockLenght);
 	SAFEDELETEARR(pDispl);
-	SAFEDELETE(pRotDataType);
+	SAFEDELETE(pIndVelDataType);
 #endif /* USE_MPI */
 }
 
@@ -710,7 +491,7 @@ NoRotor::AssRes(SubVectorHandler& WorkVec,
 		ExchangeTraction(out);
 	}
 
-	if (!is_parallel || RotorComm.Get_rank() == 0)
+	if (!is_parallel || IndVelComm.Get_rank() == 0)
 #endif /* USE_MPI */
 	{
 		if (out) {
@@ -763,7 +544,7 @@ NoRotor::AddForce(unsigned int uL,
 
 	if (fToBeOutput()) {
 		Res.AddForces(F, M, X);
-		Rotor::AddForce(uL, F, M, X);
+		InducedVelocity::AddForce(uL, F, M, X);
 	}
 
 #if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
@@ -788,7 +569,7 @@ UniformRotor::UniformRotor(unsigned int uLabel,
 	const DofOwner* pDO,
 	const StructNode* pCraft,
 	const Mat3x3& rrot,
-	const StructNode* pRotor,
+	const StructNode* pNode,
 	const StructNode* pGround,
 	ResForceSet **ppres,
 	const doublereal& dOR,
@@ -801,7 +582,7 @@ UniformRotor::UniformRotor(unsigned int uLabel,
 	const doublereal& dCFF,
 	flag fOut)
 : Elem(uLabel, fOut),
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, iMaxIt, dTol, dE, ppres, fOut)
+Rotor(uLabel, pDO, pCraft, rrot, pNode, pGround, iMaxIt, dTol, dE, ppres, fOut)
 {
 	ASSERT(dOR > 0.);
 	ASSERT(dR > 0.);
@@ -828,9 +609,9 @@ Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, iMaxIt, dTol, dE, ppres, fOut)
 		for (int i = 4; i <= 6; i++) {
 			pDispl[i] = MPI::Get_address(&(Res.Pole().pGetVec()[i-4]));
 		}
-		SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype,
+		SAFENEWWITHCONSTRUCTOR(pIndVelDataType, MPI::Datatype,
 				MPI::Datatype(MPI::DOUBLE.Create_hindexed(7, pBlockLenght, pDispl)));
-		pRotDataType->Commit();
+		pIndVelDataType->Commit();
 	}
 #endif /* USE_MPI */
 }
@@ -840,7 +621,7 @@ UniformRotor::~UniformRotor(void)
 #ifdef USE_MPI
 	SAFEDELETEARR(pBlockLenght);
 	SAFEDELETEARR(pDispl);
-	SAFEDELETE(pRotDataType);
+	SAFEDELETE(pIndVelDataType);
 #endif /* USE_MPI */
 }
 
@@ -855,7 +636,7 @@ UniformRotor::AssRes(SubVectorHandler& WorkVec,
 
 #ifdef USE_MPI
 	ExchangeTraction(fToBeOutput());
-	if (!is_parallel || RotorComm.Get_rank() == 0)
+	if (!is_parallel || IndVelComm.Get_rank() == 0)
 #endif /* USE_MPI */
 	{
 		/* Calcola parametri vari */
@@ -868,7 +649,7 @@ UniformRotor::AssRes(SubVectorHandler& WorkVec,
 		doublereal dPsiTmp = dGetPsi(XTmp);
 		doublereal dXTmp = dGetPos(XTmp);
 		std::cout
-			<< "X rotore:  " << pRotor->GetXCurr() << std::endl
+			<< "X rotore:  " << pNode->GetXCurr() << std::endl
 			<< "V rotore:  " << VCraft << std::endl
 			<< "X punto:   " << XTmp << std::endl
 			<< "Omega:     " << dOmega << std::endl
@@ -932,7 +713,7 @@ UniformRotor::AddForce(unsigned int uL,
 	/* Solo se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {
 		Res.AddForces(F, M, X);
-		Rotor::AddForce(uL, F, M, X);
+		InducedVelocity::AddForce(uL, F, M, X);
 	} else {
 		Res.AddForce(F);
 	}
@@ -963,7 +744,7 @@ GlauertRotor::GlauertRotor(unsigned int uLabel,
 	const DofOwner* pDO,
 	const StructNode* pCraft,
 	const Mat3x3& rrot,
-	const StructNode* pRotor,
+	const StructNode* pNode,
 	const StructNode* pGround,
 	ResForceSet **ppres,
 	const doublereal& dOR,
@@ -976,7 +757,7 @@ GlauertRotor::GlauertRotor(unsigned int uLabel,
 	const doublereal& dCFF,
 	flag fOut)
 : Elem(uLabel, fOut),
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, iMaxIt, dTol, dE, ppres, fOut)
+Rotor(uLabel, pDO, pCraft, rrot, pNode, pGround, iMaxIt, dTol, dE, ppres, fOut)
 {
 	ASSERT(dOR > 0.);
 	ASSERT(dR > 0.);
@@ -1010,9 +791,9 @@ Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, iMaxIt, dTol, dE, ppres, fOut)
 		for (int i = 11; i < 20; i++) {
 			pDispl[i] = MPI::Get_address(&(RRotTranspose.pGetMat()[i-11]));
 		}
-		SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype,
+		SAFENEWWITHCONSTRUCTOR(pIndVelDataType, MPI::Datatype,
 				MPI::Datatype(MPI::DOUBLE.Create_hindexed(20, pBlockLenght, pDispl)));
-		pRotDataType->Commit();
+		pIndVelDataType->Commit();
 	}
 #endif /* USE_MPI */
 }
@@ -1023,7 +804,7 @@ GlauertRotor::~GlauertRotor(void)
 #ifdef USE_MPI
 	SAFEDELETEARR(pBlockLenght);
 	SAFEDELETEARR(pDispl);
-	SAFEDELETE(pRotDataType);
+	SAFEDELETE(pIndVelDataType);
 #endif /* USE_MPI */
 }
 
@@ -1039,7 +820,7 @@ GlauertRotor::AssRes(SubVectorHandler& WorkVec,
 
 #ifdef USE_MPI
 	ExchangeTraction(fToBeOutput());
-	if (!is_parallel || RotorComm.Get_rank() == 0)
+	if (!is_parallel || IndVelComm.Get_rank() == 0)
 #endif /* USE_MPI */
 	{
 		/* Calcola parametri vari */
@@ -1093,7 +874,7 @@ GlauertRotor::AddForce(unsigned int uL,
 	/* Solo se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {
 		Res.AddForces(F, M, X);
-		Rotor::AddForce(uL, F, M, X);
+		InducedVelocity::AddForce(uL, F, M, X);
 	} else {
 		Res.AddForce(F);
 	}
@@ -1139,7 +920,7 @@ ManglerRotor::ManglerRotor(unsigned int uLabel,
 	const DofOwner* pDO,
 	const StructNode* pCraft,
 	const Mat3x3& rrot,
-	const StructNode* pRotor,
+	const StructNode* pNode,
 	const StructNode* pGround,
 	ResForceSet **ppres,
 	const doublereal& dOR,
@@ -1152,7 +933,7 @@ ManglerRotor::ManglerRotor(unsigned int uLabel,
 	const doublereal& dCFF,
 	flag fOut)
 : Elem(uLabel, fOut),
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, iMaxIt, dTol, dE, ppres, fOut)
+Rotor(uLabel, pDO, pCraft, rrot, pNode, pGround, iMaxIt, dTol, dE, ppres, fOut)
 {
 	ASSERT(dOR > 0.);
 	ASSERT(dR > 0.);
@@ -1184,9 +965,9 @@ Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, iMaxIt, dTol, dE, ppres, fOut)
 		for (int i = 9; i < 18; i++) {
 			pDispl[i] = MPI::Get_address(&(RRotTranspose.pGetMat()[i-9]));
 		}
-		SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype,
+		SAFENEWWITHCONSTRUCTOR(pIndVelDataType, MPI::Datatype,
 				MPI::Datatype(MPI::DOUBLE.Create_hindexed(18, pBlockLenght, pDispl)));
-		pRotDataType->Commit();
+		pIndVelDataType->Commit();
 	}
 #endif /* USE_MPI */
 }
@@ -1197,7 +978,7 @@ ManglerRotor::~ManglerRotor(void)
 #ifdef USE_MPI
 	SAFEDELETEARR(pBlockLenght);
 	SAFEDELETEARR(pDispl);
-	SAFEDELETE(pRotDataType);
+	SAFEDELETE(pIndVelDataType);
 #endif /* USE_MPI */
 }
 
@@ -1213,7 +994,7 @@ ManglerRotor::AssRes(SubVectorHandler& WorkVec,
 
 #ifdef USE_MPI
 	ExchangeTraction(fToBeOutput());
-	if (!is_parallel || RotorComm.Get_rank() == 0)
+	if (!is_parallel || IndVelComm.Get_rank() == 0)
 #endif /* USE_MPI */
 	{
 		/* Calcola parametri vari */
@@ -1227,7 +1008,7 @@ ManglerRotor::AssRes(SubVectorHandler& WorkVec,
 		doublereal dXTmp = dGetPos(XTmp);
 		Vec3 IndV = GetInducedVelocity(XTmp);
 		std::cout
-			<< "X rotore:  " << pRotor->GetXCurr() << std::endl
+			<< "X rotore:  " << pNode->GetXCurr() << std::endl
 			<< "V rotore:  " << VCraft << std::endl
 			<< "X punto:   " << XTmp << std::endl
 			<< "Omega:     " << dOmega << std::endl
@@ -1292,7 +1073,7 @@ ManglerRotor::AddForce(unsigned int uL,
 	/* Solo se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {
 		Res.AddForces(F, M, X);
-		Rotor::AddForce(uL, F, M, X);
+		InducedVelocity::AddForce(uL, F, M, X);
 	} else {
 		Res.AddForce(F);
 	}
@@ -1369,7 +1150,7 @@ DynamicInflowRotor::DynamicInflowRotor(unsigned int uLabel,
 	const DofOwner* pDO,
 	const StructNode* pCraft,
 	const Mat3x3& rrot,
-	const StructNode* pRotor,
+	const StructNode* pNode,
 	const StructNode* pGround,
 	ResForceSet **ppres,
 	const doublereal& dOR,
@@ -1384,7 +1165,7 @@ DynamicInflowRotor::DynamicInflowRotor(unsigned int uLabel,
 	const doublereal& dVCosineTmp,
 	flag fOut)
 : Elem(uLabel, fOut),
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, iMaxIt, dTol, dE, ppres, fOut),
+Rotor(uLabel, pDO, pCraft, rrot, pNode, pGround, iMaxIt, dTol, dE, ppres, fOut),
 dVConst(dVConstTmp), dVSine(dVSineTmp), dVCosine(dVCosineTmp),
 dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
 {
@@ -1422,9 +1203,9 @@ dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
 		for (int i = 11; i < 20; i++) {
 			pDispl[i] = MPI::Get_address(RRotTranspose.pGetMat()+i-11);
 		}
-		SAFENEWWITHCONSTRUCTOR(pRotDataType, MPI::Datatype,
+		SAFENEWWITHCONSTRUCTOR(pIndVelDataType, MPI::Datatype,
 				MPI::Datatype(MPI::DOUBLE.Create_hindexed(20, pBlockLenght, pDispl)));
-		pRotDataType->Commit();
+		pIndVelDataType->Commit();
 	}
 #endif /* USE_MPI */
 }
@@ -1435,7 +1216,7 @@ DynamicInflowRotor::~DynamicInflowRotor(void)
 #ifdef USE_MPI
 	SAFEDELETEARR(pBlockLenght);
 	SAFEDELETEARR(pDispl);
-	SAFEDELETE(pRotDataType);
+	SAFEDELETE(pIndVelDataType);
 #endif /* USE_MPI */
 }
 
@@ -1449,8 +1230,8 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 	 */
 	if (fToBeOutput()) {
 #ifdef USE_MPI
-		if (is_parallel && RotorComm.Get_size() > 1) {
-			if (RotorComm.Get_rank() == 0) {
+		if (is_parallel && IndVelComm.Get_size() > 1) {
+			if (IndVelComm.Get_rank() == 0) {
 				Vec3 TmpF(pTmpVecR), TmpM(pTmpVecR+3);
 
 				OH.Rotors()
@@ -1555,7 +1336,7 @@ DynamicInflowRotor::AssJac(VariableSubMatrixHandler& WorkMat,
 	WorkMat.SetNullMatrix();
 
 #ifdef USE_MPI
-	if (is_parallel && RotorComm.Get_rank() == 0)
+	if (is_parallel && IndVelComm.Get_rank() == 0)
 #endif /* USE_MPI */
 	{
 		SparseSubMatrixHandler& WM = WorkMat.SetSparse();
@@ -1585,7 +1366,7 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 #ifdef USE_MPI
      	ExchangeTraction(flag(1));
 
-     	if (!is_parallel || RotorComm.Get_rank() == 0)
+     	if (!is_parallel || IndVelComm.Get_rank() == 0)
 #endif /* USE_MPI */
 	{
 	   	/* Calcola parametri vari */
@@ -1699,12 +1480,12 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 		if (++i == 4) {
 			i = 0;
 		}
-	   	Vec3 XTmp(pRotor->GetXCurr()+pCraft->GetRCurr()*Vec3(dRadius*iv[i],dRadius*iv[i+1],0.));
+	   	Vec3 XTmp(pNode->GetXCurr()+pCraft->GetRCurr()*Vec3(dRadius*iv[i],dRadius*iv[i+1],0.));
 	   	doublereal dPsiTmp, dXTmp;
 	   	GetPos(XTmp, dXTmp, dPsiTmp);
 	   	Vec3 IndV = GetInducedVelocity(XTmp);
 	   	std::cout
-		 	<< "X rotore:  " << pRotor->GetXCurr() << std::endl
+		 	<< "X rotore:  " << pNode->GetXCurr() << std::endl
 		 	<< "V rotore:  " << VCraft << std::endl
 		 	<< "X punto:   " << XTmp << std::endl
 		 	<< "Omega:     " << dOmega << std::endl
@@ -1810,7 +1591,7 @@ DynamicInflowRotor::AddForce(unsigned int uL,
 
 	Res.AddForces(F, M, X);
 	if (fToBeOutput()) {
-		Rotor::AddForce(uL, F, M, X);
+		InducedVelocity::AddForce(uL, F, M, X);
 	}
 
 #if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
@@ -1901,8 +1682,8 @@ ReadRotor(DataManager* pDM,
      	DEBUGCOUT("Rotor Node: " << uNode << std::endl);
 
      	/* verifica di esistenza del nodo */
-     	StructNode* pRotor = pDM->pFindStructNode(uNode);
-     	if (pRotor == 0) {
+     	StructNode* pNode = pDM->pFindStructNode(uNode);
+     	if (pNode == 0) {
 	  	silent_cerr(std::endl << sFuncName
 			<< " at line " << HP.GetLineData()
 			<< ": rotor structural node " << uNode
@@ -1929,11 +1710,11 @@ ReadRotor(DataManager* pDM,
 
 	 	ppres = ReadResSets(pDM, HP);
 
-	 	flag fOut = pDM->fReadOutput(HP, Elem::ROTOR);
+	 	flag fOut = pDM->fReadOutput(HP, Elem::INDUCEDVELOCITY);
 
 	 	SAFENEWWITHCONSTRUCTOR(pEl,
   				NoRotor,
-  				NoRotor(uLabel, pDO, pCraft, rrot, pRotor,
+  				NoRotor(uLabel, pDO, pCraft, rrot, pNode,
   					ppres, dR, fOut));
 	 	break;
 	}
@@ -2089,7 +1870,7 @@ ReadRotor(DataManager* pDM,
 
 	 	ppres = ReadResSets(pDM, HP);
 
-	 	flag fOut = pDM->fReadOutput(HP, Elem::ROTOR);
+	 	flag fOut = pDM->fReadOutput(HP, Elem::INDUCEDVELOCITY);
 
       		switch (InducedType) {
 	     	case UNIFORM:
@@ -2097,7 +1878,7 @@ ReadRotor(DataManager* pDM,
 			SAFENEWWITHCONSTRUCTOR(pEl,
    					UniformRotor,
    					UniformRotor(uLabel, pDO, pCraft, rrot,
-   						pRotor, pGround,
+   						pNode, pGround,
    						ppres, dOR, dR, pdW,
 						iMaxIter, dTolerance, dEta,
 						dCH, dCFF,
@@ -2109,7 +1890,7 @@ ReadRotor(DataManager* pDM,
 	  		SAFENEWWITHCONSTRUCTOR(pEl,
    					GlauertRotor,
    					GlauertRotor(uLabel, pDO, pCraft, rrot,
-   						pRotor, pGround,
+   						pNode, pGround,
    						ppres, dOR, dR, pdW,
 						iMaxIter, dTolerance, dEta,
 						dCH, dCFF,
@@ -2122,7 +1903,7 @@ ReadRotor(DataManager* pDM,
 	  		SAFENEWWITHCONSTRUCTOR(pEl,
    					ManglerRotor,
    					ManglerRotor(uLabel, pDO, pCraft, rrot,
-   						pRotor, pGround,
+   						pNode, pGround,
    						ppres, dOR, dR, pdW,
 						iMaxIter, dTolerance, dEta,
 						dCH, dCFF,
@@ -2135,7 +1916,7 @@ ReadRotor(DataManager* pDM,
 	  		SAFENEWWITHCONSTRUCTOR(pEl,
        					DynamicInflowRotor,
        					DynamicInflowRotor(uLabel, pDO,
-						pCraft, rrot, pRotor,
+						pCraft, rrot, pNode,
 						pGround, ppres,
 						dOR, dR,
 						iMaxIter, dTolerance, dEta,

@@ -192,7 +192,7 @@ pLabelsList(NULL),
 wgtflag(WEIGHT_VERTICES),
 pParAmgProcs(NULL),
 Partitioner(PARTITIONER_DEFAULT),
-pRotorComm(NULL),
+pIndVelComm(NULL),
 ppExpCntNodes(NULL),
 ppExpCntElems(NULL),
 iTotalExpConnections(0)
@@ -1149,7 +1149,7 @@ SchurDataManager::CreatePartition(void)
 		}
 
 		/* Costruisco  i communicators per i rotori */
-		SAFENEWARRNOFILL(pRotorComm, MPI::Intracomm, iNumRt);
+		SAFENEWARRNOFILL(pIndVelComm, MPI::Intracomm, iNumRt);
 		
 		int color, key;
 		for (int i = 0; i < iNumRt; i++) {
@@ -1168,13 +1168,13 @@ SchurDataManager::CreatePartition(void)
 					key = MyRank + 1;
 				}
 			}
-			pRotorComm[i] = MBDynComm.Split(color, key);
+			pIndVelComm[i] = MBDynComm.Split(color, key);
 #if 0
-			RotorComm[i] = MPI::COMM_WORLD.Split(color, key);
+			IndVelComm[i] = MPI::COMM_WORLD.Split(color, key);
 #endif
 			Rotor *r = dynamic_cast<Rotor *>(Elems[pRotPos[i]]);
 			ASSERT(r != 0);
-			r->InitializeRotorComm(pRotorComm + i);
+			r->InitializeIndVelComm(pIndVelComm + i);
 		}
 
 		for (int i = 0; i < iMyTotRot; i++) {

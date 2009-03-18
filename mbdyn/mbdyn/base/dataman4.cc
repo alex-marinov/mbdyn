@@ -110,7 +110,8 @@ enum KeyWords {
 
 	AIRPROPERTIES,
 	GUST,
-	ROTOR,
+	INDUCEDVELOCITY,
+		ROTOR,
 	AERODYNAMICBODY,
 	AERODYNAMICBEAM3,
 	AERODYNAMICBEAM,	/* same as AERODYNAMICBEAM3 */
@@ -172,7 +173,8 @@ DataManager::ReadElems(MBDynParser& HP)
 
 		"air" "properties",
 		"gust",
-		"rotor",
+		"induced" "velocity",
+			"rotor",
 		"aerodynamic" "body",
 		"aerodynamic" "beam3",
 		"aerodynamic" "beam",
@@ -278,9 +280,10 @@ DataManager::ReadElems(MBDynParser& HP)
 				break;
 			}
 
+			case INDUCEDVELOCITY:
 			case ROTOR: {
 				DEBUGLCOUT(MYDEBUG_INPUT, "rotors" << std::endl);
-				Typ = Elem::ROTOR;
+				Typ = Elem::INDUCEDVELOCITY;
 				break;
 			}
 
@@ -457,8 +460,9 @@ DataManager::ReadElems(MBDynParser& HP)
 					t = Elem::BEAM;
 					break;
 	
+				case INDUCEDVELOCITY:
 				case ROTOR:
-					t = Elem::ROTOR;
+					t = Elem::INDUCEDVELOCITY;
 					break;
 	
 				case AEROMODAL:
@@ -721,6 +725,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					case BEAM2:
 					case HBEAM:
 
+					case INDUCEDVELOCITY:
 					case ROTOR:
 					case AERODYNAMICBODY:
 					case AERODYNAMICBEAM:
@@ -799,8 +804,9 @@ DataManager::ReadElems(MBDynParser& HP)
 							ppE = ppFindElem(Elem::BEAM, uLabel);
 							break;
 
+						case INDUCEDVELOCITY:
 						case ROTOR:
-							ppE = ppFindElem(Elem::ROTOR, uLabel);
+							ppE = ppFindElem(Elem::INDUCEDVELOCITY, uLabel);
 							break;
 
 						case AERODYNAMICBODY:
@@ -927,6 +933,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				case HBEAM:
 
 				case GUST:
+				case INDUCEDVELOCITY:
 				case ROTOR:
 				case AERODYNAMICBODY:
 				case AERODYNAMICBEAM:
@@ -1376,10 +1383,11 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 	}
 
 	/* Elementi aerodinamici: rotori */
+	case INDUCEDVELOCITY:
 	case ROTOR: {
 		silent_cout("Reading Rotor(" << uLabel << ")" << std::endl);
 
-		if (iNumTypes[Elem::ROTOR]-- <= 0) {
+		if (iNumTypes[Elem::INDUCEDVELOCITY]-- <= 0) {
 			DEBUGCERR("");
 			silent_cerr("line " << HP.GetLineData() << ": "
 				"Rotor(" << uLabel << ") "
@@ -1389,7 +1397,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 		}
 
 		/* verifica che non sia gia' definito */
-		if (pFindElem(Elem::ROTOR, uLabel) != NULL) {
+		if (pFindElem(Elem::INDUCEDVELOCITY, uLabel) != NULL) {
 			DEBUGCERR("");
 			silent_cerr("line " << HP.GetLineData() << ": "
 				"Rotor(" << uLabel << ") "
@@ -1399,13 +1407,13 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 		}
 
 		/* allocazione e creazione */
-		int i = ElemData[Elem::ROTOR].iExpectedNum
-			- iNumTypes[Elem::ROTOR] - 1;
-		DofOwner* pDO = DofData[DofOwner::ROTOR].pFirstDofOwner + i;
+		int i = ElemData[Elem::INDUCEDVELOCITY].iExpectedNum
+			- iNumTypes[Elem::INDUCEDVELOCITY] - 1;
+		DofOwner* pDO = DofData[DofOwner::INDUCEDVELOCITY].pFirstDofOwner + i;
 
 		pE = ReadRotor(this, HP, pDO, uLabel);
 		if (pE != 0) {
-			ppE = &ElemData[Elem::ROTOR].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
+			ppE = &ElemData[Elem::INDUCEDVELOCITY].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
 		}
 
 		break;

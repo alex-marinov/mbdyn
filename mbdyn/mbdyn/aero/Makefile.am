@@ -24,6 +24,8 @@ c81data.cc \
 c81data.h \
 genfm.cc \
 genfm.h \
+indvel.cc \
+indvel.h \
 instruments.cc \
 instruments.h \
 rotor.cc \

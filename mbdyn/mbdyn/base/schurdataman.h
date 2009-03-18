@@ -111,7 +111,7 @@ private:
 protected:
 #ifdef USE_MPI
 	MPI::Intracomm DataComm; 
-	MPI::Intracomm* pRotorComm;
+	MPI::Intracomm* pIndVelComm;
 #endif /* USE_MPI */
 	int MyRank, DataCommSize;
 

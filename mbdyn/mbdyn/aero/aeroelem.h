@@ -110,8 +110,8 @@ public AerodynamicOutput  {
 protected:
 	AeroData* aerodata;
 	const StructNode* pNode;
-	Rotor* pRotor;
-	flag fPassiveRotor;
+	InducedVelocity* pIndVel;
+	flag fPassiveInducedVelocity;
 	
 	const Vec3 f;		/* Offset del punto di riferimento */
 	doublereal dHalfSpan;	/* Semiapertura del rettangoloide */
@@ -142,7 +142,7 @@ protected:
 	
 public:
 	AerodynamicBody(unsigned int uLabel, 
-			const StructNode* pN, Rotor* pR,
+			const StructNode* pN, InducedVelocity* pR,
 			const Vec3& fTmp, doublereal dS,
 			const Mat3x3& RaTmp,
 			const Shape* pC, const Shape* pF, 
@@ -240,8 +240,8 @@ public:
 		connectedNodes[0] = pNode;
 	};
 	
-	virtual const Rotor *pGetRotor(void) const {
-		return pRotor;
+	virtual const InducedVelocity *pGetInducedVelocity(void) const {
+		return pIndVel;
 	};
 	/* ************************************************ */
 };
@@ -265,8 +265,8 @@ protected:
 	const StructNode* pNode1;
 	const StructNode* pNode2;
 	const StructNode* pNode3;
-	Rotor* pRotor;
-	flag fPassiveRotor;
+	InducedVelocity* pIndVel;
+	flag fPassiveInducedVelocity;
 	
 	const Vec3 f1;		/* Offset del punto di riferimento */
 	const Vec3 f2;		/* Offset del punto di riferimento */
@@ -306,7 +306,7 @@ protected:
 	
 public:
 	AerodynamicBeam(unsigned int uLabel, 
-			const Beam* pB, Rotor* pR,
+			const Beam* pB, InducedVelocity* pR,
 			const Vec3& fTmp1,
 			const Vec3& fTmp2,
 			const Vec3& fTmp3,
@@ -410,8 +410,8 @@ public:
 		connectedNodes[2] = pNode3;
 	};
 	
-	virtual const Rotor *pGetRotor(void) const {
-		return pRotor;
+	virtual const InducedVelocity *pGetInducedVelocity(void) const {
+		return pIndVel;
 	};
    	/* ************************************************ */
 };
@@ -432,8 +432,8 @@ protected:
 	const Beam2* pBeam;
 	const StructNode* pNode1;
 	const StructNode* pNode2;
-	Rotor* pRotor;
-	flag fPassiveRotor;
+	InducedVelocity* pIndVel;
+	flag fPassiveInducedVelocity;
 	
 	const Vec3 f1;		/* Offset del punto di riferimento */
 	const Vec3 f2;		/* Offset del punto di riferimento */
@@ -470,7 +470,7 @@ protected:
 	
 public:
 	AerodynamicBeam2(unsigned int uLabel, 
-			const Beam2* pB, Rotor* pR,
+			const Beam2* pB, InducedVelocity* pR,
 			const Vec3& fTmp1,
 			const Vec3& fTmp2,
 			const Mat3x3& Ra1Tmp,
@@ -571,8 +571,8 @@ public:
 		connectedNodes[1] = pNode2;
 	};
 	
-	virtual const Rotor *pGetRotor(void) const {
-		return pRotor;
+	virtual const InducedVelocity *pGetInducedVelocity(void) const {
+		return pIndVel;
 	};
    	/* ************************************************ */
 };

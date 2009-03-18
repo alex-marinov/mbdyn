@@ -126,7 +126,7 @@ AerodynamicOutput::IsNODE(void) const
 /* AerodynamicBody - begin */
 
 AerodynamicBody::AerodynamicBody(unsigned int uLabel,
-				 const StructNode* pN, Rotor* pR,
+				 const StructNode* pN, InducedVelocity* pR,
 				 const Vec3& fTmp, doublereal dS,
 				 const Mat3x3& RaTmp,
 				 const Shape* pC, const Shape* pF,
@@ -141,8 +141,8 @@ DriveOwner(pDC),
 AerodynamicOutput(fOut, iN),
 aerodata(a),
 pNode(pN),
-pRotor(pR),
-fPassiveRotor(0),
+pIndVel(pR),
+fPassiveInducedVelocity(0),
 f(fTmp),
 dHalfSpan(dS/2.),
 Ra(RaTmp),
@@ -164,8 +164,8 @@ M(0.)
    	ASSERT(aerodata != NULL);
 
 #ifdef DEBUG
-   	if (pRotor != NULL) {
-      		ASSERT(pRotor->GetElemType() == Elem::ROTOR);
+   	if (pIndVel != NULL) {
+      		ASSERT(pIndVel->GetElemType() == Elem::ROTOR);
    	}
 #endif /* DEBUG */
 
@@ -210,8 +210,8 @@ AerodynamicBody::Restart(std::ostream& out) const
 
    	out << "  aerodynamic body: " << GetLabel() << ", "
 		<< pNode->GetLabel();
-   	if (pRotor != NULL) {
-      		out << ", rotor, " << pRotor->GetLabel();
+   	if (pIndVel != NULL) {
+      		out << ", rotor, " << pIndVel->GetLabel();
    	}
    	out << ", reference, node, ", f.Write(out, ", ")
      		<< ", " << dHalfSpan*2.
@@ -292,8 +292,11 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
     	 * si fa dare la velocita' di rotazione
 	 */
    	doublereal dOmega = 0.;
-   	if (pRotor != NULL) {
-      		dOmega = pRotor->dGetOmega();
+   	if (pIndVel != NULL) {
+		Rotor *pRotor = dynamic_cast<Rotor *>(pIndVel);
+		if (pRotor) {
+      			dOmega = pRotor->dGetOmega();
+		}
    	}
 
    	/* Resetta i dati */
@@ -331,8 +334,8 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
 		 * Se l'elemento e' collegato ad un rotore,
 		 * aggiunge alla velocita' la velocita' indotta
 		 */
-      		if (pRotor != NULL) {
-	 		Vr += pRotor->GetInducedVelocity(Xnr);
+      		if (pIndVel != NULL) {
+	 		Vr += pIndVel->GetInducedVelocity(Xnr);
       		}
 
       		/* Copia i dati nel vettore di lavoro dVAM */
@@ -396,8 +399,8 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
    	} while (GDI.fGetNext(PW));
 
    	/* Se e' definito il rotore, aggiungere il contributo alla trazione */
-   	if (pRotor != NULL && !fPassiveRotor) {
-      		pRotor->AddForce(GetLabel(), F, M, Xn);
+   	if (pIndVel != NULL && !fPassiveInducedVelocity) {
+      		pIndVel->AddForce(GetLabel(), F, M, Xn);
    	}
 
    	/* Sommare il termine al residuo */
@@ -776,6 +779,50 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP,
    	}
 }
 
+static InducedVelocity*
+ReadInducedVelocity(DataManager *pDM, MBDynParser& HP,
+	unsigned uLabel, const char *sElemType)
+{
+	bool bReadIV(false);
+	InducedVelocity *pIndVel = 0;
+	if (HP.IsKeyWord("rotor")) {
+		silent_cerr(sElemType << "(" << uLabel << "): "
+			"\"rotor\" keyword is deprecated; "
+			"use \"induced velocity\" instead "
+			"at line " << HP.GetLineData()
+			<< std::endl);
+
+		bReadIV = true;
+
+	} else if (HP.IsKeyWord("induced" "velocity")) {
+		bReadIV = true;
+	}
+
+	if (bReadIV) {
+		unsigned int uIV = (unsigned int)HP.GetInt();
+		DEBUGLCOUT(MYDEBUG_INPUT,
+			"Linked to InducedVelocity(" << uIV << ")" << std::endl);
+
+		/*
+		 * verifica di esistenza del rotore
+		 * NOTA: ovviamente il rotore deve essere definito
+		 * prima dell'elemento aerodinamico
+		 */
+		Elem* p = pDM->pFindElem(Elem::INDUCEDVELOCITY, uIV);
+		if (p == NULL) {
+			silent_cerr(sElemType << "(" << uLabel << "): "
+				"InducedVelocity(" << uIV << ") not defined "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		pIndVel = dynamic_cast<InducedVelocity *>(p);
+		ASSERT(pIndVel != 0);
+	}
+
+	return pIndVel;
+}
+
 Elem *
 ReadAerodynamicBody(DataManager* pDM,
 		    MBDynParser& HP,
@@ -784,31 +831,9 @@ ReadAerodynamicBody(DataManager* pDM,
    	DEBUGCOUTFNAME("ReadAerodynamicBody");
 
    	/* Nodo */
-	StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
-   	unsigned int uNode = pNode->GetLabel();
+	StructNode* pNode = dynamic_cast<StructNode*>(pDM->ReadNode(HP, Node::STRUCTURAL));
 
-	/* Eventuale rotore */
-	Rotor* pRotor = 0;
-	if (HP.IsKeyWord("rotor")) {
-		uNode = (unsigned int)HP.GetInt();
-		DEBUGLCOUT(MYDEBUG_INPUT,
-			   "Linked to Rotor: " << uNode << std::endl);
-
-		/*
-		 * verifica di esistenza del rotore
-		 * NOTA: ovviamente il rotore deve essere definito
-		 * prima dell'elemento aerodinamico
-		 */
-		 Elem* p = (Elem*)(pDM->pFindElem(Elem::ROTOR, uNode));
-		 if (p == 0) {
-		 	silent_cerr("Rotor(" << uNode << ") not defined "
-				"at line " << HP.GetLineData()
-				<< std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		pRotor = dynamic_cast<Rotor *>(p);
-		ASSERT(pRotor != 0);
-	}
+	InducedVelocity* pIndVel = ReadInducedVelocity(pDM, HP, uLabel, "AerodynamicBody");
 
 	ReferenceFrame RF(pNode);
 	Vec3 f(HP.GetPosRel(RF));
@@ -857,7 +882,7 @@ ReadAerodynamicBody(DataManager* pDM,
 	Elem* pEl = NULL;
 	SAFENEWWITHCONSTRUCTOR(pEl,
 		AerodynamicBody,
-		AerodynamicBody(uLabel, pNode, pRotor, f, dSpan, Ra,
+		AerodynamicBody(uLabel, pNode, pIndVel, f, dSpan, Ra,
 				pChord, pForce, pVelocity, pTwist,
 				iNumber, aerodata, pDC, fOut));
 
@@ -895,7 +920,7 @@ ReadAerodynamicBody(DataManager* pDM,
 /* AerodynamicBeam - begin */
 
 AerodynamicBeam::AerodynamicBeam(unsigned int uLabel,
-				 const Beam* pB, Rotor* pR,
+				 const Beam* pB, InducedVelocity* pR,
 				 const Vec3& fTmp1,
 				 const Vec3& fTmp2,
 				 const Vec3& fTmp3,
@@ -914,8 +939,8 @@ DriveOwner(pDC),
 AerodynamicOutput(fOut, 3*iN),
 aerodata(a),
 pBeam(pB),
-pRotor(pR),
-fPassiveRotor(0),
+pIndVel(pR),
+fPassiveInducedVelocity(0),
 f1(fTmp1),
 f2(fTmp2),
 f3(fTmp3),
@@ -950,8 +975,8 @@ pvdOuta(NULL)
 	ASSERT(pNode3->GetNodeType() == Node::STRUCTURAL);
 
 #ifdef DEBUG
-	if (pRotor != NULL) {
-		ASSERT(pRotor->GetElemType() == Elem::ROTOR);
+	if (pIndVel != NULL) {
+		ASSERT(pIndVel->GetElemType() == Elem::ROTOR);
 	}
 #endif /* DEBUG */
 
@@ -996,8 +1021,8 @@ AerodynamicBeam::Restart(std::ostream& out) const
 	DEBUGCOUTFNAME("AerodynamicBeam::Restart");
 	out << "  aerodynamic beam: " << GetLabel()
 		<< ", " << pBeam->GetLabel();
-	if (pRotor != NULL) {
-		out << ", rotor, " << pRotor->GetLabel();
+	if (pIndVel != NULL) {
+		out << ", rotor, " << pIndVel->GetLabel();
 	}
 	out << ", reference, node, ", f1.Write(out, ", ")
 		<< ", reference, node, 1, ", (Ra1.GetVec(1)).Write(out, ", ")
@@ -1129,8 +1154,11 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 	 * si fa dare la velocita' di rotazione
 	 */
 	doublereal dOmega = 0.;
-	if (pRotor != NULL) {
-		dOmega = pRotor->dGetOmega();
+	if (pIndVel != NULL) {
+		Rotor *pRotor = dynamic_cast<Rotor *>(pIndVel);
+		if (pRotor != 0) {
+			dOmega = pRotor->dGetOmega();
+		}
    	}
 
 	/*
@@ -1185,8 +1213,8 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 			 * Se l'elemento e' collegato ad un rotore,
 			 * aggiunge alla velocita' la velocita' indotta
 			 */
-			if (pRotor != NULL) {
-				Vr += pRotor->GetInducedVelocity(Xr);
+			if (pIndVel != NULL) {
+				Vr += pIndVel->GetInducedVelocity(Xr);
 			}
 
       			/* Copia i dati nel vettore di lavoro dVAM */
@@ -1257,8 +1285,8 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec)
 		 * Se e' definito il rotore, aggiungere il contributo
 		 * alla trazione
 		 */
-		if (pRotor != NULL && !fPassiveRotor) {
-			pRotor->AddForce(GetLabel(),
+		if (pIndVel != NULL && !fPassiveInducedVelocity) {
+			pIndVel->AddForce(GetLabel(),
 					F[iNode], M[iNode], Xn[iNode]);
 		}
 
@@ -1376,27 +1404,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 	ASSERT(pBeam != 0);
 
 	/* Eventuale rotore */
-	Rotor* pRotor = 0;
-	if (HP.IsKeyWord("rotor")) {
-		unsigned int uRotor = (unsigned int)HP.GetInt();
-		DEBUGLCOUT(MYDEBUG_INPUT,
-			"Linked to Rotor: " << uRotor << std::endl);
-
-		/*
-		 * verifica di esistenza del rotore
-		 * NOTA: ovviamente il rotore deve essere definito
-		 * prima dell'elemento aerodinamico
-		 */
-		Elem* p = pDM->pFindElem(Elem::ROTOR, uRotor);
-		if (p == NULL) {
-			silent_cerr("Rotor(" << uRotor << ") not defined "
-					"at line " << HP.GetLineData()
-					<< std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		pRotor = dynamic_cast<Rotor *>(p);
-		ASSERT(pRotor != 0);
-	}
+	InducedVelocity* pIndVel = ReadInducedVelocity(pDM, HP, uLabel, "AerodynamicBeam3");
 
 	/* Nodo 1: */
 
@@ -1475,7 +1483,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 
 	SAFENEWWITHCONSTRUCTOR(pEl,
 		AerodynamicBeam,
-		AerodynamicBeam(uLabel, pBeam, pRotor,
+		AerodynamicBeam(uLabel, pBeam, pIndVel,
 				f1, f2, f3, Ra1, Ra2, Ra3,
 				pChord, pForce, pVelocity, pTwist,
 				iNumber, aerodata, pDC, fOut));
@@ -1527,7 +1535,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 AerodynamicBeam2::AerodynamicBeam2(
 		unsigned int uLabel,
 		const Beam2* pB,
-		Rotor* pR,
+		InducedVelocity* pR,
 		const Vec3& fTmp1,
 		const Vec3& fTmp2,
 		const Mat3x3& Ra1Tmp,
@@ -1548,8 +1556,8 @@ DriveOwner(pDC),
 AerodynamicOutput(fOut, 2*iN),
 aerodata(a),
 pBeam(pB),
-pRotor(pR),
-fPassiveRotor(0),
+pIndVel(pR),
+fPassiveInducedVelocity(0),
 f1(fTmp1),
 f2(fTmp2),
 Ra1(Ra1Tmp),
@@ -1578,8 +1586,8 @@ pvdOuta(NULL)
 	ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
 
 #ifdef DEBUG
-	if (pRotor != NULL) {
-		ASSERT(pRotor->GetElemType() == Elem::ROTOR);
+	if (pIndVel != NULL) {
+		ASSERT(pIndVel->GetElemType() == Elem::ROTOR);
 	}
 #endif /* DEBUG */
 
@@ -1624,8 +1632,8 @@ AerodynamicBeam2::Restart(std::ostream& out) const
 	DEBUGCOUTFNAME("AerodynamicBeam2::Restart");
 	out << "  aerodynamic beam2: " << GetLabel()
 		<< ", " << pBeam->GetLabel();
-	if (pRotor != NULL) {
-		out << ", rotor, " << pRotor->GetLabel();
+	if (pIndVel != NULL) {
+		out << ", rotor, " << pIndVel->GetLabel();
 	}
 	out << ", reference, node, ", f1.Write(out, ", ")
 		<< ", reference, node, 1, ", (Ra1.GetVec(1)).Write(out, ", ")
@@ -1742,8 +1750,11 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 	 * si fa dare la velocita' di rotazione
 	 */
 	doublereal dOmega = 0.;
-	if (pRotor != NULL) {
-		dOmega = pRotor->dGetOmega();
+	if (pIndVel != NULL) {
+		Rotor *pRotor = dynamic_cast<Rotor *>(pIndVel);
+		if (pRotor != 0) {
+			dOmega = pRotor->dGetOmega();
+		}
    	}
 
 	/*
@@ -1800,8 +1811,8 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 			 * Se l'elemento e' collegato ad un rotore,
 			 * aggiunge alla velocita' la velocita' indotta
 			 */
-			if (pRotor != NULL) {
-				Vr += pRotor->GetInducedVelocity(Xr);
+			if (pIndVel != NULL) {
+				Vr += pIndVel->GetInducedVelocity(Xr);
 			}
 
       			/* Copia i dati nel vettore di lavoro dVAM */
@@ -1866,8 +1877,8 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 		} while (GDI.fGetNext(PW));
 
 		/* Se e' definito il rotore, aggiungere il contributo alla trazione */
-		if (pRotor != NULL && !fPassiveRotor) {
-			pRotor->AddForce(GetLabel(),
+		if (pIndVel != NULL && !fPassiveInducedVelocity) {
+			pIndVel->AddForce(GetLabel(),
 					F[iNode], M[iNode], Xn[iNode]);
 		}
 
@@ -1986,27 +1997,7 @@ ReadAerodynamicBeam2(
 	}
 
 	/* Eventuale rotore */
-	Rotor *pRotor = 0;
-	if (HP.IsKeyWord("rotor")) {
-		unsigned int uRotor = (unsigned int)HP.GetInt();
-		DEBUGLCOUT(MYDEBUG_INPUT,
-			"Linked to Rotor: " << uRotor << std::endl);
-
-		/*
-		 * verifica di esistenza del rotore
-		 * NOTA: ovviamente il rotore deve essere definito
-		 * prima dell'elemento aerodinamico
-		 */
-		Elem* p = (Elem*)(pDM->pFindElem(Elem::ROTOR, uRotor));
-		if (p == NULL) {
-			silent_cerr("Rotor(" << uRotor << " not defined "
-					"at line " << HP.GetLineData()
-					<< std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		pRotor = dynamic_cast<Rotor *>(p);
-		ASSERT(pRotor != 0);
-	}
+	InducedVelocity* pIndVel = ReadInducedVelocity(pDM, HP, uLabel, "AerodynamicBeam2");
 
 	/* Nodo 1: */
 
@@ -2072,7 +2063,7 @@ ReadAerodynamicBeam2(
 
 	SAFENEWWITHCONSTRUCTOR(pEl,
 		AerodynamicBeam2,
-		AerodynamicBeam2(uLabel, pBeam, pRotor,
+		AerodynamicBeam2(uLabel, pBeam, pIndVel,
 				f1, f2, Ra1, Ra2,
 				pChord, pForce, pVelocity, pTwist,
 				iNumber, aerodata, pDC, fOut));
