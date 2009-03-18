@@ -1217,7 +1217,7 @@ class Mat3x3 {
 	};
  
 	bool IsDiag(const doublereal& dTol) const {
-		ASSERT(dTol > std::numeric_limits<doublereal>::epsilon());
+		ASSERT(dTol > 0.);
 
 		if (fabs(pdMat[M12]) > dTol
 			|| fabs(pdMat[M21]) > dTol
