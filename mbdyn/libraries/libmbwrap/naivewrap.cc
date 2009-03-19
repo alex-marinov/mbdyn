@@ -54,7 +54,7 @@ NaiveSolver::NaiveSolver(const integer &size, const doublereal& dMP,
 		NaiveMatrixHandler *const a)
 : LinearSolver(0),
 iSize(size),
-dMinPiv(dMP),
+dMinPiv(dMP < 0 ? 0 : dMP),
 piv(size),
 A(a)
 {
@@ -215,7 +215,7 @@ NaiveSparsePermSolutionManager<T>::NaiveSparsePermSolutionManager(
 		const integer Dim, 
 		const doublereal dMP)
 : NaiveSparseSolutionManager(Dim, dMP),
-dMinPiv(dMP),
+dMinPiv(dMP < 0 ? 0 : dMP),
 TmpH(Dim),
 ePermState(PERM_NO)
 {
