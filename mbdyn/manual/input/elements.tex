@@ -2942,6 +2942,32 @@ numerator coefficients and by introducing a direct feedthrough term
 $b_0 u\plbr{t}$ in the output.
 
 
+Example: to model a 2nd order Butterworth filter of equation
+\begin{equation}
+	H\plbr{s} = \frac{
+		1
+	}{
+		\plbr{\cfrac{s}{\omega_c}}^2
+		+ \sqrt{2}\plbr{\cfrac{s}{\omega_c}}
+		+ 1
+	}
+	\label{eq:scalar-filter}
+\end{equation}
+use
+\begin{verbatim}
+    set: real OMEGA_C = 1.*2*pi;                    # filter at 1Hz
+    genel: 1, scalar filter,
+        100, abstract, algebraic,                   # output node
+        drive, sine, 0., 2.*pi, 1., forever, 0.,    # input drive
+        2, sqrt(2.)*OMEGA_C, OMEGA_C^2,             # a_1, a_2
+        0, 1.,                                      # b_0
+        gain, OMEGA_C^2;
+\end{verbatim}
+Note that the formula of Eq.~(\ref{eq:scalar-filter})
+had to be rearranged in order to make the denominator monic.
+
+
+
 
 \subsubsection{State space SISO}
 \begin{verbatim}
