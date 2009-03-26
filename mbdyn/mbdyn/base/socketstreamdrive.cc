@@ -148,7 +148,6 @@ SocketStreamDrive::ServePending(const doublereal& t)
 		struct timeval tv = SocketTimeout;
 
 		// Call select
-		std::cerr << sock_nr+1 << " " << &readfds << " " << &tv << std::endl;
 		rc = select(sock_nr+1, &readfds, NULL, NULL, &tv);
 		switch (rc) {
 		case -1: {
