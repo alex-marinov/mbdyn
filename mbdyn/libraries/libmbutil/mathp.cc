@@ -3360,7 +3360,7 @@ MathParser::readplugin(void)
 	 * 	- arg[1]: nome variabile
 	 * 	- arg[2]->arg[n]: dati da passare al costrutture
 	 */
-	char **argv = NULL, **tmp;
+	std::vector<char *> argv(1);
 	char c, buf[1024];
 	int argc = 0;
 	unsigned int i = 0, in_quotes = 0;
@@ -3368,7 +3368,6 @@ MathParser::readplugin(void)
 	/*
 	 * inizializzo l'array degli argomenti
 	 */
-	SAFENEWARR(argv, char *, 1);
 	argv[0] = NULL;
 
 	/*
@@ -3422,12 +3421,7 @@ MathParser::readplugin(void)
 				break;
 			}
 			buf[i] = '\0';
-			tmp = argv;
-			argv = NULL;
-			SAFENEWARR(argv, char *, argc+2);
-			memcpy(argv, tmp, sizeof(char *)*argc);
-			SAFEDELETEARR(tmp);
-			argv[argc] = NULL;
+			argv.resize(argc + 2);
 			trim_arg(buf);
 			SAFESTRDUP(argv[argc], buf);
 			++argc;
@@ -3515,7 +3509,7 @@ last_arg:
 		 * costruisce il plugin e gli fa interpretare gli argomenti
 		 */
 		MathParser::PlugIn *pgin = (*p->constructor)(*this, p->arg);
-		pgin->Read(argc-2, argv+2);
+		pgin->Read(argc - 2, &argv[2]);
 
 		/*
 		 * riporta il parser nello stato corretto
@@ -3536,7 +3530,6 @@ last_arg:
 		for (int i = 0; argv[i] != NULL; i++) {
 			SAFEDELETEARR(argv[i]);
 		}
-		SAFEDELETEARR(argv);
 
 		return v->GetVal();
 	}
