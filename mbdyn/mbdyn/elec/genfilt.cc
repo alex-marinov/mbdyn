@@ -144,6 +144,10 @@ GenelStateSpaceSISO::~GenelStateSpaceSISO(void)
 	if (pdE != 0) {
 		SAFEDELETEARR(pdE);
 	}
+
+	if (SV_u != 0) {
+		SAFEDELETE(SV_u);
+	}
 }
 
 unsigned int
