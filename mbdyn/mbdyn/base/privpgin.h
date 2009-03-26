@@ -41,7 +41,7 @@ class PrivPlugIn : public MathParser::PlugIn {
 protected:
 	SimulationEntity *pSE;
 	unsigned int iIndex;
-	const char *sIndexName;
+	std::string sIndexName;
 	DataManager *pDM;
 
 public:

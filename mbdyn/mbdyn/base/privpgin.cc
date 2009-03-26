@@ -37,16 +37,14 @@
 #include <privpgin.h>
 
 PrivPlugIn::PrivPlugIn(MathParser& mp, DataManager *pDM)
-: MathParser::PlugIn(mp), pSE(0), iIndex(0), sIndexName(0), pDM(pDM)
+: MathParser::PlugIn(mp), pSE(0), iIndex(0), pDM(pDM)
 {
 	ASSERT(pDM != 0);
 }
 
 PrivPlugIn::~PrivPlugIn(void) 
 {
-	if (sIndexName) {
-		SAFEDELETEARR(sIndexName);
-	}
+	NO_OP;
 }
 
 int 
@@ -133,19 +131,17 @@ PrivPlugIn::ReadLabel(const char* s)
 void
 PrivPlugIn::ReadIndex(unsigned int iMaxIndex, const char *s) 
 {
-	const char	*name = 0;
-
 	if (strncasecmp(s, "string=", STRLENOF("string=")) == 0) {
-		name = &s[STRLENOF("string=")];
-		iIndex = pSE->iGetPrivDataIdx(name);
+		sIndexName = &s[STRLENOF("string=")];
+		iIndex = pSE->iGetPrivDataIdx(sIndexName.c_str());
 
 	} else if (strncasecmp(s, "name=", STRLENOF("name=")) == 0) {
-		name = &s[STRLENOF("name=")];
-		iIndex = pSE->iGetPrivDataIdx(name);
+		sIndexName = &s[STRLENOF("name=")];
+		iIndex = pSE->iGetPrivDataIdx(sIndexName.c_str());
 
 		silent_cerr("PrivPlugIn: "
-			"\"name=" << name << "\" is deprecated; "
-			"use \"string=" << name << "\" instead" << std::endl);
+			"\"name=" << sIndexName << "\" is deprecated; "
+			"use \"string=" << sIndexName << "\" instead" << std::endl);
 
 	} else {
 		if (strncasecmp(s, "index=", STRLENOF("index=")) == 0) {
@@ -158,10 +154,6 @@ PrivPlugIn::ReadIndex(unsigned int iMaxIndex, const char *s)
 		silent_cerr("illegal index " << iIndex << " for "
 			<< *this << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	if (name != 0) {
-		SAFESTRDUP(sIndexName, name);
 	}
 }
 
@@ -209,7 +201,8 @@ NodePrivPlugIn::ReadSE(unsigned int uLabel, const char *ss)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	if ((pSE = (SimulationEntity *)pDM->pFindNode(Node::Type(i), uLabel)) == 0) {
+	pSE = dynamic_cast<SimulationEntity *>(pDM->pFindNode(Node::Type(i), uLabel));
+	if (pSE == 0) {
 		silent_cerr(*this << " not defined" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
@@ -271,7 +264,8 @@ ElemPrivPlugIn::ReadSE(unsigned int uLabel, const char *ss)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	if ((pSE = (SimulationEntity *)pDM->pFindElem(Elem::Type(i), uLabel)) == 0) {
+	pSE = dynamic_cast<SimulationEntity *>(pDM->pFindElem(Elem::Type(i), uLabel));
+	if (pSE == 0) {
 		silent_cerr(*this << " not defined" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
