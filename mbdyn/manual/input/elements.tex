@@ -381,8 +381,7 @@ The file is formatted as follows:
     (<ns> x <ns> coefficients)
 \end{verbatim}
 
-\noindent
-Example:
+\paragraph{Example.} \
 \begin{verbatim}
     aeromodal: Wing, Wing, Wing,
         eye,
@@ -1543,7 +1542,7 @@ The same private data indicated for the \kw{beam} element is available
 No prefix must be specified.
 
 
-\paragraph{Example.}
+\paragraph{Example.} \
 As an example, a simple beam element, with diagonal section stiffness 
 matrix is presented:
 \begin{verbatim}
@@ -1628,7 +1627,8 @@ on developers' needs.
 It is advisable that a mechanism for elements to publish 
 what parameters they can make available be devised and implemented.
 
-Example: the parameter node \kw{angle} is bound to the rotation of a 
+\paragraph{Example.} \
+The parameter node \kw{angle} is bound to the rotation of a 
 \hyperref{\kw{revolute hinge}}{\kw{revolute hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:REVOLUTE_HINGE}.
 \begin{verbatim}
     # ... problem block
@@ -1691,7 +1691,7 @@ where the internal strain and curvatures must be evaluated.
 It must be 1 for 2-node beams, while it can be either 1 or 2
 for 3-node beams.
 
-Example:
+\paragraph{Example.} \
 \begin{verbatim}
     # ... problem block
 
@@ -2142,7 +2142,7 @@ The force and the moment applied to node \kw{node\_label} are thus
 \end{itemize}
 $\TT{R}$ is the orientation matrix of the node \kw{node\_label}.
 
-\subsubsection{Example}
+\paragraph{Example.} \
 \begin{verbatim}
     force: 10, absolute,
         1000,
@@ -2198,7 +2198,7 @@ The format is:
 	  and oriented as the global frame).
 \end{itemize}
 
-Example:
+\paragraph{Example.} \
 \begin{verbatim}
     # constant structural force
     force: 1, absolute,
@@ -2458,7 +2458,7 @@ offset from the node location according to \kw{offset}.
 \subsubsection{EDGE communicator}
 TBD
 
-\subsubsection{Examples}
+\paragraph{Example.} \
 The following defines an \kw{external structural} force
 with the file communicator
 \begin{verbatim}
@@ -2942,7 +2942,8 @@ numerator coefficients and by introducing a direct feedthrough term
 $b_0 u\plbr{t}$ in the output.
 
 
-Example: to model a 2nd order Butterworth filter of equation
+\paragraph{Example.} \
+To model a 2nd order Butterworth filter of equation
 \begin{equation}
 	H\plbr{s} = \frac{
 		1
@@ -3208,7 +3209,8 @@ e.g.\ by means of \kw{minor loss} elements.
 The vector \kw{direction} is internally normalized to unity.
 By default, it is direction 3 in the reference frame of structural node 1.
 
-Example: see the ``actuator'' example at
+\paragraph{Example.} \
+See the ``actuator'' example at
 \begin{quote}
 \htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}mbdyn/documentation/examples/actuator}}{http://www.aero.polimi.it/~mbdyn/documentation/examples/actuator}
 \end{quote}
@@ -3438,7 +3440,7 @@ in the transition region.
 The \kw{initial value} parameter refers to the initial value
 of the flow internal state.
 
-Example:
+\paragraph{Example.} \
 \begin{verbatim}
     set: integer NODE_1 = 10;
     set: integer NODE_2 = 20;
@@ -3468,7 +3470,7 @@ No specific element has been implemented to impose the pressure at one node.
 The \kw{clamp} variant of the \kw{genel} element type
 (Section~\ref{sec:EL:GENEL:CLAMP}) can be used instead.
 
-Example:
+\paragraph{Example.} \
 \begin{verbatim}
     set: integer HYDRAULIC_NODE_LABEL = 100;
     set: integer IMPOSED_PRESSURE_LABEL = 200;
@@ -3488,7 +3490,7 @@ from the circuit at that node.
 In fact, a negative value of the abstract force means that the flow enters
 the node.
 
-Example:
+\paragraph{Example.} \
 \begin{verbatim}
     set: integer HYDRAULIC_NODE_LABEL = 100;
     set: integer IMPOSED_FLOW_LABEL = 200;
@@ -6105,8 +6107,8 @@ can only follow descriptions at the beginning of a card.
 The label of the driven element must match that of the driving element 
 given at the beginning of the card.
 
-\noindent
-Example: a pin constraint between two rigid bodies is released:
+\paragraph{Example.} \
+A pin constraint between two rigid bodies is released:
 \begin{verbatim}
     set: integer body_1 = 1;
     set: integer body_2 = 2;
@@ -6128,8 +6130,8 @@ Example: a pin constraint between two rigid bodies is released:
         body_2, null;
 \end{verbatim}
 
-\noindent
-Example: an
+\paragraph{Example.} \
+an
 \hyperref{\kw{axial rotation}}{\kw{axial rotation} (see Section~}{)}{sec:EL:STRUCT:JOINT:AXIAL_ROTATION}
 joint is replaced by a
 \hyperref{\kw{revolute hinge}}{\kw{revolute hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:REVOLUTE_HINGE}

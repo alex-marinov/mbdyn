@@ -100,7 +100,7 @@ of the last expression will be used as the expected numeric value,
 but all the expressions (which may have persistent effects, 
 like variable declarations and assignments) will be evaluated.
 
-\paragraph{Example} \
+\paragraph{Example.} \
 \begin{verbatim}
     1.
     (real r = 2.*pi; integer i = 1; sin(i*r*Time+.87))      
@@ -440,8 +440,8 @@ and of its derivative, respectively.
 The derivative can be requested only for those degrees of freedom
 that have one.
 
-\paragraph{Example} \
-the variable \kw{VARNAME} takes the value of the derivative
+\paragraph{Example.} \
+The variable \kw{VARNAME} takes the value of the derivative
 of \kw{abstract} node \kw{NODENAME}
 \begin{verbatim}
     set: integer NODENAME = 1000;
@@ -474,8 +474,8 @@ In those cases, double-quote enclosing is needed to avoid parsing errors,
 since closing square brackets indicate the end
 of the plugin variable specification.
 
-\paragraph{Example} \
-this implements the same variable defined in the \kw{dof} example,
+\paragraph{Example.} \
+This implements the same variable defined in the \kw{dof} example,
 where the variable \kw{VARNAME} takes the value of the derivative
 of \kw{abstract} node \kw{NODENAME}
 \begin{verbatim}
@@ -509,8 +509,8 @@ In those cases, double-quote enclosing is needed to avoid parsing errors,
 since closing square brackets indicate the end
 of the plugin variable specification.
 
-\paragraph{Example} \
-the variable \kw{VARNAME} takes the value of the $z$ component 
+\paragraph{Example.} \
+The variable \kw{VARNAME} takes the value of the $z$ component 
 of the reaction force of \kw{joint} \kw{ELEMNAME}
 \begin{verbatim}
     set: integer ELEMNAME = 1000;
@@ -855,7 +855,7 @@ and with arbitrary precision, with fields separated by blanks.
 The header is made of an arbitrary string, terminated by a semicolon,
 followed by the six numbers that define the dimensionality of the expected data.
 
-\paragraph{Example} \
+\paragraph{Example.} \
 \begin{verbatim}
 # FREE FORMAT
 this is the header; 2 8 2 2 2 2
@@ -1129,7 +1129,7 @@ to the reference frame associated to the first node, $a$:
 \end{subequations}
 \end{enumerate}
 
-\paragraph{Example} \
+\paragraph{Example.} \
 \begin{itemize}
     \item absolute position:
     \begin{verbatim}
@@ -1252,8 +1252,8 @@ according to the \kw{set} directive.
 It is used to allow rough input debugging, where the file name and line 
 is logged, followed by a message and by the evaluation of any expression. 
 
-\paragraph{Example} \
-a file ``remarks'', containing only the statements
+\paragraph{Example.} \
+A file ``remarks'', containing only the statements
 \begin{verbatim}
     remark: "square root of 2", sqrt(2);
     set: (
@@ -1795,7 +1795,7 @@ where it assumes unit value.
 the first optional entry, preceded by the keyword \kw{steps}, sets the
 number of steps between spikes.
 
-\paragraph{Example} \
+\paragraph{Example.} \
 \begin{verbatim}
     ..., meter, 0., forever, steps, 10, ...
 \end{verbatim}
@@ -1988,7 +1988,7 @@ in terms of the element's private data at each invocation.
 The scalar function called \kw{scalar\_function\_name} must exist;
 alternatively, it must be defined inline.
 
-\paragraph{Example} \
+\paragraph{Example.} \
 \begin{verbatim}
     scalar function: "this_is_a_test",
         multilinear,
@@ -2029,7 +2029,7 @@ Note that the very same thing occurs, for instance, in the
 or of the element's private datum, respectively, are fed 
 into the given drive.
 
-\paragraph{Example}
+\paragraph{Example.}
 \begin{verbatim}
     force: 1, abstract,
         1, abstract,
@@ -2407,7 +2407,7 @@ the isotropic stiffness coefficient; the word \kw{isotropic}
 can be omitted, essentially because it has no meaning
 for scalar constitutive laws.
 
-\paragraph{Example} \
+\paragraph{Example.} \
 \begin{verbatim}
     constitutive law: 1, name, "scalar isotropic law",
         1, linear elastic, 1.e9;
@@ -2428,7 +2428,7 @@ and there is no distinction between \kw{generic} and \kw{isotropic},
 while, in case of \kw{n x 1} vectors, the type is the corresponding 
 \kw{n x n} matrix.
 
-\paragraph{Example} \
+\paragraph{Example.} \
 \begin{verbatim}
     constitutive law: 1, name, "scalar isotropic law",
         1, linear elastic generic, 1.e9;
@@ -2577,7 +2577,7 @@ When used for 1D elements, the word \kw{orthotropic} can be omitted;
 note that in this case a \kw{scalar function elastic isotropic}
 constitutive law is actually instantiated.
 
-\paragraph{Example} \
+\paragraph{Example.} \
 \begin{verbatim}
     scalar function: "myfunc", multilinear,
         -1., -100.,
@@ -3006,8 +3006,8 @@ which must refer to an already defined scalar function.
 The same scalar function can be used multiple times.
 
 
-\paragraph{Example} \
-a 1D and a 3D constitutive law using the same exponential scalar function:
+\paragraph{Example.} \
+A 1D and a 3D constitutive law using the same exponential scalar function:
 \begin{verbatim}
     # define a scalar function
     scalar function: "exponential", exp, coefficient, -2., 5.;
@@ -3108,8 +3108,8 @@ The syntax is
         [ , ... ]
 \end{verbatim}
 
-\paragraph{Example} \
-a 1D and a 3D constitutive law using the same exponential scalar function:
+\paragraph{Example.} \
+A 1D and a 3D constitutive law using the same exponential scalar function:
 \begin{verbatim}
     # define a scalar function
     scalar function: "exponential", exp, coefficient, -2., 5.;
