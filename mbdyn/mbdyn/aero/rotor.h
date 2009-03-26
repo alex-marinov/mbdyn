@@ -43,7 +43,7 @@ extern const char* psRotorNames[];
 class Rotor
 : virtual public Elem, public InducedVelocity {
 protected:
-	const StructNode* pCraft;
+	const StructNode* pRotor;
 	const StructNode* pGround;
 
 	doublereal dOmegaRef;		// Velocita' di rotazione di riferimento
@@ -131,7 +131,7 @@ public:
 	};
 
 	virtual inline const Vec3& GetXCurr(void) const {
-		return pNode->GetXCurr();
+		return pRotor->GetXCurr();
 	};
 
 	// accesso a dati
@@ -191,7 +191,7 @@ public:
 		}
 
 		connectedNodes[0] = pCraft;
-		connectedNodes[1] = pNode;
+		connectedNodes[1] = pRotor;
 	};
 	// ************************************************
 
@@ -212,7 +212,7 @@ public:
 		const DofOwner* pDO,
 		const StructNode* pCraft,
 		const Mat3x3& rrot,
-		const StructNode* pNode,
+		const StructNode* pRotor,
 		ResForceSet **ppres,
 		const doublereal& dR,
 		flag fOut);
@@ -252,7 +252,7 @@ public:
 		const DofOwner* pDO,
 		const StructNode* pCraft,
 	   	const Mat3x3& rrot,
-		const StructNode* pNode,
+		const StructNode* pRotor,
 		const StructNode* pGround,
 		ResForceSet **ppres,
 		const doublereal& dOR,
@@ -300,7 +300,7 @@ public:
 		const DofOwner* pDO,
 		const StructNode* pCraft,
 		const Mat3x3& rrot,
-		const StructNode* pNode,
+		const StructNode* pRotor,
 		const StructNode* pGround,
 		ResForceSet **ppres,
 		const doublereal& dOR,
@@ -348,7 +348,7 @@ public:
 		const DofOwner* pDO,
 		const StructNode* pCraft,
 		const Mat3x3& rrot,
-		const StructNode* pNode,
+		const StructNode* pRotor,
 		const StructNode* pGround,
 		ResForceSet **ppres,
 		const doublereal& dOR,
@@ -422,7 +422,7 @@ public:
 		const DofOwner* pDO,
 		const StructNode* pCraft,
 		const Mat3x3& rrot,
-		const StructNode* pNode,
+		const StructNode* pRotor,
       		const StructNode* pGround,
 		ResForceSet **ppres,
 		const doublereal& dOR,
