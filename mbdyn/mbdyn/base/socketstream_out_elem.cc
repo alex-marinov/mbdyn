@@ -385,7 +385,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 			<< std::endl);
 		SAFENEWWITHCONSTRUCTOR(pEl, RTMBDynOutElem,
 			RTMBDynOutElem(uLabel,
-       				host, name, node, bCreate, pSC, bNonBlocking));
+       				name, host, node, bCreate, pSC, bNonBlocking));
 #endif // USE_RTAI
 
 	} else {
