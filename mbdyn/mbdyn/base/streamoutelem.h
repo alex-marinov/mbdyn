@@ -45,10 +45,6 @@ class StreamOutElem : virtual public Elem {
 protected:
 	std::string name;
 
-	/* Stream buffer */
-	int size;
-	char *buf;
-
 	/* output with lower ratio */
 	unsigned int OutputEvery;
 	mutable unsigned int OutputCounter;
@@ -85,8 +81,7 @@ public:
 
 protected:
 	/* Stream buffer */
-	int size;
-	char *buf;
+	std::vector<char> buf;
 
 public:
 	StreamContent(void);

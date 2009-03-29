@@ -45,7 +45,7 @@ StreamContentMotion::StreamContentMotion(unsigned uFlags,
 {
 	/* FIXME: size depends on the type of the output signals */
 	ASSERT(uFlags != 0);
-	size = 0;
+	unsigned int size = 0;
 	if (uFlags & GeometryData::X) {
 		size += sizeof(doublereal)*3;
 	}
@@ -59,8 +59,9 @@ StreamContentMotion::StreamContentMotion(unsigned uFlags,
 		size += sizeof(doublereal)*3;
 	}
 	size *= nodes.size();
-	SAFENEWARR(buf, char, size);
-	memset(buf, 0, size);
+
+	buf.resize(size);
+	memset(&buf[0], 0, size);
 }
 
 StreamContentMotion::~StreamContentMotion(void)
@@ -71,7 +72,7 @@ StreamContentMotion::~StreamContentMotion(void)
 void
 StreamContentMotion::Prepare(void)
 {
-	char *curbuf = buf;
+	char *curbuf = &buf[0];
 	for (unsigned int i = 0; i < nodes.size(); i++) {
 		/* assign value somewhere into mailbox buffer */
 		if (uFlags & GeometryData::X) {

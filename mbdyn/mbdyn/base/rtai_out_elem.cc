@@ -68,7 +68,7 @@ f_send(0)
 	if (create) {
 		ASSERT(node == 0);
 
-		if (rtmbdyn_rt_mbx_init(name.c_str(), size, &mbx)) {
+		if (rtmbdyn_rt_mbx_init(name.c_str(), pSC->GetSize(), &mbx)) {
 			silent_cerr("RTMBDyn mailbox(" << name << ") "
 				"init failed" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -87,8 +87,10 @@ f_send(0)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
+
 	if (bNonBlocking) {
 		f_send = rtmbdyn_RT_mbx_send_if;
+
 	} else {
 		f_send = rtmbdyn_RT_mbx_send;
 	}

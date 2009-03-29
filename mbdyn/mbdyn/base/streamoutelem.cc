@@ -48,7 +48,7 @@ StreamOutElem::StreamOutElem(unsigned int uL,
 	const std::string& name,
 	unsigned int oe)
 : Elem(uL, flag(0)),
-name(name), size(-1), buf(0),
+name(name),
 OutputEvery(oe), OutputCounter(0)
 {
 	ASSERT(OutputEvery > 0);
@@ -56,9 +56,7 @@ OutputEvery(oe), OutputCounter(0)
 
 StreamOutElem::~StreamOutElem(void)
 {
-	if (buf != 0) {
-		SAFEDELETEARR(buf);
-	}
+	NO_OP;
 }
 
 Elem::Type
@@ -96,28 +94,25 @@ StreamOutElem::AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
 /* StreamContent - begin */
 
 StreamContent::StreamContent(void)
-: size(-1), buf(0)
 {
 	NO_OP;
 }
 
 StreamContent::~StreamContent(void)
 {
-	if (buf != 0) {
-		SAFEDELETEARR(buf);
-	}
+	NO_OP;
 }
 
 void *
 StreamContent::GetBuf(void) const
 {
-	return (void *)buf;
+	return (void *)&buf[0];
 }
 
 int
 StreamContent::GetSize(void) const
 {
-	return size;
+	return buf.size();
 }
 
 /* StreamContent - end */
@@ -130,8 +125,7 @@ StreamContentValue::StreamContentValue(const std::vector<ScalarValue *>& v)
 {
 	ASSERT(Values.size() > 0);
 
-	size = sizeof(doublereal)*Values.size();
-	SAFENEWARR(buf, char, size);
+	buf.resize(sizeof(doublereal)*Values.size());
 }
 
 StreamContentValue::~StreamContentValue(void)
@@ -146,7 +140,7 @@ StreamContentValue::~StreamContentValue(void)
 void
 StreamContentValue::Prepare(void)
 {
-	char *curbuf = buf;
+	char *curbuf = &buf[0];
 	for (std::vector<ScalarValue *>::iterator i = Values.begin(); i != Values.end(); i++) {
 		/* assign value somewhere into mailbox buffer */
 		doublereal v = (*i)->dGetValue();
