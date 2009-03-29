@@ -8,7 +8,7 @@ Tooltip: 'Create, Run, and Import the results of an MBDyn multibody dynamic mode
 
 __author__ = "G. Douglas Baldwin, douglasbaldwin AT verizon.net"
 __url__ = ["http://www.baldwintechnology.com"]
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 __bpydoc__ = """\
 Description:
 
@@ -135,7 +135,7 @@ def gui():             # the function to draw the screen
 	Draw.PushButton("Parameters", 1, 10, 10, 80, 20, "mbdyn execution environment")
 	Draw.PushButton("Input", 2, 95, 10, 55, 20, "Generate mbdyn input file")
 	Draw.PushButton("Run", 3, 155, 10, 55, 20, "Run mbdyn for input file")
-	Draw.PushButton("Display", 4, 215, 10, 55, 20, "Apply output position data to Blender objects")
+	Draw.PushButton("Display", 4, 215, 10, 55, 20, "Import results into IPos starting at current frame")
 	Draw.PushButton("Rigids", 5, 275, 10, 55, 20, "Parent Rigids")
 	BGL.glRasterPos2i(10, 40)
 	Draw.Text(mbdyn.filename)
@@ -254,8 +254,10 @@ def display():
 	key_Ipo = {}
 	for key in mbdyn.rigid_dict.keys():
 		key_Ipo[key] = key.getIpo()
-	frame = Blender.Get('staframe')
-	Blender.Set('curframe',frame)
+#	frame = Blender.Get('staframe')
+#	Blender.Set('curframe',frame)
+	save = Blender.Get('curframe')
+	frame = save
 	for node in mbdyn.Node:
 		node.insertIpoKey(Object.IpoKeyTypes.LOCROT)
 	for key in mbdyn.rigid_dict.keys():
@@ -315,7 +317,8 @@ def display():
 		key.clrParent()
 		key.setIpo(key_Ipo[key])
 	Window.DrawProgressBar(1., 'Loading: '+'100%')
-	Blender.Set('curframe',1)
+#	Blender.Set('curframe',1)
+	Blender.Set('curframe',save)
 	Blender.Redraw()
 
 def prepare():

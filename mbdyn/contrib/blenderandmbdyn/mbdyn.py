@@ -2,7 +2,7 @@
 
 __author__ = "G. Douglas Baldwin, douglasbaldwin AT verizon.net"
 __url__ = ["http://www.baldwintechnology.com"]
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 __bpydoc__ = """\
 Description:
 
@@ -294,8 +294,6 @@ class MBDyn(Common):
 		self.Node = list(nodes)
 		self.Node.sort(key = lambda x: x.name)
 		self.Frame.sort(key = lambda x: x.objects[0].name)
-		self.Element = ([e for e in self.Element if e.name == 'Rotor']+
-			[e for e in self.Element if e.name != 'Rotor'])
 		frame_dict = {}
 		for i, frame in enumerate(self.Frame):
 			for ob in frame.objects[1:]:
@@ -514,12 +512,19 @@ class MBDyn(Common):
 			function.write(text)
 
 		text.write('\nbegin: elements;\n')
-		max_users = 0
-		for element in self.Element:
-			max_users = max(max_users, element.users)
-		for i in range(max_users+1):
+		for element_type in [
+			'Body',
+			'Beam',
+			'Rotor',
+			'Aerodynamic',
+			'Joint',
+			'Force',
+			'GENEL',
+			'Air properties',
+			'Gravity',
+			'Driven']:
 			for element in self.Element:
-				if element.users == max_users - i:
+				if element.type == element_type:
 					element.write(text)
 		if streaming_file_driver_count:
 			text.write(
@@ -2083,16 +2088,11 @@ class Element(Common):
 			',\n\t\tcorrection, '+str(self._args[20:22]).strip('[]')+';\n')
 		elif self.type == 'Aerodynamic':
 			if self.subtype == 'Aerodynamic body':
-				rot, globalV, iNode = self.rigid_offset(0)
-				localV = rot*globalV
-				rot0 = self.objects[0].getMatrix().toQuat().toMatrix()
-				text.write('\taerodynamic body: '+str(self.database.Element.index(self))+', '+
-				str(iNode))
+				text.write('\taerodynamic body: '+str(self.database.Element.index(self))+',\n')
+				self.write_node(text, 0, position=False, orientation=False)
 				if self._args[1]:
-					text.write(', rotor, '+str(self.database.Element.index(self.links[0])))
-				text.write(',\n\t\t'+str(localV[0])+', '+str(localV[1])+', '+str(localV[2])+
-				',\n\t\tmatr,\n')
-				self.rotationMatrix_write(rot0.transpose()*rot, text, '\t\t\t')
+					text.write('\t\t\trotor, '+str(self.database.Element.index(self.links[0]))+',\n')
+				self.write_node(text, 0, node=False, p_label='', o_label='')
 				text.write(',\n\t\t'+str(self._args[3])+',\n')
 				for shape in self.links[1:4]:
 					text.write(shape.string()+',\n')
@@ -2104,28 +2104,21 @@ class Element(Common):
 				if self._args[0]:
 					text.write(', rotor, '+str(self.database.Element.index(self.links[1])))
 				for i in range(len(self.links[0].objects)):
-					self.write_aerodynamic_beam(text, i)
+					self.write_node(text, i, node=False)
+					text.write(',\n')
 				for shape in self.links[2:5]:
 					text.write(shape.string()+',\n')
 				text.write(self.links[5].string(3.14159/180.)+',\n')
 				text.write('\t\t'+str(self._args[6])+';\n')
 		elif self.type == 'Body':
-			rot, globalV, iNode = self.rigid_offset(0)
-			localV = rot*globalV
-			rot0 = self.objects[0].getMatrix().toQuat().toMatrix()
-			text.write('\tbody: '+str(self.database.Element.index(self))+', '+
-			str(iNode)+', '+str(self._args[1])+',\n'+
-			'\t\t'+str(localV[0])+', '+str(localV[1])+', '+str(localV[2])+', '+
-			self.links[0].string()+',\n\t\tinertial, matr,\n')
-			self.rotationMatrix_write(rot0.transpose()*rot, text, '\t\t\t')
+			text.write('\tbody: '+str(self.database.Element.index(self))+',\n')
+			self.write_node(text, 0, position=False, orientation=False)
+			text.write('\t\t\t'+str(self._args[1])+',\n')
+			self.write_node(text, 0, node=False, orientation=False, p_label='')
+			text.write(', '+self.links[0].string())
+			self.write_node(text, 0, node=False, position=False, o_label='inertial')
 			text.write(';\n')
 		elif self.type == 'Beam':
-			rot0, globalV0, iNode0 = self.rigid_offset(0)
-			localV0 = rot0*globalV0
-			localrot0 = rot0*self.objects[0].getMatrix().toQuat().toMatrix().transpose()
-			rot1, globalV1, iNode1 = self.rigid_offset(1)
-			localV1 = rot1*globalV1
-			localrot1 = rot1*self.objects[1].getMatrix().toQuat().toMatrix().transpose()
 			if self.subtype == 'Beam segment':
 				for element in self.database.Element:
 					if (element.type == 'Beam' and element.subtype == '3-node beam' and
@@ -2133,12 +2126,14 @@ class Element(Common):
 							return
 				text.write('\tbeam2: '+str(self.database.Element.index(self))+',\n')
 				for i in range(len(self.objects)):
-					self.write_beam(text,i)
+					self.write_node(text, i, p_label='position', o_label='orientation')
+					text.write(',\n')
 				text.write('\t\tfrom nodes, '+self.links[0].string()+';\n')
 			if self.subtype == '3-node beam':
 				text.write('\tbeam3: '+str(self.database.Element.index(self))+',\n')
 				for i in range(len(self.objects)):
-					self.write_beam(text,i)
+					self.write_node(text, i, p_label='position', o_label='orientation')
+					text.write(',\n')
 				text.write('\t\tfrom nodes, '+self.links[0].links[0].string())
 				text.write(',\n\t\tfrom nodes, '+self.links[1].links[0].string()+';\n')
 		elif self.type == 'Force':
@@ -2147,64 +2142,67 @@ class Element(Common):
 				str(self.database.NS_Node.index(self.links[0]))+', abstract,\n\t\t'+
 				self.links[1].string(self)+';\n')
 			elif self.subtype == 'Structural force':
-				rot0, globalV0, iNode0 = self.rigid_offset(0)
-				rot = self.objects[0].getMatrix().toQuat().toMatrix().transpose()
-				relative_dir = rot*rot0.transpose()*Vector([0., 0., 1.])
-				relative_arm0 = rot*globalV0
+				rot_0, globalV_0, Node_0 = self.rigid_offset(0)
+				rotT_0 = self.objects[0].getMatrix().toQuat().toMatrix().transpose()
+				relative_dir = rot_0*rotT_0*Vector([0., 0., 1.])
+				relative_arm_0 = rot_0*globalV_0
 				string = '\tforce: '+str(self.database.Element.index(self))+', '
 				if self._args[2]:
-					string += 'follower,\n'
+					string += 'follower'
 				else:
-					string += 'absolute,\n'
-				text.write(string + '\t\t'+str(iNode0)+', '+
-				str(relative_dir[0])+', '+str(relative_dir[1])+', '+str(relative_dir[2])+',\n'+
-				'\t\t'+str(relative_arm0[0])+', '+str(relative_arm0[1])+', '+str(relative_arm0[2])+',\n'+
-				'\t\t'+self.links[0].string(self)+';\n')
+					string += 'absolute'
+				text.write(string+
+				',\n\t\t'+str(Node_0)+
+				',\n\t\t\t'+str(relative_dir[0])+', '+str(relative_dir[1])+', '+str(relative_dir[2])+
+				',\n\t\t\t'+str(relative_arm_0[0])+', '+str(relative_arm_0[1])+', '+str(relative_arm_0[2])+
+				',\n\t\t'+self.links[0].string(self)+';\n')
 			elif self.subtype == 'Structural internal force':
-				rot0, globalV0, iNode0 = self.rigid_offset(0)
-				rot1, globalV1, iNode1 = self.rigid_offset(1)
-				rot = self.objects[0].getMatrix().toQuat().toMatrix()
-				relative_dir = rot*rot0.transpose()*Vector([0., 0., 1.])
-				relative_arm0 = rot*globalV0
-				relative_arm1 = self.objects[1].getMatrix().toQuat().toMatrix()*globalV1
+				rot_0, globalV_0, Node_0 = self.rigid_offset(0)
+				rotT_0 = self.objects[0].getMatrix().toQuat().toMatrix().transpose()
+				relative_dir = rot_0*rotT_0*Vector([0., 0., 1.])
+				relative_arm_0 = rot_0*globalV_0
+				rot_1, globalV_1, Node_1 = self.rigid_offset(1)
+				relative_arm_1 = rot_1*globalV_1
 				string = '\tforce: '+str(self.database.Element.index(self))+', '
 				if self._args[3]:
-					string += 'follower internal,\n'
+					string += 'follower internal'
 				else:
-					string += 'absolute internal,\n'
-				text.write(string + '\t\t'+str(iNode0)+', '+
-				str(relative_dir[0])+', '+str(relative_dir[1])+', '+str(relative_dir[2])+',\n'+
-				'\t\t'+str(relative_arm0[0])+', '+str(relative_arm0[1])+', '+str(relative_arm0[2])+',\n'+
-				'\t\t'+str(iNode1)+', '+
-				str(relative_arm1[0])+', '+str(relative_arm1[1])+', '+str(relative_arm1[2])+',\n'+
-				'\t\t'+self.links[0].string(self)+';\n')
+					string += 'absolute internal'
+				text.write(string+
+				',\n\t\t'+str(Node_0)+
+				',\n\t\t\t'+str(relative_dir[0])+', '+str(relative_dir[1])+', '+str(relative_dir[2])+
+				',\n\t\t\t'+str(relative_arm_0[0])+', '+str(relative_arm_0[1])+', '+str(relative_arm_0[2])+
+				',\n\t\t'+str(Node_1)+
+				',\n\t\t\t'+str(relative_arm_1[0])+', '+str(relative_arm_1[1])+', '+str(relative_arm_1[2])+
+				',\n\t\t'+self.links[0].string(self)+';\n')
 			elif self.subtype == 'Structural couple':
-				rot0, globalV0, iNode0 = self.rigid_offset(0)
-				rot = self.objects[0].getMatrix().toQuat().toMatrix()
-				relative_dir = rot*rot0.transpose()*Vector([0., 0., 1.])
-				relative_arm0 = rot*globalV0
+				rot_0, globalV_0, Node_0 = self.rigid_offset(0)
+				rotT_0 = self.objects[0].getMatrix().toQuat().toMatrix().transpose()
+				relative_dir = rot_0*rotT_0*Vector([0., 0., 1.])
 				string = '\tcouple: '+str(self.database.Element.index(self))+', '
 				if self._args[2]:
-					string += 'follower,\n'
+					string += 'follower'
 				else:
-					string += 'absolute,\n'
-				text.write(string + '\t\t'+str(iNode0)+', '+
-				str(relative_dir[0])+', '+str(relative_dir[1])+', '+str(relative_dir[2])+',\n'+
-				'\t\t'+self.links[0].string(self)+';\n')
+					string += 'absolute'
+				text.write(string+
+				',\n\t\t'+str(Node_0)+
+				',\n\t\t\t'+str(relative_dir[0])+', '+str(relative_dir[1])+', '+str(relative_dir[2])+
+				',\n\t\t'+self.links[0].string(self)+';\n')
 			elif self.subtype == 'Structural internal couple':
-				rot0, globalV0, iNode0 = self.rigid_offset(0)
-				rot1, globalV1, iNode1 = self.rigid_offset(1)
-				rot = self.objects[0].getMatrix().toQuat().toMatrix()
-				relative_dir = rot*rot0.transpose()*Vector([0., 0., 1.])
+				rot_0, globalV_0, Node_0 = self.rigid_offset(0)
+				rotT_0 = self.objects[0].getMatrix().toQuat().toMatrix().transpose()
+				relative_dir = rot_0*rotT_0*Vector([0., 0., 1.])
+				rot_1, globalV_1, Node_1 = self.rigid_offset(1)
 				string = '\tcouple: '+str(self.database.Element.index(self))+', '
 				if self._args[3]:
-					string += 'follower internal,\n'
+					string += 'follower internal'
 				else:
-					string += 'absolute internal,\n'
-				text.write(string + '\t\t'+str(iNode0)+', '+
-				str(relative_dir[0])+', '+str(relative_dir[1])+', '+str(relative_dir[2])+',\n'+
-				'\t\t'+str(iNode1)+', '+
-				'\t\t'+self.links[0].string(self)+';\n')
+					string += 'absolute internal'
+				text.write(string+
+				',\n\t\t'+str(Node_0)+
+				',\n\t\t\t'+str(relative_dir[0])+', '+str(relative_dir[1])+', '+str(relative_dir[2])+
+				',\n\t\t'+str(Node_1)+
+				',\n\t\t'+self.links[0].string(self)+';\n')
 		elif self.type == 'GENEL':
 			if self.subtype == 'Swashplate':
 				text.write(
@@ -2231,24 +2229,26 @@ class Element(Common):
 				self.write_hinge(text, 'deformable hinge', V1=False, V2=False)
 				text.write(',\n\t\t'+self.links[0].string()+';\n')
 			elif self.subtype == 'Distance':
-				self.write_offset(text, 'distance')
+				text.write('\tjoint: '+str(self.database.Element.index(self))+', distance,\n')
+				for i in range(2):
+					self.write_node(text, i, orientation=False, p_label='position')
+					text.write(',\n')
 				if self._args[2]:
-					text.write(', from nodes;\n')
+					text.write('\t\tfrom nodes;\n')
 				else:
-					text.write(',\n\t\t'+self.links[0].string(self)+';\n')
+					text.write('\t\t'+self.links[0].string(self)+';\n')
 			elif self.subtype == 'In line':
 				rot0, globalV0, iNode0 = self.rigid_offset(0)
 				localV0 = rot0*globalV0
-				rot1, globalV1, iNode1 = self.rigid_offset(1)
-				to_point = rot1*(globalV1 + Vector(self.objects[0].loc) - Vector(self.objects[1].loc))
+				rot_1, globalV_1, Node_1 = self.rigid_offset(1)
+				to_point = rot_1*(globalV_1 + Vector(self.objects[0].loc) - Vector(self.objects[1].loc))
 				rot = self.objects[0].getMatrix().toQuat().toMatrix().transpose()
-				text.write(
-				'\tjoint: '+str(self.database.Element.index(self))+', inline,\n'+
-				'\t\t'+str(iNode0))
-				text.write(', '+str(localV0[0])+', '+str(localV0[1])+', '+str(localV0[2])+', matr,\n')
-				self.rotationMatrix_write(rot0*rot, text, '\t\t\t')
-				text.write(',\n\t\t'+str(iNode1))
-				text.write(', offset, '+str(to_point[0])+', '+str(to_point[1])+', '+str(to_point[2])+';\n')
+				text.write('\tjoint: '+str(self.database.Element.index(self))+', inline,\n')
+				self.write_node(text, 0)
+				rot_1, globalV_1, Node_1 = self.rigid_offset(1)
+				to_point = rot_1*(globalV_1 + Vector(self.objects[0].loc) - Vector(self.objects[1].loc))
+				text.write(',\n\t\t'+str(Node_1))
+				text.write(',\n\t\t\toffset, '+str(to_point[0])+', '+str(to_point[1])+', '+str(to_point[2])+';\n')
 			elif self.subtype == 'In plane':
 				rot0, globalV0, iNode0 = self.rigid_offset(0)
 				localV0 = rot0*globalV0
@@ -2259,10 +2259,10 @@ class Element(Common):
 				text.write(
 				'\tjoint: '+str(self.database.Element.index(self))+', inplane,\n'+
 				'\t\t'+str(iNode0))
-				text.write(', '+str(localV0[0])+', '+str(localV0[1])+', '+str(localV0[2]))
-				text.write(',\n\t\t '+str(normal[0])+', '+str(normal[1])+', '+str(normal[2]))
+				text.write(',\n\t\t\t'+str(localV0[0])+', '+str(localV0[1])+', '+str(localV0[2]))
+				text.write(',\n\t\t\t '+str(normal[0])+', '+str(normal[1])+', '+str(normal[2]))
 				text.write(',\n\t\t'+str(iNode1))
-				text.write(', offset, '+str(to_point[0])+', '+str(to_point[1])+', '+str(to_point[2])+';\n')
+				text.write(',\n\t\t\toffset, '+str(to_point[0])+', '+str(to_point[1])+', '+str(to_point[2])+';\n')
 			elif self.subtype == 'Revolute hinge':
 				self.write_hinge(text, 'revolute hinge')
 				if self._args[2]:
@@ -2274,42 +2274,45 @@ class Element(Common):
 					text.write(',\n\t\t\t'+self.links[0].string())
 				text.write(';\n')
 			elif self.subtype == 'Rod':
-				self.write_offset(text, 'rod')
-				text.write(',\n\t\tfrom nodes, '+self.links[0].string()+';\n')
+				text.write('\tjoint: '+str(self.database.Element.index(self))+', rod,\n')
+				for i in range(2):
+					self.write_node(text, i, orientation=False, p_label='position')
+					text.write(',\n')
+				text.write('\t\tfrom nodes, '+self.links[0].string()+';\n')
 			elif self.subtype == 'Spherical hinge':
 				self.write_hinge(text, 'spherical hinge')
 				text.write(';\n')
 			elif self.subtype == 'Total joint':
-				rot0, globalV0, iNode0 = self.rigid_offset(0)
-				localV0 = rot0*globalV0
-				rot1, globalV1, iNode1 = self.rigid_offset(1)
-				to_joint = rot1*(globalV1 + Vector(self.objects[0].loc) - Vector(self.objects[1].loc))
+				rot_0, globalV_0, Node_0 = self.rigid_offset(0)
+				localV_0 = rot_0*globalV_0
+				rot_1, globalV_1, Node_1 = self.rigid_offset(1)
+				to_joint = rot_1*(globalV_1 + Vector(self.objects[0].loc) - Vector(self.objects[1].loc))
 				rot = self.objects[0].getMatrix().toQuat().toMatrix().transpose()
-				if iNode1 == self.objects[1]:
+				if Node_1 == self.objects[1]:
 					rot_position = rot
 				else:
 					rot_position = self.objects[1].getMatrix().toQuat().toMatrix().transpose()
 				text.write('\tjoint: '+str(self.database.Element.index(self))+', total joint')
 				if not self._args[2]:
-					text.write(',\n\t\t'+str(iNode0))
-					text.write(', position, '+str(localV0[0])+', '+str(localV0[1])+', '+str(localV0[2]))
+					text.write(',\n\t\t'+str(Node_0))
+					text.write(', position, '+str(localV_0[0])+', '+str(localV_0[1])+', '+str(localV_0[2]))
 					text.write(',\n\t\t\tposition orientation, matr,\n')
-					self.rotationMatrix_write(rot0*rot_position, text, '\t\t\t\t')
+					self.rotationMatrix_write(rot_0*rot_position, text, '\t\t\t\t')
 					text.write(',\n\t\t\trotation orientation, matr,\n')
-					self.rotationMatrix_write(rot0*rot, text, '\t\t\t\t')
-				text.write(',\n\t\t'+str(iNode1))
+					self.rotationMatrix_write(rot_0*rot, text, '\t\t\t\t')
+				text.write(',\n\t\t'+str(Node_1))
 				text.write(', position, '+str(to_joint[0])+', '+str(to_joint[1])+', '+str(to_joint[2]))
 				text.write(',\n\t\t\tposition orientation, matr,\n')
-				self.rotationMatrix_write(rot1*rot_position, text, '\t\t\t\t')
+				self.rotationMatrix_write(rot_1*rot_position, text, '\t\t\t\t')
 				text.write(',\n\t\t\trotation orientation, matr,\n')
-				self.rotationMatrix_write(rot1*rot, text, '\t\t\t\t')
+				self.rotationMatrix_write(rot_1*rot, text, '\t\t\t\t')
 				if self._args[2]:
-					text.write(',\n\t\t'+str(iNode0))
-					text.write(', position, '+str(localV0[0])+', '+str(localV0[1])+', '+str(localV0[2]))
+					text.write(',\n\t\t'+str(Node_0))
+					text.write(', position, '+str(localV_0[0])+', '+str(localV_0[1])+', '+str(localV_0[2]))
 					text.write(',\n\t\t\tposition orientation, matr,\n')
-					self.rotationMatrix_write(rot0*rot_position, text, '\t\t\t\t')
+					self.rotationMatrix_write(rot_0*rot_position, text, '\t\t\t\t')
 					text.write(',\n\t\t\trotation orientation, matr,\n')
-					self.rotationMatrix_write(rot0*rot, text, '\t\t\t\t')
+					self.rotationMatrix_write(rot_0*rot, text, '\t\t\t\t')
 				text.write(',\n\t\t\tposition constraint')
 				for i in range(3):
 					if self._args[3+2*i]:
@@ -2357,55 +2360,43 @@ class Element(Common):
 			'\t\texisting: '+self.links[1].type+', '+str(self.database.Element.index(self.links[1]))+';\n')
 
 	def write_hinge(self, text, name, V1=True, V2=True, M1=True, M2=True):
-		rot0, globalV0, iNode0 = self.rigid_offset(0)
-		localV0 = rot0*globalV0
-		rot1, globalV1, iNode1 = self.rigid_offset(1)
-		to_hinge = rot1*(globalV1 + Vector(self.objects[0].loc) - Vector(self.objects[1].loc))
-		rot = self.objects[0].getMatrix().toQuat().toMatrix().transpose()
+		rot_0, globalV_0, Node_0 = self.rigid_offset(0)
+		localV_0 = rot_0*globalV_0
+		rot_1, globalV_1, Node_1 = self.rigid_offset(1)
+		to_hinge = rot_1*(globalV_1 + Vector(self.objects[0].loc) - Vector(self.objects[1].loc))
+		rotT = self.objects[0].getMatrix().toQuat().toMatrix().transpose()
 		text.write(
 		'\tjoint: '+str(self.database.Element.index(self))+', '+name+',\n'+
-		'\t\t'+str(iNode0))
+		'\t\t'+str(Node_0))
 		if V1:
-			text.write(', '+str(localV0[0])+', '+str(localV0[1])+', '+str(localV0[2]))
+			text.write(', '+str(localV_0[0])+', '+str(localV_0[1])+', '+str(localV_0[2]))
 		if M1:
 			text.write(',\n\t\t\thinge, matr,\n')
-			self.rotationMatrix_write(rot0*rot, text, '\t\t\t\t')
-		text.write(', \n\t\t'+str(iNode1))
+			self.rotationMatrix_write(rot_0*rotT, text, '\t\t\t\t')
+		text.write(', \n\t\t'+str(Node_1))
 		if V2:
 			text.write(', '+str(to_hinge[0])+', '+str(to_hinge[1])+', '+str(to_hinge[2]))
 		if M2:
 			text.write(',\n\t\t\thinge, matr,\n')
-			self.rotationMatrix_write(rot1*rot, text, '\t\t\t\t')
+			self.rotationMatrix_write(rot_1*rotT, text, '\t\t\t\t')
 
-	def write_beam(self, text, i):
-		rot, globalV, iNode = self.rigid_offset(i)
-		localV = rot*globalV
-		localrot = rot*self.objects[i].getMatrix().toQuat().toMatrix().transpose()
-		text.write('\t\t'+str(iNode)+',\n\t\t\t'+
-		'position, '+str(localV[0])+', '+str(localV[1])+', '+str(localV[2])+',\n\t\t\t'+
-		'orientation, matr,\n')
-		self.rotationMatrix_write(localrot, text, '\t\t\t\t')
-		text.write(',\n')
-
-	def write_aerodynamic_beam(self, text, i):
-		rot, globalV, iNode = self.rigid_offset(i)
-		localV = rot*globalV
-		localrot = rot*self.objects[i].getMatrix().toQuat().toMatrix().transpose()
-		text.write('\t\t'+str(localV[0])+', '+str(localV[1])+', '+str(localV[2])+',\n\t\t'+'matr,\n')
-		self.rotationMatrix_write(localrot, text, '\t\t\t')
-		text.write(',\n')
-
-	def write_offset(self, text, name):
-		rot0, globalV0, iNode0 = self.rigid_offset(0)
-		localV0 = rot0*globalV0
-		rot1, globalV1, iNode1 = self.rigid_offset(1)
-		localV1 = rot1*globalV1
-		text.write(
-		'\tjoint: '+str(self.database.Element.index(self))+', '+name+',\n'+
-		'\t\t'+str(iNode0)+', position, '+
-		str(localV0[0])+', '+str(localV0[1])+', '+str(localV0[2])+
-		', \n\t\t'+str(iNode1)+', position, '+
-		str(localV1[0])+', '+str(localV1[1])+', '+str(localV1[2]))
+	def write_node(self, text, i, node=True, position=True, orientation=True, p_label='', o_label=''):
+		rot_i, globalV_i, Node_i = self.rigid_offset(i)
+		localV_i = rot_i*globalV_i
+		rotT = self.objects[i].getMatrix().toQuat().toMatrix().transpose()
+		if node:
+			text.write('\t\t'+str(Node_i)+',\n')
+		if position:
+			text.write('\t\t\t')
+			if p_label:
+				text.write(p_label+', ')
+			text.write(str(localV_i[0])+', '+str(localV_i[1])+', '+str(localV_i[2]))
+		if orientation:
+			text.write(',\n\t\t\t')
+			if o_label:
+				text.write(o_label+', ')
+			text.write('matr,\n')
+			self.rotationMatrix_write(rot_i*rotT, text, '\t\t\t\t')
 
 	def rigid_offset(self, i):
 		if self.objects[i] in self.database.Node:
