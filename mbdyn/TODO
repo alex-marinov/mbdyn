@@ -179,6 +179,9 @@ D. Code:
 	- add RTAI-based motion output (DONE)
 	- use 3D (or 6D) templates for force and couple elements, preserving
 	  backward compatibility of the input as much as possible (DONE, 3D)
+	- add modal constraint: framework for generic constraints among
+	  modal variables; constraint that imposes the value of modal vars
+	- add "static" modal element (no dynamics equations)
 
 
 
@@ -195,6 +198,7 @@ E. Bugs/missing features:
 	  inertia that do not participate in the interface)
 	- clarify how to increase the size of models utils/femgen can handle
 	- introduce references for hints
+	- allow strings as mode names in modal elements (joint, force, ...)
 
 
 

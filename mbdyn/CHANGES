@@ -13,6 +13,8 @@ MBDyn 1.X-Devel
 	Enhancements:
 		- permute and scale matrix for lapack eigenanalysis
 	Backward compatibility issues:
+		- the format of the modal joint output changed
+		- the format of the modal force input changed
 	Known issues:
 		- RTAI mailboxes have problems...
 	Bug fixes:

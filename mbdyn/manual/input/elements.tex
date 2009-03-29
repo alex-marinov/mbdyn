@@ -2303,9 +2303,10 @@ of a \htmlref{\kw{modal}}{sec:EL:STRUCT:JOINT:MODAL} joint element.
 It requires the label of the modal joint it is connected to,
 \kw{modal\_label}.
 If the optional keyword \kw{list} is given, the number of excited modes
-\kw{number\_of\_modes} and the list of the excited mode indices
-is expected, otherwise it assumes all modes of the \kw{modal\_label}
-modal joint will be excited.
+\kw{number\_of\_modes} and the list of the excited modes is expected,
+otherwise it assumes all modes of the \kw{modal\_label} modal joint
+will be excited.
+
 A list of
 \hyperref{\kw{drive callers}}{\kw{drive callers} (see Section~}{)}{sec:DRIVE}.
 that provide the excitation value for each mode is required last.
@@ -2318,6 +2319,47 @@ instead of being clamped to the ground, the optional keyword \kw{resultant}
 is allowed for each mode drive caller.
 The keyword \kw{resultant} is followed by two $3\times 1$ vectors
 containing the resultant force and moment associated to the related mode.
+
+If the keyword \kw{list} was given, the mode numbers must be
+the actual mode numbers defined in the FEM model.
+
+\paragraph{Example.} \
+In this example, all the modes available in the FEM data file 
+are used by the modal joint, and all the modes are excited
+by the modal force
+\begin{verbatim}
+    joint: MODAL_JOINT, modal, MODAL_NODE,
+        5,             # number of modes
+        from file,
+        "model.fem",
+        0;             # no interface nodes
+    force: MODAL_FORCE, modal, MODAL_JOINT,
+        const, 5.,
+        const, 10.,
+        const, 1.,
+        const, -1.,
+        const, -3.;
+\end{verbatim}
+
+In this example, only three modes of the same FEM data file
+of the previous example are used by the modal joint;
+only the last mode is excited by the modal force
+\begin{verbatim}
+    joint: MODAL_JOINT, modal, MODAL_NODE,
+        3,             # number of modes
+            list, 1, 3, 5,
+        from file,
+        "model.fem",
+        0;             # no interface nodes
+    force: MODAL_FORCE, modal, MODAL_JOINT,
+        list, 1,       # only one mode is excited
+            5,         # it is mode #5 in "model.fem"
+        const, -3.;
+\end{verbatim}
+Note that the mode is indicated by its number in the FEM data file.
+
+
+
 
 \subsection{External forces}
 External forces are elements that allow to communicate
@@ -4556,7 +4598,7 @@ Original implementation: Felice Felippone; \\
 Initial review: Giuseppe Quaranta; \\
 Current review: Pierangelo Masarati.}
 
-This joint implements a component synthesis deformable body.
+This joint implements a Component Mode Synthesis (CMS) deformable body.
 Its interface with the multibody domain is represented by clamps
 that constrain the multibody interface nodes to the position
 and orientation of the corresponding FEM nodes.
@@ -4593,7 +4635,6 @@ Its input is completely analogous to that of the \kw{dynamic} structural
 nodes, see Section~\ref{sec:NODE:STRUCTURAL}, only the keyword \kw{dynamic} 
 must be replaced by \kw{modal}.
 
-\noindent
 If no rigid body dynamics is required, e.g.\ if the modal element
 is clamped, the \kw{clamped} option can be used, which allows
 to set the optional \kw{absolute\_position}
@@ -4602,22 +4643,24 @@ The former is the location, in the multibody
 global reference system, of the origin of the FEM reference system.
 The latter is the orientation,
 in the multibody global reference frame,
-of the axes of the FEM reference system.
+of the FEM reference system.
 They default to zero and identity, which means
 that the global multibody reference frame
 and the FEM reference system are coincident.
 
-\noindent
 The mode count in \kw{mode\_number} is not required to match
 the number of modes listed in the FEM data file; if a lower number
 is given, only the first \kw{mode\_number} modes are used;
 moreover, a list of active modes can be given, to use non-consecutive
-modes; e.g., to use modes 1, 2, 3 and 6 of a set of 10 modes, use:
+modes; e.g., to use modes 1, 2, 3 and 6 out of a set of 10 modes
+defined in the FEM data file, write
 \begin{verbatim}
-	4, list, 1, 2, 3, 6
+    ...,
+    4,                        # number of active modes
+        list, 1, 2, 3, 6,     # list of active modes
+    ...
 \end{verbatim}
 
-\noindent
 By default, the origin of the FEM grid is placed either in the position
 of the modal node, with its orientation, or in the absolute position 
 and orientation in case the modal element is clamped, 
@@ -4632,33 +4675,28 @@ reference frame, the \kw{modal} node is placed, or the location
 that corresponds to the optional absolute position and orientation
 in case of a clamped modal element.
 
-\noindent
 The FEM labels can be strings made of any character,
 provided they do not contain blanks.
 The strings must be enclosed in double quotes.
 For legacy reasons, a label not enclosed in double quotes
 is accepted, provided it is an integer.
 
-\noindent
 If any of \kw{mass threshold}, \kw{stiffness threshold} are given,
 elements whose absolute value is lower than the threshold
 are discarded from the mass and stiffness matrix, respectively.
 The keyword \kw{threshold} is a catchall for both,
 meaning that the same threshold must be used for both matrices.
 
-\noindent
 The list of matchings between FEM and multibody nodes needs
 special care.
 The \kw{offset\_of\_FEM\_node} field contains the distance
 of the FEM node from the respective multibody node; by default,
 this is expressed in the reference frame of the multibody node.
 
-\noindent
 The \kw{fem\_data\_file} can be generated by NASTRAN, 
 following the procedure illustrated
 in Appendix~\ref{sec:APP:EL:STRUCT:JOINT:MODAL:NASTRAN}.
 
-\noindent
 It is strongly recommended that constrained modal analysis
 be used for otherwise free bodies, with the statically 
 determined constraint consisting of clamping the FEM node 
@@ -4666,7 +4704,6 @@ that will coincide with the node indicated as \kw{reference\_modal\_node},
 and using the \kw{origin node} to make that point the origin
 of the FEM frame.
 
-\noindent
 \textbf{Note about reference frames:} the coincidence constraint between 
 multibody and FEM nodes is written between the local frame 
 of the FEM node and the global frame of the multibody node.
@@ -4674,7 +4711,6 @@ As such, the multibody nodes must be oriented as the \kw{modal}
 node the \kw{modal} joint refers to, if any, or as the reference
 orientation of the \kw{modal} joint, if it is clamped.
 
-\noindent
 \textbf{Note about initial assembly:} it is very important that multibody 
 and FEM nodes at interfaces are given with a high degree of accuracy,
 because the initial assembly procedure of the modal element
@@ -4692,7 +4728,6 @@ One trick is to build models incrementally.
 Offsets between FEM and multibody nodes 
 should be avoided unless strictly required.
 
-\noindent
 \textbf{Note about the FEM file:}
 the format of the \kw{fem\_data\_file} is relatively straightforward;
 it is reported
@@ -4702,7 +4737,6 @@ if required, by manually editing the file; however this practice
 is discouraged, unless strictly required.
 
 
-\noindent
 \textbf{Note about large FEM files:}
 using a very large \kw{fem\_data\_file} may require long time for
 reading and parsing ASCII floats.
@@ -4715,7 +4749,6 @@ timestamp is more recent than that of the ASCII version.
 The keyword \kw{update binary} instructs MBDyn to regenerate the
 binary version when the ASCII version is more recent.
 
-\noindent
 \textbf{Note about the structural damping:}
 structural damping can be provided by specifying any of the
 \kw{no damping}, \kw{proportional damping} or \kw{diag damping}.
@@ -4743,6 +4776,26 @@ separated by a dot (e.g. \kw{label.mode})
 \item the value of the first derivative of the modal unknown
 \item the value of the second derivative of the modal unknown
 \end{itemize}
+Note: the number of the mode is the first field of the output
+is the ordinal of the mode in the FEM data file.
+If only a portion of the modes was selected using the \kw{list} keyword,
+the mode numbers will reflect the selected modes.
+For example, if the \kw{modal} joint was defined as
+\begin{verbatim}
+    set: MODAL_ELEM = 99;
+    set: MODAL_NODE = 101;
+    joint: MODAL_ELEM, modal, MODAL_NODE,
+        3, list, 1, 7, 9, # only use modes 1, 7 and 9 of a larger basis
+        from file,
+        "modal.fem",
+        0;                # no fem nodes
+\end{verbatim}
+the output will look like
+\begin{verbatim}
+      99.1 0.000000e+00 0.000000e+00 0.000000e+00
+      99.7 0.000000e+00 0.000000e+00 0.000000e+00
+      99.9 0.000000e+00 0.000000e+00 0.000000e+00
+\end{verbatim}
 
 \subsubsection{Private Data}
 The following data is available, for each mode:

@@ -79,6 +79,7 @@ protected:
 	doublereal dMass;
 	Vec3 Inv2;
 	Mat3x3 Inv7;
+	std::vector<unsigned int> uModeNumber;
 	MatNxN *pModalMass;
 	MatNxN *pModalStiff;
 	MatNxN *pModalDamp;
@@ -155,6 +156,7 @@ public:
 			doublereal dMass,
 			const Vec3& STmp,
 			const Mat3x3& JTmp,
+			const std::vector<unsigned int>& uModeNumber,
 			MatNxN *pGenMass,
 			MatNxN *pGenStiff,
 			MatNxN *pGenDamp,
@@ -264,6 +266,10 @@ public:
 
 	integer uGetNModes(void) {
 		return NModes;
+	};
+
+	const std::vector<unsigned int>& GetModeList(void) const {
+		return uModeNumber;
 	};
 
 	const VecN& GetA(void) const {

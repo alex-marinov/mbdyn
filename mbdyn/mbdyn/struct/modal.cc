@@ -120,42 +120,43 @@
 #include "hint_impl.h"
 
 Modal::Modal(unsigned int uL,
-		const ModalNode* pR,
-		const Vec3& x0,
-		const Mat3x3& R0,
-		const DofOwner* pDO,
-		unsigned int NM,         /* numero modi */
-		unsigned int NI,         /* numero nodi d'interfaccia */
-		unsigned int NF,         /* numero nodi FEM */
-		doublereal dMassTmp,     /* inv. inerzia (m, m.stat., d'in.) */
-		const Vec3& STmp,
-		const Mat3x3& JTmp,
-		MatNxN *pGenMass,
-		MatNxN *pGenStiff,
-		MatNxN *pGenDamp,
-		std::vector<std::string>& IdFemNodes, /* label nodi FEM */
-		std::vector<std::string>& IntFEMNodes,/* label nodi FEM d'interfaccia */
-		Mat3xN *pN,               /* posizione dei nodi FEM */
-		Mat3xN *pOffsetfemNodes,
-		Mat3xN *pOffsetmbNodes,
-		Mat3xN *pRotmbNodes,
-		const StructNode** pIN,   /* nodi d'interfaccia */
-		Mat3xN *pPHItStrNode,     /* forme modali nodi d'interfaccia */
-		Mat3xN *pPHIrStrNode,
-		Mat3xN *pModeShapest,     /* autovettori: servono a aeromodal */
-		Mat3xN *pModeShapesr,
-		Mat3xN *pInv3,            /* invarianti d'inerzia I3...I11 */
-		Mat3xN *pInv4,
-		Mat3xN *pInv5,
-		Mat3xN *pInv8,
-		Mat3xN *pInv9,
-		Mat3xN *pInv10,
-		Mat3xN *pInv11,
-		VecN *aa,
-		VecN *bb,
-		DataManager* pDM,  /* non serve */
-		MBDynParser& HP,   /* non serve */
-		flag fOut)
+	const ModalNode* pR,
+	const Vec3& x0,
+	const Mat3x3& R0,
+	const DofOwner* pDO,
+	unsigned int NM,         /* numero modi */
+	unsigned int NI,         /* numero nodi d'interfaccia */
+	unsigned int NF,         /* numero nodi FEM */
+	doublereal dMassTmp,     /* inv. inerzia (m, m.stat., d'in.) */
+	const Vec3& STmp,
+	const Mat3x3& JTmp,
+	const std::vector<unsigned int>& uModeNumber,
+	MatNxN *pGenMass,
+	MatNxN *pGenStiff,
+	MatNxN *pGenDamp,
+	std::vector<std::string>& IdFemNodes,	/* label nodi FEM */
+	std::vector<std::string>& IntFEMNodes,	/* label nodi FEM d'interfaccia */
+	Mat3xN *pN,               /* posizione dei nodi FEM */
+	Mat3xN *pOffsetfemNodes,
+	Mat3xN *pOffsetmbNodes,
+	Mat3xN *pRotmbNodes,
+	const StructNode** pIN,   /* nodi d'interfaccia */
+	Mat3xN *pPHItStrNode,     /* forme modali nodi d'interfaccia */
+	Mat3xN *pPHIrStrNode,
+	Mat3xN *pModeShapest,     /* autovettori: servono a aeromodal */
+	Mat3xN *pModeShapesr,
+	Mat3xN *pInv3,            /* invarianti d'inerzia I3...I11 */
+	Mat3xN *pInv4,
+	Mat3xN *pInv5,
+	Mat3xN *pInv8,
+	Mat3xN *pInv9,
+	Mat3xN *pInv10,
+	Mat3xN *pInv11,
+	VecN *aa,
+	VecN *bb,
+	DataManager* pDM,  /* non serve */
+	MBDynParser& HP,   /* non serve */
+	flag fOut)
 : Elem(uL, fOut),
 Joint(uL, pDO, fOut),
 pModalNode(pR),
@@ -169,6 +170,7 @@ NFemNodes(NF),
 dMass(dMassTmp),
 Inv2(STmp),
 Inv7(JTmp),
+uModeNumber(uModeNumber),
 pModalMass(pGenMass),
 pModalStiff(pGenStiff),
 pModalDamp(pGenDamp),
@@ -1458,7 +1460,7 @@ Modal::Output(OutputHandler& OH) const
 		std::ostream& out = OH.Modal();
 
 		for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
-			out << std::setw(8) << GetLabel() << '.' << iCnt
+			out << std::setw(8) << GetLabel() << '.' << uModeNumber[iCnt - 1]
 				<< " " << a.dGet(iCnt)
 				<< " " << b.dGet(iCnt)
 				<< " " << bPrime.dGet(iCnt) << std::endl;
@@ -2705,29 +2707,10 @@ ReadModal(DataManager* pDM,
 			int n = HP.GetInt();
 
 			if (n <= 0) {
-				const char *th = NULL;
-
-				switch ((iCnt + 1)%10) {
-				case 1:
-					th = "st";
-					break;
-
-				case 2:
-					th = "nd";
-					break;
-
-				case 3:
-					th = "rd";
-					break;
-
-				default:
-					th = "th";
-					break;
-				}
-
 				silent_cerr("Modal(" << uLabel << "): "
-					"illegal " << iCnt + 1 << "'" << th 
-					<< " mode number " << n 
+					"illegal mode number "
+					"for mode #" << iCnt + 1
+					<< " at line " << HP.GetLineData()
 					<< std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
@@ -4731,6 +4714,7 @@ ReadModal(DataManager* pDM,
 				dMass,
 				STmp,
 				JTmp,
+				uModeNumber,
 				pGenMass,
 				pGenStiff,
 				pGenDamp,

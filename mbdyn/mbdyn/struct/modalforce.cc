@@ -30,20 +30,20 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <dataman.h>
-#include "modalforce.h"
-
 #include <fstream>
+
+#include "dataman.h"
+#include "modalforce.h"
 
 /* ModalForce - begin */
 
 /* Costruttore */
 ModalForce::ModalForce(unsigned int uL,
 	Modal *pmodal,
-	std::vector<int>& modeList,
+	const std::vector<unsigned int>& modeList,
 	std::vector<DriveCaller *>& f,
 	const Mat3xN *mt,
 	const Mat3xN *mr,
@@ -154,8 +154,9 @@ ReadModalForce(DataManager* pDM,
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	std::vector<int> modeList;
+	std::vector<unsigned int> modeList;
 	if (HP.IsKeyWord("list")) {
+		const std::vector<unsigned int>& uModeList = pModal->GetModeList();
 		std::vector<bool> gotIt(pModal->uGetNModes());
 		for (integer i = 0; i < pModal->uGetNModes(); i++) {
 			gotIt[i] = false;
@@ -171,13 +172,24 @@ ReadModalForce(DataManager* pDM,
 		modeList.resize(iNumModes);
 
 		for (int i = 0; i < iNumModes; i++) {
-			int iModeIdx = HP.GetInt();
-			if (iModeIdx <= 0 || iModeIdx > pModal->uGetNModes()) {
+			int iM = HP.GetInt();
+			if (iM <= 0 || iM > pModal->uGetNModes()) {
 				silent_cerr("ModalForce(" << uLabel << "): "
-					"illegal mode index " << iModeIdx
+					"illegal mode " << iM
 					<< " at line " << HP.GetLineData() << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
+
+			std::vector<unsigned int>::const_iterator
+				iv = std::find(uModeList.begin(), uModeList.end(), (unsigned int)iM);
+			if (iv == uModeList.end()) {
+				silent_cerr("ModalForce(" << uLabel << "): "
+					"mode " << iM << " not active "
+					"in Modal(" << pModal->GetLabel() << ")"
+					"at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			int iModeIdx = iv - uModeList.begin();
 
 			if (gotIt[iModeIdx]) {
 				silent_cerr("ModalForce(" << uLabel << "): "
@@ -186,14 +198,14 @@ ReadModalForce(DataManager* pDM,
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			modeList[i] = iModeIdx;
+			modeList[i] = iModeIdx + 1;
 			gotIt[iModeIdx] = true;
 		}
 
 	} else {
 		modeList.resize(pModal->uGetNModes());
 		for (integer i = 0; i < pModal->uGetNModes(); i++) {
-			modeList[i] = i+1;
+			modeList[i] = i + 1;
 		}
 	}
 
@@ -210,7 +222,8 @@ ReadModalForce(DataManager* pDM,
 		if (f[i] == 0) {
 			silent_cerr("ModalForce(" << uLabel << "): "
 				"unable to read DriveCaller for mode #" << i + 1
-				<< " at line " << HP.GetLineData() << std::endl);
+				<< " (mode number " << modeList[i] << ") "
+				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 

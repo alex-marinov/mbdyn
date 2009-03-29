@@ -44,7 +44,7 @@
 class ModalForce : virtual public Elem, public Force {
 protected:
 	Modal *pModal;
-	std::vector<int> modeList;
+	std::vector<unsigned int> modeList;
 	std::vector<DriveCaller *> f;
 	const Mat3xN *Mt;
 	const Mat3xN *Mr;
@@ -54,7 +54,7 @@ public:
 	/* Costruttore */
 	ModalForce(unsigned int uL,
 		Modal *pmodal,
-		std::vector<int>& modeList,
+		const std::vector<unsigned int>& modeList,
 		std::vector<DriveCaller *>& f,
 		const Mat3xN *Mt,
 		const Mat3xN *Mr,
