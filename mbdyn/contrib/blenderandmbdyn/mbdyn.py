@@ -2,7 +2,7 @@
 
 __author__ = "G. Douglas Baldwin, douglasbaldwin AT verizon.net"
 __url__ = ["http://www.baldwintechnology.com"]
-__version__ = "0.1.1"
+__version__ = "0.1.4"
 __bpydoc__ = """\
 Description:
 
@@ -107,8 +107,6 @@ class Common(object):
 			new.name_check(entities, False)
 			new.users = 0
 			entities.append(new)
-			for link in new.links:
-				link.users += 1
 			scn = Scene.GetCurrent()
 			try:
 				if self.objects:
@@ -163,12 +161,14 @@ class Common(object):
 
 class MBDyn(Common):
 
-	entity_classes = ['Element', 'Constitutive', 'Drive', 'Friction', 'Shape', 'Function', 'Matrix']
+	entity_classes = ['Element', 'Constitutive', 'Drive', 'Driver', 'Friction', 'Shape', 'Function', 'NS_Node', 'Matrix']
 
 	def __init__(self):
+		self.NS_Node = []
 		self.Element = []
 		self.Constitutive = []
 		self.Drive = []
+		self.Driver = []
 		self.Shape = []
 		self.Function = []
 		self.Friction = []
@@ -178,7 +178,7 @@ class MBDyn(Common):
 		self.defaults()
 
 	def defaults(self):
-		self._integrator = 'multistep'
+		self._integrator = 'initial value'
 		self._t0 = 0.
 		self._tN = 0.
 		self._dt = 1.e-3
@@ -188,7 +188,11 @@ class MBDyn(Common):
 		self._dC = 1.e-3
 		self._fps = 30
 		self._IPOs = 1
+		self._port = 5500
+		self._hostname = '127.0.0.1'
 		self._reinit = 0
+		self._posixRT = 0
+		self._change_filename = 1
 
 	def modify(self):
 		integrator = Draw.Create(self._integrator)
@@ -201,10 +205,18 @@ class MBDyn(Common):
 		dC_1e3 = Draw.Create(self._dC * 1.e3)
 		fps = Draw.Create(self._fps)
 		IPOs = Draw.Create(self._IPOs)
+		port = Draw.Create(self._port)
+		hostname = Draw.Create(self._hostname)
 		reinit = Draw.Create(self._reinit)
+		posixRT = Draw.Create(self._posixRT)
+		try:
+			change_filename = Draw.Create(self._change_filename)
+		except:
+			change_filename = Draw.Create(0)
+			
 
 		string = [
-		('int', integrator, 0, 12, 'integrator'),
+		('', integrator, 0, 12, 'integrator'),
 		('t0', t0, 0.0, 1.0e6, 'initial time'),
 		('tN', tN, 0.0, 1.0e6, 'final time (tN==0. => Use Blender animation range)'),
 		('dt*1.e3', dt_1e3, 1.0e-3, 1.0e3, 'time step'),
@@ -214,6 +226,10 @@ class MBDyn(Common):
 		('dC*1.e3', dC_1e3, 1.0e-3, 1.0e3, 'derivatives coefficient'),
 		('fps', fps, 1, 1000, 'frames per second: used to format output'),
 		('IPOs', IPOs, 'Create new IPs, else overwrite existing IPOs'),
+		('port', port, 1024, 49151, 'First sequential socket port number'),
+		('Host name: ',	hostname, 0, 30, 'Name or IP of Game Blender Console'),
+		('PosixRT',	posixRT, 'When using File Driver in Game Blender, run in POSIX Real Time Mode (WARNING: controls system clock)'),
+		('Change Filename', change_filename, 'Change MBDyn filename'),
 		('defaults', reinit, 'Revert to default values')]
 		Draw.PupBlock('Parameters', string)
 		self._integrator = integrator.val
@@ -226,7 +242,14 @@ class MBDyn(Common):
 		self._dC = dC_1e3.val * 1.e-3
 		self._fps = fps.val
 		self._IPOs = IPOs.val
+		self._port = port.val
+		self._hostname = hostname.val
 		self._reinit = reinit.val
+		self._posixRT = posixRT.val
+		if self.filename:
+			self._change_filename = change_filename.val
+		else:
+			self._change_filename = 1
 
 	def write(self, text):
 
@@ -243,31 +266,31 @@ class MBDyn(Common):
 		nodes = set([])
 		for clas in MBDyn.entity_classes:
 			eval('self.'+clas+'.sort(key = lambda x: x.name)')
-		structural_dynamic_nodes = set([])
-		structural_static_nodes = set([])
+		self.structural_dynamic_nodes = set([])
+		self.structural_static_nodes = set([])
 		for clas in ['Element', 'Drive']:
 			for entity in eval('self.'+clas):
 				try:
 					if entity.objects[0] not in rigids:
 						nodes |= set([entity.objects[0]])
 						if entity.type in Element.structural_dynamic:
-							structural_dynamic_nodes |= set([entity.objects[0]])
+							self.structural_dynamic_nodes |= set([entity.objects[0]])
 						elif entity.type in Element.structural_static:
-							structural_static_nodes |= set([entity.objects[0]])
+							self.structural_static_nodes |= set([entity.objects[0]])
 					elif entity.objects[0] in rigids:
 						ob = self.rigid_dict[entity.objects[0]]
 						nodes |= set([ob])
 						if entity.type in Element.structural_dynamic:
-							structural_dynamic_nodes |= set([ob])
+							self.structural_dynamic_nodes |= set([ob])
 						elif entity.type in Element.structural_static:
-							structural_static_nodes |= set([ob])
+							self.structural_static_nodes |= set([ob])
 				except:
 					pass
 		nodes -= set([None])
-		structural_static_nodes -= set([None])
-		structural_dynamic_nodes -= set([None])
-		structural_static_nodes -= structural_dynamic_nodes
-		structural_node_count = len(structural_static_nodes | structural_dynamic_nodes)
+		self.structural_static_nodes -= set([None])
+		self.structural_dynamic_nodes -= set([None])
+		self.structural_static_nodes -= self.structural_dynamic_nodes
+		structural_node_count = len(self.structural_static_nodes | self.structural_dynamic_nodes)
 		self.Node = list(nodes)
 		self.Node.sort(key = lambda x: x.name)
 		self.Frame.sort(key = lambda x: x.objects[0].name)
@@ -278,23 +301,45 @@ class MBDyn(Common):
 			for ob in frame.objects[1:]:
 				frame_dict[ob] = str(i)
 
-		text.write(
-		'\n/* Label Indexes\n')
-		if self.Frame:
-			text.write('\nReference:\n')
-			for i, frame in enumerate(self.Frame):
-				text.write('\t'+str(i)+'\t- '+frame.objects[0].name+'\n')
-		for clas in ['Constitutive', 'Drive', 'Node', 'Element']:
-			if eval('self.'+clas):
-				text.write('\n'+clas+'s:\n')
-				for i, entity in enumerate(eval('self.'+clas)):
-					text.write('\t'+str(i)+'\t- '+entity.name+'\n')
-		text.write('\n*/\n\n')
-
-		text.write(
-		'begin: data;\n'+
-		'\tintegrator: '+self._integrator+';\n'+
-		'end: data;\n\n')
+		joint_count = 0
+		force_count = 0
+		rigid_body_count = 0
+		air_properties = False
+		gravity = False
+		aerodynamic_element_count = 0
+		rotor_count = 0
+		genel_count = 0
+		beam_count = 0
+		for element in self.Element:
+			cat = element.category()
+			if cat == 'joint':  joint_count += 1
+			elif cat == 'force': force_count += 1
+			elif cat == 'rigid body': rigid_body_count += 1
+			elif cat == 'air properties': air_properties = True
+			elif cat == 'aerodynamic element': aerodynamic_element_count += 1
+			elif cat == 'gravity': gravity = True
+			elif cat == 'rotor': rotor_count += 1
+			elif cat == 'genel': genel_count += 1
+			elif cat == 'beam': beam_count += 1
+		file_driver_count = 0
+		streaming_file_driver_count = 0
+		for driver in self.Driver:
+			driver.columns = []
+		for drive in self.Drive:
+			if drive.type == 'File drive' and drive.users:
+				drive.links[0].columns.append(drive)
+		for driver in self.Driver:
+			if driver.columns:
+				file_driver_count += 1
+				if driver._args[0]:
+					streaming_file_driver_count += 1
+		electric_node_count = 0
+		abstract_node_count = 0
+		hydraulic_node_count = 0
+		for ns_node in self.NS_Node:
+			if ns_node.type == 'Electric': electric_node_count += 1
+			elif ns_node.type == 'Abstract': abstract_node_count += 1
+			elif ns_node.type == 'Hydraulic': hydraulic_node_count += 1
 
 		finalTime = self._tN
 		if finalTime == 0.:
@@ -302,42 +347,65 @@ class MBDyn(Common):
 				)/float(self._fps)
 
 		text.write(
+		'\n/* Label Indexes\n')
+		if self.Frame:
+			text.write('\nReference:\n')
+			for i, frame in enumerate(self.Frame):
+				text.write('\t'+str(i)+'\t- '+frame.objects[0].name+'\n')
+		for clas in ['Node', 'NS_Node', 'Drive', 'Driver', 'Element']:
+			if eval('self.'+clas):
+				text.write('\n'+clas+'s:\n')
+				for i, entity in enumerate(eval('self.'+clas)):
+					text.write('\t'+str(i)+'\t- '+entity.name+' ('+entity.type)
+					if entity.users:
+						text.write(', users='+str(entity.users))
+					text.write(')\n')
+		if streaming_file_driver_count:
+			text.write('\t'+str(len(self.Element))+'\t- Stream motion output (Output)\n')
+		text.write('\n*/\n\n')
+
+		text.write(
+		'begin: data;\n'+
+		'\tintegrator: '+self._integrator+';\n'+
+		'end: data;\n\n'+
 		'begin: '+self._integrator+';\n'+
-		'\tinitial time: '+str(self._t0)+';\n'+
-		'\tfinal time: '+str(finalTime)+';\n'+
+		'\tinitial time: '+str(self._t0)+';\n')
+		if streaming_file_driver_count:
+			text.write('\tfinal time: forever;\n')
+		else:
+			text.write('\tfinal time: '+str(finalTime)+';\n')
+		text.write(
 		'\ttime step: '+str(self._dt)+';\n'+
 		'\tmax iterations: '+str(self._maxI)+';\n'+
 		'\ttolerance: '+str(self._tol)+';\n'+
 		'\tderivatives tolerance: '+str(self._dTol)+';\n'+
-		'\tderivatives coefficient: '+str(self._dC)+';\n'+
-		'end: '+str(self._integrator)+';\n\n'
-		)
-
+		'\tderivatives coefficient: '+str(self._dC)+';\n')
+		if self._posixRT and streaming_file_driver_count:
+			text.write('\trealtime: POSIX, mode, period, time step, '+
+			str(int(10e9*self._dt))+';\n')
 		text.write(
+		'end: '+str(self._integrator)+';\n\n'+
 		'begin: control data;\n'+
 		'\tdefault orientation: orientation matrix;\n'+
 		'\toutput meter: meter, 0., forever, steps, '+
 			str(int(round(1./(self._fps * self._dt))))+';\n')
 
-		joint_count = 0
-		rigid_body_count = 0
-		air_properties = False
-		gravity = False
-		aerodynamic_element_count = 0
-		rotor_count = 0
-		for element in self.Element:
-			cat = element.category()
-			if cat == 'joint':  joint_count += 1
-			elif cat == 'rigid body': rigid_body_count += 1
-			elif cat == 'air properties': air_properties = True
-			elif cat == 'aerodynamic element': aerodynamic_element_count += 1
-			elif cat == 'gravity': gravity = True
-			elif cat == 'rotor': rotor_count += 1
-
 		if structural_node_count:
 			text.write('\tstructural nodes: '+str(structural_node_count)+';\n')
+		if electric_node_count:
+			text.write('\telectric nodes: '+str(electric_node_count)+';\n')
+		if abstract_node_count:
+			text.write('\tabstract nodes: '+str(abstract_node_count)+';\n')
+		if hydraulic_node_count:
+			text.write('\thydraulic nodes: '+str(hydraulic_node_count)+';\n')
 		if joint_count:
 			text.write('\tjoints: '+str(joint_count)+';\n')
+		if force_count:
+			text.write('\tforces: '+str(force_count)+';\n')
+		if genel_count:
+			text.write('\tgenels: '+str(genel_count)+';\n')
+		if beam_count:
+			text.write('\tbeams: '+str(beam_count)+';\n')
 		if rigid_body_count:
 			text.write('\trigid bodies: '+str(rigid_body_count)+';\n')
 		if air_properties:
@@ -348,6 +416,11 @@ class MBDyn(Common):
 			text.write('\taerodynamic elements: '+str(aerodynamic_element_count)+';\n')
 		if rotor_count:
 			text.write('\trotors: '+str(rotor_count)+';\n')
+		if file_driver_count:
+			text.write('\tfile drivers: '+str(file_driver_count)+';\n')
+		if streaming_file_driver_count:
+			text.write('\toutput elements: 1;\n'+
+			'\tdefault output: none;\n')
 
 		text.write('end: control data;\n')
 
@@ -365,11 +438,15 @@ class MBDyn(Common):
 				localV = Mathutils.Vector(0., 0., 0.)
 			else:
 				localV = Mathutils.Vector([frame.links[0]._args[i] for i in range(1,4)])
+				if frame.links[0]._args[4]:
+					localV *= frame.links[0]._args[5]
 			globalV = rot*localV
 			if frame.links[1]._args[0]:
 				localO = Mathutils.Vector(0., 0., 0.)
 			else:
 				localO = Mathutils.Vector([frame.links[1]._args[i] for i in range(1,4)])
+				if frame.links[1]._args[4]:
+					localO *= frame.links[1]._args[5]
 			globalO = rot*localO
 
 			text.write('reference: '+label+',\n'+
@@ -385,27 +462,12 @@ class MBDyn(Common):
 			'\treference, '+parent_label+', '+
 			str(globalO.x)+', '+str(globalO.y)+', '+str(globalO.z)+';\n')
 
-		if self.Drive:
-			text.write('\n')
-		for i, drive in enumerate(self.Drive):
-			text.write('drive caller: '+str(i)+',\n\t'+drive.string()+';\n')
-
-#		if self.Constitutive:
-#			text.write('\n')
-#		for i, const in enumerate(self.Constitutive):
-#			text.write('constitutive law: '+str(i)+',\n\t'+const.string()+';\n')
-
-		if self.Function:
-			text.write('\n')
-		for function in self.Function:
-			function.write(text)
-
 		text.write('\nbegin: nodes;\n')
 
 		for i, node in enumerate(self.Node):
-			if node in structural_dynamic_nodes:
+			if node in self.structural_dynamic_nodes:
 				text.write('\tstructural: '+str(i)+', dynamic,\n')
-			elif node in structural_static_nodes:
+			elif node in self.structural_static_nodes:
 				text.write('\tstructural: '+str(i)+', static,\n')
 			else:
 				print 'Program Error: Node '+node.name+' not in any node category'
@@ -426,13 +488,56 @@ class MBDyn(Common):
 				'\t\treference, '+frame_label+', null;\n'
 				)
 
-		text.write('end: nodes;\n\n')
-		text.write('begin: elements;\n')
+		for i, ns_node in enumerate(self.NS_Node):
+			if ns_node.type == 'Electric':
+				text.write('\telectric: '+str(i)+', value, '+str(ns_node._args[0]))
+				if ns_node._args[1]: text.write(', derivative, '+str(ns_node._args[2]))
+				text.write(';\n')
+			if ns_node.type == 'Abstract':
+				text.write('\tabstract: '+str(i)+', value, '+str(ns_node._args[0]))
+				if ns_node._args[1]: text.write(', differential, '+str(ns_node._args[2]))
+				text.write(';\n')
+			if ns_node.type == 'Hydraulic':
+				text.write('\thydraulic: '+str(i)+', value, '+str(ns_node._args[0])+';\n')
 
+		text.write('end: nodes;\n')
+
+		if file_driver_count:
+			text.write('\nbegin: drivers;\n')
+			for driver in self.Driver:
+				if driver.users:
+					driver.write(text)
+			text.write('end: drivers;\n')
+		if self.Function:
+			text.write('\n')
+		for function in self.Function:
+			function.write(text)
+
+		text.write('\nbegin: elements;\n')
+		max_users = 0
 		for element in self.Element:
-			element.write(text)
-
+			max_users = max(max_users, element.users)
+		for i in range(max_users+1):
+			for element in self.Element:
+				if element.users == max_users - i:
+					element.write(text)
+		if streaming_file_driver_count:
+			text.write(
+			'\tstream motion output: '+str(len(self.Element))+',\n'+
+			'\t\tstream name, "MAILBX",\n'+
+			'\t\tcreate, no,\n'+
+			'\t\t\tport, '+str(self._port+len(self.Driver))+',\n'
+			'\t\t\thost, "'+self._hostname+'",\n'+
+			'\t\tnon blocking,\n'+
+			'\t\toutput every, 1,\n'+
+			'\t\toutput flags, position, orientation matrix,\n')
+			string = ''
+			for i in range(len(self.Node)):
+				string += str(i)+','
+			text.write('\t\t'+string[:-1]+';\n')
 		text.write('end: elements;\n')
+		if streaming_file_driver_count:
+			return 1
 
 	def duplicate(self):
 		obs = Object.GetSelected()
@@ -479,7 +584,6 @@ class MBDyn(Common):
 					new_frame.objects[i] = new_obs[obs.index(ob)]
 		Window.Redraw()
 					
-
 class Menu(Common):
 
 	def __init__(self, database, classes=MBDyn.entity_classes+['Frame'], clas_types=[],
@@ -498,8 +602,8 @@ class Menu(Common):
 		scn = Scene.GetCurrent()
 		for ob in scn.objects:
 			if ob.name in ['Edit', 'Make']:
-				ret = Draw.PupName('Warning: Click here to rename object '+ob.name+' to be __'+ob.name)
-				if ret:
+				ret = Draw.PupMenu('Warning: Click here to rename object '+ob.name+' to be __'+ob.name)
+				if not ret:
 					return
 				ob.name = '__'+ob.name
 
@@ -634,7 +738,25 @@ class Menu(Common):
 					if entity.name == self.events[sel]:
 						hold = entity.modify(linking)
 						return hold
-				
+
+		if 'Object' in self.classes and sel < self._groups['Object']:
+			for ob in scn.objects:
+				if ob.name == self.events[sel]:
+					return ob
+
+		if 'All Elements' in self.classes and sel < self._groups['All Elements']:
+			for e in self.database.Element:
+				if e.name == self.events[sel]:
+					return e
+
+		for clas in [clas for clas in self.classes if clas not in ['Matrix', 'Frame']]:
+			if self._groups.has_key('New '+clas) and sel < self._groups['New '+clas]:
+				return eval(clas+'(self.events[sel], self.database, linking)')
+			elif self._groups.has_key(clas) and sel < self._groups[clas]:
+				for entity in eval('self.database.'+clas):
+					if entity.name == self.events[sel]:
+						return entity.modify(linking, self.head)
+
 		if 'Matrix' in self.classes and sel < self._groups['Matrix']:
 			for typ in Matrix.types:
 				if sel < self._groups[typ]:
@@ -660,24 +782,6 @@ class Menu(Common):
 					if frame.objects[0].name == self.events[sel]:
 						self._selected = [frame.objects[0]]
 						return frame.modify(self._selected)
-
-		if 'Object' in self.classes and sel < self._groups['Object']:
-			for ob in scn.objects:
-				if ob.name == self.events[sel]:
-					return ob
-
-		if 'All Elements' in self.classes and sel < self._groups['All Elements']:
-			for e in self.database.Element:
-				if e.name == self.events[sel]:
-					return e
-
-		for clas in [clas for clas in self.classes if clas not in ['Matrix']]:
-			if self._groups.has_key('New '+clas) and sel < self._groups['New '+clas]:
-				return eval(clas+'(self.events[sel], self.database, linking)')
-			elif self._groups.has_key(clas) and sel < self._groups[clas]:
-				for entity in eval('self.database.'+clas):
-					if entity.name == self.events[sel]:
-						return entity.modify(linking, self.head)
 
 class Frame(Common):
 
@@ -753,9 +857,6 @@ class Frame(Common):
 				me = mesh
 		if not exists:
 			me = bpy.data.meshes.new('_'+obj.name)
-
-		coords = []
-		scale = 1.
 		me.verts = None
 		me.verts.extend([(1.,0.,0.),(0.,2.,0.),(-1.,0.,0.),(0.,-2.,0.),(0.,0.,3.)]) 
 		me.faces.extend([(3,2,1,0),(0,1,4),(1,2,4),(2,3,4),(3,0,4)])
@@ -774,33 +875,117 @@ class Frame(Common):
 		if editmode: Window.EditMode(1)  # optional, just being nice
 		Window.Redraw()
 
+class NS_Node(Common):
+
+	types = [
+	'Electric',
+	'Abstract',
+	'Hydraulic',
+	'Parameter''']
+
+	def __init__(self, nodeType, database, linking=False):
+		self.type = nodeType
+		self.name = nodeType
+		self.database = database
+		self.users = 0
+		self._args = [0.]*10
+		self._series = []
+		self.links = []
+		if self.type == 'Abstract':
+			self._args[1] = 0
+		self.name_check(self.database.NS_Node)
+		self.modify(linking)
+
+	def modify(self, linking, head=None):
+		if not head:
+			head = self
+		args = [Draw.Create(self._args[i]) for i in range(len(self._args))]
+		delete = Draw.Create(0)
+		single = Draw.Create(0)
+		nval = Draw.Create(self.name)
+		if self.type == 'Electric':
+			string = [
+			('Name: ', nval, 0, 30),
+			('Initial value:',		args[0], -1.e6, 1.e6),
+			('Differential IV:',	args[1], -1.e6, 1.e6, 'Differential initial value')]
+			if self in self.database.NS_Node:
+				self.permit_deletion(linking, string, delete, single)
+			if not Draw.PupBlock(self.type, string): return
+			self._args = [arg.val for arg in args[:2]]
+		elif self.type == 'Abstract':
+			string = [
+			('Name: ', nval, 0, 30),
+			('Initial value:',	args[0], -1.e6, 1.e6),
+			('Differential',		args[1], 'Diffferential (or Algebraic)'),
+			('Derivative IV:',	args[2], -1.e6, 1.e6, 'Derivative initial value')]
+			if self in self.database.NS_Node:
+				self.permit_deletion(linking, string, delete, single)
+			if not Draw.PupBlock(self.type, string): return
+			self._args = [arg.val for arg in args[:3]]
+		elif self.type == 'Hydraulic':
+			string = [
+			('Name: ', nval, 0, 30),
+			('Initial value:',	args[0], -1.e6, 1.e6)]
+			if self in self.database.NS_Node:
+				self.permit_deletion(linking, string, delete, single)
+			if not Draw.PupBlock(self.type, string): return
+			self._args = [arg.val for arg in args[:1]]
+#		elif self.type == 'Parameter':
+		else:
+			Draw.PupMenu('Error: '+self.type+' is not defined in this program.')
+			return
+		return self.finalize(nval, delete, single, self.database.NS_Node)
+
 class Element(Common):
 
 	types = [
-	'Rotor',
-	'Aerodynamic body',
+	'Aerodynamic',
+	'Beam',
 	'Body',
+	'Force',
+	'GENEL',
 	'Joint',
-	'Gravity',
+	'Rotor',
 	'Air properties',
+	'Gravity',
 	'Driven']
+#	'Output']
+
+	Aerodynamic = [
+	'Aerodynamic body',
+	'Aerodynamic beam2',
+	'Aerodynamic beam3']
+
+	Beam = [
+	'Beam segment',
+	'3-node beam']
+
+	Force = [
+	'Abstract force',
+	'Structural force',
+	'Structural internal force',
+	'Structural couple',
+	'Structural internal couple']
+
+	GENEL = [
+	'Swashplate']
 
 	Joint = [
 	'Axial rotation',
 	'Clamp',
 	'Distance',
 	'Deformable hinge',
+	'In line',
+	'In plane',
 	'Revolute hinge',
 	'Rod',
-	'Spherical hinge']
-
-	aerodynamic = [
-	'Aerodynamic body']
+	'Spherical hinge',
+	'Total joint']
 
 	rigid_body = [
 	'Body']
 
-	structural_static = aerodynamic + ['Joint', 'Rotor']
+	structural_static = ['Aerodynamic', 'Joint', 'Rotor', 'Beam', 'Force']
 
 	structural_dynamic = rigid_body
 
@@ -811,16 +996,39 @@ class Element(Common):
 			return 'rigid body'
 		elif self.type == 'Air properties':
 			return 'air properties'
-		elif self.type in Element.aerodynamic:
+		elif self.type == 'Aerodynamic':
 			return 'aerodynamic element'
+		elif self.type == 'Beam':
+			if self.subtype == 'Beam segment':
+				for element in self.database.Element:
+					if (element.type == 'Beam' and element.subtype == '3-node beam' and
+						self in element.links):
+							return ''
+			return 'beam'
 		elif self.type == 'Gravity':
 			return 'gravity'
 		elif self.type == 'Rotor':
 			return 'rotor'
+		elif self.type == 'Force':
+			return 'force'
+		elif self.type == 'GENEL':
+			return 'genel'
 
 	def __init__(self, elemType, database, linking=False):
 		if elemType in Element.Joint:
 			self.type = 'Joint'
+			self.subtype = elemType
+		elif elemType in Element.Force:
+			self.type = 'Force'
+			self.subtype = elemType
+		elif elemType in Element.GENEL:
+			self.type = 'GENEL'
+			self.subtype = elemType
+		elif elemType in Element.Beam:
+			self.type = 'Beam'
+			self.subtype = elemType
+		elif elemType in Element.Aerodynamic:
+			self.type = 'Aerodynamic'
 			self.subtype = elemType
 		else:
 			self.type = elemType
@@ -833,14 +1041,75 @@ class Element(Common):
 			self._args = [1]*2 + [1, 0, 0, 0, 0] + [1.]*2 + [0]*3 + [0.]*3 + [0]*2 + [1] + [1.]*4
 			self.objects = [None]*3
 			self.links = [None]
-		elif self.type == 'Aerodynamic body':
-			self._args = [1, 0, 0, 1., 1, 1, 1, 1, 1]
-			self.objects = [None]
-			self.links = [None]*5
+		elif self.type == 'Aerodynamic':
+			if self.subtype == 'Aerodynamic body':
+				self._args = [1, 0, 0, 1., 1, 1, 1, 1, 1]
+				self.objects = [None]
+				self.links = [None]*5
+			elif self.subtype in ['Aerodynamic beam2', 'Aerodynamic beam3']:
+				beam_subtype = 'Beam segment'
+				self.objects = [None]*2
+				if self.subtype == 'Aerodynamic beam3':
+					beam_subtype = '3-node beam'
+					self.objects = [None]*3
+				self._args = [0, 0, 1, 1, 1, 1, 1]
+				self.links = [None]*6
+				self.persistantPupMenu('Select '+beam_subtype+':')
+				candidates = []
+				candidate_dict = {}
+				for i, element in enumerate(self.database.Element):
+					if (element.type == 'Beam' and element.subtype == beam_subtype and 
+						element.objects[0] == Object.GetSelected()[0] and not element.users):
+						candidates += [(element.name, i)]
+						candidate_dict[i] = element
+				if candidates:
+					result = Draw.PupTreeMenu([(beam_subtype+':', candidates)])
+					if result != -1:
+						self.links[0] = candidate_dict[result]
+					else:
+						return
+				else:
+					Draw.PupMenu('Error:  No unused '+beam_subtype+'(s) assigned to active object.')
+					return
+				scn = Scene.GetCurrent()
+				scn.objects.selected = []
 		elif self.type == 'Body':
 			self._args = [1, 1., 1]
 			self.objects = [None]
 			self.links = [None]
+		elif self.type == 'Beam':
+			if self.subtype == 'Beam segment':
+				self._args = [1, 1, 1]
+				self.objects = [None]*2
+				self.links = [None]
+			if self.subtype == '3-node beam':
+				self._args = [1, 1]
+				self.objects = [None]*3
+				self.links = [None]*2
+		elif self.type == 'Force':
+			if self.subtype == 'Abstract force':
+				self._args = [1, 1]
+				self.links = [None]*2
+			if self.subtype == 'Structural force':
+				self._args = [1, 1, 1]
+				self.objects = [None]
+				self.links = [None]
+			if self.subtype == 'Structural internal force':
+				self._args = [1, 1, 1, 1]
+				self.objects = [None]*2
+				self.links = [None]
+			if self.subtype == 'Structural couple':
+				self._args = [1, 1, 1]
+				self.objects = [None]
+				self.links = [None]
+			if self.subtype == 'Structural internal couple':
+				self._args = [1, 1, 1, 1]
+				self.objects = [None]*2
+				self.links = [None]
+		elif self.type == 'GENEL':
+			if self.subtype == 'Swashplate':
+				self._args = [1, 0, 0., 0.]*3 + [1]*3 + [0] + [0.]*3
+				self.links = [None]*6
 		elif self.type == 'Joint':
 			if self.subtype == 'Axial rotation':
 				self._args = [1, 1, 1]
@@ -857,6 +1126,12 @@ class Element(Common):
 				self._args = [1, 1, 1, 0]
 				self.objects = [None]*2
 				self.links = [None]
+			elif self.subtype == 'In line':
+				self._args = [1, 1]
+				self.objects = [None]*2
+			elif self.subtype == 'In plane':
+				self._args = [1, 1]
+				self.objects = [None]*2
 			elif self.subtype == 'Revolute hinge':
 				self._args = [1, 1, 0, 0., 0, 0., 0, 0., 0]
 				self.objects = [None]*2
@@ -868,10 +1143,22 @@ class Element(Common):
 			elif self.subtype == 'Spherical hinge':
 				self._args = [1, 1]
 				self.objects = [None]*2
+			elif self.subtype == 'Total joint':
+				self._args = [1]*15
+				self.objects = [None]*2
+				self.links = [None]*6
 		elif self.type == 'Gravity':
+			for element in self.database.Element:
+				if element.type == 'Gravity':
+					Draw.PupMenu("Error: Gravity element named '"+element.name+"' is already defined.")
+					return
 			self._args = [1, 1]
 			self.links = [None]*2
 		elif self.type == 'Air properties':
+			for element in self.database.Element:
+				if element.type == 'Air properties':
+					Draw.PupMenu("Error: Air properties element named '"+element.name+"' is already defined.")
+					return
 			self._args = [1, 0, 0., 0., 1, 1, 0, 0, 0, 0., 0]
 			self.links = [None]*5
 		elif self.type == 'Driven':
@@ -880,7 +1167,6 @@ class Element(Common):
 		elif self.type == 'Rigid':
 			self._args = [1, 1]
 			self.objects = [None]*2
-
 		sel = Object.GetSelected()
 		if sel and self.objects:
 			if len(sel) == 2 and len(self.objects) >= 2:
@@ -893,7 +1179,6 @@ class Element(Common):
 	def modify(self, linking, head=None):
 		if not head:
 			head = self
-		sel = Object.GetSelected()
 		args = [Draw.Create(self._args[i]) for i in range(len(self._args))]
 		delete = Draw.Create(0)
 		single = Draw.Create(0)
@@ -951,49 +1236,99 @@ class Element(Common):
 					self.select(0, 'Drive')
 			for i in [0, 1, 10, 16]:
 				self._args[i] = 0
-		elif self.type == 'Aerodynamic body':
-			obj_name = ['select node']
-			link_name = ['select element'] + ['select shape']*4
-			if self.objects[0]:
-				obj_name[0] = self.objects[0].name
-				args[0] = Draw.Create(0)
-			if self.links[0]:
-				link_name[0] = self.links[0].name
-				args[2] = Draw.Create(0)
-			for i, shape in enumerate(self.links[1:5]):
-				if shape:
-					link_name[i+1] = shape.name
-					args[i+4] = Draw.Create(0)
-			string = [
-			('Name: ', nval, 0, 30),
-			(obj_name[0],		 	args[0], 'Change aerodynamic body node'),
-			('Rotor',				args[1], 'Enable a rotor element'),
-			(link_name[0],		 	args[2], 'Change rotor element'),
-			('Surface span:',		args[3], 0., 1.e2),
-			(link_name[1],		 	args[4], 'Change chord shape'),
-			(link_name[2],		 	args[5], 'Change aerodynamic center shape'),
-			(link_name[3],		 	args[6], 'Change boundary condition points shape'),
-			(link_name[4],		 	args[7], 'Change surface twist shape'),
-			('Integration points:',	args[8], 1, 1e2)]
-			if self in self.database.Element:
-				self.permit_deletion(linking, string, delete, single)
-			if not Draw.PupBlock(self.type, string): return
-			self._args = [arg.val for arg in args]
-			if not delete.val:
-				if self._args[0]:
-					self.persistantPupMenu('Select aerodynamic body node:')
-					self.select(0, 'Object')
-				if self._args[2] or (self._args[1] and not self.links[0]):
-					self.persistantPupMenu('Select rotor element:')
-					self.select(0, 'Element', ['Rotor'], head=head)
-				title = ['Select chord shape:', 'Select aerodynamic center shape:', 
-					'Select boundary condition points shape', 'Select surface twist shape']
-				for i in range(4):
-					if self._args[i+4]:
-						self.persistantPupMenu(title[i])
-						self.select(i+1, 'Shape')
-			for i in [0, 2, 4, 5, 6, 7]:
-				self._args[i] = 0
+		elif self.type == 'Aerodynamic':
+			if self.subtype == 'Aerodynamic body':
+				obj_name = ['select node']
+				link_name = ['select element'] + ['select shape']*4
+				if self.objects[0]:
+					obj_name[0] = self.objects[0].name
+					args[0] = Draw.Create(0)
+				if self.links[0]:
+					link_name[0] = self.links[0].name
+					args[2] = Draw.Create(0)
+				for i, shape in enumerate(self.links[1:5]):
+					if shape:
+						link_name[i+1] = shape.name
+						args[i+4] = Draw.Create(0)
+				string = [
+				('Name: ', nval, 0, 30),
+				(obj_name[0],		 	args[0], 'Change aerodynamic body node'),
+				('Rotor',				args[1], 'Enable a rotor element'),
+				(link_name[0],		 	args[2], 'Change rotor element'),
+				('Surface span:',		args[3], 0., 1.e2),
+				(link_name[1],		 	args[4], 'Change chord shape'),
+				(link_name[2],		 	args[5], 'Change aerodynamic center shape'),
+				(link_name[3],		 	args[6], 'Change boundary condition points shape'),
+				(link_name[4],		 	args[7], 'Change surface twist shape'),
+				('Integration points:',	args[8], 1, 1e2)]
+				if self in self.database.Element:
+					self.permit_deletion(linking, string, delete, single)
+				if not Draw.PupBlock(self.type, string): return
+				self._args = [arg.val for arg in args]
+				if not delete.val:
+					if self._args[0]:
+						self.persistantPupMenu('Select aerodynamic body node:')
+						self.select(0, 'Object')
+					if self._args[2] or (self._args[1] and not self.links[0]):
+						self.persistantPupMenu('Select rotor element:')
+						self.select(0, 'Element', ['Rotor'], head=head)
+					title = ['Select chord shape:', 'Select aerodynamic center shape:', 
+						'Select boundary condition points shape', 'Select surface twist shape']
+					for i in range(4):
+						if self._args[i+4]:
+							self.persistantPupMenu(title[i])
+							self.select(i+1, 'Shape')
+				for i in [0, 2, 4, 5, 6, 7]:
+					self._args[i] = 0
+			elif self.subtype in ['Aerodynamic beam2', 'Aerodynamic beam3']:
+				link_name = ['select element']*2 + ['select shape']*4
+				for i, link in enumerate(self.links[1:6]):
+					if link:
+						link_name[i+1] = link.name
+						args[i+1] = Draw.Create(0)
+				string = [
+				('Name: ', nval, 0, 30),
+				('beam='+self.links[0].name),
+				('Rotor',				args[0], 'Enable a rotor element'),
+				(link_name[1],		 	args[1], 'Change rotor element'),
+				(link_name[2],		 	args[2], 'Change chord shape'),
+				(link_name[3],		 	args[3], 'Change aerodynamic center shape'),
+				(link_name[4],		 	args[4], 'Change boundary condition points shape'),
+				(link_name[5],		 	args[5], 'Change surface twist shape'),
+				('Integration points:',	args[6], 1, 1e2)]
+				if self in self.database.Element:
+					self.permit_deletion(linking, string, delete, single)
+				if not Draw.PupBlock(self.type, string): return
+				self._args = [arg.val for arg in args]
+				if not delete.val:
+					scn = Scene.GetCurrent()
+					rotmat = Mathutils.RotationMatrix(90., 4, 'y')
+					for i, ob in enumerate(self.objects):
+						if not ob:
+							scn.objects.selected = [self.links[0].objects[i]]
+							Object.Duplicate()
+							self.objects[i] = scn.objects.selected[0]
+							scn.objects.selected = [self.objects[i], self.links[0].objects[i]]
+							for element in self.database.Element:
+								if element.type == 'Rigid' and element.objects[0] == self.links[0].objects[i]:
+									scn.objects.selected = [self.objects[i], element.objects[1]]
+							self.objects[i].setMatrix(rotmat * self.objects[i].getMatrix("localspace"))
+							self.objects[i].setLocation(self.objects[i].getLocation())
+							self.objects[i].sel = 1
+							Element('Rigid', self.database)
+					if self._args[1] or (self._args[0] and not self.links[1]):
+						self.persistantPupMenu('Select rotor element:')
+						self.select(1, 'Element', ['Rotor'], head=head)
+					title = ['Select chord shape:', 'Select aerodynamic center shape:', 
+						'Select boundary condition points shape:', 'Select surface twist shape:']
+					for i in range(4):
+						if self._args[i+2]:
+							self.persistantPupMenu(title[i])
+							self.select(i+2, 'Shape')
+				for i in [1, 2, 3, 4, 5]:
+					self._args[i] = 0
+				if self not in self.database.Element:
+					self.links[0].users += 1
 		elif self.type == 'Body':
 			obj_name = ['select node']
 			link_name = ['select matrix']
@@ -1021,6 +1356,286 @@ class Element(Common):
 					self.select(0, 'Matrix', ['3x3'])
 			for i in [0, 2]:
 				self._args[i] = 0
+		elif self.type == 'Beam':
+			if self.subtype == 'Beam segment':
+				obj_name = ['select node']*2
+				link_name = ['select constitutive']
+				for i, node in enumerate(self.objects):
+					if node:
+						obj_name[i] = node.name
+						args[i] = Draw.Create(0)
+				if self.links[0]:
+					link_name[0] = self.links[0].name
+					args[2] = Draw.Create(0)
+				string = [
+				('Name: ', nval, 0, 30),
+				(obj_name[0],	args[0], 'Change first end'),
+				(obj_name[1],	args[1], 'Change second end'),
+				(link_name[0],	args[2], 'Change constitutive law')]
+				if self in self.database.Element:
+					self.permit_deletion(linking, string, delete, single)
+				if not Draw.PupBlock(self.type+': '+self.subtype, string): return
+				self._args = [arg.val for arg in args]
+				if not delete.val:
+					if self._args[0] or not self.objects[0]:
+						self.persistantPupMenu('Select first end:')
+						self.select(0, 'Object')
+					if self._args[1] or not self.objects[1]:
+						self.persistantPupMenu('Select second end:')
+						self.select(1, 'Object', head=self.objects[0])
+					if self._args[2] or not self.links[0]:
+						self.persistantPupMenu('Select constitutive law:')
+						self.select(0, 'Constitutive')
+				for i in [0, 1, 2]:
+					self._args[i] = 0
+			if self.subtype == '3-node beam':
+				link_name = ['select 1st segment', 'select 2nd segment']
+				for i, link in enumerate(self.links):
+					if link:
+						link_name[i] = link.name
+						args[i] = Draw.Create(0)
+				string = [
+				('Name: ', nval, 0, 30),
+				(link_name[0],	args[0], 'Change 1st segment'),
+				(link_name[1],	args[1], 'Change 2nd segment')]
+				if self in self.database.Element:
+					self.permit_deletion(linking, string, delete, single)
+				if not Draw.PupBlock(self.type+': '+self.subtype, string): return
+				self._args = [arg.val for arg in args]
+				if not delete.val:
+					if self._args[0] or not self.links[0]:
+						self.persistantPupMenu('Select 1st segment:')
+						if self.links[0]:
+							self.links[0].users -= 1
+							self.links[0] = None
+						candidates = []
+						candidate_dict = {}
+						for i, element in enumerate(self.database.Element):
+							if (element.type == 'Beam' and element.subtype == 'Beam segment' and 
+								element.objects[0] == Object.GetSelected()[0] and not element.users):
+								candidates += [(element.name, i)]
+								candidate_dict[i] = element
+						if candidates:
+							result = Draw.PupTreeMenu([('1st beam segment:', candidates)])
+							if result != -1:
+								self.links[0] = candidate_dict[result]
+								self.objects[1] = self.links[0].objects[1]
+							else:
+								return
+						else:
+							Draw.PupMenu('Error:  No Beam Segment(s) assigned to active object.')
+							return
+					if self._args[1] or not self.links[1] or self._args[0]:
+						self.persistantPupMenu('Select 2nd segment:')
+						if self.links[1]:
+							self.links[1].users -= 1
+							self.links[1] = None
+						candidates = []
+						candidate_dict = {}
+						for i, element in enumerate(self.database.Element):
+							if (element.type == 'Beam' and element.subtype == 'Beam segment' and 
+								element.objects[0] == self.objects[1] and not element.users):
+								candidates += [(element.name, i)]
+								candidate_dict[i] = element
+						if candidates:
+							result = Draw.PupTreeMenu([('2nd beam segment:', candidates)])
+							if result != -1:
+								self.links[1] = candidate_dict[result]
+								self.objects[2] = self.links[1].objects[1]
+								for link in self.links:
+									link.users += 1
+							else:
+								return
+						else:
+							Draw.PupMenu('Error:  No 2nd Beam Segment(s) contiguous with 1st Beam.')
+							return
+				for i in [0, 1]:
+					self._args[i] = 0
+		elif self.type == 'Force':
+			if self.subtype == 'Abstract force':
+				link_name = ['select abstract node', 'select drive']
+				for i in range(2):
+					if self.links[i]:
+						link_name[i] = self.links[i].name
+						args[i] = Draw.Create(0)
+				string = [
+				('Name: ', nval, 0, 30),
+				(link_name[0],	args[0], 'Change abstract node'),
+				(link_name[1],	args[1], 'Change force drive')]
+				if self in self.database.Element:
+					self.permit_deletion(linking, string, delete, single)
+				if not Draw.PupBlock(self.type+': '+self.subtype, string): return
+				self._args = [arg.val for arg in args]
+				if not delete.val:
+					if self._args[0] or not self.links[0]:
+						self.persistantPupMenu('Select abstract node:')
+						self.select(0, 'NS_Node', clas_types=['Abstract'])
+					if self._args[1] or not self.links[1]:
+						self.persistantPupMenu('Select force drive')
+						self.select(1, 'Drive')
+				for i in [0, 1]:
+					self._args[i] = 0
+			elif self.subtype == 'Structural force':
+				obj_name = ['select node']
+				link_name = ['select drive']
+				if self.objects[0]:
+					obj_name[0] = self.objects[0].name
+					args[0] = Draw.Create(0)
+				if self.links[0]:
+					link_name[0] = self.links[0].name
+					args[1] = Draw.Create(0)
+				string = [
+				('Name: ', nval, 0, 30),
+				(obj_name[0],	args[0], 'Change forced node'),
+				(link_name[0],	args[1], 'Change force drive'),
+				('Follower',	args[2], 'Force follows its node, else fixed in global frame')]
+				if self in self.database.Element:
+					self.permit_deletion(linking, string, delete, single)
+				if not Draw.PupBlock(self.type+': '+self.subtype, string): return
+				self._args = [arg.val for arg in args]
+				if not delete.val:
+					if self._args[0] or not self.objects[0]:
+						self.persistantPupMenu('Select forced node:')
+						self.select(0, 'Object')
+					if self._args[1] or not self.links[0]:
+						self.persistantPupMenu('Select force drive')
+						self.select(0, 'Drive')
+				for i in [0, 1]:
+					self._args[i] = 0
+			elif self.subtype == 'Structural internal force':
+				obj_name = ['select node']*2
+				link_name = ['select drive']
+				for i, node in enumerate(self.objects):
+					if node:
+						obj_name[i] = node.name
+						args[i] = Draw.Create(0)
+				if self.links[0]:
+					link_name[0] = self.links[0].name
+					args[2] = Draw.Create(0)
+				string = [
+				('Name: ', nval, 0, 30),
+				(obj_name[0],	args[0], 'Change force producing node'),
+				(obj_name[1],	args[1], 'Change attached node'),
+				(link_name[0],	args[2], 'Change force producing drive'),
+				('Follower',	args[3], 'Force follows its node, else fixed in global frame')]
+				if self in self.database.Element:
+					self.permit_deletion(linking, string, delete, single)
+				if not Draw.PupBlock(self.type+': '+self.subtype, string): return
+				self._args = [arg.val for arg in args]
+				if not delete.val:
+					if self._args[0] or not self.objects[0]:
+						self.persistantPupMenu('Select force producing node:')
+						self.select(0, 'Object')
+					if self._args[1] or not self.objects[1]:
+						self.persistantPupMenu('Select attached node:')
+						self.select(1, 'Object', head=self.objects[0])
+					if self._args[2] or not self.links[0]:
+						self.persistantPupMenu('Select force producing drive')
+						self.select(0, 'Drive')
+				for i in [0, 1, 2]:
+					self._args[i] = 0
+			elif self.subtype == 'Structural couple':
+				obj_name = ['select node']
+				link_name = ['select drive']
+				if self.objects[0]:
+					obj_name[0] = self.objects[0].name
+					args[0] = Draw.Create(0)
+				if self.links[0]:
+					link_name[0] = self.links[0].name
+					args[1] = Draw.Create(0)
+				string = [
+				('Name: ', nval, 0, 30),
+				(obj_name[0],	args[0], 'Change forced node'),
+				(link_name[0],	args[1], 'Change force drive'),
+				('Follower',	args[2], 'Force follows its node, else fixed in global frame')]
+				if self in self.database.Element:
+					self.permit_deletion(linking, string, delete, single)
+				if not Draw.PupBlock(self.type+': '+self.subtype, string): return
+				self._args = [arg.val for arg in args]
+				if not delete.val:
+					if self._args[0] or not self.objects[0]:
+						self.persistantPupMenu('Select forced node:')
+						self.select(0, 'Object')
+					if self._args[1] or not self.links[0]:
+						self.persistantPupMenu('Select force drive')
+						self.select(0, 'Drive')
+				for i in [0, 1]:
+					self._args[i] = 0
+			elif self.subtype == 'Structural internal couple':
+				obj_name = ['select node']*2
+				link_name = ['select drive']
+				for i, node in enumerate(self.objects):
+					if node:
+						obj_name[i] = node.name
+						args[i] = Draw.Create(0)
+				if self.links[0]:
+					link_name[0] = self.links[0].name
+					args[2] = Draw.Create(0)
+				string = [
+				('Name: ', nval, 0, 30),
+				(obj_name[0],	args[0], 'Change force producing node'),
+				(obj_name[1],	args[1], 'Change attached node'),
+				(link_name[0],	args[2], 'Change force producing drive'),
+				('Follower',	args[3], 'Force follows its node, else fixed in global frame')]
+				if self in self.database.Element:
+					self.permit_deletion(linking, string, delete, single)
+				if not Draw.PupBlock(self.type+': '+self.subtype, string): return
+				self._args = [arg.val for arg in args]
+				if not delete.val:
+					if self._args[0] or not self.objects[0]:
+						self.persistantPupMenu('Select force producing node:')
+						self.select(0, 'Object')
+					if self._args[1] or not self.objects[1]:
+						self.persistantPupMenu('Select attached node:')
+						self.select(1, 'Object', head=self.objects[0])
+					if self._args[2] or not self.links[0]:
+						self.persistantPupMenu('Select force producing drive')
+						self.select(0, 'Drive')
+				for i in [0, 1, 2]:
+					self._args[i] = 0
+		elif self.type == 'GENEL':
+			if self.subtype == 'Swashplate':
+				link_name = ['select abstract node']*6
+				for i, link in enumerate(self.links):
+					if link: link_name[i] = self.links[i].name
+				string = [
+				('Name: ', nval, 0, 30),
+				(link_name[0],		 	args[0], 'Change collective node'),
+				('collective lmts', 	args[1], 'Set collective limits'),
+				('min',					args[2], -1.e2, 1.e2, 'Minimum collective'),
+				('max',					args[3], -1.e2, 1.e2, 'Maximum collective'),
+				(link_name[1],		 	args[4], 'Change fore/aft node'),
+				('fore/aft limits', 	args[5], 'Set fore/aft limits'),
+				('min',					args[6], -1.e2, 1.e2, 'Minimum fore/aft'),
+				('max',					args[7], -1.e2, 1.e2, 'Maximum fore/aft'),
+				(link_name[2],		 	args[8], 'Change lateral node'),
+				('Lateral limits', 		args[9], 'Set lateral limits'),
+				('min',					args[10], -1.e2, 1.e2, 'Minimum lateral'),
+				('max',					args[11], -1.e2, 1.e2, 'Maximum lateral'),
+				(link_name[3],		 	args[12], 'Change actuator 1 abstract node'),
+				(link_name[4],		 	args[13], 'Change actuator 2 abstract node'),
+				(link_name[5],		 	args[14], 'Change actuator 3 abstract node'),
+				('Enable',				args[15], 'Use the following coefs/factors'),
+				('Dynamic',				args[16], -1.e2, 1.e2, 'Dynamic coefficient'),
+				('Cyclic',				args[17], -1.e2, 1.e2, 'Cyclic factor'),
+				('Collective',			args[18], -1.e2, 1.e2, 'Collective factor')]
+				if self in self.database.Element:
+					self.permit_deletion(linking, string, delete, single)
+				if not Draw.PupBlock(self.type, string): return
+				self._args = [arg.val for arg in args]
+				if not delete.val:
+					pup = ['Select collective node',
+					'Select fore/aft node',
+					'Select lateral node',
+					'Select actuator 1',
+					'Select actuator 2',
+					'Select actuator 3']
+					for i, j in enumerate([0, 4, 8, 12, 13, 14]):
+						if self._args[j] or not self.links[i]:
+							self.persistantPupMenu(pup[i])
+							self.select(i, 'NS_Node', clas_types=['Abstract'])
+				for j in [0, 4, 8, 12, 13, 14]:
+					self._args[j] = 0
 		elif self.type == 'Joint':
 			if self.subtype == 'Axial rotation':
 				obj_name = ['select node']*2
@@ -1044,10 +1659,10 @@ class Element(Common):
 				if not delete.val:
 					if self._args[0] or not self.objects[0]:
 						self.persistantPupMenu('Select hinge node:')
-						self.select(i, 'Object')
+						self.select(0, 'Object')
 					if self._args[1] or not self.objects[1]:
 						self.persistantPupMenu('Select attached node:')
-						self.select(i, 'Object', head=self.objects[0])
+						self.select(1, 'Object', head=self.objects[0])
 					if self._args[2] or not self.links[0]:
 						self.persistantPupMenu('Select angular velocity drive')
 						self.select(0, 'Drive')
@@ -1130,6 +1745,50 @@ class Element(Common):
 						self.persistantPupMenu('Select distance drive')
 						self.select(0, 'Drive')
 				for i in [0, 1, 3]:
+					self._args[i] = 0
+			elif self.subtype == 'In line':
+				obj_name = ['select node']*2
+				for i, node in enumerate(self.objects):
+					if node:
+						obj_name[i] = node.name
+						args[i] = Draw.Create(0)
+				string = [
+				('Name: ', nval, 0, 30),
+				(obj_name[0],		 	args[0], 'Change line node'),
+				(obj_name[1],		 	args[1], 'Change point node')]
+				if self in self.database.Element:
+					self.permit_deletion(linking, string, delete, single)
+				if not Draw.PupBlock(self.type+': '+self.subtype, string): return
+				self._args = [arg.val for arg in args]
+				if not delete.val:
+					title = ['Select line node:', 'Select point node:']
+					for i in range(2):
+						if self._args[i] or self.objects[i] == None:
+							self.persistantPupMenu(title[i])
+							self.select(i, 'Object')
+				for i in [0, 1]:
+					self._args[i] = 0
+			elif self.subtype == 'In plane':
+				obj_name = ['select node']*2
+				for i, node in enumerate(self.objects):
+					if node:
+						obj_name[i] = node.name
+						args[i] = Draw.Create(0)
+				string = [
+				('Name: ', nval, 0, 30),
+				(obj_name[0],		 	args[0], 'Change plane node'),
+				(obj_name[1],		 	args[1], 'Change point node')]
+				if self in self.database.Element:
+					self.permit_deletion(linking, string, delete, single)
+				if not Draw.PupBlock(self.type+': '+self.subtype, string): return
+				self._args = [arg.val for arg in args]
+				if not delete.val:
+					title = ['Select plane node:', 'Select point node:']
+					for i in range(2):
+						if self._args[i] or self.objects[i] == None:
+							self.persistantPupMenu(title[i])
+							self.select(i, 'Object')
+				for i in [0, 1]:
 					self._args[i] = 0
 			elif self.subtype == 'Revolute hinge':
 				obj_name = ['select node']*2
@@ -1217,6 +1876,57 @@ class Element(Common):
 							self.persistantPupMenu(title[i])
 							self.select(i, 'Object')
 				for i in [0, 1]:
+					self._args[i] = 0
+			if self.subtype == 'Total joint':
+				obj_name = ['select node']*2
+				link_name = ['select drive']*6
+				for i, node in enumerate(self.objects):
+					if node:
+						obj_name[i] = node.name
+						args[i] = Draw.Create(0)
+				for i, link in enumerate(self.links):
+					if link:
+						link_name[i] = link.name
+						args[4+2*i] = Draw.Create(0)
+				string = [
+				('Name: ', nval, 0, 30),
+				(obj_name[0],			 	args[0], 'Change total joint node'),
+				(obj_name[1],			 	args[1], 'Change attached node'),
+				('Displace/Rotate',			args[2], 'Displace (or rotate) first'),
+				('Active', 					args[3], 'Displacement-X drive is active'),
+				(link_name[0],			 	args[4], 'Change displacement-X drive'),
+				('Active', 					args[5], 'Displacement-Y drive is active'),
+				(link_name[1],			 	args[6], 'Change displacement-Y drive'),
+				('Active', 					args[7], 'Displacement-Z drive is active'),
+				(link_name[2],			 	args[8], 'Change displacement-Z drive'),
+				('Active', 					args[9], 'Angular displacement-X drive is active'),
+				(link_name[3],			 	args[10], 'Change angular displacement-X drive'),
+				('Active', 					args[11], 'Angular displacement-Y drive is active'),
+				(link_name[4],			 	args[12], 'Change angular displacement-Y drive'),
+				('Active', 					args[13], 'Angular displacement-Z drive is active'),
+				(link_name[5],			 	args[14], 'Change angular displacement-Z drive')]
+				if self in self.database.Element:
+					self.permit_deletion(linking, string, delete, single)
+				if not Draw.PupBlock(self.type+': '+self.subtype, string): return
+				self._args = [arg.val for arg in args]
+				if not delete.val:
+					if self._args[0] or not self.objects[0]:
+						self.persistantPupMenu('Select total joint node:')
+						self.select(0, 'Object')
+					if self._args[1] or not self.objects[1]:
+						self.persistantPupMenu('Select attached node:')
+						self.select(1, 'Object', head=self.objects[0])
+					select_drive = ['Select displacement-X drive',
+									'Select displacement-Y drive',
+									'Select displacement-Z drive',
+									'Select angular displacement-X drive',
+									'Select angular displacement-Y drive',
+									'Select angular displacement-Z drive']
+					for i in range(6):
+						if self._args[3+2*i] and (self._args[4+2*i]or not self.links[i]):
+							self.persistantPupMenu(select_drive[i])
+							self.select(i, 'Drive')
+				for i in [0, 1, 4, 6, 8, 10, 12, 14]:
 					self._args[i] = 0
 		elif self.type == 'Gravity':
 			link_name = ['select vector', 'select drive']
@@ -1366,27 +2076,39 @@ class Element(Common):
 			if self._args[11] and self._args[6]:
 				text.write(',\n\t\tinitial value, '+str(self._args[12:15]).strip('[]'))
 			if self._args[15] and not self._args[6]:
-				text.write(',\n\t\tdelay, reference, '+str(self.database.Drive.index(self.links[0])))
+				text.write(',\n\t\tdelay, '+self.links[0].string(self))
 			text.write(',\n\t\tmax iterations, '+str(self._args[17])+
 			',\n\t\ttolerance, '+str(self._args[18])+
 			',\n\t\teta, '+str(self._args[19])+
 			',\n\t\tcorrection, '+str(self._args[20:22]).strip('[]')+';\n')
-		elif self.type == 'Aerodynamic body':
-			rot, globalV, iNode = self.rigid_offset(0)
-			localV = rot*globalV
-			rot0 = self.objects[0].getMatrix().toQuat().toMatrix()
-			text.write('\taerodynamic body: '+str(self.database.Element.index(self))+', '+
-			str(iNode))
-			if self._args[1]:
-				text.write(', rotor, '+str(self.database.Element.index(self.links[0])))
-			text.write(',\n\t\t'+str(localV[0])+', '+str(localV[1])+', '+str(localV[2])+
-			',\n\t\tmatr,\n')
-			self.rotationMatrix_write(rot0.transpose()*rot, text, '\t\t\t')
-			text.write(',\n\t\t'+str(self._args[3])+',\n')
-			for shape in self.links[1:4]:
-				text.write(shape.string()+',\n')
-			text.write(self.links[4].string(3.14159/180.)+',\n')
-			text.write('\t\t'+str(self._args[8])+';\n')
+		elif self.type == 'Aerodynamic':
+			if self.subtype == 'Aerodynamic body':
+				rot, globalV, iNode = self.rigid_offset(0)
+				localV = rot*globalV
+				rot0 = self.objects[0].getMatrix().toQuat().toMatrix()
+				text.write('\taerodynamic body: '+str(self.database.Element.index(self))+', '+
+				str(iNode))
+				if self._args[1]:
+					text.write(', rotor, '+str(self.database.Element.index(self.links[0])))
+				text.write(',\n\t\t'+str(localV[0])+', '+str(localV[1])+', '+str(localV[2])+
+				',\n\t\tmatr,\n')
+				self.rotationMatrix_write(rot0.transpose()*rot, text, '\t\t\t')
+				text.write(',\n\t\t'+str(self._args[3])+',\n')
+				for shape in self.links[1:4]:
+					text.write(shape.string()+',\n')
+				text.write(self.links[4].string(3.14159/180.)+',\n')
+				text.write('\t\t'+str(self._args[8])+';\n')
+			elif self.subtype == 'Aerodynamic beam2' or self.subtype == 'Aerodynamic beam3':
+				text.write('\t'+self.subtype+': '+str(self.database.Element.index(self))+', '+
+				str(self.database.Element.index(self.links[0]))+',\n')
+				if self._args[0]:
+					text.write(', rotor, '+str(self.database.Element.index(self.links[1])))
+				for i in range(len(self.links[0].objects)):
+					self.write_aerodynamic_beam(text, i)
+				for shape in self.links[2:5]:
+					text.write(shape.string()+',\n')
+				text.write(self.links[5].string(3.14159/180.)+',\n')
+				text.write('\t\t'+str(self._args[6])+';\n')
 		elif self.type == 'Body':
 			rot, globalV, iNode = self.rigid_offset(0)
 			localV = rot*globalV
@@ -1397,10 +2119,110 @@ class Element(Common):
 			self.links[0].string()+',\n\t\tinertial, matr,\n')
 			self.rotationMatrix_write(rot0.transpose()*rot, text, '\t\t\t')
 			text.write(';\n')
+		elif self.type == 'Beam':
+			rot0, globalV0, iNode0 = self.rigid_offset(0)
+			localV0 = rot0*globalV0
+			localrot0 = rot0*self.objects[0].getMatrix().toQuat().toMatrix().transpose()
+			rot1, globalV1, iNode1 = self.rigid_offset(1)
+			localV1 = rot1*globalV1
+			localrot1 = rot1*self.objects[1].getMatrix().toQuat().toMatrix().transpose()
+			if self.subtype == 'Beam segment':
+				for element in self.database.Element:
+					if (element.type == 'Beam' and element.subtype == '3-node beam' and
+						self in element.links):
+							return
+				text.write('\tbeam2: '+str(self.database.Element.index(self))+',\n')
+				for i in range(len(self.objects)):
+					self.write_beam(text,i)
+				text.write('\t\tfrom nodes, '+self.links[0].string()+';\n')
+			if self.subtype == '3-node beam':
+				text.write('\tbeam3: '+str(self.database.Element.index(self))+',\n')
+				for i in range(len(self.objects)):
+					self.write_beam(text,i)
+				text.write('\t\tfrom nodes, '+self.links[0].links[0].string())
+				text.write(',\n\t\tfrom nodes, '+self.links[1].links[0].string()+';\n')
+		elif self.type == 'Force':
+			if self.subtype == 'Abstract force':
+				text.write('\tforce: '+str(self.database.Element.index(self))+', abstract, '+
+				str(self.database.NS_Node.index(self.links[0]))+', abstract,\n\t\t'+
+				self.links[1].string(self)+';\n')
+			elif self.subtype == 'Structural force':
+				rot0, globalV0, iNode0 = self.rigid_offset(0)
+				rot = self.objects[0].getMatrix().toQuat().toMatrix().transpose()
+				relative_dir = rot*rot0.transpose()*Vector([0., 0., 1.])
+				relative_arm0 = rot*globalV0
+				string = '\tforce: '+str(self.database.Element.index(self))+', '
+				if self._args[2]:
+					string += 'follower,\n'
+				else:
+					string += 'absolute,\n'
+				text.write(string + '\t\t'+str(iNode0)+', '+
+				str(relative_dir[0])+', '+str(relative_dir[1])+', '+str(relative_dir[2])+',\n'+
+				'\t\t'+str(relative_arm0[0])+', '+str(relative_arm0[1])+', '+str(relative_arm0[2])+',\n'+
+				'\t\t'+self.links[0].string(self)+';\n')
+			elif self.subtype == 'Structural internal force':
+				rot0, globalV0, iNode0 = self.rigid_offset(0)
+				rot1, globalV1, iNode1 = self.rigid_offset(1)
+				rot = self.objects[0].getMatrix().toQuat().toMatrix()
+				relative_dir = rot*rot0.transpose()*Vector([0., 0., 1.])
+				relative_arm0 = rot*globalV0
+				relative_arm1 = self.objects[1].getMatrix().toQuat().toMatrix()*globalV1
+				string = '\tforce: '+str(self.database.Element.index(self))+', '
+				if self._args[3]:
+					string += 'follower internal,\n'
+				else:
+					string += 'absolute internal,\n'
+				text.write(string + '\t\t'+str(iNode0)+', '+
+				str(relative_dir[0])+', '+str(relative_dir[1])+', '+str(relative_dir[2])+',\n'+
+				'\t\t'+str(relative_arm0[0])+', '+str(relative_arm0[1])+', '+str(relative_arm0[2])+',\n'+
+				'\t\t'+str(iNode1)+', '+
+				str(relative_arm1[0])+', '+str(relative_arm1[1])+', '+str(relative_arm1[2])+',\n'+
+				'\t\t'+self.links[0].string(self)+';\n')
+			elif self.subtype == 'Structural couple':
+				rot0, globalV0, iNode0 = self.rigid_offset(0)
+				rot = self.objects[0].getMatrix().toQuat().toMatrix()
+				relative_dir = rot*rot0.transpose()*Vector([0., 0., 1.])
+				relative_arm0 = rot*globalV0
+				string = '\tcouple: '+str(self.database.Element.index(self))+', '
+				if self._args[2]:
+					string += 'follower,\n'
+				else:
+					string += 'absolute,\n'
+				text.write(string + '\t\t'+str(iNode0)+', '+
+				str(relative_dir[0])+', '+str(relative_dir[1])+', '+str(relative_dir[2])+',\n'+
+				'\t\t'+self.links[0].string(self)+';\n')
+			elif self.subtype == 'Structural internal couple':
+				rot0, globalV0, iNode0 = self.rigid_offset(0)
+				rot1, globalV1, iNode1 = self.rigid_offset(1)
+				rot = self.objects[0].getMatrix().toQuat().toMatrix()
+				relative_dir = rot*rot0.transpose()*Vector([0., 0., 1.])
+				string = '\tcouple: '+str(self.database.Element.index(self))+', '
+				if self._args[3]:
+					string += 'follower internal,\n'
+				else:
+					string += 'absolute internal,\n'
+				text.write(string + '\t\t'+str(iNode0)+', '+
+				str(relative_dir[0])+', '+str(relative_dir[1])+', '+str(relative_dir[2])+',\n'+
+				'\t\t'+str(iNode1)+', '+
+				'\t\t'+self.links[0].string(self)+';\n')
+		elif self.type == 'GENEL':
+			if self.subtype == 'Swashplate':
+				text.write(
+				'\tgenel: '+str(self.database.Element.index(self))+', swashplate')
+				for i in range(3):
+					text.write(',\n\t\t'+str(self.database.NS_Node.index(self.links[i])))
+					if self._args[4*i+1]:
+						text.write(', limits, '+str(self._args[4*i+2])+', '+str(self._args[4*i+3]))
+				text.write(',\n\t\t'+str(self.database.NS_Node.index(self.links[3]))+
+					', '+str(self.database.NS_Node.index(self.links[4]))+
+					', '+str(self.database.NS_Node.index(self.links[5])))
+				if self._args[15]:
+					text.write(',\n\t\t'+str(self._args[16])+', '+str(self._args[17])+', '+str(self._args[18]))
+				text.write(';\n')
 		elif self.type == 'Joint':
 			if self.subtype == 'Axial rotation':
 				self.write_hinge(text, 'axial rotation')
-				text.write(',\n\t\treference, '+str(self.database.Drive.index(self.links[0]))+';\n')
+				text.write(',\n\t\t'+self.links[0].string(self)+';\n')
 			elif self.subtype == 'Clamp':
 				text.write(
 				'\tjoint: '+str(self.database.Element.index(self))+', clamp,\n'+
@@ -1413,7 +2235,34 @@ class Element(Common):
 				if self._args[2]:
 					text.write(', from nodes;\n')
 				else:
-					text.write(', reference, '+str(self.database.Drive.index(self.links[0]))+';\n')
+					text.write(',\n\t\t'+self.links[0].string(self)+';\n')
+			elif self.subtype == 'In line':
+				rot0, globalV0, iNode0 = self.rigid_offset(0)
+				localV0 = rot0*globalV0
+				rot1, globalV1, iNode1 = self.rigid_offset(1)
+				to_point = rot1*(globalV1 + Vector(self.objects[0].loc) - Vector(self.objects[1].loc))
+				rot = self.objects[0].getMatrix().toQuat().toMatrix().transpose()
+				text.write(
+				'\tjoint: '+str(self.database.Element.index(self))+', inline,\n'+
+				'\t\t'+str(iNode0))
+				text.write(', '+str(localV0[0])+', '+str(localV0[1])+', '+str(localV0[2])+', matr,\n')
+				self.rotationMatrix_write(rot0*rot, text, '\t\t\t')
+				text.write(',\n\t\t'+str(iNode1))
+				text.write(', offset, '+str(to_point[0])+', '+str(to_point[1])+', '+str(to_point[2])+';\n')
+			elif self.subtype == 'In plane':
+				rot0, globalV0, iNode0 = self.rigid_offset(0)
+				localV0 = rot0*globalV0
+				rot1, globalV1, iNode1 = self.rigid_offset(1)
+				to_point = rot1*(globalV1 + Vector(self.objects[0].loc) - Vector(self.objects[1].loc))
+				rot = self.objects[0].getMatrix().toQuat().toMatrix().transpose()
+				normal = rot*rot0*Vector(0., 0., 1.)
+				text.write(
+				'\tjoint: '+str(self.database.Element.index(self))+', inplane,\n'+
+				'\t\t'+str(iNode0))
+				text.write(', '+str(localV0[0])+', '+str(localV0[1])+', '+str(localV0[2]))
+				text.write(',\n\t\t '+str(normal[0])+', '+str(normal[1])+', '+str(normal[2]))
+				text.write(',\n\t\t'+str(iNode1))
+				text.write(', offset, '+str(to_point[0])+', '+str(to_point[1])+', '+str(to_point[2])+';\n')
 			elif self.subtype == 'Revolute hinge':
 				self.write_hinge(text, 'revolute hinge')
 				if self._args[2]:
@@ -1430,9 +2279,64 @@ class Element(Common):
 			elif self.subtype == 'Spherical hinge':
 				self.write_hinge(text, 'spherical hinge')
 				text.write(';\n')
+			elif self.subtype == 'Total joint':
+				rot0, globalV0, iNode0 = self.rigid_offset(0)
+				localV0 = rot0*globalV0
+				rot1, globalV1, iNode1 = self.rigid_offset(1)
+				to_joint = rot1*(globalV1 + Vector(self.objects[0].loc) - Vector(self.objects[1].loc))
+				rot = self.objects[0].getMatrix().toQuat().toMatrix().transpose()
+				if iNode1 == self.objects[1]:
+					rot_position = rot
+				else:
+					rot_position = self.objects[1].getMatrix().toQuat().toMatrix().transpose()
+				text.write('\tjoint: '+str(self.database.Element.index(self))+', total joint')
+				if not self._args[2]:
+					text.write(',\n\t\t'+str(iNode0))
+					text.write(', position, '+str(localV0[0])+', '+str(localV0[1])+', '+str(localV0[2]))
+					text.write(',\n\t\t\tposition orientation, matr,\n')
+					self.rotationMatrix_write(rot0*rot_position, text, '\t\t\t\t')
+					text.write(',\n\t\t\trotation orientation, matr,\n')
+					self.rotationMatrix_write(rot0*rot, text, '\t\t\t\t')
+				text.write(',\n\t\t'+str(iNode1))
+				text.write(', position, '+str(to_joint[0])+', '+str(to_joint[1])+', '+str(to_joint[2]))
+				text.write(',\n\t\t\tposition orientation, matr,\n')
+				self.rotationMatrix_write(rot1*rot_position, text, '\t\t\t\t')
+				text.write(',\n\t\t\trotation orientation, matr,\n')
+				self.rotationMatrix_write(rot1*rot, text, '\t\t\t\t')
+				if self._args[2]:
+					text.write(',\n\t\t'+str(iNode0))
+					text.write(', position, '+str(localV0[0])+', '+str(localV0[1])+', '+str(localV0[2]))
+					text.write(',\n\t\t\tposition orientation, matr,\n')
+					self.rotationMatrix_write(rot0*rot_position, text, '\t\t\t\t')
+					text.write(',\n\t\t\trotation orientation, matr,\n')
+					self.rotationMatrix_write(rot0*rot, text, '\t\t\t\t')
+				text.write(',\n\t\t\tposition constraint')
+				for i in range(3):
+					if self._args[3+2*i]:
+						text.write(', active')
+					else:
+						text.write(', inactive')
+				text.write(', component')
+				for i in range(3):
+					if self._args[3+2*i]:
+						text.write(',\n\t\t\t\t'+self.links[i].string())
+					else:
+						text.write(',\n\t\t\t\tinactive')
+				text.write(',\n\t\t\torientation constraint')
+				for i in range(3):
+					if self._args[9+2*i]:
+						text.write(', active')
+					else:
+						text.write(', inactive')
+				text.write(', component')
+				for i in range(3):
+					if self._args[9+2*i]:
+						text.write(',\n\t\t\t\t'+self.links[3+i].string())
+					else:
+						text.write(',\n\t\t\t\tinactive')
+				text.write(';\n')
 		elif self.type == 'Gravity':
-			text.write('\tgravity: '+self.links[0].string()+', reference, '+
-				str(self.database.Drive.index(self.links[1]))+';\n')
+			text.write('\tgravity: '+self.links[0].string()+', '+self.links[1].string(self)+';\n')
 		elif self.type == 'Air properties':
 			if self._args[0]:
 				text.write('\tair properties: std, SI,\n')
@@ -1440,17 +2344,16 @@ class Element(Common):
 				text.write('\tair properties: std, British,\n')
 			text.write('\t\ttemperature deviation, '+str(self._args[2])+
 				',\n\t\treference altitude, '+str(self._args[3])+
-				',\n\t\t'+self.links[0].string()+', reference, '+
-				str(self.database.Drive.index(self.links[1])))
+				',\n\t\t'+self.links[0].string()+', '+self.links[1].string(self))
 			if self._args[5]:
 				text.write(',\n\t\tgust, front 1D,\n\t\t'+
 					self.links[2].string()+',\n\t\t\t'+
 					self.links[3].string()+',\n\t\t\t'+
-					str(self._args[9])+', reference, '+str(self.database.Drive.index(self.links[4])))
+					str(self._args[9])+', '+self.links[4].string(self))
 			text.write(';\n')
 		elif self.type == 'Driven':
 			text.write('\tdriven: '+str(self.database.Element.index(self.links[1]))+', '+
-			'reference, '+str(self.database.Drive.index(self.links[0]))+',\n'+
+			self.links[0].string(self)+',\n'+
 			'\t\texisting: '+self.links[1].type+', '+str(self.database.Element.index(self.links[1]))+';\n')
 
 	def write_hinge(self, text, name, V1=True, V2=True, M1=True, M2=True):
@@ -1473,6 +2376,24 @@ class Element(Common):
 		if M2:
 			text.write(',\n\t\t\thinge, matr,\n')
 			self.rotationMatrix_write(rot1*rot, text, '\t\t\t\t')
+
+	def write_beam(self, text, i):
+		rot, globalV, iNode = self.rigid_offset(i)
+		localV = rot*globalV
+		localrot = rot*self.objects[i].getMatrix().toQuat().toMatrix().transpose()
+		text.write('\t\t'+str(iNode)+',\n\t\t\t'+
+		'position, '+str(localV[0])+', '+str(localV[1])+', '+str(localV[2])+',\n\t\t\t'+
+		'orientation, matr,\n')
+		self.rotationMatrix_write(localrot, text, '\t\t\t\t')
+		text.write(',\n')
+
+	def write_aerodynamic_beam(self, text, i):
+		rot, globalV, iNode = self.rigid_offset(i)
+		localV = rot*globalV
+		localrot = rot*self.objects[i].getMatrix().toQuat().toMatrix().transpose()
+		text.write('\t\t'+str(localV[0])+', '+str(localV[1])+', '+str(localV[2])+',\n\t\t'+'matr,\n')
+		self.rotationMatrix_write(localrot, text, '\t\t\t')
+		text.write(',\n')
 
 	def write_offset(self, text, name):
 		rot0, globalV0, iNode0 = self.rigid_offset(0)
@@ -1513,25 +2434,46 @@ class Element(Common):
 		if not exists:
 			me = bpy.data.meshes.new('_'+obj.name)
 
-		if self.type == 'Aerodynamic body':
-			b = self._args[3]
-			ords = [[-.5*b, 0., .5*b]]+[[]]*3
-			t = .12
-			for i, j in enumerate([0, 1, 3]):
-				if self.links[j+1].type == 'const':
-					ords[i+1] = [self.links[j+1]._args[0]]*3
-				if self.links[j+1].type == 'linear':
-					ords[i+1] = [self.links[j+1]._args[0], 0., self.links[j+1]._args[1]]
-					ords[i+1][1] = (ords[i+1][0] + ords[i+1][2])/2.
-				if self.links[j+1].type == 'piecewise linear':
-					N = self.links[j+1]._args[0]
-					ords[i+1] = [self.links[j+1]._series[1], 0., self.links[j+1]._series[2*N-1]]
-					for i in range(N):
-						if self.links[j+1]._series[2*i] > 0:
-							break
-					ords[i+1][1] = (self.links[j+1]._series[2*i-1] + self.links[j+1]._series[2*i+1])/2.
-				if self.links[j+1].type == 'parabolic':
-					ords[i+1] = self.links[j+1]._args[:3]
+		if self.type == 'Aerodynamic':
+			if self.subtype == 'Aerodynamic body':
+				b = self._args[3]
+				ords = [[-.5*b, 0., .5*b]]+[[]]*3
+				t = .12
+				for i, j in enumerate([0, 1, 3]):
+					if self.links[j+1].type == 'const':
+						ords[i+1] = [self.links[j+1]._args[0]]*3
+					if self.links[j+1].type == 'linear':
+						ords[i+1] = [self.links[j+1]._args[0], 0., self.links[j+1]._args[1]]
+						ords[i+1][1] = (ords[i+1][0] + ords[i+1][2])/2.
+					if self.links[j+1].type == 'piecewise linear':
+						N = self.links[j+1]._args[0]
+						ords[i+1] = [self.links[j+1]._series[1], 0., self.links[j+1]._series[2*N-1]]
+						for i in range(N):
+							if self.links[j+1]._series[2*i] > 0:
+								break
+						ords[i+1][1] = (self.links[j+1]._series[2*i-1] + self.links[j+1]._series[2*i+1])/2.
+					if self.links[j+1].type == 'parabolic':
+						ords[i+1] = self.links[j+1]._args[:3]
+			else:
+				ords = [[]]*4
+				t = .12
+				for i, j in enumerate([1, 2, 4]):
+					if self.links[j+1].type == 'const':
+						ords[i+1] = [self.links[j+1]._args[0]]*3
+					if self.links[j+1].type == 'linear':
+						ords[i+1] = [self.links[j+1]._args[0], 0., self.links[j+1]._args[1]]
+						ords[i+1][1] = (ords[i+1][0] + ords[i+1][2])/2.
+					if self.links[j+1].type == 'piecewise linear':
+						N = self.links[j+1]._args[0]
+						ords[i+1] = [self.links[j+1]._series[1], 0., self.links[j+1]._series[2*N-1]]
+						for i in range(N):
+							if self.links[j+1]._series[2*i] > 0:
+								break
+						ords[i+1][1] = (self.links[j+1]._series[2*i-1] + self.links[j+1]._series[2*i+1])/2.
+					if self.links[j+1].type == 'parabolic':
+						ords[i+1] = self.links[j+1]._args[:3]
+				b = (ords[1][0] + ords[1][1] + ords[1][2])/3.
+				ords[0] = [-.5*b, 0., .5*b]
 			coords = []
 			xLE, yLE = LeadingEdge = (0.292, 0.850)
 			xTE, yTE = TrailingEdge = (-0.792, 0.086)
@@ -1551,8 +2493,10 @@ class Element(Common):
 				me.edges[i].crease = 255
 			for i in me.findEdges([(4,5),(4,6),(6,7),(7,5)]):
 				me.edges[i].crease = 127
-			for i in range(8):
-				me.faces[i].smooth = 1
+			for ob in self.objects:
+				ob.link(me)
+#			for i in range(8):
+#				me.faces[i].smooth = 1
 		elif self.type == 'Body':
 			mass = self._args[1]
 			shell = []
@@ -1572,7 +2516,22 @@ class Element(Common):
 			me.verts.extend(coords)          # add vertices to mesh
 			me.faces.extend(faces)           # add faces to the mesh (also adds edges)
 			for e in me.edges: e.crease = 47
-			for f in me.faces: f.smooth = 1
+#			for f in me.faces: f.smooth = 1
+		elif self.type == 'Beam':
+			coords = []
+			shell = [1.0, 0.33333, 0.66667]
+			for z in [-1., 1.]:
+				for y in [-1., 1.]:
+					for x in [-1., 1.]:
+						coords.append(Vector(x*shell[0],y*shell[1],z*shell[2]))
+			faces = [[1,0,2,3],[4,5,7,6],[0,1,5,4],[1,3,7,5],[3,2,6,7],[2,0,4,6]]
+			me.verts = None
+			me.verts.extend(coords)          # add vertices to mesh
+			me.faces.extend(faces)           # add faces to the mesh (also adds edges)
+			for e in me.edges: e.crease = 255
+			for ob in self.objects:
+				ob.link(me)
+#			for f in me.faces: f.smooth = 1
 		elif self.type == 'Joint':
 			if self.subtype in ['Revolute hinge', 'Axial rotation']:
 				coords = []
@@ -1587,7 +2546,7 @@ class Element(Common):
 				me.faces.extend(faces)           # add faces to the mesh (also adds edges)
 				for i in me.findEdges([(0,1),(0,2),(2,3),(3,1),	(4,5),(4,6),(6,7),(7,5)]):
 					me.edges[i].crease = 255
-				for i in range(2,6): me.faces[i].smooth = 1
+#				for i in range(2,6): me.faces[i].smooth = 1
 			elif self.subtype == 'Spherical hinge':
 				coords = []
 				scale = .5
@@ -1599,7 +2558,7 @@ class Element(Common):
 				me.verts = None
 				me.verts.extend(coords)          # add vertices to mesh
 				me.faces.extend(faces)           # add faces to the mesh (also adds edges)
-				for f in me.faces: f.smooth = 1
+#				for f in me.faces: f.smooth = 1
 			elif self.subtype == 'Clamp':
 				coords = []
 				scale = .5
@@ -1611,10 +2570,16 @@ class Element(Common):
 				me.verts = None
 				me.verts.extend(coords)          # add vertices to mesh
 				me.faces.extend(faces)           # add faces to the mesh (also adds edges)
-				for f in me.faces: f.smooth = 1
+#				for f in me.faces: f.smooth = 1
 				for i in range(4,8): me.edges[i].crease = 255
 			else:
 				me = saveData
+		elif self.type == 'Rigid':
+			me.verts = None
+			me.verts.extend([(.333,0.,0.),(0.,.666,0.),(-.333,0.,0.),(0.,-.666,0.),(0.,0.,1.)]) 
+			me.faces.extend([(3,2,1,0),(0,1,4),(1,2,4),(2,3,4),(3,0,4)])
+			for f in me.faces: f.smooth = 0
+			for e in me.edges: e.crease = 255
 		else:
 			me = saveData
 			
@@ -2186,8 +3151,8 @@ class Constitutive(Common):
 					string += 'initial state, active, \n\t\t'
 				else:
 					string += 'initial state, inactive, \n\t\t'
-			string += (',\n\t\treference, '+str(self.database.Drive.index(self.links[1]))+
-				',\n\t\treference, '+str(self.database.Drive.index(self.links[2])))
+			string += (',\n\t\t'+self.links[1].string(self)+
+				',\n\t\t'+self.links[2].string(self))
 		elif self.type == 'Double linear elastic':
 			string = 'double linear elastic, '+str(self._args[2:6]).strip('[]')
 		elif self.type == 'Isotropic hardening elastic':
@@ -2256,8 +3221,8 @@ class Constitutive(Common):
 					string += 'initial state, active, \n\t\t'
 				else:
 					string += 'initial state, inactive, \n\t\t'
-			string += (',\n\t\treference, '+str(self.database.Drive.index(self.links[2]))+
-				',\n\t\treference, '+str(self.database.Drive.index(self.links[3])))
+			string += (',\n\t\t'+self.links[2].string(self)+
+				',\n\t\t'+self.links[3].string(self))
 		"""
 		elif self.type == 'GRAALL damper':
 		elif self.type == 'shock absorber':
@@ -2371,6 +3336,88 @@ class Shape(Common):
 			for arg in self._args[:3]:
 				string += ', '+str(arg*scale)
 			return string
+
+class Driver(Common):
+
+	types = [
+	'File']
+
+	def __init__(self, driverType, database, linking=False):
+		self.type = driverType
+		self.name = driverType
+		self.database = database
+		self.users = 0
+		self._args = [0.]*10
+		self._series = []
+		self.links = []
+		if self.type == 'File':
+			self._args = [1, 0., 0., 0, '', 1]
+		self.name_check(self.database.Driver)
+		self.modify(linking)
+
+	def modify(self, linking, head=None):
+		if not head:
+			head = self
+		args = [Draw.Create(self._args[i]) for i in range(len(self._args))]
+		delete = Draw.Create(0)
+		single = Draw.Create(0)
+		nval = Draw.Create(self.name)
+		if self.type == 'File':
+			string = [
+			('Name: ', nval, 0, 30),
+			('Stream/Fixed',	args[0], 'Stream driver if pressed, else use a Fixed Step driver'),
+			('Initial time:',	args[1], 0., 1.e6, 'If zero, use simulation start time (Fixed step only)'),
+			('Time step:',		args[2], 0., 1.e3, 'If zero, use simulation time step (Fixed step only)'),
+			('Pad zeros',		args[3], 'Else use ends of series for out of time bound values '+
+				'(Fixed step only)' ),
+			('File name:',		args[4], 0, 50, 'If blank, use mbdyn "job name"_"driver name"'),
+			('Save file',		args[5], 'If in Stream drive mode, save input values to the File name')]
+			if self in self.database.Driver:
+				self.permit_deletion(linking, string, delete, single)
+			if not Draw.PupBlock(self.type, string): return
+			self._args = [arg.val for arg in args]
+		else:
+			Draw.PupMenu('Error: '+self.type+' is not defined in this program.')
+			return
+		return self.finalize(nval, delete, single, self.database.Driver)
+
+	def write(self, text):
+		if self.type == 'File':
+			if self._args[0]:
+				text.write('\tfile: '+str(self.database.Driver.index(self))+', stream,\n'+
+				'\t\tstream drive name, "BX'+str(self.database.Driver.index(self)).zfill(4)+'",\n'+
+				'\t\t\tport, '+str(self.database._port + self.database.Driver.index(self))+',\n'+
+				'\t\t\thost, "'+self.database._hostname+'",\n'+
+				'\t\tnon blocking,\n'+
+				'\t\t'+str(len(self.columns))+';\n')
+			else:
+				if self._args[4]:
+					filename = self.database.directory+self._args[4]
+				else:
+					filename = self.database.filename+'_'+self.name.replace(' ', '')
+				try:
+					tmp = open(filename, 'rt')
+				except:
+					Draw.PupMenu('Error: Cannon open File Driver file named '+filename)
+					return
+				lines = tmp.readlines()
+				tmp.close()
+				columns = lines[1].split()
+				string = ('\tfile: '+str(self.database.Driver.index(self))+', fixed step, '+
+				str(len(lines))+', '+str(len(columns))+', ')
+				if self._args[1]:
+					string += str(self._args[1])+', '
+				else:
+					string += str(self.database._t0)+', '
+				if self._args[2]:
+					string += str(self._args[2])+', '
+				else:
+					string += str(self.database._dt)+', '
+				if self._args[3]:
+					string += 'pad zeros, yes,\n'
+				else:
+					string += 'pad zeros, no,\n\t\t'
+				text.write(string+'"'+filename+'";\n')
 
 class Matrix(Common):
 
@@ -2708,7 +3755,7 @@ class Friction(Common):
 			('Radius:',			args[6], 0., 1.e6, 'Active only if plane hinge is selected')]
 			if self in self.database.Friction:
 				self.permit_deletion(linking, string, delete, single)
-			if not Draw.PupBlock(self.frictType, string): return
+			if not Draw.PupBlock(self.type, string): return
 			self._args = [arg.val for arg in args]
 			if not delete.val:
 				if self._args[4] == 1 or self.links[0] == None:
@@ -3034,11 +4081,18 @@ class Drive(Common):
 			self._args[5:7] = [0]*2
 		elif self.type == 'Meter drive':
 			self._args[1] = self._args[3] = 0
-#		elif self.type == 'File drive':
+		elif self.type == 'File drive':
+			self._args = [1, 0., -1., 1., 0.1, 0, 0]
+			self.links = [None]
 		elif self.type == 'String drive':
 			self._args = 'enter text'
-#		elif self.type == 'Dof drive':
-#		elif self.type == 'Node drive':
+		elif self.type == 'Dof drive':
+				self._args = [1, 1]
+				self.links = [None]*2
+		elif self.type == 'Node drive':
+			self._args = [1, '', 1]
+			self.links = [None]
+			self.objects = [None]
 #		elif self.type == 'Element drive':
 		elif self.type == 'Drive drive':
 			self._args = [1]*2
@@ -3047,6 +4101,12 @@ class Drive(Common):
 			self._args = [0]
 #		elif self.type == 'Hints':
 #		elif self.type == 'Template drive':
+		sel = Object.GetSelected()
+		if sel and self.objects:
+			if len(sel) == 2 and len(self.objects) >= 2:
+				self.objects[:2] = sel
+			else:
+				self.objects[0] = sel[0]
 		self.name_check(self.database.Drive)
 		self.modify(linking)
 
@@ -3325,7 +4385,27 @@ class Drive(Common):
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
 			self._args = [arg.val for arg in args[:4]]
-#		elif self.type == 'File drive': (need a Driver Class)
+		elif self.type == 'File drive':
+			tmp = 'select driver'
+			if self.links[0] != None:
+					tmp = self.links[0].name
+			string = [
+			('Name: ', nval, 0, 30),
+			(tmp,				args[0], 'Change driver'),
+			('Initial value:',	args[1], -1.e6, 1.e6),
+			('Minimum value:',	args[2], -1.e6, 1.e6),
+			('Maximum value:',	args[3], -1.e6, 1.e6),
+			('Increment:',		args[4], -1.e6, 1.e6),
+			('Joystick',		args[5]),
+			('Axis:',			args[6], 0, 5, 'Choose joystick axis')]
+			if self in self.database.Drive:
+				self.permit_deletion(linking, string, delete, single)
+			if not Draw.PupBlock(self.type, string): return
+			if not delete.val:
+				if args[0].val == 1 or self.links[0] == None:
+					self.persistantPupMenu('Select driver:')
+					self.select(0, 'Driver', clas_types=['File'])
+			self._args = [0] + [arg.val for arg in args[1:]]
 		elif self.type == 'String drive':
 			string = [
 			('Name: ', nval, 0, 30)]
@@ -3333,8 +4413,51 @@ class Drive(Common):
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
 			self._args = Draw.PupStrInput('String: ', self._args, 100)
-#		elif self.type == 'Dof drive':
-#		elif self.type == 'Node drive':
+		elif self.type == 'Dof drive':
+			link_name = ['select node', 'select drive']
+			for i in range(2):
+				if self.links[i] != None:
+					link_name[i] = self.links[i].name
+			string = [
+			('Name: ', nval, 0, 30),
+			(link_name[0], 	args[0], 'Change abstract node'),
+			(link_name[1], 	args[1], 'Change drive')]
+			if self in self.database.Drive:
+				self.permit_deletion(linking, string, delete, single)
+			if not Draw.PupBlock(self.type, string): return
+			if not delete.val:
+				if args[0].val == 1 or self.links[0] == None:
+					self.persistantPupMenu('Select an abstract node')
+					self.select(0, 'NS_Node', clas_types=['Abstract'])
+				if args[1].val == 1 or self.links[1] == None:
+					self.persistantPupMenu('Select a drive:')
+					self.select(1, 'Drive', head=head)
+				self._args = [0, 0]
+		elif self.type == 'Node drive':
+			obj_name = 'select node'
+			if self.objects[0]:
+				obj_name = self.objects[0].name
+				args[0] = Draw.Create(0)
+			tmp = 'select drive'
+			if self.links[0] != None:
+				tmp = self.links[0].name
+			string = [
+			('Name: ', nval, 0, 30),
+			(obj_name,		args[0], 'Change node'),
+			('Reference:',	args[1], 0, 10, 'Private data of the node'),
+			(tmp, 			args[2], 'Change drive.')]
+			if self in self.database.Drive:
+				self.permit_deletion(linking, string, delete, single)
+			if not Draw.PupBlock(self.type, string): return
+			if not delete.val:
+				title = 'Select node:'
+				if args[0].val == 1 or self.objects[0] == None:
+					self.persistantPupMenu(title)
+					self.select(0, 'Object')
+				if args[2].val == 1 or self.links[0] == None:
+					self.persistantPupMenu('Select a drive:')
+					self.select(0, 'Drive', head=head)
+				self._args = [0, args[1].val, 0]
 #		elif self.type == 'Element drive':
 		elif self.type == 'Drive drive':
 			tmp = ['select drive']*2
@@ -3388,7 +4511,7 @@ class Drive(Common):
 			return
 		return self.finalize(nval, delete, single, self.database.Drive)
 
-	def string(self):
+	def string(self, owner=None):
 		if self.type == 'Null drive':
 			return 'null'
 		elif self.type == 'Unit drive':
@@ -3466,8 +4589,8 @@ class Drive(Common):
 			return string + str(self._args[6])			
 		elif self.type == 'Frequency sweep drive':
 			string = ('frequency sweep, '+str(self._args[0])+',\n'+
-			'\t\treference, '+str(self.database.Drive.index(self._drives[0]))+',\n'+
-			'\t\treference, '+str(self.database.Drive.index(self._drives[1]))+',\n'+
+			'\t\t'+self.links[0].string(self)+',\n'+
+			'\t\t'+self.links[1].string(self)+',\n'+
 			'\t\t'+str(self._args[3])+', ')
 			if self._args[4]:
 				string += 'forever, '
@@ -3495,22 +4618,53 @@ class Drive(Common):
 			else:
 				string += str(self._args[2])+', '
 			return string+'steps, '+str(self._args[3])
-		elif self.type == 'File drive': pass
+		elif self.type == 'File drive':
+			return ('file, '+str(self.database.Driver.index(self.links[0]))+', '+str(1+self.links[0].columns.index(self)))
 		elif self.type == 'String drive':
 			return 'string, "'+self._args+'"'
-		elif self.type == 'Dof drive': pass
-		elif self.type == 'Node drive': pass
+		elif self.type == 'Dof drive':
+			string = 'dof, '+str(self.database.NS_Node.index(self.links[0]))+', abstract'
+			if self.links[0]._args[1]:
+				string += ', differential'
+			else:
+				string += ', algebraic'
+			string += ',\n\t\t\t'+self.links[1].string(self)
+			return string
+		elif self.type == 'Node drive':
+			if self.objects[0] in self.database.Node:
+				ob = self.objects[0]
+			elif self.database.rigid_dict.has_key(self.objects[0]):
+				ob = self.database.rigid_dict[self.objects[0]]
+			else:
+				self.persistantPupMenu('Error: Node drive '+self.name+' is not assigned to a Node')
+				print 'Error: Node drive '+self.name+' is not assigned to a Node'
+				return
+			string = 'node, '+str(self.database.Node.index(ob))
+			if ob in self.database.structural_dynamic_nodes | self.database.structural_static_nodes:
+				string += ', structural, string, "'+self._args[1]+'",\n'
+			return (string+'\t\t'+self.links[0].string(self))
 		elif self.type == 'Element drive': pass
 		elif self.type == 'Drive drive':
 			return ('drive,\n'+
-			'\t\treference, '+str(self.database.Drive.index(self._drives[0]))+',\n'+
-			'\t\treference, '+str(self.database.Drive.index(self._drives[1])))
+			'\t\t\t'+self.links[0].string(self)+',\n'+
+			'\t\t\t'+self.links[1].string(self))
 		elif self.type == 'Array drive':
 			string = ('array, '+str(self._args[0]))
 			for i in range(self._args[0]):
-				string += ',\n\t\treference, '+str(self.database.Drive.index(self._drives[i]))
+				string += ',\n\t\t'+self.links[i].string(self)
 			return string
 		elif self.type == 'Hints': pass
 		elif self.type == 'Template drive': pass
+
+	def rigid_offset(self, i):
+		if self.objects[i] in self.database.Node:
+			ob = self.objects[i]
+		elif self.database.rigid_dict.has_key(self.objects[i]):
+			ob = self.database.rigid_dict[self.objects[i]]
+		else:
+			print 'Model Error: Object '+self.objects[i].name+' is not associated with a Node'
+		rot = ob.getMatrix().toQuat().toMatrix()
+		globalV = Vector(self.objects[i].loc) - Vector(ob.loc)
+		return rot, globalV, self.database.Node.index(ob)
 
 

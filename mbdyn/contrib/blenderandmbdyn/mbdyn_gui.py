@@ -8,7 +8,7 @@ Tooltip: 'Create, Run, and Import the results of an MBDyn multibody dynamic mode
 
 __author__ = "G. Douglas Baldwin, douglasbaldwin AT verizon.net"
 __url__ = ["http://www.baldwintechnology.com"]
-__version__ = "0.1.1"
+__version__ = "0.1.4"
 __bpydoc__ = """\
 Description:
 
@@ -54,9 +54,11 @@ from mbdyn import Matrix, Friction, Function, Drive, Menu
 import Blender, pickle
 from Blender import Draw, Object, Scene, Text, Window, BGL, Mathutils, Ipo
 from cStringIO import StringIO
-from subprocess import call
+from subprocess import call, Popen
 from time import sleep, clock
 from tempfile import TemporaryFile
+from socket import socket, AF_INET, SOCK_STREAM, gethostbyname, getservbyname
+from struct import unpack
 
 mbdyn = MBDyn()
 
@@ -107,17 +109,26 @@ def button_event(evt):  # the function to handle Draw Button events
 		mbdyn.modify()
 		if mbdyn._reinit:
 			mbdyn.defaults()
-		Window.FileSelector(mbdyn_callback, 'mbdyn Job Name.')
+		if mbdyn._change_filename:
+			Window.FileSelector(mbdyn_callback, 'mbdyn Job Name.')
+		mbdyn._change_filename = 0
 	elif evt == 2:
+		if not mbdyn.filename:
+			Draw.PupMenu('Try again after selecting a file location.')
+			button_event(1)
+			return
 		for text in Text.Get():
 			if text.name == '_Input': text.setName('_Input.old')
 		text = Text.New('_Input')
-		mbdyn.write(text)
+		if mbdyn.write(text):
+			prepare()
 		doPickle()
 	elif evt == 3:
 		run()
 	elif evt == 4:
 		display()
+	elif evt == 5:
+		rigids()
 	Draw.Redraw(0)
 
 def gui():             # the function to draw the screen
@@ -125,6 +136,7 @@ def gui():             # the function to draw the screen
 	Draw.PushButton("Input", 2, 95, 10, 55, 20, "Generate mbdyn input file")
 	Draw.PushButton("Run", 3, 155, 10, 55, 20, "Run mbdyn for input file")
 	Draw.PushButton("Display", 4, 215, 10, 55, 20, "Apply output position data to Blender objects")
+	Draw.PushButton("Rigids", 5, 275, 10, 55, 20, "Parent Rigids")
 	BGL.glRasterPos2i(10, 40)
 	Draw.Text(mbdyn.filename)
  
@@ -141,15 +153,33 @@ def mbdyn_callback(filename):                # callback for the FileSelector
 	if Blender.sys.exists(filename):
 		if Draw.PupMenu("Save Over%t|"+filename) != 1: return
 	mbdyn.filename = filename
+	if Blender.sys.sep == '/':
+		filename = filename.split('/')
+		mbdyn.directory = '/'.join(filename[:-1])+'/'
+	else:
+		filename = filename.split('\\')
+		mbdyn.directory = '\\'.join(filename[:-1])+'\\'
+	filename = filename[-1].split('.')
+	if len(filename) == 1:
+		mbdyn.nameOnly = filename[0]
+	else:
+		mbdyn.nameOnly = '.'.join(filename[:-1])
 	doPickle()
 
 def run():
-	if not mbdyn.filename:
-		Draw.PupMenu('Try again after selecting a file location.')
-		button_event(1)
+	ready = False
+	for text in Text.Get():
+		if text.name == '_Input': ready = True
+	if not ready:
+		Draw.PupMenu('Try again after creating Input file.')
+		button_event(2)
 		return
 	try:
-		Text.Get('_Input')
+		f = Text.Get('_Input').asLines()
+		for line in f:
+			if line.find('stream') != -1:
+				Draw.PupMenu('Error: This model must be run in the Blender Game Engine')
+				return
 	except:
 		Draw.PupMenu('No input file found.  Press "Input" button, then try again.')
 		return
@@ -163,16 +193,18 @@ def run():
 	else:
 #		Windows does not support the execution Progress Bar feature, 
 #		and may require editing C: in the following line
-		error = call(['C:\Program Files\MBDyn\mbdyn.exe', '-s', '-f', mbdyn.filename])
+		command = 'C:\Program Files\MBDyn\mbdyn.exe', '-s', '-f', mbdyn.filename
+		print command
+		error = call([command])
 	if error:
 		Draw.PupMenu('mbdyn Error: check console for message')
 
 def runAsync(filename):
 	f1 = TemporaryFile()
-	f2 = TemporaryFile()
-	Window.DrawProgressBar(0., 'Running mbdyn...')
 	command = 'mbdyn -s -f '+filename+' &'
-	call(command, shell=True, stdout=f1)
+	print command
+	process = Popen(command, shell=True, stdout=f1)
+	Window.DrawProgressBar(0., 'Running mbdyn...')
 	command = "tail -n 1 "+filename+".out | awk '{print $3}'"
 	tNow = mbdyn._t0
 	tN = mbdyn._tN
@@ -181,8 +213,10 @@ def runAsync(filename):
 			)/float(mbdyn._fps)
 	Dt = tN - tNow
 	tHold = -1.0
+	sleep(0.1)
 	call("touch "+filename+".out", shell=True)
 	sleep(0.1)
+	f2 = TemporaryFile()
 	while tHold < tN and tHold != tNow:
 		tHold = tNow
 		call(command, shell=True, stdout=f2)
@@ -194,25 +228,17 @@ def runAsync(filename):
 		except:
 			pass
 		sleep(0.1)
+	f2.close()
 	error = 0
 	if tHold < tN: error = 1
 	if f1:
 		f1.seek(0)
 		print f1.read()
 	f1.close()
-	f2.close()
 	return error
 
 def display():
-	filename = mbdyn.filename
-	if Blender.sys.sep == '/':
-		filename = filename.split('/')
-		nameOnly = filename[-1].split('.')
-		filename = '/'.join(filename[:-1])+'/'+nameOnly[0]+'.mov'
-	else:
-		filename = filename.split('\\')
-		nameOnly = filename[-1].split('.')
-		filename = '\\'.join(filename[:-1])+'\\'+nameOnly[0]+'.mov'
+	filename = mbdyn.directory+mbdyn.nameOnly+'.mov'
 	Window.DrawProgressBar(0., 'Loading: '+'0%')
 	if mbdyn._IPOs:
 		for node in mbdyn.Node:
@@ -292,3 +318,154 @@ def display():
 	Blender.Set('curframe',1)
 	Blender.Redraw()
 
+def prepare():
+	tmp = open(mbdyn.filename+'Blender', 'w')
+	tmp.write('\n'.join(Text.Get('_Input').asLines()))
+	tmp.close()
+	try:
+		text = Text.Get('Always')
+		text.clear()
+	except:
+		text = Text.New('Always')
+	if mbdyn._posixRT:
+		sudo = 'sudo '
+	else:
+		sudo = ''
+	text.write(
+"""from struct import pack, unpack
+import pygame
+try:
+	pygame.event.pump() 
+	""")
+	joystick = False
+	for i, driver in enumerate(mbdyn.Driver):
+		if driver.users and driver.type == 'File' and driver._args[0]:
+			for j, col in enumerate(driver.columns):
+				if col._args[5]:
+					joystick = True
+					text.write('GameLogic.drive_'+str(i)+'['+str(j)+'] = '+
+					str(col._args[2])+' + '+str((col._args[3] - col._args[2])/0.00778198242188)+
+					' * pygame.joystick.Joystick(0).get_axis('+str(col._args[6])+')\n\t'+
+					'GameLogic.ob.axis_'+str(col._args[6])+' = GameLogic.drive_'+str(i)+'['+str(j)+']\n\t')
+			text.write("""data = ''
+	columns = ''
+	for column in GameLogic.drive_"""+str(i)+""":
+		data += pack('d', column)
+		columns += str(column)+'\\t'
+	GameLogic.sock_"""+str(i)+""".send(data)
+	GameLogic.file_"""+str(i)+""".write(columns[:-1]+'\\n')
+	""")
+	text.write("""try:
+		data = unpack('d'*12*GameLogic.qty, GameLogic.sock_in.recv(GameLogic.qty*96))
+		for i, name in zip(range(0, GameLogic.qty*12, 12), GameLogic.names):
+			GameLogic.obs['OB'+name].position = data[i:i+3]
+			GameLogic.obs['OB'+name].orientation = [data[i+3:i+6], data[i+6:i+9], data[i+9:i+12]]
+	except:
+		pass
+except:
+	try:
+		GameLogic.shell_pid
+	except:
+		cont = GameLogic.getCurrentController()
+		GameLogic.ob = cont.getOwner()
+		pygame.init()
+		""")
+	if joystick:
+		text.write("""pygame.joystick.init() 
+		pygame.joystick.Joystick(0).init()
+		""")
+	text.write("""GameLogic.names = """+str([n.name for n in mbdyn.Node])+"""
+		GameLogic.qty = len(GameLogic.names)
+		scene = GameLogic.getCurrentScene()
+		GameLogic.obs = scene.getObjectList()
+		from subprocess import Popen
+		from tempfile import TemporaryFile
+		from socket import socket, AF_INET, SOCK_STREAM
+#		GameLogic.setLogicTicRate(100.)
+		sock_in = socket(AF_INET, SOCK_STREAM)
+		sock_in.bind(('', """+str(mbdyn._port + len(mbdyn.Driver))+"""))				
+		sock_in.listen(5)
+		""")
+	for i, driver in enumerate(mbdyn.Driver):
+		if driver.users and driver.type == 'File' and driver._args[0]:
+			text.write('sock_'+str(i)+""" = socket(AF_INET, SOCK_STREAM)
+		sock_"""+str(i)+""".bind(('', """+str(mbdyn._port+i)+"""))				
+		sock_"""+str(i)+""".listen(5)
+		""")
+	text.write("""GameLogic.f1 = TemporaryFile()
+		command = ['"""+sudo+"""mbdyn -s -f """+mbdyn.filename+'Blender'+""" &']
+		print command[0]
+		process = Popen(command, shell=True, stdout=GameLogic.f1)
+		GameLogic.shell_pid = process.pid
+		GameLogic.sock_in, GameLogic.address_in = sock_in.accept()
+		""")
+	for i, driver in enumerate(mbdyn.Driver):
+		if driver.users and driver.type == 'File' and driver._args[0]:
+			if driver._args[4]:
+				filename = mbdyn.directory+driver._args[4]
+			else:
+				filename = mbdyn.filename+'_'+driver.name.replace(' ', '')
+			text.write('GameLogic.sock_'+str(i)+', GameLogic.address_'+str(i)+' = sock_'+str(i)+""".accept()
+		GameLogic.drive_"""+str(i)+' = '+str([d._args[1] for d in driver.columns])+"""
+		GameLogic.qty_"""+str(i)+""" = len(GameLogic.drive_"""+str(i)+""")
+		GameLogic.file_"""+str(i)+" = open('"+filename+"'"+""", 'wt')
+		GameLogic.file_"""+str(i)+""".truncate()
+		sock_"""+str(i)+""".close()
+		""")
+	text.write('sock_in.close()\n')
+
+	for i, driver in enumerate(mbdyn.Driver):
+		if driver.users and driver.type == 'File' and driver._args[0]:
+			for j, col in enumerate(driver.columns):
+				if not col._args[5]:
+					try:
+						text = Text.Get(col.name.replace(' ', ''))
+						text.clear()
+					except:
+						text = Text.New(col.name.replace(' ', ''))
+					text.write("""cont = GameLogic.getCurrentController()
+for sensor in cont.getSensors():
+	GameLogic.drive_"""+str(i)+'['+str(j)+'] += '+str(col._args[4])+' * (float(sensor.isPositive() + '+ """sensor.getInvert()) - 2.)
+if GameLogic.drive_"""+str(i)+'['+str(j)+'] > '+str(col._args[3])+""":
+	GameLogic.drive_"""+str(i)+'['+str(j)+'] = '+str(col._args[3])+"""
+if GameLogic.drive_"""+str(i)+'['+str(j)+'] < '+str(col._args[2])+""":
+	GameLogic.drive_"""+str(i)+'['+str(j)+'] = '+str(col._args[2])+"""
+ob = cont.getOwner()
+ob."""+text.name.replace('.', '_')+' = GameLogic.drive_'+str(i)+'['+str(j)+']\n')
+	try:
+		text = Text.Get('Quit')
+		text.clear()
+	except:
+		text = Text.New('Quit')
+	text.write('import pygame\n')
+	if joystick:
+		text.write('pygame.joystick.quit()\n')
+	text.write("""from subprocess import Popen
+if GameLogic.f1:
+	GameLogic.f1.seek(0)
+	print GameLogic.f1.read()
+	GameLogic.f1.seek(0)
+command = '"""+sudo+"""kill -9 '+str(GameLogic.shell_pid + 1)
+print command
+Popen(command, shell=True, stdout=GameLogic.f1)
+if GameLogic.f1:
+	GameLogic.f1.seek(0)
+	print GameLogic.f1.read()
+	GameLogic.f1.seek(0)
+GameLogic.sock_in.close()
+""")
+	for i, driver in enumerate(mbdyn.Driver):
+		if driver.users and driver.type == 'File' and driver._args[0]:
+			text.write('GameLogic.sock_'+str(i)+'.close()\n')
+	text.write("""GameLogic.f1.close()
+co = GameLogic.getCurrentController()
+for act in co.getActuators():
+	GameLogic.addActiveActuator(act, True)""")
+
+def rigids():
+	for ob in Object.GetSelected():
+		ob.sel = 0
+	for element in mbdyn.Element:
+		if element.type == 'Rigid':
+			element.objects[0].sel = 1
+			element.objects[1].makeParent([element.objects[0]])
