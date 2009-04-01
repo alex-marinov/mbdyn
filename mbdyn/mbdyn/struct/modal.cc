@@ -2700,6 +2700,7 @@ ReadModal(DataManager* pDM,
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	unsigned int NModes = (unsigned int)tmpNModes;
+	unsigned int uLargestMode(0);
 
 	std::vector<unsigned int> uModeNumber(NModes);
 	if (HP.IsKeyWord("list")) {
@@ -2715,6 +2716,22 @@ ReadModal(DataManager* pDM,
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
+			std::vector<unsigned int>::const_iterator
+				iv = std::find(uModeNumber.begin(),
+					uModeNumber.end(), (unsigned int)n);
+			if (iv != uModeNumber.end()) {
+				silent_cerr("Modal(" << uLabel << "): "
+					"mode #" << iCnt + 1
+					<< " already defined "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			if ((unsigned int)n > uLargestMode) {
+				uLargestMode = (unsigned int)n;
+			}
+
 			/* FIXME: check for duplicates? */
 			uModeNumber[iCnt] = n;
 		}
@@ -2723,6 +2740,7 @@ ReadModal(DataManager* pDM,
 		for (unsigned int iCnt = 0; iCnt < NModes; iCnt++) {
 			uModeNumber[iCnt] = iCnt + 1;
 		}
+		uLargestMode = NModes;
 	}
 
 	/* numero di nodi FEM del modello */
@@ -3079,12 +3097,36 @@ ReadModal(DataManager* pDM,
 					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
-				if (NModes != NModesFEM) {
-					silent_cout("Modal(" << uLabel
-							<< "), file '" << sFileFem
-							<< "': using " << NModes
-							<< " of " << NModesFEM
-							<< " modes" << std::endl);
+				if (NModes > NModesFEM) {
+					silent_cerr("Modal(" << uLabel << "), "
+						"file '" << sFileFem << "': "
+						"number of requested modes "
+						"(" << NModes << ") "
+						"exceeds number of available "
+						"modes (" << NModesFEM << ")"
+						<< std::endl);
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+				}
+
+				if (NModes < NModesFEM) {
+					silent_cout("Modal(" << uLabel << "), "
+						"file '" << sFileFem << "': "
+						"using " << NModes
+						<< " of " << NModesFEM
+						<< " available modes"
+						<< std::endl);
+				}
+
+				if (uLargestMode > NModesFEM) {
+					silent_cerr("Modal(" << uLabel << "), "
+						"file '" << sFileFem << "': "
+						"largest requested mode "
+						"(" << uLargestMode << ") "
+						"exceeds available modes "
+						"(" << NModesFEM << ")"
+						<< std::endl);
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!bActiveModes.empty()) {

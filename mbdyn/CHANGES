@@ -20,6 +20,7 @@ MBDyn 1.X-Devel
 	Bug fixes:
 		- fixed naive solver default pivot factor
 		  (noted by Kristopher Ellis)
+		- fixed consistency checks in modal joint/force input
 
 MBDyn 1.3.7
 	Enhancements:

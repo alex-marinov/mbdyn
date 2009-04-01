@@ -173,10 +173,11 @@ ReadModalForce(DataManager* pDM,
 
 		for (int i = 0; i < iNumModes; i++) {
 			int iM = HP.GetInt();
-			if (iM <= 0 || iM > pModal->uGetNModes()) {
+			if (iM <= 0) {
 				silent_cerr("ModalForce(" << uLabel << "): "
 					"illegal mode " << iM
-					<< " at line " << HP.GetLineData() << std::endl);
+					<< " at line " << HP.GetLineData()
+					<< std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
