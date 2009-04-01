@@ -221,7 +221,7 @@ RTAISolver::Init(void)
 			"(proc: \"" << LogProcName << "\")"
 			<< std::endl);
 
-		char *mbxlogname = "logmb";
+		const char *mbxlogname = "logmb";
 		if (rtmbdyn_rt_mbx_init(mbxlogname, sizeof(msg)*16, &mbxlog)) {
 			bRTlog = false;
 			silent_cerr("RTAISolver: cannot init log mailbox "
