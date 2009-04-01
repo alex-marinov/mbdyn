@@ -261,7 +261,6 @@ ExtForce::Update(const VectorHandler& XCurr,
 	/* If running tight coupling, send kinematics every iteration */
 	/* NOTE: tight coupling may need relaxation */
 	if (iCoupling && !((++iCouplingCounter)%iCoupling)) {
-		std::cerr << "ExtForce(" << GetLabel() << ")::Update() iCouplingCounter=" << iCouplingCounter << std::endl;
 		Send();
 	}
 }
