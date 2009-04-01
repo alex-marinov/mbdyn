@@ -113,6 +113,7 @@
 #include <cerrno>
 #include <sys/stat.h>
 #include <limits>
+#include <algorithm>
 
 #include "modal.h"
 #include "dataman.h"

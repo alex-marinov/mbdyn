@@ -34,6 +34,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <fstream>
+#include <algorithm>
 
 #include "dataman.h"
 #include "modalforce.h"
