@@ -35,7 +35,9 @@
 #include <cfloat>
 
 #include "ac/pthread.h"
+#ifdef USE_MPI
 #include "ac/mpi.h"
+#endif // USE_MPI
 
 #include "aerodyn.h"
 #include "strnode.h"
