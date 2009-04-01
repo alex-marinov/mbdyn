@@ -287,7 +287,7 @@ public:
 	virtual AerodynamicElem::Type GetAerodynamicElemType(void) const = 0;
 
 	virtual bool NeedsAirProperties(void) const;
-	virtual const Rotor *pGetRotor(void) const;
+	virtual const InducedVelocity *pGetInducedVelocity(void) const;
 };
 
 /* AerodynamicElem - end */

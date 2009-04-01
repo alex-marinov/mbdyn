@@ -343,13 +343,13 @@ NestedElem::NeedsAirProperties(void) const
 	return false;
 }
 
-const Rotor *
-NestedElem::pGetRotor(void) const
+const InducedVelocity *
+NestedElem::pGetInducedVelocity(void) const
 {
 	ASSERT(pElem != NULL);
 	AerodynamicElem *pAE = dynamic_cast<AerodynamicElem *>(pElem);
 	if (pAE) {
-		return pAE->pGetRotor();
+		return pAE->pGetInducedVelocity();
 	}
 
 	return 0;

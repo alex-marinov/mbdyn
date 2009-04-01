@@ -35,13 +35,13 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include "dataman.h"
-#include "friction.h"
-
 extern "C" {
 #include <strings.h>
 #include <time.h>
 }
+
+#include "dataman.h"
+#include "friction.h"
 
 #if defined(USE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
 #include <ltdl.h>
@@ -64,7 +64,7 @@ extern "C" {
 #include "beam.h"
 
 /* To allow direct loading of modules */
-#include <modules.h>
+#include "modules.h"
 
 /* To handle  of Elem2Param */
 #include "j2p.h"

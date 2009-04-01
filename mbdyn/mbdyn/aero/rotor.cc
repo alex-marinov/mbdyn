@@ -63,13 +63,6 @@ Rotor::Rotor(unsigned int uL, const DofOwner* pDO,
 	ResForceSet **ppres, flag fOut)
 : Elem(uL, fOut),
 InducedVelocity(uL, pDO, pC, ppres, fOut),
-#ifdef USE_MPI
-is_parallel(false),
-pBlockLenght(0),
-pDispl(0),
-ReqV(MPI::REQUEST_NULL),
-pIndVelDataType(0),
-#endif /* USE_MPI */
 pRotor(pR), pGround(pG),
 dOmegaRef(0.), dRadius(0.), dArea(0.),
 dUMean(0.), dUMeanRef(0.), dUMeanPrev(0.),
@@ -488,7 +481,7 @@ NoRotor::AssRes(SubVectorHandler& WorkVec,
 
 #ifdef USE_MPI
 	if (out) {
-		ExchangeTraction(out);
+		ExchangeLoads(out);
 	}
 
 	if (!is_parallel || IndVelComm.Get_rank() == 0)
@@ -635,7 +628,7 @@ UniformRotor::AssRes(SubVectorHandler& WorkVec,
 	DEBUGCOUT("Entering UniformRotor::AssRes()" << std::endl);
 
 #ifdef USE_MPI
-	ExchangeTraction(fToBeOutput());
+	ExchangeLoads(fToBeOutput());
 	if (!is_parallel || IndVelComm.Get_rank() == 0)
 #endif /* USE_MPI */
 	{
@@ -819,7 +812,7 @@ GlauertRotor::AssRes(SubVectorHandler& WorkVec,
 	DEBUGCOUT("Entering GlauertRotor::AssRes()" << std::endl);
 
 #ifdef USE_MPI
-	ExchangeTraction(fToBeOutput());
+	ExchangeLoads(fToBeOutput());
 	if (!is_parallel || IndVelComm.Get_rank() == 0)
 #endif /* USE_MPI */
 	{
@@ -993,7 +986,7 @@ ManglerRotor::AssRes(SubVectorHandler& WorkVec,
 	DEBUGCOUT("Entering ManglerRotor::AssRes()" << std::endl);
 
 #ifdef USE_MPI
-	ExchangeTraction(fToBeOutput());
+	ExchangeLoads(fToBeOutput());
 	if (!is_parallel || IndVelComm.Get_rank() == 0)
 #endif /* USE_MPI */
 	{
@@ -1364,7 +1357,7 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
      	DEBUGCOUT("Entering DynamicInflowRotor::AssRes()" << std::endl);
 
 #ifdef USE_MPI
-     	ExchangeTraction(flag(1));
+     	ExchangeLoads(flag(1));
 
      	if (!is_parallel || IndVelComm.Get_rank() == 0)
 #endif /* USE_MPI */

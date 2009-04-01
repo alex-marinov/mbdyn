@@ -452,7 +452,7 @@ iTotalExpConnections(0)
 							break;
 
 						case ROTOR:
-							CurrElType = Elem::ROTOR;
+							CurrElType = Elem::INDUCEDVELOCITY;
 							break;
 
 						case AEROMODAL:
@@ -731,8 +731,8 @@ SchurDataManager::CreatePartition(void)
 	int GravityPos = 0, AirPropPos = 0;
 	int* pRotPos = NULL;
 	unsigned int* pRotLab = NULL;
-	if (!ElemData[Elem::ROTOR].ElemMap.empty()) {
-		unsigned iNum = ElemData[Elem::ROTOR].ElemMap.size();
+	if (!ElemData[Elem::INDUCEDVELOCITY].ElemMap.empty()) {
+		unsigned iNum = ElemData[Elem::INDUCEDVELOCITY].ElemMap.size();
 		SAFENEWARR(pRotPos, int, iNum);
 		SAFENEWARR(pRotLab, unsigned int, iNum);
 		memset(pRotPos, 0, iNum*sizeof(int));
@@ -772,7 +772,7 @@ SchurDataManager::CreatePartition(void)
 			} else if ((*pTmpEl)->GetElemType() == Elem::AIRPROPERTIES) {
 				AirPropPos = iCount - iTotNodes;
 
-			} else if ((*pTmpEl)->GetElemType() == Elem::ROTOR) {
+			} else if ((*pTmpEl)->GetElemType() == Elem::INDUCEDVELOCITY) {
 				pRotPos[iNumRt] = iCount - iTotNodes;
 				pRotLab[iNumRt] = (*pTmpEl)->GetLabel();
 				iNumRt++;
@@ -1110,10 +1110,10 @@ SchurDataManager::CreatePartition(void)
 		move++;
 	}
 
-	/* Rotors */
+	/* Induced Velocity elements */
 	int iMyTotRot = 0;
 	integer* pMyRot = NULL;
-	integer iRotorIsMine = 0;
+	integer iIVIsMine = 0;
 	if (iNumRt  != 0) {
 		SAFENEWARR(pMyRot, integer, iNumRt);
 		for (ElemMapType::const_iterator i = ElemData[Elem::AERODYNAMIC].ElemMap.begin();
@@ -1122,11 +1122,11 @@ SchurDataManager::CreatePartition(void)
 		{
 			const AerodynamicElem *pAero = dynamic_cast<AerodynamicElem *>(i->second);
 			ASSERT(pAero != NULL);
-			const Rotor *pRotor = pAero->pGetRotor();
+			const InducedVelocity *pIV = pAero->pGetInducedVelocity();
 
-			if (pRotor != NULL) {
+			if (pIV != NULL) {
 				int pos = 0;
-				unsigned int pTmpLab = pRotor->GetLabel();
+				unsigned int pTmpLab = pIV->GetLabel();
 				
 				for (int k = 0; k < iNumRt; k++) {
 					if (pTmpLab == pRotLab[k]) {
@@ -1159,10 +1159,10 @@ SchurDataManager::CreatePartition(void)
 			} else {
 				color = 1;
 				if (pParAmgProcs[pMyRot[i] + iTotNodes] == MyRank) {
-					silent_cout("Rotor " << Elems[pRotPos[i]]->GetLabel()
-							<< " assigned to process "
-							<< MyRank << std::endl);
-					iRotorIsMine = 1;
+					silent_cout("InducedVelocity(" << Elems[pRotPos[i]]->GetLabel() << ")"
+						<< " assigned to process "
+						<< MyRank << std::endl);
+					iIVIsMine = 1;
 					key = 0;
 				} else {
 					key = MyRank + 1;
@@ -1172,7 +1172,7 @@ SchurDataManager::CreatePartition(void)
 #if 0
 			IndVelComm[i] = MPI::COMM_WORLD.Split(color, key);
 #endif
-			Rotor *r = dynamic_cast<Rotor *>(Elems[pRotPos[i]]);
+			InducedVelocity *r = dynamic_cast<InducedVelocity *>(Elems[pRotPos[i]]);
 			ASSERT(r != 0);
 			r->InitializeIndVelComm(pIndVelComm + i);
 		}
@@ -1266,8 +1266,8 @@ SchurDataManager::CreatePartition(void)
 		if (ppMyElems[i]->iGetNumDof() != 0) {
 			Elem::Type CType = ppMyElems[i]->GetElemType();
 			switch (CType) {
-			case Elem::ROTOR:
-				if (iRotorIsMine == 1) {
+			case Elem::INDUCEDVELOCITY:
+				if (iIVIsMine == 1) {
 					ppMyElems[i]->GetConnectedNodes(connectedNodes);
 					for (std::vector<const Node *>::const_iterator j = connectedNodes.begin();
 						j != connectedNodes.end();

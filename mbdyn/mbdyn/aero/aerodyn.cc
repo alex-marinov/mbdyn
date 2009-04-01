@@ -880,11 +880,11 @@ AerodynamicElem::NeedsAirProperties(void) const
 	return true;
 }
 
-const Rotor *
-AerodynamicElem::pGetRotor(void) const
+const InducedVelocity *
+AerodynamicElem::pGetInducedVelocity(void) const
 {
 	return NULL;
 }
-   
+
 /* AerodynamicElem - end */
 

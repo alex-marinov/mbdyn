@@ -68,7 +68,7 @@ class ElemWithDofs;
 class ElemGravityOwner;
 class AerodynamicElem;
 class InitialAssemblyElem;
-class Rotor;
+class InducedVelocity;
 
 /* Elem - begin */
 

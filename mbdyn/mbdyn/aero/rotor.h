@@ -174,10 +174,6 @@ public:
 	// in base alla posizione azimuthale
 	virtual Vec3 GetInducedVelocity(const Vec3& X) const = 0;
 
-#ifdef USE_MPI
-	void ExchangeTraction(flag fWhat);
-#endif /* USE_MPI */
-
 	// *******PER IL SOLUTORE PARALLELO********
 	// Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	// utile per l'assemblaggio della matrice di connessione fra i dofs
@@ -194,11 +190,6 @@ public:
 		connectedNodes[1] = pRotor;
 	};
 	// ************************************************
-
-#ifdef USE_MPI
-	void InitializeIndVelComm(MPI::Intracomm* Rot);
-	void ExchangeVelocity(void);
-#endif /* USE_MPI */
 };
 
 /* Rotor - end */
