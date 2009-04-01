@@ -2279,8 +2279,15 @@ Modal::iGetPrivDataIdx(const char *s) const
 	}
 
 	if (what == 'q') {
+		bool bIdx(false);
+
+		if (s[0] == '#') {
+			bIdx = true;
+			s++;
+		}
+
 		/* buffer per numero (dimensione massima: 32 bit) */
-		char buf[] = "18446744073709551615,18446744073709551615";
+		char buf[sizeof("18446744073709551615,18446744073709551615")];
 		size_t		len = end - s;
 
 		ASSERT(len < sizeof(buf));
@@ -2302,15 +2309,26 @@ Modal::iGetPrivDataIdx(const char *s) const
 			return 0;
 		}
 
-		if (n > NModes) {
-			return 0;
+		if (bIdx) {
+			if (n > NModes) {
+				return 0;
+			}
+
+		} else {
+			std::vector<unsigned int>::const_iterator iv
+				= std::find(uModeNumber.begin(), uModeNumber.end(), n);
+			if (iv == uModeNumber.end()) {
+				return 0;
+			}
+
+			n = iv - uModeNumber.begin() + 1;
 		}
 
 		return p*NModes + n;
 	}
 
 	end = strchr(s, ',');
-	if (end == NULL ) {
+	if (end == NULL) {
 		return 0;
 	}
 
@@ -2732,7 +2750,6 @@ ReadModal(DataManager* pDM,
 				uLargestMode = (unsigned int)n;
 			}
 
-			/* FIXME: check for duplicates? */
 			uModeNumber[iCnt] = n;
 		}
 
@@ -2741,6 +2758,52 @@ ReadModal(DataManager* pDM,
 			uModeNumber[iCnt] = iCnt + 1;
 		}
 		uLargestMode = NModes;
+	}
+
+	std::vector<doublereal> InitialValues(NModes, 0.);
+	std::vector<doublereal> InitialValuesP(NModes, 0.);
+	bool bInitialValues(false);
+	if (HP.IsKeyWord("initial" "value")) {
+		bInitialValues = true;
+
+		if (HP.IsKeyWord("mode")) {
+			int iCnt = 0;
+			do {
+				int n = HP.GetInt();
+
+				if (n <= 0) {
+					silent_cerr("Modal(" << uLabel << "): "
+						"illegal mode number "
+						"for initial value #" << iCnt + 1
+						<< " at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				std::vector<unsigned int>::const_iterator
+					iv = std::find(uModeNumber.begin(),
+						uModeNumber.end(), (unsigned int)n);
+				if (iv == uModeNumber.end()) {
+					silent_cerr("Modal(" << uLabel << "): "
+						"mode " << n << " not defined "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				unsigned iIdx = iv - uModeNumber.begin();
+				InitialValues[iIdx] = HP.GetReal();
+				InitialValuesP[iIdx] = HP.GetReal();
+
+				iCnt++;
+			} while (HP.IsKeyWord("mode"));
+
+		} else {
+			for (unsigned int iCnt = 0; iCnt < NModes; iCnt++) {
+				InitialValues[0] = HP.GetReal();
+				InitialValuesP[0] = HP.GetReal();
+			}
+		}
 	}
 
 	/* numero di nodi FEM del modello */
@@ -4742,6 +4805,13 @@ ReadModal(DataManager* pDM,
 			"and will actually be ignored." << std::endl);
 	}
 	flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
+
+	if (bInitialValues) {
+		for (unsigned int iCnt = 0; iCnt < NModes; iCnt++) {
+			a->Put(iCnt + 1, InitialValues[iCnt]);
+			aP->Put(iCnt + 1, InitialValuesP[iCnt]);
+		}
+	}
 
 	SAFENEWWITHCONSTRUCTOR(pEl,
 			Modal,

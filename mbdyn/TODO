@@ -200,7 +200,7 @@ E. Bugs/missing features:
 	- introduce references for hints
 	- allow strings as mode names in modal elements (joint, force, ...)
 	- add SetInitialValue to modal element
-	- allow to override initial modal value and derivative in .fem
+	- allow to override initial modal value and derivative in .fem (DONE)
 
 
 

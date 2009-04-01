@@ -4610,20 +4610,23 @@ and orientation of the corresponding FEM nodes.
             [ , position , (Vec3)<absolute_position> ]
             [ , orientation , (Mat3x3)<absolute_orientation> ] } ,
         <mode_number> ,
-        [ list, <mode> [ , ... ] ] ,
+        [ list, <mode> [ , ... ] , ]
+        [ initial value ,
+            { mode , <n> , <q_n> , <qP_n> [ , ... ]
+                | <q_1> , <qP_1> [ ... ] } , ]
         { <fem_node_number> | from file } ,
-        [ no damping 
+        [ { no damping 
             | proportional damping , <damping_coef>
             | diag damping , 
                 <mode_index> , <mode_damping_coef> 
-                [ , ... ] 
-        ] ,
+                [ , ... ] } ,
+        ]
         " <fem_data_file> " ,
         [ [ { mass | stiffness } ] threshold , <threshold> , ]
         [ { create binary | use binary | update binary }
             [ , ... ] , ]
         [ use invariant 9 , ]
-        [ , { origin node , <origin_node> | origin position , (Vec3)<pos> } ]
+        [ { origin node , <origin_node> | origin position , (Vec3)<pos> } , ]
         <interface_nodes_number> ,
             { " <fem_node_label> " | (integer)<fem_node_label> } ,
                 <multibody_label> , (Vec3)<offset_of_FEM_node>
@@ -4800,15 +4803,21 @@ the output will look like
 \subsubsection{Private Data}
 The following data is available, for each mode:
 \begin{enumerate}
-\item \kw{"q[<i>]"} mode \kw{<i>} value
-\item \kw{"qP[<i>]"} mode \kw{<i>} derivative value
-\item \kw{"qPP[<i>]"} mode \kw{<i>} second derivative value
+\item \kw{"q[<m>]"} mode \kw{<m>} value
+\item \kw{"qP[<m>]"} mode \kw{<m>} derivative value
+\item \kw{"qPP[<m>]"} mode \kw{<m>} second derivative value
 \item \kw{"x[<n>,<i>]"} FEM node \kw{<n>} position \kw{<i>} component value
 \item \kw{"xP[<n>,<i>]"} FEM node \kw{<n>} velocity \kw{<i>} component value
 \item \kw{"xPP[<n>,<i>]"} FEM node \kw{<n>} acceleration \kw{<i>} component value
 \item \kw{"w[<n>,<i>]"} FEM node \kw{<n>} angular velocity \kw{<i>} component value
 \item \kw{"wP[<n>,<i>]"} FEM node \kw{<n>} angular acceleration \kw{<i>} component value
 \end{enumerate}
+When \kw{<m>} is a number, the mode whose name is that number is used;
+when \kw{<m>} is the character `\#' followed by a number,
+the mode whose index is the number is used.
+The two cases may differ when only a subset of the modes defined
+in the FEM data file are actually used.
+
 ``FEM'' node means that the label of the FEM node must be used;
 this allows to use the motion of nodes that are not attached
 to a multibody node.
