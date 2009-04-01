@@ -203,7 +203,9 @@ NodePrivPlugIn::ReadSE(unsigned int uLabel, const char *ss)
 
 	pSE = dynamic_cast<SimulationEntity *>(pDM->pFindNode(Node::Type(i), uLabel));
 	if (pSE == 0) {
-		silent_cerr(*this << " not defined" << std::endl);
+		silent_cerr("NodePrivPlugIn: "
+			<< psReadNodesNodes[i] << "(" << uLabel << ") "
+			"not defined" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
@@ -212,7 +214,7 @@ std::ostream&
 NodePrivPlugIn::Err(std::ostream& out) const
 {
 	Node *pNode = dynamic_cast<Node *>(pSE);
-	if (pSE == 0) {
+	if (pNode == 0) {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -266,7 +268,9 @@ ElemPrivPlugIn::ReadSE(unsigned int uLabel, const char *ss)
 
 	pSE = dynamic_cast<SimulationEntity *>(pDM->pFindElem(Elem::Type(i), uLabel));
 	if (pSE == 0) {
-		silent_cerr(*this << " not defined" << std::endl);
+		silent_cerr("ElemPrivPlugIn: "
+			<< psReadElemsElems[i] << "(" << uLabel << ") "
+			"not defined" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
@@ -275,7 +279,7 @@ std::ostream&
 ElemPrivPlugIn::Err(std::ostream& out) const
 {
 	Elem *pElem = dynamic_cast<Elem *>(pSE);
-	if (pSE == 0) {
+	if (pElem == 0) {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
