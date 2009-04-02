@@ -128,7 +128,10 @@ ExtForceEDGE::ExtForceEDGE(DataManager *pDM)
 : pAP(0)
 {
 	pAP = dynamic_cast<AirProperties *>(pDM->pFindElem(Elem::AIRPROPERTIES, 1));
-	ASSERT(pAP != 0);
+	if (pAP == 0) {
+		silent_cerr("ExtForceEDGE::ExtForceEDGE(" << GetLabel() << "): "
+			"warning, unable to link to air properties" << std::endl);
+	}
 }
 
 ExtForceEDGE::~ExtForceEDGE(void)
