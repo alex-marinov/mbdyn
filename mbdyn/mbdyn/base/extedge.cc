@@ -62,6 +62,26 @@ ExtFileHandlerEDGE::~ExtFileHandlerEDGE(void)
 	NO_OP;
 }
 
+static const char *sEDGEcmd2str[] = {
+	"INITIALIZING",
+	"BUSY",
+	"READ_READY",
+	"MBDYN_WRITE_DONE",
+	"GOTO_NEXT_STEP",
+	"QUIT",
+	0
+};
+
+const char *
+ExtFileHandlerEDGE::EDGEcmd2str(int cmd) const
+{
+	if (cmd < 0 || cmd >= EDGE_LAST) {
+		return "UNKNOWN";
+	}
+
+	return sEDGEcmd2str[cmd];
+}
+
 ExtFileHandlerEDGE::EDGEcmd
 ExtFileHandlerEDGE::CheckFlag(int& cnt)
 {
@@ -101,7 +121,9 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 	infile >> cmd;
 
 done:;
-	silent_cerr("flag file \"" << fflagname.c_str() << "\": cmd=" << cmd << std::endl);
+	silent_cerr("flag file \"" << fflagname.c_str() << "\": "
+		"cmd=" << cmd << " (" << EDGEcmd2str(cmd) << ")"
+		<< std::endl);
 
 	infile.close();
 	infile.clear();
@@ -244,7 +266,8 @@ ExtFileHandlerEDGE::Recv_pre(void)
 #ifdef USE_SLEEP
 		if (iSleepTime > 0) {
 			silent_cout("flag file \"" << fflagname.c_str() << "\": "
-				"cmd=" << cmd << " try #" << cnt << "; "
+				"cmd=" << cmd << " (" << EDGEcmd2str(cmd) << ")"
+				" try #" << cnt << "; "
 				"sleeping " << iSleepTime << " s" << std::endl); 
 
 			sleep(iSleepTime);
@@ -252,7 +275,8 @@ ExtFileHandlerEDGE::Recv_pre(void)
 #endif // USE_SLEEP
 		{
 			silent_cout("flag file \"" << fflagname.c_str() << "\": "
-				"cmd=" << cmd << " try #" << cnt << std::endl); 
+				"cmd=" << cmd << " (" << EDGEcmd2str(cmd) << ")"
+				" try #" << cnt << std::endl); 
 		}
 	}
 

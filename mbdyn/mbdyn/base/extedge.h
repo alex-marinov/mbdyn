@@ -66,8 +66,13 @@ protected:
 		EDGE_GOTO_NEXT_STEP	= 4,
 
 		// EDGE wants to end simulation
-		EDGE_QUIT		= 5
+		EDGE_QUIT		= 5,
+
+		// must be the last one
+		EDGE_LAST
 	};
+
+	const char *EDGEcmd2str(int cmd) const;
 
 	EDGEcmd CheckFlag(int& cnt);
 
