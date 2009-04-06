@@ -182,6 +182,7 @@ D. Code:
 	- add modal constraint: framework for generic constraints among
 	  modal variables; constraint that imposes the value of modal vars
 	- add "static" modal element (no dynamics equations)
+	- allow deformable hinge to have optional (useless) "position" spec
 
 
 
