@@ -390,6 +390,20 @@ using the \kw{rigid body kinematics} card
 This functionality is experimental, so the syntax could need adjustments
 and change across versions.
 
+Note: in practical cases, the use of lapack with \kw{balance}
+appeared to be quite sensitive to the problem data.
+In some cases, the use of \kw{scale} may introduce errors
+in eigenvalues.
+The use of \kw{permute} is usually beneficial: it allows to directly
+single out some of those spurious eigenvalues that correspond
+to constraint equations.
+
+Note: in practical cases, the usefulness of arpack appeared
+to be questionable, especially in those cases where a significant amount
+of constraints is present.
+It may be beneficial in those cases where the number of deformable components
+is much larger than the number of constraint equations.
+
 
 
 \subsubsection{Abort After}
