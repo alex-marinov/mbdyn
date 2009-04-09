@@ -116,13 +116,23 @@ iRefB(0)
      +iNumOutputs*iOrderA                         // Vector Y
      +iNumInputs*iOrderB                          // Vector U
      +iNumInputs;                                 // Vector u(k)
-     
-   SAFENEWARR(pdA, doublereal, iSize);
-   
-   pdB = pdA+iNumInputs*iNumOutputs*iOrderA;
-   pdY = pdB+iNumInputs*iNumInputs*iOrderB;
-   pdU = pdY+iNumOutputs*iOrderA;
-   pdU0 = pdU+iNumInputs*iOrderB;
+
+   doublereal *pd = 0; 
+   SAFENEWARR(pd, doublereal, iSize);
+
+   pdA = pd;
+   pd += iNumInputs*iNumOutputs*iOrderA;
+
+   pdB = pd;
+   pd += iNumInputs*iNumInputs*iOrderB;
+
+   pdY = pd;
+   pd += iNumOutputs*iOrderA;
+
+   pdU = pd;
+   pd += iNumInputs*iOrderB;
+
+   pdU0 = pd;
    
    for (int i = iSize; i-- > 0; ) {
       pdA[i] = 0.;
@@ -627,24 +637,6 @@ void DAC_Process_Debug::PutOutput(doublereal* pdOut,
 
 /* DAC_Process_Debug - end */
    
-   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* DiscreteControlElem - begin */
 
 DiscreteControlElem::DiscreteControlElem(unsigned int uL, 

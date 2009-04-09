@@ -85,7 +85,7 @@ ForgettingFactor* ReadFF(MBDynParser& HP, integer iNumOutputs)
 {
    ForgettingFactor* pFF = NULL;
 
-   if (HP.IsKeyWord("forgettingfactor")) {
+   if (HP.IsKeyWord("forgetting" "factor")) {
       if (HP.IsKeyWord("const")) {
 	 doublereal d = HP.GetReal();
 
@@ -170,12 +170,12 @@ Elem* ReadElectric(DataManager* pDM,
       "accelerometer",
       "displacement",
       "motor",
-      "discretecontrol",
+      "discrete" "control",
       "identification",
           "const",
           "dynamic",
       "control",
-      "adaptivecontrol"
+      "adaptive" "control"
    };
 
    /* enum delle parole chiave */
@@ -619,9 +619,9 @@ Elem* ReadElectric(DataManager* pDM,
 	   }
 
 	   char* s = NULL;
-	   if (HP.IsKeyWord("file")) {
+	   if (HP.IsKeyWord("file") || HP.IsKeyWord("output" "file")) {
 	      s = (char*)HP.GetFileName();
-	      DEBUGCOUT("Identified matrices will be output in file <" << s << '>' << std::endl);
+	      DEBUGCOUT("Identified matrices will be output in file \"" << s << "\"" << std::endl);
 	   }
 
 	   /* Construction of controller */
