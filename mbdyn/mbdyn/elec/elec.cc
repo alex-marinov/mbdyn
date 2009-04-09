@@ -189,6 +189,8 @@ Elem* ReadElectric(DataManager* pDM,
 
       DISCRETECONTROL,
       IDENTIFICATION,
+	CONST,
+	DYNAMIC,
       CONTROL,
       ADAPTIVECONTROL,
 
@@ -711,6 +713,7 @@ Elem* ReadElectric(DataManager* pDM,
 						  pDCP,
 						  iNumIter,
 						  fOut));
+       SAFEDELETEARR(ppOutScaleFact);
 
        break;
     }
