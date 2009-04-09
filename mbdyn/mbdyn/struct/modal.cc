@@ -2209,11 +2209,11 @@ Modal::SetValue(DataManager *pDM,
 
 	for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
 		/* modal multipliers */
-		X.Put(iFlexIndex + iCnt, a.dGet(iCnt));
+		X.PutCoef(iFlexIndex + iCnt, a.dGet(iCnt));
 
 		/* derivatives of modal multipliers */
-		X.Put(iFlexIndex + NModes + iCnt, b.dGet(iCnt));
-		XP.Put(iFlexIndex + iCnt, b.dGet(iCnt));
+		X.PutCoef(iFlexIndex + NModes + iCnt, b.dGet(iCnt));
+		XP.PutCoef(iFlexIndex + iCnt, b.dGet(iCnt));
 	}
 }
 
