@@ -133,7 +133,8 @@ AerodynamicBody::AerodynamicBody(unsigned int uLabel,
 				 const Shape* pV, const Shape* pT,
 				 integer iN, AeroData* a,
 				 const DriveCaller* pDC,
-				 flag fOut)
+				 flag fOut, 
+				 bool bUseJacobian)
 : Elem(uLabel, fOut),
 AerodynamicElem(uLabel, fOut),
 InitialAssemblyElem(uLabel, fOut),
@@ -155,7 +156,8 @@ GDI(iN),
 pdOuta(NULL),
 pvdOuta(NULL),
 F(0.),
-M(0.)
+M(0.),
+bJacobian(bUseJacobian)
 {
    	DEBUGCOUTFNAME("AerodynamicBody::AerodynamicBody");
 
@@ -227,6 +229,251 @@ AerodynamicBody::Restart(std::ostream& out) const
    	aerodata->Restart(out);
    	return out << ";" << std::endl;
 }
+
+VariableSubMatrixHandler& 
+AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
+		doublereal /* dCoef */ ,
+		const VectorHandler& /* XCurr */ ,
+		const VectorHandler& /* XPrimeCurr */ )	
+{
+	DEBUGCOUT("Entering AerodynamicBody::AssJac()" << std::endl);
+
+	WorkMat.SetNullMatrix();
+	if (bJacobian)	{
+		FullSubMatrixHandler& WM = WorkMat.SetFull();
+	
+		/* Ridimensiona la sottomatrice in base alle esigenze */
+		integer iNumRows = 0;
+		integer iNumCols = 0;
+		WorkSpaceDim(&iNumRows, &iNumCols);
+		WM.ResizeReset(iNumRows, iNumCols);
+	
+		/* Recupera gli indici delle varie incognite */
+		integer iNodeFirstMomIndex = pNode->iGetFirstMomentumIndex();
+		integer iNodeFirstPosIndex = pNode->iGetFirstPositionIndex();
+	
+		/* Setta gli indici delle equazioni */
+		for (int iCnt = 1; iCnt <= 6; iCnt++) {
+			WM.PutRowIndex(iCnt, iNodeFirstMomIndex + iCnt);
+			WM.PutColIndex(iCnt, iNodeFirstPosIndex + iCnt);
+		}
+		
+	
+		/* Equations starts here... */
+		doublereal dTng[6];
+		doublereal dW[6];
+		
+		/* Dati del nodo */
+		Vec3 Xn(pNode->GetXCurr());
+		Mat3x3 Rn(pNode->GetRCurr());
+		Vec3 Vn(pNode->GetVCurr());
+		Vec3 Wn(pNode->GetWCurr());
+		
+		/*
+		 * Matrice di trasformazione dal sistema globale a quello aerodinamico
+		 */
+		Mat3x3 RR(Rn*Ra);
+		
+		/*
+		 * Se l'elemento e' collegato ad un rotore,
+		 * si fa dare la velocita' di rotazione
+		 */
+		doublereal dOmega = 0.;
+		if (pIndVel != NULL) {
+			Rotor *pRotor = dynamic_cast<Rotor *>(pIndVel);
+			if (pRotor) {
+				dOmega = pRotor->dGetOmega();
+			}
+		}
+	
+		/* Resetta i dati */
+		F = Vec3(0.);
+		M = Vec3(0.);
+		
+		/*
+		 * Dati "permanenti" (uso la posizione del nodo perche'
+		 * non dovrebbero cambiare "molto")
+		 */
+		doublereal rho, c, p, T;
+		GetAirProps(Xn, rho, c, p, T);	/* p, T no used yet */
+		aerodata->SetAirData(rho, c);
+		
+		doublereal** pvd = pvdOuta;
+	
+		ResetIterator();
+	
+		/* Ciclo sui punti di Gauss */
+		PntWght PW = GDI.GetFirst();
+		int iPnt = 0;
+		do {
+			doublereal dCsi = PW.dGetPnt();
+			Vec3 Xr(Rn*(f + Ra3*(dHalfSpan*dCsi)));
+			Vec3 Xnr = Xn + Xr;
+			Vec3 Vr(Vn + Wn.Cross(Xr));
+		
+			/* Contributo di velocita' del vento */
+			Vec3 VTmp(0.);
+			if (fGetAirVelocity(VTmp, Xnr)) {
+		 		Vr -= VTmp;
+			}
+		
+			/*
+			 * Se l'elemento e' collegato ad un rotore,
+			 * aggiunge alla velocita' la velocita' indotta
+			 */
+			if (pIndVel != NULL) {
+		 		Vr += pIndVel->GetInducedVelocity(Xnr);
+			}
+		
+			/* Copia i dati nel vettore di lavoro dVAM */
+			doublereal dTw = Twist.dGet(dCsi) + dGet();
+			aerodata->SetSectionData(dCsi,
+					         Chord.dGet(dCsi),
+				       		 ForcePoint.dGet(dCsi),
+						 VelocityPoint.dGet(dCsi),
+						 dTw,
+						 dOmega);
+		
+			/*
+			 * Lo svergolamento non viene piu' trattato in aerod2_; quindi
+			 * lo uso per correggere la matrice di rotazione
+			 * dal sistema aerodinamico a quello globale
+			 */
+			Mat3x3 RRloc;
+			if (dTw != 0.) {
+				doublereal dCosT = cos(dTw);
+				doublereal dSinT = sin(dTw);
+				/* Assumo lo svergolamento positivo a cabrare */
+				Mat3x3 RTw( dCosT, dSinT, 0.,
+					   -dSinT, dCosT, 0.,
+					    0.,    0.,    1.);
+				RRloc = RR*RTw;
+		
+			} else {
+				RRloc = RR;
+			}
+		
+			/*
+			 * Ruota velocita' e velocita' angolare nel sistema
+			 * aerodinamico e li copia nel vettore di lavoro dW
+			 */
+			VTmp = RRloc.MulTV(Vr);
+			VTmp.PutTo(dW);
+		
+			Vec3 WTmp = RRloc.MulTV(Wn);
+			WTmp.PutTo(&dW[3]);
+		
+			/* Funzione di calcolo delle forze aerodinamiche */
+			doublereal  Fa0[6];
+			aerodata->GetForces(iPnt, dW, Fa0, *pvd);
+		
+			/* OUTA */
+			pvd++;
+		
+			// specific for Gauss points force output
+//			if (fToBeOutput() && IsPGAUSS()) {
+//		 		SetData(VTmp, dTng);
+//			}
+		
+	
+			/* Numerical computation of Fa/(V,W) */
+			
+			Vec3 deltaVTmp(Vr);
+			Vec3 deltaWTmp(Wn);
+			doublereal param = 1.e-3; 	// FIXME: This should be a tunable parameter
+			doublereal delta = 1;
+			Mat6x6 JFa;
+			for(unsigned int iCnt = 1; iCnt <= 6; iCnt++)	{
+				deltaVTmp = VTmp; 
+				deltaWTmp = WTmp;
+	
+				if (iCnt <= 3)	{
+					delta = VTmp.dGet(iCnt) * param;
+					deltaVTmp.Put(iCnt, VTmp.dGet(iCnt) + delta);
+				} else		{
+					delta = WTmp.dGet(iCnt) * param;
+					deltaWTmp.Put(iCnt, WTmp.dGet(iCnt) + delta);
+				}
+					
+				deltaVTmp.PutTo(dW);
+				deltaWTmp.PutTo(&dW[3]);
+				
+				aerodata->GetForces(iPnt, dW, dTng, *pvd);
+	
+				for(unsigned int j = 1; j <= 6; j++)	{
+					JFa.Put(j, iCnt, (dTng[j-1] - Fa0[j-1]) / delta);
+				}
+	
+			}
+	
+			/* Jacobian Assembly... */
+			// FIXME:to be multiplied by dCoef, where necessary
+			doublereal dWght = PW.dGetWght();
+			doublereal cc = dHalfSpan*dWght;
+	
+			Mat6x6 Jf;	// Temporary matrix
+	
+			/* Delta F, equations 1:3 */
+			
+			Mat3x3 JTmp(RRloc*(Vec3(Fa0) * cc)); //(RRloc*Fa)x
+			// WM.Sub(1, 4, JTmp); 					// delta_g  
+			Jf.AddMat12(JTmp); 					// delta_g  
+			JTmp = RRloc * JFa.GetMat11() * cc;
+			// WM.Sub(1, 4, JTmp * Mat3x3(RRloc * Vr));		// delta_g 
+			Jf.AddMat12(JTmp * Mat3x3(RRloc * Vr));			// delta_g 
+			// WM.Sub(1, 1, JTmp * RRloc));				// delta_V
+			Jf.AddMat11(JTmp * RRloc);				// delta_V 
+			// WM.Sub(1, 4, JTmp * Mat3x3(RRloc * Xr));		// delta_W 
+			Jf.SubMat12(JTmp * Mat3x3(RRloc * Xr));			// delta_W 
+			// WM.Sub(1, 4, JTmp * Mat3x3(RRloc * Wn) * Mat3x3(Xr));// delta_g 
+			Jf.SubMat12(JTmp * Mat3x3(RRloc * Wn) * Mat3x3(Xr));	// delta_g 
+			JTmp = RRloc * JFa.GetMat12() * cc;
+			// WM.Sub(1, 4, JTmp * Mat3x3(RRloc * Wn) * Mat3x3(Xr));// delta_g 
+			Jf.SubMat12(JTmp * Mat3x3(RRloc * Wn) * Mat3x3(Xr));	// delta_g 
+			// WM.Add(1, 4, JTmp * RRloc);				// delta_W 
+			Jf.AddMat12(JTmp * RRloc);				// delta_W 
+			
+			/* Delta M, equations 4:6 */
+			
+			JTmp = Mat3x3(RRloc * Vec3(Fa0+3) * cc);//(RRloc*Ma)x
+			// WM.Sub(4, 4, JTmp); 					// delta_g  
+			Jf.AddMat22(JTmp); 					// delta_g  
+			JTmp = RRloc * JFa.GetMat21() * cc;
+			// WM.Sub(4, 4, JTmp * Mat3x3(RRloc * Vr));		// delta_g 
+			Jf.AddMat22(JTmp * Mat3x3(RRloc * Vr));			// delta_g 
+			// WM.Sub(4, 1, JTmp * RRloc));				// delta_V
+			Jf.AddMat21(JTmp * RRloc);				// delta_V 
+			// WM.Sub(4, 4, JTmp * Mat3x3(RRloc * Xr));		// delta_W 
+			Jf.SubMat22(JTmp * Mat3x3(RRloc * Xr));			// delta_W 
+			// WM.Sub(2, 4, JTmp * Mat3x3(RRloc * Wn) * Mat3x3(Xr));// delta_g 
+			Jf.SubMat22(JTmp * Mat3x3(RRloc * Wn) * Mat3x3(Xr));	// delta_g 
+			JTmp = RRloc * JFa.GetMat22() * cc;
+			// WM.Sub(4, 4, JTmp * Mat3x3(RRloc * Wn) * Mat3x3(Xr));// delta_g 
+			Jf.SubMat22(JTmp * Mat3x3(RRloc * Wn) * Mat3x3(Xr));	// delta_g 
+			// WM.Add(4, 4, JTmp * RRloc);				// delta_W 
+			Jf.AddMat22(JTmp * RRloc);				// delta_W 
+			
+			/* Transport moments... */
+	
+			Jf.AddMat22(Mat3x3(Vec3(Fa0)) * Mat3x3(Xr));		// delta_g		
+			// [Xr] x deltaF (aero) ... 	
+			Jf.AddMat21(Mat3x3(Xr) * Jf.GetMat11());
+			Jf.AddMat22(Mat3x3(Xr) * Jf.GetMat12());
+	
+			WM.Add(1, 1, Jf.GetMat11());
+			WM.Add(1, 4, Jf.GetMat12());
+			WM.Add(4, 1, Jf.GetMat21());
+			WM.Add(4, 4, Jf.GetMat22());
+		
+			iPnt++;
+		
+		} while (GDI.fGetNext(PW));
+		
+	}
+	
+	return WorkMat;
+}
+
 
 SubVectorHandler&
 AerodynamicBody::AssRes(SubVectorHandler& WorkVec,
@@ -860,6 +1107,11 @@ ReadAerodynamicBody(DataManager* pDM,
 
 	aerodata->SetNumPoints(iNumber);
 
+	bool bUseJacobian(false);
+	if (HP.IsKeyWord("jacobian")) {
+		bUseJacobian = true;
+	}
+
 	flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
 	if (HP.IsArg()) {
 		if (HP.IsKeyWord("std")) {
@@ -878,13 +1130,13 @@ ReadAerodynamicBody(DataManager* pDM,
 	} else if (fOut) {
 		fOut |= AerodynamicOutput::AEROD_OUT_STD;
 	}
-
+	
 	Elem* pEl = NULL;
 	SAFENEWWITHCONSTRUCTOR(pEl,
 		AerodynamicBody,
 		AerodynamicBody(uLabel, pNode, pIndVel, f, dSpan, Ra,
 				pChord, pForce, pVelocity, pTwist,
-				iNumber, aerodata, pDC, fOut));
+				iNumber, aerodata, pDC, fOut, bUseJacobian));
 
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {
