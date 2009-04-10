@@ -224,11 +224,6 @@ retry:;
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
-
-	outfile.open(fflagname.c_str());
-	outfile << int(EDGE_MBDYN_WRITE_DONE);
-	outfile.close();
-	outfile.clear();
 }
 
 std::istream&
