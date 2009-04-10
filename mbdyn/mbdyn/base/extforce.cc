@@ -230,7 +230,7 @@ ExtForce::ExtForce(unsigned int uL,
 	flag fOut)
 : Elem(uL, fOut), 
 Force(uL, fOut),
-c(iCoupling ? pDM: NULL),
+c(iCoupling ? pDM : NULL),
 pEFH(pEFH),
 bFirstRes(true),
 iCoupling(iCoupling),

@@ -1151,7 +1151,7 @@ DataManager::ReadElems(MBDynParser& HP)
 		}
 
 		if (bStop) {
-			silent_cerr("while no air properties are defined; aborting ..."
+			silent_cerr("while no air properties are defined; aborting..."
 				<< std::endl);
 
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);

@@ -1930,7 +1930,7 @@ DofDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	if (pDM == 0) {
 		silent_cerr("sorry, since the driver is not owned by a DataManager" << std::endl
 			<< "no DOF dependent drivers are allowed;" << std::endl
-			<< "aborting ..." << std::endl);
+			<< "aborting..." << std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -2043,7 +2043,7 @@ ElementDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	if (pDM == 0) {
 		silent_cerr("since the driver is not owned by a DataManager" << std::endl
 			<< "no element dependent drivers are allowed;" << std::endl
-			<< "aborting ..." << std::endl);
+			<< "aborting..." << std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -2086,7 +2086,7 @@ NodeDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	if (pDM == 0) {
 		silent_cerr("since the driver is not owned by a DataManager" << std::endl
 			<< "no node dependent drivers are allowed;" << std::endl
-			<< "aborting ..." << std::endl);
+			<< "aborting..." << std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -2196,7 +2196,7 @@ FileDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	if (pDM == 0) {
 		silent_cerr("sorry, since the driver is not owned by a DataManager" << std::endl
 			<< "no driver dependent drivers are allowed;" << std::endl
-			<< "aborting ..." << std::endl);
+			<< "aborting..." << std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 

@@ -235,7 +235,7 @@ Beam2::DsDxi(void)
 		dsdxi = 1./std::sqrt(d);
 	} else {
 		silent_cerr("warning, Beam2(" << GetLabel() << ") "
-			"has singular metric; aborting ..." << std::endl);
+			"has singular metric; aborting..." << std::endl);
 		
 		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 	}

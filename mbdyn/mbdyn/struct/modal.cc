@@ -1837,7 +1837,7 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 			silent_cerr("Modal(" << GetLabel() << "):" 
 				<< "warning, first node hinge axis "
 				"and second node hinge axis "
-				"are (nearly) orthogonal; aborting ..."
+				"are (nearly) orthogonal; aborting..."
 				<< std::endl);
 			throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 		}

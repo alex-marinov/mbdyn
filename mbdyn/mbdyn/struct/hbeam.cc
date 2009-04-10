@@ -258,7 +258,7 @@ HBeam::DsDxi(void)
 		d = std::sqrt(d);
 	} else {
 		silent_cerr("HBeam(" << GetLabel() << ") "
-			"has singular metric; aborting ..." << std::endl);
+			"has singular metric; aborting..." << std::endl);
 		
 		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 	}

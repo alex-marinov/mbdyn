@@ -397,14 +397,14 @@ iTotalExpConnections(0)
 			if (KeyWords(HP.GetWord()) != PARALLEL) {
 				silent_cerr("Error: \"end: parallel;\" expected "
 					"at line " << HP.GetLineData()
-					<< "; aborting ..." << std::endl);
+					<< "; aborting..." << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			goto endcycle;
 
 		default:
 			silent_cerr("Unknown input at line "
-				<< HP.GetLineData() << "; aborting ..." 
+				<< HP.GetLineData() << "; aborting..." 
 				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
@@ -422,7 +422,7 @@ iTotalExpConnections(0)
 					silent_cerr("Error: <Connection> "
 						"expected at line "
 						<< HP.GetLineData() 
-						<< "; aborting ..." 
+						<< "; aborting..." 
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
@@ -498,7 +498,7 @@ iTotalExpConnections(0)
 						default:
 							silent_cerr("Error: invalid element type "
 								"at line " << HP.GetLineData()
-								<< "; aborting ..." << std::endl);
+								<< "; aborting..." << std::endl);
 							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 						}
 
@@ -510,7 +510,7 @@ iTotalExpConnections(0)
 								"for " << psElemNames[CurrElType]
 								<< " element type at line "
 								<< HP.GetLineData()
-								<< "; aborting ..." << std::endl);
+								<< "; aborting..." << std::endl);
 							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 						}
 
@@ -521,7 +521,7 @@ iTotalExpConnections(0)
 								<< HP.GetLineData() << ": "
 								<< psElemNames[CurrElType]
 								<< "(" << j << ") undefined; "
-								"aborting ..." << std::endl);
+								"aborting..." << std::endl);
 							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 						}
 						iNumElems++;
@@ -556,7 +556,7 @@ iTotalExpConnections(0)
 						default:
 							silent_cerr("Error: invalid node type "
 								"at line " << HP.GetLineData()
-								<< "; aborting ..." << std::endl);
+								<< "; aborting..." << std::endl);
 							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 						}
 
@@ -566,7 +566,7 @@ iTotalExpConnections(0)
 						} else {
 							silent_cerr("Error: label expected "
 								"at line " << HP.GetLineData()
-								<< "; aborting ..." << std::endl);
+								<< "; aborting..." << std::endl);
 							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 						}
 
@@ -577,7 +577,7 @@ iTotalExpConnections(0)
 								<< HP.GetLineData() << ":"
 								<< psNodeNames[CurrNdType]
 								<< "(" << j << ") undefined; "
-								<< "aborting ..." << std::endl);
+								<< "aborting..." << std::endl);
 							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 						}
 						iNumNodes++;
@@ -586,7 +586,7 @@ iTotalExpConnections(0)
 					default:
 						silent_cerr("Unknown input at line "
 							<< HP.GetLineData()
-							<< "; aborting ..." << std::endl);
+							<< "; aborting..." << std::endl);
 						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 				}
@@ -597,7 +597,7 @@ iTotalExpConnections(0)
 				silent_cerr("Error: total number of nodes and elements"
 					" in the parallel section at line "
 					<< HP.GetLineData()
-					<< " is not consistent; aborting ..." << std::endl);
+					<< " is not consistent; aborting..." << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			break;

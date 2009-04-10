@@ -711,7 +711,7 @@ IfStepIsToBeRepeated:
 					<< dCurrTimeStep
 					<< " cannot be reduced"
 					" further;" << std::endl
-					<< "aborting ..." << std::endl);
+					<< "aborting..." << std::endl);
 	       			throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
 			}
 		}
@@ -731,7 +731,7 @@ IfStepIsToBeRepeated:
 				<< dCurrTimeStep
 				<< " cannot be reduced"
 				" further;" << std::endl
-				<< "aborting ..." << std::endl);
+				<< "aborting..." << std::endl);
 			throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 		}
 		catch (NonlinearSolver::ConvergenceOnSolution) {
@@ -1099,13 +1099,13 @@ InverseSolver::ReadData(MBDynParser& HP)
    	/* legge i dati della simulazione */
    	if (KeyWords(HP.GetDescription()) != BEGIN) {
       		silent_cerr("Error: <begin> expected at line "
-			<< HP.GetLineData() << "; aborting ..." << std::endl);
+			<< HP.GetLineData() << "; aborting..." << std::endl);
       		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
 
    	if (KeyWords(HP.GetWord()) != INVERSEDYNAMICS) {
       		silent_cerr("Error: <begin: inverse dynamics;> expected at line "
-			<< HP.GetLineData() << "; aborting ..." << std::endl);
+			<< HP.GetLineData() << "; aborting..." << std::endl);
       		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
 
@@ -1487,7 +1487,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 			if (KeyWords(HP.GetWord()) != INVERSEDYNAMICS) {
 				silent_cerr("\"end: inverse dynamics;\" expected "
 					"at line " << HP.GetLineData()
-					<< "; aborting ..." << std::endl);
+					<< "; aborting..." << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			goto EndOfCycle;
@@ -1881,7 +1881,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 
 		default:
 			silent_cerr("unknown description at line "
-				<< HP.GetLineData() << "; aborting ..."
+				<< HP.GetLineData() << "; aborting..."
 				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}

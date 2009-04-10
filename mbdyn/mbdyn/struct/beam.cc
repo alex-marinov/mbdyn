@@ -476,7 +476,7 @@ Beam::DsDxi(void)
 
 		} else {
 			silent_cerr("warning, beam " << GetLabel()
-				<< " has singular metric; aborting ..." << std::endl);
+				<< " has singular metric; aborting..." << std::endl);
 
 			throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 		}

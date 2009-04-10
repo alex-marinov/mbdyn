@@ -625,7 +625,7 @@ DataManager::ReadControl(MBDynParser& HP,
 				default:
 					silent_cerr("Element type at line "
 						<< HP.GetLineData()
-						<< " is not allowed; aborting ..."
+						<< " is not allowed; aborting..."
 						<< std::endl);
 
 					throw DataManager::ErrElemNotAllowedInAssembly(MBDYN_EXCEPT_ARGS);
@@ -634,7 +634,7 @@ DataManager::ReadControl(MBDynParser& HP,
 				case UNKNOWN:
 					silent_cerr("Unknown element type "
 						"at line " << HP.GetLineData() << "; "
-						"aborting ..." << std::endl);
+						"aborting..." << std::endl);
 
 					throw DataManager::ErrUnknownElem(MBDYN_EXCEPT_ARGS);
 				}

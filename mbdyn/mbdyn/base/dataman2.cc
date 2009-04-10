@@ -1035,7 +1035,7 @@ DataManager::InitialJointAssembly(void)
 		/* FIXME: why /(1.+X.Dot()) ??? */
 		doublereal dTest = pResHdl->Dot()/(1. + X.Dot());
 		if (!std::isfinite(dTest)) {
-			silent_cerr("Assembly diverged; aborting ..." << std::endl);
+			silent_cerr("Assembly diverged; aborting..." << std::endl);
 			throw DataManager::ErrAssemblyDiverged(MBDYN_EXCEPT_ARGS);
 		}
 		dTest = sqrt(dTest);
@@ -1065,7 +1065,7 @@ DataManager::InitialJointAssembly(void)
 		if (iNumIter >= iMaxInitialIterations) {
 			silent_cerr("Initial assembly iterations "
 				"reached maximum number "
-				<< iMaxInitialIterations << "; aborting ..."
+				<< iMaxInitialIterations << "; aborting..."
 				<< std::endl);
 			throw DataManager::ErrAssemblyMaxIters(MBDYN_EXCEPT_ARGS);
 		}

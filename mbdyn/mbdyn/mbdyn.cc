@@ -385,7 +385,7 @@ mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 				}
 #endif /* USE_MPI */
 				silent_cerr(";" << std::endl 
-					<< "aborting ..."
+					<< "aborting..."
 					<< std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
@@ -543,7 +543,7 @@ mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 	
 		default:
 			silent_cerr(std::endl 
-				<< "Unrecoverable error; aborting ..."
+				<< "Unrecoverable error; aborting..."
 				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
@@ -659,7 +659,7 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 					silent_cerr(std::endl 
 						<< "Unable to open file "
 						"\"" << mbp.sInputFileName << "\";"
-						" aborting ..." << std::endl);
+						" aborting..." << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
@@ -890,7 +890,7 @@ main(int argc, char* argv[])
 			rc = 2;
 	    	} catch (...) {
 			silent_cerr("An error occurred during the execution of MBDyn;"
-				" aborting ... " << std::endl);
+				" aborting... " << std::endl);
 			rc = EXIT_FAILURE;
 			MB_EXIT(rc);
 			throw;
@@ -985,7 +985,7 @@ RunMBDyn(MBDynParser& HP,
 	if (cd != BEGIN) {
         	silent_cerr(std::endl 
 	    		<< "Error: <begin> expected at line " 
-	    		<< HP.GetLineData() << "; aborting ..." << std::endl);
+	    		<< HP.GetLineData() << "; aborting..." << std::endl);
         	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
     	}
 
@@ -993,7 +993,7 @@ RunMBDyn(MBDynParser& HP,
     	if (KeyWords(HP.GetWord()) != DATA) {
         	silent_cerr(std::endl 
 	    		<< "Error: <begin: data;> expected at line " 
-	    		<< HP.GetLineData() << "; aborting ..." << std::endl);
+	    		<< HP.GetLineData() << "; aborting..." << std::endl);
         	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
     	}
    
@@ -1038,7 +1038,7 @@ RunMBDyn(MBDynParser& HP,
 	        		silent_cerr(std::endl 
 		    			<< "Unknown problem at line " 
 	            			<< HP.GetLineData()
-					<< "; aborting ..." << std::endl);
+					<< "; aborting..." << std::endl);
 	        		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
             		}
             		break;    
@@ -1048,7 +1048,7 @@ RunMBDyn(MBDynParser& HP,
 	        		silent_cerr(std::endl 
 		    			<< "Error: <end: data;> expected"
 					" at line " << HP.GetLineData()
-					<< "; aborting ..." << std::endl);
+					<< "; aborting..." << std::endl);
 	        		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	    		}
 	    		goto endofcycle;        
@@ -1057,7 +1057,7 @@ RunMBDyn(MBDynParser& HP,
 	    		silent_cerr(std::endl 
 	        		<< "Unknown description at line " 
 	        		<< HP.GetLineData()
-				<< "; aborting ..." << std::endl);
+				<< "; aborting..." << std::endl);
 	    		throw ErrGeneric(MBDYN_EXCEPT_ARGS);      
         	}
     	}
@@ -1136,7 +1136,7 @@ endofcycle:
 		break;
 
 	default:
-        	silent_cerr("Unknown integrator; aborting ..." << std::endl);
+        	silent_cerr("Unknown integrator; aborting..." << std::endl);
         	throw ErrGeneric(MBDYN_EXCEPT_ARGS);   
 	}
 

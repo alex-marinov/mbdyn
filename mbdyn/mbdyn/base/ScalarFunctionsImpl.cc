@@ -1112,7 +1112,7 @@ ScalarFunctionDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	if (pDM == 0) {
 		silent_cerr("sorry, since the driver is not owned by a DataManager" << std::endl
 			<< "no driver dependent drivers are allowed;" << std::endl
-			<< "aborting ..." << std::endl);
+			<< "aborting..." << std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 

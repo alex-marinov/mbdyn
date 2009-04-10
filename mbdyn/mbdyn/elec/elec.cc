@@ -301,7 +301,7 @@ Elem* ReadElectric(DataManager* pDM,
 	  doublereal dTau = HP.GetReal();
 	  if (dTau <= 0.) {
 	     silent_cerr("Warning, illegal Tau in accelerometer "
-	       << uLabel << "; aborting ..." << std::endl);
+	       << uLabel << "; aborting..." << std::endl);
 	     throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	  }
 
