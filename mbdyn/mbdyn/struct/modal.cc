@@ -2217,6 +2217,7 @@ Modal::SetValue(DataManager *pDM,
 	}
 }
 
+#if 0
 /* Aggiorna dati durante l'iterazione fittizia iniziale */
 void
 Modal::DerivativesUpdate(const VectorHandler& X,
@@ -2234,6 +2235,7 @@ Modal::DerivativesUpdate(const VectorHandler& X,
 		const_cast<VectorHandler &>(XP).PutCoef(iFlexIndex + iCnt, b.dGet(iCnt));
 	}
 }
+#endif
 
 unsigned int
 Modal::iGetNumPrivData(void) const

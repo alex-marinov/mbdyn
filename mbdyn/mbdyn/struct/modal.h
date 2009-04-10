@@ -243,10 +243,12 @@ public:
 	void SetValue(DataManager *pDM,
 			VectorHandler& /* X */ , VectorHandler& /* XP */ ,
 			SimulationEntity::Hints *ph = 0);
-	
+
+#if 0
 	/* Aggiorna dati durante l'iterazione fittizia iniziale */
 	virtual void DerivativesUpdate(const VectorHandler& X,
 		const VectorHandler& XP);
+#endif
 
 	/* Dati privati */
 	virtual unsigned int iGetNumPrivData(void) const;
