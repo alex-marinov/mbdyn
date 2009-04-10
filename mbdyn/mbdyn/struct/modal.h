@@ -244,6 +244,10 @@ public:
 			VectorHandler& /* X */ , VectorHandler& /* XP */ ,
 			SimulationEntity::Hints *ph = 0);
 	
+	/* Aggiorna dati durante l'iterazione fittizia iniziale */
+	virtual void DerivativesUpdate(const VectorHandler& X,
+		const VectorHandler& XP);
+
 	/* Dati privati */
 	virtual unsigned int iGetNumPrivData(void) const;
 	virtual unsigned int iGetPrivDataIdx(const char *s) const;

@@ -2217,6 +2217,24 @@ Modal::SetValue(DataManager *pDM,
 	}
 }
 
+/* Aggiorna dati durante l'iterazione fittizia iniziale */
+void
+Modal::DerivativesUpdate(const VectorHandler& X,
+	const VectorHandler& XP)
+{
+	// NOTE: identical to SetValue()...
+	int iFlexIndex = iGetFirstIndex();
+
+	for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
+		/* modal multipliers */
+		const_cast<VectorHandler &>(X).PutCoef(iFlexIndex + iCnt, a.dGet(iCnt));
+
+		/* derivatives of modal multipliers */
+		const_cast<VectorHandler &>(X).PutCoef(iFlexIndex + NModes + iCnt, b.dGet(iCnt));
+		const_cast<VectorHandler &>(XP).PutCoef(iFlexIndex + iCnt, b.dGet(iCnt));
+	}
+}
+
 unsigned int
 Modal::iGetNumPrivData(void) const
 {

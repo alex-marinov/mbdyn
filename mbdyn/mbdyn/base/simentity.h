@@ -179,6 +179,9 @@ public:
 	virtual void Update(const VectorHandler& XCurr, 
 		       const VectorHandler& XPrimeCurr);
 	
+	virtual void DerivativesUpdate(const VectorHandler& XCurr, 
+		       const VectorHandler& XPrimeCurr);
+	
 	/* Inverse Dynamics:*/
 	virtual void Update(const VectorHandler& XCurr, 
 		       const int iOrder);

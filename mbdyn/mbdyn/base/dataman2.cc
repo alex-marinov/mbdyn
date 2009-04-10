@@ -1649,18 +1649,14 @@ DataManager::DerivativesUpdate(void) const
 	Node** ppLastNode = ppNodes+iTotNodes;
 	for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
 		ASSERT(*ppTmp != NULL);
-		if ((*ppTmp)->GetNodeType() == Node::STRUCTURAL) {
-			(*(StructNode**)ppTmp)->DerivativesUpdate(*pXCurr, *pXPrimeCurr);
-		} else {
-			(*ppTmp)->Update(*pXCurr, *pXPrimeCurr);
-		}
+		(*ppTmp)->DerivativesUpdate(*pXCurr, *pXPrimeCurr);
 	}
 
 	/* Versione con iteratore: */
 	Elem* pEl = NULL;
 	if (ElemIter.bGetFirst(pEl)) {
 		do {
-			pEl->Update(*pXCurr, *pXPrimeCurr);
+			pEl->DerivativesUpdate(*pXCurr, *pXPrimeCurr);
 		} while (ElemIter.bGetNext(pEl));
 	}
 }

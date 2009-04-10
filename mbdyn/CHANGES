@@ -25,6 +25,7 @@ MBDyn 1.X-Devel
 		- fixed consistency checks in modal joint/force input
 		  (noted by Luca Cavagna)
 		- fixed modal joint SetValue() (noted by Luca Cavagna)
+		- fixed modal joint derivatives update (noted by Luca Cavagna)
 
 MBDyn 1.3.7
 	Enhancements:

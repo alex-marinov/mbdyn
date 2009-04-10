@@ -103,6 +103,13 @@ SimulationEntity::Update(const VectorHandler& /* XCurr */ ,
 	NO_OP;
 }
 
+void
+SimulationEntity::DerivativesUpdate(const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr)
+{
+	Update(XCurr, XPrimeCurr);
+}
+
 /* Inverse Dynamics: */
 void
 SimulationEntity::Update(const VectorHandler& /* XCurr */ , 
