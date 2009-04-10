@@ -129,11 +129,13 @@ public:
 	TypedValue operator - (const TypedValue& v) const;
 	TypedValue operator * (const TypedValue& v) const;
 	TypedValue operator / (const TypedValue& v) const;
+	TypedValue operator % (const TypedValue& v) const;
 	
 	const TypedValue& operator += (const TypedValue& v);
 	const TypedValue& operator -= (const TypedValue& v);
 	const TypedValue& operator *= (const TypedValue& v);
 	const TypedValue& operator /= (const TypedValue& v);
+	const TypedValue& operator %= (const TypedValue& v);
 };
 
 extern bool operator ! (const TypedValue& v);

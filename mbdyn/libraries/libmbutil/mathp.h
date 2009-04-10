@@ -263,6 +263,7 @@ public:
 		EXP,		/* '^'	: Elevamento a potenza */
 		MULT,		/* '*'	: Moltiplicazione */
 		DIV,		/* '/'	: Divisione */
+		MOD,		/* '%'	: Divisione */
 		MINUS,		/* '-'	: Meno */
 		PLUS,		/* '+'	: Piu' */
 		GT,		/* '>'	: Maggiore di */

@@ -1279,6 +1279,19 @@ TypedValue::operator / (const TypedValue& v) const
 	return TypedValue(GetReal()/v.GetReal());
 }
 
+TypedValue
+TypedValue::operator % (const TypedValue& v) const
+{
+	// bool is implicitly cast to Int
+	if ((GetType() != TypedValue::VAR_BOOL && GetType() != TypedValue::VAR_INT)
+		|| (v.GetType() != TypedValue::VAR_BOOL && v.GetType() != TypedValue::VAR_INT))
+	{
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS);
+	}
+
+	return TypedValue(GetInt()%v.GetInt());
+}
+
 const TypedValue&
 TypedValue::operator += (const TypedValue& v)
 {
@@ -1377,6 +1390,25 @@ TypedValue::operator /= (const TypedValue& v)
 	Real d = GetReal()/v.GetReal();
 	type = TypedValue::VAR_REAL;
 	return Set(d);
+}
+
+const TypedValue&
+TypedValue::operator %= (const TypedValue& v)
+{
+	if (Const()) {
+		throw ErrConstraintViolation(MBDYN_EXCEPT_ARGS);
+	}
+
+	// bool is implicitly cast to Int
+	if ((GetType() != TypedValue::VAR_BOOL && GetType() != TypedValue::VAR_INT)
+			|| (v.GetType() != TypedValue::VAR_BOOL && v.GetType() != TypedValue::VAR_INT))
+	{
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS);
+	}
+
+	Int i = GetInt()%v.GetInt();
+	type = TypedValue::VAR_INT;
+	return Set(i);
 }
 
 bool
@@ -2705,6 +2737,9 @@ end_of_comment:;
 			return (currtoken = DIV);
 		}
 
+	case '%':
+		return (currtoken = MOD);
+
 	case '-':
 		return (currtoken = MINUS);
 
@@ -2933,6 +2968,16 @@ MathParser::mult(void)
 				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "divide by zero in mult()");
 			}
 			d /= e;
+			break;
+		}
+
+		case MOD: {
+			GetToken();
+			TypedValue e = power();
+			if (e == 0.) {
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "divide by zero in mult()");
+			}
+			d %= e;
 			break;
 		}
 

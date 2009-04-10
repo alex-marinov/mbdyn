@@ -13,6 +13,7 @@ MBDyn 1.X-Devel
 	Enhancements:
 		- permute and scale matrix for lapack eigenanalysis
 		- allow setting initial value in modal joint card
+		- add '%' operator to math parser
 	Backward compatibility issues:
 		- the format of the modal joint output changed
 		- the format of the modal force input changed
