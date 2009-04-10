@@ -2645,6 +2645,7 @@ If both need to be used, two \kw{external modal} forces must be instantiated:
 one with \kw{type} set to \kw{rigid}
 and the other with \kw{type} set to \kw{modal}.
 
+\paragraph{Rigid.} \
 When \kw{type} is \kw{rigid}, the data file written by the external software
 is expected to contain:
 \begin{verbatim}
@@ -2654,7 +2655,10 @@ body_forces,R,1,6,0
 \end{verbatim}
 where \kw{fx}, \kw{fy}, \kw{fz}, \kw{mx}, \kw{my}, \kw{mz}
 respectively are the force and moment components
-in the global reference frame.
+oriented according to the global reference frame.
+The moments are referred to the point that represents the origin
+of the FE model reference frame, or to either of
+the \kw{origin position} or the \kw{origin node}, if defined.
 
 The data file written by MBDyn contains:
 \begin{verbatim}
@@ -2683,6 +2687,7 @@ where:
 	of the orientation matrix.
 \end{itemize}
 
+\paragraph{Modal.} \
 When \kw{type} is \kw{modal}, the data file written by the external software
 is expected to contain:
 \begin{verbatim}

@@ -607,14 +607,14 @@ Elem* ReadElectric(DataManager* pDM,
 	   }
 
 	   /* desired output */
-	   DriveCaller** pvDesiredOut = NULL;
+	   std::vector<DriveCaller*> vDesiredOut;
 	   if (HP.IsKeyWord("desiredoutput")) {
 	      DEBUGCOUT("Desired output:" << std::endl);
-	      SAFENEWARR(pvDesiredOut, DriveCaller*, iNumOutputs);
+	      vDesiredOut.resize(iNumOutputs);
 
 	      for (integer i = 0; i < iNumOutputs; i++) {
 		 DEBUGCOUT("output[" << i+1 << "]:" << std::endl);
-		 pvDesiredOut[i] = HP.GetDriveCaller();
+		 vDesiredOut[i] = HP.GetDriveCaller();
 	      }
 	   }
 
@@ -636,10 +636,9 @@ Elem* ReadElectric(DataManager* pDM,
 						    pCD,
 						    pPX,
 						    pTrig,
-						    pvDesiredOut,
+						    &vDesiredOut[0],
 						    s,
 						    f_ma));
-
 	   break;
 #else /* !USE_DBC */
 	      silent_cerr("GPC/deadbeat control is not available" << std::endl);
