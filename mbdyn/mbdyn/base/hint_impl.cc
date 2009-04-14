@@ -125,7 +125,7 @@ DriveHint::pCreateDrive(DataManager *pDM) const
 	HP.ExpectArg();
 	HP.SetDataManager(pDM);
 
-	return ReadDriveData(pDM, HP, false);
+	return HP.GetDriveCaller(false);
 }
 
 /* DriveHint - end */

@@ -220,7 +220,7 @@ ReadModalForce(DataManager* pDM,
 		Mr = new Mat3xN(modeList.size(), 0.);
 	}
 	for (unsigned i = 0; i < f.size(); i++) {
-		f[i] = ReadDriveData(pDM, HP, false);
+		f[i] = HP.GetDriveCaller(false);
 		if (f[i] == 0) {
 			silent_cerr("ModalForce(" << uLabel << "): "
 				"unable to read DriveCaller for mode #" << i + 1

@@ -84,11 +84,14 @@ ReadScalarValue(DataManager *pDM, MBDynParser& HP)
 	ScalarValue *svp = 0;
 
 	if (HP.IsKeyWord("drive")) {
-		svp = new ScalarDriveValue(ReadDriveData(pDM, HP, false));
+		svp = new ScalarDriveValue(HP.GetDriveCaller(false));
+
 	} else {
-		if (HP.IsKeyWord("node" "dof")) {
-			NO_OP; // skip
+		if (!HP.IsKeyWord("node" "dof")) {
+			silent_cerr("Warning, missing keyword \"node dof\" "
+				"at line " << HP.GetLineData() << std::endl);
 		}
+
 		svp = new ScalarDofValue(ReadScalarDof(pDM, HP, true));
 	}
 

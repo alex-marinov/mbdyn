@@ -27,6 +27,7 @@ MBDyn 1.X-Devel
 		  (noted by Luca Cavagna)
 		- fixed modal joint SetValue() (noted by Luca Cavagna)
 		- fixed electric elements input
+		- fixed consistently honor drive caller references
 
 MBDyn 1.3.7
 	Enhancements:

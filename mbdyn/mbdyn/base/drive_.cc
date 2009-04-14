@@ -1222,7 +1222,7 @@ struct FunctionDCR : public DriveCallerRead {
 DriveCaller *
 FunctionDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
-	return ReadDriveData(pDM, HP, bDeferred);
+	return HP.GetDriveCaller(bDeferred);
 }
 
 struct StepDCR : public DriveCallerRead {
@@ -2130,8 +2130,8 @@ DriveDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 
 	DriveCaller *pDC = 0;
 
-	DriveCaller *pD1 = ReadDriveData(pDM, HP, bDeferred);
-	DriveCaller *pD2 = ReadDriveData(pDM, HP, bDeferred);
+	DriveCaller *pD1 = HP.GetDriveCaller(bDeferred);
+	DriveCaller *pD2 = HP.GetDriveCaller(bDeferred);
 
 	SAFENEWWITHCONSTRUCTOR(pDC,
 		DriveDriveCaller,

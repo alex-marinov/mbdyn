@@ -865,7 +865,7 @@ EndOfUse:
 				silent_cerr("Output meter/frequency already defined" << std::endl);
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
-			pOutputMeter = ReadDriveData(this, HP, false);
+			pOutputMeter = HP.GetDriveCaller(false);
 			break;
 
 		case OUTPUTRESULTS:

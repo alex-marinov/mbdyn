@@ -2195,7 +2195,7 @@ ReadJoint(DataManager* pDM,
 
 		Vec3 e1 = HP.GetVecRel(ReferenceFrame(pNode1));
 
-		DriveCaller* pDC = ReadDriveData(pDM, HP, false);
+		DriveCaller* pDC = HP.GetDriveCaller(false);
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
 
@@ -2244,7 +2244,7 @@ ReadJoint(DataManager* pDM,
 
 		Vec3 e = HP.GetVecAbs(AbsRefFrame);
 
-		DriveCaller* pDC = ReadDriveData(pDM, HP, false);
+		DriveCaller* pDC = HP.GetDriveCaller(false);
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
 
