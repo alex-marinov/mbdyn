@@ -1899,54 +1899,157 @@ and $ s $ is the Laplace variable.
         <node_2> , (Vec3) <relative_offset_2> ,
         <abstract_node_label>
 \end{verbatim}
+\begin{subequations}
+\begin{align}
+	\T{d} &= \T{x}_b + \T{o}_b - \T{x}_a - \T{o}_a \\
+	x &= \sqrt{\T{d}^T \T{d}}
+\end{align}
+\end{subequations}
+The value $x$ is added to the right-hand side of the equation
+of the \kw{abstract} node.
 
 \subsection{Motor}
 \begin{verbatim}
     <electric_arglist> ::=
         <node_1> ,
         <node_2> , 
-	((Unit)Vec3) <direction_relative_to_node_1> ,
+        ((Unit)Vec3) <direction_relative_to_node_1> ,
         <abstract_node_label1>,
         <abstract_node_label2>,
-	(scalar) dG,
-	(scalar) dl,
-	(scalar) dr
+        (scalar) dG,
+        (scalar) dl,
+        (scalar) dr
 \end{verbatim}
-The motor applies a torque about direction \kw{direction\_relative\_to\_node\_1};
-the direction is internally normalized to unity.
+\begin{subequations}
+\begin{align}
+	\omega &= \T{e}^T \plbr{\T{\omega}_2 - \T{\omega}_1} \\
+	V &= V_2 - V_1 \\
+	V &= \mathtt{dl} \frac{\mathrm{d}i}{\mathrm{d}t} + \mathtt{dr} \, i + \mathtt{dG} \, \omega \\
+	\T{c}_1 &= - \T{e} \, \mathtt{dG} \, i \\
+	\T{c}_2 &= \T{e} \, \mathtt{dG} \, i \\
+	i_1 &= -i \\
+	i_2 &= i
+\end{align}
+\end{subequations}
+The motor applies an internal torque about direction
+$\T{e}$=\kw{direction\_relative\_to\_node\_1}
+to both the structural nodes it is connected to.
+The direction $\T{e}$ is internally normalized to unity.
+It also applies a current to both the electrical nodes it is connected to.
+
+The element assumes that the relative orientation between nodes 1 and 2
+can only change by rotating about the direction $\T{e}$, so appropriate
+joints must be in place.
 
 
 \subsection{Discrete control}\label{sec:EL:DISCCTRL}
 This element implements a discrete equation
 that can be used to represent the behavior
 of a discrete linear controller.
-The control matrices can be identified
-by recursive least squares.
+The control matrices can be either provided,
+or identified during the simulation by recursive least squares.
 
-The element implements a system of the form
+Assume the original system consists in a generic nonlinear process
+that depends on a set of measures $\T{y}$ and a set of inputs $\T{u}$
+at a finite number of time steps past the current time, $t_k$, namely
 \begin{align}
-	\T{u}_k
-	&= \sum_{i=1,p} \TT{B}_i \T{u}_{k - i}
-	+ \sum_{j=1,q} \TT{A}_j \T{y}_{k - j} .
+	\T{f}\plbr{\T{y}_{k - i}, \T{u}_{k - j}} = \T{0} ,
 \end{align}
+with $i=0,p$ and $j=0,q$.
+Only $\T{y}_k$ is unknown, and thus represents the output of the process.
+It is assumed that $\T{u}_k$ is known, and represents an input
+to the process.
+
+This element implements a controller of the form
+\begin{align}
+	\T{u}_{ck}
+	&= \sum_{i=1,p} \TT{B}_{ci} \T{u}_{k - i}
+	+ \sum_{j=1,q} \TT{A}_{cj} \T{y}_{k - j} ,
+\end{align}
+where $\T{u}_{ck}$ is the control input that must be applied
+at time $t_k$ in addition to any exogenous input $\T{u}_{ek}$,
+so that $\T{u}_k = \T{u}_{ek} + \T{u}_{ck}$.
+The control input $\T{u}_{ck}$ can only depend on the measures
+and the inputs at previous time steps.
+
 Note that the symbols commonly used for discrete systems
 are here reversed, since the element is intended to compute
-control signals, $\T{u}_k$, based on their previous value
+the control signals at time $t_k$, $\T{u}_{ck}$,
+based on the previous value of the controls,
+$\T{u}_{k-i} = \T{u}_{e(k - i)} + \T{u}_{c(k - i)}$,
 and on the previous value of the motion of the original system,
-$\T{y}_{k-j}$.
+$\T{y}_{k-j}$;
+$\T{u}_e$ indicates a generic measured exogenous input
+to the system to be controlled.
 
 The order $p$ and $q$ of the auto-regressive and exogenous portions
 of the system can differ.
 In detail, the order $p$ can be zero; in that case, the system
 implements a \emph{finite impulse response} function.
 
+This element is not self-starting; it assumes that both
+inputs and outputs at times before the start time are zero.
+
+The so-called ``output'' signals, indicated with $\T{y}$,
+can be instances of either \kw{node\_dof} or \kw{drive\_caller} objects.
+The so-called ``input'' signals, indicated with $\T{u}$,
+must be instances of \kw{node\_dof} object.
+This implies that instances of \kw{node\_dof} objects
+need the corresponding equations to be (at least) statically defined.
+In fact, the \kw{discrete control} element uses the ``output''
+\kw{node\_dof} values, the $\T{y}$, to compute the corresponding
+``inputs'', the $\T{u}$.
+The latter are substantially added as a right-hand side
+to the equations of the corresponding \kw{node\_dof} objects.
+As a consequence, other elements must contribute to the left-hand side
+of all the \kw{node\_dof} equations in order to make them defined.
+
+Note that other elements may also contribute to the right-hand side
+of the ``input'' \kw{node\_dof} object.
+Specifically, other \kw{abstract} forces may contribute to their value.
+In that case, the additional forces represent the exogenous inputs.
+They are considered as part of the input used by the \kw{discrete control}
+element, since the value $\T{u}_k$ to be used in the control equation
+is extracted from the value of the corresponding \kw{node\_dof} objects.
+
+Figure~\ref{fig:discctrl} illustrates the behavior of the element.
+The typical suggested approach is illustrated later in an example.
+\begin{figure}
+\centering
+\psfrag{A}{$\TT{A}$}
+\psfrag{B}{$\TT{B}$}
+\psfrag{f}{$\T{f}$}
+\psfrag{uc}{$\T{u}_c$}
+\psfrag{fe}{$\T{u}_e$}
+\psfrag{uk-2}{$\T{u}_{k-2}$}
+\psfrag{uk-1}{$\T{u}_{k-1}$}
+\psfrag{uk}{$\T{u}_{k}$}
+\psfrag{yk-2}{$\T{y}_{k-2}$}
+\psfrag{yk-1}{$\T{y}_{k-1}$}
+\psfrag{yk}{$\T{y}_{k}$}
+\psfrag{k=1}{$\mathbb{K}=1$}
+\includegraphics[width=.7\textwidth]{discctrl}
+\caption{Discrete control layout.}
+\label{fig:discctrl}
+\end{figure}
+
 The syntax is
 \begin{verbatim}
-    <electric_arglist> ::= <num_outputs> , <num_inputs> , <num_iter>
+    <electric_arglist> ::= <num_outputs> , <num_inputs> ,
         <orderA> [, fir , <orderB> ] ,
+        <num_iter> ,
         <control_data> , 
-        outputs [ , (node_dof) <output_dofs> [ , scale , (drive_caller) scale ] [ , ... ] ] ,
-        inputs [ , (node_dof) <input_dofs> [ , ... ] ]
+        outputs ,
+            (scalar_value)<output_value> 
+                [ , scale , (drive_caller) scale ]
+            [ , ... ] ,
+        inputs ,
+            (node_dof) <input_dof>
+            [ , ... ]
+
+    <output_value> ::=
+        { [ node dof , ] (node_dof)<output_dof>
+            | drive , (drive_caller)<output_drive> }
 \end{verbatim}
 The lists of the output and input dofs follows. The input {\tt
 node\_dof}s do not require the \kw{orderA} and \kw {orderB} 
@@ -1964,9 +2067,10 @@ adaptive control, with different models and schemes, all based on
 Generalized Predictive Control (GPC) and Deadbeat Control.
 The \kw{control\_data} syntax is:
 \begin{verbatim}
-    <control_data> ::= { control , " <control_matrices_file> " }
-                       | { identification , <identification_data> }
-                       | { adaptive control , <adaptive_control_data> }
+    <control_data> ::=
+        { control , " <control_matrices_file> " |
+        | identification , <identification_data> }
+        | adaptive control , <adaptive_control_data> }
 \end{verbatim}
 
 \subsubsection{Control}
@@ -2030,8 +2134,8 @@ The \kw{adaptive\_control\_data} card is
                (integer) prediction_advancing_horizon ,
                (integer) control_advancing_horizon ,
                (integer) prediction_receding_horizon ,
-               [ predictionweights , (scalar) Wi [ , ... ] , ]
-               [ controlweights , (scalar) Ri [ , ... ] , ]
+               [ prediction weights , (scalar) Wi [ , ... ] , ]
+               [ control weights , (scalar) Ri [ , ... ] , ]
                (drive_caller) weight_drive
              } | { 
                deadbeat,
@@ -2042,19 +2146,109 @@ The \kw{adaptive\_control\_data} card is
         <forgetting_factor> ,
         <persistent_excitation>
         [ , trigger , (drive_caller) trigger_drive ]
-        [ , desiredoutput , (drive_caller) output_drive [ , ... ] ]
-        [ , file , " <file_name " ]            
+        [ , desired output , (drive_caller) output_drive [ , ... ] ]
+        [ , file , " <file_name> " ]            
 \end{verbatim}
-The default is \kw{arx}.\\
-The \kw{periodic\_factor} defaults to 0.\\
-(\kw{prediction\_advancing\_horizon - prediction\_receding\_horizon}) 
-\kw{Wi} and 
-\kw{control\_advancing\_horizon} 
-\kw{Ri}  weights must be defined; if the \kw{predictionweights}
-or \kw{controlweights} card is not present the corresponding weights default
-to 1.\\ 
-The \kw{desiredoutput}
+The default is \kw{arx}.
+
+The meaning of the keywords is:
+\begin{itemize}
+\item the \kw{periodic\_factor} defaults to 0;
+
+\item if the keyword \kw{prediction weights} is present,
+(\kw{prediction\_advancing\_horizon} - \kw{prediction\_receding\_horizon}) 
+weights \kw{Wi} must be supplied.
+If the keyword \kw{control weights} is present,
+\kw{control\_advancing\_horizon} weights \kw{Ri} must be supplied.
+If the keywords are not defined, the corresponding weights
+default to 1;
+
+\item the \kw{desired output}
 card requires \kw{num\_outputs} drives to be defined.
+\end{itemize}
+
+\subsubsection{Private Data}
+The following data is available:
+\begin{enumerate}
+\item \kw{"u[<idx>]"} value of the \kw{idx}-th control output.
+\end{enumerate}
+
+\subsubsection{Examples}
+Consider the case of a discrete controller that computes
+a set of control signals $\T{u}_k$ by adding to their value
+at the previous step, $\T{u}_{k-1}$, a contribution coming
+from some measure $\T{y}_{k-1}$.
+The control matrices are
+\begin{subequations}
+\begin{align}
+	\TT{A}_{c1} &= \sqbr{\matr{cc}{
+		a_{11} & a_{12} \\
+		a_{21} & a_{22}
+	}} \\
+	\TT{B}_{c1} &= \sqbr{\matr{cc}{
+		1 & 0 \\
+		0 & 1
+	}}
+\end{align}
+\end{subequations}
+They are defined in the control data file \kw{discretecontrol.dat} as
+\begin{verbatim}
+    a_11 a_12
+    a_21 a_22
+    1.0 0.0
+    0.0 1.0
+\end{verbatim}
+The model consists in two abstract nodes for the control input
+\kw{node\_dof} objects.
+They need to be grounded.
+This can be formulated by using a \kw{spring support} \kw{genel}
+for each abstract node, characterized by a unit spring coefficient,
+such that
+\begin{subequations}
+\begin{align}
+	1 \cdot x_{u1} = u_1 \\
+	1 \cdot x_{u2} = u_2
+\end{align}
+\end{subequations}
+Moreover, assume that the first measure, $y_1$,
+comes from a \kw{node\_dof} object,
+while the second one, $y_2$, comes from a \kw{drive} object.
+The equation corresponding to $y_1$ must be appropriately grounded
+as well, for example by means of yet another \kw{spring support}
+\kw{genel}.
+This is outside the scope of the present example, so it will assume
+the output nodes are defined appropriately.
+
+The model is
+\begin{verbatim}
+    set: integer U_1 = 1;
+    set: integer U_2 = 2;
+    set: integer Y_1 = 11;
+    # ...
+    abstract: U_1;
+    abstract: U_2;
+    # ...
+    genel: U_1, spring support,
+        U_1, abstract, algebraic,
+        linear elastic, 1.;
+    genel: U_2, spring support,
+        U_2, abstract, algebraic,
+        linear elastic, 1.;
+    electric: 99, discrete control,
+        2,    # number of `outputs' y
+        2,    # number of `inputs' u
+        1,    # order of output matrices A (same for input matrices B)
+        1,    # update every iteration
+        control, "discretecontrol.dat",
+        outputs,
+            node dof, Y_1, abstract, algebraic, scale, 1.e-3,
+            drive, sine, .5, 2*pi, 1., forever, 0, scale, 1.e-3,
+        inputs,
+            U_1, abstract, algebraic,
+            U_2, abstract, algebraic;
+\end{verbatim}
+
+
 
 
 \section{Force}\label{sec:EL:FORCE}
@@ -2062,10 +2256,13 @@ The \kw{force} element, in MBDyn, is a general means to introduce
 a right-hand side to the equations, i.e.\ an explicit contribution
 to the equations.
 There is a basic distinction between abstract and structural forces:
-the former apply to arbitrary equations, while the latter are specific
-to structural nodes and have a spatial description, essentially
-a direction in space which is amplified by a scalar coefficient
-that may depend on parameters, e.g.\ on time.
+abstract forces apply to arbitrary equations, while structural forces
+(and couples) are specific to structural nodes and have
+a spatial characterization.
+Essentially, structural forces have three components
+that may depend on arbitrary parameters (usually the simulated time),
+and a location in space.
+Structural couples have three parameter-dependent components.
 The syntax of the \kw{force} element is:
 \begin{verbatim}
   <normal_arglist> ::= <force_type> , <force_arglist>
@@ -2307,12 +2504,13 @@ The format is:
 	  (opposite to that applied to the first node);
 \end{itemize}
 
-
 \bigskip
-{\em 
-Note: by using a \kw{dof} drive, a simple feedback control can be easily
-implemented.
-}
+Note: by using a \kw{dof}, a \kw{node} or an \kw{element} drive,
+a simple feedback control can be easily implemented.
+Note however that the dependence of a force on some internal state
+does not result in adding the corresponding contribution 
+to the Jacobian matrix: the force remains explicit.
+Their improper use may result in missing convergence.
 
 \subsection{Modal}
 This element allows to define a set of generalized forces
@@ -2413,6 +2611,7 @@ Currently supported communication schemes are
         [ , sleep time , <sleep_time> ]
         [ , precision , { default | <digits> } ]
         [ , coupling , { loose | tight | <coupling_steps> } ]
+        [ , send after predict , { yes | no } ]
 \end{verbatim}
 
 \subsubsection{File communicator}
@@ -2472,6 +2671,48 @@ The optional parameter \kw{coupling} determines whether the coupling
 will be \kw{loose} (communicate each time step, the default) or
 \kw{tight} (communicate each iteration); otherwise, if \kw{coupling\_steps}
 is provided, the communication occurs every \kw{coupling\_steps}.
+
+The optional parameter \kw{send after predict} allows to indicate
+whether MBDyn must send the predicted motion or not when playing
+a tight coupling loop.
+
+\paragraph{Loose Coupling.} \
+When the coupling is \kw{loose}, the communication pattern is:
+\begin{enumerate}
+\item MBDyn receives a set of forces sent by the external peer
+	the first time the residual is assembled within a time step;
+
+\item MBDyn sends a set of kinematic parameters after convergence.
+\end{enumerate}
+As a consequence, MBDyn solves the current time step kinematics
+using forces evaluated for the kinematics at the previous time step,
+something like
+\begin{align}
+	\T{f}\plbr{\T{y}_k, \dot{\T{y}}_k, \T{u}_{k - 1}} &= \T{0}
+\end{align}
+
+\paragraph{Tight Coupling.} \
+When the coupling is \kw{tight}, the communication pattern is:
+\begin{enumerate}
+\item MBDyn sends the predicted kinematics during the ``after predict''
+	phase (unless \kw{send after predict} is set to \kw{no});
+
+\item MBDyn receives a set of forces sent by the external peer
+	each time the residual is assembled;
+
+\item as soon as, while reading the forces, MBDyn is informed that
+	the external peer converged, it continues iterating until
+	convergence using the last set of forces it read.
+
+%\item if coupling only occurs every some iterations, MBDyn sends
+%	a set of kinematic parameters after convergence.
+\end{enumerate}
+As a consequence, MBDyn solves the current time step kinematics
+using forces evaluated for the kinematics at the same time step,
+something like
+\begin{align}
+	\T{f}\plbr{\T{y}_k, \dot{\T{y}}_k, \T{u}_k} &= \T{0}
+\end{align}
 
 
 

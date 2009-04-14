@@ -41,7 +41,7 @@
 #include <fstream>
 
 #include "elec.h"
-#include "veciter.h"
+#include "scalarvalue.h"
 
 #include "id.h"
 #include "gpc.h"
@@ -97,6 +97,21 @@
 
 class DiscreteControlProcess {
 public:
+	enum {
+		DISCPROC_UNKNOWN	= -1,
+
+		DISCPROC_AR		= 0x1U,
+		DISCPROC_MA		= 0x2U,
+		DISCPROC_X			= 0x4U,
+
+		DISCPROC_ARX		= (DISCPROC_AR | DISCPROC_X),
+		DISCPROC_ARMA		= (DISCPROC_AR | DISCPROC_MA),
+		DISCPROC_ARMAX		= (DISCPROC_AR | DISCPROC_MA | DISCPROC_X),
+
+		DISCPROC_LAST
+	};
+
+public:
 	virtual ~DiscreteControlProcess(void);
 
 	// Returns the new control input values in array dIn
@@ -127,6 +142,8 @@ protected:
 	integer iRefA;		// Current position of most recent output
 	integer iRefB;		// Current position of most recent input
 
+	const std::string infile;
+
 	// Reads the control matrices
 	int
 	ReadMatrix(std::istream& In, doublereal* pd,
@@ -136,7 +153,7 @@ protected:
 
 public:
 	DiscreteControlARXProcess_Debug(integer iNumOut, integer iNumIn,
-		integer iOrdA, integer iOrdB, std::istream& In);
+		integer iOrdA, integer iOrdB, const std::string& infile);
 	virtual ~DiscreteControlARXProcess_Debug(void);
 
 	// Returns the new control input values in array dIn
@@ -165,7 +182,7 @@ protected:
 	PersistentExcitation* pPx;	/* Excitation */
 
 	// provvisorio?!?
-	flag fout;
+	const std::string outfile;
 	std::ofstream out;
 
 public:
@@ -173,8 +190,8 @@ public:
 		integer iOrdA, integer iOrdB,
 		ForgettingFactor* pf,
 		PersistentExcitation* px,
-		flag f_armax,
-		const char* sf = 0);
+		unsigned f_proc,
+		const std::string& sf);
 	virtual ~DiscreteIdentProcess_Debug(void);
 
 	// Returns the new control input values in array dIn
@@ -204,7 +221,7 @@ protected:
 	doublereal* pdY;	// Stack of output vectors at previous times (p*m)
 	doublereal* pdB;	// Stack of matrices b_c (r x (pb*r))
 	doublereal* pdU;	// Stack of input vectors at previous times (p*r)
-	flag f_ma;
+	unsigned f_proc;
 	doublereal* pdC;	// Stack of matrices c_c (r x (pa*m))
 	doublereal* pdE;	// Stack of error vectors at previous times
 	doublereal* pdMd;	// Stack of matrices m_c (r x (pa*?))
@@ -219,11 +236,10 @@ protected:
 	PersistentExcitation* pPx;	// excitation
 	DriveOwner Trigger;	// control trigger
 
-	flag f_md;
 	std::vector<DriveOwner*> vDesiredOut;
 
 	// provvisorio?!?
-	flag fout;
+	const std::string outfile;
 	std::ofstream out;
 
 public:
@@ -233,9 +249,9 @@ public:
 		GPCDesigner* pd,
 		PersistentExcitation* px,
 		DriveCaller* PTrig,
-		DriveCaller** pvDesOut,
-		const char* sf,
-		flag f);
+		std::vector<DriveCaller *>& vDesOut,
+		const std::string& sf,
+		unsigned f_proc);
 	virtual ~DAC_Process_Debug(void);
 
 	// Returns the new control input values in array dIn
@@ -255,12 +271,12 @@ public:
 class DiscreteControlElem : virtual public Elem, public Electric {
 protected:
 	DiscreteControlProcess* pDCP;
-	flag fNewStep;		// Decides whether to read data from control process
+	bool bNewStep;		// Decides whether to read data from control process
 	integer iNumIter;	// The control acts at iNumIter*dt time steps
 	integer iCurrIter;
 
 	integer iNumOutputs;
-	ScalarDof* pOutputs;
+	std::vector<ScalarValue *> vOutputs;
 	std::vector<DriveOwner*> vOutScaleFact;
 	std::vector<doublereal> dOut;
 
@@ -271,8 +287,8 @@ protected:
 public:
 	DiscreteControlElem(unsigned int uL, const DofOwner* pDO,
 		integer iNumOut,
-		ScalarDof* ppOut,
-		DriveCaller** ppOutSF,
+		std::vector<ScalarValue *>& vOut,
+		std::vector<DriveCaller *>& vOutSF,
 		integer iNumIn,
 		ScalarDof* ppIn,
 		DiscreteControlProcess* p,
@@ -310,6 +326,11 @@ public:
 		doublereal dCoef,
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
+
+	/* Dati privati */
+	virtual unsigned int iGetNumPrivData(void) const;
+	virtual unsigned int iGetPrivDataIdx(const char *s) const;
+	virtual doublereal dGetPrivData(unsigned int i) const;   
 
 	/* *******PER IL SOLUTORE PARALLELO******** */
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento

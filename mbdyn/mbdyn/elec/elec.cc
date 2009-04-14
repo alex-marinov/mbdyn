@@ -48,690 +48,701 @@
 /* Electric - begin */
 
 Electric::Electric(unsigned int uL,
-		   const DofOwner* pDO, flag fOut)
+	const DofOwner* pDO, flag fOut)
 : Elem(uL, fOut),
 ElemWithDofs(uL, pDO, fOut)
 {
-   NO_OP;
+	NO_OP;
 }
-
 
 Electric::~Electric(void)
 {
-   NO_OP;
+	NO_OP;
 }
-
 
 /* Contributo al file di restart
  * (Nota: e' incompleta, deve essere chiamata dalla funzione corrispndente
  * relativa alla classe derivata */
-std::ostream& Electric::Restart(std::ostream& out) const {
-   return out << "  electric: " << GetLabel();
+std::ostream&
+Electric::Restart(std::ostream& out) const
+{
+	return out << "  electric: " << GetLabel();
 }
 
 
 /* Tipo dell'elemento (usato solo per debug ecc.) */
-Elem::Type Electric::GetElemType(void) const
+Elem::Type
+Electric::GetElemType(void) const
 {
-   return Elem::ELECTRIC;
+	return Elem::ELECTRIC;
 }
 
 /* Electric - end */
 
-
 /* Legge un forgetting factor */
 
-ForgettingFactor* ReadFF(MBDynParser& HP, integer iNumOutputs)
+ForgettingFactor *
+ReadFF(MBDynParser& HP, integer iNumOutputs)
 {
-   ForgettingFactor* pFF = NULL;
+	ForgettingFactor* pFF = 0;
 
-   if (HP.IsKeyWord("forgetting" "factor")) {
-      if (HP.IsKeyWord("const")) {
-	 doublereal d = HP.GetReal();
+	if (HP.IsKeyWord("forgetting" "factor")) {
+		if (HP.IsKeyWord("const")) {
+			doublereal d = HP.GetReal();
 
-	 SAFENEWWITHCONSTRUCTOR(pFF,
-				ConstForgettingFactor,
+			SAFENEWWITHCONSTRUCTOR(pFF, ConstForgettingFactor,
 				ConstForgettingFactor(d));
 
-      } else if (HP.IsKeyWord("dynamic")) {
-	 /* uso la 2^a versione */
-	 integer n1 = HP.GetInt();
-	 integer n2 = HP.GetInt();
-	 doublereal dRho = HP.GetReal();
-	 doublereal dFact = HP.GetReal();
-	 doublereal dKRef = HP.GetReal();
-	 doublereal dKLim = HP.GetReal();
+		} else if (HP.IsKeyWord("dynamic")) {
+			integer n1 = HP.GetInt();
+			integer n2 = HP.GetInt();
+			doublereal dRho = HP.GetReal();
+			doublereal dFact = HP.GetReal();
+			doublereal dKRef = HP.GetReal();
+			doublereal dKLim = HP.GetReal();
 
-	 SAFENEWWITHCONSTRUCTOR(pFF,
-				DynamicForgettingFactor2,
-				DynamicForgettingFactor2(n1, n2,
-							 iNumOutputs,
-							 dRho, dFact,
-							 dKRef, dKLim));
+			SAFENEWWITHCONSTRUCTOR(pFF, DynamicForgettingFactor2,
+				DynamicForgettingFactor2(n1, n2, iNumOutputs,
+					dRho, dFact, dKRef, dKLim));
 
-      } else {
-	 silent_cerr("line " << HP.GetLineData()
-	   << ": unknown forgetting factor" << std::endl);
-	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-      }
-   } else {
-      /* default */
-      SAFENEWWITHCONSTRUCTOR(pFF,
-			     ConstForgettingFactor,
-			     ConstForgettingFactor(1.));
-   }
+		} else {
+			silent_cerr("Unknown forgetting factor type "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 
-   ASSERT(pFF != NULL);
-   return pFF;
+	} else {
+		/* default */
+		SAFENEWWITHCONSTRUCTOR(pFF, ConstForgettingFactor,
+			ConstForgettingFactor(1.));
+	}
+
+	ASSERT(pFF != 0);
+	return pFF;
 }
-
 
 /* Legge un eccitatore persistente */
 
-PersistentExcitation* ReadPX(DataManager* pDM, MBDynParser& HP, integer iNumInputs)
+PersistentExcitation *
+ReadPX(DataManager* pDM, MBDynParser& HP, integer iNumInputs)
 {
-   PersistentExcitation* pPX = NULL;
+	PersistentExcitation* pPX = 0;
 
-   if (HP.IsKeyWord("excitation")) {
-      if (iNumInputs == 1) {
-	 DriveCaller* pDC = HP.GetDriveCaller();
-	 SAFENEWWITHCONSTRUCTOR(pPX, ScalarPX, ScalarPX(pDC));
-      } else {
-	 DriveCaller** ppDC = NULL;
-	 SAFENEWARR(ppDC, DriveCaller*, iNumInputs);
+	if (HP.IsKeyWord("excitation")) {
+		if (iNumInputs == 1) {
+			DriveCaller* pDC = HP.GetDriveCaller();
+			SAFENEWWITHCONSTRUCTOR(pPX, ScalarPX, ScalarPX(pDC));
 
-	 for (integer i = iNumInputs; i-- > 0; ) {
-	    ppDC[i] = HP.GetDriveCaller();
-	 }
-	 SAFENEWWITHCONSTRUCTOR(pPX, VectorPX, VectorPX(iNumInputs, ppDC));
-      }
-   } else {
-      /* Null excitation */
-      SAFENEW(pPX, NullPX);
-   }
+		} else {
+			DriveCaller** ppDC = 0;
+			SAFENEWARR(ppDC, DriveCaller*, iNumInputs);
 
-   ASSERT(pPX != NULL);
-   return pPX;
+			for (integer i = iNumInputs; i-- > 0; ) {
+				ppDC[i] = HP.GetDriveCaller();
+			}
+			SAFENEWWITHCONSTRUCTOR(pPX, VectorPX, VectorPX(iNumInputs, ppDC));
+		}
+
+	} else {
+		/* Null excitation */
+		SAFENEW(pPX, NullPX);
+	}
+
+	ASSERT(pPX != 0);
+	return pPX;
 }
-
-
-
 
 /* Legge un elemento elettrico */
 
-Elem* ReadElectric(DataManager* pDM,
-		   MBDynParser& HP,
-		   const DofOwner* pDO,
-		   unsigned int uLabel)
+Elem *
+ReadElectric(DataManager* pDM,
+	MBDynParser& HP,
+	const DofOwner* pDO,
+	unsigned int uLabel)
 {
-   DEBUGCOUTFNAME("ReadElectric()");
+	DEBUGCOUTFNAME("ReadElectric()");
 
-   const char* sKeyWords[] = {
-      "accelerometer",
-      "displacement",
-      "motor",
-      "discrete" "control",
-      "identification",
-          "const",
-          "dynamic",
-      "control",
-      "adaptive" "control"
-   };
+	const char* sKeyWords[] = {
+		"accelerometer",
+		"displacement",
+		"motor",
+		"discrete" "control",
+			"identification",
+			"control",
+			"adaptive" "control"
+	};
 
-   /* enum delle parole chiave */
-   enum KeyWords {
-      UNKNOWN = -1,
+	// enum delle parole chiave
+	enum KeyWords {
+		UNKNOWN = -1,
 
-      ACCELEROMETER = 0,
-      DISPLACEMENT,
+		ACCELEROMETER = 0,
+		DISPLACEMENT,
 
-      MOTOR,
+		MOTOR,
 
-      DISCRETECONTROL,
-      IDENTIFICATION,
-	CONST,
-	DYNAMIC,
-      CONTROL,
-      ADAPTIVECONTROL,
+		DISCRETECONTROL,
+			IDENTIFICATION,
+			CONTROL,
+			ADAPTIVECONTROL,
 
-      LASTKEYWORD
-   };
+		LASTKEYWORD
+	};
 
-   /* tabella delle parole chiave */
-   KeyTable K(HP, sKeyWords);
+	// tabella delle parole chiave
+	KeyTable K(HP, sKeyWords);
 
-   /* lettura del tipo di elemento elettrico */
-   KeyWords CurrKeyWord = KeyWords(HP.GetWord());
+	// lettura del tipo di elemento elettrico
+	KeyWords CurrKeyWord = KeyWords(HP.GetWord());
 
-#ifdef DEBUG
-   if (CurrKeyWord >= 0) {
-      std::cout << "electric element type: "
-	<< sKeyWords[CurrKeyWord] << std::endl;
-   }
-#endif
+	Elem* pEl = 0;
 
-   Elem* pEl = NULL;
+	switch (CurrKeyWord) {
+	case ACCELEROMETER: {
+		int f = 0;
+		if (HP.IsKeyWord("translational")) {
+			f = 1;
+		} else if(HP.IsKeyWord("rotational")) {
+			f = 2;
+		}
 
-   switch (CurrKeyWord) {
-      /*  */
+		if (f) {
+			// TODO: check if downgradable to ScalarNode
 
-    case ACCELEROMETER: {
-       int f = 0;
-       if (HP.IsKeyWord("translational")) {
-	  f = 1;
-       } else if(HP.IsKeyWord("rotational")) {
-	  f = 2;
-       }
+			// nodo strutturale collegato
+			StructNode* pStrNode
+				= dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 
-       if (f) {
-	  /* TODO: check if downgradable to ScalarNode */
+			// nodo astratto collegato
+			ScalarDifferentialNode* pAbsNode
+				= dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
 
-	  /* nodo strutturale collegato */
-	  StructNode* pStrNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+			// Direzione
+			Vec3 Dir;
+			try {
+				Dir = HP.GetUnitVecRel(ReferenceFrame(pStrNode));
+			} catch (ErrNullNorm) {
+				silent_cerr("Accelerometer(" << uLabel << "): "
+					"null direction "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
+			}
+			DEBUGCOUT("Direction: " << std::endl << Dir << std::endl);
 
-	  /* nodo astratto collegato */
-	  ScalarDifferentialNode* pAbsNode = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
+			// offset
+			Vec3 Tmpf(0.);
+			if (HP.IsKeyWord("position") || HP.IsKeyWord("offset") || f == 1) {
+				Tmpf = HP.GetPosRel(ReferenceFrame(pStrNode));
+			}
+			flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
 
-	  /* Direzione */
-	  Vec3 Dir;
-          try {
-	     Dir = HP.GetUnitVecRel(ReferenceFrame(pStrNode));
-          } catch (ErrNullNorm) {
-	     silent_cerr("Warning, null direction in accelerometer "
-	       << uLabel << std::endl);
-	     throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
-          }
-	  DEBUGCOUT("Direction: " << std::endl << Dir << std::endl);
-
-	  /* offset */
-	  Vec3 Tmpf(0.);
-	  if (HP.IsKeyWord("position") || HP.IsKeyWord("offset") || f == 1) {
-	     Tmpf = HP.GetPosRel(ReferenceFrame(pStrNode));
-	  }
-	  flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
-	  switch (f) {
-	   case 1:
-	      SAFENEWWITHCONSTRUCTOR(pEl,
-				     TranslAccel,
-				     TranslAccel(uLabel, pDO,
+			switch (f) {
+			case 1:
+				SAFENEWWITHCONSTRUCTOR(pEl, TranslAccel,
+					TranslAccel(uLabel, pDO,
 						pStrNode, pAbsNode,
 						Dir, Tmpf, fOut));
-	      break;
+				break;
 
-	   case 2:
-	      SAFENEWWITHCONSTRUCTOR(pEl,
-				     RotAccel,
-				     RotAccel(uLabel, pDO,
-					      pStrNode, pAbsNode,
-					      Dir, fOut));
-	      break;
+			case 2:
+				SAFENEWWITHCONSTRUCTOR(pEl, RotAccel,
+					RotAccel(uLabel, pDO,
+						pStrNode, pAbsNode,
+						Dir, fOut));
+				break;
 
-	   default:
-	      silent_cerr("you shouldn't be here!" << std::endl);
-	      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	  }
+			default:
+				silent_cerr("you shouldn't be here!" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 
-       } else {
+		} else {
 
-	  /* nodo strutturale collegato */
-	  StructNode* pStrNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+			// nodo strutturale collegato
+			StructNode* pStrNode
+				= dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 
-	  /* nodo astratto collegato */
-	  ScalarDifferentialNode* pAbsNode = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
+			// nodo astratto collegato
+			ScalarDifferentialNode* pAbsNode
+				= dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
 
-	  /* Direzione */
-	  Vec3 Dir;
-          try {
-	     Dir = HP.GetUnitVecRel(ReferenceFrame(pStrNode));
-          } catch (ErrNullNorm) {
-	     silent_cerr("Warning, null direction in accelerometer "
-	       << uLabel << std::endl);
-	     throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
-          }
-	  DEBUGCOUT("Direction: " << std::endl << Dir << std::endl);
+			// Direzione
+			Vec3 Dir;
+			try {
+				Dir = HP.GetUnitVecRel(ReferenceFrame(pStrNode));
+			} catch (ErrNullNorm) {
+				silent_cerr("Accelerometer(" << uLabel << "): "
+					"null direction "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
+			}
+			DEBUGCOUT("Direction: " << std::endl << Dir << std::endl);
 
-	  /* Parametri */
-	  doublereal dOmega = HP.GetReal();
-	  if (dOmega <= 0.) {
-	     silent_cerr("Warning, illegal Omega in accelerometer "
-	       << uLabel << std::endl);
-	     throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-	  }
+			// Parametri
+			doublereal dOmega = HP.GetReal();
+			if (dOmega <= 0.) {
+				silent_cerr("Accelerometer(" << uLabel << "): "
+					"illegal Omega "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 
-	  doublereal dTau = HP.GetReal();
-	  if (dTau <= 0.) {
-	     silent_cerr("Warning, illegal Tau in accelerometer "
-	       << uLabel << "; aborting..." << std::endl);
-	     throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-	  }
+			doublereal dTau = HP.GetReal();
+			if (dTau <= 0.) {
+				silent_cerr("Accelerometer(" << uLabel << "): "
+					"illegal Tau "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 
-	  doublereal dCsi = HP.GetReal();
-	  if (dCsi <= 0. || dCsi > 1.) {
-	     silent_cerr("Warning, illegal Csi in accelerometer "
-	       << uLabel << std::endl);
-	     throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-	  }
+			doublereal dCsi = HP.GetReal();
+			if (dCsi <= 0. || dCsi > 1.) {
+				silent_cerr("Accelerometer(" << uLabel << "): "
+					"illegal Csi "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 
-	  doublereal dKappa = HP.GetReal();
-	  if (dKappa == 0.) {
-	     silent_cerr("Warning, null Kappa in accelerometer "
-	       << uLabel << std::endl);
-	     throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-	  }
+			doublereal dKappa = HP.GetReal();
+			if (dKappa == 0.) {
+				silent_cerr("Accelerometer(" << uLabel << "): "
+					"illegal Kappa "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 
-	  DEBUGCOUT("Omega: " << dOmega
-		    << ", Tau: " << dTau
-		    << ", Csi: " << dCsi
-		    << ", Kappa: " << dKappa << std::endl);
+			DEBUGCOUT("Omega: " << dOmega
+				<< ", Tau: " << dTau
+				<< ", Csi: " << dCsi
+				<< ", Kappa: " << dKappa
+				<< std::endl);
 
-	  flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
+			flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
 
-	  SAFENEWWITHCONSTRUCTOR(pEl,
-				 Accelerometer,
-				 Accelerometer(uLabel, pDO, pStrNode, pAbsNode,
-					       Dir, dOmega, dTau, dCsi, dKappa,
-					       fOut));
-       }
+			SAFENEWWITHCONSTRUCTOR(pEl, Accelerometer,
+				Accelerometer(uLabel, pDO, pStrNode, pAbsNode,
+					Dir, dOmega, dTau, dCsi, dKappa,
+					fOut));
+		}
 
-       break;
-    }
+		} break;
 
-    case DISPLACEMENT: {
-       /* nodo strutturale collegato 1 */
-       StructNode* pStrNode1 = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+	case DISPLACEMENT: {
+		// nodo strutturale collegato 1
+		StructNode* pStrNode1
+			= dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 
-       /* offset 1 */
-       Vec3 Tmpf1(HP.GetPosRel(ReferenceFrame(pStrNode1)));
+		// offset 1
+		Vec3 Tmpf1(0.);
+		if (HP.IsKeyWord("position")) {
+			NO_OP;
+		}
+		Tmpf1 = HP.GetPosRel(ReferenceFrame(pStrNode1));
 
-       /* nodo strutturale collegato 2 */
-       StructNode* pStrNode2 = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		// nodo strutturale collegato 2
+		StructNode* pStrNode2
+			= dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 
-       /* offset 2 */
-       Vec3 Tmpf2(HP.GetPosRel(ReferenceFrame(pStrNode2)));
+		// offset 2
+		Vec3 Tmpf2(0.);
+		if (HP.IsKeyWord("position")) {
+			NO_OP;
+		}
+		Tmpf2 = HP.GetPosRel(ReferenceFrame(pStrNode2));
 
-       /* nodo astratto collegato */
-       ScalarDifferentialNode* pAbsNode = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
+		// nodo astratto collegato
+		ScalarDifferentialNode* pAbsNode
+			= dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
 
-       flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
+		flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
 
-       SAFENEWWITHCONSTRUCTOR(pEl,
-			      DispMeasure,
-			      DispMeasure(uLabel, pDO,
-					  pStrNode1, pStrNode2, pAbsNode,
-					  Tmpf1, Tmpf2, fOut));
-       break;
-    }
+		SAFENEWWITHCONSTRUCTOR(pEl, DispMeasure,
+			DispMeasure(uLabel, pDO,
+				pStrNode1, pStrNode2, pAbsNode,
+				Tmpf1, Tmpf2, fOut));
+		} break;
 
-    case MOTOR: {
-       /* nodo strutturale collegato 1 */
-       StructNode* pStrNode1 = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+	case MOTOR: {
+		// nodo strutturale collegato 1
+		StructNode* pStrNode1
+			= dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 
-       /* nodo strutturale collegato 2 */
-       StructNode* pStrNode2 = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		// nodo strutturale collegato 2
+		StructNode* pStrNode2
+			= dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 
-       /* direzione */
-       Vec3 TmpDir;
-       try {
-          TmpDir = HP.GetUnitVecRel(ReferenceFrame(pStrNode1));
-       } catch (ErrNullNorm) {
-	       silent_cerr("Motor(" << uLabel << "): "
-                       "motor direction is illegal at line "
-		       << HP.GetLineData() << std::endl);
-	       throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
-       }
+		// direzione
+		Vec3 TmpDir;
+		try {
+			TmpDir = HP.GetUnitVecRel(ReferenceFrame(pStrNode1));
+		} catch (ErrNullNorm) {
+			silent_cerr("Motor(" << uLabel << "): "
+				"illegal motor direction "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
+		}
 
-       /* nodo elettrico1 collegato */
-       ElectricNode* pVoltage1 = dynamic_cast<ElectricNode *>(pDM->ReadNode(HP, Node::ELECTRIC));
+		// nodo elettrico1 collegato
+		ElectricNode* pVoltage1
+			= dynamic_cast<ElectricNode *>(pDM->ReadNode(HP, Node::ELECTRIC));
 
-       /* nodo elettrico2 collegato */
-       ElectricNode* pVoltage2 = dynamic_cast<ElectricNode *>(pDM->ReadNode(HP, Node::ELECTRIC));
+		// nodo elettrico2 collegato
+		ElectricNode* pVoltage2
+			= dynamic_cast<ElectricNode *>(pDM->ReadNode(HP, Node::ELECTRIC));
 
-       doublereal dG = HP.GetReal();
-       doublereal dl = HP.GetReal();
-       doublereal dr = HP.GetReal();
+		doublereal dG = HP.GetReal();
+		doublereal dl = HP.GetReal();
+		doublereal dr = HP.GetReal();
 
-       flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
+		flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
 
-       SAFENEWWITHCONSTRUCTOR(pEl, Motor, Motor(uLabel, pDO,
-	       		       pStrNode1, pStrNode2, pVoltage1, pVoltage2,
-			       TmpDir, dG, dl, dr, fOut));
-       break;
-    }
+		SAFENEWWITHCONSTRUCTOR(pEl, Motor,
+			Motor(uLabel, pDO,
+				pStrNode1, pStrNode2, pVoltage1, pVoltage2,
+				TmpDir, dG, dl, dr, fOut));
+		} break;
 
-      /*  */
-    case DISCRETECONTROL: {
-       /* lettura dei dati specifici */
+	case DISCRETECONTROL: {
+		// Dati generali del controllore
+		integer iNumOutputs = HP.GetInt();
+		integer iNumInputs = HP.GetInt();
+		integer iOrderA = HP.GetInt();
+		integer iOrderB = iOrderA;
+		if (HP.IsKeyWord("fir")) {
+			iOrderB = HP.GetInt();
+		}
 
-       /* Dati generali del controllore */
-       integer iNumOutputs = HP.GetInt();
-       integer iNumInputs = HP.GetInt();
-       integer iOrderA = HP.GetInt();
-       integer iOrderB = iOrderA;
-       if (HP.IsKeyWord("fir")) {
-	  iOrderB = HP.GetInt();
-       }
+		integer iNumIter = HP.GetInt();
 
-       integer iNumIter = HP.GetInt();
+		DEBUGCOUT("Discrete controller of order " << iOrderA);
+		if (iOrderB != iOrderA) {
+			DEBUGCOUT(" (fir order " << iOrderB << ')' << std::endl);
+		}
+		DEBUGCOUT(": " << iNumOutputs << " output(s) and "
+			<< iNumInputs << " input(s)" << std::endl
+			<< "Update every " << iNumIter << " iterations" << std::endl);
 
-       DEBUGCOUT("Discrete controller of order " << iOrderA);
-       if (iOrderB != iOrderA) {
-	  DEBUGCOUT(" (fir order " << iOrderB << ')' << std::endl);
-       }
-       DEBUGCOUT(": " << iNumOutputs << " output(s) and "
-		 << iNumInputs << " input(s)" << std::endl
-		 << "Update every " << iNumIter << " iterations" << std::endl);
+		// Tipo di controllo
+		DiscreteControlProcess* pDCP = 0;
+		switch (HP.GetWord()) {
+		case CONTROL: {
+			// Add the file with control data
+			const char* s = HP.GetFileName();
+			std::string infile = s;
 
-       /* Tipo di controllo */
-       DiscreteControlProcess* pDCP = NULL;
-       switch (HP.GetWord()) {
-	case CONTROL: {
-	   /* Add the file with control data */
-	   const char* sControlFile(HP.GetFileName());
+			DEBUGCOUT("Getting control matrices "
+				"from file \"" << infile << "\""
+				<< std::endl);
 
-	   DEBUGCOUT("Getting control matrices from file <"
-		     << sControlFile << '>' << std::endl);
+			/* Construction of controller */
+			SAFENEWWITHCONSTRUCTOR(pDCP,
+				DiscreteControlARXProcess_Debug,
+				DiscreteControlARXProcess_Debug(iNumOutputs,
+					iNumInputs,
+					iOrderA,
+					iOrderB,
+					infile));
+			} break;
 
-	   std::ifstream iFIn(sControlFile);
-	   if (!iFIn) {
-	      silent_cerr("Error in opening control file <"
-		<< sControlFile << '>' << std::endl);
-	      throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-	   }
+		case IDENTIFICATION: {
+			unsigned f_proc = DiscreteControlProcess::DISCPROC_UNKNOWN;
+			if (HP.IsKeyWord("arx")) {
+				f_proc = DiscreteControlProcess::DISCPROC_ARX;
 
-	   /* Construction of controller */
-	   SAFENEWWITHCONSTRUCTOR(pDCP,
-				  DiscreteControlARXProcess_Debug,
-				  DiscreteControlARXProcess_Debug(iNumOutputs,
-								  iNumInputs,
-								  iOrderA,
-								  iOrderB,
-								  iFIn));
+			} else if (HP.IsKeyWord("armax")) {
+				f_proc = DiscreteControlProcess::DISCPROC_ARMAX;
 
-	   iFIn.close();
-	   break;
-	}
+			} else {
+				silent_cerr("DiscreteControl(" << uLabel << "): "
+					"unknown identification type "
+					"at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 
-	case IDENTIFICATION: {
-	   flag f_ma = 0;
-	   if (HP.IsKeyWord("arx")) {
-	      f_ma = 0;
-	   } else if (HP.IsKeyWord("armax")) {
-	      f_ma = 1;
-	   }
+			// Forgetting factor
+			ForgettingFactor* pFF = ReadFF(HP, iNumOutputs);
 
-	   /* Forgetting factor */
-	   ForgettingFactor* pFF = ReadFF(HP, iNumOutputs);
+			// Persistent excitation
+			PersistentExcitation* pPX = ReadPX(pDM, HP, iNumInputs);
 
-	   /* Persistent excitation */
-	   PersistentExcitation* pPX = ReadPX(pDM, HP, iNumInputs);
+			std::string outfile;
+			if (HP.IsKeyWord("file")) {
+				const char *s = HP.GetFileName();
+				outfile = s;
+			}
 
-	   char* s = NULL;
-	   if (HP.IsKeyWord("file")) {
-	      s = (char*)HP.GetFileName();
-	   }
+			/* Construction of controller */
+			SAFENEWWITHCONSTRUCTOR(pDCP,
+				DiscreteIdentProcess_Debug,
+				DiscreteIdentProcess_Debug(iNumOutputs,
+					iNumInputs,
+					iOrderA,
+					iOrderB,
+					pFF, pPX,
+					f_proc, outfile));
+	   		} break;
 
-	   /* Construction of controller */
-	   SAFENEWWITHCONSTRUCTOR(pDCP,
-				  DiscreteIdentProcess_Debug,
-				  DiscreteIdentProcess_Debug(iNumOutputs,
-							     iNumInputs,
-							     iOrderA,
-							     iOrderB,
-							     pFF, pPX,
-							     f_ma, s));
-
-	   break;
-	}
-
-	case ADAPTIVECONTROL:  {
+		case ADAPTIVECONTROL: {
 #ifdef USE_DBC
-	   flag f_ma = 0;
-	   doublereal dPeriodicFactor(0.);
+			unsigned f_proc = DiscreteControlProcess::DISCPROC_ARX;
+			doublereal dPeriodicFactor(0.);
 
-	   if (HP.IsKeyWord("arx")) {
-	      DEBUGCOUT("ARX adaptive control" << std::endl);
-	      f_ma = 0;
-	   } else if (HP.IsKeyWord("armax")) {
-	      DEBUGCOUT("ARMAX adaptive control" << std::endl);
-	      f_ma = 1;
-	   }
+			if (HP.IsKeyWord("arx")) {
+				DEBUGCOUT("ARX adaptive control" << std::endl);
+				f_proc = DiscreteControlProcess::DISCPROC_ARX;
 
-	   if (HP.IsKeyWord("periodic")) {
-	      dPeriodicFactor = HP.GetReal();
-           }
+			} else if (HP.IsKeyWord("armax")) {
+				DEBUGCOUT("ARMAX adaptive control" << std::endl);
+				f_proc = DiscreteControlProcess::DISCPROC_ARMAX;
+			}
 
-	   GPCDesigner* pCD = NULL;
-	   if (HP.IsKeyWord("gpc")) {
-	      DEBUGCOUT("GPC adaptive control" << std::endl);
+			if (HP.IsKeyWord("periodic")) {
+				dPeriodicFactor = HP.GetReal();
+			}
 
-	      integer iPredS = HP.GetInt();
-	      integer iContrS = HP.GetInt();
-	      integer iPredH = HP.GetInt();
-	      integer iContrH = 0;
+			GPCDesigner* pCD = 0;
+			if (HP.IsKeyWord("gpc")) {
+				DEBUGCOUT("GPC adaptive control" << std::endl);
 
-	      DEBUGCOUT("prediction advancing horizon: " << iPredS << std::endl
-			<< "prediction receding horizon: " << iPredH << std::endl
-			<< "control advancing horizon: " << iContrS << std::endl
-			<< "control receding horizon: " << iContrH << std::endl);
+				integer iPredS = HP.GetInt();
+				integer iContrS = HP.GetInt();
+				integer iPredH = HP.GetInt();
+				integer iContrH = 0;
 
-	      if (iPredS < 0) {
-		 silent_cerr("Prediction advancing horizon (" << iPredS
-		   << ") must be positive" << std::endl);
-		 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	      }
-	      if (iPredH < 0) {
-		 silent_cerr("Prediction receding horizon (" << iPredH
-		   << ") must be positive" << std::endl);
-		 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	      }
-	      if (iPredH >= iPredS) {
-		 silent_cerr("Prediction receding horizon (" << iPredH
-		   << ") must be smaller than prediction advancing horizon ("
-		   << iPredS << ")" << std::endl);
-		 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	      }
-	      if (iContrS < 0) {
-		 silent_cerr("Control advancing horizon (" << iContrS
-		   << ") must be positive" << std::endl);
-		 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	      }
+				DEBUGCOUT("prediction advancing horizon: " << iPredS << std::endl
+					<< "prediction receding horizon: " << iPredH << std::endl
+					<< "control advancing horizon: " << iContrS << std::endl
+					<< "control receding horizon: " << iContrH << std::endl);
 
-	      doublereal* pW = NULL;
-	      doublereal* pR = NULL;
-	      SAFENEWARR(pW, doublereal, iPredS-iPredH);
-	      SAFENEWARR(pR, doublereal, iContrS-iContrH);
+				if (iPredS < 0) {
+					silent_cerr("DiscreteControl(" << uLabel << "): "
+						"prediction advancing horizon "
+						"must be positive "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
 
-	      if (HP.IsKeyWord("predictionweights")) {
-		 DEBUGCOUT("prediction weights:" << std::endl);
-		 for (integer i = iPredS-iPredH; i-- > 0; ) {
-		    pW[i] = HP.GetReal();
-		    DEBUGCOUT("W[" << i+1 << "] = " << pW[i] << std::endl);
-		 }
-	      } else {
-		 for (integer i = 0; i < iPredS-iPredH; i++) {
-		    pW[i] = 1.;
-		 }
-	      }
+				if (iPredH < 0) {
+					silent_cerr("DiscreteControl(" << uLabel << "): "
+						"prediction receding horizon "
+						"must be positive "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
 
-	      if (HP.IsKeyWord("controlweights")) {
-		 DEBUGCOUT("control weights:" << std::endl);
-		 for (integer i = iContrS-iContrH; i-- > 0; ) {
-		    pR[i] = HP.GetReal();
-		    DEBUGCOUT("R[" << i+1 << "] = " << pR[i] << std::endl);
-		 }
-	      } else {
-		 for (integer i = 0; i < iContrS-iContrH; i++) {
-		    pR[i] = 1.;
-		 }
-	      }
+				if (iPredH >= iPredS) {
+					silent_cerr("DiscreteControl(" << uLabel << "): "
+						"prediction receding horizon "
+						"must be less than "
+						"prediction advancing horizon "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
 
-	      DEBUGCOUT("Weight Drive:" << std::endl);
-	      DriveCaller* pLambda = HP.GetDriveCaller();
+				if (iContrS < 0) {
+					silent_cerr("DiscreteControl(" << uLabel << "): "
+						"control advancing horizon "
+						"must be positive "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
 
-	      SAFENEWWITHCONSTRUCTOR(pCD,
-				     GPC,
-				     GPC(iNumOutputs, iNumInputs,
-					 iOrderA, iOrderB,
-					 iPredS, iContrS,
-					 iPredH, iContrH,
-					 pW, pR, pLambda,
-					 dPeriodicFactor, f_ma));
+				doublereal* pW = 0;
+				doublereal* pR = 0;
+				SAFENEWARR(pW, doublereal, iPredS - iPredH);
+				SAFENEWARR(pR, doublereal, iContrS - iContrH);
 
-	   } else if (HP.IsKeyWord("deadbeat")) {
-	      DEBUGCOUT("DeadBeat adaptive control" << std::endl);
+				if (HP.IsKeyWord("prediction" "weights")) {
+					DEBUGCOUT("prediction weights:" << std::endl);
+					for (integer i = iPredS - iPredH; i-- > 0; ) {
+						pW[i] = HP.GetReal();
+						DEBUGCOUT("W[" << i + 1 << "] = " << pW[i] << std::endl);
+					}
 
-	      int iPredS = HP.GetInt();
-	      int iContrS = HP.GetInt();
-	      SAFENEWWITHCONSTRUCTOR(pCD,
-				     DeadBeat,
-				     DeadBeat(iNumOutputs, iNumInputs,
-					      iOrderA, iOrderB,
-					      iPredS, iContrS,
-					      dPeriodicFactor, f_ma));
-	   }
+				} else {
+					for (integer i = 0; i < iPredS - iPredH; i++) {
+						pW[i] = 1.;
+					}
+				}
 
-	   /* Forgetting factor */
-	   DEBUGCOUT("Forgetting Factor:" << std::endl);
-	   ForgettingFactor* pFF = ReadFF(HP, iNumOutputs);
+				if (HP.IsKeyWord("control" "weights")) {
+					DEBUGCOUT("control weights:" << std::endl);
+					for (integer i = iContrS - iContrH; i-- > 0; ) {
+						pR[i] = HP.GetReal();
+						DEBUGCOUT("R[" << i + 1 << "] = " << pR[i] << std::endl);
+					}
+				} else {
+					for (integer i = 0; i < iContrS-iContrH; i++) {
+						pR[i] = 1.;
+					}
+				}
 
-	   /* Persistent excitation */
-	   DEBUGCOUT("Persistent Excitation:" << std::endl);
-	   PersistentExcitation* pPX = ReadPX(pDM, HP, iNumInputs);
+				DEBUGCOUT("Weight Drive:" << std::endl);
+				DriveCaller* pLambda = HP.GetDriveCaller();
 
-	   DriveCaller* pTrig = NULL;
-	   if (HP.IsKeyWord("trigger")) {
-	      DEBUGCOUT("Trigger:" << std::endl);
-	      pTrig = HP.GetDriveCaller();
-	   } else {
-	      SAFENEW(pTrig, OneDriveCaller);
-	   }
+				SAFENEWWITHCONSTRUCTOR(pCD, GPC,
+					GPC(iNumOutputs, iNumInputs,
+						iOrderA, iOrderB,
+						iPredS, iContrS,
+						iPredH, iContrH,
+						pW, pR, pLambda,
+						dPeriodicFactor, f_proc));
 
-	   /* desired output */
-	   std::vector<DriveCaller*> vDesiredOut;
-	   if (HP.IsKeyWord("desiredoutput")) {
-	      DEBUGCOUT("Desired output:" << std::endl);
-	      vDesiredOut.resize(iNumOutputs);
+			} else if (HP.IsKeyWord("deadbeat")) {
+				DEBUGCOUT("DeadBeat adaptive control" << std::endl);
 
-	      for (integer i = 0; i < iNumOutputs; i++) {
-		 DEBUGCOUT("output[" << i+1 << "]:" << std::endl);
-		 vDesiredOut[i] = HP.GetDriveCaller();
-	      }
-	   }
+				int iPredS = HP.GetInt();
+				int iContrS = HP.GetInt();
+				SAFENEWWITHCONSTRUCTOR(pCD, DeadBeat,
+					DeadBeat(iNumOutputs, iNumInputs,
+						iOrderA, iOrderB,
+						iPredS, iContrS,
+						dPeriodicFactor, f_proc));
+			}
 
-	   char* s = NULL;
-	   if (HP.IsKeyWord("file") || HP.IsKeyWord("output" "file")) {
-	      s = (char*)HP.GetFileName();
-	      DEBUGCOUT("Identified matrices will be output in file \"" << s << "\"" << std::endl);
-	   }
+			// Forgetting factor
+			DEBUGCOUT("Forgetting Factor:" << std::endl);
+			ForgettingFactor* pFF = ReadFF(HP, iNumOutputs);
 
-	   /* Construction of controller */
-	   ASSERT(f_ma == 0 || f_ma == 1);
-	   SAFENEWWITHCONSTRUCTOR(pDCP,
-				  DAC_Process_Debug,
-				  DAC_Process_Debug(iNumOutputs,
-						    iNumInputs,
-						    iOrderA,
-						    iOrderB,
-						    pFF,
-						    pCD,
-						    pPX,
-						    pTrig,
-						    &vDesiredOut[0],
-						    s,
-						    f_ma));
-	   break;
+			// Persistent excitation
+			DEBUGCOUT("Persistent Excitation:" << std::endl);
+			PersistentExcitation* pPX = ReadPX(pDM, HP, iNumInputs);
+
+			DriveCaller* pTrig = 0;
+			if (HP.IsKeyWord("trigger")) {
+				DEBUGCOUT("Trigger:" << std::endl);
+				pTrig = HP.GetDriveCaller();
+			} else {
+				SAFENEW(pTrig, OneDriveCaller);
+			}
+
+			// desired output
+			std::vector<DriveCaller*> vDesiredOut;
+			if (HP.IsKeyWord("desired" "output")) {
+				DEBUGCOUT("Desired output:" << std::endl);
+				vDesiredOut.resize(iNumOutputs);
+
+				for (integer i = 0; i < iNumOutputs; i++) {
+					DEBUGCOUT("output[" << i + 1 << "]:" << std::endl);
+					vDesiredOut[i] = HP.GetDriveCaller();
+				}
+			}
+
+			std::string outfile;
+			if (HP.IsKeyWord("file") || HP.IsKeyWord("output" "file")) {
+				const char *s = HP.GetFileName();
+				outfile = s;
+				DEBUGCOUT("Identified matrices will be output in file \"" << s << "\"" << std::endl);
+			}
+
+			/* Construction of controller */
+			ASSERT(f_proc == DiscreteControlProcess::DISCPROC_ARX
+				|| f_proc == DiscreteControlProcess::DISCPROC_ARMAX);
+			SAFENEWWITHCONSTRUCTOR(pDCP, DAC_Process_Debug,
+				DAC_Process_Debug(iNumOutputs, iNumInputs,
+					iOrderA, iOrderB,
+					pFF, pCD, pPX, pTrig, vDesiredOut,
+					outfile, f_proc));
 #else /* !USE_DBC */
-	      silent_cerr("GPC/deadbeat control is not available" << std::endl);
-	      throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			silent_cerr("DiscreteControl(" << uLabel << "): "
+				"GPC/deadbeat control is not available "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* !USE_DBC */
+			} break;
+
+		default:
+			silent_cerr("Sorry, not implemented yed" << std::endl);
+			throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+		}
+
+
+
+		if (!HP.IsKeyWord("outputs")) {
+			silent_cerr("DiscreteControl(" << uLabel << "): "
+				"\"outputs\" expected "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		std::vector<ScalarValue *> vOutputs(iNumOutputs);
+		std::vector<DriveCaller *> vOutScaleFact(iNumOutputs);
+
+		// Allocazione nodi e connessioni
+		for (int i = 0; i < iNumOutputs; i++) {
+			vOutputs[i] = ReadScalarValue(pDM, HP);
+			if (HP.IsKeyWord("scale")) {
+				vOutScaleFact[i] = HP.GetDriveCaller();
+
+			} else {
+				vOutScaleFact[i] = 0;
+				SAFENEW(vOutScaleFact[i], OneDriveCaller);
+			}
+		}
+
+		if (!HP.IsKeyWord("inputs")) {
+			silent_cerr("DiscreteControl(" << uLabel << "): "
+				"\"inputs\" expected "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		// Same thing for input nodes
+		ScalarDof* pInputs = 0;
+		SAFENEWARRNOFILL(pInputs, ScalarDof, iNumInputs);
+
+		// Allocazione nodi e connessioni
+		for (int i = 0; i < iNumInputs; i++) {
+			pInputs[i] = ReadScalarDof(pDM, HP, true);
+			if (pInputs[i].pNode->GetNodeType() ==  Node::PARAMETER) {
+				silent_cerr("DiscreteControl(" << uLabel << "): "
+					"ParameterNode(" << pInputs[i].pNode->GetLabel() << ") "
+					"not allowed as input #" << i + 1 << " "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
+
+		flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
+
+		SAFENEWWITHCONSTRUCTOR(pEl, DiscreteControlElem,
+			DiscreteControlElem(uLabel, pDO,
+				iNumOutputs, vOutputs, vOutScaleFact,
+				iNumInputs, pInputs,
+				pDCP, iNumIter, fOut));
+		} break;
+
+	// Aggiungere altri elementi elettrici
+
+	default:
+		silent_cerr("Electric(" << uLabel << "): "
+			"unknown type "
+			"at line " << HP.GetLineData()
+			<< std::endl);
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-
-
-	default: {
-	   silent_cerr("Sorry, not implemented yed" << std::endl);
-	   throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+	// Se non c'e' il punto e virgola finale
+	if (HP.IsArg()) {
+		silent_cerr("semicolon expected at line " << HP.GetLineData() << std::endl);
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-       }
 
-
-
-       if (!HP.IsKeyWord("outputs")) {
-	  silent_cerr("Error, outputs expected at line "
-	    << HP.GetLineData() << std::endl);
-
-	  throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-       }
-
-       ScalarDof* pOutputs = NULL;
-       SAFENEWARRNOFILL(pOutputs, ScalarDof, iNumOutputs);
-       DriveCaller** ppOutScaleFact = NULL;
-       SAFENEWARR(ppOutScaleFact, DriveCaller*, iNumOutputs);
-
-       /* Allocazione nodi e connessioni */
-       for (int i = 0; i < iNumOutputs; i++) {
-	  pOutputs[i] = ReadScalarDof(pDM, HP, true);
-	  if (HP.IsKeyWord("scale")) {
-	     ppOutScaleFact[i] = HP.GetDriveCaller();
-	  } else {
-	     ppOutScaleFact[i] = NULL;
-	     SAFENEW(ppOutScaleFact[i], OneDriveCaller);
-	  }
-       }
-
-       if (!HP.IsKeyWord("inputs")) {
-	  silent_cerr("Error, inputs expected at line "
-	    << HP.GetLineData() << std::endl);
-	  throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-       }
-
-       /* Same thing for input nodes */
-       ScalarDof* pInputs = NULL;
-       SAFENEWARRNOFILL(pInputs, ScalarDof, iNumInputs);
-
-       /* Allocazione nodi e connessioni */
-       for (int i = 0; i < iNumInputs; i++) {
-	  pInputs[i] = ReadScalarDof(pDM, HP, true);
-	  if (pInputs[i].pNode->GetNodeType() ==  Node::PARAMETER) {
-	     silent_cerr("Sorry, parameters are not allowed as input nodes"
-	       << std::endl);
-	     throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-	  }
-       }
-
-       flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
-
-       SAFENEWWITHCONSTRUCTOR(pEl,
-			      DiscreteControlElem,
-			      DiscreteControlElem(uLabel, pDO,
-						  iNumOutputs,
-						  pOutputs,
-						  ppOutScaleFact,
-						  iNumInputs,
-						  pInputs,
-						  pDCP,
-						  iNumIter,
-						  fOut));
-       SAFEDELETEARR(ppOutScaleFact);
-
-       break;
-    }
-
-      /* Aggiungere altri elementi elettrici */
-
-    default: {
-       silent_cerr("unknown electric element type in electric element " << uLabel
-	 << " at line " << HP.GetLineData() << std::endl);
-       throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-    }
-   }
-
-   /* Se non c'e' il punto e virgola finale */
-   if (HP.IsArg()) {
-      silent_cerr("semicolon expected at line " << HP.GetLineData() << std::endl);
-      throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-   }
-
-   return pEl;
+	return pEl;
 } /* ReadElectric() */
 

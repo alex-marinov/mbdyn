@@ -95,7 +95,7 @@ DiscreteControlARXProcess_Debug::DiscreteControlARXProcess_Debug(integer iNumOut
 	integer iNumIn,
 	integer iOrdA,
 	integer iOrdB,
-	std::istream& In)
+	const std::string& infile)
 : iNumOutputs(iNumOut),
 iNumInputs(iNumIn),
 iOrderA(iOrdA),
@@ -163,6 +163,14 @@ iRefB(0)
 	 * ...
 	 * beta_p
 	 */
+
+	std::ifstream In(infile.c_str());
+	if (!In) {
+		silent_cerr("DiscreteControlARXProcess_Debug: "
+			"unable to open control data file \"" << infile << "\""
+			<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
 	ReadMatrix(In, pdA, iNumInputs, iNumOutputs, iOrderA, "alpha");
 	ReadMatrix(In, pdB, iNumInputs, iNumInputs, iOrderB, "beta");
@@ -260,27 +268,35 @@ DiscreteIdentProcess_Debug::DiscreteIdentProcess_Debug(integer iNumOut,
 	integer iOrdB,
 	ForgettingFactor* pf,
 	PersistentExcitation* px,
-	flag f_armax,
-	const char* sf)
+	unsigned f_proc,
+	const std::string& sf)
 : iNumOutputs(iNumOut), iNumInputs(iNumIn),
 iOrderA(iOrdA), iOrderB(iOrdB), pId(0), pPx(px),
-fout(sf != 0 ? 1 : 0)
+outfile(sf)
 {
 	ASSERT(pf != 0);
 	ASSERT(px != 0);
 
-	if (f_armax) {
-		SAFENEWWITHCONSTRUCTOR(pId, IdentARMAXProcess,
-			IdentARMAXProcess(iNumOut, iNumIn, iOrdA, iOrdB, pf));
-
-	} else {
+	switch (f_proc) {
+	case DISCPROC_ARX:
 		SAFENEWWITHCONSTRUCTOR(pId, IdentARXProcess,
 			IdentARXProcess(iNumOut, iNumIn, iOrdA, iOrdB, pf));
+		break;
+
+	case DISCPROC_ARMAX:
+		SAFENEWWITHCONSTRUCTOR(pId, IdentARMAXProcess,
+			IdentARMAXProcess(iNumOut, iNumIn, iOrdA, iOrdB, pf));
+		break;
+
+	default:
+		silent_cerr("DiscreteIdentProcess_Debug: "
+			"unknown model type " << f_proc << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// temporaneo ?!?
-	if (sf != 0) {
-		out.open(sf);
+	if (!outfile.empty()) {
+		out.open(outfile.c_str());
 	}
 }
 
@@ -295,7 +311,7 @@ DiscreteIdentProcess_Debug::~DiscreteIdentProcess_Debug(void)
 	}
 
 	// temporaneo ?!?
-	if (fout) {
+	if (!outfile.empty()) {
 		out.close();
 	}
 }
@@ -323,7 +339,7 @@ DiscreteIdentProcess_Debug::PutOutput(const std::vector<doublereal>& dOut,
 {
 	pId->Update(&dOut[0], &dIn[0]);
 
-	if (fout) {
+	if (!outfile.empty()) {
 		integer size = pId->iGetSize()*pId->iGetNumOutput();
 		if (size*sizeof(doublereal) > BUFSIZE) {
 			silent_cerr("buffer is too small" << std::endl);
@@ -351,9 +367,9 @@ DAC_Process_Debug::DAC_Process_Debug(integer iNumOut,
 	GPCDesigner* pd,
 	PersistentExcitation* px,
 	DriveCaller* pTrig,
-	DriveCaller** pvDesOut,
-	const char* sf,
-	flag f)
+	std::vector<DriveCaller *>& vDesOut,
+	const std::string& sf,
+	unsigned f_proc)
 : iNumOutputs(iNumOut),
 iNumInputs(iNumIn),
 iOrderA(iOrdA),
@@ -365,7 +381,7 @@ pdA(0),
 pdY(0),
 pdB(0),
 pdU(0),
-f_ma(f),
+f_proc(f_proc),
 pdC(0),
 pdE(0),
 pdMd(0),
@@ -375,8 +391,7 @@ iRefA(0),
 iRefB(0),
 iRefMd(0),
 pId(0), pCD(pd), pPx(px), Trigger(pTrig),
-f_md(pvDesOut != 0 ? 1 : 0),
-fout(sf != 0 ? 1 : 0)
+outfile(sf)
 {
 	/* The control model is handled as follows:
 	 * the outputs and inputs are stored in two vector:
@@ -410,7 +425,7 @@ fout(sf != 0 ? 1 : 0)
 		+iNumInputs			// Vector u(k)
 		+iNumOutputs*(iNumOutputs*iOrderA + iNumInputs*(iOrderB + 1));	// Theta
 
-	if (f_ma) {
+	if ((f_proc & DISCPROC_MA) == DISCPROC_MA) {
 		iSize += iNumOutputs*iOrderA			// Vector E
 			+ iNumOutputs*iNumOutputs*iOrderA;	// Theta e' piu' grande!
 	}
@@ -423,7 +438,7 @@ fout(sf != 0 ? 1 : 0)
 	pdU0 = pdYd + iNumOutputs*iOrderMd;
 	pdTheta = pdU0 + iNumInputs;
 
-	if (f_ma) {
+	if ((f_proc & DISCPROC_MA) == DISCPROC_MA) {
 		pdE = pdU0 + iNumInputs;
 		pdTheta = pdE + iNumOutputs*iOrderA;
 	}
@@ -443,36 +458,38 @@ fout(sf != 0 ? 1 : 0)
 	 */
 
 	/* Si costruisce l'identificatore ARX */
-	switch (f_ma) {
-	case 0:
+	switch (f_proc) {
+	case DISCPROC_ARX:
 		SAFENEWWITHCONSTRUCTOR(pId, IdentARXProcess,
 			IdentARXProcess(iNumOut, iNumIn, iOrdA, iOrdB, pf));
 		break;
 
-	case 1:
+	case DISCPROC_ARMAX:
 		SAFENEWWITHCONSTRUCTOR(pId, IdentARMAXProcess,
 			IdentARMAXProcess(iNumOut, iNumIn, iOrdA, iOrdB, pf));
 		break;
 
 	default:
-		silent_cerr("Unknown type of identification!" << std::endl);
+		silent_cerr("DAC_Process_Debug: "
+			"unknown identification type " << f_proc
+			<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	if (f_md) {
+	if (!vDesOut.empty()) {
 		vDesiredOut.resize(iNumOutputs);
 
 		for (integer i = 0; i < iNumOutputs; i++) {
 			vDesiredOut[i] = 0;
 			SAFENEWWITHCONSTRUCTOR(vDesiredOut[i],
 				DriveOwner,
-				DriveOwner(pvDesOut[i]));
+				DriveOwner(vDesOut[i]));
 		}
 	}
 
 	// temporaneo ?!?
-	if (fout) {
-		out.open(sf);
+	if (!outfile.empty()) {
+		out.open(outfile.c_str());
 		// mettere un test?
 	}
 }
@@ -506,7 +523,7 @@ DAC_Process_Debug::~DAC_Process_Debug(void)
 	}
 
 	// temporaneo ?!?
-	if (fout) {
+	if (!outfile.empty()) {
 		out.close();
 	}
 }
@@ -537,7 +554,7 @@ DAC_Process_Debug::PutOutput(const std::vector<doublereal>& dOut,
 
 	pId->Update(&dOut[0], &dIn[0]);
 
-	if (fout) {
+	if (!outfile.empty()) {
 		pId->GetTheta(pdTheta);
 
 		for (integer i = 0; i < pId->iGetSize()*pId->iGetNumOutput(); i++) {
@@ -561,7 +578,7 @@ DAC_Process_Debug::PutOutput(const std::vector<doublereal>& dOut,
 		pdOff[i] = dOut[i];
 	}
 
-	if (f_ma) {
+	if ((f_proc & DISCPROC_MA) == DISCPROC_MA) {
 		pdOff = pdE + iNumOutputs*iRefA;
 		pId->GetErr(pdOff);
 	}
@@ -582,7 +599,7 @@ DAC_Process_Debug::PutOutput(const std::vector<doublereal>& dOut,
 	}
 
 	// Moves reference backwards
-	if (f_md) {
+	if (!vDesiredOut.empty()) {
 		if (iRefMd == 0) {
 			iRefMd = iOrderMd;
 		}
@@ -632,7 +649,7 @@ DAC_Process_Debug::PutOutput(const std::vector<doublereal>& dOut,
 		}
 	}
 
-	if (f_ma) {
+	if ((f_proc & DISCPROC_MA) == DISCPROC_MA) {
 		pdMatOff = pdC + iOrderA*iNumOutputs*iNumInputs;
 		// E shiftato di iRefA
 		pdVecOff = pdE + iRefA*iNumOutputs;
@@ -648,7 +665,7 @@ DAC_Process_Debug::PutOutput(const std::vector<doublereal>& dOut,
 		}
 	}
 
-	if (f_md) {
+	if (!vDesiredOut.empty()) {
 		pdMatOff = pdMd + iOrderMd*iNumOutputs*iNumInputs;
 		// Yd shiftato di iRefMd
 		pdVecOff = pdYd + iRefMd*iNumOutputs;
@@ -672,8 +689,8 @@ DAC_Process_Debug::PutOutput(const std::vector<doublereal>& dOut,
 DiscreteControlElem::DiscreteControlElem(unsigned int uL,
 	const DofOwner* pDO,
 	integer iNumOut,
-	ScalarDof* pOut,
-	DriveCaller** ppOutSF,
+	std::vector<ScalarValue *>& vOut,
+	std::vector<DriveCaller *>& vOutSF,
 	integer iNumIn,
 	ScalarDof* pIn,
 	DiscreteControlProcess* p,
@@ -682,11 +699,11 @@ DiscreteControlElem::DiscreteControlElem(unsigned int uL,
 : Elem(uL, fOut),
 Electric(uL, pDO, fOut),
 pDCP(p),
-fNewStep(1),
+bNewStep(true),
 iNumIter(iNIt),
 iCurrIter(0),
 iNumOutputs(iNumOut),
-pOutputs(pOut),
+vOutputs(vOut),
 dOut(iNumOutputs),
 iNumInputs(iNumIn),
 pInputs(pIn),
@@ -700,15 +717,13 @@ dIn(iNumInputs)
 	ASSERT(iNumInputs > 0);
 	ASSERT(iNumOutputs > 0);
 
-	ASSERT(ppOutSF != 0);
 	vOutScaleFact.resize(iNumOutputs);
 
 	for (int i = iNumOutputs; i-- > 0; ) {
-		ASSERT(ppOutSF[i] != 0);
 		vOutScaleFact[i] = 0;
 		SAFENEWWITHCONSTRUCTOR(vOutScaleFact[i],
 			DriveOwner,
-			DriveOwner(ppOutSF[i]));
+			DriveOwner(vOutSF[i]));
 	}
 
 	for (std::vector<doublereal>::iterator i = dIn.begin();
@@ -732,9 +747,15 @@ DiscreteControlElem::~DiscreteControlElem(void)
 		SAFEDELETE(*i);
 	}
 
+	for (std::vector<ScalarValue *>::iterator i = vOutputs.begin();
+		i != vOutputs.end(); i++)
+	{
+		SAFEDELETE(*i);
+	}
+
 	// Allocated by DataManager
 	SAFEDELETEARR(pInputs);
-	SAFEDELETEARR(pOutputs);
+
 	// Must destroy the other processes too
 	SAFEDELETE(pDCP);
 }
@@ -764,12 +785,12 @@ DiscreteControlElem::AfterConvergence(const VectorHandler& X,
 	if (++iCurrIter == iNumIter) {
 		iCurrIter = 0;
 
-		ASSERT(fNewStep == flag(0));
-		fNewStep = flag(1);
+		ASSERT(bNewStep == false);
+		bNewStep = true;
 
 		// Gets output from solution
 		for (int iCnt = iNumOutputs; iCnt-- > 0; ) {
-			dOut[iCnt] = vOutScaleFact[iCnt]->dGet()*pOutputs[iCnt].dGetValue();
+			dOut[iCnt] = vOutScaleFact[iCnt]->dGet()*vOutputs[iCnt]->dGetValue();
 		}
 
 		// Gets input from solution
@@ -795,13 +816,13 @@ DiscreteControlElem::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.ResizeReset(iNumInputs);
 
 	// At first iteration gets the input from the control subprocess
-	if (fNewStep) {
+	if (bNewStep) {
 		// Gets the inputs from subprocess
 		// DCP knows the length of dIn
 		pDCP->GetInput(dIn);
 
 		// resets the flag
-		fNewStep = flag(0);
+		bNewStep = false;
 	}
 
 	// Sets the parameters
@@ -847,6 +868,61 @@ DiscreteControlElem::AssJac(VariableSubMatrixHandler& WorkMat,
 	return WorkMat;
 }
 
+unsigned int
+DiscreteControlElem::iGetNumPrivData(void) const
+{
+	return iNumInputs;
+}
+
+unsigned int
+DiscreteControlElem::iGetPrivDataIdx(const char *s) const
+{
+	/*
+	 * legal values:
+	 *
+	 * "u[<idx>]"	with <idx> ::= positive integer between 1 and iNumInputs
+	 */
+	switch (s[0]) {
+	case 'u':
+		s++;
+		break;
+
+	default:
+		return 0;
+	}
+
+	if (s[0] != '[') {
+		return 0;
+	}
+	s++;
+
+	if (s[0] == '-') {
+		return 0;
+	}
+
+	char *next;
+	long idx = std::strtol(s, &next, 10);
+	if (next == s || next[0] != ']') {
+		return 0;
+	}
+
+	if (idx > iNumInputs) {
+		return 0;
+	}
+
+	return idx;
+}
+
+doublereal
+DiscreteControlElem::dGetPrivData(unsigned int i) const
+{
+	if (i < 1 || i > (unsigned int)iNumInputs) {
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return dIn[i - 1];
+}
+
 /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
  * utile per l'assemblaggio della matrice di connessione fra i dofs */
 void
@@ -857,8 +933,20 @@ DiscreteControlElem::GetConnectedNodes(
 	for (int i = 0; i < iNumInputs; i++) {
 		connectedNodes[i] = pInputs[i].pNode;
 	}
+
+	unsigned cnt = unsigned(iNumInputs);
 	for (int i = 0; i < iNumOutputs; i++) {
-		connectedNodes[iNumInputs + i] = pOutputs[i].pNode;
+		ScalarDofValue *psdv = dynamic_cast<ScalarDofValue *>(vOutputs[i]);
+		if (psdv) {
+			connectedNodes[cnt] = psdv->pNode;
+			cnt++;
+		}
+	}
+
+	ASSERT(cnt <= connectedNodes.size());
+
+	if (cnt != connectedNodes.size()) {
+		connectedNodes.resize(cnt);
 	}
 }
 

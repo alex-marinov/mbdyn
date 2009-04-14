@@ -159,11 +159,11 @@ Motor::AssJac(VariableSubMatrixHandler& WorkMat,
 	WM.Add(4, 1, Mat3x3(C));
 
 	for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-		doublereal d = Cdi.dGet(iCnt);
+		doublereal d = Cdi(iCnt);
 		WM.IncCoef(iCnt, 9, d);
 		WM.DecCoef(3 + iCnt, 9, d);
 
-		d = Tmp.dGet(iCnt);
+		d = Tmp(iCnt);
 		WM.IncCoef(9, iCnt, d);
 		WM.DecCoef(9, 3 + iCnt, d);
 	}
