@@ -54,11 +54,12 @@ ModalExt::ModalExt(unsigned int uL,
 	bool bOutputAccelerations,
 	ExtFileHandlerBase *pEFH,
 	ExtModalForceBase* pEMF,
+	bool bSendAfterPredict,
 	int iCoupling,
 	ExtModalForceBase::BitMask bm,
 	flag fOut)
 : Elem(uL, fOut), 
-ExtForce(uL, pDM, pEFH, iCoupling, fOut), 
+ExtForce(uL, pDM, pEFH, bSendAfterPredict, iCoupling, fOut), 
 pModal(pmodal),
 bOutputAccelerations(bOutputAccelerations),
 pEMF(pEMF),
@@ -105,7 +106,7 @@ ModalExt::~ModalExt(void)
  * Send output to companion software
  */
 void
-ModalExt::Send(std::ostream& outf, bool bAfterConvergence)
+ModalExt::Send(std::ostream& outf, ExtFileHandlerBase::SendWhen when)
 {
 	Vec3 x;
 	Mat3x3 R;
@@ -262,8 +263,9 @@ ReadModalExtForce(DataManager* pDM,
 {
 	ExtFileHandlerBase *pEFH;
 	int iCoupling;
-	
-	ReadExtForce(pDM, HP, uLabel, pEFH, iCoupling);
+
+	bool bSendAfterPredict;
+	ReadExtForce(pDM, HP, uLabel, pEFH, bSendAfterPredict, iCoupling);
 
 	Modal *pModal = dynamic_cast<Modal *>(pDM->ReadElem(HP, Elem::JOINT));
 	if (pModal == 0) {
@@ -342,7 +344,7 @@ ReadModalExtForce(DataManager* pDM,
 	Elem *pEl = 0;
 	SAFENEWWITHCONSTRUCTOR(pEl, ModalExt,
 		ModalExt(uLabel, pDM, pModal, bOutputAccelerations,
-			pEFH, pEMF, iCoupling, bm, fOut));
+			pEFH, pEMF, bSendAfterPredict, iCoupling, bm, fOut));
 
 	return pEl;
 }

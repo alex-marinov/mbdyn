@@ -43,9 +43,9 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <unistd.h>
-#include <errno.h>
+#include <cerrno>
 
 /* ExtFileHandlerBase - begin */
 
@@ -89,7 +89,7 @@ ExtFileHandler::AfterPredict(void)
 }
 
 std::ostream&
-ExtFileHandler::Send_pre(bool bAfterConvergence)
+ExtFileHandler::Send_pre(SendWhen when)
 {
 	if (bNoClobberOut) {
 		bool	bKeepGoing(true);
@@ -159,7 +159,7 @@ ExtFileHandler::Send_pre(bool bAfterConvergence)
 }
 
 void
-ExtFileHandler::Send_post(bool bAfterConvergence)
+ExtFileHandler::Send_post(SendWhen when)
 {
 	outf.close();
 	rename(tmpout.c_str(), fout.c_str());
@@ -222,19 +222,41 @@ ExtFileHandler::Recv_post(void)
 
 /* ExtForce - begin */
 
+/*
+ * Communication patterns:
+
+	- loose coupling:
+		- receive forces at first residual assembly
+		- send motion after convergence
+
+	- tight coupling:
+		- send motion after predict
+		- receive forces at each residual assembly
+		- send motion at each update after solution
+
+	- amost-tight coupling:
+		- send motion after predict
+		- receive forces every some residual assembly
+		- send motion every some update after solution
+		- send motion after convergence (to make sure
+		  peer gets the last solution)
+ */
+
 /* Costruttore */
 ExtForce::ExtForce(unsigned int uL,
 	DataManager *pDM,
 	ExtFileHandlerBase *pEFH,
+	bool bSendAfterPredict,
 	int iCoupling,
 	flag fOut)
 : Elem(uL, fOut), 
 Force(uL, fOut),
 c(iCoupling ? pDM : NULL),
 pEFH(pEFH),
-bFirstRes(true),
+bSendAfterPredict(bSendAfterPredict),
 iCoupling(iCoupling),
-iCouplingCounter(0)
+iCouplingCounter(0),
+bFirstSend(true)
 {
 	NO_OP;
 }
@@ -251,7 +273,7 @@ ExtForce::SetValue(DataManager *pDM,
 	VectorHandler& X, VectorHandler& XP,
 	SimulationEntity::Hints* h)
 {
-	bFirstRes = true;
+	bFirstSend = true;
 }
 
 void
@@ -261,10 +283,11 @@ ExtForce::Update(const VectorHandler& XCurr,
 	/* If running tight coupling, send kinematics every iteration */
 	/* NOTE: tight coupling may need relaxation */
 	if (iCoupling && !((++iCouplingCounter)%iCoupling)) {
-		Send();
+		Send(bFirstSend ? ExtFileHandlerBase::SEND_FIRST_TIME
+			: ExtFileHandlerBase::SEND_REGULAR);
 	}
 }
-	
+
 /*
  * Elaborazione stato interno dopo la convergenza
  */
@@ -272,13 +295,15 @@ void
 ExtForce::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
 	/* After prediction, mark next residual as first */
-	bFirstRes = true;
 	iCouplingCounter = 0;
+	bFirstSend = true;
 
 	pEFH->AfterPredict();
 
 	/* needed to send predicted data */
-	Update(X, XP);
+	if (bSendAfterPredict) {
+		Update(X, XP);
+	}
 }
 
 /*
@@ -290,7 +315,7 @@ ExtForce::AfterConvergence(const VectorHandler& X,
 {
 	/* If not running tight coupling, send kinematics only at convergence */
 	if (iCoupling != 1) {
-		Send(true);
+		Send(ExtFileHandlerBase::SEND_AFTER_CONVERGENCE);
 #if 0
 		if (bRemoveIn) {
 			Unlink();
@@ -303,19 +328,20 @@ ExtForce::AfterConvergence(const VectorHandler& X,
  * Send output to companion software
  */
 void
-ExtForce::Send(bool bAfterConvergence)
+ExtForce::Send(ExtFileHandlerBase::SendWhen when)
 {
-	std::ostream& outf = pEFH->Send_pre(bAfterConvergence);
+	std::ostream& outf = pEFH->Send_pre(when);
 	if (outf.good()) {
-		Send(outf, bAfterConvergence);
+		Send(outf, when);
+		bFirstSend = false;
 	}
-	pEFH->Send_post(bAfterConvergence);
+	pEFH->Send_post(when);
 }
 
 void
 ExtForce::Recv(void)
 {
-	if ((iCoupling && !(iCouplingCounter%iCoupling)) || bFirstRes) {
+	if ((iCoupling && !bFirstSend && !(iCouplingCounter%iCoupling)) || (!iCoupling && bFirstSend)) {
 		std::istream& inf = pEFH->Recv_pre();
 		if (inf.good()) {
 			Recv(inf);
@@ -325,8 +351,6 @@ ExtForce::Recv(void)
 			c.Set(true);
 		}
 	}
-
-	bFirstRes = false;
 }
 
 void
@@ -446,6 +470,7 @@ ReadExtForce(DataManager* pDM,
 	MBDynParser& HP, 
 	unsigned int uLabel,
 	ExtFileHandlerBase*& pEFH,
+	bool& bSendAfterPredict,
 	int& iCoupling)
 {
 	pEFH = ReadExtFileHandler(pDM, HP, uLabel);
@@ -454,8 +479,10 @@ ReadExtForce(DataManager* pDM,
 	if (HP.IsKeyWord("coupling")) {
 		if (HP.IsKeyWord("loose")) {
 			iCoupling = 0;
+
 		} else if (HP.IsKeyWord("tight")) {
 			iCoupling = 1;
+
 		} else {
 			iCoupling = HP.GetInt();
 			if (iCoupling < 0) {
@@ -467,6 +494,28 @@ ReadExtForce(DataManager* pDM,
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
+	}
+
+	if (iCoupling) {
+		bSendAfterPredict = true;
+		if (HP.IsKeyWord("send" "after" "predict")) {
+			if (HP.IsKeyWord("yes")) {
+				bSendAfterPredict = true;
+
+			} else if (HP.IsKeyWord("no")) {
+				bSendAfterPredict = false;
+
+			} else {
+				silent_cerr("ExtForce(" << uLabel << "): "
+					"invalud \"send after predict\" value "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
+
+	} else {
+		bSendAfterPredict = false;
 	}
 }
 

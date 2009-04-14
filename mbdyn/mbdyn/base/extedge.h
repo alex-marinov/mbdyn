@@ -83,8 +83,8 @@ public:
 
 	virtual void AfterPredict(void);
 
-	virtual std::ostream& Send_pre(bool bAfterConvergence = false);
-	virtual void Send_post(bool bAfterConvergence = false);
+	virtual std::ostream& Send_pre(SendWhen when);
+	virtual void Send_post(SendWhen when);
 
 	virtual std::istream& Recv_pre(void);
 	virtual bool Recv_post(void);

@@ -138,7 +138,7 @@ ExtFileHandlerEDGE::AfterPredict(void)
 }
 
 std::ostream&
-ExtFileHandlerEDGE::Send_pre(bool bAfterConvergence)
+ExtFileHandlerEDGE::Send_pre(SendWhen when)
 {
 	int cnt = 0;
 	if (!bReadForces) {
@@ -171,7 +171,7 @@ bad:;
 }
 
 void
-ExtFileHandlerEDGE::Send_post(bool bAfterConvergence)
+ExtFileHandlerEDGE::Send_post(SendWhen when)
 {
 	if (!bReadForces) {
 		return;
@@ -182,7 +182,7 @@ ExtFileHandlerEDGE::Send_post(bool bAfterConvergence)
 		outfile.close();
 	}
 
-	if (bAfterConvergence) {
+	if (when == SEND_AFTER_CONVERGENCE) {
 #if 0
 		// This stops EDGE's subiterations
 		// and advances to next step
@@ -193,6 +193,8 @@ ExtFileHandlerEDGE::Send_post(bool bAfterConvergence)
 			"5\n";
 		outfile.close();
 #endif
+
+		bReadForces = true;
 	}
 
 	// write to a temporary, unique file and then rename to fflagname

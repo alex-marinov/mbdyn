@@ -43,6 +43,13 @@
 /* ExtFileHandlerBase - begin */
 
 class ExtFileHandlerBase {
+public:
+	enum SendWhen {
+		SEND_FIRST_TIME,
+		SEND_REGULAR,
+		SEND_AFTER_CONVERGENCE
+	};
+
 protected:
 	int iSleepTime, iPrecision;
 
@@ -52,8 +59,8 @@ public:
 
 	virtual void AfterPredict(void) = 0;
 
-	virtual std::ostream& Send_pre(bool bAfterConvergence = false) = 0;
-	virtual void Send_post(bool bAfterConvergence = false) = 0;
+	virtual std::ostream& Send_pre(SendWhen when) = 0;
+	virtual void Send_post(SendWhen when) = 0;
 
 	virtual std::istream& Recv_pre(void) = 0;
 	// NOTE: returns true if converged
@@ -83,8 +90,8 @@ public:
 
 	virtual void AfterPredict(void);
 
-	virtual std::ostream& Send_pre(bool bAfterConvergence = false);
-	virtual void Send_post(bool bAfterConvergence = false);
+	virtual std::ostream& Send_pre(SendWhen when);
+	virtual void Send_post(SendWhen when);
 
 	virtual std::istream& Recv_pre(void);
 	virtual bool Recv_post(void);
@@ -101,13 +108,24 @@ protected:
 	Converged c;
 	ExtFileHandlerBase *pEFH;
 
-	bool bFirstRes;
-	int iCoupling, iCouplingCounter;
+	// exchange after predict?
+	bool bSendAfterPredict;
 
-	void Send(bool bAfterConvergence = false);
+	// 0: loose coupling
+	// 1: tight coupling
+	// >1: exchange every iCoupling iterations
+	int iCoupling;
+
+	// iteration counter
+	mutable int iCouplingCounter;
+
+	// whether the current residual is the first or not...
+	mutable bool bFirstSend;
+
+	void Send(ExtFileHandlerBase::SendWhen when);
 	void Recv(void);
 
-	virtual void Send(std::ostream& out, bool bAfterConvergence = false) = 0;
+	virtual void Send(std::ostream& out, ExtFileHandlerBase::SendWhen when) = 0;
 	virtual void Recv(std::istream& in) = 0;
    
 public:
@@ -115,6 +133,7 @@ public:
 	ExtForce(unsigned int uL,
 		DataManager *pDM,
 		ExtFileHandlerBase *pEFH,
+		bool bSendAfterPredict,
 		int iCoupling,
 		flag fOut);
 
@@ -158,6 +177,7 @@ ReadExtForce(DataManager* pDM,
 	MBDynParser& HP, 
 	unsigned int uLabel,
 	ExtFileHandlerBase*& pEFH,
+	bool& bSendAfterPredict,
 	int& iCoupling);
 
 extern void

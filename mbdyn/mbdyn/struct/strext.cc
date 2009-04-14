@@ -48,10 +48,11 @@ StructExtForce::StructExtForce(unsigned int uL,
 	bool bUnsorted,
 	bool bOutputAccelerations,
 	ExtFileHandlerBase *pEFH,
+	bool bSendAfterPredict,
 	int iCoupling,
 	flag fOut)
 : Elem(uL, fOut), 
-ExtForce(uL, pDM, pEFH, iCoupling, fOut), 
+ExtForce(uL, pDM, pEFH, bSendAfterPredict, iCoupling, fOut), 
 pRefNode(0),
 RefOffset(0.),
 bUnsorted(bUnsorted),
@@ -101,7 +102,7 @@ StructExtForce::~StructExtForce(void)
  * Send output to companion software
  */
 void
-StructExtForce::Send(std::ostream& outf, bool bAfterConvergence)
+StructExtForce::Send(std::ostream& outf, ExtFileHandlerBase::SendWhen when)
 {
 	if (pRefNode) {
 #if 0
@@ -321,8 +322,9 @@ ReadStructExtForce(DataManager* pDM,
 {
 	ExtFileHandlerBase *pEFH = 0;
 	int iCoupling;
-	
-	ReadExtForce(pDM, HP, uLabel, pEFH, iCoupling);
+
+	bool bSendAfterPredict;
+	ReadExtForce(pDM, HP, uLabel, pEFH, bSendAfterPredict, iCoupling);
 
 	bool bUnsorted(false);
 	if (HP.IsKeyWord("unsorted")) {
@@ -361,7 +363,7 @@ ReadStructExtForce(DataManager* pDM,
 	SAFENEWWITHCONSTRUCTOR(pEl, StructExtForce,
 		StructExtForce(uLabel, pDM, Nodes, Offsets,
 			bUnsorted, bOutputAccelerations,
-			pEFH, iCoupling, fOut));
+			pEFH, bSendAfterPredict, iCoupling, fOut));
 
 	return pEl;
 }

@@ -52,7 +52,7 @@ protected:
 
 	bool bOutputAccelerations;
 
-	void Send(std::ostream& out, bool bAfterConvergence = false);
+	void Send(std::ostream& out, ExtFileHandlerBase::SendWhen when);
 	void Recv(std::istream& in);
    
 public:
@@ -64,6 +64,7 @@ public:
 		bool bUnsorted,
 		bool bOutputAccelerations,
 		ExtFileHandlerBase *pEFH,
+		bool bSendAfterPredict,
 		int iCoupling,
 		flag fOut);
 
