@@ -2949,17 +2949,13 @@ Solver::ReadData(MBDynParser& HP)
 		case EIGENANALYSIS:
 #ifdef USE_EIG
 			EigAn.OneAnalysis.dTime = HP.GetReal();
-			if (HP.IsKeyWord("parameter")) {
-				EigAn.dParam = HP.GetReal();
-			}
 			EigAn.OneAnalysis.bDone = false;
 			EigAn.bAnalysis = true;
-			DEBUGLCOUT(MYDEBUG_INPUT, "Eigenanalysis will be "
-					"performed at time " << EigAn.OneAnalysis.dTime
-					<< " (parameter: " << EigAn.dParam << ")"
-					<< std::endl);
 			while (HP.IsArg()) {
-				if (HP.IsKeyWord("output" "matrices")) {
+				if (HP.IsKeyWord("parameter")) {
+					EigAn.dParam = HP.GetReal();
+
+				} else if (HP.IsKeyWord("output" "matrices")) {
 					EigAn.uFlags |= EigenAnalysis::EIG_OUTPUT_MATRICES;
 
 				} else if (HP.IsKeyWord("output" "full" "matrices")) {
@@ -2970,6 +2966,24 @@ Solver::ReadData(MBDynParser& HP)
 
 				} else if (HP.IsKeyWord("output" "eigenvectors")) {
 					EigAn.uFlags |= EigenAnalysis::EIG_OUTPUT_EIGENVECTORS;
+
+				} else if (HP.IsKeyWord("upper" "frequency")) {
+					EigAn.dUpperFreq = HP.GetReal();
+					if (EigAn.dUpperFreq < 0.) {
+						silent_cerr("invalid \"upper frequency\" "
+							"at line " << HP.GetLineData()
+							<< std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+				} else if (HP.IsKeyWord("lower" "frequency")) {
+					EigAn.dLowerFreq = HP.GetReal();
+					if (EigAn.dUpperFreq < 0.) {
+						silent_cerr("invalid \"lower frequency\" "
+							"at line " << HP.GetLineData()
+							<< std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
 
 				} else if (HP.IsKeyWord("use" "lapack")) {
 					if (EigAn.uFlags & EigenAnalysis::EIG_USE_MASK) {
@@ -3065,6 +3079,19 @@ Solver::ReadData(MBDynParser& HP)
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
+			}
+
+			// lower must be less than upper
+			if (EigAn.dLowerFreq > EigAn.dUpperFreq) {
+				silent_cerr("upper frequency " << EigAn.dUpperFreq
+					<< " less than lower frequency " << EigAn.dLowerFreq
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			// if only upper is defined, make lower equal to -upper
+			if (EigAn.dLowerFreq == -1.) {
+				EigAn.dLowerFreq = -EigAn.dUpperFreq;
 			}
 
 			switch (EigAn.uFlags & EigenAnalysis::EIG_USE_MASK) {
@@ -3743,7 +3770,8 @@ output_eigenvalues(const VectorHandler *pBeta,
 	const VectorHandler& R, const VectorHandler& I,
 	const doublereal& dShiftR,
 	DataManager* pDM,
-	const Solver::EigenAnalysis *pEA)
+	const Solver::EigenAnalysis *pEA,
+	std::vector<bool>& vOut)
 {
 	std::ostream& Out = pDM->GetOutFile();
 
@@ -3753,8 +3781,6 @@ output_eigenvalues(const VectorHandler *pBeta,
 	integer iNVec = R.iGetSize();
 
 	for (int iCnt = 1; iCnt <= iNVec; iCnt++) {
-		Out << std::setw(8) << iCnt << ": ";
-
 		doublereal b = pBeta ? (*pBeta)(iCnt) : 1.;
 		doublereal re = R(iCnt) + dShiftR;
 		doublereal im = I(iCnt);
@@ -3766,7 +3792,15 @@ output_eigenvalues(const VectorHandler *pBeta,
 		const doublereal& h = pEA->dParam;
 		do_eig(b, re, im, h, sigma, omega, csi, freq);
 
-		Out << std::setw(12) << sigma << " + " << std::setw(12) << omega << " j";
+		if (freq < pEA->dLowerFreq || freq > pEA->dUpperFreq) {
+			vOut[iCnt - 1] = false;
+			continue;
+		}
+
+		vOut[iCnt - 1] = true;
+
+		Out << std::setw(8) << iCnt << ": "
+			<< std::setw(12) << sigma << " + " << std::setw(12) << omega << " j";
 
 		if (fabs(csi) > std::numeric_limits<doublereal>::epsilon()) {
 			Out << "    " << std::setw(12) << csi;
@@ -3789,6 +3823,7 @@ output_eigenvectors(const VectorHandler *pBeta,
 	const MatrixHandler *pVL, const MatrixHandler& VR,
 	DataManager* pDM,
 	const Solver::EigenAnalysis *pEA,
+	const std::vector<bool>& vOut,
 	std::ostream& o)
 {
 	static const char signs[] = { '-', '+' };
@@ -3803,6 +3838,10 @@ output_eigenvectors(const VectorHandler *pBeta,
 		<< "alpha = [";
 
 	for (integer r = 1; r <= iNVec; r++) {
+		if (!vOut[r - 1]) {
+			continue;
+		}
+
 		o
 			<< std::setw(24) << R(r) + dShiftR
 			<< std::setw(24) << I(r)
@@ -3818,6 +3857,10 @@ output_eigenvectors(const VectorHandler *pBeta,
 			<< "VL = [" << std::endl;
 		for (integer r = 1; r <= iSize; r++) {
 			for (integer c = 1; c <= iNVec; c++) {
+				if (!vOut[c - 1]) {
+					continue;
+				}
+
 				if (I(c) != 0.) {
 					ASSERT(c < iNVec);
 					ASSERT(I(c) > 0.);
@@ -3832,8 +3875,11 @@ output_eigenvectors(const VectorHandler *pBeta,
 						isign = 1;
 					}
 					o
-						<< std::setw(24) << re << signs[isign] << "i*" << std::setw(24) << im
-						<< std::setw(24) << re << signs[1-isign] << "i*" << std::setw(24) << im;
+						<< std::setw(24) << re << signs[isign] << "i*" << std::setw(24) << im;
+					if (vOut[c]) {
+						o
+							<< std::setw(24) << re << signs[1-isign] << "i*" << std::setw(24) << im;
+					}
 					c++;
 
 				} else {
@@ -3857,6 +3903,10 @@ output_eigenvectors(const VectorHandler *pBeta,
 		<< "VR = [" << std::endl;
 	for (integer r = 1; r <= iSize; r++) {
 		for (integer c = 1; c <= iNVec; c++) {
+			if (!vOut[c - 1]) {
+				continue;
+			}
+
 			if (I(c) != 0.) {
 				ASSERT(c < iNVec);
 				ASSERT(I(c) > 0.);
@@ -3871,8 +3921,11 @@ output_eigenvectors(const VectorHandler *pBeta,
 					isign = 1;
 				}
 				o
-					<< std::setw(24) << re << signs[isign] << "i*" << std::setw(24) << im
-					<< std::setw(24) << re << signs[1-isign] << "i*" << std::setw(24) << im;
+					<< std::setw(24) << re << signs[isign] << "i*" << std::setw(24) << im;
+				if (vOut[c]) {
+					o
+						<< std::setw(24) << re << signs[1-isign] << "i*" << std::setw(24) << im;
+				}
 				c++;
 
 			} else {
@@ -4214,11 +4267,12 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 			<< std::endl;
 	}
 
-	output_eigenvalues(&Beta, AlphaR, AlphaI, 0., pDM, pEA);
+	std::vector<bool> vOut(iSize);
+	output_eigenvalues(&Beta, AlphaR, AlphaI, 0., pDM, pEA, vOut);
 
 	if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_EIGENVECTORS) {
 		output_eigenvectors(&Beta, AlphaR, AlphaI, 0.,
-			&MatVL, MatVR, pDM, pEA, o);
+			&MatVL, MatVR, pDM, pEA, vOut, o);
 	}
 
 	SAFEDELETEARR(pd);
@@ -4441,13 +4495,14 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 	if (nconv > 0) {
 		MyVectorHandler AlphaR(nconv, &DR[0]);
 		MyVectorHandler AlphaI(nconv, &DI[0]);
-		output_eigenvalues(0, AlphaR, AlphaI, 1., pDM, pEA);
+		std::vector<bool> vOut(nconv);
+		output_eigenvalues(0, AlphaR, AlphaI, 1., pDM, pEA, vOut);
 
 		if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_EIGENVECTORS) {
 			std::vector<doublereal *> ZC(nconv);
 			FullMatrixHandler VR(&Z[0], &ZC[0], N*nconv, N, nconv);
 			output_eigenvectors(0, AlphaR, AlphaI, 1.,
-				0, VR, pDM, pEA, o);
+				0, VR, pDM, pEA, vOut, o);
 		}
 
 	} else {

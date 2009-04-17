@@ -50,6 +50,7 @@
 #include <unistd.h>
 #include <cfloat>
 #include <cmath>
+#include <limits>
 
 class Solver;
 #include "myassert.h"
@@ -171,8 +172,8 @@ public:
 		uFlags(EIG_NONE),
 		dParam(1.),
 		bOutputModes(false),
-		dUpperFreq(FLT_MAX),
-		dLowerFreq(0.)
+		dUpperFreq(std::numeric_limits<doublereal>::max()),
+		dLowerFreq(-1.)
 		{
 			NO_OP;
 		};

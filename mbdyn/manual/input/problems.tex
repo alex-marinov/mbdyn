@@ -333,10 +333,12 @@ The default behavior is to ignore such requests\footnote{See note above}.
 \label{sec:IVP:eigenanalysis}
 \begin{verbatim}
     <card> ::= eigenanalysis : <when>
-        [ , parameter , <param> ]
         [ , { output [ full ] matrices
+            | parameter , <param>
             | output sparse matrices
             | output eigenvectors
+            | lower frequency, <lower>
+            | upper frequency, <upper>
             | use lapack
               [ , balance , { no | scale | permute | all } ]
             | use arpack , <nev> , <ncv> , <tol> } [ , ... ] ]
@@ -386,6 +388,12 @@ using the \kw{rigid body kinematics} card
 	\item \kw{ncv}, the number of the Arnoldi vectors;
 	\item \kw{tol}, the tolerance (positive; zero means machine error).
 	\end{itemize}
+\item \kw{lower frequency} only outputs those eigenvalues and eigenvectors
+	that are complex and whose imaginary part is larger than
+	\kw{lower} Hz;
+\item \kw{upper frequency} only outputs those eigenvalues and eigenvectors
+	that are complex and whose imaginary part is smaller than
+	\kw{upper} Hz;
 \end{itemize}
 This functionality is experimental, so the syntax could need adjustments
 and change across versions.
