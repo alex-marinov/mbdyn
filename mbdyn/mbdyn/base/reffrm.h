@@ -50,12 +50,15 @@ private:
 	Vec3 v;
 	Vec3 w;
 
+	OrientationDescription od;
+
 public:
 	ReferenceFrame(void);
 
 	ReferenceFrame(unsigned int uLabel, 
 			const Vec3& xIn, const Mat3x3& RIn,
-			const Vec3& vIn = 0., const Vec3& wIn = 0.);
+			const Vec3& vIn, const Vec3& wIn,
+			const OrientationDescription& ood);
 
 	ReferenceFrame(const RigidBodyKinematics* pRBK);
 

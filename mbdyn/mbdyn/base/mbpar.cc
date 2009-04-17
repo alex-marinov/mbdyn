@@ -162,13 +162,7 @@ MBDynParser::SetDataManager(DataManager *pdm)
 	}
 }
 
-const ReferenceFrame AbsRefFrame(0, 
-				 Vec3(0.), 
-				 Mat3x3(1., 0., 0., 
-					0., 1., 0.,
-					0., 0., 1.),
-				 Vec3(0.),
-				 Vec3(0.));
+const ReferenceFrame AbsRefFrame(0, Vec3(0.), Eye3, Vec3(0.), Vec3(0.), EULER_123);
 
 
 void 
@@ -232,7 +226,7 @@ MBDynParser::Reference_int(void)
 	ReferenceFrame* pRF = NULL;
 	SAFENEWWITHCONSTRUCTOR(pRF,
 		ReferenceFrame,
-		ReferenceFrame(uLabel, x, R, v, w));
+		ReferenceFrame(uLabel, x, R, v, w, pDM->GetOrientationDescription()));
 	if (!RF.insert(RFType::value_type(uLabel, pRF)).second) {
 		silent_cerr("Reference frame " << uLabel
 			<< " already defined at line " << GetLineData()

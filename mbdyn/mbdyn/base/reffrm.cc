@@ -38,6 +38,7 @@
 #include <iomanip>
 
 #include "reffrm.h"
+#include "Rot.hh"
 
 ReferenceFrame::ReferenceFrame(void)
 : WithLabel(0), x(0.), R(Eye3), v(0.), w(0.)
@@ -47,8 +48,9 @@ ReferenceFrame::ReferenceFrame(void)
 
 ReferenceFrame::ReferenceFrame(unsigned int uLabel, 
 		const Vec3& xIn, const Mat3x3& RIn,
-		const Vec3& vIn, const Vec3& wIn)
-: WithLabel(uLabel), x(xIn), R(RIn), v(vIn), w(wIn)
+		const Vec3& vIn, const Vec3& wIn,
+		const OrientationDescription& ood)
+: WithLabel(uLabel), x(xIn), R(RIn), v(vIn), w(wIn), od(ood)
 {
 	NO_OP;
 }
@@ -56,7 +58,8 @@ ReferenceFrame::ReferenceFrame(unsigned int uLabel,
 ReferenceFrame::ReferenceFrame(const RigidBodyKinematics* pRBK)
 : WithLabel(0),
 x(pRBK->GetX()), R(pRBK->GetR()),
-v(pRBK->GetV()), w(pRBK->GetW())
+v(pRBK->GetV()), w(pRBK->GetW()),
+od(EULER_123)
 {
 	NO_OP;
 }
@@ -109,15 +112,35 @@ ReferenceFrame::operator = (const ReferenceFrame& rf)
 	R = rf.R;
 	v = rf.v;
 	w = rf.w;
+	od = rf.od;
 	return *this;
 }
 
 std::ostream&
 ReferenceFrame::Output(std::ostream& out) const
 {
-	return out 
+	out 
 		<< std::setw(8) << GetLabel() << " "
-		<< x << " " << MatR2EulerAngles(R)*dRaDegr << " "
+		<< x << " ";
+
+	switch (od) {
+	case EULER_123:
+		out << MatR2EulerAngles(R)*dRaDegr;
+		break;
+
+	case ORIENTATION_VECTOR:
+		out << RotManip::VecRot(R);
+		break;
+
+	case ORIENTATION_MATRIX:
+		out << R;
+		break;
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return out << " "
 		<< v << " " << w << " " << std::endl;
 }
 
