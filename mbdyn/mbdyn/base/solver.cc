@@ -3166,8 +3166,19 @@ Solver::ReadData(MBDynParser& HP)
 				} else if (HP.IsKeyWord("use" "lapack")) {
 					NO_OP;
 
+				} else if (HP.IsKeyWord("lower" "frequency")) {
+					NO_OP;
+
+				} else if (HP.IsKeyWord("upper" "frequency")) {
+					NO_OP;
+
 				} else if (HP.IsKeyWord("use" "arpack")) {
 					NO_OP;
+
+				} else {
+					silent_cerr("unrecognized option in eigenanalysis statement "
+						"at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
 
@@ -3221,7 +3232,6 @@ Solver::ReadData(MBDynParser& HP)
 					"at line " << HP.GetLineData()
 					<< std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				break;
 			}
 
 			switch (NonlinearSolverType) {
