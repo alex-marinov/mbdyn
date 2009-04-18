@@ -3173,11 +3173,21 @@ Solver::ReadData(MBDynParser& HP)
 					NO_OP;
 
 				} else if (HP.IsKeyWord("use" "arpack")) {
-					NO_OP;
+					(void)HP.GetInt();
+					(void)HP.GetInt();
+					(void)HP.GetReal();
+
+				} else if (HP.IsKeyWord("lower" "frequency")) {
+					(void)HP.GetReal();
+
+				} else if (HP.IsKeyWord("upper" "frequency")) {
+					(void)HP.GetReal();
 
 				} else {
-					silent_cerr("unrecognized option in eigenanalysis statement "
-						"at line " << HP.GetLineData() << std::endl);
+					silent_cerr("unknown option "
+						"in \"eigenanalysis\" statement "
+						"at line " << HP.GetLineData()
+						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
