@@ -2672,15 +2672,21 @@ start_parsing:;
 			}
 
 			if (save_errno == ERANGE) {
-				std::string ofval(s, endptr - s);
-
 				// over/under-flow
 				if (l == LONG_MIN) {
-					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "value ", ofval.c_str(), " underflow");
+					throw ErrGeneric(this,
+						MBDYN_EXCEPT_ARGS,
+						"integer value ",
+						std::string(s, endptr - s).c_str(),
+						" underflow");
 				}
 
 				if (l == LONG_MAX) {
-					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "value ", ofval.c_str(), " overflow");
+					throw ErrGeneric(this,
+						MBDYN_EXCEPT_ARGS,
+						"integer value ",
+						std::string(s, endptr - s).c_str(),
+						" overflow");
 				}
 
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -2701,15 +2707,21 @@ start_parsing:;
 			}
 
 			if (save_errno == ERANGE) {
-				std::string ofval(s, endptr - s);
-
 				// over/under-flow
 				if (std::abs(d) == HUGE_VAL) {
-					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "value ", ofval.c_str(), " overflow");
+					throw ErrGeneric(this,
+						MBDYN_EXCEPT_ARGS,
+						"real value ",
+						std::string(s, endptr - s).c_str(),
+						" overflow");
 				}
 
 				if (d == 0.) {
-					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "value ", ofval.c_str(), " underflow");
+					throw ErrGeneric(this,
+						MBDYN_EXCEPT_ARGS,
+						"real value ",
+						std::string(s, endptr - s).c_str(),
+						" underflow");
 				}
 
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
