@@ -1442,8 +1442,18 @@ StructNode::iGetPrivDataIdx(const char *s) const
 	size_t	len = brk - s;;
 	brk++;
 
+	errno = 0;
 	idx = strtol(brk, &next, 10);
+	int save_errno = errno;
 	if (next == brk || strcmp(next, /*[*/ "]") != 0) {
+		return 0;
+	}
+
+	if (save_errno == ERANGE) {
+		silent_cerr("StructNode(" << GetLabel() << "): "
+			"warning, private data index "
+			<< std::string(brk, next - brk)
+			<< " overflows" << std::endl);
 		return 0;
 	}
 
@@ -2143,8 +2153,18 @@ DynamicStructNode::iGetPrivDataIdx(const char *s) const
 	size_t	len = brk - s;;
 	brk++;
 
+	errno = 0;
 	idx = strtol(brk, &next, 10);
+	int save_errno = errno;
 	if (next == brk || strcmp(next, /*[*/ "]") != 0) {
+		return 0;
+	}
+
+	if (save_errno == ERANGE) {
+		silent_cerr("StructNode(" << GetLabel() << "): "
+			"warning, private data index "
+			<< std::string(brk, next - brk)
+			<< " overflows" << std::endl);
 		return 0;
 	}
 

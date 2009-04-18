@@ -2321,12 +2321,20 @@ Modal::iGetPrivDataIdx(const char *s) const
 			return 0;
 		}
 
+		errno = 0;
 		unsigned long n = strtoul(buf, &end, 10);
+		int save_errno = errno;
 		if (end == buf) {
 			return 0;
-		}
 
-		if (end[0] != '\0') {
+		} else if (end[0] != '\0') {
+			return 0;
+
+		} else if (save_errno == ERANGE) {
+			silent_cerr("Modal(" << GetLabel() << "): "
+				"warning, private data mode index "
+				<< std::string(buf, end - buf)
+				<< " overflows" << std::endl);
 			return 0;
 		}
 
@@ -2361,8 +2369,17 @@ Modal::iGetPrivDataIdx(const char *s) const
 	}
 
 	char *next;
+	errno = 0;
 	unsigned int index = strtoul(end, &next, 10);
+	int save_errno = errno;
 	if (next == end || next[0] != ']') {
+		return 0;
+
+	} else if (save_errno == ERANGE) {
+		silent_cerr("Modal(" << GetLabel() << "): "
+			"warning, private data FEM node component "
+			<< std::string(end, next - end)
+			<< " overflows" << std::endl);
 		return 0;
 	}
 

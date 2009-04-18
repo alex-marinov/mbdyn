@@ -30,20 +30,25 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
 
 #include <iostream>
 #include <sstream>
 #include <iomanip>
-#include <ac/f2c.h>
 #include <cmath>
 
+#include "ac/f2c.h"
+
 extern "C" {
-#include <aerodc81.h>
+#include "aerodc81.h"
+}
+
+#include "c81data.h"
 
 /*
  * header NML,NAL,NMD,NAD,NMM,NAM	A30,6I2 
@@ -64,16 +69,21 @@ do_c81_data_stall(c81_data *data, const doublereal dcltol);
 static int
 do_c81_stall(int NM, int NA, doublereal *a, doublereal *stall, const doublereal dcltol);
 
-int
-read_c81_data_free_format(std::istream& in, c81_data* data, const doublereal dcltol);
-
 static int
 get_int(const char *const from, int &i)
 {
 #ifdef HAVE_STRTOL
 	char *endptr = NULL;
+	errno = 0;
 	i = strtol(from, &endptr, 10);
+	int save_errno = errno;
 	if (endptr != NULL && endptr[0] != '\0' && !isspace(endptr[0])) {
+		return -1;
+
+	} else if (save_errno == ERANGE) {
+		silent_cerr("c81data: warning, int "
+			<< std::string(from, endptr - from)
+			<< " overflows" << std::endl);
 		return -1;
 	}
 #else /* !HAVE_STRTOL */
@@ -87,8 +97,16 @@ get_long(const char *const from, long &l)
 {
 #ifdef HAVE_STRTOL
 	char *endptr = NULL;
+	errno = 0;
 	l = strtol(from, &endptr, 10);
+	int save_errno = errno;
 	if (endptr != NULL && endptr[0] != '\0' && !isspace(endptr[0])) {
+		return -1;
+
+	} else if (save_errno == ERANGE) {
+		silent_cerr("c81data: warning, int "
+			<< std::string(from, endptr - from)
+			<< " overflows" << std::endl);
 		return -1;
 	}
 #else /* !HAVE_STRTOL */
@@ -102,8 +120,16 @@ get_double(const char *const from, doublereal &d)
 {
 #ifdef HAVE_STRTOD
 	char *endptr = NULL;
+	errno = 0;
 	d = strtod(from, &endptr);
+	int save_errno = errno;
 	if (endptr != NULL && endptr[0] != '\0' && !isspace(endptr[0])) {
+		return -1;
+
+	} else if (save_errno == ERANGE) {
+		silent_cerr("c81data: warning, double "
+			<< std::string(from, endptr - from)
+			<< " overflows" << std::endl);
 		return -1;
 	}
 #else /* !HAVE_STRTOD */
@@ -111,6 +137,7 @@ get_double(const char *const from, doublereal &d)
 #endif /* !HAVE_STRTOD */
 	return 0;
 }
+
 static int 
 get_c81_vec(std::istream& in, doublereal* v, int ncols)
 {
@@ -233,7 +260,7 @@ put_c81_mat(std::ostream& out, doublereal* m, int nrows, int ncols)
    	return 0;
 }
 
-void
+extern "C" void
 destroy_c81_data(c81_data* data)
 {
 	delete[] data->ml;
@@ -249,7 +276,7 @@ destroy_c81_data(c81_data* data)
 	delete[] data->mstall;
 }
 
-int
+extern "C" int
 read_c81_data(std::istream& in, c81_data* data, const doublereal dcltol)
 {
    	char buf[BUFSIZ];	// 81 should suffice
@@ -327,7 +354,7 @@ read_c81_data(std::istream& in, c81_data* data, const doublereal dcltol)
    	return 0;
 }
 
-int
+extern "C" int
 write_c81_data(std::ostream& out, c81_data* data)
 {
 	if (data == 0) {
@@ -359,7 +386,7 @@ write_c81_data(std::ostream& out, c81_data* data)
    	return 0;
 }
 
-int
+extern "C" int
 read_fc511_row(std::istream& in, doublereal *d, int NC)
 {
 	int	r;
@@ -393,7 +420,7 @@ read_fc511_row(std::istream& in, doublereal *d, int NC)
 	return 0;
 }
 
-int
+extern "C" int
 read_fc511_mat(std::istream& in, doublereal *d, int NR, int NC)
 {
 	for (int i = 0; i < NR; i++) {
@@ -429,7 +456,7 @@ read_fc511_mat(std::istream& in, doublereal *d, int NR, int NC)
 	return 0;
 }
 
-int
+extern "C" int
 read_fc511_block(std::istream& in, int &NA, int &NM, doublereal *&da, doublereal *&dm)
 {
    	char buf[128];	// 81 should suffice; let's make it 128
@@ -527,7 +554,7 @@ read_fc511_block(std::istream& in, int &NA, int &NM, doublereal *&da, doublereal
 	return 0;
 }
 
-int
+extern "C" int
 read_fc511_data(std::istream& in, c81_data* data, const doublereal dcltol)
 {
    	char buf[128];	// 81 should suffice; let's make it 128
@@ -591,7 +618,7 @@ read_fc511_data(std::istream& in, c81_data* data, const doublereal dcltol)
    	return 0;
 }
 
-int
+extern "C" int
 read_c81_data_free_format(std::istream& in, c81_data* data, const doublereal dcltol)
 {
    	char buf[128];	// 81 should suffice; let's make it 128
@@ -677,7 +704,7 @@ read_c81_data_free_format(std::istream& in, c81_data* data, const doublereal dcl
    	return 0;
 }
 
-int
+extern "C" int
 write_c81_data_free_format(std::ostream& out, c81_data* data)
 {
 	if (data == 0) {
@@ -740,7 +767,7 @@ write_c81_data_free_format(std::ostream& out, c81_data* data)
 static int c81_ndata = 0;
 static c81_data** __c81_pdata = NULL;
 
-c81_data*
+extern "C" c81_data*
 get_c81_data(long int jpro)
 {
    	if (__c81_pdata == NULL) {
@@ -749,7 +776,7 @@ get_c81_data(long int jpro)
    	return __c81_pdata[jpro];
 }
 
-int 
+extern "C" int 
 set_c81_data(long int jpro, c81_data* data)
 {
    	if (__c81_pdata == NULL || jpro >= c81_ndata) {
@@ -872,4 +899,3 @@ do_c81_data_stall(c81_data *data, const doublereal dcltol)
 	return 0;
 }
 
-} // extern "C"

@@ -472,13 +472,19 @@ mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 					long	r;
 						
 					s += STRLENOF("rank=");
+					errno = 0;
 					r = strtol(s, &next, 10);
+					int save_errno = errno;
 					if (next[0] != '\0') {
 						if (next[0] != ',') {
 							silent_cerr("error in argument -S " << optarg << std::endl);
 							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 						}
 						s = &next[1];
+
+					} else if (save_errno == ERANGE) {
+						silent_cerr("rank=" << s << ": overflow" << std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 
 					if (mbp.using_mpi && r != mbp.MyRank) {
@@ -492,9 +498,15 @@ mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 				if (s[0]) {
 					char	*next;
 
+					errno = 0;
 					mbp.iSleepTime = strtol(s, &next, 10);
+					int save_errno = errno;
 					if (next[0] != '\0') {
 						silent_cerr("error in argument -S " << optarg << std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+					} else if (save_errno == ERANGE) {
+						silent_cerr("argument of -S " << s << " overflows" << std::endl);
 						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 				}

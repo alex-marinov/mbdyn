@@ -903,8 +903,17 @@ DiscreteControlElem::iGetPrivDataIdx(const char *s) const
 	}
 
 	char *next;
+	errno = 0;
 	long idx = std::strtol(s, &next, 10);
+	int save_errno = errno;
 	if (next == s || next[0] != ']') {
+		return 0;
+	}
+
+	if (save_errno == ERANGE) {
+		silent_cerr("DiscreteControlElem(" << GetLabel() << "): "
+			"warning, private data index " << std::string(s, next - s)
+			<< " overflows" << std::endl);
 		return 0;
 	}
 

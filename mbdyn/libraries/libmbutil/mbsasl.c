@@ -1226,9 +1226,15 @@ mbdyn_sasl_parse_args(int opt, const char *optarg,
 		char		*next = NULL;
 		unsigned long	l;
 
+		errno = 0;
 		l = strtoul(optarg, &next, 10);
+		int save_errno = errno;
 		if (next == NULL || next[0] != '\0') {
 			printf("ILLEGAL SLEEP TIME '%s'\n", optarg);
+
+		} else if (save_errno == ERANGE) {
+			printf("SLEEP TIME '%s' OVERFLOWS\n", optarg);
+
 		} else {
 			mbdyn_sasl->sasl_usleep = l;
 		}

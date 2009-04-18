@@ -30,18 +30,19 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include <sstream>
 
 #include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <cerrno>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
 
-#include <ac/f2c.h>
-#include <mathp.h>
+#include "ac/f2c.h"
+#include "mathp.h"
 
 /* environment */
 extern char **environ;
@@ -100,12 +101,20 @@ GetEnviron(MathParser& MP)
 			} else if (strncmp(&p[STRLENOF("MBDYN")], "_real_", STRLENOF("_real_")) == 0) {
 	    			n = p+11;
 				char *endptr = NULL;
+				errno = 0;
 	    			d = strtod(v, &endptr);
+				int save_errno = errno;
 				if (endptr != NULL && endptr[0] != '\0') {
 					silent_cerr("SetEnv: unable to parse "
 							"real <" << v << "> "
 							"for var <" << p << ">"
 							<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+				} else if (save_errno == ERANGE) {
+					silent_cerr("SetEnv: real <" << v << "> "
+						"for var <" << p << "> overflows"
+						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 	    			DEBUGCOUT("setting real var <" 
@@ -125,11 +134,19 @@ GetEnviron(MathParser& MP)
 	    			n = p+14;
 #ifdef HAVE_STRTOL
 				char *endptr = NULL;
+				errno = 0;
 				i = strtol(v, &endptr, 10);
+				int save_errno = errno;
 				if (endptr != NULL && endptr[0] != '\0') {
 					silent_cerr("SetEnv: unable to parse "
 						"integer <" << v << "> "
 						"for var <" << p << ">"
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+				} else if (save_errno == ERANGE) {
+					silent_cerr("SetEnv: integer <" << v << "> "
+						"for var <" << p << "> overflows"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
