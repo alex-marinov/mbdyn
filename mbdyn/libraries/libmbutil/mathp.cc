@@ -33,9 +33,12 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <limits>
+#include <cerrno>
 #include <cfloat>
+#include <cstdlib>
+#include <climits>
 #include <limits>
+
 #include "mathp.h"
 
 
@@ -2657,11 +2660,32 @@ start_parsing:;
 		}
 		s[i] = '\0';
 		in->putback(char(c));
-		char *endptr = NULL;
+		char *endptr = 0;
 		if (!f) {
 			value.SetType(TypedValue::VAR_INT);
 #ifdef HAVE_STRTOL
-			value.Set(Int(strtol(s, &endptr, 10)));
+			errno = 0;
+			long l = strtol(s, &endptr, 10);
+			int save_errno = errno;
+			if (endptr == s || endptr[0] != '\0') {
+				return (currtoken = UNKNOWNTOKEN);
+			}
+
+			if (save_errno == ERANGE) {
+				std::string ofval(s, endptr - s);
+
+				// over/under-flow
+				if (l == LONG_MIN) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "value ", ofval.c_str(), " underflow");
+				}
+
+				if (l == LONG_MAX) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "value ", ofval.c_str(), " overflow");
+				}
+
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			value.Set(Int(l));
 #else /* !HAVE_STRTOL */
 			value.Set(Int(atoi(s)));
 #endif /* !HAVE_STRTOL */
@@ -2669,14 +2693,31 @@ start_parsing:;
 		} else {
 			value.SetType(TypedValue::VAR_REAL);
 #ifdef HAVE_STRTOD
-			value.Set(Real(strtod(s, &endptr)));
+			errno = 0;
+			double d = strtod(s, &endptr);
+			int save_errno = errno;
+			if (endptr == s || endptr[0] != '\0') {
+				return (currtoken = UNKNOWNTOKEN);
+			}
+
+			if (save_errno == ERANGE) {
+				std::string ofval(s, endptr - s);
+
+				// over/under-flow
+				if (std::abs(d) == HUGE_VAL) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "value ", ofval.c_str(), " overflow");
+				}
+
+				if (d == 0.) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "value ", ofval.c_str(), " underflow");
+				}
+
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			value.Set(Real(d));
 #else /* !HAVE_STRTOD */
 			value.Set(Real(atof(s)));
 #endif /* !HAVE_STRTOD */
-		}
-
-		if (endptr && endptr[0] != '\0') {
-			return (currtoken = UNKNOWNTOKEN);
 		}
 
 		return (currtoken = NUM);

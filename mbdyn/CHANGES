@@ -17,6 +17,7 @@ MBDyn 1.X-Devel
 		- add support for scalar values to discrete control elem
 		- add frequency range for partial eigenanalysis output
 		- honor default output orientation for reference frames
+		- add over/underflow check in math parser
 	Backward compatibility issues:
 		- the format of the modal joint output changed
 		- the format of the modal force input changed
