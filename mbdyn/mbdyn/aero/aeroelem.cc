@@ -167,7 +167,7 @@ bJacobian(bUseJacobian)
 
 #ifdef DEBUG
    	if (pIndVel != NULL) {
-      		ASSERT(pIndVel->GetElemType() == Elem::ROTOR);
+      		ASSERT(pIndVel->GetElemType() == Elem::INDUCEDVELOCITY);
    	}
 #endif /* DEBUG */
 
@@ -1230,7 +1230,7 @@ pvdOuta(NULL)
 
 #ifdef DEBUG
 	if (pIndVel != NULL) {
-		ASSERT(pIndVel->GetElemType() == Elem::ROTOR);
+		ASSERT(pIndVel->GetElemType() == Elem::INDUCEDVELOCITY);
 	}
 #endif /* DEBUG */
 
@@ -1841,7 +1841,7 @@ pvdOuta(NULL)
 
 #ifdef DEBUG
 	if (pIndVel != NULL) {
-		ASSERT(pIndVel->GetElemType() == Elem::ROTOR);
+		ASSERT(pIndVel->GetElemType() == Elem::INDUCEDVELOCITY);
 	}
 #endif /* DEBUG */
 

@@ -143,7 +143,7 @@ StreamContentMotion::Prepare(void)
 		}
 	}
 
-	ASSERT(curbuf == &buf[size]);
+	ASSERT(curbuf == &buf[buf.size()]);
 }
 
 /* StreamContentMotion - end */
