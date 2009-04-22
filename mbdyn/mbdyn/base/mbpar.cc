@@ -224,9 +224,11 @@ MBDynParser::Reference_int(void)
 		   << "\tW = " << w << std::endl);
 	
 	ReferenceFrame* pRF = NULL;
+	OrientationDescription od
+		= ReadOptionalOrientationDescription(pDM, *this);
 	SAFENEWWITHCONSTRUCTOR(pRF,
 		ReferenceFrame,
-		ReferenceFrame(uLabel, x, R, v, w, pDM->GetOrientationDescription()));
+		ReferenceFrame(uLabel, x, R, v, w, od));
 	if (!RF.insert(RFType::value_type(uLabel, pRF)).second) {
 		silent_cerr("Reference frame " << uLabel
 			<< " already defined at line " << GetLineData()

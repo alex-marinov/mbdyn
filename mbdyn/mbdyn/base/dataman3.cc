@@ -2649,9 +2649,15 @@ ReadOptionalOrientationDescription(DataManager *pDM, MBDynParser& HP)
 	if (HP.IsKeyWord("orientation" "description")) {
 		dod = ReadOrientationDescription(HP);
 
-	} else if (dod == UNKNOWN_ORIENTATION_DESCRIPTION && pDM != 0) {
+	} else if (pDM != 0) {
 		/* get a sane default */
 		dod = pDM->GetOrientationDescription();
+
+	} else {
+		dod = EULER_123;
+		silent_cerr("Warning, data manager not defined yet, "
+			"using default orientation (\"euler 123\") "
+			"at line " << HP.GetLineData() << std::endl);
 	}
 
 	return dod;
