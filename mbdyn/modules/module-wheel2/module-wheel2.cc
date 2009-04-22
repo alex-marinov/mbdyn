@@ -36,6 +36,7 @@
 #include <iostream>
 #include <limits>
 #include <cfloat>
+#include <limits>
 
 #include "dataman.h"
 #include "loadable.h"

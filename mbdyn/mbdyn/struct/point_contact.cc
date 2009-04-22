@@ -214,9 +214,9 @@ PointSurfaceContact::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 	WM.Sub(3 + 1, 1, MTmp);
 	WM.Add(3 + 1, 3 + 1, MTmp);
 
-	Vec3 dFnode1_1 = -n*ElasticStiffness*n[1];
- 	Vec3 dFnode1_2 = -n*ElasticStiffness*n[2];
- 	Vec3 dFnode1_3 = -n*ElasticStiffness*n[3];
+	Vec3 dFnode1_1 = -n*ElasticStiffness*n[0];
+ 	Vec3 dFnode1_2 = -n*ElasticStiffness*n[1];
+ 	Vec3 dFnode1_3 = -n*ElasticStiffness*n[2];
 
 	// forza sul nodo pNode1	 
  	WM.Add(1,1,dFnode1_1);

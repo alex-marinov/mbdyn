@@ -33,6 +33,7 @@
 #define FRICTION_H
 
 #include <cfloat>
+#include <limits>
 
 doublereal 
 norm(const doublereal &v)

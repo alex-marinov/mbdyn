@@ -34,7 +34,8 @@
 
 #ifdef USE_RUNTIME_LOADING
 
-#include <string.h>
+#include <cstring>
+#include <cstdio>
 #include <ltdl.h>
 
 #include "ac/getopt.h"

@@ -48,8 +48,8 @@
 
 /* RTMBDynOutElem - begin */
 
-RTMBDynOutElem::RTMBDynOutElem(unsigned int uL, const std::string& m,
-	const std::string& host, unsigned long n, bool c, StreamContent *pSC,
+RTMBDynOutElem::RTMBDynOutElem(unsigned int uL, const std::string& host,
+	const std::string& m, unsigned long n, bool c, StreamContent *pSC,
 	bool bNonBlocking)
 : Elem(uL, flag(0)),
 StreamOutElem(uL, m, 1),
