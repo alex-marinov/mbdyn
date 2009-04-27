@@ -414,52 +414,81 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 			doublereal cc = dHalfSpan*dWght;
 	
 			Mat6x6 Jf(0.);	// Temporary matrix
+			Mat3x3 RRlocT(RRloc.Transpose());
 	
-			/* Delta F, equations 1:3 */
+			/* BEGIN: Delta F, equations 1:3 */
+
+			//(RRloc*Fa)x
+			Mat3x3 JTmp(RRloc*(Vec3(Fa0) * cc * dCoef)); 	
+			/* - [RRloc * fa] x  */
+			Jf.SubMat12(JTmp); 						// delta_g  
+
+			/* RRloc * JFa(1:3,1:6) * delta{Vtmp,Wtmp} */
+			JTmp = RRloc * JFa.GetMat11() * cc;
 			
-			Mat3x3 JTmp(RRloc*(Vec3(Fa0) * (cc * dCoef))); //(RRloc*Fa)x
-			// WM.Sub(1, 4, JTmp); 						// delta_g  
-			Jf.AddMat12(JTmp); 						// delta_g  
-			JTmp = RRloc * JFa.GetMat11() * cc;	
-			// WM.Sub(1, 4, JTmp * Mat3x3(RRloc * Vr));			// delta_g 
-			Jf.AddMat12(JTmp * Mat3x3(RRloc * Vr) * dCoef);			// delta_g 
-			// WM.Sub(1, 1, JTmp * RRloc));					// delta_V
-			Jf.AddMat11(JTmp * RRloc);					// delta_V 
-			// WM.Sub(1, 4, JTmp * Mat3x3(RRloc * Xr));			// delta_W 
-			Jf.SubMat12(JTmp * Mat3x3(RRloc * Xr));				// delta_W 
-			// WM.Sub(1, 4, JTmp * Mat3x3(RRloc * Wn) * Mat3x3(Xr));	// delta_g 
-			Jf.SubMat12(JTmp * Mat3x3(RRloc * Wn) * Mat3x3(Xr) * dCoef);	// delta_g 
+			/* RRloc * JFa(1:3,1:3) * delta{Vtmp} */
+			/* JTmp * [RRlocT * Vr] x */
+			Jf.AddMat12(JTmp * Mat3x3(RRlocT * Vr) * dCoef);		// delta_g 
+
+			/* JTmp * RRlocT */
+			Jf.AddMat11(JTmp * RRlocT);					// delta_V 
+			
+			/* JTmp * -[RRloc*Xr] x */
+			Jf.SubMat12(JTmp * Mat3x3(RRlocT * Xr));			// delta_W 
+
+			/* JTmp * RlocT * [Wn]x [Xr]x*/
+			
+			Jf.AddMat12(JTmp * RRlocT * Mat3x3(Wn) * Mat3x3(Xr) * dCoef);	// delta_g
+
+			/* RRloc * JFa(1:3,4:6) * delta{Wtmp} */
 			JTmp = RRloc * JFa.GetMat12() * cc;
-			// WM.Sub(1, 4, JTmp * Mat3x3(RRloc * Wn) * Mat3x3(Xr));	// delta_g 
-			Jf.SubMat12(JTmp * Mat3x3(RRloc * Wn) * Mat3x3(Xr) * dCoef);	// delta_g 
-			// WM.Add(1, 4, JTmp * RRloc);					// delta_W 
-			Jf.AddMat12(JTmp * RRloc);					// delta_W 
+
+			/* JTmp * [RRlocT * Wn] x */
+			Jf.AddMat12(JTmp * Mat3x3(RRlocT * Wn) * dCoef);		// delta_g 
+			
+			/* RRlocT */
+			Jf.AddMat12(JTmp * RRlocT);					// delta_W 
 			
 			/* Delta M, equations 4:6 */
 			//(RRloc*Ma)x
 			JTmp = Mat3x3(RRloc * Vec3(Fa0+3) * cc);			
-			// WM.Sub(4, 4, JTmp); 						// delta_g  
-			Jf.AddMat22(JTmp * dCoef); 					// delta_g  
+			Jf.SubMat22(JTmp * dCoef); 					// delta_g  
+
+			/* RRloc * JFa(4:6,1:6) * delta{Vtmp,Wtmp} */
+
+			/* RRloc * JFa(4:6,1:3) * delta{Vtmp} */
+			
 			JTmp = RRloc * JFa.GetMat21() * cc;
-			// WM.Sub(4, 4, JTmp * Mat3x3(RRloc * Vr));			// delta_g 
-			Jf.AddMat22(JTmp * Mat3x3(RRloc * Vr) * dCoef);			// delta_g 
-			// WM.Sub(4, 1, JTmp * RRloc));					// delta_V
-			Jf.AddMat21(JTmp * RRloc);					// delta_V 
-			// WM.Sub(4, 4, JTmp * Mat3x3(RRloc * Xr));			// delta_W 
+			
+			/* JTmp * [RRlocT*Vr] x */
+			Jf.AddMat22(JTmp * Mat3x3(RRlocT * Vr) * dCoef);		// delta_g 
+
+			/* JTmp * RRlocT */
+			Jf.AddMat21(JTmp * RRlocT);					// delta_V 
+
+			/* JTmp * -[RRlocT*Xr] x */
 			Jf.SubMat22(JTmp * Mat3x3(RRloc * Xr));				// delta_W 
-			// WM.Sub(2, 4, JTmp * Mat3x3(RRloc * Wn) * Mat3x3(Xr));	// delta_g 
-			Jf.SubMat22(JTmp * Mat3x3(RRloc * Wn) * Mat3x3(Xr) * dCoef);	// delta_g 
+
+			/* JTmp * RRlocT * [Wn]x * [Xr]x */
+			Jf.AddMat22(JTmp * Mat3x3(RRlocT * Wn) * Mat3x3(Xr) * dCoef);	// delta_g 
+
+			/* RRloc * JFa(4:6,4:6) * delta{Wtmp} */
 			JTmp = RRloc * JFa.GetMat22() * cc;
-			// WM.Sub(4, 4, JTmp * Mat3x3(RRloc * Wn) * Mat3x3(Xr));// delta_g 
-			Jf.SubMat22(JTmp * Mat3x3(RRloc * Wn) * Mat3x3(Xr) * dCoef);	// delta_g 
-			// WM.Add(4, 4, JTmp * RRloc);					// delta_W 
-			Jf.AddMat22(JTmp * RRloc);					// delta_W 
+
+			/* JTmp * [RRlocT * Wn] x */
+			Jf.AddMat22(JTmp * Mat3x3(RRlocT * Wn) * dCoef);		// delta_g 
+
+			/* JTmp * RRlocT */
+			Jf.AddMat22(JTmp * RRlocT);					// delta_W 
 			
 			/* Transport moments... */
 	
-			Jf.AddMat22(Mat3x3(Vec3(Fa0)) * Mat3x3(Xr) * dCoef);		// delta_g		
-			// [Xr] x deltaF (aero) ... 	
+      			Vec3 FTmp(RRloc*(Vec3(Fa0)*(dHalfSpan*dWght)));
+			Jf.AddMat22(Mat3x3(Vec3(FTmp)) * Mat3x3(Xr) * dCoef);		// delta_g		
+
+			// [Xr] x deltaF ... 	
 			Jf.AddMat21(Mat3x3(Xr) * Jf.GetMat11());
+
 			Jf.AddMat22(Mat3x3(Xr) * Jf.GetMat12());
 	
 			WM.Sub(1, 1, Jf.GetMat11());
