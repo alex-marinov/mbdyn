@@ -507,8 +507,6 @@ DriveOwner::DriveOwner(const DriveCaller* pDC)
 
 DriveOwner::~DriveOwner(void)
 {
-	ASSERT(pDriveCaller != 0);
-
 	if (pDriveCaller != 0) {
 		SAFEDELETE(pDriveCaller);
 	}

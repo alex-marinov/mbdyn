@@ -240,8 +240,6 @@ DataManager::fGetDefaultOutputFlag(const Node::Type& t) const
 Node*
 DataManager::pFindNode(Node::Type Typ, unsigned int uL) const
 {
-	ASSERT(uL > 0);
-
 	if (NodeData[Typ].iNum == 0) {
 		return 0;
 	}
@@ -255,8 +253,6 @@ DataManager::pFindNode(Node::Type Typ, unsigned int uL) const
 StructNode*
 DataManager::pFindStructNode(unsigned int uL) const
 {
-	ASSERT(uL > 0);
-
 	if (NodeData[Node::STRUCTURAL].iNum == 0) {
 		silent_cerr("No structural nodes defined; "
 			"StructNode(" << uL << ") cannot be located."
@@ -273,8 +269,6 @@ DataManager::pFindStructNode(unsigned int uL) const
 ElectricNode*
 DataManager::pFindElectricNode(unsigned int uL) const
 {
-	ASSERT(uL > 0);
-
 	if (NodeData[Node::ELECTRIC].iNum == 0) {
 		silent_cerr("No electric nodes defined; "
 			"ElectricNode(" << uL << ") cannot be located"

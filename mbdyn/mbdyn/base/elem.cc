@@ -43,7 +43,7 @@
 Elem::Elem(unsigned int uL, flag fOut)
 : WithLabel(uL), ToBeOutput(fOut)
 {
-	ASSERTMSG(uL > 0, "Null label shouldn't be used");
+	NO_OP;
 }
 
 Elem::~Elem(void) 

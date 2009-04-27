@@ -611,8 +611,6 @@ DataManager::ElemOutput_f06( std::ostream& f06, const VectorHandler& Xr,
 Elem *
 DataManager::pFindElem(Elem::Type Typ, unsigned int uL) const
 {
-	ASSERT(uL > 0);
-
 	ElemMapType::const_iterator p = ElemData[Typ].ElemMap.find(uL);
 	if (p == ElemData[Typ].ElemMap.end()) {
 		return 0;
