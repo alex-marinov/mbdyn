@@ -75,7 +75,7 @@ protected:
 
 	unsigned int NModes;
 	unsigned int NStrNodes;
-	unsigned int NFemNodes;
+	unsigned int NFEMNodes;
 	doublereal dMass;
 	Vec3 Inv2;
 	Mat3x3 Inv7;
@@ -83,9 +83,9 @@ protected:
 	MatNxN *pModalMass;
 	MatNxN *pModalStiff;
 	MatNxN *pModalDamp;
-	std::vector<std::string> IdFemNodes;
+	std::vector<std::string> IdFEMNodes;
 	std::vector<std::string> IntFEMNodes;
-	Mat3xN *pXYZFemNodes;
+	Mat3xN *pXYZFEMNodes;
 	Mat3xN *pOffsetFEMNodes;   
 	Mat3xN *pOffsetMBNodes;   
 	Mat3xN *pRotMBNodes;
@@ -160,7 +160,7 @@ public:
 			MatNxN *pGenMass,
 			MatNxN *pGenStiff,
 			MatNxN *pGenDamp,
-			std::vector<std::string>& IdFemNodes,
+			std::vector<std::string>& IdFEMNodes,
 			std::vector<std::string>& IntFEMNodes,
 			Mat3xN *pN,
 			Mat3xN *pOffsetfemNodes,
@@ -267,8 +267,8 @@ public:
 		return *pModeShapesr;
 	};
 
-	Mat3xN* GetCurrFemNodesPosition(void);
-	Mat3xN* GetCurrFemNodesVelocity(void);
+	Mat3xN* GetCurrFEMNodesPosition(void);
+	Mat3xN* GetCurrFEMNodesVelocity(void);
 
 	integer uGetNModes(void) {
 		return NModes;
@@ -294,8 +294,8 @@ public:
 		return bPrime;
 	};
 
-	integer uGetNFemNodes(void) {
-		return NFemNodes;
+	integer uGetNFEMNodes(void) {
+		return NFEMNodes;
 	};
 
 	integer iGetModalIndex(void) const {

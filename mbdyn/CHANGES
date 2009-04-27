@@ -18,6 +18,7 @@ MBDyn 1.X-Devel
 		- add frequency range for partial eigenanalysis output
 		- honor default output orientation for reference frames
 		- add over/underflow check in math parser
+		- add incomplete FEM file detection to modal joint
 	Backward compatibility issues:
 		- the format of the modal joint output changed
 		- the format of the modal force input changed

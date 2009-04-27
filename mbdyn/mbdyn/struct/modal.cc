@@ -135,7 +135,7 @@ Modal::Modal(unsigned int uL,
 	MatNxN *pGenMass,
 	MatNxN *pGenStiff,
 	MatNxN *pGenDamp,
-	std::vector<std::string>& IdFemNodes,	/* label nodi FEM */
+	std::vector<std::string>& IdFEMNodes,	/* label nodi FEM */
 	std::vector<std::string>& IntFEMNodes,	/* label nodi FEM d'interfaccia */
 	Mat3xN *pN,               /* posizione dei nodi FEM */
 	Mat3xN *pOffsetfemNodes,
@@ -167,7 +167,7 @@ R(R0),
 RT(R0.Transpose()),
 NModes(NM),
 NStrNodes(NI),
-NFemNodes(NF),
+NFEMNodes(NF),
 dMass(dMassTmp),
 Inv2(STmp),
 Inv7(JTmp),
@@ -175,9 +175,9 @@ uModeNumber(uModeNumber),
 pModalMass(pGenMass),
 pModalStiff(pGenStiff),
 pModalDamp(pGenDamp),
-IdFemNodes(IdFemNodes),
+IdFEMNodes(IdFEMNodes),
 IntFEMNodes(IntFEMNodes),
-pXYZFemNodes(pN),
+pXYZFEMNodes(pN),
 pOffsetFEMNodes(pOffsetfemNodes),
 pOffsetMBNodes(pOffsetmbNodes),
 pRotMBNodes(pRotmbNodes),
@@ -259,8 +259,8 @@ Modal::~Modal(void)
 	if (pInterfaceNodes) {
 		SAFEDELETEARR(pInterfaceNodes);
 	}
-	if (pXYZFemNodes) {
-		SAFEDELETE(pXYZFemNodes);
+	if (pXYZFEMNodes) {
+		SAFEDELETE(pXYZFEMNodes);
 	}
 	if (pModalMass) {
 		SAFEDELETE(pModalMass);
@@ -2240,7 +2240,7 @@ Modal::DerivativesUpdate(const VectorHandler& X,
 unsigned int
 Modal::iGetNumPrivData(void) const
 {
-	return 3*NModes + 18*NFemNodes;
+	return 3*NModes + 18*NFEMNodes;
 }
 
 unsigned int
@@ -2388,13 +2388,13 @@ Modal::iGetPrivDataIdx(const char *s) const
 	}
 
 	unsigned int i;
-	for (i = 0; i < NFemNodes; i++) {
-		if (IdFemNodes[i] == FEMLabel) {
+	for (i = 0; i < NFEMNodes; i++) {
+		if (IdFEMNodes[i] == FEMLabel) {
 			break;
 		}
 	}
 
-	if (i == NFemNodes) {
+	if (i == NFEMNodes) {
 		return 0;
 	}
 
@@ -2441,9 +2441,9 @@ Modal::dGetPrivData(unsigned int i) const
 				R = pModalNode->GetRCurr();
 				x = pModalNode->GetXCurr();
 			}
-			Vec3 Xn(pXYZFemNodes->GetVec(n + 1));
+			Vec3 Xn(pXYZFEMNodes->GetVec(n + 1));
 			for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
-				integer iOffset = (jMode - 1)*NFemNodes + n + 1;
+				integer iOffset = (jMode - 1)*NFEMNodes + n + 1;
 				Xn += pModeShapest->GetVec(iOffset)*a(jMode);
 			}
 
@@ -2459,7 +2459,7 @@ Modal::dGetPrivData(unsigned int i) const
 			}
 			Vec3 Wn(0.);
 			for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
-				integer iOffset = (jMode - 1)*NFemNodes + n + 1;
+				integer iOffset = (jMode - 1)*NFEMNodes + n + 1;
 				Wn += pModeShapesr->GetVec(iOffset)*b(jMode);
 			}
 
@@ -2474,9 +2474,9 @@ Modal::dGetPrivData(unsigned int i) const
 				R = pModalNode->GetRCurr();
 			}
 			Vec3 Vn(0.);
-			Vec3 Xn(pXYZFemNodes->GetVec(n + 1));
+			Vec3 Xn(pXYZFEMNodes->GetVec(n + 1));
 			for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
-				integer iOffset = (jMode - 1)*NFemNodes + n + 1;
+				integer iOffset = (jMode - 1)*NFEMNodes + n + 1;
 				Vec3 v = pModeShapest->GetVec(iOffset);
 				Vn += v*b(jMode);
 				Xn += v*a(jMode);
@@ -2498,7 +2498,7 @@ Modal::dGetPrivData(unsigned int i) const
 			Vec3 WPn(0.);
 			Vec3 Wn(0.);
 			for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
-				integer iOffset = (jMode - 1)*NFemNodes + n + 1;
+				integer iOffset = (jMode - 1)*NFEMNodes + n + 1;
 				Vec3 v = pModeShapesr->GetVec(iOffset);
 				WPn += v*bPrime(jMode);
 				Wn += v*b(jMode);
@@ -2517,9 +2517,9 @@ Modal::dGetPrivData(unsigned int i) const
 			}
 			Vec3 XPPn(0.);
 			Vec3 XPn(0.);
-			Vec3 Xn(pXYZFemNodes->GetVec(n + 1));
+			Vec3 Xn(pXYZFEMNodes->GetVec(n + 1));
 			for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
-				integer iOffset = (jMode - 1)*NFemNodes + n + 1;
+				integer iOffset = (jMode - 1)*NFEMNodes + n + 1;
 				Vec3 v = pModeShapest->GetVec(iOffset);
 				XPPn += v*bPrime(jMode);
 				XPn += v*b(jMode);
@@ -2544,10 +2544,10 @@ Modal::dGetPrivData(unsigned int i) const
 }
 
 Mat3xN *
-Modal::GetCurrFemNodesPosition(void)
+Modal::GetCurrFEMNodesPosition(void)
 {
 	if (pCurrXYZ == NULL) {
-		   SAFENEWWITHCONSTRUCTOR(pCurrXYZ, Mat3xN, Mat3xN(NFemNodes, 0.));
+		   SAFENEWWITHCONSTRUCTOR(pCurrXYZ, Mat3xN, Mat3xN(NFEMNodes, 0.));
 	}
 
 	if (pModalNode) {
@@ -2556,16 +2556,16 @@ Modal::GetCurrFemNodesPosition(void)
 	}
 
 	for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
-		for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
+		for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
       			for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
 				pCurrXYZ->Add(iCnt, iNode,
-					pXYZFemNodes->dGet(iCnt, iNode) + pModeShapest->dGet(iCnt, (jMode - 1)*NFemNodes + iNode) * a.dGet(jMode) );
+					pXYZFEMNodes->dGet(iCnt, iNode) + pModeShapest->dGet(iCnt, (jMode - 1)*NFEMNodes + iNode) * a.dGet(jMode) );
 			}
 		}
 	}
 	
 	pCurrXYZ->LeftMult(R);
-	for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
+	for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
       		for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
 	 		pCurrXYZ->Add(iCnt, iNode, x.dGet(iCnt));
       		}
@@ -2575,10 +2575,10 @@ Modal::GetCurrFemNodesPosition(void)
 }
 
 Mat3xN *
-Modal::GetCurrFemNodesVelocity(void)
+Modal::GetCurrFEMNodesVelocity(void)
 {
 	if (pCurrXYZ == NULL) {
-		   SAFENEWWITHCONSTRUCTOR(pCurrXYZVel, Mat3xN, Mat3xN(NFemNodes, 0.));
+		   SAFENEWWITHCONSTRUCTOR(pCurrXYZVel, Mat3xN, Mat3xN(NFEMNodes, 0.));
 	}
 
 	Vec3 w(Zero3);
@@ -2592,19 +2592,19 @@ Modal::GetCurrFemNodesVelocity(void)
 
 	Mat3x3 wWedge(w);
 
-      	Mat3xN CurrXYZTmp(NFemNodes, 0.);
+      	Mat3xN CurrXYZTmp(NFEMNodes, 0.);
 	for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
-		for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
+		for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
       			for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-				doublereal d = pModeShapest->dGet(iCnt,(jMode - 1)*NFemNodes + iNode);
-				pCurrXYZVel->Add(iCnt, iNode, pXYZFemNodes->dGet(iCnt,iNode) + d * a.dGet(jMode) );
+				doublereal d = pModeShapest->dGet(iCnt,(jMode - 1)*NFEMNodes + iNode);
+				pCurrXYZVel->Add(iCnt, iNode, pXYZFEMNodes->dGet(iCnt,iNode) + d * a.dGet(jMode) );
 				CurrXYZTmp.Add(iCnt, iNode,d * b.dGet(jMode) );
 			}
 		}
 	}
 	pCurrXYZVel->LeftMult(wWedge*R);
 	CurrXYZTmp.LeftMult(R);
-	for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
+	for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
       		for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
 	 		pCurrXYZVel->Add(iCnt, iNode, CurrXYZTmp.dGet(iCnt, iNode) + v.dGet(iCnt));
       		}
@@ -2845,16 +2845,16 @@ ReadModal(DataManager* pDM,
 	}
 
 	/* numero di nodi FEM del modello */
-	unsigned int NFemNodes = unsigned(-1);
+	unsigned int NFEMNodes = unsigned(-1);
 	if (!HP.IsKeyWord("from" "file")) {
-		int tmpNFemNodes = HP.GetInt();
-		if (tmpNFemNodes <= 0) {
+		int tmpNFEMNodes = HP.GetInt();
+		if (tmpNFEMNodes <= 0) {
 			silent_cerr("Modal(" << uLabel << "): "
-				"illegal number of FEM nodes " << tmpNFemNodes
+				"illegal number of FEM nodes " << tmpNFEMNodes
 				<< " at line " << HP.GetLineData() << std::endl);
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
-		NFemNodes = unsigned(tmpNFemNodes);
+		NFEMNodes = unsigned(tmpNFEMNodes);
 	}
 
 #ifdef MODAL_SCALE_DATA
@@ -2904,7 +2904,7 @@ ReadModal(DataManager* pDM,
 	}
 
 	DEBUGCOUT("Number of Modes Imported : " << NModes << std::endl);
-	DEBUGCOUT("Number of FEM Nodes Imported : " << NFemNodes << std::endl);
+	DEBUGCOUT("Number of FEM Nodes Imported : " << NFEMNodes << std::endl);
 	DEBUGCOUT("Origin of FEM Model : " << X0 << std::endl);
 	DEBUGCOUT("Orientation of FEM Model : " << R << std::endl);
 	/* DEBUGCOUT("Damping coefficient: "<< cdamp << std::endl); */
@@ -2912,14 +2912,14 @@ ReadModal(DataManager* pDM,
 	doublereal dMass = 0;              /* massa totale */
 	Vec3 STmp(0.);                     /* momenti statici  */
 	Mat3x3 JTmp(0.);                   /* inerzia totale  */
-	std::vector<doublereal> FemMass;   /* masse nodali   */
-	std::vector<Vec3> FemJ;            /* inerzie nodali (sono diagonali) */
+	std::vector<doublereal> FEMMass;   /* masse nodali   */
+	std::vector<Vec3> FEMJ;            /* inerzie nodali (sono diagonali) */
 
 	Mat3xN *pModeShapest = NULL;       /* forme di traslaz. e rotaz. */
 	Mat3xN *pModeShapesr = NULL;
 	Mat3xN PHIti(NModes, 0.);          /* forme nodo i-esimo: 3*nmodi */
 	Mat3xN PHIri(NModes, 0.);
-	Mat3xN *pXYZFemNodes = NULL;       /* punt. alle coordinate nodali */
+	Mat3xN *pXYZFEMNodes = NULL;       /* punt. alle coordinate nodali */
 	Mat3xN *pOffsetFEMNodes = NULL;    /* punt. offset FEM (per vincoli) */
 	Mat3xN *pOffsetMBNodes = NULL;     /* punt. offset MB (per vincoli) */
 	Mat3xN *pRotMBNodes = NULL;        /* punt. orient. MB (per vincoli) */
@@ -2947,8 +2947,7 @@ ReadModal(DataManager* pDM,
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	const char *sFileFem = NULL;
-	SAFESTRDUP(sFileFem, s);
+	std::string sFileFEM(s);
 
 	doublereal dMassThreshold = 0.;
 	doublereal dStiffnessThreshold = 0.;
@@ -3009,41 +3008,41 @@ ReadModal(DataManager* pDM,
 	}
 
 	/* stuff for binary FEM file handling */
-	std::string	sBinFileFem;
+	std::string	sBinFileFEM;
 	struct stat	stFEM, stBIN;
 	bool		bReadFEM = true,
 			bWriteBIN = false,
 			bCheckBIN = false;
 
-	if (stat(sFileFem, &stFEM) == -1) {
+	if (stat(sFileFEM.c_str(), &stFEM) == -1) {
 		int	save_errno = errno;
 		char	*errmsg = strerror(save_errno);
 
 		silent_cerr("Modal(" << uLabel << "): "
-				"unable to stat(\"" << sFileFem << "\") "
+				"unable to stat(\"" << sFileFEM << "\") "
 				"(" << save_errno << ": " << errmsg << ")"
 				<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (bUseBinary || bCreateBinary || bUpdateBinary) {
-		sBinFileFem = std::string(sFileFem) + ".bin";
+		sBinFileFEM = sFileFEM + ".bin";
 
-		if (stat(sBinFileFem.c_str(), &stBIN) == -1) {
+		if (stat(sBinFileFEM.c_str(), &stBIN) == -1) {
 			int	save_errno = errno;
 			char	*errmsg = strerror(save_errno);
 
 			if (save_errno == ENOENT && (bCreateBinary || bUpdateBinary)) {
 				silent_cerr("Modal(" << uLabel << "): "
 						"creating binary file "
-						"\"" << sBinFileFem << "\" "
+						"\"" << sBinFileFEM << "\" "
 						"from file "
-						"\"" << sFileFem << "\""
+						"\"" << sFileFEM << "\""
 						<< std::endl);
 
 			} else {
 				silent_cerr("Modal(" << uLabel << "): "
-						"unable to stat(\"" << sBinFileFem << "\") "
+						"unable to stat(\"" << sBinFileFEM << "\") "
 						"(" << save_errno << ": " << errmsg << ")"
 						<< std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3082,7 +3081,7 @@ ReadModal(DataManager* pDM,
 	SAFENEWWITHCONSTRUCTOR(aP, VecN, VecN(NModes, 0.));
 	
 	/* array contenente le label dei nodi FEM */
-	std::vector<std::string> IdFemNodes;
+	std::vector<std::string> IdFEMNodes;
 	std::vector<bool> bActiveModes;
 
 	/* NOTE: increment this each time the binary format changes! */
@@ -3090,7 +3089,7 @@ ReadModal(DataManager* pDM,
 
 	unsigned	currBinVersion;
 	char		checkPoint;
-	unsigned	NFemNodesFEM = 0, NModesFEM = 0;
+	unsigned	NFEMNodesFEM = 0, NModesFEM = 0;
 
 	bool		bBuildInvariants = false;
 
@@ -3116,10 +3115,10 @@ ReadModal(DataManager* pDM,
 
 	if (bReadFEM) {
 		/* apre il file con i dati del modello FEM */
-		std::ifstream fdat(sFileFem);
+		std::ifstream fdat(sFileFEM.c_str());
 		if (!fdat) {
 			silent_cerr("Modal(" << uLabel << "): "
-				"unable to open file \"" << sFileFem << "\""
+				"unable to open file \"" << sFileFEM << "\""
 				"at line " << HP.GetLineData() << std::endl);
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
@@ -3129,10 +3128,10 @@ ReadModal(DataManager* pDM,
 
 		std::ofstream fbin;
 		if (bWriteBIN) {
-			fbin.open(sBinFileFem.c_str());
+			fbin.open(sBinFileFEM.c_str());
 			if (!fbin) {
 				silent_cerr("Modal(" << uLabel << "): "
-					"unable to open file \"" << sBinFileFem << "\""
+					"unable to open file \"" << sBinFileFEM << "\""
 					"at line " << HP.GetLineData() << std::endl);
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
@@ -3157,7 +3156,7 @@ ReadModal(DataManager* pDM,
 				STRLENOF("** RECORD GROUP 1,")))
 			{
 				if (bRecordGroup[1]) {
-					silent_cerr("file=\"" << sFileFem << "\": "
+					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" already parsed"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3169,7 +3168,7 @@ ReadModal(DataManager* pDM,
 				fdat >> str;
 	
 				/* FEM nodes number */
-				fdat >> NFemNodesFEM;
+				fdat >> NFEMNodesFEM;
 	
 				/* add to modes number */
 				fdat >> NModesFEM;
@@ -3185,22 +3184,22 @@ ReadModal(DataManager* pDM,
 				NModesFEM -= NRejModes;
 		
 				/* consistency checks */
-				if (NFemNodes == unsigned(-1)) {
-					NFemNodes = NFemNodesFEM;
+				if (NFEMNodes == unsigned(-1)) {
+					NFEMNodes = NFEMNodesFEM;
 
-				} else if (NFemNodes != NFemNodesFEM) {
+				} else if (NFEMNodes != NFEMNodesFEM) {
 					silent_cerr("Modal(" << uLabel << "), "
-						"file \"" << sFileFem << "\": "
-						"FEM nodes number " << NFemNodes
+						"file \"" << sFileFEM << "\": "
+						"FEM nodes number " << NFEMNodes
 						<< " does not match node number "
-						<< NFemNodesFEM
+						<< NFEMNodesFEM
 						<< std::endl);
 					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (NModes > NModesFEM) {
 					silent_cerr("Modal(" << uLabel << "), "
-						"file '" << sFileFem << "': "
+						"file '" << sFileFEM << "': "
 						"number of requested modes "
 						"(" << NModes << ") "
 						"exceeds number of available "
@@ -3212,7 +3211,7 @@ ReadModal(DataManager* pDM,
 
 				if (NModes < NModesFEM) {
 					silent_cout("Modal(" << uLabel << "), "
-						"file '" << sFileFem << "': "
+						"file '" << sFileFEM << "': "
 						"using " << NModes
 						<< " of " << NModesFEM
 						<< " available modes"
@@ -3221,7 +3220,7 @@ ReadModal(DataManager* pDM,
 
 				if (uLargestMode > NModesFEM) {
 					silent_cerr("Modal(" << uLabel << "), "
-						"file '" << sFileFem << "': "
+						"file '" << sFileFEM << "': "
 						"largest requested mode "
 						"(" << uLargestMode << ") "
 						"exceeds available modes "
@@ -3234,13 +3233,13 @@ ReadModal(DataManager* pDM,
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
-				FemMass.resize(NFemNodes);
-				FemJ.resize(NFemNodes);
-				IdFemNodes.resize(NFemNodes);
+				FEMMass.resize(NFEMNodes);
+				FEMJ.resize(NFEMNodes);
+				IdFEMNodes.resize(NFEMNodes);
 
-				SAFENEWWITHCONSTRUCTOR(pXYZFemNodes, Mat3xN, Mat3xN(NFemNodes, 0.));
-				SAFENEWWITHCONSTRUCTOR(pModeShapest, Mat3xN, Mat3xN(NFemNodes*NModes, 0.));
-				SAFENEWWITHCONSTRUCTOR(pModeShapesr, Mat3xN, Mat3xN(NFemNodes*NModes, 0.));
+				SAFENEWWITHCONSTRUCTOR(pXYZFEMNodes, Mat3xN, Mat3xN(NFEMNodes, 0.));
+				SAFENEWWITHCONSTRUCTOR(pModeShapest, Mat3xN, Mat3xN(NFEMNodes*NModes, 0.));
+				SAFENEWWITHCONSTRUCTOR(pModeShapesr, Mat3xN, Mat3xN(NFEMNodes*NModes, 0.));
 
 				bActiveModes.resize(NModesFEM + 1);
 
@@ -3263,7 +3262,7 @@ ReadModal(DataManager* pDM,
 				if (bWriteBIN) {
 					checkPoint = 1;
 					fbin.write(&checkPoint, sizeof(checkPoint));
-					fbin.write((char *)&NFemNodesFEM, sizeof(NFemNodesFEM));
+					fbin.write((char *)&NFEMNodesFEM, sizeof(NFEMNodesFEM));
 					fbin.write((char *)&NModesFEM, sizeof(NModesFEM));
 				}
 
@@ -3274,32 +3273,32 @@ ReadModal(DataManager* pDM,
 				STRLENOF("** RECORD GROUP 2,")))
 			{
 				if (bRecordGroup[2]) {
-					silent_cerr("file=\"" << sFileFem << "\": "
+					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 2\" already parsed"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!bRecordGroup[1]) {
-					silent_cerr("file=\"" << sFileFem << "\": "
+					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
-				for (unsigned int iNode = 0; iNode < NFemNodes; iNode++) {
+				for (unsigned int iNode = 0; iNode < NFEMNodes; iNode++) {
 					// NOTE: this precludes the possibility
 					// to have blanks in node labels
-					fdat >> IdFemNodes[iNode];
+					fdat >> IdFEMNodes[iNode];
 				}
 
 				if (bWriteBIN) {
 					checkPoint = 2;
 					fbin.write(&checkPoint, sizeof(checkPoint));
-					for (unsigned int iNode = 0; iNode < NFemNodes; iNode++) {
-						size_t len = IdFemNodes[iNode].size();
+					for (unsigned int iNode = 0; iNode < NFEMNodes; iNode++) {
+						size_t len = IdFEMNodes[iNode].size();
 						fbin.write((char *)&len, sizeof(size_t));
-						fbin.write((char *)IdFemNodes[iNode].c_str(), len);
+						fbin.write((char *)IdFEMNodes[iNode].c_str(), len);
 					}
 				}
 
@@ -3310,14 +3309,14 @@ ReadModal(DataManager* pDM,
 				STRLENOF("** RECORD GROUP 3,")))
 			{
 				if (bRecordGroup[3]) {
-					silent_cerr("file=\"" << sFileFem << "\": "
+					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 3\" already parsed"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!bRecordGroup[1]) {
-					silent_cerr("file=\"" << sFileFem << "\": "
+					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3327,7 +3326,7 @@ ReadModal(DataManager* pDM,
 
 				if (bActiveModes.empty()) {
 					silent_cerr("Modal(" << uLabel << "): "
-						"input file \"" << sFileFem << "\""
+						"input file \"" << sFileFEM << "\""
 						"is bogus (RECORD GROUP 3)"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3359,14 +3358,14 @@ ReadModal(DataManager* pDM,
 				STRLENOF("** RECORD GROUP 4,")))
 			{
 				if (bRecordGroup[4]) {
-					silent_cerr("file=\"" << sFileFem << "\": "
+					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 4\" already parsed"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!bRecordGroup[1]) {
-					silent_cerr("file=\"" << sFileFem << "\": "
+					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3376,7 +3375,7 @@ ReadModal(DataManager* pDM,
 	
 				if (bActiveModes.empty()) {
 					silent_cerr("Modal(" << uLabel << "): "
-						"input file \"" << sFileFem << "\""
+						"input file \"" << sFileFEM << "\""
 						"is bogus (RECORD GROUP 4)"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3408,14 +3407,14 @@ ReadModal(DataManager* pDM,
 				STRLENOF("** RECORD GROUP 5,")))
 			{
 				if (bRecordGroup[5]) {
-					silent_cerr("file=\"" << sFileFem << "\": "
+					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 5\" already parsed"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!bRecordGroup[1]) {
-					silent_cerr("file=\"" << sFileFem << "\": "
+					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3426,7 +3425,7 @@ ReadModal(DataManager* pDM,
 					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
-				for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
+				for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
 					fdat >> d;
 					
 					if (bWriteBIN) {
@@ -3436,7 +3435,7 @@ ReadModal(DataManager* pDM,
 #ifdef MODAL_SCALE_DATA
 					d *= scalemodes;
 #endif /* MODAL_SCALE_DATA */
-					pXYZFemNodes->Put(1, iNode, d);
+					pXYZFEMNodes->Put(1, iNode, d);
 				}
 
 				bRecordGroup[5] = true;
@@ -3446,14 +3445,14 @@ ReadModal(DataManager* pDM,
 				STRLENOF("** RECORD GROUP 6,")))
 			{
 				if (bRecordGroup[6]) {
-					silent_cerr("file=\"" << sFileFem << "\": "
+					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 6\" already parsed"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!bRecordGroup[1]) {
-					silent_cerr("file=\"" << sFileFem << "\": "
+					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3464,7 +3463,7 @@ ReadModal(DataManager* pDM,
 					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
-				for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
+				for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
 					fdat >> d;
 
 					if (bWriteBIN) {
@@ -3474,7 +3473,7 @@ ReadModal(DataManager* pDM,
 #ifdef MODAL_SCALE_DATA
 					d *= scalemodes;
 #endif /* MODAL_SCALE_DATA */
-					pXYZFemNodes->Put(2, iNode, d);
+					pXYZFEMNodes->Put(2, iNode, d);
 				}
 
 				bRecordGroup[6] = true;
@@ -3484,14 +3483,14 @@ ReadModal(DataManager* pDM,
 				STRLENOF("** RECORD GROUP 7,")))
 			{
 				if (bRecordGroup[7]) {
-					silent_cerr("file=\"" << sFileFem << "\": "
+					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 7\" already parsed"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!bRecordGroup[1]) {
-					silent_cerr("file=\"" << sFileFem << "\": "
+					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3502,7 +3501,7 @@ ReadModal(DataManager* pDM,
 					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
-				for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
+				for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
 					fdat >> d;
 
 					if (bWriteBIN) {
@@ -3512,7 +3511,7 @@ ReadModal(DataManager* pDM,
 #ifdef MODAL_SCALE_DATA
 					d *= scalemodes;
 #endif /* MODAL_SCALE_DATA */
-					pXYZFemNodes->Put(3, iNode, d);
+					pXYZFEMNodes->Put(3, iNode, d);
 				}
 
 				bRecordGroup[7] = true;
@@ -3522,14 +3521,14 @@ ReadModal(DataManager* pDM,
 				STRLENOF("** RECORD GROUP 8,")))
 			{
 				if (bRecordGroup[8]) {
-					silent_cerr("file=\"" << sFileFem << "\": "
+					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 8\" already parsed"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!bRecordGroup[1]) {
-					silent_cerr("file=\"" << sFileFem << "\": "
+					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3549,7 +3548,7 @@ ReadModal(DataManager* pDM,
 				
 				if (bActiveModes.empty()) {
 					silent_cerr("Modal(" << uLabel << "): "
-						"input file \"" << sFileFem << "\""
+						"input file \"" << sFileFEM << "\""
 						"is bogus (RECORD GROUP 8)"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3561,13 +3560,13 @@ ReadModal(DataManager* pDM,
 					if (strncmp("**", str, STRLENOF("**")) != 0)
 					{
 						silent_cerr("Modal(" << uLabel << "): "
-							"input file \"" << sFileFem << "\""
+							"input file \"" << sFileFEM << "\""
 							"is bogus (\"**\" expected)"
 							<< std::endl);
 						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 					
-					for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
+					for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
 						doublereal n[6];
 	
 						fdat >> n[0] >> n[1] >> n[2]
@@ -3586,8 +3585,8 @@ ReadModal(DataManager* pDM,
 						n[1] *= scalemodes;
 						n[2] *= scalemodes;
 #endif /* MODAL_SCALE_DATA */
-						pModeShapest->PutVec((iCnt - 1)*NFemNodes + iNode, Vec3(&n[0]));
-						pModeShapesr->PutVec((iCnt - 1)*NFemNodes + iNode, Vec3(&n[3]));
+						pModeShapest->PutVec((iCnt - 1)*NFEMNodes + iNode, Vec3(&n[0]));
+						pModeShapesr->PutVec((iCnt - 1)*NFEMNodes + iNode, Vec3(&n[3]));
 					}
 
 					if (bActiveModes[jMode]) {
@@ -3603,14 +3602,14 @@ ReadModal(DataManager* pDM,
 				STRLENOF("** RECORD GROUP 9,")))
 			{
 				if (bRecordGroup[9]) {
-					silent_cerr("file=\"" << sFileFem << "\": "
+					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 9\" already parsed"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!bRecordGroup[1]) {
-					silent_cerr("file=\"" << sFileFem << "\": "
+					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3618,7 +3617,7 @@ ReadModal(DataManager* pDM,
 
 				if (bActiveModes.empty()) {
 					silent_cerr("Modal(" << uLabel << "): "
-						"input file \"" << sFileFem << "\""
+						"input file \"" << sFileFEM << "\""
 						"is bogus (RECORD GROUP 9)"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3663,14 +3662,14 @@ ReadModal(DataManager* pDM,
 				STRLENOF("** RECORD GROUP 10,")))
 			{
 				if (bRecordGroup[10]) {
-					silent_cerr("file=\"" << sFileFem << "\": "
+					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 10\" already parsed"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!bRecordGroup[1]) {
-					silent_cerr("file=\"" << sFileFem << "\": "
+					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3678,7 +3677,7 @@ ReadModal(DataManager* pDM,
 
 				if (bActiveModes.empty()) {
 					silent_cerr("Modal(" << uLabel << "): "
-						"input file \"" << sFileFem << "\""
+						"input file \"" << sFileFEM << "\""
 						"is bogus (RECORD GROUP 10)"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3723,14 +3722,14 @@ ReadModal(DataManager* pDM,
 				STRLENOF("** RECORD GROUP 11,")))
 			{
 				if (bRecordGroup[11]) {
-					silent_cerr("file=\"" << sFileFem << "\": "
+					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 11\" already parsed"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!bRecordGroup[1]) {
-					silent_cerr("file=\"" << sFileFem << "\": "
+					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3741,7 +3740,7 @@ ReadModal(DataManager* pDM,
 					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
-				for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
+				for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
 					doublereal tmpmass = 0.;
 					for (unsigned int jCnt = 1; jCnt <= 6; jCnt++) {
 						fdat >> d;
@@ -3756,7 +3755,7 @@ ReadModal(DataManager* pDM,
 #ifdef MODAL_SCALE_DATA
 							d *= scalemass;
 #endif /* MODAL_SCALE_DATA */
-							FemMass[iNode - 1] = d;
+							FEMMass[iNode - 1] = d;
 							break;
 
 						case 2:
@@ -3774,7 +3773,7 @@ ReadModal(DataManager* pDM,
 #ifdef MODAL_SCALE_DATA
 							d *= scaleinertia;
 #endif /* MODAL_SCALE_DATA */
-							FemJ[iNode - 1](jCnt - 3) = d;
+							FEMJ[iNode - 1](jCnt - 3) = d;
 							break;
 						}
 					}
@@ -3789,14 +3788,14 @@ ReadModal(DataManager* pDM,
 				STRLENOF("** RECORD GROUP 12,")))
 			{
 				if (bRecordGroup[12]) {
-					silent_cerr("file=\"" << sFileFem << "\": "
+					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 12\" already parsed"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
 				if (!bRecordGroup[1]) {
-					silent_cerr("file=\"" << sFileFem << "\": "
+					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3855,22 +3854,102 @@ ReadModal(DataManager* pDM,
 			if (bWriteBIN) {
 				// NOTE: might be worth leaving in place
 				// for debugging purposes
-				(void)unlink(sBinFileFem.c_str());
+				(void)unlink(sBinFileFEM.c_str());
 			}
 			throw;
 		}
 
+		if (!bRecordGroup[1]) {
+			silent_cerr("Modal(" << uLabel << "): "
+				"incomplete input file \"" << sFileFEM << "\", "
+				"record group 1 missing "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (!bRecordGroup[2]) {
+			silent_cerr("Modal(" << uLabel << "): "
+				"incomplete input file \"" << sFileFEM << "\", "
+				"record group 2 missing "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (!bRecordGroup[3]) {
+			silent_cerr("Modal(" << uLabel << "): "
+				"incomplete input file \"" << sFileFEM << "\", "
+				"record group 3 missing "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (!bRecordGroup[4]) {
+			silent_cerr("Modal(" << uLabel << "): "
+				"incomplete input file \"" << sFileFEM << "\", "
+				"record group 4 missing "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (!bRecordGroup[5]) {
+			silent_cerr("Modal(" << uLabel << "): "
+				"incomplete input file \"" << sFileFEM << "\", "
+				"record group 5 missing "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (!bRecordGroup[6]) {
+			silent_cerr("Modal(" << uLabel << "): "
+				"incomplete input file \"" << sFileFEM << "\", "
+				"record group 6 missing "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (!bRecordGroup[7]) {
+			silent_cerr("Modal(" << uLabel << "): "
+				"incomplete input file \"" << sFileFEM << "\", "
+				"record group 7 missing "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (!bRecordGroup[8]) {
+			silent_cerr("Modal(" << uLabel << "): "
+				"incomplete input file \"" << sFileFEM << "\", "
+				"record group 8 missing "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (!bRecordGroup[9]) {
+			silent_cerr("Modal(" << uLabel << "): "
+				"incomplete input file \"" << sFileFEM << "\", "
+				"record group 9 missing "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (!bRecordGroup[10]) {
+			silent_cerr("Modal(" << uLabel << "): "
+				"incomplete input file \"" << sFileFEM << "\", "
+				"record group 10 missing "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
 	} else {
-		std::ifstream fbin(sBinFileFem.c_str());
+		std::ifstream fbin(sBinFileFEM.c_str());
 		if (!fbin) {
 			silent_cerr("Modal(" << uLabel << "): "
-				"unable to open file \"" << sBinFileFem << "\""
+				"unable to open file \"" << sBinFileFEM << "\""
 				"at line " << HP.GetLineData() << std::endl);
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		silent_cout("Modal(" << uLabel << "): "
 			"reading flexible body data from file "
-			"\"" << sBinFileFem << "\"" << std::endl);
+			"\"" << sBinFileFEM << "\"" << std::endl);
 
 		/* check version */
 		// NOTE: any time the format of the binary file changes,
@@ -3894,13 +3973,13 @@ ReadModal(DataManager* pDM,
 		fbin.read((char *)&currBinVersion, sizeof(currBinVersion));
 		if (currBinVersion > BinVersion) {
 			silent_cerr("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFem << "\" "
+					"file \"" << sBinFileFEM << "\" "
 					"version " << currBinVersion << " unsupported" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		} else if (currBinVersion < BinVersion) {
 			silent_cout("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFem << "\" "
+					"file \"" << sBinFileFEM << "\" "
 					"version " << currBinVersion << " is outdated; "
 					"trying to read anyway..." << std::endl);
 		}
@@ -3917,7 +3996,7 @@ ReadModal(DataManager* pDM,
 		fbin.read(&checkPoint, sizeof(checkPoint));
 		if (checkPoint != 1) {
 			silent_cerr("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFem << "\" "
+					"file \"" << sBinFileFEM << "\" "
 					"looks broken (expecting checkpoint 1)"
 					<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3926,26 +4005,26 @@ ReadModal(DataManager* pDM,
 		pedantic_cout("Modal(" << uLabel << "): "
 			"reading block " << int(checkPoint) << std::endl);
 
-		fbin.read((char *)&NFemNodesFEM, sizeof(NFemNodesFEM));
+		fbin.read((char *)&NFEMNodesFEM, sizeof(NFEMNodesFEM));
 		fbin.read((char *)&NModesFEM, sizeof(NModesFEM));
 
 		/* consistency checks */
-		if (NFemNodes == unsigned(-1)) {
-			NFemNodes = NFemNodesFEM;
+		if (NFEMNodes == unsigned(-1)) {
+			NFEMNodes = NFEMNodesFEM;
 
-		} else if (NFemNodes != NFemNodesFEM) {
+		} else if (NFEMNodes != NFEMNodesFEM) {
 			silent_cerr("Modal(" << uLabel << "), "
-				"file \"" << sFileFem << "\": "
-				"FEM nodes number " << NFemNodes
+				"file \"" << sFileFEM << "\": "
+				"FEM nodes number " << NFEMNodes
 				<< " does not match node number "
-				<< NFemNodesFEM
+				<< NFEMNodesFEM
 				<< std::endl);
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (NModes != NModesFEM) {
 			silent_cout("Modal(" << uLabel
-					<< "), file '" << sFileFem
+					<< "), file '" << sFileFEM
 					<< "': using " << NModes
 					<< " of " << NModesFEM
 					<< " modes" << std::endl);
@@ -3955,13 +4034,13 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		FemMass.resize(NFemNodes);
-		FemJ.resize(NFemNodes);
-		IdFemNodes.resize(NFemNodes);
+		FEMMass.resize(NFEMNodes);
+		FEMJ.resize(NFEMNodes);
+		IdFEMNodes.resize(NFEMNodes);
 
-		SAFENEWWITHCONSTRUCTOR(pXYZFemNodes, Mat3xN, Mat3xN(NFemNodes, 0.));
-		SAFENEWWITHCONSTRUCTOR(pModeShapest, Mat3xN, Mat3xN(NFemNodes*NModes, 0.));
-		SAFENEWWITHCONSTRUCTOR(pModeShapesr, Mat3xN, Mat3xN(NFemNodes*NModes, 0.));
+		SAFENEWWITHCONSTRUCTOR(pXYZFEMNodes, Mat3xN, Mat3xN(NFEMNodes, 0.));
+		SAFENEWWITHCONSTRUCTOR(pModeShapest, Mat3xN, Mat3xN(NFEMNodes*NModes, 0.));
+		SAFENEWWITHCONSTRUCTOR(pModeShapesr, Mat3xN, Mat3xN(NFEMNodes*NModes, 0.));
 
 		bActiveModes.resize(NModesFEM + 1);
 
@@ -3987,7 +4066,7 @@ ReadModal(DataManager* pDM,
 		fbin.read(&checkPoint, sizeof(checkPoint));
 		if (checkPoint != 2) {
 			silent_cerr("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFem << "\" "
+					"file \"" << sBinFileFEM << "\" "
 					"looks broken (expecting checkpoint 2)"
 					<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3998,21 +4077,21 @@ ReadModal(DataManager* pDM,
 
 		if (currBinVersion == 1) {
 			// NOTE: accept unsigned int FEM labels (old binary format)
-			for (unsigned int iNode = 0; iNode < NFemNodes; iNode++) {
-				unsigned uFemLabel;
-				fbin.read((char *)&uFemLabel, sizeof(uFemLabel));
+			for (unsigned int iNode = 0; iNode < NFEMNodes; iNode++) {
+				unsigned uFEMLabel;
+				fbin.read((char *)&uFEMLabel, sizeof(uFEMLabel));
 				std::ostringstream os;
-				os << uFemLabel;
-				IdFemNodes[iNode] = os.str();
+				os << uFEMLabel;
+				IdFEMNodes[iNode] = os.str();
 			}
 
 		} else {
-			for (unsigned int iNode = 0; iNode < NFemNodes; iNode++) {
+			for (unsigned int iNode = 0; iNode < NFEMNodes; iNode++) {
 				size_t len;
 				fbin.read((char *)&len, sizeof(size_t));
 				ASSERT(len > 0);
-				IdFemNodes[iNode].resize(len);
-				fbin.read((char *)IdFemNodes[iNode].c_str(), len);
+				IdFEMNodes[iNode].resize(len);
+				fbin.read((char *)IdFEMNodes[iNode].c_str(), len);
 			}
 		}
 
@@ -4023,14 +4102,14 @@ ReadModal(DataManager* pDM,
 		if (checkPoint != 3) {
 			if (currBinVersion == 1) {
 				silent_cerr("Modal(" << uLabel << "): "
-						"file \"" << sBinFileFem << "\" "
+						"file \"" << sBinFileFEM << "\" "
 						"looks broken (expecting checkPoint 3)"
 						<< std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			silent_cerr("Modal(" << uLabel << "): "
-					"warning: file \"" << sBinFileFem << "\" "
+					"warning: file \"" << sBinFileFEM << "\" "
 					"does not contain modal coordinate initial values"
 					<< std::endl);
 
@@ -4060,14 +4139,14 @@ ReadModal(DataManager* pDM,
 		if (checkPoint != 4) {
 			if (currBinVersion == 1) {
 				silent_cerr("Modal(" << uLabel << "): "
-						"file \"" << sBinFileFem << "\" "
+						"file \"" << sBinFileFEM << "\" "
 						"looks broken (expecting checkPoint 4)"
 						<< std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			silent_cerr("Modal(" << uLabel << "): "
-					"warning: file \"" << sBinFileFem << "\" "
+					"warning: file \"" << sBinFileFEM << "\" "
 					"does not contain modal coordinate derivative initial values"
 					<< std::endl);
 
@@ -4096,7 +4175,7 @@ ReadModal(DataManager* pDM,
 		/* Coordinate X dei nodi */
 		if (checkPoint != 5) {
 			silent_cerr("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFem << "\" "
+					"file \"" << sBinFileFEM << "\" "
 					"looks broken (expecting checkpoint 5)"
 					<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -4105,7 +4184,7 @@ ReadModal(DataManager* pDM,
 		pedantic_cout("Modal(" << uLabel << "): "
 			"reading block " << int(checkPoint) << std::endl);
 
-		for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
+		for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
 			doublereal	d;
 
 			fbin.read((char *)&d, sizeof(d));
@@ -4114,7 +4193,7 @@ ReadModal(DataManager* pDM,
 			d *= scalemodes;
 #endif /* MODAL_SCALE_DATA */
 
-			pXYZFemNodes->Put(1, iNode, d);
+			pXYZFEMNodes->Put(1, iNode, d);
 		}
 
 		bRecordGroup[5] = true;
@@ -4123,7 +4202,7 @@ ReadModal(DataManager* pDM,
 		fbin.read(&checkPoint, sizeof(checkPoint));
 		if (checkPoint != 6) {
 			silent_cerr("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFem << "\" "
+					"file \"" << sBinFileFEM << "\" "
 					"looks broken (expecting checkpoint 6)"
 					<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -4132,7 +4211,7 @@ ReadModal(DataManager* pDM,
 		pedantic_cout("Modal(" << uLabel << "): "
 			"reading block " << int(checkPoint) << std::endl);
 
-		for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
+		for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
 			doublereal	d;
 
 			fbin.read((char *)&d, sizeof(d));
@@ -4141,7 +4220,7 @@ ReadModal(DataManager* pDM,
 			d *= scalemodes;
 #endif /* MODAL_SCALE_DATA */
 
-			pXYZFemNodes->Put(2, iNode, d);
+			pXYZFEMNodes->Put(2, iNode, d);
 		}
 
 		bRecordGroup[6] = true;
@@ -4150,7 +4229,7 @@ ReadModal(DataManager* pDM,
 		fbin.read(&checkPoint, sizeof(checkPoint));
 		if (checkPoint != 7) {
 			silent_cerr("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFem << "\" "
+					"file \"" << sBinFileFEM << "\" "
 					"looks broken (expecting checkpoint 7)"
 					<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -4159,7 +4238,7 @@ ReadModal(DataManager* pDM,
 		pedantic_cout("Modal(" << uLabel << "): "
 			"reading block " << int(checkPoint) << std::endl);
 
-		for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
+		for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
 			doublereal	d;
 
 			fbin.read((char *)&d, sizeof(d));
@@ -4168,7 +4247,7 @@ ReadModal(DataManager* pDM,
 			d *= scalemodes;
 #endif /* MODAL_SCALE_DATA */
 
-			pXYZFemNodes->Put(3, iNode, d);
+			pXYZFEMNodes->Put(3, iNode, d);
 		}
 
 		bRecordGroup[7] = true;
@@ -4177,7 +4256,7 @@ ReadModal(DataManager* pDM,
 		fbin.read(&checkPoint, sizeof(checkPoint));
 		if (checkPoint != 8) {
 			silent_cerr("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFem << "\" "
+					"file \"" << sBinFileFEM << "\" "
 					"looks broken (expecting checkpoint 8)"
 					<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -4187,7 +4266,7 @@ ReadModal(DataManager* pDM,
 			"reading block " << int(checkPoint) << std::endl);
 
 		for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
-			for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
+			for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
 				doublereal n[6];
 	
 				fbin.read((char *)n, sizeof(n));
@@ -4201,8 +4280,8 @@ ReadModal(DataManager* pDM,
 				n[1] *= scalemodes;
 				n[2] *= scalemodes;
 #endif /* MODAL_SCALE_DATA */
-				pModeShapest->PutVec((iCnt - 1)*NFemNodes + iNode, Vec3(&n[0]));
-				pModeShapesr->PutVec((iCnt - 1)*NFemNodes + iNode, Vec3(&n[3]));
+				pModeShapest->PutVec((iCnt - 1)*NFEMNodes + iNode, Vec3(&n[0]));
+				pModeShapesr->PutVec((iCnt - 1)*NFEMNodes + iNode, Vec3(&n[3]));
 			}
 
 			if (bActiveModes[jMode]) {
@@ -4216,7 +4295,7 @@ ReadModal(DataManager* pDM,
 		fbin.read(&checkPoint, sizeof(checkPoint));
 		if (checkPoint != 9) {
 			silent_cerr("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFem << "\" "
+					"file \"" << sBinFileFEM << "\" "
 					"looks broken (expecting checkpoint 9)"
 					<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -4251,7 +4330,7 @@ ReadModal(DataManager* pDM,
 		fbin.read(&checkPoint, sizeof(checkPoint));
 		if (checkPoint != 10) {
 			silent_cerr("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFem << "\" "
+					"file \"" << sBinFileFEM << "\" "
 					"looks broken (expecting checkpoint 10)"
 					<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -4289,7 +4368,7 @@ ReadModal(DataManager* pDM,
 			pedantic_cout("Modal(" << uLabel << "): "
 				"reading block " << int(checkPoint) << std::endl);
 
-			for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
+			for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
 				for (unsigned int jCnt = 1; jCnt <= 6; jCnt++) {
 					doublereal	d;
 
@@ -4300,7 +4379,7 @@ ReadModal(DataManager* pDM,
 #ifdef MODAL_SCALE_DATA
 						d *= scalemass;
 #endif /* MODAL_SCALE_DATA */
-						FemMass[iNode - 1] = d;
+						FEMMass[iNode - 1] = d;
 						break;
 
 					case 4:
@@ -4309,7 +4388,7 @@ ReadModal(DataManager* pDM,
 #ifdef MODAL_SCALE_DATA
 						d *= scaleinertia;
 #endif /* MODAL_SCALE_DATA */
-						FemJ[iNode - 1](jCnt - 3) = d;
+						FEMJ[iNode - 1](jCnt - 3) = d;
 						break;
 					}
 				}
@@ -4356,7 +4435,7 @@ ReadModal(DataManager* pDM,
 		if (currBinVersion != 1) {
 			if (checkPoint != -1) {
 				silent_cerr("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFem << "\" "
+					"file \"" << sBinFileFEM << "\" "
 					"looks broken (expecting final checkpoint)"
 					<< std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -4368,9 +4447,6 @@ ReadModal(DataManager* pDM,
 
 		fbin.close();
 	}
-
-	SAFEDELETEARR(sFileFem);
-	sFileFem = NULL;
 
 	/* lettura dati di vincolo:
 	 * l'utente specifica la label del nodo FEM e del nodo rigido
@@ -4392,9 +4468,9 @@ ReadModal(DataManager* pDM,
 
 	if (HP.IsKeyWord("origin" "node")) {
 		/* numero di nodi FEM del modello */
-		std::string FemOriginNode;
+		std::string FEMOriginNode;
 		if (HP.IsStringWithDelims()) {
-			FemOriginNode = HP.GetStringWithDelims();
+			FEMOriginNode = HP.GetStringWithDelims();
 
 		} else {
 			pedantic_cerr("Modal(" << uLabel << "): "
@@ -4402,26 +4478,26 @@ ReadModal(DataManager* pDM,
 				<< std::endl);
 			std::ostringstream os;
 			os << HP.GetInt();
-			FemOriginNode = os.str();
+			FEMOriginNode = os.str();
 		}
 
 		unsigned int iNode;
-		for (iNode = 0; iNode < NFemNodes; iNode++) {
-			if (FemOriginNode == IdFemNodes[iNode]) {
+		for (iNode = 0; iNode < NFEMNodes; iNode++) {
+			if (FEMOriginNode == IdFEMNodes[iNode]) {
 				break;
 			}
 		}
 
-		if (iNode == NFemNodes) {
+		if (iNode == NFEMNodes) {
 			silent_cerr("Modal(" << uLabel << "): "
-				"FEM node \"" << FemOriginNode << "\""
+				"FEM node \"" << FEMOriginNode << "\""
 				<< " at line " << HP.GetLineData()
 				<< " not defined " << std::endl);
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		iNode++;
-		Origin = pXYZFemNodes->GetVec(iNode);
+		Origin = pXYZFEMNodes->GetVec(iNode);
 
 		pedantic_cout("Modal(" << uLabel << "): origin x={" << Origin << "}" << std::endl);
 		bOrigin = true;
@@ -4432,8 +4508,8 @@ ReadModal(DataManager* pDM,
 	}
 
 	if (bOrigin) {
-		for (unsigned int iStrNode = 1; iStrNode <= NFemNodes; iStrNode++) {
-			pXYZFemNodes->SubVec(iStrNode, Origin);
+		for (unsigned int iStrNode = 1; iStrNode <= NFEMNodes; iStrNode++) {
+			pXYZFEMNodes->SubVec(iStrNode, Origin);
 		}
 
 		if (!bBuildInvariants) {
@@ -4482,13 +4558,13 @@ ReadModal(DataManager* pDM,
 
 		unsigned int iNode;
 		/* verifica di esistenza del nodo 1*/
-		for (iNode = 0; iNode < NFemNodes; iNode++) {
-			if (Node1 == IdFemNodes[iNode]) {
+		for (iNode = 0; iNode < NFEMNodes; iNode++) {
+			if (Node1 == IdFEMNodes[iNode]) {
 				break;
 			}
 		}
 
-		if (iNode == NFemNodes) {
+		if (iNode == NFEMNodes) {
 			silent_cerr("Modal(" << uLabel << "): "
 				"FEM node \"" << Node1 << "\""
 				<< " at line " << HP.GetLineData()
@@ -4508,15 +4584,15 @@ ReadModal(DataManager* pDM,
 		 * nota: iNodeCurr contiene la posizione a cui si trova
 		 * il nodo FEM d'interfaccia nell'array pXYZNodes */
 		pOffsetFEMNodes->PutVec(iStrNode,
-				pXYZFemNodes->GetVec(iNodeCurr));
+				pXYZFEMNodes->GetVec(iNodeCurr));
 
 		/* salva le forme modali del nodo d'interfaccia
 		 * nell'array pPHIStrNode */
 		for (unsigned int jMode = 0; jMode < NModes; jMode++) {
 			pPHItStrNode->PutVec(jMode*NStrNodes + iStrNode,
-					pModeShapest->GetVec(jMode*NFemNodes + iNodeCurr));
+					pModeShapest->GetVec(jMode*NFEMNodes + iNodeCurr));
 			pPHIrStrNode->PutVec(jMode*NStrNodes + iStrNode,
-					pModeShapesr->GetVec(jMode*NFemNodes + iNodeCurr));
+					pModeShapesr->GetVec(jMode*NFEMNodes + iNodeCurr));
 		}
 
 		/* nodo collegato 2 (e' il nodo multibody) */
@@ -4554,7 +4630,7 @@ ReadModal(DataManager* pDM,
 		Vec3 xMB(pInterfaceNodes[iStrNode - 1]->GetXCurr());
 		pedantic_cout("Interface node " << iStrNode << ":" << std::endl
 				<< "        MB node " << uNode2 << " x={" << xMB << "}" << std::endl);
-		Vec3 xFEMRel(pXYZFemNodes->GetVec(iNodeCurr));
+		Vec3 xFEMRel(pXYZFEMNodes->GetVec(iNodeCurr));
 		Vec3 xFEM(X0 + R*xFEMRel);
 		pedantic_cout("        FEM node \"" << Node1 << "\" x={" << xFEM << "} "
 			"xrel={" << xFEMRel << "}" << std::endl);
@@ -4600,28 +4676,28 @@ ReadModal(DataManager* pDM,
 		SAFENEWWITHCONSTRUCTOR(pInv11,Mat3xN, Mat3xN(NModes, 0.));
 
 		/* inizio ciclo scansione nodi */
-		for (unsigned int iNode = 1; iNode <= NFemNodes; iNode++) {
-			doublereal mi = FemMass[iNode - 1];
+		for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
+			doublereal mi = FEMMass[iNode - 1];
 	
 			/* massa totale (Inv 1) */
 			dMassInv += mi;
 	
 			/* posizione nodi FEM */
-			Vec3 ui = pXYZFemNodes->GetVec(iNode);
+			Vec3 ui = pXYZFEMNodes->GetVec(iNode);
 	
 			Mat3x3 uivett(ui);
 			Mat3x3 JiNodeTmp(0.);
 	
-			JiNodeTmp.Put(1, 1, FemJ[iNode - 1](1));
-			JiNodeTmp.Put(2, 2, FemJ[iNode - 1](2));
-			JiNodeTmp.Put(3, 3, FemJ[iNode - 1](3));
+			JiNodeTmp.Put(1, 1, FEMJ[iNode - 1](1));
+			JiNodeTmp.Put(2, 2, FEMJ[iNode - 1](2));
+			JiNodeTmp.Put(3, 3, FEMJ[iNode - 1](3));
 	
 			JTmpInv += JiNodeTmp - Mat3x3(ui, ui*mi);
 			STmpInv += ui*mi;
 	
 			/* estrae le forme modali del nodo i-esimo */
 			for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
-				unsigned int iOffset = (jMode - 1)*NFemNodes + iNode;
+				unsigned int iOffset = (jMode - 1)*NFEMNodes + iNode;
 	
 				PHIti.PutVec(jMode, pModeShapest->GetVec(iOffset));
 				PHIri.PutVec(jMode, pModeShapesr->GetVec(iOffset));
@@ -4860,7 +4936,7 @@ ReadModal(DataManager* pDM,
 				pDO,
 				NModes,
 				NStrNodes,
-				NFemNodes,
+				NFEMNodes,
 				dMass,
 				STmp,
 				JTmp,
@@ -4868,9 +4944,9 @@ ReadModal(DataManager* pDM,
 				pGenMass,
 				pGenStiff,
 				pGenDamp,
-				IdFemNodes,
+				IdFEMNodes,
 				IntFEMNodes,
-				pXYZFemNodes,
+				pXYZFEMNodes,
 				pOffsetFEMNodes,
 				pOffsetMBNodes,
 				pRotMBNodes,
