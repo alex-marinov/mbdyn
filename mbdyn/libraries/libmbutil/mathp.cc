@@ -3539,7 +3539,7 @@ MathParser::readplugin(void)
 		 * FIXME: rendere dinamico il buffer ...
 		 */
 		if (i >= sizeof(buf)) {
-			silent_cerr("buffer overflow" << std::endl);
+			silent_cerr("MathParser::readplugin(): buffer overflow" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
