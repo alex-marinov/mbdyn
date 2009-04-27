@@ -385,15 +385,17 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 			doublereal delta = 1;
 			doublereal epsilon = 1.e-9;
 			Mat6x6 JFa;
+			doublereal dVnorm = VTmp.Norm();
+			doublereal dWnorm = WTmp.Norm();
 			for(unsigned int iCnt = 1; iCnt <= 6; iCnt++)	{
 				deltaVTmp = VTmp; 
 				deltaWTmp = WTmp;
-	
+				
 				if (iCnt <= 3)	{
-					delta = VTmp.dGet(iCnt) * param;
+					delta = dVnorm * param + epsilon;
 					deltaVTmp.Put(iCnt, VTmp.dGet(iCnt) + delta);
 				} else		{
-					delta = WTmp.dGet(iCnt - 3) * param;
+					delta = dWnorm * param + epsilon;
 					deltaWTmp.Put(iCnt - 3, WTmp.dGet(iCnt - 3) + delta);
 				}
 					
@@ -403,7 +405,7 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 				aerodata->GetForces(iPnt, dW, dTng, *pvd);
 	
 				for(unsigned int j = 1; j <= 6; j++)	{
-					JFa.Put(j, iCnt, (dTng[j-1] - Fa0[j-1]) / (delta+epsilon));
+					JFa.Put(j, iCnt, (dTng[j-1] - Fa0[j-1]) / delta);
 				}
 	
 			}
