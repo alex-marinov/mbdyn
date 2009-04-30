@@ -27,9 +27,15 @@
 %
 % Alessandro Fumagalli <fumagalli@aero.polimi.it> is the author of this document
 
-Aerodynamic elements add aerodynamic forces on nodes, based on 
-the relative velocity between an aerodynamic surface attached 
-to the node and the airstrem. This section is not intended 
+Aerodynamic elements apply aerodynamic forces to structural nodes.
+
+\section{Aerodynamic Body}
+The \texttt{aerodynamic body} element applies aerodynamic forces
+to the structural node it is connected to,
+based on the relative velocity between an aerodynamic surface attached 
+to the node and the airstrem.
+
+This section is not intended 
 to give details about the aerodynamic models adopted but mainly 
 discuss the computation of the contributions to the Jacobian 
 matrix of the aerodynamic elements.
