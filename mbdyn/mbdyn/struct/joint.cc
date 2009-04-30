@@ -44,6 +44,8 @@
 
 #include "tpldrive.h"
 
+#include "nestedelem.h"
+
 #include "accj.h"      /* Vincoli di accelerazione imposta */
 #include "beamslider.h"
 #include "brake.h"
@@ -2568,7 +2570,12 @@ ReadJoint(DataManager* pDM,
 		if (HP.IsKeyWord("total" "equation")) {
 			unsigned int tot_eq_j_label = HP.GetInt();
 			Elem* el_pt = pDM->pFindElem(Elem::JOINT, tot_eq_j_label);
-			tot_eq_pt = dynamic_cast<TotalEquation*>(el_pt);
+			NestedElem* nested_pt = dynamic_cast<NestedElem*>(el_pt);
+			if (nested_pt != 0) {
+				tot_eq_pt = dynamic_cast<TotalEquation*>(nested_pt->pGetElem());
+			} else	{
+				tot_eq_pt = dynamic_cast<TotalEquation*>(el_pt);
+			}
 			if (tot_eq_pt == 0) {
 				silent_cerr("TotalEquation" "(" << tot_eq_j_label << ") "
 					"needed by TotalReaction(" << uLabel << ") "
