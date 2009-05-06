@@ -52,11 +52,11 @@ It is implemented in files\\
 The aerodynamic forces and moments acting on the attached node are:
 \begin{subequations}
 \begin{align}
-	\T{f} &= \T{R}_{loc} \T{f}_a\\ 
-	\T{c} &= \T{R}_{loc} \T{c}_a + \T{x}_r\times\T{f}_a 
+	\T{f} &= \T{R}_{\text{loc}} \T{f}_a\\ 
+	\T{c} &= \T{R}_{\text{loc}} \T{c}_a + \T{x}_r\times\T{f}_a 
 \end{align}
 \end{subequations}
-where $\T{R}_{loc} = \T{R}_n\T{R}_a\T{R}_t$ is the orientation 
+where $\T{R}_{\text{loc}} = \T{R}_n\T{R}_a\T{R}_t$ is the orientation 
 matrix from the local frame of the aerodynamics to the global, 
 while $\T{f}_a$ and $\T{c}_a$ are the aerodynamic force and moment 
 respectively in the reference frame of the aerodynamics. $\T{R}_n$
@@ -64,10 +64,8 @@ is the orientation matrix of the node, $\T{R}_a$ is the (constant)
 relative orientation matrix of the aerodynamics frame with respect 
 to the node frame while $\T{R}_t$ is a constant rotation matrix 
 related to the twist of the aerodynamic surface. $\T{x}_r = \T{R}_n\T{b}$ 
-is the offset of the aerodynamic surface with respet to the node; 
+is the offset of the aerodynamic surface with respect to the node; 
 $\T{b}$ is constant.
-
-is the relative offset of the aerodynamic surface from the node.
 
 The aerodynamic forces and moments are computed, depending on the method, 
 by means of a function which takes as arguments a velocity vector
@@ -79,20 +77,20 @@ where $\T{V}_{a} = \sqbr{\T{v}_a\ \T{\omega}_a}$ includes both the
 linear and angular velocity in the reference frame of the aerodynamics:
 \begin{equation}
 	\T{V}_{a} = \sqbr{\matr{c}{
-		\T{R}^T_{loc} \plbr{\T{v}_n + \T{\omega}_n\times\T{x}_r - \T{v}_{\infty} - \T{v}_{ind}}\\
-		\T{R}^T_{loc} \T{\omega}_n
+		\T{R}^T_{\text{loc}} \plbr{\T{v}_n + \T{\omega}_n\times\T{x}_r - \T{v}_{\infty} - \T{v}_{\text{ind}}}\\
+		\T{R}^T_{\text{loc}} \T{\omega}_n
 		}}
 \end{equation}
 The total airstream velocity in the aerodynamic frame of reference 
 includes also the free stream velocity $\T{v}_{\infty}$ and, eventually, 
-the induced velocity $\T{v}_{ind}$. These two components will not be 
+the induced velocity $\T{v}_{\text{ind}}$. These two components will not be 
 considered in the following since they do not contribute to the 
 Jacobian matrix of the problem. 
 The perturbation of the aerodynamic force in the global reference frame
 yields:
 \begin{equation}
-	\delta\plbr{\T{f}} = \T{\theta_{\delta}}\times\T{R}_{loc}\T{f}_a + 
-				\T{R}_{loc}\frac{\partial\T{f}_a}{\partial\T{V}_a}
+	\delta\plbr{\T{f}} = \T{\theta_{\delta}}\times\T{R}_{\text{loc}}\T{f}_a + 
+				\T{R}_{\text{loc}}\frac{\partial\T{f}_a}{\partial\T{V}_a}
 				\delta\T{V}_a
 \end{equation}
 The $3\times6$ matrix $\frac{\partial\T{f}_a}{\partial\T{V}_a}$, 
@@ -103,8 +101,8 @@ which is described below.
 The perturbation of the aerodynamic moment in the global reference frame
 yields:
 \begin{equation}
-	\delta\plbr{\T{c}} = \T{\theta_{\delta}}\times\T{R}_{loc}\T{c}_a + 
-				\T{R}_{loc}\frac{\partial\T{c}_a}{\partial\T{V}_a}
+	\delta\plbr{\T{c}} = \T{\theta_{\delta}}\times\T{R}_{\text{loc}}\T{c}_a + 
+				\T{R}_{\text{loc}}\frac{\partial\T{c}_a}{\partial\T{V}_a}
 				\delta\T{V}_a + \delta \T{x}_r\times\T{f} + 
 				\T{x}_r\times\delta\T{f}
 \end{equation}
@@ -115,7 +113,7 @@ following, is computed numerically using a finite difference methodology.
 The Jacobian matrix of the aerodynamic forces and moments in the reference 
 frame of the aerodynamics is computed computed numerically, using a finite 
 difference methodology involving a numerical perturbation relative velocity
-in the reference frame of the aerodynamics. In details, each componenet
+in the reference frame of the aerodynamics. In details, each component
 of the $6\times6$ matrix $\T{J}_a$ is computed as:
 \begin{equation}
 	{J_a}_{ij} = \frac{g_i(\T{V}_a + \Delta\T{V}_a) 
@@ -154,8 +152,8 @@ for(i = 1; i <= 6; i++)	{
 }
 \end{verbatim}
 
-For easyness of the subsequent notation, the $6\times6$ matrix $\T{J}_a$ is 
-divided into four sub-matrices as:
+For ease of notation, in the following the $6\times6$ matrix $\T{J}_a$ is 
+divided into four sub-matrices
 \begin{equation}
 	\T{J}_a = \sqbr{\matr{c}{\T{J_f}_a\\\T{J_c}_a}}
 	=\sqbr{\matr{cc}{\T{J}_{a11} & \T{J}_{a12}\\ \T{J}_{a21} & \T{J}_{a22}}}
@@ -166,17 +164,18 @@ $\delta\T{V}_a$ and $\delta \T{x}_r$ must be expressed in terms of
 the node coordinates and velocities, namely:
 \begin{eqnarray}
 	\delta\T{V}_a &=& \delta\sqbr{\matr{c}{
-		\T{R}^T_{loc} \plbr{\T{v}_n + \T{\omega}_n\times\T{x}_r}\\
-		\T{R}^T_{loc} \T{\omega}_n
+		\T{R}^T_{\text{loc}} \plbr{\T{v}_n + \T{\omega}_n\times\T{x}_r
+			- \T{v}_{\infty} - \T{v}_{\text{ind}}}\\
+		\T{R}^T_{\text{loc}} \T{\omega}_n
 		}} \\
 \nonumber&=&\sqbr{\matr{c}{
-	\T{R}^T_{loc}\plbr{
+	\T{R}^T_{\text{loc}}\plbr{
 			\T{v}_n + \T{\omega}_n\times\T{x}_r 
-			- \T{v}_{\infty} - \T{v}_{ind}} \times \T{\theta}_\delta+ 
-			\T{R}^T_{loc}\plbr{
+			- \T{v}_{\infty} - \T{v}_{\text{ind}}} \times \T{\theta}_\delta+ 
+			\T{R}^T_{\text{loc}}\plbr{
 				\delta\T{v}_n + \delta\T{\omega}_n\times\T{x}_r +
 				\T{\omega}_n\times\delta\T{x}_r}\\
-	\T{R}^T_{loc}\T{\omega}_n \times\T{\theta}_\delta+ \T{R}^T_{loc}\T{\omega}_n
+	\T{R}^T_{\text{loc}}\T{\omega}_n \times\T{\theta}_\delta+ \T{R}^T_{\text{loc}}\delta\T{\omega}_n
 	}}
 \end{eqnarray}
 and $\delta\T{x}_r = \T{\theta}_\delta\times\T{R}_n\T{b}$.
@@ -185,31 +184,33 @@ After the algebra, the perturbation of the aerodynamic forces
 in the global reference frame reads:
 \begin{eqnarray}\label{eq:deltaF}
 \nonumber \delta\T{f} = 
-\nonumber	&-& \T{R}_{loc}\T{f}_a\times\T{\theta}_\delta \\
-\nonumber	&+& \T{R}_{loc}\T{J}_{a11}\T{R}^T_{loc}\T{v}_r\times\T{\theta}_\delta\\
-\nonumber	&+& \T{R}_{loc}\T{J}_{a11}\T{R}^T_{loc}\delta\T{v}_n\\
-\nonumber	&-& \T{R}_{loc}\T{J}_{a11}\T{R}^T_{loc}
+\nonumber	&-& \T{R}_{\text{loc}}\T{f}_a\times\T{\theta}_\delta \\
+\nonumber	&+& \T{R}_{\text{loc}}\T{J}_{a11}\T{R}^T_{\text{loc}}\T{v}_{\text{rel}}\times\T{\theta}_\delta\\
+\nonumber	&+& \T{R}_{\text{loc}}\T{J}_{a11}\T{R}^T_{\text{loc}}\delta\T{v}_n\\
+\nonumber	&-& \T{R}_{\text{loc}}\T{J}_{a11}\T{R}^T_{\text{loc}}
 			\T{x}_r\times\delta\T{\omega}_n\\
-\nonumber	&+& \T{R}_{loc}\T{J}_{a11}\T{R}^T_{loc}
+\nonumber	&+& \T{R}_{\text{loc}}\T{J}_{a11}\T{R}^T_{\text{loc}}
 			\T{\omega}_n\times\T{x}_r\times\T{\theta}_\delta\\
-\nonumber	&+& \T{R}_{loc}\T{J}_{a12}\T{R}^T_{loc}\T{\omega}_n
+\nonumber	&+& \T{R}_{\text{loc}}\T{J}_{a12}\T{R}^T_{\text{loc}}\T{\omega}_n
 			\times\T{\theta}_\delta\\
-		&+& \T{R}_{loc}\T{J}_{a12}\T{R}^T_{loc}\delta\T{\omega}_n
+		&+& \T{R}_{\text{loc}}\T{J}_{a12}\T{R}^T_{\text{loc}}\delta\T{\omega}_n
 \end{eqnarray}
+where $\T{v}_{\text{rel}} = \T{v}_n + \T{\omega}_n\times\T{x}_r 
+			- \T{v}_{\infty} - \T{v}_{\text{ind}}$
 while the perturbation of the aerodynamic moments yields:
 
 \begin{eqnarray}
 \nonumber \delta\T{c} = 
-\nonumber	&-& \T{R}_{loc}\T{c}_a\times\T{\theta}_\delta \\
-\nonumber	&+& \T{R}_{loc}\T{J}_{a21}\T{R}^T_{loc}\T{v}_r\times\T{\theta}_\delta\\
-\nonumber	&+& \T{R}_{loc}\T{J}_{a21}\T{R}^T_{loc}\delta\T{v}_n\\
-\nonumber	&-& \T{R}_{loc}\T{J}_{a21}\T{R}^T_{loc}
+\nonumber	&-& \T{R}_{\text{loc}}\T{c}_a\times\T{\theta}_\delta \\
+\nonumber	&+& \T{R}_{\text{loc}}\T{J}_{a21}\T{R}^T_{\text{loc}}\T{v}_{\text{rel}}\times\T{\theta}_\delta\\
+\nonumber	&+& \T{R}_{\text{loc}}\T{J}_{a21}\T{R}^T_{\text{loc}}\delta\T{v}_n\\
+\nonumber	&-& \T{R}_{\text{loc}}\T{J}_{a21}\T{R}^T_{\text{loc}}
 			\T{x}_r\times\delta\T{\omega}_n\\
-\nonumber	&+& \T{R}_{loc}\T{J}_{a21}\T{R}^T_{loc}
+\nonumber	&+& \T{R}_{\text{loc}}\T{J}_{a21}\T{R}^T_{\text{loc}}
 			\T{\omega}_n\times\T{x}_r\times\T{\theta}_\delta\\
-\nonumber	&+& \T{R}_{loc}\T{J}_{a22}\T{R}^T_{loc}\T{\omega}_n
+\nonumber	&+& \T{R}_{\text{loc}}\T{J}_{a22}\T{R}^T_{\text{loc}}\T{\omega}_n
 			\times\T{\theta}_\delta\\
-\nonumber	&+& \T{R}_{loc}\T{J}_{a22}\T{R}^T_{loc}\delta\T{\omega}_n\\
+\nonumber	&+& \T{R}_{\text{loc}}\T{J}_{a22}\T{R}^T_{\text{loc}}\delta\T{\omega}_n\\
 \nonumber 	&+& \T{f}\times\T{x}_r\times\T{\theta}_\delta\\
 		&+& \T{x}_r \times \delta\T{f}
 \end{eqnarray}
