@@ -92,14 +92,14 @@ protected:
 public:
 	/* Costruttore non banale */
 	DeformableHingeJoint(unsigned int uL,
-			const DofOwner* pDO,
-			const ConstitutiveLaw3D* pCL,
-			const StructNode* pN1,
-			const StructNode* pN2,
-			const Mat3x3& tilde_R1h,
-			const Mat3x3& tilde_R2h,
-			const OrientationDescription& od,
-			flag fOut);
+		const DofOwner* pDO,
+		const ConstitutiveLaw3D* pCL,
+		const StructNode* pN1,
+		const StructNode* pN2,
+		const Mat3x3& tilde_R1h,
+		const Mat3x3& tilde_R2h,
+		const OrientationDescription& od,
+		flag fOut);
 
 	/* Distruttore */
 	virtual ~DeformableHingeJoint(void);

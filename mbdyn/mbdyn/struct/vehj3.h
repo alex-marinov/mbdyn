@@ -50,15 +50,36 @@ protected:
 	mutable Mat3x3 tilde_R1h;
 	mutable Mat3x3 tilde_R2h;
 
-	/* tilde_d, tilde_ThetaCurr */
+	OrientationDescription od;
+
+	// tilde_d, tilde_ThetaCurr
 	Vec6 tilde_k;
 
-	/* tilde_dPrime, tilde_Omega */
+	// tilde_dPrime, tilde_Omega
 	Vec6 tilde_kPrime;
 
 	bool bFirstRes;
 
+	Vec3 d1, d2;
+	Mat3x3 R1h;
+
 	Vec6 F;
+
+	// uses F, d1, d2
+	void
+	AssMatCommon(FullSubMatrixHandler& WM,
+		doublereal dCoef);
+
+	// uses d1, d2, R1h
+	void
+	AssMatElastic(FullSubMatrixHandler& WM,
+		doublereal dCoef, const Mat6x6& FDE);
+
+	// uses d1, d2, R1h
+	void
+	AssMatViscous(FullSubMatrixHandler& WMA,
+		FullSubMatrixHandler& WMB,
+		doublereal dCoef, const Mat6x6& FDEPrime);
 
 public:
 	/* Costruttore non banale */
@@ -71,6 +92,7 @@ public:
 		const Vec3& tilde_f2,
 		const Mat3x3& tilde_R1h,
 		const Mat3x3& tilde_R2h,
+		const OrientationDescription& od,
 		flag fOut);
 
 	/* Distruttore */
@@ -155,6 +177,7 @@ public:
 		const Vec3& tilde_f2,
 		const Mat3x3& tilde_R1h,
 		const Mat3x3& tilde_R2h,
+		const OrientationDescription& od,
 		flag fOut);
 
 	~ElasticJoint(void);
@@ -170,23 +193,23 @@ public:
 	/* assemblaggio jacobiano */
 	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
-			doublereal dCoef,
-			const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr);
+		doublereal dCoef,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
 
 	/* assemblaggio jacobiano */
 	virtual void
 	AssMats(VariableSubMatrixHandler& WorkMatA,
-			VariableSubMatrixHandler& WorkMatB,
-			const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr);
+		VariableSubMatrixHandler& WorkMatB,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
 
 	/* assemblaggio residuo */
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
-			doublereal dCoef,
-			const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr);
+		doublereal dCoef,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
 
 	/* Inverse Dynamics residual assembly */
 	SubVectorHandler&
@@ -229,13 +252,18 @@ public:
 		return DeformableJoint::ParseHint(pDM, s);
 	};
 
-	virtual unsigned int iGetNumPrivData(void) const {
+	virtual unsigned int
+	iGetNumPrivData(void) const {
 		return DeformableJoint::iGetNumPrivData();
 	};
-	virtual unsigned int iGetPrivDataIdx(const char *s) const {
+
+	virtual unsigned int
+	iGetPrivDataIdx(const char *s) const {
 		return DeformableJoint::iGetPrivDataIdx(s);
 	};
-	virtual doublereal dGetPrivData(unsigned int i) const {
+
+	virtual doublereal
+	dGetPrivData(unsigned int i) const {
 		return dGetPrivData(i);
 	};
 #endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
@@ -251,21 +279,22 @@ protected:
 	Mat6x6 FDEPrime;
 
 	void AssMats(FullSubMatrixHandler& WMA,
-			FullSubMatrixHandler& WMB,
-			doublereal dCoef);
+		FullSubMatrixHandler& WMB,
+		doublereal dCoef);
 	void AssVec(SubVectorHandler& WorkVec);
 
 public:
 	ViscousJoint(unsigned int uL,
-			const DofOwner* pDO,
-			const ConstitutiveLaw6D* pCL,
-			const StructNode* pN1,
-			const StructNode* pN2,
-			const Vec3& tilde_f1,
-			const Vec3& tilde_f2,
-			const Mat3x3& tilde_R1,
-			const Mat3x3& tilde_R2,
-			flag fOut);
+		const DofOwner* pDO,
+		const ConstitutiveLaw6D* pCL,
+		const StructNode* pN1,
+		const StructNode* pN2,
+		const Vec3& tilde_f1,
+		const Vec3& tilde_f2,
+		const Mat3x3& tilde_R1,
+		const Mat3x3& tilde_R2,
+		const OrientationDescription& od,
+		flag fOut);
 
 	~ViscousJoint(void);
 
@@ -307,11 +336,7 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler&  XPrimeCurr,
 		const VectorHandler&  XPrimePrimeCurr,
-		int iOrder = -1)
-	{
-		WorkVec.Resize(0);
-		return WorkVec;
-	};
+		int iOrder = -1);
 
 	/* Aggiorna le deformazioni ecc. */
 	virtual void
@@ -343,13 +368,18 @@ public:
 		return DeformableJoint::ParseHint(pDM, s);
 	};
 
-	virtual unsigned int iGetNumPrivData(void) const {
+	virtual unsigned int
+	iGetNumPrivData(void) const {
 		return DeformableJoint::iGetNumPrivData();
 	};
-	virtual unsigned int iGetPrivDataIdx(const char *s) const {
+
+	virtual unsigned int
+	iGetPrivDataIdx(const char *s) const {
 		return DeformableJoint::iGetPrivDataIdx(s);
 	};
-	virtual doublereal dGetPrivData(unsigned int i) const {
+
+	virtual doublereal
+	dGetPrivData(unsigned int i) const {
 		return dGetPrivData(i);
 	};
 #endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
@@ -373,15 +403,16 @@ protected:
 
 public:
 	ViscoElasticJoint(unsigned int uL,
-			const DofOwner* pDO,
-			const ConstitutiveLaw6D* pCL,
-			const StructNode* pN1,
-			const StructNode* pN2,
-			const Vec3& tilde_f1,
-			const Vec3& tilde_f2,
-			const Mat3x3& tilde_R1,
-			const Mat3x3& tilde_R2,
-			flag fOut);
+		const DofOwner* pDO,
+		const ConstitutiveLaw6D* pCL,
+		const StructNode* pN1,
+		const StructNode* pN2,
+		const Vec3& tilde_f1,
+		const Vec3& tilde_f2,
+		const Mat3x3& tilde_R1,
+		const Mat3x3& tilde_R2,
+		const OrientationDescription& od,
+		flag fOut);
 
 	~ViscoElasticJoint(void);
 
@@ -423,11 +454,7 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler&  XPrimeCurr,
 		const VectorHandler&  XPrimePrimeCurr,
-		int iOrder = -1)//;
-	{
-		WorkVec.Resize(0);
-		return WorkVec;
-	};
+		int iOrder = -1);
 
 	/* Aggiorna le deformazioni ecc. */
 	virtual void
@@ -459,13 +486,18 @@ public:
 		return DeformableJoint::ParseHint(pDM, s);
 	};
 
-	virtual unsigned int iGetNumPrivData(void) const {
+	virtual unsigned int
+	iGetNumPrivData(void) const {
 		return DeformableJoint::iGetNumPrivData();
 	};
-	virtual unsigned int iGetPrivDataIdx(const char *s) const {
+
+	virtual unsigned int
+	iGetPrivDataIdx(const char *s) const {
 		return DeformableJoint::iGetPrivDataIdx(s);
 	};
-	virtual doublereal dGetPrivData(unsigned int i) const {
+
+	virtual doublereal
+	dGetPrivData(unsigned int i) const {
 		return dGetPrivData(i);
 	};
 #endif /* MBDYN_X_WORKAROUND_GCC_3_2 */

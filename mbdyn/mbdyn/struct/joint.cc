@@ -1785,6 +1785,7 @@ ReadJoint(DataManager* pDM,
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
+		OrientationDescription od = ReadOptionalOrientationDescription(pDM, HP);
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
 
 		switch (CLType) {
@@ -1795,7 +1796,7 @@ ReadJoint(DataManager* pDM,
 					ElasticJoint,
 					ElasticJoint(uLabel, pDO, pCL,
 						pNode1, pNode2,
-						f1, f2, R1, R2, fOut));
+						f1, f2, R1, R2, od, fOut));
 				break;
 
 			case INVARIANTDEFORMABLEJOINT:
@@ -1808,7 +1809,7 @@ ReadJoint(DataManager* pDM,
 					ElasticJointInv,
 					ElasticJointInv(uLabel, pDO, pCL,
 						pNode1, pNode2,
-						f1, f2, R1, R2, fOut));
+						f1, f2, R1, R2, od, fOut));
 #endif
 				break;
 			default:
@@ -1826,8 +1827,7 @@ ReadJoint(DataManager* pDM,
 				ViscousJoint,
 				ViscousJoint(uLabel, pDO, pCL,
 					pNode1, pNode2,
-					f1, f2, R1, R2,
-					fOut));
+					f1, f2, R1, R2, od, fOut));
 			break;
 
 		case ConstLawType::VISCOELASTIC:
@@ -1835,8 +1835,7 @@ ReadJoint(DataManager* pDM,
 				ViscoElasticJoint,
 				ViscoElasticJoint(uLabel, pDO, pCL,
 					pNode1, pNode2,
-					f1, f2, R1, R2,
-					fOut));
+					f1, f2, R1, R2, od, fOut));
 			break;
 #endif
 
