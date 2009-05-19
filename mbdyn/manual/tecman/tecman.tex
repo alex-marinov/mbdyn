@@ -6218,7 +6218,8 @@ approximation, is
 			}
 		}
 		 - \T{d}_2 \times \T{F}\times{}
-	}} \delta\T{g}_1 \\
+	}} \delta\T{g}_1
+	\nonumber \\
 	\mbox{} + \sqbr{\cvvect{
 		- \T{F}_{/\tilde{\T{d}}} + \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
 		- \T{d}_1 \times \plbr{\T{F}_{/\tilde{\T{d}}} - \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{}}
@@ -6620,13 +6621,306 @@ those of the deformable hinge
 and of the deformable displacement joint
 (Section~\ref{sec:constraints:deformable:deformable displacement joint}),
 considering that both the force $\T{F}$ and the moment $\T{M}$
-simultaneously depend on the relative displacement $\tilde{\T{d}}$
-and the relative orientation $\T{\theta}$.
+simultaneously depend on the relative displacement, $\tilde{\T{d}}$,
+the relative orientation, $\T{\theta}$, and their time derivatives,
+$\dot{\tilde{\T{d}}}$ and $\T{\omega}$.
 
 
 
 \subsubsection{Attached Deformable Joint}
-
+Internal force and moment:
+\begin{subequations}
+\begin{align}
+	\T{F}_i &= \plbr{ -1 }^i \T{R}_{1h} \tilde{\T{F}}\plbr{\tilde{\T{d}}, \T{\theta}, \dot{\tilde{\T{d}}}, \T{\omega}} \\
+	\T{M}_i &= \T{d}_i \times \T{F}_i
+	+ \plbr{-1}^i \T{R}_{1h} \tilde{\T{M}}\plbr{\tilde{\T{d}}, \T{\theta}, \dot{\tilde{\T{d}}}, \T{\omega}} .
+\end{align}
+\end{subequations}
+Their linearization, after defining
+\begin{subequations}
+\begin{align}
+	\T{F}_{/\tilde{\T{d}}} &=
+		\T{R}_{1h} \tilde{\T{F}}_{/\tilde{\T{d}}} \T{R}_{1h}^T \\
+	\T{F}_{/\dot{\tilde{\T{d}}}} &=
+		\T{R}_{1h} \tilde{\T{F}}_{/\dot{\tilde{\T{d}}}} \T{R}_{1h}^T \\
+	\T{F}_{/\T{\theta}}
+		&= \T{R}_{1h} \tilde{\T{F}}_{/\T{\theta}} \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T \\
+	\T{F}_{/\T{\omega}}
+		&= \T{R}_{1h} \tilde{\T{F}}_{/\T{\omega}} \T{R}_{1h}^T \\
+	\T{M}_{/\tilde{\T{d}}} &=
+		\T{R}_{1h} \tilde{\T{M}}_{/\tilde{\T{d}}} \T{R}_{1h}^T \\
+	\T{M}_{/\dot{\tilde{\T{d}}}} &=
+		\T{R}_{1h} \tilde{\T{M}}_{/\dot{\tilde{\T{d}}}} \T{R}_{1h}^T \\
+	\T{M}_{/\T{\theta}}
+		&= \T{R}_{1h} \tilde{\T{M}}_{/\T{\theta}} \T{\Gamma}\plbr{\T{\theta}}^{-1} \T{R}_{1h}^T \\
+	\T{M}_{/\T{\omega}}
+		&= \T{R}_{1h} \tilde{\T{M}}_{/\T{\omega}} \T{R}_{1h}^T ,
+\end{align}
+\end{subequations}
+yields
+the Viscous contribution to perturbation,
+\begin{align}
+	\sqbr{\matr{c}{
+		\T{F}_{/\dot{\tilde{\T{d}}}} \\
+		\T{d}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}}
+			+ \T{M}_{/\dot{\tilde{\T{d}}}} \\
+		- \T{F}_{/\dot{\tilde{\T{d}}}} \\
+		- \T{d}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}}
+			- \T{M}_{/\dot{\tilde{\T{d}}}}
+	}} \delta\dot{\T{x}}_1
+	%& \nonumber \\
+%
+	%\mbox{}
+	+ \sqbr{\matr{c}{
+		-\T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{}
+			+ \T{F}_{/\T{\omega}} \\
+		- \T{d}_1 \times \plbr{
+			\T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{}
+			- \T{F}_{/\T{\omega}}
+		}
+			+ \T{M}_{/\T{\omega}}
+			- \T{M}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{} \\
+		\T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{}
+			- \T{F}_{/\T{\omega}} \\
+		\T{d}_2 \times \plbr{
+			\T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{}
+			- \T{F}_{/\T{\omega}}
+		}
+			- \T{M}_{/\T{\omega}}
+			+ \T{M}_{/\dot{\tilde{\T{d}}}} \T{d}_1\times{}
+	}} \delta\dot{\T{g}}_1
+	& \nonumber \\
+%
+	\mbox{}
+	+ \sqbr{\matr{c}{
+		- \T{F}_{/\dot{\tilde{\T{d}}}} \\
+		- \T{d}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}}
+			- \T{M}_{/\dot{\tilde{\T{d}}}} \\
+		\T{F}_{/\dot{\tilde{\T{d}}}} \\
+		\T{d}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}}
+			+ \T{M}_{/\dot{\tilde{\T{d}}}}
+	}} \delta\dot{\T{x}}_2
+	%& \nonumber \\
+%
+	%\mbox{}
+	+ \sqbr{\matr{c}{
+		\T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_2\times{}
+			- \T{F}_{/\T{\omega}} \\
+		\T{d}_1 \times \plbr{
+			\T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_2\times{}
+			- \T{F}_{/\T{\omega}}
+		}
+			- \T{M}_{/\T{\omega}}
+			+ \T{M}_{/\dot{\tilde{\T{d}}}} \T{d}_2\times{} \\
+		- \T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_2\times{}
+			+ \T{F}_{/\T{\omega}} \\
+		- \T{d}_2 \times \plbr{
+			\T{F}_{/\dot{\tilde{\T{d}}}} \T{d}_2\times{}
+			- \T{F}_{/\T{\omega}}
+		}
+			+ \T{M}_{/\T{\omega}}
+			- \T{M}_{/\dot{\tilde{\T{d}}}} \T{d}_2\times{}
+	}} \delta\dot{\T{g}}_2
+	& \nonumber \\
+%
+%
+%
+	\mbox{} + \sqbr{\cvvect{
+		- \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
+		- \plbr{
+			\T{d}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}}
+			+ \T{M}_{/\dot{\tilde{\T{d}}}}
+		} \T{\omega}_1 \times{} \\
+		\T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
+		\plbr{
+			T{d}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}}
+			+ \T{M}_{/\dot{\tilde{\T{d}}}}
+		}\T{\omega}_1 \times{}
+	}} \delta\T{x}_1
+	& \nonumber \\
+%
+	\mbox{}
+	+ \sqbr{\cvvect{
+		- \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
+			\dot{\T{d}}_1 \times{} - \T{\omega}_1 \times \T{d}_1\times{}
+		}
+			- \T{F}_{/\T{\omega}} \T{\omega}_2\times{} \\
+		- \plbr{
+			\T{d}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}}
+			+ \T{M}_{/\dot{\tilde{\T{d}}}}
+		}\plbr{
+			\dot{\T{d}}_1 \times{} - \T{\omega}_1 \times \T{d}_1\times{}
+		}
+			- \plbr{
+				\T{d}_1\times \T{F}_{/\T{\omega}}
+				+ \T{M}_{/\T{\omega}}
+			} \T{\omega}_2\times{} \\
+		\T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
+			\dot{\T{d}}_1 \times{} - \T{\omega}_1 \times \T{d}_1\times{}
+		}
+			+ \T{F}_{/\T{\omega}} \T{\omega}_2\times{} \\
+		\plbr{
+			\T{d}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}}
+			+ \T{M}_{/\dot{\tilde{\T{d}}}}
+		}\plbr{
+			\dot{\T{d}}_1 \times{} - \T{\omega}_1 \times \T{d}_1\times{}
+		}
+			+ \plbr{
+				\T{d}_2 \times \T{F}_{/\T{\omega}}
+				+ \T{M}_{/\T{\omega}}
+			} \T{\omega}_2\times{}
+	}} \delta\T{g}_1
+	& \nonumber \\
+%
+	\mbox{}
+	+ \sqbr{\cvvect{
+		\T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
+		\plbr{
+			\T{d}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}}
+			+ \T{M}_{/\dot{\tilde{\T{d}}}}
+		} \T{\omega}_1 \times{} \\
+		- \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
+		- \plbr{
+			\T{d}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}}
+			+ \T{M}_{/\dot{\tilde{\T{d}}}}
+		} \T{\omega}_1 \times{}
+	}} \delta\T{x}_2
+	& \nonumber \\
+%
+	\mbox{}
+	+ \sqbr{\cvvect{
+		\T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
+			\dot{\T{d}}_2\times{}
+			- \T{\omega}_1 \times \T{d}_2\times{}
+		}
+			+ \T{F}_{/\T{\omega}} \T{\omega}_2\times{} \\
+		\plbr{
+			\T{d}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}}
+			+ \T{M}_{/\dot{\tilde{\T{d}}}}
+		}\plbr{
+			\dot{\T{d}}_2\times{}
+			- \T{\omega}_1 \times \T{d}_2\times{}
+		}
+			+ \plbr{
+				\T{d}_1\times\T{F}_{/\T{\omega}}
+				+ \T{M}_{/\T{\omega}}
+			} \T{\omega}_2\times{} \\
+		- \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
+			\dot{\T{d}}_2\times{}
+			- \T{\omega}_1 \times \T{d}_2\times{}
+		} 
+			- \T{F}_{/\T{\omega}} \T{\omega}_2\times{} \\
+		- \plbr{
+			\T{d}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}}
+			+ \T{M}_{/\dot{\tilde{\T{d}}}}
+		}\plbr{
+			\dot{\T{d}}_2\times{}
+			- \T{\omega}_1 \times \T{d}_2\times{}
+		}
+			+ \plbr{
+				\T{d}_2\times\T{F}_{/\T{\omega}}
+				+ \T{M}_{/\T{\omega}}
+			} \T{\omega}_2\times{}
+	}} \delta\T{g}_2
+	&
+	\label{eq:deformable-joint-perturb-viscous}
+\end{align}
+%
+%
+%
+the elastic contribution to perturbation,
+\begin{align}
+	\sqbr{\cvvect{
+		\T{F}_{/\tilde{\T{d}}} \\
+		\T{d}_1 \times \T{F}_{/\tilde{\T{d}}}
+			+ \T{M}_{/\tilde{\T{d}}} \\
+		- \T{F}_{/\tilde{\T{d}}} \\
+		- \T{d}_2 \times \T{F}_{/\tilde{\T{d}}} 
+			- \T{M}_{/\tilde{\T{d}}}
+	}} \delta\T{x}_1
+	%& \nonumber \\
+%
+	%\mbox{}
+	+ \sqbr{\cvvect{
+		- \T{F}_{/\tilde{\T{d}}} \T{d}_1 \times{}
+			+ \T{F}_{/\T{\theta}} \\
+		- \T{d}_1 \times \plbr{
+			\T{F}_{/\tilde{\T{d}}} \T{d}_1 \times{}
+			- \T{F}_{/\T{\theta}}
+		} + \T{M}_{/\T{\theta}} \\
+		\T{F}_{/\tilde{\T{d}}} \T{d}_1 \times{}
+			- \T{F}_{/\T{\theta}} \\
+		\T{d}_2 \times \plbr{
+			\T{F}_{/\tilde{\T{d}}} \T{d}_1 \times{}
+			- \T{F}_{/\T{\theta}}
+		} - \T{M}_{/\T{\theta}}
+	}} \delta\T{g}_1
+	& \nonumber \\
+%
+	\mbox{} 
+	+ \sqbr{\cvvect{
+		- \T{F}_{/\tilde{\T{d}}} \\
+		- \T{d}_1 \times \T{F}_{/\tilde{\T{d}}}
+			- \T{M}_{/\tilde{\T{d}}} \\
+		\T{F}_{/\tilde{\T{d}}} \\
+		\T{d}_2 \times \T{F}_{/\tilde{\T{d}}}
+			+ \T{M}_{/\tilde{\T{d}}}
+	}} \delta\T{x}_2
+	%& \nonumber \\
+%
+	%\mbox{}
+	+ \sqbr{\cvvect{
+		\T{F}_{/\tilde{\T{d}}} \T{d}_2 \times{}
+			- \T{F}_{/\T{\theta}} \\
+		\T{d}_1 \times \plbr{
+			\T{F}_{/\tilde{\T{d}}} \T{d}_2 \times{}
+			- \T{F}_{/\T{\theta}}
+		} - \T{M}_{/\T{\theta}} \\
+		- \T{F}_{/\tilde{\T{d}}} \T{d}_2 \times{}
+			+ \T{F}_{/\T{\theta}} \\
+		- \T{d}_2 \times \plbr{
+			\T{F}_{/\tilde{\T{d}}} \T{d}_2 \times{}
+			- \T{F}_{/\T{\theta}}
+		} + \T{M}_{/\T{\theta}}
+	}} \delta\T{g}_2
+	&
+	\label{eq:deformable-joint-perturb-elastic}
+\end{align}
+%
+%
+%
+and a common contribution to perturbation,
+\begin{align}
+	\sqbr{\matr{cccc}{
+		\T{0} & \T{F}\times{} & \T{0} & \T{0} \\
+		- \T{F}\times{} & \T{d}_1\times\T{F}\times{} & \T{F}\times{} & - \T{F}\times\T{d}_2\times{} \\
+		\T{0} & - \T{F}\times{} & \T{0} & \T{0} \\
+		\T{0} & - \T{d}_2\times\T{F}\times{} & \T{0} & \T{F}\times\T{d}_2\times{}
+	}} \cubr{\cvvect{
+		\delta\T{x}_1 \\
+		\delta\T{g}_1 \\
+		\delta\T{x}_2 \\
+		\delta\T{g}_2
+	}}
+	%& \nonumber \\
+%
+%
+%
+	%\mbox{}
+	= \cubr{\cvvect{
+		\T{F} \\
+		\T{d}_1 \times \T{F} \\
+		- \T{F} \\
+		- \T{d}_2 \times \T{F}
+	}} &
+	\label{eq:deformable-joint-perturb-common}
+\end{align}
+The contribution of Eq.~(\ref{eq:deformable-joint-perturb-common})
+is always present.
+The contribution of Eq.~(\ref{eq:deformable-joint-perturb-elastic})
+is present in the elastic and in the viscoelastic variants of the joint.
+The contribution of Eq.~(\ref{eq:deformable-joint-perturb-viscous})
+is present in the viscous and in the viscoelastic variants of the joint.
 
 
 \subsubsection{Invariant Deformable Joint}
@@ -6685,9 +6979,7 @@ Their linearization, after defining
 		&= \hat{\T{R}} \tilde{\T{M}}_{/\T{\omega}} \hat{\T{R}}^T ,
 \end{align}
 \end{subequations}
-yields
-\begin{align}
-\end{align}
+yields \textbf{TODO}
 
 
 
