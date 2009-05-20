@@ -12,15 +12,18 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 MBDyn 1.X-Devel
 	Enhancements:
 		- permute and scale matrix for lapack eigenanalysis
-		- allow setting initial value in modal joint card
-		- add '%' operator to math parser
-		- add support for scalar values to discrete control elem
 		- add frequency range for partial eigenanalysis output
-		- honor default output orientation for reference frames
-		- add over/underflow check in math parser
+		- allow setting initial value in modal joint card
 		- add incomplete FEM file detection to modal joint
+		  (noted by Luca Cavagna)
 		- add "attached" viscous/viscoelastic deformable joint
 		  (partially contributed by Doug Baldwin)
+		- add support for scalar values to discrete control elem
+		- honor default output orientation for reference frames
+		- add echo of C81 data
+		- add '%' operator to math parser
+		- add over/underflow check in math parser
+		  (noted by Patrick Rix)
 	Backward compatibility issues:
 		- the format of the modal joint output changed
 		- the format of the modal force input changed

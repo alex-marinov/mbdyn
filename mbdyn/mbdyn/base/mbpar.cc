@@ -294,16 +294,17 @@ MBDynParser::C81Data_int(void)
 	unsigned int uLabel(GetInt());
 	
 	/* Nome del profilo c81 */
-	const char *sName = NULL;
+	std::string sName;
 	if (IsKeyWord("name")) {
 		const char *sTmp = GetStringWithDelims();
-		SAFESTRDUP(sName, sTmp);
+		sName = sTmp;
 	}
 	
 	const char* filename = GetFileName();
 	std::ifstream in(filename);
 	if (!in) {
-		silent_cerr("unable to open file '" << filename << "' at line " 
+		silent_cerr("C81Data(" << uLabel << "): "
+			"unable to open file '" << filename << "' at line " 
 			<< GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
@@ -318,7 +319,8 @@ MBDynParser::C81Data_int(void)
 	if (IsKeyWord("tolerance")) {
 		dcptol = GetReal();
 		if (dcptol <= 0.) {
-			silent_cerr("invalid c81 data tolerance at line "
+			silent_cerr("C81Data(" << uLabel << "): "
+				"invalid c81 data tolerance at line "
 				<< GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
@@ -326,7 +328,8 @@ MBDynParser::C81Data_int(void)
 
 	if (IsKeyWord("fc511")) {
 		if (read_fc511_data(in, data, dcptol) != 0) {
-			silent_cerr("unable to read c81 data " << uLabel 
+			silent_cerr("C81Data(" << uLabel << "): "
+				"unable to read c81 data " << uLabel 
 				<< " from file '" << filename << "' "
 				"in fc511 format at line " << GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -334,7 +337,8 @@ MBDynParser::C81Data_int(void)
 
 	} else if (IsKeyWord("free" "format")) {
 		if (read_c81_data_free_format(in, data, dcptol) != 0) {
-			silent_cerr("unable to read c81 data " << uLabel 
+			silent_cerr("C81Data(" << uLabel << "): "
+				"unable to read c81 data " << uLabel 
 				<< " from file '" << filename << "' "
 				"in free format at line " << GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -342,29 +346,55 @@ MBDynParser::C81Data_int(void)
 
 	} else {
 		if (read_c81_data(in, data, dcptol) != 0) {
-			silent_cerr("unable to read c81 data " << uLabel 
+			silent_cerr("C81Data(" << uLabel << "): "
+				"unable to read c81 data " << uLabel 
 				<< " from file '" << filename << "' "
 				"at line " << GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
-	
-#ifdef DEBUG
-	if (DEBUG_LEVEL(MYDEBUG_INPUT)) {
-		write_c81_data(std::cout, data);
-	}
-#endif
 
+	if (IsKeyWord("echo")) {
+		const char *sOutName = GetFileName();
+		if (sOutName == NULL) {
+			silent_cerr("C81Data(" << uLabel << "): "
+				"unable to read output file name "
+				"at line " << GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		std::ofstream out(sOutName);
+		if (!out) {
+			silent_cerr("C81Data(" << uLabel << "): "
+				"unable to open output file "
+				"\"" << sOutName << "\" "
+				"at line " << GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (IsKeyWord("free" "format")) {
+			write_c81_data_free_format(out, data);
+
+		} else if (!IsArg()) {
+			write_c81_data(out, data);
+
+		} else {
+			silent_cerr("C81Data(" << uLabel << "): "
+				"unknown output format "
+				"at line " << GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+	
 	if (!AD.insert(ADType::value_type(uLabel, data)).second) {
-		silent_cerr("c81 data " << uLabel
-			<< " already defined at line " << GetLineData()
+		silent_cerr("C81Data(" << uLabel << "): "
+			"redefined at line " << GetLineData()
 			<< std::endl);
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	
-	if (sName != NULL) {
-		data->PutName(sName);
-		SAFEDELETEARR(sName);
+	if (!sName.empty()) {
+		data->PutName(sName.c_str());
 	}
 }
 
