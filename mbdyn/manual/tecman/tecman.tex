@@ -6265,7 +6265,7 @@ approximation, is
 where 
 \begin{subequations}
 \begin{align}
-	\T{F}_{/\tilde{\dot{\T{d}}}} &= \T{R}_{1h} \tilde{\T{F}}_{/\tilde{\dot{\T{d}}}} \T{R}_{1h}^T \\
+	\T{F}_{/\dot{\tilde{\T{d}}}} &= \T{R}_{1h} \tilde{\T{F}}_{/\dot{\tilde{\T{d}}}} \T{R}_{1h}^T \\
 	\T{F}_{/\tilde{\T{d}}} &= \T{R}_{1h} \tilde{\T{F}}_{/\tilde{\T{d}}} \T{R}_{1h}^T
 \end{align}
 \end{subequations}
@@ -6660,8 +6660,7 @@ Their linearization, after defining
 		&= \T{R}_{1h} \tilde{\T{M}}_{/\T{\omega}} \T{R}_{1h}^T ,
 \end{align}
 \end{subequations}
-yields
-the Viscous contribution to perturbation,
+yields the viscous contribution to perturbation,
 \begin{align}
 	\sqbr{\matr{c}{
 		\T{F}_{/\dot{\tilde{\T{d}}}} \\
@@ -6736,7 +6735,7 @@ the Viscous contribution to perturbation,
 		} \T{\omega}_1 \times{} \\
 		\T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
 		\plbr{
-			T{d}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}}
+			\T{d}_2 \times \T{F}_{/\dot{\tilde{\T{d}}}}
 			+ \T{M}_{/\dot{\tilde{\T{d}}}}
 		}\T{\omega}_1 \times{}
 	}} \delta\T{x}_1
@@ -6904,9 +6903,9 @@ and a common contribution to perturbation,
 \begin{align}
 	\sqbr{\matr{cccc}{
 		\T{0} & \T{F}\times{} & \T{0} & \T{0} \\
-		- \T{F}\times{} & \T{d}_1\times\T{F}\times{} & \T{F}\times{} & - \T{F}\times\T{d}_2\times{} \\
+		- \T{F}\times{} & \T{d}_1\times\T{F}\times{} + \T{M}\times{} & \T{F}\times{} & - \T{F}\times\T{d}_2\times{} \\
 		\T{0} & - \T{F}\times{} & \T{0} & \T{0} \\
-		\T{0} & - \T{d}_2\times\T{F}\times{} & \T{0} & \T{F}\times\T{d}_2\times{}
+		\T{0} & - \T{d}_2\times\T{F}\times{} - \T{M}\times{} & \T{0} & \T{F}\times\T{d}_2\times{}
 	}} \cubr{\cvvect{
 		\delta\T{x}_1 \\
 		\delta\T{g}_1 \\
@@ -6920,9 +6919,9 @@ and a common contribution to perturbation,
 	%\mbox{}
 	= \cubr{\cvvect{
 		\T{F} \\
-		\T{d}_1 \times \T{F} \\
+		\T{d}_1 \times \T{F} + \T{M} \\
 		- \T{F} \\
-		- \T{d}_2 \times \T{F}
+		- \T{d}_2 \times \T{F} - \T{M}
 	}} &
 	\label{eq:deformable-joint-perturb-common}
 \end{align}
