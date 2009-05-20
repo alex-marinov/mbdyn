@@ -4531,6 +4531,10 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 }
 #endif // USE_ARPACK
 
+#ifdef USE_JDQZ
+// TODO...
+#endif // USE_JDQZ
+
 // writes a full matrix in a form compatible with octave/matlab
 static void
 output_full_matrix(std::ostream& o,
