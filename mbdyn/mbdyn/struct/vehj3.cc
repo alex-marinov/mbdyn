@@ -364,6 +364,7 @@ DeformableJoint::AssMatCommon(FullSubMatrixHandler& WM, doublereal dCoef)
 
 	Vec3 FTmp(F.GetVec1()*dCoef);
 	Mat3x3 FCross(FTmp);
+	Mat3x3 MCross(F.GetVec2()*dCoef);
 
 	WM.Add(1, 4, FCross);
 	WM.Sub(4, 1, FCross);
@@ -375,11 +376,11 @@ DeformableJoint::AssMatCommon(FullSubMatrixHandler& WM, doublereal dCoef)
 	WM.Add(6 + 4, 6 + 4, MTmp);
 	WM.Sub(4, 6 + 4, MTmp);
 
-	MTmp = Mat3x3(d2, FTmp);
+	MTmp = Mat3x3(d2, FTmp) + MCross;
 
 	WM.Sub(6 + 4, 4, MTmp);
 
-	MTmp = Mat3x3(d1, FTmp);
+	MTmp = Mat3x3(d1, FTmp) + MCross;
 
 	WM.Add(4, 4, MTmp);
 }
@@ -491,6 +492,141 @@ DeformableJoint::AssMatViscous(FullSubMatrixHandler& WMA,
 
 	WMB.Sub(6 + 4, 1, FTmp);
 	WMB.Add(6 + 4, 6 + 1, FTmp);
+
+	// ~~~ o ~~~ o ~~~ o ~~~
+
+	MTmp = F_dPrime*Mat3x3(Omega1*dCoef);
+
+	WMA.Sub(1, 1, MTmp);
+	WMA.Add(6 + 1, 1, MTmp);
+	WMA.Add(1, 6 + 1, MTmp);
+	WMA.Sub(6 + 1, 6 + 1, MTmp);
+
+	Mat3x3 A1dP(Mat3x3(d1)*F_dPrime + M_dPrime);
+	Mat3x3 A2dP(Mat3x3(d2)*F_dPrime + M_dPrime);
+	
+	Mat3x3 A1tPw((Mat3x3(d1)*F_thetaPrime + M_thetaPrime)*Mat3x3(Omega2*dCoef));
+	Mat3x3 A2tPw((Mat3x3(d2)*F_thetaPrime + M_thetaPrime)*Mat3x3(Omega2*dCoef));
+
+	Mat3x3 D1(Mat3x3(d1Prime*dCoef) - Mat3x3(Omega1, d1*dCoef));
+	Mat3x3 D2(Mat3x3(d2Prime*dCoef) - Mat3x3(Omega1, d2*dCoef));
+
+	MTmp = A1dP*Mat3x3(Omega1*dCoef);
+
+	WMA.Sub(4, 1, MTmp);
+	WMA.Add(4, 6 + 1, MTmp);
+
+	MTmp = A2dP*Mat3x3(Omega1*dCoef);
+
+	WMA.Add(6 + 4, 1, MTmp);
+	WMA.Sub(6 + 4, 6 + 1, MTmp);
+
+	FTmp = F_thetaPrime*Mat3x3(Omega2*dCoef);
+
+	MTmp = F_dPrime*D1 + FTmp;
+
+	WMA.Sub(1, 4, MTmp);
+	WMA.Add(6 + 1, 4, MTmp);
+
+	MTmp = F_dPrime*D2 + FTmp;
+
+	WMA.Add(1, 6 + 4, MTmp);
+	WMA.Sub(6 + 1, 6 + 4, MTmp);
+
+	WMA.Sub(4, 4, A1dP*D1 + A1tPw);
+
+	WMA.Add(6 + 4, 4, A2dP*D1 + A2tPw);
+
+	WMA.Add(4, 6 + 4, A1dP*D2 + A1tPw);
+
+	WMA.Sub(6 + 4, 6 + 4, A2dP*D2 + A2tPw);
+}
+
+/* assemblaggio residuo */
+SubVectorHandler&
+DeformableJoint::AssRes(SubVectorHandler& WorkVec,
+		doublereal /* dCoef */ ,
+		const VectorHandler& /* XCurr */ ,
+		const VectorHandler& /* XPrimeCurr */ )
+{
+	/* Dimensiona e resetta la matrice di lavoro */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.ResizeReset(iNumRows);
+
+	/* Recupera gli indici */
+	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
+	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
+
+	/* Setta gli indici della matrice */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
+		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
+	}
+
+	AssVec(WorkVec);
+
+	return WorkVec;
+}
+
+/* Inverse Dynamics Residual Assembly */
+SubVectorHandler&
+DeformableJoint::AssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& /* XCurr */,
+	const VectorHandler& /* XPrimeCurr */, 
+	const VectorHandler& /* XPrimePrimeCurr */, 
+	int iOrder)
+{	
+	ASSERT( iOrder = -1 );
+
+	bFirstRes = false;
+
+	/* Dimensiona e resetta la matrice di lavoro */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.ResizeReset(iNumRows);
+
+	/* Recupera gli indici */
+	integer iNode1FirstMomIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode2FirstMomIndex = pNode2->iGetFirstPositionIndex();
+
+	/* Setta gli indici della matrice */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
+		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
+	}
+
+	AssVec(WorkVec);
+
+	return WorkVec;
+}
+
+/* Contributo al residuo durante l'assemblaggio iniziale */
+SubVectorHandler&
+DeformableJoint::InitialAssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& /* XCurr */ )
+{
+	/* Dimensiona e resetta la matrice di lavoro */
+	integer iNumRows = 0;
+	integer iNumCols = 0;
+	InitialWorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.ResizeReset(iNumRows);
+
+	/* Recupera gli indici */
+	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
+
+	/* Setta gli indici della matrice */
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex + iCnt);
+		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
+	}
+
+	AssVec(WorkVec);
+
+	return WorkVec;
 }
 
 /* DeformableJoint - end */
@@ -606,83 +742,22 @@ ElasticJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 	AssMatElastic(WM, dCoef, FDE);
 }
 
-/* assemblaggio residuo */
-SubVectorHandler&
-ElasticJoint::AssRes(SubVectorHandler& WorkVec,
-		doublereal /* dCoef */ ,
-		const VectorHandler& /* XCurr */ ,
-		const VectorHandler& /* XPrimeCurr */ )
-{
-	/* Dimensiona e resetta la matrice di lavoro */
-	integer iNumRows = 0;
-	integer iNumCols = 0;
-	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeReset(iNumRows);
-
-	/* Recupera gli indici */
-	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
-	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
-
-	/* Setta gli indici della matrice */
-	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
-		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
-	}
-
-	AssVec(WorkVec);
-
-	return WorkVec;
-}
-
-/* Inverse Dynamics Residual Assembly */
-SubVectorHandler&
-ElasticJoint::AssRes(SubVectorHandler& WorkVec,
-	const VectorHandler& /* XCurr */,
-	const VectorHandler& /* XPrimeCurr */, 
-	const VectorHandler& /* XPrimePrimeCurr */, 
-	int iOrder)
-{	
-	ASSERT( iOrder = -1 );
-
-	bFirstRes = false;
-
-	/* Dimensiona e resetta la matrice di lavoro */
-	integer iNumRows = 0;
-	integer iNumCols = 0;
-	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeReset(iNumRows);
-
-	/* Recupera gli indici */
-	integer iNode1FirstMomIndex = pNode1->iGetFirstPositionIndex();
-	integer iNode2FirstMomIndex = pNode2->iGetFirstPositionIndex();
-
-	/* Setta gli indici della matrice */
-	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
-		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
-	}
-
-	AssVec(WorkVec);
-
-	return WorkVec;
-}
-
 void
 ElasticJoint::AssVec(SubVectorHandler& WorkVec)
 {
-	R1h = pNode1->GetRCurr()*tilde_R1h;
-	d2 = pNode2->GetRCurr()*tilde_f2;
-	d1 = pNode2->GetXCurr() + d2 - pNode1->GetXCurr();
-
 	if (bFirstRes) {
 		bFirstRes = false;
 
 	} else {
+		R1h = pNode1->GetRCurr()*tilde_R1h;
+
+		d2 = pNode2->GetRCurr()*tilde_f2;
+		d1 = pNode2->GetXCurr() + d2 - pNode1->GetXCurr();
+
 		Mat3x3 R2h(pNode2->GetRCurr()*tilde_R2h);
 		Vec3 f1(pNode1->GetRCurr()*tilde_f1);
-		Vec3 tilde_d(R1h.MulTV(pNode2->GetXCurr() + d2 - pNode1->GetXCurr() - f1));
 
-		tilde_k = Vec6(tilde_d, RotManip::VecRot(R1h.MulTM(R2h)));
+		tilde_k = Vec6(R1h.MulTV(d1 - f1), RotManip::VecRot(R1h.MulTM(R2h)));
 
 		ConstitutiveLaw6DOwner::Update(tilde_k);
 	}
@@ -769,33 +844,6 @@ ElasticJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	AssMat(WM, 1.);
 
 	return WorkMat;
-}
-
-
-/* Contributo al residuo durante l'assemblaggio iniziale */
-SubVectorHandler&
-ElasticJoint::InitialAssRes(SubVectorHandler& WorkVec,
-		const VectorHandler& /* XCurr */ )
-{
-	/* Dimensiona e resetta la matrice di lavoro */
-	integer iNumRows = 0;
-	integer iNumCols = 0;
-	InitialWorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeReset(iNumRows);
-
-	/* Recupera gli indici */
-	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
-	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
-
-	/* Setta gli indici della matrice */
-	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex + iCnt);
-		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
-	}
-
-	AssVec(WorkVec);
-
-	return WorkVec;
 }
 
 /* ElasticJoint - end */
@@ -917,79 +965,20 @@ ViscousJoint::AssMats(FullSubMatrixHandler& WMA,
 	AssMatViscous(WMA, WMB, dCoef, FDEPrime);
 }
 
-/* assemblaggio residuo */
-SubVectorHandler&
-ViscousJoint::AssRes(SubVectorHandler& WorkVec,
-	doublereal /* dCoef */ ,
-	const VectorHandler& /* XCurr */ ,
-	const VectorHandler& /* XPrimeCurr */ )
-{
-	/* Dimensiona e resetta la matrice di lavoro */
-	integer iNumRows = 0;
-	integer iNumCols = 0;
-	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeReset(iNumRows);
-
-	/* Recupera gli indici */
-	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
-	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
-
-	/* Setta gli indici della matrice */
-	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
-		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
-	}
-
-	AssVec(WorkVec);
-
-	return WorkVec;
-}
-
-/* Inverse Dynamics Residual Assembly */
-SubVectorHandler&
-ViscousJoint::AssRes(SubVectorHandler& WorkVec,
-	const VectorHandler& /* XCurr */,
-	const VectorHandler& /* XPrimeCurr */, 
-	const VectorHandler& /* XPrimePrimeCurr */, 
-	int iOrder)
-{	
-	ASSERT( iOrder = -1 );
-
-	bFirstRes = false;
-
-	/* Dimensiona e resetta la matrice di lavoro */
-	integer iNumRows = 0;
-	integer iNumCols = 0;
-	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeReset(iNumRows);
-
-	/* Recupera gli indici */
-	integer iNode1FirstMomIndex = pNode1->iGetFirstPositionIndex();
-	integer iNode2FirstMomIndex = pNode2->iGetFirstPositionIndex();
-
-	/* Setta gli indici della matrice */
-	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
-		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
-	}
-
-	AssVec(WorkVec);
-
-	return WorkVec;
-}
-
 void
 ViscousJoint::AssVec(SubVectorHandler& WorkVec)
 {
-	R1h = pNode1->GetRCurr()*tilde_R1h;
-	d2 = pNode2->GetRCurr()*tilde_f2;
-	d1 = pNode2->GetXCurr() + d2 - pNode1->GetXCurr();
-
 	if (bFirstRes) {
 		bFirstRes = false;
 
 	} else {
-		Vec3 d1Prime(pNode2->GetVCurr() + pNode2->GetWCurr().Cross(d2) - pNode1->GetVCurr());
+		R1h = pNode1->GetRCurr()*tilde_R1h;
+
+		d2 = pNode2->GetRCurr()*tilde_f2;
+		d1 = pNode2->GetXCurr() + d2 - pNode1->GetXCurr();
+
+		d2Prime = pNode2->GetWCurr().Cross(d2);
+		d1Prime = pNode2->GetVCurr() + d2Prime - pNode1->GetVCurr();
 
 		tilde_kPrime = Vec6(R1h.MulTV(d1Prime - pNode1->GetWCurr().Cross(d1)),
 			R1h.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr()));
@@ -1015,11 +1004,11 @@ ViscousJoint::AfterPredict(VectorHandler& /* X */ ,
 	/* Recupera i dati */
 	R1h = pNode1->GetRRef()*tilde_R1h;
 
-
-
 	d2 = pNode2->GetRCurr()*tilde_f2;
 	d1 = pNode2->GetXCurr() + d2 - pNode1->GetXCurr();
-	Vec3 d1Prime(pNode2->GetVCurr() + pNode2->GetWCurr().Cross(d2) - pNode1->GetVCurr());
+
+	d2Prime = pNode2->GetWCurr().Cross(d2);
+	d1Prime = pNode2->GetVCurr() + d2Prime - pNode1->GetVCurr();
 
 	tilde_kPrime = Vec6(R1h.MulTV(d1Prime - pNode1->GetWCurr().Cross(d1)),
 		R1h.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr()));
@@ -1065,32 +1054,6 @@ ViscousJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 }
 
 
-/* Contributo al residuo durante l'assemblaggio iniziale */
-SubVectorHandler&
-ViscousJoint::InitialAssRes(SubVectorHandler& WorkVec,
-	const VectorHandler& /* XCurr */ )
-{
-	/* Dimensiona e resetta la matrice di lavoro */
-	integer iNumRows = 0;
-	integer iNumCols = 0;
-	InitialWorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeReset(iNumRows);
-
-	/* Recupera gli indici */
-	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
-	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
-
-	/* Setta gli indici della matrice */
-	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex + iCnt);
-		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
-	}
-
-	AssVec(WorkVec);
-
-	return WorkVec;
-}
-
 /* ViscousJoint - end */
 
 
@@ -1108,7 +1071,8 @@ ViscoElasticJoint::ViscoElasticJoint(unsigned int uL,
 	const OrientationDescription& od,
 	flag fOut)
 : Elem(uL, fOut),
-DeformableJoint(uL, pDO, pCL, pN1, pN2, tilde_f1, tilde_f2, tilde_R1h, tilde_R2h, od, fOut)
+DeformableJoint(uL, pDO, pCL, pN1, pN2, tilde_f1, tilde_f2, tilde_R1h, tilde_R2h, od, fOut),
+ThetaRef(0.)
 {
 	/*
 	 * Chiede la matrice tangente di riferimento
@@ -1212,84 +1176,30 @@ ViscoElasticJoint::AssMats(FullSubMatrixHandler& WMA,
 	AssMatViscous(WMA, WMB, dCoef, FDEPrime);
 }
 
-/* assemblaggio residuo */
-SubVectorHandler&
-ViscoElasticJoint::AssRes(SubVectorHandler& WorkVec,
-	doublereal /* dCoef */ ,
-	const VectorHandler& /* XCurr */ ,
-	const VectorHandler& /* XPrimeCurr */ )
-{
-	/* Dimensiona e resetta la matrice di lavoro */
-	integer iNumRows = 0;
-	integer iNumCols = 0;
-	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeReset(iNumRows);
-
-	/* Recupera gli indici */
-	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
-	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
-
-	/* Setta gli indici della matrice */
-	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
-		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
-	}
-
-	AssVec(WorkVec);
-
-	return WorkVec;
-}
-
-/* Inverse Dynamics Residual Assembly */
-SubVectorHandler&
-ViscoElasticJoint::AssRes(SubVectorHandler& WorkVec,
-	const VectorHandler& /* XCurr */,
-	const VectorHandler& /* XPrimeCurr */, 
-	const VectorHandler& /* XPrimePrimeCurr */, 
-	int iOrder)
-{	
-	ASSERT( iOrder = -1 );
-
-	bFirstRes = false;
-
-	/* Dimensiona e resetta la matrice di lavoro */
-	integer iNumRows = 0;
-	integer iNumCols = 0;
-	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeReset(iNumRows);
-
-	/* Recupera gli indici */
-	integer iNode1FirstMomIndex = pNode1->iGetFirstPositionIndex();
-	integer iNode2FirstMomIndex = pNode2->iGetFirstPositionIndex();
-
-	/* Setta gli indici della matrice */
-	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
-		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
-	}
-
-	AssVec(WorkVec);
-
-	return WorkVec;
-}
-
 void
 ViscoElasticJoint::AssVec(SubVectorHandler& WorkVec)
 {
-	R1h = pNode1->GetRCurr()*tilde_R1h;
-	d2 = pNode2->GetRCurr()*tilde_f2;
-	d1 = pNode2->GetXCurr() + d2 - pNode1->GetXCurr();
-
 	if (bFirstRes) {
 		bFirstRes = false;
 
 	} else {
-		Vec3 d1Prime(pNode2->GetVCurr() + pNode2->GetWCurr().Cross(d2) - pNode1->GetVCurr());
+		R1h = pNode1->GetRCurr()*tilde_R1h;
+
+		d2 = pNode2->GetRCurr()*tilde_f2;
+		d1 = pNode2->GetXCurr() + d2 - pNode1->GetXCurr();
+
+		d2Prime = pNode2->GetWCurr().Cross(d2);
+		d1Prime = pNode2->GetVCurr() + d2Prime - pNode1->GetVCurr();
+
+		Mat3x3 R2h(pNode2->GetRCurr()*tilde_R2h);
+		Vec3 f1(pNode1->GetRCurr()*tilde_f1);
+
+		tilde_k = Vec6(R1h.MulTV(d1 - f1), RotManip::VecRot(R1h.MulTM(R2h)));
 
 		tilde_kPrime = Vec6(R1h.MulTV(d1Prime - pNode1->GetWCurr().Cross(d1)),
 			R1h.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr()));
 
-		ConstitutiveLaw6DOwner::Update(Zero6, tilde_kPrime);
+		ConstitutiveLaw6DOwner::Update(tilde_k, tilde_kPrime);
 	}
 
 	F = MultRV(ConstitutiveLaw6DOwner::GetF(), R1h);
@@ -1310,16 +1220,31 @@ ViscoElasticJoint::AfterPredict(VectorHandler& /* X */ ,
 	/* Recupera i dati */
 	R1h = pNode1->GetRRef()*tilde_R1h;
 
-
-
 	d2 = pNode2->GetRCurr()*tilde_f2;
 	d1 = pNode2->GetXCurr() + d2 - pNode1->GetXCurr();
-	Vec3 d1Prime(pNode2->GetVCurr() + pNode2->GetWCurr().Cross(d2) - pNode1->GetVCurr());
+
+	d2Prime = pNode2->GetWCurr().Cross(d2);
+	d1Prime = pNode2->GetVCurr() + d2Prime - pNode1->GetVCurr();
+
+	/* Calcola la deformazione corrente nel sistema locale (nodo a) */
+	ThetaRef = RotManip::VecRot(R1h.MulTM(pNode2->GetRRef()*tilde_R2h));
+
+	/* Calcola l'inversa di Gamma di ThetaRef */
+	Mat3x3 GammaRefm1 = RotManip::DRot_I(ThetaRef);
+
+	Vec3 f1(pNode1->GetRRef()*tilde_f1);
+
+	tilde_k = Vec6(R1h.MulTV(d1 - f1), ThetaRef);
 
 	tilde_kPrime = Vec6(R1h.MulTV(d1Prime - pNode1->GetWCurr().Cross(d1)),
 		R1h.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr()));
 
-	ConstitutiveLaw6DOwner::Update(Zero6, tilde_kPrime);
+	ConstitutiveLaw6DOwner::Update(tilde_k, tilde_kPrime);
+
+	/* Chiede la matrice tangente di riferimento e la porta
+	 * nel sistema globale */
+	FDE = ConstitutiveLaw6DOwner::GetFDE();
+        MultRMRtGammam1(FDE, R1h, GammaRefm1);
 
 	/* FIXME: we need to be able to regenerate FDE
 	 * if the constitutive law throws ChangedEquationStructure */
@@ -1359,32 +1284,6 @@ ViscoElasticJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	return WorkMat;
 }
 
-
-/* Contributo al residuo durante l'assemblaggio iniziale */
-SubVectorHandler&
-ViscoElasticJoint::InitialAssRes(SubVectorHandler& WorkVec,
-	const VectorHandler& /* XCurr */ )
-{
-	/* Dimensiona e resetta la matrice di lavoro */
-	integer iNumRows = 0;
-	integer iNumCols = 0;
-	InitialWorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeReset(iNumRows);
-
-	/* Recupera gli indici */
-	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
-	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
-
-	/* Setta gli indici della matrice */
-	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex + iCnt);
-		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
-	}
-
-	AssVec(WorkVec);
-
-	return WorkVec;
-}
 
 /* ViscoElasticJoint - end */
 

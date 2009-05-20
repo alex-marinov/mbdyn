@@ -19,6 +19,8 @@ MBDyn 1.X-Devel
 		- honor default output orientation for reference frames
 		- add over/underflow check in math parser
 		- add incomplete FEM file detection to modal joint
+		- add "attached" viscous/viscoelastic deformable joint
+		  (partially contributed by Doug Baldwin)
 	Backward compatibility issues:
 		- the format of the modal joint output changed
 		- the format of the modal force input changed

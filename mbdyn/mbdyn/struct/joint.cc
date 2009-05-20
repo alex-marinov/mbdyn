@@ -1812,6 +1812,7 @@ ReadJoint(DataManager* pDM,
 						f1, f2, R1, R2, od, fOut));
 #endif
 				break;
+
 			default:
 				ASSERTMSG(0, "You shouldn't have reached this point");
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1820,24 +1821,69 @@ ReadJoint(DataManager* pDM,
 
 			break;
 
-#if 0
-		/* not implemented yet */
 		case ConstLawType::VISCOUS:
-			SAFENEWWITHCONSTRUCTOR(pEl,
-				ViscousJoint,
-				ViscousJoint(uLabel, pDO, pCL,
-					pNode1, pNode2,
-					f1, f2, R1, R2, od, fOut));
+			switch (CurrKeyWord) {
+			case DEFORMABLEJOINT:
+				SAFENEWWITHCONSTRUCTOR(pEl,
+					ViscousJoint,
+					ViscousJoint(uLabel, pDO, pCL,
+						pNode1, pNode2,
+						f1, f2, R1, R2, od, fOut));
+				break;
+
+			case INVARIANTDEFORMABLEJOINT:
+				silent_cerr("\"invariant deformable joint\" "
+					"at line " << HP.GetLineData()
+					<< " not implemented yet" << std::endl);
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+#if 0
+				SAFENEWWITHCONSTRUCTOR(pEl,
+					ViscousJointInv,
+					ViscousJointInv(uLabel, pDO, pCL,
+						pNode1, pNode2,
+						f1, f2, R1, R2, od, fOut));
+#endif
+				break;
+
+			default:
+				ASSERTMSG(0, "You shouldn't have reached this point");
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				break;
+			}
+
 			break;
 
 		case ConstLawType::VISCOELASTIC:
-			SAFENEWWITHCONSTRUCTOR(pEl,
-				ViscoElasticJoint,
-				ViscoElasticJoint(uLabel, pDO, pCL,
-					pNode1, pNode2,
-					f1, f2, R1, R2, od, fOut));
-			break;
+			switch (CurrKeyWord) {
+			case DEFORMABLEJOINT:
+				SAFENEWWITHCONSTRUCTOR(pEl,
+					ViscoElasticJoint,
+					ViscoElasticJoint(uLabel, pDO, pCL,
+						pNode1, pNode2,
+						f1, f2, R1, R2, od, fOut));
+				break;
+
+			case INVARIANTDEFORMABLEJOINT:
+				silent_cerr("\"invariant deformable joint\" "
+					"at line " << HP.GetLineData()
+					<< " not implemented yet" << std::endl);
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+#if 0
+				SAFENEWWITHCONSTRUCTOR(pEl,
+					ViscoElasticJointInv,
+					ViscoElasticJointInv(uLabel, pDO, pCL,
+						pNode1, pNode2,
+						f1, f2, R1, R2, od, fOut));
 #endif
+				break;
+
+			default:
+				ASSERTMSG(0, "You shouldn't have reached this point");
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				break;
+			}
+
+			break;
 
 		default:
 			ASSERTMSG(0, "You shouldn't have reached this point");

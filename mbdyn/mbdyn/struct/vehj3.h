@@ -61,6 +61,7 @@ protected:
 	bool bFirstRes;
 
 	Vec3 d1, d2;
+	Vec3 d1Prime, d2Prime;
 	Mat3x3 R1h;
 
 	Vec6 F;
@@ -70,17 +71,18 @@ protected:
 	AssMatCommon(FullSubMatrixHandler& WM,
 		doublereal dCoef);
 
-	// uses d1, d2, R1h
+	// uses d1, d2
 	void
 	AssMatElastic(FullSubMatrixHandler& WM,
 		doublereal dCoef, const Mat6x6& FDE);
 
-	// uses d1, d2, R1h
+	// uses d1, d2, d1Prime, d2Prime
 	void
 	AssMatViscous(FullSubMatrixHandler& WMA,
 		FullSubMatrixHandler& WMB,
 		doublereal dCoef, const Mat6x6& FDEPrime);
 
+	virtual void AssVec(SubVectorHandler& WorkVec) = 0;
 public:
 	/* Costruttore non banale */
 	DeformableJoint(unsigned int uL,
@@ -150,6 +152,25 @@ public:
 		connectedNodes[1] = pNode2;
 	};
 	/* ************************************************ */
+
+	/* assemblaggio residuo */
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+
+	/* Inverse Dynamics residual assembly */
+	SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& XCurr,
+		const VectorHandler&  XPrimeCurr,
+		const VectorHandler&  XPrimePrimeCurr,
+		int iOrder = -1);
+
+	/* Contributo al residuo durante l'assemblaggio iniziale */
+	virtual SubVectorHandler&
+	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
 };
 
 /* DeformableJoint - end */
@@ -160,7 +181,6 @@ public:
 class ElasticJoint : virtual public Elem, public DeformableJoint {
 protected:
 	Vec3 ThetaRef;
-	Vec3 ThetaCurr;
 
 	Mat6x6 FDE;
 
@@ -204,21 +224,6 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
-	/* assemblaggio residuo */
-	virtual SubVectorHandler&
-	AssRes(SubVectorHandler& WorkVec,
-		doublereal dCoef,
-		const VectorHandler& XCurr,
-		const VectorHandler& XPrimeCurr);
-
-	/* Inverse Dynamics residual assembly */
-	SubVectorHandler&
-	AssRes(SubVectorHandler& WorkVec,
-		const VectorHandler& XCurr,
-		const VectorHandler&  XPrimeCurr,
-		const VectorHandler&  XPrimePrimeCurr,
-		int iOrder = -1);
-
 	/* Aggiorna le deformazioni ecc. */
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
@@ -231,11 +236,6 @@ public:
 	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
 	virtual VariableSubMatrixHandler&
 	InitialAssJac(VariableSubMatrixHandler& WorkMat,
-			const VectorHandler& XCurr);
-
-	/* Contributo al residuo durante l'assemblaggio iniziale */
-	virtual SubVectorHandler&
-	InitialAssRes(SubVectorHandler& WorkVec,
 			const VectorHandler& XCurr);
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
@@ -323,21 +323,6 @@ public:
 			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 
-	/* assemblaggio residuo */
-	virtual SubVectorHandler&
-	AssRes(SubVectorHandler& WorkVec,
-			doublereal dCoef,
-			const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr);
-
-	/* Inverse Dynamics residual assembly */
-	SubVectorHandler&
-	AssRes(SubVectorHandler& WorkVec,
-		const VectorHandler& XCurr,
-		const VectorHandler&  XPrimeCurr,
-		const VectorHandler&  XPrimePrimeCurr,
-		int iOrder = -1);
-
 	/* Aggiorna le deformazioni ecc. */
 	virtual void
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
@@ -349,10 +334,6 @@ public:
 	virtual VariableSubMatrixHandler&
 	InitialAssJac(VariableSubMatrixHandler& WorkMat,
 			const VectorHandler& XCurr);
-
-	/* Contributo al residuo durante l'assemblaggio iniziale */
-	virtual SubVectorHandler&
-	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
 	virtual void SetValue(DataManager *pDM,
@@ -393,6 +374,8 @@ public:
 class ViscoElasticJoint
 : virtual public Elem, public DeformableJoint {
 protected:
+	Vec3 ThetaRef;
+
 	Mat6x6 FDE;
 	Mat6x6 FDEPrime;
 
@@ -441,21 +424,6 @@ public:
 			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 
-	/* assemblaggio residuo */
-	virtual SubVectorHandler&
-	AssRes(SubVectorHandler& WorkVec,
-			doublereal dCoef,
-			const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr);
-
-	/* Inverse Dynamics residual assembly */
-	SubVectorHandler&
-	AssRes(SubVectorHandler& WorkVec,
-		const VectorHandler& XCurr,
-		const VectorHandler&  XPrimeCurr,
-		const VectorHandler&  XPrimePrimeCurr,
-		int iOrder = -1);
-
 	/* Aggiorna le deformazioni ecc. */
 	virtual void
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
@@ -467,10 +435,6 @@ public:
 	virtual VariableSubMatrixHandler&
 	InitialAssJac(VariableSubMatrixHandler& WorkMat,
 			const VectorHandler& XCurr);
-
-	/* Contributo al residuo durante l'assemblaggio iniziale */
-	virtual SubVectorHandler&
-	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
 	virtual void SetValue(DataManager *pDM,
