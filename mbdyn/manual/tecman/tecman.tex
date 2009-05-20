@@ -5780,6 +5780,7 @@ its perturbation becomes
 		\delta\T{g}_2
 	+ \plbr{\hat{\T{I}}_1 - \hat{\T{I}}^T \T{\omega}_1\times{}}
 		\delta\T{g}_1
+	\label{eq:deformable-displacement-invariant-delta-hat-omega}
 \end{align}
 
 
@@ -6348,11 +6349,48 @@ where
 \begin{align}
 	\delta\T{d}
 	&= \delta\T{x}_2 - \T{f}_2 \times \T{\theta}_{2\delta}
-		- \delta\T{x}_1 + \T{f}_1 \times \T{\theta}_{1\delta} \\
+		- \delta\T{x}_1 + \T{f}_1 \times \T{\theta}_{1\delta}
+		\nonumber \\
+	&\equu \delta\T{x}_2 - \T{f}_2 \times \delta\T{g}_2
+		- \delta\T{x}_1 + \T{f}_1 \times \delta\T{g}_1
+	\\
 	\hat{\T{\theta}}_{\delta}
-	&= \hat{\TT{I}} \T{\theta}_{2\delta} + \hat{\TT{I}}^T \T{\theta}_{1\delta} .
+	&= \hat{\TT{I}} \T{\theta}_{2\delta} + \hat{\TT{I}}^T \T{\theta}_{1\delta}
+		\nonumber \\
+	&\equu \hat{\TT{I}} \delta\T{g}_2 + \hat{\TT{I}}^T \delta\T{g}_1 ,
 \end{align}
 \end{subequations}
+and thus
+\begin{align}
+	\delta\tilde{\T{d}} 
+	&= \hat{\TT{R}}^T \plbr{
+		\delta\T{x}_2
+		+ \plbr{
+			\T{d}\times\hat{\TT{I}}
+			- \T{f}_2 \times{}
+		} \T{\theta}_{2\delta}
+		- \delta\T{x}_1
+		+ \plbr{
+			\T{d}\times\hat{\TT{I}}^T
+			+ \T{f}_1 \times{}
+		} \T{\theta}_{1\delta}
+	}
+	\nonumber \\
+	&\equu \hat{\TT{R}}^T \plbr{
+		\delta\T{x}_2
+		+ \plbr{
+			\T{d}\times\hat{\TT{I}}
+			- \T{f}_2 \times{}
+		} \delta\T{g}_2
+		- \delta\T{x}_1
+		+ \plbr{
+			\T{d}\times\hat{\TT{I}}^T
+			+ \T{f}_1 \times{}
+		} \delta\T{g}_1
+	}
+	.
+\end{align}
+
 
 The perturbation of the relative velocity yields
 \begin{equation}
@@ -6366,16 +6404,167 @@ The perturbation of the relative velocity yields
 where
 \begin{align}
 	\delta\dot{\T{d}}
-	&= \delta\dot{\T{x}}_2
-		- \T{f}_2 \times \delta\T{\omega}_{2}
-		- \T{\omega}_{2} \times \T{f}_2 \times \T{\theta}_{2\delta}
-			\nonumber \\
-		& \quad - \delta\dot{\T{x}}
-		+ \T{f}_1 \times \delta\T{\omega}_{1}
-		+ \T{\omega}_{1} \times \T{f}_1 \times \T{\theta}_{1\delta}
+	&=
+	\delta\dot{\T{x}}_2
+	- \T{f}_2 \times \delta\T{\omega}_{2}
+	- \T{\omega}_{2} \times \T{f}_2 \times \T{\theta}_{2\delta}
+	- \delta\dot{\T{x}}_1
+	+ \T{f}_1 \times \delta\T{\omega}_{1}
+	+ \T{\omega}_{1} \times \T{f}_1 \times \T{\theta}_{1\delta}
+	\nonumber \\
+	&\equu
+	\delta\dot{\T{x}}_2
+	- \T{f}_2 \delta\dot{\T{g}}_2
+	+ \plbr{\T{f}_2\times\T{\omega}_2}\times\delta\T{g}_2
+	- \delta\dot{\T{x}}_1
+	+ \T{f}_1 \delta\dot{\T{g}}_1
+	- \plbr{\T{f}_1\times\T{\omega}_1}\times\delta\T{g}_1
+	.
 \end{align}
 The computation of $\delta\hat{\T{\omega}}$ has been illustrated
 in Section~\ref{sec:deformable-hinge-invariant}.
+Thus,
+\begin{align}
+	\delta\dot{\tilde{\T{d}}}
+	&=
+	\hat{\TT{R}}^T \lplbr{ \vphantom{\plbr{\hat{\TT{I}}^T}}
+		\delta\dot{\T{x}}_2
+		- \T{f}_2 \times \delta\T{\omega}_{2}
+		- \T{\omega}_{2} \times \T{f}_2 \times \T{\theta}_{2\delta}
+		- \delta\dot{\T{x}}_1
+		+ \T{f}_1 \times \delta\T{\omega}_{1}
+		+ \T{\omega}_{1} \times \T{f}_1 \times \T{\theta}_{1\delta}
+	} \nonumber \\
+	& \quad\quad\quad
+	 	+ \T{d}\times\plbr{
+			\hat{\TT{I}} \delta\T{\omega}_2
+			+ \hat{\TT{I}}^T \delta\T{\omega}_1
+			+ \hat{\TT{I}}_2 \T{\theta}_{2\delta}
+			+ \hat{\TT{I}}_1 \T{\theta}_{1\delta}
+		}
+	\nonumber \\
+	& \quad\quad\quad
+		- \hat{\T{\omega}}\times\plbr{
+			\delta\T{x}_2
+			- \T{f}_2\times\T{\theta}_{2\delta}
+			- \delta\T{x}_1
+			+ \T{f}_1\times\T{\theta}_{1\delta}
+		}
+	\nonumber \\
+	& \quad\quad\quad
+	\rplbr{
+		+ \plbr{
+			\dot{\T{d}} - \hat{\T{\omega}}\times\T{d}
+		} \times \plbr{
+			\hat{\TT{I}} \T{\theta}_{2\delta}
+			+ \hat{\TT{I}}^T \T{\theta}_{1\delta}
+		}
+	}
+	\nonumber \\
+	&=
+	\hat{\TT{R}}^T \lplbr{ \vphantom{\plbr{\hat{\TT{I}}^T}}
+		\delta\dot{\T{x}}_2
+		- \delta\dot{\T{x}}_1
+		+ \plbr{
+			\T{d}\times\hat{\TT{I}}
+			- \T{f}_2\times{}
+		} \delta\T{\omega}_2
+		+ \plbr{
+			\T{d}\times\hat{\TT{I}}^T
+			+ \T{f}_1\times{}
+		} \delta\T{\omega}_1
+	}
+	\nonumber \\
+	& \quad\quad\quad
+		- \hat{\T{\omega}}\times\delta\T{x}_2
+		+ \hat{\T{\omega}}\times\delta\T{x}_1
+	\nonumber \\
+	& \quad\quad\quad
+		+ \plbr{
+			\plbr{
+				\hat{\T{\omega}}
+				- \T{\omega}_2
+			}\times\T{f}_2\times{}
+			+ \T{d}\times\hat{\TT{I}}_2
+			+ \plbr{
+				\dot{\T{d}}
+				- \hat{\T{\omega}}\times\T{d}
+			}\times\hat{\TT{I}}
+		} \T{\theta}_{2\delta}
+	\nonumber \\
+	& \quad\quad\quad
+	\rplbr{
+		+ \plbr{
+			- \plbr{
+				\hat{\T{\omega}}
+				- \T{\omega}_1
+			}\times\T{f}_1\times{}
+			+ \T{d}\times\hat{\TT{I}}_1
+			+ \plbr{
+				\dot{\T{d}}
+				- \hat{\T{\omega}}\times\T{d}
+			}\times\hat{\TT{I}}^T
+		} \T{\theta}_{1\delta}
+	}
+	\nonumber \\
+	&\equu
+	\hat{\TT{R}}^T \lplbr{ \vphantom{\plbr{\hat{\TT{I}}^T}}
+		\delta\dot{\T{x}}_2
+		- \delta\dot{\T{x}}_1
+		+ \plbr{
+			\T{d}\times\hat{\TT{I}}
+			- \T{f}_2\times{}
+		} \delta\dot{\T{g}}_2
+		+ \plbr{
+			\T{d}\times\hat{\TT{I}}^T
+			+ \T{f}_1\times{}
+		} \delta\dot{\T{g}}_1
+	}
+	\nonumber \\
+	& \quad\quad\quad
+		- \hat{\T{\omega}}\times\delta\T{x}_2
+		+ \hat{\T{\omega}}\times\delta\T{x}_1
+	\nonumber \\
+	& \quad\quad\quad
+		+ \plbr{
+			\plbr{
+				\hat{\TT{I}}^T \plbr{
+					\T{\omega}_1
+					- \T{\omega}_2
+				}
+			} \times \T{f}_2\times{}
+			- \plbr{
+				\T{d}\times\hat{\TT{I}}
+				- \T{f}_2\times{}
+			} \T{\omega}_2\times{}
+			+ \T{d}\times\hat{\TT{I}}_2
+			+ \plbr{
+				\dot{\T{d}}
+				- \hat{\T{\omega}}\times\T{d}
+			}\times\hat{\TT{I}}
+		} \delta\T{g}_2
+	\nonumber \\
+	& \quad\quad\quad
+	\rplbr{
+		+ \plbr{
+			\plbr{
+				\hat{\TT{I}} \plbr{
+					\T{\omega}_1
+					- \T{\omega}_2
+				}
+			} \times \T{f}_1\times{}
+			- \plbr{
+				\T{d}\times\hat{\TT{I}}^T
+				+ \T{f}_1\times{}
+			}\T{\omega}_1\times{}
+			+ \T{d}\times\hat{\TT{I}}_1
+			+ \plbr{
+				\dot{\T{d}}
+				- \hat{\T{\omega}}\times\T{d}
+			}\times\hat{\TT{I}}^T
+		} \delta\T{g}_1
+	}
+\end{align}
 
 %The computation of $\delta\hat{\T{\omega}}$ is a bit trickier.
 %Consider first
@@ -6618,8 +6807,149 @@ the complete linearized problem is
 	}} \cubr{\cvvect{
 		\delta\T{x}_2 \\
 		\T{\theta}_{2\delta}
+	}}
+	& \nonumber \\
+	\footnotesize \mbox{}
+	= \cubr{\cvvect{
+		\T{F} \\
+		\TT{A}_1 \T{F} \\
+		- \T{F} \\
+		- \TT{A}_2 \T{F}
+	}} &
+\end{align}
+When the updated-updated approach is considered:
+\begin{align}
+	\footnotesize
+	\sqbr{\matr{cccc}{
+		\T{F}_{/\dot{\tilde{\T{d}}}} 
+		& \T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_1^T
+		& - \T{F}_{/\dot{\tilde{\T{d}}}}
+		& - \T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_2^T \\
+%
+		\TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} 
+		& \TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_1^T
+		& - \TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}}
+		& - \TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_2^T \\
+%
+		- \T{F}_{/\dot{\tilde{\T{d}}}} 
+		& - \T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_1^T
+		& \T{F}_{/\dot{\tilde{\T{d}}}}
+		& \T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_2^T \\
+%
+		- \TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} 
+		& - \TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_1^T
+		& \TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}}
+		& \TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_2^T
+	}} \cubr{\cvvect{
+		\delta\dot{\T{x}}_1 \\
+		\delta\dot{\T{g}}_1 \\
+		\delta\dot{\T{x}}_2 \\
+		\delta\dot{\T{g}}_2
 	}} & \nonumber \\
-	\footnotesize \mbox{} = \cubr{\cvvect{
+	\footnotesize
+	\mbox{} + \sqbr{\matr{cccc}{
+		- \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& - \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{\TT{B}_1 - \TT{A}_1^T\T{\omega}_1\times{}} \\
+%
+		- \TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& - \TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{\TT{B}_1 - \TT{A}_1^T\T{\omega}_1\times{}} \\
+%
+		\T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{\TT{B}_1 - \TT{A}_1^T\T{\omega}_1\times{}} \\
+%
+		\TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& \TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{\TT{B}_1 - \TT{A}_1^T\T{\omega}_1\times{}}
+	}}\cubr{\cvvect{
+		\delta\T{x}_1 \\
+		\delta\T{g}_1
+	}} & \nonumber \\
+	\footnotesize
+	\mbox{} + \sqbr{\matr{cccc}{
+		& \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& - \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{\TT{B}_2 - \TT{A}_2^T\T{\omega}_2\times{}} \\
+%
+		& \TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& - \TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{\TT{B}_2 - \TT{A}_2^T\T{\omega}_2\times{}} \\
+%
+		& - \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{\TT{B}_2 - \TT{A}_2^T\T{\omega}_2\times{}} \\
+%
+		& - \TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& \TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{\TT{B}_2 - \TT{A}_2^T\T{\omega}_2\times{}}
+	}}\cubr{\cvvect{
+		\delta\T{x}_2 \\
+		\delta\T{g}_2
+	}} & \nonumber \\
+	\footnotesize
+	\mbox{} + \sqbr{\matr{cccc}{
+		\T{F}_{/\tilde{\T{d}}} 
+		& \T{F}_{/\tilde{\T{d}}} \TT{A}_1^T
+		& - \T{F}_{/\tilde{\T{d}}}
+		& - \T{F}_{/\tilde{\T{d}}} \TT{A}_2^T \\
+%
+		\TT{A}_1 \T{F}_{/\tilde{\T{d}}} 
+		& \TT{A}_1 \T{F}_{/\tilde{\T{d}}} \TT{A}_1^T
+		& - \TT{A}_1 \T{F}_{/\tilde{\T{d}}}
+		& - \TT{A}_1 \T{F}_{/\tilde{\T{d}}} \TT{A}_2^T \\
+%
+		- \T{F}_{/\tilde{\T{d}}} 
+		& - \T{F}_{/\tilde{\T{d}}} \TT{A}_1^T
+		& \T{F}_{/\tilde{\T{d}}}
+		& \T{F}_{/\tilde{\T{d}}} \TT{A}_2^T \\
+%
+		- \TT{A}_2 \T{F}_{/\tilde{\T{d}}} 
+		& - \TT{A}_2 \T{F}_{/\tilde{\T{d}}} \TT{A}_1^T
+		& \TT{A}_2 \T{F}_{/\tilde{\T{d}}}
+		& \TT{A}_2 \T{F}_{/\tilde{\T{d}}} \TT{A}_2^T
+	}} \cubr{\cvvect{
+		\delta\T{x}_1 \\
+		\delta\T{g}_1 \\
+		\delta\T{x}_2 \\
+		\delta\T{g}_2
+	}} & \nonumber \\
+	\footnotesize
+	\mbox{} + \sqbr{\matr{cc}{
+		\T{0} & \T{F}\times\hat{\T{I}}^T \\
+%
+		- \hat{\TT{I}}\T{F}\times{}
+		& \TT{A}_1 \T{F}\times\hat{\TT{I}}^T
+			- \hat{\TT{I}}^T \T{F}\times\T{f}_1\times{}
+			- \hat{\TT{I}}_{1\plbr{\T{d}\times\T{F}}} \\
+%
+		\T{0} & - \T{F}\times\hat{\T{I}}^T \\
+%
+		- \hat{\TT{I}}^T\T{F}\times{}
+		&  - \plbr{
+			\TT{A}_2 \T{F}\times\hat{\TT{I}}^T
+			+ \hat{\TT{I}}^T \T{F}\times\T{f}_1\times{}
+			+ \plbr{\hat{\TT{I}}^T}_{1\plbr{\T{d}\times\T{F}}}
+		}
+	}} \cubr{\cvvect{
+		\delta\T{x}_1 \\
+		\delta\T{g}_1
+	}} & \nonumber \\
+	\footnotesize
+	\mbox{} + \sqbr{\matr{cc}{
+		\T{0} & \T{F}\times\hat{\T{I}} \\
+%
+		\hat{\TT{I}}\T{F}\times{}
+		&  \TT{A}_1 \T{F}\times\hat{\TT{I}}
+			- \hat{\TT{I}} \T{F}\times\T{f}_2\times{}
+			- \hat{\TT{I}}_{2\plbr{\T{d}\times\T{F}}}\\
+%
+		\T{0} & - \T{F}\times\hat{\T{I}} \\
+%
+		\hat{\TT{I}}^T\T{F}\times{}
+		& - \TT{A}_2 \T{F}\times\hat{\TT{I}}
+			+ \hat{\TT{I}} \T{F}\times\T{f}_2\times{}
+			+ \plbr{\hat{\TT{I}}^T}_{2\plbr{\T{d}\times\T{F}}}
+	}} \cubr{\cvvect{
+		\delta\T{x}_2 \\
+		\delta\T{g}_2
+	}}
+	& \nonumber \\
+	\footnotesize \mbox{}
+	\equu \cubr{\cvvect{
 		\T{F} \\
 		\TT{A}_1 \T{F} \\
 		- \T{F} \\
@@ -6698,6 +7028,7 @@ Their linearization, after defining
 \end{subequations}
 yields the viscous contribution to perturbation,
 \begin{align}
+	\footnotesize
 	\sqbr{\matr{c}{
 		\T{F}_{/\dot{\tilde{\T{d}}}} \\
 		\T{d}_1 \times \T{F}_{/\dot{\tilde{\T{d}}}}
@@ -6729,6 +7060,7 @@ yields the viscous contribution to perturbation,
 	}} \delta\dot{\T{g}}_1
 	& \nonumber \\
 %
+	\footnotesize
 	\mbox{}
 	+ \sqbr{\matr{c}{
 		- \T{F}_{/\dot{\tilde{\T{d}}}} \\
@@ -6763,6 +7095,7 @@ yields the viscous contribution to perturbation,
 %
 %
 %
+	\footnotesize
 	\mbox{} + \sqbr{\cvvect{
 		- \T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
 		- \plbr{
@@ -6777,6 +7110,7 @@ yields the viscous contribution to perturbation,
 	}} \delta\T{x}_1
 	& \nonumber \\
 %
+	\footnotesize
 	\mbox{}
 	+ \sqbr{\cvvect{
 		- \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
@@ -6810,6 +7144,7 @@ yields the viscous contribution to perturbation,
 	}} \delta\T{g}_1
 	& \nonumber \\
 %
+	\footnotesize
 	\mbox{}
 	+ \sqbr{\cvvect{
 		\T{F}_{/\dot{\tilde{\T{d}}}} \T{\omega}_1 \times{} \\
@@ -6825,6 +7160,7 @@ yields the viscous contribution to perturbation,
 	}} \delta\T{x}_2
 	& \nonumber \\
 %
+	\footnotesize
 	\mbox{}
 	+ \sqbr{\cvvect{
 		\T{F}_{/\dot{\tilde{\T{d}}}} \plbr{
@@ -6868,6 +7204,7 @@ yields the viscous contribution to perturbation,
 %
 the elastic contribution to perturbation,
 \begin{align}
+	\footnotesize
 	\sqbr{\cvvect{
 		\T{F}_{/\tilde{\T{d}}} \\
 		\T{d}_1 \times \T{F}_{/\tilde{\T{d}}}
@@ -6899,6 +7236,7 @@ the elastic contribution to perturbation,
 	}} \delta\T{g}_1
 	& \nonumber \\
 %
+	\footnotesize
 	\mbox{} 
 	+ \sqbr{\cvvect{
 		- \T{F}_{/\tilde{\T{d}}} \\
@@ -6937,6 +7275,7 @@ the elastic contribution to perturbation,
 %
 and a common contribution to perturbation,
 \begin{align}
+	\footnotesize
 	\sqbr{\matr{cccc}{
 		\T{0} & \T{F}\times{} & \T{0} & \T{0} \\
 		- \T{F}\times{} & \T{d}_1\times\T{F}\times{} + \T{M}\times{} & \T{F}\times{} & - \T{F}\times\T{d}_2\times{} \\
