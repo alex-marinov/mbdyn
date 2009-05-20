@@ -433,7 +433,8 @@ main(int argc, char *argv[])
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	if (read_c81_data(in, &data_from, tol)) {
+	int ff_from = 0;
+	if (read_c81_data(in, &data_from, tol, &ff_from)) {
 		silent_cerr("unable to read c81 data from file \"" << name_from << "\"" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
@@ -446,7 +447,8 @@ main(int argc, char *argv[])
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	if (read_c81_data(in, &data_to, tol)) {
+	int ff_to = 0;
+	if (read_c81_data(in, &data_to, tol, &ff_to)) {
 		silent_cerr("unable to read c81 data from file \"" << name_to << "\"" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}

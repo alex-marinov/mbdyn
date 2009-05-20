@@ -278,13 +278,21 @@ destroy_c81_data(c81_data* data)
 }
 
 extern "C" int
-read_c81_data(std::istream& in, c81_data* data, const doublereal dcltol)
+read_c81_data(std::istream& in, c81_data* data, const doublereal dcltol, int *ff)
 {
    	char buf[BUFSIZ];	// 81 should suffice
+
+	if (ff) {
+		*ff = 0;
+	}
    
    	/* header */
    	in.getline(buf, sizeof(buf));
 	if (strncasecmp(buf, "# FREE FORMAT", STRLENOF("# FREE FORMAT")) == 0) {
+		if (ff) {
+			*ff = 1;
+		}
+   
 		return read_c81_data_free_format(in, data, dcltol);
 	}
 

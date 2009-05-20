@@ -794,11 +794,10 @@ airfoil tables that are used by aerodynamic elements.
 \end{verbatim}
 Data is read from file \kw{filename} according to the format specified
 in the following.
-The original format is used unless a format is specified using either
+The traditional format is used unless a format is specified using either
 of the keywords \kw{free format} or \kw{fc511}
 (the latter is intentionally not documented).
-Otherwise, the format can be inferred from the heading line
-of the input file.
+The format can be inferred from the heading line of the input file.
 
 The optional keyword \kw{tolerance} allows to specify the tolerance
 that is used to determine the boundaries of the linear portion
@@ -806,6 +805,9 @@ of the lift curve slope.
 
 The optional keyword \kw{echo} allows to specify the name of the file
 that will be generated with the data just read, for cross-checking purposes.
+If the following optional keyword is \kw{free format}, or if data was read
+in free format, the echo will also be in free format.
+Otherwise, it will be in the traditional format.
 
 \subsubsection{Traditional Format}
 The file is in textual form; the traditional format (the default) is:

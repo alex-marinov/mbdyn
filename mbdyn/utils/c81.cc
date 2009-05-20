@@ -99,7 +99,7 @@ main(int argc, char* argv[])
 	 exit(EXIT_FAILURE);
       }
 
-      read_c81_data(in, &data);
+      read_c81_data(in, &data, 1e-6, 0);
                   
       in.close();
       

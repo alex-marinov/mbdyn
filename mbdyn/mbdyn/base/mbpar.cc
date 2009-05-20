@@ -326,6 +326,7 @@ MBDynParser::C81Data_int(void)
 		}
 	}
 
+	bool bFF(false);
 	if (IsKeyWord("fc511")) {
 		if (read_fc511_data(in, data, dcptol) != 0) {
 			silent_cerr("C81Data(" << uLabel << "): "
@@ -344,13 +345,20 @@ MBDynParser::C81Data_int(void)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
+		bFF = true;
+
 	} else {
-		if (read_c81_data(in, data, dcptol) != 0) {
+		int ff = 0;
+		if (read_c81_data(in, data, dcptol, &ff) != 0) {
 			silent_cerr("C81Data(" << uLabel << "): "
 				"unable to read c81 data " << uLabel 
 				<< " from file '" << filename << "' "
 				"at line " << GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (ff) {
+			bFF = true;
 		}
 	}
 
@@ -376,7 +384,12 @@ MBDynParser::C81Data_int(void)
 			write_c81_data_free_format(out, data);
 
 		} else if (!IsArg()) {
-			write_c81_data(out, data);
+			if (bFF) {
+				write_c81_data_free_format(out, data);
+
+			} else {
+				write_c81_data(out, data);
+			}
 
 		} else {
 			silent_cerr("C81Data(" << uLabel << "): "

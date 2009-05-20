@@ -71,7 +71,7 @@ usage(int rc)
 int
 main(int argc, char *argv[])
 {
-	char		mode = 'c';
+	char		mode = 'x';
 	char		*dump_fname = NULL;
 	bool		dump(false);
 	doublereal	alpha;
@@ -199,9 +199,14 @@ main(int argc, char *argv[])
 
 	int rc;
 
+	int ff = 0;
 	switch (mode) {
+	case 'x':
+		rc = read_c81_data(in, data, tol, &ff);
+		break;
+
 	case 'c':
-		rc = read_c81_data(in, data, tol);
+		rc = read_c81_data(in, data, tol, 0);
 		break;
 
 	case 'f':
