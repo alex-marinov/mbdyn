@@ -146,7 +146,8 @@ public:
 
 			EIG_USE_LAPACK			= 0x100U,
 			EIG_USE_ARPACK			= 0x200U,
-			EIG_USE_MASK			= (EIG_USE_LAPACK|EIG_USE_ARPACK),
+			EIG_USE_JDQZ			= 0x400U,
+			EIG_USE_MASK			= (EIG_USE_LAPACK|EIG_USE_ARPACK|EIG_USE_JDQZ),
 
 			EIG_LAST
 		};
@@ -158,14 +159,42 @@ public:
 		doublereal dParam;
 		bool bOutputModes;
 
-		// unused (?!?)
 		doublereal dUpperFreq;
 		doublereal dLowerFreq;
 
 		// ARPACK specific
-		integer iNEV;
-		integer iNCV;
-		doublereal dTOL;
+		struct ARPACK {
+			integer iNEV;
+			integer iNCV;
+			doublereal dTOL;
+		} arpack;
+
+		// JDQZ specific
+		struct JDQZ {
+			doublereal eps;
+			integer kmax;
+			integer jmax;
+			integer jmin;
+			integer method;
+			integer m;
+			integer l;
+			integer mxmv;
+			integer maxstep;
+			doublereal lock;
+			integer order;
+			integer testspace;
+
+			enum Method {
+				GMRES = 1,
+				BICGSTAB = 2
+			};
+
+			JDQZ(void)
+			: eps(std::numeric_limits<doublereal>::epsilon()),
+			method(BICGSTAB), m(30), l(2), mxmv(100),
+			maxstep(1000), lock(1e-9), order(0), testspace(3)
+			{ NO_OP; };
+		} jdqz;
 
 		EigenAnalysis(void)
 		: bAnalysis(false),

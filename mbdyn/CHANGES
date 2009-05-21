@@ -24,6 +24,7 @@ MBDyn 1.X-Devel
 		- add '%' operator to math parser
 		- add over/underflow check in math parser
 		  (noted by Patrick Rix)
+		- add (experimental) support for eigensolution with JDQZ
 	Backward compatibility issues:
 		- the format of the modal joint output changed
 		- the format of the modal force input changed

@@ -81,6 +81,7 @@
 
 #include "ac/lapack.h"
 #include "ac/arpack.h"
+#include "eigjdqz.h"
 
 const char sDefaultOutputFileName[] = "MBDyn";
 
@@ -3012,17 +3013,17 @@ Solver::ReadData(MBDynParser& HP)
 #ifdef USE_ARPACK
 					EigAn.uFlags |= EigenAnalysis::EIG_USE_ARPACK;
 
-					EigAn.iNEV = HP.GetInt();
-					if (EigAn.iNEV <= 0) {
+					EigAn.arpack.iNEV = HP.GetInt();
+					if (EigAn.arpack.iNEV <= 0) {
 						silent_cerr("invalid number of eigenvalues "
 							"at line " << HP.GetLineData()
 							<< std::endl);
 						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 
-					EigAn.iNCV = HP.GetInt();
-					if (EigAn.iNCV <= 0
-						|| EigAn.iNCV < EigAn.iNEV + 2)
+					EigAn.arpack.iNCV = HP.GetInt();
+					if (EigAn.arpack.iNCV <= 0
+						|| EigAn.arpack.iNCV < EigAn.arpack.iNEV + 2)
 					{
 						silent_cerr("invalid number of Arnoldi vectors "
 							"(must be >= NEV+2) "
@@ -3031,23 +3032,69 @@ Solver::ReadData(MBDynParser& HP)
 						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 
-					if (EigAn.iNCV < 2*EigAn.iNEV) {
+					if (EigAn.arpack.iNCV < 2*EigAn.arpack.iNEV) {
 						silent_cerr("warning, possibly incorrect number of Arnoldi vectors "
 							"(should be > 2*NEV) "
 							"at line " << HP.GetLineData()
 							<< std::endl);
 					}
 
-					EigAn.dTOL = HP.GetReal();
-					if (EigAn.dTOL < 0.) {
+					EigAn.arpack.dTOL = HP.GetReal();
+					if (EigAn.arpack.dTOL < 0.) {
 						silent_cerr("tolerance must be non-negative "
 							"at line " << HP.GetLineData()
 							<< std::endl);
-						EigAn.dTOL = 0.;
+						EigAn.arpack.dTOL = 0.;
 					}
 #else // !USE_ARPACK
 					silent_cerr("\"use arpack\" "
 						"needs to configure --with-arpack "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#endif // !USE_ARPACK
+
+				} else if (HP.IsKeyWord("use" "jdqz")) {
+					if (EigAn.uFlags & EigenAnalysis::EIG_USE_MASK) {
+						silent_cerr("eigenanalysis routine already selected "
+							"at line " << HP.GetLineData()
+							<< std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+#ifdef USE_ARPACK
+					EigAn.uFlags |= EigenAnalysis::EIG_USE_JDQZ;
+
+					EigAn.jdqz.kmax = HP.GetInt();
+					if (EigAn.jdqz.kmax <= 0) {
+						silent_cerr("invalid number of eigenvalues "
+							"at line " << HP.GetLineData()
+							<< std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					EigAn.jdqz.jmax = HP.GetInt();
+					if (EigAn.jdqz.jmax < 20
+						|| EigAn.jdqz.jmax < 2*EigAn.jdqz.kmax)
+					{
+						silent_cerr("invalid size of the search space "
+							"(must be >= 20 && >= 2*kmax) "
+							"at line " << HP.GetLineData()
+							<< std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					EigAn.jdqz.jmin = 2*EigAn.jdqz.kmax;
+
+					EigAn.jdqz.eps = HP.GetReal();
+					if (EigAn.jdqz.eps <= 0.) {
+						silent_cerr("tolerance must be non-negative "
+							"at line " << HP.GetLineData()
+							<< std::endl);
+						EigAn.jdqz.eps = std::numeric_limits<doublereal>::epsilon();
+					}
+#else // !USE_ARPACK
+					silent_cerr("\"use jdqz\" "
+						"needs to configure --with-jdqz "
 						"at line " << HP.GetLineData()
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3121,6 +3168,19 @@ Solver::ReadData(MBDynParser& HP)
 				}
 				break;
 
+			case EigenAnalysis::EIG_USE_JDQZ:
+				if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_FULL_MATRICES) {
+					silent_cerr("full matrices output "
+						"incompatible with jdqz "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_MATRICES) {
+					EigAn.uFlags |= EigenAnalysis::EIG_OUTPUT_SPARSE_MATRICES;
+				}
+				break;
+
 			default:
 				break;
 			}
@@ -3164,12 +3224,6 @@ Solver::ReadData(MBDynParser& HP)
 					NO_OP;
 
 				} else if (HP.IsKeyWord("use" "lapack")) {
-					NO_OP;
-
-				} else if (HP.IsKeyWord("lower" "frequency")) {
-					NO_OP;
-
-				} else if (HP.IsKeyWord("upper" "frequency")) {
 					NO_OP;
 
 				} else if (HP.IsKeyWord("use" "arpack")) {
@@ -4337,10 +4391,10 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 	BMAT = "I";
 	N = MatA.iGetNumRows();
 	WHICH = "SM";
-	NEV = pEA->iNEV;
-	TOL = pEA->dTOL;
+	NEV = pEA->arpack.iNEV;
+	TOL = pEA->arpack.dTOL;
 	RESID.resize(N, 0.);
-	NCV = pEA->iNCV;
+	NCV = pEA->arpack.iNCV;
 	V.resize(N*NCV, 0.);
 	LDV = N;
 	IPARAM[0] = 1;
@@ -4532,7 +4586,173 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 #endif // USE_ARPACK
 
 #ifdef USE_JDQZ
-// TODO...
+// Computes eigenvalues and eigenvectors using ARPACK's
+// canonical non-symmetric eigenanalysis
+static void
+eig_jdqz(const MatrixHandler *pMatA, const MatrixHandler *pMatB,
+	DataManager *pDM, Solver::EigenAnalysis *pEA, std::ostream& o)
+{
+	const NaiveMatrixHandler& MatA = dynamic_cast<const NaiveMatrixHandler &>(*pMatA);
+	const NaiveMatrixHandler& MatB = dynamic_cast<const NaiveMatrixHandler &>(*pMatB);
+
+	MBJDQZ mbjdqz(MatA, MatB);
+	mbjdqzp = &mbjdqz;
+
+	/*
+
+alpha, beta Obvious from equation (1)
+wanted      Compute the converged eigenvectors (if wanted =
+            .true.)
+eivec       Converged eigenvectors if wanted = .true., else con-
+            verged Schur vectors
+n           The size of the problem
+target      The value near which the eigenvalues are sought
+eps         Tolerance of the eigensolutions, Ax-Bx /|/| < 
+kmax        Number of wanted eigensolutions, on output: number of
+            converged eigenpairs
+jmax        Maximum size of the search space
+jmin        Minimum size of the search space
+method      Linear equation solver:
+   1:       GMRESm , [2]
+   2:       BiCGstab(), [3]
+m           Maximum dimension of searchspace of GMRESm
+l           Degree of GMRES-polynomial in Bi-CGstab()
+mxmv        Maximum number of matrix-vector multiplications in
+            GMRESm or BiCGstab()
+maxstep     Maximum number of Jacobi-Davidson iterations
+lock        Tracking parameter (section 2.5.1)
+order       Selection criterion for Ritz values:
+   0:       nearest to target
+   -1:      smallest real part
+   1:       largest real part
+   -2:      smallest imaginary part
+   2:       largest imaginary part
+testspace   Determines how to expand the testspace W
+   1:       w = "Standard Petrov" ×v (Section 3.1.1)
+   2:       w = "Standard 'variable' Petrov" ×v (Section 3.1.2)
+   3:       w = "Harmonic Petrov" ×v (Section 3.5.1)
+zwork       Workspace
+lwork       Size of workspace, >= 4+m+5jmax+3kmax if GMRESm
+            is used, >= 10 + 6 + 5jmax + 3kmax if Bi-CGstab() is
+            used.
+
+*/
+
+	std::vector<doublecomplex> alpha;
+	std::vector<doublecomplex> beta;
+	std::vector<doublecomplex> eivec;
+	logical wanted = 1;
+	integer n = pMatA->iGetNumRows();
+	doublecomplex target = { 1., 0. };
+	doublereal eps = pEA->jdqz.eps;
+	integer kmax = pEA->jdqz.kmax;
+	integer jmax = pEA->jdqz.jmax;
+	integer jmin = pEA->jdqz.jmin;
+	integer method = pEA->jdqz.method;
+	integer m = pEA->jdqz.m;
+	integer l = pEA->jdqz.l;
+	integer mxmv = pEA->jdqz.mxmv;
+	integer maxstep = pEA->jdqz.maxstep;
+	doublereal lock = pEA->jdqz.lock;
+	integer order = pEA->jdqz.order;
+	integer testspace = pEA->jdqz.testspace;
+	std::vector<doublecomplex> zwork;
+	integer lwork;
+
+	switch (method) {
+	case Solver::EigenAnalysis::JDQZ::GMRES:
+		lwork = 4 + m + 5*jmax + 3*kmax;
+		break;
+
+	case Solver::EigenAnalysis::JDQZ::BICGSTAB:
+		lwork = 10 + 6*l + 5*jmax + 3*kmax;
+		break;
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	alpha.resize(jmax);
+	beta.resize(jmax);
+	eivec.resize(n*kmax);
+	zwork.resize(n*lwork);
+
+	__FC_DECL__(jdqz)(
+		&alpha[0],
+		&beta[0],
+		&eivec[0],
+		&wanted,
+		&n,
+		&target,
+		&eps,
+		&kmax,
+		&jmax,
+		&jmin,
+		&method,
+		&m,
+		&l,
+		&mxmv,
+		&maxstep,
+		&lock,
+		&order,
+		&testspace,
+		&zwork[0],
+		&lwork);
+
+	silent_cerr("\r" "cnt=" << mbjdqz.Cnt() << std::endl);
+
+	if (kmax > 0) {
+		int nconv = kmax;
+		MyVectorHandler AlphaR(nconv);
+		MyVectorHandler AlphaI(nconv);
+		MyVectorHandler Beta(nconv);
+		for (integer c = 0; c < nconv; c++) {
+			if (beta[c].i != 0.) {
+				doublereal d = std::sqrt(beta[c].r*beta[c].r + beta[c].i*beta[c].i);
+				Beta(c + 1) = d;
+				AlphaR(c + 1) = (alpha[c].r*beta[c].r + alpha[c].i*beta[c].i)/d;
+				AlphaI(c + 1) = (alpha[c].i*beta[c].r - alpha[c].r*beta[c].i)/d;
+
+			} else {
+				Beta(c + 1) = beta[c].r;
+				AlphaR(c + 1) = alpha[c].r;
+				AlphaI(c + 1) = alpha[c].i;
+			}
+		}
+		std::vector<bool> vOut(nconv);
+		output_eigenvalues(0, AlphaR, AlphaI, 1., pDM, pEA, vOut);
+	
+		if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_EIGENVECTORS) {
+			FullMatrixHandler VR(n, nconv);
+			doublecomplex *p = &eivec[0] - 1;
+			for (integer c = 1; c <= nconv; c++) {
+				
+				if (AlphaI(c) == 0.) {
+					for (integer r = 1; r <= n; r++) {
+						VR(r, c) = p[r].r;
+					}
+						
+				} else {
+					for (integer r = 1; r <= n; r++) {
+						VR(r, c) = p[r].r;
+						VR(r, c + 1) = p[n + r].i;
+					}
+	
+					p += n;
+					c++;
+				}
+	
+				p += n;
+			}
+	
+			output_eigenvectors(&Beta, AlphaR, AlphaI, 1.,
+				0, VR, pDM, pEA, vOut, o);
+		}
+
+	} else {
+		silent_cerr("no converged eigenpairs" << std::endl);
+	}
+}
 #endif // USE_JDQZ
 
 // writes a full matrix in a form compatible with octave/matlab
@@ -4651,6 +4871,12 @@ Solver::Eig(void)
 			NaiveMatrixHandler(iSize));
 		pMatB = pSM->pMatHdl();
 
+	} else if (EigAn.uFlags & EigenAnalysis::EIG_USE_JDQZ) {
+		SAFENEWWITHCONSTRUCTOR(pMatA, NaiveMatrixHandler,
+			NaiveMatrixHandler(iSize));
+		SAFENEWWITHCONSTRUCTOR(pMatB, NaiveMatrixHandler,
+			NaiveMatrixHandler(iSize));
+
 	} else if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_SPARSE_MATRICES) {
 		SAFENEWWITHCONSTRUCTOR(pMatA, SpMapMatrixHandler,
 			SpMapMatrixHandler(iSize));
@@ -4731,6 +4957,12 @@ Solver::Eig(void)
 		eig_arpack(pMatA, pSM, pDM, &EigAn, o);
 		break;
 #endif // USE_ARPACK
+
+#ifdef USE_JDQZ
+	case EigenAnalysis::EIG_USE_JDQZ:
+		eig_jdqz(pMatA, pMatB, pDM, &EigAn, o);
+		break;
+#endif // USE_JDQZ
 
 	default:
 		// can't get here!

@@ -151,7 +151,7 @@ OL_ARG_ENABLE(runtime_loading,[  --enable-runtime-loading    enable runtime load
 OL_ARG_WITH(static_modules,[  --with-static-modules   build (known) modules as static],auto,[no yes auto])
 OL_ARG_ENABLE(crypt,[  --enable-crypt          enable crypt (deprecated)], no)dnl
 OL_ARG_ENABLE(eig,[  --enable-eig            enable direct eigensolution
-                          (needs either LAPACK or ARPACK )],auto,[auto yes no])dnl needs LAPACK or ARPACK
+                          (needs either LAPACK, ARPACK or JDQZ)],auto,[auto yes no])dnl needs LAPACK, ARPACK or JDQZ
 OL_ARG_ENABLE(schur,[  --enable-schur          enable Schur parallel solver
                           (needs MPI and either Metis or Chaco)],auto,[auto yes no])dnl needs MPI and Metis or Chaco
 OL_ARG_ENABLE(multithread,[  --enable-multithread    enable multithread assembly],no,[auto yes no force])dnl
@@ -202,6 +202,7 @@ dnl temporarily disabled until we find out how to make it work...
 dnl OL_ARG_WITH(taucs,[  --with-taucs            with TAUCS math library - eXperimental],auto,[auto yes no])
 ol_with_taucs=no
 OL_ARG_WITH(arpack,[  --with-arpack           with ARPACK math library],auto,[auto yes no])
+OL_ARG_WITH(jdqz,[  --with-jdqz             with JDQZ math library],auto,[auto yes no])
 
 OL_ARG_WITH(pam,[
        misc security libraries:
@@ -313,6 +314,7 @@ HARWELL_LIBS=
 LAPACK_LIBS=
 TAUCS_LIBS=
 ARPACK_LIBS=
+JDQZ_LIBS=
 SECURITY_LIBS=
 TCL_LIBS=
 NETCDF_LIBS=
@@ -1673,14 +1675,64 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
+dnl Check for JDQZ
+dnl
+ol_link_jdqz=no
+if test $ol_with_jdqz != no ; then
+	AC_MSG_CHECKING([for jdqz])
+
+	save_LIBS="$LIBS"
+	try_jdqz_LIBS="-ljdqz"
+	LIBS="$try_jdqz_LIBS $LAPACK_LIBS $BLAS_LIBS $F2C_LIBS $save_LIBS"
+	AC_TRY_LINK([
+	double amul(double *x) { return 0.; }
+	double bmul(double *x) { return 0.; }
+	double precon(double *x) { return 0.; }
+	extern double jdqz(double *);
+		],[
+	double i = 1., o;
+	o = jdqz(&i);
+		],[have_jdqz=yes
+		   have_jdqz_=no],[
+		AC_TRY_LINK([
+	double amul_(double *x) { return 0.; }
+	double bmul_(double *x) { return 0.; }
+	double precon_(double *x) { return 0.; }
+	extern double jdqz_(double *);
+			],[
+	double i = 1., o;
+	o = jdqz_(&i);
+		],[have_jdqz=yes
+		   have_jdqz_=yes],[have_jdqz=no
+				      have_jdqz_=no])])
+	
+	if test $have_jdqz != no ; then
+		AC_DEFINE(USE_JDQZ,1,[define to use JDQZ library])
+		JDQZ_LIBS="$try_jdqz_LIBS"
+	fi
+
+	if test "$have_jdqz" = "yes" ; then
+		ol_link_jdqz=yes
+		AC_MSG_RESULT([yes])
+	else
+		if test "$ol_with_jdqz" = "yes" ; then
+			AC_MSG_ERROR([Could not locate jdqz])
+		fi
+		AC_MSG_RESULT([no])
+	fi
+	LIBS="$save_LIBS"
+fi
+
+dnl ----------------------------------------------------------------
+dnl
 dnl Check for eig
 dnl
 if test $ol_enable_eig != no ; then
-	if test $ol_link_arpack = yes -o $ol_link_lapack = yes ; then
+	if test $ol_link_arpack = yes -o $ol_link_lapack = yes -o $ol_link_jdqz = yes ; then
 		AC_DEFINE(USE_EIG,1,[define if you want to enable direct eigensolution])
 	else
 		if test $ol_enable_eig = yes ; then
-			AC_MSG_ERROR([Need either LAPACK or ARPACK to enable direct eigenanalysis])
+			AC_MSG_ERROR([Need either LAPACK, ARPACK or JDQZ to enable direct eigenanalysis])
 		fi
 	fi
 fi
@@ -2319,6 +2371,7 @@ AC_SUBST(LAPACK_LIBS)
 AC_SUBST(BLAS_LIBS)
 AC_SUBST(TAUCS_LIBS)
 AC_SUBST(ARPACK_LIBS)
+AC_SUBST(JDQZ_LIBS)
 AC_SUBST(THREAD_LIBS)
 AC_SUBST(ATOMIC_OPS_LIBS)
 AC_SUBST(SECURITY_LIBS)
@@ -2343,6 +2396,7 @@ AM_CONDITIONAL(USE_X_ANN,[test "$ol_link_ANN" = yes])
 AM_CONDITIONAL(USE_RTAI,[test "$use_rtai" = yes])
 AM_CONDITIONAL(USE_SCHUR,[test "$use_schur" = yes])
 AM_CONDITIONAL(USE_ARPACK,[test "$ol_link_arpack" = yes])
+AM_CONDITIONAL(USE_JDQZ,[test "$ol_link_jdqz" = yes])
 AM_CONDITIONAL(FOOL_LIBTOOL,[test "$fool_libtool" = yes])
 AM_CONDITIONAL(BUILD_Y12,[test "$ol_link_y12" = yes])
 
