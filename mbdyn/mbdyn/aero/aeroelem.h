@@ -261,6 +261,7 @@ public DriveOwner,
 public AerodynamicOutput  {
 protected:
 	enum { NODE1 = 0, NODE2, NODE3, LASTNODE };
+	enum { DELTAx1 = 0, DELTAg1, DELTAx2, DELTAg2, DELTAx3, DELTAg3 };
 	
 	AeroData* aerodata;
 	const Beam* pBeam;
@@ -296,6 +297,8 @@ protected:
 	Vec3 F[LASTNODE];	/* Forza */
 	Vec3 M[LASTNODE];	/* Momento */
 	
+	bool bJacobian;		/* Compute Jacobian matrix contribution */
+
 	/*
 	 * overload della funzione di ToBeOutput();
 	 * serve per allocare il vettore dei dati di output se il flag
@@ -318,7 +321,8 @@ public:
 			const Shape* pC, const Shape* pF, 
 			const Shape* pV, const Shape* pT,
 			integer iN, AeroData* a,
-			const DriveCaller* pDC, flag fOut);
+			const DriveCaller* pDC, flag fOut,
+			bool bUseJacobian);
 	virtual ~AerodynamicBeam(void);
 	
 	/* Scrive il contributo dell'elemento al file di restart */
@@ -335,19 +339,20 @@ public:
 	virtual void
 	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
 		*piNumRows = 18;
-		*piNumCols = 1;
+		*piNumCols = 18;
 	};
 	
 	/* assemblaggio jacobiano */
 	virtual VariableSubMatrixHandler& 
 	AssJac(VariableSubMatrixHandler& WorkMat,
-	       doublereal /* dCoef */ ,
+	       doublereal  dCoef  ,
 	       const VectorHandler& /* XCurr */ ,
-	       const VectorHandler& /* XPrimeCurr */ ) {
+	       const VectorHandler& /* XPrimeCurr */ ); 
+	       /* {
 		DEBUGCOUTFNAME("AerodynamicBeam::AssJac");
 		WorkMat.SetNullMatrix();
 		return WorkMat;
-	};
+	};*/
 	
 	/* assemblaggio residuo */
 	virtual SubVectorHandler&
