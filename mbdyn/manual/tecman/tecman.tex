@@ -2470,7 +2470,7 @@ Forces:
 		- \dot{\alpha} \T{f}_2 \times \T{u}
 \end{align}
 \end{subequations}
-Linearization: TODO(C).
+Linearization: TODO\copyright.
 
 
 
@@ -2481,7 +2481,7 @@ The spherical hinge joint (\texttt{SphericalHingeJoint}) constrains the position
 of two points, that may be rigidly offset from two nodes, to be coincident.
 
 \paragraph{Variants.} \
-There exists a pinned version (\texttt{SphericalPinJoint}, TODO(C)).
+There exists a pinned version (\texttt{SphericalPinJoint}, TODO\copyright).
 
 \paragraph{Files.} \
 It is implemented in files
@@ -2551,7 +2551,7 @@ It also constrains their orientations to keep the respective axis 3
 parallel.
 
 \paragraph{Variants.} \
-There exist a pinned version (\texttt{RevolutePinJoint}, TODO(C)),
+There exist a pinned version (\texttt{RevolutePinJoint}, TODO\copyright),
 a version that does not constrain the position (\texttt{RevoluteRotationJoint}),
 and a version which imposes the relative angular velocity about axis 3
 (\texttt{AxialRotationJoint}).
@@ -2791,7 +2791,7 @@ to node 1 represents the rotation axis, and whose amplitude represents
 the magnitude of the rotation.
 
 \paragraph{Variants.} \
-There exist no variants, although a pinned version may be of use (TODO).
+There exist no variants, although a pinned version may be of use (TODO\copyright).
 
 \paragraph{Files.} \
 It is implemented in files
@@ -4732,7 +4732,7 @@ where
 
 
 
-\subsection{Screw Joint (TODO)}
+\subsection{Screw Joint (TODO\copyright)}
 The screw joint is a combination of:
 \begin{itemize}
 \item an inline joint, that constrains one point to move along 
@@ -6670,6 +6670,7 @@ After setting
 \end{subequations}
 and
 \begin{subequations}
+\label{sec:deformable-displacement-joint-invariant-linearization-helpers}
 \begin{align}
 	\TT{A}_1 &= \plbr{\T{f}_1\times{} + \hat{\TT{I}}\T{d}\times{}} \\
 	\TT{A}_2 &= \plbr{\T{f}_2\times{} - \hat{\TT{I}}^T\T{d}\times{}} \\
@@ -7364,7 +7365,9 @@ Their linearization, after defining
 		&= \hat{\T{R}} \tilde{\T{M}}_{/\T{\omega}} \hat{\T{R}}^T ,
 \end{align}
 \end{subequations}
-yields \textbf{TODO}
+and exploiting the definitions of
+Eqs~(\ref{sec:deformable-displacement-joint-invariant-linearization-helpers}),
+yields \textbf{TODO\copyright}
 
 
 
