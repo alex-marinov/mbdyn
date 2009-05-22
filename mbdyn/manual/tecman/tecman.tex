@@ -6781,11 +6781,9 @@ the complete linearized problem is
 		\T{0} & - \T{F}\times\hat{\T{I}}^T \\
 %
 		- \hat{\TT{I}}^T\T{F}\times{}
-		&  - \plbr{
-			\TT{A}_2 \T{F}\times\hat{\TT{I}}^T
-			+ \hat{\TT{I}}^T \T{F}\times\T{f}_1\times{}
-			+ \plbr{\hat{\TT{I}}^T}_{1\plbr{\T{d}\times\T{F}}}
-		}
+		&  - \TT{A}_2 \T{F}\times\hat{\TT{I}}^T
+			- \hat{\TT{I}}^T \T{F}\times\T{f}_1\times{}
+			- \plbr{\hat{\TT{I}}^T}_{1\plbr{\T{d}\times\T{F}}}
 	}} \cubr{\cvvect{
 		\delta\T{x}_1 \\
 		\T{\theta}_{1\delta}
@@ -6818,7 +6816,17 @@ the complete linearized problem is
 		- \TT{A}_2 \T{F}
 	}} &
 \end{align}
-When the updated-updated approach is considered:
+When the updated-updated approach is considered,
+after defining
+\begin{subequations}
+\begin{align}
+	\hat{\TT{B}}_1 &= \TT{B}_1 + \TT{A}_1^T \T{\omega}_1\times{}
+	\\
+	\hat{\TT{B}}_2 &= \TT{B}_2 - \TT{A}_2^T \T{\omega}_2\times{}
+	,
+\end{align}
+one obtains
+\end{subequations}
 \begin{align}
 	\footnotesize
 	\sqbr{\matr{cccc}{
@@ -6850,34 +6858,27 @@ When the updated-updated approach is considered:
 	\footnotesize
 	\mbox{} + \sqbr{\matr{cccc}{
 		- \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
-		& - \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{\TT{B}_1 - \TT{A}_1^T\T{\omega}_1\times{}} \\
+		& - \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\TT{B}}_1
+		& \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& - \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\TT{B}}_2 \\
 %
 		- \TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
-		& - \TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{\TT{B}_1 - \TT{A}_1^T\T{\omega}_1\times{}} \\
+		& - \TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\TT{B}}_1
+		& \TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& - \TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\TT{B}}_2 \\
 %
 		\T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
-		& \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{\TT{B}_1 - \TT{A}_1^T\T{\omega}_1\times{}} \\
+		& \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\TT{B}}_1
+		& - \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\TT{B}}_2 \\
 %
 		\TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
-		& \TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{\TT{B}_1 - \TT{A}_1^T\T{\omega}_1\times{}}
+		& \TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\TT{B}}_1
+		& - \TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& \TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\TT{B}}_2
 	}}\cubr{\cvvect{
 		\delta\T{x}_1 \\
-		\delta\T{g}_1
-	}} & \nonumber \\
-	\footnotesize
-	\mbox{} + \sqbr{\matr{cccc}{
-		& \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
-		& - \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{\TT{B}_2 - \TT{A}_2^T\T{\omega}_2\times{}} \\
-%
-		& \TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
-		& - \TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{\TT{B}_2 - \TT{A}_2^T\T{\omega}_2\times{}} \\
-%
-		& - \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
-		& \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{\TT{B}_2 - \TT{A}_2^T\T{\omega}_2\times{}} \\
-%
-		& - \TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
-		& \TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} \plbr{\TT{B}_2 - \TT{A}_2^T\T{\omega}_2\times{}}
-	}}\cubr{\cvvect{
+		\delta\T{g}_1 \\
 		\delta\T{x}_2 \\
 		\delta\T{g}_2
 	}} & \nonumber \\
@@ -6920,11 +6921,9 @@ When the updated-updated approach is considered:
 		\T{0} & - \T{F}\times\hat{\T{I}}^T \\
 %
 		- \hat{\TT{I}}^T\T{F}\times{}
-		&  - \plbr{
-			\TT{A}_2 \T{F}\times\hat{\TT{I}}^T
-			+ \hat{\TT{I}}^T \T{F}\times\T{f}_1\times{}
-			+ \plbr{\hat{\TT{I}}^T}_{1\plbr{\T{d}\times\T{F}}}
-		}
+		&  - \TT{A}_2 \T{F}\times\hat{\TT{I}}^T
+			- \hat{\TT{I}}^T \T{F}\times\T{f}_1\times{}
+			- \plbr{\hat{\TT{I}}^T}_{1\plbr{\T{d}\times\T{F}}}
 	}} \cubr{\cvvect{
 		\delta\T{x}_1 \\
 		\delta\T{g}_1
@@ -7634,6 +7633,292 @@ yields % \textbf{TODO\copyright}
 		- \TT{A}_2 \T{F} - \T{M}
 	}} &
 \end{align}
+The updated-updated form is
+\begin{align}
+	\footnotesize
+	\sqbr{\matr{cc}{
+		\T{F}_{/\dot{\tilde{\T{d}}}} 
+		& \T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_1^T
+			+ \T{F}_{/\T{\omega}}
+		\\
+%
+		\TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} 
+		& \TT{A}_1 \plbr{
+			\T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_1^T
+			+ \T{F}_{/\T{\omega}}
+		}
+			+ \T{M}_{/\dot{\tilde{\T{d}}}} \TT{A}_1^T
+			+ \T{M}_{/\T{\omega}}
+		\\
+%
+		- \T{F}_{/\dot{\tilde{\T{d}}}} 
+		& - \T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_1^T
+			- \T{F}_{/\T{\omega}}
+		\\
+%
+		- \TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} 
+		& - \TT{A}_2 \plbr{
+			\T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_1^T
+			+ \T{F}_{/\T{\omega}}
+		}
+			- \T{M}_{/\dot{\tilde{\T{d}}}} \TT{A}_1^T
+			- \T{M}_{/\T{\omega}}
+	}} \cubr{\cvvect{
+		\delta\dot{\T{x}}_1 \\
+		\delta\dot{\T{g}}_1
+	}} & \nonumber \\
+	\footnotesize
+	\mbox{} + \sqbr{\matr{cc}{
+		- \T{F}_{/\dot{\tilde{\T{d}}}}
+		& - \T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_2^T
+			- \T{F}_{/\T{\omega}}
+		\\
+%
+		- \TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}}
+		& - \TT{A}_1 \plbr{
+			\T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_2^T
+			+ \T{F}_{/\T{\omega}}
+		}
+			- \T{M}_{/\dot{\tilde{\T{d}}}} \TT{A}_2^T
+			- \T{M}_{/\T{\omega}}
+		\\
+%
+		\T{F}_{/\dot{\tilde{\T{d}}}}
+		& \T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_2^T
+			+ \T{F}_{/\T{\omega}}
+		\\
+%
+		\TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}}
+		& \TT{A}_2 \plbr{
+			\T{F}_{/\dot{\tilde{\T{d}}}} \TT{A}_2^T
+			+ \T{F}_{/\T{\omega}}
+		}
+			+ \T{M}_{/\dot{\tilde{\T{d}}}} \TT{A}_2^T
+			+ \T{M}_{/\T{\omega}}
+	}} \cubr{\cvvect{
+		\delta\dot{\T{x}}_2 \\
+		\delta\dot{\T{g}}_2
+	}} & \nonumber \\
+	\footnotesize
+	\mbox{} + \sqbr{\matr{cc}{
+		- \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& - \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\TT{B}}_1
+			- \T{F}_{/\T{\omega}} \hat{\TT{C}}_1
+		\\
+%
+		- \TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& - \TT{A}_1 \plbr{
+			\T{F}_{/\dot{\tilde{\T{d}}}} \hat{\TT{B}}_1
+			+ \T{F}_{/\T{\omega}} \hat{\TT{C}}_1
+		}
+		- \T{M}_{/\dot{\tilde{\T{d}}}} \hat{\TT{B}}_1
+			- \T{M}_{/\T{\omega}} \hat{\TT{C}}_1
+		\\
+%
+		\T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\TT{B}}_1
+			+ \T{F}_{/\T{\omega}} \hat{\TT{C}}_1
+		\\
+%
+		\TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& \TT{A}_2 \plbr{
+			\T{F}_{/\dot{\tilde{\T{d}}}} \hat{\TT{B}}_1
+			+ \T{F}_{/\T{\omega}} \hat{\TT{C}}_1
+		}
+		+ \T{M}_{/\dot{\tilde{\T{d}}}} \hat{\TT{B}}_1
+			+ \T{M}_{/\T{\omega}} \hat{\TT{C}}_1
+	}}\cubr{\cvvect{
+		\delta\T{x}_1 \\
+		\delta\T{g}_1
+	}} & \nonumber \\
+	\footnotesize
+	\mbox{} + \sqbr{\matr{cc}{
+		\T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& - \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\TT{B}}_2
+			- \T{F}_{/\T{\omega}} \hat{\TT{C}}_2
+		\\
+%
+		\TT{A}_1 \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& - \TT{A}_1 \plbr{
+			\T{F}_{/\dot{\tilde{\T{d}}}} \hat{\TT{B}}_2
+			+ \T{F}_{/\T{\omega}} \hat{\TT{C}}_2
+		}
+		- \T{M}_{/\dot{\tilde{\T{d}}}} \hat{\TT{B}}_2
+			- \T{M}_{/\T{\omega}} \hat{\TT{C}}_2
+		\\
+%
+		- \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\TT{B}}_2
+			+ \T{F}_{/\T{\omega}} \hat{\TT{C}}_2
+		\\
+%
+		- \TT{A}_2 \T{F}_{/\dot{\tilde{\T{d}}}} \hat{\T{\omega}}\times{}
+		& \TT{A}_2 \plbr{
+			\T{F}_{/\dot{\tilde{\T{d}}}} \hat{\TT{B}}_2
+			+ \T{F}_{/\T{\omega}} \hat{\TT{C}}_2
+		}
+		+ \T{M}_{/\dot{\tilde{\T{d}}}} \hat{\TT{B}}_2
+			+ \T{M}_{/\T{\omega}} \hat{\TT{C}}_2
+	}}\cubr{\cvvect{
+		\delta\T{x}_2 \\
+		\delta\T{g}_2
+	}} & \nonumber \\
+	\footnotesize
+	\mbox{} + \sqbr{\matr{cc}{
+		\T{F}_{/\tilde{\T{d}}} 
+		& \T{F}_{/\tilde{\T{d}}} \TT{A}_1^T
+			+ \T{F}_{/\T{\theta}}
+		\\
+%
+		\TT{A}_1 \T{F}_{/\tilde{\T{d}}} 
+		& \TT{A}_1 \plbr{
+			\T{F}_{/\tilde{\T{d}}} \TT{A}_1^T
+			+ \T{F}_{/\T{\theta}}
+		}
+		+ \T{M}_{/\tilde{\T{d}}} \TT{A}_1^T
+			+ \T{M}_{/\T{\theta}}
+		\\
+%
+		- \T{F}_{/\tilde{\T{d}}} 
+		& - \T{F}_{/\tilde{\T{d}}} \TT{A}_1^T
+			- \T{F}_{/\T{\theta}}
+		\\
+%
+		- \TT{A}_2 \T{F}_{/\tilde{\T{d}}} 
+		& - \TT{A}_2 \plbr{
+			\T{F}_{/\tilde{\T{d}}} \TT{A}_1^T
+			+ \T{F}_{/\T{\theta}}
+		}
+		- \T{M}_{/\tilde{\T{d}}} \TT{A}_1^T
+			- \T{M}_{/\T{\theta}}
+	}} \cubr{\cvvect{
+		\delta\T{x}_1 \\
+		\delta\T{g}_1
+	}} & \nonumber \\
+	\footnotesize
+	\mbox{} + \sqbr{\matr{cc}{
+		- \T{F}_{/\tilde{\T{d}}}
+		& - \T{F}_{/\tilde{\T{d}}} \TT{A}_2^T
+			- \T{F}_{/\T{\theta}}
+		\\
+%
+		- \TT{A}_1 \T{F}_{/\tilde{\T{d}}}
+		& - \TT{A}_1 \plbr{
+			\T{F}_{/\tilde{\T{d}}} \TT{A}_2^T
+			+ \T{F}_{/\T{\theta}}
+		}
+		- \T{M}_{/\tilde{\T{d}}} \TT{A}_2^T
+			- \T{M}_{/\T{\theta}}
+		\\
+%
+		\T{F}_{/\tilde{\T{d}}}
+		& \T{F}_{/\tilde{\T{d}}} \TT{A}_2^T
+			+ \T{F}_{/\T{\theta}}
+		\\
+%
+		\TT{A}_2 \T{F}_{/\tilde{\T{d}}}
+		& \TT{A}_2 \plbr{
+			\T{F}_{/\tilde{\T{d}}} \TT{A}_2^T
+			+ \T{F}_{/\T{\theta}}
+		}
+		+ \T{M}_{/\tilde{\T{d}}} \TT{A}_2^T
+			+ \T{M}_{/\T{\theta}}
+	}} \cubr{\cvvect{
+		\delta\T{x}_2 \\
+		\delta\T{g}_2
+	}} & \nonumber \\
+	\footnotesize
+	\mbox{} + \sqbr{\matr{cc}{
+		\T{0} & \T{F}\times\hat{\T{I}}^T
+		\\
+%
+		- \hat{\TT{I}}\T{F}\times{}
+		& \plbr{
+			\TT{A}_1 \T{F}\times{}
+			+ \T{M}\times{}
+		} \hat{\TT{I}}^T
+			- \hat{\TT{I}}^T \T{F}\times\T{f}_1\times{}
+			- \hat{\TT{I}}_{1\plbr{\T{d}\times\T{F}}}
+		\\
+%
+		\T{0} & - \T{F}\times\hat{\T{I}}^T
+		\\
+%
+		- \hat{\TT{I}}^T\T{F}\times{}
+		&  - \plbr{
+			\TT{A}_2 \T{F}\times{}
+			+ \T{M}\times{}
+		} \hat{\TT{I}}^T
+			- \hat{\TT{I}}^T \T{F}\times\T{f}_1\times{}
+			- \plbr{\hat{\TT{I}}^T}_{1\plbr{\T{d}\times\T{F}}}
+	}} \cubr{\cvvect{
+		\delta\T{x}_1 \\
+		\delta\T{g}_1
+	}} & \nonumber \\
+	\footnotesize
+	\mbox{} + \sqbr{\matr{cc}{
+		\T{0} & \T{F}\times\hat{\T{I}}
+		\\
+%
+		\hat{\TT{I}}\T{F}\times{}
+		& \plbr{
+			\TT{A}_1 \T{F}\times{}
+			+ \T{M}\times{}
+		} \hat{\TT{I}}
+			- \hat{\TT{I}} \T{F}\times\T{f}_2\times{}
+			- \hat{\TT{I}}_{2\plbr{\T{d}\times\T{F}}}
+		\\
+%
+		\T{0} & - \T{F}\times\hat{\T{I}}
+		\\
+%
+		\hat{\TT{I}}^T\T{F}\times{}
+		& - \plbr{
+			\TT{A}_2 \T{F}\times{}
+			+ \T{M}\times{}
+		} \hat{\TT{I}}
+			+ \hat{\TT{I}} \T{F}\times\T{f}_2\times{}
+			+ \plbr{\hat{\TT{I}}^T}_{2\plbr{\T{d}\times\T{F}}}
+	}} \cubr{\cvvect{
+		\delta\T{x}_2 \\
+		\delta\T{g}_2
+	}}
+	& \nonumber \\
+	\footnotesize \mbox{}
+	= \cubr{\cvvect{
+		\T{F} \\
+		\TT{A}_1 \T{F} + \T{M} \\
+		- \T{F} \\
+		- \TT{A}_2 \T{F} - \T{M}
+	}} &
+\end{align}
+with
+\begin{subequations}
+\begin{align}
+	\hat{\TT{C}}_1 &= \TT{C}_1 + \T{\omega}_1\times{}
+	\\
+	\hat{\TT{C}}_2 &= \TT{C}_2 - \T{\omega}_2\times{}
+	.
+\end{align}
+\end{subequations}
+Note that
+\begin{subequations}
+\begin{align}
+	\hat{\TT{C}}_1
+	&= \plbr{\T{\omega}_2 - \T{\omega}_1}\times\hat{\TT{I}}^T
+	+ \T{\omega}_1\times{}
+	&&= \T{\omega}_1 \times\hat{\TT{I}}
+		+ \T{\omega}_2 \times\hat{\TT{I}}^T
+	\\
+	\hat{\TT{C}}_2
+	&= \plbr{\T{\omega}_2 - \T{\omega}_1}\times\hat{\TT{I}}
+	- \T{\omega}_2\times{}
+	&&= - \T{\omega}_1 \times\hat{\TT{I}}
+		- \T{\omega}_2 \times\hat{\TT{I}}^T
+	,
+\end{align}
+\end{subequations}
+so $\hat{\TT{C}}_2 = - \hat{\TT{C}}_1$.
 
 
 
