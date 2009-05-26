@@ -177,14 +177,21 @@ const debug_array da[] = {
 };
 #endif /* DEBUG */
 
+static void
+mbdyn_version(void)
+{
+	silent_cout(std::endl
+		<< "MBDyn - MultiBody Dynamics " << VERSION << std::endl
+		<< "compiled on " << __DATE__ << " at " << __TIME__
+		<< std::endl);
+}
+
 #ifdef HAVE_GETOPT
 static void
 mbdyn_usage(const char *sShortOpts)
 {
+	mbdyn_version();
 	silent_cout(std::endl
-		<< "MBDyn - MultiBody Dynamics " << VERSION << std::endl
-		<< "compiled on " << __DATE__ << " at " << __TIME__ << std::endl 
-		<< std::endl
 		<< "mbdyn is a multibody simulation program." << std::endl
 		<< std::endl
 		<< "usage: mbdyn [" << sShortOpts << "] [input-file list] " << std::endl 
@@ -250,12 +257,8 @@ mbdyn_usage(const char *sShortOpts)
 static void
 mbdyn_welcome(void)
 {
+	mbdyn_version();
 	silent_cout(std::endl
-		<< "MBDyn - Multi-Body Dynamics " << VERSION 
-		<< std::endl
-		<< "compiled on " << __DATE__
-			<< " at " << __TIME__ << std::endl
-		<< std::endl
 		<< "Copyright 1996-2009 (C) Paolo Mantegazza "
 			"and Pierangelo Masarati," << std::endl
 		<< "Dipartimento di Ingegneria Aerospaziale "
@@ -276,7 +279,7 @@ mbdyn_welcome(void)
 }
 
 /* Dati di getopt */
-static char sShortOpts[] = "a:d:ef:hHln:N::o:pPrRsS:tTwW:";
+static char sShortOpts[] = "a:d:ef:hHln:N::o:pPrRsS:tTvwW:";
 
 #ifdef HAVE_GETOPT_LONG
 static struct option LongOpts[] = {
@@ -296,6 +299,7 @@ static struct option LongOpts[] = {
 	{ "sleep",          required_argument, NULL,           int('S') },
 	{ "same-table",     no_argument,       NULL,           int('t') },
 	{ "no-same-table",  no_argument,       NULL,           int('T') },
+	{ "version",        no_argument,       NULL,           int('v') },
 	{ "warranty",       no_argument,       NULL,           int('w') },
 	{ "working-dir",    required_argument, NULL,           int('W') },
 	
@@ -554,6 +558,10 @@ mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 		case int('H'):
 			mbp.bShowSymbolTable = true;
 			break;
+
+		case int('v'):
+			mbdyn_version();
+			throw NoErr(MBDYN_EXCEPT_ARGS);
 	
 		default:
 			silent_cerr(std::endl 

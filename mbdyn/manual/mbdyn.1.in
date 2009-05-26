@@ -46,6 +46,9 @@ sleep\-time]
 .BR \-t
 ]
 [\c
+.BR \-v
+]
+[\c
 .BR \-W
 new\-working\-dir]
 [\c
@@ -115,9 +118,12 @@ multiple analyses in the same run (e.g. by issuing multiple input
 files on the command line).  It may require \fI\-r\fP to allow
 redefinition of symbols.
 .TP
+.B \-v, \-\-version
+Show version and exit.
+.TP
 .B \-W, \-\-working\-dir <new\-working\-dir>
 Use \fInew\-working\-dir\fP as working directory instead
-of the current
+of the current one.
 .TP
 .B \-w, \-\-warranty
 Issue a "warranty" message.
