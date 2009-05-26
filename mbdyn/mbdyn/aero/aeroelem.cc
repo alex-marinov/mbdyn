@@ -1671,7 +1671,8 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 
 				/* RRloc * JFa(1:3,1:3) * RRlocT * delta{Vr} */
 
-				JTmp = JTmp * RRlocT * dN1;
+				Mat3x3 JTmpNW(JTmp * RRlocT);
+				JTmp = JTmpNW * dN1;
 
 				/* JTmp */
 				//WM.Sub(6*iNode+1, 1, JTmp);	/* delta_v1 */ 
@@ -1685,7 +1686,7 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 				//WM.Add(6*iNode+1, 1 + 3, JTmp * Mat3x3(Wn1) * Mat3x3(f1Tmp * dCoef) );/* delta_g1 */ 
 				WMF[DELTAg1] += JTmp * Mat3x3(Wn1) * Mat3x3(f1Tmp * dCoef) ;	/* delta_g1 */ 
 
-				JTmp = JTmp * (dN2 / dN1);
+				JTmp = JTmpNW * dN2;
 
 				/* JTmp */
 				//WM.Sub(6*iNode+1, 6 + 1, JTmp);	/* delta_v2 */ 
@@ -1699,7 +1700,7 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 				//WM.Add(6*iNode+1, 6 + 1 + 3, JTmp * Mat3x3(Wn2) * Mat3x3(f2Tmp * dCoef) );/* delta_g2 */ 
 				WMF[DELTAg2] += JTmp * Mat3x3(Wn2) * Mat3x3(f2Tmp * dCoef);/* delta_g2 */ 
 
-				JTmp = JTmp * (dN3 / dN2);
+				JTmp = JTmpNW * dN3;
 
 				/* JTmp */
 				//WM.Sub(6*iNode+1, 12 + 1, JTmp);	/* delta_v3 */ 
@@ -1741,17 +1742,18 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 
 				/* RRloc * JFa(1:3,4:6) * RRlocT * delta{Wr} */
 
-				JTmp = JTmp * RRlocT * dN1;
+				JTmpNW = JTmp * RRlocT;
+				JTmp = JTmpNW *  dN1;
 
 				/* JTmp */
 				WMF[DELTAg1] -= JTmp;	/* delta_w1 */ 
 
-				JTmp = JTmp * (dN2 / dN1);
+				JTmp = JTmpNW * dN2;
 
 				/* JTmp */
 				WMF[DELTAg2] +=  JTmp;	/* delta_w2 */ 
 
-				JTmp = JTmp * (dN3 / dN2);
+				JTmp = JTmpNW * dN3;
 
 				/* JTmp */
 				//WM.Sub(6*iNode+1, 12 + 1, JTmp);	/* delta_w3 */ 
@@ -1813,7 +1815,8 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 
 				/* RRloc * JFa(4:6,1:3) * RRlocT * delta{Vr} */
 
-				JTmp = JTmp * RRlocT * dN1;
+				JTmpNW = JTmp * RRlocT;
+				JTmp = JTmpNW * dN1;
 
 				/* JTmp */
 				WMM[DELTAx1] -= JTmp;	/* delta_v1 */ 
@@ -1822,7 +1825,7 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 				/* JTmp * - w1 x [Rn1 * f1] x */
 				WMM[DELTAg1] += JTmp * Mat3x3(Wn1) * Mat3x3(f1Tmp * dCoef) ;	/* delta_g1 */ 
 
-				JTmp = JTmp * (dN2 / dN1);
+				JTmp = JTmpNW * dN2 ;
 
 				/* JTmp */
 				WMM[DELTAx2] -= JTmp;	/* delta_v2 */ 
@@ -1831,7 +1834,7 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 				/* JTmp * - w2 x [Rn2 * f2] x */
 				WMM[DELTAg2] += JTmp * Mat3x3(Wn2) * Mat3x3(f2Tmp * dCoef) ;	/* delta_g2 */ 
 
-				JTmp = JTmp * (dN3 / dN2);
+				JTmp = JTmp * dN3 ;
 
 				/* JTmp */
 				WMM[DELTAx3] -= JTmp;	/* delta_v3 */ 
@@ -1868,17 +1871,18 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 
 				/* RRloc * JFa(1:3,1:3) * RRlocT * delta{Wr} */
 
-				JTmp = JTmp * RRlocT * dN1;
+				JTmpNW = JTmp * RRlocT;
+				JTmp = JTmpNW * dN1;
 
 				/* JTmp */
 				WMM[DELTAg1] -= JTmp;	/* delta_w1 */ 
 
-				JTmp = JTmp * (dN2 / dN1);
+				JTmp = JTmpNW * dN2 ;
 
 				/* JTmp */
 				WMM[DELTAg2] -= JTmp;	/* delta_w2 */ 
 
-				JTmp = JTmp * (dN3 / dN2);
+				JTmp = JTmpNW * dN3 ;
 
 				/* JTmp */
 				WMM[DELTAg3] -= JTmp;	/* delta_w3 */ 
@@ -1886,28 +1890,29 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 				/* Transport Moments: */
 				Vec3 FTmp(RRloc*(Vec3(Fa0)*dWght));
 				
-				JTmp = Mat3x3(FTmp * (dN1 * dCoef));
+				JTmpNW = Mat3x3(FTmp * dCoef);
+				JTmp = JTmpNW * dN1;
 				
 				/* JTmp */
 				WMM[DELTAx1] -= JTmp;	/* delta_x1 */
 				/* JTmp * -[f1Tmp]x*/
 				WMM[DELTAg1] += JTmp * Mat3x3(f1Tmp); /* delta_g1 */;
 
-				JTmp = JTmp * (dN2/dN1);
+				JTmp = JTmpNW * dN2;
 				
 				/* JTmp */
 				WMM[DELTAx2] -= JTmp;	/* delta_x2 */
 				/* JTmp * -[f1Tmp]x*/
 				WMM[DELTAg2] += JTmp * Mat3x3(f1Tmp); /* delta_g2 */;
 
-				JTmp = JTmp * (dN3/dN2);
+				JTmp = JTmpNW * dN3;
 				
 				/* JTmp */
 				WMM[DELTAx3] -= JTmp;	/* delta_x3 */
 				/* JTmp * -[f1Tmp]x*/
 				WMM[DELTAg3] += JTmp * Mat3x3(f1Tmp); /* delta_g3 */;
 
-				JTmp = JTmp / dN3;
+				JTmp = JTmpNW ;
 				
 				/*  -JTmp */
 				//WM.Add(6*iNode+4, 6*iNode + 1, JTmp);	/* delta_x[iNode] */
@@ -1937,18 +1942,14 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 			} while (GDI.fGetNext(PW));
 
 			for (int iCnt = 0; iCnt < 6; iCnt++) {
-				WM.Add(6*iNode + 1, 3*iCnt + 1, WMF[iCnt]);
-				WM.Add(6*iNode + 4, 3*iCnt + 1, WMM[iCnt]);
+				WorkMat.Add(6*iNode + 1, 3*iCnt + 1, WMF[iCnt]);
+				WorkMat.Add(6*iNode + 4, 3*iCnt + 1, WMM[iCnt]);
 			}
 	
 			/*
 			 * Se e' definito il rotore, aggiungere il contributo
 			 * alla trazione
 			 */
-			if (pIndVel != NULL && !fPassiveInducedVelocity) {
-				pIndVel->AddForce(GetLabel(),
-						F[iNode], M[iNode], Xn[iNode]);
-			}
 	
 			/* Somma il termine al residuo */
 		//	WorkVec.Add(6*iNode+1, F[iNode]);
@@ -2371,6 +2372,11 @@ ReadAerodynamicBeam(DataManager* pDM,
 
 	aerodata->SetNumPoints(3*iNumber);
 
+	bool bUseJacobian(false);
+	if (HP.IsKeyWord("jacobian")) {
+		bUseJacobian = true;
+	}
+
 	flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
 	if (HP.IsArg()) {
 		if (HP.IsKeyWord("std")) {
@@ -2390,10 +2396,6 @@ ReadAerodynamicBeam(DataManager* pDM,
 		fOut |= AerodynamicOutput::AEROD_OUT_STD;
 	}
 
-	bool bUseJacobian(false);
-	if (HP.IsKeyWord("jacobian")) {
-		bUseJacobian = true;
-	}
 	Elem* pEl = NULL;
 
 	SAFENEWWITHCONSTRUCTOR(pEl,
