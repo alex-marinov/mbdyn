@@ -2,7 +2,7 @@
 
 __author__ = "G. Douglas Baldwin, douglasbaldwin AT verizon.net"
 __url__ = ["http://www.baldwintechnology.com"]
-__version__ = "0.1.5"
+__version__ = "0.3.0"
 __bpydoc__ = """\
 Description:
 
@@ -19,7 +19,7 @@ and can be manually editied before pressing the Run button to execute MBDyn.
 
 # --------------------------------------------------------------------------
 # Blender MBDyn
-# Copyright (C) 2008 G. Douglas Baldwin - http://www.baldwintechnology.com
+# Copyright (C) 2008, 2009 G. Douglas Baldwin - http://www.baldwintechnology.com
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -161,7 +161,7 @@ class Common(object):
 
 class MBDyn(Common):
 
-	entity_classes = ['Element', 'Constitutive', 'Drive', 'Driver', 'Friction', 'Shape', 'Function', 'NS_Node', 'Matrix']
+	entity_classes = ['Element', 'Drive', 'Driver', 'Friction', 'Shape', 'Function', 'NS_Node', 'Constitutive', 'Matrix']
 
 	def __init__(self):
 		self.NS_Node = []
@@ -381,6 +381,7 @@ class MBDyn(Common):
 		if self._posixRT and streaming_file_driver_count:
 			text.write('\trealtime: POSIX, mode, period, time step, '+
 			str(int(10e9*self._dt))+';\n')
+#		text.write('\tlinear solver: naive, pivot factor, 1.e-9;\n') # for compatibility with mbdyn 1.3.7
 		text.write(
 		'end: '+str(self._integrator)+';\n\n'+
 		'begin: control data;\n'+
@@ -506,8 +507,11 @@ class MBDyn(Common):
 				if driver.users:
 					driver.write(text)
 			text.write('end: drivers;\n')
+
 		if self.Function:
 			text.write('\n')
+		for function in self.Function:
+			function.written = False
 		for function in self.Function:
 			function.write(text)
 
@@ -620,17 +624,44 @@ class Menu(Common):
 
 		if clas_types:
 			for typ in clas_types:
+				try:
+					subtypes = eval(self.classes[0]+'.'+typ)
+				except:
+					subtypes = []
+				new = []
+				for subtype in subtypes:
+					new += [(subtype, [])]
+				if new:
+					self._assignevents(new)
+					self._groups['New '+typ] = self._event
 				hold = [(entity.name, []) for entity in eval('self.database.'+self.classes[0]) if
 					entity.type == typ]
 				hold.sort()
-				self.string += [(typ, [('New', [])]+hold)]
+				self.string += [(typ, [('New', new)]+hold)]
 				self._assignevents(self.string)
 				self._groups[typ] = self._event
 			return
 
 		for clas in self.classes:
 
-			if clas == 'Matrix':
+			if clas == 'Constitutive':
+				types = eval(clas+'.types')
+				clas_menu = []
+				for typ in types:
+					typ_menu = [('New', [(subtype,[]) for subtype in eval(clas+'.'+typ)])]
+					self._assignevents(typ_menu)
+					self._groups['New '+typ] = self._event
+					hold = [(entity.name, []) for entity in self.database.Constitutive if entity.type == typ]
+					hold.sort()
+					typ_menu += hold
+					self._assignevents(typ_menu)
+					self._groups[typ] = self._event
+					clas_menu += [(typ, typ_menu)]
+				self.string += [(clas, clas_menu)]
+				self._assignevents(self.string)
+				self._groups[clas] = self._event
+
+			elif clas == 'Matrix':
 				matrices = []
 				for typ in Matrix.types:
 					hold = [(entity.name, []) for entity in self.database.Matrix if entity.type == typ]
@@ -733,7 +764,6 @@ class Menu(Common):
 				self._event += 1
 
 	def action(self, sel, linking=False):
-
 		scn = Scene.GetCurrent()
 		for typ in self.clas_types:
 			if sel < self._groups[typ]:
@@ -761,6 +791,15 @@ class Menu(Common):
 				for entity in eval('self.database.'+clas):
 					if entity.name == self.events[sel]:
 						return entity.modify(linking, self.head)
+
+		if 'Constitutive' in self.classes:
+			for typ in Constitutive.types:
+				if self._groups.has_key('New '+typ) and sel < self._groups['New '+typ]:
+					return eval(clas+'(self.events[sel], self.database, linking)')
+				elif self._groups.has_key(typ) and sel < self._groups[typ]:
+					for entity in eval('self.database.'+clas):
+						if entity.type == typ and entity.name == self.events[sel]:
+							return entity.modify(linking, self.head)
 
 		if 'Matrix' in self.classes and sel < self._groups['Matrix']:
 			for typ in Matrix.types:
@@ -911,8 +950,8 @@ class NS_Node(Common):
 		if self.type == 'Electric':
 			string = [
 			('Name: ', nval, 0, 30),
-			('Initial value:',		args[0], -1.e6, 1.e6),
-			('Differential IV:',	args[1], -1.e6, 1.e6, 'Differential initial value')]
+			('Initial value:',		args[0], -9.9e10, 9.9e10),
+			('Differential IV:',	args[1], -9.9e10, 9.9e10, 'Differential initial value')]
 			if self in self.database.NS_Node:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -920,9 +959,9 @@ class NS_Node(Common):
 		elif self.type == 'Abstract':
 			string = [
 			('Name: ', nval, 0, 30),
-			('Initial value:',	args[0], -1.e6, 1.e6),
+			('Initial value:',	args[0], -9.9e10, 9.9e10),
 			('Differential',		args[1], 'Diffferential (or Algebraic)'),
-			('Derivative IV:',	args[2], -1.e6, 1.e6, 'Derivative initial value')]
+			('Derivative IV:',	args[2], -9.9e10, 9.9e10, 'Derivative initial value')]
 			if self in self.database.NS_Node:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -930,7 +969,7 @@ class NS_Node(Common):
 		elif self.type == 'Hydraulic':
 			string = [
 			('Name: ', nval, 0, 30),
-			('Initial value:',	args[0], -1.e6, 1.e6)]
+			('Initial value:',	args[0], -9.9e10, 9.9e10)]
 			if self in self.database.NS_Node:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -979,7 +1018,9 @@ class Element(Common):
 	'Axial rotation',
 	'Clamp',
 	'Distance',
+	'Deformable displacement joint',
 	'Deformable hinge',
+	'Deformable joint',
 	'In line',
 	'In plane',
 	'Revolute hinge',
@@ -1123,7 +1164,15 @@ class Element(Common):
 			elif self.subtype == 'Clamp':
 				self._args = [1]
 				self.objects = [None]
+			elif self.subtype == 'Deformable displacement joint':
+				self._args = [1, 1, 1]
+				self.objects = [None]*2
+				self.links = [None]
 			elif self.subtype == 'Deformable hinge':
+				self._args = [1, 1, 1]
+				self.objects = [None]*2
+				self.links = [None]
+			elif self.subtype == 'Deformable joint':
 				self._args = [1, 1, 1]
 				self.objects = [None]*2
 				self.links = [None]
@@ -1207,7 +1256,7 @@ class Element(Common):
 			('glauert',				args[4], 'Inflow model (select only one)'),
 			('mangler',				args[5], 'Inflow model (select only one)'),
 			('dynamic inflow',		args[6], 'Inflow model (select only one)'),
-			('Ref omega:',			args[7], 1., 1.e6),
+			('Ref omega:',			args[7], 1., 9.9e10),
 			('Ref radius:',			args[8], 1., 100.),
 			('Ground node',			args[9], 'Enable use of ground node'),
 			(obj_name[2],		 	args[10], 'Change ground node'),
@@ -1346,7 +1395,7 @@ class Element(Common):
 			string = [
 			('Name: ', nval, 0, 30),
 			(obj_name[0],		 	args[0], 'Change body node'),
-			('Mass:',				args[1], 0., 1.e6),
+			('Mass:',				args[1], 0.0001, 9.9e10),
 			(link_name[0],		 	args[2], 'Change inertia matrix')]
 			if self in self.database.Element:
 				self.permit_deletion(linking, string, delete, single)
@@ -1390,10 +1439,10 @@ class Element(Common):
 						self.select(1, 'Object', head=self.objects[0])
 					if self._args[2] or not self.links[0]:
 						self.persistantPupMenu('Select constitutive law:')
-						self.select(0, 'Constitutive')
+						self.select(0, 'Constitutive', ['Const_6D'])
 				for i in [0, 1, 2]:
 					self._args[i] = 0
-			if self.subtype == '3-node beam':
+			elif self.subtype == '3-node beam':
 				link_name = ['select 1st segment', 'select 2nd segment']
 				for i, link in enumerate(self.links):
 					if link:
@@ -1401,8 +1450,11 @@ class Element(Common):
 						args[i] = Draw.Create(0)
 				string = [
 				('Name: ', nval, 0, 30),
-				(link_name[0],	args[0], 'Change 1st segment'),
-				(link_name[1],	args[1], 'Change 2nd segment')]
+# Probably best to prohibit edit, and should now eliminate args[0:2]
+#				(link_name[0],	args[0], 'Change 1st segment: '+link_name[0]),
+#				(link_name[1],	args[1], 'Change 2nd segment: '+link_name[1])]
+				(link_name[0]),
+				(link_name[1])]
 				if self in self.database.Element:
 					self.permit_deletion(linking, string, delete, single)
 				if not Draw.PupBlock(self.type+': '+self.subtype, string): return
@@ -1424,6 +1476,7 @@ class Element(Common):
 							result = Draw.PupTreeMenu([('1st beam segment:', candidates)])
 							if result != -1:
 								self.links[0] = candidate_dict[result]
+								self.links[0].users += 1
 								self.objects[1] = self.links[0].objects[1]
 							else:
 								return
@@ -1446,14 +1499,17 @@ class Element(Common):
 							result = Draw.PupTreeMenu([('2nd beam segment:', candidates)])
 							if result != -1:
 								self.links[1] = candidate_dict[result]
-								self.objects[2] = self.links[1].objects[1]
-								for link in self.links:
-									link.users += 1
+								self.links[1].users += 1
 							else:
 								return
 						else:
 							Draw.PupMenu('Error:  No 2nd Beam Segment(s) contiguous with 1st Beam.')
+							self.links[0].users -= 1
+							self.links[0] = None
 							return
+				for i, link in enumerate(self.links):
+					if link:
+						self.objects[i+1] = link.objects[1]
 				for i in [0, 1]:
 					self._args[i] = 0
 		elif self.type == 'Force':
@@ -1493,7 +1549,7 @@ class Element(Common):
 				('Name: ', nval, 0, 30),
 				(obj_name[0],	args[0], 'Change forced node'),
 				(link_name[0],	args[1], 'Change force drive'),
-				('Follower',	args[2], 'Force follows its node, else fixed in global frame')]
+				('Follower',	args[2], 'Force orientation follows its node, else fixed in global frame')]
 				if self in self.database.Element:
 					self.permit_deletion(linking, string, delete, single)
 				if not Draw.PupBlock(self.type+': '+self.subtype, string): return
@@ -1522,7 +1578,7 @@ class Element(Common):
 				(obj_name[0],	args[0], 'Change force producing node'),
 				(obj_name[1],	args[1], 'Change attached node'),
 				(link_name[0],	args[2], 'Change force producing drive'),
-				('Follower',	args[3], 'Force follows its node, else fixed in global frame')]
+				('Follower',	args[3], 'Force orientation follows its node, else fixed in global frame')]
 				if self in self.database.Element:
 					self.permit_deletion(linking, string, delete, single)
 				if not Draw.PupBlock(self.type+': '+self.subtype, string): return
@@ -1552,7 +1608,7 @@ class Element(Common):
 				('Name: ', nval, 0, 30),
 				(obj_name[0],	args[0], 'Change forced node'),
 				(link_name[0],	args[1], 'Change force drive'),
-				('Follower',	args[2], 'Force follows its node, else fixed in global frame')]
+				('Follower',	args[2], 'Force orientation follows its node, else fixed in global frame')]
 				if self in self.database.Element:
 					self.permit_deletion(linking, string, delete, single)
 				if not Draw.PupBlock(self.type+': '+self.subtype, string): return
@@ -1581,7 +1637,7 @@ class Element(Common):
 				(obj_name[0],	args[0], 'Change force producing node'),
 				(obj_name[1],	args[1], 'Change attached node'),
 				(link_name[0],	args[2], 'Change force producing drive'),
-				('Follower',	args[3], 'Force follows its node, else fixed in global frame')]
+				('Follower',	args[3], 'Force orientation follows its node, else fixed in global frame')]
 				if self in self.database.Element:
 					self.permit_deletion(linking, string, delete, single)
 				if not Draw.PupBlock(self.type+': '+self.subtype, string): return
@@ -1692,6 +1748,35 @@ class Element(Common):
 						self.select(0, 'Object')
 				for i in [0]:
 					self._args[i] = 0
+			elif self.subtype == 'Deformable displacement joint':
+				obj_name = ['select node']*2
+				link_name = ['select constitutive law']
+				for i, node in enumerate(self.objects):
+					if node:
+						obj_name[i] = node.name
+						args[i] = Draw.Create(0)
+				if self.links[0]:
+						link_name[0] = self.links[0].name
+				string = [
+				('Name: ', nval, 0, 30),
+				(obj_name[0],		 	args[0], 'Change joint node'),
+				(obj_name[1],		 	args[1], 'Change attached node'),
+				(link_name[0],		 	args[2], 'Change constitutive law')]
+				if self in self.database.Element:
+					self.permit_deletion(linking, string, delete, single)
+				if not Draw.PupBlock(self.type+': '+self.subtype, string): return
+				self._args = [arg.val for arg in args]
+				if not delete.val:
+					title = ['Select joint node:', 'Select attached node:']
+					for i in range(2):
+						if self._args[i] or self.objects[i] == None:
+							self.persistantPupMenu(title[i])
+							self.select(i, 'Object')
+					if self._args[2] or not self.links[0]:
+						self.persistantPupMenu('Select constitutive law:')
+						self.select(0, 'Constitutive', ['Const_3D'])
+				for i in [0, 1, 2]:
+					self._args[i] = 0
 			elif self.subtype == 'Deformable hinge':
 				obj_name = ['select node']*2
 				link_name = ['select constitutive law']
@@ -1718,7 +1803,36 @@ class Element(Common):
 							self.select(i, 'Object')
 					if self._args[2] or not self.links[0]:
 						self.persistantPupMenu('Select constitutive law:')
-						self.select(0, 'Constitutive')
+						self.select(0, 'Constitutive', ['Const_3D'])
+				for i in [0, 1, 2]:
+					self._args[i] = 0
+			elif self.subtype == 'Deformable joint':
+				obj_name = ['select node']*2
+				link_name = ['select constitutive law']
+				for i, node in enumerate(self.objects):
+					if node:
+						obj_name[i] = node.name
+						args[i] = Draw.Create(0)
+				if self.links[0]:
+						link_name[0] = self.links[0].name
+				string = [
+				('Name: ', nval, 0, 30),
+				(obj_name[0],		 	args[0], 'Change joint node'),
+				(obj_name[1],		 	args[1], 'Change attached node'),
+				(link_name[0],		 	args[2], 'Change constitutive law')]
+				if self in self.database.Element:
+					self.permit_deletion(linking, string, delete, single)
+				if not Draw.PupBlock(self.type+': '+self.subtype, string): return
+				self._args = [arg.val for arg in args]
+				if not delete.val:
+					title = ['Select joint node:', 'Select attached node:']
+					for i in range(2):
+						if self._args[i] or self.objects[i] == None:
+							self.persistantPupMenu(title[i])
+							self.select(i, 'Object')
+					if self._args[2] or not self.links[0]:
+						self.persistantPupMenu('Select constitutive law:')
+						self.select(0, 'Constitutive', ['Const_6D'])
 				for i in [0, 1, 2]:
 					self._args[i] = 0
 			elif self.subtype == 'Distance':
@@ -1809,11 +1923,11 @@ class Element(Common):
 				(obj_name[0],		 	args[0], 'Change hinge node'),
 				(obj_name[1],		 	args[1], 'Change attached node'),
 				('Enable theta',		args[2], 'Enable use of initial theta'),
-				('Initial theta:',		args[3], 0., 1.e6),
+				('Initial theta:',		args[3], 0., 9.9e10),
 				('Enable friction',		args[4], 'Enable friction model'),
-				('Avg radius:',			args[5], 0., 1.e6, 'Used in friction model'),
+				('Avg radius:',			args[5], 0., 9.9e10, 'Used in friction model'),
 				('Enable preload',		args[6], 'Enable preload'),
-				('Preload:',			args[7], 0., 1.e6, 'Used in friction model'),
+				('Preload:',			args[7], 0., 9.9e10, 'Used in friction model'),
 				(link_name[0],		 	args[8], 'Change friction model')]
 				if self in self.database.Element:
 					self.permit_deletion(linking, string, delete, single)
@@ -1857,7 +1971,7 @@ class Element(Common):
 							self.select(i, 'Object')
 					if self._args[2]:
 						self.persistantPupMenu('Select rod constitutive')
-						self.select(0, 'Constitutive')
+						self.select(0, 'Constitutive', ['Const_1D'])
 				for i in [0, 1, 2]:
 					self._args[i] = 0
 			elif self.subtype == 'Spherical hinge':
@@ -2096,7 +2210,7 @@ class Element(Common):
 				text.write(',\n\t\t'+str(self._args[3])+',\n')
 				for shape in self.links[1:4]:
 					text.write(shape.string()+',\n')
-				text.write(self.links[4].string(3.14159/180.)+',\n')
+				text.write(self.links[4].string(3.14159265358979323846/180.)+',\n')
 				text.write('\t\t'+str(self._args[8])+';\n')
 			elif self.subtype == 'Aerodynamic beam2' or self.subtype == 'Aerodynamic beam3':
 				text.write('\t'+self.subtype+': '+str(self.database.Element.index(self))+', '+
@@ -2108,7 +2222,7 @@ class Element(Common):
 					text.write(',\n')
 				for shape in self.links[2:5]:
 					text.write(shape.string()+',\n')
-				text.write(self.links[5].string(3.14159/180.)+',\n')
+				text.write(self.links[5].string(3.14159265358979323846/180.)+',\n')
 				text.write('\t\t'+str(self._args[6])+';\n')
 		elif self.type == 'Body':
 			text.write('\tbody: '+str(self.database.Element.index(self))+',\n')
@@ -2130,6 +2244,9 @@ class Element(Common):
 					text.write(',\n')
 				text.write('\t\tfrom nodes, '+self.links[0].string()+';\n')
 			if self.subtype == '3-node beam':
+				for i, link in enumerate(self.links):
+					if link:
+						self.objects[i+1] = link.objects[1]
 				text.write('\tbeam3: '+str(self.database.Element.index(self))+',\n')
 				for i in range(len(self.objects)):
 					self.write_node(text, i, p_label='position', o_label='orientation')
@@ -2149,25 +2266,28 @@ class Element(Common):
 				string = '\tforce: '+str(self.database.Element.index(self))+', '
 				if self._args[2]:
 					string += 'follower'
+					relative_dir = rot_0*rotT_0*Vector([0., 0., 1.])
 				else:
 					string += 'absolute'
+					relative_dir = rotT_0*Vector([0., 0., 1.])
 				text.write(string+
 				',\n\t\t'+str(Node_0)+
+				',\n\t\t\tposition, '+str(relative_arm_0[0])+', '+str(relative_arm_0[1])+', '+str(relative_arm_0[2])+
 				',\n\t\t\t'+str(relative_dir[0])+', '+str(relative_dir[1])+', '+str(relative_dir[2])+
-				',\n\t\t\t'+str(relative_arm_0[0])+', '+str(relative_arm_0[1])+', '+str(relative_arm_0[2])+
 				',\n\t\t'+self.links[0].string(self)+';\n')
 			elif self.subtype == 'Structural internal force':
 				rot_0, globalV_0, Node_0 = self.rigid_offset(0)
 				rotT_0 = self.objects[0].getMatrix().toQuat().toMatrix().transpose()
-				relative_dir = rot_0*rotT_0*Vector([0., 0., 1.])
 				relative_arm_0 = rot_0*globalV_0
 				rot_1, globalV_1, Node_1 = self.rigid_offset(1)
 				relative_arm_1 = rot_1*globalV_1
 				string = '\tforce: '+str(self.database.Element.index(self))+', '
 				if self._args[3]:
 					string += 'follower internal'
+					relative_dir = rot_0*rotT_0*Vector([0., 0., 1.])
 				else:
 					string += 'absolute internal'
+					relative_dir = rotT_0*Vector([0., 0., 1.])
 				text.write(string+
 				',\n\t\t'+str(Node_0)+
 				',\n\t\t\t'+str(relative_dir[0])+', '+str(relative_dir[1])+', '+str(relative_dir[2])+
@@ -2178,12 +2298,13 @@ class Element(Common):
 			elif self.subtype == 'Structural couple':
 				rot_0, globalV_0, Node_0 = self.rigid_offset(0)
 				rotT_0 = self.objects[0].getMatrix().toQuat().toMatrix().transpose()
-				relative_dir = rot_0*rotT_0*Vector([0., 0., 1.])
 				string = '\tcouple: '+str(self.database.Element.index(self))+', '
 				if self._args[2]:
 					string += 'follower'
+					relative_dir = rot_0*rotT_0*Vector([0., 0., 1.])
 				else:
 					string += 'absolute'
+					relative_dir = rotT_0*Vector([0., 0., 1.])
 				text.write(string+
 				',\n\t\t'+str(Node_0)+
 				',\n\t\t\t'+str(relative_dir[0])+', '+str(relative_dir[1])+', '+str(relative_dir[2])+
@@ -2191,13 +2312,14 @@ class Element(Common):
 			elif self.subtype == 'Structural internal couple':
 				rot_0, globalV_0, Node_0 = self.rigid_offset(0)
 				rotT_0 = self.objects[0].getMatrix().toQuat().toMatrix().transpose()
-				relative_dir = rot_0*rotT_0*Vector([0., 0., 1.])
 				rot_1, globalV_1, Node_1 = self.rigid_offset(1)
 				string = '\tcouple: '+str(self.database.Element.index(self))+', '
 				if self._args[3]:
 					string += 'follower internal'
+					relative_dir = rot_0*rotT_0*Vector([0., 0., 1.])
 				else:
 					string += 'absolute internal'
+					relative_dir = rotT_0*Vector([0., 0., 1.])
 				text.write(string+
 				',\n\t\t'+str(Node_0)+
 				',\n\t\t\t'+str(relative_dir[0])+', '+str(relative_dir[1])+', '+str(relative_dir[2])+
@@ -2225,8 +2347,14 @@ class Element(Common):
 				text.write(
 				'\tjoint: '+str(self.database.Element.index(self))+', clamp,\n'+
 				'\t\t'+str(self.database.Node.index(self.objects[0]))+', node, node;\n')
+			elif self.subtype == 'Deformable displacement joint':
+				self.write_hinge(text, 'deformable displacement joint')
+				text.write(',\n\t\t'+self.links[0].string()+';\n')
 			elif self.subtype == 'Deformable hinge':
 				self.write_hinge(text, 'deformable hinge', V1=False, V2=False)
+				text.write(',\n\t\t'+self.links[0].string()+';\n')
+			elif self.subtype == 'Deformable joint':
+				self.write_hinge(text, 'deformable joint')
 				text.write(',\n\t\t'+self.links[0].string()+';\n')
 			elif self.subtype == 'Distance':
 				text.write('\tjoint: '+str(self.database.Element.index(self))+', distance,\n')
@@ -2260,7 +2388,7 @@ class Element(Common):
 				'\tjoint: '+str(self.database.Element.index(self))+', inplane,\n'+
 				'\t\t'+str(iNode0))
 				text.write(',\n\t\t\t'+str(localV0[0])+', '+str(localV0[1])+', '+str(localV0[2]))
-				text.write(',\n\t\t\t '+str(normal[0])+', '+str(normal[1])+', '+str(normal[2]))
+				text.write(',\n\t\t\t'+str(normal[0])+', '+str(normal[1])+', '+str(normal[2]))
 				text.write(',\n\t\t'+str(iNode1))
 				text.write(',\n\t\t\toffset, '+str(to_point[0])+', '+str(to_point[1])+', '+str(to_point[2])+';\n')
 			elif self.subtype == 'Revolute hinge':
@@ -2278,7 +2406,7 @@ class Element(Common):
 				for i in range(2):
 					self.write_node(text, i, orientation=False, p_label='position')
 					text.write(',\n')
-				text.write('\t\tfrom nodes, '+self.links[0].string()+';\n')
+				text.write('\t\tfrom nodes,\n\t\t'+self.links[0].string()+';\n')
 			elif self.subtype == 'Spherical hinge':
 				self.write_hinge(text, 'spherical hinge')
 				text.write(';\n')
@@ -2346,8 +2474,8 @@ class Element(Common):
 			elif self._args[0]:
 				text.write('\tair properties: std, British,\n')
 			text.write('\t\ttemperature deviation, '+str(self._args[2])+
-				',\n\t\treference altitude, '+str(self._args[3])+
-				',\n\t\t'+self.links[0].string()+', '+self.links[1].string(self))
+				',\n\t\treference altitude, '+str(self._args[3])+','+
+				self.links[0].string()+', '+self.links[1].string(self))
 			if self._args[5]:
 				text.write(',\n\t\tgust, front 1D,\n\t\t'+
 					self.links[2].string()+',\n\t\t\t'+
@@ -2510,7 +2638,7 @@ class Element(Common):
 #			for f in me.faces: f.smooth = 1
 		elif self.type == 'Beam':
 			coords = []
-			shell = [1.0, 0.33333, 0.66667]
+			shell = [0.3, 0.1, 0.2]
 			for z in [-1., 1.]:
 				for y in [-1., 1.]:
 					for x in [-1., 1.]:
@@ -2589,108 +2717,194 @@ class Element(Common):
 class Constitutive(Common):
 
 	types = [
-	'Linear elastic',
-	'Linear elastic generic',
-	'Linear elastic generic axial torsion coupling',
-	'Cubic elastic generic',
-	'Log elastic',
-	'Linear elastic bi-stop generic',
-	'Double linear elastic',
-	'Isotropic hardening elastic',
-	'Scalar function elastic',
-	'Scalar function elastic orthotropic',
-	'Linear viscous',
-	'Linear viscous generic',
-	'Linear viscoelastic',
-	'Linear viscoelastic generic',
-	'Linear viscoelastic generic axial torsion coupling',
-	'Cubic viscoelastic generic',
-	'Double linear viscoelastic',
-	'Turbulent viscoelastic',
-	'Linear viscoelastic bi-stop generic',
-	'GRAALL damper',
-	'shock absorber',
-	'symbolic elastic',
-	'symbolic viscous',
-	'symbolic viscoelastic',
-	'ann elastic',
-	'ann viscoelastic',
-	'nlsf viscoelastic',
-	'nlp viscoelastic',
-	'invariant angular ']
+	'Const_1D',
+	'Const_3D',
+	'Const_6D']
+
+	Const_1D = [
+	'Linear elastic(1D)',
+	'Linear elastic generic(1D)',
+	'Cubic elastic generic(1D)',
+	'Log elastic(1D)',
+#	'Linear elastic bi-stop generic(1D)',
+	'Double linear elastic(1D)',
+	'Isotropic hardening elastic(1D)',
+	'Scalar function elastic(1D)',
+	'Scalar function elastic orthotropic(1D)',
+	'nlsf elastic(1D)',
+	'nlp elastic(1D)',
+	'Linear viscous(1D)',
+	'Linear viscous generic(1D)',
+	'nlsf viscous(1D)',
+	'nlp viscous(1D)',
+	'Linear viscoelastic(1D)',
+	'Linear viscoelastic generic(1D)',
+	'Cubic viscoelastic generic(1D)',
+	'Double linear viscoelastic(1D)',
+	'Turbulent viscoelastic(1D)',
+#	'Linear viscoelastic bi-stop generic(1D)',
+	'GRAALL damper(1D)',
+	'shock absorber(1D)',
+	'symbolic elastic(1D)',
+	'symbolic viscous(1D)',
+	'symbolic viscoelastic(1D)',
+	'ann elastic(1D)',
+	'ann viscoelastic(1D)',
+	'nlsf viscoelastic(1D)',
+	'nlp viscoelastic(1D)']
+
+	Const_3D = [
+	'Linear elastic(3D)',
+	'Linear elastic generic(3D)',
+	'Cubic elastic generic(3D)',
+#	'Linear elastic bi-stop generic(3D)',
+	'Double linear elastic(3D)',
+	'Isotropic hardening elastic(3D)',
+	'Scalar function elastic(3D)',
+	'Scalar function elastic orthotropic(3D)',
+	'nlsf elastic(3D)',
+	'nlp elastic(3D)',
+	'Linear viscous(3D)',
+	'Linear viscous generic(3D)',
+	'nlsf viscous(3D)',
+	'nlp viscous(3D)',
+	'Linear viscoelastic(3D)',
+	'Linear viscoelastic generic(3D)',
+	'Cubic viscoelastic generic(3D)',
+	'Double linear viscoelastic(3D)',
+#	'Linear viscoelastic bi-stop generic(3D)',
+	'GRAALL damper(3D)',
+	'symbolic elastic(3D)',
+	'symbolic viscous(3D)',
+	'symbolic viscoelastic(3D)',
+	'ann elastic(3D)',
+	'ann viscoelastic(3D)',
+	'nlsf viscoelastic(3D)',
+	'nlp viscoelastic(3D)',
+	'invariant angular(3D)']
+
+	Const_6D = [
+	'Linear elastic(6D)',
+	'Linear elastic generic(6D)',
+	'Linear elastic generic axial torsion coupling(6D)',
+#	'Linear elastic bi-stop generic(6D)',
+	'Isotropic hardening elastic(6D)',
+	'Scalar function elastic(6D)',
+	'Scalar function elastic orthotropic(6D)',
+	'nlsf elastic(6D)',
+	'nlp elastic(6D)',
+	'Linear viscous(6D)',
+	'Linear viscous generic(6D)',
+	'nlsf viscous(6D)',
+	'nlp viscous(6D)',
+	'Linear viscoelastic(6D)',
+	'Linear viscoelastic generic(6D)',
+	'Linear viscoelastic generic axial torsion coupling(6D)',
+#	'Linear viscoelastic bi-stop generic(6D)',
+	'GRAALL damper(6D)',
+	'symbolic elastic(6D)',
+	'symbolic viscous(6D)',
+	'symbolic viscoelastic(6D)',
+	'ann elastic(6D)',
+	'ann viscoelastic(6D)',
+	'nlsf viscoelastic(6D)',
+	'nlp viscoelastic(6D)']
 
 	def __init__(self, constType, database, linking=False):
-		self.type = constType
-		self.name = constType
+		if constType in Constitutive.Const_1D:
+			self.type = 'Const_1D'
+			self.eligible = ['1x1']
+			self.dimension = 1
+		elif constType in Constitutive.Const_3D:
+			self.type = 'Const_3D'
+			self.eligible = ['3x3']
+			self.dimension = 3
+		elif constType in Constitutive.Const_6D:
+			self.type = 'Const_6D'
+			self.eligible = ['6x6']
+			self.dimension = 6
+		self.subtype = constType[:-4]
+		self.name = self.subtype
 		self.database = database
-		self._args = [0.]*10
 		self.users = 0
 		self.links = []
-		if self.type == 'Linear elastic':
-			self._args[:3] = [1, 0, 0]
-		elif self.type == 'Linear elastic generic':
-			self._args[0] = 1
+		if self.subtype == 'Linear elastic':
+			self._args = [1.]
+		elif self.subtype == 'Linear elastic generic':
+			self._args = [1]
 			self.links = [None]
-		elif self.type == 'Linear elastic generic axial torsion coupling':
-			self._args[0] = 1
+		elif self.subtype == 'Linear elastic generic axial torsion coupling':
+			self.eligible = ['6x1']
+			self._args = [1, 0.]
 			self.links = [None]
-		elif self.type == 'Cubic elastic generic':
-			self._args[0:3] = [1]*3
+		elif self.subtype == 'Cubic elastic generic':
+			if self.dimension == 3:
+				self.eligible = ['3x1']
+			self._args = [1, 1, 1]
 			self.links = [None]*3
-		elif self.type == 'Log elastic': pass
-		elif self.type == 'Linear elastic bi-stop generic':
+		elif self.subtype == 'Log elastic':
+			self._args = [0.]
+		elif self.subtype == 'Linear elastic bi-stop generic':
 			self._args = [1, 0, 0, 1, 1]
 			self.links = [None]*3
-		elif self.type == 'Double linear elastic':
-			self._args[0:2] = [1, 0]
-		elif self.type == 'Isotropic hardening elastic':
-			self._args[0:3] = [1, 0, 0]
-			self._args[5] = 0
-		elif self.type == 'Scalar function elastic':
-			self._args[0:3] = [1, 0, 0]
-			self._args[3] = 1
-			self._functions = [None]
-		elif self.type == 'Scalar function elastic orthotropic':
-			self._args = [1, 0, 0] + [1]
-			self._functions = [None]
-		elif self.type == 'Linear viscous':
-			self._args[:3] = [1, 0, 0]
-		elif self.type == 'Linear viscous generic':
-			self._args[0] = 1
+		elif self.subtype == 'Double linear elastic':
+			self._args = [0.]*4
+		elif self.subtype == 'Isotropic hardening elastic':
+			self._args = [0., 0., 0, 0.]
+		elif self.subtype == 'Scalar function elastic':
+			self._args = [1]
 			self.links = [None]
-		elif self.type == 'Linear viscoelastic':
-			self._args[:3] = [1, 0, 0]
-			self._args[5] = 0
-		elif self.type == 'Linear viscoelastic generic':
-			self._args[:3] = [1, 1, 0]
+		elif self.subtype == 'Scalar function elastic orthotropic':
+			self._args = [1]*self.dimension
+			self.links = [None]*self.dimension
+		elif self.subtype == 'nlsf elastic' or self.subtype == 'nlp elastic':
+			dim = self.dimension
+			self._args = [1]+[1]*dim
+			self.links = [None]*(1+dim)
+		elif self.subtype == 'Linear viscous':
+			self._args = [0.]
+		elif self.subtype == 'Linear viscous generic':
+			self._args = [1]
+			self.links = [None]
+		elif self.subtype == 'nlsf viscous' or self.subtype == 'nlp viscous':
+			dim = self.dimension
+			self._args = [1]+[1]*dim
+			self.links = [None]*(1+dim)
+		elif self.subtype == 'Linear viscoelastic':
+			self._args = [0., 0., 0, 0.]
+		elif self.subtype == 'Linear viscoelastic generic':
+			self._args = [1, 1, 0, 0.]
 			self.links = [None]*2
-		elif self.type == 'Linear viscoelastic generic axial torsion coupling':
-			self._args[:3] = [1, 1, 0]
+		elif self.subtype == 'Linear viscoelastic generic axial torsion coupling':
+			self.eligible = ['6x1']
+			self._args = [1, 1, 0, 0., 0.]
 			self.links = [None]*2
-		elif self.type == 'Cubic viscoelastic generic':
-			self._args[0:4] = [1]*4
+		elif self.subtype == 'Cubic viscoelastic generic':
+			self._args = [1]*4
 			self.links = [None]*4
-		elif self.type == 'Double linear viscoelastic':
-			self._args[0:2] = [1, 0]
-			self._args[7] = 0
-		elif self.type == 'Turbulent viscoelastic':
-			self._args[2] = 0
-			self._args[4] = 0
-		elif self.type == 'Linear viscoelastic bi-stop generic':
+		elif self.subtype == 'Double linear viscoelastic':
+			self._args = [0.]*5 + [0] + [0.]
+		elif self.subtype == 'Turbulent viscoelastic':
+			self._args = [0., 0., 0, 0., 0, 0.]
+		elif self.subtype == 'Linear viscoelastic bi-stop generic':
 			self._args = [1, 1, 0, 0, 1, 1]
 			self.links = [None]*4
 			"""
-		elif self.type == 'GRAALL damper':
-		elif self.type == 'shock absorber':
-		elif self.type == 'symbolic elastic':
-		elif self.type == 'symbolic viscous':
-		elif self.type == 'symbolic viscoelastic':
-		elif self.type == 'ann elastic':
-		elif self.type == 'ann viscoelastic':
-		elif self.type == 'nlsf viscoelastic':
-		elif self.type == 'nlp viscoelastic':
-		elif self.type == 'invariant angular ':
+		elif self.subtype == 'GRAALL damper':
+		elif self.subtype == 'shock absorber':
+		elif self.subtype == 'symbolic elastic':
+		elif self.subtype == 'symbolic viscous':
+		elif self.subtype == 'symbolic viscoelastic':
+		elif self.subtype == 'ann elastic':
+		elif self.subtype == 'ann viscoelastic':
 			"""
+		elif self.subtype == 'nlsf viscoelastic' or self.subtype == 'nlp viscoelastic':
+			dim = self.dimension
+			self._args = [1]+[1]*dim+[1]+[0]*2+[1]*dim
+			self.links = [None]*(2+2*dim)
+
+#		elif self.subtype == 'invariant angular ':
+
 		self.name_check(self.database.Constitutive)
 		self.modify(linking)
 
@@ -2701,531 +2915,556 @@ class Constitutive(Common):
 		delete = Draw.Create(0)
 		single = Draw.Create(0)
 		nval = Draw.Create(self.name)
-		if self.type == 'Linear elastic':
-			state = 2
-			while not state in [1]:
-				string = [
+		if self.subtype == 'Linear elastic':
+			string = [
 			('Name: ', nval, 0, 30),
-			('1',					args[0], 'Dimensionality (select only one)'),
-			('3',					args[1], 'Dimensionality (select only one)'),
-			('6',					args[2], 'Dimensionality (select only one)'),
-			('Stiffness*1.e-6:',	args[3], 0., 1.e6)]
-				if self in self.database.Constitutive:
-					self.permit_deletion(linking, string, delete, single)
-				if not Draw.PupBlock(self.type, string): return
-				state = sum(arg.val for arg in args[:3])
-			self._args = [arg.val for arg in args[:4]]
-		elif self.type == 'Linear elastic generic':
+			('Stiffness:',	args[0], 0., 9.9e10)]
+			if self in self.database.Constitutive:
+				self.permit_deletion(linking, string, delete, single)
+			if not Draw.PupBlock(self.subtype, string): return
+			self._args = [arg.val for arg in args]
+		elif self.subtype == 'Linear elastic generic':
 			tmp = ['select matrix']
 			for i in range(1):
-				if self.links[i] != None: tmp[i] = self.links[i].name
+				if self.links[i]:
+					tmp[i] = self.links[i].name
 			string = [
 			('Name: ', nval, 0, 30),
 			(tmp[0],	args[0], 'Change stiffness matrix')]
 			if self in self.database.Constitutive:
 				self.permit_deletion(linking, string, delete, single)
-			if not Draw.PupBlock(self.type, string): return
+			if not Draw.PupBlock(self.subtype, string): return
 			if not delete.val:
-				self._args = [arg.val for arg in args[:1]]
-				eligible = ['1x1', '3x3', '6x6']
-				if self._args[0] == 1 or self.links[0] == None:
+				self._args = [arg.val for arg in args]
+				if self._args[0] or not self.links[0]:
 					self.persistantPupMenu('Select stiffness matrix:')
-					self.select(0, 'Matrix', eligible)
-				self._args[0] = 0
-		elif self.type == 'Linear elastic generic axial torsion coupling':
-			tmp = ['select matrix']*1
+					self.select(0, 'Matrix', self.eligible)
+				self._args = [0]
+		elif self.subtype == 'Linear elastic generic axial torsion coupling':
+			tmp = ['select matrix']
 			for i in range(1):
-				if self.links[i] != None: tmp[i] = self.links[i].name
+				if self.links[i]:
+					tmp[i] = self.links[i].name
 			string = [
 			('Name: ', nval, 0, 30),
 			(tmp[0],	args[0], 'Change stiffness matrix'),
-			('Coef:',	args[1], -1.e6, 1.e6, 'Coupling coefficient')]
+			('Coef:',	args[1], 0., 9.9e10, 'Coupling coefficient')]
 			if self in self.database.Constitutive:
 				self.permit_deletion(linking, string, delete, single)
-			if not Draw.PupBlock(self.type, string): return
+			if not Draw.PupBlock(self.subtype, string): return
 			if not delete.val:
-				self._args = [arg.val for arg in args[:2]]
-				eligible = ['6x1']
-				if self._args[0] == 1 or self.links[0] == None:
+				self._args = [arg.val for arg in args]
+				if self._args[0] or not self.links[0]:
 					self.persistantPupMenu('Select stiffness matrix:')
-					self.select(0, 'Matrix', eligible)
+					self.select(0, 'Matrix', self.eligible)
 				self._args[0] = 0
-		elif self.type == 'Cubic elastic generic':
+		elif self.subtype == 'Cubic elastic generic':
 			tmp = ['select']*3
-			eligible = ['1x1', '3x1']
+			for i in range(3):
+				if self.links[i]:
+					tmp[i] = self.links[i].name
+			string = [
+			('Name: ', nval, 0, 30),
+			(tmp[0],	args[0], 'Stiffness matrix 1'),
+			(tmp[1],	args[1], 'Stiffness matrix 2'),
+			(tmp[2], 	args[2], 'Stiffness matrix 3')]
+			if self in self.database.Constitutive:
+				self.permit_deletion(linking, string, delete, single)
+			if not Draw.PupBlock(self.subtype, string): return
+			if not delete.val:
+				self._args = [arg.val for arg in args]
+				for i in range(3):
+					if self._args[i] or not self.links[i]:
+						self.persistantPupMenu('Select S'+str(i+1))
+						self.select(i, 'Matrix', self.eligible)
+				self._args = [0, 0, 0]
+		elif self.subtype == 'Log elastic':
+			string = [
+			('Name: ', nval, 0, 30),
+			('Stiffness:',	args[0], 0., 9.9e10)]
+			if self in self.database.Constitutive:
+				self.permit_deletion(linking, string, delete, single)
+			if not Draw.PupBlock(self.subtype, string): return
+			self._args = [arg.val for arg in args]
+		elif self.subtype == 'Linear elastic bi-stop generic':
+			tmp = ['select matrix'] + ['select drive']*2
 			for i in range(3):
 				if self.links[i] != None:
 					tmp[i] = self.links[i].name
-					eligible = set(eligible) & set([self.links[0].type])
 			string = [
 			('Name: ', nval, 0, 30),
-			('S1:'+tmp[0],	args[0], 'Stiffness matrix 1'),
-			('S2:'+tmp[1],	args[1], 'Stiffness matrix 2'),
-			('S3:'+tmp[2], 	args[2], 'Stiffness matrix 3')]
+			(tmp[0],			args[0], 'Change stiffness matrix'),
+			('Initial state',	args[1], 'Prescribe initial state'),
+			('Active',			args[2], 'Select initial state as inactive or active'),
+			(tmp[1],			args[3], 'Change activitating condition'),
+			(tmp[2], 			args[4], 'Change deactivating condition')]
 			if self in self.database.Constitutive:
 				self.permit_deletion(linking, string, delete, single)
-			if not Draw.PupBlock(self.type, string): return
+			if not Draw.PupBlock(self.subtype, string): return
 			if not delete.val:
-				self._args = [arg.val for arg in args[:3]]
-				for i in range(3):
-					if self._args[i] == 1 or self.links[i] == None:
-						self.persistantPupMenu('Select S'+str(i+1))
-						self.select(i, 'Matrix', eligible)
-						eligible = set(eligible) & set([self.links[i].type])
-				self._args[:3] = [0]*3
-		elif self.type == 'Log elastic':
-			string = [
-			('Name: ', nval, 0, 30),
-			('Stiffness:',	args[0], 0., 1.e6)]
-			if self in self.database.Constitutive:
-				self.permit_deletion(linking, string, delete, single)
-			if not Draw.PupBlock(self.type, string): return
-			self._args = [arg.val for arg in args[:1]]
-		elif self.type == 'Linear elastic bi-stop generic':
-			tmp = ['select matrix']
-			if self.links[0] != None:
-				tmp[0] = self.links[0].name
-			string = [
-			('Name: ', nval, 0, 30),
-			(tmp[0],				args[0], 'Change stiffness matrix'),
-			('Initial state',		args[1], 'Enable inactive/active selection'),
-			('Active',				args[2], 'Select initial state as inactive or active')]
-			tmp = ['select drive']*2
-			for i in range(2):
-				if self.links[i+1] != None:
-					tmp[i] = self.links[i+1].name
-			string += [
-			(tmp[0],	args[3], 'Change activitating condition'),
-			(tmp[1], 	args[4], 'Change deactivating condition')]
-			if self in self.database.Constitutive:
-				self.permit_deletion(linking, string, delete, single)
-			if not Draw.PupBlock(self.type, string): return
-			if not delete.val:
-				self._args = [arg.val for arg in args[:5]]
-				eligible = ['1x1', '3x3', '6x6']
-				if self._args[0] == 1 or self.links[0] == None:
+				self._args = [arg.val for arg in args]
+				if self._args[0] or not self.links[0]:
 					self.persistantPupMenu('Select stiffness matrix:')
-					self.select(0, 'Matrix', eligible)
-				if args[3].val == 1 or self.links[2] == None:
+					self.select(0, 'Matrix', self.eligible)
+				if args[3].val or not self.links[1]:
 					self.persistantPupMenu('Select activating condition:')
 					self.select(1, 'Drive')
-				if args[4].val == 1 or self.links[3] == None:
+				if args[4].val or not self.links[2]:
 					self.persistantPupMenu('Select deactivating condition:')
 					self.select(2, 'Drive')
 				self._args[0] = 0
 				self._args[3:5] = [0]*2
-		elif self.type == 'Double linear elastic':
-			state = 2
-			while not state in [1]:
-				string = [
+		elif self.subtype == 'Double linear elastic':
+			string = [
 			('Name: ', nval, 0, 30),
-			('1',		args[0], 'Dimensionality (select only one)'),
-			('3',		args[1], 'Dimensionality (select only one)'),
-			('Stiffness 1:',	args[2], -1.e6, 1.e6),
-			('Upper strain:',	args[3], -1.e6, 1.e6),
-			('Lower Strain:',	args[4], -1.e6, 1.e6),
-			('Stiffness 2:',	args[5], -1.e6, 1.e6)]
-				if self in self.database.Constitutive:
-					self.permit_deletion(linking, string, delete, single)
-				if not Draw.PupBlock(self.type, string): return
-				state = sum(arg.val for arg in args[:2])
-			self._args = [arg.val for arg in args[:6]]
-		elif self.type == 'Isotropic hardening elastic':
-			state = 2
-			while not state in [1]:
-				string = [
+			('Stiffness 1:',	args[0], 0., 9.9e10),
+			('Upper strain:',	args[1], 0., 9.9e10),
+			('Lower Strain:',	args[2], 0., 9.9e10),
+			('Stiffness 2:',	args[3], 0., 9.9e10)]
+			if self in self.database.Constitutive:
+				self.permit_deletion(linking, string, delete, single)
+			if not Draw.PupBlock(self.subtype, string): return
+			self._args = [arg.val for arg in args]
+		elif self.subtype == 'Isotropic hardening elastic':
+			string = [
 			('Name: ', nval, 0, 30),
-			('1',		args[0], 'Dimensionality (select only one)'),
-			('3',		args[1], 'Dimensionality (select only one)'),
-			('6',		args[2], 'Dimensionality (select only one)'),
-			('Stiffness:',			args[3], 0., 1.e6),
-			('Reference strain:',	args[4], 0., 1.e6),
-			('Linear stiffness',	args[5], 'Use linear stiffness parameter'),
-			('Linear stiffness:',	args[6], 0., 1.e6)]
-				if self in self.database.Constitutive:
-					self.permit_deletion(linking, string, delete, single)
-				if not Draw.PupBlock(self.type, string): return
-				state = sum(arg.val for arg in args[:3])
-			self._args = [arg.val for arg in args[:7]]
-		elif self.type == 'Scalar function elastic':
+			('Stiffness:',			args[0], 0., 9.9e10),
+			('Reference strain:',	args[1], 0., 9.9e10),
+			('Linear stiffness',	args[2], 'Use linear stiffness parameter'),
+			('Linear stiffness:',	args[3], 0., 9.9e10)]
+			if self in self.database.Constitutive:
+				self.permit_deletion(linking, string, delete, single)
+			if not Draw.PupBlock(self.subtype, string): return
+			self._args = [arg.val for arg in args]
+		elif self.subtype == 'Scalar function elastic':
 			tmp = 'select'
-			if self.links[0] != None:
+			if self.links[0]:
 				tmp = self.links[0].name
-			state = 2
-			while not state in [1]:
-				string = [
+			string = [
 			('Name: ', nval, 0, 30),
-			('1',		args[0], 'Dimensionality (select only one)'),
-			('3',		args[1], 'Dimensionality (select only one)'),
-			('6',		args[2], 'Dimensionality (select only one)'),
-			('sf:'+tmp, args[3], 'Scalar function')]
-				if self in self.database.Constitutive:
-					self.permit_deletion(linking, string, delete, single)
-				if not Draw.PupBlock(self.type, string): return
-				state = sum(arg.val for arg in args[:3])
-			self._args = [arg.val for arg in args[:4]]
+			(tmp, args[0], 'Scalar function')]
+			if self in self.database.Constitutive:
+				self.permit_deletion(linking, string, delete, single)
+			if not Draw.PupBlock(self.subtype, string): return
+			self._args = [arg.val for arg in args]
 			if not delete.val:
-				if self._args[3] == 1 or self.links[0] == None:
+				if self._args[0] or not self.links[0]:
 					self.persistantPupMenu('Select scalar function')
 					self.select(0, 'Function')
-				self._args[3] = 0
-		elif self.type == 'Scalar function elastic orthotropic':
-			state = 2
-			while not state == 1:
-				string = [
-			('Name: ', nval, 0, 30),
-			('1',		args[0], 'Dimensionality (select only one)'),
-			('3',		args[1], 'Dimensionality (select only one)'),
-			('6',		args[2], 'Dimensionality (select only one)')]
-				if self in self.database.Constitutive:
-					self.permit_deletion(linking, string, delete, single)
-				if not Draw.PupBlock(self.type, string): return
-				state = sum(arg.val for arg in args[:3])
+				self._args[0] = 0
+		elif self.subtype == 'Scalar function elastic orthotropic':
+			string = [('Name: ', nval, 0, 30)]
+			for i in range(self.dimension):
+				if not self.links[i]:
+					string += [('select  f-'+str(i+1)+':', args[i], 'Select function')]
+				else:
+					string += [(self.links[i].name, args[i],'Modify f-'+str(i+1))]
+			if self in self.database.Constitutive:
+				self.permit_deletion(linking, string, delete, single)
+			if not Draw.PupBlock(self.subtype, string): return
+			self._args = [arg.val for arg in args]
 			if not delete.val:
-				qty = args[0].val + 3*args[1].val + 6*args[2].val
-				_qty = self._args[0] + 3*self._args[1] + 6*self._args[2]
-				for i in range(_qty, qty):
-					self.links.append(None)
-					args.append(Draw.Create(1))
-				for i in range(_qty-1, qty-1, -1):
-					self.links[i].users.remove(self)
-					del	self.links[i]
-				string = []
-				for i in range(qty):
-					if not self.links[i]:
-						string += [('select  f-'+str(i+1)+':', args[i+3], 'Select function')]
-					else:
-						string += [(self.links[i].name, args[i+3],
-							'Modify this function')]
-				if not Draw.PupBlock(self.type, string): return
 				for i, function in enumerate(self.links):
-					self.persistantPupMenu('Select  f-'+str(i+1)+':')
-					self.select(i, 'Function')
-				self._args = [arg.val for arg in args[:3]]+[0]*qty
-		elif self.type == 'Linear viscous':
-			state = 2
-			while not state in [1]:
-				string = [
+					if self._args[i] or not function:
+						self.persistantPupMenu('Select  f-'+str(i+1)+':')
+						self.select(i, 'Function')
+			self._args = [0]*self.dimension
+		elif self.subtype == 'nlsf elastic' or self.subtype == 'nlp elastic':
+			dim = self.dimension
+			tmp = []
+			for i, link in enumerate(self.links):
+				if self.links[i]:
+					tmp.append(self.links[i].name)
+				else:
+					tmp.append('select')
+			string = [
 			('Name: ', nval, 0, 30),
-			('1',		args[0], 'Dimensionality (select only one)'),
-			('3',		args[1], 'Dimensionality (select only one)'),
-			('6',		args[2], 'Dimensionality (select only one)'),
-			('Viscosity:',	args[3], 0., 1.e6)]
-				if self in self.database.Constitutive:
-					self.permit_deletion(linking, string, delete, single)
-				if not Draw.PupBlock(self.type, string): return
-				state = sum(arg.val for arg in args[:3])
-			self._args = [arg.val for arg in args[:4]]
-		elif self.type == 'Linear viscous generic':
+			(tmp[0],		args[0], 'Stiffness matrix')]
+			for i in range(1, 1+dim):
+				string += [(tmp[i], args[i], 'Stiffness function-'+str(i))]
+			if self in self.database.Constitutive:
+				self.permit_deletion(linking, string, delete, single)
+			if not Draw.PupBlock(self.subtype, string): return
+			if not delete.val:
+				self._args = [arg.val for arg in args]
+				if self._args[0] or not self.links[0]:
+					self.persistantPupMenu('Select stiffness matrix')
+					self.select(0, 'Matrix', self.eligible)
+				for i in range(1, 1+dim):
+					if self._args[i] or not self.links[i]:
+						self.persistantPupMenu('Select stiffness function-'+str(i))
+						self.select(i, 'Function')
+			self._args[0:2+dim] = [0]*(2+dim)
+		elif self.subtype == 'Linear viscous':
+			string = [
+			('Name: ', nval, 0, 30),
+			('Viscosity:',	args[0], 0., 9.9e10)]
+			if self in self.database.Constitutive:
+				self.permit_deletion(linking, string, delete, single)
+			if not Draw.PupBlock(self.subtype, string): return
+			self._args = [arg.val for arg in args]
+		elif self.subtype == 'Linear viscous generic':
 			tmp = ['select matrix']
-			if self.links[0] != None:
-				tmp[0] = self.links[0].name
+			for i in range(1):
+				if self.links[i]:
+					tmp[i] = self.links[i].name
 			string = [
 			('Name: ', nval, 0, 30),
 			(tmp[0],	args[0], 'Change viscosity matrix')]
 			if self in self.database.Constitutive:
 				self.permit_deletion(linking, string, delete, single)
-			if not Draw.PupBlock(self.type, string): return
+			if not Draw.PupBlock(self.subtype, string): return
 			if not delete.val:
-				self._args = [arg.val for arg in args[:1]]
-				eligible = ['1x1', '3x3', '6x6']
-				if self._args[0] == 1 or self.links[0] == None:
+				self._args = [arg.val for arg in args]
+				if self._args[0] or not self.links[0]:
 					self.persistantPupMenu('Select viscosity matrix:')
-					self.select(0, 'Matrix', eligible)
-				self._args[0] = 0
-		elif self.type == 'Linear viscoelastic':
-			state = 2
-			while not state in [1]:
-				string = [
-			('Name: ', nval, 0, 30),
-			('1',		args[0], 'Dimensionality (select only one)'),
-			('3',		args[1], 'Dimensionality (select only one)'),
-			('6',		args[2], 'Dimensionality (select only one)'),
-			('Stiffness:',	args[3], 0., 1.e6),
-			('Viscosity:',	args[4], 0., 1.e6),
-			('Proportional',args[5], 'Override viscosity with proportion of stiffness'),
-			('Proportion:',	args[6], 0., 1.e6)]
-				if self in self.database.Constitutive:
-					self.permit_deletion(linking, string, delete, single)
-				if not Draw.PupBlock(self.type, string): return
-				state = sum(arg.val for arg in args[:3])
-			self._args = [arg.val for arg in args[:7]]
-		elif self.type == 'Linear viscoelastic generic':
-			tmp = ['select']*2
-			eligible = ['1x1', '3x3', '6x6']
-			for i in range(2):
-				if self.links[i] != None:
-					tmp[i] = self.links[i].name
-					eligible = set(eligible) & set([self.links[0].type])
+					self.select(0, 'Matrix', self.eligible)
+				self._args = [0]
+		elif self.subtype == 'nlsf viscous' or self.subtype == 'nlp viscous':
+			dim = self.dimension
+			tmp = []
+			for i, link in enumerate(self.links):
+				if self.links[i]:
+					tmp.append(self.links[i].name)
+				else:
+					tmp.append('select')
 			string = [
 			('Name: ', nval, 0, 30),
-			('S:'+tmp[0],	args[0], 'Stiffness matrix'),
-			('V:'+tmp[1], 	args[1], 'Viscosity matrix'),
-			('Proportional',args[2], 'Override viscosity with proportion of stiffness'),
-			('Proportion:',	args[3], 0., 1.e6)]
+			(tmp[0],		args[0], 'Viscosity matrix')]
+			for i in range(1, 1+dim):
+				string += [(tmp[i], args[i], 'Viscosity function-'+str(i))]
 			if self in self.database.Constitutive:
 				self.permit_deletion(linking, string, delete, single)
-			if not Draw.PupBlock(self.type, string): return
+			if not Draw.PupBlock(self.subtype, string): return
 			if not delete.val:
-				self._args = [arg.val for arg in args[:3]]
-				if args[0].val == 1 or self.links[0] == None:
-					self.persistantPupMenu('Select stiffness matrix')
-					self.select(0, 'Matrix', eligible)
-					eligible = set(eligible) & set([self.links[0].type])
-				if args[1].val == 1 or self.links[1] == None:
+				self._args = [arg.val for arg in args]
+				if self._args[0] or not self.links[0]:
 					self.persistantPupMenu('Select viscosity matrix')
-					self.select(1, 'Matrix', eligible)
-			self._args = [0, 0] + [arg.val for arg in args[2:4]]
-		elif self.type == 'Linear viscoelastic generic axial torsion coupling':
-			tmp = ['select']*2
-			eligible = ['6x1']
-			for i in range(2):
-				if self.links[i] != None:
-					tmp[i] = self.links[i].name
-					eligible = set(eligible) & set([self.links[0].type])
+					self.select(0, 'Matrix', self.eligible)
+				for i in range(1, 1+dim):
+					if self._args[i] or not self.links[i]:
+						self.persistantPupMenu('Select viscosity function-'+str(i))
+						self.select(i, 'Function')
+			self._args[0:2+dim] = [0]*(2+dim)
+		elif self.subtype == 'Linear viscoelastic':
 			string = [
 			('Name: ', nval, 0, 30),
-			('S:'+tmp[0],	args[0], 'Stiffness matrix'),
-			('V:'+tmp[1], 	args[1], 'Viscosity matrix'),
+			('Stiffness:',	args[0], 0., 9.9e10),
+			('Viscosity:',	args[1], 0., 9.9e10),
 			('Proportional',args[2], 'Override viscosity with proportion of stiffness'),
-			('Proportion:',	args[3], 0., 1.e6),
-			('Coupling:',	args[4], 0., 1.e6)]
+			('Proportion:',	args[3], 0., 9.9e10)]
 			if self in self.database.Constitutive:
 				self.permit_deletion(linking, string, delete, single)
-			if not Draw.PupBlock(self.type, string): return
+			if not Draw.PupBlock(self.subtype, string): return
+			self._args = [arg.val for arg in args]
+		elif self.subtype == 'Linear viscoelastic generic':
+			tmp = ['select']*2
+			for i in range(2):
+				if self.links[i]:
+					tmp[i] = self.links[i].name
+			string = [
+			('Name: ', nval, 0, 30),
+			(tmp[0],		args[0], 'Stiffness matrix'),
+			(tmp[1], 		args[1], 'Viscosity matrix'),
+			('Proportional',args[2], 'Override viscosity with proportion of stiffness'),
+			('Proportion:',	args[3], 0., 9.9e10)]
+			if self in self.database.Constitutive:
+				self.permit_deletion(linking, string, delete, single)
+			if not Draw.PupBlock(self.subtype, string): return
 			if not delete.val:
-				self._args = [arg.val for arg in args[:3]]
-				if args[0].val == 1 or self.links[0] == None:
+				self._args = [arg.val for arg in args]
+				if self._args[0] or not self.links[0]:
 					self.persistantPupMenu('Select stiffness matrix')
-					self.select(0, 'Matrix', eligible)
-				if args[1].val == 1 or self.links[1] == None:
+					self.select(0, 'Matrix', self.eligible)
+				if not self._args[2] and (self._args[1] or not self.links[1]):
 					self.persistantPupMenu('Select viscosity matrix')
-					self.select(1, 'Matrix', eligible)
-			self._args = [0, 0] + [arg.val for arg in args[2:5]]
-		elif self.type == 'Cubic viscoelastic generic':
+					self.select(1, 'Matrix', self.eligible)
+			self._args[0:2] = [0, 0]
+		elif self.subtype == 'Linear viscoelastic generic axial torsion coupling':
+			tmp = ['select']*2
+			for i in range(2):
+				if self.links[i]:
+					tmp[i] = self.links[i].name
+			string = [
+			('Name: ', nval, 0, 30),
+			(tmp[0],		args[0], 'Stiffness matrix'),
+			(tmp[1], 		args[1], 'Viscosity matrix'),
+			('Proportional',args[2], 'Override viscosity with proportion of stiffness'),
+			('Proportion:',	args[3], 0., 9.9e10),
+			('Coupling:',	args[4], 0., 9.9e10)]
+			if self in self.database.Constitutive:
+				self.permit_deletion(linking, string, delete, single)
+			if not Draw.PupBlock(self.subtype, string): return
+			if not delete.val:
+				self._args = [arg.val for arg in args]
+				if self._args[0] or not self.links[0]:
+					self.persistantPupMenu('Select stiffness matrix')
+					self.select(0, 'Matrix', self.eligible)
+				if self._args[1] or not self.links[1]:
+					self.persistantPupMenu('Select viscosity matrix')
+					self.select(1, 'Matrix', self.eligible)
+			self._args[0:2] = [0, 0]
+		elif self.subtype == 'Cubic viscoelastic generic':
 			tmp = ['select']*4
-			eligible = set(['1x1', '3x1'])
-			for i in range(4):
-				if self.links[i] != None:
-					tmp[i] = self.links[i].name
-					eligible = set(eligible) & set([self.links[0].type])
+			for i, link in enumerate(self.links):
+				if link:
+					tmp[i] = link.name
 			string = [
 			('Name: ', nval, 0, 30),
-			('S1:'+tmp[0],	args[0], 'Stiffness matrix 1'),
-			('S2:'+tmp[1],	args[1], 'Stiffness matrix 2'),
-			('S3:'+tmp[2], 	args[2], 'Stiffness matrix 3'),
-			('V:'+tmp[3], 	args[3], 'Viscosity matrix')]
+			(tmp[0],	args[0], 'Stiffness matrix 1'),
+			(tmp[1],	args[1], 'Stiffness matrix 2'),
+			(tmp[2], 	args[2], 'Stiffness matrix 3'),
+			(tmp[3], 	args[3], 'Viscosity matrix')]
 			if self in self.database.Constitutive:
 				self.permit_deletion(linking, string, delete, single)
-			if not Draw.PupBlock(self.type, string): return
+			if not Draw.PupBlock(self.subtype, string): return
+			eligible_S_matrix = self.eligible
+			if self.type == 'Const_3D':
+				eligible_S_matrix = ['3x1']
 			if not delete.val:
-				self._args = [arg.val for arg in args[:4]]
+				self._args = [arg.val for arg in args]
 				for i in range(3):
-					if self._args[i] == 1 or self.links[i] == None:
+					if self._args[i] or not self.links[i]:
 						self.persistantPupMenu('Select S'+str(i+1))
-						self.select(i, 'Matrix', eligible)
-						eligible = set(eligible) & set([self.links[i].matrixType])
-				if self._args[3] == 1 or self.links[3] == None:
+						self.select(i, 'Matrix', eligible_S_matrix)
+				if self._args[3] or not self.links[3]:
 					self.persistantPupMenu('Select viscosity matrix')
-					self.select(3, 'Matrix', eligible)
-				self._args[:4] = [0]*4
-		elif self.type == 'Double linear viscoelastic':
-			state = 2
-			while not state == 1:
-				string = [
-			('Name: ', nval, 0, 30),
-			('1',		args[0], 'Dimensionality (select only one)'),
-			('3',		args[1], 'Dimensionality (select only one)'),
-			('Stiffness-1:',	args[2], -1.e6, 1.e6),
-			('Upper strain:',	args[3], -1.e6, 1.e6),
-			('Lower Strain:',	args[4], -1.e6, 1.e6),
-			('Stiffness-2:',	args[5], -1.e6, 1.e6),
-			('Viscosity:',		args[6], -1.e6, 1.e6),
-			('Second damping',	args[7], 'Use viscosity-2 for outside lower/upper strain range'),
-			('Viscosity-2:',	args[8], -1.e6, 1.e6)]
-				if self in self.database.Constitutive:
-					self.permit_deletion(linking, string, delete, single)
-				if not Draw.PupBlock(self.type, string): return
-				state = sum(arg.val for arg in args[:2])
-			self._args = [arg.val for arg in args[:9]]
-		elif self.type == 'Turbulent viscoelastic':
+					self.select(3, 'Matrix', self.eligible)
+				self._args = [0]*4
+		elif self.subtype == 'Double linear viscoelastic':
 			string = [
 			('Name: ', nval, 0, 30),
-			('Stiffness:',		args[0], 0., 1.e6),
-			('Parabolic visc:',	args[1], 0., 1.e6),
+			('Stiffness-1:',	args[0], -9.9e10, 9.9e10),
+			('Upper strain:',	args[1], -9.9e10, 9.9e10),
+			('Lower Strain:',	args[2], -9.9e10, 9.9e10),
+			('Stiffness-2:',	args[3], -9.9e10, 9.9e10),
+			('Viscosity:',		args[4], -9.9e10, 9.9e10),
+			('Second damping',	args[5], 'Use viscosity-2 for outside lower/upper strain range'),
+			('Viscosity-2:',	args[6], -9.9e10, 9.9e10)]
+			if self in self.database.Constitutive:
+				self.permit_deletion(linking, string, delete, single)
+			if not Draw.PupBlock(self.subtype, string): return
+			self._args = [arg.val for arg in args]
+		elif self.subtype == 'Turbulent viscoelastic':
+			string = [
+			('Name: ', nval, 0, 30),
+			('Stiffness:',		args[0], 0., 9.9e10),
+			('Parabolic visc:',	args[1], 0., 9.9e10),
 			('Use threshold',	args[2]),
-			('Threshold:',		args[3], 0., 1.e6),
+			('Threshold:',		args[3], 0., 9.9e10),
 			('Use linear visc',	args[4]),
-			('Linear visc:',	args[5], 0., 1.e6, 'Linear viscous coefficient')]
+			('Linear visc:',	args[5], 0., 9.9e10, 'Linear viscous coefficient')]
 			if self in self.database.Constitutive:
 				self.permit_deletion(linking, string, delete, single)
-			if not Draw.PupBlock(self.type, string): return
-			self._args = [arg.val for arg in args[:6]]
-		elif self.type == 'Linear viscoelastic bi-stop generic':
-			tmp = ['select matrix']*2
-			eligible = ['1x1', '3x3', '6x6']
-			for i in range(2):
-				if self.links[i] != None:
-					tmp[i] = self.links[i].name
-					eligible = set(eligible) & set([self.links[0].type])
+			if not Draw.PupBlock(self.subtype, string): return
+			self._args = [arg.val for arg in args]
+		elif self.subtype == 'Linear viscoelastic bi-stop generic':
+			tmp = ['select matrix']*2 + ['select drive']*2
+			for i, link in enumerate(self.links):
+				if link:
+					tmp[i] = link.name
 			string = [
 			('Name: ', nval, 0, 30),
-			(tmp[0],				args[0], 'Change stiffness matrix'),
-			(tmp[1],				args[1], 'Change viscosity matrix'),
-			('Enable state',		args[2], 'Enables inactive/active selection'),
-			('Active',				args[3], 'Initial state is inactive or active')]
-			tmp = ['select drive']*2
-			for i in range(2):
-				if self.links[i+2] != None: tmp[i] = self.links[i+2].name
-			string += [
-			(tmp[0],	args[4], 'Change activitating condition'),
-			(tmp[1], 	args[5], 'Change deactivating condition')]
+			(tmp[0],			args[0], 'Change stiffness matrix'),
+			(tmp[1],			args[1], 'Change viscosity matrix'),
+			('Enable state',	args[2], 'Prescribe initial state'),
+			('Active',			args[3], 'Initial state is inactive or active'),
+			(tmp[2],			args[4], 'Change activitating condition'),
+			(tmp[3], 			args[5], 'Change deactivating condition')]
 			if self in self.database.Constitutive:
 				self.permit_deletion(linking, string, delete, single)
-			if not Draw.PupBlock(self.type, string): return
+			if not Draw.PupBlock(self.subtype, string): return
 			if not delete.val:
-				self._args = [arg.val for arg in args[:6]]
-				if self._args[0] == 1 or self.links[0] == None:
+				self._args = [arg.val for arg in args]
+				if self._args[0] or not self.links[0]:
 					self.persistantPupMenu('Select stiffness matrix:')
-					self.select(0, 'Matrix', eligible)
-					eligible = set(eligible) & set([self.links[0].type])
-				if self._args[1] == 1 or self.links[1] == None:
+					self.select(0, 'Matrix', self.eligible)
+				if self._args[1] or not self.links[1]:
 					self.persistantPupMenu('Select viscosity matrix:')
-					self.select(1, 'Matrix', eligible)
-				if args[4].val == 1 or self.links[2] == None:
+					self.select(1, 'Matrix', self.eligible)
+				if self._args[4] or not self.links[2]:
 					self.persistantPupMenu('Select activating condition:')
 					self.select(2, 'Drive')
-				if args[5].val == 1 or self.links[3] == None:
+				if self._args[5] or not self.links[3]:
 					self.persistantPupMenu('Select deactivating condition:')
 					self.select(3, 'Drive')
 				self._args[0:2] = [0]*2
 				self._args[4:6] = [0]*2
 				"""
-		elif self.type == 'GRAALL damper':
-		elif self.type == 'shock absorber':
-		elif self.type == 'symbolic elastic':
-		elif self.type == 'symbolic viscous':
-		elif self.type == 'symbolic viscoelastic':
-		elif self.type == 'ann elastic':
-		elif self.type == 'ann viscoelastic':
-		elif self.type == 'nlsf viscoelastic':
-		elif self.type == 'nlp viscoelastic':
-		elif self.type == 'invariant angular ':
+		elif self.subtype == 'GRAALL damper':
+		elif self.subtype == 'shock absorber':
+		elif self.subtype == 'symbolic elastic':
+		elif self.subtype == 'symbolic viscous':
+		elif self.subtype == 'symbolic viscoelastic':
+		elif self.subtype == 'ann elastic':
+		elif self.subtype == 'ann viscoelastic':
 				"""
+		elif self.subtype == 'nlsf viscoelastic' or self.subtype == 'nlp viscoelastic':
+			dim = self.dimension
+			tmp = []
+			for i, link in enumerate(self.links):
+				if self.links[i]:
+					tmp.append(self.links[i].name)
+				else:
+					tmp.append('select')
+			string = [
+			('Name: ', nval, 0, 30),
+			(tmp[0],		args[0], 'Stiffness matrix')]
+			for i in range(1, 1+dim):
+				string += [(tmp[i], args[i], 'Stiffness function-'+str(i))]
+			string += [
+			(tmp[1+dim], 	args[1+dim], 'Viscosity matrix'),
+			('Proportional',args[2+dim], 'Override viscosity with proportion of stiffness'),
+			('Proportion:',	args[3+dim], 0., 9.9e10)]
+			for i in range(4+dim, 4+2*dim):
+				string += [(tmp[i-2], args[i], 'Viscosity function-'+str(i-3-dim))]
+			if self in self.database.Constitutive:
+				self.permit_deletion(linking, string, delete, single)
+			if not Draw.PupBlock(self.subtype, string): return
+			if not delete.val:
+				self._args = [arg.val for arg in args]
+				if self._args[0] or not self.links[0]:
+					self.persistantPupMenu('Select stiffness matrix')
+					self.select(0, 'Matrix', self.eligible)
+				for i in range(1, 1+dim):
+					if self._args[i] or not self.links[i]:
+						self.persistantPupMenu('Select stiffness function-'+str(i))
+						self.select(i, 'Function')
+				if not self._args[2+dim] and (self._args[1+dim] or not self.links[1+dim]):
+					self.persistantPupMenu('Select viscosity matrix')
+					self.select(1+dim, 'Matrix', self.eligible)
+				for i in range(4+dim, 4+2*dim):
+						if self._args[i] or not self.links[i-2]:
+							self.persistantPupMenu('Select viscosity function-'+str(i-3-dim))
+							self.select(i-2, 'Function')
+			self._args[0:2+dim] = [0]*(2+dim)
+			self._args[4+dim:4+2*dim] = [0]*dim
+
+#		elif self.subtype == 'invariant angular ':
 		else:
-			Draw.PupMenu('Error: '+self.type+' is not defined in this program.')
+			Draw.PupMenu('Error: '+self.subtype+' is not defined in this program.')
 			return
 		return self.finalize(nval, delete, single, self.database.Constitutive)
 
 	def string(self):
-		if self.type in ['Linear elastic', 'Linear viscous']:
-			if self._args[0]:
-				string = self.type+', '
-			elif self._args[1]:
-				string = self.type+' isotropic, '
-			elif self._args[2]:
-				string = self.type+' isotropic, '
-			string += str(self._args[3])
-		elif self.type in ['Linear elastic generic', 'Linear viscous generic']:
-			string = self.type+', '+self.links[0].string()
-		elif self.type == 'Linear elastic generic axial torsion coupling':
-			string = ('linear elastic generic axial torsional coupling, '+
-				self.links[0].string()+', '+self._args[1])
-		elif self.type == 'Cubic elastic generic':
-			string = 'cubic elastic generic, '+str(self._args[0:3]).strip('[]')
-		elif self.type == 'Log elastic':
+		if self.subtype in ['Linear elastic', 'Linear viscous']:
+			if self.type == 'Const_1D':
+				string = self.subtype+', '
+			else:
+				string = self.subtype+' isotropic, '
+			string += str(self._args[0])
+		elif self.subtype in ['Linear elastic generic', 'Linear viscous generic']:
+			string = self.subtype+', '+self.links[0].string()
+		elif self.subtype == 'Linear elastic generic axial torsion coupling':
+			string = ('linear elastic generic axial torsion coupling, diag,'+
+				self.links[0].string()+', '+str(self._args[1]))
+		elif self.subtype == 'Cubic elastic generic':
+			string = 'cubic elastic generic'
+			for link in self.links:
+				string += ','+link.string()
+		elif self.subtype == 'Log elastic':
 			string = 'log elastic, '+str(self._args[0])
-		elif self.type == 'Linear elastic bi-stop generic':
+		elif self.subtype == 'Linear elastic bi-stop generic':
 			string = 'linear elastic bistop, '+self.links[0].string()+',\n\t\t'
 			if self._args[1]:
 				if self._args[2]:
 					string += 'initial state, active, \n\t\t'
 				else:
 					string += 'initial state, inactive, \n\t\t'
-			string += (',\n\t\t'+self.links[1].string(self)+
-				',\n\t\t'+self.links[2].string(self))
-		elif self.type == 'Double linear elastic':
-			string = 'double linear elastic, '+str(self._args[2:6]).strip('[]')
-		elif self.type == 'Isotropic hardening elastic':
-			string = 'isotropic hardening elastic, '+str(self._args[3:5]).strip('[]')
-			if self._args[5]:
-				string += '\n\t\tlinear stiffness, '+str(self._args[6])
-		elif self.type == 'Scalar function elastic':
+			string += (self.links[1].string(self)+',\n\t\t'+self.links[2].string(self))
+		elif self.subtype == 'Double linear elastic':
+			string = 'double linear elastic,\n\t\t\t'+str(self._args[0:4]).strip('[]')
+		elif self.subtype == 'Isotropic hardening elastic':
+			string = 'isotropic hardening elastic, '+str(self._args[0:2]).strip('[]')
+			if self._args[2]:
+				string += ',\n\t\t\tlinear stiffness, '+str(self._args[3])
+		elif self.subtype == 'Scalar function elastic':
 			string = 'scalar function elastic isotropic, "'+self.links[0].name+'"'
-		elif self.type == 'Scalar function elastic orthotropic':
-			string = 'scalar function elastic orthotropic,\n\t\t'
-			if self._args[0]:
-				N = 1
-			elif self._args[1]:
-				N = 3
-			elif self._args[2]:
-				N = 6
-			for i in range(N):
-				string += '"'+self.links[i].name+'", '
-			string = string[:-2]
-		elif self.type == 'Linear viscoelastic':
-			if self._args[0]:
-				string = ('linear viscoelastic isotropic, '+str(self._args[1])+', ')
-			else:
-				string = ('linear viscoelastic, '+str(self._args[1])+', ')
-			if args[5]:
-				string += 'proportional, '+str(self._args[6])
-			else:
-				string += str(self._args[4])
-		elif self.type == 'Linear viscoelastic generic':
-			string = 'linear viscoelastic generic,\n\t\t'+self.links[0].string()+',\n\t\t'
-			if self._args[2]:
-				string += 'proportional, '+str(self._args[3])
-			else:
-				string += self.links[1].string()
-		elif self.type == 'Linear viscoelastic generic axial torsion coupling':
-			string = 'linear viscoelastic generic axial torsional coupling,\n\t\t'
-			string += self.links[0].string()+',\n\t\t'
-			if self._args[2]:
-				string += 'proportional, '+str(self._args[3])
-			else:
-				string += self.links[1].string()
-			string += ', '+str(self._args[4])
-		elif self.type == 'Cubic viscoelastic generic':
-			string = 'cubic viscoelastic generic'
+		elif self.subtype == 'Scalar function elastic orthotropic':
+			string = 'scalar function elastic orthotropic,\n\t\t\t'
 			for link in self.links:
-				string += ', \n\t\t'+link.string()
-		elif self.type == 'Double linear viscoelastic':
-			string = 'double linear viscoelastic'
-			for arg in self._args[2:7]:
-				string += ', '+str(arg)
-			if self._args[7]:
-				string += ', \n\t\tsecond damping, '+str(self._args[8])
-		elif self.type == 'Turbulent viscoelastic':
-			string = 'turbulent viscoelastic'
+				string += '"'+link.name+'", '
+			string = string[:-2]
+		elif self.subtype == 'Linear viscoelastic':
+			if self.type == 'Const_1D':
+				string = ('linear viscoelastic, '+str(self._args[0])+', ')
+			else:
+				string = ('linear viscoelastic isotropic, '+str(self._args[0])+', ')
+			if self._args[2]:
+				string += 'proportional, '+str(self._args[3])
+			else:
+				string += str(self._args[1])
+		elif self.subtype == 'Linear viscoelastic generic':
+			string = 'linear viscoelastic generic, '+self.links[0].string()+', '
+			if self._args[2]:
+				string += '\n\t\tproportional, '+str(self._args[3])
+			else:
+				string += self.links[1].string()
+		elif self.subtype == 'Linear viscoelastic generic axial torsion coupling':
+			string = 'linear viscoelastic generic axial torsion coupling, \n\t\tdiag, '
+			string += self.links[0].string()
+			if self._args[2]:
+				string += ',\n\t\tproportional, '+str(self._args[3])
+			else:
+				string += ',\n\t\tdiag, ' + self.links[1].string()
+			string += ',\n\t\t'+str(self._args[4])
+		elif self.subtype == 'Cubic viscoelastic generic':
+			string = 'cubic viscoelastic generic'
+			for i in range(3):
+				string += ','+self.links[i].string()
+			string += ','+self.links[3].string()
+		elif self.subtype == 'Double linear viscoelastic':
+			string = 'double linear viscoelastic,\n\t\t\t'
+			for arg in self._args[:5]:
+				string += str(arg)+', '
+			string = string[:-2]
+			if self._args[5]:
+				string += ', \n\t\t\tsecond damping, '+str(self._args[6])
+		elif self.subtype == 'Turbulent viscoelastic':
+			string = 'turbulent viscoelastic,\n\t\t\t'
 			for arg in self._args[:2]:
-				string += ', '+str(arg)
+				string += str(arg)+', '
+			string = string[:-2]
 			if self._args[2]:
 				string += ', '+str(self._args[3])
 			if self._args[4]:
 				string += ', '+str(self._args[5])
-		elif self.type == 'Linear viscoelastic bi-stop generic':
-			string = ('linear viscoelastic bistop,\n\t\t'+
-				self.links[0].string()+',\n\t\t'+ self.links[1].string()+',\n\t\t')
+		elif self.subtype == 'Linear viscoelastic bi-stop generic':
+			string = ('linear viscoelastic bistop, '+
+				self.links[0].string()+', '+self.links[1].string())
 			if self._args[2]:
 				if self._args[3]:
-					string += 'initial state, active, \n\t\t'
+					string += ',\n\t\tinitial state, active'
 				else:
-					string += 'initial state, inactive, \n\t\t'
+					string += ',\n\t\tinitial state, inactive'
 			string += (',\n\t\t'+self.links[2].string(self)+
 				',\n\t\t'+self.links[3].string(self))
-		"""
-		elif self.type == 'GRAALL damper':
-		elif self.type == 'shock absorber':
-		elif self.type == 'symbolic elastic':
-		elif self.type == 'symbolic viscous':
-		elif self.type == 'symbolic viscoelastic':
-		elif self.type == 'ann elastic':
-		elif self.type == 'ann viscoelastic':
-		elif self.type == 'nlsf viscoelastic':
-		elif self.type == 'nlp viscoelastic':
-		elif self.type == 'invariant angular ':
-		"""
+#		elif self.subtype == 'GRAALL damper':
+#		elif self.subtype == 'shock absorber':
+#		elif self.subtype == 'symbolic elastic':
+#		elif self.subtype == 'symbolic viscous':
+#		elif self.subtype == 'symbolic viscoelastic':
+#		elif self.subtype == 'ann elastic':
+#		elif self.subtype == 'ann viscoelastic':
+		elif (self.subtype == 'nlsf elastic' or self.subtype == 'nlp elastic' or
+			self.subtype == 'nlsf viscous' or self.subtype == 'nlp viscous'):
+			dim = self.dimension
+			string = self.subtype+', '+self.links[0].string()
+			for i in range(1, 1+dim):
+				string += ',\n\t\t\t\t"'+self.links[i].name+'"'
+		elif self.subtype == 'nlsf viscoelastic' or self.subtype == 'nlp viscoelastic':
+			dim = self.dimension
+			string = self.subtype+', '+self.links[0].string()+','
+			for i in range(1, 1+dim):
+				string += '\n\t\t\t\t"'+self.links[i].name+'",'
+			if self._args[2+dim]:
+				string += '\n\t\t\tproportional, '+str(self._args[3+dim])
+			else:
+				string += self.links[1+dim].string()
+			for i in range(4+dim, 4+2*dim):
+				string += ',\n\t\t\t\t"'+self.links[i-2].name+'"'
+
+#		elif self.subtype == 'invariant angular ':
 		return string
 
 class Shape(Common):
@@ -3259,7 +3498,7 @@ class Shape(Common):
 		if self.type == 'const':
 			string = [
 			('Name: ', nval, 0, 30),
-			('Constant:',	args[0], -1.e6, 1.e6)]
+			('Constant:',	args[0], -9.9e10, 9.9e10)]
 			if self in self.database.Shape:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -3267,8 +3506,8 @@ class Shape(Common):
 		elif self.type == 'linear':
 			string = [
 			('Name: ', nval, 0, 30),
-			('Value at -1:',	args[0], -1.e6, 1.e6),
-			('Value at +1:',	args[1], -1.e6, 1.e6)]
+			('Value at -1:',	args[0], -9.9e10, 9.9e10),
+			('Value at +1:',	args[1], -9.9e10, 9.9e10)]
 			if self in self.database.Shape:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -3288,17 +3527,17 @@ class Shape(Common):
 				seq = ['']*(16*((N-1)/8+1))
 				for col in range((N-1)/8+1):
 					for i in range(min(8, N-col*8)):
-						seq[16*col+i] = ('Point_'+str(8*col+i)+': ', series[16*col+2*i], -1.e6, 1.e6)
-						seq[16*col+8+i] = ('Value_'+str(8*col+i)+': ', series[16*col+2*i+1], -1.e6, 1.e6)
+						seq[16*col+i] = ('Point_'+str(8*col+i)+': ', series[16*col+2*i], -9.9e10, 9.9e10)
+						seq[16*col+8+i] = ('Value_'+str(8*col+i)+': ', series[16*col+2*i+1], -9.9e10, 9.9e10)
 				Draw.PupBlock(self.type, seq)
 				self._series[:len(series)] = [item.val for item in series]
 				self._args = [N]
 		elif self.type == 'parabolic':
 			string = [
 			('Name: ', nval, 0, 30),
-			('Value at -1:',	args[0], -1.e6, 1.e6),
-			('Value at 0:',		args[1], -1.e6, 1.e6),
-			('Value at +1:',	args[2], -1.e6, 1.e6)]
+			('Value at -1:',	args[0], -9.9e10, 9.9e10),
+			('Value at 0:',		args[1], -9.9e10, 9.9e10),
+			('Value at +1:',	args[2], -9.9e10, 9.9e10)]
 			if self in self.database.Shape:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -3357,7 +3596,7 @@ class Driver(Common):
 			string = [
 			('Name: ', nval, 0, 30),
 			('Stream/Fixed',	args[0], 'Stream driver if pressed, else use a Fixed Step driver'),
-			('Initial time:',	args[1], 0., 1.e6, 'If zero, use simulation start time (Fixed step only)'),
+			('Initial time:',	args[1], 0., 9.9e10, 'If zero, use simulation start time (Fixed step only)'),
 			('Time step:',		args[2], 0., 1.e3, 'If zero, use simulation time step (Fixed step only)'),
 			('Pad zeros',		args[3], 'Else use ends of series for out of time bound values '+
 				'(Fixed step only)' ),
@@ -3382,14 +3621,15 @@ class Driver(Common):
 				'\t\tnon blocking,\n'+
 				'\t\t'+str(len(self.columns))+';\n')
 			else:
+				filename, ext= Blender.sys.splitext(self.database.filename)
 				if self._args[4]:
-					filename = self.database.directory+self._args[4]
+					filename += '.' + self._args[4]
 				else:
-					filename = self.database.filename+'_'+self.name.replace(' ', '')
+					filename += '.' + self.name.replace(' ', '')
 				try:
 					tmp = open(filename, 'rt')
 				except:
-					Draw.PupMenu('Error: Cannon open File Driver file named '+filename)
+					Draw.PupMenu('Error: Cannot open File Driver file named '+filename)
 					return
 				lines = tmp.readlines()
 				tmp.close()
@@ -3425,25 +3665,22 @@ class Matrix(Common):
 		self.name = matrixType
 		self.database = database
 		self.users = 0
-		self._args = [0.]*10
 		self._series = []
 		self.links = []
 		if self.type == '1x1':
-			self._args[0] = 0
+			self._args = [0.]
 		elif self.type == '3x1':
-			self._args[0] = self._args[4] = 0
-			self._args[5] = 1.
+			self._args = [0, 0., 0., 0., 0, 1.]
 		elif self.type == '6x1':
-			self._args[0] = 0
+			self._args = [0]+[0.]*6
 		elif self.type == '3x3':
-			self._args[:6] = [1]+[0]*5
+			self._args = [1]+[0]*5
 			self._series = [0.]*9
 		elif self.type == '6x6':
-			self._args[:6] = [1]+[0]*5
+			self._args = [1]+[0]*5
 			self._series = [0.]*36
 		elif self.type == '6xN':
-			self._args[:2] = [1, 0]
-			self._args[2] = 2
+			self._args = [1, 0, 2]
 			self._series = [0.]*30
 		self.name_check(self.database.Matrix)
 		self.modify(linking)
@@ -3458,7 +3695,7 @@ class Matrix(Common):
 		if self.type == '1x1':
 			string = [
 			('Name: ', nval, 0, 30),
-			('Value:',	args[0], -1.e6, 1.e6)]
+			('Value:',	args[0], -9.9e10, 9.9e10)]
 			if self in self.database.Matrix:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -3467,11 +3704,11 @@ class Matrix(Common):
 			string = [
 			('Name: ', nval, 0, 30),
 			('Default',	args[0], 'Override with either default or null values'),
-			('x1:',		args[1], -1.e6, 1.e6),
-			('x2:',		args[2], -1.e6, 1.e6),
-			('x3:',		args[3], -1.e6, 1.e6),
+			('x1:',		args[1], -9.9e10, 9.9e10),
+			('x2:',		args[2], -9.9e10, 9.9e10),
+			('x3:',		args[3], -9.9e10, 9.9e10),
 			('Scale',	args[4], 'Scale the vector'),
-			('Factor:',	args[5], -1.e6, 1.e6)]
+			('Factor:',	args[5], -9.9e10, 9.9e10)]
 			if self in self.database.Matrix:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -3480,12 +3717,12 @@ class Matrix(Common):
 			string = [
 			('Name: ', nval, 0, 30),
 			('Default',	args[0], 'Override with either default or null values'),
-			('x1:',	args[1], -1.e6, 1.e6),
-			('x2:',	args[2], -1.e6, 1.e6),
-			('x3:',	args[3], -1.e6, 1.e6),
-			('x4:',	args[4], -1.e6, 1.e6),
-			('x5:',	args[5], -1.e6, 1.e6),
-			('x6:',	args[6], -1.e6, 1.e6)]
+			('x1:',	args[1], -9.9e10, 9.9e10),
+			('x2:',	args[2], -9.9e10, 9.9e10),
+			('x3:',	args[3], -9.9e10, 9.9e10),
+			('x4:',	args[4], -9.9e10, 9.9e10),
+			('x5:',	args[5], -9.9e10, 9.9e10),
+			('x6:',	args[6], -9.9e10, 9.9e10)]
 			if self in self.database.Matrix:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -3515,7 +3752,7 @@ class Matrix(Common):
 						string += ['']*2
 						for j in range(N):
 							ij = i+N*j
-							string += [('', series[N*j+i], -1.e6, 1.e6)]
+							string += [('', series[N*j+i], -9.9e10, 9.9e10)]
 						string += ['']*3
 					string[0] = 'matr'
 				elif args[1].val == 1:
@@ -3524,17 +3761,17 @@ class Matrix(Common):
 						string += ['']*2
 						for j in range(i+1):
 							ij = i+N*j
-							string += [('x('+str(j+1)+','+str(i+1)+'):', series[ij], -1.e6, 1.e6)]
+							string += [('x('+str(j+1)+','+str(i+1)+'):', series[ij], -9.9e10, 9.9e10)]
 						string += ['']*(5-i)
 					string[0] = 'sym'
 				elif args[2].val == 1:
 					string = [('skew')]
 					for i,j in enumerate([7,2,3]):
-						string += [('v('+str(i+1)+'):', series[j], -1.e6, 1.e6)]
+						string += [('v('+str(i+1)+'):', series[j], -9.9e10, 9.9e10)]
 				elif args[3].val == 1:
 					string = [('diag')]
 					for i in range(N):
-						string += [('x('+str(i+1)+','+str(i+1)+'):', series[(N+1)*i], -1.e6, 1.e6)]
+						string += [('x('+str(i+1)+','+str(i+1)+'):', series[(N+1)*i], -9.9e10, 9.9e10)]
 				Draw.PupBlock(self.type, string)
 				self._series[:len(series)] = [item.val for item in series]
 		elif self.type == '6x6':
@@ -3561,7 +3798,7 @@ class Matrix(Common):
 						string += ['']
 						for j in range(N):
 							ij = i+N*j
-							string += [('', series[N*j+i], -1.e6, 1.e6)]
+							string += [('', series[N*j+i], -9.9e10, 9.9e10)]
 						string += ['']
 					string[0] = 'matr'
 				elif args[1].val == 1:
@@ -3570,13 +3807,13 @@ class Matrix(Common):
 						string += ['']*1
 						for j in range(i+1):
 							ij = i+N*j
-							string += [('x('+str(j+1)+','+str(i+1)+'):', series[ij], -1.e6, 1.e6)]
+							string += [('x('+str(j+1)+','+str(i+1)+'):', series[ij], -9.9e10, 9.9e10)]
 						string += ['']*(6-i)
 					string[0] = 'sym'
 				elif args[2].val == 1:
 					string = [('diag')]
 					for i in range(N):
-						string += [('x('+str(i+1)+','+str(i+1)+'):', series[(N+1)*i], -1.e6, 1.e6)]
+						string += [('x('+str(i+1)+','+str(i+1)+'):', series[(N+1)*i], -9.9e10, 9.9e10)]
 				Draw.PupBlock(self.type, string)
 				self._series[:len(series)] = [item.val for item in series]
 		elif self.type == '6xN':
@@ -3602,7 +3839,7 @@ class Matrix(Common):
 						string += ['']
 						for j in range(N):
 							ij = i+Ncols*j
-							string += [('', series[Ncols*j+i], -1.e6, 1.e6)]
+							string += [('', series[Ncols*j+i], -9.9e10, 9.9e10)]
 						string += ['']
 					string[0] = 'matr'
 				Draw.PupBlock(self.type, string)
@@ -3614,69 +3851,69 @@ class Matrix(Common):
 
 	def string(self):
 		if self.type == '1x1':
-			ret = str(self._args[0])
+			ret = '\n\t\t\t'+str(self._args[0])
 		elif self.type == '3x1':
 			if self._args[0]:
-				ret = 'default'
+				ret = '\n\t\t\tdefault'
 			else:
-				ret = str(self._args[1:4]).strip('[]')
+				ret = '\n\t\t\t'+str(self._args[1:4]).strip('[]')
 				if self._args[4]:
 					ret += ', scale, '+str(self._args[5])
 		elif self.type == '6x1':
 			if self._args[0]:
-				ret = 'default'
+				ret = '\n\t\t\tdefault'
 			else:
-				ret = '\n\t\t'+str(self._args[1:7]).strip('[]')
+				ret = '\n\t\t\t'+str(self._args[1:7]).strip('[]')
 		elif self.type == '3x3':
 			if self._args[0] == 1:
-				ret = ('\n\t\tmatr,\n'+
-				'\t'*3+str(self._series[0:3]).strip('[]')+',\n'+
-				'\t'*3+str(self._series[3:6]).strip('[]')+',\n'+
-				'\t'*3+str(self._series[6:9]).strip('[]'))
+				ret = ('\n\t\t\tmatr,\n'+
+				'\t'*4+str(self._series[0:3]).strip('[]')+',\n'+
+				'\t'*4+str(self._series[3:6]).strip('[]')+',\n'+
+				'\t'*4+str(self._series[6:9]).strip('[]'))
 			elif self._args[1] == 1:
-				ret = ('\n\t\tsym,\n'+
-				'\t'*3+str(self._series[0:3]).strip('[]')+',\n'+
-				'\t'*4+str(self._series[4:6]).strip('[]')+',\n'+
-				'\t'*5+str(self._series[8]))
+				ret = ('\n\t\t\tsym,\n'+
+				'\t'*4+str(self._series[0:3]).strip('[]')+',\n'+
+				'\t'*5+str(self._series[4:6]).strip('[]')+',\n'+
+				'\t'*6+str(self._series[8]))
 			elif self._args[2] == 1:
-				ret = 'skew, '+str([self._series[i] for i in [7, 2, 3]]).strip('[]')
+				ret = '\n\t\t\tskew, '+str([self._series[i] for i in [7, 2, 3]]).strip('[]')
 			elif self._args[3] == 1:
-				ret = 'diag, '+str([self._series[i] for i in [0, 4, 8]]).strip('[]')
+				ret = '\n\t\t\tdiag, '+str([self._series[i] for i in [0, 4, 8]]).strip('[]')
 			elif self._args[4] == 1:
-				ret = 'eye'
+				ret = '\n\t\t\teye'
 			elif self._args[5] == 1:
-				ret = 'null'
+				ret = '\n\t\t\tnull'
 		elif self.type == '6x6':
 			if self._args[0] == 1:
-				ret = ('\n\t\tmatr,\n'+
-				'\t'*3+str(self._series[0:6]).strip('[]')+',\n'+
-				'\t'*3+str(self._series[6:12]).strip('[]')+',\n'+
-				'\t'*3+str(self._series[12:18]).strip('[]')+',\n'+
-				'\t'*3+str(self._series[18:24]).strip('[]')+',\n'+
-				'\t'*3+str(self._series[24:30]).strip('[]')+',\n'+
-				'\t'*3+str(self._series[30:36]).strip('[]'))
+				ret = ('\n\t\t\tmatr,\n'+
+				'\t'*4+str(self._series[0:6]).strip('[]')+',\n'+
+				'\t'*4+str(self._series[6:12]).strip('[]')+',\n'+
+				'\t'*4+str(self._series[12:18]).strip('[]')+',\n'+
+				'\t'*4+str(self._series[18:24]).strip('[]')+',\n'+
+				'\t'*4+str(self._series[24:30]).strip('[]')+',\n'+
+				'\t'*4+str(self._series[30:36]).strip('[]'))
 			elif self._args[1] == 1:
-				ret = ('\n\t\tsym,\n'+
-				'\t'*3+str(self._series[0:6]).strip('[]')+',\n'+
-				'\t'*4+str(self._series[7:12]).strip('[]')+',\n'+
-				'\t'*5+str(self._series[14:18]).strip('[]')+',\n'+
-				'\t'*6+str(self._series[21:24]).strip('[]')+',\n'+
-				'\t'*7+str(self._series[28:30]).strip('[]')+',\n'+
-				'\t'*8+str(self._series[35]))
+				ret = ('\n\t\t\tsym,\n'+
+				'\t'*4+str(self._series[0:6]).strip('[]')+',\n'+
+				'\t'*5+str(self._series[7:12]).strip('[]')+',\n'+
+				'\t'*6+str(self._series[14:18]).strip('[]')+',\n'+
+				'\t'*7+str(self._series[21:24]).strip('[]')+',\n'+
+				'\t'*8+str(self._series[28:30]).strip('[]')+',\n'+
+				'\t'*9+str(self._series[35]))
 			elif self._args[2] == 1:
-				ret = '\n\t\tdiag, '+str([self._series[i] for i in [0, 7, 14, 21, 28, 35]]).strip('[]')
+				ret = '\n\t\t\tdiag, '+str([self._series[i] for i in [0, 7, 14, 21, 28, 35]]).strip('[]')
 			elif self._args[3] == 1:
-				ret = 'eye'
+				ret = '\n\t\t\teye'
 			elif self._args[4] == 1:
-				ret = 'null'
+				ret = '\n\t\t\tnull'
 		elif self.type == '6xN':
 			if self._args[0] == 1:
 				N = self._args[2]
-				ret = ('\n\t\tmatr')
+				ret = ('\n\t\t\tmatr')
 				for i in range(N):
-					ret += ',\n\t'*3+str(self._series[i*N:(i+1)*N]).strip('[]')
+					ret += ',\n\t'*4+str(self._series[i*N:(i+1)*N]).strip('[]')
 			elif self._args[1] == 1:
-				ret = 'null'
+				ret = '\n\t\t\tnull'
 		return ret
 
 class Friction(Common):
@@ -3715,13 +3952,13 @@ class Friction(Common):
 				tmp = self.links[0].name
 			string = [
 			('Name: ', nval, 0, 30),
-			('Sigma 0:',	args[0], -1.e6, 1.e6),
-			('Sigma 1:',	args[1], -1.e6, 1.e6),
-			('Sigma 2:',	args[2], -1.e6, 1.e6),
-			('Kappa:',		args[3], -1.e6, 1.e6),
+			('Sigma 0:',	args[0], -9.9e10, 9.9e10),
+			('Sigma 1:',	args[1], -9.9e10, 9.9e10),
+			('Sigma 2:',	args[2], -9.9e10, 9.9e10),
+			('Kappa:',		args[3], -9.9e10, 9.9e10),
 			('sf:'+tmp, 	args[4], 'Change friction function'),
 			('Plane hinge',	args[5], 'Simple plane hinge (else just simple shape function)'),
-			('Radius:',		args[6], 0., 1.e6, 'Active only if plane hinge is selected')]
+			('Radius:',		args[6], 0., 9.9e10, 'Active only if plane hinge is selected')]
 			if self in self.database.Friction:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -3738,12 +3975,12 @@ class Friction(Common):
 			string = [
 			('Name: ', nval, 0, 30),
 			('Use Sigma 2',		args[0]),
-			('Sigma 2:',		args[1], 0., 1.e6),
+			('Sigma 2:',		args[1], 0., 9.9e10),
 			('Use vel ratio',	args[2], 'Use velocity ratio'),
 			('Vel ratio:',		args[3], 0, 1., 'Velocity ratio'),
 			('sf:'+tmp, 		args[4], 'Change friction function'),
 			('Plane hinge',		args[5], 'Simple plane hinge (else just simple shape function)'),
-			('Radius:',			args[6], 0., 1.e6, 'Active only if plane hinge is selected')]
+			('Radius:',			args[6], 0., 9.9e10, 'Active only if plane hinge is selected')]
 			if self in self.database.Friction:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -3828,7 +4065,7 @@ class Function(Common):
 		if self.type == 'Const':
 			string = [
 			('Name: ', nval, 0, 30),
-			('Constant:',	args[0], -1.e6, 1.e6)]
+			('Constant:',	args[0], -9.9e10, 9.9e10)]
 			if self in self.database.Function:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -3837,10 +4074,10 @@ class Function(Common):
 			string = [
 			('Name: ', nval, 0, 30),
 			('Base',	args[0], 'Overrides default base (e)'),
-			('Base:',	args[1], 0., 1.e6),
+			('Base:',	args[1], 0., 9.9e10),
 			('Coef',	args[2], 'Overrides default coefficient (1)'),
-			('Coef:',	args[3], -1.e6, 1.e6),
-			('Mult:',	args[4], -1.e6, 1.e6)]
+			('Coef:',	args[3], -9.9e10, 9.9e10),
+			('Mult:',	args[4], -9.9e10, 9.9e10)]
 			if self in self.database.Function:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -3849,10 +4086,10 @@ class Function(Common):
 			string = [
 			('Name: ', nval, 0, 30),
 			('Base',	args[0], 'Overrides default base (e)'),
-			('Base:',	args[1], 0., 1.e6),
+			('Base:',	args[1], 0., 9.9e10),
 			('Coef',	args[2], 'Overrides default coefficient (1)'),
-			('Coef:',	args[3], 0., 1.e6),
-			('Mult:',	args[4], -1.e6, 1.e6)]
+			('Coef:',	args[3], 0., 9.9e10),
+			('Mult:',	args[4], -9.9e10, 9.9e10)]
 			if self in self.database.Function:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -3860,7 +4097,7 @@ class Function(Common):
 		elif self.type == 'Pow':
 			string = [
 			('Name: ', nval, 0, 30),
-			('Exp:',	args[0], -1.e6, 1.e6, 'Exponent coefficient')]
+			('Exp:',	args[0], -9.9e10, 9.9e10, 'Exponent coefficient')]
 			if self in self.database.Function:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -3868,10 +4105,10 @@ class Function(Common):
 		elif self.type == 'Linear':
 			string = [
 			('Name: ', nval, 0, 30),
-			('x1:',	args[0], -1.e6, 1.e6),
-			('y1:',	args[1], -1.e6, 1.e6),
-			('x2:',	args[2], -1.e6, 1.e6),
-			('y2:',	args[3], -1.e6, 1.e6)]
+			('x1:',	args[0], -9.9e10, 9.9e10),
+			('y1:',	args[1], -9.9e10, 9.9e10),
+			('x2:',	args[2], -9.9e10, 9.9e10),
+			('y2:',	args[3], -9.9e10, 9.9e10)]
 			if self in self.database.Function:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -3892,16 +4129,16 @@ class Function(Common):
 				seq = ['']*(16*((N-1)/8+1))
 				for col in range((N-1)/8+1):
 					for i in range(min(8, N-col*8)):
-						seq[16*col+i] = ('x'+str(8*col+i)+': ', series[16*col+2*i], -1.e6, 1.e6)
-						seq[16*col+8+i] = ('y'+str(8*col+i)+': ', series[16*col+2*i+1], -1.e6, 1.e6)
+						seq[16*col+i] = ('x'+str(8*col+i)+': ', series[16*col+2*i], -9.9e10, 9.9e10)
+						seq[16*col+8+i] = ('y'+str(8*col+i)+': ', series[16*col+2*i+1], -9.9e10, 9.9e10)
 				Draw.PupBlock(self.type, seq)
 				self._series[:len(series)] = [item.val for item in series]
 				self._args = [arg.val for arg in args[:2]]
 		elif self.type == 'Chebychev':
 			string = [
 			('Name: ', nval, 0, 30),
-			('Lower bound:',	args[0], -1.e6, 1.e6),
-			('Upper bound:',	args[1], -1.e6, 1.e6),
+			('Lower bound:',	args[0], -9.9e10, 9.9e10),
+			('Upper bound:',	args[1], -9.9e10, 9.9e10),
 			('Extrapolate',		args[2]),
 			('Number of pts:', args[3], 2, 50)]
 			if self in self.database.Function:
@@ -3914,7 +4151,7 @@ class Function(Common):
 				series = [Draw.Create(self._series[i]) for i in range(N)]
 				seq = []
 				for i in range(N):
-					seq.append(('coef_'+str(i)+':', series[i], -1.e6, 1.e6))
+					seq.append(('coef_'+str(i)+':', series[i], -9.9e10, 9.9e10))
 				Draw.PupBlock(self.type, seq)
 				self._series[:N] = [item.val for item in series]
 				self._args = [arg.val for arg in args[:4]]
@@ -3944,6 +4181,12 @@ class Function(Common):
 		return self.finalize(nval, delete, single, self.database.Function)
 
 	def write(self, text):
+		if self.written:
+			return
+		if self.links:
+			for link in self.links:
+				link.write(text)
+		self.written = True
 		if self.type == 'Const':
 			text.write('scalar function: "'+self.name+'", const, '+str(self._args[0])+';\n')
 		elif self.type == 'Exp':
@@ -4125,7 +4368,7 @@ class Drive(Common):
 		elif self.type == 'Constant drive':
 			string = [
 			('Name: ', nval, 0, 30),
-			('Constant:',	args[0], -1.e6, 1.e6)]
+			('Constant:',	args[0], -9.9e10, 9.9e10)]
 			if self in self.database.Drive:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -4140,8 +4383,8 @@ class Drive(Common):
 		elif self.type == 'Linear drive':
 			string = [
 			('Name: ', nval, 0, 30),
-			('Constant:',	args[0], -1.e6, 1.e6),
-			('Slope:',		args[1], -1.e6, 1.e6)]
+			('Constant:',	args[0], -9.9e10, 9.9e10),
+			('Slope:',		args[1], -9.9e10, 9.9e10)]
 			if self in self.database.Drive:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -4149,9 +4392,9 @@ class Drive(Common):
 		elif self.type == 'Parabolic drive':
 			string = [
 			('Name: ', nval, 0, 30),
-			('Constant:',	args[0], -1.e6, 1.e6),
-			('Linear:',		args[1], -1.e6, 1.e6),
-			('Parabolic:',	args[2], -1.e6, 1.e6)]
+			('Constant:',	args[0], -9.9e10, 9.9e10),
+			('Linear:',		args[1], -9.9e10, 9.9e10),
+			('Parabolic:',	args[2], -9.9e10, 9.9e10)]
 			if self in self.database.Drive:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -4159,10 +4402,10 @@ class Drive(Common):
 		elif self.type == 'Cubic drive':
 			string = [
 			('Name: ', nval, 0, 30),
-			('Constant:',	args[0], -1.e6, 1.e6),
-			('Linear:',		args[1], -1.e6, 1.e6),
-			('Parabolic:',	args[2], -1.e6, 1.e6),
-			('Cubic:',		args[3], -1.e6, 1.e6)]
+			('Constant:',	args[0], -9.9e10, 9.9e10),
+			('Linear:',		args[1], -9.9e10, 9.9e10),
+			('Parabolic:',	args[2], -9.9e10, 9.9e10),
+			('Cubic:',		args[3], -9.9e10, 9.9e10)]
 			if self in self.database.Drive:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -4170,9 +4413,9 @@ class Drive(Common):
 		elif self.type == 'Step drive':
 			string = [
 			('Name: ', nval, 0, 30),
-			('Initial time:',	args[0], 0., 1.e6),
-			('Step:',			args[1], -1.e6, 1.e6),
-			('Initial value:',	args[2], -1.e6, 1.e6)]
+			('Initial time:',	args[0], 0., 9.9e10),
+			('Step:',			args[1], -9.9e10, 9.9e10),
+			('Initial value:',	args[2], -9.9e10, 9.9e10)]
 			if self in self.database.Drive:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -4180,10 +4423,10 @@ class Drive(Common):
 		elif self.type == 'Double step drive':
 			string = [
 			('Name: ', nval, 0, 30),
-			('Initial time:',	args[0], 0., 1.e6),
-			('Final time:',		args[1], 0., 1.e6),
-			('Step value:',		args[2], -1.e6, 1.e6),
-			('Initial value:',	args[3], -1.e6, 1.e6)]
+			('Initial time:',	args[0], 0., 9.9e10),
+			('Final time:',		args[1], 0., 9.9e10),
+			('Step value:',		args[2], -9.9e10, 9.9e10),
+			('Initial value:',	args[3], -9.9e10, 9.9e10)]
 			if self in self.database.Drive:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -4191,11 +4434,11 @@ class Drive(Common):
 		elif self.type == 'Ramp drive':
 			string = [
 			('Name: ', nval, 0, 30),
-			('Slope:',			args[0], -1.e6, 1.e6),
-			('Initial time:',	args[1], 0., 1.e6),
+			('Slope:',			args[0], -9.9e10, 9.9e10),
+			('Initial time:',	args[1], 0., 9.9e10),
 			('Forever',			args[2], 'Overrides final time'),
-			('Final time:',		args[3], 0., 1.e6),
-			('Initial value:',	args[4], -1.e6, 1.e6)]
+			('Final time:',		args[3], 0., 9.9e10),
+			('Initial value:',	args[4], -9.9e10, 9.9e10)]
 			if self in self.database.Drive:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -4203,14 +4446,14 @@ class Drive(Common):
 		elif self.type == 'Double ramp drive':
 			string = [
 			('Name: ', nval, 0, 30),
-			('Slope-a:',		args[0], -1.e6, 1.e6),
-			('Initial time:',	args[1], 0., 1.e6),
-			('Final time:',		args[2], 0., 1.e6),
-			('Slope-d:',		args[3], -1.e6, 1.e6),
-			('Initial time:',	args[4], 0., 1.e6),
+			('Slope-a:',		args[0], -9.9e10, 9.9e10),
+			('Initial time:',	args[1], 0., 9.9e10),
+			('Final time:',		args[2], 0., 9.9e10),
+			('Slope-d:',		args[3], -9.9e10, 9.9e10),
+			('Initial time:',	args[4], 0., 9.9e10),
 			('Forever',			args[5], 'Overrides final time-d'),
-			('Final time:',		args[6], 0., 1.e6),
-			('Initial value:',	args[7], -1.e6, 1.e6)]
+			('Final time:',		args[6], 0., 9.9e10),
+			('Initial value:',	args[7], -9.9e10, 9.9e10)]
 			if self in self.database.Drive:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -4230,8 +4473,8 @@ class Drive(Common):
 				seq = ['']*(16*((N-1)/8+1))
 				for col in range((N-1)/8+1):
 					for i in range(min(8, N-col*8)):
-						seq[16*col+i] = ('Point_'+str(8*col+i)+': ', series[16*col+2*i], -1.e6, 1.e6)
-						seq[16*col+8+i] = ('Value_'+str(8*col+i)+': ', series[16*col+2*i+1], -1.e6, 1.e6)
+						seq[16*col+i] = ('Point_'+str(8*col+i)+': ', series[16*col+2*i], -9.9e10, 9.9e10)
+						seq[16*col+8+i] = ('Value_'+str(8*col+i)+': ', series[16*col+2*i+1], -9.9e10, 9.9e10)
 				Draw.PupBlock(self.type, seq)
 				self._series[:len(series)] = [item.val for item in series]
 				self._args = [N]
@@ -4240,11 +4483,11 @@ class Drive(Common):
 			while not state in [0,1]:
 				string = [
 			('Name: ', nval, 0, 30),
-			('Initial time:',	args[0], 0., 1.e6),
-			('Omega:',			args[1], 0., 1.e6, 'radians per second'),
-			('Amplitude:',		args[2], -1.e6, 1.e6),
+			('Initial time:',	args[0], 0., 9.9e10),
+			('Omega:',			args[1], 0., 9.9e10, 'radians per second'),
+			('Amplitude:',		args[2], -9.9e10, 9.9e10),
 			('N-cycles:',		args[3], -1e6, 1e6),
-			('Initial value:',	args[4], -1.e6, 1.e6),
+			('Initial value:',	args[4], -9.9e10, 9.9e10),
 			('Half',			args[5], 'Overrides final time (select only one override)'),
 			('One',				args[6], 'Overrides final time (select only one override)'),
 			('Forever',			args[7], 'Overrides final time (select only one override)')]
@@ -4258,11 +4501,11 @@ class Drive(Common):
 			while not state in [0,1]:
 				string = [
 			('Name: ', nval, 0, 30),
-			('Initial time:',	args[0], 0., 1.e6),
-			('Omega:',			args[1], 0., 1.e6, 'radians per second'),
-			('Amplitude:',		args[2], -1.e6, 1.e6),
+			('Initial time:',	args[0], 0., 9.9e10),
+			('Omega:',			args[1], 0., 9.9e10, 'radians per second'),
+			('Amplitude:',		args[2], -9.9e10, 9.9e10),
 			('N-cycles:',		args[3], -1e6, 1e6),
-			('Initial value:',	args[4], -1.e6, 1.e6),
+			('Initial value:',	args[4], -9.9e10, 9.9e10),
 			('Half',			args[5], 'Overrides final time (select only one override)'),
 			('One',				args[6], 'Overrides final time (select only one override)'),
 			('Forever',			args[7], 'Overrides final time (select only one override)')]
@@ -4274,10 +4517,10 @@ class Drive(Common):
 		elif self.type == 'Tanh drive':
 			string = [
 			('Name: ', nval, 0, 30),
-			('Initial time:',	args[0], 0., 1.e6),
-			('Amplitude:',		args[1], -1.e6, 1.e6),
-			('Slope:',			args[2], -1.e6, 1.e6),
-			('Initial value:',	args[3], -1.e6, 1.e6)]
+			('Initial time:',	args[0], 0., 9.9e10),
+			('Amplitude:',		args[1], -9.9e10, 9.9e10),
+			('Slope:',			args[2], -9.9e10, 9.9e10),
+			('Initial value:',	args[3], -9.9e10, 9.9e10)]
 			if self in self.database.Drive:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -4287,13 +4530,13 @@ class Drive(Common):
 			while not state in [0,1]:
 				string = [
 			('Name: ', nval, 0, 30),
-			('Initial time:',	args[0], 0., 1.e6),
-			('Omega:',			args[1], -1.e6, 1.e6),
+			('Initial time:',	args[0], 0., 9.9e10),
+			('Omega:',			args[1], -9.9e10, 9.9e10),
 			('Number of terms:',args[2], 1, 50),
 			('N-cycles:',		args[3], -1e6, 1e6),
 			('One',				args[4], 'Overrides N-cycles (select only one override)'),
 			('Forever',			args[5], 'Overrides N-cycles (select only one override)'),
-			('Initial value:',	args[6], -1.e6, 1.e6)]
+			('Initial value:',	args[6], -9.9e10, 9.9e10)]
 				if self in self.database.Drive:
 					self.permit_deletion(linking, string, delete, single)
 				if not Draw.PupBlock(self.type, string): return
@@ -4307,10 +4550,10 @@ class Drive(Common):
 				seq = ['']*(16*((N-1)/8+1))
 				for col in range((N-1)/8+1):
 					for i in range(min(8, N-col*8)):
-						seq[16*col+i] = ('a_'+str(8*col+i)+': ', series[16*col+2*i-1], -1.e6, 1.e6)
-						seq[16*col+8+i] = ('b_'+str(8*col+i)+': ', series[16*col+2*i], -1.e6, 1.e6)
+						seq[16*col+i] = ('a_'+str(8*col+i)+': ', series[16*col+2*i-1], -9.9e10, 9.9e10)
+						seq[16*col+8+i] = ('b_'+str(8*col+i)+': ', series[16*col+2*i], -9.9e10, 9.9e10)
 				seq[0] = ('Using only terms 0 to '+str(N-1))
-				seq[8] = ('a_0: ', series[0], -1.e6, 1.e6)
+				seq[8] = ('a_0: ', series[0], -9.9e10, 9.9e10)
 				Draw.PupBlock(self.type, seq)
 				self._series[:len(series)] = [item.val for item in series]
 		elif self.type == 'Frequency sweep drive':
@@ -4320,13 +4563,13 @@ class Drive(Common):
 					tmp[i] = self.links[i].name
 			string = [
 			('Name: ', nval, 0, 30),
-			('Initial time: ',	args[0], 0., 1.e6),
+			('Initial time: ',	args[0], 0., 9.9e10),
 			(tmp[0],		 	args[1], 'Change angular velocity drive'),
 			(tmp[1], 			args[2], 'Change amplitude drive.'),
-			('Initial value:',	args[3], -1.e6, 1.e6),
+			('Initial value:',	args[3], -9.9e10, 9.9e10),
 			('Forever',			args[4], 'Overrides final time'),
-			('Final time:',		args[5], 0., 1.e6),
-			('Final value:',	args[6], -1.e6, 1.e6)]
+			('Final time:',		args[5], 0., 9.9e10),
+			('Final value:',	args[6], -9.9e10, 9.9e10)]
 			if self in self.database.Drive:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -4342,10 +4585,10 @@ class Drive(Common):
 		elif self.type == 'Exponential drive':
 			string = [
 			('Name: ', nval, 0, 30),
-			('Amplitude:',		args[0], -1.e6, 1.e6),
-			('Time constant:',	args[1], -1.e6, 1.e6),
-			('Initial time:',	args[2], 0., 1.e6),
-			('Initial value:',	args[3], -1.e6, 1.e6)]
+			('Amplitude:',		args[0], -9.9e10, 9.9e10),
+			('Time constant:',	args[1], -9.9e10, 9.9e10),
+			('Initial time:',	args[2], 0., 9.9e10),
+			('Initial value:',	args[3], -9.9e10, 9.9e10)]
 			if self in self.database.Drive:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -4353,14 +4596,14 @@ class Drive(Common):
 		elif self.type == 'Random drive':
 			string = [
 			('Name: ', nval, 0, 30),
-			('Amplitude:',		args[0], -1.e6, 1.e6),
-			('Mean:',			args[1], -1.e6, 1.e6),
-			('Initial time:',	args[2], 0., 1.e6),
+			('Amplitude:',		args[0], -9.9e10, 9.9e10),
+			('Mean:',			args[1], -9.9e10, 9.9e10),
+			('Initial time:',	args[2], 0., 9.9e10),
 			('Forever',			args[3], 'Overrides final time'),
-			('Final time:',		args[4], 0., 1.e6),
+			('Final time:',		args[4], 0., 9.9e10),
 			('Steps:',			args[5], 0, 1e6, 'Steps to hold value'),
 			('Time seed',		args[6], 'Overrides Seed value with Time value'),
-			('Seed:',			args[7], -1.e6, 1.e6)]
+			('Seed:',			args[7], -9.9e10, 9.9e10)]
 			if self in self.database.Drive:
 				self.permit_deletion(linking, string, delete, single)
 			if not Draw.PupBlock(self.type, string): return
@@ -4368,9 +4611,9 @@ class Drive(Common):
 		elif self.type == 'Meter drive':
 			string = [
 			('Name: ', nval, 0, 30),
-			('Initial time:',	args[0], 0., 1.e6),
+			('Initial time:',	args[0], 0., 9.9e10),
 			('Forever',			args[1], 'Overrides final time'),
-			('Final time:',		args[2], 0., 1.e6),
+			('Final time:',		args[2], 0., 9.9e10),
 			('Steps:',			args[3], 0, 1e6, 'Steps between spikes')]
 			if self in self.database.Drive:
 				self.permit_deletion(linking, string, delete, single)
@@ -4383,10 +4626,10 @@ class Drive(Common):
 			string = [
 			('Name: ', nval, 0, 30),
 			(tmp,				args[0], 'Change driver'),
-			('Initial value:',	args[1], -1.e6, 1.e6),
-			('Minimum value:',	args[2], -1.e6, 1.e6),
-			('Maximum value:',	args[3], -1.e6, 1.e6),
-			('Increment:',		args[4], -1.e6, 1.e6),
+			('Initial value:',	args[1], -9.9e10, 9.9e10),
+			('Minimum value:',	args[2], -9.9e10, 9.9e10),
+			('Maximum value:',	args[3], -9.9e10, 9.9e10),
+			('Increment:',		args[4], -9.9e10, 9.9e10),
 			('Joystick',		args[5]),
 			('Axis:',			args[6], 0, 5, 'Choose joystick axis')]
 			if self in self.database.Drive:

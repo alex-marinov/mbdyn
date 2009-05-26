@@ -8,7 +8,7 @@ Tooltip: 'Create, Run, and Import the results of an MBDyn multibody dynamic mode
 
 __author__ = "G. Douglas Baldwin, douglasbaldwin AT verizon.net"
 __url__ = ["http://www.baldwintechnology.com"]
-__version__ = "0.1.5"
+__version__ = "0.3.0"
 __bpydoc__ = """\
 Description:
 
@@ -25,7 +25,7 @@ and can be manually editied before pressing the Run button to execute MBDyn.
 
 # --------------------------------------------------------------------------
 # Blender MBDyn
-# Copyright (C) 2008 G. Douglas Baldwin - http://www.baldwintechnology.com
+# Copyright (C) 2008, 2009 G. Douglas Baldwin - http://www.baldwintechnology.com
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -51,8 +51,8 @@ import mbdyn
 reload(mbdyn)
 from mbdyn import MBDyn, Frame, Element, Constitutive, Shape
 from mbdyn import Matrix, Friction, Function, Drive, Menu
-import Blender, pickle
-from Blender import Draw, Object, Scene, Text, Window, BGL, Mathutils, Ipo
+import Blender, pickle, bpy
+from Blender import Draw, Object, Scene, Text, Window, BGL, Mathutils, Ipo, Mesh
 from cStringIO import StringIO
 from subprocess import call, Popen
 from time import sleep, clock
@@ -75,6 +75,51 @@ def persistent_load(persid):
 		return Object.Get(value)
 	else:
 		raise pickle.UnpicklingError, 'Invalid persistent id'
+
+def persistent_load_append(persid):
+	if persid.startswith('the value '):
+		value = persid.split()[2]
+		if value in mbdyn.append_objects:
+			ob = mbdyn.append_objects[value]
+		else:
+			scn= bpy.data.scenes.active                       # get current scene
+			lib = bpy.libraries.load(mbdyn.append_filename)          # open file.blend
+			pseudoOb = lib.objects.append(value)            # get an object wrapper
+			ob = scn.objects.link(pseudoOb)                                   # link to scene
+			mbdyn.append_objects[value] = ob
+		return ob
+	else:
+		raise pickle.UnpicklingError, 'Invalid persistent id'
+
+def append_callback(filename):
+	if not Blender.sys.exists(filename):
+		Draw.PupMenu(filename+' does not exist') 
+		return
+	if Draw.PupMenu("Append mbdyn model from%t|"+filename):
+		mbdyn.append_filename = filename
+		mbdyn.append_objects = {}
+		lib = bpy.libraries.load(filename)
+		try:
+			pickle_file = lib.texts.link('_Pickle')
+		except:
+			Draw.PupMenu(filename+' does not contain an mbdyn model')
+			return
+		datastream = '\n'.join(pickle_file.asLines())
+		dst = StringIO(datastream)
+		up = pickle.Unpickler(dst)
+		up.persistent_load = persistent_load_append
+		mbdyn_append = MBDyn()
+		mbdyn_append = up.load()
+		dst.close()
+		bpy.data.texts.unlink(pickle_file)
+		for clas in MBDyn.entity_classes+['Frame']:
+			for item in eval('mbdyn_append.'+clas):
+				item.database = mbdyn
+				item.name_check(eval('mbdyn.'+clas))
+				eval('mbdyn.'+clas+'.append(item)')
+		del mbdyn.append_filename
+		del mbdyn.append_objects
+		del mbdyn_append
 
 def doPickle():
 	src = StringIO()
@@ -110,7 +155,12 @@ def button_event(evt):  # the function to handle Draw Button events
 		if mbdyn._reinit:
 			mbdyn.defaults()
 		if mbdyn._change_filename:
-			Window.FileSelector(mbdyn_callback, 'mbdyn Job Name.')
+			filename, ext= Blender.sys.splitext(Blender.Get('filename'))
+			if filename:
+				filename += '.mbd'
+			else:
+				filename = 'untitled.mbd'
+			Window.FileSelector(mbdyn_callback, 'mbdyn Job Name.', filename)
 		mbdyn._change_filename = 0
 	elif evt == 2:
 		if not mbdyn.filename:
@@ -129,6 +179,11 @@ def button_event(evt):  # the function to handle Draw Button events
 		display()
 	elif evt == 5:
 		rigids()
+	elif evt == 6:
+		Draw.PupMenu('IMPORTANT: Be certain .mov has "default orientation: orientation matrix"')
+		Window.FileSelector(import_mov_callback, '.mov File Name.')
+	elif evt == 7:
+		Window.FileSelector(append_callback, '.blend File Name.')
 	Draw.Redraw(0)
 
 def gui():             # the function to draw the screen
@@ -137,6 +192,8 @@ def gui():             # the function to draw the screen
 	Draw.PushButton("Run", 3, 155, 10, 55, 20, "Run mbdyn for input file")
 	Draw.PushButton("Display", 4, 215, 10, 55, 20, "Import results into IPos starting at current frame")
 	Draw.PushButton("Rigids", 5, 275, 10, 55, 20, "Parent Rigids")
+	Draw.PushButton("Import", 6, 335, 10, 55, 20, "Import .mov from externally run MBDyn model")
+	Draw.PushButton("Append", 7, 395, 10, 55, 20, "Append MBDyn model from .blend file")
 	BGL.glRasterPos2i(10, 40)
 	Draw.Text(mbdyn.filename)
  
@@ -149,21 +206,17 @@ def start():
 	menu.action(sel)
 	doPickle()
 
+def import_mov_callback(filename):                # callback for the FileSelector
+	if Blender.sys.exists(filename):
+		if Draw.PupMenu("Import%t|"+filename) != 1: return
+	obname, ext= Blender.sys.splitext(filename)
+	obname = Blender.sys.basename(obname)[:6]+'_'
+	import_mov(filename, obname)
+
 def mbdyn_callback(filename):                # callback for the FileSelector
 	if Blender.sys.exists(filename):
 		if Draw.PupMenu("Save Over%t|"+filename) != 1: return
 	mbdyn.filename = filename
-	if Blender.sys.sep == '/':
-		filename = filename.split('/')
-		mbdyn.directory = '/'.join(filename[:-1])+'/'
-	else:
-		filename = filename.split('\\')
-		mbdyn.directory = '\\'.join(filename[:-1])+'\\'
-	filename = filename[-1].split('.')
-	if len(filename) == 1:
-		mbdyn.nameOnly = filename[0]
-	else:
-		mbdyn.nameOnly = '.'.join(filename[:-1])
 	doPickle()
 
 def run():
@@ -189,20 +242,21 @@ def run():
 	sleep(1.)
 #	Test for Linux or Windows
 	if Blender.sys.sep == '/':
-		error = runAsync(mbdyn.filename)
+		runAsync()
 	else:
 #		Windows does not support the execution Progress Bar feature, 
-#		and may require editing C: in the following line
-		command = 'C:\Program Files\MBDyn\mbdyn.exe', '-s', '-f', mbdyn.filename
-		print command
-		error = call([command])
-	if error:
-		Draw.PupMenu('mbdyn Error: check console for message')
+#		and may require editing of the following lines
+#		or may not work at all if Blender in Windows cannot find 
+#		the mbdyn executable and input files
+		Draw.PupMenu('MBDyn will now run asyncronously in a seperate Window.')
+		command = 'start', 'cmd', '/K', 'C:\Program Files\MBDyn\mbdyn.exe', '-s', '-f', mbdyn.filename
+		call([command])
 
-def runAsync(filename):
+def runAsync():
 	f1 = TemporaryFile()
-	command = 'mbdyn -s -f '+filename+' &'
+	command = 'mbdyn -s -f '+mbdyn.filename+' &'
 	print command
+	filename, ext= Blender.sys.splitext(mbdyn.filename)
 	process = Popen(command, shell=True, stdout=f1)
 	Window.DrawProgressBar(0., 'Running mbdyn...')
 	command = "tail -n 1 "+filename+".out | awk '{print $3}'"
@@ -230,15 +284,16 @@ def runAsync(filename):
 		sleep(0.1)
 	f2.close()
 	error = 0
-	if tHold < tN: error = 1
+	if tHold < tN:
+		Draw.PupMenu('mbdyn Error: check console for message')
 	if f1:
 		f1.seek(0)
 		print f1.read()
 	f1.close()
-	return error
 
 def display():
-	filename = mbdyn.directory+mbdyn.nameOnly+'.mov'
+	filename, ext= Blender.sys.splitext(mbdyn.filename)
+	filename += '.mov'
 	Window.DrawProgressBar(0., 'Loading: '+'0%')
 	if mbdyn._IPOs:
 		for node in mbdyn.Node:
@@ -251,11 +306,19 @@ def display():
 				key.clearIpo()
 			temp = Ipo.New('Object', key.name)
 			key.setIpo(temp)
+	else:
+		for node in mbdyn.Node:
+			if not node.getIpo():
+				temp = Ipo.New('Object', node.name)
+				node.setIpo(temp)
+		for key in mbdyn.rigid_dict.keys():
+			if not key.getIpo():
+				key.clearIpo()
+				temp = Ipo.New('Object', key.name)
+				key.setIpo(temp)
 	key_Ipo = {}
 	for key in mbdyn.rigid_dict.keys():
 		key_Ipo[key] = key.getIpo()
-#	frame = Blender.Get('staframe')
-#	Blender.Set('curframe',frame)
 	save = Blender.Get('curframe')
 	frame = save
 	for node in mbdyn.Node:
@@ -304,7 +367,7 @@ def display():
 			Blender.Set('curframe',frame)
 		euler = Mathutils.Matrix(
 		fields[4:7], fields[7:10], fields[10:13]).transpose().toEuler()
-		d2r = (3.14159/180.)
+		d2r = (3.14159265358979323846/180.)
 		try:
 			mbdyn.Node[fields[0]].setLocation(fields[1:4])
 			mbdyn.Node[fields[0]].setEuler([d2r*euler.x, d2r*euler.y, d2r*euler.z])	
@@ -322,7 +385,8 @@ def display():
 	Blender.Redraw()
 
 def prepare():
-	tmp = open(mbdyn.filename+'Blender', 'w')
+	filename, ext= Blender.sys.splitext(mbdyn.filename)
+	tmp = open(filename+'.mb2', 'w')
 	tmp.write('\n'.join(Text.Get('_Input').asLines()))
 	tmp.close()
 	try:
@@ -346,10 +410,11 @@ try:
 			for j, col in enumerate(driver.columns):
 				if col._args[5]:
 					joystick = True
+					half_range = 0.5*(col._args[3] - col._args[2])
 					text.write('GameLogic.drive_'+str(i)+'['+str(j)+'] = '+
-					str(col._args[2])+' + '+str((col._args[3] - col._args[2])/0.00778198242188)+
+					str(col._args[2] + half_range)+' + '+str(half_range/.7)+
 					' * pygame.joystick.Joystick(0).get_axis('+str(col._args[6])+')\n\t'+
-					'GameLogic.ob.axis_'+str(col._args[6])+' = GameLogic.drive_'+str(i)+'['+str(j)+']\n\t')
+					'GameLogic.ob.'+col.name.replace(' ', '')+' = GameLogic.drive_'+str(i)+'['+str(j)+']\n\t')
 			text.write("""data = ''
 	columns = ''
 	for column in GameLogic.drive_"""+str(i)+""":
@@ -396,7 +461,7 @@ except:
 		sock_"""+str(i)+""".listen(5)
 		""")
 	text.write("""GameLogic.f1 = TemporaryFile()
-		command = ['"""+sudo+"""mbdyn -s -f """+mbdyn.filename+'Blender'+""" &']
+		command = ['"""+sudo+"""mbdyn -s -f """+filename+'.mb2'+""" &']
 		print command[0]
 		process = Popen(command, shell=True, stdout=GameLogic.f1)
 		GameLogic.shell_pid = process.pid
@@ -405,9 +470,9 @@ except:
 	for i, driver in enumerate(mbdyn.Driver):
 		if driver.users and driver.type == 'File' and driver._args[0]:
 			if driver._args[4]:
-				filename = mbdyn.directory+driver._args[4]
+				filename += '.' + driver._args[4]
 			else:
-				filename = mbdyn.filename+'_'+driver.name.replace(' ', '')
+				filename += '.' + driver.name.replace(' ', '')
 			text.write('GameLogic.sock_'+str(i)+', GameLogic.address_'+str(i)+' = sock_'+str(i)+""".accept()
 		GameLogic.drive_"""+str(i)+' = '+str([d._args[1] for d in driver.columns])+"""
 		GameLogic.qty_"""+str(i)+""" = len(GameLogic.drive_"""+str(i)+""")
@@ -472,3 +537,60 @@ def rigids():
 		if element.type == 'Rigid':
 			element.objects[0].sel = 1
 			element.objects[1].makeParent([element.objects[0]])
+
+def import_mov(filename, obname):
+	sce= bpy.data.scenes.active
+	me = Mesh.Primitives.Cube(2.0)
+	Window.DrawProgressBar(0., 'Loading: '+'0%')
+#	frame = 0
+#	Blender.Set('curframe',frame)
+	save = Blender.Get('curframe')
+	frame = save -1
+	movFile = open(filename)
+	lines = movFile.readlines()
+	try:
+		marker = int(lines[0].split()[0])
+	except:
+		Draw.PupMenu('Error: Can not read .mov file')
+		return
+	nLines = len(lines)
+	iLines = 0
+	portion = 0.
+	timeMark = clock()
+	radConv = 18./3.14159265358979323846
+	d2r = 3.14159265358979323846/180.
+	objects = []
+	obj_dict = {}
+	for line in lines:
+		timeCheck = clock()
+		if timeCheck-timeMark >0.1:
+			portion = float(iLines)/float(nLines)
+			Window.DrawProgressBar(portion, 'Loading: '+str(int(100.*portion))+'%')
+			timeMark = timeCheck
+		iLines +=1
+		fields = line.split()
+		fields = [int(fields[0])] + [float(field) for field in fields[1:13]]
+		if fields[0] == marker:
+			sce.update(1)
+			frame += 1
+			Blender.Set('curframe',frame)
+		if frame == save:
+			ob = sce.objects.new(me)
+			ob.name = obname+str(fields[0])
+			ob.drawMode = Object.DrawModes['NAME']
+			objects.append(ob)
+			obj_dict[fields[0]] = len(obj_dict)
+		euler = Mathutils.Matrix(
+		fields[4:7], fields[7:10], fields[10:13]).transpose().toEuler()
+		try:
+			objects[obj_dict[fields[0]]].setLocation(fields[1:4])
+			objects[obj_dict[fields[0]]].setEuler([d2r*euler.x, d2r*euler.y, d2r*euler.z])	
+			objects[obj_dict[fields[0]]].insertIpoKey(Object.IpoKeyTypes.LOCROT)
+		except:
+			Draw.PupMenu('Error: Problem loading data.')
+			return
+	Window.DrawProgressBar(1., 'Loading: '+'100%')
+	Blender.Set('curframe',save)
+	Blender.Redraw()
+
+
