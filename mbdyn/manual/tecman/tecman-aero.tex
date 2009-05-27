@@ -338,12 +338,12 @@ The aerodynamic forces and moments acting on the $i$-th node of the
 beam are:
 \begin{subequations}\label{eq:fici}
 \begin{align}
-	\T{f}_i &= \Rloc_i {\T{f}_a}_i\\ 
-	\T{c}_i &= \Rloc_i {\T{c}_a}_i 
+	\T{f}_i &= \Rloc {\T{f}_a}_i\\ 
+	\T{c}_i &= \Rloc {\T{c}_a}_i 
 		+ \plbr{{\T{x}_r}_i - \T{x}_i}\times{\T{f}}_i 
 \end{align}
 \end{subequations}
-where $\Rloc_i$ is the orientation 
+where $\Rloc$ is the orientation 
 matrix from the local frame of the aerodynamics
 to the global, while ${\T{f}_a}_i$ and ${\T{c}_a}_i$ are the 
 aerodynamic force and moment 
@@ -439,7 +439,7 @@ respectively result in:
 		\T{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow{3}}}\Rtilde{2}^T
 		\plbr{\T{\theta_{\delta 3}}-\T{\theta_{\delta 2}}}\\ 
 \end{align}
-The other components are:
+The other contributions are:
 \begin{align}
 	\delta\T{v}_r &= \sum_{i=1}^3N_i\plbr{\delta\T{v}_i 
 			- \TT{R}_i\T{b}_i\times\delta\T{\omega}_i
@@ -450,6 +450,7 @@ The other components are:
 			- \TT{R}_i\T{b}_i\times\T{\theta}_{\delta i}}\\
 	\delta\T{x}_i &= \delta\T{x}_i - \TT{R}_i\T{b}_i
 			\times\T{\theta}_{\delta i}
+	\textbf{FIXME}
 \end{align}
 
 
