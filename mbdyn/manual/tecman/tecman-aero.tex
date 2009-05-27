@@ -416,28 +416,26 @@ respectively result in:
 \newcommand{\vv}{\T{\overline{v}}}
 \begin{align}
 \nonumber	\plbr{\delta\Rloc}\vv &= 
-		-\plbr{\Rloc\vv}\times\T{\theta_{\delta 2}}\\ 
-\nonumber	&+\plbr{\Rot{\overline{\T{g}}}\vv}\times
-		N_1\Rtilde{2}\T{\Gamma}\plbr{\overline{\T{g}}}
-		\T{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow{1}}}\Rtilde{2}^T
-		\plbr{\T{\theta_{\delta 2}}-\T{\theta_{\delta 1}}}\\ 
-\nonumber	&-\plbr{\Rot{\overline{\T{g}}}\vv}\times
-		N_3\Rtilde{2}\T{\Gamma}\plbr{\overline{\T{g}}}
-		\T{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow{3}}}\Rtilde{2}^T
-		\plbr{\T{\theta_{\delta 2}}-\T{\theta_{\delta 3}}}\\ 
-		\\
+		-\plbr{\Rloc\vv}\times\T{\theta_{2\delta}}\\ 
+\nonumber	&+\plbr{\Rloc\vv}\times
+		\Rtilde{2}\T{\Gamma}\plbr{\overline{\T{g}}}\plbr{
+			N_1 \T{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow{1}}}\Rtilde{2}^T
+			\plbr{\T{\theta_{2\delta}}-\T{\theta_{1\delta}}}
+			+N_3 \T{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow{3}}}\Rtilde{2}^T
+			\plbr{\T{\theta_{2\delta}}-\T{\theta_{3\delta}}}
+		} \\
 \nonumber	\plbr{\delta\Rloc^T}\vv &= 
-		-\Rloc^T\vv\times\T{\theta_{\delta 2}}\\ 
+		\Rloc^T\vv\times\T{\theta_{2\delta}}\\ 
 \nonumber	&+N_1\sqbr{\Rot{\overline{\T{g}}}}^T
 			\plbr{\Rtilde{2}^T\vv}\times
 		\T{\Gamma}\plbr{\overline{\T{g}}}
 		\T{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow{1}}}\Rtilde{2}^T
-		\plbr{\T{\theta_{\delta 1}}-\T{\theta_{\delta 2}}}\\ 
+		\plbr{\T{\theta_{1\delta}}-\T{\theta_{2\delta}}}\\ 
 \nonumber	&+N_3\sqbr{\Rot{\overline{\T{g}}}}^T
 			\plbr{\Rtilde{2}^T\vv}\times
 		\T{\Gamma}\plbr{\overline{\T{g}}}
 		\T{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow{3}}}\Rtilde{2}^T
-		\plbr{\T{\theta_{\delta 3}}-\T{\theta_{\delta 2}}}\\ 
+		\plbr{\T{\theta_{3\delta}}-\T{\theta_{2\delta}}}\\ 
 \end{align}
 The other contributions are:
 \begin{align}
@@ -448,9 +446,7 @@ The other contributions are:
 	\delta\T{\omega}_r &= \sum_{i=1}^3N_i\delta\T{\omega}_i\\ 
 	\delta\T{x}_r &= \sum_{i=1}^3N_i\plbr{\delta\T{x}_i 
 			- \TT{R}_i\T{b}_i\times\T{\theta}_{\delta i}}\\
-	\delta\T{x}_i &= \delta\T{x}_i - \TT{R}_i\T{b}_i
-			\times\T{\theta}_{\delta i}
-	\textbf{FIXME}
+	\delta\T{x}_i &= \delta\T{x}_i
 \end{align}
 
 
