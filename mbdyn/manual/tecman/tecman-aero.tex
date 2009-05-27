@@ -412,16 +412,16 @@ First of all, the most recursive terms are the product between
 $\delta\Rloc$ and a vector, and the product between $\delta\Rloc^T$
 and a vector. These, defining $\overline{\T{g}}=N_1\T{g}_{2\leftarrow{1}} 
 + N_3\T{g}_{2\leftarrow{3}}$, 
-result, respectively, in:
+respectively result in:
 \newcommand{\vv}{\T{\overline{v}}}
 \begin{align}
 \nonumber	\plbr{\delta\Rloc}\vv &= 
-		-\sqbr{\Rloc\vv}\times\T{\theta_{\delta 2}}\\ 
-\nonumber	&+\sqbr{\Rot{\overline{\T{g}}}\vv}\times
+		-\plbr{\Rloc\vv}\times\T{\theta_{\delta 2}}\\ 
+\nonumber	&+\plbr{\Rot{\overline{\T{g}}}\vv}\times
 		N_1\Rtilde{2}\T{\Gamma}\plbr{\overline{\T{g}}}
 		\T{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow{1}}}\Rtilde{2}^T
 		\plbr{\T{\theta_{\delta 2}}-\T{\theta_{\delta 1}}}\\ 
-\nonumber	&-\sqbr{\Rot{\overline{\T{g}}}\vv}\times
+\nonumber	&-\plbr{\Rot{\overline{\T{g}}}\vv}\times
 		N_3\Rtilde{2}\T{\Gamma}\plbr{\overline{\T{g}}}
 		\T{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow{3}}}\Rtilde{2}^T
 		\plbr{\T{\theta_{\delta 2}}-\T{\theta_{\delta 3}}}\\ 
@@ -429,12 +429,12 @@ result, respectively, in:
 \nonumber	\plbr{\delta\Rloc^T}\vv &= 
 		-\Rloc^T\vv\times\T{\theta_{\delta 2}}\\ 
 \nonumber	&+N_1\sqbr{\Rot{\overline{\T{g}}}}^T
-			\sqbr{\Rtilde{2}^T\vv}\times
+			\plbr{\Rtilde{2}^T\vv}\times
 		\T{\Gamma}\plbr{\overline{\T{g}}}
 		\T{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow{1}}}\Rtilde{2}^T
 		\plbr{\T{\theta_{\delta 1}}-\T{\theta_{\delta 2}}}\\ 
 \nonumber	&+N_3\sqbr{\Rot{\overline{\T{g}}}}^T
-			\sqbr{\Rtilde{2}^T\vv}\times
+			\plbr{\Rtilde{2}^T\vv}\times
 		\T{\Gamma}\plbr{\overline{\T{g}}}
 		\T{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow{3}}}\Rtilde{2}^T
 		\plbr{\T{\theta_{\delta 3}}-\T{\theta_{\delta 2}}}\\ 
