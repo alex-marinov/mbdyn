@@ -334,12 +334,12 @@ of the (three) beam nodes.
 \newcommand{\Rtilde}[1]{\tilde{\TT{R}}_{#1}}
 \newcommand{\Cay}[1]{\text{Cay}\plbr{#1}}
 \newcommand{\Rot}[1]{\text{Rot}\plbr{#1}}
-The aerodynamic forces and moments acting on the $i-th$ node of the
+The aerodynamic forces and moments acting on the $i$-th node of the
 beam are:
 \begin{subequations}\label{eq:fici}
 \begin{align}
-	\T{f}_i &= \Rloc {\T{f}_a}_i\\ 
-	\T{c}_i &= \Rloc {\T{c}_a}_i 
+	\T{f}_i &= \Rloc_i {\T{f}_a}_i\\ 
+	\T{c}_i &= \Rloc_i {\T{c}_a}_i 
 		+ \plbr{{\T{x}_r}_i - \T{x}_i}\times{\T{f}}_i 
 \end{align}
 \end{subequations}
@@ -349,13 +349,13 @@ to the global, while ${\T{f}_a}_i$ and ${\T{c}_a}_i$ are the
 aerodynamic force and moment 
 respectively in the reference frame of the aerodynamics, $\T{x}_r$
 is the offset. 
-By defining $\T{g}_{21} = \Cay{\Rtilde{2}^T\Rtilde{1}}$ 
-and $\T{g}_{23} = \Cay{\Rtilde{2}^T\Rtilde{3}}$ (where, respectively,
+By defining $\T{g}_{2\leftarrow{1}} = \Cay{\Rtilde{2}^T\Rtilde{1}}$ 
+and $\T{g}_{2\leftarrow{3}} = \Cay{\Rtilde{2}^T\Rtilde{3}}$ (where, respectively,
 $\Rtilde{i} = \TT{R}_i\TT{R}_{ai}$ is the orientation matrix from the 
-local frame of the aerodynamics on the $i-th$ node to the global),
+local frame of the aerodynamics on the $i$-th node to the global),
 matrix $\Rloc$ writes:
 \begin{equation}
-	\Rloc = \Rtilde{2} \Rot{N_1\T{g}_{21} + N_3\T{g}_{23}}
+	\Rloc = \Rtilde{2} \Rot{N_1\T{g}_{2\leftarrow{1}} + N_3\T{g}_{2\leftarrow{3}}}
 \end{equation}
 where $N_1$ and $N_3$ are weight coefficients which depend on
 the node the computation is referred to\footnote{Since the 
@@ -410,8 +410,8 @@ These equations are composed by many terms and, in order to keep the
 notation light, each contributions is written separately.
 First of all, the most recursive terms are the product between 
 $\delta\Rloc$ and a vector, and the product between $\delta\Rloc^T$
-and a vector. These, defining $\overline{\T{g}}=N_1\T{g}_{21} 
-+ N_3\T{g}_{23}$, 
+and a vector. These, defining $\overline{\T{g}}=N_1\T{g}_{2\leftarrow{1}} 
++ N_3\T{g}_{2\leftarrow{3}}$, 
 result, respectively, in:
 \newcommand{\vv}{\T{\overline{v}}}
 \begin{align}
@@ -419,11 +419,11 @@ result, respectively, in:
 		-\sqbr{\Rloc\vv}\times\T{\theta_{\delta 2}}\\ 
 \nonumber	&+\sqbr{\Rot{\overline{\T{g}}}\vv}\times
 		N_1\Rtilde{2}\T{\Gamma}\plbr{\overline{\T{g}}}
-		\T{\Gamma}^{-1}\plbr{\T{g}_{21}}\Rtilde{2}^T
+		\T{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow{1}}}\Rtilde{2}^T
 		\plbr{\T{\theta_{\delta 2}}-\T{\theta_{\delta 1}}}\\ 
 \nonumber	&-\sqbr{\Rot{\overline{\T{g}}}\vv}\times
 		N_3\Rtilde{2}\T{\Gamma}\plbr{\overline{\T{g}}}
-		\T{\Gamma}^{-1}\plbr{\T{g}_{23}}\Rtilde{2}^T
+		\T{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow{3}}}\Rtilde{2}^T
 		\plbr{\T{\theta_{\delta 2}}-\T{\theta_{\delta 3}}}\\ 
 		\\
 \nonumber	\plbr{\delta\Rloc^T}\vv &= 
@@ -431,12 +431,12 @@ result, respectively, in:
 \nonumber	&+N_1\sqbr{\Rot{\overline{\T{g}}}}^T
 			\sqbr{\Rtilde{2}^T\vv}\times
 		\T{\Gamma}\plbr{\overline{\T{g}}}
-		\T{\Gamma}^{-1}\plbr{\T{g}_{21}}\Rtilde{2}^T
+		\T{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow{1}}}\Rtilde{2}^T
 		\plbr{\T{\theta_{\delta 1}}-\T{\theta_{\delta 2}}}\\ 
 \nonumber	&+N_3\sqbr{\Rot{\overline{\T{g}}}}^T
 			\sqbr{\Rtilde{2}^T\vv}\times
 		\T{\Gamma}\plbr{\overline{\T{g}}}
-		\T{\Gamma}^{-1}\plbr{\T{g}_{23}}\Rtilde{2}^T
+		\T{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow{3}}}\Rtilde{2}^T
 		\plbr{\T{\theta_{\delta 3}}-\T{\theta_{\delta 2}}}\\ 
 \end{align}
 The other components are:
