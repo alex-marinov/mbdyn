@@ -52,6 +52,21 @@ Vec6::Write(std::ostream& out, const char* sFill) const
      << v[1].dGet(3);
 }
 
+void
+Vec6::Reset(void)
+{
+	v[0].Reset();
+	v[1].Reset();
+}
+
+void
+Mat6x6::Reset(void)
+{
+	m[0][0].Reset();
+	m[0][1].Reset();
+	m[1][0].Reset();
+	m[1][1].Reset();
+}
 
 Vec6 operator + (const Vec6& v)
 {
@@ -186,6 +201,13 @@ Mat6x6 MultRMRt(const Mat6x6& m, const Mat3x3& R)
 {   
    return Mat6x6(R*m.GetMat11().MulMT(R), R*m.GetMat21().MulMT(R), 
 		 R*m.GetMat12().MulMT(R), R*m.GetMat22().MulMT(R));   
+}
+
+Mat6x6 MultRMRt(const Mat6x6& m, const Mat3x3& R, const doublereal& c)
+{
+   Mat3x3 Rc(R*c);
+   return Mat6x6(R*m.GetMat11().MulMT(Rc), R*m.GetMat21().MulMT(Rc), 
+		 R*m.GetMat12().MulMT(Rc), R*m.GetMat22().MulMT(Rc));   
 }
 
 

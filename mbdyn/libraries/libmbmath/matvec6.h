@@ -126,8 +126,8 @@ class Vec6 {
 	 return *this; /* No operations */
       }
       if (d == 0.) {
-	 v[0] = Vec3(0.); /* Reset vector */
-	 v[1] = Vec3(0.);
+	 v[0].Reset(); /* Reset vector */
+	 v[1].Reset();
 	 return *this;
       }
       /* else */
@@ -225,6 +225,8 @@ class Vec6 {
       v[1].PutTo(&pd[3]);
    };   
    
+   void Reset(void);
+
    std::ostream& Write(std::ostream& out, const char* sFill = " ") const;   
 };
 
@@ -257,8 +259,8 @@ class Mat6x6 {
 
    Mat6x6(const doublereal& d) {      
       m[0][0] = Mat3x3(d);
-      m[0][1] = Mat3x3(0.);
-      m[1][0] = Mat3x3(0.);
+      m[0][1].Reset();
+      m[1][0].Reset();
       m[1][1] = Mat3x3(d);
    };
    
@@ -580,6 +582,8 @@ class Mat6x6 {
       m[jr][jc].Put(ir-3*jr, ic-3*jc, d);
    };      
    
+   void Reset(void);
+
    /* Scrittura su ostream della matrice */
    std::ostream& Write(std::ostream& out, 
 		  const char* sFill = " ", 
@@ -598,6 +602,7 @@ extern Vec6 MultRV(const Vec6& v, const Mat3x3& R);
 extern Mat6x6 MultRM(const Mat6x6& m, const Mat3x3& R);
 extern Mat6x6 MultMRt(const Mat6x6& m, const Mat3x3& R);
 extern Mat6x6 MultRMRt(const Mat6x6& m, const Mat3x3& R);
+extern Mat6x6 MultRMRt(const Mat6x6& m, const Mat3x3& R, const doublereal& c);
 
 
 /* esegue l'operazione:

@@ -106,6 +106,14 @@ Vec3::operator * (const Mat3x3& m) const
 				+ m.pdMat[M33]*pdVec[V3]);
 }
 
+void
+Vec3::Reset(void)
+{
+	pdVec[V1] = 0.;
+	pdVec[V2] = 0.;
+	pdVec[V3] = 0.;
+}
+
 /* Vec3 - end */
 
 /* Mat3x3 - begin */
@@ -557,6 +565,22 @@ Mat3x3::MulTMT(const Mat3x3& m) const
 		pdMat[M13]*m.pdMat[M31]
 			+ pdMat[M23]*m.pdMat[M32]
 			+ pdMat[M33]*m.pdMat[M33]);
+}
+
+void
+Mat3x3::Reset(void)
+{
+	pdMat[M11] = 0.;
+	pdMat[M12] = 0.;
+	pdMat[M13] = 0.;
+
+	pdMat[M21] = 0.;
+	pdMat[M22] = 0.;
+	pdMat[M23] = 0.;
+
+	pdMat[M31] = 0.;
+	pdMat[M32] = 0.;
+	pdMat[M33] = 0.;
 }
 
 /* Mat3x3 - end */

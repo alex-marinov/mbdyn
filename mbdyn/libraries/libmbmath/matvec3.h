@@ -443,6 +443,8 @@ class Vec3 {
 
       return sqrt(d2) <= dTol;
    };
+
+   void Reset(void);
  
    /*Input/Output */
       
@@ -1273,6 +1275,8 @@ class Mat3x3 {
       return pdMat[M11]+pdMat[M22]+pdMat[M33];
    };
       
+   void Reset(void);
+
    /*Input/Output */
    
    /*
@@ -1483,24 +1487,6 @@ class _MatGm1_Manip : public _Mat3x3_Manip {
 };
 
 /* _MatGm1_Manip - end */
-
-
-/*Costanti */
-   
-/*
- Matrice identita' 3x3 
- */
-extern const Mat3x3 Eye3;
-   
-/*
- Matrice nulla 3x3
- */
-extern const Mat3x3 Zero3x3;
-   
-/*
- Vettore nullo 3
- */
-extern const Vec3 Zero3;
 
 
 /*
