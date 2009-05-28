@@ -337,11 +337,12 @@ The default behavior is to ignore such requests\footnote{See note above}.
             | parameter , <param>
             | output sparse matrices
             | output eigenvectors
-            | lower frequency, <lower>
-            | upper frequency, <upper>
+            | lower frequency limit, <lower>
+            | upper frequency limit, <upper>
             | use lapack
               [ , balance , { no | scale | permute | all } ]
             | use arpack , <nev> , <ncv> , <tol> } [ , ... ] ]
+            | use jdqz, <nev> , <ncv> , <tol> } [ , ... ] ]
 \end{verbatim}
 Performs the direct eigenanalysis of the problem.
 This functionality is experimental.
@@ -388,10 +389,13 @@ using the \kw{rigid body kinematics} card
 	\item \kw{ncv}, the number of the Arnoldi vectors;
 	\item \kw{tol}, the tolerance (positive; zero means machine error).
 	\end{itemize}
-\item \kw{lower frequency} only outputs those eigenvalues and eigenvectors
+\item \kw{use jdqz} performs the eigenanalysis using JDQZ (Jacobi-Davidson QZ
+	decomposition).
+	It requires the same parameters of ARPACK (experimental).
+\item \kw{lower frequency limit} only outputs those eigenvalues and eigenvectors
 	that are complex and whose imaginary part is larger than
 	\kw{lower} Hz;
-\item \kw{upper frequency} only outputs those eigenvalues and eigenvectors
+\item \kw{upper frequency limit} only outputs those eigenvalues and eigenvectors
 	that are complex and whose imaginary part is smaller than
 	\kw{upper} Hz;
 \end{itemize}

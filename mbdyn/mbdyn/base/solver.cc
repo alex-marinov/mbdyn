@@ -2968,19 +2968,19 @@ Solver::ReadData(MBDynParser& HP)
 				} else if (HP.IsKeyWord("output" "eigenvectors")) {
 					EigAn.uFlags |= EigenAnalysis::EIG_OUTPUT_EIGENVECTORS;
 
-				} else if (HP.IsKeyWord("upper" "frequency")) {
+				} else if (HP.IsKeyWord("upper" "frequency" "limit")) {
 					EigAn.dUpperFreq = HP.GetReal();
 					if (EigAn.dUpperFreq < 0.) {
-						silent_cerr("invalid \"upper frequency\" "
+						silent_cerr("invalid \"upper frequency limit\" "
 							"at line " << HP.GetLineData()
 							<< std::endl);
 						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 
-				} else if (HP.IsKeyWord("lower" "frequency")) {
+				} else if (HP.IsKeyWord("lower" "frequency" "limit")) {
 					EigAn.dLowerFreq = HP.GetReal();
 					if (EigAn.dUpperFreq < 0.) {
-						silent_cerr("invalid \"lower frequency\" "
+						silent_cerr("invalid \"lower frequency limit\" "
 							"at line " << HP.GetLineData()
 							<< std::endl);
 						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3130,8 +3130,8 @@ Solver::ReadData(MBDynParser& HP)
 
 			// lower must be less than upper
 			if (EigAn.dLowerFreq > EigAn.dUpperFreq) {
-				silent_cerr("upper frequency " << EigAn.dUpperFreq
-					<< " less than lower frequency " << EigAn.dLowerFreq
+				silent_cerr("upper frequency limit " << EigAn.dUpperFreq
+					<< " less than lower frequency limit " << EigAn.dLowerFreq
 					<< std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
@@ -3231,10 +3231,10 @@ Solver::ReadData(MBDynParser& HP)
 					(void)HP.GetInt();
 					(void)HP.GetReal();
 
-				} else if (HP.IsKeyWord("lower" "frequency")) {
+				} else if (HP.IsKeyWord("lower" "frequency" "limit")) {
 					(void)HP.GetReal();
 
-				} else if (HP.IsKeyWord("upper" "frequency")) {
+				} else if (HP.IsKeyWord("upper" "frequency" "limit")) {
 					(void)HP.GetReal();
 
 				} else {
