@@ -25,6 +25,8 @@ MBDyn 1.X-Devel
 		- add over/underflow check in math parser
 		  (noted by Patrick Rix)
 		- add (experimental) support for eigensolution with JDQZ
+		- add (experimental) Jacobian of aerodynamic body/beam3
+		  (Alessandro Fumagalli)
 	Backward compatibility issues:
 		- the format of the modal joint output changed
 		- the format of the modal force input changed
