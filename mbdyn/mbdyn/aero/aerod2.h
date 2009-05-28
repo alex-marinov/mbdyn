@@ -40,7 +40,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include <ac/f2c.h>
+#include "ac/f2c.h"
    
 extern int __FC_DECL__(aerod2)(doublereal* w,       /* velocita' nel sistema locale, 6 */
 			       doublereal* vam,     /* dati, 6 */

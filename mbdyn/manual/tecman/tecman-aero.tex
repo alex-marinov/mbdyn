@@ -41,13 +41,463 @@ It is implemented in files\\
 \texttt{mbdyn/aero/aeroelem.cc} 
 \end{tabular}
 
-\paragraph{Aerodynamic body}
-%\section{Aerodynamic Body}
+\section{Linearization of Sectional Aerodynamic Forces and Moments}
+MBDyn's built-in 2D aerodynamics computes
+aerodynamic forces $\tilde{\T{f}}_{a/\xi}$
+and moments $\tilde{\T{c}}_{a/\xi}$ per unit span,
+in a relative frame at station $\xi$,
+based on the instantaneous value of linear and angular velocity
+boundary conditions, respectively $\tilde{\T{v}}$ and $\tilde{\T{\omega}}$,
+expressed in the same relative frame, namely
+\begin{subequations}
+\begin{align}
+	\tilde{\T{f}}_{a/\xi}
+	&=
+	\tilde{\T{f}}_{a/\xi}\plbr{\tilde{\T{v}}, \tilde{\T{\omega}}, \xi}
+	\\
+	\tilde{\T{c}}_{a/\xi}
+	&=
+	\tilde{\T{c}}_{a/\xi}\plbr{\tilde{\T{v}}, \tilde{\T{\omega}}, \xi}
+	.
+\end{align}
+\end{subequations}
 
+The boundary conditions are computed by projecting the \emph{effective}
+linear and angular velocity at station $\xi$,
+respectively $\T{v}\plbr{\xi}$ and $\T{\omega}\plbr{\xi}$,
+in the reference frame of the aerodynamic forces,
+namely
+\begin{subequations}
+\begin{align}
+	\tilde{\T{v}}\plbr{\xi}
+	&=
+	\TT{R}^T\plbr{\xi} \T{v}\plbr{\xi}
+	\\
+	\tilde{\T{\omega}}\plbr{\xi}
+	&=
+	\TT{R}^T\plbr{\xi} \T{\omega}\plbr{\xi}
+	,
+\end{align}
+\end{subequations}
+where $\TT{R}\plbr{\xi}$ is the matrix that expresses
+the local orientation of the aerodynamic section at station $\xi$.
+
+In detail, the effective linear velocity at an arbitrary station
+is the combination of the absolute velocity resulting from the kinematics
+of the model, of an airstream velocity that may depend
+on the absolute location of a reference point and on time,
+and of a contribution resulting from an inflow model, namely
+\begin{align}
+	\T{v}\plbr{\xi}
+	&=
+	\T{v}_{\text{kin}}\plbr{\xi}
+	+ \T{v}_{\infty}\plbr{\T{x}\plbr{\xi}, t}
+	+ \T{v}_{\text{inflow}}\plbr{\T{x}\plbr{\xi}}
+	.
+\end{align}
+It is assumed that the last two contributions do not depend
+on the state of the problem, or only depend on it in a loose manner,
+and thus do not directly participate in the linearization
+of the aerodynamic forces and moments.
+
+Their linearization yields
+\begin{subequations}
+\begin{align}
+	\delta\tilde{\T{v}}
+	&=
+	\TT{R}^T\plbr{\xi} \plbr{
+		\delta\T{v}_{\text{kin}}\plbr{\xi}
+		+ \T{v}\plbr{\xi} \times \T{\theta}_{\delta}\plbr{\xi}
+	}
+	\\
+	\delta\tilde{\T{\omega}}
+	&=
+	\TT{R}^T\plbr{\xi} \plbr{
+		\delta\T{\omega}\plbr{\xi}
+		+ \T{\omega}\plbr{\xi} \times \T{\theta}_{\delta}\plbr{\xi}
+	}
+	,
+\end{align}
+\end{subequations}
+where
+\begin{align}
+	\T{\theta}_{\delta}\plbr{\xi}
+	&=
+	\text{ax}\plbr{\delta\TT{R}\plbr{\xi} \TT{R}^T\plbr{\xi}}
+	.
+\end{align}
+
+By means of numerical integration, the force and moment per unit span
+are integrated into discrete contributions to the force and the moment
+applied to the appropriate node equilibrium.
+This is usually done by multiplying each force and moment per unit span
+contribution by an appropriate reference length coefficient.
+As a consequence, in the following force and moment contributions
+will be considered, namely
+\begin{subequations}
+\begin{align}
+	\tilde{\T{f}}_a
+	&=
+	\tilde{\T{f}}_a\plbr{\tilde{\T{v}}, \tilde{\T{\omega}}, \xi}
+	\\
+	\tilde{\T{c}}_a
+	&=
+	\tilde{\T{c}}_a\plbr{\tilde{\T{v}}, \tilde{\T{\omega}}, \xi}
+	.
+\end{align}
+\end{subequations}
+As already mentioned, each weighted sectional force and moment contribution
+is applied to the appropriate node after projection in the global reference
+frame.
+The contribution to the force and moment equilibrium of the $n$-th node is
+\begin{subequations}
+	\label{eq:aero:fm-contrib}
+\begin{align}
+	\Delta\T{f}_n
+	&=
+	\TT{R}\plbr{\xi} \tilde{\T{f}}_a
+	\label{eq:aero:fm-contrib:f}
+	\\
+	\Delta\T{c}_n
+	&=
+	\TT{R}\plbr{\xi} \tilde{\T{c}}_a
+	+ \plbr{\T{x}\plbr{\xi} - \T{x}_n} \times \Delta\T{f}_n
+	\label{eq:aero:fm-contrib:m}
+	.
+\end{align}
+\end{subequations}
+Their linearization yields
+\begin{subequations}
+\begin{align}
+	\delta\Delta\T{f}_n
+	&=
+	- \Delta\T{f}_n \times \T{\theta}_{\delta}\plbr{\xi}
+	+ \TT{R}\plbr{\xi} \delta\tilde{\T{f}}_a
+	\\
+	\delta\Delta\T{c}_n
+	&=
+	- \Delta\T{c}_n \times \T{\theta}_{\delta}\plbr{\xi}
+	+ \TT{R}\plbr{\xi} \delta\tilde{\T{c}}_a
+	- \Delta\T{f}_n \times \plbr{
+		\delta\T{x}\plbr{\xi}
+		- \delta\T{x}_n
+	}
+	\nonumber \\
+	&\hphantom{= } \mbox{}
+	+ \plbr{
+		\T{x}\plbr{\xi}
+		- \T{x}_n
+	} \times \plbr{
+		- \Delta\T{f}_n \times \T{\theta}_{\delta}\plbr{\xi}
+		+ \TT{R}\plbr{\xi} \delta\tilde{\T{f}}_a
+	}
+	.
+\end{align}
+\end{subequations}
+
+It is assumed that the Jacobian matrix of the sectional force and moment
+with respect to the linear and angular velocity
+is either available or can be computed by numerical differentiation.
+The resulting force and moment perturbation is
+\begin{align}
+	\cubr{\cvvect{
+		\delta\tilde{\T{f}}_a \\
+		\delta\tilde{\T{c}}_a
+	}} &= \sqbr{\matr{cc}{
+		\tilde{\T{f}}_{a/\tilde{\T{v}}} & \tilde{\T{f}}_{a/\tilde{\T{\omega}}} \\
+		\tilde{\T{c}}_{a/\tilde{\T{v}}} & \tilde{\T{c}}_{a/\tilde{\T{\omega}}}
+	}} \cubr{\cvvect{
+		\delta\tilde{\T{v}} \\
+		\delta\tilde{\T{\omega}}
+	}}
+	\label{eq:aero:jac}
+	.
+\end{align}
+
+Each type of element determines how the sectional force and moment
+contributions are applied to the nodes, and how the sectional
+boundary conditions at each section are computed from the kinematics
+of the nodes.
+
+
+
+\section{Numerical Linearization of Sectional Forces}
+Consider an arbitrary submatrix of the Jacobian matrix
+of Eq.~(\ref{eq:aero:jac}), $\TT{J}=\T{p}_{/\T{q}}$.
+Its generic element, the $c$-th component of $\T{p}$
+derived by the $r$-th component of $\T{q}$, is
+\begin{align}
+	J_{rc} &= \frac{\partial\T{p}_r}{\partial\T{q}_c}
+	.
+\end{align}
+A forward difference approach is used, namely
+\begin{align}
+	J_{rc} &\cong \frac{
+		\T{p}_r\plbr{\T{q} + \Delta q \T{e}_c}
+		- \T{p}_r\plbr{\T{q}}
+	}{
+		\Delta q
+	}
+	,
+\end{align}
+where $\T{e}_c$ is the unit vector along the $c$-th component,
+and $\Delta q$ is a suitably chosen perturbation.
+Alternatively, a centered difference approach can be used, namely
+\begin{align}
+	J_{rc} &\cong \frac{
+		\T{p}_r\plbr{\T{q} + \Delta q \T{e}_c}
+		- \T{p}_r\plbr{\T{q} - \Delta q \T{e}_c}
+	}{
+		2 \Delta q
+	}
+	.
+\end{align}
+The perturbation is
+\begin{align}
+	\Delta q &= \varepsilon \nrbr{\T{q}} + \nu
+	.
+\end{align}
+Since the boundary condition $\T{q}$ is perturbed in order to determine
+an equivalent perturbation of angle of attack, a resolution of few tenth
+of degree is deemed sufficient.
+As a consequence, $\varepsilon>0$ must be a ``small'' number
+that, in case $\T{e}_c$ is orthogonal to $\T{q}$,
+yields an angle of the order of a tenth of a degree.
+The default value is $\varepsilon=10^{-3}$.
+However, in order to avoid divisions by too small numbers,
+the perturbation is corrected by another ``small'' parameter,
+$\nu>0$.
+The default value is $\nu=10^{-9}$.
+
+
+
+\section{Aerodynamic body}
 The \texttt{aerodynamic body} element applies aerodynamic forces
 to the structural node it is connected to,
 based on the relative velocity between an aerodynamic surface attached 
-to the node and the airstrem.
+to the node and the airstream.
+
+The boundary conditions are related to the rigid body motion
+of the node, so
+\begin{subequations}
+\begin{align}
+	\TT{R}\plbr{\xi}
+	&=
+	\TT{R}_n \TT{R}_a \TT{R}_t\plbr{\xi}
+	\\
+	\T{b}\plbr{\xi}
+	&=
+	\TT{R}_n\plbr{
+		\tilde{\T{b}}_0
+		+ \TT{R}_a \plbr{
+			b\plbr{\xi} \T{e}_1
+			+ \xi \T{e}_3
+		}
+	}
+	\\
+	\T{\omega}\plbr{\xi}
+	&=
+	\T{\omega}_n
+	\\
+	\T{v}_{\text{kin}}\plbr{\xi}
+	&=
+	\T{v}_n + \T{\omega}_n \times \T{b}\plbr{\xi}
+	,
+\end{align}
+\end{subequations}
+where
+$\TT{R}_n$ is the orientation of the node,
+$\TT{R}_a$ is the relative orientation of the aerodynamics
+with respect to the node,
+$\TT{R}_t$ is the pretwist matrix,
+$\T{v}_n$ is the absolute velocity of the node,
+$\T{\omega}_n$ is the absolute angular velocity of the node,
+$\tilde{\T{b}}_0$ is an offset between the node and the reference location
+of the aerodynamic body,
+and $b\plbr{\xi}$ is the chordwise location of the point
+where the boundary conditions are evaluated.
+
+Their linearization is straightforward:
+\begin{subequations}
+\begin{align}
+	\T{\theta}_{\delta}\plbr{\xi}
+	&=
+	\T{\theta}_{n\delta}
+	\\
+	\delta\T{b}\plbr{\xi}
+	&=
+	- \T{b}\plbr{\xi}\times\T{\theta}_{n\delta}
+	\\
+	\delta\T{\omega}\plbr{\xi}
+	&=
+	\delta\T{\omega}_n
+	\\
+	\delta\T{v}_{\text{kin}}\plbr{\xi}
+	&=
+	\delta\T{v}_n
+	- \T{b}\plbr{\xi}\times\delta\T{\omega}_n
+	- \T{\omega}_n \times \T{b}\plbr{\xi} \times \T{\theta}_{n\delta}
+	.
+\end{align}
+\end{subequations}
+Eq.~(\ref{eq:aero:fm-contrib:m}) can be rewritten as
+\begin{align}
+	\Delta\T{c}_n
+	&=
+	\TT{R}\plbr{\xi}\plbr{
+		\tilde{\T{c}}_a
+		+ \tilde{\T{o}}\plbr{\xi} \times \tilde{\T{f}}_a
+	} ,
+\end{align}
+where
+$\tilde{\T{o}}\plbr{\xi}=\TT{R}^T\plbr{\xi}\plbr{\T{x}\plbr{\xi} - \T{x}_n}$,
+the offset between the point where the force is applied and the node, 
+in the reference frame of the node, does not depend on the kinematics
+of the system, since the body is rigid.
+Its linearization yields
+\begin{align}
+	\delta\Delta\T{c}_n
+	&=
+	- \Delta\T{c}_n \times \T{\theta}_{\delta}\plbr{\xi}
+	+ \TT{R}\plbr{\xi} \plbr{
+		\delta\tilde{\T{c}}_a
+		+ \tilde{\T{o}}\plbr{\xi} \times \delta\tilde{\T{f}}_a
+	}
+	,
+\end{align}
+since $\delta\tilde{\T{o}}\plbr{\xi}\equiv{0}$.
+So the linearized force and moment is
+\begin{align}
+	\cubr{\cvvect{
+		\delta\Delta\T{f}_n \\
+		\delta\Delta\T{c}_n
+	}}
+	&=
+	- \sqbr{\cvvect{
+		\Delta\T{f}_n \times{} \\
+		\Delta\T{c}_n \times{}
+	}} \T{\theta}_{n\delta}
+	+ \sqbr{\matr{cc}{
+		\TT{I} & \TT{0} \\
+		\T{o}\plbr{\xi}\times{} & \TT{I}
+	}} \cubr{\cvvect{
+		\TT{R}\plbr{\xi} \delta\tilde{\T{f}}_a \\
+		\TT{R}\plbr{\xi} \delta\tilde{\T{c}}_a
+	}}
+	.
+\end{align}
+with $\T{o}\plbr{\xi}=\TT{R}\plbr{\xi} \tilde{\T{o}}\plbr{\xi}$.
+
+The linearization of the boundary conditions yields
+\begin{subequations}
+\begin{align}
+	\cubr{\cvvect{
+		\delta\tilde{\T{v}}\plbr{\xi} \\
+		\delta\tilde{\T{\omega}}\plbr{\xi}
+	}}
+	&=
+	\sqbr{\matr{cc}{
+		\TT{R}^T\plbr{\xi} & \TT{0} \\
+		\TT{0} & \TT{R}^T\plbr{\xi}
+	}} \lplbr{
+		\sqbr{\cvvect{
+			\T{v}\plbr{\xi}\times{}
+				- \T{\omega}_n\times\T{b}\plbr{\xi}\times{}
+			\\
+			\T{\omega}_n\times{}
+		}} \T{\theta}_{n\delta}
+	} \nonumber \\
+	& \hphantom{= } \rplbr{
+		\mbox{} + \sqbr{\matr{cc}{
+			\TT{I} & -\T{b}\plbr{\xi}\times{} \\
+			\TT{0} & \TT{I}
+		}} \cubr{\cvvect{
+			\delta\T{v}_n \\
+			\delta\T{\omega}_n
+		}}
+	}
+	\\
+	&\equu 
+	\sqbr{\matr{cc}{
+		\TT{R}^T\plbr{\xi} & \TT{0} \\
+		\TT{0} & \TT{R}^T\plbr{\xi}
+	}} \lplbr{
+		\sqbr{\cvvect{
+			\plbr{\T{v}\plbr{\xi} + \T{b}\plbr{\xi}\times \T{\omega}_n}\times{}
+			\\
+			\T{0}
+		}} \delta\T{g}_n
+	} \nonumber \\
+	& \hphantom{= } \rplbr{
+		\mbox{} + \sqbr{\matr{cc}{
+			\TT{I} & -\T{b}\plbr{\xi}\times{} \\
+			\TT{0} & \TT{I}
+		}} \cubr{\cvvect{
+			\delta\dot{\T{x}}_n \\
+			\delta\dot{\T{g}}_n
+		}}
+	}
+	.
+\end{align}
+\end{subequations}
+After defining
+\begin{subequations}
+\begin{align}
+	\T{f}_{a/\tilde{\T{v}}} &= \TT{R}\plbr{\xi} \tilde{\T{f}}_{a/\tilde{\T{v}}} \TT{R}^T\plbr{\xi} \\
+	\T{f}_{a/\tilde{\T{\omega}}} &= \TT{R}\plbr{\xi} \tilde{\T{f}}_{a/\tilde{\T{\omega}}} \TT{R}^T\plbr{\xi} \\
+	\T{c}_{a/\tilde{\T{v}}} &= \TT{R}\plbr{\xi} \tilde{\T{c}}_{a/\tilde{\T{v}}} \TT{R}^T\plbr{\xi} \\
+	\T{c}_{a/\tilde{\T{\omega}}} &= \TT{R}\plbr{\xi} \tilde{\T{c}}_{a/\tilde{\T{\omega}}} \TT{R}^T\plbr{\xi}
+	,
+\end{align}
+\end{subequations}
+the linearization becomes
+\begin{align}
+	\sqbr{\matr{c}{
+		\T{f}_{a/\tilde{\T{v}}}
+		\\
+		\T{o}\plbr{\xi}\times\T{f}_{a/\tilde{\T{v}}} + \T{c}_{a/\tilde{\T{v}}}
+	}} \delta\dot{\T{x}}_n
+	\nonumber \\
+	+ \sqbr{\matr{c}{
+		\T{f}_{a/\tilde{\T{\omega}}} - \T{f}_{a/\tilde{\T{v}}} \T{b}\plbr{\xi}\times{}
+		\\
+		\T{o}\plbr{\xi} \times \T{f}_{a/\tilde{\T{\omega}}}
+		+ \T{c}_{a/\tilde{\T{\omega}}}
+		- \plbr{
+			\T{o}\plbr{\xi} \times \T{f}_{a/\tilde{\T{v}}}
+			+ \T{c}_{a/\tilde{\T{v}}}
+		}
+		\T{b}\plbr{\xi}\times{}
+	}} \delta\dot{\T{g}}_n
+	\nonumber \\
+	+ \sqbr{\matr{c}{
+		\T{f}_{a/\tilde{\T{v}}} \plbr{\T{v}\plbr{\xi} + \T{b}\plbr{\xi} \times \T{\omega}_n} \times{} \\
+		\plbr{
+			\T{o}\plbr{\xi} \times \T{f}_{a/\tilde{\T{v}}}
+			+ \T{c}_{a/\tilde{\T{v}}}
+		} \plbr{\T{v}\plbr{\xi} + \T{b}\plbr{\xi} \times \T{\omega}_n} \times{}
+	}} \delta\T{g}_n
+	\nonumber \\
+	- \sqbr{\cvvect{
+		\Delta\T{f}_n \times{} \\
+		\Delta\T{c}_n \times{} \\
+	}} \delta\T{g}_n
+	\equu
+	\cubr{\cvvect{
+		\delta\Delta\T{f}_n \\
+		\delta\Delta\T{c}_n
+	}}
+	.
+\end{align}
+
+
+
+\begin{comment}
+\section{Aerodynamic body}
+The \texttt{aerodynamic body} element applies aerodynamic forces
+to the structural node it is connected to,
+based on the relative velocity between an aerodynamic surface attached 
+to the node and the airstream.
 
 The aerodynamic forces and moments acting on the attached node are:
 \begin{subequations}
@@ -65,7 +515,7 @@ relative orientation matrix of the aerodynamics frame with respect
 to the node frame while $\TT{R}_t$ is a rotation matrix 
 related to the twist of the aerodynamic surface.
 Both $\TT{R}_a$ and $\TT{R}_t$ do not depend on the unknowns
-olf the problem, and thus their perturbation is zero.
+of the problem, and thus their perturbation is zero.
 The vector $\T{x}_r = \TT{R}_n\T{b}$ is the offset of the aerodynamic
 surface with respect to the node; $\T{b}$ is constant.
 
@@ -187,7 +637,7 @@ divided into four sub-matrices
 	=\sqbr{\matr{cc}{\T{J}_{a11} & \T{J}_{a12}\\ \T{J}_{a21} & \T{J}_{a22}}}
 \end{equation}
 
-To correctly espress the Jacobian matrix contributions, the perturbation 
+To correctly express the Jacobian matrix contributions, the perturbation 
 $\delta\T{V}_a$ and $\delta \T{x}_r$ must be expressed in terms of 
 the node coordinates and velocities, namely:
 \begin{align}
@@ -316,16 +766,270 @@ while the perturbation of the aerodynamic moments yields:
 \end{align}
 where the last term, which involves $\delta\T{f}$, is the same of
 Eq.~(\ref{eq:deltaF}).
+\end{comment}
 
-\paragraph{Aerodynamic beam}
-%\section{Aerodynamic Body}
+
+
+
+\section{Aerodynamic Beam}
+The \texttt{aerodynamic beam3} element applies aerodynamic forces
+to the nodes of a three node structural beam element. 
+
+The aerodynamic forces/moments acting on each node 
+are computed based on the relative velocity of a set of locations
+along the beam and the airstream.
+The kinematic quantities of the beam are computed based
+on an interpolation of the kinematics of the three nodes.
+
+\paragraph{Kinematics Interpolation.}
+The generic field variable $\T{p}\plbr{x}$ is interpolated
+using parabolic functions related to the value of the field 
+variable at three locations that in general can be offset
+from the nodes,
+\begin{align}
+	\T{p}\plbr{\xi}
+	&=
+	\sum_{i=1,2,3} N_i\plbr{\xi} \T{p}_i
+	,
+\end{align}
+with
+\begin{subequations}
+\begin{align}
+	N_1 &= \frac{1}{2} \xi \plbr{\xi - 1}
+	\\
+	N_2 &= 1 - \xi^2
+	\\
+	N_3 &= \frac{1}{2} \xi \plbr{\xi + 1}
+	.
+\end{align}
+\end{subequations}
+
+Orientation at an arbitrary location $\xi$:
+\begin{align}
+	\TT{R}\plbr{\xi}
+	&=
+	\TT{R}_{2_a} \TT{R}\plbr{\T{g}\plbr{\xi}}
+	\\
+	\T{g}\plbr{\xi}
+	&=
+	\sum_{i=1,3} N_i\plbr{\xi} \T{g}_{2\leftarrow i}
+	= N_1\plbr{\xi} \T{g}_{2\leftarrow 1} + N_3\plbr{\xi} \T{g}_{2\leftarrow 3}
+	\\
+	\T{g}_{2\leftarrow i}
+	&=
+	\text{Cay}\plbr{\TT{R}_{2_a}^T \TT{R}_{i_a}}
+	.
+\end{align}
+Orientation is dealt with specially, given its special nature.
+The orientation of the mid node is used as a reference,
+and the orientation parameters that express the relative orientation
+between each of the end nodes and the mid node are interpolated.
+The interpolated orientation parameters are used to compute
+the interpolated relative orientation matrix, which is then
+pre-multiplied by the orientation matrix of the mid node.
+Summation in this case occurs on $i=1,3$ only because by definition
+$\T{g}_{2\leftarrow 2}=\text{Cay}(\TT{I})\equiv\T{0}$.
+
+Since the Cayley-Gibbs-Rodrigues orientation parameters are used,
+the magnitude of the relative orientation between each end node
+and the mid node must be limited (formally, to $\pi/2$,
+but it should be less for accuracy).
+
+Position at an arbitrary location $\xi$:
+\begin{align}
+	\T{x}\plbr{\xi}
+	&=
+	\sum_{i=1,2,3} N_i\plbr{\xi} \plbr{
+		\T{x}_i + \T{o}_i
+	}
+	,
+\end{align}
+with $\T{o}_i=\TT{R}_i \tilde{\T{o}}_i$.
+
+Angular velocity at an arbitrary location $\xi$:
+\begin{align}
+	\T{\omega}\plbr{\xi}
+	&=
+	\sum_{i=1,2,3} N_i\plbr{\xi} \T{\omega}_i
+	.
+\end{align}
+
+Velocity at an arbitrary location $\xi$:
+\begin{align}
+	\T{v}_{\text{kin}}\plbr{\xi}
+	&=
+	\sum_{i=1,2,3} N_i\plbr{\xi} \plbr{
+		\T{v}_i
+		+ \T{\omega}_i \times \T{o}_i
+	}
+	.
+\end{align}
+
+\paragraph{Perturbation of Interpolated Kinematics.}
+Orientation perturbation at an arbitrary location $\xi$:
+\begin{align}
+	\delta\T{g}\plbr{\xi}
+	&=
+	\sum_{i=1,3} N_i\plbr{\xi} \delta\T{g}_{2\leftarrow i}
+	\\
+	\delta\T{g}_{2\leftarrow i}
+	&=
+	\TT{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow i}} \T{\theta}_{(2\leftarrow i) \delta}
+	\\
+	\T{\theta}_{(2\leftarrow i) \delta}
+	&=
+	\TT{R}_{2_a}^T \plbr{
+		\T{\theta}_{i\delta}
+		- \T{\theta}_{2\delta}
+	}
+	\\
+	\T{\theta}_{\delta}\plbr{\xi}
+	&=
+	\T{\theta}_{2\delta}
+	+ \sum_{i=1,3} \TT{R}_{2_a} \TT{\Gamma}\plbr{\T{g}\plbr{\xi}}
+		N_i\plbr{\xi} \TT{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow i}}
+		\TT{R}_{2_a}^T \plbr{\T{\theta}_{i\delta} - \T{\theta}_{2\delta}}
+	\nonumber \\
+	&= \plbr{
+		\TT{I}
+		- \TT{R}_{2_a} \TT{\Gamma}\plbr{\T{g}\plbr{\xi}}
+			\sum_{i=1,3} N_i\plbr{\xi} \TT{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow i}}
+			\TT{R}_{2_a}^T
+	} \T{\theta}_{2\delta}
+	\nonumber \\
+	& \hphantom{= } \mbox{}
+	+ \TT{R}_{2_a} \TT{\Gamma}\plbr{\T{g}\plbr{\xi}}
+		N_1\TT{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow 1}}
+		\TT{R}_{2_a}^T \T{\theta}_{1\delta}
+	\nonumber \\
+	& \hphantom{= } \mbox{}
+	+ \TT{R}_{2_a} \TT{\Gamma}\plbr{\T{g}\plbr{\xi}}
+		N_3\TT{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow 3}}
+		\TT{R}_{2_a}^T \T{\theta}_{3\delta}
+	\nonumber \\
+	&=
+	\sum_{i=1,2,3} \TT{\Theta}_i\plbr{\xi} \T{\theta}_{i\delta}
+	,
+\end{align}
+with
+\begin{subequations}
+\begin{align}
+	\TT{\Theta}_i\plbr{\xi}
+	&=
+	\TT{R}_{2_a} \TT{\Gamma}\plbr{\T{g}\plbr{\xi}}
+		N_i\TT{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow i}}
+		\TT{R}_{2_a}^T
+		& i=\text{1 and 3}
+	\\
+	\TT{\Theta}_2\plbr{\xi}
+	&=
+	\TT{I} - \TT{\Theta}_1\plbr{\xi} - \TT{\Theta}_3\plbr{\xi}
+\end{align}
+\end{subequations}
+playing the role of shape functions.
+
+In fact, note that, when $N_1=1$ and $N_3=0$, then
+$\TT{\Theta}_1=\TT{I}$, $\TT{\Theta}_2=\TT{\Theta}_3=\TT{0}$
+and $\T{\theta}_{\delta}\plbr{\xi}=\T{\theta}_{1\delta}$,
+while, when $N_1=0$ and $N_3=1$, then
+$\TT{\Theta}_1=\TT{\Theta}_2=\TT{0}$, $\TT{\Theta}_3=\TT{I}$
+and $\T{\theta}_{\delta}\plbr{\xi}=\T{\theta}_{3\delta}$.
+Finally, when $N_1=N_3=0$, then
+$\TT{\Theta}_1=\TT{\Theta}_3=\TT{0}$, $\TT{\Theta}_2=\TT{I}$
+and $\T{\theta}_{\delta}\plbr{\xi}=\T{\theta}_{2\delta}$.
+Moreover, $\sum_{i=1,2,3}\TT{\Theta}_i\plbr{\xi}=\TT{I} \ \forall\xi$.
+
+Position perturbation at an arbitrary location $\xi$:
+\begin{align}
+	\delta\T{x}\plbr{\xi}
+	&=
+	\sum_{i=1,2,3} N_i\plbr{\xi} \plbr{
+		\delta\T{x}_i + \T{\theta}_{i\delta}\times\T{o}_i
+	}
+	.
+\end{align}
+
+Angular velocity perturbation at an arbitrary location $\xi$:
+\begin{align}
+	\delta\T{\omega}\plbr{\xi}
+	&=
+	\sum_{i=1,2,3} N_i \delta\T{\omega}_i
+	\nonumber \\
+	&\equu
+	\sum_{i=1,2,3} N_i \plbr{
+		\delta\dot{\T{g}}_i
+		- \T{\omega}_i \times \delta\T{g}_i
+	}
+	.
+\end{align}
+
+Velocity perturbation at an arbitrary location $\xi$:
+\begin{align}
+	\delta\T{v}_{\text{kin}}\plbr{\xi}
+	&=
+	\sum_{i=1,2,3} N_i\plbr{\xi} \plbr{
+		\delta\T{v}_i
+		+ \delta\T{\omega}_i \times \T{o}_i
+		+ \T{\omega}_i \times \delta\T{o}_i
+	}
+	\nonumber \\
+	&= 
+	\sum_{i=1,2,3} N_i\plbr{\xi} \plbr{
+		\delta\T{v}_i
+		- \T{o}_i \times \delta\T{\omega}_i
+		- \T{\omega}_i \times \T{o}_i \times \T{\theta}_{i\delta}
+	}
+	\nonumber \\
+	&\equu
+	\sum_{i=1,2,3} N_i\plbr{\xi} \plbr{
+		\delta\dot{\T{x}}_i
+		- \T{o}_i \times \delta\dot{\T{g}}_i
+		+ \plbr{\T{o}_i \times \T{\omega}_i} \times \delta\T{g}_i
+	}
+	.
+\end{align}
+
+
+\paragraph{Boundary Conditions Perturbation.}
+Angular velocity perturbation:
+\begin{align}
+	\delta\tilde{\T{\omega}}\plbr{\xi}
+	&= \TT{R}^T\plbr{\xi} \sum_{i=1,2,3}\plbr{
+		N_i\plbr{\xi} \delta\T{\omega}_i
+		+ \T{\omega}\plbr{\xi} \times \TT{\Theta}_i\plbr{\xi} \T{\theta}_{i\delta}
+	}
+	\nonumber \\
+	&\equu
+	\TT{R}^T\plbr{\xi} \plbr{
+		N_i\plbr{\xi} \delta\dot{\T{g}}_i
+		+ \plbr{
+			\T{\omega}\plbr{\xi} \times \TT{\Theta}_i\plbr{\xi}
+			- N_i\plbr{\xi} \T{\omega}_i \times{}
+		} \delta\T{g}_i
+	}
+	.
+\end{align}
+
+Velocity perturbation:
+\begin{align}
+	\delta\tilde{\T{v}}\plbr{\xi}
+	&=
+	\TT{R}^T\plbr{\xi} \plbr{
+		*
+	}
+\end{align}
+
+
+
+
+\section{Aerodynamic Beam}
 
 The \texttt{aerodynamic beam} element applies aerodynamic forces
 to the nodes of a structural beam element. 
 The aerodynamic forces/moments acting on a single node 
 are computed based on a relative 
 velocity between an aerodynamic surface attached 
-to the node and the airstrem. By itself, the relative velocity 
+to the node and the airstream. By itself, the relative velocity 
 used on each node, as well as the position of the aerodynamic 
 surface, is computed based on a weighted mean of the velocities
 of the (three) beam nodes. 
@@ -361,7 +1065,7 @@ where $N_1$ and $N_3$ are weight coefficients which depend on
 the node the computation is referred to\footnote{Since the 
 weight coefficients $N_i$ depends on the node for which the
 forces are computed, also $\Rloc$ differs from node to node
-even if it is not explicitely indicated in the formulas. }.
+even if it is not explicitly indicated in the formulas. }.
 
 The relative velocity of the aerodynamic surface in the global
 frame is computed as:
@@ -388,7 +1092,7 @@ The aerodynamic forces and moments $\T{f}_a$ and $\T{c}_a$
 are computed using the same algorithm of Eq.~(\ref{eq:fa=g(va)}), 
 and its differentiation is computed numerically using the same 
 algorithm described in the previous section and its Jacobian matrix
-($\T{J}_{a}$) is still divided into fout sub-matrices, as in 
+($\T{J}_{a}$) is still divided into four sub-matrices, as in 
 Eq.~(\ref{eq:JaSub}).
 
 Differentiating Eq.~(\ref{eq:fici}), one obtains:

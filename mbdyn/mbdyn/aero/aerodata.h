@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2009
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -32,15 +32,14 @@
 #ifndef AERODATA_H
 #define AERODATA_H
 
-#include <ac/f2c.h>
+#include "ac/f2c.h"
 
-#include <myassert.h>
-#include <withlab.h>
-#include <drive.h>
+#include "myassert.h"
+#include "withlab.h"
+#include "drive.h"
+#include "matvec6.h"
 
-extern "C" {
-#include <aerodc81.h>
-}
+#include "aerodc81.h"
 
 /* C81Data - begin */
 
@@ -69,7 +68,7 @@ public:
 	AeroMemory(DriveCaller *pt);
 	virtual ~AeroMemory(void);
 
-	void Predict(int i, doublereal alpha, doublereal &alf1, 
+	void Predict(int i, doublereal alpha, doublereal &alf1,
 			doublereal &alf2);
 	void Update(int i);
 	void SetNumPoints(int i);
@@ -89,31 +88,36 @@ public:
 
 		LAST
 	};
-	
+
 protected:
    	UnsteadyModel unsteadyflag;
    	doublereal VAM[6];
    	doublereal Omega;
 
 	int StorageSize(void) const;
-   
+
+	int GetForcesJacForwardDiff_int(int i, doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA);
+	int GetForcesJacCenteredDiff_int(int i, doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA);
+
 public:
    	AeroData(UnsteadyModel u = STEADY, DriveCaller *pt = NULL);
    	virtual ~AeroData(void);
-   
-   	virtual std::ostream& Restart(std::ostream& out) const = 0;   
+
+   	virtual std::ostream& Restart(std::ostream& out) const = 0;
 	std::ostream& RestartUnsteady(std::ostream& out) const;
    	void SetAirData(const doublereal& rho, const doublereal& c);
-   
+
    	virtual void SetSectionData(const doublereal& abscissa,
 			    const doublereal& chord,
 			    const doublereal& forcepoint,
 			    const doublereal& velocitypoint,
 			    const doublereal& twist,
 			    const doublereal& omega = 0.);
-   
+
    	virtual int
 	GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA) = 0;
+   	virtual int
+	GetForcesJac(int i, doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA) = 0;
 	inline AeroData::UnsteadyModel Unsteady(void) const;
 };
 
@@ -132,14 +136,15 @@ AeroData::Unsteady(void) const
 class STAHRAeroData : public AeroData {
 protected:
    	integer 	profile;
-   
-public: 
-   	STAHRAeroData(AeroData::UnsteadyModel u, integer p, 
+
+public:
+   	STAHRAeroData(AeroData::UnsteadyModel u, integer p,
 			DriveCaller *ptime = NULL);
 	virtual ~STAHRAeroData(void);
-   
-	std::ostream& Restart(std::ostream& out) const;   
+
+	std::ostream& Restart(std::ostream& out) const;
    	int GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA);
+   	int GetForcesJac(int i, doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA);
 };
 
 /* STAHRAeroData - end */
@@ -151,13 +156,14 @@ class C81AeroData : public AeroData {
 protected:
    	integer profile;
    	const c81_data* data;
-   
-public: 
+
+public:
    	C81AeroData(AeroData::UnsteadyModel u, integer p, const c81_data* d,
 			DriveCaller *ptime = NULL);
 
 	std::ostream& Restart(std::ostream& out) const;
    	int GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA);
+   	int GetForcesJac(int i, doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA);
 };
 
 /* C81AeroData - end */
@@ -173,7 +179,7 @@ protected:
 	const c81_data** data;
 	integer curr_data;
 
-public: 
+public:
    	C81MultipleAeroData(
 			AeroData::UnsteadyModel u,
 			integer np,
@@ -190,8 +196,9 @@ public:
 			    const doublereal& velocitypoint,
 			    const doublereal& twist,
 			    const doublereal& omega = 0.);
-   
+
    	int GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA);
+   	int GetForcesJac(int i, doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA);
 };
 
 /* C81MultipleAeroData - end */
@@ -211,7 +218,7 @@ protected:
 	c81_data* i_data;
 	integer curr_data;
 
-public: 
+public:
    	C81InterpolatedAeroData(
 			AeroData::UnsteadyModel u,
 			integer np,
@@ -229,8 +236,9 @@ public:
 			    const doublereal& velocitypoint,
 			    const doublereal& twist,
 			    const doublereal& omega = 0.);
-   
+
    	int GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA);
+   	int GetForcesJac(int i, doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA);
 };
 
 /* C81InterpolatedAeroData - end */
