@@ -191,9 +191,41 @@ Their linearization yields
 		- \Delta\T{f}_n \times \T{\theta}_{\delta}\plbr{\xi}
 		+ \TT{R}\plbr{\xi} \delta\tilde{\T{f}}_a
 	}
-	.
+	,
 \end{align}
 \end{subequations}
+which can be summarized as
+\begin{align}
+	\cubr{\cvvect{
+		\delta\Delta\T{f}_n \\
+		\delta\Delta\T{c}_n
+	}}
+	&=
+	\sqbr{\cvvect{
+		- \Delta\T{f}_n \times{} \\
+		- \Delta\T{c}_n \times{}
+		- \plbr{\T{x}\plbr{\xi} - \T{x}_n} \times \Delta\T{f}_n \times{}
+	}} \T{\theta}_{\delta}\plbr{\xi}
+	\nonumber \\
+	& \hphantom{= } \mbox{}
+	+ \sqbr{\cvvect{
+		\TT{0} \\
+		- \Delta\T{f}_n \times{}
+	}} \plbr{
+		\delta\T{x}\plbr{\xi}
+		- \delta\T{x}_n
+	}
+	\nonumber \\
+	& \hphantom{= } \mbox{}
+	+ \sqbr{\matr{cc}{
+		\TT{I} & \TT{0} \\
+		\plbr{\T{x}\plbr{\xi} - \T{x}_n} \times{} & \TT{I}
+	}} \cubr{\cvvect{
+		\TT{R}\plbr{\xi} \delta\tilde{\T{f}}_a \\
+		\TT{R}\plbr{\xi} \delta\tilde{\T{c}}_a
+	}}
+	.
+\end{align}
 
 It is assumed that the Jacobian matrix of the sectional force and moment
 with respect to the linear and angular velocity
@@ -213,6 +245,8 @@ The resulting force and moment perturbation is
 	\label{eq:aero:jac}
 	.
 \end{align}
+The computation of the matrix of Eq.~(\ref{eq:aero:jac})
+is delegated to the \texttt{AeroData} class.
 
 Each type of element determines how the sectional force and moment
 contributions are applied to the nodes, and how the sectional
@@ -771,7 +805,7 @@ Eq.~(\ref{eq:deltaF}).
 
 
 
-\section{Aerodynamic Beam}
+\section{Aerodynamic Beam (3 Nodes)}
 The \texttt{aerodynamic beam3} element applies aerodynamic forces
 to the nodes of a three node structural beam element. 
 
@@ -782,6 +816,8 @@ The kinematic quantities of the beam are computed based
 on an interpolation of the kinematics of the three nodes.
 
 \paragraph{Kinematics Interpolation.}
+\emph{Note: this part is common to all elements that use the
+three-node beam discretization and interpolation model.}
 The generic field variable $\T{p}\plbr{x}$ is interpolated
 using parabolic functions related to the value of the field 
 variable at three locations that in general can be offset
@@ -984,7 +1020,7 @@ Velocity perturbation at an arbitrary location $\xi$:
 	\sum_{i=1,2,3} N_i\plbr{\xi} \plbr{
 		\delta\dot{\T{x}}_i
 		- \T{o}_i \times \delta\dot{\T{g}}_i
-		+ \plbr{\T{o}_i \times \T{\omega}_i} \times \delta\T{g}_i
+		- \plbr{\T{\omega}_i \times \T{o}_i} \times \delta\T{g}_i
 	}
 	.
 \end{align}
@@ -1014,14 +1050,175 @@ Velocity perturbation:
 \begin{align}
 	\delta\tilde{\T{v}}\plbr{\xi}
 	&=
-	\TT{R}^T\plbr{\xi} \plbr{
-		*
+	\TT{R}^T\plbr{\xi} \lplbr{
+		N_i\plbr{\xi} \delta\T{v}_i
+		- N_i\plbr{\xi} \T{o}_i \times \delta\T{\omega}_i
 	}
+	\nonumber \\
+	& \hphantom{= \TT{R}^T\plbr{\xi}(}
+	\rplbr{
+		\mbox{} + \plbr{
+			\T{v}\plbr{\xi} \times \TT{\Theta}_i\plbr{\xi}
+			- N_i\plbr{\xi} \T{\omega}_i \times \T{o}_i \times{}
+		} \T{\theta}_{i\delta}
+	}
+	\nonumber \\
+	&\equu
+	\TT{R}^T\plbr{\xi} \lplbr{
+		N_i\plbr{\xi} \delta\dot{\T{x}}_i
+		- N_i\plbr{\xi} \T{o}_i \times \delta\dot{\T{g}}_i
+	}
+	\nonumber \\
+	& \hphantom{= \TT{R}^T\plbr{\xi}(}
+	\rplbr{
+		\mbox{} + \plbr{
+			\T{v}\plbr{\xi} \times \TT{\Theta}_i\plbr{\xi}
+			- N_i\plbr{\xi} \plbr{\T{\omega}_i \times \T{o}_i} \times{}
+		} \delta\T{g}_i
+	}
+	.
+\end{align}
+They can be summarized as
+\begin{align}
+	\cubr{\cvvect{
+		\delta\tilde{\T{v}}\plbr{\xi} \\
+		\delta\tilde{\T{\omega}}\plbr{\xi}
+	}}
+	&=
+	\sqbr{\matr{cc}{
+		\TT{R}^T\plbr{\xi} & \TT{0} \\
+		\TT{0} & \TT{R}^T\plbr{\xi}
+	}} \sum_{i=1,2,3} \lplbr{
+		N_i\plbr{\xi} \sqbr{\matr{cc}{
+			\TT{I} & - \T{o}_i \times{} \\
+			\TT{0} & \TT{I}
+		}} \cubr{\cvvect{
+			\delta\T{v}_i \\
+			\delta\T{\omega}_i
+		}}
+	}
+	\nonumber \\
+	& \hphantom{= } \mbox{}
+	+ \rplbr{
+		\sqbr{\cvvect{
+			\T{v}\plbr{\xi} \times \TT{\Theta}_i\plbr{\xi}
+			- N_i\plbr{\xi} \T{\omega}_i \times \T{o}_i \times{} \\
+			\T{\omega}\plbr{\xi} \times \TT{\Theta}_i\plbr{\xi}
+		}} \T{\theta}_{i\delta}
+	}
+	\nonumber \\
+	&\equu
+	\sqbr{\matr{cc}{
+		\TT{R}^T\plbr{\xi} & \TT{0} \\
+		\TT{0} & \TT{R}^T\plbr{\xi}
+	}} \sum_{i=1,2,3} \lplbr{
+		N_i\plbr{\xi} \sqbr{\matr{cc}{
+			\TT{I} & - \T{o}_i \times{} \\
+			\TT{0} & \TT{I}
+		}} \cubr{\cvvect{
+			\delta\dot{\T{x}}_i \\
+			\delta\dot{\T{g}}_i
+		}}
+	}
+	\nonumber \\
+	& \hphantom{= } \mbox{}
+	+ \rplbr{
+		\sqbr{\cvvect{
+			\T{v}\plbr{\xi} \times \TT{\Theta}_i\plbr{\xi}
+			- N_i\plbr{\xi} \plbr{\T{\omega}_i \times \T{o}_i} \times{} \\
+			\T{\omega}\plbr{\xi} \times \TT{\Theta}_i\plbr{\xi}
+			- N_i\plbr{\xi} \T{\omega}_i \times{}
+		}} \delta\T{g}_i
+	}
+	.
 \end{align}
 
+\paragraph{Contribution to Jacobian Matrix.}
+After defining
+\begin{subequations}
+\begin{align}
+	\T{f}_{a/\tilde{\T{v}}} &= \TT{R}\plbr{\xi} \tilde{\T{f}}_{a/\tilde{\T{v}}} \TT{R}^T\plbr{\xi} \\
+	\T{f}_{a/\tilde{\T{\omega}}} &= \TT{R}\plbr{\xi} \tilde{\T{f}}_{a/\tilde{\T{\omega}}} \TT{R}^T\plbr{\xi} \\
+	\T{c}_{a/\tilde{\T{v}}} &= \TT{R}\plbr{\xi} \tilde{\T{c}}_{a/\tilde{\T{v}}} \TT{R}^T\plbr{\xi} \\
+	\T{c}_{a/\tilde{\T{\omega}}} &= \TT{R}\plbr{\xi} \tilde{\T{c}}_{a/\tilde{\T{\omega}}} \TT{R}^T\plbr{\xi} \\
+	\TT{B}_{\tilde{\T{v}}} &= \T{v}\plbr{\xi} \times \TT{\Theta}_i\plbr{\xi}
+		- N_i\plbr{\xi} \plbr{\T{\omega}_i \times \T{o}_i} \times{} \\
+	\TT{B}_{\tilde{\T{\omega}}} &= \T{\omega}\plbr{\xi} \times \TT{\Theta}_i\plbr{\xi}
+		- N_i\plbr{\xi} \T{\omega}_i \times{} \\
+	\T{d}_n\plbr{\xi} &= \T{x}\plbr{\xi} - \T{x}_n
+	,
+\end{align}
+\end{subequations}
+the contribution of the $i$-th node's motion to the equilibrium
+of the $n$-th node is
+\begin{align}
+	N_i\plbr{\xi} \sqbr{\matr{c}{
+		\T{f}_{a/\tilde{\T{v}}} \\
+		\T{d}_n\plbr{\xi} \times \T{f}_{a/\tilde{\T{v}}}
+		+ \T{c}_{a/\tilde{\T{v}}}
+	}} \delta\dot{\T{x}}_i
+	\nonumber \\
+%
+	\mbox{}
+	+ N_i\plbr{\xi} \sqbr{\matr{c}{
+		\T{f}_{a/\tilde{\T{\omega}}}
+		- \T{f}_{a/\tilde{\T{v}}} \T{o}_i \times{} \\
+		\T{d}_n\plbr{\xi} \times \T{f}_{a/\tilde{\T{\omega}}}
+		+ \T{c}_{a/\tilde{\T{\omega}}}
+		- \plbr{
+			\T{d}_n\plbr{\xi} \times \T{f}_{a/\tilde{\T{v}}}
+			+ \T{c}_{a/\tilde{\T{v}}}
+		} \T{o}_i \times{}
+	}} \delta\dot{\T{g}}_i
+	\nonumber \\
+%
+	\mbox{}
+	+ \sqbr{\matr{c}{
+		\T{f}_{a/\tilde{\T{v}}} \TT{B}_{\tilde{\T{v}}}
+			+ \T{f}_{a/\tilde{\T{\omega}}} \TT{B}_{\tilde{\T{\omega}}} \\
+		\T{d}_n\plbr{\xi} \times \plbr{
+			\T{f}_{a/\tilde{\T{v}}} \TT{B}_{\tilde{\T{v}}}
+				+ \T{f}_{a/\tilde{\T{\omega}}} \TT{B}_{\tilde{\T{\omega}}}
+		}
+		+ \T{c}_{a/\tilde{\T{v}}} \TT{B}_{\tilde{\T{v}}}
+			+ \T{c}_{a/\tilde{\T{\omega}}} \TT{B}_{\tilde{\T{\omega}}}
+	}} \delta\T{g}_i
+	\nonumber \\
+%
+	\mbox{}
+	+ \sqbr{\matr{c}{
+		\TT{0} \\
+		- \plbr{
+			N_i - \delta_{ni}
+		} \Delta\T{f}_n \times{}
+	}} \delta\T{x}_i
+	\nonumber \\
+%
+	\mbox{}
+	+ \sqbr{\matr{c}{
+		- \Delta\T{f}_n \times \TT{\Theta}_i\plbr{\xi} \\
+		- \plbr{
+			\T{d}_n\plbr{\xi} \times \Delta\T{f}_n \times{}
+			+ \Delta\T{c}_n \times{}
+		} \TT{\Theta}_i\plbr{\xi}
+		+ \Delta\T{f}_n \times N_i \T{o}_i \times{}
+	}} \delta\T{g}_i
+	\nonumber \\
+%
+	\equu
+	\cubr{\cvvect{
+		\delta\Delta\T{f}_n \\
+		\delta\Delta\T{c}_n
+	}}
+	,
+\end{align}
+where $\delta_{ni}$ is Dirac's delta, which is 1 when $i=n$, and 0 otherwise.
+
+\section{Aerodynamic Beam (2 Nodes)}
 
 
 
+\begin{comment}
 \section{Aerodynamic Beam}
 
 The \texttt{aerodynamic beam} element applies aerodynamic forces
@@ -1152,5 +1349,5 @@ The other contributions are:
 			- \TT{R}_i\T{b}_i\times\T{\theta}_{\delta i}}\\
 	\delta\T{x}_i &= \delta\T{x}_i
 \end{align}
-
+\end{comment}
 
