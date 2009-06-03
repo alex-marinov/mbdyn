@@ -526,283 +526,6 @@ the linearization becomes
 
 
 
-\begin{comment}
-\section{Aerodynamic body}
-The \texttt{aerodynamic body} element applies aerodynamic forces
-to the structural node it is connected to,
-based on the relative velocity between an aerodynamic surface attached 
-to the node and the airstream.
-
-The aerodynamic forces and moments acting on the attached node are:
-\begin{subequations}
-\begin{align}
-	\T{f} &= \TT{R}_{\text{loc}} \T{f}_a\\ 
-	\T{c} &= \TT{R}_{\text{loc}} \T{c}_a + \T{x}_r\times\T{f} 
-\end{align}
-\end{subequations}
-where $\TT{R}_{\text{loc}} = \TT{R}_n\TT{R}_a\TT{R}_t$ is the orientation 
-matrix from the local frame of the aerodynamics to the global, 
-while $\T{f}_a$ and $\T{c}_a$ are the aerodynamic force and moment 
-respectively in the reference frame of the aerodynamics. $\TT{R}_n$
-is the orientation matrix of the node, $\TT{R}_a$ is the
-relative orientation matrix of the aerodynamics frame with respect 
-to the node frame while $\TT{R}_t$ is a rotation matrix 
-related to the twist of the aerodynamic surface.
-Both $\TT{R}_a$ and $\TT{R}_t$ do not depend on the unknowns
-of the problem, and thus their perturbation is zero.
-The vector $\T{x}_r = \TT{R}_n\T{b}$ is the offset of the aerodynamic
-surface with respect to the node; $\T{b}$ is constant.
-
-The aerodynamic forces and moments are computed as functions 
-of a velocity vector in the reference frame of the aerodynamics:
-\begin{equation}\label{eq:fa=g(va)}
-	\sqbr{\matr{c}{\T{f_a}\\\T{c_a}}} = \T{g}\plbr{\T{V}_{a}}
-\end{equation}
-where $\T{V}_{a} = \sqbr{\T{v}_a^T\ \T{\omega}_a^T}^T$ includes both the 
-linear and angular velocity in the reference frame of the aerodynamics:
-\begin{equation}
-	\T{V}_{a} = \sqbr{\matr{c}{
-		\TT{R}^T_{\text{loc}} \plbr{\T{v}_n + \T{\omega}_n\times\T{x}_r - \T{v}_{\infty} - \T{v}_{\text{ind}}}\\
-		\TT{R}^T_{\text{loc}} \T{\omega}_n
-		}}
-\end{equation}
-The total airstream velocity in the aerodynamic frame of reference 
-includes also the free stream velocity $\T{v}_{\infty}$ and
-the induced velocity $\T{v}_{\text{ind}}$, were the aerodynamic element
-connected to any induced velocity model.
-These two contributions will not be considered in the following
-since they do not depend on the unknowns of the problem\footnote{In general,
-induced velocity models depend on the aerodynamic loads,
-and thus may indirectly depend on the unknowns of the problem.
-This dependence is neglected.
-}, and thus do not contribute to the Jacobian matrix of the problem. 
-
-The perturbation of the aerodynamic force in the global reference frame
-yields:
-\begin{align}
-	\delta\T{f}
-	& = \T{\theta}_{\delta}\times\TT{R}_{\text{loc}}\T{f}_a
-	+ \TT{R}_{\text{loc}}\frac{\partial\T{f}_a}{\partial\T{V}_a}
-		\delta\T{V}_a
-	\nonumber \\
-	&= \T{\theta}_{\delta}\times \T{f}
-	+ \TT{R}_{\text{loc}}\frac{\partial\T{f}_a}{\partial\T{V}_a}
-		\delta\T{V}_a
-\end{align}
-The $3\times6$ matrix $\partial\T{f}_a/\partial\T{V}_a$, 
-named $\T{J_f}_a$ in the
-following, is computed numerically using the finite difference method
-described below.
-
-The perturbation of the aerodynamic moment in the global reference frame
-yields:
-\begin{align}
-	\delta\T{c}
-	&= \T{\theta}_{\delta}\times\TT{R}_{\text{loc}}\T{c}_a
-	+ \TT{R}_{\text{loc}}\frac{\partial\T{c}_a}{\partial\T{V}_a}
-		\delta\T{V}_a
-	+ \delta\T{x}_r\times\T{f}
-	+ \T{x}_r\times\delta\T{f}
-	\nonumber \\
-	&= \T{\theta}_{\delta}\times\T{c}
-	+ \TT{R}_{\text{loc}}\frac{\partial\T{c}_a}{\partial\T{V}_a}
-		\delta\T{V}_a
-	+ \T{x}_r\times
-		\TT{R}_{\text{loc}}\frac{\partial\T{f}_a}{\partial\T{V}_a}
-		\delta\T{V}_a
-	\nonumber \\
-	&= \T{\theta}_{\delta}\times\T{c}
-	+ \TT{R}_{\text{loc}}\plbr{
-		\frac{\partial\T{c}_a}{\partial\T{V}_a}
-		+ \T{b}\times\frac{\partial\T{f}_a}{\partial\T{V}_a}
-	} \delta\T{V}_a
-\end{align}
-The $3\times6$ matrix $\partial\T{c}_a/\partial\T{V}_a$, 
-named $\T{J_c}_a$ in the
-following, is computed numerically as well, using a finite difference method.
-
-The Jacobian matrix of the aerodynamic forces and moments in the reference 
-frame of the aerodynamics is computed computed numerically,
-using a forward finite difference method involving a numerical perturbation
-of the relative velocity in the reference frame of the aerodynamics.
-In detail, each component of the $6\times6$ matrix $\T{J}_a$ is computed as:
-\begin{equation}
-	{J_a}_{ij} = \frac{g_i(\T{V}_a + \Delta\T{V}_a) 
-		- g_i(\T{V}_a)}{\Delta {V_a}_j}
-\end{equation}
-The perturbation of the velocity, $\Delta\T{V}_a$ in this case, plays
-a crucial role. The procedure here adopted consists in obtaining this
-perturbation based on the norm of the linear velocity $\T{v}_a$ for what 
-concerns the perturbation of the linear velocity components, based on
-the norm of the angular velocity $\T{\omega}_a$ for what concerns 
-the angular velocity components. Thus:
-\begin{equation}
-	\Delta {V_a}_j = \Bigl\{\matr{c}{
-		\varepsilon\lvert\T{v}_a\lvert\text{ if $j = 1,2,3$}\\
-		\varepsilon\lvert\T{\omega}_a\lvert\text{ if $j = 4,5,6$}
-		}
-\end{equation}
-To summarize the procedure, it can be helpful to report the algorithm
-actually implemented:
-\begin{verbatim}
-F0a = GetForces(V0a);
-for(i = 1; i <= 6; i++)	{
-    deltaVa = V0a; 
-				
-    if (i <= 3)	{
-        delta = norm(V0a) * epsilon;
-    } else		{
-        delta = norm(W0a) * epsilon;
-    }
-    deltaVa(i) = V0a(i) + delta;
-					
-    Fa = GetForces(deltaVa);
-	
-    for(j = 1; j <= 6; j++)	{
-        Ja(j,i) = (Fa(j) - Fa0(j)) / delta 
-    }
-}
-\end{verbatim}
-
-For ease of notation, in the following the $6\times6$ matrix $\T{J}_a$ is 
-divided into four sub-matrices
-\begin{equation}\label{eq:JaSub}
-	\T{J}_a = \sqbr{\matr{c}{\T{J_f}_a\\\T{J_c}_a}}
-	=\sqbr{\matr{cc}{\T{J}_{a11} & \T{J}_{a12}\\ \T{J}_{a21} & \T{J}_{a22}}}
-\end{equation}
-
-To correctly express the Jacobian matrix contributions, the perturbation 
-$\delta\T{V}_a$ and $\delta \T{x}_r$ must be expressed in terms of 
-the node coordinates and velocities, namely:
-\begin{align}
-	\delta\T{V}_a &= \delta\sqbr{\matr{c}{
-		\TT{R}^T_{\text{loc}}
-			% \plbr{\T{v}_n + \T{\omega}_n\times\T{x}_r - \T{v}_{\infty} - \T{v}_{\text{ind}}}
-			\T{v}_{\text{rel}}
-		\\
-		\TT{R}^T_{\text{loc}} \T{\omega}_n
-		}}
-	\nonumber \\
-	&= \sqbr{\matr{c}{
-	\TT{R}^T_{\text{loc}} \plbr{
-		\T{v}_{\text{rel}} \times \T{\theta}_\delta
-		+ \delta\T{v}_n
-		+ \delta\T{\omega}_n\times\T{x}_r
-		- \T{\omega}_n\times\T{x}_r\times\T{\theta}_{\delta}}
-	\\
-	\TT{R}^T_{\text{loc}}\plbr{
-		\T{\omega}_n \times\T{\theta}_\delta
-		+ \delta\T{\omega}_n
-	}
-	}}
-\end{align}
-with $\T{v}_{\text{rel}}=\T{v}_n + \T{\omega}_n\times\T{x}_r - \T{v}_{\infty} - \T{v}_{\text{ind}}$
-and exploiting $\delta\T{x}_r = \T{\theta}_\delta\times\T{x}_r$.
-
-After some manipulation, the perturbation of the aerodynamic forces  
-in the global reference frame reads:
-\begin{align}
-	\delta\T{f} &= 
-	-\TT{R}_{\text{loc}}\T{f}_a\times\T{\theta}_\delta
-	\nonumber \\
-	&\hphantom{= }+ \TT{R}_{\text{loc}}\T{J}_{a11}\TT{R}^T_{\text{loc}}\T{v}_{\text{rel}}\times\T{\theta}_\delta
-	\nonumber \\
-	&\hphantom{= }+ \TT{R}_{\text{loc}}\T{J}_{a11}\TT{R}^T_{\text{loc}}\delta\T{v}_n
-	\nonumber \\
-	&\hphantom{= }- \TT{R}_{\text{loc}}\T{J}_{a11}\TT{R}^T_{\text{loc}}
-		\T{x}_r\times\delta\T{\omega}_n
-	\nonumber \\
-	&\hphantom{= }- \TT{R}_{\text{loc}}\T{J}_{a11}\TT{R}^T_{\text{loc}}
-		\T{\omega}_n\times\T{x}_r\times\T{\theta}_\delta
-	\nonumber \\
-	&\hphantom{= }+ \TT{R}_{\text{loc}}\T{J}_{a12}\TT{R}^T_{\text{loc}}\T{\omega}_n
-		\times\T{\theta}_\delta
-	\nonumber \\
-	&\hphantom{= }+ \TT{R}_{\text{loc}}\T{J}_{a12}\TT{R}^T_{\text{loc}}\delta\T{\omega}_n
-	\nonumber \\
-	&=
-	\plbr{
-		- \T{f}\times{}
-		+ \TT{R}_{\text{loc}}\T{J}_{a11}\TT{R}^T_{\text{loc}}\plbr{
-			\T{v}_{\text{rel}}\times{}
-			- \T{\omega}_n\times\T{x}_r\times{}
-		}
-		+ \TT{R}_{\text{loc}}\T{J}_{a12}\TT{R}^T_{\text{loc}}\T{\omega}_n\times{}
-	} \T{\theta}_\delta
-	\nonumber \\
-	&\hphantom{= }+ \TT{R}_{\text{loc}}\T{J}_{a11}\TT{R}^T_{\text{loc}}\delta\T{v}_n
-	\nonumber \\
-	&\hphantom{= }+ \plbr{
-		- \TT{R}_{\text{loc}}\T{J}_{a11}\TT{R}^T_{\text{loc}} \T{x}_r\times{}
-		+ \TT{R}_{\text{loc}}\T{J}_{a12}\TT{R}^T_{\text{loc}}
-	} \delta\T{\omega}_n
-	\label{eq:deltaF}
-\end{align}
-while the perturbation of the aerodynamic moments yields:
-
-\begin{align}
-	\delta\T{c} &= 
-	- \TT{R}_{\text{loc}}\T{c}_a\times\T{\theta}_\delta
-	\nonumber \\
-	&\hphantom{= }+ \TT{R}_{\text{loc}}\T{J}_{a21}\TT{R}^T_{\text{loc}}\T{v}_{\text{rel}}\times\T{\theta}_\delta
-	\nonumber \\
-	&\hphantom{= }+ \TT{R}_{\text{loc}}\T{J}_{a21}\TT{R}^T_{\text{loc}}\delta\T{v}_n
-	\nonumber \\
-	&\hphantom{= }- \TT{R}_{\text{loc}}\T{J}_{a21}\TT{R}^T_{\text{loc}}
-		\T{x}_r\times\delta\T{\omega}_n
-	\nonumber \\
-	&\hphantom{= }- \TT{R}_{\text{loc}}\T{J}_{a21}\TT{R}^T_{\text{loc}}
-		\T{\omega}_n\times\T{x}_r\times\T{\theta}_\delta
-	\nonumber \\
-	&\hphantom{= }+ \TT{R}_{\text{loc}}\T{J}_{a22}\TT{R}^T_{\text{loc}}\T{\omega}_n
-		\times\T{\theta}_\delta
-	\nonumber \\
-	&\hphantom{= }+ \TT{R}_{\text{loc}}\T{J}_{a22}\TT{R}^T_{\text{loc}}\delta\T{\omega}_n
-	\nonumber \\
-	&\hphantom{= }+ \T{f}\times\T{x}_r\times\T{\theta}_\delta
-	\nonumber \\
-	&\hphantom{= }+ \T{x}_r \times \delta\T{f}
-	\nonumber \\
-	&=
-	\lplbr{
-		- \T{c}\times{}
-		+ \TT{R}_{\text{loc}}\T{J}_{a21}\TT{R}^T_{\text{loc}} \plbr{
-			\T{v}_{\text{rel}}\times{}
-			- \T{\omega}_n\times\T{x}_r\times{}
-		}
-		+ \TT{R}_{\text{loc}}\T{J}_{a22}\TT{R}^T_{\text{loc}}\T{\omega}_n\times{}
-	}
-	\nonumber \\
-	&\hphantom{= }\rplbr{\mbox{\hspace{3mm}} + \T{x}_r \times 
-	\plbr{
-		\TT{R}_{\text{loc}}\T{J}_{a11}\TT{R}^T_{\text{loc}}\plbr{
-			\T{v}_{\text{rel}}\times{}
-			- \T{\omega}_n\times\T{x}_r\times{}
-		}
-		+ \TT{R}_{\text{loc}}\T{J}_{a12}\TT{R}^T_{\text{loc}}\T{\omega}_n\times{}
-	}} \T{\theta}_\delta
-	\nonumber \\
-	&\hphantom{= }+ \plbr{
-		\TT{R}_{\text{loc}}\T{J}_{a21}\TT{R}^T_{\text{loc}}
-		+ \T{x}_r \times \TT{R}_{\text{loc}}\T{J}_{a11}\TT{R}^T_{\text{loc}}
-	} \delta\T{v}_n
-	\nonumber \\
-	&\hphantom{= }+ \lplbr{
-		- \TT{R}_{\text{loc}}\T{J}_{a21}\TT{R}^T_{\text{loc}}\T{x}_r\times{}
-		+ \TT{R}_{\text{loc}}\T{J}_{a22}\TT{R}^T_{\text{loc}}
-	}
-	\nonumber \\
-	&\hphantom{= } \rplbr{
-		\mbox{\hspace{5mm}} + \T{x}_r \times \plbr{
-		- \TT{R}_{\text{loc}}\T{J}_{a11}\TT{R}^T_{\text{loc}} \T{x}_r\times{}
-		+ \TT{R}_{\text{loc}}\T{J}_{a12}\TT{R}^T_{\text{loc}}
-	}} \delta\T{\omega}_n
-\end{align}
-where the last term, which involves $\delta\T{f}$, is the same of
-Eq.~(\ref{eq:deltaF}).
-\end{comment}
-
-
 
 
 \section{Aerodynamic Beam (3 Nodes)}
@@ -844,16 +567,16 @@ Orientation at an arbitrary location $\xi$:
 \begin{align}
 	\TT{R}\plbr{\xi}
 	&=
-	\TT{R}_{2_a} \TT{R}\plbr{\T{g}\plbr{\xi}}
+	\TT{R}_{2_a} \TT{R}\plbr{\T{\theta}\plbr{\xi}}
 	\\
-	\T{g}\plbr{\xi}
+	\T{\theta}\plbr{\xi}
 	&=
-	\sum_{i=1,3} N_i\plbr{\xi} \T{g}_{2\leftarrow i}
-	= N_1\plbr{\xi} \T{g}_{2\leftarrow 1} + N_3\plbr{\xi} \T{g}_{2\leftarrow 3}
+	\sum_{i=1,3} N_i\plbr{\xi} \T{\theta}_{2\leftarrow i}
+	= N_1\plbr{\xi} \T{\theta}_{2\leftarrow 1} + N_3\plbr{\xi} \T{\theta}_{2\leftarrow 3}
 	\\
-	\T{g}_{2\leftarrow i}
+	\T{\theta}_{2\leftarrow i}
 	&=
-	\text{Cay}\plbr{\TT{R}_{2_a}^T \TT{R}_{i_a}}
+	\text{ax}\plbr{\text{exp}^{-1}\plbr{\TT{R}_{2_a}^T \TT{R}_{i_a}}}
 	.
 \end{align}
 Orientation is dealt with specially, given its special nature.
@@ -864,11 +587,12 @@ The interpolated orientation parameters are used to compute
 the interpolated relative orientation matrix, which is then
 pre-multiplied by the orientation matrix of the mid node.
 Summation in this case occurs on $i=1,3$ only because by definition
-$\T{g}_{2\leftarrow 2}=\text{Cay}(\TT{I})\equiv\T{0}$.
+$\T{\theta}_{2\leftarrow 2}=\text{ax}(\text{exp}^{-1}((\TT{I}))\equiv\T{0}$.
 
-Since the Cayley-Gibbs-Rodrigues orientation parameters are used,
+Since the Euler-Rodrigues orientation parameters are used
+(the so-caller `rotation vector'),
 the magnitude of the relative orientation between each end node
-and the mid node must be limited (formally, to $\pi/2$,
+and the mid node must be limited (formally, to $\pi$,
 but it should be less for accuracy).
 
 Position at an arbitrary location $\xi$:
@@ -904,13 +628,13 @@ Velocity at an arbitrary location $\xi$:
 \paragraph{Perturbation of Interpolated Kinematics.}
 Orientation perturbation at an arbitrary location $\xi$:
 \begin{align}
-	\delta\T{g}\plbr{\xi}
+	\delta\T{\theta}\plbr{\xi}
 	&=
-	\sum_{i=1,3} N_i\plbr{\xi} \delta\T{g}_{2\leftarrow i}
+	\sum_{i=1,3} N_i\plbr{\xi} \delta\T{\theta}_{2\leftarrow i}
 	\\
-	\delta\T{g}_{2\leftarrow i}
+	\delta\T{\theta}_{2\leftarrow i}
 	&=
-	\TT{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow i}} \T{\theta}_{(2\leftarrow i) \delta}
+	\TT{\Gamma}^{-1}\plbr{\T{\theta}_{2\leftarrow i}} \T{\theta}_{(2\leftarrow i) \delta}
 	\\
 	\T{\theta}_{(2\leftarrow i) \delta}
 	&=
@@ -922,25 +646,25 @@ Orientation perturbation at an arbitrary location $\xi$:
 	\T{\theta}_{\delta}\plbr{\xi}
 	&=
 	\T{\theta}_{2\delta}
-	+ \sum_{i=1,3} \TT{R}_{2_a} \TT{\Gamma}\plbr{\T{g}\plbr{\xi}}
-		N_i\plbr{\xi} \TT{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow i}}
+	+ \sum_{i=1,3} \TT{R}_{2_a} \TT{\Gamma}\plbr{\T{\theta}\plbr{\xi}}
+		N_i\plbr{\xi} \TT{\Gamma}^{-1}\plbr{\T{\theta}_{2\leftarrow i}}
 		\TT{R}_{2_a}^T \plbr{\T{\theta}_{i\delta} - \T{\theta}_{2\delta}}
 	\nonumber \\
 	&= \plbr{
 		\TT{I}
-		- \TT{R}_{2_a} \TT{\Gamma}\plbr{\T{g}\plbr{\xi}}
-			\sum_{i=1,3} N_i\plbr{\xi} \TT{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow i}}
+		- \TT{R}_{2_a} \TT{\Gamma}\plbr{\T{\theta}\plbr{\xi}}
+			\sum_{i=1,3} N_i\plbr{\xi} \TT{\Gamma}^{-1}\plbr{\T{\theta}_{2\leftarrow i}}
 			\TT{R}_{2_a}^T
 	} \T{\theta}_{2\delta}
 	\nonumber \\
 	& \hphantom{= } \mbox{}
-	+ \TT{R}_{2_a} \TT{\Gamma}\plbr{\T{g}\plbr{\xi}}
-		N_1\TT{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow 1}}
+	+ \TT{R}_{2_a} \TT{\Gamma}\plbr{\T{\theta}\plbr{\xi}}
+		N_1\TT{\Gamma}^{-1}\plbr{\T{\theta}_{2\leftarrow 1}}
 		\TT{R}_{2_a}^T \T{\theta}_{1\delta}
 	\nonumber \\
 	& \hphantom{= } \mbox{}
-	+ \TT{R}_{2_a} \TT{\Gamma}\plbr{\T{g}\plbr{\xi}}
-		N_3\TT{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow 3}}
+	+ \TT{R}_{2_a} \TT{\Gamma}\plbr{\T{\theta}\plbr{\xi}}
+		N_3\TT{\Gamma}^{-1}\plbr{\T{\theta}_{2\leftarrow 3}}
 		\TT{R}_{2_a}^T \T{\theta}_{3\delta}
 	\nonumber \\
 	&=
@@ -952,8 +676,8 @@ with
 \begin{align}
 	\TT{\Theta}_i\plbr{\xi}
 	&=
-	\TT{R}_{2_a} \TT{\Gamma}\plbr{\T{g}\plbr{\xi}}
-		N_i\TT{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow i}}
+	\TT{R}_{2_a} \TT{\Gamma}\plbr{\T{\theta}\plbr{\xi}}
+		N_i\TT{\Gamma}^{-1}\plbr{\T{\theta}_{2\leftarrow i}}
 		\TT{R}_{2_a}^T
 		& i=\text{1 and 3}
 	\\
@@ -1150,7 +874,7 @@ After defining
 \end{align}
 \end{subequations}
 the contribution of the $i$-th node's motion to the equilibrium
-of the $n$-th node is
+of the $n$-th node ($i=1,2,3$, $n=1,2,3$) is
 \begin{align}
 	N_i\plbr{\xi} \sqbr{\matr{c}{
 		\T{f}_{a/\tilde{\T{v}}} \\
@@ -1214,140 +938,468 @@ of the $n$-th node is
 \end{align}
 where $\delta_{ni}$ is Dirac's delta, which is 1 when $i=n$, and 0 otherwise.
 
+
+
+
 \section{Aerodynamic Beam (2 Nodes)}
+\textbf{TODO}
 
+The \texttt{aerodynamic beam2} element applies aerodynamic forces
+to the nodes of a two node structural beam element. 
 
+The aerodynamic forces/moments acting on each node 
+are computed based on the relative velocity of a set of locations
+along the beam and the airstream.
+The kinematic quantities of the beam are computed based
+on an interpolation of the kinematics of the three nodes.
 
-\begin{comment}
-\section{Aerodynamic Beam}
-
-The \texttt{aerodynamic beam} element applies aerodynamic forces
-to the nodes of a structural beam element. 
-The aerodynamic forces/moments acting on a single node 
-are computed based on a relative 
-velocity between an aerodynamic surface attached 
-to the node and the airstream. By itself, the relative velocity 
-used on each node, as well as the position of the aerodynamic 
-surface, is computed based on a weighted mean of the velocities
-of the (three) beam nodes. 
-
-\newcommand{\Rloc}{{\TT{R}_{\text{loc}}}}
-\newcommand{\Rtilde}[1]{\tilde{\TT{R}}_{#1}}
-\newcommand{\Cay}[1]{\text{Cay}\plbr{#1}}
-\newcommand{\Rot}[1]{\text{Rot}\plbr{#1}}
-The aerodynamic forces and moments acting on the $i$-th node of the
-beam are:
-\begin{subequations}\label{eq:fici}
+\paragraph{Kinematics Interpolation.}
+\emph{Note: this part is common to all elements that use the
+two-node beam discretization and interpolation model.}
+The generic field variable $\T{p}\plbr{x}$ is interpolated
+using linear functions related to the value of the field 
+variable at two locations that in general can be offset
+from the nodes,
 \begin{align}
-	\T{f}_i &= \Rloc {\T{f}_a}_i\\ 
-	\T{c}_i &= \Rloc {\T{c}_a}_i 
-		+ \plbr{{\T{x}_r}_i - \T{x}_i}\times{\T{f}}_i 
+	\T{p}\plbr{\xi}
+	&=
+	\sum_{i=1,2} N_i\plbr{\xi} \T{p}_i
+	,
+\end{align}
+with
+\begin{subequations}
+\label{eq:aero:beam2:N}
+\begin{align}
+	N_1 &= \frac{1}{2} \plbr{1 - \xi}
+	\\
+	N_2 &= \frac{1}{2} \plbr{1 + \xi}
+	.
 \end{align}
 \end{subequations}
-where $\Rloc$ is the orientation 
-matrix from the local frame of the aerodynamics
-to the global, while ${\T{f}_a}_i$ and ${\T{c}_a}_i$ are the 
-aerodynamic force and moment 
-respectively in the reference frame of the aerodynamics, $\T{x}_r$
-is the offset. 
-By defining $\T{g}_{2\leftarrow{1}} = \Cay{\Rtilde{2}^T\Rtilde{1}}$ 
-and $\T{g}_{2\leftarrow{3}} = \Cay{\Rtilde{2}^T\Rtilde{3}}$ (where, respectively,
-$\Rtilde{i} = \TT{R}_i\TT{R}_{ai}$ is the orientation matrix from the 
-local frame of the aerodynamics on the $i$-th node to the global),
-matrix $\Rloc$ writes:
-\begin{equation}
-	\Rloc = \Rtilde{2} \Rot{N_1\T{g}_{2\leftarrow{1}} + N_3\T{g}_{2\leftarrow{3}}}
-\end{equation}
-where $N_1$ and $N_3$ are weight coefficients which depend on
-the node the computation is referred to\footnote{Since the 
-weight coefficients $N_i$ depends on the node for which the
-forces are computed, also $\Rloc$ differs from node to node
-even if it is not explicitly indicated in the formulas. }.
 
-The relative velocity of the aerodynamic surface in the global
-frame is computed as:
+Orientation at an arbitrary location $\xi$:
 \begin{align}
-	\T{v}_r &= \sum_{i=1}^3 N_i \plbr{\T{v}_i 
-		+ \T{\omega}_i\times\T{R}_i\T{b}_i}\\
-	\T{\omega}_r &= \sum_{i=1}^3 N_i \T{\omega}_i 
+	\TT{R}\plbr{\xi}
+	&=
+	\TT{R}_{\text{mid}} \text{exp}\plbr{\T{\theta}\plbr{\xi}\times{}}
+	\\
+	\TT{R}_{\text{mid}}
+	&=
+	\TT{R}_{1_a} \text{exp}\plbr{\overline{\T{\theta}}\times{}}
+	= \TT{R}_{2_a} \text{exp}\plbr{\overline{\T{\theta}}\times{}}^T
+	\\
+	\overline{\T{\theta}}
+	&=
+	\frac{1}{2} \text{ax}\plbr{\text{exp}^{-1}\plbr{\TT{R}_{1_a}^T \TT{R}_{2_a}}}
+	\\
+	\T{\theta}\plbr{\xi}
+	&=
+	\sum_{i=1,2} N_i\plbr{\xi} \T{\theta}_{\text{mid}\leftarrow i}
+	= N_1\plbr{\xi} \T{\theta}_{\text{mid}\leftarrow 1}
+		+ N_2\plbr{\xi} \T{\theta}_{\text{mid}\leftarrow 2}
+	\\
+	\T{\theta}_{\text{mid}\leftarrow 1}
+	&= -\overline{\T{\theta}}
+	\\
+	\T{\theta}_{\text{mid}\leftarrow 2}
+	&=
+	\overline{\T{\theta}}
+	.
 \end{align}
-which is an interpolation of the velocities of the three nodes
-of the beam.  
-The total airstream velocity in the aerodynamic frame of reference 
-includes also the free stream velocity $\T{v}_{\infty}$ and
-the induced velocity $\T{v}_{\text{ind}}$, were the aerodynamic element
-connected to any induced velocity model.
-These two contributions will not be considered in the following
-since they do not depend on the unknowns of the problem.  
-In the same fashion, the offset of the reference 
-aerodynamic surface is computed as:
-\begin{equation}
-	\T{x}_r = \sum_{i=1}^3 N_i \plbr{\T{x}_i 
-		+ \T{R}_i\T{b}_i}
-\end{equation}
-The aerodynamic forces and moments $\T{f}_a$ and $\T{c}_a$
-are computed using the same algorithm of Eq.~(\ref{eq:fa=g(va)}), 
-and its differentiation is computed numerically using the same 
-algorithm described in the previous section and its Jacobian matrix
-($\T{J}_{a}$) is still divided into four sub-matrices, as in 
-Eq.~(\ref{eq:JaSub}).
+Orientation is dealt with specially, given its special nature.
+The orientation of the mid point is used as a reference,
+and the orientation parameters that express the relative orientation
+between each of the end nodes and the mid point are interpolated.
+The interpolated orientation parameters are used to compute
+the interpolated relative orientation matrix, which is then
+pre-multiplied by the orientation matrix of the mid point.
 
-Differentiating Eq.~(\ref{eq:fici}), one obtains:
+Since the Euler-Rodrigues parametrization is used
+(the so-called `rotation vector'),
+the magnitude of the relative orientation between each end node
+must be limited (formally, to $\pi$, but it should be less for accuracy).
+
+Note that since the generic orientation $\TT{R}(\xi)$
+is the result of a sequence of orientations
+about a common axis $\overline{\T{\theta}}$,
+it can be conveniently rewritten as
 \begin{align}
-	\delta\T{f}_i &= \delta\Rloc \T{f}_a 
-		+ \Rloc \sqbr{\T{J}_{a11}\ \T{J}_{a12}}
-		\sqbr{\matr{c}{
-		\delta\Rloc^T\T{v}_r + \Rloc^T\delta\T{v}_r\\
-		\delta\Rloc^T\T{\omega}_r + \Rloc^T\delta\T{\omega}_r}}\\
-\nonumber\delta\T{c}_i &= \delta\Rloc \T{c}_a 
-		+ \Rloc \sqbr{\T{J}_{a21}\ \T{J}_{a22}}
-		\sqbr{\matr{c}{
-		\delta\Rloc^T\T{v}_r + \Rloc^T\delta\T{v}_r\\
-		\delta\Rloc^T\T{\omega}_r + \Rloc^T\delta\T{\omega}_r}}\\
-	&+ \plbr{\delta\T{x}_r - \delta\T{x}_i}\times\T{f}_i 
-		+ \plbr{\T{x}_r - \T{x}_i}\times\delta\T{f}_i
+	\TT{R}\plbr{\xi}
+	&= \TT{R}_{1_a} \text{exp}\plbr{\overline{\T{\theta}}\times{}}
+		\text{exp}\plbr{\plbr{\plbr{N_2\plbr{\xi} - N_1\plbr{\xi}} \overline{\T{\theta}}}\times{}}
+	\nonumber \\
+	&= \TT{R}_{1_a} 
+		\text{exp}\plbr{\plbr{\plbr{1 + N_2\plbr{\xi} - N_1\plbr{\xi}} \overline{\T{\theta}}}\times{}}
+	.
 \end{align}
-These equations are composed by many terms and, in order to keep the
-notation light, each contributions is written separately.
-First of all, the most recursive terms are the product between 
-$\delta\Rloc$ and a vector, and the product between $\delta\Rloc^T$
-and a vector. These, defining $\overline{\T{g}}=N_1\T{g}_{2\leftarrow{1}} 
-+ N_3\T{g}_{2\leftarrow{3}}$, 
-respectively result in:
-\newcommand{\vv}{\T{\overline{v}}}
+In fact, when $\xi=-1$, $N_1=1$ and $N_2=0$,
+then $\TT{R}\plbr{\xi}=\TT{R}_{1_a}$,
+while when $\xi=1$, $N_1=0$ and $N_2=1$,
+then $\TT{R}\plbr{\xi}=\TT{R}_{2_a}$.
+
+Position at an arbitrary location $\xi$:
 \begin{align}
-\nonumber	\plbr{\delta\Rloc}\vv &= 
-		-\plbr{\Rloc\vv}\times\T{\theta_{2\delta}}\\ 
-\nonumber	&+\plbr{\Rloc\vv}\times
-		\Rtilde{2}\T{\Gamma}\plbr{\overline{\T{g}}}\plbr{
-			N_1 \T{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow{1}}}\Rtilde{2}^T
-			\plbr{\T{\theta_{2\delta}}-\T{\theta_{1\delta}}}
-			+N_3 \T{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow{3}}}\Rtilde{2}^T
-			\plbr{\T{\theta_{2\delta}}-\T{\theta_{3\delta}}}
-		} \\
-\nonumber	\plbr{\delta\Rloc^T}\vv &= 
-		\Rloc^T\vv\times\T{\theta_{2\delta}}\\ 
-\nonumber	&+N_1\sqbr{\Rot{\overline{\T{g}}}}^T
-			\plbr{\Rtilde{2}^T\vv}\times
-		\T{\Gamma}\plbr{\overline{\T{g}}}
-		\T{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow{1}}}\Rtilde{2}^T
-		\plbr{\T{\theta_{1\delta}}-\T{\theta_{2\delta}}}\\ 
-\nonumber	&+N_3\sqbr{\Rot{\overline{\T{g}}}}^T
-			\plbr{\Rtilde{2}^T\vv}\times
-		\T{\Gamma}\plbr{\overline{\T{g}}}
-		\T{\Gamma}^{-1}\plbr{\T{g}_{2\leftarrow{3}}}\Rtilde{2}^T
-		\plbr{\T{\theta_{3\delta}}-\T{\theta_{2\delta}}}\\ 
+	\T{x}\plbr{\xi}
+	&=
+	\sum_{i=1,2} N_i\plbr{\xi} \plbr{
+		\T{x}_i + \T{o}_i
+	}
+	,
 \end{align}
-The other contributions are:
+with $\T{o}_i=\TT{R}_i \tilde{\T{o}}_i$.
+
+Angular velocity at an arbitrary location $\xi$:
 \begin{align}
-	\delta\T{v}_r &= \sum_{i=1}^3N_i\plbr{\delta\T{v}_i 
-			- \TT{R}_i\T{b}_i\times\delta\T{\omega}_i
-			- \T{\omega}_i\times\TT{R}_i\T{b}_i
-			\times\T{\theta}_{\delta i}}\\
-	\delta\T{\omega}_r &= \sum_{i=1}^3N_i\delta\T{\omega}_i\\ 
-	\delta\T{x}_r &= \sum_{i=1}^3N_i\plbr{\delta\T{x}_i 
-			- \TT{R}_i\T{b}_i\times\T{\theta}_{\delta i}}\\
-	\delta\T{x}_i &= \delta\T{x}_i
+	\T{\omega}\plbr{\xi}
+	&=
+	\sum_{i=1,2} N_i\plbr{\xi} \T{\omega}_i
+	.
 \end{align}
-\end{comment}
+
+Velocity at an arbitrary location $\xi$:
+\begin{align}
+	\T{v}_{\text{kin}}\plbr{\xi}
+	&=
+	\sum_{i=1,2} N_i\plbr{\xi} \plbr{
+		\T{v}_i
+		+ \T{\omega}_i \times \T{o}_i
+	}
+	.
+\end{align}
+
+\paragraph{Perturbation of Interpolated Kinematics.}
+Orientation perturbation at an arbitrary location $\xi$:
+\begin{align}
+	\T{\theta}_{\delta}\plbr{\xi}
+	&=
+	\frac{1 + N_2\plbr{\xi} - N_1\plbr{\xi}}{2} \T{\theta}_{2\delta}
+	+ \frac{1 + N_1\plbr{\xi} - N_2\plbr{\xi}}{2} \T{\theta}_{1\delta}
+	\\
+	&=
+	\sum_{i=1,2} \mathcal{N}_i\plbr{\xi} \T{\theta}_{i\delta}
+	,
+\end{align}
+with
+\begin{subequations}
+\begin{align}
+	\mathcal{N}_i\plbr{\xi}
+	&=
+	\frac{1 + N_i\plbr{\xi} - N_{3-i}\plbr{\xi}}{2}
+	\label{eq:aero:beam2:NN}
+	.
+\end{align}
+\end{subequations}
+Note, however, that according to Eqs.~(\ref{eq:aero:beam2:N}),
+the shape functions of Eq.~(\ref{eq:aero:beam2:NN})
+are $\mathcal{N}_i\plbr{\xi}=N_i\plbr{\xi}$.
+
+Position perturbation at an arbitrary location $\xi$:
+\begin{align}
+	\delta\T{x}\plbr{\xi}
+	&=
+	\sum_{i=1,2} N_i\plbr{\xi} \plbr{
+		\delta\T{x}_i + \T{\theta}_{i\delta}\times\T{o}_i
+	}
+	.
+\end{align}
+
+Angular velocity perturbation at an arbitrary location $\xi$:
+\begin{align}
+	\delta\T{\omega}\plbr{\xi}
+	&=
+	\sum_{i=1,2} N_i \delta\T{\omega}_i
+	\nonumber \\
+	&\equu
+	\sum_{i=1,2} N_i \plbr{
+		\delta\dot{\T{g}}_i
+		- \T{\omega}_i \times \delta\T{g}_i
+	}
+	.
+\end{align}
+
+Velocity perturbation at an arbitrary location $\xi$:
+\begin{align}
+	\delta\T{v}_{\text{kin}}\plbr{\xi}
+	&=
+	\sum_{i=1,2} N_i\plbr{\xi} \plbr{
+		\delta\T{v}_i
+		+ \delta\T{\omega}_i \times \T{o}_i
+		+ \T{\omega}_i \times \delta\T{o}_i
+	}
+	\nonumber \\
+	&= 
+	\sum_{i=1,2} N_i\plbr{\xi} \plbr{
+		\delta\T{v}_i
+		- \T{o}_i \times \delta\T{\omega}_i
+		- \T{\omega}_i \times \T{o}_i \times \T{\theta}_{i\delta}
+	}
+	\nonumber \\
+	&\equu
+	\sum_{i=1,2} N_i\plbr{\xi} \plbr{
+		\delta\dot{\T{x}}_i
+		- \T{o}_i \times \delta\dot{\T{g}}_i
+		- \plbr{\T{\omega}_i \times \T{o}_i} \times \delta\T{g}_i
+	}
+	.
+\end{align}
+
+
+\paragraph{Boundary Conditions Perturbation.}
+Angular velocity perturbation:
+\begin{align}
+	\delta\tilde{\T{\omega}}\plbr{\xi}
+	&= \TT{R}^T\plbr{\xi} \sum_{i=1,2} \plbr{
+		N_i\plbr{\xi} \delta\T{\omega}_i
+		+ \T{\omega}\plbr{\xi} \times \mathcal{N}_i\plbr{\xi} \T{\theta}_{i\delta}
+	}
+	\nonumber \\
+	&\equu
+	\TT{R}^T\plbr{\xi} \sum_{i=1,2} \plbr{
+		N_i\plbr{\xi} \delta\dot{\T{g}}_i
+		+ \plbr{
+			\mathcal{N}_i \T{\omega}\plbr{\xi}
+			- N_i\plbr{\xi} \T{\omega}_i
+		} \times \delta\T{g}_i
+	}
+	\nonumber \\
+	&=
+	\TT{R}^T\plbr{\xi} \sum_{i=1,2} N_i\plbr{\xi} \plbr{
+		\delta\dot{\T{g}}_i
+		+ \plbr{
+			\T{\omega}\plbr{\xi}
+			- \T{\omega}_i
+		} \times \delta\T{g}_i
+	}
+	.
+\end{align}
+
+Velocity perturbation:
+\begin{align}
+	\delta\tilde{\T{v}}\plbr{\xi}
+	&=
+	\TT{R}^T\plbr{\xi} \lplbr{
+		N_i\plbr{\xi} \delta\T{v}_i
+		- N_i\plbr{\xi} \T{o}_i \times \delta\T{\omega}_i
+	}
+	\nonumber \\
+	& \hphantom{= \TT{R}^T\plbr{\xi}(}
+	\rplbr{
+		\mbox{} + \plbr{
+			\mathcal{N}_i\plbr{\xi} \T{v}\plbr{\xi} \times{}
+			- N_i\plbr{\xi} \T{\omega}_i \times \T{o}_i \times{}
+		} \T{\theta}_{i\delta}
+	}
+	\nonumber \\
+	&\equu
+	\TT{R}^T\plbr{\xi} \lplbr{
+		N_i\plbr{\xi} \delta\dot{\T{x}}_i
+		- N_i\plbr{\xi} \T{o}_i \times \delta\dot{\T{g}}_i
+	}
+	\nonumber \\
+	& \hphantom{= \TT{R}^T\plbr{\xi}(}
+	\rplbr{
+		\mbox{} + \plbr{
+			\mathcal{N}_i\plbr{\xi} \T{v}\plbr{\xi}
+			- N_i\plbr{\xi} \T{\omega}_i \times \T{o}_i
+		} \times \delta\T{g}_i
+	}
+	\nonumber \\
+	&=
+	\TT{R}^T\plbr{\xi} N_i\plbr{\xi} \plbr{
+		\delta\dot{\T{x}}_i
+		- \T{o}_i \times \delta\dot{\T{g}}_i
+		+ \plbr{
+			\T{v}\plbr{\xi}
+			- \T{\omega}_i \times \T{o}_i
+		} \times \delta\T{g}_i
+	}
+	.
+\end{align}
+They can be summarized as
+\begin{align}
+	\cubr{\cvvect{
+		\delta\tilde{\T{v}}\plbr{\xi} \\
+		\delta\tilde{\T{\omega}}\plbr{\xi}
+	}}
+	&=
+	\sqbr{\matr{cc}{
+		\TT{R}^T\plbr{\xi} & \TT{0} \\
+		\TT{0} & \TT{R}^T\plbr{\xi}
+	}} \sum_{i=1,2,3} \lplbr{
+		N_i\plbr{\xi} \sqbr{\matr{cc}{
+			\TT{I} & - \T{o}_i \times{} \\
+			\TT{0} & \TT{I}
+		}} \cubr{\cvvect{
+			\delta\T{v}_i \\
+			\delta\T{\omega}_i
+		}}
+	}
+	\nonumber \\
+	& \hphantom{= } \mbox{}
+	+ \rplbr{
+		\sqbr{\cvvect{
+			\mathcal{N}_i\plbr{\xi} \T{v}\plbr{\xi} \times{}
+			- N_i\plbr{\xi} \T{\omega}_i \times \T{o}_i \times{} \\
+			\mathcal{N}_i\plbr{\xi} \T{\omega}\plbr{\xi} \times{}
+		}} \T{\theta}_{i\delta}
+	}
+	\nonumber \\
+	&\equu
+	\sqbr{\matr{cc}{
+		\TT{R}^T\plbr{\xi} & \TT{0} \\
+		\TT{0} & \TT{R}^T\plbr{\xi}
+	}} \sum_{i=1,2,3} \lplbr{
+		N_i\plbr{\xi} \sqbr{\matr{cc}{
+			\TT{I} & - \T{o}_i \times{} \\
+			\TT{0} & \TT{I}
+		}} \cubr{\cvvect{
+			\delta\dot{\T{x}}_i \\
+			\delta\dot{\T{g}}_i
+		}}
+	}
+	\nonumber \\
+	& \hphantom{= } \mbox{}
+	+ \rplbr{
+		\sqbr{\cvvect{
+			\plbr{
+				\mathcal{N}_i\plbr{\xi} \T{v}\plbr{\xi}
+				- N_i\plbr{\xi} \T{\omega}_i \times \T{o}_i
+			} \times{} \\
+			\plbr{
+				\mathcal{N}_i\plbr{\xi} \T{\omega}\plbr{\xi}
+				- N_i\plbr{\xi} \T{\omega}_i
+			} \times{}
+		}} \delta\T{g}_i
+	}
+	\nonumber \\
+	&=
+	\sqbr{\matr{cc}{
+		\TT{R}^T\plbr{\xi} & \TT{0} \\
+		\TT{0} & \TT{R}^T\plbr{\xi}
+	}} \sum_{i=1,2,3} N_i\plbr{\xi} \lplbr{
+		\sqbr{\matr{cc}{
+			\TT{I} & - \T{o}_i \times{} \\
+			\TT{0} & \TT{I}
+		}} \cubr{\cvvect{
+			\delta\dot{\T{x}}_i \\
+			\delta\dot{\T{g}}_i
+		}}
+	}
+	\nonumber \\
+	& \hphantom{= } \mbox{}
+	+ \rplbr{
+		\sqbr{\cvvect{
+			\plbr{
+				\T{v}\plbr{\xi}
+				- \T{\omega}_i \times \T{o}_i
+			} \times{} \\
+			\plbr{
+				\T{\omega}\plbr{\xi}
+				- \T{\omega}_i
+			} \times{}
+		}} \delta\T{g}_i
+	}
+	.
+\end{align}
+
+\paragraph{Contribution to Jacobian Matrix.}
+After defining
+\begin{subequations}
+\begin{align}
+	\T{f}_{a/\tilde{\T{v}}} &= \TT{R}\plbr{\xi} \tilde{\T{f}}_{a/\tilde{\T{v}}} \TT{R}^T\plbr{\xi} \\
+	\T{f}_{a/\tilde{\T{\omega}}} &= \TT{R}\plbr{\xi} \tilde{\T{f}}_{a/\tilde{\T{\omega}}} \TT{R}^T\plbr{\xi} \\
+	\T{c}_{a/\tilde{\T{v}}} &= \TT{R}\plbr{\xi} \tilde{\T{c}}_{a/\tilde{\T{v}}} \TT{R}^T\plbr{\xi} \\
+	\T{c}_{a/\tilde{\T{\omega}}} &= \TT{R}\plbr{\xi} \tilde{\T{c}}_{a/\tilde{\T{\omega}}} \TT{R}^T\plbr{\xi} \\
+	\TT{B}_{\tilde{\T{v}}} &= \plbr{
+		\mathcal{N}_i\plbr{\xi} \T{v}\plbr{\xi}
+		- N_i\plbr{\xi} \T{\omega}_i \times \T{o}_i
+	} \times{}
+	\nonumber \\
+	&= N_i\plbr{\xi} \plbr{
+		\T{v}\plbr{\xi}
+		- \T{\omega}_i \times \T{o}_i
+	} \times{}
+	\\
+	\TT{B}_{\tilde{\T{\omega}}} &= \plbr{
+		\mathcal{N}_i\plbr{\xi} \T{\omega}\plbr{\xi}
+		- N_i\plbr{\xi} \T{\omega}_i
+	} \times{}
+	\nonumber \\
+	&= N_i\plbr{\xi} \plbr{
+		\T{\omega}\plbr{\xi}
+		- \T{\omega}_i
+	} \times{}
+	\\
+	\T{d}_n\plbr{\xi} &= \T{x}\plbr{\xi} - \T{x}_n
+	,
+\end{align}
+\end{subequations}
+the contribution of the $i$-th node's motion to the equilibrium
+of the $n$-th node ($i=1,2$, $n=1,2$) is
+\begin{align}
+	N_i\plbr{\xi} \sqbr{\matr{c}{
+		\T{f}_{a/\tilde{\T{v}}} \\
+		\T{d}_n\plbr{\xi} \times \T{f}_{a/\tilde{\T{v}}}
+		+ \T{c}_{a/\tilde{\T{v}}}
+	}} \delta\dot{\T{x}}_i
+	\nonumber \\
+%
+	\mbox{}
+	+ N_i\plbr{\xi} \sqbr{\matr{c}{
+		\T{f}_{a/\tilde{\T{\omega}}}
+		- \T{f}_{a/\tilde{\T{v}}} \T{o}_i \times{} \\
+		\T{d}_n\plbr{\xi} \times \T{f}_{a/\tilde{\T{\omega}}}
+		+ \T{c}_{a/\tilde{\T{\omega}}}
+		- \plbr{
+			\T{d}_n\plbr{\xi} \times \T{f}_{a/\tilde{\T{v}}}
+			+ \T{c}_{a/\tilde{\T{v}}}
+		} \T{o}_i \times{}
+	}} \delta\dot{\T{g}}_i
+	\nonumber \\
+%
+	\mbox{}
+	+ \sqbr{\matr{c}{
+		\T{f}_{a/\tilde{\T{v}}} \TT{B}_{\tilde{\T{v}}}
+			+ \T{f}_{a/\tilde{\T{\omega}}} \TT{B}_{\tilde{\T{\omega}}} \\
+		\T{d}_n\plbr{\xi} \times \plbr{
+			\T{f}_{a/\tilde{\T{v}}} \TT{B}_{\tilde{\T{v}}}
+				+ \T{f}_{a/\tilde{\T{\omega}}} \TT{B}_{\tilde{\T{\omega}}}
+		}
+		+ \T{c}_{a/\tilde{\T{v}}} \TT{B}_{\tilde{\T{v}}}
+			+ \T{c}_{a/\tilde{\T{\omega}}} \TT{B}_{\tilde{\T{\omega}}}
+	}} \delta\T{g}_i
+	\nonumber \\
+%
+	\mbox{}
+	+ \sqbr{\matr{c}{
+		\TT{0} \\
+		- \plbr{
+			N_i - \delta_{ni}
+		} \Delta\T{f}_n \times{}
+	}} \delta\T{x}_i
+	\nonumber \\
+%
+	\mbox{}
+	+ \sqbr{\matr{c}{
+		- \mathcal{N}_i\plbr{\xi} \Delta\T{f}_n \times{} \\
+		- \mathcal{N}_i\plbr{\xi} \plbr{
+			\T{d}_n\plbr{\xi} \times \Delta\T{f}_n \times{}
+			+ \Delta\T{c}_n \times{}
+		}
+		+ \Delta\T{f}_n \times N_i \T{o}_i \times{}
+	}} \delta\T{g}_i
+	\nonumber \\
+%
+	\equu
+	\cubr{\cvvect{
+		\delta\Delta\T{f}_n \\
+		\delta\Delta\T{c}_n
+	}}
+	,
+\end{align}
+where $\delta_{ni}$ is Dirac's delta, which is 1 when $i=n$, and 0 otherwise.
+
+
+
+
 

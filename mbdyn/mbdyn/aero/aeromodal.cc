@@ -296,7 +296,7 @@ SubVectorHandler& AerodynamicModal::AssRes(SubVectorHandler& WorkVec,
    	Mat3x3 RR(Rn*Ra);
    	Mat3x3 RRT(RR.Transpose());
       	Mat3x3 R_i = RR*R0.Transpose();
-	Vec3 g(MatR2gparam(R_i));
+	Vec3 g(CGR_Rot::Param, R_i);
 	doublereal d(g.Norm());
 	Vec3 Phi_i(0.);
 	if (d != 0) {
@@ -379,7 +379,7 @@ SubVectorHandler& AerodynamicModal::InitialAssRes(SubVectorHandler& WorkVec,
    	Mat3x3 RR(Rn*Ra);
    	Mat3x3 RRT(RR.Transpose());
       	Mat3x3 R_i = RR*R0.Transpose();
-	Vec3 g(MatR2gparam(R_i));
+	Vec3 g(CGR_Rot::Param, R_i);
 	doublereal d(g.Norm());
 	Vec3 Phi_i(0.);
 	if (d != 0) {
