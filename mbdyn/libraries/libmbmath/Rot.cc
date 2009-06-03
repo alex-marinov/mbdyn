@@ -291,3 +291,9 @@ VecExp RoTrManip::Helix(const MatExp & H)  {
 			);
 };
 
+namespace ER_Rot {
+Param_Manip Param;
+MatR_Manip MatR;
+MatG_Manip MatG;
+MatGm1_Manip MatGm1;
+} // end of namespace ER_Rot
