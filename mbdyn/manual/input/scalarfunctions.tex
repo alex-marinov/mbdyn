@@ -115,10 +115,9 @@ The argument must be positive as well, otherwise an exception is thrown.
     <scalar_func_type> ::= cubicspline
     <scalar_func_args> ::= [ do not extrapolate , ]
         <point>, 
-        <point>, 
         <point>
-        [, ...]
-        [end]
+        [ , ... ]
+        [ , end ]
     <point>            ::= <x>, <y>
 \end{verbatim}
 The \kw{end} delimiter is required if the card needs to continue;
@@ -129,9 +128,9 @@ it can be omitted if the card ends with a semicolon.
     <scalar_func_type> ::= multilinear
     <scalar_func_args> ::= [ do not extrapolate , ]
         <point>, 
-        <point>, 
-        [, ...]
-        [end]
+        <point>
+        [ , ... ]
+        [ , end ]
     <point>            ::= <x>, <y>
 \end{verbatim}
 Unless \kw{do not extrapolate} is set, when the input is outside
@@ -144,8 +143,8 @@ of the nearest point pair.
     <scalar_func_args> ::= 
         <lower_bound> , <upper_bound> ,
         [ do not extrapolate , ]
-        <coef_0> [ , <coef_1> [ ... ] ],
-        [end]
+        <coef_0> [ , <coef_1> [ , ... ] ]
+        [ , end ]
 \end{verbatim}
 Chebychev polynomials of the first kind are defined as
 \begin{equation}

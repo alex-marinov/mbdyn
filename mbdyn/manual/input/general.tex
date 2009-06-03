@@ -42,39 +42,48 @@ in very different contexts.
 
 
 \subsection{Keywords}
-In MBDyn there are a lot of so-called ``keywords'':
-they appear literarly in the input file, they are case-insensitive
-and may have an arbitrary amount of space in between (for example,
-\kw{control data} and \kw{controldata} are equivalent).
+In MBDyn's input a lot of so-called ``keywords'' appear literarly
+in the input file.
+They are case-insensitive and may have an arbitrary amount of space
+in between.
+For example, `\kw{control data}', `\kw{Control Data}',
+and `\kw{controldata}' are equivalent.
 
-However, they mostly are context-dependent, so they are not illustrated
-altogether in a dedicated section, but rather presented in relation
-to the contexts they may appear in.
+However, most of the keywords are context-dependent,
+so they are not illustrated altogether in a dedicated section,
+but rather presented in relation to the contexts they may appear in.
 
 
 
 
 \subsection{Strings}
-Strings are not so important in MBDyn; however, they may be used
-in quite a few significant places, like when parsing file names,
-so a few details on their syntax are provided.
-Strings are typically delimited by double quotes (").
-When a string is requested, the parser looks for the opening 
+Literal strings are not used very much in MBDyn.
+However, they may be used in quite a few significant places,
+for example to indicate file names, so few details on their syntax
+are provided.
+
+Strings are typically delimited by double quotes (`\kw{"}').
+When a string is expected, the parser looks for the opening 
 double quotes and eats up all the white space before it.
 Then all characters are read as they are until the closing 
 double quotes are encountered.
-The escape character is the backslash ($\backslash$); it is used:
+The escape character is the backslash (`$\backslash$'); it is used:
 \begin{itemize}
-	\item to escape the escape character itself ($\backslash$);
+	\item to escape the escape character itself (`$\backslash$');
+	\item to escape any double quotes that are part of the string,
+		and would otherwise be interpreted as the closure
+		of the string;
 	\item to break a string on multiple lines by placing it
-		before the newline character (\texttt{$\backslash$n}); in this case,
-		the escape character and the newline are eaten up;
+		before the newline character (`\texttt{$\backslash$n}');
+		in this case, the escape character and the newline
+		are eaten up;
 	\item to allow the use of non-printing characters,
-		represented in the form \texttt{$\backslash$<hexpair>},
+		represented in the form `\texttt{$\backslash$<hexpair>}',
 		so that the hexadecimal representation of the
 		non-printing char is converted into its integer
 		equivalent in the 0--255 range.
 \end{itemize}
+Character sets different from ASCII are not supported.
 
 
 
@@ -102,20 +111,24 @@ like variable declarations and assignments) will be evaluated.
 
 \paragraph{Example.} \
 \begin{verbatim}
-    1.
-    (real r = 2.*pi; integer i = 1; sin(i*r*Time+.87))      
+    1.                                                     # == 1.
+    (real r = 2.*pi; integer i = 1; sin(i*r*Time+.87))     # == sin(2*pi*Time+.87)
 \end{verbatim}
-the latter results in $ sin\plbr{2\pi{t}+.87} $; 
-note that the constant \kw{pi} is always defined
-as the machine $ \pi $, as well as the constants \kw{e},
-\kw{MAX\_RAND} and more; use
+The latter sequence evaluates to $ \sin\plbr{2\pi{t}+.87} $,
+depending on the current value of the pre-defined variable \kw{Time}.
+The constant \kw{pi} is always defined as $ \pi $ with machine precision
+(the macro \kw{M\_PI} in the standard C header file \kw{math.h}).
+Other constants are pre-defined, as illustrated
+in Table~\ref{tab:MATHP-VARS}.
+
+When MBDyn is invoked with the `\kw{-H}' option,
 \begin{verbatim}
     mbdyn -H
 \end{verbatim}
-for an up-to-date list of predefined variables; a typical output
-is shown in Figure~\ref{fig:MBDYN-H}.
-Of course values are stored with the maximum precision allowed
-by the underlying real type (by default, double precision, 64 bit).
+it prints the predefined variables table.
+A typical output is shown in Figure~\ref{fig:MBDYN-H}.
+Values are stored with the maximum precision allowed by the underlying
+\kw{real} type (by default, double precision, 64 bit).
 
 \begin{figure}
 \label{fig:MBDYN-H}
@@ -293,7 +306,11 @@ can be reassigned.
 		\multicolumn{1}{c}{\textbf{Value}} \\
 		\hline
 		\kw{Time} & Real & Current simulation time \\
-		\kw{Var} & Real & Set by dof driver with DOF value \\
+		\kw{TimeStep} & Real & Current simulation time step \\
+		\kw{Step} & Integer & Current simulation step \\
+		\kw{Var} & Real & \multicolumn{1}{p{.5\textwidth}}{Set
+			by dof, node, or element drive caller with
+			DOF value, node or element private data value} \\
 		\\
 		\kw{e} & Real & Neper's number \\
 		\kw{pi} & Real & $\pi$ \\
@@ -453,7 +470,7 @@ of \kw{abstract} node \kw{NODENAME}
 
 \subsubsection{Node plugin}
 The \kw{node} plugin allows to link a variable to any data a node
-can expose, including the values of their degrees of freedom.
+can expose, including the values of its degrees of freedom.
 The syntax is
 \begin{verbatim}
     <plugin> ::= node
@@ -464,7 +481,7 @@ where
 \kw{label} is the label of the node,
 \kw{type} is the node type,
 and the mutually exclusive \kw{index} and \kw{name} represent the index
-of the datum that is requested, where \kw{name} is a user-friendly
+of the datum that is requested, \kw{name} being a user-friendly
 representation of the actual index.
 The \kw{index} form is the default; however, the \kw{name} form is recommended.
 Note that \kw{name} can be enclosed in double quotes,
@@ -488,7 +505,7 @@ of \kw{abstract} node \kw{NODENAME}
 
 \subsubsection{Element plugin}
 The \kw{element} plugin allows to link a variable to any data an element
-can expose, including the values of their degrees of freedom.
+can expose, including the values of its degrees of freedom.
 The syntax is
 \begin{verbatim}
     <plugin> ::= element
@@ -499,7 +516,7 @@ where
 \kw{label} is the label of the element,
 \kw{type} is the element type,
 and the mutually exclusive \kw{index} and \kw{name} represent the index
-of the datum that is requested, where \kw{name} is a user-friendly
+of the datum that is requested, \kw{name} being a user-friendly
 representation of the actual index.
 The \kw{index} form is the default; however, the \kw{name} form is recommended.
 Note that \kw{name} can be enclosed in double quotes,
@@ -634,71 +651,101 @@ the above data as
     diag, 1.,1.,1.                        # diagonal
     eye                                   # a la matlab
 \end{verbatim}
+
+\begin{figure}
+\centering
+\psfrag{a}{(a)}
+\psfrag{b}{(b)}
+\psfrag{c}{(c)}
+\psfrag{d}{(d)}
+\psfrag{1}{1}
+\psfrag{2}{2}
+\psfrag{2b}{2'}
+\psfrag{3}{3}
+\psfrag{1c}{\fbox{1}}
+\psfrag{2c}{\fbox{2}}
+\psfrag{2bc}{\fbox{2'}}
+\psfrag{3c}{\fbox{3}}
+\includegraphics[width=.9\textwidth]{MatR2vec}
+\caption{Construction of \kw{3 x 3} orientation matrix from two
+non-parallel vectors.}
+\label{fig:general:orientation-matrices:MatR2vec}
+\end{figure}
+
 \subsection{\kw{3 x 3} orientation matrices}
 \begin{enumerate}
-    \item general case: two vectors that define an orthonormal reference
-    system, each of them preceded by its index in the final orientation 
-    matrix. The first vector is normalized and assumed to represent the
-    desired direction, while the second simply defines the plane the
-    vector that is not given is normal to, e.g.:
-    \begin{verbatim}
+\item general case: two vectors that define an orthonormal reference
+system, each of them preceded by its index in the final orientation matrix.
+The procedure that builds the orientation matrix from the two vectors
+is illustrated in Figure~\ref{fig:general:orientation-matrices:MatR2vec}.
+The first vector, vector 1 in subfigure (a), is normalized and assumed
+to represent the desired direction.
+The second vector, vector 2' in subfigure (b), simply concurs
+in the definition of the plane the vector that is not given is normal to.
+The third vector, vector 3 in subfigure (c), results from the cross-product
+of the first two vectors, after normalization.
+The actual direction of the second vector, vector 2 in subfigure (d),
+results from the cross product of the third and the first vector.
+Examples:
+\begin{verbatim}
     1, 1.,0.,0., 2, 0.,1.,0.
     1, (real alpha=pi/6.; cos(alpha)), sin(alpha), 0.,
         3, 0.,0.,1.
-    \end{verbatim}
-    the first example represents the identity matrix, i.e.\ no rotation 
-    occurs with respect to the global reference frame: direction 1
-    in the local frame is parallel to \kw{1.,0.,0.}, which represents
-    direction 1 in the global frame, while direction 2 in the local frame
-    is parallel to \kw{0.,1.,0.}, which represents direction 2
-    in the global frame.
+\end{verbatim}
+The first example represents the identity matrix, i.e.\ no rotation 
+occurs with respect to the global reference frame: direction 1
+in the local frame is parallel to \kw{1.,0.,0.}, which represents
+direction 1 in the global frame, while direction 2 in the local frame
+is parallel to \kw{0.,1.,0.}, which represents direction 2
+in the global frame.
 
-    The second example describes a rotation of $ \pi/6 $ radian about
-    global direction 3: direction 1 in the local frame results from 
-    composing \kw{cos(pi/6.)} in global direction 1 and \kw{sin(pi/6.)}
-    in global direction 2, while direction 3 in the local frame remains
-    parallel to \kw{0.,0.,1.}, which represents direction 3 in the global
-    frame.
-    \item a variant of the above, which may be useful when only one
-    direction really matters, is illustrated in the example below:
-    \begin{verbatim}
+The second example describes a rotation of $ \pi/6 $ radian about
+global direction 3: direction 1 in the local frame results from 
+composing \kw{cos(pi/6.)} in global direction 1 and \kw{sin(pi/6.)}
+in global direction 2, while direction 3 in the local frame remains
+parallel to \kw{0.,0.,1.}, which represents direction 3 in the global
+frame.
+
+\item a variant of the above, which may be useful when only one
+direction really matters, is illustrated in the example below:
+\begin{verbatim}
     1, 1.,0.,0., 2, guess
-    \end{verbatim}
-    The keyword \kw{guess} tells the parser to generate a random vector
-    that is orthogonal to the given one, which is used as the direction
-    indicated by the index (2 in the example).
-    The vector is computed based on a very simple algorithm: it contains
-    \begin{itemize}
+\end{verbatim}
+The keyword \kw{guess} tells the parser to generate a random vector
+that is orthogonal to the given one, which is used as the direction
+indicated by the index (2 in the example).
+The vector is computed based on a very simple algorithm: it contains
+\begin{itemize}
         \item 1.0 corresponding to the index with smallest module,
         $v_1\plbr{\mathrm{min}}$;
 	\item $-v_1\plbr{\mathrm{min}}/v_1\plbr{\mathrm{max}}$
 	corresponding to the index with the largest module,
 	$v_1\plbr{\mathrm{max}}$;
 	\item 0.0 on the remaining index.
-    \end{itemize}
-    \item identity matrix: keyword \kw{eye}; the identity matrix,
-    which means there is no rotation with respect to the global reference
-    frame.
-    \item a complete orientation matrix: keyword \kw{matr}
-    followed by the nine, row-oriented, coefficients, namely
-    $ r_{11} $, $ r_{12} $, \ldots, $ r_{33} $.
-    \emph{Note: no orthogonality check is performed; be sure an orthogonal
-    matrix, within the desired tolerance, is input}.
-    \item Euler angles: keyword \kw{euler}, followed by the three
-    values, as output by structural nodes.
-    \emph{Note: the definition of the three angles that are used 
-    by the code to express orientations may vary between versions.
-    Currently, Bryant-Cardano angles are used in place of Euler
-    angles; see the note related to the output of the structural nodes
-    in Section~\ref{sec:NODE:STRUCTURAL:OUTPUT}, and the Technical Manual.
-    The code will remain consistent, i.e. the same angle
-    definition will be used for input and output, but models
-    over versions may become incompatible, so this syntax should 
-    really be used only as a means to quickly reproduce in the input
-    an orientation as resulting from a previous analysis.}
-    \item Orientation vector: keyword \kw{vector}, followed by the three
-    values, as output by structural nodes.
-    The resulting matrix is computed as
+\end{itemize}
+\item identity matrix: keyword \kw{eye}; the identity matrix,
+which means there is no rotation with respect to the global reference
+frame.
+\item a complete orientation matrix: keyword \kw{matr}
+followed by the nine, row-oriented, coefficients, namely
+$ r_{11} $, $ r_{12} $, \ldots, $ r_{33} $.
+\emph{Note: no orthogonality check is performed; be sure an orthogonal
+matrix, within the desired tolerance, is input}.
+\item Euler angles: keyword \kw{euler}, followed by the three
+values, as output by structural nodes.
+\emph{Note: the definition of the three angles that are used 
+by the code to express orientations may vary between versions.
+Currently, Bryant-Cardano angles are used in place of Euler
+angles; see the note related to the output of the structural nodes
+in Section~\ref{sec:NODE:STRUCTURAL:OUTPUT}, and the Technical Manual.
+The code will remain consistent, i.e. the same angle
+definition will be used for input and output, but models
+over versions may become incompatible, so this syntax should 
+really be used only as a means to quickly reproduce in the input
+an orientation as resulting from a previous analysis.}
+\item Orientation vector: keyword \kw{vector}, followed by the three
+values, as output by structural nodes.
+The resulting matrix is computed as
 \begin{equation}
 	\T{R} = \exp\plbr{\T{v}\times{}}
 \end{equation}
@@ -776,8 +823,8 @@ They are:
         <dim> , (ConstitutiveLaw<dim>D) <constitutive_law> ;
 \end{verbatim}
 Constitutive laws are grouped by their dimensionality \kw{<dim>},
-which (up to now) can be any of 1, 3 and 6;
-the \kw{<constitutive\_law>} is parsed according to the rules
+which (up to now) can be any of 1, 3 and 6.
+The \kw{<constitutive\_law>} is parsed according to the rules
 described in Section~\ref{sec:CONSTITUTIVE-LAWS}.
 
 
@@ -839,10 +886,11 @@ with the first field filled with blanks;
 	\item \kw{NL} records containing the angle of attack
 	in the first field, followed by \kw{ML} values of $C_l$
 	for each \emph{Mach} number; angles of attack wrap around 
-	360 deg, starting from -180.
+	360 deg, starting from -180 deg.
 	\end{itemize}
-The example in \kw{var/naca0012.c81} contains 11 \emph{Mach} points
-and 39 angle of attack records for $C_l$:
+The example provided in file \kw{var/naca0012.c81}
+contains 11 \emph{Mach} points and 39 angle of attack records for the $C_l$
+of the NACA0012 airfoil at high (unspecified) \emph{Reynolds}:
 {\small
 \begin{verbatim}
        0.     .20    .30    .40    .50    .60    .70    .75    .80
@@ -962,8 +1010,8 @@ It can be used to replicate parts of the model, by simply using parametric
 labels for nodes, elements, reference systems, and setting a bias value 
 before multiple-including the same bulk data file.
 Examples of this usage are given in the tutorials
-\htmladdnormallink{(\texttt{http://www.aero.polimi.it/\~{}mbdyn/documentation/tutorials/})}
-	{http://www.aero.polimi.it/~mbdyn/documentation/tutorials/}.
+\htmladdnormallink{(\texttt{http://www.aero.polimi.it/mbdyn/documentation/tutorials/})}
+	{http://www.aero.polimi.it/mbdyn/documentation/tutorials/}.
 
 
 
@@ -977,7 +1025,7 @@ The \kw{module load} directive:
     <module_arglist> ::= <arg> [ , ... ]
 \end{verbatim}
 where \kw{file\_name} is the name of a runtime loadable object,
-causes the object to be opened, and a function \kw{module\_init},
+causes the object to be opened, and a function \kw{module\_init()},
 with prototype
 \begin{verbatim}
         extern "C" int
@@ -1001,11 +1049,13 @@ A clear example is given in
 \begin{verbatim}
         modules/module-wheel2/module-wheel2.cc
 \end{verbatim}
-where the function registers the loadable element in the set
-of loadable element handlers which can later be retrieved by using
-the syntax described in Section~\ref{sec:EL:BASE:LOADABLE}.
-Note, however, that the execution of the \kw{module\_init} function 
-may be used for any purpose; typically, to register any kind of handlers
+where the \kw{module\_init()} function registers the loadable element
+in the set of loadable element handlers.
+The module can be retrieved later using the syntax described
+in Section~\ref{sec:EL:BASE:LOADABLE}.
+Note, however, that the \kw{module\_init()} function may be used
+for any purpose.
+A typical use consists in registering any kind of handlers
 for subsequent use.
 
 Run-time module loading is taken care of by GNU's \kw{libltdl}.
@@ -1312,8 +1362,20 @@ The \kw{set} directive:
     <card> ::= set : <math_expression> ;
 \end{verbatim}
 This directive simply invokes the math parser to evaluate the expression
-\kw{math\_expression} and then discards the result. It can be used
-to declare new variables, or to set the values of existing ones.
+\kw{math\_expression} and then discards the result.
+
+It can be used to declare new variables, or to set the values
+of existing ones.
+This feature is very useful, since it allows to build parametric models,
+and to reuse generic model components.
+
+\paragraph{Example.} \
+\begin{verbatim}
+    set: integer LABEL = 1000;    # a label
+    set: real E = 210e+9;         # Pa, steel's elastic module
+    set: real A = 1e-4;           # m^2, a beam's cross section
+    set: real K = E*A;            # N, a beam's axial stiffness
+\end{verbatim}
 
 
 
@@ -1397,7 +1459,7 @@ expressed as dependent on some ``external'' input, an object of the class
 \kw{DriveCaller} is used. 
 The \kw{drive} essentially represents a scalar function, whose
 value can change over time or, through some more sophisticated
-means, based on the state of the analysis.
+means, can depend on the state of the analysis.
 Usually, the dependence over time is implicitly assumed, unless
 otherwise specified.
 For example, the amplitude of the force applied by a 
@@ -1412,8 +1474,7 @@ the value of the \kw{dof drive} is represented by the
 value of the subordinate \kw{drive} when evaluated as a function
 of that specific degree of freedom at the desired time.
 
-The family of the \kw{DriveCaller} object is very large, 
-and should require a dedicated chapter.
+The family of the \kw{DriveCaller} object is very large.
 The type of the \kw{DriveCaller} is declared as follows:
 \begin{verbatim}
     <drive_caller> ::=
@@ -2142,8 +2203,8 @@ They are entered as follows:
 
     <tpl_drive_caller> ::= array ,
         <num_template_drive_callers> ,
-        <entity> , <drive_caller>
-        [ , <entity> , <drive_caller> [ , ... ] ]
+        <tpl_drive_caller>
+        [ , ... ]
 \end{verbatim}
 where \kw{entity} is a constant of the expected type (scalar, \kw{3 x 1} 
 vector, \kw{6 x 1} vector are the types currently defined, but, since 
@@ -2157,16 +2218,17 @@ In the case of the \kw{component} template drive caller,
 as many drive callers as the dimensionality of the template drive caller
 are expected.
 
-At least 1 drive caller is expected if the case of the \kw{array}
+At least 1 drive caller is expected in the case of the \kw{array}
 template drive caller. 
 If \kw{num\_template\_drive\_callers} is exactly 1, only a single
 template drive caller is actually constructed, thus avoiding the overhead 
 related to the handling of the drive caller array.    
 
-Also the \kw{template drive} can be re-parsed; in this case, the syntax
-of the \kw{hint} is:
+Also the \kw{template drive} can be re-parsed as a consequence of a
+\hyperref{\kw{hint}}{\kw{hint} (see Section~}{)}{sec:GENERAL:DRIVE:HINT}.
+In this case, the syntax of the \kw{hint} is:
 \begin{verbatim}
-    "drive<n>{ <entity> , <drive_caller> }"
+    "drive<n>{ <tpl_drive_caller> }"
 \end{verbatim}
 For example, a \kw{Vec3} drive hint is:
 \begin{verbatim}
@@ -2179,7 +2241,7 @@ For example, a \kw{Vec3} drive hint is:
 
 
 \section{Friction}
-Any friction-enabled joint need the definition of
+A friction-based element needs the definition of
 at least a \kw{friction model} and of a \kw{shape function}.
 \subsection{Friction models}
 The \kw{friction model} input format is:
@@ -2189,11 +2251,11 @@ The \kw{friction model} input format is:
 \end{verbatim}
 Currently implemented friction models are:
 \begin{enumerate}
-    \item \kw{modlugre}\\
-    This friction model is based on 
-    Pierre Dupont, Vincent Hayward, Brian Armstrong and
-    Friedhelm Altpeter, Single State Elasto-Plastic Friction Models,
-    IEEE Transactions on Automatic Control, June 2002. The input format is:
+\item \kw{modlugre}\\
+This friction model is based on the one presented in \cite{LUGRE-2002}
+by Pierre Dupont, Vincent Hayward, Brian Armstrong and Friedhelm Altpeter,
+known as `LuGre'.
+The input format is:
     \begin{verbatim}
     <friction_model> ::= modlugre
     <friction_arglist> ::=
@@ -2305,7 +2367,9 @@ when possible.
 The ``deformable'' elements at present are:
 \begin{itemize}
 \item \htmlref{\kw{rod}}{sec:EL:STRUCT:JOINT:ROD}
-	element (1D);
+	and
+	\htmlref{\kw{genel spring}}{sec:EL:GENEL:SPRING}
+	and related elements (1D);
 \item \htmlref{\kw{deformable hinge}}{sec:EL:JOINT:DEFORMABLEHINGE}
 	and \htmlref{\kw{deformable displacement joint}}{sec:EL:JOINT:DEFORMABLEDISP}
 	elements (3D);
@@ -2348,14 +2412,14 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
 
 
 
-\begin{table}[h]
+\begin{table}%[H]
     \newlength{\constlawwidth}
     \setlength{\constlawwidth}{70mm}
     \centering
     \caption{Constitutive laws dimensionality}\label{tab:CONST-LAW-DIM}
     \begin{tabular}{l|c|c|c} 
         \hline
-        \multicolumn{1}{c}{\textbf{Constitutive Law}} &
+        \multicolumn{1}{c}{\textbf{Constitutive law}} &
 	\multicolumn{1}{c}{\textbf{1D}} &
 	\multicolumn{1}{c}{\textbf{3D}} &
 	\multicolumn{1}{c}{\textbf{6D}} \\ 
@@ -2391,6 +2455,13 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
 	nlp elastic							& $\surd$ & $\surd$ & $\surd$ \\
 	nlp viscous							& $\surd$ & $\surd$ & $\surd$ \\
 	nlp viscoelastic						& $\surd$ & $\surd$ & $\surd$ \\
+	\hline
+	\multicolumn{4}{c}{} \\
+	\hline
+        \multicolumn{1}{c}{\textbf{Constitutive law wrapper}} &
+	\multicolumn{1}{c}{\textbf{1D}} &
+	\multicolumn{1}{c}{\textbf{3D}} &
+	\multicolumn{1}{c}{\textbf{6D}} \\ 
 	\hline
 	invariant angular (wrapper)					&         & $\surd$ &         \\
 	\hline
@@ -2807,27 +2878,17 @@ additional orifice, which essentially depends on the sign
 of the strain rate; it is used to implement relief valves;
 \item ...
 \end{itemize}
-This constitutive law adds the entities described
-in Table~\ref{tab:CL:SHOCK-ABSORBER-OUTPUT} to the output of the
-element it is used for.
-The table also indicates the names that can be used to reference
-the entities as element private data.
-
-\begin{table}
-\centering
-\caption{Shock absorber output data}\label{tab:CL:SHOCK-ABSORBER-OUTPUT}
-\begin{tabular}{ll}
-\hline
-\multicolumn{1}{c}{\textbf{entity}} &
-\multicolumn{1}{c}{\textbf{name}} \\
-\hline
-gas pressure	& \kw{p} \\
-metering area	& \kw{A} \\
-elastic force	& \kw{Fe} \\
-viscous force	& \kw{Fv} \\
-\hline
-\end{tabular}
-\end{table}
+This constitutive law contributes to the output of the element
+it is associated with.
+The name associated to each output contribution can be used to reference
+the corresponding value as element private data.
+The contributions are
+\begin{enumerate}
+\item \kw{"p"} gas pressure;
+\item \kw{"A"} metering area;
+\item \kw{"Fe"} elastic force;
+\item \kw{"Fv"} viscous force.
+\end{enumerate}
 
 \subsection{symbolic elastic}\label{sec:CL:SYMBOLIC-ELASTIC}
 The implementation  of the family of \kw{symbolic} constitutive laws
@@ -3187,11 +3248,11 @@ as indicated by Equations~(\ref{eq:nlsf-cl}) and~(\ref{eq:nlp-cl}).
 
 
 \subsection{invariant angular}
-This is not exactly a constitutive law, but rather a wrapper
+This is not a constitutive law, but rather a wrapper
 for constitutive laws used within the ``attached'' variant
 of the \htmlref{\kw{deformable hinge}}{sec:EL:JOINT:DEFORMABLEHINGE} joint.
-As such, it can only be used with the 3D dimensionality,
-and it basically allows to refer an ancillary 3D constitutive law
+As such, it can only be used with the 3D dimensionality.
+It basically allows to refer an ancillary 3D constitutive law
 to an orientation that is intermediate with respect to the orientations
 of the two connected nodes.
 \begin{verbatim}
@@ -3204,14 +3265,15 @@ to the first node of the joint.
 Its value should be comprised between 0 (attached to the first node)
 and 1 (attached to the second node); a value of 1/2 yields
 the \htmlref{\kw{invariant deformable hinge}}{sec:EL:JOINT:INVDEFORMABLEHINGE}
-joint, but any value is allowed.
+joint, but any value is allowed, not limited to within the [0, 1] range.
 
 Note: the contribution to the Jacobian matrix will be incomplete
 when the underlying constitutive law has a viscous contribution.
 This may slow down convergence, or even prevent it.
 If this is an issue,
 the \htmlref{\kw{invariant deformable hinge}}{sec:EL:JOINT:INVDEFORMABLEHINGE}
-should be used, since it does not suffer from this limitation.
+should be used, since it does not suffer from this limitation,
+although it only allows $\kw{xi} = 1/2$.
 
 
 
@@ -3271,10 +3333,10 @@ The \kw{fluid\_type}s, with the related \kw{fluid\_properties}, are:
 according to equation
 \begin{displaymath}
 	\matr{ll}{
-		\rho \ = \ \rho_0 + \rho_{ref}\cfrac{1}{2}\plbr{
-			1 + \llk{tanh}\plbr{a\plbr{p-p_{ref}}}
-		} & p < p_{ref} \\
-		+= \ \cfrac{p-p_{ref}}{\beta} & p > p_{ref}
+		\rho \ = \ \rho_0 + \rho_\text{ref}\cfrac{1}{2}\plbr{
+			1 + \llk{tanh}\plbr{a\plbr{p-p_\text{ref}}}
+		} & p < p_\text{ref} \\
+		+= \ \cfrac{p-p_\text{ref}}{\beta} & p > p_\text{ref}
 	}
 \end{displaymath}
 \emph{Note: highly experimental}
@@ -3293,9 +3355,9 @@ where \kw{psat} is the saturation pressure, according to equation
 \begin{displaymath}
 	\matr{ll}{
 		\rho \ = \ \rho_0 \e{\cfrac{p-p_0}{\beta}} &
-		p > p_{sat} \\
+		p > p_\text{sat} \\
 		\rho \ = \ \rho_0 \e{1000\cfrac{p-p_0}{\beta}} &
-		p < p_{sat}
+		p < p_\text{sat}
 	}
 \end{displaymath}
 \emph{Note: this fluid constitutive law is loosely inspired by AMESim's
@@ -3320,11 +3382,10 @@ No encryption is used in communications, unless provided
 by the underlying mechanism (e.g. some SASL mechs), 
 so the authentication methods are very rough
 and should be considered as insecure.
-Secure Socket connection or other SSL-like communication protocol
-may be considered in the future.
+TLS may be considered in the future.
 If confidentiality is required, SASL with at least DIGEST-MD5 
 is strongly recommended; otherwise no authentication should be used.
-As alternatives, a SSH tunnel may be established between the client
+As an alternative, a SSH tunnel may be established between the client
 and the server machine, and simple authentication can be used.
 Otherwise, if the user has direct access to the server where
 the computation is being run, sockets with \kw{local} namespace

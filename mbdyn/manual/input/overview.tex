@@ -140,22 +140,53 @@ The program outputs data to a set of files for each simulation.
 The contents of each file is related to the file extension,
 which is appended to the input file if no output file name 
 is explicitly supplied.
-If also no input file is explicitly supplied, and input is obtained from 
-\kw{stdin}, the output file name defaults to ``MBDyn''; otherwise, 
-unless the output file name is explicitly set, the name 
+
+If no input file is explicitly provided as well, and thus input
+is directly read from \kw{stdin}, the output file name defaults
+to `MBDyn'.
+Otherwise, unless the output file name is explicitly set, the name 
 of the input file is used.
-The contents of the output files are described accordingly 
-to the items (nodes or elements) that generate them.
+
+The contents of the output files are described within the description
+of the items (nodes or elements) that generate them.
 Only a general information file, with extension \kw{.out}, 
 is described here. 
 The file contains general information about the simulation; 
 it is not formatted. 
-In detail, for each step the current time, time step, the number of
-iterations and the error are supplied.
+
+The file contains occasional informational messages,
+prefixed by a hash mark (`\#').
+These messages should be intended as comments about the current status
+of the simulation.
+At some point, after initialization completes, the comment
+\begin{verbatim}
+# Step Time TStep NIter ResErr SolErr SolConv
+\end{verbatim}
+appears, which illustrates the contents of the lines that will be written
+for each time step.
+The fields indicate:
+\begin{enumerate}
+\item \texttt{Step}: the time step number;
+\item \texttt{Time}: the time at that step;
+\item \texttt{TStep}: the time step at that step
+	(\texttt{Time}$_k$ - \texttt{Time}$_{k-1}$);
+\item \texttt{NIter}: the number of iterations required to converge;
+\item \texttt{ResErr}: the error on the residual after convergence
+	(0 if not computed);
+\item \texttt{SolErr}: the error on the solution after convergence
+	(0 if not computed);
+\item \texttt{SolConv}: a boolean that indicates whether convergence
+	was determined by the error criterion on the residual
+	or on the solution (0 for residual, 1 for solution).
+\end{enumerate}
 
 There is also a supplementary file, with \kw{.log} extension,
 that may contain extra (logging) information.
-Its contents, although very experimental and subjected to changes,
-are documented in Appendix~\ref{sec:APP:LOGFILE}.
+Its content, although very experimental and subjected to changes,
+is documented in Appendix~\ref{sec:APP:LOGFILE}.
 
+\bigskip
+
+An experimental support for output using the NetCDF database format
+is available for selected items.
 

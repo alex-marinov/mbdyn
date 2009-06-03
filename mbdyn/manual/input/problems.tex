@@ -40,15 +40,15 @@ Implemented problems are:
 \begin{itemize}
 \item \kw{initial value}, the time integration of mechanical
 and multidisciplinary problems formulated
-as Differential-Algenraic Equations (DAE).
-It can be downgraded to the solution of static and kinemtic problems,
+as Differential-Algebraic Equations (DAE).
+It can be downgraded to the solution of static and kinematic problems,
 by selecting purely static or kinematic contributions
 to the governing equations, thus giving time the role
 of an ordinal parameter.
 
 \item \kw{inverse dynamics}, the computation of the generalized forces
 required to make a generic system perform a given trajectory.
-This problem currently under development, so it is not deiscussed
+This problem is currently under development, so it is not discussed
 in detail.
 
 \end{itemize}
@@ -210,7 +210,7 @@ the second and the third are original
 methods; the former is discussed in \cite{MASARATI-LANZ-MANTEGAZZA-2001},
 see also
 \begin{quote}
-\htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}mbdyn/publications.html}}{http://www.aero.polimi.it/~mbdyn/publications.html}
+\htmladdnormallink{\kw{http://www.aero.polimi.it/mbdyn/publications.html}}{http://www.aero.polimi.it/mbdyn/publications.html}
 \end{quote} 
 Those methods are unconditionally stable and can be tuned to give 
 the desired algorithmic dissipation
@@ -245,7 +245,7 @@ for the differential and the algebraic variables.
         { ad hoc | (drive_caller) <differential_radius> }
 \end{verbatim}
 When the keyword \kw{ad hoc} is used, a method equivalent
-to a Runge Kutta Radau IIA results, with zero asymptotic
+to a Runge-Kutta Radau IIA results, with zero asymptotic
 spectral radius; otherwise, an original third-order
 integration method is used, with tunable algorithmic dissipation.
 
@@ -339,10 +339,12 @@ The default behavior is to ignore such requests\footnote{See note above}.
             | output eigenvectors
             | lower frequency limit, <lower>
             | upper frequency limit, <upper>
-            | use lapack
-              [ , balance , { no | scale | permute | all } ]
-            | use arpack , <nev> , <ncv> , <tol> } [ , ... ] ]
-            | use jdqz, <nev> , <ncv> , <tol> } [ , ... ] ]
+            | <method> }
+            [ , ... ] ]
+    <method> ::=
+        { use lapack [ , balance , { no | scale | permute | all } ]
+            | use arpack , <nev> , <ncv> , <tol> ]
+            | use jdqz , <nev> , <ncv> , <tol> } 
 \end{verbatim}
 Performs the direct eigenanalysis of the problem.
 This functionality is experimental.
@@ -391,7 +393,9 @@ using the \kw{rigid body kinematics} card
 	\end{itemize}
 \item \kw{use jdqz} performs the eigenanalysis using JDQZ (Jacobi-Davidson QZ
 	decomposition).
-	It requires the same parameters of ARPACK (experimental).
+	It requires the same parameters of ARPACK;
+	actually, it allows a lot of tuning, but its input
+	is not formalized yet (experimental).
 \item \kw{lower frequency limit} only outputs those eigenvalues and eigenvectors
 	that are complex and whose imaginary part is larger than
 	\kw{lower} Hz;
@@ -446,8 +450,7 @@ usually output.
 \label{sec:LINEAR-SOLVER}
 \begin{verbatim}
     <card> ::= linear solver :
-            { naive | umfpack | y12 | lapack 
-                | harwell | meschach | superlu | taucs }
+            { naive | umfpack | y12 | lapack | superlu | taucs | watson }
         [ , { map | cc | dir } ]
         [ , { colamd | mmdata } ]
         [ , mt , <threads> ]
@@ -455,8 +458,8 @@ usually output.
         [ , pivot factor , <factor> ]
         [ , block size, <block_size> ] ;
 \end{verbatim}
-The default, if available, is \kw{umfpack} which dynamically
-allocates memory as required, so the \kw{workspace size} 
+The default, if available, is \kw{umfpack}.
+Since it dynamically allocates memory as required, the \kw{workspace size} 
 parameter, if given, is ignored.
 The \kw{umfpack} linear solver honors the \kw{block size} keyword,
 which refers to an internal parameter.
@@ -466,6 +469,15 @@ performances on small problems (e.g.\ a rigid rotorcraft model
 with some 180 degrees of freedom showed a 10\% speedup with 
 a block size of 4, while a rigid robot showed eve higher speedups,
 in the 30\%, with a block size between 4 and 16).
+
+The \kw{naive} solver is built-in, so it is always present.
+If \kw{umfpack} is not available, it is the default solver.
+The naive solver uses a full storage but keeps track of the non-zeros.
+This allows a very efficient solution of sparse matrices, with
+a $O(1)$ access cost to the coefficients.
+It ignores the \kw{workspace size} parameter.
+See \cite{NAIVE-2007} for details.
+
 The \kw{y12} linear solver requires static allocation of the workspace;
 the optimal size is between 3 and 5 times the number of nonzero 
 coefficients.
@@ -475,19 +487,32 @@ then the linear solver automatically uses an optimal amount of memory
 based on the results of the previous factorization; this could
 result in a failure if the filling of the matrix changes 
 dramatically between two factorizations.
-Another linear solver, that is available mostly for historical reasons, 
-is \kw{harwell}, with a \kw{workspace size}
-of $ numdofs\times{numdofs} $, but in certain cases the user
-might prefer a smaller workspace, since the matrix is handled as sparse,
-while sometimes a larger space is required, since when the matrix is
-full, a little more space is required, due to extra storage needs when
-the matrix fills up.
+
+The \kw{lapack} linear solver uses LAPACK's \kw{dgetrf()} and \kw{dgetrs()}
+functions with a dense storage, and thus ignores the \kw{workspace size}
+parameter.
+
 Finally, \kw{superlu} is an experimental linear solver that is able to perform
 the factorization in a multi-threaded environment.
 If more than one CPU is available, it automatically uses all the CPUs;
 the keyword \kw{mt} allows to enforce the desired number of threads.
 See also the \kw{threads} keyword for more details on multi-threaded
 solution.
+
+\begin{comment}
+Another linear solver, that is available mostly for historical reasons, 
+is \kw{harwell}, with a \kw{workspace size}
+of $ \kw{numdofs}\times\kw{numdofs} $, but in certain cases the user
+might prefer a smaller workspace, since the matrix is handled as sparse,
+while sometimes a larger space is required, since when the matrix is
+full, a little more space is required, due to extra storage needs when
+the matrix fills up.
+\end{comment}
+
+Historically, MBDyn supported the \kw{meschach} and \kw{harwell} solvers.
+They are now deprecated and undocumented.
+
+
 The keywords \kw{map} (Sparse Map), \kw{cc} (Column Compressed)
 and \kw{dir} (Direct Access) can be used to modify the way
 the sparse matrix is handled:
@@ -519,23 +544,20 @@ comparable to that of \kw{cc}.
 Only \kw{umfpack}, \kw{y12} and \kw{superlu} linear solvers allow these
 settings.
 
-\noindent
 The keyword \kw{colamd} is honored by the \kw{naive} and SuperLU linear solvers;
 it enables the column rearrangement that minimizes the sparsity
 of the factored matrix, as implemented in \kw{libcolamd}
 (part of \kw{umfpack} package). The keyword \kw{mmdata} is honored by 
 the scalar SuperLU linear solver only; it enables column rearrangement
-based on the MMD ordering ot the symmetric matrix $A^T A$.
+based on the MMD ordering of the symmetric matrix $A^T A$.
 
 
-\noindent
 The \kw{pivot factor} is a real number, which in a heuristic sense 
 can be regarded as the threshold for the ratio between two coefficients 
 below which they are switched, so $ 0.0 $ means no pivoting, 
 while $ 1.0 $ means switch as soon as the norm of the ratio 
 is less than unity.
 
-\noindent
 Table~\ref{tab:linear-solvers-props} summarizes the properties that can be set
 for each type of linear solver; Table~\ref{tab:linear-solvers-memory}
 summarizes  the memory usage of the linear solvers;
@@ -546,7 +568,7 @@ summarizes how each linear solver deals with pivoting policies.
 \centering
 \caption{Linear solvers properties}\label{tab:linear-solvers-props}
 \begin{tabular}{lccccccc}
-\hline\hline
+\hline
 	\multicolumn{1}{c}{\textbf{\emph{Solver}}} &
 	\multicolumn{1}{c}{\textbf{\emph{Map}}} &
 	\multicolumn{1}{c}{\textbf{\emph{Column}}} &
@@ -560,27 +582,25 @@ summarizes how each linear solver deals with pivoting policies.
 	& \multicolumn{1}{c}{\textbf{\emph{Size}}}
 	& \multicolumn{1}{c}{\textbf{\emph{Factor}}}
 	& \multicolumn{1}{c}{\textbf{\emph{Size}}} \\
-\hline
+\hline\hline
 	Naive		& 	&	&	&	&	& x	&	\\
 	Umfpack		& x	& x	& x	&	&	& x	& x	\\
 	Y12m		& x	& x	& x	&	& x	& x	&	\\
 	Lapack		&	&	&	&	&	& x	&	\\
-	Harwell		&	&	&	&	&	& x	&	\\
-	Meschach	&	&	&	&	&	& x	&	\\
+%	Harwell		&	&	&	&	&	& x	&	\\
+%	Meschach	&	&	&	&	&	& x	&	\\
 	SuperLU		& x	& x	& x	& x	&	& x	&	\\
-	TAUCS		& x	& x	& x	&	&	&	&	\\
+%	TAUCS		& x	& x	& x	&	&	&	&	\\
 	Watson		& x	& x	& x	& x	&	& x	&	\\
-\hline\hline
+\hline
 \end{tabular}
 \end{table}
-
-\noindent
 
 \begin{table}
 \centering
 \caption{Linear solvers memory usage}\label{tab:linear-solvers-memory}
 \begin{tabular}{llll}
-\hline\hline
+\hline
 	\multicolumn{1}{c}{\textbf{\emph{Solver}}} &
 	\multicolumn{1}{c}{\textbf{\emph{Workspace}}} &
 	\multicolumn{1}{c}{\textbf{\emph{Memory}}} &
@@ -589,18 +609,18 @@ summarizes how each linear solver deals with pivoting policies.
 	&
 	\multicolumn{1}{c}{\textbf{\emph{Size}}} &
 	\multicolumn{1}{c}{\textbf{\emph{Allocation}}} \\
-\hline
+\hline\hline
 	Naive		& 			& full		&		\\
 	Umfpack 	& 			& dynamic	& default=32	\\
 	Y12m 		& default=$2\times{n^2}$& static	&		\\
 			& $3nz \rightarrow 5nz$	&		&		\\
 	Lapack		&			& full		&		\\
-	Harwell		& ?			& static	&		\\
-	Meschach	& 			& dynamic	&		\\
+%	Harwell		& ?			& static	&		\\
+%	Meschach	& 			& dynamic	&		\\
 	SuperLU		& 			& dynamic 	&		\\
 	TAUCS		&			& ?		&		\\
 	Watson		&			& dynamic	&		\\
-\hline\hline
+\hline
 \end{tabular}
 \end{table}
 
@@ -608,22 +628,22 @@ summarizes how each linear solver deals with pivoting policies.
 \centering
 \caption{Linear solvers pivot handling}\label{tab:linear-solvers-pivot}
 \begin{tabular}{llll}
-\hline\hline
+\hline
 	\multicolumn{1}{c}{\textbf{\emph{Solver}}} &
 	\multicolumn{1}{c}{\textbf{\emph{Pivot}}} &
 	\multicolumn{1}{c}{\textbf{\emph{Default}}} &
 	\multicolumn{1}{c}{\textbf{\emph{Description}}} \\
-\hline
+\hline\hline
 	Naive		& 1.0$\rightarrow$0.0		& 1.e$-8$	& \\
 	Umfpack 	& 0.0$\rightarrow$1.0 		& 0.1 		& \\
 	Y12m 		& boolean: none=0.0, full=1.0	& full		& \\
 	Lapack		& 1.0$\rightarrow$0.0		&		& \\
-	Harwell		& full: 1.0			& 1.0		& \\
-	Meschach	& full: 1.0			& 1.0		& \\
+%	Harwell		& full: 1.0			& 1.0		& \\
+%	Meschach	& full: 1.0			& 1.0		& \\
 	SuperLU		& 0.0$\rightarrow$1.0		& 1.0		& \\
 	TAUCS		&				&		& \\
 	Watson		&				&		& \\
-\hline\hline
+\hline
 \end{tabular}
 \end{table}
 
@@ -805,7 +825,7 @@ based on the capabilities of the underlying OS.
 where:
 \begin{itemize}
 \item the optional \kw{RTAI} or \kw{POSIX} keywords indicate whether
-RTAI (Lunx Real-Time Application Interface, \kw{http://www.rtai.org/})
+RTAI (Linux Real-Time Application Interface, \kw{http://www.rtai.org/})
 or POSIX should be used to schedule the execution of MBDyn in real-time
 (defaults to \kw{RTAI});
 
@@ -870,8 +890,8 @@ with external programs.
 The input is dealt with by the stream file drivers described
 in Sections~\ref{sec:RTAI_in} and~\ref{sec:Stream}.
 The output is dealt with by the stream output
-elements described in Sections~\ref{sec:EL:OUTELEM:RTAI_out},
-\ref{sec:EL:OUTELEM:STREAM_OUTPUT}
+elements described in Sections~\ref{sec:EL:OUTELEM:STREAM_OUTPUT},
+\ref{sec:EL:OUTELEM:RTAI_out},
 and~\ref{sec:EL:OUTELEM:STREAM_MOTION_OUTPUT}.
 
 \section{Other Problems}

@@ -63,7 +63,7 @@ where \kw{elem\_type} is one of the following:
 \item \kw{aeromodal}
 \item \kw{aircraft instruments}
 \item \kw{air properties}
-\item \kw{rotor}
+\item \kw{induced velocity}
 \end{itemize}
 
 \item electric elements:
@@ -115,7 +115,7 @@ The elements are read as follows.
 
 
 
-\section{Aerodynamic Body and Aerodynamic Beam Elements}
+\section{Aerodynamic Body/Aerodynamic Beam}
 These elements share the description of the aerodynamics; the former assumes
 the aerodynamic surface to be rigid, and takes its configuration from a
 single node, while the latter relies on a three-node beam and uses the
@@ -124,7 +124,7 @@ at an arbitrary point.
 The \kw{aerodynamic body} input format is:
 \begin{verbatim}
     <normal_arglist> ::= <node_label> 
-        [ , rotor , <rotor_label> ] ,
+        [ , induced velocity , <induced_velocity_label> ] ,
         (Vec3)              <relative_surface_offset> , 
         (OrientationMatrix) <relative_surface_orientation> ,
         (scalar)            <surface_span> ,
@@ -140,7 +140,7 @@ The \kw{aerodynamic body} input format is:
 The \kw{aerodynamic beam} input format is:
 \begin{verbatim}
     <normal_arglist> ::= <beam_label> 
-        [ , rotor , <rotor_label> ] ,
+        [ , induced velocity , <induced_velocity_label> ] ,
         (Vec3)              <relative_surface_offset_1> ,       
         (OrientationMatrix) <relative_surface_orientation_1> ,
         (Vec3)              <relative_surface_offset_2> ,
@@ -172,8 +172,8 @@ and
         <c81_label> , <position>
         [ ... ]
 \end{verbatim}
-The field \kw{rotor} instructs the element that it is linked to a 
-\kw{rotor} element; this means that it can get information about the
+The field \kw{induced\_velocity} instructs the element that it is linked to an
+\kw{induced velocity} element; this means that it can get information about the
 induced velocity and should supply information about the forces it generates.
 
 An arbitrary relative orientation and offset is allowed for both elements with
@@ -2087,6 +2087,7 @@ The format is:
 \end{itemize}
   
 \subsubsection{Distance}
+\label{sec:EL:GENEL:DISTANCE}
 \begin{verbatim}
     <genel_type> ::= distance
     <genel_arglist> ::= (node_dof) <node_1> ,
@@ -2104,6 +2105,7 @@ The format is:
 \end{itemize}
   
 \subsubsection{Spring}
+\label{sec:EL:GENEL:SPRING}
 \begin{verbatim}
     <genel_type> ::= spring
     <genel_arglist> ::= (node_dof) <node_1> ,
@@ -2117,6 +2119,7 @@ The format is:
 }
 
 \subsubsection{Spring support}
+\label{sec:EL:GENEL:SPRING-SUPPORT}
 \begin{verbatim}
     <genel_type> ::= spring support
     <genel_arglist> ::= (node_dof) <node> ,                      
@@ -2130,6 +2133,7 @@ The format is:
 }
 
 \subsubsection{Cross spring support}
+\label{sec:EL:GENEL:CROSS-SPRING-SUPPORT}
 \begin{verbatim}
     <genel_type> ::= cross spring support
     <genel_arglist> ::= (node_dof) <row_node> ,                      
@@ -2147,6 +2151,7 @@ arbitrary manner (given by the \kw{const\_law}) to the
 }
 
 \subsubsection{Mass}
+\label{sec:EL:GENEL:MASS}
 \begin{verbatim}
     <genel_type> ::= mass
     <genel_arglist> ::= (node_dof) <node> ,                     
@@ -2164,6 +2169,7 @@ arbitrary manner (given by the \kw{const\_law}) to the
 }
 
 \subsubsection{Scalar filter}
+\label{sec:EL:GENEL:SCALAR-FILTER}
 \begin{verbatim}
     <genel_type> ::= scalar filter
     <genel_arglist> ::=
@@ -2348,6 +2354,7 @@ had to be rearranged in order to make the denominator monic.
 
 
 \subsubsection{State space SISO}
+\label{sec:EL:GENEL:STATE-SPACE-SISO}
 \begin{verbatim}
     <genel_type> ::= state space SISO
     <genel_arglist> ::=
@@ -2395,6 +2402,7 @@ If matrix $\TT{E}$ is defined, the \kw{DGGBAL} routine is used;
 the \kw{DGEBAL} routine is used otherwise.
 
 \subsubsection{State space MIMO}
+\label{sec:EL:GENEL:STATE-SPACE-MIMO}
 \begin{verbatim}
     <genel_type> ::= state space MIMO
     <genel_arglist> ::=
@@ -2447,6 +2455,7 @@ in rotorcraft analysis currently include:
 \end{itemize}
 
 \subsubsection{Swashplate}
+\label{sec:EL:GENEL:SWASHPLATE}
 The \kw{swashplate} \textsc{Genel} is used to transform the controls 
 of a rotor, in terms of collective and fore/aft and lateral cyclic pitch, 
 into the elongations of the actuators that actually move the swash plate.
@@ -2492,6 +2501,7 @@ cyclic contribution multiplied by \kw{collective\_factor} times
 \kw{cyclic\_factor}.
 
 \subsubsection{Rotor Trim}
+\label{sec:EL:GENEL:ROTOR-TRIM}
 The syntax of the \kw{rotor trim} is
 \begin{verbatim}
     <genel_type> ::= rotor trim
@@ -2589,11 +2599,11 @@ By default, it is direction 3 in the reference frame of structural node 1.
 \paragraph{Example.} \
 See the ``actuator'' example at
 \begin{quote}
-\htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}mbdyn/documentation/examples/actuator}}{http://www.aero.polimi.it/~mbdyn/documentation/examples/actuator}
+\htmladdnormallink{\kw{http://www.aero.polimi.it/mbdyn/documentation/examples/actuator}}{http://www.aero.polimi.it/mbdyn/documentation/examples/actuator}
 \end{quote}
 and the related chapter of the tutorials
 \begin{quote}
-\htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}mbdyn/documentation/tutorials/}}{http://www.aero.polimi.it/~mbdyn/documentation/tutorials/}
+\htmladdnormallink{\kw{http://www.aero.polimi.it/mbdyn/documentation/tutorials/}}{http://www.aero.polimi.it/mbdyn/documentation/tutorials/}
 \end{quote}
 
 
@@ -3671,7 +3681,7 @@ this joint, in conjunction with a
 joint, should be used to implement an ideal tiltrotor gimbal
 instead of a
 \hyperref{\kw{cardano rotation}}{\kw{cardano rotation} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_ROTATION}.
-See the technical manual for details.
+See the technical manual and \cite{GIMBAL-2008} for details.
 It is equivalent to a series of two Cardano's joints
 (the \hyperref{\kw{cardano hinge}}{\kw{cardano hinge}, see Section~}{}{sec:EL:STRUCT:JOINT:CARDANO_HINGE})
 rotated 90 degrees apart, each accounting for half the relative rotation
@@ -5271,16 +5281,36 @@ TODO.
 
 
 \section{Rotor}
-The \kw{rotor} element is used to associate the aerodynamic elements that
-model the blades of a helicopter rotor when some inflow related computations 
+\label{sec:EL:ROTOR}
+Deprecated; see \kw{induced velocity} (Section~\ref{sec:EL:INDVEL:ROTOR}).
+
+
+
+\section{Induced velocity}
+\label{sec:EL:INDVEL}
+The \kw{induced velocity} element is used to associate the aerodynamic elements
+that model the lifting surfaces of an aircraft,
+or the blades of a helicopter rotor, when some inflow related computations 
 are required.
-By means of different inflow models, and by means of the
-aerodynamic load contributions supplied by the aerodynamic elements, the
-rotor element is able to compute the induced velocity at an arbitrary point on
-the rotor disk. This velocity term in turn is used by the aerodynamic
-elements to determine a better estimate of the boundary conditions.
-The syntax of the \kw{rotor} element is:
+
+By means of different inflow models, and by means
+of the aerodynamic load contributions supplied by the aerodynamic elements,
+the \kw{induced velocity} element is able to compute the induced velocity
+at an arbitrary point on the lifting surface or rotor disk.
+This velocity term in turn is used by the aerodynamic elements to determine
+a better estimate of the boundary conditions.
+
+\subsection{Rotor}
+\label{sec:EL:INDVEL:ROTOR}
+Currently, induced velocity models are only implemented
+for helicopter rotors.
+Originally, this type of element was known as \kw{rotor},
+and the original syntax is preserved for backwards compatibility.
+
+The syntax of the helicopter rotor \kw{induced velocity} element is:
 \begin{verbatim}
+    <elem_type> ::= induced velocity
+
     <normal_arglist> ::= <craft_node> ,
             [ hinge , (Mat3x3)<rotor_orientation> , ]
         <rotor_node> ,
@@ -5289,15 +5319,6 @@ The syntax of the \kw{rotor} element is:
 The optional \kw{rotor\_orientation} is required when axis 3 
 of the \kw{craft\_node} is not aligned with the rotor axis; axis 3
 of the \kw{rotor\_node} must be aligned with the rotor axis.
-
-\begin{comment}
-\emph{Note: after the keyword \kw{induced velocity} there used to be
-a colon is used as separator.
-This changed for uniformity with the rest of the syntax.
-No backwards compatibility is provided, so users are urged to update
-their models.
-}
-\end{comment}
 
 There are five models of induced velocity. 
 The first is no induced velocity; the syntax is:
@@ -5376,7 +5397,7 @@ iterations of the nominal induced velocity is actually
 used; \kw{eta} defaults to 1.
 The default is to make only one iteration, which is backward-compatible
 with the original behavior.
-
+\begin{comment}
 \emph{
 	Note: the syntax of the correction factors input changed
 	from MBDyn 1.1 to MBDyn 1.2, where two separate factors,
@@ -5386,6 +5407,7 @@ with the original behavior.
 	this is a very specialistic parameter and it was introduced 
 	very recently.
 }
+\end{comment}
 \end{itemize}
 
 The last induced velocity model uses a dynamic inflow model,

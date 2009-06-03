@@ -34,12 +34,18 @@ included between the cards:
         ...
     end: data;
 \end{verbatim}
-At present it is used only to select the problem to be solved.
 
-Since only the initial value problem is available, the only active 
-card (optional, at present), is:
+\section{Problem}
+The only active card is the \kw{problem} card.
+
+The syntax is
 \begin{verbatim}
-    <card> ::= problem : initial value ;
+    <card> ::= problem : <problem> ;
+    <problem> ::= { initial value | inverse dynamics } ;
 \end{verbatim}
-Anyway, the \kw{data} section \underline{must be present}.
+For long time the only supported problem type was the
+\kw{initial value} problem.
+As a consequence, if no \kw{problem} card is present,
+an initial value problem is assumed.
+An experimental \kw{inverse dynamics} problem is supported as well.
 

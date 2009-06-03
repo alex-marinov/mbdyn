@@ -26,36 +26,38 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-\section{Beam Element}
+\section{The Beam Elements}
 \label{sec:EL:BEAM}
 The family of finite volume beam elements implemented in MBDyn
 allows to model slender deformable structural components 
 with a high level of flexibility.
 
-\noindent
 The beam is defined by a reference line and by a manifold
 of orientations attached to the line.
 It is assumed that the direction 1 of the orientations lies along
 the reference line, but it is not strictly required to be tangent
 to it even in the reference configuration.
 
-\noindent
 The beam element is defined by its nodes; currently, 2 and 3 node 
 beam elements are implemented.
 Each node of the beam is related to a \kw{structural node} by an offset
-and a relative orientation, to provide topological flexibility.
+and an optional relative orientation, to provide topological flexibility.
+
 The beam element is modeled by means of an original Finite Volume approach
 \cite{FV-AIAA}, which computes the internal forces as functions 
 of the straining of the reference line and orientation at selected points
 along the line itself, called \emph{evaluation points},
 which lie somewhere between two pairs of beam nodes.
+
 At each evaluation point, a 6D constitutive law must be defined,
 which defines the relationship between the strains, the curvatures
 of the beam and their time derivatives
 and the internal forces and moments at the evaluation points.
+
 The strains and curvatures and their time derivatives are obtained 
 from the nodal positions and orientations by differentiating
 the interpolation functions.
+
 The 6D constitutive laws are defined as
 \begin{displaymath}
 	\cubr{\cvvect{
@@ -121,10 +123,14 @@ of the stiffness matrix are not usually available.
 One easy way to work this around is to resort to any so-called
 composite beam section characterization analysis available 
 in the literature.
+
 For details, the reader is referred to \cite{HODGES-REVIEW90} 
 for a review of the topic, to \cite{ANBA-GIAVOTTO-83}
 for an early work on the subject, and to \cite{MASARATI-2001}
-for a recent review of the original formulation.
+for a more recent review of the original formulation.
+The software that implements this type of analysis is called ANBA++.
+It is not free software, so far.
+Prospective users can contact the authors, through MBDyn developers.
 
 
 \subsubsection{Disclaimer}
@@ -135,13 +141,15 @@ must be provided in a specific reference frame.
 On the contrary, MBDyn allows as much generality as possible,
 and actually the variety of choices is redundant, since equivalent
 properties can be input in different ways.
-This is intended to allow the code to suit the user's needs
+
+This is intended to allow the code to suit the users' needs
 regardless of the original format of the input data.
 As such, all the transformations reported in the following 
 are only intended as suggestions and should not be taken literally.
-For instance, rotations and transportation of reference points
+For instance, rotations and offsets of reference points
 could be reversed, changing the values of the offsets, without
 affecting the final result.
+
 The most important aspect of MBDyn notion of beam section properties
 is that the reference point and orientation, although arbitrary,
 must be unique, and the common notions of center of axial strain,
@@ -289,6 +297,12 @@ while the strains and curvatures are transformed according to
 		\kappa_y \\
 		\kappa_z \\
 	}}^*
+	&= \sqbr{R}^{-T}_{\text{axial}} \cubr{\cvvect{
+		\varepsilon_x \\
+		\kappa_y \\
+		\kappa_z \\
+	}}^{\dagger}
+	\nonumber \\
 	&= \sqbr{R}_{\text{axial}} \cubr{\cvvect{
 		\varepsilon_x \\
 		\kappa_y \\
@@ -567,7 +581,7 @@ and the strains and curvatures are transformed according to
 		\kappa_y \\
 		\kappa_z
 	}}^{\dagger}
-	&= \sqbr{R}_{\text{axial}}
+	&= \sqbr{R}_{\text{axial}}^T
 	\cubr{\cvvect{
 		\varepsilon_x \\
 		\kappa_y \\
@@ -893,6 +907,322 @@ the other way 'round is straightforward.
 
 
 
+
+
+
+\subsubsection{Generic Anisotropic Beam Section}
+When a generic anisotropic beam section is considered,
+the partitioning of axial and shear constitutive properties
+of Figure~\ref{fig:EL:BEAM:GROUPS} is no longer possible.
+The axial and shear straining can be completely and arbitrarily coupled,
+resulting in a full constitutive matrix of the beam section,
+\begin{align}
+	\cubr{\cvvect{
+		\T{f} \\
+		\T{m}
+	}}^\dagger
+	&=
+	\sqbr{\matr{cc}{
+		\TT{K}_{\T{f}\T{\nu}} & \TT{K}_{\T{f}\T{\kappa}} \\
+		\TT{K}_{\T{m}\T{\nu}} & \TT{K}_{\T{m}\T{\kappa}}
+	}}^\dagger
+	\cubr{\cvvect{
+		\T{\nu} \\
+		\T{\kappa}
+	}}^\dagger ,
+\end{align}
+where $\T{f}$ and $\T{m}$ are the internal force and moment vectors,
+while $\T{\nu}$ and $\T{\kappa}$ are the linear and angular strains.
+Usually, $\TT{K}_{\T{m}\T{\nu}}\equiv\TT{K}_{\T{f}\T{\kappa}}^T$,
+while $\TT{K}_{\T{f}\T{\nu}}$ and $\TT{K}_{\T{m}\T{\kappa}}$ are symmetric.
+
+
+The reference point or the reference orientation of the constitutive
+matrix can be changed by a sequence of transformations consisting
+in a rotation and an offset.
+
+The internal force and moment, after a rotation defined by the rotation
+matrix $\TT{R}$, become
+\begin{align}
+	\cubr{\cvvect{
+		\T{f} \\
+		\T{m}
+	}}^*
+	&= \sqbr{\matr{cc}{
+		\TT{R} & \TT{0} \\
+		\TT{0} & \TT{R}
+	}}
+	\cubr{\cvvect{
+		\T{f} \\
+		\T{m}
+	}}^\dagger
+	.
+\end{align}
+Similarly, the strains become
+\begin{align}
+	\cubr{\cvvect{
+		\T{\nu} \\
+		\T{\kappa}
+	}}^*
+	&= \sqbr{\matr{cc}{
+		\TT{R} & \TT{0} \\
+		\TT{0} & \TT{R}
+	}}^{-T}
+	\cubr{\cvvect{
+		\T{\nu} \\
+		\T{\kappa}
+	}}^\dagger
+	\nonumber \\
+	&= \sqbr{\matr{cc}{
+		\TT{R} & \TT{0} \\
+		\TT{0} & \TT{R}
+	}}
+	\cubr{\cvvect{
+		\T{\nu} \\
+		\T{\kappa}
+	}}^\dagger
+	.
+\end{align}
+As a consequence, the re-oriented constitutive relationship is
+\begin{align}
+	\cubr{\cvvect{
+		\T{f} \\
+		\T{m}
+	}}^*
+	&=
+	\sqbr{\matr{cc}{
+		\TT{R} & \TT{0} \\
+		\TT{0} & \TT{R}
+	}}
+	\sqbr{\matr{cc}{
+		\TT{K}_{\T{f}\T{\nu}} & \TT{K}_{\T{f}\T{\kappa}} \\
+		\TT{K}_{\T{m}\T{\nu}} & \TT{K}_{\T{m}\T{\kappa}}
+	}}^\dagger
+	\sqbr{\matr{cc}{
+		\TT{R} & \TT{0} \\
+		\TT{0} & \TT{R}
+	}}^T
+	\cubr{\cvvect{
+		\T{\nu} \\
+		\T{\kappa}
+	}}^*
+	\nonumber \\
+	&=
+	\sqbr{\matr{cc}{
+		\TT{R} \TT{K}_{\T{f}\T{\nu}}^\dagger \TT{R}^T
+			& \TT{R} \TT{K}_{\T{f}\T{\kappa}}^\dagger \TT{R}^T \\
+		\TT{R} \TT{K}_{\T{m}\T{\nu}}^\dagger \TT{R}^T
+			& \TT{R} \TT{K}_{\T{m}\T{\kappa}}^\dagger \TT{R}^T
+	}}
+	\cubr{\cvvect{
+		\T{\nu} \\
+		\T{\kappa}
+	}}^*
+	\nonumber \\
+	&=
+	\sqbr{\matr{cc}{
+		\TT{K}_{\T{f}\T{\nu}} & \TT{K}_{\T{f}\T{\kappa}} \\
+		\TT{K}_{\T{m}\T{\nu}} & \TT{K}_{\T{m}\T{\kappa}}
+	}}^*
+	\cubr{\cvvect{
+		\T{\nu} \\
+		\T{\kappa}
+	}}^*
+	.
+\end{align}
+
+The internal moment, after considering an offset $\T{o}=\sqbr{0, y, z}^T$
+of the reference point of the constitutive properties, becomes
+$\T{m}=\T{m}^* + \T{o}\times\T{f}^*$.
+The internal force and moment then becomes
+\begin{align}
+	\cubr{\cvvect{
+		\T{f} \\
+		\T{m}
+	}}
+	&= \sqbr{\matr{cc}{
+		\TT{I} & \TT{0} \\
+		\T{o}\times{} & \TT{I}
+	}}
+	\cubr{\cvvect{
+		\T{f} \\
+		\T{m}
+	}}^*
+	\label{eq:EL:BEAM:ANISOTROPIC-T}
+	.
+\end{align}
+Similarly, the linear and angular strain vectors become
+\begin{align}
+	\cubr{\cvvect{
+		\T{\nu} \\
+		\T{\kappa}
+	}}
+	&= \sqbr{\matr{cc}{
+		\TT{I} & \TT{0} \\
+		\T{o}\times{} & \TT{I}
+	}}^{-T}
+	\cubr{\cvvect{
+		\T{\nu} \\
+		\T{\kappa}
+	}}^*
+	.
+\end{align}
+As a consequence, the offset constitutive relationship becomes
+\begin{align}
+	\cubr{\cvvect{
+		\T{f} \\
+		\T{m}
+	}}
+	&=
+	\sqbr{\matr{cc}{
+		\TT{I} & \TT{0} \\
+		\T{o}\times{} & \TT{I}
+	}}
+	\sqbr{\matr{cc}{
+		\TT{K}_{\T{f}\T{\nu}} & \TT{K}_{\T{f}\T{\kappa}} \\
+		\TT{K}_{\T{m}\T{\nu}} & \TT{K}_{\T{m}\T{\kappa}}
+	}}^*
+	\sqbr{\matr{cc}{
+		\TT{I} & \T{o}\times{}^T \\
+		\TT{0} & \TT{I}
+	}}
+	\cubr{\cvvect{
+		\T{\nu} \\
+		\T{\kappa}
+	}}
+	\nonumber \\
+	&=
+	\sqbr{\matr{cc}{
+		\TT{K}_{\T{f}\T{\nu}}^*
+		& \TT{K}_{\T{f}\T{\nu}}^* \T{o}\times{}^T
+			+ \TT{K}_{\T{f}\T{\kappa}}^* \\
+		\T{o}\times\TT{K}_{\T{f}\T{\nu}}^*
+			+ \TT{K}_{\T{m}\T{\nu}}^*
+		& \T{o}\times\TT{K}_{\T{f}\T{\nu}}^* \T{o}\times{}^T
+			+ \TT{K}_{\T{m}\T{\nu}}^* \T{o}\times{}^T
+			+ \T{o}\times\TT{K}_{\T{f}\T{\kappa}}^*
+			+ \TT{K}_{\T{m}\T{\kappa}}^*
+	}}
+	\cubr{\cvvect{
+		\T{\nu} \\
+		\T{\kappa}
+	}}
+	\nonumber \\
+	&=
+	\sqbr{\matr{cc}{
+		\TT{K}_{\T{f}\T{\nu}} & \TT{K}_{\T{f}\T{\kappa}} \\
+		\TT{K}_{\T{m}\T{\nu}} & \TT{K}_{\T{m}\T{\kappa}}
+	}}
+	\cubr{\cvvect{
+		\T{\nu} \\
+		\T{\kappa}
+	}}^*
+	.
+\end{align}
+
+It might be tempting to find what offset and rotation allows
+to decouple the force and moment constitutive properties.
+This can be sought by defining a generic transformation
+\begin{align}
+	\cubr{\cvvect{
+		\T{f} \\
+		\T{m}
+	}}
+	&= \sqbr{\matr{cc}{
+		\TT{I} & \TT{0} \\
+		\TT{T} & \TT{I}
+	}}
+	\cubr{\cvvect{
+		\T{f} \\
+		\T{m}
+	}}^\dagger
+	,
+\end{align}
+such that
+\begin{align}
+	\cubr{\cvvect{
+		\T{f} \\
+		\T{m}
+	}}
+	&=
+	\sqbr{\matr{cc}{
+		\TT{I} & \TT{0} \\
+		\TT{T} & \TT{I}
+	}}
+	\sqbr{\matr{cc}{
+		\TT{K}_{\T{f}\T{\nu}} & \TT{K}_{\T{f}\T{\kappa}} \\
+		\TT{K}_{\T{m}\T{\nu}} & \TT{K}_{\T{m}\T{\kappa}}
+	}}^\dagger
+	\sqbr{\matr{cc}{
+		\TT{I} & \TT{T}^T \\
+		\TT{0} & \TT{I}
+	}}
+	\cubr{\cvvect{
+		\T{\nu} \\
+		\T{\kappa}
+	}}
+	\nonumber \\
+	&=
+	\sqbr{\matr{cc}{
+		\TT{K}_{\T{f}\T{\nu}}^\dagger
+		& \TT{K}_{\T{f}\T{\nu}}^\dagger \TT{T}^T
+			+ \TT{K}_{\T{f}\T{\kappa}}^\dagger \\
+		\TT{T}\TT{K}_{\T{f}\T{\nu}}^\dagger
+			+ \TT{K}_{\T{m}\T{\nu}}^\dagger
+		& \TT{T}\TT{K}_{\T{f}\T{\nu}}^\dagger \TT{T}^T
+			+ \TT{K}_{\T{m}\T{\nu}}^\dagger \TT{T}^T
+			+ \TT{T}\TT{K}_{\T{f}\T{\kappa}}^\dagger
+			+ \TT{K}_{\T{m}\T{\kappa}}^\dagger
+	}}
+	\cubr{\cvvect{
+		\T{\nu} \\
+		\T{\kappa}
+	}}
+	.
+\end{align}
+The expected decoupling results from
+\begin{align}
+	\TT{T}
+	&= 
+	- \TT{K}_{\T{m}\T{\nu}}^\dagger
+		\plbr{\TT{K}_{\T{f}\T{\nu}}^\dagger}^{-1}
+	.
+\end{align}
+However, the resulting transformation $\TT{T}$ is not guaranteed
+to have the skew-symmetric structure of $\T{o}\times{}$,
+thus the decoupling may not be reducible to an offset.
+
+The reverse transformation is relatively straightforward, after noticing
+that, according to Eq.~(\ref{eq:EL:BEAM:ANISOTROPIC-T}), 
+\begin{align}
+	\cubr{\cvvect{
+		\T{f} \\
+		\T{m}
+	}}^*
+	&= \sqbr{\matr{cc}{
+		\TT{I} & \TT{0} \\
+		\T{o}\times{} & \TT{I}
+	}}^{-1}
+	\cubr{\cvvect{
+		\T{f} \\
+		\T{m}
+	}}
+	\nonumber \\
+	&= \sqbr{\matr{cc}{
+		\TT{I} & \TT{0} \\
+		-\T{o}\times{} & \TT{I}
+	}}
+	\cubr{\cvvect{
+		\T{f} \\
+		\T{m}
+	}}
+	.
+\end{align}
+So, as expected, it is sufficient to revert the sign of the offset
+to revert the transformation.
+The signs of the constitutive relationship change accordingly.
+
+
 \subsubsection{Locking Correction for Two-Node Beam}
 The three-node finite volume element has been implemented first, 
 and uses conventional polynomial parabolic interpolation 
@@ -916,8 +1246,13 @@ to the nodes, and
 \end{displaymath}
 is the ``arm'' matrix that appears in the differential equilibrium equation
 \begin{displaymath}
-	\T{\vartheta}_{/x} - \T{T}^T\vartheta + \T{f} \ = \ 0 .
+	\T{\vartheta}_{/x} - \T{T}^T\T{\vartheta} + \T{\phi} = 0
+	,
 \end{displaymath}
+where $\T{\vartheta}=\sqbr{\T{f}^T \T{m}^T}^T$ are the internal forces
+and moments, while $\T{\phi}$ are the external forces and moments
+per unit span.
+
 There are no provisions to automatically apply the correction 
 when defining the constitutive law of the section.
 The two-node beam has been reimplemented using a helicoidal interpolation
@@ -932,20 +1267,49 @@ only for development purposes.
 
 
 \subsection{Three-node beam element}
-The three node beam element is described in detail in \cite{FV-AIAA}.
-Each ``node'' is referred to a structural node but can have an arbitrary
-offset to allow high generality in the positioning of the structural 
-reference line of the beam.
-A finite volume formulation is used;
-as a consequence, the internal forces and moments are evaluated 
+The three-node beam element is described in detail in \cite{FV-AIAA}.
+Each of the three points the beam element connects is referred
+to a structural node but can have an arbitrary offset
+to allow high generality in locating the structural reference line
+of the beam.
+Figure~\ref{fig:EL:BEAM:beam3} illustrates the geometry
+of the three-node beam element.
+
+\begin{figure}
+\centering
+\psfrag{1}{1}
+\psfrag{2}{2}
+\psfrag{3}{3}
+\psfrag{n1}{node 1}
+\psfrag{n2}{node 2}
+\psfrag{n3}{node 3}
+\psfrag{pI}{point I}
+\psfrag{pII}{point II}
+\psfrag{o1}{$\T{o}_1$}
+\psfrag{o2}{$\T{o}_2$}
+\psfrag{o3}{$\T{o}_3$}
+\psfrag{RI}{$\TT{R}_I$}
+\psfrag{RII}{$\TT{R}_{II}$}
+\includegraphics[width=.7\textwidth]{beam3}
+\caption{Geometry of the three-node beam element.}
+\label{fig:EL:BEAM:beam3}
+\end{figure}
+
+The finite volume formulation presented in \cite{FV-AIAA} is used.
+As a consequence, the internal forces and moments are evaluated 
 at two points that are at about midpoint between nodes 1 and 2, 
-and nodes 2 and 3 (at $ -1/\sqrt{3} $ and $1/\sqrt{3}$ considering
-a non-dimensional abscissa running from -1 at node 1 to 1 at node 3).
+and nodes 2 and 3 (at $ \xi=-1/\sqrt{3}\cong -0.57735 $
+and $\xi=1/\sqrt{3} \cong 0.57735$ of a non-dimensional abscissa $\xi$
+running from $\xi=-1$ at node 1 to $\xi=1$ at node 3).
+
 So the constitutive properties must be supplied in these points, as well as
-the orientation matrices from the material to the global frame (the axial force
-is in direction 1).
-Any of the allowed 6D constitutive laws can be supplied to define the
-constitutive properties.
+the orientation matrices $\TT{R}_I$ and $\TT{R}_{II}$,
+that express the orientation of the reference system
+the constitutive properties are expressed in with respect to the global frame
+(the axial force is conventionally defined in direction 1).
+Any of the supported 6D constitutive laws can be supplied to define the
+constitutive properties of each beam section.
+
 The traditional input format is
 \begin{verbatim}
     <element_type> ::= beam3
@@ -958,11 +1322,26 @@ The traditional input format is
         { same | (OrientationMatrix) <orientation_matrix_section_II> } ,
         { same | (ConstitutiveLaw6D) <constitutive_law_section_II> }
 \end{verbatim}
-Based on the type of constitutive law, the simple or the viscoelastic beam
-element is used.
-The two keywords \kw{same} respectively mean that the same orientation 
-and the same constitutive law defined for the first point will be used 
-for the second point.
+
+The \kw{relative\_offset\_i}, with \kw{i}=1,2,3, are the vectors
+$\T{o}_i$, with $i$=1,2,3, of Figure~\ref{fig:EL:BEAM:beam3}.
+
+The orientation matrices \kw{orientation\_matrix\_section\_j},
+with \kw{j}=I,II, are the section orientation matrices
+$\TT{R}_j$, with $j$=$I$,$II$, of Figure~\ref{fig:EL:BEAM:beam3}.
+
+The first keyword \kw{same}, alternative to the 
+\kw{orientation\_matrix\_section\_II}, means that the same orientation
+defined for the first point will be used for the second point.
+
+The second keyword \kw{same}, alternative to the
+\kw{constitutive\_law\_section\_II}, means that the same constitutive law
+defined for the first point will be used for the second point.
+
+If any of the constitutive laws is either viscous or viscoelastic,
+the viscoelastic variant of the beam element is used.
+Otherwise, the elastic variant is used.
+
 A more complete input format is
 \begin{verbatim}
     <element_type> ::= beam3
@@ -993,7 +1372,6 @@ instead of the matrix.
 If the keyword \kw{same} is used for the second evaluation point,
 the same method is used to compute the orientation matrix.
 
-\noindent
 As an example, a simple beam element, with diagonal section stiffness 
 matrix is presented:
 \begin{verbatim}
@@ -1018,7 +1396,6 @@ matrix is presented:
         same;
 \end{verbatim}
 
-\noindent
 A not-so-simple beam section, where the center of axial strain 
 and the shear center are not coincident, is illustrated below.
 The node offset is used to align the reference line 
@@ -1058,7 +1435,6 @@ is used in the constitutive matrix:
 \end{verbatim}
 
 
-\noindent
 A piezoelectric actuator beam element is available; an arbitrary
 linear piezoelectric actuation matrix is required, together with the labels
 of the abstract nodes that represent the input signal tensions, as follows:
@@ -1130,6 +1506,26 @@ private data related to point II are numbered from 28 to 54.
 
 
 \subsection{Two-node beam element}
+Similar considerations apply to the two-node beam.
+Its geometry is illustrated in Figure~\ref{fig:EL:BEAM:beam2}.
+
+\begin{figure}
+\centering
+\psfrag{1}{1}
+\psfrag{2}{2}
+\psfrag{3}{3}
+\psfrag{n1}{node 1}
+\psfrag{n2}{node 2}
+\psfrag{pI}{point I}
+\psfrag{o1}{$\T{o}_1$}
+\psfrag{o2}{$\T{o}_2$}
+\psfrag{RI}{$\TT{R}_I$}
+\includegraphics[width=.7\textwidth]{beam2}
+\caption{Geometry of the two-node beam element.}
+\label{fig:EL:BEAM:beam2}
+\end{figure}
+
+The syntax is
 \begin{verbatim}
     <element_type> ::= beam2
     <normal_arglist> ::=
@@ -1142,14 +1538,16 @@ private data related to point II are numbered from 28 to 54.
         <abstract_node_label_list> ,
         (Mat6xN) <piezoelectric_matrix_I> ]
 \end{verbatim}
+
+A more complete form is
 \begin{verbatim}
     <element_type> ::= beam2
     <normal_arglist> ::=
         <node_1> ,
-            [ positions , ] (Vec3) <relative_offset_1> ,
+            [ position , ] (Vec3) <relative_offset_1> ,
             [ orientation , (Mat3x3) <relative_orientation_1> , ]
         <node_2> ,
-            [ positions , ] (Vec3) <relative_offset_2> ,
+            [ position , ] (Vec3) <relative_offset_2> ,
             [ orientation , (Mat3x3) <relative_orientation_2> , ]
         { (OrientationMatrix) <orientation_matrix_section_I>
             | from nodes } ,
@@ -1161,9 +1559,9 @@ private data related to point II are numbered from 28 to 54.
 \end{verbatim}
 
 \paragraph{Private Data.}
-The same private data indicated for the \kw{beam} element is available
+The same private data indicated for the \kw{beam3} element is available
 (see Section~\ref{sec:EL:BEAM:PRIVATE}).
-No prefix must be specified.
+No prefix must be specified (\kw{"pI."} is implicit).
 
 
 \paragraph{Example.} \
@@ -1191,6 +1589,8 @@ matrix is presented:
 Note that the shear terms have been na\"{\i}vely inverted to eliminate
 shear locking, according to Equation~(\ref{eq:2-NODE-BEAM-STIFFNESS}).
 
+
+
 \subsection{Output}
 The output related to beam elements is contained in a file with extension 
 \kw{.act}; for each time step, the output of the required beams is
@@ -1209,3 +1609,7 @@ The format is:
 The last two items (i.e.\ the last 6 columns) are generated
 only by the three-node beam element.
 
+
+
+\subsection{Notes}
+Two-node beam elements should be used with care.
