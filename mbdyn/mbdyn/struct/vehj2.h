@@ -70,18 +70,24 @@ protected:
 	void
 	AssMatFDEPrime(FullSubMatrixHandler& WMA, FullSubMatrixHandler& WMB,
 		const Vec3& d1, const Vec3& d2, doublereal dCoef);
+
+	virtual void
+	AssMats(FullSubMatrixHandler& WMA,
+		FullSubMatrixHandler& WMB,
+		doublereal dCoef) = 0;
+
 public:
 	/* Costruttore non banale */
 	DeformableDispJoint(unsigned int uL,
-			const DofOwner* pDO,
-			const ConstitutiveLaw3D* pCL,
-			const StructNode* pN1,
-			const StructNode* pN2,
-			const Vec3& tilde_f1,
-			const Vec3& tilde_f2,
-			const Mat3x3& tilde_R1,
-			const Mat3x3& tilde_R2,
-			flag fOut);
+		const DofOwner* pDO,
+		const ConstitutiveLaw3D* pCL,
+		const StructNode* pN1,
+		const StructNode* pN2,
+		const Vec3& tilde_f1,
+		const Vec3& tilde_f2,
+		const Mat3x3& tilde_R1,
+		const Mat3x3& tilde_R2,
+		flag fOut);
 
 	/* Distruttore */
 	virtual ~DeformableDispJoint(void);
@@ -125,6 +131,20 @@ public:
 		return 0;
 	};
 
+	/* assemblaggio jacobiano */
+	virtual VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		doublereal dCoef,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+
+	/* assemblaggio jacobiano */
+	virtual void
+	AssMats(VariableSubMatrixHandler& WorkMatA,
+		VariableSubMatrixHandler& WorkMatB,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+
 	virtual unsigned int iGetNumPrivData(void) const;
 	virtual unsigned int iGetPrivDataIdx(const char *s) const;
 	virtual doublereal dGetPrivData(unsigned int i) const;
@@ -148,20 +168,22 @@ public:
 
 class ElasticDispJoint : virtual public Elem, public DeformableDispJoint {
 protected:
-	void AssMat(FullSubMatrixHandler& WM, doublereal dCoef);
+	void AssMats(FullSubMatrixHandler& WMA,
+		FullSubMatrixHandler& WMB,
+		doublereal dCoef);
 	void AssVec(SubVectorHandler& WorkVec);
 
 public:
 	ElasticDispJoint(unsigned int uL,
-			const DofOwner* pDO,
-			const ConstitutiveLaw3D* pCL,
-			const StructNode* pN1,
-			const StructNode* pN2,
-			const Vec3& tilde_f1,
-			const Vec3& tilde_f2,
-			const Mat3x3& tilde_R1,
-			const Mat3x3& tilde_R2,
-			flag fOut);
+		const DofOwner* pDO,
+		const ConstitutiveLaw3D* pCL,
+		const StructNode* pN1,
+		const StructNode* pN2,
+		const Vec3& tilde_f1,
+		const Vec3& tilde_f2,
+		const Mat3x3& tilde_R1,
+		const Mat3x3& tilde_R2,
+		flag fOut);
 
 	~ElasticDispJoint(void);
 
@@ -177,25 +199,18 @@ public:
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
 	/* assemblaggio jacobiano */
-	virtual VariableSubMatrixHandler&
-	AssJac(VariableSubMatrixHandler& WorkMat,
-			doublereal dCoef,
-			const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr);
-
-	/* assemblaggio jacobiano */
 	virtual void
 	AssMats(VariableSubMatrixHandler& WorkMatA,
-			VariableSubMatrixHandler& WorkMatB,
-			const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr);
+		VariableSubMatrixHandler& WorkMatB,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
 
 	/* assemblaggio residuo */
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
-			doublereal dCoef,
-			const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr);
+		doublereal dCoef,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
 
 	/* Inverse Dynamics residual assembly */
 	SubVectorHandler&
@@ -214,7 +229,7 @@ public:
 	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
 	virtual VariableSubMatrixHandler&
 	InitialAssJac(VariableSubMatrixHandler& WorkMat,
-			const VectorHandler& XCurr);
+		const VectorHandler& XCurr);
 
 	/* Contributo al residuo durante l'assemblaggio iniziale */
 	virtual SubVectorHandler&
@@ -222,8 +237,8 @@ public:
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
 	virtual void SetValue(DataManager *pDM,
-			VectorHandler& X, VectorHandler& XP,
-			SimulationEntity::Hints *ph = 0)
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0)
 	{
 		DeformableDispJoint::SetValue(pDM, X, XP, ph);
 	};
@@ -254,20 +269,22 @@ public:
 
 class ElasticDispJointInv : virtual public Elem, public DeformableDispJoint {
 protected:
-	void AssMat(FullSubMatrixHandler& WM, doublereal dCoef);
+	void AssMats(FullSubMatrixHandler& WMA,
+		FullSubMatrixHandler& WMB,
+		doublereal dCoef);
 	void AssVec(SubVectorHandler& WorkVec);
 
 public:
 	ElasticDispJointInv(unsigned int uL,
-			const DofOwner* pDO,
-			const ConstitutiveLaw3D* pCL,
-			const StructNode* pN1,
-			const StructNode* pN2,
-			const Vec3& tilde_f1,
-			const Vec3& tilde_f2,
-			const Mat3x3& tilde_R1,
-			const Mat3x3& tilde_R2,
-			flag fOut);
+		const DofOwner* pDO,
+		const ConstitutiveLaw3D* pCL,
+		const StructNode* pN1,
+		const StructNode* pN2,
+		const Vec3& tilde_f1,
+		const Vec3& tilde_f2,
+		const Mat3x3& tilde_R1,
+		const Mat3x3& tilde_R2,
+		flag fOut);
 
 	~ElasticDispJointInv(void);
 
@@ -283,25 +300,18 @@ public:
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
 	/* assemblaggio jacobiano */
-	virtual VariableSubMatrixHandler&
-	AssJac(VariableSubMatrixHandler& WorkMat,
-			doublereal dCoef,
-			const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr);
-
-	/* assemblaggio jacobiano */
 	virtual void
 	AssMats(VariableSubMatrixHandler& WorkMatA,
-			VariableSubMatrixHandler& WorkMatB,
-			const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr);
+		VariableSubMatrixHandler& WorkMatB,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
 
 	/* assemblaggio residuo */
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
-			doublereal dCoef,
-			const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr);
+		doublereal dCoef,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
 
 	/* Inverse Dynamics residual assembly */
 	SubVectorHandler&
@@ -320,7 +330,7 @@ public:
 	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
 	virtual VariableSubMatrixHandler&
 	InitialAssJac(VariableSubMatrixHandler& WorkMat,
-			const VectorHandler& XCurr);
+		const VectorHandler& XCurr);
 
 	/* Contributo al residuo durante l'assemblaggio iniziale */
 	virtual SubVectorHandler&
@@ -328,8 +338,8 @@ public:
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
 	virtual void SetValue(DataManager *pDM,
-			VectorHandler& X, VectorHandler& XP,
-			SimulationEntity::Hints *ph = 0)
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0)
 	{
 		DeformableDispJoint::SetValue(pDM, X, XP, ph);
 	};
@@ -361,21 +371,21 @@ public:
 class ViscousDispJoint : virtual public Elem, public DeformableDispJoint {
 protected:
 	void AssMats(FullSubMatrixHandler& WMA,
-			FullSubMatrixHandler& WMB,
-			doublereal dCoef);
+		FullSubMatrixHandler& WMB,
+		doublereal dCoef);
 	void AssVec(SubVectorHandler& WorkVec);
 
 public:
 	ViscousDispJoint(unsigned int uL,
-			const DofOwner* pDO,
-			const ConstitutiveLaw3D* pCL,
-			const StructNode* pN1,
-			const StructNode* pN2,
-			const Vec3& tilde_f1,
-			const Vec3& tilde_f2,
-			const Mat3x3& tilde_R1,
-			const Mat3x3& tilde_R2,
-			flag fOut);
+		const DofOwner* pDO,
+		const ConstitutiveLaw3D* pCL,
+		const StructNode* pN1,
+		const StructNode* pN2,
+		const Vec3& tilde_f1,
+		const Vec3& tilde_f2,
+		const Mat3x3& tilde_R1,
+		const Mat3x3& tilde_R2,
+		flag fOut);
 
 	~ViscousDispJoint(void);
 
@@ -390,26 +400,12 @@ public:
 	/* Aggiorna le deformazioni ecc. */
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
-	/* assemblaggio jacobiano */
-	virtual VariableSubMatrixHandler&
-	AssJac(VariableSubMatrixHandler& WorkMat,
-			doublereal dCoef,
-			const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr);
-
-	/* assemblaggio jacobiano */
-	virtual void
-	AssMats(VariableSubMatrixHandler& WorkMatA,
-			VariableSubMatrixHandler& WorkMatB,
-			const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr);
-
 	/* assemblaggio residuo */
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
-			doublereal dCoef,
-			const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr);
+		doublereal dCoef,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
 
 	/* Inverse Dynamics residual assembly */
 	SubVectorHandler&
@@ -428,7 +424,7 @@ public:
 	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
 	virtual VariableSubMatrixHandler&
 	InitialAssJac(VariableSubMatrixHandler& WorkMat,
-			const VectorHandler& XCurr);
+		const VectorHandler& XCurr);
 
 	/* Contributo al residuo durante l'assemblaggio iniziale */
 	virtual SubVectorHandler&
@@ -436,8 +432,8 @@ public:
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
 	virtual void SetValue(DataManager *pDM,
-			VectorHandler& X, VectorHandler& XP,
-			SimulationEntity::Hints *ph = 0)
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0)
 	{
 		DeformableDispJoint::SetValue(pDM, X, XP, ph);
 	};
@@ -469,21 +465,21 @@ class ViscoElasticDispJoint
 : virtual public Elem, public DeformableDispJoint {
 protected:
 	void AssMats(FullSubMatrixHandler& WorkMatA,
-			FullSubMatrixHandler& WorkMatB,
-			doublereal dCoef);
+		FullSubMatrixHandler& WorkMatB,
+		doublereal dCoef);
 	void AssVec(SubVectorHandler& WorkVec);
 
 public:
 	ViscoElasticDispJoint(unsigned int uL,
-			const DofOwner* pDO,
-			const ConstitutiveLaw3D* pCL,
-			const StructNode* pN1,
-			const StructNode* pN2,
-			const Vec3& tilde_f1,
-			const Vec3& tilde_f2,
-			const Mat3x3& tilde_R1,
-			const Mat3x3& tilde_R2,
-			flag fOut);
+		const DofOwner* pDO,
+		const ConstitutiveLaw3D* pCL,
+		const StructNode* pN1,
+		const StructNode* pN2,
+		const Vec3& tilde_f1,
+		const Vec3& tilde_f2,
+		const Mat3x3& tilde_R1,
+		const Mat3x3& tilde_R2,
+		flag fOut);
 
 	~ViscoElasticDispJoint(void);
 
@@ -498,26 +494,12 @@ public:
 	/* Aggiorna le deformazioni ecc. */
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
-	/* assemblaggio jacobiano */
-	virtual VariableSubMatrixHandler&
-	AssJac(VariableSubMatrixHandler& WorkMat,
-			doublereal dCoef,
-			const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr);
-
-	/* assemblaggio jacobiano */
-	virtual void
-	AssMats(VariableSubMatrixHandler& WorkMatA,
-			VariableSubMatrixHandler& WorkMatB,
-			const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr);
-
 	/* assemblaggio residuo */
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
-			doublereal dCoef,
-			const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr);
+		doublereal dCoef,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
 
 	/* Inverse Dynamics residual assembly */
 	SubVectorHandler&
@@ -536,7 +518,7 @@ public:
 	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
 	virtual VariableSubMatrixHandler&
 	InitialAssJac(VariableSubMatrixHandler& WorkMat,
-			const VectorHandler& XCurr);
+		const VectorHandler& XCurr);
 
 	/* Contributo al residuo durante l'assemblaggio iniziale */
 	virtual SubVectorHandler&
@@ -544,8 +526,8 @@ public:
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
 	virtual void SetValue(DataManager *pDM,
-			VectorHandler& X, VectorHandler& XP,
-			SimulationEntity::Hints *ph = 0)
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0)
 	{
 		DeformableDispJoint::SetValue(pDM, X, XP, ph);
 	};

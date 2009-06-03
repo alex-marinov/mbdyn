@@ -1800,17 +1800,11 @@ ReadJoint(DataManager* pDM,
 				break;
 
 			case INVARIANTDEFORMABLEJOINT:
-				silent_cerr("\"invariant deformable joint\" "
-					"at line " << HP.GetLineData()
-					<< " not implemented yet" << std::endl);
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-#if 0
 				SAFENEWWITHCONSTRUCTOR(pEl,
 					ElasticJointInv,
 					ElasticJointInv(uLabel, pDO, pCL,
 						pNode1, pNode2,
 						f1, f2, R1, R2, od, fOut));
-#endif
 				break;
 
 			default:
@@ -1833,6 +1827,7 @@ ReadJoint(DataManager* pDM,
 
 			case INVARIANTDEFORMABLEJOINT:
 				silent_cerr("\"invariant deformable joint\" "
+					"with support for viscous constitutive law "
 					"at line " << HP.GetLineData()
 					<< " not implemented yet" << std::endl);
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1865,6 +1860,7 @@ ReadJoint(DataManager* pDM,
 
 			case INVARIANTDEFORMABLEJOINT:
 				silent_cerr("\"invariant deformable joint\" "
+					"with support for viscoelastic constitutive law "
 					"at line " << HP.GetLineData()
 					<< " not implemented yet" << std::endl);
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);

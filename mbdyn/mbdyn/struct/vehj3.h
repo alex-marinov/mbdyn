@@ -82,7 +82,14 @@ protected:
 		FullSubMatrixHandler& WMB,
 		doublereal dCoef, const Mat6x6& FDEPrime);
 
-	virtual void AssVec(SubVectorHandler& WorkVec) = 0;
+	virtual void
+	AssMats(FullSubMatrixHandler& WMA,
+		FullSubMatrixHandler& WMB,
+		doublereal dCoef) = 0;
+
+	virtual void
+	AssVec(SubVectorHandler& WorkVec) = 0;
+
 public:
 	/* Costruttore non banale */
 	DeformableJoint(unsigned int uL,
@@ -153,6 +160,20 @@ public:
 	};
 	/* ************************************************ */
 
+	/* assemblaggio jacobiano */
+	virtual VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		doublereal dCoef,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+
+	/* assemblaggio jacobiano */
+	virtual void
+	AssMats(VariableSubMatrixHandler& WorkMatA,
+		VariableSubMatrixHandler& WorkMatB,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+
 	/* assemblaggio residuo */
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
@@ -184,7 +205,9 @@ protected:
 
 	Mat6x6 FDE;
 
-	void AssMat(FullSubMatrixHandler& WM, doublereal dCoef);
+	void AssMats(FullSubMatrixHandler& WMA,
+		FullSubMatrixHandler& WMB,
+		doublereal dCoef);
 	void AssVec(SubVectorHandler& WorkVec);
 
 public:
@@ -211,13 +234,6 @@ public:
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 
 	/* assemblaggio jacobiano */
-	virtual VariableSubMatrixHandler&
-	AssJac(VariableSubMatrixHandler& WorkMat,
-		doublereal dCoef,
-		const VectorHandler& XCurr,
-		const VectorHandler& XPrimeCurr);
-
-	/* assemblaggio jacobiano */
 	virtual void
 	AssMats(VariableSubMatrixHandler& WorkMatA,
 		VariableSubMatrixHandler& WorkMatB,
@@ -236,12 +252,12 @@ public:
 	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
 	virtual VariableSubMatrixHandler&
 	InitialAssJac(VariableSubMatrixHandler& WorkMat,
-			const VectorHandler& XCurr);
+		const VectorHandler& XCurr);
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
 	virtual void SetValue(DataManager *pDM,
-			VectorHandler& X, VectorHandler& XP,
-			SimulationEntity::Hints *ph = 0)
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0)
 	{
 		DeformableJoint::SetValue(pDM, X, XP, ph);
 	};
@@ -267,7 +283,96 @@ public:
 		return dGetPrivData(i);
 	};
 #endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
+};
 
+/* ElasticJoint - end */
+
+/* ElasticJointInv - begin */
+
+class ElasticJointInv : virtual public Elem, public DeformableJoint {
+protected:
+	Vec3 ThetaRef;
+
+	Mat6x6 FDE;
+
+	void AssMats(FullSubMatrixHandler& WMA,
+		FullSubMatrixHandler& WMB,
+		doublereal dCoef);
+	void AssVec(SubVectorHandler& WorkVec);
+
+public:
+	ElasticJointInv(unsigned int uL,
+		const DofOwner* pDO,
+		const ConstitutiveLaw6D* pCL,
+		const StructNode* pN1,
+		const StructNode* pN2,
+		const Vec3& tilde_f1,
+		const Vec3& tilde_f2,
+		const Mat3x3& tilde_R1h,
+		const Mat3x3& tilde_R2h,
+		const OrientationDescription& od,
+		flag fOut);
+
+	~ElasticJointInv(void);
+
+	/* Tipo di DeformableDispHinge */
+	virtual ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::ELASTIC;
+	};
+
+	virtual void
+	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
+
+	/* assemblaggio jacobiano */
+	virtual void
+	AssMats(VariableSubMatrixHandler& WorkMatA,
+		VariableSubMatrixHandler& WorkMatB,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+
+	/* Aggiorna le deformazioni ecc. */
+	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+
+	virtual void
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+		*piNumRows = 12;
+		*piNumCols = 12;
+	};
+
+	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+	virtual VariableSubMatrixHandler&
+	InitialAssJac(VariableSubMatrixHandler& WorkMat,
+		const VectorHandler& XCurr);
+
+#ifdef MBDYN_X_WORKAROUND_GCC_3_2
+	virtual void SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0)
+	{
+		DeformableJoint::SetValue(pDM, X, XP, ph);
+	};
+
+	virtual Hint *
+	ParseHint(DataManager *pDM, const char *s) const
+	{
+		return DeformableJoint::ParseHint(pDM, s);
+	};
+
+	virtual unsigned int
+	iGetNumPrivData(void) const {
+		return DeformableJoint::iGetNumPrivData();
+	};
+
+	virtual unsigned int
+	iGetPrivDataIdx(const char *s) const {
+		return DeformableJoint::iGetPrivDataIdx(s);
+	};
+
+	virtual doublereal
+	dGetPrivData(unsigned int i) const {
+		return dGetPrivData(i);
+	};
+#endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
 };
 
 /* ElasticJoint - end */
@@ -309,20 +414,6 @@ public:
 	/* Aggiorna le deformazioni ecc. */
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
-	/* assemblaggio jacobiano */
-	virtual VariableSubMatrixHandler&
-	AssJac(VariableSubMatrixHandler& WorkMat,
-			doublereal dCoef,
-			const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr);
-
-	/* assemblaggio jacobiano */
-	virtual void
-	AssMats(VariableSubMatrixHandler& WorkMatA,
-			VariableSubMatrixHandler& WorkMatB,
-			const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr);
-
 	/* Aggiorna le deformazioni ecc. */
 	virtual void
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
@@ -333,12 +424,12 @@ public:
 	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
 	virtual VariableSubMatrixHandler&
 	InitialAssJac(VariableSubMatrixHandler& WorkMat,
-			const VectorHandler& XCurr);
+		const VectorHandler& XCurr);
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
 	virtual void SetValue(DataManager *pDM,
-			VectorHandler& X, VectorHandler& XP,
-			SimulationEntity::Hints *ph = 0)
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0)
 	{
 		DeformableJoint::SetValue(pDM, X, XP, ph);
 	};
@@ -380,8 +471,8 @@ protected:
 	Mat6x6 FDEPrime;
 
 	void AssMats(FullSubMatrixHandler& WorkMatA,
-			FullSubMatrixHandler& WorkMatB,
-			doublereal dCoef);
+		FullSubMatrixHandler& WorkMatB,
+		doublereal dCoef);
 	void AssVec(SubVectorHandler& WorkVec);
 
 public:
@@ -410,20 +501,6 @@ public:
 	/* Aggiorna le deformazioni ecc. */
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 
-	/* assemblaggio jacobiano */
-	virtual VariableSubMatrixHandler&
-	AssJac(VariableSubMatrixHandler& WorkMat,
-			doublereal dCoef,
-			const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr);
-
-	/* assemblaggio jacobiano */
-	virtual void
-	AssMats(VariableSubMatrixHandler& WorkMatA,
-			VariableSubMatrixHandler& WorkMatB,
-			const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr);
-
 	/* Aggiorna le deformazioni ecc. */
 	virtual void
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
@@ -434,12 +511,12 @@ public:
 	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
 	virtual VariableSubMatrixHandler&
 	InitialAssJac(VariableSubMatrixHandler& WorkMat,
-			const VectorHandler& XCurr);
+		const VectorHandler& XCurr);
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
 	virtual void SetValue(DataManager *pDM,
-			VectorHandler& X, VectorHandler& XP,
-			SimulationEntity::Hints *ph = 0)
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0)
 	{
 		DeformableJoint::SetValue(pDM, X, XP, ph);
 	};
