@@ -586,9 +586,12 @@ Mat3x3::Reset(void)
 /* Mat3x3 - end */
 
 /* Manipolatori */
-_MatR_Manip MatR;
-_MatG_Manip MatG;
-_MatGm1_Manip MatGm1;
+namespace CGR_Rot {
+const Param_Manip Param;
+const MatR_Manip MatR;
+const MatG_Manip MatG;
+const MatGm1_Manip MatGm1;
+};
 
 
 Vec3 operator - (const Vec3& v)

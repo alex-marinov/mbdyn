@@ -65,7 +65,38 @@ enum {
 class Vec3;      /* vettore 3x1 */
 class Mat3x3;    /* matrice 3x3 */
 
-class _Mat3x3_Manip;  /* manipolatori per la matrice 3x3 */
+class Mat3x3_Manip;  /* manipolatori per la matrice 3x3 */
+
+/* Vec3_Manip - begin */
+
+class Vec3_Manip {
+ public:
+   /*
+    Operatore deprecato (e' poco efficiente).
+    L'uso e': v = Vec3_Manip << m;
+    dove m e' una Mat3x3, v e' un Vec3 e Vec3_Manip e' un oggetto
+    derivato da questa classe che implementa la trasformazione da
+    vettore a matrice.
+    */
+   virtual Vec3 operator << (const Mat3x3& m) const = 0;
+   
+   /*
+    Metodo che trasforma il vettore v nella matrice m.
+    Viene usato da un costruttore di Mat3x3 che riceve come
+    argomenti un manipolatore e un vettore di parametri di rotazione.
+    
+    NOTE: renamed from Make() to Manipulate() May 2009
+    */
+   virtual void Manipulate(Vec3& v, const Mat3x3& m) const = 0;
+
+   virtual ~Vec3_Manip(void) { 
+      NO_OP;
+   };
+};
+
+/* Vec3_Manip - end */
+
+
 
 
 /* Vec3 - begin */
@@ -74,7 +105,7 @@ class _Mat3x3_Manip;  /* manipolatori per la matrice 3x3 */
 class Vec3 {
    friend class Mat3x3;   
    friend Vec3 operator - (const Vec3& v);
-   friend class _Mat3x3_Manip;
+   // friend class Mat3x3_Manip;
    friend class VecN;
    friend class Mat3xN;
    friend class MatNx3;
@@ -141,6 +172,15 @@ class Vec3 {
       pdVec[V1] = vh.dGetCoef(iFirstIndex);
       pdVec[V2] = vh.dGetCoef(++iFirstIndex);
       pdVec[V3] = vh.dGetCoef(++iFirstIndex);
+   };
+   
+   /*
+    Costruttore con manipolatore. 
+    Invoca un metodo del manipolatore Manip che restituisce una matrice 
+    a partire dal vettore v.
+    */
+   Vec3(const Vec3_Manip& Manip, const Mat3x3& m) {
+      Manip.Manipulate(*this, m);
    };
    
    /*
@@ -458,7 +498,7 @@ class Vec3 {
 /* Vec3 - end */
 
 
-/* _Mat3x3_Manip - begin */
+/* Mat3x3_Manip - begin */
 
 /* classe virtuale dei manipolatori */
 /* 
@@ -466,12 +506,12 @@ class Vec3 {
  Sono usati per ottenere le matrici di rotazione e lel loro derivate
  dai parametri di rotazione
  */
-class _Mat3x3_Manip {
+class Mat3x3_Manip {
  public:
    /*
     Operatore deprecato (e' poco efficiente).
-    L'uso e': m = _Mat3x3_Manip << v;
-    dove m e' una Mat3x3, v e' un Vec3 e _Mat3x3_Manip e' un oggetto
+    L'uso e': m = Mat3x3_Manip << v;
+    dove m e' una Mat3x3, v e' un Vec3 e Mat3x3_Manip e' un oggetto
     derivato da questa classe che implementa la trasformazione da
     vettore a matrice.
     */
@@ -481,15 +521,17 @@ class _Mat3x3_Manip {
     Metodo che trasforma il vettore v nella matrice m.
     Viene usato da un costruttore di Mat3x3 che riceve come
     argomenti un manipolatore e un vettore di parametri di rotazione.
+    
+    NOTE: renamed from Make() to Manipulate() May 2009
     */
-   virtual void Make(Mat3x3& m, const Vec3& v) const = 0;
+   virtual void Manipulate(Mat3x3& m, const Vec3& v) const = 0;
 
-   virtual ~_Mat3x3_Manip(void) { 
+   virtual ~Mat3x3_Manip(void) { 
       NO_OP;
    };
 };
 
-/* _Mat3x3_Manip - end */
+/* Mat3x3_Manip - end */
 
 
 /* Mat3x3 - begin */
@@ -497,7 +539,7 @@ class _Mat3x3_Manip {
 class Mat3x3 {
    friend class Vec3;
    friend class SparseSubMatrixHandler;
-   friend class _Mat3x3_Manip;   
+   friend class Mat3x3_Manip;   
    friend class Mat3xN;
    friend class MatNx3;
    
@@ -631,8 +673,8 @@ class Mat3x3 {
     Invoca un metodo del manipolatore Manip che restituisce una matrice 
     a partire dal vettore v.
     */
-   Mat3x3(const _Mat3x3_Manip& Manip, const Vec3& v) {
-      Manip.Make(*this, v);
+   Mat3x3(const Mat3x3_Manip& Manip, const Vec3& v) {
+      Manip.Manipulate(*this, v);
    };
    
    
@@ -1404,25 +1446,61 @@ extern Vec3 Unwrap(const Vec3& vPrev, const Vec3& v);
  */
 extern Mat3x3 EulerAngles2MatR(const Vec3& v);
 
+/*
+ * Cayley-Gibbs-Rodrigues rotation manipulation namespace
+ */
+namespace CGR_Rot {
 
-/* _MatR_Manip - begin */
+class Param_Manip : public Vec3_Manip {
+public:
+	inline Vec3 operator << (const Mat3x3& m) const {
+		// FIXME: orthogonality test?
+
+		// singularity test
+		doublereal d = 1. + m.Trace();
+   
+		if (fabs(d) < std::numeric_limits<doublereal>::epsilon()) {
+			silent_cerr("Param_Manip(): divide by zero, "
+			"probably due to singularity in rotation parameters" << std::endl);
+			throw ErrDivideByZero(MBDYN_EXCEPT_ARGS);
+		}
+   
+		return m.Ax()*(4./d);
+  	};
+
+	inline void Manipulate(Vec3& v, const Mat3x3& m) const {
+		// singularity test
+		doublereal d = 1. + m.Trace();
+   
+		if (fabs(d) < std::numeric_limits<doublereal>::epsilon()) {
+			silent_cerr("Param_Manip(): divide by zero, "
+			"probably due to singularity in rotation parameters" << std::endl);
+			throw ErrDivideByZero(MBDYN_EXCEPT_ARGS);
+		}
+   
+		v = m.Ax()*(4./d);
+	};
+};
+
+/* MatR_Manip - begin */
 
 // Manipolatore per matrice R con parametri di Rodrigues.
-class _MatR_Manip : public _Mat3x3_Manip {   
+class MatR_Manip : public Mat3x3_Manip {   
  public:
    /*
     Operatore deprecato (e' poco efficiente).
     */
    inline Mat3x3 operator << (const Vec3& g) const {
-      doublereal d = (4./(4.+g.Dot()));
-      return Eye3+Mat3x3(g*d)+Mat3x3(g, g*(d/2.));
+      doublereal d = (4./(4. + g.Dot()));
+      Mat3x3 m(1., g*d);
+      return m += Mat3x3(g, g*(d/2.));
    };
    
    /*
     Crea in m la matrice R corrispondente ai parametri g.
     */
-   inline void Make(Mat3x3& m, const Vec3& g) const {
-      doublereal d = (4./(4.+g.Dot()));
+   inline void Manipulate(Mat3x3& m, const Vec3& g) const {
+      doublereal d = (4./(4. + g.Dot()));
       
       /*
        m = Eye3;
@@ -1437,13 +1515,13 @@ class _MatR_Manip : public _Mat3x3_Manip {
    };
 };
 
-/* _MatR_Manip - end */
+/* MatR_Manip - end */
 
 
-/* _MatG_Manip - begin */
+/* MatG_Manip - begin */
 
 // Manipolatore per matrice G con parametri di Rodrigues.
-class _MatG_Manip : public _Mat3x3_Manip {
+class MatG_Manip : public Mat3x3_Manip {
  public:
    /*
     Operatore deprecato (e' poco efficiente).
@@ -1456,19 +1534,19 @@ class _MatG_Manip : public _Mat3x3_Manip {
    /*
     Crea in m la matrice G corrispondente ai parametri g.
     */
-   inline void Make(Mat3x3& m, const Vec3& g) const {
+   inline void Manipulate(Mat3x3& m, const Vec3& g) const {
       doublereal d = (4./(4.+g.Dot()));
       m = Mat3x3(d, g*(d/2.));
    };
 };
 
-/* _MatG_Manip - end */
+/* MatG_Manip - end */
 
 
-/* _MatGm1_Manip - begin */
+/* MatGm1_Manip - begin */
 
 // Manipolatore per inversa della matrice G con parametri di Rodrigues */
-class _MatGm1_Manip : public _Mat3x3_Manip {
+class MatGm1_Manip : public Mat3x3_Manip {
  public:
    /*
     Operatore deprecato (e' poco efficiente).
@@ -1480,29 +1558,36 @@ class _MatGm1_Manip : public _Mat3x3_Manip {
    /*
     Crea in m l'inversa della matrice G corrispondente ai parametri g.
     */
-   inline void Make(Mat3x3& m, const Vec3& g) const {
+   inline void Manipulate(Mat3x3& m, const Vec3& g) const {
       m = Mat3x3(1., g/(-2.));
       m += g.Tens()/4.;
    };
 };
 
-/* _MatGm1_Manip - end */
+/* MatGm1_Manip - end */
 
+
+/*
+ Manipolatore per parametri di Cayley-Gibbs-Rodrigues
+ */
+extern const Param_Manip Param;
 
 /*
  Manipolatore per matrice R 
  */
-extern _MatR_Manip MatR;
+extern const MatR_Manip MatR;
 
 /*
  Manipolatore per matrice G
  */
-extern _MatG_Manip MatG;
+extern const MatG_Manip MatG;
 
 /*
  Manipolatore per inversa della matrice G 
  */
-extern _MatGm1_Manip MatGm1;
+extern const MatGm1_Manip MatGm1;
+
+} // end of namespace CGR_Rot
 
 /* test */
 template <class T>
