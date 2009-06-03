@@ -96,8 +96,8 @@ protected:
 
 	int StorageSize(void) const;
 
-	int GetForcesJacForwardDiff_int(int i, doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA);
-	int GetForcesJacCenteredDiff_int(int i, doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA);
+	int GetForcesJacForwardDiff_int(int i, const doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA);
+	int GetForcesJacCenteredDiff_int(int i, const doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA);
 
 public:
    	AeroData(UnsteadyModel u = STEADY, DriveCaller *pt = NULL);
@@ -115,9 +115,9 @@ public:
 			    const doublereal& omega = 0.);
 
    	virtual int
-	GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA) = 0;
+	GetForces(int i, const doublereal* W, doublereal* TNG, doublereal* OUTA) = 0;
    	virtual int
-	GetForcesJac(int i, doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA) = 0;
+	GetForcesJac(int i, const doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA) = 0;
 	inline AeroData::UnsteadyModel Unsteady(void) const;
 };
 
@@ -143,8 +143,8 @@ public:
 	virtual ~STAHRAeroData(void);
 
 	std::ostream& Restart(std::ostream& out) const;
-   	int GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA);
-   	int GetForcesJac(int i, doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA);
+   	int GetForces(int i, const doublereal* W, doublereal* TNG, doublereal* OUTA);
+   	int GetForcesJac(int i, const doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA);
 };
 
 /* STAHRAeroData - end */
@@ -162,8 +162,8 @@ public:
 			DriveCaller *ptime = NULL);
 
 	std::ostream& Restart(std::ostream& out) const;
-   	int GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA);
-   	int GetForcesJac(int i, doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA);
+   	int GetForces(int i, const doublereal* W, doublereal* TNG, doublereal* OUTA);
+   	int GetForcesJac(int i, const doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA);
 };
 
 /* C81AeroData - end */
@@ -197,8 +197,8 @@ public:
 			    const doublereal& twist,
 			    const doublereal& omega = 0.);
 
-   	int GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA);
-   	int GetForcesJac(int i, doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA);
+   	int GetForces(int i, const doublereal* W, doublereal* TNG, doublereal* OUTA);
+   	int GetForcesJac(int i, const doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA);
 };
 
 /* C81MultipleAeroData - end */
@@ -237,8 +237,8 @@ public:
 			    const doublereal& twist,
 			    const doublereal& omega = 0.);
 
-   	int GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA);
-   	int GetForcesJac(int i, doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA);
+   	int GetForces(int i, const doublereal* W, doublereal* TNG, doublereal* OUTA);
+   	int GetForcesJac(int i, const doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA);
 };
 
 /* C81InterpolatedAeroData - end */

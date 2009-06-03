@@ -235,7 +235,7 @@ AeroData::RestartUnsteady(std::ostream& out) const
 }
 
 int
-AeroData::GetForcesJacForwardDiff_int(int i, doublereal* W, doublereal* TNG0, Mat6x6& J, doublereal* OUTA)
+AeroData::GetForcesJacForwardDiff_int(int i, const doublereal* W, doublereal* TNG0, Mat6x6& J, doublereal* OUTA)
 {
 	const doublereal epsilon = 1.e-3;
 	const doublereal nu = 1.e-9;
@@ -250,33 +250,34 @@ AeroData::GetForcesJacForwardDiff_int(int i, doublereal* W, doublereal* TNG0, Ma
 
 	GetForces(i, W, TNG0, OUTA);
 
+	doublereal *WW = const_cast<doublereal *>(W);
 	for (unsigned int iColm1 = 0; iColm1 < 6; iColm1++)	{
 		doublereal dorig;
 		doublereal delta;
 
-		dorig = W[iColm1];
+		dorig = WW[iColm1];
 		if (iColm1 < 3) {
 			delta = dv*epsilon + nu;
 
 		} else {
 			delta = dw*epsilon + nu;
 		}
-		W[iColm1] = dorig + delta;
+		WW[iColm1] = dorig + delta;
 
-		GetForces(i, W, TNG, OUTA);
+		GetForces(i, WW, TNG, OUTA);
 
 		for (unsigned int iRowm1 = 0; iRowm1 < 6; iRowm1++) {
 			J.Put(iRowm1 + 1, iColm1 + 1, (TNG[iRowm1] - TNG0[iRowm1])/delta);
 		}
 
-		W[iColm1] = dorig;
+		WW[iColm1] = dorig;
 	}
 
 	return 0;
 }
 
 int
-AeroData::GetForcesJacCenteredDiff_int(int i, doublereal* W, doublereal* TNG0, Mat6x6& J, doublereal* OUTA)
+AeroData::GetForcesJacCenteredDiff_int(int i, const doublereal* W, doublereal* TNG0, Mat6x6& J, doublereal* OUTA)
 {
 	const doublereal epsilon = 1.e-3;
 	const doublereal nu = 1.e-9;
@@ -292,11 +293,12 @@ AeroData::GetForcesJacCenteredDiff_int(int i, doublereal* W, doublereal* TNG0, M
 
 	GetForces(i, W, TNG0, OUTA);
 
+	doublereal *WW = const_cast<doublereal *>(W);
 	for (unsigned int iColm1 = 0; iColm1 < 6; iColm1++)	{
 		doublereal dorig;
 		doublereal delta;
 
-		dorig = W[iColm1];
+		dorig = WW[iColm1];
 		if (iColm1 < 3) {
 			delta = dv*epsilon + nu;
 
@@ -304,20 +306,20 @@ AeroData::GetForcesJacCenteredDiff_int(int i, doublereal* W, doublereal* TNG0, M
 			delta = dw*epsilon + nu;
 		}
 
-		W[iColm1] = dorig + delta;
+		WW[iColm1] = dorig + delta;
 
-		GetForces(i, W, TNGp, OUTA);
+		GetForces(i, WW, TNGp, OUTA);
 
-		W[iColm1] = dorig - delta;
+		WW[iColm1] = dorig - delta;
 
-		GetForces(i, W, TNGm, OUTA);
+		GetForces(i, WW, TNGm, OUTA);
 
 		doublereal delta2 = 2.*delta;
 		for (unsigned int iRowm1 = 0; iRowm1 < 6; iRowm1++) {
 			J.Put(iRowm1 + 1, iColm1 + 1, (TNGp[iRowm1] - TNGm[iRowm1])/delta2);
 		}
 
-		W[iColm1] = dorig;
+		WW[iColm1] = dorig;
 	}
 
 	return 0;
@@ -355,7 +357,7 @@ STAHRAeroData::Restart(std::ostream& out) const
 }
 
 int
-STAHRAeroData::GetForces(int i, doublereal* W, doublereal* TNG,
+STAHRAeroData::GetForces(int i, const doublereal* W, doublereal* TNG,
 		doublereal* OUTA)
 {
 	switch (unsteadyflag) {
@@ -369,13 +371,13 @@ STAHRAeroData::GetForces(int i, doublereal* W, doublereal* TNG,
 	}
 
 	integer u = unsteadyflag;
-   	__FC_DECL__(aerod2)(W, VAM, TNG, OUTA, &u, &Omega, &profile);
+   	__FC_DECL__(aerod2)(const_cast<doublereal *>(W), VAM, TNG, OUTA, &u, &Omega, &profile);
 
    	return 0;
 }
 
 int
-STAHRAeroData::GetForcesJac(int i, doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA)
+STAHRAeroData::GetForcesJac(int i, const doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA)
 {
 	return AeroData::GetForcesJacForwardDiff_int(i, W, TNG, J, OUTA);
 }
@@ -396,7 +398,7 @@ C81AeroData::Restart(std::ostream& out) const
 }
 
 int
-C81AeroData::GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA)
+C81AeroData::GetForces(int i, const doublereal* W, doublereal* TNG, doublereal* OUTA)
 {
 	switch (unsteadyflag) {
 	case AeroData::HARRIS:
@@ -408,11 +410,12 @@ C81AeroData::GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA)
 		break;
 	}
 
-   	return c81_aerod2_u(W, VAM, TNG, OUTA, const_cast<c81_data *>(data), unsteadyflag);
+   	return c81_aerod2_u(const_cast<doublereal *>(W), VAM, TNG, OUTA,
+		const_cast<c81_data *>(data), unsteadyflag);
 }
 
 int
-C81AeroData::GetForcesJac(int i, doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA)
+C81AeroData::GetForcesJac(int i, const doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA)
 {
 	return AeroData::GetForcesJacForwardDiff_int(i, W, TNG, J, OUTA);
 }
@@ -478,7 +481,7 @@ C81MultipleAeroData::SetSectionData(
 }
 
 int
-C81MultipleAeroData::GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA)
+C81MultipleAeroData::GetForces(int i, const doublereal* W, doublereal* TNG, doublereal* OUTA)
 {
 	switch (unsteadyflag) {
 	case AeroData::HARRIS:
@@ -490,12 +493,12 @@ C81MultipleAeroData::GetForces(int i, doublereal* W, doublereal* TNG, doublereal
 		break;
 	}
 
-   	return c81_aerod2_u(W, VAM, TNG, OUTA, const_cast<c81_data *>(data[curr_data]),
-			unsteadyflag);
+   	return c81_aerod2_u(const_cast<doublereal *>(W), VAM, TNG, OUTA,
+		const_cast<c81_data *>(data[curr_data]), unsteadyflag);
 }
 
 int
-C81MultipleAeroData::GetForcesJac(int i, doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA)
+C81MultipleAeroData::GetForcesJac(int i, const doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA)
 {
 	return AeroData::GetForcesJacForwardDiff_int(i, W, TNG, J, OUTA);
 }
@@ -664,7 +667,7 @@ C81InterpolatedAeroData::SetSectionData(
 }
 
 int
-C81InterpolatedAeroData::GetForces(int i, doublereal* W, doublereal* TNG, doublereal* OUTA)
+C81InterpolatedAeroData::GetForces(int i, const doublereal* W, doublereal* TNG, doublereal* OUTA)
 {
 	switch (unsteadyflag) {
 	case AeroData::HARRIS:
@@ -677,12 +680,12 @@ C81InterpolatedAeroData::GetForces(int i, doublereal* W, doublereal* TNG, double
 		break;
 	}
 
-   	return c81_aerod2_u(W, VAM, TNG, OUTA, const_cast<c81_data *>(data[curr_data]),
-			unsteadyflag);
+   	return c81_aerod2_u(const_cast<doublereal *>(W), VAM, TNG, OUTA,
+		const_cast<c81_data *>(data[curr_data]), unsteadyflag);
 }
 
 int
-C81InterpolateAeroData::GetForcesJac(int i, doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA)
+C81InterpolateAeroData::GetForcesJac(int i, const doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA)
 {
 	return AeroData::GetForcesJacForwardDiff_int(i, W, TNG, J, OUTA);
 }

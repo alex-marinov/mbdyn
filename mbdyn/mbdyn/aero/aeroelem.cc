@@ -260,8 +260,7 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.PutColIndex(iCnt, iNodeFirstPosIndex + iCnt);
 	}
 
-
-	/* Equations starts here... */
+	/* Equations start here... */
 	doublereal dW[6];
 
 	/* Dati del nodo */
