@@ -55,6 +55,8 @@ public:
 	void Set(doublereal xx, integer i);
 	void SetIdx(integer i, integer iidx);
 	void Set(doublereal xx, integer i, integer iidx);
+	doublereal& operator ()(integer i);
+	const doublereal& operator ()(integer i) const;
 	void Add(doublereal xx, integer i);
 	void Sub(doublereal xx, integer i);
 	void Add(SubVectorHandler& WorkVec, const doublereal c = 1.) const;
