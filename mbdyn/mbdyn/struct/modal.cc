@@ -1268,7 +1268,8 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 	
 		/* equazioni per abbassare di grado il sistema */
 		WorkVec.Add(1, v - xP);
-		WorkVec.Add(3 + 1, w - Mat3x3(MatG, g)*gP - Mat3x3(MatR, g)*wr);
+		WorkVec.Add(3 + 1, w - Mat3x3(CGR_Rot::MatG, g)*gP
+			- Mat3x3(CGR_Rot::MatR, g)*wr);
 	}
 
 	/* forze modali */

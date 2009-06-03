@@ -263,16 +263,16 @@ Beam2::Omega0(void)
 	 * Calcolo i parametri di rotazione della rotazione relativa
 	 * tra inizio e fine e li dimezzo nell'ipotesi che siano limitati
 	 */
-	Vec3 gTmp(MatR2gparam(RNod[NODE2].MulTM(RNod[NODE1])));
+	Vec3 gTmp(CGR_Rot::Param, RNod[NODE2].MulTM(RNod[NODE1]));
 	
 	/*
 	 * Le derivate dei parametri di rotazione si ricavano da omega
 	 */
-	Vec3 g1P(Mat3x3(MatGm1, gTmp*(-.5))*w[NODE1]);
-	Vec3 g2P(Mat3x3(MatGm1, gTmp*.5)*w[NODE2]);
+	Vec3 g1P(Mat3x3(CGR_Rot::MatGm1, gTmp*(-.5))*w[NODE1]);
+	Vec3 g2P(Mat3x3(CGR_Rot::MatGm1, gTmp*.5)*w[NODE2]);
 
         Vec3 gPTmp(g1P*dN2[NODE1]+g2P*dN2[NODE2]);
-        Omega = Mat3x3(MatG, gTmp)*gPTmp;
+        Omega = Mat3x3(CGR_Rot::MatG, gTmp)*gPTmp;
 	
 #if 0
 	/* Modo brutale: interpolo le velocita' dei nodi */
@@ -437,7 +437,7 @@ Beam2::AssStiffnessVec(SubVectorHandler& WorkVec,
 		
 		/* Matrici di rotazione */
 		g = InterpState(gNod[NODE1], gNod[NODE2]);
-		RDelta = Mat3x3(MatR, g);
+		RDelta = Mat3x3(CGR_Rot::MatR, g);
 		R = RDelta*RRef;
 		
 		/* Derivate della posizione */
@@ -451,7 +451,7 @@ Beam2::AssStiffnessVec(SubVectorHandler& WorkVec,
 		 * nei punti di valutazione
 		 */
 		DefLoc = Vec6(R.MulTV(L) - L0,
-			R.MulTV(Mat3x3(MatG, g)*gGrad) + DefLocRef.GetVec2());
+			R.MulTV(Mat3x3(CGR_Rot::MatG, g)*gGrad) + DefLocRef.GetVec2());
 		
 		/* Calcola le azioni interne */
 		pD->Update(DefLoc);
@@ -579,7 +579,7 @@ Beam2::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ )
 	
 	/* Matrici di rotazione */
 	g = InterpState(gNod[NODE1], gNod[NODE2]);
-	RDelta = Mat3x3(MatR, g);
+	RDelta = Mat3x3(CGR_Rot::MatR, g);
 	R = RRef = RDelta*RPrev;
 	
 	/* Derivate della posizione */
@@ -593,7 +593,7 @@ Beam2::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ )
 	 * nei punti di valutazione
 	 */
 	DefLoc = DefLocRef = Vec6(R.MulTV(L) - L0,
-		R.MulTV(Mat3x3(MatG, g)*gGrad) + DefLocPrev.GetVec2());
+		R.MulTV(Mat3x3(CGR_Rot::MatG, g)*gGrad) + DefLocPrev.GetVec2());
 	
 	/* Calcola le azioni interne */
 	pD->Update(DefLoc);
@@ -1067,12 +1067,12 @@ ViscoElasticBeam2::AssStiffnessVec(SubVectorHandler& WorkVec,
 		
 		/* Matrici di rotazione */
 		g = InterpState(gNod[NODE1], gNod[NODE2]);
-		RDelta = Mat3x3(MatR, g);
+		RDelta = Mat3x3(CGR_Rot::MatR, g);
 		R = RDelta*RRef;
 		
 		/* Velocita' angolare della sezione */	 
 		gPrime = InterpState(gPrimeNod[NODE1], gPrimeNod[NODE2]);
-		Omega = Mat3x3(MatG, g)*gPrime + RDelta*OmegaRef;
+		Omega = Mat3x3(CGR_Rot::MatG, g)*gPrime + RDelta*OmegaRef;
 		
 		/* Derivate della posizione */
 		L = InterpDeriv(xTmp[NODE1], xTmp[NODE2]);
@@ -1093,15 +1093,15 @@ ViscoElasticBeam2::AssStiffnessVec(SubVectorHandler& WorkVec,
 		 * di valutazione
 		 */
 		DefLoc = Vec6(R.MulTV(L) - L0,
-			R.MulTV(Mat3x3(MatG, g)*gGrad) + DefLocRef.GetVec2());
+			R.MulTV(Mat3x3(CGR_Rot::MatG, g)*gGrad) + DefLocRef.GetVec2());
 		
 		/*
 		 * Calcola le velocita' di deformazione nel sistema locale
 		 * nel punto di valutazione
 		 */
 		DefPrimeLoc = Vec6(R.MulTV(LPrime + L.Cross(Omega)),
-			R.MulTV(Mat3x3(MatG, g)*gPrimeGrad
-			+ (Mat3x3(MatG, g)*gGrad).Cross(Omega))
+			R.MulTV(Mat3x3(CGR_Rot::MatG, g)*gPrimeGrad
+			+ (Mat3x3(CGR_Rot::MatG, g)*gGrad).Cross(Omega))
 			+ DefPrimeLocRef.GetVec2());
 		
 		/* Calcola le azioni interne */
@@ -1181,12 +1181,12 @@ ViscoElasticBeam2::AfterPredict(VectorHandler& /* X */ ,
 	
 	/* Matrici di rotazione */
 	g = InterpState(gNod[NODE1], gNod[NODE2]);
-	RDelta = Mat3x3(MatR, g);
+	RDelta = Mat3x3(CGR_Rot::MatR, g);
 	R = RRef = RDelta*RPrev;
 	
 	/* Velocita' angolare della sezione */	 
 	gPrime = InterpState(gPrimeNod[NODE1], gPrimeNod[NODE2]);
-	Omega = OmegaRef = Mat3x3(MatG, g)*gPrime;
+	Omega = OmegaRef = Mat3x3(CGR_Rot::MatG, g)*gPrime;
 	
 	/* Derivate della posizione */
 	L = LRef = InterpDeriv(xTmp[NODE1], xTmp[NODE2]);
@@ -1204,15 +1204,15 @@ ViscoElasticBeam2::AfterPredict(VectorHandler& /* X */ ,
 	 * Calcola le deformazioni nel sistema locale nel punto di valutazione
 	 */
 	DefLoc = DefLocRef = Vec6(R.MulTV(L) - L0,
-		R.MulTV(Mat3x3(MatG, g)*gGrad) + DefLocPrev.GetVec2());
+		R.MulTV(Mat3x3(CGR_Rot::MatG, g)*gGrad) + DefLocPrev.GetVec2());
 	
 	/*
 	 * Calcola le velocita' di deformazione nel sistema locale
 	 * nel punto di valutazione
 	 */
 	DefPrimeLoc = DefPrimeLocRef = Vec6(R.MulTV(LPrime + L.Cross(Omega)),
-		R.MulTV(Mat3x3(MatG, g)*gPrimeGrad
-		+ (Mat3x3(MatG, g)*gGrad).Cross(Omega)));
+		R.MulTV(Mat3x3(CGR_Rot::MatG, g)*gPrimeGrad
+		+ (Mat3x3(CGR_Rot::MatG, g)*gGrad).Cross(Omega)));
 	
 	/* Calcola le azioni interne */
 	pD->Update(DefLoc, DefPrimeLoc);
@@ -1388,8 +1388,8 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	/* Se necessario, interpola i parametri di rotazione delle sezioni */
 	if (f) {
 		Mat3x3 RR2 = R2*Rn2;
-		Vec3 g(MatR2gparam(RR2.MulTM(R1*Rn1))*.5);
-		R = RR2*Mat3x3(MatR, g);
+		Vec3 g(Vec3(CGR_Rot::Param, RR2.MulTM(R1*Rn1))/2);
+		R = RR2*Mat3x3(CGR_Rot::MatR, g);
 	}
 	
 	std::ostream& out = pDM->GetLogFile();

@@ -1798,7 +1798,7 @@ ClampJoint::InitialAssRes(SubVectorHandler& WorkVec,
    /* Parametri di rotazione; 
     * si sfrutta il fatto che g(R_Delta^T) = -g(R_Delta) */
    Mat3x3 R(pNode->GetRCurr());
-   WorkVec.Put(16, MatR2gparam(RClamp*R.Transpose()));
+   WorkVec.Put(16, Vec3(CGR_Rot::Param, RClamp.MulMT(R)));
    
    /* Velocita' */
    WorkVec.Put(19, -pNode->GetVCurr());

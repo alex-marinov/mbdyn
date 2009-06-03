@@ -983,7 +983,7 @@ DataManager::InitialJointAssembly(void)
 			/* Rotazione: k*Delta_g = -k*g(R_Delta) + M */
 			Mat3x3 R0 = (*ppTmpNode)->GetRPrev();
 			Mat3x3 RDelta = (*ppTmpNode)->GetRCurr()*R0.Transpose();
-			TmpVec = -MatR2gparam(RDelta);
+			TmpVec = -Vec3(CGR_Rot::Param, RDelta);
 			pResHdl->Add(iFirstIndex+4, TmpVec*dPosStiff);
 
 			/* Velocita': k*Delta_v = k*(v0-Delta_v) + F */

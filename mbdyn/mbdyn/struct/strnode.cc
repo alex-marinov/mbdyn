@@ -805,8 +805,8 @@ StructNode::Output( OutputHandler& OH,
 	if (fToBeOutput()) {
 		integer iFirstIndex = iGetFirstIndex();
 		Vec3 DX(X, iFirstIndex + 1);
-		Vec3 Dg(X, iFirstIndex+4);
-		Mat3x3 DR(MatR, Dg);
+		Vec3 Dg(X, iFirstIndex + 4);
+		Mat3x3 DR(CGR_Rot::MatR, Dg);
 
 		OH.StrNodes() << std::setw(8) << GetLabel()
 			<< " " << (XCurr + DX)
@@ -1023,7 +1023,7 @@ StructNode::Update(const VectorHandler& X, const VectorHandler& XP)
 
 	/* Matrice RDelta, incremento di rotazione da predetto a corrente;
 	 * Questo e' piu' efficiente */
-	Mat3x3 RDelta(MatR, gCurr);
+	Mat3x3 RDelta(CGR_Rot::MatR, gCurr);
 
 #if 0
 	/* Questo e' meno efficiente anche se sembra piu' elegante.
@@ -1039,11 +1039,11 @@ StructNode::Update(const VectorHandler& X, const VectorHandler& XP)
 	 * la velocita' angolare e' data dalla parte incrementale totale
 	 * piu' il contributo della velocita' di riferimento (costante) */
 	RCurr = RDelta*RRef;
-	WCurr = Mat3x3(MatG, gCurr)*gPCurr + RDelta*WRef;
+	WCurr = Mat3x3(CGR_Rot::MatG, gCurr)*gPCurr + RDelta*WRef;
 
 #if 0
 	/* Nuovo manipolatore (forse e' meno efficiente) */
-	WCurr = (MatG << gCurr)*gPCurr+RDelta*WRef;
+	WCurr = (CGR_Rot::MatG << gCurr)*gPCurr+RDelta*WRef;
 #endif
 }
 
@@ -1076,10 +1076,10 @@ StructNode::InitialUpdate(const VectorHandler& X)
 
 #if 1
 	/* Questo manipolatore e' piu' efficiente */
-	Mat3x3 RDelta(MatR, gCurr);
+	Mat3x3 RDelta(CGR_Rot::MatR, gCurr);
 #else
 	/* Nuovo manipolatore (e' meno efficiente) */
-	Mat3x3 RDelta(MatR << gCurr);
+	Mat3x3 RDelta(CGR_Rot::MatR << gCurr);
 #endif
 
 	RCurr = RDelta*RRef;
@@ -1096,7 +1096,7 @@ StructNode::Update(const VectorHandler& X, int iOrder)
 		case 0: {
 			XCurr = Vec3(X, iFirstIndex + 1);
 			gCurr = Vec3(X, iFirstIndex + 4);
-			Mat3x3 RDelta(MatR, gCurr);
+			Mat3x3 RDelta(CGR_Rot::MatR, gCurr);
 			RCurr = RDelta*RRef;
 		} break;
 		
@@ -1104,8 +1104,8 @@ StructNode::Update(const VectorHandler& X, int iOrder)
 			VCurr = Vec3(X, iFirstIndex + 1);
 #if 0
 			gPCurr = Vec3(X, iFirstIndex + 4);
-			Mat3x3 RDelta(MatR, gCurr);
-			WCurr = Mat3x3(MatG, gCurr)*gPCurr + RDelta*WRef;
+			Mat3x3 RDelta(CGR_Rot::MatR, gCurr);
+			WCurr = Mat3x3(CGR_Rot::MatG, gCurr)*gPCurr + RDelta*WRef;
 #endif
 			WCurr = Vec3(X, iFirstIndex + 4);
 		} break;
@@ -1123,7 +1123,7 @@ StructNode::Update(const VectorHandler& X, int iOrder)
 	 * elegante bisogna aggiungere alla matrice le informazioni
 	 * di memorizzazione della funzione di manipolazione.
 	 * Oppure occorre un operatore ternario */
-	RDelta = MatR << gCurr;
+	RDelta = CGR_Rot::MatR << gCurr;
 #endif
 }
 
@@ -1247,14 +1247,14 @@ StructNode::BeforePredict(VectorHandler& X,
 	/* Calcolo g al passo precedente attraverso la matrice RDelta riferita
 	 * a tutto il passo. Siccome RDelta e' calcolata all'indietro,
 	 * i parametri sono gia' con il segno corretto */
-	Vec3 gPrev = MatR2gparam(RDelta);
+	Vec3 gPrev(CGR_Rot::Param, RDelta);
 	XPr.Put(iFirstPos + 4, gPrev);
 
 	/* Calcolo gP al passo precedente attraverso la definizione
 	 * mediante le Omega. Siccome i parametri sono con il segno meno
 	 * e la matrice RDelta e' gia' calcolata all'indietro, l'insieme
 	 * e' consistente */
-	XPPr.Put(iFirstPos + 4, Mat3x3(MatGm1, gPrev)*WPrev);
+	XPPr.Put(iFirstPos + 4, Mat3x3(CGR_Rot::MatGm1, gPrev)*WPrev);
 
 	/* Metto Omega al passo corrente come gP (perche' G(0) = I) */
 	XP.Put(iFirstPos + 4, WCurr);
@@ -1302,7 +1302,7 @@ StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 	gRef = Vec3(X, iFirstIndex + 4);
 
 	/* Calcolo la matrice RDelta derivante dalla predizione */
-	Mat3x3 RDelta(MatR, gRef);
+	Mat3x3 RDelta(CGR_Rot::MatR, gRef);
 
 	/* Calcolo la R corrente in base alla predizione */
 	RCurr = RDelta*RPrev;
@@ -1311,7 +1311,7 @@ StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 	gPRef = Vec3(XP, iFirstIndex + 4);
 
 	/* Calcolo il nuovo Omega */
-	WCurr = Mat3x3(MatG, gRef)*gPRef;
+	WCurr = Mat3x3(CGR_Rot::MatG, gRef)*gPRef;
 
 	/* Resetto i parametri di rotazione e le derivate, g e gP */
 	X.Put(iFirstIndex + 4, Vec3(0.));
@@ -1346,8 +1346,8 @@ StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 		 * che danno una predizione pari alla variazione
 		 * di R0 piu' l'incremento relativo, e le derivate
 		 * dei parametri corrispondenti */
-		gRef = MatR2gparam(R0*RDelta.MulMT(pRefNode->GetRPrev()));
-		gPRef = Mat3x3(MatGm1, gRef)*WCurr;
+		gRef = Vec3(CGR_Rot::Param, R0*RDelta.MulMT(pRefNode->GetRPrev()));
+		gPRef = Mat3x3(CGR_Rot::MatGm1, gRef)*WCurr;
 
 		/* to be safe, the correct values are put back
 		 * in the state vectors */
