@@ -351,9 +351,14 @@ and thus its perturbation yields a linearized state-space system,
 	+ \tilde{\T{c}}_{a/\tilde{\T{\omega}}} \delta\tilde{\T{\omega}}
 	+ \tilde{\T{c}}_{a/\T{q}} \delta\T{q}
 	\label{eq:aero:states:delta-c}
-	.
+	,
 \end{align}
 \end{subequations}
+where, with respect to $\delta\T{g}$, the terms $\delta\tilde{\T{v}}$
+and $\delta\tilde{\T{\omega}}$ play the role of the input, while $\delta\T{q}$
+plays the role of the state;
+$\delta\tilde{\T{f}}_a$, $\delta\tilde{\T{c}}_a$ play the role of the output.
+
 In those cases, the underlying aerodynamic model has
 to deal with $\T{g}$, Eq.~(\ref{eq:aero:states:g}),
 and its perturbation $\delta\T{g}$, Eq.~(\ref{eq:aero:states:g}).
@@ -368,9 +373,10 @@ and linear and angular velocity that are needed to deal with $\delta\T{g}$,
 Eq.~(\ref{eq:aero:states:g});
 
 \item account for the contribution of the Jacobian matrices
-$\delta\tilde{\T{f}}_{a/\T{q}}$ and $\delta\tilde{\T{f}}_{a/\dot{\T{q}}}$
+$\delta\tilde{\T{f}}_{a/\T{q}}$ and $\delta\tilde{\T{c}}_{a/\T{q}}$
 respectively required by Eqs.~(\ref{eq:aero:states:delta-f})
 and~(\ref{eq:aero:states:delta-c}).
+
 \end{enumerate}
 
 
