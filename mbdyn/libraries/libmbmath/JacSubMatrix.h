@@ -42,21 +42,23 @@ private:
 	std::vector<doublereal> x;
 	std::vector<const ExpandableRowVector*> xm;
 	std::vector<integer> idx;
+
 	ExpandableRowVector & operator = (const ExpandableRowVector &); // not to be implemented
 	ExpandableRowVector (const ExpandableRowVector &); // not to be implemented
+
 public:
-	ExpandableRowVector();
+	ExpandableRowVector(void);
 	ExpandableRowVector(const integer n);
-	virtual ~ExpandableRowVector();
+	virtual ~ExpandableRowVector(void);
 	void ReDim(const integer n);
-	void Zero();
-	void Reset();
+	void Zero(void);
+	void Reset(void);
 	void Link(const integer i, const ExpandableRowVector* const xp);
-	void Set(doublereal xx, integer i);
 	void SetIdx(integer i, integer iidx);
 	void Set(doublereal xx, integer i, integer iidx);
 	doublereal& operator ()(integer i);
 	const doublereal& operator ()(integer i) const;
+	void Set(doublereal xx, integer i);
 	void Add(doublereal xx, integer i);
 	void Sub(doublereal xx, integer i);
 	void Add(SubVectorHandler& WorkVec, const doublereal c = 1.) const;
@@ -64,7 +66,7 @@ public:
 	void Add(FullSubMatrixHandler& WM, const integer eq, const doublereal c = 1.) const;
 	void Sub(FullSubMatrixHandler& WM, const integer eq, const doublereal c = 1.) const;
 	std::ostream & Write(std::ostream &out, 
-		const char *sFill="") const;
+		const char *sFill = "") const;
 };
 
 std::ostream & operator << (std::ostream & s, const ExpandableRowVector & z);

@@ -31,7 +31,7 @@
 /* here goes Morandini's copyright */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include <algorithm>
@@ -39,40 +39,40 @@
 #include "myassert.h"
 #include "JacSubMatrix.h"
 
-ExpandableRowVector::ExpandableRowVector() {};
+ExpandableRowVector::ExpandableRowVector(void) {};
 ExpandableRowVector::ExpandableRowVector(const integer n) {
 	ReDim(n);
 }
-ExpandableRowVector::~ExpandableRowVector() {};
+ExpandableRowVector::~ExpandableRowVector(void) {};
 void ExpandableRowVector::ReDim(const integer n) {
 	//we have to accept = 0, some elements do ReDim(0,0) (PointForceElement))
-	ASSERTMSGBREAK(n>=0,"Error, n shold be >=0 in ExpandableRowVector::ReDim");
+	ASSERTMSGBREAK(n>=0, "ExpandableRowVector:ReDim(), n shold be >= 0");
 	x.resize(n,0.);
 	xm.resize(n,0);
 	idx.resize(n,0); 
 }
-void ExpandableRowVector::Zero() {
+void ExpandableRowVector::Zero(void) {
 	std::fill(x.begin(),x.end(),0.);
 }
-void ExpandableRowVector::Reset() {
+void ExpandableRowVector::Reset(void) {
 	Zero();
 	std::fill(xm.begin(),xm.end(),(ExpandableRowVector*)0);
 	std::fill(idx.begin(),idx.end(),0);		
 }
 void ExpandableRowVector::Link(const integer i, const ExpandableRowVector*const xp) {
-	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::Link underflow");
-	ASSERTMSGBREAK(i <= idx.size(), "ExpandableRowVector::Link overflow");
-	ASSERTMSGBREAK(idx[i-1] == 0, "ExpandableRowVector::Link fatal error");
+	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::Link() underflow");
+	ASSERTMSGBREAK(i <= idx.size(), "ExpandableRowVector::Link() overflow");
+	ASSERTMSGBREAK(idx[i-1] == 0, "ExpandableRowVector::Link() fatal error");
 	xm[i-1] = xp;
 }
 void ExpandableRowVector::Set(doublereal xx, integer i) {
-	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::Set underflow");
-	ASSERTMSGBREAK(i <= x.size(), "ExpandableRowVector::Set overflow");
+	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::Set() underflow");
+	ASSERTMSGBREAK(i <= x.size(), "ExpandableRowVector::Set() overflow");
 	x[i-1] = xx;
 }
 void ExpandableRowVector::SetIdx(integer i, integer iidx) {
-	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::SetIdx underflow");
-	ASSERTMSGBREAK(i <= idx.size(), "ExpandableRowVector::SetIdx overflow");
+	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::SetIdx() underflow");
+	ASSERTMSGBREAK(i <= idx.size(), "ExpandableRowVector::SetIdx() overflow");
 	idx[i-1] = iidx;
 }
 void ExpandableRowVector::Set(doublereal xx, integer i, integer iidx) {
@@ -82,41 +82,51 @@ void ExpandableRowVector::Set(doublereal xx, integer i, integer iidx) {
 doublereal&
 ExpandableRowVector::operator ()(integer i)
 {
-	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::Add underflow");
-	ASSERTMSGBREAK(i <= x.size(), "ExpandableRowVector::Add overflow");
+	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::() underflow");
+	ASSERTMSGBREAK(i <= x.size(), "ExpandableRowVector::() overflow");
 	return x[i-1];
 }
 const doublereal&
 ExpandableRowVector::operator ()(integer i) const
 {
-	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::Add underflow");
-	ASSERTMSGBREAK(i <= x.size(), "ExpandableRowVector::Add overflow");
+	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::() underflow");
+	ASSERTMSGBREAK(i <= x.size(), "ExpandableRowVector::() overflow");
 	return x[i-1];
 }
 void ExpandableRowVector::Add(doublereal xx, integer i) {
-	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::Add underflow");
-	ASSERTMSGBREAK(i <= x.size(), "ExpandableRowVector::Add overflow");
+	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::Add() underflow");
+	ASSERTMSGBREAK(i <= x.size(), "ExpandableRowVector::Add() overflow");
 	x[i-1] += xx;
 }
 void ExpandableRowVector::Sub(doublereal xx, integer i) {
-	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::Sub underflow");
-	ASSERTMSGBREAK(i <= x.size(), "ExpandableRowVector::Sub overflow");
+	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::Sub() underflow");
+	ASSERTMSGBREAK(i <= x.size(), "ExpandableRowVector::Sub() overflow");
 	x[i-1] -= xx;
 }
 void ExpandableRowVector::Add(SubVectorHandler& WorkVec, const doublereal c) const {
 	for (std::vector<doublereal>::size_type i=0; i<x.size(); i++) {
+		if (x[i] == 0.) {
+			continue;
+		}
+
 		if (idx[i] != 0) {
 			WorkVec.Add(idx[i],c*x[i]);
 		} else {
+			ASSERTMSGBREAK(xm[i] != 0, "ExpandableRowVector::Add() null pointer to ExpandableRowVector");
 			xm[i]->Add(WorkVec,c*x[i]);
 		}
 	}
 }
 void ExpandableRowVector::Sub(SubVectorHandler& WorkVec, const doublereal c) const {
 	for (std::vector<doublereal>::size_type i=0; i<x.size(); i++) {
+		if (x[i] == 0.) {
+			continue;
+		}
+
 		if (idx[i] != 0) {
 			WorkVec.Sub(idx[i],c*x[i]);
 		} else {
+			ASSERTMSGBREAK(xm[i] != 0, "ExpandableRowVector::Sub() null pointer to ExpandableRowVector");
 			xm[i]->Sub(WorkVec,c*x[i]);
 		}
 	}
@@ -125,9 +135,14 @@ void ExpandableRowVector::Add(FullSubMatrixHandler& WM,
 	const integer eq,
 	const doublereal c) const {
 	for (std::vector<doublereal>::size_type i=0; i<x.size(); i++) {
+		if (x[i] == 0.) {
+			continue;
+		}
+
 		if (idx[i] != 0) {
 			WM.IncCoef(eq,idx[i],c*x[i]);
 		} else {
+			ASSERTMSGBREAK(xm[i] != 0, "ExpandableRowVector::Add() null pointer to ExpandableRowVector");
 			xm[i]->Add(WM,eq,c*x[i]);
 		}
 	}
@@ -136,9 +151,14 @@ void ExpandableRowVector::Sub(FullSubMatrixHandler& WM,
 	const integer eq,
 	const doublereal c) const {
 	for (std::vector<doublereal>::size_type i=0; i<x.size(); i++) {
+		if (x[i] == 0.) {
+			continue;
+		}
+
 		if (idx[i] != 0) {
 			WM.DecCoef(eq,idx[i],c*x[i]);
 		} else {
+			ASSERTMSGBREAK(xm[i] != 0, "ExpandableRowVector::Sub() null pointer to ExpandableRowVector");
 			xm[i]->Sub(WM,eq,c*x[i]);
 		}
 	}
