@@ -325,6 +325,33 @@ AeroData::GetForcesJacCenteredDiff_int(int i, const doublereal* W, doublereal* T
 	return 0;
 }
 
+unsigned int
+AeroData::iGetNumDof(void) const
+{
+	return 0;
+}
+
+void
+AeroData::AssRes(SubVectorHandler& WorkVec,
+	doublereal dCoef,
+	const VectorHandler& XCurr, 
+	const VectorHandler& XPrimeCurr,
+	int i, integer iFirstIndex)
+{
+	return;
+}
+
+void
+AeroData::AssJac(FullSubMatrixHandler& WorkMat,
+	doublereal dCoef,
+	const VectorHandler& XCurr, 
+	const VectorHandler& XPrimeCurr,
+	int i, integer iFirstIndex,
+	const ExpandableRowVector& vx, ExpandableRowVector &fq)
+{
+	return;
+}
+
 STAHRAeroData::STAHRAeroData(AeroData::UnsteadyModel u, integer p,
 		DriveCaller *ptime)
 : AeroData(u, ptime), profile(p)

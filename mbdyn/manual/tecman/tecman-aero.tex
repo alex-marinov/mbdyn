@@ -305,6 +305,77 @@ The default value is $\nu=10^{-9}$.
 
 
 
+
+\section{Aerodynamic Forces with Internal States}
+Consider the case of a model of the aerodynamic forces
+that requires the use of internal states $\T{q}$, namely
+\begin{subequations}
+\begin{align}
+	\tilde{\T{f}}_a
+	&=
+	\tilde{\T{f}}_a\plbr{\tilde{\T{v}},\tilde{\T{\omega}},\T{q}}
+	\\
+	\tilde{\T{c}}_a
+	&=
+	\tilde{\T{c}}_a\plbr{\tilde{\T{v}},\tilde{\T{\omega}},\T{q}}
+	\\
+	\T{0}
+	&=
+	\T{g}\plbr{\tilde{\T{v}},\tilde{\T{\omega}},\T{q}, \dot{\T{q}}}
+	\label{eq:aero:states:g}
+	.
+\end{align}
+\end{subequations}
+Usually, the dynamic model of the aerodynamics is differential,
+and thus its perturbation yields a linearized state-space system,
+\begin{subequations}
+\begin{align}
+	\delta\T{g}
+	&=
+	\T{g}_{/\tilde{\T{v}}} \delta\tilde{\T{v}}
+	+ \T{g}_{/\tilde{\T{\omega}}} \delta\tilde{\T{\omega}}
+	+ \T{g}_{/\T{q}} \delta\T{q}
+	+ \T{g}_{/\dot{\T{q}}} \delta\dot{\T{q}}
+	\label{eq:aero:states:delta-g}
+	\\
+	\delta \tilde{\T{f}}_a
+	&=
+	\tilde{\T{f}}_{a/\tilde{\T{v}}} \delta\tilde{\T{v}}
+	+ \tilde{\T{f}}_{a/\tilde{\T{\omega}}} \delta\tilde{\T{\omega}}
+	+ \tilde{\T{f}}_{a/\T{q}} \delta\T{q}
+	\label{eq:aero:states:delta-f}
+	\\
+	\delta \tilde{\T{c}}_a
+	&=
+	\tilde{\T{c}}_{a/\tilde{\T{v}}} \delta\tilde{\T{v}}
+	+ \tilde{\T{c}}_{a/\tilde{\T{\omega}}} \delta\tilde{\T{\omega}}
+	+ \tilde{\T{c}}_{a/\T{q}} \delta\T{q}
+	\label{eq:aero:states:delta-c}
+	.
+\end{align}
+\end{subequations}
+In those cases, the underlying aerodynamic model has
+to deal with $\T{g}$, Eq.~(\ref{eq:aero:states:g}),
+and its perturbation $\delta\T{g}$, Eq.~(\ref{eq:aero:states:g}).
+
+However, the aerodynamic elements have to:
+\begin{enumerate}
+
+\item provide the underlying aerodynamic model the Jacobian submatrices
+required to compute $\delta\tilde{\T{v}}$ and $\delta\tilde{\T{\omega}}$
+from the perturbations of the nodal position, orientation,
+and linear and angular velocity that are needed to deal with $\delta\T{g}$,
+Eq.~(\ref{eq:aero:states:g});
+
+\item account for the contribution of the Jacobian matrices
+$\delta\tilde{\T{f}}_{a/\T{q}}$ and $\delta\tilde{\T{f}}_{a/\dot{\T{q}}}$
+respectively required by Eqs.~(\ref{eq:aero:states:delta-f})
+and~(\ref{eq:aero:states:delta-c}).
+\end{enumerate}
+
+
+
+
 \section{Aerodynamic body}
 The \texttt{aerodynamic body} element applies aerodynamic forces
 to the structural node it is connected to,

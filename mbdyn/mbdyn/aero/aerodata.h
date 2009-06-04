@@ -38,6 +38,7 @@
 #include "withlab.h"
 #include "drive.h"
 #include "matvec6.h"
+#include "JacSubMatrix.h"
 
 #include "aerodc81.h"
 
@@ -119,6 +120,22 @@ public:
    	virtual int
 	GetForcesJac(int i, const doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA) = 0;
 	inline AeroData::UnsteadyModel Unsteady(void) const;
+
+	// aerodynamic models with internal states
+	virtual unsigned int iGetNumDof(void) const;
+	virtual void
+	AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr,
+		int i, integer iFirstIndex);
+	virtual void
+	AssJac(FullSubMatrixHandler& WorkMat,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr,
+		int i, integer iFirstIndex,
+		const ExpandableRowVector& vx, ExpandableRowVector &fq);
 };
 
 
