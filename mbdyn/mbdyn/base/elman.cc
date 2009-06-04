@@ -137,7 +137,6 @@ DataManager::ElemManager(void)
 	ElemData[Elem::BULK].iDerivation = ELEM;
 	ElemData[Elem::LOADABLE].iDerivation = ELEM | GRAVITYOWNER | INITIALASSEMBLY | DOFOWNER;
 	ElemData[Elem::DRIVEN].iDerivation = ELEM;
-	ElemData[Elem::AEROMODAL].iDerivation = ELEM | AIRPROPOWNER;
 	ElemData[Elem::INERTIA].iDerivation = ELEM | GRAVITYOWNER | INITIALASSEMBLY;
 
 	/* Types that must be unique */
