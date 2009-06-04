@@ -28,6 +28,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/* Portions Copyright (C) 2009 Pierangelo Masarati <masarati@aero.polimi.it> */
+
 
 #ifndef JacSubMatrix_hh
 #define JacSubMatrix_hh
@@ -38,10 +40,15 @@
 #include "submat.h"
 
 class ExpandableRowVector {
+public:
+	struct ExpandableRow {
+		doublereal x;
+		const ExpandableRowVector *xm;
+		integer idx;
+		ExpandableRow(void) : x(0.), xm(0), idx(0) {};
+	};
 private:
-	std::vector<doublereal> x;
-	std::vector<const ExpandableRowVector*> xm;
-	std::vector<integer> idx;
+	std::vector <ExpandableRow> v;
 
 	ExpandableRowVector & operator = (const ExpandableRowVector &); // not to be implemented
 	ExpandableRowVector (const ExpandableRowVector &); // not to be implemented
@@ -64,9 +71,12 @@ public:
 	void Add(SubVectorHandler& WorkVec, const doublereal c = 1.) const;
 	void Sub(SubVectorHandler& WorkVec, const doublereal c = 1.) const;
 	void Add(FullSubMatrixHandler& WM, const integer eq, const doublereal c = 1.) const;
+	void Add(FullSubMatrixHandler& WM, const std::vector<integer>& eq,
+		const std::vector<doublereal>& cc, const doublereal c = 1.) const;
 	void Sub(FullSubMatrixHandler& WM, const integer eq, const doublereal c = 1.) const;
-	std::ostream & Write(std::ostream &out, 
-		const char *sFill = "") const;
+	void Sub(FullSubMatrixHandler& WM, const std::vector<integer>& eq,
+		const std::vector<doublereal>& cc, const doublereal c = 1.) const;
+	std::ostream & Write(std::ostream &out, const char *sFill = "") const;
 };
 
 std::ostream & operator << (std::ostream & s, const ExpandableRowVector & z);

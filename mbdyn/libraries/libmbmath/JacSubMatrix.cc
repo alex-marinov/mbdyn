@@ -30,14 +30,19 @@
 
 /* here goes Morandini's copyright */
 
+/* Portions Copyright (C) 2009 Pierangelo Masarati <masarati@aero.polimi.it> */
+
 #ifdef HAVE_CONFIG_H
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include <algorithm>
+#include <iomanip>
 
 #include "myassert.h"
 #include "JacSubMatrix.h"
+
+static ExpandableRowVector::ExpandableRow er_Zero;
 
 ExpandableRowVector::ExpandableRowVector(void) {};
 ExpandableRowVector::ExpandableRowVector(const integer n) {
@@ -47,137 +52,178 @@ ExpandableRowVector::~ExpandableRowVector(void) {};
 void ExpandableRowVector::ReDim(const integer n) {
 	//we have to accept = 0, some elements do ReDim(0,0) (PointForceElement))
 	ASSERTMSGBREAK(n>=0, "ExpandableRowVector:ReDim(), n shold be >= 0");
-	x.resize(n,0.);
-	xm.resize(n,0);
-	idx.resize(n,0); 
+	v.resize(n, er_Zero);
 }
 void ExpandableRowVector::Zero(void) {
-	std::fill(x.begin(),x.end(),0.);
+	for (std::vector<ExpandableRow>::iterator i = v.begin(); i != v.end(); i++) {
+		i->x = 0.;
+	}
 }
 void ExpandableRowVector::Reset(void) {
-	Zero();
-	std::fill(xm.begin(),xm.end(),(ExpandableRowVector*)0);
-	std::fill(idx.begin(),idx.end(),0);		
+	std::fill(v.begin(), v.end(), er_Zero);
 }
 void ExpandableRowVector::Link(const integer i, const ExpandableRowVector*const xp) {
 	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::Link() underflow");
-	ASSERTMSGBREAK(i <= idx.size(), "ExpandableRowVector::Link() overflow");
-	ASSERTMSGBREAK(idx[i-1] == 0, "ExpandableRowVector::Link() fatal error");
-	xm[i-1] = xp;
+	ASSERTMSGBREAK(i <= v.size(), "ExpandableRowVector::Link() overflow");
+	ASSERTMSGBREAK(v[i - 1].idx == 0, "ExpandableRowVector::Link() fatal error");
+	v[i - 1].xm = xp;
 }
 void ExpandableRowVector::Set(doublereal xx, integer i) {
 	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::Set() underflow");
-	ASSERTMSGBREAK(i <= x.size(), "ExpandableRowVector::Set() overflow");
-	x[i-1] = xx;
+	ASSERTMSGBREAK(i <= v.size(), "ExpandableRowVector::Set() overflow");
+	v[i - 1].x = xx;
 }
 void ExpandableRowVector::SetIdx(integer i, integer iidx) {
 	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::SetIdx() underflow");
-	ASSERTMSGBREAK(i <= idx.size(), "ExpandableRowVector::SetIdx() overflow");
-	idx[i-1] = iidx;
+	ASSERTMSGBREAK(i <= v.size(), "ExpandableRowVector::SetIdx() overflow");
+	v[i - 1].idx = iidx;
 }
 void ExpandableRowVector::Set(doublereal xx, integer i, integer iidx) {
-	Set(xx,i);
-	SetIdx(i,iidx);
+	Set(xx, i);
+	SetIdx(i, iidx);
 }
 doublereal&
 ExpandableRowVector::operator ()(integer i)
 {
 	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::() underflow");
-	ASSERTMSGBREAK(i <= x.size(), "ExpandableRowVector::() overflow");
-	return x[i-1];
+	ASSERTMSGBREAK(i <= v.size(), "ExpandableRowVector::() overflow");
+	return v[i - 1].x;
 }
 const doublereal&
 ExpandableRowVector::operator ()(integer i) const
 {
 	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::() underflow");
-	ASSERTMSGBREAK(i <= x.size(), "ExpandableRowVector::() overflow");
-	return x[i-1];
+	ASSERTMSGBREAK(i <= v.size(), "ExpandableRowVector::() overflow");
+	return v[i - 1].x;
 }
 void ExpandableRowVector::Add(doublereal xx, integer i) {
 	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::Add() underflow");
-	ASSERTMSGBREAK(i <= x.size(), "ExpandableRowVector::Add() overflow");
-	x[i-1] += xx;
+	ASSERTMSGBREAK(i <= v.size(), "ExpandableRowVector::Add() overflow");
+	v[i - 1].x += xx;
 }
 void ExpandableRowVector::Sub(doublereal xx, integer i) {
 	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::Sub() underflow");
-	ASSERTMSGBREAK(i <= x.size(), "ExpandableRowVector::Sub() overflow");
-	x[i-1] -= xx;
+	ASSERTMSGBREAK(i <= v.size(), "ExpandableRowVector::Sub() overflow");
+	v[i - 1].x -= xx;
 }
 void ExpandableRowVector::Add(SubVectorHandler& WorkVec, const doublereal c) const {
-	for (std::vector<doublereal>::size_type i=0; i<x.size(); i++) {
-		if (x[i] == 0.) {
+	for (std::vector<ExpandableRow>::size_type i = 0; i < v.size(); i++) {
+		if (v[i].x == 0.) {
 			continue;
 		}
 
-		if (idx[i] != 0) {
-			WorkVec.Add(idx[i],c*x[i]);
+		if (v[i].idx != 0) {
+			WorkVec.Add(v[i].idx, c*v[i].x);
 		} else {
-			ASSERTMSGBREAK(xm[i] != 0, "ExpandableRowVector::Add() null pointer to ExpandableRowVector");
-			xm[i]->Add(WorkVec,c*x[i]);
+			ASSERTMSGBREAK(v[i].xm != 0, "ExpandableRowVector::Add() null pointer to ExpandableRowVector");
+			v[i].xm->Add(WorkVec, c*v[i].x);
 		}
 	}
 }
 void ExpandableRowVector::Sub(SubVectorHandler& WorkVec, const doublereal c) const {
-	for (std::vector<doublereal>::size_type i=0; i<x.size(); i++) {
-		if (x[i] == 0.) {
+	for (std::vector<ExpandableRow>::size_type i = 0; i < v.size(); i++) {
+		if (v[i].x == 0.) {
 			continue;
 		}
 
-		if (idx[i] != 0) {
-			WorkVec.Sub(idx[i],c*x[i]);
+		if (v[i].idx != 0) {
+			WorkVec.Sub(v[i].idx, c*v[i].x);
 		} else {
-			ASSERTMSGBREAK(xm[i] != 0, "ExpandableRowVector::Sub() null pointer to ExpandableRowVector");
-			xm[i]->Sub(WorkVec,c*x[i]);
+			ASSERTMSGBREAK(v[i].xm != 0, "ExpandableRowVector::Sub() null pointer to ExpandableRowVector");
+			v[i].xm->Sub(WorkVec, c*v[i].x);
 		}
 	}
 }
 void ExpandableRowVector::Add(FullSubMatrixHandler& WM, 
 	const integer eq,
 	const doublereal c) const {
-	for (std::vector<doublereal>::size_type i=0; i<x.size(); i++) {
-		if (x[i] == 0.) {
+	for (std::vector<ExpandableRow>::size_type i = 0; i < v.size(); i++) {
+		if (v[i].x == 0.) {
 			continue;
 		}
 
-		if (idx[i] != 0) {
-			WM.IncCoef(eq,idx[i],c*x[i]);
+		if (v[i].idx != 0) {
+			WM.IncCoef(eq, v[i].idx, c*v[i].x);
 		} else {
-			ASSERTMSGBREAK(xm[i] != 0, "ExpandableRowVector::Add() null pointer to ExpandableRowVector");
-			xm[i]->Add(WM,eq,c*x[i]);
+			ASSERTMSGBREAK(v[i].xm != 0, "ExpandableRowVector::Add() null pointer to ExpandableRowVector");
+			v[i].xm->Add(WM, eq, c*v[i].x);
+		}
+	}
+}
+void ExpandableRowVector::Add(FullSubMatrixHandler& WM, 
+	const std::vector<integer>& eq,
+	const std::vector<doublereal>& cc,
+	const doublereal c) const
+{
+	for (std::vector<ExpandableRow>::size_type i = 0; i < v.size(); i++) {
+		if (v[i].x == 0.) {
+			continue;
+		}
+
+		integer idx = v[i].idx;
+		if (idx != 0) {
+			doublereal d = c*v[i].x;
+			for (std::vector<integer>::size_type j = 0; j < eq.size(); j++) {
+				WM.IncCoef(eq[j], idx, cc[j]*d);
+			}
+		} else {
+			ASSERTMSGBREAK(v[i].xm != 0, "ExpandableRowVector::Add() null pointer to ExpandableRowVector");
+			v[i].xm->Add(WM, eq, cc, c*v[i].x);
 		}
 	}
 }
 void ExpandableRowVector::Sub(FullSubMatrixHandler& WM,
 	const integer eq,
 	const doublereal c) const {
-	for (std::vector<doublereal>::size_type i=0; i<x.size(); i++) {
-		if (x[i] == 0.) {
+	for (std::vector<ExpandableRow>::size_type i = 0 ; i < v.size(); i++) {
+		if (v[i].x == 0.) {
 			continue;
 		}
 
-		if (idx[i] != 0) {
-			WM.DecCoef(eq,idx[i],c*x[i]);
+		if (v[i].idx != 0) {
+			WM.DecCoef(eq, v[i].idx, c*v[i].x);
 		} else {
-			ASSERTMSGBREAK(xm[i] != 0, "ExpandableRowVector::Sub() null pointer to ExpandableRowVector");
-			xm[i]->Sub(WM,eq,c*x[i]);
+			ASSERTMSGBREAK(v[i].xm != 0, "ExpandableRowVector::Sub() null pointer to ExpandableRowVector");
+			v[i].xm->Sub(WM, eq, c*v[i].x);
+		}
+	}
+}
+void ExpandableRowVector::Sub(FullSubMatrixHandler& WM, 
+	const std::vector<integer>& eq,
+	const std::vector<doublereal>& cc,
+	const doublereal c) const
+{
+	for (std::vector<ExpandableRow>::size_type i = 0; i < v.size(); i++) {
+		if (v[i].x == 0.) {
+			continue;
+		}
+
+		integer idx = v[i].idx;
+		if (idx != 0) {
+			doublereal d = c*v[i].x;
+			for (std::vector<integer>::size_type j = 0; j < eq.size(); j++) {
+				WM.DecCoef(eq[j], idx, cc[j]*d);
+			}
+		} else {
+			ASSERTMSGBREAK(v[i].xm != 0, "ExpandableRowVector::Add() null pointer to ExpandableRowVector");
+			v[i].xm->Sub(WM, eq, cc, c*v[i].x);
 		}
 	}
 }
 
-#include<iomanip>
 std::ostream & ExpandableRowVector::Write(std::ostream &out, const char *sFill) const {
 	out << "LocalDof: ";
-	for (std::vector<doublereal>::size_type i=0; i<x.size(); i++) {
-		if (idx[i] != 0) {
-			out << sFill << std::setw(12) << idx[i];
+	for (std::vector<ExpandableRow>::size_type i = 0; i < v.size(); i++) {
+		if (v[i].idx != 0) {
+			out << sFill << std::setw(12) << v[i].idx;
 		} else {
 			out << sFill << std::setw(12) << "linked";
 		}		
 	}
 	out << std::endl;
 	out << "   Value: ";
-	for (std::vector<doublereal>::size_type i=0; i<x.size(); i++) {
-		out << sFill << std::setw(12) << x[i];
+	for (std::vector<ExpandableRow>::size_type i = 0; i < v.size(); i++) {
+		out << sFill << std::setw(12) << v[i].x;
 	}
 	out << std::endl;
 	return out;

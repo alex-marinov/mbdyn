@@ -754,26 +754,43 @@ The generic variable $k_i$, in turn, may be directly a subset of the variables
 of the problem, $\T{x}$, with $k_i=x_j$, or depend on them either directly,
 namely $k_=k_i\plbr{\T{x}}$, or indirectly,
 namely $k_i=k_i\plbr{\T{k}'\plbr{\T{x}}}$ and so on,
-with as many levels of recursion as needed.
+with as many levels of recursion as needed, namely
+\begin{align}
+	\frac{\partial y}{\partial x_j}
+	&=
+	\sum_{i} \frac{\partial y}{\partial k_i}\plbr{
+		\sum_{i'} \frac{\partial k_i}{\partial k'_{i'}}\plbr{
+			\ldots
+			\sum_{j} \frac{\partial k^{(n)}_{i^{(n)}}}{\partial x_j}
+		}
+	}
+	.
+\end{align}
 
 The computation of the contribution of $y$ to the Jacobian matrix
 of the problem requires the capability to assemble the partial derivatives
 of $y$ with respect to the variables $\T{x}$ in the appropriate locations.
 
-The \texttt{ExpandableRowVector} allows to associate the partial derivatives
-of $y$ with respect to the variables $\T{k}$ it depends on
-to either their indexes, if they are directly the variables of the problem,
-$\T{x}$, or to another \texttt{ExpandableRowVector} that contains
-the partial derivatives of the corresponding $k$ with respect to the variables
-it depends on.
+The \texttt{ExpandableRowVector} allows to associate each partial derivative
+of $y$ with respect to the variables $\T{k}$ it depends on, namely $y_{/k_i}$,
+to either 
+\begin{enumerate}
+\renewcommand{\labelenumi}{\alph{enumi})}
+\item its index, if $k_i$ is directly a variable of the problem,
+$k_i\rightarrow x_j$, or
+\item to another \texttt{ExpandableRowVector} that contains
+the partial derivatives of the corresponding $k_i$ with respect
+to the variables it depends on.
+\end{enumerate}
 
 Since the assembly of the contributions to the Jacobian matrix of the problem
 is usually done using submatrices, within an element the association between
 a coefficient and a problem variable is not done based on the absolute numbering
 of the variable, but rather on a local numbering within the submatrix.
-The submatrix in turn takes care of mapping local indexing to global indexing.
+The submatrix in turn will take care of mapping local indexing to global indexing
+when it is assembled to the global Jacobian matrix of the problem.
 
-When $k_i$ directly corresponds to the problem variable $x_j$,
+When the variable $k_i$ directly corresponds to the problem variable $x_j$,
 the \texttt{ExpandableRowVector} provides a method to associate
 one of its elements to the problem variable indexing within the submatrix.
 So, if $k_i\rightarrow x_j$, and the global index $j$ corresponds
@@ -782,7 +799,7 @@ to index \texttt{ip} in the submatrix,
 \texttt{v.Set($y_{/k_i}$, i, ip)}
 \end{quote}
 simultaneously sets the value $y_{/k_i}$
-and the variable subindex index \texttt{ip}
+and the variable subindex \texttt{ip}
 of the \texttt{i}-th element of vector \texttt{v}.
 
 Alternatively, the method
@@ -804,8 +821,10 @@ of vector \texttt{v}.
 
 As soon as $\T{v}$ is assembled, it can be contributed
 to a specific equation (row) of a Jacobian matrix.
+
 For example, calling the method
 \begin{verbatim}
+    void
     Add(FullSubMatrixHandler& WM,
         const integer eq,
         const doublereal c = 1.) const
@@ -835,6 +854,18 @@ the related operation on the submatrix is propagated recursively as
 where \texttt{xm} is the container of the pointers to the linked
 \texttt{ExpandableRowVector}.
 
+Blocks of equations can be added simultaneously using the method
+\begin{verbatim}
+    void
+    Add(FullSubMatrixHandler& WM,
+        const std::vector<integer>& eq,
+        const std::vector<doublereal>& cc,
+        const doublereal c = 1.) const
+\end{verbatim}
+The same operation illustrated above is performed on each equation
+whose subindex is stored in the array \texttt{eq}, weighed by the
+coefficients stored in the array \texttt{cc}.
+
 A similar method allows to build a subvector.
 Its use is currently undocumented.
 
@@ -842,22 +873,41 @@ Its use is currently undocumented.
 \begin{verbatim}
     ExpandableRowVector v(4);
     ExpandableRowVector w(2);
-    FullSubMatrixHandler m(6, 12);
+    FullSubMatrixHandler m(6, 9);
 
-    w.Set(10., 1, 11);
-    w.Set(20., 2, 12);
+    w.Set(10., 1, 8);
+    w.Set(20., 2, 9);
 
-    v.Set(1., 1, 7);
-    v.Set(2., 2, 8);
-    v.Set(3., 3, 9);
-    v.Set(100., 4);
+    v.Set(1., 1, 4);
+    v.Set(2., 2, 5);
+    v.Set(3., 3, 6);
+    v.Set(10., 4);
     v.Link(4, &w);
 
     v.Add(m, 5, 1.);
 
-    //       col.  1   2   3   4   5   6   7   8   9  10     11     12
-    // m(5, :) = { 0., 0., 0., 0., 0., 0., 1., 2., 3., 0., 1000., 2000. }
+    //       col.  1   2   3   4   5   6   7     8     9
+    // m(5, :) = { 0., 0., 0., 1., 2., 3., 0., 100., 200. }
+
+    std::vector<integer> eq(3);
+    std::vector<doublereal> cc(3);
+    eq[0] = 1; cc[0] = 1.;
+    eq[1] = 2; cc[1] = 2.;
+    eq[2] = 3; cc[2] = 3.;
+
+    v.Add(m, eq, cc, 1.);
+
+    //       col.  1   2   3   4   5   6   7     8     9
+    // m(1, :) = { 0., 0., 0., 1., 2., 3., 0., 100., 200. }
+    // m(2, :) = { 0., 0., 0., 2., 4., 6., 0., 200., 400. }
+    // m(3, :) = { 0., 0., 0., 3., 6., 9., 0., 300., 600. }
 \end{verbatim}
+
+
+
+
+
+
 
 
 \chapter{Nodes}
