@@ -48,7 +48,7 @@ public:
 		ExpandableRow(void) : x(0.), xm(0), idx(0) {};
 	};
 private:
-	std::vector <ExpandableRow> v;
+	std::vector<ExpandableRow> v;
 
 	ExpandableRowVector & operator = (const ExpandableRowVector &); // not to be implemented
 	ExpandableRowVector (const ExpandableRowVector &); // not to be implemented
