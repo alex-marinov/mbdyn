@@ -32,7 +32,7 @@
 #ifndef AEROELEM_H
 #define AEROELEM_H
 
-/* Elementi aerodinamici stazionari */
+/* Elementi aerodinamici bidimensionali */
 
 #include "aerodyn.h"
 #include "rotor.h"
