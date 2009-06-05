@@ -129,12 +129,13 @@ AerodynamicOutput::IsNODE(void) const
 
 /* Aerodynamic2DElem - begin */
 
-Aerodynamic2DElem::Aerodynamic2DElem(unsigned int uLabel,
+template <unsigned iNN>
+Aerodynamic2DElem<iNN>::Aerodynamic2DElem(unsigned int uLabel,
 	const DofOwner *pDO,
 	InducedVelocity* pR,
 	const Shape* pC, const Shape* pF,
 	const Shape* pV, const Shape* pT,
-	const unsigned iNN, integer iN, AeroData* a,
+	integer iN, AeroData* a,
 	const DriveCaller* pDC,
 	bool bUseJacobian,
 	flag fOut)
@@ -143,7 +144,6 @@ AerodynamicElem(uLabel, pDO, fOut),
 InitialAssemblyElem(uLabel, fOut),
 DriveOwner(pDC),
 AerodynamicOutput(fOut, iNN*iN),
-iNN(iNN),
 aerodata(a),
 pIndVel(pR),
 fPassiveInducedVelocity(0),
@@ -167,7 +167,8 @@ bJacobian(bUseJacobian)
 #endif /* DEBUG */
 }
 
-Aerodynamic2DElem::~Aerodynamic2DElem(void)
+template <unsigned iNN>
+Aerodynamic2DElem<iNN>::~Aerodynamic2DElem(void)
 {
 	DEBUGCOUTFNAME("Aerodynamic2DElem::~Aerodynamic2DElem");
 
@@ -179,8 +180,9 @@ Aerodynamic2DElem::~Aerodynamic2DElem(void)
  * serve per allocare il vettore dei dati di output se il flag
  * viene settato dopo la costruzione
  */
+template <unsigned iNN>
 void
-Aerodynamic2DElem::SetOutputFlag(flag f)
+Aerodynamic2DElem<iNN>::SetOutputFlag(flag f)
 {
 	DEBUGCOUTFNAME("Aerodynamic2DElem::SetOutputFlag");
 	ToBeOutput::SetOutputFlag(f);
@@ -188,21 +190,24 @@ Aerodynamic2DElem::SetOutputFlag(flag f)
 }
 
 /* Dimensioni del workspace */
+template <unsigned iNN>
 void
-Aerodynamic2DElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+Aerodynamic2DElem<iNN>::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
 	*piNumRows = *piNumCols = iNN*6 + iGetNumDof();
 }
 
 /* inherited from SimulationEntity */
+template <unsigned iNN>
 unsigned int
-Aerodynamic2DElem::iGetNumDof(void) const
+Aerodynamic2DElem<iNN>::iGetNumDof(void) const
 {
 	return aerodata->iGetNumDof()*iNN*GDI.iGetNum();
 }
 
+template <unsigned iNN>
 std::ostream&
-Aerodynamic2DElem::DescribeDof(std::ostream& out,
+Aerodynamic2DElem<iNN>::DescribeDof(std::ostream& out,
 	const char *prefix, bool bInitial) const
 {
 	ASSERT(bInitial == false);
@@ -224,8 +229,16 @@ Aerodynamic2DElem::DescribeDof(std::ostream& out,
 	return out;
 }
 
+static const char *elemnames[] = {
+	"AerodynamicBody",
+	"AerodynamicBeam2",
+	"AerodynamicBeam3",
+	0
+};
+
+template <unsigned iNN>
 void
-Aerodynamic2DElem::DescribeDof(std::vector<std::string>& desc,
+Aerodynamic2DElem<iNN>::DescribeDof(std::vector<std::string>& desc,
 	bool bInitial, int i) const
 {
 	if (i < -1) {
@@ -235,19 +248,8 @@ Aerodynamic2DElem::DescribeDof(std::vector<std::string>& desc,
 
 	ASSERT(bInitial == false);
 
-	const char *elemname;
-	if (dynamic_cast<const AerodynamicBody *>(this)) {
-		elemname = "AerodynamicBody";
-	} else if (dynamic_cast<const AerodynamicBeam *>(this)) {
-		elemname = "AerodynamicBeam3";
-	} else if (dynamic_cast<const AerodynamicBeam2 *>(this)) {
-		elemname = "AerodynamicBeam2";
-	} else {
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
 	std::ostringstream os;
-	os << elemname << "(" << GetLabel() << ")";
+	os << elemnames[iNN - 1] << "(" << GetLabel() << ")";
 
 	integer iNumDof = aerodata->iGetNumDof();
 	if (i == -1) {
@@ -275,8 +277,9 @@ Aerodynamic2DElem::DescribeDof(std::vector<std::string>& desc,
 	desc[0] = os.str();
 }
 
+template <unsigned iNN>
 std::ostream&
-Aerodynamic2DElem::DescribeEq(std::ostream& out,
+Aerodynamic2DElem<iNN>::DescribeEq(std::ostream& out,
 	const char *prefix, bool bInitial) const
 {
 	ASSERT(bInitial == false);
@@ -298,8 +301,9 @@ Aerodynamic2DElem::DescribeEq(std::ostream& out,
 	return out;
 }
 
+template <unsigned iNN>
 void
-Aerodynamic2DElem::DescribeEq(std::vector<std::string>& desc,
+Aerodynamic2DElem<iNN>::DescribeEq(std::vector<std::string>& desc,
 	bool bInitial, int i) const
 {
 	if (i < -1) {
@@ -309,19 +313,8 @@ Aerodynamic2DElem::DescribeEq(std::vector<std::string>& desc,
 
 	ASSERT(bInitial == false);
 
-	const char *elemname;
-	if (dynamic_cast<const AerodynamicBody *>(this)) {
-		elemname = "AerodynamicBody";
-	} else if (dynamic_cast<const AerodynamicBeam *>(this)) {
-		elemname = "AerodynamicBeam3";
-	} else if (dynamic_cast<const AerodynamicBeam2 *>(this)) {
-		elemname = "AerodynamicBeam2";
-	} else {
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
 	std::ostringstream os;
-	os << elemname << "(" << GetLabel() << ")";
+	os << elemnames[iNN - 1] << "(" << GetLabel() << ")";
 
 	integer iNumDof = aerodata->iGetNumDof();
 	if (i == -1) {
@@ -349,16 +342,18 @@ Aerodynamic2DElem::DescribeEq(std::vector<std::string>& desc,
 	desc[0] = os.str();
 }
 
+template <unsigned iNN>
 DofOrder::Order
-Aerodynamic2DElem::GetDofType(unsigned int i) const
+Aerodynamic2DElem<iNN>::GetDofType(unsigned int i) const
 {
 	ASSERT(aerodata->iGetNumDof() > 0);
 
 	return aerodata->GetDofType(i % aerodata->iGetNumDof());
 }
 
+template <unsigned iNN>
 void
-Aerodynamic2DElem::SetValue(DataManager *pDM,
+Aerodynamic2DElem<iNN>::SetValue(DataManager *pDM,
 	VectorHandler& X, VectorHandler& XP,
 	SimulationEntity::Hints* h)
 {
@@ -377,16 +372,18 @@ Aerodynamic2DElem::SetValue(DataManager *pDM,
 }
 
 /* Dimensioni del workspace */
+template <unsigned iNN>
 void
-Aerodynamic2DElem::InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+Aerodynamic2DElem<iNN>::InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
 	*piNumRows = 6*iNN;
 	*piNumCols = 1;
 }
 
 /* assemblaggio jacobiano */
+template <unsigned iNN>
 VariableSubMatrixHandler&
-Aerodynamic2DElem::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+Aerodynamic2DElem<iNN>::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	const VectorHandler& /* XCurr */)
 {
 	DEBUGCOUTFNAME("Aerodynamic2DElem::InitialAssJac");
@@ -411,7 +408,7 @@ AerodynamicBody::AerodynamicBody(unsigned int uLabel,
 	bool bUseJacobian,
 	flag fOut)
 : Elem(uLabel, fOut),
-Aerodynamic2DElem(uLabel, pDO, pR, pC, pF, pV, pT, 1, iN, a, pDC, bUseJacobian, fOut),
+Aerodynamic2DElem<1>(uLabel, pDO, pR, pC, pF, pV, pT, iN, a, pDC, bUseJacobian, fOut),
 pNode(pN),
 f(fTmp),
 dHalfSpan(dS/2.),
@@ -1435,7 +1432,7 @@ AerodynamicBeam::AerodynamicBeam(unsigned int uLabel,
 	bool bUseJacobian,
 	flag fOut)
 : Elem(uLabel, fOut),
-Aerodynamic2DElem(uLabel, pDO, pR, pC, pF, pV, pT, 3, iN, a, pDC, bUseJacobian, fOut),
+Aerodynamic2DElem<3>(uLabel, pDO, pR, pC, pF, pV, pT, iN, a, pDC, bUseJacobian, fOut),
 pBeam(pB),
 f1(fTmp1),
 f2(fTmp2),
@@ -2406,7 +2403,7 @@ AerodynamicBeam2::AerodynamicBeam2(
 	flag fOut
 )
 : Elem(uLabel, fOut),
-Aerodynamic2DElem(uLabel, pDO, pR, pC, pF, pV, pT, 2, iN, a, pDC, bUseJacobian, fOut),
+Aerodynamic2DElem<2>(uLabel, pDO, pR, pC, pF, pV, pT, iN, a, pDC, bUseJacobian, fOut),
 pBeam(pB),
 f1(fTmp1),
 f2(fTmp2),

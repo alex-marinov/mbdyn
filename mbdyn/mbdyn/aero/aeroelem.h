@@ -101,6 +101,7 @@ public:
  * tutta l'apertura dell'elemento in modo da consentire la modellazione di
  * una superficie mobile equivalente */
 
+template <unsigned iNN>
 class Aerodynamic2DElem :
 	virtual public Elem,
 	public AerodynamicElem,
@@ -109,7 +110,6 @@ class Aerodynamic2DElem :
 	public AerodynamicOutput
 {
 protected:
-	const unsigned iNN;
 	AeroData* aerodata;
 	InducedVelocity* pIndVel;
 	flag fPassiveInducedVelocity;
@@ -140,7 +140,7 @@ public:
 		InducedVelocity* pR,
 		const Shape* pC, const Shape* pF,
 		const Shape* pV, const Shape* pT,
-		const unsigned iNN, integer iN, AeroData* a,
+		integer iN, AeroData* a,
 		const DriveCaller* pDC,
 		bool bUseJacobian,
 		flag fOut);
@@ -198,7 +198,7 @@ public:
 
 class AerodynamicBody :
 	virtual public Elem,
-	public Aerodynamic2DElem
+	public Aerodynamic2DElem<1>
 {
 protected:
 	const StructNode* pNode;
@@ -290,7 +290,7 @@ public:
 
 class AerodynamicBeam :
 	virtual public Elem,
-	public Aerodynamic2DElem
+	public Aerodynamic2DElem<3>
 {
 protected:
 	enum { NODE1 = 0, NODE2, NODE3, LASTNODE };
@@ -402,7 +402,7 @@ public:
 
 class AerodynamicBeam2 :
 	virtual public Elem,
-	public Aerodynamic2DElem
+	public Aerodynamic2DElem<2>
 {
 protected:
 	enum { NODE1 = 0, NODE2, LASTNODE };
