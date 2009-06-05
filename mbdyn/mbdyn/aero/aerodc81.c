@@ -85,6 +85,8 @@ get_stall(int nm, doublereal* m, doublereal* s, doublereal mach,
           doublereal *dcpa, doublereal *dasp, doublereal *dasm);
 #endif /* USE_GET_STALL */
 
+const outa_t outa_Zero;
+
 doublereal
 get_c81_coef(int nm, doublereal* m, int na, doublereal* a, doublereal alpha, doublereal mach)
 {
@@ -96,7 +98,7 @@ get_c81_coef(int nm, doublereal* m, int na, doublereal* a, doublereal alpha, dou
 }
 
 int 
-c81_aerod2(doublereal* W, const struct vam_t *VAM, doublereal* TNG, doublereal* OUTA, c81_data* data)
+c81_aerod2(doublereal* W, const vam_t *VAM, doublereal* TNG, outa_t* OUTA, c81_data* data)
 {
    	/* 
 	 * velocita' del punto in cui sono calcolate le condizioni al contorno
@@ -143,12 +145,12 @@ c81_aerod2(doublereal* W, const struct vam_t *VAM, doublereal* TNG, doublereal* 
 		TNG[W_Y] = 0.;
 		TNG[W_Z] = 0.;
 		
-		OUTA[1] = 0.;
-		OUTA[2] = 0.;
-		OUTA[3] = 0.;
-		OUTA[4] = 0.;
-		OUTA[5] = 0.;
-		OUTA[6] = 0.;
+		OUTA->alpha = 0.;
+		OUTA->gamma = 0.;
+		OUTA->mach = 0.;
+		OUTA->cl = 0.;
+		OUTA->cd = 0.;
+		OUTA->cm = 0.;
 		
 		return 0;
 	}
@@ -162,10 +164,10 @@ c81_aerod2(doublereal* W, const struct vam_t *VAM, doublereal* TNG, doublereal* 
 	 * in un certo modo, altrimenti in un altro ?!?
 	 */
 	alpha = atan2(-v[V_Y], v[V_X]);
-	OUTA[1] = alpha*RAD2DEG;  
+	OUTA->alpha = alpha*RAD2DEG;  
 	gamma = atan2(-v[V_Z], fabs(v[V_X]));	/* come in COE0 (aerod2.f) */
 	/* gamma = atan2(-v[V_Z], vp); */		/* secondo me (?!?) */
-	OUTA[2] = gamma*RAD2DEG;
+	OUTA->gamma = gamma*RAD2DEG;
 	
 	if (fabs(gamma) > M_PI_3) {
 		/* tanto ne viene preso il coseno ... */
@@ -174,17 +176,17 @@ c81_aerod2(doublereal* W, const struct vam_t *VAM, doublereal* TNG, doublereal* 
 	
 	cosgam = cos(gamma);
 	mach = (vtot*sqrt(cosgam))/cs;
-	OUTA[3] = mach;
+	OUTA->mach = mach;
 	
 	/*
 	 * Note: all angles in c81 files MUST be in degrees
 	 */
 	get_coef(data->NML, data->ml, data->NAL, data->al,
-			OUTA[1], mach, &cl, &cl0);
+			OUTA->alpha, mach, &cl, &cl0);
 	get_coef(data->NMD, data->md, data->NAD, data->ad,
-			OUTA[1], mach, &cd, &cd0);
+			OUTA->alpha, mach, &cd, &cd0);
 	get_coef(data->NMM, data->mm, data->NAM, data->am,
-			OUTA[1], mach, &cm, NULL);
+			OUTA->alpha, mach, &cm, NULL);
 
 	dcla = get_dcla(data->NML, data->ml, data->stall, mach);
 	
@@ -215,9 +217,9 @@ c81_aerod2(doublereal* W, const struct vam_t *VAM, doublereal* TNG, doublereal* 
 	}
 	cl = cl0 + dcla*alpha;
 	
-	OUTA[4] = cl;
-	OUTA[5] = cd;
-	OUTA[6] = cm;
+	OUTA->cl = cl;
+	OUTA->cd = cd;
+	OUTA->cm = cm;
 
 	q = .5*rho*chord*vp2;
 
@@ -237,7 +239,7 @@ c81_aerod2(doublereal* W, const struct vam_t *VAM, doublereal* TNG, doublereal* 
 }
 
 int 
-c81_aerod2_u(doublereal* W, const struct vam_t *VAM, doublereal* TNG, doublereal* OUTA, 
+c81_aerod2_u(doublereal* W, const vam_t *VAM, doublereal* TNG, outa_t* OUTA, 
 		c81_data* data, long unsteadyflag)
 {
    	/* 
@@ -285,12 +287,12 @@ c81_aerod2_u(doublereal* W, const struct vam_t *VAM, doublereal* TNG, doublereal
 		TNG[W_Y] = 0.;
 		TNG[W_Z] = 0.;
 		
-		OUTA[1] = 0.;
-		OUTA[2] = 0.;
-		OUTA[3] = 0.;
-		OUTA[4] = 0.;
-		OUTA[5] = 0.;
-		OUTA[6] = 0.;
+		OUTA->alpha = 0.;
+		OUTA->gamma = 0.;
+		OUTA->mach = 0.;
+		OUTA->cl = 0.;
+		OUTA->cd = 0.;
+		OUTA->cm = 0.;
 		
 		return 0;
 	}
@@ -304,10 +306,10 @@ c81_aerod2_u(doublereal* W, const struct vam_t *VAM, doublereal* TNG, doublereal
 	 * in un certo modo, altrimenti in un altro ?!?
 	 */
 	alpha = atan2(-v[V_Y], v[V_X]);
-	OUTA[1] = alpha*RAD2DEG;  
+	OUTA->alpha = alpha*RAD2DEG;  
 	gamma = atan2(-v[V_Z], fabs(v[V_X]));	/* come in COE0 (aerod2.f) */
 	/* gamma = atan2(-v[V_Z], vp); */		/* secondo me (?!?) */
-	OUTA[2] = gamma*RAD2DEG;
+	OUTA->gamma = gamma*RAD2DEG;
 	
 	if (fabs(gamma) > M_PI_3) {
 		/* tanto ne viene preso il coseno ... */
@@ -316,7 +318,7 @@ c81_aerod2_u(doublereal* W, const struct vam_t *VAM, doublereal* TNG, doublereal
 	
 	cosgam = cos(gamma);
 	mach = (vtot*sqrt(cosgam))/cs;
-	OUTA[3] = mach;
+	OUTA->mach = mach;
 
 	/*
 	 * mach cannot be more than .99 (see aerod.f)
@@ -335,11 +337,11 @@ c81_aerod2_u(doublereal* W, const struct vam_t *VAM, doublereal* TNG, doublereal
 		 * Note: all angles in c81 files MUST be in degrees
 		 */
 		get_coef(data->NML, data->ml, data->NAL, data->al, 
-				OUTA[1], mach, &cl, &cl0);
+				OUTA->alpha, mach, &cl, &cl0);
 		get_coef(data->NMD, data->md, data->NAD, data->ad, 
-				OUTA[1], mach, &cd, &cd0);
+				OUTA->alpha, mach, &cd, &cd0);
 		get_coef(data->NMM, data->mm, data->NAM, data->am, 
-				OUTA[1], mach, &cm, NULL);
+				OUTA->alpha, mach, &cm, NULL);
 
 		dcla = get_dcla(data->NML, data->ml, data->stall, mach);
 	
@@ -472,8 +474,8 @@ c81_aerod2_u(doublereal* W, const struct vam_t *VAM, doublereal* TNG, doublereal
 		 */
 		const doublereal ASN0 = .22689, ASM0 = .22689;
 
-		ALF1 = OUTA[8];
-		ALF2 = OUTA[9];
+		ALF1 = OUTA->alf1;
+		ALF2 = OUTA->alf2;
 
 		A = .5*chord*ALF1/vp;
 		B = .25*chord*chord*ALF2/vp2;
@@ -529,10 +531,10 @@ c81_aerod2_u(doublereal* W, const struct vam_t *VAM, doublereal* TNG, doublereal
 			+ B*(QM[U_1] + QM[U_7]*B + SGM*(QM[U_3] + QM[U_9]*B)
 					+ S2*(QM[U_5] + QM[U11]*B));
 
-		OUTA[10] = DAN*RAD2DEG;
-		OUTA[11] = DAM*RAD2DEG;
-		OUTA[12] = DCN;
-		OUTA[13] = DCM;
+		OUTA->dan = DAN*RAD2DEG;
+		OUTA->dam = DAM*RAD2DEG;
+		OUTA->dcn = DCN;
+		OUTA->dcm = DCM;
 
 		/* 
 		 * I think I need to apply this contribution 
@@ -591,9 +593,9 @@ c81_aerod2_u(doublereal* W, const struct vam_t *VAM, doublereal* TNG, doublereal
 	/*
 	 * Save cl, cd, cm for output purposes
 	 */
-	OUTA[4] = cl;
-	OUTA[5] = cd;
-	OUTA[6] = cm;
+	OUTA->cl = cl;
+	OUTA->cd = cd;
+	OUTA->cm = cm;
 
 	/*
 	 * Local dynamic pressure

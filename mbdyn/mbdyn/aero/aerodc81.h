@@ -56,7 +56,7 @@ enum {
 	OUTA_LAST	= 20
 };
 
-struct outa_t {
+typedef struct outa_t {
 	doublereal outa_00;
 	doublereal alpha;
 	doublereal gamma;
@@ -77,7 +77,9 @@ struct outa_t {
 	doublereal outa_17;
 	doublereal outa_18;
 	doublereal outa_19;
-};
+} outa_t;
+
+extern const outa_t outa_Zero;
 
 /*
 C     DEFINIZIONI VETTORE VAM
@@ -100,14 +102,14 @@ enum {
 	VAM_LAST
 };
 
-struct vam_t {
+typedef struct vam_t {
 	doublereal density;
 	doublereal sound_celerity;
 	doublereal chord;
 	doublereal force_position;
 	doublereal bc_position;
 	doublereal twist;
-};
+} vam_t;
 
 /* 
  * dati in formato c81;
@@ -165,10 +167,10 @@ typedef struct c81_data {
 } c81_data;
 
 extern int 
-c81_aerod2(doublereal* W, const struct vam_t *VAM, doublereal* TNG, doublereal* OUTA, c81_data* data);
+c81_aerod2(doublereal* W, const vam_t *VAM, doublereal* TNG, outa_t* OUTA, c81_data* data);
 
 extern int 
-c81_aerod2_u(doublereal* W, const struct vam_t *VAM, doublereal* TNG, doublereal* OUTA, 
+c81_aerod2_u(doublereal* W, const vam_t *VAM, doublereal* TNG, outa_t* OUTA, 
 		c81_data* data, long unsteadyflag);
 
 #ifdef __cplusplus

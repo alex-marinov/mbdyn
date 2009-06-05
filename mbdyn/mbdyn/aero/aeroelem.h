@@ -101,7 +101,7 @@ public:
  * tutta l'apertura dell'elemento in modo da consentire la modellazione di
  * una superficie mobile equivalente */
 
-class AerodynamicBody :
+class Aerodynamic2DElem :
 	virtual public Elem,
 	public AerodynamicElem,
 	public InitialAssemblyElem,
@@ -109,15 +109,10 @@ class AerodynamicBody :
 	public AerodynamicOutput
 {
 protected:
+	const unsigned iNN;
 	AeroData* aerodata;
-	const StructNode* pNode;
 	InducedVelocity* pIndVel;
 	flag fPassiveInducedVelocity;
-
-	const Vec3 f;		/* Offset del punto di riferimento */
-	doublereal dHalfSpan;	/* Semiapertura del rettangoloide */
-	const Mat3x3 Ra;	/* Rotaz. del sistema aerodinamico al nodo */
-	const Vec3 Ra3;		/* Terza colonna della matrice Ra */
 
 	const ShapeOwner Chord;		/* corda */
 	const ShapeOwner ForcePoint;	/* punto di app. della forza (1/4) */
@@ -125,14 +120,10 @@ protected:
 	const ShapeOwner Twist;         /* svergolamento */
 
 	GaussDataIterator GDI;	/* Iteratore sui punti di Gauss */
-	doublereal* pdOuta;	/* Dati privati */
-	doublereal** pvdOuta;	/* */
+	std::vector<outa_t> OUTA;
 
 	// used for Jacobian with internal states
 	Mat3xN vx, wx, fq, cq;
-
-	Vec3 F;			/* Forza */
-	Vec3 M;			/* Momento */
 
 	bool bJacobian;		/* Compute Jacobian matrix contribution */
 
@@ -142,6 +133,83 @@ protected:
 	 * viene settato dopo la costruzione
 	 */
 	virtual void SetOutputFlag(flag f = flag(1));
+
+public:
+	Aerodynamic2DElem(unsigned int uLabel,
+		const DofOwner *pDO,
+		InducedVelocity* pR,
+		const Shape* pC, const Shape* pF,
+		const Shape* pV, const Shape* pT,
+		integer iNN, integer iN, AeroData* a,
+		const DriveCaller* pDC,
+		bool bUseJacobian,
+		flag fOut);
+	virtual ~Aerodynamic2DElem(void);
+
+	/* Tipo dell'elemento (usato per debug ecc.) */
+	virtual Elem::Type GetElemType(void) const {
+		return Elem::AERODYNAMIC;
+	};
+
+	/* inherited from SimulationEntity */
+	virtual unsigned int iGetNumDof(void) const;
+	virtual std::ostream& DescribeDof(std::ostream& out,
+		const char *prefix = "", bool bInitial = false) const;
+	virtual void DescribeDof(std::vector<std::string>& desc,
+		bool bInitial = false, int i = -1) const;
+	virtual std::ostream& DescribeEq(std::ostream& out,
+		const char *prefix = "", bool bInitial = false) const;
+	virtual void DescribeEq(std::vector<std::string>& desc,
+		bool bInitial = false, int i = -1) const;
+	virtual DofOrder::Order GetDofType(unsigned int) const;
+
+	virtual void SetValue(DataManager *pDM,
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints* h = 0);
+
+	/* Dimensioni del workspace */
+	virtual void
+	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+
+	/* Numero di GDL iniziali */
+	virtual unsigned int iGetInitialNumDof(void) const {
+		return 0;
+	};
+
+	/* Dimensioni del workspace */
+	virtual void
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+
+	/* assemblaggio jacobiano */
+	virtual VariableSubMatrixHandler&
+	InitialAssJac(VariableSubMatrixHandler& WorkMat,
+		      const VectorHandler& /* XCurr */);
+
+	virtual const InducedVelocity *pGetInducedVelocity(void) const {
+		return pIndVel;
+	};
+	/* ************************************************ */
+};
+
+/* Aerodynamic2DElem - end */
+
+
+/* AerodynamicBody - begin */
+
+class AerodynamicBody :
+	virtual public Elem,
+	public Aerodynamic2DElem
+{
+protected:
+	const StructNode* pNode;
+
+	const Vec3 f;		/* Offset del punto di riferimento */
+	doublereal dHalfSpan;	/* Semiapertura del rettangoloide */
+	const Mat3x3 Ra;	/* Rotaz. del sistema aerodinamico al nodo */
+	const Vec3 Ra3;		/* Terza colonna della matrice Ra */
+
+	Vec3 F;			/* Forza */
+	Vec3 M;			/* Momento */
 
 	/* Assemblaggio residuo */
 	void AssVec(SubVectorHandler& WorkVec,
@@ -166,11 +234,6 @@ public:
 	/* Scrive il contributo dell'elemento al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
-	/* Tipo dell'elemento (usato per debug ecc.) */
-	virtual Elem::Type GetElemType(void) const {
-		return Elem::AERODYNAMIC;
-	};
-
 	/* inherited from SimulationEntity */
 	virtual unsigned int iGetNumDof(void) const;
 	virtual std::ostream& DescribeDof(std::ostream& out,
@@ -186,7 +249,6 @@ public:
 	virtual void SetValue(DataManager *pDM,
 			VectorHandler& X, VectorHandler& XP,
 			SimulationEntity::Hints* h = 0);
-
 
 	/* Dimensioni del workspace */
 	virtual void
@@ -218,27 +280,6 @@ public:
 	 */
 	virtual void Output(OutputHandler& OH) const;
 
-	/* Numero di GDL iniziali */
-	virtual unsigned int iGetInitialNumDof(void) const {
-		return 0;
-	};
-
-	/* Dimensioni del workspace */
-	virtual void
-	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-		*piNumRows = 6;
-		*piNumCols = 1;
-	};
-
-	/* assemblaggio jacobiano */
-	virtual VariableSubMatrixHandler&
-	InitialAssJac(VariableSubMatrixHandler& WorkMat,
-		      const VectorHandler& /* XCurr */) {
-		DEBUGCOUTFNAME("AerodynamicBody::InitialAssJac");
-		WorkMat.SetNullMatrix();
-		return WorkMat;
-	};
-
 	/* assemblaggio residuo */
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec,
@@ -259,10 +300,6 @@ public:
 		connectedNodes.resize(1);
 		connectedNodes[0] = pNode;
 	};
-
-	virtual const InducedVelocity *pGetInducedVelocity(void) const {
-		return pIndVel;
-	};
 	/* ************************************************ */
 };
 
@@ -273,22 +310,16 @@ public:
 
 class AerodynamicBeam :
 	virtual public Elem,
-	public AerodynamicElem,
-	public InitialAssemblyElem,
-	public DriveOwner,
-	public AerodynamicOutput
+	public Aerodynamic2DElem
 {
 protected:
 	enum { NODE1 = 0, NODE2, NODE3, LASTNODE };
 	enum { DELTAx1 = 0, DELTAg1, DELTAx2, DELTAg2, DELTAx3, DELTAg3 };
 
-	AeroData* aerodata;
 	const Beam* pBeam;
 	const StructNode* pNode1;
 	const StructNode* pNode2;
 	const StructNode* pNode3;
-	InducedVelocity* pIndVel;
-	flag fPassiveInducedVelocity;
 
 	const Vec3 f1;		/* Offset del punto di riferimento */
 	const Vec3 f2;		/* Offset del punto di riferimento */
@@ -300,15 +331,6 @@ protected:
 	const Vec3 Ra2_3;	/* Terza colonna della matrice Ra */
 	const Vec3 Ra3_3;	/* Terza colonna della matrice Ra */
 
-	const ShapeOwner Chord;		/* corda */
-	const ShapeOwner ForcePoint;    /* punto di app. della forza (1/4) */
-	const ShapeOwner VelocityPoint; /* punto di applicazione b.c. (3/4) */
-	const ShapeOwner Twist;         /* svergolamento */
-
-	GaussDataIterator GDI;	/* Iteratore sui punti di Gauss */
-	doublereal* pdOuta;	/* Dati privati */
-	doublereal** pvdOuta;	/* */
-
 	/*
 	 * Nota: li lascio distinti perche' cosi' eventualmente ne posso fare
 	 * l'output in modo agevole
@@ -316,17 +338,11 @@ protected:
 	Vec3 F[LASTNODE];	/* Forza */
 	Vec3 M[LASTNODE];	/* Momento */
 
-	bool bJacobian;		/* Compute Jacobian matrix contribution */
-
-	/*
-	 * overload della funzione di ToBeOutput();
-	 * serve per allocare il vettore dei dati di output se il flag
-	 * viene settato dopo la costruzione
-	 */
-	virtual void SetOutputFlag(flag f = flag(1));
-
 	/* Assemblaggio residuo */
-	void AssVec(SubVectorHandler& WorkVec);
+	void AssVec(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
 
 public:
 	AerodynamicBeam(unsigned int uLabel,
@@ -349,20 +365,6 @@ public:
 	/* Scrive il contributo dell'elemento al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
-	/* Tipo dell'elemento (usato solo per debug ecc.) */
-	virtual Elem::Type GetElemType(void) const {
-		return Elem::AERODYNAMIC;
-	};
-
-	/* funzioni proprie */
-
-	/* Dimensioni del workspace */
-	virtual void
-	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-		*piNumRows = 18;
-		*piNumCols = 18;
-	};
-
 	/* assemblaggio jacobiano */
 	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
@@ -376,27 +378,6 @@ public:
 	       doublereal dCoef,
 	       const VectorHandler& XCurr,
 	       const VectorHandler& XPrimeCurr);
-
-	/* Numero di GDL iniziali */
-	virtual unsigned int iGetInitialNumDof(void) const {
-		return 0;
-	};
-
-	/* Dimensioni del workspace */
-	virtual void
-	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-		*piNumRows = 18;
-		*piNumCols = 1;
-	};
-
-	/* assemblaggio jacobiano */
-	virtual VariableSubMatrixHandler&
-	InitialAssJac(VariableSubMatrixHandler& WorkMat,
-		      const VectorHandler& /* XCurr */ ) {
-		DEBUGCOUTFNAME("AerodynamicBeam::AssJac");
-		WorkMat.SetNullMatrix();
-		return WorkMat;
-	};
 
 	/* assemblaggio residuo */
 	virtual SubVectorHandler&
@@ -432,10 +413,6 @@ public:
 		connectedNodes[1] = pNode2;
 		connectedNodes[2] = pNode3;
 	};
-
-	virtual const InducedVelocity *pGetInducedVelocity(void) const {
-		return pIndVel;
-	};
    	/* ************************************************ */
 };
 
@@ -445,21 +422,15 @@ public:
 
 class AerodynamicBeam2 :
 	virtual public Elem,
-	public AerodynamicElem,
-	public InitialAssemblyElem,
-	public DriveOwner,
-	public AerodynamicOutput
+	public Aerodynamic2DElem
 {
 protected:
 	enum { NODE1 = 0, NODE2, LASTNODE };
 	enum { DELTAx1 = 0, DELTAg1, DELTAx2, DELTAg2 };
 
-	AeroData* aerodata;
 	const Beam2* pBeam;
 	const StructNode* pNode1;
 	const StructNode* pNode2;
-	InducedVelocity* pIndVel;
-	flag fPassiveInducedVelocity;
 
 	const Vec3 f1;		/* Offset del punto di riferimento */
 	const Vec3 f2;		/* Offset del punto di riferimento */
@@ -468,30 +439,12 @@ protected:
 	const Vec3 Ra1_3;	/* Terza colonna della matrice Ra */
 	const Vec3 Ra2_3;	/* Terza colonna della matrice Ra */
 
-	const ShapeOwner Chord;		/* corda */
-	const ShapeOwner ForcePoint;    /* punto di app. della forza (1/4) */
-	const ShapeOwner VelocityPoint; /* punto di applicazione b.c. (3/4) */
-	const ShapeOwner Twist;         /* svergolamento */
-
-	GaussDataIterator GDI;	/* Iteratore sui punti di Gauss */
-	doublereal* pdOuta;	/* Dati privati */
-	doublereal** pvdOuta;	/* */
-
 	/*
 	 * Nota: li lascio distinti perche' cosi' eventualmente ne posso fare
 	 * l'output in modo agevole
 	 */
 	Vec3 F[LASTNODE];	/* Forza */
 	Vec3 M[LASTNODE];	/* Momento */
-
-	bool bJacobian;		/* Compute Jacobian matrix contribution */
-
-	/*
-	 * overload della funzione di ToBeOutput();
-	 * serve per allocare il vettore dei dati di output se il flag
-	 * viene settato dopo la costruzione
-	 */
-	virtual void SetOutputFlag(flag f = flag(1));
 
 	/* Assemblaggio residuo */
 	void AssVec(SubVectorHandler& WorkVec);
@@ -515,20 +468,6 @@ public:
 	/* Scrive il contributo dell'elemento al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
-	/* Tipo dell'elemento (usato solo per debug ecc.) */
-	virtual Elem::Type GetElemType(void) const {
-		return Elem::AERODYNAMIC;
-	};
-
-	/* funzioni proprie */
-
-	/* Dimensioni del workspace */
-	virtual void
-	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-		*piNumRows = 12;
-		*piNumCols = 12;
-	};
-
 	/* assemblaggio jacobiano */
 	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
@@ -542,27 +481,6 @@ public:
 	       doublereal dCoef,
 	       const VectorHandler& XCurr,
 	       const VectorHandler& XPrimeCurr);
-
-	/* Numero di GDL iniziali */
-	virtual unsigned int iGetInitialNumDof(void) const {
-		return 0;
-	};
-
-	/* Dimensioni del workspace */
-	virtual void
-	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-		*piNumRows = 12;
-		*piNumCols = 1;
-	};
-
-	/* assemblaggio jacobiano */
-	virtual VariableSubMatrixHandler&
-	InitialAssJac(VariableSubMatrixHandler& WorkMat,
-		      const VectorHandler& /* XCurr */ ) {
-		DEBUGCOUTFNAME("AerodynamicBeam2::AssJac");
-		WorkMat.SetNullMatrix();
-		return WorkMat;
-	};
 
 	/* assemblaggio residuo */
 	virtual SubVectorHandler&
@@ -596,10 +514,6 @@ public:
 		connectedNodes.resize(2);
 		connectedNodes[0] = pNode1;
 		connectedNodes[1] = pNode2;
-	};
-
-	virtual const InducedVelocity *pGetInducedVelocity(void) const {
-		return pIndVel;
 	};
    	/* ************************************************ */
 };
