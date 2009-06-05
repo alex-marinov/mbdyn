@@ -620,12 +620,12 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 
 			// deal with (f/dot{q} + dCoef*f/q) and so
 			integer iOffset = 6 + iPnt*iNumDof;
-			for (integer iCol = 1; iCol <= fq.iGetNumCols(); iCol++) {
+			for (integer iCol = 1; iCol <= iNumDof; iCol++) {
 				Vec3 fqTmp((RRloc*fq.GetVec(iCol))*cc);
-				Vec3 cqTmp((RRloc*cq.GetVec(iCol))*cc);
+				Vec3 cqTmp(Xr.Cross(fqTmp) + (RRloc*cq.GetVec(iCol))*cc);
 
 				WM.Sub(1, iOffset + iCol, fqTmp);
-				WM.Sub(4, iOffset + iCol, Xr.Cross(fqTmp) + cqTmp);
+				WM.Sub(4, iOffset + iCol, cqTmp);
 			}
 
 			// first equation
@@ -1503,9 +1503,9 @@ static const doublereal pdsf3[] = { -d13, d13, 1. };
 /* Jacobian assembly */
 VariableSubMatrixHandler&
 AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
-	doublereal  dCoef  ,
-	const VectorHandler& /* XCurr */ ,
-	const VectorHandler& /* XPrimeCurr */ )
+	doublereal dCoef,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUT("Entering AerodynamicBeam::AssJac()" << std::endl);
 
@@ -1740,46 +1740,7 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 
 			doublereal cc = dXds*dsdCsi*PW.dGetWght();
 
-			if (iNumDof) {
-#if 0	// TODO
-				// prepare (v/dot{x} + dCoef*v/x) and so
-				Mat3x3 RRlocT(RRloc.Transpose());
-	
-				vx.PutMat3x3(1, RRlocT);
-				vx.PutMat3x3(4, RRloc.MulTM(Mat3x3((Vr + Xr.Cross(Wn))*dCoef - Xr)));
-				wx.PutMat3x3(4, RRlocT);
-	
-				// equations from iFirstEq on are dealt with by aerodata
-				aerodata->AssJac(WM, dCoef, XCurr, XPrimeCurr,
-		         		iFirstEq, iFirstSubEq,
-					vx, wx, fq, cq, iPnt, dW, Fa0, JFa, OUTA[iPnt]);
-	
-				// deal with (f/dot{q} + dCoef*f/q) and so
-				integer iOffset = 6 + iPnt*iNumDof;
-				for (integer iCol = 1; iCol <= fq.iGetNumCols(); iCol++) {
-					Vec3 fqTmp((RRloc*fq.GetVec(iCol))*cc);
-					Vec3 cqTmp((RRloc*cq.GetVec(iCol))*cc);
-
-					WM.Sub(1, iOffset + iCol, fqTmp);
-					WM.Sub(4, iOffset + iCol, Xr.Cross(fqTmp) + cqTmp);
-				}
-#endif
-
-				// first equation
-				iFirstEq += iNumDof;
-				iFirstSubEq += iNumDof;
-
-			} else {
-				aerodata->GetForcesJac(iPnt, dW, Fa0, JFa, OUTA[iPnt]);
-			}
-
-			// rotate force, couple and Jacobian matrix in absolute frame
-			Mat6x6 JFaR = MultRMRt(JFa, RRloc, cc);
-
-			// force and moment about the node
-			Vec3 fTmp(RRloc*(Vec3(&Fa0[0])*dCoef));
 			Vec3 d(Xr - Xn[iNode]);
-			Vec3 cTmp(RRloc*(Vec3(&Fa0[3])*dCoef) + d.Cross(fTmp));
 
 			Mat3x3 Theta1(RR2*Gamma*GammaInv1.MulMT(RR2*dN1));
 			Mat3x3 Theta3(RR2*Gamma*GammaInv3.MulMT(RR2*dN3));
@@ -1794,6 +1755,53 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 			Mat3x3 Bw1(Wrc.Cross(Theta1) - Mat3x3(Wn1*(dN1*dCoef)));
 			Mat3x3 Bw2(Wrc.Cross(Theta2) - Mat3x3(Wn2*(dN2*dCoef)));
 			Mat3x3 Bw3(Wrc.Cross(Theta3) - Mat3x3(Wn3*(dN3*dCoef)));
+
+			if (iNumDof) {
+				// prepare (v/dot{x} + dCoef*v/x) and so
+				Mat3x3 RRlocT(RRloc.Transpose());
+	
+				vx.PutMat3x3(1, RRlocT*dN1);
+				vx.PutMat3x3(4, RRloc.MulTM(Bv1 - Mat3x3(f1Tmp*dN1)));
+
+				vx.PutMat3x3(6 + 1, RRlocT*dN2);
+				vx.PutMat3x3(6 + 4, RRloc.MulTM(Bv2 - Mat3x3(f2Tmp*dN2)));
+
+				vx.PutMat3x3(12 + 1, RRlocT*dN3);
+				vx.PutMat3x3(12 + 4, RRloc.MulTM(Bv3 - Mat3x3(f3Tmp*dN3)));
+
+				wx.PutMat3x3(4, RRlocT + Bw1);
+				wx.PutMat3x3(6 + 4, RRlocT + Bw2);
+				wx.PutMat3x3(12 + 4, RRlocT + Bw3);
+	
+				// equations from iFirstEq on are dealt with by aerodata
+				aerodata->AssJac(WM, dCoef, XCurr, XPrimeCurr,
+		         		iFirstEq, iFirstSubEq,
+					vx, wx, fq, cq, iPnt, dW, Fa0, JFa, OUTA[iPnt]);
+	
+				// deal with (f/dot{q} + dCoef*f/q) and so
+				integer iOffset = 18 + iPnt*iNumDof;
+				for (integer iCol = 1; iCol <= iNumDof; iCol++) {
+					Vec3 fqTmp((RRloc*fq.GetVec(iCol))*cc);
+					Vec3 cqTmp(d.Cross(fqTmp) + (RRloc*cq.GetVec(iCol))*cc);
+
+					WM.Sub(6*iNode + 1, iOffset + iCol, fqTmp);
+					WM.Sub(6*iNode + 4, iOffset + iCol, cqTmp);
+				}
+
+				// first equation
+				iFirstEq += iNumDof;
+				iFirstSubEq += iNumDof;
+
+			} else {
+				aerodata->GetForcesJac(iPnt, dW, Fa0, JFa, OUTA[iPnt]);
+			}
+
+			// rotate force, couple and Jacobian matrix in absolute frame
+			Mat6x6 JFaR = MultRMRt(JFa, RRloc, cc);
+
+			// force and moment about the node
+			Vec3 fTmp(RRloc*(Vec3(&Fa0[0])*dCoef));
+			Vec3 cTmp(RRloc*(Vec3(&Fa0[3])*dCoef) + d.Cross(fTmp));
 
 			Mat3x3 WM_F2[6];
 
