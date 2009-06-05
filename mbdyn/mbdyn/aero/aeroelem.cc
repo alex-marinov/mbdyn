@@ -134,7 +134,7 @@ Aerodynamic2DElem::Aerodynamic2DElem(unsigned int uLabel,
 	InducedVelocity* pR,
 	const Shape* pC, const Shape* pF,
 	const Shape* pV, const Shape* pT,
-	integer iNN, integer iN, AeroData* a,
+	const unsigned iNN, integer iN, AeroData* a,
 	const DriveCaller* pDC,
 	bool bUseJacobian,
 	flag fOut)

@@ -140,7 +140,7 @@ public:
 		InducedVelocity* pR,
 		const Shape* pC, const Shape* pF,
 		const Shape* pV, const Shape* pT,
-		integer iNN, integer iN, AeroData* a,
+		const unsigned iNN, integer iN, AeroData* a,
 		const DriveCaller* pDC,
 		bool bUseJacobian,
 		flag fOut);
@@ -233,26 +233,6 @@ public:
 
 	/* Scrive il contributo dell'elemento al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
-
-	/* inherited from SimulationEntity */
-	virtual unsigned int iGetNumDof(void) const;
-	virtual std::ostream& DescribeDof(std::ostream& out,
-		const char *prefix = "", bool bInitial = false) const;
-	virtual void DescribeDof(std::vector<std::string>& desc,
-		bool bInitial = false, int i = -1) const;
-	virtual std::ostream& DescribeEq(std::ostream& out,
-		const char *prefix = "", bool bInitial = false) const;
-	virtual void DescribeEq(std::vector<std::string>& desc,
-		bool bInitial = false, int i = -1) const;
-	virtual DofOrder::Order GetDofType(unsigned int) const;
-
-	virtual void SetValue(DataManager *pDM,
-			VectorHandler& X, VectorHandler& XP,
-			SimulationEntity::Hints* h = 0);
-
-	/* Dimensioni del workspace */
-	virtual void
-	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
 
 	/* assemblaggio jacobiano */
 	virtual VariableSubMatrixHandler&
