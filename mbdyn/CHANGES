@@ -20,9 +20,9 @@ MBDyn 1.X-Devel
 		- add "attached" viscous/viscoelastic deformable joint
 		  and "invariant" elastic deformable joint
 		  (partially contributed by Doug Baldwin)
-		- add (experimental) Jacobian of aerodynamic body/beam2/beam3
+		- add Jacobian of aerodynamic body/beam2/beam3
 		  (contributions by Alessandro Fumagalli)
-		- add support for internal states in aerodynamic elements
+		- add support for internal states in aerodynamic body/beam2/beam3
 		- add support for scalar values to discrete control elem
 		- honor default output orientation for reference frames
 		- add echo of C81 data

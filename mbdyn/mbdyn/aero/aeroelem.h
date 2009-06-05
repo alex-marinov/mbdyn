@@ -427,7 +427,10 @@ protected:
 	Vec3 M[LASTNODE];	/* Momento */
 
 	/* Assemblaggio residuo */
-	void AssVec(SubVectorHandler& WorkVec);
+	void AssVec(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
 
 public:
 	AerodynamicBeam2(unsigned int uLabel,

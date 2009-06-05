@@ -2472,9 +2472,9 @@ static const doublereal pdsf2[] = { 0., 1. };
 /* Jacobian assembly */
 VariableSubMatrixHandler&
 AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
-	doublereal  dCoef  ,
-	const VectorHandler& /* XCurr */ ,
-	const VectorHandler& /* XPrimeCurr */ )
+	doublereal dCoef,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUT("Entering AerodynamicBeam2::AssJac()" << std::endl);
 
@@ -2570,6 +2570,21 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 	int iPnt = 0;
 
 	ResetIterator();
+
+	integer iNumDof = aerodata->iGetNumDof();
+	integer iFirstEq = -1;
+	integer iFirstSubEq = -1;
+	if (iNumDof > 0) {
+		iFirstEq = iGetFirstIndex();
+		iFirstSubEq = 12;
+
+		integer iOffset = iFirstEq - 12;
+
+		for (int iCnt = 12 + 1; iCnt <= iNumRows; iCnt++) {
+			WM.PutRowIndex(iCnt, iOffset + iCnt);
+			WM.PutColIndex(iCnt, iOffset + iCnt);
+		}
+	}
 
 	for (int iNode = 0; iNode < LASTNODE; iNode++) {
 		doublereal dsi = pdsi2[iNode];
@@ -2669,23 +2684,58 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 			doublereal Fa0[6];
 			Mat6x6 JFa;
 
-			aerodata->GetForcesJac(iPnt, dW, Fa0, JFa, OUTA[iPnt]);
-
 			doublereal cc = dXds*dsdCsi*PW.dGetWght();
 
-			// rotate force, couple and Jacobian matrix in absolute frame
-			Mat6x6 JFaR = MultRMRt(JFa, RRloc, cc);
-
-			// force and moment about the node
-			Vec3 fTmp(RRloc*(Vec3(&Fa0[0])*dCoef));
 			Vec3 d(Xr - Xn[iNode]);
-			Vec3 cTmp(RRloc*(Vec3(&Fa0[3])*dCoef) + d.Cross(fTmp));
 
 			Mat3x3 Bv1((Vr - Omega1Crossf1)*(dN1*dCoef));
 			Mat3x3 Bv2((Vr - Omega2Crossf2)*(dN2*dCoef));
 
 			Mat3x3 Bw1((Wr - Wn1)*(dN1*dCoef));
 			Mat3x3 Bw2((Wr - Wn2)*(dN2*dCoef));
+
+			if (iNumDof) {
+				// prepare (v/dot{x} + dCoef*v/x) and so
+				Mat3x3 RRlocT(RRloc.Transpose());
+	
+				vx.PutMat3x3(1, RRlocT*dN1);
+				vx.PutMat3x3(4, RRloc.MulTM(Bv1 - Mat3x3(f1Tmp*dN1)));
+
+				vx.PutMat3x3(6 + 1, RRlocT*dN2);
+				vx.PutMat3x3(6 + 4, RRloc.MulTM(Bv2 - Mat3x3(f2Tmp*dN2)));
+
+				wx.PutMat3x3(4, RRlocT + Bw1);
+				wx.PutMat3x3(6 + 4, RRlocT + Bw2);
+	
+				// equations from iFirstEq on are dealt with by aerodata
+				aerodata->AssJac(WM, dCoef, XCurr, XPrimeCurr,
+		         		iFirstEq, iFirstSubEq,
+					vx, wx, fq, cq, iPnt, dW, Fa0, JFa, OUTA[iPnt]);
+	
+				// deal with (f/dot{q} + dCoef*f/q) and so
+				integer iOffset = 12 + iPnt*iNumDof;
+				for (integer iCol = 1; iCol <= iNumDof; iCol++) {
+					Vec3 fqTmp((RRloc*fq.GetVec(iCol))*cc);
+					Vec3 cqTmp(d.Cross(fqTmp) + (RRloc*cq.GetVec(iCol))*cc);
+
+					WM.Sub(6*iNode + 1, iOffset + iCol, fqTmp);
+					WM.Sub(6*iNode + 4, iOffset + iCol, cqTmp);
+				}
+
+				// first equation
+				iFirstEq += iNumDof;
+				iFirstSubEq += iNumDof;
+
+			} else {
+				aerodata->GetForcesJac(iPnt, dW, Fa0, JFa, OUTA[iPnt]);
+			}
+
+			// rotate force, couple and Jacobian matrix in absolute frame
+			Mat6x6 JFaR = MultRMRt(JFa, RRloc, cc);
+
+			// force and moment about the node
+			Vec3 fTmp(RRloc*(Vec3(&Fa0[0])*dCoef));
+			Vec3 cTmp(RRloc*(Vec3(&Fa0[3])*dCoef) + d.Cross(fTmp));
 
 			Mat3x3 WM_F2[4];
 
@@ -2745,13 +2795,16 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 SubVectorHandler&
 AerodynamicBeam2::AssRes(
 	SubVectorHandler& WorkVec,
-	doublereal /* dCoef */ ,
-	const VectorHandler& /* XCurr */ ,
-	const VectorHandler& /* XPrimeCurr */
-)
+	doublereal dCoef,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUTFNAME("AerodynamicBeam2::AssRes");
-	WorkVec.ResizeReset(12);
+
+	integer iNumRows;
+	integer iNumCols;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.ResizeReset(iNumRows);
 
 	integer iNode1FirstIndex = pNode1->iGetFirstMomentumIndex();
 	integer iNode2FirstIndex = pNode2->iGetFirstMomentumIndex();
@@ -2760,7 +2813,7 @@ AerodynamicBeam2::AssRes(
 		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstIndex + iCnt);
 	}
 
-	AssVec(WorkVec);
+	AssVec(WorkVec, dCoef, XCurr, XPrimeCurr);
 
 	return WorkVec;
 }
@@ -2768,7 +2821,7 @@ AerodynamicBeam2::AssRes(
 /* assemblaggio iniziale residuo */
 SubVectorHandler&
 AerodynamicBeam2::InitialAssRes( SubVectorHandler& WorkVec,
-	const VectorHandler& /* XCurr */ )
+	const VectorHandler& XCurr)
 {
 	DEBUGCOUTFNAME("AerodynamicBeam2::InitialAssRes");
 	WorkVec.ResizeReset(12);
@@ -2780,14 +2833,17 @@ AerodynamicBeam2::InitialAssRes( SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstIndex + iCnt);
 	}
 
-	AssVec(WorkVec);
+	AssVec(WorkVec, 1., XCurr, XCurr);
 
 	return WorkVec;
 }
 
 /* assemblaggio residuo */
 void
-AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
+AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
+	doublereal dCoef,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUTFNAME("AerodynamicBeam2::AssVec");
 
@@ -2851,6 +2907,20 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 	int iPnt = 0;
 
 	ResetIterator();
+
+	integer iNumDof = aerodata->iGetNumDof();
+	integer iFirstEq = -1;
+	integer iFirstSubEq = -1;
+	if (iNumDof > 0) {
+		iFirstEq = iGetFirstIndex();
+		iFirstSubEq = 12;
+
+		integer iOffset = iFirstEq - 12;
+		integer iNumRows = WorkVec.iGetSize();
+		for (int iCnt = 12 + 1; iCnt <= iNumRows; iCnt++) {
+			WorkVec.PutRowIndex(iCnt, iOffset + iCnt);
+		}
+	}
 
 	for (int iNode = 0; iNode < LASTNODE; iNode++) {
 
@@ -2933,7 +3003,17 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec)
 			WTmp.PutTo(&dW[3]);
 
 			/* Funzione di calcolo delle forze aerodinamiche */
-			aerodata->GetForces(iPnt, dW, dTng, OUTA[iPnt]);
+			if (iNumDof) {
+				aerodata->AssRes(WorkVec, dCoef, XCurr, XPrimeCurr,
+                			iFirstEq, iFirstSubEq, iPnt, dW, dTng, OUTA[iPnt]);
+
+				// first equation
+				iFirstEq += iNumDof;
+				iFirstSubEq += iNumDof;
+
+			} else {
+				aerodata->GetForces(iPnt, dW, dTng, OUTA[iPnt]);
+			}
 
 			// specific for Gauss points force output
 			if (fToBeOutput() && IsPGAUSS()) {
