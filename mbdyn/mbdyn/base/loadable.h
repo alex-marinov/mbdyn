@@ -242,12 +242,12 @@ struct LoadableCalls {
 	p_write_adams_dummy_part_cmd	write_adams_dummy_part_cmd;
 };
 
-class LoadableElem
-: virtual public Elem,
-public InitialAssemblyElem,
-public AerodynamicElem,
-public ElemGravityOwner,
-public ElemWithDofs {
+class LoadableElem :
+	virtual public Elem,
+	public InitialAssemblyElem,
+	public AerodynamicElem,
+	public ElemGravityOwner
+{
 protected:
    	void* priv_data;	/* Dati privati passati alle funzioni */
    	char* module_name;	/* Nome del modulo */

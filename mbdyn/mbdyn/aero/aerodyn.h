@@ -258,7 +258,11 @@ public:
 
 /* AerodynamicElem - begin */
 
-class AerodynamicElem : virtual public Elem, public AirPropOwner {
+class AerodynamicElem :
+	virtual public Elem,
+	public ElemWithDofs,
+	public AirPropOwner
+{
 public:
 	/* Tipi di elementi aerodinamici */
 	enum Type {
@@ -280,7 +284,7 @@ public:
 protected:
  
 public:
-	AerodynamicElem(unsigned int uL, flag fOut);
+	AerodynamicElem(unsigned int uL, const DofOwner *pDO, flag fOut);
 	virtual ~AerodynamicElem(void);
 
 	/* Tipo di elemento aerodinamico */

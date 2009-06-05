@@ -62,7 +62,8 @@ protected:
 	void Update(void);
 	
 public:
-	AircraftInstruments(unsigned int uLabel, const StructNode* pN,
+	AircraftInstruments(unsigned int uLabel,
+		const DofOwner *pDO, const StructNode* pN,
 		const Mat3x3 &R, flag fOut);
 	virtual ~AircraftInstruments(void);
 	
@@ -128,7 +129,8 @@ class DataManager;
 class MBDynParser;
 
 extern Elem *
-ReadAircraftInstruments(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
+ReadAircraftInstruments(DataManager* pDM, MBDynParser& HP,
+	const DofOwner *pDO, unsigned int uLabel);
 
 #endif /* INSTRUMENTS_H */
 

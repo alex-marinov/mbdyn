@@ -47,10 +47,11 @@
 /* AerodynamicExternal  */
 
 
-class AerodynamicExternal
-	: virtual public Elem,
-	public AerodynamicElem, public DriveOwner {
-
+class AerodynamicExternal :
+	virtual public Elem,
+	public AerodynamicElem,
+	public DriveOwner
+{
 private:
 	MyVectorHandler*   pdBuffer;    /* buffer per lo scambio dei dati riguardanti 
 				           le posizioni e le forze */
@@ -74,26 +75,28 @@ private:
 public:
 	
 	AerodynamicExternal(unsigned int uLabel,
-			    const DriveCaller* pDC,
-			    int NN,
-			    const StructNode** ppN,
-			    const doublereal* RefL,
-			    MPI::Intercomm* IC,
-			    flag fOut,
-			    bool VF,
-			    bool MF);
+		const DofOwner *pDO,
+		const DriveCaller* pDC,
+		int NN,
+		const StructNode** ppN,
+		const doublereal* RefL,
+		MPI::Intercomm* IC,
+		flag fOut,
+		bool VF,
+		bool MF);
 
 	AerodynamicExternal(unsigned int uLabel,
-			    const DriveCaller* pDC, 
-			    int NN,
-			    const StructNode** ppN,
-			    const doublereal* RefL,
-			    MPI::Intercomm* IC,
-			    int	ON,
-			    Mat3xN* OV,
-			    flag fOut,
-			    bool VF,
-			    bool MF);
+		const DofOwner *pDO,
+		const DriveCaller* pDC, 
+		int NN,
+		const StructNode** ppN,
+		const doublereal* RefL,
+		MPI::Intercomm* IC,
+		int	ON,
+		Mat3xN* OV,
+		flag fOut,
+		bool VF,
+		bool MF);
 		
 	virtual ~AerodynamicExternal(void);
 	
@@ -191,11 +194,11 @@ private:
 
 
 /* AerodynamicExternalModal */
-class AerodynamicExternalModal
-	: virtual public Elem,
+class AerodynamicExternalModal :
+	virtual public Elem,
 	public AerodynamicElem,
-	public DriveOwner {
-
+	public DriveOwner
+{
 protected:
 	
 	MyVectorHandler*   pdBuffer;    /* buffer per lo scambio dei dati riguardanti 
@@ -215,13 +218,13 @@ protected:
 public:
 	
 	AerodynamicExternalModal(unsigned int uLabel,
-			    const DriveCaller* pDC,
-			    Modal* pM,
-			    MPI::Intercomm* IC,
-			    flag fOut,
-			    bool VelFlag,
-			    bool MomFlag);
-	
+		const DofOwner* pDO,
+		const DriveCaller* pDC,
+		Modal* pM,
+		MPI::Intercomm* IC,
+		flag fOut,
+		bool VelFlag,
+		bool MomFlag);
 
 	virtual ~AerodynamicExternalModal(void);
 	
@@ -306,20 +309,20 @@ public:
 		connectedNodes[0] = pModal->pGetModalNode();
 	};
 	
-   private:
-	void Send(const VectorHandler& X  , 
-		const VectorHandler&  XP  );
-
+private:
+	void Send(const VectorHandler& X, const VectorHandler& XP);
 };
 
 class DataManager;
 class MBDynParser;
 
 extern Elem *
-ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
+ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP,
+	const DofOwner *pDO, unsigned int uLabel);
 
 extern Elem *
-ReadAerodynamicExternalModal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
+ReadAerodynamicExternalModal(DataManager* pDM, MBDynParser& HP,
+	const DofOwner *pDO, unsigned int uLabel);
 
 #endif /* USE_EXTERNAL */
 #endif /* AEROEXT_H */

@@ -224,13 +224,14 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 }
 
 GenericAerodynamicForce::GenericAerodynamicForce(unsigned int uLabel,
+	const DofOwner *pDO,
 	const StructNode* pN,
 	const Vec3& fTmp, const Mat3x3& RaTmp,
 	doublereal dS, doublereal dL,
 	GenericAerodynamicData *pD,
 	flag fOut)
 : Elem(uLabel, fOut),
-AerodynamicElem(uLabel, fOut),
+AerodynamicElem(uLabel, pDO, fOut),
 InitialAssemblyElem(uLabel, fOut),
 pNode(pN),
 dRefSurface(dS),
@@ -241,6 +242,7 @@ F(0.),
 M(0.),
 pData(pD)
 {
+	NO_OP;
 }
 
 GenericAerodynamicForce::~GenericAerodynamicForce(void)
@@ -571,9 +573,8 @@ ReadGenericAerodynamicData(const std::string& fname)
 }
 
 Elem *
-ReadGenericAerodynamicForce(DataManager* pDM,
-	MBDynParser& HP,
-	unsigned int uLabel)
+ReadGenericAerodynamicForce(DataManager* pDM, MBDynParser& HP,
+	const DofOwner *pDO, unsigned int uLabel)
 {
    	/* Nodo */
 	StructNode* pNode = dynamic_cast<StructNode*>(pDM->ReadNode(HP, Node::STRUCTURAL));
@@ -607,7 +608,7 @@ ReadGenericAerodynamicForce(DataManager* pDM,
 
 	Elem *pEl = 0;
 	SAFENEWWITHCONSTRUCTOR(pEl, GenericAerodynamicForce,
-		GenericAerodynamicForce(uLabel,
+		GenericAerodynamicForce(uLabel, pDO,
 			pNode, f, Ra,
 			dRefSurface, dRefLength,
 			pData, fOut));

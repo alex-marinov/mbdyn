@@ -56,21 +56,23 @@
 #ifndef AerodynamicModal_hh
 #define AerodynamicModal_hh
 
-#include <myassert.h>
-#include <mynewmem.h>
-#include <elem.h>
-#include <aerodyn.h>
-#include <modal.h>
-#include <spmapmh.h>
+#include "myassert.h"
+#include "mynewmem.h"
+#include "elem.h"
+#include "aerodyn.h"
+#include "modal.h"
+#include "spmapmh.h"
 
 
 
 /* AerodynamicModal - begin */
 
 
-class AerodynamicModal : virtual public Elem, public AerodynamicElem, 
-                         public InitialAssemblyElem, public ElemWithDofs {
- 
+class AerodynamicModal :
+	virtual public Elem,
+	public AerodynamicElem,
+	public InitialAssemblyElem
+{
  protected:
    const StructNode* pModalNode; /* Nodo modale per il moto rigido */
    const Modal* pModalJoint;     /* puntatore all'elemento modale di riferimento */
@@ -116,7 +118,7 @@ class AerodynamicModal : virtual public Elem, public AerodynamicElem,
    void AssVec(SubVectorHandler& WorkVec);
    
   public:
-   AerodynamicModal(unsigned int uLabel, 
+   AerodynamicModal(unsigned int uLabel,
 		   const StructNode* pN, 
 		   const Modal* pMJ,
 		   const Mat3x3& RaTmp,
@@ -239,9 +241,8 @@ class AerodynamicModal : virtual public Elem, public AerodynamicElem,
 class DataManager;
 class MBDynParser;
 
-extern Elem* ReadAerodynamicModal(DataManager* pDM,
-				  MBDynParser& HP,
-				  const DofOwner* pDO,
-				  unsigned int uLabel);
+extern Elem*
+ReadAerodynamicModal(DataManager* pDM, MBDynParser& HP,
+	const DofOwner* pDO, unsigned int uLabel);
 
 #endif /* AerodynamicModal_hh */

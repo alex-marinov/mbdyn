@@ -272,9 +272,8 @@ LoadableElem::LoadableElem(unsigned int uLabel,
 			   MBDynParser& HP)
 : Elem(uLabel, flag(0)),
 InitialAssemblyElem(uLabel, flag(0)),
-AerodynamicElem(uLabel, flag(0)),
+AerodynamicElem(uLabel, pDO, flag(0)),
 ElemGravityOwner(uLabel, flag(0)),
-ElemWithDofs(uLabel, pDO, flag(0)),
 priv_data(NULL),
 module_name(NULL),
 #ifdef USE_RUNTIME_LOADING
@@ -296,9 +295,8 @@ LoadableElem::LoadableElem(unsigned int uLabel,
 			   MBDynParser& HP)
 : Elem(uLabel, flag(0)),
 InitialAssemblyElem(uLabel, flag(0)),
-AerodynamicElem(uLabel, flag(0)),
+AerodynamicElem(uLabel, pDO, flag(0)),
 ElemGravityOwner(uLabel, flag(0)),
-ElemWithDofs(uLabel, pDO, flag(0)),
 priv_data(NULL),
 module_name(NULL),
 #ifdef USE_RUNTIME_LOADING
@@ -788,10 +786,8 @@ LoadableElem::WriteAdamsDummyPartCmd(std::ostream& out,
 #endif /* USE_ADAMS */
 
 Elem* 
-ReadLoadable(DataManager* pDM, 
-	     MBDynParser& HP, 
-	     const DofOwner* pDO, 
-	     unsigned int uLabel)
+ReadLoadable(DataManager* pDM, MBDynParser& HP, 
+	const DofOwner* pDO, unsigned int uLabel)
 {
    	Elem* pEl = NULL;
 

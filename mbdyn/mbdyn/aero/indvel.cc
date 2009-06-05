@@ -60,8 +60,7 @@ InducedVelocity::InducedVelocity(unsigned int uL, const DofOwner* pDO,
 	const StructNode *pCraft,
 	ResForceSet **ppres, flag fOut)
 : Elem(uL, fOut),
-AerodynamicElem(uL, fOut),
-ElemWithDofs(uL, pDO, fOut),
+AerodynamicElem(uL, pDO, fOut),
 #ifdef USE_MPI
 is_parallel(false),
 pBlockLenght(0),

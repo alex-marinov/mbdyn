@@ -30,16 +30,16 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #ifdef USE_EXTERNAL 
 #include "aeroext.h"
-#include <myassert.h>
-#include <except.h>
-#include <dataman.h>
-#include <external.h>
-#include <drive_.h>
+#include "myassert.h"
+#include "except.h"
+#include "dataman.h"
+#include "external.h"
+#include "drive_.h"
 
 /* le label delle comunicazioni vengono costruite in questo modo:
  *
@@ -53,16 +53,17 @@
 
 /* Aerodynamic External - begin */
 AerodynamicExternal::AerodynamicExternal(unsigned int uLabel,
-					const DriveCaller* pDC,
-					int NN,
-			    		const StructNode** ppN,
-			    		const doublereal* pRefL,
-			    		MPI::Intercomm* pIC,
-					flag fOut,
-					bool VF,
-					bool MF)
+	const DofOwner *pDO,
+	const DriveCaller* pDC,
+	int NN,
+	const StructNode** ppN,
+	const doublereal* pRefL,
+	MPI::Intercomm* pIC,
+	flag fOut,
+	bool VF,
+	bool MF)
 :Elem(uLabel, fOut), 
-AerodynamicElem(uLabel, fOut),
+AerodynamicElem(uLabel, pDO, fOut),
 DriveOwner(pDC),
 pdBuffer(NULL),
 pdBufferVel(NULL),
@@ -79,28 +80,26 @@ pForce(NULL),
 pMoms(NULL),
 pLabList(NULL)
 {
-	
 	/* costruisce la mat 3xN degli offset */
 	SAFENEWWITHCONSTRUCTOR(pOffsetVectors, Mat3xN, Mat3xN(OffN, 0.));
 	for (int i=1; i<=3; i++) pOffsetVectors->Put(i,i,1.);
 	ConstructAndInitialize();
-	
-		
 }
 
 AerodynamicExternal::AerodynamicExternal(unsigned int uLabel,
-					const DriveCaller* pDC,
-					int NN,
-			    		const StructNode** ppN,
-			    		const doublereal* pRefL,
-			    		MPI::Intercomm* pIC,
-					int	ON,
-			    		Mat3xN* OV,
-			    		flag fOut,
-			    		bool VF,
-					bool MF)
+	const DofOwner* pDO,
+	const DriveCaller* pDC,
+	int NN,
+	const StructNode** ppN,
+	const doublereal* pRefL,
+	MPI::Intercomm* pIC,
+	int	ON,
+	Mat3xN* OV,
+	flag fOut,
+	bool VF,
+	bool MF)
 :Elem(uLabel, fOut), 
-AerodynamicElem(uLabel, fOut),
+AerodynamicElem(uLabel, pDO, fOut),
 DriveOwner(pDC),
 pdBuffer(NULL),
 pdBufferVel(NULL),
@@ -320,7 +319,8 @@ AerodynamicExternal::Output(OutputHandler& OH) const
 }
 
 Elem *
-ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
+ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP,
+	const DofOwner *pDO, unsigned int uLabel)
 {
    	/* legge i dati d'ingresso e li passa al costruttore dell'elemento */
    	AerodynamicExternal* pEl = NULL;
@@ -407,30 +407,32 @@ ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	
    	if (OffN) {
 		SAFENEWWITHCONSTRUCTOR(pEl, 
-				AerodynamicExternal,
-				AerodynamicExternal(uLabel,
-						pDC,
-						NodeN,
-						ppNodeList,
-						pRefLenght,
-						pInterC,
-						OffN,
-						pOffVec,
-						fOut,
-						VelFlag,
-						MomFlag));
+			AerodynamicExternal,
+			AerodynamicExternal(uLabel,
+				pDO,
+				pDC,
+				NodeN,
+				ppNodeList,
+				pRefLenght,
+				pInterC,
+				OffN,
+				pOffVec,
+				fOut,
+				VelFlag,
+				MomFlag));
 	} else {
 		SAFENEWWITHCONSTRUCTOR(pEl, 
-				AerodynamicExternal,
-				AerodynamicExternal(uLabel,
-						pDC,
-						NodeN,
-						ppNodeList,
-						pRefLenght,
-						pInterC,
-						fOut,
-						VelFlag,
-						MomFlag));
+			AerodynamicExternal,
+			AerodynamicExternal(uLabel,
+				pDO,
+				pDC,
+				NodeN,
+				ppNodeList,
+				pRefLenght,
+				pInterC,
+				fOut,
+				VelFlag,
+				MomFlag));
 	}
 						
  	return pEl;   	
@@ -444,14 +446,15 @@ ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 /* Aerodynamic External Modal - begin */
 
 AerodynamicExternalModal::AerodynamicExternalModal(unsigned int uLabel,
-							const DriveCaller* pDC,
-			    				Modal* pM,
-			    				MPI::Intercomm* IC,
-			    				flag fOut,
-			    				bool VF,
-							bool MF)
+	const DofOwner *pDO,
+	const DriveCaller* pDC,
+	Modal* pM,
+	MPI::Intercomm* IC,
+	flag fOut,
+	bool VF,
+	bool MF)
 :Elem(uLabel, fOut), 
-AerodynamicElem(uLabel, fOut),
+AerodynamicElem(uLabel, pDO, fOut),
 DriveOwner(pDC),
 pdBuffer(NULL),
 pdBufferVel(NULL),
@@ -464,7 +467,7 @@ SentFlag(false),
 pForce(NULL)
 {
 	SAFENEWWITHCONSTRUCTOR(pdBuffer, MyVectorHandler,
-			MyVectorHandler(8+3*ModalNodes));
+		MyVectorHandler(8+3*ModalNodes));
 	
 	if (fToBeOutput()) {
 		integer NModes = pModal->uGetNModes();
@@ -488,7 +491,6 @@ pForce(NULL)
 		pdBuffer->Put(i*3, pNodePos->GetVec(i+1));
 	}
 	pInterfComm->Send(pdBuffer->pdGetVec(), 3*ModalNodes, MPI::DOUBLE, 0,(this->GetLabel())*10+2);
-
 }
 
 AerodynamicExternalModal::~AerodynamicExternalModal(void)
@@ -499,8 +501,8 @@ AerodynamicExternalModal::~AerodynamicExternalModal(void)
 }
 
 /* invia posizione e velocita' predetti */ 
-void AerodynamicExternalModal::AfterPredict(VectorHandler& X  , 
-					VectorHandler&  XP  )
+void
+AerodynamicExternalModal::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
 	DEBUGCOUTFNAME("AerodynamicExternalModal::AfterPredict");
 	Send(X, XP);
@@ -619,7 +621,8 @@ AerodynamicExternalModal::Output(OutputHandler& OH) const
 }
 
 Elem *
-ReadAerodynamicExternalModal(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
+ReadAerodynamicExternalModal(DataManager* pDM, MBDynParser& HP,
+	const DofOwner *pDO, unsigned int uLabel)
 {
    	/* legge i dati d'ingresso e li passa al costruttore dell'elemento */
    	AerodynamicExternalModal* pEl = NULL;
@@ -652,14 +655,15 @@ ReadAerodynamicExternalModal(DataManager* pDM, MBDynParser& HP, unsigned int uLa
 	SAFENEWWITHCONSTRUCTOR(pDC, TimeDriveCaller, TimeDriveCaller(pDM->pGetDrvHdl()));
 
 	SAFENEWWITHCONSTRUCTOR(pEl, 
-			AerodynamicExternalModal,
-			AerodynamicExternalModal(uLabel,
-						pDC,
-						pModalJoint,
-						pInterC,
-						fOut,
-						VelFlag,
-						MomFlag));
+		AerodynamicExternalModal,
+		AerodynamicExternalModal(uLabel,
+			pDO,
+			pDC,
+			pModalJoint,
+			pInterC,
+			fOut,
+			VelFlag,
+			MomFlag));
 						
  	return pEl;   		
 }

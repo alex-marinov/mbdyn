@@ -96,23 +96,23 @@ get_c81_coef(int nm, doublereal* m, int na, doublereal* a, doublereal alpha, dou
 }
 
 int 
-c81_aerod2(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA, c81_data* data)
+c81_aerod2(doublereal* W, const struct vam_t *VAM, doublereal* TNG, doublereal* OUTA, c81_data* data)
 {
    	/* 
 	 * velocita' del punto in cui sono calcolate le condizioni al contorno
 	 */
    	doublereal v[3];
    	doublereal vp, vp2, vtot;
-	doublereal rho = VAM[0];
-	doublereal cs = VAM[1];
-	doublereal chord = VAM[2];
+	doublereal rho = VAM->density;
+	doublereal cs = VAM->sound_celerity;
+	doublereal chord = VAM->chord;
 	
 	doublereal cl = 0., cl0 = 0., cd = 0., cd0 = 0., cm = 0.;
 	doublereal alpha, gamma, cosgam, mach, q;
 	doublereal dcla;
 	
-	doublereal ca = VAM[3];
-	doublereal c34 = VAM[4];
+	doublereal ca = VAM->force_position;
+	doublereal c34 = VAM->bc_position;
 	
 	const doublereal RAD2DEG = 180.*M_1_PI;
 	const doublereal M_PI_3 = M_PI/3.;
@@ -237,7 +237,7 @@ c81_aerod2(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA, c8
 }
 
 int 
-c81_aerod2_u(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA, 
+c81_aerod2_u(doublereal* W, const struct vam_t *VAM, doublereal* TNG, doublereal* OUTA, 
 		c81_data* data, long unsteadyflag)
 {
    	/* 
@@ -245,16 +245,16 @@ c81_aerod2_u(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA,
 	 */
    	doublereal v[3];
    	doublereal vp, vp2, vtot;
-	doublereal rho = VAM[0];
-	doublereal cs = VAM[1];
-	doublereal chord = VAM[2];
+	doublereal rho = VAM->density;
+	doublereal cs = VAM->sound_celerity;
+	doublereal chord = VAM->chord;
 	
 	doublereal cl = 0., cl0 = 0., cd = 0., cd0 = 0., cm = 0.;
 	doublereal alpha, gamma, cosgam, mach, q;
 	doublereal dcla;
 	
-	doublereal ca = VAM[3];
-	doublereal c34 = VAM[4];
+	doublereal ca = VAM->force_position;
+	doublereal c34 = VAM->bc_position;
 
 	const doublereal RAD2DEG = 180.*M_1_PI;
 	const doublereal M_PI_3 = M_PI/3.;

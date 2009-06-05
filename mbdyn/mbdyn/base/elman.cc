@@ -32,7 +32,7 @@
 /* ElementManager */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include <limits>
@@ -66,6 +66,7 @@ DataManager::ElemManager(void)
 	ElemData[Elem::GENEL].DofOwnerType = DofOwner::GENEL;
 	ElemData[Elem::INDUCEDVELOCITY].DofOwnerType = DofOwner::INDUCEDVELOCITY;
 	ElemData[Elem::AEROMODAL].DofOwnerType = DofOwner::AEROMODAL;
+	ElemData[Elem::AERODYNAMIC].DofOwnerType = DofOwner::AERODYNAMIC;
 	ElemData[Elem::HYDRAULIC].DofOwnerType = DofOwner::HYDRAULIC;
 	ElemData[Elem::LOADABLE].DofOwnerType = DofOwner::LOADABLE;
 
@@ -130,7 +131,7 @@ DataManager::ElemManager(void)
 	ElemData[Elem::AIRPROPERTIES].iDerivation = ELEM | INITIALASSEMBLY;
 	ElemData[Elem::INDUCEDVELOCITY].iDerivation = ELEM | DOFOWNER | AIRPROPOWNER;
 	ElemData[Elem::AEROMODAL].iDerivation = ELEM | DOFOWNER | AIRPROPOWNER;
-	ElemData[Elem::AERODYNAMIC].iDerivation = ELEM | AIRPROPOWNER |INITIALASSEMBLY;
+	ElemData[Elem::AERODYNAMIC].iDerivation = ELEM | DOFOWNER | AIRPROPOWNER | INITIALASSEMBLY;
 	ElemData[Elem::ELECTRIC].iDerivation = ELEM | DOFOWNER;
 	ElemData[Elem::THERMAL].iDerivation = ELEM | DOFOWNER;
 	ElemData[Elem::ELECTRICBULK].iDerivation = ELEM | DOFOWNER;
@@ -385,7 +386,6 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
 					<< std::endl);
 				throw ErrDivideByZero(MBDYN_EXCEPT_ARGS);
 			}
-
 		} while (Iter.bGetNext(pTmpEl));
 	}
 }

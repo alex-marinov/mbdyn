@@ -37,21 +37,76 @@ extern "C" {
 #endif /* __cplusplus */
 
 enum {
+	// 0 unused?
 	OUTA_ALPHA	= 1,
 	OUTA_GAMMA	= 2,
 	OUTA_MACH	= 3,
 	OUTA_CL		= 4,
 	OUTA_CD		= 5,
 	OUTA_CM		= 6,
-
+	// 7 unused?
 	OUTA_ALF1	= 8,
 	OUTA_ALF2	= 9,
 	OUTA_DAN	= 10,
 	OUTA_DAM	= 11,
 	OUTA_DCN	= 12,
 	OUTA_DCM	= 13,
+	// 14-19 unused?
 
 	OUTA_LAST	= 20
+};
+
+struct outa_t {
+	doublereal outa_00;
+	doublereal alpha;
+	doublereal gamma;
+	doublereal mach;
+	doublereal cl;
+	doublereal cd;
+	doublereal cm;
+	doublereal outa_07;
+	doublereal alf1;
+	doublereal alf2;
+	doublereal dan;
+	doublereal dam;
+	doublereal dcn;
+	doublereal dcm;
+	doublereal outa_14;
+	doublereal outa_15;
+	doublereal outa_16;
+	doublereal outa_17;
+	doublereal outa_18;
+	doublereal outa_19;
+};
+
+/*
+C     DEFINIZIONI VETTORE VAM
+C
+C VAM(1): densita' dell'aria
+C VAM(2): celerita' del suono
+C VAM(3): corda
+C VAM(4): 1/4 corda
+C VAM(5): 3/4 corda
+C VAM(6): svergolamento
+ */
+enum {
+	VAM_DENSITY = 0,
+	VAM_SOUND_CELERITY,
+	VAM_CHORD,
+	VAM_FORCE_POSITION,
+	VAM_BC_POSITION,
+	VAM_TWIST,
+
+	VAM_LAST
+};
+
+struct vam_t {
+	doublereal density;
+	doublereal sound_celerity;
+	doublereal chord;
+	doublereal force_position;
+	doublereal bc_position;
+	doublereal twist;
 };
 
 /* 
@@ -110,10 +165,10 @@ typedef struct c81_data {
 } c81_data;
 
 extern int 
-c81_aerod2(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA, c81_data* data);
+c81_aerod2(doublereal* W, const struct vam_t *VAM, doublereal* TNG, doublereal* OUTA, c81_data* data);
 
 extern int 
-c81_aerod2_u(doublereal* W, doublereal* VAM, doublereal* TNG, doublereal* OUTA, 
+c81_aerod2_u(doublereal* W, const struct vam_t *VAM, doublereal* TNG, doublereal* OUTA, 
 		c81_data* data, long unsteadyflag);
 
 #ifdef __cplusplus

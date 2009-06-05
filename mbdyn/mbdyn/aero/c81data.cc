@@ -93,6 +93,7 @@ get_int(const char *const from, int &i)
 	return 0;
 }
 
+#if 0	// unused so far
 static int
 get_long(const char *const from, long &l)
 {
@@ -115,6 +116,7 @@ get_long(const char *const from, long &l)
 #endif /* !HAVE_STRTOL */
 	return 0;
 }
+#endif
 
 static int
 get_double(const char *const from, doublereal &d)

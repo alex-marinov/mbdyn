@@ -46,7 +46,7 @@
 /* InducedVelocity - begin */
 
 class InducedVelocity
-: virtual public Elem, public AerodynamicElem, public ElemWithDofs {
+: virtual public Elem, public AerodynamicElem {
 public:
 	enum Type {
 		UNKNOWN = -1,

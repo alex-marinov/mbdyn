@@ -37,8 +37,9 @@
 #include "myassert.h"
 #include "withlab.h"
 #include "drive.h"
+#include "dofown.h"
 #include "matvec6.h"
-#include "JacSubMatrix.h"
+#include "matvec3n.h"
 
 #include "aerodc81.h"
 
@@ -92,7 +93,7 @@ public:
 
 protected:
    	UnsteadyModel unsteadyflag;
-   	doublereal VAM[6];
+	vam_t VAM;
    	doublereal Omega;
 
 	int StorageSize(void) const;
@@ -116,26 +117,30 @@ public:
 			    const doublereal& omega = 0.);
 
    	virtual int
-	GetForces(int i, const doublereal* W, doublereal* TNG, doublereal* OUTA) = 0;
+	GetForces(int i, const doublereal* W, doublereal* TNG, doublereal* OUTA);
    	virtual int
-	GetForcesJac(int i, const doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA) = 0;
-	inline AeroData::UnsteadyModel Unsteady(void) const;
+	GetForcesJac(int i, const doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA);
 
 	// aerodynamic models with internal states
 	virtual unsigned int iGetNumDof(void) const;
+	virtual DofOrder::Order GetDofType(unsigned int i) const;
 	virtual void
 	AssRes(SubVectorHandler& WorkVec,
 		doublereal dCoef,
 		const VectorHandler& XCurr, 
 		const VectorHandler& XPrimeCurr,
-		int i, integer iFirstIndex);
+		integer iFirstIndex, integer iFirstSubIndex,
+		int i, const doublereal* W, doublereal* TNG, doublereal* OUTA);
 	virtual void
 	AssJac(FullSubMatrixHandler& WorkMat,
 		doublereal dCoef,
 		const VectorHandler& XCurr, 
 		const VectorHandler& XPrimeCurr,
-		int i, integer iFirstIndex,
-		const ExpandableRowVector& vx, ExpandableRowVector &fq);
+		integer iFirstIndex, integer iFirstSubIndex,
+		const Mat3xN& vx, const Mat3xN& wx, Mat3xN& fq, Mat3xN& cq,
+		int i, const doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA);
+
+	inline AeroData::UnsteadyModel Unsteady(void) const;
 };
 
 
@@ -261,6 +266,40 @@ public:
 /* C81InterpolatedAeroData - end */
 
 #endif /* USE_C81INTERPOLATEDAERODATA */
+
+/* UMDAeroData - begin */
+
+class UMDAeroData : public AeroData {
+protected:
+   	integer profile;
+
+public:
+   	UMDAeroData(DriveCaller *ptime);
+
+	std::ostream& Restart(std::ostream& out) const;
+
+	// aerodynamic models with internal states
+	virtual unsigned int iGetNumDof(void) const;
+	virtual DofOrder::Order GetDofType(unsigned int i) const;
+	virtual void
+	AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr,
+		integer iFirstIndex, integer iFirstSubIndex,
+		int i, const doublereal* W, doublereal* TNG, doublereal* OUTA);
+	virtual void
+	AssJac(FullSubMatrixHandler& WorkMat,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr,
+		integer iFirstIndex, integer iFirstSubIndex,
+		const Mat3xN& vx, const Mat3xN& wx, Mat3xN& fq, Mat3xN& cq,
+		int i, const doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA);
+};
+
+/* UMDAeroData - end */
+
 
 #endif /* AERODATA_H */
 

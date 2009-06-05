@@ -1536,26 +1536,31 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 		}
 
 		/* allocazione e creazione */
+		int i = ElemData[Elem::AERODYNAMIC].iExpectedNum
+			- iNumTypes[Elem::AERODYNAMIC] - 1;
+		DofOwner* pDO = DofData[DofOwner::AERODYNAMIC].pFirstDofOwner + i;
+
+		/* allocazione e creazione */
 		switch (KeyWords(CurrType)) {
 		case AERODYNAMICBODY:
-			pE = ReadAerodynamicBody(this, HP, uLabel);
+			pE = ReadAerodynamicBody(this, HP, pDO, uLabel);
 			break;
 
 		case AERODYNAMICBEAM3:
 		case AERODYNAMICBEAM:	/* same as BEAM3 */
-			pE = ReadAerodynamicBeam(this, HP, uLabel);
+			pE = ReadAerodynamicBeam(this, HP, pDO, uLabel);
 			break;
 
 		case AERODYNAMICBEAM2:
-			pE = ReadAerodynamicBeam2(this, HP, uLabel);
+			pE = ReadAerodynamicBeam2(this, HP, pDO, uLabel);
 			break;
 
 		case AIRCRAFTINSTRUMENTS:
-			pE = ReadAircraftInstruments(this, HP, uLabel);
+			pE = ReadAircraftInstruments(this, HP, pDO, uLabel);
 			break;
 
 		case GENERICAERODYNAMICFORCE:
-			pE = ReadGenericAerodynamicForce(this, HP, uLabel);
+			pE = ReadGenericAerodynamicForce(this, HP, pDO, uLabel);
 			break;
 
 		default:

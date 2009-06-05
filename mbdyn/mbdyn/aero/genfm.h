@@ -64,10 +64,11 @@ struct GenericAerodynamicData {
 	std::vector<std::vector<GenericAerodynamicCoef> > Data;
 };
 
-class GenericAerodynamicForce
-: virtual public Elem,
-public AerodynamicElem,
-public InitialAssemblyElem {
+class GenericAerodynamicForce :
+	virtual public Elem,
+	public AerodynamicElem,
+	public InitialAssemblyElem
+{
 protected:
 	/* Node the forces are applied to */
 	const StructNode* pNode;
@@ -94,11 +95,12 @@ protected:
 
 public:
 	GenericAerodynamicForce(unsigned int uLabel,
-			const StructNode* pN,
-			const Vec3& fTmp, const Mat3x3& RaTmp,
-			doublereal dS, doublereal dL,
-			GenericAerodynamicData *pData,
-			flag fOut);
+		const DofOwner *pDO,
+		const StructNode* pN,
+		const Vec3& fTmp, const Mat3x3& RaTmp,
+		doublereal dS, doublereal dL,
+		GenericAerodynamicData *pData,
+		flag fOut);
 	virtual ~GenericAerodynamicForce(void);
 
 	/* Scrive il contributo dell'elemento al file di restart */
@@ -194,9 +196,8 @@ public:
 };
 
 extern Elem *
-ReadGenericAerodynamicForce(DataManager* pDM,
-	MBDynParser& HP,
-	unsigned int uLabel);
+ReadGenericAerodynamicForce(DataManager* pDM, MBDynParser& HP,
+	const DofOwner *pDO, unsigned int uLabel);
 
 /* GenericAerodynamicForce - end */
 

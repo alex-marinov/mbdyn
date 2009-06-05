@@ -31,36 +31,35 @@
  /* Elemento aerodinamico modale */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <aeromodal.h>
-#include <dataman.h>
-//#include <cmath>
+#include "aeromodal.h"
+#include "dataman.h"
+
 /* AerodynamicModal - begin */
 
 AerodynamicModal::AerodynamicModal(unsigned int uLabel, 
-		   		const StructNode* pN, 
-		   		const Modal* pMJ,
-				const Mat3x3& RaTmp,
-		   		const DofOwner* pDO,
-				doublereal Cd,
-				const int NModal,
-		   		const int NAero,
-				RigidF_t rgF,
-		   		const int Gust,
-				const doublereal Vff,
-		   		SpMapMatrixHandler* pAMat,
-		   		FullMatrixHandler* pBMat,
-		   		FullMatrixHandler* pCMat,
-		   		FullMatrixHandler* pD0Mat,
-		   		FullMatrixHandler* pD1Mat,
-		   		FullMatrixHandler* pD2Mat,
-		   		flag fout)
+	const StructNode* pN, 
+	const Modal* pMJ,
+	const Mat3x3& RaTmp,
+	const DofOwner* pDO,
+	doublereal Cd,
+	const int NModal,
+	const int NAero,
+	RigidF_t rgF,
+	const int Gust,
+	const doublereal Vff,
+	SpMapMatrixHandler* pAMat,
+	FullMatrixHandler* pBMat,
+	FullMatrixHandler* pCMat,
+	FullMatrixHandler* pD0Mat,
+	FullMatrixHandler* pD1Mat,
+	FullMatrixHandler* pD2Mat,
+	flag fout)
 : Elem(uLabel, fout), 
-AerodynamicElem(uLabel, fout), 
+AerodynamicElem(uLabel, pDO, fout), 
 InitialAssemblyElem(uLabel, fout),
-ElemWithDofs(uLabel, pDO, fout),
 pModalNode(pN), pModalJoint(pMJ),
 Ra(RaTmp), 
 Chord(Cd),

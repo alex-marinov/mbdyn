@@ -44,8 +44,7 @@
 class NestedElem : virtual public Elem,
 public InitialAssemblyElem,
 public AerodynamicElem,
-public ElemGravityOwner,
-public ElemWithDofs
+public ElemGravityOwner
 {
 protected: 
 	Elem* pElem;

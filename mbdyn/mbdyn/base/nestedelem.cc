@@ -41,9 +41,8 @@
 NestedElem::NestedElem(const Elem* pE)
 : Elem(pE->GetLabel(), pE->fToBeOutput()),
 InitialAssemblyElem(pE->GetLabel(), pE->fToBeOutput()),
-AerodynamicElem(pE->GetLabel(), pE->fToBeOutput()),
+AerodynamicElem(pE->GetLabel(), 0, pE->fToBeOutput()),
 ElemGravityOwner(pE->GetLabel(), pE->fToBeOutput()),
-ElemWithDofs(pE->GetLabel(), 0, pE->fToBeOutput()),
 pElem(const_cast<Elem *>(pE))
 {
 	ASSERT(pE != NULL);

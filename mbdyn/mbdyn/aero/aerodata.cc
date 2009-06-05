@@ -37,6 +37,7 @@
 // #define USE_C81INTERPOLATEDAERODATA
 #include "aerodata.h"
 #include "gauss.h"
+#include "submat.h"
 
 #include "aerod2.h"
 
@@ -49,8 +50,8 @@ AeroMemory::AeroMemory(DriveCaller *pt)
 AeroMemory::~AeroMemory(void)
 {
 	if (iPoints > 0) {
-		ASSERT(pTime);
-		ASSERT(a);
+		ASSERT(pTime != 0);
+		ASSERT(a != 0);
 
 		SAFEDELETE(pTime);
 		SAFEDELETEARR(a);
@@ -180,8 +181,8 @@ AeroData::~AeroData(void)
 void
 AeroData::SetAirData(const doublereal& rho, const doublereal& c)
 {
-   	VAM[0] = rho;
-   	VAM[1] = c;
+   	VAM.density = rho;
+   	VAM.sound_celerity = c;
 }
 
 int
@@ -208,10 +209,10 @@ AeroData::SetSectionData(const doublereal& abscissa,
 			 const doublereal& twist,
 			 const doublereal& omega)
 {
-   	VAM[2] = chord;
-   	VAM[3] = forcepoint;
-   	VAM[4] = velocitypoint;
-   	VAM[5] = twist;
+   	VAM.chord = chord;
+   	VAM.force_position = forcepoint;
+   	VAM.bc_position = velocitypoint;
+   	VAM.twist = twist;
    	Omega = omega;
 }
 
@@ -331,14 +332,39 @@ AeroData::iGetNumDof(void) const
 	return 0;
 }
 
+DofOrder::Order
+AeroData::GetDofType(unsigned int) const
+{
+	silent_cerr("AeroData: "
+		"GetDofType() is undefined because aerodynamic data "
+		"has no degrees of freedom" << std::endl);
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
+int
+AeroData::GetForces(int i, const doublereal* W, doublereal* TNG, doublereal* OUTA)
+{
+	silent_cerr("AeroData: GetForces() is undefined" << std::endl);
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
+int
+AeroData::GetForcesJac(int i, const doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA)
+{
+	silent_cerr("AeroData: GetForcesJac() is undefined" << std::endl);
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
 void
 AeroData::AssRes(SubVectorHandler& WorkVec,
 	doublereal dCoef,
 	const VectorHandler& XCurr, 
 	const VectorHandler& XPrimeCurr,
-	int i, integer iFirstIndex)
+	integer iFirstIndex, integer iFirstSubIndex,
+	int i, const doublereal* W, doublereal* TNG, doublereal* OUTA)
 {
-	return;
+	silent_cerr("AeroData: AssRes() is undefined" << std::endl);
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 void
@@ -346,10 +372,12 @@ AeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	doublereal dCoef,
 	const VectorHandler& XCurr, 
 	const VectorHandler& XPrimeCurr,
-	int i, integer iFirstIndex,
-	const ExpandableRowVector& vx, ExpandableRowVector &fq)
+	integer iFirstIndex, integer iFirstSubIndex,
+	const Mat3xN& vx, const Mat3xN& wx, Mat3xN& fq, Mat3xN& cq,
+	int i, const doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA)
 {
-	return;
+	silent_cerr("AeroData: AssJac() is undefined" << std::endl);
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 STAHRAeroData::STAHRAeroData(AeroData::UnsteadyModel u, integer p,
@@ -398,7 +426,8 @@ STAHRAeroData::GetForces(int i, const doublereal* W, doublereal* TNG,
 	}
 
 	integer u = unsteadyflag;
-   	__FC_DECL__(aerod2)(const_cast<doublereal *>(W), VAM, TNG, OUTA, &u, &Omega, &profile);
+   	__FC_DECL__(aerod2)(const_cast<doublereal *>(W), reinterpret_cast<doublereal *>(&VAM),
+		TNG, OUTA, &u, &Omega, &profile);
 
    	return 0;
 }
@@ -437,7 +466,7 @@ C81AeroData::GetForces(int i, const doublereal* W, doublereal* TNG, doublereal* 
 		break;
 	}
 
-   	return c81_aerod2_u(const_cast<doublereal *>(W), VAM, TNG, OUTA,
+   	return c81_aerod2_u(const_cast<doublereal *>(W), &VAM, TNG, OUTA,
 		const_cast<c81_data *>(data), unsteadyflag);
 }
 
@@ -520,7 +549,7 @@ C81MultipleAeroData::GetForces(int i, const doublereal* W, doublereal* TNG, doub
 		break;
 	}
 
-   	return c81_aerod2_u(const_cast<doublereal *>(W), VAM, TNG, OUTA,
+   	return c81_aerod2_u(const_cast<doublereal *>(W), &VAM, TNG, OUTA,
 		const_cast<c81_data *>(data[curr_data]), unsteadyflag);
 }
 
@@ -707,7 +736,7 @@ C81InterpolatedAeroData::GetForces(int i, const doublereal* W, doublereal* TNG, 
 		break;
 	}
 
-   	return c81_aerod2_u(const_cast<doublereal *>(W), VAM, TNG, OUTA,
+   	return c81_aerod2_u(const_cast<doublereal *>(W), &VAM, TNG, OUTA,
 		const_cast<c81_data *>(data[curr_data]), unsteadyflag);
 }
 
@@ -718,4 +747,96 @@ C81InterpolateAeroData::GetForcesJac(int i, const doublereal* W, doublereal* TNG
 }
 
 #endif /* USE_C81INTERPOLATEDAERODATA */
+
+UMDAeroData::UMDAeroData(DriveCaller *ptime)
+: AeroData(STEADY, ptime)
+{
+}
+
+std::ostream&
+UMDAeroData::Restart(std::ostream& out) const
+{
+	return out;
+}
+
+// aerodynamic models with internal states
+unsigned int
+UMDAeroData::iGetNumDof(void) const
+{
+	return 2;
+}
+
+DofOrder::Order
+UMDAeroData::GetDofType(unsigned int i) const
+{
+	return DofOrder::DIFFERENTIAL;
+}
+
+void
+UMDAeroData::AssRes(SubVectorHandler& WorkVec,
+	doublereal dCoef,
+	const VectorHandler& XCurr, 
+	const VectorHandler& XPrimeCurr,
+	integer iFirstIndex, integer iFirstSubIndex,
+	int i, const doublereal* W, doublereal* TNG, doublereal* OUTA)
+{
+	// doublereal q1 = XCurr(iFirstIndex + 1);
+	// doublereal q2 = XCurr(iFirstIndex + 2);
+	doublereal q1p = XPrimeCurr(iFirstIndex + 1);
+	doublereal q2p = XPrimeCurr(iFirstIndex + 2);
+
+	doublereal alpha = -atan2(W[1], W[0]);
+	doublereal omega = W[5];
+
+	WorkVec.PutCoef(iFirstSubIndex + 1, alpha - q1p);
+	WorkVec.PutCoef(iFirstSubIndex + 2, omega - q2p);
+
+	TNG[0] = 0.;
+	TNG[1] = 2*M_PI*alpha;
+	TNG[2] = 0.;
+	TNG[3] = 0.;
+	TNG[4] = 0.;
+	TNG[5] = 0.;
+}
+
+void
+UMDAeroData::AssJac(FullSubMatrixHandler& WorkMat,
+	doublereal dCoef,
+	const VectorHandler& XCurr, 
+	const VectorHandler& XPrimeCurr,
+	integer iFirstIndex, integer iFirstSubIndex,
+	const Mat3xN& vx, const Mat3xN& wx, Mat3xN& fq, Mat3xN& cq,
+	int i, const doublereal* W, doublereal* TNG, Mat6x6& J, doublereal* OUTA)
+{
+	// doublereal q1 = XCurr(iFirstIndex + 1);
+	// doublereal q2 = XCurr(iFirstIndex + 2);
+	// doublereal q1p = XPrimeCurr(iFirstIndex + 1);
+	// doublereal q2p = XPrimeCurr(iFirstIndex + 2);
+
+	doublereal alpha = -atan2(W[1], W[0]);
+	// doublereal omega = W[5];
+
+	WorkMat.IncCoef(iFirstSubIndex + 1, iFirstSubIndex + 1, 1.);
+	WorkMat.IncCoef(iFirstSubIndex + 2, iFirstSubIndex + 2, 1.);
+
+	doublereal dd = W[0]*W[0] + W[1]*W[1];
+	doublereal dalpha_dvx = W[1]/dd;
+	doublereal dalpha_dvy = -W[0]/dd;
+	for (integer iCol = 1; iCol <= 6; iCol++) {
+		WorkMat.DecCoef(iFirstSubIndex + 1, iCol,
+			dalpha_dvx*vx(1, iCol) + dalpha_dvy*vx(2, iCol));
+		WorkMat.DecCoef(iFirstSubIndex + 2, iCol, wx(3, iCol));
+	}
+
+	TNG[0] = 0.;
+	TNG[1] = 2*M_PI*alpha;
+	TNG[2] = 0.;
+	TNG[3] = 0.;
+	TNG[4] = 0.;
+	TNG[5] = 0.;
+
+	J.Reset();
+	J(2, 1) = 2*M_PI*dalpha_dvx;
+	J(2, 2) = 2*M_PI*dalpha_dvy;
+}
 

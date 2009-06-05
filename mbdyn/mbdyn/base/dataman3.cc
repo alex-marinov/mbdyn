@@ -398,6 +398,7 @@ DataManager::ReadControl(MBDynParser& HP,
 		case AERODYNAMICELEMENTS: {
 			int iDmy = HP.GetInt();
 			ElemData[Elem::AERODYNAMIC].iExpectedNum = iDmy;
+			DofData[DofOwner::AERODYNAMIC].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Aerodynamic Elements: " << iDmy << std::endl);
 		} break;
 

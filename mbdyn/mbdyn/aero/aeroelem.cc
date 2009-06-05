@@ -125,6 +125,7 @@ AerodynamicOutput::IsNODE(void) const
 /* AerodynamicBody - begin */
 
 AerodynamicBody::AerodynamicBody(unsigned int uLabel,
+	const DofOwner *pDO,
 	const StructNode* pN, InducedVelocity* pR,
 	const Vec3& fTmp, doublereal dS,
 	const Mat3x3& RaTmp,
@@ -135,7 +136,7 @@ AerodynamicBody::AerodynamicBody(unsigned int uLabel,
 	bool bUseJacobian,
 	flag fOut)
 : Elem(uLabel, fOut),
-AerodynamicElem(uLabel, fOut),
+AerodynamicElem(uLabel, pDO, fOut),
 InitialAssemblyElem(uLabel, fOut),
 DriveOwner(pDC),
 AerodynamicOutput(fOut, iN),
@@ -203,6 +204,165 @@ AerodynamicBody::SetOutputFlag(flag f)
 	AerodynamicOutput::SetOutputFlag(f, GDI.iGetNum());
 }
 
+/* Dimensioni del workspace */
+void
+AerodynamicBody::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+{
+	*piNumRows = *piNumCols = 6 + iGetNumDof();
+}
+
+/* inherited from SimulationEntity */
+unsigned int
+AerodynamicBody::iGetNumDof(void) const
+{
+	return aerodata->iGetNumDof()*GDI.iGetNum();
+}
+
+std::ostream&
+AerodynamicBody::DescribeDof(std::ostream& out,
+	const char *prefix, bool bInitial) const
+{
+	ASSERT(bInitial == false);
+
+	integer iFirstIndex = iGetFirstIndex();
+	integer iNumDof = aerodata->iGetNumDof();
+
+	for (integer i = 0; i < GDI.iGetNum(); i++) {
+		out 
+			<< prefix << iFirstIndex + 1 << "->" << iFirstIndex + iNumDof
+			<< ": internal states at point #" << i << " of " << GDI.iGetNum() << std::endl;
+
+		iFirstIndex += iNumDof;
+	}
+
+	return out;
+}
+
+void
+AerodynamicBody::DescribeDof(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	if (i < -1) {
+		// error
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	ASSERT(bInitial == false);
+
+	integer iNumDof = aerodata->iGetNumDof();
+
+	std::ostringstream os;
+	os << "AerodynamicBody(" << GetLabel() << ")";
+
+	if (i == -1) {
+		integer iTotDof = iNumDof*GDI.iGetNum();
+		desc.resize(iTotDof);
+
+		std::string name(os.str());
+
+		for (integer s = 0; s < iTotDof; s++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": internal state #" << s % iNumDof << " of " << iNumDof
+				<< " at point #" << s/iNumDof << " of " << GDI.iGetNum();
+			desc[s] = os.str();
+		}
+
+		return;
+	}
+
+	desc.resize(1);
+	os << ": internal state #" << i % iNumDof << " of " << iNumDof
+		<< " at point #" << i/iNumDof << " of " << GDI.iGetNum();
+	desc[0] = os.str();
+}
+
+std::ostream&
+AerodynamicBody::DescribeEq(std::ostream& out,
+	const char *prefix, bool bInitial) const
+{
+	ASSERT(bInitial == false);
+
+	integer iFirstIndex = iGetFirstIndex();
+	integer iNumDof = aerodata->iGetNumDof();
+
+	for (integer i = 0; i < GDI.iGetNum(); i++) {
+		out 
+			<< prefix << iFirstIndex + 1 << "->" << iFirstIndex + iNumDof
+			<< ": dynamics equations at point #" << i << " of " << GDI.iGetNum() << std::endl;
+
+		iFirstIndex += iNumDof;
+	}
+
+	return out;
+}
+
+void
+AerodynamicBody::DescribeEq(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	if (i < -1) {
+		// error
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	ASSERT(bInitial == false);
+
+	integer iNumDof = aerodata->iGetNumDof();
+
+	std::ostringstream os;
+	os << "AerodynamicBody(" << GetLabel() << ")";
+
+	if (i == -1) {
+		integer iTotDof = iNumDof*GDI.iGetNum();
+		desc.resize(iTotDof);
+
+		std::string name(os.str());
+
+		for (integer s = 0; s < iTotDof; s++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": internal equation #" << s % iNumDof << " of " << iNumDof
+				<< " at point #" << s/iNumDof << " of " << GDI.iGetNum();
+			desc[s] = os.str();
+		}
+
+		return;
+	}
+
+	desc.resize(1);
+	os << ": internal equation #" << i % iNumDof << " of " << iNumDof
+		<< " at point #" << i/iNumDof << " of " << GDI.iGetNum();
+	desc[0] = os.str();
+}
+
+DofOrder::Order
+AerodynamicBody::GetDofType(unsigned int i) const
+{
+	ASSERT(aerodata->iGetNumDof() > 0);
+
+	return aerodata->GetDofType(i % aerodata->iGetNumDof());
+}
+
+void
+AerodynamicBody::SetValue(DataManager *pDM,
+	VectorHandler& X, VectorHandler& XP,
+	SimulationEntity::Hints* h)
+{
+	integer iNumDof = aerodata->iGetNumDof();
+	if (iNumDof) {
+		vx.Resize(6);
+		wx.Resize(6);
+		fq.Resize(iNumDof);
+		cq.Resize(iNumDof);
+
+		vx.Reset();
+		wx.Reset();
+		fq.Reset();
+		cq.Reset();
+	}
+}
+
 /* Scrive il contributo dell'elemento al file di restart */
 std::ostream&
 AerodynamicBody::Restart(std::ostream& out) const
@@ -231,9 +391,9 @@ AerodynamicBody::Restart(std::ostream& out) const
 
 VariableSubMatrixHandler&
 AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
-	doublereal  dCoef  ,
-	const VectorHandler& /* XCurr */ ,
-	const VectorHandler& /* XPrimeCurr */ )
+	doublereal dCoef,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUT("Entering AerodynamicBody::AssJac()" << std::endl);
 
@@ -297,6 +457,21 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 	doublereal** pvd = pvdOuta;
 
 	ResetIterator();
+
+	integer iNumDof = aerodata->iGetNumDof();
+	integer iFirstEq = -1;
+	integer iFirstSubEq = -1;
+	if (iNumDof > 0) {
+		iFirstEq = iGetFirstIndex();
+		iFirstSubEq = 6;
+
+		integer iOffset = iFirstEq - 6;
+
+		for (int iCnt = 6 + 1; iCnt <= iNumRows; iCnt++) {
+			WM.PutRowIndex(iCnt, iOffset + iCnt);
+			WM.PutColIndex(iCnt, iOffset + iCnt);
+		}
+	}
 
 	/* Ciclo sui punti di Gauss */
 	PntWght PW = GDI.GetFirst();
@@ -363,13 +538,42 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 		doublereal Fa0[6];
 		Mat6x6 JFa;
 
-		aerodata->GetForcesJac(iPnt, dW, Fa0, JFa, *pvd);
+		/* Jacobian Assembly... */
+		doublereal cc = dHalfSpan*PW.dGetWght();
+
+		if (iNumDof) {
+			// prepare (v/dot{x} + dCoef*v/x) and so
+			Mat3x3 RRlocT(RRloc.Transpose());
+
+			vx.PutMat3x3(1, RRlocT);
+			vx.PutMat3x3(4, RRloc.MulTM(Mat3x3((Vr + Xr.Cross(Wn))*dCoef - Xr)));
+			wx.PutMat3x3(4, RRlocT);
+
+			// equations from iFirstEq on are dealt with by aerodata
+			aerodata->AssJac(WM, dCoef, XCurr, XPrimeCurr,
+                		iFirstEq, iFirstSubEq,
+				vx, wx, fq, cq, iPnt, dW, Fa0, JFa, *pvd);
+
+			// deal with (f/dot{q} + dCoef*f/q) and so
+			integer iOffset = 6 + iPnt*iNumDof;
+			for (integer iCol = 1; iCol <= fq.iGetNumCols(); iCol++) {
+				Vec3 fqTmp((RRloc*fq.GetVec(iCol))*cc);
+				Vec3 cqTmp((RRloc*cq.GetVec(iCol))*cc);
+
+				WM.Sub(1, iOffset + iCol, fqTmp);
+				WM.Sub(4, iOffset + iCol, Xr.Cross(fqTmp) + cqTmp);
+			}
+
+			// first equation
+			iFirstEq += iNumDof;
+			iFirstSubEq += iNumDof;
+
+		} else {
+			aerodata->GetForcesJac(iPnt, dW, Fa0, JFa, *pvd);
+		}
 
 		/* OUTA */
 		pvd++;
-
-		/* Jacobian Assembly... */
-		doublereal cc = dHalfSpan*PW.dGetWght();
 
 		// rotate force, couple and Jacobian matrix in absolute frame
 		Mat6x6 JFaR = MultRMRt(JFa, RRloc, cc);
@@ -406,19 +610,23 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 
 SubVectorHandler&
 AerodynamicBody::AssRes(SubVectorHandler& WorkVec,
-	doublereal /* dCoef */ ,
-	const VectorHandler& /* XCurr */ ,
-	const VectorHandler& /* XPrimeCurr */ )
+	doublereal dCoef,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUTFNAME("AerodynamicBody::AssRes");
-	WorkVec.ResizeReset(6);
+
+	integer iNumRows;
+	integer iNumCols;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.ResizeReset(iNumRows);
 
 	integer iFirstIndex = pNode->iGetFirstMomentumIndex();
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iFirstIndex + iCnt);
 	}
 
-	AssVec(WorkVec);
+	AssVec(WorkVec, dCoef, XCurr, XPrimeCurr);
 
 	return WorkVec;
 }
@@ -426,18 +634,26 @@ AerodynamicBody::AssRes(SubVectorHandler& WorkVec,
 
 SubVectorHandler&
 AerodynamicBody::InitialAssRes(SubVectorHandler& WorkVec,
-	const VectorHandler& /* XCurr */ )
+	const VectorHandler& XCurr)
 {
 	DEBUGCOUTFNAME("AerodynamicBody::InitialAssRes");
 
-	WorkVec.ResizeReset(6);
+	if (aerodata->iGetNumDof() > 0) {
+		WorkVec.ResizeReset(0);
+		return WorkVec;
+	}
+
+	integer iNumRows;
+	integer iNumCols;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.ResizeReset(iNumRows);
 
 	integer iFirstIndex = pNode->iGetFirstPositionIndex();
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iFirstIndex + iCnt);
 	}
 
-	AssVec(WorkVec);
+	AssVec(WorkVec, 1., XCurr, XCurr);
 
 	return WorkVec;
 }
@@ -445,7 +661,10 @@ AerodynamicBody::InitialAssRes(SubVectorHandler& WorkVec,
 
 /* assemblaggio residuo */
 void
-AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
+AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
+	doublereal dCoef,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUTFNAME("AerodynamicBody::AssVec");
 
@@ -490,6 +709,20 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
 	doublereal** pvd = pvdOuta;
 
 	ResetIterator();
+
+	integer iNumDof = aerodata->iGetNumDof();
+	integer iFirstEq = -1;
+	integer iFirstSubEq = -1;
+	if (iNumDof > 0) {
+		iFirstEq = iGetFirstIndex();
+		iFirstSubEq = 6;
+
+		integer iOffset = iFirstEq - 6;
+		integer iNumRows = WorkVec.iGetSize();
+		for (int iCnt = 6 + 1; iCnt <= iNumRows; iCnt++) {
+			WorkVec.PutRowIndex(iCnt, iOffset + iCnt);
+		}
+	}
 
 	/* Ciclo sui punti di Gauss */
 	PntWght PW = GDI.GetFirst();
@@ -553,7 +786,17 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec)
 		WTmp.PutTo(&dW[3]);
 
 		/* Funzione di calcolo delle forze aerodinamiche */
-		aerodata->GetForces(iPnt, dW, dTng, *pvd);
+		if (iNumDof) {
+			aerodata->AssRes(WorkVec, dCoef, XCurr, XPrimeCurr,
+                		iFirstEq, iFirstSubEq, iPnt, dW, dTng, *pvd);
+
+			// first equation
+			iFirstEq += iNumDof;
+			iFirstSubEq += iNumDof;
+
+		} else {
+			aerodata->GetForces(iPnt, dW, dTng, *pvd);
+		}
 
 		/* OUTA */
 		pvd++;
@@ -830,6 +1073,9 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP,
 		"naca0012",
 		"rae9671",
 		"c81",
+
+		"umd",		// FIXME
+
 		NULL
 	};
 
@@ -839,6 +1085,8 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP,
 		NACA0012 = 0,
 		RAE9671,
 		C81,
+
+		UMD,
 
 		LASTKEYWORD
 	};
@@ -940,6 +1188,13 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP,
 						data, ptime));
 			}
 			break;
+
+		case UMD:
+	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
+				UMDAeroData,
+				UMDAeroData(0));
+			break;
+			
 		}
 
 	} else {
@@ -1002,6 +1257,7 @@ ReadInducedVelocity(DataManager *pDM, MBDynParser& HP,
 Elem *
 ReadAerodynamicBody(DataManager* pDM,
 	MBDynParser& HP,
+	const DofOwner *pDO,
 	unsigned int uLabel)
 {
 	DEBUGCOUTFNAME("ReadAerodynamicBody");
@@ -1063,7 +1319,7 @@ ReadAerodynamicBody(DataManager* pDM,
 	Elem* pEl = NULL;
 	SAFENEWWITHCONSTRUCTOR(pEl,
 		AerodynamicBody,
-		AerodynamicBody(uLabel, pNode, pIndVel, f, dSpan, Ra,
+		AerodynamicBody(uLabel, pDO, pNode, pIndVel, f, dSpan, Ra,
 				pChord, pForce, pVelocity, pTwist,
 				iNumber, aerodata, pDC, bUseJacobian, fOut));
 
@@ -1101,6 +1357,7 @@ ReadAerodynamicBody(DataManager* pDM,
 /* AerodynamicBeam - begin */
 
 AerodynamicBeam::AerodynamicBeam(unsigned int uLabel,
+	const DofOwner *pDO,
 	const Beam* pB, InducedVelocity* pR,
 	const Vec3& fTmp1,
 	const Vec3& fTmp2,
@@ -1115,7 +1372,7 @@ AerodynamicBeam::AerodynamicBeam(unsigned int uLabel,
 	bool bUseJacobian,
 	flag fOut)
 : Elem(uLabel, fOut),
-AerodynamicElem(uLabel, fOut),
+AerodynamicElem(uLabel, pDO, fOut),
 InitialAssemblyElem(uLabel, fOut),
 DriveOwner(pDC),
 AerodynamicOutput(fOut, 3*iN),
@@ -1882,6 +2139,7 @@ AerodynamicBeam::Output(OutputHandler& OH) const
 Elem *
 ReadAerodynamicBeam(DataManager* pDM,
 	MBDynParser& HP,
+	const DofOwner *pDO,
 	unsigned int uLabel)
 {
 	DEBUGCOUTFNAME("ReadAerodynamicBeam");
@@ -1993,7 +2251,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 
 	SAFENEWWITHCONSTRUCTOR(pEl,
 		AerodynamicBeam,
-		AerodynamicBeam(uLabel, pBeam, pIndVel,
+		AerodynamicBeam(uLabel, pDO, pBeam, pIndVel,
 			f1, f2, f3, Ra1, Ra2, Ra3,
 			pChord, pForce, pVelocity, pTwist,
 			iNumber, aerodata, pDC, bUseJacobian, fOut));
@@ -2044,6 +2302,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 
 AerodynamicBeam2::AerodynamicBeam2(
 	unsigned int uLabel,
+	const DofOwner* pDO,
 	const Beam2* pB,
 	InducedVelocity* pR,
 	const Vec3& fTmp1,
@@ -2061,7 +2320,7 @@ AerodynamicBeam2::AerodynamicBeam2(
 	flag fOut
 )
 : Elem(uLabel, fOut),
-AerodynamicElem(uLabel, fOut),
+AerodynamicElem(uLabel, pDO, fOut),
 InitialAssemblyElem(uLabel, fOut),
 DriveOwner(pDC),
 AerodynamicOutput(fOut, 2*iN),
@@ -2752,11 +3011,10 @@ AerodynamicBeam2::Output(OutputHandler& OH ) const
 /* Legge un elemento aerodinamico di trave a due nodi */
 
 Elem *
-ReadAerodynamicBeam2(
-	DataManager* pDM,
+ReadAerodynamicBeam2(DataManager* pDM,
 	MBDynParser& HP,
-	unsigned int uLabel
-)
+	const DofOwner *pDO,
+	unsigned int uLabel)
 {
 	DEBUGCOUTFNAME("ReadAerodynamicBeam2");
 
@@ -2853,7 +3111,7 @@ ReadAerodynamicBeam2(
 
 	SAFENEWWITHCONSTRUCTOR(pEl,
 		AerodynamicBeam2,
-		AerodynamicBeam2(uLabel, pBeam, pIndVel,
+		AerodynamicBeam2(uLabel, pDO, pBeam, pIndVel,
 				f1, f2, Ra1, Ra2,
 				pChord, pForce, pVelocity, pTwist,
 				iNumber, aerodata, pDC, bUseJacobian, fOut));

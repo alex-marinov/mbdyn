@@ -863,8 +863,9 @@ AirPropOwner::GetAirProps(const Vec3& X, doublereal& rho,
 /* AerodynamicElem - begin */
 
 AerodynamicElem::AerodynamicElem(unsigned int uL,
-	flag fOut)
-: Elem(uL, fOut)
+	const DofOwner *pDO, flag fOut)
+: Elem(uL, fOut),
+ElemWithDofs(uLabel, pDO, fOut)
 {
 	NO_OP; 
 }

@@ -30,18 +30,19 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 /* Aircraft Instruments */
 
-#include <dataman.h>
-#include <instruments.h>
+#include "dataman.h"
+#include "instruments.h"
 
 AircraftInstruments::AircraftInstruments(unsigned int uLabel, 
-		const StructNode* pN, const Mat3x3 &R, flag fOut)
+	const DofOwner *pDO,
+	const StructNode* pN, const Mat3x3 &R, flag fOut)
 : Elem(uLabel, fOut),
-AerodynamicElem(uLabel, fOut),
+AerodynamicElem(uLabel, pDO, fOut),
 pNode(pN),
 Rh(R)
 {
@@ -56,13 +57,13 @@ AircraftInstruments::~AircraftInstruments(void)
 void
 AircraftInstruments::Update(void)
 {
-	Vec3 X(pNode->GetXCurr());
-	Mat3x3 R(pNode->GetRCurr()*Rh);
-	Vec3 V(pNode->GetVCurr());
+	const Vec3& X(pNode->GetXCurr());
+	const Mat3x3& R(pNode->GetRCurr()*Rh);
+	const Vec3& V(pNode->GetVCurr());
 	Vec3 VV = V;
-	Vec3 e1(R.GetVec(1));
-	Vec3 e2(R.GetVec(2));
-	Vec3 e3(R.GetVec(3));
+	const Vec3 e1(R.GetVec(1));
+	const Vec3 e2(R.GetVec(2));
+	const Vec3 e3(R.GetVec(3));
 
 	Vec3 VTmp(0.);
       	if (fGetAirVelocity(VTmp, X)) {
@@ -239,11 +240,12 @@ AircraftInstruments::dGetPrivData(unsigned int i) const
 }
 
 Elem *
-ReadAircraftInstruments(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
+ReadAircraftInstruments(DataManager* pDM, MBDynParser& HP,
+	const DofOwner *pDO, unsigned int uLabel)
 {
 	Elem *pEl = NULL;
 
-	StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+	StructNode* pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 	Mat3x3 R = Eye3;
 	if (HP.IsKeyWord("orientation")) {
 		R = HP.GetRotRel(ReferenceFrame(pNode));
@@ -251,7 +253,7 @@ ReadAircraftInstruments(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
 
 	SAFENEWWITHCONSTRUCTOR(pEl, AircraftInstruments,
-			AircraftInstruments(uLabel, pNode, R, fOut));
+		AircraftInstruments(uLabel, pDO, pNode, R, fOut));
 
 	return pEl;
 }
