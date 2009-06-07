@@ -35,11 +35,14 @@
 
 #include "mynewmem.h"
 // #define USE_C81INTERPOLATEDAERODATA
-#include "aerodata.h"
+#include "aerodata_impl.h"
 #include "gauss.h"
 #include "submat.h"
-
 #include "aerod2.h"
+#include "dataman.h"
+#include "drive_.h"
+
+/* AeroMemory - begin */
 
 AeroMemory::AeroMemory(DriveCaller *pt)
 : a(0), t(0), iPoints(0), pTime(pt), numUpdates(0)
@@ -63,8 +66,8 @@ void
 AeroMemory::Predict(int i, doublereal alpha, doublereal &alf1, doublereal &alf2)
 {
 	/* FIXME: this should be s, but I don't want a malloc here */
-	doublereal 	coe[3];
-	int		s = StorageSize();
+	doublereal coe[3];
+	int s = StorageSize();
 #ifdef USE_POLCOE
 	/*
 	 * FIXME: actually this is not the order of the polynomial,
@@ -156,17 +159,24 @@ AeroMemory::SetNumPoints(int i)
 	}
 }
 
+/* AeroMemory - end */
+
+/* C81Data - begin */
 
 C81Data::C81Data(unsigned int uLabel)
 : WithLabel(uLabel)
 {
-   	NO_OP;
+	NO_OP;
 }
+
+/* C81Data - end */
+
+/* AeroData - begin */
 
 AeroData::AeroData(AeroData::UnsteadyModel u, DriveCaller *ptime)
 : AeroMemory(ptime), unsteadyflag(u), Omega(0.)
 {
-   	if (u != AeroData::STEADY) {
+	if (u != AeroData::STEADY) {
 		if (ptime == 0) {
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
@@ -175,14 +185,14 @@ AeroData::AeroData(AeroData::UnsteadyModel u, DriveCaller *ptime)
 
 AeroData::~AeroData(void)
 {
-   	NO_OP;
+	NO_OP;
 }
 
 void
 AeroData::SetAirData(const doublereal& rho, const doublereal& c)
 {
-   	VAM.density = rho;
-   	VAM.sound_celerity = c;
+	VAM.density = rho;
+	VAM.sound_celerity = c;
 }
 
 int
@@ -203,17 +213,17 @@ AeroData::StorageSize(void) const
 
 void
 AeroData::SetSectionData(const doublereal& abscissa,
-		         const doublereal& chord,
-			 const doublereal& forcepoint,
-			 const doublereal& velocitypoint,
-			 const doublereal& twist,
-			 const doublereal& omega)
+	const doublereal& chord,
+	const doublereal& forcepoint,
+	const doublereal& velocitypoint,
+	const doublereal& twist,
+	const doublereal& omega)
 {
-   	VAM.chord = chord;
-   	VAM.force_position = forcepoint;
-   	VAM.bc_position = velocitypoint;
-   	VAM.twist = twist;
-   	Omega = omega;
+	VAM.chord = chord;
+	VAM.force_position = forcepoint;
+	VAM.bc_position = velocitypoint;
+	VAM.twist = twist;
+	Omega = omega;
 }
 
 std::ostream&
@@ -380,463 +390,313 @@ AeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
-STAHRAeroData::STAHRAeroData(AeroData::UnsteadyModel u, integer p,
-		DriveCaller *ptime)
-: AeroData(u, ptime), profile(p)
+/* AeroData - end */
+
+static AeroData::UnsteadyModel
+ReadUnsteadyFlag(MBDynParser& HP)
 {
-	ASSERT(u != AeroData::STEADY ? (ptime != 0) : 1);
-}
+	if (HP.IsArg()) {
+		AeroData::UnsteadyModel eInst = AeroData::STEADY;
+		if (HP.IsKeyWord("unsteady")) {
+			/*
+			 * swallow "unsteady" keyword
+			 */
+			if (HP.IsKeyWord("steady")) {
+				eInst = AeroData::STEADY;
+			} else if (HP.IsKeyWord("harris")) {
+				eInst = AeroData::HARRIS;
+			} else if (HP.IsKeyWord("bielawa")) {
+				eInst = AeroData::BIELAWA;
+			} else {
+				/* demote to pedantic, because the integer
+				 * form allows to change unsteady model
+				 * parametrically (while waiting for string
+				 * vars) */
+				pedantic_cerr("deprecated unsteady model "
+					"given by integer number;"
+					" use \"steady\", \"Harris\" or \"Bielawa\" "
+					"instead, at line " << HP.GetLineData()
+					<< std::endl);
 
-STAHRAeroData::~STAHRAeroData(void)
-{
-	NO_OP;
-}
-
-std::ostream&
-STAHRAeroData::Restart(std::ostream& out) const
-{
-   	switch (profile) {
-    	case 1:
-      		out << "NACA0012";
-      		break;
-
-    	case 2:
-      		out << "RAE9671";
-      		break;
-
-    	default:
-      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-   	}
-
-	return RestartUnsteady(out);
-}
-
-int
-STAHRAeroData::GetForces(int i, const doublereal* W, doublereal* TNG,
-		outa_t& OUTA)
-{
-	switch (unsteadyflag) {
-	case AeroData::HARRIS:
-	case AeroData::BIELAWA:
-		Predict(i, atan2(-W[1], W[0]), OUTA.alf1, OUTA.alf2);
-		break;
-
-	default:
-		break;
-	}
-
-	integer u = unsteadyflag;
-   	__FC_DECL__(aerod2)(const_cast<doublereal *>(W), reinterpret_cast<doublereal *>(&VAM),
-		TNG, reinterpret_cast<doublereal *>(&OUTA), &u, &Omega, &profile);
-
-   	return 0;
-}
-
-int
-STAHRAeroData::GetForcesJac(int i, const doublereal* W, doublereal* TNG, Mat6x6& J, outa_t& OUTA)
-{
-	return AeroData::GetForcesJacForwardDiff_int(i, W, TNG, J, OUTA);
-}
-
-C81AeroData::C81AeroData(AeroData::UnsteadyModel u, integer p,
-		const c81_data* d, DriveCaller *ptime)
-: AeroData(u, ptime), profile(p), data(d)
-{
-   	ASSERT(data != NULL);
-}
-
-std::ostream&
-C81AeroData::Restart(std::ostream& out) const
-{
-   	out << "C81, " << profile;
-
-	return RestartUnsteady(out);
-}
-
-int
-C81AeroData::GetForces(int i, const doublereal* W, doublereal* TNG, outa_t& OUTA)
-{
-	switch (unsteadyflag) {
-	case AeroData::HARRIS:
-	case AeroData::BIELAWA:
-		Predict(i, atan2(-W[1], W[0]), OUTA.alf1, OUTA.alf2);
-		break;
-
-	default:
-		break;
-	}
-
-   	return c81_aerod2_u(const_cast<doublereal *>(W), &VAM, TNG, &OUTA,
-		const_cast<c81_data *>(data), unsteadyflag);
-}
-
-int
-C81AeroData::GetForcesJac(int i, const doublereal* W, doublereal* TNG, Mat6x6& J, outa_t& OUTA)
-{
-	return AeroData::GetForcesJacForwardDiff_int(i, W, TNG, J, OUTA);
-}
-
-
-C81MultipleAeroData::C81MultipleAeroData(
-		AeroData::UnsteadyModel u,
-		integer np,
-		integer *p,
-		doublereal *ub,
-		const c81_data** d,
-		DriveCaller *ptime
-)
-: AeroData(u, ptime), nprofiles(np), profiles(p), upper_bounds(ub), data(d)
-{
-	ASSERT(nprofiles > 0);
-	ASSERT(profiles != NULL);
-	ASSERT(upper_bounds != NULL);
-   	ASSERT(data != NULL);
-}
-
-C81MultipleAeroData::~C81MultipleAeroData(void)
-{
-	SAFEDELETEARR(profiles);
-	SAFEDELETEARR(upper_bounds);
-	SAFEDELETEARR(data);
-}
-
-std::ostream&
-C81MultipleAeroData::Restart(std::ostream& out) const
-{
-   	out << "C81, multiple";
-	for (int i = 0; i < nprofiles; i++) {
-		out << ", " << profiles[i] << ", " << upper_bounds[i];
-	}
-
-	return RestartUnsteady(out);
-}
-
-void
-C81MultipleAeroData::SetSectionData(
-		const doublereal& abscissa,
-		const doublereal& chord,
-		const doublereal& forcepoint,
-		const doublereal& velocitypoint,
-		const doublereal& twist,
-		const doublereal& omega
-)
-{
-	ASSERT(abscissa >= -1. && abscissa <= 1.);
-
-	AeroData::SetSectionData(abscissa, chord, forcepoint, velocitypoint,
-			twist, omega);
-
-	for (int i = nprofiles - 1; i--; ) {
-		if (abscissa > upper_bounds[i]) {
-			curr_data = i + 1;
-			return;
-		}
-	}
-
-	curr_data = 0;
-}
-
-int
-C81MultipleAeroData::GetForces(int i, const doublereal* W, doublereal* TNG, outa_t& OUTA)
-{
-	switch (unsteadyflag) {
-	case AeroData::HARRIS:
-	case AeroData::BIELAWA:
-		Predict(i, atan2(-W[1], W[0]), OUTA.alf1, OUTA.alf2);
-		break;
-
-	default:
-		break;
-	}
-
-   	return c81_aerod2_u(const_cast<doublereal *>(W), &VAM, TNG, &OUTA,
-		const_cast<c81_data *>(data[curr_data]), unsteadyflag);
-}
-
-int
-C81MultipleAeroData::GetForcesJac(int i, const doublereal* W, doublereal* TNG, Mat6x6& J, outa_t& OUTA)
-{
-	return AeroData::GetForcesJacForwardDiff_int(i, W, TNG, J, OUTA);
-}
-
-#ifdef USE_C81INTERPOLATEDAERODATA
-
-C81InterpolatedAeroData::C81InterpolatedAeroData(
-		AeroData::UnsteadyModel u,
-		integer np,
-		integer *p,
-		doublereal *ub,
-		const c81_data** d,
-		integer i_p,
-		DriveCaller *ptime
-)
-: AeroData(u, ptime), nprofiles(np), profiles(p), upper_bounds(ub), data(d),
-i_points(i_p), i_data(0)
-{
-	ASSERT(nprofiles > 0);
-	ASSERT(profiles != NULL);
-	ASSERT(upper_bounds != NULL);
-   	ASSERT(data != NULL);
-	ASSERT(i_points > 0);
-
-	SAFENEWARRNOFILL(i_data, c81_data, i_points);
-
-	GaussDataIterator GDI(i_points);
-	PntWght PW = GDI.GetFirst();
-	do {
-		doublereal dCsi = PW.dGetPnt();
-		int	from = -1, to;
-
-		for (int i = nprofiles - 1; i--; ) {
-			if (dCsi >= upper_bounds[i]) {
-				from = i;
-				break;
+				int i = HP.GetInt();
+				if (i < AeroData::STEADY || i >= AeroData::LAST) {
+					silent_cerr("illegal unsteady flag "
+							"numeric value " << i
+							<< " at line "
+							<< HP.GetLineData()
+							<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				eInst = AeroData::UnsteadyModel(i);
 			}
 		}
 
-		if (from == -1) {
-			silent_cerr("cannot find C81 data lower bound for point xi=" << dCsi << std::endl);
+		switch (eInst) {
+		case AeroData::STEADY:
+		case AeroData::BIELAWA:
+			break;
+
+		case AeroData::HARRIS:
+			silent_cerr("\"Harris\" unsteady aerodynamics "
+					"are not available at line "
+					<< HP.GetLineData()
+					<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+		default:
+	 		silent_cerr("illegal unsteady flag at line "
+					<< HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		ASSERT(from < nprofiles);
+		/*
+		 * unsteady flag
+		 */
+		return eInst;
+	}
 
-		to = from + 1;
+	/*
+	 * default: no unsteady ...
+	 */
+	return AeroData::STEADY;
+}
 
-		/* we need to interpolate between data[from]
-		 * and data[to] */
+static void
+ReadC81MultipleAeroData(DataManager* pDM, MBDynParser& HP, AeroData** aerodata)
+{
+	integer nProfiles = HP.GetInt();
+	if (nProfiles <= 0) {
+		silent_cerr("Need at least one profile at line "
+				<< HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+	integer *profiles = NULL;
+	SAFENEWARR(profiles, integer, nProfiles+1);
+	doublereal *upper_bounds = NULL;
+	SAFENEWARR(upper_bounds, doublereal, nProfiles);
+	const c81_data** data = NULL;
+	SAFENEWARR(data, const c81_data*, nProfiles+1);
 
-		/* we only accept homogeneous data sources,
-		 * i.e. same Mach and alpha patterns */
-		if (data[from]->NML != data[to]->NML) {
-			silent_cerr("number of Mach points for Cl between profiles "
-					<< from << " (" << data[from]->NML << ") and "
-					<< to << " (" << data[to]->NML << ") do not match"
+	for (int i = 0; i < nProfiles; i++) {
+		profiles[i] = HP.GetInt();
+		upper_bounds[i] = HP.GetReal();
+		if (upper_bounds[i] <= -1.) {
+			silent_cerr("upper bound " << i+1 << " = "
+					<< upper_bounds[i]
+					<< " too small at line "
+					<< HP.GetLineData()
+					<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+		} else if (upper_bounds[i] > 1.) {
+			silent_cerr("upper bound " << i+1 << " = "
+					<< upper_bounds[i]
+					<< " too large at line "
+					<< HP.GetLineData()
+					<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+		} else if (i > 0 && upper_bounds[i] <= upper_bounds[i-1]) {
+			silent_cerr("upper bound " << i+1 << " = "
+					<< upper_bounds[i]
+					<< " not in increasing order "
+					"at line " << HP.GetLineData()
 					<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
-
-		if (data[from]->NAL != data[to]->NAL) {
-			silent_cerr("number of AoA points for Cl between profiles "
-					<< from << " (" << data[from]->NAL << ") and "
-					<< to << " (" << data[to]->NAL << ") do not match"
+		data[i] = HP.GetC81Data(profiles[i]);
+		if (data[i] == NULL) {
+			silent_cerr("Unable to find profile "
+					<< profiles[i] << " at line "
+					<< HP.GetLineData()
 					<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
+ 		DEBUGLCOUT(MYDEBUG_INPUT, "profile data " << i+1
+				<< " is from file c81 " << profiles[i]
+				<< std::endl);
+	}
 
-		if (data[from]->NMD != data[to]->NMD) {
-			silent_cerr("number of Mach points for Cd between profiles "
-					<< from << " (" << data[from]->NMD << ") and "
-					<< to << " (" << data[to]->NMD << ") do not match"
+	if (upper_bounds[nProfiles-1] != 1.) {
+		silent_cerr("warning: the last upper bound should be 1.0 "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+	}
+
+	profiles[nProfiles] = -1;
+	data[nProfiles] = NULL;
+
+	AeroData::UnsteadyModel
+		eInst = ReadUnsteadyFlag(HP);
+	DriveCaller *ptime = NULL;
+	if (eInst != AeroData::STEADY) {
+		SAFENEWWITHCONSTRUCTOR(ptime,
+				TimeDriveCaller,
+				TimeDriveCaller(pDM->pGetDrvHdl()));
+	}
+	SAFENEWWITHCONSTRUCTOR(*aerodata,
+			C81MultipleAeroData,
+			C81MultipleAeroData(eInst,
+				nProfiles, profiles,
+				upper_bounds, data,
+				ptime));
+}
+
+static void
+ReadC81InterpolatedAeroData(DataManager* pDM, MBDynParser& HP, AeroData** aerodata)
+{
+	silent_cerr("C81InterpolatedAeroData not implemented yet" << std::endl);
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
+void
+ReadAeroData(DataManager* pDM, MBDynParser& HP,
+	Shape** ppChord, Shape** ppForce,
+	Shape** ppVelocity, Shape** ppTwist,
+	integer* piNumber, DriveCaller** ppDC,
+	AeroData** aerodata)
+{
+	DEBUGCOUTFNAME("ReadAeroData");
+
+	/* Keywords */
+	const char* sKeyWords[] = {
+		"naca0012",
+		"rae9671",
+		"c81",
+
+		"umd",		// FIXME
+
+		NULL
+	};
+
+	/* enum delle parole chiave */
+	enum KeyWords {
+		UNKNOWN = -1,
+		NACA0012 = 0,
+		RAE9671,
+		C81,
+
+		UMD,
+
+		LASTKEYWORD
+	};
+
+	/* tabella delle parole chiave */
+	KeyTable K(HP, sKeyWords);
+
+	*ppChord = ReadShape(HP);
+	*ppForce = ReadShape(HP);
+	*ppVelocity = ReadShape(HP);
+	*ppTwist = ReadShape(HP);
+
+	*piNumber = HP.GetInt();
+	if (*piNumber <= 0) {
+		silent_cerr("need at least 1 Gauss integration point at line "
+				<< HP.GetLineData()  << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+	DEBUGLCOUT(MYDEBUG_INPUT, "Gauss points number: "
+			<< *piNumber << std::endl);
+
+	if (HP.IsKeyWord("control")) {
+		/* Driver di un'eventuale controllo */
+		*ppDC = HP.GetDriveCaller();
+
+	} else {
+		SAFENEW(*ppDC, NullDriveCaller);
+	}
+
+	if (HP.IsArg()) {
+		switch (HP.IsKeyWord()) {
+ 		default:
+	  		silent_cerr("unknown profile type \"" << HP.GetString()
+					<< "\" at line " << HP.GetLineData()
+					<< "; using default (NACA0012)"
 					<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
 
-		if (data[from]->NAD != data[to]->NAD) {
-			silent_cerr("number of AoA points for Cd between profiles "
-					<< from << " (" << data[from]->NAD << ") and "
-					<< to << " (" << data[to]->NAD << ") do not match"
-					<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+ 		case NACA0012: {
+	  		DEBUGLCOUT(MYDEBUG_INPUT,
+				   "profile is NACA0012" << std::endl);
 
-		if (data[from]->NMM != data[to]->NMM) {
-			silent_cerr("number of Mach points for Cm between profiles "
-					<< from << " (" << data[from]->NMM << ") and "
-					<< to << " (" << data[to]->NMM << ") do not match"
-					<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		if (data[from]->NAM != data[to]->NAM) {
-			silent_cerr("number of AoA points for Cm between profiles "
-					<< from << " (" << data[from]->NAM << ") and "
-					<< to << " (" << data[to]->NAM << ") do not match"
-					<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		for (int i = 0; i < data[from]->NML; i++) {
-			if (data[from]->ml[i] != data[to]->ml[i]) {
-				silent_cerr("Mach point " << i << "for profiles "
-						<< from << " (" << data[from]->ml[i] << ") and "
-						<< to << " (" << data[to]->ml[i] << ") differs"
-						<< std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			AeroData::UnsteadyModel eInst = ReadUnsteadyFlag(HP);
+			DriveCaller *ptime = NULL;
+			if (eInst != AeroData::STEADY) {
+				SAFENEWWITHCONSTRUCTOR(ptime, TimeDriveCaller,
+						TimeDriveCaller(pDM->pGetDrvHdl()));
 			}
-		}
+	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
+				STAHRAeroData,
+				STAHRAeroData(eInst, 1, ptime));
+	  		break;
+ 		}
 
-		for (int i = 0; i < data[from]->NAL; i++) {
-			if (data[from]->al[i] != data[to]->al[i]) {
-				silent_cerr("AoA point " << i << "for profiles "
-						<< from << " (" << data[from]->al[i] << ") and "
-						<< to << " (" << data[to]->al[i] << ") differs"
-						<< std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+ 		case RAE9671: {
+	  		DEBUGLCOUT(MYDEBUG_INPUT,
+				"profile is RAE9671" << std::endl);
+
+			AeroData::UnsteadyModel eInst = ReadUnsteadyFlag(HP);
+			DriveCaller *ptime = NULL;
+			if (eInst != AeroData::STEADY) {
+				SAFENEWWITHCONSTRUCTOR(ptime, TimeDriveCaller,
+						TimeDriveCaller(pDM->pGetDrvHdl()));
 			}
+	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
+				STAHRAeroData,
+				STAHRAeroData(eInst, 2, ptime));
+	  		break;
+ 		}
+
+	 	/*
+		 * uso tabelle standard, che vengono cercate in base all'indice
+		 * (sistemare)
+		 */
+ 		case C81:
+			if (HP.IsKeyWord("multiple")) {
+				ReadC81MultipleAeroData(pDM, HP, aerodata);
+
+			} else if (HP.IsKeyWord("interpolated")) {
+				ReadC81InterpolatedAeroData(pDM, HP, aerodata);
+
+			} else {
+	  			integer iProfile = HP.GetInt();
+		  		const c81_data* data = HP.GetC81Data(iProfile);
+
+		  		DEBUGLCOUT(MYDEBUG_INPUT,
+					"profile data is from file c81 "
+					<< iProfile << std::endl);
+				AeroData::UnsteadyModel
+					eInst = ReadUnsteadyFlag(HP);
+				DriveCaller *ptime = NULL;
+				if (eInst != AeroData::STEADY) {
+					SAFENEWWITHCONSTRUCTOR(ptime,
+							TimeDriveCaller,
+							TimeDriveCaller(pDM->pGetDrvHdl()));
+				}
+	  			SAFENEWWITHCONSTRUCTOR(*aerodata,
+					C81AeroData,
+					C81AeroData(eInst, iProfile,
+						data, ptime));
+			}
+			break;
+
+		case UMD:
+	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
+				UMDAeroData,
+				UMDAeroData(0));
+			break;
+			
 		}
 
-	} while (GDI.fGetNext(PW));
-}
+	} else {
+		/* FIXME: better abort! */
+		silent_cerr("missing profile type at line "
+				<< HP.GetLineData()
+				<< "; using default (NACA0012)"
+				<< std::endl);
 
-C81InterpolatedAeroData::~C81InterpolatedAeroData(void)
-{
-	SAFEDELETEARR(profiles);
-	SAFEDELETEARR(upper_bounds);
-	SAFEDELETEARR(data);
-}
-
-std::ostream&
-C81InterpolatedAeroData::Restart(std::ostream& out) const
-{
-   	out << "C81, interpolated";
-	for (int i = 0; i < nprofiles; i++) {
-		out << ", " << profiles[i] << ", " << upper_bounds[i];
+		AeroData::UnsteadyModel eInst = ReadUnsteadyFlag(HP);
+		SAFENEWWITHCONSTRUCTOR(*aerodata,
+			STAHRAeroData, STAHRAeroData(eInst, 1));
 	}
-
-	return RestartUnsteady(out);
-}
-
-void
-C81InterpolatedAeroData::SetSectionData(
-		const doublereal& abscissa,
-		const doublereal& chord,
-		const doublereal& forcepoint,
-		const doublereal& velocitypoint,
-		const doublereal& twist,
-		const doublereal& omega
-)
-{
-	ASSERT(abscissa >= -1. && abscissa <= 1.);
-
-	AeroData::SetSectionData(abscissa, chord, forcepoint, velocitypoint,
-			twist, omega);
-
-	for (int i = nprofiles-1; i--; ) {
-		if (abscissa > upper_bounds[i]) {
-			curr_data = i + 1;
-			return;
-		}
-	}
-
-	curr_data = 0;
-}
-
-int
-C81InterpolatedAeroData::GetForces(int i, const doublereal* W, doublereal* TNG, outa_t& OUTA)
-{
-	switch (unsteadyflag) {
-	case AeroData::HARRIS:
-	case AeroData::BIELAWA: {
-		Predict(i, atan2(-W[1], W[0]), OUTA.alf1, OUTA.alf2);
-		break;
-	}
-
-	default:
-		break;
-	}
-
-   	return c81_aerod2_u(const_cast<doublereal *>(W), &VAM, TNG, &OUTA,
-		const_cast<c81_data *>(data[curr_data]), unsteadyflag);
-}
-
-int
-C81InterpolateAeroData::GetForcesJac(int i, const doublereal* W, doublereal* TNG, Mat6x6& J, outa_t& OUTA)
-{
-	return AeroData::GetForcesJacForwardDiff_int(i, W, TNG, J, OUTA);
-}
-
-#endif /* USE_C81INTERPOLATEDAERODATA */
-
-UMDAeroData::UMDAeroData(DriveCaller *ptime)
-: AeroData(STEADY, ptime)
-{
-}
-
-std::ostream&
-UMDAeroData::Restart(std::ostream& out) const
-{
-	return out;
-}
-
-// aerodynamic models with internal states
-unsigned int
-UMDAeroData::iGetNumDof(void) const
-{
-	return 2;
-}
-
-DofOrder::Order
-UMDAeroData::GetDofType(unsigned int i) const
-{
-	return DofOrder::DIFFERENTIAL;
-}
-
-void
-UMDAeroData::AssRes(SubVectorHandler& WorkVec,
-	doublereal dCoef,
-	const VectorHandler& XCurr, 
-	const VectorHandler& XPrimeCurr,
-	integer iFirstIndex, integer iFirstSubIndex,
-	int i, const doublereal* W, doublereal* TNG, outa_t& OUTA)
-{
-	// doublereal q1 = XCurr(iFirstIndex + 1);
-	// doublereal q2 = XCurr(iFirstIndex + 2);
-	doublereal q1p = XPrimeCurr(iFirstIndex + 1);
-	doublereal q2p = XPrimeCurr(iFirstIndex + 2);
-
-	doublereal alpha = -atan2(W[1], W[0]);
-	doublereal omega = W[5];
-
-	WorkVec.PutCoef(iFirstSubIndex + 1, alpha - q1p);
-	WorkVec.PutCoef(iFirstSubIndex + 2, omega - q2p);
-
-	TNG[0] = 0.;
-	TNG[1] = 2*M_PI*alpha;
-	TNG[2] = 0.;
-	TNG[3] = 0.;
-	TNG[4] = 0.;
-	TNG[5] = 0.;
-}
-
-void
-UMDAeroData::AssJac(FullSubMatrixHandler& WorkMat,
-	doublereal dCoef,
-	const VectorHandler& XCurr, 
-	const VectorHandler& XPrimeCurr,
-	integer iFirstIndex, integer iFirstSubIndex,
-	const Mat3xN& vx, const Mat3xN& wx, Mat3xN& fq, Mat3xN& cq,
-	int i, const doublereal* W, doublereal* TNG, Mat6x6& J, outa_t& OUTA)
-{
-	// doublereal q1 = XCurr(iFirstIndex + 1);
-	// doublereal q2 = XCurr(iFirstIndex + 2);
-	// doublereal q1p = XPrimeCurr(iFirstIndex + 1);
-	// doublereal q2p = XPrimeCurr(iFirstIndex + 2);
-
-	doublereal alpha = -atan2(W[1], W[0]);
-	// doublereal omega = W[5];
-
-	WorkMat.IncCoef(iFirstSubIndex + 1, iFirstSubIndex + 1, 1.);
-	WorkMat.IncCoef(iFirstSubIndex + 2, iFirstSubIndex + 2, 1.);
-
-	doublereal dd = W[0]*W[0] + W[1]*W[1];
-	doublereal dalpha_dvx = W[1]/dd;
-	doublereal dalpha_dvy = -W[0]/dd;
-	for (integer iCol = 1; iCol <= 6; iCol++) {
-		WorkMat.DecCoef(iFirstSubIndex + 1, iCol,
-			dalpha_dvx*vx(1, iCol) + dalpha_dvy*vx(2, iCol));
-		WorkMat.DecCoef(iFirstSubIndex + 2, iCol, wx(3, iCol));
-	}
-
-	TNG[0] = 0.;
-	TNG[1] = 2*M_PI*alpha;
-	TNG[2] = 0.;
-	TNG[3] = 0.;
-	TNG[4] = 0.;
-	TNG[5] = 0.;
-
-	J.Reset();
-	J(2, 1) = 2*M_PI*dalpha_dvx;
-	J(2, 2) = 2*M_PI*dalpha_dvy;
 }
 

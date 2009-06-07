@@ -9,6 +9,8 @@ aerod2.f \
 aerod2.h \
 aerodata.cc \
 aerodata.h \
+aerodata_impl.cc \
+aerodata_impl.h \
 aerodc81.c \
 aerodc81.h \
 aerodyn.cc \

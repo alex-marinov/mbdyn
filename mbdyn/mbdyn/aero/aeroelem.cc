@@ -35,9 +35,10 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include "aeroelem.h"
-#include "aerodata.h"
 #include "dataman.h"
+#include "aerodata.h"
+#include "aeroelem.h"
+
 #include "shapefnc.h"
 #include "drive_.h"
 
@@ -959,317 +960,6 @@ AerodynamicBody::Output(OutputHandler& OH) const
 
 /* AerodynamicBody - end */
 
-
-/* Legge dati aerodinamici */
-
-static AeroData::UnsteadyModel
-ReadUnsteadyFlag(MBDynParser& HP)
-{
-	if (HP.IsArg()) {
-		AeroData::UnsteadyModel eInst = AeroData::STEADY;
-		if (HP.IsKeyWord("unsteady")) {
-			/*
-			 * swallow "unsteady" keyword
-			 */
-			if (HP.IsKeyWord("steady")) {
-				eInst = AeroData::STEADY;
-			} else if (HP.IsKeyWord("harris")) {
-				eInst = AeroData::HARRIS;
-			} else if (HP.IsKeyWord("bielawa")) {
-				eInst = AeroData::BIELAWA;
-			} else {
-				/* demote to pedantic, because the integer
-				 * form allows to change unsteady model
-				 * parametrically (while waiting for string
-				 * vars) */
-				pedantic_cerr("deprecated unsteady model "
-					"given by integer number;"
-					" use \"steady\", \"Harris\" or \"Bielawa\" "
-					"instead, at line " << HP.GetLineData()
-					<< std::endl);
-
-				int i = HP.GetInt();
-				if (i < AeroData::STEADY || i >= AeroData::LAST) {
-					silent_cerr("illegal unsteady flag "
-							"numeric value " << i
-							<< " at line "
-							<< HP.GetLineData()
-							<< std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-				eInst = AeroData::UnsteadyModel(i);
-			}
-		}
-
-		switch (eInst) {
-		case AeroData::STEADY:
-		case AeroData::BIELAWA:
-			break;
-
-		case AeroData::HARRIS:
-			silent_cerr("\"Harris\" unsteady aerodynamics "
-					"are not available at line "
-					<< HP.GetLineData()
-					<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-		default:
-	 		silent_cerr("illegal unsteady flag at line "
-					<< HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		/*
-		 * unsteady flag
-		 */
-		return eInst;
-	}
-
-	/*
-	 * default: no unsteady ...
-	 */
-	return AeroData::STEADY;
-}
-
-static void
-ReadC81MultipleAeroData(DataManager* pDM, MBDynParser& HP, AeroData** aerodata)
-{
-	integer nProfiles = HP.GetInt();
-	if (nProfiles <= 0) {
-		silent_cerr("Need at least one profile at line "
-				<< HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-	integer *profiles = NULL;
-	SAFENEWARR(profiles, integer, nProfiles+1);
-	doublereal *upper_bounds = NULL;
-	SAFENEWARR(upper_bounds, doublereal, nProfiles);
-	const c81_data** data = NULL;
-	SAFENEWARR(data, const c81_data*, nProfiles+1);
-
-	for (int i = 0; i < nProfiles; i++) {
-		profiles[i] = HP.GetInt();
-		upper_bounds[i] = HP.GetReal();
-		if (upper_bounds[i] <= -1.) {
-			silent_cerr("upper bound " << i+1 << " = "
-					<< upper_bounds[i]
-					<< " too small at line "
-					<< HP.GetLineData()
-					<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-		} else if (upper_bounds[i] > 1.) {
-			silent_cerr("upper bound " << i+1 << " = "
-					<< upper_bounds[i]
-					<< " too large at line "
-					<< HP.GetLineData()
-					<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-		} else if (i > 0 && upper_bounds[i] <= upper_bounds[i-1]) {
-			silent_cerr("upper bound " << i+1 << " = "
-					<< upper_bounds[i]
-					<< " not in increasing order "
-					"at line " << HP.GetLineData()
-					<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		data[i] = HP.GetC81Data(profiles[i]);
-		if (data[i] == NULL) {
-			silent_cerr("Unable to find profile "
-					<< profiles[i] << " at line "
-					<< HP.GetLineData()
-					<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
- 		DEBUGLCOUT(MYDEBUG_INPUT, "profile data " << i+1
-				<< " is from file c81 " << profiles[i]
-				<< std::endl);
-	}
-
-	if (upper_bounds[nProfiles-1] != 1.) {
-		silent_cerr("warning: the last upper bound should be 1.0 "
-				"at line " << HP.GetLineData()
-				<< std::endl);
-	}
-
-	profiles[nProfiles] = -1;
-	data[nProfiles] = NULL;
-
-	AeroData::UnsteadyModel
-		eInst = ReadUnsteadyFlag(HP);
-	DriveCaller *ptime = NULL;
-	if (eInst != AeroData::STEADY) {
-		SAFENEWWITHCONSTRUCTOR(ptime,
-				TimeDriveCaller,
-				TimeDriveCaller(pDM->pGetDrvHdl()));
-	}
-	SAFENEWWITHCONSTRUCTOR(*aerodata,
-			C81MultipleAeroData,
-			C81MultipleAeroData(eInst,
-				nProfiles, profiles,
-				upper_bounds, data,
-				ptime));
-}
-
-static void
-ReadC81InterpolatedAeroData(DataManager* pDM, MBDynParser& HP, AeroData** aerodata)
-{
-	silent_cerr("C81InterpolatedAeroData not implemented yet" << std::endl);
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-}
-
-static void
-ReadAeroData(DataManager* pDM, MBDynParser& HP,
-	Shape** ppChord, Shape** ppForce,
-	Shape** ppVelocity, Shape** ppTwist,
-	integer* piNumber, DriveCaller** ppDC,
-	AeroData** aerodata)
-{
-	DEBUGCOUTFNAME("ReadAeroData");
-
-	/* Keywords */
-	const char* sKeyWords[] = {
-		"naca0012",
-		"rae9671",
-		"c81",
-
-		"umd",		// FIXME
-
-		NULL
-	};
-
-	/* enum delle parole chiave */
-	enum KeyWords {
-		UNKNOWN = -1,
-		NACA0012 = 0,
-		RAE9671,
-		C81,
-
-		UMD,
-
-		LASTKEYWORD
-	};
-
-	/* tabella delle parole chiave */
-	KeyTable K(HP, sKeyWords);
-
-	*ppChord = ReadShape(HP);
-	*ppForce = ReadShape(HP);
-	*ppVelocity = ReadShape(HP);
-	*ppTwist = ReadShape(HP);
-
-	*piNumber = HP.GetInt();
-	if (*piNumber <= 0) {
-		silent_cerr("need at least 1 Gauss integration point at line "
-				<< HP.GetLineData()  << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-	DEBUGLCOUT(MYDEBUG_INPUT, "Gauss points number: "
-			<< *piNumber << std::endl);
-
-	if (HP.IsKeyWord("control")) {
-		/* Driver di un'eventuale controllo */
-		*ppDC = HP.GetDriveCaller();
-
-	} else {
-		SAFENEW(*ppDC, NullDriveCaller);
-	}
-
-	if (HP.IsArg()) {
-		switch (HP.IsKeyWord()) {
- 		default:
-	  		silent_cerr("unknown profile type \"" << HP.GetString()
-					<< "\" at line " << HP.GetLineData()
-					<< "; using default (NACA0012)"
-					<< std::endl);
-
- 		case NACA0012: {
-	  		DEBUGLCOUT(MYDEBUG_INPUT,
-				   "profile is NACA0012" << std::endl);
-
-			AeroData::UnsteadyModel eInst = ReadUnsteadyFlag(HP);
-			DriveCaller *ptime = NULL;
-			if (eInst != AeroData::STEADY) {
-				SAFENEWWITHCONSTRUCTOR(ptime, TimeDriveCaller,
-						TimeDriveCaller(pDM->pGetDrvHdl()));
-			}
-	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
-				STAHRAeroData,
-				STAHRAeroData(eInst, 1, ptime));
-	  		break;
- 		}
-
- 		case RAE9671: {
-	  		DEBUGLCOUT(MYDEBUG_INPUT,
-				"profile is RAE9671" << std::endl);
-
-			AeroData::UnsteadyModel eInst = ReadUnsteadyFlag(HP);
-			DriveCaller *ptime = NULL;
-			if (eInst != AeroData::STEADY) {
-				SAFENEWWITHCONSTRUCTOR(ptime, TimeDriveCaller,
-						TimeDriveCaller(pDM->pGetDrvHdl()));
-			}
-	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
-				STAHRAeroData,
-				STAHRAeroData(eInst, 2, ptime));
-	  		break;
- 		}
-
-	 	/*
-		 * uso tabelle standard, che vengono cercate in base all'indice
-		 * (sistemare)
-		 */
- 		case C81:
-			if (HP.IsKeyWord("multiple")) {
-				ReadC81MultipleAeroData(pDM, HP, aerodata);
-
-			} else if (HP.IsKeyWord("interpolated")) {
-				ReadC81InterpolatedAeroData(pDM, HP, aerodata);
-
-			} else {
-	  			integer iProfile = HP.GetInt();
-		  		const c81_data* data = HP.GetC81Data(iProfile);
-
-		  		DEBUGLCOUT(MYDEBUG_INPUT,
-					"profile data is from file c81 "
-					<< iProfile << std::endl);
-				AeroData::UnsteadyModel
-					eInst = ReadUnsteadyFlag(HP);
-				DriveCaller *ptime = NULL;
-				if (eInst != AeroData::STEADY) {
-					SAFENEWWITHCONSTRUCTOR(ptime,
-							TimeDriveCaller,
-							TimeDriveCaller(pDM->pGetDrvHdl()));
-				}
-	  			SAFENEWWITHCONSTRUCTOR(*aerodata,
-					C81AeroData,
-					C81AeroData(eInst, iProfile,
-						data, ptime));
-			}
-			break;
-
-		case UMD:
-	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
-				UMDAeroData,
-				UMDAeroData(0));
-			break;
-			
-		}
-
-	} else {
-		/* FIXME: better abort! */
-		silent_cerr("missing profile type at line "
-				<< HP.GetLineData()
-				<< "; using default (NACA0012)"
-				<< std::endl);
-
-		AeroData::UnsteadyModel eInst = ReadUnsteadyFlag(HP);
-		SAFENEWWITHCONSTRUCTOR(*aerodata,
-			STAHRAeroData, STAHRAeroData(eInst, 1));
-	}
-}
-
 static InducedVelocity*
 ReadInducedVelocity(DataManager *pDM, MBDynParser& HP,
 	unsigned uLabel, const char *sElemType)
@@ -1411,7 +1101,7 @@ ReadAerodynamicBody(DataManager* pDM,
 		<< std::endl;
 
 	return pEl;
-} /* End of DataManager::ReadAerodynamicBody() */
+} /* End of ReadAerodynamicBody() */
 
 
 /* AerodynamicBeam - begin */
@@ -2386,7 +2076,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 		<< std::endl;
 
 	return pEl;
-} /* End of DataManager::ReadAerodynamicBeam() */
+} /* End of ReadAerodynamicBeam() */
 
 
 /* AerodynamicBeam2 - begin */
@@ -3261,5 +2951,5 @@ ReadAerodynamicBeam2(DataManager* pDM,
 		<< std::endl;
 
 	return pEl;
-} /* End of DataManager::ReadAerodynamicBeam2() */
+} /* End of ReadAerodynamicBeam2() */
 
