@@ -32,6 +32,8 @@ MBDyn 1.X-Devel
 	Backward compatibility issues:
 		- the format of the modal joint output changed
 		- the format of the modal force input changed
+		- the "imposed displacement" and "imposed orientation"
+		  joints have been removed; use the "total joint" instead
 	Known issues:
 		- RTAI mailboxes have problems...
 	Bug fixes:

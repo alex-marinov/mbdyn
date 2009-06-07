@@ -39,10 +39,6 @@ hbeam.cc \
 hbeam.h \
 hbeam_interp.cc \
 hbeam_interp.h \
-impdisp.cc \
-impdisp.h \
-imporj.cc \
-imporj.h \
 inertia.cc \
 inertia.h \
 inline.cc \

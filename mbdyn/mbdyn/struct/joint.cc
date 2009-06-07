@@ -55,8 +55,6 @@
 #include "drvj.h"      /* Vincoli di velocita' imposta */
 #include "genj.h"
 #include "gimbal.h"
-#include "impdisp.h"
-#include "imporj.h"
 #include "inplanej.h"  /* Vincoli di giacitura nel piano */
 #include "inline.h"
 #include "kinj.h"
@@ -182,9 +180,9 @@ ReadJoint(DataManager* pDM,
 		"drive" "hinge",
 		"drive" "displacement",
 		"drive" "displacement" "pin",
-		"imposed" "displacement",
-		"imposed" "displacement" "pin",
-		"imposed" "orientation",
+			"imposed" "displacement",		// obsoleted
+			"imposed" "displacement" "pin",		// obsoleted
+			"imposed" "orientation",		// obsoleted
 		"total" "equation",
 		"total" "internal" "reaction",
 		"total" "joint",
@@ -243,9 +241,9 @@ ReadJoint(DataManager* pDM,
 		DRIVEHINGE,
 		DRIVEDISPLACEMENT,
 		DRIVEDISPLACEMENTPIN,
-		IMPOSEDDISPLACEMENT,
-		IMPOSEDDISPLACEMENTPIN,
-		IMPOSEDORIENTATION,
+			IMPOSEDDISPLACEMENT,		// obsoleted
+			IMPOSEDDISPLACEMENTPIN,		// obsoleted
+			IMPOSEDORIENTATION,		// obsoleted
 		TOTALEQUATION,
 		TOTALINTERNALREACTION,
 		TOTALJOINT,
@@ -2196,173 +2194,19 @@ ReadJoint(DataManager* pDM,
 		} break;
 
 	case IMPOSEDDISPLACEMENT:
-		{
-		/* nodo collegato 1 */
-		StructNode* pNode1 = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
-		ReferenceFrame RF1(pNode1);
-
-		Vec3 f1(0.);
-		if (HP.IsKeyWord("position")) {
-#ifdef MBDYN_X_COMPATIBLE_INPUT
-			NO_OP;
-		} else {
-			pedantic_cerr("Joint(" << uLabel << "): "
-				"missing keyword \"position\" at line "
-				<< HP.GetLineData() << std::endl);
-		}
-#endif /* MBDYN_X_COMPATIBLE_INPUT */
-			f1 = HP.GetPosRel(RF1);
-#ifndef MBDYN_X_COMPATIBLE_INPUT
-		}
-#endif /* MBDYN_X_COMPATIBLE_INPUT */
-
-		/* nodo collegato 2 */
-		StructNode* pNode2 = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
-		ReferenceFrame RF2(pNode2);
-
-		/* Stessa cosa per il nodo 2 */
-		Vec3 f2(0.);
-		if (HP.IsKeyWord("position")) {
-#ifdef MBDYN_X_COMPATIBLE_INPUT
-			NO_OP;
-		} else {
-			pedantic_cerr("Joint(" << uLabel << "): "
-				"missing keyword \"position\" at line "
-				<< HP.GetLineData() << std::endl);
-		}
-#endif /* MBDYN_X_COMPATIBLE_INPUT */
-			f2 = HP.GetPosRel(RF2, RF1, f1);
-#ifndef MBDYN_X_COMPATIBLE_INPUT
-		}
-#endif /* MBDYN_X_COMPATIBLE_INPUT */
-
-		Vec3 e1 = HP.GetVecRel(ReferenceFrame(pNode1));
-
-		DriveCaller* pDC = HP.GetDriveCaller(false);
-
-		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
-
-		SAFENEWWITHCONSTRUCTOR(pEl,
-			ImposedDisplacementJoint,
-			ImposedDisplacementJoint(uLabel, pDO, pDC,
-				pNode1, pNode2, f1, f2, e1, fOut));
-		} break;
+		silent_cerr("ImposedDisplacement(" << uLabel << "): "
+			"use total joint instead" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 	case IMPOSEDDISPLACEMENTPIN:
-		{
-		/* nodo collegato */
-		StructNode* pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
-		ReferenceFrame RF(pNode);
-
-		Vec3 f(0.);
-		if (HP.IsKeyWord("position")) {
-#ifdef MBDYN_X_COMPATIBLE_INPUT
-			NO_OP;
-		} else {
-			pedantic_cerr("Joint(" << uLabel << "): "
-				"missing keyword \"position\" at line "
-				<< HP.GetLineData() << std::endl);
-		}
-#endif /* MBDYN_X_COMPATIBLE_INPUT */
-			f = HP.GetPosRel(RF);
-#ifndef MBDYN_X_COMPATIBLE_INPUT
-		}
-#endif /* MBDYN_X_COMPATIBLE_INPUT */
-
-		/* Stessa cosa per il terreno */
-		Vec3 x(0.);
-		if (HP.IsKeyWord("position")) {
-#ifdef MBDYN_X_COMPATIBLE_INPUT
-			NO_OP;
-		} else {
-			pedantic_cerr("Joint(" << uLabel << "): "
-				"missing keyword \"position\" at line "
-				<< HP.GetLineData() << std::endl);
-		}
-#endif /* MBDYN_X_COMPATIBLE_INPUT */
-			x = HP.GetPosAbs(AbsRefFrame);
-#ifndef MBDYN_X_COMPATIBLE_INPUT
-		}
-#endif /* MBDYN_X_COMPATIBLE_INPUT */
-
-		Vec3 e = HP.GetVecAbs(AbsRefFrame);
-
-		DriveCaller* pDC = HP.GetDriveCaller(false);
-
-		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
-
-		SAFENEWWITHCONSTRUCTOR(pEl,
-			ImposedDisplacementPinJoint,
-			ImposedDisplacementPinJoint(uLabel, pDO, pDC,
-				pNode, f, x, e, fOut));
-		} break;
+		silent_cerr("ImposedDisplacementPin(" << uLabel << "): "
+			"use total pin joint instead" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 	case IMPOSEDORIENTATION:
-		{
-		/* nodo collegato 1 */
-		StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
-		ReferenceFrame RF1(pNode1);
-
-		Mat3x3 R1h(Eye3);
-		if (HP.IsKeyWord("orientation")) {
-			DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
-			R1h = HP.GetRotRel(RF1);
-#ifdef MBDYN_X_COMPATIBLE_INPUT
-		} else if (HP.IsKeyWord("hinge")) {
-			pedantic_cerr("Joint(" << uLabel << "): "
-				"keyword \"hinge\" at line " << HP.GetLineData()
-				<< " is deprecated; use \"orientation\" instead"
-				<< std::endl);
-			DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
-			R1h = HP.GetRotRel(RF1);
-#endif /* MBDYN_X_COMPATIBLE_INPUT */
-		}
-
-
-		/* nodo collegato 2 */
-		StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
-		ReferenceFrame RF2(pNode2);
-
-		/* Stessa cosa per il nodo 2 */
-
-		Mat3x3 R2h(Eye3);
-		if (HP.IsKeyWord("orientation")) {
-			DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
-			R2h = HP.GetRotRel(RF2, RF1, R1h);
-#ifdef MBDYN_X_COMPATIBLE_INPUT
-		} else if (HP.IsKeyWord("hinge")) {
-			pedantic_cerr("Joint(" << uLabel << "): "
-				"keyword \"hinge\" at line " << HP.GetLineData()
-				<< " is deprecated; use \"orientation\" instead"
-				<< std::endl);
-			DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
-			R2h = HP.GetRotRel(RF2, RF1, R1h);
-#endif /* MBDYN_X_COMPATIBLE_INPUT */
-		}
-
-		bool bActive[3];
-		for (unsigned i = 0; i < 3; i++) {
-			if (HP.IsKeyWord("inactive")) {
-				bActive[i] = false;
-
-			} else if (HP.IsKeyWord("active")) {
-				bActive[i] = true;
-
-			} else {
-				bActive[i] = HP.GetBool();
-			}
-		}
-
-		TplDriveCaller<Vec3>* pDC = ReadDC3D(pDM, HP);
-
-		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
-
-		SAFENEWWITHCONSTRUCTOR(pEl,
-			ImposedOrientationJoint,
-			ImposedOrientationJoint(uLabel, pDO, bActive, pDC,
-				pNode1, pNode2, R1h, R2h, fOut));
-
-		} break;
+		silent_cerr("ImposedOrientation(" << uLabel << "): "
+			"use total joint instead" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 	case TOTALEQUATION:
 		{
