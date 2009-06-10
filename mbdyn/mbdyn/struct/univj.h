@@ -120,7 +120,7 @@ class UniversalHingeJoint : virtual public Elem, public Joint {
 
 #ifdef DEBUG
    virtual const char* sClassName(void) const { 
-      return "UniversalHingeJoint";
+      return "CardanoHingeJoint";
    };
 #endif /* DEBUG */
 
@@ -308,7 +308,7 @@ class UniversalPinJoint : virtual public Elem, public Joint {
 
 #ifdef DEBUG
    virtual const char* sClassName(void) const { 
-      return "UniversalPinJoint";
+      return "CardanoPinJoint";
    };
 #endif /* DEBUG */
 

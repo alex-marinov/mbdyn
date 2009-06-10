@@ -836,7 +836,7 @@ ReadJoint(DataManager* pDM,
 					pNode1, pNode2,
 					d1, d2, R1h, R2h, fOut));
 			std::ostream& out = pDM->GetLogFile();
-			out << "universalhinge: " << uLabel
+			out << "cardanohinge: " << uLabel
 				<< " " << pNode1->GetLabel()
 				<< " " << d1
 				<< " " << R1h
@@ -855,7 +855,7 @@ ReadJoint(DataManager* pDM,
 				UniversalRotationJoint(uLabel, pDO,
 					pNode1, pNode2, R1h, R2h, fOut));
 			std::ostream& out = pDM->GetLogFile();
-			out << "universalrotation: " << uLabel
+			out << "cardanorotation: " << uLabel
 				<< " " << pNode1->GetLabel()
 				<< " " << Vec3(0.)
 				<< " " << R1h
@@ -1016,7 +1016,7 @@ ReadJoint(DataManager* pDM,
 				UniversalPinJoint(uLabel, pDO, pNode,
 					X0, R0, d, Rh, fOut));
 			std::ostream& out = pDM->GetLogFile();
-			out << "universalpin: " << uLabel
+			out << "cardanopin: " << uLabel
 				<< " " << pNode->GetLabel()
 				<< " " << d
 				<< " " << Rh

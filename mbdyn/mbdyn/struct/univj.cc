@@ -313,7 +313,7 @@ void UniversalHingeJoint::Output(OutputHandler& OH) const
       Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
       Vec3 vTmp(R2Tmp.GetVec(2).Cross(R1Tmp.GetVec(3)));
 
-      Joint::Output(OH.Joints(), "UniversalHinge", GetLabel(),
+      Joint::Output(OH.Joints(), "CardanoHinge", GetLabel(),
 		    R1Tmp.Transpose()*F, Vec3(dM, 0., 0.), F, vTmp*dM)
 	<< " " << MatR2EulerAngles(R2Tmp.Transpose()*R1Tmp)*dRaDegr
 	<< std::endl;      
@@ -462,7 +462,7 @@ UniversalHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
    if (Tmp.Dot() < std::numeric_limits<doublereal>::epsilon()) {
-      silent_cerr("UniversalHingeJoint(" << GetLabel() << "): "
+      silent_cerr("CardanoHingeJoint(" << GetLabel() << "): "
       	      "first and second node hinge axes are (nearly) orthogonal"
 	      << std::endl);
       throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
@@ -872,7 +872,7 @@ void UniversalRotationJoint::Output(OutputHandler& OH) const
       Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
       Vec3 vTmp(R2Tmp.GetVec(2).Cross(R1Tmp.GetVec(3)));
 
-      Joint::Output(OH.Joints(), "UniversalHinge", GetLabel(),
+      Joint::Output(OH.Joints(), "CardanoHinge", GetLabel(),
 		    Zero3, Vec3(dM, 0., 0.), Zero3, vTmp*dM)
 	<< " " << MatR2EulerAngles(R2Tmp.Transpose()*R1Tmp)*dRaDegr
 	<< std::endl;      
@@ -993,7 +993,7 @@ UniversalRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
    if (Tmp.Dot() < std::numeric_limits<doublereal>::epsilon()) {
-      silent_cerr("UniversalRotationJoint(" << GetLabel() << "): "
+      silent_cerr("CardanoRotationJoint(" << GetLabel() << "): "
       	      "first and second node hinge axes are (nearly) orthogonal"
 	      << std::endl);
       throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
@@ -1336,7 +1336,7 @@ void UniversalPinJoint::Output(OutputHandler& OH) const
       Mat3x3 RTmp(pNode->GetRCurr()*Rh);
       Vec3 vTmp(RTmp.GetVec(2).Cross(R0.GetVec(3)));
       
-      Joint::Output(OH.Joints(), "UniversalPin", GetLabel(),
+      Joint::Output(OH.Joints(), "CardanoPin", GetLabel(),
 		    RTmp.Transpose()*F, Vec3(dM, 0., 0.), F, vTmp*dM)
 	<< " " << MatR2EulerAngles(R0.Transpose()*RTmp)*dRaDegr << std::endl;
    }   
@@ -1419,7 +1419,7 @@ UniversalPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    /* Error handling: il programma si ferma, pero' segnala dov'e' l'errore */
    if (Tmp.Dot() < std::numeric_limits<doublereal>::epsilon()) {
-      silent_cerr("UniversalPinJoint(" << GetLabel() << "): "
+      silent_cerr("CardanoPinJoint(" << GetLabel() << "): "
       	      "node and fixed point hinge axes are (nearly) orthogonal"
 	      << std::endl);
       throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
