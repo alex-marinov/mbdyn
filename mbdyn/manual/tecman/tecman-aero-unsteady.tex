@@ -70,10 +70,26 @@ The $\T{A}$ matrix is:
 		\right],
 \end{equation}
 where $A_1$, $A_2$, $b_1$ and $b_2$ are the coefficients of the Theodorsen
-function approximation, $\omega_\infty$ is the frequency of the pseudo-derivatore and:
+function approximation (Table~\ref{tab:aero:unsteady:theodorsen-coeffs}),
+$\omega_\infty$ is the frequency of the pseudo-derivative algorithm and:
 \begin{equation}
 U_\infty^2 = \tilde{\T{V}}^T\tilde{\T{V}}.
 \end{equation}
+
+\begin{table}
+\centering
+\caption{Coefficients of the Wagner indicial response approximation
+of Theodorsen's function (\cite{LEISHMAN-2006})}
+\label{tab:aero:unsteady:theodorsen-coeffs}
+\begin{tabular}{r|r@{.}lr@{.}l}
+& \multicolumn{2}{c}{approx.~1} & \multicolumn{2}{c}{approx.~2} \\
+\hline \\
+$A_1$ 	& 0&165		& 0&165 \\
+$A_2$ 	& 0&335		& 0&335 \\
+$b_1$ 	& 0&0455	& 0&041 \\
+$b_2$	& 0&3		& 0&32
+\end{tabular}
+\end{table}
 
 The $\T{B}$ matrix is:
 \begin{equation}
@@ -140,8 +156,8 @@ and
 \begin{equation}
 	\T{u} = \left\{
 		\begin{array}{c}
-		atan \plbr{ \frac{-V_y + \omega_z d_{1/4}}{V_x}}\\
-		atan \plbr{ \frac{-V_y + \omega_z d_{3/4}}{V_x}}\\
+		\tan^{-1} \plbr{ \frac{-V_y + \omega_z d_{1/4}}{V_x}}\\
+		\tan^{-1} \plbr{ \frac{-V_y + \omega_z d_{3/4}}{V_x}}\\
 		\end{array}
 		\right\}
 \end{equation}
@@ -186,12 +202,12 @@ where
 \end{equation}
 	
 \begin{equation}
-	\tilde{\T{c}}_{f_{a}} = \left\{
-		\begin{array}{c}
-		c_l \\ c_d \\ 0
-		\end{array}
-		\right\} = 
-		\T{c}_{f_a}^{lookup}\plbr{\T{y}} + \tilde{\T{T}}_{f_a} \T{y}.
+	\tilde{\T{c}}_{f_{a}} = \cubr{\cvvect{
+		-c_d \\
+		c_l \\
+		0
+	}}
+	= \T{c}_{f_a}^\text{lookup}\plbr{\T{y}} + \tilde{\T{T}}_{f_a} \T{y}.
 \end{equation}
 \begin{equation}
 	\tilde{\T{c}}_{c_{a}} = \left\{
@@ -199,16 +215,16 @@ where
 		0 \\ 0 \\ c_{m}
 		\end{array}
 		\right\} = 
-		\T{c}_{c_a}^{lookup}\plbr{\T{y}} + \tilde{\T{T}}_{c_a} \T{y}.
+		\T{c}_{c_a}^\text{lookup}\plbr{\T{y}} + \tilde{\T{T}}_{c_a} \T{y}.
 \end{equation}
-where the second part is the nonciculatory effect.
+where the second part is the noncirculatory effect.
 
 \begin{equation}
 	\left\{ 
 	\begin{array}{c}
 	c_l^{NC} \\ c_m^{NC}
 	\end{array} 
-	\right\}=  \T{T}_1 \T{T}_2 \plbr{ \nrbr{\tilde{\T{T}}}} \T{y} = \tilde{\T{T}} \T{y},
+	\right\}=  \T{T}_1 \T{T}_2 \plbr{ \nrbr{\tilde{\T{V}}}} \T{y} = \tilde{\T{T}} \T{y},
 \end{equation}
 where
 \begin{equation}
@@ -267,16 +283,16 @@ and
 Finally:
 \begin{equation}
 	\tilde{\T{c}}_{f_{a}} = 
-		\T{c}_{f_a}^{lookup}\plbr{y_1} + \left\{
-		\begin{array}{c}
-		\frac{c_{l_\alpha}}{2} \frac{c}{2 U_\infty} \plbr{ y_2 - \frac{c a}{2 U_\infty} y_3} \\ 
-		0 \\ 0
-		\end{array}
-		\right\}.
+		\T{c}_{f_a}^\text{lookup}\plbr{y_1} +
+		\cubr{\cvvect{
+			0 \\
+			\frac{c_{l_\alpha}}{2} \frac{c}{2 U_\infty} \plbr{ y_2 - \frac{c a}{2 U_\infty} y_3} \\ 
+			0
+		}}.
 \end{equation}
 \begin{equation}
 	\tilde{\T{c}}_{c_{a}} = 
-		\T{c}_{c_a}^{lookup}\plbr{y_1} + \left\{
+		\T{c}_{c_a}^\text{lookup}\plbr{y_1} + \left\{
 		\begin{array}{c}
 		0 \\ 0\\
 		\frac{c_{l_\alpha}}{2} \frac{c}{2 U_\infty}

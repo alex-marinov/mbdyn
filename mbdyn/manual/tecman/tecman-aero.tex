@@ -35,13 +35,21 @@ discuss the computation of the contributions to the Jacobian
 matrix of the aerodynamic elements.
 
 \paragraph{Files.} \
-It is implemented in files\\
+2D aerodnamic elements are implemented in files \\
 \begin{tabular}{l}
 \texttt{mbdyn/aero/aeroelem.h} \\
 \texttt{mbdyn/aero/aeroelem.cc} 
 \end{tabular}
 
-\section{Linearization of Sectional Aerodynamic Forces and Moments}
+2D aerodynamic models are implemented in files \\
+\begin{tabular}{l}
+\texttt{mbdyn/aero/aerodata.h} \\
+\texttt{mbdyn/aero/aerodata.cc} \\
+\texttt{mbdyn/aero/aerodata\_impl.h} \\
+\texttt{mbdyn/aero/aerodata\_impl.cc} 
+\end{tabular}
+
+\section{Linearization of 2D Aerodynamic Forces and Moments}
 MBDyn's built-in 2D aerodynamics computes
 aerodynamic forces $\tilde{\T{f}}_{a/\xi}$
 and moments $\tilde{\T{c}}_{a/\xi}$ per unit span,
