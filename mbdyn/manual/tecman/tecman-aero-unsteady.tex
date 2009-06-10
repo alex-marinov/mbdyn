@@ -188,7 +188,7 @@ where
 \begin{equation}
 	\tilde{\T{c}}_{f_{a}} = \left\{
 		\begin{array}{c}
-		c_{f_x} \\ c_{f_y} \\ c_{f_z}
+		c_l \\ c_d \\ 0
 		\end{array}
 		\right\} = 
 		\T{c}_{f_a}^{lookup}\plbr{\T{y}} + \tilde{\T{T}}_{f_a} \T{y}.
@@ -196,7 +196,7 @@ where
 \begin{equation}
 	\tilde{\T{c}}_{c_{a}} = \left\{
 		\begin{array}{c}
-		c_{c_x} \\ c_{c_y} \\ c_{c_z}
+		0 \\ 0 \\ c_{m}
 		\end{array}
 		\right\} = 
 		\T{c}_{c_a}^{lookup}\plbr{\T{y}} + \tilde{\T{T}}_{c_a} \T{y}.
@@ -278,12 +278,11 @@ Finally:
 	\tilde{\T{c}}_{c_{a}} = 
 		\T{c}_{c_a}^{lookup}\plbr{y_1} + \left\{
 		\begin{array}{c}
-		0 \\
+		0 \\ 0\\
 		\frac{c_{l_\alpha}}{2} \frac{c}{2 U_\infty}
 		 \plbr{ -\frac{1}{4} y_2 +
 		\plbr{\frac{a^2 c}{2 U_\infty} + \frac{ c a}{8 U_\infty} - \frac{c}{32 U_\infty} } y_3 
-		-\frac{1}{4} y_4}\\
-		 0
+		-\frac{1}{4} y_4}
 		\end{array}
 		\right\}.
 \end{equation}
