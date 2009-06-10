@@ -1,0 +1,290 @@
+% MBDyn (C) is a multibody analysis code.
+% http://www.mbdyn.org
+%
+% Copyright (C) 1996-2009
+%
+% Pierangelo Masarati  <masarati@aero.polimi.it>
+%
+% Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+% via La Masa, 34 - 20156 Milano, Italy
+% http://www.aero.polimi.it
+%
+% Changing this copyright notice is forbidden.
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation (version 2 of the License).
+% 
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+% Mattia Mattaboni <mattaboni@aero.polimi.it> is the author of this document
+
+
+The 2D unstestedy aerodynamics loads are computed implementing in 
+the state-space form the Theodorsen theory using the Wagner
+approximation of the Theodorsen function.
+\begin{subequations}
+\begin{align}
+	\tilde{\T{f}}_a &= 
+		\frac{1}{2} \rho \tilde{\T{V}}^T \tilde{\T{V}} c
+		\tilde{\T{c}}_{f_{a}}
+		\plbr{ \T{y} 
+		\plbr{ \tilde{\T{V}}, \tilde{\T{\omega}}, \T{q}}}\\
+	\tilde{\T{c}}_a &= 
+		\frac{1}{2} \rho \tilde{\T{V}}^T \tilde{\T{V}} c^2
+		\tilde{\T{c}}_{c_{a}} 
+		\plbr{ \T{y} 
+		\plbr{ \tilde{\T{V}}, \tilde{\T{\omega}}, \T{q}}}\\
+	\T{0} &=
+		\T{g}\plbr{\tilde{\T{v}},\tilde{\T{\omega}},\T{q}, \dot{\T{q}}} = 
+		\dot{\T{q}} - \T{A}\plbr{\nrbr{\tilde{\T{V}}}} \T{q} - \T{B}\plbr{\nrbr{\tilde{\T{V}}}}
+ 		\T{u}\plbr{\tilde{\T{V}}, \tilde{\T{\omega}}},
+\end{align}
+\end{subequations}
+where $\rho$ is the air density, $c$ the airfoil chord and $\T{y}$ is defined as:
+\begin{equation}
+	\T{y} = \T{C}\plbr{ \nrbr{\tilde{\T{V}}}} \T{q} + \T{D} \plbr{ \nrbr{\tilde{\T{V}}}}
+ 		\T{u}\plbr{\tilde{\T{V}}, \tilde{\T{\omega}}}.
+\end{equation}
+
+The $\T{A}$ matrix is:
+\begin{equation}
+	\T{A} = \left[
+		\begin{array}{cccccc}
+		0 & 1 & 0 & 0 & 0 & 0\\
+		-b_1 b_2 \plbr{ \frac{2U_\infty}{c}}^2 & \plbr{ A_1 b_1 + A_2 b_2} \plbr{\frac{2 U_\infty}{c}}&
+ 		0 & 0 & 0 & 0 \\
+		0 & 0 & -2\omega_{PD} & -\omega_{PD}^2 & 0 & 0\\
+		0 & 0 & 1 & 0 & 0 & 0\\
+		0 & 0 & 0 & 0 &-2\omega_{PD} & -\omega_{PD}^2 \\
+		0 & 0 & 0 & 0 & 1 & 0
+		\end{array}
+		\right],
+\end{equation}
+where $A_1$, $A_2$, $b_1$ and $b_2$ are the coefficients of the Theodorsen
+function approximation, $\omega_\infty$ is the frequency of the pseudo-derivatore and:
+\begin{equation}
+U_\infty^2 = \tilde{\T{V}}^T\tilde{\T{V}}.
+\end{equation}
+
+The $\T{B}$ matrix is:
+\begin{equation}
+	\T{B} = \tilde{\T{B}} \T{T}_u \plbr{\nrbr{\tilde{\T{V}}}},
+\end{equation}
+where:
+\begin{equation}
+	\tilde{\T{B}} = \left[
+		\begin{array}{ccc}
+			0 & 0 & 0 \\
+			1 & 0 & 0 \\
+			0 & 1 & 0 \\
+			0 & 0 & 0 \\
+			0 & 0 & 1 \\
+			0 & 0 & 0 
+		\end{array}
+		\right],
+\end{equation}
+and
+\begin{equation}
+	\T{T}_u = \left[
+		\begin{array}{c}
+		\begin{array}{cc}
+		0 & 1
+		\end{array}\\ 
+		\left[
+		\begin{array}{cc}
+			1 & \frac{d_{1/4}}{U_\infty} \\
+			1 & \frac{d_{3/4}}{U_\infty} 
+		\end{array}
+		\right]^{-1}
+		\end{array}
+		\right] = \left[ 
+		\begin{array}{c}
+		\begin{array}{cc}
+		0 & 1
+		\end{array}\\
+		\frac{1}{d_{3/4}-d_{1/4}} \left[  
+		\begin{array}{cc}
+			d_{3/4} & -{d_{1/4}} \\
+			-\frac{1}{U_\infty} & \frac{1}{U_\infty} 
+		\end{array}
+		\right]
+		\end{array}
+		\right].
+\end{equation}
+\begin{equation}
+	\T{B} = \left[
+		\begin{array}{cc}
+		0 & 0 \\
+		0 & 1 \\
+		\frac{1}{d_{3/4}-d_{1/4}} d_{3/4} & 
+		-\frac{1}{d_{3/4}-d_{1/4}} d_{1/4}\\ 
+		0 & 0 \\
+		-\frac{1}{d_{3/4}-d_{1/4}} \frac{1}{U_\infty} & 
+		\frac{1}{d_{3/4}-d_{1/4}} \frac{1}{U_\infty} \\ 
+		0 & 0
+		\end{array}
+		\right]
+\end{equation}
+		
+		
+
+\begin{equation}
+	\T{u} = \left\{
+		\begin{array}{c}
+		atan \plbr{ \frac{-V_y + \omega_z d_{1/4}}{V_x}}\\
+		atan \plbr{ \frac{-V_y + \omega_z d_{3/4}}{V_x}}\\
+		\end{array}
+		\right\}
+\end{equation}
+		
+The $\T{C}$ matrix is:
+\begin{equation}
+	\T{C} = \left[
+		\begin{array}{cccccc}
+		\left(A_1+A_2\right)b_1 b_2 \left( \frac{2 U_\infty}{c}\right)^2 &
+		 \left(A_1  b_1 + A_2 b_2 \right) \left( \frac{2 U_\infty}{c}\right) & 0 & 0 &0 & 0 \\
+		0 & 0 & \omega_{PD}^2 & 0 & 0 & 0 \\
+		0 & 0 & 0 & 0 & \omega_{PD}^2 & 0 \\
+		0 & 0 & 0 & 0 & 0 & 0 
+		\end{array}
+		\right].
+\end{equation}
+And the $\T{D}$ matrix is:
+\begin{equation}
+	\T{D} = \tilde{\T{D}} \T{T}_u \plbr{ \nrbr{\tilde{\T{V}}}},
+\end{equation}
+where
+\begin{equation}
+	\tilde{\T{D}} = \left[
+		\begin{array}{ccc}
+		\left( 1 - A_1 - A_2 \right) & 0 & 0 \\
+		0 & 0 & 0 \\
+		0 & 0 & 0 \\
+		0 & 0 & 1
+		\end{array}
+		\right].
+\end{equation}
+\begin{equation}
+	\T{D} = \left[
+		\begin{array}{cc}
+		0 & \left( a -A_1 - A_2 \right) \\
+		0 & 0 \\ 
+		0 & 0 \\ 
+		0 & 
+		\frac{1}{d_{3/4}-d_{1/4}} \frac{1}{U_\infty} \\ 
+		\end{array}
+		\right].
+\end{equation}
+	
+\begin{equation}
+	\tilde{\T{c}}_{f_{a}} = \left\{
+		\begin{array}{c}
+		c_{f_x} \\ c_{f_y} \\ c_{f_z}
+		\end{array}
+		\right\} = 
+		\T{c}_{f_a}^{lookup}\plbr{\T{y}} + \tilde{\T{T}}_{f_a} \T{y}.
+\end{equation}
+\begin{equation}
+	\tilde{\T{c}}_{c_{a}} = \left\{
+		\begin{array}{c}
+		c_{c_x} \\ c_{c_y} \\ c_{c_z}
+		\end{array}
+		\right\} = 
+		\T{c}_{c_a}^{lookup}\plbr{\T{y}} + \tilde{\T{T}}_{c_a} \T{y}.
+\end{equation}
+where the second part is the nonciculatory effect.
+
+\begin{equation}
+	\left\{ 
+	\begin{array}{c}
+	c_l^{NC} \\ c_m^{NC}
+	\end{array} 
+	\right\}=  \T{T}_1 \T{T}_2 \plbr{ \nrbr{\tilde{\T{T}}}} \T{y} = \tilde{\T{T}} \T{y},
+\end{equation}
+where
+\begin{equation}
+	\T{T}_1 = \left[
+		\begin{array}{cc}
+		 1 & 0 \\
+		-\frac{a+\frac{1}{2}}{2} & 1
+		\end{array}
+		\right],
+\end{equation}
+and
+\begin{equation}
+	\T{T}_2 = \frac{C_{l_\alpha}}{2} \frac{c}{2}\left[
+		\begin{array}{cccc} 
+		0 & \frac{1}{U_\infty} & -\frac{c a}{2 U_\infty^2} & 0\\
+		0 & \frac{a}{2 U_\infty} & -\frac{c}{4 U_\infty^2}\left( \frac{1}{8} - a^2\right) & -\frac{1}{4U_\infty}
+		\end{array}
+		\right].
+\end{equation}
+		
+	
+\begin{equation}
+	\tilde{\T{T}} = \frac{C_{l_\alpha}}{2} \frac{c}{2} \left[
+		\begin{array}{cccc}
+		0 & \frac{1}{U_\infty} & -\frac{c a}{2 U_\infty^2} & 0\\
+		0 &
+		-\frac{1}{4 U_\infty} &
+		\plbr{\frac{a^2 c}{2 U_\infty^2} + \frac{ c a}{8 U_\infty^2} - \frac{c}{32 U_\infty^2} }& 
+		-\frac{1}{4 U_\infty}
+		\end{array}	
+		\right]
+\end{equation}
+
+\begin{equation}
+	\tilde{\T{T}}_{f_a} = \frac{C_{l_\alpha}}{2} \frac{c}{2} \left[
+		\begin{array}{cccc}
+		0 & \frac{1}{U_\infty} & -\frac{c a}{2 U_\infty^2} & 0\\
+		0 & 0 & 0 & 0\\
+		0 & 0 & 0 & 0
+		\end{array}
+		\right]
+\end{equation}
+\begin{equation}
+	\tilde{\T{T}}_{c_a} = \frac{C_{l_\alpha}}{2} \frac{c}{2} \left[
+		\begin{array}{cccc}
+		0 & 0 & 0 & 0\\
+		0 &
+		-\frac{1}{4 U_\infty} &
+		\plbr{\frac{a^2 c}{2 U_\infty^2} + \frac{ c a}{8 U_\infty^2} - \frac{c}{32 U_\infty^2} }& 
+		-\frac{1}{4 U_\infty}\\
+		0 & 0 & 0 & 0
+		\end{array}
+		\right]
+\end{equation}
+
+Finally:
+\begin{equation}
+	\tilde{\T{c}}_{f_{a}} = 
+		\T{c}_{f_a}^{lookup}\plbr{y_1} + \left\{
+		\begin{array}{c}
+		\frac{c_{l_\alpha}}{2} \frac{c}{2 U_\infty} \plbr{ y_2 - \frac{c a}{2 U_\infty} y_3} \\ 
+		0 \\ 0
+		\end{array}
+		\right\}.
+\end{equation}
+\begin{equation}
+	\tilde{\T{c}}_{c_{a}} = 
+		\T{c}_{c_a}^{lookup}\plbr{y_1} + \left\{
+		\begin{array}{c}
+		0 \\
+		\frac{c_{l_\alpha}}{2} \frac{c}{2 U_\infty}
+		 \plbr{ -\frac{1}{4} y_2 +
+		\plbr{\frac{a^2 c}{2 U_\infty} + \frac{ c a}{8 U_\infty} - \frac{c}{32 U_\infty} } y_3 
+		-\frac{1}{4} y_4}\\
+		 0
+		\end{array}
+		\right\}.
+\end{equation}
+
