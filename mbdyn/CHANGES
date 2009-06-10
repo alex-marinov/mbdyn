@@ -22,6 +22,7 @@ MBDyn 1.X-Devel
 		  (partially contributed by Doug Baldwin)
 		- add Jacobian of aerodynamic body/beam2/beam3
 		  (contributions by Alessandro Fumagalli)
+		- add 2D unsteady Theodorsen model (Mattia Mattaboni)
 		- add internal states support in aerodynamic body/beam2/beam3
 		- add support for scalar values to discrete control elem
 		- honor default output orientation for reference frames
