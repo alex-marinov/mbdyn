@@ -504,13 +504,13 @@ C81TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
 	doublereal b1 = TheodorsenParams[iParam][2];
 	doublereal b2 = TheodorsenParams[iParam][3];
 
-	doublereal u1 = atan2(-W[5]*d14 - W[1], W[0]);
-	doublereal u2 = atan2(-W[5]*d34 - W[1], W[0]);
+	doublereal u1 = atan2(- W[1] - W[5]*d14, W[0]);
+	doublereal u2 = atan2(- W[1] - W[5]*d34, W[0]);
 
 	doublereal d = 2*Uinf/chord;
 
 	doublereal y1 = (A1 + A2)*b1*b2*d*d*q1 + (A1*b1 + A2*b2)*d*q2
-		+ (a - A1 - A2)*u2;
+		+ (1 - A1 - A2)*u2;
 	doublereal y2 = omegaPD*omegaPD*q3;
 	doublereal y3 = omegaPD*omegaPD*q5;
 	doublereal y4 = u2/((d34 - d14)*Uinf);
@@ -556,8 +556,8 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	const Mat3xN& vx, const Mat3xN& wx, Mat3xN& fq, Mat3xN& cq,
 	int i, const doublereal* W, doublereal* TNG, Mat6x6& J, outa_t& OUTA)
 {
-	doublereal A1 = TheodorsenParams[iParam][0];
-	doublereal A2 = TheodorsenParams[iParam][1];
+	// doublereal A1 = TheodorsenParams[iParam][0];
+	// doublereal A2 = TheodorsenParams[iParam][1];
 	doublereal b1 = TheodorsenParams[iParam][2];
 	doublereal b2 = TheodorsenParams[iParam][3];
 
