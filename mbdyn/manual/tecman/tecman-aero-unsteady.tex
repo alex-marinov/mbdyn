@@ -28,9 +28,9 @@
 % Mattia Mattaboni <mattaboni@aero.polimi.it> is the author of this document
 
 \emph{(Author: Mattia Mattaboni)} \\
-The 2D unstestedy aerodynamics loads are computed implementing in 
-the state-space form the Theodorsen theory using the Wagner
-approximation of the Theodorsen function.
+The 2D unsteady aerodynamics loads are computed implementing
+the Theodorsen theory in state-space form using
+the Wagner approximation of the Theodorsen function.
 \begin{subequations}
 \begin{align}
 	\tilde{\T{f}}_a &= 
@@ -51,27 +51,35 @@ approximation of the Theodorsen function.
 \end{subequations}
 where $\rho$ is the air density, $c$ the airfoil chord and $\T{y}$ is defined as:
 \begin{equation}
-	\T{y} = \T{C}\plbr{ \nrbr{\tilde{\T{V}}}} \T{q} + \T{D} \plbr{ \nrbr{\tilde{\T{V}}}}
+	\T{y} = \TT{C}\plbr{ \nrbr{\tilde{\T{V}}}} \T{q} + \TT{D} \plbr{ \nrbr{\tilde{\T{V}}}}
  		\T{u}\plbr{\tilde{\T{V}}, \tilde{\T{\omega}}}.
 \end{equation}
 
-The $\T{A}$ matrix is:
+Matrix $\TT{A}$ is:
 \begin{equation}
-	\T{A} = \left[
+	\TT{A} = \left[
 		\begin{array}{cccccc}
 		0 & 1 & 0 & 0 & 0 & 0\\
 		-b_1 b_2 \plbr{ \frac{2U_\infty}{c}}^2 & -\plbr{ b_1 + b_2} \plbr{\frac{2 U_\infty}{c}}&
  		0 & 0 & 0 & 0 \\
-		0 & 0 & -2\omega_{PD} & -\omega_{PD}^2 & 0 & 0\\
+		0 & 0 & -2\omega_\text{PD} & -\omega_\text{PD}^2 & 0 & 0\\
 		0 & 0 & 1 & 0 & 0 & 0\\
-		0 & 0 & 0 & 0 &-2\omega_{PD} & -\omega_{PD}^2 \\
+		0 & 0 & 0 & 0 &-2\omega_\text{PD} & -\omega_\text{PD}^2 \\
 		0 & 0 & 0 & 0 & 1 & 0
 		\end{array}
 		\right],
 \end{equation}
 where $A_1$, $A_2$, $b_1$ and $b_2$ are the coefficients of the Theodorsen
-function approximation (Table~\ref{tab:aero:unsteady:theodorsen-coeffs}),
-$\omega_\infty$ is the frequency of the pseudo-derivative algorithm and:
+function approximation (Table~\ref{tab:aero:unsteady:theodorsen-coeffs}
+from \cite{BIELAWA92} and \cite{LEISHMAN-2006}),
+$\omega_\text{PD}$ is the frequency of the pseudo-derivative algorithm
+\begin{align}
+	\mathcal{L}\plbr{\dot{f}}
+	&= s \mathcal{L}\plbr{f} - f\plbr{0}
+	\cong \frac{s}{\plbr{s + \omega_\text{PD}}^2} \mathcal{L}\plbr{f}
+\end{align}
+(where $f\plbr{0}$ can be neglected under broad assumptions),
+and
 \begin{equation}
 U_\infty^2 = \tilde{\T{V}}^T\tilde{\T{V}}.
 \end{equation}
@@ -79,11 +87,11 @@ U_\infty^2 = \tilde{\T{V}}^T\tilde{\T{V}}.
 \begin{table}
 \centering
 \caption{Coefficients of the Wagner indicial response approximation
-of Theodorsen's function (\cite{LEISHMAN-2006})}
+of Theodorsen's function (\cite{BIELAWA92,LEISHMAN-2006})}
 \label{tab:aero:unsteady:theodorsen-coeffs}
 \begin{tabular}{r|r@{.}lr@{.}l}
 & \multicolumn{2}{c}{approx.~1} & \multicolumn{2}{c}{approx.~2} \\
-\hline \\
+\hline
 $A_1$ 	& 0&165		& 0&165 \\
 $A_2$ 	& 0&335		& 0&335 \\
 $b_1$ 	& 0&0455	& 0&041 \\
@@ -154,12 +162,10 @@ and
 		
 
 \begin{equation}
-	\T{u} = \left\{
-		\begin{array}{c}
-		\tan^{-1} \plbr{ \frac{-V_y + \omega_z d_{1/4}}{V_x}}\\
-		\tan^{-1} \plbr{ \frac{-V_y + \omega_z d_{3/4}}{V_x}}\\
-		\end{array}
-		\right\}
+	\T{u} = \cubr{\cvvect{
+		\tan^{-1} \plbr{ \frac{-V_y - \omega_z d_{1/4}}{V_x}}\\
+		\tan^{-1} \plbr{ \frac{-V_y - \omega_z d_{3/4}}{V_x}}\\
+	}}
 \end{equation}
 		
 The $\T{C}$ matrix is:
@@ -168,8 +174,8 @@ The $\T{C}$ matrix is:
 		\begin{array}{cccccc}
 		\left(A_1+A_2\right)b_1 b_2 \left( \frac{2 U_\infty}{c}\right)^2 &
 		 \left(A_1  b_1 + A_2 b_2 \right) \left( \frac{2 U_\infty}{c}\right) & 0 & 0 &0 & 0 \\
-		0 & 0 & \omega_{PD}^2 & 0 & 0 & 0 \\
-		0 & 0 & 0 & 0 & \omega_{PD}^2 & 0 \\
+		0 & 0 & \omega_\text{PD}^2 & 0 & 0 & 0 \\
+		0 & 0 & 0 & 0 & \omega_\text{PD}^2 & 0 \\
 		0 & 0 & 0 & 0 & 0 & 0 
 		\end{array}
 		\right].
@@ -303,3 +309,34 @@ Finally:
 		\right\}.
 \end{equation}
 
+The perturbation of $\T{u}$ yields
+\begin{align}
+	\delta\T{u}
+	&=
+	\cubr{\cvvect{
+		\frac{
+			\plbr{V_y + \omega_z d_{1/4}} \delta V_x - V_x \delta V_y - V_x d_{1/4} \delta\omega_z
+		}{
+			V_x^2 + \plbr{V_y + \omega_z d_{1/4}}^2
+		}
+		\\
+		\frac{
+			\plbr{V_y + \omega_z d_{3/4}} \delta V_x - V_x \delta V_y - V_x d_{3/4} \delta\omega_z
+		}{
+			V_x^2 + \plbr{V_y + \omega_z d_{3/4}}^2
+		}
+	}}
+	\nonumber \\
+	&= \sqbr{\matr{cc}{
+		\frac{1}{V_x^2 + \plbr{V_y + \omega_z d_{1/4}}^2} & 0 \\
+		0 & \frac{1}{V_x^2 + \plbr{V_y + \omega_z d_{3/4}}^2}
+	}}
+	\nonumber \\
+	&\mbox{} \cdot \sqbr{\matr{cccccc}{
+		V_y + \omega_z d_{1/4} & - V_x & 0 & 0 & 0 & - V_x d_{1/4} \\
+		V_y + \omega_z d_{3/4} & - V_x & 0 & 0 & 0 & - V_x d_{3/4}
+	}} \cubr{\cvvect{
+		\delta\tilde{\T{v}} \\
+		\delta\tilde{\T{\omega}}
+	}}
+\end{align}
