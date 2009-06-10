@@ -80,7 +80,7 @@ STAHRAeroData::GetForces(int i, const doublereal* W, doublereal* TNG,
 	switch (unsteadyflag) {
 	case AeroData::HARRIS:
 	case AeroData::BIELAWA:
-		Predict(i, atan2(-W[1], W[0]), OUTA.alf1, OUTA.alf2);
+		Predict(i, atan2(-W[VY], W[VX]), OUTA.alf1, OUTA.alf2);
 		break;
 
 	default:
@@ -130,7 +130,7 @@ C81AeroData::GetForces(int i, const doublereal* W, doublereal* TNG, outa_t& OUTA
 	switch (unsteadyflag) {
 	case AeroData::HARRIS:
 	case AeroData::BIELAWA:
-		Predict(i, atan2(-W[1], W[0]), OUTA.alf1, OUTA.alf2);
+		Predict(i, atan2(-W[VY], W[VX]), OUTA.alf1, OUTA.alf2);
 		break;
 
 	default:
@@ -216,7 +216,7 @@ C81MultipleAeroData::GetForces(int i, const doublereal* W, doublereal* TNG, outa
 	switch (unsteadyflag) {
 	case AeroData::HARRIS:
 	case AeroData::BIELAWA:
-		Predict(i, atan2(-W[1], W[0]), OUTA.alf1, OUTA.alf2);
+		Predict(i, atan2(-W[VY], W[VX]), OUTA.alf1, OUTA.alf2);
 		break;
 
 	default:
@@ -406,7 +406,7 @@ C81InterpolatedAeroData::GetForces(int i, const doublereal* W, doublereal* TNG, 
 	switch (unsteadyflag) {
 	case AeroData::HARRIS:
 	case AeroData::BIELAWA: {
-		Predict(i, atan2(-W[1], W[0]), OUTA.alf1, OUTA.alf2);
+		Predict(i, atan2(-W[VY], W[VX]), OUTA.alf1, OUTA.alf2);
 		break;
 	}
 
@@ -497,15 +497,15 @@ C81TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
 
 	doublereal a = (d14 + d34)/chord;
 
-	doublereal Uinf = sqrt(W[0]*W[0] + W[1]*W[1]);
+	doublereal Uinf = sqrt(W[VX]*W[VX] + W[VY]*W[VY]);
 
 	doublereal A1 = TheodorsenParams[iParam][0];
 	doublereal A2 = TheodorsenParams[iParam][1];
 	doublereal b1 = TheodorsenParams[iParam][2];
 	doublereal b2 = TheodorsenParams[iParam][3];
 
-	doublereal u1 = atan2(- W[1] - W[5]*d14, W[0]);
-	doublereal u2 = atan2(- W[1] - W[5]*d34, W[0]);
+	doublereal u1 = atan2(- W[VY] - W[WZ]*d14, W[VX]);
+	doublereal u2 = atan2(- W[VY] - W[WZ]*d34, W[VX]);
 
 	doublereal d = 2*Uinf/chord;
 
@@ -516,21 +516,21 @@ C81TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
 	doublereal y4 = u2/((d34 - d14)*Uinf);
 
 	doublereal tan_y1 = std::tan(y1);
-	doublereal Vxp2 = Uinf*Uinf - pow(W[0]*tan_y1, 2)
-		- std::pow(d34*W[5], 2);
+	doublereal Vxp2 = Uinf*Uinf - pow(W[VX]*tan_y1, 2)
+		- std::pow(d34*W[WZ], 2);
 
 	doublereal WW[6];
-	WW[0] = copysign(std::sqrt(Vxp2), W[0]);
-	WW[1] = -W[0]*tan_y1 - d34*W[5];
-	WW[2] = W[2];
-	WW[3] = W[3];
-	WW[4] = W[4];
-	WW[5] = W[5];
+	WW[VX] = copysign(std::sqrt(Vxp2), W[VX]);
+	WW[VY] = -W[VX]*tan_y1 - d34*W[WZ];
+	WW[VZ] = W[VZ];
+	WW[WX] = W[WX];
+	WW[WY] = W[WY];
+	WW[WZ] = W[WZ];
 
 	c81_aerod2_u(WW, &VAM, TNG, &OUTA,
 		const_cast<c81_data *>(data), unsteadyflag);
 
-	doublereal UUinf2 = Uinf*Uinf + W[2]*W[2];
+	doublereal UUinf2 = Uinf*Uinf + W[VZ]*W[VZ];
 	doublereal qD = .5*VAM.density*UUinf2;
 
 	doublereal clalpha = OUTA.clalpha;
@@ -561,7 +561,7 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	doublereal b1 = TheodorsenParams[iParam][2];
 	doublereal b2 = TheodorsenParams[iParam][3];
 
-	doublereal Uinf = sqrt(W[0]*W[0] + W[1]*W[1]);
+	doublereal Uinf = sqrt(W[VX]*W[VX] + W[VY]*W[VY]);
 	doublereal d = 2*Uinf/VAM.chord;
 
 	WorkMat.IncCoef(iFirstSubIndex + 1, iFirstSubIndex + 1, 1.);

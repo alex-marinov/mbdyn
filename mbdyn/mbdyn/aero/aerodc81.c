@@ -295,6 +295,7 @@ c81_aerod2_u(doublereal* W, const vam_t *VAM, doublereal* TNG, outa_t* OUTA,
 		OUTA->cl = 0.;
 		OUTA->cd = 0.;
 		OUTA->cm = 0.;
+		OUTA->clalpha = 0.;
 		
 		return 0;
 	}
@@ -598,6 +599,7 @@ c81_aerod2_u(doublereal* W, const vam_t *VAM, doublereal* TNG, outa_t* OUTA,
 	OUTA->cl = cl;
 	OUTA->cd = cd;
 	OUTA->cm = cm;
+	OUTA->clalpha = dcla;
 
 	/*
 	 * Local dynamic pressure

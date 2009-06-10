@@ -92,6 +92,24 @@ public:
 		LAST
 	};
 
+	enum {
+		VX	= 0,
+		VY	= 1,
+		VZ	= 2,
+
+		WX	= 3,
+		WY	= 4,
+		WZ	= 5,
+
+		FX	= 0,
+		FY	= 1,
+		FZ	= 2,
+
+		MX	= 3,
+		MY	= 4,
+		MZ	= 5
+	};
+
 protected:
 	UnsteadyModel unsteadyflag;
 	vam_t VAM;
