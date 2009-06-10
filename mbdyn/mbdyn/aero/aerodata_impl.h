@@ -149,47 +149,16 @@ public:
 
 #endif /* USE_C81INTERPOLATEDAERODATA */
 
-/* UMDAeroData - begin */
+/* C81TheodorsenAeroData - begin */
 
-class UMDAeroData : public AeroData {
-public:
-	UMDAeroData(DriveCaller *ptime);
-
-	std::ostream& Restart(std::ostream& out) const;
-
-	// aerodynamic models with internal states
-	virtual unsigned int iGetNumDof(void) const;
-	virtual DofOrder::Order GetDofType(unsigned int i) const;
-	virtual void
-	AssRes(SubVectorHandler& WorkVec,
-		doublereal dCoef,
-		const VectorHandler& XCurr, 
-		const VectorHandler& XPrimeCurr,
-		integer iFirstIndex, integer iFirstSubIndex,
-		int i, const doublereal* W, doublereal* TNG, outa_t& OUTA);
-	virtual void
-	AssJac(FullSubMatrixHandler& WorkMat,
-		doublereal dCoef,
-		const VectorHandler& XCurr, 
-		const VectorHandler& XPrimeCurr,
-		integer iFirstIndex, integer iFirstSubIndex,
-		const Mat3xN& vx, const Mat3xN& wx, Mat3xN& fq, Mat3xN& cq,
-		int i, const doublereal* W, doublereal* TNG, Mat6x6& J, outa_t& OUTA);
-};
-
-/* UMDAeroData - end */
-
-/* C81UnsteadyAeroData - begin */
-
-class C81UnsteadyAeroData : public AeroData {
+class C81TheodorsenAeroData : public C81AeroData {
 protected:
-	integer profile;
-	const c81_data* data;
+	integer iParam;
+	doublereal omegaPD;
 
 public:
-	C81UnsteadyAeroData(AeroData::UnsteadyModel u, integer p, const c81_data* d,
-		DriveCaller *ptime = NULL);
-	virtual ~C81UnsteadyAeroData(void);
+	C81TheodorsenAeroData(integer p, const c81_data* d, doublereal omegaPD);
+	virtual ~C81TheodorsenAeroData(void);
 
 	virtual std::ostream& Restart(std::ostream& out) const;
 
@@ -213,7 +182,7 @@ public:
 		int i, const doublereal* W, doublereal* TNG, Mat6x6& J, outa_t& OUTA);
 };
 
-/* C81UnsteadyAeroData - end */
+/* C81TheodorsenAeroData - end */
 
 
 #endif // AERODATA_IMPL_H

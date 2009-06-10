@@ -428,160 +428,127 @@ C81InterpolateAeroData::GetForcesJac(int i, const doublereal* W, doublereal* TNG
 
 #endif /* USE_C81INTERPOLATEDAERODATA */
 
-/* UMDAeroData - begin */
+/* C81TheodorsenAeroData - begin */
 
-UMDAeroData::UMDAeroData(DriveCaller *ptime)
-: AeroData(STEADY, ptime)
+static const doublereal TheodorsenParams[2][4] = {
+	{ 0.165, 0.335, 0.0455, 0.3 },
+	{ 0.165, 0.335, 0.041, 0.32 }
+};
+
+C81TheodorsenAeroData::C81TheodorsenAeroData(integer p,
+	const c81_data* d,
+	doublereal omegaPD)
+: C81AeroData(STEADY, p, d, 0), iParam(0), omegaPD(omegaPD)
+{
+	NO_OP;
+}
+
+C81TheodorsenAeroData::~C81TheodorsenAeroData(void)
 {
 	NO_OP;
 }
 
 std::ostream&
-UMDAeroData::Restart(std::ostream& out) const
+C81TheodorsenAeroData::Restart(std::ostream& out) const
 {
-	return out;
-}
-
-// aerodynamic models with internal states
-unsigned int
-UMDAeroData::iGetNumDof(void) const
-{
-	return 2;
-}
-
-DofOrder::Order
-UMDAeroData::GetDofType(unsigned int i) const
-{
-	return DofOrder::DIFFERENTIAL;
-}
-
-void
-UMDAeroData::AssRes(SubVectorHandler& WorkVec,
-	doublereal dCoef,
-	const VectorHandler& XCurr, 
-	const VectorHandler& XPrimeCurr,
-	integer iFirstIndex, integer iFirstSubIndex,
-	int i, const doublereal* W, doublereal* TNG, outa_t& OUTA)
-{
-	// doublereal q1 = XCurr(iFirstIndex + 1);
-	// doublereal q2 = XCurr(iFirstIndex + 2);
-	doublereal q1p = XPrimeCurr(iFirstIndex + 1);
-	doublereal q2p = XPrimeCurr(iFirstIndex + 2);
-
-	doublereal alpha = -atan2(W[1], W[0]);
-	doublereal omega = W[5];
-
-	WorkVec.PutCoef(iFirstSubIndex + 1, alpha - q1p);
-	WorkVec.PutCoef(iFirstSubIndex + 2, omega - q2p);
-
-	TNG[0] = 0.;
-	TNG[1] = 2*M_PI*alpha;
-	TNG[2] = 0.;
-	TNG[3] = 0.;
-	TNG[4] = 0.;
-	TNG[5] = 0.;
-}
-
-void
-UMDAeroData::AssJac(FullSubMatrixHandler& WorkMat,
-	doublereal dCoef,
-	const VectorHandler& XCurr, 
-	const VectorHandler& XPrimeCurr,
-	integer iFirstIndex, integer iFirstSubIndex,
-	const Mat3xN& vx, const Mat3xN& wx, Mat3xN& fq, Mat3xN& cq,
-	int i, const doublereal* W, doublereal* TNG, Mat6x6& J, outa_t& OUTA)
-{
-	// doublereal q1 = XCurr(iFirstIndex + 1);
-	// doublereal q2 = XCurr(iFirstIndex + 2);
-	// doublereal q1p = XPrimeCurr(iFirstIndex + 1);
-	// doublereal q2p = XPrimeCurr(iFirstIndex + 2);
-
-	doublereal alpha = -atan2(W[1], W[0]);
-	// doublereal omega = W[5];
-
-	WorkMat.IncCoef(iFirstSubIndex + 1, iFirstSubIndex + 1, 1.);
-	WorkMat.IncCoef(iFirstSubIndex + 2, iFirstSubIndex + 2, 1.);
-
-	doublereal dd = W[0]*W[0] + W[1]*W[1];
-	doublereal dalpha_dvx = W[1]/dd;
-	doublereal dalpha_dvy = -W[0]/dd;
-	for (integer iCol = 1; iCol <= 6; iCol++) {
-		WorkMat.DecCoef(iFirstSubIndex + 1, iCol,
-			dalpha_dvx*vx(1, iCol) + dalpha_dvy*vx(2, iCol));
-		WorkMat.DecCoef(iFirstSubIndex + 2, iCol, wx(3, iCol));
-	}
-
-	TNG[0] = 0.;
-	TNG[1] = 2*M_PI*alpha;
-	TNG[2] = 0.;
-	TNG[3] = 0.;
-	TNG[4] = 0.;
-	TNG[5] = 0.;
-
-	J.Reset();
-	J(2, 1) = 2*M_PI*dalpha_dvx;
-	J(2, 2) = 2*M_PI*dalpha_dvy;
-}
-
-/* UMDAeroData - end */
-
-/* C81UnsteadyAeroData - begin */
-
-C81UnsteadyAeroData::C81UnsteadyAeroData(AeroData::UnsteadyModel u, integer p,
-		const c81_data* d, DriveCaller *ptime)
-: AeroData(u, ptime), profile(p), data(d)
-{
-	ASSERT(data != NULL);
-}
-
-C81UnsteadyAeroData::~C81UnsteadyAeroData(void)
-{
-	NO_OP;
-}
-
-std::ostream&
-C81UnsteadyAeroData::Restart(std::ostream& out) const
-{
-	out << "C81, " << profile;
+	out << "theodorsen, " << profile;
 
 	return RestartUnsteady(out);
 }
 
 // aerodynamic models with internal states
 unsigned int
-C81UnsteadyAeroData::iGetNumDof(void) const
+C81TheodorsenAeroData::iGetNumDof(void) const
 {
-	return 2;
+	return 6;
 }
 
 DofOrder::Order
-C81UnsteadyAeroData::GetDofType(unsigned int i) const
+C81TheodorsenAeroData::GetDofType(unsigned int i) const
 {
 	return DofOrder::DIFFERENTIAL;
 }
 
 void
-C81UnsteadyAeroData::AssRes(SubVectorHandler& WorkVec,
+C81TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
 	doublereal dCoef,
 	const VectorHandler& XCurr, 
 	const VectorHandler& XPrimeCurr,
 	integer iFirstIndex, integer iFirstSubIndex,
 	int i, const doublereal* W, doublereal* TNG, outa_t& OUTA)
 {
+	doublereal q1 = XCurr(iFirstIndex + 1);
+	doublereal q2 = XCurr(iFirstIndex + 2);
+	doublereal q3 = XCurr(iFirstIndex + 3);
+	doublereal q4 = XCurr(iFirstIndex + 4);
+	doublereal q5 = XCurr(iFirstIndex + 5);
+	doublereal q6 = XCurr(iFirstIndex + 6);
+
 	doublereal q1p = XPrimeCurr(iFirstIndex + 1);
 	doublereal q2p = XPrimeCurr(iFirstIndex + 2);
+	doublereal q3p = XPrimeCurr(iFirstIndex + 3);
+	doublereal q4p = XPrimeCurr(iFirstIndex + 4);
+	doublereal q5p = XPrimeCurr(iFirstIndex + 5);
+	doublereal q6p = XPrimeCurr(iFirstIndex + 6);
 
-	// trivial: 1. * delta_dot{q} = -dot{q}
+	doublereal d14 = VAM.force_position;
+	doublereal d34 = VAM.bc_position;
+	doublereal chord = VAM.chord;
 
-	WorkVec.PutCoef(iFirstSubIndex + 1, -q1p);
-	WorkVec.PutCoef(iFirstSubIndex + 2, -q2p);
+	doublereal a = (d14 + d34)/chord;
 
-	c81_aerod2_u(const_cast<doublereal *>(W), &VAM, TNG, &OUTA,
+	doublereal Uinf = sqrt(W[0]*W[0] + W[1]*W[1]);
+
+	doublereal A1 = TheodorsenParams[iParam][0];
+	doublereal A2 = TheodorsenParams[iParam][1];
+	doublereal b1 = TheodorsenParams[iParam][2];
+	doublereal b2 = TheodorsenParams[iParam][3];
+
+	doublereal u1 = atan2(-W[5]*d14 - W[1], W[0]);
+	doublereal u2 = atan2(-W[5]*d34 - W[1], W[0]);
+
+	doublereal d = 2*Uinf/chord;
+
+	doublereal y1 = (A1 + A2)*b1*b2*d*d*q1 + (A1*b1 + A2*b2)*d*q2
+		+ (a - A1 - A2)*u2;
+	doublereal y2 = omegaPD*omegaPD*q3;
+	doublereal y3 = omegaPD*omegaPD*q5;
+	doublereal y4 = u2/((d34 - d14)*Uinf);
+
+	doublereal tan_y1 = std::tan(y1);
+	doublereal Vxp2 = Uinf*Uinf - pow(W[0]*tan_y1, 2)
+		- std::pow(d34*W[5], 2);
+
+	doublereal WW[6];
+	WW[0] = copysign(std::sqrt(Vxp2), W[0]);
+	WW[1] = -W[0]*tan_y1 - d34*W[5];
+	WW[2] = W[2];
+	WW[3] = W[3];
+	WW[4] = W[4];
+	WW[5] = W[5];
+
+	c81_aerod2_u(WW, &VAM, TNG, &OUTA,
 		const_cast<c81_data *>(data), unsteadyflag);
+
+	doublereal UUinf2 = Uinf*Uinf + W[2]*W[2];
+	doublereal qD = .5*VAM.density*UUinf2;
+
+	doublereal clalpha = OUTA.clalpha;
+	if (clalpha > 0.) {
+		TNG[1] += qD*chord*clalpha/2/d*(y2 - a/d*y3);
+		TNG[5] += qD*chord*chord*clalpha/2/d*(-y2/4 + (a*a/d + a/4/d - 1/d/16)*y3 - y4/4);
+	}
+
+	WorkVec.PutCoef(iFirstSubIndex + 1, -q1p + q2);
+	WorkVec.PutCoef(iFirstSubIndex + 2, -q2p - b1*b2*d*d*q1 + (A1*b1 + A2*b2)*d*q2 + u2);
+	WorkVec.PutCoef(iFirstSubIndex + 3, -q3p - 2*omegaPD*q3 - omegaPD*omegaPD*q4 + (d34*u1 - d14*u2)/(d34 - d14));
+	WorkVec.PutCoef(iFirstSubIndex + 4, -q4p + q3);
+	WorkVec.PutCoef(iFirstSubIndex + 5, -q5p - 2*omegaPD*q5 - omegaPD*omegaPD*q6 - (u1 - u2)/(d34 - d14)/Uinf);
+	WorkVec.PutCoef(iFirstSubIndex + 6, -q6p + q5);
 }
 
 void
-C81UnsteadyAeroData::AssJac(FullSubMatrixHandler& WorkMat,
+C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	doublereal dCoef,
 	const VectorHandler& XCurr, 
 	const VectorHandler& XPrimeCurr,
@@ -589,12 +556,36 @@ C81UnsteadyAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	const Mat3xN& vx, const Mat3xN& wx, Mat3xN& fq, Mat3xN& cq,
 	int i, const doublereal* W, doublereal* TNG, Mat6x6& J, outa_t& OUTA)
 {
+	doublereal A1 = TheodorsenParams[iParam][0];
+	doublereal A2 = TheodorsenParams[iParam][1];
+	doublereal b1 = TheodorsenParams[iParam][2];
+	doublereal b2 = TheodorsenParams[iParam][3];
+
+	doublereal Uinf = sqrt(W[0]*W[0] + W[1]*W[1]);
+	doublereal d = 2*Uinf/VAM.chord;
+
 	WorkMat.IncCoef(iFirstSubIndex + 1, iFirstSubIndex + 1, 1.);
 	WorkMat.IncCoef(iFirstSubIndex + 2, iFirstSubIndex + 2, 1.);
+	WorkMat.IncCoef(iFirstSubIndex + 3, iFirstSubIndex + 3, 1.);
+	WorkMat.IncCoef(iFirstSubIndex + 4, iFirstSubIndex + 4, 1.);
+	WorkMat.IncCoef(iFirstSubIndex + 5, iFirstSubIndex + 5, 1.);
+	WorkMat.IncCoef(iFirstSubIndex + 6, iFirstSubIndex + 6, 1.);
+
+	WorkMat.IncCoef(iFirstSubIndex + 1, iFirstSubIndex + 2, -dCoef);
+	WorkMat.IncCoef(iFirstSubIndex + 2, iFirstSubIndex + 1, dCoef*b1*b2*d*d);
+	WorkMat.IncCoef(iFirstSubIndex + 2, iFirstSubIndex + 2, -dCoef*(A1*b1 + A2*b2)*d);
+
+	WorkMat.IncCoef(iFirstSubIndex + 3, iFirstSubIndex + 3, dCoef*2*omegaPD);
+	WorkMat.IncCoef(iFirstSubIndex + 3, iFirstSubIndex + 4, dCoef*omegaPD*omegaPD);
+	WorkMat.IncCoef(iFirstSubIndex + 4, iFirstSubIndex + 3, -dCoef);
+
+	WorkMat.IncCoef(iFirstSubIndex + 5, iFirstSubIndex + 5, dCoef*2*omegaPD);
+	WorkMat.IncCoef(iFirstSubIndex + 5, iFirstSubIndex + 6, dCoef*omegaPD*omegaPD);
+	WorkMat.IncCoef(iFirstSubIndex + 6, iFirstSubIndex + 5, -dCoef);
 
 	AeroData::GetForcesJacForwardDiff_int(i, W, TNG, J, OUTA);
 
 	// probably, we need to reset fq, cq
 }
 
-/* C81UnsteadyAeroData - end */
+/* C81TheodorsenAeroData - end */

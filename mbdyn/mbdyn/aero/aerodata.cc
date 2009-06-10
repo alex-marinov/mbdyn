@@ -564,7 +564,7 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP,
 		"rae9671",
 		"c81",
 
-		"umd",		// FIXME
+		"theodorsen",
 
 		NULL
 	};
@@ -576,7 +576,7 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP,
 		RAE9671,
 		C81,
 
-		UMD,
+		THEODORSEN,
 
 		LASTKEYWORD
 	};
@@ -679,12 +679,15 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP,
 			}
 			break;
 
-		case UMD:
+		case THEODORSEN: {
+	  		integer iProfile = HP.GetInt();
+		  	const c81_data* data = HP.GetC81Data(iProfile);
+			doublereal omegaPD = HP.GetReal();
+
 	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
-				UMDAeroData,
-				UMDAeroData(0));
-			break;
-			
+				C81TheodorsenAeroData,
+				C81TheodorsenAeroData(iProfile, data, omegaPD));
+			} break;
 		}
 
 	} else {

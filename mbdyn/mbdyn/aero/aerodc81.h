@@ -45,6 +45,7 @@ enum {
 	OUTA_CD		= 5,
 	OUTA_CM		= 6,
 	// 7 unused?
+	OUTA_CLALPHA	= 7,
 	OUTA_ALF1	= 8,
 	OUTA_ALF2	= 9,
 	OUTA_DAN	= 10,
@@ -64,7 +65,8 @@ typedef struct outa_t {
 	doublereal cl;
 	doublereal cd;
 	doublereal cm;
-	doublereal outa_07;
+	// doublereal outa_07;
+	doublereal clalpha;
 	doublereal alf1;
 	doublereal alf2;
 	doublereal dan;

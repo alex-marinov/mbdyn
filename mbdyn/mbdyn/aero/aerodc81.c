@@ -151,6 +151,7 @@ c81_aerod2(doublereal* W, const vam_t *VAM, doublereal* TNG, outa_t* OUTA, c81_d
 		OUTA->cl = 0.;
 		OUTA->cd = 0.;
 		OUTA->cm = 0.;
+		OUTA->clalpha = 0.;
 		
 		return 0;
 	}
@@ -220,6 +221,7 @@ c81_aerod2(doublereal* W, const vam_t *VAM, doublereal* TNG, outa_t* OUTA, c81_d
 	OUTA->cl = cl;
 	OUTA->cd = cd;
 	OUTA->cm = cm;
+	OUTA->clalpha = dcla;
 
 	q = .5*rho*chord*vp2;
 
