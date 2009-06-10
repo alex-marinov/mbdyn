@@ -540,7 +540,7 @@ C81TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
 	}
 
 	WorkVec.PutCoef(iFirstSubIndex + 1, -q1p + q2);
-	WorkVec.PutCoef(iFirstSubIndex + 2, -q2p - b1*b2*d*d*q1 + (A1*b1 + A2*b2)*d*q2 + u2);
+	WorkVec.PutCoef(iFirstSubIndex + 2, -q2p - b1*b2*d*d*q1 - (b1 + b2)*d*q2 + u2);
 	WorkVec.PutCoef(iFirstSubIndex + 3, -q3p - 2*omegaPD*q3 - omegaPD*omegaPD*q4 + (d34*u1 - d14*u2)/(d34 - d14));
 	WorkVec.PutCoef(iFirstSubIndex + 4, -q4p + q3);
 	WorkVec.PutCoef(iFirstSubIndex + 5, -q5p - 2*omegaPD*q5 - omegaPD*omegaPD*q6 - (u1 - u2)/(d34 - d14)/Uinf);
@@ -573,7 +573,7 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 
 	WorkMat.IncCoef(iFirstSubIndex + 1, iFirstSubIndex + 2, -dCoef);
 	WorkMat.IncCoef(iFirstSubIndex + 2, iFirstSubIndex + 1, dCoef*b1*b2*d*d);
-	WorkMat.IncCoef(iFirstSubIndex + 2, iFirstSubIndex + 2, -dCoef*(A1*b1 + A2*b2)*d);
+	WorkMat.IncCoef(iFirstSubIndex + 2, iFirstSubIndex + 2, dCoef*(b1 + b2)*d);
 
 	WorkMat.IncCoef(iFirstSubIndex + 3, iFirstSubIndex + 3, dCoef*2*omegaPD);
 	WorkMat.IncCoef(iFirstSubIndex + 3, iFirstSubIndex + 4, dCoef*omegaPD*omegaPD);
