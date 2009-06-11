@@ -513,7 +513,7 @@ C81TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
 		+ (1 - A1 - A2)*u2;
 	doublereal y2 = omegaPD*omegaPD*q3;
 	doublereal y3 = omegaPD*omegaPD*q5;
-	doublereal y4 = u2/((d34 - d14)*Uinf);
+	doublereal y4 = (u1-u2)/((d34 - d14)/Uinf);
 
 	doublereal tan_y1 = std::tan(y1);
 	doublereal Vxp2 = Uinf*Uinf - pow(W[VX]*tan_y1, 2)
@@ -536,14 +536,16 @@ C81TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
 	doublereal clalpha = OUTA.clalpha;
 	if (clalpha > 0.) {
 		TNG[1] += qD*chord*clalpha/2/d*(y2 - a/d*y3);
-		TNG[5] += qD*chord*chord*clalpha/2/d*(-y2/4 + (a*a/d + a/4/d - 1/d/16)*y3 - y4/4);
+		TNG[5] += qD*chord*chord*clalpha/2/d*(-y2/4 + (a/4/d - 1/d/16)*y3 - y4/4);
 	}
 
 	WorkVec.PutCoef(iFirstSubIndex + 1, -q1p + q2);
 	WorkVec.PutCoef(iFirstSubIndex + 2, -q2p - b1*b2*d*d*q1 - (b1 + b2)*d*q2 + u2);
 	WorkVec.PutCoef(iFirstSubIndex + 3, -q3p - 2*omegaPD*q3 - omegaPD*omegaPD*q4 + (d34*u1 - d14*u2)/(d34 - d14));
 	WorkVec.PutCoef(iFirstSubIndex + 4, -q4p + q3);
-	WorkVec.PutCoef(iFirstSubIndex + 5, -q5p - 2*omegaPD*q5 - omegaPD*omegaPD*q6 - (u1 - u2)/(d34 - d14)/Uinf);
+	/* mbdyn e theodorsen hanno l'asse x in direzione opposta e
+ 	* e quindi d14 e d34 sono di segno opposto! */
+	WorkVec.PutCoef(iFirstSubIndex + 5, -q5p - 2*omegaPD*q5 - omegaPD*omegaPD*q6 + (u1 - u2)/(d34 - d14)*Uinf);
 	WorkVec.PutCoef(iFirstSubIndex + 6, -q6p + q5);
 }
 

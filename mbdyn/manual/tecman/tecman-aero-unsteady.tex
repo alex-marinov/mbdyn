@@ -76,7 +76,7 @@ $\omega_\text{PD}$ is the frequency of the pseudo-derivative algorithm
 \begin{align}
 	\mathcal{L}\plbr{\dot{f}}
 	&= s \mathcal{L}\plbr{f} - f\plbr{0}
-	\cong \frac{s}{\plbr{s + \omega_\text{PD}}^2} \mathcal{L}\plbr{f}
+	\cong \frac{\omega_\text{PD}^2 s}{\plbr{s + \omega_\text{PD}}^2} \mathcal{L}\plbr{f}
 \end{align}
 (where $f\plbr{0}$ can be neglected under broad assumptions),
 and
@@ -125,8 +125,8 @@ and
 		\end{array}\\ 
 		\left[
 		\begin{array}{cc}
-			1 & \frac{d_{1/4}}{U_\infty} \\
-			1 & \frac{d_{3/4}}{U_\infty} 
+			1 & -\frac{d_{1/4}}{U_\infty} \\
+			1 & -\frac{d_{3/4}}{U_\infty} 
 		\end{array}
 		\right]^{-1}
 		\end{array}
@@ -138,7 +138,7 @@ and
 		\frac{1}{d_{3/4}-d_{1/4}} \left[  
 		\begin{array}{cc}
 			d_{3/4} & -{d_{1/4}} \\
-			-\frac{1}{U_\infty} & \frac{1}{U_\infty} 
+			U_\infty & -U_\infty
 		\end{array}
 		\right]
 		\end{array}
@@ -152,8 +152,8 @@ and
 		\frac{1}{d_{3/4}-d_{1/4}} d_{3/4} & 
 		-\frac{1}{d_{3/4}-d_{1/4}} d_{1/4}\\ 
 		0 & 0 \\
-		-\frac{1}{d_{3/4}-d_{1/4}} \frac{1}{U_\infty} & 
-		\frac{1}{d_{3/4}-d_{1/4}} \frac{1}{U_\infty} \\ 
+		\frac{1}{d_{3/4}-d_{1/4}} U_\infty & 
+		-\frac{1}{d_{3/4}-d_{1/4}} U_\infty \\ 
 		0 & 0
 		\end{array}
 		\right]
@@ -201,8 +201,8 @@ where
 		0 & \left( 1 -A_1 - A_2 \right) \\
 		0 & 0 \\ 
 		0 & 0 \\ 
-		0 & 
-		\frac{1}{d_{3/4}-d_{1/4}} \frac{1}{U_\infty} \\ 
+		\frac{1}{d_{3/4}-d_{1/4}} U_\infty & 
+		-\frac{1}{d_{3/4}-d_{1/4}} U_\infty \\ 
 		\end{array}
 		\right].
 \end{equation}
@@ -246,7 +246,7 @@ and
 	\T{T}_2 = \frac{C_{l_\alpha}}{2} \frac{c}{2}\left[
 		\begin{array}{cccc} 
 		0 & \frac{1}{U_\infty} & -\frac{c a}{2 U_\infty^2} & 0\\
-		0 & \frac{a}{2 U_\infty} & -\frac{c}{4 U_\infty^2}\left( \frac{1}{8} - a^2\right) & -\frac{1}{4U_\infty}
+		0 & \frac{a}{2 U_\infty} & -\frac{c}{4 U_\infty^2}\left( \frac{1}{8} + a^2\right) & -\frac{1}{4U_\infty}
 		\end{array}
 		\right].
 \end{equation}
@@ -258,7 +258,7 @@ and
 		0 & \frac{1}{U_\infty} & -\frac{c a}{2 U_\infty^2} & 0\\
 		0 &
 		-\frac{1}{4 U_\infty} &
-		\plbr{\frac{a^2 c}{2 U_\infty^2} + \frac{ c a}{8 U_\infty^2} - \frac{c}{32 U_\infty^2} }& 
+		\plbr{ \frac{ c a}{8 U_\infty^2} - \frac{c}{32 U_\infty^2} }& 
 		-\frac{1}{4 U_\infty}
 		\end{array}	
 		\right]
@@ -279,7 +279,7 @@ and
 		0 & 0 & 0 & 0\\
 		0 &
 		-\frac{1}{4 U_\infty} &
-		\plbr{\frac{a^2 c}{2 U_\infty^2} + \frac{ c a}{8 U_\infty^2} - \frac{c}{32 U_\infty^2} }& 
+		\plbr{ \frac{ c a}{8 U_\infty^2} - \frac{c}{32 U_\infty^2} }& 
 		-\frac{1}{4 U_\infty}\\
 		0 & 0 & 0 & 0
 		\end{array}
@@ -303,7 +303,7 @@ Finally:
 		0 \\ 0\\
 		\frac{c_{l_\alpha}}{2} \frac{c}{2 U_\infty}
 		 \plbr{ -\frac{1}{4} y_2 +
-		\plbr{\frac{a^2 c}{2 U_\infty} + \frac{ c a}{8 U_\infty} - \frac{c}{32 U_\infty} } y_3 
+		\plbr{\frac{ c a}{8 U_\infty} - \frac{c}{32 U_\infty} } y_3 
 		-\frac{1}{4} y_4}
 		\end{array}
 		\right\}.
