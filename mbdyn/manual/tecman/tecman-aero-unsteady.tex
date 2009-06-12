@@ -57,6 +57,7 @@ where $\rho$ is the air density, $c$ the airfoil chord and $\T{y}$ is defined as
 
 Matrix $\TT{A}$ is:
 \begin{equation}
+	\footnotesize
 	\TT{A} = \left[
 		\begin{array}{cccccc}
 		0 & 1 & 0 & 0 & 0 & 0\\
@@ -76,12 +77,12 @@ $\omega_\text{PD}$ is the frequency of the pseudo-derivative algorithm
 \begin{align}
 	\mathcal{L}\plbr{\dot{f}}
 	&= s \mathcal{L}\plbr{f} - f\plbr{0}
-	\cong \frac{\omega_\text{PD}^2 s}{\plbr{s + \omega_\text{PD}}^2} \mathcal{L}\plbr{f}
+	\cong \frac{s}{\plbr{1 + s/\omega_\text{PD}}^2} \mathcal{L}\plbr{f}
 \end{align}
 (where $f\plbr{0}$ can be neglected under broad assumptions),
 and
 \begin{equation}
-U_\infty^2 = \tilde{\T{V}}^T\tilde{\T{V}}.
+U_\infty = \sqrt{\tilde{\T{v}}^T\tilde{\T{v}}}.
 \end{equation}
 
 \begin{table}
