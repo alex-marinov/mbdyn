@@ -2010,7 +2010,10 @@ ReadStructuralForce(DataManager* pDM,
 	if (bCouple && bInternal) {
 		silent_cerr(sType << "(" << uLabel << ") "
 			"line " << HP.GetLineData() << ": "
-			"warning, the syntax changed" << std::endl);
+			"warning, the syntax changed; "
+			"you may safely ignore this warning if you used "
+			"the syntax documented for MBDyn >= 1.3.7"
+			<< std::endl);
 	}
 
 	/* nodo collegato */
