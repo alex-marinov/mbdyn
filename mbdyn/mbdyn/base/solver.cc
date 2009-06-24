@@ -1463,19 +1463,29 @@ IfStepIsToBeRepeated:
 			}
 		}
 		catch (NonlinearSolver::ErrSimulationDiverged) {
-			/*
-			 * Mettere qui eventuali azioni speciali
-			 * da intraprendere in caso di errore ...
-			 */
-			silent_cerr("Simulation diverged after "
-				<< iStIter << " iterations, before "
-				"reaching max iteration number "
-				<< pRegularSteps->GetIntegratorMaxIters()
-				<< " during step " << lStep << "; "
-				"time step dt=" << dCurrTimeStep
-				<< " cannot be reduced further; "
-				"aborting..." << std::endl);
-			throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
+			if (dCurrTimeStep > dMinTimeStep) {
+				/* Riduce il passo */
+				CurrStep = StepIntegrator::REPEATSTEP;
+				dCurrTimeStep = NewTimeStep(dCurrTimeStep,
+						iStIter,
+						CurrStep);
+				DEBUGCOUT("Changing time step"
+					" during step "
+					<< lStep << " after "
+					<< iStIter << " iterations"
+					<< std::endl);
+				goto IfStepIsToBeRepeated;
+	    		} else {
+				silent_cerr("Simulation diverged after "
+					<< iStIter << " iterations, before "
+					"reaching max iteration number "
+					<< pRegularSteps->GetIntegratorMaxIters()
+					<< " during step " << lStep << "; "
+					"time step dt=" << dCurrTimeStep
+					<< " cannot be reduced further; "
+					"aborting..." << std::endl);
+				throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
+			}
 		}
 		catch (LinearSolver::ErrFactor err) {
 			/*
