@@ -113,6 +113,13 @@ NestedElem::GetDofType(unsigned int i) const
 	return pElem->GetDofType(i);
 }
 
+DofOrder::Order
+NestedElem::GetEqType(unsigned int i) const
+{
+	ASSERT(pElem != NULL);
+	return pElem->GetEqType(i);
+}
+
 /* Dimensioni del workspace */
 void
 NestedElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const

@@ -95,6 +95,8 @@ public:
  
 	/* esegue operazioni sui dof di proprieta' dell'elemento */
 	virtual DofOrder::Order GetDofType(unsigned int i) const;
+	
+	virtual DofOrder::Order GetEqType(unsigned int i) const;
    
 	/* funzioni proprie */
  
