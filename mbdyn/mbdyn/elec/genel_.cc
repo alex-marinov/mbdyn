@@ -182,8 +182,7 @@ GenelClamp::SetValue(DataManager *pDM,
 /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
  * utile per l'assemblaggio della matrice di connessione fra i dofs */
 void
-GenelClamp::GetConnectedNodes(std::vector<const Node *>& connectedNodes)
-{
+GenelClamp::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 	connectedNodes.resize(1);
 	connectedNodes[0] = SD.pNode;
 }
@@ -361,8 +360,7 @@ GenelDistance::SetValue(DataManager *pDM,
 /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
  * utile per l'assemblaggio della matrice di connessione fra i dofs */
 void
-GenelDistance::GetConnectedNodes(std::vector<const Node *>& connectedNodes)
-{
+GenelDistance::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 	connectedNodes.resize(2);
 	connectedNodes[0] = SD1.pNode;
 	connectedNodes[1] = SD2.pNode;
@@ -506,8 +504,7 @@ GenelSpring::AssRes(SubVectorHandler& WorkVec,
 /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
  * utile per l'assemblaggio della matrice di connessione fra i dofs */
 void
-GenelSpring::GetConnectedNodes(std::vector<const Node *>& connectedNodes)
-{
+GenelSpring::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 	connectedNodes.resize(2);
 	connectedNodes[0] = SD1.pNode;
 	connectedNodes[1] = SD2.pNode;
@@ -618,8 +615,7 @@ GenelSpringSupport::AssRes(SubVectorHandler& WorkVec,
  * utile per l'assemblaggio della matrice di connessione fra i dofs */
 void
 GenelSpringSupport::GetConnectedNodes(
-	std::vector<const Node *>& connectedNodes)
-{
+	std::vector<const Node *>& connectedNodes) const {
 	connectedNodes.resize(1);
 	connectedNodes[0] = SD.pNode;
 }
@@ -737,8 +733,7 @@ GenelCrossSpringSupport::AssRes(SubVectorHandler& WorkVec,
  * utile per l'assemblaggio della matrice di connessione fra i dofs */
 void
 GenelCrossSpringSupport::GetConnectedNodes(
-	std::vector<const Node *>& connectedNodes)
-{
+	std::vector<const Node *>& connectedNodes) const {
 	connectedNodes.resize(2);
 	connectedNodes[0] = SDRow.pNode;
 	connectedNodes[1] = SDCol.pNode;
@@ -859,8 +854,7 @@ GenelCrossSpringDamperSupport::AssRes(SubVectorHandler& WorkVec,
  * utile per l'assemblaggio della matrice di connessione fra i dofs */
 void
 GenelCrossSpringDamperSupport::GetConnectedNodes(
-	std::vector<const Node *>& connectedNodes)
-{
+	std::vector<const Node *>& connectedNodes) const {
 	connectedNodes.resize(2);
 	connectedNodes[0] = SDRow.pNode;
 	connectedNodes[1] = SDCol.pNode;
@@ -976,8 +970,7 @@ GenelSpringDamperSupport::AssRes(SubVectorHandler& WorkVec,
  * utile per l'assemblaggio della matrice di connessione fra i dofs */
 void
 GenelSpringDamperSupport::GetConnectedNodes(
-	std::vector<const Node *>& connectedNodes)
-{
+	std::vector<const Node *>& connectedNodes) const {
 	connectedNodes.resize(1);
 	connectedNodes[0] = SD.pNode;
 }
@@ -1103,8 +1096,7 @@ GenelMass::SetValue(DataManager *pDM,
 /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
  * utile per l'assemblaggio della matrice di connessione fra i dofs */
 void
-GenelMass::GetConnectedNodes(std::vector<const Node *>& connectedNodes)
-{
+GenelMass::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 	connectedNodes.resize(1);
 	connectedNodes[0] = SD.pNode;
 }

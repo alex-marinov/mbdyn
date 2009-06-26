@@ -747,8 +747,7 @@ LoadableElem::GetNumConnectedNodes(void) const
 }
 
 void
-LoadableElem::GetConnectedNodes(std::vector<const Node *>& connectedNodes)
-{
+LoadableElem::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 	ASSERT(calls->get_connected_nodes != NULL);
 	return calls->get_connected_nodes(this, connectedNodes);
 }

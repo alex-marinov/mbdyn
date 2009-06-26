@@ -307,8 +307,7 @@ StructExtForce::Output(OutputHandler& OH) const
 }
  
 void
-StructExtForce::GetConnectedNodes(std::vector<const Node *>& connectedNodes)
-{
+StructExtForce::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 	connectedNodes.resize(Nodes.size());
 	for (unsigned int i = 0; i < Nodes.size(); i++) {
 		connectedNodes[i] = Nodes[i];

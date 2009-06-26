@@ -84,7 +84,7 @@ SubVectorHandler& ThermalCapacitance::AssRes(SubVectorHandler& WorkVec,
 //    /* *******PER IL SOLUTORE PARALLELO******** */        
 //    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 //       utile per l'assemblaggio della matrice di connessione fra i dofs */
-void ThermalCapacitance::GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+void ThermalCapacitance::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
      connectedNodes.resize(1);
      connectedNodes[0] = pNode1;
 };

@@ -84,8 +84,7 @@ public:
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
 	virtual void
-	GetConnectedNodes(std::vector<const Node *>& connectedNodes)
-	{
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 		connectedNodes.resize(3);
 		connectedNodes[0] = pStrNode1;
 		connectedNodes[1] = pStrNode2;

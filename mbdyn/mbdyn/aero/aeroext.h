@@ -175,7 +175,7 @@ public:
 	
 	
 	virtual void
-	GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 		connectedNodes.resize(NodeN);
 		for (int i = 0; i < NodeN; i++) {
 			connectedNodes[i] = ppNode[i];
@@ -304,7 +304,7 @@ public:
 	
 	
 	virtual void
-	GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 		connectedNodes.resize(1);
 		connectedNodes[0] = pModal->pGetModalNode();
 	};

@@ -99,7 +99,7 @@ class Control_valve : virtual public Elem, public HydraulicElem, public DriveOwn
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
      connectedNodes.resize(4);
      connectedNodes[0] = pNode1;
      connectedNodes[1] = pNode2;
@@ -208,7 +208,7 @@ public:
 	/* *******PER IL SOLUTORE PARALLELO******** */        
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
-	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 		connectedNodes.resize(4);
 		connectedNodes[0] = pNode[N1];
 		connectedNodes[1] = pNode[N2];
@@ -307,7 +307,7 @@ class Dynamic_control_valve : virtual public Elem, public HydraulicElem, public 
     /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
      connectedNodes.resize(4);
      connectedNodes[0] = pNode1;
      connectedNodes[1] = pNode2;
@@ -411,7 +411,7 @@ class Pressure_flow_control_valve : virtual public Elem, public HydraulicElem, p
     /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
      connectedNodes.resize(6);
      connectedNodes[0] = pNode1;
      connectedNodes[1] = pNode2;
@@ -499,7 +499,7 @@ class Pressure_valve : virtual public Elem, public HydraulicElem {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
      connectedNodes.resize(2);
      connectedNodes[0] = pNode1;
      connectedNodes[1] = pNode2;
@@ -587,7 +587,7 @@ class  Flow_valve : virtual public Elem, public HydraulicElem {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
      connectedNodes.resize(3);
      connectedNodes[0] = pNode1;
      connectedNodes[1] = pNode2;

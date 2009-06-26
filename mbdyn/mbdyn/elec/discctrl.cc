@@ -939,8 +939,7 @@ DiscreteControlElem::dGetPrivData(unsigned int i) const
  * utile per l'assemblaggio della matrice di connessione fra i dofs */
 void
 DiscreteControlElem::GetConnectedNodes(
-	std::vector<const Node *>& connectedNodes)
-{
+	std::vector<const Node *>& connectedNodes) const {
 	connectedNodes.resize(iNumInputs + iNumOutputs);
 	for (int i = 0; i < iNumInputs; i++) {
 		connectedNodes[i] = pInputs[i].pNode;

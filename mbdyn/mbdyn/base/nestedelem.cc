@@ -267,8 +267,7 @@ NestedElem::GetNumConnectedNodes(void) const
 }
 
 void
-NestedElem::GetConnectedNodes(std::vector<const Node *>& connectedNodes)
-{
+NestedElem::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 	ASSERT(pElem != NULL);
 	pElem->GetConnectedNodes(connectedNodes);
 }

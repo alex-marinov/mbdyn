@@ -117,7 +117,7 @@ public:
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs
 	 */
 	virtual void
-	GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 		connectedNodes.resize(1);
 		connectedNodes[0] = pNode;
 	};

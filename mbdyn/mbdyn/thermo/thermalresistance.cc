@@ -104,7 +104,7 @@ SubVectorHandler& ThermalResistance::AssRes(SubVectorHandler& WorkVec,
 //    /* *******PER IL SOLUTORE PARALLELO******** */        
 //    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 //       utile per l'assemblaggio della matrice di connessione fra i dofs */
-void ThermalResistance::GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+void ThermalResistance::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
      connectedNodes.resize(2);
      connectedNodes[0] = pNode1;
      connectedNodes[1] = pNode2;

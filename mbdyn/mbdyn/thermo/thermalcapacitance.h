@@ -43,7 +43,7 @@ class ThermalCapacitance : virtual public Thermal {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes);
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
    /* ************************************************ */
 };
 

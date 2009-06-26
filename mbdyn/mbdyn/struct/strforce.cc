@@ -66,8 +66,7 @@ StructuralForce::~StructuralForce(void)
 }
 
 void
-StructuralForce::GetConnectedNodes(std::vector<const Node *>& connectedNodes)
-{
+StructuralForce::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 	connectedNodes.resize(1);
 	connectedNodes[0] = pNode;
 }
@@ -949,8 +948,7 @@ StructuralInternalForce::~StructuralInternalForce(void)
 
 void
 StructuralInternalForce::GetConnectedNodes(
-	std::vector<const Node *>& connectedNodes)
-{
+	std::vector<const Node *>& connectedNodes) const {
 	connectedNodes.resize(2);
 	connectedNodes[0] = pNode1;
 	connectedNodes[1] = pNode2;

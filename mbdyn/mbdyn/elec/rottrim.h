@@ -109,7 +109,7 @@ public:
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs
 	 */
 	virtual void
-	GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 		pRotor->GetConnectedNodes(connectedNodes);
 		int NumNodes = connectedNodes.size();
 		connectedNodes.resize(NumNodes + 3);

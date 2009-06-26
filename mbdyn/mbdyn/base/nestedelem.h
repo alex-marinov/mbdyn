@@ -169,7 +169,7 @@ public:
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs
 	 */
 	virtual int GetNumConnectedNodes(void) const;
-	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes);
+	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 
 
 	/* InitialAssemblyElem */

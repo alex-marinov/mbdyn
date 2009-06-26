@@ -101,7 +101,7 @@ class Pipe : virtual public Elem, public HydraulicElem {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
      connectedNodes.resize(2);
      connectedNodes[0] = pNode1;
      connectedNodes[1] = pNode2;
@@ -185,7 +185,7 @@ class Dynamic_pipe : virtual public Elem, public HydraulicElem {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
      connectedNodes.resize(2);
      connectedNodes[0] = pNode1;
      connectedNodes[1] = pNode2;
@@ -276,7 +276,7 @@ class DynamicPipe : virtual public Elem, public HydraulicElem {
    /* *******PER IL SOLUTORE PARALLELO******** */
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
     utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
       connectedNodes.resize(2);
       connectedNodes[0] = pNode1;
       connectedNodes[1] = pNode2;

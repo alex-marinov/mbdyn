@@ -122,7 +122,7 @@ class PiezoActuatorBeam2 : public Beam2 {
  /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
      Beam2::GetConnectedNodes(connectedNodes);
      int NumNodes = connectedNodes.size();
      connectedNodes.resize(NumNodes + iNumElec);
@@ -222,7 +222,7 @@ class PiezoActuatorVEBeam2 : public ViscoElasticBeam2 {
    /* *******PER IL SOLUTORE PARALLELO******** */        
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
-   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) {
+   virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
      ViscoElasticBeam2::GetConnectedNodes(connectedNodes);
      int NumNodes = connectedNodes.size();
      connectedNodes.resize(NumNodes + iNumElec);

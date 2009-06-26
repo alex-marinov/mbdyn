@@ -327,8 +327,7 @@ GenelStateSpaceSISO::Output(OutputHandler& OH) const
 
 void
 GenelStateSpaceSISO::GetConnectedNodes(
-	std::vector<const Node *>& connectedNodes)
-{
+	std::vector<const Node *>& connectedNodes) const {
 	unsigned iNodes = 1;
 	if (dynamic_cast<NodeDof *>(SV_u)) {
 		iNodes++;
@@ -683,8 +682,7 @@ GenelStateSpaceMIMO::Output(OutputHandler& OH) const
 
 void
 GenelStateSpaceMIMO::GetConnectedNodes(
-	std::vector<const Node *>& connectedNodes)
-{
+	std::vector<const Node *>& connectedNodes) const {
 	unsigned i, iNodes = iNumOutputs;
 	for (std::vector<ScalarValue *>::const_iterator u = SV_u.begin();
 		u != SV_u.end(); u++)
