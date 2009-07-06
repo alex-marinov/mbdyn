@@ -9,6 +9,14 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+MBDyn 1.X-Devel
+	Enhancements:
+	Backward compatibility issues:
+	Known issues:
+	Bug fixes:
+		- fix differential abstract node parsing of derivative
+		  initial value
+
 MBDyn 1.3.8
 	Enhancements:
 		- permute and scale matrix for lapack eigenanalysis

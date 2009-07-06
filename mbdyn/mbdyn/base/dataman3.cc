@@ -1526,7 +1526,7 @@ DataManager::ReadScalarDifferentialNode(MBDynParser& HP,
 {
 	if (ReadScalarAlgebraicNode(HP, uLabel, type, dX) == 1) {
 		if (HP.IsKeyWord("derivative")) {
-			dX = HP.GetReal();
+			dXP = HP.GetReal();
 			DEBUGLCOUT(MYDEBUG_INPUT,
 				"Initial derivative value xp = "
 				<< dXP << " is supplied" << std::endl);
