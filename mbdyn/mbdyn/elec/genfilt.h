@@ -63,6 +63,8 @@ public:
 		doublereal* pA, doublereal* pB,
 		doublereal* pC, doublereal D,
 		bool bBalance,
+		doublereal *pdX0,
+		doublereal *pdXP0,
 		flag fOutput);
 
 	virtual ~GenelStateSpaceSISO(void);
@@ -96,6 +98,10 @@ public:
 		doublereal /* dCoef */,
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
+
+	void SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0);
 
 	/* output; si assume che ogni tipo di elemento sappia, attraverso
 	 * l'OutputHandler, dove scrivere il proprio output */
@@ -141,6 +147,8 @@ public:
 		doublereal* pA, doublereal* pB,
 		doublereal* pC, doublereal* pD,
 		bool bBalance,
+		doublereal *pdX0,
+		doublereal *pdXP0,
 		flag fOutput);
 
 	virtual ~GenelStateSpaceMIMO(void);
@@ -174,6 +182,11 @@ public:
 		doublereal /* dCoef */,
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
+
+	void SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0);
+
 	/* output; si assume che ogni tipo di elemento sappia, attraverso
 	 * l'OutputHandler, dove scrivere il proprio output */
 	virtual void Output(OutputHandler& OH) const;

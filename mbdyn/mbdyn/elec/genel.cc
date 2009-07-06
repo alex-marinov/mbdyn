@@ -711,13 +711,37 @@ ReadGenel(DataManager* pDM,
 			}
 		}
 
+		doublereal *pdX0 = 0;
+		std::vector<doublereal> dX0;
+		doublereal *pdXP0 = 0;
+		std::vector<doublereal> dXP0;
+
+		if (HP.IsKeyWord("value")) {
+			dX0.resize(Order);
+			pdX0 = &dX0[0];
+
+			for (unsigned i = 0; i < Order; i++) {
+				dX0[i] = HP.GetReal();
+			}
+
+			if (HP.IsKeyWord("derivative")) {
+				dXP0.resize(Order);
+				pdXP0 = &dXP0[0];
+
+				for (unsigned i = 0; i < Order; i++) {
+					dXP0[i] = HP.GetReal();
+				}
+			}
+		}
+
 		flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
 
 		SAFENEWWITHCONSTRUCTOR(pEl,
 			GenelStateSpaceSISO,
 			GenelStateSpaceSISO(uLabel, pDO, SD_y, SV_u,
 				Order,
-				pdE, pdA, pdB, pdC, dD, bBalance, fOut));
+				pdE, pdA, pdB, pdC, dD, bBalance,
+				pdX0, pdXP0, fOut));
 
 		} break;
 
@@ -924,7 +948,8 @@ ReadGenel(DataManager* pDM,
 			GenelStateSpaceSISO,
 			GenelStateSpaceSISO(uLabel, pDO, SD_y, SV_u,
 				Order,
-				pdE, pdA, pdB, pdC, dD, bBalance, fOut));
+				pdE, pdA, pdB, pdC, dD, bBalance,
+				0, 0, fOut));
 
 		} break;
 
@@ -1082,6 +1107,29 @@ ReadGenel(DataManager* pDM,
 			}
 		}
 
+		doublereal *pdX0 = 0;
+		std::vector<doublereal> dX0;
+		doublereal *pdXP0 = 0;
+		std::vector<doublereal> dXP0;
+
+		if (HP.IsKeyWord("value")) {
+			dX0.resize(Order);
+			pdX0 = &dX0[0];
+
+			for (unsigned i = 0; i < Order; i++) {
+				dX0[i] = HP.GetReal();
+			}
+
+			if (HP.IsKeyWord("derivative")) {
+				dXP0.resize(Order);
+				pdXP0 = &dXP0[0];
+
+				for (unsigned i = 0; i < Order; i++) {
+					dXP0[i] = HP.GetReal();
+				}
+			}
+		}
+
 		flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
 
 		SAFENEWWITHCONSTRUCTOR(pEl,
@@ -1090,7 +1138,8 @@ ReadGenel(DataManager* pDM,
 				iNumOutputs, pvSD_y,
 				SV_u,
 				Order,
-				pdE, pdA, pdB, pdC, pdD, bBalance, fOut));
+				pdE, pdA, pdB, pdC, pdD, bBalance,
+				pdX0, pdXP0, fOut));
 
 		} break;
 

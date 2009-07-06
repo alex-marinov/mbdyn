@@ -59,6 +59,8 @@ GenelStateSpaceSISO::GenelStateSpaceSISO(unsigned int uLabel,
 	doublereal* pC,
 	doublereal D,
 	bool bBalance,
+	doublereal *pdX0,
+	doublereal *pdXP0,
 	flag fOutput)
 : Elem(uLabel, fOutput),
 Genel(uLabel, pDO, fOutput),
@@ -121,6 +123,18 @@ pdX(0), pdXP(0)
 
 	SAFENEWARR(pdX, doublereal, 2*Order);
 	pdXP = pdX + Order;
+
+	if (pdX0) {
+		for (unsigned i = 0; i < Order; i++) {
+			pdX[i] = pdX0[i];
+		}
+
+		if (pdXP0) {
+			for (unsigned i = 0; i < Order; i++) {
+				pdXP[i] = pdXP0[i];
+			}
+		}
+	}
 }
 
 GenelStateSpaceSISO::~GenelStateSpaceSISO(void)
@@ -305,6 +319,19 @@ GenelStateSpaceSISO::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+void
+GenelStateSpaceSISO::SetValue(DataManager *pDM,
+	VectorHandler& X, VectorHandler& XP,
+	SimulationEntity::Hints *ph)
+{
+	integer iFirstIndex = iGetFirstIndex() + 1;
+
+	for (unsigned i = 0; i < iNumDofs; i++) {
+		X(iFirstIndex + i) = pdX[i];
+		XP(iFirstIndex + i) = pdXP[i];
+	}
+}
+
 /*
  * output; si assume che ogni tipo di elemento sappia, attraverso
  * l'OutputHandler, dove scrivere il proprio output
@@ -356,6 +383,8 @@ GenelStateSpaceMIMO::GenelStateSpaceMIMO(unsigned int uLabel,
 	doublereal* pC,
 	doublereal* pD,
 	bool bBalance,
+	doublereal *pdX0,
+	doublereal *pdXP0,
 	flag fOutput)
 : Elem(uLabel, fOutput),
 Genel(uLabel, pDO, fOutput),
@@ -435,6 +464,18 @@ pdX(0), pdXP(0)
 
 	SAFENEWARR(pdX, doublereal, 2*Order);
 	pdXP = pdX + Order;
+
+	if (pdX0) {
+		for (unsigned i = 0; i < Order; i++) {
+			pdX[i] = pdX0[i];
+		}
+
+		if (pdXP0) {
+			for (unsigned i = 0; i < Order; i++) {
+				pdXP[i] = pdXP0[i];
+			}
+		}
+	}
 }
 
 GenelStateSpaceMIMO::~GenelStateSpaceMIMO(void)
@@ -662,6 +703,19 @@ GenelStateSpaceMIMO::AssRes(SubVectorHandler& WorkVec,
 	}
 
 	return WorkVec;
+}
+
+void
+GenelStateSpaceMIMO::SetValue(DataManager *pDM,
+	VectorHandler& X, VectorHandler& XP,
+	SimulationEntity::Hints *ph)
+{
+	integer iFirstIndex = iGetFirstIndex() + 1;
+
+	for (unsigned i = 0; i < iNumDofs; i++) {
+		X(iFirstIndex + i) = pdX[i];
+		XP(iFirstIndex + i) = pdXP[i];
+	}
 }
 
 void
