@@ -724,7 +724,7 @@ ReadGenel(DataManager* pDM,
 				dX0[i] = HP.GetReal();
 			}
 
-			if (HP.IsKeyWord("derivative")) {
+			if (pdE != 0 && HP.IsKeyWord("derivative")) {
 				dXP0.resize(Order);
 				pdXP0 = &dXP0[0];
 
@@ -1120,7 +1120,7 @@ ReadGenel(DataManager* pDM,
 				dX0[i] = HP.GetReal();
 			}
 
-			if (HP.IsKeyWord("derivative")) {
+			if (pdE != 0 && HP.IsKeyWord("derivative")) {
 				dXP0.resize(Order);
 				pdXP0 = &dXP0[0];
 

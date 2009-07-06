@@ -326,6 +326,20 @@ GenelStateSpaceSISO::SetValue(DataManager *pDM,
 {
 	integer iFirstIndex = iGetFirstIndex() + 1;
 
+	if (pdE == 0) {
+		doublereal u = SV_u->dGetValue();
+		doublereal* pda = pdA + iNumDofs*iNumDofs;
+		doublereal* pdb = pdB;
+
+		for (unsigned int i = iNumDofs; i-- > 0; ) {
+			pdXP[i] = pdb[i]*u;
+			pda -= iNumDofs;
+			for (unsigned int j = iNumDofs; j-- > 0; ) {
+				pdXP[i] += pda[j]*pdX[j];
+			}
+		}
+	}
+
 	for (unsigned i = 0; i < iNumDofs; i++) {
 		X(iFirstIndex + i) = pdX[i];
 		XP(iFirstIndex + i) = pdXP[i];
@@ -711,6 +725,23 @@ GenelStateSpaceMIMO::SetValue(DataManager *pDM,
 	SimulationEntity::Hints *ph)
 {
 	integer iFirstIndex = iGetFirstIndex() + 1;
+
+	if (pdE == 0) {
+		doublereal* pda = pdA + iNumDofs*iNumDofs;
+		doublereal* pdb = pdB + iNumDofs*iNumInputs;
+
+		for (unsigned int i = iNumDofs; i-- > 0; ) {
+			pdXP[i] = 0.;
+			pdb -= iNumInputs;
+			for (unsigned int j = iNumInputs; j-- > 0; ) {
+				pdXP[i] += pdb[j]*SV_u[j]->dGetValue();
+			}
+			pda -= iNumDofs;
+			for (unsigned int j = iNumDofs; j-- > 0; ) {
+				pdXP[i] += pda[j]*pdX[j];
+			}
+		}
+	}
 
 	for (unsigned i = 0; i < iNumDofs; i++) {
 		X(iFirstIndex + i) = pdX[i];
