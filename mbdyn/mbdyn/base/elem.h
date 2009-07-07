@@ -213,7 +213,7 @@ public:
 	
 	/* returns the number of connected nodes */
 	virtual inline int GetNumConnectedNodes(void) const;
-	virtual inline void GetConnectedNodes(std::vector<const Node *>& connectedNodes);
+	virtual inline void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 
 	/* Adams output stuff */
 	virtual inline unsigned int iGetNumDummyParts(void) const;
@@ -237,7 +237,7 @@ Elem::GetNumConnectedNodes(void) const
 }
  
 inline void
-Elem::GetConnectedNodes(std::vector<const Node *>& connectedNodes)
+Elem::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
 {
 	connectedNodes.resize(0);
 }

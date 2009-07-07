@@ -12,11 +12,13 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 MBDyn 1.X-Devel
 	Enhancements:
 		- allow initialization of SISO/MIMO state
+		- added mbd.vim syntax file
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
 		- fix differential abstract node parsing of derivative
 		  initial value
+		- fix total joint describe dof/equation
 
 MBDyn 1.3.8
 	Enhancements:
