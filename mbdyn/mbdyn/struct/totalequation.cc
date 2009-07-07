@@ -124,83 +124,90 @@ TotalEquation::DescribeDof(std::ostream& out,
 {
 	integer iIndex = iGetFirstIndex();
 
-	if (nPosConstraints > 1 || nVelConstraints > 1) {
+	if (nPosConstraints > 0 || nVelConstraints > 0) {
 		out << prefix << iIndex + 1;
-		out << "->" << iIndex + nPosConstraints + nVelConstraints;
-		out << ": ";
-	}
-	out << "reaction force(s) [";
-
-	for (unsigned int i = 0, cnt = 0; i < 3; i++) {
-		if (bPosActive[i] || bVelActive[i]) {
-			cnt++;
-			if (cnt > 1) {
-				out << ",";
-			}
-			out << "F" << idx2xyz[i];
+		if (nPosConstraints + nVelConstraints > 1) {
+			out << "->" << iIndex + nPosConstraints + nVelConstraints;
 		}
-	}
-	out << "]" << std::endl;
-	
+		out << ": ";
+		out << "reaction force(s) [";
 
-	if (nRotConstraints > 1 || nAgvConstraints > 1) {
+		for (unsigned int i = 0, cnt = 0; i < 3; i++) {
+			if (bPosActive[i] || bVelActive[i]) {
+				cnt++;
+				if (cnt > 1) {
+					out << ",";
+				}
+				out << "F" << idx2xyz[i];
+			}
+		}
+		out << "]" << std::endl;
+	}
+
+	if (nRotConstraints > 0 || nAgvConstraints > 0) {
 		out << prefix << iIndex + nPosConstraints + nVelConstraints + 1;
-		out << "->" << iIndex + nConstraints ;
-		out << ": ";
-	}
-	out << "reaction couple(s) [";
-
-	for (unsigned int i = 0, cnt = 0; i < 3; i++) {
-		if (bRotActive[i] || bAgvActive[i]) {
-			cnt++;
-			if (cnt > 1) {
-				out << ",";
-			}
-			out << "m" << idx2xyz[i];
+		if (nRotConstraints + nAgvConstraints > 1) {
+			out << "->" << iIndex + nConstraints ;
 		}
+		out << ": ";
+		out << "reaction couple(s) [";
+
+		for (unsigned int i = 0, cnt = 0; i < 3; i++) {
+			if (bRotActive[i] || bAgvActive[i]) {
+				cnt++;
+				if (cnt > 1) {
+					out << ",";
+				}
+				out << "m" << idx2xyz[i];
+			}
+		}
+		out << "]" << std::endl;
 	}
-	out << "]" << std::endl;
 
 	if (bInitial) {
 		iIndex += nConstraints;
 
-		if (nPosConstraints > 1) {
+		if (nPosConstraints > 0) {
 			out << prefix << iIndex + 1;
-			out << "->" << iIndex + nPosConstraints;
-			out << ": ";
-		}
-		out << "reaction force(s) derivative(s) [";
-
-		for (unsigned int i = 0, cnt = 0; i < 3; i++) {
-			if (bPosActive[i]) {
-				cnt++;
-				if (cnt > 1) {
-					out << ",";
-				}
-				out << "FP" << idx2xyz[i];
+			if (nPosConstraints > 1) {
+				out << "->" << iIndex + nPosConstraints;
 			}
-		}
-		out << "]" << std::endl;
-		
+			out << ": ";
+			out << "reaction force(s) derivative(s) [";
 
-		if (nRotConstraints > 1) {
+			for (unsigned int i = 0, cnt = 0; i < 3; i++) {
+				if (bPosActive[i]) {
+					cnt++;
+					if (cnt > 1) {
+						out << ",";
+					}
+					out << "FP" << idx2xyz[i];
+				}
+			}
+			out << "]" << std::endl;
+		}
+
+		if (nRotConstraints > 0) {
 			out << prefix << iIndex + nPosConstraints + 1;
-			out << "->" << iIndex + nConstraints;
-			out << ": ";
-		}
-		out << "reaction couple(s) derivative(s) [";
-
-		for (unsigned int i = 0, cnt = 0; i < 3; i++) {
-			if (bRotActive[i]) {
-				cnt++;
-				if (cnt > 1) {
-					out << ",";
-				}
-				out << "mP" << idx2xyz[i];
+			if (nRotConstraints > 1) {
+				out << "->" << iIndex + nConstraints;
 			}
+			out << ": ";
+			out << "reaction couple(s) derivative(s) [";
+
+			for (unsigned int i = 0, cnt = 0; i < 3; i++) {
+				if (bRotActive[i]) {
+					cnt++;
+					if (cnt > 1) {
+						out << ",";
+					}
+					out << "mP" << idx2xyz[i];
+				}
+			}
+			out << "]" << std::endl;
 		}
-		out << "]" << std::endl;
 	}
+
 	return out;
 }
 
@@ -246,110 +253,102 @@ TotalEquation::DescribeEq(std::ostream& out,
 {
 	integer iIndex = iGetFirstIndex();
 
-	if (nPosConstraints > 1 || nVelConstraints > 1) {
+	if (nPosConstraints > 0 || nVelConstraints > 0) {
 		out << prefix << iIndex + 1;
-		out << "->" << iIndex + nPosConstraints + nVelConstraints;
+		if (nPosConstraints + nVelConstraints > 1) {
+			out << "->" << iIndex + nPosConstraints + nVelConstraints;
+		}
 		out << ": ";
-	}
-	
-	if (nPosConstraints > 0 || nVelConstraints > 0) {
 		out << "position/velocity constraint(s) [";
-	}
 	
-	for (unsigned int i = 0, cnt = 0; i < 3; i++) {
-		if (bPosActive[i]) {
-			cnt++;
-			if (cnt > 1) {
-				out << ",";
-			}
-			out << "P" << idx2xyz[i] << "1=P" << idx2xyz[i] << "2";
-		} else if (bVelActive[i]) {
-			cnt++;
-			if (cnt > 1) {
-				out << ",";
-			}
-			out << "V" << idx2xyz[i] << "1=V" << idx2xyz[i] << "2";
-		}
-	}
-	
-	if (nPosConstraints > 0 || nVelConstraints > 0) {
-		out << "]" << std::endl;
-	}
-
-	if (nRotConstraints > 1 || nAgvConstraints > 1) {
-		out << prefix << iIndex + nPosConstraints + nVelConstraints + 1;
-		out << "->" << iIndex + nConstraints ;
-		out << ": ";
-	}
-	if (nRotConstraints > 0 || nAgvConstraints > 0) {
-		out << "orientation/angular velocity constraint(s) [";
-	}
-	
-	for (unsigned int i = 0, cnt = 0; i < 3; i++) {
-		if (bRotActive[i]) {
-			cnt++;
-			if (cnt > 1) {
-				out << ",";
-			}
-			out << "g" << idx2xyz[i] << "1=g" << idx2xyz[i] << "2";
-		}
-		else if (bAgvActive[i]) {
-			cnt++;
-			if (cnt > 1) {
-				out << ",";
-			}
-			out << "W" << idx2xyz[i] << "1=W" << idx2xyz[i] << "2";
-		}
-	}
-	if (nRotConstraints > 0 || nAgvConstraints > 0) {
-		out << "]" << std::endl;
-	}
-
-	if (bInitial) {
-		iIndex += nConstraints;
-
-		if (nPosConstraints > 1) {
-			out << prefix << iIndex + 1;
-			out << "->" << iIndex + nPosConstraints;
-			out << ": ";
-		}
-		
-		if (nPosConstraints > 0) {
-			out << "velocity constraint(s) [";
-		}
-		
 		for (unsigned int i = 0, cnt = 0; i < 3; i++) {
 			if (bPosActive[i]) {
 				cnt++;
 				if (cnt > 1) {
 					out << ",";
 				}
-				out << "v" << idx2xyz[i] << "1=v" << idx2xyz[i] << "2";
+				out << "P" << idx2xyz[i] << "1=P" << idx2xyz[i] << "2";
+			} else if (bVelActive[i]) {
+				cnt++;
+				if (cnt > 1) {
+					out << ",";
+				}
+				out << "V" << idx2xyz[i] << "1=V" << idx2xyz[i] << "2";
 			}
 		}
-		if (nPosConstraints > 0) {
-			out << "]" << std::endl;
-		}
-		
-		if (nRotConstraints > 1) {
-			out << prefix << iIndex + nPosConstraints + 1;
+	
+		out << "]" << std::endl;
+	}
+
+	if (nRotConstraints > 0 || nAgvConstraints > 0) {
+		out << prefix << iIndex + nPosConstraints + nVelConstraints + 1;
+		if (nRotConstraints + nAgvConstraints > 1) {
 			out << "->" << iIndex + nConstraints ;
-			out << ": ";
 		}
-		if (nRotConstraints > 0) {
-			out << "angular velocity constraint(s) [";
-		}
-		
+		out << ": ";
+		out << "orientation/angular velocity constraint(s) [";
+	
 		for (unsigned int i = 0, cnt = 0; i < 3; i++) {
 			if (bRotActive[i]) {
 				cnt++;
 				if (cnt > 1) {
 					out << ",";
 				}
-				out << "w" << idx2xyz[i] << "1=w" << idx2xyz[i] << "2";
+				out << "g" << idx2xyz[i] << "1=g" << idx2xyz[i] << "2";
+			} else if (bAgvActive[i]) {
+				cnt++;
+				if (cnt > 1) {
+					out << ",";
+				}
+				out << "W" << idx2xyz[i] << "1=W" << idx2xyz[i] << "2";
 			}
 		}
+
+		out << "]" << std::endl;
+	}
+
+	if (bInitial) {
+		iIndex += nConstraints;
+
+		if (nPosConstraints > 0) {
+			out << prefix << iIndex + 1;
+			if (nPosConstraints > 1) {
+				out << "->" << iIndex + nPosConstraints;
+			}
+			out << ": ";
+			out << "velocity constraint(s) [";
+		
+			for (unsigned int i = 0, cnt = 0; i < 3; i++) {
+				if (bPosActive[i]) {
+					cnt++;
+					if (cnt > 1) {
+						out << ",";
+					}
+					out << "v" << idx2xyz[i] << "1=v" << idx2xyz[i] << "2";
+				}
+			}
+
+			out << "]" << std::endl;
+		}
+		
 		if (nRotConstraints > 0) {
+			out << prefix << iIndex + nPosConstraints + 1;
+			if (nRotConstraints > 1) {
+				out << "->" << iIndex + nConstraints ;
+			}
+			out << ": ";
+			out << "angular velocity constraint(s) [";
+		
+			for (unsigned int i = 0, cnt = 0; i < 3; i++) {
+				if (bRotActive[i]) {
+					cnt++;
+					if (cnt > 1) {
+						out << ",";
+					}
+					out << "w" << idx2xyz[i] << "1=w" << idx2xyz[i] << "2";
+				}
+			}
+
 			out << "]" << std::endl;
 		}	
 	}
@@ -1259,52 +1258,13 @@ TotalReaction::DescribeDof(std::ostream& out,
 {
 	integer iIndex = total_equation_element->iGetFirstIndex();
 
-	if (nPosConstraints > 1) {
+	if (nPosConstraints > 0) {
 		out << prefix << iIndex + 1;
-		out << "->" << iIndex + nPosConstraints;
-		out << ": ";
-	}
-	out << "reaction force(s) [";
-
-	for (unsigned int i = 0, cnt = 0; i < 3; i++) {
-		if (bPosActive[i]) {
-			cnt++;
-			if (cnt > 1) {
-				out << ",";
-			}
-			out << "F" << idx2xyz[i];
-		}
-	}
-	out << "]" << std::endl;
-	
-
-	if (nRotConstraints > 1) {
-		out << prefix << iIndex + nPosConstraints + 1;
-		out << "->" << iIndex + nConstraints ;
-		out << ": ";
-	}
-	out << "reaction couple(s) [";
-
-	for (unsigned int i = 0, cnt = 0; i < 3; i++) {
-		if (bRotActive[i]) {
-			cnt++;
-			if (cnt > 1) {
-				out << ",";
-			}
-			out << "m" << idx2xyz[i];
-		}
-	}
-	out << "]" << std::endl;
-
-	if (bInitial) {
-		iIndex += nConstraints;
-
 		if (nPosConstraints > 1) {
-			out << prefix << iIndex + 1;
 			out << "->" << iIndex + nPosConstraints;
-			out << ": ";
 		}
-		out << "reaction force(s) derivative(s) [";
+		out << ": ";
+		out << "reaction force(s) [";
 
 		for (unsigned int i = 0, cnt = 0; i < 3; i++) {
 			if (bPosActive[i]) {
@@ -1312,18 +1272,19 @@ TotalReaction::DescribeDof(std::ostream& out,
 				if (cnt > 1) {
 					out << ",";
 				}
-				out << "FP" << idx2xyz[i];
+				out << "F" << idx2xyz[i];
 			}
 		}
 		out << "]" << std::endl;
-		
+	}
 
+	if (nRotConstraints > 0) {
+		out << prefix << iIndex + nPosConstraints + 1;
 		if (nRotConstraints > 1) {
-			out << prefix << iIndex + nPosConstraints + 1;
-			out << "->" << iIndex + nConstraints;
-			out << ": ";
+			out << "->" << iIndex + nConstraints ;
 		}
-		out << "reaction couple(s) derivative(s) [";
+		out << ": ";
+		out << "reaction couple(s) [";
 
 		for (unsigned int i = 0, cnt = 0; i < 3; i++) {
 			if (bRotActive[i]) {
@@ -1331,10 +1292,54 @@ TotalReaction::DescribeDof(std::ostream& out,
 				if (cnt > 1) {
 					out << ",";
 				}
-				out << "mP" << idx2xyz[i];
+				out << "m" << idx2xyz[i];
 			}
 		}
 		out << "]" << std::endl;
+	}
+
+	if (bInitial) {
+		iIndex += nConstraints;
+
+		if (nPosConstraints > 0) {
+			out << prefix << iIndex + 1;
+			if (nPosConstraints > 1) {
+				out << "->" << iIndex + nPosConstraints;
+			}
+			out << ": ";
+			out << "reaction force(s) derivative(s) [";
+
+			for (unsigned int i = 0, cnt = 0; i < 3; i++) {
+				if (bPosActive[i]) {
+					cnt++;
+					if (cnt > 1) {
+						out << ",";
+					}
+					out << "FP" << idx2xyz[i];
+				}
+			}
+			out << "]" << std::endl;
+		}
+
+		if (nRotConstraints > 0) {
+			out << prefix << iIndex + nPosConstraints + 1;
+			if (nRotConstraints > 1) {
+				out << "->" << iIndex + nConstraints;
+			}
+			out << ": ";
+			out << "reaction couple(s) derivative(s) [";
+
+			for (unsigned int i = 0, cnt = 0; i < 3; i++) {
+				if (bRotActive[i]) {
+					cnt++;
+					if (cnt > 1) {
+						out << ",";
+					}
+					out << "mP" << idx2xyz[i];
+				}
+			}
+			out << "]" << std::endl;
+		}
 	}
 	return out;
 }
@@ -1345,15 +1350,6 @@ TotalReaction::DescribeDof(std::vector<std::string>& desc,
 {
 	desc.resize(0);
 }
-
-#if 0
-std::ostream&
-TotalReaction::DescribeEq(std::ostream& out,
-	char *prefix, bool bInitial, int i) const
-{
-	return out;
-}
-#endif
 
 void
 TotalReaction::SetValue(DataManager *pDM,
