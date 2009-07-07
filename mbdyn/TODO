@@ -183,6 +183,7 @@ D. Code:
 	  modal variables; constraint that imposes the value of modal vars
 	- add "static" modal element (no dynamics equations)
 	- allow deformable hinge to have optional (useless) "position" spec
+	- output of incremental Euler vector
 
 
 
@@ -215,4 +216,5 @@ F. Documentation:
 	- tutorial for piezo beam (DONE)
 	- clarify (with demos) the functionality of the modal element (DONE)
 	- document electric elements and sensors
+	- document additional output of rotations (DONE)
 

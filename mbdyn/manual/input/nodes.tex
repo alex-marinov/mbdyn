@@ -201,6 +201,8 @@ Structural nodes generate two kinds of output files:
 \item the \kw{.mov} file;
 \item the \kw{.ine} file.
 \end{itemize}
+
+\textbf{The \kw{.mov} Output File.} \\
 The first refers to the kinematics of the node; its extension is \kw{.mov},
 and for each time step it contains one row for each node whose output is
 required.
@@ -223,6 +225,28 @@ All the quantities are expressed in the global frame, except for
 the dummy \kw{relative frame} node type, whose quantities are,
 by definition, in the relative frame.
 
+There exist two variants of this output.
+The output of the orientation can be modified by requesting
+either the three components of the Euler vector,
+or the nine components of the orientation matrix.
+
+When the Euler vector is requested, columns 5 to 7 contain
+its components.
+Beware that it is not possible to discriminate between
+the original output and this format without knowing
+what output type was requested.
+
+When the orientation matrix is requested, columns 5 to 13
+contains the elements of the matrix, written row-wise,
+that is: $r_{11}$, $r_{12}$, $r_{13}$, $r_{21}$, \ldots, $r_{33}$.
+Note that in this case the total column count, if accelerations
+are not requested, corresponds to that of a structural node
+with optional accelerations, so it might be hard to discriminate
+as well.
+
+This ambiguity is resolved when results are output in NetCDF format.
+See Section~\ref{sec:NetCDF:Node:Structural Node} for details.
+
 \emph{Note: actually, the angles denoted as ``Euler angles'' 
 are the three angles that describe a rotation made of a sequence
 of three steps: first, a rotation about global axis 1,
@@ -237,7 +261,7 @@ matrix and the set of three angles and vice versa are
 \kw{MatR2EulerAngles()} and \kw{EulerAngles2MatR()}, in \kw{matvec3.h}.
 }
 
-\noindent
+\textbf{The \kw{.ine} Output File.} \\
 The second output file refers only to dynamic nodes, and contains their
 inertia; its extension is \kw{.ine}.
 For each time step, it contains information about the inertia of all the
