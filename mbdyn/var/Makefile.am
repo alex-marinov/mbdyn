@@ -10,7 +10,8 @@ mbdyn2pod.awk \
 periodize.awk \
 naca0012.c81 \
 mbdyn2easyanim.sh.in \
-pod.m
+pod.m \
+mbd.vim
 
 octavedir = "$(datarootdir)/octave"
 c81dir = "$(datarootdir)/c81"
