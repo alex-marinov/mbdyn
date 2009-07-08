@@ -1287,8 +1287,7 @@ TotalJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	Vec3 b2(pNode2->GetRCurr()*f2);
 	Vec3 b1(pNode2->GetXCurr() + b2 - pNode1->GetXCurr());
 	
-	Vec3 Omega1(pNode1->GetWCurr());
-	Vec3 Omega2(pNode2->GetWCurr());
+	const Vec3& Omega2(pNode2->GetWCurr());
 	
 	Vec3 b1Prime(pNode2->GetVCurr() + Omega2.Cross(b2) - pNode1->GetVCurr());
 	
@@ -1495,8 +1494,8 @@ TotalJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	Vec3 b2(pNode2->GetRCurr()*f2);
 	Vec3 b1(pNode2->GetXCurr() + b2 - pNode1->GetXCurr());
 	
-	Vec3 Omega1(pNode1->GetWCurr());
-	Vec3 Omega2(pNode2->GetWCurr());
+	const Vec3& Omega1(pNode1->GetWCurr());
+	const Vec3& Omega2(pNode2->GetWCurr());
 	
 	Mat3x3 Omega2Cross(Omega2);
 	Vec3 Omega2Crossb2(Omega2Cross*b2);
@@ -1568,7 +1567,7 @@ TotalJoint::InitialAssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutCoef(24 + 1 + nPosConstraints + nConstraints +  iCnt, -ThetaDeltaPrime(iRotIncid[iCnt]));
 	}
 
-return WorkVec;
+	return WorkVec;
 }
 
 

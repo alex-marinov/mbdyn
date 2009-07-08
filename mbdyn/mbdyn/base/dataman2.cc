@@ -977,18 +977,17 @@ DataManager::InitialJointAssembly(void)
 			doublereal dVelStiff = (*ppTmpNode)->dGetVelocityStiffness();
 
 			/* Posizione: k*Delta_x = k(x_0-x) + F */
-			Vec3 TmpVec = (*ppTmpNode)->GetXPrev()-(*ppTmpNode)->GetXCurr();
-			pResHdl->Add(iFirstIndex+1, TmpVec*dPosStiff);
+			Vec3 TmpVec = (*ppTmpNode)->GetXPrev() - (*ppTmpNode)->GetXCurr();
+			pResHdl->Add(iFirstIndex + 1, TmpVec*dPosStiff);
 
 			/* Rotazione: k*Delta_g = -k*g(R_Delta) + M */
-			Mat3x3 R0 = (*ppTmpNode)->GetRPrev();
-			Mat3x3 RDelta = (*ppTmpNode)->GetRCurr()*R0.Transpose();
-			TmpVec = -Vec3(CGR_Rot::Param, RDelta);
-			pResHdl->Add(iFirstIndex+4, TmpVec*dPosStiff);
+			Mat3x3 RDelta = (*ppTmpNode)->GetRPrev().MulMT((*ppTmpNode)->GetRCurr());
+			TmpVec = Vec3(CGR_Rot::Param, RDelta);
+			pResHdl->Add(iFirstIndex + 4, TmpVec*dPosStiff);
 
 			/* Velocita': k*Delta_v = k*(v0-Delta_v) + F */
-			TmpVec = (*ppTmpNode)->GetVPrev()-(*ppTmpNode)->GetVCurr();
-			pResHdl->Add(iFirstIndex+7, TmpVec*dVelStiff);
+			TmpVec = (*ppTmpNode)->GetVPrev() - (*ppTmpNode)->GetVCurr();
+			pResHdl->Add(iFirstIndex + 7, TmpVec*dVelStiff);
 
 			/* Velocita' angolare: k*(Delta_w+(R_Delta*w0)/\Delta_g) =
 			 *                                    k*(R_Delta*w0-w) + M */
@@ -998,14 +997,14 @@ DataManager::InitialJointAssembly(void)
 			if ((*ppTmpNode)->bOmegaRotates()) {
 				/* con questa la velocita' angolare e' solidale
 				 * con il nodo */
-				TmpVec = RDelta*wPrev-wCurr;
+				TmpVec = RDelta*wPrev - wCurr;
 			} else {
 				/* con questa la velocita' angolare e' solidale
 				 * col riferimento assoluto */
-				TmpVec = wPrev-wCurr;
+				TmpVec = wPrev - wCurr;
 			}
 
-			pResHdl->Add(iFirstIndex+10, TmpVec*dVelStiff);
+			pResHdl->Add(iFirstIndex + 10, TmpVec*dVelStiff);
 		}
 
 		/* Elementi (con iteratore): */
@@ -1108,18 +1107,18 @@ DataManager::InitialJointAssembly(void)
 
 				/* W1 in m(3, 2), -W1 in m(2, 3) */
 				doublereal d = TmpVec.dGet(1);
-				pMatHdl->PutCoef(iFirstIndex+12, iFirstIndex+5, d);
-				pMatHdl->PutCoef(iFirstIndex+11, iFirstIndex+6, -d);
+				pMatHdl->PutCoef(iFirstIndex + 12, iFirstIndex + 5, d);
+				pMatHdl->PutCoef(iFirstIndex + 11, iFirstIndex + 6, -d);
 
 				/* W2 in m(1, 3), -W2 in m(3, 1) */
 				d = TmpVec.dGet(2);
-				pMatHdl->PutCoef(iFirstIndex+10, iFirstIndex+6, d);
-				pMatHdl->PutCoef(iFirstIndex+12, iFirstIndex+4, -d);
+				pMatHdl->PutCoef(iFirstIndex + 10, iFirstIndex + 6, d);
+				pMatHdl->PutCoef(iFirstIndex + 12, iFirstIndex + 4, -d);
 
 				/* W3 in m(2, 1), -W3 in m(1, 2) */
 				d = TmpVec.dGet(3);
-				pMatHdl->PutCoef(iFirstIndex+11, iFirstIndex+4, d);
-				pMatHdl->PutCoef(iFirstIndex+10, iFirstIndex+5, -d);
+				pMatHdl->PutCoef(iFirstIndex + 11, iFirstIndex + 4, d);
+				pMatHdl->PutCoef(iFirstIndex + 10, iFirstIndex + 5, -d);
 			} /* altrimenti la velocita' angolare e' solidale con il nodo */
 		}
 
