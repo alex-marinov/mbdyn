@@ -184,6 +184,8 @@ D. Code:
 	- add "static" modal element (no dynamics equations)
 	- allow deformable hinge to have optional (useless) "position" spec
 	- output of incremental Euler vector
+	- check inertia computed with that from block 12 in modal joint
+	- add elastic and viscous variants of linear time variant const law
 
 
 
@@ -203,6 +205,7 @@ E. Bugs/missing features:
 	- allow strings as mode names in modal elements (joint, force, ...)
 	- add SetInitialValue to modal element
 	- allow to override initial modal value and derivative in .fem (DONE)
+	- check initial assembly of joints in slidercrank_r
 
 
 
