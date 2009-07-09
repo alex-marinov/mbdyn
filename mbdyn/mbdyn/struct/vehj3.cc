@@ -1249,7 +1249,7 @@ ViscoElasticJoint::AssMats(FullSubMatrixHandler& WMA,
 	FullSubMatrixHandler& WMB, doublereal dCoef)
 {
 	AssMatCommon(WMA, dCoef);
-	AssMatElastic(WMA, dCoef, FDEPrime);
+	AssMatElastic(WMA, dCoef, FDE);
 	AssMatViscous(WMA, WMB, dCoef, FDEPrime);
 }
 
