@@ -32,8 +32,8 @@
 /* Legami costitutivi */
 
 
-#ifndef CONSTLTP__H
-#define CONSTLTP__H
+#ifndef CONSTLTP_IMPL_H
+#define CONSTLTP_IMPL_H
 
 #include <limits>
 #include <cfloat>
@@ -1259,6 +1259,92 @@ typedef LinearViscoElasticGenericConstitutiveLaw<Vec6, Mat6x6> LinearViscoElasti
 
 /* LinearViscoElasticGenericConstitutiveLaw - end */
 
+/* LTVViscoElasticGenericConstitutiveLaw - begin */
+
+template <class T, class Tder>
+class LTVViscoElasticGenericConstitutiveLaw
+: public ElasticConstitutiveLaw<T, Tder> {
+protected:
+	DriveOwner FDECoef;
+	Tder FDERef;
+	doublereal dPrevScaleFactor;
+	DriveOwner FDEPrimeCoef;
+	Tder FDEPrimeRef;
+	doublereal dPrevScaleFactorPrime;
+
+public:
+	LTVViscoElasticGenericConstitutiveLaw(const TplDriveCaller<T>* pDC,
+		const T& PStress,
+		const Tder& Stiff,
+		const DriveCaller *pdc,
+		const Tder& StiffPrime,
+		const DriveCaller *pdcp)
+	: ElasticConstitutiveLaw<T, Tder>(pDC, PStress),
+	FDECoef(pdc), FDEPrimeCoef(pdcp) {
+		FDERef = Stiff;
+		dPrevScaleFactor = 0.;
+		FDEPrimeRef = StiffPrime;
+		dPrevScaleFactorPrime = 0.;
+	};
+
+	virtual ~LTVViscoElasticGenericConstitutiveLaw(void) {
+		NO_OP;
+	};
+
+	ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::VISCOELASTIC;
+	};
+
+	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
+		ConstitutiveLaw<T, Tder>* pCL = NULL;
+
+		typedef LTVViscoElasticGenericConstitutiveLaw<T, Tder> cl;
+		SAFENEWWITHCONSTRUCTOR(pCL,
+			cl,
+			cl(ElasticConstitutiveLaw<T, Tder>::pGetDriveCaller()->pCopy(),
+				ElasticConstitutiveLaw<T, Tder>::PreStress,
+				FDERef,
+				FDECoef.pGetDriveCaller()->pCopy(),
+				FDEPrimeRef,
+				FDEPrimeCoef.pGetDriveCaller()->pCopy()));
+
+		return pCL;
+	};
+
+	virtual std::ostream& Restart(std::ostream& out) const {
+		out << "linear time variant viscoelastic generic, ",
+			Write(out, FDERef, ", ") << ", ",
+			FDECoef.pGetDriveCaller()->Restart(out) << ", ",
+			Write(out, FDEPrimeRef, ", ") << ", ",
+			FDEPrimeCoef.pGetDriveCaller()->Restart(out);
+		return ElasticConstitutiveLaw<T, Tder>::Restart_int(out);
+	};
+
+	virtual void Update(const T& Eps, const T& EpsPrime = 0.) {
+		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
+		ConstitutiveLaw<T, Tder>::EpsilonPrime = EpsPrime;
+		doublereal dCurrScaleFactor = FDECoef.dGet();
+		if (dCurrScaleFactor != dPrevScaleFactor) {
+			dPrevScaleFactor = dCurrScaleFactor;
+			ConstitutiveLaw<T, Tder>::FDE = FDERef*dCurrScaleFactor;
+		}
+		doublereal dCurrScaleFactorPrime = FDEPrimeCoef.dGet();
+		if (dCurrScaleFactorPrime != dPrevScaleFactorPrime) {
+			dPrevScaleFactorPrime = dCurrScaleFactorPrime;
+			ConstitutiveLaw<T, Tder>::FDEPrime = FDEPrimeRef*dCurrScaleFactorPrime;
+		}
+		ConstitutiveLaw<T, Tder>::F = ElasticConstitutiveLaw<T, Tder>::PreStress
+			+ ConstitutiveLaw<T, Tder>::FDE*(ConstitutiveLaw<T, Tder>::Epsilon - ElasticConstitutiveLaw<T, Tder>::Get())
+			+ ConstitutiveLaw<T, Tder>::FDEPrime*ConstitutiveLaw<T, Tder>::EpsilonPrime;
+	};
+};
+
+typedef LTVViscoElasticGenericConstitutiveLaw<doublereal, doublereal> LTVViscoElasticGenericConstitutiveLaw1D;
+typedef LTVViscoElasticGenericConstitutiveLaw<Vec3, Mat3x3> LTVViscoElasticGenericConstitutiveLaw3D;
+typedef LTVViscoElasticGenericConstitutiveLaw<Vec6, Mat6x6> LTVViscoElasticGenericConstitutiveLaw6D;
+
+/* LTVViscoElasticGenericConstitutiveLaw - end */
+
 /* LinearViscoElasticGenericAxialTorsionCouplingConstitutiveLaw - begin */
 
 template <class T, class Tder>
@@ -2052,4 +2138,4 @@ GetPreStrain(const DataManager* pDM, MBDynParser& HP, T& PreStrain)
 	return pTplDC;
 }
 
-#endif /* CONSTLTP__H */
+#endif // CONSTLTP_IMPL_H

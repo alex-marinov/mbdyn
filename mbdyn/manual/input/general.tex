@@ -2438,6 +2438,7 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
 	linear viscous generic						& $\surd$ & $\surd$ & $\surd$ \\
 	linear viscoelastic, linear viscoelastic isotropic		& $\surd$ & $\surd$ & $\surd$ \\
 	linear viscoelastic generic					& $\surd$ & $\surd$ & $\surd$ \\
+	linear time variant viscoelastic generic			& $\surd$ & $\surd$ & $\surd$ \\
 	linear viscoelastic generic axial torsion coupling		&         &         & $\surd$ \\
 	cubic viscoelastic generic					& $\surd$ & $\surd$ &         \\
 	double linear viscoelastic					& $\surd$ & $\surd$ &         \\
@@ -2709,7 +2710,7 @@ the linear viscous matrix. \\
     <specific_const_law> ::= linear viscoelastic [ isotropic ] ,
         (scalar) <stiffness> ,
         { (scalar) <viscosity_coefficient>
-        | proportional, (scalar) <factor> }
+            | proportional, (scalar) <factor> }
 \end{verbatim}
 the isotropic stiffness and viscosity coefficients.
   
@@ -2718,9 +2719,41 @@ the isotropic stiffness and viscosity coefficients.
     <specific_const_law> ::= linear viscoelastic generic ,  
         (derivative_of_entity) <stiffness> ,
         { (derivative_of_entity) <viscosity_matrix> 
-        | proportional, (scalar) <factor> }
+            | proportional, (scalar) <factor> }
 \end{verbatim}
 the linear stiffness and viscosity matrices.
+  
+\subsection{Linear time variant viscoelastic generic}
+\begin{verbatim}
+    <specific_const_law> ::= linear time variant viscoelastic generic ,  
+        (derivative_of_entity) <stiffness> ,
+        (DriveCaller> <stiffness_scale> ,
+        { (derivative_of_entity) <viscosity>
+            | proportional, (scalar) <factor> } ,
+        (DriveCaller> <viscosity_scale>
+\end{verbatim}
+the linear stiffness and viscosity matrices are multiplied
+by the respective scale factors,
+\begin{align}
+	\T{f} &= \mathtt{stiffness} \cdot \mathtt{stiffness\_scale} \cdot \T{\varepsilon}
+		+ \mathtt{viscosity} \cdot \mathtt{viscosity\_scale} \cdot \dot{\T{\varepsilon}}
+\end{align}
+\paragraph{Example.}
+\begin{verbatim}
+    linear time variant visco elastic,
+        1000., cosine, 2., pi/.2, .1/2, half, 1.,
+        100., cosine, 2., pi/.2, 1/2, half, 1.
+\end{verbatim}
+At 2s, the stiffness grows of 10\% from the nominal value in .2s,
+while the damping doubles.
+See Section~\ref{sec:DRIVE} for details on the syntax of \kw{drive callers}.
+
+Beware that arbitrarily changing the stiffness
+and the damping of an elastic component during the execution
+of the simulation may have no physical meaning.
+The intended use of this feature is for tailoring the analysis;
+for example, a higher damping level may be desirable to smooth out
+a non-physical transient, and later return to the appropriate damping value.
   
 \subsection{Linear viscoelastic generic axial torsion coupling}
 \begin{verbatim}
@@ -2728,7 +2761,7 @@ the linear stiffness and viscosity matrices.
         linear viscoelastic generic axial torsion coupling ,  
             (derivative_of_entity) <stiffness> ,
             { (derivative_of_entity) <viscosity_matrix> 
-            | proportional, (scalar) <factor> }
+                | proportional, (scalar) <factor> }
             (scalar) <coupling_coefficient>
 \end{verbatim}
 this is defined only for \kw{6 x 1} vectors; it is the viscoelastic 

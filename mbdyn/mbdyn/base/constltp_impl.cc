@@ -823,6 +823,71 @@ struct LinearViscoElasticGenericCLR : public ConstitutiveLawRead<T, Tder> {
 };
 
 template <class T, class Tder>
+struct LTVViscoElasticGenericCLR : public ConstitutiveLawRead<T, Tder> {
+	virtual ConstitutiveLaw<T, Tder> *
+	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType) {
+		ConstitutiveLaw<T, Tder>* pCL = 0;
+
+		CLType = ConstLawType::VISCOELASTIC;
+
+		Tder S(0.);
+		S = HP.Get(S);
+
+		DriveCaller *pdc = HP.GetDriveCaller();
+
+		Tder SP(0.);
+		if (HP.IsKeyWord("proportional")) {
+			doublereal k = HP.GetReal();
+			SP = S*k;
+
+		} else {
+			SP = HP.Get(SP);
+		}
+
+		DriveCaller *pdcp = HP.GetDriveCaller();
+
+		/* Prestress and prestrain */
+		T PreStress(0.);
+		GetPreStress(HP, PreStress);
+		T PreStrain(0.);
+		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
+
+#if 0	// TODO: implement a "null" constitutive law that does nothing
+		if (IsNull(S) && IsNull(SP)) {
+
+		} else if (IsNull(S)) {
+			silent_cerr("warning, null stiffness, "
+				"using linear viscous generic constitutive law instead"
+				<< std::endl);
+
+			SAFEDELETE(pdc);
+
+			typedef LTVViscousGenericConstitutiveLaw<T, Tder> L;
+			SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, SP, pdcp));
+
+		} else
+		if (IsNull(SP)) {
+			silent_cerr("warning, null stiffness prime, "
+				"using linear elastic generic constitutive law instead"
+				<< std::endl);
+
+			SAFEDELETE(pdcp);
+
+			typedef LTVElasticGenericConstitutiveLaw<T, Tder> L;
+			SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, S, pdc));
+
+		} else
+#endif
+		{
+			typedef LTVViscoElasticGenericConstitutiveLaw<T, Tder> L;
+			SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, S, pdc, SP, pdcp));
+		}
+
+		return pCL;
+	};
+};
+
+template <class T, class Tder>
 struct CubicElasticGenericCLR : public ConstitutiveLawRead<T, Tder> {
 	virtual ConstitutiveLaw<T, Tder> *
 	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType) {
@@ -1243,6 +1308,11 @@ InitCL(void)
 	SetCL1D("linear" "viscoelastic" "generic", new LinearViscoElasticGenericCLR<doublereal, doublereal>);
 	SetCL3D("linear" "viscoelastic" "generic", new LinearViscoElasticGenericCLR<Vec3, Mat3x3>);
 	SetCL6D("linear" "viscoelastic" "generic", new LinearViscoElasticGenericCLR<Vec6, Mat6x6>);
+
+	/* linear time variant viscoelastic generic */
+	SetCL1D("linear" "time" "variant" "viscoelastic" "generic", new LTVViscoElasticGenericCLR<doublereal, doublereal>);
+	SetCL3D("linear" "time" "variant" "viscoelastic" "generic", new LTVViscoElasticGenericCLR<Vec3, Mat3x3>);
+	SetCL6D("linear" "time" "variant" "viscoelastic" "generic", new LTVViscoElasticGenericCLR<Vec6, Mat6x6>);
 
 	/* cubic elastic generic */
 	SetCL1D("cubic" "elastic" "generic", new CubicElasticGenericCLR<doublereal, doublereal>);
