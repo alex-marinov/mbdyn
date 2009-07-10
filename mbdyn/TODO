@@ -59,8 +59,12 @@ D. Code:
 
 	Medium Projects:
 	- recover existing soft restart (Michele Attolico worked at it)
-	- add MATLAB/Octave and Simulink hooks (Michele Attolico worked
-		at it; see contrib/SimulinkInterface).
+	- add MATLAB hooks
+	- add Octave hooks
+	- add Scilab hooks
+	- add Simulink hooks (DONE by Michele Attolico:
+		see contrib/SimulinkInterface).
+	- add Scicos hooks
 	- add a "shell" element that executes external programs,
 	  and allow exploitation for entities like elements, drives,
 	  constitutive laws and so
@@ -86,6 +90,7 @@ D. Code:
 			mbdyn > ascii
 			mbdyn > netcdf (in global output database)
 	- add aerodynamic elements Jacobian matrix contribution
+	  (DONE by Mattia Mattaboni)
 	- add sparse eigenvalue extraction (DONE, using ARPACK)
 	- add center of mass computation (DONE)/constraint
 	- add matrix scaling (partially DONE)
@@ -96,12 +101,13 @@ D. Code:
 		including scripts, significantly matlab scripts.
 	- move critical Reynolds numbers from constants to fluid properties
 		with pressure/temperature dependencies.
+	- add Reynolds dependence to AeroData
 	- improve symbolic constitutive law (based on GiNaC)
 	- move exception handling towards <stdexcept> (DONE otherwise)
 	- review/improve user-configurable statistics output (partially DONE;
 		see "output:" statement in integrator data block)
 	- add Matlab-compatible sparse matrix generation for sparse
-	  matrix eigenvalue analysis (eigs; DONE)
+		matrix eigenvalue analysis (eigs; DONE)
 	- add selected output streamed on sockets for interactive analysis
 		by implementing sort of "sensors", possibly based on the
 		elements' "private data" (Michele Attolico worked at it;
@@ -112,6 +118,7 @@ D. Code:
 		- 2-node clamp (spherical + prismatic; DONE: total)
 		- universal without displacement constraints (DONE)
 		- inplane and inline between a node and the ground
+		  (DONE: total pin joint)
 	- allow to define modules as separate entities which are later
 		referred to by labels, like c81 data or hydraulic fluids.
 		(this is no longer required, since using ltdl one can set
@@ -185,6 +192,7 @@ D. Code:
 	- allow deformable hinge to have optional (useless) "position" spec
 	- output of incremental Euler vector
 	- check inertia computed with that from block 12 in modal joint
+	- add linear time variant constitutive law (DONE)
 	- add elastic and viscous variants of linear time variant const law
 
 
