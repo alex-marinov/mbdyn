@@ -191,7 +191,7 @@ D. Code:
 	- add "static" modal element (no dynamics equations)
 	- allow deformable hinge to have optional (useless) "position" spec
 	- output of incremental Euler vector
-	- check inertia computed with that from block 12 in modal joint
+	- check inertia computed with that from block 12 in modal joint (DONE)
 	- add linear time variant constitutive law (DONE)
 	- add elastic and viscous variants of linear time variant const law
 

@@ -4767,10 +4767,25 @@ ReadModal(DataManager* pDM,
 			} /*  fine ciclo scansione modi */
 		} /* fine ciclo scansione nodi */
 
+		if (bRecordGroup[12]) {
+			Mat3x3 DJ = JTmp - JTmpInv;
+			silent_cerr("Rigid-body mass: "
+				"input - computed" << std::endl
+				<< dMass - dMassInv << std::endl);
+			silent_cerr("Rigid-body CM location: "
+				"input - computed" << std::endl
+				<< STmp - STmpInv/dMassInv << std::endl);
+			silent_cerr("Rigid-body inertia: "
+				"input - computed" << std::endl
+				<< DJ.GetVec(1) << std::endl
+				<< DJ.GetVec(2) << std::endl
+				<< DJ.GetVec(3) << std::endl);
+		}
+
 		/*
 		 * TODO: check modal mass
 		 */
-		silent_cout("Generalized Mass: input - computed" << std:: endl);
+		silent_cout("Generalized mass: input - computed" << std:: endl);
 		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
 			for (unsigned int kMode = 1; kMode <= NModes; kMode++) {
 				silent_cout(" " << pGenMass->dGet(jMode, kMode) - GenMass(jMode, kMode));
