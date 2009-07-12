@@ -4769,13 +4769,13 @@ ReadModal(DataManager* pDM,
 
 		if (bRecordGroup[12]) {
 			Mat3x3 DJ = JTmp - JTmpInv;
-			silent_cerr("Rigid-body mass: "
+			pedantic_cerr("Rigid-body mass: "
 				"input - computed" << std::endl
 				<< dMass - dMassInv << std::endl);
-			silent_cerr("Rigid-body CM location: "
+			pedantic_cerr("Rigid-body CM location: "
 				"input - computed" << std::endl
 				<< STmp - STmpInv/dMassInv << std::endl);
-			silent_cerr("Rigid-body inertia: "
+			pedantic_cerr("Rigid-body inertia: "
 				"input - computed" << std::endl
 				<< DJ.GetVec(1) << std::endl
 				<< DJ.GetVec(2) << std::endl
@@ -4785,12 +4785,12 @@ ReadModal(DataManager* pDM,
 		/*
 		 * TODO: check modal mass
 		 */
-		silent_cout("Generalized mass: input - computed" << std:: endl);
+		pedantic_cerr("Generalized mass: input - computed" << std:: endl);
 		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
 			for (unsigned int kMode = 1; kMode <= NModes; kMode++) {
-				silent_cout(" " << pGenMass->dGet(jMode, kMode) - GenMass(jMode, kMode));
+				pedantic_cerr(" " << pGenMass->dGet(jMode, kMode) - GenMass(jMode, kMode));
 			}
-			silent_cout(std::endl);
+			pedantic_cerr(std::endl);
 		}
 
 		// if record 12 was read, leave its data in place
@@ -4829,7 +4829,7 @@ ReadModal(DataManager* pDM,
 		}
 	}
 
-#if 1 // def DEBUG
+#if 0 // def DEBUG
 	silent_cout("Total Mass : " << dMass << std::endl);
 	silent_cout("Inertia Matrix : " << std::endl << JTmp << std::endl);
 	silent_cout("Static Moment Vector : " << STmp << std::endl);
