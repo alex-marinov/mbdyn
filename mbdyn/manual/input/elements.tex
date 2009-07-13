@@ -4619,7 +4619,7 @@ of the relative position and orientation of two nodes.
 The value of the constrained components of the relative position
 and orientation can be imposed by means of drives.
 As such, this element allows to mimic the behavior of most
-ideal constraints that link two nodes.
+ideal constraints that connect two nodes.
 \begin{verbatim}
     <joint_type> ::= total joint
     <joint_arglist> ::=
@@ -4640,6 +4640,19 @@ ideal constraints that link two nodes.
             { active | inactive | <status> } ,
             (Vec3_tpl_drive_caller) <imposed_relative_rotation> ]
 \end{verbatim}
+The relative position imposed by the \kw{position constraint}
+is imposed in a reference frame rigidly attached to the first node,
+in the optional offset \kw{relative\_offset},
+and optionally further oriented by the \kw{relative\_position\_orientation}
+matrix.
+
+The relative orientation imposed by the \kw{orientation constraint}
+is imposed in a reference frame rigidly attached to the first node,
+optionally further oriented by the \kw{relative\_rotation\_orientation}
+matrix.
+It consists in the Euler vector that expresses
+the imposed relative orientation, in radian.
+
 The keyword \kw{active} means that the constraint is active
 with respect to that component of relative motion,
 so the related motion component is constrained,
@@ -4649,7 +4662,14 @@ so the related motion component is not constrained.
 Otherwise, a boolean can be provided in \kw{status} to indicate
 that the degree of constraint is either inactive (0) or active (1);
 this may be useful, for instance, to make constraint activation
-parametric.
+conditional in parametric input files.
+The same applies to the status of the components of the impose orientation.
+
+If a component of relative position or orientation is active,
+the corresponding component of the imposed position or orientation
+is enforced, otherwise it is ignored;
+however, the complete three-dimensional vectors of the imposed relative
+position or orientation must be provided.
 
 \subsubsection{Private Data}
 The following data is available:
