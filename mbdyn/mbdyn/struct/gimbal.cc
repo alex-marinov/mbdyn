@@ -101,7 +101,15 @@ GimbalRotationJoint::Output(OutputHandler& OH) const
 
 		switch (od) {
 		case EULER_123:
-			out << MatR2EulerAngles(R)*dRaDegr;
+			out << MatR2EulerAngles123(R)*dRaDegr;
+			break;
+
+		case EULER_313:
+			out << MatR2EulerAngles313(R)*dRaDegr;
+			break;
+
+		case EULER_321:
+			out << MatR2EulerAngles321(R)*dRaDegr;
 			break;
 
 		case ORIENTATION_VECTOR:

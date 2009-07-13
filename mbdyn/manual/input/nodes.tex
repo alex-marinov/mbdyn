@@ -96,7 +96,8 @@ See Section~\ref{sec:EL:STRUCT:JOINT:MODAL} for further details.
           , (scalar) <velocity_initial_stiffness>
           , (flag)   <omega_rotates?> ]
     <orientation_description> ::=
-        { euler 123 | orientation vector | orientation matrix }
+        { euler123 | euler313 | euler321
+             | orientation vector | orientation matrix }
 \end{verbatim}
 The \kw{omega\_rotates} parameter determines whether 
 the initial angular velocity should follow or not the node 
@@ -312,8 +313,14 @@ The following data is available:
 \item \kw{"omega[2]"} angular velocity in direction 2, in the reference frame of the node
 \item \kw{"omega[3]"} angular velocity in direction 3, in the reference frame of the node
 \item \kw{"E[1]"} Cardan angle 1 (about global direction 1)
-\item \kw{"E[2]"} Cardan angle 2 (about global direction 2)
-\item \kw{"E[3]"} Cardan angle 3 (about global direction 3)
+\item \kw{"E[2]"} Cardan angle 2 (about local direction 2)
+\item \kw{"E[3]"} Cardan angle 3 (about local direction 3)
+\item \kw{"E313[1]"} Cardan angle 1 (about global direction 3)
+\item \kw{"E313[2]"} Cardan angle 2 (about local direction 1)
+\item \kw{"E313[3]"} Cardan angle 3 (about local direction 3)
+\item \kw{"E321[1]"} Cardan angle 1 (about global direction 3)
+\item \kw{"E321[2]"} Cardan angle 2 (about local direction 2)
+\item \kw{"E321[3]"} Cardan angle 3 (about local direction 1)
 \item \kw{"PE[0]"} Euler parameter 0
 \item \kw{"PE[1]"} Euler parameter 1
 \item \kw{"PE[2]"} Euler parameter 2

@@ -1214,12 +1214,28 @@ HighParser::GetMatR2vec(void)
 #endif
 	}
 
-	if (IsKeyWord("euler")) {
+	if (IsKeyWord("euler") || IsKeyWord("euler" "123")) {
 		doublereal e1 = GetReal();
 		doublereal e2 = GetReal();
 		doublereal e3 = GetReal();
 
-		return EulerAngles2MatR(Vec3(e1, e2, e3));
+		return EulerAngles123_2MatR(Vec3(e1, e2, e3));
+	}
+
+	if (IsKeyWord("euler" "313")) {
+		doublereal e1 = GetReal();
+		doublereal e2 = GetReal();
+		doublereal e3 = GetReal();
+
+		return EulerAngles313_2MatR(Vec3(e1, e2, e3));
+	}
+
+	if (IsKeyWord("euler" "321")) {
+		doublereal e1 = GetReal();
+		doublereal e2 = GetReal();
+		doublereal e3 = GetReal();
+
+		return EulerAngles321_2MatR(Vec3(e1, e2, e3));
 	}
 
 	if (IsKeyWord("vector")) {

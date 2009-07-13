@@ -2627,6 +2627,12 @@ ReadOrientationDescription(MBDynParser& HP)
 	if (HP.IsKeyWord("euler" "123")) {
 		dod = EULER_123;
 
+	} else if (HP.IsKeyWord("euler" "313")) {
+		dod = EULER_313;
+
+	} else if (HP.IsKeyWord("euler" "321")) {
+		dod = EULER_321;
+
 	} else if (HP.IsKeyWord("orientation" "vector")) {
 		dod = ORIENTATION_VECTOR;
 

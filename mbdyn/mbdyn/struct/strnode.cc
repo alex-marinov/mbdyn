@@ -651,6 +651,9 @@ StructNode::OutputPrepare(OutputHandler &OH)
 				break;
 
 			case EULER_123:
+			case EULER_313:
+			case EULER_321:
+				{
 				strcpy(&buf[l], "E");
 				Var_Phi = pBinFile->add_var(buf, ncDouble,
 					OH.DimTime(), OH.DimV3());
@@ -666,13 +669,33 @@ StructNode::OutputPrepare(OutputHandler &OH)
 					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
-				if (!Var_Phi->add_att("description",
-					"global orientation Euler angles (123) "
-					"(E_X, E_Y, E_Z)"))
+				std::string desc;
+				switch (od) {
+				case EULER_123:
+					desc = "global orientation Euler angles (123) "
+						"(E_X, E_Y, E_Z)";
+					break;
+
+				case EULER_313:
+					desc = "global orientation Euler angles (313) "
+						"(E_Z, E_X, E_Z')";
+					break;
+
+				case EULER_321:
+					desc = "global orientation Euler angles (321) "
+						"(E_Z, E_Y, E_X)";
+					break;
+
+				default:
+					ASSERT(0);
+					break;
+				}
+
+				if (!Var_Phi->add_att("description", desc.c_str()))
 				{
 					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
-				break;
+				} break;
 
 			default:
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -734,7 +757,15 @@ StructNode::Output(OutputHandler& OH) const
 		Vec3 E;
 		switch (od) {
 		case EULER_123:
-			E = MatR2EulerAngles(RCurr)*dRaDegr;
+			E = MatR2EulerAngles123(RCurr)*dRaDegr;
+			break;
+
+		case EULER_313:
+			E = MatR2EulerAngles313(RCurr)*dRaDegr;
+			break;
+
+		case EULER_321:
+			E = MatR2EulerAngles321(RCurr)*dRaDegr;
 			break;
 
 		case ORIENTATION_VECTOR:
@@ -754,6 +785,8 @@ StructNode::Output(OutputHandler& OH) const
 			Var_X->put_rec(XCurr.pGetVec(), OH.GetCurrentStep());
 			switch (od) {
 			case EULER_123:
+			case EULER_313:
+			case EULER_321:
 			case ORIENTATION_VECTOR:
 				Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
 				break;
@@ -777,6 +810,8 @@ StructNode::Output(OutputHandler& OH) const
 				<< " ";
 			switch (od) {
 			case EULER_123:
+			case EULER_313:
+			case EULER_321:
 			case ORIENTATION_VECTOR:
 				OH.StrNodes() << E;
 				break;
@@ -1420,7 +1455,9 @@ StructNode::iGetNumPrivData(void) const
 		+ 3	// xP (R^T * XP)
 		+ 3	// Omega
 		+ 3	// omega (R^T * Omega)
-		+ 3	// Euler angles
+		+ 3	// Euler angles (123)
+		+ 3	// Euler angles (313)
+		+ 3	// Euler angles (321)
 		+ 4;	// Euler parameters
 }
 
@@ -1466,13 +1503,15 @@ StructNode::iGetPrivDataIdx(const char *s) const
 		x		12 + idx	idx = {1,3}
 		Omega		15 + idx	idx = {1,3}
 		omega		18 + idx	idx = {1,3}
-		E		21 + idx	idx = {1,3}
-		PE		24 + idx	idx = {0,3}
+		E | E123	21 + idx	idx = {1,3}
+		E313		24 + idx	idx = {1,3}
+		E321		27 + idx	idx = {1,3}
+		PE		31 + idx	idx = {0,3}
 		-------------------------------------------
-		XPP		28 + idx	idx = {1,3}
-		xPP		31 + idx	idx = {1,3}
-		OmegaP		34 + idx	idx = {1,3}
-		omegaP		37 + idx	idx = {1,3}
+		XPP		34 + idx	idx = {1,3}
+		xPP		37 + idx	idx = {1,3}
+		OmegaP		40 + idx	idx = {1,3}
+		omegaP		43 + idx	idx = {1,3}
 	 */
 
 	if (strncasecmp(s, "PE", len) == 0) {
@@ -1480,7 +1519,7 @@ StructNode::iGetPrivDataIdx(const char *s) const
 			return 0;
 		}
 
-		return 16 + idx;
+		return 31 + idx;
 	}
 
 	if (idx < 1 || idx > 3) {
@@ -1515,8 +1554,18 @@ StructNode::iGetPrivDataIdx(const char *s) const
 		return 18 + idx;
 	}
 
-	if (strncasecmp(s, "E", len) == 0) {
+	if (strncasecmp(s, "E", len) == 0
+		|| strncasecmp(s, "E123", len) == 0)
+	{
 		return 21 + idx;
+	}
+
+	if (strncasecmp(s, "E313", len) == 0) {
+		return 24 + idx;
+	}
+
+	if (strncasecmp(s, "E321", len) == 0) {
+		return 27 + idx;
 	}
 
 	return 0;
@@ -1571,22 +1620,36 @@ StructNode::dGetPrivData(unsigned int i) const
 	case 22:
 	case 23:
 	case 24: {
-		Vec3 Phi(MatR2EulerAngles(RCurr));
+		Vec3 Phi(MatR2EulerAngles123(RCurr));
 		return Phi(i - 21);
 	}
 
 	case 25:
 	case 26:
-	case 27:
-	case 28: {
+	case 27: {
+		Vec3 Phi(MatR2EulerAngles313(RCurr));
+		return Phi(i - 24);
+	}
+
+	case 28:
+	case 29:
+	case 30: {
+		Vec3 Phi(MatR2EulerAngles321(RCurr));
+		return Phi(i - 27);
+	}
+
+	case 31:
+	case 32:
+	case 33:
+	case 34: {
 		/* TODO */
 		Vec3 e;
 		doublereal e0;
 		MatR2EulerParams(RCurr, e0, e);
-		if (i == 25) {
+		if (i == 31) {
 			return e0;
 		}
-		return e(i - 25);
+		return e(i - 31);
 	}
 	}
 
@@ -1927,7 +1990,15 @@ DynamicStructNode::Output(OutputHandler& OH) const
 		Vec3 E;
 		switch (od) {
 		case EULER_123:
-			E = MatR2EulerAngles(RCurr)*dRaDegr;
+			E = MatR2EulerAngles123(RCurr)*dRaDegr;
+			break;
+
+		case EULER_313:
+			E = MatR2EulerAngles313(RCurr)*dRaDegr;
+			break;
+
+		case EULER_321:
+			E = MatR2EulerAngles321(RCurr)*dRaDegr;
 			break;
 
 		case ORIENTATION_VECTOR:
@@ -1947,6 +2018,8 @@ DynamicStructNode::Output(OutputHandler& OH) const
 			Var_X->put_rec(XCurr.pGetVec(), OH.GetCurrentStep());
 			switch (od) {
 			case EULER_123:
+			case EULER_313:
+			case EULER_321:
 			case ORIENTATION_VECTOR:
 				Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
 				break;
@@ -1976,6 +2049,8 @@ DynamicStructNode::Output(OutputHandler& OH) const
 				<< " " << XCurr << " ";
 			switch (od) {
 			case EULER_123:
+			case EULER_313:
+			case EULER_321:
 			case ORIENTATION_VECTOR:
 				OH.StrNodes() << E;
 				break;
@@ -2170,41 +2245,33 @@ DynamicStructNode::iGetPrivDataIdx(const char *s) const
 	}
 
 	/*
-		X		 0 + idx	idx = {1,3}
-		x		 3 + idx	idx = {1,3}
-		Phi		 6 + idx	idx = {1,3}
-		XP		 9 + idx	idx = {1,3}
-		x		12 + idx	idx = {1,3}
-		Omega		15 + idx	idx = {1,3}
-		omega		18 + idx	idx = {1,3}
-		E		21 + idx	idx = {1,3}
-		PE		24 + idx	idx = {0,3}
-		-------------------------------------------
-		XPP		28 + idx	idx = {1,3}
-		xPP		31 + idx	idx = {1,3}
-		OmegaP		34 + idx	idx = {1,3}
-		omegaP		37 + idx	idx = {1,3}
+		XPP		iOffset + idx		idx = {1,3}
+		xPP		iOffset + 3 + idx	idx = {1,3}
+		OmegaP		iOffset + 6 + idx	idx = {1,3}
+		omegaP		iOffset + 9 + idx	idx = {1,3}
 	 */
+
+	int iOffset = StructNode::iGetNumPrivData();
 
 	if (idx >= 1 && idx <= 3 && len >= STRLENOF("XPP")) {
 		if (strncasecmp(s, "XPP", len) == 0) {
 			bComputeAccelerations = true;
-			return 28 + idx;
+			return iOffset + idx;
 		}
 	
 		if (strncasecmp(s, "xPP", len) == 0) {
 			bComputeAccelerations = true;
-			return 31 + idx;
+			return iOffset + 3 + idx;
 		}
 	
 		if (strncasecmp(s, "OmegaP", len) == 0) {
 			bComputeAccelerations = true;
-			return 34 + idx;
+			return iOffset + 6 + idx;
 		}
 	
 		if (strncasecmp(s, "omegaP", len) == 0) {
 			bComputeAccelerations = true;
-			return 37 + idx;
+			return iOffset + 9 + idx;
 		}
 	}
 
@@ -2218,27 +2285,29 @@ DynamicStructNode::iGetPrivDataIdx(const char *s) const
 doublereal
 DynamicStructNode::dGetPrivData(unsigned int i) const
 {
+	unsigned int ii = i - StructNode::iGetNumPrivData();
+
 	if (bComputeAccelerations) {
-		switch (i) {
-		case 29:
-		case 30:
-		case 31:
-			return XPPCurr(i - 28);
+		switch (ii) {
+		case 1:
+		case 2:
+		case 3:
+			return XPPCurr(ii);
 
-		case 32:
-		case 33:
-		case 34:
-			return RCurr.GetVec(i - 31)*XPPCurr;
+		case 4:
+		case 5:
+		case 6:
+			return RCurr.GetVec(ii - 3)*XPPCurr;
 
-		case 35:
-		case 36:
-		case 37:
-			return WPCurr(i - 34);
+		case 7:
+		case 8:
+		case 9:
+			return WPCurr(ii - 6);
 
-		case 38:
-		case 39:
-		case 40:
-			return RCurr.GetVec(i - 37)*WPCurr;
+		case 10:
+		case 11:
+		case 12:
+			return RCurr.GetVec(ii - 9)*WPCurr;
 		}
 	}
 
@@ -3153,7 +3222,17 @@ ReadStructNode(DataManager* pDM,
 		switch (od) {
 		case EULER_123:
 			out << "euler123 ",
-				(MatR2EulerAngles(pNd->GetRCurr())*dRaDegr).Write(out, " ");
+				(MatR2EulerAngles123(pNd->GetRCurr())*dRaDegr).Write(out, " ");
+			break;
+
+		case EULER_313:
+			out << "euler313 ",
+				(MatR2EulerAngles313(pNd->GetRCurr())*dRaDegr).Write(out, " ");
+			break;
+
+		case EULER_321:
+			out << "euler321 ",
+				(MatR2EulerAngles321(pNd->GetRCurr())*dRaDegr).Write(out, " ");
 			break;
 
 		case ORIENTATION_VECTOR:

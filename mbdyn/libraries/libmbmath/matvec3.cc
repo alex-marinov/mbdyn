@@ -825,17 +825,52 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
 
 const doublereal dRaDegr = 180./M_PI;
 
-Vec3 MatR2EulerAngles(const Mat3x3& R)
+Vec3
+MatR2EulerAngles(const Mat3x3& R)
+{
+	return MatR2EulerAngles123(R);
+}
+
+Vec3
+MatR2EulerAngles123(const Mat3x3& R)
 {  
-   doublereal dAlpha = atan2(-R.dGet(2,3), R.dGet(3,3));
-   doublereal dCosAlpha = cos(dAlpha);
-   doublereal dSinAlpha = sin(dAlpha);
+	doublereal dAlpha = atan2(-R(2, 3), R(3, 3));
+	doublereal dCosAlpha = cos(dAlpha);
+	doublereal dSinAlpha = sin(dAlpha);
       
-   return Vec3(dAlpha,
-	       atan2(R.dGet(1,3), 
-		     dCosAlpha*R.dGet(3,3)-dSinAlpha*R.dGet(2,3)),
-	       atan2(dCosAlpha*R.dGet(2,1)+dSinAlpha*R.dGet(3,1),
-		     dCosAlpha*R.dGet(2,2)+dSinAlpha*R.dGet(3,2)));   
+	return Vec3(dAlpha,
+	       atan2(R(1, 3), 
+			dCosAlpha*R(3, 3) - dSinAlpha*R(2, 3)),
+	       atan2(dCosAlpha*R(2, 1) + dSinAlpha*R(3, 1),
+			dCosAlpha*R(2, 2) + dSinAlpha*R(3, 2)));   
+}
+
+Vec3
+MatR2EulerAngles313(const Mat3x3& R)
+{  
+	doublereal dAlpha = atan2(R(1, 3), -R(2, 3));
+	doublereal dCosAlpha = cos(dAlpha);
+	doublereal dSinAlpha = sin(dAlpha);
+      
+	return Vec3(dAlpha,
+	       atan2(dSinAlpha*R(1, 3) - dCosAlpha*R(2, 3),
+			R(3, 3)),
+	       atan2(-dCosAlpha*R(1, 2) - dSinAlpha*R(2, 2),
+			dCosAlpha*R(1, 1) + dSinAlpha*R(2, 1)));
+}
+
+Vec3
+MatR2EulerAngles321(const Mat3x3& R)
+{  
+	doublereal dAlpha = atan2(R(2, 1), R(1, 1));
+	doublereal dCosAlpha = cos(dAlpha);
+	doublereal dSinAlpha = sin(dAlpha);
+      
+	return Vec3(dAlpha,
+	       atan2(-R(3, 1),
+			dCosAlpha*R(1, 1) + dSinAlpha*R(2, 1)),
+	       atan2(dSinAlpha*R(1, 3) - dCosAlpha*R(2, 3),
+			-dSinAlpha*R(1, 2) + dCosAlpha*R(2, 2)));
 }
 
 void MatR2EulerParams(const Mat3x3& R, doublereal& e0, Vec3& e)
@@ -891,28 +926,86 @@ void MatR2EulerParams(const Mat3x3& R, doublereal& e0, Vec3& e)
    }
 }
 
-Mat3x3 EulerAngles2MatR(const Vec3& v)
+Mat3x3
+EulerAngles2MatR(const Vec3& v)
 {
-   doublereal d = v.dGet(1);
-   doublereal dCosAlpha(cos(d));
-   doublereal dSinAlpha(sin(d));
-   d = v.dGet(2);
-   doublereal dCosBeta(cos(d));
-   doublereal dSinBeta(sin(d));
-   d = v.dGet(3);
-   doublereal dCosGamma(cos(d));
-   doublereal dSinGamma(sin(d));
+	return EulerAngles123_2MatR(v);
+}
+
+Mat3x3
+EulerAngles123_2MatR(const Vec3& v)
+{
+	doublereal d = v(1);
+	doublereal dCosAlpha(cos(d));
+	doublereal dSinAlpha(sin(d));
+	d = v(2);
+	doublereal dCosBeta(cos(d));
+	doublereal dSinBeta(sin(d));
+	d = v(3);
+	doublereal dCosGamma(cos(d));
+	doublereal dSinGamma(sin(d));
    
-   return Mat3x3(dCosBeta*dCosGamma,
-		 dCosAlpha*dSinGamma+dSinAlpha*dSinBeta*dCosGamma,
-		 dSinAlpha*dSinGamma-dCosAlpha*dSinBeta*dCosGamma,
-		 -dCosBeta*dSinGamma,
-		 dCosAlpha*dCosGamma-dSinAlpha*dSinBeta*dSinGamma,
-		 dSinAlpha*dCosGamma+dCosAlpha*dSinBeta*dSinGamma,
-		 dSinBeta,
-		 -dSinAlpha*dCosBeta,
-		 dCosAlpha*dCosBeta);
+	return Mat3x3(
+		dCosBeta*dCosGamma,
+		dCosAlpha*dSinGamma + dSinAlpha*dSinBeta*dCosGamma,
+		dSinAlpha*dSinGamma - dCosAlpha*dSinBeta*dCosGamma,
+		-dCosBeta*dSinGamma,
+		dCosAlpha*dCosGamma - dSinAlpha*dSinBeta*dSinGamma,
+		dSinAlpha*dCosGamma + dCosAlpha*dSinBeta*dSinGamma,
+		dSinBeta,
+		-dSinAlpha*dCosBeta,
+		dCosAlpha*dCosBeta);
 };
+
+Mat3x3
+EulerAngles313_2MatR(const Vec3& v)
+{
+	doublereal d = v(1);
+	doublereal dCosAlpha(cos(d));
+	doublereal dSinAlpha(sin(d));
+	d = v(2);
+	doublereal dCosBeta(cos(d));
+	doublereal dSinBeta(sin(d));
+	d = v(3);
+	doublereal dCosGamma(cos(d));
+	doublereal dSinGamma(sin(d));
+   
+	return Mat3x3(
+		dCosAlpha*dCosGamma - dSinAlpha*dCosBeta*dSinGamma,
+		dSinAlpha*dCosGamma + dCosAlpha*dCosBeta*dSinGamma,
+		dSinBeta*dSinGamma,
+		-dCosAlpha*dSinGamma - dSinAlpha*dCosBeta*dCosGamma,
+		-dSinAlpha*dSinGamma + dCosAlpha*dCosBeta*dCosGamma,
+		dSinBeta*dSinGamma,
+		dSinAlpha*dSinBeta,
+		-dCosAlpha*dSinBeta,
+		dCosBeta);
+}
+
+Mat3x3
+EulerAngles321_2MatR(const Vec3& v)
+{
+	doublereal d = v(1);
+	doublereal dCosAlpha(cos(d));
+	doublereal dSinAlpha(sin(d));
+	d = v(2);
+	doublereal dCosBeta(cos(d));
+	doublereal dSinBeta(sin(d));
+	d = v(3);
+	doublereal dCosGamma(cos(d));
+	doublereal dSinGamma(sin(d));
+   
+	return Mat3x3(
+		dCosAlpha*dCosBeta,
+		dSinAlpha*dCosBeta,
+		-dSinBeta,
+		-dSinAlpha*dCosGamma + dCosAlpha*dSinBeta*dSinGamma,
+		dCosAlpha*dCosGamma + dSinAlpha*dSinBeta*dSinGamma,
+		dCosBeta*dSinGamma,
+		dSinAlpha*dSinGamma + dCosAlpha*dSinBeta*dCosGamma,
+		-dCosAlpha*dSinGamma + dSinAlpha*dSinBeta*dCosGamma,
+		dCosBeta*dCosGamma);
+}
 
 Vec3
 Unwrap(const Vec3& vPrev, const Vec3& v)

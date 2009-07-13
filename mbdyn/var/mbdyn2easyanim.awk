@@ -62,7 +62,7 @@ function mat3_mul_vec3_add_vec3(m, v1, v2, r)
 }
 
 # trasforms 3 angles as output by MBDyn (1,2,3 sequence) into R matrix
-function euler2R(Alpha, Beta, Gamma, R,   dCosAlpha, dSinAlpha, dCosBeta, dSinBeta, dCosGamma, dSinGamma) {
+function euler123_2R(Alpha, Beta, Gamma, R,   dCosAlpha, dSinAlpha, dCosBeta, dSinBeta, dCosGamma, dSinGamma) {
 	dCosAlpha = cos(Alpha*AngleScale);
 	dSinAlpha = sin(Alpha*AngleScale);
 	dCosBeta = cos(Beta*AngleScale);
@@ -79,6 +79,46 @@ function euler2R(Alpha, Beta, Gamma, R,   dCosAlpha, dSinAlpha, dCosBeta, dSinBe
 	R[1, 3] = dSinBeta;
 	R[2, 3] = -dSinAlpha*dCosBeta;
 	R[3, 3] = dCosAlpha*dCosBeta;
+}
+
+# trasforms 3 angles as output by MBDyn (3,1,3 sequence) into R matrix
+function euler313_2R(Alpha, Beta, Gamma, R,   dCosAlpha, dSinAlpha, dCosBeta, dSinBeta, dCosGamma, dSinGamma) {
+	dCosAlpha = cos(Alpha*AngleScale);
+	dSinAlpha = sin(Alpha*AngleScale);
+	dCosBeta = cos(Beta*AngleScale);
+	dSinBeta = sin(Beta*AngleScale);
+	dCosGamma = cos(Gamma*AngleScale);
+	dSinGamma = sin(Gamma*AngleScale);
+
+	R[1, 1] = 
+	R[2, 1] = 
+	R[3, 1] = 
+	R[1, 2] = 
+	R[2, 2] = 
+	R[3, 2] = 
+	R[1, 3] = 
+	R[2, 3] = 
+	R[3, 3] = 
+}
+
+# trasforms 3 angles as output by MBDyn (3,2,1 sequence) into R matrix
+function euler321_2R(Alpha, Beta, Gamma, R,   dCosAlpha, dSinAlpha, dCosBeta, dSinBeta, dCosGamma, dSinGamma) {
+	dCosAlpha = cos(Alpha*AngleScale);
+	dSinAlpha = sin(Alpha*AngleScale);
+	dCosBeta = cos(Beta*AngleScale);
+	dSinBeta = sin(Beta*AngleScale);
+	dCosGamma = cos(Gamma*AngleScale);
+	dSinGamma = sin(Gamma*AngleScale);
+
+	R[1, 1] = 
+	R[2, 1] = 
+	R[3, 1] = 
+	R[1, 2] = 
+	R[2, 2] = 
+	R[3, 2] = 
+	R[1, 3] = 
+	R[2, 3] = 
+	R[3, 3] = 
 }
 
 # trasforms 3 angles as output by MBDyn (1,2,3 sequence) into R matrix
@@ -323,10 +363,26 @@ isvan == 0 && /structural node:/ {
 		strnode[$3, 5] = $9;
 		strnode[$3, 6] = $10;
 
+	} else if ($7 == "euler123") {
+		strnode[$3, "orientation"] = "euler123";
+		strnode[$3, 4] = $8;
+		strnode[$3, 5] = $9;
+		strnode[$3, 6] = $10;
+
+	} else if ($7 == "euler313") {
+		strnode[$3, "orientation"] = "euler313";
+		strnode[$3, 4] = $8;
+		strnode[$3, 5] = $9;
+		strnode[$3, 6] = $10;
+
+	} else if ($7 == "euler321") {
+		strnode[$3, "orientation"] = "euler321";
+		strnode[$3, 4] = $8;
+		strnode[$3, 5] = $9;
+		strnode[$3, 6] = $10;
+
 	} else {
-		strnode[$3, 4] = $7;
-		strnode[$3, 5] = $8;
-		strnode[$3, 6] = $9;
+		# error!
 	}
 	strnode_num++;
 
@@ -1117,8 +1173,14 @@ function node_pos(i, X) {
 		if (strnode[label, "orientation"] == "phi") {
 			phi2R(strnode[label, 4], strnode[label, 5], strnode[label, 6], R);
 
+		} else if (strnode[label, "orientation"] == "euler313") {
+			euler313_2R(strnode[label, 4], strnode[label, 5], strnode[label, 6], R);
+
+		} else if (strnode[label, "orientation"] == "euler321") {
+			euler321_2R(strnode[label, 4], strnode[label, 5], strnode[label, 6], R);
+
 		} else {
-			euler2R(strnode[label, 4], strnode[label, 5], strnode[label, 6], R);
+			euler123_2R(strnode[label, 4], strnode[label, 5], strnode[label, 6], R);
 		}
 
 		v1[1] = node[i, 1];

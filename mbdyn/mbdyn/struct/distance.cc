@@ -898,7 +898,7 @@ DistanceJointWithOffset::WriteAdamsDummyPartCmd(std::ostream& out,
 		<< psAdamsElemCode[GetElemType()] << "_" << GetLabel()
 		<< "_" << part << std::endl
 		<< firstId << " " << x1 << " "
-		<< e /* MatR2EulerAngles(pNode1->GetRCurr())*dRaDegr */ << " "
+		<< e << " "
 		<< x1 << " "
 		<< e << " "
 		<< l << " " << 0. << " " << 0. << " "

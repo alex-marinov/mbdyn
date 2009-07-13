@@ -127,7 +127,15 @@ DeformableJoint::Output(OutputHandler& OH) const
 
 		switch (od) {
 		case EULER_123:
-			OH.Joints() << MatR2EulerAngles(R)*dRaDegr;
+			OH.Joints() << MatR2EulerAngles123(R)*dRaDegr;
+			break;
+
+		case EULER_313:
+			OH.Joints() << MatR2EulerAngles313(R)*dRaDegr;
+			break;
+
+		case EULER_321:
+			OH.Joints() << MatR2EulerAngles321(R)*dRaDegr;
 			break;
 
 		case ORIENTATION_VECTOR:

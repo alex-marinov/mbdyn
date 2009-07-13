@@ -14,6 +14,7 @@ MBDyn 1.X-Devel
 		- allow initialization of SISO/MIMO state
 		- added mbd.vim syntax file
 		- added time-variant viscoelastic constitutive law
+		- added support for Euler 313 & 321 orientations
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:

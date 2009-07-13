@@ -1400,6 +1400,8 @@ extern std::ostream& Write(std::ostream& out,
 enum OrientationDescription {
 	UNKNOWN_ORIENTATION_DESCRIPTION	= -1,
 	EULER_123			= 0,
+	EULER_313,
+	EULER_321,
 	ORIENTATION_VECTOR,
 	ORIENTATION_MATRIX,
 
@@ -1436,6 +1438,9 @@ extern Mat3x3 MatR2vec(unsigned short int ia,
  */
 extern const doublereal dRaDegr;
 extern Vec3 MatR2EulerAngles(const Mat3x3& R);
+extern Vec3 MatR2EulerAngles123(const Mat3x3& R);
+extern Vec3 MatR2EulerAngles313(const Mat3x3& R);
+extern Vec3 MatR2EulerAngles321(const Mat3x3& R);
 extern void MatR2EulerParams(const Mat3x3& R, doublereal& e0, Vec3& e);
 
 extern Vec3 Unwrap(const Vec3& vPrev, const Vec3& v);
@@ -1445,6 +1450,9 @@ extern Vec3 Unwrap(const Vec3& vPrev, const Vec3& v);
  Nota: gli angoli di Eulero vengono letti in radianti.
  */
 extern Mat3x3 EulerAngles2MatR(const Vec3& v);
+extern Mat3x3 EulerAngles123_2MatR(const Vec3& v);
+extern Mat3x3 EulerAngles313_2MatR(const Vec3& v);
+extern Mat3x3 EulerAngles321_2MatR(const Vec3& v);
 
 /*
  * Cayley-Gibbs-Rodrigues rotation manipulation namespace

@@ -309,7 +309,8 @@ For historical reasons, MBDyn always used the 123 form of Euler angles
 This statement allows to enable different formats:
 \begin{verbatim}
     <card> ::= default orientation :
-        { euler123 | orientation vector | orientation matrix } ;
+        { euler123 | euler313 | euler321
+            | orientation vector | orientation matrix } ;
 \end{verbatim}
 where
 \begin{itemize}
@@ -317,6 +318,11 @@ where
 	of three angles that represent three consecutive rotations
 	about axes 1, 2 and 3 respectively, always applied to the axis
 	as it results from the previous rotation;
+\item \kw{euler313} is similar to \kw{euler123}, but the rotations
+are about axes 3, 1 and 3 in the given sequence.
+This is the usual form for Euler angles.
+\item \kw{euler321} is similar to \kw{euler123}, but the rotations
+are about axes 3, 2 and 1 in the given sequence.
 \item \kw{orientation vector} is the vector whose direction indicates
 	the axis of the rotation that produces the orientation,
 	and whose modulus indicates the magnitude of that rotation;
