@@ -229,9 +229,8 @@ public:
 inline int
 Elem::GetNumConnectedNodes(void) const
 {
-	/* FIXME: need to make GetConnectedNodes() const! */
 	std::vector<const Node *> connectedNodes;
-	const_cast<Elem *>(this)->GetConnectedNodes(connectedNodes);
+	GetConnectedNodes(connectedNodes);
 
 	return connectedNodes.size();
 }
