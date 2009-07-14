@@ -8,6 +8,7 @@ arpack.h \
 f2c-int.h \
 f2c.h \
 getopt.h \
+jdqz.h \
 lapack.h \
 mpi.h \
 pthread.h \
