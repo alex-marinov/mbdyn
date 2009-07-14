@@ -90,15 +90,15 @@ function euler313_2R(Alpha, Beta, Gamma, R,   dCosAlpha, dSinAlpha, dCosBeta, dS
 	dCosGamma = cos(Gamma*AngleScale);
 	dSinGamma = sin(Gamma*AngleScale);
 
-	R[1, 1] = 
-	R[2, 1] = 
-	R[3, 1] = 
-	R[1, 2] = 
-	R[2, 2] = 
-	R[3, 2] = 
-	R[1, 3] = 
-	R[2, 3] = 
-	R[3, 3] = 
+	R[1, 1] = dCosAlpha*dCosGamma - dSinAlpha*dCosBeta*dSinGamma;
+	R[2, 1] = dSinAlpha*dCosGamma + dCosAlpha*dCosBeta*dSinGamma;
+	R[3, 1] = dSinBeta*dSinGamma;
+	R[1, 2] = -dCosAlpha*dSinGamma - dSinAlpha*dCosBeta*dCosGamma;
+	R[2, 2] = -dSinAlpha*dSinGamma + dCosAlpha*dCosBeta*dCosGamma;
+	R[3, 2] = dSinBeta*dSinGamma;
+	R[1, 3] = dSinAlpha*dSinBeta;
+	R[2, 3] = -dCosAlpha*dSinBeta;
+	R[3, 3] = dCosBeta;
 }
 
 # trasforms 3 angles as output by MBDyn (3,2,1 sequence) into R matrix
@@ -110,15 +110,15 @@ function euler321_2R(Alpha, Beta, Gamma, R,   dCosAlpha, dSinAlpha, dCosBeta, dS
 	dCosGamma = cos(Gamma*AngleScale);
 	dSinGamma = sin(Gamma*AngleScale);
 
-	R[1, 1] = 
-	R[2, 1] = 
-	R[3, 1] = 
-	R[1, 2] = 
-	R[2, 2] = 
-	R[3, 2] = 
-	R[1, 3] = 
-	R[2, 3] = 
-	R[3, 3] = 
+	R[1, 1] = dCosAlpha*dCosBeta;
+	R[2, 1] = dSinAlpha*dCosBeta;
+	R[3, 1] = -dSinBeta;
+	R[1, 2] = -dSinAlpha*dCosGamma + dCosAlpha*dSinBeta*dSinGamma;
+	R[2, 2] = dCosAlpha*dCosGamma + dSinAlpha*dSinBeta*dSinGamma;
+	R[3, 2] = dCosBeta*dSinGamma;
+	R[1, 3] = dSinAlpha*dSinGamma + dCosAlpha*dSinBeta*dCosGamma;
+	R[2, 3] = -dCosAlpha*dSinGamma + dSinAlpha*dSinBeta*dCosGamma;
+	R[3, 3] = dCosBeta*dCosGamma;
 }
 
 # trasforms 3 angles as output by MBDyn (1,2,3 sequence) into R matrix
@@ -380,6 +380,18 @@ isvan == 0 && /structural node:/ {
 		strnode[$3, 4] = $8;
 		strnode[$3, 5] = $9;
 		strnode[$3, 6] = $10;
+
+	} else if ($7 == "mat") {
+		strnode[$3, "orientation"] = "mat";
+		strnode[$3, 4] = $8;
+		strnode[$3, 5] = $9;
+		strnode[$3, 6] = $10;
+		strnode[$3, 7] = $11;
+		strnode[$3, 8] = $12;
+		strnode[$3, 9] = $13;
+		strnode[$3, 10] = $14;
+		strnode[$3, 11] = $15;
+		strnode[$3, 12] = $16;
 
 	} else {
 		# error!
@@ -1179,8 +1191,18 @@ function node_pos(i, X) {
 		} else if (strnode[label, "orientation"] == "euler321") {
 			euler321_2R(strnode[label, 4], strnode[label, 5], strnode[label, 6], R);
 
-		} else {
+		} else if (strnode[label, "orientation"] == "euler123") {
 			euler123_2R(strnode[label, 4], strnode[label, 5], strnode[label, 6], R);
+		} else if (strnode[label, "orientation"] == "mat") {
+			R[1, 1] = strnode[label, 4];
+			R[1, 2] = strnode[label, 5];
+			R[1, 3] = strnode[label, 6];
+			R[2, 1] = strnode[label, 7];
+			R[2, 2] = strnode[label, 8];
+			R[2, 3] = strnode[label, 9];
+			R[3, 1] = strnode[label, 10];
+			R[3, 2] = strnode[label, 11];
+			R[3, 3] = strnode[label, 12];
 		}
 
 		v1[1] = node[i, 1];
@@ -1271,6 +1293,14 @@ isvan == 1 {
 	strnode[$1, 4] = $5;
 	strnode[$1, 5] = $6;
 	strnode[$1, 6] = $7;
+	if (strnode[$1, orientation] == "mat") {
+		strnode[$1, 7] = $8;
+		strnode[$1, 8] = $9;
+		strnode[$1, 9] = $10;
+		strnode[$1, 10] = $11;
+		strnode[$1, 11] = $12;
+		strnode[$1, 12] = $13;
+	}
 
 	if (++i == strnode_num) {
 		# compute nodes
