@@ -1,4 +1,4 @@
-% MBDyn (C) is a multibody analysis code.
+﻿% MBDyn (C) is a multibody analysis code.
 % http://www.mbdyn.org
 %
 % Copyright (C) 1996-2009
@@ -34,25 +34,25 @@ the Wagner approximation of the Theodorsen function.
 \begin{subequations}
 \begin{align}
 	\tilde{\T{f}}_a &= 
-		\frac{1}{2} \rho \tilde{\T{V}}^T \tilde{\T{V}} c
+		\frac{1}{2} \rho \tilde{\T{v}}^T \tilde{\T{v}} c
 		\tilde{\T{c}}_{f_{a}}
 		\plbr{ \T{y} 
-		\plbr{ \tilde{\T{V}}, \tilde{\T{\omega}}, \T{q}}}\\
+		\plbr{ \tilde{\T{v}}, \tilde{\T{\omega}}, \T{q}}, U_\infty}\\
 	\tilde{\T{c}}_a &= 
-		\frac{1}{2} \rho \tilde{\T{V}}^T \tilde{\T{V}} c^2
+		\frac{1}{2} \rho \tilde{\T{v}}^T \tilde{\T{v}} c^2
 		\tilde{\T{c}}_{c_{a}} 
 		\plbr{ \T{y} 
-		\plbr{ \tilde{\T{V}}, \tilde{\T{\omega}}, \T{q}}}\\
+		\plbr{ \tilde{\T{v}}, \tilde{\T{\omega}}, \T{q}}, U_\infty}\\
 	\T{0} &=
 		\T{g}\plbr{\tilde{\T{v}},\tilde{\T{\omega}},\T{q}, \dot{\T{q}}} = 
-		\dot{\T{q}} - \T{A}\plbr{\nrbr{\tilde{\T{V}}}} \T{q} - \T{B}\plbr{\nrbr{\tilde{\T{V}}}}
- 		\T{u}\plbr{\tilde{\T{V}}, \tilde{\T{\omega}}},
+		\dot{\T{q}} - \T{A}\plbr{U_\infty} \T{q} - \T{B}\plbr{U_\infty}
+ 		\T{u}\plbr{\tilde{\T{v}}, \tilde{\T{\omega}}},
 \end{align}
 \end{subequations}
 where $\rho$ is the air density, $c$ the airfoil chord and $\T{y}$ is defined as:
 \begin{equation}
-	\T{y} = \TT{C}\plbr{ \nrbr{\tilde{\T{V}}}} \T{q} + \TT{D} \plbr{ \nrbr{\tilde{\T{V}}}}
- 		\T{u}\plbr{\tilde{\T{V}}, \tilde{\T{\omega}}}.
+	\T{y} = \TT{C}\plbr{U_\infty} \T{q} + \TT{D} \plbr{U_\infty}
+ 		\T{u}\plbr{\tilde{\T{v}}, \tilde{\T{\omega}}}.
 \end{equation}
 
 Matrix $\TT{A}$ is:
@@ -82,7 +82,8 @@ $\omega_\text{PD}$ is the frequency of the pseudo-derivative algorithm
 (where $f\plbr{0}$ can be neglected under broad assumptions),
 and
 \begin{equation}
-U_\infty = \sqrt{\tilde{\T{v}}^T\tilde{\T{v}}}.
+%U_\infty = \sqrt{\tilde{\T{v}}^T\tilde{\T{v}}}.
+U_\infty = \sqrt{ \tilde{v}_x^2 +\tilde{v}_y^2}.
 \end{equation}
 
 \begin{table}
@@ -102,7 +103,7 @@ $b_2$	& 0&3		& 0&32
 
 The $\T{B}$ matrix is:
 \begin{equation}
-	\T{B} = \tilde{\T{B}} \T{T}_u \plbr{\nrbr{\tilde{\T{V}}}},
+	\T{B} = \tilde{\T{B}} \T{T}_u \plbr{U_\infty},
 \end{equation}
 where:
 \begin{equation}
@@ -183,7 +184,7 @@ The $\T{C}$ matrix is:
 \end{equation}
 And the $\T{D}$ matrix is:
 \begin{equation}
-	\T{D} = \tilde{\T{D}} \T{T}_u \plbr{ \nrbr{\tilde{\T{V}}}},
+	\T{D} = \tilde{\T{D}} \T{T}_u \plbr{U_\infty},
 \end{equation}
 where
 \begin{equation}
@@ -231,7 +232,7 @@ where the second part is the noncirculatory effect.
 	\begin{array}{c}
 	c_l^{NC} \\ c_m^{NC}
 	\end{array} 
-	\right\}=  \T{T}_1 \T{T}_2 \plbr{ \nrbr{\tilde{\T{V}}}} \T{y} = \tilde{\T{T}} \T{y},
+	\right\}=  \T{T}_1 \T{T}_2 \plbr{U_\infty} \T{y} = \tilde{\T{T}} \T{y},
 \end{equation}
 where
 \begin{equation}
@@ -278,11 +279,11 @@ and
 	\tilde{\T{T}}_{c_a} = \frac{C_{l_\alpha}}{2} \frac{c}{2} \left[
 		\begin{array}{cccc}
 		0 & 0 & 0 & 0\\
+		0 & 0 & 0 & 0\\
 		0 &
 		-\frac{1}{4 U_\infty} &
 		\plbr{ \frac{ c a}{8 U_\infty^2} - \frac{c}{32 U_\infty^2} }& 
-		-\frac{1}{4 U_\infty}\\
-		0 & 0 & 0 & 0
+		-\frac{1}{4 U_\infty}
 		\end{array}
 		\right]
 \end{equation}
@@ -310,34 +311,407 @@ Finally:
 		\right\}.
 \end{equation}
 
-The perturbation of $\T{u}$ yields
+\subsection{Perturbation of the equations}
+
+\subsubsection{Perturbation of $\T{g}$ with respect to $\tilde{\T{v}}$}
+The perturbation of $\T{g}$ is:
+%\begin{equation}
+%\T{g}_{/\tilde{\T{v}}} = 
+%	-\T{A}_{/U_\infty} {U_\infty}_{/\tilde{\T{v}}} \T{q}	
+%	-\T{B}_{/U_\infty} {U_\infty}_{/\tilde{\T{v}}} \T{u}
+%	-\T{B} \T{u}_{/\tilde{\T{v}}}.
+%\end{equation}
+\begin{equation}\label{eq:g_v}
+\T{g}_{/\tilde{\T{v}}} = 
+	-\left( \T{A}_{/U_\infty} \T{q}	+ \T{B}_{/U_\infty} \T{u} \right) 
+	{U_\infty}_{/\tilde{\T{v}}}
+	-\T{B} \T{u}_{/\tilde{\T{v}}}.
+\end{equation}
+where, accordingly with the previous definition of the matrices the derivatives are:
+\begin{equation}
+\T{A}_{/U_\infty} = \left[
+	\begin{array}{cccccc}
+	0 & 0 & 0 & 0 & 0 & 0\\
+	-b_1 b_2 \frac{8}{c^2} U_\infty & -\left( b_1 + b_2 \right) \frac{2}{c} & 0 & 0 & 0 & 0\\
+	0 & 0 & 0 & 0 & 0 & 0\\
+	0 & 0 & 0 & 0 & 0 & 0\\
+	0 & 0 & 0 & 0 & 0 & 0\\
+	0 & 0 & 0 & 0 & 0 & 0
+	\end{array}
+	\right]
+\end{equation}
+	
+\begin{equation}
+\T{B}_{/U_\infty} = \left[
+	\begin{array}{cc}
+	0 & 0 \\
+	0 & 0 \\
+	0 & 0 \\
+	0 & 0 \\
+	\frac{1}{d_{3/4} - d_{1/4}} & 	-\frac{1}{d_{3/4} - d_{1/4}} \\
+	0 & 0 
+	\end{array}
+	\right]
+\end{equation}
+
+%\begin{equation}
+%	{U_\infty}_{/\tilde{v}_x} = \frac{\tilde{v}_x}{U_\infty},
+%\end{equation}
+%\begin{equation}
+%	{U_\infty}_{/\tilde{v}_y} = \frac{\tilde{v}_y}{U_\infty},
+%\end{equation}
+%\begin{equation}
+%	{U_\infty}_{/\tilde{v}_z} = 0,
+%\end{equation}
+\begin{equation}
+	{U_\infty}_{/\tilde{\T{v}}} = \left[
+	\begin{array}{ccc}
+		\frac{\tilde{v}_x}{U_\infty} &
+		\frac{\tilde{v}_y}{U_\infty} &
+		0
+	\end{array}
+	\right]
+\end{equation}
+
+\begin{equation}
+	\T{u}_{/\tilde{\T{v}}} = \left[
+	\begin{array}{ccc}
+	\frac{\tilde{v}_y + \tilde{\omega}_z d_{1/4}}{\tilde{v}_x^2 + \tilde{v}_y^2 + 
+		\tilde{\omega}_z^2 d_{1/4}^2 + 2 \tilde{v}_y \tilde{\omega}_z d_{1/4}} &
+	\frac{-\tilde{v}_x}{\tilde{v}_x^2 + \tilde{v}_y^2 + 
+		\tilde{\omega}_z^2 d_{1/4}^2 + 2 \tilde{v}_y \tilde{\omega}_z d_{1/4}} &
+	0\\
+	\frac{\tilde{v}_y + \tilde{\omega}_z d_{3/4}}{\tilde{v}_x^2 + \tilde{v}_y^2 + 
+		\tilde{\omega}_z^2 d_{3/4}^2 + 2 \tilde{v}_y \tilde{\omega}_z d_{3/4}} &
+	\frac{-\tilde{v}_x}{\tilde{v}_x^2 + \tilde{v}_y^2 + 
+		\tilde{\omega}_z^2 d_{3/4}^2 + 2 \tilde{v}_y \tilde{\omega}_z d_{3/4}} &
+	0
+	\end{array}
+	\right]
+\end{equation}
+We can now explicitly perform the computation of each term of Eq.~\ref{eq:g_v},
+the first one results:
 \begin{align}
-	\delta\T{u}
-	&=
-	\cubr{\cvvect{
-		\frac{
-			\plbr{V_y + \omega_z d_{1/4}} \delta V_x - V_x \delta V_y - V_x d_{1/4} \delta\omega_z
-		}{
-			V_x^2 + \plbr{V_y + \omega_z d_{1/4}}^2
-		}
-		\\
-		\frac{
-			\plbr{V_y + \omega_z d_{3/4}} \delta V_x - V_x \delta V_y - V_x d_{3/4} \delta\omega_z
-		}{
-			V_x^2 + \plbr{V_y + \omega_z d_{3/4}}^2
-		}
-	}}
-	\nonumber \\
-	&= \sqbr{\matr{cc}{
-		\frac{1}{V_x^2 + \plbr{V_y + \omega_z d_{1/4}}^2} & 0 \\
-		0 & \frac{1}{V_x^2 + \plbr{V_y + \omega_z d_{3/4}}^2}
-	}}
-	\nonumber \\
-	&\mbox{} \cdot \sqbr{\matr{cccccc}{
-		V_y + \omega_z d_{1/4} & - V_x & 0 & 0 & 0 & - V_x d_{1/4} \\
-		V_y + \omega_z d_{3/4} & - V_x & 0 & 0 & 0 & - V_x d_{3/4}
-	}} \cubr{\cvvect{
-		\delta\tilde{\T{v}} \\
-		\delta\tilde{\T{\omega}}
-	}}
+&\plbr{\T{A}_{U_\infty} \T{q} + \T{B}_{U_\infty} \T{u} } {U_\infty}_{/\tilde{v}}
+	= \left\{
+		\begin{array}{c}
+			0 \\
+			-b_1 b_2 \frac{8}{c^2} U_\infty q_1 - \plbr{b_1+b_2} \frac{2}{c} q_2 \\
+			0 \\
+			0 \\
+			\frac{u_1-u_2}{d_{3/4}-d_{1_/4}}\\
+			0 
+		\end{array}\right\}
+		\left\{
+		\begin{array}{ccc}
+			\frac{\tilde{v}_x}{U_\infty} &
+			\frac{\tilde{v}_x}{U_\infty} &
+			0
+		\end{array}\right\} \\
+	&= \left[
+		\begin{array}{ccc}
+			0 & 0 & 0\\
+			\plbr{-b_1 b_2 \frac{8}{c^2} U_\infty q_1 - \plbr{b_1+b_2} \frac{2}{c} q_2} \frac{\tilde{v}_x}{U_\infty} &
+			\plbr{-b_1 b_2 \frac{8}{c^2} U_\infty q_1 - \plbr{b_1+b_2} \frac{2}{c} q_2} \frac{\tilde{v}_y}{U_\infty} & 0\\
+			0 & 0 & 0\\
+			0 & 0 & 0\\
+			\plbr{ \frac{u_1-u_2}{d_{3/4}-d_{1_/4}}} \frac{\tilde{v}_x}{U_\infty} &
+			\plbr{ \frac{u_1-u_2}{d_{3/4}-d_{1_/4}}} \frac{\tilde{v}_y}{U_\infty} & 0\\
+			0 & 0 & 0
+		\end{array} \right]
 \end{align}
+wheres the second is:
+\begin{equation}
+\T{B} \T{u}_{/\tilde{\T{v}}} = \left[
+	\begin{array}{ccc}
+		0 & 0 & 0 \\
+		\T{B} \T{u}_{/\tilde{\T{v}}}\plbr{2,1} &
+		\T{B} \T{u}_{/\tilde{\T{v}}}\plbr{2,2} & 0 \\
+		\T{B} \T{u}_{/\tilde{\T{v}}}\plbr{3,1} &
+		\T{B} \T{u}_{/\tilde{\T{v}}}\plbr{3,2} & 0 \\
+		0 & 0 & 0 \\
+		\T{B} \T{u}_{/\tilde{\T{v}}}\plbr{5,1} &
+		\T{B} \T{u}_{/\tilde{\T{v}}}\plbr{5,2} & 0 \\
+		0 & 0 & 0 
+	\end{array} \right]
+\end{equation}
+The not-null terms are finally:
+\begin{equation}
+\T{B} \T{u}_{/\tilde{\T{v}}}\plbr{2,1}  = \T{u}_{/\tilde{\T{v}}}\plbr{2,1}
+\end{equation}
+\begin{equation}
+\T{B} \T{u}_{/\tilde{\T{v}}}\plbr{2,2}  = \T{u}_{/\tilde{\T{v}}}\plbr{2,2}
+\end{equation}
+\begin{equation}
+\T{B} \T{u}_{/\tilde{\T{v}}}\plbr{3,1}  = \T{B}\plbr{3,1}\T{u}_{/\tilde{\T{v}}}\plbr{1,1}+
+					\T{B}\plbr{3,2}\T{u}_{/\tilde{\T{v}}}\plbr{2,1}
+\end{equation}
+\begin{equation}
+\T{B} \T{u}_{/\tilde{\T{v}}}\plbr{3,2}  = \T{B}\plbr{3,1}\T{u}_{/\tilde{\T{v}}}\plbr{1,2}+
+					\T{B}\plbr{3,2}\T{u}_{/\tilde{\T{v}}}\plbr{2,2}
+\end{equation}
+\begin{equation}
+\T{B} \T{u}_{/\tilde{\T{v}}}\plbr{3,1}  = \T{B}\plbr{5,1}\T{u}_{/\tilde{\T{v}}}\plbr{1,1}+
+					\T{B}\plbr{5,2}\T{u}_{/\tilde{\T{v}}}\plbr{2,1}
+\end{equation}
+\begin{equation}
+\T{B} \T{u}_{/\tilde{\T{v}}}\plbr{3,2}  = \T{B}\plbr{5,1}\T{u}_{/\tilde{\T{v}}}\plbr{1,2}+
+					\T{B}\plbr{5,2}\T{u}_{/\tilde{\T{v}}}\plbr{2,2}
+\end{equation}
+So, the jacobian matrix $\T{g}_{/\tilde{\T{v}}}$ results:
+\begin{equation}
+\T{g}_{/\tilde{\T{v}}} = \left[
+	\begin{array}{ccc}
+		0 & 0 & 0 \\
+		\T{g}_{/\tilde{\T{v}}}\plbr{2,1} &
+		\T{g}_{/\tilde{\T{v}}}\plbr{2,2} & 0 \\
+		\T{g}_{/\tilde{\T{v}}}\plbr{3,1} &
+		\T{g}_{/\tilde{\T{v}}}\plbr{3,2} & 0 \\
+		0 & 0 & 0 \\
+		\T{g}_{/\tilde{\T{v}}}\plbr{5,1} &
+		\T{g}_{/\tilde{\T{v}}}\plbr{5,2} & 0 \\
+		0 & 0 & 0 
+	\end{array} \right]
+\end{equation}
+where the matrix elements are:
+\begin{equation}
+\T{g}_{/\tilde{\T{v}}}\plbr{2,1}  = 
+-\plbr{-b_1 b_2 \frac{8}{c^2} U_\infty q_1 - \plbr{b_1+b_2} \frac{2}{c} q_2} \frac{\tilde{v}_x}{U_\infty} 
+-\T{u}_{/\tilde{\T{v}}}\plbr{2,1}
+\end{equation}
+\begin{equation}
+\T{g}_{/\tilde{\T{v}}}\plbr{2,2}  = 
+-\plbr{-b_1 b_2 \frac{8}{c^2} U_\infty q_1 - \plbr{b_1+b_2} \frac{2}{c} q_2} \frac{\tilde{v}_y}{U_\infty} 
+-\T{u}_{/\tilde{\T{v}}}\plbr{2,2}
+\end{equation}
+\begin{equation}
+\T{g}_{/\tilde{\T{v}}}\plbr{3,1}  = -\plbr{\T{B}\plbr{3,1}\T{u}_{/\tilde{\T{v}}}\plbr{1,1}+
+					\T{B}\plbr{3,2}\T{u}_{/\tilde{\T{v}}}\plbr{2,1}}
+\end{equation}
+\begin{equation}
+\T{g}_{/\tilde{\T{v}}}\plbr{3,2}  = -\plbr{\T{B}\plbr{3,1}\T{u}_{/\tilde{\T{v}}}\plbr{1,2}+
+					\T{B}\plbr{3,2}\T{u}_{/\tilde{\T{v}}}\plbr{2,2}}
+\end{equation}
+\begin{equation}
+\T{g}_{\tilde{\T{v}}}\plbr{3,1}  = 
+-\plbr{ \frac{u_1-u_2}{d_{3/4}-d_{1_/4}}} \frac{\tilde{v}_x}{U_\infty}
+-\plbr{\T{B}\plbr{5,1}\T{u}_{/\tilde{\T{v}}}\plbr{1,1}+
+					\T{B}\plbr{5,2}\T{u}_{/\tilde{\T{v}}}\plbr{2,1}}
+\end{equation}
+\begin{equation}
+\T{g}_{\tilde{\T{v}}}\plbr{3,2}  = 
+-\plbr{ \frac{u_1-u_2}{d_{3/4}-d_{1_/4}}} \frac{\tilde{v}_y}{U_\infty}
+-\plbr{\T{B}\plbr{5,1}\T{u}_{/\tilde{\T{v}}}\plbr{1,2}+
+					\T{B}\plbr{5,2}\T{u}_{/\tilde{\T{v}}}\plbr{2,2}}
+\end{equation}
+
+	
+			
+
+
+\subsubsection{Perturbation of $\T{g}$ with respect to $\tilde{\T{\omega}}$}
+The perturbation of $\T{g}$ is:
+	
+
+\begin{equation}
+\T{g}_{/\tilde{\T{\omega}}} = 
+	-\T{B} \T{u}_{/\tilde{\T{\omega}}}.
+\end{equation}
+Where:
+\begin{equation}
+	\T{u}_{/\tilde{\T{\omega}}} = \left[
+	\begin{array}{ccc}
+	0 & 0 &
+	\frac{-\tilde{v}_x d_{1/4}}{\tilde{v}_x^2 + \tilde{v}_y^2 + 
+		\tilde{\omega}_z^2 d_{1/4}^2 + 2 \tilde{v}_y \tilde{\omega}_z d_{1/4}} \\
+	0 & 0 &
+	\frac{-\tilde{v}_x d_{3/4}}{\tilde{v}_x^2 + \tilde{v}_y^2 + 
+		\tilde{\omega}_z^2 d_{3/4}^2 + 2 \tilde{v}_y \tilde{\omega}_z d_{3/4}} 
+	\end{array}
+	\right]
+\end{equation}
+Thus, it results:
+\begin{equation}
+	\T{g}_{/\tilde{\T{\omega}}} = \left[
+		\begin{array}{ccc}
+			0 & 0 & 0\\
+			0 & 0 & \T{g}_{/\tilde{\T{\omega}}}\plbr{2,3} \\
+			0 & 0 & \T{g}_{/\tilde{\T{\omega}}}\plbr{3,3} \\
+			0 & 0 & 0\\
+			0 & 0 & \T{g}_{/\tilde{\T{\omega}}}\plbr{5,3} \\
+			0 & 0 & 0
+		\end{array} \right]
+\end{equation}
+where:
+\begin{equation}
+	\T{g}_{/\tilde{\T{\omega}}}\plbr{2,3} = 
+		-\T{u}_{/\tilde{\T{\omega}}}\plbr{2,3}
+\end{equation} 
+\begin{equation}
+	\T{g}_{/\tilde{\T{\omega}}}\plbr{5,3} = -\plbr{
+		\T{B}\plbr{3,1}\T{u}_{/\tilde{\T{\omega}}}\plbr{1,3} + 
+		\T{B}\plbr{3,2}\T{u}_{/\tilde{\T{\omega}}}\plbr{2,3}}
+\end{equation} 
+\begin{equation}
+	\T{g}_{/\tilde{\T{\omega}}}\plbr{5,3} = -\plbr{
+		\T{B}\plbr{5,1}\T{u}_{/\tilde{\T{\omega}}}\plbr{1,3} + 
+		\T{B}\plbr{5,2}\T{u}_{/\tilde{\T{\omega}}}\plbr{2,3}}
+\end{equation} 
+			
+	
+
+
+\subsubsection{Perturbation of $\T{g}$ with respect to $\T{q}$}
+The perturbation of $\T{g}$ is simply:
+\begin{equation}
+\T{g}_{/{\T{q}}} = -\T{A}
+\end{equation}
+\subsubsection{Perturbation of $\T{g}$ with respect to $\T{\dot{q}}$}
+The perturbation of $\T{g}$ is simply:
+\begin{equation}
+\T{g}_{/{\T{\dot{q}}}} = \T{I}
+\end{equation}
+
+\subsection{Perturbation of the aerodynamic forces}
+
+\subsubsection{Perturbation of $\T{\tilde{f}}_a$ with respect to $\tilde{\T{v}}$}
+
+
+\begin{equation}
+{\T{\tilde{f}}_a}_{/\tilde{\T{v}}} = 
+	\rho c \tilde{\T{c}}_{f_{a}} \left[
+		\begin{array}{ccc}
+			\tilde{v}_x & \tilde{v}_y & \tilde{v}_z
+		\end{array} \right] +
+	\frac{1}{2} \rho \tilde{\T{v}}^T \tilde{\T{v}} 
+	\plbr{ \tilde{\T{c}}_{{f_{a}}_{/\T{y}}} \T{y}_{/\tilde{\T{v}}} + 
+	\tilde{\T{c}}_{{f_{a}}_{/U_{\infty}}} {U_\infty}_{/\tilde{\T{v}}} } 
+\end{equation}
+where:
+\begin{equation}
+\T{y}_{/\tilde{\T{v}}} = \plbr{
+	\T{C}_{/U_{\infty}} \T{q} + \T{D}_{/U_{\infty}} \T{u}} {U_\infty}_{/\tilde{\T{v}}}
+	+ \T{D} \T{u}_{/\tilde{\T{v}}}
+\end{equation}
+
+
+\begin{equation}
+\T{C}_{/U_\infty} = \left[
+	\begin{array}{cccccc}
+	\plbr{ A_1 + A_2} b_1 b_2 \frac{8}{c^2} U_\infty & \plbr{ A_1 b_1 + A_2 b_2} \frac{2}{c} & 0 & 0 & 0 & 0\\
+	0 & 0 & 0 & 0 & 0 & 0\\
+	0 & 0 & 0 & 0 & 0 & 0\\
+	0 & 0 & 0 & 0 & 0 & 0\\
+	\end{array}
+	\right]
+\end{equation}
+
+\begin{equation}
+\T{D}_{/U_\infty} = \left[
+	\begin{array}{cc}
+	0 & 0 \\
+	0 & 0 \\
+	0 & 0 \\
+	\frac{1}{d_{3/4} - d_{1/4}} & 	-\frac{1}{d_{3/4} - d_{1/4}} \\
+	\end{array}
+	\right]
+\end{equation}
+
+\begin{equation}
+\tilde{\T{c}}_{{f_{a}}_{/U_{\infty}}} = \left\{
+	\begin{array}{c}
+		0 \\
+		\frac{C_{l_{\alpha}}}{2} \frac{c}{2} \frac{1}{U_\infty^2} 
+		\plbr{ -y_2 + \frac{c a}{U_\infty} y_3} \\
+		0
+	\end{array} \right\}
+\end{equation}
+
+\subsubsection{Perturbation of $\T{\tilde{f}}_a$ with respect to $\tilde{\T{\omega}}$}
+\begin{equation}
+{\T{\tilde{f}}_a}_{/\tilde{\T{\omega}}} = 
+	\frac{1}{2} \rho \tilde{\T{v}}^T \tilde{\T{v}} 
+	\plbr{ \tilde{\T{c}}_{{f_{a}}_{/\T{y}}} \T{y}_{/\tilde{\T{\omega}}} } 
+\end{equation}
+where:
+\begin{equation}
+\T{y}_{/\tilde{\T{\omega}}} = 
+	\T{D} \T{u}_{/\tilde{\T{\omega}}}
+\end{equation}
+\subsubsection{Perturbation of $\T{\tilde{f}}_a$ with respect to $\T{q}$}
+\begin{equation}
+{\T{\tilde{f}}_a}_{/\T{q}} = 
+	\frac{1}{2} \rho \tilde{\T{v}}^T \tilde{\T{v}} 
+	\plbr{ \tilde{\T{c}}_{{f_{a}}_{/\T{y}}} \T{y}_{/\T{q}} } 
+\end{equation}
+where:
+\begin{equation}
+\T{y}_{/\T{q}} = \T{C} 
+\end{equation}
+
+\subsubsection{Perturbation of $\T{\tilde{f}}_a$ with respect to $\T{\dot{q}}$}
+\begin{equation}
+{\T{\tilde{f}}_a}_{/\T{\dot{q}}} = \T{0}
+\end{equation}
+
+\subsection{Perturbation of the aerodynamic moments}
+\subsubsection{Perturbation of $\T{\tilde{c}}_a$ with respect to $\tilde{\T{v}}$}
+\begin{equation}
+\tilde{\T{c}}_{{f_{a}}_{/\T{y}}} = \left[
+	\begin{array}{cccc}
+		\frac{ d c_d^{\text{lookup}}}{d \alpha} & 0 & 0 & 0 \\
+		\frac{ d c_l^{\text{lookup}}}{d \alpha} & \frac{C_{l_{\alpha}}}{2} \frac{c}{2 U_\infty}&
+			-\frac{c_{l_{\alpha}}}{2} \frac{c^2 a}{4 U_\infty^2} & 0 \\
+		0 & 0 & 0 & 0
+	\end{array} \right]
+\end{equation}
+		
+\begin{equation}
+{\T{\tilde{c}}_a}_{/\tilde{\T{v}}} = 
+	\rho c \tilde{\T{c}}_{c_{a}} \left[
+		\begin{array}{ccc}
+			\tilde{v}_x & \tilde{v}_y & \tilde{v}_z
+		\end{array} \right] +
+	\frac{1}{2} \rho \tilde{\T{v}}^T \tilde{\T{v}} 
+	\plbr{ \tilde{\T{c}}_{{c_{a}}_{/\T{y}}} \T{y}_{/\tilde{\T{v}}} + 
+	\tilde{\T{c}}_{{c_{a}}_{/U_{\infty}}} {U_\infty}_{/\tilde{\T{v}}} } 
+\end{equation}
+
+\begin{equation}
+\tilde{\T{c}}_{{c_{a}}_{/U_{\infty}}} = \left\{
+	\begin{array}{c}
+		0 \\
+		0 \\
+		\frac{c_{l_{\alpha}}}{2} \frac{c}{2} \frac{1}{4 U_\infty^2} 
+		\plbr{ y_2 + \plbr{ \frac{c a}{U_\infty} - \frac{c}{4 U_\infty} } y_3 +y_4}
+	\end{array} \right\}
+\end{equation}
+
+\begin{equation}
+\tilde{\T{c}}_{{c_{a}}_{/\T{y}}} = \left[
+	\begin{array}{cccc}
+		0 & 0 & 0 & 0 \\
+		0 & 0 & 0 & 0 \\
+		\frac{ d c_m^{\text{lookup}}}{d \alpha} & 
+			-\frac{1}{4} \frac{c_{l_{\alpha}}}{2} \frac{c}{2 U_\infty} &
+			\frac{c_{l_{\alpha}}}{2} \frac{ c a}{2 U_\infty} \plbr{ \frac{c a}{8 U_\infty} -\frac{c}{32 U_\infty}} &
+			-\frac{1}{4} \frac{c_{l_{\alpha}}}{2} \frac{c}{2 U_\infty} 
+	\end{array} \right]
+\end{equation}
+\subsubsection{Perturbation of $\T{\tilde{c}}_a$ with respect to $\tilde{\T{\omega}}$}
+\begin{equation}
+{\T{\tilde{c}}_a}_{/\tilde{\T{\omega}}} = 
+	\frac{1}{2} \rho \tilde{\T{v}}^T \tilde{\T{v}} 
+	\plbr{ \tilde{\T{c}}_{{c_{a}}_{/\T{y}}} \T{y}_{/\tilde{\T{\omega}}} } 
+\end{equation}
+\subsubsection{Perturbation of $\T{\tilde{c}}_a$ with respect to $\T{q}$}
+\begin{equation}
+{\T{\tilde{c}}_a}_{/\T{q}} = 
+	\frac{1}{2} \rho \tilde{\T{v}}^T \tilde{\T{v}} 
+	\plbr{ \tilde{\T{c}}_{{c_{a}}_{/\T{y}}} \T{y}_{/\T{q}} } 
+\end{equation}
+\subsubsection{Perturbation of $\T{\tilde{c}}_a$ with respect to $\T{\dot{q}}$}
+\begin{equation}
+{\T{\tilde{c}}_a}_{/\T{\dot{q}}} = \T{0}
+\end{equation}
+
