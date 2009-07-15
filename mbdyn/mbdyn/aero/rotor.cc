@@ -300,7 +300,7 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 	doublereal dV3 = VTmp.dGet(3);
 	doublereal dVV = dV1*dV1 + dV2*dV2;
 	doublereal dV = sqrt(dVV);
-
+	
 	/* Angolo di azimuth 0 del rotore */
 	dPsi0 = atan2(dV2, dV1);
 
@@ -365,18 +365,25 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 	}
 
 	bUMeanRefConverged = false;
+	/* dCoeffDen: coefficiente usato nel calcolo della velocità indotta per evitare di 
+ 	 * avere un denominatore nullo quando dMu e dLambda sono entrambi nulli. Questo
+ 	 * coefficiente viene sommato al termine (adimensionale):
+ 	 * 2*sqrt(dMu*dMu+dLamnda*dLambda) 
+	 * */
+	doublereal dCoeffDen = 1.e-9;
 	if (dVTip > std::numeric_limits<doublereal>::epsilon()) {
 		for (iCurrIter = 0; iCurrIter < iMaxIter; iCurrIter++ ) {
 			doublereal dUMeanRefOrig = dUMeanRef;
 
 			dLambda = (dVelocity*dSinAlphad+dUMeanRef)/dVTip;
 
-			/* Velocita' indotta media */
-			doublereal dVRef = dOmega*dRadius*sqrt(dMu*dMu+dLambda*dLambda);
-			doublereal dRef = 2.*dRho*dArea*dVRef;
+			/* Velocità indotta media */
+			doublereal dRef = 2.*sqrt(dMu*dMu+dLambda*dLambda);
+			doublereal dCt = dT/(dRho*dArea*dVTip*dVTip);
 
-			doublereal dDelta = dGE*dT/(dRef+1.) - dUMeanRefOrig;
-			dUMeanRef = dEta*dDelta + dUMeanRefOrig;
+			doublereal dDelta = dGE*dCt/(dRef+dCoeffDen) - dUMeanRefOrig/dVTip;
+
+			dUMeanRef = dEta*dDelta*dVTip + dUMeanRefOrig;
 
 			if (fabs(dDelta) <= dTolerance) {
 				bUMeanRefConverged = true;
@@ -409,12 +416,16 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 	 * Um = -------------------------------------
 	 *       sqrt( lambda^2 / KH^4 + mu^2 / KF^2)
 	 */
-	doublereal dMuTmp = dMu/dForwardFlightCorrection;
-	doublereal dLambdaTmp = dLambda/(dHoverCorrection*dHoverCorrection);
-	doublereal dVRef = dOmega*dRadius*sqrt(dMuTmp*dMuTmp+dLambdaTmp*dLambdaTmp);
-	doublereal d = 2.*dRho*dArea*dVRef;
+	if (dVTip > std::numeric_limits<doublereal>::epsilon()) {
+		doublereal dMuTmp = dMu/dForwardFlightCorrection;
+		doublereal dLambdaTmp = dLambda/(dHoverCorrection*dHoverCorrection);
+		doublereal dRef = 2*sqrt(dMuTmp*dMuTmp+dLambdaTmp*dLambdaTmp);
+		doublereal dCt = dT/(dRho*dArea*dVTip*dVTip);
 
-	dUMean = (1.-dWeight)*dT/(d+1.)+dWeight*dUMeanPrev;
+		dUMean = (1.-dWeight)*dVTip*dCt/(dRef+dCoeffDen)+dWeight*dUMeanPrev;
+	}else{
+		dUMean = dUMeanPrev;
+	}
 }
 
 std::ostream&
