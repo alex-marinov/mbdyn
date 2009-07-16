@@ -1,4 +1,4 @@
-﻿% MBDyn (C) is a multibody analysis code.
+% MBDyn (C) is a multibody analysis code.
 % http://www.mbdyn.org
 %
 % Copyright (C) 1996-2009
@@ -49,13 +49,13 @@ the Wagner approximation of the Theodorsen function.
  		\T{u}\plbr{\tilde{\T{v}}, \tilde{\T{\omega}}},
 \end{align}
 \end{subequations}
-where $\rho$ is the air density, $c$ the airfoil chord and $\T{y}$ is defined as:
+where $\rho$ is the air density, $c$ the airfoil chord and $\T{y}$ is 
 \begin{equation}
 	\T{y} = \TT{C}\plbr{U_\infty} \T{q} + \TT{D} \plbr{U_\infty}
  		\T{u}\plbr{\tilde{\T{v}}, \tilde{\T{\omega}}}.
 \end{equation}
 
-Matrix $\TT{A}$ is:
+Matrix $\TT{A}$ is
 \begin{equation}
 	\footnotesize
 	\TT{A} = \left[
@@ -101,11 +101,11 @@ $b_2$	& 0&3		& 0&32
 \end{tabular}
 \end{table}
 
-The $\T{B}$ matrix is:
+Matrix $\T{B}$ is
 \begin{equation}
 	\T{B} = \tilde{\T{B}} \T{T}_u \plbr{U_\infty},
 \end{equation}
-where:
+where
 \begin{equation}
 	\tilde{\T{B}} = \left[
 		\begin{array}{ccc}
@@ -170,7 +170,7 @@ and
 	}}
 \end{equation}
 		
-The $\T{C}$ matrix is:
+Matrix $\T{C}$ is
 \begin{equation}
 	\T{C} = \left[
 		\begin{array}{cccccc}
@@ -182,7 +182,7 @@ The $\T{C}$ matrix is:
 		\end{array}
 		\right].
 \end{equation}
-And the $\T{D}$ matrix is:
+Matrix $\T{D}$ is
 \begin{equation}
 	\T{D} = \tilde{\T{D}} \T{T}_u \plbr{U_\infty},
 \end{equation}
@@ -225,7 +225,7 @@ where
 		\right\} = 
 		\T{c}_{c_a}^\text{lookup}\plbr{\T{y}} + \tilde{\T{T}}_{c_a} \T{y}.
 \end{equation}
-where the second part is the noncirculatory effect.
+The second part is the noncirculatory effect.
 
 \begin{equation}
 	\left\{ 
@@ -288,7 +288,7 @@ and
 		\right]
 \end{equation}
 
-Finally:
+Finally,
 \begin{equation}
 	\tilde{\T{c}}_{f_{a}} = 
 		\T{c}_{f_a}^\text{lookup}\plbr{y_1} +
@@ -311,10 +311,10 @@ Finally:
 		\right\}.
 \end{equation}
 
-\subsection{Perturbation of the equations}
+\subsection{Perturbation of the Equations}
 
 \subsubsection{Perturbation of $\T{g}$ with respect to $\tilde{\T{v}}$}
-The perturbation of $\T{g}$ is:
+The perturbation of $\T{g}$ is
 %\begin{equation}
 %\T{g}_{/\tilde{\T{v}}} = 
 %	-\T{A}_{/U_\infty} {U_\infty}_{/\tilde{\T{v}}} \T{q}	
@@ -327,7 +327,8 @@ The perturbation of $\T{g}$ is:
 	{U_\infty}_{/\tilde{\T{v}}}
 	-\T{B} \T{u}_{/\tilde{\T{v}}}.
 \end{equation}
-where, accordingly with the previous definition of the matrices the derivatives are:
+where, according to the previous definition of the matrices,
+the derivatives are
 \begin{equation}
 \T{A}_{/U_\infty} = \left[
 	\begin{array}{cccccc}
@@ -389,8 +390,7 @@ where, accordingly with the previous definition of the matrices the derivatives 
 	\end{array}
 	\right]
 \end{equation}
-We can now explicitly perform the computation of each term of Eq.~\ref{eq:g_v},
-the first one results:
+The explicit computation of each term of Eq.~\ref{eq:g_v} yields
 \begin{align}
 &\plbr{\T{A}_{U_\infty} \T{q} + \T{B}_{U_\infty} \T{u} } {U_\infty}_{/\tilde{v}}
 	= \left\{
@@ -420,7 +420,7 @@ the first one results:
 			0 & 0 & 0
 		\end{array} \right]
 \end{align}
-wheres the second is:
+for the first, while the second yields
 \begin{equation}
 \T{B} \T{u}_{/\tilde{\T{v}}} = \left[
 	\begin{array}{ccc}
@@ -435,7 +435,7 @@ wheres the second is:
 		0 & 0 & 0 
 	\end{array} \right]
 \end{equation}
-The not-null terms are finally:
+The non-null terms are
 \begin{equation}
 \T{B} \T{u}_{/\tilde{\T{v}}}\plbr{2,1}  = \T{u}_{/\tilde{\T{v}}}\plbr{2,1}
 \end{equation}
@@ -458,7 +458,7 @@ The not-null terms are finally:
 \T{B} \T{u}_{/\tilde{\T{v}}}\plbr{3,2}  = \T{B}\plbr{5,1}\T{u}_{/\tilde{\T{v}}}\plbr{1,2}+
 					\T{B}\plbr{5,2}\T{u}_{/\tilde{\T{v}}}\plbr{2,2}
 \end{equation}
-So, the jacobian matrix $\T{g}_{/\tilde{\T{v}}}$ results:
+So, the Jacobian matrix $\T{g}_{/\tilde{\T{v}}}$ is
 \begin{equation}
 \T{g}_{/\tilde{\T{v}}} = \left[
 	\begin{array}{ccc}
@@ -472,8 +472,9 @@ So, the jacobian matrix $\T{g}_{/\tilde{\T{v}}}$ results:
 		\T{g}_{/\tilde{\T{v}}}\plbr{5,2} & 0 \\
 		0 & 0 & 0 
 	\end{array} \right]
+	,
 \end{equation}
-where the matrix elements are:
+where the matrix elements are
 \begin{equation}
 \T{g}_{/\tilde{\T{v}}}\plbr{2,1}  = 
 -\plbr{-b_1 b_2 \frac{8}{c^2} U_\infty q_1 - \plbr{b_1+b_2} \frac{2}{c} q_2} \frac{\tilde{v}_x}{U_\infty} 
@@ -510,14 +511,12 @@ where the matrix elements are:
 
 
 \subsubsection{Perturbation of $\T{g}$ with respect to $\tilde{\T{\omega}}$}
-The perturbation of $\T{g}$ is:
-	
-
+The perturbation of $\T{g}$ yields
 \begin{equation}
 \T{g}_{/\tilde{\T{\omega}}} = 
 	-\T{B} \T{u}_{/\tilde{\T{\omega}}}.
 \end{equation}
-Where:
+Where
 \begin{equation}
 	\T{u}_{/\tilde{\T{\omega}}} = \left[
 	\begin{array}{ccc}
@@ -530,7 +529,7 @@ Where:
 	\end{array}
 	\right]
 \end{equation}
-Thus, it results:
+Thus,
 \begin{equation}
 	\T{g}_{/\tilde{\T{\omega}}} = \left[
 		\begin{array}{ccc}
@@ -542,7 +541,7 @@ Thus, it results:
 			0 & 0 & 0
 		\end{array} \right]
 \end{equation}
-where:
+where
 \begin{equation}
 	\T{g}_{/\tilde{\T{\omega}}}\plbr{2,3} = 
 		-\T{u}_{/\tilde{\T{\omega}}}\plbr{2,3}
@@ -562,12 +561,12 @@ where:
 
 
 \subsubsection{Perturbation of $\T{g}$ with respect to $\T{q}$}
-The perturbation of $\T{g}$ is simply:
+The perturbation of $\T{g}$ yields
 \begin{equation}
 \T{g}_{/{\T{q}}} = -\T{A}
 \end{equation}
 \subsubsection{Perturbation of $\T{g}$ with respect to $\T{\dot{q}}$}
-The perturbation of $\T{g}$ is simply:
+The perturbation of $\T{g}$ yields
 \begin{equation}
 \T{g}_{/{\T{\dot{q}}}} = \T{I}
 \end{equation}
@@ -587,7 +586,7 @@ The perturbation of $\T{g}$ is simply:
 	\plbr{ \tilde{\T{c}}_{{f_{a}}_{/\T{y}}} \T{y}_{/\tilde{\T{v}}} + 
 	\tilde{\T{c}}_{{f_{a}}_{/U_{\infty}}} {U_\infty}_{/\tilde{\T{v}}} } 
 \end{equation}
-where:
+where
 \begin{equation}
 \T{y}_{/\tilde{\T{v}}} = \plbr{
 	\T{C}_{/U_{\infty}} \T{q} + \T{D}_{/U_{\infty}} \T{u}} {U_\infty}_{/\tilde{\T{v}}}
@@ -643,7 +642,7 @@ where:
 	\frac{1}{2} \rho \tilde{\T{v}}^T \tilde{\T{v}} 
 	\plbr{ \tilde{\T{c}}_{{f_{a}}_{/\T{y}}} \T{y}_{/\tilde{\T{\omega}}} } 
 \end{equation}
-where:
+where
 \begin{equation}
 \T{y}_{/\tilde{\T{\omega}}} = 
 	\T{D} \T{u}_{/\tilde{\T{\omega}}}
@@ -654,7 +653,7 @@ where:
 	\frac{1}{2} \rho \tilde{\T{v}}^T \tilde{\T{v}} 
 	\plbr{ \tilde{\T{c}}_{{f_{a}}_{/\T{y}}} \T{y}_{/\T{q}} } 
 \end{equation}
-where:
+where
 \begin{equation}
 \T{y}_{/\T{q}} = \T{C} 
 \end{equation}
