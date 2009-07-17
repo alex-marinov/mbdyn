@@ -155,6 +155,17 @@ class C81TheodorsenAeroData : public C81AeroData {
 protected:
 	integer iParam;
 	doublereal omegaPD;
+	doublereal q1, q2;
+	doublereal d14, d34;
+	doublereal chord;
+	doublereal a;
+	doublereal Uinf, qD;
+	doublereal A1, A2, b1, b2;
+	doublereal u1, u2;
+	doublereal d;
+	doublereal y1, y2, y3, y4;
+	doublereal cx_0, cy_0, cz_0, cmx_0, cmy_0, cmz_0;
+	doublereal clalpha;
 
 public:
 	C81TheodorsenAeroData(integer p, const c81_data* d, doublereal omegaPD);
@@ -184,6 +195,53 @@ public:
 
 /* C81TheodorsenAeroData - end */
 
+/* C81TheodorsenAeroData2 - begin */
+
+class C81TheodorsenAeroData2 : public C81AeroData {
+protected:
+	integer iParam;
+	doublereal omegaPD;
+	doublereal q1, q2;
+	doublereal d14, d34;
+	doublereal chord;
+	doublereal a;
+	doublereal Uinf, qD;
+	doublereal A1, A2, b1, b2;
+	doublereal u1, u2;
+	doublereal d;
+	doublereal y1;
+	doublereal dot_alpha_pivot, dot_alpha, ddot_alpha;
+	doublereal cx_0, cy_0, cz_0, cmx_0, cmy_0, cmz_0;
+	doublereal clalpha;
+	doublereal prev_alpha_pivot, prev_dot_alpha;
+
+public:
+	C81TheodorsenAeroData2(integer p, const c81_data* d, doublereal omegaPD);
+	virtual ~C81TheodorsenAeroData2(void);
+
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	// aerodynamic models with internal states
+	virtual unsigned int iGetNumDof(void) const;
+	virtual DofOrder::Order GetDofType(unsigned int i) const;
+	virtual void
+	AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr,
+		integer iFirstIndex, integer iFirstSubIndex,
+		int i, const doublereal* W, doublereal* TNG, outa_t& OUTA);
+	virtual void
+	AssJac(FullSubMatrixHandler& WorkMat,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr,
+		integer iFirstIndex, integer iFirstSubIndex,
+		const Mat3xN& vx, const Mat3xN& wx, Mat3xN& fq, Mat3xN& cq,
+		int i, const doublereal* W, doublereal* TNG, Mat6x6& J, outa_t& OUTA);
+};
+
+/* C81TheodorsenAeroData2 - end */
 
 #endif // AERODATA_IMPL_H
 

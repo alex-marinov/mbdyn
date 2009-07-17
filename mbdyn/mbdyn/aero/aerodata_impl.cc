@@ -477,8 +477,8 @@ C81TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
 	integer iFirstIndex, integer iFirstSubIndex,
 	int i, const doublereal* W, doublereal* TNG, outa_t& OUTA)
 {
-	doublereal q1 = XCurr(iFirstIndex + 1);
-	doublereal q2 = XCurr(iFirstIndex + 2);
+	q1 = XCurr(iFirstIndex + 1);
+	q2 = XCurr(iFirstIndex + 2);
 	doublereal q3 = XCurr(iFirstIndex + 3);
 	doublereal q4 = XCurr(iFirstIndex + 4);
 	doublereal q5 = XCurr(iFirstIndex + 5);
@@ -491,29 +491,29 @@ C81TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
 	doublereal q5p = XPrimeCurr(iFirstIndex + 5);
 	doublereal q6p = XPrimeCurr(iFirstIndex + 6);
 
-	doublereal d14 = VAM.force_position;
-	doublereal d34 = VAM.bc_position;
-	doublereal chord = VAM.chord;
+	d14 = VAM.force_position;
+	d34 = VAM.bc_position;
+	chord = VAM.chord;
 
-	doublereal a = (d14 + d34)/chord;
+	a = (d14 + d34)/chord;
 
-	doublereal Uinf = sqrt(W[VX]*W[VX] + W[VY]*W[VY]);
+	Uinf = sqrt(W[VX]*W[VX] + W[VY]*W[VY]);
 
-	doublereal A1 = TheodorsenParams[iParam][0];
-	doublereal A2 = TheodorsenParams[iParam][1];
-	doublereal b1 = TheodorsenParams[iParam][2];
-	doublereal b2 = TheodorsenParams[iParam][3];
+	A1 = TheodorsenParams[iParam][0];
+	A2 = TheodorsenParams[iParam][1];
+	b1 = TheodorsenParams[iParam][2];
+	b2 = TheodorsenParams[iParam][3];
 
-	doublereal u1 = atan2(- W[VY] - W[WZ]*d14, W[VX]);
-	doublereal u2 = atan2(- W[VY] - W[WZ]*d34, W[VX]);
+	u1 = atan2(- W[VY] - W[WZ]*d14, W[VX]);
+	u2 = atan2(- W[VY] - W[WZ]*d34, W[VX]);
 
-	doublereal d = 2*Uinf/chord;
+	d = 2*Uinf/chord;
 
-	doublereal y1 = (A1 + A2)*b1*b2*d*d*q1 + (A1*b1 + A2*b2)*d*q2
+	y1 = (A1 + A2)*b1*b2*d*d*q1 + (A1*b1 + A2*b2)*d*q2
 		+ (1 - A1 - A2)*u2;
-	doublereal y2 = omegaPD*omegaPD*q3;
-	doublereal y3 = omegaPD*omegaPD*q5;
-	doublereal y4 = (u1-u2)/((d34 - d14)/Uinf);
+	y2 = omegaPD*omegaPD*q3;
+	y3 = omegaPD*omegaPD*q5;
+	y4 = (u1-u2)/((d34 - d14)/Uinf);
 
 	doublereal tan_y1 = std::tan(y1);
 	doublereal Vxp2 = Uinf*Uinf - pow(W[VX]*tan_y1, 2)
@@ -531,9 +531,25 @@ C81TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
 		const_cast<c81_data *>(data), unsteadyflag);
 
 	doublereal UUinf2 = Uinf*Uinf + W[VZ]*W[VZ];
-	doublereal qD = .5*VAM.density*UUinf2;
+	qD = .5*VAM.density*UUinf2;
+	if (qD > std::numeric_limits<doublereal>::epsilon()) {
+		cx_0 = TNG[0]/(qD*chord);
+		cy_0 = TNG[1]/(qD*chord);
+		cz_0 = TNG[2]/(qD*chord);
+		cmx_0 = TNG[3]/(qD*chord*chord);
+		cmy_0 = TNG[4]/(qD*chord*chord);
+		cmz_0 = TNG[5]/(qD*chord*chord);
+	}else{
+		cx_0 = 0.;
+		cy_0 = 0.;
+		cz_0 = 0.;
+		cmx_0 = 0.;
+		cmy_0 = 0.;
+		cmz_0 = 0.;
+	}
 
-	doublereal clalpha = OUTA.clalpha;
+
+	clalpha = OUTA.clalpha;
 	if (clalpha > 0.) {
 		TNG[1] += qD*chord*clalpha/2/d*(y2 - a/d*y3);
 		TNG[5] += qD*chord*chord*clalpha/2/d*(-y2/4 + (a/4/d - 1/d/16)*y3 - y4/4);
@@ -558,13 +574,6 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	const Mat3xN& vx, const Mat3xN& wx, Mat3xN& fq, Mat3xN& cq,
 	int i, const doublereal* W, doublereal* TNG, Mat6x6& J, outa_t& OUTA)
 {
-	// doublereal A1 = TheodorsenParams[iParam][0];
-	// doublereal A2 = TheodorsenParams[iParam][1];
-	doublereal b1 = TheodorsenParams[iParam][2];
-	doublereal b2 = TheodorsenParams[iParam][3];
-
-	doublereal Uinf = sqrt(W[VX]*W[VX] + W[VY]*W[VY]);
-	doublereal d = 2*Uinf/VAM.chord;
 
 	WorkMat.IncCoef(iFirstSubIndex + 1, iFirstSubIndex + 1, 1.);
 	WorkMat.IncCoef(iFirstSubIndex + 2, iFirstSubIndex + 2, 1.);
@@ -584,6 +593,435 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	WorkMat.IncCoef(iFirstSubIndex + 5, iFirstSubIndex + 5, dCoef*2*omegaPD);
 	WorkMat.IncCoef(iFirstSubIndex + 5, iFirstSubIndex + 6, dCoef*omegaPD*omegaPD);
 	WorkMat.IncCoef(iFirstSubIndex + 6, iFirstSubIndex + 5, -dCoef);
+
+	/* computing the matrix g_{/\tilde{v}} - dimension: 6x3, where 6 is n_states */
+	doublereal dU_V_11, dU_V_12, dU_V_21, dU_V_22;
+
+	doublereal dDen14 = W[VX]*W[VX] + W[VY]*W[VY] + W[WZ]*W[WZ]*d14*d14 + 2*W[VY]*W[WZ]*d14;
+	doublereal dDen34 = W[VX]*W[VX] + W[VY]*W[VY] + W[WZ]*W[WZ]*d34*d34 + 2*W[VY]*W[WZ]*d34;
+
+	dU_V_11 = (W[VY] + W[WZ]*d14)/dDen14;
+	dU_V_12 = -W[VX]/dDen14;
+	dU_V_21 = (W[VY] + W[WZ]*d34)/dDen34;
+	dU_V_22 = -W[VX]/dDen34;
+
+	doublereal B31, B32, B51, B52;
+
+	B31 = d34/(d34-d14);
+	B32 = -d14/(d34-d14);
+	B51 = Uinf/(d34-d14);
+	B52 = -Uinf/(d34-d14);
+
+
+	doublereal dG_V_21, dG_V_22, dG_V_31, dG_V_32, dG_V_51, dG_V_52;
+
+	dG_V_21 =  (b1*b2*d*4*q1/chord + (b1+b2)*2*q2/chord)*W[VX]/Uinf - dU_V_21;
+	dG_V_22 =  (b1*b2*d*4*q1/chord + (b1+b2)*2*q2/chord)*W[VY]/Uinf - dU_V_22;
+	dG_V_31 = -B31*dU_V_11 - B32*dU_V_21;
+	dG_V_32 = -B31*dU_V_12 - B32*dU_V_22;
+	dG_V_51 = -( (u1-u2)/(d34-d14) )*W[VX]/Uinf - B51*dU_V_11 - B52*dU_V_21;
+	dG_V_52 = -( (u1-u2)/(d34-d14) )*W[VY]/Uinf - B51*dU_V_12 - B52*dU_V_22;
+
+	
+	/* computing the matrix g_{/\tilde{\omega}} - dimension: 6x3, where 6 is n_states */
+	doublereal dU_W_13, dU_W_23;
+
+	dU_W_13 = - W[VX]*d14/dDen14;
+	dU_W_23 = - W[VX]*d34/dDen34;
+
+	doublereal dG_W_23, dG_W_33, dG_W_53;
+
+	dG_W_23 = -dU_W_23;
+	dG_W_33 = -B31*dU_W_13 - B32*dU_W_23;
+	dG_W_53 = -B51*dU_W_13 - B52*dU_W_23;
+
+	/* assembling the jacobian */
+	unsigned int iIndexColumn;
+	/* faccio i calcoli tenendo conto della sparsità della matrice g_{\/\tilde{v}} */
+	for( iIndexColumn = 1; iIndexColumn <= vx.iGetNumCols(); iIndexColumn++){
+		WorkMat.IncCoef(iFirstSubIndex+2, iIndexColumn, dG_V_21*vx(1,iIndexColumn) + dG_V_22*vx(2,iIndexColumn));
+		WorkMat.IncCoef(iFirstSubIndex+2, iIndexColumn, dG_W_23*wx(3,iIndexColumn));
+		WorkMat.IncCoef(iFirstSubIndex+3, iIndexColumn, dG_V_31*vx(1,iIndexColumn) + dG_V_32*vx(2,iIndexColumn));
+		WorkMat.IncCoef(iFirstSubIndex+3, iIndexColumn, dG_W_33*wx(3,iIndexColumn));
+		WorkMat.IncCoef(iFirstSubIndex+5, iIndexColumn, dG_V_51*vx(1,iIndexColumn) + dG_V_52*vx(2,iIndexColumn));
+		WorkMat.IncCoef(iFirstSubIndex+5, iIndexColumn, dG_W_53*wx(3,iIndexColumn));
+	}
+
+	/* computing the matrix fq (f_a_{/q}) 3x6 */
+	
+	doublereal C11, C12, C23, C35;
+
+	C11 = (A1+A2)*b1*b2*d*d;
+	C12 = (A1*b1+A2*b2)*d;
+	C23 = omegaPD*omegaPD;
+	C35 = omegaPD*omegaPD;
+
+	/* computing the derivative of the aerodynamic coefficient in the lookup table
+ 	 * using the finite difference method */
+	/* perturbazione per calcolo delle derivare con le differenze finite */
+	y1 = y1 + 0.1*M_PI/180.;
+	doublereal dDeltaY1 = 0.1*M_PI/180.;
+	doublereal tan_y1 = std::tan(y1);
+	doublereal Vxp2 = Uinf*Uinf - pow(W[VX]*tan_y1, 2) - std::pow(d34*W[WZ], 2);
+
+	doublereal WW[6];
+	WW[VX] = copysign(std::sqrt(Vxp2), W[VX]);
+	WW[VY] = -W[VX]*tan_y1 - d34*W[WZ];
+	WW[VZ] = W[VZ];
+	WW[WX] = W[WX];
+	WW[WY] = W[WY];
+	WW[WZ] = W[WZ];
+
+	c81_aerod2_u(WW, &VAM, TNG, &OUTA, const_cast<c81_data *>(data), unsteadyflag);
+	doublereal cx_1, cy_1, cmz_1;
+	if (qD > std::numeric_limits<doublereal>::epsilon()) {
+		cx_1 = TNG[0]/(qD*chord);
+		cy_1 = TNG[1]/(qD*chord);
+		cmz_1 = TNG[5]/(qD*chord*chord);
+	}else{
+		cx_1 = 0.;
+		cy_1 = 0.;
+		cmz_1 = 0.;
+	}
+
+	doublereal dCd_alpha = (cx_1-cx_0)/dDeltaY1;
+	doublereal dCl_alpha = (cy_1-cy_0)/dDeltaY1;
+	doublereal dCm_alpha = (cmz_1-cmz_0)/dDeltaY1;
+
+	fq.Put(1, 1, qD*dCd_alpha*C11);
+	fq.Put(1, 2, qD*dCd_alpha*C12);
+	fq.Put(2, 1, qD*dCl_alpha*C11);
+	fq.Put(2, 2, qD*dCl_alpha*C12);
+	fq.Put(2, 3, qD*0.5*clalpha*C23/d);
+	fq.Put(2, 5, qD*0.5*clalpha*a*C35/(d*d));
+
+	cq.Put(3, 1, qD*dCm_alpha*C11);
+	cq.Put(3, 2, qD*dCm_alpha*C12);
+	cq.Put(3, 3, -qD*0.25*0.5*clalpha*C23/d);
+	cq.Put(3, 5, qD*0.5*clalpha*a*( (0.25*a/d) - (1/(16*d)) )*C35/d);
+
+	/* computing the J matrix */
+	/* f_{/\tilde{v}} */
+	doublereal dY_V_11, dY_V_12, dY_V_41, dY_V_42;
+	doublereal D12, D41, D42;
+
+	D12 = 1-A1-A2;
+	D41 = Uinf/(d34-d14);
+	D42 = -Uinf/(d34-d14);
+
+	/* (C_{/Uinf}*q + D_{/Uinf}*u)*Uinf_{v} */
+	dY_V_11 = ((A1+A2)*b1*b2*d*(4./chord)*q1 + (A1*b1+A2*b2)*(2./chord)*q2)*W[VX]/Uinf;
+	dY_V_12 = ((A1+A2)*b1*b2*d*(4./chord)*q1 + (A1*b1+A2*b2)*(2./chord)*q2)*W[VY]/Uinf;
+	dY_V_41 = ((u1-u2)/(d34-d14))*W[VX]/Uinf;
+	dY_V_42 = ((u1-u2)/(d34-d14))*W[VY]/Uinf;
+	/* (C_{/Uinf}*q + D_{/Uinf}*u)*Uinf_{v} + D*u_{/v} */
+	dY_V_11 += D12*dU_V_21;
+	dY_V_12 += D12*dU_V_22;
+	dY_V_41 += D41*dU_V_11 + D42*dU_V_21;
+	dY_V_42 += D41*dU_V_12 + D42*dU_V_22;
+
+	doublereal dCfy_Uinf = clalpha*(-y2 + (chord*a*y3)/Uinf)/(d*Uinf);
+	doublereal rho = VAM.density;
+
+	J.Put(1, 1, rho*chord*cx_0*W[VX] + qD*( dCd_alpha*dY_V_11));
+	J.Put(1, 2, rho*chord*cx_0*W[VY] + qD*( dCd_alpha*dY_V_12));
+	J.Put(1, 3, rho*chord*cx_0*W[VZ]);
+	J.Put(2, 1, rho*chord*cy_0*W[VX] + qD*( dCl_alpha*dY_V_11 + dCfy_Uinf*W[VX]/Uinf) );
+	J.Put(2, 2, rho*chord*cy_0*W[VY] + qD*( dCl_alpha*dY_V_12 + dCfy_Uinf*W[VY]/Uinf ) );
+	J.Put(2, 3, rho*chord*cy_0*W[VZ]);
+	J.Put(3, 1, rho*chord*cz_0*W[VX]);
+	J.Put(3, 1, rho*chord*cz_0*W[VY]);
+	J.Put(3, 3, rho*chord*cz_0*W[VZ]);
+
+	/* f_{/\tilde{omega}} */
+	J.Put(1, 6, qD*dCd_alpha*D12*dU_W_23);
+	J.Put(2, 6, qD*dCl_alpha*D12*dU_W_23);
+
+	/* c_{/\tilde{v}} */
+	doublereal dCmz_Uinf = 0.5*clalpha*(y2 + ( ((chord*a)/(Uinf)) - ((chord)/(4*Uinf)) )*y3 +y4)/(d*4*Uinf);
+
+	J.Put(4, 1, rho*chord*cmx_0*W[VX]);
+	J.Put(4, 2, rho*chord*cmx_0*W[VY]);
+	J.Put(4, 3, rho*chord*cmx_0*W[VZ]);
+	J.Put(5, 1, rho*chord*cmy_0*W[VX]);
+	J.Put(5, 2, rho*chord*cmy_0*W[VY]);
+	J.Put(5, 3, rho*chord*cmy_0*W[VZ]);
+	J.Put(6, 1, rho*chord*cmz_0*W[VX] +qD*( dCm_alpha*dY_V_11 + (-0.25*0.5*clalpha/d)*dY_V_41 + dCmz_Uinf*W[VX]/Uinf ) );
+	J.Put(6, 2, rho*chord*cmz_0*W[VY] +qD*( dCm_alpha*dY_V_12 + (-0.25*0.5*clalpha/d)*dY_V_42 + dCmz_Uinf*W[VY]/Uinf ) );
+	J.Put(6, 3, rho*chord*cmz_0*W[VZ]);
+
+	/* c_{/\tilde{omega}} */
+	J.Put(6, 6, qD*( dCm_alpha*D12*dU_W_23 + (-0.25*0.5*clalpha/d)*(D41*dU_W_13 + D42*dU_W_23) ) );
+
+
+
+	
+
+
+
+	AeroData::GetForcesJacForwardDiff_int(i, W, TNG, J, OUTA);
+
+	// probably, we need to reset fq, cq
+}
+
+/* C81TheodorsenAeroData - end */
+
+/* C81TheodorsenAeroData2 - begin */
+
+C81TheodorsenAeroData2::C81TheodorsenAeroData2(integer p,
+	const c81_data* d,
+	doublereal omegaPD)
+: C81AeroData(STEADY, p, d, 0), iParam(0), omegaPD(omegaPD)
+{
+	NO_OP;
+}
+
+C81TheodorsenAeroData2::~C81TheodorsenAeroData2(void)
+{
+	NO_OP;
+}
+
+std::ostream&
+C81TheodorsenAeroData2::Restart(std::ostream& out) const
+{
+	out << "theodorsen, " << profile;
+
+	return RestartUnsteady(out);
+}
+
+// aerodynamic models with internal states
+unsigned int
+C81TheodorsenAeroData2::iGetNumDof(void) const
+{
+	return 2;
+}
+
+DofOrder::Order
+C81TheodorsenAeroData2::GetDofType(unsigned int i) const
+{
+	return DofOrder::DIFFERENTIAL;
+}
+
+void
+C81TheodorsenAeroData2::AssRes(SubVectorHandler& WorkVec,
+	doublereal dCoef,
+	const VectorHandler& XCurr, 
+	const VectorHandler& XPrimeCurr,
+	integer iFirstIndex, integer iFirstSubIndex,
+	int i, const doublereal* W, doublereal* TNG, outa_t& OUTA)
+{
+	q1 = XCurr(iFirstIndex + 1);
+	q2 = XCurr(iFirstIndex + 2);
+
+	doublereal q1p = XPrimeCurr(iFirstIndex + 1);
+	doublereal q2p = XPrimeCurr(iFirstIndex + 2);
+
+	d14 = VAM.force_position;
+	d34 = VAM.bc_position;
+	chord = VAM.chord;
+
+	a = (d14 + d34)/chord;
+
+	Uinf = sqrt(W[VX]*W[VX] + W[VY]*W[VY]);
+
+	A1 = TheodorsenParams[iParam][0];
+	A2 = TheodorsenParams[iParam][1];
+	b1 = TheodorsenParams[iParam][2];
+	b2 = TheodorsenParams[iParam][3];
+
+	u1 = atan2(- W[VY] - W[WZ]*d14, W[VX]);
+	u2 = atan2(- W[VY] - W[WZ]*d34, W[VX]); //deve essere l'incidenza a 3/4 corda!!!
+
+	d = 2*Uinf/chord;
+
+	y1 = (A1 + A2)*b1*b2*d*d*q1 + (A1*b1 + A2*b2)*d*q2
+		+ (1 - A1 - A2)*u2;
+
+	doublereal tan_y1 = std::tan(y1);
+	doublereal Vxp2 = Uinf*Uinf - pow(W[VX]*tan_y1, 2)
+		- std::pow(d34*W[WZ], 2);
+
+	doublereal WW[6];
+	WW[VX] = copysign(std::sqrt(Vxp2), W[VX]);
+	WW[VY] = -W[VX]*tan_y1 - d34*W[WZ];
+	WW[VZ] = W[VZ];
+	WW[WX] = W[WX];
+	WW[WY] = W[WY];
+	WW[WZ] = W[WZ];
+
+	c81_aerod2_u(WW, &VAM, TNG, &OUTA,
+		const_cast<c81_data *>(data), unsteadyflag);
+
+	doublereal UUinf2 = Uinf*Uinf + W[VZ]*W[VZ];
+	qD = .5*VAM.density*UUinf2;
+	if (qD > std::numeric_limits<doublereal>::epsilon()) {
+		cx_0 = TNG[0]/(qD*chord);
+		cy_0 = TNG[1]/(qD*chord);
+		cz_0 = TNG[2]/(qD*chord);
+		cmx_0 = TNG[3]/(qD*chord*chord);
+		cmy_0 = TNG[4]/(qD*chord*chord);
+		cmz_0 = TNG[5]/(qD*chord*chord);
+	}else{
+		cx_0 = 0.;
+		cy_0 = 0.;
+		cz_0 = 0.;
+		cmx_0 = 0.;
+		cmy_0 = 0.;
+		cmz_0 = 0.;
+	}
+
+	doublereal alpha_pivot = (u1*d34 - u2*d14)/(d34-d14);
+	dot_alpha = Uinf*((u1 - u2)/(d34-d14));
+
+	/* FIXME: come ottengo il Delta_t per fare le differenze finite!?!?! */
+	doublereal Delta_t = 0.0001;
+	dot_alpha_pivot = (alpha_pivot-prev_alpha_pivot)/Delta_t;
+	ddot_alpha = (dot_alpha-prev_dot_alpha)/Delta_t;
+
+	prev_alpha_pivot = alpha_pivot;
+	prev_dot_alpha = dot_alpha;
+
+	clalpha = OUTA.clalpha;
+	if (clalpha > 0.) {
+		TNG[1] += qD*chord*clalpha/2/d*(dot_alpha_pivot - a/d*ddot_alpha);
+		TNG[5] += qD*chord*chord*clalpha/2/d*(-dot_alpha_pivot/4 + (a/4/d - 1/d/16)*ddot_alpha - dot_alpha/4);
+	}
+
+	WorkVec.PutCoef(iFirstSubIndex + 1, -q1p + q2);
+	WorkVec.PutCoef(iFirstSubIndex + 2, -q2p - b1*b2*d*d*q1 - (b1 + b2)*d*q2 + u2);
+}
+
+void
+C81TheodorsenAeroData2::AssJac(FullSubMatrixHandler& WorkMat,
+	doublereal dCoef,
+	const VectorHandler& XCurr, 
+	const VectorHandler& XPrimeCurr,
+	integer iFirstIndex, integer iFirstSubIndex,
+	const Mat3xN& vx, const Mat3xN& wx, Mat3xN& fq, Mat3xN& cq,
+	int i, const doublereal* W, doublereal* TNG, Mat6x6& J, outa_t& OUTA)
+{
+
+	WorkMat.IncCoef(iFirstSubIndex + 1, iFirstSubIndex + 1, 1.);
+	WorkMat.IncCoef(iFirstSubIndex + 2, iFirstSubIndex + 2, 1.);
+
+	WorkMat.IncCoef(iFirstSubIndex + 1, iFirstSubIndex + 2, -dCoef);
+	WorkMat.IncCoef(iFirstSubIndex + 2, iFirstSubIndex + 1, dCoef*b1*b2*d*d);
+	WorkMat.IncCoef(iFirstSubIndex + 2, iFirstSubIndex + 2, dCoef*(b1 + b2)*d);
+
+
+	/* computing the matrix g_{/\tilde{v}} - dimension: 2x3, where 2 is n_states */
+	doublereal dU_V_11, dU_V_12;
+
+	doublereal dDen34 = W[VX]*W[VX] + W[VY]*W[VY] + W[WZ]*W[WZ]*d34*d34 + 2*W[VY]*W[WZ]*d34;
+
+	dU_V_11 = (W[VY] + W[WZ]*d34)/dDen34;
+	dU_V_12 = -W[VX]/dDen34;
+
+	doublereal dG_V_21, dG_V_22;
+
+	dG_V_21 =  (b1*b2*d*4*q1/chord + (b1+b2)*2*q2/chord)*W[VX]/Uinf - dU_V_11;
+	dG_V_22 =  (b1*b2*d*4*q1/chord + (b1+b2)*2*q2/chord)*W[VY]/Uinf - dU_V_12;
+
+	
+	/* computing the matrix g_{/\tilde{\omega}} - dimension: 2x3, where 2 is n_states */
+	doublereal dU_W_13;
+
+	dU_W_13 = - W[VX]*d34/dDen34;
+
+	doublereal dG_W_23;
+
+	dG_W_23 = -dU_W_13;
+
+	/* assembling the jacobian */
+	unsigned int iIndexColumn;
+	/* faccio i calcoli tenendo conto della sparsità della matrice g_{\/\tilde{v}} */
+	for( iIndexColumn = 1; iIndexColumn <= vx.iGetNumCols(); iIndexColumn++){
+		WorkMat.IncCoef(iFirstSubIndex+2, iIndexColumn, dG_V_21*vx(1,iIndexColumn) + dG_V_22*vx(2,iIndexColumn));
+		WorkMat.IncCoef(iFirstSubIndex+2, iIndexColumn, dG_W_23*wx(3,iIndexColumn));
+	}
+	/* computing the matrix fq (f_a_{/q}) 3x2 */
+	
+	/* computing the derivative of the aerodynamic coefficient in the lookup table
+ 	 * using the finite difference method */
+	/* perturbazione per calcolo delle derivare con le differenze finite */
+	y1 = y1 + 0.1*M_PI/180.;
+	doublereal dDeltaY1 = 0.1*M_PI/180.;
+	doublereal tan_y1 = std::tan(y1);
+	doublereal Vxp2 = Uinf*Uinf - pow(W[VX]*tan_y1, 2) - std::pow(d34*W[WZ], 2);
+
+	doublereal WW[6];
+	WW[VX] = copysign(std::sqrt(Vxp2), W[VX]);
+	WW[VY] = -W[VX]*tan_y1 - d34*W[WZ];
+	WW[VZ] = W[VZ];
+	WW[WX] = W[WX];
+	WW[WY] = W[WY];
+	WW[WZ] = W[WZ];
+
+	c81_aerod2_u(WW, &VAM, TNG, &OUTA, const_cast<c81_data *>(data), unsteadyflag);
+	doublereal cx_1, cy_1, cmz_1;
+	if (qD > std::numeric_limits<doublereal>::epsilon()) {
+		cx_1 = TNG[0]/(qD*chord);
+		cy_1 = TNG[1]/(qD*chord);
+		cmz_1 = TNG[5]/(qD*chord*chord);
+	}else{
+		cx_1 = 0.;
+		cy_1 = 0.;
+		cmz_1 = 0.;
+	}
+
+	doublereal dCd_alpha = (cx_1-cx_0)/dDeltaY1;
+	doublereal dCl_alpha = (cy_1-cy_0)/dDeltaY1;
+	doublereal dCm_alpha = (cmz_1-cmz_0)/dDeltaY1;
+
+	doublereal C11 = (A1+A2)*b1*b2*d*d;
+	doublereal C12 = (A1*b1+A2*b2)*d;
+
+	fq.Put(1, 1, qD*dCd_alpha*C11);
+	fq.Put(1, 2, qD*dCd_alpha*C12);
+
+	cq.Put(3, 1, qD*dCm_alpha*C11);
+	cq.Put(3, 2, qD*dCm_alpha*C12);	
+
+	/* computing the J matrix */
+	/* f_{/\tilde{v}} */
+	doublereal dY_V_11, dY_V_12;
+
+	/* (C_{/Uinf}*q + D_{/Uinf}*u)*Uinf_{v} */
+	dY_V_11 = (((A1+A2)*b1*b2*d*(4./chord)*q1 + (A1*b1+A2*b2)*(2./chord)*q2)*W[VX]/Uinf) + ((1-A1-A2)*dU_V_11);
+	dY_V_12 = (((A1+A2)*b1*b2*d*(4./chord)*q1 + (A1*b1+A2*b2)*(2./chord)*q2)*W[VY]/Uinf) + ((1-A1-A2)*dU_V_12);
+
+	doublereal dCfy_Uinf = clalpha*(-dot_alpha_pivot + (chord*a*ddot_alpha)/Uinf)/(d*Uinf);
+	doublereal rho = VAM.density;
+
+	J.Put(1, 1, rho*chord*cx_0*W[VX] + qD*( dCd_alpha*dY_V_11));
+	J.Put(1, 2, rho*chord*cx_0*W[VY] + qD*( dCd_alpha*dY_V_12));
+	J.Put(1, 3, rho*chord*cx_0*W[VZ]);
+	J.Put(2, 1, rho*chord*cy_0*W[VX] + qD*( dCl_alpha*dY_V_11 + dCfy_Uinf*W[VX]/Uinf) );
+	J.Put(2, 2, rho*chord*cy_0*W[VY] + qD*( dCl_alpha*dY_V_12 + dCfy_Uinf*W[VY]/Uinf ) );
+	J.Put(2, 3, rho*chord*cy_0*W[VZ]);
+	J.Put(3, 1, rho*chord*cz_0*W[VX]);
+	J.Put(3, 1, rho*chord*cz_0*W[VY]);
+	J.Put(3, 3, rho*chord*cz_0*W[VZ]);
+
+	/* f_{/\tilde{omega}} */
+	J.Put(1, 6, qD*dCd_alpha*(1.-A1-A2)*dU_W_13);
+	J.Put(2, 6, qD*dCl_alpha*(1.-A1-A2)*dU_W_13);
+
+	/* c_{/\tilde{v}} */
+	doublereal dCmz_Uinf = 0.5*clalpha*(\dot_alpha_pivot + ( ((chord*a)/(Uinf)) - ((chord)/(4*Uinf)) )*ddot_alpha +dot_alpha)/(d*4*Uinf);
+
+	J.Put(4, 1, rho*chord*cmx_0*W[VX]);
+	J.Put(4, 2, rho*chord*cmx_0*W[VY]);
+	J.Put(4, 3, rho*chord*cmx_0*W[VZ]);
+	J.Put(5, 1, rho*chord*cmy_0*W[VX]);
+	J.Put(5, 2, rho*chord*cmy_0*W[VY]);
+	J.Put(5, 3, rho*chord*cmy_0*W[VZ]);
+	J.Put(6, 1, rho*chord*cmz_0*W[VX] +qD*( dCm_alpha*dY_V_11 + dCmz_Uinf*W[VX]/Uinf ) );
+	J.Put(6, 2, rho*chord*cmz_0*W[VY] +qD*( dCm_alpha*dY_V_12 + dCmz_Uinf*W[VY]/Uinf ) );
+	J.Put(6, 3, rho*chord*cmz_0*W[VZ]);
+
+	/* c_{/\tilde{omega}} */
+	J.Put(6, 6, qD*dCm_alpha*(1.-A1-A2)*dU_W_13 );
 
 	AeroData::GetForcesJacForwardDiff_int(i, W, TNG, J, OUTA);
 
