@@ -1008,7 +1008,7 @@ C81TheodorsenAeroData2::AssJac(FullSubMatrixHandler& WorkMat,
 	J.Put(2, 6, qD*dCl_alpha*(1.-A1-A2)*dU_W_13);
 
 	/* c_{/\tilde{v}} */
-	doublereal dCmz_Uinf = 0.5*clalpha*(\dot_alpha_pivot + ( ((chord*a)/(Uinf)) - ((chord)/(4*Uinf)) )*ddot_alpha +dot_alpha)/(d*4*Uinf);
+	doublereal dCmz_Uinf = 0.5*clalpha*(dot_alpha_pivot + ( ((chord*a)/(Uinf)) - ((chord)/(4*Uinf)) )*ddot_alpha +dot_alpha)/(d*4*Uinf);
 
 	J.Put(4, 1, rho*chord*cmx_0*W[VX]);
 	J.Put(4, 2, rho*chord*cmx_0*W[VY]);
