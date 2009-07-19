@@ -158,6 +158,10 @@ public:
 		integer iFirstIndex, integer iFirstSubIndex,
 		const Mat3xN& vx, const Mat3xN& wx, Mat3xN& fq, Mat3xN& cq,
 		int i, const doublereal* W, doublereal* TNG, Mat6x6& J, outa_t& OUTA);
+	virtual void
+	AfterConvergence(int i,
+		const VectorHandler& X, const VectorHandler& XP);
+	
 
 	inline AeroData::UnsteadyModel Unsteady(void) const;
 };

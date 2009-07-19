@@ -885,8 +885,9 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 }
 
 void
-AerodynamicBody::AfterConvergence(const VectorHandler& /* X */ ,
-	const VectorHandler& /* XP */ )
+AerodynamicBody::AfterConvergence(
+	const VectorHandler& X,
+	const VectorHandler& XP)
 {
 	/* Memoria in caso di forze instazionarie */
 	switch (aerodata->Unsteady()) {
@@ -904,6 +905,10 @@ AerodynamicBody::AfterConvergence(const VectorHandler& /* X */ ,
 
 	default:
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	for (integer i = 0; i < GDI.iGetNum(); i++) {
+		aerodata->AfterConvergence(i, X, XP);
 	}
 }
 
@@ -1836,8 +1841,9 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 }
 
 void
-AerodynamicBeam::AfterConvergence(const VectorHandler& /* X */ ,
-	const VectorHandler& /* XP */ )
+AerodynamicBeam::AfterConvergence(
+	const VectorHandler& X,
+	const VectorHandler& XP)
 {
 	/* Memoria in caso di forze instazionarie */
 	switch (aerodata->Unsteady()) {
@@ -1855,6 +1861,10 @@ AerodynamicBeam::AfterConvergence(const VectorHandler& /* X */ ,
 
 	default:
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	for (integer i = 0; i < GDI.iGetNum(); i++) {
+		aerodata->AfterConvergence(i, X, XP);
 	}
 }
 
@@ -2734,8 +2744,9 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 }
 
 void
-AerodynamicBeam2::AfterConvergence(const VectorHandler& /* X */ ,
-	const VectorHandler& /* XP */ )
+AerodynamicBeam2::AfterConvergence(
+	const VectorHandler& X,
+	const VectorHandler& XP)
 {
 	/* Memoria in caso di forze instazionarie */
 	switch (aerodata->Unsteady()) {
@@ -2753,6 +2764,10 @@ AerodynamicBeam2::AfterConvergence(const VectorHandler& /* X */ ,
 
 	default:
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	for (integer i = 0; i < GDI.iGetNum(); i++) {
+		aerodata->AfterConvergence(i, X, XP);
 	}
 }
 

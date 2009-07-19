@@ -390,6 +390,15 @@ AeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
+void
+AeroData::AfterConvergence(
+	int i,
+	const VectorHandler& X,
+	const VectorHandler& XP)
+{
+	NO_OP;
+}
+
 /* AeroData - end */
 
 static AeroData::UnsteadyModel
