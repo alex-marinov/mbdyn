@@ -24,6 +24,8 @@ aeromodal.cc \
 aeromodal.h \
 c81data.cc \
 c81data.h \
+cyclocopter.cc \
+cyclocopter.h \
 genfm.cc \
 genfm.h \
 indvel.cc \

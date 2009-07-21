@@ -63,6 +63,8 @@ public:
 		MANGLER		= (3U | ROTOR),
 		DYNAMICINFLOW	= (4U | ROTOR),
 
+		CYCLOCOPTER	= (5U | ROTOR),
+
 		LASTROTORTYPE
 
 	};

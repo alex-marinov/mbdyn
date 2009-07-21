@@ -52,6 +52,8 @@ extern "C" {
 #endif /* USE_MPI */
 
 #include "rotor.h"
+#include "cyclocopter.h"
+
 #include "dataman.h"
 
 /* Rotor - begin */
@@ -80,8 +82,8 @@ dMu(0.), dLambda(1.), dChi(0.),
 dVelocity(0.), dOmega(0.),
 iNumSteps(0)
 {
-	Vec3 R3C((pCraft->GetRCurr()*RRot).GetVec(3));
-	Vec3 R3R((pRotor->GetRCurr()).GetVec(3));
+	Vec3 R3C(pCraft->GetRCurr()*RRot.GetVec(3));
+	Vec3 R3R(pRotor->GetRCurr().GetVec(3));
 	if (R3C.Dot(R3R) < 1. - std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("warning, possible misalignment "
 			"of rotor StructNode(" << pRotor->GetLabel() << ") "
@@ -1629,8 +1631,7 @@ ReadRotor(DataManager* pDM,
 	const DofOwner* pDO,
 	unsigned int uLabel)
 {
-     	const char sFuncName[] = "ReadRotor()";
-     	DEBUGCOUT("Entering " << sFuncName << std::endl);
+     	DEBUGCOUT("Entering ReadRotor()" << std::endl);
 
 	/* demote to pedantic; syntax changed a long ago... */
      	pedantic_cout("WARNING: the syntax changed; use a comma ',' "
@@ -1644,6 +1645,8 @@ ReadRotor(DataManager* pDM,
 			"glauert",
 			"mangler",
 			"dynamic" "inflow",
+
+			"cyclocopter",
 		NULL
      	};
 
@@ -1656,44 +1659,27 @@ ReadRotor(DataManager* pDM,
 			GLAUERT,
 			MANGLER,
 			DYNAMICINFLOW,
+
+			CYCLOCOPTER,
+
 		LASTKEYWORD
      	};
 
      	/* tabella delle parole chiave */
      	KeyTable K(HP, sKeyWords);
 
-     	/*     Velivolo */
-     	unsigned int uNode = (unsigned int)HP.GetInt();
-     	DEBUGCOUT("Craft Node: " << uNode << std::endl);
+     	/* aircraft node */
+	StructNode* pCraft = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 
-	/* verifica di esistenza del nodo */
-     	StructNode* pCraft = pDM->pFindStructNode(uNode);
-     	if (pCraft == 0) {
-	  	silent_cerr(std::endl << sFuncName
-			<< " at line " << HP.GetLineData()
-			<< ": craft structural node " << uNode
-			<< " not defined" << std::endl);
-	  	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-     	}
-
+	/* rotor orientation with respect to aircraft */
      	Mat3x3 rrot(Eye3);
      	if (HP.IsKeyWord("hinge")) {
      		ReferenceFrame RF(pCraft);
      		rrot = HP.GetRotRel(RF);
      	}
 
-     	uNode = (unsigned int)HP.GetInt();
-     	DEBUGCOUT("Rotor Node: " << uNode << std::endl);
-
-     	/* verifica di esistenza del nodo */
-     	StructNode* pRotor = pDM->pFindStructNode(uNode);
-     	if (pRotor == 0) {
-	  	silent_cerr(std::endl << sFuncName
-			<< " at line " << HP.GetLineData()
-			<< ": rotor structural node " << uNode
-			<< " not defined" << std::endl);
-	  	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-     	}
+     	/* rotor node */
+     	StructNode* pRotor = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 
 	KeyWords InducedType = NO;
      	if (HP.IsArg() && HP.IsKeyWord("induced" "velocity")) {
@@ -1722,6 +1708,12 @@ ReadRotor(DataManager* pDM,
   					ppres, dR, fOut));
 	 	break;
 	}
+
+	case CYCLOCOPTER:
+		pEl = ReadCyclocopter(pDM, HP,
+			pDO, uLabel,
+			pCraft, rrot, pRotor);
+		break;
 
     	case UNIFORM:
     	case GLAUERT:
@@ -1754,17 +1746,8 @@ ReadRotor(DataManager* pDM,
 
 		StructNode *pGround = 0;
 		if (HP.IsKeyWord("ground")) {
-			uNode = (unsigned int)HP.GetInt();
-     			DEBUGCOUT("Ground Node: " << uNode << std::endl);
-
-			/* verifica di esistenza del nodo */
-     			pGround = pDM->pFindStructNode(uNode);
-     			if (pGround == 0) {
-	  			silent_cerr("ground structural node " << uNode
-					<< " not defined at line "
-					<< HP.GetLineData()  << std::endl);
-	  			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-     			}
+			/* ground node */
+     			pGround = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 		}
 
 	 	if (InducedType == DYNAMICINFLOW) {

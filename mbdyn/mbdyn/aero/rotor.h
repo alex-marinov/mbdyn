@@ -170,9 +170,11 @@ public:
 		return Res.Couple();
 	};
 
+#if 0
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
 	virtual Vec3 GetInducedVelocity(const Vec3& X) const = 0;
+#endif
 
 	// *******PER IL SOLUTORE PARALLELO********
 	// Fornisce il tipo e la label dei nodi che sono connessi all'elemento
