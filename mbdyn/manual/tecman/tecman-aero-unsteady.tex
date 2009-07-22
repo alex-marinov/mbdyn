@@ -582,7 +582,7 @@ The perturbation of $\T{g}$ yields
 		\begin{array}{ccc}
 			\tilde{v}_x & \tilde{v}_y & \tilde{v}_z
 		\end{array} \right] +
-	\frac{1}{2} \rho \tilde{\T{v}}^T \tilde{\T{v}} 
+	\frac{1}{2} \rho \tilde{\T{v}}^T \tilde{\T{v}} c
 	\plbr{ \tilde{\T{c}}_{{f_{a}}_{/\T{y}}} \T{y}_{/\tilde{\T{v}}} + 
 	\tilde{\T{c}}_{{f_{a}}_{/U_{\infty}}} {U_\infty}_{/\tilde{\T{v}}} } 
 \end{equation}
@@ -668,11 +668,11 @@ where
 		
 \begin{equation}
 {\T{\tilde{c}}_a}_{/\tilde{\T{v}}} = 
-	\rho c \tilde{\T{c}}_{c_{a}} \left[
+	\rho c^2 \tilde{\T{c}}_{c_{a}} \left[
 		\begin{array}{ccc}
 			\tilde{v}_x & \tilde{v}_y & \tilde{v}_z
 		\end{array} \right] +
-	\frac{1}{2} \rho \tilde{\T{v}}^T \tilde{\T{v}} 
+	\frac{1}{2} \rho \tilde{\T{v}}^T \tilde{\T{v}} c^2
 	\plbr{ \tilde{\T{c}}_{{c_{a}}_{/\T{y}}} \T{y}_{/\tilde{\T{v}}} + 
 	\tilde{\T{c}}_{{c_{a}}_{/U_{\infty}}} {U_\infty}_{/\tilde{\T{v}}} } 
 \end{equation}
@@ -683,7 +683,7 @@ where
 		0 \\
 		0 \\
 		\frac{c_{l_{\alpha}}}{2} \frac{c}{2} \frac{1}{4 U_\infty^2} 
-		\plbr{ y_2 + \plbr{ \frac{c a}{U_\infty} - \frac{c}{4 U_\infty} } y_3 +y_4}
+		\plbr{ y_2 - \plbr{ \frac{c a}{U_\infty} - \frac{c}{4 U_\infty} } y_3 +y_4}
 	\end{array} \right\}
 \end{equation}
 
@@ -694,7 +694,7 @@ where
 		0 & 0 & 0 & 0 \\
 		\frac{ d c_m^{\text{lookup}}}{d \alpha} & 
 			-\frac{1}{4} \frac{c_{l_{\alpha}}}{2} \frac{c}{2 U_\infty} &
-			\frac{c_{l_{\alpha}}}{2} \frac{ c a}{2 U_\infty} \plbr{ \frac{c a}{8 U_\infty} -\frac{c}{32 U_\infty}} &
+			\frac{c_{l_{\alpha}}}{2} \frac{c}{2 U_\infty} \plbr{ \frac{c a}{8 U_\infty} -\frac{c}{32 U_\infty}} &
 			-\frac{1}{4} \frac{c_{l_{\alpha}}}{2} \frac{c}{2 U_\infty} 
 	\end{array} \right]
 \end{equation}
@@ -709,6 +709,443 @@ where
 {\T{\tilde{c}}_a}_{/\T{q}} = 
 	\frac{1}{2} \rho \tilde{\T{v}}^T \tilde{\T{v}} 
 	\plbr{ \tilde{\T{c}}_{{c_{a}}_{/\T{y}}} \T{y}_{/\T{q}} } 
+\end{equation}
+\subsubsection{Perturbation of $\T{\tilde{c}}_a$ with respect to $\T{\dot{q}}$}
+\begin{equation}
+{\T{\tilde{c}}_a}_{/\T{\dot{q}}} = \T{0}
+\end{equation}
+
+\subsection{Finite difference version}
+
+A reduced state-space model, with just 2 states instead of 6 states, can be
+used deleting the pseudo-derivative algorithm and computing the derivate using
+the backward finite diffenence.
+
+The set of equations that descibes the unsteady aerodynamic loads is still the same:
+\begin{subequations}
+\begin{align}
+	\tilde{\T{f}}_a &= 
+		\frac{1}{2} \rho \tilde{\T{v}}^T \tilde{\T{v}} c
+		\tilde{\T{c}}_{f_{a}}
+		\plbr{ y 
+		\plbr{ \tilde{\T{v}}, \tilde{\T{\omega}}, \T{q}}, U_\infty}\\
+	\tilde{\T{c}}_a &= 
+		\frac{1}{2} \rho \tilde{\T{v}}^T \tilde{\T{v}} c^2
+		\tilde{\T{c}}_{c_{a}} 
+		\plbr{ y 
+		\plbr{ \tilde{\T{v}}, \tilde{\T{\omega}}, \T{q}}, U_\infty}\\
+	\T{0} &=
+		\T{g}\plbr{\tilde{\T{v}},\tilde{\T{\omega}},\T{q}, \dot{\T{q}}} = 
+		\dot{\T{q}} - \T{A}\plbr{U_\infty} \T{q} - \T{B}
+ 		u\plbr{\tilde{\T{v}}, \tilde{\T{\omega}}},
+\end{align}
+\end{subequations}
+where $\rho$ is the air density, $c$ the airfoil chord and $\T{y}$ is defined as:
+\begin{equation}
+	y = \TT{C}\plbr{U_\infty} \T{q} + \TT{D} 
+ 		u\plbr{\tilde{\T{v}}, \tilde{\T{\omega}}}.
+\end{equation}
+
+In this case the matrix $\TT{A}$ is:
+\begin{equation}
+	\footnotesize
+	\TT{A} = \left[
+		\begin{array}{cc}
+		0 & 1 \\
+		-b_1 b_2 \plbr{ \frac{2U_\infty}{c}}^2 & -\plbr{ b_1 + b_2} \plbr{\frac{2 U_\infty}{c}}
+		\end{array}
+		\right],
+\end{equation}
+where $A_1$, $A_2$, $b_1$ and $b_2$ are the coefficients of the Theodorsen
+function approximation (Table~\ref{tab:aero:unsteady:theodorsen-coeffs}
+from \cite{BIELAWA92} and \cite{LEISHMAN-2006}),
+
+The matrix $\TT{B}$ is simply:
+\begin{equation}
+	\TT{B} = \left[
+		\begin{array}{c}
+			0  \\
+			1 
+		\end{array}
+		\right],
+\end{equation}
+Whereas the input of the system $u$ is the angle of attack computed
+at the 3/4 chord point:
+\begin{equation}
+	u = \tan^{-1} \plbr{ \frac{-V_y - \omega_z d_{3/4}}{V_x}}
+\end{equation}
+
+The $\TT{C}$ matrix is:
+\begin{equation}
+	\T{C} = \left[
+		\begin{array}{cc}
+		\left(A_1+A_2\right)b_1 b_2 \left( \frac{2 U_\infty}{c}\right)^2 &
+		 \left(A_1  b_1 + A_2 b_2 \right) \left( \frac{2 U_\infty}{c}\right) 
+		\end{array}
+		\right].
+\end{equation}
+and the $\TT{D}$ matrix:
+\begin{equation}
+	\T{D} = \left[
+		\begin{array}{cc}
+		\left( 1 -A_1 - A_2 \right) 
+		\end{array}
+		\right].
+\end{equation}
+Using the otuput $\T{y}$ of this SISO state-space model as input 
+for the lookup table the circulatory part of the unsteady loads is
+computed.
+
+The non-circulatory part is computed starting from the angle of attack
+computed at 1/4 chord ($u_1$) and 3/4 chord ($u_2$):
+\begin{equation}
+\left\{
+	\begin{array}{c}
+		\alpha_{pivot} \\
+		\dot{\alpha}
+	\end{array}
+\right\} = 
+\left[
+	\begin{array}{cc}
+		1 & -\frac{d_{1/4}}{U_\infty}\\
+		1 & -\frac{d_{3/4}}{U_\infty}
+	\end{array}
+\right]^{-1} 
+\left\{
+	\begin{array}{c}
+		u_1 \\
+		u_2
+	\end{array}
+\right\} = \frac{1}{d_{3/4}-d_{1/4}} 
+\left[
+	\begin{array}{cc}
+		d_{3/4} & -d_{1/4}\\
+		U_\infty & U_\infty
+	\end{array}
+\right]
+\left\{
+	\begin{array}{c}
+		u_1 \\
+		u_2
+	\end{array}
+\right\}
+\end{equation}
+where:
+\begin{equation}
+	\T{u} = \cubr{\cvvect{
+		\tan^{-1} \plbr{ \frac{-V_y - \omega_z d_{1/4}}{V_x}}\\
+		\tan^{-1} \plbr{ \frac{-V_y - \omega_z d_{3/4}}{V_x}}\\
+	}}
+\end{equation}
+
+Thus, the aerodynamic coefficients result:
+\begin{equation}
+	\tilde{\T{c}}_{f_{a}} = 
+		\T{c}_{f_a}^\text{lookup}\plbr{y} +
+		\cubr{\cvvect{
+			0 \\
+			\frac{c_{l_\alpha}}{2} \frac{c}{2 U_\infty} \plbr{ \dot{\alpha}_{pivot} - \frac{c a}{2 U_\infty} \ddot{\alpha}} \\ 
+			0
+		}}.
+\end{equation}
+\begin{equation}
+	\tilde{\T{c}}_{c_{a}} = 
+		\T{c}_{c_a}^\text{lookup}\plbr{y} + \left\{
+		\begin{array}{c}
+		0 \\ 0\\
+		\frac{c_{l_\alpha}}{2} \frac{c}{2 U_\infty}
+		 \plbr{ -\frac{1}{4} \dot{\alpha}_{pivot} +
+		\plbr{\frac{ c a}{8 U_\infty} - \frac{c}{32 U_\infty} } \ddot{\alpha}
+		-\frac{1}{4} \dot{\alpha}}
+		\end{array}
+		\right\}.
+\end{equation}
+In order to compute the aerodynamic coefficients $\dot{\alpha}_{pivot}$ and $\ddot{\alpha}$ are
+necessary and they can be computed using the backward finite difference:
+\begin{equation}
+\left\{
+	\begin{array}{c}
+		\dot{\alpha}_{pivot} \\
+		\ddot{\alpha}
+	\end{array}
+\right\} = 
+\frac{1}{\Delta t} \left(
+\left\{
+	\begin{array}{c}
+		\alpha_{pivot} \\
+		\dot{\alpha}
+	\end{array}
+\right\}_k - 
+\left\{
+	\begin{array}{c}
+		\alpha_{pivot} \\
+		\dot{\alpha}
+	\end{array}
+\right\}_{k-1}
+\right)
+\end{equation} 
+\subsection{Perturbation of the equations}
+
+\subsubsection{Perturbation of $\T{g}$ with respect to $\tilde{\T{v}}$}
+The perturbation of $\T{g}$ is:
+%\begin{equation}
+%\T{g}_{/\tilde{\T{v}}} = 
+%	-\T{A}_{/U_\infty} {U_\infty}_{/\tilde{\T{v}}} \T{q}	
+%	-\T{B}_{/U_\infty} {U_\infty}_{/\tilde{\T{v}}} \T{u}
+%	-\T{B} \T{u}_{/\tilde{\T{v}}}.
+%\end{equation}
+\begin{equation}\label{eq:g_v}
+\T{g}_{/\tilde{\T{v}}} = 
+	- \T{A}_{/U_\infty} \T{q} 
+	{U_\infty}_{/\tilde{\T{v}}}
+	-\T{B} u_{/\tilde{\T{v}}}.
+\end{equation}
+where, accordingly with the previous definition of the matrices the derivatives are:
+\begin{equation}
+\T{A}_{/U_\infty} = \left[
+	\begin{array}{cccccc}
+	0 & 0\\
+	-b_1 b_2 \frac{8}{c^2} U_\infty & -\left( b_1 + b_2 \right) \frac{2}{c}
+	\end{array}
+	\right]
+\end{equation}
+	
+\begin{equation}
+	{U_\infty}_{/\tilde{\T{v}}} = \left[
+	\begin{array}{ccc}
+		\frac{\tilde{v}_x}{U_\infty} &
+		\frac{\tilde{v}_y}{U_\infty} &
+		0
+	\end{array}
+	\right]
+\end{equation}
+
+\begin{equation}
+	u_{/\tilde{\T{v}}} = \left[
+	\begin{array}{ccc}
+	\frac{\tilde{v}_y + \tilde{\omega}_z d_{3/4}}{\tilde{v}_x^2 + \tilde{v}_y^2 + 
+		\tilde{\omega}_z^2 d_{3/4}^2 + 2 \tilde{v}_y \tilde{\omega}_z d_{3/4}} &
+	\frac{-\tilde{v}_x}{\tilde{v}_x^2 + \tilde{v}_y^2 + 
+		\tilde{\omega}_z^2 d_{3/4}^2 + 2 \tilde{v}_y \tilde{\omega}_z d_{3/4}} &
+	0
+	\end{array}
+	\right]
+\end{equation}
+We can now explicitly perform the computation of each term of Eq.~\ref{eq:g_v}:
+\begin{align}
+&\T{A}_{U_\infty} \T{q}  {U_\infty}_{/\tilde{v}}
+	= \left\{
+		\begin{array}{c}
+			0 \\
+			-b_1 b_2 \frac{8}{c^2} U_\infty q_1 - \plbr{b_1+b_2} \frac{2}{c} q_2 \\
+		\end{array}\right\}
+		\left\{
+		\begin{array}{ccc}
+			\frac{\tilde{v}_x}{U_\infty} &
+			\frac{\tilde{v}_x}{U_\infty} &
+			0
+		\end{array}\right\} \\
+	&= \left[
+		\begin{array}{ccc}
+			0 & 0 & 0\\
+			\plbr{-b_1 b_2 \frac{8}{c^2} U_\infty q_1 - \plbr{b_1+b_2} \frac{2}{c} q_2} \frac{\tilde{v}_x}{U_\infty} &
+			\plbr{-b_1 b_2 \frac{8}{c^2} U_\infty q_1 - \plbr{b_1+b_2} \frac{2}{c} q_2} \frac{\tilde{v}_y}{U_\infty} & 0\\
+		\end{array} \right]
+\end{align}
+wheres the second is:
+\begin{equation}
+\T{B} u_{/\tilde{\T{v}}} = \left[
+	\begin{array}{ccc}
+		0 & 0 & 0 \\
+		u_{/\tilde{\T{v}}}\plbr{1,1} &
+		u_{/\tilde{\T{v}}}\plbr{1,2} & 0 \\
+	\end{array} \right]
+\end{equation}
+So, the jacobian matrix $\T{g}_{/\tilde{\T{v}}}$ results:
+\begin{equation}
+\T{g}_{/\tilde{\T{v}}} = \left[
+	\begin{array}{ccc}
+		0 & 0 & 0 \\
+		\T{g}_{/\tilde{\T{v}}}\plbr{2,1} &
+		\T{g}_{/\tilde{\T{v}}}\plbr{2,2} & 0 \\
+	\end{array} \right]
+\end{equation}
+where the matrix elements are:
+\begin{equation}
+\T{g}_{/\tilde{\T{v}}}\plbr{2,1}  = 
+-\plbr{-b_1 b_2 \frac{8}{c^2} U_\infty q_1 - \plbr{b_1+b_2} \frac{2}{c} q_2} \frac{\tilde{v}_x}{U_\infty} 
+-u_{/\tilde{\T{v}}}\plbr{1,1}
+\end{equation}
+\begin{equation}
+\T{g}_{/\tilde{\T{v}}}\plbr{2,2}  = 
+-\plbr{-b_1 b_2 \frac{8}{c^2} U_\infty q_1 - \plbr{b_1+b_2} \frac{2}{c} q_2} \frac{\tilde{v}_y}{U_\infty} 
+-u_{/\tilde{\T{v}}}\plbr{1,2}
+\end{equation}
+
+
+\subsubsection{Perturbation of $\T{g}$ with respect to $\tilde{\T{\omega}}$}
+The perturbation of $\T{g}$ is:
+	
+
+\begin{equation}
+\T{g}_{/\tilde{\T{\omega}}} = 
+	-\T{B} u_{/\tilde{\T{\omega}}}.
+\end{equation}
+Where:
+\begin{equation}
+	u_{/\tilde{\T{\omega}}} = \left[
+	\begin{array}{ccc}
+	0 & 0 &
+	\frac{-\tilde{v}_x d_{3/4}}{\tilde{v}_x^2 + \tilde{v}_y^2 + 
+		\tilde{\omega}_z^2 d_{3/4}^2 + 2 \tilde{v}_y \tilde{\omega}_z d_{3/4}} 
+	\end{array}
+	\right]
+\end{equation}
+Thus, it results:
+\begin{equation}
+	\T{g}_{/\tilde{\T{\omega}}} = \left[
+		\begin{array}{ccc}
+			0 & 0 & 0\\
+			0 & 0 & -u_{/\tilde{\T{\omega}}}\plbr{1,3} \\
+		\end{array} \right]
+\end{equation}
+			
+
+\subsubsection{Perturbation of $\T{g}$ with respect to $\T{q}$}
+The perturbation of $\T{g}$ is simply:
+\begin{equation}
+\T{g}_{/{\T{q}}} = -\T{A}
+\end{equation}
+\subsubsection{Perturbation of $\T{g}$ with respect to $\T{\dot{q}}$}
+The perturbation of $\T{g}$ is simply:
+\begin{equation}
+\T{g}_{/{\T{\dot{q}}}} = \T{I}
+\end{equation}
+
+\subsection{Perturbation of the aerodynamic forces}
+
+\subsubsection{Perturbation of $\T{\tilde{f}}_a$ with respect to $\tilde{\T{v}}$}
+
+
+\begin{equation}
+{\T{\tilde{f}}_a}_{/\tilde{\T{v}}} = 
+	\rho c \tilde{\T{c}}_{f_{a}} \left[
+		\begin{array}{ccc}
+			\tilde{v}_x & \tilde{v}_y & \tilde{v}_z
+		\end{array} \right] +
+	\frac{1}{2} \rho \tilde{\T{v}}^T \tilde{\T{v}} c
+	\plbr{ \tilde{\T{c}}_{{f_{a}}_{/y}} y_{/\tilde{\T{v}}} + 
+	\tilde{\T{c}}_{{f_{a}}_{/U_{\infty}}} {U_\infty}_{/\tilde{\T{v}}} } 
+\end{equation}
+where:
+\begin{equation}
+y_{/\tilde{\T{v}}} = 
+	\T{C}_{/U_{\infty}} \T{q}{U_\infty}_{/\tilde{\T{v}}}
+	+ \T{D} u_{/\tilde{\T{v}}}
+\end{equation}
+
+
+\begin{equation}
+\T{C}_{/U_\infty} = \left[
+	\begin{array}{cccccc}
+	\plbr{ A_1 + A_2} b_1 b_2 \frac{8}{c^2} U_\infty & \plbr{ A_1 b_1 + A_2 b_2} \frac{2}{c}\\
+	\end{array}
+	\right]
+\end{equation}
+
+\begin{equation}
+\tilde{\T{c}}_{{f_{a}}_{/U_{\infty}}} = \left\{
+	\begin{array}{c}
+		0 \\
+		\frac{C_{l_{\alpha}}}{2} \frac{c}{2} \frac{1}{U_\infty^2} 
+		\plbr{ -\dot{\alpha}_{pivot} + \frac{c a}{U_\infty} \ddot{\alpha}} \\
+		0
+	\end{array} \right\}
+\end{equation}
+
+\begin{equation}
+\tilde{\T{c}}_{{f_{a}}_{/y}} = \left\{
+	\begin{array}{cccc}
+		\frac{ d c_d^{\text{lookup}}}{d \alpha}\\
+		\frac{ d c_l^{\text{lookup}}}{d \alpha}\\
+		0
+	\end{array} \right\}
+\end{equation}
+where the dependence of $\dot{\alpha}_{pivot}$, $\dot{\alpha}$ and $\ddot{\alpha}$ is 
+neglected.
+
+\subsubsection{Perturbation of $\T{\tilde{f}}_a$ with respect to $\tilde{\T{\omega}}$}
+\begin{equation}
+{\T{\tilde{f}}_a}_{/\tilde{\T{\omega}}} = 
+	\frac{1}{2} \rho \tilde{\T{v}}^T \tilde{\T{v}} 
+	\plbr{ \tilde{\T{c}}_{{f_{a}}_{/\T{y}}} y_{/\tilde{\T{\omega}}} } 
+\end{equation}
+where:
+\begin{equation}
+y_{/\tilde{\T{\omega}}} = 
+	\T{D} u_{/\tilde{\T{\omega}}}
+\end{equation}
+\subsubsection{Perturbation of $\T{\tilde{f}}_a$ with respect to $\T{q}$}
+\begin{equation}
+{\T{\tilde{f}}_a}_{/\T{q}} = 
+	\frac{1}{2} \rho \tilde{\T{v}}^T \tilde{\T{v}} 
+	\plbr{ \tilde{\T{c}}_{{f_{a}}_{/y}} \T{y}_{/\T{q}} } 
+\end{equation}
+where:
+\begin{equation}
+y_{/\T{q}} = \T{C} 
+\end{equation}
+
+\subsubsection{Perturbation of $\T{\tilde{f}}_a$ with respect to $\T{\dot{q}}$}
+\begin{equation}
+{\T{\tilde{f}}_a}_{/\T{\dot{q}}} = \T{0}
+\end{equation}
+
+\subsection{Perturbation of the aerodynamic moments}
+\subsubsection{Perturbation of $\T{\tilde{c}}_a$ with respect to $\tilde{\T{v}}$}
+		
+\begin{equation}
+{\T{\tilde{c}}_a}_{/\tilde{\T{v}}} = 
+	\rho c^2 \tilde{\T{c}}_{c_{a}} \left[
+		\begin{array}{ccc}
+			\tilde{v}_x & \tilde{v}_y & \tilde{v}_z
+		\end{array} \right] +
+	\frac{1}{2} \rho \tilde{\T{v}}^T \tilde{\T{v}} c^2
+	\plbr{ \tilde{\T{c}}_{{c_{a}}_{/y}} y_{/\tilde{\T{v}}} + 
+	\tilde{\T{c}}_{{c_{a}}_{/U_{\infty}}} {U_\infty}_{/\tilde{\T{v}}} } 
+\end{equation}
+
+\begin{equation}
+\tilde{\T{c}}_{{c_{a}}_{/U_{\infty}}} = \left\{
+	\begin{array}{c}
+		0 \\
+		0 \\
+		\frac{c_{l_{\alpha}}}{2} \frac{c}{2} \frac{1}{4 U_\infty^2} 
+		\plbr{ \dot{\alpha}_{pivot} - \plbr{ \frac{c a}{U_\infty} - \frac{c}{4 U_\infty} } \ddot{\alpha} + \dot{\alpha}}
+	\end{array} \right\}
+\end{equation}
+
+\begin{equation}
+\tilde{\T{c}}_{{c_{a}}_{/y}} = \left[
+	\begin{array}{cccc}
+		0\\
+		0\\
+		\frac{ d c_m^{\text{lookup}}}{d \alpha} 
+	\end{array} \right]
+\end{equation}
+where again the dependence of $\dot{\alpha}_{pivot}$, $\dot{\alpha}$ and $\ddot{\alpha}$ is 
+neglected.
+\subsubsection{Perturbation of $\T{\tilde{c}}_a$ with respect to $\tilde{\T{\omega}}$}
+\begin{equation}
+{\T{\tilde{c}}_a}_{/\tilde{\T{\omega}}} = 
+	\frac{1}{2} \rho \tilde{\T{v}}^T \tilde{\T{v}} 
+	\plbr{ \tilde{\T{c}}_{{c_{a}}_{/y}} y_{/\tilde{\T{\omega}}} } 
+\end{equation}
+\subsubsection{Perturbation of $\T{\tilde{c}}_a$ with respect to $\T{q}$}
+\begin{equation}
+{\T{\tilde{c}}_a}_{/\T{q}} = 
+	\frac{1}{2} \rho \tilde{\T{v}}^T \tilde{\T{v}} 
+	\plbr{ \tilde{\T{c}}_{{c_{a}}_{/y}} y_{/\T{q}} } 
 \end{equation}
 \subsubsection{Perturbation of $\T{\tilde{c}}_a$ with respect to $\T{\dot{q}}$}
 \begin{equation}
