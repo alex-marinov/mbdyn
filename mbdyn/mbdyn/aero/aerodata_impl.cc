@@ -695,7 +695,7 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	/* computing the derivative of the aerodynamic coefficient in the lookup table
  	 * using the finite difference method */
 	/* perturbazione per calcolo delle derivare con le differenze finite */
-	doublereal dDeltaY1 = 0.1*M_PI/180.;
+	doublereal dDeltaY1 = 1.*M_PI/180.;
 	doublereal y1d = y1 + dDeltaY1;
 	doublereal tan_y1 = std::tan(y1d);
 	doublereal Vxp2 = Uinf*Uinf - pow(W[VX]*tan_y1, 2) - std::pow(d34*W[WZ], 2);
@@ -1165,7 +1165,7 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	/* computing the derivative of the aerodynamic coefficient in the lookup table
  	 * using the finite difference method */
 	/* perturbazione per calcolo delle derivare con le differenze finite */
-	doublereal dDeltaY1 = 0.1*M_PI/180.;
+	doublereal dDeltaY1 = 1.*M_PI/180.;
 	doublereal y1d = y1 + dDeltaY1;
 	doublereal tan_y1 = std::tan(y1d);
 	doublereal Vxp2 = Uinf*Uinf - pow(W[VX]*tan_y1, 2) - std::pow(d34*W[WZ], 2);
