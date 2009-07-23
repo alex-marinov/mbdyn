@@ -45,7 +45,7 @@
 /* AeroMemory - begin */
 
 AeroMemory::AeroMemory(DriveCaller *pt)
-: a(0), t(0), iPoints(0), pTime(pt), numUpdates(0)
+: a(0), t(0), iPoints(0), numUpdates(0), pTime(pt)
 {
 	NO_OP;
 }

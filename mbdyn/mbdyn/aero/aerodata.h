@@ -64,8 +64,9 @@ private:
 	int		numUpdates;
 
 protected:
-	virtual int StorageSize(void) const = 0;
 	DriveCaller	*pTime;
+
+	virtual int StorageSize(void) const = 0;
 
 public:
 	AeroMemory(DriveCaller *pt);

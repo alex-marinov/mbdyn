@@ -1045,7 +1045,7 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	doublereal UUinf2 = Uinf*Uinf + W[VZ]*W[VZ];
 	doublereal qD = .5*VAM.density*UUinf2;
 
-	doublereal u1 = atan2(- W[VY] - W[WZ]*d14, W[VX]);
+	// doublereal u1 = atan2(- W[VY] - W[WZ]*d14, W[VX]);
 	doublereal u2 = atan2(- W[VY] - W[WZ]*d34, W[VX]);
 
 	doublereal y1 = (A1 + A2)*b1*b2*d*d*q1 + (A1*b1 + A2*b2)*d*q2
@@ -1084,9 +1084,9 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	dG_W_23 = -dU_W_13;
 
 	/* assembling the jacobian */
-	unsigned int iIndexColumn;
+	int iIndexColumn;
 	/* faccio i calcoli tenendo conto della sparsità della matrice g_{\/\tilde{v}} */
-	for( iIndexColumn = 1; iIndexColumn <= vx.iGetNumCols(); iIndexColumn++){
+	for (iIndexColumn = 1; iIndexColumn <= vx.iGetNumCols(); iIndexColumn++){
 		WorkMat.IncCoef(iFirstSubIndex+2, iIndexColumn, dG_V_21*vx(1,iIndexColumn) + dG_V_22*vx(2,iIndexColumn));
 		WorkMat.IncCoef(iFirstSubIndex+2, iIndexColumn, dG_W_23*wx(3,iIndexColumn));
 	}
@@ -1203,9 +1203,8 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	printf("%lf %lf\n", cq(3,1), cq(3,2));
 
 	printf("J matrix\n");
-	doublereal iii, jjj;
-	for( iii=1; iii<=6; iii++){
-		for( jjj=1; jjj<=6; jjj++){
+	for( int iii=1; iii<=6; iii++){
+		for( int jjj=1; jjj<=6; jjj++){
 			printf("%lf ", J(iii,jjj));
 		}
 		printf("\n");
@@ -1214,7 +1213,7 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	FILE *fd;
 	fd = fopen("/home/mattia/work/mbdyn/mbdyn/aero/UnsteadyAeroJ_test/X.mat","w");
 	printf("DATI X\n");
-	for( iii=1; iii<=2; iii++){
+	for( int iii=1; iii<=2; iii++){
 		printf("%lf ", XCurr(iFirstIndex+iii));
 		fprintf(fd,"%15.7e ", XCurr(iFirstIndex+iii));
 	}
@@ -1222,7 +1221,7 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	fd = fopen("/home/mattia/work/mbdyn/mbdyn/aero/UnsteadyAeroJ_test/XP.mat","w");
 	printf("\n");
 	printf("DATI XP\n");
-	for( iii=1; iii<=2; iii++){
+	for( int iii=1; iii<=2; iii++){
 		printf("%lf ", XPrimeCurr(iFirstIndex+iii));
 		fprintf(fd,"%15.7e ", XPrimeCurr(iFirstIndex+iii));
 	}
