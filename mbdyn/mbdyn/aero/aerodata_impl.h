@@ -36,7 +36,7 @@
 
 //#define USE_UNSTEADY_6STATES
 #define USE_UNSTEADY_2STATES
-#define DEBUG_JACOBIAN_UNSTEADY
+//#define DEBUG_JACOBIAN_UNSTEADY
 
 /* STAHRAeroData - begin */
 
