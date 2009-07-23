@@ -34,6 +34,10 @@
 
 #include "aerodata.h"
 
+//#define USE_UNSTEADY_6STATES
+#define USE_UNSTEADY_2STATES
+#define DEBUG_JACOBIAN_UNSTEADY
+
 /* STAHRAeroData - begin */
 
 class STAHRAeroData : public AeroData {
@@ -149,26 +153,23 @@ public:
 
 #endif /* USE_C81INTERPOLATEDAERODATA */
 
+#ifdef USE_UNSTEADY_6STATES
+
 /* C81TheodorsenAeroData - begin */
 
 class C81TheodorsenAeroData : public C81AeroData {
 protected:
 	integer iParam;
 	doublereal omegaPD;
-	doublereal q1, q2;
 	doublereal d14, d34;
 	doublereal chord;
 	doublereal a;
-	doublereal Uinf, qD;
 	doublereal A1, A2, b1, b2;
-	doublereal u1, u2;
-	doublereal d;
-	doublereal y1, y2, y3, y4;
 	doublereal cx_0, cy_0, cz_0, cmx_0, cmy_0, cmz_0;
 	doublereal clalpha;
 
 public:
-	C81TheodorsenAeroData(integer p, const c81_data* d, doublereal omegaPD);
+	C81TheodorsenAeroData(integer p, const c81_data* d, doublereal omegaPD, DriveCaller *ptime = 0);
 	virtual ~C81TheodorsenAeroData(void);
 
 	virtual std::ostream& Restart(std::ostream& out) const;
@@ -195,29 +196,28 @@ public:
 
 /* C81TheodorsenAeroData - end */
 
-/* C81TheodorsenAeroData2 - begin */
+#endif /* USE_UNSTEADY_6STATES */
 
-class C81TheodorsenAeroData2 : public C81AeroData {
+#ifdef USE_UNSTEADY_2STATES
+
+/* C81TheodorsenAeroData - begin */
+
+class C81TheodorsenAeroData : public C81AeroData {
 protected:
 	integer iParam;
 	doublereal omegaPD;
-	doublereal q1, q2;
 	doublereal d14, d34;
 	doublereal chord;
 	doublereal a;
-	doublereal Uinf, qD;
 	doublereal A1, A2, b1, b2;
-	doublereal u1, u2;
-	doublereal d;
-	doublereal y1;
-	doublereal dot_alpha_pivot, dot_alpha, ddot_alpha;
+	doublereal alpha_pivot, dot_alpha_pivot, dot_alpha, ddot_alpha;
 	doublereal cx_0, cy_0, cz_0, cmx_0, cmy_0, cmz_0;
 	doublereal clalpha;
-	doublereal prev_alpha_pivot, prev_dot_alpha;
+	doublereal prev_alpha_pivot, prev_dot_alpha, prev_time;
 
 public:
-	C81TheodorsenAeroData2(integer p, const c81_data* d, doublereal omegaPD);
-	virtual ~C81TheodorsenAeroData2(void);
+	C81TheodorsenAeroData(integer p, const c81_data* d, doublereal omegaPD, DriveCaller *ptime = 0);
+	virtual ~C81TheodorsenAeroData(void);
 
 	virtual std::ostream& Restart(std::ostream& out) const;
 
@@ -239,9 +239,13 @@ public:
 		integer iFirstIndex, integer iFirstSubIndex,
 		const Mat3xN& vx, const Mat3xN& wx, Mat3xN& fq, Mat3xN& cq,
 		int i, const doublereal* W, doublereal* TNG, Mat6x6& J, outa_t& OUTA);
+	virtual void
+	AfterConvergence( int i, const VectorHandler& X, const VectorHandler& XP );
 };
 
-/* C81TheodorsenAeroData2 - end */
+/* C81TheodorsenAeroData - end */
+
+#endif /* USE_UNSTEADY_2STATES */
 
 #endif // AERODATA_IMPL_H
 

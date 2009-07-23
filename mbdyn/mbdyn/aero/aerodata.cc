@@ -692,10 +692,15 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP,
 	  		integer iProfile = HP.GetInt();
 		  	const c81_data* data = HP.GetC81Data(iProfile);
 			doublereal omegaPD = HP.GetReal();
+			DriveCaller *ptime = NULL;
+			
+			SAFENEWWITHCONSTRUCTOR(ptime,
+					TimeDriveCaller,
+					TimeDriveCaller(pDM->pGetDrvHdl()));
 
 	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
 				C81TheodorsenAeroData,
-				C81TheodorsenAeroData(iProfile, data, omegaPD));
+				C81TheodorsenAeroData(iProfile, data, omegaPD, ptime));
 			} break;
 		}
 
