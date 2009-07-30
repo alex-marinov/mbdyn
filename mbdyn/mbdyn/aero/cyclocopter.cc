@@ -553,7 +553,7 @@ CyclocopterKARI::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {	
-	NO_OP;
+	return WorkVec;
 }
 
 #if 0
