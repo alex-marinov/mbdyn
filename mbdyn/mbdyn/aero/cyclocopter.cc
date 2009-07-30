@@ -140,7 +140,7 @@ CyclocopterNoInflow::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, con
 {
 	/* Sole se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {
-		Res.AddForces(F,M,X);
+		Res.AddForces(F, M, X);
 		InducedVelocity::AddForce(uL, F, M, X);
 	}
 }
@@ -286,13 +286,9 @@ CyclocopterUniform1D::AssRes(SubVectorHandler& WorkVec,
 	doublereal dTz= RRot3*Res.Force();
 	
 	doublereal dRho = dGetAirDensity(GetXCurr());
-	if( dTz <= 0.){
-		dUind = -sqrt((-dTz)/(2*dRho*dArea));
-	}else{
-		dUind = sqrt((dTz)/(2*dRho*dArea));
-	}
+	dUind = copysign(std::sqrt(std::abs(dTz)/(2*dRho*dArea)), dTz);
 
-	dUind = (1-dWeight)*dUind+dWeight*dUindPrev;
+	dUind = (1 - dWeight)*dUind + dWeight*dUindPrev;
 	
 	ResetForce();
 	WorkVec.Resize(0);	
@@ -305,7 +301,7 @@ CyclocopterUniform1D::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, co
 {
 	/* Sole se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {
-		Res.AddForces(F,M,X);
+		Res.AddForces(F, M, X);
 		InducedVelocity::AddForce(uL, F, M, X);
 	} else {
 		Res.AddForce(F);
@@ -400,8 +396,8 @@ CyclocopterUniform2D::Output(OutputHandler& OH) const
 
                 OH.Rotors()
                         << std::setw(8) << GetLabel()   /* 1 */
-                        << " " << RRotorTranspose*Res.Force()     /* 2-4 */
-                        << " " << RRotorTranspose*Res.Couple()    /* 5-7 */
+                        << " " << RRotor.MulTV(Res.Force())     /* 2-4 */
+                        << " " << RRotor.MulTV(Res.Couple())    /* 5-7 */
                         << " " << dUindMagnitude               	 /* 8 */
                         << " " << dUind                	 /* 9 -11*/
                         << " " << "0."                	 /* 12 */
@@ -446,14 +442,13 @@ CyclocopterUniform2D::AssRes(SubVectorHandler& WorkVec,
 	/* UNIFORM induced velocity */
 	/* Trasporta della matrice di rotazione del rotore */
 	RRotor = pCraft->GetRCurr()*RRot;
-	RRotorTranspose = RRotor.Transpose();
 	/* Forze nel sistema rotore */
-	Vec3 F = RRotorTranspose*Res.Force();
+	Vec3 F = RRotor.MulTV(Res.Force());
 	/* Forza nel piano normale all'asse di rotazione */
-	doublereal dT= sqrt( F(2)*F(2)+F(3)*F(3) );
+	doublereal dT= sqrt(F(2)*F(2) + F(3)*F(3));
 	/* Velocità indotta: calcolata in base alla dT */
 	doublereal dRho = dGetAirDensity(GetXCurr());
-	dUindMagnitude = sqrt( dT/(2*dRho*dArea) );
+	dUindMagnitude = sqrt(dT/(2*dRho*dArea));
 	/* Componenti della velocità indotta nel sistema 
 	 * rotore */
 	dUind = 0.;
@@ -461,13 +456,12 @@ CyclocopterUniform2D::AssRes(SubVectorHandler& WorkVec,
 		dUind(2) = dUindMagnitude*F(2)/dT;
 		dUind(3) = dUindMagnitude*F(3)/dT;
 	}
-	dUind(1) = (1-dWeight)*dUind(1)+dWeight*dUindPrev(1);
-	dUind(2) = (1-dWeight)*dUind(2)+dWeight*dUindPrev(2);
-	dUind(3) = (1-dWeight)*dUind(3)+dWeight*dUindPrev(3);
+	dUind(1) = (1 - dWeight)*dUind(1) + dWeight*dUindPrev(1);
+	dUind(2) = (1 - dWeight)*dUind(2) + dWeight*dUindPrev(2);
+	dUind(3) = (1 - dWeight)*dUind(3) + dWeight*dUindPrev(3);
 
-	
 	ResetForce();
-	WorkVec.Resize(0);	
+	WorkVec.Resize(0);
 
 	return WorkVec;
 }
@@ -477,8 +471,9 @@ CyclocopterUniform2D::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, co
 {
 	/* Sole se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {
-		Res.AddForces(F,M,X);
+		Res.AddForces(F, M, X);
 		InducedVelocity::AddForce(uL, F, M, X);
+
 	} else {
 		Res.AddForce(F);
 	}

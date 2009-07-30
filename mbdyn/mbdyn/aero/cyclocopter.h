@@ -201,7 +201,7 @@ protected:
 	doublereal dWeight;
 
 	Mat3x3 RRot;
-	Mat3x3 RRotor, RRotorTranspose;
+	Mat3x3 RRotor;
 	Vec3 dUind, dUindPrev;
 	doublereal dUindMagnitude;
 
