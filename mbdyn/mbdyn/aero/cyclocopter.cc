@@ -41,9 +41,9 @@
 #include "cyclocopter.h"
 #include "dataman.h"
 
-/* CyclocopterNoInflow - begin */
+/* CyclocopterInflow - begin */
 
-CyclocopterNoInflow::CyclocopterNoInflow(unsigned int uL, const DofOwner* pDO,
+CyclocopterInflow::CyclocopterInflow(unsigned int uL, const DofOwner* pDO,
 	const StructNode* pC, const Mat3x3& rrot,
 	const StructNode* pR, ResForceSet **ppres, 
 	flag fOut)
@@ -55,33 +55,33 @@ RRot(rrot)
 	NO_OP;	
 }
 
-CyclocopterNoInflow::~CyclocopterNoInflow(void)
+CyclocopterInflow::~CyclocopterInflow(void)
 {
 	NO_OP;
 }
 
 InducedVelocity::Type
-CyclocopterNoInflow::GetInducedVelocityType(void) const
+CyclocopterInflow::GetInducedVelocityType(void) const
 {
 	return InducedVelocity::CYCLOCOPTER;
 }
 
 void
-CyclocopterNoInflow::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
+CyclocopterInflow::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
 {
 	NO_OP;	
 }
 
 void
-CyclocopterNoInflow::Output(OutputHandler& OH) const
+CyclocopterInflow::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
 
                 OH.Rotors()
                         << std::setw(8) << GetLabel()   /* 1 */
-                        << " " << RRotTranspose*Res.Force()     /* 2-4 */
-                        << " " << RRotTranspose*Res.Couple()    /* 5-7 */
-                        << " " << "0."                	 /* 8 */
+                        << " " << RRotorTranspose*Res.Force()     /* 2-4 */
+                        << " " << RRotorTranspose*Res.Couple()    /* 5-7 */
+                        << " " << dUindMean                	 /* 8 */
                         << " " << "0."                	 /* 9 */
                         << " " << "0."                	 /* 10 */
                         << " " << "0."                	 /* 11 */
@@ -107,13 +107,64 @@ CyclocopterNoInflow::Output(OutputHandler& OH) const
 }
 
 std::ostream&
-CyclocopterNoInflow::Restart(std::ostream& out) const
+CyclocopterInflow::Restart(std::ostream& out) const
 {
 	return out << "# cyclocopter: not implemented yet" << std::endl;
 }
 
 void
-CyclocopterNoInflow::SetInitialValue(VectorHandler& X)
+CyclocopterInflow::SetInitialValue(VectorHandler& X)
+{
+	NO_OP;
+}
+
+void
+CyclocopterInflow::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
+{
+	connectedNodes.resize(1);
+	connectedNodes[0] = pCraft;
+}
+
+void 
+CyclocopterInflow::SetFilterCoefficients( const doublereal dOmegaFilter, 
+	const doublereal dDeltaT ) 
+{
+ /* Butterworth discrete low-pass filter coefficients */
+	if( dDeltaT > 0 && dOmegaFilter > 0 ) {
+		doublereal dTmp = 4. + 2*sqrt(2)*dOmegaFilter*dDeltaT + dDeltaT*dDeltaT*dOmegaFilter*dOmegaFilter;
+		a1 = (-8.+2*dDeltaT*dDeltaT*dOmegaFilter*dOmegaFilter)/dTmp;
+		a2 = (4. -2*sqrt(2)*dOmegaFilter*dDeltaT + dDeltaT*dDeltaT*dOmegaFilter*dOmegaFilter)/dTmp;
+
+		dTmp = dOmegaFilter*dOmegaFilter*dDeltaT*dDeltaT/dTmp;
+		b0 = dTmp;
+		b1 = 2*dTmp;
+		b2 = dTmp;
+	} else {
+		a1 = 0.;
+		a2 = 0.;
+		b0 = 1.;
+		b1 = 0.;
+		b2 = 0.;
+	}
+}
+
+/* CyclocopterInflow - end */
+
+
+/* CyclocopterNoInflow - begin */
+
+CyclocopterNoInflow::CyclocopterNoInflow(unsigned int uL, const DofOwner* pDO,
+	const StructNode* pC, const Mat3x3& rrot,
+	const StructNode* pR, ResForceSet **ppres, 
+	flag fOut)
+: Elem(uL, fOut),
+CyclocopterInflow(uL, pDO, pC, rrot, pR, ppres, fOut)
+{
+	dUindMean = 0.;
+	NO_OP;	
+}
+
+CyclocopterNoInflow::~CyclocopterNoInflow(void)
 {
 	NO_OP;
 }
@@ -125,8 +176,8 @@ CyclocopterNoInflow::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XPrimeCurr)
 {
 	if (fToBeOutput() ){
-		RRotTranspose = pCraft->GetRCurr()*RRot;
-		RRotTranspose = RRotTranspose.Transpose();
+		RRotorTranspose = pCraft->GetRCurr()*RRot;
+		RRotorTranspose = RRotorTranspose.Transpose();
 	}
 	
 	ResetForce();
@@ -152,13 +203,6 @@ CyclocopterNoInflow::GetInducedVelocity(const Vec3& X) const
 	return Zero3;
 }
 
-void
-CyclocopterNoInflow::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
-{
-	connectedNodes.resize(1);
-	connectedNodes[0] = pCraft;
-}
-
 /* CyclocopterNoInflow - end */
 
 /* CyclocopterUniform1D - begin */
@@ -171,9 +215,7 @@ CyclocopterUniform1D::CyclocopterUniform1D(unsigned int uL, const DofOwner* pDO,
 	const doublereal& dDeltaT, DriveCaller *pdW, 
 	flag fOut)
 : Elem(uL, fOut),
-InducedVelocity(uL, pDO, pC, ppres, fOut),
-pRotor(pR),
-RRot(rrot)
+CyclocopterInflow(uL, pDO, pC, rrot, pR, ppres, fOut)
 {
 	ASSERT(dOR > 0.);	
 	ASSERT(dR > 0.);	
@@ -188,26 +230,10 @@ RRot(rrot)
 	Weight.Set(pdW);
 	dWeight = 0.;
 	
-	dUind = 0.;
-	dUindPrev = 0.;
-	
-	/* Butterworth discrete low-pass filter coefficients */
-	if( dDeltaT > 0 && dOmegaFilter > 0 ) {
-		doublereal dTmp = 4. + 2*sqrt(2)*dOmegaFilter*dDeltaT + dDeltaT*dDeltaT*dOmegaFilter*dOmegaFilter;
-		a1 = (-8.+2*dDeltaT*dDeltaT*dOmegaFilter*dOmegaFilter)/dTmp;
-		a2 = (4. -2*sqrt(2)*dOmegaFilter*dDeltaT + dDeltaT*dDeltaT*dOmegaFilter*dOmegaFilter)/dTmp;
+	dUindMean = 0.;
+	dUindMeanPrev = 0.;
 
-		dTmp = dOmegaFilter*dOmegaFilter*dDeltaT*dDeltaT/dTmp;
-		b0 = dTmp;
-		b1 = 2*dTmp;
-		b2 = dTmp;
-	} else {
-		a1 = 0.;
-		a2 = 0.;
-		b0 = 1.;
-		b1 = 0.;
-		b2 = 0.;
-	}
+	SetFilterCoefficients( dOmegaFilter, dDeltaT );
 	
 	/* ingresso del filtro */
 	Uk = 0.;
@@ -225,12 +251,6 @@ CyclocopterUniform1D::~CyclocopterUniform1D(void)
 	NO_OP;
 }
 
-InducedVelocity::Type
-CyclocopterUniform1D::GetInducedVelocityType(void) const
-{
-	return InducedVelocity::CYCLOCOPTER;
-}
-
 void
 CyclocopterUniform1D::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
 {
@@ -241,7 +261,7 @@ CyclocopterUniform1D::AfterConvergence(const VectorHandler& X, const VectorHandl
 	Uk_2 = Uk_1;
 	Uk_1 = Uk;
 		
-	dUindPrev = dUind;
+	dUindMeanPrev = dUindMean;
 
 	if (Weight.pGetDriveCaller() != 0) {
 		dWeight = Weight.dGet();
@@ -259,52 +279,6 @@ CyclocopterUniform1D::AfterConvergence(const VectorHandler& X, const VectorHandl
 	InducedVelocity::AfterConvergence(X, XP);
 }
 
-void
-CyclocopterUniform1D::Output(OutputHandler& OH) const
-{
-	if (fToBeOutput()) {
-
-                OH.Rotors()
-                        << std::setw(8) << GetLabel()   /* 1 */
-                        << " " << RRotTranspose*Res.Force()     /* 2-4 */
-                        << " " << RRotTranspose*Res.Couple()    /* 5-7 */
-                        << " " << dUind                	 /* 8 */
-                        << " " << "0."                	 /* 9 */
-                        << " " << "0."                	 /* 10 */
-                        << " " << "0."                	 /* 11 */
-                        << " " << "0."                	 /* 12 */
-                        << " " << "0."                	 /* 13 */
-                        << " " << "0."                	 /* 14 */
-                        << " " << "0."   		 /* 15 */
-                        << " " << "0."           	 /* 16 */
-                        << std::endl;
-
-                /* FIXME: check for parallel stuff ... */
-                for (int i = 0; ppRes && ppRes[i]; i++) {
-                        OH.Rotors()
-                                << std::setw(8) << GetLabel()
-                                << ":" << ppRes[i]->GetLabel()
-                                << " " << ppRes[i]->pRes->Force()
-                                << " " << ppRes[i]->pRes->Couple()
-                                << std::endl;
-                }
-	}
-
-
-}
-
-std::ostream&
-CyclocopterUniform1D::Restart(std::ostream& out) const
-{
-	return out << "# cyclocopter: not implemented yet" << std::endl;
-}
-
-void
-CyclocopterUniform1D::SetInitialValue(VectorHandler& X)
-{
-	NO_OP;
-}
-
 SubVectorHandler&
 CyclocopterUniform1D::AssRes(SubVectorHandler& WorkVec,
 	doublereal dCoef,
@@ -313,9 +287,9 @@ CyclocopterUniform1D::AssRes(SubVectorHandler& WorkVec,
 {
 	/* UNIFORM induced velocity (Moble version)*/
 	/* Trasporta della matrice di rotazione del rotore */
-	RRotTranspose = pCraft->GetRCurr()*RRot;
-	RRot3 = RRotTranspose.GetVec(3);
-	RRotTranspose = RRotTranspose.Transpose();
+	RRotor = pCraft->GetRCurr()*RRot;
+	RRot3 = RRotor.GetVec(3);
+	RRotorTranspose = RRotor.Transpose();
 	doublereal dTz= RRot3*Res.Force();
 	/* filtro le forze */
 	Uk = dTz;
@@ -323,9 +297,9 @@ CyclocopterUniform1D::AssRes(SubVectorHandler& WorkVec,
 	dTz = Yk;	
 	
 	doublereal dRho = dGetAirDensity(GetXCurr());
-	dUind = copysign(std::sqrt(std::abs(dTz)/(2*dRho*dArea)), dTz);
+	dUindMean = copysign(std::sqrt(std::abs(dTz)/(2*dRho*dArea)), dTz);
 
-	dUind = (1 - dWeight)*dUind + dWeight*dUindPrev;
+	dUindMean = (1 - dWeight)*dUindMean + dWeight*dUindMeanPrev;
 	
 	ResetForce();
 	WorkVec.Resize(0);	
@@ -349,14 +323,7 @@ Vec3
 CyclocopterUniform1D::GetInducedVelocity(const Vec3& X) const
 {
 	
-	return RRot3*dUind;
-}
-
-void
-CyclocopterUniform1D::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
-{
-	connectedNodes.resize(1);
-	connectedNodes[0] = pCraft;
+	return RRot3*dUindMean;
 }
 
 /* CyclocopterUniform1D - end */
@@ -371,9 +338,7 @@ CyclocopterUniform2D::CyclocopterUniform2D(unsigned int uL, const DofOwner* pDO,
 	const doublereal& dDeltaT, DriveCaller *pdW, 
 	flag fOut)
 : Elem(uL, fOut),
-InducedVelocity(uL, pDO, pC, ppres, fOut),
-pRotor(pR),
-RRot(rrot)
+CyclocopterInflow(uL, pDO, pC, rrot, pR, ppres, fOut)
 {
 	ASSERT(dOR > 0.);	
 	ASSERT(dR > 0.);	
@@ -390,25 +355,9 @@ RRot(rrot)
 	
 	dUind = 0.;
 	dUindPrev = 0.;
-	dUindMagnitude = 0.;
+	dUindMean = 0.;
 	
-	/* Butterworth discrete low-pass filter coefficients */
-	if( dDeltaT > 0 && dOmegaFilter > 0 ) {
-		doublereal dTmp = 4. + 2*sqrt(2)*dOmegaFilter*dDeltaT + dDeltaT*dDeltaT*dOmegaFilter*dOmegaFilter;
-		a1 = (-8.+2*dDeltaT*dDeltaT*dOmegaFilter*dOmegaFilter)/dTmp;
-		a2 = (4. -2*sqrt(2)*dOmegaFilter*dDeltaT + dDeltaT*dDeltaT*dOmegaFilter*dOmegaFilter)/dTmp;
-
-		dTmp = dOmegaFilter*dOmegaFilter*dDeltaT*dDeltaT/dTmp;
-		b0 = dTmp;
-		b1 = 2*dTmp;
-		b2 = dTmp;
-	} else {
-		a1 = 0.;
-		a2 = 0.;
-		b0 = 1.;
-		b1 = 0.;
-		b2 = 0.;
-	}
+	SetFilterCoefficients( dOmegaFilter, dDeltaT );
 
 	/* ingresso del filtro */
 	Uk = 0.;
@@ -424,12 +373,6 @@ RRot(rrot)
 CyclocopterUniform2D::~CyclocopterUniform2D(void)
 {
 	NO_OP;
-}
-
-InducedVelocity::Type
-CyclocopterUniform2D::GetInducedVelocityType(void) const
-{
-	return InducedVelocity::CYCLOCOPTER;
 }
 
 void
@@ -460,50 +403,6 @@ CyclocopterUniform2D::AfterConvergence(const VectorHandler& X, const VectorHandl
 	InducedVelocity::AfterConvergence(X, XP);
 }
 
-void
-CyclocopterUniform2D::Output(OutputHandler& OH) const
-{
-	if (fToBeOutput()) {
-
-                OH.Rotors()
-                        << std::setw(8) << GetLabel()   /* 1 */
-                        << " " << RRotor.MulTV(Res.Force())     /* 2-4 */
-                        << " " << RRotor.MulTV(Res.Couple())    /* 5-7 */
-                        << " " << dUindMagnitude               	 /* 8 */
-                        << " " << dUind                	 /* 9 -11*/
-                        << " " << "0."                	 /* 12 */
-                        << " " << "0."                	 /* 13 */
-                        << " " << "0."                	 /* 14 */
-                        << " " << "0."   		 /* 15 */
-                        << " " << "0."           	 /* 16 */
-                        << std::endl;
-
-                /* FIXME: check for parallel stuff ... */
-                for (int i = 0; ppRes && ppRes[i]; i++) {
-                        OH.Rotors()
-                                << std::setw(8) << GetLabel()
-                                << ":" << ppRes[i]->GetLabel()
-                                << " " << ppRes[i]->pRes->Force()
-                                << " " << ppRes[i]->pRes->Couple()
-                                << std::endl;
-                }
-	}
-
-
-}
-
-std::ostream&
-CyclocopterUniform2D::Restart(std::ostream& out) const
-{
-	return out << "# cyclocopter: not implemented yet" << std::endl;
-}
-
-void
-CyclocopterUniform2D::SetInitialValue(VectorHandler& X)
-{
-	NO_OP;
-}
-
 SubVectorHandler&
 CyclocopterUniform2D::AssRes(SubVectorHandler& WorkVec,
 	doublereal dCoef,
@@ -524,13 +423,13 @@ CyclocopterUniform2D::AssRes(SubVectorHandler& WorkVec,
 	doublereal dT= sqrt(F(2)*F(2) + F(3)*F(3));
 	/* Velocità indotta: calcolata in base alla dT */
 	doublereal dRho = dGetAirDensity(GetXCurr());
-	dUindMagnitude = sqrt(dT/(2*dRho*dArea));
+	dUindMean = sqrt(dT/(2*dRho*dArea));
 	/* Componenti della velocità indotta nel sistema 
 	 * rotore */
 	dUind = 0.;
 	if (dT > std::numeric_limits<doublereal>::epsilon()) {
-		dUind(2) = dUindMagnitude*F(2)/dT;
-		dUind(3) = dUindMagnitude*F(3)/dT;
+		dUind(2) = dUindMean*F(2)/dT;
+		dUind(3) = dUindMean*F(3)/dT;
 	}
 	dUind(1) = (1 - dWeight)*dUind(1) + dWeight*dUindPrev(1);
 	dUind(2) = (1 - dWeight)*dUind(2) + dWeight*dUindPrev(2);
@@ -561,18 +460,11 @@ CyclocopterUniform2D::GetInducedVelocity(const Vec3& X) const
 	return RRotor*dUind;
 }
 
-void
-CyclocopterUniform2D::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
-{
-	connectedNodes.resize(1);
-	connectedNodes[0] = pCraft;
-}
-
 /* CyclocopterUniform2D - end */
 
-/* CyclocopterMasarati - begin */
+/* CyclocopterPolimi - begin */
 
-CyclocopterMasarati::CyclocopterMasarati(unsigned int uL, const DofOwner* pDO,
+CyclocopterPolimi::CyclocopterPolimi(unsigned int uL, const DofOwner* pDO,
 	const StructNode* pC, const Mat3x3& rrot,
 	const StructNode* pR, ResForceSet **ppres, 
 	const doublereal& dOR, const doublereal& dR,
@@ -580,9 +472,7 @@ CyclocopterMasarati::CyclocopterMasarati(unsigned int uL, const DofOwner* pDO,
 	const doublereal& dDeltaT, DriveCaller *pdW, 
 	flag fOut)
 : Elem(uL, fOut),
-InducedVelocity(uL, pDO, pC, ppres, fOut),
-pRotor(pR),
-RRot(rrot)
+CyclocopterInflow(uL, pDO, pC, rrot, pR, ppres, fOut)
 {
 	ASSERT(dOR > 0.);	
 	ASSERT(dR > 0.);	
@@ -597,34 +487,11 @@ RRot(rrot)
 	Weight.Set(pdW);
 	dWeight = 0.;
 	
+	dUind = 0.;
+	dUindPrev = 0.;
 	dUindMean = 0.;
-	dUindMeanPrev = 0.;
-	dUindMeanMagnitude = 0.;
 	
-	/* Butterworth discrete low-pass filter coefficients */
-	if( dDeltaT > 0 && dOmegaFilter > 0 ) {
-		doublereal dTmp = 4. + 2*sqrt(2)*dOmegaFilter*dDeltaT + dDeltaT*dDeltaT*dOmegaFilter*dOmegaFilter;
-		a1 = (-8.+2*dDeltaT*dDeltaT*dOmegaFilter*dOmegaFilter)/dTmp;
-		a2 = (4. -2*sqrt(2)*dOmegaFilter*dDeltaT + dDeltaT*dDeltaT*dOmegaFilter*dOmegaFilter)/dTmp;
-
-		dTmp = dOmegaFilter*dOmegaFilter*dDeltaT*dDeltaT/dTmp;
-		b0 = dTmp;
-		b1 = 2*dTmp;
-		b2 = dTmp;
-	} else {
-		a1 = 0.;
-		a2 = 0.;
-		b0 = 1.;
-		b1 = 0.;
-		b2 = 0.;
-	}
-
-	/* Butterworth discrete low-pass filter (dt = 1e-4; fcut = 3.3Hz); */
-	//a1 = -1.997067699357293e+00;
-	//a2 = 9.970719922613875e-01;
-	//b0 = 1.073226023551310e-06;
-	//b1 = 2.146452047102620e-06;
-	//b2 = 1.073226023551310e-06;
+	SetFilterCoefficients( dOmegaFilter, dDeltaT );
 	
 	/* ingresso del filtro */
 	Uk = 0.;
@@ -638,22 +505,16 @@ RRot(rrot)
 	
 }
 
-CyclocopterMasarati::~CyclocopterMasarati(void)
+CyclocopterPolimi::~CyclocopterPolimi(void)
 {
 	NO_OP;
 }
 
-InducedVelocity::Type
-CyclocopterMasarati::GetInducedVelocityType(void) const
-{
-	return InducedVelocity::CYCLOCOPTER;
-}
-
 void
-CyclocopterMasarati::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
+CyclocopterPolimi::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
 {
 
-	dUindMeanPrev = dUindMean;
+	dUindPrev = dUind;
 
 	/* aggiorno ingressi e uscite del filtro */
 	Yk_2 = Yk_1;
@@ -678,7 +539,7 @@ CyclocopterMasarati::AfterConvergence(const VectorHandler& X, const VectorHandle
 }
 
 void
-CyclocopterMasarati::Output(OutputHandler& OH) const
+CyclocopterPolimi::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
 
@@ -686,8 +547,8 @@ CyclocopterMasarati::Output(OutputHandler& OH) const
                         << std::setw(8) << GetLabel()   /* 1 */
                         << " " << RRotorTranspose*Res.Force()     /* 2-4 */
                         << " " << RRotorTranspose*Res.Couple()    /* 5-7 */
-                        << " " << dUindMeanMagnitude               	 /* 8 */
-                        << " " << dUindMean                	 /* 9 -11*/
+                        << " " << dUindMean              /* 8 */
+                        << " " << dUind                	 /* 9 -11*/
                         << " " << dXi                	 /* 12 */
                         << " " << "0."               	 /* 13 */
                         << " " << "0."                	 /* 14 */
@@ -709,20 +570,8 @@ CyclocopterMasarati::Output(OutputHandler& OH) const
 
 }
 
-std::ostream&
-CyclocopterMasarati::Restart(std::ostream& out) const
-{
-	return out << "# cyclocopter: not implemented yet" << std::endl;
-}
-
-void
-CyclocopterMasarati::SetInitialValue(VectorHandler& X)
-{
-	NO_OP;
-}
-
 SubVectorHandler&
-CyclocopterMasarati::AssRes(SubVectorHandler& WorkVec,
+CyclocopterPolimi::AssRes(SubVectorHandler& WorkVec,
 	doublereal dCoef,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
@@ -743,17 +592,17 @@ CyclocopterMasarati::AssRes(SubVectorHandler& WorkVec,
 	dXi = atan2(F(3), F(2)) - M_PI/2.;
 	/* Velocità indotta: calcolata in base alla dT */
 	doublereal dRho = dGetAirDensity(GetXCurr());
-	dUindMeanMagnitude = sqrt( dT/(2*dRho*dArea) );
+	dUindMean = sqrt( dT/(2*dRho*dArea) );
 	/* Componenti della velocità indotta nel sistema 
 	 * rotore */
-	dUindMean = 0.;
+	dUind = 0.;
 	if (dT > std::numeric_limits<doublereal>::epsilon()) {
-		dUindMean(2) = dUindMeanMagnitude*F(2)/dT;
-		dUindMean(3) = dUindMeanMagnitude*F(3)/dT;
+		dUind(2) = dUindMean*F(2)/dT;
+		dUind(3) = dUindMean*F(3)/dT;
 	}
-	dUindMean(1) = (1-dWeight)*dUindMean(1)+dWeight*dUindMeanPrev(1);
-	dUindMean(2) = (1-dWeight)*dUindMean(2)+dWeight*dUindMeanPrev(2);
-	dUindMean(3) = (1-dWeight)*dUindMean(3)+dWeight*dUindMeanPrev(3);
+	dUind(1) = (1-dWeight)*dUind(1)+dWeight*dUindPrev(1);
+	dUind(2) = (1-dWeight)*dUind(2)+dWeight*dUindPrev(2);
+	dUind(3) = (1-dWeight)*dUind(3)+dWeight*dUindPrev(3);
 
 	
 	ResetForce();
@@ -763,7 +612,7 @@ CyclocopterMasarati::AssRes(SubVectorHandler& WorkVec,
 }
 
 void
-CyclocopterMasarati::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const Vec3& X)
+CyclocopterPolimi::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const Vec3& X)
 {
 	/* Sole se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {
@@ -775,7 +624,7 @@ CyclocopterMasarati::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, con
 }
 
 Vec3
-CyclocopterMasarati::GetInducedVelocity(const Vec3& X) const
+CyclocopterPolimi::GetInducedVelocity(const Vec3& X) const
 {
 
 	//Vec3 XRel(RRotorTranspose*(X-Res.Pole()));
@@ -790,22 +639,11 @@ CyclocopterMasarati::GetInducedVelocity(const Vec3& X) const
 
 	doublereal r = sqrt(d1*d1+d2*d2)*cos(dp-dXi);
 	
-	Vec3 dUind = 0.;
-	dUind(1) = dUindMean(1)*(M_PI/2.)*cos((M_PI/2.)*(r/dRadius));
-	dUind(2) = dUindMean(2)*(M_PI/2.)*cos((M_PI/2.)*(r/dRadius));
-	dUind(3) = dUindMean(3)*(M_PI/2.)*cos((M_PI/2.)*(r/dRadius));
+	return RRotor*((dUind*(M_PI/2.))*cos((M_PI/2.)*(r/dRadius)));
 
-	return RRotor*dUind;
 }
 
-void
-CyclocopterMasarati::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
-{
-	connectedNodes.resize(1);
-	connectedNodes[0] = pCraft;
-}
-
-/* CyclocopterMasarati - end */
+/* CyclocopterPolimi - end */
 
 /* CyclocopterKARI - begin */
 
@@ -903,7 +741,7 @@ ReadCyclocopter(DataManager* pDM,
 		"no",
 		"uniform1D",
 		"uniform2D",
-		"masarati",
+		"polimi",
 		"KARI",
 		NULL
 	};
@@ -914,7 +752,7 @@ ReadCyclocopter(DataManager* pDM,
 		NO,
 		uniform1D,
 		uniform2D,
-		masarati,
+		polimi,
 		KARI,
 
 		LASTKEYWORD
@@ -938,7 +776,9 @@ ReadCyclocopter(DataManager* pDM,
  
 		break;
 	}
-	case uniform1D:	{
+	case uniform1D:	
+	case uniform2D:	
+	case polimi:	{
 		doublereal dOR = HP.GetReal();
 		if (dOR <= 0.) {
 			silent_cerr("Illegal null or negative "
@@ -1004,159 +844,32 @@ ReadCyclocopter(DataManager* pDM,
      		ResForceSet **ppres = ReadResSets(pDM, HP);
 
 	 	flag fOut = pDM->fReadOutput(HP, Elem::INDUCEDVELOCITY);
-		pEl = new CyclocopterUniform1D(uLabel, pDO,
-			pCraft, rrot, pRotor,
-  			ppres, dOR, dR, dL,
-			dOmegaFilter, dDeltaT, pdW, fOut);
-		
+
+		switch( CyclocopterInducedType ) {
+		case uniform1D: {
+			pEl = new CyclocopterUniform1D(uLabel, pDO,
+				pCraft, rrot, pRotor,
+  				ppres, dOR, dR, dL,
+				dOmegaFilter, dDeltaT, pdW, fOut);
+			break;
+		}
+		case uniform2D: {
+			pEl = new CyclocopterUniform2D(uLabel, pDO,
+				pCraft, rrot, pRotor,
+  				ppres, dOR, dR, dL,
+				dOmegaFilter, dDeltaT, pdW, fOut);
+			break;
+		}
+		case polimi: {
+			pEl = new CyclocopterPolimi(uLabel, pDO,
+				pCraft, rrot, pRotor,
+  				ppres, dOR, dR, dL,
+				dOmegaFilter, dDeltaT, pdW, fOut);
+			break;
+		}
+		}
 		break;
-	}
-	case uniform2D:	{
-		doublereal dOR = HP.GetReal();
-		if (dOR <= 0.) {
-			silent_cerr("Illegal null or negative "
-				"reference speed for rotor" << uLabel
-				<< " at line " << HP.GetLineData()
-				<< std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		doublereal dR = HP.GetReal();
-		if (dR <= 0.) {
-			silent_cerr("Illegal null or negative radius"
-				"for rotor" << uLabel
-				<< " at line " << HP.GetLineData()
-				<< std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		doublereal dL = HP.GetReal();
-		if (dL <= 0.) {
-			silent_cerr("Illegal null or negative blade"
-				"length for rotor" << uLabel
-				<< " at line " << HP.GetLineData()
-				<< std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-	
-		DriveCaller *pdW = 0;
-		if (HP.IsKeyWord("delay")) {
-			pdW = HP.GetDriveCaller();
-		} else {
-			SAFENEW( pdW, NullDriveCaller);
-		}
-
-		doublereal dOmegaFilter = 0.;
-		if (HP.IsKeyWord("omegacut")) {
-			dOmegaFilter = HP.GetReal();
-
-			if (dOmegaFilter <= 0){
-				silent_cerr("Illegal null or negative filter"
-					"cut frequency for rotor" << uLabel
-					<< " at line " << HP.GetLineData()
-					<< std::endl);
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-		} else {
-			dOmegaFilter = 0.;
-		}
-
-		doublereal dDeltaT = 0.;
-		if (HP.IsKeyWord("timestep")) {
-			dDeltaT = HP.GetReal();
-			if (dDeltaT <= 0){
-				silent_cerr("Illegal null or negative time"
-					"step for rotor" << uLabel
-					<< " at line " << HP.GetLineData()
-					<< std::endl);
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-		} else {
-			dDeltaT = 0.;
-		}
-
-     		ResForceSet **ppres = ReadResSets(pDM, HP);
-
-	 	flag fOut = pDM->fReadOutput(HP, Elem::INDUCEDVELOCITY);
-		pEl = new CyclocopterUniform2D(uLabel, pDO,
-			pCraft, rrot, pRotor,
-  			ppres, dOR, dR, dL,
-			dOmegaFilter, dDeltaT, pdW, fOut);
 		
-		break;
-	}
-	case masarati:	{
-		doublereal dOR = HP.GetReal();
-		if (dOR <= 0.) {
-			silent_cerr("Illegal null or negative "
-				"reference speed for rotor" << uLabel
-				<< " at line " << HP.GetLineData()
-				<< std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		doublereal dR = HP.GetReal();
-		if (dR <= 0.) {
-			silent_cerr("Illegal null or negative radius"
-				"for rotor" << uLabel
-				<< " at line " << HP.GetLineData()
-				<< std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		doublereal dL = HP.GetReal();
-		if (dL <= 0.) {
-			silent_cerr("Illegal null or negative blade"
-				"length for rotor" << uLabel
-				<< " at line " << HP.GetLineData()
-				<< std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-	
-		DriveCaller *pdW = 0;
-		if (HP.IsKeyWord("delay")) {
-			pdW = HP.GetDriveCaller();
-		} else {
-			SAFENEW( pdW, NullDriveCaller);
-		}
-
-		doublereal dOmegaFilter = 0.;
-		if (HP.IsKeyWord("omegacut")) {
-			dOmegaFilter = HP.GetReal();
-			if (dOmegaFilter <= 0){
-				silent_cerr("Illegal null or negative filter"
-					"cut frequency for rotor" << uLabel
-					<< " at line " << HP.GetLineData()
-					<< std::endl);
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-		} else {
-			dOmegaFilter = 0.;
-		}
-
-		doublereal dDeltaT = 0.;
-		if (HP.IsKeyWord("timestep")) {
-			dDeltaT = HP.GetReal();
-			if (dDeltaT <= 0){
-				silent_cerr("Illegal null or negative time"
-					"step for rotor" << uLabel
-					<< " at line " << HP.GetLineData()
-					<< std::endl);
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-		} else {
-			dDeltaT = 0.;
-		}
-
-     		ResForceSet **ppres = ReadResSets(pDM, HP);
-
-	 	flag fOut = pDM->fReadOutput(HP, Elem::INDUCEDVELOCITY);
-		pEl = new CyclocopterMasarati(uLabel, pDO,
-			pCraft, rrot, pRotor,
-  			ppres, dOR, dR, dL,
-			dOmegaFilter, dDeltaT, pdW, fOut);
-		
-		break;
 	}
 	case KARI: {
      		ResForceSet **ppres = ReadResSets(pDM, HP);

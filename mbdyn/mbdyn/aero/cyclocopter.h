@@ -36,21 +36,40 @@
 
 #include "indvel.h"
 
-/* CyclocopterNoInflow - begin */
+/* CyclocopterInflow - begin */
 
-class CyclocopterNoInflow
+/* Classe base per i modelli di influsso del ciclocottero:
+ * tutti gli altri modelli sono ottenuti ereditando questa 
+ * classe
+*/
+
+class CyclocopterInflow
 : virtual public Elem, public InducedVelocity {
 protected:
 	const StructNode* pRotor;
 
-	Mat3x3 RRot, RRotTranspose;
+	doublereal dOmegaRef;		// Reference rotation speed (never used!!)
+	doublereal dRadius;		// Rotor radius
+	doublereal dSpan;		// Blade length
+	doublereal dArea;		// Cylinder longitudinal area
+
+	DriveOwner Weight;
+	doublereal dWeight;
+
+	Mat3x3 RRot;
+	/* dati che servono per il calcolo dell'output */
+	Mat3x3 RRotorTranspose;
+	doublereal dUindMean;
+
+	// Coefficienti del filtro di butterworth del second'ordine
+	doublereal a1, a2, b0, b1, b2;	
 
 public:
-	CyclocopterNoInflow(unsigned int uL, const DofOwner* pDO,
+	CyclocopterInflow(unsigned int uL, const DofOwner* pDO,
 		const StructNode* pC, const Mat3x3& rrot,
 		const StructNode* pR, ResForceSet **ppres, 
 		flag fOut);
-	virtual ~CyclocopterNoInflow(void);
+	virtual ~CyclocopterInflow(void);
 
 	virtual InducedVelocity::Type GetInducedVelocityType(void) const;
 
@@ -68,6 +87,32 @@ public:
 	// Relativo ai ...WithDofs
 	virtual void SetInitialValue(VectorHandler& X);
 
+	// *******PER IL SOLUTORE PARALLELO********
+	// Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	// utile per l'assemblaggio della matrice di connessione fra i dofs
+	virtual void
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
+	// ************************************************
+	
+	// Coefficienti del filtro di butterworth del second'ordine
+	void 
+	SetFilterCoefficients( const doublereal dOmegaFilter, 
+		const doublereal dDeltaT );
+};
+
+/* CyclocopterInflow - end */
+
+/* CyclocopterNoInflow - begin */
+
+class CyclocopterNoInflow
+: virtual public Elem, public CyclocopterInflow {
+public:
+	CyclocopterNoInflow(unsigned int uL, const DofOwner* pDO,
+		const StructNode* pC, const Mat3x3& rrot,
+		const StructNode* pR, ResForceSet **ppres, 
+		flag fOut);
+	virtual ~CyclocopterNoInflow(void);
+
 	// assemblaggio residuo
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
@@ -83,12 +128,6 @@ public:
 	// in base alla posizione azimuthale
 	virtual Vec3 GetInducedVelocity(const Vec3& X) const;
 
-	// *******PER IL SOLUTORE PARALLELO********
-	// Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-	// utile per l'assemblaggio della matrice di connessione fra i dofs
-	virtual void
-	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
-	// ************************************************
 };
 
 /* CyclocopterNoInflow - end */
@@ -108,26 +147,16 @@ force is mainly in one direction.
 */
 
 class CyclocopterUniform1D
-: virtual public Elem, public InducedVelocity {
+: virtual public Elem, public CyclocopterInflow {
 protected:
-	const StructNode* pRotor;
 
-	doublereal dOmegaRef;		// Reference rotation speed
-	doublereal dRadius;		// Rotor radius
-	doublereal dSpan;		// Blade length
-	doublereal dArea;		// Cylinder longitudinal area
-	
-	DriveOwner Weight;
-	doublereal dWeight;
-
-	Mat3x3 RRot, RRotTranspose;
 	Vec3 RRot3;
-	doublereal dUind;
-	doublereal dUindPrev;
+	Mat3x3 RRotor;
+
+	mutable doublereal dUindMeanPrev;
 
 	/* dati per il filtraggio delle forze */
 	doublereal Uk, Uk_1, Uk_2, Yk, Yk_1, Yk_2;
-	doublereal a1, a2, b0, b1, b2;	
 
 public:
 	CyclocopterUniform1D(unsigned int uL, const DofOwner* pDO,
@@ -139,21 +168,9 @@ public:
 		flag fOut);
 	virtual ~CyclocopterUniform1D(void);
 
-	virtual InducedVelocity::Type GetInducedVelocityType(void) const;
-
 	// Elaborazione stato interno dopo la convergenza
 	virtual void
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
-
-	// output; si assume che ogni tipo di elemento sappia,
-	// attraverso l'OutputHandler, dove scrivere il proprio output
-	virtual void Output(OutputHandler& OH) const;
-
-	// Contributo al file di Restart
-	virtual std::ostream& Restart(std::ostream& out) const;
-
-	// Relativo ai ...WithDofs
-	virtual void SetInitialValue(VectorHandler& X);
 
 	// assemblaggio residuo
 	virtual SubVectorHandler&
@@ -169,13 +186,6 @@ public:
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
 	virtual Vec3 GetInducedVelocity(const Vec3& X) const;
-
-	// *******PER IL SOLUTORE PARALLELO********
-	// Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-	// utile per l'assemblaggio della matrice di connessione fra i dofs
-	virtual void
-	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
-	// ************************************************
 };
 
 /* CyclocopterUnifor1D - end */
@@ -193,26 +203,15 @@ with the rotor rotation axis!
 */
 
 class CyclocopterUniform2D
-: virtual public Elem, public InducedVelocity {
+: virtual public Elem, public CyclocopterInflow {
 protected:
-	const StructNode* pRotor;
 
-	doublereal dOmegaRef;		// Reference rotation speed
-	doublereal dRadius;		// Rotor radius
-	doublereal dSpan;		// Blade length
-	doublereal dArea;		// Cylinder longitudinal area
-	
-	DriveOwner Weight;
-	doublereal dWeight;
-
-	Mat3x3 RRot;
-	Mat3x3 RRotor, RRotorTranspose;
-	Vec3 dUind, dUindPrev;
-	doublereal dUindMagnitude;
+	Mat3x3 RRotor;
+	Vec3 dUind;
+	mutable Vec3 dUindPrev;
 
 	/* dati per il filtraggio delle forze */
 	Vec3 Uk, Uk_1, Uk_2, Yk, Yk_1, Yk_2;
-	doublereal a1, a2, b0, b1, b2;	
 
 public:
 	CyclocopterUniform2D(unsigned int uL, const DofOwner* pDO,
@@ -224,21 +223,9 @@ public:
 		flag fOut);
 	virtual ~CyclocopterUniform2D(void);
 
-	virtual InducedVelocity::Type GetInducedVelocityType(void) const;
-
 	// Elaborazione stato interno dopo la convergenza
 	virtual void
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
-
-	// output; si assume che ogni tipo di elemento sappia,
-	// attraverso l'OutputHandler, dove scrivere il proprio output
-	virtual void Output(OutputHandler& OH) const;
-
-	// Contributo al file di Restart
-	virtual std::ostream& Restart(std::ostream& out) const;
-
-	// Relativo ai ...WithDofs
-	virtual void SetInitialValue(VectorHandler& X);
 
 	// assemblaggio residuo
 	virtual SubVectorHandler&
@@ -255,17 +242,11 @@ public:
 	// in base alla posizione azimuthale
 	virtual Vec3 GetInducedVelocity(const Vec3& X) const;
 
-	// *******PER IL SOLUTORE PARALLELO********
-	// Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-	// utile per l'assemblaggio della matrice di connessione fra i dofs
-	virtual void
-	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
-	// ************************************************
 };
 
 /* CyclocopterUnifor2D - end */
 
-/* CyclocopterMasarati - begin */
+/* CyclocopterPolimi - begin */
 
 /*
 
@@ -282,40 +263,28 @@ momentum theory
 
 */
 
-class CyclocopterMasarati
-: virtual public Elem, public InducedVelocity {
+class CyclocopterPolimi
+: virtual public Elem, public CyclocopterInflow {
 protected:
-	const StructNode* pRotor;
 
-	doublereal dOmegaRef;		// Reference rotation speed
-	doublereal dRadius;		// Rotor radius
-	doublereal dSpan;		// Blade length
-	doublereal dArea;		// Cylinder longitudinal area
-	
-	DriveOwner Weight;
-	doublereal dWeight;
+	Mat3x3 RRotor;
+	Vec3 dUind;
+	mutable Vec3 dUindPrev;
 
-	Mat3x3 RRot;
-	Mat3x3 RRotor, RRotorTranspose;
-	Vec3 dUindMean, dUindMeanPrev;
-	doublereal dUindMeanMagnitude;
-	doublereal dXi, dPsi0;
+	doublereal dXi;
 
 	/* dati per il filtraggio delle forze */
 	Vec3 Uk, Uk_1, Uk_2, Yk, Yk_1, Yk_2;
-	doublereal a1, a2, b0, b1, b2;	
 
 public:
-	CyclocopterMasarati(unsigned int uL, const DofOwner* pDO,
+	CyclocopterPolimi(unsigned int uL, const DofOwner* pDO,
 		const StructNode* pC, const Mat3x3& rrot,
 		const StructNode* pR, ResForceSet **ppres, 
 		const doublereal& dOR, const doublereal& dR,
 		const doublereal& dL, const doublereal& dOmegaFilter,
 		const doublereal& dDeltaT, DriveCaller *pdW,
 		flag fOut);
-	virtual ~CyclocopterMasarati(void);
-
-	virtual InducedVelocity::Type GetInducedVelocityType(void) const;
+	virtual ~CyclocopterPolimi(void);
 
 	// Elaborazione stato interno dopo la convergenza
 	virtual void
@@ -324,12 +293,6 @@ public:
 	// output; si assume che ogni tipo di elemento sappia,
 	// attraverso l'OutputHandler, dove scrivere il proprio output
 	virtual void Output(OutputHandler& OH) const;
-
-	// Contributo al file di Restart
-	virtual std::ostream& Restart(std::ostream& out) const;
-
-	// Relativo ai ...WithDofs
-	virtual void SetInitialValue(VectorHandler& X);
 
 	// assemblaggio residuo
 	virtual SubVectorHandler&
@@ -346,15 +309,9 @@ public:
 	// in base alla posizione azimuthale
 	virtual Vec3 GetInducedVelocity(const Vec3& X) const;
 
-	// *******PER IL SOLUTORE PARALLELO********
-	// Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-	// utile per l'assemblaggio della matrice di connessione fra i dofs
-	virtual void
-	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
-	// ************************************************
 };
 
-/* CyclocopterMasarati - end */
+/* CyclocopterPolimi - end */
 
 /* CyclocopterKARI - begin */
 
