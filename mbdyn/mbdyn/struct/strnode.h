@@ -139,7 +139,9 @@ protected:
 	NcVar	*Var_X,
 		*Var_Phi,
 		*Var_XP,
-		*Var_Omega;
+		*Var_Omega,
+		*Var_XPP,
+		*Var_OmegaP;
 #endif /* USE_NETCDF */
 
 	OrientationDescription od;
@@ -152,6 +154,8 @@ protected:
 	// reference motion, for relative kinematics
 	const RigidBodyKinematics *pRefRBK;
  
+	bool bOutputAccels;
+
 public:
 	/* Costruttore definitivo */
 	StructNode(unsigned int uL,
@@ -261,6 +265,8 @@ public:
 	virtual inline const doublereal& dGetPositionStiffness(void) const;
 	virtual inline const doublereal& dGetVelocityStiffness(void) const;
 	virtual inline bool bOmegaRotates(void) const;
+
+	virtual inline bool bOutputAccelerations(void) const;
 
 	virtual void OutputPrepare(OutputHandler &OH);
 
@@ -468,6 +474,12 @@ StructNode::bOmegaRotates(void) const
 	return bOmegaRot;
 }
 
+inline bool
+StructNode::bOutputAccelerations(void) const
+{
+	return bOutputAccels;
+}
+
 /* StructNode - end */
 
 
@@ -498,15 +510,9 @@ class DynamicStructNode : public StructNode {
 	friend class AutomaticStructElem;
 
 protected:
-#ifdef USE_NETCDF
-	NcVar	*Var_XPP,
-		*Var_OmegaP;
-#endif /* USE_NETCDF */
-
 	/* Acceleration and angular acceleration; DynamicStructNode uses them
 	 * only for output; ModalNode uses them to store actual unknowns */
 	mutable bool bComputeAccelerations;
-	bool bOutputAccelerations;
 	mutable AutomaticStructElem *pAutoStr;
 
 	virtual inline void SetAutoStr(const AutomaticStructElem *p);
@@ -579,11 +585,6 @@ public:
 
 	virtual void AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP);
-
-	virtual void OutputPrepare(OutputHandler &OH);
-
-	/* Output del nodo strutturale (da mettere a punto) */
-	virtual void Output(OutputHandler& OH) const;
 
 	/* Elaborazione vettori e dati prima e dopo la predizione
 	 * per MultiStepIntegrator */

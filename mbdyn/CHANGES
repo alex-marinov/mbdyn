@@ -21,6 +21,7 @@ MBDyn 1.3.9
 		- added mbd.vim syntax file
 		- added time-variant viscoelastic constitutive law
 		- added support for Euler 313 & 321 orientations
+		- added accelerations output to dummy structural nodes
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:

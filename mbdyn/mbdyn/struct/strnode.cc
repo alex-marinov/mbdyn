@@ -137,12 +137,15 @@ Var_X(0),
 Var_Phi(0),
 Var_XP(0),
 Var_Omega(0),
+Var_XPP(0),
+Var_OmegaP(0),
 #endif /* USE_NETCDF */
 od(ood),
 dPositionStiffness(dPosStiff),
 dVelocityStiffness(dVelStiff),
 bOmegaRot(bOmRot),
-pRefRBK(pRBK)
+pRefRBK(pRBK),
+bOutputAccels(false)
 {
 	NO_OP;
 }
@@ -744,9 +747,50 @@ StructNode::OutputPrepare(OutputHandler &OH)
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
+			if (bOutputAccels) {
+				strcpy(&buf[l], "XPP");
+				Var_XPP = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
+				if (Var_XPP == 0) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (!Var_XPP->add_att("units", "m/s^2")) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (!Var_XPP->add_att("type", "Vec3")) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (!Var_XPP->add_att("description", "global acceleration vector (a_X, a_Y, a_Z)")) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				strcpy(&buf[l], "OmegaP");
+				Var_OmegaP = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
+				if (Var_OmegaP == 0) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (!Var_OmegaP->add_att("units", "radian/s^2")) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (!Var_OmegaP->add_att("type", "Vec3")) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (!Var_OmegaP->add_att("description",
+					"global angular acceleration vector "
+					"(omegaP_X, omegaP_Y, omegaP_Z)"))
+				{
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+			}
 		}
 #endif // USE_NETCDF
 	}
+
 }
 
 /* Output del nodo strutturale (da mettere a punto) */
@@ -801,13 +845,19 @@ StructNode::Output(OutputHandler& OH) const
 			}
 			Var_XP->put_rec(VCurr.pGetVec(), OH.GetCurrentStep());
 			Var_Omega->put_rec(WCurr.pGetVec(), OH.GetCurrentStep());
+
+			if (bOutputAccels) {
+				Var_XPP->put_rec(XPPCurr.pGetVec(), OH.GetCurrentStep());
+				Var_OmegaP->put_rec(WPCurr.pGetVec(), OH.GetCurrentStep());
+			}
 		}
 #endif /* USE_NETCDF */
 
 		if (OH.UseText(OutputHandler::STRNODES)) {
-			OH.StrNodes() << std::setw(8) << GetLabel()
-				<< " " << XCurr
-				<< " ";
+			std::ostream& out = OH.StrNodes();
+			out
+				<< std::setw(8) << GetLabel()
+				<< " " << XCurr << " ";
 			switch (od) {
 			case EULER_123:
 			case EULER_313:
@@ -824,8 +874,14 @@ StructNode::Output(OutputHandler& OH) const
 				/* impossible */
 				break;
 			}
-			OH.StrNodes() << " " << VCurr
-				<< " " << WCurr << std::endl;
+			OH.StrNodes() << " " << VCurr << " " << WCurr;
+
+			if (bOutputAccels) {
+				out
+					<< " " << XPPCurr
+					<< " " << WPCurr;
+			}
+			out << std::endl;
 		}
 	}
 }
@@ -1676,15 +1732,10 @@ DynamicStructNode::DynamicStructNode(unsigned int uL,
 	flag fOut)
 : StructNode(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot,
 	ood, fOut),
-#ifdef USE_NETCDF
-Var_XPP(0),
-Var_OmegaP(0),
-#endif /* USE_NETCDF */
 bComputeAccelerations((fOut & 2) ? true : false),
-bOutputAccelerations(bComputeAccelerations),
 pAutoStr(0)
 {
-	NO_OP;
+	bOutputAccels = bComputeAccelerations;
 }
 
 
@@ -1909,169 +1960,6 @@ DynamicStructNode::AfterConvergence(const VectorHandler& X,
 			return;
 		}
 		pAutoStr->ComputeAccelerations(XPPCurr, WPCurr);
-	}
-}
-
-void
-DynamicStructNode::OutputPrepare(OutputHandler &OH)
-{
-	StructNode::OutputPrepare(OH);
-
-	if (fToBeOutput()) {
-#ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::STRNODES)
-			&& bOutputAccelerations)
-		{
-			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
-
-			// get a pointer to binary NetCDF file  -->  pDM->OutHdl.BinFile
-			NcFile *pBinFile = OH.pGetBinFile();
-			char buf[BUFSIZ];
-
-			// NOTE: keep in sync with StructNode::OutputPrepare
-			int l = snprintf(buf, sizeof(buf), "node.struct.%lu.",
-				(unsigned long)GetLabel());
-			if (l < 0 || l >= int(sizeof(buf) - STRLENOF("OmegaP"))) {
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			// Add NetCDF (output) variables to the BinFile object and
-			// save the NcVar* pointer returned from add_var as handle
-			// for later write accesses. Define also variable attributes
-
-			strcpy(&buf[l], "XPP");
-			Var_XPP = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
-			if (Var_XPP == 0) {
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_XPP->add_att("units", "m/s^2")) {
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_XPP->add_att("type", "Vec3")) {
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_XPP->add_att("description", "global acceleration vector (a_X, a_Y, a_Z)")) {
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			strcpy(&buf[l], "OmegaP");
-			Var_OmegaP = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
-			if (Var_OmegaP == 0) {
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_OmegaP->add_att("units", "radian/s^2")) {
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_OmegaP->add_att("type", "Vec3")) {
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_OmegaP->add_att("description",
-				"global angular acceleration vector "
-				"(omegaP_X, omegaP_Y, omegaP_Z)"))
-			{
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-		}
-#endif // USE_NETCDF
-	}
-}
-
-/* Output del nodo strutturale (da mettere a punto) */
-void
-DynamicStructNode::Output(OutputHandler& OH) const
-{
-	if (fToBeOutput()) {
-		Vec3 E;
-		switch (od) {
-		case EULER_123:
-			E = MatR2EulerAngles123(RCurr)*dRaDegr;
-			break;
-
-		case EULER_313:
-			E = MatR2EulerAngles313(RCurr)*dRaDegr;
-			break;
-
-		case EULER_321:
-			E = MatR2EulerAngles321(RCurr)*dRaDegr;
-			break;
-
-		case ORIENTATION_VECTOR:
-			E = RotManip::VecRot(RCurr);
-			break;
-
-		case ORIENTATION_MATRIX:
-			break;
-
-		default:
-			/* impossible */
-			break;
-		}
-
-#ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
-			Var_X->put_rec(XCurr.pGetVec(), OH.GetCurrentStep());
-			switch (od) {
-			case EULER_123:
-			case EULER_313:
-			case EULER_321:
-			case ORIENTATION_VECTOR:
-				Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
-				break;
-
-			case ORIENTATION_MATRIX:
-				Var_Phi->put_rec(RCurr.pGetMat(), OH.GetCurrentStep());
-				break;
-
-			default:
-				/* impossible */
-				break;
-			}
-			Var_XP->put_rec(VCurr.pGetVec(), OH.GetCurrentStep());
-			Var_Omega->put_rec(WCurr.pGetVec(), OH.GetCurrentStep());
-
-			if (bOutputAccelerations) {
-				Var_XPP->put_rec(XPPCurr.pGetVec(), OH.GetCurrentStep());
-				Var_OmegaP->put_rec(WPCurr.pGetVec(), OH.GetCurrentStep());
-			}
-		}
-#endif /* USE_NETCDF */
-
-		if (OH.UseText(OutputHandler::STRNODES)) {
-			std::ostream& out = OH.StrNodes();
-			out
-				<< std::setw(8) << GetLabel()
-				<< " " << XCurr << " ";
-			switch (od) {
-			case EULER_123:
-			case EULER_313:
-			case EULER_321:
-			case ORIENTATION_VECTOR:
-				OH.StrNodes() << E;
-				break;
-
-			case ORIENTATION_MATRIX:
-				OH.StrNodes() << RCurr;
-				break;
-
-			default:
-				/* impossible */
-				break;
-			}
-			OH.StrNodes() << " " << VCurr << " " << WCurr;
-
-			if (bOutputAccelerations) {
-				out
-					<< " " << XPPCurr
-					<< " " << WPCurr;
-			}
-			out << std::endl;
-		}
 	}
 }
 
@@ -2692,6 +2580,14 @@ OffsetDummyStructNode::OffsetDummyStructNode(unsigned int uL,
 	flag fOut)
 : DummyStructNode(uL, pDO, pN, ood, fOut), f(f), R(R)
 {
+	const DynamicStructNode *pDSN = dynamic_cast<const DynamicStructNode *>(pNode);
+	if (pDSN != 0 && pDSN->bOutputAccelerations()) {
+		bOutputAccels = true;
+
+	} else {
+		bOutputAccels = false;
+	}
+
 	/* forzo la ricostruzione del nodo strutturale sottostante */
 	Update_int();
 }
@@ -2713,6 +2609,15 @@ OffsetDummyStructNode::Update_int(void)
 	RCurr = pNode->GetRCurr()*R;
 	WCurr = pNode->GetWCurr();
 	VCurr = pNode->GetVCurr() + WCurr.Cross(fCurr);
+
+	if (bOutputAccelerations()) {
+		const DynamicStructNode *pDSN = dynamic_cast<const DynamicStructNode *>(pNode);
+
+		WPCurr = pDSN->GetWPCurr();
+		XPPCurr = pDSN->GetXPPCurr()
+			+ WCurr.Cross(WCurr.Cross(fCurr))
+			+ WPCurr.Cross(fCurr);
+	}
 }
 
 
@@ -2773,6 +2678,17 @@ fhT(RhT*fh)
 	 * and differentiating with respect to time
 	 */
 
+	const DynamicStructNode *pDSNb = dynamic_cast<const DynamicStructNode *>(pNode);
+	const DynamicStructNode *pDSNr = dynamic_cast<const DynamicStructNode *>(pNodeRef);
+	if (pDSNb && pDSNb->bOutputAccelerations()
+		&& pDSNr && pDSNr->bOutputAccelerations())
+	{
+		bOutputAccels = true;
+
+	} else {
+		bOutputAccels = false;
+	}
+
 	/* forzo la ricostruzione del nodo strutturale sottostante */
 	Update_int();
 }
@@ -2799,6 +2715,18 @@ RelFrameDummyStructNode::Update_int(void)
 	VCurr = RT*(pNode->GetVCurr()
 		- pNodeRef->GetVCurr()
 		- pNodeRef->GetWCurr().Cross(XRel));
+
+	if (bOutputAccelerations()) {
+		const DynamicStructNode *pDSNb = dynamic_cast<const DynamicStructNode *>(pNode);
+		const DynamicStructNode *pDSNr = dynamic_cast<const DynamicStructNode *>(pNodeRef);
+
+		WPCurr = RT*(pDSNb->GetWPCurr() - pDSNr->GetWPCurr()
+			- pDSNr->GetWCurr().Cross(pDSNb->GetWCurr()));
+		XPPCurr = RT*(pDSNb->GetXPPCurr() - pDSNr->GetXPPCurr()
+			- pDSNr->GetWPCurr().Cross(XRel)
+			- (pDSNr->GetWCurr()*2.).Cross(pDSNb->GetVCurr() - pDSNr->GetVCurr())
+			+ pDSNr->GetWCurr().Cross(pDSNr->GetWCurr().Cross(XRel)));
+	}
 }
 
 
@@ -2860,6 +2788,19 @@ pNodeRef2(pNR2), Rh2(Rh2), fh2(fh2)
 	 * and differentiating with respect to time
 	 */
 
+	const DynamicStructNode *pDSNb = dynamic_cast<const DynamicStructNode *>(pNode);
+	const DynamicStructNode *pDSNr = dynamic_cast<const DynamicStructNode *>(pNodeRef);
+	const DynamicStructNode *pDSNp = dynamic_cast<const DynamicStructNode *>(pNodeRef2);
+	if (pDSNb && pDSNb->bOutputAccelerations()
+		&& pDSNr && pDSNr->bOutputAccelerations()
+		&& pDSNp && pDSNp->bOutputAccelerations())
+	{
+		bOutputAccels = true;
+
+	} else {
+		bOutputAccels = false;
+	}
+
 	/* forzo la ricostruzione del nodo strutturale sottostante */
 	Update_int();
 }
@@ -2880,8 +2821,23 @@ PivotRelFrameDummyStructNode::Update_int(void)
 
 	Mat3x3 R2(pNodeRef2->GetRCurr()*Rh2);
 
-	WCurr = pNodeRef2->GetWCurr() + R2*WCurr;
 	XCurr = pNodeRef2->GetRCurr()*(Rh2*XCurr + fh2);
+
+	if (bOutputAccelerations()) {
+		const DynamicStructNode *pDSNp = dynamic_cast<const DynamicStructNode *>(pNodeRef2);
+
+		// TODO
+		WPCurr = pDSNp->GetWPCurr()
+			+ pDSNp->GetWCurr().Cross(R2*WCurr)
+			+ R2*WPCurr;
+		XPPCurr = pDSNp->GetXPPCurr()
+			+ pDSNp->GetWPCurr().Cross(XCurr)
+			+ pDSNp->GetWCurr().Cross(pDSNp->GetWCurr().Cross(XCurr))
+			+ (pDSNp->GetWCurr()*2.).Cross(R2*VCurr)
+			+ R2*XPPCurr;
+	}
+
+	WCurr = pNodeRef2->GetWCurr() + R2*WCurr;
 	VCurr = pNodeRef2->GetVCurr()
 		+ pNodeRef2->GetWCurr().Cross(XCurr)
 		+ R2*VCurr;
