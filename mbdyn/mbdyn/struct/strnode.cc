@@ -2580,8 +2580,7 @@ OffsetDummyStructNode::OffsetDummyStructNode(unsigned int uL,
 	flag fOut)
 : DummyStructNode(uL, pDO, pN, ood, fOut), f(f), R(R)
 {
-	const DynamicStructNode *pDSN = dynamic_cast<const DynamicStructNode *>(pNode);
-	if (pDSN != 0 && pDSN->bOutputAccelerations()) {
+	if (pNode->bOutputAccelerations()) {
 		bOutputAccels = true;
 
 	} else {
@@ -2611,10 +2610,8 @@ OffsetDummyStructNode::Update_int(void)
 	VCurr = pNode->GetVCurr() + WCurr.Cross(fCurr);
 
 	if (bOutputAccelerations()) {
-		const DynamicStructNode *pDSN = dynamic_cast<const DynamicStructNode *>(pNode);
-
-		WPCurr = pDSN->GetWPCurr();
-		XPPCurr = pDSN->GetXPPCurr()
+		WPCurr = pNode->GetWPCurr();
+		XPPCurr = pNode->GetXPPCurr()
 			+ WCurr.Cross(WCurr.Cross(fCurr))
 			+ WPCurr.Cross(fCurr);
 	}
@@ -2678,10 +2675,8 @@ fhT(RhT*fh)
 	 * and differentiating with respect to time
 	 */
 
-	const DynamicStructNode *pDSNb = dynamic_cast<const DynamicStructNode *>(pNode);
-	const DynamicStructNode *pDSNr = dynamic_cast<const DynamicStructNode *>(pNodeRef);
-	if (pDSNb && pDSNb->bOutputAccelerations()
-		&& pDSNr && pDSNr->bOutputAccelerations())
+	if (pNode->bOutputAccelerations()
+		&& pNodeRef->bOutputAccelerations())
 	{
 		bOutputAccels = true;
 
@@ -2717,15 +2712,12 @@ RelFrameDummyStructNode::Update_int(void)
 		- pNodeRef->GetWCurr().Cross(XRel));
 
 	if (bOutputAccelerations()) {
-		const DynamicStructNode *pDSNb = dynamic_cast<const DynamicStructNode *>(pNode);
-		const DynamicStructNode *pDSNr = dynamic_cast<const DynamicStructNode *>(pNodeRef);
-
-		WPCurr = RT*(pDSNb->GetWPCurr() - pDSNr->GetWPCurr()
-			- pDSNr->GetWCurr().Cross(pDSNb->GetWCurr()));
-		XPPCurr = RT*(pDSNb->GetXPPCurr() - pDSNr->GetXPPCurr()
-			- pDSNr->GetWPCurr().Cross(XRel)
-			- (pDSNr->GetWCurr()*2.).Cross(pDSNb->GetVCurr() - pDSNr->GetVCurr())
-			+ pDSNr->GetWCurr().Cross(pDSNr->GetWCurr().Cross(XRel)));
+		WPCurr = RT*(pNode->GetWPCurr() - pNodeRef->GetWPCurr()
+			- pNodeRef->GetWCurr().Cross(pNode->GetWCurr()));
+		XPPCurr = RT*(pNode->GetXPPCurr() - pNodeRef->GetXPPCurr()
+			- pNodeRef->GetWPCurr().Cross(XRel)
+			- (pNodeRef->GetWCurr()*2.).Cross(pNode->GetVCurr() - pNodeRef->GetVCurr())
+			+ pNodeRef->GetWCurr().Cross(pNodeRef->GetWCurr().Cross(XRel)));
 	}
 }
 
@@ -2788,12 +2780,9 @@ pNodeRef2(pNR2), Rh2(Rh2), fh2(fh2)
 	 * and differentiating with respect to time
 	 */
 
-	const DynamicStructNode *pDSNb = dynamic_cast<const DynamicStructNode *>(pNode);
-	const DynamicStructNode *pDSNr = dynamic_cast<const DynamicStructNode *>(pNodeRef);
-	const DynamicStructNode *pDSNp = dynamic_cast<const DynamicStructNode *>(pNodeRef2);
-	if (pDSNb && pDSNb->bOutputAccelerations()
-		&& pDSNr && pDSNr->bOutputAccelerations()
-		&& pDSNp && pDSNp->bOutputAccelerations())
+	if (pNode->bOutputAccelerations()
+		&& pNodeRef->bOutputAccelerations()
+		&& pNodeRef2->bOutputAccelerations())
 	{
 		bOutputAccels = true;
 
@@ -2824,16 +2813,13 @@ PivotRelFrameDummyStructNode::Update_int(void)
 	XCurr = pNodeRef2->GetRCurr()*(Rh2*XCurr + fh2);
 
 	if (bOutputAccelerations()) {
-		const DynamicStructNode *pDSNp = dynamic_cast<const DynamicStructNode *>(pNodeRef2);
-
-		// TODO
-		WPCurr = pDSNp->GetWPCurr()
-			+ pDSNp->GetWCurr().Cross(R2*WCurr)
+		WPCurr = pNodeRef2->GetWPCurr()
+			+ pNodeRef2->GetWCurr().Cross(R2*WCurr)
 			+ R2*WPCurr;
-		XPPCurr = pDSNp->GetXPPCurr()
-			+ pDSNp->GetWPCurr().Cross(XCurr)
-			+ pDSNp->GetWCurr().Cross(pDSNp->GetWCurr().Cross(XCurr))
-			+ (pDSNp->GetWCurr()*2.).Cross(R2*VCurr)
+		XPPCurr = pNodeRef2->GetXPPCurr()
+			+ pNodeRef2->GetWPCurr().Cross(XCurr)
+			+ pNodeRef2->GetWCurr().Cross(pNodeRef2->GetWCurr().Cross(XCurr))
+			+ (pNodeRef2->GetWCurr()*2.).Cross(R2*VCurr)
 			+ R2*XPPCurr;
 	}
 
