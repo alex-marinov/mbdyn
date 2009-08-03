@@ -1051,12 +1051,19 @@ The \texttt{offset} dummy structural node outputs the configuration
 of a reference frame that is rigidly offset from a base node
 (subscript $b$) by $\T{f}_h$ and oriented by matrix $\T{R}_h$ according 
 to the transformation
+\begin{subequations}
 \begin{align}
 	\T{x} &= \T{x}_b + \T{R}_b \T{f}_h \\
 	\T{R} &= \T{R}_b \T{R}_h \\
 	\dot{\T{x}} &= \dot{\T{x}}_b + \T{\omega}_b \times \T{R}_b \T{f}_h \\
-	\T{\omega} &= \T{\omega}_b
+	\T{\omega} &= \T{\omega}_b \\
+	\ddot{\T{x}} &= \ddot{\T{x}}_b + \plbr{
+		\dot{\T{\omega}}_b \times{}
+		+ \T{\omega}_b \times \T{\omega}_b \times{}
+	} \T{R}_b \T{f}_h \\
+	\dot{\T{\omega}} &= \dot{\T{\omega}}_b
 \end{align}
+\end{subequations}
 
 
 \paragraph{Reference Frame Dummy Node.} \
@@ -1066,6 +1073,7 @@ in the reference frame of a reference node (subscript $r$),
 optionally offset by $\T{f}_h$ and with an orientation relative 
 to $r$ provided by matrix $\T{R}_h$,
 according to the transformation
+\begin{subequations}
 \begin{align}
 	\overline{\T{x}} &= \T{R}_h^T \plbr{\T{R}_r^T \plbr{\T{x}_b - \T{x}_r} - \T{f}_h}\\
 	\overline{\T{R}} &= \T{R}_h^T \T{R}_r^T \T{R}_b \\
@@ -1074,8 +1082,23 @@ according to the transformation
 		- \dot{\T{x}}_r
 		- \T{\omega}_r\times\plbr{\T{x}_b - \T{x}_r}
 	} \\
-	\overline{\T{\omega}} &= \T{R}_h^T \T{R}_r^T \plbr{\T{\omega}_b - \T{\omega}_r}
+	\overline{\T{\omega}} &= \T{R}_h^T \T{R}_r^T \plbr{\T{\omega}_b - \T{\omega}_r} \\
+	\overline{\ddot{\T{x}}} &= \T{R}_h^T \T{R}_r^T \plbr{
+		\ddot{\T{x}}_b
+		- \ddot{\T{x}}_r
+		- \plbr{
+			\dot{\T{\omega}}_r \times{}
+			+ \T{\omega}_r \times \T{\omega}_r \times{}
+		} \plbr{\T{x}_b - \T{x}_r}
+		- 2 \T{\omega}_r \times \plbr{\dot{\T{x}}_b - \dot{\T{x}}_r}
+	} \\
+	\overline{\dot{\T{\omega}}} &= \T{R}_h^T \T{R}_r^T \plbr{
+		\dot{\T{\omega}}_b
+		- \dot{\T{\omega}}_r
+		- \T{\omega}_r \times \T{\omega}_b
+	}
 \end{align}
+\end{subequations}
 
 \paragraph{Pivot Reference Frame Dummy Node.} \
 The \texttt{pivot reference frame} dummy node is a variant
@@ -1085,6 +1108,7 @@ frame of the reference node, as if it were attached to the pivot node
 (subscript $p$), optionally offset by $\T{f}_k$ and with
 an orientation relative to $p$ provided by matrix $\T{R}_k$,
 according to the transformation
+\begin{subequations}
 \begin{align}
 	\hat{\T{x}} &= \T{x}_p + \T{R}_p\plbr{\T{R}_k \overline{\T{x}} + \T{f}_k} \\
 	\hat{\T{R}} &= \T{R}_p \T{R}_k \overline{\T{R}} \\
@@ -1092,8 +1116,21 @@ according to the transformation
 		+ \T{\omega}_p \times\T{R}_p \plbr{
 			\T{R}_k \overline{\T{x}} + \T{f}_k
 		} + \T{R}_p \T{R}_k \dot{\overline{\T{x}}} \\
-	\hat{\T{\omega}} &= \T{\omega}_p + \T{R}_p \T{R}_k \overline{\T{\omega}}
+	\hat{\T{\omega}} &= \T{\omega}_p + \T{R}_p \T{R}_k \overline{\T{\omega}} \\
+	\hat{\ddot{\T{x}}} &= \ddot{\T{x}}_p
+		+ \plbr{
+			\dot{\T{\omega}}_p \times{}
+			+ \T{\omega}_p \times \T{\omega}_p \times{}
+		} \TT{R}_p \plbr{
+			\TT{R}_k \overline{\T{x}} + \T{f}_k
+		}
+		+ 2 \T{\omega}_p \times \TT{R}_p \TT{R}_k \overline{\dot{\T{x}}}
+		+ \TT{R}_p \TT{R}_k \overline{\ddot{\T{x}}} \\
+	\hat{\dot{\T{\omega}}} &= \dot{\T{\omega}}_p
+		+ \T{\omega}_p \times \TT{R}_p \TT{R}_k \overline{\T{\omega}}
+		+ \TT{R}_p \TT{R}_k \overline{\dot{\T{\omega}}}
 \end{align}
+\end{subequations}
 
 
 \subsection{Relative Motion}
