@@ -12,6 +12,8 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 MBDyn 1.X-Devel
 	Enhancements:
 		- added accelerations output to dummy structural nodes
+		- added experimental cycloidal rotor inflow models
+		  (Mattia Mattaboni)
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
