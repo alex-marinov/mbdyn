@@ -112,7 +112,7 @@ The \kw{omega\_rotates} flag can take values \kw{yes} or \kw{no};
 a numerical value of 0 (no) or 1 (yes) is supported for backwards
 compatibility, but its use is deprecated.
 
-Only the \kw{dynamic} and the \kw{modal} node types allow
+The \kw{dynamic} and the \kw{modal} node types allow
 the optional output keyword
 \kw{accelerations} after the standard node output parameters:
 \begin{verbatim}
@@ -121,9 +121,14 @@ the optional output keyword
 to enable the output of the linear and angular accelerations of the node.
 Since this is a postprocessing, it is not required by the regular analysis,
 so it should be enabled only when strictly required.
+
 Also note that accelerations may be inaccurate, since they are reconstructed
 from the momentum and the momenta moment derivatives through the inertia
 associated to the node.
+
+Also \kw{dummy} nodes allow the keyword \kw{accelerations},
+but honor it only if provided by the nodes they are related to.
+
 Accelerations output can be controlled by means of the
 \hyperref{\kw{default output} statement}{\kw{default output} statement (see Section~}{)}{sec:CONTROLDATA:DEFAULTOUTPUT}.
 
