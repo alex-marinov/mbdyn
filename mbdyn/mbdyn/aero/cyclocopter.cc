@@ -176,8 +176,7 @@ CyclocopterNoInflow::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XPrimeCurr)
 {
 	if (fToBeOutput() ){
-		RRotorTranspose = pCraft->GetRCurr()*RRot;
-		RRotorTranspose = RRotorTranspose.Transpose();
+		RRotorTranspose = (pCraft->GetRCurr()*RRot).Transpose();
 	}
 	
 	ResetForce();
@@ -410,7 +409,7 @@ CyclocopterUniform2D::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XPrimeCurr)
 {
 	/* UNIFORM induced velocity */
-	/* Trasporta della matrice di rotazione del rotore */
+	/* Trasposta della matrice di rotazione del rotore */
 	RRotor = pCraft->GetRCurr()*RRot;
 	RRotorTranspose = RRotor.Transpose();
 	/* Forze nel sistema rotore */
@@ -420,7 +419,7 @@ CyclocopterUniform2D::AssRes(SubVectorHandler& WorkVec,
 	Yk = -Yk_1*a1 - Yk_2*a2 + Uk*b0 + Uk_1*b1 + Uk_2*b2;
 	F = Yk;	
 	/* Forza nel piano normale all'asse di rotazione */
-	doublereal dT= sqrt(F(2)*F(2) + F(3)*F(3));
+	doublereal dT = sqrt(F(2)*F(2) + F(3)*F(3));
 	/* Velocità indotta: calcolata in base alla dT */
 	doublereal dRho = dGetAirDensity(GetXCurr());
 	dUindMean = sqrt(dT/(2*dRho*dArea));
@@ -577,7 +576,7 @@ CyclocopterPolimi::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XPrimeCurr)
 {
 	/* UNIFORM induced velocity */
-	/* Trasporta della matrice di rotazione del rotore */
+	/* Trasposta della matrice di rotazione del rotore */
 	RRotor = pCraft->GetRCurr()*RRot;
 	RRotorTranspose = RRotor.Transpose();
 	/* Forze nel sistema rotore */
@@ -587,7 +586,7 @@ CyclocopterPolimi::AssRes(SubVectorHandler& WorkVec,
 	Yk = -Yk_1*a1 - Yk_2*a2 + Uk*b0 + Uk_1*b1 + Uk_2*b2;
 	F = Yk;	
 	/* Forza nel piano normale all'asse di rotazione */
-	doublereal dT= sqrt( F(2)*F(2)+F(3)*F(3) );
+	doublereal dT = sqrt(F(2)*F(2) + F(3)*F(3));
 	/* angolo di cui è ruotata la trazione */
 	dXi = atan2(F(3), F(2)) - M_PI/2.;
 	/* Velocità indotta: calcolata in base alla dT */
@@ -616,7 +615,7 @@ CyclocopterPolimi::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const
 {
 	/* Sole se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {
-		Res.AddForces(F,M,X);
+		Res.AddForces(F, M, X);
 		InducedVelocity::AddForce(uL, F, M, X);
 	} else {
 		Res.AddForce(F);
@@ -628,16 +627,16 @@ CyclocopterPolimi::GetInducedVelocity(const Vec3& X) const
 {
 
 	//Vec3 XRel(RRotorTranspose*(X-Res.Pole()));
-	Vec3 XRel(RRotorTranspose*(X-pRotor->GetXCurr()));
+	Vec3 XRel(RRotorTranspose*(X - pRotor->GetXCurr()));
 
-	doublereal d1 = XRel.dGet(2);
-	doublereal d2 = XRel.dGet(3);
+	doublereal d1 = XRel(2);
+	doublereal d2 = XRel(3);
 
 	/* dPsi0 non serve a nulla perchè uso l'angolo
 	 * relativo: (dp-dXi)!!! */
 	doublereal dp = atan2(d2, d1);
 
-	doublereal r = sqrt(d1*d1+d2*d2)*cos(dp-dXi);
+	doublereal r = sqrt(d1*d1 + d2*d2)*cos(dp - dXi);
 	
 	return RRotor*((dUind*(M_PI/2.))*cos((M_PI/2.)*(r/dRadius)));
 
