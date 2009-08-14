@@ -14,6 +14,7 @@ MBDyn 1.X-Devel
 		- added accelerations output to dummy structural nodes
 		- added experimental cycloidal rotor inflow models
 		  (Mattia Mattaboni)
+		- added better Fortran compiler detection
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:

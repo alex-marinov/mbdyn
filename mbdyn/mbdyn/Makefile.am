@@ -9,8 +9,6 @@ SUBDIRS = base struct aero elec hydr thermo
 # Build mbdyn executable
 bin_PROGRAMS = mbdyn
 mbdyn_SOURCES = \
-dummy_c.c \
-dummy_f.f  \
 mbdyn.cc  \
 mbdyn.h
 
@@ -44,7 +42,7 @@ $(GINACLIB_LIBS) \
 @TAUCS_LIBS@ \
 @MPI_LIBS@ \
 @BLAS_LIBS@ \
-@F2C_LIBS@ \
+@FCLIBS@ \
 @CHACO_LIBS@ \
 @METIS_LIBS@ \
 @SECURITY_LIBS@ \

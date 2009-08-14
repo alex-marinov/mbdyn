@@ -56,7 +56,7 @@ libmbwrap_la_LIBADD = \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
 @LIBS@ \
-@F2C_LIBS@ \
+@FCLIBS@ \
 @TCL_LIBS@ \
 @THREAD_LIBS@
 
@@ -80,7 +80,7 @@ libmbwrap.la \
 @Y12_LIBS@ \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
-@F2C_LIBS@ \
+@FCLIBS@ \
 @LIBS@ \
 @TCL_LIBS@ \
 @THREAD_LIBS@
@@ -95,7 +95,7 @@ libmbwrap.la \
 @Y12_LIBS@ \
 @BLAS_LIBS@ \
 @LIBS@ \
-@F2C_LIBS@ \
+@FCLIBS@ \
 @TCL_LIBS@ \
 @THREAD_LIBS@
 
@@ -112,7 +112,7 @@ libmbwrap.la \
 @Y12_LIBS@ \
 @BLAS_LIBS@ \
 @LIBS@ \
-@F2C_LIBS@ \
+@FCLIBS@ \
 @TCL_LIBS@ \
 @THREAD_LIBS@
 

@@ -18,7 +18,7 @@ y12mfe.f \
 y12mge.f \
 y12mhe.f
 
-liby12_la_LIBADD = @LIBS@ @F2C_LIBS@
+liby12_la_LIBADD = @LIBS@ @FCLIBS@
 liby12_la_LDFLAGS =
 
 noinst_PROGRAMS = y12test

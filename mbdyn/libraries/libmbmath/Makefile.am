@@ -65,7 +65,7 @@ schurmh.h \
 schurmh.cc
 endif
 
-libmbmath_la_LIBADD = @LIBS@ @F2C_LIBS@ @X_ANN_LIBS@
+libmbmath_la_LIBADD = @LIBS@ @FCLIBS@ @X_ANN_LIBS@
 libmbmath_la_LDFLAGS =
 
 noinst_PROGRAMS = matmultest itertest dgeequtest
@@ -85,7 +85,7 @@ libmbmath.la \
 @Y12_LIBS@ \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
-@F2C_LIBS@ \
+@FCLIBS@ \
 @LIBS@ \
 @TCL_LIBS@ \
 @THREAD_LIBS@
@@ -105,7 +105,7 @@ libmbmath.la \
 @Y12_LIBS@ \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
-@F2C_LIBS@ \
+@FCLIBS@ \
 @LIBS@ \
 @TCL_LIBS@ \
 @THREAD_LIBS@
@@ -125,7 +125,7 @@ libmbmath.la \
 @Y12_LIBS@ \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
-@F2C_LIBS@ \
+@FCLIBS@ \
 @LIBS@ \
 @TCL_LIBS@ \
 @THREAD_LIBS@

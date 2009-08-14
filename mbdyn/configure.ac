@@ -108,7 +108,6 @@ dnl aclocal.m4 should be built using aclocal from automake 1.4
 dnl libtool 1.3.3 should be installed.
 AC_PREREQ(2.13)dnl Required Autoconf version
 
-dnl AM_CONFIG_HEADER(include/mbconfig.h)
 AC_CONFIG_HEADERS([include/mbconfig.h:include/mbconfig.h.in])
 AH_TOP([
 /*
@@ -199,7 +198,6 @@ OL_ARG_ENABLE(netcdf,[  --enable-netcdf         enable NetCDF based binary outpu
 dnl ----------------------------------------------------------------
 dnl General "with" options
 OL_ARG_WITH(tcl,[  --with-tcl              with tcl interpreters],no,[auto yes no])
-OL_ARG_WITH(libf2c,[  --with-libf2c[={f2c|g2c}] with f2c library],no,[auto yes no g2c])
 OL_ARG_WITH(g2c,[  --with-g2c              with g2c header],no,[auto yes no])
 OL_ARG_WITH(fs,[  --with-fs[={unix|dos}]    filesystem type],unix,[unix dos])
 OL_ARG_WITH(mpi,[  --with-mpi              with MPI support (=pmpi for profiling)],auto,[auto yes pmpi no])
@@ -280,10 +278,13 @@ AC_PROG_CXX
 if test "x$CXX" = "x" ; then
 	AC_MSG_ERROR([Need a working C++ compiler])
 fi
-AC_PROG_F77
-if test "x$F77" = "x" ; then
-	AC_MSG_ERROR([Need a working F77 compiler])
+AC_PROG_FC
+if test "x$FC" = "x" ; then
+	AC_MSG_ERROR([Need a working Fortran compiler])
 fi
+AC_FC_DUMMY_MAIN
+AC_FC_LIBRARY_LDFLAGS
+LIBS="$LIBS $FCLIBS"
 
 if test "$GCC" = "yes" ; then
 	dnl check for 3.3
@@ -334,7 +335,6 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Initialize vars
 dnl
-F2C_LIBS=
 MPI_LIBS=
 METIS_LIBS=
 CHACO_LIBS=
@@ -723,93 +723,6 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
-dnl Check for f2c libraries
-dnl
-ol_link_libf2c=no
-if test $ol_with_libf2c = no -a `basename "$F77"` = "g77" ; then
-	ol_with_libf2c=auto
-fi
-	
-if test $ol_with_libf2c != no ; then
-	AC_CHECK_HEADER(g2c.h, [
-	AC_COMPILE_IFELSE([
-#include <g2c.h>
-integer i;
-doublereal d;
-	],[have_g2c_h=yes],[have_g2c_h=no])
-	],[have_g2c_h=no])
-	AC_CHECK_HEADER(f2c.h)
-
-	AC_MSG_CHECKING([for f2c library])
-	AC_MSG_RESULT([])
-		
-	if test $ol_with_libf2c = g2c ; then
-		libf2c_pool="g2c"
-	else
-		libf2c_pool="g2c f2c"
-	fi
-
-	for l in $libf2c_pool ; do
-		AC_MSG_CHECKING([for lib$l])
-
-		try_libf2c="$l"
-		try_libf2c_LIBS="-l$l"
-		save_LIBS=$LIBS
-		LIBS="$LIBS $try_libf2c_LIBS -lm"
-		AC_TRY_LINK([
-		],[
-	double i = 1., o;
-	o = d_cos(&i);
-		],[have_libf2c=yes],[have_libf2c=no])
-		LIBS=$save_LIBS
-
-		if test $have_libf2c != no ; then
-			F2C_LIBS=$try_libf2c_LIBS
-			AC_MSG_RESULT([yes])
-			ol_link_libf2c=yes
-
-			if test $l = g2c -a $ol_with_g2c != no ; then
-				if test $have_g2c_h = yes ; then
-					AC_DEFINE(USE_G2C_H,1,[define to use g2c.h])
-				fi
-			fi
-			break
-		else
-			AC_MSG_RESULT([no])
-		fi
-	done
-
-	if test $ol_link_libf2c = no ; then
-	
-		if test $ol_with_libf2c != auto ; then
-			AC_MSG_ERROR([Could not locate f2c library])
-		else
-			AC_MSG_WARN([f2c library not supported])
-		fi
-	else
-		dnl Hack to allow different Fortran compatibility libraries
-		dnl that apparently do not implement integer power of double
-		AC_CHECK_LIB($try_libf2c,pow_di,[
-			AC_DEFINE(HAVE_POW_DI,1,[define if pow_di() function is available])])
-		dnl FIXME: do we still need this ?!?
-		AC_DEFINE(NEED_POW_DD,1,[define if pow_dd() function is needed])
-	fi
-fi
-
-dnl ----------------------------------------------------------------
-dnl
-dnl Add fortran lib
-dnl
-case `basename "$F77"` in
-gfortran)
-	F2C_LIBS="$F2C_LIBS -lgfortran"
-	;;
-*)
-	;;
-esac
-
-dnl ----------------------------------------------------------------
-dnl
 dnl Check for UNIX fs !?!
 dnl
 case "$ol_with_fs" in
@@ -1172,7 +1085,7 @@ if test $ol_with_blas != no ; then
 
 	try_blas_LIBS=
 	if test "$have_blas" = "no" ; then
-		try_blas_LIBS="-l$ol_with_goto_lib -lxerbla $F2C_LIBS -lm"
+		try_blas_LIBS="-l$ol_with_goto_lib -lxerbla $FCLIBS -lm"
 		if test "$ol_with_blas" = "auto" -o "$ol_with_blas" = "goto" ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
@@ -1205,13 +1118,13 @@ if test $ol_with_blas != no ; then
 	/* test for blas */
 	return cblas_dgemm();
 			],[have_blas="atlas"
-				LIBS="-lcblas -lf77blas -latlas -lm $F2C_LIBS $LIBS"
+				LIBS="-lcblas -lf77blas -latlas $FCLIBS -lm $LIBS"
 				AC_TRY_LINK([
 					/* FIXME: some architectures might use different
 					 * naming conventions, e.g. uppercase, no underscore
 					 */
 					extern int dgemm_(void);],[return dgemm_();
-				],[try_blas_LIBS="-lcblas -lf77blas -latlas $F2C_LIBS -lm"],[])
+				],[try_blas_LIBS="-lcblas -lf77blas -latlas $FCLIBS -lm"],[])
 			],[
 				have_blas="no"
 				if test "$ol_with_blas" = "atlas" ; then
@@ -1243,7 +1156,7 @@ if test $ol_with_blas != no ; then
 	fi
 
 	if test "$have_blas" = "no" ; then
-		try_blas_LIBS="-lblas $F2C_LIBS -lm"
+		try_blas_LIBS="-lblas $FCLIBS -lm"
 		if test "$ol_with_blas" = "auto" -o "$ol_with_blas" = "blas" ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
@@ -1574,9 +1487,9 @@ dnl Check for Harwell
 dnl
 ol_link_harwell=no
 if test $ol_with_harwell != no ; then
-	AC_CHECK_LIB(hsl,ma28ad,[have_libhsl=yes],[have_libhsl=no],[${F2C_LIBS} -lm])
+	AC_CHECK_LIB(hsl,ma28ad,[have_libhsl=yes],[have_libhsl=no],[${FCLIBS} -lm])
 	if test $have_libhsl = no ; then
-		AC_CHECK_LIB(hsl,ma28ad_,[have_libhsl=yes],[have_libhsl=no],[${F2C_LIBS} -lm])
+		AC_CHECK_LIB(hsl,ma28ad_,[have_libhsl=yes],[have_libhsl=no],[${FCLIBS} -lm])
 	fi
 	if test $have_libhsl = yes ; then
 		ol_link_harwell=yes
@@ -1601,7 +1514,7 @@ if test $ol_with_lapack != no ; then
 
 	save_LIBS="$LIBS"
 	try_lapack_LIBS="-llapack"
-	LIBS="$try_lapack_LIBS $BLAS_LIBS $F2C_LIBS $save_LIBS"
+	LIBS="$try_lapack_LIBS $BLAS_LIBS $FCLIBS $save_LIBS"
 	AC_TRY_LINK([
 	extern double dgesvd(double *);
 		],[
@@ -1675,7 +1588,7 @@ if test $ol_with_arpack != no ; then
 
 	save_LIBS="$LIBS"
 	try_arpack_LIBS="-larpack"
-	LIBS="$try_arpack_LIBS $LAPACK_LIBS $BLAS_LIBS $F2C_LIBS $save_LIBS"
+	LIBS="$try_arpack_LIBS $LAPACK_LIBS $BLAS_LIBS $FCLIBS $save_LIBS"
 	AC_TRY_LINK([
 	extern double dnaupd(double *);
 		],[
@@ -1719,7 +1632,7 @@ if test $ol_with_jdqz != no ; then
 
 	save_LIBS="$LIBS"
 	try_jdqz_LIBS="-ljdqz"
-	LIBS="$try_jdqz_LIBS $LAPACK_LIBS $BLAS_LIBS $F2C_LIBS $save_LIBS"
+	LIBS="$try_jdqz_LIBS $LAPACK_LIBS $BLAS_LIBS $FCLIBS $save_LIBS"
 	AC_TRY_LINK([
 	double amul(double *x) { return 0.; }
 	double bmul(double *x) { return 0.; }
@@ -2393,7 +2306,6 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Variable substituion
 dnl
-AC_SUBST(F2C_LIBS)
 AC_SUBST(MPI_LIBS)
 AC_SUBST(CHACO_LIBS)
 AC_SUBST(METIS_LIBS)
