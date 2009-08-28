@@ -42,23 +42,6 @@ typedef int Int;
 /* valori con tipo */
 class TypedValue {
 public:
-	class ErrUnknownType : public MBDynErrBase {
-	public:
-		ErrUnknownType(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
-	};
-	class ErrWrongType : public MBDynErrBase {
-	public:
-		ErrWrongType(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
-	};
-	class ErrUnknownValue : public MBDynErrBase {
-	public:
-		ErrUnknownValue(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
-	};
-	class ErrConstraintViolation : public MBDynErrBase {
-	public:
-		ErrConstraintViolation(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
-	};
-
 	enum Type {
 		VAR_UNKNOWN = -1,
 		
@@ -77,7 +60,27 @@ public:
 
 		MOD_LAST
 	};
-   
+ 
+	class ErrUnknownType : public MBDynErrBase {
+	public:
+		ErrUnknownType(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrWrongType : public MBDynErrBase {
+	public:
+		ErrWrongType(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+		ErrWrongType(const char *file, int line, const char *func,
+			const TypedValue::Type& to,
+			const TypedValue::Type& from);
+	};
+	class ErrUnknownValue : public MBDynErrBase {
+	public:
+		ErrUnknownValue(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+	class ErrConstraintViolation : public MBDynErrBase {
+	public:
+		ErrConstraintViolation(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+
 protected:
 	TypedValue::Type type;
 	bool bConst;

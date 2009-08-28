@@ -674,6 +674,13 @@ static typemodifiernames TypeModifierNames[] = {
 	{ NULL,		TypedValue::MOD_UNKNOWN }
 };
 
+TypedValue::ErrWrongType::ErrWrongType(const char *file, int line, const char *func,
+	const TypedValue::Type& to,
+	const TypedValue::Type& from)
+: MBDynErrBase(file, line, func, std::string("cannot cast \"") + GetTypeName(from) + "\" into \"" + GetTypeName(to) + "\"")
+{
+	NO_OP;
+}
 
 TypedValue::TypedValue(void)
 : type(TypedValue::VAR_UNKNOWN), bConst(false)
@@ -809,7 +816,7 @@ TypedValue::operator = (const TypedValue& var)
 
 		case TypedValue::VAR_STRING:
 			if (type != TypedValue::VAR_UNKNOWN) {
-				throw ErrWrongType(MBDYN_EXCEPT_ARGS);
+				throw ErrWrongType(MBDYN_EXCEPT_ARGS, type, var.type);
 			}
 			type = TypedValue::VAR_STRING;
 			s = var.s;
@@ -817,7 +824,7 @@ TypedValue::operator = (const TypedValue& var)
 
 		case TypedValue::VAR_UNKNOWN:
 			if (type != TypedValue::VAR_UNKNOWN) {
-				throw ErrWrongType(MBDYN_EXCEPT_ARGS);
+				throw ErrWrongType(MBDYN_EXCEPT_ARGS, type, var.type);
 			}
 			break;
 
@@ -877,7 +884,7 @@ TypedValue::Cast(const TypedValue& var)
 				break;
 
 			default:
-				throw ErrWrongType(MBDYN_EXCEPT_ARGS);
+				throw ErrWrongType(MBDYN_EXCEPT_ARGS, type, var.type);
 			}
 			Set(var.GetBool());
 			break;
@@ -897,7 +904,7 @@ TypedValue::Cast(const TypedValue& var)
 				break;
 
 			default:
-				throw ErrWrongType(MBDYN_EXCEPT_ARGS);
+				throw ErrWrongType(MBDYN_EXCEPT_ARGS, type, var.type);
 			}
 			Set(var.GetInt());
 			break;
@@ -910,7 +917,7 @@ TypedValue::Cast(const TypedValue& var)
 				break;
 
 			default:
-				throw ErrWrongType(MBDYN_EXCEPT_ARGS);
+				throw ErrWrongType(MBDYN_EXCEPT_ARGS, type, var.type);
 			}
 			Set(var.GetReal());
 			break;
@@ -971,7 +978,7 @@ TypedValue::GetBool(void) const
 		return v.r ? 1 : 0;
 
 	case TypedValue::VAR_STRING:
-		throw ErrWrongType(MBDYN_EXCEPT_ARGS);
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS, type, VAR_BOOL);
 
 	default:
 		throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
@@ -990,7 +997,7 @@ TypedValue::GetInt(void) const
 		return Int(v.r);
 
 	case TypedValue::VAR_STRING:
-		throw ErrWrongType(MBDYN_EXCEPT_ARGS);
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS, type, VAR_INT);
 
 	default:
 		throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
@@ -1009,7 +1016,7 @@ TypedValue::GetReal(void) const
  		return v.r;
 
 	case TypedValue::VAR_STRING:
-		throw ErrWrongType(MBDYN_EXCEPT_ARGS);
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS, type, VAR_REAL);
 
 	default:
 		throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
@@ -1023,7 +1030,7 @@ TypedValue::GetString(void) const
 	case TypedValue::VAR_BOOL:
 	case TypedValue::VAR_INT:
 	case TypedValue::VAR_REAL:
-		throw ErrWrongType(MBDYN_EXCEPT_ARGS);
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS, type, VAR_STRING);
 
 	case TypedValue::VAR_STRING:
  		return s;
@@ -1068,7 +1075,7 @@ TypedValue::Set(const bool& b)
 		break;
 
 	case TypedValue::VAR_STRING:
-		throw ErrWrongType(MBDYN_EXCEPT_ARGS);
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS, VAR_BOOL, GetType());
 
 	default:
 		throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
@@ -1098,7 +1105,7 @@ TypedValue::Set(const Int& i)
 		break;
 
 	case TypedValue::VAR_STRING:
-		throw ErrWrongType(MBDYN_EXCEPT_ARGS);
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS, VAR_INT, GetType());
 
 	default:
 		throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
@@ -1128,7 +1135,7 @@ TypedValue::Set(const Real& r)
 		break;
 
 	case TypedValue::VAR_STRING:
-		throw ErrWrongType(MBDYN_EXCEPT_ARGS);
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS, VAR_REAL, GetType());
 
 	default:
 		throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
@@ -1148,7 +1155,7 @@ TypedValue::Set(const std::string& s)
 	case TypedValue::VAR_BOOL:
 	case TypedValue::VAR_INT:
 	case TypedValue::VAR_REAL:
-		throw ErrWrongType(MBDYN_EXCEPT_ARGS);
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS, VAR_STRING, GetType());
 
 	case TypedValue::VAR_STRING:
 		this->s = s;
@@ -1229,7 +1236,7 @@ TypedValue::operator + (const TypedValue& v) const
 			return TypedValue(GetString() + v.GetString());
 
 		default:
-			throw ErrWrongType(MBDYN_EXCEPT_ARGS);
+			throw ErrWrongType(MBDYN_EXCEPT_ARGS, GetType(), v.GetType());
 		}
 	}
 
@@ -1289,7 +1296,7 @@ TypedValue::operator % (const TypedValue& v) const
 	if ((GetType() != TypedValue::VAR_BOOL && GetType() != TypedValue::VAR_INT)
 		|| (v.GetType() != TypedValue::VAR_BOOL && v.GetType() != TypedValue::VAR_INT))
 	{
-		throw ErrWrongType(MBDYN_EXCEPT_ARGS);
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS, GetType(), v.GetType());
 	}
 
 	return TypedValue(GetInt()%v.GetInt());
@@ -1322,7 +1329,7 @@ TypedValue::operator += (const TypedValue& v)
 			break;
 
 		default:
-			throw ErrWrongType(MBDYN_EXCEPT_ARGS);
+			throw ErrWrongType(MBDYN_EXCEPT_ARGS, GetType(), v.GetType());
 		}
 
 		return *this;
@@ -1406,7 +1413,7 @@ TypedValue::operator %= (const TypedValue& v)
 	if ((GetType() != TypedValue::VAR_BOOL && GetType() != TypedValue::VAR_INT)
 			|| (v.GetType() != TypedValue::VAR_BOOL && v.GetType() != TypedValue::VAR_INT))
 	{
-		throw ErrWrongType(MBDYN_EXCEPT_ARGS);
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS, GetType(), v.GetType());
 	}
 
 	Int i = GetInt()%v.GetInt();

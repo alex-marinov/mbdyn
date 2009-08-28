@@ -32,11 +32,12 @@
 /* parser */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include <stdlib.h>
 
+#include "mathtyp.h"
 #include "parser.h"
 #include "Rot.hh"
 
@@ -809,10 +810,18 @@ HighParser::GetValue(const TypedValue& vDefVal)
 	try {
 		v = MathP.Get(*pIn, v);
 	}
+	catch (TypedValue::ErrWrongType e) {
+		silent_cerr(sFuncName << ": " << e.what() << " at line "
+			<< GetLineData() << std::endl);
+		throw e;
+	}
 	catch (MathParser::ErrGeneric e) {
 		silent_cerr(sFuncName << ": error return from MathParser at line "
 			<< GetLineData() << std::endl);
 		throw e;
+	}
+	catch (...) {
+		throw;
 	}
 
 	NextToken(sFuncName);
