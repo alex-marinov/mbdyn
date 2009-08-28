@@ -2959,9 +2959,16 @@ Solver::ReadData(MBDynParser& HP)
 
 		case EIGENANALYSIS:
 #ifdef USE_EIG
+			// read eigenanalysis time (to be changed)
 			EigAn.OneAnalysis.dTime = HP.GetReal();
+
+			// initialize EigAn
 			EigAn.OneAnalysis.bDone = false;
 			EigAn.bAnalysis = true;
+
+			// permute is the default; use "balance, no" to disable
+			EigAn.uFlags = EigenAnalysis::EIG_PERMUTE;
+
 			while (HP.IsArg()) {
 				if (HP.IsKeyWord("parameter")) {
 					EigAn.dParam = HP.GetReal();

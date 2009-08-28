@@ -378,9 +378,9 @@ using the \kw{rigid body kinematics} card
 	LAPACK's \kw{dggev()} routine (generalized unsymmetric eigenanalysis
 	using the QZ decomposition);
 \item \kw{balance} performs matrix permutation (\kw{permute}),
-	scaling (\kw{scale}) or both (\kw{all}) when using LAPACK's
-	\kw{dggevx()} routine; by default, \kw{dggev()} is used instead,
-	(equivalent to \kw{no});
+	scaling (\kw{scale}), both (\kw{all}) using LAPACK's
+	\kw{dggevx()} routine, or none (\kw{no}) using \kw{dggev()};
+	by default, matrix permutation is performed, using \kw{dggevx()};
 \item \kw{use arpack} performs the eigenanalysis using
 	ARPACK's \kw{dnaupd()} and \kw{dneupd()} routines
 	(canonical unsymmetric eigenanalysis,
