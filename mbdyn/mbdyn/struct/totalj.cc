@@ -893,20 +893,32 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	Mat3x3 R1r = pNode1->GetRCurr()*R1hr;
 	Mat3x3 R2r = pNode2->GetRCurr()*R2hr;
 
-	Vec3 XDelta = R1.MulTV(b1) - tilde_f1 - XDrv.Get();
-	Vec3 VDelta = R1.MulTV(
-			Mat3x3(b1)*pNode1->GetWCurr()
+	Vec3 XDelta;
+	Vec3 VDelta;
+	if (nPosConstraints) {
+		XDelta = R1.MulTV(b1) - tilde_f1 - XDrv.Get();
+	}
+
+	if (nVelConstraints) {
+		VDelta = R1.MulTV(
+			b1.Cross(pNode1->GetWCurr())
 			+ pNode2->GetVCurr()
-			- Mat3x3(b2)*pNode2->GetWCurr()
+			- b2.Cross(pNode2->GetWCurr())
 			- pNode1->GetVCurr()
-			) 
-			- XDrv.Get(); 	
-			
-	Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
-	Mat3x3 RDelta = R1r.MulTM(R2r*R0T);
-	ThetaDelta = RotManip::VecRot(RDelta);
-	
-	Vec3 WDelta = R1r.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr()) - ThetaDrv.Get();
+		) 
+		- XDrv.Get(); 	
+	}
+
+	Vec3 WDelta;
+	if (nRotConstraints) {
+		Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
+		Mat3x3 RDelta = R1r.MulTM(R2r*R0T);
+		ThetaDelta = RotManip::VecRot(RDelta);
+	}
+
+	if (nAgvConstraints) {
+		WDelta = R1r.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr()) - ThetaDrv.Get();
+	}
 
 	Vec3 FTmp(R1*F);
 	Vec3 MTmp(R1r*M);
@@ -946,7 +958,6 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 			WorkVec.PutCoef(12 + 1 + iAgvEqIndex[iCnt],
 				-(WDelta(iAgvIncid[iCnt])));
 		}
-
 	}
 
 	return WorkVec;
@@ -2382,11 +2393,16 @@ TotalPinJoint::AssRes(SubVectorHandler& WorkVec,
 
 	Mat3x3 Rnhr = pNode->GetRCurr()*tilde_Rnhr;
 
-	Vec3 XDelta = RchT*(pNode->GetXCurr() + fn) - tilde_Xc - XDrv.Get();
+	Vec3 XDelta;
+	if (nPosConstraints) {
+		XDelta = RchT*(pNode->GetXCurr() + fn) - tilde_Xc - XDrv.Get();
+	}
 
-	Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
-	Mat3x3 RDelta = RchrT*Rnhr*R0T;
-	ThetaDelta = RotManip::VecRot(RDelta);
+	if (nRotConstraints) {
+		Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
+		Mat3x3 RDelta = RchrT*Rnhr*R0T;
+		ThetaDelta = RotManip::VecRot(RDelta);
+	}
 
 	Vec3 FTmp(Rch*F);
 	Vec3 MTmp(Rchr*M);

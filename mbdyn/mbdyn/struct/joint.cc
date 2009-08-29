@@ -2194,14 +2194,104 @@ ReadJoint(DataManager* pDM,
 		} break;
 
 	case IMPOSEDDISPLACEMENT:
+		{
 		silent_cerr("ImposedDisplacement(" << uLabel << "): "
-			"use total joint instead" << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			"deprecated; using \"total joint\" instead" << std::endl);
+
+		/* nodo collegato 1 */
+		StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+		ReferenceFrame RF1(pNode1);
+
+		Vec3 f1(HP.GetPosRel(RF1));
+		Mat3x3 R1h(Eye3);
+		Mat3x3 R1hr(Eye3);
+
+		/* nodo collegato 2 */
+		StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+		ReferenceFrame RF2(pNode2);
+
+		Vec3 f2(HP.GetPosRel(RF2, RF1, f1));
+		Mat3x3 R2h(Eye3);
+		Mat3x3 R2hr(Eye3);
+
+		bool bXActive[3] = { true, true, true };
+		bool bVActive[3] = { false, false, false };
+		TplDriveCaller<Vec3>* pXDC[3] = {0, 0, 0};
+		pXDC[0] = ReadDCVecRel(pDM, HP, RF1);
+
+		bool bTActive[3] = { false, false, false };
+		bool bWActive[3] = { false, false, false };
+		TplDriveCaller<Vec3>* pTDC[3] = {0, 0, 0};
+		SAFENEW(pTDC[0], ZeroTplDriveCaller<Vec3>);
+
+		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			TotalJoint,
+			TotalJoint(uLabel, pDO,
+				bXActive, bVActive, pXDC,
+				bTActive, bWActive, pTDC,
+				pNode1, f1, R1h, R1hr,
+				pNode2, f2, R2h, R2hr,
+				fOut));
+
+		std::ostream& out = pDM->GetLogFile();
+		out << "totaljoint: " << uLabel
+			<< " " << pNode1->GetLabel()
+			<< " " << f1
+			<< " " << R1h
+			<< " " << pNode2->GetLabel()
+			<< " " << f2
+			<< " " << R2h
+			<< std::endl;
+		} break;
 
 	case IMPOSEDDISPLACEMENTPIN:
+		{
 		silent_cerr("ImposedDisplacementPin(" << uLabel << "): "
-			"use total pin joint instead" << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			"deprecated; using \"total pin joint\" instead" << std::endl);
+
+		/* nodo collegato */
+		StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+		ReferenceFrame RF(pNode);
+
+		Vec3 fn(HP.GetPosRel(RF));
+		Mat3x3 Rnh(Eye3);
+		Mat3x3 Rnhr(Eye3);
+
+		Vec3 Xc(HP.GetPosAbs(AbsRefFrame));
+		Mat3x3 Rch(Eye3);
+		Mat3x3 Rchr(Eye3);
+
+		bool bXActive[3] = { true, true, true };
+		TplDriveCaller<Vec3>* pXDC[3] = { 0, 0, 0 };
+		pXDC[0] = ReadDCVecAbs(pDM, HP, AbsRefFrame);
+
+		bool bTActive[3] = { false, false, false };
+		TplDriveCaller<Vec3>* pTDC[3] = { 0, 0, 0 };
+		SAFENEW(pTDC[0], ZeroTplDriveCaller<Vec3>);
+
+		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			TotalPinJoint,
+			TotalPinJoint(uLabel, pDO,
+				bXActive, pXDC,
+				bTActive, pTDC,
+				Xc, Rch, Rchr,
+				pNode, fn, Rnh, Rnhr,
+				fOut));
+
+		std::ostream& out = pDM->GetLogFile();
+		out << "totalpinjoint: " << uLabel
+			<< " " << pNode->GetLabel()
+			<< " " << fn
+			<< " " << Rnh
+			<< " " << Xc
+			<< " " << Rch
+			<< std::endl;
+
+		} break;
 
 	case IMPOSEDORIENTATION:
 		silent_cerr("ImposedOrientation(" << uLabel << "): "
@@ -2576,7 +2666,9 @@ ReadJoint(DataManager* pDM,
 				}
 			}
 
-			pXDC[0] = ReadDC3D(pDM, HP);
+			ReferenceFrame RF1h(0, Zero3, pNode1->GetRCurr()*R1h, Zero3, Zero3,
+				pDM->GetOrientationDescription());
+			pXDC[0] = ReadDCVecRel(pDM, HP, RF1h);
 
 			if (pDM->bIsInverseDynamics()) {
 				pXDC[1] = ReadDC3D(pDM, HP);
@@ -2619,7 +2711,9 @@ ReadJoint(DataManager* pDM,
 				}
 			}
 
-			pTDC[0] = ReadDC3D(pDM, HP);
+			ReferenceFrame RF1hr(0, Zero3, pNode1->GetRCurr()*R1hr, Zero3, Zero3,
+				pDM->GetOrientationDescription());
+			pTDC[0] = ReadDCVecRel(pDM, HP, RF1hr);
 
 			if (pDM->bIsInverseDynamics()) {
 				pTDC[1] = ReadDC3D(pDM, HP);
@@ -2715,7 +2809,9 @@ ReadJoint(DataManager* pDM,
 				}
 			}
 
-			pXDC[0] = ReadDC3D(pDM, HP);
+			ReferenceFrame RFch(0, Zero3, Rch, Zero3, Zero3,
+				pDM->GetOrientationDescription());
+			pXDC[0] = ReadDCVecRel(pDM, HP, RFch);
 
 			if (pDM->bIsInverseDynamics()) {
 				pXDC[1] = ReadDC3D(pDM, HP);
@@ -2749,7 +2845,9 @@ ReadJoint(DataManager* pDM,
 				}
 			}
 
-			pTDC[0] = ReadDC3D(pDM, HP);
+			ReferenceFrame RFchr(0, Zero3, Rchr, Zero3, Zero3,
+				pDM->GetOrientationDescription());
+			pTDC[0] = ReadDCVecRel(pDM, HP, RFchr);
 
 			if (pDM->bIsInverseDynamics()) {
 				pTDC[1] = ReadDC3D(pDM, HP);
