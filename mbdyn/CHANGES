@@ -18,8 +18,9 @@ MBDyn 1.X-Devel
 		- added referenced direction capability to "total joint"
 		  and "total pin joint" elements
 	Backward compatibility issues:
-		- the "imposed displacement" and "imposed displacement pin"
-		  joints are now mimicked by the total joint
+		- the "imposed displacement", "imposed displacement pin"
+		  and "imposed orientation" joints are now mimicked
+		  by "total joint" and "total pin joint"
 	Known issues:
 	Bug fixes:
 		- fix error message when math parser unable to cast value

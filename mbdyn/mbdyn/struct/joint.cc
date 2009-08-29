@@ -2294,9 +2294,60 @@ ReadJoint(DataManager* pDM,
 		} break;
 
 	case IMPOSEDORIENTATION:
+		{
 		silent_cerr("ImposedOrientation(" << uLabel << "): "
-			"use total joint instead" << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			"using \"total joint\" instead" << std::endl);
+
+		/* nodo collegato 1 */
+		StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+		ReferenceFrame RF1(pNode1);
+
+		Vec3 f1(Zero3);
+		Mat3x3 R1h(Eye3);
+		Mat3x3 R1hr(HP.GetRotRel(RF1));
+
+		/* nodo collegato 2 */
+		StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+		ReferenceFrame RF2(pNode2);
+
+		Vec3 f2(Zero3);
+		Mat3x3 R2h(Eye3);
+		Mat3x3 R2hr(HP.GetRotRel(RF2, RF1, R1hr));
+
+		bool bXActive[3] = { false, false, false };
+		bool bVActive[3] = { false, false, false };
+		TplDriveCaller<Vec3>* pXDC[3] = { 0, 0, 0 };
+		SAFENEW(pXDC[0], ZeroTplDriveCaller<Vec3>);
+
+		bool bTActive[3] = { true, true, true };
+		bool bWActive[3] = { false, false, false };
+		TplDriveCaller<Vec3>* pTDC[3] = { 0, 0, 0 };
+
+		ReferenceFrame RF1hr(0, Zero3, pNode1->GetRCurr()*R1hr, Zero3, Zero3,
+			pDM->GetOrientationDescription());
+		pTDC[0] = ReadDCVecRel(pDM, HP, RF1hr);
+
+		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
+
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			TotalJoint,
+			TotalJoint(uLabel, pDO,
+				bXActive, bVActive, pXDC,
+				bTActive, bWActive, pTDC,
+				pNode1, f1, R1h, R1hr,
+				pNode2, f2, R2h, R2hr,
+				fOut));
+
+		std::ostream& out = pDM->GetLogFile();
+		out << "totaljoint: " << uLabel
+			<< " " << pNode1->GetLabel()
+			<< " " << f1
+			<< " " << R1h
+			<< " " << pNode2->GetLabel()
+			<< " " << f2
+			<< " " << R2h
+			<< std::endl;
+		} break;
 
 	case TOTALEQUATION:
 		{
