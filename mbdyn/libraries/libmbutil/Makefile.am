@@ -9,7 +9,6 @@ libmbutil_la_SOURCES = \
 crypt.cc \
 crypt.h \
 destr.h \
-dummy_f.cc \
 dummypgin.cc \
 dummypgin.h \
 except.cc \
