@@ -54,7 +54,6 @@ struct module_marble {
 	Vec3 e3R;
 
 	Vec3 F;
-	Vec3 M;
 };
 
 static const Vec3 e1(1., 0., 0.);
@@ -131,9 +130,11 @@ marble_output(const LoadableElem* pEl, OutputHandler& OH)
 	
 	if (pEl->fToBeOutput()) {
 		module_marble* p = (module_marble *)pEl->pGetData();      
+
 		std::ostream& out = OH.Loadable();
 
 		out << std::setw(8) << pEl->GetLabel()	/* 1:	label */
+			<< " " << p->F
 			<< std::endl;
 	}
 }
@@ -307,24 +308,24 @@ LoadableCalls module_marble_lc = {
 	marble_i_get_num_dof /* */ ,
 	marble_set_dof /* */ ,
 	marble_output /* */ ,
-	NULL /* restart */ ,
+	NULL /* marble_restart */ ,
 	marble_work_space_dim /* */ ,
 	marble_ass_jac /* */ ,
-	NULL /* ass_mats */ ,
+	NULL /* marble_ass_mats */ ,
 	marble_ass_res /* */ ,
-	NULL /* before_predict */ ,
-	NULL /* after_predict */ ,
-	NULL /* update */ ,
-	NULL /* after_convergence */ ,
-	NULL /* i_get_initial_num_dof */ ,
-	NULL /* initial_work_space_dim */ ,
-	NULL /* initial_ass_jac */ ,
-	NULL /* initial_ass_res */ ,
-	NULL /* set_value */ ,
-	NULL /* set_initial_value */ ,
-	NULL /* i_get_num_priv_data */ ,
-	NULL /* i_get_priv_data_idx */ ,
-	NULL /* d_get_priv_data */ ,
+	NULL /* marble_before_predict */ ,
+	NULL /* marble_after_predict */ ,
+	NULL /* marble_update */ ,
+	NULL /* marble_after_convergence */ ,
+	marble_i_get_initial_num_dof,
+	NULL /* marble_initial_work_space_dim */ ,
+	NULL /* marble_initial_ass_jac */ ,
+	NULL /* marble_initial_ass_res */ ,
+	NULL /* marble_set_value */ ,
+	NULL /* marble_set_initial_value */ ,
+	NULL /* marble_i_get_num_priv_data */ ,
+	NULL /* marble_i_get_priv_data_idx */ ,
+	NULL /* marble_d_get_priv_data */ ,
 	marble_i_get_num_connected_nodes,
 	marble_get_connected_nodes,
 	marble_destroy,
