@@ -966,7 +966,9 @@ C81TheodorsenAeroData::C81TheodorsenAeroData(integer p,
 	doublereal omegaPD, DriveCaller *ptime)
 : C81AeroData(STEADY, p, d, ptime), iParam(0), omegaPD(omegaPD)
 {
-	NO_OP;
+	prev_alpha_pivot = alpha_pivot;
+	prev_dot_alpha = dot_alpha;
+	prev_time = pTime->dGet();
 }
 
 C81TheodorsenAeroData::~C81TheodorsenAeroData(void)
