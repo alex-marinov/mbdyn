@@ -34,6 +34,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <cerrno>
+#include <cstring>
 #include <sstream>
 
 #include "mynewmem.h"
@@ -1528,7 +1529,7 @@ StructNode::iGetPrivDataIdx(const char *s) const
 	long	idx;
 	char	*next;
 
-	char	*brk = strchr(s, '[' /*]*/ );
+	const char	*brk = std::strchr(s, '[' /*]*/ );
 	if (brk == 0) {
 		return 0;
 	}
@@ -2109,7 +2110,7 @@ DynamicStructNode::iGetPrivDataIdx(const char *s) const
 	long	idx;
 	char	*next;
 
-	char	*brk = strchr(s, '[' /*]*/ );
+	const char	*brk = std::strchr(s, '[' /*]*/ );
 	if (brk == 0) {
 		return 0;
 	}

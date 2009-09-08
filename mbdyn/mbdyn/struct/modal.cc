@@ -111,6 +111,7 @@
 #define MODAL_USE_GRAVITY
 
 #include <cerrno>
+#include <cstring>
 #include <sys/stat.h>
 #include <limits>
 #include <algorithm>
@@ -2295,7 +2296,7 @@ Modal::iGetPrivDataIdx(const char *s) const
 	s++;
 
 	/* trova la parentesi chiusa (e il terminatore di stringa) */
-	char *end = strchr(s, ']');
+	const char *end = std::strchr(s, ']');
 	if (end == 0 || end[1] != '\0') {
 		return 0;
 	}
@@ -2323,8 +2324,10 @@ Modal::iGetPrivDataIdx(const char *s) const
 		}
 
 		errno = 0;
-		unsigned long n = strtoul(buf, &end, 10);
+		char *next;
+		unsigned long n = strtoul(buf, &next, 10);
 		int save_errno = errno;
+		end = next;
 		if (end == buf) {
 			return 0;
 
@@ -2357,7 +2360,7 @@ Modal::iGetPrivDataIdx(const char *s) const
 		return p*NModes + n;
 	}
 
-	end = strchr(s, ',');
+	end = std::strchr(s, ',');
 	if (end == NULL) {
 		return 0;
 	}

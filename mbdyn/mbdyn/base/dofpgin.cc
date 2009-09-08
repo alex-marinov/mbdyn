@@ -30,11 +30,13 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <cstring>
 #include <sstream>
-#include <dofpgin.h>
+
+#include "dofpgin.h"
 
 DofPlugIn::DofPlugIn(MathParser& mp, DataManager *pDM)
 : MathParser::PlugIn(mp), pDM(pDM), bPrev(false)
@@ -139,9 +141,9 @@ DofPlugIn::Read(int argc, char *argv[])
 		SAFESTRDUP(parm, argv[iParams]);
 
 		for (p = parm; p != NULL; p = end) {
-			end = strchr(p, '&');
+			end = std::strchr(p, '&');
 			while (end != NULL && end[-1] == '\\') {
-				end = strchr(end+1, '&');
+				end = std::strchr(end + 1, '&');
 			}
 
 			if (end != NULL) {
@@ -149,7 +151,7 @@ DofPlugIn::Read(int argc, char *argv[])
 				end++;
 			}
 
-			char *v = strchr(p, '=');
+			char *v = std::strchr(p, '=');
 			if (v == NULL) {
 				silent_cerr("dof plugin: missing \"=\" "
 					"in <param>=<value>" << std::endl);

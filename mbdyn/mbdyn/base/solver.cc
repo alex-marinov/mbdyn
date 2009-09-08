@@ -51,6 +51,7 @@
 #endif /* HAVE_CONFIG_H */
 
 /* required for configure time macros with paths */
+#include <cstring>
 #include <limits>
 #include "mbdefs.h"
 
@@ -402,7 +403,7 @@ Solver::Run(void)
 			char	*sOutputFilePath = 0;
 			SAFESTRDUP(sOutputFilePath, sOutputFileName );
 
-			char	*path = strrchr(sOutputFilePath, '/');
+			char	*path = std::strrchr(sOutputFilePath, '/');
 			if (path != NULL) {
 				path[0] = '\0';
 
@@ -429,7 +430,7 @@ Solver::Run(void)
 			const char	*tmpIn;
 
 			if (sInputFileName) {
-				tmpIn = strrchr(sInputFileName, '/');
+				tmpIn = std::strrchr(sInputFileName, '/');
 				if (tmpIn == 0) {
 					tmpIn = sInputFileName;
 				}

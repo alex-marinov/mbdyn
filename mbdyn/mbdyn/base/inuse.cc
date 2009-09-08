@@ -136,7 +136,7 @@ main(int argc, char* argv[])
 
 	if (argc == 1) {
 usage:;
-		char *s = strrchr(argv[0], '/');
+		char *s = std::strrchr(argv[0], '/');
 
 		if (s) {
 			s++;

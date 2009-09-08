@@ -55,6 +55,7 @@
 
 #define RTAI_LOG
 
+#include <cstring>
 #include <limits>
 #include <unistd.h>
 #include <cerrno>
@@ -144,9 +145,9 @@ InverseSolver::Run(void)
 			}
 
 			char	*sOutputFilePath = 0;
-			SAFESTRDUP(sOutputFilePath, sOutputFileName );
+			SAFESTRDUP(sOutputFilePath, sOutputFileName);
 
-			char	*path = strrchr(sOutputFilePath, '/');
+			char	*path = std::strrchr(sOutputFilePath, '/');
 			if (path != NULL) {
 				path[0] = '\0';
 
@@ -173,7 +174,7 @@ InverseSolver::Run(void)
 			const char	*tmpIn;
 
 			if (sInputFileName) {
-				tmpIn = strrchr(sInputFileName, '/');
+				tmpIn = std::strrchr(sInputFileName, '/');
 				if (tmpIn == 0) {
 					tmpIn = sInputFileName;
 				}

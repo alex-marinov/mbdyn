@@ -35,6 +35,7 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <cstring>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -414,7 +415,7 @@ expand_environment(const char *in)
 			c++;
 			unsigned namepos = c;
 			if (in[c] == '{') {
-				char *end = strchr(&in[c], '}');
+				const char *end = std::strchr(&in[c], '}');
 
 				if (end == NULL) {
 					silent_cerr("missing trailing \"}\" "
@@ -559,9 +560,9 @@ resolve_filename(const char *filename_in)
 
 #if defined(HAVE_PWD_H)
       		} else {
-	 		char *p;
+	 		const char *p;
 	 
-	 		p = strchr(filename, '/');
+	 		p = std::strchr(filename, '/');
 	 		if (p == NULL) {
 	    			goto error_return;
 	 		} 

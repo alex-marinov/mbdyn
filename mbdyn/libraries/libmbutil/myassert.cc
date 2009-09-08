@@ -97,9 +97,9 @@ int get_debug_options(const char *const s, const debug_array da[])
       return 0;
    }
    
-   char* p = (char*)s;
+   const char* p = s;
    while (true) {
-      char* sep = strchr(p, ':');
+      const char* sep = std::strchr(p, ':');
       unsigned int l;
       if (sep != NULL) {
 	 l = int(sep-p);

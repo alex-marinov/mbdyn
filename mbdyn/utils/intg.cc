@@ -180,14 +180,14 @@ main(int argn, char *const argv[])
        		case int('t'): {
 	  		char* s = new char[strlen(optarg)+1];
 	  		strcpy(s, optarg);
-	  		char* p = strrchr(s, ':');
+	  		char* p = std::strrchr(s, ':');
 	  		if (p == 0) {
 	     			std::cerr << "syntax: ti:dt:tf" << std::endl;
 	     			exit(EXIT_FAILURE);
 	  		}
 	  		d.tf = atof(p+1);
 	  		p[0] = '\0';
-	  		p = strrchr(s, ':');
+	  		p = std::strrchr(s, ':');
 	  		if (p == 0) {
 	     			std::cerr << "syntax: ti:dt:tf" << std::endl;
 	     			exit(EXIT_FAILURE);

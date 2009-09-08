@@ -660,7 +660,7 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 
 #ifdef USE_ADAMS_PP
 			/* ADAMS extension */
-			char* p = strrchr(mbp.sInputFileName, int('.'));
+			char* p = std::strrchr(mbp.sInputFileName, int('.'));
 			if (p != NULL 
 				&& strlen(p+1) == 3 
 				&& !strncasecmp(p+1, "adm", 3))

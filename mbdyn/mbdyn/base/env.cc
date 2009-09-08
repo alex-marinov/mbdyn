@@ -85,7 +85,7 @@ GetEnviron(MathParser& MP)
 	 		char* n = NULL;
 	 
 	 		SAFESTRDUP(p, *env);
-	 		v = strchr(p, '=');
+	 		v = std::strchr(p, '=');
 	 		if (v == NULL) {
 	    			silent_cerr("parse error in envvar <" 
 					<< p << ">" << std::endl);

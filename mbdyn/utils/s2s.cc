@@ -53,6 +53,7 @@
 #include <ac/getopt.h>
 
 #include <iostream>
+#include <cstring>
 #include <sstream>
 #include <vector>
 
@@ -204,7 +205,7 @@ s2s_t::parse(int argc, char *argv[])
 {
 	char	*next;
 
-	next = strrchr(argv[0], '/');
+	next = std::strrchr(argv[0], '/');
 	if (next != 0) {
 		next++;
 
@@ -342,7 +343,7 @@ s2s_t::prepare(void)
 			this->host = "127.0.0.1";
 
 		} else {
-			char	*p = strchr(this->host, ':');
+			char *p = std::strchr(const_cast<char *>(this->host), ':');
 			if (p != 0) {
 				char	*next;
 

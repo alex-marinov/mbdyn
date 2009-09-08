@@ -640,7 +640,7 @@ read_c81_data_free_format(std::istream& in, c81_data* data, const doublereal dcl
    		in.getline(buf, sizeof(buf));
 	}
 
-	char	*p = strchr(buf, ';');
+	char	*p = std::strchr(buf, ';');
 	if (p == NULL) {
 		return -1;
 	}
