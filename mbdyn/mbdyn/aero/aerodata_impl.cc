@@ -77,6 +77,7 @@ int
 STAHRAeroData::GetForces(int i, const doublereal* W, doublereal* TNG,
 		outa_t& OUTA)
 {
+	
 	switch (unsteadyflag) {
 	case AeroData::HARRIS:
 	case AeroData::BIELAWA:
@@ -403,6 +404,7 @@ C81InterpolatedAeroData::SetSectionData(
 int
 C81InterpolatedAeroData::GetForces(int i, const doublereal* W, doublereal* TNG, outa_t& OUTA)
 {
+	
 	switch (unsteadyflag) {
 	case AeroData::HARRIS:
 	case AeroData::BIELAWA: {
@@ -1082,17 +1084,35 @@ C81TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
 
 	clalpha = OUTA.clalpha;
 	if (clalpha > 0.) {
-		doublereal cl = OUTA.cl + clalpha/2/d*(dot_alpha_pivot - a/d*ddot_alpha);
-		doublereal cd = OUTA.cd;
-		doublereal cm = OUTA.cm + clalpha/2/d*(-dot_alpha_pivot/4 + (a/4/d - 1/d/16)*ddot_alpha - dot_alpha/4);
-	doublereal v[3], vp;
-	v[0] = W[0];
-	v[1] = W[1] + d34*W[5];
-	v[2] = W[2] - d34*W[4];
-	vp = sqrt(v[0]*v[0] + v[1]*v[1]);
-	TNG[0] = -qD*chord*(cl*v[1] + cd*v[0])/vp;
-        TNG[1] = qD*chord*(cl*v[0] - cd*v[1])/vp;
-	TNG[5] = qD*chord*chord*cm + d14*TNG[1];
+		//if (Uinf > std::numeric_limits<doublereal>::epsilon()) {		
+		if (Uinf > 1.e-5) {		
+			doublereal cl = OUTA.cl + clalpha/2/d*(dot_alpha_pivot - a/d*ddot_alpha);
+			doublereal cd = OUTA.cd;
+			doublereal cm = OUTA.cm + clalpha/2/d*(-dot_alpha_pivot/4 + (a/4/d - 1/d/16)*ddot_alpha - dot_alpha/4);
+			doublereal v[3], vp;
+			v[0] = W[0];
+			v[1] = W[1] + d34*W[5];
+			v[2] = W[2] - d34*W[4];
+			vp = sqrt(v[0]*v[0] + v[1]*v[1]);
+			TNG[0] = -qD*chord*(cl*v[1] + cd*v[0])/vp;
+       			TNG[1] = qD*chord*(cl*v[0] - cd*v[1])/vp;
+			TNG[5] = qD*chord*chord*cm + d14*TNG[1];
+		} else {
+			TNG[0] = 0.;
+			TNG[1] = 0.;
+			TNG[2] = 0.;
+			TNG[3] = 0.;
+			TNG[4] = 0.;
+			TNG[5] = 0.;
+		}
+	}
+	else {
+		TNG[0] = 0.;
+		TNG[1] = 0.;
+		TNG[2] = 0.;
+		TNG[3] = 0.;
+		TNG[4] = 0.;
+		TNG[5] = 0.;
 	}
 
 	WorkVec.PutCoef(iFirstSubIndex + 1, -q1p + q2);
@@ -1131,175 +1151,178 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	WorkMat.IncCoef(iFirstSubIndex + 2, iFirstSubIndex + 1, dCoef*b1*b2*d*d);
 	WorkMat.IncCoef(iFirstSubIndex + 2, iFirstSubIndex + 2, dCoef*(b1 + b2)*d);
 
+#if 0
+	//if (Uinf > std::numeric_limits<doublereal>::epsilon()) {		
+	if (Uinf > 1.e-2) {		
+		/* computing the matrix g_{/\tilde{v}} - dimension: 2x3, where 2 is n_states */
+		doublereal dU_V_11, dU_V_12;
 
-	/* computing the matrix g_{/\tilde{v}} - dimension: 2x3, where 2 is n_states */
-	doublereal dU_V_11, dU_V_12;
+		doublereal dDen34 = W[VX]*W[VX] + W[VY]*W[VY] + W[WZ]*W[WZ]*d34*d34 + 2*W[VY]*W[WZ]*d34;
 
-	doublereal dDen34 = W[VX]*W[VX] + W[VY]*W[VY] + W[WZ]*W[WZ]*d34*d34 + 2*W[VY]*W[WZ]*d34;
+		dU_V_11 = (W[VY] + W[WZ]*d34)/dDen34;
+		dU_V_12 = -W[VX]/dDen34;
 
-	dU_V_11 = (W[VY] + W[WZ]*d34)/dDen34;
-	dU_V_12 = -W[VX]/dDen34;
+		doublereal dG_V_21, dG_V_22;
 
-	doublereal dG_V_21, dG_V_22;
-
-	dG_V_21 =  (b1*b2*d*4*q1/chord + (b1+b2)*2*q2/chord)*W[VX]/Uinf - dU_V_11;
-	dG_V_22 =  (b1*b2*d*4*q1/chord + (b1+b2)*2*q2/chord)*W[VY]/Uinf - dU_V_12;
+		dG_V_21 =  (b1*b2*d*4*q1/chord + (b1+b2)*2*q2/chord)*W[VX]/Uinf - dU_V_11;
+		dG_V_22 =  (b1*b2*d*4*q1/chord + (b1+b2)*2*q2/chord)*W[VY]/Uinf - dU_V_12;
 
 	
-	/* computing the matrix g_{/\tilde{\omega}} - dimension: 2x3, where 2 is n_states */
-	doublereal dU_W_13;
+		/* computing the matrix g_{/\tilde{\omega}} - dimension: 2x3, where 2 is n_states */
+		doublereal dU_W_13;
+	
+		dU_W_13 = - W[VX]*d34/dDen34;
 
-	dU_W_13 = - W[VX]*d34/dDen34;
+		doublereal dG_W_23;
 
-	doublereal dG_W_23;
+		dG_W_23 = -dU_W_13;
 
-	dG_W_23 = -dU_W_13;
-
-	/* assembling the jacobian */
-	int iIndexColumn;
-	/* faccio i calcoli tenendo conto della sparsità della matrice g_{\/\tilde{v}} */
-	for (iIndexColumn = 1; iIndexColumn <= vx.iGetNumCols(); iIndexColumn++){
-		WorkMat.IncCoef(iFirstSubIndex+2, iIndexColumn, dG_V_21*vx(1,iIndexColumn) + dG_V_22*vx(2,iIndexColumn));
-		WorkMat.IncCoef(iFirstSubIndex+2, iIndexColumn, dG_W_23*wx(3,iIndexColumn));
+		/* assembling the jacobian */
+		int iIndexColumn;
+		/* faccio i calcoli tenendo conto della sparsità della matrice g_{\/\tilde{v}} */
+		for (iIndexColumn = 1; iIndexColumn <= vx.iGetNumCols(); iIndexColumn++){
+			WorkMat.IncCoef(iFirstSubIndex+2, iIndexColumn, dG_V_21*vx(1,iIndexColumn) + dG_V_22*vx(2,iIndexColumn));
+			WorkMat.IncCoef(iFirstSubIndex+2, iIndexColumn, dG_W_23*wx(3,iIndexColumn));
+		}
+		/* computing the matrix fq (f_a_{/q}) 3x2 */
+	
+		/* computing the derivative of the aerodynamic coefficient in the lookup table
+ 		 * using the finite difference method */
+		/* perturbazione per calcolo delle derivare con le differenze finite */
+		doublereal dDeltaY1 = 1.*M_PI/180.;
+		doublereal y1d = y1 + dDeltaY1;
+		doublereal tan_y1 = std::tan(y1d);
+		doublereal Vxp2 = Uinf*Uinf - pow(W[VX]*tan_y1, 2) - std::pow(d34*W[WZ], 2);
+	
+		doublereal WW[6];
+		WW[VX] = copysign(std::sqrt(Vxp2), W[VX]);
+		WW[VY] = -W[VX]*tan_y1 - d34*W[WZ];
+		WW[VZ] = W[VZ];
+		WW[WX] = W[WX];
+		WW[WY] = W[WY];
+		WW[WZ] = W[WZ];
+	
+		c81_aerod2_u(WW, &VAM, TNG, &OUTA, const_cast<c81_data *>(data), unsteadyflag);
+		doublereal cx_1, cy_1, cmz_1;
+		if (qD > std::numeric_limits<doublereal>::epsilon()) {
+			cx_1 = OUTA.cd;
+			cy_1 = OUTA.cl;
+			cmz_1 = OUTA.cm;
+		}else{
+			cx_1 = 0.;
+			cy_1 = 0.;
+			cmz_1 = 0.;
+		}
+	
+		doublereal dCd_alpha = (cx_1-cx_0)/dDeltaY1;
+		doublereal dCl_alpha = (cy_1-cy_0)/dDeltaY1;
+		doublereal dCm_alpha = (cmz_1-cmz_0)/dDeltaY1;
+	
+		doublereal C11 = (A1+A2)*b1*b2*d*d;
+		doublereal C12 = (A1*b1+A2*b2)*d;
+	
+		doublereal qDc = qD*chord;
+		/* ATTENZIONE: le derivate aerodinamiche calcolate (vedi tecman)
+ 		 * sono le dirivate di L D e M34 e vanno quindi routate per avere
+ 		 * le derivate di TNG */
+		doublereal sin_alpha = (W[VY]+d34*W[WZ])/sqrt(W[VX]*W[VX]+W[VY]*W[VY]);
+		doublereal cos_alpha = (W[VX])/sqrt(W[VX]*W[VX]+W[VY]*W[VY]);
+	
+		doublereal D_q1 = qDc*dCd_alpha*C11;
+		doublereal D_q2 = qDc*dCd_alpha*C12;
+		doublereal L_q1 = qDc*dCl_alpha*C11;
+		doublereal L_q2 = qDc*dCl_alpha*C12;
+		
+		doublereal M_q1 = qDc*chord*dCm_alpha*C11;
+		doublereal M_q2 = qDc*chord*dCm_alpha*C12;
+	
+		fq.Put(1, 1, -L_q1*sin_alpha -D_q1*cos_alpha);
+		fq.Put(1, 2, -L_q2*sin_alpha -D_q2*cos_alpha);
+		fq.Put(2, 1, L_q1*cos_alpha -D_q1*sin_alpha);
+		fq.Put(2, 2, L_q2*cos_alpha -D_q2*sin_alpha);
+		
+		cq.Put(3, 1, M_q1 +d14*fq(2,1));
+		cq.Put(3, 2, M_q2 +d14*fq(2,2));
+	
+		/* computing the J matrix */
+		/* f_{/\tilde{v}} */
+		doublereal dY_V_11, dY_V_12;
+	
+		/* (C_{/Uinf}*q + D_{/Uinf}*u)*Uinf_{v} */
+		dY_V_11 = (((A1+A2)*b1*b2*d*(4./chord)*q1 + (A1*b1+A2*b2)*(2./chord)*q2)*W[VX]/Uinf) + ((1-A1-A2)*dU_V_11);
+		dY_V_12 = (((A1+A2)*b1*b2*d*(4./chord)*q1 + (A1*b1+A2*b2)*(2./chord)*q2)*W[VY]/Uinf) + ((1-A1-A2)*dU_V_12);
+	
+		doublereal dCfy_Uinf = 0.5*clalpha*(-dot_alpha_pivot + (chord*a*ddot_alpha)/Uinf)/(d*Uinf);
+		doublereal rho = VAM.density;
+	
+		doublereal cy = cy_0 + clalpha/2/d*( dot_alpha_pivot - a/d*ddot_alpha);
+	
+		Mat6x6 Jaero = 0.;
+		Jaero(1,1) = rho*chord*cx_0*W[VX] + qDc*( dCd_alpha*dY_V_11);
+		Jaero(1,2) = rho*chord*cx_0*W[VY] + qDc*( dCd_alpha*dY_V_12);
+		Jaero(1,3) = rho*chord*cx_0*W[VZ];
+		Jaero(2,1) = rho*chord*cy*W[VX] + qDc*( dCl_alpha*dY_V_11 + dCfy_Uinf*W[VX]/Uinf);
+		Jaero(2,2) = rho*chord*cy*W[VY] + qDc*( dCl_alpha*dY_V_12 + dCfy_Uinf*W[VY]/Uinf );
+		Jaero(2,3) = rho*chord*cy*W[VZ];
+		Jaero(3,1) = rho*chord*cz_0*W[VX];
+		Jaero(3,1) = rho*chord*cz_0*W[VY];
+		Jaero(3,3) = rho*chord*cz_0*W[VZ];
+	
+		/* f_{/\tilde{omega}} */
+		Jaero(1,6) = qDc*dCd_alpha*(1.-A1-A2)*dU_W_13;
+		Jaero(2,6) = qDc*dCl_alpha*(1.-A1-A2)*dU_W_13;
+	
+		/* c_{/\tilde{v}} */
+		doublereal dCmz_Uinf = 0.5*clalpha*(dot_alpha_pivot - ( ((chord*a)/(Uinf)) - ((chord)/(4*Uinf)) )*ddot_alpha +dot_alpha)/(d*4*Uinf);
+	
+		doublereal cmz = cmz_0 + clalpha/2/d*(-dot_alpha_pivot/4 + (a/4/d - 1/d/16)*ddot_alpha - dot_alpha/4);
+	
+		Jaero(4,1) = rho*chord*chord*cmx_0*W[VX];
+		Jaero(4,2) = rho*chord*chord*cmx_0*W[VY];
+		Jaero(4,3) = rho*chord*chord*cmx_0*W[VZ];
+		Jaero(5,1) = rho*chord*chord*cmy_0*W[VX];
+		Jaero(5,2) = rho*chord*chord*cmy_0*W[VY];
+		Jaero(5,3) = rho*chord*chord*cmy_0*W[VZ];
+		Jaero(6,1) = rho*chord*chord*cmz*W[VX] +qDc*chord*( dCm_alpha*dY_V_11 + dCmz_Uinf*W[VX]/Uinf );
+		Jaero(6,2) = rho*chord*chord*cmz*W[VY] +qDc*chord*( dCm_alpha*dY_V_12 + dCmz_Uinf*W[VY]/Uinf );
+		Jaero(6,3) = rho*chord*chord*cmz*W[VZ];
+	
+		/* c_{/\tilde{omega}} */
+		Jaero(6,6) = qDc*chord*dCm_alpha*(1.-A1-A2)*dU_W_13;
+	
+		/* Jaero è lo jacobiano delle forze aerodinamiche L, D e M34
+		 * occorre ruotarlo per avere lo jacobiano corretto J.
+		 * Solo le righe 1 2 e 6 sono coivolte nella rotazione */
+		J = Jaero;
+		/* calcolo le forze aerodinamiche */
+		doublereal Drag = qDc*cx_0;
+		doublereal Lift = qDc*cy_0 + qDc*clalpha/2/d*(dot_alpha_pivot - a/d*ddot_alpha);
+		/* calcolo le derivate del cos e sen dell'angolo di rotazione */
+		doublereal den = (W[VX]*W[VX]+W[VY]*W[VY])*sqrt((W[VX]*W[VX]+W[VY]*W[VY]));
+		doublereal sin_alpha_vx = -W[VX]*(W[VY]+d34*W[WZ])/den;
+		doublereal sin_alpha_vy = ( W[VX]*W[VX] - d34*W[WZ]*W[VY] )/den;
+		doublereal sin_alpha_wz = d34/sqrt(W[VX]*W[VX]+W[VY]*W[VY]);
+		doublereal cos_alpha_vx = ( W[VY]*W[VY]  )/den;
+		doublereal cos_alpha_vy = -( W[VX]*W[VY]  )/den;
+	
+		J(1,1) = -Jaero(2,1)*sin_alpha -Jaero(1,1)*cos_alpha - Lift*sin_alpha_vx - Drag*cos_alpha_vx;
+		J(1,2) = -Jaero(2,2)*sin_alpha -Jaero(1,2)*cos_alpha - Lift*sin_alpha_vy - Drag*cos_alpha_vy;
+		J(1,3) = -Jaero(2,3)*sin_alpha -Jaero(1,3)*cos_alpha;
+		J(1,6) = -Jaero(2,6)*sin_alpha -Jaero(1,6)*cos_alpha - Lift*sin_alpha_wz;
+	
+		J(2,1) = Jaero(2,1)*cos_alpha -Jaero(1,1)*sin_alpha + Lift*cos_alpha_vx - Drag*sin_alpha_vx;
+		J(2,2) = Jaero(2,2)*cos_alpha -Jaero(1,2)*sin_alpha + Lift*cos_alpha_vy - Drag*sin_alpha_vy;
+		J(2,3) = Jaero(2,3)*cos_alpha -Jaero(1,3)*sin_alpha;
+		J(2,6) = Jaero(2,6)*cos_alpha -Jaero(1,6)*sin_alpha - Drag*sin_alpha_wz;
+	
+		J(6,1) = Jaero(6,1) + d14*J(2,1);
+		J(6,2) = Jaero(6,2) + d14*J(2,2);
+		J(6,3) = Jaero(6,3) + d14*J(2,3);
+		J(6,4) = d14*J(2,4);
+		J(6,5) = d14*J(2,5);
+		J(6,6) = Jaero(6,6) + d14*J(2,6);
 	}
-	/* computing the matrix fq (f_a_{/q}) 3x2 */
-	
-	/* computing the derivative of the aerodynamic coefficient in the lookup table
- 	 * using the finite difference method */
-	/* perturbazione per calcolo delle derivare con le differenze finite */
-	doublereal dDeltaY1 = 1.*M_PI/180.;
-	doublereal y1d = y1 + dDeltaY1;
-	doublereal tan_y1 = std::tan(y1d);
-	doublereal Vxp2 = Uinf*Uinf - pow(W[VX]*tan_y1, 2) - std::pow(d34*W[WZ], 2);
-
-	doublereal WW[6];
-	WW[VX] = copysign(std::sqrt(Vxp2), W[VX]);
-	WW[VY] = -W[VX]*tan_y1 - d34*W[WZ];
-	WW[VZ] = W[VZ];
-	WW[WX] = W[WX];
-	WW[WY] = W[WY];
-	WW[WZ] = W[WZ];
-
-	c81_aerod2_u(WW, &VAM, TNG, &OUTA, const_cast<c81_data *>(data), unsteadyflag);
-	doublereal cx_1, cy_1, cmz_1;
-	if (qD > std::numeric_limits<doublereal>::epsilon()) {
-		cx_1 = OUTA.cd;
-		cy_1 = OUTA.cl;
-		cmz_1 = OUTA.cm;
-	}else{
-		cx_1 = 0.;
-		cy_1 = 0.;
-		cmz_1 = 0.;
-	}
-
-	doublereal dCd_alpha = (cx_1-cx_0)/dDeltaY1;
-	doublereal dCl_alpha = (cy_1-cy_0)/dDeltaY1;
-	doublereal dCm_alpha = (cmz_1-cmz_0)/dDeltaY1;
-
-	doublereal C11 = (A1+A2)*b1*b2*d*d;
-	doublereal C12 = (A1*b1+A2*b2)*d;
-
-	doublereal qDc = qD*chord;
-	/* ATTENZIONE: le derivate aerodinamiche calcolate (vedi tecman)
- 	 * sono le dirivate di L D e M34 e vanno quindi routate per avere
- 	 * le derivate di TNG */
-	doublereal sin_alpha = (W[VY]+d34*W[WZ])/sqrt(W[VX]*W[VX]+W[VY]*W[VY]);
-	doublereal cos_alpha = (W[VX])/sqrt(W[VX]*W[VX]+W[VY]*W[VY]);
-
-	doublereal D_q1 = qDc*dCd_alpha*C11;
-	doublereal D_q2 = qDc*dCd_alpha*C12;
-	doublereal L_q1 = qDc*dCl_alpha*C11;
-	doublereal L_q2 = qDc*dCl_alpha*C12;
-	
-	doublereal M_q1 = qDc*chord*dCm_alpha*C11;
-	doublereal M_q2 = qDc*chord*dCm_alpha*C12;
-
-	fq.Put(1, 1, -L_q1*sin_alpha -D_q1*cos_alpha);
-	fq.Put(1, 2, -L_q2*sin_alpha -D_q2*cos_alpha);
-	fq.Put(2, 1, L_q1*cos_alpha -D_q1*sin_alpha);
-	fq.Put(2, 2, L_q2*cos_alpha -D_q2*sin_alpha);
-	
-	cq.Put(3, 1, M_q1 +d14*fq(2,1));
-	cq.Put(3, 2, M_q2 +d14*fq(2,2));
-
-	/* computing the J matrix */
-	/* f_{/\tilde{v}} */
-	doublereal dY_V_11, dY_V_12;
-
-	/* (C_{/Uinf}*q + D_{/Uinf}*u)*Uinf_{v} */
-	dY_V_11 = (((A1+A2)*b1*b2*d*(4./chord)*q1 + (A1*b1+A2*b2)*(2./chord)*q2)*W[VX]/Uinf) + ((1-A1-A2)*dU_V_11);
-	dY_V_12 = (((A1+A2)*b1*b2*d*(4./chord)*q1 + (A1*b1+A2*b2)*(2./chord)*q2)*W[VY]/Uinf) + ((1-A1-A2)*dU_V_12);
-
-	doublereal dCfy_Uinf = 0.5*clalpha*(-dot_alpha_pivot + (chord*a*ddot_alpha)/Uinf)/(d*Uinf);
-	doublereal rho = VAM.density;
-
-	doublereal cy = cy_0 + clalpha/2/d*( dot_alpha_pivot - a/d*ddot_alpha);
-
-	Mat6x6 Jaero = 0.;
-	Jaero(1,1) = rho*chord*cx_0*W[VX] + qDc*( dCd_alpha*dY_V_11);
-	Jaero(1,2) = rho*chord*cx_0*W[VY] + qDc*( dCd_alpha*dY_V_12);
-	Jaero(1,3) = rho*chord*cx_0*W[VZ];
-	Jaero(2,1) = rho*chord*cy*W[VX] + qDc*( dCl_alpha*dY_V_11 + dCfy_Uinf*W[VX]/Uinf);
-	Jaero(2,2) = rho*chord*cy*W[VY] + qDc*( dCl_alpha*dY_V_12 + dCfy_Uinf*W[VY]/Uinf );
-	Jaero(2,3) = rho*chord*cy*W[VZ];
-	Jaero(3,1) = rho*chord*cz_0*W[VX];
-	Jaero(3,1) = rho*chord*cz_0*W[VY];
-	Jaero(3,3) = rho*chord*cz_0*W[VZ];
-
-	/* f_{/\tilde{omega}} */
-	Jaero(1,6) = qDc*dCd_alpha*(1.-A1-A2)*dU_W_13;
-	Jaero(2,6) = qDc*dCl_alpha*(1.-A1-A2)*dU_W_13;
-
-	/* c_{/\tilde{v}} */
-	doublereal dCmz_Uinf = 0.5*clalpha*(dot_alpha_pivot - ( ((chord*a)/(Uinf)) - ((chord)/(4*Uinf)) )*ddot_alpha +dot_alpha)/(d*4*Uinf);
-
-	doublereal cmz = cmz_0 + clalpha/2/d*(-dot_alpha_pivot/4 + (a/4/d - 1/d/16)*ddot_alpha - dot_alpha/4);
-
-	Jaero(4,1) = rho*chord*chord*cmx_0*W[VX];
-	Jaero(4,2) = rho*chord*chord*cmx_0*W[VY];
-	Jaero(4,3) = rho*chord*chord*cmx_0*W[VZ];
-	Jaero(5,1) = rho*chord*chord*cmy_0*W[VX];
-	Jaero(5,2) = rho*chord*chord*cmy_0*W[VY];
-	Jaero(5,3) = rho*chord*chord*cmy_0*W[VZ];
-	Jaero(6,1) = rho*chord*chord*cmz*W[VX] +qDc*chord*( dCm_alpha*dY_V_11 + dCmz_Uinf*W[VX]/Uinf );
-	Jaero(6,2) = rho*chord*chord*cmz*W[VY] +qDc*chord*( dCm_alpha*dY_V_12 + dCmz_Uinf*W[VY]/Uinf );
-	Jaero(6,3) = rho*chord*chord*cmz*W[VZ];
-
-	/* c_{/\tilde{omega}} */
-	Jaero(6,6) = qDc*chord*dCm_alpha*(1.-A1-A2)*dU_W_13;
-
-	/* Jaero è lo jacobiano delle forze aerodinamiche L, D e M34
-	 * occorre ruotarlo per avere lo jacobiano corretto J.
-	 * Solo le righe 1 2 e 6 sono coivolte nella rotazione */
-	J = Jaero;
-	/* calcolo le forze aerodinamiche */
-	doublereal Drag = qDc*cx_0;
-	doublereal Lift = qDc*cy_0 + qDc*clalpha/2/d*(dot_alpha_pivot - a/d*ddot_alpha);
-	/* calcolo le derivate del cos e sen dell'angolo di rotazione */
-	doublereal den = (W[VX]*W[VX]+W[VY]*W[VY])*sqrt((W[VX]*W[VX]+W[VY]*W[VY]));
-	doublereal sin_alpha_vx = -W[VX]*(W[VY]+d34*W[WZ])/den;
-	doublereal sin_alpha_vy = ( W[VX]*W[VX] - d34*W[WZ]*W[VY] )/den;
-	doublereal sin_alpha_wz = d34/sqrt(W[VX]*W[VX]+W[VY]*W[VY]);
-	doublereal cos_alpha_vx = ( W[VY]*W[VY]  )/den;
-	doublereal cos_alpha_vy = -( W[VX]*W[VY]  )/den;
-
-	J(1,1) = -Jaero(2,1)*sin_alpha -Jaero(1,1)*cos_alpha - Lift*sin_alpha_vx - Drag*cos_alpha_vx;
-	J(1,2) = -Jaero(2,2)*sin_alpha -Jaero(1,2)*cos_alpha - Lift*sin_alpha_vy - Drag*cos_alpha_vy;
-	J(1,3) = -Jaero(2,3)*sin_alpha -Jaero(1,3)*cos_alpha;
-	J(1,6) = -Jaero(2,6)*sin_alpha -Jaero(1,6)*cos_alpha - Lift*sin_alpha_wz;
-
-	J(2,1) = Jaero(2,1)*cos_alpha -Jaero(1,1)*sin_alpha + Lift*cos_alpha_vx - Drag*sin_alpha_vx;
-	J(2,2) = Jaero(2,2)*cos_alpha -Jaero(1,2)*sin_alpha + Lift*cos_alpha_vy - Drag*sin_alpha_vy;
-	J(2,3) = Jaero(2,3)*cos_alpha -Jaero(1,3)*sin_alpha;
-	J(2,6) = Jaero(2,6)*cos_alpha -Jaero(1,6)*sin_alpha - Drag*sin_alpha_wz;
-
-	J(6,1) = Jaero(6,1) + d14*J(2,1);
-	J(6,2) = Jaero(6,2) + d14*J(2,2);
-	J(6,3) = Jaero(6,3) + d14*J(2,3);
-	J(6,4) = d14*J(2,4);
-	J(6,5) = d14*J(2,5);
-	J(6,6) = Jaero(6,6) + d14*J(2,6);
-
+#endif
 #ifdef  DEBUG_JACOBIAN_UNSTEADY	
 
 	printf("G/v matrix\n");
