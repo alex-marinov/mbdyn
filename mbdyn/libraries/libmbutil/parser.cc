@@ -35,6 +35,7 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <cstring>
 #include <stdlib.h>
 
 #include "mathtyp.h"
@@ -401,7 +402,7 @@ HighParser::SetEnv_int(void)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	char *avasep = strchr(ava, '=');
+	char *avasep = std::strchr(const_cast<char *>(ava), '=');
 	if (avasep == NULL) {
 		int	rc = 0;
 #ifdef HAVE_UNSETENV
