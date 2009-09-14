@@ -21,6 +21,7 @@ MBDyn 1.X-Devel
 		- the "imposed displacement", "imposed displacement pin"
 		  and "imposed orientation" joints are now mimicked
 		  by "total joint" and "total pin joint"
+		- allow "position" in deformable hinge (ignored)
 	Known issues:
 	Bug fixes:
 		- fix error message when math parser unable to cast value

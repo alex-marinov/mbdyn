@@ -3353,9 +3353,11 @@ changes during the analysis.
     <joint_type> ::= deformable hinge
     <joint_arglist> ::= 
         <node_1>
-        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_1> ] ,
+        [ , position , (Vec3) <relative_position_1> ]
+        [ , orientation , (OrientationMatrix) <relative_orientation_matrix_1> ] ,
         <node_2> 
-        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,
+        [ , position , (Vec3) <relative_position_2> ]
+        [ , orientation , (OrientationMatrix) <relative_orientation_matrix_2> ] ,
         (ConstitutiveLaw3D) <const_law>
         [ , orientation description ,
             { euler123 | euler313 | euler 321

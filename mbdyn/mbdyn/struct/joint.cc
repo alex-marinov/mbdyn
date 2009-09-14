@@ -1434,7 +1434,7 @@ ReadJoint(DataManager* pDM,
 		} break;
 
 	case DEFORMABLEHINGE:
-	case DEFORMABLEDISPHINGE:
+	case DEFORMABLEDISPHINGE:	// deprecated
 	case DEFORMABLEDISPJOINT:
 	case INVARIANTDEFORMABLEHINGE:
 	case INVARIANTDEFORMABLEDISPJOINT:
@@ -1449,7 +1449,7 @@ ReadJoint(DataManager* pDM,
 		/* Offset if displacement hinge */
 		Vec3 f1(Zero3);
 		switch (CurrKeyWord) {
-		case DEFORMABLEDISPHINGE:
+		case DEFORMABLEDISPHINGE:	// deprecated
 		case DEFORMABLEDISPJOINT:
 		case INVARIANTDEFORMABLEDISPJOINT:
 			if (HP.IsKeyWord("position")) {
@@ -1467,7 +1467,12 @@ ReadJoint(DataManager* pDM,
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
 			break;
 
-		default:
+		case DEFORMABLEHINGE:
+		case INVARIANTDEFORMABLEHINGE:
+			if (HP.IsKeyWord("position")) {
+				// ignored
+				f1 = HP.GetPosRel(RF1);
+			}
 			break;
 		}
 
@@ -1495,7 +1500,7 @@ ReadJoint(DataManager* pDM,
 		/* Offset if displacement hinge */
 		Vec3 f2(Zero3);
 		switch (CurrKeyWord) {
-		case DEFORMABLEDISPHINGE:
+		case DEFORMABLEDISPHINGE:	// deprecated
 		case DEFORMABLEDISPJOINT:
 		case INVARIANTDEFORMABLEDISPJOINT:
 			if (HP.IsKeyWord("position")) {
@@ -1513,7 +1518,12 @@ ReadJoint(DataManager* pDM,
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
 			break;
 
-		default:
+		case DEFORMABLEHINGE:
+		case INVARIANTDEFORMABLEHINGE:
+			if (HP.IsKeyWord("position")) {
+				// ignored
+				f2 = HP.GetPosRel(RF2, RF1, f1);
+			}
 			break;
 		}
 
@@ -1581,7 +1591,7 @@ ReadJoint(DataManager* pDM,
 				sJointLogName = "deformablehinge";
 				break;
 
-			case DEFORMABLEDISPHINGE:
+			case DEFORMABLEDISPHINGE:	// deprecated
 			case DEFORMABLEDISPJOINT:
 				SAFENEWWITHCONSTRUCTOR(pEl,
 					ElasticDispJoint,
@@ -1636,7 +1646,7 @@ ReadJoint(DataManager* pDM,
 				sJointLogName = "deformablehinge";
 				break;
 
-			case DEFORMABLEDISPHINGE:
+			case DEFORMABLEDISPHINGE:	// deprecated
 			case DEFORMABLEDISPJOINT:
 				SAFENEWWITHCONSTRUCTOR(pEl,
 					ViscousDispJoint,
@@ -1687,7 +1697,7 @@ ReadJoint(DataManager* pDM,
 				sJointLogName = "deformablehinge";
 				break;
 
-			case DEFORMABLEDISPHINGE:
+			case DEFORMABLEDISPHINGE:	// deprecated
 			case DEFORMABLEDISPJOINT:
 				SAFENEWWITHCONSTRUCTOR(pEl,
 					ViscoElasticDispJoint,
