@@ -3863,6 +3863,7 @@ output_eigenvalues(const VectorHandler *pBeta,
 	const doublereal& dShiftR,
 	DataManager* pDM,
 	const Solver::EigenAnalysis *pEA,
+	integer iLow, integer iHigh,
 	std::vector<bool>& vOut)
 {
 	std::ostream& Out = pDM->GetOutFile();
@@ -3880,6 +3881,11 @@ output_eigenvalues(const VectorHandler *pBeta,
 		doublereal omega;
 		doublereal csi;
 		doublereal freq;
+
+		if (iCnt < iLow || iCnt > iHigh) {
+			vOut[iCnt - 1] = false;
+			continue;
+		}
 
 		const doublereal& h = pEA->dParam;
 		do_eig(b, re, im, h, sigma, omega, csi, freq);
@@ -4360,7 +4366,7 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 	}
 
 	std::vector<bool> vOut(iSize);
-	output_eigenvalues(&Beta, AlphaR, AlphaI, 0., pDM, pEA, vOut);
+	output_eigenvalues(&Beta, AlphaR, AlphaI, 0., pDM, pEA, iILO, iIHI, vOut);
 
 	if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_EIGENVECTORS) {
 		output_eigenvectors(&Beta, AlphaR, AlphaI, 0.,
@@ -4588,7 +4594,7 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 		MyVectorHandler AlphaR(nconv, &DR[0]);
 		MyVectorHandler AlphaI(nconv, &DI[0]);
 		std::vector<bool> vOut(nconv);
-		output_eigenvalues(0, AlphaR, AlphaI, 1., pDM, pEA, vOut);
+		output_eigenvalues(0, AlphaR, AlphaI, 1., pDM, pEA, 1, nconv, vOut);
 
 		if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_EIGENVECTORS) {
 			std::vector<doublereal *> ZC(nconv);
@@ -4738,7 +4744,7 @@ lwork       Size of workspace, >= 4+m+5jmax+3kmax if GMRESm
 			}
 		}
 		std::vector<bool> vOut(nconv);
-		output_eigenvalues(0, AlphaR, AlphaI, 1., pDM, pEA, vOut);
+		output_eigenvalues(0, AlphaR, AlphaI, 1., pDM, pEA, 1, nconv, vOut);
 	
 		if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_EIGENVECTORS) {
 			FullMatrixHandler VR(n, nconv);
