@@ -2867,7 +2867,7 @@ ReadJoint(DataManager* pDM,
 						continue;
 					}
 
-					silent_cerr("TotalJoint(" << uLabel << "): "
+					silent_cerr("TotalPinJoint(" << uLabel << "): "
 						"invalid status for position component #" << i + 1
 						<< " at line " << HP.GetLineData() << std::endl);
 					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -2903,7 +2903,7 @@ ReadJoint(DataManager* pDM,
 						continue;
 					}
 
-					silent_cerr("TotalJoint(" << uLabel << "): "
+					silent_cerr("TotalPinJoint(" << uLabel << "): "
 						"invalid status for position component #" << i + 1
 						<< " at line " << HP.GetLineData() << std::endl);
 					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
