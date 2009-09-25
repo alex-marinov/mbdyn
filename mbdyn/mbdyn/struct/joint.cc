@@ -1474,6 +1474,8 @@ ReadJoint(DataManager* pDM,
 				f1 = HP.GetPosRel(RF1);
 			}
 			break;
+		default:
+			break;
 		}
 
 		Mat3x3 R1(Eye3);
@@ -1524,6 +1526,8 @@ ReadJoint(DataManager* pDM,
 				// ignored
 				f2 = HP.GetPosRel(RF2, RF1, f1);
 			}
+			break;
+		default:
 			break;
 		}
 
