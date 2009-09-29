@@ -279,12 +279,14 @@ if test "x$CXX" = "x" ; then
 	AC_MSG_ERROR([Need a working C++ compiler])
 fi
 AC_PROG_FC
-if test "x$FC" = "x" ; then
+AC_PROG_F77
+if test "x$FC" = "x" -a "x$F77" = "x" ; then
 	AC_MSG_ERROR([Need a working Fortran compiler])
 fi
 AC_FC_DUMMY_MAIN
 AC_FC_LIBRARY_LDFLAGS
-LIBS="$LIBS $FCLIBS"
+AC_F77_LIBRARY_LDFLAGS
+LIBS="$LIBS $FCLIBS $F77LIBS"
 
 if test "$GCC" = "yes" ; then
 	dnl check for 3.3
@@ -1085,7 +1087,7 @@ if test $ol_with_blas != no ; then
 
 	try_blas_LIBS=
 	if test "$have_blas" = "no" ; then
-		try_blas_LIBS="-l$ol_with_goto_lib -lxerbla $FCLIBS -lm"
+		try_blas_LIBS="-l$ol_with_goto_lib -lxerbla $FCLIBS $F77LIBS -lm"
 		if test "$ol_with_blas" = "auto" -o "$ol_with_blas" = "goto" ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
@@ -1118,13 +1120,13 @@ if test $ol_with_blas != no ; then
 	/* test for blas */
 	return cblas_dgemm();
 			],[have_blas="atlas"
-				LIBS="-lcblas -lf77blas -latlas $FCLIBS -lm $LIBS"
+				LIBS="-lcblas -lf77blas -latlas $FCLIBS $F77LIBS -lm $LIBS"
 				AC_TRY_LINK([
 					/* FIXME: some architectures might use different
 					 * naming conventions, e.g. uppercase, no underscore
 					 */
 					extern int dgemm_(void);],[return dgemm_();
-				],[try_blas_LIBS="-lcblas -lf77blas -latlas $FCLIBS -lm"],[])
+				],[try_blas_LIBS="-lcblas -lf77blas -latlas $FCLIBS $F77LIBS -lm"],[])
 			],[
 				have_blas="no"
 				if test "$ol_with_blas" = "atlas" ; then
@@ -1156,7 +1158,7 @@ if test $ol_with_blas != no ; then
 	fi
 
 	if test "$have_blas" = "no" ; then
-		try_blas_LIBS="-lblas $FCLIBS -lm"
+		try_blas_LIBS="-lblas $FCLIBS $F77LIBS -lm"
 		if test "$ol_with_blas" = "auto" -o "$ol_with_blas" = "blas" ; then
 			LIBS="$try_blas_LIBS $LIBS"
 
@@ -1487,9 +1489,9 @@ dnl Check for Harwell
 dnl
 ol_link_harwell=no
 if test $ol_with_harwell != no ; then
-	AC_CHECK_LIB(hsl,ma28ad,[have_libhsl=yes],[have_libhsl=no],[${FCLIBS} -lm])
+	AC_CHECK_LIB(hsl,ma28ad,[have_libhsl=yes],[have_libhsl=no],["$FCLIBS $F77LIBS -lm"])
 	if test $have_libhsl = no ; then
-		AC_CHECK_LIB(hsl,ma28ad_,[have_libhsl=yes],[have_libhsl=no],[${FCLIBS} -lm])
+		AC_CHECK_LIB(hsl,ma28ad_,[have_libhsl=yes],[have_libhsl=no],["$FCLIBS $F77LIBS -lm"])
 	fi
 	if test $have_libhsl = yes ; then
 		ol_link_harwell=yes
@@ -1514,7 +1516,7 @@ if test $ol_with_lapack != no ; then
 
 	save_LIBS="$LIBS"
 	try_lapack_LIBS="-llapack"
-	LIBS="$try_lapack_LIBS $BLAS_LIBS $FCLIBS $save_LIBS"
+	LIBS="$try_lapack_LIBS $BLAS_LIBS $FCLIBS $F77LIBS $save_LIBS"
 	AC_TRY_LINK([
 	extern double dgesvd(double *);
 		],[
@@ -1588,7 +1590,7 @@ if test $ol_with_arpack != no ; then
 
 	save_LIBS="$LIBS"
 	try_arpack_LIBS="-larpack"
-	LIBS="$try_arpack_LIBS $LAPACK_LIBS $BLAS_LIBS $FCLIBS $save_LIBS"
+	LIBS="$try_arpack_LIBS $LAPACK_LIBS $BLAS_LIBS $FCLIBS $F77LIBS $save_LIBS"
 	AC_TRY_LINK([
 	extern double dnaupd(double *);
 		],[
@@ -1632,7 +1634,7 @@ if test $ol_with_jdqz != no ; then
 
 	save_LIBS="$LIBS"
 	try_jdqz_LIBS="-ljdqz"
-	LIBS="$try_jdqz_LIBS $LAPACK_LIBS $BLAS_LIBS $FCLIBS $save_LIBS"
+	LIBS="$try_jdqz_LIBS $LAPACK_LIBS $BLAS_LIBS $FCLIBS $F77LIBS $save_LIBS"
 	AC_TRY_LINK([
 	double amul(double *x) { return 0.; }
 	double bmul(double *x) { return 0.; }
