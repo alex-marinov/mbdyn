@@ -158,7 +158,12 @@ The \kw{aerodynamic beam} input format is:
 \end{verbatim}
 where
 \begin{verbatim}
-    <airfoil_data> ::= { naca 0012 | rae 9671 | c81 , <c81_data> }
+    <airfoil_data> ::=
+        { naca 0012
+            | rae 9671
+            | c81 , <c81_data>
+            | theodorsen , <c81_label> , <omega_PD>
+        }
 \end{verbatim}
 and
 \begin{verbatim}
@@ -252,6 +257,11 @@ the interpolated data to the aerodynamic element.
 
 \noindent
 \emph{FIXME: not implemented yet}
+
+The \kw{theodorsen} aerodynamic data uses C81 data from a single profile,
+and superimposes Wagner's approximation of the Theodorsen incompressible
+unsteady correction of 2D lift and moment coefficients.
+It is experimental.
 
 
 \subsection{Output}
@@ -1742,25 +1752,33 @@ a tight coupling loop.
 When the coupling is \kw{loose}, the communication pattern is:
 \begin{enumerate}
 \item MBDyn receives a set of forces sent by the external peer
-	the first time the residual is assembled within a time step;
+	the first time the residual is assembled within time step $k$;
+	the external peer generated that set of forces
+	based on the kinematics at step $k-1$;
 
-\item MBDyn sends a set of kinematic parameters after convergence.
+\item MBDyn sends a set of kinematic parameters related to step $k$
+	after convergence.
 \end{enumerate}
-As a consequence, MBDyn solves the current time step kinematics
-using forces evaluated for the kinematics at the previous time step,
-something like
+As a consequence, MBDyn solves the kinematics at the current time step, $k$,
+using forces evaluated for the kinematics at the previous time step, $k-1$.
+Something like
 \begin{align}
-	\T{f}\plbr{\T{y}_k, \dot{\T{y}}_k, \T{u}_{k - 1}} &= \T{0}
+	\T{f}\plbr{\T{y}_k, \dot{\T{y}}_k, \T{u}_{k - 1}}
+	&=
+	\T{0}
+	.
 \end{align}
 
 \paragraph{Tight Coupling.} \
 When the coupling is \kw{tight}, the communication pattern is:
 \begin{enumerate}
-\item MBDyn sends the predicted kinematics during the ``after predict''
-	phase (unless \kw{send after predict} is set to \kw{no});
+\item MBDyn sends the predicted kinematics for step $k$
+	during the ``after predict'' phase
+	(unless \kw{send after predict} is set to \kw{no});
 
 \item MBDyn receives a set of forces sent by the external peer
-	each time the residual is assembled;
+	each time the residual is assembled; those forces are computed
+	based on the kinematics at iteration $j$
 
 \item as soon as, while reading the forces, MBDyn is informed that
 	the external peer converged, it continues iterating until
@@ -1769,11 +1787,16 @@ When the coupling is \kw{tight}, the communication pattern is:
 %\item if coupling only occurs every some iterations, MBDyn sends
 %	a set of kinematic parameters after convergence.
 \end{enumerate}
-As a consequence, MBDyn solves the current time step kinematics
-using forces evaluated for the kinematics at the same time step,
-something like
+As a consequence, MBDyn solves the kinematics at the current time step, $k$,
+at iteration $j$,
+using forces evaluated for the kinematics at the same time step, $k$,
+but at iteration $j-1$.
+Something like
 \begin{align}
-	\T{f}\plbr{\T{y}_k, \dot{\T{y}}_k, \T{u}_k} &= \T{0}
+	\T{f}\plbr{\T{y}_k^{(j)}, \dot{\T{y}}_k^{(j)}, \T{u}_k^{(j-1)}}
+	&=
+	\T{0}
+	.
 \end{align}
 
 
