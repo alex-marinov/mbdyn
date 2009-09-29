@@ -527,7 +527,8 @@ C81TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
 
 	doublereal WW[6];
 	WW[VX] = copysign(std::sqrt(Vxp2), W[VX]);
-	WW[VY] = -W[VX]*tan_y1 - d34*W[WZ];
+	//WW[VY] = -W[VX]*tan_y1 - d34*W[WZ];
+	WW[VY] = -WW[VX]*tan_y1 - d34*W[WZ];
 	WW[VZ] = W[VZ];
 	WW[WX] = W[WX];
 	WW[WY] = W[WY];
@@ -1040,7 +1041,8 @@ C81TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
 
 	doublereal WW[6];
 	WW[VX] = copysign(std::sqrt(Vxp2), W[VX]);
-	WW[VY] = -W[VX]*tan_y1 - d34*W[WZ];
+	//WW[VY] = -W[VX]*tan_y1 - d34*W[WZ];
+	WW[VY] = -WW[VX]*tan_y1 - d34*W[WZ];
 	WW[VZ] = W[VZ];
 	WW[WX] = W[WX];
 	WW[WY] = W[WY];
