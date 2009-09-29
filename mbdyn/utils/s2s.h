@@ -62,7 +62,7 @@ struct s2s_t {
 	void usage(int rc);
 	void parse(int argc, char *argv[]);
 	void prepare(void);
-	void shutdown();
+	void shutdown(void);
 
 	struct s2s_t	*next;
 };
