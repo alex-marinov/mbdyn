@@ -29,20 +29,19 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* fixed step file driver */
+/* variable step file driver */
 
-#ifndef FIXEDSTEP_H
-#define FIXEDSTEP_H
+#ifndef VARSTEP_H
+#define VARSTEP_H
 
-#include <drive.h>
+#include "drive.h"
 
-/* FixedStepFileDrive - begin */
+/* VariableStepFileDrive - begin */
 
-class FixedStepFileDrive : public FileDrive {
+class VariableStepFileDrive : public FileDrive {
 protected:
-	doublereal dT0;
-	doublereal dDT;
 	integer iNumSteps;
+	integer iCurrStep;
 	bool bLinear;
 	bool bPadZeroes;
 	Bailout boWhen;
@@ -51,14 +50,13 @@ protected:
 	doublereal** pvd;
 
 public:
-	FixedStepFileDrive(unsigned int uL, const DriveHandler* pDH,
-			const char* const sFileName, integer is, integer id,
-			doublereal t0, doublereal dt,
+	VariableStepFileDrive(unsigned int uL, const DriveHandler* pDH,
+			const char* const sFileName, integer id,
 			bool bl, bool pz, Drive::Bailout bo);
-	virtual ~FixedStepFileDrive(void);
+	virtual ~VariableStepFileDrive(void);
 
 	virtual FileDrive::Type GetFileDriveType(void) const {
-		return FileDrive::FIXEDSTEP;
+		return FileDrive::VARIABLESTEP;
 	};
 
 	/* Scrive il contributo del DriveCaller al file di restart */
@@ -67,13 +65,13 @@ public:
 	virtual void ServePending(const doublereal& t);
 };
 
-/* FixedStepFileDrive - end */
+/* VariableStepFileDrive - end */
 
 class DataManager;
 class MBDynParser;
 
-extern Drive* ReadFixedStepFileDrive(DataManager* pDM,
+extern Drive* ReadVariableStepFileDrive(DataManager* pDM,
 		MBDynParser& HP, unsigned int uLabel);
 
-#endif /* FIXEDSTEP_H */
+#endif // VARSTEP_H
 

@@ -17,6 +17,8 @@ MBDyn 1.X-Devel
 		- added better Fortran compiler detection
 		- added referenced direction capability to "total joint"
 		  and "total pin joint" elements
+		- added support for variable step file driver
+		- added "const" variant of fixed/variable step file drivers
 	Backward compatibility issues:
 		- the "imposed displacement", "imposed displacement pin"
 		  and "imposed orientation" joints are now mimicked

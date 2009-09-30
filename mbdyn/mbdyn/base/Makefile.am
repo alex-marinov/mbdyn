@@ -161,6 +161,8 @@ thirdorderstepsol.h \
 thirdorderstepsol.cc \
 usesock.cc \
 usesock.h \
+varstep.cc \
+varstep.h \
 ScalarFunctions.h \
 ScalarFunctionsImpl.h \
 ScalarFunctionsImpl.cc

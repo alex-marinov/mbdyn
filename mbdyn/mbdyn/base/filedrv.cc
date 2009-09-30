@@ -32,20 +32,21 @@
 /* file driver */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 #include <fstream>
 
-#include <dataman.h>
-#include <mbdyn.h>
-#include <filedrv.h>
-#include <fixedstep.h>
-#include <sockdrv.h>
-#include <streamdrive.h>
+#include "dataman.h"
+#include "mbdyn.h"
+#include "filedrv.h"
+#include "fixedstep.h"
+#include "varstep.h"
+#include "sockdrv.h"
+#include "streamdrive.h"
 #ifdef USE_SOCKET
-#include <socketstreamdrive.h>
+#include "socketstreamdrive.h"
 #endif // USE_SOCKET
-#include <rtai_in_drive.h>
+#include "rtai_in_drive.h"
 
 /* FileDrive - begin */
 
@@ -142,6 +143,7 @@ ReadFileDriver(DataManager* pDM,
 
 	const char* sKeyWords[] = {
 		"fixed" "step",
+		"variable" "step",
 		"socket",
 		"stream",
 		"socket" "stream",
@@ -153,6 +155,7 @@ ReadFileDriver(DataManager* pDM,
 		UNKNOWN = -1,
 
 		FIXEDSTEP = 0,
+		VARIABLESTEP,
 		SOCKET,
 		STREAM,
 		SOCKETSTREAM,
@@ -170,6 +173,10 @@ ReadFileDriver(DataManager* pDM,
 	switch (CurrKeyWord) {
 	case FIXEDSTEP:
 		pDr = ReadFixedStepFileDrive(pDM, HP, uLabel);
+		break;
+
+	case VARIABLESTEP:
+		pDr = ReadVariableStepFileDrive(pDM, HP, uLabel);
 		break;
 
 	case SOCKET:
