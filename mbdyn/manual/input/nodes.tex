@@ -37,21 +37,34 @@ Every node card has the following format:
 \begin{verbatim}
     <card> ::= <node_type> : <node_label>
         <additional_args>
+        [ , scale , { default | <scale> } ]
         [ , output , { yes | no } ]
         [ , <extra_arglist> ] ;
 \end{verbatim}
 where \kw{node\_type} is one of the following:
 \begin{itemize}
-    \item \kw{structural}
-    \item \kw{electric}
     \item \kw{abstract}
-    \item \kw{parameter}
+    \item \kw{electric}
     \item \kw{hydraulic}
+    \item \kw{parameter}
+    \item \kw{structural}
+    \item \kw{thermal}
 \end{itemize}
 The data manager reads the node type and the label and checks for
-duplication. If the node is not defined yet, the proper read function is
+duplication.
+If the node is not defined yet, the appropriate read function is
 called, which parses the rest of the card and constructs the node.
-The nodes are read as follows:
+
+The optional \kw{scale} keyword is only supported by
+\begin{itemize}
+    \item \kw{abstract}
+    \item \kw{electric}
+    \item \kw{hydraulic}
+    \item \kw{structural}
+    \item \kw{thermal}
+\end{itemize}
+nodes.
+See Section~\ref{sec:CONTROLDATA:DEFAULTSCALE} for further details.
 
 
 
