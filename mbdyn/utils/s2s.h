@@ -59,10 +59,13 @@ struct s2s_t {
 	s2s_t(void);
 	~s2s_t(void);
 
-	void usage(int rc);
+	void usage(int rc) const;
 	void parse(int argc, char *argv[]);
 	void prepare(void);
 	void shutdown(void);
+
+	ssize_t send(int flags) const;
+	ssize_t recv(int flags);
 
 	struct s2s_t	*next;
 };

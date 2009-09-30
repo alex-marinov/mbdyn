@@ -89,7 +89,7 @@ main(int argc, char *argv[])
 			s2s.dbuf.insert(s2s.dbuf.end(), d);
 		}
 
-		send(s2s.sock, (char *)&s2s.dbuf[0], sizeof(double)*s2s.nChannels, 0);
+		s2s.send(0);
 
 	} else {
 		s2s.dbuf.resize(s2s.nChannels);
@@ -103,7 +103,7 @@ main(int argc, char *argv[])
 			}
 		}
 		
-		send(s2s.sock, (char *)&s2s.dbuf[0], sizeof(double)*s2s.nChannels, 0);
+		s2s.send(0);
 	}
 
 done:;

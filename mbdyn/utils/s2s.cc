@@ -91,7 +91,7 @@ s2s_t::~s2s_t(void)
 }
 
 void
-s2s_t::usage(int rc)
+s2s_t::usage(int rc) const
 {
 	const char	*C = "",
 			*F = "",
@@ -448,6 +448,18 @@ s2s_t::prepare(void)
 	signal(SIGTERM, s2s_shutdown);
 	signal(SIGINT, s2s_shutdown);
 	signal(SIGPIPE, s2s_shutdown);
+}
+
+ssize_t
+s2s_t::send(int flags) const
+{
+	return ::send(sock, (char *)&dbuf[0], sizeof(double)*nChannels, flags);
+}
+
+ssize_t
+s2s_t::recv(int flags)
+{
+	return ::recv(sock, (char *)&dbuf[0], sizeof(double)*nChannels, flags);
 }
 
 #endif // USE_SOCKET

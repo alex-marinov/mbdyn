@@ -79,7 +79,7 @@ main(int argc, char *argv[])
 	s2s.dbuf.resize(s2s.nChannels);
 	const char	*sep = " ";
 	while (true) {
-		int len = recv(s2s.sock, (char *)&s2s.dbuf[0], sizeof(double)*s2s.nChannels, 0);
+		int len = s2s.recv(0);
 
 		switch (len) {
 		case -1: {
