@@ -966,8 +966,8 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 /* C81TheodorsenAeroData2 - begin */
 C81TheodorsenAeroData::C81TheodorsenAeroData(integer p,
 	const c81_data* d,
-	doublereal omegaPD, DriveCaller *ptime)
-: C81AeroData(STEADY, p, d, ptime), iParam(0), omegaPD(omegaPD)
+	DriveCaller *ptime)
+: C81AeroData(STEADY, p, d, ptime), iParam(0)
 {
 	prev_alpha_pivot = alpha_pivot;
 	prev_dot_alpha = dot_alpha;
@@ -1386,7 +1386,6 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	printf("\nchord %lf ", chord);
 	printf("\na %lf ", a);
 	printf("\nrho %lf ", rho);
-	printf("\nomegaPD %lf ", omegaPD);
 	printf("\ncx_0 %lf ", cx_0);
 	fd = fopen("/home/mattia/work/mbdyn/mbdyn/aero/UnsteadyAeroJ_test/cx_0.mat","w");
 	fprintf(fd,"%15.7e", cx_0);

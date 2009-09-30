@@ -691,16 +691,26 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP,
 		case THEODORSEN: {
 	  		integer iProfile = HP.GetInt();
 		  	const c81_data* data = HP.GetC81Data(iProfile);
+#ifdef USE_UNSTEADY_6STATES
+			// deprecated
 			doublereal omegaPD = HP.GetReal();
+#endif // USE_UNSTEADY_6STATES
 			DriveCaller *ptime = NULL;
 			
 			SAFENEWWITHCONSTRUCTOR(ptime,
 					TimeDriveCaller,
 					TimeDriveCaller(pDM->pGetDrvHdl()));
 
+#ifdef USE_UNSTEADY_6STATES
+			// deprecated
 	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
 				C81TheodorsenAeroData,
 				C81TheodorsenAeroData(iProfile, data, omegaPD, ptime));
+#else // USE_UNSTEADY_6STATES
+	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
+				C81TheodorsenAeroData,
+				C81TheodorsenAeroData(iProfile, data, ptime));
+#endif // USE_UNSTEADY_6STATES
 			} break;
 		}
 

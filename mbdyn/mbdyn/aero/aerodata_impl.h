@@ -205,7 +205,6 @@ public:
 class C81TheodorsenAeroData : public C81AeroData {
 protected:
 	integer iParam;
-	doublereal omegaPD;
 	doublereal d14, d34;
 	doublereal chord;
 	doublereal a;
@@ -216,7 +215,7 @@ protected:
 	doublereal prev_alpha_pivot, prev_dot_alpha, prev_time;
 
 public:
-	C81TheodorsenAeroData(integer p, const c81_data* d, doublereal omegaPD, DriveCaller *ptime = 0);
+	C81TheodorsenAeroData(integer p, const c81_data* d, DriveCaller *ptime = 0);
 	virtual ~C81TheodorsenAeroData(void);
 
 	virtual std::ostream& Restart(std::ostream& out) const;
