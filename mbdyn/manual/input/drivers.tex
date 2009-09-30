@@ -214,7 +214,10 @@ or model debugging purposes.}
         [ { [ no ] signal
             | [ non ] blocking } , [ ... ] ]
         [ timeout , <timeout> , ]
-        <columns_number> ;
+        <columns_number>
+        [ echo , " <echo_file_name> "
+            [ , precision , <precision> ]
+            [ , shift , <shift> ] ] ;
 \end{verbatim}
 The \kw{stream} drive allows MBDyn to receive streamed inputs 
 from remote processes both during regular simulations and during 
@@ -254,7 +257,14 @@ in case the stream is read after it was closed by the peer;
 \item the keyword \kw{timeout} allows to set a timeout
 for each read operation; the timeout is expressed in seconds
 as a floating point number, with a theoretical micro-second resolution
-(the actual resolution is left to the OS).
+(the actual resolution is left to the OS);
+\item the keyword \kw{echo} allows to echo the streamed data
+into file \kw{echo\_file\_name}, using the optional \kw{precision}
+and a \kw{shift} for the time, to make sure step changes are captured
+correctly (a small negative value is recommended);
+the resulting file is suitable to re-execute the simulation
+using a \kw{variable step} file driver, using a \kw{const} value
+for the \kw{interpolation} option.
 \end{itemize}
 If no socket type is specified, i.e.\ none of the \kw{local}, \kw{port} 
 and \kw{host} keywords are given, a socket is opened by default 

@@ -50,10 +50,14 @@ protected:
 	unsigned int InputCounter;
 
 	UseSocket *pUS;
-
 	int recv_flags;
-	
 	struct timeval SocketTimeout;
+
+	std::string sOutFileName;
+	std::ofstream outFile;
+	int iPrecision;
+	doublereal dShift;
+
 public:
 	SocketStreamDrive(unsigned int uL,
 		const DriveHandler* pDH,
@@ -61,7 +65,9 @@ public:
 		const std::string& sFileName,
 		integer nd, unsigned int ie,
 		int flags,
-		const struct timeval& st);
+		const struct timeval& st,
+		const std::string& sOutFileName, int iPrecision,
+		doublereal dShift);
 
 	virtual ~SocketStreamDrive(void);
 
