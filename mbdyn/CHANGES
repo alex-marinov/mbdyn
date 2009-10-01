@@ -19,11 +19,13 @@ MBDyn 1.X-Devel
 		  and "total pin joint" elements
 		- added support for variable step file driver
 		- added "const" variant of fixed/variable step file drivers
+		- added "echo" of socket stream file drivers
+		  (all three above suggested by Doug Baldwin)
 	Backward compatibility issues:
 		- the "imposed displacement", "imposed displacement pin"
 		  and "imposed orientation" joints are now mimicked
 		  by "total joint" and "total pin joint"
-		- allow "position" in deformable hinge (ignored)
+		- allow "position" in deformable hinge (ignored by now)
 	Known issues:
 	Bug fixes:
 		- fix error message when math parser unable to cast value
