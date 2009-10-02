@@ -41,6 +41,7 @@
 #include "filedrv.h"
 #include "varstep.h"
 #include "solver.h"
+#include "bisec.h"
 
 /* VariableStepFileDrive - begin */
 
@@ -126,8 +127,15 @@ bLinear(bl), bPadZeroes(pz), boWhen(bo), pd(0), pvd(0)
 		}
 	}
 
-	/* All data is available, so initialize the buffer accordingly */
-	ServePending(pDH->dGetTime());
+	// All data is available, so initialize the buffer accordingly
+	// use bisection to initialize iCurrStep
+	doublereal dTime = pDH->dGetTime();
+	iCurrStep = bisec(pvd[0], dTime, 0, iNumSteps - 1);
+	if (iCurrStep < 0) {
+		iCurrStep++;
+	}
+
+	ServePending(dTime);
 }
 
 VariableStepFileDrive::~VariableStepFileDrive(void)
@@ -186,13 +194,19 @@ VariableStepFileDrive::ServePending(const doublereal& t)
 
 	} else {
 		// look for step exactly before
+		// note: use linear search, under the assumption
+		// that we always start from a relatively close guess
 		while (pvd[0][iCurrStep] > t) {
 			iCurrStep--;
 		}
 
+		// no need to check for under/uverflow
+		ASSERT(iCurrStep >= 0);
+
 		while (pvd[0][iCurrStep + 1] <= t) {
 			iCurrStep++;
 		}
+		ASSERT(iCurrStep < iNumSteps);
 
 		integer j1 = iCurrStep;
 		if (bLinear) {
